@@ -1,0 +1,6 @@
+<!-- begin: neexistujici -->
+<img src="/files/styly/obecne/warning-big.png" alt="pozor" style="float:left;margin-right:16px">
+<h1 style="margin-top:6px">Požadovaná stránka neexistuje</h1>
+<p>Stránka <a href="{url}">{url}</a>, kterou jste se pokoušeli zo&shy;bra&shy;zit, nee&shy;xi&shy;stu&shy;je. Dů&shy;vo&shy;dem mů&shy;že být překlep v adrese nebo zastaralý odkaz ve vyhledávači. Po&shy;kud vás sem do&shy;ve&shy;dl od&shy;kaz přímo na stránkách <a href="http://gamecon.cz">gamecon.cz</a>, kontaktujte prosím administrátora na <a href="mailto:admin@gamecon.cz">admin@gamecon.cz</a>. Děkujeme.</p>
+<p>Pokračovat můžete výberem z menu nebo přechodem na <a href="/">úvodní stránku</a>.</p>
+<!-- end: neexistujici -->

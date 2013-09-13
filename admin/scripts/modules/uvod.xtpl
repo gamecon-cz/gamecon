@@ -1,0 +1,162 @@
+<!-- begin:uvod -->
+
+<h1>Úvod</h1>
+
+<!-- begin:uzivatel -->
+  <div class="aBox" style="float:left;margin-right:20px;width:280px">
+    <h3>Přehled</h3>
+    <table class="cista">
+    <tr><td>Stav účtu: </td><td> {stav}</td></tr>
+    <tr><td>Statut:</td><td> {statut}</td></tr>
+    <tr><td>Dorazil:</td><td> 
+      <!-- begin:pritomen -->{ok} je na GC a dostal{a} materiály<!-- end:pritomen -->
+      <!-- begin:nepritomen -->{err} není na GC &ensp; 
+        <form method="post" class="radkovy"><input type="submit" name="datMaterialy" value="Dát materiály"></form><!-- end:nepritomen --></tr></td>
+    <tr><td>ID uživ.:</td><td> {id}</td></tr>
+    <tr><td>E-mail:</td><td> {mail}</td></tr>
+    <tr><td>Telefon:</td>
+      <td> {telefon}
+      <!-- begin:bezTelefonu -->{err} <em>Požádej uživatele o telefon:</em><br>
+      <form method="post" class="radkovy">
+      <input type="text" name="telefon" style="height:12px;padding:0">
+      <input type="submit" value="Uložit"></form><!-- end:bezTelefonu --></td></tr>
+    <tr><td>Pokoj:</td><td> {pokoj}</td></tr>
+    </table><br>
+    
+    <a href="/program-uzivatele" target="_blank">Program uživatele</a><br><br>
+        
+    <strong>Připsat platbu</strong>
+    <form method="post">
+      <table>
+        <tr style="background-color:transparent">
+          <td>Částka:</td>    <td><input type="text" name="platba" style="text-align:right;width:40px">&thinsp;Kč</td>
+        </tr><tr>
+          <td>Poznámka:</td>  <td><input type="text" name="poznamka" style="width:180px"></td>
+        </tr>
+      </table>
+      <input type="submit" value="Připsat">
+    </form>
+    <!-- begin:gcOdhlas -->
+    <form method="post" style="float:right;margin-top:-26px">
+      <input type="submit" name="gcOdhlas" value="Odhlásit z GC">
+      <script>
+      $('[name="gcOdhlas"]').closest('form').submit(function(){ return confirm('Trvale odhlásit uživatele z GameConu a smazat všechny jeho aktivity a nakoupené věci?') });
+      </script>
+    </form>
+    <!-- end:gcOdhlas --> 
+  </div>
+  
+  <div class="aBox" style="float:left;margin-right:20px;width:280px">
+    <h3>Slevy a nováčci</h3>
+    <strong>Na aktivity:</strong>
+    <ul>{slevyAktivity}</ul>
+    <strong>Na všechno:</strong>
+    <ul>{slevyVse}</ul>
+    <strong>Nováčci:</strong><br>
+    <ul>{novacci}</ul>
+  </div>
+  
+  <div class="aBox" style="float:left;width:280px">
+    <h3 class="prehled">Objednávky a platby</h3>
+    {prehled}
+    <script>$('.prehled').siblings('table').css('width','100%');</script>
+  </div>
+  
+  <script>
+    if({potvrditZruseni})
+      $('#zrusitPraci').submit(function(){
+        return confirm('Uživatel nedostal materiály nebo má záporný zůstatek. Ukončit práci s uživatelem?');
+      });
+  </script>
+<!-- end:uzivatel -->
+<!-- begin:neUzivatel -->
+  <div class="warning">Vyberte uživatele (pole nahoře)</div>
+<!-- end:neUzivatel -->
+<!-- begin:neprihlasen -->
+  <div class="error">Uživatel{ka} není přihlášen{a} na GameCon.</div>
+  Přihlásit na GameCon {rok}: <form class="radkovy" method="post"><input type="submit" name="gcPrihlas" value="Přihlásit"></form>
+<!-- end:neprihlasen -->
+
+<div style="clear:both"></div>
+<div class="aBox" style="float:left;margin-right:20px;width:440px">
+  <h3>Nástroje infopultu</h3>
+  <a href="/program-obecny" target="_blank">Program GameConu</a> –
+  <a href="/last-minute-tabule" target="_blank">Volná místa</a>
+  <br><br>
+  <strong>Rychloregistrace</strong> (všechny položky povinné)<br>
+  <!-- <div style="float:right;margin-right:360px;font-style:italic;width:180px">
+    Po nevyplnění některého z údajů a odeslání duše operátora instantně propadá peklu.
+  </div> -->
+  <form method="post" id="rychloreg">
+  <table>
+    <tr><td>Jméno a příjmení:</td><td> 
+      <input type="text" name="rychloreg[jmeno_uzivatele]" style="width:100px">
+      <input type="text" name="rychloreg[prijmeni_uzivatele]" style="width:100px">
+      </td></tr>
+    <tr><td>E-mail:</td><td> <input type="text" name="rychloreg[email1_uzivatele]" style="width:208px" > </td></tr>
+    <tr><td>Pohlaví:</td><td> 
+      <label><input type="radio" name="rychloreg[pohlavi]" value="m">muž</label> &emsp;
+      <label><input type="radio" name="rychloreg[pohlavi]" value="f">žena</label>
+      </td></tr>
+    <tr><td colspan="2"> 
+      <input type="submit" value="Jen registrovat"> 
+      <input type="submit" name="vcetnePrihlaseni" value="Registrovat a přihlásit na GC"> 
+      </td></tr>
+  </table>
+  </form>
+  <script>
+    $('#rychloreg').submit(function(){
+      if($(this).find('[name="rychloreg[email1_uzivatele]"]').val()=='' || $(this).find('[name="rychloreg[pohlavi]"]:checked').size()==0)
+      {
+        alert('všechny položky jsou povinné');
+        return false;
+      }
+    });
+  </script>
+</div>
+
+<div class="aBox" style="float:left;width:430px">
+  <h3>Prodej předmětů</h3>
+  Zbývající počty předmětů jsou uvedeny v závorce<br><br>
+  <form method="post" id="prodej">
+  <table>
+    <tr><td>ID uživatele:</td><td> 
+      <input type="text" name="prodej[id_uzivatele]" value="{id}" style="width:200px">
+      </td></tr>
+    <tr><td>Předmět:</td><td> 
+      <select name="prodej[id_predmetu]" style="width:204px">
+      {predmety}
+      </select>
+      </td></tr>
+    <tr><td colspan="2"> 
+      <input type="submit" name="prodej[odeslano]" value="Prodat"> 
+      </td></tr>
+  </table>
+  </form>
+  <script>
+    if("{id}")  $('[name="prodej[id_uzivatele]"]').attr('disabled',true);
+    $('#prodej').submit(function(){
+      if($(this).find('[name="prodej[id_predmetu]"]').val()==0)
+      {
+        alert('vyber předmět');
+        return false;
+      }
+      if($(this).find('[name="prodej[id_uzivatele]"]').val()=='')
+        return confirm('Prodat tento předmět anonymně bez uvedení uživatele?');
+    });
+  </script>
+</div>
+
+<div style="clear:both;margin-bottom:-20px"></div>
+
+
+
+<!--
+<br>
+<hr>
+Mrkni na základní informace pro organizátora GameConu na našem <a href="https://docs.google.com/document/d/1v3a4WR6EbtkZXKOjIewQGGazh5GF8qcc3Cv7XOqcAH4/edit#" onclick="return!window.open(this.href)">Google Drive</a>. Svoje úkoly a co se aktuálně řeší najdeš na <a href="https://teambox.com" onclick="return!window.open(this.href)">Teamboxu</a>. Pokud tam nemáš přístup, požádej o něj <a href="mailto:godric@korh.cz">godric@korh.cz</a>.
+-->
+
+
+
+<!-- end:uvod -->

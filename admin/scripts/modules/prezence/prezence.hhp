@@ -1,0 +1,9 @@
+<?php
+
+/**
+ * Sdílené informace o hrách
+ */
+
+$typySql='(typ!=3 AND typ!=0)';
+
+?>

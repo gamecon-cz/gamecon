@@ -1,0 +1,39 @@
+<!-- begin:tisk -->
+
+<div style="position: relative">
+<div style="position: absolute; right: 0px; bottom: 5px; text-align: right">
+  Stránka načtena {datum} v {casAktualni}<br />
+  <!-- begin:casMan -->Čas vybrán manuálně (<a href="/prezence/tisk">vybrat automaticky</a>)<br /><!-- end:casMan -->
+  <!-- begin:casAuto -->Čast vybrán automaticky<br /><!-- end:casAuto -->
+  Zobrazují se aktivity začínající od 
+  <form method="get" style="display: inline" id="cas">
+    <select name="cas" onchange="$('#cas').submit()" style="margin-right:0">
+      <option value="">(zvolte čas)</option>
+      <!-- begin:cas --><option {sel} value="{val}">{cas}</option><!-- end:cas -->
+    </select>
+  </form>
+</div>
+</div>
+
+<h2>Tisk prezenčních listů</h2>
+
+<!-- begin:aktivity -->
+<p>Následující aktivity budou uzavřeny pro online přihlašování a vytištěny: 
+  <table>
+    <tr><th>Název</th><th>Čas</th></tr>
+      <!-- begin:aktivita --><tr><td>{nazev_akce}</td><td>{cas_akce}</td></tr><!-- end:aktivita -->
+  </table>
+</p>
+<p>Před uzavřením prosím zkontrolujte pomocí <a href="/prezence">prezence</a>, jestli všichni přihlášení jsou přítomni na GameConu a pokud ne, zkuste jim zavolat a přivolat je k infopultu nebo odhlásit z aktivity, pokud se nedovoláte nebo zjistíte, že na GC nedojdou.</p>
+<p><input type="button" onclick="window.open('/prezence-tisk?ids={ids}')" value="Uzavřít pro přihlašování a vytisknout"></p>
+<!-- end:aktivity -->
+
+<!-- begin:zadneAktivity -->
+(žádné aktivity k vytištění)
+<!-- end:zadneAktivity -->
+
+<!-- begin:nevybrano -->
+<p>Není vybrán blok, který se má zobrazit. Vyberte vpravo nahoře.</p>
+<!-- end:nevybrano -->
+
+<!-- end:tisk -->

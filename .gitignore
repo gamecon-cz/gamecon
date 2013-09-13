@@ -1,0 +1,20 @@
+# Podtržítkové složky a bordel v rootu
+/_*/
+# Ignorované přípony
+*.bak
+Thumbs.db
+*.pdf
+*.psd
+*.xcf
+# Neverzované věci z webu
+/admin/files/logs/*
+/specificke/site-specific.hhp
+/www/files/obsah/*
+!/www/files/obsah/sponzori
+!/www/files/obsah/organizatori
+!/www/files/obsah/obrazky
+/www/files/styly/*
+!/www/files/styly/obecne
+!/www/files/styly/styl-aktualni
+/www/files/systemove/*
+!/www/files/systemove/o-typu

@@ -1,0 +1,86 @@
+<!-- begin:aktivity -->
+
+<div style="position:absolute;right:106px;top:120px">
+  <form method="post">
+    Zobrazit jen:
+    <select name="filtr" onchange="this.form.submit()">
+      <option value="vsechno">(všechno)</option>
+      <!-- begin:filtrMoznost --><option value="{val}" {sel}>{nazev}</option><!-- end:filtrMoznost -->
+    <select>
+  </form>
+</div>
+
+<!-- begin:aktivovatVse -->
+<form method="post" style="position:absolute;right:20px;top:172px">
+  <input type="submit" name="aktivovatVse" value="aktivovat hromadně" 
+    onclick="return window.confirm('Toto aktivuje všechny publikované aktivity ve všech kategoriích. Určitě?');" />
+</form>
+<!-- end:aktivovatVse -->
+
+{statistika}<br /><br />
+
+<style> th > a { text-decoration:none; color:#88c; } </style>
+<table class="zvyraznovana" style="width: 100%">
+  <tr>
+    <th><span class="hinted">Název<div class="hint">
+      Trojúhelníčky slouží k řazení.</div></span>
+      <a href="?sort=nazev_akce">▲</a> </th>
+    <th>Čas <a href="?sort=cas">▲</a> </th>
+    <th>Organizátor <a href="?sort=organizator">▲</a>  </th>
+    <th style="width:90px">Místnost <a href="?sort=nazev">▲</a>  </th>
+    <th>Typ <a href="?sort=id_typu">▲</a> </th>
+    <th><span class="hinted">Ins<div class="hint">
+      Řetěz znamená, že aktivita je členem nějaké rodiny instancí a ve výpisu webu se zobrazuje pouze jednou a s více nabídkami termínu pro přihlášení.
+    </div></span></th>
+    <th style="width: 180px"><span class="hinted">Akce<div class="hint">
+      <strong>smaž:</strong> nevratné smazání aktivity<br />
+      <strong>uprav:</strong> podrobná editace aktivity na vlastní stránce<br />
+      <strong>inst:</strong> vytvořit novou instanci aktivity (čas příp. místo lze následně měnit v editaci)<br />
+      <strong>pub:</strong> publikovat (ukázat) akci na webu<br />
+      <strong>aktiv:</strong> aktivovat (otevřít k přihlašování) akci v programu (projevuje se jen pokud jede registrace)
+    </div></span></th>
+  </tr>
+  <!-- begin:aktivita --><tr>
+    <td>{nazev_akce}</td>
+    <td>{cas}</td>
+    <td>{login_uzivatele}</td>
+    <td>{nazev_interni}</td>
+    <td>{typ_1p}</td>
+    <td><!-- begin:instSymbol -->
+      <img src="/files/var/chain-icon.png" />
+    <!-- end:instSymbol --></td>
+    <td>
+      <!-- begin:tlacitka -->
+      <form method="post">
+        <input type="hidden" name="aktivitaId" value="{id_akce}" />
+        <input type="submit" name="smazat" value="smaž" 
+          onclick="return window.confirm('Fakt trvale smazat {nazev_akce} (včetně odhlášení všech účastníků)?');" />
+      </form>
+      <form method="get" action="/aktivity/upravy">
+        <input type="hidden" name="aktivitaId" value="{id_akce}" />
+        <input type="submit" value="uprav" />
+      </form>
+      <form method="post">
+        <input type="hidden" name="aktivitaId" value="{id_akce}" />
+        <input type="submit" name="instance" value="inst" />
+      </form>
+      <!-- begin:publikovat --><form method="post">
+        <input type="hidden" name="aktivitaId" value="{id_akce}" />
+         <input type="submit" name="publikovat" value="pub" />
+      </form><!-- end:publikovat -->
+      <!-- begin:aktivovat --><form method="post" style="margin-left:36px">
+        <input type="hidden" name="aktivitaId" value="{id_akce}" />
+         <input type="submit" name="aktivovat" value="aktiv" />
+      </form><!-- end:aktivovat -->
+      <!-- end:tlacitka -->
+    </td>
+  </tr><!-- end:aktivita -->
+</table>
+
+<!-- 
+  vyhozený kód hintu řetězu aktivity:
+  <span class="hinted" style="border:0"><img src="/files/var/chain-icon.png" /><div class="hint">Skupina aktivit číslo {patri_pod}</div></span> 
+-->
+
+
+<!-- end:aktivity -->

@@ -1,0 +1,45 @@
+<?php
+
+/**
+ * Starý kus kódu zajišťující interface pro výběr aktivního uživatele. Fixme.
+ */ 
+
+//odchytavani session akci
+//vyber uzivatele
+if (post('uzivatele_vybrat') == 1){
+  $_SESSION["id_uzivatele"] = post('id_uzivatele');
+  Uzivatel::prihlasId(post('id_uzivatele'),'uzivatel_pracovni');
+  back();
+  //echo "uživatel vybrán";
+}
+
+$uPracovni=Uzivatel::nactiPrihlaseneho('uzivatel_pracovni');
+
+if (post('uzivatele_zrusit') == 1)
+{
+  if(!$uPracovni->gcPritomen() || $uPracovni->finance()->gamecoruny()<0)
+  {
+    $chyba_odhlaseni = true;
+  }
+  else {    
+    unset($_SESSION["id_uzivatele"]);
+    Uzivatel::odhlasKlic('uzivatel_pracovni');
+    back();
+  }  
+  //echo "zrušeno";
+}
+
+if (post('uzivatele_zrusit') == 2){
+  Uzivatel::odhlasKlic('uzivatel_pracovni');
+  unset($_SESSION["id_uzivatele"]);
+  back();
+}
+
+//fix sdílení session mezi adminem a webem
+//session id_uzivatele je zastaralá a jen jako alias
+if($uPracovni) //pokud je pracovní uživatel vybrán, alias nastavíme
+  $_SESSION["id_uzivatele"]=$uPracovni->id();
+elseif(isset($_SESSION["id_uzivatele"])) //pokud není uživatel a přesto je nastaveno id, ignorujeme (zrušíme) ho
+  unset($_SESSION["id_uzivatele"]);
+
+?>

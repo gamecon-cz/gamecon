@@ -1,0 +1,45 @@
+<!-- begin:prihlasovani -->
+<div class="login">
+  <div class="bok-top2">
+      <form method="post" style="position:relative">
+        <input type="hidden" name="prihlaseni" value="1">
+      <input name="login" placeholder="login nebo mail" type="text" class="edt_login" style="width: 75px;">
+      <input name="heslo" placeholder="heslo" type="password" class="edt_login" style="width: 70px;" onclick="this.value=''";>
+      <input type="image" src="/files/styly/obecne/prihlasit_maly.png" value="Submit" alt="přihlásit" style="width: 50px; height: 18px;">
+      <input type="checkbox" checked="checked" name="trvale" style="position:absolute;top:20px;left:190px;z-index:9999">
+    </form>
+    <div style="margin-left:-18px">
+      <a href="/registrace">registrovat</a> - 
+      <a href="/zapomenute-heslo">zapomenuté heslo</a> - 
+      <span>trvale</span>
+    </div>
+  </div>
+</div>
+<!-- end:prihlasovani -->
+
+<!-- begin:prihlasen -->
+<div class="login">
+  <div class="bok-top2">
+    <strong>{prezdivka}</strong><br>
+  </div>
+  <div class="uzivatel">
+    <div class="avatar">
+      <img src="{avatar}">
+    </div>
+    <div class="odkazy">
+      <form method="post" id="odhlasit">
+        <input type="hidden" name="odhlas" value="1">
+      </form>
+      <form action="/me-nastaveni" method="post" id="me_nastaveni">
+      </form>
+      id: <strong>{uid}</strong><br>
+      <!-- begin:finance -->finance: <strong>{finance}</strong><!-- end:finance --><br>
+      <a href="/registrace">mé nastavení</a><br>
+      <!-- begin:mujPrehled --><a href="http://admin.gamecon.cz/muj-prehled" onclick="return!window.open(this.href)">přehled vypravěče</a><br><!-- end:mujPrehled -->
+      <!-- begin:admin --><a href="{adminLink}" onclick="return!window.open(this.href)">administrace</a><br><!-- end:admin -->
+      <a href="javascript: document.getElementById('odhlasit').submit()">odhlásit</a> 
+    </div>
+  </div>
+</div>
+<!-- end:prihlasen -->
+                      

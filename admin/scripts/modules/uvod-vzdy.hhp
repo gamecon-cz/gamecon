@@ -1,0 +1,32 @@
+<?php
+
+/** 
+ * HTML kus úvodu, co se na default stránce includne vždy 
+ */
+
+//cokoli je třeba zde...
+
+?>
+
+<script>
+$.Shortcuts.add({
+  type: 'down',
+  mask: 'Alt+U',
+  handler: function() {
+    $('.omnibox').first().focus();
+  }
+}).add({
+  type: 'down',
+  mask: 'Alt+Z',
+  handler: function() {
+    $('#zrusit2').submit();
+    $('#zrusit').submit();
+  }
+}).add({
+  type: 'down',
+  mask: 'Alt+M',
+  handler: function() {
+    $('#materialy').submit();
+  }
+}).start();
+</script>

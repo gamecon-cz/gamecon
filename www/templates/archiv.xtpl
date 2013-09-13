@@ -1,0 +1,20 @@
+<!-- begin: archiv -->
+
+<h1>{nadpis}</h1> <!-- Archiv RPG na GameConu 2009 -->
+
+<!-- begin:polozka -->
+
+<h2>{nazev_akce}</h2>
+
+<table class="hlavicka">
+  <tr>
+    <!-- begin:obrazek --><td>{FILE "../../templates/obalka-obrazku.xtpl"}</td><!-- end:obrazek -->
+    <!-- begin:organizator --><td><strong>{titul}</strong><br>{jmeno}</td><!-- end:organizator -->
+  </tr>
+</table>
+
+<p>{popis}</p>
+
+<!-- end:polozka -->
+
+<!-- end: archiv -->

@@ -1,0 +1,6 @@
+<?php
+
+$SDILENE_VSE='../sdilene/vse.hhp';
+$SDILENE_SLOZKA='../sdilene/';
+
+?>

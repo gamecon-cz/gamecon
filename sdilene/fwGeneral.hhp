@@ -1,0 +1,181 @@
+<?php
+
+/** Searches an array for all specified keys
+ *  @return bool true if all exist false otherwise */
+function array_keys_exist($keys,$search)
+{
+  //if(is_array($search) && is_array($keys))
+    foreach($keys as $key)
+      if(!array_key_exists($key,$search))
+        return false;
+  return true;
+}
+
+/**
+ * Select key/value pairs from array $a where key is in array $b
+ */
+function array_select($a,$b)
+{
+  return array_intersect_key($a,array_fill_keys($b, null));
+} 
+
+/** ends current script execution and reloads page to http referrer
+ *  @param $to alternative location to go to instead of referrer */
+function back($to=null)
+{
+  if($to)
+    header('Location: '.$to, true, 303);
+  else
+    header('Location: '.$_SERVER['HTTP_REFERER'], true, 303); 
+  exit();
+  //todo when header fails
+  //note chrome 25 bug which causes this to fail, see:
+  // http://goo.gl/UonDa
+}
+
+/** alias for encHtml1() */
+function encHtml($s)
+{ return encHtml1($s); }
+
+/** encode text to html readable form
+ *  variant for short texts (no special features) */
+function encHtml1($s)
+{
+  return strtr($s, array("\n"=>'<br />'));
+}
+
+/** encode text to html readable form
+ *  basic formatting features */
+function encHtml2($s)
+{
+  $o=strtr($s, array("\n"=>'<br />','...'=>'…',' - '=>' – '));
+  $o=preg_replace('@"([^"]+)"[^>]@', '„$1“ ', $o); //co s html?
+  $o=preg_replace_callback('@(<br />-[^<]+)+@', function($m){
+    return '<ul>'.strtr($m[0],array('<br />- '=>'<li>',)).'</ul>';
+  }, $o);
+  $o=preg_replace('@http://[a-zA-Z0-9/\?\.=\-_]+@', '<a href="$0" onclick="return!window.open(this.href)">$0</a>', $o);
+  return $o;
+} 
+
+function get($name)
+{
+  if(isset($_GET[$name])) return $_GET[$name];
+  else return '';
+}
+
+function getIs($name)
+{
+  return isset($_GET[$name]);
+}
+
+/** human readable vardump */
+function hrvd($a)
+{
+  echo '<pre>';
+  var_dump($a);
+  echo '</pre>';
+}
+
+function post($name)
+{
+  if(isset($_POST[$name])) return $_POST[$name];
+  else return '';
+}
+
+function postIs($name)
+{
+  return isset($_POST[$name]);
+}
+
+
+/**
+ * Returns random hexadecimal number in with $chars number of characters (ie.
+ * half $chars bytes)
+ */
+function randHex($chars)
+{
+  if(!($chars<=32 && $chars>=0)) 
+    throw new Exception('maximum characters is 32 so far.');
+  return substr(md5(mt_rand()),0,$chars); 
+}  
+
+
+/**
+ * Switches rows and columns
+ */ 
+function tabArrayR($ai)
+{
+  $ao=array();
+  $ih=count($ai);
+  $iw=count($ai[0]);
+  for($ic=0;$ic<$iw;$ic++)
+    for($ir=0;$ir<$ih;$ir++)
+      $ao[$ic][$ir]=$ai[$ir][$ic];
+  return $ao;
+}
+
+/**
+ * Returns HTML formatted table from array
+ */ 
+function tabHtml($tab)
+{
+  $tabOut="<table>\n";
+  $tabOut.="  <tr>\n    <th>".implode("</th>\n    <th>",$tab[0])."</th>\n  </tr>\n";
+  for($i=1;$i<count($tab);$i++)
+    $tabOut.="  <tr>\n    <td>".implode("</td>\n    <td>",$tab[$i])."</td>\n  </tr>\n";
+  $tabOut.="</table>\n\n";
+  return $tabOut;
+}
+
+/**
+ * Returns HTML formatted table from db answer
+ */ 
+function tabMysql($a)
+{
+  $tabOut="<table>\n";
+  $r=mysql_fetch_assoc($a);
+  $tabOut.="  <tr>\n    <th>".implode("</th>\n    <th>",array_keys($r))."</th>\n  </tr>\n";
+  $tabOut.="  <tr>\n    <td>".implode("</td>\n    <td>",$r)."</td>\n  </tr>\n";
+  while($r=mysql_fetch_row($a))
+    $tabOut.="  <tr>\n    <td>".implode("</td>\n    <td>",$r)."</td>\n  </tr>\n";
+  $tabOut.="</table>\n\n";
+  return $tabOut;
+}
+
+/**
+ * Returns table array from mysql answer
+ */ 
+function tabMysqlArray($a)
+{
+  $r=mysql_fetch_assoc($a);
+  $oa[]=array_keys($r);
+  $oa[]=array_values($r);
+  while($r=mysql_fetch_row($a))
+    $oa[]=$r;
+  return $oa;
+}
+
+/**
+ * Returns HTML formatted table from db answer, mirrored
+ */
+function tabMysqlR($a)
+{
+  return tabHtml(tabArrayR(tabMysqlArray($a)));
+}
+
+function timeProfile()
+{
+  $r='Skript: '.round(microtime(true)-$GLOBALS['START_GENERATE'],3).
+    '&thinsp;s<br />';
+  $r.='Databáze: '.round(dbExecTime(),3).'&thinsp;s ('.dbNumQ().')';
+  //$r.=dbLastQ();
+  echo('<div style="top:0;left:0;position:absolute;z-index:9999;'.
+    'background-color:#000;color:#fff;padding:4px 8px;font-size:15px">'.
+    $r.'</div>');
+}
+
+class DeprecatedException extends Exception
+{
+}
+
+?>

@@ -1,0 +1,120 @@
+<?php
+
+/** 
+ * Sada globálních proměnných pro různé účely - používá se na různých místech.
+ * Pokud možno nemazat - v případě úprav lépe doplnit načítání z databáze
+ * nebo cokoli. Přidat, pokud je někde zahardkodované něco, nepřidávat nesmysly
+ * co se dají zjistit jednoduše z DB nebo podobně...
+ */
+
+date_default_timezone_set('Europe/Prague');
+require_once(__DIR__.'/constants-funkce.hhp');
+
+////////////////////////
+// Základní nastavení //
+////////////////////////
+
+define('ROK', 2014);                                // aktuální rok // při změně roku viz https://docs.google.com/document/d/1H_PM70WjNpQ1Xz65OYfr1BeSTdLrNQSkScMIZEtxWEc/edit?usp=sharing
+define('REG_GC_OD',       ROK.'-11-11 10:00:00');   // spuštění možnosti registrace na GameCon
+define('REG_GC_DO',       ROK.'-11-11 10:00:00');   // ukončení možnosti registrace na GameCon
+define('REG_AKTIVIT_OD',  ROK.'-11-11 10:00:00');   // spuštění možnosti registrace na aktivity, pokud jsou aktivované
+define('REG_AKTIVIT_DO',  ROK.'-11-11 10:00:00');   // ukončení možnosti registrace na aktivity
+define('GC_BEZI_OD',      ROK.'-07-17 10:00:00');   // začátek GameConu (přepnutí stránek do režimu "úpravy na jen na infopultu")
+define('GC_BEZI_DO',      ROK.'-07-20 20:00:00');   // konec GameCou (přepnutí stránek do režimu "gc skončil, úpravy nemožné")
+define('SLEVA_DO',        ROK.'-11-11 23:59:59');   // do kdy se oficiálně počítá platba včas
+define('PROGRAM_OD',      ROK.'-07-17 00:00:00');   // první den programu
+define('PROGRAM_VIDITELNY', false);                 // jestli jsou viditelné linky na program
+define('CENY_VIDITELNE', false);                    // jestli jsou viditelné ceny aktivit
+
+///////////////////
+// Židle a práva //
+///////////////////
+
+$pre=-(ROK-2000)*100; //předpona pro židle a práva vázaná na aktuální rok
+// židle - nepoužívat pro vyjádření atributů (slev, možnosti se přihlašovat, …)
+define('Z_PRIHLASEN', $pre-1);  //přihlášen na GameCon
+define('Z_PRITOMEN',  $pre-2);  //prošel infopultem a je na GameConu
+// TODO byl přihlášen na GC a už není (kvůli počítání financí apod.)
+define('Z_ORG_AKCI',6);         //vypravěč (org akcí)
+define('Z_ORG_SKUPINA',9);      //organizátorská skupina (Albi, Černobor, …)
+define('Z_STUDENT',10);         //student (uvedl o sobě)
+define('Z_VCAS',11);            //zaplatil včas
+// práva - konkrétní práva identifikující nějak vlastnost uživatele
+define('P_ORG_AKCI',4);         //může organizovat aktivity
+define('P_KRYTI_AKCI',5);       //může být na víc aktivitách naráz (org skupiny typicky)
+define('P_SPOULUPRACOVNIK',6);  //zobrazení v reportu spolupracovníci
+define('P_PLNY_SERVIS',7);      //uživatele kompletně platí a zajišťuje GC
+define('P_TRIKO_ZDARMA',1000);  //(organizátorské) tričko zdarma
+define('P_TRIKO_ZAPUL',1001);   //(vypravěčské) tričko za polovic
+define('P_PLACKA_ZDARMA',1002);
+define('P_KOSTKA_ZDARMA',1003);
+define('P_JIDLO',1004);         //může si kupovat jídlo
+define('P_JIDLO_ZDARMA',1005);  //může si objednávat jídlo a má ho zdarma
+define('P_SLEVA_STUDENT',1007); //má studentskou slevu 20%
+define('P_SLEVA_VCAS',1006);    //má slevu 20% za platbu včas
+define('P_SLEVA_AKTIVITY',1009); //za pořádané aktivity se mu vypočítává sleva
+define('P_UBYTOVANI_ZDARMA',1008); //má _všechno_ ubytování zdarma
+unset($pre);
+
+////////////////////////
+// Finanční nastavení //
+////////////////////////
+
+define('KURZ_EURO',25.00);            // kurz kč:euro
+define('UCET_CZ','2800035147/2010');  // číslo účtu pro platby v CZK - v statických stránkách není
+define('UCET_SK','2800035147/8330');  // číslo účtu pro platby v EUR - v statických stránkách není
+
+/////////////////////////
+// Řetězcové konstanty //
+/////////////////////////
+
+$GLOBALS['HLASKY']=array(
+  'aktivaceOk'=>'Účet aktivován. Děkujeme.',
+  'aktualizacePrihlasky'=>'Přihláška aktualizována.',
+  'avatarChybaMazani'=>'Obrázek se nepodařilo smazat.',
+  'avatarNahran'=>'Obrázek uživatele úspěšně uložen.',
+  'avatarSmazan'=>'Obrázek uživatele byl odstraněn.',
+  'avatarSpatnyFormat'=>'Obrázek není v požadovaném formátu .jpg.',
+  'drdVypnuto'=>'Přihlašování na mistrovství v DrD není spuštěno.',
+  'chybaPrihlaseni'=>'Špatné uživatelské jméno nebo heslo.',
+  'jenPrihlaseni'=>'Na zobrazení této stránky musíte být přihlášeni.',
+  'jenPrihlaseniGC'=>'Na přístup k této stránce musíte být přihlášeni na letošní GameCon.',
+  'kolizeAktivit'=>'V daném čase už máte přihlášenu jinou aktivitu.',
+  'nyniPrihlaska'=>'Nyní se vyplněním následujícího formuláře se přihlásíš na GameCon.',
+  'prihlaseniJenInfo'=>'<h1 style="color: red;">GameCon začal, veškeré registrace přes internet jsou ukončeny</h1>
+    <h2 style="color: red;">Jakékoliv další změny jsou možné u infopultu v deskoherně</h2>',
+  'prihlaseniVypnuto'=>'Přihlašování na GameCon není spuštěno.',
+  'regOk'=>'Uživatel zaregistrován. Pokračujte podle instrukcí, které vám dojdou e-mailem.',
+  'regOkNyniPrihlaska'=>'Údaje uloženy, vyplněním následujícího formuláře se přihlásíš na GameCon.',
+  'upravaUzivatele'=>'Změny registračních údajů uloženy.',
+  'uzPrihlasen'=>'Už jsi přihlášen na GameCon, zde můžeš upravit svou přihlášku.',
+);
+$GLOBALS['HLASKY_SUBST']=array(
+  'zapomenuteHeslo'=>
+'Ahoj,
+
+nechal{a} sis vygenerovat nové heslo na Gamecon.cz. Tvoje přihlašovací jméno je %1, tvoje nové heslo je %2. Heslo si prosím po přihlášení změň.
+
+S pozdravem Tým organizátorů GameConu',
+  'odhlaseniZGc'=>'Odhlásil{a} ses z GameConu '.ROK,
+  'prihlaseniNaGc'=>'Přihlásil{a} ses na GameCon '.ROK,
+  'kapacitaMaxUpo'=>'Z ubytovací kapacity typu %1 je naplněno %2 míst z maxima %3 míst.',
+  'registraceMail'=>
+'Ahoj,
+
+zaregistroval{a} ses na serveru GameCon.cz pod přihlašovacím jménem %1. Pro potvrzení a dokončení registrace prosím klikni na níže uvedený odkaz:
+
+<a href="http://gamecon.cz/potvrzeni-registrace/%2">http://gamecon.cz/potvrzeni-registrace/%2</a>',
+  'rychloregMail'=>
+'Ahoj,
+
+děkujeme, že ses letos zúčastnil{a} GameConu. Kliknutím na odkaz níže potvrdíš registraci na web a můžeš si nastavit přezdívku a heslo, pokud chceš používat web a třeba přijet příští rok. (Pokud by ses registroval{a} na web později, musel{a} by sis nechat vygenerovat heslo znova)
+
+<a href="http://gamecon.cz/potvrzeni-registrace/%2">http://gamecon.cz/potvrzeni-registrace/%2</a>',
+);
+
+ 
+// aliasy konstant a extra konstanty navíc
+require_once(__DIR__.'/constants-extra.hhp');
+
+?>
