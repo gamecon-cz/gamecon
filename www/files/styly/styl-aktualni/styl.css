@@ -1682,6 +1682,8 @@ input.blur { color: #888; } /* jQuery hint plugin */
   font-weight:bold; font-size:120%; margin-top: 6px; }
 .aktivita .hlavicka h2:first-child { margin-top: 0; }
 .aktivita .hlavicka form { position:absolute; }
+.aktivita .hlavicka .m { color: #08c; }
+.aktivita .hlavicka .f { color: #e0d; }
 .aktivita .obalkaObrazku { margin-right: 6px; }
 .aktivita .informace { margin: -5px 0 0 -5px; text-align: left; width: 305px; }
 .aktivita .informace td:first-child { font-weight: bold; width: 85px; }

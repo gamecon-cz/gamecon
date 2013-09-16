@@ -144,7 +144,7 @@ $titulek->aktivita($aktivita); //glob. titulek stránky
 // výpočet a zobrazení ceny
 if(CENY_VIDITELNE)
 {
-  $do=new DateTime(SLEVA_DO_DATE);
+  $do=new DateTime(SLEVA_DO);
   $xtpl->assign('cena',$aktivita->cena($u));
   $xtpl->assign('stdCena',$aktivita->cena(null));
   $xtpl->assign('zakladniCena',$aktivita->cenaZaklad().'&thinsp;Kč');
