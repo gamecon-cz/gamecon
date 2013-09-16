@@ -371,7 +371,7 @@ class Finance
     if($this->u->maPravo(P_SLEVA_VCAS) || SLEVA_AKTIVNI)
       // sleva 20%, pokud zaplatil včas (resp. ještě může zaplatit včas)
       $sleva+=20 xor
-      $this->slevyA[]='sleva 20% za včasnou platbu'.(SLEVA_AKTIVNI?' (pokud zaplatíš do '.datum3(SLEVA_DO_DATE).' nebo už máš zaplaceno)':'');
+      $this->slevyA[]='sleva 20% za včasnou platbu'.(SLEVA_AKTIVNI?' (pokud zaplatíš do '.datum3(SLEVA_DO).' nebo už máš zaplaceno)':'');
     if(($novacku=dbOneCol("
       SELECT count(1)
       FROM uzivatele_hodnoty u

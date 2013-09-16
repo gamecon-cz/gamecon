@@ -167,7 +167,7 @@ class Shop
     // včasná platba
     if(SLEVA_AKTIVNI)
     {
-      $slevaDo=new DateTime(SLEVA_DO_DATE);
+      $slevaDo=new DateTime(SLEVA_DO);
       //$slevaDo=$slevaDo->sub(new DateInterval('P1D'));
       $out.='<br>Pokud <b>zaplatíš do '.($slevaDo->format('j.n.')).
       '</b> máš slevu dalších <b>20%</b>.';
@@ -216,7 +216,7 @@ class Shop
           $sel='checked'; }
         else
           $sel='';
-        $lock=( !$sel && ( $this->plno($den,$typ) || !$this->existujeUbytovani($den,$typ) ) )?'disabled':'';
+        $lock=( !$sel && ( !$this->existujeUbytovani($den,$typ) || $this->plno($den,$typ) ) )?'disabled':'';
         $out.='<div style="height:'.$vyska.'">';
         $out.='<input style="margin:0" type="radio" '. 
           'name="'.$this->klicU.'['.$den.']" '. 

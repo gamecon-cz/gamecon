@@ -251,8 +251,8 @@ function datum3($datum)
 {
   $mesic=array('ledna', 'února', 'března', 'dubna', 'května', 'června',
     'července', 'srpna', 'září', 'října', 'listopadu', 'prosince');
-  return date('j. ',strtotime(SLEVA_DO_DATE)).
-    $mesic[date('n',strtotime(SLEVA_DO_DATE))-1];
+  return date('j. ',strtotime($datum)).
+    $mesic[date('n',strtotime($datum))-1];
 }
 
 

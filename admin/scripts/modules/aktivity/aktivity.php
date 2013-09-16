@@ -92,11 +92,9 @@ while($r=mysql_fetch_assoc($a))
   $tpl->assign($r);
   $tpl->assign('cas',datum2($r));
   if($r['patri_pod']) $tpl->parse('aktivity.aktivita.instSymbol');
-  if( !in_array($r['id_akce'],array(ID_AKTIVITA_DRD,ID_AKTIVITA_DRD_BLOK1,ID_AKTIVITA_DRD_BLOK2,ID_AKTIVITA_DRD_BLOK3,A_DRD_SEMIFINALE1,A_DRD_SEMIFINALE2,A_DRD_FINALE)) ){
-    // jen pokud aktivita není DrD zobrazit editační tlačítka
-    if($r['stav']==0) $tpl->parse('aktivity.aktivita.tlacitka.publikovat');
-    if($r['stav']==4) $tpl->parse('aktivity.aktivita.tlacitka.aktivovat'); 
-    $tpl->parse('aktivity.aktivita.tlacitka'); }
+  if($r['stav']==0) $tpl->parse('aktivity.aktivita.tlacitka.publikovat');
+  if($r['stav']==4) $tpl->parse('aktivity.aktivita.tlacitka.aktivovat'); 
+  $tpl->parse('aktivity.aktivita.tlacitka');
   $tpl->parse('aktivity.aktivita');
   isset($typy[$r['typ_1p']])?$typy[$r['typ_1p']]++:$typy[$r['typ_1p']]=1;
 }
