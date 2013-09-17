@@ -1,47 +1,42 @@
 <?php
 
-//přibližná kopie z prezence.php
-$ted=new DateTime();
-//$ted=new DateTime('2013-07-20 13:34:40'); //testování
-$xtpl->assign('datum',$ted->format('j.n.'));
-$xtpl->assign('casAktualni',$ted->format('H:i:s'));
-$gcZacatek=new DateTime(DEN_PRVNI_DATE);
-$delta=$ted->getTimestamp()-$gcZacatek->getTimestamp(); //rozdíl sekund od začátku GC
-if(1)
-{ //gc zatím asi probíhá, generujeme nejaktuálnější data
-  $den=(int)$ted->format('j')-(int)$gcZacatek->format('j')+1;
-  $zacatek=(int)$ted->format('G')+1; //chceme aktivity začínající až v následující hodině
-}
-//konec kopie
+$xtpl=new XTemplate(__DIR__.'/last-minute-tabule.xtpl');
 
-$xtpl=new XTemplate('last-minute-tabule.xtpl');
-
-//zaokrouhlení zobrazení času na bloky
-if($zacatek<=9) $zacatek=9;
-elseif($zacatek<=14) $zacatek=14;
-elseif($zacatek<=19) $zacatek=19;
-else
+$test=null; //debug
+if(date('Y')!=ROK) //fix pro datum z špatných let
+  $test=ROK.'-01-01 01:00';
+$od=(new DateTimeCz($test))->sub(new DateInterval('PT15M'));
+$do=
+  (int)(new DateTime($test))->format('G') < 20 ? //před 20:00 vypisovat 4h dopředu, potom už další den
+  (new DateTime($test))->add(new DateInterval('PT3H45M')) :
+  (new DateTime($test))->add(new DateInterval('P1D'))->setTime(9,0) ;
+$posledniBlok=null;
+foreach(aktivita::zRozmezi($od, $do, aktivita::JEN_VOLNE | aktivita::ZACATEK_V_ROZMEZI) as $a)
 {
-  $zacatek=9;
-  $den++;
-  $xtpl->assign('zitra','zítra');
+  if($posledniBlok && $posledniBlok!=$a->zacatek()->format('z'))
+    $xtpl->parse('tabule.blok');
+  $xtpl->assign(array(
+    'nazev'       =>  $a->nazev(),
+    'obsazenost'  =>  $a->obsazenostHtml(),
+    'cas'         =>  $a->zacatek()->format('G:i'),
+    'zitra'       =>  $a->zacatek()->rozdilDne($od)
+  ));
+  $xtpl->parse('tabule.blok.aktivita');
+  $posledniBlok=$a->zacatek()->format('z');
 }
-
-$o=aktivitySPocty('den='.$den.' AND zacatek='.$zacatek.' AND rok='.ROK,null,null,'pocet<kapacita_celkova');
-while($r=mysql_fetch_assoc($o))
+if(!$posledniBlok)
 {
-  $a=new Aktivita($r);
-  $xtpl->assign(array('nazev'=>$a->nazev(),'obsazenost'=>$a->obsazenostHtml()));
-  $xtpl->parse('tabule.aktivita');
+  $xtpl->assign('cas',$od->zaokrouhlitNahoru()->format('G:i'));
+  $xtpl->parse('tabule.blok.nic');
 }
-if(mysql_num_rows($o)==0)
-  $xtpl->parse('tabule.nic');
+$xtpl->parse('tabule.blok');
+
 $zoom=empty($_GET['zoom'])?100:(int)$_GET['zoom'];
 $xtpl->assign('lupa',$zoom);
 $xtpl->assign('lupaPlus',$zoom+10);
 $xtpl->assign('lupaMinus',$zoom-10);
+
 $xtpl->assign('programCss',Program::cssRetezec());
-$xtpl->assign('cas',$zacatek.':00');
 $xtpl->parse('tabule');
 $xtpl->out('tabule');
 

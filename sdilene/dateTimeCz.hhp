@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Datum a čas s českými názvy dnů a měsíců
+ * Datum a čas s českými názvy dnů a měsíců + další vychytávky
  */ 
 
 class DateTimeCz extends DateTime
@@ -18,6 +18,45 @@ class DateTimeCz extends DateTime
       'Saturday'  => 'sobota',
       'Sunday'    => 'neděle'
     ));
+  }
+  
+  /**
+   * Vrátí „včera“, „předevčírem“, „pozítří“ apod. (místo dnes vrací emptystring)
+   */     
+  function rozdilDne(DateTime $od)
+  {
+    $od=clone $od; // nutné znulování času pro funkční porovnání počtu dní
+    $od->setTime(0,0);
+    $do=clone $this;
+    $do->setTime(0,0);
+    $diff=(int)$od->diff($do)->format('%r%a');
+    switch($diff)
+    {
+      case -2: return 'předevčírem';
+      case -1: return 'včera';
+      case 0: return '';
+      case 1: return 'zítra';
+      case 2: return 'pozítří';
+      default:
+        if($diff<0)
+          return 'před '.(-$diff).' dny';
+        else if($diff<5)
+          return "za $diff dny";
+        else
+          return "za $diff dní";
+    }
+  }
+  
+  /**
+   *
+   */     
+  function zaokrouhlitNahoru($jednotka='H')
+  {
+    //TODO jednotka
+    if($this->format('is')==='0000')
+      return $this->modify($this->format('Y-m-d H:00:00'));
+    else
+      return $this->modify($this->format('Y-m-d H:00:00'))->add(new DateInterval('PT1H'));
   }
           
 }

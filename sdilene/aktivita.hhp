@@ -73,6 +73,36 @@ class Aktivita
   }
   
   /**
+   * Převede datetime na hodnotu porovnatelnou s dnem aktivity v databázi
+   */     
+  protected static function dtDen(DateTime $dt)
+  {
+    if($dt->format('Y')!=ROK) throw new Exception('Nelze pracovat s daty z minulého roku.'); //protože neznáme začátek GC toho roku
+    return (new DateTime(PROGRAM_OD))->diff($dt)->format('%r%a')+1;
+  }
+  
+  /**
+   * Převede datetime na hodnotu porovnatelnou s koncem aktivity v databázi
+   */     
+  protected static function dtKonec(DateTime $dt)
+  {
+    if($dt->format('Y')!=ROK) throw new Exception('Nelze pracovat s daty z minulého roku.');
+    return self::dtZacatek($dt)-1;
+  }
+  
+  /**
+   * Převede datetime na hodnotu porovnatelnou s začátkem aktivity v databázi
+   */     
+  protected static function dtZacatek(DateTime $dt)
+  {
+    if($dt->format('Y')!=ROK) throw new Exception('Nelze pracovat s daty z minulého roku.');
+    if($dt->format('is')==='0000')
+      return $dt->format('G')+0;
+    else
+      return $dt->format('G')+1;
+  }
+  
+  /**
    * Vrátí HTML kód editoru aktivit určený pro vytváření a editaci aktivity.
    * Podle nastavení $a buď aktivitu edituje nebo vytváří.
    */   
@@ -362,6 +392,40 @@ class Aktivita
     return null;
   }
   
+  /**
+   * Vrátí aktivity z rozmezí   
+   */     
+  const JEN_VOLNE         = 0x01;
+  const ZACATEK_V_ROZMEZI = 0x00;
+  const CELE_V_ROZMEZI    = 0x02;
+  static function zRozmezi(DateTime $od, DateTime $do, $flags) {
+    $jenVolne = $flags&0x01; //TODO
+    $cele     = $flags&0x02; //TODO
+    $odHod=self::dtZacatek($od);
+    $doHod=self::dtZacatek($do);
+    $odDen=self::dtDen($od);
+    $doDen=self::dtDen($do);
+    $odRok=$od->format('Y');
+    $doRok=$do->format('Y');
+    $o=self::nactiSkupinuRucne("CASE 
+        WHEN a.den>$odDen THEN true
+        WHEN a.den=$odDen THEN CASE
+          WHEN a.zacatek>=$odHod THEN true ELSE false END
+        ELSE false END
+        AND CASE 
+        WHEN a.den<$doDen THEN true
+        WHEN a.den=$doDen THEN CASE
+          WHEN a.zacatek<=$doHod THEN true ELSE false END
+        ELSE false END
+        AND a.rok=".ROK." -- pryč po refaktorování začátků a konců
+      ", null, 'a.den, a.zacatek', ($jenVolne ? 'pocet < kapacita_celkova' : null)
+    );
+    $a=array();
+    while($r=mysql_fetch_assoc($o))
+      $a[]=new self($r);
+    return $a;
+  }
+  
 
   ////////////////////
   // Protected věci //
@@ -377,7 +441,7 @@ class Aktivita
    * @param string $sqlOrderBy volitelně část dotazu po ORDER BY
    * @param string $sqlWhere normální sql WHERE na filtrování
    */
-  protected static function nactiSkupinuRucne($sqlWhere,$u=null,$sqlOrderBy=null)
+  protected static function nactiSkupinuRucne($sqlWhere,$u=null,$sqlOrderBy=null,$sqlHaving=null)
   {
     $prihlSql1=$prihlSql2='';
     if($u instanceof Uzivatel)
@@ -403,7 +467,8 @@ class Aktivita
       '.$prihlSql2.'
       WHERE '.$sqlWhere.'
       GROUP BY a.id_akce '.
-      ($sqlOrderBy?'ORDER BY '.$sqlOrderBy:'')
+      ($sqlHaving?' HAVING '.$sqlHaving:'').
+      ($sqlOrderBy?' ORDER BY '.$sqlOrderBy:'')
     );
     return $o;
   }
