@@ -77,8 +77,8 @@ if(post('bugreport')) {
   mail(
     'gamecon.external_tasks.101564.godric@app.teambox.com',
     '[bug] '.post('nazev'),
-    post('popis')."\n\n(reportoval".$u->koncA()." ".$u->jmenoNick().")",
-    'From: '.$u->mail()."\r\n".'Reply-To: '.$u->mail()
+    post('popis')."\n\n(reportoval".$u->koncA()." ".$u->jmenoNick()." - ".$u->mail().")",
+    'From: info@gamecon.cz'."\r\n".'Reply-To: info@gamecon.cz'
   );
   oznameni('hlášení chyby odesláno');
 }
