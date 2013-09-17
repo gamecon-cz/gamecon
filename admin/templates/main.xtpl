@@ -32,7 +32,7 @@
         <!-- begin:polozka --><li><a href="/{url}">{nazev}</a></li><!-- end:polozka -->
       </ul>
       <!-- end:submenu -->
-      
+      {chyba}
       {FILE {obsah}}
       {obsahRetezec}
     </div>

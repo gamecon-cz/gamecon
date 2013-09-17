@@ -115,6 +115,7 @@ else
     $xtpl->assign_file('obsah','./templates/404.xtpl');
   // výstup
   $xtpl->parse('all.odhlasovani');
+  $xtpl->assign('chyba',chyba::vyzvedniHtml());
   $xtpl->parse('all');
   $xtpl->out('all');
   profilInfo();  

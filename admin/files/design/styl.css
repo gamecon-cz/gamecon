@@ -128,3 +128,8 @@ form table .obrazekNahled img { margin:-1px 0 -2px 0; }
 .prezence .formAktivita { margin: 4px 10px 4px 6px; }
 .prezence .formAktivita h2 { margin: 0 0 4px 1px; font-size: 120%;  }
 .prezence .formAktivita input[type="submit"] { padding: 1px 15px; }
+
+/* pro automaticky generované chybové hlášky */
+.chybaBlok > div { position: absolute; left: -10px; top: 122px; width: 926px; 
+  background-color: rgba(212, 241, 212, 0.75); text-align: center; z-index: 99;
+  box-shadow: 0 0 10px #aaa; padding: 28px; color:#252; font-size: 20px; }
