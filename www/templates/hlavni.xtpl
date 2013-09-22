@@ -47,7 +47,7 @@
       
       <div class="search">
         
-        <a class="bok-top2" href="/minihra"></a>
+        <!-- <a class="bok-top2" href="/minihra"></a> -->
         
         <div style="text-align: center;">
           <!-- begin:pocitadlo --><div id="pocitadlo">{htmlPocitadla}</div><!-- end:pocitadlo -->
@@ -89,8 +89,8 @@
       
       <div class="menu">
         {menu}
-        <a class="cthulu" href="/organizuj">Chci i tebe!</a>
-        <a class="novacek" href="/novacci">Vem nováčka</a>
+        <!-- <a class="cthulu" href="/organizuj">Chci i tebe!</a> -->
+        <!-- <a class="novacek" href="/novacci">Vem nováčka</a> -->
         <a href="https://plus.google.com/106567731930618318644/posts" title="Google+" onclick="return !window.open(this.href);"><img src="/files/styly/styl-aktualni/ikona_google.png" alt="Google+" title="Google+" width="40" height="40" /></a>
         <a href="https://www.facebook.com/gamecon" title="Facebook" onclick="return !window.open(this.href);"><img src="/files/styly/styl-aktualni/ikona_facebook.png" alt="Facebook" title="Facebook" width="40" height="40" /></a>
       </div>

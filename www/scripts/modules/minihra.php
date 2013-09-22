@@ -1,5 +1,8 @@
 <?php
 
+echo 'minihra neběží';
+return;
+
 $O_OBRAZEK='Příběhy impéria';
 $C_SIFRA='Pdnodiušntěpnpáívečnše, cvžhumcdéevéš vwpědšdmuěšjt, kšědopo zvípýrůjosdíovábpoikrl  ajýpgroačkbratslířywepšásqéu? Trpežánkuhstlgie vcloškblmegájskduta mává vuz  Mtyočghujyajlzávodirvlrrlciu nriěčicjzo ppjorád psjarolděcveejčm asp pklovohanydibníušijpke sene vod čkaeřernávlpečřnliý. Ale Babirkg Býtotasmas nema nývěltj vruymápycspíabál strlleudůšrankáovlu oévdhámdiěvrnvsu. Tětažek hamoredkřnově zčldlaanoršíu.';
 $O_SIFRA='Poutníče, chceš vědět, kdo způsobil apokalypsu? Tenhle vobejda má v Mohylvillu něco pod palcem a pohybuje se v červený. A Big Boss na něj vypsal slušnou odměnu. Tak hodně zdaru.';
