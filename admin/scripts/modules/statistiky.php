@@ -229,14 +229,21 @@ if ( $.browser.msie ) { $('#caraIeHack').css('margin-left',847); }
 
 <h2>Dlouhodobé statistiky</h2>
 
+<style>
+  .dlouhodobeStaty th:first-child { width: 110px; }
+</style>
+<div class="dlouhodobeStaty">
+
 <table>  
-  <tr><th></th>               <th>2009</th>   <th>2010</th>   <th>2011</th>   <th>2012</th>   <th>2013</th>   <th>2014</th></tr>  
-  <tr><td>Registrovaní</td>   <td>339</td>    <td>377</td>    <td>383</td>    <td>357</td>    <td>433</td>    <td>?</td></tr>  
-  <tr><td>Dorazilo</td>       <td>68?</td>    <td>350</td>    <td>339</td>    <td>319</td>    <td>389</td>    <td>?</td></tr>  
-  <tr><td>Organizátorů</td>   <td>7?</td>     <td>15?</td>    <td>16?</td>    <td>18</td>     <td>18</td>     <td>?</td></tr>  
-  <tr><td>Vypravěčů</td>      <td>3?</td>     <td>27?</td>    <td>31?</td>    <td>49</td>     <td>62</td>     <td>?</td></tr>  
-  <tr><td>Reg. studentů</td>  <td>179</td>    <td>201</td>    <td>181</td>    <td>143</td>    <td>180</td>    <td>?</td></tr>  
-  <tr><td>Holek</td>          <td>0,16</td>   <td>0,18</td>   <td>0,17</td>   <td>0,19</td>   <td>0,21</td>   <td>?</td></tr>
+  <tr><th></th>                       <th>2009</th>   <th>2010</th>   <th>2011</th>   <th>2012</th>   <th>2013</th>   <th>2014</th></tr>  
+  <tr><td>Registrovaní</td>           <td>339</td>    <td>377</td>    <td>383</td>    <td>357</td>    <td>433</td>    <td>?</td></tr>  
+  <tr><td>Dorazilo</td>               <td>68?</td>    <td>350</td>    <td>339</td>    <td>319</td>    <td>389</td>    <td>?</td></tr>
+  <tr><td>&emsp;z toho studenti</td>  <td></td>       <td></td>       <td></td>       <td></td>       <td>149</td>    <td>?</td></tr>
+  <tr><td>&emsp;z toho ostatní</td>   <td></td>       <td></td>       <td></td>       <td></td>       <td>152</td>    <td>?</td></tr>  
+  <tr><td>Podpůrný tým</td>           <td>43</td>     <td>45</td>     <td>71</td>     <td>74</td>     <td>88</td>     <td>?</td></tr>
+  <tr><td>&emsp;organizátoři</td>     <td>6</td>      <td>8</td>      <td>13</td>     <td>17</td>     <td>17</td>     <td>?</td></tr>  
+  <tr><td>&emsp;zázemí</td>           <td>7</td>      <td>7</td>      <td>6</td>      <td>10</td>     <td>8</td>      <td>?</td></tr>  
+  <tr><td>&emsp;vypravěči</td>        <td>30</td>     <td>30</td>     <td>52</td>     <td>47</td>     <td>63</td>     <td>?</td></tr>  
 </table>
 <a href="#" onclick="return!$(this).next().toggle()">dotaz</a>
 <pre style="display:none">
@@ -247,6 +254,83 @@ if ( $.browser.msie ) { $('#caraIeHack').css('margin-left',847); }
     ) orgove USING(id_uzivatele)
   WHERE id_zidle<0 AND id_zidle MOD 100=-2
   GROUP BY(id_zidle)
-</pre>
+</pre><br><br>
 
+<?=tabMysqlR(dbQuery('
+  select 
+    2000-(id_zidle div 100) as "",
+    count(id_zidle) "Lidé na GC celkem",
+    sum(pohlavi="m") as "&emsp;z toho muži",
+    sum(pohlavi="f") as "&emsp;z toho ženy",
+    round(sum(pohlavi="f") / count(id_zidle), 2) as "&emsp;podíl žen"
+  from r_uzivatele_zidle
+  left join uzivatele_hodnoty using(id_uzivatele)
+  where id_zidle < 0
+  and id_zidle % 100 = -2
+  group by id_zidle
+  order by id_zidle desc
+'))?><br>
+  
+<table>
+  <tr><th></th>                       <th>2009</th>   <th>2010</th>   <th>2011</th>   <th>2012</th>   <th>2013</th>   <th>2014</th></tr>
+  <tr><td>Prodané placky</td>         <td>43</td>     <td>45</td>     <td>206</td>    <td>224</td>    <td>207</td>    <td>?</td></tr>
+  <tr><td>&emsp;před začátkem</td>    <td></td>       <td></td>       <td>135</td>    <td>150</td>    <td>110</td>    <td>?</td></tr>
+  <tr><td>&emsp;na místě</td>         <td></td>       <td></td>       <td></td>       <td></td>       <td>9</td>      <td>?</td></tr>
+  <tr><td>&emsp;zdarma</td>           <td>43</td>     <td>45</td>     <td>71</td>     <td>74</td>     <td>88</td>     <td>?</td></tr>
+  <tr><td>Prodané kostky</td>         <td>43</td>     <td>45</td>     <td>247</td>    <td>154</td>    <td>192</td>    <td>?</td></tr>
+  <tr><td>&emsp;před začátkem</td>    <td></td>       <td></td>       <td>176</td>    <td>80</td>     <td>104</td>    <td>?</td></tr>
+  <tr><td>&emsp;na místě</td>         <td></td>       <td></td>       <td></td>       <td></td>       <td></td>       <td>?</td></tr>
+  <tr><td>&emsp;zdarma</td>           <td>43</td>     <td>45</td>     <td>71</td>     <td>74</td>     <td>88</td>     <td>?</td></tr>
+  <tr><td>Prodaná trička</td>         <td>6</td>      <td>8</td>      <td>104</td>    <td>121</td>    <td>139</td>    <td>?</td></tr>
+  <tr><td>&emsp;zdarma</td>           <td>6</td>      <td>8</td>      <td>13</td>     <td>17</td>     <td>19</td>     <td>?</td></tr>
+  <tr><td>&emsp;za 50%</td>           <td></td>       <td></td>       <td>34</td>     <td>40</td>     <td>35</td>     <td>?</td></tr>
+  <tr><td>&emsp;plná cena</td>        <td></td>       <td></td>       <td>57</td>     <td>64</td>     <td>85</td>     <td>?</td></tr>
+</table>
+<a href="#" onclick="return!$(this).next().toggle()">dotaz</a>
+<pre style="display:none">
+  select
+    n.rok as "",
+    sum(p.nazev = "Placka" and n.rok = model_rok) as "Prodané placky",
+    sum(p.nazev = "Kostka" and n.rok = model_rok) as "Prodané kostky",
+    sum(p.nazev like "Tričko%" and n.rok = model_rok) as "Prodaná trička"
+  from shop_nakupy n
+  join shop_predmety p using(id_predmetu)
+  group by n.rok
+  order by n.rok
+</pre><br><br>
 
+<?=tabMysqlR(dbQuery('
+  select
+    n.rok as "",
+    sum(nazev like "trojlůžák%" or nazev like "dvojlůžák%") as "Postel",
+    sum((nazev like "trojlůžák%" or nazev like "dvojlůžák%") and ubytovani_den=0) as "&emsp;středa",
+    sum((nazev like "trojlůžák%" or nazev like "dvojlůžák%") and ubytovani_den=1) as "&emsp;čtvrtek",
+    sum((nazev like "trojlůžák%" or nazev like "dvojlůžák%") and ubytovani_den=2) as "&emsp;pátek",
+    sum((nazev like "trojlůžák%" or nazev like "dvojlůžák%") and ubytovani_den=3) as "&emsp;sobota",
+    sum((nazev like "trojlůžák%" or nazev like "dvojlůžák%") and ubytovani_den=4) as "&emsp;neděle",
+    sum(nazev like "tělocvična%") as "Spacák",
+    sum(nazev like "tělocvična%" and ubytovani_den=0) as "&emsp;středa ",
+    sum(nazev like "tělocvična%" and ubytovani_den=1) as "&emsp;čtvrtek ",
+    sum(nazev like "tělocvična%" and ubytovani_den=2) as "&emsp;pátek ",
+    sum(nazev like "tělocvična%" and ubytovani_den=3) as "&emsp;sobota ",
+    sum(nazev like "tělocvična%" and ubytovani_den=4) as "&emsp;neděle ",
+    sum(nazev like "penzion%") as "Penzion",
+    sum(nazev like "penzion%" and ubytovani_den=0) as "&emsp;středa  ",
+    sum(nazev like "penzion%" and ubytovani_den=1) as "&emsp;čtvrtek  ",
+    sum(nazev like "penzion%" and ubytovani_den=2) as "&emsp;pátek  ",
+    sum(nazev like "penzion%" and ubytovani_den=3) as "&emsp;sobota  ",
+    sum(nazev like "penzion%" and ubytovani_den=4) as "&emsp;neděle  ",
+    sum(nazev like "chata%") as "Kemp",
+    sum(nazev like "chata%" and ubytovani_den=0) as "&emsp;středa   ",
+    sum(nazev like "chata%" and ubytovani_den=1) as "&emsp;čtvrtek   ",
+    sum(nazev like "chata%" and ubytovani_den=2) as "&emsp;pátek   ",
+    sum(nazev like "chata%" and ubytovani_den=3) as "&emsp;sobota   ",
+    sum(nazev like "chata%" and ubytovani_den=4) as "&emsp;neděle   "
+  from shop_nakupy n
+  join shop_predmety p using(id_predmetu)
+  where p.typ = 2
+  group by n.rok
+  order by n.rok
+'))?><br>
+
+</div>

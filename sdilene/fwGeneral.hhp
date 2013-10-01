@@ -133,7 +133,8 @@ function tabHtml($tab)
 function tabMysql($a)
 {
   $tabOut="<table>\n";
-  $r=mysql_fetch_assoc($a);
+  if(!$r=mysql_fetch_assoc($a))
+    return '';
   $tabOut.="  <tr>\n    <th>".implode("</th>\n    <th>",array_keys($r))."</th>\n  </tr>\n";
   $tabOut.="  <tr>\n    <td>".implode("</td>\n    <td>",$r)."</td>\n  </tr>\n";
   while($r=mysql_fetch_row($a))
