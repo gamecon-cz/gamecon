@@ -30,6 +30,7 @@
 <a href="./reporty/grafy-ankety" onclick="return!window.open(this.href)">Grafy k anketě</a> <br>
 <a href="./reporty/update-zustatku" onclick="return!window.open(this.href)">UPDATE příkaz zůstatků pro letošní GC</a> (textově, neprovede se) <br>
 <a href="./reporty/ubytovani">Ubytování</a> (csv) <br>
+<a href="./reporty/celkova-ucast">Celková účast</a> (csv) <br>
 <br>
 <a href="./reporty/celkovy-report">Celkový report <?php echo ROK ?></a> (BFGR)<br>
 
