@@ -18,16 +18,16 @@ while(list($rok) = mysql_fetch_row($sql_roky)){
       MAX(z.id_zidle IN (2, 4) AND (z.posazen = '0000-00-00 00:00:00' OR z.posazen <= '$rok-06-01 00:00:00')),
       'organizator',
       IF(
-        MAX(a.rok = $rok),
+        MAX(z.id_zidle IN (6, 9)),
         'vypravec',
         IF(
-          MAX(z.id_zidle = -".intval(substr($rok, 1))."02) = 0,
+          MAX(z.id_zidle = -".intval(substr($rok, 1))."02),
+          'pritomen',
           IF(
-            MAX(z.id_zidle = -".intval(substr($rok, 1))."01) = 0,
-            'neprihlasen',
-            'nedorazil'
-          ),
-          'pritomen'
+            MAX(z.id_zidle = -".intval(substr($rok, 1))."01),
+            'nedorazil',
+            'neprihlasen'
+          )
         )
       )
     ) rok$rok"
