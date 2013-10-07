@@ -18,16 +18,16 @@ while(list($rok) = mysql_fetch_row($sql_roky)){
       MAX(z.id_zidle IN (2, 4) AND (z.posazen = '0000-00-00 00:00:00' OR z.posazen <= '$rok-06-01 00:00:00')),
       'organizator',
       IF(
-        MAX(z.id_zidle IN (6, 9)),
-        'vypravec',
+        MAX(z.id_zidle = -".intval(substr($rok, 1))."02),
         IF(
-          MAX(z.id_zidle = -".intval(substr($rok, 1))."02),
-          'pritomen',
-          IF(
-            MAX(z.id_zidle = -".intval(substr($rok, 1))."01),
-            'nedorazil',
-            'neprihlasen'
-          )
+          MAX(z.id_zidle IN (6, 9) AND (z.posazen = '0000-00-00 00:00:00' OR z.posazen <= '$rok-06-01 00:00:00')),
+          'vypravec',
+          'pritomen'
+        ),
+        IF(
+          MAX(z.id_zidle = -".intval(substr($rok, 1))."01),
+          'nedorazil',
+          'neprihlasen'
         )
       )
     ) rok$rok"
@@ -37,6 +37,7 @@ while(list($rok) = mysql_fetch_row($sql_roky)){
 $query = dbQuery("
   SELECT
     u.id_uzivatele,
+	u.pohlavi,
     ".implode(",", $query_roky)."
   FROM uzivatele_hodnoty u
   LEFT JOIN r_uzivatele_zidle z
@@ -56,6 +57,7 @@ if(mysql_num_rows($query) <= 0) {
 echo "<table>\n";
 echo "<tr>\n";
 echo "  <td>ID</td>\n";
+echo "  <td>Pohlaví</td>\n";
 foreach($sloupce_roky as $val){
   echo "  <td>Rok $val</td>\n";
 }
@@ -80,7 +82,7 @@ echo(chr(0xEF).chr(0xBB).chr(0xBF)); //BOM bajty pro nastavení UTF-8 ve výsled
 $out=fopen('php://output','w'); //získáme filedescriptor výstupu stránky pro použití v fputcsv
 
 // header
-$sloupce = array("id_uzivatele");
+$sloupce = array("id_uzivatele", "pohlavi");
 foreach($sloupce_roky as $key=>$value){
 	array_push($sloupce, "rok$value");
 }
