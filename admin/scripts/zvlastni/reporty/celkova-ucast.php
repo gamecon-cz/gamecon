@@ -38,6 +38,8 @@ $query = dbQuery("
   SELECT
     u.id_uzivatele,
 	u.pohlavi,
+	u.jmeno_uzivatele,
+	u.prijmeni_uzivatele,
     ".implode(",", $query_roky)."
   FROM uzivatele_hodnoty u
   LEFT JOIN r_uzivatele_zidle z
@@ -58,6 +60,8 @@ echo "<table>\n";
 echo "<tr>\n";
 echo "  <td>ID</td>\n";
 echo "  <td>Pohlaví</td>\n";
+echo "  <td>Jmeno</td>\n";
+echo "  <td>Prijmeni</td>\n";
 foreach($sloupce_roky as $val){
   echo "  <td>Rok $val</td>\n";
 }
@@ -82,7 +86,7 @@ echo(chr(0xEF).chr(0xBB).chr(0xBF)); //BOM bajty pro nastavení UTF-8 ve výsled
 $out=fopen('php://output','w'); //získáme filedescriptor výstupu stránky pro použití v fputcsv
 
 // header
-$sloupce = array("id_uzivatele", "pohlavi");
+$sloupce = array("id_uzivatele", "pohlavi", "jmeno_uzivatele", "prijmeni_uzivatele");
 foreach($sloupce_roky as $key=>$value){
 	array_push($sloupce, "rok$value");
 }
