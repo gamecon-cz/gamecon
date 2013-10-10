@@ -3,52 +3,20 @@
 //ošetření vstupů z url
 if(!$url->cast(1))
   throw new Exception('Nezadán typ archivu');
-$url2=explode('-',$url->cast(1));
-if(count($url2)!=2)
-  0; //todo chyba nesprávný počet parametrů
+$url2[0]=strrbefore($url->cast(1), '-');
+$url2[1]=strrafter($url->cast(1), '-');
 
-//možno načítat z db @fixme
-$orgTitul='';
-$aktivitaTyp=4; //default hodnota
-switch($url2[0])
-{
-  case 'deskovky': 
-    $aktivitaTyp=1;
-    $nazevKategorie='turnajů v deskových hrách';
-    //$orgTitul='organizátor'; //deskovky jsou anonymní
-    break;
-  case 'larpy': 
-    $aktivitaTyp=2;
-    $nazevKategorie='larpů';
-    $orgTitul='organizátor';
-    break;
-  case 'prednasky': 
-    $aktivitaTyp=3;
-    $nazevKategorie='přednášek';
-    $orgTitul='přednášející';
-    break;
-  case 'rpg': 
-    $aktivitaTyp=4;
-    $nazevKategorie='RPG';
-    $orgTitul='vypravěč';
-    break;
-  //5 - workshop (ojedinely)
-  case 'wargaming': 
-    $aktivitaTyp=6;
-    $nazevKategorie='wargamingu';
-    $orgTitul='warganizátor';
-    break;
-  //7 - bonusy
-  default:
-    0; //todo chyba neexistujici aktivita
-}
+$typ = mysql_fetch_assoc(dbQueryS('SELECT * FROM akce_typy WHERE url_typu_mn = $0', array($url2[0])));
+$aktivitaTyp = $typ['id_typu'];
+$nazevKategorie = $typ['typ_2pmn'];
+$orgTitul = $typ['titul_orga']; 
+
 if(intval($url2[1]) >= ARCHIV_OD && intval($url2[1]) < ROK_AKTUALNI)
   $rok=intval($url2[1]);
 else
   throw new Exception('Rok archivu mimo rozsah.');
 if(!isset($nazevKategorie))
   throw new Exception('Neplatná kategorie archivu.');
-
 
 //hlavní kód
 $xtpl=new XTemplate($ROOT_DIR.'/templates/archiv.xtpl');
@@ -74,7 +42,7 @@ while($radek=mysql_fetch_assoc($odpoved))
     $xtpl->parse('archiv.polozka.organizator');
   }
   $radek['popis']=encHtml2($popis);
-  //@todo obrázek pořešit později, protože archivy nemají url akcí řádně uvedeno
+  //TODO obrázek pořešit později, protože archivy nemají url akcí řádně uvedeno
   //$radek['obrazek']='/system_styly/side/'.$radek['obrazek'];
   $xtpl->assign($radek);
   if($radek['url'])

@@ -97,6 +97,25 @@ function randHex($chars)
   if(!($chars<=32 && $chars>=0)) 
     throw new Exception('maximum characters is 32 so far.');
   return substr(md5(mt_rand()),0,$chars); 
+}
+
+
+/**
+ * Returns part of string after rightmost occurence of delimiter
+ */ 
+function strrafter($string, $delimiter)
+{
+  $pos = strrpos($string, $delimiter);
+  return substr($string, $pos+1);
+}
+
+/**
+ * Returns part of string after rightmost occurence of delimiter
+ */ 
+function strrbefore($string, $delimiter)
+{
+  $pos = strrpos($string, $delimiter);
+  return substr($string, 0, $pos);
 }  
 
 
