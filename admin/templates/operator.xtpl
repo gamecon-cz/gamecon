@@ -1,0 +1,9 @@
+<!-- begin:operator -->
+<div class="operator">
+  <b>Přihlášen{a} jako</b><br>
+  {operator}
+  <form method="post">
+    <input type="submit" name="odhlasNAdm" value="Odhlásit" />
+  </form>
+</div>
+<!-- end:operator -->

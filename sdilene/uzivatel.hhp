@@ -4,15 +4,15 @@
  * Třída popisující uživatele a jeho vlastnosti
  * @todo načítání separátního (nepřihlášeného uživatele) např. pro účely schi-
  *   zofrenie v adminovi (nehrozí špatný přístup při nadměrném volání např. při
- *   práci s více uživateli někde jinde?) 
- */ 
+ *   práci s více uživateli někde jinde?)
+ */
 class Uzivatel
 {
-  protected 
+  protected
     $u=array(),
     $klic='',
     $finance=null;
-  
+
   /** Vytvoří uživatele z různých možných vstupů */
   function __construct($uzivatel)
   {
@@ -31,12 +31,12 @@ class Uzivatel
     else
       throw new Exception('Špatný vstup konstruktoru uživatele');
   }
-  
-  /** 
+
+  /**
    * Vrátí aboslutní adresu avataru včetně http. Pokud avatar neexistuje, vrací
    * default avatar. Pomocí adresy je docíleno, aby se při nezměně obrázku dalo
-   * cacheovat.   
-   */  
+   * cacheovat.
+   */
   function avatar()
   {
     $cesta=__DIR__.'/'.SDILENE_WWW_CESTA.'/files/systemove/avatary/';
@@ -48,24 +48,24 @@ class Uzivatel
     else
       return self::avatarDefault();
   }
-  
+
   /**
    * Vrátí defaultní avatar
-   */     
+   */
   static function avatarDefault()
   {
     return URL_WEBU.'/files/systemove/avatary/default.png';
   }
-  
+
   /**
    * Načte a uloží avatar uživatele poslaný pomoci POST. Pokud se obrázek ne-
-   * poslal, nestane se nic a vrátí false.   
+   * poslal, nestane se nic a vrátí false.
    * @param $name název post proměnné, ve které je obrázek, např. html input
    * <input type="file" name="obrazek"> má $name='obrazek'. U formu je potřeba
    * nastavit <form method="post" enctype="multipart/form-data"> enctype aby to
-   * fungovalo      
-   * @return bool true pokud se obrázek nahrál a uložil, false jinak   
-   */   
+   * fungovalo
+   * @return bool true pokud se obrázek nahrál a uložil, false jinak
+   */
   function avatarNactiPost($name)
   {
     if(!isset($_FILES[$name]['tmp_name']) || !$_FILES[$name]['tmp_name'])
@@ -98,15 +98,15 @@ class Uzivatel
       $sw=$w;
     }
     imagecopyresampled($nobr,$obr,
-      0,0,         //dst x,y 
+      0,0,         //dst x,y
       $sx,$sy,     //src x,y
       $wMax,$hMax, //dst w,h
-      $sw,$sh      //scr w,h 
+      $sw,$sh      //scr w,h
     );
     imagejpeg($nobr,$soub,98); // uložit
     return true;
-  }        
-  
+  }
+
   /** Smaže avatar uživatele. (jen uživatelská část webu) */
   function avatarSmaz()
   {
@@ -115,7 +115,7 @@ class Uzivatel
     else
       return true; //obrázek není -> jakoby se smazal v pohodě
   }
-  
+
   /**
    * Vrátí datum narození uživatele jako DateTime
    */
@@ -126,7 +126,7 @@ class Uzivatel
     else
       return new DateTime('1970-01-01');
   }
-  
+
   /**
    * Přidá uživateli židli (posadí uživatele na židli)
    */
@@ -143,11 +143,11 @@ class Uzivatel
         if($this->klic)
           $_SESSION[$this->klic]['prava'][]=(int)$r['id_prava'];
       }
-    dbQuery('INSERT IGNORE INTO r_uzivatele_zidle(id_uzivatele,id_zidle) 
+    dbQuery('INSERT IGNORE INTO r_uzivatele_zidle(id_uzivatele,id_zidle)
       VALUES ('.$this->id().','.$z.')');
-    return true;  
-  }     
-  
+    return true;
+  }
+
   /** Vrátí finance daného uživatele
    *  @todo ošetřit kolize v případě, že prve nepožádá rozšířený výpis aktivit
    *  a potom jo */
@@ -158,25 +158,25 @@ class Uzivatel
       $this->finance=new Finance($this,$nastaveni);
     return $this->finance;
   }
-  
+
   /**
    * Odhlásí uživatele z aktuálního ročníku GameConu, včetně všech předmětů a
    * aktivit.
    * @todo Vyřešit, jak naložit s nedostaveními se na aktivity a podobně (např.
    * při počítání zůstatků a různých jiných administrativních úkolech to toho
    * uživatele může přeskakovat či ignorovat, atd…). Jmenovité problémy:
-   * - platby (pokud ho vynecháme při přepočtu zůstatku, přijde o love)   
+   * - platby (pokud ho vynecháme při přepočtu zůstatku, přijde o love)
    * @todo Možná vyhodit výjimku, pokud už prošel infem, místo pouhého neudělání
    * nic?
    * @todo Při odhlášení z GC pokud jsou zakázané rušení nákupů může být též
-   * problém (k zrušení dojde)                     
-   */        
+   * problém (k zrušení dojde)
+   */
   function gcOdhlas()
   {
     if($this->gcPrihlasen() && !$this->gcPritomen())
     { // jen pokud je přihlášen a zároveň ještě neprošel infopultem
       // smazání přihlášení na aktivity, na které je jen přihlášen (ne je už hrál, jako náhradník apod.)
-      dbQuery('DELETE p.* FROM akce_prihlaseni p JOIN akce_seznam a 
+      dbQuery('DELETE p.* FROM akce_prihlaseni p JOIN akce_seznam a
         WHERE a.rok='.ROK.' AND p.id_stavu_prihlaseni=0 AND p.id_uzivatele='.$this->id());
       // smazání DrD, víceméně spekulativní, potenciální bugy
       dbQuery('DELETE FROM drd_postava WHERE rok='.ROK.' AND id_uzivatele='.$this->id());
@@ -195,20 +195,20 @@ class Uzivatel
       if(mysql_num_rows(dbQuery('SELECT 1 FROM platby WHERE rok='.ROK.' AND id_uzivatele='.$this->id()))>0)
         mail(
           'info@gamecon.cz',
-          'Uživatel '.$this->jmenoNick().' se odhlásil ale platil', 
-          'Uživatel '.$this->jmenoNick().' (ID '.$this->id().') se odhlásil z 
+          'Uživatel '.$this->jmenoNick().' se odhlásil ale platil',
+          'Uživatel '.$this->jmenoNick().' (ID '.$this->id().') se odhlásil z
           GameConu, ale v aktuálním roce ('.ROK.') si převedl nějaké peníze. Bude
           vhodné to prověřit popř. smazat platbu z připsaných a dát do zůstatku
           v seznamu uživatelů, aby mu peníze nepropadly');
     }
   }
-  
+
   /** Je uživatel přihlášen na aktuální GC? */
   function gcPrihlasen()
   {
     return $this->maPravo(ID_PRAVO_PRIHLASEN);
   }
-  
+
   /** Příhlásí uživatele na GC. True pokud je (nebo už byl) přihlášen. */
   function gcPrihlas()
   {
@@ -218,38 +218,46 @@ class Uzivatel
       return true;
     return false;
   }
-  
-  /** Prošel uživatel infopultem, dostal materiály a je přítomen na aktuálím 
+
+  /** Prošel uživatel infopultem, dostal materiály a je přítomen na aktuálím
    *  GC? */
   function gcPritomen()
   {
     return $this->maPravo(ID_PRAVO_PRITOMEN);
   }
-  
+
+  /** Jméno a příjmení uživatele v běžném (zákonném) tvaru */
+  function jmeno()
+  {
+    return $this->u['jmeno_uzivatele'].' '.$this->u['prijmeni_uzivatele'];
+  }
+
   /** Vrátí řetězec s jménem i nickemu uživatele jak se zobrazí např. u
    *  organizátorů aktivit */
   function jmenoNick()
   {
     return jmenoNick($this->u);
   }
-  
+
   /** Vrátí koncovku "a" pro holky (resp. "" pro kluky) */
   function koncA()
   {
     if($this->pohlavi()=='f') return 'a'; return '';
   }
-  
+
   /** Vrátí primární mailovou adresu uživatele */
   function mail()
-  { return $this->u['email1_uzivatele']; }
-  
+  {
+    return $this->u['email1_uzivatele'];
+  }
+
   function maPravo($pravo)
   {
     /*
-    if(isset($_SESSION['uzivatel']['prava']) 
+    if(isset($_SESSION['uzivatel']['prava'])
       && in_array($pravo, $_SESSION['uzivatel']['prava']))
       return true;
-    else 
+    else
       return false;
     */
     if(isset($this->u['prava']))
@@ -260,12 +268,12 @@ class Uzivatel
         return false;
     }
     else
-      throw new Exception('Nenačtena práva pro uživatele.'); 
+      throw new Exception('Nenačtena práva pro uživatele.');
   }
-  
-  /** 
+
+  /**
    * Ručně načte práva - neoptimalizovaná varianta, přijatelné pouze pro prasečí
-   * řešení, kde si to můžeme dovolit (=reporty)   
+   * řešení, kde si to můžeme dovolit (=reporty)
    */
   public function nactiPrava()
   {
@@ -279,15 +287,15 @@ class Uzivatel
       while($r=mysql_fetch_assoc($p))
         $prava[]=(int)$r['id_prava'];
       $this->u['prava']=$prava;
-    }    
+    }
   }
-  
-  /** 
+
+  /**
    * Pokusí se načíst uživatele podle aktivní session případně z perzistentního
-   * přihlášení.   
-   * @param string $klic klíč do $_SESSION kde očekáváme hodnoty uživatele 
-   * @return mixed objekt uživatele nebo null 
-   */  
+   * přihlášení.
+   * @param string $klic klíč do $_SESSION kde očekáváme hodnoty uživatele
+   * @return mixed objekt uživatele nebo null
+   */
   public static function nactiPrihlaseneho($klic='uzivatel')
   {
     if(!session_id())
@@ -301,8 +309,8 @@ class Uzivatel
     elseif(isset($_COOKIE['gcTrvalePrihlaseni']))
     {
       $id=dbOneLineS('
-        SELECT id_uzivatele 
-        FROM uzivatele_hodnoty 
+        SELECT id_uzivatele
+        FROM uzivatele_hodnoty
         WHERE random!="" AND random=$0',
         array($_COOKIE['gcTrvalePrihlaseni']));
       $id=$id?$id['id_uzivatele']:null;
@@ -310,7 +318,7 @@ class Uzivatel
       if(!$id) return null;
       //změna tokenu do budoucna proti hádání
       dbQuery('
-        UPDATE uzivatele_hodnoty 
+        UPDATE uzivatele_hodnoty
         SET random="'.($rand=randHex(20)).'"
         WHERE id_uzivatele='.$id);
       setcookie('gcTrvalePrihlaseni',$rand,time()+3600*24*365,'/');
@@ -321,7 +329,7 @@ class Uzivatel
       return null;
     }
   }
-  
+
   /**
    * Vrátí pole s nováčky (uživateli), kteří mají tohoto uživatele jako "guru"
    */
@@ -330,7 +338,7 @@ class Uzivatel
     $n=self::nactiUzivatele('WHERE guru='.$this->id());
     return $n;
   }
-  
+
   /** Odhlásí aktuálně přihlášeného uživatele, pokud není přihlášen, nic
    *  @param bool $back rovnou otočit na referrer?   */
   function odhlas($back=false)
@@ -342,7 +350,7 @@ class Uzivatel
       setcookie(gcTrvalePrihlaseni,'',0,'/');
     if($back) back();
   }
-  
+
   /** Odpojí od session uživatele na indexu $klic */
   function odhlasKlic($klic)
   {
@@ -350,7 +358,7 @@ class Uzivatel
       session_start();
     unset($_SESSION[$klic]);
   }
-  
+
   /**
    * Otočí (znovunačte, přihlásí a odhlásí, ...) uživatele
    */
@@ -360,7 +368,7 @@ class Uzivatel
     $id=$this->id();
     $klic=$this->klic;
     //máme obnovit starou proměnnou pro id uživatele (otáčíme aktuálně přihlášeného uživatele)?
-    $sesObnovit=(isset($_SESSION['id_uzivatele']) && $_SESSION['id_uzivatele']==$this->id()); 
+    $sesObnovit=(isset($_SESSION['id_uzivatele']) && $_SESSION['id_uzivatele']==$this->id());
     if($klic=='uzivatel') //pokud je klíč default, zničíme celou session
       $this->odhlas();
     else //pokud je speciální, pouze přemažeme položku v session
@@ -368,16 +376,16 @@ class Uzivatel
     $u=Uzivatel::prihlasId($id,$klic);
     $this->u=$u->u;
     if($sesObnovit) $_SESSION['id_uzivatele']=$this->id();
-  }     
-  
+  }
+
   /** Přihlásí uživatele s loginem $login k stránce
    *  @param string $klic klíč do $_SESSION kde poneseme hodnoty uživatele
    *  @param $login login nebo primární e-mail uživatele
-   *  @param $heslo heslo uživatele        
+   *  @param $heslo heslo uživatele
    *  @return mixed objekt s uživatelem nebo null */
   public static function prihlas($login,$heslo,$klic='uzivatel')
   {
-    $u=dbOneLineS('SELECT * FROM uzivatele_hodnoty 
+    $u=dbOneLineS('SELECT * FROM uzivatele_hodnoty
       WHERE (login_uzivatele=$0 OR email1_uzivatele=$0) AND heslo_md5=$1',
       array($login,md5($heslo)));
     if($u)
@@ -399,10 +407,10 @@ class Uzivatel
     else
       return null;
   }
-  
-  /** 
-   * Vytvoří v session na indexu $klic dalšího uživatele pro práci 
-   * @return objekt Uzivatel nebo null   
+
+  /**
+   * Vytvoří v session na indexu $klic dalšího uživatele pro práci
+   * @return objekt Uzivatel nebo null
    */
   public static function prihlasId($id,$klic='uzivatel')
   {
@@ -429,7 +437,7 @@ class Uzivatel
     else
       return null;
   }
-  
+
   /** Alias prihlas() pro trvalé přihlášení */
   public static function prihlasTrvale($login,$heslo,$klic='uzivatel')
   {
@@ -437,14 +445,14 @@ class Uzivatel
     if($u)
     {
       dbQuery('
-        UPDATE uzivatele_hodnoty 
+        UPDATE uzivatele_hodnoty
         SET random="'.($rand=randHex(20)).'"
         WHERE id_uzivatele='.$u->id());
       setcookie('gcTrvalePrihlaseni',$rand,time()+3600*24*365,'/');
     }
     return $u;
   }
-  
+
   /**
    * Zaregistruje uživatele podle asoc.pole $tab, které by mělo odpovídat stru-
    * ktuře tabulky uzivatele_hodnoty.
@@ -469,13 +477,13 @@ class Uzivatel
       die('Chyba: Email s novým heslem NEBYL odeslán, uživatel má pravděpodobně nastavený neplatný email nebo nastala neočekávaná chyba databáze. Kontaktujte nás prosím e-mailem <a href="mailto:info@gamecon.cz">info@gamecon.cz</a>');
     return $uid;
   }
-  
+
   /**
    * Rychloregistruje uživatele s omezeným počtem údajů při registraci na místě.
    * @return id nově vytvořeného uživatele (možno vytvořit objekt uživatele
-   *  později jen pokud má smysl - výkonnostní důvody)      
+   *  později jen pokud má smysl - výkonnostní důvody)
    * @todo možno evidovat, že uživatel byl regnut na místě
-   * @todo poslat mail s něčím jiným jak std hláškou   
+   * @todo poslat mail s něčím jiným jak std hláškou
    */
   static function rychloreg($tab)
   {
@@ -496,27 +504,39 @@ class Uzivatel
       die('Chyba: Email s novým heslem NEBYL odeslán, uživatel má pravděpodobně nastavený neplatný email');
     return $uid;
   }
-  
+
   /**
    * Sedí uživatel na dané židli?
    * NEslouží k čekování vlastností uživatele, které obecně řeší práva resp.
    * Uzivatel::maPravo(), skutečně výhradně k správě židlí jako takových. Also
    * přímé čtení z databáze => pomalé.
-   */              
+   */
   public function sediNaZidli($zidle)
   {
     return mysql_num_rows(dbQuery('SELECT * FROM r_uzivatele_zidle WHERE id_uzivatele='.$this->id().' AND id_zidle='.(int)$zidle))>0;
   }
-  
+
+  /** Vrátí html formátovaný „status“ uživatele (pro interní informaci) */
+  function statusHtml()
+  {
+    $ka = $this->pohlavi()=='f' ? 'ka' : '';
+    if($this->maPravo(P_TRIKO_ZDARMA))
+      return '<span style="color:red">Organizátor'.$ka.'</span>';
+    else if($this->maPravo(P_ORG_AKCI))
+      return '<span style="color:blue">Vypravěč'.$ka.'</span>';
+    else
+      return 'Účastník';
+  }
+
   /**
    * Vrátí telefon uživatele v blíže neurčeném formátu
    * @todo specifikovat formát čísla
-   */        
+   */
   function telefon()
   {
     return $this->u['telefon_uzivatele'];
   }
-  
+
   public function vek()
   {
     $narozeni=new DateTime();
@@ -524,35 +544,35 @@ class Uzivatel
     $vek=$narozeni->diff(new DateTime(DEN_PRVNI_DATE));
     return $vek->y;
   }
-  
+
   /**
    * Odstraní uživatele z židle a aktualizuje jeho práva.
-   */     
+   */
   public function vemZidli($zidle)
   {
     dbQuery('DELETE FROM r_uzivatele_zidle WHERE id_uzivatele='.$this->id().' AND id_zidle='.(int)$zidle);
     $this->aktualizujPrava();
   }
-  
+
   //getters, setters
-  
+
   function id()
   { return isset($this->u['id_uzivatele'])?$this->u['id_uzivatele']:null; }
-  
+
   /**
    * Vrátí pohlaví ve tvaru 'm' nebo 'f'
-   */     
+   */
   function pohlavi()
-  { 
-    return $this->u['pohlavi']; 
+  {
+    return $this->u['pohlavi'];
   }
-  
+
   function prezdivka()
   { return $this->u['login_uzivatele']; }
-  
+
   /** ISO 3166-1 alpha-2 */
   function stat()
-  { 
+  {
     if($this->u['stat_uzivatele']==1)
       return 'CZ';
     elseif($this->u['stat_uzivatele']==2)
@@ -560,18 +580,18 @@ class Uzivatel
     else
       throw new Exception('Neznámé id státu v databázi.');
   }
-  
-  /** 
-   * surová data z DB 
+
+  /**
+   * surová data z DB
    */
   function rawDb()
   { return $this->u; }
-  
+
   ///////////////////////////////// Protected //////////////////////////////////
-  
+
   /**
    * Aktualizuje práva uživatele z databáze (protože se provedla nějaká změna)
-   */     
+   */
   protected function aktualizujPrava()
   {
     $p=dbQuery('SELECT id_prava FROM r_uzivatele_zidle uz
@@ -583,14 +603,14 @@ class Uzivatel
     $_SESSION[$this->klic]['prava']=$prava;
     $this->u['prava']=$prava;
   }
-  
+
   /**
    * Načte uživatele včetně práv z DB podle zadané where klauzule. Tabulka se
-   * aliasuje jako u.*      
+   * aliasuje jako u.*
    */
   protected static function nactiUzivatele($where)
   {
-    $o=dbQuery('SELECT 
+    $o=dbQuery('SELECT
         u.*,
         -- u.login_uzivatele,
         -- z.id_zidle,
@@ -609,8 +629,8 @@ class Uzivatel
       $uzivatele[]=$u;
     }
     return $uzivatele;
-  }     
-  
+  }
+
 }
 
 ?>

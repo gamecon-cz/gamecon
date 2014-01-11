@@ -1,6 +1,6 @@
 <?php
 
-$q=get('q');
+$q=get('term');
 if(!$q || strlen($q)<2)
   exit();
 //todo regulární výrazy na rozlišení, kdo se hledá
@@ -15,22 +15,14 @@ $a=dbQuery('
   OR prijmeni_uzivatele LIKE "%'.$qs.'%"
   OR CONCAT(jmeno_uzivatele," ",prijmeni_uzivatele) LIKE "%'.$qs.'%"
   LIMIT 20');
-//echo '<pre>';
-$out='';
+
+$out=array();
 while($r=mysql_fetch_assoc($a))
 {
-  $out.='{';
-  foreach($r as $k=>$h)
-  {
-    if($k=='pritomen')
-      $out.='"'.$k.'":'.($h?'true':'false').', ';
-    else
-      $out.='"'.$k.'":"'.$h.'", ';
-  }
-  $out=substr($out,0,-2).'}, ';
+  $out[] = array(
+    'label' => $r['id_uzivatele'].' – '.$r['login_uzivatele'].' – '.$r['jmeno_uzivatele'].' '.$r['prijmeni_uzivatele']  ,
+    'value' => $r['id_uzivatele']
+  );
 }
-$out='['.substr($out,0,-2).']';
 
-echo $out;
-
-?>
+echo json_encode($out);

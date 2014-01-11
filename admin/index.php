@@ -1,38 +1,36 @@
 <?php 
 
-$SKRIPT_ZACATEK=microtime(true);
+$SKRIPT_ZACATEK = microtime(true);
 
-require_once('./scripts/konstanty.hhp'); //local constants
-require_once('./scripts/admin-menu.hhp'); //local constants
+require_once('scripts/konstanty.hhp'); //local constants
+require_once('scripts/admin-menu.hhp'); //local constants
 require_once($SDILENE_VSE);
 
-/* --- hlavni program --- */
+// nastaví uživatele $u a $uPracovni
+require('scripts/prihlaseni.php');
 
-//přihlášení
-if(post('loginNAdm') && post('hesloNAdm'))
-{
-  if($u=Uzivatel::prihlas(post('loginNAdm'),post('hesloNAdm')))
-    back();
-  else
-    back(); //todo: ošetření chyby obecným způsobem
+// odesílání bugreportu
+if(post('bugreport')) {
+  mail(
+    'gamecon.external_tasks.101564.godric@app.teambox.com',
+    '[bug] '.post('nazev'),
+    post('popis')."\n\n(reportoval".$u->koncA()." ".$u->jmenoNick()." - ".$u->mail().")",
+    'From: info@gamecon.cz'."\r\n".'Reply-To: info@gamecon.cz'
+  );
+  oznameni('hlášení chyby odesláno');
 }
-$u=Uzivatel::nactiPrihlaseneho();
-if(post('odhlasNAdm'))
-  $u->odhlas(true);
 
-//staré zpracování výběru uživatele pro admin. práci rozšířené o OOP
-$uPracovni=null;
-require_once('./scripts/vyber-uzivatele-old.hhp');
-
-//xtemplate inicializace
+// xtemplate inicializace
 $xtpl=new XTemplate('./templates/main.xtpl');
 $xtpl->assign('pageTitle','GameCon – Administrace');
 
+// nastavení stránky, prázdná url => přesměrování na úvod
 if(!get('req'))
-  back('/uvod'); //nastavení stránky, prázdná url => přesměrování na úvod
+  back('/uvod');
 $req=explode('/',get('req'));
 $stranka=$req[0];
 $podstranka=isset($req[1])?$req[1]:'';
+
 // zobrazení stránky
 if(!$u)
 {
@@ -83,12 +81,23 @@ else
   // výběr uživatele
   if($u->maPravo(100)) // panel úvod - fixme magická konstanta
   {
-    ob_start();
-    require('./scripts/modules/omnibox.hhp');
-    $xtpl->assign('omnibox',ob_get_clean());
+    if($uPracovni) {
+      $xtpl->assign(array(
+        'avatar'  =>  $uPracovni->avatar(),
+        'jmeno'   =>  $uPracovni->jmeno(),
+        'nick'    =>  $uPracovni->prezdivka(),
+        'status'  =>  $uPracovni->statusHtml(),
+      ));
+      $xtpl->parse('all.uzivatel.vybrany');
+    } else {
+      $xtpl->parse('all.uzivatel.omnibox');
+    }
+    $xtpl->parse('all.uzivatel');
   }
-  else
-    $xtpl->assign('omnibox','<br><br>');
+  // operátor - info & odhlašování
+  $xtpl->assign('a', $u->koncA());
+  $xtpl->assign('operator', $u->jmenoNick());
+  $xtpl->parse('all.operator');
   // konstrukce stránky
   if(isset($menu[$stranka]) && $u->maPravo($menu[$stranka]['pravo']))
   {
@@ -114,11 +123,10 @@ else
   else
     $xtpl->assign_file('obsah','./templates/404.xtpl');
   // výstup
-  $xtpl->parse('all.odhlasovani');
+  $xtpl->assign('protip', $protipy[array_rand($protipy)]);
+  $xtpl->parse('all.paticka');
   $xtpl->assign('chyba',chyba::vyzvedniHtml());
   $xtpl->parse('all');
   $xtpl->out('all');
   profilInfo();  
 }
-
-?>

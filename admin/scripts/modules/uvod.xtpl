@@ -70,7 +70,7 @@
   </script>
 <!-- end:uzivatel -->
 <!-- begin:neUzivatel -->
-  <div class="warning">Vyberte uživatele (pole nahoře)</div>
+  <div class="warning">Vyberte uživatele (pole vlevo)</div>
 <!-- end:neUzivatel -->
 <!-- begin:neprihlasen -->
   <div class="error">Uživatel{ka} není přihlášen{a} na GameCon.</div>
@@ -144,43 +144,6 @@
   </script>
 </div>
 
-<div style="clear:both;margin-bottom:-8px"></div>
-
-<a href="#" onclick="$('#bugreport').fadeToggle(); return false">Nahlásit chybu</a> –
-<a href="/program-obecny" target="_blank">Program GameConu</a> –
-<a href="/last-minute-tabule" target="_blank">Volná místa</a>
-
-<div id="bugreport" style="display:none">
-  <br>
-  <form method="post">
-    <table>
-      <tr>
-        <td>Co nefunguje:</td>
-        <td><input type="text" name="nazev" placeholder="(např. 'špatně se počítá sleva PJům')" style="width:404px"></td>
-      </tr>
-      <tr>
-        <td>Popis chyby:</td>
-        <td><textarea rows="4" name="popis" placeholder="(detailnější popis jak se chyba projevuje a jak by to mělo fungovat správně, např. 'pjům se počítá sleva za blok poloviční než má a nepočítá se jim jídlo zdarma')" style="width:400px"></textarea></td>
-      </tr>
-      <tr>
-        <td colspan="2">
-          <input type="submit" name="bugreport" value="Odeslat">
-        </td>
-      </tr>
-    </table>
-  </form>
-</div>
-
 <div style="clear:both"></div>
-
-
-
-<!--
-<br>
-<hr>
-Mrkni na základní informace pro organizátora GameConu na našem <a href="https://docs.google.com/document/d/1v3a4WR6EbtkZXKOjIewQGGazh5GF8qcc3Cv7XOqcAH4/edit#" onclick="return!window.open(this.href)">Google Drive</a>. Svoje úkoly a co se aktuálně řeší najdeš na <a href="https://teambox.com" onclick="return!window.open(this.href)">Teamboxu</a>. Pokud tam nemáš přístup, požádej o něj <a href="mailto:godric@korh.cz">godric@korh.cz</a>.
--->
-
-
 
 <!-- end:uvod -->

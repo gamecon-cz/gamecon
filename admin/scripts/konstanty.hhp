@@ -3,4 +3,11 @@
 $SDILENE_VSE='../sdilene/vse.hhp';
 $SDILENE_SLOZKA='../sdilene/';
 
+$protipy = array(
+  'tlačítka, které mají podtržené písmeno, je možné zrychleně použít pomocí alt+písmeno',
+  'užij si GameCon',
+  'alt+u vybírá uživatele, alt+z ruší',
+  'v programu uživatele se dá přepínat mezi osobním a celkovým programem',
+);
+
 ?>

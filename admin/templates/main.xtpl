@@ -1,50 +1,38 @@
-<!-- begin: all --><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
-"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!-- begin: all --><!DOCTYPE html>
+<html>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>{pageTitle}</title>
-  <link rel="shortcut icon" href="{base}/files/favicon.ico" />
-  <link rel="stylesheet" href="{base}/files/design/styl.css" />
-  <script type="text/javascript" src="{base}/files/jquery-1.6.4.min.js"></script>
-  <script type="text/javascript" src="{base}/files/jquery.shortcuts.min.js"></script>
-  <script>
-    //staré api
-    function ukaz(klic)
-    {
-      $('#objekt'+klic).toggle();
-    }
-  </script>
+  <link rel="shortcut icon" href="/files/favicon.ico" />
+  <link rel="stylesheet" href="/files/design/styl.css" />
+  <link rel="stylesheet" href="/files/design/ui-lightness/jquery-ui-1.10.3.custom.min.css" />
+  <script src="/files/jquery-1.6.4.min.js"></script>
+  <script src="/files/jquery-ui-1.10.3.custom.min.js"></script>
+  <script src="/files/jquery.shortcuts.min.js"></script>
+  <script src="/files/aplikace.js"></script>
+  <script src="/files/omnibox.js"></script>
 </head>
 <body>
-
-  <div class="obal1">
-    
-    {omnibox}
-    
-    <ul class="menu">
-      <!-- begin:menuPolozka --><li {aktivni}><a href="/{url}"><img src="/files/design/{url}.png" />{nazev}</a></li><!-- end:menuPolozka -->
-    </ul>
-    
-    <div class="main">
-      <!-- begin:submenu -->
-      <ul>
-        <!-- begin:polozka --><li><a href="/{url}">{nazev}</a></li><!-- end:polozka -->
-      </ul>
-      <!-- end:submenu -->
-      {chyba}
-      {FILE {obsah}}
-      {obsahRetezec}
+  <div class="obal">
+    <div class="sloupL">
+      {FILE "templates/operator.xtpl"}
+      {FILE "templates/menu.xtpl"}
+      {FILE "templates/uzivatel.xtpl"}
     </div>
-    
-    <!-- begin:odhlasovani -->
-    <form method="post">
-      <input type="submit" name="odhlasNAdm" value="Odhlásit" />
-    </form>
-    <!-- end:odhlasovani -->
-    
+    <div class="sloupR">
+      <div class="main">
+        <!-- begin:submenu -->
+        <ul>
+          <!-- begin:polozka --><li><a href="/{url}">{nazev}</a></li><!-- end:polozka -->
+        </ul>
+        <!-- end:submenu -->
+        {chyba}
+        {FILE {obsah}}
+        {obsahRetezec}
+      </div>
+      {FILE "templates/paticka.xtpl"}
+    </div>
   </div>
-
 </body>
 </html>
 <!-- end: all -->

@@ -1,11 +1,27 @@
-body { font-family: tahoma; font-size: 12px; background-color: #f0f0f0;
-  overflow-y: scroll; margin: 0; }
+html {  }
+body {
+  font-family: tahoma, sans-serif; font-size: 12px;
+  background-color: #444;
+  overflow-y: scroll; margin: 0; padding: 0; text-align: center; }
 
 
-.obal1 { width: 960px; left: 50%; position: relative; margin-left: -480px; }
+.obal   { display: inline-block; min-width: 700px; max-width: 1200px; width: 100%; text-align: justify; }
+.sloupL { position: fixed; width: 180px; text-align: left; }
+.sloupR { position: relative; margin-left: 180px; z-index: 10; padding: 8px 0; }
+
+.operator, .uzivatel { background-color: #bbb; border-radius: 8px; padding: 8px; margin: 8px; margin-left: 0; }
+
+.operator {  }
+
+.uzivatel { background-color: #fff; }
+.uzivatel .detail {  }
+.uzivatel .tip { color: #aaa; margin: 4px 8px 0 8px; font-size: 0.8em; }
+.uzivatel .avatar { float: left; width: 60px; height: 60px; margin: 0 8px 8px 0; }
+.uzivatel h3 { margin: 0 0 3px 0; font-size: 1.2em; line-height: 0.9em; }
 
 
 /* hlavička */
+/*
 .hlavicka { border: solid 1px #898c95; background-color: #fff;
   margin: 10px 0 20px 0; height: 60px; position: relative; }
 .hlavicka .vyber { margin: 15px 0 0 20px; }
@@ -15,70 +31,75 @@ body { font-family: tahoma; font-size: 12px; background-color: #f0f0f0;
 .hlavicka .uzivatel form { position: absolute; top: 17px; left: 350px; }
 .hlavicka .uzivatel table { margin: 2px 8px; }
 .hlavicka .uzivatel table th { padding: 0; background: none; font-weight: bold; border: none; text-align: left; }
-.hlavicka .uzivatel table tr { background: none !important; } 
-/* omnibox */
-.omniSelectbox { position: absolute; margin-top: 30px;
-  min-width: 332px; min-height: 5px; z-index: 999;
-  border: solid 1px #898c95; background-color: #ffffff; }
-.omniLine { padding: 5px 5px; }
-.omniLine.active { background-color: #eee; }
+.hlavicka .uzivatel table tr { background: none !important; }
+*/
+#omnibox { width: 100%; box-sizing: border-box; -moz-box-sizing: border-box; }
 
+.menu {  }
+.menu > div { background-color: #bbb; border-radius: 8px 0 0 8px; margin: 0 0 4px 0; position: relative;
+  background: linear-gradient(to right, #bbb 0%, #bbb 96%, #888 100%); height: 26px; }
+.menu > div.active { background: none; background-color: #fff; }
+.menu .roh { position: absolute; display: none; z-index: 10; height: 8px; }
+.menu .active .roh { display: block; }
+.menu .horni.roh { bottom: 100%; right: 0; }
+.menu .dolni.roh { top: 100%; right: 0; }
+.menu a { display: block; width: 100%; text-decoration: none; color: #000; opacity: 0.7; padding: 4px; }
+.menu a img { margin-right: 4px; }
+.menu .active a { opacity: 1.0; }
+.menu :hover a { opacity: 1.0; }
+.menu a:focus { outline: none; opacity: 1.0; color: #f00; }
 
-.menu { height: 22px; margin: 0; font-size: 12px; padding-left: 2px; }
-.menu li { float: left; list-style-type: none; border: solid 1px #898c95; 
-  padding: 1px 1px 0 1px; background-color: #eee;
-  }
-.menu li a { line-height: 20px; background-image: url('bg-flap.png'); 
-  padding: 3px 5px; text-decoration: none; color: #000; }
-.menu li a img { margin: 0 3px -2px 0; }
-.menu li a:hover { background-image: url('bg-flap-active.png'); color: #587ab2; }
-.menu li.active { border-bottom-color: #fff; background-color: #fff;
-  margin: 0 -2px; padding: 3px 3px 0 3px;
-  position: relative; z-index: 30; top: -2px; }
-.menu li.active a { background-image: none; color: #000; }
-.menu img { margin-bottom: -4px; height: 16px; width: 16px; opacity: 0.2;
-  /* IE */ border: none; }
-.menu .active img { opacity: 0.5; }
+.main { padding: 20px; background-color: #fff; border-radius: 8px; min-height: 480px; position: relative; z-index: 10; }
 
+.paticka { margin-top: -8px; }
+.paticka .nabidka { margin-top: 8px; padding: 8px 16px; }
+.paticka .nabidka, .paticka .nabidka a, .paticka .protip { color: #222; text-decoration: none; text-shadow: 1px 1px 0px #555; }
+.paticka .nabidka a:hover { color: #ddd; text-shadow: none; }
+.paticka .protip { float: right; text-align: right; width: 60%; }
+.paticka .obsah { border-radius: 0 0 8px 8px; padding: 8px; padding-top: 24px; display: none;
+  background-color: #bbb; background: linear-gradient(to bottom, #888 8px, #bbb 16px); margin-bottom: -8px; }
 
-.main { border: solid 1px #898c95; padding: 20px; background-color: #fff; }
+/* Formuláře */
+input, textarea, select { border: solid 1px #999; padding: 2px; border-radius: 2px; margin: 0; font: inherit; }
+input::-moz-focus-inner { border: 0; padding: 0; /* margin-top:-2px; margin-bottom: -2px; */ /* FF fix */ }
+input[type="submit"] { background: linear-gradient(to top, #d8d8d8 0%, #fafafa 100%); padding: 2px 8px; font-size: 1.05em; }
+input[type="submit"]:hover { border-color: #666; }
+input[type="text"], input[type="password"], select {  }
+textarea { font: inherit; }
 
-
-table { border-collapse: collapse; }
-table th { background-image: url('bg-tabletop.png'); background-color: #f2f1f3;
+/* Tabulky */
+.main table { border-collapse: collapse; }
+.main table th { background-image: url('bg-tabletop.png'); background-color: #f2f1f3;
   border: solid 1px #eee; padding: 3px; font-family: verdana; font-weight: normal; }
-table td { padding: 2px 5px; }
-table tr:nth-child(odd) { background-color: #f0f0f0; }
-table.zvyraznovana { cursor: default; }
-table.zvyraznovana tr:hover td { background-color: #c6e6f8; }
-table td img { margin:-4px 0; border:0; padding:0; }
+.main table td { padding: 2px 5px; }
+.main table tr:nth-child(odd) { background-color: #f0f0f0; }
+.main table.zvyraznovana { cursor: default; }
+.main table.zvyraznovana tr:hover td { background-color: #c6e6f8; }
+.main table td img { margin:-4px 0; border:0; padding:0; }
 
 table form, form.radkovy { margin:0; padding:0; display: inline; }
-/* tlacitko kvůli formům přes víc buněk, které to nebere ok */
-table form input[type="submit"], .tlacitko { display:inline-block; 
+table form input[type="submit"], .tlacitko { display:inline-block;
   background-image: url('tlacitko32x14.png'); width: 32px; height: 14px;
   padding: 0 0 5px 0; border: none; font-family: tahoma; font-size:11px;
   vertical-align: top; margin: 0 0 -10px 0; }
 table form input[type="submit"]:hover, .tlacitko:hover { background-position: 0 -14px; }
 table form input[type="submit"]:active, .tlacitko:active { background-position: 0 -28px; }
-form.radkovy input[type="submit"] { display:inline-block; 
+form.radkovy input[type="submit"] { display:inline-block;
   height: 15px; line-height: 10px; width: auto;
   padding: 0 4px; border: none; font-family: tahoma; font-size:11px;
-  vertical-align: top; 
+  vertical-align: top;
   margin: 0 0 -10px 0;
   background-image: url('tlacitko-1.png');
   background-size: 150% 170%;
   background-position: 50% 50%;
   border-image: url('tlacitko-1.png') 3 3 stretch;
-  border-radius: 3px;
-  /* text-shadow: 0 -1px 0 #000;
-  color: transparent; */ }
-form.radkovy input[type="submit"]:hover { 
-  background-image: url('tlacitko-2.png'); 
+  border-radius: 3px; }
+form.radkovy input[type="submit"]:hover {
+  background-image: url('tlacitko-2.png');
   border-image-source: url('tlacitko-2.png');
   background-position: 50% 50%; }
 form.radkovy input[type="submit"]:active {
-  background-image: url('tlacitko-3.png'); 
+  background-image: url('tlacitko-3.png');
   border-image-source: url('tlacitko-3.png');
   background-position: 50% 50%; }
 
@@ -91,20 +112,19 @@ table.cista > tbody > tr > td:first-child { padding: 0; }
 .aBox strong:first-child { display: block; margin-top: -5px; }
 .aBox ul { margin: 0 0 5px 0; padding-left: 22px; }
 .cista .aBox, .cista .aBox:first-child { min-width: 200px; }
-  
+
 /* tabulky v stylu vyplňovací form */
 form table th { background-repeat: repeat-x; }
-form table input[type="text"], form table select, form table textarea { 
-  margin:0px; padding:0px; }
+form table input[type="text"], form table select, form table textarea {
+  margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 form table .full { width: 99%; }
-form table textarea { font-family: Arial; padding: 1px 3px; font-size: 13px; }
 form table .obrazekNahled { background-image:url('sachy.png'); padding: 5px; text-align: center; }
 form table .obrazekNahled img { margin:-1px 0 -2px 0; }
 
 .hinted { cursor: default; color: inherit; text-decoration: inherit; border-bottom: dotted 1px; position: relative; }
 .hinted:hover .hint { display: block; }
-.hint { position: absolute; display: none; width: 200px; left: 0; top: 16px; 
-  background-color: rgba(51,51,51,0.9); /background-color: #333; 
+.hint { position: absolute; display: none; width: 200px; left: 0; top: 16px;
+  background-color: rgba(51,51,51,0.9); /background-color: #333;
   border: solid 0px #000; padding: 3px; z-index: 10; font-size: 11px;
   color: #fff; text-align: left; padding: 10px; }
 .error, .success, .warning {
@@ -130,6 +150,6 @@ form table .obrazekNahled img { margin:-1px 0 -2px 0; }
 .prezence .formAktivita input[type="submit"] { padding: 1px 15px; }
 
 /* pro automaticky generované chybové hlášky */
-.chybaBlok > div { position: absolute; left: -10px; top: 122px; width: 926px; 
+.chybaBlok > div { position: absolute; left: -10px; top: 122px; width: 926px;
   background-color: rgba(212, 241, 212, 0.75); text-align: center; z-index: 99;
   box-shadow: 0 0 10px #aaa; padding: 28px; color:#252; font-size: 20px; }

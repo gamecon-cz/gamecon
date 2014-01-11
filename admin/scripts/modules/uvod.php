@@ -73,16 +73,6 @@ if(!empty($_POST['gcOdhlas']) && $uPracovni && !$uPracovni->gcPritomen())
   back();
 }
 
-if(post('bugreport')) {
-  mail(
-    'gamecon.external_tasks.101564.godric@app.teambox.com',
-    '[bug] '.post('nazev'),
-    post('popis')."\n\n(reportoval".$u->koncA()." ".$u->jmenoNick()." - ".$u->mail().")",
-    'From: info@gamecon.cz'."\r\n".'Reply-To: info@gamecon.cz'
-  );
-  oznameni('hlášení chyby odesláno');
-}
-
 $x=new XTemplate('uvod.xtpl');
 if($uPracovni && $uPracovni->gcPrihlasen())
 {

@@ -420,6 +420,7 @@ function profilInfo($stringOut=null,$iconRoot=null)
       position: absolute;
       padding: 2px 7px;
       cursor: default;
+      z-index: 9999;
     ">
     <style>
       .profilInfo:hover { opacity: 0.3; }
