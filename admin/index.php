@@ -101,7 +101,8 @@ else
   // konstrukce stránky
   if(isset($menu[$stranka]) && $u->maPravo($menu[$stranka]['pravo']))
   {
-    $_SESSION['id_admin']=$u->id(); //součást interface starých modulů
+    $_SESSION['id_admin'] = $u->id(); //součást interface starých modulů
+    $_SESSION['id_uzivatele'] = $uPracovni ? $uPracovni->id() : null ; //součást interface starých modulů
     $cwd=getcwd(); //uložíme si aktuální working directory pro pozdější návrat
     if(isset($submenu))
     {
@@ -117,6 +118,8 @@ else
     require($soubor);
     $xtpl->assign('obsahRetezec',ob_get_clean());
     chdir($cwd);
+    unset($_SESSION['id_uzivatele']);
+    unset($_SESSION['id_admin']);
   }
   elseif(!$u->maPravo($menu[$stranka]['pravo']))
     $xtpl->assign_file('obsah','./templates/zakazano.xtpl'); 
