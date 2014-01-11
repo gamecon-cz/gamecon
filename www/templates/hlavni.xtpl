@@ -73,8 +73,9 @@
           <li><a href="/kontakt">Kontakt</a></li>
         </ul>
         <ul>
+          <li><a style="padding:0" href="/">&zwnj;</a></li>
+          <li><a href="/blog">Blog</a></li>
           <!-- begin:program -->
-            <li><a style="padding:0" href="/">&zwnj;</a></li>
             <li><a href="/program" onclick="window.open(this.href);return false">Program GC</a></li>
           <!-- end:program -->
           <!-- begin:prihlaska -->
