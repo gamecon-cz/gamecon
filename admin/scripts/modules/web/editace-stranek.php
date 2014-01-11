@@ -39,7 +39,7 @@ else
 { //žádná stránka k editaci nevybrána, jen seznam
   $radky=dbQuery('SELECT s.url_stranky, s.id_stranky, m.nazev FROM stranky s
     LEFT JOIN menu m ON(m.navazana_stranka=s.id_stranky)
-    ORDER BY m.nazev="" DESC, m.nazev');
+    ORDER BY m.nazev="" DESC, m.nazev, s.url_stranky');
   $skryta=0; //unimplemented
   while($radek=mysql_fetch_array($radky))
   {
