@@ -11,20 +11,39 @@ if(post('zapsatMaillist'))
 
 $titulek->socNahled('/files/styly/styl-aktualni/soc-logo.jpg');
 
+// blog hack
+$blog = current(dbOneLine('SELECT obsah FROM stranky WHERE id_stranky = 120'));
+$from = strpos($blog, '<!-- PRVNÍ ČLÁNEK -->');
+$to = strpos($blog, '<!-- KONEC PRVNÍHO ČLÁNKU -->', $from);
+$blog = substr($blog, $from, $to - $from);
+
 ?>
 
 <script type="text/javascript" src="/files/jquery.cycle.all.js"></script>
+
+<style type="text/css">
+h2 {margin-bottom: 2px}
+h3 {margin-bottom: 4px}
+.podpis {color: gray; size: 8pt; text-align:left}
+.obrazek {width: 680px; margin-top: 4px;}
+.obrazekObsah {width: 310px; float: left; margin: 0px 10px 0px 0px;}
+.vice {text-align: right; font-size: 12pt;}
+.side { display:none; }
+.main { width: 680px; }
+.main-middle-in { width: 680px; background-size: 100% auto; }
+.main-top, .main-bottom, .main-middle { width: 712px; background-size: 100% 100%; }
+</style>
 
 <div style="font-size:13px">
 
 <strong style="font-size:150%">GameCon</strong> je největší festival nepočítačových her v České republice, který se koná třetí víkend v červenci. V roce 2014 se bude konat jubilejní 20. ročník a opět se těšte na desítky <strong>RPGček, deskovek, larpů,</strong> akčních her, wargaming, přednášky, klání v Příbězích Impéria, tradiční <strong>mistrovství v DrD</strong> a v neposlední řadě skvělé lidi a vůbec <strong>zážitky</strong>, které ve vás přetrvají minimálně do dalšího roku.<br>
 
-<div style="margin: 12px 0px; height:152px; box-shadow: #444 0 1px 10px" id="motivacniBox">
-  <img src="/files/styly/styl-aktualni/motivacni-box/gc-1.jpg" width="480" />
-  <img src="/files/styly/styl-aktualni/motivacni-box/gc-2.jpg" width="480" />
-  <img src="/files/styly/styl-aktualni/motivacni-box/gc-3.jpg" width="480" />
-  <img src="/files/styly/styl-aktualni/motivacni-box/gc-4.jpg" width="480" />
-  <img src="/files/styly/styl-aktualni/motivacni-box/gc-5.jpg" width="480" />
+<div style="margin: 12px 0px; height:215px; box-shadow: #444 0 1px 10px" id="motivacniBox">
+  <img src="/files/styly/styl-aktualni/motivacni-box/gc-1.jpg" width="680" />
+  <img src="/files/styly/styl-aktualni/motivacni-box/gc-2.jpg" width="680" />
+  <img src="/files/styly/styl-aktualni/motivacni-box/gc-3.jpg" width="680" />
+  <img src="/files/styly/styl-aktualni/motivacni-box/gc-4.jpg" width="680" />
+  <img src="/files/styly/styl-aktualni/motivacni-box/gc-5.jpg" width="680" />
 </div>
 <script type="text/javascript">
   $('#motivacniBox').cycle({
@@ -41,26 +60,10 @@ První informace o 20. ročníku GameConu očekávajte na jaře 2014. Pokud nech
   <input type="submit" name="zapsatMaillist" value="Zapsat se">
 </form>
 
+<br><h1>Nejnovější blog</h1>
+
+<?=$blog?>
+
+<br><a class="vice" href="/blog">Zobrazit všechny články</a>
+
 </div>
-
-<?php return; ?>
-
-
-<!--
-Ať už chcete přijet jen na odpoledne nebo na celé čtyři dny, je vám k dispozci <strong>osobní program</strong>, který si můžete sestavit a <strong>ubytování</strong> po celou dobu festivalu. Nic dalšího není třeba – hry vás naučí a provede jimi početný tým organizátorů přímo na místě.<br /><br />
-
-<div style="text-align:center;font-weight:bold;font-size:15px;margin:0 50px">GameCon za námi, Mohylvill v troskách. Fotky z něj naleznete v galerii na <a href="https://www.facebook.com/gamecon" title="Facebook">Facebooku</a> nebo <a href="https://plus.google.com/106567731930618318644/posts" title="Google+">Google+</a>.</div><br>
-
-Vstup na <strong>GameCon</strong> je zdarma, platíte si jen ubytování a aktivity, na které opravdu jdete. Pokud jste student nebo se zapojíte do předfestivalového programu, můžete na všechny aktivity získat zásadní slevu.
-
-<!--
-<h2>Chci přijet</h2>
-
-<form method="post" class="gcForm" style="margin: 4px 0 10px 0">
-  <input type="text" size="30" name="mail" title="e-mail" />
-  <input type="submit" name="zapsatMaillist" value="Zapsat se" />
-</form>
-
-Pokud chcete přijet na GameCon a mít svoje místo jisté, nebo prostě jen být mezi prvními, kteří budou vědět, až se otevře <strong>registrace a program</strong> GameConu v <strong>květnu 2013</strong>, nechte nám na sebe mail. (P.S.: vaše maily nikomu neprozradíme a nemáme rádi spam, takže se můžete kdykoli odhlásit :)
--->
-
