@@ -1,12 +1,10 @@
 AddDefaultCharset UTF-8
 RewriteEngine On
 
-#---pridani lomitka na konec
-RewriteCond %{REQUEST_URI} /$
-RewriteRule (.*)/$ /$1 [R,L]
-#TRIK: L ukonèí pøepisy, nicménì pøesmìruje, tím se vyvolá nový reqest
-#s už reparsovanou adresou, na které se vykoná pak korektnì parsování
-#cesty (viz další RewriteCond)
+#---odstranÄ›nÃ­ lomÃ­tka z konce
+RewriteCond %{THE_REQUEST} ^[A-Z]+\ (.+)/\ [A-Z0-9\./]+$
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule (.*) %1 [R,L]
 
 #---prepis cesty v adrese na promennou
 RewriteCond %{REQUEST_URI} !\.[[:alnum:]]+$ 
