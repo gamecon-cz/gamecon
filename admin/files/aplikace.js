@@ -5,7 +5,9 @@ function ukaz(klic) {
 }
 
 $(function(){ // korekce výšky
-  if( $(window).height() < $('.sloupL').height() ){
+  var preteklo = $(window).height() < $('.sloupL').height();
+  var mobilni = (/iPhone|iPod|iPad|Android|BlackBerry/).test(navigator.userAgent);
+  if( mobilni || preteklo ){
     $('.sloupL').css('position', 'absolute');
   }
 });
