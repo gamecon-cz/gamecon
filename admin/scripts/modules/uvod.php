@@ -77,8 +77,8 @@ $x=new XTemplate('uvod.xtpl');
 if($uPracovni && $uPracovni->gcPrihlasen())
 {
   $up=$uPracovni;
-  $x->assign('ok', $ok='<img src="/files/design/ok-s.png" style="margin-bottom:-2px">');
-  $x->assign('err',$err='<img src="/files/design/error-s.png" style="margin-bottom:-2px">');
+  $x->assign('ok', $ok='<img src="files/design/ok-s.png" style="margin-bottom:-2px">');
+  $x->assign('err',$err='<img src="files/design/error-s.png" style="margin-bottom:-2px">');
   $a=$up->koncA();
   $novacci=array_map(function($n){
     global $ok, $err;

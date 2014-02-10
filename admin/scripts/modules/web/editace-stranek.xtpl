@@ -45,8 +45,8 @@
     <input type="hidden" name="zobrazit" value="{id_stranky}" />
     <input type="submit" value="Uložit změny" />
   </form>
-  <script src="/files/showdown.js"></script>
-  <script src="/files/jquery.autosize.js"></script>
+  <script src="files/showdown.js"></script>
+  <script src="files/jquery.autosize.js"></script>
   <script>
     function ukazObsah(){
       var md=new Showdown.converter();

@@ -98,7 +98,7 @@ if($a['organizator'])
     AND NOT(id_akce='.$a['id_akce'].' OR (patri_pod AND patri_pod='.$a['patri_pod'].'))
     GROUP BY gid');
   while($r=mysql_fetch_assoc($aa))
-    $dalsiAktivityOrga[]='<a href="/'.$r['url_typu'].'/'.$r['url_akce'].'">'.
+    $dalsiAktivityOrga[]='<a href="'.$r['url_typu'].'/'.$r['url_akce'].'">'.
     $r['nazev_akce'].'</a>';
   if($dalsiAktivityOrga)
     $xtpl->insert_loop('aktivita.dalsiAktivityOrga','dalsiAktivityOrga',implode(

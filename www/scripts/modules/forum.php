@@ -1,4 +1,4 @@
-<?
+<?php
 
 //port starých proměnných
 if($NAZEV_VETVE=='vyvojova')
@@ -63,21 +63,21 @@ if (!empty($_GET["url_druha"]) && empty($_GET["url_treti"]) && empty($_GET["url_
 
 if (!empty($_SESSION["prihlasen"]) && empty($_GET["url_treti"])){
   ?>
-  <form action="/forum<?echo $_GET["url_druha"]?'/'.$_GET["url_druha"]:''; ?>" method="post" style="display: inline;">
+  <form action="forum<?php echo $_GET["url_druha"]?'/'.$_GET["url_druha"]:''; ?>" method="post" style="display: inline;">
     <input type="hidden" name="prectene" value="1" />
-    <?
+    <?php
     if (!empty($_GET["url_druha"])){
     $sql="select id_sekce from forum_sekce where jmeno_sekce_mini like '$_GET[url_druha]'";
     $result=dbQuery($db_jmeno,$sql,$db_spojeni);
     $id_vlakna=mysql_result($result,0,0);
     ?>
-    <input type="hidden" name="id_vlakna" value="<?echo $id_vlakna?>" />
-    <?
+    <input type="hidden" name="id_vlakna" value="<?php echo $id_vlakna?>" />
+    <?php
     }
     ?>
-    <input type="image" src="/files/styly/styl-aktualni/tlacitka/oznacit-vsechny-jako-prectene.gif" value="Submit" alt="Označit všechny jako přečtené" style="width: 158px; height: 26px;" />
+    <input type="image" src="files/styly/styl-aktualni/tlacitka/oznacit-vsechny-jako-prectene.gif" value="Submit" alt="Označit všechny jako přečtené" style="width: 158px; height: 26px;" />
   </form>
-  <?
+  <?php
 }
 
 //odchytavani vkladani do DB (a jinych vylomenin)
@@ -141,7 +141,7 @@ if (empty($_GET["url_druha"]) && empty($_GET["url_treti"]) && empty($_GET["url_c
         <div style="width: 55px;">vláken</div>
         <div style="width: 150px;">poslední příspěvěk</div>
       </div>
-    <?
+    <?php
     $pocitadlo_radku=0;
     while($zaznam=mysql_fetch_row($result)){
       $pocitadlo_radku++;
@@ -175,10 +175,10 @@ if (empty($_GET["url_druha"]) && empty($_GET["url_treti"]) && empty($_GET["url_c
       }
       //***********************
       ?>
-      <div class="radek<?echo $pocitadlo_radku%2;?>">
+      <div class="radek<?php echo $pocitadlo_radku%2;?>">
         <div class="ohraniceni">
-          <div style="width: 50px;" <?echo $obrazek?>>&nbsp;</div>
-        <?
+          <div style="width: 50px;" <?php echo $obrazek?>>&nbsp;</div>
+        <?php
         //autor, datum a čas posledního založení
         $sql_prvni_clanek="select uzivatel,datum from forum_clanky where patri=$zaznam[2] order by id_clanku asc limit 0,1";
         $result_prvni_clanek=dbQuery($db_jmeno,$sql_prvni_clanek,$db_spojeni);
@@ -196,17 +196,17 @@ if (empty($_GET["url_druha"]) && empty($_GET["url_treti"]) && empty($_GET["url_c
         }
         ?>
         <div style="width: 220px; text-align: left; min-height: 48px; vertical-align: top;">
-          <span style="position: relative; top: 2px;"><a href="/forum/<?echo $zaznam[1]?>"><?echo $zaznam[0]?></a></span><br />
-          <span style="position: relative; top: 2px; font-style: italic;"><?echo $zaznam[3]?></span>
+          <span style="position: relative; top: 2px;"><a href="forum/<?php echo $zaznam[1]?>"><?php echo $zaznam[0]?></a></span><br />
+          <span style="position: relative; top: 2px; font-style: italic;"><?php echo $zaznam[3]?></span>
         </div>
-        <?
+        <?php
         //spočítání vláken
         $sql_vlaken="select id_podsekce from forum_podsekce where patri=$zaznam[2]";
         $result_vlaken=dbQuery($db_jmeno,$sql_vlaken,$db_spojeni);
         $vlaken=mysql_num_rows($result_vlaken);
         ?>
-        <div style="width: 55px; line-height: 48px; "><?echo $vlaken?></div>
-        <?
+        <div style="width: 55px; line-height: 48px; "><?php echo $vlaken?></div>
+        <?php
         //autor, datum a čas posledního založení
         //$sqlx="select id_podsekce from forum_podsekce where max(posledni_zmena)";
         //$resultx=dbQuery($db_jmeno,$sqlx,$db_spojeni);
@@ -234,12 +234,12 @@ if (empty($_GET["url_druha"]) && empty($_GET["url_treti"]) && empty($_GET["url_c
         }
         ?>
           <div style="width: 144px;">
-            <?echo $login_uzivatele?><br />
-            <span class="druhy_radek"> <?echo $datum_vlozeni?></span>
+            <?php echo $login_uzivatele?><br />
+            <span class="druhy_radek"> <?php echo $datum_vlozeni?></span>
           </div>
         </div>
       </div>
-    <?
+    <?php
       
       //***********************
     }
@@ -277,7 +277,7 @@ if (empty($_GET["url_druha"]) && empty($_GET["url_treti"]) && empty($_GET["url_c
         <div style="width: 55px;">vláken</div>
         <div style="width: 150px;">poslední příspěvěk</div>
       </div>
-    <?
+    <?php
     $pocitadlo_radku=0;
     while($zaznam=mysql_fetch_row($result)){
       $pocitadlo_radku++;
@@ -312,10 +312,10 @@ if (empty($_GET["url_druha"]) && empty($_GET["url_treti"]) && empty($_GET["url_c
       //***********************
       if (ma_pravo($_SESSION["id_uzivatele"],$zaznam[4])){
         ?>
-        <div class="radek<?echo $pocitadlo_radku%2;?>">
+        <div class="radek<?php echo $pocitadlo_radku%2;?>">
           <div class="ohraniceni">
-            <div style="width: 50px;" <?echo $obrazek?>>&nbsp;</div>
-          <?
+            <div style="width: 50px;" <?php echo $obrazek?>>&nbsp;</div>
+          <?php
           //autor, datum a čas posledního založení
           $sql_prvni_clanek="select uzivatel,datum from forum_clanky where patri=$zaznam[2] order by id_clanku asc limit 0,1";
           $result_prvni_clanek=dbQuery($db_jmeno,$sql_prvni_clanek,$db_spojeni);
@@ -333,17 +333,17 @@ if (empty($_GET["url_druha"]) && empty($_GET["url_treti"]) && empty($_GET["url_c
           }
           ?>
           <div style="width: 220px; text-align: left; min-height: 48px; vertical-align: top;">
-            <span style="position: relative; top: 2px;"><a href="/forum/<?echo $zaznam[1]?>"><?echo $zaznam[0]?></a></span><br />
-            <span style="position: relative; top: 2px; font-style: italic;"><?echo $zaznam[3]?></span>
+            <span style="position: relative; top: 2px;"><a href="forum/<?php echo $zaznam[1]?>"><?php echo $zaznam[0]?></a></span><br />
+            <span style="position: relative; top: 2px; font-style: italic;"><?php echo $zaznam[3]?></span>
           </div>
-          <?
+          <?php 
           //spočítání vláken
           $sql_vlaken="select id_podsekce from forum_podsekce where patri=$zaznam[2]";
           $result_vlaken=dbQuery($db_jmeno,$sql_vlaken,$db_spojeni);
           $vlaken=mysql_num_rows($result_vlaken);
           ?>
-          <div style="width: 55px; line-height: 48px; "><?echo $vlaken?></div>
-          <?
+          <div style="width: 55px; line-height: 48px; "><?php echo $vlaken?></div>
+          <?php 
           //autor, datum a čas posledního založení
           //$sqlx="select id_podsekce from forum_podsekce where max(posledni_zmena)";
           //$resultx=dbQuery($db_jmeno,$sqlx,$db_spojeni);
@@ -371,12 +371,12 @@ if (empty($_GET["url_druha"]) && empty($_GET["url_treti"]) && empty($_GET["url_c
           }
           ?>
             <div style="width: 144px;">
-              <?echo $login_uzivatele?><br />
-              <span class="druhy_radek"> <?echo $datum_vlozeni?></span>
+              <?php echo $login_uzivatele?><br />
+              <span class="druhy_radek"> <?php echo $datum_vlozeni?></span>
             </div>
           </div>
         </div>
-      <?
+      <?php 
     }  
       //***********************
     }
@@ -401,7 +401,7 @@ if (!empty($_GET["url_druha"]) && empty($_GET["url_treti"]) && empty($_GET["url_
         <div style="width: 53px; padding-left: 2px;">zobrazení</div>
         <div style="width: 147px;">poslední příspěvěk</div>
       </div>
-    <?
+    <?php 
     $pocitadlo_radku=0;
     while($zaznam=mysql_fetch_row($result)){
       $pocitadlo_radku++;
@@ -426,10 +426,10 @@ if (!empty($_GET["url_druha"]) && empty($_GET["url_treti"]) && empty($_GET["url_
         $obrazek=" class=\"stary\"";
       }
       ?>
-      <div class="radek<?echo $pocitadlo_radku%2;?>v_2">
+      <div class="radek<?php echo $pocitadlo_radku%2;?>v_2">
         <div class="ohraniceni">
-          <div style="width: 50px;" <?echo $obrazek?>>&nbsp;</div>
-        <?
+          <div style="width: 50px;" <?php echo $obrazek?>>&nbsp;</div>
+        <?php 
         //autor, datum a čas posledního založení
         $sql_prvni_clanek="select uzivatel,datum from forum_clanky where patri=$zaznam[2] order by id_clanku asc limit 0,1";
         $result_prvni_clanek=dbQuery($db_jmeno,$sql_prvni_clanek,$db_spojeni);
@@ -452,8 +452,8 @@ if (!empty($_GET["url_druha"]) && empty($_GET["url_treti"]) && empty($_GET["url_
         }
         ?>
         <div style="width: 170px; text-align: left;">
-          <a href="/forum/<?echo $_GET["url_druha"]?>/<?echo $zaznam[1]?>">
-          <?
+          <a href="forum/<?php echo $_GET["url_druha"]?>/<?php echo $zaznam[1]?>">
+          <?php 
           if (strlen($zaznam[0])>70){
             echo substr($zaznam[0],0,69)."&hellip;";
           }
@@ -462,23 +462,23 @@ if (!empty($_GET["url_druha"]) && empty($_GET["url_treti"]) && empty($_GET["url_
           }
           ?>
           </a><br />
-          <span class="druhy_radek"><?echo "<strong>".$login_uzivatele."</strong>, ".$datum_vlozeni?><?//if (ma_pravo($_SESSION["id_uzivatele"],1)){echo ' <a href="">smazat vlákno</a>';}?></span>
+          <span class="druhy_radek"><?php echo "<strong>".$login_uzivatele."</strong>, ".$datum_vlozeni?><?php //if (ma_pravo($_SESSION["id_uzivatele"],1)){echo ' <a href="">smazat vlákno</a>';}?></span>
         </div>
-        <?
+        <?php 
         //spočítání odpovědí
         $sql_odpovedi="select id_clanku from forum_clanky where patri=$zaznam[2]";
         $result_odpovedi=dbQuery($db_jmeno,$sql_odpovedi,$db_spojeni);
         $odpovedi=mysql_num_rows($result_odpovedi);
         ?>
-        <div style="width: 55px; line-height: 48px;"><?echo $odpovedi?></div>
-        <?
+        <div style="width: 55px; line-height: 48px;"><?php echo $odpovedi?></div>
+        <?php 
         //spočítání poctu zobrazeni
         $sql_zobrazeni="select precteno from forum_podsekce where id_podsekce=$zaznam[2]";
         $result_zobrazeni=dbQuery($db_jmeno,$sql_zobrazeni,$db_spojeni);
         $zobrazeni=mysql_result($result_zobrazeni,0,0);
         ?>
-        <div style="width: 55px; line-height: 48px;"><?echo $zobrazeni?></div>
-        <?
+        <div style="width: 55px; line-height: 48px;"><?php echo $zobrazeni?></div>
+        <?php 
         //autor, datum a čas posledního založení
         $sql_posledni_clanek="select uzivatel,datum,jmeno_neregistrovany from forum_clanky where patri=$zaznam[2] order by id_clanku desc limit 0,1";
         $result_posledni_clanek=dbQuery($db_jmeno,$sql_posledni_clanek,$db_spojeni);
@@ -506,12 +506,12 @@ if (!empty($_GET["url_druha"]) && empty($_GET["url_treti"]) && empty($_GET["url_
         }
         ?>
           <div style="width: 144px;">
-            <?echo $login_uzivatele?><br />
-            <span class="druhy_radek"><?echo $datum_vlozeni?></span>
+            <?php echo $login_uzivatele?><br />
+            <span class="druhy_radek"><?php echo $datum_vlozeni?></span>
           </div>
         </div>
       </div>
-    <?
+    <?php 
     }
     echo "</div>";
   }
@@ -567,21 +567,21 @@ if (!empty($_GET["url_druha"]) && !empty($_GET["url_treti"]) && !is_numeric($_GE
     <div class="forum_vlakna">
       <div class="hlavicka">
         <div style="width: 460px; padding: 0px 10px 0px 10px; text-align: left;">
-          <?
+          <?php 
             $sql_nazev="select jmeno_podsekce from forum_podsekce where jmeno_podsekce_mini like '$_GET[url_treti]'";
             $result_nazev=dbQuery($db_jmeno,$sql_nazev,$db_spojeni);
             echo mysql_result($result_nazev,0,0);
           ?>
         </div>
       </div>
-    <?
+    <?php 
     $pocitadlo_radku++;
     while($zaznam=mysql_fetch_row($result)){
       zobraz_prispevek($zaznam[0]);
     }
     ?>
     </div>
-    <?
+    <?php 
     strankovani_vlakna($id_podsekce,$strana,$prispevku_ns);
     
     if ($_SESSION["prihlasen"] > 0){
@@ -600,20 +600,20 @@ if (!empty($_GET["url_druha"]) && !empty($_GET["url_treti"]) && !is_numeric($_GE
     <div class="forum_vlakna">
       <div class="hlavicka">
         <div style="width: 460px; padding: 0px 10px 0px 10px; text-align: left;">
-          <?
+          <?php 
             $sql_nazev="select jmeno_podsekce from forum_podsekce where jmeno_podsekce_mini like '$_GET[url_treti]'";
             $result_nazev=dbQuery($db_jmeno,$sql_nazev,$db_spojeni);
             echo mysql_result($result_nazev,0,0);
           ?>
         </div>
       </div>
-    <?
+    <?php 
     while($zaznam=mysql_fetch_row($result)){
       zobraz_prispevek($zaznam[0]);
     }
     ?>
     </div>
-    <?
+    <?php 
     strankovani_vlakna($id_podsekce,$strana,$prispevku_ns);
   }
   else {
@@ -624,21 +624,21 @@ if (!empty($_GET["url_druha"]) && !empty($_GET["url_treti"]) && !is_numeric($_GE
     <div class="forum_vlakna">
       <div class="hlavicka">
         <div style="width: 460px; padding: 0px 10px 0px 10px; text-align: left;">
-          <?
+          <?php 
             $sql_nazev="select jmeno_podsekce from forum_podsekce where jmeno_podsekce_mini like '$_GET[url_treti]'";
             $result_nazev=dbQuery($db_jmeno,$sql_nazev,$db_spojeni);
             echo mysql_result($result_nazev,0,0);
           ?>
         </div>
       </div>
-    <?
+    <?php 
     $pocitadlo_radku++;
     while($zaznam=mysql_fetch_row($result)){
       zobraz_prispevek($zaznam[0]);
     }
     ?>
     </div>
-    <?
+    <?php 
     strankovani_vlakna($id_podsekce,$strana,$prispevku_ns);
     
     //****************anonymni prispivani
@@ -669,21 +669,21 @@ if (!empty($_GET["url_druha"]) && !empty($_GET["url_treti"]) && is_numeric($_GET
     <div class="forum_vlakna">
       <div class="hlavicka">
         <div style="width: 460px; padding: 0px 10px 0px 10px; text-align: left;">
-          <?
+          <?php 
             $sql_nazev="select jmeno_podsekce from forum_podsekce where jmeno_podsekce_mini like '$_GET[url_treti]'";
             $result_nazev=dbQuery($db_jmeno,$sql_nazev,$db_spojeni);
             echo mysql_result($result_nazev,0,0);
           ?>
         </div>
       </div>
-    <?
+    <?php 
     $pocitadlo_radku++;
     while($zaznam=mysql_fetch_row($result)){
       zobraz_prispevek($zaznam[0]);
     }
     ?>
     </div>
-    <?
+    <?php 
   strankovani_vlakna($id_podsekce,$_GET["url_ctvrta"],$prispevku_ns);
   
   if (($_SESSION["prihlasen"] > 0) && $_SESSION["razeni_fora"] == "v"){

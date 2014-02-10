@@ -9,7 +9,7 @@ if(post('zapsatMaillist'))
   oznameni('DÍKY');
 }
 
-$titulek->socNahled('/files/styly/styl-aktualni/soc-logo.jpg');
+$titulek->socNahled('files/styly/styl-aktualni/soc-logo.jpg');
 
 // blog hack
 $blog = current(dbOneLine('SELECT obsah FROM stranky WHERE id_stranky = 120'));
@@ -19,7 +19,7 @@ $blog = substr($blog, $from, $to - $from);
 
 ?>
 
-<script type="text/javascript" src="/files/jquery.cycle.all.js"></script>
+<script type="text/javascript" src="files/jquery.cycle.all.js"></script>
 
 <style type="text/css">
 h2 {margin-bottom: 2px}
@@ -39,11 +39,11 @@ h3 {margin-bottom: 4px}
 <strong style="font-size:150%">GameCon</strong> je největší festival nepočítačových her v České republice, který se koná třetí víkend v červenci. V roce 2014 se bude konat jubilejní 20. ročník a opět se těšte na desítky <strong>RPGček, deskovek, larpů,</strong> akčních her, wargaming, přednášky, klání v Příbězích Impéria, tradiční <strong>mistrovství v DrD</strong> a v neposlední řadě skvělé lidi a vůbec <strong>zážitky</strong>, které ve vás přetrvají minimálně do dalšího roku.<br>
 
 <div style="margin: 12px 0px; height:215px; box-shadow: #444 0 1px 10px" id="motivacniBox">
-  <img src="/files/styly/styl-aktualni/motivacni-box/gc-1.jpg" width="680" />
-  <img src="/files/styly/styl-aktualni/motivacni-box/gc-2.jpg" width="680" />
-  <img src="/files/styly/styl-aktualni/motivacni-box/gc-3.jpg" width="680" />
-  <img src="/files/styly/styl-aktualni/motivacni-box/gc-4.jpg" width="680" />
-  <img src="/files/styly/styl-aktualni/motivacni-box/gc-5.jpg" width="680" />
+  <img src="files/styly/styl-aktualni/motivacni-box/gc-1.jpg" width="680" />
+  <img src="files/styly/styl-aktualni/motivacni-box/gc-2.jpg" width="680" />
+  <img src="files/styly/styl-aktualni/motivacni-box/gc-3.jpg" width="680" />
+  <img src="files/styly/styl-aktualni/motivacni-box/gc-4.jpg" width="680" />
+  <img src="files/styly/styl-aktualni/motivacni-box/gc-5.jpg" width="680" />
 </div>
 <script type="text/javascript">
   $('#motivacniBox').cycle({
@@ -64,6 +64,6 @@ První informace o 20. ročníku GameConu očekávajte na jaře 2014. Pokud nech
 
 <?=$blog?>
 
-<br><a class="vice" href="/blog">Zobrazit všechny články</a>
+<br><a class="vice" href="blog">Zobrazit všechny články</a>
 
 </div>

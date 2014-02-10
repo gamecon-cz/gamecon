@@ -199,7 +199,7 @@ if( !empty($_POST["ukladam_avatar"]) )
     unset($chyba_zobraz);
   }
   ?>
-  <p>Položky označené &sup1; musí být vyplněny, položky označené &sup2; musí být vyplněny pro fyzickou registraci na GameCon <?php echo ROK_AKTUALNI ?> (dostupná ze sekce <a href="/prihlaska">přiháška</a>).<br />Pokud neměníte heslo, pak údaje "Heslo" a "Heslo pro kontrolu" mohou zůstat prázdné.</p>
+  <p>Položky označené &sup1; musí být vyplněny, položky označené &sup2; musí být vyplněny pro fyzickou registraci na GameCon <?php echo ROK_AKTUALNI ?> (dostupná ze sekce <a href="prihlaska">přiháška</a>).<br />Pokud neměníte heslo, pak údaje "Heslo" a "Heslo pro kontrolu" mohou zůstat prázdné.</p>
   
   <div class="registrace_radek">
     <h2>Nastavení obrázku</h2>
@@ -221,7 +221,7 @@ if( !empty($_POST["ukladam_avatar"]) )
       Nahrané obrázky budou zmenšeny na tuto velikost a po stranách doplněny černou barvou.<br /><br />
       Jestli si přeješ mít standardní obrázek, použij odkaz "Obnovit standardní nastavení obrázku".
   </div>
-  <div class="buttonky" style="padding-left: 200px;"><input type="image" src="/files/styly/styl-aktualni/tlacitka/zmenit_udaje.gif" value="Submit" alt="změnit údaje" style="width: 88px; height: 26px; margin-top: 10px;"></div>
+  <div class="buttonky" style="padding-left: 200px;"><input type="image" src="files/styly/styl-aktualni/tlacitka/zmenit_udaje.gif" value="Submit" alt="změnit údaje" style="width: 88px; height: 26px; margin-top: 10px;"></div>
   </form>
   
   <div class="registrace_radek">
@@ -391,14 +391,14 @@ if( !empty($_POST["ukladam_avatar"]) )
         Tím, že registraci provedete, prohlašujete, že tuto registraci provádíte s
         jejich souhlasem a nebo pod jejich dohledem.
       </div>
-      <div class="buttonky" style="padding-left: 200px;"><input type="image" src="/files/styly/styl-aktualni/tlacitka/zmenit_udaje.gif" value="Submit" alt="změnit údaje" style="width: 88px; height: 26px; margin-top: 10px;"></div>
+      <div class="buttonky" style="padding-left: 200px;"><input type="image" src="files/styly/styl-aktualni/tlacitka/zmenit_udaje.gif" value="Submit" alt="změnit údaje" style="width: 88px; height: 26px; margin-top: 10px;"></div>
     </form>
     
   <?
   }
 ?>
 <form method="post" id="avatar_vymazat">
-  <input type="hidden" name="avatar_vymazat" value="1"/>
+  <input type="hidden" name="avatar_vymazat" value="1">
 </form>
 
 <div class="registrace_radek">

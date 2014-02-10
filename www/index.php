@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 $SKRIPT_ZACATEK=microtime(true);
 
@@ -44,7 +44,7 @@ $url=new Url('req');
 $titulek=new Titulek();
 if($url->delka()==0)
 { //titulka - přesměrováváme na novinky
-  header('Location: /o-gameconu/');
+  header('Location: '.URL_WEBU.'/o-gameconu/');
   die();
 }
 elseif($url->delka() && $stranka=dbOneLineS('SELECT obsah, id_stranky FROM stranky 
@@ -88,7 +88,7 @@ elseif($url->delka()>=1 && $url->delka()<=4 && // změnit horní hranici dle pot
   if($VLASTNI_VYSTUP)
   {
     echo $obsah;
-    if($url->cast(0)=='program') profilInfo(null,'/files/styly/obecne/'); //ruční výjimka pro program (jinak nevíme, jestli negenerujeme např. binární soubor)
+    if($url->cast(0)=='program') profilInfo(); //ruční výjimka pro program (jinak nevíme, jestli negenerujeme např. binární soubor)
     die();
   }
 }
@@ -141,7 +141,10 @@ else
     $xtpl->parse('vse.prihlasen.admin');
   }
   elseif($u->maPravo(ID_PRAVO_ORG_AKCI))
+  {
+    $xtpl->assign('prehledLink',URL_ADMIN.'/muj-prehled');
     $xtpl->parse('vse.prihlasen.mujPrehled');
+  }
   $xtpl->parse('vse.prihlasen');
 }
 
@@ -165,8 +168,7 @@ $xtpl->assign('titulekStranky',$titulek->cely());
 if(isset($extraTridy)) $xtpl->assign('extraTridy',$extraTridy);
 $xtpl->assign('socNahled',$titulek->socNahledHtml());
 $xtpl->assign('datum', ((new DateTime(GC_BEZI_OD))->format('j.')).'&ndash;'.((new DateTime(GC_BEZI_DO))->format('j. n. Y')));
+$xtpl->assign('base', URL_WEBU.'/');
 $xtpl->parse('vse');
 $xtpl->out('vse');
-profilInfo(null,'/files/styly/obecne/');  
-
-?>
+profilInfo();

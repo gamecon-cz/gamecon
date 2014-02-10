@@ -86,7 +86,7 @@ if ($mail_odeslan != 1)
   <input type="hidden" name="jak_najit" value="login" />
   <input type="text" name="login" />
 </div>
-  &nbsp;<input type="image" src="/files/styly/styl-aktualni/tlacitka/odeslat.gif" value="Submit" alt="odeslat" style="width: 88px; height: 26px;" />
+  &nbsp;<input type="image" src="files/styly/styl-aktualni/tlacitka/odeslat.gif" value="Submit" alt="odeslat" style="width: 88px; height: 26px;" />
 </form>
 
 <strong>Znám svůj e-mail:</strong>
@@ -95,7 +95,7 @@ if ($mail_odeslan != 1)
   <input type="hidden" name="jak_najit" value="mail" />
   <input type="text" value="<?php echo $emailPredvyplneny ?>" name="mail" />
 </div>
-  &nbsp;<input type="image" src="/files/styly/styl-aktualni/tlacitka/odeslat.gif" value="Submit" alt="odeslat" style="width: 88px; height: 26px;" />
+  &nbsp;<input type="image" src="files/styly/styl-aktualni/tlacitka/odeslat.gif" value="Submit" alt="odeslat" style="width: 88px; height: 26px;" />
 </form>
 <?
 }

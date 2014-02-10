@@ -2,15 +2,16 @@
 <html>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <base href="{base}">
   <title>{pageTitle}</title>
-  <link rel="shortcut icon" href="/files/favicon.ico" />
-  <link rel="stylesheet" href="/files/design/styl.css" />
-  <link rel="stylesheet" href="/files/design/ui-lightness/jquery-ui-1.10.3.custom.min.css" />
-  <script src="/files/jquery-1.6.4.min.js"></script>
-  <script src="/files/jquery-ui-1.10.3.custom.min.js"></script>
-  <script src="/files/jquery.shortcuts.min.js"></script>
-  <script src="/files/aplikace.js"></script>
-  <script src="/files/omnibox.js"></script>
+  <link rel="shortcut icon" href="files/favicon.ico" />
+  <link rel="stylesheet" href="files/design/styl.css" />
+  <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-1.10.3.custom.min.css" />
+  <script src="files/jquery-1.6.4.min.js"></script>
+  <script src="files/jquery-ui-1.10.3.custom.min.js"></script>
+  <script src="files/jquery.shortcuts.min.js"></script>
+  <script src="files/aplikace.js"></script>
+  <script src="files/omnibox.js"></script>
 </head>
 <body>
   <div class="obal">
@@ -23,7 +24,7 @@
       <div class="main">
         <!-- begin:submenu -->
         <ul>
-          <!-- begin:polozka --><li><a href="/{url}">{nazev}</a></li><!-- end:polozka -->
+          <!-- begin:polozka --><li><a href="{url}">{nazev}</a></li><!-- end:polozka -->
         </ul>
         <!-- end:submenu -->
         {chyba}

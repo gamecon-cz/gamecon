@@ -47,7 +47,7 @@
     <td>{nazev_interni}</td>
     <td>{typ_1p}</td>
     <td><!-- begin:instSymbol -->
-      <img src="/files/var/chain-icon.png" />
+      <img src="files/var/chain-icon.png" />
     <!-- end:instSymbol --></td>
     <td>
       <!-- begin:tlacitka -->
@@ -56,7 +56,7 @@
         <input type="submit" name="smazat" value="smaž" 
           onclick="return window.confirm('Fakt trvale smazat {nazev_akce} (včetně odhlášení všech účastníků)?');" />
       </form>
-      <form method="get" action="/aktivity/upravy">
+      <form method="get" action="aktivity/upravy">
         <input type="hidden" name="aktivitaId" value="{id_akce}" />
         <input type="submit" value="uprav" />
       </form>
@@ -76,11 +76,5 @@
     </td>
   </tr><!-- end:aktivita -->
 </table>
-
-<!-- 
-  vyhozený kód hintu řetězu aktivity:
-  <span class="hinted" style="border:0"><img src="/files/var/chain-icon.png" /><div class="hint">Skupina aktivit číslo {patri_pod}</div></span> 
--->
-
 
 <!-- end:aktivity -->

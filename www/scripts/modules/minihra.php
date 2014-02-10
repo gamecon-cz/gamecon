@@ -89,7 +89,7 @@ $zbyva=5-$splnene;
 
 
 
-<img src="/files/obsah/obrazky/radio.png" style="position:absolute;margin-left:270px;height:120px">
+<img src="files/obsah/obrazky/radio.png" style="position:absolute;margin-left:270px;height:120px">
 <h1>Pět krůčků k Mohylvillu</h1>
 <p>Poutníče, rozhodl ses vydat do osady Mohylvill? Naměřili jsme u tebe příliš vysokou radiaci z okolního vyprahlého světa.</p>
 <p>Chceš ji snížit? Čeká na tebe <b>pět jednoduchých úkolů</b>. Když je splníš, získáš navíc výhodu do hry Mohylvill a zařadíš se do <b>slosování o deskovku</b>. Takže začínáme ...</p>
@@ -138,10 +138,10 @@ $zbyva=5-$splnene;
   <div class="ukol <?=$splnene>=0?'splneny':''?> ">
     <hr class="milnik">
     <p>Poznej obrázek, z jaké RPG hry pochází?</p>
-    <img src="/files/obsah/obrazky/minihra-poznej.jpg" style="width:220px;margin-left:-10px;"><br><br>
+    <img src="files/obsah/obrazky/minihra-poznej.jpg" style="width:220px;margin-left:-10px;"><br><br>
     <?php if($splnene>=0){ ?>
       <input type="text" name="obrazek" value="<?=$O_OBRAZEK?>" disabled><br><br>
-      <p>Nezapomeň, že na letošním GameConu bude první ročník klání v Příbězích Impéria. Jmenuje se <a href="/rpg/legendy-klubu-dobrodruhu">Legeny Klubu dobrodruhů.</a></p>
+      <p>Nezapomeň, že na letošním GameConu bude první ročník klání v Příbězích Impéria. Jmenuje se <a href="rpg/legendy-klubu-dobrodruhu">Legeny Klubu dobrodruhů.</a></p>
     <?php }else{ ?>
       <form method="post">
       <input type="text" name="obrazek">
@@ -181,7 +181,7 @@ $zbyva=5-$splnene;
   <?php while($zbyva-- > 1){ ?>
   <div class="ukol skryty">
     <hr class="milnik">
-    <img src="/files/styly/styl-aktualni/otaznik.png">
+    <img src="files/styly/styl-aktualni/otaznik.png">
   </div>
   <?php } ?>
   

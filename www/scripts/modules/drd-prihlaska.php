@@ -624,7 +624,7 @@ if ((!empty($_SESSION["id_uzivatele"])) && (ma_pravo($_SESSION["id_uzivatele"],$
             </div>
             <div class="registrace_radek">
               <div class="registrace_popis"><strong>název družiny</strong></div>
-              <div class="registrace_input"><input type="text" name="nazev"/></div>
+              <div class="registrace_input"><input type="text" name="nazev"></div>
             </div>
             <div class="registrace_radek">
               <div class="registrace_popis"><strong>typ zobrazení</strong></div>
@@ -644,7 +644,7 @@ if ((!empty($_SESSION["id_uzivatele"])) && (ma_pravo($_SESSION["id_uzivatele"],$
               <div class="registrace_textarea"><textarea name="poznamka"></textarea></div>
               Do <em>poznámky</em> vlož krátkou zprávu, která se zobrazí v přehledu družin (můžeš takle například shánět chybějící členy či provokovat soupeře).
             </div>
-            <div class="buttonky" style="padding-left: 200px;"><input type="image" src="/files/styly/styl-aktualni/tlacitka/odeslat.gif" value="Submit" alt="odeslat" style="width: 88px; height: 26px; margin-top: 10px;"></div>
+            <div class="buttonky" style="padding-left: 200px;"><input type="image" src="files/styly/styl-aktualni/tlacitka/odeslat.gif" value="Submit" alt="odeslat" style="width: 88px; height: 26px; margin-top: 10px;"></div>
           </form>
         </span>
         <?
@@ -713,7 +713,7 @@ if ((!empty($_SESSION["id_uzivatele"])) && (ma_pravo($_SESSION["id_uzivatele"],$
               <span id="objekt<?echo "100$zaznam[0]"?>" style="display: none;">
               <br /><strong>Vzkaz pro správce družiny</strong>
               <div class="registrace_textarea"><textarea style="width: 450px; height: 60px;" name="vzkaz_spravce"></textarea></div>
-              <div class="buttonky" style="padding-left: 200px;"><input type="image" src="/files/styly/styl-aktualni/tlacitka/odeslat.gif" value="Submit" alt="odeslat" style="width: 88px; height: 26px; margin-top: 10px;"></div></span>
+              <div class="buttonky" style="padding-left: 200px;"><input type="image" src="files/styly/styl-aktualni/tlacitka/odeslat.gif" value="Submit" alt="odeslat" style="width: 88px; height: 26px; margin-top: 10px;"></div></span>
             </form>
             <?
             echo "</div></div>";
@@ -965,7 +965,7 @@ if ((!empty($_SESSION["id_uzivatele"])) && (ma_pravo($_SESSION["id_uzivatele"],$
             <div class="registrace_radek">
               O zpřístupnění výběru PJů budeme informovat v novinkách a správce družin emailem.
             </div>
-            <div class="buttonky" style="padding-left: 200px;"><input type="image" src="/files/styly/styl-aktualni/tlacitka/odeslat.gif" value="Submit" alt="odeslat" style="width: 88px; height: 26px; margin-top: 10px;"></div>
+            <div class="buttonky" style="padding-left: 200px;"><input type="image" src="files/styly/styl-aktualni/tlacitka/odeslat.gif" value="Submit" alt="odeslat" style="width: 88px; height: 26px; margin-top: 10px;"></div>
           </form>
           <div style="clear: both;"><br /></div>
 <?php /* --------------------------/Výběr PJ------------------------------ */ ?>
@@ -993,7 +993,7 @@ if ((!empty($_SESSION["id_uzivatele"])) && (ma_pravo($_SESSION["id_uzivatele"],$
             <input type="hidden" name="id_druziny" value="<?echo moje_druzina_cislo()?>" />      
             <div class="registrace_radek">
               <div class="registrace_popis"><strong>název družiny</strong></div>
-              <div class="registrace_input"><input type="text" name="nazev" value="<?echo $jmeno?>"/></div>
+              <div class="registrace_input"><input type="text" name="nazev" value="<?echo $jmeno?>"></div>
             </div>
             <div class="registrace_radek">
               <div class="registrace_popis"><strong>typ zobrazení</strong></div>
@@ -1009,7 +1009,7 @@ if ((!empty($_SESSION["id_uzivatele"])) && (ma_pravo($_SESSION["id_uzivatele"],$
               <div class="registrace_textarea"><textarea name="poznamka"><?echo $poznamka?></textarea></div>
               Do <em>poznámky</em> vlož krátkou zprávu, která se zobrazí v přehledu družin (můžeš takle například shánět chybějící členy či provokovat soupeře).<br /><br />
             </div>
-            <div class="buttonky" style="padding-left: 200px;"><input type="image" src="/files/styly/styl-aktualni/tlacitka/odeslat.gif" value="Submit" alt="odeslat" style="width: 88px; height: 26px; margin-top: 10px;"></div>
+            <div class="buttonky" style="padding-left: 200px;"><input type="image" src="files/styly/styl-aktualni/tlacitka/odeslat.gif" value="Submit" alt="odeslat" style="width: 88px; height: 26px; margin-top: 10px;"></div>
           </form>
           
           <?
@@ -1136,9 +1136,9 @@ if ((!empty($_SESSION["id_uzivatele"])) && (ma_pravo($_SESSION["id_uzivatele"],$
             <option value="9" <?$povolani == 9 ? $sel='selected="selected"' : $sel=""; echo $sel; unset($sel);?>>Lupič</option>
             <option value="10" <?$povolani == 10 ? $sel='selected="selected"' : $sel=""; echo $sel; unset($sel);?>>Sicco</option>
           </select>
-          <input type="image" src="/files/styly/styl-aktualni/tlacitka/odeslat.gif" value="Submit" alt="odeslat" style="position: relative; top: 8px;">
+          <input type="image" src="files/styly/styl-aktualni/tlacitka/odeslat.gif" value="Submit" alt="odeslat" style="position: relative; top: 8px;">
           <p>V textových polích "Vybavení", "Schopnosti" a "Poznámka" oddělujte jednotlivé položky odentrováním.</p>
-          <p>Svůj <b>vyplněný osobní deník</b> si můžete prohlédnout a <b>vytisknout</b> <a href="/drd-osobni-denik" onclick="window.open(this.href);return false">zde</a>.</p>
+          <p>Svůj <b>vyplněný osobní deník</b> si můžete prohlédnout a <b>vytisknout</b> <a href="drd-osobni-denik" onclick="window.open(this.href);return false">zde</a>.</p>
           <p><br /></p>
           <?
           if (ma_pravo($_SESSION["id_uzivatele"],$GLOBALS['ID_PRAVO_DRD'])){
@@ -1197,7 +1197,7 @@ if ((!empty($_SESSION["id_uzivatele"])) && (ma_pravo($_SESSION["id_uzivatele"],$
             </div>
           </div>
           
-          <form action="/mistrovstvi-v-drd/prihlaska-na-drd" method="post">
+          <form action="mistrovstvi-v-drd/prihlaska-na-drd" method="post">
             <input type="hidden" name="akce" value="uprav_postavu" />
             <div class=postavy_radek>
               <h3>Zbraně tváří v tvář</h3>
@@ -1410,7 +1410,7 @@ if ((!empty($_SESSION["id_uzivatele"])) && (ma_pravo($_SESSION["id_uzivatele"],$
               </div>
             </div>
             
-            <input type="image" src="/files/styly/styl-aktualni/tlacitka/odeslat.gif" value="Submit" alt="odeslat" style="position: relative; top: 8px;">
+            <input type="image" src="files/styly/styl-aktualni/tlacitka/odeslat.gif" value="Submit" alt="odeslat" style="position: relative; top: 8px;">
           
           </form>
           <?
@@ -1446,7 +1446,7 @@ if ((!empty($_SESSION["id_uzivatele"])) && (ma_pravo($_SESSION["id_uzivatele"],$
               <span id="objekt<?echo "100$zaznam[0]"?>" style="display: none;">
               <br /><strong>Vzkaz pro správce družiny</strong>
               <div class="registrace_textarea"><textarea style="width: 450px; height: 60px;" name="vzkaz_spravce"></textarea></div>
-              <div class="buttonky" style="padding-left: 200px;"><input type="image" src="/files/styly/styl-aktualni/tlacitka/odeslat.gif" value="Submit" alt="odeslat" style="width: 88px; height: 26px; margin-top: 10px;"></div></span>
+              <div class="buttonky" style="padding-left: 200px;"><input type="image" src="files/styly/styl-aktualni/tlacitka/odeslat.gif" value="Submit" alt="odeslat" style="width: 88px; height: 26px; margin-top: 10px;"></div></span>
             </form>
             <?
             echo "</div></div>";
@@ -1483,11 +1483,11 @@ if ((!empty($_SESSION["id_uzivatele"])) && (ma_pravo($_SESSION["id_uzivatele"],$
     <form action="<?echo $_SERVER["REQUEST_URI"]?>" id="prihlasit_drd" method="post">
       <input type="hidden" name="akce" value="prihlasit_drd">
     </form>
-    <?
+    <?php
     echo 
       "<p>Na této stránce máte možnost přihlásit se na Mistrovství ČR v Dračím doupěti 2011. Kromě přihlášení samotného zde můžete založit novou družinu nebo se přihlásit do nějaké již existující.</p>
   <p>Letos máte, stejně jako loni, možnost zvolit si herní bok ve kterém chcete odehrát první část dobrodružství a také PJ pro svou první část.</p>
-  <p>Podrobnější návod k přihlašování na Mistrovství v DrD najdete <a href=\"/drd/navod-na-prihlaseni\">na této stránce</a>.</p>
+  <p>Podrobnější návod k přihlašování na Mistrovství v DrD najdete <a href=\"drd/navod-na-prihlaseni\">na této stránce</a>.</p>
       <ul>
         <li>
           <strong><a href=\"javascript: document.getElementById('prihlasit_drd').submit()\">Přihlásit se na Mistrovství v DrD</a></strong>
@@ -1501,8 +1501,8 @@ else
   echo "
   <p>Na této stránce máte možnost přihlásit se na Mistrovství ČR v Dračím doupěti 2011. Kromě přihlášení samotného zde můžete založit novou družinu nebo se přihlásit do nějaké již existující.</p>
   <p>Letos máte, stejne jako loni, možnost zvolit si herní bok ve kterém chcete odehrát první část dobrodružství a také PJ pro svou první část.</p>
-  <p>Podrobnější návod k přihlašování na Mistrovství v DrD najdete <a href=\"/mistrovstvi-v-drd/navod---prihlaseni-na-drd\">na této stránce</a>.</p>
-  <p>Pro přihlášení na <strong>Mistrovství v DrD</strong> musíš být registrovaný na webu GC a zároveň mít podanou <a href=\"/gamecon/prihlaska\">přihlášku na GameCon 2011</a>.</p>";
+  <p>Podrobnější návod k přihlašování na Mistrovství v DrD najdete <a href=\"mistrovstvi-v-drd/navod---prihlaseni-na-drd\">na této stránce</a>.</p>
+  <p>Pro přihlášení na <strong>Mistrovství v DrD</strong> musíš být registrovaný na webu GC a zároveň mít podanou <a href=\"gamecon/prihlaska\">přihlášku na GameCon 2011</a>.</p>";
 }
 
 

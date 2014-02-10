@@ -60,7 +60,7 @@ function tgl(id)
   <li>Po skončení aktivity vypravěč <strong>zamkne</strong> místnost a <strong>odevzdá</strong> klíče na infopultu, jinak jeho duše propadá peklu!</li>
 </ol>
 
-<img src="/files/design/warning.png" style="position:absolute;margin:18px 0 0 -1px" />
+<img src="files/design/warning.png" style="position:absolute;margin:18px 0 0 -1px" />
 <p style="margin-left:21px">Jakoukoliv změnu (i operativní) v čase / místě aktivity <strong>musí</strong> nahlásit (byť jen SMS) infopultu. Infopult vždy musí vědět, kde jaká aktivita je, kdo ji vede a kdo má klíče od místnosti. Jinak nemůže posílat opozdilce/náhradníky/organizátory v případě potřeby za vypravěčem</p>
 
 <!-- end:prehled -->

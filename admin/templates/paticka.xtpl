@@ -21,8 +21,8 @@
   </div>
   <div class="nabidka">
     <a href="#" onclick="$('#bugreport').slideToggle(); return false">Nahlásit chybu</a> –
-    <a href="/program-obecny" target="_blank">Program GameConu</a> –
-    <a href="/last-minute-tabule" target="_blank">Volná místa</a>
+    <a href="program-obecny" target="_blank">Program GameConu</a> –
+    <a href="last-minute-tabule" target="_blank">Volná místa</a>
     <!--
     <a href="https://docs.google.com/document/d/1v3a4WR6EbtkZXKOjIewQGGazh5GF8qcc3Cv7XOqcAH4/edit#" target="_blank">Google Drive</a> –
     <a href="https://teambox.com" target="_blank">Teambox</a>

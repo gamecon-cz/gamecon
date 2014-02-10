@@ -81,8 +81,8 @@ while($r=$dr)
   $dr=mysql_fetch_assoc($a);
   $xtpl->assign($r);
   $xtpl->assign('pritomen',$r['pritomen'] ? 
-    '<img src="/files/design/ok-s.png" style="margin-bottom:-1px">':
-    '<img src="/files/design/error-s.png" style="margin-bottom:-1px">');
+    '<img src="files/design/ok-s.png" style="margin-bottom:-1px">':
+    '<img src="files/design/error-s.png" style="margin-bottom:-1px">');
   if($r['id_uzivatele']) //při 0 účastnících nic
   {
     $xtpl->parse('prezence.aktivita.form.ucastnik');

@@ -11,6 +11,7 @@ $zoom=empty($_GET['zoom'])?100:(int)$_GET['zoom'];
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="cs" lang="cs">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <base href="<?=URL_ADMIN?>/">
     <?php $program->css(); ?>
     <style>
       body { 
@@ -20,8 +21,8 @@ $zoom=empty($_GET['zoom'])?100:(int)$_GET['zoom'];
         background-color: #f0f0f0; }
       table.program { min-width: 0; zoom: <?=$zoom?>%; }
       .lupa { display: block; width: 48px; height: 48px; position: absolute; background-size: 100%; opacity: 0.2; }
-      .lupa.plus { background-image: url('/files/design/lupa-plus.png'); }
-      .lupa.minus { background-image: url('/files/design/lupa-minus.png'); }
+      .lupa.plus { background-image: url('files/design/lupa-plus.png'); }
+      .lupa.minus { background-image: url('files/design/lupa-minus.png'); }
       .lupa:hover { opacity:1.0; }
     </style>
     <meta http-equiv="refresh" content="30">

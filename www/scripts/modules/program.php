@@ -22,7 +22,7 @@ if($u)
         text-align: center;
         background-color: #f0f0f0; }
     </style>
-    <script type="text/javascript" src="/files/jquery.js"></script>
+    <script type="text/javascript" src="files/jquery.js"></script>
     <script type="text/javascript">
       var _gaq = _gaq || [];
       _gaq.push(['_setAccount', 'UA-30024399-1']);

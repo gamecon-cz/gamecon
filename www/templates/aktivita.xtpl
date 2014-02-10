@@ -35,7 +35,7 @@
         <tr>
           <td>
             <span class="hinted">Cena:
-              <span class="hint">Cena je uvedena ve formátu pracující / student při včasné platbě. Je možné získat i výrazné další <b>slevy</b> podle přehledu <a href="/ceny-slevy-placeni">cen a slev</a>. Při platbě po {rozhodneDatum} bez slev je cena {zakladniCena}.</span>
+              <span class="hint">Cena je uvedena ve formátu pracující / student při včasné platbě. Je možné získat i výrazné další <b>slevy</b> podle přehledu <a href="ceny-slevy-placeni">cen a slev</a>. Při platbě po {rozhodneDatum} bez slev je cena {zakladniCena}.</span>
             </span>
           </td>
           <td>{cena}</td>
@@ -45,7 +45,7 @@
         <tr>
           <td>
             <span class="hinted">Moje cena:
-              <span class="hint">Zobrazená cena platí pro tebe při použití všech slev, které máš nastavené v <a href="/prihlaska">přihlášce</a>. Standardní cena je <b>{stdCena}</b> (pro pracujícího / studenta) a řídí se podle <a href="/ceny-slevy-placeni">cen a slev</a>.</span>
+              <span class="hint">Zobrazená cena platí pro tebe při použití všech slev, které máš nastavené v <a href="prihlaska">přihlášce</a>. Standardní cena je <b>{stdCena}</b> (pro pracujícího / studenta) a řídí se podle <a href="ceny-slevy-placeni">cen a slev</a>.</span>
             </span>
           </td>
           <td>{cena}</td>

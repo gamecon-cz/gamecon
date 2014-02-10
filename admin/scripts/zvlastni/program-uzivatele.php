@@ -16,6 +16,7 @@ if($u)
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="cs" lang="cs">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <base href="<?=URL_ADMIN?>/">
     <?php $program->css(); ?>
     <style>
       body { 
@@ -33,9 +34,9 @@ if($u)
     <?=$uPracovni->jmenoNick()?><br>
     <?=$uPracovni->finance()->stavHr()?><br>
     <?php if($osobniProgram){ ?>
-      <a href="/program-uzivatele">celkový program</a> osobní program
+      <a href="program-uzivatele">celkový program</a> osobní program
     <?php }else{ ?>
-       celkový program <a href="/program-osobni">osobní program</a>
+       celkový program <a href="program-osobni">osobní program</a>
     <?php } ?>
   </div>
   

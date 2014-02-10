@@ -174,7 +174,7 @@ $(function(){
 <form method="post" id="regForm" enctype="multipart/form-data">
   <input type="text" placeholder="e-mail" name="tab[email1_uzivatele]" value="<?=@$udb['email1_uzivatele']?>">
   <div id="existujiciUzivatel" style="display:none">
-    <div class="pokyn">Uživatel s tímto e-mailem už existuje. Pokud jsi to ty, přihlaš se svým heslem nebo si nech <a href="/zapomenute-heslo" tabindex="10">vygenerovat nové</a>, pokud si ho nepamatuješ.</div>
+    <div class="pokyn">Uživatel s tímto e-mailem už existuje. Pokud jsi to ty, přihlaš se svým heslem nebo si nech <a href="zapomenute-heslo" tabindex="10">vygenerovat nové</a>, pokud si ho nepamatuješ.</div>
     <input type="password" placeholder="heslo" name="heslo"><br>
     <?php if(!$pokracovat){ ?>
     <input type="submit" name="prihlasit" value="Přihlásit">

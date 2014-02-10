@@ -11,7 +11,7 @@ if(Aktivita::editorTestJson())    // samo sebe volání ajaxu
   die(Aktivita::editorChybyJson());
 if($a=Aktivita::editorZpracuj())  // úspěšné uložení změn ve formuláři
   if($a->nova())
-    back('/aktivity/upravy?aktivitaId='.$a->id());
+    back('aktivity/upravy?aktivitaId='.$a->id());
   else
     back();
 $a=Aktivita::zId(get('aktivitaId'));  // načtení aktivity podle předaného ID
@@ -103,12 +103,12 @@ if(post('ulozit') || post('ulozitAEditovat'))
     if(post('ulozitAEditovat'))
     {
       if(!$idAkce) // vkládala se nová akce, přesměrovat na její stránku
-        back('/aktivity/upravy?aktivitaId='.mysql_insert_id());
+        back('aktivity/upravy?aktivitaId='.mysql_insert_id());
       else // přesměrovat tam, odkud jsme přišli
         back();
     }
     else
-      back('/aktivity');
+      back('aktivity');
   }
   else
   {

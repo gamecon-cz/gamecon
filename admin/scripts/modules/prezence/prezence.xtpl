@@ -4,7 +4,7 @@
 <div style="position: relative">
 <div style="position: absolute; right: 0px; bottom: 5px; text-align: right">
   Stránka načtena {datum} v {casAktualni}<br />
-  <!-- begin:casMan -->Čas vybrán manuálně (<a href="/prezence">vybrat automaticky</a>)<br /><!-- end:casMan -->
+  <!-- begin:casMan -->Čas vybrán manuálně (<a href="prezence">vybrat automaticky</a>)<br /><!-- end:casMan -->
   <!-- begin:casAuto -->Čast vybrán automaticky<br /><!-- end:casAuto -->
   Zobrazují se aktivity začínající od 
   <form method="get" style="display: inline" id="cas">
@@ -70,7 +70,7 @@
 <!-- end:nevybrano -->
 
 </div>
-<script src="/files/omnibox.js" type="text/javascript"></script>
+<script src="files/omnibox.js" type="text/javascript"></script>
 <script type="text/javascript">
 var globShd=500; //global show hide delay
 
@@ -84,9 +84,9 @@ $('.formAktivita').submit(function(){
   }
   else if(kapacita==pocet || window.confirm(hlaskaNezaplneno))
   {
-    $('#test').html('/ajax-prezence?'+$(this).serialize());
+    $('#test').html('ajax-prezence?'+$(this).serialize());
     var blok=$(this).parent();
-    $.getJSON('/ajax-prezence?'+$(this).serialize(), function(data){
+    $.getJSON('ajax-prezence?'+$(this).serialize(), function(data){
       //alert(data.zprava);
       if(data.uspech)
       {

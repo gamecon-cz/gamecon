@@ -37,7 +37,7 @@ else {
       $u=Uzivatel::prihlasId($id_registrovaneho);
       //oznameni(hlaska('aktivaceOk'),false); //nepřesměrovávat, provedeme ručně dál
       //back('/registrace');
-      $chyba_zobraz.='Účet byl aktvován. Děkujeme. Nyní se můžete přihlásit a upravit své údaje: <a href="/registrace">přihlásit</a>';
+      $chyba_zobraz.='Účet byl aktvován. Děkujeme. Nyní se můžete přihlásit a upravit své údaje: <a href="registrace">přihlásit</a>';
     }
     else {
       $chyba_zobraz.="Chyba: Tento uživatel má již účet aktivován.";

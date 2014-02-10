@@ -26,7 +26,7 @@ $xtpl->assign('pageTitle','GameCon – Administrace');
 
 // nastavení stránky, prázdná url => přesměrování na úvod
 if(!get('req'))
-  back('/uvod');
+  back('uvod');
 $req=explode('/',get('req'));
 $stranka=$req[0];
 $podstranka=isset($req[1])?$req[1]:'';
@@ -129,6 +129,7 @@ else
   $xtpl->assign('protip', $protipy[array_rand($protipy)]);
   $xtpl->parse('all.paticka');
   $xtpl->assign('chyba',chyba::vyzvedniHtml());
+  $xtpl->assign('base', URL_ADMIN.'/');
   $xtpl->parse('all');
   $xtpl->out('all');
   profilInfo();  

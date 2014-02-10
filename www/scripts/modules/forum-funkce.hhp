@@ -80,10 +80,10 @@ global $db_jmeno,$db_spojeni;
     echo "<div class = \"forum_strankovani\">- ";
     for ($i = 1; $i <= $stran_celkem; $i++){
       if ($i == $aktualni_strana){
-        echo "<a href = \"/forum/$_GET[url_druha]/$_GET[url_treti]/$i\"><strong> $i</strong></a> - ";
+        echo "<a href = \"forum/$_GET[url_druha]/$_GET[url_treti]/$i\"><strong> $i</strong></a> - ";
       }
       else {
-        echo "<a href = \"/forum/$_GET[url_druha]/$_GET[url_treti]/$i\"> $i</a> - ";
+        echo "<a href = \"forum/$_GET[url_druha]/$_GET[url_treti]/$i\"> $i</a> - ";
       }
     }
     echo "</div>";
@@ -105,12 +105,12 @@ global $db_jmeno,$db_spojeni;
   $result = dbQuery($db_jmeno,$sql,$db_spojeni);
   $id_sekce = mysql_result($result,0,0);
 ?>
-<form action = "/forum/<?echo $_GET["url_druha"];?>" method = "post" style = "display: inline;">
+<form action = "forum/<?php echo $_GET["url_druha"];?>" method = "post" style = "display: inline;">
   <input type = "hidden" name = "vkladam_vlakno" value = "1" />
-  <input type = "hidden" name = "id_sekce" value = "<?echo $id_sekce?>" />
-  <input type="image" src="/files/styly/styl-aktualni/tlacitka/nove_tema.gif" value="Submit" alt="Nové téma" style = "width: 88px; height: 26px; margin-right: 230px; =margin-right: 220px;" />
+  <input type = "hidden" name = "id_sekce" value = "<?php echo $id_sekce?>" />
+  <input type="image" src="files/styly/styl-aktualni/tlacitka/nove_tema.gif" value="Submit" alt="Nové téma" style = "width: 88px; height: 26px; margin-right: 230px; =margin-right: 220px;" />
 </form>
-<?
+<?php 
 }
 
 
@@ -279,85 +279,85 @@ global $db_jmeno,$db_spojeni,$pocitadlo_radku,$ROOT_DIR;
   $obsah = nl2br(mysql_result($result,0,1));
   $datum = date("j.n.y, H:i",mysql_result($result,0,2));
   ?>
-  <div class = "radek<?echo $pocitadlo_radku%2;echo $org;?>_prispevky">
+  <div class = "radek<?php echo $pocitadlo_radku%2;echo $org;?>_prispevky">
     <div class = "ohraniceni">
       <div style = "width: 100px; float: left;">
         <div class = "avatar_zobraz" style = "float: left;">
-          <img src = "/files/systemove/avatary/<?echo $avatar?>" />
+          <img src = "files/systemove/avatary/<?php echo $avatar?>" />
         </div>
         <div style = "padding: 5px 0px 0px 5px; text-align: left; float: left; margin-top: 5px;">
-          <strong><?echo $jmeno?></strong><br />
-          <span class = "druhy_radek"><?echo $datum?></span>
+          <strong><?php echo $jmeno?></strong><br />
+          <span class = "druhy_radek"><?php echo $datum?></span>
         </div>
       </div>
       <div style = "width: 370px; text-align: left; float: left;">
-        <?echo moje_bb(hyperlinky($obsah));
+        <?php echo moje_bb(hyperlinky($obsah));
         ?>
       </div>
-      <? if (ma_pravo($_SESSION["id_uzivatele"],1)){
+      <?php  if (ma_pravo($_SESSION["id_uzivatele"],1)){
             echo "<div style = \"text-align:right; width: 470px; height: 20px; float: left; padding-bottom: 5px;\"><a href = \"javascript: document.getElementById('editovat$id_clanku').submit()\">editovat</a> - <a href = \"javascript: document.getElementById('smazat$id_clanku').submit()\">smazat</a></div>";
           ?>
-            <form action = "<? echo $_SERVER['REQUEST_URI']?>" method = "post" style = "display: inline;"" id ="smazat<?echo $id_clanku?>">
+            <form action = "<?php  echo $_SERVER['REQUEST_URI']?>" method = "post" style = "display: inline;"" id ="smazat<?php echo $id_clanku?>">
               <input type = "hidden" name = "smazat_prispevek" value = "1" />
-              <input type = "hidden" name = "id_prispevku" value = "<?echo $id_clanku?>" />
+              <input type = "hidden" name = "id_prispevku" value = "<?php echo $id_clanku?>" />
             </form>
-            <form action = "<? echo $_SERVER['REQUEST_URI']?>" method = "post" style = "display: inline;"" id ="editovat<?echo $id_clanku?>">
+            <form action = "<?php  echo $_SERVER['REQUEST_URI']?>" method = "post" style = "display: inline;"" id ="editovat<?php echo $id_clanku?>">
               <input type = "hidden" name = "editovat_prispevek" value = "1" />
-              <input type = "hidden" name = "id_prispevku" value = "<?echo $id_clanku?>" />
+              <input type = "hidden" name = "id_prispevku" value = "<?php echo $id_clanku?>" />
             </form>
-          <?
+          <?php 
           }
           ?>
     </div>
   </div>
-  <?
+  <?php 
 }
 
 
 function zobraz_vkladani($id_podsekce){
 ?>
-<a href = "reagovat" onclick = "ukaz(0); return false;"><img src = "/files/styly/styl-aktualni/tlacitka/odpovedet.gif" style = "border: none;" /></a>
+<a href = "reagovat" onclick = "ukaz(0); return false;"><img src = "files/styly/styl-aktualni/tlacitka/odpovedet.gif" style = "border: none;" /></a>
 <div class = "forum_reagovat" id = "objekt0" style = "display: none;">
   <div class = "nadpis">Reagovat:</div>
-  <form action = "/forum/<?echo $_GET["url_druha"]."/".$_GET["url_treti"];?>" method = "post" name = "odeslat">
+  <form action = "forum/<?php echo $_GET["url_druha"]."/".$_GET["url_treti"];?>" method = "post" name = "odeslat">
     <input type = "hidden" name = "vkladam_prispevek" value = "1" />
-    <input type = "hidden" name = "id_podsekce" value = "<?echo $id_podsekce?>" />
+    <input type = "hidden" name = "id_podsekce" value = "<?php echo $id_podsekce?>" />
     <script>
       document.write('<input type="hidden" name="spamcheck" value="'+(12345.6*10)+'" />');
     </script>
     <textarea name = "obsah_prispevku"></textarea>
     <div class = "buttonky" style = "padding-left: 110px;">
-      <input type="image" src="/files/styly/styl-aktualni/tlacitka/odeslat.gif" value="Submit" alt="Odeslat" style = "width: 88px; height: 26px; margin-right: 88px;" />
-      <a onclick="document.odeslat.reset();return false;" href="#"><img alt="Vymazat" src="/files/styly/styl-aktualni/tlacitka/vymazat.gif" style = "border: none;"></a>
+      <input type="image" src="files/styly/styl-aktualni/tlacitka/odeslat.gif" value="Submit" alt="Odeslat" style = "width: 88px; height: 26px; margin-right: 88px;" />
+      <a onclick="document.odeslat.reset();return false;" href="#"><img alt="Vymazat" src="files/styly/styl-aktualni/tlacitka/vymazat.gif" style = "border: none;"></a>
     </div>
   </form>
 </div>
-<?
+<?php 
 }
 
 
 function zobraz_vkladani_anonym($id_podsekce){
 ?>
-<a href = "reagovat" onclick = "ukaz(0); return false;"><img src = "/files/styly/styl-aktualni/tlacitka/odpovedet.gif" style = "border: none;" /></a>
+<a href = "reagovat" onclick = "ukaz(0); return false;"><img src = "files/styly/styl-aktualni/tlacitka/odpovedet.gif" style = "border: none;" /></a>
 <div class = "forum_reagovat" id = "objekt0" style = "display: none;">
   <div class = "nadpis">Reagovat (jako neregistrovaný uživatel):</div>
-  <form action = "/forum/<?echo $_GET["url_druha"]."/".$_GET["url_treti"];?>" method = "post" name = "odeslat">
+  <form action = "forum/<?php echo $_GET["url_druha"]."/".$_GET["url_treti"];?>" method = "post" name = "odeslat">
     <input type = "hidden" name = "vkladam_prispevek" value = "2" />
-    <input type = "hidden" name = "id_podsekce" value = "<?echo $id_podsekce?>" />
+    <input type = "hidden" name = "id_podsekce" value = "<?php echo $id_podsekce?>" />
     <div class = "forum_reagovat_input"><div>Jméno:</div></div><div class = "forum_reagovat_input"><input type = "text" name = "jmeno" /></div>
     <div style = "display: none"><input type = "edit" name = "name_mandatory"  value = "" /></div>
-    <input type = "hidden" name = "cislo"  value = "<?echo time()?>" />
+    <input type = "hidden" name = "cislo"  value = "<?php echo time()?>" />
     <script>
       document.write('<input type="hidden" name="spamcheck" value="'+(12345.6*10)+'" />');
     </script>
     <textarea name = "obsah_prispevku"></textarea>
     <div class = "buttonky" style = "padding-left: 110px;">
-      <input type="image" src="/files/styly/styl-aktualni/tlacitka/odeslat.gif" value="Submit" alt="Odeslat" style = "width: 88px; height: 26px; margin-right: 88px;" />
-      <a onclick="document.odeslat.reset();return false;" href="#"><img alt="Vymazat" src="/files/styly/styl-aktualni/tlacitka/vymazat.gif" style = "border: none;"></a>
+      <input type="image" src="files/styly/styl-aktualni/tlacitka/odeslat.gif" value="Submit" alt="Odeslat" style = "width: 88px; height: 26px; margin-right: 88px;" />
+      <a onclick="document.odeslat.reset();return false;" href="#"><img alt="Vymazat" src="files/styly/styl-aktualni/tlacitka/vymazat.gif" style = "border: none;"></a>
     </div>
   </form>
 </div>
-<?
+<?php 
 }
 
 
@@ -366,9 +366,9 @@ function zobraz_vkladani_vlakna($id_sekce){
 
 <div class = "forum_reagovat">
   <div class = "nadpis">Vložení nového vlákna</div>
-  <form action = "/forum/<?echo $_GET["url_druha"];?>" method = "post" name = "odeslat">
+  <form action = "forum/<?php echo $_GET["url_druha"];?>" method = "post" name = "odeslat">
     <input type = "hidden" name = "vkladam_vlakno" value = "2" />
-    <input type = "hidden" name = "id_sekce" value = "<?echo $id_sekce?>" />
+    <input type = "hidden" name = "id_sekce" value = "<?php echo $id_sekce?>" />
     <div class = "napis">Název vlákna: <input type = "text" name = "nazev_vlakna" class = "text" /></div>
     <div class = "napis">Text prvního příspěvku:</div>
     <script>
@@ -376,12 +376,12 @@ function zobraz_vkladani_vlakna($id_sekce){
     </script>
     <textarea name = "obsah_prispevku"></textarea>
     <div class = "buttonky" style = "padding-left: 110px;">
-      <input type="image" src="/files/styly/styl-aktualni/tlacitka/odeslat.gif" value="Submit" alt="Odeslat" style = "width: 88px; height: 26px; margin-right: 88px;" />
-      <a onclick="document.odeslat.reset();return false;" href="#"><img alt="Vymazat" src="/files/styly/styl-aktualni/tlacitka/vymazat.gif" style = "border: none;"></a>
+      <input type="image" src="files/styly/styl-aktualni/tlacitka/odeslat.gif" value="Submit" alt="Odeslat" style = "width: 88px; height: 26px; margin-right: 88px;" />
+      <a onclick="document.odeslat.reset();return false;" href="#"><img alt="Vymazat" src="files/styly/styl-aktualni/tlacitka/vymazat.gif" style = "border: none;"></a>
     </div>
   </form>
 </div>
-<?
+<?php 
 }
 
 ?>

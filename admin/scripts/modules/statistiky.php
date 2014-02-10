@@ -201,7 +201,7 @@ $prihlaseni='['.substr($prihlaseni,0,-1).']';
     });
   });
 </script>
-<script src="/files/highcharts.js"></script>
+<script src="files/highcharts.js"></script>
 
 <h2>Aktuální statistiky</h2>
 

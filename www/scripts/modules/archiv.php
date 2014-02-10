@@ -47,7 +47,7 @@ while($radek=mysql_fetch_assoc($odpoved))
   $xtpl->assign($radek);
   if($radek['url'])
   {
-    $xtpl->assign('urlObrazku','/files/systemove/aktivity/'.$radek['url'].'.jpg');
+    $xtpl->assign('urlObrazku','files/systemove/aktivity/'.$radek['url'].'.jpg');
     $xtpl->parse('archiv.polozka.obrazek');
   }
   $xtpl->parse('archiv.polozka');

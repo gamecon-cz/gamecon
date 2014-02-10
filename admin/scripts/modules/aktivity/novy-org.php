@@ -30,4 +30,4 @@ if(post('vypravec'))
   <input type="submit" value="Vytvořit" />
 </form>
 
-<p>Toto slouží k přidání nové entity mezi organizátory aktivit (vypravěče). Typicky firmy na deskovky, tvůrčí skupiny larpů, … Vytvoří se tím uživatel s odpovídajícím loginem a objeví se v nabídce dostupných organizátorů. Nejde použít už zabrané uživatelské loginy. Pokud chcete přidat už existujícího uživatele mezi vypravěče, vyberte ho pro práci na Úvodu a pak mu dejte židli vypravěč přes <a href="/prava">Práva</a>.</p> 
+<p>Toto slouží k přidání nové entity mezi organizátory aktivit (vypravěče). Typicky firmy na deskovky, tvůrčí skupiny larpů, … Vytvoří se tím uživatel s odpovídajícím loginem a objeví se v nabídce dostupných organizátorů. Nejde použít už zabrané uživatelské loginy. Pokud chcete přidat už existujícího uživatele mezi vypravěče, vyberte ho pro práci na Úvodu a pak mu dejte židli vypravěč přes <a href="prava">Práva</a>.</p>

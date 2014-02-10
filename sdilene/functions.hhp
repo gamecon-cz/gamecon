@@ -399,18 +399,15 @@ function maVolnoKolize()
 
 /** Tisk informace profileru.
  *  @todo stringOut */
-function profilInfo($stringOut=null,$iconRoot=null)
-{  
-  global 
-    $NAZEV_VETVE, 
-    $SKRIPT_ZACATEK;
-  
-  $iconRoot=$iconRoot?$iconRoot:'/files/design/';
-  $limit=0.01; //počet sekund, kdy už je skript pomalý (čas zčervená) 
-  
-  if($NAZEV_VETVE=='ostra')
+function profilInfo()
+{
+  if($GLOBALS['NAZEV_VETVE']=='ostra')
     return false; //v ostré verzi se neprofiluje
-  
+  $iconRoot = URL_ADMIN.'/files/design/';
+  $delka = microtime(true) - $GLOBALS['SKRIPT_ZACATEK'];
+  // počet sekund, kdy už je skript pomalý (čas zčervená)
+  $barva = $delka > 0.2 ? 'color:#f80;' : '';
+  // výstup
   echo '
     <div class="profilInfo" style="
       background-color: rgba(0,0,0,0.5);
@@ -427,7 +424,7 @@ function profilInfo($stringOut=null,$iconRoot=null)
       .profilInfo img { margin-bottom: -2px }
     </style> 
     <img src="'.$iconRoot.'clock-icon.png" alt="délka skriptu včetně DB">
-    '.round(microtime(true)-$GLOBALS['SKRIPT_ZACATEK'],3).'&thinsp;s
+    <span style="'.$barva.'">'.round($delka,3).'&thinsp;s</span>
     &ensp; 
     <img src="'.$iconRoot.'database-icon.png" alt="délka odbavení DB/počet dotazů">
     '.round(dbExecTime(),3).'&thinsp;s ('.dbNumQ().' dotazů)

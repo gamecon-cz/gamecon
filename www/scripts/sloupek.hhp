@@ -91,8 +91,8 @@ class Sloupek
       return array(
         'nadpis'=>$nadpis,
         'nazev'=>$hra['nazev'],
-        'url'=>'/'.$hra['url'],
-        'urlObrazku'=>'/files/systemove/aktivity/'.
+        'url'=>$hra['url'],
+        'urlObrazku'=>'files/systemove/aktivity/'.
           substr($hra['url'], strrpos($hra['url'],'/')).'.jpg');
     }
     elseif($hra==-1)
@@ -100,16 +100,16 @@ class Sloupek
       return array(
         'nadpis'=>$nadpis,
         'nazev'=>ucfirst($this->typy[$typa]['typ_1pmn']),
-        'url'=>'/'.$this->typy[$typa]['url_o'],
-        'urlObrazku'=>'/files/systemove/o-typu/'.$typa.'.jpg');
+        'url'=>$this->typy[$typa]['url_o'],
+        'urlObrazku'=>'files/systemove/o-typu/'.$typa.'.jpg');
     }
     elseif($hra==-2)
     {
       return array(
         'nadpis'=>$nadpis,
         'nazev'=>ucfirst($this->typy[$typb]['typ_1pmn']),
-        'url'=>'/'.$this->typy[$typb]['url_o'],
-        'urlObrazku'=>'/files/systemove/o-typu/'.$typb.'.jpg');
+        'url'=>$this->typy[$typb]['url_o'],
+        'urlObrazku'=>'files/systemove/o-typu/'.$typb.'.jpg');
     }
   }  
      

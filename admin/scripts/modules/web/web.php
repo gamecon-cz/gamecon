@@ -60,7 +60,7 @@ global $db_jmeno,$db_spojeni;
     $novinka .= $zaznam[0];
   }
   $novinka=str_replace("'","''",$novinka);
-  $novinka .= '<p><a href="/novinky/archiv-novinek">Archiv starších novinek</a></p>';
+  $novinka .= '<p><a href="novinky/archiv-novinek">Archiv starších novinek</a></p>';
   
   //Nějaká hrůza z dřívějška (vím jaká, a proto to sem nemá cenu psát, neměňte to, celé to přepište)
   /*
@@ -192,7 +192,7 @@ if (($_REQUEST["akce"] == "novinky") and ($_POST["detail_akce"] == "nova")){
       &lt;/p&gt; - odrážky pomocí GC kostiček<br /><br />
     
       &lt;p&gt;<br />
-      &nbsp;&nbsp;Vnitřní odkazy &lt;a href="/novinky"&gt;relativní adresou&lt;/a&gt; a vnější odkazy &lt;a href="http://www.elden.cz" onclick="window.open(this.href,'_blank'); return false"&gt;javascriptem&lt;/a&gt;<br />
+      &nbsp;&nbsp;Vnitřní odkazy &lt;a href="novinky"&gt;relativní adresou&lt;/a&gt; a vnější odkazy &lt;a href="http://www.elden.cz" onclick="window.open(this.href,'_blank'); return false"&gt;javascriptem&lt;/a&gt;<br />
       &lt;/p&gt;<br />  
   <?
 }
@@ -278,7 +278,7 @@ if (($_REQUEST["akce"] == "novinky") and ($_POST["detail_akce"] == "upravit")){
       &lt;/p&gt; - odrážky pomocí GC kostiček<br /><br />
     
       &lt;p&gt;<br />
-      &nbsp;&nbsp;Vnitřní odkazy &lt;a href="/novinky"&gt;relativní adresou&lt;/a&gt; a vnější odkazy &lt;a href="http://www.elden.cz" onclick="window.open(this.href,'_blank'); return false"&gt;javascriptem&lt;/a&gt;<br />
+      &nbsp;&nbsp;Vnitřní odkazy &lt;a href="novinky"&gt;relativní adresou&lt;/a&gt; a vnější odkazy &lt;a href="http://www.elden.cz" onclick="window.open(this.href,'_blank'); return false"&gt;javascriptem&lt;/a&gt;<br />
       &lt;/p&gt;<br />  
   <?
   }

@@ -16,8 +16,8 @@
       table.program td,th { width: auto; min-width: 400px; padding: 4px 20px; border-width: 2px; }
       table.program th { font-size: 130%; padding: 6px 20px; }
       .lupa { display: block; width: 48px; height: 48px; position: absolute; background-size: 100%; opacity: 0.2; }
-      .lupa.plus { background-image: url('/files/design/lupa-plus.png'); }
-      .lupa.minus { background-image: url('/files/design/lupa-minus.png'); }
+      .lupa.plus { background-image: url('files/design/lupa-plus.png'); }
+      .lupa.minus { background-image: url('files/design/lupa-minus.png'); }
       .lupa:hover { opacity:1.0; }
     </style>
     <meta http-equiv="refresh" content="30">
