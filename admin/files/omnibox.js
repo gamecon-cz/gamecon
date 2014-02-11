@@ -3,7 +3,7 @@ $(function() {
   // Našeptávátko pro omnibox
   $vyberUzivatele = $('#omnibox');
   $vyberUzivatele.autocomplete({
-    source: '/ajax-omnibox',
+    source: 'ajax-omnibox',
     minLength: 2,
     autoFocus: true, // automatický výběr první hodnoty, aby uživatel mohl zmáčknout rovnou enter
     focus: function(event,ui) {
