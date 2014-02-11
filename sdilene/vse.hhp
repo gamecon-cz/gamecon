@@ -4,7 +4,7 @@
  *  Alias for all shared components
  */
 
-require_once('../specificke/site-specific.hhp');
+require_once('../specificke/site-specific.php');
 require_once('dateTimeCz.hhp');
 require_once('constants.hhp');
 require_once('xtpl.hhp');

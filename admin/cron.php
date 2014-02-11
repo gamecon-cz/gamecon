@@ -19,7 +19,7 @@ ob_start();
 function logs($s)
 { echo date('Y-m-d H:i:s ').$s; }
 
-require_once('../specificke/site-specific.hhp');
+require_once('../specificke/site-specific.php');
 require_once('../sdilene/fwDatabase.hhp'); 
 require_once('../sdilene/constants.hhp');
 

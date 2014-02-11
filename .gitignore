@@ -8,7 +8,7 @@ Thumbs.db
 *.xcf
 # Neverzované věci z webu
 /admin/files/logs/*
-/specificke/site-specific.hhp
+/specificke/site-specific.php
 /www/files/obsah/*
 !/www/files/obsah/sponzori
 !/www/files/obsah/organizatori
