@@ -19,18 +19,10 @@ $(function() {
   });
 
   // Klávesové zkratky
-  $.Shortcuts.add({
-    type: 'down',
-    mask: 'Alt+U',
-    handler: function() { $('#omnibox').focus(); }
-  }).add({
-    type: 'down',
-    mask: 'Alt+Z',
-    handler: function() { $('#zrusit').submit(); }
-  }).add({
-    type: 'down',
-    mask: 'Alt+M',
-    handler: function() { $('#materialy').submit(); }
-  }).start();
+  $(document).bind('keydown', 'alt+u', function(){
+    $('#omnibox').focus();
+  }).bind('keydown', 'alt+z', function(){
+    $('#zrusit').submit();
+  });
 
 });

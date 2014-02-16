@@ -69,8 +69,8 @@ textarea { font: inherit; }
 
 /* Tabulky */
 .main table { border-collapse: collapse; }
-.main table th { background-image: url('bg-tabletop.png'); background-color: #f2f1f3;
-  border: solid 1px #eee; padding: 3px; font-family: verdana; font-weight: normal; }
+.main table th { background: linear-gradient(to bottom, #fafdff 0%, #fdffff 50%, #f7f9fa 50%, #f2f1f3 100%);
+  background-color: #f2f1f3; border: solid 1px #eee; padding: 3px; font-family: verdana; font-weight: normal; }
 .main table td { padding: 2px 5px; }
 .main table tr:nth-child(odd) { background-color: #f0f0f0; }
 .main table.zvyraznovana { cursor: default; }
