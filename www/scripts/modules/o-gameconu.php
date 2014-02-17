@@ -36,7 +36,7 @@ h3 {margin-bottom: 4px}
 
 <div style="font-size:13px">
 
-<strong style="font-size:150%">GameCon</strong> je největší festival nepočítačových her v České republice, který se koná třetí víkend v červenci. V roce 2014 se bude konat jubilejní 20. ročník a opět se těšte na desítky <strong>RPGček, deskovek, larpů,</strong> akčních her, wargaming, přednášky, klání v Příbězích Impéria, tradiční <strong>mistrovství v DrD</strong> a v neposlední řadě skvělé lidi a vůbec <strong>zážitky</strong>, které ve vás přetrvají minimálně do dalšího roku.<br>
+<strong style="font-size:150%">GameCon</strong> je největší festival nepočítačových her v České republice, který proběhne 17.–20. 7. 2014 v Pardubicích. V roce 2014 se bude konat jubilejní 20. ročník a opět se těšte na desítky <strong>RPGček, deskovek, larpů,</strong> akčních her, wargaming, přednášky, klání v Příbězích Impéria, tradiční <strong>mistrovství v DrD</strong> a v neposlední řadě skvělé lidi a vůbec <strong>zážitky</strong>, které ve vás přetrvají minimálně do dalšího roku.<br>
 
 <div style="margin: 12px 0px; height:215px; box-shadow: #444 0 1px 10px" id="motivacniBox">
   <img src="files/styly/styl-aktualni/motivacni-box/gc-1.jpg" width="680" />
