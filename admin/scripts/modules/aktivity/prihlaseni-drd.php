@@ -7,6 +7,18 @@
  * nazev: Seznam na DrD
  * pravo: 102
  */
+?>
+
+
+
+
+Tato část nefunguje z důvodu převodu DrD na univerzální systém teamových aktivit.
+<?php return; ?>
+
+
+
+
+<?php
 
 define('ZRUS_SEMIFINALE',-1); //pseudo ID aktivit, pokud je chceme rušit a ne přihlašovat
 define('ZRUS_FINALE',-2);
@@ -177,6 +189,6 @@ $(function(){
   <?php } ?>
   </table><br>
   
-<? } ?>
+<?php } ?>
 
 

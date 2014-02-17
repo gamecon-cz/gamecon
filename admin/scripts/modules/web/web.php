@@ -1,4 +1,4 @@
-<?
+<?php
 
 /** 
  * Úpravy novinek na webu
@@ -77,12 +77,6 @@ global $db_jmeno,$db_spojeni;
   */
 }
 
-?>
-
-
-
-<?
-
 //Editace obsahu stránek
 if($_REQUEST['akce']=='editaceStranek')
   require_once('editace-stranek.php');
@@ -96,7 +90,7 @@ if (($_REQUEST["akce"] == "novinky") and (empty($_REQUEST["detail_akce"]))){
     <a href="javascript: document.getElementById('nova').submit()">Vložit novinku</a>
     <form id="nova"  method="post" /><input type="hidden" name="akce" value="novinky"><input type="hidden" name="detail_akce" value="nova"></form>
   </p>
-  <?
+  <?php
   echo "<h2>Výpis novinek</h2><p>";
   $sql="
     select
@@ -124,7 +118,7 @@ if (($_REQUEST["akce"] == "novinky") and (empty($_REQUEST["detail_akce"]))){
         <th></th>
         <th></th>
       </tr>
-    <?
+    <?php
     while ($zaznam=mysql_fetch_row($result)){
       if ($zaznam[1] == "Y"){
         $publikovano_radek="<td><strong>$zaznam[4]</strong></td>";
@@ -194,7 +188,7 @@ if (($_REQUEST["akce"] == "novinky") and ($_POST["detail_akce"] == "nova")){
       &lt;p&gt;<br />
       &nbsp;&nbsp;Vnitřní odkazy &lt;a href="novinky"&gt;relativní adresou&lt;/a&gt; a vnější odkazy &lt;a href="http://www.elden.cz" onclick="window.open(this.href,'_blank'); return false"&gt;javascriptem&lt;/a&gt;<br />
       &lt;/p&gt;<br />  
-  <?
+  <?php
 }
 
 if (($_REQUEST["akce"] == "novinky") and ($_POST["detail_akce"] == "nova_ulozit")){
@@ -244,12 +238,12 @@ if (($_REQUEST["akce"] == "novinky") and ($_POST["detail_akce"] == "upravit")){
   <form  method="post" /">
     <input type="hidden" name="akce" value="novinky" />
     <input type="hidden" name="detail_akce" value="upravit_potvrzeno" />
-    <input type="hidden" name="cislo_novinky" value="<?echo $_POST["cislo_novinky"]?>" />
+    <input type="hidden" name="cislo_novinky" value="<?php echo $_POST["cislo_novinky"]?>" />
     <strong>Stav novinky:</strong><br />
     <select name="stav">
-      <option value="P" <? if ($stav == "P"){echo "selected=\"selected\"";} ?> >V přípravě</option>
-      <option value="Y" <? if ($stav == "Y"){echo "selected=\"selected\"";} ?> >Publikováno</option>
-      <option value="N" <? if ($stav == "N"){echo "selected=\"selected\"";} ?> >Nepublikovat</option>
+      <option value="P" <?php if ($stav == "P"){echo "selected=\"selected\"";} ?> >V přípravě</option>
+      <option value="Y" <?php if ($stav == "Y"){echo "selected=\"selected\"";} ?> >Publikováno</option>
+      <option value="N" <?php if ($stav == "N"){echo "selected=\"selected\"";} ?> >Nepublikovat</option>
     </select>
     <br />
     <em>V přípravě</em> - novinka není na webu zobrazena, admini do ní mohou zasahovat<br />
@@ -257,7 +251,7 @@ if (($_REQUEST["akce"] == "novinky") and ($_POST["detail_akce"] == "upravit")){
     <em>Nepublikovat</em> - novinka není zobrazena, ani není určena k zobrazení (můžou se do ní ukládat průběžné informace atp.)<br />
     <br />
     <strong>Vlastní text novinky:</strong><br />
-    <textarea name="obsah" style="width: 700px; height: 300px; scroll: auto;"><?echo $obsah?></textarea>
+    <textarea name="obsah" style="width: 700px; height: 300px; scroll: auto;"><?php echo $obsah ?></textarea>
     <br />
     <input type="submit" value="Upravit novinku"> <br /><br />
   </form>  
@@ -280,7 +274,7 @@ if (($_REQUEST["akce"] == "novinky") and ($_POST["detail_akce"] == "upravit")){
       &lt;p&gt;<br />
       &nbsp;&nbsp;Vnitřní odkazy &lt;a href="novinky"&gt;relativní adresou&lt;/a&gt; a vnější odkazy &lt;a href="http://www.elden.cz" onclick="window.open(this.href,'_blank'); return false"&gt;javascriptem&lt;/a&gt;<br />
       &lt;/p&gt;<br />  
-  <?
+  <?php
   }
 }
 
@@ -365,9 +359,9 @@ if (($_REQUEST["akce"] == "novinky") and ($_POST["detail_akce"] == "smazat")){
     <p>
     <a href="javascript: document.getElementById('smazat').submit()">Smazat novinku</a> - <a href="javascript: document.getElementById('nemazat').submit()">Nemazat novinku</a>
     <form id="nemazat"  method="post" /><input type="hidden" name="akce" value="novinky"></form>
-    <form id="smazat"  method="post" /><input type="hidden" name="akce" value="novinky"><input type="hidden" name="detail_akce" value="smazat_potvrzeno" /><input type="hidden" name="cislo_novinky" value="<?echo $_POST['cislo_novinky'] ?>" /></form>
+    <form id="smazat"  method="post" /><input type="hidden" name="akce" value="novinky"><input type="hidden" name="detail_akce" value="smazat_potvrzeno" /><input type="hidden" name="cislo_novinky" value="<?php echo $_POST['cislo_novinky'] ?>" /></form>
     </p>
-    <?
+    <?php
   }
   else {
     echo "Chyba - novinka nenalezena!";

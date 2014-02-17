@@ -23,7 +23,7 @@ if(!$zaplaceno)
   $castka=-$fin->stav();
   $pozde=-round($fin->stavPozde());
   if(SLEVA_AKTIVNI)
-    $limit=datum3(SLEVA_DO_DATE);
+    $limit=datum3(SLEVA_DO);
   if($u->stat()=='CZ')
     $castka.='&thinsp;Kč' xor
     $pozde.='&thinsp;Kč';

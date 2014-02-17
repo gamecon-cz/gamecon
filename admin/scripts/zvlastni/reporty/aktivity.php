@@ -8,11 +8,10 @@ $o=dbQuery('
     count(p.id_uzivatele) as prihlaseno, 
     a.kapacita+a.kapacita_m+a.kapacita_f as kapacita, 
     a.rok, 
-    a.den, 
-    a.zacatek, 
+    a.zacatek,
     t.typ_1p as typ,
     a.cena,
-    a.konec-a.zacatek+1 as delka
+    TIMESTAMPDIFF(HOUR, a.zacatek, a.konec) as delka
   FROM akce_seznam a
   LEFT JOIN akce_prihlaseni p ON (a.id_akce=p.id_akce)
   LEFT JOIN akce_typy t ON (a.typ=t.id_typu)
@@ -37,5 +36,3 @@ do
 }while($r=mysql_fetch_assoc($o));
 
 fclose($out);
-
-?>

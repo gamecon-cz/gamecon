@@ -8,7 +8,7 @@ $o=dbQuery('
     SELECT 
       u.id_uzivatele, u.jmeno_uzivatele, u.prijmeni_uzivatele, u.login_uzivatele, u.ulice_a_cp_uzivatele, u.mesto_uzivatele, u.psc_uzivatele,
       -- p.placka, p.kostka, p.tricko, p.vzkaz, -- počet prvků potud je důležitý při tisku
-      GROUP_CONCAT(CONCAT(a.nazev_akce," (",a.kapacita+a.kapacita_m+a.kapacita_f,"*",a.konec-a.zacatek+1,"h)") SEPARATOR "\n")
+      GROUP_CONCAT(CONCAT(a.nazev_akce," (",a.kapacita+a.kapacita_m+a.kapacita_f,"*",TIMESTAMPDIFF(HOUR, a.zacatek, a.konec),"h)") SEPARATOR "\n")
     FROM uzivatele_hodnoty u
     JOIN r_uzivatele_zidle z USING(id_uzivatele)
     JOIN r_prava_zidle USING(id_zidle)

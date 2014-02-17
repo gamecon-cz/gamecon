@@ -18,7 +18,7 @@ if(Aktivita::editorZpracuj())
 $tpl=new XTemplate('muj-prehled.xtpl');
 
 $odpoved=dbQuery('
-  SELECT a.nazev_akce as nazevAktivity, a.id_akce as id, (a.kapacita+a.kapacita_m+a.kapacita_f) as kapacita, a.den, a.zacatek,
+  SELECT a.nazev_akce as nazevAktivity, a.id_akce as id, (a.kapacita+a.kapacita_m+a.kapacita_f) as kapacita, a.zacatek,
     a.id_akce, a.patri_pod, a.url_akce, a.popis,  -- dodatečná pole kvůli editoru
     a.konec, u.login_uzivatele as nick, u.jmeno_uzivatele as jmeno, 
     u.prijmeni_uzivatele as prijmeni, u.email1_uzivatele as mail, u.telefon_uzivatele as telefon,
@@ -28,11 +28,11 @@ $odpoved=dbQuery('
   LEFT JOIN uzivatele_hodnoty u ON (p.id_uzivatele=u.id_uzivatele)
   LEFT JOIN akce_prihlaseni_log l ON (a.id_akce=l.id_akce AND u.id_uzivatele=l.id_uzivatele)
   WHERE a.rok='.ROK.'
-  AND a.den>0
+  AND a.zacatek
   AND (a.stav=1 OR a.stav=2 OR a.stav=4)
   AND a.organizator='.$u->id().'
   GROUP BY a.id_akce, u.id_uzivatele
-  ORDER BY a.den, a.zacatek, a.nazev_akce, a.id_akce, l.cas DESC, p.id_uzivatele');
+  ORDER BY a.zacatek, a.nazev_akce, a.id_akce, l.cas DESC, p.id_uzivatele');
 
 $totoPrihlaseni=mysql_fetch_array($odpoved);
 $dalsiPrihlaseni=mysql_fetch_array($odpoved);

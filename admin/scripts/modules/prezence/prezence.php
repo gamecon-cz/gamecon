@@ -6,6 +6,15 @@
  * nazev: Prezence
  * pravo: 103
  */
+
+?>
+
+
+Prezence nefunguje kvůli převodu na nový systém teamových aktivit a bude opravena později.
+<?php return; ?>
+
+
+<?php
  
 require_once('prezence.hhp');
 
@@ -118,5 +127,3 @@ $xtpl->parse('prezence');
 $xtpl->out('prezence');
 
 $xtpl=$xtpl_temp; //návrat globální proměnné $xtpl
-
-?>

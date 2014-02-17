@@ -185,8 +185,8 @@ $(function(){
         #nahled em { font-weight: bold; font-style: normal; }
       </style>
       <div style="font-size:12px" id="nahled{fields}{id_akce}"></div>
-      <script src="/files/showdown.js"></script>
-      <script src="/files/jquery.autosize.js"></script>
+      <script src="files/showdown.js"></script>
+      <script src="files/jquery.autosize.js"></script>
       <script>
         function ukazObsah(){
           var md=new Showdown.converter();

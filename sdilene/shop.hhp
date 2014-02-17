@@ -208,7 +208,7 @@ class Shop
       $ubytovan=false;
       $nazev=reset($tmp);
       $nazev=$nazev['nazev'];
-      $out.='<div>'.ucfirst_utf8(substr($nazev,strrpos($nazev,' ')+1)).'</div>'; //poslední slovo názvu, fixme
+      $out.='<div>'.mb_ucfirst(substr($nazev,strrpos($nazev,' ')+1)).'</div>'; //poslední slovo názvu, fixme
       foreach($this->ubytovaniTypy as $typ => $rozsah)
       {
         if($this->ubytovan($den,$typ)){

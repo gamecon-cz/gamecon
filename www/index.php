@@ -60,13 +60,7 @@ elseif($url->delka() && $stranka=dbOneLineS('SELECT obsah, id_stranky FROM stran
     '<script>document.write(\'$1\' + \'$2\' + \'$3\' + \'$4\' + \'$5\' + \'$6\' + \'$7\')</script>', $obsah);
   $extraTridy='str'.$stranka['id_stranky'];
 }
-elseif($url->delka()==2 && $aktivita=dbOneLineS('
-  SELECT * FROM akce_seznam a 
-  JOIN akce_typy t ON(t.id_typu=a.typ) 
-  WHERE t.url_typu=$0
-  AND a.url_akce=$1
-  AND (a.stav=1 OR a.stav=2 OR a.stav=4)
-  AND a.rok='.ROK_AKTUALNI,array($url->cast(0),$url->cast(1))))
+elseif( $url->delka()==2 && $aktivita=Aktivita::zUrlViditelna($url->cast(1), $url->cast(0)) )
 { //stránka s nějakou aktivitou
   require_once('./scripts/aktivita.php');
 }

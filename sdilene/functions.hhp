@@ -4,10 +4,8 @@
  *  @param $a řádek s aktivitou z databáze */
 function aktivitaDoZacatkuH($a)
 {
-  $aCas=new DateTime(DEN_PRVNI_DATE.' '.$a['zacatek'].':00:00');
-  $aCas->add(new DateInterval('P'.($a['den']-PROGRAM_DEN_PRVNI).'D')); //posunutí na správný den
-  //$delta=$aCas->diff(new DateTime());
-  $delta=$aCas->getTimestamp()-time();
+  $aCas = new DateTime($a['zacatek']);
+  $delta = $aCas->getTimestamp() - time();
   return $delta/(60*60);
 }
 
@@ -223,25 +221,13 @@ function aktivitySPocty($sqlWhere,$u=null,$sqlOrderBy=null,$sqlHaving=null)
 }
 
 
-/** Datum ve stylu Pátek 22.7.2011 */
-function datum1($cisloDne)
+/** Vrací datum ve stylu "pátek 14:00-18:00" na základě řádku db */
+function datum2($dbRadek)
 {
-  return ucfirst_utf8($GLOBALS['PROGRAM_DNY'][$cisloDne-$GLOBALS['PROGRAM_DEN_PRVNI']])
-    .' '.$GLOBALS['PROGRAM_DATA'][$cisloDne-$GLOBALS['PROGRAM_DEN_PRVNI']].
-    $GLOBALS['ROK_AKTUALNI'];
-}
-
-
-/** Vrací datum ve stylu Pátek 14:00-18:00 na základě řádku db */
-function datum2($odpovedZDb)
-{
-  $cisloDne=$odpovedZDb['den'];
-  $zacatek=$odpovedZDb['zacatek'];
-  $konec=$odpovedZDb['konec']+1;
-  if($cisloDne-$GLOBALS['PROGRAM_DEN_PRVNI']<0)
-    return 'neurčeno';
-  return ucfirst_utf8($GLOBALS['PROGRAM_DNY'][$cisloDne-$GLOBALS['PROGRAM_DEN_PRVNI']])
-    .' '.$zacatek.':00–'.$konec.':00';
+  if($dbRadek['zacatek'])
+    return (new DateTimeCz($dbRadek['zacatek']))->format('l G:i').'–'.(new DateTimeCz($dbRadek['konec']))->format('G:i');
+  else
+    return '';
 }
 
 
@@ -354,13 +340,16 @@ function jmenoNick($db)
  *  @param int vyjimka ID akce, která se má vyjmout z hledání (typicky při editu
  *  akce testujeme kolizi ale nezajímá nás kolize "se sebou samou"  
  *  @return vrací true nebo false
+ *  @todo tato operace by měla být řešena v rámci nějaké třídy speciální
+ *  výjimkou, která ponese i seznam kolidujících aktivit v sobě.
  */
 function maVolno($uid,$poleCas,$vyjimka=null)
 {
-  $GLOBALS['maVolnoKolizePole']=array(); //pole kolizních aktivit
-  if($uid===0 || $uid==='0') return true; //"žádný" organizátor má vždy volno
-  if($poleCas['den']==0) return true; //aktivita s neurčeným časem neblokuje
-  if(ma_pravo($uid,P_KRYTI_AKCI)) return true; //aktivity se můžou krýt
+  $GLOBALS['maVolnoKolizePole'] = array();      //pole kolizních aktivit
+  if($uid===0 || $uid==='0') return true;       //"žádný" organizátor má vždy volno
+  if(!$poleCas['zacatek']) return true;         //aktivita s neurčeným časem neblokuje
+  if(ma_pravo($uid, P_KRYTI_AKCI)) return true; //aktivity se můžou krýt
+  // nalezení aktivit a určení překrytí
   $a=dbQueryS('SELECT * FROM
       (SELECT a.* FROM akce_prihlaseni p
       JOIN akce_seznam a USING(id_akce)
@@ -370,11 +359,9 @@ function maVolno($uid,$poleCas,$vyjimka=null)
       SELECT * FROM akce_seznam
       WHERE organizator=$0
       AND rok='.ROK.') as a
-    WHERE den=$1
-    AND NOT (zacatek>$3 OR konec<$2) -- zacne az pak nebo skonci pred
-    '."\n".
-    ($vyjimka?'AND id_akce!=$4':''),
-    array($uid,$poleCas['den'],$poleCas['zacatek'],$poleCas['konec'],$vyjimka));
+    WHERE NOT (zacatek>$2 OR konec<$1) -- zacne az pak nebo skonci pred'."\n".
+    ($vyjimka?'AND id_akce!=$3':''),
+    array($uid, $poleCas['zacatek'], $poleCas['konec'], $vyjimka));
   if(mysql_num_rows($a))
   {
     while($r=mysql_fetch_assoc($a))
@@ -394,6 +381,16 @@ function maVolnoKolize()
 { 
   return isset($GLOBALS['maVolnoKolizePole'])?
     $GLOBALS['maVolnoKolizePole']:array();
+}
+
+
+/** Multibyte (utf-8) první písmeno velké */
+function mb_ucfirst($string, $encoding=null)
+{
+  if(!$encoding) $encoding = mb_internal_encoding();
+  $firstChar = mb_substr($string, 0, 1, $encoding);
+  $then = mb_substr($string, 1, null, $encoding);
+  return mb_strtoupper($firstChar, $encoding) . $then;
 }
 
 
@@ -438,18 +435,6 @@ function ubytovaniNazev($typ)
 {
   $nazvy=array(0=>'žádné', 1=>'trojlůžák', 2=>'spacák', 3=>'dvojlůžák');
   return $nazvy[$typ];
-}
-
-
-/** utf8 kompatibilní ucfrist - jen znaky win 1250 */
-function ucfirst_utf8($str)
-{
-  mb_internal_encoding("UTF-8");
-  return mb_strtoupper(mb_substr($str,0,1)).mb_substr($str,1);
-  $line = iconv("UTF-8", "Windows-1250", $str); // convert to windows-1250
-  $line = ucfirst($line);
-  $line = iconv("Windows-1250", "UTF-8", $line); // convert back to utf-8
-  return $line; 
 }
 
 
@@ -652,5 +637,3 @@ function htmlPocitadla($datumKonecOdpoctu){
   }
   return $pocitadlo;
 }
-
-?>

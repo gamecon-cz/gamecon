@@ -24,9 +24,9 @@ $o=dbQuery('
   LEFT JOIN akce_seznam am ON(am.patri_pod=a.patri_pod AND am.patri_pod AND NOT ISNULL(am.popis))
   JOIN akce_typy t ON(t.id_typu=a.typ)
   WHERE a.rok='.ROK.'
+  AND a.zacatek
   AND (a.stav=1 || a.stav=2 || a.stav=3 || a.stav=4)
-  AND a.den>0
-  ORDER BY a.den, a.zacatek
+  ORDER BY a.zacatek
 ');
 
 $xml=new DomDocument('1.0');
@@ -48,7 +48,7 @@ for($i=0;$r=mysql_fetch_assoc($o);$i++)
   if($ao->zacatek())
   {
     $aktivita->appendChild($xml->createElement('start-time',$ao->zacatek()->format(DATE_ISO8601)));
-    $aktivita->appendChild($xml->createElement('end-time',$ao->konec()->add(new DateInterval('PT1H'))->format(DATE_ISO8601)));
+    $aktivita->appendChild($xml->createElement('end-time',$ao->konec()->format(DATE_ISO8601)));
   }
   if($r['popis'])
   {

@@ -24,11 +24,11 @@
   <tr>
     <th><span class="hinted">Název<div class="hint">
       Trojúhelníčky slouží k řazení.</div></span>
-      <a href="?sort=nazev_akce">▲</a> </th>
-    <th>Čas <a href="?sort=cas">▲</a> </th>
-    <th>Organizátor <a href="?sort=organizator">▲</a>  </th>
-    <th style="width:90px">Místnost <a href="?sort=nazev">▲</a>  </th>
-    <th>Typ <a href="?sort=id_typu">▲</a> </th>
+      <a href="aktivity?sort=nazev_akce">▲</a> </th>
+    <th>Čas <a href="aktivity?sort=cas">▲</a> </th>
+    <th>Organizátor <a href="aktivity?sort=organizator">▲</a>  </th>
+    <th style="width:90px">Místnost <a href="aktivity?sort=nazev">▲</a>  </th>
+    <th>Typ <a href="aktivity?sort=id_typu">▲</a> </th>
     <th><span class="hinted">Ins<div class="hint">
       Řetěz znamená, že aktivita je členem nějaké rodiny instancí a ve výpisu webu se zobrazuje pouze jednou a s více nabídkami termínu pro přihlášení.
     </div></span></th>

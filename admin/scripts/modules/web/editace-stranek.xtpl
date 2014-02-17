@@ -16,7 +16,7 @@
     <tr class="{odd}">
       <td>{nazev}</td>
       <td>{url_stranky}</td>
-      <td><a href="./editace-stranek/{id_stranky}">upravit obsah</a></td>
+      <td><a href="web/editace-stranek/{id_stranky}">upravit obsah</a></td>
     </tr>
     <!-- end:radek -->
   </table>

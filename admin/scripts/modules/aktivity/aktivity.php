@@ -78,7 +78,7 @@ if(get('sort')) //řazení
   setcookie('akceRazeni',get('sort'),time()+365*24*60*60) xor
   back();
 $akceRazeni=isset($_COOKIE['akceRazeni'])&&$_COOKIE['akceRazeni'] ? $_COOKIE['akceRazeni'] : 'nazev_akce';
-$a=dbQuery('SELECT *, den*100+zacatek as cas FROM akce_seznam a
+$a=dbQuery('SELECT *, zacatek as cas FROM akce_seznam a
   LEFT JOIN uzivatele_hodnoty u ON(u.id_uzivatele=a.organizator)
   LEFT JOIN akce_lokace l ON(a.lokace=l.id_lokace)
   LEFT JOIN akce_typy t ON(a.typ=t.id_typu)

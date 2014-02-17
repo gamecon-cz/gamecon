@@ -2,12 +2,12 @@
 
 <!-- begin:vyber -->
 ( 
-  <a href="?typ=4">rpg</a> |
-  <a href="?typ=2">larp</a> |
-  <a href="?typ=1">deskovky</a> |
-  <a href="?typ=7">bonusy</a> |
-  <a href="?typ=5">dílny</a>  |
-  <a href="?typ=8">Legendy</a>
+  <a href="aktivity/prihlaseni?typ=4">rpg</a> |
+  <a href="aktivity/prihlaseni?typ=2">larp</a> |
+  <a href="aktivity/prihlaseni?typ=1">deskovky</a> |
+  <a href="aktivity/prihlaseni?typ=7">bonusy</a> |
+  <a href="aktivity/prihlaseni?typ=5">dílny</a>  |
+  <a href="aktivity/prihlaseni?typ=8">Legendy</a>
 )
 <!-- end:vyber -->
 

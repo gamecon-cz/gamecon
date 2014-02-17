@@ -89,20 +89,20 @@ if ($_POST["akce"] == "detail_zidle"){
         <form  method="post">
           <input type="hidden" name="akce" value="detail_zidle" />
           <input type="hidden" name="detail_akce" value="sesadit_aktivniho" />
-          <input type="hidden" name="cislo_zidle" value="<?echo $_POST["cislo_zidle"]?>" />
+          <input type="hidden" name="cislo_zidle" value="<?php echo $_POST["cislo_zidle"]?>" />
           <input type="submit" value="Sesadit aktivního uživatele z židle" />
         </form>
-      <?
+      <?php
     }
     else {
       ?>
         <form  method="post">
           <input type="hidden" name="akce" value="detail_zidle" />
           <input type="hidden" name="detail_akce" value="posadit_aktivniho" />
-          <input type="hidden" name="cislo_zidle" value="<?echo $_POST["cislo_zidle"]?>" />
+          <input type="hidden" name="cislo_zidle" value="<?php echo $_POST["cislo_zidle"]?>" />
           <input type="submit" value="Posadit aktivního uživatele na tuto židli" />
         </form>
-      <?
+      <?php
     }
   }
   
@@ -144,21 +144,21 @@ if ($_POST["akce"] == "detail_zidle"){
         <td><strong>Popis práva</strong></td>
         <td></td>
       </tr>
-    <?
+    <?php
     while ($zaznam=mysql_fetch_row($result)){
     ?>
-      <form  method="post" id="odeber_pravo<?echo $zaznam[0]?>">
+      <form  method="post" id="odeber_pravo<?php echo $zaznam[0]?>">
         <input type="hidden" name="akce" value="detail_zidle" />
         <input type="hidden" name="detail_akce" value="odeber_pravo" />
-        <input type="hidden" name="cislo_zidle" value="<?echo $_POST["cislo_zidle"]?>" />
-        <input type="hidden" name="cislo_prava" value="<?echo $zaznam[0]?>" />
+        <input type="hidden" name="cislo_zidle" value="<?php echo $_POST["cislo_zidle"]?>" />
+        <input type="hidden" name="cislo_prava" value="<?php echo $zaznam[0]?>" />
       </form>
       <tr>
-        <td><?echo $zaznam[1]?></td>
-        <td><?echo $zaznam[2]?></td>
-        <td><a href="javascript: document.getElementById('odeber_pravo<?echo $zaznam[0]?>').submit()">vzít židli právo</a></td>
+        <td><?php echo $zaznam[1]?></td>
+        <td><?php echo $zaznam[2]?></td>
+        <td><a href="javascript: document.getElementById('odeber_pravo<?php echo $zaznam[0]?>').submit()">vzít židli právo</a></td>
       </tr>
-        <?
+        <?php
     }
     echo "</table>";
   }
@@ -190,24 +190,24 @@ if ($_POST["akce"] == "detail_zidle"){
     <form  method="post">
       <input type="hidden" name="akce" value="detail_zidle" />
       <input type="hidden" name="detail_akce" value="pridej_pravo">
-      <input type="hidden" name="cislo_zidle" value="<?echo $_POST["cislo_zidle"]?>">
+      <input type="hidden" name="cislo_zidle" value="<?php echo $_POST["cislo_zidle"]?>">
       <select name="id_prava">
         
-    <?
+    <?php
     while ($zaznam=mysql_fetch_row($result)){
       ?>
-      <option value="<?echo $zaznam[0]?>"><?echo $zaznam[1]?></option>
-      <?
+      <option value="<?php echo $zaznam[0]?>"><?php echo $zaznam[1]?></option>
+      <?php
     }
     ?></select>
       <input type="submit" value="Přidat židli právo" />
     </form>
-    <?
+    <?php
   }
   ?>
   <br /><br />
   <strong>Seznam uživatelů na této židli:</strong><br />
-  <?
+  <?php
   $sql="
     select
       uzivatele.id_uzivatele,
@@ -233,24 +233,24 @@ if ($_POST["akce"] == "detail_zidle"){
         <th>jméno a příjmení</th>
         <th></th>
       </tr>
-    <?
+    <?php
     while ($zaznam=mysql_fetch_row($result)){
     ?>
     <tr>
-      <form  method="post" id="sesadit_uzivatele<?echo $zaznam[0]?>">
+      <form  method="post" id="sesadit_uzivatele<?php echo $zaznam[0]?>">
         <input type="hidden" name="akce" value="detail_zidle" />
         <input type="hidden" name="detail_akce" value="sesadit_uzivatele">
-        <input type="hidden" name="cislo_zidle" value="<?echo $_POST["cislo_zidle"]?>">
-        <input type="hidden" name="cislo_uzivatele" value="<?echo $zaznam[0]?>">
+        <input type="hidden" name="cislo_zidle" value="<?php echo $_POST["cislo_zidle"]?>">
+        <input type="hidden" name="cislo_uzivatele" value="<?php echo $zaznam[0]?>">
       </form>
-      <td><?echo $zaznam[0]?></td>
-      <td><?echo $zaznam[2]?></strong></td>
-      <td><?echo $zaznam[3]." ".$zaznam[4]?></td>
-      <td><a href="javascript: document.getElementById('sesadit_uzivatele<?echo $zaznam[0]?>').submit()">sesadit uživatele ze židle</a></td>
+      <td><?php echo $zaznam[0]?></td>
+      <td><?php echo $zaznam[2]?></strong></td>
+      <td><?php echo $zaznam[3]." ".$zaznam[4]?></td>
+      <td><a href="javascript: document.getElementById('sesadit_uzivatele<?php echo $zaznam[0]?>').submit()">sesadit uživatele ze židle</a></td>
     </tr>
-    <?
+    <?php
     }
-    ?> </table> <?
+    ?> </table> <?php
   }
   else {
     echo "Na této židli nesedí žádný uživatel.";
@@ -315,7 +315,7 @@ else{
   }
   ?>
   Seznam všech existujících židlí (souborů práv)(bez systémových):
-  <?
+  <?php
   $sql="
     SELECT id_zidle, jmeno_zidle, popis_zidle
     FROM r_zidle_soupis
@@ -332,14 +332,14 @@ else{
         <th style="width: 150px"></th>
         <th style="width: 65px"></th>
       </tr>
-    <?
+    <?php
     while ($zaznam=mysql_fetch_row($result)){
   ?>
       <tr>
-        <td><?echo $zaznam[1]?></td>
-        <td><?echo $zaznam[2]?></td>
+        <td><?php echo $zaznam[1]?></td>
+        <td><?php echo $zaznam[2]?></td>
         <td>
-        <?
+        <?php
         if (!empty($_SESSION["id_uzivatele"])){
           $sql2="
             select
@@ -363,12 +363,12 @@ else{
           echo "není vybrán uživatel";
         }
         ?></td>
-        <td><a href="javascript: document.getElementById('detail_zidle<?echo $zaznam[0]?>').submit()">detail židle</a></td>
-        <form id="pridej_uzivatele<?echo $zaznam[0]?>"  method="post" /><input type="hidden" name="akce" value="pridej_uzivatele"><input type="hidden" name="cislo_zidle" value="<?echo $zaznam[0]?>" /></form>
-        <form id="odeber_uzivatele<?echo $zaznam[0]?>"  method="post" /><input type="hidden" name="akce" value="odeber_uzivatele"><input type="hidden" name="cislo_zidle" value="<?echo $zaznam[0]?>" /></form>
-        <form id="detail_zidle<?echo $zaznam[0]?>"  method="post" /><input type="hidden" name="akce" value="detail_zidle"><input type="hidden" name="cislo_zidle" value="<?echo $zaznam[0]?>" /></form>
+        <td><a href="javascript: document.getElementById('detail_zidle<?php echo $zaznam[0]?>').submit()">detail židle</a></td>
+        <form id="pridej_uzivatele<?php echo $zaznam[0]?>"  method="post" /><input type="hidden" name="akce" value="pridej_uzivatele"><input type="hidden" name="cislo_zidle" value="<?php echo $zaznam[0]?>" /></form>
+        <form id="odeber_uzivatele<?php echo $zaznam[0]?>"  method="post" /><input type="hidden" name="akce" value="odeber_uzivatele"><input type="hidden" name="cislo_zidle" value="<?php echo $zaznam[0]?>" /></form>
+        <form id="detail_zidle<?php echo $zaznam[0]?>"  method="post" /><input type="hidden" name="akce" value="detail_zidle"><input type="hidden" name="cislo_zidle" value="<?php echo $zaznam[0]?>" /></form>
       </tr>
-  <?
+  <?php
     }
     echo "</table>";
     if (isset($chyba_zobraz)){
@@ -385,7 +385,7 @@ else{
     Popis židle: <input type="text" name="popis_zidle" value="" />
     <input type="submit" value="Přidat židli" />
   </form>
-  <?
+  <?php
   
 }
 ?>

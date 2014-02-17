@@ -15,7 +15,6 @@ require_once('program.hhp');
 require_once('uzivatel.hhp');
 require_once('menu.hhp');
 require_once('url.hhp');
-require_once('aktivita.hhp');
 require_once('chyby.hhp');
 require_once('gcMail.hhp');
 require_once('finance.hhp');
@@ -26,4 +25,7 @@ require_once('markdown.hhp');
 require_once('sleva.hhp');
 require_once('report.hhp');
 
-?>
+spl_autoload_register(function($trida){
+  $trida = strtolower(preg_replace('@[A-Z]@', '-$0', lcfirst($trida)));
+  include(__DIR__.'/'.$trida.'.php');
+});

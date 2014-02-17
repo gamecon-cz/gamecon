@@ -7,6 +7,7 @@
 class DateTimeCz extends DateTime
 {
 
+  /** Formát data s upravenými dny česky */
   function format($f)
   {
     return strtr(parent::format($f),array(
@@ -18,6 +19,27 @@ class DateTimeCz extends DateTime
       'Saturday'  => 'sobota',
       'Sunday'    => 'neděle'
     ));
+  }
+
+  /** Vrací formát kompatibilní s mysql */
+  function formatDb()
+  {
+    return $this->format('Y-m-d H:i:s');
+  }
+
+  /** Zvýší časový údaj o jeden den. Upravuje objekt. */
+  function plusDen()
+  {
+    $this->add(new DateInterval('P1D'));
+  }
+
+  /** Jestli je tento okamžik před okamžikem $d2 */
+  function pred($d2)
+  {
+    if($d2 instanceof DateTime)
+      return $this->getTimestamp() < $d2->getTimestamp();
+    else
+      return $this->getTimestamp() < strtotime($d2);
   }
   
   /**
@@ -46,10 +68,16 @@ class DateTimeCz extends DateTime
           return "za $diff dní";
     }
   }
+
+  /** Jestli tento den je stejný s $d2 v formátu DateTime nebo string s časem */
+  function stejnyDen($d2)
+  {
+    if(!($d2 instanceof DateTime))
+      $d2 = new self($d2);
+    return $this->format('Y-m-d') == $d2->format('Y-m-d');
+  }
   
-  /**
-   *
-   */     
+  /** Zaokrouhlí nahoru na nejbližší vyšší jednotku */
   function zaokrouhlitNahoru($jednotka='H')
   {
     //TODO jednotka
@@ -60,5 +88,3 @@ class DateTimeCz extends DateTime
   }
           
 }
-
-?>

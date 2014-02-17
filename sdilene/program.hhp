@@ -29,36 +29,6 @@ class Program
     }
   }
   
-  /** Zpracuje si post hodnoty z formulářů tabulky a provede přihlášení nebo
-   *  nebo odhlášení člověka a návrat na stejnou stranu. Je odolné proti neo-
-   *  právněnému (nad limit, mimo přihlašovací sezónu , ...) přihlašování 
-   *  (pokud není zapnuto force).
-   *  @deprecated */  
-  public function prihlasOdhlas($force=false)
-  {
-    throw new Exception('Deprecated ve prospěch UzivatelskaAktivita::postPrihlasOdhlas');
-    /*
-    if(!$force) 
-      Throw new Exception('Neprůrazné přihlašování neimplementováno.');
-    if(!$this->u && (post('prihlasit') || post('odhlasit')))
-      Throw new Exception('Pokus o přihlášení bez zadaného uživatele.');
-    if(post('prihlasit'))
-    {
-      $aid=array_keys(post('prihlasit'));
-      $aid=$aid[0];
-      aktivitaPrihlas($this->u->id(),$aid,$force,$force);
-      back();
-    }
-    if(post('odhlasit'))
-    {
-      $aid=array_keys(post('odhlasit'));
-      $aid=$aid[0];
-      aktivitaOdhlas($this->u->id(),$aid);
-      back();
-    }
-    */
-  }
-  
   /** Zapíná nebo vypíná přihlašovací možnosti u políček. Forcenutná varianta
    *  ignoruje globální nastavení přihlašování (neforcenutá varianta dává pri-
    *  ritu globálnímu nastavení NEpřihlašovat) */     
@@ -66,7 +36,7 @@ class Program
   {
     //vyřešit kolizi odpovědností vůči třídě Aktivita
     if($io===null) return $this->nastaveni['prihlasovani'];
-    if(($io && $force && $this->u) || ($io && $GLOBALS['REGISTRACE_AKTIVNI'] && $this->u))
+    if(($io && $force && $this->u) || ($io && REG_AKTIVIT && $this->u))
       $this->nastaveni['prihlasovani']=true;
     else
       $this->nastaveni['prihlasovani']=false;
@@ -100,20 +70,21 @@ class Program
         COUNT(NULLIF(p.id_uzivatele AND u.pohlavi="f",false)) as pocet_f, 
         COUNT(NULLIF(p.id_uzivatele AND u.pohlavi="m",false)) as pocet_m,
         a.kapacita, a.kapacita_m, a.kapacita_f, a.kapacita+a.kapacita_m+a.kapacita_f as kapacita_celkova, 
-        a.den, a.zacatek, a.konec, a.lokace'.$prihlSql1.', a.organizator, a.typ, a.stav
+        a.zacatek, a.konec, a.lokace'.$prihlSql1.', a.organizator, a.typ, a.stav,
+        HOUR(a.zacatek) as zacatekHod,
+        IF(HOUR(a.konec) > 0, HOUR(a.konec), 24) as konecHod
       FROM akce_seznam a 
       LEFT JOIN akce_prihlaseni p ON (a.id_akce=p.id_akce) -- pocet lidi
       LEFT JOIN uzivatele_hodnoty u ON (u.id_uzivatele=p.id_uzivatele) -- kvůli groupu dle pohlaví
       JOIN akce_lokace l ON (a.lokace=l.id_lokace) -- poradi lokaci v programu
       '.$prihlSql2.'
-      WHERE a.rok='.$GLOBALS['ROK_AKTUALNI'].' AND a.den>0 AND (a.stav=1 || a.stav=2 || a.stav=3 || a.stav=4)
-      AND a.zacatek>='.$GLOBALS['PROGRAM_ZACATEK'].' AND a.konec<='.$GLOBALS['PROGRAM_KONEC'].'
-      GROUP BY a.id_akce 
-      ORDER BY a.den, l.poradi, a.zacatek, a.nazev_akce'); //agregovat sem zarážku pro tisk?
+      WHERE a.rok='.ROK.' AND a.zacatek AND (a.stav=1 || a.stav=2 || a.stav=3 || a.stav=4)
+      GROUP BY a.id_akce
+      ORDER BY DAY(a.zacatek), l.poradi, HOUR(a.zacatek), a.nazev_akce'); //agregovat sem zarážku pro tisk?
     if($this->u && $this->nastaveni['osobni']) //decimace na přihlášené aktivity
       $q='SELECT * FROM ('.$q.') as program WHERE prihlasen=1 OR organizator='.$this->u->id();
     $this->program=dbQuery($q);
-    
+
     //načtení názvů lokací
     $odpoved=dbQuery('SELECT id_lokace as id, nazev FROM akce_lokace ORDER BY poradi');
     while($radek=mysql_fetch_array($odpoved))
@@ -122,25 +93,26 @@ class Program
     ////////// tisk samotného programu //////////
     
     $aktivita=$this->dalsiAktivita();
-    for($cisloDne=$GLOBALS['PROGRAM_DEN_PRVNI'];$cisloDne<=$GLOBALS['PROGRAM_DEN_POSLEDNI'];$cisloDne++)
+    for( $den=new DateTimeCz(PROGRAM_OD); $den->pred(GC_BEZI_DO); $den->plusDen() )
     {
-      echo('<h2>'.datum1($cisloDne).'</h2><table class="'.$this->nastaveni['tableClass'].'"><tr><th>Místo</th>');
-      for($cas=$GLOBALS['PROGRAM_ZACATEK'];$cas<$GLOBALS['PROGRAM_KONEC'];$cas++) //výpis hlavičkového řádku s čísly
+      echo('<h2>'.mb_ucfirst($den->format('l j.n.Y')).'</h2><table class="'.$this->nastaveni['tableClass'].'"><tr><th>Místo</th>');
+      for($cas=PROGRAM_ZACATEK; $cas<PROGRAM_KONEC; $cas++)   //výpis hlavičkového řádku s čísly
         echo('<th>'.$cas.'</th>');
       $aktivit=0;
       foreach($lokaceSeznam as $lokace => $nazevLokace)
       {
-        if($aktivita['lokace']!=$lokace) continue; //v lokaci není aktivita, přeskočit
-        ob_start(); //výstup bufferujeme, pro případ že bude na víc řádků
+        if($aktivita['lokace']!=$lokace) continue;    //v lokaci není aktivita, přeskočit
+        ob_start();                                   //výstup bufferujeme, pro případ že bude na víc řádků
         $radku=0;
         //ošetření proti kolidujícím aktivitám v místnosti
-        while($lokace==$aktivita['lokace'] && $cisloDne==$aktivita['den'])
+        while( $lokace==$aktivita['lokace'] && $den->stejnyDen($aktivita['zacatek']) )
         {
-          for($cas=$GLOBALS['PROGRAM_ZACATEK'];$cas<$GLOBALS['PROGRAM_KONEC'];$cas++)
+
+          for($cas=PROGRAM_ZACATEK; $cas<PROGRAM_KONEC; $cas++)
           {
-            if($cas==$aktivita['zacatek'] && $aktivita['lokace']==$lokace) //pokud je aktivita už v jiné lokaci, dojedeme stávající řádek
+            if($cas==$aktivita['zacatekHod'] && $aktivita['lokace']==$lokace) //pokud je aktivita už v jiné lokaci, dojedeme stávající řádek
             {
-              $delka=$aktivita['konec']-$aktivita['zacatek']+1; //v DB je konec posunutý o hodinu
+              $delka=$aktivita['konecHod']-$aktivita['zacatekHod'];
               $this->tiskAktivity($aktivita);
               $aktivita=$this->dalsiAktivita();
               $cas+=$delka-1; //na konci cyklu jeste bude ++
@@ -169,8 +141,11 @@ class Program
   /** detekce kolize dvou aktivit (jsou ve stejné místnosti v kryjícím se čase) */
   private static function koliduje($a,$b)
   {
-    if($a['den']==$b['den'] && $a['lokace']==$b['lokace'] && $a && $b &&
-      !($a['konec']+1<=$b['zacatek'] || $a['zacatek']>=$b['konec']+1)) //Ani A nekončí před začátkem B ani A nezačíná po konci B
+    $aZac = strtotime($a['zacatek']);
+    $aKon = strtotime($a['konec']);
+    $bZac = strtotime($b['zacatek']);
+    $bKon = strtotime($b['konec']);
+    if($a['lokace']==$b['lokace'] && $a && $b && !( $aKon<=$bZac || $bKon<=$aZac ))
       return true;
     else
       return false;  
@@ -179,7 +154,9 @@ class Program
   /** Řekne, jestli jsou aktivity v stejné skupině (místnosti a dnu) */
   private static function stejnaSkupina($a,$b)
   {
-    return ($a['den']==$b['den'] && $a['lokace']==$b['lokace']);
+    $denA = date('j',strtotime($a['zacatek']));
+    $denB = date('j',strtotime($b['zacatek']));
+    return ($denA==$denB && $a['lokace']==$b['lokace']);
   }
   
   /** Vrátí následující nekolizní záznam z fronty aktivit a zruší ho, nebo 
@@ -229,7 +206,7 @@ class Program
   /** Vytisknutí konkrétní aktivity (formátování atd...) */
   private function tiskAktivity($a)
   {
-    $delka=$a['konec']-$a['zacatek']+1; //v DB je konec posunutý o hodinu
+    $delka=$a['konecHod']-$a['zacatekHod'];
     $classes=array();
     if($this->nastaveni['prihlasovani'] && $a['prihlasen'])
        $classes[]='prihlasen';

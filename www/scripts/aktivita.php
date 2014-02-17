@@ -1,50 +1,15 @@
 <?php
 
-/**
- * Fuknce vracející seznamy. Hack pro Impérium a rok 2013. Do budoucna zpracovat
- * slušně v třídě Aktivita
- */
-function seznamy($rodina)
-{
-  $o=dbQueryS('
-    SELECT
-      a.*,
-      o.login_uzivatele as org, 
-      GROUP_CONCAT(DISTINCT u.login_uzivatele ORDER BY l.cas SEPARATOR "<br>") as hraci
-    FROM akce_seznam a
-    JOIN akce_prihlaseni p ON(p.id_akce=a.id_akce) -- nevypisovat běhy s 0 lidmi
-    LEFT JOIN uzivatele_hodnoty u ON(u.id_uzivatele=p.id_uzivatele)
-    LEFT JOIN uzivatele_hodnoty o ON(o.id_uzivatele=a.organizator)
-    LEFT JOIN akce_prihlaseni_log l ON(p.id_uzivatele=l.id_uzivatele AND p.id_akce=l.id_akce)
-    WHERE a.id_akce=$0 AND a.id_akce>0 AND a.stav=1 -- >0 kvůli situaci kdy není víc instancí "impéria" ještě
-    GROUP BY a.id_akce 
-  ',array($rodina));
-  $out='';
-  while($r=mysql_fetch_assoc($o))
-  {
-    $a=new Aktivita($r);
-    $out.='<div class="seznam"><b>';
-    $out.=$r['org'].'<br>';
-    $out.=$a->zacatek()->format('l G:00').'<br>';
-    $out.='</b>';
-    $out.=$r['hraci'];
-    $out.='</div>';
-  }
-  
-  return $out;
-}  
-
 UzivatelskaAktivita::postPrihlasOdhlas($u);
 
-$xtpl=new XTemplate('./templates/aktivita.xtpl');
-$a=$aktivita;
-$aktivita=new Aktivita($aktivita); // zhybridování DB a objektového přístupu :/
+$xtpl = new XTemplate('./templates/aktivita.xtpl');
+$a = $aktivita->rawDb(); // zhybridování DB a objektového přístupu :/
 
 //Výběr dalších instancí, pokud jsou
 $orgoveIds=array();
 if($a['patri_pod'])
 {
-  $aa=UzivatelskaAktivita::nactiSkupinu('rok='.ROK_AKTUALNI.' AND (stav=1 OR stav=2 OR stav=4) AND patri_pod='.$a['patri_pod'],$u,'den, zacatek');
+  $aa=UzivatelskaAktivita::nactiSkupinu('rok='.ROK_AKTUALNI.' AND (stav=1 OR stav=2 OR stav=4) AND patri_pod='.$a['patri_pod'],$u,'zacatek');
   $prihlasenVSkupine=false;
   while($r=mysql_fetch_assoc($aa))
   {
@@ -73,7 +38,7 @@ else
   $aa=UzivatelskaAktivita::nactiSkupinu('a.id_akce='.$a['id_akce'],$u);
   $r=mysql_fetch_assoc($aa);
   $aaa=new UzivatelskaAktivita($r,$u);
-  $xtpl->assign('cas',datum2($r));
+  $xtpl->assign('cas', $aaa->denCas());
   $xtpl->assign('prihlasovatko',$aaa->prihlasovatko());
   $xtpl->assign('obsazenost',$aaa->obsazenostHtml());
   $xtpl->assign('tridy',$aaa->prihlasovatelna()?'':'neprihlasovatelna');
@@ -134,7 +99,7 @@ if($org || $orgove)
   $xtpl->parse('aktivita.org');
 }
 $xtpl->assign($a);
-$popis= strpos($aktivita->popis(),'{seznamy}')!==false ? str_replace('{seznamy}',seznamy($a['id_akce']),$aktivita->popis()) : $aktivita->popis() ; // TODO magická konstanta pro aktivitu Impérium (legendy klubu dobrodruhů) 
+$popis = $aktivita->popis();
 $xtpl->assign(array(
   'urlObrazku'=>$aktivita->obrazek(),
   'popis'=>$popis,
@@ -155,6 +120,4 @@ if(CENY_VIDITELNE)
 }
 
 $xtpl->parse('aktivita');
-$obsah=$xtpl->text('aktivita');
-
-?>
+$obsah = $xtpl->text('aktivita');

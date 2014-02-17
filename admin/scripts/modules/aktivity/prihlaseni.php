@@ -18,17 +18,17 @@ if(!isset($_GET['typ']))
 }
 
 $odpoved=dbQuery('
-  SELECT a.nazev_akce as nazevAktivity, a.id_akce as id, (a.kapacita+a.kapacita_m+a.kapacita_f) as kapacita, a.den, a.zacatek,
-    a.konec, u.login_uzivatele as nick, u.jmeno_uzivatele as jmeno, 
+  SELECT a.nazev_akce as nazevAktivity, a.id_akce as id, (a.kapacita+a.kapacita_m+a.kapacita_f) as kapacita, a.zacatek, a.konec,
+    u.login_uzivatele as nick, u.jmeno_uzivatele as jmeno,
     u.prijmeni_uzivatele as prijmeni, u.email1_uzivatele as mail, u.telefon_uzivatele as telefon
   FROM akce_seznam a
   LEFT JOIN akce_prihlaseni p ON (a.id_akce=p.id_akce)
   LEFT JOIN uzivatele_hodnoty u ON (p.id_uzivatele=u.id_uzivatele)
   WHERE a.rok='.ROK.'
-  AND a.den>0
+  AND a.zacatek
   AND (a.stav=1 || a.stav=2)
   '.(isset($_GET['typ'])?'AND a.typ='.get('typ'):'').'
-  ORDER BY a.den, a.zacatek, a.nazev_akce, a.id_akce, p.id_uzivatele');
+  ORDER BY a.zacatek, a.nazev_akce, a.id_akce, p.id_uzivatele');
 
 $totoPrihlaseni=mysql_fetch_array($odpoved);
 $dalsiPrihlaseni=mysql_fetch_array($odpoved);
