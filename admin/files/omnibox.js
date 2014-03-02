@@ -21,8 +21,10 @@ $(function() {
   // Klávesové zkratky
   $(document).bind('keydown', 'alt+u', function(){
     $('#omnibox').focus();
+    return false;
   }).bind('keydown', 'alt+z', function(){
     $('#zrusit').submit();
+    return false;
   });
 
 });
