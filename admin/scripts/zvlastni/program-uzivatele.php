@@ -1,7 +1,5 @@
 <?php
 
-require_once('../../'.$SDILENE_SLOZKA.'program.hhp');
-
 $osobniProgram=isset($osobniProgram)?$osobniProgram:false;
 
 $program=new Program($uPracovni,$osobniProgram);

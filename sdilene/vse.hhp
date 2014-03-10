@@ -4,28 +4,15 @@
  *  Alias for all shared components
  */
 
-require_once('../specificke/site-specific.php');
-require_once('dateTimeCz.hhp');
-require_once('constants.hhp');
-require_once('xtpl.hhp');
-require_once('fwGeneral.hhp'); // passed $START_GENERATE
-require_once('fwDatabase.hhp');
-require_once('functions.hhp');
-require_once('program.hhp');
-require_once('uzivatel.hhp');
-require_once('menu.hhp');
-require_once('url.hhp');
-require_once('chyby.hhp');
-require_once('gcMail.hhp');
-require_once('finance.hhp');
-require_once('titulek.hhp');
-require_once('vypisAktivit.hhp');
-require_once('shop.hhp');
-require_once('markdown.hhp');
-require_once('sleva.hhp');
-require_once('report.hhp');
-
 spl_autoload_register(function($trida){
   $trida = strtolower(preg_replace('@[A-Z]@', '-$0', lcfirst($trida)));
   include(__DIR__.'/'.$trida.'.php');
 });
+
+require_once('../specificke/site-specific.php');
+require_once('constants.hhp');
+require_once('fwGeneral.hhp'); // passed $START_GENERATE
+require_once('fwDatabase.hhp');
+require_once('functions.hhp');
+require_once('chyby.hhp');
+require_once('markdown.hhp');

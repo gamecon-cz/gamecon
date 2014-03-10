@@ -477,7 +477,6 @@ function var_getvalue_sn($shortname)
 }
 
 
-require_once('uzivatel.hhp');
 /** Říká, zdali uživatel má určité právo identifikované číslem */
 function ma_pravo($uzivatel,$cislo_prava)
 {  
