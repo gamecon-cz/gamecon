@@ -132,10 +132,10 @@ function dbQueryS($q,$pole=null)
 {
   if(isset($pole) && is_array($pole))
   {
-    //die($q);
+    $delta = strpos($q, '$0')===false ? -1 : 0; // povolení číslování $1, $2, $3...
     return dbQuery(
-      preg_replace_callback('~\$([0-9]+)~', function($m)use($pole){
-        return '"'.addslashes($pole[$m[1]]).'"';
+      preg_replace_callback('~\$([0-9]+)~', function($m)use($pole,$delta){
+        return '"'.addslashes($pole[$m[1]+$delta]).'"';
       },$q)
     );
   }

@@ -7,18 +7,20 @@
 class DateTimeCz extends DateTime
 {
 
+  protected static $dny = array(
+    'Monday'    => 'pondělí',
+    'Tuesday'   => 'úterý',
+    'Wednesday' => 'středa',
+    'Thursday'  => 'čtvrtek',
+    'Friday'    => 'pátek',
+    'Saturday'  => 'sobota',
+    'Sunday'    => 'neděle'
+  );
+
   /** Formát data s upravenými dny česky */
   function format($f)
   {
-    return strtr(parent::format($f),array(
-      'Monday'    => 'pondělí',
-      'Tuesday'   => 'úterý',
-      'Wednesday' => 'středa',
-      'Thursday'  => 'čtvrtek',
-      'Friday'    => 'pátek',
-      'Saturday'  => 'sobota',
-      'Sunday'    => 'neděle'
-    ));
+    return strtr(parent::format($f), self::$dny);
   }
 
   /** Vrací formát kompatibilní s mysql */

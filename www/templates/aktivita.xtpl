@@ -1,13 +1,13 @@
 <!-- begin:aktivita -->
 <div class="aktivita">
 
-  <h1>{nazev_akce}</h1>
+  <h1>{nazev}</h1>
   
   <table class="hlavicka"><tr>
     <td>
       <div class="obalkaObrazku">
-        <div class="overlay"><div class="text">{nazev_akce}</div></div>
-        <img src="{urlObrazku}" alt="obrázek k aktivitě {nazev_akce}">
+        <div class="overlay"><div class="text">{nazev}</div></div>
+        <img src="{urlObrazku}" alt="obrázek k aktivitě {nazev}">
       </div>
     </td>
     <td>

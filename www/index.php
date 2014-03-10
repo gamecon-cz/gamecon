@@ -6,6 +6,18 @@ require_once('./scripts/konstanty.hhp'); //lokální konstanty
 require_once('./scripts/sloupek.hhp');
 require_once($SDILENE_VSE);
 
+// TODO přepsat výjimky do vlastní třídy nějak slušně
+set_exception_handler(function($e){
+  if($e instanceof Chyba) {
+    $e->zpet();
+  } else {
+    if(VETEV == OSTRA)
+      echo '<pre>AT '.$e->getFile().'('.$e->getLine().'): '.$e->getMessage()."\n".$e->getTraceAsString();
+    else
+      echo '<pre>Vyskytla se chyba, kontaktujte prosím <a href="mailto:godric@korh.cz">administrátora</a> nebo přejděte <a href="http://gamecon.cz/">zpět</a>.';
+  }
+});
+
 //kompatibilita se starými skripty
 $db_jmeno=$db_spojeni=null; //znulování db_údajů - přístup do databáze řeší bez nich dbQuery($dotaz)
 
@@ -60,9 +72,11 @@ elseif($url->delka() && $stranka=dbOneLineS('SELECT obsah, id_stranky FROM stran
     '<script>document.write(\'$1\' + \'$2\' + \'$3\' + \'$4\' + \'$5\' + \'$6\' + \'$7\')</script>', $obsah);
   $extraTridy='str'.$stranka['id_stranky'];
 }
-elseif( $url->delka()==2 && $aktivita=Aktivita::zUrlViditelna($url->cast(1), $url->cast(0)) )
+elseif( $url->delka()==2 && $aktivity=Aktivita::zUrlViditelne($url->cast(1), $url->cast(0)) )
 { //stránka s nějakou aktivitou
-  require_once('./scripts/aktivita.php');
+  ob_start();
+  require('./scripts/aktivita.php');
+  $obsah = ob_get_clean();
 }
 elseif($url->delka()>=1 && $url->delka()<=4 && // změnit horní hranici dle potřeby
   (is_file('./scripts/modules/'.$url->cast(0).'.php') || 

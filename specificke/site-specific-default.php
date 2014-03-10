@@ -7,7 +7,9 @@ $DATABASE_PASSWORD='';
 $DATABASE_NAME='gamecon';
 $DATABASE_SERVER='localhost';
 
-$NAZEV_VETVE='vyvojova'; //vyvojova, ostra
+define('VYVOJOVA', 1);
+define('OSTRA', 2);
+define('VETEV', VYVOJOVA);
 
 define('ADMIN_WWW_CESTA','../www'); //cesta z rootu admina do rootu uživatelské části
 define('SDILENE_WWW_CESTA','../www'); //cesta z sdílených tříd do rootu uživatelské části

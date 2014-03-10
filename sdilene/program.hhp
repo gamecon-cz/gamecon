@@ -19,7 +19,7 @@ class Program
   );
   
   /** Konstruktor bere uživatele a specifikaci, jestli je to osobní program */  
-  function __construct($u=null,$osobni=false)
+  function __construct(Uzivatel $u=null, $osobni=false)
   {
     if($u instanceof Uzivatel)
     {
@@ -29,61 +29,13 @@ class Program
     }
   }
   
-  /** Zapíná nebo vypíná přihlašovací možnosti u políček. Forcenutná varianta
-   *  ignoruje globální nastavení přihlašování (neforcenutá varianta dává pri-
-   *  ritu globálnímu nastavení NEpřihlašovat) */     
-  public function prihlasovani($io=null,$force=false)
-  {
-    //vyřešit kolizi odpovědností vůči třídě Aktivita
-    if($io===null) return $this->nastaveni['prihlasovani'];
-    if(($io && $force && $this->u) || ($io && REG_AKTIVIT && $this->u))
-      $this->nastaveni['prihlasovani']=true;
-    else
-      $this->nastaveni['prihlasovani']=false;
-  }
-  
-  /** Nastaví uživatele, vůči kterému se program sestavuje */
-  public function uzivatel($uid)
-  {
-    Throw new Exception('Nastavování id uživatele tímto způsobem koliduje s objektovým přístupem.');
-    $this->uid=$uid;
-  }
-  
   /**
    * Přímý tisk programu na výstup
    */     
   public function tisk()
   {
-    ////////// načtení údajů z DB //////////
-    
-    //načtení programu
-    $prihlSql1=$prihlSql2='';
-    if($this->u)
-    { //přídavná část SQL dotazu pro rozlišení akcí, kde je uživatel přihlášen
-      $prihlSql1=', ap.prihlasen';
-      $prihlSql2='LEFT JOIN (
-        SELECT id_akce, 1 as prihlasen FROM akce_prihlaseni WHERE id_uzivatele='.$this->u->id().') 
-        as ap ON(a.id_akce=ap.id_akce) -- aktivni prihlaseni daneho uzivatele';
-    }
-    $q=('SELECT a.id_akce, a.nazev_akce, 
-        COUNT(p.id_uzivatele) as pocet,
-        COUNT(NULLIF(p.id_uzivatele AND u.pohlavi="f",false)) as pocet_f, 
-        COUNT(NULLIF(p.id_uzivatele AND u.pohlavi="m",false)) as pocet_m,
-        a.kapacita, a.kapacita_m, a.kapacita_f, a.kapacita+a.kapacita_m+a.kapacita_f as kapacita_celkova, 
-        a.zacatek, a.konec, a.lokace'.$prihlSql1.', a.organizator, a.typ, a.stav,
-        HOUR(a.zacatek) as zacatekHod,
-        IF(HOUR(a.konec) > 0, HOUR(a.konec), 24) as konecHod
-      FROM akce_seznam a 
-      LEFT JOIN akce_prihlaseni p ON (a.id_akce=p.id_akce) -- pocet lidi
-      LEFT JOIN uzivatele_hodnoty u ON (u.id_uzivatele=p.id_uzivatele) -- kvůli groupu dle pohlaví
-      JOIN akce_lokace l ON (a.lokace=l.id_lokace) -- poradi lokaci v programu
-      '.$prihlSql2.'
-      WHERE a.rok='.ROK.' AND a.zacatek AND (a.stav=1 || a.stav=2 || a.stav=3 || a.stav=4)
-      GROUP BY a.id_akce
-      ORDER BY DAY(a.zacatek), l.poradi, HOUR(a.zacatek), a.nazev_akce'); //agregovat sem zarážku pro tisk?
-    if($this->u && $this->nastaveni['osobni']) //decimace na přihlášené aktivity
-      $q='SELECT * FROM ('.$q.') as program WHERE prihlasen=1 OR organizator='.$this->u->id();
-    $this->program=dbQuery($q);
+    // načtení seznamu aktivit
+    $this->program = Aktivita::zProgramu();
 
     //načtení názvů lokací
     $odpoved=dbQuery('SELECT id_lokace as id, nazev FROM akce_lokace ORDER BY poradi');
@@ -92,30 +44,29 @@ class Program
     
     ////////// tisk samotného programu //////////
     
-    $aktivita=$this->dalsiAktivita();
+    $aktivita = $this->dalsiAktivita();
     for( $den=new DateTimeCz(PROGRAM_OD); $den->pred(GC_BEZI_DO); $den->plusDen() )
     {
+      $denId = (int)$den->format('z');
       echo('<h2>'.mb_ucfirst($den->format('l j.n.Y')).'</h2><table class="'.$this->nastaveni['tableClass'].'"><tr><th>Místo</th>');
       for($cas=PROGRAM_ZACATEK; $cas<PROGRAM_KONEC; $cas++)   //výpis hlavičkového řádku s čísly
         echo('<th>'.$cas.'</th>');
       $aktivit=0;
       foreach($lokaceSeznam as $lokace => $nazevLokace)
       {
-        if($aktivita['lokace']!=$lokace) continue;    //v lokaci není aktivita, přeskočit
-        ob_start();                                   //výstup bufferujeme, pro případ že bude na víc řádků
+        if( !$aktivita || $aktivita['lok'] != $lokace ) continue;  //v lokaci není aktivita, přeskočit
+        ob_start();  //výstup bufferujeme, pro případ že bude na víc řádků
         $radku=0;
         //ošetření proti kolidujícím aktivitám v místnosti
-        while( $lokace==$aktivita['lokace'] && $den->stejnyDen($aktivita['zacatek']) )
+        while( $aktivita && $lokace==$aktivita['lok'] && $denId==$aktivita['den'] )
         {
-
           for($cas=PROGRAM_ZACATEK; $cas<PROGRAM_KONEC; $cas++)
           {
-            if($cas==$aktivita['zacatekHod'] && $aktivita['lokace']==$lokace) //pokud je aktivita už v jiné lokaci, dojedeme stávající řádek
+            if( $aktivita && $lokace==$aktivita['lok'] && $cas==$aktivita['zac'] ) //pokud je aktivita už v jiné lokaci, dojedeme stávající řádek
             {
-              $delka=$aktivita['konecHod']-$aktivita['zacatekHod'];
+              $cas += $aktivita['del'] - 1; //na konci cyklu jeste bude ++
               $this->tiskAktivity($aktivita);
-              $aktivita=$this->dalsiAktivita();
-              $cas+=$delka-1; //na konci cyklu jeste bude ++
+              $aktivita = $this->dalsiAktivita();
               $aktivit++;
             }
             else
@@ -125,7 +76,7 @@ class Program
           $radku++;
         }
         $radky=substr(ob_get_clean(),0,-4);
-        if($aktivit>0) echo('<tr><td rowspan="'.$radku.'">'.$nazevLokace.'</td>'.$radky);    
+        if($radku>0) echo('<tr><td rowspan="'.$radku.'">'.$nazevLokace.'</td>'.$radky);
       }
       if($aktivit==0)
         echo('<tr><td colspan="17">Žádné aktivity tento den</td></tr>'); //fixme magická konstanta
@@ -139,24 +90,27 @@ class Program
   ////////////////////
     
   /** detekce kolize dvou aktivit (jsou ve stejné místnosti v kryjícím se čase) */
-  private static function koliduje($a,$b)
+  private static function koliduje($a = null, $b = null)
   {
-    $aZac = strtotime($a['zacatek']);
-    $aKon = strtotime($a['konec']);
-    $bZac = strtotime($b['zacatek']);
-    $bKon = strtotime($b['konec']);
-    if($a['lokace']==$b['lokace'] && $a && $b && !( $aKon<=$bZac || $bKon<=$aZac ))
-      return true;
-    else
-      return false;  
+    if(  $a===null
+      || $b===null
+      || $a['lok'] != $b['lok']
+      || $a['den'] != $b['den']
+      || $a['kon'] <= $b['zac']
+      || $b['kon'] <= $a['zac']
+    ) return false;
+    return true;
   }
   
   /** Řekne, jestli jsou aktivity v stejné skupině (místnosti a dnu) */
-  private static function stejnaSkupina($a,$b)
+  private static function stejnaSkupina($a = null, $b = null)
   {
-    $denA = date('j',strtotime($a['zacatek']));
-    $denB = date('j',strtotime($b['zacatek']));
-    return ($denA==$denB && $a['lokace']==$b['lokace']);
+    if(  $a===null
+      || $b===null
+      || $a['lok'] != $b['lok']
+      || $a['den'] != $b['den']
+    ) return false;
+    return true;
   }
   
   /** Vrátí následující nekolizní záznam z fronty aktivit a zruší ho, nebo 
@@ -165,7 +119,7 @@ class Program
   {
     foreach($fronta as $key=>$prvek)
     {
-      if($prvek['zacatek']>=$this->posledniVydana['konec']+1)
+      if( $prvek['zac'] >= $this->posledniVydana['kon'] )
       {
         $t=$prvek;
         unset($fronta[$key]);
@@ -179,46 +133,65 @@ class Program
    *  aktivit (globální proměnné se používají) */
   private function dalsiAktivita()
   { 
-    if(!$this->dbPosledni)
-      $this->dbPosledni=mysql_fetch_assoc($this->program);
-    
-    while($this->koliduje($this->posledniVydana,$this->dbPosledni))
-    {
-      $this->aktFronta[]=$this->dbPosledni;
-      $this->dbPosledni=mysql_fetch_assoc($this->program);
+    if(!$this->dbPosledni) {
+      $this->dbPosledni = self::nactiAktivitu($this->program);
     }
     
-    if($this->stejnaSkupina($this->dbPosledni,$this->posledniVydana) || !$this->aktFronta)
+    while($this->koliduje($this->posledniVydana, $this->dbPosledni)) {
+      $this->aktFronta[] = $this->dbPosledni;
+      $this->dbPosledni = self::nactiAktivitu($this->program);
+    }
+    
+    if($this->stejnaSkupina($this->dbPosledni, $this->posledniVydana) || !$this->aktFronta)
     {
-      $t=$this->dbPosledni;
-      $this->dbPosledni=null;
-      return $this->posledniVydana=$t;
+      $t = $this->dbPosledni;
+      $this->dbPosledni = null;
+      return $this->posledniVydana = $t;
     }
     else
     {
-      if($t=$this->popNasledujiciNekolizni($this->aktFronta))
-        return $this->posledniVydana=$t;
+      if($t = $this->popNasledujiciNekolizni($this->aktFronta))
+        return $this->posledniVydana = $t;
       else
-        return $this->posledniVydana=array_shift($this->aktFronta);
+        return $this->posledniVydana = array_shift($this->aktFronta);
     }
   }
-  
+
   /** Vytisknutí konkrétní aktivity (formátování atd...) */
   private function tiskAktivity($a)
   {
-    $delka=$a['konecHod']-$a['zacatekHod'];
     $classes=array();
-    if($this->nastaveni['prihlasovani'] && $a['prihlasen'])
-       $classes[]='prihlasen';
-    if($this->nastaveni['prihlasovani'] && $a['organizator']==$this->uid)
-       $classes[]='organizator';
-    echo('<td colspan="'.$delka.'"'.
+    if($this->u && $a['obj']->prihlasen($this->u)) $classes[]='prihlasen';
+    if($this->u && $a['obj']->orgId()==$this->uid) $classes[]='organizator';
+    echo('<td colspan="'.$a['del'].'"'.
       ( $classes?' class="'.implode(' ',$classes).'"':'' ).
-      '>'.$a['nazev_akce']);
-    $aktivita=new UzivatelskaAktivita($a,$this->u);
-    echo $aktivita->obsazenostHtml();
-    echo ' '.$aktivita->prihlasovatko(true);
+      '>'.$a['obj']->nazev());
+    echo $a['obj']->obsazenostHtml();
+    echo ' '.$a['obj']->prihlasovatko($this->u);
     echo('</td>');
+  }
+
+  /**
+   * Načte jednu aktivitu (objekt) z iterátoru a vrátí vnitřní reprezentaci
+   * (s cacheovanými hodnotami) pro program.
+   */
+  private static function nactiAktivitu($iterator)
+  {
+    if(!$iterator->valid()) return null;
+    $a = $iterator->current();
+    $zac = (int)$a->zacatek()->format('G');
+    $kon = (int)$a->konec()->format('G');
+    if($kon == 0) $kon = 24;
+    $a = array(
+      'lok' => $a->lokaceId(),
+      'zac' => $zac,
+      'kon' => $kon,
+      'den' => (int)$a->zacatek()->format('z'),
+      'del' => $kon - $zac,
+      'obj' => $a
+    );
+    $iterator->next();
+    return $a;
   }
   
   

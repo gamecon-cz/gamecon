@@ -2,6 +2,7 @@
 
 /**
  * Třída aktivity
+ * @todo vytváření instance
  */
 class Aktivita
 {
@@ -22,7 +23,7 @@ class Aktivita
    * "přihlášen") je vztažen vůči uživateli, je potřeba ho zadat teď jako $u,
    * později to nebude možné.
    */
-  function __construct($db)
+  private function __construct($db)
   {
     if(!$db)
       throw new Exception('prázdný parametr konstruktoru');
@@ -120,7 +121,8 @@ class Aktivita
     $a=$_POST[self::POSTKLIC];
     if(empty($a['url_akce']) && !empty($_POST[self::POSTKLIC.'staraUrl'])) // v případě nezobrazení tabulky a tudíž chybějícího text. pole s url (viz šablona) se použije hidden pole s původní url
       $a['url_akce']=$_POST[self::POSTKLIC.'staraUrl'];
-    $a['bez_slevy']=empty($a['bez_slevy'])?0:1; //checkbox pro "bez_slevy"
+    $a['bez_slevy'] = (int)!empty($a['bez_slevy']); //checkbox pro "bez_slevy"
+    $a['teamova']   = (int)!empty($a['teamova']);   //checkbox pro "teamova"
     //if(self::editorChyby($a)) return false; //řeší ajax (?)
     // přepočet času
     $a['zacatek'] = (new DateTimeCz($a['den']))->add(new DateInterval('PT'.$a['zacatek'].'H'))->formatDb();
@@ -175,9 +177,7 @@ class Aktivita
   }
 
   function id()
-  {
-    return $this->a['id_akce'];
-  }
+  { return $this->a['id_akce']; }
 
   /** Nastaví omezení, která se mají ignorovat při manipulaci s aktivitami */
   function ignorovane($pole)
@@ -185,6 +185,9 @@ class Aktivita
     if(!is_array($pole)) throw new Excpetion('Nesprávně zadané parametry');
     $this->ignorovane=$pole;
   }
+
+  function lokaceId()
+  { return $this->a['lokace']; }
 
   function nazev()
   { return $this->a['nazev_akce']; }
@@ -213,43 +216,61 @@ class Aktivita
   /** Vrátí html kód s políčky určujícímí obsazenost */
   function obsazenostHtml()
   {
-    if(!$this->a['kapacita_celkova'] || !REG_AKTIVIT)
+    $m = $this->prihlasenoMuzu(); // počty
+    $f = $this->prihlasenoZen();
+    $c = $m + $f;
+    $km = $this->a['kapacita_m']; // kapacity
+    $kf = $this->a['kapacita_f'];
+    $ku = $this->a['kapacita'];
+    $kc = $ku + $km + $kf;
+    if(!$kc || !REG_AKTIVIT)
       return '';
     if(!$this->prihlasovatelna() && !$this->probehnuta()) //u proběhnutých aktivit se zobrazí čísla. Možno měnit.
-      return ' <span class="neprihlasovatelna">('.$this->a['pocet'].'/'.$this->a['kapacita_celkova'].')</span>';
+      return " <span class=\"neprihlasovatelna\">($c/$kc)</span>";
     switch($this->volno())
     {
       case 'u':
       case 'x':
-        return(' ('.$this->a['pocet'].'/'.$this->a['kapacita_celkova'].')');
+        return " ($c/$kc)";
       case 'f':
-        return(' <span class="f">('.$this->a['pocet_f'].'/'.$this->a['kapacita_f'].')</span>'.
-          ' <span class="m">('.$this->a['pocet_m'].'/'.($this->a['kapacita_m']+$this->a['kapacita']).')</span>');
+        return ' <span class="f">('.$f.'/'.$kf.')</span>'.
+          ' <span class="m">('.$m.'/'.($km+$ku).')</span>';
       case 'm':
-        return(' <span class="f">('.$this->a['pocet_f'].'/'.($this->a['kapacita_f']+$this->a['kapacita']).')</span>'.
-          ' <span class="m">('.$this->a['pocet_m'].'/'.$this->a['kapacita_m'].')</span>');
+        return ' <span class="f">('.$f.'/'.($kf+$ku).')</span>'.
+          ' <span class="m">('.$m.'/'.$km.')</span>';
     }
+  }
+
+  /** Odhlásí uživatele z aktivity */
+  function odhlas(Uzivatel $u) {
+    // TODO kontroly? (např. jestli je aktivní přihlašování?)
+    if($this->a['dite']) { // odhlášení z potomků
+      self::zId($this->a['dite'])->odhlas($u);
+    }
+    $aid = $this->id();
+    $uid = $u->id();
+    dbQuery("DELETE FROM akce_prihlaseni WHERE id_uzivatele=$uid AND id_akce=$aid");
+    dbQuery("INSERT INTO akce_prihlaseni_log SET id_uzivatele=$uid, id_akce=$aid, typ='odhlaseni'");
+    if(ODHLASENI_POKUTA_KONTROLA && aktivitaDoZacatkuH($this)<ODHLASENI_POKUTA1_H) //pokuta aktivní
+      dbQueryS("INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$uid, id_akce=$aid, id_stavu_prihlaseni=4");
+  }
+
+  /**
+   * Vrátí pole uživatelů, kteří jsou organizátory jakékoli ze skupiny instancí
+   * aktivity. Pokud nemá instance, vrátí organizátory aktivity jak jsou.
+   */
+  function organizatoriSkupiny() {
+    if($this->a['patri_pod']) {// má instance
+      $uids = dbOneCol('SELECT GROUP_CONCAT(organizator) FROM akce_seznam WHERE patri_pod='.$this->a['patri_pod'].' GROUP BY patri_pod');
+    } else {
+      $uids = $this->a['organizator'];
+    }
+    return Uzivatel::zIds($uids);
   }
 
   /** Vrátí id organizátora aktivity */
   function orgId()
   { return $this->a['organizator']; }
-
-  /**
-   * Vrátí formátovaný (html) popisek aktivity
-   */
-  function popis()
-  {
-    $popis=$this->a['popis'];
-    $popis=strtr($popis,array(
-      ' - '=>' – ',
-      '...'=>'…'));
-    $popis=preg_replace('@([^=])"([^"\n<>]+)"([^>])@', '$1„$2“$3', $popis); //uvozovky
-    $popis=Markdown($popis);
-    $popis=preg_replace('@([^=">])(http://[a-zA-Z0-9/\?\.=\-_]+)@',
-      '$1<a href="$2" onclick="return!window.open(this.href)">$2</a>', $popis);
-    return $popis;
-  }
 
   /**
    * Vrátí čitelné jméno organizátora
@@ -268,11 +289,163 @@ class Aktivita
     return $this->a['login_uzivatele'];
   }
 
+  /** Vrátí specifické označení organizátora pro tuto aktivitu */
+  function orgTitul() {
+    return dbOneCol('SELECT titul_orga FROM akce_typy WHERE id_typu='.$this->a['typ']);
+  }
+
+  /**
+   * Vrátí formátovaný (html) popisek aktivity
+   */
+  function popis()
+  {
+    $popis=$this->a['popis'];
+    $popis=strtr($popis,array(
+      ' - '=>' – ',
+      '...'=>'…'));
+    $popis=preg_replace('@([^=])"([^"\n<>]+)"([^>])@', '$1„$2“$3', $popis); //uvozovky
+    $popis=Markdown($popis);
+    $popis=preg_replace('@([^=">])(http://[a-zA-Z0-9/\?\.=\-_]+)@',
+      '$1<a href="$2" onclick="return!window.open(this.href)">$2</a>', $popis);
+    return $popis;
+  }
+
+  /** Přihlásí uživatele na aktivitu */
+  function prihlas(Uzivatel $u)
+  {
+    // kontroly
+    if($this->prihlasen($u))          return;
+    if(!maVolno($u->id(), $this->a))  throw new Chyba(hlaska('kolizeAktivit')); // TODO převést na metodu uživatele
+    if(!$u->gcPrihlasen())            throw new Exception('Nemáš aktivní přihlášku na GameCon.');
+    if(!REG_AKTIVIT)                  throw new Exception('Přihlašování není spuštěno.');
+    if(!$this->prihlasovatelna())     throw new Exception('Aktivita není otevřena pro přihlašování.');
+    if($this->volno()!='u' && $this->volno()!=$u->pohlavi()) throw new Exception('Místa jsou už plná');
+    // vložení do db
+    if($this->a['dite']) {
+      self::zId($this->a['dite'])->prihlas($u);
+    }
+    $aid = $this->id();
+    $uid = $u->id();
+    dbQuery("INSERT INTO akce_prihlaseni SET id_uzivatele=$uid, id_akce=$aid");
+    dbQuery("INSERT INTO akce_prihlaseni_log SET id_uzivatele=$uid, id_akce=$aid, typ='prihlaseni'");
+    if(ODHLASENI_POKUTA_KONTROLA) //pokud by náhodou měl záznam za pokutu a přihlásil se teď, tak smazat
+      dbQueryS('DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0
+        AND id_akce=$1 AND id_stavu_prihlaseni=4', array($uid, $aid));
+  }
+
+  /** Jestli je uživatel  přihlášen na tuto aktivitu */
+  function prihlasen(Uzivatel $u)
+  {
+    return strpos($this->prihlaseni(), ','.$u->id().$u->pohlavi()) !== false;
+  }
+
+  /**
+   * Vrátí serializovaný seznam přihlášených a pokud takový neexistuje, načte
+   * ho. Formát seznamu je: ,1204m0,864f2,742f1,...,1001m1, kde čísla jsou id
+   * uživatelů, písmena pohlaví a čísla z pohlavím stav přihlášení.
+   */
+  private function prihlaseni()
+  {
+    if(!array_key_exists('prihlaseni', $this->a))
+      throw new Exception ('Nenačteny počty přihlášených do aktivity.');
+    return $this->a['prihlaseni'];
+  }
+
+  protected function prihlasenoMuzu()
+  {
+    return substr_count($this->prihlaseni(), 'm');
+  }
+
+  protected function prihlasenoZen()
+  {
+    return substr_count($this->prihlaseni(), 'f');
+  }
+
+  /**
+   * Vrátí stav přihlášení uživatele na aktivitu. Pokud není přihlášen, vrací
+   * hodnotu -1.
+   */
+  private function prihlasenStav(Uzivatel $u)
+  {
+    $prihlaseni = $this->prihlaseni();
+    $usymbol = ','.$u->id().$u->pohlavi();
+    $pos = strpos($prihlaseni, $usymbol);
+    if($pos !== false) {
+      return (int)substr($prihlaseni, $pos+strlen($usymbol), 1);
+    } else {
+      return -1;
+    }
+  }
+
   /** Zdali chceme, aby se na aktivitu bylo možné běžně přihlašovat */
   function prihlasovatelna()
   {
     //stav 4 je rezervovaný pro viditelné nepřihlašovatelné aktivity
     return(REG_AKTIVIT && $this->a['stav']==1);
+  }
+
+  /**
+   * Vrátí html kód pro přihlášení / odhlášení / informaci o zaplněnosti pro
+   * daného uživatele. Pokud není zadán, vrací prázdný řetězec.
+   * @todo v rodině instancí maximálně jedno přihlášení?
+   * @todo konstanty pro jména POST proměnných? viz prihlasovatkoZpracuj
+   */
+  function prihlasovatko(Uzivatel $u = null)
+  {
+    if(REG_AKTIVIT && $u && $u->gcPrihlasen() && $this->a['typ'] && $this->prihlasovatelna())
+    {
+      if( ($stav = $this->prihlasenStav($u)) > -1 )
+      {
+        if($stav==0)
+          return '<a href="javascript:document.getElementById(\'odhlasit'.
+            $this->id().'\').submit()">odhlásit</a><form '.
+            'id="odhlasit'.$this->id().'" method="post" '.
+            'style="position:absolute"><input type="hidden" name="odhlasit" '.
+            'value="'.$this->id().'" /></form>';
+        if($stav==1) return '<em>účast</em>';
+        if($stav==2) return '<em>jako náhradník</em>';
+        if($stav==3) return '<em>neúčast</em>';
+        if($stav==4) return '<em>pozdní odhlášení</em>';
+      }
+      elseif($this->a['organizator'] == $u->id())
+      {
+        return '';
+      }
+      else
+      {
+        $volno = $this->volno();
+        if($volno=='u' || $volno==$u->pohlavi())
+          return '<a href="javascript:document.getElementById(\'prihlasit'.
+            $this->id().'\').submit()">přihlásit</a><form '.
+            'id="prihlasit'.$this->id().'" method="post" '.
+            'style="position:absolute"><input type="hidden" name="prihlasit" '.
+            'value="'.$this->id().'" /></form>';
+        if($volno=='f' && !$pouzeOdkaz)
+          return 'pouze ženská místa';
+        if($volno=='m' && !$pouzeOdkaz)
+          return 'pouze mužská místa';
+        /*if($volno=='x')
+          return 'plná kapacita';*/
+        return '';
+      }
+    }
+    else
+    {
+      return '';
+    }
+  }
+
+  /** Zpracuje post data z přihlašovátka. Pokud došlo ke změně, vyvolá reload */
+  static function prihlasovatkoZpracuj(Uzivatel $u = null)
+  {
+    if(post('prihlasit')) {
+      self::zId(post('prihlasit'))->prihlas($u);
+      back();
+    }
+    if(post('odhlasit')) {
+      self::zId(post('odhlasit'))->odhlas($u);
+      back();
+    }
   }
 
   /**
@@ -302,9 +475,8 @@ class Aktivita
   /** Vrátí typ volných míst na aktivitě */
   function volno()
   {
-    if(!isset($this->a['pocet_m'])) throw new Exception ('Nenačteny počty přihlášených do aktivity.');
-    $m=$this->a['pocet_m'];
-    $f=$this->a['pocet_f'];
+    $m = $this->prihlasenoMuzu();
+    $f = $this->prihlasenoZen();
     $ku=$this->a['kapacita'];
     $km=$this->a['kapacita_m'];
     $kf=$this->a['kapacita_f'];
@@ -325,36 +497,61 @@ class Aktivita
 
   /** Vrátí DateTime objekt začátku aktivity */
   function zacatek() {
-    return $this->a['zacatek'] ? new DateTimeCz($this->a['zacatek']) : null;
+    if(is_string($this->a['zacatek']))
+      $this->a['zacatek'] = new DateTimeCz($this->a['zacatek']);
+    return $this->a['zacatek'];
   }
 
   /** Vrátí DateTime objekt konce aktivity */
   function konec() {
-    return $this->a['konec'] ? new DateTimeCz($this->a['konec']) : null;
-  }
-
-  /** Surový řádek z databáze - hack, používat jen pro zpětnou kompatibilitu */
-  function rawDb() {
-    return $this->a;
+    if(is_string($this->a['konec']))
+      $this->a['konec'] = new DateTimeCz($this->a['konec']);
+    return $this->a['konec'];
   }
 
   /**
    * Pokusí se vyčíst aktivitu z dodaného ID. Vrátí aktivitu nebo null
+   * @todo optimalizovaný select (viz zUrl...) ?
    */
   static function zId($id)
   {
     if((int)$id)
     {
       $a=dbOneLine('SELECT
-          *, -- speciální selecty kvůli sdílené url a popisu u aktivit s více instancemi
+          a.*, -- speciální selecty kvůli sdílené url a popisu u aktivit s více instancemi
           IF(a.patri_pod,(SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod=a.patri_pod),url_akce) url_akce,
-          IF(a.patri_pod,(SELECT MAX(popis) FROM akce_seznam WHERE patri_pod=a.patri_pod),popis) popis
+          IF(a.patri_pod,(SELECT MAX(popis) FROM akce_seznam WHERE patri_pod=a.patri_pod),popis) popis,
+          CONCAT(",",GROUP_CONCAT(ap.id_uzivatele,u.pohlavi,ap.id_stavu_prihlaseni),",") AS prihlaseni
         FROM akce_seznam a
-        WHERE id_akce='.(int)$id);
+        LEFT JOIN akce_prihlaseni ap ON(ap.id_akce = a.id_akce)
+        LEFT JOIN uzivatele_hodnoty u ON(u.id_uzivatele = ap.id_uzivatele)
+        WHERE a.id_akce='.(int)$id.'
+        GROUP BY a.id_akce');
       if(!$a) return null;
       return new Aktivita($a);
     }
     return null;
+  }
+
+  /** Vrátí pole aktivit které se letos zobrazí v programu */
+  static function zProgramu() {
+    $o = dbQuery('
+      SELECT a.*,
+        CONCAT(",",GROUP_CONCAT(ap.id_uzivatele,u.pohlavi,ap.id_stavu_prihlaseni),",") AS prihlaseni
+      FROM akce_seznam a
+      LEFT JOIN akce_prihlaseni ap ON(ap.id_akce = a.id_akce)
+      LEFT JOIN uzivatele_hodnoty u ON(u.id_uzivatele = ap.id_uzivatele)
+      JOIN akce_lokace l ON (a.lokace=l.id_lokace) -- poradi lokaci v programu
+      WHERE a.rok = '.ROK.' AND a.zacatek AND a.stav IN(1,2,3,4)
+      GROUP BY a.id_akce
+      ORDER BY DAY(a.zacatek), l.poradi, HOUR(a.zacatek), a.nazev_akce
+    ');
+    $p = array();
+    while($r = mysql_fetch_assoc($o)) {
+      unset($r['popis'], $r['url_akce']);
+      $p[] = new self($r);
+    }
+    return new ArrayIterator($p);
   }
 
   /**
@@ -378,20 +575,33 @@ class Aktivita
   }
 
   /**
-   * Vrátí aktivitu s danou url, pokud je veřejně viditelná
+   * Vrátí pole instancí s danou url (jen ty letošní veřejně viditelné)
    * @param $url url aktivity
    * @param $typ url typu
+   * @todo iterátor
    */
-  function zUrlViditelna($url, $typ) {
-    $a = dbOneLineS('
-      SELECT * FROM akce_seznam a
+  static function zUrlViditelne($url, $typ) {
+    $o = dbQueryS('
+      SELECT af.*,
+        a.url_akce, a.popis, -- rozkopírování (přepsání) hodnot z hlavní instance do všech instancí
+        CONCAT(",",GROUP_CONCAT(ap.id_uzivatele,u.pohlavi,ap.id_stavu_prihlaseni),",") AS prihlaseni
+      FROM akce_seznam a
       JOIN akce_typy t ON(t.id_typu=a.typ)
-      WHERE t.url_typu=$0
-      AND a.url_akce=$1
-      AND (a.stav=1 OR a.stav=2 OR a.stav=4)
-      AND a.rok='.ROK_AKTUALNI, array($typ, $url));
-    if(!$a) return null;
-    return new Aktivita($a);
+      JOIN akce_seznam af ON(af.id_akce = a.id_akce OR af.patri_pod AND af.patri_pod = a.patri_pod) -- připojení instancí k výchozí aktivitě
+      LEFT JOIN akce_prihlaseni ap ON(ap.id_akce = af.id_akce)
+      LEFT JOIN uzivatele_hodnoty u ON(u.id_uzivatele = ap.id_uzivatele) -- kvůli pohlaví
+      WHERE t.url_typu = $1
+      AND a.url_akce = $2
+      AND a.stav IN(1,2,4)
+      AND a.rok = $3
+      GROUP BY af.id_akce
+      ORDER BY af.zacatek, af.id_akce
+      ', array($typ, $url, ROK_AKTUALNI));
+    $m = array();
+    while($a = mysql_fetch_assoc($o)) {
+      $m[] = new self($a);
+    }
+    return $m;
   }
 
 

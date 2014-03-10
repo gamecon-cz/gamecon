@@ -389,7 +389,7 @@ function mb_ucfirst($string, $encoding=null)
 {
   if(!$encoding) $encoding = mb_internal_encoding();
   $firstChar = mb_substr($string, 0, 1, $encoding);
-  $then = mb_substr($string, 1, null, $encoding);
+  $then = mb_substr($string, 1, mb_strlen($string), $encoding);
   return mb_strtoupper($firstChar, $encoding) . $then;
 }
 
@@ -398,7 +398,7 @@ function mb_ucfirst($string, $encoding=null)
  *  @todo stringOut */
 function profilInfo()
 {
-  if($GLOBALS['NAZEV_VETVE']=='ostra')
+  if(VETEV == OSTRA)
     return false; //v ostré verzi se neprofiluje
   $iconRoot = URL_ADMIN.'/files/design/';
   $delka = microtime(true) - $GLOBALS['SKRIPT_ZACATEK'];
@@ -421,10 +421,10 @@ function profilInfo()
       .profilInfo img { margin-bottom: -2px }
     </style> 
     <img src="'.$iconRoot.'clock-icon.png" alt="délka skriptu včetně DB">
-    <span style="'.$barva.'">'.round($delka,3).'&thinsp;s</span>
+    <span style="'.$barva.'">'.round($delka*1000).'&thinsp;ms</span>
     &ensp; 
     <img src="'.$iconRoot.'database-icon.png" alt="délka odbavení DB/počet dotazů">
-    '.round(dbExecTime(),3).'&thinsp;s ('.dbNumQ().' dotazů)
+    '.round(dbExecTime()*1000).'&thinsp;ms ('.dbNumQ().' dotazů)
     </div>';
 }
 
