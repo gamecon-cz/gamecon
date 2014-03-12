@@ -45,7 +45,7 @@ if(post('aktivovatVse'))
 
 if(post('instance'))
 {
-  aktivitaInstanciovat(post('aktivitaId'));
+  Aktivita::zId(post('aktivitaId'))->instanciuj();
   back();
 }
 

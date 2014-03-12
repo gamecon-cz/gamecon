@@ -9,29 +9,6 @@ function aktivitaDoZacatkuH($a)
   return $delta/(60*60);
 }
 
-/** Vytvoří novou instanci aktivity $aid */
-function aktivitaInstanciovat($aid)
-{
-  $akt=dbOneLine('SELECT * FROM akce_seznam WHERE id_akce='.(int)$aid);
-  //odstraníme id, url a popisek, abychom je nepoužívali/neduplikovali při vkládání
-  //stav se vloží implicitní hodnota v DB
-  unset($akt['id_akce'],$akt['url_akce'],$akt['popis'],$akt['stav']);
-  if($akt['patri_pod']>0)
-  { //aktivita už má instanční skupinu, použije se stávající
-    dbInsert('akce_seznam',$akt);
-  }
-  else
-  { //aktivita je zatím bez instanční skupiny - vytvoříme
-    //todo lock
-    $max=dbOneLine('SELECT max(patri_pod) as max FROM akce_seznam');
-    $patriPod=$max['max']+1; //nové ID rodiny instancí
-    $akt['patri_pod']=$patriPod;
-    dbQuery('UPDATE akce_seznam SET patri_pod='.$patriPod.
-      ' WHERE id_akce='.(int)$aid); //update původní aktivity
-    dbInsert('akce_seznam',$akt);
-  }
-}
-
 /** Zkusí odhlásit uživatele z aktivity
  *  @param $uid integer pokud je (přesně) null, odhlásí všechny uživatele
  *  @return bool Vrací true, pokud je nakonec uživatel nepřihlášen. */

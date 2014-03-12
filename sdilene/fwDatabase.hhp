@@ -86,8 +86,10 @@ function dbInsertUpdate($table,$valArray)
   $vals='';
   foreach($valArray as $key=>$val)
   {
-    if($val!==NULL)
-      $vals.=$key.'="'.(get_magic_quotes_gpc()?$val:addslashes($val)).'", ';
+    if($val===NULL)
+      $vals .= $key.'=NULL, ';
+    else
+      $vals .= $key.'='.dbQv($val).', ';
   }
   $vals=substr($vals,0,-2); //odstranění čárky na konci
   $q=$update.$vals.$dupl.$vals; 
@@ -155,7 +157,9 @@ function dbQueryS($q,$pole=null)
  */
 function dbQv($val)
 {
-  if($val===null)
+  if(is_array($val))
+    return implode(',', array_map(function($val){ return dbQv($val); }, $val));
+  elseif($val===null)
     return 'NULL';
   else
     return '"'.( get_magic_quotes_gpc() ? $val : addslashes($val) ).'"';

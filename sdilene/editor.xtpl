@@ -92,9 +92,16 @@ $(function(){
   <tr>
     <th><span class="hinted">Kapacita<div class="hint">Univerzálně použitelná místa / místa vyhrazená pro holky / místa vyhrazená pro kluky<br /><br />Kapacita 0/0/0 znamená bez omezení</div></span></th>
     <td>
-      <input type="text" style="width:25px" name="{fields}[kapacita]" value="{kapacita}"> /
-      <input type="text" style="width:25px" name="{fields}[kapacita_f]" value="{kapacita_f}"> /
-      <input type="text" style="width:25px" name="{fields}[kapacita_m]" value="{kapacita_m}">
+      <div id="kapacitaStd">
+        <input type="text" style="width:25px" name="{fields}[kapacita]" value="{kapacita}"> /
+        <input type="text" style="width:25px" name="{fields}[kapacita_f]" value="{kapacita_f}"> /
+        <input type="text" style="width:25px" name="{fields}[kapacita_m]" value="{kapacita_m}">
+      </div>
+      <div id="teamVelikost">
+        <input type="text" style="width:25px" name="{fields}[team_min]" value="{team_min}">–<input
+               type="text" style="width:25px" name="{fields}[team_max]" value="{team_max}">
+        <span class="hinted">(velikost teamu)<div class="hint"> Kolik je minimální až maximální velikost teamu (družiny). Místa jsou jen univerzální.</div></span>
+      </div>
     </td>
   </tr>
   <tr>
@@ -114,8 +121,18 @@ $(function(){
       </select>
       &emsp;
       <input style="float:right" type="checkbox" name="{fields}[teamova]" value="1">
-      <script>if({teamova}) $('[name="{fields}[teamova]"]').attr('checked',true);</script>
       <div class="hinted" style="float:right;margin-top:2px">teamová<div class="hint">Jestli je aktivita teamová, tj. první přihlášený si sestavuje team</div></div>
+      <script>
+        var box = $('[name="{fields}[teamova]"]');
+        if({teamova}) {
+          box.attr('checked',true);
+        }
+        box.change(function(){
+          $('#teamVelikost').toggle(this.checked);
+          $('#kapacitaStd').toggle(!this.checked);
+        });
+        box.change();
+      </script>
     </td>
   </tr>
   <!-- <tr>

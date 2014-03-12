@@ -1,6 +1,7 @@
 <?php
 
 Aktivita::prihlasovatkoZpracuj($u);
+Aktivita::vyberTeamuZpracuj($u);
 
 $xtpl = new XTemplate('./templates/aktivita.xtpl');
 
@@ -47,6 +48,10 @@ do {
     'obsazenost' => $aktivita->obsazenostHtml(),
   ));
   $xtpl->parse('aktivita.instance');
+  if( $v = $aktivita->vyberTeamu($u) ) {
+    $xtpl->assign('vyber', $v);
+    $xtpl->parse('aktivita.vyberTeamu');
+  }
 } while($aktivita = next($aktivity));
 
 $xtpl->parse('aktivita');

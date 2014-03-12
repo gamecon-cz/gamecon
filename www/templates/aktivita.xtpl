@@ -67,6 +67,13 @@
       </table>
     </td>
   </tr></table>
+
+  <!-- begin:vyberTeamu -->
+  <div>
+    <strong>Výběr teamu:</strong> Aktivita je teamová a jako první přihlášený máš právo sestavit si team (družinu). Vyplň ID spoluhráčů, s kterými chceš hrát (můžeš použít i přezdívku nebo jméno, zobrazí se napovídací políčko). Po potvrzení budou automaticky přihlášeni a informováni mailem. Volná políčka se otevřou pro přihlášení komukoli, odebraná se trvale znepřístupní. Na vyplnění máš čas do následujícího rána, jinak tě aktivita sama odhlásí.<br>
+    {vyber}
+  </div>
+  <!-- end:vyberTeamu -->
   
   <div>
   {popis}

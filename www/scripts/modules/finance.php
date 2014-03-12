@@ -3,9 +3,7 @@
 if(!$u){ echo hlaska('jenPrihlaseni'); return; } //jen přihlášení
 if(!REGISTRACE_AKTIVNI){ echo hlaska('prihlaseniVypnuto'); return; } //reg neaktivní
 
-//UzivatelskaAktivita::postPrihlasOdhlas($u); //zpracování post požadavků na odhlašování aktivit z přehledu
-
-if(!$u->gcPrihlasen()) 
+if(!$u->gcPrihlasen())
   return; //přehled vidí jen přihlášení na gc
 
 $fin=$u->finance();

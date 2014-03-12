@@ -76,6 +76,12 @@ function hrvd($a)
   echo '</pre>';
 }
 
+/** if current call is AJAX */
+function is_ajax()
+{
+  return ( !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest' );
+}
+
 function post($name)
 {
   if(isset($_POST[$name])) return $_POST[$name];

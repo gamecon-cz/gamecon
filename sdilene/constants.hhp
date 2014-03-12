@@ -82,6 +82,7 @@ $GLOBALS['HLASKY']=array(
   'jenPrihlaseniGC'=>'Na přístup k této stránce musíte být přihlášeni na letošní GameCon.',
   'kolizeAktivit'=>'V daném čase už máte přihlášenu jinou aktivitu.',
   'nyniPrihlaska'=>'Nyní se vyplněním následujícího formuláře se přihlásíš na GameCon.',
+  'plno'=>'Místa jsou už plná',
   'prihlaseniJenInfo'=>'<h1 style="color: red;">GameCon začal, veškeré registrace přes internet jsou ukončeny</h1>
     <h2 style="color: red;">Jakékoliv další změny jsou možné u infopultu v deskoherně</h2>',
   'prihlaseniVypnuto'=>'Přihlašování na GameCon není spuštěno.',
@@ -89,6 +90,7 @@ $GLOBALS['HLASKY']=array(
   'regOkNyniPrihlaska'=>'Údaje uloženy, vyplněním následujícího formuláře se přihlásíš na GameCon.',
   'upravaUzivatele'=>'Změny registračních údajů uloženy.',
   'uzPrihlasen'=>'Už jsi přihlášen na GameCon, zde můžeš upravit svou přihlášku.',
+  'zamcena'=>'Aktivitu už někdo zabral',
 );
 $GLOBALS['HLASKY_SUBST']=array(
   'zapomenuteHeslo'=>
@@ -99,6 +101,12 @@ nechal{a} sis vygenerovat nové heslo na Gamecon.cz. Tvoje přihlašovací jmén
 S pozdravem Tým organizátorů GameConu',
   'odhlaseniZGc'=>'Odhlásil{a} ses z GameConu '.ROK,
   'prihlaseniNaGc'=>'Přihlásil{a} ses na GameCon '.ROK,
+  'prihlaseniTeamMail'=>
+'Ahoj,
+
+v rámci GameConu tě %1 přihlásil{a} na aktivitu %2, která se koná %3. Pokud s přihlášením nepočítáš nebo na aktivitu nemůžeš, dohodni se prosím s tím, kdo tě přihlásil a případně se můžeš odhlásit na <a href="http://gamecon.cz">webu gameconu</a>.
+
+Pokud člověka, který tě přihlásil, neznáš, kontaktuj nás prosím na <a href="mailto:info@gamecon.cz">info@gamecon.cz</a>.',
   'kapacitaMaxUpo'=>'Z ubytovací kapacity typu %1 je naplněno %2 míst z maxima %3 míst.',
   'registraceMail'=>
 'Ahoj,

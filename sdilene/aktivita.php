@@ -2,7 +2,6 @@
 
 /**
  * Třída aktivity
- * @todo vytváření instance
  */
 class Aktivita
 {
@@ -13,10 +12,12 @@ class Aktivita
     $ignorovane=array();  // ???
 
   const
-    POSTKLIC='aEditForm',      // název proměnné (ve výsledku pole), v které bude editační formulář aktivity předávat data
-    OBRKLIC='aEditObrazek',    // název proměnné, v které bude případně obrázek
     AJAXKLIC='aEditFormTest',  // název post proměnné, ve které jdou data, pokud chceme ajaxově testovat jejich platnost a čekáme json odpověď
-    OBRAZEK_MAXW=400;          // maximální šířka obrázku aktivity (větší se resizne na tuto šířku)
+    OBRAZEK_MAXW=400,          // maximální šířka obrázku aktivity (větší se resizne na tuto šířku)
+    OBRKLIC='aEditObrazek',    // název proměnné, v které bude případně obrázek
+    POSTKLIC='aEditForm',      // název proměnné (ve výsledku pole), v které bude editační formulář aktivity předávat data
+    TEAMKLIC='aTeamForm',      // název post proměnné s formulářem pro výběr teamu
+    ZAMEK=0x01;                // ignorování zamčení
 
   /**
    * Vytvoří aktivitu dle výstupu z databáze. Pokud výstup (např. položkou
@@ -123,6 +124,10 @@ class Aktivita
       $a['url_akce']=$_POST[self::POSTKLIC.'staraUrl'];
     $a['bez_slevy'] = (int)!empty($a['bez_slevy']); //checkbox pro "bez_slevy"
     $a['teamova']   = (int)!empty($a['teamova']);   //checkbox pro "teamova"
+    $a['team_min']  = $a['teamova'] ? (int)$a['team_min'] : null;
+    $a['team_max']  = $a['teamova'] ? (int)$a['team_max'] : null;
+    // u teamových aktivit se kapacita ignoruje - později se nechá jak je nebo přepíše minimem, pokud jde o novou aktivitu
+    if($a['teamova']) unset($a['kapacita'], $a['kapacita_f'], $a['kapacita_m']);
     //if(self::editorChyby($a)) return false; //řeší ajax (?)
     // přepočet času
     $a['zacatek'] = (new DateTimeCz($a['den']))->add(new DateInterval('PT'.$a['zacatek'].'H'))->formatDb();
@@ -165,6 +170,7 @@ class Aktivita
       // inicializace hodnot pro novou aktivitu
       $a['id_akce']=null;
       $a['rok']=ROK;
+      if($a['teamova']) $a['kapacita'] = $a['team_max']; // při vytváření nové aktivity se kapacita inicializuje na max. teamu
       empty($a['nazev_akce'])?$a['nazev_akce']='(neurčený název)':0;
       // vložení, nahrání obrzáku
       dbInsertUpdate('akce_seznam',$a);
@@ -184,6 +190,36 @@ class Aktivita
   {
     if(!is_array($pole)) throw new Excpetion('Nesprávně zadané parametry');
     $this->ignorovane=$pole;
+  }
+
+  /** Vytvoří novou instanci aktivity */
+  function instanciuj()
+  {
+    $akt = dbOneLine('SELECT * FROM akce_seznam WHERE id_akce='.$this->id());
+    //odstraníme id, url a popisek, abychom je nepoužívali/neduplikovali při vkládání
+    //stav se vloží implicitní hodnota v DB
+    unset($akt['id_akce'], $akt['url_akce'], $akt['popis'], $akt['stav'], $akt['zamcel']);
+    if($akt['teamova']) $akt['kapacita'] = $akt['team_max'];
+    if($akt['patri_pod']>0)
+    { //aktivita už má instanční skupinu, použije se stávající
+      dbInsert('akce_seznam', $akt);
+    }
+    else
+    { //aktivita je zatím bez instanční skupiny - vytvoříme
+      //todo lock
+      $max=dbOneLine('SELECT max(patri_pod) as max FROM akce_seznam');
+      $patriPod=$max['max']+1; //nové ID rodiny instancí
+      $akt['patri_pod']=$patriPod;
+      dbQuery('UPDATE akce_seznam SET patri_pod='.$patriPod.
+        ' WHERE id_akce='.$this->id()); //update původní aktivity
+      dbInsert('akce_seznam',$akt);
+    }
+  }
+
+  /** Vrací celkovou kapacitu aktivity */
+  protected function kapacita()
+  {
+    return $this->a['kapacita'] + $this->a['kapacita_m'] + $this->a['kapacita_f'];
   }
 
   function lokaceId()
@@ -253,6 +289,10 @@ class Aktivita
     dbQuery("INSERT INTO akce_prihlaseni_log SET id_uzivatele=$uid, id_akce=$aid, typ='odhlaseni'");
     if(ODHLASENI_POKUTA_KONTROLA && aktivitaDoZacatkuH($this)<ODHLASENI_POKUTA1_H) //pokuta aktivní
       dbQueryS("INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$uid, id_akce=$aid, id_stavu_prihlaseni=4");
+    if($this->a['zamcel'] == $uid)
+      dbQuery("UPDATE akce_seznam SET zamcel=NULL WHERE id_akce=$aid");
+    if($this->a['teamova'] && $this->prihlaseno()==1) // odhlašuje se poslední hráč
+      dbQuery("UPDATE akce_seznam SET kapacita=team_max WHERE id_akce=$aid");
   }
 
   /**
@@ -272,24 +312,7 @@ class Aktivita
   function orgId()
   { return $this->a['organizator']; }
 
-  /**
-   * Vrátí čitelné jméno organizátora
-   * @todo obecně by bylo dobré vracet objekt Uživatel, ale do budoucna by bylo
-   *    nutné kvůli tomu překopat konstruktory, aby bylo garantováno načtení a
-   *    obecně vyřešit celé ORM.
-   *    Navíc bude pravděpodobně dál řešeno, pokud se změní vztah org:aktivita
-   *    z 1:N na M:N
-   * @throws Exception jestliže aktivita nebyla načtena tak, aby obsahovala
-   *    potřebné informace.
-   */
-  function orgJmeno()
-  {
-    if(!array_key_exists('jmeno_uzivatele',$this->a))
-      throw new Exception('Nenačteny údaje organizátora.');
-    return $this->a['login_uzivatele'];
-  }
-
-  /** Vrátí specifické označení organizátora pro tuto aktivitu */
+  /** Vrátí specifické označení organizátora pro aktivitu tohoto typu */
   function orgTitul() {
     return dbOneCol('SELECT titul_orga FROM akce_typy WHERE id_typu='.$this->a['typ']);
   }
@@ -311,7 +334,7 @@ class Aktivita
   }
 
   /** Přihlásí uživatele na aktivitu */
-  function prihlas(Uzivatel $u)
+  function prihlas(Uzivatel $u, $ignorovat = 0)
   {
     // kontroly
     if($this->prihlasen($u))          return;
@@ -319,13 +342,16 @@ class Aktivita
     if(!$u->gcPrihlasen())            throw new Exception('Nemáš aktivní přihlášku na GameCon.');
     if(!REG_AKTIVIT)                  throw new Exception('Přihlašování není spuštěno.');
     if(!$this->prihlasovatelna())     throw new Exception('Aktivita není otevřena pro přihlašování.');
-    if($this->volno()!='u' && $this->volno()!=$u->pohlavi()) throw new Exception('Místa jsou už plná');
+    if($this->volno()!='u' && $this->volno()!=$u->pohlavi()) throw new Chyba(hlaska('plno'));
+    if($this->a['zamcel'] && !($ignorovat&self::ZAMEK)) throw new Chyba(hlaska('zamcena'));
     // vložení do db
     if($this->a['dite']) {
       self::zId($this->a['dite'])->prihlas($u);
     }
     $aid = $this->id();
     $uid = $u->id();
+    if($this->a['teamova'] && $this->prihlaseno()==0)
+      dbQuery("UPDATE akce_seznam SET zamcel=$uid WHERE id_akce=$aid");
     dbQuery("INSERT INTO akce_prihlaseni SET id_uzivatele=$uid, id_akce=$aid");
     dbQuery("INSERT INTO akce_prihlaseni_log SET id_uzivatele=$uid, id_akce=$aid, typ='prihlaseni'");
     if(ODHLASENI_POKUTA_KONTROLA) //pokud by náhodou měl záznam za pokutu a přihlásil se teď, tak smazat
@@ -349,6 +375,15 @@ class Aktivita
     if(!array_key_exists('prihlaseni', $this->a))
       throw new Exception ('Nenačteny počty přihlášených do aktivity.');
     return $this->a['prihlaseni'];
+  }
+
+  /** Počet přihlášených */
+  protected function prihlaseno()
+  {
+    if($p = $this->prihlaseni())
+      return substr_count($p, ',') - 1;
+    else
+      return 0;
   }
 
   protected function prihlasenoMuzu()
@@ -411,6 +446,10 @@ class Aktivita
       {
         return '';
       }
+      elseif($this->a['zamcel'])
+      {
+        return '&#128274;'; //zámek
+      }
       else
       {
         $volno = $this->volno();
@@ -472,6 +511,9 @@ class Aktivita
     return $this->a['stav']==2;
   }
 
+  function typ()
+  { return $this->a['typ']; }
+
   /** Vrátí typ volných míst na aktivitě */
   function volno()
   {
@@ -492,8 +534,113 @@ class Aktivita
     return 'u'; //je volno a žádné pohlaví nevyžralo limit míst
   }
 
-  public function typ()
-  { return $this->a['typ']; }
+  /**
+   * Vrátí formulář pro výběr teamu na aktivitu. Pokud není zadán uživatel,
+   * vrací nějakou false ekvivalentní hodnotu.
+   */
+  function vyberTeamu(Uzivatel $u = null) {
+    if(!$u || $this->a['zamcel']!=$u->id()) return null;
+    ob_start();
+    ?>
+    <input type="text" value="<?=$u->id()?>" disabled="disabled">
+    <form method="post">
+    <?php
+    for($i=0; $i < $this->kapacita()-1; $i++) {
+      echo '<input name="'.self::TEAMKLIC.'['.$i.']" type="text">';
+      if($i >= $this->a['team_min']-1) // -1 za leadera
+        echo ' <a href="#" onclick="$(this).prev().fadeOut(function(){ $(this).val(-1); }); $(this).fadeOut(); return false;">odebrat</a>';
+      echo '<br>';
+    }
+    ?>
+    <input type="hidden" name="<?=self::TEAMKLIC.'Aktivita'?>" value="<?=$this->id()?>">
+    <input type="button" value="potvrdit">
+    </form>
+    <script>
+    (function(){
+      var form = $('script:last').prev();
+      var button = form.find('input[type=button]');
+      button.click(function(){
+        button.prop("disabled", true);
+        $.post(document.URL, form.serialize(), function(data){
+          if(data.chyby.length) {
+            alert(data.chyby);
+            button.prop("disabled", false);
+          } else {
+            location.reload();
+          }
+        }, 'json');
+      });
+      form.find('input[type=text]').autocomplete({
+        source: 'ajax-omnibox',
+        minLength: 2,
+        autoFocus: true, // automatický výběr první hodnoty, aby uživatel mohl zmáčknout rovnou enter
+        focus: function(event,ui) {
+          event.preventDefault(); // neměnit text inputu při výběru
+        }
+      });
+    })();
+    </script>
+    <?php
+    return ob_get_clean();
+  }
+
+  /**
+   * Zpracuje data formuláře pro výběr teamu a vrátí případné chyby jako json.
+   * Ukončuje skript.
+   * @todo kontrola, jestli nezamčel moc míst
+   */
+  static function vyberTeamuZpracuj(Uzivatel $leader = null) {
+    if( !$leader || !($t = post(self::TEAMKLIC)) ) return;
+    $chyby = array();
+    $prihlaseni = array(); // pro rollback
+    $chybny = null; // pro uživatele jehož jméno se zobrazí v rámci chyby
+    try
+    {
+      $a = Aktivita::zId(post(self::TEAMKLIC.'Aktivita'));
+      if($leader->id() != $a->a['zamcel']) throw new Exception('Nejsi teamleader.');
+      $up = post(self::TEAMKLIC);
+      $zamceno = 0;
+      foreach($up as $i=>$uid) {
+        if($uid==-1 || !$uid)
+          unset($up[$i]);
+        if($uid==-1)
+          $zamceno++;
+      }
+      // kontrola a pokus o přihlášení jednotlivých členů
+      $clenove = Uzivatel::zIds($up);
+      if(count($clenove) != count($up)) throw new Exception('Zadáno neplatné id uživatele.');
+      foreach($clenove as $clen) {
+        $chybny = $clen;
+        $a->prihlas($clen, self::ZAMEK);
+        $prihlaseni[] = $clen;
+      }
+      // maily přihlášeným
+      $mail = new GcMail(hlaskaMail('prihlaseniTeamMail',
+        $leader, $leader->jmenoNick(), $a->nazev(), $a->denCas()
+      )); // TODO link na stránku aktivity
+      $mail->predmet('Přihláška na '.$a->nazev()); // TODO korektní pády atd
+      foreach($clenove as $clen) {
+        $mail->adresat($clen->mail());
+        $mail->odeslat();
+      }
+      // hotovo, odemčít aktivitu a snížit počet míst
+      $mist = $a->a['kapacita'] - $zamceno;
+      dbQuery("UPDATE akce_seznam SET zamcel=null, kapacita=$mist WHERE id_akce={$a->id()}");
+    }
+    catch(Exception $e)
+    {
+      // rollback
+      foreach($prihlaseni as $clen)
+        $a->odhlas($clen); // TODO bez pokut apod…
+      // zobrazení
+      if($chybny)
+        $chyby[] = 'Nelze, uživateli '.$chybny->jmenoNick().'('.$chybny->id().')'." se při přihlašování objevila chyba:\n• ".$e->getMessage();
+      else
+        $chyby[] = $e->getMessage();
+    }
+    echo json_encode(array('chyby'=>$chyby));
+    die();
+  }
 
   /** Vrátí DateTime objekt začátku aktivity */
   function zacatek() {

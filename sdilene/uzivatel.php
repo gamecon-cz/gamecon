@@ -587,13 +587,18 @@ class Uzivatel
   function rawDb()
   { return $this->u; }
 
+  static function zId($id) {
+    return self::zIds((int)$id)[0];
+  }
+
   /**
    * Vrátí pole uživatelů podle zadaných ID. Lze použít pole nebo string s čísly
    * oddělenými čárkami.
    */
   static function zIds($ids) {
     if(is_array($ids)) {
-      return self::nactiUzivatele('WHERE u.id_uzivatele IN('.implode(',',$id).')');
+      if(empty($ids)) return array();
+      return self::nactiUzivatele('WHERE u.id_uzivatele IN('.dbQv($ids).')');
     } else if(preg_match('@[0-9,]+@', $ids)) {
       return self::nactiUzivatele('WHERE u.id_uzivatele IN('.$ids.')');
     } else {
