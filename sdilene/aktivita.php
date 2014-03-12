@@ -277,6 +277,21 @@ class Aktivita
     }
   }
 
+  /**
+   * Odemče hromadně zamčené aktivity a odhlásí ty, kteří nesestavili teamy.
+   * Vrací počet odemčených teamů (=>uvolněných míst)
+   */
+  static function odemciHromadne() {
+    $o = dbQuery('SELECT id_akce, zamcel FROM akce_seznam WHERE zamcel');
+    $i = 0;
+    while( list($aid, $uid) = mysql_fetch_row($o) ) {
+      Aktivita::zId($aid)->odhlas(Uzivatel::zId($uid));
+      $i++;
+    }
+    return $i;
+    // uvolnění zámku je součástí odhlášení, pokud je sám -> done
+  }
+
   /** Odhlásí uživatele z aktivity */
   function odhlas(Uzivatel $u) {
     // TODO kontroly? (např. jestli je aktivní přihlašování?)

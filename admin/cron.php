@@ -5,6 +5,8 @@
  * limit vykonání je 90 sekund jako jinde na webu. 
  */
 
+require_once('../sdilene/vse.hhp');
+
 $key='15v21ptc';
 if(@$_GET['key']!=$key)
   die('špatný klíč');
@@ -19,11 +21,7 @@ ob_start();
 function logs($s)
 { echo date('Y-m-d H:i:s ').$s; }
 
-require_once('../specificke/site-specific.php');
-require_once('../sdilene/fwDatabase.hhp'); 
-require_once('../sdilene/constants.hhp');
-
-logs("Začátek provádění cron scriptu… [OK]\n");
+logs("Začátek provádění cron scriptu…\n");
 
 // zpracování dat z FIO
 logs("Zpracování dat z Fio: ");
@@ -77,9 +75,18 @@ if(extension_loaded('openssl'))
 else
   logs("Není načteno rozšíření OpenSSL, platby nepojedou. [FAIL]\n");
 
+// odemčení zamčených aktivit
+if(date('G')==4) {
+  logs("Odemykání aktivit…\n");
+  $i = Aktivita::odemciHromadne();
+  logs("Odemčeno $i\n");
+}
+
 
 logs("cron dokončen.\n");
-file_put_contents('./files/logs/cron', ob_get_contents(), FILE_APPEND);
-ob_end_flush();
-
-?> 
+$vystup = ob_get_clean();
+$zapsano = file_put_contents('./files/logs/cron', $vystup, FILE_APPEND);
+if($zapsano === false) {
+  echo "Zápis selhal. Výsledek CRONu je následující:\n\n";
+  echo $zapsano;
+}
