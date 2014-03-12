@@ -118,7 +118,7 @@ $(function(){
     return mail.search(/^[a-z0-9_\-\.]+@[a-z0-9_\-\.]+\.(cz|com|sk|net|eu|org|uk|tk)$/)==0; //todo
   }
   function registrovanyMail(mail,complete){
-    $.getJSON('registrace',{testMailu:true,mail:mail},function(data){
+    $.getJSON(document.URL,{testMailu:true,mail:mail},function(data){
       complete(data.vysledek);
     });
   }
