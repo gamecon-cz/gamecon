@@ -77,7 +77,7 @@ class Finance
       $slevaVse=0;
       if($this->u->maPravo(P_ORG_AKCI))
       {
-        $pocetAktivit=reset(dbOneLine("SELECT count(id_akce) FROM akce_seznam WHERE organizator=$uid AND rok=$rok AND typ!=3"));
+        $pocetAktivit=dbOneCol("SELECT count(id_akce) FROM akce_seznam WHERE organizator=$uid AND rok=$rok AND typ!=3");
         if($pocetAktivit>=2)
         {
           $slevaVse=$pocetAktivit*self::$slevaZaAktivitu;

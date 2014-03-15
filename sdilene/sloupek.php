@@ -6,8 +6,8 @@
 
 class Sloupek
 {
-  static $hry;
-  static $typy;
+  protected $hry;
+  protected $typy;
   
   /**
    * @param array $hry index 1 je id typu, vnitřek obsahuje řádky z tabulky
@@ -114,5 +114,3 @@ class Sloupek
   }  
      
 }
-
-?>

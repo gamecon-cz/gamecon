@@ -43,6 +43,22 @@ class DateTimeCz extends DateTime
     else
       return $this->getTimestamp() < strtotime($d2);
   }
+
+  /** Vrací relativní formát času vůči současnému okamžiku */
+  function relativni()
+  {
+    $rozdil = time() - $this->getTimestamp();
+    if($rozdil < 0)
+      return 'v budoucnosti';
+    if($rozdil < 60)
+      return "před $rozdil vteřinami";
+    if($rozdil < 60*60)
+      return 'před '.round($rozdil/60).' minutami';
+    if(!$dny = $this->rozdilDne(new self())) // dnes
+      return $this->format('G:i');
+    else
+      return $dny;
+  }
   
   /**
    * Vrátí „včera“, „předevčírem“, „pozítří“ apod. (místo dnes vrací emptystring)

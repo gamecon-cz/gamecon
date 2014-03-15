@@ -291,46 +291,6 @@ class Uzivatel
   }
 
   /**
-   * Pokusí se načíst uživatele podle aktivní session případně z perzistentního
-   * přihlášení.
-   * @param string $klic klíč do $_SESSION kde očekáváme hodnoty uživatele
-   * @return mixed objekt uživatele nebo null
-   */
-  public static function nactiPrihlaseneho($klic='uzivatel')
-  {
-    if(!session_id())
-      session_start();
-    if(isset($_SESSION[$klic]))
-    {
-      $u=new Uzivatel($_SESSION[$klic]);
-      $u->klic=$klic;
-      return $u;
-    }
-    elseif(isset($_COOKIE['gcTrvalePrihlaseni']))
-    {
-      $id=dbOneLineS('
-        SELECT id_uzivatele
-        FROM uzivatele_hodnoty
-        WHERE random!="" AND random=$0',
-        array($_COOKIE['gcTrvalePrihlaseni']));
-      $id=$id?$id['id_uzivatele']:null;
-      //die(dbLastQ());
-      if(!$id) return null;
-      //změna tokenu do budoucna proti hádání
-      dbQuery('
-        UPDATE uzivatele_hodnoty
-        SET random="'.($rand=randHex(20)).'"
-        WHERE id_uzivatele='.$id);
-      setcookie('gcTrvalePrihlaseni',$rand,time()+3600*24*365,'/');
-      return Uzivatel::prihlasId($id,$klic);
-    }
-    else
-    {
-      return null;
-    }
-  }
-
-  /**
    * Vrátí pole s nováčky (uživateli), kteří mají tohoto uživatele jako "guru"
    */
   function novacci()
@@ -341,18 +301,18 @@ class Uzivatel
 
   /** Odhlásí aktuálně přihlášeného uživatele, pokud není přihlášen, nic
    *  @param bool $back rovnou otočit na referrer?   */
-  function odhlas($back=false)
+  static function odhlas($back=false)
   {
     if(!session_id())
       session_start();
     session_destroy();
     if(isset($_COOKIE['gcTrvalePrihlaseni']))
-      setcookie(gcTrvalePrihlaseni,'',0,'/');
+      setcookie('gcTrvalePrihlaseni','',0,'/');
     if($back) back();
   }
 
   /** Odpojí od session uživatele na indexu $klic */
-  function odhlasKlic($klic)
+  static function odhlasKlic($klic)
   {
     if(!session_id())
       session_start();
@@ -603,6 +563,47 @@ class Uzivatel
       return self::nactiUzivatele('WHERE u.id_uzivatele IN('.$ids.')');
     } else {
       throw new Exception('neplatný formát množiny id');
+    }
+  }
+
+  /**
+   * Pokusí se načíst uživatele podle aktivní session případně z perzistentního
+   * přihlášení.
+   * @param string $klic klíč do $_SESSION kde očekáváme hodnoty uživatele
+   * @return mixed objekt uživatele nebo null
+   * @todo nenačítat znovu jednou načteného, cacheovat
+   */
+  public static function zSession($klic='uzivatel')
+  {
+    if(!session_id())
+      session_start();
+    if(isset($_SESSION[$klic]))
+    {
+      $u=new Uzivatel($_SESSION[$klic]);
+      $u->klic=$klic;
+      return $u;
+    }
+    elseif(isset($_COOKIE['gcTrvalePrihlaseni']))
+    {
+      $id=dbOneLineS('
+        SELECT id_uzivatele
+        FROM uzivatele_hodnoty
+        WHERE random!="" AND random=$0',
+        array($_COOKIE['gcTrvalePrihlaseni']));
+      $id=$id?$id['id_uzivatele']:null;
+      //die(dbLastQ());
+      if(!$id) return null;
+      //změna tokenu do budoucna proti hádání
+      dbQuery('
+        UPDATE uzivatele_hodnoty
+        SET random="'.($rand=randHex(20)).'"
+        WHERE id_uzivatele='.$id);
+      setcookie('gcTrvalePrihlaseni',$rand,time()+3600*24*365,'/');
+      return Uzivatel::prihlasId($id,$klic);
+    }
+    else
+    {
+      return null;
     }
   }
 

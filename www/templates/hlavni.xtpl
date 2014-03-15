@@ -10,6 +10,7 @@
     <link rel="alternate" type="application/rss+xml" title="GameCon RSS" href="rss">
     {socNahled}
     <script type="text/javascript" src="files/jquery.js"></script>
+    {jsVyjimkovac}
     <script type="text/javascript" src="files/jquery.hint.js"></script>
     <script type="text/javascript" src="files/jquery-ui-1.10.2.custom.js"></script>
     <script type="text/javascript" src="files/slimbox/slimbox2.js"></script>

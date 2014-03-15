@@ -481,7 +481,7 @@ function ma_pravo($uzivatel,$cislo_prava)
   */
   
   //Ptáme se na práva aktuálně přihlášeného uživatele? Pokud ano, obejdeme DB
-  $u=Uzivatel::nactiPrihlaseneho();
+  $u=Uzivatel::zSession();
   if($u && $uzivatel==$u->id())
   {
     return $u->maPravo($cislo_prava);

@@ -97,12 +97,7 @@ function dbInsertUpdate($table,$valArray)
   $start=microtime(true);
   $r=mysql_query($q,$GLOBALS['spojeni']);
   $end=microtime(true);
-  if(!$r)
-  {
-    dbShowError();
-    //print(mysql_error($GLOBALS['spojeni'])."<br>".$q);
-    throw new Exception('DB: '.mysql_error($GLOBALS['spojeni']));
-  }
+  if(!$r) throw new DbException();
 }
 
 
@@ -118,11 +113,7 @@ function dbQuery($q1,$q2=null,$q3=null)
   $start=microtime(true);
   $r=mysql_query($q,$GLOBALS['spojeni']);
   $end=microtime(true);
-  if(!$r)
-  {
-    echo('<pre>'.mysql_error($GLOBALS['spojeni']).'<br />'.$q);
-    throw new Exception('Chyba databáze');
-  }
+  if(!$r) throw new DbException();
   $GLOBALS['dbNumQ']++;
   $GLOBALS['dbExecTime']+=$end-$start;  
   return $r; 
@@ -234,9 +225,7 @@ function dbUpdate($table,$vals,$where)
   $start=microtime(true);
   $r=mysql_query($q,$GLOBALS['spojeni']);
   $end=microtime(true);
-  if(!$r){
-    dbShowError();
-    throw new Exception('DB: '.mysql_error($GLOBALS['spojeni'])); }
+  if(!$r) throw new DbException();
 }
 
 function dbNumQ() { return $GLOBALS['dbNumQ']; }
@@ -248,4 +237,12 @@ function dbShowError()
   echo '<pre>'.mysql_error($GLOBALS['spojeni']).'</pre><pre style="white-space:pre-wrap;text-indent:-16px;margin-left:16px">'.dbLastQ().'</pre>';
 }
 
-?>
+class DbException extends Exception
+{
+
+  function __construct()
+  {
+    $this->message = mysql_error();
+  }
+
+}

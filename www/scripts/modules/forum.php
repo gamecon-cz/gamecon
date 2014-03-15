@@ -1,8 +1,9 @@
 <?php
 
+// ignorování notice kvůli starému kódu pracujícímu s neinicializovanými proměnnými
+error_reporting(E_ALL ^ E_NOTICE ^ E_DEPRECATED ^ E_STRICT);
+
 //port starých proměnných
-if( VETEV == VYVOJOVA )
-  error_reporting(E_ALL ^ E_NOTICE ^ E_DEPRECATED ^ E_STRICT);
 $url->cast(1)?$_GET["url_druha"]=$url->cast(1):0;
 $url->cast(2)?$_GET["url_treti"]=$url->cast(2):0;
 $url->cast(3)?$_GET["url_ctvrta"]=$url->cast(3):0;

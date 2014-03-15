@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="files/design/styl.css" />
   <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-1.10.3.custom.min.css" />
   <script src="files/jquery-2.1.0.min.js"></script>
+  {jsVyjimkovac}
   <script src="files/jquery-ui-1.10.3.custom.min.js"></script>
   <script src="files/jquery.hotkeys.js"></script>
   <script src="files/aplikace.js"></script>

@@ -1,8 +1,5 @@
 <?php
 
-// When developing uncomment the line below, re-comment before making public
-//error_reporting(E_ALL);
-
 /**
  * XTemplate PHP templating engine
  *

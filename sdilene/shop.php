@@ -155,8 +155,8 @@ class Shop
    */
   function slevyHtml()
   {
-    $skola=reset(dbOneLine('SELECT skola FROM uzivatele_hodnoty WHERE id_uzivatele='.$this->u->id())).'';
-    $novacci=reset(dbOneLine('SELECT GROUP_CONCAT(id_uzivatele) FROM uzivatele_hodnoty WHERE guru='.$this->u->id().' AND YEAR(registrovan)>='.ROK));
+    $skola   = dbOneCol('SELECT skola FROM uzivatele_hodnoty WHERE id_uzivatele='.$this->u->id()).'';
+    $novacci = dbOneCol('SELECT GROUP_CONCAT(id_uzivatele) FROM uzivatele_hodnoty WHERE guru='.$this->u->id().' AND YEAR(registrovan)>='.ROK);
     $out='';
     // student
     $out.='Jsem <b>student</b> a mám nárok na slevu <b>20%</b>: '.
@@ -247,7 +247,7 @@ class Shop
     ';
     
     // ubytování na pokoji s
-    $spolubydlici=reset(dbOneLine('SELECT ubytovan_s FROM uzivatele_hodnoty WHERE id_uzivatele='.$this->u->id())); //první položka
+    $spolubydlici = dbOneCol('SELECT ubytovan_s FROM uzivatele_hodnoty WHERE id_uzivatele='.$this->u->id()); //první položka
     $out.='<br>Na pokoji chci být s (jména oddělená čárkou, nebo nech prázdné):';
     $out.='<br><input style="width: 400px" type="text" id="naPokojiS"'.
       'name="'.$this->klicUPokoj.'" value="'.$spolubydlici.'"><br>';

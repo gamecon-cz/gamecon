@@ -1,6 +1,6 @@
 <?php
 
-error_reporting(E_ALL ^ E_STRICT);
+error_reporting(E_ALL);
 
 $DATABASE_USER='root';
 $DATABASE_PASSWORD='';

@@ -10,7 +10,7 @@ if(post('loginNAdm') && post('hesloNAdm')) {
   Uzivatel::prihlas(post('loginNAdm'), post('hesloNAdm'));
   back();
 }
-$u = Uzivatel::nactiPrihlaseneho();
+$u = Uzivatel::zSession();
 if(post('odhlasNAdm')) {
   $u->odhlas();
   back();
@@ -22,7 +22,7 @@ if(post('vybratUzivateleProPraci')) {
   $u = Uzivatel::prihlasId(post('id'), 'uzivatel_pracovni');
   back();
 }
-$uPracovni = Uzivatel::nactiPrihlaseneho('uzivatel_pracovni');
+$uPracovni = Uzivatel::zSession('uzivatel_pracovni');
 if(post('zrusitUzivateleProPraci')) {
   Uzivatel::odhlasKlic('uzivatel_pracovni');
   back();

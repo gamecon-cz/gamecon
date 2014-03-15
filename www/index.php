@@ -2,21 +2,7 @@
 
 $SKRIPT_ZACATEK=microtime(true);
 
-require_once('./scripts/konstanty.hhp'); //lokální konstanty
-require_once('./scripts/sloupek.hhp');
-require_once($SDILENE_VSE);
-
-// TODO přepsat výjimky do vlastní třídy nějak slušně
-set_exception_handler(function($e){
-  if($e instanceof Chyba) {
-    $e->zpet();
-  } else {
-    if(VETEV == OSTRA)
-      echo '<pre>AT '.$e->getFile().'('.$e->getLine().'): '.$e->getMessage()."\n".$e->getTraceAsString();
-    else
-      echo '<pre>Vyskytla se chyba, kontaktujte prosím <a href="mailto:godric@korh.cz">administrátora</a> nebo přejděte <a href="http://gamecon.cz/">zpět</a>.';
-  }
-});
+require_once('../sdilene/vse.hhp');
 
 //kompatibilita se starými skripty
 $db_jmeno=$db_spojeni=null; //znulování db_údajů - přístup do databáze řeší bez nich dbQuery($dotaz)
@@ -38,7 +24,7 @@ if(post('login') && post('heslo'))
     chyba(hlaska('chybaPrihlaseni'));
   }
 }
-$u=Uzivatel::nactiPrihlaseneho();
+$u=Uzivatel::zSession();
 if(post('odhlas'))
   $u->odhlas(true);
 
@@ -175,6 +161,7 @@ $xtpl->assign('obsahRetezec',Chyba::vyzvedniHtml().$obsah);
 $xtpl->assign('titulekStranky',$titulek->cely());
 if(isset($extraTridy)) $xtpl->assign('extraTridy',$extraTridy);
 $xtpl->assign('socNahled',$titulek->socNahledHtml());
+$xtpl->assign('jsVyjimkovac', Vyjimkovac::js());
 $xtpl->assign('datum', ((new DateTime(GC_BEZI_OD))->format('j.')).'&ndash;'.((new DateTime(GC_BEZI_DO))->format('j. n. Y')));
 $xtpl->assign('base', URL_WEBU.'/');
 $xtpl->parse('vse');
