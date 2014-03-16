@@ -12,7 +12,8 @@
 
 
 
-Tato část nefunguje z důvodu převodu DrD na univerzální systém teamových aktivit.
+Tato část nefunguje z důvodu převodu DrD na univerzální systém teamových aktivit.<br>
+TODO zakomponování židle "drd nepostoupil" do výpočtu
 <?php return; ?>
 
 

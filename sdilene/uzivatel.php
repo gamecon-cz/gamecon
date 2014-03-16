@@ -299,6 +299,12 @@ class Uzivatel
     return $n;
   }
 
+  /** Vrátí přezdívku (nickname) uživatele */
+  function nick()
+  {
+    return $this->u['login_uzivatele'];
+  }
+
   /** Odhlásí aktuálně přihlášeného uživatele, pokud není přihlášen, nic
    *  @param bool $back rovnou otočit na referrer?   */
   static function odhlas($back=false)
@@ -605,6 +611,12 @@ class Uzivatel
     {
       return null;
     }
+  }
+
+  /** Vrátí pole uživatelů sedících na židli s daným ID */
+  public static function zZidle($id)
+  {
+    return self::nactiUzivatele('WHERE z.id_zidle = '.dbQv($id));
   }
 
   ///////////////////////////////// Protected //////////////////////////////////

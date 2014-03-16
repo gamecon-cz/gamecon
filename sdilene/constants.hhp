@@ -35,6 +35,7 @@ $pre=-(ROK-2000)*100; //předpona pro židle a práva vázaná na aktuální rok
 // židle - nepoužívat pro vyjádření atributů (slev, možnosti se přihlašovat, …)
 define('Z_PRIHLASEN', $pre-1);  //přihlášen na GameCon
 define('Z_PRITOMEN',  $pre-2);  //prošel infopultem a je na GameConu
+define('Z_NEPOSTOUPIL',$pre-3); //vypadl z turnaje DrD
 // TODO byl přihlášen na GC a už není (kvůli počítání financí apod.)
 define('Z_ORG_AKCI',6);         //vypravěč (org akcí)
 define('Z_ORG_SKUPINA',9);      //organizátorská skupina (Albi, Černobor, …)
