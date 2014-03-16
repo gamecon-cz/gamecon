@@ -29,7 +29,10 @@ class Vyjimkovac
     });
     // standardní výjimky
     set_exception_handler(function($e){
-      self::zpracuj($e);
+      if($e instanceof Chyba)
+        $e->zpet(); // u zobrazitelných chyb ignorovat a jen zobrazit upo
+      else
+        self::zpracuj($e);
     });
   }
 
@@ -105,7 +108,8 @@ class Vyjimkovac
     // inicializace pole a uložení
     $r = array(
       'vznikla' => (new DateTimeCz)->formatDb(),
-      'url' => 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI']
+      'url'     => 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'],
+      'zdroj'   => @$_SERVER['HTTP_REFERER'] ?: null,
     );
     if($u = Uzivatel::zSession()) {
       $r['uzivatel'] = $u->id();
@@ -121,7 +125,7 @@ class Vyjimkovac
         $r['data'] = trim($e->getTrace()[0]['args'][0]);
       }
       if($e instanceof JsException) {
-        $r['url'] = $_SERVER['HTTP_REFERER'];
+        $r['url'] = @$_SERVER['HTTP_REFERER'] ?: null;
         $r['zavaznost'] = 2;
         $r['zasobnik'] = null;
         $r['jazyk'] = 'js';
@@ -143,11 +147,14 @@ class Vyjimkovac
       echo '<pre style="font-size:14px;background-color:#fff; padding: 5px; border: solid #f00 5px;">';
       if($e instanceof DbException) echo "\n\n      ".$r['data']."\n\n\n";
       echo "AT $r[soubor]($r[radek]): $r[zprava]\n";
-      if($e instanceof Exception) $e->getTraceAsString();
+      if($e instanceof Exception) echo $e->getTraceAsString();
       echo '</pre>';
     } elseif($r['zavaznost'] > 2) {
       $out = file_get_contents(__DIR__.'/vyjimkovac-chyba.xtpl');
-      $out = strtr($out, array( '{picard}' => URL_WEBU.'/files/styly/styl-aktualni/exception.jpg' ));
+      $out = strtr($out, array(
+        '{picard}'  => URL_WEBU.'/files/styly/styl-aktualni/exception.jpg',
+        '{chyba}'   => $r['zprava']
+      ));
       echo $out;
     }
   }

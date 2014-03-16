@@ -22,14 +22,16 @@ $t = new XTemplate('chyby.xtpl');
 
 while($r = mysql_fetch_assoc($o)) {
   // počet uživatelů česky
-  if($r['uzivatelu'] >= 5) $r['uzivatelu'] .= ' uživatelů';
-  elseif($r['uzivatelu'] >= 2) $r['uzivatelu'] .= ' uživatelé';
-  else $r['uzivatelu'] .= ' uživatel';
+  if($r['uzivatelu'] == 1) $r['uzivatelu'] .= ' uživatel';
+  elseif($r['uzivatelu'] && $r['uzivatelu'] < 5) $r['uzivatelu'] .= ' uživatelé';
+  else $r['uzivatelu'] .= ' uživatelů';
   // čas
   $r['posledni'] = (new DateTimeCz($r['posledni']))->relativni();
   // zvýraznění url
   $r['soubor'] = strtr($r['soubor'], '\\', '/');
   $r['soubor'] = strrafter($r['soubor'], '/');
+  $r['zdroj'] = $r['zdroj'] ? '&emsp;«&emsp;<a href="'.$r['zdroj'].'">'.$r['zdroj'].'</a>' : '';
+  // výstup
   $t->assign($r);
   $t->parse('chyby.chyba');
 }

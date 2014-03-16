@@ -1,7 +1,5 @@
 <?php
 
-require_once('../../'.$SDILENE_SLOZKA.'program.hhp');
-
 $program=new Program();
 
 $zoom=empty($_GET['zoom'])?100:(int)$_GET['zoom'];

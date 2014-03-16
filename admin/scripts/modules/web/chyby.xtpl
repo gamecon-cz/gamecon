@@ -13,9 +13,10 @@
 .chyba h2 { font-size: 14px; margin: 0; }
 .chyba form { float: right; margin-top: 18px; }
 .chyba:hover { background-color: #eee }
-.chyba .bubliny a { float: left; }
-.chyba .bubliny div { float: left; margin-left: 10px; color: #fff; padding: 1px 5px;
+.chyba .bubliny span { float: left; }
+.chyba .bubliny div { float: left; margin-left: 10px; margin-top: 4px; color: #fff; padding: 1px 5px;
   background-color: #ddd; border-radius: 5px; }
+.chyba a { text-decoration: none; color: #04f; }
 </style>
 
 <!-- begin:chyba -->
@@ -27,9 +28,9 @@
   </form>
   <div class="text">
     <h2>{zprava}</h2>
-    {soubor}: {radek}<br>
+    <a href="{url}" target="_blank">{url}</a>{zdroj}<br>
     <div class="bubliny">
-      <a href="{url}" target="_blank">{url}</a>
+      <span>{soubor}: {radek}</span>
       <div>{jazyk}</div>
       <div>{uzivatelu}</div>
       <div>{posledni}</div>

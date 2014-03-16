@@ -71,8 +71,7 @@ function dbInsert($table,$valArray)
   $hodnoty=substr($hodnoty,0,-1);
   $q='INSERT INTO '.$table.' ('.$sloupce.') VALUES ('.$hodnoty.')';
   $dbLastQ=$q;
-  if(!mysql_query($q,$spojeni))
-    die(mysql_error($spojeni).'<br />'.$q); 
+  if(!mysql_query($q, $spojeni)) throw new DbException();
 }
 
 
