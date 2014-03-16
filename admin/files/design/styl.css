@@ -120,6 +120,9 @@ form table input[type="text"], form table select, form table textarea {
 form table .full { width: 99%; }
 form table .obrazekNahled { background-image:url('sachy.png'); padding: 5px; text-align: center; }
 form table .obrazekNahled img { margin:-1px 0 -2px 0; }
+form table .orez { line-height: 60px; text-align: center; }
+form table .orez input { position: relative; top: -8px; }
+form table .orez img { width: 50px; }
 
 .hinted { cursor: default; color: inherit; text-decoration: inherit; border-bottom: dotted 1px; position: relative; }
 .hinted:hover .hint { display: block; }

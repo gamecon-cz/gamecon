@@ -13,7 +13,6 @@ class Aktivita
 
   const
     AJAXKLIC='aEditFormTest',  // název post proměnné, ve které jdou data, pokud chceme ajaxově testovat jejich platnost a čekáme json odpověď
-    OBRAZEK_MAXW=400,          // maximální šířka obrázku aktivity (větší se resizne na tuto šířku)
     OBRKLIC='aEditObrazek',    // název proměnné, v které bude případně obrázek
     POSTKLIC='aEditForm',      // název proměnné (ve výsledku pole), v které bude editační formulář aktivity předávat data
     TEAMKLIC='aTeamForm',      // název post proměnné s formulářem pro výběr teamu
@@ -847,7 +846,9 @@ class Aktivita
     $xtpl->assign('fields',self::POSTKLIC); // název proměnné (pole) v kterém se mají posílat věci z formuláře
     $xtpl->assign('ajaxKlic',self::AJAXKLIC);
     //  $xtpl->assign('readonly','disabled');
-    $xtpl->assign('obrKlic',self::OBRKLIC);
+    $xtpl->assign('obrKlic', self::OBRKLIC);
+    $xtpl->assign('obrKlicUrl', self::OBRKLIC.'Url');
+    $xtpl->assign('obrKlicOrez', self::OBRKLIC.'Orez');
     $xtpl->assign('urlObrazku',$a?$a->obrazek():'');
     if($a) $xtpl->assign($a->a);
     // načtení lokací
@@ -927,29 +928,6 @@ class Aktivita
   }
 
   /**
-   * Nastaví obrázek podle souboru
-   */
-  protected function nastavObrazek($soubor)
-  {
-    if(!is_file($soubor))
-      throw new Exception('Neexistující soubor');
-    $obr=imagecreatefromjpeg($soubor); // načíst
-    $wMax=self::OBRAZEK_MAXW;
-    if(imagesx($obr)>$wMax) // zmenšit na omezenou max šířku. Todo obecný resampling. Použít nebo je lepší nechat hi-res?
-    {
-      $ratio=$wMax/imagesx($obr);
-      $nobr=imagecreatetruecolor($wMax,imagesy($obr)*$ratio);
-      imagecopyresampled($nobr,$obr,
-        0,0,  //dst x,y
-        0,0,  //src x,y
-        imagesx($nobr),imagesy($nobr), //dst w,h
-        imagesx($obr), imagesy($obr)   //scr w,h
-      );
-      imagejpeg($nobr,$soubor,98); // uložit
-    }
-  }
-
-  /**
    * Zpracuje obrázek poslaný formulářem. Formulář musí mít typ:
    *   form method="post" enctype="multipart/form-data"
    * aby to fungovalo.
@@ -962,11 +940,25 @@ class Aktivita
       if(is_file($cesta.$_POST[self::POSTKLIC.'staraUrl'].'.jpg'))
          rename( $cesta.$_POST[self::POSTKLIC.'staraUrl'].'.jpg', $cesta.$this->a['url_akce'].'.jpg');
     // aktualizace obrázku
-    if(empty($_FILES[self::OBRKLIC]['tmp_name'])) // neposlán obrázek pro aktualizaci, příp. posláný prázdný (nová aktivita)
-      return;
-    $soub=__DIR__.'/'.SDILENE_WWW_CESTA.'/files/systemove/aktivity/'.$this->a['url_akce'].'.jpg';
-    move_uploaded_file($_FILES[self::OBRKLIC]['tmp_name'],$soub);
-    $this->nastavObrazek($soub);
+    $soubor = __DIR__.'/'.SDILENE_WWW_CESTA.'/files/systemove/aktivity/'.$this->a['url_akce'].'.jpg';
+    $o = null;
+    if(!empty($_FILES[self::OBRKLIC]['tmp_name'])) { // poslán obrázek pro aktualizaci
+      move_uploaded_file($_FILES[self::OBRKLIC]['tmp_name'], $soubor);
+      $o = Obrazek::zJpg($soubor);
+    }
+    if($url = post(self::OBRKLIC.'Url')) {
+      $o = Obrazek::zUrl($url, $soubor);
+    }
+    // resize
+    if($o!==null) {
+      $r = 4/3;
+      $orez = post(self::OBRKLIC.'Orez');
+      if($orez == 'stretch')  $o->ratio($r);
+      elseif($orez == 'fit')  $o->ratioFit($r);
+      else                    $o->ratioFill($r);
+      $o->reduce(400, 300);
+      $o->uloz();
+    }
   }
 
 }
