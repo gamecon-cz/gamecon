@@ -561,8 +561,8 @@ class Aktivita
     <?php
     for($i=0; $i < $this->kapacita()-1; $i++) {
       echo '<input name="'.self::TEAMKLIC.'['.$i.']" type="text">';
-      if($i >= $this->a['team_min']-1) // -1 za leadera
-        echo ' <a href="#" onclick="$(this).prev().fadeOut(function(){ $(this).val(-1); }); $(this).fadeOut(); return false;">odebrat</a>';
+      if($i >= $this->a['team_min']-1) // -1 za leadera, prevUntil kvůli jquery ui bugu (přidává element)
+        echo ' <a href="#" onclick="$(this).prevUntil(\'br\').fadeOut(function(){ $(this).val(-1); }); $(this).fadeOut(); return false;">odebrat</a>';
       echo '<br>';
     }
     ?>

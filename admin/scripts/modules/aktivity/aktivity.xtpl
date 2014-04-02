@@ -11,7 +11,7 @@
 </div>
 
 <!-- begin:aktivovatVse -->
-<form method="post" style="position:absolute;right:20px;top:172px">
+<form method="post" style="position:absolute;right:20px;top:80px">
   <input type="submit" name="aktivovatVse" value="aktivovat hromadně" 
     onclick="return window.confirm('Toto aktivuje všechny publikované aktivity ve všech kategoriích. Určitě?');" />
 </form>
@@ -20,7 +20,7 @@
 {statistika}<br /><br />
 
 <style> th > a { text-decoration:none; color:#88c; } </style>
-<table class="zvyraznovana" style="width: 100%">
+<table class="zvyraznovana aktivity" style="width: 100%">
   <tr>
     <th><span class="hinted">Název<div class="hint">
       Trojúhelníčky slouží k řazení.</div></span>

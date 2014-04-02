@@ -124,7 +124,7 @@ $(function(){
       <div class="hinted" style="float:right;margin-top:2px">teamová<div class="hint">Jestli je aktivita teamová, tj. první přihlášený si sestavuje team</div></div>
       <script>
         var box = $('[name="{fields}[teamova]"]');
-        if({teamova}) {
+        if('{teamova}'==true) {
           box.attr('checked',true);
         }
         box.change(function(){

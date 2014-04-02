@@ -86,7 +86,7 @@ $a=$u->koncA();
   <p>Můžeš získat následující slevy <b>na aktivity</b> (sčítají se):</p>
   <?=$slevy?><br><br>
   
-  <input type="submit" name="wut" value="<?=$u->gcPrihlasen()?'Upravit':'Přihlásit na GameCon'?>">
+  <input type="submit" name="wut" value="<?=$u->gcPrihlasen()?'Uložit změny':'Přihlásit na GameCon'?>">
   <?php if($u->gcPrihlasen()){ ?>
   <input type="submit" name="odhlasit" value="Odhlásit se z GameConu" onclick="return confirm('Odhlášení z GameConu zruší všechny tvé registrace na aktivity a nákupy předmětů. Kliknutím na OK se odhlásíš.')">
   <?php } ?>

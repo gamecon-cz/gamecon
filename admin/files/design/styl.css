@@ -21,18 +21,6 @@ body {
 
 
 /* hlavička */
-/*
-.hlavicka { border: solid 1px #898c95; background-color: #fff;
-  margin: 10px 0 20px 0; height: 60px; position: relative; }
-.hlavicka .vyber { margin: 15px 0 0 20px; }
-.hlavicka .vyber input { padding: 5px; margin: 0 8px 0 0; width: 320px; }
-.hlavicka .uzivatel > img { float: left; }
-.hlavicka .uzivatel .detaily { float: left; }
-.hlavicka .uzivatel form { position: absolute; top: 17px; left: 350px; }
-.hlavicka .uzivatel table { margin: 2px 8px; }
-.hlavicka .uzivatel table th { padding: 0; background: none; font-weight: bold; border: none; text-align: left; }
-.hlavicka .uzivatel table tr { background: none !important; }
-*/
 #omnibox { width: 100%; box-sizing: border-box; -moz-box-sizing: border-box; }
 
 .menu {  }
@@ -62,7 +50,7 @@ body {
 /* Formuláře */
 input, textarea, select { border: solid 1px #999; padding: 2px; border-radius: 2px; margin: 0; font: inherit; }
 input::-moz-focus-inner { border: 0; padding: 0; /* margin-top:-2px; margin-bottom: -2px; */ /* FF fix */ }
-input[type="submit"] { background: linear-gradient(to top, #d8d8d8 0%, #fafafa 100%); padding: 2px 8px; font-size: 1.05em; }
+input[type="submit"] { background: linear-gradient(to top, #d8d8d8 0%, #fafafa 100%); padding: 2px 8px; }
 input[type="submit"]:hover { border-color: #666; }
 input[type="text"], input[type="password"], select {  }
 textarea { font: inherit; }
@@ -78,30 +66,7 @@ textarea { font: inherit; }
 .main table td img { margin:-4px 0; border:0; padding:0; }
 
 table form, form.radkovy { margin:0; padding:0; display: inline; }
-table form input[type="submit"], .tlacitko { display:inline-block;
-  background-image: url('tlacitko32x14.png'); width: 32px; height: 14px;
-  padding: 0 0 5px 0; border: none; font-family: tahoma; font-size:11px;
-  vertical-align: top; margin: 0 0 -10px 0; }
-table form input[type="submit"]:hover, .tlacitko:hover { background-position: 0 -14px; }
-table form input[type="submit"]:active, .tlacitko:active { background-position: 0 -28px; }
-form.radkovy input[type="submit"] { display:inline-block;
-  height: 15px; line-height: 10px; width: auto;
-  padding: 0 4px; border: none; font-family: tahoma; font-size:11px;
-  vertical-align: top;
-  margin: 0 0 -10px 0;
-  background-image: url('tlacitko-1.png');
-  background-size: 150% 170%;
-  background-position: 50% 50%;
-  border-image: url('tlacitko-1.png') 3 3 stretch;
-  border-radius: 3px; }
-form.radkovy input[type="submit"]:hover {
-  background-image: url('tlacitko-2.png');
-  border-image-source: url('tlacitko-2.png');
-  background-position: 50% 50%; }
-form.radkovy input[type="submit"]:active {
-  background-image: url('tlacitko-3.png');
-  border-image-source: url('tlacitko-3.png');
-  background-position: 50% 50%; }
+table form input[type="submit"], .tlacitko { padding: 0 5px; font-size: 11px; font-family: inherit; height: 14px; }
 
 table.cista > tbody > tr { background-color: transparent; vertical-align: top; padding:0; }
 table.cista > tbody > tr > td { border: solid 0px; padding: 0 0 0 10px; }
@@ -132,8 +97,7 @@ form table .orez img { width: 50px; }
   color: #fff; text-align: left; padding: 10px; }
 .error, .success, .warning {
   font-style:italic; padding: 8px 200px 8px 40px; margin: 16px 0;
-  background-position: 16px 50%; background-repeat: no-repeat;
-}
+  background-position: 16px 50%; background-repeat: no-repeat; }
 .error { color:#f22; background-image: url('error.png'); background-color: #ffeaea; }
 .success { color:#252; background-image: url('ok.png'); background-color: #ddf4dd; }
 .warning { color:#770; background-image: url('warning.png'); background-color: #ffa; }
@@ -151,6 +115,8 @@ form table .orez img { width: 50px; }
 .prezence .formAktivita { margin: 4px 10px 4px 6px; }
 .prezence .formAktivita h2 { margin: 0 0 4px 1px; font-size: 120%;  }
 .prezence .formAktivita input[type="submit"] { padding: 1px 15px; }
+
+.aktivity td input { padding: 0; width: 32px; }
 
 /* pro automaticky generované chybové hlášky */
 .chybaBlok > div { position: absolute; left: -10px; top: 122px; width: 926px;
