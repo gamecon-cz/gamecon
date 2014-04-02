@@ -102,7 +102,12 @@ class Vyjimkovac
       return substr($return,2);
   }
 
-  /** Uloží chybu nebo výjimku do db. Chyby jsou pole z error_get_last() */
+  /**
+   * Uloží chybu nebo výjimku do db. Chyby jsou pole z error_get_last()
+   * @todo výjimky obsahující návratové kódy by si mohly nést informaci o
+   * kódu v sobě a tady by se (pokud výjimka implementuje rozhraní "řeknu
+   * extra http kód") jen zobrazil. Lepší/horší jak explicitně určit zde?
+   */
   private static function zpracuj($e)
   {
     // inicializace pole a uložení
@@ -143,6 +148,8 @@ class Vyjimkovac
     dbInsert('chyby', $r);
     // zobrazení
     if($e instanceof JsException) return; // js výjimky nezobrazovat
+    if($e instanceof UrlException) header('HTTP/1.1 400 Bad Request'); // nastavení chybových hlaviček (příp. dle typu výjimky)
+    else header('HTTP/1.1 500 Internal Server Error');
     if(VETEV == VYVOJOVA) {
       echo '<pre style="font-size:14px;background-color:#fff; padding: 5px; border: solid #f00 5px;">';
       if($e instanceof DbException) echo "\n\n      ".$r['data']."\n\n\n";
@@ -165,7 +172,7 @@ class Vyjimkovac
  * Speciální výjimka, která se nevyhazuje, ale pouze slouží jako reprezentace
  * javascriptové výjimky obdržené ajaxem (aby mohla být dále zpracována).
  */
-class jsException extends Exception
+class JsException extends Exception
 {
 
   function __construct($zprava, $soubor, $radek)

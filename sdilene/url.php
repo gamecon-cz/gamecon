@@ -15,7 +15,7 @@ class Url
   {
     $this->surova=isset($_GET[$getName])?$_GET[$getName]:'';
     if(!preg_match('@^[A-Za-z0-9\-/]*$@',$this->surova))
-      throw new Exception('Nepovolené znaky v URL.');
+      throw new UrlException('Nepovolené znaky v URL.');
     else
       $this->cista=$this->surova;
     $this->casti=explode('/',$this->cista);
@@ -41,4 +41,9 @@ class Url
         
 }
 
-?>
+/**
+ * Výjimky pro chyby v url
+ */
+class UrlException extends Exception
+{
+}

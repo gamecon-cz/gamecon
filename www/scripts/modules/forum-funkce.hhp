@@ -316,7 +316,7 @@ global $db_jmeno,$db_spojeni,$pocitadlo_radku,$ROOT_DIR;
 
 function zobraz_vkladani($id_podsekce){
 ?>
-<a href = "reagovat" onclick = "ukaz(0); return false;"><img src = "files/styly/styl-aktualni/tlacitka/odpovedet.gif" style = "border: none;" /></a>
+<a href="#" onclick = "ukaz(0); return false;"><img src = "files/styly/styl-aktualni/tlacitka/odpovedet.gif" style = "border: none;" /></a>
 <div class = "forum_reagovat" id = "objekt0" style = "display: none;">
   <div class = "nadpis">Reagovat:</div>
   <form action = "forum/<?php echo $_GET["url_druha"]."/".$_GET["url_treti"];?>" method = "post" name = "odeslat">
@@ -338,7 +338,7 @@ function zobraz_vkladani($id_podsekce){
 
 function zobraz_vkladani_anonym($id_podsekce){
 ?>
-<a href = "reagovat" onclick = "ukaz(0); return false;"><img src = "files/styly/styl-aktualni/tlacitka/odpovedet.gif" style = "border: none;" /></a>
+<a href="#" onclick = "ukaz(0); return false;"><img src = "files/styly/styl-aktualni/tlacitka/odpovedet.gif" style = "border: none;" /></a>
 <div class = "forum_reagovat" id = "objekt0" style = "display: none;">
   <div class = "nadpis">Reagovat (jako neregistrovaný uživatel):</div>
   <form action = "forum/<?php echo $_GET["url_druha"]."/".$_GET["url_treti"];?>" method = "post" name = "odeslat">
