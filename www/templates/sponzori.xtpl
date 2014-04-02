@@ -45,7 +45,7 @@
 		<a href="http://www.paluba.cz" onclick="window.open(this.href); return false" title="Klub deskových her Paluba"><img src="files/obsah/sponzori/paluba.jpg" alt="Klub deskových her Paluba" title="Klub deskových her Paluba" width="60" height="59" /></a>
 	</div>
 	<div class="sponzor">
-		<a href="http://www.dobrodruhovia.eu" onclick="window.open(this.href); return false" title="Dobrodruhovia"><img src="files/obsah/sponzori/dobrodruhovia_banner.gif" alt="Dobrodruhovia" title="Dobrodruhovia" width="88" height="31" /></a>
+		<a href="http://www.dobrodruhovia.eu" onclick="window.open(this.href); return false" title="Dobrodruhovia"><img src="files/obsah/sponzori/dobrodruhovia_banner.png" alt="Dobrodruhovia" title="Dobrodruhovia" width="150" height="94" /></a>
 	</div>
   <!-- <div class="sponzor">
 		<a href="http://www.moravsky-mumraj.cz/" onclick="window.open(this.href); return false" title="Moravský mumraj"><img src="files/obsah/sponzori/mormum_banner.jpg" alt="Moravský mumraj" title="Moravský mumraj" width="" height="60" /></a>
