@@ -81,12 +81,16 @@ $(function(){
     </td>
   </tr>
   <tr>
-    <th>Organizátor¹</th>
+    <th>
+      <span class="hinted">Organizátor<div class="hint">
+      Více organizátorů se zvolí postupným vybíráním a ukládáním – vždy se objeví nové volné políčko.<br> Zrušit více organizátorů se dá vybráním "nikdo" u více políček.</div></span>¹
+    </th>
     <td>
-      <select name="{fields}[organizatori][0]">
+      <!-- begin:orgBox -->
+      <select name="{fields}[organizatori][{i}]">
         <!-- begin:organizator --><option {sel} value="{organizator}">{organizatorJmeno}</option><!-- end:organizator -->
-      </select>
-      <!-- begin:kolizniAktivity --><div style="color:#f00;width:250px">{login_uzivatele} má v tu dobu {nazev_akce} ({cas})</div><!-- end:kolizniAktivity -->
+      </select><br>
+      <!-- end:orgBox -->
     </td>
   </tr>
   <tr>
@@ -109,7 +113,7 @@ $(function(){
     <td>
       <input type="text" style="width:25px" name="{fields}[cena]" value="{cena}">
       <input style="float:right" type="checkbox" name="{fields}[bez_slevy]" value="1">
-      <script>if({bez_slevy}) $('[name="{fields}[bez_slevy]"]').attr('checked',true);</script>
+      <script>if('{bez_slevy}') $('[name="{fields}[bez_slevy]"]').attr('checked',true);</script>
       <div class="hinted" style="float:right;margin-top:2px">bez slev<div class="hint">Jestli má být cena pevná a nesmí se na ni aplikovat slevy</div></div>
     </td>
   </tr>

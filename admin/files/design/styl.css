@@ -59,7 +59,7 @@ textarea { font: inherit; }
 .main table { border-collapse: collapse; }
 .main table th { background: linear-gradient(to bottom, #fafdff 0%, #fdffff 50%, #f7f9fa 50%, #f2f1f3 100%);
   background-color: #f2f1f3; border: solid 1px #eee; padding: 3px; font-family: verdana; font-weight: normal; }
-.main table td { padding: 2px 5px; }
+.main table td { padding: 2px 5px; text-align: left; }
 .main table tr:nth-child(odd) { background-color: #f0f0f0; }
 .main table.zvyraznovana { cursor: default; }
 .main table.zvyraznovana tr:hover td { background-color: #c6e6f8; }
@@ -81,7 +81,9 @@ table.cista > tbody > tr > td:first-child { padding: 0; }
 /* tabulky v stylu vyplňovací form */
 form table th { background-repeat: repeat-x; }
 form table input[type="text"], form table select, form table textarea {
-  margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+  margin-top: 2px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+form table input[type="text"]:first-child, form table select:first-child, form table textarea:first-child {
+  margin-top: 0; }
 form table .full { width: 99%; }
 form table .obrazekNahled { background-image:url('sachy.png'); padding: 5px; text-align: center; }
 form table .obrazekNahled img { margin:-1px 0 -2px 0; }

@@ -1005,14 +1005,26 @@ class Aktivita
         WHERE p.id_prava='.P_ORG_AKCI.'
         GROUP BY u.id_uzivatele
         ORDER BY u.login_uzivatele');
-      $xtpl->assign('organizator','0'); //nejdřív nabídka bez orga
-      $xtpl->assign('organizatorJmeno','(bez organizátora)');
-      $xtpl->parse('upravy.tabulka.organizator');
-      while($r=mysql_fetch_assoc($q)) {
-        $xtpl->assign('sel',$a && $a->organizuje($r['id_uzivatele']) ? 'selected':'');
-        $xtpl->assign('organizator',$r['id_uzivatele']);
-        $xtpl->assign('organizatorJmeno',jmenoNick($r));
-        $xtpl->parse('upravy.tabulka.organizator');
+      $vsichniOrg = array( 0 => '(nikdo)' );
+      while($r = mysql_fetch_assoc($q)) {
+        $vsichniOrg[$r['id_uzivatele']] = jmenoNick($r);
+      }
+      $aktOrg = $a && $a->a['organizatori'] ? explode(',', substr($a->a['organizatori'], 1, -1)) : array();
+      $aktOrg[] = 0; // poslední pole má selected 0 (žádný org)
+      $poli = count($aktOrg);
+      for($i = 0; $i < $poli; $i++) {
+        foreach($vsichniOrg as $id => $org) {
+          if($id == $aktOrg[$i]) {
+            $xtpl->assign('sel', 'selected');
+          } else {
+            $xtpl->assign('sel', '');
+          }
+          $xtpl->assign('organizator', $id);
+          $xtpl->assign('organizatorJmeno', $org);
+          $xtpl->parse('upravy.tabulka.orgBox.organizator');
+        }
+        $xtpl->assign('i', $i);
+        $xtpl->parse('upravy.tabulka.orgBox');
       }
     }
     // načtení typů
