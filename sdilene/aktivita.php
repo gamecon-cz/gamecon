@@ -67,9 +67,25 @@ class Aktivita
     return $this->a['cena'];
   }
 
+  /** Délka aktivity v hodinách (float) */
+  function delka() {
+    if($zacatek = $this->zacatek())
+      return ($this->konec()->getTimestamp() - $zacatek->getTimestamp()) / 3600;
+    else
+      return 0.0;
+  }
+
   /** Vrací datum ve stylu Pátek 14:00-18:00 */
   function denCas() {
-    return $this->zacatek()->format('l G:i').'–'.$this->konec()->format('G:i');
+    if($z = $this->zacatek())
+      return $z->format('l G:i').'–'.$this->konec()->format('G:i');
+    else
+      return '';
+  }
+
+  /** Počet hodin do začátku aktivity (float) */
+  function doZacatku() {
+    return ($this->zacatek()->getTimestamp() - time()) / 3600;
   }
 
   /**
@@ -129,21 +145,29 @@ class Aktivita
     if($a['teamova']) unset($a['kapacita'], $a['kapacita_f'], $a['kapacita_m']);
     //if(self::editorChyby($a)) return false; //řeší ajax (?)
     // přepočet času
-    $a['zacatek'] = (new DateTimeCz($a['den']))->add(new DateInterval('PT'.$a['zacatek'].'H'))->formatDb();
-    $a['konec'] = (new DateTimeCz($a['den']))->add(new DateInterval('PT'.$a['konec'].'H'))->formatDb();
+    if(empty($a['den'])) {
+      $a['zacatek'] = $a['konec'] = null;
+    } else {
+      $a['zacatek'] = (new DateTimeCz($a['den']))->add(new DateInterval('PT'.$a['zacatek'].'H'))->formatDb();
+      $a['konec'] = (new DateTimeCz($a['den']))->add(new DateInterval('PT'.$a['konec'].'H'))->formatDb();
+    }
     unset($a['den']);
+    // organizátoři extra (díky separátní tabulce)
+    $organizatori = $a['organizatori'];
+    unset($a['organizatori']);
     if(!$a['patri_pod'] && $a['id_akce'])
     { // editace jediné aktivity
       dbInsertUpdate('akce_seznam',$a);
-      $aktivita=new Aktivita($a);
+      $aktivita = self::zId($a['id_akce']);
       $aktivita->zpracujObrazekPost();
+      $aktivita->organizatori($organizatori);
       return $aktivita;
     }
     else if($a['patri_pod'])
     { // editace aktivity z rodiny instancí
       $doHlavni=array('url_akce','popis'); // věci, které se mají změnit jen u hlavní (master) instance
-      $doAktualni=array('lokace','organizator','zacatek','konec'); // věci, které se mají změnit jen u aktuální instance
-      $aktivita=new Aktivita($a);
+      $doAktualni=array('lokace','zacatek','konec'); // věci, které se mají změnit jen u aktuální instance
+      $aktivita = self::zId($a['id_akce']);
       // (zbytek se změní v obou)
       // určení hlavní aktivity
       $idHlavni=dbOneCol('SELECT MIN(id_akce) FROM akce_seznam WHERE patri_pod='.(int)$a['patri_pod']);
@@ -162,6 +186,7 @@ class Aktivita
       dbUpdate('akce_seznam',$zmenyVse,array('patri_pod'=>$patriPod));
       // obrázek
       $aktivita->zpracujObrazekPost();
+      $aktivita->organizatori($organizatori);
       return $aktivita;
     }
     else
@@ -174,8 +199,9 @@ class Aktivita
       // vložení, nahrání obrzáku
       dbInsertUpdate('akce_seznam',$a);
       $a['id_akce']=mysql_insert_id();
-      $aktivita=new Aktivita($a);
+      $aktivita = self::zId($a['id_akce']);
       $aktivita->zpracujObrazekPost();
+      $aktivita->organizatori($organizatori);
       $aktivita->nova=true;
       return $aktivita;
     }
@@ -219,6 +245,13 @@ class Aktivita
   protected function kapacita()
   {
     return $this->a['kapacita'] + $this->a['kapacita_m'] + $this->a['kapacita_f'];
+  }
+
+  /** Vrátí DateTime objekt konce aktivity */
+  function konec() {
+    if(is_string($this->a['konec']))
+      $this->a['konec'] = new DateTimeCz($this->a['konec']);
+    return $this->a['konec'];
   }
 
   function lokaceId()
@@ -291,9 +324,11 @@ class Aktivita
     // uvolnění zámku je součástí odhlášení, pokud je sám -> done
   }
 
-  /** Odhlásí uživatele z aktivity */
+  /**
+   * Odhlásí uživatele z aktivity
+   * @todo kontroly? (např. jestli je aktivní přihlašování?)
+   */
   function odhlas(Uzivatel $u) {
-    // TODO kontroly? (např. jestli je aktivní přihlašování?)
     if($this->a['dite']) { // odhlášení z potomků
       self::zId($this->a['dite'])->odhlas($u);
     }
@@ -301,8 +336,8 @@ class Aktivita
     $uid = $u->id();
     dbQuery("DELETE FROM akce_prihlaseni WHERE id_uzivatele=$uid AND id_akce=$aid");
     dbQuery("INSERT INTO akce_prihlaseni_log SET id_uzivatele=$uid, id_akce=$aid, typ='odhlaseni'");
-    if(ODHLASENI_POKUTA_KONTROLA && aktivitaDoZacatkuH($this)<ODHLASENI_POKUTA1_H) //pokuta aktivní
-      dbQueryS("INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$uid, id_akce=$aid, id_stavu_prihlaseni=4");
+    if(ODHLASENI_POKUTA_KONTROLA && $this->doZacatku() < ODHLASENI_POKUTA1_H) //pokuta aktivní
+      dbQuery("INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$uid, id_akce=$aid, id_stavu_prihlaseni=4");
     if($this->a['zamcel'] == $uid)
       dbQuery("UPDATE akce_seznam SET zamcel=NULL WHERE id_akce=$aid");
     if($this->a['teamova'] && $this->prihlaseno()==1) // odhlašuje se poslední hráč
@@ -310,21 +345,44 @@ class Aktivita
   }
 
   /**
-   * Vrátí pole uživatelů, kteří jsou organizátory jakékoli ze skupiny instancí
-   * aktivity. Pokud nemá instance, vrátí organizátory aktivity jak jsou.
+   * Vrátí pole uživatelů, kteří jsou organizátory této aktivity. Při zadaném
+   * parametru poli ID nastaví tyto organizátory.
+   * @todo dělat diff a ne delete/insert
    */
-  function organizatoriSkupiny() {
-    if($this->a['patri_pod']) {// má instance
-      $uids = dbOneCol('SELECT GROUP_CONCAT(organizator) FROM akce_seznam WHERE patri_pod='.$this->a['patri_pod'].' GROUP BY patri_pod');
-    } else {
-      $uids = $this->a['organizator'];
+  function organizatori($ids = null) {
+    if(is_array($ids)) {
+      dbQuery('DELETE FROM akce_organizatori WHERE id_akce = '.$this->id());
+      foreach($ids as $id)
+        if((int)$id)
+          dbQuery('INSERT INTO akce_organizatori(id_akce, id_uzivatele)
+            VALUES ('.$this->id().','.(int)$id.')');
     }
-    return Uzivatel::zIds($uids);
+    $orgs = $this->a['organizatori'] ? substr($this->a['organizatori'], 1, -1) : null;
+    return Uzivatel::zIds($orgs);
   }
 
-  /** Vrátí id organizátora aktivity */
-  function orgId()
-  { return $this->a['organizator']; }
+  /**
+   * Vrátí pole uživatelů, kteří jsou organizátory jakékoli ze skupiny instancí
+   * aktivity. Pokud nemá instance, vrátí organizátory aktivity jak jsou.
+   * @todo reálné načítání orgů skupiny, nejen této instance
+   */
+  function organizatoriSkupiny() {
+    //TODO viz todo
+    return $this->organizatori();
+  }
+
+  /**
+   * Jestli zadaný uživatel/id organizuje tuto aktivitu
+   * @todo vygrepovat a odstranit možnost zadávání přes ID a místo toho se
+   *  na daných místech pokusit získat objekty typu Uživatel
+   */
+  function organizuje($u) {
+    if($u instanceof Uzivatel)
+      $id = $u->id();
+    else
+      $id = (int)$u;
+    return strpos($this->a['organizatori'], ','.$id.',') !== false;
+  }
 
   /** Vrátí specifické označení organizátora pro aktivitu tohoto typu */
   function orgTitul() {
@@ -430,7 +488,7 @@ class Aktivita
   function prihlasovatelna()
   {
     //stav 4 je rezervovaný pro viditelné nepřihlašovatelné aktivity
-    return(REG_AKTIVIT && $this->a['stav']==1);
+    return(REG_AKTIVIT && $this->a['stav']==1 && $this->a['zacatek']);
   }
 
   /**
@@ -456,7 +514,7 @@ class Aktivita
         if($stav==3) return '<em>neúčast</em>';
         if($stav==4) return '<em>pozdní odhlášení</em>';
       }
-      elseif($this->a['organizator'] == $u->id())
+      elseif($this->organizuje($u->id()))
       {
         return '';
       }
@@ -525,6 +583,20 @@ class Aktivita
     return $this->a['stav']==2;
   }
 
+  /**
+   * Vrací surový databázový řádek, nepoužívat (pouze pro debug a zpětnou
+   * kompatibilitu, postupně odstranit).
+   * @deprecated
+   */
+  function rawDb() {
+    return $this->a;
+  }
+
+  /**
+   * Vrátí ID typu aktivity
+   * @todo na této úrovni není dořešené ORM, toto by se mělo přejmenovat na
+   *  typId() a nějak koncepčně fixnout
+   */
   function typ()
   { return $this->a['typ']; }
 
@@ -663,56 +735,60 @@ class Aktivita
     return $this->a['zacatek'];
   }
 
-  /** Vrátí DateTime objekt konce aktivity */
-  function konec() {
-    if(is_string($this->a['konec']))
-      $this->a['konec'] = new DateTimeCz($this->a['konec']);
-    return $this->a['konec'];
+  /**
+   * Vrátí pole aktivit s zadaným filtrem a řazením. Filtr funguje jako asoc.
+   * pole s filtrovanými hodnotami, řazení jako pole s pořadím dle priorit.
+   * Podporované volby filtru: (vše id)
+   *  rok, typ
+   * @todo filtr dle orga
+   * @todo explicitní filtr i pro řazení (např. pole jako mapa veřejný řadící
+   *  parametr => sloupec
+   */
+  static function zFiltru($filtr, $razeni = null) {
+    // sestavení filtrů
+    $wheres = array();
+    if(!empty($filtr['rok']))
+      $wheres[] = 'a.rok = '.(int)$filtr['rok'];
+    if(!empty($filtr['typ']))
+      $wheres[] = 'a.typ = '.(int)$filtr['typ'];
+    $where = implode(' AND ', $wheres);
+    $order = null;
+    foreach($razeni as $sloupec) {
+      $order[] = dbQi($sloupec);
+    }
+    if($order) $order = 'ORDER BY '.implode(', ', $order);
+    // select
+    return self::zWhere($where, null, $order);
   }
 
   /**
    * Pokusí se vyčíst aktivitu z dodaného ID. Vrátí aktivitu nebo null
-   * @todo optimalizovaný select (viz zUrl...) ?
    */
   static function zId($id)
   {
     if((int)$id)
-    {
-      $a=dbOneLine('SELECT
-          a.*, -- speciální selecty kvůli sdílené url a popisu u aktivit s více instancemi
-          IF(a.patri_pod,(SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod=a.patri_pod),url_akce) url_akce,
-          IF(a.patri_pod,(SELECT MAX(popis) FROM akce_seznam WHERE patri_pod=a.patri_pod),popis) popis,
-          CONCAT(",",GROUP_CONCAT(ap.id_uzivatele,u.pohlavi,ap.id_stavu_prihlaseni),",") AS prihlaseni
-        FROM akce_seznam a
-        LEFT JOIN akce_prihlaseni ap ON(ap.id_akce = a.id_akce)
-        LEFT JOIN uzivatele_hodnoty u ON(u.id_uzivatele = ap.id_uzivatele)
-        WHERE a.id_akce='.(int)$id.'
-        GROUP BY a.id_akce');
-      if(!$a) return null;
-      return new Aktivita($a);
-    }
-    return null;
+      return self::zWhere('a.id_akce='.(int)$id)->current();
+    else
+      return null;
   }
 
-  /** Vrátí pole aktivit které se letos zobrazí v programu */
+  /**
+   * Vrátí všechny aktivity, které vede daný uživatel
+   */
+  static function zOrganizatora(Uzivatel $u) {
+    return self::zWhere('ao.id_uzivatele = '.$u->id().' AND a.rok = '.ROK);
+  }
+
+  /**
+   * Vrátí pole aktivit které se letos zobrazí v programu
+   * @todo zjistit rychlost a přepsat zWhere() pokud to půjde
+   */
   static function zProgramu() {
-    $o = dbQuery('
-      SELECT a.*,
-        CONCAT(",",GROUP_CONCAT(ap.id_uzivatele,u.pohlavi,ap.id_stavu_prihlaseni),",") AS prihlaseni
-      FROM akce_seznam a
-      LEFT JOIN akce_prihlaseni ap ON(ap.id_akce = a.id_akce)
-      LEFT JOIN uzivatele_hodnoty u ON(u.id_uzivatele = ap.id_uzivatele)
-      JOIN akce_lokace l ON (a.lokace=l.id_lokace) -- poradi lokaci v programu
-      WHERE a.rok = '.ROK.' AND a.zacatek AND a.stav IN(1,2,3,4)
-      GROUP BY a.id_akce
-      ORDER BY DAY(a.zacatek), l.poradi, HOUR(a.zacatek), a.nazev_akce
-    ');
-    $p = array();
-    while($r = mysql_fetch_assoc($o)) {
-      unset($r['popis'], $r['url_akce']);
-      $p[] = new self($r);
-    }
-    return new ArrayIterator($p);
+    return self::zWhere(
+      'a.rok = $1 AND a.zacatek AND a.stav IN(1,2,3,4)',
+      array(ROK),
+      'ORDER BY DAY(a.zacatek), al.poradi, HOUR(a.zacatek), a.nazev_akce'
+    );
   }
 
   /**
@@ -739,30 +815,56 @@ class Aktivita
    * Vrátí pole instancí s danou url (jen ty letošní veřejně viditelné)
    * @param $url url aktivity
    * @param $typ url typu
-   * @todo iterátor
    */
   static function zUrlViditelne($url, $typ) {
+    return self::zWhere(
+      'at.url_typu = $1 AND a.url_akce = $2 AND a.stav IN(1,2,4) AND a.rok = $3',
+      array($typ, $url, ROK),
+      'ORDER BY a.zacatek, a.id_akce'
+    );
+  }
+
+  /**
+   * Vrátí iterátor s aktivitami podle zadané where klauzule. Alias tabulky
+   * akce_seznam je 'a'.
+   * @param $where obsah where klauzule (bez úvodního klíč. slova WHERE)
+   * @param $args volitelné pole argumentů pro dbQueryS()
+   * @param $order volitelně celá klauzule ORDER BY včetně klíč. slova
+   * @todo načítání popisu a url, stávající model nezaručuje jeho načtení, ale
+   *  není mission-critical a dá se nechat s předpokladem, že zafunguje. Také
+   *  cacheování popisu separátně nebo vůbec nenačítání, aby nebyl rozkopírovaný
+   *  v paměti
+   * @todo třída která obstará reálný iterátor, nejenom obalení pole (nevýhoda
+   *  pole je nezměněná nutnost čekat, než se celá odpověď načte a přesype do
+   *  paměti
+   * @todo měl by prázdný výsledek taky vracet iterátor (nevýhoda nemožnost
+   *  implicitního testu v podmínce) nebo null? viz (nejen) index.php:61
+   */
+  protected static function zWhere($where, $args = null, $order = null) {
+    // viz DISTINCTy u GROUP_CONCAT - načítání orgů i účastníků vede na
+    // kartézský součin, reálně je ale tak vzácné, že výkonnostně stále vede
+    // nad ostatními technikami. V případě problému má smysl zkoušet
+    // optimalizace (např. joinovat subelectem tabulku s připravenými seznamy
+    // orgů v groupnuté variantě apod)
     $o = dbQueryS('
-      SELECT af.*,
-        a.url_akce, a.popis, -- rozkopírování (přepsání) hodnot z hlavní instance do všech instancí
-        CONCAT(",",GROUP_CONCAT(ap.id_uzivatele,u.pohlavi,ap.id_stavu_prihlaseni),",") AS prihlaseni
+      SELECT a.*,
+        CONCAT(",",GROUP_CONCAT(DISTINCT ap.id_uzivatele,u.pohlavi,ap.id_stavu_prihlaseni),",") AS prihlaseni,
+        CONCAT(",",GROUP_CONCAT(DISTINCT ao.id_uzivatele),",") AS organizatori
       FROM akce_seznam a
-      JOIN akce_typy t ON(t.id_typu=a.typ)
-      JOIN akce_seznam af ON(af.id_akce = a.id_akce OR af.patri_pod AND af.patri_pod = a.patri_pod) -- připojení instancí k výchozí aktivitě
-      LEFT JOIN akce_prihlaseni ap ON(ap.id_akce = af.id_akce)
-      LEFT JOIN uzivatele_hodnoty u ON(u.id_uzivatele = ap.id_uzivatele) -- kvůli pohlaví
-      WHERE t.url_typu = $1
-      AND a.url_akce = $2
-      AND a.stav IN(1,2,4)
-      AND a.rok = $3
-      GROUP BY af.id_akce
-      ORDER BY af.zacatek, af.id_akce
-      ', array($typ, $url, ROK_AKTUALNI));
-    $m = array();
-    while($a = mysql_fetch_assoc($o)) {
-      $m[] = new self($a);
+      LEFT JOIN akce_prihlaseni ap ON(ap.id_akce = a.id_akce)
+      LEFT JOIN uzivatele_hodnoty u ON(u.id_uzivatele = ap.id_uzivatele)
+      LEFT JOIN akce_typy at ON(at.id_typu = a.typ)
+      LEFT JOIN akce_lokace al ON (a.lokace = al.id_lokace)
+      LEFT JOIN akce_organizatori ao ON(a.id_akce = ao.id_akce)
+      WHERE '.$where.'
+      GROUP BY a.id_akce
+      '.$order,
+    $args);
+    $p = array();
+    while($r = mysql_fetch_assoc($o)) {
+      $p[] = new self($r);
     }
-    return $m;
+    return new ArrayIterator($p);
   }
 
 
@@ -821,14 +923,16 @@ class Aktivita
   protected static function editorChyby($a)
   {
     $chyby=array();
+    if(empty($a['den'])) return array();
     // hack - převod začátku a konce z formátu formu na legitimní formát data a času
     $a['zacatek'] = (new DateTimeCz($a['den']))->add(new DateInterval('PT'.$a['zacatek'].'H'))->formatDb();
     $a['konec'] = (new DateTimeCz($a['den']))->add(new DateInterval('PT'.$a['konec'].'H'))->formatDb();
-    if(!maVolno($a['organizator'], $a, isset($a['id_akce'])?$a['id_akce']:null))
-    {
-      $k=maVolnoKolize();
-      $k=current($k);
-      $chyby[]='Organizátor má v danou dobu '.$k['nazev_akce'].' ('.datum2($k).')';
+    foreach($a['organizatori'] as $org) {
+      if(!maVolno($org, $a, isset($a['id_akce'])?$a['id_akce']:null)) {
+        $k=maVolnoKolize();
+        $k=current($k);
+        $chyby[]='Organizátor '.Uzivatel::zId($org)->jmenoNick().' má v danou dobu '.$k['nazev_akce'].' ('.datum2($k).')';
+      }
     }
 
     return $chyby;
@@ -904,11 +1008,12 @@ class Aktivita
       $xtpl->assign('organizator','0'); //nejdřív nabídka bez orga
       $xtpl->assign('organizatorJmeno','(bez organizátora)');
       $xtpl->parse('upravy.tabulka.organizator');
-      while($r=mysql_fetch_assoc($q))
-        $xtpl->assign('sel',$a && $r['id_uzivatele']==$aktivita['organizator']?'selected':'') xor
-        $xtpl->assign('organizator',$r['id_uzivatele']) xor
-        $xtpl->assign('organizatorJmeno',jmenoNick($r)) xor
+      while($r=mysql_fetch_assoc($q)) {
+        $xtpl->assign('sel',$a && $a->organizuje($r['id_uzivatele']) ? 'selected':'');
+        $xtpl->assign('organizator',$r['id_uzivatele']);
+        $xtpl->assign('organizatorJmeno',jmenoNick($r));
         $xtpl->parse('upravy.tabulka.organizator');
+      }
     }
     // načtení typů
     if(!$omezeni || !empty($omezeni['typ']))

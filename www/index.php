@@ -58,7 +58,7 @@ elseif($url->delka() && $stranka=dbOneLineS('SELECT obsah, id_stranky FROM stran
     '<script>document.write(\'$1\' + \'$2\' + \'$3\' + \'$4\' + \'$5\' + \'$6\' + \'$7\')</script>', $obsah);
   $extraTridy='str'.$stranka['id_stranky'];
 }
-elseif( $url->delka()==2 && $aktivity=Aktivita::zUrlViditelne($url->cast(1), $url->cast(0)) )
+elseif( $url->delka()==2 && ($aktivity=Aktivita::zUrlViditelne($url->cast(1), $url->cast(0))) && $aktivity->valid() )
 { //stránka s nějakou aktivitou
   ob_start();
   require('./scripts/aktivita.php');

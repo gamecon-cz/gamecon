@@ -565,6 +565,8 @@ class Uzivatel
     if(is_array($ids)) {
       if(empty($ids)) return array();
       return self::nactiUzivatele('WHERE u.id_uzivatele IN('.dbQv($ids).')');
+    } else if($ids === null) {
+      return array();
     } else if(preg_match('@[0-9,]+@', $ids)) {
       return self::nactiUzivatele('WHERE u.id_uzivatele IN('.$ids.')');
     } else {

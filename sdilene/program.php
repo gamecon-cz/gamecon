@@ -162,7 +162,7 @@ class Program
   {
     $classes=array();
     if($this->u && $a['obj']->prihlasen($this->u)) $classes[]='prihlasen';
-    if($this->u && $a['obj']->orgId()==$this->uid) $classes[]='organizator';
+    if($this->u && $a['obj']->organizuje($this->u)) $classes[]='organizator';
     echo('<td colspan="'.$a['del'].'"'.
       ( $classes?' class="'.implode(' ',$classes).'"':'' ).
       '>'.$a['obj']->nazev());

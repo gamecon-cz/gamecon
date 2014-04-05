@@ -25,10 +25,10 @@
     <th><span class="hinted">Název<div class="hint">
       Trojúhelníčky slouží k řazení.</div></span>
       <a href="aktivity?sort=nazev_akce">▲</a> </th>
-    <th>Čas <a href="aktivity?sort=cas">▲</a> </th>
-    <th>Organizátor <a href="aktivity?sort=organizator">▲</a>  </th>
-    <th style="width:90px">Místnost <a href="aktivity?sort=nazev">▲</a>  </th>
-    <th>Typ <a href="aktivity?sort=id_typu">▲</a> </th>
+    <th>Čas <a href="aktivity?sort=zacatek">▲</a> </th>
+    <th>Organizátor <a href="aktivity?sort=organizatori">▲</a>  </th>
+    <th style="width:90px">Místnost <a href="aktivity?sort=lokace">▲</a>  </th>
+    <th>Typ <a href="aktivity?sort=typ">▲</a> </th>
     <th><span class="hinted">Ins<div class="hint">
       Řetěz znamená, že aktivita je členem nějaké rodiny instancí a ve výpisu webu se zobrazuje pouze jednou a s více nabídkami termínu pro přihlášení.
     </div></span></th>
@@ -41,11 +41,11 @@
     </div></span></th>
   </tr>
   <!-- begin:aktivita --><tr>
-    <td>{nazev_akce}</td>
+    <td>{nazev}</td>
     <td>{cas}</td>
-    <td>{login_uzivatele}</td>
-    <td>{nazev_interni}</td>
-    <td>{typ_1p}</td>
+    <td>{organizatori}</td>
+    <td>{mistnost}</td>
+    <td>{typ}</td>
     <td><!-- begin:instSymbol -->
       <img src="files/var/chain-icon.png" />
     <!-- end:instSymbol --></td>

@@ -168,8 +168,8 @@ function dbQi($val)
  */
 function dbOneCol($q)
 {
-  $a=dbOneLine($q);
-  return current($a);
+  $a = dbOneLine($q);
+  return $a ? current($a) : null;
 } 
 
 /** Intended for selecting single lines from whatever. If no line found, returns

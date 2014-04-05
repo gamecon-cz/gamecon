@@ -21,7 +21,15 @@ class Finance
 
   private static 
     $maxSlevaAktivit=100, // v procentech
-    $slevaZaAktivitu=130; // v korunách
+    $slevaZaAktivitu = array( // ve formátu max. délka => sleva
+      1  =>  50,
+      2  =>  75,
+      5  => 150,
+      7  => 225,
+      9  => 300,
+      11 => 375,
+      13 => 450,
+    );
   
   const
     NAZEV=0,     // indexy do tabulky $prehled
@@ -73,17 +81,10 @@ class Finance
         $this->slevyO[]='jídlo zdarma';
       if($this->u->maPravo(P_UBYTOVANI_ZDARMA))
         $this->slevyO[]='ubytování zdarma';
-      // vypravěčská sleva dle aktivit (přednášky se nepočítají)
-      $slevaVse=0;
-      if($this->u->maPravo(P_ORG_AKCI))
-      {
-        $pocetAktivit=dbOneCol("SELECT count(id_akce) FROM akce_seznam WHERE organizator=$uid AND rok=$rok AND typ!=3");
-        if($pocetAktivit>=2)
-        {
-          $slevaVse=$pocetAktivit*self::$slevaZaAktivitu;
-          $this->slevyO[]='sleva '.$slevaVse.'&thinsp;Kč pro vypravěče za odvedené aktivity na všechno';
-        }
-      }
+      // vypravěčská sleva dle aktivit
+      $slevaVse = $this->slevaVypravec();
+      if($slevaVse)
+        $this->slevyO[] = 'sleva '.$slevaVse.'&thinsp;Kč pro vypravěče za odvedené aktivity na všechno';
       // provedení dotazu
       $o=dbQuery("
         -- aktivity
@@ -272,6 +273,25 @@ class Finance
     return $this->scnA; //todo když není přihlášen na GameCon, možná raději řešit zobrazení ceny defaultně (protože neznáme jeho studentství etc.). Viz také třída Aktivita
   }
   
+  /** Vrátí slevu za odvedené aktivity (celkovou částku) */
+  protected function slevaVypravec() {
+    $slevaCelkem = 0;
+    if($this->u->maPravo(P_ORG_AKCI)) {
+      foreach(Aktivita::zOrganizatora($this->u) as $a) {
+        $delka = $a->delka();
+        $sleva = 0;
+        foreach(self::$slevaZaAktivitu as $tabDelka => $tabSleva) {
+          if($delka <= $tabDelka) {
+            $sleva = $tabSleva;
+            break;
+          }
+        }
+        $slevaCelkem += $sleva;
+      }
+    }
+    return $slevaCelkem;
+  }
+
   /** Vrátí pole slev (objektů Sleva) vztahujících se jen na aktivity */
   function slevyAktivity()
   {
@@ -412,6 +432,3 @@ class Finance
   }
             
 }
-
-
-?>

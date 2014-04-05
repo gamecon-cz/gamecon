@@ -1,7 +1,7 @@
 <?php
 
 /** 
- * Stránka pro tvorbu a správu aktivit. Povětšinou starý kód
+ * Stránka pro tvorbu a správu aktivit.
  *
  * nazev: Aktivity
  * pravo: 102
@@ -55,14 +55,14 @@ $tpl=new XTemplate('aktivity.xtpl');
 $filtr=isset($_SESSION['adminAktivityFiltr'])?
   $_SESSION['adminAktivityFiltr']:'';
 $varianty=array(
-  'a'=>array('popis'=>'deskovky',   'db'=>'t.id_typu=1'),
-  'b'=>array('popis'=>'larpy',      'db'=>'t.id_typu=2'),
-  'c'=>array('popis'=>'RPG',        'db'=>'t.id_typu=4'),
-  'd'=>array('popis'=>'přednášky',  'db'=>'t.id_typu=3'),
-  'e'=>array('popis'=>'dílny',      'db'=>'t.id_typu=5'),
-  'f'=>array('popis'=>'bonusy',     'db'=>'t.id_typu=7'),
-  'g'=>array('popis'=>'wargaming',  'db'=>'t.id_typu=6'),
-  'h'=>array('popis'=>'legendy',    'db'=>'t.id_typu=8'),
+  'a'=>array('popis'=>'deskovky',   'db'=>'1'),
+  'b'=>array('popis'=>'larpy',      'db'=>'2'),
+  'c'=>array('popis'=>'RPG',        'db'=>'4'),
+  'd'=>array('popis'=>'přednášky',  'db'=>'3'),
+  'e'=>array('popis'=>'dílny',      'db'=>'5'),
+  'f'=>array('popis'=>'bonusy',     'db'=>'7'),
+  'g'=>array('popis'=>'wargaming',  'db'=>'6'),
+  'h'=>array('popis'=>'legendy',    'db'=>'8'),
   );
 foreach($varianty as $k => $v)
 {
@@ -71,43 +71,41 @@ foreach($varianty as $k => $v)
   $tpl->assign('sel',$filtr==$k?'selected="selected"':'');
   $tpl->parse('aktivity.filtrMoznost');
 }
-if($filtr) $filtr=' AND '.$varianty[$filtr]['db'].' ';
 
 //načtení aktivit a zpracování
-if(get('sort')) //řazení
-  setcookie('akceRazeni',get('sort'),time()+365*24*60*60) xor
+if(get('sort')) { //řazení
+  setcookie('akceRazeni',get('sort'),time()+365*24*60*60);
   back();
-$akceRazeni=isset($_COOKIE['akceRazeni'])&&$_COOKIE['akceRazeni'] ? $_COOKIE['akceRazeni'] : 'nazev_akce';
-$a=dbQuery('SELECT *, zacatek as cas FROM akce_seznam a
-  LEFT JOIN uzivatele_hodnoty u ON(u.id_uzivatele=a.organizator)
-  LEFT JOIN akce_lokace l ON(a.lokace=l.id_lokace)
-  LEFT JOIN akce_typy t ON(a.typ=t.id_typu)
-  WHERE a.rok='.$GLOBALS['ROK_AKTUALNI'].'
-  '.$filtr.'
-  ORDER BY '.dbCol($akceRazeni).', nazev_akce, cas' );
+}
+$razeni = empty($_COOKIE['akceRazeni']) ? 'nazev_akce' : $_COOKIE['akceRazeni'];
+$razeni = array($razeni, 'nazev_akce', 'zacatek');
 
-$typy=array();
-while($r=mysql_fetch_assoc($a))
+$filtr = empty($filtr) ? array() : array('typ' => $varianty[$filtr]['db']);
+$filtr = array_merge(array('rok' => ROK), $filtr);
+
+$aktivity = Aktivita::zFiltru($filtr, $razeni);
+
+foreach($aktivity as $a)
 {
-  $tpl->assign($r);
-  $tpl->assign('cas',datum2($r));
+  $r = $a->rawDb();
+  $tpl->assign(array(
+    'id_akce'   => $a->id(),
+    'nazev'     => $a->nazev(),
+    'cas'       => $a->denCas(),
+    'organizatori' => implode(', ', array_map(function($org){ return $org->jmenoNick(); }, $a->organizatori())),
+    // TODO fixnout s lepším ORM
+    'typ'       => dbOneCol("SELECT typ_1p FROM akce_typy WHERE id_typu = $r[typ]"),
+    'mistnost'  => dbOneCol("SELECT nazev_interni FROM akce_lokace WHERE id_lokace = $r[lokace]"),
+  ));
   if($r['patri_pod']) $tpl->parse('aktivity.aktivita.instSymbol');
   if($r['stav']==0) $tpl->parse('aktivity.aktivita.tlacitka.publikovat');
-  if($r['stav']==4) $tpl->parse('aktivity.aktivita.tlacitka.aktivovat'); 
+  if($r['stav']==4) $tpl->parse('aktivity.aktivita.tlacitka.aktivovat');
   $tpl->parse('aktivity.aktivita.tlacitka');
   $tpl->parse('aktivity.aktivita');
-  isset($typy[$r['typ_1p']])?$typy[$r['typ_1p']]++:$typy[$r['typ_1p']]=1;
 }
 
-$typStat=array();
-unset($typy['']);
-foreach($typy as $typ=>$pocet)
-  $typStat[]='<b>'.ucfirst($typ).':</b> '.$pocet;
-$tpl->assign('statistika',implode($typStat,' | '));
 if(!$filtr)
   $tpl->parse('aktivity.aktivovatVse');
 
 $tpl->parse('aktivity');
 $tpl->out('aktivity');
-
-?>

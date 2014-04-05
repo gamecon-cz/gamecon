@@ -333,10 +333,11 @@ function maVolno($uid,$poleCas,$vyjimka=null)
       WHERE p.id_uzivatele=$0
       AND a.rok='.ROK.'
       UNION
-      SELECT * FROM akce_seznam
-      WHERE organizator=$0
-      AND rok='.ROK.') as a
-    WHERE NOT (zacatek>$2 OR konec<$1) -- zacne az pak nebo skonci pred'."\n".
+      SELECT a.* FROM akce_seznam a
+      JOIN akce_organizatori ao USING(id_akce)
+      WHERE ao.id_uzivatele=$0
+      AND a.rok='.ROK.') as a
+    WHERE NOT (zacatek>=$2 OR konec<=$1) -- zacne az pak nebo skonci pred'."\n".
     ($vyjimka?'AND id_akce!=$3':''),
     array($uid, $poleCas['zacatek'], $poleCas['konec'], $vyjimka));
   if(mysql_num_rows($a))

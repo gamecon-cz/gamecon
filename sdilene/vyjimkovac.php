@@ -153,7 +153,8 @@ class Vyjimkovac
     if(VETEV == VYVOJOVA) {
       echo '<pre style="font-size:14px;background-color:#fff; padding: 5px; border: solid #f00 5px;">';
       if($e instanceof DbException) echo "\n\n      ".$r['data']."\n\n\n";
-      echo "AT $r[soubor]($r[radek]): $r[zprava]\n";
+      echo '<b style="font-size:1.2em">'.$r['zprava'].'</b><br>';
+      echo "AT $r[soubor]($r[radek])\n";
       if($e instanceof Exception) echo $e->getTraceAsString();
       echo '</pre>';
     } elseif($r['zavaznost'] > 2) {

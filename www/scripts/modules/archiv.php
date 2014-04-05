@@ -22,12 +22,13 @@ if(!isset($nazevKategorie))
 $xtpl=new XTemplate($ROOT_DIR.'/templates/archiv.xtpl');
 $xtpl->assign('nadpis','Archiv '.$nazevKategorie.' na GameConu '.$rok); //todo
 
-$odpoved=dbQuery('SELECT a.nazev_akce, a.popis, MAX(a.url_akce) as url, 
-    u.jmeno_uzivatele, u.prijmeni_uzivatele, 
+$odpoved=dbQuery('SELECT a.nazev_akce, a.popis, MAX(a.url_akce) as url,
+    u.jmeno_uzivatele, u.prijmeni_uzivatele,
     u.login_uzivatele
-  FROM akce_seznam a 
-  LEFT JOIN uzivatele_hodnoty u ON(u.id_uzivatele=a.organizator)
-  WHERE a.rok='.$rok.' 
+  FROM akce_seznam a
+  LEFT JOIN akce_organizatori ao USING(id_akce)
+  LEFT JOIN uzivatele_hodnoty u USING(id_uzivatele)
+  WHERE a.rok='.$rok.'
   AND a.typ='.$aktivitaTyp.'
   AND a.stav!=0
   GROUP BY a.nazev_akce
