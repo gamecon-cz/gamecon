@@ -836,10 +836,8 @@ class Aktivita
    * @param $where obsah where klauzule (bez úvodního klíč. slova WHERE)
    * @param $args volitelné pole argumentů pro dbQueryS()
    * @param $order volitelně celá klauzule ORDER BY včetně klíč. slova
-   * @todo načítání popisu a url, stávající model nezaručuje jeho načtení, ale
-   *  není mission-critical a dá se nechat s předpokladem, že zafunguje. Také
-   *  cacheování popisu separátně nebo vůbec nenačítání, aby nebyl rozkopírovaný
-   *  v paměti
+   * @todo cacheování popisu separátně nebo vůbec nenačítání, aby nebyl
+   *  rozkopírovaný v paměti
    * @todo třída která obstará reálný iterátor, nejenom obalení pole (nevýhoda
    *  pole je nezměněná nutnost čekat, než se celá odpověď načte a přesype do
    *  paměti
@@ -856,7 +854,9 @@ class Aktivita
       SELECT a.*,
         CONCAT(",",GROUP_CONCAT(DISTINCT ap.id_uzivatele,u.pohlavi,ap.id_stavu_prihlaseni),",") AS prihlaseni,
         CONCAT(",",GROUP_CONCAT(DISTINCT ao.id_uzivatele),",") AS organizatori,
-        CONCAT(",",GROUP_CONCAT(DISTINCT uo.jmeno_uzivatele, " „", uo.login_uzivatele, "“ ", uo.prijmeni_uzivatele  ),",") AS orgJmena
+        CONCAT(",",GROUP_CONCAT(DISTINCT uo.jmeno_uzivatele, " „", uo.login_uzivatele, "“ ", uo.prijmeni_uzivatele  ),",") AS orgJmena,
+        IF(a.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = a.patri_pod), a.url_akce) as url_akce,
+        IF(a.patri_pod, (SELECT MAX(popis) FROM akce_seznam WHERE patri_pod = a.patri_pod), a.popis) as popis
       FROM akce_seznam a
       LEFT JOIN akce_prihlaseni ap ON(ap.id_akce = a.id_akce)
       LEFT JOIN uzivatele_hodnoty u ON(u.id_uzivatele = ap.id_uzivatele)
