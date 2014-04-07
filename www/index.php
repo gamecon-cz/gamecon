@@ -155,7 +155,8 @@ if(PROGRAM_VIDITELNY)
   $xtpl->parse('vse.horMenu.program');
   //$xtpl->parse('vse.programLink');
 }
-$xtpl->parse('vse.horMenu'); 
+$xtpl->parse('vse.horMenu');
+if(VETEV == OSTRA) $xtpl->parse('vse.googleAnalytics');
 
 $xtpl->assign('obsahRetezec',Chyba::vyzvedniHtml().$obsah);
 $xtpl->assign('titulekStranky',$titulek->cely());
