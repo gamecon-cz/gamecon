@@ -154,6 +154,17 @@ function dbQueryS($q,$pole=null)
 }
 
 /**
+ * Quotes array to be used in IN(1,2,3..N) queries
+ */
+function dbQa($array)
+{
+  $out = '';
+  foreach($array as $v)
+    $out .= dbQv($v).',';
+  return substr($out, 0, -1);
+}
+
+/**
  * Quotes input values for DB. Nulls are passed as real NULLs, other values as
  * strings. Quotes $val as value
  */

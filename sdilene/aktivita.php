@@ -13,8 +13,10 @@ class Aktivita
 
   const
     AJAXKLIC='aEditFormTest',  // název post proměnné, ve které jdou data, pokud chceme ajaxově testovat jejich platnost a čekáme json odpověď
+    KOLA='aTeamFormKolo',      // název post proměnné s výběrem kol pro team
     OBRKLIC='aEditObrazek',    // název proměnné, v které bude případně obrázek
     POSTKLIC='aEditForm',      // název proměnné (ve výsledku pole), v které bude editační formulář aktivity předávat data
+    STAV=0x02,                 // ignorování stavu
     TEAMKLIC='aTeamForm',      // název post proměnné s formulářem pro výběr teamu
     ZAMEK=0x01;                // ignorování zamčení
 
@@ -81,6 +83,14 @@ class Aktivita
       return $z->format('l G:i').'–'.$this->konec()->format('G:i');
     else
       return '';
+  }
+
+  /** Vrátí potomky této aktivity (=navázané aktivity, další kola, ...) */
+  protected function deti() {
+    if($this->a['dite'])
+      return self::zIds($this->a['dite']);
+    else
+      return array();
   }
 
   /** Počet hodin do začátku aktivity (float) */
@@ -329,9 +339,11 @@ class Aktivita
    * @todo kontroly? (např. jestli je aktivní přihlašování?)
    */
   function odhlas(Uzivatel $u) {
-    if($this->a['dite']) { // odhlášení z potomků
-      self::zId($this->a['dite'])->odhlas($u);
+    foreach($this->deti() as $dite) { // odhlášení z potomků
+      $dite->odhlas($u); // spoléhá na odolnost proti odhlašování z aktivit kde uživatel není
     }
+    if(!$this->prihlasen($u)) return; // ignorovat pokud přihlášen není tak či tak
+    // reálné odhlášení
     $aid = $this->id();
     $uid = $u->id();
     dbQuery("DELETE FROM akce_prihlaseni WHERE id_uzivatele=$uid AND id_akce=$aid");
@@ -386,7 +398,6 @@ class Aktivita
 
   /** Pole jmen organizátorů v lidsky čitelné podobě */
   function orgJmena() {
-    //var_dump($this->a['orgJmena']); die();
     return explode(',', substr($this->a['orgJmena'], 1, -1));
   }
 
@@ -411,7 +422,10 @@ class Aktivita
     return $popis;
   }
 
-  /** Přihlásí uživatele na aktivitu */
+  /**
+   * Přihlásí uživatele na aktivitu
+   * @todo koncepčnější ignorování stavu
+   */
   function prihlas(Uzivatel $u, $ignorovat = 0)
   {
     // kontroly
@@ -419,16 +433,30 @@ class Aktivita
     if(!maVolno($u->id(), $this->a))  throw new Chyba(hlaska('kolizeAktivit')); // TODO převést na metodu uživatele
     if(!$u->gcPrihlasen())            throw new Exception('Nemáš aktivní přihlášku na GameCon.');
     if(!REG_AKTIVIT)                  throw new Exception('Přihlašování není spuštěno.');
-    if(!$this->prihlasovatelna())     throw new Exception('Aktivita není otevřena pro přihlašování.');
     if($this->volno()!='u' && $this->volno()!=$u->pohlavi()) throw new Chyba(hlaska('plno'));
+    // potlačitelné kontroly
     if($this->a['zamcel'] && !($ignorovat&self::ZAMEK)) throw new Chyba(hlaska('zamcena'));
-    // vložení do db
-    if($this->a['dite']) {
-      self::zId($this->a['dite'])->prihlas($u);
+    if(!$this->prihlasovatelna()) {
+      // hack na ignorování stavu
+      $puvodniStav = $this->a['stav'];
+      if($ignorovat & self::STAV) $this->a['stav'] = 1; // nastavíme stav jako by bylo vše ok
+      $prihlasovatelna = $this->prihlasovatelna();
+      $this->a['stav'] = $puvodniStav;
+      if(!$prihlasovatelna) throw new Exception('Aktivita není otevřena pro přihlašování.');
     }
+    // přihlášení na navázané aktivity (jen pokud není teamleader)
+    if($this->a['dite'] && $this->prihlaseno() > 0) {
+      // vybrání jednoho uživatele, který už na navázané aktivity přihlášen je
+      $vzor = Uzivatel::zId( substr(explode(',', $this->prihlaseni())[1], 0, -2) );
+      foreach($this->deti() as $dite) {
+        // přihlášení na navázané aktivity podle vzoru vybraného uživatele
+        if($dite->prihlasen($vzor)) $dite->prihlas($u, self::STAV);
+      }
+    }
+    // přihlášení na samu aktivitu (uložení věcí do DB)
     $aid = $this->id();
     $uid = $u->id();
-    if($this->a['teamova'] && $this->prihlaseno()==0)
+    if($this->a['teamova'] && $this->prihlaseno()==0 && $this->prihlasovatelna())
       dbQuery("UPDATE akce_seznam SET zamcel=$uid WHERE id_akce=$aid");
     dbQuery("INSERT INTO akce_prihlaseni SET id_uzivatele=$uid, id_akce=$aid");
     dbQuery("INSERT INTO akce_prihlaseni_log SET id_uzivatele=$uid, id_akce=$aid, typ='prihlaseni'");
@@ -631,11 +659,41 @@ class Aktivita
    * vrací nějakou false ekvivalentní hodnotu.
    */
   function vyberTeamu(Uzivatel $u = null) {
-    if(!$u || $this->a['zamcel']!=$u->id()) return null;
+    if(!$u || $this->a['zamcel']!=$u->id() || !$this->prihlasovatelna()) return null;
+    // výběr instancí, pokud to aktivita vyžaduje
+    $vyberKol = '';
+    if($this->a['dite']) {
+      // načtení "kol" (podle hloubky zanoření v grafu instancí)
+      $urovne[] = array($this);
+      do {
+        $dalsi = array();
+        foreach(end($urovne) as $a) {
+          if($a->a['dite'])
+            $dalsi = array_merge($dalsi, explode(',', $a->a['dite']));
+        }
+        if($dalsi)
+          $urovne[] = self::zIds($dalsi);
+      } while($dalsi);
+      unset($urovne[0]); // aktuální aktivitu už má přihlášenu - ignorovat
+      // vybírací formy dle "kol"
+      ob_start();
+      echo '<b>Výběr dalších kol:</b><br>';
+      foreach($urovne as $i => $uroven) {
+        echo '<select name="'.self::KOLA.'['.$i.']">';
+        foreach($uroven as $varianta) {
+          echo '<option value="'.$varianta->id().'">'.$varianta->nazev().': '.$varianta->denCas().'</option>';
+        }
+        echo '</select><br>';
+      }
+      $vyberKol = ob_get_clean();
+    }
+    // vybírací formulář
     ob_start();
     ?>
-    <input type="text" value="<?=$u->id()?>" disabled="disabled">
     <form method="post">
+    <?=$vyberKol?>
+    <b>Výběr spoluhráčů:</b><br>
+    <input type="text" value="<?=$u->id()?>" disabled="disabled"><br>
     <?php
     for($i=0; $i < $this->kapacita()-1; $i++) {
       echo '<input name="'.self::TEAMKLIC.'['.$i.']" type="text">';
@@ -685,11 +743,20 @@ class Aktivita
     if( !$leader || !($t = post(self::TEAMKLIC)) ) return;
     $chyby = array();
     $prihlaseni = array(); // pro rollback
+    $prihlaseniLeadera = array(); // pro rollback kol u leadera
     $chybny = null; // pro uživatele jehož jméno se zobrazí v rámci chyby
     try
     {
       $a = Aktivita::zId(post(self::TEAMKLIC.'Aktivita'));
       if($leader->id() != $a->a['zamcel']) throw new Exception('Nejsi teamleader.');
+      // (pokus o) přihlášení teamleadera na zvolená další kola (pokud jsou)
+      $kola = post(self::KOLA) ?: array();
+      foreach($kola as $koloId) {
+        $kolo = self::zId($koloId);
+        $kolo->prihlas($leader, self::STAV);
+        $prihlaseniLeadera[] = $kolo;
+      }
+      // načtení zvolených členů teamu
       $up = post(self::TEAMKLIC);
       $zamceno = 0;
       foreach($up as $i=>$uid) {
@@ -724,6 +791,8 @@ class Aktivita
       // rollback
       foreach($prihlaseni as $clen)
         $a->odhlas($clen); // TODO bez pokut apod…
+      foreach($prihlaseniLeadera as $kolo)
+        $kolo->odhlas($leader);
       // zobrazení
       if($chybny)
         $chyby[] = 'Nelze, uživateli '.$chybny->jmenoNick().'('.$chybny->id().')'." se při přihlašování objevila chyba:\n• ".$e->getMessage();
@@ -776,6 +845,15 @@ class Aktivita
       return self::zWhere('a.id_akce='.(int)$id)->current();
     else
       return null;
+  }
+
+  /**
+   * Načte aktivitu z pole ID nebo řetězce odděleného čárkami
+   * @todo sanitizace před veřejným použitím a podpora řetězce, nejen pole
+   */
+  static function zIds($ids) {
+    if(!is_array($ids)) $ids = explode(',', $ids);
+    return self::zWhere('a.id_akce IN('.dbQa($ids).')');
   }
 
   /**
