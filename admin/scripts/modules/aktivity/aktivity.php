@@ -83,6 +83,11 @@ $razeni = array($razeni, 'nazev_akce', 'zacatek');
 $filtr = empty($filtr) ? array() : array('typ' => $varianty[$filtr]['db']);
 $filtr = array_merge(array('rok' => ROK), $filtr);
 
+$typy = dbArrayCol('SELECT id_typu, typ_1p FROM akce_typy');
+$typy[0] = '';
+
+$mistnosti = dbArrayCol('SELECT id_lokace, nazev_interni FROM akce_lokace');
+
 $aktivity = Aktivita::zFiltru($filtr, $razeni);
 
 foreach($aktivity as $a)
@@ -92,10 +97,10 @@ foreach($aktivity as $a)
     'id_akce'   => $a->id(),
     'nazev'     => $a->nazev(),
     'cas'       => $a->denCas(),
-    'organizatori' => implode(', ', array_map(function($org){ return $org->jmenoNick(); }, $a->organizatori())),
+    'organizatori' => implode(', ', $a->orgJmena()),
     // TODO fixnout s lepším ORM
-    'typ'       => dbOneCol("SELECT typ_1p FROM akce_typy WHERE id_typu = $r[typ]"),
-    'mistnost'  => dbOneCol("SELECT nazev_interni FROM akce_lokace WHERE id_lokace = $r[lokace]"),
+    'typ'       => $typy[$r['typ']],
+    'mistnost'  => $mistnosti[$r['lokace']],
   ));
   if($r['patri_pod']) $tpl->parse('aktivity.aktivita.instSymbol');
   if($r['stav']==0) $tpl->parse('aktivity.aktivita.tlacitka.publikovat');

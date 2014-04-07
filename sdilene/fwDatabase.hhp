@@ -19,6 +19,18 @@ function pripojDB()
 }
 
 /**
+ * Load one column into array in $id => $value manner
+ */
+function dbArrayCol($q, $param = null) {
+  $a = dbQueryS($q, $param);
+  $o = array();
+  while($r = mysql_fetch_row($a)) {
+    $o[$r[0]] = $r[1];
+  }
+  return $o;
+}
+
+/**
  * Sanitizes and returns safe name for column
  */ 
 function dbCol($name)

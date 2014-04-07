@@ -384,6 +384,12 @@ class Aktivita
     return strpos($this->a['organizatori'], ','.$id.',') !== false;
   }
 
+  /** Pole jmen organizátorů v lidsky čitelné podobě */
+  function orgJmena() {
+    //var_dump($this->a['orgJmena']); die();
+    return explode(',', substr($this->a['orgJmena'], 1, -1));
+  }
+
   /** Vrátí specifické označení organizátora pro aktivitu tohoto typu */
   function orgTitul() {
     return dbOneCol('SELECT titul_orga FROM akce_typy WHERE id_typu='.$this->a['typ']);
@@ -849,13 +855,15 @@ class Aktivita
     $o = dbQueryS('
       SELECT a.*,
         CONCAT(",",GROUP_CONCAT(DISTINCT ap.id_uzivatele,u.pohlavi,ap.id_stavu_prihlaseni),",") AS prihlaseni,
-        CONCAT(",",GROUP_CONCAT(DISTINCT ao.id_uzivatele),",") AS organizatori
+        CONCAT(",",GROUP_CONCAT(DISTINCT ao.id_uzivatele),",") AS organizatori,
+        CONCAT(",",GROUP_CONCAT(DISTINCT uo.jmeno_uzivatele, " „", uo.login_uzivatele, "“ ", uo.prijmeni_uzivatele  ),",") AS orgJmena
       FROM akce_seznam a
       LEFT JOIN akce_prihlaseni ap ON(ap.id_akce = a.id_akce)
       LEFT JOIN uzivatele_hodnoty u ON(u.id_uzivatele = ap.id_uzivatele)
       LEFT JOIN akce_typy at ON(at.id_typu = a.typ)
       LEFT JOIN akce_lokace al ON (a.lokace = al.id_lokace)
       LEFT JOIN akce_organizatori ao ON(a.id_akce = ao.id_akce)
+      LEFT JOIN uzivatele_hodnoty uo ON(ao.id_uzivatele = uo.id_uzivatele)
       WHERE '.$where.'
       GROUP BY a.id_akce
       '.$order,
