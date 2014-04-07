@@ -113,7 +113,7 @@ $(function(){
     <td>
       <input type="text" style="width:25px" name="{fields}[cena]" value="{cena}">
       <input style="float:right" type="checkbox" name="{fields}[bez_slevy]" value="1">
-      <script>if('{bez_slevy}') $('[name="{fields}[bez_slevy]"]').attr('checked',true);</script>
+      <script>if('{bez_slevy}' == true) $('[name="{fields}[bez_slevy]"]').attr('checked',true);</script>
       <div class="hinted" style="float:right;margin-top:2px">bez slev<div class="hint">Jestli má být cena pevná a nesmí se na ni aplikovat slevy</div></div>
     </td>
   </tr>
