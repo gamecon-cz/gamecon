@@ -2,16 +2,16 @@
 
 /**
  * Třída starající se o e-shop, nákupy, formy a související
- */ 
+ */
 
 class Shop
 {
-  
-  protected 
-    $u, 
-    $ubytovani=array(), 
-    $tricka=array(), 
-    $predmety=array(), 
+
+  protected
+    $u,
+    $ubytovani=array(),
+    $tricka=array(),
+    $predmety=array(),
     $ubytovaniOd,
     $ubytovaniDo,
     $ubytovaniTypy=array(),
@@ -21,7 +21,7 @@ class Shop
     $klicT='shopT', //klíč formu pro identifikaci polí s tričkama
     $klicS='shopS'; //klíč formu pro identifikaci polí se slevami
     //$quiet //todo
-  
+
   protected static $skoly=array(
     'UK Univerzita Karlova Praha',
     'MU Masarykova univerzita Brno',
@@ -44,112 +44,73 @@ class Shop
     'UJAK Univerzita Jana Amose Komenského',
     'VŠCHT Vysoká škola chemicko-technologická v Praze'
   );
-  
+
+  const
+    PREDMET = 1,
+    UBYTOVANI = 2,
+    TRICKO = 3,
+    JIDLO = 4;
+
   /**
    * Konstruktor
    */
   function __construct(Uzivatel $u)
   {
     $this->u=$u;
-    // vybrat všechny předměty pro tento rok + předměty v nabídce + předměty, které si koupil 
+    // vybrat všechny předměty pro tento rok + předměty v nabídce + předměty, které si koupil
     $o=dbQuery('
-      SELECT 
+      SELECT
         p.*,
         IF(p.model_rok='.ROK.',nazev,CONCAT(nazev," ",model_rok)) as nazev,
         COUNT(IF(n.rok='.ROK.',1,NULL)) kusu_prodano,
         COUNT(IF(n.id_uzivatele='.$this->u->id().' AND n.rok='.ROK.',1,NULL)) kusu_uzivatele
       FROM shop_predmety p
       LEFT JOIN shop_nakupy n USING(id_predmetu)
-      WHERE p.model_rok='.ROK.' OR n.rok='.ROK.' OR p.v_nabidce
+      WHERE stav > 0 OR n.rok = '.ROK.'
       GROUP BY id_predmetu
       ORDER BY typ, ubytovani_den, IF(nazev LIKE "Penzion%",CONCAT("zzz",nazev),IF(nazev LIKE "Chata%",CONCAT("zzzz",nazev),nazev)), model_rok DESC'); //ruční dořazení penzionů na konec
-    
-    while($r=mysql_fetch_assoc($o))
-      if($r['typ']==1 || $r['typ']==4)
-      { //předmět nebo jídlo
-        $this->predmety[]=$r;
-      }
-      elseif($r['typ']==2)
-      { //ubytování
-        $this->ubytovani[$r['ubytovani_den']][self::typUbytovani($r)]=$r;
-        $this->ubytovaniTypy[self::typUbytovani($r)]=1;
-      }
-      elseif($r['typ']==3)
-      { //tričko
-        $this->tricka[]=$r;
-      }
-      else
+
+    while($r = mysql_fetch_assoc($o)) {
+      $typ = $r['typ'];
+      $r['nabizet'] = $r['stav'] == 1;
+      if( $typ == self::PREDMET || $typ == self::JIDLO ) {
+        $r['nabizet'] = $r['nabizet'] ||
+          $r['stav'] == 2 && $r['typ'] == 4 && ($u->maPravo(P_JIDLO) || $u->maPravo(P_JIDLO_ZDARMA));
+        $this->predmety[] = $r;
+      } elseif( $typ == self::UBYTOVANI ) {
+        $this->ubytovani[$r['ubytovani_den']][self::typUbytovani($r)] = $r;
+        $this->ubytovaniTypy[self::typUbytovani($r)] = 1;
+      } elseif( $typ == self::TRICKO ) {
+        $r['nabizet'] = $r['nabizet'] ||
+          $r['stav'] == 2 && strpos($r['nazev'],'modré')!==false && $this->u->maPravo(P_TRIKO_ZAPUL) ||  // modrá trička
+          $r['stav'] == 2 && strpos($r['nazev'],'červené')!==false && $this->u->maPravo(P_TRIKO_ZDARMA); // červená trička
+        $this->tricka[] = $r;
+      } else {
         throw new Exception('Objevil se nepodporovaný typ předmětu s č.'.$r['typ']);
+      }
+    }
   }
-  
+
   /**
-   * Vrátí html kód formuláře s předměty a tričky (bez form značek kvůli 
+   * Vrátí html kód formuláře s předměty a tričky (bez form značek kvůli
    * integraci více věcí naráz).
-   * @todo vyprodání věcí   
+   * @todo vyprodání věcí
    */
   function predmetyHtml()
   {
-    $out='';
-    $out="
-    <script>
-      function prikup(id,tlacitko)
-      {
-        var pocet=$('[name=\"{$this->klicP}['+id+']\"]').val();
-        pocet++;
-        $('[name=\"{$this->klicP}['+id+']\"]').val(pocet);
-        $('#pocet'+id).html(pocet);
-        if(pocet==1) // po inkrementu
-          $(tlacitko).siblings('.minus').removeClass('neaktivni');
-        return false;
-      }
-      function sniz(id,tlacitko)
-      {
-        var pocet=$('[name=\"{$this->klicP}['+id+']\"]').val();
-        if(pocet>0)
-        {
-          pocet--;
-          $('[name=\"{$this->klicP}['+id+']\"]').val(pocet);
-          $('#pocet'+id).html(pocet);
-        }
-        if(pocet<=0) // po dekrementu
-          $(tlacitko).addClass('neaktivni');
-        return false;
-      }
-    </script>";
-    
-    $out='<i>Objednávání triček a předmětů ukončeno</i><br>';
-    $out.='<table class="predmety">';
-    foreach($this->predmety as $predmet)
-      if($predmet['v_nabidce'] || $predmet['kusu_uzivatele']>0)
-        $out.='<tr><td>'.$predmet['nazev'].' <input type="hidden" '.
-        'name="'.$this->klicP.'['.$predmet['id_predmetu'].']" '.
-        'value="'.$predmet['kusu_uzivatele'].'"></td>'.
-        '<td>'.round($predmet['cena_aktualni']).'&thinsp;Kč</td>'.
-        '<td><span id="pocet'.$predmet['id_predmetu'].'">'.$predmet['kusu_uzivatele'].'</span>&times;</td>'.
-        ($predmet['v_nabidce']?
-          '<td><a href="#" onclick="return sniz('.$predmet['id_predmetu'].',this)" class="minus'.($predmet['kusu_uzivatele']?'':' neaktivni').'">-</a> '.
-          '<a href="#" onclick="return prikup('.$predmet['id_predmetu'].',this)" class="plus">+</a></td>'
-          :
-          '').
-        "</tr>\n";
-      else if($predmet['typ']==4 && ($this->u->maPravo(P_JIDLO) || $this->u->maPravo(P_JIDLO_ZDARMA)))
-        //jídlo
-        $out.='<tr><td>'.$predmet['nazev'].'</td><td>'.round($predmet['cena_aktualni']).'&thinsp;Kč</td>'.
-        '<td><input type="checkbox" name="'.$this->klicP.'['.$predmet['id_predmetu'].']" value="1"'.($predmet['kusu_uzivatele']?' checked':'').'></td>'.
-        "</td></tr>\n";
-    $out.='</table>';
-    
-    $out.=$this->trickaHtml();
-    
+    $out = '';
+    $out .= $this->vyberPlusminus($this->predmety);
+    $out .= $this->vyberSelect($this->tricka);
+
     // slovně popsané slvey fixme nedokonalé, na pevno zadrátované
     if($this->u->maPravo(P_TRIKO_ZDARMA))
       $out.='<br><i>Jako pro organizátora pro tebe výš uvedené ceny neplatí a máš jedno tričko, kostku, placku a veškeré jídlo zdarma :)<br>* večeře ve čtvrtek a snídaně+oběd v neděli</i>';
     else if($this->u->maPravo(P_TRIKO_ZAPUL))
       $out.='<br><i>Jako vypravěč máš poloviční slevu na tričko. Kostku a placku máš zdarma. Výš uvedené ceny pro tebe tedy neplatí.<br>* večeře ve čtvrtek a snídaně+oběd v neděli</i>';
-    
+
     return $out;
   }
-  
+
   /**
    * Vrátí html kód formuláře pro naklikání slev
    */
@@ -177,12 +138,12 @@ class Shop
     '<br><br><i>Jako nováček se bere každý účastník, který <b>skutečně dojede</b> a na GameConu nebyl aspoň 3 roky nebo nikdy. Pokud nováčka nebereš, nech pole prázdné. Pokud bereš víc nováčků, napiš jejich ID (číslo, které mají uvedené v pravém horním rohu webu) oddělená čárkou.</i>'.
     '<br><i>Pro slevu za včasnou platbu je potřeba, aby peníze dorazily do <b>30.6. na účet GC</b>. Převod může trvat až 2 dny.</i>';
     return $out;
-  }     
-  
+  }
+
   /**
    * Vrátí html kód s rádiobuttonky pro vyklikání ubytování
    * @todo nějaký custom prvek do názvů (name) nebo centralizace unikátních náz-
-   * vů pro GC stránky celkově.   
+   * vů pro GC stránky celkově.
    */
   function ubytovaniHtml()
   {
@@ -218,8 +179,8 @@ class Shop
           $sel='';
         $lock=( !$sel && ( !$this->existujeUbytovani($den,$typ) || $this->plno($den,$typ) ) )?'disabled':'';
         $out.='<div style="height:'.$vyska.'">';
-        $out.='<input style="margin:0" type="radio" '. 
-          'name="'.$this->klicU.'['.$den.']" '. 
+        $out.='<input style="margin:0" type="radio" '.
+          'name="'.$this->klicU.'['.$den.']" '.
           'value="'.$this->ubytovaniPredmet($den,$typ).'" '.
           $sel.' '.$lock.'>';
         $out.=$this->existujeUbytovani($den,$typ)?(' <span style="font-size:80%;position:relative;top:-2px">'.$this->zbyvaMist($den,$typ).'/'.$this->kapacita($den,$typ).'</span>'):'';
@@ -230,7 +191,7 @@ class Shop
       $out.='</div>';
     }
     $out.='<div style="clear:both"></div>';
-    
+
     // jen textové informace o ubytováních
     $out.='
       <a href="#" onclick="$(\'#infoUbytovani\').slideToggle();return false">informace o ubytování</a>
@@ -240,12 +201,12 @@ class Shop
       <p>
         <b>Penzion Charlie:</b> Ubytování pro náročné, kteří chtějí mít svůj klid. 5 minut pomalé chůze od místa konání GameConu. Cena včetně DPH, rekreačního poplatku městu, snídaně, parkovného a wi-fi.<br>
         <b>Penzion Witch:</b> Nadstandardní ubytování v apartmánech pro 2-4 osoby. 5 minut pomalé chůze od místa konání GameConu. Cena včetně DPH, rekreačního poplatku městu.<br>
-        <b>Chata SK a Richor:</b> Chaty se nachází v kempu 10-15 minut chůze od Internátu, v areálu jsou nově opravené sprchy (za poplatek 10 Kč), restaurace, minigolf. Studenti mají ubytování v chatkách o 15 Kč na den levnější.<br> 
+        <b>Chata SK a Richor:</b> Chaty se nachází v kempu 10-15 minut chůze od Internátu, v areálu jsou nově opravené sprchy (za poplatek 10 Kč), restaurace, minigolf. Studenti mají ubytování v chatkách o 15 Kč na den levnější.<br>
         V případě dotazů k ubytování se obraťte na <a href="mailto:info@gamecon.cz">info@gamecon.cz</a>.
       </p>
       </div><br>
     ';
-    
+
     // ubytování na pokoji s
     $spolubydlici = dbOneCol('SELECT ubytovan_s FROM uzivatele_hodnoty WHERE id_uzivatele='.$this->u->id()); //první položka
     $out.='<br>Na pokoji chci být s (jména oddělená čárkou, nebo nech prázdné):';
@@ -253,21 +214,21 @@ class Shop
       'name="'.$this->klicUPokoj.'" value="'.$spolubydlici.'"><br>';
     $out.='<script src="'.URL_WEBU.'/files/doplnovani-vice.js"></script>';
     $out.='<script>doplnovatVice($("#naPokojiS"),'.$this->mozniUzivatele().');</script>';
-    
+
     // slovně popsané slvey fixme nedokonalé, na pevno zadrátované
     if($this->u->maPravo(P_TRIKO_ZDARMA))
       $out.='<br><i>Jako organizátor máš veškeré ubytování také zdarma.</i>';
     else if($this->u->maPravo(P_TRIKO_ZAPUL))
       $out.='<br><i>Jako vypravěč máš na ubytování (i aktivity) slevu ve výši cca jeden nocleh+jídlo za dvě uspořádané aktivity. Její přesnou výšku najdeš '.($this->u->gcPrihlasen()?'':'po dokončení registrace ').'v svém finančním přehledu.</i>';
-    
+
     return $out;
   }
-  
+
   /**
    * Zpracuje část formuláře s předměty a tričky
    * Čáry máry s ručním počítáním diference (místo smazání a náhrady) jsou nut-
    * né kvůli zachování původní nákupní ceny (aktuální cena se totiž mohla od
-   * nákupu změnit).         
+   * nákupu změnit).
    */
   function zpracujPredmety()
   {
@@ -311,15 +272,12 @@ class Shop
       $q.=$pridat;
       if(substr($q,-1)!=' ') //hack testující, jestli se přidala nějaká část
         dbQuery(substr($q,0,-1)); //odstranění nadbytečné čárky z poslední přidávané části a spuštění dotazu
-      
-      //throw new Exception('neimplementováno');
-      //die();
     }
-  }   
-  
+  }
+
   /**
    * Zpracuje část formuláře s ubytováním
-   * @return bool jestli došlo k zpracování dat   
+   * @return bool jestli došlo k zpracování dat
    */
   function zpracujUbytovani()
   {
@@ -327,8 +285,8 @@ class Shop
     {
       // smazat veškeré stávající ubytování uživatele
       dbQuery('
-        DELETE n.* FROM shop_nakupy n 
-        JOIN shop_predmety p USING(id_predmetu) 
+        DELETE n.* FROM shop_nakupy n
+        JOIN shop_predmety p USING(id_predmetu)
         WHERE n.id_uzivatele='.$this->u->id().' AND p.typ=2 AND n.rok='.ROK);
       // vložit jeho zaklikané věci - note: není zabezpečeno
       $q='INSERT INTO shop_nakupy(id_uzivatele,id_predmetu,rok,cena_nakupni,datum) VALUES '."\n";
@@ -347,7 +305,7 @@ class Shop
     }
     return false;
   }
-  
+
   /**
    * Zpracuje část formuláře se slevami
    */
@@ -378,32 +336,32 @@ class Shop
         }
       }
     }
-  }          
-  
+  }
+
   ////////////////////
   // Protected věci //
   ////////////////////
-  
+
   /**
    * Vrátí reálnou cenu předmětu pro konkrétního uživatele.
-   * Pozor: není autoritativní, je jen copypasta z SQL formulace téhož v třídě 
+   * Pozor: není autoritativní, je jen copypasta z SQL formulace téhož v třídě
    * Finance (viz)
    * @param $p databázový výstup předmětu
-   */   
+   */
   protected function cena($p)
   {
     return $p['cena_aktualni'];
   }
-  
+
   /**
    * Vrátí, jestli daná kombinace den a typ je validní.
    */
   protected function existujeUbytovani($den,$typ)
   {
-    return isset($this->ubytovani[$den][$typ]) 
-      && $this->ubytovani[$den][$typ]['v_nabidce'];
+    return isset($this->ubytovani[$den][$typ])
+      && $this->ubytovani[$den][$typ]['stav'];
   }
-  
+
   /**
    * Vrátí kapacitu
    */
@@ -412,7 +370,7 @@ class Shop
     $ub=$this->ubytovani[$den][$typ];
     return max(0,$ub['kusu_vyrobeno']);
   }
-  
+
   /**
    * Vrátí seznam uživatelů ve formátu Jméno Příjmení (Login) tak aby byl zpra-
    * covatelný neajaxovým našeptávátkem (čili ["položka","položka",...])
@@ -425,7 +383,7 @@ class Shop
       $out.='"'.$u[0].'",';
     return '['.substr($out,0,-1).']';
   }
-  
+
   /**
    * Vrátí, jestli je v daný den a typ ubytování plno
    */
@@ -433,65 +391,7 @@ class Shop
   {
     return $this->zbyvaMist($den,$typ)<=0;
   }
-  
-  /**
-   * Vrátí html kód vybíracího políčka (políček) pro výběr triček
-   * Obecná myšlenka: Máme roletový výběr s všemi možnostmi dostupnými součas-
-   * nému uživateli, každé tričko je jedna roleta s vybraným kusem plus dole
-   * je klikátko "další" pro přidání dalších triček.
-   * @todo funkce na přidávání dalších políček na více triček
-   * @todo různé ceny triček zeserou default cenu               
-   */
-  protected function trickaHtml()
-  {
-    // načtení variant, které může mít daný uživatel v selectboxu
-    $moznosti=array();
-    foreach($this->tricka as $tricko)
-      if($tricko['v_nabidce'] || 
-        ( strpos($tricko['nazev'],'modré')!==false && $this->u->maPravo(P_TRIKO_ZAPUL) ) || // modrá trička
-        ( strpos($tricko['nazev'],'červené')!==false && $this->u->maPravo(P_TRIKO_ZDARMA) ) // červená trička
-      ) // může si toto tričko objednávat
-        if($tricko['kusu_vyrobeno'] && $tricko['kusu_prodano']>=$tricko['kusu_vyrobeno'] && !$tricko['kusu_uzivatele']) // vyprodáno
-          $moznosti[]=array_merge($tricko,array('vyprodano'=>true));
-        else
-          $moznosti[]=array_merge($tricko,array('vyprodano'=>false));
-    $defaultCena=(int)$tricko['cena_aktualni']; // pokud máme víc cen, zesere se to!
-    // vygenerování selectboxů
-    $trickaPlus=array_merge($this->tricka,array(array('kusu_uzivatele'=>1,'id_predmetu'=>0))); // zarážka dělající poslední výběrové políčko
-    $out='';
-    $j=0;
-    /*
-    // zakomentování výběru triček - fixme
-    // problém je v tom, že u orgů už se pracuje s tím že v_nabidce=0 a přesto
-    // se tričko zobrazí, proto je potřeba to vyřešit jinak (další sloupec?
-    // změnit význam sloupce v_nabidce? …)
-    */
-    foreach($trickaPlus as $tricko)
-      for($i=0;$i<$tricko['kusu_uzivatele'];$i++) // pro každý typ vygenerovat tolik selectboxů, kolikrát ho má koupený
-      {
-        // hack na zabránění změny - onclick a onchange a style pro obnovení fce pryč
-        $out.='<select name="'.$this->klicT.'['.$j.']" style="color:#888;border:none;background:transparent" onclick="this.s=this.selectedIndex;return false" onchange="this.selectedIndex=s">';
-        $out.='<option value="0">(žádné tričko)</option>';
-        foreach($moznosti as $moznost)
-          $out.=
-            '<option value="'.$moznost['id_predmetu'].'"'.
-            ($moznost['vyprodano']?' disabled':'').
-            ($moznost['kusu_uzivatele'] && $tricko['id_predmetu']==$moznost['id_predmetu']?' selected':'').'>'.
-            $moznost['nazev'].($moznost['vyprodano']?' (vyprodáno)':'').'</option>';
-        $out.='</select>';
-        // ceny triček
-        if($tricko['id_predmetu']) // ne poslední tričko
-          $out.=' '.round($tricko['cena_aktualni']).'&thinsp;Kč';
-        else
-          $out.=' '.$defaultCena.'&thinsp;Kč';
-        $out.='<br>';
-        $j++;
-      }
-    
-    return $out;
-    
-  }     
-  
+
   /**
    * Zpracuje řádek z databáze a vrátí „nějaký“ identifikátor typu ubytování.
    * Aktuálně vrací název bez posledního slova a mezery (ty jsou vyhrazeny pro
@@ -501,19 +401,19 @@ class Shop
   {
     return substr($r['nazev'],0,strrpos($r['nazev'],' '));
   }
-  
+
   /**
    * Vrátí, jestli uživatel pro tento shop má ubytování v kombinaci den, typ
-   * @param int $den číslo dne jak je v databázi   
+   * @param int $den číslo dne jak je v databázi
    * @param string $typ typ ubytování ve smyslu názvu z DB bez posledního slova
-   * @return bool je ubytován?      
+   * @return bool je ubytován?
    */
   protected function ubytovan($den,$typ)
   {
-    return isset($this->ubytovani[$den][$typ]) 
+    return isset($this->ubytovani[$den][$typ])
       && $this->ubytovani[$den][$typ]['kusu_uzivatele']>0;
   }
-  
+
   /**
    * Vrátí id předmětu, který odpovídá dané kombinaci ubytování
    */
@@ -523,8 +423,124 @@ class Shop
       return $this->ubytovani[$den][$typ]['id_predmetu'];
     else
       return '';
-  }     
-  
+  }
+
+  /**
+   * Vrátí html s výběrem předmetů s každou možností zvlášť a vybírátky + a -
+   * @todo nerozlišovat hardcode jídlo, ale např. přidat do db sloupec limit
+   *  objednávek nebo něco podobného
+   * @todo dodělat ne/dostupnost předmětu do db
+   */
+  protected function vyberPlusminus($predmety) {
+    foreach($predmety as &$p) {
+      $name = $this->klicP.'['.$p['id_predmetu'].']';
+      $p['cena'] = round($p['cena_aktualni']).'&thinsp;Kč';
+      $p['vybiratko'] = '';
+      if(!$p['nabizet'] && $p['kusu_uzivatele']) {
+        // pouze znovuposlat stávající stav
+        $p['vybiratko'] = '<input type="hidden"  name="'.$name.'" value="'.$p['kusu_uzivatele'].'">&#128274;';
+      } elseif($p['nabizet'] && $p['typ'] == 4) {
+        // checkbox pro jídlo
+        $checked = $p['kusu_uzivatele'] ? 'checked' : '';
+        $p['vybiratko'] = '<input type="checkbox" name="'.$name.'" value="1" '.$checked.'>';
+      } elseif($p['nabizet']) {
+        // plusmínus pro předměty
+        $p['vybiratko'] = '
+          <input type="hidden"  name="'.$name.'" value="'.$p['kusu_uzivatele'].'">
+          <a href="#" onclick="return sniz('.$p['id_predmetu'].', this)" class="minus'.($p['kusu_uzivatele']?'':' neaktivni').'">-</a>
+          <a href="#" onclick="return prikup('.$p['id_predmetu'].' ,this)" class="plus">+</a>
+        ';
+      }
+    }
+    unset($p); //php internal hack, viz dokumentace referencí a foreach
+
+    ob_start();
+    ?>
+    <script>
+      function lokator(id) {
+        return $('[name="<?=$this->klicP?>['+id+']"]');
+      }
+      function prikup(id, tlacitko) {
+        var pocet = lokator(id).val();
+        pocet++;
+        lokator(id).val(pocet);
+        $('#pocet'+id).html(pocet);
+        if(pocet==1) // po inkrementu
+          $(tlacitko).siblings('.minus').removeClass('neaktivni');
+        return false;
+      }
+      function sniz(id, tlacitko) {
+        var pocet = lokator(id).val();
+        if(pocet>0) {
+          pocet--;
+          lokator(id).val(pocet);
+          $('#pocet'+id).html(pocet);
+        }
+        if(pocet<=0) // po dekrementu
+          $(tlacitko).addClass('neaktivni');
+        return false;
+      }
+    </script>
+    <table class="predmety">
+      <?php foreach($predmety as $p) { ?>
+      <?php if($p['nabizet'] || $p['kusu_uzivatele']) { ?>
+      <tr>
+        <td><?=$p['nazev']?></td>
+        <td><?=$p['cena']?></td>
+        <td>
+          <span id="pocet<?=$p['id_predmetu']?>"><?=$p['kusu_uzivatele']?></span>&times;
+        </td>
+        <td><?=$p['vybiratko']?></td>
+      </tr>
+      <?php } ?>
+      <?php } ?>
+    </table>
+    <?php
+    return ob_get_clean();
+  }
+
+  /**
+   * Vrátí html kód s výběrem předmětů pomocí selectboxu s automatickým
+   * vytvářením dalších boxů pro výběr více kusů
+   */
+  protected function vyberSelect($predmety) {
+    // načtení aktuálně koupených triček
+    $koupene = array();
+    foreach($predmety as $p) {
+      for($i = 0; $i < $p['kusu_uzivatele']; $i++) {
+        $koupene[] = $p['id_predmetu'];
+      }
+    }
+    $koupene[] = 0; // plus jedno "default" na závěr
+    // tisk boxů
+    $out = '';
+    $i = 0;
+    foreach($koupene as $pid) {
+      $out .= '<select name="'.$this->klicT.'['.$i.']">';
+      $trikaOut = '';
+      $zamceno = '';
+      foreach($this->tricka as $t) {
+        // nagenerovat výběry triček, případně pokud je aktuální tričko zamčené, nagenerovat jediný výběr zvlášť
+        $sel = $t['id_predmetu'] == $pid ? 'selected' : '';
+        if($sel || $t['nabizet']) {
+          $trikaOut .= '<option value="'.$t['id_predmetu'].'" '.$sel.'>'.$t['nazev'].'</option>';
+        }
+        if($sel && !$t['nabizet']) {
+          $zamceno = '<option value="'.$t['id_predmetu'].'" '.$sel.'>&#128274;'.$t['nazev'].'</option>';
+        }
+      }
+      if(!$zamceno || $pid == 0) {
+        $out .= '<option value="0">(žádné tričko)</option>';
+      }
+      $out .= $zamceno ?: $trikaOut; // pokud je zamčeno, nevypisovat jiné nabídky
+      $out .= '</select>';
+      $out .= ' '.round($t['cena_aktualni']).'&thinsp;Kč';
+      $out .= '<br>';
+      $i++;
+    }
+    return $out;
+  }
+
   /**
    * Vrátí počet volných míst
    */
@@ -532,8 +548,6 @@ class Shop
   {
     $ub=$this->ubytovani[$den][$typ];
     return max(0,$ub['kusu_vyrobeno']-$ub['kusu_prodano']);
-  }             
-        
-}
+  }
 
-?>
+}
