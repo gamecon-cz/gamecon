@@ -95,7 +95,8 @@
         {menu}
         <!-- <a class="cthulu" href="organizuj">Chci i tebe!</a> -->
         <!-- <a class="novacek" href="novacci">Vem nováčka</a> -->
-        <a href="https://plus.google.com/106567731930618318644/posts" title="Google+" onclick="return !window.open(this.href);"><img src="files/styly/styl-aktualni/ikona_google.png" alt="Google+" title="Google+" width="40" height="40" /></a>
+        <a class="novacek" style="background-image:url('files/styly/obecne/vypravec.png')" href="mailto:info@gamecon.cz">Chceš vést aktivitu? Napiš nám!</a>
+        <!-- <a href="https://plus.google.com/106567731930618318644/posts" title="Google+" onclick="return !window.open(this.href);"><img src="files/styly/styl-aktualni/ikona_google.png" alt="Google+" title="Google+" width="40" height="40" /></a> -->
         <a href="https://www.facebook.com/gamecon" title="Facebook" onclick="return !window.open(this.href);"><img src="files/styly/styl-aktualni/ikona_facebook.png" alt="Facebook" title="Facebook" width="40" height="40" /></a>
       </div>
       
