@@ -521,8 +521,9 @@ class Aktivita
   /** Zdali chceme, aby se na aktivitu bylo možné běžně přihlašovat */
   function prihlasovatelna()
   {
-    //stav 4 je rezervovaný pro viditelné nepřihlašovatelné aktivity
-    return(REG_AKTIVIT && $this->a['stav']==1 && $this->a['zacatek']);
+    // stav 4 je rezervovaný pro viditelné nepřihlašovatelné aktivity
+    // typ 10 je hack, kde technickou aktivitu pokud vidí, může se i přihlásit
+    return(REG_AKTIVIT && ( $this->a['stav']==1 || $this->a['stav']==0 && $this->a['typ']==10 ) && $this->a['zacatek']);
   }
 
   /**
@@ -864,12 +865,12 @@ class Aktivita
   }
 
   /**
-   * Vrátí pole aktivit které se letos zobrazí v programu
+   * Vrátí pole aktivit které se letos potenciálně zobrazí v programu
    * @todo zjistit rychlost a přepsat zWhere() pokud to půjde
    */
   static function zProgramu() {
     return self::zWhere(
-      'a.rok = $1 AND a.zacatek AND a.stav IN(1,2,3,4)',
+      'a.rok = $1 AND a.zacatek AND ( a.stav IN(1,2,3,4) OR a.typ = 10 )',
       array(ROK),
       'ORDER BY DAY(a.zacatek), al.poradi, HOUR(a.zacatek), a.nazev_akce'
     );

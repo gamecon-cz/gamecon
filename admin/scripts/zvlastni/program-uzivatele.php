@@ -1,8 +1,11 @@
 <?php
 
-$osobniProgram=isset($osobniProgram)?$osobniProgram:false;
+$osobniProgram = isset($osobniProgram) ? (bool)$osobniProgram : false;
 
-$program=new Program($uPracovni, $osobniProgram);
+$program=new Program($uPracovni, array(
+  'osobni' => $osobniProgram,
+  'technicke' => true,
+));
 if($uPracovni) Aktivita::prihlasovatkoZpracuj($uPracovni);
 
 ?>

@@ -83,14 +83,12 @@ class Finance
         $this->slevyO[]='ubytování zdarma';
       // vypravěčská sleva dle aktivit
       $slevaVse = $this->slevaVypravec();
-      if($slevaVse)
-        $this->slevyO[] = 'sleva '.$slevaVse.'&thinsp;Kč pro vypravěče za odvedené aktivity na všechno';
       // provedení dotazu
       $o=dbQuery("
         -- aktivity
-          SELECT -- count(1) as pocet, sum(a.cena*(st.platba_procent/100)) as soucet
+          SELECT
             a.nazev_akce as nazev,
-            a.cena*(st.platba_procent/100)*IF(a.bez_slevy,1.0,$this->scnA) as cena,
+            a.cena*(st.platba_procent/100)*IF(a.bez_slevy OR a.typ=10, 1.0, $this->scnA)*IF(a.typ=10,-1.0,1.0) as cena,
             ".self::AKTIVITA." as typ,
             0 as podtyp
           FROM (
@@ -144,18 +142,24 @@ class Finance
       $plateb=0;
       while($r=mysql_fetch_assoc($o))
       {
+        // přepočet záporných cen (tech. aktivity) na reál slevu
+        if($r['cena'] < 0 && $r['typ']==self::AKTIVITA) {
+          $slevaVse -= $r['cena'];
+          $r['cena'] = 0;
+        }
+        // slevy na první kus od předmětu
         if($r['typ']==3)
           self::zapoctiSlevu($r['cena'],$slevaTricko);
         else if($r['typ']==1 && $r['nazev']=='Placka')
           self::zapoctiSlevu($r['cena'],$slevaPlacka);
         else if($r['typ']==1 && $r['nazev']=='Kostka')
           self::zapoctiSlevu($r['cena'],$slevaKostka);
+        // rozlišení a zaúčtování platba x cena
         if($r['typ']==self::PLATBA || $r['typ']==self::ZUSTATEK)
           $zaplaceno+=$r['cena'];
         else
-        {
           $suma+=$r['cena'];
-        }
+        // započtení do mezisoučtů
         switch($r['typ']){
           case self::PLATBA:        $this->platby+=$r['cena']; break;
           case self::AKTIVITA:      $this->cenaAktivity+=$r['cena']; break;
@@ -163,7 +167,7 @@ class Finance
           case 1: case 3: case 4:   $this->cenaPremety+=$r['cena']; break;
           default: break;
         }
-        $nazev= $r['typ']==1 ? $r['nazev'].' '.$r['podtyp'] : $r['nazev']; 
+        $nazev= $r['typ']==1 ? $r['nazev'].' '.$r['podtyp'] : $r['nazev'];
           $this->prehled[]=array( self::NAZEV=>$nazev, self::CENA=>$r['cena'], self::TYP=>$r['typ'], self::PODTYP=>$r['podtyp'] );
         if( $r['typ']==-1 && ($this->u->maPravo(P_SLEVA_VCAS) || SLEVA_AKTIVNI) && $this->scnA>0 )
           $this->deltaPozde+=($r['cena']/$this->scnA)*0.2;
@@ -177,10 +181,12 @@ class Finance
         $puvSleva=$slevaVse;
         self::zapoctiSlevu($suma,$slevaVse);
         $this->prehled[]=array(
-          self::NAZEV => 'Sleva za organizované aktivity', 
+          self::NAZEV => 'Sleva za organizované aktivity',
           self::CENA => $puvSleva.' (využito '.($puvSleva-$slevaVse).')',
           self::TYP => self::ORGSLEVA);
+        $this->slevyO[] = 'sleva '.$puvSleva.'&thinsp;Kč pro vypravěče za odvedené aktivity na všechno';
       }
+      // celkové sumy do přehledu a výsledek
       $this->prehled[]=array( self::NAZEV => 'Celková cena', self::CENA => $suma, self::TYP => self::CELKOVA);
       $this->prehled[]=array( self::NAZEV => '<b>Stav financí</b>', self::CENA => '<b>'.(-$suma+$zaplaceno).'</b>', self::TYP => self::VYSLEDNY);
       

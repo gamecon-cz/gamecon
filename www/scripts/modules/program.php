@@ -1,8 +1,8 @@
 <?php
 
-$osobniProgram=isset($osobniProgram)?$osobniProgram:false;
+$osobniProgram = isset($osobniProgram) ? (bool)$osobniProgram : false;
 
-$program=new Program($u,$osobniProgram);
+$program = new Program($u, array('osobni' => $osobniProgram));
 if($u) Aktivita::prihlasovatkoZpracuj($u);
 
 ?>

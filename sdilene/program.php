@@ -12,20 +12,22 @@ class Program
   var $aktFronta=array();
   var $program;
   var $nastaveni=array(
-    'pocty'=>true,
-    'prihlasovani'=>false,
-    'osobni'=>false,
-    'tableClass'=>'program', //todo edit
+    'pocty'         => true,
+    'prihlasovani'  => false,
+    'osobni'        => false,
+    'tableClass'    => 'program', //todo edit
+    'technicke'     => false, // jestli jdou vidět technické aktivity
   );
   
   /** Konstruktor bere uživatele a specifikaci, jestli je to osobní program */  
-  function __construct(Uzivatel $u=null, $osobni=false)
+  function __construct(Uzivatel $u=null, $nastaveni=null)
   {
-    if($u instanceof Uzivatel)
-    {
+    if($u instanceof Uzivatel) {
       $this->u=$u;
       $this->uid=$this->u->id();
-      $this->nastaveni['osobni']=$osobni;
+    }
+    if(is_array($nastaveni)) {
+      $this->nastaveni = array_replace($this->nastaveni, $nastaveni);
     }
   }
   
@@ -134,12 +136,12 @@ class Program
   private function dalsiAktivita()
   { 
     if(!$this->dbPosledni) {
-      $this->dbPosledni = self::nactiAktivitu($this->program);
+      $this->dbPosledni = $this->nactiAktivitu($this->program);
     }
     
     while($this->koliduje($this->posledniVydana, $this->dbPosledni)) {
       $this->aktFronta[] = $this->dbPosledni;
-      $this->dbPosledni = self::nactiAktivitu($this->program);
+      $this->dbPosledni = $this->nactiAktivitu($this->program);
     }
     
     if($this->stejnaSkupina($this->dbPosledni, $this->posledniVydana) || !$this->aktFronta)
@@ -167,7 +169,8 @@ class Program
       ( $classes?' class="'.implode(' ',$classes).'"':'' ).
       '>'.$a['obj']->nazev());
     echo $a['obj']->obsazenostHtml();
-    echo ' '.$a['obj']->prihlasovatko($this->u);
+    if($a['obj']->typ() != 10 || $this->nastaveni['technicke']) // hack na nezobrazování přihlašovátek pro technické
+      echo ' '.$a['obj']->prihlasovatko($this->u);
     echo('</td>');
   }
 
@@ -175,7 +178,7 @@ class Program
    * Načte jednu aktivitu (objekt) z iterátoru a vrátí vnitřní reprezentaci
    * (s cacheovanými hodnotami) pro program.
    */
-  private static function nactiAktivitu($iterator)
+  private function nactiAktivitu($iterator)
   {
     if(!$iterator->valid()) return null;
     $a = $iterator->current();
@@ -191,7 +194,11 @@ class Program
       'obj' => $a
     );
     $iterator->next();
-    return $a;
+    if($a['obj']->typ() != 10 || $this->nastaveni['technicke'] || $this->u && $a['obj']->prihlasen($this->u)) {
+      return $a;
+    } else {
+      return $this->nactiAktivitu($iterator);
+    }
   }
   
   
