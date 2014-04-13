@@ -8,11 +8,14 @@ $program=new Program($uPracovni, array(
 ));
 if($uPracovni) Aktivita::prihlasovatkoZpracuj($uPracovni);
 
+$chyba = chyba::vyzvedniHtml();
+
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="cs" lang="cs">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script src="files/jquery-2.1.0.min.js"></script>
     <base href="<?=URL_ADMIN?>/">
     <?php $program->css(); ?>
     <style>
@@ -25,7 +28,7 @@ if($uPracovni) Aktivita::prihlasovatkoZpracuj($uPracovni);
     </style>
   </head>
   <body>
-  
+
   <div style="text-align:left;max-width:1060px;margin:auto;font-size:16px;margin-bottom:-30px;margin-top:10px">
     <input type="button" style="position:absolute;margin: 10px 0 0 260px;width:100px;height:40px" value="Zavřít" onclick="window.close();">
     <?=$uPracovni->jmenoNick()?><br>
@@ -36,10 +39,12 @@ if($uPracovni) Aktivita::prihlasovatkoZpracuj($uPracovni);
        celkový program <a href="program-osobni">osobní program</a>
     <?php } ?>
   </div>
-  
+
+  <?=$chyba?>
+
   <?php $program->tisk(); ?>
-  
+
   <?php profilInfo(); ?>
-  
+
   </body>
 </html>
