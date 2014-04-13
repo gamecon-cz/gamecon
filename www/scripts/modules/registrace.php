@@ -67,7 +67,7 @@ if(!$u && (post('registrovat')||post('registrovatAPrihlasit')))
 
 $pokracovat=isset($_GET['prihlaska']); //pokračovat v přihlášce dle GETu?
 if($u && $pokracovat)
-  exit(header('Location: /prihlaska'));
+  exit(header('Location: '.URL_WEBU.'/prihlaska'));
 
 //todo gamecon neběží a podobně
 

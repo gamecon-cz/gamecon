@@ -1,22 +1,26 @@
 <?php
 
-if(GAMECON_BEZI) { /*echo hlaska('prihlaseniJenInfo'); return;*/
-?>
-Registrace přes internet jsou ukončeny, <strong>registrovat se můžete přímo na místě na infopultu</strong>. Upravit si program a vybrat aktivity můžete tamtéž.
-<?php
-return;
+if(GAMECON_BEZI || $u && $u->gcPritomen()) {
+  echo hlaska('prihlaseniJenInfo');
+  return;
 }
-if(!REGISTRACE_AKTIVNI) { echo hlaska('prihlaseniVypnuto'); return; }
-if(!$u) exit(header('Location: /registrace?prihlaska'));
+
+if(!REGISTRACE_AKTIVNI) {
+  echo hlaska('prihlaseniVypnuto');
+  return;
+}
+
+if(!$u) exit(header('Location: '.URL_WEBU.'/registrace?prihlaska'));
 
 $shop=new Shop($u);
 
 if(!empty($_POST)) 
 {
   // odhlášení z GameConu
-  if(post('odhlasit'))
-    $u->gcOdhlas() xor
+  if(post('odhlasit')) {
+    $u->gcOdhlas();
     oznameni(hlaska('odhlaseniZGc',$u));
+  }
   // přihlašování nebo editace
   $prihlasovani=false;
   if(!$u->gcPrihlasen())

@@ -173,34 +173,24 @@ class Uzivatel
    */
   function gcOdhlas()
   {
-    if($this->gcPrihlasen() && !$this->gcPritomen())
-    { // jen pokud je přihlášen a zároveň ještě neprošel infopultem
-      // smazání přihlášení na aktivity, na které je jen přihlášen (ne je už hrál, jako náhradník apod.)
-      dbQuery('DELETE p.* FROM akce_prihlaseni p JOIN akce_seznam a
-        WHERE a.rok='.ROK.' AND p.id_stavu_prihlaseni=0 AND p.id_uzivatele='.$this->id());
-      // smazání DrD, víceméně spekulativní, potenciální bugy
-      dbQuery('DELETE FROM drd_postava WHERE rok='.ROK.' AND id_uzivatele='.$this->id());
-      dbQuery('DELETE FROM drd_prihlasky WHERE rok='.ROK.' AND id_uzivatele='.$this->id());
-      dbQuery('DELETE FROM drd_uzivatele_druziny WHERE rok='.ROK.' AND id_uzivatele='.$this->id());
-      dbQuery('DELETE FROM postavy_poznamka WHERE rok='.ROK.' AND id_uzivatele='.$this->id());
-      dbQuery('DELETE FROM postavy_schopnosti WHERE rok='.ROK.' AND id_uzivatele='.$this->id());
-      dbQuery('DELETE FROM postavy_vybaveni WHERE rok='.ROK.' AND id_uzivatele='.$this->id());
-      dbQuery('DELETE FROM postavy_zbrane_f2f WHERE rok='.ROK.' AND id_uzivatele='.$this->id());
-      dbQuery('DELETE FROM postavy_zbrane_str WHERE rok='.ROK.' AND id_uzivatele='.$this->id());
-      // zrušení nákupů
-      dbQuery('DELETE FROM shop_nakupy WHERE rok='.ROK.' AND id_uzivatele='.$this->id());
-      // finální odebrání židle "registrován na GC"
-      $this->vemZidli(ID_ZIDLE_PRIHLASEN);
-      // odeslání upozornění, pokud u nás má peníze
-      if(mysql_num_rows(dbQuery('SELECT 1 FROM platby WHERE rok='.ROK.' AND id_uzivatele='.$this->id()))>0)
-        mail(
-          'info@gamecon.cz',
-          'Uživatel '.$this->jmenoNick().' se odhlásil ale platil',
-          'Uživatel '.$this->jmenoNick().' (ID '.$this->id().') se odhlásil z
-          GameConu, ale v aktuálním roce ('.ROK.') si převedl nějaké peníze. Bude
-          vhodné to prověřit popř. smazat platbu z připsaných a dát do zůstatku
-          v seznamu uživatelů, aby mu peníze nepropadly');
-    }
+    if($this->gcPritomen()) throw new Exception('Už jsi prošel infopultem, odhlášení není možné.');
+    if(!$this->gcPrihlasen()) throw new Exception('Nejsi přihlášen na GameCon.');
+    // smazání přihlášení na aktivity, na které je jen přihlášen (ne je už hrál, jako náhradník apod.)
+    dbQuery('DELETE p.* FROM akce_prihlaseni p JOIN akce_seznam a
+      WHERE a.rok='.ROK.' AND p.id_stavu_prihlaseni=0 AND p.id_uzivatele='.$this->id());
+    // zrušení nákupů
+    dbQuery('DELETE FROM shop_nakupy WHERE rok='.ROK.' AND id_uzivatele='.$this->id());
+    // finální odebrání židle "registrován na GC"
+    $this->vemZidli(ID_ZIDLE_PRIHLASEN);
+    // odeslání upozornění, pokud u nás má peníze
+    if(mysql_num_rows(dbQuery('SELECT 1 FROM platby WHERE rok='.ROK.' AND id_uzivatele='.$this->id()))>0)
+      mail(
+        'info@gamecon.cz',
+        'Uživatel '.$this->jmenoNick().' se odhlásil ale platil',
+        'Uživatel '.$this->jmenoNick().' (ID '.$this->id().') se odhlásil z
+        GameConu, ale v aktuálním roce ('.ROK.') si převedl nějaké peníze. Bude
+        vhodné to prověřit popř. smazat platbu z připsaných a dát do zůstatku
+        v seznamu uživatelů, aby mu peníze nepropadly');
   }
 
   /** Je uživatel přihlášen na aktuální GC? */

@@ -72,22 +72,38 @@ class Shop
 
     while($r = mysql_fetch_assoc($o)) {
       $typ = $r['typ'];
-      $r['nabizet'] = $r['stav'] == 1;
+      unset($fronta); // $fronta reference na frontu kam vložit předmět (nelze dát =null, přepsalo by předchozí vrch fronty)
+      $r['nabizet'] = $r['stav'] == 1; // v základu nabízet vše v stavu 1
+      // rozlišení kam ukládat a jestli nabízet podle typu
       if( $typ == self::PREDMET || $typ == self::JIDLO ) {
         $r['nabizet'] = $r['nabizet'] ||
           $r['stav'] == 2 && $r['typ'] == 4 && ($u->maPravo(P_JIDLO) || $u->maPravo(P_JIDLO_ZDARMA));
-        $this->predmety[] = $r;
+        $fronta = &$this->predmety[];
       } elseif( $typ == self::UBYTOVANI ) {
-        $this->ubytovani[$r['ubytovani_den']][self::typUbytovani($r)] = $r;
+        $fronta = &$this->ubytovani[$r['ubytovani_den']][self::typUbytovani($r)];
         $this->ubytovaniTypy[self::typUbytovani($r)] = 1;
       } elseif( $typ == self::TRICKO ) {
         $r['nabizet'] = $r['nabizet'] ||
           $r['stav'] == 2 && strpos($r['nazev'],'modré')!==false && $this->u->maPravo(P_TRIKO_ZAPUL) ||  // modrá trička
           $r['stav'] == 2 && strpos($r['nazev'],'červené')!==false && $this->u->maPravo(P_TRIKO_ZDARMA); // červená trička
-        $this->tricka[] = $r;
+        $fronta = &$this->tricka[];
+        // hack pro výběr správného automaticky objednaného trička
+        $barva = 'černé';
+        if($this->u->maPravo(P_TRIKO_ZAPUL)) $barva = 'modré';
+        if($this->u->maPravo(P_TRIKO_ZDARMA)) $barva = 'červené';
+        $r['auto'] = $r['nabizet'] && (
+          $this->u->pohlavi() == 'm' && strpos($r['nazev'], "$barva pánské L") ||
+          $this->u->pohlavi() == 'f' && strpos($r['nazev'], "$barva dámské S")
+        );
       } else {
         throw new Exception('Objevil se nepodporovaný typ předmětu s č.'.$r['typ']);
       }
+      // vybrané předměty nastavit jako automaticky objednané
+      if($r['nabizet'] && $r['auto'] && $this->prvniNakup()) {
+        $r['kusu_uzivatele']++;
+      }
+      // finální uložení předmětu na vrchol dané fronty
+      $fronta = $r;
     }
   }
 
@@ -109,6 +125,13 @@ class Shop
       $out.='<br><i>Jako vypravěč máš poloviční slevu na tričko. Kostku a placku máš zdarma. Výš uvedené ceny pro tebe tedy neplatí.<br>* večeře ve čtvrtek a snídaně+oběd v neděli</i>';
 
     return $out;
+  }
+
+  /**
+   * Jestli je toto prvním nákupem daného uživatele
+   */
+  protected function prvniNakup() {
+    return !$this->u->gcPrihlasen();
   }
 
   /**

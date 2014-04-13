@@ -53,7 +53,7 @@ h3 {margin-bottom: 4px}
   });
 </script>
 
-První informace o 20. ročníku GameConu očekávajte na jaře 2014. Pokud nechcete, aby vám cokoliv uniklo, zanechte nám níže svůj mail a rádi se připomeneme s (pouze) s důležitými aktualitami. Doporučujeme také sledovat náš profil na <a href="https://www.facebook.com/gamecon" onclick="return!window.open(this.href)" title="Facebook">Facebooku</a> či <a href="https://plus.google.com/106567731930618318644/posts" onclick="return!window.open(this.href)" title="Google+">Google+</a>.<br><br>
+<div style="font-size: 13pt; font-weight: bold; text-align: center; margin-top: 20px; margin-bottom: 12px;">Přihlašování na letošní ročník spouštíme <span style="color: #ab0000;"> 1.5. ve 20:00</span>.</div> Pokud nechcete, aby vám cokoliv uniklo, zanechte nám níže svůj mail a rádi se připomeneme s (pouze) důležitými aktualitami. Doporučujeme také sledovat náš profil na <a href="https://www.facebook.com/gamecon" onclick="return!window.open(this.href)" title="Facebook">Facebooku</a>.<br><br>
 
 <form method="post" class="gcForm" style="margin: 4px 0 10px 0">
   <input type="text" size="30" name="mail" title="e-mail">

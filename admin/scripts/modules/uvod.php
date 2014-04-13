@@ -143,7 +143,7 @@ $o=dbQuery('
     ROUND(p.cena_aktualni) as cena 
   FROM shop_predmety p 
   LEFT JOIN shop_nakupy n ON(n.id_predmetu=p.id_predmetu AND rok='.ROK.')
-  WHERE p.id_predmetu IN(107,106,71,47)
+  WHERE p.stav > 0 AND p.typ IN (1,3)
   GROUP BY p.id_predmetu
   ORDER BY model_rok DESC, nazev');
 $moznosti='<option value="0">(vyber)</option>';
