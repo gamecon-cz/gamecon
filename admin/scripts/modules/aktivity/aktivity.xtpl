@@ -26,7 +26,7 @@
       Trojúhelníčky slouží k řazení.</div></span>
       <a href="aktivity?sort=nazev_akce">▲</a> </th>
     <th style="width:120px">Čas <a href="aktivity?sort=zacatek">▲</a> </th>
-    <th>Organizátor <a href="aktivity?sort=organizatori">▲</a>  </th>
+    <th style="width:190px">Organizátor <a href="aktivity?sort=organizatori">▲</a>  </th>
     <th style="width:90px">Místnost <a href="aktivity?sort=lokace">▲</a>  </th>
     <th>Typ <a href="aktivity?sort=typ">▲</a> </th>
     <th><span class="hinted">Ins<div class="hint">
