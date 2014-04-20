@@ -628,6 +628,13 @@ class Aktivita
   }
 
   /**
+   * Je aktivita teamová?
+   */
+  function teamova() {
+    return $this->a['teamova'];
+  }
+
+  /**
    * Vrátí ID typu aktivity
    * @todo na této úrovni není dořešené ORM, toto by se mělo přejmenovat na
    *  typId() a nějak koncepčně fixnout
@@ -903,7 +910,11 @@ class Aktivita
    */
   static function zUrlViditelne($url, $typ) {
     return self::zWhere(
-      'at.url_typu = $1 AND a.url_akce = $2 AND a.stav IN(1,2,4) AND a.rok = $3',
+      'at.url_typu = $1 AND a.stav IN(1,2,4) AND a.rok = $3 AND (
+        a.url_akce = $2 OR IF(a.patri_pod, a.patri_pod = (
+          SELECT patri_pod FROM akce_seznam WHERE url_typu = $1 AND stav IN(1,2,4) AND rok = $3 AND url_akce = $2
+        ), 0)
+      )',
       array($typ, $url, ROK),
       'ORDER BY a.zacatek, a.id_akce'
     );

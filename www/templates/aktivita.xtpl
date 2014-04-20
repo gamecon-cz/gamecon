@@ -26,7 +26,7 @@
           <td colspan="2" style="font-weight: normal; width: auto">
             <div style="width:89px;font-weight:bold;float:left">Čas konání:</div>
             <div style="float:left">
-            <!-- begin:instance --><span class="{tridy}">{cas} {obsazenost} {prihlasovatko}</span><br><!-- end:instance -->
+            <!-- begin:instance --><span class="{tridy}">{cas} {obsazenost} {org} {prihlasovatko}</span><br><!-- end:instance -->
             </div>
             <div style="clear:both"></div>
           </td>

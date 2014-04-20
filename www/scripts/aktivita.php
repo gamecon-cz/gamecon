@@ -30,13 +30,15 @@ if(CENY_VIDITELNE)
 }
 
 // zobrazení organizátorů
-foreach($aktivita->organizatoriSkupiny() as $org) {
-  // TODO možná další aktivity organizátora
-  // TODO zobrazení orgů stejně bude nutno překopat - nový web
-  $xtpl->assign(array(
-    'organizator' => $org->jmenoNick(),
-  ));
-  $xtpl->parse('aktivita.org');
+if(!$aktivita->teamova()) {
+  foreach($aktivita->organizatoriSkupiny() as $org) {
+    // TODO možná další aktivity organizátora
+    // TODO zobrazení orgů stejně bude nutno překopat - nový web
+    $xtpl->assign(array(
+      'organizator' => $org->jmenoNick(),
+    ));
+    $xtpl->parse('aktivita.org');
+  }
 }
 
 // vlastnosti per instance
@@ -44,6 +46,7 @@ do {
   $xtpl->assign(array(
     'cas' => $aktivita->denCas(),
     'prihlasovatko' => $aktivita->prihlasovatko($u),
+    'org' => $aktivita->teamova() ? '('.$aktivita->orgJmena()[0].')' : '',
     'tridy' => $aktivita->prihlasovatelna() ? '' : 'neprihlasovatelna',
     'obsazenost' => $aktivita->obsazenostHtml(),
   ));
