@@ -206,7 +206,7 @@ class Shop
           'name="'.$this->klicU.'['.$den.']" '.
           'value="'.$this->ubytovaniPredmet($den,$typ).'" '.
           $sel.' '.$lock.'>';
-        $out.=$this->existujeUbytovani($den,$typ)?(' <span style="font-size:80%;position:relative;top:-2px">'.$this->zbyvaMist($den,$typ).'/'.$this->kapacita($den,$typ).'</span>'):'';
+        $out.=$this->existujeUbytovani($den,$typ)?(' <span style="font-size:80%;position:relative;top:-2px">'.$this->obsazenoMist($den,$typ).'/'.$this->kapacita($den,$typ).'</span>'):'';
         $out.='</div>';
       }
       $sel=$ubytovan?'':'checked';
@@ -219,14 +219,8 @@ class Shop
     $out.='
       <a href="#" onclick="$(\'#infoUbytovani\').slideToggle();return false">informace o ubytování</a>
       <div style="display:none" id="infoUbytovani">
-      <p>Čísla ukazují počet volných míst. Ubytování je pro zájemce (a nadšence a organizátory :) k dispozici už od středy, program začíná ale až <strong>čtvrtek</strong> odpoledne. Ubytování v neděli znamená noc z neděle na pondělí, kdy už opět neprobíhá program a v pondělí je potřeba pokoj vyklidit v 9:00.</p>
+      <p>Čísla ukazují počet obsazených míst / celkem. Ubytování je pro zájemce (a nadšence a organizátory :) k dispozici už od středy, program začíná ale až <strong>čtvrtek</strong> odpoledne. Ubytování v neděli znamená noc z neděle na pondělí, kdy už opět neprobíhá program a v pondělí je potřeba pokoj vyklidit v 9:00.</p>
       <p>Ubytovat se na pokojích později než od čtvrtka je také možné, jen je třeba se připravit, že na postelích již někdo před vámi spal (a vzít si např. vlastní spacák).</p>
-      <p>
-        <b>Penzion Charlie:</b> Ubytování pro náročné, kteří chtějí mít svůj klid. 5 minut pomalé chůze od místa konání GameConu. Cena včetně DPH, rekreačního poplatku městu, snídaně, parkovného a wi-fi.<br>
-        <b>Penzion Witch:</b> Nadstandardní ubytování v apartmánech pro 2-4 osoby. 5 minut pomalé chůze od místa konání GameConu. Cena včetně DPH, rekreačního poplatku městu.<br>
-        <b>Chata SK a Richor:</b> Chaty se nachází v kempu 10-15 minut chůze od Internátu, v areálu jsou nově opravené sprchy (za poplatek 10 Kč), restaurace, minigolf. Studenti mají ubytování v chatkách o 15 Kč na den levnější.<br>
-        V případě dotazů k ubytování se obraťte na <a href="mailto:info@gamecon.cz">info@gamecon.cz</a>.
-      </p>
       </div><br>
     ';
 
@@ -405,6 +399,13 @@ class Shop
     while($u=mysql_fetch_row($o))
       $out.='"'.$u[0].'",';
     return '['.substr($out,0,-1).']';
+  }
+
+  /**
+   * Vrátí počet obsazených míst pro daný den a typu ubytování
+   */
+  protected function obsazenoMist($den, $typ) {
+    return $this->kapacita($den,$typ) - $this->zbyvaMist($den,$typ);
   }
 
   /**
