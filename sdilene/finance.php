@@ -65,14 +65,15 @@ class Finance
       // výpočet slevy na aktivity
       $this->scnA=$this->spoctiSoucinitelAktivit();
       // výpočet slev na předměty - použijeme je jako "čerpání" slevy
-      if($this->u->maPravo(P_TRIKO_ZDARMA))
-        $slevaTricko=180 xor
-        $this->slevyO[]='jedno červené tričko zdarma';
-      else if($this->u->maPravo(P_TRIKO_ZAPUL))
-        $slevaTricko=90 xor
-        $this->slevyO[]='jedno modré vypravěčské tričko za polovic';
-      else
-        $slevaTricko=0;
+      if($this->u->maPravo(P_TRIKO_ZDARMA)) {
+        $slevaTricko = 200;
+        $this->slevyO[] = 'jedno červené tričko zdarma';
+      } else if($this->u->maPravo(P_TRIKO_ZAPUL)) {
+        $slevaTricko = 100;
+        $this->slevyO[] = 'jedno modré vypravěčské tričko za polovic';
+      } else {
+        $slevaTricko = 0;
+      }
       if($slevaKostka=$this->u->maPravo(P_KOSTKA_ZDARMA)?15:0)
         $this->slevyO[]='kostka zdarma';
       if($slevaPlacka=$this->u->maPravo(P_PLACKA_ZDARMA)?15:0)
