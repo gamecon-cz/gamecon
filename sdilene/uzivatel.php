@@ -559,6 +559,8 @@ class Uzivatel
       return array();
     } else if(preg_match('@[0-9,]+@', $ids)) {
       return self::nactiUzivatele('WHERE u.id_uzivatele IN('.$ids.')');
+    } else if($ids==='') {
+      return array();
     } else {
       throw new Exception('neplatný formát množiny id');
     }

@@ -12,7 +12,7 @@ function tgl(id)
 <h2>Moje aktivity</h2>
 
 <!-- begin:aktivita -->
-<h3>{nazevAktivity} ({obsazenost})</h3>
+<h3>{nazevAktivity} {obsazenost}</h3>
 {cas} -
 <a href="mailto:?subject=Gamecon: {nazevAktivity}&amp;bcc={maily}">e-mail všem</a> -
 <a href="#" onclick="return tgl('maily{id}')">zobrazit maily</a> -
@@ -25,26 +25,24 @@ function tgl(id)
 </form>
 <!-- end:editor -->
 <div id="maily{id}" style="display:none"><br />{maily}<br /><br /></div>
-<!-- begin:lide -->
+<!-- begin:ucast -->
 <table class="vypis">
   <tr>
-    <th style="min-width: 125px">Login</th>
     <th style="min-width: 175px">Jméno</th>
     <th style="min-width: 200px">E-mail</th>
     <th style="min-width: 125px">Telefon</th>
-    <th style="min-width: 50px">Datum</th>
+    <th style="min-width: 50px">Přihlášen</th>
   </tr>
-  <!-- begin:clovek -->
-  <tr class="{odd}">
-    <td>{nick}</td>
-    <td>{jmeno} {prijmeni}</td>
+  <!-- begin:ucastnik -->
+  <tr>
+    <td>{jmeno}</td>
     <td>{mail}</td>
     <td>{telefon}</td>
-    <td style="text-align:right">{cas}</td>
+    <td style="text-align:right">{casPrihlaseni}</td>
   </tr>
-  <!-- end:clovek -->
+  <!-- end:ucastnik -->
 </table>
-<!-- end:lide -->
+<!-- end:ucast -->
 <!-- end:aktivita -->
 <!-- begin:zadnaAktivita --><p><em>(nevedeš žádné aktivity)</em></p><!-- end:zadnaAktivita -->
 

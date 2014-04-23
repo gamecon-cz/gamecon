@@ -642,6 +642,12 @@ class Aktivita
   function typ()
   { return $this->a['typ']; }
 
+  function ucastnici() {
+    $u = substr($this->prihlaseni(), 1, -1);
+    $u = preg_replace('@(m|f)\d+@', '', $u);
+    return Uzivatel::zIds($u);
+  }
+
   /** Vrátí typ volných míst na aktivitě */
   function volno()
   {
@@ -827,13 +833,15 @@ class Aktivita
    * @todo explicitní filtr i pro řazení (např. pole jako mapa veřejný řadící
    *  parametr => sloupec
    */
-  static function zFiltru($filtr, $razeni = null) {
+  static function zFiltru($filtr, $razeni = array()) {
     // sestavení filtrů
     $wheres = array();
     if(!empty($filtr['rok']))
       $wheres[] = 'a.rok = '.(int)$filtr['rok'];
     if(!empty($filtr['typ']))
       $wheres[] = 'a.typ = '.(int)$filtr['typ'];
+    if(!empty($filtr['organizator']))
+      $wheres[] = 'a.id_akce IN (SELECT id_akce FROM akce_organizatori WHERE id_uzivatele = '.(int)$filtr['organizator'].')';
     $where = implode(' AND ', $wheres);
     $order = null;
     foreach($razeni as $sloupec) {
