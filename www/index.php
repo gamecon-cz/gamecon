@@ -53,6 +53,7 @@ elseif($url->delka() && $stranka=dbOneLineS('SELECT obsah, id_stranky FROM stran
   $obsah=Markdown($obsah);
   //TODO vyřešit nějak systematicky
   $obsah=str_replace('<a href="http://','<a onclick="return!window.open(this.href)" href="http://',$obsah);
+  $obsah=str_replace('<a href="mailto:','<a onclick="return!window.open(this.href)" href="mailto:',$obsah);
   $delkaKousku=57;
   $obsah=preg_replace('@(<a href="&#x6d;&#x61;)(&#x69;&#x6c;&#x74;)([^<]{0,'.$delkaKousku.'})([^<]{0,'.$delkaKousku.'})([^<]{0,'.$delkaKousku.'})([^<]{0,'.$delkaKousku.'})([^<]+</a>)@',
     '<script>document.write(\'$1\' + \'$2\' + \'$3\' + \'$4\' + \'$5\' + \'$6\' + \'$7\')</script>', $obsah);
