@@ -215,10 +215,7 @@ $prihlaseni='['.substr($prihlaseni,0,-1).']';
   </span></span>
 </div>
 <div style="float:left;margin-left:20px;width:650px;height:300px" id="vyvojRegu"></div>
-<div style="position:absolute; margin: 10px 0 0 855px; height:254px; width:1px; background-color:#2f7ed8;" id="caraIeHack"></div>
-<script>
-if ( $.browser.msie ) { $('#caraIeHack').css('margin-left',847); }
-</script>
+<div style="position:absolute; margin: 10px 0 0 855px; height:254px; width:1px; background-color:#2f7ed8;"></div>
 <div style="clear:both"></div><br>
 
 <div style="float:left"><?=$predmety?></div>
