@@ -9,12 +9,13 @@ spl_autoload_register(function($trida){
   include(__DIR__.'/'.$trida.'.php');
 });
 
-Vyjimkovac::aktivuj();
-
-require_once('../specificke/site-specific.php');
-require_once('constants.hhp');
+require_once(__DIR__.'/../specificke/site-specific.php');
 require_once('fwGeneral.hhp'); // passed $START_GENERATE
 require_once('fwDatabase.hhp');
+
+Vyjimkovac::aktivuj();
+
+require_once('constants.hhp');
 require_once('functions.hhp');
 require_once('chyby.hhp');
 require_once('markdown.hhp');

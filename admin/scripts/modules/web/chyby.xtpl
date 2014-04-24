@@ -1,7 +1,7 @@
 <!-- begin:chyby -->
 
 <style>
-.chyba { margin: 16px 0; min-height: 60px; }
+.chyba { margin: 16px 0; min-height: 60px; clear: both; }
 .chyba .vyskytu { width:60px; height:60px; border-radius:30px; line-height:60px;
   text-align:center; font-weight:normal; color:#fff; font-size:22px;
   float: left; }
@@ -38,7 +38,5 @@
   </div>
 </div>
 <!-- end:chyba -->
-
-
 
 <!-- end:chyby -->
