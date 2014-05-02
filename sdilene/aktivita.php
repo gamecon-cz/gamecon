@@ -1041,8 +1041,8 @@ class Aktivita
       }
     }
     if(dbOneLineS('SELECT 1 FROM akce_seznam
-      WHERE url_akce = $1 AND ( patri_pod = 0 OR patri_pod != $2 ) AND id_akce != $3',
-      array($a['url_akce'], $a['patri_pod'], $a['id_akce']))) {
+      WHERE url_akce = $1 AND ( patri_pod = 0 OR patri_pod != $2 ) AND id_akce != $3 AND rok = $4',
+      array($a['url_akce'], $a['patri_pod'], $a['id_akce'], ROK))) {
       $chyby[] = 'Url je už použitá pro jinou aktivitu. Vyberte jinou, nebo použijte tlačítko „inst“ v seznamu aktivit pro duplikaci.';
     }
     return $chyby;
