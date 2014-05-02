@@ -54,18 +54,12 @@ $tpl=new XTemplate('aktivity.xtpl');
 //zpracování filtru
 $filtr=isset($_SESSION['adminAktivityFiltr'])?
   $_SESSION['adminAktivityFiltr']:'';
-$varianty=array(
-  'a'=>array('popis'=>'deskovky',   'db'=>'1'),
-  'b'=>array('popis'=>'larpy',      'db'=>'2'),
-  'c'=>array('popis'=>'RPG',        'db'=>'4'),
-  'd'=>array('popis'=>'přednášky',  'db'=>'3'),
-  'e'=>array('popis'=>'dílny',      'db'=>'5'),
-  'f'=>array('popis'=>'bonusy',     'db'=>'7'),
-  'g'=>array('popis'=>'wargaming',  'db'=>'6'),
-  'h'=>array('popis'=>'legendy',    'db'=>'8'),
-  );
-foreach($varianty as $k => $v)
-{
+$o = dbQuery('SELECT * FROM akce_typy');
+$varianty = array();
+while($r = mysql_fetch_assoc($o)) {
+  $varianty[$r['id_typu']] = array('popis' => $r['typ_1pmn'], 'db' => $r['id_typu']);
+}
+foreach($varianty as $k => $v) {
   $tpl->assign('val',$k);
   $tpl->assign('nazev',ucfirst($v['popis']));
   $tpl->assign('sel',$filtr==$k?'selected="selected"':'');
