@@ -566,9 +566,9 @@ class Aktivita
             'id="prihlasit'.$this->id().'" method="post" '.
             'style="position:absolute"><input type="hidden" name="prihlasit" '.
             'value="'.$this->id().'" /></form>';
-        if($volno=='f' && !$pouzeOdkaz)
+        if($volno=='f')
           return 'pouze ženská místa';
-        if($volno=='m' && !$pouzeOdkaz)
+        if($volno=='m')
           return 'pouze mužská místa';
         /*if($volno=='x')
           return 'plná kapacita';*/
