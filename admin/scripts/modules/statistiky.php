@@ -94,16 +94,20 @@ $q='SELECT
   JOIN uzivatele_hodnoty u USING(id_uzivatele)
   WHERE z.id_zidle='.ID_ZIDLE_PRIHLASEN.'
   GROUP BY DATE(posazen)';
-$o=dbQuery($q);
+$o = dbQuery($q);
+$zacatek = new DateTime(ROK.'-04-30');
+$pocet = 0;
+do {
+  $pocet += @$r['prihlasen']; // první prázdný ignorovat, další brát "o kolo zpět"
+  $r = mysql_fetch_assoc($o);
+  $den = new DateTimeCz($r['den']);
+} while( $den->pred($zacatek) );
 // dny před GC
-$dny=$prihlaseni='';
-$pocet=0;
-$r=mysql_fetch_assoc($o);
-$dniZbyva=-78;
-$konecDatum=new DateTime(DEN_PRVNI_DATE);
+$dny = $prihlaseni = '';
+$konecDatum = new DateTime(DEN_PRVNI_DATE);
 $konecDatum->add(new DateInterval('P4D'));
 for( 
-  $den=new DateTime(ROK.'-05-01'); 
+  $den = $zacatek;
   $den->diff($konecDatum)->format('%a') > 0; 
   $den->add(new DateInterval('P1D')) )
 {
@@ -129,8 +133,7 @@ for(
   {
     $prihlaseni.='null,';
   }
-  $dny.='\''.$den->format('j.n.').'\','; //  $dniZbyva
-  $dniZbyva++;
+  $dny.='\''.$den->format('j.n.').'\',';
 }
 $dny='['.substr($dny,0,-1).']';
 $prihlaseni='['.substr($prihlaseni,0,-1).']';
@@ -215,7 +218,7 @@ $prihlaseni='['.substr($prihlaseni,0,-1).']';
   </span></span>
 </div>
 <div style="float:left;margin-left:20px;width:650px;height:300px" id="vyvojRegu"></div>
-<div style="position:absolute; margin: 10px 0 0 855px; height:254px; width:1px; background-color:#2f7ed8;"></div>
+<div style="position:absolute; margin: 10px 0 0 855px; height:254px; width:1px; background-color:#ccc;"></div>
 <div style="clear:both"></div><br>
 
 <div style="float:left"><?=$predmety?></div>
