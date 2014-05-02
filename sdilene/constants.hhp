@@ -16,16 +16,16 @@ require_once(__DIR__.'/constants-funkce.hhp');
 ////////////////////////
 
 define('ROK', 2014);                                // aktuální rok // při změně roku viz https://docs.google.com/document/d/1H_PM70WjNpQ1Xz65OYfr1BeSTdLrNQSkScMIZEtxWEc/edit?usp=sharing
-define('REG_GC_OD',       ROK.'-11-11 10:00:00');   // spuštění možnosti registrace na GameCon
+define('REG_GC_OD',       ROK.'-05-01 20:00:00');   // spuštění možnosti registrace na GameCon
 define('REG_GC_DO',       ROK.'-11-11 10:00:00');   // ukončení možnosti registrace na GameCon
-define('REG_AKTIVIT_OD',  ROK.'-11-11 10:00:00');   // spuštění možnosti registrace na aktivity, pokud jsou aktivované
+define('REG_AKTIVIT_OD',  ROK.'-05-01 20:00:00');   // spuštění možnosti registrace na aktivity, pokud jsou aktivované
 define('REG_AKTIVIT_DO',  ROK.'-11-11 10:00:00');   // ukončení možnosti registrace na aktivity
 define('GC_BEZI_OD',      ROK.'-07-17 10:00:00');   // začátek GameConu (přepnutí stránek do režimu "úpravy na jen na infopultu")
 define('GC_BEZI_DO',      ROK.'-07-20 20:00:00');   // konec GameCou (přepnutí stránek do režimu "gc skončil, úpravy nemožné")
-define('SLEVA_DO',        ROK.'-11-11 23:59:59');   // do kdy se oficiálně počítá platba včas
+define('SLEVA_DO',        ROK.'-06-30 23:59:59');   // do kdy se oficiálně počítá platba včas
 define('PROGRAM_OD',      ROK.'-07-17 00:00:00');   // první den programu
-define('PROGRAM_VIDITELNY', false);                 // jestli jsou viditelné linky na program
-define('CENY_VIDITELNE', false);                    // jestli jsou viditelné ceny aktivit
+define('PROGRAM_VIDITELNY', true);                  // jestli jsou viditelné linky na program
+define('CENY_VIDITELNE', true);                     // jestli jsou viditelné ceny aktivit
 
 ///////////////////
 // Židle a práva //

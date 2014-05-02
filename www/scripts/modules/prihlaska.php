@@ -71,12 +71,12 @@ $a=$u->koncA();
   <h2>Předměty</h2>
   
   <div style="width:200px; float:right; margin-left:30px;">
-    <a href="files/obsah/materialy/2013/kostka.jpg" rel="lightbox" title="Kostka">
-    <img src="files/obsah/materialy/2013/kostka_m.jpg" style="height:75px;width:200px"></a>
-    <a href="files/obsah/materialy/2013/placka.jpg" rel="lightbox" title="Placka">
-    <img src="files/obsah/materialy/2013/placka_m.jpg" style="height:75px;width:200px"></a>
-    <a href="files/obsah/materialy/2013/tricko.jpg" rel="lightbox" title="Tričko">
-    <img src="files/obsah/materialy/2013/tricko_m.jpg" style="height:75px;width:200px"></a>
+    <a href="files/obsah/materialy/2014/kostka.jpg" rel="lightbox" title="Kostka">
+    <img src="files/obsah/materialy/2014/kostka_m.jpg" style="height:75px;width:200px"></a>
+    <a href="files/obsah/materialy/2014/placka.jpg" rel="lightbox" title="Placka">
+    <img src="files/obsah/materialy/2014/placka_m.jpg" style="height:75px;width:200px"></a>
+    <a href="files/obsah/materialy/2014/tricko.jpg" rel="lightbox" title="Tričko">
+    <img src="files/obsah/materialy/2014/tricko_m.jpg" style="height:75px;width:200px"></a>
   </div>
   
   <?=$predmety?><br><br>
