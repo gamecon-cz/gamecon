@@ -50,7 +50,7 @@ class Program
     for( $den=new DateTimeCz(PROGRAM_OD); $den->pred(GC_BEZI_DO); $den->plusDen() )
     {
       $denId = (int)$den->format('z');
-      echo('<h2>'.mb_ucfirst($den->format('l j.n.Y')).'</h2><table class="'.$this->nastaveni['tableClass'].'"><tr><th>Místo</th>');
+      echo('<h2>'.mb_ucfirst($den->format('l j.n.Y')).'</h2><table class="'.$this->nastaveni['tableClass'].'"><tr><th></th>');
       for($cas=PROGRAM_ZACATEK; $cas<PROGRAM_KONEC; $cas++)   //výpis hlavičkového řádku s čísly
         echo('<th>'.$cas.'</th>');
       $aktivit=0;
@@ -169,7 +169,10 @@ class Program
       ( $classes?' class="'.implode(' ',$classes).'"':'' ).
       '>'.$a['obj']->nazev());
     echo $a['obj']->obsazenostHtml();
-    if($a['obj']->typ() != 10 || $this->nastaveni['technicke']) // hack na nezobrazování přihlašovátek pro technické
+    if(
+      ( $a['obj']->typ() != 10 || $this->nastaveni['technicke'] ) // hack na nezobrazování přihlašovátek pro technické
+      && $a['obj']->typ() != 9 // hack na nezobrazování přihlašovátek pro DrD
+    )
       echo ' '.$a['obj']->prihlasovatko($this->u);
     echo('</td>');
   }
