@@ -1,8 +1,10 @@
 <div class="sponzori_ohraniceni" style="margin-bottom:0px; height:20px">Naši sponzoři</div>
 <div class="sponzori_ohraniceni" style="width:512px; padding-right:217px">
-	<div class="sponzor">
+  <!--
+  <div class="sponzor">
 		<a href="http://www.mu-mohelnice.cz" onclick="window.open(this.href); return false" title="Město Mohelnice"><img src="files/obsah/sponzori/mohelnice.jpg" alt="Město Mohelnice" title="Město Mohelnice" width="119" height="40" /></a>
 	</div>
+	-->
 	<div class="sponzor">
 		<a href="http://www.czechboardgames.com" onclick="window.open(this.href); return false" title="Czech Board Games"><img src="files/obsah/sponzori/cbg.png" alt="Czech Board Games" title="Czech Board Games" width="108" height="36" /></a>
 	</div>
@@ -26,12 +28,14 @@
 	<div class="sponzor">
 		<a href="http://www.fantasyobchod.cz" onclick="window.open(this.href); return false" title="Fantasy obchod"><img src="files/obsah/sponzori/fantasy_obchod.gif" alt="Fantasy obchod" title="Fantasy obchod" width="60" height="60" /></a>
 	</div>
+  <!--
 	<div class="sponzor">
 		<a href="http://www.kr-olomoucky.cz" onclick="window.open(this.href); return false" title="Olomoucký kraj"><img src="files/obsah/sponzori/olomouckyKraj.jpg" alt="Olomoucký kraj" title="Olomoucký kraj" width="138" height="60" /></a>
 	</div>
-	<div class="sponzor">
+  <div class="sponzor">
 		<a href="http://www.lorisgames.cz/cs/" onclick="window.open(this.href); return false" title="Loris games"><img src="files/obsah/sponzori/loris.jpg" alt="Olomoucký kraj" title="Loris" height="60" width="50"></a>
 	</div>
+	-->
 </div>
 <div class="sponzori_ohraniceni" style="margin-bottom:0px; height:20px">Naši partneři</div>
 <div class="sponzori_ohraniceni" style="width:512px; padding-right:217px">
