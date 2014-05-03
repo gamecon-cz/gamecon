@@ -22,13 +22,13 @@ class Finance
   private static 
     $maxSlevaAktivit=100, // v procentech
     $slevaZaAktivitu = array( // ve formátu max. délka => sleva
-      1  =>  50,
-      2  =>  75,
-      5  => 150,
-      7  => 225,
-      9  => 300,
-      11 => 375,
-      13 => 450,
+      1  =>  60,
+      2  =>  90,
+      5  => 180,
+      7  => 270,
+      9  => 360,
+      11 => 450,
+      13 => 540,
     );
   
   const
