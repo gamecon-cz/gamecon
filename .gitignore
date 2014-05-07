@@ -12,7 +12,6 @@ Thumbs.db
 /www/files/obsah/*
 !/www/files/obsah/sponzori
 !/www/files/obsah/organizatori
-!/www/files/obsah/obrazky
 /www/files/styly/*
 !/www/files/styly/obecne
 !/www/files/styly/styl-aktualni

@@ -26,7 +26,7 @@
 		<a href="http://www.altar.cz" onclick="window.open(this.href); return false" title="Altar"><img src="files/obsah/sponzori/altar.gif" alt="Altar" title="Altar" width="38" height="60" /></a>
 	</div>
 	<div class="sponzor">
-		<a href="http://www.fantasyobchod.cz" onclick="window.open(this.href); return false" title="Fantasy obchod"><img src="files/obsah/sponzori/fantasy_obchod.gif" alt="Fantasy obchod" title="Fantasy obchod" width="60" height="60" /></a>
+		<a href="http://www.fantasyobchod.cz" onclick="window.open(this.href); return false" title="Fantasy obchod"><img src="files/obsah/sponzori/fantasyObchod.jpg" alt="Fantasy obchod" title="Fantasy obchod" width="150" height="43" /></a>
 	</div>
   <!--
 	<div class="sponzor">
@@ -39,9 +39,9 @@
 </div>
 <div class="sponzori_ohraniceni" style="margin-bottom:0px; height:20px">Naši partneři</div>
 <div class="sponzori_ohraniceni" style="width:512px; padding-right:217px">
-	<div class="sponzor">
+	<!-- <div class="sponzor">
 		<a href="http://www.kosmas.cz" onclick="window.open(this.href); return false" title="Knihkupectví Kosmas"><img src="files/obsah/sponzori/kosmas.jpg" alt="Knihkupectví Kosmas" title="Knihkupectví Kosmas" width="37" height="60" /></a>
-	</div>
+	</div> -->
 	<div class="sponzor">
 		<a href="http://www.svet-deskovych-her.cz" onclick="window.open(this.href); return false" title="Svět deskových her"><img src="files/obsah/sponzori/svet_deskovych_her.gif" alt="Svět deskových her" title="Svět deskových her" width="60" height="60" /></a>
 	</div>
@@ -49,12 +49,15 @@
 		<a href="http://www.paluba.cz" onclick="window.open(this.href); return false" title="Klub deskových her Paluba"><img src="files/obsah/sponzori/paluba.jpg" alt="Klub deskových her Paluba" title="Klub deskových her Paluba" width="60" height="59" /></a>
 	</div>
 	<div class="sponzor">
-		<a href="http://www.dobrodruhovia.eu" onclick="window.open(this.href); return false" title="Dobrodruhovia"><img src="files/obsah/sponzori/dobrodruhovia_banner.png" alt="Dobrodruhovia" title="Dobrodruhovia" width="150" height="94" /></a>
+		<a href="http://www.dobrodruhovia.eu" onclick="window.open(this.href); return false" title="Dobrodruhovia"><img src="files/obsah/sponzori/dobrodruhovia_logo.jpg" alt="Dobrodruhovia" title="Dobrodruhovia" width="150" height="33" /></a>
 	</div>
   <!-- <div class="sponzor">
 		<a href="http://www.moravsky-mumraj.cz/" onclick="window.open(this.href); return false" title="Moravský mumraj"><img src="files/obsah/sponzori/mormum_banner.jpg" alt="Moravský mumraj" title="Moravský mumraj" width="" height="60" /></a>
 	</div> -->
 	<div class="sponzor">
-		<a href="http://www.mephit.cz" onclick="window.open(this.href); return false" title="Mephit"><img src="files/obsah/sponzori/mephit.png" title="Mephit" title="Mephit" width="55" height="60" /></a>
+		<a href="http://www.mephit.cz" onclick="window.open(this.href); return false" title="Mephit"><img src="files/obsah/sponzori/mephit.png" title="Mephit" title="Mephit" width="196" height="20" /></a>
+	</div>
+	<div class="sponzor">
+		<a href="http://www.ogridoupe.cz" onclick="window.open(this.href); return false" title="Ogří doupě"><img src="files/obsah/sponzori/ogriDoupe.jpg" title="Ogří doupě" title="Ogří doupě" width="150" height="37" /></a>
 	</div>
 </div>
