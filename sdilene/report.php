@@ -38,6 +38,11 @@ class Report
    */
   function tHtml()
   {
+    echo '<style>
+      table { border-collapse: collapse; }
+      td, th { border: solid 1px; padding: 1px 4px; }
+      tr:hover { background-color: #eee; }
+    </style>';
     echo '<table><tr>';
     foreach($this->hlavicky() as $h)
       echo "<th>$h</th>";
@@ -91,5 +96,3 @@ class Report
   }
   
 }
-
-?>
