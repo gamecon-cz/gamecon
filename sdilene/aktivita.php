@@ -411,13 +411,14 @@ class Aktivita
    */
   function popis()
   {
-    $popis=$this->a['popis'];
-    $popis=strtr($popis,array(
-      ' - '=>' – ',
-      '...'=>'…'));
-    $popis=preg_replace('@([^=])"([^"\n<>]+)"([^>])@', '$1„$2“$3', $popis); //uvozovky
-    $popis=Markdown($popis);
-    $popis=preg_replace('@([^=">])(http://[a-zA-Z0-9/\?\.=\-_]+)@',
+    $popis = $this->a['popis'];
+    $popis = Markdown($popis);
+    $popis = preg_replace_callback('@(p|h\d|strong|em)>[^<]+<@', function($m){
+      $m[0] = str_replace('...', '…', $m[0]);
+      $m[0] = str_replace(' - ', ' – ', $m[0]);
+      return preg_replace('@"([^"]+)"@', '„$1“', $m[0]);
+    }, $popis);
+    $popis = preg_replace('@([^=">])(http://[a-zA-Z0-9/\?\.=\-_]+)@',
       '$1<a href="$2" onclick="return!window.open(this.href)">$2</a>', $popis);
     return $popis;
   }
