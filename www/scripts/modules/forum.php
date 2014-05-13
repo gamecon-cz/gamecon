@@ -46,6 +46,12 @@ echo('
 $prispevku_ns=10; //prispevku na strance
 $vlaken_ns=5; //vlaken na strance
 
+// Hack na zobrazení odkazu na FB
+?>
+<a href="https://www.facebook.com/groups/gamecon/" style="font-size:large" target="_blank">GameCon diskuze na Facebooku</a><br>
+Pokud máte facebookový účet, napište svou zprávu nebo dotaz i do naší skupiny. Uvidí ho tak určitě víc lidí a zvýší se šance, že vám odpoví.<br><br>
+<?php
+
 //zobrazeni h1 pro druhou uroven fora
 if (!empty($_GET["url_druha"]) && empty($_GET["url_treti"]) && empty($_GET["url_ctvrta"])){
   $sql="select jmeno_sekce from forum_sekce where jmeno_sekce_mini like '$_GET[url_druha]'";
