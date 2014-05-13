@@ -68,7 +68,7 @@ class Shop
       LEFT JOIN shop_nakupy n USING(id_predmetu)
       WHERE stav > 0 OR n.rok = '.ROK.'
       GROUP BY id_predmetu
-      ORDER BY typ, ubytovani_den, IF(nazev LIKE "Penzion%",CONCAT("zzz",nazev),IF(nazev LIKE "Chata%",CONCAT("zzzz",nazev),nazev)), model_rok DESC'); //ruční dořazení penzionů na konec
+      ORDER BY typ, ubytovani_den, nazev, model_rok DESC');
 
     while($r = mysql_fetch_assoc($o)) {
       $typ = $r['typ'];
