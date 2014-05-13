@@ -398,7 +398,18 @@ class Aktivita
 
   /** Pole jmen organizátorů v lidsky čitelné podobě */
   function orgJmena() {
-    return explode(',', substr($this->a['orgJmena'], 1, -1));
+    $orgove = array();
+    $orgIn = explode(',', substr($this->a['orgJmena'], 1, -1));
+    foreach($orgIn as $org) {
+      if(!$org) continue;
+      $r = explode('|', $org);
+      $orgove[] = Uzivatel::jmenoNickZjisti(array(
+        'jmeno_uzivatele' => $r[0],
+        'login_uzivatele' => $r[1],
+        'prijmeni_uzivatele' => $r[2]
+      ));
+    }
+    return $orgove;
   }
 
   /** Vrátí specifické označení organizátora pro aktivitu tohoto typu */
@@ -953,7 +964,7 @@ class Aktivita
       SELECT a.*,
         CONCAT(",",GROUP_CONCAT(DISTINCT ap.id_uzivatele,u.pohlavi,ap.id_stavu_prihlaseni),",") AS prihlaseni,
         CONCAT(",",GROUP_CONCAT(DISTINCT ao.id_uzivatele),",") AS organizatori,
-        CONCAT(",",GROUP_CONCAT(DISTINCT uo.jmeno_uzivatele, " „", uo.login_uzivatele, "“ ", uo.prijmeni_uzivatele  ),",") AS orgJmena,
+        CONCAT(",",GROUP_CONCAT(DISTINCT uo.jmeno_uzivatele, "|", uo.login_uzivatele, "|", uo.prijmeni_uzivatele  ),",") AS orgJmena,
         IF(a.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = a.patri_pod), a.url_akce) as url_akce,
         IF(a.patri_pod, (SELECT MAX(popis) FROM akce_seznam WHERE patri_pod = a.patri_pod), a.popis) as popis
       FROM akce_seznam a
@@ -1118,7 +1129,7 @@ class Aktivita
         ORDER BY u.login_uzivatele');
       $vsichniOrg = array( 0 => '(nikdo)' );
       while($r = mysql_fetch_assoc($q)) {
-        $vsichniOrg[$r['id_uzivatele']] = jmenoNick($r);
+        $vsichniOrg[$r['id_uzivatele']] = Uzivatel::jmenoNickZjisti($r);
       }
       $aktOrg = $a && $a->a['organizatori'] ? explode(',', substr($a->a['organizatori'], 1, -1)) : array();
       $aktOrg[] = 0; // poslední pole má selected 0 (žádný org)

@@ -103,7 +103,7 @@ while($r=$dr)
   {
     if(!$stav)
     {
-      $xtpl->assign('org',jmenoNick(array('login_uzivatele'=>$r['orgLogin'], 'jmeno_uzivatele'=>$r['orgJmeno'], 'prijmeni_uzivatele'=>$r['orgPrijmeni'])));
+      $xtpl->assign('org', /*TODO způsob zjištění jména*/ '');
       $xtpl->parse('prezence.aktivita.form');
       if($r['stav']!=2)
         $xtpl->parse('prezence.aktivita.nezamknutaUpo');

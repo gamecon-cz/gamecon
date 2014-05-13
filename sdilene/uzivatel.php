@@ -224,11 +224,31 @@ class Uzivatel
 
   /** Vrátí řetězec s jménem i nickemu uživatele jak se zobrazí např. u
    *  organizátorů aktivit */
-  function jmenoNick()
-  {
-    return jmenoNick($this->u);
+  function jmenoNick() {
+    return self::jmenoNickZjisti($this->u);
   }
-
+  
+  /**
+   * Určuje jméno a nick uživatele z pole odpovídajícího strukturou databázovému
+   * řádku z tabulky uzivatel_hodnoty. Pokud vyžadovaná pole chybí, zjistí
+   * alespoň co se dá.
+   * Slouží pro třídy, které si načítání uživatelské identifikace implementují
+   * samy, aby nemusely zbytečně načítat celého uživatele. Pokud je to
+   * výkonnostně ok, raději se tomu vyhnout a uživatele načíst.
+   */
+  static function jmenoNickZjisti($r) {
+    if($r['jmeno_uzivatele'] && $r['prijmeni_uzivatele']) {
+      $celeJmeno = $r['jmeno_uzivatele'].' '.$r['prijmeni_uzivatele'];
+      $jeMail = strpos($r['login_uzivatele'], '@') !== false;
+      if($celeJmeno == $r['login_uzivatele'] || $jeMail)
+        return $celeJmeno;
+      else
+        return $r['jmeno_uzivatele'].' „'.$r['login_uzivatele'].'“ '.$r['prijmeni_uzivatele'];
+    } else {
+      return $r['login_uzivatele'];
+    }
+  }
+  
   /** Vrátí koncovku "a" pro holky (resp. "" pro kluky) */
   function koncA()
   {

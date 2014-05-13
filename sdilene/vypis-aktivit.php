@@ -32,7 +32,7 @@ class VypisAktivit
       //todo - 0 účastníků?
       if($r['id_akce']!=$dr['id_akce'])
       {
-        $xtpl->assign('org',jmenoNick(array(
+        $xtpl->assign('org', Uzivatel::jmenoNickZjisti(array(
           'login_uzivatele'=>$r['orgLogin'], 
           'jmeno_uzivatele'=>$r['orgJmeno'], 
           'prijmeni_uzivatele'=>$r['orgPrijmeni'])));

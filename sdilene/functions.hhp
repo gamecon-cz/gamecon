@@ -292,24 +292,6 @@ function financeHistorie($uid)
 }
 
 
-/** Vrací jméno v stravitelném stylu, bere výstup přímo z DB
- *  deprecated, spoléhat na Uzivatel::jmenoNick */
-function jmenoNick($db)
-{
-  if($db['jmeno_uzivatele'] && $db['prijmeni_uzivatele'])
-  {
-    if($db['jmeno_uzivatele'].' '.$db['prijmeni_uzivatele']
-      ==$db['login_uzivatele'])
-      return $db['login_uzivatele'];
-    else
-      return $db['jmeno_uzivatele'].' „'.$db['login_uzivatele'].'“ '.
-        $db['prijmeni_uzivatele'];
-  }
-  else
-    return $db['login_uzivatele'];
-}
-
-
 /** Zjistí, jestli uživatel má volno v určitém časovém intervalu. (např. preve-
  *  nce kolizí aktivit nebo kolizí u orgů.
  *  @param array $poleCas pole s časovými údají odpovídajícími evidenci aktivit

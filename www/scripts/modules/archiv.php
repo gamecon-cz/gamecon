@@ -38,7 +38,7 @@ while($radek=mysql_fetch_assoc($odpoved))
   $popis=$radek['popis'];
   if($orgTitul && $radek['login_uzivatele'])
   { //aktivita má mít uvedeného organizátora
-    $xtpl->assign('jmeno',jmenoNick($radek));
+    $xtpl->assign('jmeno', Uzivatel::jmenoNickZjisti($radek));
     $xtpl->assign('titul',$orgTitul);
     $xtpl->parse('archiv.polozka.organizator');
   }
