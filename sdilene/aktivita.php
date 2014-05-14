@@ -376,11 +376,18 @@ class Aktivita
   /**
    * Vrátí pole uživatelů, kteří jsou organizátory jakékoli ze skupiny instancí
    * aktivity. Pokud nemá instance, vrátí organizátory aktivity jak jsou.
-   * @todo reálné načítání orgů skupiny, nejen této instance
    */
   function organizatoriSkupiny() {
-    //TODO viz todo
-    return $this->organizatori();
+    if($this->a['patri_pod']) {
+      return Uzivatel::zIds(dbOneCol('
+        SELECT GROUP_CONCAT(ao.id_uzivatele)
+        FROM akce_seznam a
+        LEFT JOIN akce_organizatori ao USING (id_akce)
+        WHERE a.patri_pod = '.$this->a['patri_pod']
+      ));
+    } else {
+      return $this->organizatori();
+    }
   }
 
   /**
