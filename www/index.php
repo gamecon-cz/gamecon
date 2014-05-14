@@ -50,7 +50,7 @@ elseif($url->delka() && $stranka=dbOneLineS('SELECT obsah, id_stranky FROM stran
 { //statická stránka
   $obsah=$stranka['obsah'];
   $titulek->socNahledNajdi($obsah);
-  $obsah=Markdown($obsah);
+  $obsah=markdown($obsah);
   //TODO vyřešit nějak systematicky
   $obsah=str_replace('<a href="http://','<a onclick="return!window.open(this.href)" href="http://',$obsah);
   $obsah=str_replace('<a href="mailto:','<a onclick="return!window.open(this.href)" href="mailto:',$obsah);

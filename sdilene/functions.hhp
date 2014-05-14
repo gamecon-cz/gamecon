@@ -292,6 +292,31 @@ function financeHistorie($uid)
 }
 
 
+/**
+ * Převede text na odpovídající html pomocí markdownu
+ * @see Originální implementace markdownu je rychlejší jak Parsedown
+ * @todo target odkazů řešit globálně webem
+ * @todo odstranit require_once a vyřešit nějak globálně použití ext. knihoven
+ */
+function markdown($text) {
+  require_once(__DIR__.'/markdown.hhp');
+  $text = PlugMarkdown($text);
+  // Následující tuzingy jsou u aktivit zcela jedno (~1ms), u blogu už se
+  // projeví (třeba 80ms místo 30ms).
+  $text = preg_replace_callback('@(p|h\d|strong|em)>[^<]+<@', function($m){
+    $m[0] = str_replace('...', '…', $m[0]);
+    $m[0] = str_replace(' - ', ' – ', $m[0]);
+    return preg_replace('@"([^"]+)"@', '„$1“', $m[0]);
+  }, $text);
+  $text = preg_replace(
+    '@([^=">])(http://[a-zA-Z0-9/\?\.=\-_]+)@',
+    '$1<a href="$2" target="_blank">$2</a>',
+    $text
+  );
+  return $text;
+}
+
+
 /** Zjistí, jestli uživatel má volno v určitém časovém intervalu. (např. preve-
  *  nce kolizí aktivit nebo kolizí u orgů.
  *  @param array $poleCas pole s časovými údají odpovídajícími evidenci aktivit

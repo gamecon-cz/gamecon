@@ -23,8 +23,8 @@ while($r=mysql_fetch_array($o))
     array(
       'arpav'=>explode(',',$r['arpav']),
       'obrazek'=>fotka($r['jmeno_pj']),
-      'o_sobe'=>$r['o_sobe']?Markdown($r['o_sobe']):'',
-      'herni_profil'=>$r['herni_profil']?Markdown($r['herni_profil']):'',
+      'o_sobe'=>$r['o_sobe']?markdown($r['o_sobe']):'',
+      'herni_profil'=>$r['herni_profil']?markdown($r['herni_profil']):'',
     )
   );
 }
