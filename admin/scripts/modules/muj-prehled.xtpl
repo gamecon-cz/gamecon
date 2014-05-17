@@ -49,16 +49,15 @@ function tgl(id)
 <h2>Manuál vypravěče</h2>
 
 <ol>
-  <li>Vypravěč dorazí na infopult cca 15 min. před začátkem bloku </li>
-  <li>Vyzvedne si vytištěný seznam přihlášených </li>
-  <li>Na místě srazu (velký maskot sekce nedaleko infopultu) si vyzvedne lidi, odškrtne si je a postupně je posílá k místnosti, kde hraje, nebo jinam dle svého uvážení a potřeby (to aby se nám tam nehromadili účastníci) </li>
-  <li>Přesně ve chvíli oficiálního začátku aktivity (nejčastěji 9:00, 14:00, 19:00) předá papír s prezenčkou infopultu a řekne si o případné náhradníky, pokud kapacita není naplněna. Podle svého uvážení může i náhradníky nabrat a vyplnit do prázdných políček sám.</li>
-  <li>Obsluha Infopultu mu výměnou dá klíče od místnosti.</li>
-  <li>Vypravěč odchází na aktivitu, infopult za ním/s ním pošle náhradníky do patřičné místnosti.</li>
-  <li>Po skončení aktivity vypravěč <strong>zamkne</strong> místnost a <strong>odevzdá</strong> klíče na infopultu, jinak jeho duše propadá peklu!</li>
+  <li><b>Dostav se na vrátnici Domova mládeže</b><br>příp. na Infopult (platí pro Wargaming, Epic, Deskovky) 15 minut před začátkem aktivity, kde na tebe bude čekat organizátor(spojka). Nezapomeň propisku. :-)</li>
+  <li><b>Vyzvedni prezenčku</b><br>neboli seznam přihlášených hráčů, kterou pro tebe má spojka. Na prezenčce najdeš číslo místnosti, blok a patro, kde se aktivita koná.</li>
+  <li><b>Čekej pod nápisem</b><br>nebo-li na příslušném shromaždišti na hráče se svou sekcí (více viz <a href="http://gamecon.cz/files/obsah/materialy/2014/mapa-gc.jpg" target="_blank">mapka</a>). Odšrktej hráče na prezenčce.</li>
+  <li><b>Vyzvedni náhradníky</b><br>Pokud nějaký hráč nedorazil, je vhodné se s ním telefonicky spojit. Pokud nějací hráči chybí, pět minut před začátkem vyzvedni náhradníky. Připiš náhradníky na prezenčku&nbsp;–&nbsp;jménem, příjmením a nickem.</li>
+  <li><b>Dej prezenčku spojce</b><br>a to ideálně v čas oficiálního začátku aktivity. Výměnou ti předá klíče od herní místnosti.</li>
+  <li><b>Po skončení zkontroluj místnost</b><br>zamkni a odevzdej klíče na vrátnici / Infopultu (platí pro Wargaming, Epic, Deskovky). Dodržuj prosím plánovanou délku aktivity.</li>
 </ol>
 
-<img src="files/design/warning.png" style="position:absolute;margin:18px 0 0 -1px" />
-<p style="margin-left:21px">Jakoukoliv změnu (i operativní) v čase / místě aktivity <strong>musí</strong> nahlásit (byť jen SMS) infopultu. Infopult vždy musí vědět, kde jaká aktivita je, kdo ji vede a kdo má klíče od místnosti. Jinak nemůže posílat opozdilce/náhradníky/organizátory v případě potřeby za vypravěčem</p>
+<img src="files/design/warning.png" style="position:absolute;margin:0 0 0 -4px">
+<p style="margin-left:21px">Všechny případné změny aktivity (místa, času, zpoždění...) a potíže prosím <b>vždy oznam na Infopult!</b></p>
 
 <!-- end:prehled -->
