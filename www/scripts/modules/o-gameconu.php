@@ -53,8 +53,7 @@ h3 {margin-bottom: 4px}
   });
 </script>
 
-<div style="font-size: 10pt; text-align: center; margin-top: 20px;"> Přihlašování na letošní ročník je spuštěno. V programu je přes 50% aktivit, přibudou ještě RPG, Legendy Klubu dobrodruhů a střípky dalších aktivit.</div>
-<div style="font-size: 13pt; font-weight: bold; text-align: center;  margin-top: 12px; margin-bottom: 12px;"> Další vlna programu bude spuštěna  <span style="color: #ab0000;"> 19.5. ve 20:00.</span></div> Pokud nechcete, aby vám cokoliv uniklo, zanechte nám níže svůj mail a rádi se připomeneme s (pouze) důležitými aktualitami. Doporučujeme také sledovat náš profil na <a href="https://www.facebook.com/gamecon" onclick="return!window.open(this.href)" title="Facebook">Facebooku</a>.<br><br>
+<div style="font-size: 13pt; font-weight: bold; text-align: center;  margin-top: 12px; margin-bottom: 12px;"> Poslední vlna programu bude spuštěna  <span style="color: #ab0000;">9.6.</span></div> Pokud nechcete, aby vám cokoliv uniklo, zanechte nám níže svůj mail a rádi se připomeneme s (pouze) důležitými aktualitami. Doporučujeme také sledovat náš profil na <a href="https://www.facebook.com/gamecon" onclick="return!window.open(this.href)" title="Facebook">Facebooku</a>.<br><br>
 
 <form method="post" class="gcForm" style="margin: 4px 0 10px 0">
   <input type="text" size="30" name="mail" title="e-mail">
