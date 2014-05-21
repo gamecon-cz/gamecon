@@ -61,10 +61,10 @@ UNION ALL
     SELECT n.id_uzivatele 
     FROM shop_nakupy n 
     JOIN shop_predmety p ON(n.id_predmetu=p.id_predmetu AND p.typ=2)
-    WHERE n.rok=2013
+    WHERE n.rok='.ROK.'
     GROUP BY n.id_uzivatele
   ) nn ON(nn.id_uzivatele=z.id_uzivatele)
-  WHERE id_zidle=-1301 AND ISNULL(nn.id_uzivatele)';
+  WHERE id_zidle='.Z_PRIHLASEN.' AND ISNULL(nn.id_uzivatele)';
 $ubytovaniKratce=tabMysql(dbQuery($q));
 $q='SELECT
     p.nazev Název,
