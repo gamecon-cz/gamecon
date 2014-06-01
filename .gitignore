@@ -6,6 +6,7 @@ Thumbs.db
 *.pdf
 *.psd
 *.xcf
+*.xtpc
 # Neverzované věci z webu
 /admin/files/logs/*
 /specificke/site-specific.php

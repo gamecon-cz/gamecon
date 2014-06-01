@@ -9,9 +9,9 @@ $o=dbQuery('SELECT obsah FROM novinky_obsah
   WHERE stav="Y" 
   ORDER BY publikovano DESC '.
   ($vsechnyNovinky?'':'LIMIT 10')); //pro inkludování z novinky-archiv
-while($r=mysql_fetch_assoc($o))
-  $xtpl->insert_loop('novinky.novinka',$r);
+while($r=mysql_fetch_assoc($o)) {
+  $xtpl->assign($r);
+  $xtpl->parse('novinky.novinka');
+}
 $xtpl->parse('novinky');
 $xtpl->out('novinky');
-
-?>

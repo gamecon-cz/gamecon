@@ -118,8 +118,8 @@ if($uPracovni && $uPracovni->gcPrihlasen())
     'pokoj'           =>  $pokoj ? $pokoj : '(nepřidělen)'
   ));
   $x->parse( $up->gcPritomen() ? 'uvod.uzivatel.pritomen' : 'uvod.uzivatel.nepritomen' );
-  $x->parse( $up->telefon()    ? 0 : 'uvod.uzivatel.bezTelefonu' );
-  $x->parse( $up->gcPritomen() ? 0 : 'uvod.uzivatel.gcOdhlas' );
+  if(!$up->telefon()) $x->parse('uvod.uzivatel.bezTelefonu');
+  if(!$up->gcPritomen()) $x->parse('uvod.uzivatel.gcOdhlas');
   $x->parse('uvod.uzivatel');
 }
 else if($uPracovni && !$uPracovni->gcPrihlasen()) // kvůli zkratovému vyhodnocení a nevolání metody na non-object

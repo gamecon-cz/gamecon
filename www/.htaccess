@@ -15,3 +15,5 @@ RewriteRule (.*) index.php?req=$1 [L,QSA]
 	Order allow,deny
 	Deny from all
 </Files>
+
+#php_value xdebug.profiler_enable 1

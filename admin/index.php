@@ -34,7 +34,7 @@ $podstranka=isset($req[1])?$req[1]:'';
 // zobrazení stránky
 if(!$u)
 {
-  $xtpl->assign_file('obsah','./templates/prihlaseni.xtpl');
+  $xtpl->parse('all.prihlaseni');
   $xtpl->parse('all');
   $xtpl->out('all');
   profilInfo();
@@ -122,9 +122,9 @@ else
     unset($_SESSION['id_admin']);
   }
   elseif(!$u->maPravo($menu[$stranka]['pravo']))
-    $xtpl->assign_file('obsah','./templates/zakazano.xtpl'); 
+    $xtpl->parse('all.nenalezeno');
   else
-    $xtpl->assign_file('obsah','./templates/404.xtpl');
+    $xtpl->parse('all.zakazano');
   // výstup
   $xtpl->assign('protip', $protipy[array_rand($protipy)]);
   $xtpl->parse('all.paticka');

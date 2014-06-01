@@ -111,7 +111,6 @@
         <div class="main-top"></div>
         <div class="main-middle">
           <div class="main-middle-in {extraTridy}">
-            {FILE {obsahSoubor}}
             {obsahRetezec}
           </div>
         </div>
