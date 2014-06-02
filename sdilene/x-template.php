@@ -116,7 +116,7 @@ class XTemplate {
    * Converts xtemplate variable literals to php tags, returns converted text
    */
   protected function convertVariables($text) {
-    return preg_replace('@{([a-zA-Z_]+)}@', '<?=@$this->context["$1"]?>', $text);
+    return preg_replace('@{([a-zA-Z][a-zA-Z0-9_]*)}@', '<?=@$this->context["$1"]?>', $text);
   }
 
   /**

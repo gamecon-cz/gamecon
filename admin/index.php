@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 $SKRIPT_ZACATEK = microtime(true);
 
@@ -51,60 +51,23 @@ elseif(is_file('./scripts/zvlastni/'.$stranka.'/'.$podstranka.'.php'))
 }
 else
 {
-  // konstrukce menu
+  // načtení menu
   $menu=new AdminMenu('./scripts/modules/');
   $menu=$menu->pole();
-  foreach($menu as $url=>$polozka)
-  {
-    if($u->maPravo($polozka['pravo']))
-    {
-      $xtpl->assign('url',$url);
-      $xtpl->assign('nazev',$polozka['nazev']);
-      $xtpl->assign('aktivni',$stranka==$url?'class="active"':'');
-      $xtpl->parse('all.menuPolozka');
-    }
-  }
-  // konstrukce submenu
+  // načtení submenu
+  $submenu = array();
   if(isset($menu[$stranka]['submenu']) && $menu[$stranka]['submenu'])
   {
     $submenu=new AdminMenu('./scripts/modules/'.$stranka.'/');
     $submenu=$submenu->pole();
-    foreach($submenu as $url=>$polozka)
-    if($u->maPravo($polozka['pravo']))
-    {
-      $xtpl->assign('url',$url==$stranka?$url:$stranka.'/'.$url);
-      $xtpl->assign('nazev',$polozka['nazev']);
-      $xtpl->parse('all.submenu.polozka');
-    }
-    $xtpl->parse('all.submenu');
   }
-  // výběr uživatele
-  if($u->maPravo(100)) // panel úvod - fixme magická konstanta
-  {
-    if($uPracovni) {
-      $xtpl->assign(array(
-        'avatar'  =>  $uPracovni->avatar(),
-        'jmeno'   =>  $uPracovni->jmeno(),
-        'nick'    =>  $uPracovni->prezdivka(),
-        'status'  =>  $uPracovni->statusHtml(),
-      ));
-      $xtpl->parse('all.uzivatel.vybrany');
-    } else {
-      $xtpl->parse('all.uzivatel.omnibox');
-    }
-    $xtpl->parse('all.uzivatel');
-  }
-  // operátor - info & odhlašování
-  $xtpl->assign('a', $u->koncA());
-  $xtpl->assign('operator', $u->jmenoNick());
-  $xtpl->parse('all.operator');
   // konstrukce stránky
   if(isset($menu[$stranka]) && $u->maPravo($menu[$stranka]['pravo']))
   {
     $_SESSION['id_admin'] = $u->id(); //součást interface starých modulů
     $_SESSION['id_uzivatele'] = $uPracovni ? $uPracovni->id() : null ; //součást interface starých modulů
     $cwd=getcwd(); //uložíme si aktuální working directory pro pozdější návrat
-    if(isset($submenu))
+    if(isset($submenu) && $submenu)
     {
       chdir('./scripts/modules/'.$stranka.'/');
       $soubor=$podstranka?$cwd.'/'.$submenu[$podstranka]['soubor']:$cwd.'/'.$submenu[$stranka]['soubor'];
@@ -125,6 +88,48 @@ else
     $xtpl->parse('all.nenalezeno');
   else
     $xtpl->parse('all.zakazano');
+  // operátor - info & odhlašování
+  $xtpl->assign('a', $u->koncA());
+  $xtpl->assign('operator', $u->jmenoNick());
+  $xtpl->parse('all.operator');
+  // výběr uživatele
+  if($u->maPravo(100)) // panel úvod - fixme magická konstanta
+  {
+    if($uPracovni) {
+      $xtpl->assign(array(
+        'avatar'  =>  $uPracovni->avatar(),
+        'jmeno'   =>  $uPracovni->jmeno(),
+        'nick'    =>  $uPracovni->prezdivka(),
+        'status'  =>  $uPracovni->statusHtml(),
+      ));
+      $xtpl->parse('all.uzivatel.vybrany');
+    } else {
+      $xtpl->parse('all.uzivatel.omnibox');
+    }
+    $xtpl->parse('all.uzivatel');
+  }
+  // výstup menu
+  foreach($menu as $url=>$polozka)
+  {
+    if($u->maPravo($polozka['pravo']))
+    {
+      $xtpl->assign('url',$url);
+      $xtpl->assign('nazev',$polozka['nazev']);
+      $xtpl->assign('aktivni',$stranka==$url?'class="active"':'');
+      $xtpl->parse('all.menuPolozka');
+    }
+  }
+  // výstup submenu
+  foreach($submenu as $url=>$polozka)
+  {
+    if($u->maPravo($polozka['pravo']))
+    {
+      $xtpl->assign('url',$url==$stranka?$url:$stranka.'/'.$url);
+      $xtpl->assign('nazev',$polozka['nazev']);
+      $xtpl->parse('all.submenu.polozka');
+    }
+  }
+  $xtpl->parse('all.submenu');
   // výstup
   $xtpl->assign('protip', $protipy[array_rand($protipy)]);
   $xtpl->parse('all.paticka');
