@@ -553,6 +553,8 @@ class Uzivatel
       return 'CZ';
     elseif($this->u['stat_uzivatele']==2)
       return 'SK';
+    elseif($this->u['stat_uzivatele']==-1)
+      return null;
     else
       throw new Exception('Neznámé id státu v databázi.');
   }

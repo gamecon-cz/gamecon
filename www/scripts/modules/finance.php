@@ -22,12 +22,13 @@ if(!$zaplaceno)
   $pozde=-round($fin->stavPozde());
   if(SLEVA_AKTIVNI)
     $limit=datum3(SLEVA_DO);
-  if($u->stat()=='CZ')
-    $castka.='&thinsp;Kč' xor
+  if($u->stat()=='CZ') {
+    $castka.='&thinsp;Kč';
     $pozde.='&thinsp;Kč';
-  elseif($u->stat()=='SK')
-    $castka=round($castka/KURZ_EURO,2).'&thinsp;€' xor
-    $pozde=round($castkaPozde/KURZ_EURO,2).'&thinsp;€';
+  } else {
+    $castka=round($castka/KURZ_EURO,2).'&thinsp;€';
+    $pozde=round($pozde/KURZ_EURO,2).'&thinsp;€';
+  }
 }
 
 ?>
