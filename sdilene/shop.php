@@ -219,8 +219,9 @@ class Shop
     $out.='
       <a href="#" onclick="$(\'#infoUbytovani\').slideToggle();return false">informace o ubytování</a>
       <div style="display:none" id="infoUbytovani">
-      <p>Čísla ukazují počet obsazených míst / celkem. Ubytování je pro zájemce (a nadšence a organizátory :) k dispozici už od středy, program začíná ale až <strong>čtvrtek</strong> odpoledne. Ubytování v neděli znamená noc z neděle na pondělí, kdy už opět neprobíhá program a v pondělí je potřeba pokoj vyklidit v 9:00.</p>
+      <p>Čísla ukazují počet obsazených míst / celkem. Ubytování je pro zájemce (a nadšence a organizátory :) k dispozici už od středy, program začíná ve <strong>čtvrtek</strong> v poledne. Ubytování v neděli znamená noc z neděle na pondělí, kdy už opět neprobíhá program a v pondělí je potřeba pokoj vyklidit v 9:00.</p>
       <p>Ubytovat se na pokojích později než od čtvrtka je také možné, jen je třeba se připravit, že na postelích již někdo před vámi spal (a vzít si např. vlastní spacák).</p>
+      <p>Ubytování ve vlastním stanu je na uzavřeném pozemku Domova mládeže. Stanující mohou využívat společné sprchy a toalety uvnitř budovy. Možno použít pouze prostor mezi stromy, vhodné pro menší stany. Každý ubytovaný ve stanu si musí zvolit možnost „vlastní stan“ i pokud bydlí více lidí dohromady.</p>
       </div><br>
     ';
 
