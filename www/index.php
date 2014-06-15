@@ -25,7 +25,7 @@ if(post('login') && post('heslo'))
   }
 }
 $u=Uzivatel::zSession();
-if(post('odhlas'))
+if(post('odhlas') && $u)
   $u->odhlas(true);
 
 //id_uzivatele pro kompatibilitu s pův. skripty. Kvůli možnému sdílení session
