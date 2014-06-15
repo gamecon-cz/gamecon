@@ -11,14 +11,6 @@ function array_keys_exist($keys,$search)
   return true;
 }
 
-/**
- * Select key/value pairs from array $a where key is in array $b
- */
-function array_select($a,$b)
-{
-  return array_intersect_key($a,array_fill_keys($b, null));
-} 
-
 /** ends current script execution and reloads page to http referrer
  *  @param $to alternative location to go to instead of referrer */
 function back($to=null)
@@ -33,47 +25,10 @@ function back($to=null)
   // http://goo.gl/UonDa
 }
 
-/** alias for encHtml1() */
-function encHtml($s)
-{ return encHtml1($s); }
-
-/** encode text to html readable form
- *  variant for short texts (no special features) */
-function encHtml1($s)
-{
-  return strtr($s, array("\n"=>'<br />'));
-}
-
-/** encode text to html readable form
- *  basic formatting features */
-function encHtml2($s)
-{
-  $o=strtr($s, array("\n"=>'<br />','...'=>'…',' - '=>' – '));
-  $o=preg_replace('@"([^"]+)"[^>]@', '„$1“ ', $o); //co s html?
-  $o=preg_replace_callback('@(<br />-[^<]+)+@', function($m){
-    return '<ul>'.strtr($m[0],array('<br />- '=>'<li>',)).'</ul>';
-  }, $o);
-  $o=preg_replace('@http://[a-zA-Z0-9/\?\.=\-_]+@', '<a href="$0" onclick="return!window.open(this.href)">$0</a>', $o);
-  return $o;
-} 
-
 function get($name)
 {
   if(isset($_GET[$name])) return $_GET[$name];
   else return '';
-}
-
-function getIs($name)
-{
-  return isset($_GET[$name]);
-}
-
-/** human readable vardump */
-function hrvd($a)
-{
-  echo '<pre>';
-  var_dump($a);
-  echo '</pre>';
 }
 
 /** if current call is AJAX */
@@ -87,12 +42,6 @@ function post($name)
   if(isset($_POST[$name])) return $_POST[$name];
   else return '';
 }
-
-function postIs($name)
-{
-  return isset($_POST[$name]);
-}
-
 
 /**
  * Returns random hexadecimal number in with $chars number of characters (ie.
@@ -188,20 +137,3 @@ function tabMysqlR($a)
 {
   return tabHtml(tabArrayR(tabMysqlArray($a)));
 }
-
-function timeProfile()
-{
-  $r='Skript: '.round(microtime(true)-$GLOBALS['START_GENERATE'],3).
-    '&thinsp;s<br />';
-  $r.='Databáze: '.round(dbExecTime(),3).'&thinsp;s ('.dbNumQ().')';
-  //$r.=dbLastQ();
-  echo('<div style="top:0;left:0;position:absolute;z-index:9999;'.
-    'background-color:#000;color:#fff;padding:4px 8px;font-size:15px">'.
-    $r.'</div>');
-}
-
-class DeprecatedException extends Exception
-{
-}
-
-?>

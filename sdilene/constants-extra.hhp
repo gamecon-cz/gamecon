@@ -27,12 +27,6 @@ define('ID_PRAVO_PRITOMEN',$GLOBALS['ID_PRAVO_PRITOMEN']=   Z_PRITOMEN);
 define('ID_ZIDLE_PRIHLASEN',$GLOBALS['ID_ZIDLE_PRIHLASEN']= Z_PRIHLASEN);
 define('ID_ZIDLE_PRITOMEN',$GLOBALS['ID_ZIDLE_PRITOMEN']=   Z_PRITOMEN);
 
-//fake práva a židle pro aktivity
-define('ID_PRAVO_DRD',$GLOBALS['ID_PRAVO_DRD']=-1); //fake práva, viz fce ma_pravo()
-define('ID_PRAVO_TROJBOJ',$GLOBALS['ID_PRAVO_TROJBOJ']=-2);
-define('ID_ZIDLE_DRD',$GLOBALS['ID_ZIDLE_DRD']=-1); //fake židle, viz deprecated posad_na_zidli()
-define('ID_ZIDLE_TROJBOJ',$GLOBALS['ID_ZIDLE_TROJBOJ']=-2);
-
 define('ID_PRAVO_TAB_PROGRAM_REPORTY',$GLOBALS['ID_PRAVO_TAB_PROGRAM_REPORTY']=200);  //právo vidět reporty v tabulce programu
 define('ID_PRAVO_ORG_SEKCE',$GLOBALS['ID_PRAVO_ORG_SEKCE']=2);     //viditelnost org sekce ve fóru a org sekcí na různých stránkách
 define('ID_PRAVO_TESTER',$GLOBALS['ID_PRAVO_TESTER']=999);      //právo pro testery (zobrazení testovacích věcí)

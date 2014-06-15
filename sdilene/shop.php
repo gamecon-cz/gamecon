@@ -9,9 +9,11 @@ class Shop
 
   protected
     $u,
+    $cenik,               // instance ceníku
     $ubytovani=array(),
     $tricka=array(),
     $predmety=array(),
+    $jidlo=array(),
     $ubytovaniOd,
     $ubytovaniDo,
     $ubytovaniTypy=array(),
@@ -44,19 +46,24 @@ class Shop
     'UJAK Univerzita Jana Amose Komenského',
     'VŠCHT Vysoká škola chemicko-technologická v Praze'
   );
+  protected static $dny = array('středa', 'čtvrtek', 'pátek', 'sobota', 'neděle');
 
   const
     PREDMET = 1,
     UBYTOVANI = 2,
     TRICKO = 3,
-    JIDLO = 4;
+    JIDLO = 4,
+    PN_JIDLO = 'cShopJidlo',          // post proměnná pro jídlo
+    PN_JIDLO_ZMEN = 'cShopJidloZmen'; // post proměnná indikující, že se má jídlo aktualizovat
 
   /**
    * Konstruktor
    */
   function __construct(Uzivatel $u)
   {
-    $this->u=$u;
+    $this->u = $u;
+    $this->cenik = new Cenik($u);
+
     // vybrat všechny předměty pro tento rok + předměty v nabídce + předměty, které si koupil
     $o=dbQuery('
       SELECT
@@ -75,10 +82,21 @@ class Shop
       unset($fronta); // $fronta reference na frontu kam vložit předmět (nelze dát =null, přepsalo by předchozí vrch fronty)
       $r['nabizet'] = $r['stav'] == 1; // v základu nabízet vše v stavu 1
       // rozlišení kam ukládat a jestli nabízet podle typu
-      if( $typ == self::PREDMET || $typ == self::JIDLO ) {
-        $r['nabizet'] = $r['nabizet'] ||
-          $r['stav'] == 2 && $r['typ'] == 4 && ($u->maPravo(P_JIDLO) || $u->maPravo(P_JIDLO_ZDARMA));
+      if($typ == self::PREDMET) {
         $fronta = &$this->predmety[];
+      } elseif( $typ == self::JIDLO ) {
+        $r['nabizet'] = $r['nabizet'] ||
+          $r['stav'] == 2 && strpos($r['nazev'],'Snídaně')!==false && $this->u->maPravo(P_JIDLO_SNIDANE);
+          //TODO pokud ostatní jídla nebudou public, nutno přidat nabízení na základě dalších práv
+        $den = $r['ubytovani_den'];
+        $druh = self::bezDne($r['nazev']);
+        if($r['kusu_uzivatele'] > 0) $this->jidlo['jidloObednano'][$r['id_predmetu']] = true;
+        if($r['kusu_uzivatele'] || $r['nabizet']) {
+          //zobrazení jen dnů / druhů, které mají smysl
+          $this->jidlo['dny'][$den] = true;
+          $this->jidlo['druhy'][$druh] = true;
+        }
+        $fronta = &$this->jidlo['jidla'][$den][$druh];
       } elseif( $typ == self::UBYTOVANI ) {
         $fronta = &$this->ubytovani[$r['ubytovani_den']][self::typUbytovani($r)];
         $this->ubytovaniTypy[self::typUbytovani($r)] = 1;
@@ -105,6 +123,51 @@ class Shop
       // finální uložení předmětu na vrchol dané fronty
       $fronta = $r;
     }
+  }
+
+  /** Smaže z názvu identifikaci dne */
+  protected static function bezDne($nazev) {
+    $re = ' ?pondělí| ?úterý| ?středa| ?čtvrtek| ?pátek| ?sobota| ?neděle';
+    return preg_replace('@'.$re.'@', '', $nazev);
+  }
+
+  protected static function denNazev($cislo) {
+    return self::$dny[$cislo];
+  }
+
+  /**
+   * Vrátí html kód formuláře s výběrem jídla
+   */
+  function jidloHtml() {
+    // inicializace
+    ksort($this->jidlo['druhy']);
+    $dny = $this->jidlo['dny'];
+    $druhy = $this->jidlo['druhy'];
+    $jidla = $this->jidlo['jidla'];
+    // vykreslení
+    $t = new XTemplate(__DIR__ . '/shop-jidlo.xtpl');
+    foreach($druhy as $druh => $i) {
+      foreach($dny as $den => $i) {
+        $jidlo = @$jidla[$den][$druh];
+        if($jidlo && ($jidlo['nabizet'] || $jidlo['kusu_uzivatele'])) {
+          $t->assign('selected', $jidlo['kusu_uzivatele'] > 0 ? 'checked' : '');
+          $t->assign('pnName', self::PN_JIDLO . '[' . $jidlo['id_predmetu'] . ']');
+          $t->parse('jidlo.druh.den.checkbox');
+        }
+        $t->parse('jidlo.druh.den');
+      }
+      $t->assign('druh', $druh);
+      $t->assign('cena', $this->cenik->shop($jidlo).'&thinsp;Kč');
+      $t->parse('jidlo.druh');
+    }
+    // hlavička
+    foreach($dny as $den => $i) {
+      $t->assign('den', mb_ucfirst(self::denNazev($den)));
+      $t->parse('jidlo.den');
+    }
+    $t->assign('pnJidloZmen', self::PN_JIDLO_ZMEN);
+    $t->parse('jidlo');
+    return $t->text('jidlo');
   }
 
   /**
@@ -243,6 +306,32 @@ class Shop
   }
 
   /**
+   * Upraví objednávku z pole id $stare na pole $nove
+   * @todo zaintegrovat i jinde (ale zároveň nutno zobecnit pro vícenásobné
+   * nákupy jednoho ID)
+   */
+  protected function zmenObjednavku($stare, $nove) {
+    $nechce = array_diff($stare, $nove);
+    $chceNove = array_diff($nove, $stare);
+    // přírustky
+    $values = '';
+    foreach($chceNove as $n) {
+      $sel = 'SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu = '.$n;
+      $values .= "\n".'('.$this->u->id().','.$n.','.ROK.',('.$sel.'),NOW()),';
+    }
+    if($values) {
+      $values[strlen($values)-1] = ';';
+      dbQuery('INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni, datum) VALUES '.$values);
+    }
+    // mazání
+    if($nechce) {
+      dbQueryS('DELETE FROM shop_nakupy WHERE id_uzivatele = $1 AND rok = $2 AND id_predmetu IN($3)', array(
+        $this->u->id(), ROK, $nechce
+      ));
+    }
+  }
+
+  /**
    * Zpracuje část formuláře s předměty a tričky
    * Čáry máry s ručním počítáním diference (místo smazání a náhrady) jsou nut-
    * né kvůli zachování původní nákupní ceny (aktuální cena se totiž mohla od
@@ -263,7 +352,7 @@ class Shop
       sort($nove);
       // pole s předměty, které už má objednané dříve (bez ubytování)
       $stare=array();
-      $o=dbQuery('SELECT id_predmetu FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE id_uzivatele='.$this->u->id().' AND rok='.ROK.' AND typ!=2 ORDER BY id_predmetu');
+      $o=dbQuery('SELECT id_predmetu FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE id_uzivatele='.$this->u->id().' AND rok='.ROK.' AND typ IN('.self::PREDMET.','.self::TRICKO.') ORDER BY id_predmetu');
       while($r=mysql_fetch_assoc($o))
         $stare[]=(int)$r['id_predmetu'];
       // určení rozdílů polí (note: array_diff ignoruje vícenásobné výskyty hodnot a nedá se použít)
@@ -354,6 +443,14 @@ class Shop
         }
       }
     }
+  }
+
+  /** Zpracuje formulář s jídlem */
+  function zpracujJidlo() {
+    if(!isset($_POST[self::PN_JIDLO_ZMEN])) return;
+    $ma = array_keys( @$this->jidlo['jidloObednano'] ?: array() );
+    $chce = array_keys( post(self::PN_JIDLO) ?: array() );
+    $this->zmenObjednavku($ma, $chce);
   }
 
   ////////////////////

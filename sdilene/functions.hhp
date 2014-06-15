@@ -1,146 +1,5 @@
 <?php
 
-/** Řekne, kolik hodin zbývá do začátku aktivity
- *  @param $a řádek s aktivitou z databáze */
-function aktivitaDoZacatkuH($a)
-{
-  $aCas = new DateTime($a['zacatek']);
-  $delta = $aCas->getTimestamp() - time();
-  return $delta/(60*60);
-}
-
-/** Zkusí odhlásit uživatele z aktivity
- *  @param $uid integer pokud je (přesně) null, odhlásí všechny uživatele
- *  @return bool Vrací true, pokud je nakonec uživatel nepřihlášen. */
-function aktivitaOdhlas($uid,$aid)
-{
-  $a=dbOneLineS('SELECT * FROM akce_seznam WHERE id_akce=$0',array($aid));
-  if($a['dite'] && !aktivitaOdhlas($uid,$a['dite']))
-    return false; //nezdařilo se odhlásit od potomků, pokud jsou
-  if($uid===null)
-  { //odhlášení všech
-    //nepočítá se s pokutami za pozdní odhlášení
-    $a=dbQueryS('SELECT id_uzivatele FROM akce_prihlaseni WHERE id_akce=$0',array($aid));
-    while($r=mysql_fetch_assoc($a))
-    {
-      dbQueryS('INSERT INTO akce_prihlaseni_log 
-        SET id_uzivatele=$0, id_akce=$1, typ="odhlaseni_hromadne"',array($r['id_uzivatele'],$aid));
-    }
-    dbQueryS('DELETE FROM akce_prihlaseni WHERE id_akce=$0',array($aid));
-    return false;
-  }
-  else
-  { //odhlášení konkrétního uživatele
-    dbQueryS('DELETE FROM akce_prihlaseni 
-      WHERE id_uzivatele=$0 
-      AND id_akce=$1',array($uid,$aid));
-    dbQueryS('INSERT INTO akce_prihlaseni_log 
-      SET id_uzivatele=$0, id_akce=$1, typ="odhlaseni"',array($uid,$aid));
-    if(ODHLASENI_POKUTA_KONTROLA && aktivitaDoZacatkuH($a)<ODHLASENI_POKUTA1_H) //pokuta aktivní
-      dbQueryS('INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$0, 
-        id_akce=$1, id_stavu_prihlaseni=4',array($uid,$aid));
-    return !aktivitaPrihlasen($uid,$aid);
-  } 
-}
-
-/** Zkusí přihlásit uživatele na aktivitu
- *  @param bool $preslimit pokud je nastaveno true, přihlásí i přes limit
- *  @return bool Vrací true, pokud uživatel je nakonec přihlášen (tj. i pokud
- *    už byl přihlášen). Vrací false, pokud skončí nepřihlášen.
- *  @deprecated Užít místo toho UzivatelskaAktivita::prihlas() */
-function aktivitaPrihlas($uid,$aid,$preslimit=false,$mimoRegistraci=false)
-{
-  //deprecated, nějak vyřešit alias na UzivatelskaAktivita::prihlas()
-  if(!(int)$uid || !(int)$aid) die('nezadána aktivita nebo uživatel');
-  if(!REGISTRACE_AKTIVNI && !$mimoRegistraci) die('registrace neaktivní');
-  if(aktivitaPrihlasen($uid,$aid))
-    return true; //už je přihlášen, přihlášení „se zdařilo“ a konec
-  $aktivita=dbOneLineS('SELECT a.kapacita, count(1) as obsazenost, a.dite 
-    FROM akce_seznam a
-    LEFT JOIN akce_prihlaseni ap USING(id_akce)
-    WHERE a.id_akce=$0
-    GROUP BY a.id_akce',array($aid));
-  //var_dump($aktivita);
-  if($aktivita['kapacita']==0 || $aktivita['kapacita']>$aktivita['obsazenost'] || $preslimit)
-  {
-    if($aktivita['dite'] && !aktivitaPrihlas($uid,$aktivita['dite'],$preslimit))
-      return false; //rekurzivní přihlášení na potomky TODO potřebujeme tuto featuru? 
-    dbQueryS('INSERT INTO akce_prihlaseni 
-      SET id_uzivatele=$1,
-      id_akce=$0',array($aid,$uid));
-    dbQueryS('INSERT INTO akce_prihlaseni_log 
-      SET id_uzivatele=$0, id_akce=$1, typ="prihlaseni"',array($uid,$aid));
-    if(ODHLASENI_POKUTA_KONTROLA) //pokud by náhodou měl záznam za pokutu a přihlásil se teď, tak smazat
-      dbQueryS('DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0  
-        AND id_akce=$1 AND id_stavu_prihlaseni=4',array($uid,$aid));
-    return true;
-  }
-  else
-    return false; //přeplněno
-}
-
-/** Zkusí přihlásit uživatele na aktivitu s ošetřením chybných vstupů */
-function aktivitaPrihlasBezpecne($uid,$aid)
-{
-  //todo dokončit
-  $a=dbOneLineS('SELECT u.id_uzivatele, a.id_akce 
-    FROM uzivatele_hodnoty u, akce_seznam a
-    WHERE a.id_akce=$1 AND u.id_uzivatele=$0',array($uid,$aid));
-  if(!$a['id_uzivatele'] || !$a['id_akce']) return false;
-}
-
-/** Zjistí, jestli je uživatel přihlášen na aktivitu s id $aid */
-function aktivitaPrihlasen($uid,$aid)
-{
-  return (bool)dbOneLineS('SELECT 1 
-    FROM akce_prihlaseni
-    WHERE id_uzivatele=$0
-    AND id_akce=$1',array($uid,$aid));
-}
-
-/** Z řádku z DB zjistí, jaká místa jsou ještě volná. Vyžaduje pole 'pocet_f' a
- *  'pocet_m' pro počty lidí k aktivitě, viz Program::tisk()
- *  @return string Vrací některou z hodnot 'f', 'm', 'u', 0 značící volno jen
- *  pro holky, jen pro kluky, pro kohokoli nebo plno. */
-function aktivitaVolno($db)
-{
-  $a=new Aktivita($db);
-  return $a->volno();
-}
-
-/** Zruší aktivitu a odhlásí všechny přihlášené */
-function aktivitaZrus($aid)
-{
-  aktivitaOdhlas(null,$aid);
-  //test na rodinu instancí
-  $a=dbOneLine('SELECT * FROM akce_seznam WHERE id_akce='.(int)$aid);
-  $rodina=$a['patri_pod'];  
-  //zrušení
-  $result=dbQueryS('DELETE FROM akce_seznam WHERE id_akce=$0',array($aid));
-  //zrušení id rodiny instancí, pokud je
-  if($rodina)
-  {
-    $a2=dbQuery('SELECT id_akce FROM akce_seznam WHERE patri_pod='.(int)$rodina);
-    if(mysql_num_rows($a2)==1)
-    {
-      $r=mysql_fetch_assoc($a2);
-      dbQuery('UPDATE akce_seznam SET patri_pod=0 
-        WHERE id_akce='.$r['id_akce']);
-    }
-    if($a['url_akce'] || $a['popisek']) //zrušená aktivita měla popisek nebo url => byla to "matka" skupiny instancí
-    { //překopírovat tyto věci do nové "matky"
-      $idm=dbOneLine('SELECT MIN(id_akce) as id_akce FROM akce_seznam 
-        WHERE patri_pod='.(int)$rodina);
-      $idm=$idm['id_akce']; //id mateřské instance
-      dbInsertUpdate('akce_seznam',array( //update mateřské instance
-        'id_akce'=>$idm,
-        'url_akce'=>$a['url_akce'],
-        'popis'=>$a['popis']));
-    }
-  }
-  return $result;
-}
-
 /**
  * Vrátí míru diverzifikace aktivit v poli udávajícím počty aktivit od jedno-
  * tlivých typů. Délka pole ovlivňuje výsledek (je potřeba aby obsahovalo i 0)
@@ -163,40 +22,6 @@ function aktivityDiverzifikace($poleTypu)
   return array_sum($nPocty)*$typu/($typu-1); //výsledná míra diverzifikace 0.0 - 1.0
 }
 
-/** Vrátí seznam aktivit včetně informace o přihlášených omezený sql klauzulí
- *  @param $u Uzivatel přidá do výsledku sloupec "přihlášen", pakliže je
- *    uživatel $u přihlášen na danou aktivitu
- *  @param $sqlGroupBy string volitelně část dotazu po ORDER BY */
-function aktivitySPocty($sqlWhere,$u=null,$sqlOrderBy=null,$sqlHaving=null)
-{
-  $prihlSql1=$prihlSql2='';
-  if($u instanceof Uzivatel)
-  { //přídavná část SQL dotazu pro rozlišení akcí, kde je uživatel přihlášen
-    $prihlSql1=', ap.prihlasen';
-    $prihlSql2='
-      LEFT JOIN (
-        SELECT id_akce, '.$u->id().' as prihlasen FROM akce_prihlaseni WHERE id_uzivatele='.$u->id().'
-      ) as ap ON(a.id_akce=ap.id_akce) -- aktivni prihlaseni daneho uzivatele';
-  }
-  $o=dbQuery('
-    SELECT a.*, 
-      COUNT(p.id_uzivatele) as pocet,
-      COUNT(NULLIF(p.id_uzivatele AND u.pohlavi="f",false)) as pocet_f, 
-      COUNT(NULLIF(p.id_uzivatele AND u.pohlavi="m",false)) as pocet_m,
-      (a.kapacita+a.kapacita_m+a.kapacita_f) as kapacita_celkova 
-      '.$prihlSql1.'
-    FROM akce_seznam a 
-    LEFT JOIN akce_prihlaseni p ON (a.id_akce=p.id_akce) -- pocet lidi
-    LEFT JOIN uzivatele_hodnoty u ON (u.id_uzivatele=p.id_uzivatele) -- kvůli groupu dle pohlaví
-    '.$prihlSql2.'
-    WHERE '.$sqlWhere.'
-    GROUP BY a.id_akce '.
-    ($sqlOrderBy?'ORDER BY '.$sqlOrderBy:'').
-    ($sqlHaving?'HAVING '.$sqlHaving:'')
-  );
-  return $o;
-}
-
 
 /** Vrací datum ve stylu "pátek 14:00-18:00" na základě řádku db */
 function datum2($dbRadek)
@@ -216,79 +41,6 @@ function datum3($datum)
     'července', 'srpna', 'září', 'října', 'listopadu', 'prosince');
   return date('j. ',strtotime($datum)).
     $mesic[date('n',strtotime($datum))-1];
-}
-
-
-/** Vrátí html formátovanou finanční historii uživatele
- *  Starý kód, todo fixme */
-function financeHistorie($uid)
-{
-  $sql="
-  select
-    login_uzivatele,
-    jmeno_uzivatele,
-    prijmeni_uzivatele
-  from
-    uzivatele_hodnoty
-  where
-    id_uzivatele=$uid
-  ";
-  $result=dbQuery($sql);
-  $login=mysql_result($result,0,0);
-  $jmeno=mysql_result($result,0,1);
-  $prijmeni=mysql_result($result,0,2);
-  
-  $sql="
-    select
-      log.datum,
-      log.poznamka,
-      uziv.login_uzivatele,
-      fin.castka,
-      fin.sleva,
-      log.typ
-    from
-      log_uzivatele log,
-      uzivatele_hodnoty uziv,
-      finance_platby fin
-    where
-      log.admin=uziv.id_uzivatele and
-      log.id_uzivatele=$uid and
-      log.typ in (1,2) and
-      log.id_platby=fin.id_platby
-      and fin.rok=".$GLOBALS['ROK_AKTUALNI'].";
-  ";
-  $result=dbQuery($sql);
-  if (mysql_num_rows($result) > 0)
-  {
-    $poc=1;
-    $vysledek='';
-    while($zaznam=mysql_fetch_row($result))
-    {
-      if ($zaznam[4] == 1){
-        $sleva="(se slevou)";
-      }
-      else {
-        $sleva="(beze slevy)";
-      }
-      if (!empty($zaznam[1])){
-        $pozn="($zaznam[1])";
-      }
-      else {
-        $pozn="";
-      }
-      if ($zaznam[5] == 1){
-        $udelal="připsal na účet";
-      }
-      else {
-        $udelal="vyplatil z účtu";
-      }
-      $vysledek .= "<strong>$poc</strong>. ".date("j.n.y",$zaznam[0]).
-        ": $zaznam[2] $udelal $sleva <strong>$zaznam[3]</strong> GameCorun".
-        " $pozn<br />";
-      $poc++;
-    }
-  }
-  return $vysledek;
 }
 
 
@@ -379,8 +131,7 @@ function mb_ucfirst($string, $encoding=null)
 }
 
 
-/** Tisk informace profileru.
- *  @todo stringOut */
+/** Tisk informace profileru. */
 function profilInfo()
 {
   if(VETEV == OSTRA)
@@ -414,84 +165,16 @@ function profilInfo()
 }
 
 
-/** Název ubytování
- *  rozhodně se nepoužívá všude… */
-function ubytovaniNazev($typ)
-{
-  $nazvy=array(0=>'žádné', 1=>'trojlůžák', 2=>'spacák', 3=>'dvojlůžák');
-  return $nazvy[$typ];
-}
-
-
-/** Posadí uživatele $uid na židli $zid
- *  @return bool Jestli nakonec sedí uživatel na židli, na které jsme chtěli */
-function zidlePosad($uid,$zid)
-{
-  if($zid<0 && $zid>-100) 
-    throw new Exception('Nelze: zidle je v rezervovanem intervalu 0 az -100.');
-  return dbQueryS('INSERT INTO r_uzivatele_zidle 
-    SET id_uzivatele=$0, id_zidle=$1 
-    ON DUPLICATE KEY UPDATE id_uzivatele=$0',array($uid,$zid));
-}
-
-
-/** Sesadí uživatele $uid z židle $zid
- *  @return vždy true */
-function zidleSesad($uid,$zid)
-{
-  if($zid<0 && $zid>-100) 
-    throw new Exception('Nelze: zidle je v rezervovanem intervalu 0 az -100.');
-  return dbQueryS('DELETE FROM r_uzivatele_zidle 
-    WHERE id_uzivatele=$0 AND id_zidle=$1',array($uid,$zid));
-}
-
-
-/* ------------------------- STARÉ FUNKCE A ALIASY -------------------------- */
-
-
-/** 
- * Funkce na přístup k proměnným dřív uloženým v DB (používala se prakticky
- * pouze proměnná 'rok' jinak nic) 
+/**
+ * Říká, zdali uživatel má určité právo identifikované číslem
+ * @deprecated
  */
-function var_getvalue_sn($shortname)
-{
-  if($shortname=='rok')
-    return $GLOBALS['ROK_AKTUALNI'];
-  else //panika
-    die('var_getvalue_sn() nedefinovaná proměnná');
-}
-
-
-/** Říká, zdali uživatel má určité právo identifikované číslem */
 function ma_pravo($uzivatel,$cislo_prava)
 {  
-  /** 
-   * Story: dříve se používaly k identifikaci přihlášení na DrD a Trojboj
-   * židle a práva (krom samotné registrace k aktivitě). Protože však informace
-   * o ne/přihlášení na DrD je jasně zjistitelná ze samotného přihlášení na 
-   * jednotící aktivitu (DrD registrace, např.), následující kód obchází
-   * zjišťování těchto práv a dává odpověď dle registrace na aktivitu.
-   * 
-   * Odstraňuje též bug s cacheováním a následnou neaktualizací práv (viz
-   * uzivatel.hhp), která se projevuje až po opětovném přihlášení (fixme)
-   * 
-   * @todo Vyřešit podobným "hackem" přes aktivitu i přihlášení na celý GameCon
-   *  (nedojde pak ale k zbytečnému zjišťování z DB vždy? zvážit. Nejlépe poře-
-   *  šit aktivitou a zároveň údaj cacheovat).         
-   */
-  //Obejití nesmyslných práv            
-  if($cislo_prava==$GLOBALS['ID_PRAVO_DRD'])
-    return aktivitaPrihlasen($uzivatel,$GLOBALS['ID_AKTIVITA_DRD']);
-  //trojboj vypnut, použije se jako běžná akitivita
-  /*
-  if($cislo_prava==$GLOBALS['ID_PRAVO_TROJBOJ'])
-    return aktivitaPrihlasen($uzivatel,$GLOBALS['ID_AKTIVITA_TROJBOJ_REG']);
-  */
-  
+
   //Ptáme se na práva aktuálně přihlášeného uživatele? Pokud ano, obejdeme DB
   $u=Uzivatel::zSession();
-  if($u && $uzivatel==$u->id())
-  {
+  if($u && $uzivatel==$u->id()) {
     return $u->maPravo($cislo_prava);
   }
   
@@ -518,106 +201,4 @@ function ma_pravo($uzivatel,$cislo_prava)
         return false;
   }
   return false;
-}
-
-
-/** Vrátí gamecoruny uživatele a bonus ve stylu 'gamecoruny/bonus' */
-function gamecoruny_vypis()
-{
-  $u=null;
-  //hack - spoléháme na vytvořeného uživatele v globálním kontextu
-  //v případě volání jinak panika (nepravděpodobné, $_SESSION['id_uzivatele']
-  //se vždy používala k evidenci přihlášeného uživatele, a v ostrém webu se
-  //měnila na $u resp. v adminovi na $uPracovni
-  if(isset($GLOBALS['u']) && $_SESSION['id_uzivatele']==$GLOBALS['u']->id())
-    $u=$GLOBALS['u'];
-  if(isset($GLOBALS['uPracovni']) && $_SESSION['id_uzivatele']==$GLOBALS['uPracovni']->id())
-    $u=$GLOBALS['uPracovni'];
-  if(!$u) //Nepodařilo se odhadnout globální proměnnou s přihlášeným uživatelem.
-    //bohužel api tady počítá s navrácením symbolu "neznámo", nemůžeme genero-
-    //vat výjimku
-    return '?/?';
-  return $u->finance()->hr();
-}
-
-
-/** Alias původního přihlašování na akci
- *  @todo práce s nezadaným uživatelem (?) */ 
-function prihlas_akci($id_akce,$id_uzivatele=0)
-{
-  if($id_uzivatele==0)
-  {
-    //die('bezparametrická prihlas_akci() deprecated');
-    $id_uzivatele=$_SESSION["id_uzivatele"];
-  }
-  return aktivitaPrihlas($id_uzivatele,$id_akce);
-}
-
-function odhlas_akci($id_akce,$id_uzivatele=0)
-{
-  if($id_uzivatele==0) $id_uzivatele=$_SESSION["id_uzivatele"];
-  return aktivitaOdhlas($id_uzivatele,$id_akce);
-}
-
-
-/** Alias zidlePosad() pro původní skripty. Pracuje s možností nezadávat
- *  $id_uzivatele a načíst ho napevno z $_SESSION["id_uzivatele"] => deprecated
- */  
-function posad_na_zidli($cislo_zidle,$id_uzivatele=0)
-{
-  if ($id_uzivatele==0)
-  {
-    //die('bezparametrická posad_na_zidli() deprecated');
-    $id_uzivatele=$_SESSION["id_uzivatele"];
-  }
-  return zidlePosad($id_uzivatele,$cislo_zidle);
-}
-
-/** Alias zidleSesad() deprecated */
-function zesad_ze_zidle ($cislo_zidle,$id_uzivatele=0)
-{
-  if ($id_uzivatele == 0) $id_uzivatele=$_SESSION["id_uzivatele"];
-  zidleSesad($id_uzivatele,$cislo_zidle);
-}
-
-function htmlPocitadla($datumKonecOdpoctu){
-  $rozdilSekund = abs(date_timestamp_get(date_create($datumKonecOdpoctu)) - time());
-  $sirkaCisla = 17;
-  $vyskaCisla = 28;
-  $dny = floor($rozdilSekund / 86400);
-  $zbytek = $rozdilSekund % 86400;
-  $hodiny = floor($zbytek / 3600);
-  $zbytek = $zbytek % 3600;
-  $minuty = floor($zbytek / 60);
-  $sekundy = $zbytek % 60;
-  $pocitadlo = '';
-  
-  while(strlen($dny) < 2){
-    $dny = '0' . $dny;
-  }
-  while(strlen($hodiny) < 2){
-    $hodiny = '0' . $hodiny;
-  }
-  while(strlen($minuty) < 2){
-    $minuty = '0' . $minuty;
-  }
-  while(strlen($sekundy) < 2){
-    $sekundy = '0' . $sekundy;
-  }
-  for($i = 0; $i < strlen($dny); $i++){
-    $pocitadlo .= '<img src="http://beta.gamecon.cz/files/styly/styl-aktualni/pocitadlo_' . substr($dny, $i, 1) . '.gif" alt="' . substr($dny, $i, 1) . '" width="' . $sirkaCisla . '" height="' . $vyskaCisla . '" />';
-  }
-  $pocitadlo .= '<img src="http://beta.gamecon.cz/files/styly/styl-aktualni/pocitadlo_tecka.gif" alt="." width="' . $sirkaCisla . '" height="' . $vyskaCisla . '" />';
-  for($i = 0; $i < strlen($hodiny); $i++){
-    $pocitadlo .= '<img src="http://beta.gamecon.cz/files/styly/styl-aktualni/pocitadlo_' . substr($hodiny, $i, 1) . '.gif" alt="' . substr($hodiny, $i, 1) . '" width="' . $sirkaCisla . '" height="' . $vyskaCisla . '" />';
-  }
-  $pocitadlo .= '<img src="http://beta.gamecon.cz/files/styly/styl-aktualni/pocitadlo_dvojtecka.gif" alt=":" width="' . $sirkaCisla . '" height="' . $vyskaCisla . '" />';
-  for($i = 0; $i < strlen($minuty); $i++){
-    $pocitadlo .= '<img src="http://beta.gamecon.cz/files/styly/styl-aktualni/pocitadlo_' . substr($minuty, $i, 1) . '.gif" alt="' . substr($minuty, $i, 1) . '" width="' . $sirkaCisla . '" height="' . $vyskaCisla . '" />';
-  }
-  $pocitadlo .= '<img src="http://beta.gamecon.cz/files/styly/styl-aktualni/pocitadlo_dvojtecka.gif" alt=":" width="' . $sirkaCisla . '" height="' . $vyskaCisla . '" />';
-  for($i = 0; $i < strlen($sekundy); $i++){
-    $pocitadlo .= '<img src="http://beta.gamecon.cz/files/styly/styl-aktualni/pocitadlo_' . substr($sekundy, $i, 1) . '.gif" alt="' . substr($sekundy, $i, 1) . '" width="' . $sirkaCisla . '" height="' . $vyskaCisla . '" />';
-  }
-  return $pocitadlo;
 }

@@ -21,7 +21,7 @@ while($r=mysql_fetch_assoc($o))
 {
   $un=new Uzivatel($r);
   $un->nactiPrava(); //sql subdotaz, zlo
-  $dotazy.='UPDATE uzivatele_hodnoty SET zustatek='.$un->finance()->gamecoruny().' WHERE id_uzivatele='.$un->id().";\n";
+  $dotazy.='UPDATE uzivatele_hodnoty SET zustatek='.$un->finance()->stav().' WHERE id_uzivatele='.$un->id().";\n";
   $i++;
 }
 

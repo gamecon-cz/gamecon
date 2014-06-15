@@ -42,7 +42,7 @@ while($radek=mysql_fetch_assoc($odpoved))
     $xtpl->assign('titul',$orgTitul);
     $xtpl->parse('archiv.polozka.organizator');
   }
-  $radek['popis']=encHtml2($popis);
+  $radek['popis'] = markdown($popis);
   //TODO obrázek pořešit později, protože archivy nemají url akcí řádně uvedeno
   //$radek['obrazek']='/system_styly/side/'.$radek['obrazek'];
   $xtpl->assign($radek);

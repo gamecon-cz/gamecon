@@ -1,0 +1,25 @@
+<!-- begin:jidlo -->
+<table>
+  <tr>
+    <td style="width:60px"></td>
+    <td style="width:40px"></td>
+    <!-- begin:den -->
+    <td style="width:50px">{den}</td>
+    <!-- end:den -->
+  </tr>
+  <!-- begin:druh -->
+  <tr style="line-height:10px">
+    <td>{druh}</td>
+    <td>{cena}</td>
+    <!-- begin:den -->
+    <td>
+      <!-- begin:checkbox -->
+      <input type="checkbox" name="{pnName}" {selected}>
+      <!-- end:checkbox -->
+    </td>
+    <!-- end:den -->
+  <tr>
+  <!-- end:druh -->
+</table>
+<input type="hidden" name="{pnJidloZmen}" value="1">
+<!-- end:jidlo -->

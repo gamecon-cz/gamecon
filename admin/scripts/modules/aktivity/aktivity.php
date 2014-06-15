@@ -18,8 +18,11 @@ if(post('filtr'))
 
 if(post('smazat'))
 {
-  aktivitaZrus(post('aktivitaId'));
-  back();
+  throw new Exception('Aktivitu nelze smazat, je nutné smazat z DB ručně.');
+  // = TODO metoda aktivity
+  // id je post('aktivitaId')
+  // potom back();
+  // viz aktivitaZrus ve functions v historii gitu
 }
 
 if(post('publikovat'))

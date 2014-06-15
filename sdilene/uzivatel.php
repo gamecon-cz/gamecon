@@ -148,14 +148,12 @@ class Uzivatel
     return true;
   }
 
-  /** Vrátí finance daného uživatele
-   *  @todo ošetřit kolize v případě, že prve nepožádá rozšířený výpis aktivit
-   *  a potom jo */
-  function finance($nastaveni=null)
+  /** Vrátí finance daného uživatele */
+  function finance()
   {
     //pokud chceme finance poprvé, spočteme je a uložíme
     if(!$this->finance)
-      $this->finance=new Finance($this,$nastaveni);
+      $this->finance = new Finance($this);
     return $this->finance;
   }
 

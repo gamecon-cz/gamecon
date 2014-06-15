@@ -47,7 +47,7 @@ if(!$zidle) {
     ORDER BY z.id_zidle
     ', array($uPracovni ? $uPracovni->id() : null)
   );
-  while($r = dbFetch($o)) {
+  while($r = mysql_fetch_assoc($o)) {
     $r['sedi'] = $r['sedi'] ? '<span style="color:#0d0;font-weight:bold">&bull;</span>' : '';
     $t->assign($r);
     if($r['id_zidle'] < 0 && floor(-$r['id_zidle'] / 100) == ROK - 2000) { //dočasná, letos
@@ -70,7 +70,7 @@ if(!$zidle) {
     WHERE z.id_zidle = $1
     ', array($zidle)
   );
-  while(($r = dbFetch($o)) && $r['id_prava']) {
+  while(($r = mysql_fetch_assoc($o)) && $r['id_prava']) {
     $t->assign($r);
     $t->parse('zidle.pravo');
   }
@@ -82,7 +82,7 @@ if(!$zidle) {
     WHERE p.id_prava > 0 AND pz.id_prava IS NULL
     ', array($zidle)
   );
-  while($r = dbFetch($o)) {
+  while($r = mysql_fetch_assoc($o)) {
     $t->assign($r);
     $t->parse('zidle.pravoVyber');
   }

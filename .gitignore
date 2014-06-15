@@ -1,5 +1,6 @@
 # Podtržítkové složky a bordel v rootu
 /_*/
+/.*
 # Ignorované přípony
 *.bak
 Thumbs.db

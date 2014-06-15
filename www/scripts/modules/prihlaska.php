@@ -28,6 +28,7 @@ if(!empty($_POST))
   $shop->zpracujPredmety();
   $shop->zpracujUbytovani();
   $shop->zpracujSlevy();
+  $shop->zpracujJidlo();
   if($prihlasovani)
   {
     $_SESSION['ga_tracking_prihlaska']=true; //hack pro zobrazení js kódu úspěšné google analytics konverze
@@ -47,6 +48,7 @@ if(isset($_SESSION['ga_tracking_prihlaska'])){
 $ubytovani=$shop->ubytovaniHtml();
 $predmety=$shop->predmetyHtml();
 $slevy=$shop->slevyHtml();
+$jidlo=$shop->jidloHtml();
 
 $a=$u->koncA();
 
@@ -82,8 +84,10 @@ $a=$u->koncA();
   <?=$predmety?><br><br>
   <p>Placek, kostek i triček s logem GameConu si můžeš objednat více. Stačí kliknout na tlačítko + nebo u triček vyplnit jedno a po potvrzení formuláře se ti nabídne položka pro výběr dalšího.</p>
   
-  <h2>Ubytování</h2>
+  <h2>Jídlo</h2>
+  <?=$jidlo?>
   
+  <h2>Ubytování</h2>
   <?=$ubytovani?>
   
   <h2>Slevy</h2>

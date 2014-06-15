@@ -50,8 +50,9 @@ define('P_TRIKO_ZDARMA',1000);  //(organizátorské) tričko zdarma
 define('P_TRIKO_ZAPUL',1001);   //(vypravěčské) tričko za polovic
 define('P_PLACKA_ZDARMA',1002);
 define('P_KOSTKA_ZDARMA',1003);
-define('P_JIDLO',1004);         //může si kupovat jídlo
+define('P_JIDLO_SLEVA',1004);   //může si kupovat jídlo se slevou
 define('P_JIDLO_ZDARMA',1005);  //může si objednávat jídlo a má ho zdarma
+define('P_JIDLO_SNIDANE',1010); //může si objednat snídani
 define('P_SLEVA_STUDENT',1007); //má studentskou slevu 20%
 define('P_SLEVA_VCAS',1006);    //má slevu 20% za platbu včas
 define('P_SLEVA_AKTIVITY',1009); //za pořádané aktivity se mu vypočítává sleva

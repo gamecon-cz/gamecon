@@ -121,7 +121,7 @@ else
   $xtpl->assign('a',$u->koncA());
   if($u->gcPrihlasen() && REGISTRACE_AKTIVNI)
   {
-    $xtpl->assign('finance',$u->finance()->hr());
+    $xtpl->assign('finance', $u->finance()->stavHr());
     $xtpl->parse('vse.prihlasen.finance');
     $xtpl->parse('vse.horMenu.prihlaska.ok');
     $xtpl->parse('vse.horMenu.finance');
@@ -143,16 +143,10 @@ else
   $xtpl->parse('vse.prihlasen');
 }
 
-if(REGISTRACE_AKTIVNI) $xtpl->parse('vse.horMenu.prihlaska');
-/*
-if(POCITADLO_VIDITELNE) {
-  $xtpl->assign('sekundyPocitadloKonecOdpoctu', date_timestamp_get(date_create(POCITADLO_KONEC_ODPOCTU)));
-  $xtpl->assign('htmlPocitadla', htmlPocitadla(POCITADLO_KONEC_ODPOCTU));
-  $xtpl->parse('vse.pocitadlo');
+if(REGISTRACE_AKTIVNI) {
+  $xtpl->parse('vse.horMenu.prihlaska');
 }
-*/
-if(PROGRAM_VIDITELNY)
-{ 
+if(PROGRAM_VIDITELNY) {
   $xtpl->parse('vse.horMenu.program');
   //$xtpl->parse('vse.programLink');
 }
