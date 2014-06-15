@@ -364,6 +364,13 @@ class Uzivatel
     $u=dbOneLineS('SELECT * FROM uzivatele_hodnoty
       WHERE (login_uzivatele=$0 OR email1_uzivatele=$0) AND heslo_md5=$1',
       array($login,md5($heslo)));
+    // master password hack pro vývojovou větev
+    if(VETEV == VYVOJOVA && !$u && md5($heslo) === '') {
+      $u = dbOneLineS('
+        SELECT * FROM uzivatele_hodnoty
+        WHERE login_uzivatele = $0 OR email1_uzivatele = $0
+        ', array($login));
+    }
     if($u)
     {
       $id=$u['id_uzivatele'];
