@@ -94,7 +94,7 @@ class Finance
 
   /** Cena za objednané předměty */
   function cenaPredmety() {
-    return $this->cenaPremety;
+    return $this->cenaPredmety;
   }
 
   /** Cena za objednané ubytování */
