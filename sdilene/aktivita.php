@@ -8,8 +8,7 @@ class Aktivita
 
   protected
     $a,     // databázový řádek s aktivitou
-    $nova,  // jestli jde o nově uloženou aktivitu nebo načtenou z DB
-    $ignorovane=array();  // ???
+    $nova;  // jestli jde o nově uloženou aktivitu nebo načtenou z DB
 
   const
     AJAXKLIC='aEditFormTest',  // název post proměnné, ve které jdou data, pokud chceme ajaxově testovat jejich platnost a čekáme json odpověď
@@ -219,13 +218,6 @@ class Aktivita
 
   function id()
   { return $this->a['id_akce']; }
-
-  /** Nastaví omezení, která se mají ignorovat při manipulaci s aktivitami */
-  function ignorovane($pole)
-  {
-    if(!is_array($pole)) throw new Excpetion('Nesprávně zadané parametry');
-    $this->ignorovane=$pole;
-  }
 
   /** Vytvoří novou instanci aktivity */
   function instanciuj()
