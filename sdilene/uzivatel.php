@@ -435,6 +435,19 @@ class Uzivatel
   }
 
   /**
+   * Vrátí timestamp prvního bloku kdy uživatel má aktivitu
+   */
+  function prvniBlok() {
+    $cas = dbOneCol('
+      SELECT MIN(a.zacatek)
+      FROM akce_seznam a
+      JOIN akce_prihlaseni p USING(id_akce)
+      WHERE p.id_uzivatele = '.$this->id().' AND a.rok = '.ROK.'
+    ');
+    return $cas;
+  }
+
+  /**
    * Zaregistruje uživatele podle asoc.pole $tab, které by mělo odpovídat stru-
    * ktuře tabulky uzivatele_hodnoty.
    * @return id nově vytvořeného uživatele

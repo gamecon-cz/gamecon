@@ -2,15 +2,17 @@
 
 require_once('sdilene-hlavicky.hhp');
 
-$gcDoted=array('2009'=>'účast 2009','2010'=>'účast 2010','2011'=>'účast 2011','2012'=>'účast 2012');
-
+$gcDoted = array();
+for($i = 2009; $i < ROK; $i++) {
+  $gcDoted[$i] = 'účast '.$i;
+}
 
 $hlavicka1=array_merge(
   array('Účastník','','','','','','Datum narození','','','Bydliště','','',
   'Ubytovací informace','','',''),
   array_fill(0,count($gcDoted),''),
   array('Celkové náklady','','',
-  'Ostatní platby','','','','','')
+  'Ostatní platby','','','','','','','','','')
 );
 $hlavicka2=array_merge(
   array('ID','Příjmení','Jméno','Přezdívka','Mail','Pozice','Den','Měsíc','Rok','Město','Ulice',
@@ -18,7 +20,7 @@ $hlavicka2=array_merge(
   $gcDoted,
   array(
   'Celkem dní','Náklady / den','Ubytování','Předměty',
-  'Aktivity','stav','zůstatek z minula','připsané platby','Slevy','Objednávky')
+  'Aktivity','vypravěčská sleva využitá','vypravěčská sleva přiznaná','stav','zůstatek z minula','připsané platby','první blok','Slevy','Objednávky')
 );
 $o=dbQuery('
   SELECT 
@@ -35,15 +37,7 @@ $o=dbQuery('
 if(mysql_num_rows($o)==0) 
   exit('V tabulce nejsou žádná data.');
 
-header('Content-type: application/csv; charset=utf-8');
-header('Content-Disposition: attachment; filename="'.$NAZEV_SKRIPTU.'.csv"');
-echo(chr(0xEF).chr(0xBB).chr(0xBF)); //BOM bajty pro nastavení UTF-8 ve výsledném souboru
-//echo '<pre>';
-
-$out=fopen('php://output','w'); //získáme filedescriptor výstupu stránky pro použití v fputcsv
-fputcsv($out,$hlavicka1,$CSV_SEP);
-fputcsv($out,$hlavicka2,$CSV_SEP);
-
+$obsah[] = $hlavicka2;
 while($r=mysql_fetch_assoc($o))
 {
   $un=new Uzivatel($r);
@@ -58,40 +52,43 @@ while($r=mysql_fetch_assoc($o))
     $ucastiHistorie[]=$un->maPravo((int)( '-'.substr($rok,2).'02' ))?'ano':'ne';
   //datum
   $denPrvni=new DateTime(DEN_PRVNI_DATE);
-  fputcsv($out,array_merge(
+  $obsah[] = array_merge(
     array(
-    $r['id_uzivatele'],
-    $r['prijmeni_uzivatele'],
-    $r['jmeno_uzivatele'],
-    $r['login_uzivatele'],
-    $r['email1_uzivatele'],
-    $stav,
-    date('j',strtotime($r['datum_narozeni'])),
-    date('n',strtotime($r['datum_narozeni'])),
-    date('Y',strtotime($r['datum_narozeni'])),
-    $r['mesto_uzivatele'],
-    $r['ulice_a_cp_uzivatele'],
-    $r['psc_uzivatele'],
-    $r['den_prvni']!==null ? $denPrvni->add( DateInterval::createFromDateString(($r['den_prvni']-1).' days') )->format('j.n.Y') : '-',
-    $r['den_posledni'] ? $denPrvni->add(new DateInterval('P'.($r['den_posledni']-$r['den_prvni']).'D'))->format('j.n.Y') : '-',
-    $r['ubytovani_typ'],
-    $un->gcPritomen()?'ano':'ne'),
+      $r['id_uzivatele'],
+      $r['prijmeni_uzivatele'],
+      $r['jmeno_uzivatele'],
+      $r['login_uzivatele'],
+      $r['email1_uzivatele'],
+      $stav,
+      date('j',strtotime($r['datum_narozeni'])),
+      date('n',strtotime($r['datum_narozeni'])),
+      date('Y',strtotime($r['datum_narozeni'])),
+      $r['mesto_uzivatele'],
+      $r['ulice_a_cp_uzivatele'],
+      $r['psc_uzivatele'],
+      $r['den_prvni']!==null ? $denPrvni->add( DateInterval::createFromDateString(($r['den_prvni']-1).' days') )->format('j.n.Y') : '-',
+      $r['den_posledni'] ? $denPrvni->add(new DateInterval('P'.($r['den_posledni']-$r['den_prvni']).'D'))->format('j.n.Y') : '-',
+      $r['ubytovani_typ'],
+      $un->gcPritomen()?'ano':'ne'
+    ),
     $ucastiHistorie,
     array(
-    $pobyt=( $r['den_prvni'] ? $r['den_posledni']-$r['den_prvni']+1 : 0 ),
-    0&&$pobyt ? $un->finance()->cenaUbytovani()/$pobyt : 0,
-    $un->finance()->cenaUbytovani(),
-    $un->finance()->cenaPredmety(),
-    $un->finance()->cenaAktivity(),
-    $un->finance()->stav(),
-    $r['zustatek'],
-    $un->finance()->platby(),
-    implode(", ",array_merge($un->finance()->slevyVse(),$un->finance()->slevyAktivity())),
-    strip_tags(strtr($un->finance()->prehledHtml(),array('</tr>'=>", ", '</td>'=>' '))),
-  )),$CSV_SEP);
+      $pobyt=( $r['den_prvni'] ? $r['den_posledni']-$r['den_prvni']+1 : 0 ),
+      0&&$pobyt ? $un->finance()->cenaUbytovani()/$pobyt : 0,
+      $un->finance()->cenaUbytovani(),
+      $un->finance()->cenaPredmety(),
+      $un->finance()->cenaAktivity(),
+      $un->finance()->slevaVypravecVyuzita(),
+      $un->finance()->slevaVypravecMax(),
+      $un->finance()->stav(),
+      $r['zustatek'],
+      $un->finance()->platby(),
+      ' '.$un->prvniBlok(), // mezera = excel shito hack
+      implode(", ",array_merge($un->finance()->slevyVse(),$un->finance()->slevyAktivity())),
+      strip_tags(strtr($un->finance()->prehledHtml(),array('</tr>'=>", ", '</td>'=>' '))),
+    )
+  );
 }
 
-fclose($out);
-
-
-?>
+$report = Report::zPoli($hlavicka1, $obsah); // TODO druhá hlavička
+$report->tCsv();

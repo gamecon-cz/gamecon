@@ -22,6 +22,7 @@ class Finance
     $cenaUbytovani  = 0.0,  // cena objednaného ubytování
     $cenaPredmety   = 0.0,  // cena předmětů a dalších objednávek v shopu
     $sleva          = 0.0,  // sleva za tech. aktivity a odvedené aktivity
+    $slevaVyuzita   = 0.0,  // sleva za odvedené aktivity (využitá část)
     $zustatek       = 0.0,  // zůstatek z minula
     $platby         = 0.0;  // platby připsané na účet
 
@@ -72,9 +73,10 @@ class Finance
 
     $sleva = $this->sleva;
     Cenik::aplikujSlevu($cena, $sleva);
+    $this->slevaVyuzita = $this->sleva - $sleva;
     if($this->sleva) $this->log(
-      'Využitá sleva za organizované aktivity (z celkem '.$this->sleva.')',
-      $this->sleva - $sleva,
+      'Využitá sleva za organizované aktivity (z celkem '.$this->slevaVypravecMax().')',
+      $this->slevaVypravecVyuzita(),
       self::ORGSLEVA);
 
     $this->log('Celková cena', $cena, self::CELKOVA);
@@ -189,6 +191,20 @@ class Finance
   function slevaAktivity()
   {
     return $this->soucinitelAktivit(); //todo když není přihlášen na GameCon, možná raději řešit zobrazení ceny defaultně (protože neznáme jeho studentství etc.). Viz také třída Aktivita
+  }
+
+  /**
+   * Výše vypravěčské slevy (celková)
+   */
+  function slevaVypravecMax() {
+    return $this->sleva;
+  }
+
+  /**
+   * Výše vyčerpané vypravěčské slevy
+   */
+  function slevaVypravecVyuzita() {
+    return $this->slevaVyuzita;
   }
   
   /**

@@ -10,14 +10,9 @@ class Report
     $sql,         // text dotazu, z kterého se report generuje
     $o,           // odpověď dotazu
     $hlavicky,    // hlavičky (názvy sloupců) výsledku
+    $poleObsah,   // obsah ve formě pole
     $csvSep=';';  // oddělovač v csv souborech
 
-  /*
-  const
-    NAZEV=0,     // indexy do tabulky $prehled
-    VYSLEDNY=15;
-  */
-  
   /**
    * Vytiskne report jako CSV
    */
@@ -49,14 +44,27 @@ class Report
     echo '</tr>';
     while($r=$this->radek())
       echo '<tr><td>'.implode('</td><td>',$r).'</td></tr>';
-  }     
+  }
+
+  /**
+   * Vytvoří report ze zadaných polí
+   * @param $hlavicky hlavičkový řádek
+   * @param $obsah pole normálních řádků
+   */
+  static function zPoli($hlavicky, $obsah)
+  {
+    $report = new self();
+    $report->hlavicky = $hlavicky;
+    $report->poleObsah = $obsah;
+    return $report;
+  }
   
   /**
    * Vytvoří report ze zadaného SQL dotazu (selectu)
    */   
   static function zSql($dotaz)
   {
-    $report=new Report();
+    $report=new self();
     $report->sql=$dotaz;
     return $report;
   }
@@ -90,6 +98,11 @@ class Report
   
   private function radek()
   {
+    if(isset($this->poleObsah)) {
+      $t = current($this->poleObsah);
+      next($this->poleObsah);
+      return $t;
+    }
     if(!$this->o)
       $this->o=dbQuery($this->sql);
     return mysql_fetch_row($this->o);    
