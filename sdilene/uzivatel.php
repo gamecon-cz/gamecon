@@ -352,6 +352,19 @@ class Uzivatel
     if($sesObnovit) $_SESSION['id_uzivatele']=$this->id();
   }
 
+  /**
+   * Vrátí timestamp začátku posledního bloku kdy uživatel má aktivitu
+   */
+  function posledniBlok() {
+    $cas = dbOneCol('
+      SELECT MAX(a.zacatek)
+      FROM akce_seznam a
+      JOIN akce_prihlaseni p USING(id_akce)
+      WHERE p.id_uzivatele = '.$this->id().' AND a.rok = '.ROK.'
+    ');
+    return $cas;
+  }
+
   /** Přihlásí uživatele s loginem $login k stránce
    *  @param string $klic klíč do $_SESSION kde poneseme hodnoty uživatele
    *  @param $login login nebo primární e-mail uživatele

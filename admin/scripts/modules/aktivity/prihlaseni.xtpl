@@ -1,15 +1,10 @@
 <!-- begin:prihlaseni -->
 
+(
 <!-- begin:vyber -->
-( 
-  <a href="aktivity/prihlaseni?typ=4">rpg</a> |
-  <a href="aktivity/prihlaseni?typ=2">larp</a> |
-  <a href="aktivity/prihlaseni?typ=1">deskovky</a> |
-  <a href="aktivity/prihlaseni?typ=7">bonusy</a> |
-  <a href="aktivity/prihlaseni?typ=5">dílny</a>  |
-  <a href="aktivity/prihlaseni?typ=8">Legendy</a>
-)
+  <a href="aktivity/prihlaseni?typ={id_typu}">{typ_1pmn}</a> |
 <!-- end:vyber -->
+)
 
 
 <script>
@@ -23,7 +18,7 @@ function tgl(id)
 
 <!-- begin:aktivita -->
 <h2>{nazevAktivity} ({obsazenost})</h2>
-{cas} -
+{cas} - {orgove} -
 <a href="mailto:?subject=Gamecon: {nazevAktivity}&amp;bcc={maily}">e-mail všem</a> -
 <a href="#" onclick="return tgl('maily{id}')">zobrazit maily</a> -
 <a href="./tisk/aktivita-ucast.php?id={id}" onclick="window.open(this.href);return false">tisk</a> 

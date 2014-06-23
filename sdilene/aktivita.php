@@ -476,6 +476,7 @@ class Aktivita
    * Vrátí serializovaný seznam přihlášených a pokud takový neexistuje, načte
    * ho. Formát seznamu je: ,1204m0,864f2,742f1,...,1001m1, kde čísla jsou id
    * uživatelů, písmena pohlaví a čísla z pohlavím stav přihlášení.
+   * @see ucastnici
    */
   private function prihlaseni()
   {
@@ -629,6 +630,38 @@ class Aktivita
   }
 
   /**
+   * Smaže aktivitu z DB
+   */
+  function smaz() {
+    foreach($this->ucastnici() as $u) {
+      $this->odhlas($u);
+    }
+    dbQuery('DELETE FROM akce_organizatori WHERE id_akce = ' . $this->id());
+    dbQuery('DELETE FROM akce_seznam WHERE id_akce = ' . $this->id());
+    // řešení instancí, pokud patří do rodiny instancí
+    $rodina = $this->a['patri_pod'];
+    if($rodina) {
+      // načtení id mateřské instance
+      $r = dbOneLine('SELECT MIN(id_akce) as mid, COUNT(1) as pocet FROM akce_seznam WHERE patri_pod = ' . $rodina);
+      $mid = $r['mid'];
+      $pocet = $r['pocet'];
+      // zbyla jediná instance, zrušit u ní patri_pod
+      if($pocet == 1) {
+        dbQuery('UPDATE akce_seznam SET patri_pod = 0 WHERE patri_pod = ' . $rodina);
+      }
+      // id zrušené instance bylo nejnižší => je potřeba uložit url a popisek do nové instance
+      if($this->id() < $mid) {
+        dbQueryS(
+          'UPDATE akce_seznam SET url_akce=$1, popis=$2 WHERE id_akce=$3',
+          array($this->a['url_akce'], $this->a['popis'], $mid)
+        );
+      }
+    }
+    // invalidace aktuální instance
+    $this->a = null;
+  }
+
+  /**
    * Je aktivita teamová?
    */
   function teamova() {
@@ -643,6 +676,9 @@ class Aktivita
   function typ()
   { return $this->a['typ']; }
 
+  /**
+   * Vrátí pole s přihlášenými účastníky
+   */
   function ucastnici() {
     $u = substr($this->prihlaseni(), 1, -1);
     $u = preg_replace('@(m|f)\d+@', '', $u);

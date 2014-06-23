@@ -222,7 +222,8 @@ class XTemplate {
    * Reformats html code to make it readable in compiled class
    */
   protected function reformat($str) {
-    $o = trim($str);
+    $o = $str;
+    //$o = trim($str); //TODO this also fails for example when multiple items should be separated by space
     //$o = preg_replace('@[ \t\n]+@', ' ', $o); //TODO this is not possible because of javascript comments to end of line
     return $o;
   }

@@ -12,7 +12,7 @@ $hlavicka1=array_merge(
   'Ubytovací informace','','',''),
   array_fill(0,count($gcDoted),''),
   array('Celkové náklady','','',
-  'Ostatní platby','','','','','','','','','')
+  'Ostatní platby','','','','','','','','','','')
 );
 $hlavicka2=array_merge(
   array('ID','Příjmení','Jméno','Přezdívka','Mail','Pozice','Den','Měsíc','Rok','Město','Ulice',
@@ -20,7 +20,7 @@ $hlavicka2=array_merge(
   $gcDoted,
   array(
   'Celkem dní','Náklady / den','Ubytování','Předměty',
-  'Aktivity','vypravěčská sleva využitá','vypravěčská sleva přiznaná','stav','zůstatek z minula','připsané platby','první blok','Slevy','Objednávky')
+  'Aktivity','vypravěčská sleva využitá','vypravěčská sleva přiznaná','stav','zůstatek z minula','připsané platby','první blok','poslední blok','Slevy','Objednávky')
 );
 $o=dbQuery('
   SELECT 
@@ -83,7 +83,8 @@ while($r=mysql_fetch_assoc($o))
       $un->finance()->stav(),
       $r['zustatek'],
       $un->finance()->platby(),
-      ' '.$un->prvniBlok(), // mezera = excel shito hack
+      $un->prvniBlok(),
+      $un->posledniBlok(),
       implode(", ",array_merge($un->finance()->slevyVse(),$un->finance()->slevyAktivity())),
       strip_tags(strtr($un->finance()->prehledHtml(),array('</tr>'=>", ", '</td>'=>' '))),
     )
