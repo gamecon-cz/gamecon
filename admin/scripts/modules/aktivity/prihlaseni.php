@@ -26,12 +26,14 @@ $odpoved=dbQuery('
   SELECT a.nazev_akce as nazevAktivity, a.id_akce as id, (a.kapacita+a.kapacita_m+a.kapacita_f) as kapacita, a.zacatek, a.konec,
     u.login_uzivatele as nick, u.jmeno_uzivatele as jmeno,
     u.prijmeni_uzivatele as prijmeni, u.email1_uzivatele as mail, u.telefon_uzivatele as telefon,
-    GROUP_CONCAT(org.login_uzivatele) AS orgove
+    GROUP_CONCAT(org.login_uzivatele) AS orgove,
+    CONCAT(l.nazev,", ",l.nazev_interni,", ",l.dvere) as mistnost
   FROM akce_seznam a
   LEFT JOIN akce_prihlaseni p ON (a.id_akce=p.id_akce)
   LEFT JOIN uzivatele_hodnoty u ON (p.id_uzivatele=u.id_uzivatele)
   LEFT JOIN akce_organizatori ao ON (ao.id_akce = a.id_akce)
   LEFT JOIN uzivatele_hodnoty org ON (org.id_uzivatele = ao.id_uzivatele)
+  LEFT JOIN akce_lokace l ON (l.id_lokace = a.lokace)
   WHERE a.rok='.ROK.'
   AND a.zacatek
   AND a.typ='.get('typ').'
