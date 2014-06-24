@@ -420,7 +420,10 @@ class Aktivita
    * Vrátí formátovaný (html) popisek aktivity
    */
   function popis() {
-    return markdown($this->a['popis']);
+    if($this->a['patri_pod'])
+      return markdown(dbOneCol('SELECT MAX(popis) FROM akce_seznam WHERE patri_pod = '.$this->a['patri_pod']));
+    else
+      return markdown(dbOneCol('SELECT popis FROM akce_seznam WHERE id_akce = '.$this->id()));
   }
 
   /**
@@ -886,7 +889,7 @@ class Aktivita
     }
     if($order) $order = 'ORDER BY '.implode(', ', $order);
     // select
-    return self::zWhere($where, null, $order);
+    return self::zWhere('WHERE '.$where, null, $order);
   }
 
   /**
@@ -895,7 +898,7 @@ class Aktivita
   static function zId($id)
   {
     if((int)$id)
-      return self::zWhere('a.id_akce='.(int)$id)->current();
+      return self::zWhere('WHERE a.id_akce='.(int)$id)->current();
     else
       return null;
   }
@@ -906,14 +909,15 @@ class Aktivita
    */
   static function zIds($ids) {
     if(!is_array($ids)) $ids = explode(',', $ids);
-    return self::zWhere('a.id_akce IN('.dbQa($ids).')');
+    return self::zWhere('WHERE a.id_akce IN('.dbQa($ids).')');
   }
 
   /**
    * Vrátí všechny aktivity, které vede daný uživatel
    */
   static function zOrganizatora(Uzivatel $u) {
-    return self::zWhere('ao.id_uzivatele = '.$u->id().' AND a.rok = '.ROK);
+    // join hack na akt. uživatele
+    return self::zWhere('JOIN akce_organizatori ao ON (ao.id_akce = a.id_akce AND ao.id_uzivatele = '.$u->id().') WHERE a.rok = '.ROK);
   }
 
   /**
@@ -922,9 +926,9 @@ class Aktivita
    */
   static function zProgramu() {
     return self::zWhere(
-      'a.rok = $1 AND a.zacatek AND ( a.stav IN(1,2,3,4) OR a.typ = 10 )',
+      'WHERE a.rok = $1 AND a.zacatek AND ( a.stav IN(1,2,3,4) OR a.typ = 10 )',
       array(ROK),
-      'ORDER BY DAY(a.zacatek), al.poradi, HOUR(a.zacatek), a.nazev_akce'
+      'ORDER BY DAY(zacatek), poradi, HOUR(zacatek), nazev_akce'
     );
   }
 
@@ -955,13 +959,13 @@ class Aktivita
    */
   static function zUrlViditelne($url, $typ) {
     return self::zWhere(
-      'at.url_typu = $1 AND a.stav IN(1,2,4) AND a.rok = $3 AND (
+      'WHERE at.url_typu = $1 AND a.stav IN(1,2,4) AND a.rok = $3 AND (
         a.url_akce = $2 OR IF(a.patri_pod, a.patri_pod = (
           SELECT patri_pod FROM akce_seznam WHERE url_typu = $1 AND stav IN(1,2,4) AND rok = $3 AND url_akce = $2
         ), 0)
       )',
       array($typ, $url, ROK),
-      'ORDER BY a.zacatek, a.id_akce'
+      'ORDER BY zacatek, id_akce'
     );
   }
 
@@ -976,33 +980,53 @@ class Aktivita
    * @todo třída která obstará reálný iterátor, nejenom obalení pole (nevýhoda
    *  pole je nezměněná nutnost čekat, než se celá odpověď načte a přesype do
    *  paměti
-   * @todo měl by prázdný výsledek taky vracet iterátor (nevýhoda nemožnost
-   *  implicitního testu v podmínce) nebo null? viz (nejen) index.php:61
    */
   protected static function zWhere($where, $args = null, $order = null) {
-    // viz DISTINCTy u GROUP_CONCAT - načítání orgů i účastníků vede na
-    // kartézský součin, reálně je ale tak vzácné, že výkonnostně stále vede
-    // nad ostatními technikami. V případě problému má smysl zkoušet
-    // optimalizace (např. joinovat subelectem tabulku s připravenými seznamy
-    // orgů v groupnuté variantě apod)
-    $o = dbQueryS('
-      SELECT a.*,
-        CONCAT(",",GROUP_CONCAT(DISTINCT ap.id_uzivatele,u.pohlavi,ap.id_stavu_prihlaseni),",") AS prihlaseni,
-        CONCAT(",",GROUP_CONCAT(DISTINCT ao.id_uzivatele),",") AS organizatori,
-        CONCAT(",",GROUP_CONCAT(DISTINCT uo.jmeno_uzivatele, "|", uo.login_uzivatele, "|", uo.prijmeni_uzivatele  ),",") AS orgJmena,
-        IF(a.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = a.patri_pod), a.url_akce) as url_akce,
-        IF(a.patri_pod, (SELECT MAX(popis) FROM akce_seznam WHERE patri_pod = a.patri_pod), a.popis) as popis
-      FROM akce_seznam a
-      LEFT JOIN akce_prihlaseni ap ON(ap.id_akce = a.id_akce)
-      LEFT JOIN uzivatele_hodnoty u ON(u.id_uzivatele = ap.id_uzivatele)
-      LEFT JOIN akce_typy at ON(at.id_typu = a.typ)
-      LEFT JOIN akce_lokace al ON (a.lokace = al.id_lokace)
-      LEFT JOIN akce_organizatori ao ON(a.id_akce = ao.id_akce)
-      LEFT JOIN uzivatele_hodnoty uo ON(ao.id_uzivatele = uo.id_uzivatele)
-      WHERE '.$where.'
-      GROUP BY a.id_akce
-      '.$order,
-    $args);
+    $atributy = '
+      a.id_akce,
+      a.patri_pod,
+      a.nazev_akce,
+      a.url_akce,
+      a.zacatek,
+      a.konec,
+      a.lokace,
+      a.kapacita,
+      a.kapacita_f,
+      a.kapacita_m,
+      a.cena,
+      a.bez_slevy,
+      a.typ,
+      a.dite,
+      a.rok,
+      a.stav,
+      a.teamova,
+      a.team_min,
+      a.team_max,
+      a.zamcel'; // načítané atributy - kvůli NEselectování popisku
+    $url_akce       = 'IF(t2.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = t2.patri_pod), t2.url_akce) as url_akce';
+    $prihlaseni     = 'CONCAT(",",GROUP_CONCAT(p.id_uzivatele,u.pohlavi,p.id_stavu_prihlaseni),",") AS prihlaseni';
+    $organizatori   = 'CONCAT(",",GROUP_CONCAT(o.id_uzivatele),",") AS organizatori';
+    $orgJmena       = 'CONCAT(",",GROUP_CONCAT(u.jmeno_uzivatele, "|", u.login_uzivatele, "|", u.prijmeni_uzivatele  ),",") AS orgJmena';
+    $o = dbQueryS("
+      SELECT t2.*, $prihlaseni, $url_akce FROM (
+        SELECT t1.*, $organizatori, $orgJmena FROM (
+          SELECT
+            $atributy,
+            at.url_typu, al.poradi
+          FROM akce_seznam a
+          LEFT JOIN akce_typy at ON (at.id_typu = a.typ)
+          LEFT JOIN akce_lokace al ON (al.id_lokace = a.lokace)
+          $where
+        ) as t1
+        LEFT JOIN akce_organizatori o ON (o.id_akce = t1.id_akce)
+        LEFT JOIN uzivatele_hodnoty u ON (u.id_uzivatele = o.id_uzivatele)
+        GROUP BY t1.id_akce
+      ) as t2
+      LEFT JOIN akce_prihlaseni p ON (p.id_akce = t2.id_akce)
+      LEFT JOIN uzivatele_hodnoty u ON (u.id_uzivatele = p.id_uzivatele)
+      GROUP BY t2.id_akce
+      $order
+    ", $args);
     $p = array();
     while($r = mysql_fetch_assoc($o)) {
       $p[] = new self($r);
