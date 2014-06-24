@@ -15,9 +15,15 @@ class Aktivita
     KOLA='aTeamFormKolo',      // název post proměnné s výběrem kol pro team
     OBRKLIC='aEditObrazek',    // název proměnné, v které bude případně obrázek
     POSTKLIC='aEditForm',      // název proměnné (ve výsledku pole), v které bude editační formulář aktivity předávat data
-    STAV=0x02,                 // ignorování stavu
     TEAMKLIC='aTeamForm',      // název post proměnné s formulářem pro výběr teamu
-    ZAMEK=0x01;                // ignorování zamčení
+    PN_PLUSMINUSP='cAktivitaPlusminusp',  // název post proměnné pro úpravy typu plus
+    PN_PLUSMINUSM='cAktivitaPlusminusm',  // název post proměnné pro úpravy typu mínus
+    //ignore a parametry
+    PLUSMINUS       = 0b00000001,   // plus/mínus zkratky pro měnění míst v team. aktivitě
+    PLUSMINUS_KAZDY = 0b00000010,   // plus/mínus zkratky pro každého
+    STAV            = 0b00000100,   // ignorování stavu
+    TEAM            = 0b00001000,   // ignorování teamovosti - přihlášení jak na norm. aktivitu
+    ZAMEK           = 0b00010000;   // ignorování zamčení
 
   /**
    * Vytvoří aktivitu dle výstupu z databáze. Pokud výstup (např. položkou
@@ -434,6 +440,38 @@ class Aktivita
   }
 
   /**
+   * Vrátí form(y) s vybírátky plus a mínus pro změny počtů míst teamových akt.
+   * @todo parametry typu komplexnost výpisu a že nemůže měnit kdokoli aktivut
+   * ale jen ten kdo je na ni přihlášený (vs. orgové v adminu)
+   */
+  protected function plusminus(Uzivatel $u = null, $parametry = 0) {
+    // kontroly
+    if(!$this->a['teamova'] || $this->a['stav'] != 1) return '';
+    if($parametry & self::PLUSMINUS && (!$u || !$this->prihlasen($u))) return '';
+    // tisk formu
+    $out = '';
+    if($this->a['team_max'] > $this->a['kapacita']) {
+      $out .= ' <form method="post" style="display:inline"><input type="hidden" name="'.self::PN_PLUSMINUSP.'" value="'.$this->id().'"><a href="#" onclick="$(this).closest(\'form\').submit(); return false">▲</a></form>';
+    }
+    if($this->a['team_min'] < $this->a['kapacita'] && $this->prihlaseno() < $this->a['kapacita']) {
+      $out .= ' <form method="post" style="display:inline"><input type="hidden" name="'.self::PN_PLUSMINUSM.'" value="'.$this->id().'"><a href="#" onclick="$(this).closest(\'form\').submit(); return false">▼</a></form>';
+    }
+    return $out;
+  }
+
+  /** Zpracuje formy na měnění počtu míst team. aktivit */
+  protected static function plusminusZpracuj(Uzivatel $u = null, $parametry = 0) {
+    if(post(self::PN_PLUSMINUSP)) {
+      dbQueryS('UPDATE akce_seznam SET kapacita = kapacita + 1 WHERE id_akce = $1', array(post(self::PN_PLUSMINUSP)));
+      back();
+    }
+    if(post(self::PN_PLUSMINUSM)) {
+      dbQueryS('UPDATE akce_seznam SET kapacita = kapacita - 1 WHERE id_akce = $1', array(post(self::PN_PLUSMINUSM)));
+      back();
+    }
+  }
+
+  /**
    * Přihlásí uživatele na aktivitu
    * @todo koncepčnější ignorování stavu
    */
@@ -467,7 +505,7 @@ class Aktivita
     // přihlášení na samu aktivitu (uložení věcí do DB)
     $aid = $this->id();
     $uid = $u->id();
-    if($this->a['teamova'] && $this->prihlaseno()==0 && $this->prihlasovatelna())
+    if($this->a['teamova'] && $this->prihlaseno()==0 && $this->prihlasovatelna() && !($ignorovat & self::TEAM))
       dbQuery("UPDATE akce_seznam SET zamcel=$uid WHERE id_akce=$aid");
     dbQuery("INSERT INTO akce_prihlaseni SET id_uzivatele=$uid, id_akce=$aid");
     dbQuery("INSERT INTO akce_prihlaseni_log SET id_uzivatele=$uid, id_akce=$aid, typ='prihlaseni'");
@@ -544,65 +582,66 @@ class Aktivita
    * @todo v rodině instancí maximálně jedno přihlášení?
    * @todo konstanty pro jména POST proměnných? viz prihlasovatkoZpracuj
    */
-  function prihlasovatko(Uzivatel $u = null)
+  function prihlasovatko(Uzivatel $u = null, $parametry = 0)
   {
+    $out = '';
     if(REG_AKTIVIT && $u && $u->gcPrihlasen() && $this->a['typ'] && $this->prihlasovatelna())
     {
       if( ($stav = $this->prihlasenStav($u)) > -1 )
       {
         if($stav==0)
-          return '<a href="javascript:document.getElementById(\'odhlasit'.
+          $out = '<a href="javascript:document.getElementById(\'odhlasit'.
             $this->id().'\').submit()">odhlásit</a><form '.
             'id="odhlasit'.$this->id().'" method="post" '.
             'style="position:absolute"><input type="hidden" name="odhlasit" '.
             'value="'.$this->id().'" /></form>';
-        if($stav==1) return '<em>účast</em>';
-        if($stav==2) return '<em>jako náhradník</em>';
-        if($stav==3) return '<em>neúčast</em>';
-        if($stav==4) return '<em>pozdní odhlášení</em>';
+        if($stav==1) $out = '<em>účast</em>';
+        if($stav==2) $out = '<em>jako náhradník</em>';
+        if($stav==3) $out = '<em>neúčast</em>';
+        if($stav==4) $out = '<em>pozdní odhlášení</em>';
       }
       elseif($this->organizuje($u->id()))
       {
-        return '';
+        $out = '';
       }
       elseif($this->a['zamcel'])
       {
-        return '&#128274;'; //zámek
+        $out = '&#128274;'; //zámek
       }
       else
       {
         $volno = $this->volno();
         if($volno=='u' || $volno==$u->pohlavi())
-          return '<a href="javascript:document.getElementById(\'prihlasit'.
+          $out = '<a href="javascript:document.getElementById(\'prihlasit'.
             $this->id().'\').submit()">přihlásit</a><form '.
             'id="prihlasit'.$this->id().'" method="post" '.
             'style="position:absolute"><input type="hidden" name="prihlasit" '.
             'value="'.$this->id().'" /></form>';
-        if($volno=='f')
-          return 'pouze ženská místa';
-        if($volno=='m')
-          return 'pouze mužská místa';
-        /*if($volno=='x')
-          return 'plná kapacita';*/
-        return '';
+        elseif($volno=='f')
+          $out = 'pouze ženská místa';
+        elseif($volno=='m')
+          $out = 'pouze mužská místa';
       }
     }
-    else
-    {
-      return '';
+    if($parametry & self::PLUSMINUS_KAZDY) {
+      $out .= '&emsp;' . $this->plusminus($u);
     }
+    return $out;
   }
 
   /** Zpracuje post data z přihlašovátka. Pokud došlo ke změně, vyvolá reload */
-  static function prihlasovatkoZpracuj(Uzivatel $u = null)
+  static function prihlasovatkoZpracuj(Uzivatel $u = null, $parametry = 0)
   {
     if(post('prihlasit')) {
-      self::zId(post('prihlasit'))->prihlas($u);
+      self::zId(post('prihlasit'))->prihlas($u, $parametry);
       back();
     }
     if(post('odhlasit')) {
       self::zId(post('odhlasit'))->odhlas($u);
       back();
+    }
+    if($parametry & self::PLUSMINUS_KAZDY) {
+      self::plusminusZpracuj($u, $parametry);
     }
   }
 

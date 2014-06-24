@@ -17,6 +17,8 @@ class Program
     'osobni'        => false,
     'tableClass'    => 'program', //todo edit
     'technicke'     => false, // jestli jdou vidět technické aktivity
+    'teamIgnore'    => false, // jestli se skrz program přihlašuje na teamové aktivity jak na normální
+    'plusminus'     => false, // jestli jsou v programu '+' a '-' pro změnu kapacity team. aktivit
   );
   
   /** Konstruktor bere uživatele a specifikaci, jestli je to osobní program */  
@@ -170,10 +172,11 @@ class Program
       '>'.$a['obj']->nazev());
     echo $a['obj']->obsazenostHtml();
     if(
-      ( $a['obj']->typ() != 10 || $this->nastaveni['technicke'] ) // hack na nezobrazování přihlašovátek pro technické
-      && $a['obj']->typ() != 9 // hack na nezobrazování přihlašovátek pro DrD
-    )
-      echo ' '.$a['obj']->prihlasovatko($this->u);
+      ( $a['obj']->typ() != 10 || $this->nastaveni['technicke'] ) && // hack na nezobrazování přihlašovátek pro technické
+      ( $a['obj']->typ() != 9 || $this->nastaveni['teamIgnore'] ) // hack na nezobrazování přihlašovátek pro DrD
+    ) {
+      echo ' '.$a['obj']->prihlasovatko($this->u, $this->nastaveni['plusminus'] ? Aktivita::PLUSMINUS_KAZDY : 0);
+    }
     echo('</td>');
   }
 

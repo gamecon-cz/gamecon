@@ -3,10 +3,12 @@
 $osobniProgram = isset($osobniProgram) ? (bool)$osobniProgram : false;
 
 $program=new Program($uPracovni, array(
-  'osobni' => $osobniProgram,
-  'technicke' => true,
+  'osobni'      => $osobniProgram,
+  'technicke'   => true,
+  'teamIgnore'  => true,
+  'plusminus'   => true,
 ));
-if($uPracovni) Aktivita::prihlasovatkoZpracuj($uPracovni);
+if($uPracovni) Aktivita::prihlasovatkoZpracuj($uPracovni, Aktivita::TEAM | Aktivita::PLUSMINUS_KAZDY);
 
 $chyba = chyba::vyzvedniHtml();
 
