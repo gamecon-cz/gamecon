@@ -263,6 +263,13 @@ class Aktivita
   { return $this->a['nazev_akce']; }
 
   /**
+   * Aktivita negeneruje slevu organizátorovi
+   */
+  function nedavaSlevu() {
+    return $this->a['nedava_slevu'];
+  }
+
+  /**
    * Jestli objekt aktivity představuje nově vytvořený řádek v databázi, nebo
    * byl jenom z DB načten.
    * @return bool false - načtený z databáze, true - nový, vložený do databáze
@@ -995,6 +1002,7 @@ class Aktivita
       a.kapacita_m,
       a.cena,
       a.bez_slevy,
+      a.nedava_slevu,
       a.typ,
       a.dite,
       a.rok,
@@ -1125,7 +1133,10 @@ class Aktivita
     $xtpl->assign('obrKlicUrl', self::OBRKLIC.'Url');
     $xtpl->assign('obrKlicOrez', self::OBRKLIC.'Orez');
     $xtpl->assign('urlObrazku',$a?$a->obrazek():'');
-    if($a) $xtpl->assign($a->a);
+    if($a) {
+      $xtpl->assign($a->a);
+      $xtpl->assign('popis', $a->popis());
+    }
     // načtení lokací
     if(!$omezeni || !empty($omezeni['lokace']))
     {

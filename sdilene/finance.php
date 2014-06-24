@@ -354,6 +354,7 @@ class Finance
   protected function zapoctiVedeniAktivit() {
     if(!$this->u->maPravo(P_ORG_AKCI)) return;
     foreach(Aktivita::zOrganizatora($this->u) as $a) {
+      if($a->nedavaSlevu()) continue;
       $delka = $a->delka();
       $sleva = 0;
       foreach(self::$slevaZaAktivitu as $tabDelka => $tabSleva) {
