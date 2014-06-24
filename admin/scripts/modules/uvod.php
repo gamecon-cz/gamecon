@@ -142,7 +142,7 @@ $o=dbQuery('
     p.id_predmetu,
     ROUND(p.cena_aktualni) as cena 
   FROM shop_predmety p 
-  LEFT JOIN shop_nakupy n ON(n.id_predmetu=p.id_predmetu AND rok='.ROK.')
+  LEFT JOIN shop_nakupy n ON(n.id_predmetu=p.id_predmetu)
   WHERE p.stav > 0 AND p.typ IN (1,3)
   GROUP BY p.id_predmetu
   ORDER BY model_rok DESC, nazev');
