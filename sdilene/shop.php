@@ -77,6 +77,10 @@ class Shop
       GROUP BY id_predmetu
       ORDER BY typ, ubytovani_den, nazev, model_rok DESC');
 
+    //inicializace
+    $this->jidlo['dny'] = array();
+    $this->jidlo['druhy'] = array();
+
     while($r = mysql_fetch_assoc($o)) {
       $typ = $r['typ'];
       unset($fronta); // $fronta reference na frontu kam vložit předmět (nelze dát =null, přepsalo by předchozí vrch fronty)
@@ -152,7 +156,7 @@ class Shop
         if($jidlo && ($jidlo['nabizet'] || $jidlo['kusu_uzivatele'])) {
           $t->assign('selected', $jidlo['kusu_uzivatele'] > 0 ? 'checked' : '');
           $t->assign('pnName', self::PN_JIDLO . '[' . $jidlo['id_predmetu'] . ']');
-          $t->parse('jidlo.druh.den.checkbox');
+          $t->parse( $jidlo['stav'] == 3 ? 'jidlo.druh.den.locked' : 'jidlo.druh.den.checkbox');
         }
         $t->parse('jidlo.druh.den');
       }
@@ -164,6 +168,10 @@ class Shop
     foreach($dny as $den => $i) {
       $t->assign('den', mb_ucfirst(self::denNazev($den)));
       $t->parse('jidlo.den');
+    }
+    // info o pozastaveni
+    if(!$dny || $jidlo['stav'] == 3) {
+      $t->parse('jidlo.pozastaveno');
     }
     $t->assign('pnJidloZmen', self::PN_JIDLO_ZMEN);
     $t->parse('jidlo');
@@ -178,7 +186,9 @@ class Shop
   function predmetyHtml()
   {
     $out = '';
+    if(current($this->predmety)['stav'] == 3) $out .= 'Objednávka předmětů je ukončena.<br>';
     $out .= $this->vyberPlusminus($this->predmety);
+    if(current($this->tricka)['stav'] == 3) $out .= 'Objednávka triček je ukončena.<br>';
     $out .= $this->vyberSelect($this->tricka);
 
     // slovně popsané slvey fixme nedokonalé, na pevno zadrátované
@@ -273,7 +283,8 @@ class Shop
         $out.='</div>';
       }
       $sel=$ubytovan?'':'checked';
-      $out.='<div><input style="margin:0" type="radio" name="'.$this->klicU.'['.$den.']" value="" '.$sel.'></div>';
+      $lock = $ubytovan ? 'disabled' : '';
+      $out.='<div><input style="margin:0" type="radio" name="'.$this->klicU.'['.$den.']" value="" '.$sel.' '.$lock.'></div>';
       $out.='</div>';
     }
     $out.='<div style="clear:both"></div>';
@@ -474,7 +485,7 @@ class Shop
   protected function existujeUbytovani($den,$typ)
   {
     return isset($this->ubytovani[$den][$typ])
-      && $this->ubytovani[$den][$typ]['stav'];
+      && $this->ubytovani[$den][$typ]['stav'] == 1;
   }
 
   /**
