@@ -7,6 +7,7 @@ $program=new Program($uPracovni, array(
   'technicke'   => true,
   'teamIgnore'  => true,
   'plusminus'   => true,
+  'drdpj'       => true,
 ));
 if($uPracovni) Aktivita::prihlasovatkoZpracuj($uPracovni, Aktivita::TEAM | Aktivita::PLUSMINUS_KAZDY);
 

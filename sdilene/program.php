@@ -19,6 +19,7 @@ class Program
     'technicke'     => false, // jestli jdou vidět technické aktivity
     'teamIgnore'    => false, // jestli se skrz program přihlašuje na teamové aktivity jak na normální
     'plusminus'     => false, // jestli jsou v programu '+' a '-' pro změnu kapacity team. aktivit
+    'drdpj'         => false, // u DrD explicitně zobrazit jména PJů
   );
   
   /** Konstruktor bere uživatele a specifikaci, jestli je to osobní program */  
@@ -169,7 +170,11 @@ class Program
     if($this->u && $a['obj']->organizuje($this->u)) $classes[]='organizator';
     echo('<td colspan="'.$a['del'].'"'.
       ( $classes?' class="'.implode(' ',$classes).'"':'' ).
-      '>'.$a['obj']->nazev());
+      '>'.$a['obj']->nazev()
+    );
+    if($this->nastaveni['drdpj'] && $a['obj']->typ() == 9 && $a['obj']->prihlasovatelna()) {
+       echo ' ('.implode($a['obj']->orgJmena()).') ';
+    }
     echo $a['obj']->obsazenostHtml();
     if(
       ( $a['obj']->typ() != 10 || $this->nastaveni['technicke'] ) && // hack na nezobrazování přihlašovátek pro technické
