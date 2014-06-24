@@ -181,8 +181,9 @@ class Finance
   { return $this->stav().'&thinsp;Kč'; }
   
   /** Vrátí stav na účtu uživatele pro tento rok, pokud by neplatila sleva za včasnou platbu */
-  function stavPozde()
-  { return $this->stav-$this->deltaPozde; }
+  function stavPozde() {
+    return $this->stav - $this->deltaPozde;
+  }
   
   /**
    * Vrací součinitel ceny aktivit jako float číslo. Např. 0.0 pro aktivity
@@ -266,11 +267,23 @@ class Finance
   }
 
   /**
+   * Součinitel ceny za aktivity při pozdní platbě
+   * @todo hardcode obejití pro vypravěče není dobrý :(
+   */
+  protected function soucinitelAktivitPozde() {
+    if(SLEVA_AKTIVNI && !$this->u->maPravo(P_ORG_AKCI))
+      return $this->soucinitelAktivit() + 0.2;
+    else
+      return $this->soucinitelAktivit();
+  }
+
+  /**
    * Započítá do mezisoučtů aktivity uživatele
    * @todo odstranit zbytečnosti
    */
   protected function zapoctiAktivity() {
     $scn = $this->soucinitelAktivit();
+    $scnPozde = $this->soucinitelAktivitPozde();
     $rok = ROK;
     $uid = $this->u->id();
     $o = dbQuery("
@@ -279,7 +292,11 @@ class Finance
         a.cena *
           (st.platba_procent/100) *
           IF(a.bez_slevy OR a.typ=10, 1.0, $scn) *
-          IF(a.typ=10,-1.0,1.0) as cena
+          IF(a.typ=10,-1.0,1.0) as cena,
+        a.cena *
+          (st.platba_procent/100) *
+          IF(a.bez_slevy OR a.typ=10, 1.0, $scnPozde) *
+          IF(a.typ=10,-1.0,1.0) as cenaPozde
       FROM (
         SELECT * FROM akce_prihlaseni WHERE id_uzivatele = $uid
         UNION
@@ -291,6 +308,7 @@ class Finance
     while($r = mysql_fetch_assoc($o)) {
       if($r['cena'] >= 0) {
         $this->cenaAktivity += $r['cena'];
+        $this->deltaPozde += $r['cenaPozde'] - $r['cena'];
       } else {
         $this->sleva -= $r['cena'];
       }
