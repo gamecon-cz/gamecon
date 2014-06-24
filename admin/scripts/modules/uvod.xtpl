@@ -118,10 +118,10 @@
   <form method="post" id="prodej">
   <table>
     <tr><td>ID uživatele:</td><td> 
-      <input type="text" name="prodej[id_uzivatele]" value="{id}" style="width:200px">
+      <input type="text" name="prodej[id_uzivatele]" value="{id}" style="width:260px">
       </td></tr>
     <tr><td>Předmět:</td><td> 
-      <select name="prodej[id_predmetu]" style="width:204px">
+      <select name="prodej[id_predmetu]" style="width:266px">
       {predmety}
       </select>
       </td></tr>
