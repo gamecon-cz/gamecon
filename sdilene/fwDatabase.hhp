@@ -171,18 +171,18 @@ function dbQi($val)
 /**
  * For selecting single-line one column values
  */
-function dbOneCol($q)
+function dbOneCol($q, $p = null)
 {
-  $a = dbOneLine($q);
+  $a = dbOneLine($q, $p);
   return $a ? current($a) : null;
 } 
 
 /** Intended for selecting single lines from whatever. If no line found, returns
  *  false, otherwise returns asociative array with one line. If multiple lines
  *  found, causes crash. */
-function dbOneLine($q)
+function dbOneLine($q, $p = null)
 {
-  $r=dbQuery($q);
+  $r = dbQueryS($q, $p);
   if(mysql_num_rows($r)>1) die('multiple lines matched!');
   elseif(mysql_num_rows($r)<1) return FALSE;
   else return mysql_fetch_assoc($r);

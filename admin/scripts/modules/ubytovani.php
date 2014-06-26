@@ -7,13 +7,6 @@
  * pravo: 101
  */
 
-if($uPracovni)
-{
-  $shop=new Shop($uPracovni);
-  if($shop->zpracujUbytovani())  // došlo k uložení změn, reloadnout stránku
-    back();
-}
-
 if(isset($_POST['pokoje']))
 {
   if(empty($_FILES['pokcsv']['tmp_name']))
@@ -59,48 +52,13 @@ if(isset($_POST['pridelitPokoj']))
 
 $hlaska=Chyba::vyzvedni();
 
-?>
+$t = new XTemplate('ubytovani.xtpl');
 
-
-
-<h1>Ubytování</h1>
-
-<?php if($uPracovni){ ?>
-  <?php if($uPracovni->gcPrihlasen()){ ?>
-    <form method="post">
-    <?=$shop->ubytovaniHtml()?><br><br>
-    <input type="submit" value="Upravit">
-    </form>
-  <?php }else if($uPracovni->pohlavi()=='f'){ ?>
-    <div class="error">Uživatelka není přihlášena na GameCon.</div>
-  <?php }else{ ?>
-    <div class="error">Uživatel není přihlášen na GameCon.</div>
-  <?php } ?>
-<?php }else{ ?>
-  <div class="warning">Vyberte uživatele (pole nahoře)</div>
-<?php } ?>
-
-<div class="aBox">
-  <h3>Nastavení pokojů</h3>
-  Nastavení přepíše stávající stav.<br>
-  <form method="post">
-  ID uživatele: <input type="integer" value="<?=$uPracovni?$uPracovni->id():''?>" name="uid"><br>
-  Pokoj: <input type="integer" name="pokoj"><br>
-  <input type="submit" name="pridelitPokoj" value="Přidělit">
-  </form>
-  <!--
-  <h3>Načítání pokojů</h3>
-  <form method="post" enctype="multipart/form-data">
-    <input type="file" name="pokcsv">
-    <input type="submit" name="pokoje" value="Nahrát">
-    <span style="color:green"><?=$hlaska?></span>
-  </form><br>
-  Nahraný soubor přiřadí uživatelům čísla pokojů. Musí být ve formátu:
-  <ul>
-  <li><i>id_uživatele</i> ; <i>pokoj_středa</i> ; <i>pokoj_čtvrtek</i> ; <i>pokoj_pátek</i> ; <i>pokoj_sobota</i> ; <i>pokoj_neděle</i>
-  <li>Sloupce nesmí mít hlavičkové buňky a musí být přesně v pořadí jak je uvedeno výš, jinak to nebude fungovat. Nahráním souboru se přepíší stávající data. 
-  <li>Jako formát souboru je potřeba zvolit „CSV (oddělené středníkem)“.
-  </ul>
-  -->
-</div>
-
+$ubytovani = Uzivatel::zIds(dbOneCol('SELECT GROUP_CONCAT(id_uzivatele) FROM ubytovani WHERE rok = $1 AND pokoj = $2', array(ROK, get('pokoj'))));
+$t->assign(array(
+  'uid'       =>  $uPracovni ? $uPracovni->id() : '',
+  'pokoj'     =>  get('pokoj'),
+  'ubytovani' =>  array_uprint($ubytovani, function($e){ return $e->jmenoNick(); }, '<br>'),
+));
+$t->parse('ubytovani');
+$t->out('ubytovani');

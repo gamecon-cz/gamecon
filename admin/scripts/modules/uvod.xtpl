@@ -21,6 +21,7 @@
       <input type="text" name="telefon" style="height:12px;padding:0">
       <input type="submit" value="Uložit"></form><!-- end:bezTelefonu --></td></tr>
     <tr><td>Pokoj:</td><td> {pokoj}</td></tr>
+    <tr><td>Na pokoji:</td><td><ul>{spolubydlici}</ul></td></tr>
     </table><br>
     
     <a href="program-uzivatele" target="_blank">Program uživatele</a><br><br>
@@ -55,7 +56,7 @@
     <strong>Nováčci:</strong><br>
     <ul>{novacci}</ul>
   </div>
-  
+
   <div class="aBox" style="float:left;width:280px">
     <h3 class="prehled">Objednávky a platby</h3>
     {prehled}

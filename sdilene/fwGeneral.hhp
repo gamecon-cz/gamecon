@@ -11,6 +11,21 @@ function array_keys_exist($keys,$search)
   return true;
 }
 
+/**
+ * Iterates trough array and prints combined output returned by function in
+ * each iteration
+ */
+function array_uprint($array, callable $func, $sep = '') {
+  $out = '';
+  foreach($array as $e) {
+    $out .= $func($e) . $sep;
+  }
+  if($sep) {
+    $out = substr($out, 0, -strlen($sep));
+  }
+  return $out;
+}
+
 /** ends current script execution and reloads page to http referrer
  *  @param $to alternative location to go to instead of referrer */
 function back($to=null)
