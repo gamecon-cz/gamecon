@@ -93,8 +93,8 @@ if($uPracovni && $uPracovni->gcPrihlasen())
       .' '.$n->finance()->stavHr().''
       .'</ul></li>';
   },$up->novacci());
-  $pokoj = dbOneCol('SELECT GROUP_CONCAT(DISTINCT pokoj ORDER BY den) FROM ubytovani WHERE rok = $1 AND id_uzivatele= $2', array(ROK, $up->id()));
-  $spolubydlici = Uzivatel::zIds(dbOneCol('SELECT GROUP_CONCAT(id_uzivatele) FROM ubytovani WHERE rok = $1 AND pokoj = $2', array(ROK, $pokoj)));
+  $pokoj = Pokoj::zUzivatele($up);
+  $spolubydlici = $pokoj ? $pokoj->ubytovani() : array();
   $x->assign(array(
     'a'               =>  $up->koncA(),
     'stav'            =>  ($up->finance()->stav()<0 ? $err : $ok ).' '.$up->finance()->stavHr(),
@@ -116,7 +116,7 @@ if($uPracovni && $uPracovni->gcPrihlasen())
     'telefon'         =>  $up->telefon(),
     'mail'            =>  $up->mail(),
     'id'              =>  $up->id(),
-    'pokoj'           =>  $pokoj ? $pokoj : '(nepřidělen)',
+    'pokoj'           =>  $pokoj ? $pokoj->cislo() : '(nepřidělen)',
     'spolubydlici'    =>  array_uprint($spolubydlici, function($e){ return '<li>'.$e->jmenoNick().' ('.$e->id().')</li>'; }),
   ));
   $x->parse( $up->gcPritomen() ? 'uvod.uzivatel.pritomen' : 'uvod.uzivatel.nepritomen' );

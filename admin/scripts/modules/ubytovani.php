@@ -33,20 +33,8 @@ if(isset($_POST['pokoje']))
   chyba('Soubor načten');
 }
 
-if(isset($_POST['pridelitPokoj']))
-{
-  $pokoj=$_POST['pokoj'];
-  $uid=$_POST['uid'];
-  $o=dbQuery('SELECT ubytovani_den 
-  FROM shop_nakupy n
-  JOIN shop_predmety p USING(id_predmetu) 
-  WHERE n.id_uzivatele='.(int)$uid.' AND n.rok='.ROK.' AND p.typ=2 ');
-  dbQuery('DELETE FROM ubytovani WHERE rok='.ROK.' AND id_uzivatele='.$uid);
-  $q='INSERT INTO ubytovani(id_uzivatele,den,pokoj,rok) VALUES '."\n";
-  while($r=mysql_fetch_assoc($o))
-    $q.='('.$uid.','.$r['ubytovani_den'].','.$pokoj.','.ROK."),\n";
-  $q=substr($q,0,-2).';';
-  dbQuery($q);
+if(isset($_POST['pridelitPokoj'])) {
+  Pokoj::ubytujNaCislo(Uzivatel::zId(post('uid')), post('pokoj'));
   back();
 }
 
@@ -54,11 +42,17 @@ $hlaska=Chyba::vyzvedni();
 
 $t = new XTemplate('ubytovani.xtpl');
 
-$ubytovani = Uzivatel::zIds(dbOneCol('SELECT GROUP_CONCAT(id_uzivatele) FROM ubytovani WHERE rok = $1 AND pokoj = $2', array(ROK, get('pokoj'))));
+$pokoj = Pokoj::zCisla(get('pokoj'));
+$ubytovani = $pokoj ? $pokoj->ubytovani() : array();
 $t->assign(array(
   'uid'       =>  $uPracovni ? $uPracovni->id() : '',
   'pokoj'     =>  get('pokoj'),
-  'ubytovani' =>  array_uprint($ubytovani, function($e){ return $e->jmenoNick(); }, '<br>'),
+  'ubytovani' =>  array_uprint($ubytovani, function($e){
+    $ne = $e->gcPritomen() ? '' : 'ne';
+    $color = $ne ? '#f00' : '#0a0';
+    $a = $e->koncA();
+    return $e->jmenoNick() . " (<span style=\"color:$color\">{$ne}dorazil$a</span>)";
+  }, '<br>'),
 ));
 $t->parse('ubytovani');
 $t->out('ubytovani');
