@@ -282,8 +282,8 @@ class Shop
         $out.=$this->existujeUbytovani($den,$typ)?(' <span style="font-size:80%;position:relative;top:-2px">'.$this->obsazenoMist($den,$typ).'/'.$this->kapacita($den,$typ).'</span>'):'';
         $out.='</div>';
       }
-      $sel=$ubytovan?'':'checked';
-      $lock = $ubytovan ? 'disabled' : '';
+      $sel = $ubytovan ? '' : 'checked';
+      $lock = $ubytovan && current($tmp)['stav'] == 3 ? 'disabled' : '';
       $out.='<div><input style="margin:0" type="radio" name="'.$this->klicU.'['.$den.']" value="" '.$sel.' '.$lock.'></div>';
       $out.='</div>';
     }
