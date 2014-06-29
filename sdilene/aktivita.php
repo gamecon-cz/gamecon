@@ -22,8 +22,7 @@ class Aktivita
     PLUSMINUS       = 0b00000001,   // plus/mínus zkratky pro měnění míst v team. aktivitě
     PLUSMINUS_KAZDY = 0b00000010,   // plus/mínus zkratky pro každého
     STAV            = 0b00000100,   // ignorování stavu
-    TEAM            = 0b00001000,   // ignorování teamovosti - přihlášení jak na norm. aktivitu
-    ZAMEK           = 0b00010000,   // ignorování zamčení
+    ZAMEK           = 0b00001000,   // ignorování zamčení
     // parametry kolem továrních metod
     JEN_VOLNE       = 0b00000001,   // jen volné aktivity
     VEREJNE         = 0b00000010;   // jen veřejně viditelné aktivity
@@ -524,7 +523,7 @@ class Aktivita
     // přihlášení na samu aktivitu (uložení věcí do DB)
     $aid = $this->id();
     $uid = $u->id();
-    if($this->a['teamova'] && $this->prihlaseno()==0 && $this->prihlasovatelna() && !($ignorovat & self::TEAM))
+    if($this->a['teamova'] && $this->prihlaseno()==0 && $this->prihlasovatelna())
       dbQuery("UPDATE akce_seznam SET zamcel=$uid WHERE id_akce=$aid");
     dbQuery("INSERT INTO akce_prihlaseni SET id_uzivatele=$uid, id_akce=$aid");
     dbQuery("INSERT INTO akce_prihlaseni_log SET id_uzivatele=$uid, id_akce=$aid, typ='prihlaseni'");

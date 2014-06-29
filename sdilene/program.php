@@ -12,14 +12,13 @@ class Program
   var $aktFronta=array();
   var $program;
   var $nastaveni=array(
-    'pocty'         => true,
-    'prihlasovani'  => false,
-    'osobni'        => false,
+    'drdPj'         => false, // u DrD explicitně zobrazit jména PJů
+    'drdPrihlas'    => false, // jestli se zobrazují přihlašovátka pro DrD
+    'plusMinus'     => false, // jestli jsou v programu '+' a '-' pro změnu kapacity team. aktivit
+    'osobni'        => false, // TODO již se používá jestli se zobrazuje osobní program (jinak full)
     'tableClass'    => 'program', //todo edit
+    'teamVyber'     => false, // jestli se u teamové aktivity zobrazí full výběr teamu přímo v programu
     'technicke'     => false, // jestli jdou vidět technické aktivity
-    'teamIgnore'    => false, // jestli se skrz program přihlašuje na teamové aktivity jak na normální
-    'plusminus'     => false, // jestli jsou v programu '+' a '-' pro změnu kapacity team. aktivit
-    'drdpj'         => false, // u DrD explicitně zobrazit jména PJů
   );
   
   /** Konstruktor bere uživatele a specifikaci, jestli je to osobní program */  
@@ -172,15 +171,18 @@ class Program
       ( $classes?' class="'.implode(' ',$classes).'"':'' ).
       '>'.$a['obj']->nazev()
     );
-    if($this->nastaveni['drdpj'] && $a['obj']->typ() == 9 && $a['obj']->prihlasovatelna()) {
+    if($this->nastaveni['drdPj'] && $a['obj']->typ() == 9 && $a['obj']->prihlasovatelna()) {
        echo ' ('.$a['obj']->orgJmena().') ';
     }
     echo $a['obj']->obsazenostHtml();
     if(
       ( $a['obj']->typ() != 10 || $this->nastaveni['technicke'] ) && // hack na nezobrazování přihlašovátek pro technické
-      ( $a['obj']->typ() != 9 || $this->nastaveni['teamIgnore'] ) // hack na nezobrazování přihlašovátek pro DrD
+      ( $a['obj']->typ() != 9 || $this->nastaveni['drdPrihlas'] ) // hack na nezobrazování přihlašovátek pro DrD
     ) {
-      echo ' '.$a['obj']->prihlasovatko($this->u, $this->nastaveni['plusminus'] ? Aktivita::PLUSMINUS_KAZDY : 0);
+      echo ' '.$a['obj']->prihlasovatko($this->u, $this->nastaveni['plusMinus'] ? Aktivita::PLUSMINUS_KAZDY : 0);
+    }
+    if($this->nastaveni['teamVyber']) {
+      echo $a['obj']->vyberTeamu($this->u);
     }
     echo('</td>');
   }
@@ -266,5 +268,3 @@ class Program
   }
 
 }
-
-?>

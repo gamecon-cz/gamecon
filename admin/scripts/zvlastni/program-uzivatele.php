@@ -3,13 +3,17 @@
 $osobniProgram = isset($osobniProgram) ? (bool)$osobniProgram : false;
 
 $program=new Program($uPracovni, array(
+  'drdPj'       => true,
+  'drdPrihlas'  => true,
+  'plusMinus'   => true,
   'osobni'      => $osobniProgram,
+  'teamVyber'   => true,
   'technicke'   => true,
-  'teamIgnore'  => true,
-  'plusminus'   => true,
-  'drdpj'       => true,
 ));
-if($uPracovni) Aktivita::prihlasovatkoZpracuj($uPracovni, Aktivita::TEAM | Aktivita::PLUSMINUS_KAZDY);
+if($uPracovni) {
+  Aktivita::prihlasovatkoZpracuj($uPracovni, Aktivita::PLUSMINUS_KAZDY);
+  Aktivita::vyberTeamuZpracuj($uPracovni);
+}
 
 $chyba = chyba::vyzvedniHtml();
 
@@ -19,6 +23,7 @@ $chyba = chyba::vyzvedniHtml();
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <script src="files/jquery-2.1.0.min.js"></script>
+    <script src="files/jquery-ui-1.10.3.custom.min.js"></script>
     <base href="<?=URL_ADMIN?>/">
     <?php $program->css(); ?>
     <style>
@@ -29,6 +34,7 @@ $chyba = chyba::vyzvedniHtml();
         background-color: #f0f0f0; 
         overflow-y: scroll; }
     </style>
+    <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-1.10.3.custom.min.css">
   </head>
   <body>
 
