@@ -1,63 +1,60 @@
 <!-- begin:prezence -->
+
+<script src="files/prezence.js"></script>
+
 <div class="prezence">
 
-<div style="position: relative">
-<div style="position: absolute; right: 0px; bottom: 5px; text-align: right">
-  Stránka načtena {datum} v {casAktualni}<br />
-  <!-- begin:casMan -->Čas vybrán manuálně (<a href="prezence">vybrat automaticky</a>)<br /><!-- end:casMan -->
-  <!-- begin:casAuto -->Čast vybrán automaticky<br /><!-- end:casAuto -->
-  Zobrazují se aktivity začínající od 
-  <form method="get" style="display: inline" id="cas">
-    <select name="cas" onchange="$('#cas').submit()" style="margin-right:0">
-      <option value="">(zvolte čas)</option>
-      <!-- begin:cas --><option {sel} value="{val}">{cas}</option><!-- end:cas -->
-    </select>
-  </form>
-</div>
-</div>
+<div>{casy}</div>
 
 <!-- begin:aktivita -->
-<div class="blokAktivita">
+<div class="blokAktivita" data-id="{a.id}">
+
   <!-- begin:form -->
   <form class="formAktivita">
-    <h2>{nazev_akce} – {org}</h2>
-    <input type="hidden" name="kapacita_celkova" value="{kapacita_celkova}" />
-    <input type="hidden" name="id_akce" value="{id_akce}" />
+    <h2>{a.nazev} – {a.orgJmena} – {a.lokace}</h2>
+    <!-- <input type="hidden" name="kapacita_celkova" value="{}" /> --><!-- TODO kapacita -->
+    <input type="hidden" name="prezenceAktivity" value="{a.id}" />
     <table class="ucastnici zvyraznovana">
       <tr>
         <th><span class="hinted">?<span class="hint">
           Jestli je uživatel přítomen v tomto okamžiku na GC (prošel infopultem)</span></span></th>
         <th>ID</th>
-        <th>login</th>
-        <th>jméno</th>
-        <th>telefon</th>
+        <th>Jméno</th>
+        <th>Telefon</th>
         <th></th>
       </tr>
       <!-- begin:ucastnik -->
       <tr>
-        <td>{pritomen}</td>
-        <td>{id_uzivatele}</td>
-        <td>{login_uzivatele}</td>
-        <td>{jmeno_uzivatele} {prijmeni_uzivatele}</td>
-        <td>{telefon_uzivatele}</td>
-        <td><input type="checkbox" name="dorazil[{id_uzivatele}]" /></td>
+        <td>
+          <!-- begin:pritomen --><img src="files/design/ok-s.png" style="margin-bottom:-1px"><!-- end:pritomen -->
+          <!-- begin:nepritomen --><img src="files/design/error-s.png" style="margin-bottom:-1px"><!-- end:nepritomen -->
+        </td>
+        <td>{u.id}</td>
+        <td>{u.jmenoNick}</td>
+        <td>{u.telefon}</td>
+        <td><!-- begin:checkbox --><input type="checkbox" name="dorazil[{u.id}]"><!-- end:checkbox --></td>
       </tr>
       <!-- end:ucastnik -->
+      <!-- begin:submit -->
       <tr>
-        <td colspan="5"><input type="text" class="omnibox" /></td>
+        <td colspan="5"><input type="text" class="omnibox"></td>
       </tr>
+      <tr  style="background-color: transparent ">
+        <td colspan="5"><input type="submit" value="uložit"></td>
+      </tr>
+      <!-- end:submit -->
     </table>
-    <input type="submit" value="uložit" />
   </form>
   <!-- end:form -->
-  
-  <!-- begin:nezamknutaUpo -->
-  <div style="font-weight:bold;color:red;margin:6px 10px">Pozor, aktivita není zamknutá pro online registraci a nemá vytištěnou prezenci!</div>
-  <!-- end:nezamknutaUpo -->
-  
+
   <!-- begin:vyplnena -->
-  <div class="success">Uloženo OK s účastí {ucast}/{kapacita_celkova}</div>
+  <div class="success">Uloženo OK s účastí {a.obsazenostHtml}</div>
   <!-- end:vyplnena -->
+
+  <!-- begin:nezamknuta -->
+  <div class="error">Pozor, aktivita není zamknutá pro online registraci a nemá vytištěnou prezenci!</div>
+  <!-- end:nezamknuta -->
+
 </div>
 <!-- end:aktivita -->
 
@@ -70,42 +67,5 @@
 <!-- end:nevybrano -->
 
 </div>
-<script src="files/omnibox.js" type="text/javascript"></script>
-<script type="text/javascript">
-var globShd=500; //global show hide delay
 
-$('.formAktivita').submit(function(){
-  var kapacita=($(this).serializeArray())[0].value;
-  var pocet=$(this).serializeArray().length-2; //jeden prvek zabírá hidden počet míst a id aktivity
-  var hlaskaNezaplneno='Je zadáno jen '+pocet+' účastníků z '+kapacita+'. Přesto uložit?';
-  if(kapacita<pocet)
-  {
-    alert('Je zadáno víc lidí, než je limit. Nelze uložit');
-  }
-  else if(kapacita==pocet || window.confirm(hlaskaNezaplneno))
-  {
-    $('#test').html('ajax-prezence?'+$(this).serialize());
-    var blok=$(this).parent();
-    $.getJSON('ajax-prezence?'+$(this).serialize(), function(data){
-      //alert(data.zprava);
-      if(data.uspech)
-      {
-        blok.children('.formAktivita').slideUp(globShd).empty();
-        blok.append('<div class="success">'+data.zprava+'</div>');
-        blok.children('.success').hide().slideDown(globShd);
-        blok.children('.error').slideUp(globShd); //schovat chyby, pokud dřív vznikly
-        blok.next().find('input[type="checkbox"]').first().focus(); //fokusnoutn nejbližší čekbox
-      }
-      else
-      {
-        blok.append('<div class="error">'+data.zprava+'</div>');
-        blok.children('.error').last().hide().slideDown(globShd);
-      }
-    });
-  } 
-  return false;
-});
-
-$('input[type="checkbox"]').first().focus(); //focusnout první čekbox při načtení
-</script>
 <!-- end:prezence -->

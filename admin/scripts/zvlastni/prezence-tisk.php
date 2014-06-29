@@ -1,18 +1,23 @@
 <?php
 
-$xtpl=new XTemplate('prezence-tisk.xtpl');
+$naStranku = 15; // bez náhradníků
 
-$ids=null;
-if(get('ids') && preg_match('@(\d+,)*\d+@',get('ids')))
-  $ids=explode(',',get('ids'));
-if(!$ids)
-  throw new Exception('nezadána id aktivit');
-//uzamčení aktivit pro přihlašování  
-dbQuery('UPDATE akce_seznam SET stav=2 WHERE id_akce='.implode(' OR id_akce=',$ids));
-//tisk aktivit
-$aktivity=VypisAktivit::zPoleId($ids);
-$aktivity->tiskXtpl($xtpl,'aktivity.aktivita');
-$xtpl->parse('aktivity');
-$xtpl->out('aktivity');
+$t = new XTemplate('prezence-tisk.xtpl');
 
-?>
+$aktivity = Aktivita::zIds(get('ids'));
+
+foreach($aktivity as $a) {
+  $a->zamci();
+  $t->assign('a', $a);
+  $i = 0;
+  foreach($a->ucastnici() as $uc) {
+    $t->assign('u', $uc);
+    $t->parse('aktivity.aktivita.ucastnik');
+    $i++;
+    if($i % $naStranku == 0)  $t->parse('aktivity.aktivita');
+  }
+  $t->parse('aktivity.aktivita');
+}
+
+$t->parse('aktivity');
+$t->out('aktivity');

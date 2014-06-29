@@ -11,7 +11,7 @@ $do=
   (new DateTimeCz($test))->add(new DateInterval('PT3H45M')) :
   (new DateTimeCz($test))->add(new DateInterval('P1D'))->setTime(9,0) ;
 $posledniBlok=null;
-foreach(aktivita::zRozmezi($od, $do, aktivita::JEN_VOLNE | aktivita::ZACATEK_V_ROZMEZI) as $a)
+foreach(Aktivita::zRozmezi($od, $do, Aktivita::JEN_VOLNE | Aktivita::VEREJNE) as $a)
 {
   if($posledniBlok && $posledniBlok!=$a->zacatek()->format('z'))
     $xtpl->parse('tabule.blok');

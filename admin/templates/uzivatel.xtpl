@@ -3,7 +3,7 @@
   <!-- begin:omnibox -->
   <form method="post">
     <input type="hidden" name="vybratUzivateleProPraci" value="1">
-    <input id="omnibox" type="text" name="id">
+    <input id="omnibox" class="omnibox autosubmit" type="text" name="id">
   </form>
   <div class="tip">↑ vyberte uživatele: napište pár písmen přezdívky, jména, příjmení nebo ID (alt+U)</div>
   <!-- end:omnibox -->

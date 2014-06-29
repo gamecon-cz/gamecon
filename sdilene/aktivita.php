@@ -18,12 +18,15 @@ class Aktivita
     TEAMKLIC='aTeamForm',      // název post proměnné s formulářem pro výběr teamu
     PN_PLUSMINUSP='cAktivitaPlusminusp',  // název post proměnné pro úpravy typu plus
     PN_PLUSMINUSM='cAktivitaPlusminusm',  // název post proměnné pro úpravy typu mínus
-    //ignore a parametry
+    //ignore a parametry kolem přihlašovátka
     PLUSMINUS       = 0b00000001,   // plus/mínus zkratky pro měnění míst v team. aktivitě
     PLUSMINUS_KAZDY = 0b00000010,   // plus/mínus zkratky pro každého
     STAV            = 0b00000100,   // ignorování stavu
     TEAM            = 0b00001000,   // ignorování teamovosti - přihlášení jak na norm. aktivitu
-    ZAMEK           = 0b00010000;   // ignorování zamčení
+    ZAMEK           = 0b00010000,   // ignorování zamčení
+    // parametry kolem továrních metod
+    JEN_VOLNE       = 0b00000001,   // jen volné aktivity
+    VEREJNE         = 0b00000010;   // jen veřejně viditelné aktivity
 
   /**
    * Vytvoří aktivitu dle výstupu z databáze. Pokud výstup (např. položkou
@@ -262,8 +265,24 @@ class Aktivita
     return $this->a['konec'];
   }
 
+  /**
+   * Zapíše do přihlašovacího kombinaci aktivita + uživatel + zpráva
+   */
+  function log(Uzivatel $u, $zprava) {
+    dbInsert('akce_prihlaseni_log', array(
+      'id_uzivatele' => $u->id(),
+      'id_akce' => $this->id(),
+      'typ' => $zprava,
+    ));
+  }
+
   function lokaceId()
   { return $this->a['lokace']; }
+
+  /** Vrátí lokaci (ndef. formát, ale musí podporovat __toString) */
+  function lokace() {
+    return Lokace::zId($this->a['lokace']);
+  }
 
   function nazev()
   { return $this->a['nazev_akce']; }
@@ -408,7 +427,7 @@ class Aktivita
     return strpos($this->a['organizatori'], ','.$id.',') !== false;
   }
 
-  /** Pole jmen organizátorů v lidsky čitelné podobě */
+  /** Vrátí iterátor jmen organizátorů v lidsky čitelné podobě */
   function orgJmena() {
     $orgove = array();
     $orgIn = explode(',', substr($this->a['orgJmena'], 1, -1));
@@ -421,7 +440,7 @@ class Aktivita
         'prijmeni_uzivatele' => $r[2]
       ));
     }
-    return $orgove;
+    return new ArrayIteratorTos($orgove);
   }
 
   /** Vrátí specifické označení organizátora pro aktivitu tohoto typu */
@@ -734,6 +753,58 @@ class Aktivita
     return Uzivatel::zIds($u);
   }
 
+  /**
+   * Uloží údaje o prezenci u této aktivity
+   * @param $dorazili uživatelé, kteří se nakonec aktivity zúčastnili
+   */
+  function ulozPrezenci($dorazili) {
+    $prihlaseni = array();  // přihlášení kteří dorazili
+    $nahradnici = array();  // náhradníci
+    $nedorazili = array();  // přihlášení kteří nedorazili
+    $doraziliIds = array(); // id všech co dorazili (kvůli kontrole přítomnosti)
+    // určení skupin kdo dorazil a kdo ne
+    foreach($dorazili as $u) {
+      if($this->prihlasen($u)) {
+        $prihlaseni[] = $u;
+      } else {
+        $nahradnici[] = $u;
+      }
+      $doraziliIds[$u->id()] = true;
+    }
+    foreach($this->ucastnici() as $u) {
+      if(isset($doraziliIds[$u->id()])) continue;
+      $nedorazili[] = $u;
+    }
+    // úprava stavu přihlášení podle toho do jaké skupiny spadá
+    foreach($prihlaseni as $u) {
+      dbInsertUpdate('akce_prihlaseni', array(
+        'id_uzivatele' => $u->id(),
+        'id_akce' => $this->id(),
+        'id_stavu_prihlaseni' => 1
+      ));
+    }
+    foreach($nahradnici as $u) {
+      dbInsert('akce_prihlaseni', array(
+        'id_uzivatele' => $u->id(),
+        'id_akce' => $this->id(),
+        'id_stavu_prihlaseni' => 2
+      ));
+      $this->log($u, 'prihlaseni_nahradnik');
+    }
+    foreach($nedorazili as $u) {
+      dbDelete('akce_prihlaseni', array(
+        'id_uzivatele' => $u->id(),
+        'id_akce' => $this->id()
+      ));
+      dbInsert('akce_prihlaseni_spec', array(
+        'id_uzivatele' => $u->id(),
+        'id_akce' => $this->id(),
+        'id_stavu_prihlaseni' => 3
+      ));
+      $this->log($u, 'nedostaveni_se');
+    }
+  }
+
   /** Vrátí typ volných míst na aktivitě */
   function volno()
   {
@@ -757,6 +828,7 @@ class Aktivita
   /**
    * Vrátí formulář pro výběr teamu na aktivitu. Pokud není zadán uživatel,
    * vrací nějakou false ekvivalentní hodnotu.
+   * @todo převést html do template
    */
   function vyberTeamu(Uzivatel $u = null) {
     if(!$u || $this->a['zamcel']!=$u->id() || !$this->prihlasovatelna()) return null;
@@ -903,11 +975,30 @@ class Aktivita
     die();
   }
 
+  /**
+   * Má aktivita vyplněnou prezenci?
+   * (aktivity s 0 lidmi jsou považovány za nevyplněné vždycky)
+   */
+  function vyplnenaPrezence() {
+    return 0 < dbOneCol('SELECT MAX(id_stavu_prihlaseni) FROM akce_prihlaseni WHERE id_akce = '.$this->id());
+  }
+
   /** Vrátí DateTime objekt začátku aktivity */
   function zacatek() {
     if(is_string($this->a['zacatek']))
       $this->a['zacatek'] = new DateTimeCz($this->a['zacatek']);
     return $this->a['zacatek'];
+  }
+
+  /** Je aktivita už proběhlá resp. už uzavřená pro změny? */
+  function zamcena() {
+    return $this->a['stav'] == 2;
+  }
+
+  /** Zamče aktivitu pro další změny (k použití před jejím začátkem) */
+  function zamci() {
+    dbQuery('UPDATE akce_seznam SET stav = 2 WHERE id_akce = ' . $this->id());
+    // TODO invalidate $this
   }
 
   /**
@@ -968,7 +1059,6 @@ class Aktivita
 
   /**
    * Vrátí pole aktivit které se letos potenciálně zobrazí v programu
-   * @todo zjistit rychlost a přepsat zWhere() pokud to půjde
    */
   static function zProgramu() {
     return self::zWhere(
@@ -979,23 +1069,17 @@ class Aktivita
   }
 
   /**
-   * Vrátí aktivity z rozmezí
-   * @todo skutečně implementovat flags nebo zrušit
+   * Vrátí aktivity z rozmezí (aktuálně s začátkem v rozmezí konkrétně)
+   * @todo možno přidat flag 'celé v rozmezí'
    */
-  const JEN_VOLNE         = 0x01;
-  const ZACATEK_V_ROZMEZI = 0x00;
-  const CELE_V_ROZMEZI    = 0x02;
-  static function zRozmezi(DateTime $od, DateTime $do, $flags) {
-    $jenVolne = $flags&0x01;
-    $cele     = $flags&0x02;
-    $o=self::nactiSkupinuRucne("
-        a.zacatek BETWEEN '{$od->formatDb()}' AND '{$do->formatDb()}'
-      ", null, 'a.zacatek', ($jenVolne ? 'pocet < kapacita_celkova' : null)
+  static function zRozmezi(DateTimeCz $od, DateTimeCz $do, $flags = 0) {
+    $qVerejne = $flags & self::VEREJNE ? ' AND stav IN(1,2,4) ' : ' ';
+    $qVolne = $flags & self::JEN_VOLNE ? ' HAVING COUNT(p.id_uzivatele) < (kapacita+kapacita_m+kapacita_f) ' : ' ';
+    return self::zWhere(
+      "WHERE zacatek BETWEEN '{$od->formatDb()}' AND '{$do->formatDb()}' $qVerejne ",
+      null,
+      $qVolne
     );
-    $a=array();
-    while($r=mysql_fetch_assoc($o))
-      $a[]=new self($r);
-    return $a;
   }
 
   /**
@@ -1085,48 +1169,6 @@ class Aktivita
   ////////////////////
   // Protected věci //
   ////////////////////
-
-  /**
-   * Načte skupinu aktivit z databáze, vrátí databázový soubor pro ruční
-   * přepracování. Slouží jako surový databázový dotaz, který je v každé
-   * odvozené třídě aliasován s adekvátními nutnými operacemi kolem.
-   *
-   * @param Uzivatel $u přidá do výsledku sloupec "přihlášen", pakliže je
-   *   uživatel $u přihlášen na danou aktivitu
-   * @param string $sqlOrderBy volitelně část dotazu po ORDER BY
-   * @param string $sqlWhere normální sql WHERE na filtrování
-   */
-  protected static function nactiSkupinuRucne($sqlWhere,$u=null,$sqlOrderBy=null,$sqlHaving=null)
-  {
-    $prihlSql1=$prihlSql2='';
-    if($u instanceof Uzivatel)
-    { //přídavná část SQL dotazu pro rozlišení akcí, kde je uživatel přihlášen
-      $prihlSql1=', ap.prihlasen';
-      $prihlSql2='
-        LEFT JOIN (
-          SELECT id_akce, 1 as prihlasen FROM akce_prihlaseni WHERE id_uzivatele='.$u->id().'
-        ) as ap ON(a.id_akce=ap.id_akce) -- aktivni prihlaseni daneho uzivatele';
-    }
-    $o=dbQuery('
-      SELECT a.*,
-        COUNT(p.id_uzivatele) as pocet,
-        COUNT(NULLIF(p.id_uzivatele AND u.pohlavi="f",false)) as pocet_f,
-        COUNT(NULLIF(p.id_uzivatele AND u.pohlavi="m",false)) as pocet_m,
-        (a.kapacita+a.kapacita_m+a.kapacita_f) as kapacita_celkova,
-        o.jmeno_uzivatele, o.prijmeni_uzivatele, o.login_uzivatele
-        '.$prihlSql1.'
-      FROM akce_seznam a
-      LEFT JOIN akce_prihlaseni p ON (a.id_akce=p.id_akce) -- počet lidí
-      LEFT JOIN uzivatele_hodnoty u ON (u.id_uzivatele=p.id_uzivatele) -- kvůli groupu dle pohlaví
-      LEFT JOIN uzivatele_hodnoty o ON (a.organizator=o.id_uzivatele) -- kvůli nicku organizátora
-      '.$prihlSql2.'
-      WHERE '.$sqlWhere.'
-      GROUP BY a.id_akce '.
-      ($sqlHaving?' HAVING '.$sqlHaving:'').
-      ($sqlOrderBy?' ORDER BY '.$sqlOrderBy:'')
-    );
-    return $o;
-  }
 
   /**
    * Vrátí pole obsahující chyby znemožňující úpravu aktivity. Hodnoty jsou

@@ -296,7 +296,8 @@ class Finance
         a.cena *
           (st.platba_procent/100) *
           IF(a.bez_slevy OR a.typ=10, 1.0, $scnPozde) *
-          IF(a.typ=10,-1.0,1.0) as cenaPozde
+          IF(a.typ=10,-1.0,1.0) as cenaPozde,
+        st.id_stavu_prihlaseni
       FROM (
         SELECT * FROM akce_prihlaseni WHERE id_uzivatele = $uid
         UNION
@@ -305,6 +306,7 @@ class Finance
       JOIN akce_prihlaseni_stavy st USING(id_stavu_prihlaseni)
       WHERE rok = $rok
     ");
+    $a = $this->u->koncA();
     while($r = mysql_fetch_assoc($o)) {
       if($r['cena'] >= 0) {
         $this->cenaAktivity += $r['cena'];
@@ -312,7 +314,10 @@ class Finance
       } else {
         $this->sleva -= $r['cena'];
       }
-      $this->log($r['nazev'], $r['cena'] < 0 ? 0 : $r['cena'], self::AKTIVITA);
+      $poznamka = '';
+      if($r['id_stavu_prihlaseni'] == 3) $poznamka = " <i>(nedorazil$a)</i>";
+      if($r['id_stavu_prihlaseni'] == 4) $poznamka = " <i>(odhlášen$a pozdě)</i>";
+      $this->log($r['nazev'].$poznamka, $r['cena'] < 0 ? 0 : $r['cena'], self::AKTIVITA);
     }
   }
 

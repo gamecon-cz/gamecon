@@ -1,7 +1,7 @@
 $(function() {
 
   // Našeptávátko pro omnibox
-  $vyberUzivatele = $('#omnibox');
+  $vyberUzivatele = $('.omnibox');
   $vyberUzivatele.autocomplete({
     source: 'ajax-omnibox',
     minLength: 2,
@@ -10,8 +10,8 @@ $(function() {
       event.preventDefault(); // neměnit text inputu při výběru
     },
     select: function(event,ui) {
-      // pokud je součástí formuláře, automaticky odeslat
-      if($(this).parent().is('form')){ // TODO pravděpodobně přepsat na třídu, kterou se u formu/inputu tato vlastnost vyvolá
+      // automatické odeslání, pokud je nastaveno
+      if($(this).hasClass('autosubmit') && $(this).parent().is('form')) {
         $(this).val(ui.item.value); // nutno nastavit před submitem
         $(this).parent().submit();
       }

@@ -173,7 +173,7 @@ class Program
       '>'.$a['obj']->nazev()
     );
     if($this->nastaveni['drdpj'] && $a['obj']->typ() == 9 && $a['obj']->prihlasovatelna()) {
-       echo ' ('.implode($a['obj']->orgJmena()).') ';
+       echo ' ('.$a['obj']->orgJmena().') ';
     }
     echo $a['obj']->obsazenostHtml();
     if(

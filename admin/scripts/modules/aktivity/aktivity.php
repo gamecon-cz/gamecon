@@ -92,7 +92,7 @@ foreach($aktivity as $a)
     'id_akce'   => $a->id(),
     'nazev'     => $a->nazev(),
     'cas'       => $a->denCas(),
-    'organizatori' => implode(', ', $a->orgJmena()),
+    'organizatori' => $a->orgJmena(),
     // TODO fixnout s lepším ORM
     'typ'       => $typy[$r['typ']],
     'mistnost'  => $mistnosti[$r['lokace']],

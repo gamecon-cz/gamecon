@@ -35,6 +35,16 @@ function dbConnect()
   }
 }
 
+/** Deletes from $table where all $whereArray column => value conditions are met */
+function dbDelete($table, $whereArray) {
+  $where = array();
+  foreach($whereArray as $col => $val) {
+    $where[] = dbQi($col).' = '.dbQv($val);
+  }
+  if(!$where) throw new Exception('DELETE … WHERE caluse must not be empty');
+  dbQuery('DELETE FROM ' . dbQi($table) . ' WHERE ' . implode(' AND ', $where));
+}
+
 function dbLastId()
 {
   return mysql_insert_id($GLOBALS['spojeni']);
