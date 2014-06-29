@@ -515,10 +515,15 @@ class Aktivita
     if($this->a['dite'] && $this->prihlaseno() > 0) {
       // vybrání jednoho uživatele, který už na navázané aktivity přihlášen je
       $vzor = Uzivatel::zId( substr(explode(',', $this->prihlaseni())[1], 0, -2) );
+      $uspech = false;
       foreach($this->deti() as $dite) {
         // přihlášení na navázané aktivity podle vzoru vybraného uživatele
-        if($dite->prihlasen($vzor)) $dite->prihlas($u, self::STAV);
+        if($dite->prihlasen($vzor)) {
+          $dite->prihlas($u, self::STAV);
+          $uspech = true;
+        }
       }
+      if(!$uspech) throw new Exception('Nepodařilo se určit výběr dalšího kola.');
     }
     // přihlášení na samu aktivitu (uložení věcí do DB)
     $aid = $this->id();
