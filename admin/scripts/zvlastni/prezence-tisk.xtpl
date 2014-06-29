@@ -4,12 +4,13 @@
 <head>
 
   <style>
-  body { margin: 5mm; width: 280mm; }
+  body { width: 280mm; font-size: 4.3mm; }
   table { border-collapse: collapse; }
   td, th { border: solid 0.3mm #000000; padding: 1mm 1mm; overflow: hidden; }
   .hlavicka { text-align: left; width: 1mm; }  /* přizpůsobit potomkům */
   .hlavicka .info { font-weight: normal; }
   .hlavicka .nazev { font-size: 150%; max-width: 110mm; }
+  .paticka { text-align: justify; font-size: 3.4mm; border: none; padding: 0; padding-top: 3mm; }
 
   tr > td:nth-child(1) { width: 80mm; }
   tr > td:nth-child(2) { width: 35mm; }
@@ -23,6 +24,7 @@
   </style>
 
   <style media="screen">
+  body { margin: 5mm auto; }
   body > *:nth-child(4n+4) { margin: 10mm -5mm; border-bottom: dashed 1px #ccc; position: relative; top: 5mm; }
   </style>
 
@@ -59,6 +61,7 @@
     <tr><td>&nbsp;</td><td></td><td></td></tr>
     <tr><td>&nbsp;</td><td></td><td></td></tr>
     <tr><td>&nbsp;</td><td></td><td></td></tr>
+    <tr><td colspan="3" class="paticka">Hráče kteří dorazili prosím odškrtni a případné náhradníky dopiš do volných políček. Prezenci v okamžik začátku aktivity předáš spojce, od které výměnou dostaneš klíčky od místnosti.</td></tr>
   </table>
 </div>
 <span class="breaker"></span>
