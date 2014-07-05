@@ -63,4 +63,7 @@
 	<div class="sponzor">
 		<a href="http://www.courtofmoravia.com" onclick="window.open(this.href); return false" title="Court of Moravia"><img src="files/obsah/sponzori/com.png" title="Court of Moravia" title="Court of Moravia" width="103" height="60" /></a>
 	</div>
+  <div class="sponzor">
+		<a href="http://www.dmpce.cz" target="_blank" title="DM Pardubice"><img src="files/obsah/sponzori/dm-pardubice.png" title="DM Pardubice" width="170" height="60" /></a>
+	</div>
 </div>
