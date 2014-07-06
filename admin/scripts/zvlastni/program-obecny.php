@@ -9,7 +9,6 @@ $zoom=empty($_GET['zoom'])?100:(int)$_GET['zoom'];
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="cs" lang="cs">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <base href="<?=URL_ADMIN?>/">
     <?php $program->css(); ?>
     <style>
       body { 
@@ -31,8 +30,6 @@ $zoom=empty($_GET['zoom'])?100:(int)$_GET['zoom'];
   <a href="?zoom=<?=$zoom-10?>" class="lupa minus" style="top:48px;left:0"></a>
   
   <?php $program->tisk(); ?>
-  
-  <?php /* profilInfo(); */ ?>
   
   </body>
 </html>
