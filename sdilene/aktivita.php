@@ -19,6 +19,7 @@ class Aktivita
     PN_PLUSMINUSP='cAktivitaPlusminusp',  // název post proměnné pro úpravy typu plus
     PN_PLUSMINUSM='cAktivitaPlusminusm',  // název post proměnné pro úpravy typu mínus
     //ignore a parametry kolem přihlašovátka
+    BEZ_POKUT       = 0b00010000,   // odhlášení bez pokut
     PLUSMINUS       = 0b00000001,   // plus/mínus zkratky pro měnění míst v team. aktivitě
     PLUSMINUS_KAZDY = 0b00000010,   // plus/mínus zkratky pro každého
     STAV            = 0b00000100,   // ignorování stavu
@@ -93,7 +94,7 @@ class Aktivita
   }
 
   /** Vrátí potomky této aktivity (=navázané aktivity, další kola, ...) */
-  protected function deti() {
+  function deti() {
     if($this->a['dite'])
       return self::zIds($this->a['dite']);
     else
@@ -359,9 +360,10 @@ class Aktivita
 
   /**
    * Odhlásí uživatele z aktivity
-   * @todo kontroly? (např. jestli je aktivní přihlašování?)
+   * @todo kontroly? (např. jestli je aktivní přihlašování?) (administrativní
+   *  odhlašování z DrD počítá s možnosti odhlásit např. od semifinále dál)
    */
-  function odhlas(Uzivatel $u) {
+  function odhlas(Uzivatel $u, $params = 0) {
     foreach($this->deti() as $dite) { // odhlášení z potomků
       $dite->odhlas($u); // spoléhá na odolnost proti odhlašování z aktivit kde uživatel není
     }
@@ -371,7 +373,7 @@ class Aktivita
     $uid = $u->id();
     dbQuery("DELETE FROM akce_prihlaseni WHERE id_uzivatele=$uid AND id_akce=$aid");
     dbQuery("INSERT INTO akce_prihlaseni_log SET id_uzivatele=$uid, id_akce=$aid, typ='odhlaseni'");
-    if(ODHLASENI_POKUTA_KONTROLA && $this->doZacatku() < ODHLASENI_POKUTA1_H) //pokuta aktivní
+    if(ODHLASENI_POKUTA_KONTROLA && $this->doZacatku() < ODHLASENI_POKUTA1_H && !($params & self::BEZ_POKUT)) //pokuta aktivní
       dbQuery("INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$uid, id_akce=$aid, id_stavu_prihlaseni=4");
     if($this->a['zamcel'] == $uid)
       dbQuery("UPDATE akce_seznam SET zamcel=NULL WHERE id_akce=$aid");
