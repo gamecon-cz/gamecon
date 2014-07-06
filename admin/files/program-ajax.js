@@ -15,7 +15,9 @@ $(function(){
       $.post(document.URL, $(this).serialize(), function(data){
         var a = $(data).find('input[name="odhlasit"][value="'+id+'"], input[name="prihlasit"][value="'+id+'"]');
         var err = $(data).find('#chybovaZprava');
+        var fin = $(data).find('#stavUctu');
         blok.replaceWith(a.closest('td'));
+        $('#stavUctu').replaceWith(fin);
         setHandler(a.closest('td').find('form'));
         if(err.length) {
           alert(err.html());

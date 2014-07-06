@@ -39,15 +39,30 @@ $chyba = chyba::vyzvedniHtml();
   </head>
   <body>
 
-  <div style="text-align:left;max-width:1060px;margin:auto;font-size:16px;margin-bottom:-30px;margin-top:10px">
-    <input type="button" style="position:absolute;margin: 10px 0 0 260px;width:100px;height:40px" value="Zavřít" onclick="window.close();">
+  <div style="
+    text-align: left;
+    font-size: 16px;
+    position: fixed;
+    top: 0; left: 0;
+    width: 350px;
+    padding: 10px;
+    color: #fff;
+    background-color: rgba(0,0,0,0.8);
+    border-bottom-right-radius: 12px;
+  ">
+    <input type="button" value="Zavřít" onclick="window.location = '<?=URL_ADMIN?>/uvod'" style="
+      float: right;
+      width: 100px;
+      height: 40px;
+    ">
     <?=$uPracovni->jmenoNick()?><br>
-    <?=$uPracovni->finance()->stavHr()?><br>
-    <?php if($osobniProgram){ ?>
-      <a href="program-uzivatele">celkový program</a> osobní program
-    <?php }else{ ?>
-       celkový program <a href="program-osobni">osobní program</a>
-    <?php } ?>
+    <span id="stavUctu"><?=$uPracovni->finance()->stavHr()?></span><br>
+    <!--
+    TODO osobní program
+    celkový program
+    <a href="program-osobni">osobní program</a>
+    <a href="program-uzivatele">celkový program</a> osobní program
+    -->
   </div>
 
   <?=$chyba?>
