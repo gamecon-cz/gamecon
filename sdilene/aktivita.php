@@ -615,11 +615,11 @@ class Aktivita
       if( ($stav = $this->prihlasenStav($u)) > -1 )
       {
         if($stav==0)
-          $out = '<a href="javascript:document.getElementById(\'odhlasit'.
-            $this->id().'\').submit()">odhlásit</a><form '.
-            'id="odhlasit'.$this->id().'" method="post" '.
-            'style="position:absolute"><input type="hidden" name="odhlasit" '.
-            'value="'.$this->id().'" /></form>';
+          $out =
+            '<form method="post" style="display:inline">'.
+            '<input type="hidden" name="odhlasit" value="'.$this->id().'">'.
+            '<a href="#" onclick="$(this).parent().submit(); return false">odhlásit</a>'.
+            '</form>';
         if($stav==1) $out = '<em>účast</em>';
         if($stav==2) $out = '<em>jako náhradník</em>';
         if($stav==3) $out = '<em>neúčast</em>';
@@ -637,11 +637,11 @@ class Aktivita
       {
         $volno = $this->volno();
         if($volno=='u' || $volno==$u->pohlavi())
-          $out = '<a href="javascript:document.getElementById(\'prihlasit'.
-            $this->id().'\').submit()">přihlásit</a><form '.
-            'id="prihlasit'.$this->id().'" method="post" '.
-            'style="position:absolute"><input type="hidden" name="prihlasit" '.
-            'value="'.$this->id().'" /></form>';
+          $out =
+            '<form method="post" style="display:inline">'.
+            '<input type="hidden" name="prihlasit" value="'.$this->id().'">'.
+            '<a href="#" onclick="$(this).parent().submit(); return false">přihlásit</a>'.
+            '</form>';
         elseif($volno=='f')
           $out = 'pouze ženská místa';
         elseif($volno=='m')

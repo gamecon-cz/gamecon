@@ -24,14 +24,15 @@ $chyba = chyba::vyzvedniHtml();
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <script src="files/jquery-2.1.0.min.js"></script>
     <script src="files/jquery-ui-1.10.3.custom.min.js"></script>
+    <script src="files/program-ajax.js"></script>
     <base href="<?=URL_ADMIN?>/">
     <?php $program->css(); ?>
     <style>
-      body { 
+      body {
         font-family: tahoma;
         font-size: 11px;
         text-align: center;
-        background-color: #f0f0f0; 
+        background-color: #f0f0f0;
         overflow-y: scroll; }
     </style>
     <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-1.10.3.custom.min.css">

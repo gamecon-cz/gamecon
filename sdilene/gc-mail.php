@@ -28,6 +28,8 @@ class GcMail
    */      
   public function odeslat()
   {
+    if(VETEV == VYVOJOVA) return; //TODO místo přeskočení někam logovat
+
     $from='=?UTF-8?B?'.base64_encode('GameCon').'?= <info@gamecon.cz>';
     $headers=array(
       'MIME-Version: 1.0',
