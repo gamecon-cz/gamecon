@@ -75,18 +75,22 @@ class Finance
     Cenik::aplikujSlevu($cena, $sleva);
     $this->slevaVyuzita = $this->sleva - $sleva;
     if($this->sleva) $this->log(
-      'Využitá sleva za organizované aktivity (z celkem '.$this->slevaVypravecMax().')',
-      $this->slevaVypravecVyuzita(),
+      '<b>Sleva za organizované aktivity</b><br>využitá z celkem '.$this->slevaVypravecMax().'',
+      '<b>'.$this->slevaVypravecVyuzita().'</b><br>&emsp;',
       self::ORGSLEVA);
 
-    $this->log('Celková cena', $cena, self::CELKOVA);
+    $this->logb('Celková cena', $cena, self::CELKOVA);
 
     $this->stav =
       - $cena
       + $this->platby
       + $this->zustatek;
 
-    $this->log('<b>Stav financí</b>', '<b>'.$this->stav.'</b>', self::VYSLEDNY);
+    $this->logb('Aktivity', $this->cenaAktivity, self::AKTIVITA);
+    $this->logb('Ubytování', $this->cenaUbytovani, 2);
+    $this->logb('Předměty a strava', $this->cenaPredmety, 1);
+    $this->logb('Připsané platby', $this->platby + $this->zustatek, self::PLATBY_NADPIS);
+    $this->logb('Stav financí', $this->stav, self::VYSLEDNY);
   }
 
   /** Cena za uživatelovy aktivity */
@@ -124,8 +128,9 @@ class Finance
     if(is_numeric($castka)) $castka = round($castka);
     // hack změna řazení
     $nkat = $kategorie;
-    if($kategorie == 2) $nkat = 3;
+    if($kategorie == 2) $nkat = 4;
     if($kategorie == 3) $nkat = 2;
+    if($kategorie == 4) $nkat = 3;
     $kategorie = $nkat;
     // přidání
     $this->prehled[] = array(
@@ -133,6 +138,13 @@ class Finance
       $castka,
       $kategorie
     );
+  }
+
+  /**
+   * Zaloguje zvýrazněný záznam
+   */
+  protected function logb($nazev, $castka, $kategorie = null) {
+    $this->log("<b>$nazev</b>", "<b>$castka</b>", $kategorie);
   }
 
   /** Vrátí sumu plateb (připsaných peněz) */
@@ -342,7 +354,6 @@ class Finance
       $this->platby += $r['cena'];
       $this->log($r['nazev'], $r['cena'], self::PLATBA);
     }
-    $this->log('<b>Připsané platby</b>', '', self::PLATBY_NADPIS);
   }
 
   /**
