@@ -118,7 +118,10 @@ if($uPracovni && $uPracovni->gcPrihlasen())
     'id'              =>  $up->id(),
     'pokoj'           =>  $pokoj ? $pokoj->cislo() : '(nepřidělen)',
     'spolubydlici'    =>  array_uprint($spolubydlici, function($e){ return '<li>'.$e->jmenoNick().' ('.$e->id().')</li>'; }),
+    'aa'              =>  $u->koncA(),
+    'org'             =>  $u->jmenoNick(),
   ));
+  if($up->finance()->stav() < 0 && !$up->gcPritomen()) $x->parse('uvod.uzivatel.nepritomen.upoMaterialy');
   $x->parse( $up->gcPritomen() ? 'uvod.uzivatel.pritomen' : 'uvod.uzivatel.nepritomen' );
   if(!$up->telefon()) $x->parse('uvod.uzivatel.bezTelefonu');
   if(!$up->gcPritomen()) $x->parse('uvod.uzivatel.gcOdhlas');
