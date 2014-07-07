@@ -94,7 +94,7 @@ if(!$zidle) {
     $t->parse('zidle.uzivatel');
   }
   // posazování
-  if($uPracovni && !$uPracovni->sediNaZidli($zidle))
+  if($uPracovni && !$uPracovni->maZidli($zidle))
     $t->parse('zidle.posad');
   elseif($uPracovni)
     $t->parse('zidle.sesad');

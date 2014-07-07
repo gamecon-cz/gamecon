@@ -73,6 +73,11 @@ if(!empty($_POST['gcOdhlas']) && $uPracovni && !$uPracovni->gcPritomen())
   back();
 }
 
+if(post('gcOdjed')) {
+  $uPracovni->gcOdjed();
+  back();
+}
+
 $x=new XTemplate('uvod.xtpl');
 if($uPracovni && $uPracovni->gcPrihlasen())
 {
@@ -122,7 +127,9 @@ if($uPracovni && $uPracovni->gcPrihlasen())
     'org'             =>  $u->jmenoNick(),
   ));
   if($up->finance()->stav() < 0 && !$up->gcPritomen()) $x->parse('uvod.uzivatel.nepritomen.upoMaterialy');
-  $x->parse( $up->gcPritomen() ? 'uvod.uzivatel.pritomen' : 'uvod.uzivatel.nepritomen' );
+  if(!$up->gcPritomen())    $x->parse('uvod.uzivatel.nepritomen');
+  elseif(!$up->gcOdjel())   $x->parse('uvod.uzivatel.pritomen');
+  else                      $x->parse('uvod.uzivatel.odjel');
   if(!$up->telefon()) $x->parse('uvod.uzivatel.bezTelefonu');
   if(!$up->gcPritomen()) $x->parse('uvod.uzivatel.gcOdhlas');
   $x->parse('uvod.uzivatel');

@@ -218,7 +218,7 @@ class Shop
     // student
     $out.='Jsem <b>student</b> a mám nárok na slevu <b>20%</b>: '.
     '<input type="checkbox" name="'.$this->klicS.'[student]" value="1"'.
-    ($this->u->sediNaZidli(Z_STUDENT)?' checked':'').'> '.
+    ($this->u->maZidli(Z_STUDENT)?' checked':'').'> '.
     '<input type="text" style="width: 200px" id="skola" placeholder="škola" name="'.$this->klicS.'[skola]" value="'.$skola.'">';
     $out.='<script>$("#skola").autocomplete({source:["'.implode('","',self::$skoly).'"]});</script>';
     // včasná platba

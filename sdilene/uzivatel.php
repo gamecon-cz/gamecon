@@ -191,6 +191,18 @@ class Uzivatel
         v seznamu uživatelů, aby mu peníze nepropadly');
   }
 
+  /** „Odjede“ uživatele z GC */
+  function gcOdjed() {
+    if(!$this->gcPritomen()) throw new Exception('Uživatel není přítomen na GC');
+    $this->dejZidli(Z_ODJEL);
+  }
+
+  /** Opustil uživatel GC? */
+  function gcOdjel() {
+    if(!$this->gcPritomen()) return false; // ani nedorazil, nemohl odjet
+    return $this->maZidli(Z_ODJEL);
+  }
+
   /** Je uživatel přihlášen na aktuální GC? */
   function gcPrihlasen()
   {
@@ -207,7 +219,7 @@ class Uzivatel
     return false;
   }
 
-  /** Prošel uživatel infopultem, dostal materiály a je přítomen na aktuálím
+  /** Prošel uživatel infopultem, dostal materiály a je nebo byl přítomen na aktuálím
    *  GC? */
   function gcPritomen()
   {
@@ -277,6 +289,16 @@ class Uzivatel
     }
     else
       throw new Exception('Nenačtena práva pro uživatele.');
+  }
+
+  /**
+   * Sedí uživatel na dané židli?
+   * NEslouží k čekování vlastností uživatele, které obecně řeší práva resp.
+   * Uzivatel::maPravo(), skutečně výhradně k správě židlí jako takových.
+   * @todo při načítání práv udělat pole místo načítání z DB
+   */
+  function maZidli($zidle) {
+    return mysql_num_rows(dbQuery('SELECT * FROM r_uzivatele_zidle WHERE id_uzivatele='.$this->id().' AND id_zidle='.(int)$zidle))>0;
   }
 
   /**
@@ -510,17 +532,6 @@ class Uzivatel
     if(!$mail->odeslat())
       die('Chyba: Email s novým heslem NEBYL odeslán, uživatel má pravděpodobně nastavený neplatný email');
     return $uid;
-  }
-
-  /**
-   * Sedí uživatel na dané židli?
-   * NEslouží k čekování vlastností uživatele, které obecně řeší práva resp.
-   * Uzivatel::maPravo(), skutečně výhradně k správě židlí jako takových. Also
-   * přímé čtení z databáze => pomalé.
-   */
-  public function sediNaZidli($zidle)
-  {
-    return mysql_num_rows(dbQuery('SELECT * FROM r_uzivatele_zidle WHERE id_uzivatele='.$this->id().' AND id_zidle='.(int)$zidle))>0;
   }
 
   /** Vrátí html formátovaný „status“ uživatele (pro interní informaci) */

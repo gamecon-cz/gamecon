@@ -9,10 +9,39 @@
     <tr><td style="width: 60px">Stav účtu: </td><td> {stav}</td></tr>
     <tr><td>Statut:</td><td> {statut}</td></tr>
     <tr><td>Dorazil:</td><td> 
-      <!-- begin:pritomen -->{ok} je na GC a dostal{a} materiály<!-- end:pritomen -->
+      <!-- begin:pritomen -->
+        {ok} je na GC
+        <form method="post" style="float: right">
+          <span class="hinted">
+            <input type="submit" name="gcOdjed" value="Odjel{a} z GC">
+            <span class="hint">
+              Před odkliknutím zkontroluj, že je:
+              <ul>
+                <li>Vyrovnaný nedoplatek</li>
+                <li>Vrácený klíč od pokoje</li>
+                <li>Nahlášení nováčci dorazili</li>
+              </ul>
+            </span>
+          </span>
+        </form>
+      <!-- end:pritomen -->
       <!-- begin:nepritomen -->
         {err} není na GC
-        <form method="post" style="float: right"><input type="submit" name="datMaterialy" value="Dát materiály"></form>
+        <form method="post" style="float: right">
+          <span class="hinted">
+            <input type="submit" name="datMaterialy" value="Dát materiály">
+            <span class="hint">
+              Před odkliknutím zkontroluj že proběhlo:
+              <ul>
+                <li>Nahlášení nováčci mají stav účtu v plusu nebo max. -100</li>
+                <li>Předání trička, placky, číslo pokoje, srovnání nedoplatku</li>
+                <li>Předání manuálu účastníka a vysvětlení last moment přihlašování.</li>
+                <li>Doplnění chybějících údajů, jako adresy, telefonu</li>
+                <li>Vyplnění čísla OP do sdíleného dokumentu</li>
+              </ul>
+            </span>
+          </span>
+        </form>
         <!-- begin:upoMaterialy -->
         <script>
           $('form').last().submit(function(){
@@ -21,6 +50,9 @@
         </script>
         <!-- end:upoMaterialy -->
       <!-- end:nepritomen -->
+      <!-- begin:odjel -->
+        {ok} byl{a} na GC a už odjel{a}
+      <!-- end:odjel -->
     </td></tr>
     <tr><td>ID uživ.:</td><td> {id}</td></tr>
     <tr><td>E-mail:</td><td> {mail}</td></tr>
