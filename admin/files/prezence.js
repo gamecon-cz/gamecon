@@ -10,6 +10,13 @@ $(function(){
 
   $('.formAktivita').submit(function(){
     var aktivita = $(this).closest('.blokAktivita');
+    // test na vyplnění políček / potvrzení
+    var policek = aktivita.find('[type=checkbox]').size();
+    var vybrano = aktivita.find('[type=checkbox]:checked').size();
+    if(vybrano < policek / 2) {
+      if(!confirm('Opravdu uložit s účastí menší jak polovina?')) return false;
+    }
+    // odeslání
     aktivita.find('[type=submit]').attr('disabled', true);
     aktivita.load(
       document.URL + ' .blokAktivita[data-id=' + aktivita.data('id') + '] > *',

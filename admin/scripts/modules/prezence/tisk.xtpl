@@ -5,6 +5,9 @@
 <h2>Tisk prezenčních listů</h2>
 
 <!-- begin:aktivity -->
+
+<p>Před uzavřením prosím zkontroluj, že u aktivity není uvedený žádný problém. Pokud někteří účastníci neprošli infopultem, zkus jim zavolat a přivolat je k infopultu nebo odhlásit z aktivity, pokud se nedovoláš nebo zjistíš, že na GC nedojdou. Tlačítko pro tisk najdeš dole.</p>
+
 <p>Následující aktivity budou uzavřeny pro online přihlašování a vytištěny: 
   <table>
     <tr>
@@ -27,7 +30,6 @@
     <!-- end:aktivita -->
   </table>
 </p>
-<p>Před uzavřením prosím zkontrolujte, že u aktivity není uvedený žádný problém. Pokud někteří účastníci neprošli infopultem, zkuste jim zavolat a přivolat je k infopultu nebo odhlásit z aktivity, pokud se nedovoláte nebo zjistíte, že na GC nedojdou.</p>
 <p><input type="button" onclick="window.open('prezence-tisk?ids={ids}')" value="Uzavřít pro přihlašování a vytisknout"></p>
 <!-- end:aktivity -->
 
