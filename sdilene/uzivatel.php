@@ -302,6 +302,15 @@ class Uzivatel
   }
 
   /**
+   * Jestli je jeho mail mrtvý
+   * @todo pokud bude výkonově ok, možno zrefaktorovat na třídu mail která bude
+   * mít tento atribut
+   */
+  function mrtvyMail() {
+    return $this->u['mrtvy_mail'];
+  }
+
+  /**
    * Ručně načte práva - neoptimalizovaná varianta, přijatelné pouze pro prasečí
    * řešení, kde si to můžeme dovolit (=reporty)
    */
@@ -532,6 +541,60 @@ class Uzivatel
     if(!$mail->odeslat())
       die('Chyba: Email s novým heslem NEBYL odeslán, uživatel má pravděpodobně nastavený neplatný email');
     return $uid;
+  }
+
+  /**
+   * Smaže uživatele $u a jeho historii připojí k tomuto uživateli. Sloupečky
+   * v poli $zmeny případně aktualizuje podle hodnot smazaného uživatele.
+   */
+  function sluc(Uzivatel $u, $zmeny = array()) {
+    $old = $u->id();
+    $new = $this->id();
+    $tabulky = array( // páry název sloupce / tabulky kde upravit id uživatele
+      'id_uzivatele' => array(
+        //'r_uzivatele_zidle', // speciální dotaz s ignore
+        'akce_organizatori',
+        'akce_prihlaseni',
+        'akce_prihlaseni_log',
+        'akce_prihlaseni_spec',
+        'forum_cteno',
+        'minihra',
+        'platby',
+        'shop_nakupy',
+        'stazeni',
+        'ubytovani',
+      ),
+      'uzivatel'  => array('chyby', 'forum_clanky'),
+      'zamcel'    => array('akce_seznam'),
+      'autor'     => array('novinky_obsah'),
+      'publikoval'=> array('novinky_obsah'),
+      'upravil'   => array('novinky_obsah'),
+      'provedl'   => array('platby'),
+      'guru'      => array('uzivatele_hodnoty'),
+    );
+    $zmeny = array_intersect_key($u->u, array_flip($zmeny));
+    // převedení referencí na tohoto uživatele
+    dbQuery("UPDATE IGNORE r_uzivatele_zidle SET id_uzivatele = $new WHERE id_uzivatele = $old");
+    foreach($tabulky as $sloupec => $mnozina) {
+      foreach($mnozina as $tabulka) {
+        dbQuery("UPDATE $tabulka SET $sloupec = $new WHERE $sloupec = $old");
+      }
+    }
+    // smazání duplicitního uživatele - první aby update nezpůsobil duplicity
+    dbDelete('uzivatele_hodnoty', array('id_uzivatele' => $u->id()));
+    // aktualizace uživatele
+    $zmeny['id_uzivatele'] = $this->id();
+    dbInsertUpdate('uzivatele_hodnoty', $zmeny);
+    $this->slucLog("K id $new sloučeno a smazáno id $old");
+  }
+
+  /** Dummy logování pro situaci kdy se slučují uživatelé */
+  protected function slucLog($zprava) {
+    file_put_contents(
+      __DIR__.'/'.SDILENE_ADMIN_CESTA.'/files/logs/slucovani',
+      (new DateTimeCz)->formatDb().' '.$zprava."\n",
+      FILE_APPEND
+    );
   }
 
   /** Vrátí html formátovaný „status“ uživatele (pro interní informaci) */

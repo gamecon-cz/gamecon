@@ -32,6 +32,7 @@
 <a href="./reporty/ubytovani">Ubytování</a> (csv) <br>
 <a href="./reporty/celkova-ucast">Celková účast</a> (csv) <br>
 <a href="./reporty/neprihlaseni-vypraveci" target="_blank">Nepřihlášení a neubytovaní vypravěči</a> <br>
+<a href="./reporty/duplicity" target="_blank">Duplicitní uživatelé</a><br>
 <br>
 <a href="./reporty/celkovy-report">Celkový report <?php echo ROK ?></a> (BFGR)<br>
 
