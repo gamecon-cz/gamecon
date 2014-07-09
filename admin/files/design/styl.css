@@ -66,7 +66,7 @@ textarea { font: inherit; }
 .main table td img { margin:-4px 0; border:0; padding:0; }
 
 table form, form.radkovy { margin:0; padding:0; display: inline; }
-table form input[type="submit"], .tlacitko { padding: 0 5px; font-size: 11px; line-height: 10px; font-family: inherit; height: 14px; position: relative; top: -1px; }
+table form input[type="submit"], table form input[type="button"], .tlacitko { padding: 0 5px; font-size: 11px; line-height: 10px; font-family: inherit; height: 14px; position: relative; top: -1px; }
 
 table.cista > tbody > tr { background-color: transparent; vertical-align: top; padding:0; }
 table.cista > tbody > tr > td { border: solid 0px; padding: 0; }

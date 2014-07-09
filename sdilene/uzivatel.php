@@ -396,6 +396,16 @@ class Uzivatel
     return $cas;
   }
 
+  /** Vrátí / nastaví poznámku uživatele */
+  function poznamka($poznamka = null) {
+    if(isset($poznamka)) {
+      dbQueryS('UPDATE uzivatele_hodnoty SET poznamka = $1 WHERE id_uzivatele = $2', array($poznamka, $this->id()));
+      $this->otoc();
+    } else {
+      return $this->u['poznamka'];
+    }
+  }
+
   /** Přihlásí uživatele s loginem $login k stránce
    *  @param string $klic klíč do $_SESSION kde poneseme hodnoty uživatele
    *  @param $login login nebo primární e-mail uživatele

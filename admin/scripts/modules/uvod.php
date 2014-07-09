@@ -78,6 +78,11 @@ if(post('gcOdjed')) {
   back();
 }
 
+if(post('poznamkaNastav')) {
+  $uPracovni->poznamka(post('poznamka'));
+  back();
+}
+
 $x=new XTemplate('uvod.xtpl');
 if($uPracovni && $uPracovni->gcPrihlasen())
 {
@@ -125,6 +130,7 @@ if($uPracovni && $uPracovni->gcPrihlasen())
     'spolubydlici'    =>  array_uprint($spolubydlici, function($e){ return '<li>'.$e->jmenoNick().' ('.$e->id().')</li>'; }),
     'aa'              =>  $u->koncA(),
     'org'             =>  $u->jmenoNick(),
+    'up'              =>  $up,
   ));
   if($up->finance()->stav() < 0 && !$up->gcPritomen()) $x->parse('uvod.uzivatel.nepritomen.upoMaterialy');
   if(!$up->gcPritomen())    $x->parse('uvod.uzivatel.nepritomen');
