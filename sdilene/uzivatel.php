@@ -583,6 +583,7 @@ class Uzivatel
       'guru'      => array('uzivatele_hodnoty'),
     );
     $zmeny = array_intersect_key($u->u, array_flip($zmeny));
+    $zmeny['zustatek'] = $this->u['zustatek'] + $u->u['zustatek'];
     // převedení referencí na tohoto uživatele
     dbQuery("UPDATE IGNORE r_uzivatele_zidle SET id_uzivatele = $new WHERE id_uzivatele = $old");
     foreach($tabulky as $sloupec => $mnozina) {
@@ -596,6 +597,7 @@ class Uzivatel
     $zmeny['id_uzivatele'] = $this->id();
     dbInsertUpdate('uzivatele_hodnoty', $zmeny);
     $this->slucLog("K id $new sloučeno a smazáno id $old");
+    // TODO otáčení, ale nejen pro uživatele v session
   }
 
   /** Dummy logování pro situaci kdy se slučují uživatelé */
@@ -679,6 +681,14 @@ class Uzivatel
    */
   function rawDb()
   { return $this->u; }
+
+  /**
+   * Zůstatek na uživatelově účtu z minulých let
+   * @todo převést do financí?
+   */
+  function zustatek() {
+    return $this->u['zustatek'];
+  }
 
   static function zId($id) {
     return self::zIds((int)$id)[0];

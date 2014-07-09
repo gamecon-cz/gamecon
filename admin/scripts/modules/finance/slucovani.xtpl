@@ -1,7 +1,7 @@
 <!-- begin:slucovani -->
 
 <p>
-Výsledné ID by se vždy mělo zvolit nižší. Přihláška na GC se uživateli zachová, i když bude mít přihlášku původně s vyšším ID. Pokud je uživatel vybrán pro práci, je potřeba ho zrušit a vybrat znova. Pokud se vyskytne chyba, hlásit.
+Výsledné ID by se vždy mělo zvolit nižší. Přihláška na GC se uživateli zachová, i když bude mít přihlášku původně s vyšším ID. Pokud je uživatel vybrán pro práci, je potřeba ho zrušit a vybrat znova. Případné dluhy / zůstatky se sečtou. Pokud se vyskytne chyba, hlásit.
 </p>
 
 <p>
@@ -56,6 +56,11 @@ Vhodné vycházet z <a href="reporty/duplicity">reportu</a> s potenciálně dupl
       <td>Nové ID</td>
       <td><input type="radio" name="id" value="{uaid}" checked>{ua.id}</td>
       <td><input type="radio" name="id" value="{ubid}">{ub.id}</td>
+    </tr>
+    <tr>
+      <td>Zůstatek</td>
+      <td>{ua.zustatek}</td>
+      <td>{ub.zustatek}</td>
     </tr>
     <!-- TODO později
     <tr>
