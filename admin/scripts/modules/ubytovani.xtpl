@@ -43,21 +43,15 @@
   <div style="clear: both"></div>
 </div>
 
-<!--
 <div class="aBox">
-  <h3>Načítání pokojů</h3>
+  <h3>Importér ubytování</h3>
+  Přepíše kompletně letošní údaje o ubytování. Jako soubor slouží ubytovací report ve formátu CSV. (Pozor, excel při zmáčknutí ctrl+s soubor zmrší a při opětovném otevření už ho sám nepřečte. Místo toho je potřeba ručně dát „uložit jako“ a z nabídky typů vybrat „CSV oddělený středníkem“)
+  <br><br>
   <form method="post" enctype="multipart/form-data">
-    <input type="file" name="pokcsv">
-    <input type="submit" name="pokoje" value="Nahrát">
+    <input type="file" name="pokojeSoubor"><br><br>
+    <input type="submit" name="pokojeImport" value="Nahrát">
     <span style="color:green">{hlaska}</span>
-  </form><br>
-  Nahraný soubor přiřadí uživatelům čísla pokojů. Musí být ve formátu:
-  <ul>
-  <li><i>id_uživatele</i> ; <i>pokoj_středa</i> ; <i>pokoj_čtvrtek</i> ; <i>pokoj_pátek</i> ; <i>pokoj_sobota</i> ; <i>pokoj_neděle</i>
-  <li>Sloupce nesmí mít hlavičkové buňky a musí být přesně v pořadí jak je uvedeno výš, jinak to nebude fungovat. Nahráním souboru se přepíší stávající data.
-  <li>Jako formát souboru je potřeba zvolit „CSV (oddělené středníkem)“.
-  </ul>
+  </form>
 </div>
--->
 
 <!-- end:ubytovani -->
