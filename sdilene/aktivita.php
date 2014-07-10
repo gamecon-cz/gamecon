@@ -1106,6 +1106,16 @@ class Aktivita
   }
 
   /**
+   * Vrátí iterátor letošních aktivit daného uživatele
+   */
+  static function zUzivatele(Uzivatel $u) {
+    return self::zWhere(
+      'WHERE a.rok = $1 AND a.id_akce IN(SELECT id_akce FROM akce_prihlaseni WHERE id_uzivatele = $2)',
+      array(ROK, $u->id())
+    );
+  }
+
+  /**
    * Vrátí iterátor s aktivitami podle zadané where klauzule. Alias tabulky
    * akce_seznam je 'a'.
    * @param $where obsah where klauzule (bez úvodního klíč. slova WHERE)

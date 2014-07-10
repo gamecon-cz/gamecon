@@ -44,7 +44,38 @@ if(isset($_POST['pridelitPokoj'])) {
 }
 
 
+if(post('prohozeniProvest')) {
+  var_dump($_POST);
+  $u1 = Uzivatel::zId(post('u1'));
+  $u2 = Uzivatel::zId(post('u2'));
+  $a1 = Aktivita::zId(post('a1'));
+  $a2 = Aktivita::zId(post('a2'));
+  $a1->odhlas($u1, BEZ_POKUT);
+  $a2->odhlas($u2, BEZ_POKUT);
+  $a1 = Aktivita::zId(post('a1')); // hack znovunačtení kvůli chybějícímu invalidate v aktivitě
+  $a2 = Aktivita::zId(post('a2'));
+  $a1->prihlas($u2);
+  $a2->prihlas($u1);
+  oznameni('Aktivity prohozeny');
+}
+
+
 $t = new XTemplate('ubytovani.xtpl');
+
+
+if(post('prohozeniNacist')) {
+  $t->assign($_POST);
+  foreach(array('u1', 'u2') as $name) {
+    $ux = Uzivatel::zId(post($name));
+    foreach(Aktivita::zUzivatele($ux) as $a) {
+      if(!$a->teamova() && $a->prihlasovatelna()) {
+        $t->assign('a', $a);
+        $t->parse('ubytovani.a'.$name);
+      }
+    }
+  }
+}
+
 
 $pokoj = Pokoj::zCisla(get('pokoj'));
 $ubytovani = $pokoj ? $pokoj->ubytovani() : array();

@@ -44,13 +44,45 @@
 </div>
 
 <div class="aBox">
+  <h3>Prohození aktivit</h3>
+  Prohodí vybrané aktivity mezi uživateli (pouze pro běžné aktivity). Pokud jsou aktivity vybrány špatně, tj. jednomu uživateli se nová aktivita překrývá s něčím jiným, přihlášen na ni nebude (ovšem bude odhlášen z původní aby uvolnil místo druhému).<br><br>
+  <form method="post">
+    <table>
+      <tr>
+        <td>ID uživatelů:</td>
+        <td><input type="text" class="omnibox" name="u1" value="{u1}"></td>
+        <td><input type="text" class="omnibox" name="u2" value="{u2}"></td>
+      </tr>
+      <tr>
+        <td>Aktivity k výměně:</td>
+        <td>
+          <select name="a1">
+            <!-- begin:au1 --><option value="{a.id}">{a.nazev} {a.denCas}</option><!-- end:au1 -->
+          </select>
+        </td>
+        <td>
+          <select name="a2">
+            <!-- begin:au2 --><option value="{a.id}">{a.nazev} {a.denCas}</option><!-- end:au2 -->
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="3">
+          <input type="submit" name="prohozeniNacist" value="Načíst jejich aktivity">
+          <input type="submit" name="prohozeniProvest" value="Prohodit">
+        </td>
+      </tr>
+    </table>
+  </form>
+</div>
+
+<div class="aBox">
   <h3>Importér ubytování</h3>
   Přepíše kompletně letošní údaje o ubytování. Jako soubor slouží ubytovací report ve formátu CSV. (Pozor, excel při zmáčknutí ctrl+s soubor zmrší a při opětovném otevření už ho sám nepřečte. Místo toho je potřeba ručně dát „uložit jako“ a z nabídky typů vybrat „CSV oddělený středníkem“)
   <br><br>
   <form method="post" enctype="multipart/form-data">
     <input type="file" name="pokojeSoubor"><br><br>
     <input type="submit" name="pokojeImport" value="Nahrát">
-    <span style="color:green">{hlaska}</span>
   </form>
 </div>
 
