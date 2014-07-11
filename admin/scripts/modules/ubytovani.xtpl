@@ -7,6 +7,7 @@
 <div class="aBox">
   <h3>Ubytování uživatele</h3>
   <!-- begin:ubytovani -->
+  Standardně povolujeme pouze změnu ubytování ze spacáku na postel nebo jiný „upgrade“ (v opačném případě by postel zůstala volná a reálně by ji tak platil GameCon). Odhlášení z ubytování umožňujeme nejpozději den předem, pokud člověk např. nečekaně musí odjet. Odhlášení neděle povolujeme (člověk se často splete).<br><br>
   <form method="post">
     {shop.ubytovaniHtml}<br>
     <input type="submit" name="zpracujUbytovani" value="Uložit">
