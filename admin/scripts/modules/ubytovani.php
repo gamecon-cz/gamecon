@@ -8,6 +8,10 @@
  */
 
 
+$nastaveni = array('ubytovaniBezZamku' => true);
+$shop = $uPracovni ? new Shop($uPracovni, $nastaveni) : null;
+
+
 if(post('pokojeImport')) {
   $f = fopen($_FILES['pokojeSoubor']['tmp_name'], 'r');
   if(!$f) throw new Exception('Soubor se nepodařilo načíst');
@@ -60,6 +64,12 @@ if(post('prohozeniProvest')) {
 }
 
 
+if(post('zpracujUbytovani')) {
+  $shop->zpracujUbytovani();
+  oznameni('Uloženo');
+}
+
+
 $t = new XTemplate('ubytovani.xtpl');
 
 
@@ -89,5 +99,15 @@ $t->assign(array(
     return $e->jmenoNick() . " (<span style=\"color:$color\">{$ne}dorazil$a</span>)";
   }, '<br>'),
 ));
+
+if($uPracovni && $uPracovni->gcPrihlasen()) {
+  $t->assign('shop', $shop);
+  $t->parse('ubytovani.ubytovani');
+} elseif($uPracovni) {
+  $t->parse('ubytovani.neprihlasen');
+} else {
+  $t->parse('ubytovani.nevybran');
+}
+
 $t->parse('ubytovani');
 $t->out('ubytovani');

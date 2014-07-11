@@ -3,6 +3,24 @@
 
 <!-- TODO upo na výběr uživatele -->
 
+
+<div class="aBox">
+  <h3>Ubytování uživatele</h3>
+  <!-- begin:ubytovani -->
+  <form method="post">
+    {shop.ubytovaniHtml}<br>
+    <input type="submit" name="zpracujUbytovani" value="Uložit">
+  </form>
+  <!-- end:ubytovani -->
+  <!-- begin:nevybran -->
+  <div class="warning">Uživatel nevybrán</div>
+  <!-- end:nevybran -->
+  <!-- begin:neprihlasen -->
+  <div class="error">Uživatel není přihlášen na GC</div>
+  <!-- end:neprihlasen -->
+</div>
+
+
 <div class="aBox">
   <h3>Nastavení pokojů</h3>
 

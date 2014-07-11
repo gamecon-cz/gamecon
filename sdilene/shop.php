@@ -10,6 +10,9 @@ class Shop
   protected
     $u,
     $cenik,               // instance ceníku
+    $nastaveni = array(   // případné spec. chování shopu
+      'ubytovaniBezZamku' => false,   // ignorovat zámek / pozastavení u ubytování
+    ),
     $ubytovani=array(),
     $tricka=array(),
     $predmety=array(),
@@ -59,10 +62,13 @@ class Shop
   /**
    * Konstruktor
    */
-  function __construct(Uzivatel $u)
+  function __construct(Uzivatel $u, $nastaveni = null)
   {
     $this->u = $u;
     $this->cenik = new Cenik($u);
+    if(is_array($nastaveni)) {
+      $this->nastaveni = array_replace($this->nastaveni, $nastaveni);
+    }
 
     // vybrat všechny předměty pro tento rok + předměty v nabídce + předměty, které si koupil
     $o=dbQuery('
@@ -102,6 +108,8 @@ class Shop
         }
         $fronta = &$this->jidlo['jidla'][$den][$druh];
       } elseif( $typ == self::UBYTOVANI ) {
+        $r['nabizet'] = $r['nabizet'] ||
+          $r['stav'] == 3 && $this->nastaveni['ubytovaniBezZamku'];
         $fronta = &$this->ubytovani[$r['ubytovani_den']][self::typUbytovani($r)];
         $this->ubytovaniTypy[self::typUbytovani($r)] = 1;
       } elseif( $typ == self::TRICKO ) {
@@ -283,7 +291,7 @@ class Shop
         $out.='</div>';
       }
       $sel = $ubytovan ? '' : 'checked';
-      $lock = $ubytovan && current($tmp)['stav'] == 3 ? 'disabled' : '';
+      $lock = $ubytovan && current($tmp)['stav'] == 3 && !current($tmp)['nabizet'] ? 'disabled' : '';
       $out.='<div><input style="margin:0" type="radio" name="'.$this->klicU.'['.$den.']" value="" '.$sel.' '.$lock.'></div>';
       $out.='</div>';
     }
@@ -485,7 +493,7 @@ class Shop
   protected function existujeUbytovani($den,$typ)
   {
     return isset($this->ubytovani[$den][$typ])
-      && $this->ubytovani[$den][$typ]['stav'] == 1;
+      && $this->ubytovani[$den][$typ]['nabizet'] == true;
   }
 
   /**
