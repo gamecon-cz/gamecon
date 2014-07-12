@@ -289,7 +289,7 @@ class Shop
           'name="'.$this->klicU.'['.$den.']" '.
           'value="'.$this->ubytovaniPredmet($den,$typ).'" '.
           $sel.' '.$lock.'>';
-        $out.=$this->existujeUbytovani($den,$typ)?(' <span style="font-size:80%;position:relative;top:-2px">'.$this->obsazenoMist($den,$typ).'/'.$this->kapacita($den,$typ).'</span>'):'';
+        $out .= ' <span style="font-size:80%;position:relative;top:-2px">'.$this->obsazenoMist($den,$typ).'/'.$this->kapacita($den,$typ).'</span>';
         $out.='</div>';
       }
       $sel = $ubytovan ? '' : 'checked';
@@ -322,6 +322,11 @@ class Shop
       $out.='<br><i>Jako organizátor máš veškeré ubytování také zdarma.</i>';
     else if($this->u->maPravo(P_TRIKO_ZAPUL))
       $out.='<br><i>Jako vypravěč máš na ubytování (i aktivity) slevu ve výši cca jeden nocleh+jídlo za dvě uspořádané aktivity. Její přesnou výšku najdeš '.($this->u->gcPrihlasen()?'':'po dokončení registrace ').'v svém finančním přehledu.</i>';
+
+    // info o případném ukončení objednávek
+    if(current($tmp)['stav'] == 3) {
+      $out = 'Objednávání ubytování online bylo zastaveno, změny jsou možné na místě.<br>' . $out;
+    }
 
     return $out;
   }
