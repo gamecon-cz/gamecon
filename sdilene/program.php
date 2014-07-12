@@ -49,7 +49,7 @@ class Program
     ////////// tisk samotného programu //////////
     
     $aktivita = $this->dalsiAktivita();
-    for( $den=new DateTimeCz(PROGRAM_OD); $den->pred(GC_BEZI_DO); $den->plusDen() )
+    for( $den=new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen() )
     {
       $denId = (int)$den->format('z');
       echo('<h2>'.mb_ucfirst($den->format('l j.n.Y')).'</h2><table class="'.$this->nastaveni['tableClass'].'"><tr><th></th>');

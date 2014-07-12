@@ -1,10 +1,10 @@
 <?php
 
-if(!$u){ echo hlaska('jenPrihlaseni'); return; } //jen přihlášení
-if(!REGISTRACE_AKTIVNI){ echo hlaska('prihlaseniVypnuto'); return; } //reg neaktivní
-
-if(!$u->gcPrihlasen())
-  return; //přehled vidí jen přihlášení na gc
+if(!$u) { //jen přihlášení
+  echo hlaska('jenPrihlaseni');
+  return;
+}
+if(!$u->gcPrihlasen() || !FINANCE_VIDITELNE) return; //přehled vidí jen přihlášení na gc
 
 $fin=$u->finance();
 $veci=$u->finance()->prehledHtml();

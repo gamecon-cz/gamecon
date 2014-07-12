@@ -124,7 +124,6 @@ else
     $xtpl->assign('finance', $u->finance()->stavHr());
     $xtpl->parse('vse.prihlasen.finance');
     $xtpl->parse('vse.horMenu.prihlaska.ok');
-    $xtpl->parse('vse.horMenu.finance');
   }
   elseif(REGISTRACE_AKTIVNI)
   {
@@ -143,13 +142,10 @@ else
   $xtpl->parse('vse.prihlasen');
 }
 
-if(REGISTRACE_AKTIVNI) {
-  $xtpl->parse('vse.horMenu.prihlaska');
-}
-if(PROGRAM_VIDITELNY) {
-  $xtpl->parse('vse.horMenu.program');
-  //$xtpl->parse('vse.programLink');
-}
+if(REGISTRACE_AKTIVNI) $xtpl->parse('vse.horMenu.prihlaska');
+if(PROGRAM_VIDITELNY) $xtpl->parse('vse.horMenu.program');
+if($u && $u->gcPrihlasen() && FINANCE_VIDITELNE) $xtpl->parse('vse.horMenu.finance');
+
 $xtpl->parse('vse.horMenu');
 if(VETEV == OSTRA) $xtpl->parse('vse.googleAnalytics');
 
