@@ -8,7 +8,7 @@
  */
 
 
-$nastaveni = array('ubytovaniBezZamku' => true);
+$nastaveni = array('ubytovaniBezZamku' => true, 'jidloBezZamku' => true);
 $shop = $uPracovni ? new Shop($uPracovni, $nastaveni) : null;
 
 
@@ -38,13 +38,13 @@ if(post('pokojeImport')) {
     }
   }
 
-  oznameni('import dokončen');
+  oznameni('Import dokončen');
 }
 
 
-if(isset($_POST['pridelitPokoj'])) {
+if(post('pridelitPokoj')) {
   Pokoj::ubytujNaCislo(Uzivatel::zId(post('uid')), post('pokoj'));
-  back();
+  oznameni('Pokoj přidělen');
 }
 
 
@@ -66,7 +66,13 @@ if(post('prohozeniProvest')) {
 
 if(post('zpracujUbytovani')) {
   $shop->zpracujUbytovani();
-  oznameni('Uloženo');
+  oznameni('Ubytování uloženo');
+}
+
+
+if(post('zpracujJidlo')) {
+  $shop->zpracujJidlo();
+  oznameni('Jídlo uloženo');
 }
 
 
@@ -103,10 +109,13 @@ $t->assign(array(
 if($uPracovni && $uPracovni->gcPrihlasen()) {
   $t->assign('shop', $shop);
   $t->parse('ubytovani.ubytovani');
-} elseif($uPracovni) {
-  $t->parse('ubytovani.neprihlasen');
-} else {
-  $t->parse('ubytovani.nevybran');
+  $t->parse('ubytovani.jidlo');
+}
+
+if(!$uPracovni) {
+  $t->assign('status', '<div class="warning">Uživatel nevybrán</div>');
+} elseif(!$uPracovni->gcPrihlasen()) {
+  $t->assign('status', '<div class="error">Uživatel není přihlášen na GC</div>');
 }
 
 $t->parse('ubytovani');

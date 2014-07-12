@@ -13,12 +13,20 @@
     <input type="submit" name="zpracujUbytovani" value="Uložit">
   </form>
   <!-- end:ubytovani -->
-  <!-- begin:nevybran -->
-  <div class="warning">Uživatel nevybrán</div>
-  <!-- end:nevybran -->
-  <!-- begin:neprihlasen -->
-  <div class="error">Uživatel není přihlášen na GC</div>
-  <!-- end:neprihlasen -->
+  {status}
+</div>
+
+
+<div class="aBox">
+  <h3>Jídlo uživatele</h3>
+  <!-- begin:jidlo -->
+  Zrušit jídlo je možné jenom oproti vrácené stravence. Při objednání jídla je naopak potřeba předat stravenku (a zkontrolovat stav financí). Snídaně nabízíme jen organizátorům a vypravěčům.<br><br>
+  <form method="post">
+    {shop.jidloHtml}
+    <input type="submit" name="zpracujJidlo" value="Uložit">
+  </form>
+  <!-- end:jidlo -->
+  {status}
 </div>
 
 

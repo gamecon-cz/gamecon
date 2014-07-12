@@ -11,7 +11,8 @@ class Shop
     $u,
     $cenik,               // instance ceníku
     $nastaveni = array(   // případné spec. chování shopu
-      'ubytovaniBezZamku' => false,   // ignorovat zámek / pozastavení u ubytování
+      'ubytovaniBezZamku' => false,   // ignorovat pozastavení objednávek u ubytování
+      'jidloBezZamku'     => false,   // ignorovat pozastavení objednávek u jídla
     ),
     $ubytovani=array(),
     $tricka=array(),
@@ -96,8 +97,9 @@ class Shop
         $fronta = &$this->predmety[];
       } elseif( $typ == self::JIDLO ) {
         $r['nabizet'] = $r['nabizet'] ||
-          $r['stav'] == 2 && strpos($r['nazev'],'Snídaně')!==false && $this->u->maPravo(P_JIDLO_SNIDANE);
+          $r['stav'] == 2 && strpos($r['nazev'],'Snídaně')!==false && $this->u->maPravo(P_JIDLO_SNIDANE) ||
           //TODO pokud ostatní jídla nebudou public, nutno přidat nabízení na základě dalších práv
+          $r['stav'] == 3 && $this->nastaveni['jidloBezZamku'];
         $den = $r['ubytovani_den'];
         $druh = self::bezDne($r['nazev']);
         if($r['kusu_uzivatele'] > 0) $this->jidlo['jidloObednano'][$r['id_predmetu']] = true;
@@ -164,7 +166,7 @@ class Shop
         if($jidlo && ($jidlo['nabizet'] || $jidlo['kusu_uzivatele'])) {
           $t->assign('selected', $jidlo['kusu_uzivatele'] > 0 ? 'checked' : '');
           $t->assign('pnName', self::PN_JIDLO . '[' . $jidlo['id_predmetu'] . ']');
-          $t->parse( $jidlo['stav'] == 3 ? 'jidlo.druh.den.locked' : 'jidlo.druh.den.checkbox');
+          $t->parse( $jidlo['stav'] == 3 && !$this->nastaveni['jidloBezZamku'] ? 'jidlo.druh.den.locked' : 'jidlo.druh.den.checkbox');
         }
         $t->parse('jidlo.druh.den');
       }
