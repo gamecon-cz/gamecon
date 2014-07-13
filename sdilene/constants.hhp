@@ -39,10 +39,14 @@ define('Z_PRIHLASEN', $pre-1);  //přihlášen na GameCon
 define('Z_PRITOMEN',  $pre-2);  //prošel infopultem a je na GameConu
 define('Z_ODJEL',     $pre-3);  //prošel infopultem na odchodu a odjel z GC
 // TODO byl přihlášen na GC a už není (kvůli počítání financí apod.)
+define('Z_ORG', 2);             //organizátor z core org teamu
 define('Z_ORG_AKCI',6);         //vypravěč (org akcí)
 define('Z_ORG_SKUPINA',9);      //organizátorská skupina (Albi, Černobor, …)
 define('Z_STUDENT',10);         //student (uvedl o sobě)
 define('Z_VCAS',11);            //zaplatil včas
+define('Z_PARTNER',13);         //partner
+define('Z_INFO',8);             //operátor/ka infopultu
+define('Z_ZAZEMI',7);           //člen/ka zázemí
 // práva - konkrétní práva identifikující nějak vlastnost uživatele
 define('P_ORG_AKCI',4);         //může organizovat aktivity
 define('P_KRYTI_AKCI',5);       //může být na víc aktivitách naráz (org skupiny typicky)

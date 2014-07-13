@@ -126,10 +126,6 @@ if($uPracovni && $uPracovni->gcPrihlasen())
       '<li>'.implode('<li>',$novacci) :
       '(žádní)',
     'potvrditZruseni' =>  $up->gcPritomen() && $up->finance()->stav()>=0 || !GAMECON_BEZI ? 'false' : 'true',
-    'statut'          =>  
-      $up->maPravo(P_ORG) ? '<span style="color:red;font-weight:bold">Organizátor</span>' : 
-      ($up->maPravo(P_ORG_AKCI) ? '<span style="color:blue;font-weight:bold">Vypravěč</span>' : 
-      'Účastník'),
     'id'              =>  $up->id(),
     'pokoj'           =>  $pokoj ? $pokoj->cislo() : '(nepřidělen)',
     'spolubydlici'    =>  array_uprint($spolubydlici, function($e){ return '<li>'.$e->jmenoNick().' ('.$e->id().')</li>'; }),

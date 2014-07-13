@@ -11,6 +11,7 @@ class Uzivatel
   protected
     $u=array(),
     $klic='',
+    $zidle,         // pole s klíči id židlí uživatele
     $finance=null;
 
   /** Vytvoří uživatele z různých možných vstupů */
@@ -298,7 +299,13 @@ class Uzivatel
    * @todo při načítání práv udělat pole místo načítání z DB
    */
   function maZidli($zidle) {
-    return mysql_num_rows(dbQuery('SELECT * FROM r_uzivatele_zidle WHERE id_uzivatele='.$this->id().' AND id_zidle='.(int)$zidle))>0;
+    if(!isset($this->zidle)) {
+      $zidleMa = explode(',', dbOneCol('SELECT GROUP_CONCAT(id_zidle) FROM r_uzivatele_zidle WHERE id_uzivatele = '.$this->id()));
+      foreach($zidleMa as $id) {
+        $this->zidle[(int)$id] = true;
+      }
+    }
+    return isset($this->zidle[$zidle]);
   }
 
   /**
@@ -613,12 +620,15 @@ class Uzivatel
   function statusHtml()
   {
     $ka = $this->pohlavi()=='f' ? 'ka' : '';
-    if($this->maPravo(P_TRIKO_ZDARMA))
-      return '<span style="color:red">Organizátor'.$ka.'</span>';
-    else if($this->maPravo(P_ORG_AKCI))
-      return '<span style="color:blue">Vypravěč'.$ka.'</span>';
-    else
-      return 'Účastník';
+    $out = '';
+    if($this->maZidli(Z_ORG))       $out .= '<span style="color:red">Organizátor'.$ka.'</span>, ';
+    if($this->maZidli(Z_ORG_AKCI))  $out .= '<span style="color:blue">Vypravěč'.$ka.'</span>, ';
+    if($this->maZidli(Z_PARTNER))   $out .= "Partner$ka, ";
+    if($this->maZidli(Z_INFO))      $out .= "Infopult, ";
+    if($this->maZidli(Z_ZAZEMI))    $out .= "Zázemí, ";
+    if(!$out) $out = 'Účastník, ';
+    $out[strlen($out) - 2] = ' ';
+    return $out;
   }
 
   /**

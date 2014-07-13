@@ -17,7 +17,7 @@
     <h3>Přehled</h3>
     <table>
     <tr><td style="width: 60px">Stav účtu: </td><td> {stav}</td></tr>
-    <tr><td>Statut:</td><td> {statut}</td></tr>
+    <tr><td>Statut:</td><td>{up.statusHtml}</td></tr>
     <tr><td>Dorazil:</td><td> 
       <!-- begin:pritomen -->
         {ok} je na GC
