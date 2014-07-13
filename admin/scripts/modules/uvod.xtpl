@@ -3,6 +3,16 @@
 <h1>Úvod</h1>
 
 <!-- begin:uzivatel -->
+
+  <!-- hack na dělání sloupců-->
+  <script>
+  $(function(){
+    $('.aBox').eq(0).after( $('#pprodej') );
+    $('.aBox').eq(2).after( $('#rychloreg') );
+    $('.aBox').eq(2).after( $('#oudaje') );
+  });
+  </script>
+  <div style="width: 322px; float: left;"><!-- hack na dělání sloupců-->
   <div class="aBox grid">
     <h3>Přehled</h3>
     <table>
@@ -55,29 +65,9 @@
       <!-- end:odjel -->
     </td></tr>
     <tr><td>ID uživ.:</td><td> {id}</td></tr>
-    <tr><td>E-mail:</td><td> {mail}</td></tr>
-    <tr><td>Telefon:</td>
-      <td> {telefon}
-      <!-- begin:bezTelefonu -->{err} <em>Požádej uživatele o telefon:</em><br>
-      <form method="post" class="radkovy">
-      <input type="text" name="telefon" style="height:12px;padding:0">
-      <input type="submit" value="Uložit"></form><!-- end:bezTelefonu --></td></tr>
     <tr><td>Pokoj:</td><td> {pokoj}</td></tr>
     <tr><td>Na pokoji:</td><td><ul>{spolubydlici}</ul></td></tr>
-    <tr><td>Poznámka:</td><td>
-      <div onclick="$(this).hide(); $(this).next().show();">
-        {up.poznamka} &emsp;
-        <form style="float:right"><input type="button" value="upravit"></form>
-      </div>
-      <form method="post" style="display: none">
-        <table style="width:100%">
-          <tr>
-            <td><input type="text" name="poznamka" value="{up.poznamka}"></td>
-            <td><input type="submit" name="poznamkaNastav" value="uložit"></td>
-          </tr>
-        </table>
-      </form>
-    </td></tr>
+    <tr><td>Poznámka:</td><td>{up.poznamka}</td></tr>
     </table><br>
     
     <a href="program-uzivatele">Program uživatele</a><br><br>
@@ -107,7 +97,9 @@
     </form>
     <!-- end:gcOdhlas --> 
   </div>
+  </div>
   
+  <div style="width: 322px; float: left;"><!-- hack na dělání sloupců-->
   <div class="aBox grid">
     <h3>Slevy a nováčci</h3>
     <strong>Na aktivity:</strong>
@@ -116,6 +108,7 @@
     <ul>{slevyVse}</ul>
     <strong>Nováčci:</strong><br>
     <ul>{novacci}</ul>
+  </div>
   </div>
 
   <div class="aBox grid">
@@ -141,40 +134,7 @@
 
 <div style="clear:both"></div>
 
-<div class="aBox grid">
-  <h3>Rychloregistrace</h3>
-  Všechny položky povinné<br>
-  <form method="post" id="rychloreg">
-  <table>
-    <tr><td>Jméno&nbsp;a&nbsp;příjm.:</td><td>
-      <table class="cista"><tr>
-        <td style="padding-right: 5px"><input type="text" name="rychloreg[jmeno_uzivatele]"></td>
-        <td><input type="text" name="rychloreg[prijmeni_uzivatele]"></td>
-      </tr></table>
-      </td></tr>
-    <tr><td>E-mail:</td><td> <input type="text" name="rychloreg[email1_uzivatele]"> </td></tr>
-    <tr><td>Pohlaví:</td><td> 
-      <label><input type="radio" name="rychloreg[pohlavi]" value="m">muž</label> &emsp;
-      <label><input type="radio" name="rychloreg[pohlavi]" value="f">žena</label>
-      </td></tr>
-    <tr><td colspan="2"> 
-      <input type="submit" value="Jen registrovat"> 
-      <input type="submit" name="vcetnePrihlaseni" value="Reg. a přihlásit na GC">
-      </td></tr>
-  </table>
-  </form>
-  <script>
-    $('#rychloreg').submit(function(){
-      if($(this).find('[name="rychloreg[email1_uzivatele]"]').val()=='' || $(this).find('[name="rychloreg[pohlavi]"]:checked').size()==0)
-      {
-        alert('všechny položky jsou povinné');
-        return false;
-      }
-    });
-  </script>
-</div>
-
-<div class="aBox grid">
+<div class="aBox grid" id="pprodej">
   <h3>Prodej předmětů</h3>
   Zbývající počty předmětů jsou uvedeny v závorce<br>
   <form method="post" id="prodej">
@@ -205,6 +165,70 @@
     });
   </script>
 </div>
+
+<div class="aBox grid" id="rychloreg">
+  <h3>Rychloregistrace</h3>
+  Všechny položky povinné<br>
+  <form method="post" id="rychloreg">
+  <table>
+    <tr><td>Jméno&nbsp;a&nbsp;příjm.:</td><td>
+      <table class="cista"><tr>
+        <td style="padding-right: 5px"><input type="text" name="rychloreg[jmeno_uzivatele]"></td>
+        <td><input type="text" name="rychloreg[prijmeni_uzivatele]"></td>
+      </tr></table>
+      </td></tr>
+    <tr><td>E-mail:</td><td> <input type="text" name="rychloreg[email1_uzivatele]"> </td></tr>
+    <tr><td>Pohlaví:</td><td>
+      <label><input type="radio" name="rychloreg[pohlavi]" value="m">muž</label> &emsp;
+      <label><input type="radio" name="rychloreg[pohlavi]" value="f">žena</label>
+      </td></tr>
+    <tr><td colspan="2">
+      <input type="submit" value="Jen registrovat">
+      <input type="submit" name="vcetnePrihlaseni" value="Reg. a přihlásit na GC">
+      </td></tr>
+  </table>
+  </form>
+  <script>
+    $('#rychloreg').submit(function(){
+      if($(this).find('[name="rychloreg[email1_uzivatele]"]').val()=='' || $(this).find('[name="rychloreg[pohlavi]"]:checked').size()==0)
+      {
+        alert('všechny položky jsou povinné');
+        return false;
+      }
+    });
+  </script>
+</div>
+
+<!-- begin:udaje -->
+<div class="aBox grid" id="oudaje">
+  <h3>Osobní údaje</h3>
+  Pro úpravu klikni na údaj
+  <table>
+    <!-- begin:udaj -->
+    <tr>
+      <td style="width:80px">{nazev}:</td>
+      <td style="padding:0">
+        <div onclick="$(this).hide(); $(this).next().show()" style="width: 100%">
+          {hodnota}
+          <!-- begin:chybi -->
+          <img src="files/design/error-s.png" style="margin-bottom:-2px">
+          požádej o doplnění
+          <!-- end:chybi -->
+        </div>
+        <form method="post" style="display:none">
+          <table class="cista">
+            <tr>
+              <td><input type="text" name="udaj[{sloupec}]" value="{hodnota}" style="margin-left: -3px"></td>
+              <td><input type="submit" name="zmenitUdaj" value="uložit"></td>
+            </tr>
+          </table>
+        </form>
+      </td>
+    </tr>
+    <!-- end:udaj -->
+  </table>
+</div>
+<!-- end:udaje -->
 
 <div style="clear:both"></div>
 

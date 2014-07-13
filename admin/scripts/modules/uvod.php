@@ -83,6 +83,13 @@ if(post('poznamkaNastav')) {
   back();
 }
 
+if(post('zmenitUdaj')) {
+  dbUpdate('uzivatele_hodnoty', post('udaj'), array('id_uzivatele' => $uPracovni->id()));
+  $uPracovni->otoc();
+  back();
+}
+
+
 $x=new XTemplate('uvod.xtpl');
 if($uPracovni && $uPracovni->gcPrihlasen())
 {
@@ -123,8 +130,6 @@ if($uPracovni && $uPracovni->gcPrihlasen())
       $up->maPravo(P_ORG) ? '<span style="color:red;font-weight:bold">Organizátor</span>' : 
       ($up->maPravo(P_ORG_AKCI) ? '<span style="color:blue;font-weight:bold">Vypravěč</span>' : 
       'Účastník'),
-    'telefon'         =>  $up->telefon(),
-    'mail'            =>  $up->mail(),
     'id'              =>  $up->id(),
     'pokoj'           =>  $pokoj ? $pokoj->cislo() : '(nepřidělen)',
     'spolubydlici'    =>  array_uprint($spolubydlici, function($e){ return '<li>'.$e->jmenoNick().' ('.$e->id().')</li>'; }),
@@ -136,7 +141,6 @@ if($uPracovni && $uPracovni->gcPrihlasen())
   if(!$up->gcPritomen())    $x->parse('uvod.uzivatel.nepritomen');
   elseif(!$up->gcOdjel())   $x->parse('uvod.uzivatel.pritomen');
   else                      $x->parse('uvod.uzivatel.odjel');
-  if(!$up->telefon()) $x->parse('uvod.uzivatel.bezTelefonu');
   if(!$up->gcPritomen()) $x->parse('uvod.uzivatel.gcOdhlas');
   $x->parse('uvod.uzivatel');
 }
@@ -170,7 +174,33 @@ while($r=mysql_fetch_assoc($o)) {
   $moznosti.='<option value="'.$r['id_predmetu'].'"'.($r['zbyva']>0||$r['zbyva']===null?'':' disabled').'>'.$r['nazev'].' ('.$zbyva.') '.$r['cena'].'&thinsp;Kč</option>';
 }
 $x->assign('predmety',$moznosti);
+
+// form s osobními údaji
+if($uPracovni) {
+  $udaje = array(
+    'jmeno_uzivatele'       =>  'Jméno',
+    'prijmeni_uzivatele'    =>  'Příjmení',
+    'ulice_a_cp_uzivatele'  =>  'Ulice',
+    'mesto_uzivatele'       =>  'Město',
+    'psc_uzivatele'         =>  'PSČ',
+    'telefon_uzivatele'     =>  'Telefon',
+    'datum_narozeni'        =>  'Narozen'.$uPracovni->koncA(),
+    'email1_uzivatele'      =>  'E-mail',
+    'poznamka'              =>  'Poznámka',
+  );
+  $r = dbOneLine('SELECT '.implode(',', array_keys($udaje)).' FROM uzivatele_hodnoty WHERE id_uzivatele = '.$uPracovni->id());
+  foreach($udaje as $sloupec => $nazev) {
+    $hodnota = $r[$sloupec];
+    $x->assign(array(
+      'nazev' => $nazev,
+      'sloupec' => $sloupec,
+      'hodnota' => $hodnota,
+    ));
+    if($hodnota == '' && $sloupec != 'poznamka') $x->parse('uvod.udaje.udaj.chybi');
+    $x->parse('uvod.udaje.udaj');
+  }
+  $x->parse('uvod.udaje');
+}
+
 $x->parse('uvod');
 $x->out('uvod');
-
-?>
