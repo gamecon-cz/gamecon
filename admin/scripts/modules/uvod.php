@@ -125,7 +125,6 @@ if($uPracovni && $uPracovni->gcPrihlasen())
     'novacci'         =>  $novacci ?
       '<li>'.implode('<li>',$novacci) :
       '(žádní)',
-    'potvrditZruseni' =>  $up->gcPritomen() && $up->finance()->stav()>=0 || !GAMECON_BEZI ? 'false' : 'true',
     'id'              =>  $up->id(),
     'pokoj'           =>  $pokoj ? $pokoj->cislo() : '(nepřidělen)',
     'spolubydlici'    =>  array_uprint($spolubydlici, function($e){ return '<li>'.$e->jmenoNick().' ('.$e->id().')</li>'; }),
@@ -137,8 +136,11 @@ if($uPracovni && $uPracovni->gcPrihlasen())
   if(!$up->gcPritomen())    $x->parse('uvod.uzivatel.nepritomen');
   elseif(!$up->gcOdjel())   $x->parse('uvod.uzivatel.pritomen');
   else                      $x->parse('uvod.uzivatel.odjel');
-  if(!$up->gcPritomen()) $x->parse('uvod.uzivatel.gcOdhlas');
+  if(!$up->gcPritomen())    $x->parse('uvod.uzivatel.gcOdhlas');
+  if(GC_BEZI && (!$up->gcPritomen() || $up->finance()->stav() < 0)) $x->parse('uvod.potvrditZruseniPrace');
   $x->parse('uvod.uzivatel');
+  $x->parse('uvod.slevy');
+  $x->parse('uvod.objednavky');
 }
 else if($uPracovni && !$uPracovni->gcPrihlasen()) // kvůli zkratovému vyhodnocení a nevolání metody na non-object
 {

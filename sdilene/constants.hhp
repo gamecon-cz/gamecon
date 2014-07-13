@@ -16,7 +16,7 @@ require_once(__DIR__.'/constants-funkce.hhp');
 ////////////////////////
 
 define('ROK', 2014);                                // aktuální rok // při změně roku viz https://docs.google.com/document/d/1H_PM70WjNpQ1Xz65OYfr1BeSTdLrNQSkScMIZEtxWEc/edit?usp=sharing
-define('GC_BEZI_OD',      ROK.'-07-17 10:00:00');   // začátek GameConu (přepnutí stránek do režimu "úpravy na jen na infopultu")
+define('GC_BEZI_OD',      ROK.'-07-17 07:00:00');   // začátek GameConu (přepnutí stránek do režimu "úpravy na jen na infopultu")
 define('GC_BEZI_DO',      ROK.'-07-20 20:00:00');   // konec GameCou (přepnutí stránek do režimu "gc skončil, úpravy nemožné")
 define('REG_GC_OD',       ROK.'-05-01 20:00:00');   // spuštění možnosti registrace na GameCon
 define('REG_GC_DO',       GC_BEZI_DO);              // ukončení možnosti registrace na GameCon

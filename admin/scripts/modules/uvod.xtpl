@@ -2,128 +2,6 @@
 
 <h1>Úvod</h1>
 
-<!-- begin:uzivatel -->
-
-  <!-- hack na dělání sloupců-->
-  <script>
-  $(function(){
-    $('.aBox').eq(0).after( $('#pprodej') );
-    $('.aBox').eq(2).after( $('#rychloreg') );
-    $('.aBox').eq(2).after( $('#oudaje') );
-  });
-  </script>
-  <div style="width: 322px; float: left;"><!-- hack na dělání sloupců-->
-  <div class="aBox grid">
-    <h3>Přehled</h3>
-    <table>
-    <tr><td style="width: 60px">Stav účtu: </td><td> {stav}</td></tr>
-    <tr><td>Statut:</td><td>{up.statusHtml}</td></tr>
-    <tr><td>Dorazil:</td><td> 
-      <!-- begin:pritomen -->
-        {ok} je na GC
-        <form method="post" style="float: right">
-          <span class="hinted">
-            <input type="submit" name="gcOdjed" value="Odjel{a} z GC">
-            <span class="hint">
-              Před odkliknutím zkontroluj, že je:
-              <ul>
-                <li>Vyrovnaný nedoplatek</li>
-                <li>Vrácený klíč od pokoje</li>
-                <li>Nahlášení nováčci dorazili</li>
-              </ul>
-            </span>
-          </span>
-        </form>
-      <!-- end:pritomen -->
-      <!-- begin:nepritomen -->
-        {err} není na GC
-        <form method="post" style="float: right">
-          <span class="hinted">
-            <input type="submit" name="datMaterialy" value="Dát materiály">
-            <span class="hint">
-              Před odkliknutím zkontroluj že proběhlo:
-              <ul>
-                <li>Nahlášení nováčci mají stav účtu v plusu nebo max. -100</li>
-                <li>Předání trička, placky, stravenek, číslo pokoje, srovnání nedoplatku</li>
-                <li>Předání manuálu účastníka a vysvětlení last moment přihlašování.</li>
-                <li>Doplnění chybějících údajů, jako adresy, telefonu</li>
-                <li>Vyplnění čísla OP do sdíleného dokumentu</li>
-              </ul>
-            </span>
-          </span>
-        </form>
-        <!-- begin:upoMaterialy -->
-        <script>
-          $('form').last().submit(function(){
-            return confirm('Uživatel má záporný stav financí, přesto dát materiály?');
-          });
-        </script>
-        <!-- end:upoMaterialy -->
-      <!-- end:nepritomen -->
-      <!-- begin:odjel -->
-        {ok} byl{a} na GC a už odjel{a}
-      <!-- end:odjel -->
-    </td></tr>
-    <tr><td>ID uživ.:</td><td> {id}</td></tr>
-    <tr><td>Pokoj:</td><td> {pokoj}</td></tr>
-    <tr><td>Na pokoji:</td><td><ul>{spolubydlici}</ul></td></tr>
-    <tr><td>Poznámka:</td><td>{up.poznamka}</td></tr>
-    </table><br>
-    
-    <a href="program-uzivatele">Program uživatele</a><br><br>
-        
-    <strong>Připsat platbu</strong>
-    <form method="post">
-      <table>
-        <tr>
-          <td>Částka:</td>    <td><input type="text" name="platba" style="text-align:right;width:40px">&thinsp;Kč</td>
-        </tr>
-        <tr>
-          <td>Poznámka:</td>  <td><input type="text" name="poznamka"></td>
-        </tr>
-        <tr>
-          <td>Připsal{aa}:</td>
-          <td><input type="text" value="{org}" disabled></td>
-        </tr>
-      </table>
-      <input type="submit" value="Připsat">
-    </form>
-    <!-- begin:gcOdhlas -->
-    <form method="post" style="float:right;margin-top:-22px">
-      <input type="submit" name="gcOdhlas" value="Odhlásit z GC">
-      <script>
-      $('[name="gcOdhlas"]').closest('form').submit(function(){ return confirm('Trvale odhlásit uživatele z GameConu a smazat všechny jeho aktivity a nakoupené věci?') });
-      </script>
-    </form>
-    <!-- end:gcOdhlas --> 
-  </div>
-  </div>
-  
-  <div style="width: 322px; float: left;"><!-- hack na dělání sloupců-->
-  <div class="aBox grid">
-    <h3>Slevy a nováčci</h3>
-    <strong>Na aktivity:</strong>
-    <ul>{slevyAktivity}</ul>
-    <strong>Na všechno:</strong>
-    <ul>{slevyVse}</ul>
-    <strong>Nováčci:</strong><br>
-    <ul>{novacci}</ul>
-  </div>
-  </div>
-
-  <div class="aBox grid">
-    <h3 class="prehled">Objednávky a platby</h3>
-    {prehled}
-    <script>$('.prehled').siblings('table').css('width','100%');</script>
-  </div>
-  
-  <script>
-    if({potvrditZruseni})
-      $('#zrusitPraci').submit(function(){
-        return confirm('Uživatel nedostal materiály nebo má záporný zůstatek. Ukončit práci s uživatelem?');
-      });
-  </script>
-<!-- end:uzivatel -->
 <!-- begin:neUzivatel -->
   <div class="warning">Vyberte uživatele (pole vlevo)</div>
 <!-- end:neUzivatel -->
@@ -132,75 +10,119 @@
   Přihlásit na GameCon {rok}: <form class="radkovy" method="post"><input type="submit" name="gcPrihlas" value="Přihlásit"></form>
 <!-- end:neprihlasen -->
 
-<div style="clear:both"></div>
 
-<div class="aBox grid" id="pprodej">
-  <h3>Prodej předmětů</h3>
-  Zbývající počty předmětů jsou uvedeny v závorce<br>
-  <form method="post" id="prodej">
+<!-- begin:uzivatel -->
+<div class="aBox grid">
+  <h3>Přehled</h3>
   <table>
-    <tr><td>ID&nbsp;uživatele:</td><td>
-      <input type="text" name="prodej[id_uzivatele]" value="{id}">
-      </td></tr>
-    <tr><td>Předmět:</td><td> 
-      <select name="prodej[id_predmetu]">
-      {predmety}
-      </select>
-      </td></tr>
-    <tr><td colspan="2"> 
-      <input type="submit" name="prodej[odeslano]" value="Prodat"> 
-      </td></tr>
-  </table>
+  <tr><td style="width: 60px">Stav účtu: </td><td> {stav}</td></tr>
+  <tr><td>Statut:</td><td>{up.statusHtml}</td></tr>
+  <tr><td>Dorazil:</td><td> 
+    <!-- begin:pritomen -->
+      {ok} je na GC
+      <form method="post" style="float: right">
+        <span class="hinted">
+          <input type="submit" name="gcOdjed" value="Odjel{a} z GC">
+          <span class="hint">
+            Před odkliknutím zkontroluj, že je:
+            <ul>
+              <li>Vyrovnaný nedoplatek</li>
+              <li>Vrácený klíč od pokoje</li>
+              <li>Nahlášení nováčci dorazili</li>
+            </ul>
+          </span>
+        </span>
+      </form>
+    <!-- end:pritomen -->
+    <!-- begin:nepritomen -->
+      {err} není na GC
+      <form method="post" style="float: right">
+        <span class="hinted">
+          <input type="submit" name="datMaterialy" value="Dát materiály">
+          <span class="hint">
+            Před odkliknutím zkontroluj že proběhlo:
+            <ul>
+              <li>Nahlášení nováčci mají stav účtu v plusu nebo max. -100</li>
+              <li>Předání trička, placky, stravenek, číslo pokoje, srovnání nedoplatku</li>
+              <li>Předání manuálu účastníka a vysvětlení last moment přihlašování.</li>
+              <li>Doplnění chybějících údajů, jako adresy, telefonu</li>
+              <li>Vyplnění čísla OP do sdíleného dokumentu</li>
+            </ul>
+          </span>
+        </span>
+      </form>
+      <!-- begin:upoMaterialy -->
+      <script>
+        $('form').last().submit(function(){
+          return confirm('Uživatel má záporný stav financí, přesto dát materiály?');
+        });
+      </script>
+      <!-- end:upoMaterialy -->
+    <!-- end:nepritomen -->
+    <!-- begin:odjel -->
+      {ok} byl{a} na GC a už odjel{a}
+    <!-- end:odjel -->
+  </td></tr>
+  <tr><td>ID uživ.:</td><td> {id}</td></tr>
+  <tr><td>Pokoj:</td><td> {pokoj}</td></tr>
+  <tr><td>Na pokoji:</td><td><ul>{spolubydlici}</ul></td></tr>
+  <tr><td>Poznámka:</td><td>{up.poznamka}</td></tr>
+  </table><br>
+  
+  <a href="program-uzivatele">Program uživatele</a><br><br>
+      
+  <strong>Připsat platbu</strong>
+  <form method="post">
+    <table>
+      <tr>
+        <td>Částka:</td>    <td><input type="text" name="platba" style="text-align:right;width:40px">&thinsp;Kč</td>
+      </tr>
+      <tr>
+        <td>Poznámka:</td>  <td><input type="text" name="poznamka"></td>
+      </tr>
+      <tr>
+        <td>Připsal{aa}:</td>
+        <td><input type="text" value="{org}" disabled></td>
+      </tr>
+    </table>
+    <input type="submit" value="Připsat">
   </form>
-  <script>
-    if("{id}")  $('[name="prodej[id_uzivatele]"]').attr('disabled',true);
-    $('#prodej').submit(function(){
-      if($(this).find('[name="prodej[id_predmetu]"]').val()==0)
-      {
-        alert('vyber předmět');
-        return false;
-      }
-      if($(this).find('[name="prodej[id_uzivatele]"]').val()=='')
-        return confirm('Prodat tento předmět anonymně bez uvedení uživatele?');
-    });
-  </script>
+  <!-- begin:gcOdhlas -->
+  <form method="post" style="float:right;margin-top:-22px">
+    <input type="submit" name="gcOdhlas" value="Odhlásit z GC">
+    <script>
+    $('[name="gcOdhlas"]').closest('form').submit(function(){ return confirm('Trvale odhlásit uživatele z GameConu a smazat všechny jeho aktivity a nakoupené věci?') });
+    </script>
+  </form>
+  <!-- end:gcOdhlas --> 
 </div>
+<!-- end:uzivatel -->
 
-<div class="aBox grid" id="rychloreg">
-  <h3>Rychloregistrace</h3>
-  Všechny položky povinné<br>
-  <form method="post" id="rychloreg">
-  <table>
-    <tr><td>Jméno&nbsp;a&nbsp;příjm.:</td><td>
-      <table class="cista"><tr>
-        <td style="padding-right: 5px"><input type="text" name="rychloreg[jmeno_uzivatele]"></td>
-        <td><input type="text" name="rychloreg[prijmeni_uzivatele]"></td>
-      </tr></table>
-      </td></tr>
-    <tr><td>E-mail:</td><td> <input type="text" name="rychloreg[email1_uzivatele]"> </td></tr>
-    <tr><td>Pohlaví:</td><td>
-      <label><input type="radio" name="rychloreg[pohlavi]" value="m">muž</label> &emsp;
-      <label><input type="radio" name="rychloreg[pohlavi]" value="f">žena</label>
-      </td></tr>
-    <tr><td colspan="2">
-      <input type="submit" value="Jen registrovat">
-      <input type="submit" name="vcetnePrihlaseni" value="Reg. a přihlásit na GC">
-      </td></tr>
-  </table>
-  </form>
-  <script>
-    $('#rychloreg').submit(function(){
-      if($(this).find('[name="rychloreg[email1_uzivatele]"]').val()=='' || $(this).find('[name="rychloreg[pohlavi]"]:checked').size()==0)
-      {
-        alert('všechny položky jsou povinné');
-        return false;
-      }
-    });
-  </script>
+
+<!-- begin:slevy -->
+<div class="aBox grid">
+  <h3>Slevy a nováčci</h3>
+  <strong>Na aktivity:</strong>
+  <ul>{slevyAktivity}</ul>
+  <strong>Na všechno:</strong>
+  <ul>{slevyVse}</ul>
+  <strong>Nováčci:</strong><br>
+  <ul>{novacci}</ul>
 </div>
+<!-- end:slevy -->
+
+
+<!-- begin:objednavky -->
+<div class="aBox grid">
+  <h3 class="prehled">Objednávky a platby</h3>
+  {prehled}
+  <script>$('.prehled').siblings('table').css('width','100%');</script>
+</div>
+<!-- end:objednavky -->
+
 
 <!-- begin:udaje -->
-<div class="aBox grid" id="oudaje">
+<div class="aBox grid">
   <h3>Osobní údaje</h3>
   Pro úpravu klikni na údaj
   <table>
@@ -230,6 +152,120 @@
 </div>
 <!-- end:udaje -->
 
+
+<div class="aBox grid">
+  <h3>Prodej předmětů</h3>
+  Zbývající počty předmětů jsou uvedeny v závorce<br>
+  <form method="post">
+  <table>
+    <tr><td>ID&nbsp;uživatele:</td><td>
+      <input type="text" name="prodej[id_uzivatele]" value="{id}">
+      </td></tr>
+    <tr><td>Předmět:</td><td> 
+      <select name="prodej[id_predmetu]">
+      {predmety}
+      </select>
+      </td></tr>
+    <tr><td colspan="2"> 
+      <input type="submit" name="prodej[odeslano]" value="Prodat"> 
+      </td></tr>
+  </table>
+  </form>
+  <script>
+    if("{id}")  $('[name="prodej[id_uzivatele]"]').attr('disabled',true);
+    $('form').last().submit(function(){
+      if($(this).find('[name="prodej[id_predmetu]"]').val()==0)
+      {
+        alert('vyber předmět');
+        return false;
+      }
+      if($(this).find('[name="prodej[id_uzivatele]"]').val()=='')
+        return confirm('Prodat tento předmět anonymně bez uvedení uživatele?');
+    });
+  </script>
+</div>
+
+
+<div class="aBox grid">
+  <h3>Rychloregistrace</h3>
+  Všechny položky povinné<br>
+  <form method="post">
+  <table>
+    <tr><td>Jméno&nbsp;a&nbsp;příjm.:</td><td>
+      <table class="cista"><tr>
+        <td style="padding-right: 5px"><input type="text" name="rychloreg[jmeno_uzivatele]"></td>
+        <td><input type="text" name="rychloreg[prijmeni_uzivatele]"></td>
+      </tr></table>
+      </td></tr>
+    <tr><td>E-mail:</td><td> <input type="text" name="rychloreg[email1_uzivatele]"> </td></tr>
+    <tr><td>Pohlaví:</td><td>
+      <label><input type="radio" name="rychloreg[pohlavi]" value="m">muž</label> &emsp;
+      <label><input type="radio" name="rychloreg[pohlavi]" value="f">žena</label>
+      </td></tr>
+    <tr><td colspan="2">
+      <input type="submit" value="Jen registrovat">
+      <input type="submit" name="vcetnePrihlaseni" value="Reg. a přihlásit na GC">
+      </td></tr>
+  </table>
+  </form>
+  <script>
+    $('form').last().submit(function(){
+      if($(this).find('[name="rychloreg[email1_uzivatele]"]').val()=='' || $(this).find('[name="rychloreg[pohlavi]"]:checked').size()==0)
+      {
+        alert('všechny položky jsou povinné');
+        return false;
+      }
+    });
+  </script>
+</div>
+
+
+<!-- sloupcový design -->
+<div class="sloupce">
+  <div class="sloup" style="width:325px;float:left"></div>
+</div>
 <div style="clear:both"></div>
+<script>
+var $boxy = $('.aBox');
+function sloupce() {
+  var $sloupce = $('.sloupce');
+  var fullw = $sloupce.width();
+  var colw = $('.sloupce > .sloup').width();
+  // vysypat boxy mimo, pokud tam jsou
+  $boxy.insertAfter($sloupce);
+  // vytvořit adekvátní počet sloupců
+  var i = $('.sloupce > .sloup').size();
+  while(i * colw < fullw - colw) {
+    $sloupce.append( $('.sloupce > .sloup').last().clone() );
+    i++;
+  }
+  while(i * colw > fullw) {
+    $('.sloupce > .sloup').last().remove();
+    i--;
+  }
+  // nasypat boxy dovnitř podle pořadí, první výš
+  $boxy.each(function(){
+    var $min;
+    $sloupce.find('.sloup').each(function(){
+      if(!$min || $(this).height() < $min.height()) {
+        $min = $(this);
+      }
+    });
+    $min.append($(this));
+  });
+};
+sloupce();
+$(window).resize(function() { sloupce(); });
+</script>
+
+
+<!-- begin:potvrditZruseniPrace -->
+<script>
+$('#zrusit').submit(function(){
+  return confirm('Uživatel nedostal materiály nebo má záporný zůstatek. Ukončit práci s uživatelem?');
+});
+</script>
+<!-- end:potvrdZruseniPrace -->
+
 
 <!-- end:uvod -->
