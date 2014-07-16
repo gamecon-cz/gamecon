@@ -1,7 +1,7 @@
 <?php
 
 $r=Report::zSql('
-  SELECT u.id_uzivatele, login_uzivatele, jmeno_uzivatele, prijmeni_uzivatele, 
+  SELECT u.id_uzivatele, login_uzivatele, jmeno_uzivatele, prijmeni_uzivatele, mesto_uzivatele, ulice_a_cp_uzivatele,
     GROUP_CONCAT(DISTINCT SUBSTR(p.nazev,1,7)) as typ,
     GROUP_CONCAT(DISTINCT IFNULL(ub.pokoj,"")) as pokoj,
     MIN(p.ubytovani_den) as prvni_noc,
