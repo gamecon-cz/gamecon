@@ -86,6 +86,19 @@ $q='SELECT
   WHERE pz.id_prava='.ID_PRAVO_PRIHLASEN;
 $pohlavi=tabMysqlR(dbQuery($q));
 
+$jidloVypraveci = tabMysql(dbQuery('
+  select sp.nazev as Název, count(1) as Počet from shop_nakupy sn
+  join shop_predmety sp on(sn.id_predmetu = sp.id_predmetu and sp.typ = 4 and sp.model_rok = 2014)
+  join (
+  select id_uzivatele from uzivatele_hodnoty
+  join r_uzivatele_zidle using(id_uzivatele)
+  join r_prava_zidle using(id_zidle)
+  where id_prava = '.P_JIDLO_ZDARMA.' or id_prava = '.P_JIDLO_SLEVA.'
+  group by id_uzivatele
+  ) vypraveci on(vypraveci.id_uzivatele = sn.id_uzivatele)
+  group by sp.id_predmetu
+'));
+
 $q='SELECT 
     DATE(z.posazen) as den, 
     COUNT(1) as prihlasen,
@@ -224,6 +237,7 @@ $prihlaseni='['.substr($prihlaseni,0,-1).']';
 <div style="float:left"><?=$predmety?></div>
 <div style="float:left;margin-left:20px"><?=$ubytovani?></div>
 <div style="float:left;margin-left:20px"><?=$ubytovaniKratce?><br><?=$jidlo?></div>
+<div style="float:left;margin-left:20px">Jídlo zdarma a se slevou<br><?=$jidloVypraveci?></div>
 
 <div style="clear:both"></div>
 
