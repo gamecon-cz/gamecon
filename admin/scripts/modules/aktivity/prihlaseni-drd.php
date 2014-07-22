@@ -34,6 +34,7 @@ foreach(Aktivita::zFiltru(array('typ' => 9, 'rok' => ROK)) as $a) {
     $t->assign('u', $uc);
     $t->parse('drd.druzina.clen');
   }
+  if($uc === null) continue; //jarik je debil a má družiny o 0 lidech, fixme
   if($uc && !$semifinale[0]->prihlasen($uc) && !$semifinale[1]->prihlasen($uc)) {
     $t->parse('drd.druzina.zakladni');
   } elseif($uc && !$finale[0]->prihlasen($uc)) {
