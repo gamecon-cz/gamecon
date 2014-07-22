@@ -55,7 +55,7 @@ if(extension_loaded('openssl'))
       $r['castka']=($platby[$i]->column1->value)*1.0;
       $r['datum']=(new DateTime($platby[$i]->column0->value));
       $r['datum']=$r['datum']->format('Y-m-d'); //datum nemá časovou složku
-      if($r['castka']>0 && $r['vs']>0 && $r['vs']<$maxId ) //jen příjmy + jen od uživatelů
+      if($r['castka']>0 && $r['vs']>0 && $r['vs']<=$maxId ) //jen příjmy + jen od uživatelů
       {
         //var_dump($r);
         $poznamka=$r['zprava'];
