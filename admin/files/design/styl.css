@@ -1,8 +1,11 @@
 html {  }
 body {
   font-family: tahoma, sans-serif; font-size: 12px;
-  background-color: #444;
-  overflow-y: scroll; margin: 0; padding: 0; text-align: center; }
+  background-color: #3b3b3b;
+  background-image: url('bg-glob-1.png');
+  background-attachment: fixed;
+  overflow-y: scroll; margin: 0; padding: 0; text-align: center;
+}
 
 
 .obal   { display: inline-block; min-width: 700px; max-width: 1200px; width: 100%; text-align: justify; }
@@ -41,7 +44,7 @@ body {
 
 .paticka { margin-top: -8px; }
 .paticka .nabidka { margin-top: 8px; padding: 8px 16px; }
-.paticka .nabidka, .paticka .nabidka a, .paticka .protip { color: #222; text-decoration: none; text-shadow: 1px 1px 0px #555; }
+.paticka .nabidka, .paticka .nabidka a, .paticka .protip { color: #111; text-decoration: none; text-shadow: 1px 1px 0px #666; }
 .paticka .nabidka a:hover { color: #ddd; text-shadow: none; }
 .paticka .protip { float: right; text-align: right; width: 60%; }
 .paticka .obsah { border-radius: 0 0 8px 8px; padding: 8px; padding-top: 24px; display: none;
