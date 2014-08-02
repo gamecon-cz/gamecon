@@ -643,7 +643,7 @@ class Uzivatel
   public function vek()
   {
     $narozeni=new DateTime();
-    $narozeni->setTimestamp($this->u['datum_narozeni_uzivatele']);
+    $narozeni->setTimestamp(strtotime($this->u['datum_narozeni']));
     $vek=$narozeni->diff(new DateTime(DEN_PRVNI_DATE));
     return $vek->y;
   }

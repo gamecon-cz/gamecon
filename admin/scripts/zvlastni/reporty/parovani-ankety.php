@@ -1,13 +1,5 @@
 <?php
 
-/**
- * Vygenerování SQL dotazů pro update zůstatku gamecorun u letošních uživatelů.
- * Měl by být prováděn synchronně s překlopením proměnné "rok" v nastavení a
- * překlopením webu. Není jak zjistit, jestli byl nebo nebyl proveden, a zároveň
- * je potřeba ho provést jen jednou - je dobré udělat záznam někde (ideálně
- * na více místech), že se tak stalo.   
- */  
-
 require_once('sdilene-hlavicky.hhp');
 
 $hodnoty='';
@@ -17,10 +9,10 @@ if(post('znacky'))
 {
   $znacky=explode("\n",post('znacky'));
   $o=dbQuery('
-    SELECT *
-    FROM prihlaska_ostatni p
-    JOIN uzivatele_hodnoty u USING(id_uzivatele)
-    WHERE p.rok='.ROK);
+    SELECT u.*
+    FROM uzivatele_hodnoty u
+    JOIN r_uzivatele_zidle z ON(z.id_uzivatele = u.id_uzivatele AND z.id_zidle='.Z_PRIHLASEN.')
+  ');
   $i=0;
   $uzivatele=array();
   while($r=mysql_fetch_assoc($o))
@@ -29,6 +21,7 @@ if(post('znacky'))
     $pohlavi=$r['pohlavi']=='f'?'žena':'muž';
     $uzivatele[$r['id_uzivatele']][]=$pohlavi;
     $uzivatele[$r['id_uzivatele']][]=$un->vek();
+    //$uzivatele[$r['id_uzivatele']][]=$un->mail();
   }
   foreach($znacky as $znacka)
   {
@@ -52,4 +45,3 @@ if(post('znacky'))
   <textarea style="width:600px;height:400px" name="hodnoty"><?php echo $hodnoty ?></textarea>
   <br /><input type="submit" value="Načíst">
 </form>
-
