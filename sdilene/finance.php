@@ -390,6 +390,7 @@ class Finance
     foreach(Aktivita::zOrganizatora($this->u) as $a) {
       if($a->nedavaSlevu()) continue;
       $delka = $a->delka();
+      if($delka == 0) continue;
       $sleva = 0;
       foreach(self::$slevaZaAktivitu as $tabDelka => $tabSleva) {
         if($delka <= $tabDelka) {
