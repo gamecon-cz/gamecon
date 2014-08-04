@@ -130,6 +130,8 @@ form table .orez img { width: 50px; }
 .aktivity td input { padding: 0; width: 32px; }
 
 /* pro automaticky generované chybové hlášky */
-.chybaBlok > div { position: absolute; left: -10px; top: 122px; width: 926px;
-  background-color: rgba(212, 241, 212, 0.75); text-align: center; z-index: 99;
-  box-shadow: 0 0 10px #aaa; padding: 28px; color:#252; font-size: 20px; }
+.chybaBlok > div { position: absolute; box-sizing: border-box;
+  width: 90%; left: 5%; top: 55px;
+  background-color: rgba(255, 191, 191, 0.85); text-align: center; z-index: 99;
+  box-shadow: 0 0 10px #aaa; padding: 28px; color:#a00; font-size: 20px; }
+.chybaBlok > .oznameni { background-color: rgba(212, 241, 212, 0.75); color:#252; }

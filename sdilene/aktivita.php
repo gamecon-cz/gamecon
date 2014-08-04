@@ -47,6 +47,15 @@ class Aktivita
   }
 
   /**
+   * Aktivuje (zpřístupní pro přihlašování) aktivitu
+   */
+  function aktivuj() {
+    if(!$this->zacatek()) throw new Chyba('Aktivita nemá nastavený čas');
+    dbQuery('UPDATE akce_seznam SET stav = 1 WHERE id_akce = ' . $this->id());
+    // TODO invalidate $this
+  }
+
+  /**
    * Jestli je na aktivitu zakázáno uplatnit jakékoli procentuální slevy
    */
   function bezSlevy()

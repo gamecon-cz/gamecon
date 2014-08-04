@@ -32,8 +32,8 @@ if(post('publikovat'))
 
 if(post('aktivovat'))
 {
-  dbQueryS('UPDATE akce_seznam SET stav=1 WHERE id_akce=$0',
-    array(post('aktivitaId')));
+  $a = Aktivita::zId(post('aktivitaId'));
+  $a->aktivuj();
   back();
 }
 
