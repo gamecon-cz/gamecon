@@ -363,11 +363,12 @@ class Finance
     $rok = ROK;
     $uid = $this->u->id();
     $o = dbQuery("
-      SELECT p.nazev, n.cena_nakupni, p.typ, p.ubytovani_den, p.model_rok
+      SELECT p.id_predmetu, p.nazev, n.cena_nakupni, p.typ, p.ubytovani_den, p.model_rok
       FROM shop_nakupy n
       JOIN shop_predmety p USING(id_predmetu)
       WHERE n.id_uzivatele = $uid AND n.rok = $rok
     ");
+    $soucty = array();
     while($r = mysql_fetch_assoc($o)) {
       $cena = $this->cenik->shop($r);
       if($r['typ'] == Shop::UBYTOVANI) {
@@ -378,7 +379,18 @@ class Finance
       if($r['model_rok'] != ROK) {
         $r['nazev'] = $r['nazev'].' '.$r['model_rok'];
       }
-      $this->log($r['nazev'], $cena, $r['typ']);
+      // logování do výpisu
+      if($r['typ'] == Shop::PREDMET) {
+        $soucty[$r['id_predmetu']]['nazev'] = $r['nazev'];
+        $soucty[$r['id_predmetu']]['typ'] = $r['typ'];
+        @$soucty[$r['id_predmetu']]['pocet']++;
+        @$soucty[$r['id_predmetu']]['suma'] += $cena;
+      } else {
+        $this->log($r['nazev'], $cena, $r['typ']);
+      }
+    }
+    foreach($soucty as $p) {
+      $this->log($p['nazev'].'  '.$p['pocet'].'×', $p['suma'], $p['typ']); // dvojmezera kvůli řazení
     }
   }
 
