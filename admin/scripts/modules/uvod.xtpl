@@ -130,8 +130,8 @@
     <tr>
       <td style="width:80px">{nazev}:</td>
       <td style="padding:0">
-        <div onclick="$(this).hide(); $(this).next().show()" style="width: 100%">
-          {hodnota}
+        <div onclick="$(this).hide(); $(this).next().show()" style="width: 100%; cursor: pointer;">
+          {hodnota} &nbsp;
           <!-- begin:chybi -->
           <img src="files/design/error-s.png" style="margin-bottom:-2px">
           požádej o doplnění

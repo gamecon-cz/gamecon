@@ -2,8 +2,11 @@ html {  }
 body {
   font-family: tahoma, sans-serif; font-size: 12px;
   background-color: #3b3b3b;
+  /* rollback pozadí - renderování dlouhé stránky už je příliš pomalé */
+  /*
   background-image: url('bg-glob-1.png');
   background-attachment: fixed;
+  */
   overflow-y: scroll; margin: 0; padding: 0; text-align: center;
 }
 
@@ -44,7 +47,7 @@ body {
 
 .paticka { margin-top: -8px; }
 .paticka .nabidka { margin-top: 8px; padding: 8px 16px; }
-.paticka .nabidka, .paticka .nabidka a, .paticka .protip { color: #111; text-decoration: none; text-shadow: 1px 1px 0px #666; }
+.paticka .nabidka, .paticka .nabidka a, .paticka .protip { color: #666; text-decoration: none; text-shadow: 0px 0px 5px #000; }
 .paticka .nabidka a:hover { color: #ddd; text-shadow: none; }
 .paticka .protip { float: right; text-align: right; width: 60%; }
 .paticka .obsah { border-radius: 0 0 8px 8px; padding: 8px; padding-top: 24px; display: none;
