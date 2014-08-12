@@ -1,0 +1,8 @@
+<div class="mobmenu">
+<img src="files/design/android-dots.png">
+</div>
+<script>
+$('.mobmenu').click(function(){
+  $(this).parent().toggleClass('mobrozbal');
+});
+</script>

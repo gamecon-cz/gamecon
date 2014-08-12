@@ -2,10 +2,12 @@
 <html>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width" />
   <base href="{base}">
   <title>{pageTitle}</title>
   <link rel="shortcut icon" href="files/favicon.ico" />
   <link rel="stylesheet" href="files/design/styl.css" />
+  <link rel="stylesheet" href="files/design/styl-uzky.css" media="(max-width: 550px)">
   <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-1.10.3.custom.min.css" />
   <script src="files/jquery-2.1.0.min.js"></script>
   {jsVyjimkovac}
@@ -18,11 +20,13 @@
 <body>
   <div class="obal">
     <div class="sloupL">
-      {FILE "templates/operator.xtpl"}
-      {FILE "templates/menu.xtpl"}
       {FILE "templates/uzivatel.xtpl"}
+      {FILE "templates/menu.xtpl"}
+      {FILE "templates/operator.xtpl"}
+      {FILE "templates/mobmenu.xtpl"}
     </div>
     <div class="sloupR">
+      <div class="mobstin"></div>
       <div class="main">
         <!-- begin:submenu -->
         <ul>

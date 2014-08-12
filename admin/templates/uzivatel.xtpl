@@ -10,9 +10,9 @@
   <!-- begin:vybrany -->
   <div class="detail">
     <img class="avatar" src="{avatar}">
-    <div style="overflow-x:hidden"><h3>{nick}</h3></div>
+    <div class="nick" style="overflow-x:hidden"><h3>{nick}</h3></div>
     {jmeno}<br>
-    <strong>{status}</strong>
+    <div class="status">{status}</div>
   </div>
   <form method="post" id="zrusit" style="clear:both">
     <input type="hidden" name="zrusitUzivateleProPraci" value="1">

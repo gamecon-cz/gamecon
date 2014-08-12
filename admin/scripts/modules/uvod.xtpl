@@ -222,7 +222,7 @@
 
 <!-- sloupcový design -->
 <div class="sloupce">
-  <div class="sloup" style="width:325px;float:left"></div>
+  <div class="sloup" style="width:100%;max-width:325px;float:left"></div>
 </div>
 <div style="clear:both"></div>
 <script>
@@ -239,7 +239,7 @@ function sloupce() {
     $sloupce.append( $('.sloupce > .sloup').last().clone() );
     i++;
   }
-  while(i * colw > fullw) {
+  while(i * colw > fullw && i > 1) {
     $('.sloupce > .sloup').last().remove();
     i--;
   }

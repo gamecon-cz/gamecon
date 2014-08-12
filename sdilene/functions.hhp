@@ -155,6 +155,7 @@ function profilInfo()
     <style>
       .profilInfo:hover { opacity: 0.3; }
       .profilInfo img { margin-bottom: -2px }
+      @media (max-width: 480px) { .profilInfo { display: none; } }
     </style> 
     <img src="'.$iconRoot.'clock-icon.png" alt="délka skriptu včetně DB">
     <span style="'.$barva.'">'.round($delka*1000).'&thinsp;ms</span>

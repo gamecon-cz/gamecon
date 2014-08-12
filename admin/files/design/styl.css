@@ -24,10 +24,13 @@ body {
 .uzivatel .tip { color: #aaa; margin: 4px 8px 0 8px; font-size: 0.8em; }
 .uzivatel .avatar { float: left; width: 60px; height: 60px; margin: 0 8px 8px 0; }
 .uzivatel h3 { margin: 0 0 3px 0; font-size: 1.2em; line-height: 0.9em; }
+.uzivatel .omnibox { width: 100%; box-sizing: border-box; -moz-box-sizing: border-box; }
+.uzivatel .status { font-weight: bold; }
+
+.mobmenu { display: none; }
 
 
 /* hlavička */
-#omnibox { width: 100%; box-sizing: border-box; -moz-box-sizing: border-box; }
 
 .menu {  }
 .menu > div { background-color: #bbb; border-radius: 8px 0 0 8px; margin: 0 0 4px 0; position: relative;
@@ -90,7 +93,7 @@ table.cista > tbody > tr > td:first-child { padding: 0; }
 
 /* tabulky v stylu vyplňovací form */
 form table th { background-repeat: repeat-x; }
-form table input[type="text"], form table select, form table textarea {
+form table input[type="text"], form table input[type="password"], form table select, form table textarea {
   margin-top: 2px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 form table input[type="text"]:first-child, form table select:first-child, form table textarea:first-child {
   margin-top: 0; }
