@@ -4,6 +4,8 @@
  *  Alias for all shared components
  */
 
+$SKRIPT_ZACATEK = microtime(true); // kvůli profilingu
+
 spl_autoload_register(function($trida){
   $trida = strtolower(preg_replace('@[A-Z]@', '-$0', lcfirst($trida)));
   include(__DIR__.'/'.$trida.'.php');

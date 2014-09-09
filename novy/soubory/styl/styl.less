@@ -1,0 +1,130 @@
+
+a { color: #06d; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+body { margin: 0; font: 14px Open Sans, sans-serif; background-image: data-uri('pozadi.png'); background-repeat: repeat-x; background-color: #e6e6e6; overflow-y: scroll; line-height: 150%; }
+
+
+.hlavicka { width: 100%; height: 100px; background-color: #fff; text-align: center; position: relative; overflow: hidden; line-height: 1.3em; }
+.hlavicka .logo { color: #bbb; margin-top: 10px; text-transform: uppercase; font-weight: bold; display: inline-block; }
+.hlavicka .logo:hover { text-decoration: none; }
+.hlavicka .linfo { position: absolute; top: 30px; left: 10px; text-align: left; width: 250px; }
+.hlavicka .ifb { background-image: data-uri('ikonky.png'); display: block; float: left; height: 35px; width: 35px; margin: 0 6px; }
+.hlavicka .prihlasovani { position: absolute; top: 0; right: 0; }
+.hlavicka .neprihlasen { text-align: right; margin-top: 30px; margin-right: 14px; }
+hr.stin { border: none; background-image: data-uri('gradient2.png'); height: 4px; margin: 0 0 -4px 0; }
+
+.menu { text-align: center; background-color: #eee; }
+.menu > ul { margin: 0 auto; padding: 0; max-width: 1200px; }
+.menu > ul > li { display: inline-block; margin: 0; position: relative; padding: 0; width: 100%; cursor: default; }
+.menu > ul > li > span { display: inline-block; text-transform: uppercase; font-size: 130%; padding: 0.6em 1em 0.3em 1em; border-bottom: solid 0.3em rgba(0,0,0,0); }
+.menu li.aktivni > span { border-bottom-color: #d00; }
+.menu .sub { position: absolute; width: 100%; z-index: 10; display: none; margin-top: -10px; }
+.menu .mlist { text-align: left;  margin: 0 10px; box-shadow: 0 0 3px #444; }
+.menu li:hover .sub { display: block; }
+
+.hlavni { max-width: 1200px; margin: 0 auto 40px auto; position: relative; }
+
+.sponzori a { font-size: 40px; /* hack pro vyšší klikací plochu odkazu */ }
+.sponzori p { text-align: center; margin-bottom: -10px; }
+.sponzori img { margin: 0 5px 10px 5px; vertical-align: bottom; }
+
+
+
+.blok { box-shadow: 0 0 3px #444; background-color: #fff; margin-top: 20px; }
+.pruh { background-color: rgba(0, 0, 0, 0.8); color: #fff; padding: 0.6em; font-size: 120%; }
+
+
+.btext { padding: 0 3% 2% 3%; font-size: 110%; line-height: 1.6em;  }
+.btext > h1:first-child, .btext > h2:first-child { .pruh; margin: 0 -3.2%; }
+.btext > *:not(:first-child) { font-family: Merriweather; }
+.btext img { max-width: 100%; }
+.btext p { text-align: justify; margin: 1.6em 0; }
+
+
+/* aktivity */
+.aktivity .btext { padding-bottom: 0.5em; }
+.blok .aktivita { position: relative; overflow: hidden; }
+.blok .aktivita > h2 { position: absolute; margin: 0; top: 0; left: 0; width: 100%; z-index: 1; }
+.blok .aktivita > img { width: 100%; }
+.atext { margin: 2% 2.5%; text-align: justify; font-family: Merriweather; }
+
+
+
+.mlist { padding: 0; margin: 0; }
+.mlist li { display: block; }
+.mlist li > a { display: block; background-image: data-uri('rozcestnik.png'); height: 49px; border-top: 1px solid #fff; border-bottom: 1px solid #ccc; line-height: 49px; text-decoration: none; color: inherit; font-weight: bold; padding: 0 10px; }
+.mlist li > a:hover { background: #e6e6e6; color: #b00; }
+
+
+
+.upoutavka { position: relative; display: block; font-weight: bold; min-height: 100px; }
+.upoutavka > img { width: 100%; background-color: #aaa; display: block; }
+.upoutavka .horni, .upoutavka .stredni, .upoutavka .dolni { position: absolute; color: #fff; background-color: rgba(0, 0, 0, 0.7); width: 100%; }
+.upoutavka > div > div { margin: 10px; }
+.upoutavka .horni { top: 0; }
+.upoutavka .dolni { bottom: 0; text-transform: uppercase; text-align: center; }
+.upoutavka .stredni { top: 12%; }
+.upoutavka .gradient { width: 100%; height: 50px; background-image: data-uri('gradient.png'); position: absolute; bottom: 0; }
+
+/* titulka, novinky titulka */
+.novt { padding-bottom: 5px; }
+.novt > h2 { text-transform: uppercase; text-align: center; font-size: 100%; margin: 5px 0; }
+.novt > h2 a { text-decoration: none; color: #fff; display: inline-block; }
+.novt .ntext { margin: 0 27px 0 30px; padding-right: 5px; text-align: justify;  font-family: Merriweather; }
+.novt .ntext:not(:last-child) { margin-top: -30px; position: relative; z-index: 1; overflow: hidden; /* max-height: 166px; */ }
+.novt .ntext > h3 { font-size: 120%; margin: 0; text-align: left; }
+.novt .ntext ol { padding-left: 15px; }
+.novt .ntext p { margin: 0.7em 0; }
+.novt .ntext .datum { float: right; color: #bbb; font-style: italic; margin-left: 10px; }
+.novt .ntext .orez { margin-bottom: -2.21em; }
+.novt .ntext .vice { display: block; position: absolute; background-color: #fff; bottom: 0; right: 0; padding: 0 5px; }
+
+
+
+/* obecné speciality */
+.hinted { border-bottom: dotted 1px; cursor: default; }
+.hinted .hint { display: none; }
+.hinted:hover .hint { display: block; position: absolute; max-width: 200px; padding: 10px; color: #fff; background-color: rgba(0,0,0,0.8); }
+
+
+
+/* responsivní design */
+
+@media (min-width: 600px) {
+  .blok .aktivita > img { width: 48.5%; position: absolute; }
+  .atext { margin-left: 52%; margin-top: 50px; }
+  .sloupce { .column-count(2); .column-gap(30px); }
+  .sloupce .blok { display: inline-block; width: 100%; }
+  .menu > ul > li { width: 50%; }
+}
+
+@media (min-width: 900px) {
+  .btext { width: 53.9%; padding: 0 6% 4% 6%; }
+  .btext > h1:first-child, .btext > h2:first-child { margin: 0 -11.2%; }
+  .btext + .sloupce { .column-count(1); position: absolute; top: 0; right: 0; width: 31.65%; }
+  .btext + .sloupce > *:first-child { margin-top: 0; }
+  .blok .aktivita > img { width: 31.7%; }
+  .atext { margin: 40px 6% 20px 35.0%; font-size: 110%; line-height: 1.7em; max-height: 176px; overflow: hidden; }
+  .sloupce { .column-count(3); .column-gap(30px); }
+  .sloupce .blok { display: inline-block; }
+  .menu > ul > li { width: 33.33334%; }
+  .menu li:first-child .mlist { margin: 0 20px 0 0; }
+  .menu li:last-child .mlist { margin: 0 0 0 20px; }
+}
+
+
+
+/* LESS specific věci */
+
+.column-count(@arg) {
+  -webkit-column-count: @arg;
+  -moz-column-count: @arg;
+  column-count: @arg;
+}
+
+.column-gap(@arg) {
+  -webkit-column-gap: @arg;
+  -moz-column-gap: @arg;
+  column-gap: @arg;
+}

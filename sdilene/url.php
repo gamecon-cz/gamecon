@@ -8,6 +8,7 @@ class Url
 {
 
   protected $surova, $cista, $casti;
+  protected static $aktualni;
   
   /** Konstruktor bere na vstupu řetězec s názvem GET proměnné, z které zkusí
    *  vycucnout URL */  
@@ -38,12 +39,23 @@ class Url
   {
     return $this->casti[0]?count($this->casti):0;
   }
+
+  /**
+   * Vrátí aktuální reálnou url
+   * @todo zobecnit na $_SERVER nebo podobně
+   */
+  static function zAktualni() {
+    if(!self::$aktualni) {
+      self::$aktualni = new self('req');
+    }
+    return self::$aktualni;
+  }
         
 }
 
 /**
  * Výjimky pro chyby v url
  */
-class UrlException extends Exception
-{
-}
+class UrlException extends Exception {}
+class UrlNotFoundException extends UrlException {}
+

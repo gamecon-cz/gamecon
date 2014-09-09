@@ -36,8 +36,6 @@ function back($to=null)
     header('Location: '.$_SERVER['HTTP_REFERER'], true, 303); 
   exit();
   //todo when header fails
-  //note chrome 25 bug which causes this to fail, see:
-  // http://goo.gl/UonDa
 }
 
 function get($name)

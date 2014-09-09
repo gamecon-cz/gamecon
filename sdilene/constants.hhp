@@ -16,8 +16,8 @@ require_once(__DIR__.'/constants-funkce.hhp');
 ////////////////////////
 
 define('ROK', 2014);                                // aktuální rok // při změně roku viz https://docs.google.com/document/d/1H_PM70WjNpQ1Xz65OYfr1BeSTdLrNQSkScMIZEtxWEc/edit?usp=sharing
-define('GC_BEZI_OD',      ROK.'-07-17 07:00:00');   // začátek GameConu (přepnutí stránek do režimu "úpravy na jen na infopultu")
-define('GC_BEZI_DO',      ROK.'-07-20 20:00:00');   // konec GameCou (přepnutí stránek do režimu "gc skončil, úpravy nemožné")
+define('GC_BEZI_OD',      ROK.'-12-17 07:00:00');   // začátek GameConu (přepnutí stránek do režimu "úpravy na jen na infopultu")
+define('GC_BEZI_DO',      ROK.'-12-20 20:00:00');   // konec GameCou (přepnutí stránek do režimu "gc skončil, úpravy nemožné")
 define('REG_GC_OD',       ROK.'-05-01 20:00:00');   // spuštění možnosti registrace na GameCon
 define('REG_GC_DO',       GC_BEZI_DO);              // ukončení možnosti registrace na GameCon
 define('REG_AKTIVIT_OD',  ROK.'-05-01 20:00:00');   // spuštění možnosti registrace na aktivity, pokud jsou aktivované
@@ -63,6 +63,8 @@ define('P_SLEVA_STUDENT',1007); //má studentskou slevu 20%
 define('P_SLEVA_VCAS',1006);    //má slevu 20% za platbu včas
 define('P_SLEVA_AKTIVITY',1009); //za pořádané aktivity se mu vypočítává sleva
 define('P_UBYTOVANI_ZDARMA',1008); //má _všechno_ ubytování zdarma
+define('P_ADMIN_UVOD', 100);    //přístup na titulku adminu
+define('P_ADMIN_MUJ_PREHLED', 109);
 unset($pre);
 
 ////////////////////////
@@ -132,5 +134,3 @@ děkujeme, že ses letos zúčastnil{a} GameConu. Kliknutím na odkaz níže pot
  
 // aliasy konstant a extra konstanty navíc
 require_once(__DIR__.'/constants-extra.hhp');
-
-?>

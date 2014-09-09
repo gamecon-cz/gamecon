@@ -80,6 +80,7 @@ if(!$zidle) {
     FROM r_prava_soupis p
     LEFT JOIN r_prava_zidle pz ON(pz.id_prava = p.id_prava AND pz.id_zidle = $1)
     WHERE p.id_prava > 0 AND pz.id_prava IS NULL
+    ORDER BY p.jmeno_prava
     ', array($zidle)
   );
   while($r = mysql_fetch_assoc($o)) {

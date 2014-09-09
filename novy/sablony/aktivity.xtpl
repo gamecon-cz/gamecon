@@ -1,0 +1,89 @@
+<!-- begin:aktivity -->
+<div class="aktivity">
+
+  <!-- begin:zahlavi -->
+  <div class="blok btext">
+    {text}
+  </div>
+
+  <div class="sloupce">
+    <div class="blok upoutavka" style="min-height: 200px; background-color: #eee;">
+      <div class="horni"><div>Výběr aktivit</div></div>
+      <form style="margin: 20px; font-weight: normal; font-family: Merriweather; font-size: 110%;">
+        <br><br>
+        <table>
+          <tr>
+            <td>Rok:</td><td>
+            <select><option title="2014">2014</option></select></td>
+          </tr>
+          <tr>
+            <td>Druh:</td>
+            <td><select>
+             <option>RPG</option>
+            </select></td>
+          </tr>
+          <tr>
+            <td>Vypravěč:</td>
+            <td><select>
+                 <option>Kdokoli</option>
+                </select></td>
+          </tr>
+        </table>
+        <style>
+        select { width: 200px; height: 40px; border: none; border-top-left-radius: 5px; border-bottom-left-radius: 5px; color: #fff; background-color: #444;
+        font-family: Open sans; padding: 5px 10px; font-size: 130%; font-weight: bold;
+        margin: 0 20px; }
+        option {  }
+        </style>
+    </div>
+  </div>
+  <!-- end:zahlavi -->
+
+  <!-- begin:aktivita -->
+  <div class="blok">
+    <div class="aktivita">
+      <h2 class="pruh">{a.nazev}</h2>
+      <img src="{a.obrazek}">
+      <div class="atext">
+
+          <!--
+          <!-- begin:termin -->
+          <strong>Termín:</strong> {a.denCas} {a.obsazenost} {prihlasovatko}<br>
+          <!-- end:termin -->
+
+          <!-- begin:cena -->
+          <span class="hinted"><strong>Cena:</strong>
+            <span class="hint">Cena je uvedena ve formátu pracující / student při včasné platbě. Je možné získat i výrazné další <b>slevy</b> podle přehledu <a href="ceny-slevy-placeni">cen a slev</a>. Při platbě po {rozhodneDatum} bez slev je cena {zakladniCena}.</span>
+          </span>
+          {cena}
+          <!-- end:cena -->
+          <!-- begin:mojeCena -->
+          <span class="hinted"><strong>Moje cena:</strong>
+            <span class="hint">Zobrazená cena platí pro tebe při použití všech slev, které máš nastavené v <a href="prihlaska">přihlášce</a>. Standardní cena je <b>{stdCena}</b> (pro pracujícího / studenta) a řídí se podle <a href="ceny-slevy-placeni">cen a slev</a>.</span>
+          </span>
+          {cena}
+          <!-- end:mojeCena -->
+          <!-- begin:fixniCena -->
+          <span class="hinted"><strong>Pevná cena:</strong>
+            <span class="hint">Zobrazená cena platí pro všechny stejně a nelze na ni uplatnit slevy.</span>
+          </span>
+          {cena}
+          <!-- end:fixniCena -->
+
+          <!-- begin:vyberTeamu -->
+          <div>
+            <strong>Výběr teamu:</strong> Aktivita je teamová a jako první přihlášený máš právo sestavit si team (družinu). Vyplň ID spoluhráčů, s kterými chceš hrát (můžeš použít i přezdívku nebo jméno, zobrazí se napovídací políčko). Po potvrzení budou automaticky přihlášeni a informováni mailem. Volná políčka se otevřou pro přihlášení komukoli, odebraná se trvale znepřístupní. Na vyplnění máš čas do následujícího rána, jinak tě aktivita sama odhlásí.<br>
+            {vyber}
+          </div>
+          <!-- end:vyberTeamu -->
+          -->
+
+          <div>{a.popis}</div>
+
+      </div>
+    </div>
+  </div>
+  <!-- end:aktivita -->
+
+</div>
+<!-- end:aktivity -->

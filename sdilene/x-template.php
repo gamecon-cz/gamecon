@@ -129,18 +129,24 @@ class XTemplate {
   protected function compiledTemplate($file) {
     $cFile = str_replace('.xtpl', '', $file) . '.xtpc'; // comiled file name
     $cName = str_replace('-', '', ucfirst(basename($file, '.xtpl'))) . 'Tpl'; // compiled class name
+    // main template modification check & load
     if( @filemtime($cFile) < filemtime($file) ) {
       $this->outlineRead($file);
       file_put_contents($cFile, $this->outlineCompiled($cName));
     }
     require_once($cFile);
     $t = new $cName();
+    // dependecies modification check
+    $modified = false;
     foreach($t->dependencies as $d) {
       if( filemtime($cFile) < filemtime($d) ) { // dependency enforced recompilation
         $this->outlineRead($file);
         file_put_contents($cFile, $this->outlineCompiled($cName));
+        $modified = true;
       }
     }
+    if($modified) throw new XTemplateRecompilationException();
+    // return
     return $t;
   }
 
@@ -236,3 +242,14 @@ class XTemplate {
   }
 
 }
+
+/**
+ * General class for xtemplate exception
+ */
+abstract class XTemplateException extends Exception {}
+
+/**
+ * Already loaded template class had to be recompiled because of dependency
+ * modification
+ */
+class XTemplateRecompilationException extends Exception {}

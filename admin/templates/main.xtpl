@@ -20,7 +20,9 @@
 <body>
   <div class="obal">
     <div class="sloupL">
-      {FILE "templates/uzivatel.xtpl"}
+      <div class="prvniBlok">
+        {FILE "templates/uzivatel.xtpl"}
+      </div>
       {FILE "templates/menu.xtpl"}
       {FILE "templates/operator.xtpl"}
       {FILE "templates/mobmenu.xtpl"}

@@ -40,8 +40,8 @@ class Uzivatel
    */
   function avatar()
   {
-    $cesta=__DIR__.'/'.SDILENE_WWW_CESTA.'/files/systemove/avatary/';
-    $url=URL_WEBU.'/files/systemove/avatary/';
+    $cesta=__DIR__.'/'.SDILENE_WWW_CESTA.'/soubory/systemove/avatary/';
+    $url=URL_WEBU.'/soubory/systemove/avatary/';
     if(is_file($cesta.$this->id().'.jpg'))
       // přidáváme datum poslední modifikace, aby prohlížeč necacheoval, pokud nemá
       // pozor: prohlížeč si dělá co chce a teprve po dlouhé nezměně obrázku začne cacheovat - to je ok
@@ -55,7 +55,7 @@ class Uzivatel
    */
   static function avatarDefault()
   {
-    return URL_WEBU.'/files/systemove/avatary/default.png';
+    return URL_WEBU . '/soubory/systemove/avatary/default.png';
   }
 
   /**
@@ -71,7 +71,7 @@ class Uzivatel
   {
     if(!isset($_FILES[$name]['tmp_name']) || !$_FILES[$name]['tmp_name'])
       return false;
-    $cesta=__DIR__.'/'.SDILENE_WWW_CESTA.'/files/systemove/avatary/';
+    $cesta=__DIR__.'/'.SDILENE_WWW_CESTA.'/soubory/systemove/avatary/';
     // překlopení avataru ID.jpg <--> IDb.jpg kvůli obejití cache
     $soub=$cesta.$this->id().'.jpg';
     move_uploaded_file($_FILES[$name]['tmp_name'],$soub);
@@ -111,8 +111,8 @@ class Uzivatel
   /** Smaže avatar uživatele. (jen uživatelská část webu) */
   function avatarSmaz()
   {
-    if(is_file('./files/systemove/avatary/'.$this->id().'.jpg'))
-      return unlink('./files/systemove/avatary/'.$this->id().'.jpg');
+    if(is_file('./soubory/systemove/avatary/'.$this->id().'.jpg'))
+      return unlink('./soubory/systemove/avatary/'.$this->id().'.jpg');
     else
       return true; //obrázek není -> jakoby se smazal v pohodě
   }
@@ -762,6 +762,16 @@ class Uzivatel
     {
       return null;
     }
+  }
+
+  /**
+   * Vrátí uživatele s loginem odpovídajícím dané url
+   */
+  static function zUrl() {
+    $url = Url::zAktualni()->cela();
+    $u = self::nactiUzivatele('WHERE u.login_uzivatele = '.dbQv($url));
+    if(count($u) !== 1) return null;
+    return $u[0];
   }
 
   /** Vrátí pole uživatelů sedících na židli s daným ID */

@@ -31,6 +31,8 @@ class Vyjimkovac
     set_exception_handler(function($e){
       if($e instanceof Chyba)
         $e->zpet(); // u zobrazitelných chyb ignorovat a jen zobrazit upo
+      elseif($e instanceof XTemplateRecompilationException)
+        back($_SERVER['REQUEST_URI']);
       else
         self::zpracuj($e);
     });

@@ -4,7 +4,7 @@
  * Úvodní karta organizátora s přehledem jeho aktivit
  * 
  * nazev: Moje aktivity
- * pravo: 4
+ * pravo: 109
  */
 
 $aktivity = Aktivita::zFiltru(array(

@@ -1,0 +1,6 @@
+<!-- begin:blog -->
+<div class="blok btext">
+  <h1>{blog.nazev}</h1>
+  {blog.text}
+</div>
+<!-- end:blog -->

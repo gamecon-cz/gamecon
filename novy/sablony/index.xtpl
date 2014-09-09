@@ -1,0 +1,66 @@
+<!-- begin: index -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <base href="{base}">
+  <link rel="shortcut icon" href="soubory/styl/favicon.ico">
+  <link rel="stylesheet" type="text/css" href="{css}" media="screen,projection">
+  <script src="{js}"></script>
+  <!-- TODO title -->
+  <title>GameCon</title>
+</head>
+<body>
+
+  <div class="hlavicka">
+    <a class="logo" href="">
+      <img src="soubory/styl/logo.png" alt="GameCon"><br>
+      Největší festival nepočítačových her
+    </a>
+    <div class="linfo">
+      <a class="ifb" href="https://www.facebook.com/gamecon"></a>
+      <b>17.–20. 7. 2014<br>Pardubice</b>
+    </div>
+    <div class="prihlasovani">
+      <!-- begin:neprihlasen -->
+      <div class="neprihlasen">
+        <strong>Nejsete přihlášeni na web</strong><br>
+        <span style="color: #bbb"><strong>Přihlásit</strong> / registrovat</span>
+      </div>
+      <!-- end:neprihlasen -->
+      <!-- begin:prihlasen -->
+        <img src="{u.avatar}">
+        <!-- begin:admin -->
+
+        <!-- end:admin -->
+      <!-- end:prihlasen -->
+    </div>
+  </div>
+
+  {menu}
+
+  <hr class="stin">
+
+  <div class="hlavni"><!-- hlavní obsah -->
+    <div class="obsah">
+      {obsah}
+      <div class="sloupce">
+        <a class="blok upoutavka" href="">
+          <img src="soubory/_placeholder/3.jpg">
+          <div class="stredni"><div>Volný panel</div></div>
+        </a>
+        <a class="blok upoutavka" href="">
+          <img src="soubory/_placeholder/4.jpg">
+          <div class="stredni"><div>Volný panel</div></div>
+        </a>
+      </div>
+    </div>
+    <div class="blok sponzori">
+      {sponzori}
+    </div>
+  </div>
+
+</body>
+</html>
+<!-- end: index -->

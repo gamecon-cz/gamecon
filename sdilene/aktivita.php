@@ -316,12 +316,17 @@ class Aktivita
    */
   function obrazek()
   {
-    $url=URL_WEBU.'/files/systemove/aktivity/'.$this->a['url_akce'].'.jpg';
-    $soub=__DIR__.'/'.SDILENE_WWW_CESTA.'/files/systemove/aktivity/'.$this->a['url_akce'].'.jpg';
+    $url=URL_WEBU.'/soubory/systemove/aktivity/'.$this->a['url_akce'].'.jpg';
+    $soub=__DIR__.'/'.SDILENE_WWW_CESTA.'/soubory/systemove/aktivity/'.$this->a['url_akce'].'.jpg';
     if(is_file($soub))
       return $url.'?x='.base_convert(filemtime($soub),10,16);
     else
       return '';
+  }
+
+  /** (Správný) alias pro obsazenostHtml() */
+  function obsazenost() {
+    return $this->obsazenostHtml();
   }
 
   /** Vrátí html kód s políčky určujícímí obsazenost */
@@ -456,6 +461,11 @@ class Aktivita
   /** Vrátí specifické označení organizátora pro aktivitu tohoto typu */
   function orgTitul() {
     return dbOneCol('SELECT titul_orga FROM akce_typy WHERE id_typu='.$this->a['typ']);
+  }
+
+  /** Skupina (id) aktivit. Spíše hack, raději refaktorovat */
+  function patriPod() {
+    return $this->a['patri_pod'];
   }
 
   /**
@@ -1340,12 +1350,12 @@ class Aktivita
   protected function zpracujObrazekPost()
   {
     // todo změna url (fixme). Hack
-    $cesta=__DIR__.'/'.SDILENE_WWW_CESTA.'/files/systemove/aktivity/';
+    $cesta=__DIR__.'/'.SDILENE_WWW_CESTA.'/soubory/systemove/aktivity/';
     if($_POST[self::POSTKLIC.'staraUrl']!=$this->a['url_akce'])
       if(is_file($cesta.$_POST[self::POSTKLIC.'staraUrl'].'.jpg'))
          rename( $cesta.$_POST[self::POSTKLIC.'staraUrl'].'.jpg', $cesta.$this->a['url_akce'].'.jpg');
     // aktualizace obrázku
-    $soubor = __DIR__.'/'.SDILENE_WWW_CESTA.'/files/systemove/aktivity/'.$this->a['url_akce'].'.jpg';
+    $soubor = __DIR__.'/'.SDILENE_WWW_CESTA.'/soubory/systemove/aktivity/'.$this->a['url_akce'].'.jpg';
     $o = null;
     if(!empty($_FILES[self::OBRKLIC]['tmp_name'])) { // poslán obrázek pro aktualizaci
       move_uploaded_file($_FILES[self::OBRKLIC]['tmp_name'], $soubor);
