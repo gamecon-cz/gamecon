@@ -9,7 +9,7 @@ class Stranka {
   }
 
   function html() {
-    return markdown($this->r['obsah']);
+    return markdownNoCache($this->r['obsah']);
   }
 
   static function zId($id) {
