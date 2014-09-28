@@ -30,7 +30,7 @@
         <form method="post" action="prihlaseni" id="prihlasit" style="display: none">
           <input type="text" name="login" placeholder="e-mail nebo login"><br>
           <input type="password" name="heslo" placeholder="heslo"><br>
-          <input type="submit" name="prihlasit" value="Přihlásit"> <input type="checkbox" name="zapamatovat" checked="true"> zapamatovat
+          <input type="submit" name="prihlasit" value="Přihlásit"> <input type="checkbox" name="zapamatovat" id="zapamatovat" checked="true"> <label for="zapamatovat">zapamatovat</label>
         </form>
       </div>
       <!-- end:neprihlasen -->
