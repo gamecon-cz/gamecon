@@ -26,7 +26,12 @@
       <!-- begin:neprihlasen -->
       <div class="neprihlasen">
         <strong>Nejsete přihlášeni na web</strong><br>
-        <span style="color: #bbb"><strong>Přihlásit</strong> / registrovat</span>
+        <a href="#" onclick="$('#prihlasit').slideToggle(); return false;"><strong>Přihlásit</strong></a> / <a href="registrace">registrovat</a>
+        <form method="post" action="prihlaseni" id="prihlasit" style="display: none">
+          <input type="text" name="login" placeholder="e-mail nebo login"><br>
+          <input type="password" name="heslo" placeholder="heslo"><br>
+          <input type="submit" name="prihlasit" value="Přihlásit"> <input type="checkbox" name="zapamatovat" checked="true"> zapamatovat
+        </form>
       </div>
       <!-- end:neprihlasen -->
       <!-- begin:prihlasen -->
@@ -34,6 +39,10 @@
         <!-- begin:admin -->
 
         <!-- end:admin -->
+        <a href="#" onclick="$('#odhlasit').submit(); return false;">odhlásit</a>
+        <form method="post" action="prihlaseni" id="odhlasit">
+          <input type="hidden" name="odhlasit" value="true">
+        </form>
       <!-- end:prihlasen -->
     </div>
   </div>
