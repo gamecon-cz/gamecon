@@ -38,6 +38,10 @@ while($a) {
       elseif($u && $u->gcPrihlasen())   $t->parse('aktivity.aktivita.mojeCena');
       else                              $t->parse('aktivity.aktivita.cena');
     }
+    foreach($a->tagy() as $tag) {
+      $t->assign('tag', $tag);
+      $t->parse('aktivity.aktivita.tag');
+    }
     $t->parse('aktivity.aktivita');
   }
 

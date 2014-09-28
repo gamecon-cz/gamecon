@@ -755,6 +755,16 @@ class Aktivita
   }
 
   /**
+   * Vrátí iterátor tagů
+   */
+  function tagy() {
+    if($this->a['tagy'])
+      return explode(',', $this->a['tagy']);
+    else
+      return array();
+  }
+
+  /**
    * Je aktivita teamová?
    */
   function teamova() {
@@ -1151,7 +1161,7 @@ class Aktivita
       a.id_akce,
       a.patri_pod,
       a.nazev_akce,
-      a.url_akce,
+      a.url_akce as url_native,
       a.zacatek,
       a.konec,
       a.lokace,
@@ -1169,28 +1179,34 @@ class Aktivita
       a.team_min,
       a.team_max,
       a.zamcel'; // načítané atributy - kvůli NEselectování popisku
-    $url_akce       = 'IF(t2.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = t2.patri_pod), t2.url_akce) as url_akce';
+    $url_akce       = 'IF(t2.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = t2.patri_pod), t2.url_native) as url_akce';
     $prihlaseni     = 'CONCAT(",",GROUP_CONCAT(p.id_uzivatele,u.pohlavi,p.id_stavu_prihlaseni),",") AS prihlaseni';
     $organizatori   = 'CONCAT(",",GROUP_CONCAT(o.id_uzivatele),",") AS organizatori';
     $orgJmena       = 'CONCAT(",",GROUP_CONCAT(u.jmeno_uzivatele, "|", u.login_uzivatele, "|", u.prijmeni_uzivatele  ),",") AS orgJmena';
+    $tagy           = 'GROUP_CONCAT(t.nazev) as tagy';
     $o = dbQueryS("
-      SELECT t2.*, $prihlaseni, $url_akce FROM (
-        SELECT t1.*, $organizatori, $orgJmena FROM (
-          SELECT
-            $atributy,
-            at.url_typu, al.poradi
-          FROM akce_seznam a
-          LEFT JOIN akce_typy at ON (at.id_typu = a.typ)
-          LEFT JOIN akce_lokace al ON (al.id_lokace = a.lokace)
-          $where
-        ) as t1
-        LEFT JOIN akce_organizatori o ON (o.id_akce = t1.id_akce)
-        LEFT JOIN uzivatele_hodnoty u ON (u.id_uzivatele = o.id_uzivatele)
-        GROUP BY t1.id_akce
-      ) as t2
-      LEFT JOIN akce_prihlaseni p ON (p.id_akce = t2.id_akce)
-      LEFT JOIN uzivatele_hodnoty u ON (u.id_uzivatele = p.id_uzivatele)
-      GROUP BY t2.id_akce
+      SELECT t3.*, $tagy FROM (
+        SELECT t2.*, $prihlaseni, $url_akce FROM (
+          SELECT t1.*, $organizatori, $orgJmena FROM (
+            SELECT
+              $atributy,
+              at.url_typu, al.poradi
+            FROM akce_seznam a
+            LEFT JOIN akce_typy at ON (at.id_typu = a.typ)
+            LEFT JOIN akce_lokace al ON (al.id_lokace = a.lokace)
+            $where
+          ) as t1
+          LEFT JOIN akce_organizatori o ON (o.id_akce = t1.id_akce)
+          LEFT JOIN uzivatele_hodnoty u ON (u.id_uzivatele = o.id_uzivatele)
+          GROUP BY t1.id_akce
+        ) as t2
+        LEFT JOIN akce_prihlaseni p ON (p.id_akce = t2.id_akce)
+        LEFT JOIN uzivatele_hodnoty u ON (u.id_uzivatele = p.id_uzivatele)
+        GROUP BY t2.id_akce
+      ) as t3
+      LEFT JOIN akce_tagy at ON (at.id_akce = t3.id_akce)
+      LEFT JOIN tagy t ON (t.id = at.id_tagu)
+      GROUP BY t3.id_akce
       $order
     ", $args);
     $p = array();

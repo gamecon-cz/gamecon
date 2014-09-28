@@ -1,21 +1,24 @@
 
+@sirka: 1000px;
+
 a { color: #06d; text-decoration: none; }
 a:hover { text-decoration: underline; }
 
 body { margin: 0; font: 14px Open Sans, sans-serif; background-image: data-uri('pozadi.png'); background-repeat: repeat-x; background-color: #e6e6e6; overflow-y: scroll; line-height: 150%; }
 
 
-.hlavicka { width: 100%; height: 100px; background-color: #fff; text-align: center; position: relative; overflow: hidden; line-height: 1.3em; }
+.hlavicka { width: 100%; height: 100px; background-color: #fff; text-align: center; position: relative; line-height: 1.3em; }
 .hlavicka .logo { color: #bbb; margin-top: 10px; text-transform: uppercase; font-weight: bold; display: inline-block; }
 .hlavicka .logo:hover { text-decoration: none; }
 .hlavicka .linfo { position: absolute; top: 30px; left: 10px; text-align: left; width: 250px; }
 .hlavicka .ifb { background-image: data-uri('ikonky.png'); display: block; float: left; height: 35px; width: 35px; margin: 0 6px; }
 .hlavicka .prihlasovani { position: absolute; top: 0; right: 0; }
 .hlavicka .neprihlasen { text-align: right; margin-top: 30px; margin-right: 14px; }
+.hlavicka .neprihlasen > form { position: absolute; .blok; z-index: 10; padding: 10px; text-align: left; margin: 0 10px 0 -30px; }
 hr.stin { border: none; background-image: data-uri('gradient2.png'); height: 4px; margin: 0 0 -4px 0; }
 
 .menu { text-align: center; background-color: #eee; }
-.menu > ul { margin: 0 auto; padding: 0; max-width: 1200px; }
+.menu > ul { margin: 0 auto; padding: 0; max-width: @sirka; }
 .menu > ul > li { display: inline-block; margin: 0; position: relative; padding: 0; width: 100%; cursor: default; }
 .menu > ul > li > span { display: inline-block; text-transform: uppercase; font-size: 130%; padding: 0.6em 1em 0.3em 1em; border-bottom: solid 0.3em rgba(0,0,0,0); }
 .menu li.aktivni > span { border-bottom-color: #d00; }
@@ -23,7 +26,7 @@ hr.stin { border: none; background-image: data-uri('gradient2.png'); height: 4px
 .menu .mlist { text-align: left;  margin: 0 10px; box-shadow: 0 0 3px #444; }
 .menu li:hover .sub { display: block; }
 
-.hlavni { max-width: 1200px; margin: 0 auto 40px auto; position: relative; }
+.hlavni { max-width: @sirka; margin: 0 auto 40px auto; position: relative; }
 
 .sponzori a { font-size: 40px; /* hack pro vyšší klikací plochu odkazu */ }
 .sponzori p { text-align: center; margin-bottom: -10px; }
@@ -35,19 +38,29 @@ hr.stin { border: none; background-image: data-uri('gradient2.png'); height: 4px
 .pruh { background-color: rgba(0, 0, 0, 0.8); color: #fff; padding: 0.6em; font-size: 120%; }
 
 
-.btext { padding: 0 3% 2% 3%; font-size: 110%; line-height: 1.6em;  }
-.btext > h1:first-child, .btext > h2:first-child { .pruh; margin: 0 -3.2%; }
-.btext > *:not(:first-child) { font-family: Merriweather; }
+/* blogy a stránky */
+.btext { padding: 0 3% 2% 3%; line-height: 1.6em;  }
+.btext > h1:first-child, .btext > h2:first-child { .pruh; margin: 0 -3.15%; }
+.btext > *:not(:first-child) { ont-family: Merriweather; }
 .btext img { max-width: 100%; }
 .btext p { text-align: justify; margin: 1.6em 0; }
+.btext > :last-child { margin-bottom: 0; }
 
 
 /* aktivity */
-.aktivity .btext { padding-bottom: 0.5em; }
-.blok .aktivita { position: relative; overflow: hidden; }
-.blok .aktivita > h2 { position: absolute; margin: 0; top: 0; left: 0; width: 100%; z-index: 1; }
-.blok .aktivita > img { width: 100%; }
-.atext { margin: 2% 2.5%; text-align: justify; font-family: Merriweather; }
+.aktivity .btext { padding-bottom: 2em; }
+.aktivita { position: relative; overflow: hidden; }
+.aktivita > img { width: 100%; display: block; }
+.atext { margin: 2% 2.5%; text-align: justify; overflow: hidden; }
+.atext > :first-child { margin-top: 0; }
+.atext > :last-child { margin-bottom: 0; }
+.ahlav { .pruh; position: relative; font-size: 100%; }
+.ahlav > h2 { font-size: 120%; margin: 0; }
+.ahlav .info { padding-left: 19px; background-repeat: no-repeat; background-position: 0 2px; background-image: data-uri('ikony/tag.png'); }
+.ahlav .cena { background-image: data-uri('ikony/cart.png'); }
+.ahlav .org { background-image: data-uri('ikony/user.png'); }
+.ahlav .termin { background-image: data-uri('ikony/time.png'); }
+
 
 
 
@@ -71,7 +84,7 @@ hr.stin { border: none; background-image: data-uri('gradient2.png'); height: 4px
 .novt { padding-bottom: 5px; }
 .novt > h2 { text-transform: uppercase; text-align: center; font-size: 100%; margin: 5px 0; }
 .novt > h2 a { text-decoration: none; color: #fff; display: inline-block; }
-.novt .ntext { margin: 0 27px 0 30px; padding-right: 5px; text-align: justify;  font-family: Merriweather; }
+.novt .ntext { margin: 0 27px 0 30px; padding-right: 5px; text-align: justify; }
 .novt .ntext:not(:last-child) { margin-top: -30px; position: relative; z-index: 1; overflow: hidden; /* max-height: 166px; */ }
 .novt .ntext > h3 { font-size: 120%; margin: 0; text-align: left; }
 .novt .ntext ol { padding-left: 15px; }
@@ -84,33 +97,42 @@ hr.stin { border: none; background-image: data-uri('gradient2.png'); height: 4px
 
 /* obecné speciality */
 .hinted { border-bottom: dotted 1px; cursor: default; }
-.hinted .hint { display: none; }
+.hinted .hint { display: none; line-height: 1.2em; }
 .hinted:hover .hint { display: block; position: absolute; max-width: 200px; padding: 10px; color: #fff; background-color: rgba(0,0,0,0.8); }
 
 
 
 /* responsivní design */
 
-@media (min-width: 600px) {
-  .blok .aktivita > img { width: 48.5%; position: absolute; }
-  .atext { margin-left: 52%; margin-top: 50px; }
-  .sloupce { .column-count(2); .column-gap(30px); }
-  .sloupce .blok { display: inline-block; width: 100%; }
+@media (min-width: 550px) and (max-width: 799px) {
+  @sloupm: 3%;
+  .sloupce:after { content: "."; display: block; clear: both; visibility: hidden; height: 0; }
+  .sloupce .blok { float: left; width: (100 - @sloupm) / 2; }
+  .sloupce .blok:not(:nth-child(2n)) { margin-right: @sloupm; }
   .menu > ul > li { width: 50%; }
 }
 
-@media (min-width: 900px) {
-  .btext { width: 53.9%; padding: 0 6% 4% 6%; }
-  .btext > h1:first-child, .btext > h2:first-child { margin: 0 -11.2%; }
-  .btext + .sloupce { .column-count(1); position: absolute; top: 0; right: 0; width: 31.65%; }
-  .btext + .sloupce > *:first-child { margin-top: 0; }
-  .blok .aktivita > img { width: 31.7%; }
-  .atext { margin: 40px 6% 20px 35.0%; font-size: 110%; line-height: 1.7em; max-height: 176px; overflow: hidden; }
-  .sloupce { .column-count(3); .column-gap(30px); }
-  .sloupce .blok { display: inline-block; }
+@media (min-width: 800px) {
+  @sloupm: 3%;
+  @sloupw: (100 - 2 * @sloupm) / 3;
+  @bpad: 5%;
+  .btext { width: 2 * @sloupw + @sloupm - 2 * @bpad; padding: @bpad; }
+  .btext > h1:first-child, .btext > h2:first-child { margin: -9%; margin-bottom: 0; } /* závisí nějak nelineárně na @bpad */
+  .btext + .sloupce { position: absolute; top: 0; right: 0; width: @sloupw; }
+  .btext + .sloupce .blok { width: 100%; }
+  .btext + .sloupce .blok:first-child { margin-top: 0; }
+  .sloupce:after { content: "."; display: block; clear: both; visibility: hidden; height: 0; }
+  .sloupce .blok { float: left; width: @sloupw; }
+  .sloupce .blok:not(:nth-child(3n)) { margin-right: @sloupm; }
   .menu > ul > li { width: 33.33334%; }
   .menu li:first-child .mlist { margin: 0 20px 0 0; }
   .menu li:last-child .mlist { margin: 0 0 0 20px; }
+  .aktivita > img { float: left; width: @sloupw; position: absolute; }
+  .ahlav { padding-left: @sloupw + 1%; }
+  .ahlav > h2 { left: 0.6em; max-width: @sloupw; position: absolute; }
+  .ahlav .info { float: left; margin-right: 1.2em; }
+  .ahlav:after { content: "."; display: block; clear: both; visibility: hidden; height: 0; }
+  .atext { padding-left: @sloupw; max-height: 5.8em; margin-top: 1.1em; margin-bottom: 1.4em; }
 }
 
 
