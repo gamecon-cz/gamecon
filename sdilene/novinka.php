@@ -4,7 +4,7 @@ class Novinka {
 
   protected $r;
 
-  protected static $prvniObrazek = '@!\[\]\(([^\)]+)\)@'; // RV odpovídající prvnímu obrázku v textu
+  protected static $prvniObrazek = '@<img src="([^"]+)"@'; // RV odpovídající prvnímu obrázku v textu
 
   const NOVINKA = 1;
   const BLOG = 2;
@@ -18,27 +18,22 @@ class Novinka {
   }
 
   /** Prvních $n znaků příspěvku */
-  function nahled($n = 400) {
-    $t = markdown(
-      preg_replace(self::$prvniObrazek, '',
-        mb_substr($this->r['text'], 0, $n)
-      )
-    );
-    if($t[3] == '_') $t[3] = ' ';
-    return $t;
+  function nahled($n = 250) {
+    return mb_substr(strip_tags($this->text()), 0, $n);
   }
 
   function nazev() {
     return $this->r['nazev'];
   }
 
+  /** url obrázku příspěvku */
   function obrazek() {
-    preg_match(self::$prvniObrazek, $this->r['text'], $m);
+    preg_match(self::$prvniObrazek, $this->text(), $m);
     return $m[1];
   }
 
   function text() {
-    return markdown($this->r['text']);
+    return dbMarkdown($this->r['text']);
   }
 
   /** název enkódovaný do url formátu */
