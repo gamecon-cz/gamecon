@@ -115,7 +115,9 @@ label { color: #999; }
 .hinted { border-bottom: dotted 1px; cursor: default; }
 .hinted .hint { display: none; line-height: 1.2em; }
 .hinted:hover .hint { display: block; position: absolute; max-width: 200px; padding: 10px; color: #fff; background-color: rgba(0,0,0,0.8); }
-
+.chybaBlok { position: fixed; z-index: 999; text-align: center; width: 100%; margin: 1em 0px; }
+.chybaBlok > div { display: inline-block; background-color: rgba(255, 192, 192, 0.9); padding: 2em 5em; color: #d00; border-radius: 10px; max-width: @sirka; box-shadow: 0 10px 30px #aaa; }
+.chybaBlok > .oznameni { background-color: rgba(150, 200, 150, 0.9); color: #040; }
 
 
 /* responsivní design */

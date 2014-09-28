@@ -28,7 +28,7 @@ class GcMail
    */      
   public function odeslat()
   {
-    if(VETEV == VYVOJOVA) return; //TODO místo přeskočení někam logovat
+    $adresat = VETEV == VYVOJOVA ? 'godric@korh.cz' : $this->adresat ; //TODO místo odeslání někam logovat
 
     $from='=?UTF-8?B?'.base64_encode('GameCon').'?= <info@gamecon.cz>';
     $headers=array(
@@ -39,7 +39,7 @@ class GcMail
     );
     
     return mail(
-      $this->adresat,
+      $adresat,
       '=?UTF-8?B?'.base64_encode($this->predmet).'?=',
       $this->text,
       implode("\r\n", $headers)

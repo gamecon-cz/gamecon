@@ -13,6 +13,8 @@
 </head>
 <body>
 
+  {chyba}
+
   <div class="hlavicka">
     <a class="logo" href="">
       <img src="soubory/styl/logo.png" alt="GameCon"><br>

@@ -51,6 +51,7 @@ if($m->bezStranky()) {
     'sponzori'  => Modul::zNazvu('sponzori')->spust()->vystup(),
     'css'       => perfectcache('soubory/styl/styl.less', 'soubory/styl/fonty.less'),
     'js'        => perfectcache('soubory/jquery-2.1.1.min.js', 'soubory/aplikace.js'),
+    'chyba'     => Chyba::vyzvedniHtml(),
   ));
   // tisk věcí a zdar
   if(!$m->bezMenu()) $t->assign('menu', $menu->cele());
