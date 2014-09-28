@@ -11,7 +11,7 @@ Thumbs.db
 # Neverzované věci z webu
 /admin/files/logs/*
 /specificke/site-specific.php
-/sdilene/cache/
+/specificke/_*
 /www/files/obsah/*
 !/www/files/obsah/sponzori
 !/www/files/obsah/organizatori
@@ -23,3 +23,4 @@ Thumbs.db
 /novy/soubory/*
 !/novy/soubory/styl
 !/novy/soubory/*.js
+/novy/*.*

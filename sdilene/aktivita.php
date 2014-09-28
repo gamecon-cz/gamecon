@@ -472,10 +472,7 @@ class Aktivita
    * Vrátí formátovaný (html) popisek aktivity
    */
   function popis() {
-    if($this->a['patri_pod'])
-      return markdown(dbOneCol('SELECT MAX(popis) FROM akce_seznam WHERE patri_pod = '.$this->a['patri_pod']));
-    else
-      return markdown(dbOneCol('SELECT popis FROM akce_seznam WHERE id_akce = '.$this->id()));
+    return dbMarkdown($this->a['popis']);
   }
 
   /**
@@ -1157,29 +1154,7 @@ class Aktivita
    *  paměti
    */
   protected static function zWhere($where, $args = null, $order = null) {
-    $atributy = '
-      a.id_akce,
-      a.patri_pod,
-      a.nazev_akce,
-      a.url_akce as url_native,
-      a.zacatek,
-      a.konec,
-      a.lokace,
-      a.kapacita,
-      a.kapacita_f,
-      a.kapacita_m,
-      a.cena,
-      a.bez_slevy,
-      a.nedava_slevu,
-      a.typ,
-      a.dite,
-      a.rok,
-      a.stav,
-      a.teamova,
-      a.team_min,
-      a.team_max,
-      a.zamcel'; // načítané atributy - kvůli NEselectování popisku
-    $url_akce       = 'IF(t2.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = t2.patri_pod), t2.url_native) as url_akce';
+    $url_akce       = 'IF(t2.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = t2.patri_pod), t2.url_akce) as url_temp';
     $prihlaseni     = 'CONCAT(",",GROUP_CONCAT(p.id_uzivatele,u.pohlavi,p.id_stavu_prihlaseni),",") AS prihlaseni';
     $organizatori   = 'CONCAT(",",GROUP_CONCAT(o.id_uzivatele),",") AS organizatori';
     $orgJmena       = 'CONCAT(",",GROUP_CONCAT(u.jmeno_uzivatele, "|", u.login_uzivatele, "|", u.prijmeni_uzivatele  ),",") AS orgJmena';
@@ -1188,9 +1163,7 @@ class Aktivita
       SELECT t3.*, $tagy FROM (
         SELECT t2.*, $prihlaseni, $url_akce FROM (
           SELECT t1.*, $organizatori, $orgJmena FROM (
-            SELECT
-              $atributy,
-              at.url_typu, al.poradi
+            SELECT a.*, at.url_typu, al.poradi
             FROM akce_seznam a
             LEFT JOIN akce_typy at ON (at.id_typu = a.typ)
             LEFT JOIN akce_lokace al ON (al.id_lokace = a.lokace)
@@ -1211,6 +1184,7 @@ class Aktivita
     ", $args);
     $p = array();
     while($r = mysql_fetch_assoc($o)) {
+      $r['url_akce'] = $r['url_temp'];
       $p[] = new self($r);
     }
     return new ArrayIterator($p);

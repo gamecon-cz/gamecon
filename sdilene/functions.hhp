@@ -44,15 +44,47 @@ function datum3($datum)
 }
 
 
+/** Vrátí markdown textu daného hashe (cacheované, text musí být v DB) */
+function dbMarkdown($hash) {
+  if($hash == 0) return '';
+  $out = kvs('markdown', $hash);
+  if(!$out) {
+    $text = dbOneCol('SELECT text FROM texty WHERE id = '.(int)$hash);
+    if(!$text) throw new Exception('Text s daným ID se nenachází v databázi');
+    $out = markdown($text);
+  }
+  return $out;
+}
+
+
+/** Načte / uloží hodnotu do key-value storage s daným názvem */
+function kvs($nazev, $index, $hodnota = null) {
+  if(!isset($GLOBALS['CACHEDB'][$nazev])) {
+    $db = new SQLite3(SPECIFICKE.'/_cache_'.$nazev.'.sqlite');
+    $GLOBALS['CACHEDB'][$nazev] = $db;
+    $db->exec("create table if not exists kvs (k integer primary key, v text)");
+  }
+  $db = $GLOBALS['CACHEDB'][$nazev];
+  if($hodnota === null) {
+    // načítání
+    $o = $db->query('select v from kvs where k = '.$index)->fetchArray(SQLITE3_NUM);
+    if($o === false) return null;
+    else return $o[0];
+  } else {
+    $db->exec('insert into kvs values('.$index.',\''.SQLite3::escapeString($hodnota).'\')');
+  }
+}
+
+
 /**
  * Převede text na odpovídající html pomocí markdownu
  * @see Originální implementace markdownu je rychlejší jak Parsedown, ale díky
  *  cacheování je to jedno
  */
 function markdown($text) {
-  $hash = sprintf('%x', crc32($text));
-  $f = __DIR__ . '/cache/markdown/' . $hash;
-  if(!is_file($f)) {
+  $hash = scrc32($text);
+  $out = kvs('markdown', $hash);
+  if($out === null) {
     require_once(__DIR__.'/knihovny/old-hacked-markdown/markdown.php');
     $text = PlugMarkdown($text);
     $text = preg_replace_callback('@(p|h\d|strong|em|/)>[^<]+<@', function($m){
@@ -60,9 +92,10 @@ function markdown($text) {
       $m[0] = str_replace(' - ', ' – ', $m[0]);
       return preg_replace('@"([^"]+)"@', '„$1“', $m[0]);
     }, $text);
-    file_put_contents($f, $text);
+    kvs('markdown', $hash, $text);
+    $out = kvs('markdown', $hash);
   }
-  return file_get_contents($f);
+  return $out;
 }
 
 
@@ -239,4 +272,16 @@ function ma_pravo($uzivatel,$cislo_prava)
         return false;
   }
   return false;
+}
+
+
+/** Znaménkové crc32 chovající se stejně na 32bit i 64bit systémech */
+function scrc32($data) {
+  $crc = crc32($data);
+  if($crc & 0x80000000){
+    $crc ^= 0xffffffff;
+    $crc += 1;
+    $crc = -$crc;
+  }
+  return $crc;
 }
