@@ -13,15 +13,10 @@ if(!$m && ($stranka = Stranka::zUrl())) {
   $m = Modul::zNazvu('stranka');
   $m->param('stranka', $stranka);
 }
-if(!$m && ($typ = Typ::zUrl())) {
+if(!$m && ( ($typ = Typ::zUrl()) || ($org = Uzivatel::zUrl()) )) {
   $m = Modul::zNazvu('aktivity');
-  $m->param('typ', $typ);
-  $m->param('aktivity', $typ->aktivity());
-}
-if(!$m && ($org = Uzivatel::zUrl()) && ($aktivity = Aktivita::zOrganizatora($org)) && $aktivity->valid()) {
-  $m = Modul::zNazvu('aktivity');
-  $m->param('org', $org);
-  $m->param('aktivity', $aktivity);
+  $m->param('typ', $typ ?: null);
+  $m->param('org', !$typ ? $org : null);
 }
 if(!$m) {
   $m = Modul::zNazvu('neexistujici');

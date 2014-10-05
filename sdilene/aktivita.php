@@ -1036,8 +1036,8 @@ class Aktivita
   /**
    * Vrátí pole aktivit s zadaným filtrem a řazením. Filtr funguje jako asoc.
    * pole s filtrovanými hodnotami, řazení jako pole s pořadím dle priorit.
-   * Podporované volby filtru: (vše id)
-   *  rok, typ
+   * Podporované volby filtru: (vše id nebo boolean)
+   *  rok, typ, organizator, jenViditelne
    * @todo filtr dle orga
    * @todo explicitní filtr i pro řazení (např. pole jako mapa veřejný řadící
    *  parametr => sloupec
@@ -1051,6 +1051,8 @@ class Aktivita
       $wheres[] = 'a.typ = '.(int)$filtr['typ'];
     if(!empty($filtr['organizator']))
       $wheres[] = 'a.id_akce IN (SELECT id_akce FROM akce_organizatori WHERE id_uzivatele = '.(int)$filtr['organizator'].')';
+    if(!empty($filtr['jenViditelne']))
+      $wheres[] = 'a.stav IN(1,2,4) AND a.typ != 10';
     $where = implode(' AND ', $wheres);
     $order = null;
     foreach($razeni as $sloupec) {
@@ -1058,7 +1060,13 @@ class Aktivita
     }
     if($order) $order = 'ORDER BY '.implode(', ', $order);
     // select
-    return self::zWhere('WHERE '.$where, null, $order);
+    $aktivity = (array)self::zWhere('WHERE '.$where, null, $order); // přetypování nutné kvůli správné funkci unsetu
+    if(!empty($filtr['jenVolne'])) {
+      foreach($aktivity as $id => $a) {
+        if($a->volno() == 'x') unset($aktivity[$id]);
+      }
+    }
+    return $aktivity;
   }
 
   /**

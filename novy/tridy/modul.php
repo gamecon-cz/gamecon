@@ -39,7 +39,7 @@ class Modul {
   /** Setter/getter pro parametr (proměnnou) předanou dovnitř modulu */
   function param($nazev) {
     if(func_num_args() == 2) $this->params[$nazev] = func_get_arg(1);
-    else return $this->params[$nazev];
+    else return @$this->params[$nazev];
   }
 
   /** Vrátí výchozí šablonu pro tento modul (pokud existuje) */

@@ -1,37 +1,32 @@
 <!-- begin:aktivity -->
 <div class="aktivity">
 
-  <!--
-  <div class="blok upoutavka" style="min-height: 200px; background-color: #eee; float: right; margin: 0;">
+  <div class="blok upoutavka" style="min-height: 200px; float: right; margin: 0;">
     <div class="horni"><div>Výběr aktivit</div></div>
-    <form style="margin: 20px; font-weight: normal;">
+    <form style="margin: 20px; font-weight: normal" action="aktivity">
       <br><br>
       <table>
+        <!-- begin:filtr -->
         <tr>
-          <td>Rok:</td><td>
-          <select><option title="2014">2014</option></select></td>
+          <td>{nazev}</td>
+          <td>
+          <select name="{name}" style="width: 150px">
+            <!-- begin:moznost -->
+            <option value="{value}" {selected}>{nazev}</option>
+            <!-- end:moznost -->
+          </select>
+          </td>
         </tr>
-        <tr>
-          <td>Druh:</td>
-          <td><select>
-           <option>RPG</option>
-          </select></td>
-        </tr>
-        <tr>
-          <td>Vypravěč:</td>
-          <td><select>
-               <option>Kdokoli</option>
-              </select></td>
-        </tr>
+        <!-- end:filtr -->
       </table>
-      <style>
-      select { width: 161px; height: 40px; border: none; border-top-left-radius: 5px; border-bottom-left-radius: 5px; color: #fff; background-color: #444;
-      font-family: Open sans; padding: 5px 10px; font-size: 130%; font-weight: bold;
-      margin: 0 20px; }
-      option {  }
-      </style>
+      <input type="submit" value="vybrat">
+    </form>
+    <script>
+      $('form').last().submit(function(){
+        $(this).find(':selected[value=""]').attr('disabled', true);
+      });
+    </script>
   </div>
-  -->
 
   <!-- begin:zahlavi -->
   <div class="blok btext">

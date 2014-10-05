@@ -2,7 +2,7 @@
 
 class Menu {
 
-  protected static $linie = array( // TODO cacheování databáze
+  static $linie = array( // TODO cacheování databáze
     'deskovky'  => 'Deskovky',
     'rpg'       => 'RPG',
     'larpy'     => 'Larpy',
