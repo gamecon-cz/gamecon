@@ -52,6 +52,7 @@ if($m->bezStranky()) {
   if(!$m->bezMenu()) $t->assign('menu', $menu->cele());
   if($u && $u->maPravo(P_ADMIN_UVOD)) $t->parse('index.prihlasen.admin');
   elseif($u && $u->maPravo(P_ADMIN_MUJ_PREHLED)) $t->parse('index.prihlasen.mujPrehled');
+  if($u && $u->gcPrihlasen() && FINANCE_VIDITELNE) $t->assign('finance', $u->finance()->stavHr());
   $t->parse( $u ? 'index.prihlasen' : 'index.neprihlasen' );
   $t->parse('index');
   $t->out('index');

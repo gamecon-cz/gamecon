@@ -3,6 +3,7 @@
 
 a { color: #06d; text-decoration: none; }
 a:hover { text-decoration: underline; }
+a[name] { color: inherit; }
 
 body { margin: 0; font: 14px Open Sans, sans-serif; background-image: data-uri('pozadi.png'); background-repeat: repeat-x; background-color: #e6e6e6; overflow-y: scroll; line-height: 150%; }
 
@@ -15,6 +16,11 @@ body { margin: 0; font: 14px Open Sans, sans-serif; background-image: data-uri('
 .hlavicka .logo img { width: 100%; }
 .hlavicka .ifb { background-image: data-uri('ikonky.png'); display: block; float: left; height: 35px; width: 35px; margin: 0 6px; }
 .hlavicka .neprihlasen > form { position: absolute; .blok; z-index: 10; padding: 10px; text-align: left; margin: 0; }
+.hlavicka .prihlasen { overflow: hidden; text-align: right; color: #888; min-width: 250px; }
+.hlavicka .prihlasen strong { color: #000; }
+.hlavicka .prihlasen a { color: inherit; }
+.hlavicka .avatar { float: right; }
+.hlavicka .prihlasen > div { margin: 4px 110px 0 0; }
 hr.stin { border: none; background-image: data-uri('gradient2.png'); height: 4px; margin: 0 0 -4px 0; }
 
 .menu { text-align: center; background-color: #eee; }
@@ -148,6 +154,7 @@ label { color: #999; }
   .hlavicka .prihlasovani { position: absolute; top: 0; right: 0; }
   .hlavicka .neprihlasen { text-align: right; margin-top: 30px; margin-right: 14px; }
   .hlavicka .neprihlasen > form { margin: 0 10px 0 -30px; }
+  .hlavicka .avatar { height: 100px; }
   .menu > ul > li { width: 33.33334%; }
   .menu li:first-child .mlist { margin: 0 20px 0 0; }
   .menu li:last-child .mlist { margin: 0 0 0 20px; }

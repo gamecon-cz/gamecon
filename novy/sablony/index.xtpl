@@ -37,14 +37,20 @@
       </div>
       <!-- end:neprihlasen -->
       <!-- begin:prihlasen -->
-        <img src="{u.avatar}">
-        <!-- begin:admin -->
-
-        <!-- end:admin -->
-        <a href="#" onclick="$('#odhlasit').submit(); return false;">odhlásit</a>
-        <form method="post" action="prihlaseni" id="odhlasit">
-          <input type="hidden" name="odhlasit" value="true">
-        </form>
+      <div class="prihlasen">
+        <img src="{u.avatar}" class="avatar">
+        <div>
+          <strong>{u.nick}</strong> | id: {u.id} | {finance}<br>
+          <a href="finance">finance</a><br>
+          <a href="registrace">nastavení</a><br>
+          <!-- begin:admin --><a href="#" target="_blank">administrace</a><br><!-- end:admin -->
+          <!-- begin:mujPrehled --><a href="#" target="_blank">moje hry</a><br><!-- end:mujPrehled -->
+          <a href="#" onclick="$('#odhlasit').submit(); return false;">odhlásit</a>
+          <form method="post" action="prihlaseni" id="odhlasit">
+            <input type="hidden" name="odhlasit" value="true">
+          </form>
+        </div>
+      </div>
       <!-- end:prihlasen -->
     </div>
   </div>
