@@ -18,7 +18,7 @@
   <div class="hlavicka">
     <a class="logo" href="">
       <img src="soubory/styl/logo.png" alt="GameCon"><br>
-      Největší festival nepočítačových her
+      <span class="claim">Největší festival nepočítačových her</span>
     </a>
     <div class="linfo">
       <a class="ifb" href="https://www.facebook.com/gamecon"></a>
