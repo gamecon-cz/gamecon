@@ -56,11 +56,9 @@ $a=$u->koncA();
 
 
 
-<?=$gaTrack?>
-
-
-
 <h1>Přihláška na GameCon</h1>
+
+<?=$gaTrack?>
 
 <form method="post" class="obecny">
 
@@ -81,7 +79,7 @@ $a=$u->koncA();
     <img src="files/obsah/materialy/2014/tricko_m.jpg" style="height:75px;width:200px"></a>
   </div>
   
-  <?=$predmety?><br><br>
+  <?=$predmety?><br>
   <p>Placek, kostek i triček s logem GameConu si můžeš objednat více. Stačí kliknout na tlačítko + nebo u triček vyplnit jedno a po potvrzení formuláře se ti nabídne položka pro výběr dalšího.</p>
   
   <h2>Jídlo</h2>

@@ -2,16 +2,16 @@
 <!-- begin:pozastaveno -->
 Objednávání jídla online bylo zastaveno, změny jsou možné na místě.
 <!-- end:pozastaveno -->
-<table>
+<table class="cShopJidlo">
   <tr>
-    <td style="width:60px"></td>
-    <td style="width:40px"></td>
+    <td></td>
+    <td></td>
     <!-- begin:den -->
-    <td style="width:50px">{den}</td>
+    <td>{den}</td>
     <!-- end:den -->
   </tr>
   <!-- begin:druh -->
-  <tr style="line-height:10px">
+  <tr>
     <td>{druh}</td>
     <td>{cena}</td>
     <!-- begin:den -->
@@ -25,7 +25,7 @@ Objednávání jídla online bylo zastaveno, změny jsou možné na místě.
       <!-- end:locked -->
     </td>
     <!-- end:den -->
-  <tr>
+  </tr>
   <!-- end:druh -->
 </table>
 <input type="hidden" name="{pnJidloZmen}" value="1">

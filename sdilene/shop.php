@@ -253,17 +253,17 @@ class Shop
    */
   function ubytovaniHtml()
   {
-    $vyska='17px';
+    $vyska='1.4em';
     $out='';
     // sloupec popisků
-    $out.='<div style="width:110px; float:left">';
+    $out.='<div style="width:7em; float:left">';
     $out.='<div>&nbsp;</div>';
     foreach($this->ubytovaniTypy as $typ => $rozsah)
       $out.='<div style="height:'.$vyska.'">'.$typ.'</div>';
     $out.='<div>Žádné</div>';
     $out.='</div>';
     // sloupec cen
-    $out.='<div style="width:70px; float:left">';
+    $out.='<div style="width:6em; float:left">';
     $out.='<div>&nbsp;</div>';
     foreach(reset($this->ubytovani) as $ubytovani)
       $out.='<div style="text-align:right;height:'.$vyska.'">'.round($ubytovani['cena_aktualni']).'&thinsp;Kč&emsp;&emsp; </div>';
@@ -271,7 +271,7 @@ class Shop
     // sloupce s radiobuttony
     foreach($this->ubytovani as $den => $tmp)
     {
-      $out.='<div style="width:57px; float:left">';
+      $out.='<div style="width:5em; float:left">';
       $ubytovan=false;
       $nazev=reset($tmp);
       $nazev=$nazev['nazev'];
@@ -629,7 +629,7 @@ class Shop
         return false;
       }
     </script>
-    <table class="predmety">
+    <table class="predmety cShopPredmety">
       <?php foreach($predmety as $p) { ?>
       <?php if($p['nabizet'] || $p['kusu_uzivatele']) { ?>
       <tr>
