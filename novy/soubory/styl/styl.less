@@ -86,12 +86,14 @@ hr.stin { border: none; background-image: data-uri('gradient2.png'); height: 4px
 .upoutavka .stredni { top: 12%; }
 .upoutavka .gradient { width: 100%; height: 50px; background-image: data-uri('gradient.png'); position: absolute; bottom: 0; }
 
+
 /* titulka, novinky titulka */
 .novt { padding-bottom: 5px; }
 .novt > h2 { text-transform: uppercase; text-align: center; font-size: 100%; margin: 5px 0; }
 .novt > h2 a { text-decoration: none; color: #fff; display: inline-block; }
-.novt .ntext { margin: 0 27px 0 30px; padding-right: 5px; text-align: justify; }
-.novt .ntext:not(:last-child) { margin-top: -30px; position: relative; z-index: 1; overflow: hidden; /* max-height: 166px; */ }
+.novt .ntext { margin: 0 27px 0 30px; padding-right: 5px; text-align: justify; overflow: hidden; }
+.novt .ntext:not(:last-child) { margin-top: -30px; position: relative; z-index: 1; }
+.novt .ntext:last-child { margin-bottom: 1em; }
 .novt .ntext > h3 { font-size: 120%; margin: 0; text-align: left; }
 .novt .ntext ol { padding-left: 15px; }
 .novt .ntext p { margin: 0.7em 0; }

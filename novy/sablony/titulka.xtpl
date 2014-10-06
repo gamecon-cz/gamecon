@@ -23,11 +23,13 @@
     </h2>
 
     <div class="ntext">
-      <h3>
-        <div class="datum">{novinka.datum}</div>
-        {novinka.nazev}
-      </h3>
-      {novinka.text}
+      <div class="orez">
+        <h3>
+          <div class="datum">{novinka.datum}</div>
+          {novinka.nazev}
+        </h3>
+        {novinka.nahled}
+      </div>
     </div>
 
   </div>
@@ -53,6 +55,12 @@
 
 </div>
 
-
+<!-- hack na posun dolních panelů -->
+<style>
+@media (min-width: 800px) {
+.obsah > .sloupce:last-child > :nth-child(1) {margin-top: -57px; height: 312px; overflow: hidden; }
+.obsah > .sloupce:last-child > :nth-child(3) { margin-top: -134px; height: 389px; overflow: hidden; }
+}
+</style>
 
 <!-- end:titulka -->

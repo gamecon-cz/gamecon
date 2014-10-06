@@ -64,11 +64,15 @@
       {obsah}
       <div class="sloupce">
         <a class="blok upoutavka" href="">
+          <img src="soubory/_placeholder/9.jpg">
+          <div class="stredni"><div>Volný panel</div></div>
+        </a>
+        <a class="blok upoutavka" href="">
           <img src="soubory/_placeholder/3.jpg">
           <div class="stredni"><div>Volný panel</div></div>
         </a>
         <a class="blok upoutavka" href="">
-          <img src="soubory/_placeholder/4.jpg">
+          <img src="soubory/_placeholder/8.jpg">
           <div class="stredni"><div>Volný panel</div></div>
         </a>
       </div>
