@@ -33,6 +33,7 @@ hr.stin { border: none; background-image: data-uri('gradient2.png'); height: 4px
 .menu li:hover .sub { display: block; }
 
 .hlavni { max-width: @sirka; margin: 0 auto 40px auto; position: relative; }
+.obsah { position: relative; }
 
 .sponzori a { font-size: 40px; /* hack pro vyšší klikací plochu odkazu */ }
 .sponzori p { text-align: center; margin-bottom: -10px; }
@@ -144,7 +145,7 @@ label { color: #999; }
   @bpad: 5%;
   .btext { width: 2 * @sloupw + @sloupm - 2 * @bpad; padding: @bpad; }
   .btext > h1:first-child, .btext > h2:first-child { margin: -9%; margin-bottom: 0; } /* závisí nějak nelineárně na @bpad */
-  .btext + .sloupce { position: absolute; top: 0; right: 0; width: @sloupw; }
+  .btext + .sloupce { position: absolute; top: 0; right: 0; width: @sloupw; padding: 5px; margin: -5px; padding-bottom: 0; margin-bottom: 0; height: 100%; overflow: hidden; }
   .btext + .sloupce .blok { width: 100%; }
   .btext + .sloupce .blok:first-child { margin-top: 0; }
   .sloupce:after { content: "."; display: block; clear: both; visibility: hidden; height: 0; }
