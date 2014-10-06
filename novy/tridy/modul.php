@@ -10,6 +10,7 @@ class Modul {
   protected $src;
   protected $params = array();
   protected $vystup;
+  protected $bezDekorace = false;
   protected $bezMenu = false;
   protected $bezStranky = false;
 
@@ -18,6 +19,12 @@ class Modul {
   /** Načte modul ze zadané cesty k souboru */
   protected function __construct($soubor) {
     $this->src = $soubor;
+  }
+
+  /** Jestli se má modul renderovat bez obalovacího divu (tj. ne jak stránka) */
+  protected function bezDekorace($val = null) {
+    if(isset($val)) $this->bezDekorace = (bool)$val;
+    return $this->bezDekorace;
   }
 
   /** Jestli se modul má renderovat bez zobrazeného menu */
@@ -72,7 +79,10 @@ class Modul {
 
   /** Vrátí výstup, který modul vygeneroval */
   function vystup() {
-    return $this->vystup;
+    if($this->bezDekorace)
+      return $this->vystup;
+    else
+      return '<div class="blok btext">' . $this->vystup . '</div>';
   }
 
   /** Načte modul odpovídající dané Url (pokud není zadaná, použije aktuální) */

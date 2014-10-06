@@ -1,5 +1,7 @@
 <?php
 
+$this->bezDekorace(true);
+
 foreach(array('sponzor', 'partner') as $kategorie) {
   foreach(glob("soubory/obsah/{$kategorie}i/*") as $f) {
     $fn = preg_replace('@.*/(.*)\.(jpg|png|gif)@', '$1', $f);

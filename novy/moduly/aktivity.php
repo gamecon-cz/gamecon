@@ -1,5 +1,7 @@
 <?php
 
+$this->bezDekorace(true);
+
 Aktivita::prihlasovatkoZpracuj($u);
 Aktivita::vyberTeamuZpracuj($u);
 

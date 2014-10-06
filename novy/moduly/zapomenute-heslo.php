@@ -1,4 +1,3 @@
-<div class="blok btext">
 <h1>Zapomenuté heslo</h1>
 <?php
 
@@ -103,4 +102,3 @@ if ($mail_odeslan != 1)
 <?php
 }
 ?>
-</div>

@@ -1,7 +1,0 @@
-<!-- begin:stranka -->
-
-<div class="blok btext">
-  {stranka.html}
-</div>
-
-<!-- end:stranka -->

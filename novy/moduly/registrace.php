@@ -86,6 +86,76 @@ $loginy=substr($loginy,0,-1);
 
 
 
+<h1>Registrace</h1>
+
+<?php if(!$u && !$pokracovat){ ?>
+<p>Pomocí tohoto formuláře se můžeš zaregistrovat na stránky a volitelně i přihlásit na GameCon.</p>
+<?php } ?>
+<?php if(!$u && $pokracovat){ ?>
+<p>Pomocí tohoto formuláře se můžeš přihlásit nebo zaregistrovat na stránky a přihlásit na GameCon. Podle e-mailu se ti zobrazí další položky.</p>
+<?php } ?>
+<?php if($u && !$pokracovat){ ?>
+<p>Zde můžeš upravit svoje registrační údaje. Pokud nechceš měnit heslo, nech obě políčka prázdná.</p>
+<?php } ?>
+
+<form method="post" id="regForm" class="registrace" enctype="multipart/form-data">
+  <input type="text" placeholder="e-mail" name="tab[email1_uzivatele]" value="<?=@$udb['email1_uzivatele']?>">
+  <div id="existujiciUzivatel" style="display:none">
+    <div class="pokyn">Uživatel s tímto e-mailem už existuje. Pokud jsi to ty, přihlaš se svým heslem nebo si nech <a href="zapomenute-heslo" tabindex="10">vygenerovat nové</a>, pokud si ho nepamatuješ.</div>
+    <input type="password" placeholder="heslo" name="heslo"><br>
+    <?php if(!$pokracovat){ ?>
+    <input type="submit" name="prihlasit" value="Přihlásit">
+    <?php } ?>
+    <?php if(REGISTRACE_AKTIVNI){ ?>
+    <input type="submit" name="prihlasit2" value="Přihlásit na GameCon">
+    <?php } ?>
+  </div>
+  <div id="neexistujiciUzivatel" <?php if(!$u){ ?>style="display:none"<?php } ?>>
+    <?php if(!$u){ ?>
+    <div class="pokyn">Podle e-mailu se registruješ na GameCon poprve, vyplň prosím registrační údaje. Informace o GameConu ti budeme dávat vědět e-mailem.</div>
+    <?php } ?>
+    <br>
+    <input type="text" placeholder="Přezdívka" name="tab[login_uzivatele]" value="<?=@$udb['login_uzivatele']?>">
+    <input type="text" placeholder="Jméno" name="tab[jmeno_uzivatele]" value="<?=@$udb['jmeno_uzivatele']?>">
+    <input type="text" placeholder="Příjmení" name="tab[prijmeni_uzivatele]" value="<?=@$udb['prijmeni_uzivatele']?>">
+    <input type="radio" name="tab[pohlavi]" value="f" id="pohlaviZena"
+      <?php if(@$udb['pohlavi']=='f'){ ?>checked<?php } ?>>
+      <label for="pohlaviZena">Žena</label> &ensp;
+    <input type="radio" name="tab[pohlavi]" value="m" id="pohlaviMuz"
+      <?php if(@$udb['pohlavi']=='m'){ ?>checked<?php } ?>>
+      <label for="pohlaviMuz">Muž</label>
+    <input type="text" placeholder="Ulice a číslo popisné" name="tab[ulice_a_cp_uzivatele]" value="<?=@$udb['ulice_a_cp_uzivatele']?>">
+    <input type="text" placeholder="Město" name="tab[mesto_uzivatele]" value="<?=@$udb['mesto_uzivatele']?>">
+    <input type="text" placeholder="PSČ" name="tab[psc_uzivatele]" value="<?=@$udb['psc_uzivatele']?>">
+    <select name="tab[stat_uzivatele]">
+      <option value="1" <?=@$udb['stat_uzivatele']==1?'selected':''?>>Česká republika</option>
+      <option value="2" <?=@$udb['stat_uzivatele']==2?'selected':''?>>Slovenská republika</option>
+      <option value="-1" <?=@$udb['stat_uzivatele']==-1?'selected':''?>>(jiný stát)</option>
+    </select>
+    <br>
+    <input type="text" placeholder="Telefon" name="tab[telefon_uzivatele]" value="<?=@$udb['telefon_uzivatele']?>">
+    <input type="text" placeholder="Datum narození jako 1.1.1990" name="datumNarozeni" value="<?=$u?$u->datumNarozeni()->format('j.n.Y'):''?>" >
+    <input type="password" placeholder="Heslo" name="heslo2">
+    <input type="password" placeholder="Heslo pro kontrolu" name="heslo3">
+    <br>
+    <img src="<?=$avatar?>" class="avatar">
+    Obrázek uživatele (vyberte, pokud chcete změnit):<br>
+    <input type="file" name="obrazek">
+    <br style="clear:both"><br>
+    <?php if($u){ ?>
+    <input type="submit" name="upravit" value="Upravit">
+    <?php } ?>
+    <?php if(!$u && !$pokracovat){ ?>
+    <input type="submit" name="registrovat" value="Registrovat">
+    <?php } ?>
+    <?php if(!$u && REGISTRACE_AKTIVNI){ ?>
+    <input type="submit" name="registrovatAPrihlasit" value="Přihlásit na GameCon"><br>
+    <?php } ?>
+  </div>
+</form>
+
+
+
 <script>
 $(function(){
   function formChyby(){
@@ -146,86 +216,13 @@ $(function(){
     if(!formChyby())
       return true;
     alert(formChyby());
-    return false;  
+    return false;
   });
   $('.registrace [name=prihlasit], .registrace [name=prihlasit2]').click(function(){
     if(jeMail($('[name="tab[email1_uzivatele]"]').val()))
       return true;
     alert('Je třeba zadat platný e-mail.');
-    return false;  
+    return false;
   });
 });
 </script>
-
-
-
-<div class="blok btext registrace">
-
-<h1>Registrace</h1>
-
-<?php if(!$u && !$pokracovat){ ?>
-<p>Pomocí tohoto formuláře se můžeš zaregistrovat na stránky a volitelně i přihlásit na GameCon.</p>
-<?php } ?>
-<?php if(!$u && $pokracovat){ ?>
-<p>Pomocí tohoto formuláře se můžeš přihlásit nebo zaregistrovat na stránky a přihlásit na GameCon. Podle e-mailu se ti zobrazí další položky.</p>
-<?php } ?>
-<?php if($u && !$pokracovat){ ?>
-<p>Zde můžeš upravit svoje registrační údaje. Pokud nechceš měnit heslo, nech obě políčka prázdná.</p>
-<?php } ?>
-
-<form method="post" id="regForm" enctype="multipart/form-data">
-  <input type="text" placeholder="e-mail" name="tab[email1_uzivatele]" value="<?=@$udb['email1_uzivatele']?>">
-  <div id="existujiciUzivatel" style="display:none">
-    <div class="pokyn">Uživatel s tímto e-mailem už existuje. Pokud jsi to ty, přihlaš se svým heslem nebo si nech <a href="zapomenute-heslo" tabindex="10">vygenerovat nové</a>, pokud si ho nepamatuješ.</div>
-    <input type="password" placeholder="heslo" name="heslo"><br>
-    <?php if(!$pokracovat){ ?>
-    <input type="submit" name="prihlasit" value="Přihlásit">
-    <?php } ?>
-    <?php if(REGISTRACE_AKTIVNI){ ?>
-    <input type="submit" name="prihlasit2" value="Přihlásit na GameCon">
-    <?php } ?>
-  </div>
-  <div id="neexistujiciUzivatel" <?php if(!$u){ ?>style="display:none"<?php } ?>>
-    <?php if(!$u){ ?>
-    <div class="pokyn">Podle e-mailu se registruješ na GameCon poprve, vyplň prosím registrační údaje. Informace o GameConu ti budeme dávat vědět e-mailem.</div>
-    <?php } ?>
-    <br>
-    <input type="text" placeholder="Přezdívka" name="tab[login_uzivatele]" value="<?=@$udb['login_uzivatele']?>">
-    <input type="text" placeholder="Jméno" name="tab[jmeno_uzivatele]" value="<?=@$udb['jmeno_uzivatele']?>">
-    <input type="text" placeholder="Příjmení" name="tab[prijmeni_uzivatele]" value="<?=@$udb['prijmeni_uzivatele']?>">
-    <input type="radio" name="tab[pohlavi]" value="f" id="pohlaviZena"
-      <?php if(@$udb['pohlavi']=='f'){ ?>checked<?php } ?>>
-      <label for="pohlaviZena">Žena</label> &ensp;
-    <input type="radio" name="tab[pohlavi]" value="m" id="pohlaviMuz"
-      <?php if(@$udb['pohlavi']=='m'){ ?>checked<?php } ?>>
-      <label for="pohlaviMuz">Muž</label>
-    <input type="text" placeholder="Ulice a číslo popisné" name="tab[ulice_a_cp_uzivatele]" value="<?=@$udb['ulice_a_cp_uzivatele']?>">
-    <input type="text" placeholder="Město" name="tab[mesto_uzivatele]" value="<?=@$udb['mesto_uzivatele']?>">
-    <input type="text" placeholder="PSČ" name="tab[psc_uzivatele]" value="<?=@$udb['psc_uzivatele']?>">
-    <select name="tab[stat_uzivatele]">
-      <option value="1" <?=@$udb['stat_uzivatele']==1?'selected':''?>>Česká republika</option>
-      <option value="2" <?=@$udb['stat_uzivatele']==2?'selected':''?>>Slovenská republika</option>
-      <option value="-1" <?=@$udb['stat_uzivatele']==-1?'selected':''?>>(jiný stát)</option>
-    </select>
-    <br>
-    <input type="text" placeholder="Telefon" name="tab[telefon_uzivatele]" value="<?=@$udb['telefon_uzivatele']?>">
-    <input type="text" placeholder="Datum narození jako 1.1.1990" name="datumNarozeni" value="<?=$u?$u->datumNarozeni()->format('j.n.Y'):''?>" >
-    <input type="password" placeholder="Heslo" name="heslo2">
-    <input type="password" placeholder="Heslo pro kontrolu" name="heslo3">
-    <br>
-    <img src="<?=$avatar?>" class="avatar">
-    Obrázek uživatele (vyberte, pokud chcete změnit):<br>
-    <input type="file" name="obrazek">
-    <br style="clear:both"><br>
-    <?php if($u){ ?>
-    <input type="submit" name="upravit" value="Upravit">
-    <?php } ?>
-    <?php if(!$u && !$pokracovat){ ?>
-    <input type="submit" name="registrovat" value="Registrovat">
-    <?php } ?>
-    <?php if(!$u && REGISTRACE_AKTIVNI){ ?>
-    <input type="submit" name="registrovatAPrihlasit" value="Přihlásit na GameCon"><br>
-    <?php } ?>
-  </div>
-</form>
-</div>

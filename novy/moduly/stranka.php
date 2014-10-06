@@ -1,3 +1,3 @@
 <?php
 
-$t->assign('stranka', $stranka);
+echo $stranka->html();

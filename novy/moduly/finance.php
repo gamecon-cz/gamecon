@@ -35,7 +35,6 @@ if(!$zaplaceno)
 
 
 
-<div class="blok btext">
 <h1>Přehled financí</h1>
 <p>V následujícím přehledu vidíš seznam všech položek, které sis na GameConu objednal<?=$a?>, s výslednými cenami po započítání všech slev. Pokud je tvůj celkový stav financí záporný, pokyny k <b>zaplacení</b> najdeš <a href="#placeni">úplně dole</a>.</p>
 
@@ -92,4 +91,3 @@ if(!$zaplaceno)
   <?php } ?><br>
   <strong>Variabilní symbol:</strong> <?=$uid?><br>
 <?php } ?>
-</div>
