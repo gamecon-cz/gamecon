@@ -35,6 +35,7 @@ class Modul {
 
   /** Jestli se má modul renderovat čistě jako plaintext */
   function bezStranky($val = null) {
+    if(isset($val)) $this->bezStranky = $val;
     return $this->bezStranky;
   }
 
@@ -79,7 +80,7 @@ class Modul {
 
   /** Vrátí výstup, který modul vygeneroval */
   function vystup() {
-    if($this->bezDekorace)
+    if($this->bezDekorace || $this->bezStranky)
       return $this->vystup;
     else
       return '<div class="blok btext">' . $this->vystup . '</div>';

@@ -56,6 +56,5 @@ if($m->bezStranky()) {
   $t->parse( $u ? 'index.prihlasen' : 'index.neprihlasen' );
   $t->parse('index');
   $t->out('index');
+  echo profilInfo();
 }
-
-echo profilInfo();
