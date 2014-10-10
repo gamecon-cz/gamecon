@@ -7,8 +7,9 @@
 class Obrazek
 {
 
-  protected $o;       // interní reprezentace obrázku - resource
-  protected $soubor;  // cesta a název souboru s pův. obrázkem
+  protected $o;         // interní reprezentace obrázku - resource
+  protected $original;  // originální načtený obrázek - pro detekci ne/změněnosti při ukládání
+  protected $soubor;    // cesta a název souboru s pův. obrázkem
 
   const FILL = 1;
   const FIT  = 2;
@@ -17,6 +18,7 @@ class Obrazek
   protected function __construct($o, $soubor)
   {
     $this->o = $o;
+    $this->original = $o;
     $this->soubor = $soubor;
   }
 
@@ -63,6 +65,14 @@ class Obrazek
   function fit($nw, $nh)
   {
     $this->ff($nw, $nh, self::FIT);
+  }
+
+  /** Zmenší obrázek do daného bounding-boxu při zachování poměru stran */
+  function fitCrop($maxw, $maxh) {
+    $ratio = 1.0;
+    if($this->width() > $maxw) $ratio = $maxw / $this->width();
+    if($this->height() * $ratio > $maxh) $ratio = $maxh / $this->height();
+    if($ratio < 1.0) $this->resize($this->width() * $ratio, $this->height() * $ratio);
   }
 
   function height()
@@ -133,9 +143,14 @@ class Obrazek
   }
 
   /** Uloží obrázek, přepíše původní */
-  function uloz()
+  function uloz($cil = null, $kvalita = null)
   {
-    imagejpeg($this->o, $this->soubor, 98); // uložit
+    if($cil === null) $cil = $this->soubor;
+    if($this->o == $this->original) { // žádné změny
+      copy($this->soubor, $cil); // použít originál
+    } else {
+      imagejpeg($this->o, $cil, $kvalita ?: 98); // uložit
+    }
   }
 
   function width()
@@ -147,6 +162,15 @@ class Obrazek
   static function zJpg($soubor)
   {
     $o = imagecreatefromjpeg($soubor);
+    if($o === false) throw new Exception('Obrázek se nepodařilo načíst.');
+    return new self($o, $soubor);
+  }
+
+  /** Načte obrázek z některého z podporovaných typů souboru */
+  static function zSouboru($soubor) {
+    $o = @imagecreatefromjpeg($soubor)
+      ?: @imagecreatefrompng($soubor)
+      ?: @imagecreatefromgif($soubor);
     if($o === false) throw new Exception('Obrázek se nepodařilo načíst.');
     return new self($o, $soubor);
   }

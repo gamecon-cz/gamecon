@@ -40,12 +40,9 @@ class Uzivatel
    */
   function avatar()
   {
-    $cesta=__DIR__.'/'.SDILENE_WWW_CESTA.'/soubory/systemove/avatary/';
-    $url=URL_WEBU.'/soubory/systemove/avatary/';
-    if(is_file($cesta.$this->id().'.jpg'))
-      // přidáváme datum poslední modifikace, aby prohlížeč necacheoval, pokud nemá
-      // pozor: prohlížeč si dělá co chce a teprve po dlouhé nezměně obrázku začne cacheovat - to je ok
-      return $url.$this->id().'.jpg?x='.base_convert(filemtime($cesta.$this->id().'.jpg'),10,16);
+    $soubor = __DIR__.'/'.SDILENE_WWW_CESTA.'/soubory/systemove/avatary/'.$this->id().'.jpg';
+    if(is_file($soubor))
+      return Nahled::zSouboru($soubor)->pasuj(null, 100);
     else
       return self::avatarDefault();
   }
@@ -69,42 +66,13 @@ class Uzivatel
    */
   function avatarNactiPost($name)
   {
-    if(!isset($_FILES[$name]['tmp_name']) || !$_FILES[$name]['tmp_name'])
-      return false;
-    $cesta=__DIR__.'/'.SDILENE_WWW_CESTA.'/soubory/systemove/avatary/';
-    // překlopení avataru ID.jpg <--> IDb.jpg kvůli obejití cache
-    $soub=$cesta.$this->id().'.jpg';
-    move_uploaded_file($_FILES[$name]['tmp_name'],$soub);
-    // úpravy obrázku podle podmínek
-    $wMax=60;
-    $hMax=60;
-    $obr=imagecreatefromjpeg($soub); // načíst
-    $nobr=imagecreatetruecolor(60,60);
-    $w=imagesx($obr);
-    $h=imagesy($obr);
-    $hRatio=$hMax/$h; // násobek, kolikrát násobit výšku
-    $wRatio=$wMax/$w; // násobek, kolikrát násobit šířku
-    if($wRatio < $hRatio)
-    { // obrázek přetekl na šířku
-      $sy=0;
-      $sh=$h;
-      $sx=$w/2-$h/2;
-      $sw=$h;
+    try {
+      $o = Obrazek::zSouboru($_FILES[$name]['tmp_name']);
+    } catch(Exception $e) {
+      return false; // nenačten obrázek => starý styl vracení false
     }
-    else
-    { // obrázek přetekl na výšku
-      $sy=$h/2-$w/2;
-      $sh=$w;
-      $sx=0;
-      $sw=$w;
-    }
-    imagecopyresampled($nobr,$obr,
-      0,0,         //dst x,y
-      $sx,$sy,     //src x,y
-      $wMax,$hMax, //dst w,h
-      $sw,$sh      //scr w,h
-    );
-    imagejpeg($nobr,$soub,98); // uložit
+    $o->fitCrop(2048, 2048);
+    $o->uloz( __DIR__.'/'.SDILENE_WWW_CESTA.'/soubory/systemove/avatary/'.$this->id().'.jpg' );
     return true;
   }
 

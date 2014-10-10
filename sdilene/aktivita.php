@@ -318,10 +318,11 @@ class Aktivita
   {
     $url=URL_WEBU.'/soubory/systemove/aktivity/'.$this->a['url_akce'].'.jpg';
     $soub=__DIR__.'/'.SDILENE_WWW_CESTA.'/soubory/systemove/aktivity/'.$this->a['url_akce'].'.jpg';
-    if(is_file($soub))
-      return $url.'?x='.base_convert(filemtime($soub),10,16);
-    else
+    try {
+      return Nahled::zSouboru($soub)->pasuj(400);
+    } catch(Exception $e) {
       return '';
+    }
   }
 
   /** (Správný) alias pro obsazenostHtml() */
