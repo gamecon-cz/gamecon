@@ -125,14 +125,6 @@ class Aktivita
   }
 
   /**
-   * Vrátí HTML kód omezeného editoru který může používat vypravěč aktivity např
-   */
-  function editorVypravec()
-  {
-    return self::editorParam($this,array('popis','obrazek'));
-  }
-
-  /**
    * Vrátí v chyby v JSON formátu (pro ajax) nebo FALSE pokud žádné nejsou
    */
   static function editorChybyJson()
@@ -140,6 +132,115 @@ class Aktivita
     //if(!$_POST[self::AJAXKLIC]) ?
     $a=$_POST[self::POSTKLIC];
     return json_encode(array('chyby'=>self::editorChyby($a)));
+  }
+
+  /**
+   * Vrátí html kód editoru, je možné parametrizovat, co se pomocí něj dá
+   * měnit (todo)
+   */
+  protected static function editorParam(Aktivita $a=null,$omezeni=array())
+  {
+    $aktivita=$a?$a->a:null; //databázový řádek
+    // inicializace šablony
+    $xtpl=new XTemplate(__DIR__.'/editor.xtpl');
+    $xtpl->assign('fields',self::POSTKLIC); // název proměnné (pole) v kterém se mají posílat věci z formuláře
+    $xtpl->assign('ajaxKlic',self::AJAXKLIC);
+    //  $xtpl->assign('readonly','disabled');
+    $xtpl->assign('obrKlic', self::OBRKLIC);
+    $xtpl->assign('obrKlicUrl', self::OBRKLIC.'Url');
+    $xtpl->assign('obrKlicOrez', self::OBRKLIC.'Orez');
+    $xtpl->assign('urlObrazku',$a?$a->obrazek():'');
+    if($a) {
+      $xtpl->assign($a->a);
+      $xtpl->assign('popis', dbText($aktivita['popis']));
+    }
+    // načtení lokací
+    if(!$omezeni || !empty($omezeni['lokace']))
+    {
+      $q=dbQuery('SELECT * FROM akce_lokace ORDER BY poradi');
+      while($r=mysql_fetch_assoc($q))
+        $xtpl->assign('sel',$a && $aktivita['lokace']==$r['id_lokace']?'selected':'') xor
+        $xtpl->assign($r) xor
+        $xtpl->parse('upravy.tabulka.lokace');
+    }
+    // editace dnů + časů
+    if(!$omezeni || !empty($omezeni['zacatek']))
+    {
+      // načtení dnů
+      $xtpl->assign('sel',$a && !$a->zacatek() ? 'selected' : '');
+      $xtpl->assign('den',0);
+      $xtpl->assign('denSlovy','(neurčeno)');
+      $xtpl->parse('upravy.tabulka.den');
+      $aDen = $a && $a->zacatek() ? $a->zacatek()->format('l') : PHP_INT_MAX;
+      foreach($GLOBALS['PROGRAM_DNY'] as $den=>$denSlovy) {
+        $den = (new DateTimeCz(PROGRAM_OD))->add(new DateInterval('P'.$den.'D'));
+        $xtpl->assign('sel', $den->format('l')==$aDen ? 'selected' : '');
+        $xtpl->assign('den', $den->format('Y-m-d'));
+        $xtpl->assign('denSlovy',$denSlovy);
+        $xtpl->parse('upravy.tabulka.den');
+      }
+      // načtení časů
+      $aZacatek = $a && $a->zacatek() ? $a->zacatek()->format('G') : PHP_INT_MAX;
+      $aKonec = $a && $a->konec() ? $a->konec()->sub(new DateInterval('PT1H'))->format('G') : PHP_INT_MAX;
+      for($i=$GLOBALS['PROGRAM_ZACATEK']=8;$i<$GLOBALS['PROGRAM_KONEC']=24;$i++)
+      {
+        $xtpl->assign('sel', $aZacatek==$i ? 'selected' : '');
+        $xtpl->assign('zacatek',$i);
+        $xtpl->assign('zacatekSlovy',$i.':00');
+        $xtpl->parse('upravy.tabulka.zacatek');
+        $xtpl->assign('sel', $aKonec==$i ? 'selected' : '');
+        $xtpl->assign('konec', $i+1);
+        $xtpl->assign('konecSlovy',($i+1).':00');
+        $xtpl->parse('upravy.tabulka.konec');
+      }
+    }
+    // načtení organizátorů
+    if(!$omezeni || !empty($omezeni['organizator']))
+    {
+      $q=dbQuery('SELECT u.id_uzivatele, u.login_uzivatele, u.jmeno_uzivatele, u.prijmeni_uzivatele
+        FROM uzivatele_hodnoty u
+        LEFT JOIN r_uzivatele_zidle z USING(id_uzivatele)
+        LEFT JOIN r_prava_zidle p USING(id_zidle)
+        WHERE p.id_prava='.P_ORG_AKCI.'
+        GROUP BY u.id_uzivatele
+        ORDER BY u.login_uzivatele');
+      $vsichniOrg = array( 0 => '(nikdo)' );
+      while($r = mysql_fetch_assoc($q)) {
+        $vsichniOrg[$r['id_uzivatele']] = Uzivatel::jmenoNickZjisti($r);
+      }
+      $aktOrg = $a && $a->a['organizatori'] ? explode(',', substr($a->a['organizatori'], 1, -1)) : array();
+      $aktOrg[] = 0; // poslední pole má selected 0 (žádný org)
+      $poli = count($aktOrg);
+      for($i = 0; $i < $poli; $i++) {
+        foreach($vsichniOrg as $id => $org) {
+          if($id == $aktOrg[$i]) {
+            $xtpl->assign('sel', 'selected');
+          } else {
+            $xtpl->assign('sel', '');
+          }
+          $xtpl->assign('organizator', $id);
+          $xtpl->assign('organizatorJmeno', $org);
+          $xtpl->parse('upravy.tabulka.orgBox.organizator');
+        }
+        $xtpl->assign('i', $i);
+        $xtpl->parse('upravy.tabulka.orgBox');
+      }
+    }
+    // načtení typů
+    if(!$omezeni || !empty($omezeni['typ']))
+    {
+      $xtpl->assign(array('sel'=>'','id_typu'=>0,'typ_1p'=>'(bez typu – organizační)'));
+      $xtpl->parse('upravy.tabulka.typ');
+      $q=dbQuery('SELECT * FROM akce_typy');
+      while($r=mysql_fetch_assoc($q))
+        $xtpl->assign('sel',$a && $r['id_typu']==$aktivita['typ']?'selected':'') xor
+        $xtpl->assign($r) xor
+        $xtpl->parse('upravy.tabulka.typ');
+    }
+    // výstup
+    if(empty($omezeni)) $xtpl->parse('upravy.tabulka'); // todo ne pokud je bez omezení, ale pokud je omezeno všechno. Pokud jen něco, doprogramovat selektivní omezení pro prvky tabulky i u IFů nahoře a vložit do šablony
+    $xtpl->parse('upravy');
+    return $xtpl->text('upravy');
   }
 
   /**
@@ -170,7 +271,6 @@ class Aktivita
     $a['team_max']  = $a['teamova'] ? (int)$a['team_max'] : null;
     // u teamových aktivit se kapacita ignoruje - později se nechá jak je nebo přepíše minimem, pokud jde o novou aktivitu
     if($a['teamova']) unset($a['kapacita'], $a['kapacita_f'], $a['kapacita_m']);
-    //if(self::editorChyby($a)) return false; //řeší ajax (?)
     // přepočet času
     if(empty($a['den'])) {
       $a['zacatek'] = $a['konec'] = null;
@@ -179,16 +279,15 @@ class Aktivita
       $a['konec'] = (new DateTimeCz($a['den']))->add(new DateInterval('PT'.$a['konec'].'H'))->formatDb();
     }
     unset($a['den']);
-    // organizátoři extra (díky separátní tabulce)
+    // extra položky kvůli sep. tabulkám
     $organizatori = $a['organizatori'];
     unset($a['organizatori']);
+    $popis = $a['popis'];
+    unset($a['popis']);
     if(!$a['patri_pod'] && $a['id_akce'])
     { // editace jediné aktivity
       dbInsertUpdate('akce_seznam',$a);
       $aktivita = self::zId($a['id_akce']);
-      $aktivita->zpracujObrazekPost();
-      $aktivita->organizatori($organizatori);
-      return $aktivita;
     }
     else if($a['patri_pod'])
     { // editace aktivity z rodiny instancí
@@ -211,10 +310,6 @@ class Aktivita
       $zmenyVse=array_diff_key($a,array_flip(array_merge($doHlavni,$doAktualni)));
       unset($zmenyVse['patri_pod'],$zmenyVse['id_akce']); //id se nesmí updatovat!
       dbUpdate('akce_seznam',$zmenyVse,array('patri_pod'=>$patriPod));
-      // obrázek
-      $aktivita->zpracujObrazekPost();
-      $aktivita->organizatori($organizatori);
-      return $aktivita;
     }
     else
     { // vkládání nové aktivity
@@ -227,11 +322,14 @@ class Aktivita
       dbInsertUpdate('akce_seznam',$a);
       $a['id_akce']=mysql_insert_id();
       $aktivita = self::zId($a['id_akce']);
-      $aktivita->zpracujObrazekPost();
-      $aktivita->organizatori($organizatori);
       $aktivita->nova=true;
-      return $aktivita;
     }
+    // objektová rozhraní
+    if($f = postFile(self::OBRKLIC))      $aktivita->obrazek(Obrazek::zJpg($f));
+    if($url = post(self::OBRKLIC.'Url'))  $aktivita->obrazek(Obrazek::zUrl($url));
+    $aktivita->organizatori($organizatori);
+    $aktivita->popis($popis);
+    return $aktivita;
   }
 
   function id()
@@ -243,7 +341,7 @@ class Aktivita
     $akt = dbOneLine('SELECT * FROM akce_seznam WHERE id_akce='.$this->id());
     //odstraníme id, url a popisek, abychom je nepoužívali/neduplikovali při vkládání
     //stav se vloží implicitní hodnota v DB
-    unset($akt['id_akce'], $akt['url_akce'], $akt['popis'], $akt['stav'], $akt['zamcel']);
+    unset($akt['id_akce'], $akt['url_akce'], $akt['stav'], $akt['zamcel']);
     if($akt['teamova']) $akt['kapacita'] = $akt['team_max'];
     if($akt['patri_pod']>0)
     { //aktivita už má instanční skupinu, použije se stávající
@@ -317,11 +415,17 @@ class Aktivita
   function obrazek()
   {
     $url=URL_WEBU.'/soubory/systemove/aktivity/'.$this->a['url_akce'].'.jpg';
-    $soub=__DIR__.'/'.SDILENE_WWW_CESTA.'/soubory/systemove/aktivity/'.$this->a['url_akce'].'.jpg';
-    try {
-      return Nahled::zSouboru($soub)->pasuj(400);
-    } catch(Exception $e) {
-      return '';
+    $soub = WWW.'/soubory/systemove/aktivity/'.$this->a['url_akce'].'.jpg';
+    if(func_num_args() == 0) {
+      try {
+        return Nahled::zSouboru($soub)->pasuj(400);
+      } catch(Exception $e) {
+        return '';
+      }
+    } else {
+      $o = func_get_arg(0);
+      $o->fitCrop(2048, 2048);
+      $o->uloz($soub);
     }
   }
 
@@ -473,7 +577,14 @@ class Aktivita
    * Vrátí formátovaný (html) popisek aktivity
    */
   function popis() {
-    return dbMarkdown($this->a['popis']);
+    if(func_num_args() == 0) {
+      return dbMarkdown($this->a['popis']);
+    } else {
+      $id = dbText($this->a['popis'], func_get_arg(0));
+      if($this->a['patri_pod']) dbUpdate('akce_seznam', array('popis' => $id), array('patri_pod' => $this->a['patri_pod']));
+      else dbUpdate('akce_seznam', array('popis' => $id), array('id_akce' => $this->id()));
+      $this->a['popis'] = $id;
+    }
   }
 
   /**
@@ -1156,8 +1267,6 @@ class Aktivita
    * @param $where obsah where klauzule (bez úvodního klíč. slova WHERE)
    * @param $args volitelné pole argumentů pro dbQueryS()
    * @param $order volitelně celá klauzule ORDER BY včetně klíč. slova
-   * @todo cacheování popisu separátně nebo vůbec nenačítání, aby nebyl
-   *  rozkopírovaný v paměti
    * @todo třída která obstará reálný iterátor, nejenom obalení pole (nevýhoda
    *  pole je nezměněná nutnost čekat, než se celá odpověď načte a přesype do
    *  paměti
@@ -1230,149 +1339,6 @@ class Aktivita
       $chyby[] = 'Url je už použitá pro jinou aktivitu. Vyberte jinou, nebo použijte tlačítko „inst“ v seznamu aktivit pro duplikaci.';
     }
     return $chyby;
-  }
-
-  /**
-   * Vrátí html kód editoru, je možné parametrizovat, co se pomocí něj dá
-   * měnit (todo)
-   */
-  protected static function editorParam(Aktivita $a=null,$omezeni=array())
-  {
-    $aktivita=$a?$a->a:null; //databázový řádek
-    // inicializace šablony
-    $xtpl=new XTemplate(__DIR__.'/editor.xtpl');
-    $xtpl->assign('fields',self::POSTKLIC); // název proměnné (pole) v kterém se mají posílat věci z formuláře
-    $xtpl->assign('ajaxKlic',self::AJAXKLIC);
-    //  $xtpl->assign('readonly','disabled');
-    $xtpl->assign('obrKlic', self::OBRKLIC);
-    $xtpl->assign('obrKlicUrl', self::OBRKLIC.'Url');
-    $xtpl->assign('obrKlicOrez', self::OBRKLIC.'Orez');
-    $xtpl->assign('urlObrazku',$a?$a->obrazek():'');
-    if($a) {
-      $xtpl->assign($a->a);
-      $xtpl->assign('popis', $a->popis());
-    }
-    // načtení lokací
-    if(!$omezeni || !empty($omezeni['lokace']))
-    {
-      $q=dbQuery('SELECT * FROM akce_lokace ORDER BY poradi');
-      while($r=mysql_fetch_assoc($q))
-        $xtpl->assign('sel',$a && $aktivita['lokace']==$r['id_lokace']?'selected':'') xor
-        $xtpl->assign($r) xor
-        $xtpl->parse('upravy.tabulka.lokace');
-    }
-    // editace dnů + časů
-    if(!$omezeni || !empty($omezeni['zacatek']))
-    {
-      // načtení dnů
-      $xtpl->assign('sel',$a && !$a->zacatek() ? 'selected' : '');
-      $xtpl->assign('den',0);
-      $xtpl->assign('denSlovy','(neurčeno)');
-      $xtpl->parse('upravy.tabulka.den');
-      $aDen = $a && $a->zacatek() ? $a->zacatek()->format('l') : PHP_INT_MAX;
-      foreach($GLOBALS['PROGRAM_DNY'] as $den=>$denSlovy) {
-        $den = (new DateTimeCz(PROGRAM_OD))->add(new DateInterval('P'.$den.'D'));
-        $xtpl->assign('sel', $den->format('l')==$aDen ? 'selected' : '');
-        $xtpl->assign('den', $den->format('Y-m-d'));
-        $xtpl->assign('denSlovy',$denSlovy);
-        $xtpl->parse('upravy.tabulka.den');
-      }
-      // načtení časů
-      $aZacatek = $a && $a->zacatek() ? $a->zacatek()->format('G') : PHP_INT_MAX;
-      $aKonec = $a && $a->konec() ? $a->konec()->sub(new DateInterval('PT1H'))->format('G') : PHP_INT_MAX;
-      for($i=$GLOBALS['PROGRAM_ZACATEK']=8;$i<$GLOBALS['PROGRAM_KONEC']=24;$i++)
-      {
-        $xtpl->assign('sel', $aZacatek==$i ? 'selected' : '');
-        $xtpl->assign('zacatek',$i);
-        $xtpl->assign('zacatekSlovy',$i.':00');
-        $xtpl->parse('upravy.tabulka.zacatek');
-        $xtpl->assign('sel', $aKonec==$i ? 'selected' : '');
-        $xtpl->assign('konec', $i+1);
-        $xtpl->assign('konecSlovy',($i+1).':00');
-        $xtpl->parse('upravy.tabulka.konec');
-      }
-    }
-    // načtení organizátorů
-    if(!$omezeni || !empty($omezeni['organizator']))
-    {
-      $q=dbQuery('SELECT u.id_uzivatele, u.login_uzivatele, u.jmeno_uzivatele, u.prijmeni_uzivatele
-        FROM uzivatele_hodnoty u
-        LEFT JOIN r_uzivatele_zidle z USING(id_uzivatele)
-        LEFT JOIN r_prava_zidle p USING(id_zidle)
-        WHERE p.id_prava='.P_ORG_AKCI.'
-        GROUP BY u.id_uzivatele
-        ORDER BY u.login_uzivatele');
-      $vsichniOrg = array( 0 => '(nikdo)' );
-      while($r = mysql_fetch_assoc($q)) {
-        $vsichniOrg[$r['id_uzivatele']] = Uzivatel::jmenoNickZjisti($r);
-      }
-      $aktOrg = $a && $a->a['organizatori'] ? explode(',', substr($a->a['organizatori'], 1, -1)) : array();
-      $aktOrg[] = 0; // poslední pole má selected 0 (žádný org)
-      $poli = count($aktOrg);
-      for($i = 0; $i < $poli; $i++) {
-        foreach($vsichniOrg as $id => $org) {
-          if($id == $aktOrg[$i]) {
-            $xtpl->assign('sel', 'selected');
-          } else {
-            $xtpl->assign('sel', '');
-          }
-          $xtpl->assign('organizator', $id);
-          $xtpl->assign('organizatorJmeno', $org);
-          $xtpl->parse('upravy.tabulka.orgBox.organizator');
-        }
-        $xtpl->assign('i', $i);
-        $xtpl->parse('upravy.tabulka.orgBox');
-      }
-    }
-    // načtení typů
-    if(!$omezeni || !empty($omezeni['typ']))
-    {
-      $xtpl->assign(array('sel'=>'','id_typu'=>0,'typ_1p'=>'(bez typu – organizační)'));
-      $xtpl->parse('upravy.tabulka.typ');
-      $q=dbQuery('SELECT * FROM akce_typy');
-      while($r=mysql_fetch_assoc($q))
-        $xtpl->assign('sel',$a && $r['id_typu']==$aktivita['typ']?'selected':'') xor
-        $xtpl->assign($r) xor
-        $xtpl->parse('upravy.tabulka.typ');
-    }
-    // výstup
-    if(empty($omezeni)) $xtpl->parse('upravy.tabulka'); // todo ne pokud je bez omezení, ale pokud je omezeno všechno. Pokud jen něco, doprogramovat selektivní omezení pro prvky tabulky i u IFů nahoře a vložit do šablony
-    $xtpl->parse('upravy');
-    return $xtpl->text('upravy');
-  }
-
-  /**
-   * Zpracuje obrázek poslaný formulářem. Formulář musí mít typ:
-   *   form method="post" enctype="multipart/form-data"
-   * aby to fungovalo.
-   */
-  protected function zpracujObrazekPost()
-  {
-    // todo změna url (fixme). Hack
-    $cesta=__DIR__.'/'.SDILENE_WWW_CESTA.'/soubory/systemove/aktivity/';
-    if($_POST[self::POSTKLIC.'staraUrl']!=$this->a['url_akce'])
-      if(is_file($cesta.$_POST[self::POSTKLIC.'staraUrl'].'.jpg'))
-         rename( $cesta.$_POST[self::POSTKLIC.'staraUrl'].'.jpg', $cesta.$this->a['url_akce'].'.jpg');
-    // aktualizace obrázku
-    $soubor = __DIR__.'/'.SDILENE_WWW_CESTA.'/soubory/systemove/aktivity/'.$this->a['url_akce'].'.jpg';
-    $o = null;
-    if(!empty($_FILES[self::OBRKLIC]['tmp_name'])) { // poslán obrázek pro aktualizaci
-      move_uploaded_file($_FILES[self::OBRKLIC]['tmp_name'], $soubor);
-      $o = Obrazek::zJpg($soubor);
-    }
-    if($url = post(self::OBRKLIC.'Url')) {
-      $o = Obrazek::zUrl($url, $soubor);
-    }
-    // resize
-    if($o!==null) {
-      $r = 4/3;
-      $orez = post(self::OBRKLIC.'Orez');
-      if($orez == 'stretch')  $o->ratio($r);
-      elseif($orez == 'fit')  $o->ratioFit($r);
-      else                    $o->ratioFill($r);
-      $o->reduce(400, 300);
-      $o->uloz();
-    }
   }
 
 }

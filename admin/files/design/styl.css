@@ -23,7 +23,7 @@ body {
 .uzivatel { background-color: #fff; }
 .uzivatel .detail {  }
 .uzivatel .tip { color: #aaa; margin: 4px 8px 0 8px; font-size: 0.8em; }
-.uzivatel .avatar { float: left; width: 60px; height: 60px; margin: 0 8px 8px 0; }
+.uzivatel .avatar { float: left; max-width: 60px; max-height: 60px; margin: 0 8px 8px 0; }
 .uzivatel h3 { margin: 0 0 3px 0; font-size: 1.2em; line-height: 0.9em; }
 .uzivatel .omnibox { width: 100%; box-sizing: border-box; -moz-box-sizing: border-box; }
 .uzivatel .status { font-weight: bold; }

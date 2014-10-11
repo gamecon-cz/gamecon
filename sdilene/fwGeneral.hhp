@@ -56,6 +56,13 @@ function post($name)
   else return '';
 }
 
+/** Returns temporary filename for uploaded file or '' if none */
+function postFile($name)
+{
+  if(isset($_FILES[$name]['tmp_name'])) return $_FILES[$name]['tmp_name'];
+  else return '';
+}
+
 /**
  * Returns random hexadecimal number in with $chars number of characters (ie.
  * half $chars bytes)

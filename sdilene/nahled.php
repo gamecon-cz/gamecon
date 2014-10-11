@@ -23,7 +23,7 @@ class Nahled {
   /** Vrátí url obrázku, je možné ji cacheovat navždy */
   function __toString() {
     $hash = md5($this->soubor . $this->mod . $this->v . $this->s);
-    $cache = SDILENE_WWW_CESTA . '/soubory/perfectcache/obrazky/' . $hash . '.jpg';
+    $cache = WWW . '/soubory/perfectcache/obrazky/' . $hash . '.jpg';
     $url = URL_WEBU . '/soubory/perfectcache/obrazky/' . $hash . '.jpg?m=' . $this->datum;
     if(@filemtime($cache) < $this->datum) $this->uloz($cache);
     return $url;

@@ -57,6 +57,24 @@ function dbMarkdown($hash) {
 }
 
 
+/** Vrátí / nastaví text daného hashe v DB */
+function dbText($hash) {
+  if(func_num_args() == 1) {
+    return dbOneCol('SELECT text FROM texty WHERE id = '.(int)$hash);
+  } elseif(func_num_args() == 2 and !func_get_arg(1)) {
+    dbQuery('DELETE FROM texty WHERE id = '.(int)$hash);
+    return 0;
+  } else {
+    $text = func_get_arg(1);
+    $nhash = scrc32($text);
+    $nrow = array('text' => $text, 'id' => $nhash);
+    if($hash) dbUpdate('texty', $nrow, array('id' => $hash));
+    else dbInsert('texty', $nrow);
+    return $nhash;
+  }
+}
+
+
 /** Načte / uloží hodnotu do key-value storage s daným názvem */
 function kvs($nazev, $index, $hodnota = null) {
   if(!isset($GLOBALS['CACHEDB'][$nazev])) {

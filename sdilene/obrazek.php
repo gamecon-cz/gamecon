@@ -176,11 +176,11 @@ class Obrazek
   }
 
   /** Stáhne a nahraje obrázek z url */
-  static function zUrl($url, $soubor)
+  static function zUrl($url, $soubor = null)
   {
     $o = imagecreatefromjpeg($url);
     if($o === false) throw new Exception('Obrázek se nepodařilo načíst.');
-    return new self($o, $soubor);
+    return new self($o, $soubor ?: $url);
   }
 
 }

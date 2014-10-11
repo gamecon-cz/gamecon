@@ -40,7 +40,7 @@ class Uzivatel
    */
   function avatar()
   {
-    $soubor = __DIR__.'/'.SDILENE_WWW_CESTA.'/soubory/systemove/avatary/'.$this->id().'.jpg';
+    $soubor = WWW.'/soubory/systemove/avatary/'.$this->id().'.jpg';
     if(is_file($soubor))
       return Nahled::zSouboru($soubor)->pasuj(null, 100);
     else
@@ -72,7 +72,7 @@ class Uzivatel
       return false; // nenačten obrázek => starý styl vracení false
     }
     $o->fitCrop(2048, 2048);
-    $o->uloz( __DIR__.'/'.SDILENE_WWW_CESTA.'/soubory/systemove/avatary/'.$this->id().'.jpg' );
+    $o->uloz( WWW.'/soubory/systemove/avatary/'.$this->id().'.jpg' );
     return true;
   }
 
@@ -578,7 +578,7 @@ class Uzivatel
   /** Dummy logování pro situaci kdy se slučují uživatelé */
   protected function slucLog($zprava) {
     file_put_contents(
-      __DIR__.'/'.SDILENE_ADMIN_CESTA.'/files/logs/slucovani',
+      ADMIN.'/files/logs/slucovani',
       (new DateTimeCz)->formatDb().' '.$zprava."\n",
       FILE_APPEND
     );

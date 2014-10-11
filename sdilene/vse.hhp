@@ -12,10 +12,10 @@ spl_autoload_register(function($trida){
 });
 
 require_once(__DIR__.'/../specificke/site-specific.php');
-require_once('fwGeneral.hhp'); // passed $START_GENERATE
+require_once('fwGeneral.hhp');
 require_once('fwDatabase.hhp');
 
-Vyjimkovac::aktivuj();
+if(VETEV == OSTRA) Vyjimkovac::aktivuj();
 
 require_once('constants.hhp');
 require_once('functions.hhp');
