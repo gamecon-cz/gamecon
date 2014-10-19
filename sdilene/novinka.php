@@ -17,6 +17,16 @@ class Novinka {
     return date('j.n.', strtotime($this->r['vydat']));
   }
 
+  function form() {
+    $f = new DbFormGc('novinky');
+    $f->loadRow($this->r);
+    return $f;
+  }
+
+  function id() {
+    return $this->r['id'];
+  }
+
   /** Prvních $n znaků příspěvku */
   function nahled($n = 250) {
     return mb_substr(strip_tags($this->text()), 0, $n);
@@ -36,6 +46,14 @@ class Novinka {
     return dbMarkdown($this->r['text']);
   }
 
+  function typSlovy() {
+    $typy = array(
+      self::BLOG => 'blog',
+      self::NOVINKA => 'novinka',
+    );
+    return $typy[$this->r['typ']];
+  }
+
   /** název enkódovaný do url formátu */
   function url() {
     return $this->r['url'];
@@ -51,6 +69,13 @@ class Novinka {
 
   static function zUrl($url, $typ = self::NOVINKA) {
     return self::zWhere('url = $1 AND typ = $2', array($url, $typ));
+  }
+
+  static function zVsech() {
+    $o = dbQuery('SELECT * FROM novinky ORDER BY vydat DESC');
+    $a = array();
+    while($r = mysql_fetch_assoc($o)) $a[] = new self($r);
+    return $a;
   }
 
   protected static function zWhere($where, $params = null) {

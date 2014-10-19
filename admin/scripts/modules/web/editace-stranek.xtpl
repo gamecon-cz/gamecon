@@ -5,6 +5,7 @@
   <style>
     .oddelovac td { font-weight: bold; padding-top: 16px; border-width: 0; }
   </style>
+  <h1>Stránky</h1>
   <table class="vypis">
     <tr>
       <th>Název stránky v menu</th>
@@ -16,7 +17,7 @@
     <tr class="{odd}">
       <td>{nazev}</td>
       <td>{url_stranky}</td>
-      <td><a href="web/editace-stranek/{id_stranky}">upravit obsah</a></td>
+      <td><a href="web/editace-stranek/{id_stranky}" class="tlacitko">upravit</a></td>
     </tr>
     <!-- end:radek -->
   </table>

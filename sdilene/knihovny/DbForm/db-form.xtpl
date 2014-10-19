@@ -1,0 +1,24 @@
+<!-- begin:form -->
+
+<form method="post">
+
+<!-- begin:raw -->{field.html}<!-- end:raw -->
+<input type="hidden" name="{submitted}" value="true">
+
+<table>
+  <!-- begin:row -->
+  <tr>
+    <th>{field.label}</th>
+    <td>{field.html}</td>
+  </tr>
+  <!-- end:row -->
+  <!-- begin:custom -->
+  <tr><td colspan="2">{field.html}</td></tr>
+  <!-- end:custom -->
+</table>
+
+<input type="submit" value="Uložit">
+
+</form>
+
+<!-- end:form -->

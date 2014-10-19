@@ -58,12 +58,13 @@ body {
   background-color: #bbb; background: linear-gradient(to bottom, #888 8px, #bbb 16px); margin-bottom: -8px; }
 
 /* Formuláře */
-input, textarea, select { border: solid 1px #999; padding: 2px; border-radius: 2px; margin: 0; font: inherit; }
+input, textarea, select, .tlacitko { border: solid 1px #999; padding: 2px; border-radius: 2px; margin: 0; font: inherit; }
 input::-moz-focus-inner { border: 0; padding: 0; /* margin-top:-2px; margin-bottom: -2px; */ /* FF fix */ }
-input[type="submit"], input[type="button"] { background: linear-gradient(to top, #d8d8d8 0%, #fafafa 100%); padding: 2px 8px; }
-input[type="submit"]:hover, input[type="button"]:hover { border-color: #666; }
+input[type="submit"], input[type="button"], .tlacitko { background: linear-gradient(to top, #d8d8d8 0%, #fafafa 100%); padding: 2px 8px; }
+input[type="submit"]:hover, input[type="button"]:hover, .tlacitko:hover { border-color: #666; cursor: pointer; }
 input[type="text"], input[type="password"], select {  }
 textarea { font: inherit; }
+a.tlacitko { color: inherit; text-decoration: none; }
 
 /* Tabulky */
 .main table { border-collapse: collapse; }
@@ -77,6 +78,7 @@ textarea { font: inherit; }
 
 table form, form.radkovy { margin:0; padding:0; display: inline; }
 table form input[type="submit"], table form input[type="button"], .tlacitko { padding: 0 5px; font-size: 11px; line-height: 10px; font-family: inherit; height: 14px; position: relative; top: -1px; }
+td > a.tlacitko { height: 12px; display: inline-block; top: -1px; line-height: 12px; }
 
 table.cista > tbody > tr { background-color: transparent; vertical-align: top; padding:0; }
 table.cista > tbody > tr > td { border: solid 0px; padding: 0; }

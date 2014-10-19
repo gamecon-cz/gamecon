@@ -1,0 +1,21 @@
+<!-- begin:web -->
+
+<h1>Novinky</h1>
+<table class="zvyraznovana">
+  <tr>
+    <th>Vydat</th>
+    <th>Typ</th>
+    <th>Název</th>
+    <th>Akce</th>
+  </tr>
+  <!-- begin:novinka -->
+  <tr>
+    <td>{novinka.datum}</td>
+    <td>{novinka.typSlovy}</td>
+    <td>{novinka.nazev}</td>
+    <td><a class="tlacitko" href="web/novinka?id={novinka.id}">upravit</a></td>
+  </tr>
+  <!-- end:novinka -->
+</table>
+
+<!-- end:web -->

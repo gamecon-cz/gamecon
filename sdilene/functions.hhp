@@ -57,7 +57,18 @@ function dbMarkdown($hash) {
 }
 
 
-/** Vrátí / nastaví text daného hashe v DB */
+/**
+ * Vrátí / nastaví text daného hashe v DB.
+ * Možné použití (místo 0 funguje všude false ekvivalent):
+ *  dbText(123)         - vrátí text s ID 123
+ *  dbText(0)           - vrátí 0
+ *  dbText(0, 'ahoj')   - vloží text a vrátí jeho ID
+ *  dbText(123, 'ahoj') - odstraní text 123 a vloží místo něj nový, vrátí nové ID
+ *  dbText(123, '')     - odstraní text 123 a vrátí 0
+ *  dbText(0, '')       - vrátí 0
+ *  TODO vše implementovat a otestovat
+ *  TODO co s duplicitami
+ */
 function dbText($hash) {
   if(func_num_args() == 1) {
     return dbOneCol('SELECT text FROM texty WHERE id = '.(int)$hash);

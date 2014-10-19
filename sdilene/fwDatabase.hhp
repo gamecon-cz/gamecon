@@ -45,6 +45,14 @@ function dbDelete($table, $whereArray) {
   dbQuery('DELETE FROM ' . dbQi($table) . ' WHERE ' . implode(' AND ', $where));
 }
 
+/** Returns 2D array with table structure description */
+function dbDescribe($table) {
+  $a = dbQuery('show full columns from '.dbQi($table));
+  $out = array();
+  while($r = mysql_fetch_assoc($a)) $out[] = $r;
+  return $out;
+}
+
 function dbLastId()
 {
   return mysql_insert_id($GLOBALS['spojeni']);

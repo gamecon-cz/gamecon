@@ -1,0 +1,28 @@
+<!-- begin:md -->
+
+<input type="hidden" name="{pnOldId}" value="{oldId}">
+<table>
+  <tr>
+    <td style="width: 50%; vertical-align: top"><textarea style="width: 100%" name="{pnText}">{text}</textarea></td>
+    <td style="vertical-align: top" class="dbffMdtext">{mdText}</td>
+  </tr>
+</table>
+<script src="files/showdown.js"></script>
+<script src="files/jquery.autosize.js"></script>
+<script>
+  var $text = $('textarea').last();
+  $text.autosize();
+  $text.keyup(function(){
+    var md = new Showdown.converter();
+    var html = md.makeHtml($(this).val());
+    //html = html.replace(/src=\"\/files/g,'src="http://gamecon.dev/files');
+    $(this).closest('table').find('.dbffMdtext').html(html);
+  });
+  $('table').last().parent().css('padding', 0);
+</script>
+<style>
+.dbffMdtext p { margin: 1.35em 0; }
+.dbffMdtext > :first-child { margin-top: 0; }
+</style>
+
+<!-- end:md -->
