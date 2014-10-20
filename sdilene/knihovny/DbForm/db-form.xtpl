@@ -1,6 +1,6 @@
 <!-- begin:form -->
 
-<form method="post">
+<form method="post" class="dbForm">
 
 <!-- begin:raw -->{field.html}<!-- end:raw -->
 <input type="hidden" name="{submitted}" value="true">
@@ -12,10 +12,10 @@
     <td>{field.html}</td>
   </tr>
   <!-- end:row -->
-  <!-- begin:custom -->
-  <tr><td colspan="2">{field.html}</td></tr>
-  <!-- end:custom -->
 </table>
+<!-- begin:custom -->
+<div>{field.html}</div>
+<!-- end:custom -->
 
 <input type="submit" value="Uložit">
 

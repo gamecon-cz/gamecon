@@ -1,7 +1,7 @@
 <!-- begin:md -->
 
 <input type="hidden" name="{pnOldId}" value="{oldId}">
-<table>
+<table style="width:100%">
   <tr>
     <td style="width: 50%; vertical-align: top"><textarea style="width: 100%" name="{pnText}">{text}</textarea></td>
     <td style="vertical-align: top" class="dbffMdtext">{mdText}</td>
