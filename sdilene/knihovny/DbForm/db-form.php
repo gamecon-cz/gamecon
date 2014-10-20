@@ -91,25 +91,33 @@ class DbForm {
    * otherwise does nothing.
    * @todo what if fields list (in post) is incomplete? Throw error? Allow this
    *  (for case of restricted privileges) but only for update? ...?
+   * @todo remove is_ajax and die in favor of methods on request object or
+   *  something like that, which should be passed as parameter or injected.
    */
   function processPost() {
     if(empty($_POST[$this->postName()])) return;
-    $this->loadPost();
-    // preparations when needed
-    foreach($this->fields() as $f) $f->preInsert();
-    // master record update
-    $r = array();
-    $pkey = null;
-    foreach($this->fields() as $f) {
-      $r[$f->name()] = $f->value();
-      if($f instanceof DbffPkey) $pkey = $f;
+    try {
+      $this->loadPost();
+      // preparations when needed
+      foreach($this->fields() as $f) $f->preInsert();
+      // master record update
+      $r = array();
+      $pkey = null;
+      foreach($this->fields() as $f) {
+        $r[$f->name()] = $f->value();
+        if($f instanceof DbffPkey) $pkey = $f;
+      }
+      if($pkey->value())  dbUpdate($this->table(), $r, array($pkey->name() => $pkey->value()));
+      else                dbInsert($this->table(), $r);
+      // final cleanup
+      foreach($this->fields() as $f) $f->postInsert();
+    } catch(Exception $e) {
+      if(is_ajax()) die(json_encode(array('error' => $e->getMessage())));
+      else throw $e;
     }
-    if($pkey->value())  dbUpdate($this->table(), $r, array($pkey->name() => $pkey->value()));
-    else                dbInsert($this->table(), $r);
-    // final cleanup
-    foreach($this->fields() as $f) $f->postInsert();
     // redirect
-    header('Location: '.$_SERVER['HTTP_REFERER'], true, 303);
+    if(is_ajax()) die('{}');
+    else header('Location: '.$_SERVER['HTTP_REFERER'], true, 303);
   }
 
   /**

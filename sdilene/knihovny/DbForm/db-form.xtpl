@@ -20,5 +20,26 @@
 <input type="submit" value="Uložit">
 
 </form>
+<script>
+$('form').last().submit(function(){
+  $submit = $(this).find('input[type=submit]');
+  $submit.attr('disabled', 'true');
+  var $error = function(msg){
+    alert('Chyba: ' + msg);
+    $submit.removeAttr('disabled');
+  };
+  var $ok = function(){
+    location.reload();
+  };
+  $.post(document.URL, $(this).serialize(), function(data){
+    if(data.error) $error(data.error);
+    else $ok();
+  }, 'json').fail(function(){
+    $error('Nepodařilo se navázat spojení');
+  });
+  return false;
+});
+
+</script>
 
 <!-- end:form -->
