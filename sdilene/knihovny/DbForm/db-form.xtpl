@@ -29,6 +29,7 @@ $('form').last().submit(function(){
     $submit.removeAttr('disabled');
   };
   var $ok = function(){
+    $.cookie('CHYBY_CLASS_OZNAMENI', 'Uloženo', { expires: (1/24*60*60)*5 });
     location.reload();
   };
   $.post(document.URL, $(this).serialize(), function(data){
