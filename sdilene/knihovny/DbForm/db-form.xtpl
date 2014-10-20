@@ -28,12 +28,14 @@ $('form').last().submit(function(){
     alert('Chyba: ' + msg);
     $submit.removeAttr('disabled');
   };
-  var $ok = function(){
+  var $ok = function(newId){
     $.cookie('CHYBY_CLASS_OZNAMENI', 'Uloženo', { expires: (1/24*60*60)*5 });
-    location.reload();
+    if(newId) window.location = window.location + '?id=' + newId;
+    else location.reload();
   };
   $.post(document.URL, $(this).serialize(), function(data){
     if(data.error) $error(data.error);
+    else if(data.id) $ok(data.id);
     else $ok();
   }, 'json').fail(function(){
     $error('Nepodařilo se navázat spojení');

@@ -103,12 +103,17 @@ class DbForm {
       // master record update
       $r = array();
       $pkey = null;
+      $newId = null;
       foreach($this->fields() as $f) {
         $r[$f->name()] = $f->value();
         if($f instanceof DbffPkey) $pkey = $f;
       }
-      if($pkey->value())  dbUpdate($this->table(), $r, array($pkey->name() => $pkey->value()));
-      else                dbInsert($this->table(), $r);
+      if($pkey->value()) {
+        dbUpdate($this->table(), $r, array($pkey->name() => $pkey->value()));
+      } else {
+        dbInsert($this->table(), $r);
+        $newId = mysql_insert_id();
+      }
       // final cleanup
       foreach($this->fields() as $f) $f->postInsert();
     } catch(Exception $e) {
@@ -116,7 +121,7 @@ class DbForm {
       else throw $e;
     }
     // redirect
-    if(is_ajax()) die('{}');
+    if(is_ajax()) die(json_encode(array('id' => $newId)));
     else header('Location: '.$_SERVER['HTTP_REFERER'], true, 303);
   }
 
