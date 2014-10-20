@@ -6,7 +6,10 @@
 class DbffString extends DbFormField {
 
   function html() {
-    return '<input type="text" name="'.$this->postName().'" value="'.htmlspecialchars($this->value()).'">';
+    $extras = array();
+    if($this->d['Null'] == 'NO') $extras[] = 'required="true"';
+    $extras = ' '.implode(' ', $extras);
+    return '<input type="text" name="'.$this->postName().'" value="'.htmlspecialchars($this->value()).'"'.$extras.'>';
   }
 
   function loadPost() {
