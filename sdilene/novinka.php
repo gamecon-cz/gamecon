@@ -72,7 +72,7 @@ class Novinka {
   }
 
   static function zVsech() {
-    $o = dbQuery('SELECT * FROM novinky ORDER BY vydat DESC');
+    $o = dbQuery('SELECT * FROM novinky ORDER BY vydat = 0 DESC, vydat DESC');
     $a = array();
     while($r = mysql_fetch_assoc($o)) $a[] = new self($r);
     return $a;
