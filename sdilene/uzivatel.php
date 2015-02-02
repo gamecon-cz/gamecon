@@ -668,6 +668,23 @@ class Uzivatel
     return $this->u['zustatek'];
   }
 
+  /**
+   * Na základě řetězce $dotaz zkusí najít všechny uživatele, kteří odpovídají
+   * jménem, nickem, apod.
+   * @todo zvážit jestli použít mail či ne, případně jak to customizovat
+   */
+  static function zHledani($dotaz) {
+    $q = dbQv($dotaz);
+    $l = dbQv('%'.$dotaz.'%'); // pro LIKE dotazy
+    return self::zWhere("
+      WHERE u.id_uzivatele = $q
+      OR login_uzivatele LIKE $l
+      OR jmeno_uzivatele LIKE $l
+      OR prijmeni_uzivatele LIKE $l
+      OR CONCAT(jmeno_uzivatele,' ',prijmeni_uzivatele) LIKE $l
+    ", null, 'LIMIT 20');
+  }
+
   static function zId($id) {
     return self::zIds((int)$id)[0];
   }
@@ -740,6 +757,31 @@ class Uzivatel
     $u = self::nactiUzivatele('WHERE u.login_uzivatele = '.dbQv($url));
     if(count($u) !== 1) return null;
     return $u[0];
+  }
+
+  /**
+   * Načte uživatele podle zadané where klauzle
+   * @todo asi lazy loading práv
+   * @todo zrefaktorovat nactiUzivatele na toto
+   */
+  protected static function zWhere($where, $param = null, $extra = null) {
+    $o = dbQueryS('
+      SELECT
+        u.*,
+        GROUP_CONCAT(DISTINCT p.id_prava) as prava
+      FROM uzivatele_hodnoty u
+      LEFT JOIN r_uzivatele_zidle z ON(z.id_uzivatele = u.id_uzivatele)
+      LEFT JOIN r_prava_zidle p ON(p.id_zidle = z.id_zidle)
+      '.$where.'
+      GROUP BY u.id_uzivatele
+    '.$extra, $param);
+    $uzivatele = array();
+    while($r = mysql_fetch_assoc($o)) {
+      $u = new static($r);
+      $u->u['prava'] = explode(',',$u->u['prava']);
+      $uzivatele[] = $u;
+    }
+    return $uzivatele;
   }
 
   /** Vrátí pole uživatelů sedících na židli s daným ID */
