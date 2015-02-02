@@ -147,6 +147,8 @@ function dbQueryS($q,$pole=null)
   {
     return dbQuery(
       preg_replace_callback('~\$([a-zA-Z]+)~', function($m){
+        // TODO smazat pokud se neprojeví
+        throw new Exception('nahrazování globálními proměnnými je deprecated');
         return '"'.addslashes($GLOBALS[$m[1]]).'"';
       },$q)
     );
