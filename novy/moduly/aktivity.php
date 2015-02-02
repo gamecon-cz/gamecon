@@ -75,8 +75,8 @@ while($a) {
     //TODO ajax na zobrazení bubliny ne/úspěšného přihlášení
   ));
   if( $v = $a->vyberTeamu($u) ) {
-    $xtpl->assign('vyber', $v);
-    $xtpl->parse('aktivity.aktivita.vyberTeamu');
+    $t->assign('vyber', $v);
+    $t->parse('aktivity.aktivita.vyberTeamu');
   }
   $t->parse('aktivity.aktivita.termin');
 
