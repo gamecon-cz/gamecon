@@ -202,6 +202,8 @@ function mb_ucfirst($string, $encoding=null)
  * V složce soubory/perfectcache nutno (např. htaccessem) povolit cacheování
  * navždy
  * Poslední soubor slouží jako referenční k určení cesty, kam cache uložit
+ * @todo nějaký hash počtu / názvu souborů? (když se přidá nový soubor se starým
+ *  timestampem, nic se nestane)
  */
 function perfectcache($args) {
   $args = func_get_args();
