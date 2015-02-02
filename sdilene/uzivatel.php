@@ -240,24 +240,12 @@ class Uzivatel
     return $this->u['email1_uzivatele'];
   }
 
-  function maPravo($pravo)
-  {
-    /*
-    if(isset($_SESSION['uzivatel']['prava'])
-      && in_array($pravo, $_SESSION['uzivatel']['prava']))
-      return true;
-    else
-      return false;
-    */
-    if(isset($this->u['prava']))
-    {
-      if(in_array($pravo, $this->u['prava']))
-        return true;
-      else
-        return false;
-    }
-    else
+  function maPravo($pravo) {
+    if(isset($this->u['prava'])) {
+      return in_array($pravo, $this->u['prava']);
+    } else {
       throw new Exception('Nenačtena práva pro uživatele.');
+    }
   }
 
   /**
@@ -610,9 +598,9 @@ class Uzivatel
 
   public function vek()
   {
-    $narozeni=new DateTime();
-    $narozeni->setTimestamp(strtotime($this->u['datum_narozeni']));
-    $vek=$narozeni->diff(new DateTime(DEN_PRVNI_DATE));
+    if($this->u['datum_narozeni'] == '0000-00-00' || $this->u['datum_narozeni'] == '1970-01-01') return null;
+    $narozeni = new DateTime($this->u['datum_narozeni']);
+    $vek = $narozeni->diff(new DateTime(DEN_PRVNI_DATE));
     return $vek->y;
   }
 
@@ -787,7 +775,9 @@ class Uzivatel
   /** Vrátí pole uživatelů sedících na židli s daným ID */
   public static function zZidle($id)
   {
-    return self::nactiUzivatele('WHERE z.id_zidle = '.dbQv($id));
+    return self::nactiUzivatele( // WHERE nelze, protože by se omezily načítané práva uživatele
+      'JOIN r_uzivatele_zidle z2 ON (z2.id_zidle = '.dbQv($id).' AND z2.id_uzivatele = u.id_uzivatele)'
+    );
   }
 
   ///////////////////////////////// Protected //////////////////////////////////
