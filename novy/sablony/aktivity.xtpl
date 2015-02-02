@@ -74,4 +74,13 @@
   <!-- end:aktivita -->
 
 </div>
+
+<script>
+$(function(){
+  var sneaky = new ScrollSneak(location.hostname);
+  $('.aktivita .info.termin a').each(function(){
+    $(this).click(sneaky.sneak);
+  });
+});
+</script>
 <!-- end:aktivity -->
