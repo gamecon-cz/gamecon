@@ -1,7 +1,11 @@
 
+# Bordel složky
+/_*/
+
 # Neverzované věci z webu
-/admin/files/logs/*
-/vendor/*
-/web/soubory/*
-!/web/soubory/styl
-!/web/soubory/*.js
+/app/admin/files/logs/*
+/app/vendor/*
+/app/web/soubory/*
+!/app/web/soubory/styl
+!/app/web/soubory/*.js
+/spec/*
