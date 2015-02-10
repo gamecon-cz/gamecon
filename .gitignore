@@ -3,7 +3,6 @@
 /_*/
 
 # Neverzované věci z webu
-/app/admin/files/logs/*
 /app/vendor/*
 /app/web/soubory/*
 !/app/web/soubory/styl

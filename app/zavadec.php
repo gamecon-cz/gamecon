@@ -22,9 +22,5 @@ require __DIR__.'/model/funkce/funkce.php';
 require __DIR__.'/../spec/nastaveni.php';
 require __DIR__.'/nastaveni.php';
 
-
-
-
-
-
-
+// verzově specifický zavaděč
+require __DIR__.'/../spec/zavadec.php';

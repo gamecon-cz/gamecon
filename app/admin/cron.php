@@ -5,10 +5,10 @@
  * limit vykonání je 90 sekund jako jinde na webu. 
  */
 
-require_once('../sdilene/vse.hhp');
+require '../zavadec.php';
 
 $key='15v21ptc';
-if(@$_GET['key']!=$key)
+if(VETEV != VYVOJOVA && @$_GET['key'] != $key)
   die('špatný klíč');
 
 error_reporting(E_ALL ^ E_STRICT);
@@ -84,8 +84,8 @@ if(date('G')==4) {
 
 
 logs("cron dokončen.\n");
-$vystup = ob_get_clean();
-$zapsano = file_put_contents('./files/logs/cron', $vystup, FILE_APPEND);
+$vystup = ob_get_contents();
+$zapsano = file_put_contents(SPEC.'/logs/cron-'.date('Y-m'), $vystup, FILE_APPEND);
 if($zapsano === false) {
   echo "Zápis selhal. Výsledek CRONu je následující:\n\n";
   echo $zapsano;

@@ -31,7 +31,7 @@ function dbConnect()
     $spojeni=mysql_connect($dbhost, $dbuser, $dbpass);
     if(!$spojeni) die(mysql_error($spojeni));
     mysql_select_db($dbname, $spojeni);
-    mysql_query("SET NAMES utf8", $spojeni);
+    mysql_set_charset('utf8', $spojeni);
     $end=microtime(true);
     $GLOBALS['dbExecTime']+=$end-$start;
   }

@@ -1,10 +1,9 @@
 <?php
 
-$SKRIPT_ZACATEK = microtime(true);
+require '../zavadec.php';
 
 require_once('scripts/konstanty.hhp'); //local constants
 require_once('scripts/admin-menu.hhp'); //local constants
-require_once($SDILENE_VSE);
 
 // nastaví uživatele $u a $uPracovni
 require('scripts/prihlaseni.php');
