@@ -128,7 +128,7 @@ class XTemplate {
    * @todo dependency injection of cache location
    */
   protected function compiledTemplate($file) {
-    $cFile = SPEC . '/xtpl/' . md5($file); // comiled file name
+    $cFile = SPEC . '/xtpl/' . md5($file) . '.php'; // comiled file name
     $cName = str_replace('-', '', ucfirst(basename($file, '.xtpl'))) . 'Tpl'; // compiled class name
     // main template modification check & load
     if( @filemtime($cFile) < filemtime($file) ) {
