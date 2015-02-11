@@ -60,6 +60,18 @@ class XTemplate {
   }
 
   /**
+   * Shorthand for looping through array, assigning and parsing block.
+   * Mimics php's foreach style: foreach $elements as $name { parse $block }
+   */
+  function parseEach($elements, $name, $block) {
+    $m = 'parse_' . strtr($block, '.', '_');
+    foreach($elements as $e) {
+      $this->tc->context[$name] = $e; // assign
+      $this->tc->$m(); // parse
+    }
+  }
+
+  /**
    * Returns block's parsed contents
    */
   function text($block) {

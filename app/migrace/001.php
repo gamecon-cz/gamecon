@@ -207,3 +207,9 @@ $this->q('DROP TABLE IF EXISTS minihra');
 $this->q('DROP TABLE IF EXISTS menu');
 $this->q('DROP TABLE IF EXISTS maillist');
 $this->q('DROP TABLE IF EXISTS stazeni');
+
+// comment na tabulku stránky kvůli dbformu
+$this->q("
+ALTER TABLE `stranky`
+CHANGE `obsah` `obsah` longtext COLLATE 'utf8_czech_ci' NOT NULL COMMENT 'markdown' AFTER `url_stranky`;
+");

@@ -1,84 +1,17 @@
 <!-- begin:editaceStranek -->
 
-
-<!-- begin:vypis -->
-  <style>
-    .oddelovac td { font-weight: bold; padding-top: 16px; border-width: 0; }
-  </style>
-  <h1>Stránky</h1>
-  <table class="vypis">
-    <tr>
-      <th>Název stránky v menu</th>
-      <th>URL</th>
-      <th>Akce</th>
-    </tr>
-    <!-- begin:radek -->
-    <!-- begin:oddelovac --><tr class="oddelovac"><td colspan=3>Skryté položky</td></tr><!-- end:oddelovac -->
-    <tr class="{odd}">
-      <td>{nazev}</td>
-      <td>{url_stranky}</td>
-      <td><a href="web/editace-stranek/{id_stranky}" class="tlacitko">upravit</a></td>
-    </tr>
-    <!-- end:radek -->
-  </table>
-<!-- end:vypis -->
-
-<!-- begin:stranka -->
-  <style>
-    #editacniTabulka td { vertical-align: top; }
-    #obsahStranky, #nahled { width: 450px; font-size: 12px; font-family: Tahoma; }
-    #obsahStranky { width: 440px; }
-    #nahled {}
-    #nahled em { font-weight: bold; font-style: normal; }
-    #nahled h1:first-child { margin-top: 0; }
-    #nahled h2 { border-bottom: dotted 1px #777; }
-    #nahled img { margin: 0 !important; }
-  </style>
-  <div id="stavUlozeni" class="success">Všechny změny uloženy</div>
-  <form method="post" style="position: relative">
-    <input style="position:absolute;top:-45px;right:2px;visibility:hidden" id="horniSubmit" type="submit" value="Uložit změny" />
-    <table id="editacniTabulka"><tr><td>
-      <textarea name="obsahStranky" id="obsahStranky">{obsah}</textarea>
-    </td><td>
-      <div id="nahled"></div>
-    </td></tr></table>
-    <input type="hidden" name="akce" value="editaceStranek" />
-    <input type="hidden" name="zobrazit" value="{id_stranky}" />
-    <input type="submit" value="Uložit změny" />
-  </form>
-  <script src="files/showdown.js"></script>
-  <script src="files/jquery.autosize.js"></script>
-  <script>
-    function ukazObsah(){
-      var md=new Showdown.converter();
-      var html=md.makeHtml($('#obsahStranky').val());
-      html=html.replace(/src=\"\/files/g,'src="{URL_WEBU}/files');
-      $('#nahled').html(html);
-    }
-    var ulozeno=true;
-    ukazObsah();
-    $('#obsahStranky').autosize();
-    $('#obsahStranky').keyup(function(){
-      ukazObsah();
-      if(ulozeno) {
-        $('#stavUlozeni').removeClass();
-        $('#stavUlozeni').addClass('error');
-        $('#stavUlozeni').html('Neuložené změny!');
-        $('#horniSubmit').css('visibility','visible');
-      }
-    });
-  </script>
-<!-- end:stranka -->
-
-<!-- begin:help -->
-<br /><br />
-<p>Pokud jste se dostali až sem a sháníte nějakou nápovědu k formátování stránek (html), napište mi na godric@korh.cz.<br />
-&mdash; Godric</p>
-<!-- end:help -->
-
-<!-- begin:error -->
-<div class="error">Požadovaná stránka neexistuje.</div>
-<!-- end:error -->
-
+<h1>Stránky</h1>
+<table class="vypis">
+  <tr>
+    <th>URL</th>
+    <th>Akce</th>
+  </tr>
+  <!-- begin:radek -->
+  <tr>
+    <td>{stranka.url}</td>
+    <td><a href="web/editace-stranek?id={stranka.id}" class="tlacitko">upravit</a></td>
+  </tr>
+  <!-- end:radek -->
+</table>
 
 <!-- end:editaceStranek -->

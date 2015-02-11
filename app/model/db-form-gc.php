@@ -17,6 +17,8 @@ class DbFormGc extends DbForm {
       return new DbffSelect($d);
     if($d['Type'] == 'int(11)' && $d['Field'] == 'text')
       return new DbffMarkdown($d);
+    if($d['Comment'] == 'markdown')
+      return new DbffMarkdownDirect($d);
     // fallback na originální pole
     return parent::fieldFromDescription($d);
   }
