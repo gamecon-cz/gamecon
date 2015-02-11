@@ -27,13 +27,12 @@ class DbffMarkdown extends DbFormField {
     $this->text = $this->postValue('text');
   }
 
-  /**
-   * Pozor, použití dbText tady sází na vypnutou referenční integritu, jinak
-   * by selhalo mazání starého textu. To ale předpokládá i dbText jako takový.
-   */
   function preInsert() {
-    $hash = dbText($this->oldVal, $this->text);
-    $this->value($hash);
+    $this->value(dbTextHash($this->text));
+  }
+
+  function postInsert() {
+    $this->value(dbTextClean($this->oldVal));
   }
 
 }

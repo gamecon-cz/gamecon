@@ -89,6 +89,28 @@ function dbText($hash) {
 
 
 /**
+ * Uloží daný text do databáze a vrátí id (hash) kterým se na něj odkázat
+ */
+function dbTextHash($text) {
+  $hash = scrc32($text);
+  try {
+    dbInsert('texty', ['id'=>$hash, 'text'=>$text]);
+  } catch(DbException $e) {}
+  return $hash;
+}
+
+
+/**
+ * Vymaže text s daným hashem z DB pokud je to možné
+ */
+function dbTextClean($hash) {
+  try {
+    dbQuery('DELETE FROM texty WHERE id = '.(int)$hash);
+  } catch(DbException $e) {}
+}
+
+
+/**
  * Vrací hlášku s daným názvem. Libovolný počet argumentů. Pokud je druhým
  * argumentem uživatel, podporuje symbol {a} jako proměnlivou koncovku a. Další
  * argumenty jsou dostupné jako %1, %2 atd... Čísluje se od jedné.
