@@ -580,10 +580,14 @@ class Aktivita
     if(func_num_args() == 0) {
       return dbMarkdown($this->a['popis']);
     } else {
-      $id = dbText($this->a['popis'], func_get_arg(0));
-      if($this->a['patri_pod']) dbUpdate('akce_seznam', array('popis' => $id), array('patri_pod' => $this->a['patri_pod']));
-      else dbUpdate('akce_seznam', array('popis' => $id), array('id_akce' => $this->id()));
+      $oldId = $this->a['popis'];
+      $id = dbTextHash(func_get_arg(0));
+      if($this->a['patri_pod'])
+        dbUpdate('akce_seznam', array('popis' => $id), array('patri_pod' => $this->a['patri_pod']));
+      else
+        dbUpdate('akce_seznam', array('popis' => $id), array('id_akce' => $this->id()));
       $this->a['popis'] = $id;
+      dbTextClean($oldId);
     }
   }
 
