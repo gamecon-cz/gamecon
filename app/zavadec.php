@@ -24,3 +24,5 @@ require __DIR__.'/nastaveni.php';
 
 // verzově specifický zavaděč
 require __DIR__.'/../spec/zavadec.php';
+
+(new Vyjimkovac(SPEC.'/chyby.sqlite'))->aktivuj();

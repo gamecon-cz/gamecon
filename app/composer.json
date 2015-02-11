@@ -2,6 +2,7 @@
   "require": {
     "michelf/php-markdown": "~1.4",
     "less.php/less.php": "~1.7",
-    "dg/mysql-dump": "dev-master"
+    "dg/mysql-dump": "dev-master",
+    "tracy/tracy": "~2.2"
   }
 }

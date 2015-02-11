@@ -87,7 +87,7 @@ class XTemplate {
   '
     function <name>() {
       if($this->current == "<name>") {
-        if(@$this->buffer["<name>"]) {
+        if(!empty($this->buffer["<name>"])) {
           $out = $this->buffer["<name>"] . ob_get_clean();
           $this->buffer["<name>"] = "";
         } else {

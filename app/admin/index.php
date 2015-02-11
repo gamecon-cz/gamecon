@@ -134,7 +134,7 @@ else
   $xtpl->parse('all.paticka');
   $xtpl->assign('chyba', chyba::vyzvedniHtml());
   $xtpl->assign('base', URL_ADMIN.'/');
-  $xtpl->assign('jsVyjimkovac', Vyjimkovac::js());
+  $xtpl->assign('jsVyjimkovac', Vyjimkovac::js(URL_WEBU.'/ajax-vyjimkovac'));
   $xtpl->parse('all');
   $xtpl->out('all');
   profilInfo();  

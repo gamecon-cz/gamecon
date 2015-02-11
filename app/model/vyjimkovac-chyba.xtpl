@@ -1,9 +1,0 @@
-<body style="background-color: #eee; font-family: sans-serif">
-  <div style="margin: 60px auto; width: 500px">
-    <div style="width: 460px; border-radius: 15px; background-color: #ddd; padding: 20px; margin: 30px 0">
-      <h2>{chyba}</h2>
-      Vyskytla se chyba, stránku není možné načíst. Informace o chybě se uložila a budeme ji řešit jak to půjde, jestli ale chcete, můžete nás urgovat na <a href="mailto:info@gamecon.cz">info@gamecon.cz</a> a dáme vám vědět, jak to dopadlo. Zkuste se vrátit na <a href="#" onclick="window.history.back(); return false">předchozí stránku</a>.
-    </div>
-    <img src="{picard}" style="width: 500px; border-radius: 15px">
-  </div>
-</body>

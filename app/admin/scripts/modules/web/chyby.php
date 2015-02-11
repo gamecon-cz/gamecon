@@ -5,28 +5,36 @@
  * pravo: 105
  */
 
+$db = new EPDO('sqlite:'.SPEC.'/chyby.sqlite');
+
 if(post('vyresit')) {
   dbQueryS('UPDATE chyby SET vyresena = NOW() WHERE zprava = $1', array(post('vyresit')));
   back();
 }
 
-$o = dbQuery('
-  SELECT *, count(1) as vyskytu, count(distinct uzivatel) as uzivatelu, MAX(vznikla) as posledni
+$o = $db->query('
+  SELECT
+    *,
+    COUNT(1) as vyskytu,
+    COUNT(DISTINCT uzivatel) as uzivatelu,
+    MAX(vznikla) as posledni
   FROM chyby
-  WHERE vyresena IS NULL
-  GROUP BY zprava
-  ORDER BY MAX(vznikla) DESC
+  GROUP BY zprava, soubor, radek
+  ORDER BY posledni DESC
 ');
 
 $t = new XTemplate('chyby.xtpl');
 
-while($r = mysql_fetch_assoc($o)) {
+$o = $o->fetchAll(PDO::FETCH_ASSOC); // aby se spojení uzavřelo a necyklily se nové výjimky
+
+foreach($o as $r) {
+  //(new Tracy\BlueScreen)->render(unserialize(base64_decode($r['vyjimka'])));
   // počet uživatelů česky
   if($r['uzivatelu'] == 1) $r['uzivatelu'] .= ' uživatel';
   elseif($r['uzivatelu'] && $r['uzivatelu'] < 5) $r['uzivatelu'] .= ' uživatelé';
   else $r['uzivatelu'] .= ' uživatelů';
   // čas
-  $r['posledni'] = (new DateTimeCz($r['posledni']))->relativni();
+  $r['posledni'] = (new DateTimeCz('@'.$r['posledni']))->relativni();
   // zvýraznění url
   $r['soubor'] = strtr($r['soubor'], '\\', '/');
   $r['soubor'] = strrafter($r['soubor'], '/');
