@@ -389,7 +389,7 @@ class Uzivatel
     if($u)
     {
       $id=$u['id_uzivatele'];
-      session_start();
+      if(!session_id()) session_start();
       $_SESSION[$klic]=$u;
       $_SESSION[$klic]['id_uzivatele']=(int)$u['id_uzivatele'];
       //načtení uživatelských práv
