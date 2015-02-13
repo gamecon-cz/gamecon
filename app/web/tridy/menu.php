@@ -3,24 +3,24 @@
 class Menu {
 
   static $linie = array( // TODO cacheování databáze
-    'deskovky'  => 'Deskovky',
+    'deskovky'  => 'Deskovky a turnaje',
     'rpg'       => 'RPG',
     'larpy'     => 'Larpy',
     'drd'       => 'Mistrovství v DrD',
-    'legendy'   => 'Legendy klubu dobrodruhů',
-    'bonusy'    => 'Trojboj a akční hry',
+    'legendy'   => 'Legendy Klubu dobrodruhů',
+    'bonusy'    => 'Akční hry a bonusy',
+    'epic'      => 'Epické deskovky',
     'prednasky' => 'Přednášky',
     'workshopy' => 'Workshopy',
     'wargaming' => 'Wargaming',
   );
 
   protected static $stranky = array(
-    'prihlasovani-na-gc'  => 'Přihlašování na GC',
-    'na-gameconu'     => 'Průvodce GameConem',
-    'organizatori'    => 'Kontakty',
-    'napsali-o-nas'   => 'Media',
-    'dalsi-partneri'  => 'Partneři a zajímavé odkazy',
-    ''                => 'Titulka',
+    'test1'   => 'Nunc sem nisl',
+    'test2'   => 'Nam ullamcorper',
+    'test3'   => 'Duis tincidunt',
+    'test4'   => 'Aenean',
+    'test5'   => 'Quisque non',
   );
 
   /** Celý kód menu (html) */
