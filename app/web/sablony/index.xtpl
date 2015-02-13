@@ -44,8 +44,8 @@
           <strong>{u.nick}</strong> | id: {u.id} | {finance}<br>
           <a href="finance">finance</a><br>
           <a href="registrace">nastavení</a><br>
-          <!-- begin:admin --><a href="#" target="_blank">administrace</a><br><!-- end:admin -->
-          <!-- begin:mujPrehled --><a href="#" target="_blank">moje hry</a><br><!-- end:mujPrehled -->
+          <!-- begin:admin --><a href="{admin}" target="_blank">administrace</a><br><!-- end:admin -->
+          <!-- begin:mujPrehled --><a href="{admin}/muj-prehled" target="_blank">hry které vedu</a><br><!-- end:mujPrehled -->
           <a href="#" onclick="$('#odhlasit').submit(); return false;">odhlásit</a>
           <form method="post" action="prihlaseni" id="odhlasit">
             <input type="hidden" name="odhlasit" value="true">

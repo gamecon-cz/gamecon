@@ -14,8 +14,7 @@ $aktivity = Aktivita::zFiltru(array(
 
 $t = new XTemplate('muj-prehled.xtpl');
 
-if(!$aktivity->current())
-  $t->parse('prehled.zadnaAktivita');
+if(empty($aktivity)) $t->parse('prehled.zadnaAktivita');
 foreach($aktivity as $a) {
   $ucastnici = $a->ucastnici();
   $o = dbQueryS('SELECT id_uzivatele, MAX(cas) as cas FROM akce_prihlaseni_log WHERE id_akce = $1 GROUP BY id_uzivatele', array($a->id()));
