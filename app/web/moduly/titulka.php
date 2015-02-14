@@ -7,4 +7,9 @@ $t->assign(array(
   'menu'    =>  $menu,
   'blog'    =>  Novinka::zNejnovejsi(Novinka::BLOG),
   'novinka' =>  Novinka::zNejnovejsi(Novinka::NOVINKA),
+  'a'       =>  $u ? $u->koncA() : '',
 ));
+
+if($u && $u->gcPrihlasen())     $t->parse('titulka.prihlasen');
+elseif($u && REG_GC)            $t->parse('titulka.neprihlasen');
+else                            $t->parse('titulka.info');

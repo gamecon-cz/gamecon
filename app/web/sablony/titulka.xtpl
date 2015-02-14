@@ -45,11 +45,33 @@
   </div>
 
   <div class="blok">
-    <a class="upoutavka" href="">
+    <!-- begin:info -->
+    <a class="upoutavka" href="info">
       <img src="soubory/_placeholder/2.jpg">
       <div class="horni"><div>Co je GameCon?</div></div>
       <div class="dolni"><div>GameCon</div></div>
     </a>
+    <!-- end:info -->
+    <!-- begin:neprihlasen -->
+    <a class="upoutavka" href="prihlaska">
+      <img src="soubory/_placeholder/4.jpg">
+      <div class="horni" style="background-color: rgba(255,0,0,0.5);"><div>
+        <img src="soubory/styl/error.png" style="margin-bottom: -3px">&ensp;
+        Neprihlášen{a} na GameCon
+      </div></div>
+      <div class="dolni"><div>GameCon</div></div>
+    </a>
+    <!-- end:neprihlasen -->
+    <!-- begin:prihlasen -->
+    <a class="upoutavka" href="prihlaska">
+      <img src="soubory/_placeholder/10.jpg">
+      <div class="horni"><div>
+        <img src="soubory/styl/ok.png" style="margin-bottom: -3px">&ensp;
+        Přihlášen{a} na GameCon
+      </div></div>
+      <div class="dolni"><div>GameCon</div></div>
+    </a>
+    <!-- end:prihlasen -->
     <ul class="mlist">{menu.stranky}</ul>
   </div>
 
@@ -58,7 +80,7 @@
 <!-- hack na posun dolních panelů -->
 <style>
 @media (min-width: 800px) {
-.obsah > .sloupce:last-child > :nth-child(1) {margin-top: -57px; height: 312px; overflow: hidden; }
+.obsah > .sloupce:last-child > :nth-child(1) { margin-top: -110px; height: 312px; overflow: hidden; }
 .obsah > .sloupce:last-child > :nth-child(3) { margin-top: -134px; height: 389px; overflow: hidden; }
 }
 </style>
