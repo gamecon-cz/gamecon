@@ -254,9 +254,6 @@ class Program
       table.program td .f { color: #e0d; }
       table.program td .m { color: #0ff; }
       table.program td .neprihlasovatelna { color: #777; }
-      .chyba { position: absolute; background-color: rgba(255,255,0,0.75); 
-        color: #f00; left: 50%; margin-left: -500px; padding: 5px 10px; 
-        border-radius: 5px; font-weight: bold; }
     </style><?php
   }
   
