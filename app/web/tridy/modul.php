@@ -13,6 +13,7 @@ class Modul {
   protected $bezDekorace = false;
   protected $bezMenu = false;
   protected $bezStranky = false;
+  protected $bezOkraju = false;
 
   const VYCHOZI = 'titulka';
 
@@ -31,6 +32,12 @@ class Modul {
   function bezMenu($val = null) {
     if(isset($val)) $this->bezMenu = (bool)$val;
     return $this->bezMenu;
+  }
+
+  /** Jestli se má modul renderovat přes celou šířku monitoru */
+  function bezOkraju($val = null) {
+    if(isset($val)) $this->bezOkraju = (bool)$val;
+    return $this->bezOkraju;
   }
 
   /** Jestli se má modul renderovat čistě jako plaintext */
@@ -82,6 +89,8 @@ class Modul {
   function vystup() {
     if($this->bezDekorace || $this->bezStranky)
       return $this->vystup;
+    elseif($this->bezOkraju)
+      return $this->vystup . '<style>.hlavni { max-width: 95% }</style>';
     else
       return '<div class="blok btext">' . $this->vystup . '</div>';
   }

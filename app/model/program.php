@@ -169,7 +169,7 @@ class Program
     if($this->u && $a['obj']->organizuje($this->u)) $classes[]='organizator';
     echo('<td colspan="'.$a['del'].'"'.
       ( $classes?' class="'.implode(' ',$classes).'"':'' ).
-      '>'.$a['obj']->nazev()
+      '><div>'.$a['obj']->nazev()
     );
     if($this->nastaveni['drdPj'] && $a['obj']->typ() == 9 && $a['obj']->prihlasovatelna()) {
        echo ' ('.$a['obj']->orgJmena().') ';
@@ -184,7 +184,7 @@ class Program
     if($this->nastaveni['teamVyber']) {
       echo $a['obj']->vyberTeamu($this->u);
     }
-    echo('</td>');
+    echo('</div></td>');
   }
 
   /**
@@ -226,7 +226,7 @@ class Program
         text-align: center;
         border-top: none;
         border-spacing: 0px;
-        margin: 0 3%;
+        margin: 0;
         table-layout: fixed;
         min-width: 800px; } 
       table.program td, table.program th {

@@ -36,9 +36,9 @@
 
 
   <div class="blok">
-    <a class="upoutavka" href="">
-      <img src="soubory/_placeholder/1.jpg">
-      <div class="horni"><div>Jak zaujmout posluchače</div></div>
+    <a class="upoutavka" href="program">
+      <img src="soubory/styl/program.jpg">
+      <div class="horni"><div>Program</div></div>
       <div class="dolni"><div>Aktivity</div></div>
     </a>
     <ul class="mlist">{menu.linie}</ul>
