@@ -30,7 +30,7 @@ $program = new Program($u);
   table.program td.prihlasen div { background-color: #bab2d2; }
   table.program td.organizator { background-color: transparent; }
   table.program td.organizator div { background-color: #bad2b2; }
-  table.program td:first-child[rowspan] { border-right: solid 1px #ddd; }
+  table.program td { border-right: solid 1px #ddd; }
 
   table.program th {
     border: none;
@@ -43,3 +43,12 @@ $program = new Program($u);
 </style>
 
 <?php $program->tisk(); ?>
+
+<script>
+$(function(){
+  var sneaky = new ScrollSneak(location.hostname);
+  $('table.program a').each(function(){
+    $(this).click(sneaky.sneak);
+  });
+});
+</script>
