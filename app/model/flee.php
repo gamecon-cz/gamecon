@@ -104,9 +104,10 @@ class Flee {
   }
 
   /**
-   * Checks if database and backup folder are writable
+   * Checks if database and backup folder are writable, creates if possible
    */
   private function checkWritable() {
+    if(!is_dir($this->folderBackup)) mkdir($this->folderBackup);
     if(!is_writable($this->folderBackup)) throw new Exception('Backup folder missing or not writable');
     try {
       $this->q('CREATE TABLE __test ( t int )');
