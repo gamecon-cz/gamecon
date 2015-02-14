@@ -8,6 +8,7 @@ class Flee {
 
   private
     $autorollback = false,
+    $branch = 'default',
     $db,
     $folderMigration,
     $folderBackup,
@@ -29,6 +30,8 @@ class Flee {
     $this->folderMigration = $a['migrationFolder'];
     $this->folderBackup = $a['backupFolder'];
     $this->settings = $a;
+    if(isset($a['branch']))         $this->branch = $a['branch'];
+    if(isset($a['autorollback']))   $this->autorollback = $a['autorollback'];
   }
 
   /**
@@ -133,35 +136,61 @@ class Flee {
   }
 
   /**
+   * Prefix for variables specific to this flee branch
+   */
+  private function dbPrefix() {
+    return 'flee_'.$this->branch.'_'; // TODO
+  }
+
+  /**
    * Returns object representing schema version
    */
   private function dbSchema() {
     if(!isset($this->dbSchema)) {
+      // helper functions
+      $prefix = $this->dbPrefix();
+      $insert = function()use($prefix) {
+        dbQuery('
+          INSERT INTO _vars(name, value) VALUES
+            ("'.$prefix.'version", 0),
+            ("'.$prefix.'timestamp", 0)
+        ');
+      };
+      // load or create db schema
       try {
-        $a = dbQuery('SELECT * FROM _vars WHERE name LIKE "flee_%"');
-        $r = array();
+        $a = dbQuery('SELECT * FROM _vars WHERE name LIKE "'.$prefix.'%"');
         $this->dbSchema = new stdClass();
         while(list($name, $value) = mysql_fetch_row($a)) {
-          $name = str_replace('flee_', '', $name);
+          $name = str_replace($prefix, '', $name);
           $this->dbSchema->$name = $value;
+          $loaded = true;
+        }
+        if(empty($loaded)) {          // nothing selected - fields probably missing
+          $insert();                  // insert them
+          $this->dbSchema = null;     // clean previously stored stdClass
+          return $this->dbSchema();   // try again
         }
       } catch(DbException $e) {
-        dbQuery('
-          CREATE TABLE _vars (
-            name varchar(64) NOT NULL,
+        var_dump($e);
+        $this->q('
+          CREATE TABLE IF NOT EXISTS _vars (
+            name varchar(64) NOT NULL PRIMARY KEY,
             value varchar(4096)
           )
         ');
-        dbQuery('
-          INSERT INTO _vars(name, value) VALUES
-            ("flee_version", 0),
-            ("flee_timestamp", 0),
-            ("flee_hash", 0)
-        ');
+        $insert();
         return $this->dbSchema();
       }
     }
     return $this->dbSchema;
+  }
+
+  /**
+   * Sets property in dbschema, stores in database
+   */
+  private function dbSchemaSet($name, $value) {
+    $this->dbSchema()->$name = $value;
+    dbInsertUpdate('_vars', ['name' => $this->dbPrefix().$name, 'value' => $value]);
   }
 
   /**
@@ -275,9 +304,9 @@ class Flee {
    */
   private function runMigration($file) {
     // update version to ensure further rollbacks even if migration script fails (for example exec time limit)
-    $this->db()->query('UPDATE _vars SET value = '.(int)self::version($file).' WHERE name = "flee_version"');
+    $this->dbSchemaSet('version', self::version($file));
     include $file;
-    $this->db()->query('UPDATE _vars SET value = '.filemtime($file).' WHERE name = "flee_timestamp"');
+    $this->dbSchemaSet('timestamp', filemtime($file));
   }
 
   /**
