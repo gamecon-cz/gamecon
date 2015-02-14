@@ -18,7 +18,8 @@ $program = new Program($u);
   table.program tr { background-color: #fff; }
   table.program tr:nth-child(2n+1) { background-color: #eee; }
 
-  table.program td { border: 0; padding: 0; }
+  table.program td { border: 0; padding: 0; border-right: solid 1px #ddd; }
+  table.program td:last-child { border: 0; }
   table.program td[colspan] div {
     margin: 2px;
     padding: 2px;
@@ -30,7 +31,6 @@ $program = new Program($u);
   table.program td.prihlasen div { background-color: #bab2d2; }
   table.program td.organizator { background-color: transparent; }
   table.program td.organizator div { background-color: #bad2b2; }
-  table.program td { border-right: solid 1px #ddd; }
 
   table.program th {
     border: none;
