@@ -36,7 +36,7 @@ if(!$zaplaceno)
 
 
 <h1>Přehled financí</h1>
-<p>V následujícím přehledu vidíš seznam všech položek, které sis na GameConu objednal<?=$a?>, s výslednými cenami po započítání všech slev. Pokud je tvůj celkový stav financí záporný, pokyny k <b>zaplacení</b> najdeš <a href="#placeni">úplně dole</a>.</p>
+<p>V následujícím přehledu vidíš seznam všech položek, které sis na GameConu objednal<?=$a?>, s výslednými cenami po započítání všech slev. Pokud je tvůj celkový stav financí záporný, pokyny k <b>zaplacení</b> najdeš <a href="finance#placeni">úplně dole</a>.</p>
 
 
 <style> 
@@ -44,7 +44,7 @@ if(!$zaplaceno)
 .tabVeci table td { border-bottom: solid 1px #ddd; padding-right: 5px; }
 .tabVeci table td:last-child { width: 20px; } 
 </style>
-<div style="float:left;width:250px"  class="tabVeci">
+<div style="float:left;width:250px;margin-bottom:24px"  class="tabVeci">
 <h2>Objednané věci</h2>
 <?=$veci?>
 </div>
@@ -59,9 +59,9 @@ if(!$zaplaceno)
 
 <div style="clear:both"></div>
 
-<h2><a name="placeni">Platba</a></h2>
+<h2 id="placeni">Platba</h2>
 <?php if(!$zaplaceno){ ?>
-  <br>
+  <p>
   <?php if($u->stat()=='CZ'){ ?>
     <strong>Číslo účtu:</strong> <?=UCET_CZ?>
   <?php }else{ ?>
@@ -72,7 +72,7 @@ if(!$zaplaceno)
   <?php if($limit){ ?>
     do <?=$limit?> (<?=$pozde?> později)
   <?php } ?>
-  <br><br>
+  </p>
   
   <p>GameCon můžeš nyní <strong>zaplatit převodem</strong> na účet uvedený níž. Jako variabilní symbol slouží tvoje id: <?=$uid?>. 
   <?php if($limit){ ?>
