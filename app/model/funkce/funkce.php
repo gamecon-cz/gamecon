@@ -319,6 +319,7 @@ function perfectcache($args) {
   $typ = substr($lastf, -3) == '.js' ? 'js' : 'css';
   $last = 0;
   foreach($args as $a) {
+    if(!$a) continue;
     $m = filemtime($a);
     if($last < $m) $last = $m;
   }
@@ -331,10 +332,10 @@ function perfectcache($args) {
     if(!is_dir($mind)) mkdir($mind);
     if(is_file($minf)) unlink($minf);
     if($typ == 'js') {
-      foreach($args as $a) file_put_contents($minf, file_get_contents($a), FILE_APPEND);
+      foreach($args as $a) if($a) file_put_contents($minf, file_get_contents($a), FILE_APPEND);
     } else {
       $parser = new Less_Parser(array('compress' => true));
-      foreach($args as $a) $parser->parseFile($a, URL_WEBU.'/soubory/styl/');
+      foreach($args as $a) if($a) $parser->parseFile($a, URL_WEBU.'/soubory/styl/');
       file_put_contents($minf, $parser->getCss());
     }
   }

@@ -43,8 +43,18 @@ if($m->bezStranky()) {
     'admin'     => URL_ADMIN,
     'obsah'     => $m->vystup(),  // TODO nastavování titulku stránky
     'sponzori'  => Modul::zNazvu('sponzori')->spust()->vystup(),
-    'css'       => perfectcache('soubory/styl/styl.less', 'soubory/styl/fonty.less', 'soubory/styl/jquery-ui.min.css'),
-    'js'        => perfectcache('soubory/jquery-2.1.1.min.js', 'soubory/scroll-sneak.js', 'soubory/aplikace.js', 'soubory/jquery-ui.min.js'),
+    'css'       => perfectcache(
+      'soubory/styl/styl.less',
+      'soubory/styl/fonty.less',
+      'soubory/styl/jquery-ui.min.css'
+    ),
+    'js'        => perfectcache(
+      'soubory/jquery-2.1.1.min.js',
+      'soubory/scroll-sneak.js',
+      'soubory/aplikace.js',
+      GOOGLE_ANALYTICS ? 'soubory/google-analytics.js' : '',
+      'soubory/jquery-ui.min.js'
+    ),
     'jsVyjimkovac'  => Vyjimkovac::js(URL_WEBU.'/ajax-vyjimkovac'),
     'chyba'     => Chyba::vyzvedniHtml(),
   ));
