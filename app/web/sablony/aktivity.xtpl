@@ -59,6 +59,7 @@
           <!-- end:fixniCena -->
           {cena}
         </div>
+        <div onclick="tgAkt($(this))" class="info vice">více</div>
       </div>
       <div class="atext">
         <!-- begin:vyberTeamu -->
@@ -82,5 +83,21 @@ $(function(){
     $(this).click(sneaky.sneak);
   });
 });
+
+function tgAkt(a) {
+  var ap = a.parent().next();
+  var oh = ap.height();
+  ap.css({'max-height': 'initial', 'height': 'initial'});
+  var mh = ap.height();
+  if(mh > oh) {
+    ap.height(oh);
+    ap.data('oh', oh);
+    ap.animate({height: mh}, function(){ a.html('méně'); a.addClass('mene'); });
+  } else {
+    ap.animate({height: ap.data('oh')}, function(){ a.html('více'); a.removeClass('mene') });
+  }
+  return false;
+}
+
 </script>
 <!-- end:aktivity -->
