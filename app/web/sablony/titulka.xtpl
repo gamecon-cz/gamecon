@@ -36,11 +36,20 @@
 
 
   <div class="blok">
+    <!-- begin:pripravujeme -->
+    <a class="upoutavka" href="pripravujeme">
+      <img src="soubory/_placeholder/1.jpg">
+      <div class="horni"><div>Letos připravujeme…</div></div>
+      <div class="dolni"><div>Aktivity</div></div>
+    </a>
+    <!-- end:pripravujeme -->
+    <!-- begin:program -->
     <a class="upoutavka" href="program">
       <img src="soubory/styl/program.jpg">
       <div class="horni"><div>Program</div></div>
       <div class="dolni"><div>Aktivity</div></div>
     </a>
+    <!-- end:program -->
     <ul class="mlist">{menu.linie}</ul>
   </div>
 
