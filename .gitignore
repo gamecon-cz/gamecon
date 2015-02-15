@@ -1,6 +1,7 @@
 
 # Bordel složky
 /_*/
+/.*
 
 # Neverzované věci z webu
 /app/vendor/*
