@@ -508,6 +508,7 @@ class Shop
    */
   protected function kapacita($den,$typ)
   {
+    if(!isset($this->ubytovani[$den][$typ])) return 0;
     $ub=$this->ubytovani[$den][$typ];
     return max(0,$ub['kusu_vyrobeno']);
   }
@@ -694,6 +695,7 @@ class Shop
    */
   protected function zbyvaMist($den,$typ)
   {
+    if(!isset($this->ubytovani[$den][$typ])) return 0;
     $ub=$this->ubytovani[$den][$typ];
     return max(0,$ub['kusu_vyrobeno']-$ub['kusu_prodano']);
   }
