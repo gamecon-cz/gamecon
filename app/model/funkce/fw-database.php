@@ -114,13 +114,10 @@ function dbInsertUpdate($table,$valArray)
 }
 
 
-function dbQuery($q1,$q2=null,$q3=null)
+function dbQuery($q, $param = null)
 {
   global $spojeni,$dbLastQ;
-  if($q2) //používáme přístup jako k mysql_db_query - sql dotaz je 2. parametr
-    $q=$q2;
-  else //klasický přístup pouze s jedním parametrem - dotazem
-    $q=$q1;
+  if($param) return dbQueryS($q, $param);
   dbConnect();
   $dbLastQ=$q; //echo($q.'<br /><br />'."\n\n");
   $start=microtime(true);
@@ -178,6 +175,8 @@ function dbQv($val)
     return implode(',', array_map(function($val){ return dbQv($val); }, $val));
   elseif($val===null)
     return 'NULL';
+  elseif(is_int($val))
+    return $val;
   else
     return '"'.( get_magic_quotes_gpc() ? $val : addslashes($val) ).'"';
 }
