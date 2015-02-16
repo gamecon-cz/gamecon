@@ -34,6 +34,8 @@
   </div>
   <!-- end:zahlavi -->
 
+  <div style="clear:both"></div>
+
   <!-- begin:aktivita -->
   <div class="blok">
     <div class="aktivita">
@@ -59,7 +61,9 @@
           <!-- end:fixniCena -->
           {cena}
         </div>
+        <!-- begin:vice -->
         <div onclick="tgAkt($(this))" class="info vice">více</div>
+        <!-- end:vice -->
       </div>
       <div class="atext">
         <!-- begin:vyberTeamu -->
@@ -68,7 +72,7 @@
           {vyber}
         </div>
         <!-- end:vyberTeamu -->
-        {a.popis}
+        {popis}
       </div>
     </div>
   </div>

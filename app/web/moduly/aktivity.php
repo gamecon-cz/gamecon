@@ -101,6 +101,9 @@ while($a) {
       $t->assign('tag', $tag);
       $t->parse('aktivity.aktivita.tag');
     }
+    $popis = $a->popis();
+    if(strlen($popis) > 370) $t->parse('aktivity.aktivita.vice');
+    $t->assign('popis', $popis);
     $t->parse('aktivity.aktivita');
   }
 
