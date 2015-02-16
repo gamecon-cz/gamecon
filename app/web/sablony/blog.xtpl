@@ -1,4 +1,45 @@
 <!-- begin:blog -->
+
+<!-- begin:post -->
   <h1>{blog.nazev}</h1>
   {blog.text}
+  <!-- TODO hack na fullscreen cover fota, vyřešit jinak -->
+  <style>
+    .btext img {
+      max-width: 999px;
+      width: 118.1% !important;
+      margin: -65px -51px 13px;
+    }
+    h1 { position: relative; z-index: 1; }
+  </style>
+<!-- end:post -->
+
+<!-- begin:seznam -->
+<style>
+  @media (min-width: 800px) {
+    .ahlav .info { float: right; }
+    .ahlav h2 { max-width: 60%; }
+    .ahlav .info:hover { text-decoration: none; }
+  }
+</style>
+<div class="aktivity">
+  <!-- begin:post -->
+    <div class="blok">
+      <div class="aktivita">
+        <img src="{blog.obrazek}">
+        <div class="ahlav">
+          <h2>{blog.nazev}</h2>
+          <a href="blog/{blog.url}" class="info vice">více</a>
+          <div class="info termin">{blog.vydat.formatBlog}</div>
+          <div class="info org">{blog.autor}</div>
+        </div>
+        <div class="atext">
+          {blog.nahled}
+        </div>
+      </div>
+    </div>
+  <!-- end:post -->
+</div>
+<!-- end:seznam -->
+
 <!-- end:blog -->

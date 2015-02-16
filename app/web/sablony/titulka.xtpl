@@ -18,8 +18,8 @@
     </div>
 
     <h2 class="pruh">
-      <a href="">&#9660; Novinky</a> &emsp; | &emsp;
-      <a href="blog/{blog.url}">Blog &#9650;</a> &emsp;
+      <a href="novinky">&#9660; Novinky</a> &emsp; | &emsp;
+      <a href="blog">Blog &#9650;</a> &emsp;
     </h2>
 
     <div class="ntext">

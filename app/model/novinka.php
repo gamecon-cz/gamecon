@@ -13,6 +13,10 @@ class Novinka {
     $this->r = $r;
   }
 
+  function autor() {
+    return preg_replace('@"(\S+)"@', '„$1“', $this->r['autor']);
+  }
+
   function datum() {
     return date('j.n.', strtotime($this->r['vydat']));
   }
@@ -29,7 +33,9 @@ class Novinka {
 
   /** Prvních $n znaků příspěvku */
   function nahled($n = 250) {
-    return mb_substr(strip_tags($this->text()), 0, $n);
+    $sub = mb_substr(strip_tags($this->text()), 0, $n);
+    if($sub[0] == '_') $sub[0] = ' ';
+    return $sub;
   }
 
   function nazev() {
@@ -39,11 +45,15 @@ class Novinka {
   /** url obrázku příspěvku */
   function obrazek() {
     preg_match(self::$prvniObrazek, $this->text(), $m);
-    return $m[1];
+    return @$m[1]; // TODO odstranit
   }
 
   function text() {
     return dbMarkdown($this->r['text']);
+  }
+
+  function typ() {
+    return $this->r['typ'];
   }
 
   function typSlovy() {
@@ -59,29 +69,41 @@ class Novinka {
     return $this->r['url'];
   }
 
+  function vydat() {
+    if(empty($this->vydat)) $this->vydat = new DateTimeCz($this->r['vydat']);
+    return $this->vydat;
+  }
+
   static function zId($id) {
-    return self::zWhere('id = $1', array($id));
+    return self::zWhere('id = $1', array($id))[0];
   }
 
   static function zNejnovejsi($typ = self::NOVINKA) {
-    return self::zWhere('vydat <= NOW() AND typ = $1 ORDER BY vydat DESC LIMIT 1', array($typ));
+    return self::zWhere('vydat <= NOW() AND typ = $1 ORDER BY vydat DESC LIMIT 1', array($typ))[0];
+  }
+
+  static function zNejnovejsich($start = 0, $limit = 20) {
+    return self::zWhere('vydat <= NOW() ORDER BY vydat DESC LIMIT $1, $2', [$start, $limit]);
+  }
+
+  static function zTypu($typ) {
+    return self::zWhere('vydat <= NOW() AND typ = $1 ORDER BY vydat DESC', [$typ]);
   }
 
   static function zUrl($url, $typ = self::NOVINKA) {
-    return self::zWhere('url = $1 AND typ = $2', array($url, $typ));
+    return self::zWhere('url = $1 AND typ = $2', array($url, $typ))[0];
   }
 
   static function zVsech() {
-    $o = dbQuery('SELECT * FROM novinky ORDER BY vydat = 0 DESC, vydat DESC');
-    $a = array();
-    while($r = mysql_fetch_assoc($o)) $a[] = new self($r);
-    return $a;
+    return self::zWhere('1 ORDER BY vydat = 0 DESC, vydat DESC');
   }
 
   protected static function zWhere($where, $params = null) {
-    $r = dbOneLineS('SELECT * FROM novinky WHERE '.$where, $params);
-    if($r) return new self($r);
-    else return null;
+    $o = dbQuery('SELECT * FROM novinky WHERE '.$where, $params);
+    $a = array();
+    while($r = mysql_fetch_assoc($o))
+      $a[] = new self($r);
+    return $a;
   }
 
 }

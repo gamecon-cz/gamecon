@@ -25,7 +25,8 @@ class Url
   /** Vrací část url na daném pořadím (od 0) */ 
   function cast($i)
   {
-    return $this->casti[$i];
+    if(isset($this->casti[$i])) return $this->casti[$i];
+    else return null;
   }
   
   /** Vrací celou url */
