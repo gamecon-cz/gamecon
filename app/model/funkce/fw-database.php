@@ -18,14 +18,14 @@ function dbConnect()
   if($spojeni==NULL)
   {
     // inicializace glob. nastavení
-    $dbhost = DB_SERV;
-  	$dbname = DB_NAME;
-  	$dbuser = DB_USER;
-  	$dbpass = DB_PASS;
-  	$spojeni=NULL;
-  	$dbLastQ='';     //vztahuje se pouze na dotaz v aktualnim skriptu
-  	$dbNumQ=0;       //počet dotazů do databáze
-  	$dbExecTime=0.0; //délka výpočtu dotazů
+    $dbhost     = DB_SERV;
+    $dbname     = DB_NAME;
+    $dbuser     = DB_USER;
+    $dbpass     = DB_PASS;
+    $spojeni    = NULL;
+    $dbLastQ    = '';   //vztahuje se pouze na dotaz v aktualnim skriptu
+    $dbNumQ     = 0;    //počet dotazů do databáze
+    $dbExecTime = 0.0;  //délka výpočtu dotazů
     // připojení
     $start=microtime(true);
     $spojeni=mysql_connect($dbhost, $dbuser, $dbpass);
