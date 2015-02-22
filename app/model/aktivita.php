@@ -1220,7 +1220,7 @@ class Aktivita
     return self::zWhere(
       'WHERE a.rok = $1 AND a.zacatek AND ( a.stav IN(1,2,3,4) OR a.typ = 10 )',
       array(ROK),
-      'ORDER BY DAY(zacatek), poradi, HOUR(zacatek), nazev_akce'
+      'ORDER BY DAY(zacatek), typ, HOUR(zacatek), nazev_akce'
     );
   }
 

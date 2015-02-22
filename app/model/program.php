@@ -42,9 +42,9 @@ class Program
     $this->program = Aktivita::zProgramu();
 
     //načtení názvů lokací
-    $odpoved=dbQuery('SELECT id_lokace as id, nazev FROM akce_lokace ORDER BY poradi');
-    while($radek=mysql_fetch_array($odpoved))
-      $lokaceSeznam[$radek['id']]=$radek['nazev'];
+    $typy['0'] = 'Ostatní';
+    foreach(Typ::zVsech() as $t)
+      $typy[$t->id()] = ucfirst($t->nazev());
     
     ////////// tisk samotného programu //////////
     
@@ -56,17 +56,17 @@ class Program
       for($cas=PROGRAM_ZACATEK; $cas<PROGRAM_KONEC; $cas++)   //výpis hlavičkového řádku s čísly
         echo('<th>'.$cas.'</th>');
       $aktivit=0;
-      foreach($lokaceSeznam as $lokace => $nazevLokace)
+      foreach($typy as $typ => $typNazev)
       {
-        if( !$aktivita || $aktivita['lok'] != $lokace ) continue;  //v lokaci není aktivita, přeskočit
+        if( !$aktivita || $aktivita['typ'] != $typ ) continue;  //v lokaci není aktivita, přeskočit
         ob_start();  //výstup bufferujeme, pro případ že bude na víc řádků
         $radku=0;
         //ošetření proti kolidujícím aktivitám v místnosti
-        while( $aktivita && $lokace==$aktivita['lok'] && $denId==$aktivita['den'] )
+        while( $aktivita && $typ==$aktivita['typ'] && $denId==$aktivita['den'] )
         {
           for($cas=PROGRAM_ZACATEK; $cas<PROGRAM_KONEC; $cas++)
           {
-            if( $aktivita && $lokace==$aktivita['lok'] && $cas==$aktivita['zac'] ) //pokud je aktivita už v jiné lokaci, dojedeme stávající řádek
+            if( $aktivita && $typ==$aktivita['typ'] && $cas==$aktivita['zac'] ) //pokud je aktivita už v jiné lokaci, dojedeme stávající řádek
             {
               $cas += $aktivita['del'] - 1; //na konci cyklu jeste bude ++
               $this->tiskAktivity($aktivita);
@@ -80,7 +80,7 @@ class Program
           $radku++;
         }
         $radky=substr(ob_get_clean(),0,-4);
-        if($radku>0) echo('<tr><td rowspan="'.$radku.'">'.$nazevLokace.'</td>'.$radky);
+        if($radku>0) echo('<tr><td rowspan="'.$radku.'">'.$typNazev.'</td>'.$radky);
       }
       if($aktivit==0)
         echo('<tr><td colspan="17">Žádné aktivity tento den</td></tr>'); //fixme magická konstanta
@@ -98,7 +98,7 @@ class Program
   {
     if(  $a===null
       || $b===null
-      || $a['lok'] != $b['lok']
+      || $a['typ'] != $b['typ']
       || $a['den'] != $b['den']
       || $a['kon'] <= $b['zac']
       || $b['kon'] <= $a['zac']
@@ -111,7 +111,7 @@ class Program
   {
     if(  $a===null
       || $b===null
-      || $a['lok'] != $b['lok']
+      || $a['typ'] != $b['typ']
       || $a['den'] != $b['den']
     ) return false;
     return true;
@@ -199,7 +199,7 @@ class Program
     $kon = (int)$a->konec()->format('G');
     if($kon == 0) $kon = 24;
     $a = array(
-      'lok' => $a->lokaceId(),
+      'typ' => $a->typ(),
       'zac' => $zac,
       'kon' => $kon,
       'den' => (int)$a->zacatek()->format('z'),

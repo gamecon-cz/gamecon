@@ -20,6 +20,7 @@ $program = new Program($u);
 
   table.program td { border: 0; padding: 0; border-right: solid 1px #ddd; }
   table.program td:last-child { border: 0; }
+  table.program td[rowspan] { background-color: #444; border-top: solid 1px #555; color: #fff; }
   table.program td[colspan] div {
     margin: 2px;
     padding: 2px;
