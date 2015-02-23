@@ -7,8 +7,7 @@
  * pravo: 102
  */
  
-if(post('filtr'))
-{
+if(post('filtr')) {
   if(post('filtr')=='vsechno')
     unset($_SESSION['adminAktivityFiltr']);
   else
@@ -16,36 +15,39 @@ if(post('filtr'))
   back();
 }
 
-if(post('smazat'))
-{
+if(post('smazat')) {
   $a = Aktivita::zId(post('aktivitaId'));
   $a->smaz();
   back();
 }
 
-if(post('publikovat'))
-{
+if(post('publikovat')) {
   dbQueryS('UPDATE akce_seznam SET stav=4 WHERE id_akce=$0',
-    array(post('aktivitaId')));
+    array(post('aktivitaId'))); // TODO převést do modelu
   back();
 }
 
-if(post('aktivovat'))
-{
-  $a = Aktivita::zId(post('aktivitaId'));
-  $a->aktivuj();
+if(post('pripravit')) {
+  Aktivita::zId(post('aktivitaId'))->priprav();
   back();
 }
 
-if(post('aktivovatVse'))
-{
-  dbQueryS('UPDATE akce_seznam SET stav=1 WHERE stav=4',
-    array(post('aktivitaId')));
+if(post('odpripravit')) {
+  Aktivita::zId(post('aktivitaId'))->odpriprav();
   back();
 }
 
-if(post('instance'))
-{
+if(post('aktivovat')) {
+  Aktivita::zId(post('aktivitaId'))->aktivuj();
+  back();
+}
+
+if(post('aktivovatVse')) {
+  dbQuery('UPDATE akce_seznam SET stav=1 WHERE stav=5 AND rok='.ROK); // TODO převést do modelu
+  back();
+}
+
+if(post('instance')) {
   Aktivita::zId(post('aktivitaId'))->instanciuj();
   back();
 }
@@ -99,12 +101,14 @@ foreach($aktivity as $a)
   ));
   if($r['patri_pod']) $tpl->parse('aktivity.aktivita.instSymbol');
   if($r['stav']==0) $tpl->parse('aktivity.aktivita.tlacitka.publikovat');
-  if($r['stav']==4) $tpl->parse('aktivity.aktivita.tlacitka.aktivovat');
+  if($r['stav']==4) $tpl->parse('aktivity.aktivita.tlacitka.pripravit');
+  if($r['stav']==5) $tpl->parse('aktivity.aktivita.tlacitka.odpripravit');
+  if($r['stav']==5) $tpl->parse('aktivity.aktivita.tlacitka.aktivovat');
   $tpl->parse('aktivity.aktivita.tlacitka');
   $tpl->parse('aktivity.aktivita');
 }
 
-if(!$filtr)
+if($filtr == ['rok'=>ROK])
   $tpl->parse('aktivity.aktivovatVse');
 
 $tpl->parse('aktivity');

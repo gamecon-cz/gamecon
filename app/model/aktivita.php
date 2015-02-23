@@ -18,6 +18,9 @@ class Aktivita
     TEAMKLIC='aTeamForm',      // název post proměnné s formulářem pro výběr teamu
     PN_PLUSMINUSP='cAktivitaPlusminusp',  // název post proměnné pro úpravy typu plus
     PN_PLUSMINUSM='cAktivitaPlusminusm',  // název post proměnné pro úpravy typu mínus
+    // stavy aktivity
+    PUBLIKOVANA     = 4,
+    PRIPRAVENA      = 5,
     //ignore a parametry kolem přihlašovátka
     BEZ_POKUT       = 0b00010000,   // odhlášení bez pokut
     PLUSMINUS       = 0b00000001,   // plus/mínus zkratky pro měnění míst v team. aktivitě
@@ -500,6 +503,12 @@ class Aktivita
       dbQuery("UPDATE akce_seznam SET kapacita=team_max WHERE id_akce=$aid");
   }
 
+  /** Vráti aktivitu ze stavu připravená do stavu publikovaná */
+  function odpriprav() {
+    if(!$this->a['stav'] == self::PRIPRAVENA) throw new Exception('Aktivita není v stavu "připravená"');
+    dbUpdate('akce_seznam', ['stav' => self::PUBLIKOVANA], ['id_akce' => $this->id()]);
+  }
+
   /**
    * Vrátí pole uživatelů, kteří jsou organizátory této aktivity. Při zadaném
    * parametru poli ID nastaví tyto organizátory.
@@ -817,6 +826,11 @@ class Aktivita
     ');
     dbQuery("DELETE FROM akce_prihlaseni WHERE id_akce IN($pKolize) AND id_uzivatele IN(".implode(',',$uids).')');
     dbQuery('INSERT INTO akce_prihlaseni(id_akce,id_uzivatele) VALUES ('.$this->id().','.implode('),('.$this->id().',',$uids).')');
+  }
+
+  /** Nastaví aktivitu jako "připravena pro aktivaci" */
+  function priprav() {
+    dbUpdate('akce_seznam', ['stav' => self::PRIPRAVENA], ['id_akce' => $this->id()]);
   }
 
   /** Zdali už aktivita začla a proběhla (rozhodný okamžik je vyjetí seznamů
@@ -1168,7 +1182,7 @@ class Aktivita
     if(!empty($filtr['organizator']))
       $wheres[] = 'a.id_akce IN (SELECT id_akce FROM akce_organizatori WHERE id_uzivatele = '.(int)$filtr['organizator'].')';
     if(!empty($filtr['jenViditelne']))
-      $wheres[] = 'a.stav IN(1,2,4) AND a.typ != 10';
+      $wheres[] = 'a.stav IN(1,2,4,5) AND a.typ != 10';
     $where = implode(' AND ', $wheres);
     $order = null;
     foreach($razeni as $sloupec) {
@@ -1218,7 +1232,7 @@ class Aktivita
    */
   static function zProgramu() {
     return self::zWhere(
-      'WHERE a.rok = $1 AND a.zacatek AND ( a.stav IN(1,2,3,4) OR a.typ = 10 )',
+      'WHERE a.rok = $1 AND a.zacatek AND ( a.stav IN(1,2,3,4,5) OR a.typ = 10 )',
       array(ROK),
       'ORDER BY DAY(zacatek), typ, HOUR(zacatek), nazev_akce'
     );
@@ -1229,7 +1243,7 @@ class Aktivita
    * @todo možno přidat flag 'celé v rozmezí'
    */
   static function zRozmezi(DateTimeCz $od, DateTimeCz $do, $flags = 0) {
-    $qVerejne = $flags & self::VEREJNE ? ' AND stav IN(1,2,4) ' : ' ';
+    $qVerejne = $flags & self::VEREJNE ? ' AND stav IN(1,2,4,5) ' : ' ';
     $qVolne = $flags & self::JEN_VOLNE ? ' HAVING COUNT(p.id_uzivatele) < (kapacita+kapacita_m+kapacita_f) ' : ' ';
     return self::zWhere(
       "WHERE zacatek BETWEEN '{$od->formatDb()}' AND '{$do->formatDb()}' $qVerejne ",
@@ -1245,9 +1259,9 @@ class Aktivita
    */
   static function zUrlViditelne($url, $typ) {
     return self::zWhere(
-      'WHERE at.url_typu = $1 AND a.stav IN(1,2,4) AND a.rok = $3 AND (
+      'WHERE at.url_typu = $1 AND a.stav IN(1,2,4,5) AND a.rok = $3 AND (
         a.url_akce = $2 OR IF(a.patri_pod, a.patri_pod = (
-          SELECT patri_pod FROM akce_seznam WHERE url_typu = $1 AND stav IN(1,2,4) AND rok = $3 AND url_akce = $2
+          SELECT patri_pod FROM akce_seznam WHERE url_typu = $1 AND stav IN(1,2,4,5) AND rok = $3 AND url_akce = $2
         ), 0)
       )',
       array($typ, $url, ROK),
