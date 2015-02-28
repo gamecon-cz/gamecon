@@ -1,6 +1,6 @@
 <!-- begin:aktivity -->
 
-<div style="position:absolute;right:20px;top:120px">
+<div style="position:absolute;right:20px;top:100px">
   <form method="post">
     Zobrazit jen:
     <select name="filtr" onchange="this.form.submit()">
@@ -11,15 +11,70 @@
 </div>
 
 <!-- begin:aktivovatVse -->
-<form method="post" style="position:absolute;right:20px;top:80px">
+<form method="post" style="position:absolute;right:20px;top:60px">
   <input type="submit" name="aktivovatVse" value="aktivovat hromadně" 
     onclick="return window.confirm('Toto aktivuje všechny aktivity označené jako „připravené“ ve všech kategoriích. Určitě?');" />
 </form>
 <!-- end:aktivovatVse -->
 
-{statistika}<br /><br />
+<div class="test"></div>
 
-<style> th > a { text-decoration:none; color:#88c; } </style>
+<!-- ilustrace stavů -->
+<style>
+  .maluvka { margin-bottom: 1em; overflow: hidden; text-align: left; }
+  .maluvka .bublina { float: left; max-width: 14.8em; overflow: hidden; }
+  .maluvka .bublina h2 { background-color: #555; color: #fff; border-radius: 8px; text-align: center; padding: 0.5em 0.1em; font-size: 1.2em; font-weight: normal; }
+  .maluvka .bublina > div { margin: -1em 1.5em 0 1.5em; }
+  .maluvka .sipka { float: left; border-top: solid 2px #000; margin: 2.3em 1em; position: relative; padding-top: 0.5em; }
+  .maluvka .sipka span { border: solid 1px #888; border-radius: 2px; background-color: #eee; padding: 0 0.1em; }
+  .maluvka .sipka .zpet { border-top: solid 2px #000; margin: 1em 0 0 0; padding: 0.5em 0 0 0; }
+  .maluvka .sipka::after {
+    position: absolute;
+    top: -9px; right: -12px;
+    content: '';
+    width: 0;
+    height: 0;
+    border: 8px solid transparent;
+    border-left-color: #000;
+  }
+  .maluvka .sipka .zpet::after {
+    position: absolute;
+    margin-top: -1.25em;
+    left: -12px;
+    content: '';
+    width: 0;
+    height: 0;
+    border: 8px solid transparent;
+    border-right-color: #000;
+  }
+</style>
+<div class="maluvka">
+  <div class="bublina">
+    <h2>Nová</h2>
+    <div>aktivita není vidět na webu</div>
+  </div>
+  <div class="sipka"><span>pub</span>likovat</div>
+  <div class="bublina">
+    <h2>Publikovaná</h2>
+    <div>aktivita je vidět na webu, nedá se na ni přihlašovat</div>
+  </div>
+  <div class="sipka">
+    <span>přip</span>ravit
+    <div class="zpet"><span>odpři</span>pravit</div>
+  </div>
+  <div class="bublina">
+    <h2>Připravená k aktivaci</h2>
+    <div>je vidět, nedá se na ni přihlašovat, kliknutím na <em>aktivovat hromadně</em> se ale otevře k přihlašování</div>
+  </div>
+  <div class="sipka"><span>aktiv</span>ovat</div>
+  <div class="bublina">
+    <h2>Aktivovaná</h2>
+    <div>na aktivitu se dá přihlašovat</div>
+    <div style="text-align:right"><br><br><a href="https://docs.google.com/document/d/1VJfHbHGxxojGu0rDwFwa7i40EJZupzQ9N2cZXO1s0rs/edit" target="_blank">více info</a></div>
+  </div>
+</div>
+
+<style> th > a { text-decoration:none; color:#88c; position: relative; top: -2px; left: 2px; } </style>
 <table class="zvyraznovana aktivity" style="width: 100%">
   <tr>
     <th><span class="hinted">Název<div class="hint">
