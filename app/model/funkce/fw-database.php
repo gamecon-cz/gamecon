@@ -28,7 +28,10 @@ function dbConnect()
     $dbExecTime = 0.0;  //délka výpočtu dotazů
     // připojení
     $start=microtime(true);
-    $spojeni=mysql_connect($dbhost, $dbuser, $dbpass);
+    $puvodni = error_reporting(); // vymaskováni deprekace mysql_*
+    error_reporting($puvodni ^ E_DEPRECATED);
+    $spojeni = mysql_connect($dbhost, $dbuser, $dbpass);
+    error_reporting($puvodni);
     if(!$spojeni) die(mysql_error($spojeni));
     mysql_select_db($dbname, $spojeni);
     mysql_set_charset('utf8', $spojeni);
