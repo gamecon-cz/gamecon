@@ -29,7 +29,7 @@
   </div>
 
   <!-- begin:zahlavi -->
-  <div class="blok btext">
+  <div class="blok stranka">
     {text}
   </div>
   <!-- end:zahlavi -->

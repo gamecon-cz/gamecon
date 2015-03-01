@@ -3,15 +3,6 @@
 <!-- begin:post -->
   <h1>{blog.nazev}</h1>
   {blog.text}
-  <!-- TODO hack na fullscreen cover fota, vyřešit jinak -->
-  <style>
-    .btext img {
-      max-width: 999px;
-      width: 118.1% !important;
-      margin: -65px -51px 13px;
-    }
-    h1 { position: relative; z-index: 1; }
-  </style>
 <!-- end:post -->
 
 <!-- begin:seznam -->

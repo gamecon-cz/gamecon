@@ -46,16 +46,29 @@ hr.stin { border: none; background-image: data-uri('gradient2.png'); height: 4px
 
 
 /* blogy a stránky */
-.btext { padding: 0 3% 2% 3%; line-height: 1.6em;  }
-.btext > h1:first-child, .btext > h2:first-child { .pruh; margin: 0 -3.15%; }
-.btext > *:not(:first-child) { ont-family: Merriweather; }
-.btext img { max-width: 100%; }
-.btext p { text-align: justify; margin: 1.6em 0; }
-.btext > :last-child { margin-bottom: 0; }
+.stranka {
+  @bpad: 3%; // padding celého blogu
+  @tpad: 4.8em; // odsazení prvního odstavce (místo pro nadpis)
+  position: relative;
+  line-height: 1.6em;
+  padding-bottom: 1px; // hack aby i závěrečný margin zůstal "uvnitř bloku"
+  > h1:first-child, > h2:first-child {
+    .pruh;
+    margin: 0;
+    padding-left: 2%; padding-right: 2%;
+    width: 96%;
+    position: absolute;
+    + * { padding-top: @tpad; margin-top: 0; }
+    + p > img { margin-top: -@tpad; width: 10000 / (100 - 2 * @bpad); margin-left: -(100 * @bpad) / (100 - 2 * @bpad); }
+  }
+  img { width: 100%; display: block; }
+  p { text-align: justify; margin: 1.6em 0; }
+  p, h2, h3, h4, h5 { margin-left: @bpad; margin-right: @bpad; }
+}
+
 
 
 /* aktivity */
-.aktivity .btext { padding-bottom: 2em; }
 .aktivita { position: relative; overflow: hidden; }
 .aktivita > img { width: 100%; display: block; }
 .atext { margin: 2% 2.5%; text-align: justify; overflow: hidden; max-height: 8.7em;  }
@@ -153,12 +166,18 @@ label { color: #999; }
 @media (min-width: 800px) {
   @sloupm: 3%;
   @sloupw: (100 - 2 * @sloupm) / 3;
-  @bpad: 5%;
-  .btext { width: 2 * @sloupw + @sloupm - 2 * @bpad; padding: @bpad; }
-  .btext > h1:first-child, .btext > h2:first-child { margin: -9%; margin-bottom: 0; } /* závisí nějak nelineárně na @bpad */
-  .btext + .sloupce { position: absolute; top: 0; right: 0; width: @sloupw; padding: 5px; margin: -5px; padding-bottom: 0; margin-bottom: 0; height: 100%; overflow: hidden; }
-  .btext + .sloupce .blok { width: 100%; }
-  .btext + .sloupce .blok:first-child { margin-top: 0; }
+  @bpad: 8%;
+  .stranka {
+    width: 2 * @sloupw + @sloupm;
+    > h1:first-child, > h2:first-child {
+      + p > img { width: 10000 / (100 - 2 * @bpad); margin-left: -(100 * @bpad) / (100 - 2 * @bpad); }
+    }
+    p, h2, h3, h4, h5 { margin-left: @bpad; margin-right: @bpad; }
+    > *:last-child { margin-bottom: @bpad * 0.8; }
+  }
+  .stranka + .sloupce { position: absolute; top: 0; right: 0; width: @sloupw; padding: 5px; margin: -5px; padding-bottom: 0; margin-bottom: 0; height: 100%; overflow: hidden; }
+  .stranka + .sloupce .blok { width: 100%; }
+  .stranka + .sloupce .blok:first-child { margin-top: 0; }
   .sloupce:after { content: "."; display: block; clear: both; visibility: hidden; height: 0; }
   .sloupce .blok { float: left; width: @sloupw; }
   .sloupce .blok:not(:nth-child(3n)) { margin-right: @sloupm; }
