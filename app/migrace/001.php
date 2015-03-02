@@ -214,6 +214,12 @@ ALTER TABLE `stranky`
 CHANGE `obsah` `obsah` longtext COLLATE 'utf8_czech_ci' NOT NULL COMMENT 'markdown' AFTER `url_stranky`;
 ");
 
+// možná dlouhá poznámka v adminu
+$this->q("
+ALTER TABLE `uzivatele_hodnoty`
+CHANGE `poznamka` `poznamka` varchar(4096) COLLATE 'utf8_czech_ci' NOT NULL AFTER `guru`;
+");
+
 
 /////////////////////////////////
 // Fixnutí plateb vůči fio api //

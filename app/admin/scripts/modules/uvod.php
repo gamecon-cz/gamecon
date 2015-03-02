@@ -195,6 +195,8 @@ if($uPracovni) {
       'hodnota' => $hodnota,
     ));
     if($hodnota == '' && $sloupec != 'poznamka') $x->parse('uvod.udaje.udaj.chybi');
+    if($sloupec != 'poznamka') $x->parse('uvod.udaje.udaj.input');
+    else $x->parse('uvod.udaje.udaj.text');
     $x->parse('uvod.udaje.udaj');
   }
   $x->parse('uvod.udaje');

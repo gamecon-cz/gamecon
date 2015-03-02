@@ -66,7 +66,7 @@
   <tr><td>ID uživ.:</td><td> {id}</td></tr>
   <tr><td>Pokoj:</td><td> {pokoj}</td></tr>
   <tr><td>Na pokoji:</td><td><ul>{spolubydlici}</ul></td></tr>
-  <tr><td>Poznámka:</td><td>{up.poznamka}</td></tr>
+  <tr><td><span class="hinted">Poznámka:<span class="hint">k úpravě klikněte na pole poznámka v osobních údajích</span></span></td><td style="cursor:pointer" onclick="alert('k úpravě klikněte na pole poznámka v osobních údajích')">{up.poznamka}</td></tr>
   </table><br>
   
   <a href="program-uzivatele">Program uživatele</a><br><br>
@@ -130,7 +130,7 @@
     <tr>
       <td style="width:80px">{nazev}:</td>
       <td style="padding:0">
-        <div onclick="$(this).hide(); $(this).next().show()" style="width: 100%; cursor: pointer;">
+        <div onclick="$(this).hide(); $(this).next().show().find('input, textarea').first().focus()" style="width: 100%; cursor: pointer;">
           {hodnota} &nbsp;
           <!-- begin:chybi -->
           <img src="files/design/error-s.png" style="margin-bottom:-2px">
@@ -138,10 +138,18 @@
           <!-- end:chybi -->
         </div>
         <form method="post" style="display:none">
-          <table class="cista">
+          <table class="cista" style="width:100%">
             <tr>
+              <!-- begin:input -->
               <td><input type="text" name="udaj[{sloupec}]" value="{hodnota}" style="margin-left: -3px"></td>
               <td><input type="submit" name="zmenitUdaj" value="uložit"></td>
+              <!-- end:input -->
+              <!-- begin:text -->
+              <td colspan="2">
+                <textarea name="udaj[{sloupec}]" style="margin-left: -3px; margin-top: -1px">{hodnota}</textarea><br>
+                <input type="submit" name="zmenitUdaj" value="uložit">
+              </td>
+              <!-- end:text -->
             </tr>
           </table>
         </form>
@@ -149,6 +157,10 @@
     </tr>
     <!-- end:udaj -->
   </table>
+  <script src="files/jquery.autosize.js"></script>
+  <script>
+    $('textarea').last().focus(function(){ $(this).css('width', '98%').autosize() });
+  </script>
 </div>
 <!-- end:udaje -->
 
