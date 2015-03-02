@@ -19,71 +19,29 @@ ob_start();
 
 /// Výstup do logu
 function logs($s)
-{ echo date('Y-m-d H:i:s ').$s; }
+{ echo date('Y-m-d H:i:s '), $s, "\n"; }
 
-logs("Začátek provádění cron scriptu…\n");
+logs("začátek provádění cron scriptu");
+
 
 // zpracování dat z FIO
-logs("Zpracování dat z Fio: ");
-$token='DkxQEFrYDX9qZwvIIcRufP87rYwuZfNJlKUkvQZiYaO6K6xg39GdGPpU40E72cNC';
-if(extension_loaded('openssl'))
-{
-  $od=new DateTime();
-  $od->sub(new DateInterval('P300D'));
-  $od=$od->format('Y-m-d');
-  $do=new DateTime();
-  $do=$do->format('Y-m-d');
-  
-  // resetovat poslední zpracovanou platbu (odkomentovat v případě potřeby)
-  //file_get_contents("https://www.fio.cz/ib_api/rest/set-last-date/$token/2012-07-16/"); die('resetováno, ukončeno.');
-  
-  $url="https://www.fio.cz/ib_api/rest/last/$token/transactions.json";
-  $platby=json_decode(file_get_contents($url))->accountStatement->transactionList;
-  $platby=$platby?$platby->transaction:array();
-  if($platby)
-  { // na účtu se objevily nové platby od poslední kontroly
-    echo count($platby)." nových plateb ";
-    $maxId=dbOneLine('SELECT MAX(id_uzivatele) as max FROM uzivatele_hodnoty');
-    $maxId=$maxId['max'];
-    $q='';
-    for($i=count($platby)-1;$i>=0;$i--)
-    {
-      $r=array();
-      $r['jmeno']=(@$platby[$i]->column7->value);
-      $r['zprava']=(@$platby[$i]->column16->value).'';
-      $r['vs']=(int)(@$platby[$i]->column5->value);
-      $r['castka']=($platby[$i]->column1->value)*1.0;
-      $r['datum']=(new DateTime($platby[$i]->column0->value));
-      $r['datum']=$r['datum']->format('Y-m-d'); //datum nemá časovou složku
-      if($r['castka']>0 && $r['vs']>0 && $r['vs']<=$maxId ) //jen příjmy + jen od uživatelů
-      {
-        //var_dump($r);
-        $poznamka=$r['zprava'];
-        $poznamka=strlen($poznamka)>4?"'".addslashes($poznamka)."'":'null';
-        $q.="\n($r[vs],$r[castka],$poznamka,".ROK.",1),";
-      }
-    }
-    if($q) // relevantní nové platby
-      dbQuery("\nINSERT INTO platby(id_uzivatele,castka,poznamka,rok,provedl) VALUES ".substr($q,0,-1));
-    else
-      echo(", žádné zaúčtovatelné ");
-  }
-  else
-    echo "Žádné nové platby ";
-  echo "[OK]\n";
-}
-else
-  logs("Není načteno rozšíření OpenSSL, platby nepojedou. [FAIL]\n");
+logs("zpracování dat z Fio");
+
+$platby = Platby::nactiNove();
+foreach($platby as $p) logs('platba ' . $p->id() . ' (' . $p->castka() . 'Kč, VS: ' . $p->vs() . ($p->zprava() ? ', zpráva: ' . $p->zprava() : '') . ')');
+if(!$platby) logs('žádné zaúčtovatelné platby');
+
 
 // odemčení zamčených aktivit
 if(date('G')==4) {
-  logs("Odemykání aktivit…\n");
+  logs("odemykání aktivit");
   $i = Aktivita::odemciHromadne();
-  logs("Odemčeno $i\n");
+  logs("odemčeno $i");
 }
 
 
-logs("cron dokončen.\n");
+logs("cron dokončen\n");
+
 $vystup = ob_get_contents();
 $zapsano = file_put_contents(SPEC.'/logs/cron-'.date('Y-m'), $vystup, FILE_APPEND);
 if($zapsano === false) {

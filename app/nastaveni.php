@@ -79,9 +79,10 @@ unset($pre);
 // Finanční nastavení //
 ////////////////////////
 
-define('KURZ_EURO',25.00);            // kurz kč:euro
+define('KURZ_EURO',27.00);            // kurz kč:euro
 define('UCET_CZ','2800035147/2010');  // číslo účtu pro platby v CZK - v statických stránkách není
 define('UCET_SK','2800035147/8330');  // číslo účtu pro platby v EUR - v statických stránkách není
+define('FIO_TOKEN', '');
 
 
 /////////////////////////

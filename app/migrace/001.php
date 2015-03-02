@@ -213,3 +213,35 @@ $this->q("
 ALTER TABLE `stranky`
 CHANGE `obsah` `obsah` longtext COLLATE 'utf8_czech_ci' NOT NULL COMMENT 'markdown' AFTER `url_stranky`;
 ");
+
+
+/////////////////////////////////
+// Fixnutí plateb vůči fio api //
+/////////////////////////////////
+
+$this->q("
+ALTER TABLE `platby`
+CHANGE `id_platby` `id` int(11) NOT NULL COMMENT 'kvůli indexu a vícenásobným platbám' AUTO_INCREMENT FIRST,
+CHANGE `id_uzivatele` `id_uzivatele` int(11) NOT NULL AFTER `id`,
+ADD `fio_id` bigint NULL AFTER `id_uzivatele`,
+CHANGE `castka` `castka` decimal(6,2) NOT NULL AFTER `fio_id`,
+CHANGE `rok` `rok` smallint(6) NOT NULL AFTER `castka`,
+CHANGE `provedeno` `provedeno` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER `rok`,
+CHANGE `provedl` `provedl` int(11) NOT NULL AFTER `provedeno`,
+CHANGE `poznamka` `poznamka` text COLLATE 'utf8_czech_ci' NULL AFTER `provedl`;
+̈́");
+
+$this->q("
+ALTER TABLE `platby`
+ADD PRIMARY KEY `id` (`id`),
+ADD INDEX `id_uzivatele_rok` (`id_uzivatele`, `rok`),
+DROP INDEX `PRIMARY`,
+DROP INDEX `id_platby`;
+");
+
+// přidání id k poslední napárované fio platbě
+$this->q("
+UPDATE `platby` SET
+`fio_id` = '5596467723'
+WHERE `id` = '3717';
+");

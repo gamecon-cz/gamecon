@@ -14,6 +14,9 @@ class Uzivatel
     $zidle,         // pole s klíči id židlí uživatele
     $finance=null;
 
+  const
+    SYSTEM = 1; // id uživatele reprezentujícího systém (např. "operaci provedl systém")
+
   /** Vytvoří uživatele z různých možných vstupů */
   function __construct($uzivatel)
   {
@@ -674,7 +677,8 @@ class Uzivatel
   }
 
   static function zId($id) {
-    return self::zIds((int)$id)[0];
+    $o = self::zIds((int)$id);
+    return $o ? $o[0] : null;
   }
 
   /**
