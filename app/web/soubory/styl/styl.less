@@ -1,9 +1,14 @@
 
-@sirka: 1000px;
+@sirka:     1000px; // max šířka při širokém zobrazení
+@stredni:   ~"(min-width: 550px) and (max-width: 799px)";
+@siroke:    ~"(min-width: 800px)";
+@sloupm:    3%; // margin sloupců při vícesloupcovém designu
 
 a { color: #06d; text-decoration: none; }
 a:hover { text-decoration: underline; }
 a[name] { color: inherit; }
+
+hr { border: none; border-top: solid 1px #eee; }
 
 body { margin: 0; font: 14px Open Sans, sans-serif; background-image: data-uri('pozadi.png'); background-repeat: repeat-x; background-color: #e6e6e6; overflow-y: scroll; line-height: 150%; }
 
@@ -47,23 +52,50 @@ hr.stin { border: none; background-image: data-uri('gradient2.png'); height: 4px
 
 /* blogy a stránky */
 .stranka {
-  @bpad: 3%; // padding celého blogu
   @tpad: 4.8em; // odsazení prvního odstavce (místo pro nadpis)
   position: relative;
   line-height: 1.6em;
   padding-bottom: 1px; // hack aby i závěrečný margin zůstal "uvnitř bloku"
-  > h1:first-child, > h2:first-child {
-    .pruh;
-    margin: 0;
-    padding-left: 2%; padding-right: 2%;
-    width: 96%;
-    position: absolute;
-    + * { padding-top: @tpad; margin-top: 0; }
-    + p > img { margin-top: -@tpad; width: 10000 / (100 - 2 * @bpad); margin-left: -(100 * @bpad) / (100 - 2 * @bpad); }
-  }
   img { width: 100%; display: block; }
   p { text-align: justify; margin: 1.6em 0; }
-  p, h2, h3, h4, h5 { margin-left: @bpad; margin-right: @bpad; }
+  .obal { // kvůli bugu v webkitu nelze použít padding pro .stranka ale je nutné použít obalovací div a margin
+    > h1:first-child, > h2:first-child {
+      .pruh;
+      margin: 0;
+      padding-left: 2%;
+      padding-right: 2%;
+      width: 96%;
+      position: absolute;
+      + * { padding-top: @tpad; margin-top: 0; }
+      + p > img { margin-top: -@tpad; }
+    }
+  }
+}
+.stranka-mix(@bpad) {
+  // mixin starající se o různou šířku okrajů podle parametru aby nebylo potřeba
+  // toto rozkopírovávat do různých media queries
+  .obal {
+    margin: 0 @bpad;
+    > h1:first-child, > h2:first-child {
+      margin-left: -@bpad;
+      + p > img { width: 10000 / (100 - 2 * @bpad); margin-left: -(100 * @bpad) / (100 - 2 * @bpad); }
+    }
+  }
+}
+.stranka {
+  .stranka-mix(3%);
+}
+@media @siroke {
+  @sloupw: (100 - 2 * @sloupm) / 3;
+  @bpad: 8%;
+  .stranka {
+    width: 2 * @sloupw + @sloupm;
+    .stranka-mix(@bpad);
+    // odsazení spodních bannerů napravo od hlavního okna
+    + .sloupce { position: absolute; top: 0; right: 0; width: @sloupw; padding: 5px; margin: -5px; padding-bottom: 0; margin-bottom: 0; height: 100%; overflow: hidden; }
+    + .sloupce .blok { width: 100%; }
+    + .sloupce .blok:first-child { margin-top: 0; }
+  }
 }
 
 
@@ -155,29 +187,16 @@ label { color: #999; }
 
 /* Responsivní design */
 
-@media (min-width: 550px) and (max-width: 799px) {
-  @sloupm: 3%;
+@media @stredni {
   .sloupce:after { content: "."; display: block; clear: both; visibility: hidden; height: 0; }
   .sloupce .blok { float: left; width: (100 - @sloupm) / 2; }
   .sloupce .blok:not(:nth-child(2n)) { margin-right: @sloupm; }
   .menu > ul > li { width: 50%; }
 }
 
-@media (min-width: 800px) {
-  @sloupm: 3%;
+@media @siroke {
   @sloupw: (100 - 2 * @sloupm) / 3;
   @bpad: 8%;
-  .stranka {
-    width: 2 * @sloupw + @sloupm;
-    > h1:first-child, > h2:first-child {
-      + p > img { width: 10000 / (100 - 2 * @bpad); margin-left: -(100 * @bpad) / (100 - 2 * @bpad); }
-    }
-    p, h2, h3, h4, h5 { margin-left: @bpad; margin-right: @bpad; }
-    > *:last-child { margin-bottom: @bpad * 0.8; }
-  }
-  .stranka + .sloupce { position: absolute; top: 0; right: 0; width: @sloupw; padding: 5px; margin: -5px; padding-bottom: 0; margin-bottom: 0; height: 100%; overflow: hidden; }
-  .stranka + .sloupce .blok { width: 100%; }
-  .stranka + .sloupce .blok:first-child { margin-top: 0; }
   .sloupce:after { content: "."; display: block; clear: both; visibility: hidden; height: 0; }
   .sloupce .blok { float: left; width: @sloupw; }
   .sloupce .blok:not(:nth-child(3n)) { margin-right: @sloupm; }

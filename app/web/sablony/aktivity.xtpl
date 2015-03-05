@@ -30,7 +30,9 @@
 
   <!-- begin:zahlavi -->
   <div class="blok stranka">
-    {text}
+    <div class="obal">
+      {text}
+    </div>
   </div>
   <!-- end:zahlavi -->
 
