@@ -63,6 +63,13 @@ if(get('jenVolne')) $filtr['jenVolne'] = true;
 $filtr['jenViditelne'] = true;
 $aktivity = Aktivita::zFiltru($filtr, array('nazev_akce'));
 
+// Statické stránky
+$stranky = [];
+$prefixy = ['drd', 'legendy'];
+if($typ && in_array($typ->url(), $prefixy))
+  $stranky = Stranka::zUrlPrefixu($typ->url());
+$t->parseEach($stranky, 'stranka', 'aktivity.stranka');
+
 // Zobrazení aktivit
 $a = reset($aktivity);
 $dalsi = next($aktivity);

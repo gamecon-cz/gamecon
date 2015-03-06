@@ -25,6 +25,10 @@ class Typ {
     return $s ? $s->html() : null;
   }
 
+  function url() {
+    return $this->r['url_typu'];
+  }
+
   static function zUrl($url = null) {
     if($url === null) $url = Url::zAktualni()->cela();
     $r = dbOneLineS('SELECT * FROM akce_typy WHERE url_typu_mn = $1', array($url));

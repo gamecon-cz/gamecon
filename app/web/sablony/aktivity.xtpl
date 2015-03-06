@@ -38,6 +38,21 @@
 
   <div style="clear:both"></div>
 
+  <!-- begin:stranka -->
+  <div class="blok">
+    <div class="aktivita">
+      <img src="{stranka.obrazek}">
+      <div class="ahlav">
+        <div style="float:right" onclick="tgAkt($(this))" class="info vice">více</div>
+        <h2 style="max-width:80%">{stranka.nadpis}</h2>
+      </div>
+      <div class="atext">
+        {stranka.bezHlavicky}
+      </div>
+    </div>
+  </div>
+  <!-- end:stranka -->
+
   <!-- begin:aktivita -->
   <div class="blok">
     <div class="aktivita">
