@@ -16,11 +16,12 @@ class Menu {
   );
 
   protected static $stranky = array(
-    'test1'   => 'Nunc sem nisl',
-    'test2'   => 'Nam ullamcorper',
-    'test3'   => 'Duis tincidunt',
-    'test4'   => 'Aenean',
-    'test5'   => 'Quisque non',
+    'o-gameconu'   => 'O GameConu',
+    'chci-se-zapojit'   => 'Chci se zapojit',
+    'chci-se-prihlasit'   => 'Chci se přihlásit',
+    'prakticke-informace'   => 'Praktické informace',
+    'kontakty'   => 'Kontakty',
+    'test5'   => 'Fotogalerie',
   );
 
   /** Celý kód menu (html) */

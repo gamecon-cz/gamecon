@@ -38,7 +38,7 @@
   <div class="blok">
     <!-- begin:pripravujeme -->
     <a class="upoutavka" href="pripravujeme">
-      <img src="soubory/_placeholder/1.jpg">
+      <img src="soubory/obsah/titulka/pripravujeme.jpg">
       <div class="horni"><div>Letos připravujeme…</div></div>
       <div class="dolni"><div>Aktivity</div></div>
     </a>
@@ -89,8 +89,8 @@
 <!-- hack na posun dolních panelů -->
 <style>
 @media (min-width: 800px) {
-.obsah > .sloupce:last-child > :nth-child(1) { margin-top: -110px; height: 312px; overflow: hidden; }
-.obsah > .sloupce:last-child > :nth-child(3) { margin-top: -134px; height: 389px; overflow: hidden; }
+.obsah > .sloupce:last-child > :nth-child(1) { margin-top: -130px; height: 250px; overflow: hidden; }
+.obsah > .sloupce:last-child > :nth-child(3) { margin-top: -183px; height: 303px; overflow: hidden; }
 }
 </style>
 

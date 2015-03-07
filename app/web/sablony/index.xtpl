@@ -64,20 +64,17 @@
     <div class="obsah">
       {obsah}
       <div class="sloupce">
-        <a class="blok upoutavka" href="">
-          <img src="soubory/_placeholder/hobbit-bilbo.jpg">
-          <div class="stredni"><div>Volný panel</div></div>
-        </a>
-        <!--
-        <a class="blok upoutavka" href="">
-          <img src="soubory/_placeholder/3.jpg">
-          <div class="stredni"><div>Volný panel</div></div>
+        <a class="blok upoutavka" href="chci-se-zapojit">
+          <img src="soubory/obsah/titulka/hobbit-bilbo.jpg">
+          <div class="stredni"><div>Chci se zapojit</div></div>
         </a>
         <a class="blok upoutavka" href="">
-          <img src="soubory/_placeholder/8.jpg">
-          <div class="stredni"><div>Volný panel</div></div>
+          <!-- <iframe width="313" height="176" src="https://www.youtube.com/embed/fPs0hmLJlV0" frameborder="0" allowfullscreen></iframe> -->
         </a>
-        -->
+        <a class="blok upoutavka" href="test1">
+          <img src="soubory/obsah/titulka/fotogalerie.jpg">
+          <div class="stredni"><div>Fotogalerie</div></div>
+        </a>
       </div>
     </div>
     <div class="blok sponzori">
