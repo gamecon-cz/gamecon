@@ -1,6 +1,7 @@
 <!-- begin:md -->
 
 <input type="hidden" name="{pnOldId}" value="{oldId}">
+<input type="submit" value="Uložit" style="float:right">
 <table style="width:100%">
   <tr>
     <td style="width: 50%; vertical-align: top"><textarea style="width: 100%" name="{pnText}">{text}</textarea></td>
