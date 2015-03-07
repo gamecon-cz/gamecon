@@ -75,11 +75,11 @@ class Novinka {
   }
 
   static function zId($id) {
-    return self::zWhere('id = $1', array($id))[0];
+    return self::zWhereRadek('id = $1', array($id));
   }
 
   static function zNejnovejsi($typ = self::NOVINKA) {
-    return self::zWhere('vydat <= NOW() AND typ = $1 ORDER BY vydat DESC LIMIT 1', array($typ))[0];
+    return self::zWhereRadek('vydat <= NOW() AND typ = $1 ORDER BY vydat DESC LIMIT 1', array($typ));
   }
 
   static function zNejnovejsich($start = 0, $limit = 20) {
@@ -104,6 +104,12 @@ class Novinka {
     while($r = mysql_fetch_assoc($o))
       $a[] = new self($r);
     return $a;
+  }
+
+  protected static function zWhereRadek($where, $params = null) {
+    $o = self::zWhere($where, $params);
+    if(empty($o)) return null;
+    return $o[0];
   }
 
 }
