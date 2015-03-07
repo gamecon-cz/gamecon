@@ -31,9 +31,9 @@
         <strong>Nejsete přihlášeni na web</strong><br>
         <a href="#" onclick="$('#prihlasit').slideToggle(); return false;"><strong>Přihlásit</strong></a> / <a href="registrace">registrovat</a>
         <form method="post" action="prihlaseni" id="prihlasit" style="display: none">
-          <input type="text" name="login" placeholder="e-mail nebo login"><br>
-          <input type="password" name="heslo" placeholder="heslo"><br>
-          <input type="submit" name="prihlasit" value="Přihlásit"> <input type="checkbox" name="zapamatovat" id="zapamatovat" checked="true"> <label for="zapamatovat">zapamatovat</label>
+          <input type="text" name="login" placeholder="e-mail nebo login" style="width:190px"><br>
+          <input type="password" name="heslo" placeholder="heslo" style="width:190px"><br>
+          <input type="submit" name="prihlasit" value="Přihlásit"> <input type="checkbox" name="zapamatovat" id="zapamatovat" checked="true" style="position:relative;top:3px;left:3px"> <label for="zapamatovat">zapamatovat</label>
         </form>
       </div>
       <!-- end:neprihlasen -->

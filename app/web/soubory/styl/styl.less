@@ -10,32 +10,48 @@ a[name] { color: inherit; }
 
 hr { border: none; border-top: solid 1px #eee; }
 
-body { margin: 0; font: 14px Open Sans, sans-serif; background-image: data-uri('pozadi.png'); background-repeat: repeat-x; background-color: #e6e6e6; overflow-y: scroll; line-height: 150%; }
+body { margin: 0; font: 14px Open Sans, sans-serif; overflow-y: scroll; line-height: 150%;
+  background-image: url('pozadi-2015.jpg'); background-color: #f6f3ea; background-attachment: fixed; background-position: center; background-size: cover; }
 
 
-.hlavicka { background-color: #fff; text-align: center; position: relative; line-height: 1.3em; }
-.hlavicka .claim { display: none; }
+.hlavicka { text-align: center; position: relative; line-height: 1.3em; color: #333;
+  background-image: url('hlavicka.jpg'); background-color: #a8a890; background-size: auto 100%; }
+.hlavicka a { color: #a23; }
+.hlavicka .claim { display: none; color: #823; text-transform: uppercase; font-weight: bold; font-size: 0.9em; opacity: 0.8; }
 .hlavicka .linfo { display: none; }
-.hlavicka .logo { color: #bbb; margin-top: 10px; text-transform: uppercase; font-weight: bold; display: inline-block; max-width: 80%; }
+.hlavicka .logo { margin-top: 10px; display: inline-block; max-width: 80%; }
 .hlavicka .logo:hover { text-decoration: none; }
 .hlavicka .logo img { width: 100%; }
 .hlavicka .ifb { background-image: data-uri('ikonky.png'); display: block; float: left; height: 35px; width: 35px; margin: 0 6px; }
 .hlavicka .neprihlasen > form { position: absolute; .blok; z-index: 10; padding: 10px; text-align: left; margin: 0; }
-.hlavicka .prihlasen { overflow: hidden; text-align: right; color: #888; min-width: 250px; }
-.hlavicka .prihlasen strong { color: #000; }
-.hlavicka .prihlasen a { color: inherit; }
+.hlavicka .prihlasen { overflow: hidden; text-align: right; min-width: 250px; }
 .hlavicka .avatar { float: right; }
 .hlavicka .prihlasen > div { margin: 4px 110px 0 0; }
+
 hr.stin { border: none; background-image: data-uri('gradient2.png'); height: 4px; margin: 0 0 -4px 0; }
 
-.menu { text-align: center; background-color: #eee; }
+.menu { text-align: center; color: #fff; position: relative; z-index: 1;
+  background-image: url('hlavicka.jpg'); background-color: #727968; background-position: center top; }
 .menu > ul { margin: 0 auto; padding: 0; max-width: @sirka; }
 .menu > ul > li { display: inline-block; margin: 0; position: relative; padding: 0; width: 100%; cursor: default; }
 .menu > ul > li > span { display: inline-block; text-transform: uppercase; font-size: 130%; padding: 0.6em 1em 0.3em 1em; border-bottom: solid 0.3em rgba(0,0,0,0); }
-.menu li.aktivni > span { border-bottom-color: #d00; }
+.menu li.aktivni > span { border-bottom-color: #823; }
 .menu .sub { position: absolute; width: 100%; z-index: 10; display: none; margin-top: -10px; }
-.menu .mlist { text-align: left;  margin: 0 10px; box-shadow: 0 0 3px #444; }
+.menu .mlist { text-align: left;  margin: 0 10px; box-shadow: 0 0 3px #444; color: #000; }
 .menu li:hover .sub { display: block; }
+
+@media @siroke {
+  .hlavicka { width: 100%; height: 100px; }
+  .hlavicka .claim { display: block; }
+  .hlavicka .linfo { display: block; position: absolute; top: 30px; left: 10px; text-align: left; width: 250px; }
+  .hlavicka .prihlasovani { position: absolute; top: 0; right: 0; }
+  .hlavicka .neprihlasen { text-align: right; margin-top: 30px; margin-right: 14px; }
+  .hlavicka .neprihlasen > form { margin: 0 10px 0 -50px; }
+  .hlavicka .avatar { height: 100px; }
+  .menu > ul > li { width: 33.33334%; }
+  .menu li:first-child .mlist { margin: 0 20px 0 0; }
+  .menu li:last-child .mlist { margin: 0 0 0 20px; }
+}
 
 .hlavni { max-width: @sirka; margin: 0 auto 40px auto; position: relative; }
 .obsah { position: relative; }
@@ -200,16 +216,6 @@ label { color: #999; }
   .sloupce:after { content: "."; display: block; clear: both; visibility: hidden; height: 0; }
   .sloupce .blok { float: left; width: @sloupw; }
   .sloupce .blok:not(:nth-child(3n)) { margin-right: @sloupm; }
-  .hlavicka { width: 100%; height: 100px; }
-  .hlavicka .claim { display: block; }
-  .hlavicka .linfo { display: block; position: absolute; top: 30px; left: 10px; text-align: left; width: 250px; }
-  .hlavicka .prihlasovani { position: absolute; top: 0; right: 0; }
-  .hlavicka .neprihlasen { text-align: right; margin-top: 30px; margin-right: 14px; }
-  .hlavicka .neprihlasen > form { margin: 0 10px 0 -30px; }
-  .hlavicka .avatar { height: 100px; }
-  .menu > ul > li { width: 33.33334%; }
-  .menu li:first-child .mlist { margin: 0 20px 0 0; }
-  .menu li:last-child .mlist { margin: 0 0 0 20px; }
   .aktivita > img { float: left; width: @sloupw; position: absolute; }
   .ahlav { padding-left: @sloupw + 1%; }
   .ahlav > h2 { left: 0.6em; max-width: @sloupw; position: absolute; }
