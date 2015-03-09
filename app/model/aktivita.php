@@ -499,7 +499,7 @@ class Aktivita
     if(ODHLASENI_POKUTA_KONTROLA && $this->doZacatku() < ODHLASENI_POKUTA1_H && !($params & self::BEZ_POKUT)) //pokuta aktivní
       dbQuery("INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$uid, id_akce=$aid, id_stavu_prihlaseni=4");
     if($this->a['zamcel'] == $uid)
-      dbQuery("UPDATE akce_seznam SET zamcel=NULL, zamcel_cas=NULL WHERE id_akce=$aid");
+      dbQuery("UPDATE akce_seznam SET zamcel=NULL, zamcel_cas=NULL, team_nazev=NULL WHERE id_akce=$aid");
     if($this->a['teamova'] && $this->prihlaseno()==1) // odhlašuje se poslední hráč
       dbQuery("UPDATE akce_seznam SET kapacita=team_max WHERE id_akce=$aid");
   }
@@ -1029,6 +1029,8 @@ class Aktivita
     ?>
     <b>Na vyplnění ti zbývá:</b> <?=floor($zbyva/3600)?> hodin <?=floor($zbyva%3600/60)?> minut
     <form method="post">
+    <b>Název týmu</b> (nepovinný):<br>
+    <input type="text" name="<?=self::TEAMKLIC.'Nazev'?>" maxlength="255"><br>
     <?=$vyberKol?>
     <b>Výběr spoluhráčů:</b><br>
     <input type="text" value="<?=$u->id()?>" disabled="disabled"><br>
@@ -1120,9 +1122,13 @@ class Aktivita
         $mail->adresat($clen->mail());
         $mail->odeslat();
       }
-      // hotovo, odemčít aktivitu a snížit počet míst
-      $mist = $a->a['kapacita'] - $zamceno;
-      dbQuery("UPDATE akce_seznam SET zamcel=null, kapacita=$mist, zamcel_cas=null WHERE id_akce={$a->id()}");
+      // hotovo, odemčít aktivitu, snížit počet míst a nastavit název týmu
+      dbUpdate('akce_seznam', [
+        'kapacita'    =>  $a->a['kapacita'] - $zamceno,
+        'zamcel'      =>  null,
+        'zamcel_cas'  =>  null,
+        'team_nazev'  =>  post(self::TEAMKLIC.'Nazev') ?: null,
+      ], ['id_akce' => $a->id()]);
     }
     catch(Exception $e)
     {

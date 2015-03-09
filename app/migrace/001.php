@@ -258,3 +258,4 @@ WHERE `id` = '3717';
 ////////////////////////////
 
 $this->q(" alter table akce_seznam add column zamcel_cas datetime null comment 'případně kdy zamčel aktivitu' after zamcel; ");
+$this->q(" alter table akce_seznam add column team_nazev varchar(255) null after team_max; ");
