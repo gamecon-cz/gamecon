@@ -470,7 +470,7 @@ class Aktivita
    * Vrací počet odemčených teamů (=>uvolněných míst)
    */
   static function odemciHromadne() {
-    $o = dbQuery('SELECT id_akce, zamcel FROM akce_seznam WHERE zamcel');
+    $o = dbQuery('SELECT id_akce, zamcel FROM akce_seznam WHERE zamcel AND zamcel_cas < NOW() - interval 3 day');
     $i = 0;
     while( list($aid, $uid) = mysql_fetch_row($o) ) {
       Aktivita::zId($aid)->odhlas(Uzivatel::zId($uid));
@@ -498,7 +498,7 @@ class Aktivita
     if(ODHLASENI_POKUTA_KONTROLA && $this->doZacatku() < ODHLASENI_POKUTA1_H && !($params & self::BEZ_POKUT)) //pokuta aktivní
       dbQuery("INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$uid, id_akce=$aid, id_stavu_prihlaseni=4");
     if($this->a['zamcel'] == $uid)
-      dbQuery("UPDATE akce_seznam SET zamcel=NULL WHERE id_akce=$aid");
+      dbQuery("UPDATE akce_seznam SET zamcel=NULL, zamcel_cas=NULL WHERE id_akce=$aid");
     if($this->a['teamova'] && $this->prihlaseno()==1) // odhlašuje se poslední hráč
       dbQuery("UPDATE akce_seznam SET kapacita=team_max WHERE id_akce=$aid");
   }
@@ -672,7 +672,7 @@ class Aktivita
     $aid = $this->id();
     $uid = $u->id();
     if($this->a['teamova'] && $this->prihlaseno()==0 && $this->prihlasovatelna())
-      dbQuery("UPDATE akce_seznam SET zamcel=$uid WHERE id_akce=$aid");
+      dbUpdate('akce_seznam', ['zamcel'=>$uid, 'zamcel_cas'=>dbNow()], ['id_akce'=>$aid]);
     dbQuery("INSERT INTO akce_prihlaseni SET id_uzivatele=$uid, id_akce=$aid");
     dbQuery("INSERT INTO akce_prihlaseni_log SET id_uzivatele=$uid, id_akce=$aid, typ='prihlaseni'");
     if(ODHLASENI_POKUTA_KONTROLA) //pokud by náhodou měl záznam za pokutu a přihlásil se teď, tak smazat
@@ -1118,7 +1118,7 @@ class Aktivita
       }
       // hotovo, odemčít aktivitu a snížit počet míst
       $mist = $a->a['kapacita'] - $zamceno;
-      dbQuery("UPDATE akce_seznam SET zamcel=null, kapacita=$mist WHERE id_akce={$a->id()}");
+      dbQuery("UPDATE akce_seznam SET zamcel=null, kapacita=$mist, zamcel_cas=null WHERE id_akce={$a->id()}");
     }
     catch(Exception $e)
     {

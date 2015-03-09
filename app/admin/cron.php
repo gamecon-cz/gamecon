@@ -33,11 +33,9 @@ if(!$platby) logs('žádné zaúčtovatelné platby');
 
 
 // odemčení zamčených aktivit
-if(date('G')==4) {
-  logs("odemykání aktivit");
-  $i = Aktivita::odemciHromadne();
-  logs("odemčeno $i");
-}
+logs("odemykání aktivit");
+$i = Aktivita::odemciHromadne();
+logs("odemčeno $i");
 
 
 logs("cron dokončen\n");

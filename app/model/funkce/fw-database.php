@@ -63,6 +63,11 @@ function dbLastId()
   return mysql_insert_id($GLOBALS['spojeni']);
 }
 
+/** Returns current time in databse compatible datetime format */
+function dbNow() {
+  return date('Y-m-d H:i:s');
+}
+
 function dbInsert($table,$valArray)
 {
   global $spojeni, $dbLastQ;

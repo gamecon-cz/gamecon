@@ -251,3 +251,10 @@ UPDATE `platby` SET
 `fio_id` = '5596467723'
 WHERE `id` = '3717';
 ");
+
+
+////////////////////////////
+// Čísla a názvy týmů atd //
+////////////////////////////
+
+$this->q(" alter table akce_seznam add column zamcel_cas datetime null comment 'případně kdy zamčel aktivitu' after zamcel; ");
