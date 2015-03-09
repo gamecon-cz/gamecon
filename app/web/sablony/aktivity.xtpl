@@ -38,20 +38,14 @@
 
   <div style="clear:both"></div>
 
-  <!-- begin:stranka -->
-  <div class="blok">
-    <div class="aktivita">
+  <div class="sloupce">
+    <!-- begin:stranka -->
+    <a class="blok upoutavka" href="{stranka.url}" style="height:150px;overflow:hidden">
       <img src="{stranka.obrazek}">
-      <div class="ahlav">
-        <div style="float:right" onclick="tgAkt($(this))" class="info vice">více</div>
-        <h2 style="max-width:80%">{stranka.nadpis}</h2>
-      </div>
-      <div class="atext">
-        {stranka.bezHlavicky}
-      </div>
-    </div>
+      <div class="stredni"><div>{stranka.nadpis}</div></div>
+    </a>
+    <!-- end:stranka -->
   </div>
-  <!-- end:stranka -->
 
   <!-- begin:aktivita -->
   <div class="blok">
