@@ -899,6 +899,13 @@ class Aktivita
     return $this->a['teamova'];
   }
 
+  function tym() {
+    if($this->teamova() && $this->prihlaseno() > 0 && !$this->a['zamcel'])
+      return new Tym($this, $this->a);
+    else
+      return null;
+  }
+
   /**
    * Vrátí ID typu aktivity
    * @todo na této úrovni není dořešené ORM, toto by se mělo přejmenovat na
