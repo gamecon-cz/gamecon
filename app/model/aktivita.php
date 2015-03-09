@@ -18,6 +18,7 @@ class Aktivita
     TEAMKLIC='aTeamForm',      // název post proměnné s formulářem pro výběr teamu
     PN_PLUSMINUSP='cAktivitaPlusminusp',  // název post proměnné pro úpravy typu plus
     PN_PLUSMINUSM='cAktivitaPlusminusm',  // název post proměnné pro úpravy typu mínus
+    HAJENI          = 72,      // počet hodin po kterýc aktivita automatick vykopává nesestavený tým
     // stavy aktivity
     PUBLIKOVANA     = 4,
     PRIPRAVENA      = 5,
@@ -470,7 +471,7 @@ class Aktivita
    * Vrací počet odemčených teamů (=>uvolněných míst)
    */
   static function odemciHromadne() {
-    $o = dbQuery('SELECT id_akce, zamcel FROM akce_seznam WHERE zamcel AND zamcel_cas < NOW() - interval 3 day');
+    $o = dbQuery('SELECT id_akce, zamcel FROM akce_seznam WHERE zamcel AND zamcel_cas < NOW() - interval '.self::HAJENI.' hour');
     $i = 0;
     while( list($aid, $uid) = mysql_fetch_row($o) ) {
       Aktivita::zId($aid)->odhlas(Uzivatel::zId($uid));
@@ -1021,9 +1022,12 @@ class Aktivita
       }
       $vyberKol = ob_get_clean();
     }
+    // zbývající čas na vyplnění
+    $zbyva = strtotime($this->a['zamcel_cas']) + self::HAJENI * 60 * 60 - time();
     // vybírací formulář
     ob_start();
     ?>
+    <b>Na vyplnění ti zbývá:</b> <?=floor($zbyva/3600)?> hodin <?=floor($zbyva%3600/60)?> minut
     <form method="post">
     <?=$vyberKol?>
     <b>Výběr spoluhráčů:</b><br>
