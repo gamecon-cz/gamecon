@@ -64,7 +64,7 @@
         <div class="info termin">{a.denCas} {a.obsazenost} {prihlasovatko}</div>
         <!-- end:termin -->
         <!-- begin:tag -->
-        <div class="info">{tag}</div>
+        <div class="info tag">{tag}</div>
         <!-- end:tag -->
         <div class="info hinted cena">
           <!-- begin:cena -->

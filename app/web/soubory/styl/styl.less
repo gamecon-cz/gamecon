@@ -13,6 +13,10 @@ hr { border: none; border-top: solid 1px #eee; }
 body { margin: 0; font: 14px Open Sans, sans-serif; overflow-y: scroll; line-height: 150%;
   background-image: url('pozadi-2015.jpg'); background-color: #f6f3ea; background-attachment: fixed; background-position: center; background-size: cover; }
 
+// iconfont
+@font-face { font-family: "Ikony"; src: url("ikony/flaticon.ttf"); font-weight: normal; font-style: normal; }
+.ikona { font-family: Ikony; font-weight: normal; font-style: normal; }
+
 
 .hlavicka { text-align: center; position: relative; line-height: 1.3em; color: #333;
   background-image: url('hlavicka.jpg'); background-color: #a8a890; background-size: auto 100%; }
@@ -124,12 +128,26 @@ hr.stin { border: none; background-image: data-uri('gradient2.png'); height: 4px
 .atext > :last-child { margin-bottom: 0; }
 .ahlav { .pruh; position: relative; font-size: 100%; }
 .ahlav > h2 { font-size: 120%; margin: 0; }
-.ahlav .info { padding-left: 19px; background-repeat: no-repeat; background-position: 0 2px; background-image: data-uri('ikony/tag.png'); }
-.ahlav .cena { background-image: data-uri('ikony/cart.png'); }
-.ahlav .org { background-image: data-uri('ikony/user.png'); }
-.ahlav .termin { background-image: data-uri('ikony/time.png'); }
-.ahlav .vice { background-image: data-uri('ikony/down.png'); color: #fff; border-bottom: dotted 1px; cursor: pointer; margin-bottom: -1px; }
-.ahlav .mene { background-image: data-uri('ikony/up.png'); }
+.ahlav {
+  .info { margin-bottom: -1px; } // nějaký divnobug aby bylo možné skládat popisky pod sebe
+  .vice { border-bottom: dotted 1px; cursor: pointer; color: #fff; }
+  .tag:before     { .ikona; content: "\e005"; margin-right: 0.2em; }
+  .cena:before    { .ikona; content: "\e001"; }
+  .org:before     { .ikona; content: "\e004"; margin-right: 0.1em; }
+  .termin:before  { .ikona; content: "\e000"; margin-right: 0.3em; }
+  .vice:before    { .ikona; content: "\e002"; margin-right: 0.2em; }
+  .mene:before    { .ikona; content: "\e006"; margin-right: 0.2em; }
+  .tym:before     { .ikona; content: "\e003"; margin-right: 0.2em; }
+}
+@media @siroke {
+  @sloupw: (100 - 2 * @sloupm) / 3;
+  .aktivita > img { float: left; width: @sloupw; position: absolute; }
+  .ahlav { padding-left: @sloupw + 1%; }
+  .ahlav > h2 { left: 0.6em; max-width: @sloupw; position: absolute; }
+  .ahlav .info { float: left; margin-right: 1.2em; }
+  .ahlav:after { content: "."; display: block; clear: both; visibility: hidden; height: 0; }
+  .atext { padding-left: @sloupw; max-height: 5.8em; margin-top: 1.1em; margin-bottom: 1.4em; }
+}
 
 
 
@@ -212,16 +230,9 @@ label { color: #999; }
 
 @media @siroke {
   @sloupw: (100 - 2 * @sloupm) / 3;
-  @bpad: 8%;
   .sloupce:after { content: "."; display: block; clear: both; visibility: hidden; height: 0; }
   .sloupce .blok { float: left; width: @sloupw; }
   .sloupce .blok:not(:nth-child(3n)) { margin-right: @sloupm; }
-  .aktivita > img { float: left; width: @sloupw; position: absolute; }
-  .ahlav { padding-left: @sloupw + 1%; }
-  .ahlav > h2 { left: 0.6em; max-width: @sloupw; position: absolute; }
-  .ahlav .info { float: left; margin-right: 1.2em; }
-  .ahlav:after { content: "."; display: block; clear: both; visibility: hidden; height: 0; }
-  .atext { padding-left: @sloupw; max-height: 5.8em; margin-top: 1.1em; margin-bottom: 1.4em; }
 }
 
 
