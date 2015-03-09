@@ -1043,7 +1043,7 @@ class Aktivita
     <input type="text" value="<?=$u->id()?>" disabled="disabled"><br>
     <?php
     for($i=0; $i < $this->kapacita()-1; $i++) {
-      echo '<input name="'.self::TEAMKLIC.'['.$i.']" type="text">';
+      echo '<input name="'.self::TEAMKLIC.'['.$i.']" type="text" class="tymHrac">';
       if($i >= $this->a['team_min']-1) // -1 za leadera, prevUntil kvůli jquery ui bugu (přidává element)
         echo ' <a href="#" onclick="$(this).prevUntil(\'br\').fadeOut(function(){ $(this).val(-1); }); $(this).fadeOut(); return false;">odebrat</a>';
       echo '<br>';
@@ -1067,7 +1067,7 @@ class Aktivita
           }
         }, 'json');
       });
-      form.find('input[type=text]').autocomplete({
+      form.find('input.tymHrac').autocomplete({
         source: 'ajax-omnibox',
         minLength: 2,
         autoFocus: true, // automatický výběr první hodnoty, aby uživatel mohl zmáčknout rovnou enter
