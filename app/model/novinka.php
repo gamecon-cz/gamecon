@@ -1,17 +1,12 @@
 <?php
 
-class Novinka {
+class Novinka extends DbObject {
 
-  protected $r;
-
+  protected static $tabulka = 'novinky';
   protected static $prvniObrazek = '@<img src="([^"]+)"@'; // RV odpovídající prvnímu obrázku v textu
 
   const NOVINKA = 1;
   const BLOG = 2;
-
-  protected function __construct($r) {
-    $this->r = $r;
-  }
 
   function autor() {
     return preg_replace('@"(\S+)"@', '„$1“', $this->r['autor']);
@@ -25,10 +20,6 @@ class Novinka {
     $f = new DbFormGc('novinky');
     $f->loadRow($this->r);
     return $f;
-  }
-
-  function id() {
-    return $this->r['id'];
   }
 
   /** Prvních $n znaků příspěvku */
@@ -74,10 +65,6 @@ class Novinka {
     return $this->vydat;
   }
 
-  static function zId($id) {
-    return self::zWhereRadek('id = $1', array($id));
-  }
-
   static function zNejnovejsi($typ = self::NOVINKA) {
     return self::zWhereRadek('vydat <= NOW() AND typ = $1 ORDER BY vydat DESC LIMIT 1', array($typ));
   }
@@ -98,19 +85,4 @@ class Novinka {
     return self::zWhere('1 ORDER BY vydat = 0 DESC, vydat DESC');
   }
 
-  protected static function zWhere($where, $params = null) {
-    $o = dbQuery('SELECT * FROM novinky WHERE '.$where, $params);
-    $a = array();
-    while($r = mysql_fetch_assoc($o))
-      $a[] = new self($r);
-    return $a;
-  }
-
-  protected static function zWhereRadek($where, $params = null) {
-    $o = self::zWhere($where, $params);
-    if(empty($o)) return null;
-    return $o[0];
-  }
-
 }
-

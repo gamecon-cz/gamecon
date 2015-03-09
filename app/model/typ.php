@@ -3,18 +3,10 @@
 /**
  * Typ aktivit (programová linie)
  */
+class Typ extends DbObject {
 
-class Typ {
-
-  protected $r;
-
-  protected function __construct($r) {
-    $this->r = $r;
-  }
-
-  function id() {
-    return $this->r['id_typu'];
-  }
+  protected static $tabulka = 'akce_typy';
+  protected static $pk = 'id_typu';
 
   function nazev() {
     return $this->r['typ_1pmn'];
@@ -31,17 +23,11 @@ class Typ {
 
   static function zUrl($url = null) {
     if($url === null) $url = Url::zAktualni()->cela();
-    $r = dbOneLineS('SELECT * FROM akce_typy WHERE url_typu_mn = $1', array($url));
-    if($r) return new self($r);
-    return null;
+    return self::zWhereRadek('url_typu_mn = $1', [$url]);
   }
 
   static function zVsech() {
-    $a = [];
-    $o = dbQuery('SELECT * FROM akce_typy ORDER BY id_typu');
-    while($r = mysql_fetch_assoc($o))
-      $a[] = new self($r);
-    return $a;
+    return self::zWhere('1 ORDER BY id_typu');
   }
 
 }
