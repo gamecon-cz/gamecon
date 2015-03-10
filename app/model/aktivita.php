@@ -658,7 +658,7 @@ class Aktivita
     // přihlášení na navázané aktivity (jen pokud není teamleader)
     if($this->a['dite'] && $this->prihlaseno() > 0) {
       // vybrání jednoho uživatele, který už na navázané aktivity přihlášen je
-      $vzor = Uzivatel::zId( substr(explode(',', $this->prihlaseni())[1], 0, -2) );
+      $vzor = Uzivatel::zId( substr(explode(',', $this->prihlaseniRaw())[1], 0, -2) );
       $uspech = false;
       foreach($this->deti() as $dite) {
         // přihlášení na navázané aktivity podle vzoru vybraného uživatele
@@ -684,7 +684,7 @@ class Aktivita
   /** Jestli je uživatel  přihlášen na tuto aktivitu */
   function prihlasen(Uzivatel $u)
   {
-    return strpos($this->prihlaseni(), ','.$u->id().$u->pohlavi()) !== false;
+    return strpos($this->prihlaseniRaw(), ','.$u->id().$u->pohlavi()) !== false;
   }
 
   /**
@@ -693,7 +693,7 @@ class Aktivita
    * uživatelů, písmena pohlaví a čísla z pohlavím stav přihlášení.
    * @see ucastnici
    */
-  private function prihlaseni()
+  private function prihlaseniRaw()
   {
     if(!array_key_exists('prihlaseni', $this->a))
       throw new Exception ('Nenačteny počty přihlášených do aktivity.');
@@ -703,7 +703,7 @@ class Aktivita
   /** Počet přihlášených */
   protected function prihlaseno()
   {
-    if($p = $this->prihlaseni())
+    if($p = $this->prihlaseniRaw())
       return substr_count($p, ',') - 1;
     else
       return 0;
@@ -711,12 +711,12 @@ class Aktivita
 
   protected function prihlasenoMuzu()
   {
-    return substr_count($this->prihlaseni(), 'm');
+    return substr_count($this->prihlaseniRaw(), 'm');
   }
 
   protected function prihlasenoZen()
   {
-    return substr_count($this->prihlaseni(), 'f');
+    return substr_count($this->prihlaseniRaw(), 'f');
   }
 
   /**
@@ -725,7 +725,7 @@ class Aktivita
    */
   private function prihlasenStav(Uzivatel $u)
   {
-    $prihlaseni = $this->prihlaseni();
+    $prihlaseni = $this->prihlaseniRaw();
     $usymbol = ','.$u->id().$u->pohlavi();
     $pos = strpos($prihlaseni, $usymbol);
     if($pos !== false) {
@@ -854,7 +854,7 @@ class Aktivita
    * Smaže aktivitu z DB
    */
   function smaz() {
-    foreach($this->ucastnici() as $u) {
+    foreach($this->prihlaseni() as $u) {
       $this->odhlas($u);
     }
     dbQuery('DELETE FROM akce_organizatori WHERE id_akce = ' . $this->id());
@@ -917,8 +917,8 @@ class Aktivita
   /**
    * Vrátí pole s přihlášenými účastníky
    */
-  function ucastnici() {
-    $u = substr($this->prihlaseni(), 1, -1);
+  function prihlaseni() {
+    $u = substr($this->prihlaseniRaw(), 1, -1);
     $u = preg_replace('@(m|f)\d+@', '', $u);
     return Uzivatel::zIds($u);
   }
@@ -941,7 +941,7 @@ class Aktivita
       }
       $doraziliIds[$u->id()] = true;
     }
-    foreach($this->ucastnici() as $u) {
+    foreach($this->prihlaseni() as $u) {
       if(isset($doraziliIds[$u->id()])) continue;
       $nedorazili[] = $u;
     }

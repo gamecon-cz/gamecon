@@ -16,7 +16,7 @@ $t = new XTemplate('muj-prehled.xtpl');
 
 if(empty($aktivity)) $t->parse('prehled.zadnaAktivita');
 foreach($aktivity as $a) {
-  $ucastnici = $a->ucastnici();
+  $ucastnici = $a->prihlaseni();
   $o = dbQueryS('SELECT id_uzivatele, MAX(cas) as cas FROM akce_prihlaseni_log WHERE id_akce = $1 GROUP BY id_uzivatele', array($a->id()));
   while($r = mysql_fetch_assoc($o)) {
     $casyPrihlaseni[$r['id_uzivatele']] = new DateTimeCz($r['cas']);

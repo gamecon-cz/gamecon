@@ -10,7 +10,7 @@ foreach($aktivity as $a) {
   $a->zamci();
   $t->assign('a', $a);
   $i = 0;
-  foreach($a->ucastnici() as $uc) {
+  foreach($a->prihlaseni() as $uc) {
     $t->assign('u', $uc);
     $t->parse('aktivity.aktivita.ucastnik');
     $i++;

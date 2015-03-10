@@ -19,7 +19,7 @@ foreach($aktivity as $a) {
   $ids[] = $a->id();
   $problem = false;
   $t->assign('a', $a);
-  foreach($a->ucastnici() as $uc) {
+  foreach($a->prihlaseni() as $uc) {
     if(!$uc->gcPritomen()) {
       $t->assign('u', $uc);
       $t->parse('tisk.aktivity.aktivita.nepritomen');

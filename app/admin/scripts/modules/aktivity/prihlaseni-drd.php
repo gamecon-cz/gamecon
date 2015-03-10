@@ -11,7 +11,7 @@
 if(post('vypadliSemifinale') || post('vypadliFinale')) {
   $a = Aktivita::zId(post('zakladni'));
   $aVypadli = post('vypadliSemifinale') ? Aktivita::zId(post('semifinale')) : Aktivita::zId(post('finale'));
-  foreach($a->ucastnici() as $uc) {
+  foreach($a->prihlaseni() as $uc) {
     $aVypadli->odhlas($uc, Aktivita::BEZ_POKUT);
   }
   back();
@@ -30,7 +30,7 @@ foreach(Aktivita::zFiltru(array('typ' => 9, 'rok' => ROK)) as $a) {
   // tisk konkrétní družiny / aktivity
   $t->assign('a', $a);
   $uc = null;
-  foreach($a->ucastnici() as $uc) {
+  foreach($a->prihlaseni() as $uc) {
     $t->assign('u', $uc);
     $t->parse('drd.druzina.clen');
   }

@@ -28,7 +28,7 @@ foreach($aktivity as $a) {
   $vyplnena = $a->vyplnenaPrezence();
   $zamcena = $a->zamcena();
   $t->assign('a', $a);
-  foreach($a->ucastnici() as $uc) {
+  foreach($a->prihlaseni() as $uc) {
     $t->assign('u', $uc);
     if(!$vyplnena && $zamcena) $t->parse('prezence.aktivita.form.ucastnik.checkbox');
     $t->parse('prezence.aktivita.form.ucastnik.' . ($uc->gcPritomen() ? 'pritomen' : 'nepritomen'));
