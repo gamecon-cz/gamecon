@@ -92,9 +92,17 @@ while($a) {
   ));
   if( $v = $a->vyberTeamu($u) ) {
     $t->assign('vyber', $v);
-    $t->parse('aktivity.aktivita.vyberTeamu');
+    $t->parse('aktivity.aktivita.tymTermin.vyber');
   }
-  $t->parse('aktivity.aktivita.termin');
+  if($a->teamova()) {
+    if(($tym = $a->tym()) && $a->id()%10 > 0) {
+      $t->assign('tym', $tym);
+      $t->parse('aktivity.aktivita.tymTermin.tym');
+    }
+    $t->parse('aktivity.aktivita.tymTermin');
+  } else {
+    $t->parse('aktivity.aktivita.termin');
+  }
 
   // vlastnosti per skupina (hack)
   if(!$dalsi || !$dalsi->patriPod() || $dalsi->patriPod() != $a->patriPod()) {
@@ -118,6 +126,8 @@ while($a) {
     }
     $popis = $a->popis();
     if(strlen($popis) > 370) $t->parse('aktivity.aktivita.vice');
+    if(!$a->teamova()) $t->parse('aktivity.aktivita.organizatori');
+    $t->assign('extra', $a->typ() == 9 ? 'drd' : '');
     $t->assign('popis', $popis);
     $t->parse('aktivity.aktivita');
   }
