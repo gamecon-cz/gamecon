@@ -210,7 +210,7 @@ class Flee {
    */
   private function log($msg) {
     echo htmlspecialchars($msg).'<br>';
-    ob_flush();
+    @ob_flush();
     flush();
     usleep(200000);
   }
