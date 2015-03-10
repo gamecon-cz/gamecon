@@ -12,6 +12,7 @@ class Flee {
     $db,
     $folderMigration,
     $folderBackup,
+    $ignore = [], // tables to ignore
     $settings,
     $strategy = self::DB_VARS_TABLE;
 
@@ -32,6 +33,7 @@ class Flee {
     $this->settings = $a;
     if(isset($a['branch']))         $this->branch = $a['branch'];
     if(isset($a['autorollback']))   $this->autorollback = $a['autorollback'];
+    if(isset($a['ignore']))         $this->ignore = is_array($a['ignore']) ? $a['ignore'] : [$a['ignore']];
   }
 
   /**
@@ -40,6 +42,7 @@ class Flee {
   private function apply($file) {
     $this->log("Applying $file");
     $bf = $this->backupFileBefore($file);
+    foreach($this->ignore as $i) $this->tableBackup($i);
     if($this->isRollback($file)) {
       $this->log('Using as rollback');
       $this->log("Restoring database from $bf");
@@ -51,6 +54,7 @@ class Flee {
     }
     $this->log('Running migration script');
     $this->runMigration($file);
+    foreach($this->ignore as $i) $this->tableRestore($i);
     $this->log('Done');
   }
 
@@ -318,6 +322,30 @@ class Flee {
    */
   function strategy($s = null) {
     return $this;
+  }
+
+  /** Backs up table to temporary file */
+  private function tableBackup($table) {
+    $handle = fopen($this->tableBackupName($table), 'wb');
+    $dump = new MySQLDump(new mysqli(
+      $this->settings['server'],
+      $this->settings['user'],
+      $this->settings['password'],
+      $this->settings['database']
+    ));
+    fwrite($handle, "SET NAMES utf8;\n");
+    $dump->dumpTable($handle, $table);
+    fclose($handle);
+  }
+
+  /** Returns filename of table backup */
+  private function tableBackupName($table) {
+    return $this->folderBackup.'/'.'tmp-backup-'.$table.'.sql';
+  }
+
+  /** Restores table and deletes temporary file */
+  private function tableRestore($name) {
+    $this->db()->exec(file_get_contents($this->tableBackupName($name)));
   }
 
   /**
