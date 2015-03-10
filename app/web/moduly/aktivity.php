@@ -95,7 +95,7 @@ while($a) {
     $t->parse('aktivity.aktivita.tymTermin.vyber');
   }
   if($a->teamova()) {
-    if(($tym = $a->tym()) && $a->id()%10 > 0) {
+    if($tym = $a->tym()) {
       $t->assign('tym', $tym);
       $t->parse('aktivity.aktivita.tymTermin.tym');
     }
