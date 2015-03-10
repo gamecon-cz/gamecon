@@ -76,6 +76,13 @@ $a = reset($aktivity);
 $dalsi = next($aktivity);
 while($a) {
 
+  //TODO hack přeskočení drd a lkd druhých kol
+  if(($a->typ() == 8 || $a->typ() == 9) && $a->cenaZaklad() == 0) {
+    $a = $dalsi;
+    $dalsi = next($aktivity);
+    continue;
+  }
+
   // vlastnosti per termín
   $t->assign(array(
     'a'             =>  $a,
