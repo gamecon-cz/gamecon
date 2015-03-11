@@ -19,3 +19,11 @@ dbQuery('delete from akce_prihlaseni where id_akce = 991');
 // DrD aktivity otevření
 dbQuery('update akce_seznam set stav=1 where typ=9');
 dbQuery('update akce_seznam set stav=4 where id_akce in (852,853,856)');
+
+// Default heslo pro uživatele
+dbQuery('
+update uzivatele_hodnoty u
+left join r_uzivatele_zidle z on(z.id_zidle = 2 and u.id_uzivatele = z.id_uzivatele)
+set heslo_md5 = md5("stereo")
+where z.id_zidle is null
+');
