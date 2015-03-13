@@ -25,6 +25,21 @@ function aktivityDiverzifikace($poleTypu)
 }
 
 
+/**
+ * 1 okno
+ * 2 okna
+ * 5 oken
+ * @todo 22 okna (volitelně)
+ * @todo záporná čísla
+ * @todo nepovinné přepisování ('%d' => 'přihlásil se 1 uživatel', případně slovy apod)
+ */
+function cislo($i, $jeden, $dva, $pet) {
+  if($i == 1) return $i.$jeden;
+  if(1 < $i && $i < 5) return $i.$dva;
+  else return $i.$pet;
+}
+
+
 /** Vrací datum ve stylu "pátek 14:00-18:00" na základě řádku db */
 function datum2($dbRadek)
 {

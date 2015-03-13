@@ -1,0 +1,25 @@
+<!-- begin:vypis -->
+
+<!-- begin:prihlaseny -->
+{u.jmenoNick}<br>
+<!-- end:prihlaseny -->
++{mist}
+
+  <!-- begin:odebrat -->
+  <form method="post" style="display:none">
+    <input type="hidden" name="{post}[id]" value="{id}">
+    <input type="hidden" name="{post}[odebrat]" value="true">
+  </form>
+  &emsp;
+  <a href="#" onclick="$(this).prev().submit();return false">odebrat místo</a>
+  <!-- end:odebrat -->
+  <!-- begin:pridat -->
+  <form method="post" style="display:none">
+    <input type="hidden" name="{post}[id]" value="{id}">
+    <input type="hidden" name="{post}[pridat]" value="true">
+  </form>
+  &emsp;
+  <a href="#" onclick="$(this).prev().submit();return false">přidat místo</a>
+  <!-- end:pridat -->
+
+<!-- end:vypis -->

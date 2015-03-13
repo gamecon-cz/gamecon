@@ -64,10 +64,15 @@
           <!-- end:tym -->
           <!-- begin:vyber -->
           <div style="clear:both; padding:1em 2.5% 1em 0; text-align:justify">
-            <strong>Výběr týmu:</strong> Aktivita je týmová a jako první přihlášený máš právo sestavit si tým (družinu). Vyplň ID spoluhráčů, s kterými chceš hrát (můžeš použít i přezdívku nebo jméno, zobrazí se napovídací políčko). Po potvrzení budou automaticky přihlášeni a informováni mailem. Políčka co necháš prázdná se otevřou pro přihlášení komukoli, ta která odebereš se trvale znepřístupní. Na vyplnění máš čas tři dny, pak tě aktivita sama odhlásí.<br>
+            <strong>Výběr týmu:</strong> Aktivita je týmová a jako první přihlášený máš právo sestavit si tým (družinu). Vyplň ID spoluhráčů, s kterými chceš hrát (můžeš použít i přezdívku nebo jméno, zobrazí se napovídací políčko). Po potvrzení budou automaticky přihlášeni a informováni mailem. Políčka co necháš prázdná se otevřou pro přihlášení komukoli, ta která odebereš se znepřístupní. Na vyplnění máš čas tři dny, pak tě aktivita sama odhlásí.<br>
             {vyber}
           </div>
           <!-- end:vyber -->
+          <!-- begin:vypis -->
+          <div style="clear:both; padding:1em 2.5% 1em 0; text-align:justify">
+            {tym.vypis}
+          </div>
+          <!-- end:vypis -->
         <!-- end:tymTermin -->
         <!-- begin:termin -->
         <div class="info termin">{a.denCas} {a.obsazenost} {prihlasovatko}</div>
@@ -103,7 +108,7 @@
 <script>
 $(function(){
   var sneaky = new ScrollSneak(location.hostname);
-  $('.aktivita .info.termin a').each(function(){
+  $('.aktivita a[href="#"]').each(function(){
     $(this).click(sneaky.sneak);
   });
 });

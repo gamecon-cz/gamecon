@@ -4,6 +4,7 @@ $this->bezDekorace(true);
 
 Aktivita::prihlasovatkoZpracuj($u);
 Aktivita::vyberTeamuZpracuj($u);
+Tym::vypisZpracuj($u);
 
 
 // Přesměrování na kanonickou URL pokud existuje pro daný dotaz
@@ -98,6 +99,9 @@ while($a) {
     if($tym = $a->tym()) {
       $t->assign('tym', $tym);
       $t->parse('aktivity.aktivita.tymTermin.tym');
+      if($u && $a->prihlasen($u)) {
+        $t->parse('aktivity.aktivita.tymTermin.vypis');
+      }
     }
     $t->parse('aktivity.aktivita.tymTermin');
   } else {

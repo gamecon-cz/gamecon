@@ -50,10 +50,11 @@ function is_ajax()
   return ( !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest' );
 }
 
-function post($name)
+function post($name, $field = null)
 {
-  if(isset($_POST[$name])) return $_POST[$name];
-  else return '';
+  if(!$field && isset($_POST[$name]))         return $_POST[$name];
+  if($field && isset($_POST[$name][$field]))  return $_POST[$name][$field];
+  return null;
 }
 
 /** Returns temporary filename for uploaded file or '' if none */
