@@ -502,6 +502,7 @@ class Aktivita
       dbQuery("UPDATE akce_seznam SET zamcel=NULL, zamcel_cas=NULL, team_nazev=NULL WHERE id_akce=$aid");
     if($this->a['teamova'] && $this->prihlaseno()==1) // odhlašuje se poslední hráč
       dbQuery("UPDATE akce_seznam SET kapacita=team_max WHERE id_akce=$aid");
+    $this->refresh();
   }
 
   /** Vráti aktivitu ze stavu připravená do stavu publikovaná */
@@ -657,17 +658,23 @@ class Aktivita
     }
     // přihlášení na navázané aktivity (jen pokud není teamleader)
     if($this->a['dite'] && $this->prihlaseno() > 0) {
-      // vybrání jednoho uživatele, který už na navázané aktivity přihlášen je
-      $vzor = Uzivatel::zId( substr(explode(',', $this->prihlaseniRaw())[1], 0, -2) );
-      $uspech = false;
-      foreach($this->deti() as $dite) {
-        // přihlášení na navázané aktivity podle vzoru vybraného uživatele
-        if($dite->prihlasen($vzor)) {
-          $dite->prihlas($u, self::STAV);
-          $uspech = true;
+      $deti = $this->deti();
+      if(count($deti) == 1) {
+        current($deti)->prihlas($u, self::STAV);
+      } else {
+        // vybrání jednoho uživatele, který už na navázané aktivity přihlášen je
+        $vzor = Uzivatel::zId( substr(explode(',', $this->prihlaseniRaw())[1], 0, -2) );
+        $uspech = false;
+        foreach($deti as $dite) {
+          // přihlášení na navázané aktivity podle vzoru vybraného uživatele
+          if($dite->prihlasen($vzor)) {
+            $dite->prihlas($u, self::STAV);
+            $uspech = true;
+            break;
+          }
         }
+        if(!$uspech) throw new Exception('Nepodařilo se určit výběr dalšího kola.');
       }
-      if(!$uspech) throw new Exception('Nepodařilo se určit výběr dalšího kola.');
     }
     // přihlášení na samu aktivitu (uložení věcí do DB)
     $aid = $this->id();
@@ -679,6 +686,7 @@ class Aktivita
     if(ODHLASENI_POKUTA_KONTROLA) //pokud by náhodou měl záznam za pokutu a přihlásil se teď, tak smazat
       dbQueryS('DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0
         AND id_akce=$1 AND id_stavu_prihlaseni=4', array($uid, $aid));
+    $this->refresh();
   }
 
   /** Jestli je uživatel  přihlášen na tuto aktivitu */
@@ -848,6 +856,12 @@ class Aktivita
    */
   function rawDb() {
     return $this->a;
+  }
+
+  /** Aktualizuje stav aktivity podle databáze */
+  function refresh() {
+    $aktualni = self::zId($this->id());
+    $this->a = $aktualni->a;
   }
 
   /**
