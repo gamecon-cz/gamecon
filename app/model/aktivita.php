@@ -1223,7 +1223,11 @@ class Aktivita
     if(!empty($filtr['organizator']))
       $wheres[] = 'a.id_akce IN (SELECT id_akce FROM akce_organizatori WHERE id_uzivatele = '.(int)$filtr['organizator'].')';
     if(!empty($filtr['jenViditelne']))
-      $wheres[] = 'a.stav IN(1,2,4,5) AND a.typ != 10';
+      $wheres[] = 'a.stav IN(1,2,4,5) AND NOT (a.typ = 10 AND a.stav = 2)';
+    if(!empty($filtr['od']))
+      $wheres[] = dbQv($filtr['od']).' <= a.zacatek';
+    if(!empty($filtr['do']))
+      $wheres[] = 'a.zacatek <= '.dbQv($filtr['do']);
     $where = implode(' AND ', $wheres);
     $order = null;
     foreach($razeni as $sloupec) {
@@ -1284,13 +1288,15 @@ class Aktivita
    * @todo možno přidat flag 'celé v rozmezí'
    */
   static function zRozmezi(DateTimeCz $od, DateTimeCz $do, $flags = 0) {
-    $qVerejne = $flags & self::VEREJNE ? ' AND stav IN(1,2,4,5) ' : ' ';
-    $qVolne = $flags & self::JEN_VOLNE ? ' HAVING COUNT(p.id_uzivatele) < (kapacita+kapacita_m+kapacita_f) ' : ' ';
-    return self::zWhere(
-      "WHERE zacatek BETWEEN '{$od->formatDb()}' AND '{$do->formatDb()}' $qVerejne ",
-      null,
-      $qVolne
-    );
+    $aktivity = self::zFiltru([
+      'jenViditelne'  =>  (bool)($flags & self::VEREJNE),
+      'od'            =>  $od->formatDb(),
+      'do'            =>  $do->formatDb(),
+    ]);
+    if($flags & self::JEN_VOLNE)
+      foreach($aktivity as $i => $a)
+        if($a->volno() == 'x') unset($aktivity[$i]);
+    return $aktivity;
   }
 
   /**
