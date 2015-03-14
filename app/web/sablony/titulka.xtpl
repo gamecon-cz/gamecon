@@ -56,14 +56,14 @@
   <div class="blok">
     <!-- begin:info -->
     <a class="upoutavka" href="info">
-      <img src="soubory/_placeholder/2.jpg">
+      <img src="soubory/obsah/titulka/co-je-gc.jpg">
       <div class="horni"><div>Co je GameCon?</div></div>
       <div class="dolni"><div>GameCon</div></div>
     </a>
     <!-- end:info -->
     <!-- begin:neprihlasen -->
     <a class="upoutavka" href="prihlaska">
-      <img src="soubory/_placeholder/4.jpg">
+      <img src="soubory/obsah/titulka/co-je-gc.jpg">
       <div class="horni" style="background-color: rgba(255,0,0,0.5);"><div>
         <img src="soubory/styl/error.png" style="margin-bottom: -3px">&ensp;
         Neprihlášen{a} na GameCon
@@ -73,7 +73,7 @@
     <!-- end:neprihlasen -->
     <!-- begin:prihlasen -->
     <a class="upoutavka" href="prihlaska">
-      <img src="soubory/_placeholder/10.jpg">
+      <img src="soubory/obsah/titulka/co-je-gc.jpg">
       <div class="horni"><div>
         <img src="soubory/styl/ok.png" style="margin-bottom: -3px">&ensp;
         Přihlášen{a} na GameCon
