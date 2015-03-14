@@ -101,6 +101,7 @@ $GLOBALS['HLASKY']=array(
   'jenPrihlaseni'=>'Na zobrazení této stránky musíte být přihlášeni.',
   'jenPrihlaseniGC'=>'Na přístup k této stránce musíte být přihlášeni na letošní GameCon.',
   'kolizeAktivit'=>'V daném čase už máte přihlášenu jinou aktivitu.',
+  'maxJednou'=>'Na tuto aktivitu už jste jednou přihlášeni.',
   'nyniPrihlaska'=>'Nyní se vyplněním následujícího formuláře se přihlásíš na GameCon.',
   'plno'=>'Místa jsou už plná',
   'prihlaseniJenInfo'=>'Registrace přes internet jsou ukončeny, <strong>registrovat se můžete přímo na místě na infopultu</strong>. Upravit si program a vybrat aktivity můžete tamtéž.',

@@ -646,6 +646,11 @@ class Aktivita
     if(!$u->gcPrihlasen())            throw new Exception('Nemáš aktivní přihlášku na GameCon.');
     if(!REG_AKTIVIT)                  throw new Exception('Přihlašování není spuštěno.');
     if($this->volno()!='u' && $this->volno()!=$u->pohlavi()) throw new Chyba(hlaska('plno'));
+    foreach($this->deti() as $dite) { // nemůže se přihlásit na aktivitu, pokud už je přihášen na jinou aktivitu s stejnými potomky
+      foreach($dite->rodice() as $rodic) {
+        if($rodic->prihlasen($u)) throw new Chyba(hlaska('maxJednou'));
+      }
+    }
     // potlačitelné kontroly
     if($this->a['zamcel'] && !($ignorovat&self::ZAMEK)) throw new Chyba(hlaska('zamcena'));
     if(!$this->prihlasovatelna()) {
@@ -862,6 +867,11 @@ class Aktivita
   function refresh() {
     $aktualni = self::zId($this->id());
     $this->a = $aktualni->a;
+  }
+
+  /** Vrátí aktivity, u kterých je tato aktivita jako jedno z dětí */
+  function rodice() {
+    return self::zWhere('WHERE a.dite rlike "(^|,)'.$this->id().'(,|$)"');
   }
 
   /**
