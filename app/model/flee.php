@@ -309,6 +309,7 @@ class Flee {
   private function runMigration($file) {
     // update version to ensure further rollbacks even if migration script fails (for example exec time limit)
     $this->dbSchemaSet('version', self::version($file));
+    $this->q('SET NAMES utf8');
     include $file;
     $this->dbSchemaSet('timestamp', filemtime($file));
   }
