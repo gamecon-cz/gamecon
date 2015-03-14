@@ -20,6 +20,14 @@ dbQuery('delete from akce_prihlaseni where id_akce = 991');
 dbQuery('update akce_seznam set stav=1 where typ=9');
 dbQuery('update akce_seznam set stav=4 where id_akce in (852,853,856)');
 
+// DrD vyprázdnění 10% aktivit
+dbQuery('
+delete p
+from akce_prihlaseni p
+join akce_seznam a on (a.id_akce = p.id_akce)
+where a.typ = 9 and a.id_akce % 10 < 1
+');
+
 // Default heslo pro uživatele
 dbQuery('
 update uzivatele_hodnoty u
