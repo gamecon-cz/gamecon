@@ -11,7 +11,7 @@ dbQuery("
 ");
 
 // RAND(3) je nastavení seedu aby byly výsledky reprodukovatelné
-dbQuery('UPDATE akce_seznam SET stav = 1 WHERE rok = 2015 AND RAND(3) < 0.8');
+dbQuery('UPDATE akce_seznam SET stav = IF(typ = 10, 0, 1) WHERE rok = 2015 AND RAND(3) < 0.8');
 
 // legendy uvolnění
 dbQuery('delete from akce_prihlaseni where id_akce = 991');
