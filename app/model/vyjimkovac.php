@@ -91,8 +91,12 @@ class Vyjimkovac
     elseif($e instanceof UrlException)  header('HTTP/1.1 400 Bad Request'); // nastavení chybových hlaviček
     else                                header('HTTP/1.1 500 Internal Server Error');
     // zobrazení
-    if($_SERVER['SERVER_ADDR'] == '127.0.0.1') (new Tracy\BlueScreen)->render($e);
-    else $this->zobrazOmluvu(); // TODO možná nějaké maily / reporting?
+    if($_SERVER['SERVER_ADDR'] == '127.0.0.1') {
+      (new Tracy\BlueScreen)->render($e);
+      if($e instanceof DbException) echo '<pre>', dbLastQ();
+    } else {
+      $this->zobrazOmluvu(); // TODO možná nějaké maily / reporting?
+    }
     // radši umřít než riskovat nekonzistenci na ostré
     die();
   }
