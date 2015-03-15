@@ -54,14 +54,6 @@ foreach($filtry as $filtr) {
   $t->parse('aktivity.filtr');
 }
 
-// Statické stránky
-// TODO hack
-$stranky = [];
-$prefixy = ['drd', 'legendy'];
-if($typ && in_array($typ->url(), $prefixy))
-  $stranky = Stranka::zUrlPrefixu($typ->url());
-$t->parseEach($stranky, 'stranka', 'aktivity.stranka');
-
 // Vyfiltrování aktivit
 $filtr = array();
 $filtr['rok'] = get('rok') ?: ROK;
@@ -71,6 +63,15 @@ if($this->param('org')) $filtr['organizator'] = $this->param('org')->id();
 if(get('jenVolne')) $filtr['jenVolne'] = true;
 $filtr['jenViditelne'] = true;
 $aktivity = Aktivita::zFiltru($filtr, ['nazev_akce', 'zacatek']);
+
+// Statické stránky
+// TODO hack
+// TODO nejasné načítání typu
+$stranky = [];
+$prefixy = ['drd', 'legendy'];
+if(isset($typ) && $typ && in_array($typ->url(), $prefixy))
+  $stranky = Stranka::zUrlPrefixu($typ->url());
+$t->parseEach($stranky, 'stranka', 'aktivity.stranka');
 
 // Zobrazení aktivit
 $a = reset($aktivity);
