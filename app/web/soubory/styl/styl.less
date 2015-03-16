@@ -95,7 +95,7 @@ hr.stin { border: none; background-image: data-uri('gradient2.png'); height: 4px
   // mixin starající se o různou šířku okrajů podle parametru aby nebylo potřeba
   // toto rozkopírovávat do různých media queries
   .obal {
-    margin: 0 @bpad;
+    margin: 0 @bpad @bpad*0.75 @bpad;
     > h1:first-child, > h2:first-child {
       margin-left: -@bpad;
       + p > img { width: 10000 / (100 - 2 * @bpad); margin-left: -(100 * @bpad) / (100 - 2 * @bpad); }
