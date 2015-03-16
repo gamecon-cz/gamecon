@@ -55,10 +55,18 @@ class Obrazek
     $this->o = $novy;
   }
 
-  /** Zvětší proporciálně obrázek aby vyplnil $nw×$nh */
+  /** Zvětší proporciálně obrázek aby vyplnil $nw×$nh, ořízne */
   function fill($nw, $nh)
   {
     $this->ff($nw, $nh, self::FILL);
+  }
+
+  /** Zmenší obrázek do daného bounding-boxu při zachování poměru stran */
+  function fillCrop($maxw, $maxh) {
+    $ratio = 1.0;
+    if($this->width() > $maxw) $ratio = $maxw / $this->width();
+    if($this->height() * $ratio < $maxh) $ratio = $maxh / $this->height();
+    if($ratio < 1.0) $this->resize($this->width() * $ratio, $this->height() * $ratio);
   }
 
   /** Zvětší proporcionálně a doplní černými pruhy */
