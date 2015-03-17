@@ -32,6 +32,25 @@
   <div class="blok stranka">
     <div class="obal">
       {text}
+      <!-- begin:vypravec -->
+        <h2 style="padding-top:0.2em;opacity:0.9"></h2>
+        <div style="padding-top:3.0em"></div>
+        <div class="fotka" style="background-image:url('{fotka}'); float:left; margin: 0 5% 0 -2%;"></div>
+        <h2 style="margin:0">{jmeno}</h2>
+        <div style="max-height:133px; overflow:hidden; min-height: 117px" class="oSobe">
+          {oSobe}
+        </div>
+        <div style="position:relative"><div style="position:absolute;right:0">
+          <!-- begin:profilLink --><a href="#" onclick="tgEl($(this).parent().parent().next()); return false">herní profil</a>&emsp;&emsp;<!-- end:profilLink -->
+          <!-- begin:viceLink --><a href="#" onclick="tgEl($(this).parent().parent().prev()); return false">více</a><!-- end:viceLink -->
+        </div></div>
+        <!-- begin:profil -->
+        <div style="max-height:0;overflow:hidden">
+          <br>
+          {profil}
+        </div>
+        <!-- end:profil -->
+      <!-- end:vypravec -->
     </div>
   </div>
   <!-- end:zahlavi -->
@@ -114,16 +133,24 @@ $(function(){
 });
 
 function tgAkt(a) {
-  var ap = a.parent().next();
+  tgEl(a.parent().next(),
+    function(){ a.html('méně'); a.addClass('mene'); },
+    function(){ a.html('více'); a.removeClass('mene'); }
+  );
+  return false;
+}
+
+function tgEl(e, fo = function(){}, fc = function(){}) {
+  var ap = e;
   var oh = ap.height();
   ap.css({'max-height': 'initial', 'height': 'initial'});
   var mh = ap.height();
   if(mh > oh) {
     ap.height(oh);
     ap.data('oh', oh);
-    ap.animate({height: mh}, function(){ a.html('méně'); a.addClass('mene'); });
+    ap.animate({height: mh}, fo);
   } else {
-    ap.animate({height: ap.data('oh')}, function(){ a.html('více'); a.removeClass('mene') });
+    ap.animate({height: ap.data('oh')}, fc);
   }
   return false;
 }

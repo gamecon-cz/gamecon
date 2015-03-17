@@ -143,12 +143,24 @@ while($a) {
 
 }
 
-// záhlaví
+// záhlaví - vypravěč
 if(isset($org)) {
-  $t->assign('text', $org->jmenoNick());
+  $t->assign([
+    'jmeno'   =>  $org->jmenoNick(),
+    'oSobe'   =>  $org->oSobe() ?: '<p><em>popisek od vypravěče nemáme</em></p>',
+    'profil'  =>  $org->drdProfil(),
+    'fotka'   =>  $org->fotkaAuto()->kvalita(85)->pokryjOrez(300,300),
+  ]);
+  if($org->oSobe()) $t->parse('aktivity.zahlavi.vypravec.viceLink');
+  if($org->drdProfil()) {
+    $t->parse('aktivity.zahlavi.vypravec.profilLink');
+    $t->parse('aktivity.zahlavi.vypravec.profil');
+  }
+  $t->parse('aktivity.zahlavi.vypravec');
   $t->parse('aktivity.zahlavi');
 }
 
+// záhlaví - typ
 if(isset($typ)) {
   $t->assign('text', $typ->oTypu());
   $t->parse('aktivity.zahlavi');
