@@ -120,6 +120,11 @@ class Uzivatel
     return true;
   }
 
+  /** Vrátí profil uživatele pro DrD */
+  function drdProfil() {
+    return $this->medailonek() ? $this->medailonek()->drd() : null;
+  }
+
   /** Vrátí finance daného uživatele */
   function finance()
   {
@@ -127,6 +132,23 @@ class Uzivatel
     if(!$this->finance)
       $this->finance = new Finance($this);
     return $this->finance;
+  }
+
+  /** Vrátí objekt Náhled s fotkou uživatele nebo null */
+  function fotka() {
+    $soubor = WWW.'/soubory/systemove/fotky/'.$this->id().'.jpg';
+    if(is_file($soubor))
+      return Nahled::zSouboru($soubor);
+    else
+      return null;
+  }
+
+  /** Vrátí objekt Náhled s fotkou uživatele nebo výchozí fotku */
+  function fotkaAuto() {
+    $f = $this->fotka();
+    if($f)                            return $f;
+    elseif($this->pohlavi() == 'f')   return Nahled::zSouboru(WWW.'/soubory/styl/fotka-holka.jpg');
+    else                              return Nahled::zSouboru(WWW.'/soubory/styl/fotka-kluk.jpg');
   }
 
   /**
@@ -267,6 +289,13 @@ class Uzivatel
     return isset($this->zidle[$zidle]);
   }
 
+  protected function medailonek() {
+    if(!isset($this->medailonek)) {
+      $this->medailonek[] = Medailonek::zId($this->id()); // pole kvůli korektní detekci null
+    }
+    return $this->medailonek[0];
+  }
+
   /**
    * Jestli je jeho mail mrtvý
    * @todo pokud bude výkonově ok, možno zrefaktorovat na třídu mail která bude
@@ -328,6 +357,11 @@ class Uzivatel
     if(!session_id())
       session_start();
     unset($_SESSION[$klic]);
+  }
+
+  /** Vrátí medailonek vypravěče */
+  function oSobe() {
+    return $this->medailonek() ? $this->medailonek()->oSobe() : null;
   }
 
   /**
