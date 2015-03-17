@@ -11,7 +11,7 @@
 <script src="files/showdown.js"></script>
 <script src="files/jquery.autosize.js"></script>
 <script>
-  var $text = $('textarea').last();
+  var $text = $('textarea[name="{pnText}"]').last();
   $text.autosize();
   $text.keyup(function(){
     var md = new Showdown.converter();
