@@ -5,15 +5,6 @@ class Stranka extends DbObject {
   protected static $tabulka = 'stranky';
   protected static $pk = 'id_stranky';
 
-  static function form($id = null) {
-    $f = new DbFormGc('stranky');
-    if($id) {
-      $s = Stranka::zId($id);
-      $f->loadRow($s->r);
-    }
-    return $f;
-  }
-
   function html() {
     if(!isset($this->html)) {
       $this->html = markdownNoCache($this->r['obsah']);

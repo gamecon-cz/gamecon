@@ -16,12 +16,6 @@ class Novinka extends DbObject {
     return date('j.n.', strtotime($this->r['vydat']));
   }
 
-  function form() {
-    $f = new DbFormGc('novinky');
-    $f->loadRow($this->r);
-    return $f;
-  }
-
   /** Prvních $n znaků příspěvku */
   function nahled($n = 250) {
     $sub = mb_substr(strip_tags($this->text()), 0, $n);

@@ -26,6 +26,16 @@ abstract class DbObject {
     return 'SELECT * FROM '.static::$tabulka.' WHERE '.$where;
   }
 
+  /** Vrátí formulář pro editaci objektu s daným ID nebo pro přidání nového */
+  static function form($id = null) {
+    $f = new DbFormGc(static::$tabulka);
+    if($id) {
+      $s = self::zId($id);
+      $f->loadRow($s->r);
+    }
+    return $f;
+  }
+
   /** Vrátí ID objektu (hodnota primárního klíče) */
   function id() {
     return $this->r[static::$pk];
@@ -52,6 +62,11 @@ abstract class DbObject {
       throw new InvalidArgumentException('Argument musí být pole čísel nebo řetězec čísel oddělených čárkou');
     }
     // TODO co když $ids === null?
+  }
+
+  /** Načte a vrátí všechny objekt z databáze */
+  static function zVsech() {
+    return self::zWhere('1');
   }
 
   /** Načte a vrátí objekty pomocí dané where klauzule */

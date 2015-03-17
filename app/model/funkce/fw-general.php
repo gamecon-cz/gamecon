@@ -41,7 +41,7 @@ function back($to=null)
 function get($name)
 {
   if(isset($_GET[$name])) return $_GET[$name];
-  else return '';
+  else return null;
 }
 
 /** if current call is AJAX */

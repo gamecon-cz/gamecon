@@ -7,6 +7,6 @@
  * pravo: 105
  */
 
-$form = ($n = Novinka::zId(get('id'))) ? $n->form() : new DbFormGc('novinky');
+$form = Novinka::form(get('id'));
 $form->processPost();
 echo $form->full();
