@@ -140,7 +140,9 @@ function tgAkt(a) {
   return false;
 }
 
-function tgEl(e, fo = function(){}, fc = function(){}) {
+function tgEl(e, fo, fc) {
+  fo = typeof fo !== 'undefined' ? fo : function(){};
+  fc = typeof fc !== 'undefined' ? fc : function(){};
   var ap = e;
   var oh = ap.height();
   ap.css({'max-height': 'initial', 'height': 'initial'});
