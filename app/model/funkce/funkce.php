@@ -227,7 +227,7 @@ function markdown($text) {
 
 /** Převede text markdown na html (přímo on the fly) */
 function markdownNoCache($text) {
-  //require_once(__DIR__.'/knihovny/old-hacked-markdown/markdown.php');
+  if(!$text) return '';
   $text = Michelf\Markdown::defaultTransform($text);
   $text = preg_replace_callback('@(p|h\d|strong|em|/)>[^<]+<@', function($m){
     $m[0] = str_replace('...', '…', $m[0]);
