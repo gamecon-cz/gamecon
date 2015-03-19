@@ -1,17 +1,16 @@
 <?php
 
 /**
- * Zrychlený výpis programu
- */
-class Program
-{
-  
-  var $u=null; //aktuální uživatel v objektu
-  var $posledniVydana=null;
-  var $dbPosledni=null;
-  var $aktFronta=array();
-  var $program;
-  var $nastaveni=array(
+* Zrychlený výpis programu
+*/
+class Program {
+
+  private $u = null; //aktuální uživatel v objektu
+  private $posledniVydana = null;
+  private $dbPosledni = null;
+  private $aktFronta = [];
+  private $program;
+  private $nastaveni = [
     'drdPj'         => false, // u DrD explicitně zobrazit jména PJů
     'drdPrihlas'    => false, // jestli se zobrazují přihlašovátka pro DrD
     'plusMinus'     => false, // jestli jsou v programu '+' a '-' pro změnu kapacity team. aktivit
@@ -19,11 +18,10 @@ class Program
     'tableClass'    => 'program', //todo edit
     'teamVyber'     => false, // jestli se u teamové aktivity zobrazí full výběr teamu přímo v programu
     'technicke'     => false, // jestli jdou vidět technické aktivity
-  );
-  
-  /** Konstruktor bere uživatele a specifikaci, jestli je to osobní program */  
-  function __construct(Uzivatel $u=null, $nastaveni=null)
-  {
+  ];
+
+  /** Konstruktor bere uživatele a specifikaci, jestli je to osobní program */
+  function __construct(Uzivatel $u=null, $nastaveni=null) {
     if($u instanceof Uzivatel) {
       $this->u=$u;
       $this->uid=$this->u->id();
@@ -32,12 +30,11 @@ class Program
       $this->nastaveni = array_replace($this->nastaveni, $nastaveni);
     }
   }
-  
+
   /**
-   * Přímý tisk programu na výstup
-   */     
-  public function tisk()
-  {
+  * Přímý tisk programu na výstup
+  */
+  public function tisk() {
     // načtení seznamu aktivit
     $this->program = Aktivita::zProgramu();
 
@@ -45,9 +42,9 @@ class Program
     $typy['0'] = 'Ostatní';
     foreach(Typ::zVsech() as $t)
       $typy[$t->id()] = ucfirst($t->nazev());
-    
+
     ////////// tisk samotného programu //////////
-    
+
     $aktivita = $this->dalsiAktivita();
     for( $den=new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen() )
     {
@@ -85,17 +82,16 @@ class Program
       if($aktivit==0)
         echo('<tr><td colspan="17">Žádné aktivity tento den</td></tr>'); //fixme magická konstanta
       echo('</table>');
-    }    
+    }
   }
-  
-  
+
+
   ////////////////////
   // pomocné funkce //
   ////////////////////
-    
+
   /** detekce kolize dvou aktivit (jsou ve stejné místnosti v kryjícím se čase) */
-  private static function koliduje($a = null, $b = null)
-  {
+  private static function koliduje($a = null, $b = null) {
     if(  $a===null
       || $b===null
       || $a['typ'] != $b['typ']
@@ -105,10 +101,9 @@ class Program
     ) return false;
     return true;
   }
-  
+
   /** Řekne, jestli jsou aktivity v stejné skupině (místnosti a dnu) */
-  private static function stejnaSkupina($a = null, $b = null)
-  {
+  private static function stejnaSkupina($a = null, $b = null) {
     if(  $a===null
       || $b===null
       || $a['typ'] != $b['typ']
@@ -116,15 +111,12 @@ class Program
     ) return false;
     return true;
   }
-  
-  /** Vrátí následující nekolizní záznam z fronty aktivit a zruší ho, nebo 
-   *  FALSE */
-  private function popNasledujiciNekolizni(&$fronta)
-  {
-    foreach($fronta as $key=>$prvek)
-    {
-      if( $prvek['zac'] >= $this->posledniVydana['kon'] )
-      {
+
+  /** Vrátí následující nekolizní záznam z fronty aktivit a zruší ho, nebo
+  *  FALSE */
+  private function popNasledujiciNekolizni(&$fronta) {
+    foreach($fronta as $key=>$prvek) {
+      if( $prvek['zac'] >= $this->posledniVydana['kon'] ) {
         $t=$prvek;
         unset($fronta[$key]);
         return $t;
@@ -132,28 +124,24 @@ class Program
     }
     return false;
   }
-  
+
   /** pomocná funkce pro načítání další aktivity z DB nebo z lokálního stacku
-   *  aktivit (globální proměnné se používají) */
-  private function dalsiAktivita()
-  { 
+  *  aktivit (globální proměnné se používají) */
+  private function dalsiAktivita() {
     if(!$this->dbPosledni) {
       $this->dbPosledni = $this->nactiAktivitu($this->program);
     }
-    
+
     while($this->koliduje($this->posledniVydana, $this->dbPosledni)) {
       $this->aktFronta[] = $this->dbPosledni;
       $this->dbPosledni = $this->nactiAktivitu($this->program);
     }
-    
-    if($this->stejnaSkupina($this->dbPosledni, $this->posledniVydana) || !$this->aktFronta)
-    {
+
+    if($this->stejnaSkupina($this->dbPosledni, $this->posledniVydana) || !$this->aktFronta) {
       $t = $this->dbPosledni;
       $this->dbPosledni = null;
       return $this->posledniVydana = $t;
-    }
-    else
-    {
+    } else {
       if($t = $this->popNasledujiciNekolizni($this->aktFronta))
         return $this->posledniVydana = $t;
       else
@@ -162,8 +150,7 @@ class Program
   }
 
   /** Vytisknutí konkrétní aktivity (formátování atd...) */
-  private function tiskAktivity($a)
-  {
+  private function tiskAktivity($a) {
     $classes=array();
     if($this->u && $a['obj']->prihlasen($this->u)) $classes[]='prihlasen';
     if($this->u && $a['obj']->organizuje($this->u)) $classes[]='organizator';
@@ -172,7 +159,7 @@ class Program
       '><div>'.$a['obj']->nazev()
     );
     if($this->nastaveni['drdPj'] && $a['obj']->typ() == 9 && $a['obj']->prihlasovatelna()) {
-       echo ' ('.$a['obj']->orgJmena().') ';
+      echo ' ('.$a['obj']->orgJmena().') ';
     }
     echo $a['obj']->obsazenostHtml();
     if(
@@ -188,11 +175,10 @@ class Program
   }
 
   /**
-   * Načte jednu aktivitu (objekt) z iterátoru a vrátí vnitřní reprezentaci
-   * (s cacheovanými hodnotami) pro program.
-   */
-  private function nactiAktivitu($iterator)
-  {
+  * Načte jednu aktivitu (objekt) z iterátoru a vrátí vnitřní reprezentaci
+  * (s cacheovanými hodnotami) pro program.
+  */
+  private function nactiAktivitu($iterator) {
     if(!$iterator->valid()) return null;
     $a = $iterator->current();
     $zac = (int)$a->zacatek()->format('G');
@@ -213,14 +199,13 @@ class Program
       return $this->nactiAktivitu($iterator);
     }
   }
-  
-  
+
+
   ////////////////////////////
   // Default CSSko programu //
   ////////////////////////////
-  
-  public static function css()
-  {
+
+  public static function css() {
     ?><style>
       table.program {
         text-align: center;
@@ -228,7 +213,7 @@ class Program
         border-spacing: 0px;
         margin: 0;
         table-layout: fixed;
-        min-width: 800px; } 
+        min-width: 800px; }
       table.program td, table.program th {
         width: 5%;
         padding: 3px;
@@ -256,9 +241,8 @@ class Program
       table.program td .neprihlasovatelna { color: #777; }
     </style><?php
   }
-  
-  public static function cssRetezec()
-  {
+
+  public static function cssRetezec() {
     ob_start();
     self::css();
     return ob_get_clean();
