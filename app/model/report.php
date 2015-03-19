@@ -47,6 +47,13 @@ class Report
   }
 
   /**
+   * Vytvoří report z asoc. polí, jako hlavičky použije klíče
+   */
+  static function zPole($pole) {
+    return self::zPoli(array_keys($pole[0]), $pole);
+  }
+
+  /**
    * Vytvoří report ze zadaných polí
    * @param $hlavicky hlavičkový řádek
    * @param $obsah pole normálních řádků
@@ -58,7 +65,7 @@ class Report
     $report->poleObsah = $obsah;
     return $report;
   }
-  
+
   /**
    * Vytvoří report ze zadaného SQL dotazu (selectu)
    */   

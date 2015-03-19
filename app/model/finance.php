@@ -214,6 +214,23 @@ class Finance
   }
 
   /**
+   * Vrátí výchozí vygenerovanou slevu za vedení dané aktivity
+   */
+  static function slevaZaAktivitu(Aktivita $a) {
+    if($a->nedavaSlevu()) return 0;
+    $delka = $a->delka();
+    if($delka == 0) return 0;
+    $sleva = 0;
+    foreach(self::$slevaZaAktivitu as $tabDelka => $tabSleva) {
+      if($delka <= $tabDelka) {
+        $sleva = $tabSleva;
+        break;
+      }
+    }
+    return $sleva;
+  }
+
+  /**
    * Výše vyčerpané vypravěčské slevy
    */
   function slevaVypravecVyuzita() {
@@ -400,17 +417,7 @@ class Finance
   protected function zapoctiVedeniAktivit() {
     if(!$this->u->maPravo(P_ORG_AKCI)) return;
     foreach(Aktivita::zOrganizatora($this->u) as $a) {
-      if($a->nedavaSlevu()) continue;
-      $delka = $a->delka();
-      if($delka == 0) continue;
-      $sleva = 0;
-      foreach(self::$slevaZaAktivitu as $tabDelka => $tabSleva) {
-        if($delka <= $tabDelka) {
-          $sleva = $tabSleva;
-          break;
-        }
-      }
-      $this->sleva += $sleva;
+      $this->sleva += self::slevaZaAktivitu($a);
     }
   }
 
