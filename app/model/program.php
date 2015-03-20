@@ -1,8 +1,8 @@
 <?php
 
 /**
-* Zrychlený výpis programu
-*/
+ * Zrychlený výpis programu
+ */
 class Program {
 
   private $u = null; //aktuální uživatel v objektu
@@ -18,7 +18,9 @@ class Program {
     'tableClass'    => 'program', //todo edit
     'teamVyber'     => false, // jestli se u teamové aktivity zobrazí full výběr teamu přímo v programu
     'technicke'     => false, // jestli jdou vidět technické aktivity
+    'skupiny'       => 'linie', // seskupování programu - po místnostech nebo po liniích
   ];
+  private $grpf; // název metody na objektu aktivita, podle které se groupuje
 
   /** Konstruktor bere uživatele a specifikaci, jestli je to osobní program */
   function __construct(Uzivatel $u=null, $nastaveni=null) {
@@ -32,16 +34,27 @@ class Program {
   }
 
   /**
-  * Přímý tisk programu na výstup
-  */
+   * Přímý tisk programu na výstup
+   */
   public function tisk() {
-    // načtení seznamu aktivit
-    $this->program = Aktivita::zProgramu();
-
-    //načtení názvů lokací
+    // načtení seznamu pro groupování
+    if($this->nastaveni['skupiny'] == 'mistnosti') {
+      $this->program = Aktivita::zProgramu('lokace');
+      $grp = Lokace::zVsech();
+      $this->grpf = 'lokaceId';
+      $labelf = 'nazevInterni';
+    } else {
+      $this->program = Aktivita::zProgramu('typ');
+      $grp = Typ::zVsech();
+      $this->grpf = 'typ'; // MAGIC dynamické volání metody dle jména
+      $labelf = 'nazev';
+    }
     $typy['0'] = 'Ostatní';
-    foreach(Typ::zVsech() as $t)
-      $typy[$t->id()] = ucfirst($t->nazev());
+    usort($grp, function($a, $b) {
+      return $a->id() > $b->id();
+    });
+    foreach($grp as $t)
+      $typy[$t->id()] = ucfirst($t->$labelf());
 
     ////////// tisk samotného programu //////////
 
@@ -55,15 +68,15 @@ class Program {
       $aktivit=0;
       foreach($typy as $typ => $typNazev)
       {
-        if( !$aktivita || $aktivita['typ'] != $typ ) continue;  //v lokaci není aktivita, přeskočit
+        if( !$aktivita || $aktivita['grp'] != $typ ) continue;  //v lokaci není aktivita, přeskočit
         ob_start();  //výstup bufferujeme, pro případ že bude na víc řádků
         $radku=0;
         //ošetření proti kolidujícím aktivitám v místnosti
-        while( $aktivita && $typ==$aktivita['typ'] && $denId==$aktivita['den'] )
+        while( $aktivita && $typ==$aktivita['grp'] && $denId==$aktivita['den'] )
         {
           for($cas=PROGRAM_ZACATEK; $cas<PROGRAM_KONEC; $cas++)
           {
-            if( $aktivita && $typ==$aktivita['typ'] && $cas==$aktivita['zac'] ) //pokud je aktivita už v jiné lokaci, dojedeme stávající řádek
+            if( $aktivita && $typ==$aktivita['grp'] && $cas==$aktivita['zac'] ) //pokud je aktivita už v jiné lokaci, dojedeme stávající řádek
             {
               $cas += $aktivita['del'] - 1; //na konci cyklu jeste bude ++
               $this->tiskAktivity($aktivita);
@@ -94,7 +107,7 @@ class Program {
   private static function koliduje($a = null, $b = null) {
     if(  $a===null
       || $b===null
-      || $a['typ'] != $b['typ']
+      || $a['grp'] != $b['grp']
       || $a['den'] != $b['den']
       || $a['kon'] <= $b['zac']
       || $b['kon'] <= $a['zac']
@@ -106,14 +119,15 @@ class Program {
   private static function stejnaSkupina($a = null, $b = null) {
     if(  $a===null
       || $b===null
-      || $a['typ'] != $b['typ']
+      || $a['grp'] != $b['grp']
       || $a['den'] != $b['den']
     ) return false;
     return true;
   }
 
-  /** Vrátí následující nekolizní záznam z fronty aktivit a zruší ho, nebo
-  *  FALSE */
+  /**
+   * Vrátí následující nekolizní záznam z fronty aktivit a zruší ho, nebo FALSE
+   */
   private function popNasledujiciNekolizni(&$fronta) {
     foreach($fronta as $key=>$prvek) {
       if( $prvek['zac'] >= $this->posledniVydana['kon'] ) {
@@ -125,8 +139,10 @@ class Program {
     return false;
   }
 
-  /** pomocná funkce pro načítání další aktivity z DB nebo z lokálního stacku
-  *  aktivit (globální proměnné se používají) */
+  /**
+   * Pomocná funkce pro načítání další aktivity z DB nebo z lokálního stacku
+   * aktivit (globální proměnné se používají)
+   */
   private function dalsiAktivita() {
     if(!$this->dbPosledni) {
       $this->dbPosledni = $this->nactiAktivitu($this->program);
@@ -175,17 +191,18 @@ class Program {
   }
 
   /**
-  * Načte jednu aktivitu (objekt) z iterátoru a vrátí vnitřní reprezentaci
-  * (s cacheovanými hodnotami) pro program.
-  */
+   * Načte jednu aktivitu (objekt) z iterátoru a vrátí vnitřní reprezentaci
+   * (s cacheovanými hodnotami) pro program.
+   */
   private function nactiAktivitu($iterator) {
     if(!$iterator->valid()) return null;
     $a = $iterator->current();
     $zac = (int)$a->zacatek()->format('G');
     $kon = (int)$a->konec()->format('G');
     if($kon == 0) $kon = 24;
+    $grpf = $this->grpf; // MAGIC (dynamické volání metody podle jména
     $a = array(
-      'typ' => $a->typ(),
+      'grp' => $a->$grpf(),
       'zac' => $zac,
       'kon' => $kon,
       'den' => (int)$a->zacatek()->format('z'),

@@ -1,5 +1,9 @@
 <!-- begin:aktivity -->
 
+<ul style="margin-top:-1em">
+  <li><a href="program-mistnosti" target="_blank">Program po místnostech</a></li>
+</ul>
+
 <div style="position:absolute;right:20px;top:100px">
   <form method="post">
     Zobrazit jen:

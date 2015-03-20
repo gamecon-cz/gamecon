@@ -26,8 +26,4 @@ class Typ extends DbObject {
     return self::zWhereRadek('url_typu_mn = $1', [$url]);
   }
 
-  static function zVsech() {
-    return self::zWhere('1 ORDER BY id_typu');
-  }
-
 }
