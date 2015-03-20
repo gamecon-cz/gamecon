@@ -22,19 +22,19 @@ for($i = 2009; $i <= $maxRok; $i++) {
 }
 
 $hlavicka1=array_merge(
-  array('Účastník','','','','','','','','Datum narození','','','Bydliště','','','',
+  array('Účastník','','','','','','','','Datum narození','','','Bydliště','','','','','',
   'Ubytovací informace','','',''),
   array_fill(0,count($gcDoted),''),
   array('Celkové náklady','','',
-  'Ostatní platby','','','','','','','','','','','')
+  'Ostatní platby','','','','','','','','','','')
 );
 $hlavicka2=array_merge(
   array('ID','Příjmení','Jméno','Přezdívka','Mail','Pozice','Datum registrace','Prošel infopultem','Den','Měsíc','Rok','Stát','Město','Ulice',
-  'PSČ','První noc','Poslední noc (počátek)','Typ','Dorazil na GC'),
+  'PSČ','Škola','Chci bydlet s','První noc','Poslední noc (počátek)','Typ','Dorazil na GC'),
   $gcDoted,
   array(
-  'Celkem dní','Cena / den','Ubytování','Předměty',
-  'Aktivity','vypravěčská sleva využitá','vypravěčská sleva přiznaná','stav','zůstatek z minula','připsané platby','první blok','poslední blok','Slevy','Objednávky','Škola')
+  'Celkem dní','Cena / den','Ubytování','Předměty a strava',
+  'Aktivity','vypravěčská sleva využitá','vypravěčská sleva přiznaná','stav','zůstatek z minula','připsané platby','první blok','poslední blok','Slevy','Objednávky')
 );
 $o=dbQuery('
   SELECT 
@@ -70,7 +70,7 @@ while($r=mysql_fetch_assoc($o))
   $stat = '';
   try { $stat = $un->stat(); } catch(Exception $e) {}
   $obsah[] = array_merge(
-    array(
+    [
       $r['id_uzivatele'],
       $r['prijmeni_uzivatele'],
       $r['jmeno_uzivatele'],
@@ -86,13 +86,15 @@ while($r=mysql_fetch_assoc($o))
       $r['mesto_uzivatele'],
       $r['ulice_a_cp_uzivatele'],
       $r['psc_uzivatele'],
+      $r['skola'],
+      $r['ubytovan_s'],
       $r['den_prvni']!==null ? $denPrvni->add( DateInterval::createFromDateString(($r['den_prvni']-1).' days') )->format('j.n.Y') : '-',
       $r['den_posledni'] ? $denPrvni->add(new DateInterval('P'.($r['den_posledni']-$r['den_prvni']).'D'))->format('j.n.Y') : '-',
       ut($r['ubytovani_typ']),
       $un->gcPritomen()?'ano':'ne'
-    ),
+    ],
     $ucastiHistorie,
-    array(
+    [
       $pobyt=( $r['den_prvni']!==null ? $r['den_posledni']-$r['den_prvni']+1 : 0 ),
       $pobyt ? $un->finance()->cenaUbytovani()/$pobyt : 0,
       $un->finance()->cenaUbytovani(),
@@ -107,8 +109,7 @@ while($r=mysql_fetch_assoc($o))
       ed($un->posledniBlok()),
       implode(", ",array_merge($un->finance()->slevyVse(),$un->finance()->slevyAktivity())),
       strip_tags(strtr($un->finance()->prehledHtml(),array('</tr>'=>", ", '</td>'=>' '))),
-      $r['skola']
-    )
+    ]
   );
 }
 
