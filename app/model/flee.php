@@ -157,7 +157,8 @@ class Flee {
         dbQuery('
           INSERT INTO _vars(name, value) VALUES
             ("'.$prefix.'version", 0),
-            ("'.$prefix.'timestamp", 0)
+            ("'.$prefix.'timestamp", 0),
+            ("'.$prefix.'hash", 0)
         ');
       };
       // load or create db schema
@@ -195,6 +196,17 @@ class Flee {
   private function dbSchemaSet($name, $value) {
     $this->dbSchema()->$name = $value;
     dbInsertUpdate('_vars', ['name' => $this->dbPrefix().$name, 'value' => $value]);
+  }
+
+  /**
+   * True if $file was applied to database and was modified since then
+   */
+  private function isModifiedRollback($file) {
+    // compare version from database and from filename
+    if(!$this->isRollback($file)) return false;
+    // compare hash from database and from file contents
+    if($this->dbSchema()->hash != md5_file($file)) return true;
+    return false;
   }
 
   /**
@@ -292,12 +304,11 @@ class Flee {
   /**
    * Returns array of pending rollback migrations (currently just one or empty
    * array)
-   * @todo check hashes
    */
   private function rollbackMigrations() {
     $todos = array();
     $last = end((array_values($this->migrationFiles()))); // pass by reference hack
-    if(self::version($last) == $this->dbSchema()->version && filemtime($last) > $this->dbSchema()->timestamp) {
+    if($this->isModifiedRollback($last)) {
       $todos[] = $last;
     }
     return $todos;
@@ -312,6 +323,7 @@ class Flee {
     $this->q('SET NAMES utf8');
     include $file;
     $this->dbSchemaSet('timestamp', filemtime($file));
+    $this->dbSchemaSet('hash', md5_file($file));
   }
 
   /**
