@@ -60,9 +60,13 @@ hr.stin { border: none; background-image: data-uri('gradient2.png'); height: 4px
 .hlavni { max-width: @sirka; margin: 0 auto 40px auto; position: relative; }
 .obsah { position: relative; }
 
-.sponzori a { font-size: 40px; /* hack pro vyšší klikací plochu odkazu */ }
-.sponzori p { text-align: center; margin-bottom: -10px; }
-.sponzori img { margin: 0 5px 10px 5px; vertical-align: bottom; }
+.sponzori {
+  padding-bottom: 1px;
+  p a { font-size: 40px; /* hack pro vyšší klikací plochu odkazu */ }
+  p { text-align: center; margin-bottom: -10px; }
+  img { margin: 0 5px 10px 5px; vertical-align: bottom; }
+  .licence { margin: 2%; color: #666; font-size: 90%; }
+}
 
 
 

@@ -15,4 +15,8 @@
 <!-- end:partner -->
 </p>
 
+<div class="licence">
+{licence}
+</div>
+
 <!-- end:sponzori -->
