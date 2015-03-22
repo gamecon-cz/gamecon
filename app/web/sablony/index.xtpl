@@ -9,8 +9,7 @@
   <link rel="stylesheet" type="text/css" href="{css}" media="screen,projection">
   <script src="{js}"></script>
   {jsVyjimkovac}
-  <!-- TODO title -->
-  <title>GameCon</title>
+  {info}
 </head>
 <body>
 

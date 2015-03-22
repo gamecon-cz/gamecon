@@ -46,6 +46,11 @@ class Modul {
     return $this->bezStranky;
   }
 
+  function info($val = null) {
+    if(isset($val)) $this->info = $val;
+    return $this->info;
+  }
+
   /** Název modulu (odpovídá části názvu souboru) */
   protected function nazev() {
     return preg_replace('@moduly/(.*)\.php@', '$1', $this->src);

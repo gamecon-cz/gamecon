@@ -24,3 +24,5 @@ if($start > 0) {
   $t->assign('url', $novejsi <= 0 ? 'novinky' : 'novinky?start='.$novejsi);
   $t->parse('novinky.novejsi');
 }
+
+$this->info()->nazev('Novinky');

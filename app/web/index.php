@@ -25,11 +25,19 @@ if(!$m) {
 $m->param('u', $u);
 $m->param('menu', $menu);
 $m->param('url', Url::zAktualni());
+$i = (new Info())
+  ->obrazek('soubory/styl/og-image.jpg')
+  ->site('GameCon')
+  ->url("http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]");
+$m->info($i);
 try {
   $m->spust();
 } catch(UrlNotFoundException $e) {
   $m = Modul::zNazvu('neexistujici')->spust();
 }
+if(!$i->titulek())
+  if($i->nazev())   $i->titulek($i->nazev().' – GameCon');
+  else              $i->titulek('GameCon')->nazev('GameCon');
 
 // výstup (s ohledem na to co modul nastavil)
 if($m->bezStranky()) {
@@ -59,6 +67,7 @@ if($m->bezStranky()) {
     ),
     'jsVyjimkovac'  => Vyjimkovac::js(URL_WEBU.'/ajax-vyjimkovac'),
     'chyba'     => Chyba::vyzvedniHtml(),
+    'info'      => $m->info()->html(),
   ));
   // tisk věcí a zdar
   if(!$m->bezMenu())                                $t->assign('menu', $menu->cele());
