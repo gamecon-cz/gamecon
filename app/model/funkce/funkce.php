@@ -361,14 +361,8 @@ function perfectcache($args) {
 }
 
 function perfectcacheFont($font) {
-  $d = CACHE . '/ttf';
-  $f = md5($font) . '.ttf';
-  if(!is_dir($d)) mkdir($d);
-  copy(
-    $font,
-    $d . '/' . $f
-  );
-  return URL_CACHE.'/ttf/'.$f.'?v='.filemtime($font);
+  // font musí pocházet ze stejné url - nelze použít cache
+  return URL_WEBU.'/'.$font.'?v='.filemtime($font);
 }
 
 function perfectcacheFontNazev($font) {
