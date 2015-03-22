@@ -41,6 +41,7 @@ logs("odemčeno $i");
 logs("cron dokončen\n");
 
 $vystup = ob_get_contents();
+if(!is_dir(SPEC.'/logs')) mkdir(SPEC.'/logs');
 $zapsano = file_put_contents(SPEC.'/logs/cron-'.date('Y-m'), $vystup, FILE_APPEND);
 if($zapsano === false) {
   echo "Zápis selhal. Výsledek CRONu je následující:\n\n";
