@@ -8,8 +8,24 @@ class Typ extends DbObject {
   protected static $tabulka = 'akce_typy';
   protected static $pk = 'id_typu';
 
+  /** Vrátí popisek bez html a názvu */
+  function bezNazvu() {
+    return trim(strip_tags(preg_replace(
+      '@<h1>[^<]+</h1>@',
+      '',
+      $this->oTypu(),
+      1 // limit
+    )));
+  }
+
   function nazev() {
     return $this->r['typ_1pmn'];
+  }
+
+  /** Název natáhnutý ze stránky */
+  function nazevDlouhy() {
+    preg_match('@<h1>([^<]+)</h1>@', $this->oTypu(), $m);
+    return $m[1];
   }
 
   function oTypu() {

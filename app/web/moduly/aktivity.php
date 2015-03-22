@@ -151,6 +151,12 @@ if(isset($org)) {
     'profil'  =>  $org->drdProfil(),
     'fotka'   =>  $org->fotkaAuto()->kvalita(85)->pokryjOrez(300,300),
   ]);
+  $this->info()
+    ->popis(
+      substr(strip_tags($org->oSobe()), 0, 500) ?:
+      'Stránka vypravěč'.($org->pohlavi()=='f'?'ky':'e'))
+    ->nazev($org->jmenoNick())
+    ->obrazek($org->fotka()); // cíleně null, pokud nemá fotku
   if($org->oSobe()) $t->parse('aktivity.zahlavi.vypravec.viceLink');
   if($org->drdProfil()) {
     $t->parse('aktivity.zahlavi.vypravec.profilLink');
@@ -164,4 +170,8 @@ if(isset($org)) {
 if(isset($typ)) {
   $t->assign('text', $typ->oTypu());
   $t->parse('aktivity.zahlavi');
+  $this->info()
+    ->nazev(mb_ucfirst($typ->nazevDlouhy()))
+    ->popis($typ->bezNazvu())
+    ->obrazek(null);
 }
