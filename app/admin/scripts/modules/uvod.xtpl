@@ -7,7 +7,7 @@
 <!-- end:neUzivatel -->
 <!-- begin:neprihlasen -->
   <div class="error">Uživatel{ka} není přihlášen{a} na GameCon.</div>
-  Přihlásit na GameCon {rok}: <form class="radkovy" method="post"><input type="submit" name="gcPrihlas" value="Přihlásit"></form>
+  Přihlásit na GameCon {rok}: <form class="radkovy" method="post"><input type="submit" name="gcPrihlas" value="Přihlásit"></form><br><br>
 <!-- end:neprihlasen -->
 
 
