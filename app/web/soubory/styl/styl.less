@@ -13,11 +13,6 @@ hr { border: none; border-top: solid 1px #eee; }
 body { margin: 0; font: 14px Open Sans, sans-serif; overflow-y: scroll; line-height: 150%;
   background-image: url('pozadi-2015.jpg'); background-color: #f6f3ea; background-attachment: fixed; background-position: center; background-size: cover; }
 
-// iconfont
-@font-face { font-family: "Ikony"; src: url("ikony/flaticon.ttf"); font-weight: normal; font-style: normal; }
-.ikona { font-family: Ikony; font-weight: normal; font-style: normal; }
-
-
 .hlavicka { text-align: center; position: relative; line-height: 1.3em; color: #333;
   background-image: url('hlavicka.jpg'); background-color: #a8a890; background-size: auto 100%; }
 .hlavicka a { color: #a23; }
@@ -118,7 +113,7 @@ hr.stin { border: none; background-image: data-uri('gradient2.png'); height: 4px
     // odsazení spodních bannerů napravo od hlavního okna
     + .sloupce { position: absolute; top: 0; right: 0; width: @sloupw; padding: 5px; margin: -5px; padding-bottom: 0; margin-bottom: 0; height: 100%; overflow: hidden; }
     + .sloupce .blok { width: 100%; }
-    + .sloupce .blok:first-child { margin-top: 0; }
+    + .sloupce > .blok:first-child { margin-top: 0; }
   }
 }
 
@@ -135,13 +130,13 @@ hr.stin { border: none; background-image: data-uri('gradient2.png'); height: 4px
 .ahlav {
   .info { margin-bottom: -1px; } // nějaký divnobug aby bylo možné skládat popisky pod sebe
   .vice { border-bottom: dotted 1px; cursor: pointer; color: #fff; }
-  .tag:before     { .ikona; content: "\e005"; margin-right: 0.2em; }
-  .cena:before    { .ikona; content: "\e001"; }
-  .org:before     { .ikona; content: "\e004"; margin-right: 0.1em; }
-  .termin:before  { .ikona; content: "\e000"; margin-right: 0.3em; }
-  .vice:before    { .ikona; content: "\e002"; margin-right: 0.2em; }
-  .mene:before    { .ikona; content: "\e006"; margin-right: 0.2em; }
-  .tym:before     { .ikona; content: "\e003"; margin-right: 0.2em; }
+  .termin  { .ikona.hodiny; &:before { .ikona; margin-right: 0.3em; } }
+  .cena    { .ikona.mince;  &:before { .ikona;  } }
+  .vice    { .ikona.dolu;   &:before { .ikona; margin-right: 0.2em; } }
+  .tym     { .ikona.lide;   &:before { .ikona; margin-right: 0.2em; } }
+  .org     { .ikona.clovek; &:before { .ikona; margin-right: 0.1em; } }
+  .tag     { .ikona.stitek; &:before { .ikona; margin-right: 0.2em; } }
+  .mene    { .ikona.nahoru; &:before { .ikona; margin-right: 0.2em; } }
 }
 @media @siroke {
   @sloupw: (100 - 2 * @sloupm) / 3;
@@ -224,6 +219,7 @@ label { color: #999; }
   background-size: cover; background-position: center center;
   &:before { background-image: url('fotka-prekryv.png'); background-size: 100% 100%; width: 100%; height: 100%; position: absolute; display: block; content: ""; }
 }
+.video-close { box-shadow: 0 0 0 0 !important; } // fix videoplayeru
 
 
 /* Elementy generované sdílenými třídami */
@@ -266,3 +262,43 @@ label { color: #999; }
   -moz-column-gap: @arg;
   column-gap: @arg;
 }
+
+
+// Ikonfonty - nutno mít zde kvůli cacheování
+// toto je nutno vykopírovat z flaticonu a odstranit :before
+.flaticon-clock96 {
+  content: "\e000";
+}
+.flaticon-coins24 {
+  content: "\e001";
+}
+.flaticon-down119 {
+  content: "\e002";
+}
+.flaticon-multiple25 {
+  content: "\e003";
+}
+.flaticon-play38 {
+  content: "\e004";
+}
+.flaticon-silhouette78 {
+  content: "\e005";
+}
+.flaticon-tag31 {
+  content: "\e006";
+}
+.flaticon-up151 {
+  content: "\e007";
+}
+
+// Toto je relevantní kód
+@font-face { font-family: "Ikony"; src: @fontflaticon; font-weight: normal; font-style: normal; }
+.ikona { font-family: Ikony; font-weight: normal; font-style: normal; }
+.ikona.hodiny     { &:before { .flaticon-clock96; }}
+.ikona.mince      { &:before { .flaticon-coins24; }}
+.ikona.dolu       { &:before { .flaticon-down119; }}
+.ikona.nahoru     { &:before { .flaticon-clock96; }}
+.ikona.lide       { &:before { .flaticon-multiple25; }}
+.ikona.play       { &:before { .flaticon-play38; }}
+.ikona.clovek     { &:before { .flaticon-silhouette78; }}
+.ikona.stitek     { &:before { .flaticon-tag31; }}

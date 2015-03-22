@@ -68,9 +68,10 @@
           <img src="soubory/obsah/titulka/minihry.jpg">
           <div class="stredni"><div>Minihry na GC</div></div>
         </a>
-        <a class="blok upoutavka" href="">
-          <!-- <iframe width="313" height="176" src="https://www.youtube.com/embed/fPs0hmLJlV0" frameborder="0" allowfullscreen></iframe> -->
-        </a>
+        <div class="blok upoutavka yt">
+          <div class="ikona play" style="position:absolute; font-size:140px; line-height:100%; width: 100%; text-align: center; color: #fff; opacity: 0.8; margin-top: 18px; text-shadow: 0 0 5px #000;"></div>
+          <img src="soubory/obsah/titulka/video.jpg">
+        </div>
         <a class="blok upoutavka" href="chci-se-zapojit">
           <img src="soubory/obsah/titulka/hobbit-bilbo.jpg">
           <div class="stredni"><div>Chci se zapojit</div></div>
@@ -81,6 +82,32 @@
       {sponzori}
     </div>
   </div>
+
+  <script>
+    (function(){
+      var $link = $('.yt');
+      var $videoFc = function(){
+        videoLightning({
+          elements: [
+            {
+              ".yt": {
+                id: "y-fPs0hmLJlV0",
+                controls: 0,
+                xBgColor: 'rgba(0,0,0,0)',
+                width: 640,
+                height: 360,
+                bdColor: '#888'
+              }
+            }
+          ]
+        });
+        $link.unbind('mouseenter', $videoFc);
+        // z nějakého důvodu nejde triggernout načítání ručně
+      };
+      $link.bind('mouseenter', $videoFc);
+    })();
+  </script>
+
 
 </body>
 </html>

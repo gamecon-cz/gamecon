@@ -350,11 +350,29 @@ function perfectcache($args) {
       foreach($args as $a) if($a) file_put_contents($minf, file_get_contents($a), FILE_APPEND);
     } else {
       $parser = new Less_Parser(array('compress' => true));
-      foreach($args as $a) if($a) $parser->parseFile($a, URL_WEBU.'/soubory/styl/');
+      foreach($args as $a) if($a) {
+        if(substr($a, -4) != '.ttf') $parser->parseFile($a, URL_WEBU.'/soubory/styl/');
+        else $parser->ModifyVars([ perfectcacheFontNazev($a) => 'url("'.perfectcacheFont($a).'")' ]); // prozatím u fontu stačí věřit, že modifikace odpovídá modifikaci stylu
+      }
       file_put_contents($minf, $parser->getCss());
     }
   }
   return $minu.'?v='.$last;
+}
+
+function perfectcacheFont($font) {
+  $d = CACHE . '/ttf';
+  $f = md5($font) . '.ttf';
+  if(!is_dir($d)) mkdir($d);
+  copy(
+    $font,
+    $d . '/' . $f
+  );
+  return URL_CACHE.'/ttf/'.$f.'?v='.filemtime($font);
+}
+
+function perfectcacheFontNazev($font) {
+  return 'font'.preg_replace('@.*/([^/]+)\.ttf$@', '$1', $font);
 }
 
 

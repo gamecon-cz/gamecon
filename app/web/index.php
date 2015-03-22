@@ -44,6 +44,7 @@ if($m->bezStranky()) {
     'obsah'     => $m->vystup(),  // TODO nastavování titulku stránky
     'sponzori'  => Modul::zNazvu('sponzori')->spust()->vystup(),
     'css'       => perfectcache(
+      'soubory/styl/flaticon.ttf',
       'soubory/styl/styl.less',
       'soubory/styl/fonty.less',
       'soubory/styl/jquery-ui.min.css'
@@ -53,7 +54,8 @@ if($m->bezStranky()) {
       'soubory/scroll-sneak.js',
       'soubory/aplikace.js',
       GOOGLE_ANALYTICS ? 'soubory/google-analytics.js' : '',
-      'soubory/jquery-ui.min.js'
+      'soubory/jquery-ui.min.js',
+      'soubory/videoLightning.min.js'
     ),
     'jsVyjimkovac'  => Vyjimkovac::js(URL_WEBU.'/ajax-vyjimkovac'),
     'chyba'     => Chyba::vyzvedniHtml(),
