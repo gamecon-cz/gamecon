@@ -255,9 +255,9 @@ function dbUpdate($table,$vals,$where)
   if(!$r) throw new DbException();
 }
 
-function dbNumQ() { return $GLOBALS['dbNumQ']; }
+function dbNumQ() { return isset($GLOBALS['dbNumQ']) ? $GLOBALS['dbNumQ'] : 0; }
 
-function dbExecTime() { return $GLOBALS['dbExecTime']; }
+function dbExecTime() { return isset($GLOBALS['dbExecTime']) ? $GLOBALS['dbExecTime'] : 0.0; }
 
 class DbException extends Exception
 {
