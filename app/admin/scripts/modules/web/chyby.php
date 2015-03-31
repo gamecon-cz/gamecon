@@ -8,7 +8,7 @@
 $db = new EPDO('sqlite:'.SPEC.'/chyby.sqlite');
 
 if(post('vyresit')) {
-  dbQueryS('UPDATE chyby SET vyresena = NOW() WHERE zprava = $1', array(post('vyresit')));
+  $db->query('DELETE FROM chyby WHERE rowid IN('.dbQa(explode(',', post('vyresit'))).')');
   back();
 }
 
@@ -17,7 +17,8 @@ $o = $db->query('
     *,
     COUNT(1) as vyskytu,
     COUNT(DISTINCT uzivatel) as uzivatelu,
-    MAX(vznikla) as posledni
+    MAX(vznikla) as posledni,
+    GROUP_CONCAT(rowid) as ids
   FROM chyby
   GROUP BY zprava, soubor, radek, url
   ORDER BY posledni DESC

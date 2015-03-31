@@ -23,7 +23,7 @@
 <div class="chyba z{zavaznost}">
   <div class="vyskytu">{vyskytu}</div>
   <form method="post">
-    <input type="hidden" name="vyresit" value="{zprava}">
+    <input type="hidden" name="vyresit" value="{ids}">
     <input type="submit" value="Vyřešit">
   </form>
   <div class="text">
