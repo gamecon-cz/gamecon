@@ -2,39 +2,41 @@
 
 /**
  * Třída pro zpracování url
- */ 
+ */
 
 class Url
 {
 
   protected $surova, $cista, $casti;
   protected static $aktualni;
-  
-  /** Konstruktor bere na vstupu řetězec s názvem GET proměnné, z které zkusí
-   *  vycucnout URL */  
+
+  /**
+   * Konstruktor bere na vstupu řetězec s názvem GET proměnné, z které zkusí
+   * vycucnout URL
+   */
   public function __construct($getName)
   {
-    $this->surova=isset($_GET[$getName])?$_GET[$getName]:'';
-    if(!preg_match('@^[A-Za-z0-9\-/]*$@',$this->surova))
+    $this->surova = isset($_GET[$getName]) ? $_GET[$getName] : '';
+    if(!preg_match('@^[A-Za-z0-9][A-Za-z0-9\-/\.]*$@',$this->surova) || strpos($this->surova, '/.') !== false)
       throw new UrlException('Nepovolené znaky v URL.');
     else
-      $this->cista=$this->surova;
-    $this->casti=explode('/',$this->cista);
+      $this->cista = $this->surova;
+    $this->casti = explode('/',$this->cista);
   }
-  
-  /** Vrací část url na daném pořadím (od 0) */ 
+
+  /** Vrací část url na daném pořadím (od 0) */
   function cast($i)
   {
     if(isset($this->casti[$i])) return $this->casti[$i];
     else return null;
   }
-  
+
   /** Vrací celou url */
   function cela()
   {
     return $this->cista;
   }
-  
+
   /** Vrací počet zadaných částí url */
   function delka()
   {
@@ -51,7 +53,7 @@ class Url
     }
     return self::$aktualni;
   }
-        
+
 }
 
 /**
@@ -59,4 +61,3 @@ class Url
  */
 class UrlException extends Exception {}
 class UrlNotFoundException extends UrlException {}
-

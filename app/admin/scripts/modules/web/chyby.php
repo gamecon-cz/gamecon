@@ -19,7 +19,7 @@ $o = $db->query('
     COUNT(DISTINCT uzivatel) as uzivatelu,
     MAX(vznikla) as posledni
   FROM chyby
-  GROUP BY zprava, soubor, radek
+  GROUP BY zprava, soubor, radek, url
   ORDER BY posledni DESC
 ');
 
