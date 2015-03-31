@@ -17,7 +17,7 @@ class Url
   public function __construct($getName)
   {
     $this->surova = isset($_GET[$getName]) ? $_GET[$getName] : '';
-    if(!preg_match('@^[A-Za-z0-9][A-Za-z0-9\-/\.]*$@',$this->surova) || strpos($this->surova, '/.') !== false)
+    if(!preg_match('@^[a-zA-Z0-9][A-Za-z0-9\-/\.]*$|^$@',$this->surova) || strpos($this->surova, '/.') !== false)
       throw new UrlException('Nepovolené znaky v URL.');
     else
       $this->cista = $this->surova;
