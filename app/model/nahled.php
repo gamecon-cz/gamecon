@@ -28,7 +28,11 @@ class Nahled {
     $hash = md5($this->soubor . $this->mod . $this->v . $this->s . $this->kvalita);
     $cache = CACHE . '/img/' . $hash . '.jpg';
     $url = URL_CACHE . '/img/' . $hash . '.jpg?m=' . $this->datum;
-    if(@filemtime($cache) < $this->datum) $this->uloz($cache);
+    try {
+      if(@filemtime($cache) < $this->datum) $this->uloz($cache);
+    } catch(Exception $e) {
+      $url = '';
+    }
     return $url;
   }
 
