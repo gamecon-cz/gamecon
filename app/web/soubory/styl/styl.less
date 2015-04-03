@@ -220,6 +220,11 @@ label { color: #999; }
   &:before { background-image: url('fotka-prekryv.png'); background-size: 100% 100%; width: 100%; height: 100%; position: absolute; display: block; content: ""; }
 }
 .video-close { box-shadow: 0 0 0 0 !important; } // fix videoplayeru
+.drdStaty {
+  > div:nth-child(odd) { float: left; min-width: 7em; }
+  > div:nth-child(even) hr { .ikona; .ikona.hvezda; display: inline; border: none; color: #888; margin-right: 0.3em; }
+  &:after { content: " "; display:block; clear: both; }
+}
 
 
 /* Elementy generované sdílenými třídami */
@@ -275,20 +280,23 @@ label { color: #999; }
 .flaticon-down119 {
   content: "\e002";
 }
-.flaticon-multiple25 {
+.flaticon-favourites7 {
   content: "\e003";
 }
-.flaticon-play38 {
+.flaticon-multiple25 {
   content: "\e004";
 }
-.flaticon-silhouette78 {
+.flaticon-play38 {
   content: "\e005";
 }
-.flaticon-tag31 {
+.flaticon-silhouette78 {
   content: "\e006";
 }
-.flaticon-up151 {
+.flaticon-tag31 {
   content: "\e007";
+}
+.flaticon-up151 {
+  content: "\e008";
 }
 
 // Toto je relevantní kód
@@ -302,3 +310,4 @@ label { color: #999; }
 .ikona.play       { &:before { .flaticon-play38; }}
 .ikona.clovek     { &:before { .flaticon-silhouette78; }}
 .ikona.stitek     { &:before { .flaticon-tag31; }}
+.ikona.hvezda     { &:before { .flaticon-favourites7; }}
