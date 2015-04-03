@@ -237,7 +237,7 @@ function dbLastQ()
 /**
  * Executes update on table $table using associtive array $vals as column=>value
  * pairs and $where as column=>value AND column=>value ... where clause
- */  
+ */
 function dbUpdate($table,$vals,$where)
 {
   global $dbspojeni, $dbLastQ;
@@ -246,7 +246,11 @@ function dbUpdate($table,$vals,$where)
   foreach($vals as $key=>$val)
     $q.=( dbQi($key).'='.dbQv($val).",\n" );
   $q=substr($q,0,-2)."\n"; //odstranění čárky na konci
-  $q.='WHERE '.dbQi(current(array_keys($where))).'='.dbQv(current($where)).';';
+  // where klauzule
+  $q .= 'WHERE 1';
+  foreach($where as $k => $v) {
+    $q .= ' AND '.dbQi($k).' = '.dbQv($v);
+  }
   // query execution
   $dbLastQ=$q;
   $start=microtime(true);
