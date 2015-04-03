@@ -71,6 +71,7 @@ $stranky = [];
 $prefixy = ['drd', 'legendy'];
 if(isset($typ) && $typ && in_array($typ->url(), $prefixy))
   $stranky = Stranka::zUrlPrefixu($typ->url());
+usort($stranky, function($a, $b){ return $a->poradi() - $b->poradi(); });
 $t->parseEach($stranky, 'stranka', 'aktivity.stranka');
 
 // Zobrazení aktivit

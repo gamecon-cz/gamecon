@@ -22,6 +22,10 @@ class Stranka extends DbObject {
     return @$m[1];
   }
 
+  function poradi() {
+    return $this->r['poradi'];
+  }
+
   function url() {
     return $this->r['url_stranky'];
   }
