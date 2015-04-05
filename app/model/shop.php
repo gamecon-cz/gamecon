@@ -21,8 +21,12 @@ class Shop
     $ubytovaniOd,
     $ubytovaniDo,
     $ubytovaniTypy=array(),
+    $vstupne,       // dobrovolné vstupné (složka zaplacená regurélně včas)
+    $vstupnePozde,  // dobrovolné vstupné (složka zaplacená pozdě)
+    $vstupneJeVcas, // jestli se dobrovolné vstupné v tento okamžik chápe jako zaplacené včas
     $klicU='shopU', //klíč formu pro identifikaci polí
     $klicUPokoj='shopUPokoj', //s kým chce být na pokoji
+    $klicV='shopV', //klíč formu pro identifikaci vstupného
     $klicP='shopP', //klíč formu pro identifikaci polí
     $klicT='shopT', //klíč formu pro identifikaci polí s tričkama
     $klicS='shopS'; //klíč formu pro identifikaci polí se slevami
@@ -57,6 +61,7 @@ class Shop
     UBYTOVANI = 2,
     TRICKO = 3,
     JIDLO = 4,
+    VSTUPNE = 5,
     PN_JIDLO = 'cShopJidlo',          // post proměnná pro jídlo
     PN_JIDLO_ZMEN = 'cShopJidloZmen'; // post proměnná indikující, že se má jídlo aktualizovat
 
@@ -77,7 +82,8 @@ class Shop
         p.*,
         IF(p.model_rok='.ROK.',nazev,CONCAT(nazev," ",model_rok)) as nazev,
         COUNT(IF(n.rok='.ROK.',1,NULL)) kusu_prodano,
-        COUNT(IF(n.id_uzivatele='.$this->u->id().' AND n.rok='.ROK.',1,NULL)) kusu_uzivatele
+        COUNT(IF(n.id_uzivatele='.$this->u->id().' AND n.rok='.ROK.',1,NULL)) kusu_uzivatele,
+        SUM(n.cena_nakupni) sum_cena_nakupni
       FROM shop_predmety p
       LEFT JOIN shop_nakupy n USING(id_predmetu)
       WHERE stav > 0 OR n.rok = '.ROK.'
@@ -127,6 +133,13 @@ class Shop
           $this->u->pohlavi() == 'm' && strpos($r['nazev'], "$barva pánské L") ||
           $this->u->pohlavi() == 'f' && strpos($r['nazev'], "$barva dámské S")
         );
+      } elseif($typ == self::VSTUPNE) {
+        if(strpos($r['nazev'], 'pozdě') === false) {
+          $this->vstupne = $r;
+          $this->vstupneJeVcas = $r['stav'] == 2;
+        } else {
+          $this->vstupnePozde = $r;
+        }
       } else {
         throw new Exception('Objevil se nepodporovaný typ předmětu s č.'.$r['typ']);
       }
@@ -332,6 +345,24 @@ class Shop
   }
 
   /**
+   * Vrátí html formuláře se vstupným
+   */
+  function vstupneHtml() {
+    $t = new XTemplate(__DIR__.'/shop-vstupne.xtpl');
+    $t->assign([
+      'jsSlider'  =>  URL_WEBU.'/soubory/jquery.sglide.2.1.2.min.js',
+      'knoflik'   =>  URL_WEBU.'/soubory/styl/knob.png',
+      'stav'      =>  $this->vstupne['kusu_uzivatele'] || $this->vstupnePozde['kusu_uzivatele'] ?
+        $this->vstupne['sum_cena_nakupni'] + $this->vstupnePozde['sum_cena_nakupni'] :
+        50, // výchozí hodnota
+      'postname'  =>  $this->klicV,
+      'min'       =>  $this->vstupneJeVcas ? 0 : $this->vstupne['sum_cena_nakupni'],
+    ]);
+    $t->parse('vstupne');
+    return $t->text('vstupne');
+  }
+
+  /**
    * Upraví objednávku z pole id $stare na pole $nove
    * @todo zaintegrovat i jinde (ale zároveň nutno zobecnit pro vícenásobné
    * nákupy jednoho ID)
@@ -437,6 +468,43 @@ class Shop
       return true;
     }
     return false;
+  }
+
+  /**
+   * Zpracuje část formuláře s vstupným
+   */
+  function zpracujVstupne() {
+    $castka = post($this->klicV);
+    if($castka === null) return;
+    // rozdělení zadané částky na "včas" a "pozdě"
+    $vstupneVcas  = $this->vstupneJeVcas ? $castka : $this->vstupne['sum_cena_nakupni'];
+    $vstupnePozde = $this->vstupneJeVcas ? 0 : max(0, $castka - $this->vstupne['sum_cena_nakupni']);
+    // funkce pro provedení změn
+    $zmeny = function($radek, $cena) {
+      if($radek['kusu_uzivatele'] == 0) {
+        dbInsert('shop_nakupy', [
+          'cena_nakupni'  =>  $cena,
+          'id_uzivatele'  =>  $this->u->id(),
+          'id_predmetu'   =>  $radek['id_predmetu'],
+          'rok'           =>  ROK,
+        ]);
+      } else {
+        dbUpdate('shop_nakupy', [
+          'cena_nakupni'  =>  $cena,
+        ],[
+          'id_uzivatele'  =>  $this->u->id(),
+          'id_predmetu'   =>  $radek['id_predmetu'],
+          'rok'           =>  ROK,
+        ]);
+      }
+    };
+    // zpracování změn
+    if($vstupneVcas != $this->vstupne['sum_cena_nakupni']) {
+      $zmeny($this->vstupne, $vstupneVcas);
+    }
+    if($vstupnePozde != $this->vstupnePozde['sum_cena_nakupni']) {
+      $zmeny($this->vstupnePozde, $vstupnePozde);
+    }
   }
 
   /**

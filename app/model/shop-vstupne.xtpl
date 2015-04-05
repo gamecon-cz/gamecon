@@ -1,0 +1,105 @@
+<!-- begin:vstupne -->
+
+  <script src="{jsSlider}"></script>
+
+  <div id="myslider_1"></div>
+  <div id="percentage">1</div>
+  <ul id="odmena"></ul>
+  <input type="hidden" name="{postname}">
+
+  <style>
+    #myslider_1 { box-shadow: 8px 4px 16px #333 inset; border-bottom: 1px solid #eee; }
+    #myslider_1 .follow_bar { background-color: #07e; box-shadow: 0px 1px 3px #444 inset; }
+    #myslider_1 .slider_bar { background-color: #999; }
+    #percentage { min-height: 2.3em; margin-top: 0.5em; }
+    #odmena { margin-top: 0; }
+  </style>
+
+  <script>
+    (function(){
+
+      var predmety = [
+        { od: 50, do: 150, vec: "nádherný aluminiový bojler"},
+        { od: 120, vec: "ručně tepaný vršek od Bráníku"},
+        { do: 20, vec: "pichu pichu"}
+      ];
+      var nastaveni = {
+        min: 0,
+        max: 201,
+        zaklad: {stav},
+        setMin: {min} // minimum, které se dá zvolit
+      };
+      var nastaveniGlide = {
+        height    : 10,
+        image   : '{knoflik}',
+        startAt   : (nastaveni.zaklad / nastaveni.max) * 100,
+        //colorShift  : ['#3a4d31', '#7bb560'],
+        //buttons   : true,
+        //onButton  : displayResult,
+        drag    : displayResult,
+        onload    : displayResult
+      };
+      var odmena = $('#odmena');
+      var posledni = $('#odmena').html();
+      var slider = $('#myslider_1');
+      var castkaInput = $('#percentage').siblings('[name="{postname}"]');
+
+      slider.sGlide(nastaveniGlide);
+
+      function displayResult(o){
+        var castka = ptov(o.percent);
+        var aktualni = '';
+        if(castka < nastaveni.setMin) {
+          slider.sGlide('startAt', vtop(nastaveni.setMin));
+          displayResult({percent:  vtop(nastaveni.setMin)});
+          return;
+        }
+        castkaInput.val(castka);
+        predmety.forEach(function(e){
+          if(!e.od) e.od = 0;
+          if(!e.do) e.do = Infinity;
+          if(e.od <= castka && castka < e.do) aktualni += '<li>'+e.vec+'</li>';
+        });
+        if(aktualni != posledni) {
+          posledni = aktualni;
+          $('#odmena').html(aktualni);
+        }
+        if(o.percent >= 100) {
+          $('#percentage').html(
+            'Vlastní výběr: '+
+            '<input type="number" value="'+castka+'">'+
+            '&thinsp;Kč'
+          );
+          $('#percentage input').change(customChange);
+        } else {
+          $('#percentage').html(castka+'&thinsp;Kč');
+        }
+      }
+
+      function customChange() {
+        var castka = $(this).val();
+        if(castka < nastaveni.max) {
+          var pct = vtop(castka);
+          slider.sGlide('startAt', pct);
+          setTimeout(function(){ //lol, timeout nějak automagicky předejde bugu, který by jinak zablokoval odeslání formu
+            displayResult({percent: pct});
+          }, 0);
+        } else {
+          castkaInput.val(castka);
+        }
+      }
+
+      // value to percent
+      function vtop(v) {
+        return (v / nastaveni.max) * 100;
+      }
+
+      // percent to value
+      function ptov(p) {
+        return Math.round( (p / 100) * (nastaveni.max - nastaveni.min) + nastaveni.min )
+      }
+
+    })();
+  </script>
+
+<!-- end:vstupne -->

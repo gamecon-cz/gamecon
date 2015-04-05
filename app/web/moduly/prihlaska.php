@@ -29,6 +29,7 @@ if(!empty($_POST))
   $shop->zpracujUbytovani();
   $shop->zpracujSlevy();
   $shop->zpracujJidlo();
+  $shop->zpracujVstupne();
   if($prihlasovani)
   {
     $_SESSION['ga_tracking_prihlaska']=true; //hack pro zobrazení js kódu úspěšné google analytics konverze
@@ -87,6 +88,9 @@ $a=$u->koncA();
   
   <h2>Ubytování</h2>
   <?=$ubytovani?>
+
+  <h2>Dobrovolné vstupné</h2>
+  <?=$shop->vstupneHtml()?>
   
   <h2>Slevy</h2>
   <p>Můžeš získat následující slevy <b>na aktivity</b> (sčítají se):</p>
