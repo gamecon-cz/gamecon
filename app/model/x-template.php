@@ -38,6 +38,7 @@ class XTemplate {
     } else {
       $this->tc->context[$a] = $b;
     }
+    return $this;
   }
 
   /**
