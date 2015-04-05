@@ -26,7 +26,7 @@ $hlavicka1=array_merge(
   'Ubytovací informace','','',''),
   array_fill(0,count($gcDoted),''),
   array('Celkové náklady','','',
-  'Ostatní platby','','','','','','','','','','')
+  'Ostatní platby','','','','','','','','','','','','')
 );
 $hlavicka2=array_merge(
   array('ID','Příjmení','Jméno','Přezdívka','Mail','Pozice','Datum registrace','Prošel infopultem','Den','Měsíc','Rok','Stát','Město','Ulice',
@@ -34,7 +34,7 @@ $hlavicka2=array_merge(
   $gcDoted,
   array(
   'Celkem dní','Cena / den','Ubytování','Předměty a strava',
-  'Aktivity','vypravěčská sleva využitá','vypravěčská sleva přiznaná','stav','zůstatek z minula','připsané platby','první blok','poslední blok','Slevy','Objednávky')
+  'Aktivity','vypravěčská sleva využitá','vypravěčská sleva přiznaná','dobrovolné vstupné','dobrovolné vstupné (pozdě)','stav','zůstatek z minula','připsané platby','první blok','poslední blok','Slevy','Objednávky')
 );
 $o=dbQuery('
   SELECT 
@@ -57,6 +57,7 @@ while($r=mysql_fetch_assoc($o))
 {
   $un=new Uzivatel($r);
   $un->nactiPrava(); //sql subdotaz, zlo
+  $f = $un->finance();
   $stav='účastník';
   if($un->maZidli(Z_ORG))                                 $stav = 'organizátor';
   elseif($un->maZidli(Z_INFO) || $un->maZidli(Z_ZAZEMI))  $stav = 'zázemí/infopult';
@@ -96,22 +97,25 @@ while($r=mysql_fetch_assoc($o))
     $ucastiHistorie,
     [
       $pobyt=( $r['den_prvni']!==null ? $r['den_posledni']-$r['den_prvni']+1 : 0 ),
-      $pobyt ? $un->finance()->cenaUbytovani()/$pobyt : 0,
-      $un->finance()->cenaUbytovani(),
-      $un->finance()->cenaPredmety(),
-      $un->finance()->cenaAktivity(),
-      $un->finance()->slevaVypravecVyuzita(),
-      $un->finance()->slevaVypravecMax(),
-      ec($un->finance()->stav()),
+      $pobyt ? $f->cenaUbytovani()/$pobyt : 0,
+      $f->cenaUbytovani(),
+      $f->cenaPredmety(),
+      $f->cenaAktivity(),
+      $f->slevaVypravecVyuzita(),
+      $f->slevaVypravecMax(),
+      $f->vstupne(),
+      $f->vstupnePozde(),
+      ec($f->stav()),
       ec($r['zustatek']),
-      ec($un->finance()->platby()),
+      ec($f->platby()),
       ed($un->prvniBlok()),
       ed($un->posledniBlok()),
-      implode(", ",array_merge($un->finance()->slevyVse(),$un->finance()->slevyAktivity())),
-      strip_tags(strtr($un->finance()->prehledHtml(),array('</tr>'=>", ", '</td>'=>' '))),
+      implode(", ",array_merge($f->slevyVse(),$f->slevyAktivity())),
+      strip_tags(strtr($f->prehledHtml(),array('</tr>'=>", ", '</td>'=>' '))),
     ]
   );
 }
 
 $report = Report::zPoli($hlavicka1, $obsah); // TODO druhá hlavička
-$report->tCsv();
+$format = get('format') == 'html' ? 'tHtml' : 'tCsv';
+$report->$format();

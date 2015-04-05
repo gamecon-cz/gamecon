@@ -21,6 +21,8 @@ class Finance
     $cenaAktivity   = 0.0,  // cena aktivit
     $cenaUbytovani  = 0.0,  // cena objednaného ubytování
     $cenaPredmety   = 0.0,  // cena předmětů a dalších objednávek v shopu
+    $cenaVstupne    = 0.0,
+    $cenaVstupnePozde = 0.0,
     $sleva          = 0.0,  // sleva za tech. aktivity a odvedené aktivity
     $slevaVyuzita   = 0.0,  // sleva za odvedené aktivity (využitá část)
     $zustatek       = 0.0,  // zůstatek z minula
@@ -306,6 +308,14 @@ class Finance
       return $this->soucinitelAktivit();
   }
 
+  function vstupne() {
+    return $this->cenaVstupne;
+  }
+
+  function vstupnePozde() {
+    return $this->cenaVstupnePozde;
+  }
+
   /**
    * Započítá do mezisoučtů aktivity uživatele
    * @todo odstranit zbytečnosti
@@ -404,6 +414,10 @@ class Finance
         @$soucty[$r['id_predmetu']]['suma'] += $cena;
       } else {
         $this->log($r['nazev'], $cena, $r['typ']);
+      }
+      if($r['typ'] == Shop::VSTUPNE) {
+        if(strpos($r['nazev'], 'pozdě') === false)  $this->cenaVstupne = $cena;
+        else                                        $this->cenaVstupnePozde = $cena;
       }
     }
     foreach($soucty as $p) {
