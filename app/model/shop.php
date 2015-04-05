@@ -77,18 +77,19 @@ class Shop
     }
 
     // vybrat všechny předměty pro tento rok + předměty v nabídce + předměty, které si koupil
-    $o=dbQuery('
+    $o = dbQuery('
       SELECT
         p.*,
-        IF(p.model_rok='.ROK.',nazev,CONCAT(nazev," ",model_rok)) as nazev,
-        COUNT(IF(n.rok='.ROK.',1,NULL)) kusu_prodano,
-        COUNT(IF(n.id_uzivatele='.$this->u->id().' AND n.rok='.ROK.',1,NULL)) kusu_uzivatele,
-        SUM(n.cena_nakupni) sum_cena_nakupni
+        IF(p.model_rok = $1, nazev, CONCAT(nazev," ",model_rok)) as nazev,
+        COUNT(IF(n.rok = $1, 1, NULL)) kusu_prodano,
+        COUNT(IF(n.id_uzivatele = $2 AND n.rok = $1, 1, NULL)) kusu_uzivatele,
+        SUM(  IF(n.id_uzivatele = $2 AND n.rok = $1, cena_nakupni, 0)) sum_cena_nakupni
       FROM shop_predmety p
       LEFT JOIN shop_nakupy n USING(id_predmetu)
       WHERE stav > 0 OR n.rok = '.ROK.'
       GROUP BY id_predmetu
-      ORDER BY typ, ubytovani_den, nazev, model_rok DESC');
+      ORDER BY typ, ubytovani_den, nazev, model_rok DESC
+    ', [ROK, $this->u->id()]);
 
     //inicializace
     $this->jidlo['dny'] = array();
