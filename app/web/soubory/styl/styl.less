@@ -18,6 +18,8 @@ body { margin: 0; font: 14px Open Sans, sans-serif; overflow-y: scroll; line-hei
 .hlavicka a { color: #a23; }
 .hlavicka .claim { display: none; color: #823; text-transform: uppercase; font-weight: bold; font-size: 0.9em; opacity: 0.8; }
 .hlavicka .linfo { display: none; }
+.hlavicka .linfo a { margin-top: 0.5em; }
+.hlavicka .linfo b { display: block; font-size: 1.3em; line-height: 1.4em; }
 .hlavicka .logo { margin-top: 10px; display: inline-block; max-width: 80%; }
 .hlavicka .logo:hover { text-decoration: none; }
 .hlavicka .logo img { width: 100%; }
@@ -50,6 +52,12 @@ hr.stin { border: none; background-image: data-uri('gradient2.png'); height: 4px
   .menu > ul > li { width: 33.33334%; }
   .menu li:first-child .mlist { margin: 0 20px 0 0; }
   .menu li:last-child .mlist { margin: 0 0 0 20px; }
+}
+
+@media (min-width: 1100px) {
+	.hlavicka .linfo { width: auto; white-space: nowrap; }
+	.hlavicka .linfo a { margin-top: 0; }
+	.hlavicka .linfo b { display: inline; font-size: 1.5em; line-height: 1.7em; }
 }
 
 .hlavni { max-width: @sirka; margin: 0 auto 40px auto; position: relative; }
