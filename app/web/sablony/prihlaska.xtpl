@@ -1,0 +1,83 @@
+<!-- begin:prihlaska -->
+
+<h1>Přihláška na GameCon</h1>
+
+<form method="post" class="prihlaska">
+
+  <style>
+    .prihlaska .nahledy { width: 200px; float: right; margin-left: 30px; margin-top: -16px; }
+    .prihlaska .nahledy img { height: 75px; width: 200px; border-radius: 4px; margin-bottom: 4px; box-shadow: 0 0 3px #888; }
+    .prihlaska hr { margin: 1.6em 0; }
+    .prihlaska .slevy input { margin: -0.2em 0; }
+    .prihlaska .slevy input[type="checkbox"] { margin: 0; position: relative; top: 2px; }
+    /* TODO zarovnání. Pozor na to, že checkbox vypadá a rovná se různě v různých prohlížečích, pozor na to aby bylo zřejmé, že je potřeba ho zaškrtnout. */
+    .prihlaska .hinted { line-height: 1em; }
+    /* .prihlaska .pomoc label[for="chci"] { color: inherit; } */
+    .prihlaska .pomoc textarea { width: 100%; box-sizing: border-box; height: 7em; }
+    .prihlaska .ubytovani input[type="text"] { width: 100%; box-sizing: border-box; }
+  </style>
+
+  <!-- begin:prihlasen -->
+  <p>Jsi přihlášen{a} na GameCon {rok}. Níž si můžeš upravit svou přihlášku, tj. objednané ubytování a předměty až téměř do začátku GameConu.</p>
+  <!-- end:prihlasen -->
+
+  <!-- begin:neprihlasen -->
+  <p>Vyplněním údajů se přihlásíš na GameCon {rok}. Můžeš si vybrat předměty a ubytování s GameCon tématikou, které budeš chtít. Výber jde i později změnit.</p>
+  <!-- end:neprihlasen -->
+
+  <hr>
+
+  <div class="nahledy">
+    <a href="soubory/obsah/materialy/2015/kostka.jpg" class="lightbox" title="Kostka">
+    <img src="soubory/obsah/materialy/2015/kostka_m.jpg"></a>
+    <a href="soubory/obsah/materialy/2015/placka.jpg" class="lightbox" title="Placka">
+    <img src="soubory/obsah/materialy/2015/placka_m.jpg"></a>
+    <a href="soubory/obsah/materialy/2015/tricko.jpg" class="lightbox" title="Tričko">
+    <img src="soubory/obsah/materialy/2015/tricko_m.jpg"></a>
+  </div>
+
+  <h2>Předměty</h2>
+  {predmety}
+  <p>Placek, kostek i triček s logem GameConu si můžeš objednat více. Stačí kliknout na tlačítko + nebo u triček vyplnit jedno a po potvrzení formuláře se ti nabídne položka pro výběr dalšího.</p>
+
+  <hr>
+
+  <h2 style="margin-bottom:0">Jídlo</h2>
+  {jidlo}
+
+  <hr>
+
+  <h2 style="margin-bottom:0"><span class="hinted i">
+    Ubytování
+    <span class="hint">
+      Čísla ukazují počet obsazených míst / celkem. Ubytování je pro zájemce k dispozici už od středy, program začíná ve <strong>čtvrtek</strong> v poledne. Ubytování v neděli znamená noc z neděle na pondělí, kdy už opět neprobíhá program a v pondělí je potřeba pokoj vyklidit v 9:00.<br><br>
+      Ubytovat se na pokojích později než od čtvrtka je také možné, jen je třeba se připravit, že na postelích již někdo před vámi spal (a vzít si např. vlastní spacák).
+    </span>
+  </span></h2>
+  <div class="ubytovani">{ubytovani}</div>
+
+  <hr>
+
+  <h2>Dobrovolné vstupné</h2>
+  {vstupne}
+  <div class="pomoc">{pomoc}</div>
+
+  <hr>
+
+  <h2>Slevy</h2>
+  <p>Můžeš získat následující slevy <b>na aktivity</b> (sčítají se):</p>
+  <div class="slevy">{slevy}</div>
+
+  <hr style="margin: 1.6em 0">
+
+  <input type="submit" name="wut" value="{ulozitNeboPrihlasit}">
+  <!-- begin:odhlasit -->
+  <input type="submit" name="odhlasit" value="Odhlásit se z GameConu"
+    onclick="return confirm('Odhlášení z GameConu zruší všechny tvé registrace na aktivity a nákupy předmětů. Kliknutím na OK se odhlásíš.')">
+  <!-- end:odhlasit -->
+
+</form>
+
+{gaTrack}
+
+<!-- end:prihlaska -->

@@ -193,11 +193,11 @@ hr.stin { border: none; background-image: data-uri('gradient2.png'); height: 4px
 .registrace .pokyn { float: right; width: 240px; }
 .registrace input[type="text"], .registrace input[type="password"], .registrace select { display: block; width: 210px; }
 .registrace select { width: 224px; }
-.registrace .avatar { float: left; margin: -8px 8px 0 2px; border-radius: 3px; }
+.registrace .avatar { float: left; margin: -8px 8px 0 2px; border-radius: 3px; height: 100px; width: initial; }
 
 
 /* Formuláře */
-input[type="text"], input[type="password"], input[type="submit"], input[type="number"], select {
+input[type="text"], input[type="password"], input[type="submit"], input[type="number"], select, textarea {
   color: #000; background-color: #e8e8e8; border: none; border-radius: 3px; font-family: inherit; font-size: 100%;
   padding: 0.2em 0.5em; margin: 2px; }
 input[type="submit"] { color: #fff; background-color: #444; font-weight: bold; cursor: pointer; }
@@ -207,9 +207,16 @@ label { color: #999; }
 
 
 /* Obecné speciality */
-.hinted { border-bottom: dotted 1px; cursor: default; margin-bottom: -1px; }
-.hinted .hint { display: none; line-height: 1.2em; }
-.hinted:hover .hint { display: block; position: absolute; max-width: 200px; padding: 10px; color: #fff; background-color: rgba(0,0,0,0.8); }
+.hinted { border-bottom: dotted 1px; cursor: pointer; margin-bottom: -1px; display: inline-block; }
+.hinted.i:after { .ikona; .flaticon-info30; color: #444; font-size: 0.8em; line-height: 1em; vertical-align: 10%; }
+.hinted .hint { display: none; }
+.hinted:hover .hint {
+  @sh: 8px;
+  line-height: 130%; font-size: 14px; font-weight: normal; color: #fff; z-index: 10; border-radius: 4px;
+  display: block; position: absolute; max-width: 20em; padding: 0.8em; background-color: rgba(0,0,0,0.8); margin-top: @sh; margin-left: -5px;
+  text-shadow: 0 0 2px #000;
+  &:before { content: " "; display: block; border: solid @sh transparent; border-bottom-color: rgba(0,0,0,0.8); position: absolute; top: -2*@sh; left: 15px; }
+}
 .chybaBlok { position: fixed; z-index: 999; text-align: center; width: 100%; margin: 1em 0px; }
 .chybaBlok > div { display: inline-block; background-color: rgba(255, 192, 192, 0.9); padding: 2em 5em; color: #d00; border-radius: 5px; max-width: @sirka; box-shadow: 0 15px 45px #444; }
 .chybaBlok > .oznameni { background-color: rgba(150, 200, 150, 0.9); color: #040; }
@@ -219,12 +226,15 @@ label { color: #999; }
   background-size: cover; background-position: center center;
   &:before { background-image: url('fotka-prekryv.png'); background-size: 100% 100%; width: 100%; height: 100%; position: absolute; display: block; content: ""; }
 }
-.video-close { box-shadow: 0 0 0 0 !important; } // fix videoplayeru
 .drdStaty {
   > div:nth-child(odd) { float: left; min-width: 7em; }
   > div:nth-child(even) hr { .ikona; .ikona.hvezda; display: inline; border: none; color: #888; margin-right: 0.3em; }
   &:after { content: " "; display:block; clear: both; }
 }
+#easyCenter { background: transparent; } // fixy videoplayeru
+#easyContainer { img, iframe { box-shadow: 0 0 10px #000; }}
+#easyOverlay { background-color: #666; }
+#easyCaption { color: #fff; }
 
 
 /* Elementy generované sdílenými třídami */
@@ -283,20 +293,23 @@ label { color: #999; }
 .flaticon-favourites7 {
   content: "\e003";
 }
-.flaticon-multiple25 {
+.flaticon-info30 {
   content: "\e004";
 }
-.flaticon-play38 {
+.flaticon-multiple25 {
   content: "\e005";
 }
-.flaticon-silhouette78 {
+.flaticon-play38 {
   content: "\e006";
 }
-.flaticon-tag31 {
+.flaticon-silhouette78 {
   content: "\e007";
 }
-.flaticon-up151 {
+.flaticon-tag31 {
   content: "\e008";
+}
+.flaticon-up151 {
+  content: "\e009";
 }
 
 // Toto je relevantní kód
@@ -305,7 +318,7 @@ label { color: #999; }
 .ikona.hodiny     { &:before { .flaticon-clock96; }}
 .ikona.mince      { &:before { .flaticon-coins24; }}
 .ikona.dolu       { &:before { .flaticon-down119; }}
-.ikona.nahoru     { &:before { .flaticon-clock96; }}
+.ikona.nahoru     { &:before { .flaticon-up151; }}
 .ikona.lide       { &:before { .flaticon-multiple25; }}
 .ikona.play       { &:before { .flaticon-play38; }}
 .ikona.clovek     { &:before { .flaticon-silhouette78; }}

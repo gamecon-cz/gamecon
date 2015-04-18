@@ -1,0 +1,29 @@
+<!-- begin:pomoc -->
+
+<input type="checkbox" name="{postname}[chci]" id="chci" {vChci}>
+<label for="chci" class="hinted i">chci se zapojit
+  <span class="hint">Vážíme si každé pomoci ať už formou dobrovolného vstupného nebo přímo. GameCon funguje právě díky dobrovolníkům – ať už máš nápad na skvělou aktivitu do programu nebo bys chtěl{a} pomoct s drobnostmi na místě, zaškrtní políčko a vyber si konkrétní oblast, kde by ses chtěl{a} zapojit.</span>
+</label>
+<div id="pomoc" style="display:{displayVice}">
+  &ensp;jako:<br>
+
+  <!-- begin:typ -->
+  <input type="radio" name="{postname}[typ]" id="{id}" value="{id}" {checked}><label for="{id}" class="hinted">{nazev}<span class="hint">{popis}</span></label>
+  <!-- end:typ -->
+
+  <textarea name="{postname}[detail]" placeholder="sem můžeš napsat víc o tom, jak by ses chtěl{a} zapojit" style="margin-top: 0.3em">{vDetail}</textarea>
+
+</div>
+<script>
+  $('[name="{postname}[chci]"]').change(function(){
+    if($(this).is(':checked')) {
+      $('#pomoc').show();
+      $('#pomoc [type=radio]').attr('required', 'true');
+    } else {
+      $('#pomoc').hide();
+      $('#pomoc [type=radio]').removeAttr('required');
+    }
+  });
+</script>
+
+<!-- end:pomoc -->

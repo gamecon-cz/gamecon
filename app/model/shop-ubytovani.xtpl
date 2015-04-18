@@ -1,0 +1,53 @@
+<!-- begin:ubytovani -->
+
+<!-- begin:konec -->Objednávání ubytování online bylo zastaveno, změny jsou možné na místě.<br><!-- end:konec -->
+
+<div style="width:9em; float:left; overflow: hidden;">
+  <div>&nbsp;</div>
+  <!-- begin:typ -->
+    <!-- begin:normal -->
+    <div style="height:{vyska}">{typ}</div>
+    <!-- end:normal -->
+    <!-- begin:hinted -->
+    <div style="height:{vyska}"><span class="hinted i">{typ} <span class="hint">{hint}</span></span></div>
+    <!-- end:hinted -->
+  <!-- end:typ -->
+  <div>Žádné</div>
+</div>
+
+<div style="width:5em; float:left">
+  <div>&nbsp;</div>
+  <!-- begin:cena -->
+  <div style="text-align:right;height:{vyska}">{cena}&thinsp;Kč&emsp;</div>
+  <!-- end:cena -->
+</div>
+
+<!-- begin:den -->
+<div style="width:4.7em; float:left">
+  <div>{den}</div>
+  <!-- begin:typ -->
+  <div style="height:{vyska}">
+    <input style="margin:0" type="radio" name="{postnameDen}" value="{idPredmetu}" {sel} {lock}>
+    <span style="font-size:80%;position:relative;top:-2px">{obsazeno}/{kapacita}</span>
+  </div>
+  <!-- end:typ -->
+  <div><input style="margin:0" type="radio" name="{postnameDen}" value="" {sel} {lock}></div>
+</div>
+<!-- end:den -->
+
+<div style="clear:both; margin-bottom:-5px"></div>
+
+<p>
+  Na pokoji chci být s:<br>
+  <input type="text" name="{postnameSpolubydlici}" value="{spolubydlici}" style="min-width:20em" placeholder="jména oddělená čárkou, nebo nech prázdné">
+</p>
+
+<script>{viceScript}</script>
+<script>doplnovatVice($('[name="{postnameSpolubydlici}"]'), {uzivatele});</script>
+
+<!-- begin:infoVypravec --><p><i>Jako vypravěč{ka} máš na ubytování (i aktivity) slevu ve výši cca jeden nocleh+jídlo za dvě uspořádané aktivity. Její přesnou výšku najdeš {poDokonceni} v svém finančním přehledu.</i></p><!-- end:infoVypravec -->
+
+<!-- begin:infoOrg --><p><i>Jako organizátor{ka} máš veškeré ubytování také zdarma.</i></p><!-- end:infoOrg -->
+
+
+<!-- end:ubytovani -->

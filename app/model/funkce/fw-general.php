@@ -11,6 +11,13 @@ function array_keys_exist($keys,$search)
   return true;
 }
 
+/** Flattens array in manner $pre.$element.$post for all elements, separated by $sep */
+function array_flat($pre, $array, $post = '', $sep = '') {
+  $out = '';
+  foreach($array as $e) $out .= $pre.$e.$post;
+  return $out;
+}
+
 /**
  * Iterates trough array and prints combined output returned by function in
  * each iteration

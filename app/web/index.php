@@ -53,6 +53,7 @@ if($m->bezStranky()) {
     'sponzori'  => Modul::zNazvu('sponzori')->spust()->vystup(),
     'css'       => perfectcache(
       'soubory/styl/flaticon.ttf',
+      'soubory/styl/easybox.min.css',
       'soubory/styl/styl.less',
       'soubory/styl/fonty.less',
       'soubory/styl/jquery-ui.min.css'
@@ -63,7 +64,7 @@ if($m->bezStranky()) {
       'soubory/aplikace.js',
       GOOGLE_ANALYTICS ? 'soubory/google-analytics.js' : '',
       'soubory/jquery-ui.min.js',
-      'soubory/videoLightning.min.js'
+      'soubory/easybox.distrib.min.js' //nějaká debiláž, musí být poslední
     ),
     'jsVyjimkovac'  => Vyjimkovac::js(URL_WEBU.'/ajax-vyjimkovac'),
     'chyba'     => Chyba::vyzvedniHtml(),

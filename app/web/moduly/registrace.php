@@ -112,7 +112,7 @@ $loginy=substr($loginy,0,-1);
   </div>
   <div id="neexistujiciUzivatel" <?php if(!$u){ ?>style="display:none"<?php } ?>>
     <?php if(!$u){ ?>
-    <div class="pokyn">Podle e-mailu se registruješ na GameCon poprve, vyplň prosím registrační údaje. Informace o GameConu ti budeme dávat vědět e-mailem.</div>
+    <div class="pokyn">Podle e-mailu se registruješ na GameCon poprvé, vyplň prosím registrační údaje. Informace o GameConu ti budeme dávat vědět e-mailem.</div>
     <?php } ?>
     <br>
     <input type="text" placeholder="Přezdívka" name="tab[login_uzivatele]" value="<?=@$udb['login_uzivatele']?>">

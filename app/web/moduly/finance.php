@@ -8,8 +8,8 @@ if(!$u->gcPrihlasen() || !FINANCE_VIDITELNE) return; //přehled vidí jen přihl
 
 $fin=$u->finance();
 $veci=$u->finance()->prehledHtml();
-$slevyA='<li>'.implode('<li>',$u->finance()->slevyAktivity());
-$slevyV='<li>'.implode('<li>',$u->finance()->slevyVse());
+$slevyA = array_flat('<li>', $u->finance()->slevyAktivity(), '</li>');
+$slevyV = array_flat('<li>', $u->finance()->slevyVse(), '</li>');
 $zaplaceno=$u->finance()->stav()>=0;
 $limit=false;
 
@@ -50,11 +50,15 @@ if(!$zaplaceno)
 </div>
 
 <div style="float:right;width:250px">
-<h2>Slevy</h2>
-<strong>Použité slevy na aktivity</strong>
-<ul><?=$slevyA?></ul>
-<strong>Další bonusy</strong>
-<ul><?=$slevyV?></ul>
+  <h2>Slevy</h2>
+  <?php if($slevyA) { ?>
+    <strong>Použité slevy na aktivity</strong>
+    <ul><?=$slevyA?></ul>
+  <?php } ?>
+  <?php if($slevyV) { ?>
+    <strong>Další bonusy</strong> (pokud si je objednáš)
+    <ul><?=$slevyV?></ul>
+  <?php } ?>
 </div>
 
 <div style="clear:both"></div>
