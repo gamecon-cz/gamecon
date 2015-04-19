@@ -89,10 +89,10 @@ $loginy=substr($loginy,0,-1);
 <h1>Registrace</h1>
 
 <?php if(!$u && !$pokracovat){ ?>
-<p>Pomocí tohoto formuláře se můžeš zaregistrovat na stránky a volitelně i přihlásit na GameCon.</p>
+<p>Pomocí tohoto formuláře se můžeš zaregistrovat na stránky a volitelně i přihlásit na GameCon. Po zadání e-mailu se ti zobrazí další položky.</p>
 <?php } ?>
 <?php if(!$u && $pokracovat){ ?>
-<p>Pomocí tohoto formuláře se můžeš přihlásit nebo zaregistrovat na stránky a přihlásit na GameCon. Podle e-mailu se ti zobrazí další položky.</p>
+<p>Pomocí tohoto formuláře se můžeš přihlásit nebo zaregistrovat na stránky a přihlásit na GameCon. Po zadání e-mailu se ti zobrazí další položky.</p>
 <?php } ?>
 <?php if($u && !$pokracovat){ ?>
 <p>Zde můžeš upravit svoje registrační údaje. Pokud nechceš měnit heslo, nech obě políčka prázdná.</p>
@@ -102,7 +102,7 @@ $loginy=substr($loginy,0,-1);
   <input type="text" placeholder="e-mail" name="tab[email1_uzivatele]" value="<?=@$udb['email1_uzivatele']?>">
   <div id="existujiciUzivatel" style="display:none">
     <div class="pokyn">Uživatel s tímto e-mailem už existuje. Pokud jsi to ty, přihlaš se svým heslem nebo si nech <a href="zapomenute-heslo" tabindex="10">vygenerovat nové</a>, pokud si ho nepamatuješ.</div>
-    <input type="password" placeholder="heslo" name="heslo"><br>
+    <input type="password" placeholder="heslo" name="heslo" style="margin-top:0"><br>
     <?php if(!$pokracovat){ ?>
     <input type="submit" name="prihlasit" value="Přihlásit">
     <?php } ?>
@@ -112,7 +112,17 @@ $loginy=substr($loginy,0,-1);
   </div>
   <div id="neexistujiciUzivatel" <?php if(!$u){ ?>style="display:none"<?php } ?>>
     <?php if(!$u){ ?>
-    <div class="pokyn">Podle e-mailu se registruješ na GameCon poprvé, vyplň prosím registrační údaje. Informace o GameConu ti budeme dávat vědět e-mailem.</div>
+    <div class="pokyn">
+      Podle e-mailu se registruješ na GameCon poprvé, vyplň prosím registrační údaje. Informace o GameConu ti budeme dávat vědět e-mailem.<br><br>
+      <span class="hinted i">proč potřebujeme adresu? <span class="hint">
+        Vyplň prosím následující údaje o sobě. Nejsme žádný velký bratr, ale potřebujeme je, abychom:<br>
+        <ol style="margin-left:-1.6em">
+        <li> Tě mohli ubytovat a splnit své další zákonné povinnosti
+        <li> maximálně urychlili tvoji registraci na místě a nemusel(a) jsi dlouho čekat ve frontě
+        <li> věděli, že jsi to ty.
+        </ol>
+      </span></span>
+    </div>
     <?php } ?>
     <br>
     <input type="text" placeholder="Přezdívka" name="tab[login_uzivatele]" value="<?=@$udb['login_uzivatele']?>">
@@ -137,6 +147,12 @@ $loginy=substr($loginy,0,-1);
     <input type="text" placeholder="Datum narození jako 1.1.1990" name="datumNarozeni" value="<?=$u?$u->datumNarozeni()->format('j.n.Y'):''?>" >
     <input type="password" placeholder="Heslo" name="heslo2">
     <input type="password" placeholder="Heslo pro kontrolu" name="heslo3">
+    <input type="checkbox" id="udaje" style="margin-top:1em" checked required>
+    <label for="udaje">Souhlasím se <span class="hinted i">zpracováním údajů
+    <span class="hint">
+      Prosíme o souhlas se zpracováním tvých údajů. Slibujeme, že je že je nikomu nepředáme, pokud to nebude kvůli GameConu vyloženě potřeba (např. pokud tě bude chtít kontaktovat vypravěč aktivity, na kterou se hlásíš). Kontaktovat tě budeme v rozumné míře pouze v souvislosti s GameConem.<br><br>
+      Plné právní znění najdeš <a href="legal" target="_blank">zde</a>.
+    </span></span></label><br>
     <br>
     <img src="<?=$avatar?>" class="avatar">
     Obrázek uživatele (vyberte, pokud chcete změnit):<br>
@@ -146,13 +162,15 @@ $loginy=substr($loginy,0,-1);
     <input type="submit" name="upravit" value="Upravit">
     <?php } ?>
     <?php if(!$u && !$pokracovat){ ?>
-    <input type="submit" name="registrovat" value="Registrovat">
+    <input type="submit" name="registrovat" value="<?=REGISTRACE_AKTIVNI?'Jen registrovat':'Registrovat'?>">
     <?php } ?>
     <?php if(!$u && REGISTRACE_AKTIVNI){ ?>
     <input type="submit" name="registrovatAPrihlasit" value="Přihlásit na GameCon"><br>
     <?php } ?>
   </div>
 </form>
+
+<div style="clear:both"></div>
 
 
 
