@@ -39,24 +39,24 @@ class Finance
       11 => 450,
       13 => 540,
     );
-  
+
   const
     // idčka typů, podle kterých se řadí výstupní tabulka $prehled
     AKTIVITA      = -1,
     // mezera na typy předmětů (1-4? viz db)
     ORGSLEVA      = 10,
-    CELKOVA       = 11,
-    PLATBY_NADPIS = 12,
-    ZUSTATEK      = 13,
-    PLATBA        = 14,
-    VYSLEDNY      = 15;
-  
+    VSTUPNE       = 11,
+    CELKOVA       = 12,
+    PLATBY_NADPIS = 13,
+    ZUSTATEK      = 14,
+    PLATBA        = 15,
+    VYSLEDNY      = 16;
+
   /**
    * Konstruktor
    * @param Uzivatel $u uživatel, pro kterého se finance sestavují   
    */
-  function __construct(Uzivatel $u)
-  {
+  function __construct(Uzivatel $u) {
     $this->u = $u;
     if(!$u->gcPrihlasen()) return;
 
@@ -80,6 +80,10 @@ class Finance
       '<b>Sleva za organizované aktivity</b><br>využitá z celkem '.$this->slevaVypravecMax().'',
       '<b>'.$this->slevaVypravecVyuzita().'</b><br>&emsp;',
       self::ORGSLEVA);
+
+    $cena = $cena
+      + $this->cenaVstupne
+      + $this->cenaVstupnePozde;
 
     $this->logb('Celková cena', $cena, self::CELKOVA);
 
@@ -189,16 +193,16 @@ class Finance
   /** Vrátí aktuální stav na účtu uživatele pro tento rok */
   function stav()
   { return $this->stav; }
-  
+
   /** Vrátí člověkem čitelný stav účtu */
   function stavHr()
   { return $this->stav().'&thinsp;Kč'; }
-  
+
   /** Vrátí stav na účtu uživatele pro tento rok, pokud by neplatila sleva za včasnou platbu */
   function stavPozde() {
     return $this->stav - $this->deltaPozde;
   }
-  
+
   /**
    * Vrací součinitel ceny aktivit jako float číslo. Např. 0.0 pro aktivity
    * zdarma a 1.0 pro aktivity za plnou cenu.   
@@ -398,11 +402,16 @@ class Finance
     $soucty = array();
     while($r = mysql_fetch_assoc($o)) {
       $cena = $this->cenik->shop($r);
+      // započtení ceny
       if($r['typ'] == Shop::UBYTOVANI) {
         $this->cenaUbytovani += $cena;
+      } elseif($r['typ'] == Shop::VSTUPNE) {
+        if(strpos($r['nazev'], 'pozdě') === false)  $this->cenaVstupne = $cena;
+        else                                        $this->cenaVstupnePozde = $cena;
       } else {
         $this->cenaPredmety += $cena;
       }
+      // přidání roku do názvu
       if($r['model_rok'] != ROK) {
         $r['nazev'] = $r['nazev'].' '.$r['model_rok'];
       }
@@ -412,12 +421,10 @@ class Finance
         $soucty[$r['id_predmetu']]['typ'] = $r['typ'];
         @$soucty[$r['id_predmetu']]['pocet']++;
         @$soucty[$r['id_predmetu']]['suma'] += $cena;
+      } elseif($r['typ'] == Shop::VSTUPNE) {
+        $this->logb($r['nazev'], $cena, self::VSTUPNE);
       } else {
         $this->log($r['nazev'], $cena, $r['typ']);
-      }
-      if($r['typ'] == Shop::VSTUPNE) {
-        if(strpos($r['nazev'], 'pozdě') === false)  $this->cenaVstupne = $cena;
-        else                                        $this->cenaVstupnePozde = $cena;
       }
     }
     foreach($soucty as $p) {
