@@ -26,7 +26,7 @@ $hlavicka1=array_merge(
   'Ubytovací informace','','',''),
   array_fill(0,count($gcDoted),''),
   array('Celkové náklady','','',
-  'Ostatní platby','','','','','','','','','','','','')
+  'Ostatní platby','','','','','','','','','','','','','','')
 );
 $hlavicka2=array_merge(
   array('ID','Příjmení','Jméno','Přezdívka','Mail','Pozice','Datum registrace','Prošel infopultem','Den','Měsíc','Rok','Stát','Město','Ulice',
@@ -34,7 +34,7 @@ $hlavicka2=array_merge(
   $gcDoted,
   array(
   'Celkem dní','Cena / den','Ubytování','Předměty a strava',
-  'Aktivity','vypravěčská sleva využitá','vypravěčská sleva přiznaná','dobrovolné vstupné','dobrovolné vstupné (pozdě)','stav','zůstatek z minula','připsané platby','první blok','poslední blok','Slevy','Objednávky')
+  'Aktivity','vypravěčská sleva využitá','vypravěčská sleva přiznaná','dobrovolné vstupné','dobrovolné vstupné (pozdě)','stav','zůstatek z minula','připsané platby','první blok','poslední blok','dobrovolník pozice','dobrovolník info','Slevy','Objednávky')
 );
 $o=dbQuery('
   SELECT 
@@ -110,6 +110,8 @@ while($r=mysql_fetch_assoc($o))
       ec($f->platby()),
       ed($un->prvniBlok()),
       ed($un->posledniBlok()),
+      $r['pomoc_typ'],
+      $r['pomoc_vice'],
       implode(", ",array_merge($f->slevyVse(),$f->slevyAktivity())),
       strip_tags(strtr($f->prehledHtml(),array('</tr>'=>", ", '</td>'=>' '))),
     ]
