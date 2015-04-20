@@ -12,9 +12,6 @@ $o=dbQuery('
     FROM uzivatele_hodnoty
     WHERE email1_uzivatele LIKE "%@%"
     AND souhlas_maily=1
-    UNION
-    SELECT mail
-    FROM maillist
   ) as maily
   WHERE email1_uzivatele NOT IN 
   ( 
