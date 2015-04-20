@@ -25,14 +25,15 @@
       ];
       var nastaveni = {
         min: 0,
-        max: 201,
+        max: 1001,
         zaklad: {stav},
-        setMin: {min} // minimum, které se dá zvolit
+        setMin: {min}, // minimum, které se dá zvolit
+        gamma: 0.6
       };
       var nastaveniGlide = {
         height    : 10,
         image   : '{knoflik}',
-        startAt   : (nastaveni.zaklad / nastaveni.max) * 100,
+        startAt   : vtop(nastaveni.zaklad),
         //colorShift  : ['#3a4d31', '#7bb560'],
         //buttons   : true,
         //onButton  : displayResult,
@@ -78,7 +79,7 @@
 
       function customChange() {
         var castka = $(this).val();
-        if(castka < nastaveni.max) {
+        if(vtop(castka) < 100) {
           var pct = vtop(castka);
           slider.sGlide('startAt', pct);
           setTimeout(function(){ //lol, timeout nějak automagicky předejde bugu, který by jinak zablokoval odeslání formu
@@ -91,12 +92,16 @@
 
       // value to percent
       function vtop(v) {
-        return (v / nastaveni.max) * 100;
+        v = v / nastaveni.max; //normalizace
+        var out = Math.pow(v, nastaveni.gamma);
+        return out * 100;
       }
 
       // percent to value
       function ptov(p) {
-        return Math.round( (p / 100) * (nastaveni.max - nastaveni.min) + nastaveni.min )
+        p = p / 100; //normalizace
+        var out = Math.pow(p, 1 / nastaveni.gamma);
+        return Math.round(out * nastaveni.max);
       }
 
     })();
