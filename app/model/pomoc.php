@@ -36,7 +36,7 @@ class Pomoc {
     foreach(self::$typy as $typ) {
       $t->assign([
         'id'      =>  $typ[0],
-        'nazev'   =>  strtr($typ[1], $koncovky),
+        'nazev'   =>  mb_ucfirst(strtr($typ[1], $koncovky)),
         'popis'   =>  strtr($typ[2], $koncovky),
         'checked' =>  $this->r['pomoc_typ'] == $typ[0] ? 'checked' : '',
       ]);
