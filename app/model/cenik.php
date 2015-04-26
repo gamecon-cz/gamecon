@@ -100,7 +100,10 @@ class Cenik {
         self::aplikujSlevu($cena, $this->slevaPlacky);
       }
     } elseif($typ == Shop::TRICKO && $this->slevaTricka) {
-      self::aplikujSlevu($cena, $this->slevaTricka);
+      if($this->u->maPravo(P_TRIKO_ZAPUL) && strpos($r['nazev'], 'modré') !== false)
+        self::aplikujSlevu($cena, $this->slevaTricka);
+      if($this->u->maPravo(P_TRIKO_ZDARMA) && strpos($r['nazev'], 'červené') !== false)
+        self::aplikujSlevu($cena, $this->slevaTricka);
     } elseif($typ == Shop::UBYTOVANI && $this->u->maPravo(P_UBYTOVANI_ZDARMA)) {
       $cena = 0;
     } elseif($typ == Shop::JIDLO) {

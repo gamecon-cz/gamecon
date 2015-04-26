@@ -126,12 +126,12 @@ class Shop
           $r['stav'] == 2 && strpos($r['nazev'],'červené')!==false && $this->u->maPravo(P_TRIKO_ZDARMA); // červená trička
         $fronta = &$this->tricka[];
         // hack pro výběr správného automaticky objednaného trička
-        $barva = 'černé';
+        $barva = 'zelené';
         if($this->u->maPravo(P_TRIKO_ZAPUL)) $barva = 'modré';
         if($this->u->maPravo(P_TRIKO_ZDARMA)) $barva = 'červené';
         $r['auto'] = $r['nabizet'] && (
-          $this->u->pohlavi() == 'm' && strpos($r['nazev'], "$barva pánské L") ||
-          $this->u->pohlavi() == 'f' && strpos($r['nazev'], "$barva dámské S")
+          $this->u->pohlavi() == 'm' && strpos($r['nazev'], "Tričko $barva pánské L") !== false ||
+          $this->u->pohlavi() == 'f' && strpos($r['nazev'], "Tílko $barva dámské S") !== false
         );
       } elseif($typ == self::VSTUPNE) {
         if(strpos($r['nazev'], 'pozdě') === false) {
@@ -218,9 +218,9 @@ class Shop
     // slovně popsané slvey fixme nedokonalé, na pevno zadrátované
     $ka = $this->u->pohlavi() == 'f' ? 'ka' : '';
     if($this->u->maPravo(P_TRIKO_ZDARMA))
-      $out .= '<p><i>Jako pro organizátora pro tebe výš uvedené ceny neplatí a máš jedno tričko, kostku, placku a veškeré jídlo zdarma :)</i></p>';
+      $out .= '<p><i>Jako pro organizátora pro tebe výš uvedené ceny neplatí a máš jedno červené tričko, kostku, placku a veškeré jídlo zdarma :)</i></p>';
     else if($this->u->maPravo(P_TRIKO_ZAPUL))
-      $out .= "<p><i>Jako vypravěč$ka máš poloviční slevu na tričko. Kostku a placku máš zdarma. Výš uvedené ceny pro tebe tedy neplatí.</i></p>";
+      $out .= "<p><i>Jako vypravěč$ka máš poloviční slevu na modré (vypravěčské) tričko nebo tílko. Kostku a placku máš zdarma. Výš uvedené ceny pro tebe tedy neplatí.</i></p>";
 
     return $out;
   }
