@@ -198,6 +198,16 @@ function dbQi($val)
 }
 
 /**
+ * Expects one column in select. Returns array of selected values.
+ */
+function dbOneArray($q, $p = null) {
+  $o = dbQuery($q, $p);
+  $a = [];
+  while(list($v) = mysql_fetch_row($o)) $a[] = $v;
+  return $a;
+}
+
+/**
  * For selecting single-line one column values
  */
 function dbOneCol($q, $p = null)

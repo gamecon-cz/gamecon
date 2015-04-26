@@ -14,6 +14,7 @@ class Aktivita
     AJAXKLIC='aEditFormTest',  // název post proměnné, ve které jdou data, pokud chceme ajaxově testovat jejich platnost a čekáme json odpověď
     KOLA='aTeamFormKolo',      // název post proměnné s výběrem kol pro team
     OBRKLIC='aEditObrazek',    // název proměnné, v které bude případně obrázek
+    TAGYKLIC='aEditTag',       // název proměnné, v které jdou tagy
     POSTKLIC='aEditForm',      // název proměnné (ve výsledku pole), v které bude editační formulář aktivity předávat data
     TEAMKLIC='aTeamForm',      // název post proměnné s formulářem pro výběr teamu
     PN_PLUSMINUSP='cAktivitaPlusminusp',  // název post proměnné pro úpravy typu plus
@@ -153,9 +154,13 @@ class Aktivita
     $xtpl->assign('obrKlic', self::OBRKLIC);
     $xtpl->assign('obrKlicUrl', self::OBRKLIC.'Url');
     $xtpl->assign('urlObrazku',$a?$a->obrazek():'');
+    $xtpl->assign('pnTagy', self::TAGYKLIC);
+    $xtpl->assign('viceScript', file_get_contents(WWW.'/soubory/doplnovani-vice.js'));
+    $xtpl->assign('tagyMoznosti', json_encode(dbOneArray('SELECT nazev FROM tagy')));
     if($a) {
       $xtpl->assign($a->a);
       $xtpl->assign('popis', dbText($aktivita['popis']));
+      $xtpl->assign('tagy', implode(', ', $a->tagy()));
     }
     // načtení lokací
     if(!$omezeni || !empty($omezeni['lokace']))
@@ -332,6 +337,13 @@ class Aktivita
     if($url = post(self::OBRKLIC.'Url'))  $aktivita->obrazek(Obrazek::zUrl($url));
     $aktivita->organizatori($organizatori);
     $aktivita->popis($popis);
+    $tagy = [];
+    foreach(explode(',', post(self::TAGYKLIC)) as $t) {
+      $t = trim($t);
+      $t = preg_replace('@\s+@', ' ', $t);
+      if($t) $tagy[] = $t;
+    }
+    $aktivita->tagy($tagy);
     return $aktivita;
   }
 
@@ -909,10 +921,21 @@ class Aktivita
    * Vrátí iterátor tagů
    */
   function tagy() {
-    if($this->a['tagy'])
-      return explode(',', $this->a['tagy']);
-    else
-      return array();
+    if(func_num_args() == 0) {
+      if($this->a['tagy'])
+        return explode(',', $this->a['tagy']);
+      else
+        return [];
+    } else {
+      $tagy = func_get_arg(0);
+      dbDelete('akce_tagy', ['id_akce' => $this->id()]);
+      if(!$tagy) return;
+      $qtagy = array_map(function($e){ return '('.dbQv($e).')'; }, $tagy);
+      dbQuery('INSERT IGNORE INTO tagy(nazev) VALUES '.implode(',', $qtagy).'');
+      dbQuery('INSERT INTO akce_tagy(id_akce, id_tagu)
+        SELECT $1, id FROM tagy WHERE nazev IN('.dbQa($tagy).')
+      ', [$this->id()]);
+    }
   }
 
   /**

@@ -139,6 +139,16 @@ $(function(){
       </script>
     </td>
   </tr>
+  <tr>
+    <th>
+      <span class="hinted">Tagy<span class="hint">zadávejte oddělené čárkou, můžete zadat cokoli (nejen z nabídky)</span></span>
+    </th>
+    <td>
+      <input class="full" type="text" name="{pnTagy}" value="{tagy}">
+      <script>{viceScript}</script>
+      <script>doplnovatVice($('[name="{pnTagy}"]'), {tagyMoznosti});</script>
+    </td>
+  </tr>
 </table>
 <!-- end:tabulka -->
 
