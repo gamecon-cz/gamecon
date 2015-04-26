@@ -186,7 +186,9 @@ class Obrazek
   /** Stáhne a nahraje obrázek z url */
   static function zUrl($url, $soubor = null)
   {
-    $o = imagecreatefromjpeg($url);
+    $o = @imagecreatefromjpeg($url)
+      ?: @imagecreatefrompng($url)
+      ?: @imagecreatefromgif($url);
     if($o === false) throw new Exception('Obrázek se nepodařilo načíst.');
     return new self($o, $soubor ?: $url);
   }
