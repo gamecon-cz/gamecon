@@ -19,16 +19,20 @@
     (function(){
 
       var predmety = [
-        { od: 50, do: 150, vec: "nádherný aluminiový bojler"},
-        { od: 120, vec: "ručně tepaný vršek od Bráníku"},
-        { do: 20, vec: "pichu pichu"}
+        { od: 30, vec: "Náramek GameCon"},
+        { od: 80, vec: "Klíčenka s otevírákem"},
+        { od: 150, vec: "RPG hra Fate: Rozcestí"},
+        { od: 200, vec: "Přívěšek: Kostka na šnůrce"},
+        { od: 350, vec: "Deset dřevěných tokenů na hry"},
+        { od: 500, do: 999, vec: "Měšec s logem GameConu"},
+        { od: 1000, vec: "Přívěšek: Kovová kostka na řetízku"}
       ];
       var nastaveni = {
         min: 0,
         max: 1001,
         zaklad: {stav},
         setMin: {min}, // minimum, které se dá zvolit
-        gamma: 0.6
+        gamma: 0.5
       };
       var nastaveniGlide = {
         height    : 10,

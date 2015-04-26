@@ -38,18 +38,21 @@
 
   <h2>Předměty</h2>
   {predmety}
-  <p>Placek, kostek i triček s logem GameConu si můžeš objednat více. Stačí kliknout na tlačítko + nebo u triček vyplnit jedno a po potvrzení formuláře se ti nabídne položka pro výběr dalšího.</p>
+  <p>Placek, kostek i triček s logem GameConu si můžeš objednat více. Stačí kliknout na tlačítko + nebo u triček vyplnit jedno a po potvrzení formuláře se ti nabídne položka pro výběr dalšího. Výběr jde změnit do 30.6.</p>
 
   <hr>
 
-  <h2 style="margin-bottom:0">Jídlo</h2>
+  <h2 style="margin-bottom:0"><span class="hinted i">Jídlo <span class="hint">
+    Jídlo je možné objednat nebo zrušit vždy nejpozději den předem.<br><br>
+    Máme na výběr z 3–5 jídel, která jsou vždy stejná na oběd i večeři a jedno vegetariánské jídlo.
+  </span></span></h2>
   {jidlo}
 
   <hr>
 
   <h2 style="margin-bottom:0"><span class="hinted i">
     Ubytování
-    <span class="hint">
+    <span class="hint" style="z-index: 9999">
       Čísla ukazují počet obsazených míst / celkem. Ubytování je pro zájemce k dispozici už od středy, program začíná ve <strong>čtvrtek</strong> v poledne. Ubytování v neděli znamená noc z neděle na pondělí, kdy už opět neprobíhá program a v pondělí je potřeba pokoj vyklidit v 9:00.<br><br>
       Ubytování je možné změnit/zrušit do 12. července, poté se při zrušení účtuje storno poplatek ve výši ceny první noci.<br><br>
       Ubytovat se na pokojích později než od čtvrtka je také možné, jen je třeba se připravit, že na postelích již někdo před vámi spal (a vzít si např. vlastní spacák).
@@ -59,9 +62,29 @@
 
   <hr>
 
-  <h2>Dobrovolné vstupné</h2>
+  <h2 style="margin-bottom: 1.3em"><span class="hinted i">Dobrovolné vstupné <span class="hint" style="z-index: 9999">
+    Je spousta příjemných maličkostí, které by nám zpříjemnily organizaci a vám udělaly lepší GameCon. Každá sranda však něco stojí – pokud máte GameCon rádi a chcete ho podpořit jakoukoliv částkou, pokusíme se pak dle vybrané výše zajistit:
+    <ul>
+      <li>prodlouženou otevírací dobu deskoherny
+      <li>koncert, improshow (či jiná taškařice)
+      <li>odměny do soutěží a miniher
+      <li>vlastní deskovky
+      <li>lepší prostory pro RPG a larpy
+      <li>ventilátory do prostoru epického hraní a wargamingu
+      <li>vlastní stoly pro wargaming
+      <li>vlastní techniku (především notebooky a projektory)
+      <li>nové vybavení na nové hry
+      <li>tvůj nápad: <a href="mailto:info@gamecon.cz">info@gamecon.cz</a>
+    </ul>
+  </span></span></h2>
   {vstupne}
   <div class="pomoc">{pomoc}</div>
+  <p style="margin: 1em 0">
+    Odměny k dobrovolnému vstupnému se připisují jen <span class="hinted i">do 30.6.<span class="hint">
+    Přispět je možné i později, ale protože 30.6. odměny objednáme, získáš jenom ty, které sis objednal{a} do té doby.<br><br>
+    Ze stejného důvodu vstupné po 30.6. už nejde rušit.
+    </span></span>
+  </p>
 
   <hr>
 

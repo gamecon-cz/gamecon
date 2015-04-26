@@ -261,7 +261,7 @@ class Shop
       'knoflik'   =>  URL_WEBU.'/soubory/styl/knob.png',
       'stav'      =>  $this->vstupne['kusu_uzivatele'] || $this->vstupnePozde['kusu_uzivatele'] ?
         $this->vstupne['sum_cena_nakupni'] + $this->vstupnePozde['sum_cena_nakupni'] :
-        50, // výchozí hodnota
+        60, // výchozí hodnota
       'postname'  =>  $this->klicV,
       'min'       =>  $this->vstupneJeVcas ? 0 : $this->vstupne['sum_cena_nakupni'],
     ]);
