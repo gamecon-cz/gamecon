@@ -152,7 +152,6 @@ class Aktivita
     //  $xtpl->assign('readonly','disabled');
     $xtpl->assign('obrKlic', self::OBRKLIC);
     $xtpl->assign('obrKlicUrl', self::OBRKLIC.'Url');
-    $xtpl->assign('obrKlicOrez', self::OBRKLIC.'Orez');
     $xtpl->assign('urlObrazku',$a?$a->obrazek():'');
     if($a) {
       $xtpl->assign($a->a);

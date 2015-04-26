@@ -8,7 +8,7 @@ function overeni()
   { err=1; msg+="\n• Je třeba vyplnit url."; }
   if($('[name="{fields}[url_akce]"]').val().search(/^[a-z0-9\-]*$/)==-1)
   { err=1; msg+="\n• URL smí obsahovat jenom malá písmena bez diakritiky, číslice a pomlčky."; }
-  
+
   if(err)
   {
     alert('Nepodařilo se uložit, protože:'+msg); 
@@ -139,25 +139,13 @@ $(function(){
       </script>
     </td>
   </tr>
-  <!-- <tr>
-    <td colspan="2" style="background-color:#fff;">
-      
-    </td>
-  </tr> -->
 </table>
 <!-- end:tabulka -->
 
 <table style="float:left">
   <tr>
-    <th><span class="hinted">Obrázek<div class="hint">Obrázky nahrávejte bez popisků a úprav v formátu JPG. Velikost je 169px &times; 126px</div></span>
-      <br />(169&times;126)</th>
-    <td class="obrazekNahled"><img src="{urlObrazku}" /></td>
-    <td class="orez">
-      Ořez<br>
-      <input type="radio" name="{obrKlicOrez}" value="fill" checked><img src="files/design/fill.png"><br>
-      <input type="radio" name="{obrKlicOrez}" value="fit"><img src="files/design/fit.png"><br>
-      <input type="radio" name="{obrKlicOrez}" value="stretch"><img src="files/design/stretch.png"><br>
-    </td>
+    <th>Obrázek</th>
+    <td class="obrazekNahled"><img src="{urlObrazku}"></td>
   </tr>
   <tr>
     <th>Nahrát soubor</th>
