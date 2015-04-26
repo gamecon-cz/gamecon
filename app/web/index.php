@@ -69,12 +69,15 @@ if($m->bezStranky()) {
     'jsVyjimkovac'  => Vyjimkovac::js(URL_WEBU.'/ajax-vyjimkovac'),
     'chyba'     => Chyba::vyzvedniHtml(),
     'info'      => $m->info()->html(),
+    'a'         => $u ? $u->koncA() : '',
   ));
   // tisk věcí a zdar
   if(!$m->bezMenu())                                $t->assign('menu', $menu->cele());
   if($u && $u->maPravo(P_ADMIN_UVOD))               $t->parse('index.prihlasen.admin');
   elseif($u && $u->maPravo(P_ADMIN_MUJ_PREHLED))    $t->parse('index.prihlasen.mujPrehled');
   if($u && $u->gcPrihlasen() && FINANCE_VIDITELNE)  $t->assign('finance', $u->finance()->stavHr());
+  if($u && $u->gcPrihlasen())                       $t->parse('index.prihlasen.gcPrihlasen');
+  elseif($u && REG_GC)                              $t->parse('index.prihlasen.gcNeprihlasen');
   $t->parse( $u ? 'index.prihlasen' : 'index.neprihlasen' );
   $t->parse('index');
   $t->out('index');
