@@ -4,8 +4,7 @@
  * Třída zodpovídající za spočítání finanční bilance uživatele na GC.
  */
 
-class Finance
-{
+class Finance {
   protected
     $u,       // uživatel, jehož finance se počítají
     $stav=0,  // celkový výsledný stav uživatele na účtu
@@ -154,9 +153,10 @@ class Finance
   }
 
   /** Vrátí sumu plateb (připsaných peněz) */
-  function platby()
-  { return $this->platby; }
-  
+  function platby() {
+    return $this->platby;
+  }
+
   /**
    * Vrátí html formátovaný přehled financí
    * @todo přesun css někam sdíleně
@@ -171,13 +171,12 @@ class Finance
     $out.='</table>';
     return $out;
   }
-  
+
   /**
    * Připíše uživateli $u platbu ve výši $castka aktuálnímu uživateli
-   * @todo rozlišení neznámý uživatel (nezadáno) vs. provedl systém   
+   * @todo rozlišení neznámý uživatel (nezadáno) vs. provedl systém
    */
-  static function pripis(Uzivatel $u,$castka,$poznamka=null,Uzivatel $provedl=null)
-  {
+  static function pripis(Uzivatel $u, $castka, $poznamka = null, Uzivatel $provedl = null) {
     $poznamka= empty($poznamka) ? null : $poznamka;
     $orgId= $provedl instanceof Uzivatel ? $provedl->id() : 0;
     dbInsertUpdate('platby',array(
@@ -191,12 +190,14 @@ class Finance
   }
 
   /** Vrátí aktuální stav na účtu uživatele pro tento rok */
-  function stav()
-  { return $this->stav; }
+  function stav() {
+    return $this->stav;
+  }
 
   /** Vrátí člověkem čitelný stav účtu */
-  function stavHr()
-  { return $this->stav().'&thinsp;Kč'; }
+  function stavHr() {
+    return $this->stav().'&thinsp;Kč';
+  }
 
   /** Vrátí stav na účtu uživatele pro tento rok, pokud by neplatila sleva za včasnou platbu */
   function stavPozde() {
@@ -207,8 +208,7 @@ class Finance
    * Vrací součinitel ceny aktivit jako float číslo. Např. 0.0 pro aktivity
    * zdarma a 1.0 pro aktivity za plnou cenu.   
    */
-  function slevaAktivity()
-  {
+  function slevaAktivity() {
     return $this->soucinitelAktivit(); //todo když není přihlášen na GameCon, možná raději řešit zobrazení ceny defaultně (protože neznáme jeho studentství etc.). Viz také třída Aktivita
   }
 
@@ -242,7 +242,7 @@ class Finance
   function slevaVypravecVyuzita() {
     return $this->slevaVyuzita;
   }
-  
+
   /**
    * @todo přesunout do ceníku (viz nutnost počítání součinitele aktivit)
    */
@@ -250,7 +250,7 @@ class Finance
     //return $this->cenik->slevyObecne();
     return $this->slevyA;
   }
-  
+
   /**
    * Viz ceník
    */
@@ -263,8 +263,7 @@ class Finance
    * aktivitám. Vrátí hodnotu.
    * @todo přesunout výpočet konstant pro židle předloni, předpředloni atd…
    */
-  protected function soucinitelAktivit()
-  {
+  protected function soucinitelAktivit() {
     if(!isset($this->scnA)) {
       // pomocné proměnné
       $sleva=0; // v procentech
@@ -451,5 +450,5 @@ class Finance
     );
     $this->log('Zůstatek z minulých let', $this->zustatek, self::ZUSTATEK);
   }
-  
+
 }
