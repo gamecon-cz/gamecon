@@ -16,12 +16,13 @@ class Menu {
   );
 
   protected static $stranky = array(
-    'o-gameconu'   => 'O GameConu',
-    'chci-se-zapojit'   => 'Chci se zapojit',
-    'chci-se-prihlasit'   => 'Chci se přihlásit',
-    'prakticke-informace'   => 'Praktické informace',
-    'kontakty'   => 'Kontakty',
-    'https://www.facebook.com/media/set/?set=a.846204775390859.1073741832.127768447234499&type=3'   => 'Fotogalerie',
+    'o-gameconu'          =>  'O GameConu',
+    'chci-se-zapojit'     =>  'Chci se zapojit',
+    'chci-se-prihlasit'   =>  'Chci se přihlásit',
+    'prakticke-informace' =>  'Praktické informace',
+    'kontakty'            =>  'Kontakty',
+    'https://www.facebook.com/media/set/?set=a.846204775390859.1073741832.127768447234499&type=3' => 'Fotogalerie',
+    'forum'               =>  'Fórum',
   );
 
   /** Celý kód menu (html) */
