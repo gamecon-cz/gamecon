@@ -450,8 +450,7 @@ class Aktivita
   }
 
   /** Vrátí html kód s políčky určujícímí obsazenost */
-  function obsazenostHtml()
-  {
+  function obsazenostHtml() {
     $m = $this->prihlasenoMuzu(); // počty
     $f = $this->prihlasenoZen();
     $c = $m + $f;
@@ -459,7 +458,7 @@ class Aktivita
     $kf = $this->a['kapacita_f'];
     $ku = $this->a['kapacita'];
     $kc = $ku + $km + $kf;
-    if(!$kc || !REG_AKTIVIT)
+    if(!$kc)
       return '';
     if(!$this->prihlasovatelna() && !$this->probehnuta()) //u proběhnutých aktivit se zobrazí čísla. Možno měnit.
       return " <span class=\"neprihlasovatelna\">($c/$kc)</span>";
