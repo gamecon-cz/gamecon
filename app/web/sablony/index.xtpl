@@ -23,13 +23,14 @@
     <div class="linfo">
       <a class="ifb" href="https://www.facebook.com/gamecon"></a>
       <b>16.–19. 7. 2015</b>
-			<b>v Pardubicích</b>
+      <b>v Pardubicích</b>
     </div>
     <div class="prihlasovani">
       <!-- begin:neprihlasen -->
       <div class="neprihlasen">
         <strong>Nejsete přihlášeni na web</strong><br>
-        <a href="#" onclick="$('#prihlasit').slideToggle(); return false;"><strong>Přihlásit</strong></a> / <a href="registrace">registrovat</a>
+        <a href="#" onclick="$('#prihlasit').slideToggle(); return false;"><strong>Přihlásit</strong></a> / <a href="registrace">registrovat</a> /
+        <a href="zapomenute-heslo">obnovit heslo</a>
         <form method="post" action="prihlaseni" id="prihlasit" style="display: none">
           <input type="text" name="login" placeholder="e-mail nebo login" style="width:190px"><br>
           <input type="password" name="heslo" placeholder="heslo" style="width:190px"><br>
