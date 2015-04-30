@@ -1,16 +1,15 @@
 <!-- begin:aktivity -->
 <div class="aktivity">
 
-  <div class="blok upoutavka" style="min-height: 200px; float: right; margin: 0;">
+  <div class="blok upoutavka filtr">
     <div class="horni"><div>Výběr aktivit</div></div>
-    <form style="margin: 20px; font-weight: normal" action="aktivity">
-      <br><br>
-      <table>
+    <form action="aktivity">
+      <table style="width:100%">
         <!-- begin:filtr -->
         <tr>
           <td>{nazev}</td>
           <td>
-          <select name="{name}" style="width: 150px">
+          <select name="{name}" style="width: 100%">
             <!-- begin:moznost -->
             <option value="{value}" {selected}>{nazev}</option>
             <!-- end:moznost -->
@@ -19,7 +18,9 @@
         </tr>
         <!-- end:filtr -->
       </table>
-      <input type="submit" value="vybrat">
+      <div  style="text-align:right">
+        <input type="submit" value="vybrat">
+      </div>
     </form>
     <script>
       $('form').last().submit(function(){
