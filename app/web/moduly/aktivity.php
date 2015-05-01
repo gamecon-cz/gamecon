@@ -77,6 +77,7 @@ $t->parseEach($stranky, 'stranka', 'aktivity.stranka');
 // Zobrazení aktivit
 $a = reset($aktivity);
 $dalsi = next($aktivity);
+$orgJmena = [];
 while($a) {
 
   //TODO hack přeskočení drd a lkd druhých kol
@@ -108,6 +109,7 @@ while($a) {
     $t->parse('aktivity.aktivita.tymTermin');
   } else {
     $t->parse('aktivity.aktivita.termin');
+    $orgJmena[(string)$a->orgJmena()] = true;
   }
 
   // vlastnosti per skupina (hack)
@@ -132,7 +134,11 @@ while($a) {
     }
     $popis = $a->popis();
     if(strlen($popis) > 370) $t->parse('aktivity.aktivita.vice');
-    if(!$a->teamova()) $t->parse('aktivity.aktivita.organizatori');
+    if(!$a->teamova()) {
+      $t->assign('orgJmena', implode(', ', array_keys($orgJmena)));
+      $t->parse('aktivity.aktivita.organizatori');
+      $orgJmena = [];
+    }
     $t->assign('extra', $a->typ() == 9 ? 'drd' : '');
     $t->assign('popis', $popis);
     $t->parse('aktivity.aktivita');

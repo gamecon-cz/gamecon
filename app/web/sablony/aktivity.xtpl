@@ -74,7 +74,7 @@
       <div class="ahlav">
         <h2>{a.nazev}</h2>
         <!-- begin:organizatori -->
-        <div class="info org">{a.orgJmena}</div>
+        <div class="info org">{orgJmena}</div>
         <!-- end:organizatori -->
         <!-- begin:tymTermin -->
           <div class="info termin">{a.denCas} {a.obsazenost} {prihlasovatko}  </div>
