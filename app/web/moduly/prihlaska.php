@@ -60,5 +60,13 @@ $t->assign([
   'pomoc'     =>  $pomoc->html(),
 ]);
 
+$predmety = ['tricko', 'kostka', 'placka'];
+foreach($predmety as $p) {
+  foreach(['', '_m'] as $k) { // přidaná koncovka (modifikátor) k názvu
+    $n = $p.$k;
+    $t->assign($n, Nahled::zSouboru('soubory/obsah/materialy/2015/'.$n.'.jpg')->kvalita(98).'.jpg'); //jpg na konec kvůli lightbox bugu
+  }
+}
+
 $t->parse($u->gcPrihlasen() ? 'prihlaska.prihlasen' : 'prihlaska.neprihlasen');
 if($u->gcPrihlasen()) $t->parse('prihlaska.odhlasit');

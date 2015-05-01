@@ -28,12 +28,12 @@
   <hr>
 
   <div class="nahledy">
-    <a href="soubory/obsah/materialy/2015/kostka.jpg" class="lightbox" title="Kostka">
-    <img src="soubory/obsah/materialy/2015/kostka_m.jpg"></a>
-    <a href="soubory/obsah/materialy/2015/placka.jpg" class="lightbox" title="Placka">
-    <img src="soubory/obsah/materialy/2015/placka_m.jpg"></a>
-    <a href="soubory/obsah/materialy/2015/tricko.jpg" class="lightbox" title="Tričko">
-    <img src="soubory/obsah/materialy/2015/tricko_m.jpg"></a>
+    <a href="{kostka}" class="lightbox" title="Kostka">
+    <img src="{kostka_m}"></a>
+    <a href="{placka}" class="lightbox" title="Placka">
+    <img src="{placka_m}"></a>
+    <a href="{tricko}" class="lightbox" title="Tričko">
+    <img src="{tricko_m}"></a>
   </div>
 
   <h2>Předměty</h2>
