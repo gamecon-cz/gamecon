@@ -167,17 +167,17 @@ class Program {
 
   /** Vytisknutí konkrétní aktivity (formátování atd...) */
   private function tiskAktivity($a) {
-    $classes=array();
-    if($this->u && $a['obj']->prihlasen($this->u)) $classes[]='prihlasen';
-    if($this->u && $a['obj']->organizuje($this->u)) $classes[]='organizator';
-    echo('<td colspan="'.$a['del'].'"'.
-      ( $classes?' class="'.implode(' ',$classes).'"':'' ).
-      '><div>'.$a['obj']->nazev()
-    );
+    $classes = [];
+    if($this->u && $a['obj']->prihlasen($this->u))  $classes[] = 'prihlasen';
+    if($this->u && $a['obj']->organizuje($this->u)) $classes[] = 'organizator';
+    if($a['obj']->vDalsiVlne())                     $classes[] = 'vDalsiVlne';
+    if(!$a['obj']->volnoPro($this->u))              $classes[] = 'plno';
+    $classes = $classes ? ' class="'.implode(' ', $classes).'"' : '';
+    echo '<td colspan="'.$a['del'].'"'.$classes.'><div>'.$a['obj']->nazev();
     if($this->nastaveni['drdPj'] && $a['obj']->typ() == 9 && $a['obj']->prihlasovatelna()) {
       echo ' ('.$a['obj']->orgJmena().') ';
     }
-    echo $a['obj']->obsazenostHtml();
+    echo $a['obj']->obsazenost();
     if(
       ( $a['obj']->typ() != 10 || $this->nastaveni['technicke'] ) && // hack na nezobrazování přihlašovátek pro technické
       ( $a['obj']->typ() != 9 || $this->nastaveni['drdPrihlas'] ) // hack na nezobrazování přihlašovátek pro DrD
@@ -187,7 +187,7 @@ class Program {
     if($this->nastaveni['teamVyber']) {
       echo $a['obj']->vyberTeamu($this->u);
     }
-    echo('</div></td>');
+    echo '</div></td>';
   }
 
   /**

@@ -6,6 +6,8 @@ if($u) Aktivita::prihlasovatkoZpracuj($u);
 
 $program = new Program($u);
 
+$a = $u ? $u->koncA() : '';
+
 ?>
 
 <?php $program->css(); ?>
@@ -28,10 +30,14 @@ $program = new Program($u);
     border-radius: 6px;
     background-color: #444;
   }
+  table.program td.vDalsiVlne { background-color: transparent; }
+  table.program td.vDalsiVlne div, .legenda .vDalsiVlne { background-color: #a34; }
+  table.program td.plno { background-color: transparent; }
+  table.program td.plno div, .legenda .plno { background-color: #bbb; }
   table.program td.prihlasen { background-color: transparent; }
-  table.program td.prihlasen div { background-color: #bab2d2; }
+  table.program td.prihlasen div, .legenda .prihlasen { background-color: #bab2d2; }
   table.program td.organizator { background-color: transparent; }
-  table.program td.organizator div { background-color: #bad2b2; }
+  table.program td.organizator div, .legenda .organizator { background-color: #bad2b2; }
 
   table.program th {
     border: none;
@@ -41,7 +47,18 @@ $program = new Program($u);
     padding: 5px 0;
   }
 
+  .legenda hr { display: inline-block; border: none; margin: 0 0 -3px; margin-left: 1em; width: 16px; height: 16px; border-radius: 4px;  }
+
 </style>
+
+<div style="float:right" class="legenda"><!-- legenda -->
+  <hr class="vDalsiVlne"> otevřeme v další vlně
+  <hr class="prihlasen"> přihlášen<?=$a?>
+  <?php if($u && $u->maPravo(P_ORG_AKCI)) { ?>
+    <hr class="organizator"> organizuji
+  <?php } ?>
+  <hr class="plno"> plno
+</div>
 
 <?php $program->tisk(); ?>
 

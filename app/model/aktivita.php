@@ -1020,6 +1020,11 @@ class Aktivita
     }
   }
 
+  /** Vrátí, jestli aktivita bude aktivována v další vlně */
+  function vDalsiVlne() {
+    return $this->a['stav'] == self::PRIPRAVENA;
+  }
+
   /** Vrátí typ volných míst na aktivitě */
   function volno()
   {
@@ -1038,6 +1043,15 @@ class Aktivita
       return 'm'; //LIKE WTF? (opak předchozího)
     //else
     return 'u'; //je volno a žádné pohlaví nevyžralo limit míst
+  }
+
+  /** Jestli volno pro daného uživatele (nebo aspoň pro někoho, pokud null) */
+  function volnoPro(Uzivatel $u = null) {
+    $v = $this->volno();
+    if($u)
+      return $v == 'u' || $v == $u->pohlavi();
+    else
+      return $v != 'x';
   }
 
   /**
