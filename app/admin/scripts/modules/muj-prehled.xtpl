@@ -46,18 +46,6 @@ function tgl(id)
 <!-- end:aktivita -->
 <!-- begin:zadnaAktivita --><p><em>(nevedeš žádné aktivity)</em></p><!-- end:zadnaAktivita -->
 
-<h2>Manuál vypravěče</h2>
-
-<ol>
-  <li><b>Dostav se na vrátnici Domova mládeže</b><br>příp. na Infopult (platí pro Wargaming, Epic, Deskovky) 15 minut před začátkem aktivity, kde na tebe bude čekat organizátor(spojka). Nezapomeň propisku. :-)</li>
-  <li><b>Vyzvedni prezenčku</b><br>neboli seznam přihlášených hráčů, kterou pro tebe má spojka. Na prezenčce najdeš číslo místnosti, blok a patro, kde se aktivita koná.</li>
-  <li><b>Čekej pod nápisem</b><br>nebo-li na příslušném shromaždišti na hráče se svou sekcí (více viz <a href="http://gamecon.cz/files/obsah/materialy/2014/mapa-gc.jpg" target="_blank">mapka</a>). Odšrktej hráče na prezenčce.</li>
-  <li><b>Vyzvedni náhradníky</b><br>Pokud nějaký hráč nedorazil, je vhodné se s ním telefonicky spojit. Pokud nějací hráči chybí, pět minut před začátkem vyzvedni náhradníky. Připiš náhradníky na prezenčku&nbsp;–&nbsp;jménem, příjmením a nickem.</li>
-  <li><b>Dej prezenčku spojce</b><br>a to ideálně v čas oficiálního začátku aktivity. Výměnou ti předá klíče od herní místnosti.</li>
-  <li><b>Po skončení zkontroluj místnost</b><br>zamkni a odevzdej klíče na vrátnici / Infopultu (platí pro Wargaming, Epic, Deskovky). Dodržuj prosím plánovanou délku aktivity.</li>
-</ol>
-
-<img src="files/design/warning.png" style="position:absolute;margin:0 0 0 -4px">
-<p style="margin-left:21px">Všechny případné změny aktivity (místa, času, zpoždění...) a potíže prosím <b>vždy oznam na Infopult!</b></p>
+{manual}
 
 <!-- end:prehled -->

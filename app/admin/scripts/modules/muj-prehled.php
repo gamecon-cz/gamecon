@@ -43,5 +43,6 @@ foreach($aktivity as $a) {
   $t->parse('prehled.aktivita');
 }
 
+$t->assign('manual', Stranka::zUrl('manual-vypravece')->html());
 $t->parse('prehled');
 $t->out('prehled');
