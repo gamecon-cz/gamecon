@@ -5,8 +5,12 @@ $this->bezOkraju(true);
 if($u) Aktivita::prihlasovatkoZpracuj($u);
 
 $program = new Program($u);
-
 $a = $u ? $u->koncA() : '';
+
+// hack na staticko-dynamické zobrazení legendy
+$legenda = Stranka::zUrl('program-legenda')->html();
+$legenda = str_replace('{a}', $u ? $u->koncA() : '', $legenda);
+if(!$u || !$u->maPravo(P_ORG_AKCI)) $legenda = preg_replace('@.*organizuji.*@', '', $legenda);
 
 ?>
 
@@ -51,14 +55,7 @@ $a = $u ? $u->koncA() : '';
 
 </style>
 
-<div style="float:right" class="legenda"><!-- legenda -->
-  <hr class="vDalsiVlne"> otevřeme v další vlně
-  <hr class="prihlasen"> přihlášen<?=$a?>
-  <?php if($u && $u->maPravo(P_ORG_AKCI)) { ?>
-    <hr class="organizator"> organizuji
-  <?php } ?>
-  <hr class="plno"> plno
-</div>
+<?=$legenda?>
 
 <?php $program->tisk(); ?>
 
