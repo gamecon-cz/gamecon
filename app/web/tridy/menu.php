@@ -15,7 +15,8 @@ class Menu {
     'wargaming' => 'Wargaming',
   );
 
-  protected static $stranky = array(
+  protected $stranky = array(
+    'prihlaska'           =>  'Přihláška:&ensp;',
     'o-gameconu'          =>  'O GameConu',
     'chci-se-zapojit'     =>  'Chci se zapojit',
     'chci-se-prihlasit'   =>  'Chci se přihlásit',
@@ -25,13 +26,21 @@ class Menu {
     'https://www.facebook.com/media/set/?set=a.846204775390859.1073741832.127768447234499&type=3' => 'Fotogalerie',
   );
 
+  function __construct(Uzivatel $u = null) {
+    // personalizace seznamu stránek
+    $a = $u ? $u->koncA() : '';
+    $this->stranky['prihlaska'] .= $u && $u->gcPrihlasen() ?
+      '<img src="soubory/styl/ok.png" style="margin-bottom:-3px"> přihlášen'.$a.' na GC':
+      '<img src="soubory/styl/error.png" style="margin-bottom:-3px"> nepřihlášen'.$a.' na GC';
+  }
+
   /** Celý kód menu (html) */
   function cele() {
     $a = Url::zAktualni()->cast(0);
     $t = new XTemplate('sablony/menu.xtpl');
     $t->assign('menu', $this);
     if(isset(self::$linie[$a]))     $t->assign('aaktiv', 'aktivni');
-    if(isset(self::$stranky[$a]))   $t->assign('saktiv', 'aktivni');
+    if(isset($this->stranky[$a]))   $t->assign('saktiv', 'aktivni');
     if($a == 'blog')                $t->assign('baktiv', 'aktivni');
     $t->parse('menu');
     return $t->text('menu');
@@ -39,8 +48,13 @@ class Menu {
 
   /** Seznam linií s prokliky (html) */
   function linie() {
+    $linie = self::$linie;
+    // ne/zobrazení linku na program
+    if(PROGRAM_VIDITELNY && !isset(self::$linie['program']))  $linie = ['program' => 'Program'] + $linie;
+    elseif(!isset(self::$linie['pripravujeme']))              $linie = ['pripravujeme' => 'Letos připravujeme…'] + $linie;
+    // výstup
     $o = '';
-    foreach(self::$linie as $a => $l) {
+    foreach($linie as $a => $l) {
       $o .= "<li><a href=\"$a\">$l</a></li>";
     }
     return $o;
@@ -49,7 +63,7 @@ class Menu {
   /** Seznam stránek s prokliky (html) */
   function stranky() {
     $o = '';
-    foreach(self::$stranky as $a => $l) {
+    foreach($this->stranky as $a => $l) {
       $o .= "<li><a href=\"$a\">$l</a></li>";
     }
     return $o;

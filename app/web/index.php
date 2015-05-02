@@ -4,7 +4,7 @@ require 'tridy/modul.php';
 require 'tridy/menu.php';
 
 $u = Uzivatel::zSession();
-$menu = new Menu();
+$menu = new Menu($u);
 
 // určení modulu, který zpracuje požadavek (router)
 $m = Modul::zUrl();
