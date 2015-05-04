@@ -7,6 +7,11 @@ Aktivita::vyberTeamuZpracuj($u);
 Tym::vypisZpracuj($u);
 
 
+// Načtení organizátora, pokud je zadán přes ID
+if(get('vypravec')) {
+  $this->param('org', Uzivatel::zId(get('vypravec')));
+}
+
 // Přesměrování na kanonickou URL pokud existuje pro daný dotaz
 if(get('rok') == ROK) unset($_GET['rok']);
 if(array_keys($_GET) == array('req', 'typ') && $_GET['typ']) {
@@ -77,7 +82,7 @@ $t->parseEach($stranky, 'stranka', 'aktivity.stranka');
 // Zobrazení aktivit
 $a = reset($aktivity);
 $dalsi = next($aktivity);
-$orgJmena = [];
+$orgUrls = [];
 while($a) {
 
   //TODO hack přeskočení drd a lkd druhých kol
@@ -106,10 +111,11 @@ while($a) {
         $t->parse('aktivity.aktivita.tymTermin.vypis');
       }
     }
+    $t->assign('orgJmenaTym', implode($a->orgUrls()));
     $t->parse('aktivity.aktivita.tymTermin');
   } else {
     $t->parse('aktivity.aktivita.termin');
-    $orgJmena[(string)$a->orgJmena()] = true;
+    $orgUrls = array_merge($orgUrls, $a->orgUrls());
   }
 
   // vlastnosti per skupina (hack)
@@ -135,9 +141,9 @@ while($a) {
     $popis = $a->popis();
     if(strlen($popis) > 370) $t->parse('aktivity.aktivita.vice');
     if(!$a->teamova()) {
-      $t->assign('orgJmena', implode(', ', array_keys($orgJmena)));
+      $t->assign('orgJmena', implode(', ', array_unique($orgUrls)));
       $t->parse('aktivity.aktivita.organizatori');
-      $orgJmena = [];
+      $orgUrls = [];
     }
     $t->assign('extra', $a->typ() == 9 ? 'drd' : '');
     $t->assign('popis', $popis);
@@ -151,7 +157,7 @@ while($a) {
 }
 
 // záhlaví - vypravěč
-if(isset($org)) {
+if($org = $this->param('org')) {
   $t->assign([
     'jmeno'   =>  $org->jmenoNick(),
     'oSobe'   =>  $org->oSobe() ?: '<p><em>popisek od vypravěče nemáme</em></p>',

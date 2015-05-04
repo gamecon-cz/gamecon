@@ -78,7 +78,7 @@
         <!-- end:organizatori -->
         <!-- begin:tymTermin -->
           <div class="info termin">{a.denCas} {a.obsazenost} {prihlasovatko}  </div>
-          <div class="info org">{a.orgJmena}</div>
+          <div class="info org">{orgJmenaTym}</div>
           <!-- begin:tym -->
           <div class="info tym">č.{tym.cislo} {tym.nazev}</div>
           <!-- end:tym -->

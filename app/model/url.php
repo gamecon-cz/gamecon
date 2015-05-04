@@ -17,7 +17,7 @@ class Url
   public function __construct($getName)
   {
     $this->surova = isset($_GET[$getName]) ? $_GET[$getName] : '';
-    if(!preg_match('@^[a-zA-Z0-9][A-Za-z0-9\-/\.]*$|^$@',$this->surova) || strpos($this->surova, '/.') !== false)
+    if(!self::povolena($this->surova))
       throw new UrlException('Nepovolené znaky v URL.');
     else
       $this->cista = $this->surova;
@@ -41,6 +41,13 @@ class Url
   function delka()
   {
     return $this->casti[0]?count($this->casti):0;
+  }
+
+  /** Řekne jestli jde o povolenou URL nebo ne */
+  static function povolena($url) {
+    return
+      preg_match('@^[a-zA-Z0-9][A-Za-z0-9\-/\.]*$|^$@', $url) &&
+      strpos($url, '/.') === false;
   }
 
   /**

@@ -568,7 +568,37 @@ class Aktivita
     return strpos($this->a['organizatori'], ','.$id.',') !== false;
   }
 
-  /** Vrátí iterátor jmen organizátorů v lidsky čitelné podobě */
+  /**
+   * Vrátí pole odkazů (html) na organizátory
+   * @todo hack obcházející nedořešené orm, viz
+   * @see orgJmena (to je stejný případ)
+   */
+  function orgUrls() {
+    $a = [];
+    $ids = explode(',', trim($this->a['organizatori'], ','));
+    foreach(explode(',', trim($this->a['orgJmena'], ',')) as $i => $r) {
+      $r = explode('|', $r);
+      $zobrazit = Uzivatel::jmenoNickZjisti([
+        'jmeno_uzivatele' => $r[0],
+        'login_uzivatele' => $r[1],
+        'prijmeni_uzivatele' => $r[2]
+      ]);
+      $url = mb_strtolower($r[1]);
+      if(!$r[0]) // nemá jméno
+        0; // nedělat nic, asi vypravěčská skupina nebo podobně
+      elseif(!Url::povolena($url))
+        $zobrazit = '<a href="aktivity?vypravec='.$ids[$i].'">'.$zobrazit.'</a>';
+      else
+        $zobrazit = '<a href="'.$url.'">'.$zobrazit.'</a>';
+      $a[] = $zobrazit;
+    }
+    return $a;
+  }
+
+  /**
+   * Vrátí iterátor jmen organizátorů v lidsky čitelné podobě
+   * @todo hack obcházející nedořešené orm (vracet pole uživatelů neumíme efektivně)
+   */
   function orgJmena() {
     $orgove = array();
     $orgIn = explode(',', substr($this->a['orgJmena'], 1, -1));
