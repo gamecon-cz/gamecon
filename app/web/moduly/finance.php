@@ -78,7 +78,7 @@ if(!$zaplaceno)
   <?php } ?>
   </p>
   
-  <p>GameCon můžeš nyní <strong>zaplatit převodem</strong> na účet uvedený níž. Jako variabilní symbol slouží tvoje id: <?=$uid?>. 
+  <p>GameCon můžeš nyní <strong>zaplatit převodem</strong> na účet uvedený výš. Jako variabilní symbol slouží tvoje id: <?=$uid?>.
   <?php if($limit){ ?>
     Při platbě <strong>do <?=$limit?></strong> platíš celkem <strong><?=$castka?></strong>, při pozdější platbě beze slevy nebo na místě pak <?=$pozde?>. Počítá se datum, kdy peníze dorazí na účet GC, mezibankovní převod může trvat až 2 dny.
     <br><br>Při plánování aktivit si na účet pošli klidně více peněz. Přebytek ti vrátíme na infopultu nebo ho můžeš využít k přihlašování uvolněných aktivit na místě.
