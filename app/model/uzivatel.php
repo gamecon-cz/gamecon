@@ -15,7 +15,8 @@ class Uzivatel
     $finance=null;
 
   const
-    SYSTEM = 1; // id uživatele reprezentujícího systém (např. "operaci provedl systém")
+    FAKE = 0x01,  // modifikátor "fake uživatel"
+    SYSTEM = 1;   // id uživatele reprezentujícího systém (např. "operaci provedl systém")
 
   /** Vytvoří uživatele z různých možných vstupů */
   function __construct($uzivatel)
@@ -731,6 +732,21 @@ class Uzivatel
       return array();
     } else {
       throw new Exception('neplatný formát množiny id');
+    }
+  }
+
+  /**
+   * Vytvoří a vrátí nového uživatele z zadaného pole odpovídajícího db struktuře
+   */
+  static function zPole($pole, $mod = 0) {
+    if($mod & self::FAKE) {
+      $pole['email1_uzivatele'] = $pole['login_uzivatele'].'@FAKE';
+      $pole['souhlas_maily'] = 0;
+      $pole['mrtvy_mail'] = 1;
+      dbInsert('uzivatele_hodnoty', $pole);
+      return self::zId(dbLastId());
+    } else {
+      throw new Exception('nepodporováno');
     }
   }
 

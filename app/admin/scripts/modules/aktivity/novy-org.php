@@ -1,25 +1,24 @@
-<h3>Nová organizátorská skupina</h3>
+<h3>Nový fake účet</h3>
 
 <?php
 
-/** 
+/**
  * Stránka pro přidávání organizátorských entit / skupin
  *
- * nazev: Nová org skupina
+ * nazev: Nový fake účet
  * pravo: 102
  */
 
-if(post('vypravec'))
-{
-  $a=dbOneLineS('SELECT * FROM uzivatele_hodnoty WHERE login_uzivatele=$0',array(post('vypravec')));
-  if($a)
-    echo '<p style="color:red">Zadaný login už existuje</p>';
-  else
-  {
-    dbQueryS('INSERT INTO uzivatele_hodnoty(login_uzivatele) VALUES ($0)',array(post('vypravec')));
-    $noveId=mysql_insert_id();
-    dbQueryS('INSERT INTO r_uzivatele_zidle(id_uzivatele,id_zidle) VALUES ($0,$1)',array($noveId,Z_ORG_SKUPINA));
-    echo '<p style="color:green">Uživatel '.post('vypravec').' ('.$noveId.') vytvořen</p>';
+if(post('vypravec')) {
+  $un = null;
+  try {
+    $un = Uzivatel::zPole(['login_uzivatele' => post('vypravec')], Uzivatel::FAKE);
+  } catch(Exception $e) {
+    echo '<p style="color:red">Zadaný login nelze vytvořit. Možná je už zabraný.</p>';
+  }
+  if($un) {
+    $un->dejZidli(Z_ORG_SKUPINA);
+    echo '<p style="color:green">Uživatel '.$un->jmenoNick().' ('.$un->id().') vytvořen a přidán do seznamu vypravěčů</p>';
   }
 }
 
@@ -30,4 +29,4 @@ if(post('vypravec'))
   <input type="submit" value="Vytvořit" />
 </form>
 
-<p>Toto slouží k přidání nové entity mezi organizátory aktivit (vypravěče). Typicky firmy na deskovky, tvůrčí skupiny larpů, … Vytvoří se tím uživatel s odpovídajícím loginem a objeví se v nabídce dostupných organizátorů. Nejde použít už zabrané uživatelské loginy. Pokud chcete přidat už existujícího uživatele mezi vypravěče, vyberte ho pro práci na Úvodu a pak mu dejte židli vypravěč přes <a href="prava">Práva</a>.</p>
+<p style="max-width:500px;font-size:120%">Pokud je potřeba vytvořit nový falešný a uvést ho jako vypravěče aktivity (např. Albi, Gamecon, Deskofobie, ...), vytvoří se formulářem výš. <b>Pozor:</b> Pokud místo konkrétních lidí uvedete jako vypravěče jenom tento fake účet, pochopitelně se jim nezapočtou slevy, nezablokuje slot v programu atd...</p>
