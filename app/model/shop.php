@@ -259,7 +259,7 @@ class Shop
     $t->assign([
       'jsSlider'  =>  URL_WEBU.'/soubory/jquery.sglide.2.1.2.min.js',
       'knoflik'   =>  URL_WEBU.'/soubory/styl/knob.png',
-      'stav'      =>  $this->vstupne['kusu_uzivatele'] || $this->vstupnePozde['kusu_uzivatele'] ?
+      'stav'      =>  $this->u->gcPrihlasen() ?
         $this->vstupne['sum_cena_nakupni'] + $this->vstupnePozde['sum_cena_nakupni'] :
         60, // výchozí hodnota
       'postname'  =>  $this->klicV,
