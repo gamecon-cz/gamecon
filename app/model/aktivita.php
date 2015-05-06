@@ -1053,7 +1053,7 @@ class Aktivita
 
   /** Vrátí, jestli aktivita bude aktivována v další vlně */
   function vDalsiVlne() {
-    return $this->a['stav'] == self::PRIPRAVENA;
+    return $this->a['stav'] == self::PRIPRAVENA || $this->a['stav'] == self::PUBLIKOVANA;
   }
 
   /** Vrátí typ volných míst na aktivitě */
