@@ -577,6 +577,7 @@ class Aktivita
     $a = [];
     $ids = explode(',', trim($this->a['organizatori'], ','));
     foreach(explode(',', trim($this->a['orgJmena'], ',')) as $i => $r) {
+      if(!$r) continue;
       $r = explode('|', $r);
       $zobrazit = Uzivatel::jmenoNickZjisti([
         'jmeno_uzivatele' => $r[0],
