@@ -59,7 +59,23 @@ $reporty = [
   <?php } ?>
 </table>
 
-<h3>Seznamy mailů</h3>
+<h2>Seznamy mailů</h2>
 <a href="./reporty/maily1" onclick="return!window.open(this.href)">nepřihlášení na letošní GC</a>, 
 <a href="./reporty/maily2" onclick="return!window.open(this.href)">přihlášení na letošní GC</a>,
 <a href="./reporty/maily3" onclick="return!window.open(this.href)">vypravěči (aktuální)</a>
+
+
+<h2>Quick reporty <span class="hinted">ℹ<span class="hint">tyto reporty samy náhodně mizí a nelze tomu zabránit. Proto není možné na ně spoléhat</span></span></h2>
+
+<table class="zvyraznovana">
+  <tr>
+    <th>Název</th>
+    <th></th>
+  </tr>
+  <?php foreach(dbIterator('SELECT * FROM reporty') as $r) { ?>
+  <tr>
+    <td><?=$r['nazev']?></td>
+    <td><a href="reporty/quick?id=<?=$r['id']?>" class="tlacitko">upravit</a></td>
+  </tr>
+  <?php } ?>
+</table>
