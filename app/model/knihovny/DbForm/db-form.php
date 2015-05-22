@@ -22,6 +22,7 @@ class DbForm {
    */
   protected function fieldFromDescription($d) {
     if($d['Key'] == 'PRI') return new DbffPkey($d);
+    if(in_array($d['Type'], ['text', 'shorttext', 'mediumtext', 'longtext'])) return new DbffText($d);
     // fallback to string
     return new DbffString($d);
   }
