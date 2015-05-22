@@ -122,6 +122,12 @@ function dbInsertUpdate($table,$valArray)
 }
 
 
+function dbIterator($q, $p = null) {
+  $o = dbQuery($q, $p);
+  while($r = mysql_fetch_assoc($o)) yield $r;
+}
+
+
 function dbQuery($q, $param = null)
 {
   global $spojeni,$dbLastQ;
