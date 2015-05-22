@@ -13,6 +13,9 @@ class Report
     $poleObsah,   // obsah ve formě pole
     $csvSep=';';  // oddělovač v csv souborech
 
+  const
+    BEZ_STYLU = 1;
+
   /**
    * Vytiskne report jako CSV
    */
@@ -27,23 +30,26 @@ class Report
     while($r=$this->radek())
       fputcsv($out,$r,$this->csvSep);
   }
-  
+
   /**
    * Vytiskne report jako HTML tabulku
    */
-  function tHtml()
+  function tHtml($param = 0)
   {
-    echo '<style>
-      table { border-collapse: collapse; }
-      td, th { border: solid 1px; padding: 1px 4px; }
-      tr:hover { background-color: #eee; }
-    </style>';
+    if(!($param & self::BEZ_STYLU)) {
+      echo '<style>
+        table { border-collapse: collapse; }
+        td, th { border: solid 1px; padding: 1px 4px; }
+        tr:hover { background-color: #eee; }
+      </style>';
+    }
     echo '<table><tr>';
     foreach($this->hlavicky() as $h)
       echo "<th>$h</th>";
     echo '</tr>';
     while($r=$this->radek())
       echo '<tr><td>'.implode('</td><td>',$r).'</td></tr>';
+    echo '</table>';
   }
 
   /**
