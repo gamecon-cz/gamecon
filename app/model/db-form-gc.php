@@ -5,6 +5,7 @@ foreach(array(
   'db-form-field',
   'dbff-pkey',
   'dbff-string',
+  'dbff-text',
 ) as $f) {
   require __DIR__ . '/knihovny/DbForm/'.$f.'.php';
 }
@@ -19,6 +20,8 @@ class DbFormGc extends DbForm {
       return new DbffMarkdown($d);
     if(preg_match('@^markdown@', $d['Comment']))
       return new DbffMarkdownDirect($d);
+    if(in_array($d['Type'], ['text', 'shorttext', 'mediumtext', 'longtext']))
+      return new DbffTextAutoresize($d);
     // fallback na originální pole
     return parent::fieldFromDescription($d);
   }
