@@ -33,7 +33,12 @@ if($r) {
 ?>
 
 <style>
-  .dbForm textarea { width: 500px; }
+  .dbForm textarea { width: 500px; font-family: monospace; }
 </style>
 
 <?=$f->full()?>
+
+<script>
+  // vypntí kontroly pravopisu kvůli vkládání kódu
+  $('.dbForm textarea').last().attr('spellcheck', 'false');
+</script>
