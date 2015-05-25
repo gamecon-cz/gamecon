@@ -37,6 +37,7 @@ function dbConnect()
     mysql_set_charset('utf8', $spojeni);
     $end=microtime(true);
     $GLOBALS['dbExecTime']+=$end-$start;
+    dbQuery('SET SESSION group_concat_max_len = 65536');
   }
 }
 
