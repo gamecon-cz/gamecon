@@ -28,7 +28,7 @@
     <div class="prihlasovani">
       <!-- begin:neprihlasen -->
       <div class="neprihlasen">
-        <strong>Nejsete přihlášeni na web</strong><br>
+        <strong>Nejste přihlášeni na web</strong><br>
         <a href="#" onclick="$('#prihlasit').slideToggle(); return false;"><strong>Přihlásit</strong></a> / <a href="registrace">registrovat</a> /
         <a href="zapomenute-heslo">obnovit heslo</a>
         <form method="post" action="prihlaseni" id="prihlasit" style="display: none">
