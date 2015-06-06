@@ -19,6 +19,7 @@ class Program {
     'teamVyber'     => false, // jestli se u teamové aktivity zobrazí full výběr teamu přímo v programu
     'technicke'     => false, // jestli jdou vidět technické aktivity
     'skupiny'       => 'linie', // seskupování programu - po místnostech nebo po liniích
+    'prazdne'       => false, // zobrazovat prázdné skupiny?
   ];
   private $grpf; // název metody na objektu aktivita, podle které se groupuje
 
@@ -39,20 +40,23 @@ class Program {
   public function tisk() {
     // načtení seznamu pro groupování
     if($this->nastaveni['skupiny'] == 'mistnosti') {
-      $this->program = Aktivita::zProgramu('lokace');
+      $this->program = Aktivita::zProgramu('poradi');
       $grp = Lokace::zVsech();
       $this->grpf = 'lokaceId';
       $labelf = 'nazevInterni';
+      usort($grp, function($a, $b) {
+        return $a->poradi() > $b->poradi();
+      });
     } else {
       $this->program = Aktivita::zProgramu('typ');
       $grp = Typ::zVsech();
       $this->grpf = 'typ'; // MAGIC dynamické volání metody dle jména
       $labelf = 'nazev';
+      usort($grp, function($a, $b) {
+        return $a->id() > $b->id();
+      });
     }
     $typy['0'] = 'Ostatní';
-    usort($grp, function($a, $b) {
-      return $a->id() > $b->id();
-    });
     foreach($grp as $t)
       $typy[$t->id()] = ucfirst($t->$labelf());
 
@@ -68,7 +72,7 @@ class Program {
       $aktivit=0;
       foreach($typy as $typ => $typNazev)
       {
-        if( !$aktivita || $aktivita['grp'] != $typ ) continue;  //v lokaci není aktivita, přeskočit
+        if( (!$aktivita || $aktivita['grp'] != $typ) && !$this->nastaveni['prazdne'] ) continue;  //v lokaci není aktivita, přeskočit
         ob_start();  //výstup bufferujeme, pro případ že bude na víc řádků
         $radku=0;
         //ošetření proti kolidujícím aktivitám v místnosti
@@ -91,6 +95,7 @@ class Program {
         }
         $radky=substr(ob_get_clean(),0,-4);
         if($radku>0) echo('<tr><td rowspan="'.$radku.'">'.$typNazev.'</td>'.$radky);
+        elseif($this->nastaveni['prazdne'] && $radku == 0) echo $this->prazdnaMistnost($typNazev);
       }
       if($aktivit==0)
         echo('<tr><td colspan="17">Žádné aktivity tento den</td></tr>'); //fixme magická konstanta
@@ -215,6 +220,13 @@ class Program {
     } else {
       return $this->nactiAktivitu($iterator);
     }
+  }
+
+  private function prazdnaMistnost($nazev) {
+    $bunky = '';
+    for($cas = PROGRAM_ZACATEK; $cas < PROGRAM_KONEC; $cas++)
+      $bunky .= '<td></td>';
+    return "<tr><td>$nazev</td>$bunky</tr>";
   }
 
 

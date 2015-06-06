@@ -1,8 +1,9 @@
 <?php
 
 $p = new Program(null, [
-  'technicke' =>  'true',
+  'technicke' =>  true,
   'skupiny'   =>  'mistnosti',
+  'prazdne'   =>  true,
 ]);
 
 ?>

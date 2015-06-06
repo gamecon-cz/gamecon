@@ -13,4 +13,8 @@ class Lokace extends DbObject {
     return $this->r['nazev_interni'];
   }
 
+  function poradi() {
+    return $this->r['poradi'];
+  }
+
 }
