@@ -57,6 +57,30 @@ function is_ajax()
   return ( !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest' );
 }
 
+/**
+ * Options parsing, returns assoc. array with options.
+ * if option in $default has key and value, then it's default,
+ * if in $default is just value, it is assumed mandatory argument
+ * and exception is thrown, if not set in $actual
+ */
+function opt($actual, $default) {
+  $opt = [];
+  foreach($default as $key => $val) {
+    if(is_numeric($key)) {
+      if(array_key_exists($val, $actual))
+        $opt[$val] = $actual[$val];
+      else
+        throw new BadFunctionCallException('key "'.$val.'" in options missing');
+    } else {
+      if(array_key_exists($key, $actual))
+        $opt[$key] = $actual[$key];
+      else
+        $opt[$key] = $val;
+    }
+  }
+  return $opt;
+}
+
 function post($name, $field = null)
 {
   if(!$field && isset($_POST[$name]))         return $_POST[$name];

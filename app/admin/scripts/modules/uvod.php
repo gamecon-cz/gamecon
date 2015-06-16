@@ -1,6 +1,6 @@
 <?php
 
-/** 
+/**
  * Úvodní stránka sloužící pro infopult a další účely. Zajišťuje registraci na
  * DrD, Trojboj, Gamecon, Placení aj.
  *
@@ -34,14 +34,17 @@ if(!empty($_POST['gcPrihlas']) && $uPracovni && !$uPracovni->gcPrihlasen())
 
 if(!empty($_POST['rychloreg']))
 {
-  $tab=$_POST['rychloreg'];
-  if(empty($tab['login_uzivatele'])) $tab['login_uzivatele']=$tab['email1_uzivatele'];
-  $nid=Uzivatel::rychloreg($tab);
+  $tab = $_POST['rychloreg'];
+  if(empty($tab['login_uzivatele'])) $tab['login_uzivatele'] = $tab['email1_uzivatele'];
+  $tab['souhlas_maily'] = isset($tab['souhlas_maily']) ? 1 : 0;
+  $nid = Uzivatel::rychloreg($tab, [
+    'informovat'  =>  post('informovat'),
+  ]);
   if($nid)
   {
     if($uPracovni) Uzivatel::odhlasKlic('uzivatel_pracovni');
-    $_SESSION["id_uzivatele"]=$nid;
-    $uPracovni=Uzivatel::prihlasId($nid,'uzivatel_pracovni');
+    $_SESSION["id_uzivatele"] = $nid;
+    $uPracovni = Uzivatel::prihlasId($nid,'uzivatel_pracovni');
     if(!empty($_POST['vcetnePrihlaseni'])) $uPracovni->gcPrihlas();
     back();
   }

@@ -534,23 +534,28 @@ class Uzivatel
    * @todo možno evidovat, že uživatel byl regnut na místě
    * @todo poslat mail s něčím jiným jak std hláškou
    */
-  static function rychloreg($tab)
+  static function rychloreg($tab, $opt = [])
   {
     if(!isset($tab['login_uzivatele']) || !isset($tab['email1_uzivatele']))
       throw new Exception('špatný formát $tab (je to pole?)');
-    if(empty($tab['stat_uzivatele'])) $tab['stat_uzivatele']=1;
-    $tab['random']=$rand=randHex(20);
-    $tab['registrovan']=date("Y-m-d H:i:s");
+    $opt = opt($opt, [
+      'informovat'  =>  true,
+    ]);
+    if(empty($tab['stat_uzivatele'])) $tab['stat_uzivatele'] = 1;
+    $tab['random'] = $rand = randHex(20);
+    $tab['registrovan'] = date("Y-m-d H:i:s");
     dbInsert('uzivatele_hodnoty',$tab);
-    $uid=dbLastId();
+    $uid = dbLastId();
     //poslání mailu
-    $tab['id_uzivatele']=$uid;
-    $u=new Uzivatel($tab); //pozor, spekulativní, nekompletní! využito kvůli std rozhraní hlaskaMail
-    $mail=new GcMail(hlaskaMail('rychloregMail',$u,$tab['email1_uzivatele'],$rand));
-    $mail->adresat($tab['email1_uzivatele']);
-    $mail->predmet('Registrace na GameCon.cz');
-    if(!$mail->odeslat())
-      die('Chyba: Email s novým heslem NEBYL odeslán, uživatel má pravděpodobně nastavený neplatný email');
+    if($opt['informovat']) {
+      $tab['id_uzivatele'] = $uid;
+      $u = new Uzivatel($tab); //pozor, spekulativní, nekompletní! využito kvůli std rozhraní hlaskaMail
+      $mail = new GcMail(hlaskaMail('rychloregMail',$u,$tab['email1_uzivatele'],$rand));
+      $mail->adresat($tab['email1_uzivatele']);
+      $mail->predmet('Registrace na GameCon.cz');
+      if(!$mail->odeslat())
+        throw new Exception('Chyba: Email s novým heslem NEBYL odeslán, uživatel má pravděpodobně nastavený neplatný email');
+    }
     return $uid;
   }
 
