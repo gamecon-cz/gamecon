@@ -1,6 +1,12 @@
 <?php
 
 /**
+ * Global variables used by certain functions
+ * not all of them, see also dbConnect()
+ */
+$dbTransactionDepth = 0;
+
+/**
  * Load one column into array in $id => $value manner
  */
 function dbArrayCol($q, $param = null) {
@@ -12,8 +18,37 @@ function dbArrayCol($q, $param = null) {
   return $o;
 }
 
-function dbConnect()
-{
+/**
+ * Begins transaction
+ * @todo support fake nesting by savepoints
+ */
+function dbBegin() {
+  if($GLOBALS['dbTransactionDepth'] == 0) {
+    dbQuery('BEGIN');
+  } else {
+    dbQuery('SAVEPOINT nesttrans' . $GLOBALS['dbTransactionDepth']);
+  }
+  $GLOBALS['dbTransactionDepth']++;
+}
+
+/**
+ * Commits transaction
+ */
+function dbCommit() {
+  if($GLOBALS['dbTransactionDepth'] == 0) {
+    throw new Exception('nothing to commit');
+  } elseif($GLOBALS['dbTransactionDepth'] == 1) {
+    dbQuery('COMMIT');
+  } else {
+    dbQuery('RELEASE SAVEPOINT nesttrans' . ($GLOBALS['dbTransactionDepth'] - 1));
+  }
+  $GLOBALS['dbTransactionDepth']--;
+}
+
+/**
+ *
+ */
+function dbConnect() {
   global $spojeni, $dbLastQ, $dbNumQ, $dbExecTime;
   if($spojeni==NULL)
   {
@@ -41,7 +76,9 @@ function dbConnect()
   }
 }
 
-/** Deletes from $table where all $whereArray column => value conditions are met */
+/**
+ * Deletes from $table where all $whereArray column => value conditions are met
+ */
 function dbDelete($table, $whereArray) {
   $where = array();
   foreach($whereArray as $col => $val) {
@@ -51,7 +88,9 @@ function dbDelete($table, $whereArray) {
   dbQuery('DELETE FROM ' . dbQi($table) . ' WHERE ' . implode(' AND ', $where));
 }
 
-/** Returns 2D array with table structure description */
+/**
+ * Returns 2D array with table structure description
+ */
 function dbDescribe($table) {
   $a = dbQuery('show full columns from '.dbQi($table));
   $out = array();
@@ -59,36 +98,31 @@ function dbDescribe($table) {
   return $out;
 }
 
-function dbLastId()
-{
-  return mysql_insert_id($GLOBALS['spojeni']);
+/**
+ * Returns time spent in database
+ */
+function dbExecTime() {
+  return isset($GLOBALS['dbExecTime']) ? $GLOBALS['dbExecTime'] : 0.0;
 }
 
-/** Returns current time in databse compatible datetime format */
-function dbNow() {
-  return date('Y-m-d H:i:s');
-}
-
-function dbInsert($table,$valArray)
-{
+/**
+ * Inserts values from $valArray as (column => value) into $table
+ */
+function dbInsert($table, $valArray) {
   global $spojeni, $dbLastQ;
   dbConnect();
   $sloupce='';
   $hodnoty='';
-  foreach($valArray as $sloupec => $hodnota)
-  {
-    if($hodnota===NULL)
-    {
+  foreach($valArray as $sloupec => $hodnota) {
+    if($hodnota===NULL) {
       $sloupce.=$sloupec.',';
       $hodnoty.='NULL,';
-    }    
-    else
-    {
+    } else {
       $sloupce.=$sloupec.',';
       if(!get_magic_quotes_gpc()) //vstup není slashován
         $hodnota=addslashes($hodnota);
       $hodnoty.='"'.$hodnota.'",';
-    }  
+    }
   }
   $sloupce=substr($sloupce,0,-1); //useknutí přebytečné čárky na konci
   $hodnoty=substr($hodnoty,0,-1);
@@ -97,17 +131,17 @@ function dbInsert($table,$valArray)
   if(!mysql_query($q, $spojeni)) throw new DbException();
 }
 
-
-/** Insert with actualisation */
-function dbInsertUpdate($table,$valArray)
-{
+/**
+ * Insert with actualisation
+ * @see dbInsert
+ */
+function dbInsertUpdate($table, $valArray) {
   global $dbspojeni, $dbLastQ;
   dbConnect();
   $update='INSERT INTO '.$table.' SET ';
   $dupl=' ON DUPLICATE KEY UPDATE ';
   $vals='';
-  foreach($valArray as $key=>$val)
-  {
+  foreach($valArray as $key=>$val) {
     if($val===NULL)
       $vals .= $key.'=NULL, ';
     else
@@ -122,30 +156,111 @@ function dbInsertUpdate($table,$valArray)
   if(!$r) throw new DbException();
 }
 
-
+/**
+ * Returns iterator suitable for:
+ *   foreach(dbIterator( ...query... ) as $row) { ... }
+ */
 function dbIterator($q, $p = null) {
   $o = dbQuery($q, $p);
   while($r = mysql_fetch_assoc($o)) yield $r;
 }
 
-
-function dbQuery($q, $param = null)
-{
-  global $spojeni,$dbLastQ;
-  if($param) return dbQueryS($q, $param);
-  dbConnect();
-  $dbLastQ=$q; //echo($q.'<br /><br />'."\n\n");
-  $start=microtime(true);
-  $r=mysql_query($q,$GLOBALS['spojeni']);
-  $end=microtime(true);
-  if(!$r) throw new DbException();
-  $GLOBALS['dbNumQ']++;
-  $GLOBALS['dbExecTime']+=$end-$start;  
-  return $r; 
+/**
+ * Return last AUTO INCREMENT value
+ */
+function dbLastId() {
+  return mysql_insert_id($GLOBALS['spojeni']);
 }
 
-/** Dotaz s nahrazováním jmen proměnných, pokud je nastaveno pole, tak jen z 
- *  pole ve forme $0 $1 atd resp $index */
+/**
+ * Return last query
+ */
+function dbLastQ() {
+  global $dbLastQ;
+  return $dbLastQ;
+}
+
+/**
+ * Returns current time in databse compatible datetime format
+ * @todo what about changing to 'now' (because of transactions and stuff)
+ */
+function dbNow() {
+  return date('Y-m-d H:i:s');
+}
+
+/**
+ * Returns number of queries on this connection
+ */
+function dbNumQ() {
+  return isset($GLOBALS['dbNumQ']) ? $GLOBALS['dbNumQ'] : 0;
+}
+
+/**
+ * Expects one column in select. Returns array of selected values.
+ */
+function dbOneArray($q, $p = null) {
+  $o = dbQuery($q, $p);
+  $a = [];
+  while(list($v) = mysql_fetch_row($o)) $a[] = $v;
+  return $a;
+}
+
+/**
+ * For selecting single-line one column values
+ */
+function dbOneCol($q, $p = null) {
+  $a = dbOneLine($q, $p);
+  return $a ? current($a) : null;
+}
+
+/**
+ * Intended for selecting single lines from whatever. If no line found, returns
+ * false, otherwise returns asociative array with one line. If multiple lines
+ * found, causes crash.
+ */
+function dbOneLine($q, $p = null) {
+  $r = dbQueryS($q, $p);
+  if(mysql_num_rows($r)>1) die('multiple lines matched!');
+  elseif(mysql_num_rows($r)<1) return FALSE;
+  else return mysql_fetch_assoc($r);
+}
+
+/**
+ * Single line selector with substitution
+ * @see dbQueryS
+ * @deprecated in favour of dbOneLine
+ */
+function dbOneLineS($q,$array=null)
+{
+  $r=dbQueryS($q,$array);
+  if(mysql_num_rows($r)>1) die('multiple lines matched!');
+  elseif(mysql_num_rows($r)<1) return FALSE;
+  else return mysql_fetch_assoc($r);
+}
+
+/**
+ * Executes arbitrary query on database
+ * strings $1, $2, ... are replaced with values from $param
+ * when $0 exists in, first $params maps to it, otherwise it maps to $1 etc...
+ */
+function dbQuery($q, $param = null) {
+  if($param) return dbQueryS($q, $param);
+  dbConnect();
+  $GLOBALS['dbLastQ'] = $q;
+  $start = microtime(true);
+  $r = mysql_query($q, $GLOBALS['spojeni']);
+  $end = microtime(true);
+  if(!$r) throw new DbException();
+  $GLOBALS['dbNumQ']++;
+  $GLOBALS['dbExecTime'] += $end - $start;
+  return $r;
+}
+
+/**
+ * Dotaz s nahrazováním jmen proměnných, pokud je nastaveno pole, tak jen z
+ * pole ve forme $0 $1 atd resp $index
+ * @deprecated in favour of dbQuery
+ */
 function dbQueryS($q,$pole=null)
 {
   if(isset($pole) && is_array($pole))
@@ -171,9 +286,9 @@ function dbQueryS($q,$pole=null)
 
 /**
  * Quotes array to be used in IN(1,2,3..N) queries
+ * @example 'something IN('.dbQa($array).')'
  */
-function dbQa($array)
-{
+function dbQa($array) {
   $out = '';
   foreach($array as $v)
     $out .= dbQv($v).',';
@@ -184,8 +299,7 @@ function dbQa($array)
  * Quotes input values for DB. Nulls are passed as real NULLs, other values as
  * strings. Quotes $val as value
  */
-function dbQv($val)
-{
+function dbQv($val) {
   if(is_array($val))
     return implode(',', array_map(function($val){ return dbQv($val); }, $val));
   elseif($val===null)
@@ -198,65 +312,30 @@ function dbQv($val)
 
 /**
  * Quotes $val as identifier
- */ 
-function dbQi($val)
-{
+ */
+function dbQi($val) {
   return '`'.( get_magic_quotes_gpc() ? $val : addslashes($val) ).'`';
 }
 
 /**
- * Expects one column in select. Returns array of selected values.
+ *
  */
-function dbOneArray($q, $p = null) {
-  $o = dbQuery($q, $p);
-  $a = [];
-  while(list($v) = mysql_fetch_row($o)) $a[] = $v;
-  return $a;
-}
-
-/**
- * For selecting single-line one column values
- */
-function dbOneCol($q, $p = null)
-{
-  $a = dbOneLine($q, $p);
-  return $a ? current($a) : null;
-} 
-
-/** Intended for selecting single lines from whatever. If no line found, returns
- *  false, otherwise returns asociative array with one line. If multiple lines
- *  found, causes crash. */
-function dbOneLine($q, $p = null)
-{
-  $r = dbQueryS($q, $p);
-  if(mysql_num_rows($r)>1) die('multiple lines matched!');
-  elseif(mysql_num_rows($r)<1) return FALSE;
-  else return mysql_fetch_assoc($r);
-}
-
-/** Single line selector with substitution
- *  @see dbQueryS */
-function dbOneLineS($q,$array=null)
-{
-  $r=dbQueryS($q,$array);
-  if(mysql_num_rows($r)>1) die('multiple lines matched!');
-  elseif(mysql_num_rows($r)<1) return FALSE;
-  else return mysql_fetch_assoc($r);
-}
-
-/* return last query */
-function dbLastQ()
-{
-  global $dbLastQ;
-  return $dbLastQ;
+function dbRollback() {
+  if($GLOBALS['dbTransactionDepth'] == 0) {
+    throw new Exception('nothing to rollback');
+  } elseif($GLOBALS['dbTransactionDepth'] == 1) {
+    dbQuery('ROLLBACK');
+  } else {
+    dbQuery('ROLLBACK TO SAVEPOINT nesttrans' . ($GLOBALS['dbTransactionDepth'] - 1));
+  }
+  $GLOBALS['dbTransactionDepth']--;
 }
 
 /**
  * Executes update on table $table using associtive array $vals as column=>value
  * pairs and $where as column=>value AND column=>value ... where clause
  */
-function dbUpdate($table,$vals,$where)
-{
+function dbUpdate($table, $vals, $where) {
   global $dbspojeni, $dbLastQ;
   dbConnect();
   $q='UPDATE '.dbQi($table)." SET \n";
@@ -276,15 +355,12 @@ function dbUpdate($table,$vals,$where)
   if(!$r) throw new DbException();
 }
 
-function dbNumQ() { return isset($GLOBALS['dbNumQ']) ? $GLOBALS['dbNumQ'] : 0; }
+/**
+ * Exception thrown when error is generated by database
+ */
+class DbException extends Exception {
 
-function dbExecTime() { return isset($GLOBALS['dbExecTime']) ? $GLOBALS['dbExecTime'] : 0.0; }
-
-class DbException extends Exception
-{
-
-  function __construct()
-  {
+  function __construct() {
     $this->message = mysql_error();
   }
 
