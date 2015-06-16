@@ -2,10 +2,7 @@
 
 $this->bezStranky(true);
 
-$q = get('term');
-if(!$q || strlen($q) < 2) exit();
-
-$out = array();
+$out = [];
 foreach(Uzivatel::zHledani($q) as $u) {
   $out[] = array(
     'label' => $u->id().' – '.$u->jmenoNick(),

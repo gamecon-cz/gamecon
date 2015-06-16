@@ -702,16 +702,21 @@ class Uzivatel
   /**
    * Na základě řetězce $dotaz zkusí najít všechny uživatele, kteří odpovídají
    * jménem, nickem, apod.
-   * @todo zvážit jestli použít mail či ne, případně jak to customizovat
    */
-  static function zHledani($dotaz) {
+  static function zHledani($dotaz, $opt = []) {
+    $opt = opt($opt, [
+      'mail'  =>  false,
+      'min'   =>  3, // minimum znaků
+    ]);
+    if(strlen($dotaz) < $opt['min']) return [];
     $q = dbQv($dotaz);
-    $l = dbQv('%'.$dotaz.'%'); // pro LIKE dotazy
+    $l = dbQv($dotaz.'%'); // pro LIKE dotazy
     return self::zWhere("
       WHERE u.id_uzivatele = $q
       OR login_uzivatele LIKE $l
       OR jmeno_uzivatele LIKE $l
       OR prijmeni_uzivatele LIKE $l
+      ".( $opt['mail'] ? " OR email1_uzivatele LIKE $l " : "" )."
       OR CONCAT(jmeno_uzivatele,' ',prijmeni_uzivatele) LIKE $l
     ", null, 'LIMIT 20');
   }
