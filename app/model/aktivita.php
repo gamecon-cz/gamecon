@@ -620,6 +620,11 @@ class Aktivita
     return dbOneCol('SELECT titul_orga FROM akce_typy WHERE id_typu='.$this->a['typ']);
   }
 
+  /** Alias */
+  function otoc() {
+    $this->refresh();
+  }
+
   /** Skupina (id) aktivit. Spíše hack, raději refaktorovat */
   function patriPod() {
     return $this->a['patri_pod'];
@@ -1184,10 +1189,11 @@ class Aktivita
     $chybny = null; // pro uživatele jehož jméno se zobrazí v rámci chyby
     try
     {
+      dbBegin();
       $a = Aktivita::zId(post(self::TEAMKLIC.'Aktivita'));
       if($leader->id() != $a->a['zamcel']) throw new Exception('Nejsi teamleader.');
-      // (pokus o) přihlášení teamleadera na zvolená další kola (pokud jsou)
-      $kola = post(self::KOLA) ?: array();
+      // přihlášení teamleadera na zvolená další kola (pokud jsou)
+      $kola = post(self::KOLA) ?: [];
       foreach($kola as $koloId) {
         $kolo = self::zId($koloId);
         $kolo->prihlas($leader, self::STAV);
@@ -1229,17 +1235,14 @@ class Aktivita
     }
     catch(Exception $e)
     {
-      // rollback
-      foreach($prihlaseni as $clen)
-        $a->odhlas($clen); // TODO bez pokut apod…
-      foreach($prihlaseniLeadera as $kolo)
-        $kolo->odhlas($leader);
+      dbRollback();
       // zobrazení
       if($chybny)
         $chyby[] = 'Nelze, uživateli '.$chybny->jmenoNick().'('.$chybny->id().')'." se při přihlašování objevila chyba:\n• ".$e->getMessage();
       else
         $chyby[] = $e->getMessage();
     }
+    if(empty($chyby)) dbCommit();
     echo json_encode(array('chyby'=>$chyby));
     die();
   }
