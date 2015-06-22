@@ -1,6 +1,6 @@
 <?php
 
-/** 
+/**
  * Vyklikávací tabulky s prezencí na aktivity
  *
  * nazev: Prezence
@@ -21,7 +21,7 @@ $t->assign('casy', _casy($zacatek));
 
 $aktivity = $zacatek ? Aktivita::zRozmezi($zacatek, $zacatek) : array();
 
-if($zacatek && !$aktivity->valid()) $t->parse('prezence.zadnaAktivita');
+if($zacatek && count($aktivity) == 0) $t->parse('prezence.zadnaAktivita');
 if(!$zacatek) $t->parse('prezence.nevybrano');
 
 foreach($aktivity as $a) {
