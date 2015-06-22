@@ -43,7 +43,7 @@
   <hr>
 
   <h2 style="margin-bottom:0"><span class="hinted i">Jídlo <span class="hint">
-    Jídlo je možné objednat nebo zrušit vždy nejpozději den předem.<br><br>
+    Jídlo je možné objednat nebo zrušit vždy nejpozději 2 dny předem.<br><br>
     Máme na výběr z 3–5 jídel, která jsou vždy stejná na oběd i večeři a jedno vegetariánské jídlo.
   </span></span></h2>
   {jidlo}

@@ -98,6 +98,7 @@ class Shop
     while($r = mysql_fetch_assoc($o)) {
       $typ = $r['typ'];
       unset($fronta); // $fronta reference na frontu kam vložit předmět (nelze dát =null, přepsalo by předchozí vrch fronty)
+      if($r['nabizet_do'] && strtotime($r['nabizet_do']) < time()) $r['stav'] = 3;
       $r['nabizet'] = $r['stav'] == 1; // v základu nabízet vše v stavu 1
       // rozlišení kam ukládat a jestli nabízet podle typu
       if($typ == self::PREDMET) {
