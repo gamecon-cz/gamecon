@@ -22,7 +22,10 @@ $t = new XTemplate(__DIR__ . '/prihlaseni-drd.xtpl');
 $semifinale = array();
 $finale = array();
 foreach(Aktivita::zFiltru(array('typ' => 9, 'rok' => ROK)) as $a) {
-  if($a->cenaZaklad() == 0) continue; // hack na určení finále a semifinále
+  if($a->cenaZaklad() == 0) {
+    assert(stripos($a->nazev(), 'finále')); // (semi)finále nebo finále musí být v názvu
+    continue; // hack na určení finále a semifinále
+  }
   if(!$finale) { // načtení finále a semifinále
     foreach($a->deti() as $dite) $semifinale[] = $dite;
     foreach($semifinale[0]->deti() as $dite) $finale[] = $dite;

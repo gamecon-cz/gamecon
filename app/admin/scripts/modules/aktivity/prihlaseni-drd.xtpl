@@ -1,7 +1,7 @@
 <!-- begin:drd -->
 
 <!-- begin:druzina -->
-  <b>{a.orgJmena}
+  <b>{a.tym.cislo}. {a.tym.nazev} – {a.orgJmena}
   <!-- begin:zakladni --><span style="color: #f00"> – skončili v základním</span><!-- end:zakladni -->
   <!-- begin:semifinale --><span style="color: #f60"> – skončili v semifinále</span><!-- end:semifinale -->
   <!-- begin:finale --><span style="color: #0a0"> – postoupili do finále</span><!-- end:finale -->
@@ -27,5 +27,15 @@
 
   <br>
 <!-- end:druzina -->
+
+<script src="files/scroll-sneak.js"></script>
+<script>
+$(function(){
+  var sneaky = new ScrollSneak(location.hostname);
+  $('[name^=vypadli]').each(function(){
+    $(this).click(sneaky.sneak);
+  });
+});
+</script>
 
 <!-- end:drd -->
