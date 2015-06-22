@@ -146,7 +146,7 @@ function tgEl(e, fo, fc) {
   fc = typeof fc !== 'undefined' ? fc : function(){};
   var ap = e;
   var oh = ap.height();
-  ap.css({'max-height': 'initial', 'height': 'initial'});
+  ap.css({'max-height': 'none', 'height': 'auto'});
   var mh = ap.height();
   if(mh > oh) {
     ap.height(oh);
