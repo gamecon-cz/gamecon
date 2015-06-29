@@ -1,12 +1,12 @@
 <?php
 
-/** 
+/**
  * Stránka pro přehled všech přihlášených na aktivity
  *
  * nazev: Seznam přihlášených
  * pravo: 102
  */
- 
+
 $xtpl2=new XTemplate('prihlaseni.xtpl');
 
 $o = dbQuery('SELECT id_typu, typ_1pmn FROM akce_typy');
@@ -24,7 +24,7 @@ if(!isset($_GET['typ']))
 
 $odpoved=dbQuery('
   SELECT a.nazev_akce as nazevAktivity, a.id_akce as id, (a.kapacita+a.kapacita_m+a.kapacita_f) as kapacita, a.zacatek, a.konec,
-    u.login_uzivatele as nick, u.jmeno_uzivatele as jmeno,
+    u.login_uzivatele as nick, u.jmeno_uzivatele as jmeno, u.id_uzivatele,
     u.prijmeni_uzivatele as prijmeni, u.email1_uzivatele as mail, u.telefon_uzivatele as telefon,
     GROUP_CONCAT(org.login_uzivatele) AS orgove,
     CONCAT(l.nazev,", ",l.nazev_interni,", ",l.dvere) as mistnost
@@ -45,18 +45,15 @@ $dalsiPrihlaseni=mysql_fetch_array($odpoved);
 $obsazenost=0;
 $odd=0;
 $maily=array();
-while($totoPrihlaseni)
-{
+while($totoPrihlaseni) {
   $xtpl2->assign($totoPrihlaseni);
-  if($totoPrihlaseni['nick'])
-  {
+  if($totoPrihlaseni['id_uzivatele']) {
     $xtpl2->assign('odd',$odd?$odd='':$odd='odd');
     $xtpl2->parse('prihlaseni.aktivita.lide.clovek');
     $maily[]=$totoPrihlaseni['mail'];
     $obsazenost++;
   }
-  if($totoPrihlaseni['id']!=$dalsiPrihlaseni['id'])
-  {
+  if($totoPrihlaseni['id']!=$dalsiPrihlaseni['id']) {
     $xtpl2->assign('maily',implode('; ',$maily));
     $xtpl2->assign('cas',datum2($totoPrihlaseni));
     $xtpl2->assign('orgove', $totoPrihlaseni['orgove']);
@@ -68,12 +65,10 @@ while($totoPrihlaseni)
     $obsazenost=0;
     $odd=0;
     $maily=array();
-  }  
+  }
   $totoPrihlaseni=$dalsiPrihlaseni;
   $dalsiPrihlaseni=mysql_fetch_array($odpoved);
 }
 
 $xtpl2->parse('prihlaseni');
 $xtpl2->out('prihlaseni');
-
-?>
