@@ -130,7 +130,7 @@ if($uPracovni && $uPracovni->gcPrihlasen())
       '(žádní)',
     'id'              =>  $up->id(),
     'pokoj'           =>  $pokoj ? $pokoj->cislo() : '(nepřidělen)',
-    'spolubydlici'    =>  array_uprint($spolubydlici, function($e){ return '<li>'.$e->jmenoNick().' ('.$e->id().')</li>'; }),
+    'spolubydlici'    =>  array_uprint($spolubydlici, function($e){ return "<li> {$e->jmenoNick()} ({$e->id()}) {$e->telefon()} </li>"; }),
     'aa'              =>  $u->koncA(),
     'org'             =>  $u->jmenoNick(),
     'up'              =>  $up,
