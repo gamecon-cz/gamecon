@@ -106,6 +106,17 @@ function dbExecTime() {
 }
 
 /**
+ * Returns instance of concrete DbException based on error message
+ */
+function dbGetExceptionType() {
+  $keys = [
+    1062 => 'DbDuplicateEntryException',
+  ];
+  if(isset($keys[mysql_errno()])) return $keys[mysql_errno()];
+  else return 'DbException';
+}
+
+/**
  * Inserts values from $valArray as (column => value) into $table
  */
 function dbInsert($table, $valArray) {
@@ -128,7 +139,7 @@ function dbInsert($table, $valArray) {
   $hodnoty=substr($hodnoty,0,-1);
   $q='INSERT INTO '.$table.' ('.$sloupce.') VALUES ('.$hodnoty.')';
   $dbLastQ=$q;
-  if(!mysql_query($q, $spojeni)) throw new DbException();
+  if(!mysql_query($q, $spojeni)) { $type = dbGetExceptionType(); throw new $type(); }
 }
 
 /**
@@ -153,7 +164,7 @@ function dbInsertUpdate($table, $valArray) {
   $start=microtime(true);
   $r=mysql_query($q,$GLOBALS['spojeni']);
   $end=microtime(true);
-  if(!$r) throw new DbException();
+  if(!$r) { $type = dbGetExceptionType(); throw new $type(); }
 }
 
 /**
@@ -365,3 +376,5 @@ class DbException extends Exception {
   }
 
 }
+
+class DbDuplicateEntryException extends DbException {}
