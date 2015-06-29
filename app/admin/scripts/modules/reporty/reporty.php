@@ -10,7 +10,7 @@
  */
 
 $reporty = [
-  ['aktivity',          'Historie přihlášení na aktivity'],
+  ['aktivity',          'Historie přihlášení na aktivity',        ['csv', 'html']],
   //['neplatici',         'Neplatiči letos'], // duplikuje bfgr a finance, nemá smysl udržovat
   ['spolupracovnici',   'Spolupracovníci (orgové, info, zázemí, vypravěči+aktivity)'],
   ['pocty-her',         'Účastníci a počty jejich aktivit'],

@@ -18,16 +18,17 @@ $o = dbQuery('
   FROM akce_seznam a
   LEFT JOIN akce_prihlaseni p ON (a.id_akce=p.id_akce)
   LEFT JOIN akce_typy t ON (a.typ=t.id_typu)
-  GROUP BY p.id_akce
+  GROUP BY a.id_akce
   ORDER BY a.typ, a.nazev_akce, a.rok
 ');
 
 $p = [];
 while($r = mysql_fetch_assoc($o)) {
   $a = Aktivita::zId($r['id_akce']);
-  unset($r['id_akce']);
   $r['priznany_bonus'] = $a ? Finance::slevaZaAktivitu($a) * count($a->organizatori()) : 0;
   $p[] = $r;
 }
 
-Report::zPole($p)->tCsv();
+$report = Report::zPole($p);
+$format = get('format') == 'html' ? 'tHtml' : 'tCsv';
+$report->$format();
