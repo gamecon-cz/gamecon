@@ -176,9 +176,12 @@ $loginy=substr($loginy,0,-1);
 
 <script>
 $(function(){
+
   function formChyby(){
     err='';
-    if( [<?=$loginy?>].indexOf( $('[name="tab[login_uzivatele]"]').val().toLowerCase() )!=-1 )
+    var loginy = [<?=$loginy?>];
+    loginy.forEach(function(a, i){ loginy[i] = bezdiak(a); });
+    if( loginy.indexOf(bezdiak($('[name="tab[login_uzivatele]"]').val().toLowerCase())) != -1 )
     {
       err+='Přezdívka je už zabraná. ';
       <?php if(!$u){ ?>
@@ -202,14 +205,29 @@ $(function(){
     if(!$('[name="tab[pohlavi]"]:checked').size()) err+='Není vybráno pohlaví.\n';
     return err;
   }
+
   function jeMail(mail){
     return mail.search(/^[a-z0-9_\-\.]+@[a-z0-9_\-\.]+\.(cz|com|sk|net|eu|org|uk|tk)$/)==0; //todo
   }
+
   function registrovanyMail(mail,complete){
     $.getJSON(document.URL,{testMailu:true,mail:mail},function(data){
       complete(data.vysledek);
     });
   }
+
+  sdiak="áäčďéěíĺľňóôőöŕšťúůűüýřžÁÄČĎÉĚÍĹĽŇÓÔŐÖŔŠŤÚŮŰÜÝŘŽ";
+  bdiak="aacdeeillnoooorstuuuuyrzAACDEEILLNOOOORSTUUUUYRZ";
+  function bezdiak(v) {
+    tx=""; txt=v;
+    for(p=0;p<txt.length;p++) {
+      if (sdiak.indexOf(txt.charAt(p))!=-1)
+      tx+=bdiak.charAt(sdiak.indexOf(txt.charAt(p)));
+      else tx+=txt.charAt(p);
+    }
+    return tx;
+  }
+
   <?php if(!$u){ ?>
   $('[name="tab[email1_uzivatele]"]').keyup(function(){
     mail=$('[name="tab[email1_uzivatele]"]').val().toLowerCase();
