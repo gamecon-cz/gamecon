@@ -66,9 +66,9 @@
     <div class="obsah">
       {obsah}
       <div class="sloupce">
-        <a class="blok upoutavka" href="minihry">
+        <a class="blok upoutavka" href="minihra">
           <img src="soubory/obsah/titulka/minihry.jpg">
-          <div class="stredni"><div>Minihry na GC</div></div>
+          <div class="stredni"><div>Minihra na GC</div></div>
         </a>
         <a class="lightbox blok upoutavka yt" href="http://www.youtube.com/watch?v=fPs0hmLJlV0" data-height="480">
           <div class="ikona play" style="position:absolute; font-size:140px; line-height:100%; width: 100%; text-align: center; color: #fff; opacity: 0.8; margin-top: 18px; text-shadow: 0 0 5px #000;"></div>
