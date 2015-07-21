@@ -5,11 +5,12 @@ $GLOBALS['SKRIPT_ZACATEK'] = microtime(true); // profiling
 /**
  * Vrátí míru diverzifikace aktivit v poli udávajícím počty aktivit od jedno-
  * tlivých typů. Délka pole ovlivňuje výsledek (je potřeba aby obsahovalo i 0)
- */  
+ */
 function aktivityDiverzifikace($poleTypu)
 {
   $typu=count($poleTypu);
   $pocet=array_sum($poleTypu);
+  if($pocet == 0) return 0.0;
   $pocty=$poleTypu;
   rsort($pocty,SORT_NUMERIC);
   $max=($pocet-$pocty[0])/($pocet*($typu-1));
