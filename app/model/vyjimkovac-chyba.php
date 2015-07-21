@@ -88,6 +88,11 @@ class VyjimkovacChyba {
 
   static function zVyjimky(Exception $e) {
     $r = self::radekInit();
+    try {
+      $es = serialize($e);
+    } catch(Exception $e) {
+      $es = null;
+    }
     $r = array_merge($r, [
       'jazyk'     => 'php',
       'radek'     => $e->getLine(),
@@ -95,7 +100,7 @@ class VyjimkovacChyba {
       'typ'       => get_class($e),
       'zavaznost' => 3,
       'zprava'    => $e->getMessage(),
-      'vyjimka'   => base64_encode(serialize($e)),
+      'vyjimka'   => base64_encode($es),
     ]);
     if($e instanceof DbException) {
       $r['data'] = trim($e->getTrace()[0]['args'][0]);
