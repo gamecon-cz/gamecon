@@ -31,7 +31,7 @@ $stranka=$req[0];
 $podstranka=isset($req[1])?$req[1]:'';
 
 // zobrazení stránky
-if(!$u)
+if(!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny']))
 {
   $xtpl->parse('all.prihlaseni');
   $xtpl->parse('all');
