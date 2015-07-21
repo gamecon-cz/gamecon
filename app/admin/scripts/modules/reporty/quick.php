@@ -5,6 +5,15 @@
  * pravo: 104
  */
 
+function getConstants() {
+  $c = get_defined_constants(true)['user'];
+  $keys = array_keys($c);
+  array_walk($keys, function(&$k) {
+    $k = '{' . str_replace('_', '', lcfirst(ucwords(strtolower($k), '_'))) . '}';
+  });
+  $c = array_combine($keys, $c);
+  return $c;
+}
 
 $r = null;
 $f = new DbFormGc('reporty');
@@ -15,9 +24,7 @@ if(get('id')) {
 $f->processPost();
 
 if($r) {
-  $sql = strtr($r['dotaz'], [
-    '{rok}' =>  ROK,
-  ]);
+  $sql = strtr($r['dotaz'], getConstants());
   try {
     ob_start();
     Report::zSql($sql)->tHtml(Report::BEZ_STYLU);
