@@ -2,63 +2,61 @@
 
 /**
  * Třída pro sestavování mailu
- */ 
+ */
 
-class GcMail
-{
+class GcMail {
 
   protected $predmet, $adresat, $odesilatel, $text;
-  
-  public function __construct($zprava)
-  {
-    $this->text=$zprava;
+
+  function __construct($zprava = '') {
+    $this->text = $zprava;
   }
-  
-  public function adresat($a=null)
-  { return $a?$this->adresat=$a:$this->adresat; }
-  
-  public function odesilatel($a=null)
-  {
-    //todo (potřeba implementovat v GcMail::odeslat()) 
+
+  function adresat($a = null) {
+    return $a ? $this->adresat = $a : $this->adresat;
   }
-  
+
+  function odesilatel($a = null) {
+    //todo (potřeba implementovat v GcMail::odeslat())
+  }
+
   /**
    * Odešle sestavenou zprávu
-   * Starý kód, možno fixnout   
-   */      
-  public function odeslat()
-  {
+   * Starý kód, možno fixnout
+   */
+  public function odeslat() {
     $adresat = VETEV == VYVOJOVA ? 'godric@korh.cz' : $this->adresat ; //TODO místo odeslání někam logovat
 
-    $from='=?UTF-8?B?'.base64_encode('GameCon').'?= <info@gamecon.cz>';
-    $headers=array(
+    $from = self::encode('GameCon').' <info@gamecon.cz>';
+    $headers = [
       'MIME-Version: 1.0',
       'Content-Type: text/html; charset="UTF-8";',
       'From: ' . $from,
       'Reply-To: ' . $from
-    );
-    
+    ];
+
     return mail(
       $adresat,
-      '=?UTF-8?B?'.base64_encode($this->predmet).'?=',
+      self::encode($this->predmet),
       $this->text,
       implode("\r\n", $headers)
     );
   }
-  
-  public function predmet($a=null)
-  { return $a?$this->predmet=$a:$this->predmet; }
-  
-  ////////// protected věci //////////
-  
-  /**
-   * Magic
-   */     
-  static protected function headerEnc($text, $encoding="utf-8")
-  {
-    return "=?$encoding?Q?".imap_8bit($text)."?=";
-  }
-        
-}
 
-?>
+  function predmet($a = null) {
+    return $a ? $this->predmet = $a : $this->predmet;
+  }
+
+  function text(...$a) {
+    if(empty($a)) return $this->text;
+    $this->text = $a[0];
+    return $this;
+  }
+
+  /** Enkóduje utf-8 text pro použití v hlavičce */
+  protected static function encode($text) {
+    return '=?UTF-8?B?'.base64_encode($text).'?=';
+    //return "=?$encoding?Q?".imap_8bit($text)."?=";
+  }
+
+}
