@@ -23,7 +23,7 @@ class Menu {
     'prakticke-informace' =>  'Praktické informace',
     'forum'               =>  'Fórum',
     'kontakty'            =>  'Kontakty',
-    'https://www.facebook.com/media/set/?set=a.846204775390859.1073741832.127768447234499&type=3' => 'Fotogalerie',
+    'https://www.facebook.com/media/set/?set=a.1049227911755210.1073741834.127768447234499&type=3&pnref=story&hc_location=ufi' => 'Fotogalerie',
   );
 
   function __construct(Uzivatel $u = null) {
