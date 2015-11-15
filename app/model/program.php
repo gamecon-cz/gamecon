@@ -20,6 +20,7 @@ class Program {
     'technicke'     => false, // jestli jdou vidět technické aktivity
     'skupiny'       => 'linie', // seskupování programu - po místnostech nebo po liniích
     'prazdne'       => false, // zobrazovat prázdné skupiny?
+    'zpetne'        => false, // jestli smí měnit přihlášení zpětně
   ];
   private $grpf; // název metody na objektu aktivita, podle které se groupuje
 
@@ -187,7 +188,10 @@ class Program {
       ( $a['obj']->typ() != 10 || $this->nastaveni['technicke'] ) && // hack na nezobrazování přihlašovátek pro technické
       ( $a['obj']->typ() != 9 || $this->nastaveni['drdPrihlas'] ) // hack na nezobrazování přihlašovátek pro DrD
     ) {
-      echo ' '.$a['obj']->prihlasovatko($this->u, $this->nastaveni['plusMinus'] ? Aktivita::PLUSMINUS_KAZDY : 0);
+      $parametry = 0;
+      if($this->nastaveni['plusMinus']) $parametry |= Aktivita::PLUSMINUS_KAZDY;
+      if($this->nastaveni['zpetne']) $parametry |= Aktivita::ZPETNE;
+      echo ' '.$a['obj']->prihlasovatko($this->u, $parametry);
     }
     if($this->nastaveni['teamVyber']) {
       echo $a['obj']->vyberTeamu($this->u);

@@ -29,6 +29,7 @@ class Aktivita
     PLUSMINUS_KAZDY = 0b00000010,   // plus/mínus zkratky pro každého
     STAV            = 0b00000100,   // ignorování stavu
     ZAMEK           = 0b00001000,   // ignorování zamčení
+    ZPETNE          = 0b00100000,   // možnost zpětně měnit přihlášení
     // parametry kolem továrních metod
     JEN_VOLNE       = 0b00000001,   // jen volné aktivity
     VEREJNE         = 0b00000010;   // jen veřejně viditelné aktivity
@@ -690,7 +691,6 @@ class Aktivita
     if($this->prihlasen($u))          return;
     if(!maVolno($u->id(), $this->a))  throw new Chyba(hlaska('kolizeAktivit')); // TODO převést na metodu uživatele
     if(!$u->gcPrihlasen())            throw new Exception('Nemáš aktivní přihlášku na GameCon.');
-    if(!REG_AKTIVIT)                  throw new Exception('Přihlašování není spuštěno.');
     if($this->volno()!='u' && $this->volno()!=$u->pohlavi()) throw new Chyba(hlaska('plno'));
     foreach($this->deti() as $dite) { // nemůže se přihlásit na aktivitu, pokud už je přihášen na jinou aktivitu s stejnými potomky
       foreach($dite->rodice() as $rodic) {
@@ -698,12 +698,12 @@ class Aktivita
       }
     }
     // potlačitelné kontroly
-    if($this->a['zamcel'] && !($ignorovat&self::ZAMEK)) throw new Chyba(hlaska('zamcena'));
-    if(!$this->prihlasovatelna()) {
+    if($this->a['zamcel'] && !($ignorovat & self::ZAMEK)) throw new Chyba(hlaska('zamcena'));
+    if(!$this->prihlasovatelna($ignorovat)) {
       // hack na ignorování stavu
       $puvodniStav = $this->a['stav'];
       if($ignorovat & self::STAV) $this->a['stav'] = 1; // nastavíme stav jako by bylo vše ok
-      $prihlasovatelna = $this->prihlasovatelna();
+      $prihlasovatelna = $this->prihlasovatelna($ignorovat);
       $this->a['stav'] = $puvodniStav;
       if(!$prihlasovatelna) throw new Exception('Aktivita není otevřena pro přihlašování.');
     }
@@ -795,11 +795,20 @@ class Aktivita
   }
 
   /** Zdali chceme, aby se na aktivitu bylo možné běžně přihlašovat */
-  function prihlasovatelna()
-  {
+  function prihlasovatelna($parametry = 0) {
+    $zpetne = $parametry & self::ZPETNE;
     // stav 4 je rezervovaný pro viditelné nepřihlašovatelné aktivity
     // typ 10 je hack, kde technickou aktivitu pokud vidí, může se i přihlásit
-    return(REG_AKTIVIT && ( $this->a['stav']==1 || $this->a['stav']==0 && $this->a['typ']==10 ) && $this->a['zacatek']);
+    return(
+      (REG_AKTIVIT || $zpetne && po(REG_GC_DO)) &&
+      (
+        $this->a['stav'] == 1 ||
+        $this->a['stav'] == 0 && $this->a['typ'] == 10 ||
+        $zpetne && $this->a['stav'] == 2
+      ) &&
+      $this->a['zacatek'] &&
+      $this->a['typ']
+    );
   }
 
   /**
@@ -808,44 +817,35 @@ class Aktivita
    * @todo v rodině instancí maximálně jedno přihlášení?
    * @todo konstanty pro jména POST proměnných? viz prihlasovatkoZpracuj
    */
-  function prihlasovatko(Uzivatel $u = null, $parametry = 0)
-  {
+  function prihlasovatko(Uzivatel $u = null, $parametry = 0) {
     $out = '';
-    if(REG_AKTIVIT && $u && $u->gcPrihlasen() && $this->a['typ'] && $this->prihlasovatelna())
-    {
-      if( ($stav = $this->prihlasenStav($u)) > -1 )
-      {
-        if($stav==0)
-          $out =
+    if($u && $u->gcPrihlasen() && $this->prihlasovatelna($parametry)) {
+      if(($stav = $this->prihlasenStav($u)) > -1) {
+        if($stav == 0 || $parametry & self::ZPETNE)
+          $out .=
             '<form method="post" style="display:inline">'.
             '<input type="hidden" name="odhlasit" value="'.$this->id().'">'.
             '<a href="#" onclick="$(this).parent().submit(); return false">odhlásit</a>'.
             '</form>';
-        if($stav==1) $out = '<em>účast</em>';
-        if($stav==2) $out = '<em>jako náhradník</em>';
-        if($stav==3) $out = '<em>neúčast</em>';
-        if($stav==4) $out = '<em>pozdní odhlášení</em>';
-      }
-      elseif($this->organizuje($u->id()))
-      {
+        if($stav == 1) $out .= '<em>účast</em>';
+        if($stav == 2) $out .= '<em>jako náhradník</em>';
+        if($stav == 3) $out .= '<em>neúčast</em>';
+        if($stav == 4) $out .= '<em>pozdní odhlášení</em>';
+      } elseif($this->organizuje($u->id())) {
         $out = '';
-      }
-      elseif($this->a['zamcel'])
-      {
+      } elseif($this->a['zamcel']) {
         $out = '&#128274;'; //zámek
-      }
-      else
-      {
+      } else {
         $volno = $this->volno();
-        if($volno=='u' || $volno==$u->pohlavi())
+        if($volno == 'u' || $volno == $u->pohlavi())
           $out =
             '<form method="post" style="display:inline">'.
             '<input type="hidden" name="prihlasit" value="'.$this->id().'">'.
             '<a href="#" onclick="$(this).parent().submit(); return false">přihlásit</a>'.
             '</form>';
-        elseif($volno=='f')
+        elseif($volno == 'f')
           $out = 'pouze ženská místa';
-        elseif($volno=='m')
+        elseif($volno == 'm')
           $out = 'pouze mužská místa';
       }
     }
@@ -863,7 +863,8 @@ class Aktivita
       back();
     }
     if(post('odhlasit')) {
-      self::zId(post('odhlasit'))->odhlas($u);
+      $bezPokut = $parametry & self::ZPETNE ? self::BEZ_POKUT : 0; // v případě zpětných změn bez pokut
+      self::zId(post('odhlasit'))->odhlas($u, $bezPokut);
       back();
     }
     if($parametry & self::PLUSMINUS_KAZDY) {

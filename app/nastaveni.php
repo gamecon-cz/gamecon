@@ -59,6 +59,7 @@ define('P_ORG_AKCI',4);         //může organizovat aktivity
 define('P_KRYTI_AKCI',5);       //může být na víc aktivitách naráz (org skupiny typicky)
 define('P_SPOULUPRACOVNIK',6);  //zobrazení v reportu spolupracovníci
 define('P_PLNY_SERVIS',7);      //uživatele kompletně platí a zajišťuje GC
+define('P_ZMENA_HISTORIE', 8);
 define('P_TRIKO_ZDARMA',1000);  //(organizátorské) tričko zdarma
 define('P_TRIKO_ZAPUL',1001);   //(vypravěčské) tričko za polovic
 define('P_PLACKA_ZDARMA',1002);

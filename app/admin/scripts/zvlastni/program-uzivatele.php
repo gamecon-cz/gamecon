@@ -2,16 +2,20 @@
 
 $osobniProgram = isset($osobniProgram) ? (bool)$osobniProgram : false;
 
-$program=new Program($uPracovni, array(
+$program = new Program($uPracovni, array(
   'drdPj'       => true,
   'drdPrihlas'  => true,
   'plusMinus'   => true,
   'osobni'      => $osobniProgram,
   'teamVyber'   => true,
   'technicke'   => true,
+  'zpetne'      => $u->maPravo(P_ZMENA_HISTORIE),
 ));
 if($uPracovni) {
-  Aktivita::prihlasovatkoZpracuj($uPracovni, Aktivita::PLUSMINUS_KAZDY);
+  Aktivita::prihlasovatkoZpracuj($uPracovni,
+    Aktivita::PLUSMINUS_KAZDY |
+    ($u->maPravo(P_ZMENA_HISTORIE) ? Aktivita::ZPETNE : 0)
+  );
   Aktivita::vyberTeamuZpracuj($uPracovni);
 }
 
@@ -29,7 +33,7 @@ $chyba = chyba::vyzvedniHtml();
     <?php $program->css(); ?>
     <style>
       body {
-        font-family: tahoma;
+        font-family: tahoma, sans;
         font-size: 11px;
         text-align: center;
         background-color: #f0f0f0;

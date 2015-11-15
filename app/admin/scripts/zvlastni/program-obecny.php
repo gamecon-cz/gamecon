@@ -12,7 +12,7 @@ $zoom=empty($_GET['zoom'])?100:(int)$_GET['zoom'];
     <?php $program->css(); ?>
     <style>
       body { 
-        font-family: tahoma;
+        font-family: tahoma, sans;
         font-size: 11px;
         text-align: center;
         background-color: #f0f0f0; }
