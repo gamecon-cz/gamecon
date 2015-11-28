@@ -1,13 +1,14 @@
 <?php
 
-/** 
+/**
  * Stránka statistik GC
  *
  * nazev: Statistiky
  * pravo: 107
  */
 
-$ucastQ='SELECT 
+$ucast = tabMysql(dbQuery('
+  SELECT
     if(jmeno_zidle="Vypravěč","Vypravěč (-org)",jmeno_zidle) as " ", 
     count(z.id_uzivatele) as "Celkem",
     count(tPrihlasen.id_zidle) as Přihlášen
@@ -23,13 +24,11 @@ $ucastQ='SELECT
   )
   LEFT JOIN r_uzivatele_zidle tPrihlasen ON(tPrihlasen.id_zidle='.ID_ZIDLE_PRIHLASEN.' AND tPrihlasen.id_uzivatele=z.id_uzivatele)
   WHERE zs.id_zidle IN (10,6,7,2,'.ID_ZIDLE_PRIHLASEN.','.ID_ZIDLE_PRITOMEN.')
-  GROUP BY zs.id_zidle';
-$ucast=tabMysql(dbQuery($ucastQ));
-$zbyva=new DateTime(DEN_PRVNI_DATE);
-$zbyva=$zbyva->diff(new DateTime());
-$zbyva=$zbyva->format('%a dní').' ('.round($zbyva->format('%a')/7,1).' týdnů)';
+  GROUP BY zs.id_zidle
+'));
 
-$q='SELECT
+$predmety = tabMysql(dbQuery('
+  SELECT
     p.nazev Název,
     p.model_rok Model,
     COUNT(n.id_predmetu) Počet
@@ -37,17 +36,21 @@ $q='SELECT
   JOIN shop_predmety p ON(n.id_predmetu=p.id_predmetu)
   WHERE n.rok='.ROK.' AND (p.typ=1 OR p.typ=3)
   GROUP BY n.id_predmetu
-  -- ORDER BY p.typ, Počet DESC';
-$predmety=tabMysql(dbQuery($q));
-$q='SELECT
+  -- ORDER BY p.typ, Počet DESC
+'));
+
+$ubytovani = tabMysql(dbQuery('
+  SELECT
     p.nazev Název,
     COUNT(n.id_predmetu) Počet
   FROM shop_nakupy n
   JOIN shop_predmety p ON(n.id_predmetu=p.id_predmetu)
   WHERE n.rok='.ROK.' AND (p.typ=2)
-  GROUP BY n.id_predmetu';
-$ubytovani=tabMysql(dbQuery($q));
-$q='SELECT
+  GROUP BY n.id_predmetu
+'));
+
+$ubytovaniKratce = tabMysql(dbQuery('
+  SELECT
     SUBSTR(p.nazev,11) Den,
     COUNT(n.id_predmetu) Počet
   FROM shop_nakupy n
@@ -64,18 +67,29 @@ UNION ALL
     WHERE n.rok='.ROK.'
     GROUP BY n.id_uzivatele
   ) nn ON(nn.id_uzivatele=z.id_uzivatele)
-  WHERE id_zidle='.Z_PRIHLASEN.' AND ISNULL(nn.id_uzivatele)';
-$ubytovaniKratce=tabMysql(dbQuery($q));
-$q='SELECT
-    p.nazev Název,
-    COUNT(n.id_predmetu) Počet
-  FROM shop_nakupy n
-  JOIN shop_predmety p ON(n.id_predmetu=p.id_predmetu)
-  WHERE n.rok='.ROK.' AND (p.typ=4)
-  GROUP BY n.id_predmetu';
-$jidlo=tabMysql(dbQuery($q));
+  WHERE id_zidle='.Z_PRIHLASEN.' AND ISNULL(nn.id_uzivatele)
+'));
 
-$q='SELECT
+$jidlo = tabMysql(dbQuery('
+  SELECT
+    TRIM(p.nazev) Název,
+    COUNT(n.id_predmetu) Počet,
+    COUNT(slevy.id_uzivatele) as Sleva
+  FROM shop_nakupy n
+  JOIN shop_predmety p ON n.id_predmetu = p.id_predmetu
+  LEFT JOIN (
+    SELECT uz.id_uzivatele -- id uživatelů s právy uvedenými níž
+    FROM r_uzivatele_zidle uz
+    JOIN r_prava_zidle pz ON pz.id_zidle = uz.id_zidle AND pz.id_prava IN('.P_JIDLO_ZDARMA.', '.P_JIDLO_SLEVA.')
+    GROUP BY uz.id_uzivatele
+  ) slevy ON slevy.id_uzivatele = n.id_uzivatele
+  WHERE n.rok = '.ROK.' AND p.typ = 4
+  GROUP BY n.id_predmetu
+  ORDER BY p.ubytovani_den, p.nazev
+'));
+
+$pohlavi = tabMysqlR(dbQuery('
+  SELECT
     "Počet" as " ", -- formátování
     SUM(IF(u.pohlavi="m",1,0)) as Muži,
     SUM(IF(u.pohlavi="f",1,0)) as Ženy,
@@ -83,21 +97,12 @@ $q='SELECT
   FROM r_prava_zidle pz
   JOIN r_uzivatele_zidle uz ON(pz.id_zidle=uz.id_zidle)
   JOIN uzivatele_hodnoty u ON(uz.id_uzivatele=u.id_uzivatele)
-  WHERE pz.id_prava='.ID_PRAVO_PRIHLASEN;
-$pohlavi=tabMysqlR(dbQuery($q));
-
-$jidloVypraveci = tabMysql(dbQuery('
-  select sp.nazev as Název, count(1) as Počet from shop_nakupy sn
-  join shop_predmety sp on(sn.id_predmetu = sp.id_predmetu and sp.typ = 4 and sp.model_rok = 2014)
-  join (
-  select id_uzivatele from uzivatele_hodnoty
-  join r_uzivatele_zidle using(id_uzivatele)
-  join r_prava_zidle using(id_zidle)
-  where id_prava = '.P_JIDLO_ZDARMA.' or id_prava = '.P_JIDLO_SLEVA.'
-  group by id_uzivatele
-  ) vypraveci on(vypraveci.id_uzivatele = sn.id_uzivatele)
-  group by sp.id_predmetu
+  WHERE pz.id_prava='.ID_PRAVO_PRIHLASEN.'
 '));
+
+$zbyva=new DateTime(DEN_PRVNI_DATE);
+$zbyva=$zbyva->diff(new DateTime());
+$zbyva=$zbyva->format('%a dní').' ('.round($zbyva->format('%a')/7,1).' týdnů)';
 
 $q='SELECT 
     DATE(z.posazen) as den, 
@@ -240,8 +245,8 @@ $prihlaseni='['.substr($prihlaseni,0,-1).']';
 
 <div style="float:left"><?=$predmety?></div>
 <div style="float:left;margin-left:20px"><?=$ubytovani?></div>
-<div style="float:left;margin-left:20px"><?=$ubytovaniKratce?><br><?=$jidlo?></div>
-<div style="float:left;margin-left:20px">Jídlo zdarma a se slevou<br><?=$jidloVypraveci?></div>
+<div style="float:left;margin-left:20px"><?=$ubytovaniKratce?></div>
+<div style="float:left;margin-left:20px"><?=$jidlo?></div>
 
 <div style="clear:both"></div>
 
@@ -252,7 +257,7 @@ $prihlaseni='['.substr($prihlaseni,0,-1).']';
 </style>
 <div class="dlouhodobeStaty">
 
-<table>  
+<table>
   <tr><th></th>                       <th>2009</th>   <th>2010</th>   <th>2011</th>   <th>2012</th>   <th>2013</th>   <th>2014</th>   <th>2015</th></tr>
   <tr><td>Registrovaní</td>           <td>339</td>    <td>377</td>    <td>383</td>    <td>357</td>    <td>433</td>    <td>520</td>    <td>?</td></tr>
   <tr><td>Dorazilo</td>               <td>68?</td>    <td>350</td>    <td>339</td>    <td>319</td>    <td>389</td>    <td>470</td>    <td>?</td></tr>
