@@ -26,6 +26,7 @@ $reporty = [
   ['stravenky',         'Stravenky uživatelů',                    ['html']],
   ['stravenky?ciste',   'Stravenky (bianco)',                     ['html']],
   ['programove-reporty', 'Programový report (2015)', ['csv', 'html']],
+  ['zaplnenost-programu-ucastniku', 'Zaplněnost programu účastníků (2015)', ['csv', 'html']],
   ['vsechny-maily-mailchimp', 'Všechny maily pro mailchimp'],
   ['prihlaseni-maily',  'Všechny maily přihlášených účastníků pro mailchimp'],
   ['celkovy-report',    '<br>Celkový report '.ROK.'<br><br>',     ['csv', 'html']],
