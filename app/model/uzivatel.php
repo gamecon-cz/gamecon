@@ -359,6 +359,14 @@ class Uzivatel
       session_start();
     unset($_SESSION[$klic]);
   }
+  
+  /**
+   * Odebere uživatele z příjemců pravidelných mail(er)ů
+   */  
+  function odhlasZMaileru() {
+    $id = $this->id(); 
+    dbQueryS('UPDATE uzivatele_hodnoty SET souhlas_maily = 0 WHERE id_uzivatele = $1', [$id]);
+  }
 
   /** Vrátí medailonek vypravěče */
   function oSobe() {
@@ -743,6 +751,14 @@ class Uzivatel
     } else {
       throw new Exception('neplatný formát množiny id');
     }
+  }
+  
+  /**
+   * Vrátí uživatele dle zadaného mailu.
+   */
+  static function zMailu($mail) {
+    $uzivatel = Uzivatel::zWhere('WHERE email1_uzivatele = $1', [$mail]);
+    return isset($uzivatel[0]) ? $uzivatel[0] : null; 
   }
 
   /**
