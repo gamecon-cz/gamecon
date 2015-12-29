@@ -9,7 +9,7 @@ $o = '
     SELECT email1_uzivatele
     FROM uzivatele_hodnoty
     WHERE email1_uzivatele LIKE "%@%"
-    AND souhlas_maily=1
+    AND nechce_maily IS NULL
   ) as maily
   WHERE email1_uzivatele NOT IN
   (

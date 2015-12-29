@@ -215,10 +215,10 @@
       <label><input type="radio" name="rychloreg[pohlavi]" value="f">žena</label>
       </td></tr>
     <tr><td colspan="2"><label>
-      Informovat mailem <input type="checkbox" name="informovat" checked>
+      Informovat mailem o registraci <input type="checkbox" name="informovat" checked>
     </label></td></tr>
     <tr><td colspan="2"><label>
-      Přidat do databáze mailů <input type="checkbox" name="rychloreg[souhlas_maily]" checked>
+      Neposílat novinky e-mailem <input type="checkbox" name="rychloreg[nechce_maily]" unchecked>
     </label></td></tr>
     <tr><td colspan="2">
       <input type="submit" value="Jen registrovat">

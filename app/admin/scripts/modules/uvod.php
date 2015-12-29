@@ -36,7 +36,7 @@ if(!empty($_POST['rychloreg']))
 {
   $tab = $_POST['rychloreg'];
   if(empty($tab['login_uzivatele'])) $tab['login_uzivatele'] = $tab['email1_uzivatele'];
-  $tab['souhlas_maily'] = isset($tab['souhlas_maily']) ? 1 : 0;
+  $tab['nechce_maily'] = isset($tab['nechce_maily']) ? dbNow() : null;
   $nid = Uzivatel::rychloreg($tab, [
     'informovat'  =>  post('informovat'),
   ]);

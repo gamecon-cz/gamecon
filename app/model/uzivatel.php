@@ -365,7 +365,7 @@ class Uzivatel
    */  
   function odhlasZMaileru() {
     $id = $this->id(); 
-    dbQueryS('UPDATE uzivatele_hodnoty SET souhlas_maily = 0 WHERE id_uzivatele = $1', [$id]);
+    dbQueryS('UPDATE uzivatele_hodnoty SET nechce_maily = NOW() WHERE id_uzivatele = $1', [$id]);
   }
 
   /** Vrátí medailonek vypravěče */
@@ -767,7 +767,7 @@ class Uzivatel
   static function zPole($pole, $mod = 0) {
     if($mod & self::FAKE) {
       $pole['email1_uzivatele'] = $pole['login_uzivatele'].'@FAKE';
-      $pole['souhlas_maily'] = 0;
+      $pole['nechce_maily'] = null;
       $pole['mrtvy_mail'] = 1;
       dbInsert('uzivatele_hodnoty', $pole);
       return self::zId(dbLastId());
