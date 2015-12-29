@@ -67,7 +67,7 @@
       {obsah}
       <div class="sloupce">
         <a class="blok upoutavka" href="minihra">
-          <img src="soubory/obsah/titulka/minihry.jpg">
+          <img src="soubory/obsah/titulka/minihra.jpg">
           <div class="stredni"><div>Minihra na GC</div></div>
         </a>
         <a class="lightbox blok upoutavka yt" href="http://www.youtube.com/watch?v=fPs0hmLJlV0" data-height="480">
@@ -75,7 +75,7 @@
           <img src="soubory/obsah/titulka/video.jpg">
         </a>
         <a class="blok upoutavka" href="chci-se-zapojit">
-          <img src="soubory/obsah/titulka/hobbit-bilbo.jpg">
+          <img src="soubory/obsah/titulka/chci-se-zapojit.jpg">
           <div class="stredni"><div>Chci se zapojit</div></div>
         </a>
       </div>
