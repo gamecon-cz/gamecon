@@ -77,15 +77,14 @@ if(!$zaplaceno)
     do <?=$limit?> (<?=$pozde?> později)
   <?php } ?>
   </p>
-  
-  <p>GameCon můžeš nyní <strong>zaplatit převodem</strong> na účet uvedený výš. Jako variabilní symbol slouží tvoje id: <?=$uid?>.
+
   <?php if($limit){ ?>
-    Při platbě <strong>do <?=$limit?></strong> platíš celkem <strong><?=$castka?></strong>, při pozdější platbě beze slevy nebo na místě pak <?=$pozde?>. Počítá se datum, kdy peníze dorazí na účet GC, mezibankovní převod může trvat až 2 dny.
-    <br><br>Při plánování aktivit si na účet pošli klidně více peněz. Přebytek ti vrátíme na infopultu nebo ho můžeš využít k přihlašování uvolněných aktivit na místě.
+    <p>GameCon je nutné zaplatit převodem <strong>do <?=$limit?></strong>. Platíš celkem <strong><?=$castka?></strong>, variabilní symbol je tvoje ID <strong><?=$uid?></strong>. Při pozdější platbě ti systém <strong>1.7 automaticky odhlásí aktivity</strong>. Počítá se datum, kdy peníze dorazí na účet GC, mezibankovní převod může trvat až 2 dny.</p>
+    <p>Pokud si aktivity (znovu) přihlásíš po 30.6., beze slevy nebo na místě pak platíš <?=$pozde?>.</p>
+    <p>Při plánování aktivit si na účet pošli klidně více peněz. Přebytek ti vrátíme na infopultu nebo ho můžeš využít k přihlašování uvolněných aktivit na místě.</p>
   <?php }else{ ?>
-    Období pro slevu za včasnou platbu vypršelo, zaplatit tedy můžeš převodem nebo na místě celkem <strong><?=$castka?></strong>.
+    <p>Období pro slevu za včasnou platbu vypršelo, zaplatit tedy můžeš převodem nebo na místě celkem <strong><?=$castka?></strong>.</p>
   <?php } ?>
-  </p>
 <?php }else{ ?>
   <p>Všechny tvoje pohledávky jsou <strong style="color:green">v pořádku zaplaceny</strong>, není potřeba nic platit. Pokud si ale chceš dokupovat aktivity na místě se slevou nebo bez nutnosti používat hotovost, můžeš si samozřejmě kdykoli převést peníze do zásoby na:</p>
   <?php if($u->stat()=='CZ'){ ?>
