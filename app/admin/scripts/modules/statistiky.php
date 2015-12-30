@@ -175,9 +175,9 @@ $prihlaseni='['.substr($prihlaseni,0,-1).']';
       credits: { enabled: false },
       xAxis: {
         categories: <?=$dny?>,
-        labels: { 
-          rotation: -90, 
-          style: { fontSize: '8px' } 
+        labels: {
+          rotation: -90,
+          style: { fontSize: '8px' }
         }
       },
       yAxis: {
@@ -185,44 +185,52 @@ $prihlaseni='['.substr($prihlaseni,0,-1).']';
         minRange: 250,
         title: { text: null }
       },
-      series: [{ 
-        name: 'Přihlášení',
-        data: <?=$prihlaseni?>,
-        marker: { radius: 2 }
-      },{
-        name: 'Přihlášení 2014',
-        data: [null,null,2,85,145,165,176,197,223,235,242,246,251,257,269,275,277,280,282,287,292,300,309,316,326,329,334,340,340,347,349,352,353,354,355,356,356,357,358,361,363,364,371,374,375,375,375,378,379,380,383,383,385,389,389,390,390,393,395,399,402,404,407,414,418,422,426,429,430,432,434,434,438,439,441,444,447,454,461,469,479,493,520,520],
-        marker: { radius: 2, symbol:'circle' },
-      },{
-        name: 'Přihlášení 2013',
-        data: [null,null,0,55,80,94,101,106,109,116,119,123,127,133,133,138,141,143,150,151,164,169,177,184,185,192,193,199,203,207,212,213,218,226,237,242,249,252,256,261,262,266,268,270,271,274,274,283,285,298,305,310,311,313,314,321,321,326,329,335,336,339,340,341,342,342,342,344,346,351,352,354,357,361,362,364,368,382,387,395,402,417,426,433],
-        marker: { radius: 2, symbol:'circle' },
-      },{ 
-        name: 'Přihlášení 2012',
-        data: [
-          null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
-          0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
-          122,null,null,null,null,null,null,
-          171,null, 191, 195, 198, 204, 205,
-          207, 212, 212, 217, 219, 225, 229, 
-          239, 247, 248, 250, 252, 256, 263,
-          265, 268, 268, 269, 276, 284, 287,
-          291, 294, 295, 301, 306, 316, 325,
-          342, 353, 354, 357
-          ],
-        marker: { radius: 2, symbol:'circle' },
-        connectNulls: true
-      }],
+      plotOptions: {
+        line: {
+          marker: { radius: 2, symbol:'circle' },
+          connectNulls: true,
+          animation: false
+        }
+      },
+      series: [
+        {
+          name: 'Přihlášení',
+          data: <?=$prihlaseni?>,
+        },{
+          name: 'Přihlášení 2015',
+          data: [2,60,123,141,148,163,178,192,230,254,266,269,281,284,290,294,299,304,308,310,312,318,321,325,329,332,335,338,340,352,353,359,361,362,368,376,381,382,385,385,386,386,386,388,388,389,399,404,408,410,421,422,430,434,436,437,442,447,448,448,454,455,470,476,483,486,490,493,494,495,495,501,503,509,514,516,521,531,541,545,559,568,590,595],
+        },{
+          name: 'Přihlášení 2014',
+          data: [null,null,2,85,145,165,176,197,223,235,242,246,251,257,269,275,277,280,282,287,292,300,309,316,326,329,334,340,340,347,349,352,353,354,355,356,356,357,358,361,363,364,371,374,375,375,375,378,379,380,383,383,385,389,389,390,390,393,395,399,402,404,407,414,418,422,426,429,430,432,434,434,438,439,441,444,447,454,461,469,479,493,520,520],
+        },{
+          name: 'Přihlášení 2013',
+          data: [null,null,0,55,80,94,101,106,109,116,119,123,127,133,133,138,141,143,150,151,164,169,177,184,185,192,193,199,203,207,212,213,218,226,237,242,249,252,256,261,262,266,268,270,271,274,274,283,285,298,305,310,311,313,314,321,321,326,329,335,336,339,340,341,342,342,342,344,346,351,352,354,357,361,362,364,368,382,387,395,402,417,426,433],
+        },{
+          name: 'Přihlášení 2012',
+          data: [
+            null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
+            0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
+            122,null,null,null,null,null,null,
+            171,null, 191, 195, 198, 204, 205,
+            207, 212, 212, 217, 219, 225, 229,
+            239, 247, 248, 250, 252, 256, 263,
+            265, 268, 268, 269, 276, 284, 287,
+            291, 294, 295, 301, 306, 316, 325,
+            342, 353, 354, 357
+          ]
+        }
+      ],
       colors: [
-       '#2f7ed8', 
-       '#8bbc21', 
-       '#910000', 
-       '#1aadce', 
-       '#492970',
-       '#f28f43', 
-       '#77a1e5', 
-       '#c42525', 
-       '#a6c96a']
+        '#2f7ed8',
+        '#8bbc21',
+        '#910000',
+        '#1aadce',
+        '#492970',
+        '#f28f43',
+        '#77a1e5',
+        '#c42525',
+        '#a6c96a'
+      ]
     });
   });
 </script>
@@ -258,25 +266,26 @@ $prihlaseni='['.substr($prihlaseni,0,-1).']';
 <div class="dlouhodobeStaty">
 
 <table>
-  <tr><th></th>                       <th>2009</th>   <th>2010</th>   <th>2011</th>   <th>2012</th>   <th>2013</th>   <th>2014</th>   <th>2015</th></tr>
-  <tr><td>Registrovaní</td>           <td>339</td>    <td>377</td>    <td>383</td>    <td>357</td>    <td>433</td>    <td>520</td>    <td>?</td></tr>
-  <tr><td>Dorazilo</td>               <td>68?</td>    <td>350</td>    <td>339</td>    <td>319</td>    <td>389</td>    <td>470</td>    <td>?</td></tr>
-  <tr><td>&emsp;z toho studenti</td>  <td></td>       <td></td>       <td></td>       <td></td>       <td>149</td>    <td>172</td>    <td>?</td></tr>
-  <tr><td>&emsp;z toho ostatní</td>   <td></td>       <td></td>       <td></td>       <td></td>       <td>152</td>    <td> </td>      <td>?</td></tr>
-  <tr><td>Podpůrný tým</td>           <td>43</td>     <td>45</td>     <td>71</td>     <td>74</td>     <td>88</td>     <td>109</td>    <td>?</td></tr>
-  <tr><td>&emsp;organizátoři</td>     <td>6</td>      <td>8</td>      <td>13</td>     <td>17</td>     <td>17</td>     <td>22</td>     <td>?</td></tr>
-  <tr><td>&emsp;zázemí</td>           <td>7</td>      <td>7</td>      <td>6</td>      <td>10</td>     <td>8</td>      <td>1</td>      <td>?</td></tr>
-  <tr><td>&emsp;vypravěči</td>        <td>30</td>     <td>30</td>     <td>52</td>     <td>47</td>     <td>63</td>     <td>86</td>     <td>?</td></tr>
+  <tr><th></th>                       <th>2009</th>   <th>2010</th>   <th>2011</th>   <th>2012</th>   <th>2013</th>   <th>2014</th>   <th>2015</th>   <th>2016</th></tr>
+  <tr><td>Registrovaní</td>           <td>339</td>    <td>377</td>    <td>383</td>    <td>357</td>    <td>433</td>    <td>520</td>    <td>595</td>    <td>?</td></tr>
+  <tr><td>Dorazilo</td>               <td>68?</td>    <td>350</td>    <td>339</td>    <td>319</td>    <td>389</td>    <td>470</td>    <td>536</td>    <td>?</td></tr>
+  <tr><td>&emsp;z toho studenti</td>  <td></td>       <td></td>       <td></td>       <td></td>       <td>149</td>    <td>172</td>    <td>148</td>    <td>?</td></tr>
+  <tr><td>&emsp;z toho ostatní</td>   <td></td>       <td></td>       <td></td>       <td></td>       <td>152</td>    <td> </td>      <td>388</td>    <td>?</td></tr>
+  <tr><td>Podpůrný tým</td>           <td>43</td>     <td>45</td>     <td>71</td>     <td>74</td>     <td>88</td>     <td>109</td>    <td>111</td>    <td>?</td></tr>
+  <tr><td>&emsp;organizátoři</td>     <td>6</td>      <td>8</td>      <td>13</td>     <td>17</td>     <td>17</td>     <td>22</td>     <td>24</td>     <td>?</td></tr>
+  <tr><td>&emsp;zázemí</td>           <td>7</td>      <td>7</td>      <td>6</td>      <td>10</td>     <td>8</td>      <td>1</td>      <td>3</td>      <td>?</td></tr>
+  <tr><td>&emsp;vypravěči</td>        <td>30</td>     <td>30</td>     <td>52</td>     <td>47</td>     <td>63</td>     <td>86</td>     <td>95</td>     <td>?</td></tr>
 </table>
 <a href="#" onclick="return!$(this).next().toggle()">dotaz</a>
 <pre style="display:none">
-  SELECT 2000-(id_zidle DIV 100), count(1)
+  -- všechny staty od Dorazilo níže se počítají z počtu dorazivších
+  SELECT 2000 - (id_zidle DIV 100), count(1)
   FROM r_uzivatele_zidle
-  JOIN ( -- sekundární židle 
-    SELECT id_uzivatele FROM r_uzivatele_zidle WHERE id_zidle=10
-    ) orgove USING(id_uzivatele)
-  WHERE id_zidle<0 AND id_zidle MOD 100=-2
-  GROUP BY(id_zidle)
+  JOIN ( -- sekundární židle
+    SELECT DISTINCT id_uzivatele FROM r_uzivatele_zidle WHERE id_zidle IN(2,6,7)
+  ) orgove USING(id_uzivatele)
+  WHERE id_zidle < 0 AND id_zidle MOD 100 = -2
+  GROUP BY id_zidle
 </pre><br><br>
 
 <?=tabMysqlR(dbQuery('
@@ -295,19 +304,19 @@ $prihlaseni='['.substr($prihlaseni,0,-1).']';
 '))?><br>
   
 <table>
-  <tr><th></th>                       <th>2009</th>   <th>2010</th>   <th>2011</th>   <th>2012</th>   <th>2013</th>   <th>2014</th>   <th>2015</th></tr>
-  <tr><td>Prodané placky</td>         <td>43</td>     <td>45</td>     <td>206</td>    <td>224</td>    <td>207</td>    <td>266</td>    <td>?</td></tr>
-  <tr><td>&emsp;před začátkem</td>    <td></td>       <td></td>       <td>135</td>    <td>150</td>    <td>110</td>    <td> </td>      <td>?</td></tr>
-  <tr><td>&emsp;na místě</td>         <td></td>       <td></td>       <td></td>       <td></td>       <td>9</td>      <td> </td>      <td>?</td></tr>
-  <tr><td>&emsp;zdarma</td>           <td>43</td>     <td>45</td>     <td>71</td>     <td>74</td>     <td>88</td>     <td> </td>      <td>?</td></tr>
-  <tr><td>Prodané kostky</td>         <td>43</td>     <td>45</td>     <td>247</td>    <td>154</td>    <td>192</td>    <td>382</td>    <td>?</td></tr>
-  <tr><td>&emsp;před začátkem</td>    <td></td>       <td></td>       <td>176</td>    <td>80</td>     <td>104</td>    <td> </td>      <td>?</td></tr>
-  <tr><td>&emsp;na místě</td>         <td></td>       <td></td>       <td></td>       <td></td>       <td></td>       <td> </td>      <td>?</td></tr>
-  <tr><td>&emsp;zdarma</td>           <td>43</td>     <td>45</td>     <td>71</td>     <td>74</td>     <td>88</td>     <td> </td>      <td>?</td></tr>
-  <tr><td>Prodaná trička</td>         <td>6</td>      <td>8</td>      <td>104</td>    <td>121</td>    <td>139</td>    <td>179</td>    <td>?</td></tr>
-  <tr><td>&emsp;zdarma</td>           <td>6</td>      <td>8</td>      <td>13</td>     <td>17</td>     <td>19</td>     <td> </td>      <td>?</td></tr>
-  <tr><td>&emsp;za 50%</td>           <td></td>       <td></td>       <td>34</td>     <td>40</td>     <td>35</td>     <td> </td>      <td>?</td></tr>
-  <tr><td>&emsp;plná cena</td>        <td></td>       <td></td>       <td>57</td>     <td>64</td>     <td>85</td>     <td> </td>      <td>?</td></tr>
+  <tr><th></th>                       <th>2009</th>   <th>2010</th>   <th>2011</th>   <th>2012</th>   <th>2013</th>   <th>2014</th>   <th>2015</th>   <th>2016</th></tr>
+  <tr><td>Prodané placky</td>         <td>43</td>     <td>45</td>     <td>206</td>    <td>224</td>    <td>207</td>    <td>266</td>    <td>266</td>    <td>?</td></tr>
+  <tr><td>&emsp;před začátkem</td>    <td></td>       <td></td>       <td>135</td>    <td>150</td>    <td>110</td>    <td> </td>      <td> </td>      <td>?</td></tr>
+  <tr><td>&emsp;na místě</td>         <td></td>       <td></td>       <td></td>       <td></td>       <td>9</td>      <td> </td>      <td> </td>      <td>?</td></tr>
+  <tr><td>&emsp;zdarma</td>           <td>43</td>     <td>45</td>     <td>71</td>     <td>74</td>     <td>88</td>     <td> </td>      <td> </td>      <td>?</td></tr>
+  <tr><td>Prodané kostky</td>         <td>43</td>     <td>45</td>     <td>247</td>    <td>154</td>    <td>192</td>    <td>382</td>    <td>327</td>    <td>?</td></tr>
+  <tr><td>&emsp;před začátkem</td>    <td></td>       <td></td>       <td>176</td>    <td>80</td>     <td>104</td>    <td> </td>      <td> </td>      <td>?</td></tr>
+  <tr><td>&emsp;na místě</td>         <td></td>       <td></td>       <td></td>       <td></td>       <td></td>       <td> </td>      <td> </td>      <td>?</td></tr>
+  <tr><td>&emsp;zdarma</td>           <td>43</td>     <td>45</td>     <td>71</td>     <td>74</td>     <td>88</td>     <td> </td>      <td> </td>      <td>?</td></tr>
+  <tr><td>Prodaná trička</td>         <td>6</td>      <td>8</td>      <td>104</td>    <td>121</td>    <td>139</td>    <td>179</td>    <td>176</td>    <td>?</td></tr>
+  <tr><td>&emsp;zdarma</td>           <td>6</td>      <td>8</td>      <td>13</td>     <td>17</td>     <td>19</td>     <td> </td>      <td> </td>      <td>?</td></tr>
+  <tr><td>&emsp;za 50%</td>           <td></td>       <td></td>       <td>34</td>     <td>40</td>     <td>35</td>     <td> </td>      <td> </td>      <td>?</td></tr>
+  <tr><td>&emsp;plná cena</td>        <td></td>       <td></td>       <td>57</td>     <td>64</td>     <td>85</td>     <td> </td>      <td> </td>      <td>?</td></tr>
 </table>
 <a href="#" onclick="return!$(this).next().toggle()">dotaz</a>
 <pre style="display:none">
