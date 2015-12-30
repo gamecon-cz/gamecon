@@ -29,9 +29,13 @@ class Menu {
   function __construct(Uzivatel $u = null) {
     // personalizace seznamu stránek
     $a = $u ? $u->koncA() : '';
-    $this->stranky['prihlaska'] .= $u && $u->gcPrihlasen() ?
-      '<img src="soubory/styl/ok.png" style="margin-bottom:-3px"> přihlášen'.$a.' na GC':
-      '<img src="soubory/styl/error.png" style="margin-bottom:-3px"> nepřihlášen'.$a.' na GC';
+    if(po(REG_GC_OD)) {
+      $this->stranky['prihlaska'] .= $u && $u->gcPrihlasen() ?
+        '<img src="soubory/styl/ok.png" style="margin-bottom:-3px"> přihlášen'.$a.' na GC':
+        '<img src="soubory/styl/error.png" style="margin-bottom:-3px"> nepřihlášen'.$a.' na GC';
+    } else {
+      $this->stranky['prihlaska'] .= 'přihlašování ještě nezačalo';
+    }
   }
 
   /** Celý kód menu (html) */
