@@ -10,6 +10,13 @@
   <script src="{js}"></script>
   {jsVyjimkovac}
   {info}
+  <!-- begin:googleAnalytics -->
+  <script>
+      ga=function(){ga.q.push(arguments)};ga.q=[];ga.l=+new Date;
+      ga('create','UA-30024399-1','auto');ga('send','pageview');
+  </script>
+  <script src="https://www.google-analytics.com/analytics.js" async defer></script>
+  <!-- end:googleAnalytics -->
 </head>
 <body>
 

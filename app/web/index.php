@@ -62,7 +62,6 @@ if($m->bezStranky()) {
       'soubory/jquery-2.1.1.min.js',
       'soubory/scroll-sneak.js',
       'soubory/aplikace.js',
-      GOOGLE_ANALYTICS ? 'soubory/google-analytics.js' : '',
       'soubory/jquery-ui.min.js',
       'soubory/easybox.distrib.min.js' //nějaká debiláž, musí být poslední
     ),
@@ -78,6 +77,7 @@ if($m->bezStranky()) {
   if($u && $u->gcPrihlasen() && FINANCE_VIDITELNE)  $t->assign('finance', $u->finance()->stavHr());
   if($u && $u->gcPrihlasen())                       $t->parse('index.prihlasen.gcPrihlasen');
   elseif($u && REG_GC)                              $t->parse('index.prihlasen.gcNeprihlasen');
+  if(GOOGLE_ANALYTICS)                              $t->parse('index.googleAnalytics');
   $t->parse( $u ? 'index.prihlasen' : 'index.neprihlasen' );
   $t->parse('index');
   $t->out('index');
