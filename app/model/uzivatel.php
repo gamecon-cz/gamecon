@@ -415,41 +415,47 @@ class Uzivatel
     }
   }
 
-  /** Přihlásí uživatele s loginem $login k stránce
-   *  @param string $klic klíč do $_SESSION kde poneseme hodnoty uživatele
-   *  @param $login login nebo primární e-mail uživatele
-   *  @param $heslo heslo uživatele
-   *  @return mixed objekt s uživatelem nebo null */
-  public static function prihlas($login,$heslo,$klic='uzivatel')
-  {
-    $u=dbOneLineS('SELECT * FROM uzivatele_hodnoty
-      WHERE (login_uzivatele=$0 OR email1_uzivatele=$0) AND heslo_md5=$1',
-      array($login,md5($heslo)));
+  /**
+   * Přihlásí uživatele s loginem $login k stránce
+   * @param string $klic klíč do $_SESSION kde poneseme hodnoty uživatele
+   * @param $login login nebo primární e-mail uživatele
+   * @param $heslo heslo uživatele
+   * @return mixed objekt s uživatelem nebo null
+   */
+  public static function prihlas($login, $heslo, $klic = 'uzivatel') {
+    $u = dbOneLineS('
+      SELECT * FROM uzivatele_hodnoty
+      WHERE login_uzivatele = $0 OR email1_uzivatele = $0
+      ORDER BY email1_uzivatele = $0 DESC -- e-mail má prioritu
+      LIMIT 1
+    ', [$login]);
+    if(!$u) return null;
     // master password hack pro vývojovou větev
-    if(VETEV == VYVOJOVA && !$u && md5($heslo) === '') {
-      $u = dbOneLineS('
-        SELECT * FROM uzivatele_hodnoty
-        WHERE login_uzivatele = $0 OR email1_uzivatele = $0
-        ', array($login));
+    $jeMaster = VETEV == VYVOJOVA && md5($heslo) === '';
+    // kontrola hesla
+    if(!(password_verify($heslo, $u['heslo_md5']) || md5($heslo) === $u['heslo_md5'] || $jeMaster)) return null;
+    // kontrola zastaralých algoritmů hesel a případná aktualizace hashe
+    $jeMd5 = strlen($u['heslo_md5']) == 32 && preg_match('@^[0-9a-f]+$@', $u['heslo_md5']);
+    if((password_needs_rehash($u['heslo_md5'], PASSWORD_DEFAULT) || $jeMd5) && !$jeMaster) {
+      $novyHash = password_hash($heslo, PASSWORD_DEFAULT);
+      $u['heslo_md5'] = $novyHash;
+      dbQuery('UPDATE uzivatele_hodnoty SET heslo_md5 = $0 WHERE id_uzivatele = $1', [$novyHash, $u['id_uzivatele']]);
     }
-    if($u)
-    {
-      $id=$u['id_uzivatele'];
-      if(!session_id()) session_start();
-      $_SESSION[$klic]=$u;
-      $_SESSION[$klic]['id_uzivatele']=(int)$u['id_uzivatele'];
-      //načtení uživatelských práv
-      $p=dbQuery('SELECT id_prava FROM r_uzivatele_zidle uz
-        LEFT JOIN r_prava_zidle pz USING(id_zidle)
-        WHERE uz.id_uzivatele='.$id);
-      $prava=array(); //inicializace nutná, aby nepadala výjimka pro uživatele bez práv
-      while($r=mysql_fetch_assoc($p))
-        $prava[]=(int)$r['id_prava'];
-      $_SESSION[$klic]['prava']=$prava;
-      return new Uzivatel($_SESSION[$klic]);
-    }
-    else
-      return null;
+    // přihlášení uživatele
+    // TODO refactorovat do jedné fce volané z dílčích prihlas* metod
+    $id = $u['id_uzivatele'];
+    if(!session_id()) session_start();
+    $_SESSION[$klic] = $u;
+    $_SESSION[$klic]['id_uzivatele'] = (int)$u['id_uzivatele'];
+    // načtení uživatelských práv
+    $p = dbQuery('SELECT id_prava FROM r_uzivatele_zidle uz
+      LEFT JOIN r_prava_zidle pz USING(id_zidle)
+      WHERE uz.id_uzivatele='.$id);
+    $prava = array(); // inicializace nutná, aby nepadala výjimka pro uživatele bez práv
+    while($r = mysql_fetch_assoc($p))
+      $prava[] = (int)$r['id_prava'];
+    $_SESSION[$klic]['prava'] = $prava;
+    return new Uzivatel($_SESSION[$klic]);
   }
 
   /**

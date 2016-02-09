@@ -18,7 +18,7 @@ if($u && isset($_POST['upravit']))
   $narozeni=new DateTime(strtr(post('datumNarozeni'),'.','-'));
   $tab['datum_narozeni']=$narozeni->format('Y-m-d');
   if(post('heslo2'))
-    $tab['heslo_md5']=md5(post('heslo2'));
+    $tab['heslo_md5'] = password_hash(post('heslo2'), PASSWORD_DEFAULT);
   dbInsertUpdate('uzivatele_hodnoty',$tab);
   $u->avatarNactiPost('obrazek');
   $u->otoc();
@@ -51,7 +51,7 @@ if(!$u && (post('registrovat')||post('registrovatAPrihlasit')))
   $tab=$_POST['tab'];
   $narozeni=new DateTime(strtr(post('datumNarozeni'),'.','-'));
   $tab['datum_narozeni']=$narozeni->format('Y-m-d');
-  $tab['heslo_md5']=md5(post('heslo2'));
+  $tab['heslo_md5'] = password_hash(post('heslo2'), PASSWORD_DEFAULT);
   $u=Uzivatel::prihlasId(Uzivatel::registruj($tab));
   $u->avatarNactiPost('obrazek');
   if(post('registrovatAPrihlasit'))
