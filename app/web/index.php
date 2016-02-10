@@ -72,7 +72,7 @@ if($m->bezStranky()) {
     ),
     'jsVyjimkovac'  => Vyjimkovac::js(URL_WEBU.'/ajax-vyjimkovac'),
     'chyba'     => Chyba::vyzvedniHtml(),
-    'info'      => $m->info()->html(),
+    'info'      => $m->info() ? $m->info()->html() : '',
     'a'         => $u ? $u->koncA() : '',
   ));
   // tisk věcí a zdar

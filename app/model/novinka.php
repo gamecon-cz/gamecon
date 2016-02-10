@@ -72,7 +72,7 @@ class Novinka extends DbObject {
   }
 
   static function zUrl($url, $typ = self::NOVINKA) {
-    return self::zWhere('url = $1 AND typ = $2', array($url, $typ))[0];
+    return self::zWhereRadek('url = $1 AND typ = $2', array($url, $typ));
   }
 
   static function zVsech() {

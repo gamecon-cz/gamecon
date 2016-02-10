@@ -14,6 +14,7 @@ class Modul {
   protected $bezMenu = false;
   protected $bezStranky = false;
   protected $bezOkraju = false;
+  protected $info;
 
   const VYCHOZI = 'titulka';
 
