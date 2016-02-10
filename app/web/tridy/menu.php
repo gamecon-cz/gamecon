@@ -25,8 +25,9 @@ class Menu {
     'kontakty'            =>  'Kontakty',
     'https://www.facebook.com/media/set/?set=a.1049227911755210.1073741834.127768447234499&type=3&pnref=story&hc_location=ufi' => 'Fotogalerie',
   );
+  protected $url;
 
-  function __construct(Uzivatel $u = null) {
+  function __construct(Uzivatel $u = null, Url $url = null) {
     // personalizace seznamu stránek
     $a = $u ? $u->koncA() : '';
     if(po(REG_GC_OD)) {
@@ -36,11 +37,12 @@ class Menu {
     } else {
       $this->stranky['prihlaska'] .= 'přihlašování ještě nezačalo';
     }
+    $this->url = $url;
   }
 
   /** Celý kód menu (html) */
   function cele() {
-    $a = Url::zAktualni()->cast(0);
+    $a = $this->url ? $this->url->cast(0) : null;
     $t = new XTemplate('sablony/menu.xtpl');
     $t->assign('menu', $this);
     if(isset(self::$linie[$a]))     $t->assign('aaktiv', 'aktivni');

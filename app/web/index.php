@@ -4,10 +4,15 @@ require 'tridy/modul.php';
 require 'tridy/menu.php';
 
 $u = Uzivatel::zSession();
-$menu = new Menu($u);
+try {
+  $url = Url::zAktualni();
+} catch(UrlException $e) {
+  $url = null;
+}
+$menu = new Menu($u, $url);
 
 // určení modulu, který zpracuje požadavek (router)
-$m = Modul::zUrl();
+$m = $url ? Modul::zUrl() : Modul::zNazvu('neexistujici');
 if(!$m && ($stranka = Stranka::zUrl())) {
   $m = Modul::zNazvu('stranka');
   $m->param('stranka', $stranka);
@@ -24,7 +29,7 @@ if(!$m) {
 // spuštění kódu modulu + buffering výstupu a nastavení
 $m->param('u', $u);
 $m->param('menu', $menu);
-$m->param('url', Url::zAktualni());
+$m->param('url', $url);
 $i = (new Info())
   ->obrazek('soubory/styl/og-image.jpg')
   ->site('GameCon')
