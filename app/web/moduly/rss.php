@@ -4,7 +4,7 @@ header('content-type: text/xml'); //nastavení typu výstupu, bez tohoto by nevy
 $novinky = Novinka::zNejnovejsich(0, 10);
 $ren = gmdate('D, d M Y H:i:s').' GMT'; //datum poslední úpravy <<právě teď a je shodné s datem publikace
 ?>
-<?xml version="1.0" encoding="utf-8"?>
+<?='<?xml version="1.0" encoding="utf-8"?>'/* bugfix pro verze php které mají problém s otvírací xml závorkou */?>
 <rss version="2.0">
   <channel>
     <title>Novinky gamecon.cz</title>
