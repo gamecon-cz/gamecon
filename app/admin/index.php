@@ -21,7 +21,10 @@ if(post('bugreport')) {
 
 // xtemplate inicializace
 $xtpl=new XTemplate('./templates/main.xtpl');
-$xtpl->assign('pageTitle','GameCon – Administrace');
+$xtpl->assign([
+  'pageTitle' =>  'GameCon – Administrace',
+  'base'      =>  URL_ADMIN.'/',
+]);
 
 // nastavení stránky, prázdná url => přesměrování na úvod
 if(!get('req'))
@@ -133,7 +136,6 @@ else
   $xtpl->assign('protip', $protipy[array_rand($protipy)]);
   $xtpl->parse('all.paticka');
   $xtpl->assign('chyba', chyba::vyzvedniHtml());
-  $xtpl->assign('base', URL_ADMIN.'/');
   $xtpl->assign('jsVyjimkovac', Vyjimkovac::js(URL_WEBU.'/ajax-vyjimkovac'));
   $xtpl->parse('all');
   $xtpl->out('all');
