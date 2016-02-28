@@ -1,10 +1,11 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "6389a5496f66d2869b279a9cbba25ce3",
+    "hash": "326d096025ed555ffa29cad5309724b4",
+    "content-hash": "f0645b38e28733debad4536b6822eb6a",
     "packages": [
         {
             "name": "dg/mysql-dump",
@@ -16,7 +17,7 @@
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dg/MySQL-dump/zipball/462eaac79ea4ad9da75645b8930ce96a8eb10be2",
+                "url": "https://api.github.com/repos/dg/MySQL-dump/zipball/c1c00a6b7ded9cab37f0280fa2940b1809835f90",
                 "reference": "462eaac79ea4ad9da75645b8930ce96a8eb10be2",
                 "shasum": ""
             },
@@ -42,6 +43,33 @@
                 "mysql"
             ],
             "time": "2014-03-12 20:17:00"
+        },
+        {
+            "name": "godric/xtemplate",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/godric-cz/xtemplate.git",
+                "reference": "a00586ef557b0d1592c2f592647077cce8346176"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/godric-cz/xtemplate/zipball/a00586ef557b0d1592c2f592647077cce8346176",
+                "reference": "a00586ef557b0d1592c2f592647077cce8346176",
+                "shasum": ""
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "src/"
+                ]
+            },
+            "description": "simple templating engine",
+            "support": {
+                "source": "https://github.com/godric-cz/xtemplate/tree/master",
+                "issues": "https://github.com/godric-cz/xtemplate/issues"
+            },
+            "time": "2016-02-28 19:55:11"
         },
         {
             "name": "less.php/less.php",
@@ -212,7 +240,8 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "dg/mysql-dump": 20
+        "dg/mysql-dump": 20,
+        "godric/xtemplate": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,
