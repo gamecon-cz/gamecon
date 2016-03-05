@@ -47,9 +47,9 @@ class GcMail {
     return $a ? $this->predmet = $a : $this->predmet;
   }
 
-  function text(...$a) {
-    if(empty($a)) return $this->text;
-    $this->text = $a[0];
+  function text(/* variadic */) {
+    if(func_num_args() == 0) return $this->text;
+    $this->text = func_get_arg(0);
     return $this;
   }
 
