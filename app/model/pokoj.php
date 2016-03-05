@@ -29,18 +29,19 @@ class Pokoj {
 
   /** (Pře)ubytuje uživatele $u na pokoj $cislo, vytvoří pokud je potřeba */
   static function ubytujNaCislo(Uzivatel $u, $cislo) {
-    $pokoj = $cislo;
+    $pokoj = trim($cislo);
     $o = dbQueryS('
       SELECT ubytovani_den
       FROM shop_nakupy n
       JOIN shop_predmety p USING(id_predmetu)
       WHERE n.id_uzivatele = $1 AND n.rok = $2 AND p.typ = 2
-    ', array($u->id(), ROK));
-    dbQueryS('DELETE FROM ubytovani WHERE rok=$2 AND id_uzivatele=$1', array($u->id(), ROK));
-    $q='INSERT INTO ubytovani(id_uzivatele,den,pokoj,rok) VALUES '."\n";
-    while($r=mysql_fetch_assoc($o))
-      $q.='('.$u->id().','.$r['ubytovani_den'].','.$pokoj.','.ROK."),\n";
-    $q=substr($q,0,-2).';';
+    ', [$u->id(), ROK]);
+    if(mysql_num_rows($o) == 0) throw new Chyba('Uživatel nemá ubytování nebo ubytování pro daný den neexistuje');
+    dbQueryS('DELETE FROM ubytovani WHERE rok = $2 AND id_uzivatele = $1', [$u->id(), ROK]);
+    $q = 'INSERT INTO ubytovani(id_uzivatele, den, pokoj, rok) VALUES '."\n";
+    while($r = mysql_fetch_assoc($o))
+      $q .= '('.$u->id().','.$r['ubytovani_den'].','.dbQv($pokoj).','.ROK."),\n";
+    $q = substr($q, 0, -2).';';
     dbQuery($q);
   }
 

@@ -95,6 +95,7 @@ if(post('prohozeniNacist')) {
 
 $pokoj = Pokoj::zCisla(get('pokoj'));
 $ubytovani = $pokoj ? $pokoj->ubytovani() : array();
+if(get('pokoj') && !$pokoj) throw new Chyba('pokoj ' . get('pokoj') . ' neexistuje nebo je prázdný');
 $t->assign(array(
   'uid'       =>  $uPracovni ? $uPracovni->id() : '',
   'pokoj'     =>  get('pokoj'),
