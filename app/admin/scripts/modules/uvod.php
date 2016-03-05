@@ -37,9 +37,15 @@ if(!empty($_POST['rychloreg']))
   $tab = $_POST['rychloreg'];
   if(empty($tab['login_uzivatele'])) $tab['login_uzivatele'] = $tab['email1_uzivatele'];
   $tab['nechce_maily'] = isset($tab['nechce_maily']) ? dbNow() : null;
-  $nid = Uzivatel::rychloreg($tab, [
-    'informovat'  =>  post('informovat'),
-  ]);
+  try {
+    $nid = Uzivatel::rychloreg($tab, [
+      'informovat'  =>  post('informovat'),
+    ]);
+  } catch(DuplicitniEmailException $e) {
+    throw new Chyba('Uživatel s zadaným e-mailem už v databázi existuje');
+  } catch(DuplicitniLoginException $e) {
+    throw new Chyba('Uživatel s loginem odpovídajícím zadanému e-mailu už v databázi existuje');
+  }
   if($nid)
   {
     if($uPracovni) Uzivatel::odhlasKlic('uzivatel_pracovni');

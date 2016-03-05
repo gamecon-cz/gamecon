@@ -377,4 +377,18 @@ class DbException extends Exception {
 
 }
 
-class DbDuplicateEntryException extends DbException {}
+class DbDuplicateEntryException extends DbException {
+
+  private $key;
+
+  function __construct() {
+    parent::__construct();
+    preg_match("@Duplicate entry '([^']+)' for key '([^']+)'@", $this->message, $m);
+    $this->key = $m[2];
+  }
+
+  function key() {
+    return $this->key;
+  }
+
+}

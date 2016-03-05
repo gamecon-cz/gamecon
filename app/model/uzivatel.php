@@ -558,7 +558,13 @@ class Uzivatel
     if(empty($tab['stat_uzivatele'])) $tab['stat_uzivatele'] = 1;
     $tab['random'] = $rand = randHex(20);
     $tab['registrovan'] = date("Y-m-d H:i:s");
-    dbInsert('uzivatele_hodnoty',$tab);
+    try {
+      dbInsert('uzivatele_hodnoty', $tab);
+    } catch(DbDuplicateEntryException $e) {
+      if($e->key() == 'email1_uzivatele')  throw new DuplicitniEmailException;
+      if($e->key() == 'login_uzivatele')   throw new DuplicitniLoginException;
+      throw $e;
+    }
     $uid = dbLastId();
     //poslání mailu
     if($opt['informovat']) {
@@ -912,4 +918,5 @@ class Uzivatel
 
 }
 
-?>
+class DuplicitniEmailException extends Exception {}
+class DuplicitniLoginException extends Exception {}
