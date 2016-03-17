@@ -149,6 +149,12 @@ $(function(){
       <script>doplnovatVice($('[name="{pnTagy}"]'), {tagyMoznosti});</script>
     </td>
   </tr>
+  <tr>
+    <th>Vybavení</th>
+    <td>
+      <textarea rows="1" class="full" type="text" name="{fields}[vybaveni]">{vybaveni}</textarea>
+    </td>
+  </tr>
 </table>
 <!-- end:tabulka -->
 
@@ -232,6 +238,7 @@ $(function(){
         $('#popisek{fields}{id_akce}').keyup(function(){
           ukazObsah();
         });
+        $('[name="{fields}[vybaveni]"]').autosize();
       </script>
     </td>
   </tr>

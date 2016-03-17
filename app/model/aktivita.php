@@ -157,7 +157,6 @@ class Aktivita
     //  $xtpl->assign('readonly','disabled');
     $xtpl->assign('obrKlic', self::OBRKLIC);
     $xtpl->assign('obrKlicUrl', self::OBRKLIC.'Url');
-    $xtpl->assign('urlObrazku',$a?$a->obrazek():'');
     $xtpl->assign('pnTagy', self::TAGYKLIC);
     $xtpl->assign('viceScript', file_get_contents(WWW.'/soubory/doplnovani-vice.js'));
     $xtpl->assign('tagyMoznosti', json_encode(dbOneArray('SELECT nazev FROM tagy')));
@@ -165,6 +164,8 @@ class Aktivita
       $xtpl->assign($a->a);
       $xtpl->assign('popis', dbText($aktivita['popis']));
       $xtpl->assign('tagy', implode(', ', $a->tagy()));
+      $xtpl->assign('urlObrazku', $a->obrazek());
+      $xtpl->assign('vybaveni', $a->vybaveni());
     }
     // načtení lokací
     if(!$omezeni || !empty($omezeni['lokace']))
@@ -303,7 +304,7 @@ class Aktivita
     }
     else if($a['patri_pod'])
     { // editace aktivity z rodiny instancí
-      $doHlavni=array('url_akce','popis'); // věci, které se mají změnit jen u hlavní (master) instance
+      $doHlavni = ['url_akce', 'popis', 'vybaveni']; // věci, které se mají změnit jen u hlavní (master) instance
       $doAktualni=array('lokace','zacatek','konec'); // věci, které se mají změnit jen u aktuální instance
       $aktivita = self::zId($a['id_akce']);
       // (zbytek se změní v obou)
@@ -360,7 +361,7 @@ class Aktivita
     $akt = dbOneLine('SELECT * FROM akce_seznam WHERE id_akce='.$this->id());
     //odstraníme id, url a popisek, abychom je nepoužívali/neduplikovali při vkládání
     //stav se vloží implicitní hodnota v DB
-    unset($akt['id_akce'], $akt['url_akce'], $akt['stav'], $akt['zamcel']);
+    unset($akt['id_akce'], $akt['url_akce'], $akt['stav'], $akt['zamcel'], $akt['vybaveni']);
     if($akt['teamova']) $akt['kapacita'] = $akt['team_max'];
     if($akt['patri_pod']>0)
     { //aktivita už má instanční skupinu, použije se stávající
@@ -947,8 +948,8 @@ class Aktivita
       // id zrušené instance bylo nejnižší => je potřeba uložit url a popisek do nové instance
       if($this->id() < $mid) {
         dbQueryS(
-          'UPDATE akce_seznam SET url_akce=$1, popis=$2 WHERE id_akce=$3',
-          array($this->a['url_akce'], $this->a['popis'], $mid)
+          'UPDATE akce_seznam SET url_akce=$1, popis=$2, vybaveni=$3 WHERE id_akce=$4',
+          [$this->a['url_akce'], $this->a['popis'], $this->a['vybaveni'], $mid]
         );
       }
     }
@@ -1099,6 +1100,17 @@ class Aktivita
    */
   function viditelna() {
     return in_array($this->a['stav'], [1, 2, 4, 5]);
+  }
+
+  /**
+   * @return text s informací o extra vybavení pro tuto aktivitu
+   */
+  function vybaveni() {
+    if($this->a['patri_pod'])
+      return dbOneCol('SELECT MAX(vybaveni) FROM akce_seznam WHERE patri_pod = $1',
+        [$this->a['patri_pod']]);
+    else
+      return dbOneCol('SELECT vybaveni FROM akce_seznam WHERE id_akce = $1', [$this->id()]);
   }
 
   /**
