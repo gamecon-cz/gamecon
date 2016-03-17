@@ -14,7 +14,8 @@ $program = new Program($uPracovni, array(
 if($uPracovni) {
   Aktivita::prihlasovatkoZpracuj($uPracovni,
     Aktivita::PLUSMINUS_KAZDY |
-    ($u->maPravo(P_ZMENA_HISTORIE) ? Aktivita::ZPETNE : 0)
+    ($u->maPravo(P_ZMENA_HISTORIE) ? Aktivita::ZPETNE : 0) |
+    Aktivita::TECHNICKE
   );
   Aktivita::vyberTeamuZpracuj($uPracovni);
 }

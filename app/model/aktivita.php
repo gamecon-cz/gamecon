@@ -28,6 +28,7 @@ class Aktivita
     PLUSMINUS       = 0b00000001,   // plus/mínus zkratky pro měnění míst v team. aktivitě
     PLUSMINUS_KAZDY = 0b00000010,   // plus/mínus zkratky pro každého
     STAV            = 0b00000100,   // ignorování stavu
+    TECHNICKE       = 0b01000000,   // přihlašovat i skryté technické aktivity
     ZAMEK           = 0b00001000,   // ignorování zamčení
     ZPETNE          = 0b00100000,   // možnost zpětně měnit přihlášení
     // parametry kolem továrních metod
@@ -797,13 +798,13 @@ class Aktivita
   /** Zdali chceme, aby se na aktivitu bylo možné běžně přihlašovat */
   function prihlasovatelna($parametry = 0) {
     $zpetne = $parametry & self::ZPETNE;
+    $technicke = $parametry & self::TECHNICKE;
     // stav 4 je rezervovaný pro viditelné nepřihlašovatelné aktivity
-    // typ 10 je hack, kde technickou aktivitu pokud vidí, může se i přihlásit
     return(
       (REG_AKTIVIT || $zpetne && po(REG_GC_DO)) &&
       (
         $this->a['stav'] == 1 ||
-        $this->a['stav'] == 0 && $this->a['typ'] == 10 ||
+        $technicke && $this->a['stav'] == 0 && $this->a['typ'] == 10 ||
         $zpetne && $this->a['stav'] == 2
       ) &&
       $this->a['zacatek'] &&
@@ -1089,6 +1090,13 @@ class Aktivita
       return $v == 'u' || $v == $u->pohlavi();
     else
       return $v != 'x';
+  }
+
+  /**
+   * Jestli má být aktivita běžně veřejně vidět
+   */
+  function viditelna() {
+    return in_array($this->a['stav'], [1, 2, 4, 5]);
   }
 
   /**

@@ -17,7 +17,7 @@ class Program {
     'osobni'        => false, // TODO již se používá jestli se zobrazuje osobní program (jinak full)
     'tableClass'    => 'program', //todo edit
     'teamVyber'     => false, // jestli se u teamové aktivity zobrazí full výběr teamu přímo v programu
-    'technicke'     => false, // jestli jdou vidět technické aktivity
+    'technicke'     => false, // jestli jdou vidět i skryté technické aktivity
     'skupiny'       => 'linie', // seskupování programu - po místnostech nebo po liniích
     'prazdne'       => false, // zobrazovat prázdné skupiny?
     'zpetne'        => false, // jestli smí měnit přihlášení zpětně
@@ -184,13 +184,11 @@ class Program {
       echo ' ('.$a['obj']->orgJmena().') ';
     }
     echo $a['obj']->obsazenost();
-    if(
-      ( $a['obj']->typ() != 10 || $this->nastaveni['technicke'] ) && // hack na nezobrazování přihlašovátek pro technické
-      ( $a['obj']->typ() != 9 || $this->nastaveni['drdPrihlas'] ) // hack na nezobrazování přihlašovátek pro DrD
-    ) {
+    if($a['obj']->typ() != 9 || $this->nastaveni['drdPrihlas']) { // hack na nezobrazování přihlašovátek pro DrD
       $parametry = 0;
-      if($this->nastaveni['plusMinus']) $parametry |= Aktivita::PLUSMINUS_KAZDY;
-      if($this->nastaveni['zpetne']) $parametry |= Aktivita::ZPETNE;
+      if($this->nastaveni['plusMinus'])   $parametry |= Aktivita::PLUSMINUS_KAZDY;
+      if($this->nastaveni['zpetne'])      $parametry |= Aktivita::ZPETNE;
+      if($this->nastaveni['technicke'])   $parametry |= Aktivita::TECHNICKE;
       echo ' '.$a['obj']->prihlasovatko($this->u, $parametry);
     }
     if($this->nastaveni['teamVyber']) {
@@ -219,7 +217,12 @@ class Program {
       'obj' => $a
     );
     $iterator->next();
-    if($a['obj']->typ() != 10 || $this->nastaveni['technicke'] || $this->u && $a['obj']->prihlasen($this->u)) {
+    // přeskočit případné speciální (neviditelné) aktivity
+    if(
+      $a['obj']->viditelna() ||
+      $this->nastaveni['technicke'] ||
+      $this->u && $a['obj']->prihlasen($this->u)
+    ) {
       return $a;
     } else {
       return $this->nactiAktivitu($iterator);
