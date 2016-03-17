@@ -100,18 +100,20 @@
         <!-- begin:tag -->
         <div class="info tag">{tag}</div>
         <!-- end:tag -->
+        <!-- begin:cena -->
         <div class="info hinted cena">
-          <!-- begin:cena -->
+          <!-- begin:obecna -->
           <span class="hint">Cena je uvedena ve formátu pracující / student při včasné platbě. Je možné získat i výrazné další <b>slevy</b> podle přehledu <a href="ceny-slevy-placeni">cen a slev</a>. Při platbě po {rozhodneDatum} bez slev je cena {zakladniCena}.</span>
-          <!-- end:cena -->
-          <!-- begin:mojeCena -->
+          <!-- end:obecna -->
+          <!-- begin:moje -->
           <span class="hint">Zobrazená cena platí pro tebe při použití všech slev, které máš nastavené v <a href="prihlaska">přihlášce</a>. Standardní cena je <b>{stdCena}</b> (pro pracujícího / studenta) a řídí se podle <a href="ceny-slevy-placeni">cen a slev</a>.</span>
-          <!-- end:mojeCena -->
-          <!-- begin:fixniCena -->
+          <!-- end:moje -->
+          <!-- begin:fixni -->
           <span class="hint">Pevná cena – Zobrazená cena platí pro všechny stejně a nelze na ni uplatnit slevy.</span>
-          <!-- end:fixniCena -->
+          <!-- end:fixni -->
           {cena}
         </div>
+        <!-- end:cena -->
         <!-- begin:vice -->
         <div onclick="tgAkt($(this))" class="info vice">více</div>
         <!-- end:vice -->

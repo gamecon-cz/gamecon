@@ -76,7 +76,9 @@ class Aktivita
    */
   function cena(Uzivatel $u=null)
   {
-    if(!($this->cenaZaklad()>0))
+    if($this->a['typ'] == 10)
+      return null;
+    else if(!($this->cenaZaklad() > 0))
       return 'zdarma';
     else if($this->a['bez_slevy'])
       return round($this->cenaZaklad()).'&thinsp;Kč';

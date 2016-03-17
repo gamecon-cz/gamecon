@@ -120,7 +120,7 @@ while($a) {
 
   // vlastnosti per skupina (hack)
   if(!$dalsi || !$dalsi->patriPod() || $dalsi->patriPod() != $a->patriPod()) {
-    if(CENY_VIDITELNE) {
+    if(CENY_VIDITELNE && $a->cena()) {
       $do = new DateTime(SLEVA_DO);
       $t->assign(array(
         'cena' => $a->cena($u),
@@ -130,9 +130,10 @@ while($a) {
         //TODO způsob načtení a zobrazení orgů (per termín, per aktivita, proklik na jejich osobní stránku, ...?)
         //TODO optimalizace načítání popisků (do jiné tabulky, jeden dotaz, pokud bude výkonnostně problém)
       ));
-      if($a->bezSlevy())                $t->parse('aktivity.aktivita.fixniCena');
-      elseif($u && $u->gcPrihlasen())   $t->parse('aktivity.aktivita.mojeCena');
-      else                              $t->parse('aktivity.aktivita.cena');
+      if($a->bezSlevy())                $t->parse('aktivity.aktivita.cena.fixni');
+      elseif($u && $u->gcPrihlasen())   $t->parse('aktivity.aktivita.cena.moje');
+      else                              $t->parse('aktivity.aktivita.cena.obecna');
+      $t->parse('aktivity.aktivita.cena');
     }
     foreach($a->tagy() as $tag) {
       $t->assign('tag', $tag);
