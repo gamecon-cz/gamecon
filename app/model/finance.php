@@ -334,10 +334,12 @@ class Finance {
         a.cena *
           (st.platba_procent/100) *
           IF(a.bez_slevy OR a.typ=10, 1.0, $scn) *
+          IF(a.typ = 10 AND p.id_stavu_prihlaseni IN(3,4), 0.0, 1.0) *    -- zrušit 'storno' pro pozdě odhlášené tech. aktivity
           IF(a.typ=10,-1.0,1.0) as cena,
         a.cena *
           (st.platba_procent/100) *
           IF(a.bez_slevy OR a.typ=10, 1.0, $scnPozde) *
+          IF(a.typ = 10 AND p.id_stavu_prihlaseni IN(3,4), 0.0, 1.0) *
           IF(a.typ=10,-1.0,1.0) as cenaPozde,
         st.id_stavu_prihlaseni
       FROM (
