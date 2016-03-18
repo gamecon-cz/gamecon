@@ -229,7 +229,7 @@ function markdown($text) {
 /** Převede text markdown na html (přímo on the fly) */
 function markdownNoCache($text) {
   if(!$text) return '';
-  $text = Michelf\Markdown::defaultTransform($text);
+  $text = \Michelf\MarkdownExtra::defaultTransform($text);
   $text = preg_replace_callback('@(p|h\d|strong|em|/)>[^<]+<@', function($m){
     $m[0] = str_replace('...', '…', $m[0]);
     $m[0] = str_replace(' - ', ' – ', $m[0]);
