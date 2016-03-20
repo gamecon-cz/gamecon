@@ -15,16 +15,16 @@ class Cenik {
    * Zobrazitelné texty k právům (jen statické). Nestatické texty nutno řešit
    * ručně. V polích se případně udává, které právo daný index „přebíjí“.
    */
-  protected static $textSlev = array(
+  protected static $textSlev = [
     P_KOSTKA_ZDARMA => 'kostka zdarma',
     P_PLACKA_ZDARMA => 'placka zdarma',
     P_TRIKO_ZDARMA  => 'jedno červené tričko zdarma',
-    P_TRIKO_ZAPUL   => array('jedno modré vypravěčské tričko za polovic', P_TRIKO_ZDARMA),
+    P_TRIKO_ZAPUL   => ['jedno modré vypravěčské tričko za polovic', P_TRIKO_ZDARMA],
     P_UBYTOVANI_ZDARMA  => 'ubytování zdarma',
     P_JIDLO_ZDARMA  => 'jídlo zdarma',
-    P_JIDLO_SLEVA   => array('jídlo se slevou', P_JIDLO_ZDARMA),
+    P_JIDLO_SLEVA   => ['jídlo se slevou', P_JIDLO_ZDARMA],
     P_JIDLO_SNIDANE => 'možnost objednat si snídani',
-  );
+  ];
 
   /**
    * Konstruktor
@@ -58,7 +58,7 @@ class Cenik {
    * @todo možnost (zvážit) použití objektu Sleva, který by se uměl aplikovat
    */
   function slevyObecne() {
-    return array('nic');
+    return ['nic'];
   }
 
   /**
@@ -68,7 +68,7 @@ class Cenik {
    */
   function slevySpecialni() {
     $u = $this->u;
-    $slevy = array();
+    $slevy = [];
     foreach(self::$textSlev as $pravo => $text) {
       // přeskočení práv, která mohou být přebita + normalizace textu
       if(is_array($text)) {

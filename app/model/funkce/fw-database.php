@@ -11,7 +11,7 @@ $dbTransactionDepth = 0;
  */
 function dbArrayCol($q, $param = null) {
   $a = dbQueryS($q, $param);
-  $o = array();
+  $o = [];
   while($r = mysql_fetch_row($a)) {
     $o[$r[0]] = $r[1];
   }
@@ -80,7 +80,7 @@ function dbConnect() {
  * Deletes from $table where all $whereArray column => value conditions are met
  */
 function dbDelete($table, $whereArray) {
-  $where = array();
+  $where = [];
   foreach($whereArray as $col => $val) {
     $where[] = dbQi($col).' = '.dbQv($val);
   }
@@ -93,7 +93,7 @@ function dbDelete($table, $whereArray) {
  */
 function dbDescribe($table) {
   $a = dbQuery('show full columns from '.dbQi($table));
-  $out = array();
+  $out = [];
   while($r = mysql_fetch_assoc($a)) $out[] = $r;
   return $out;
 }

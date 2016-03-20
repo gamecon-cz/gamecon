@@ -12,7 +12,7 @@ class DbffSelect extends DbFormField {
     $rv = '@((^|,? )(\d)-)@';
     $v = preg_split($rv, $c, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_OFFSET_CAPTURE);
     if(count($v) == 1) return null;
-    $out = array();
+    $out = [];
     foreach($v as $m) {
       $i = substr($c, $m[1] - 2, 1); // pro víceznakové id nutno opravit
       $out[$i] = $m[0];

@@ -42,10 +42,10 @@ class Novinka extends DbObject {
   }
 
   function typSlovy() {
-    $typy = array(
+    $typy = [
       self::BLOG => 'blog',
       self::NOVINKA => 'novinka',
-    );
+    ];
     return $typy[$this->r['typ']];
   }
 
@@ -60,7 +60,7 @@ class Novinka extends DbObject {
   }
 
   static function zNejnovejsi($typ = self::NOVINKA) {
-    return self::zWhereRadek('vydat <= NOW() AND typ = $1 ORDER BY vydat DESC LIMIT 1', array($typ));
+    return self::zWhereRadek('vydat <= NOW() AND typ = $1 ORDER BY vydat DESC LIMIT 1', [$typ]);
   }
 
   static function zNejnovejsich($start = 0, $limit = 20) {
@@ -72,7 +72,7 @@ class Novinka extends DbObject {
   }
 
   static function zUrl($url, $typ = self::NOVINKA) {
-    return self::zWhereRadek('url = $1 AND typ = $2', array($url, $typ));
+    return self::zWhereRadek('url = $1 AND typ = $2', [$url, $typ]);
   }
 
   static function zVsech() {

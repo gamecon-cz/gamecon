@@ -20,12 +20,12 @@ if($z = get('sesad')) {
 }
 
 if($p = get('odeberPravo')) {
-  dbQueryS('DELETE FROM r_prava_zidle WHERE id_prava = $1 AND id_zidle = $2', array($p, $zidle));
+  dbQueryS('DELETE FROM r_prava_zidle WHERE id_prava = $1 AND id_zidle = $2', [$p, $zidle]);
   back();
 }
 
 if($p = get('dejPravo')) {
-  dbInsert('r_prava_zidle', array( 'id_prava'=>$p, 'id_zidle'=>$zidle ));
+  dbInsert('r_prava_zidle', [ 'id_prava'=>$p, 'id_zidle'=>$zidle ]);
   back();
 }
 
@@ -45,7 +45,7 @@ if(!$zidle) {
     LEFT JOIN r_uzivatele_zidle uz ON(uz.id_zidle = z.id_zidle AND uz.id_uzivatele = $1)
     GROUP BY z.id_zidle
     ORDER BY z.id_zidle
-    ', array($uPracovni ? $uPracovni->id() : null)
+    ', [$uPracovni ? $uPracovni->id() : null]
   );
   while($r = mysql_fetch_assoc($o)) {
     $r['sedi'] = $r['sedi'] ? '<span style="color:#0d0;font-weight:bold">&bull;</span>' : '';
@@ -68,7 +68,7 @@ if(!$zidle) {
     LEFT JOIN r_prava_zidle pz USING(id_zidle)
     LEFT JOIN r_prava_soupis p USING(id_prava)
     WHERE z.id_zidle = $1
-    ', array($zidle)
+    ', [$zidle]
   );
   while(($r = mysql_fetch_assoc($o)) && $r['id_prava']) {
     $t->assign($r);
@@ -81,7 +81,7 @@ if(!$zidle) {
     LEFT JOIN r_prava_zidle pz ON(pz.id_prava = p.id_prava AND pz.id_zidle = $1)
     WHERE p.id_prava > 0 AND pz.id_prava IS NULL
     ORDER BY p.jmeno_prava
-    ', array($zidle)
+    ', [$zidle]
   );
   while($r = mysql_fetch_assoc($o)) {
     $t->assign($r);

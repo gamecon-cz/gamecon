@@ -235,7 +235,7 @@ class Flee {
     if(!isset($this->migrationFiles)) {
       $files = glob($this->folderMigration.'/*.php');
       $versions = preg_filter('@.*/0*(\d*)\.php$@', '$1', $files);
-      $out = array();
+      $out = [];
       foreach($versions as $i => $v) {
         $out[$v] = $files[$i];
       }
@@ -306,7 +306,7 @@ class Flee {
    * array)
    */
   private function rollbackMigrations() {
-    $todos = array();
+    $todos = [];
     $last = end((array_values($this->migrationFiles()))); // pass by reference hack
     if($this->isModifiedRollback($last)) {
       $todos[] = $last;
@@ -367,7 +367,7 @@ class Flee {
    */
   private function unappliedMigrations() {
     $dbVersion = $this->dbSchema()->version;
-    $todos = array(); // migrations to be done
+    $todos = []; // migrations to be done
     foreach($this->migrationFiles() as $fileVersion => $file) {
       if($fileVersion > $dbVersion) {
         $todos[] = $file;

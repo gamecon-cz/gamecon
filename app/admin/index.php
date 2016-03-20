@@ -57,7 +57,7 @@ else
   $menu=new AdminMenu('./scripts/modules/');
   $menu=$menu->pole();
   // načtení submenu
-  $submenu = array();
+  $submenu = [];
   if(isset($menu[$stranka]['submenu']) && $menu[$stranka]['submenu'])
   {
     $submenu=new AdminMenu('./scripts/modules/'.$stranka.'/');
@@ -98,12 +98,12 @@ else
   if($u->maPravo(100)) // panel úvod - fixme magická konstanta
   {
     if($uPracovni) {
-      $xtpl->assign(array(
+      $xtpl->assign([
         'avatar'  =>  $uPracovni->avatar(),
         'jmeno'   =>  $uPracovni->jmeno(),
         'nick'    =>  $uPracovni->prezdivka(),
         'status'  =>  $uPracovni->statusHtml(),
-      ));
+      ]);
       $xtpl->parse('all.uzivatel.vybrany');
     } else {
       $xtpl->parse('all.uzivatel.omnibox');

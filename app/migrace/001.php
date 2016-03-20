@@ -17,9 +17,9 @@ function urlcz($t) {
 ////////////////////////////////
 // Odstranění absolutních url //
 ////////////////////////////////
-dbQueryS('UPDATE stranky SET obsah = REPLACE(obsah, $1, $2)', array('href="/', 'href="'));
-dbQueryS('UPDATE stranky SET obsah = REPLACE(obsah, $1, $2)', array('src="/', 'src="'));
-dbQueryS('UPDATE stranky SET obsah = REPLACE(obsah, $1, $2)', array('](/', ']('));
+dbQueryS('UPDATE stranky SET obsah = REPLACE(obsah, $1, $2)', ['href="/', 'href="']);
+dbQueryS('UPDATE stranky SET obsah = REPLACE(obsah, $1, $2)', ['src="/', 'src="']);
+dbQueryS('UPDATE stranky SET obsah = REPLACE(obsah, $1, $2)', ['](/', '](']);
 
 
 ////////////////////////////////////////
@@ -67,22 +67,22 @@ if($blog) {
     //var_dump($c);
     // filtrace obsahu
     $obsah = $c[7];
-    $obsah = strtr($obsah, array(
+    $obsah = strtr($obsah, [
       'files/obsah/blog/' => 'soubory/obsah/blog/',
-    ));
+    ]);
     $obsah = preg_replace('@(<a href[^>]+>)?<img src="([^"]+)"[^>]*>(</a>)?@', '<img src="$2">', $obsah);
     $obsah = trim($markdown->convert($obsah));
     $obsah = preg_replace('@<div id="[^"]+" style="display: none">(.*)</div>@s', '<!-- vice -->'."\n".'$1', $obsah);
     $hash = scrc32($obsah);
-    dbInsert('texty', array('id' => $hash, 'text' => $obsah));
-    dbInsert('novinky', array(
+    dbInsert('texty', ['id' => $hash, 'text' => $obsah]);
+    dbInsert('novinky', [
       'vydat' => $c[5],
       'url'   => $c[2],
       'nazev' => $c[3],
       'autor' => $c[4],
       'text'  => $hash,
       'typ'   => 2
-    ));
+    ]);
   }
 }
 dbQuery('DELETE FROM stranky WHERE url_stranky = "blog"');
@@ -100,15 +100,15 @@ while($r = mysql_fetch_assoc($o)) {
   $t = preg_split('@<h2>(.+?)</h2>\s*<h3>(.+?)</h3>@', $r['obsah'], 2, PREG_SPLIT_DELIM_CAPTURE);
   $text = trim($markdown->convert($t[3]));
   $hash = scrc32($text);
-  dbInsert('texty', array('id' => $hash, 'text' => $text));
-  dbInsert('novinky', array(
+  dbInsert('texty', ['id' => $hash, 'text' => $text]);
+  dbInsert('novinky', [
     'vydat' => $r['publikovano'],
     'url'   => urlcz($t[2]),
     'nazev' => $t[2],
     'autor' => Uzivatel::jmenoNickZjisti($r),
     'text'  => $hash,
     'typ'   => 1,
-  ));
+  ]);
 }
 
 
@@ -120,15 +120,15 @@ $o = dbQuery('SELECT * FROM akce_seznam WHERE popis IS NOT NULL AND popis != "" 
 while($r = mysql_fetch_assoc($o)) {
   $h = sprintf('%d', scrc32($r['popis']));
   try {
-    dbInsert('texty', array(
+    dbInsert('texty', [
       'id'    =>  $h,
       'text'  =>  $r['popis'],
-    ));
+    ]);
   } catch(DbException $e) {
     echo "Aktivita $r[nazev_akce] $r[rok]: ";
     echo $e->getMessage().'<br>';
   }
-  dbUpdate('akce_seznam', array('popis'=>$h), array('id_akce'=>$r['id_akce']));
+  dbUpdate('akce_seznam', ['popis'=>$h], ['id_akce'=>$r['id_akce']]);
 }
 // rozšíření ID více instancí
 dbQuery('
@@ -162,14 +162,14 @@ $o = dbQuery("select * from akce_seznam where nazev_akce like '%(%)' and typ = 4
 while($r = mysql_fetch_assoc($o)) {
   $tag = preg_replace('@.*\((.*)\)@', '$1', $r['nazev_akce']);
   try {
-    dbQueryS('INSERT INTO tagy(nazev) VALUES ($1)', array($tag));
+    dbQueryS('INSERT INTO tagy(nazev) VALUES ($1)', [$tag]);
     $tagId = mysql_insert_id();
   } catch(Exception $e) {
-    $tagId = dbOneCol('SELECT id FROM tagy WHERE nazev = $1', array($tag));
+    $tagId = dbOneCol('SELECT id FROM tagy WHERE nazev = $1', [$tag]);
   }
-  dbInsertUpdate('akce_tagy', array('id_akce' => $r['id_akce'], 'id_tagu' => $tagId));
+  dbInsertUpdate('akce_tagy', ['id_akce' => $r['id_akce'], 'id_tagu' => $tagId]);
   $nazev = preg_replace('@\s?\(.*\)@', '', $r['nazev_akce']);
-  dbUpdate('akce_seznam', array('nazev_akce' => $nazev), array('id_akce' => $r['id_akce']));
+  dbUpdate('akce_seznam', ['nazev_akce' => $nazev], ['id_akce' => $r['id_akce']]);
 }
 
 

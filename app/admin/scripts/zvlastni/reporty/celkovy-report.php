@@ -15,26 +15,26 @@ function ut($typ) { // ubytování typ - z názvu předmětu odhadne typ
   return preg_replace('@ ?(pondělí|úterý|středa|čtvrtek|pátek|sobota|neděle) ?@i', '', $typ);
 }
 
-$gcDoted = array();
+$gcDoted = [];
 $maxRok = po(REG_GC_DO) ? ROK : ROK - 1;
 for($i = 2009; $i <= $maxRok; $i++) {
   $gcDoted[$i] = 'účast '.$i;
 }
 
 $hlavicka1=array_merge(
-  array('Účastník','','','','','','','','Datum narození','','','Bydliště','','','','','',
-  'Ubytovací informace','','',''),
+  ['Účastník','','','','','','','','Datum narození','','','Bydliště','','','','','',
+  'Ubytovací informace','','',''],
   array_fill(0,count($gcDoted),''),
-  array('Celkové náklady','','',
-  'Ostatní platby','','','','','','','','','','','','','','')
+  ['Celkové náklady','','',
+  'Ostatní platby','','','','','','','','','','','','','','']
 );
 $hlavicka2=array_merge(
-  array('ID','Příjmení','Jméno','Přezdívka','Mail','Pozice','Datum registrace','Prošel infopultem','Den','Měsíc','Rok','Stát','Město','Ulice',
-  'PSČ','Škola','Chci bydlet s','První noc','Poslední noc (počátek)','Typ','Dorazil na GC'),
+  ['ID','Příjmení','Jméno','Přezdívka','Mail','Pozice','Datum registrace','Prošel infopultem','Den','Měsíc','Rok','Stát','Město','Ulice',
+  'PSČ','Škola','Chci bydlet s','První noc','Poslední noc (počátek)','Typ','Dorazil na GC'],
   $gcDoted,
-  array(
+  [
   'Celkem dní','Cena / den','Ubytování','Předměty a strava',
-  'Aktivity','vypravěčská sleva využitá','vypravěčská sleva přiznaná','dobrovolné vstupné','dobrovolné vstupné (pozdě)','stav','zůstatek z minula','připsané platby','první blok','poslední blok','dobrovolník pozice','dobrovolník info','Slevy','Objednávky')
+  'Aktivity','vypravěčská sleva využitá','vypravěčská sleva přiznaná','dobrovolné vstupné','dobrovolné vstupné (pozdě)','stav','zůstatek z minula','připsané platby','první blok','poslední blok','dobrovolník pozice','dobrovolník info','Slevy','Objednávky']
 );
 $o=dbQuery('
   SELECT 
@@ -63,7 +63,7 @@ while($r=mysql_fetch_assoc($o))
   elseif($un->maZidli(Z_INFO) || $un->maZidli(Z_ZAZEMI))  $stav = 'zázemí/infopult';
   elseif($un->maZidli(Z_ORG_AKCI))                        $stav = 'vypravěč';
   elseif($un->maZidli(Z_PARTNER))                         $stav = 'partner';
-  $ucastiHistorie=array();
+  $ucastiHistorie=[];
   foreach($gcDoted as $rok => $nul)
     $ucastiHistorie[]=$un->maPravo((int)( '-'.substr($rok,2).'02' ))?'ano':'ne';
   //datum
@@ -113,7 +113,7 @@ while($r=mysql_fetch_assoc($o))
       $r['pomoc_typ'],
       $r['pomoc_vice'],
       implode(", ",array_merge($f->slevyVse(),$f->slevyAktivity())),
-      strip_tags(strtr($f->prehledHtml(),array('</tr>'=>", ", '</td>'=>' '))),
+      strip_tags(strtr($f->prehledHtml(),['</tr>'=>", ", '</td>'=>' '])),
     ]
   );
 }

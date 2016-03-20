@@ -17,15 +17,15 @@ if(post('upravit'))
 
 if(post('nahoru'))
 {
-  dbQueryS('UPDATE akce_lokace SET poradi=poradi+1 WHERE poradi=$0',array(post('poradi')-1));
-  dbQueryS('UPDATE akce_lokace SET poradi=poradi-1 WHERE id_lokace=$0',array(post('nahoru')));
+  dbQueryS('UPDATE akce_lokace SET poradi=poradi+1 WHERE poradi=$0',[post('poradi')-1]);
+  dbQueryS('UPDATE akce_lokace SET poradi=poradi-1 WHERE id_lokace=$0',[post('nahoru')]);
   back();
 }
 
 if(post('dolu'))
 {
-  dbQueryS('UPDATE akce_lokace SET poradi=poradi-1 WHERE poradi=$0',array(post('poradi')+1));
-  dbQueryS('UPDATE akce_lokace SET poradi=poradi+1 WHERE id_lokace=$0',array(post('dolu')));
+  dbQueryS('UPDATE akce_lokace SET poradi=poradi-1 WHERE poradi=$0',[post('poradi')+1]);
+  dbQueryS('UPDATE akce_lokace SET poradi=poradi+1 WHERE id_lokace=$0',[post('dolu')]);
   back();
 }
 
@@ -33,7 +33,7 @@ if(post('novaMistnost'))
 {
   $a=dbOneLine('SELECT MAX(poradi) as posledni FROM akce_lokace');
   $posledni=$a['posledni'];
-  dbInsertUpdate('akce_lokace',array('nazev'=>'Nová místnost', 'poradi'=>$posledni+1));
+  dbInsertUpdate('akce_lokace',['nazev'=>'Nová místnost', 'poradi'=>$posledni+1]);
   back();
 } 
 

@@ -9,7 +9,7 @@
 class Uzivatel
 {
   protected
-    $u=array(),
+    $u=[],
     $klic='',
     $zidle,         // pole s klíči id židlí uživatele
     $finance=null;
@@ -21,9 +21,9 @@ class Uzivatel
   /** Vytvoří uživatele z různých možných vstupů */
   function __construct($uzivatel)
   {
-    if(is_array($uzivatel) && array_keys_exist(array(
+    if(is_array($uzivatel) && array_keys_exist([
       'id_uzivatele', 'login_uzivatele', 'pohlavi'
-      ),$uzivatel))
+      ],$uzivatel))
     { //asi čteme vstup z databáze
       $this->u=$uzivatel;
       return;
@@ -318,7 +318,7 @@ class Uzivatel
       $p=dbQuery('SELECT id_prava FROM r_uzivatele_zidle uz
         LEFT JOIN r_prava_zidle pz USING(id_zidle)
         WHERE uz.id_uzivatele='.$this->id());
-      $prava=array(); //inicializace nutná, aby nepadala výjimka pro uživatele bez práv
+      $prava=[]; //inicializace nutná, aby nepadala výjimka pro uživatele bez práv
       while($r=mysql_fetch_assoc($p))
         $prava[]=(int)$r['id_prava'];
       $this->u['prava']=$prava;
@@ -408,7 +408,7 @@ class Uzivatel
   /** Vrátí / nastaví poznámku uživatele */
   function poznamka($poznamka = null) {
     if(isset($poznamka)) {
-      dbQueryS('UPDATE uzivatele_hodnoty SET poznamka = $1 WHERE id_uzivatele = $2', array($poznamka, $this->id()));
+      dbQueryS('UPDATE uzivatele_hodnoty SET poznamka = $1 WHERE id_uzivatele = $2', [$poznamka, $this->id()]);
       $this->otoc();
     } else {
       return $this->u['poznamka'];
@@ -451,7 +451,7 @@ class Uzivatel
     $p = dbQuery('SELECT id_prava FROM r_uzivatele_zidle uz
       LEFT JOIN r_prava_zidle pz USING(id_zidle)
       WHERE uz.id_uzivatele='.$id);
-    $prava = array(); // inicializace nutná, aby nepadala výjimka pro uživatele bez práv
+    $prava = []; // inicializace nutná, aby nepadala výjimka pro uživatele bez práv
     while($r = mysql_fetch_assoc($p))
       $prava[] = (int)$r['id_prava'];
     $_SESSION[$klic]['prava'] = $prava;
@@ -465,7 +465,7 @@ class Uzivatel
   public static function prihlasId($id,$klic='uzivatel')
   {
     $u=dbOneLineS('SELECT * FROM uzivatele_hodnoty WHERE id_uzivatele=$0',
-      array($id));
+      [$id]);
     if($u)
     {
       if(!session_id())
@@ -476,7 +476,7 @@ class Uzivatel
       $p=dbQuery('SELECT id_prava FROM r_uzivatele_zidle uz
         LEFT JOIN r_prava_zidle pz USING(id_zidle)
         WHERE uz.id_uzivatele='.$id);
-      $prava=array(); //inicializace nutná, aby nepadala výjimka pro uživatele bez práv
+      $prava=[]; //inicializace nutná, aby nepadala výjimka pro uživatele bez práv
       while($r=mysql_fetch_assoc($p))
         $prava[]=(int)$r['id_prava'];
       $_SESSION[$klic]['prava']=$prava;
@@ -528,7 +528,7 @@ class Uzivatel
     if(!isset($tab['login_uzivatele']) || !isset($tab['email1_uzivatele']))
       throw new Exception('špatný formát $tab (je to pole?)');
     $tab['random']=$rand=randHex(20);
-    dbInsert('uzivatele_hodnoty',array_merge($tab,array('registrovan'=>date("Y-m-d H:i:s"))));
+    dbInsert('uzivatele_hodnoty',array_merge($tab,['registrovan'=>date("Y-m-d H:i:s")]));
     $uid=dbLastId();
     //poslání mailu
     $tab['id_uzivatele']=$uid;
@@ -583,11 +583,11 @@ class Uzivatel
    * Smaže uživatele $u a jeho historii připojí k tomuto uživateli. Sloupečky
    * v poli $zmeny případně aktualizuje podle hodnot smazaného uživatele.
    */
-  function sluc(Uzivatel $u, $zmeny = array()) {
+  function sluc(Uzivatel $u, $zmeny = []) {
     $old = $u->id();
     $new = $this->id();
-    $tabulky = array( // páry název sloupce / tabulky kde upravit id uživatele
-      'id_uzivatele' => array(
+    $tabulky = [ // páry název sloupce / tabulky kde upravit id uživatele
+      'id_uzivatele' => [
         //'r_uzivatele_zidle', // speciální dotaz s ignore
         'akce_organizatori',
         'akce_prihlaseni',
@@ -599,15 +599,15 @@ class Uzivatel
         'shop_nakupy',
         'stazeni',
         'ubytovani',
-      ),
-      'uzivatel'  => array('chyby', 'forum_clanky'),
-      'zamcel'    => array('akce_seznam'),
-      'autor'     => array('novinky_obsah'),
-      'publikoval'=> array('novinky_obsah'),
-      'upravil'   => array('novinky_obsah'),
-      'provedl'   => array('platby'),
-      'guru'      => array('uzivatele_hodnoty'),
-    );
+      ],
+      'uzivatel'  => ['chyby', 'forum_clanky'],
+      'zamcel'    => ['akce_seznam'],
+      'autor'     => ['novinky_obsah'],
+      'publikoval'=> ['novinky_obsah'],
+      'upravil'   => ['novinky_obsah'],
+      'provedl'   => ['platby'],
+      'guru'      => ['uzivatele_hodnoty'],
+    ];
     $zmeny = array_intersect_key($u->u, array_flip($zmeny));
     $zmeny['zustatek'] = $this->u['zustatek'] + $u->u['zustatek'];
     // převedení referencí na tohoto uživatele
@@ -618,7 +618,7 @@ class Uzivatel
       }
     }
     // smazání duplicitního uživatele - první aby update nezpůsobil duplicity
-    dbDelete('uzivatele_hodnoty', array('id_uzivatele' => $u->id()));
+    dbDelete('uzivatele_hodnoty', ['id_uzivatele' => $u->id()]);
     // aktualizace uživatele
     $zmeny['id_uzivatele'] = $this->id();
     dbInsertUpdate('uzivatele_hodnoty', $zmeny);
@@ -752,14 +752,14 @@ class Uzivatel
    */
   static function zIds($ids) {
     if(is_array($ids)) {
-      if(empty($ids)) return array();
+      if(empty($ids)) return [];
       return self::nactiUzivatele('WHERE u.id_uzivatele IN('.dbQv($ids).')');
     } else if($ids === null) {
-      return array();
+      return [];
     } else if(preg_match('@[0-9,]+@', $ids)) {
       return self::nactiUzivatele('WHERE u.id_uzivatele IN('.$ids.')');
     } else if($ids==='') {
-      return array();
+      return [];
     } else {
       throw new Exception('neplatný formát množiny id');
     }
@@ -811,7 +811,7 @@ class Uzivatel
         SELECT id_uzivatele
         FROM uzivatele_hodnoty
         WHERE random!="" AND random=$0',
-        array($_COOKIE['gcTrvalePrihlaseni']));
+        [$_COOKIE['gcTrvalePrihlaseni']]);
       $id=$id?$id['id_uzivatele']:null;
       //die(dbLastQ());
       if(!$id) return null;
@@ -855,7 +855,7 @@ class Uzivatel
       '.$where.'
       GROUP BY u.id_uzivatele
     '.$extra, $param);
-    $uzivatele = array();
+    $uzivatele = [];
     while($r = mysql_fetch_assoc($o)) {
       $u = new static($r);
       $u->u['prava'] = explode(',',$u->u['prava']);
@@ -882,7 +882,7 @@ class Uzivatel
     $p=dbQuery('SELECT id_prava FROM r_uzivatele_zidle uz
       LEFT JOIN r_prava_zidle pz USING(id_zidle)
       WHERE uz.id_uzivatele='.$this->id());
-    $prava=array(); //inicializace nutná, aby nepadala výjimka pro uživatele bez práv
+    $prava=[]; //inicializace nutná, aby nepadala výjimka pro uživatele bez práv
     while($r=mysql_fetch_assoc($p))
       $prava[]=(int)$r['id_prava'];
     $_SESSION[$this->klic]['prava']=$prava;
@@ -906,7 +906,7 @@ class Uzivatel
       LEFT JOIN r_prava_zidle p ON(p.id_zidle=z.id_zidle)
       '.$where.'
       GROUP BY u.id_uzivatele');
-    $uzivatele=array();
+    $uzivatele=[];
     while($r=mysql_fetch_assoc($o))
     {
       $u=new self($r);

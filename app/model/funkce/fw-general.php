@@ -131,7 +131,7 @@ function strrbefore($string, $delimiter)
  */ 
 function tabArrayR($ai)
 {
-  $ao=array();
+  $ao=[];
   $ih=count($ai);
   $iw=count($ai[0]);
   for($ic=0;$ic<$iw;$ic++)

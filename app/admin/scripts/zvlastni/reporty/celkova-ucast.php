@@ -5,8 +5,8 @@ require_once('sdilene-hlavicky.hhp');
 // seznam roku vezmeme z aktivit
 $sql_roky = dbQuery("SELECT MIN(rok) FROM akce_seznam GROUP BY rok ORDER BY rok");
 
-$sloupce_roky = array();
-$query_roky = array();
+$sloupce_roky = [];
+$query_roky = [];
 
 // pro kazdy rok vygenerujeme sloupec
 while(list($rok) = mysql_fetch_row($sql_roky)){
@@ -86,7 +86,7 @@ echo(chr(0xEF).chr(0xBB).chr(0xBF)); //BOM bajty pro nastavení UTF-8 ve výsled
 $out=fopen('php://output','w'); //získáme filedescriptor výstupu stránky pro použití v fputcsv
 
 // header
-$sloupce = array("id_uzivatele", "pohlavi", "jmeno_uzivatele", "prijmeni_uzivatele");
+$sloupce = ["id_uzivatele", "pohlavi", "jmeno_uzivatele", "prijmeni_uzivatele"];
 foreach($sloupce_roky as $key=>$value){
 	array_push($sloupce, "rok$value");
 }

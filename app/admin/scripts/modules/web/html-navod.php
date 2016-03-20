@@ -55,7 +55,7 @@ seznam pomocí čísel
     <th>Zobrazí se jako</th>
   </tr>
   <tr>
-    <td><?php echo strtr(htmlspecialchars($demo),array("\n"=>'<br />')) ?></td>
+    <td><?php echo strtr(htmlspecialchars($demo),["\n"=>'<br />']) ?></td>
     <td><?php echo markdown($demo) ?></td>
   </tr>
 </table> 

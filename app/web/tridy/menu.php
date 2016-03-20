@@ -2,7 +2,7 @@
 
 class Menu {
 
-  static $linie = array( // TODO cacheování databáze
+  static $linie = [ // TODO cacheování databáze
     'deskovky'  => 'Deskovky a turnaje',
     'rpg'       => 'RPG',
     'larpy'     => 'Larpy',
@@ -13,9 +13,9 @@ class Menu {
     'prednasky' => 'Přednášky',
     'workshopy' => 'Workshopy',
     'wargaming' => 'Wargaming',
-  );
+  ];
 
-  protected $stranky = array(
+  protected $stranky = [
     'prihlaska'           =>  'Přihláška:&ensp;',
     'o-gameconu'          =>  'O GameConu',
     'chci-se-zapojit'     =>  'Chci se zapojit',
@@ -24,7 +24,7 @@ class Menu {
     'forum'               =>  'Fórum',
     'kontakty'            =>  'Kontakty',
     'https://www.facebook.com/media/set/?set=a.1049227911755210.1073741834.127768447234499&type=3&pnref=story&hc_location=ufi' => 'Fotogalerie',
-  );
+  ];
   protected $url;
 
   function __construct(Uzivatel $u = null, Url $url = null) {

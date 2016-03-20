@@ -44,7 +44,7 @@ $totoPrihlaseni=mysql_fetch_array($odpoved);
 $dalsiPrihlaseni=mysql_fetch_array($odpoved);
 $obsazenost=0;
 $odd=0;
-$maily=array();
+$maily=[];
 while($totoPrihlaseni) {
   $xtpl2->assign($totoPrihlaseni);
   if($totoPrihlaseni['id_uzivatele']) {
@@ -64,7 +64,7 @@ while($totoPrihlaseni) {
     $xtpl2->parse('prihlaseni.aktivita');
     $obsazenost=0;
     $odd=0;
-    $maily=array();
+    $maily=[];
   }
   $totoPrihlaseni=$dalsiPrihlaseni;
   $dalsiPrihlaseni=mysql_fetch_array($odpoved);

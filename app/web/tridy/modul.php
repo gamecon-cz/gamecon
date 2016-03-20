@@ -8,7 +8,7 @@
 class Modul {
 
   protected $src;
-  protected $params = array();
+  protected $params = [];
   protected $vystup;
   protected $bezDekorace = false;
   protected $bezMenu = false;

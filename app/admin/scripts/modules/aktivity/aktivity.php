@@ -23,7 +23,7 @@ if(post('smazat')) {
 
 if(post('publikovat')) {
   dbQueryS('UPDATE akce_seznam SET stav=4 WHERE id_akce=$0',
-    array(post('aktivitaId'))); // TODO převést do modelu
+    [post('aktivitaId')]); // TODO převést do modelu
   back();
 }
 
@@ -58,9 +58,9 @@ $tpl=new XTemplate('aktivity.xtpl');
 $filtr=isset($_SESSION['adminAktivityFiltr'])?
   $_SESSION['adminAktivityFiltr']:'';
 $o = dbQuery('SELECT * FROM akce_typy');
-$varianty = array();
+$varianty = [];
 while($r = mysql_fetch_assoc($o)) {
-  $varianty[$r['id_typu']] = array('popis' => $r['typ_1pmn'], 'db' => $r['id_typu']);
+  $varianty[$r['id_typu']] = ['popis' => $r['typ_1pmn'], 'db' => $r['id_typu']];
 }
 foreach($varianty as $k => $v) {
   $tpl->assign('val',$k);
@@ -75,10 +75,10 @@ if(get('sort')) { //řazení
   back();
 }
 $razeni = empty($_COOKIE['akceRazeni']) ? 'nazev_akce' : $_COOKIE['akceRazeni'];
-$razeni = array($razeni, 'nazev_akce', 'zacatek');
+$razeni = [$razeni, 'nazev_akce', 'zacatek'];
 
-$filtr = empty($filtr) ? array() : array('typ' => $varianty[$filtr]['db']);
-$filtr = array_merge(array('rok' => ROK), $filtr);
+$filtr = empty($filtr) ? [] : ['typ' => $varianty[$filtr]['db']];
+$filtr = array_merge(['rok' => ROK], $filtr);
 
 $typy = dbArrayCol('SELECT id_typu, typ_1p FROM akce_typy');
 $typy[0] = '';
@@ -90,7 +90,7 @@ $aktivity = Aktivita::zFiltru($filtr, $razeni);
 foreach($aktivity as $a)
 {
   $r = $a->rawDb();
-  $tpl->assign(array(
+  $tpl->assign([
     'id_akce'   => $a->id(),
     'nazev'     => $a->nazev(),
     'cas'       => $a->denCas(),
@@ -98,7 +98,7 @@ foreach($aktivity as $a)
     // TODO fixnout s lepším ORM
     'typ'       => $typy[$r['typ']],
     'mistnost'  => $mistnosti[$r['lokace']],
-  ));
+  ]);
   if($r['patri_pod']) $tpl->parse('aktivity.aktivita.instSymbol');
   if($r['stav']==0) $tpl->parse('aktivity.aktivita.tlacitka.publikovat');
   if($r['stav']==4) $tpl->parse('aktivity.aktivita.tlacitka.pripravit');

@@ -19,9 +19,9 @@ if(post('vypadliSemifinale') || post('vypadliFinale')) {
 
 $t = new XTemplate(__DIR__ . '/prihlaseni-drd.xtpl');
 
-$semifinale = array();
-$finale = array();
-foreach(Aktivita::zFiltru(array('typ' => 9, 'rok' => ROK)) as $a) {
+$semifinale = [];
+$finale = [];
+foreach(Aktivita::zFiltru(['typ' => 9, 'rok' => ROK]) as $a) {
   if($a->cenaZaklad() == 0) {
     assert(stripos($a->nazev(), 'finále')); // (semi)finále nebo finále musí být v názvu
     continue; // hack na určení finále a semifinále

@@ -40,14 +40,14 @@ if(isset($_GET['minimum']))
     $un->nactiPrava();
     if(($stav=$un->finance()->stav()) >= $min)
     {
-      $x->assign(array(
+      $x->assign([
         'login' => $un->prezdivka(),
         'stav'  => $stav,
         'aktivity'  =>  $un->finance()->cenaAktivity(),
         'ubytovani' =>  $un->finance()->cenaUbytovani(),
         'predmety'  =>  $un->finance()->cenaPredmety(),
         'vcas'      =>  $un->maPravo(P_SLEVA_VCAS) ? '<img src="files/design/ok-s.png">' : '<img src="files/design/error-s.png">',
-      ));
+      ]);
       $x->parse('finance.uzivatele.uzivatel');
       $ids.=$un->id().',';
     }

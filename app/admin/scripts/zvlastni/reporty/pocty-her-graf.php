@@ -34,7 +34,7 @@ while($r=mysql_fetch_assoc($o))
     //$pocet=array_sum($pocty);
   rsort($pocty,SORT_NUMERIC);
   $max=($pocet-$pocty[0])/($pocet*($typu-1));
-  $nPocty=array();
+  $nPocty=[];
   for($i=1;$i<$typu;$i++)
   { //první počet přeskočit
     if($pocty[$i]/$pocet>$max)
@@ -50,7 +50,7 @@ while($r=mysql_fetch_assoc($o))
   //fputcsv($out,$ro,$CSV_SEP);
   
   $raditPodle[]=$divz;
-  $raditCo[]=array('id_uzivatele'=>$r['id_uzivatele'],'diverzifikace'=>$divz);
+  $raditCo[]=['id_uzivatele'=>$r['id_uzivatele'],'diverzifikace'=>$divz];
 }
 array_multisort($raditPodle,$raditCo);
 
@@ -61,7 +61,7 @@ array_multisort($raditPodle,$raditCo);
 $krok=0.03;
 $pocet=0;
 $limit=0.0;
-$vysledky=array();
+$vysledky=[];
 foreach($raditCo as $r)
 {
   if($r['diverzifikace']>$limit)

@@ -20,7 +20,7 @@ Pokud již netrpělivě čekáte na fotky, první střípky od Darien naleznete 
 Děkujeme vám všem za vaši přízeň a za to, že jste udělali letošní GameCon takový, jakým byl.
 
 Těšíme se zase za rok, 14.-17.7. v Pardubicích!
-Váš org.tým GC 2015', array("\n"=>"<br>\n"));
+Váš org.tým GC 2015', ["\n"=>"<br>\n"]);
 
 
 ////////////////////////////////////////////////////////////////////////////////

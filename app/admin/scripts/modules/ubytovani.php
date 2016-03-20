@@ -8,7 +8,7 @@
  */
 
 
-$nastaveni = array('ubytovaniBezZamku' => true, 'jidloBezZamku' => true);
+$nastaveni = ['ubytovaniBezZamku' => true, 'jidloBezZamku' => true];
 $shop = $uPracovni ? new Shop($uPracovni, $nastaveni) : null;
 
 
@@ -23,17 +23,17 @@ if(post('pokojeImport')) {
   $do = $hlavicka['posledni_noc'];
   $pokoj = $hlavicka['pokoj'];
 
-  dbDelete('ubytovani', array('rok' => ROK));
+  dbDelete('ubytovani', ['rok' => ROK]);
 
   while($r = fgetcsv($f, 512, ";")) {
     if($r[$pokoj]) {
       for($den = $r[$od]; $den <= $r[$do]; $den++) {
-        dbInsert('ubytovani', array(
+        dbInsert('ubytovani', [
           'id_uzivatele'  =>  $r[$uid],
           'den'           =>  $den,
           'pokoj'         =>  $r[$pokoj],
           'rok'           =>  ROK,
-        ));
+        ]);
       }
     }
   }
@@ -81,7 +81,7 @@ $t = new XTemplate('ubytovani.xtpl');
 
 if(post('prohozeniNacist')) {
   $t->assign($_POST);
-  foreach(array('u1', 'u2') as $name) {
+  foreach(['u1', 'u2'] as $name) {
     $ux = Uzivatel::zId(post($name));
     foreach(Aktivita::zUzivatele($ux) as $a) {
       if(!$a->teamova() && $a->prihlasovatelna()) {
@@ -94,9 +94,9 @@ if(post('prohozeniNacist')) {
 
 
 $pokoj = Pokoj::zCisla(get('pokoj'));
-$ubytovani = $pokoj ? $pokoj->ubytovani() : array();
+$ubytovani = $pokoj ? $pokoj->ubytovani() : [];
 if(get('pokoj') && !$pokoj) throw new Chyba('pokoj ' . get('pokoj') . ' neexistuje nebo je prázdný');
-$t->assign(array(
+$t->assign([
   'uid'       =>  $uPracovni ? $uPracovni->id() : '',
   'pokoj'     =>  get('pokoj'),
   'ubytovani' =>  array_uprint($ubytovani, function($e){
@@ -105,7 +105,7 @@ $t->assign(array(
     $a = $e->koncA();
     return $e->jmenoNick() . " (<span style=\"color:$color\">{$ne}dorazil$a</span>)";
   }, '<br>'),
-));
+]);
 
 if($uPracovni && $uPracovni->gcPrihlasen()) {
   $t->assign('shop', $shop);

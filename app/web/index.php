@@ -50,7 +50,7 @@ if($m->bezStranky()) {
 } else {
   $t = new XTemplate('sablony/index.xtpl');
   // templata a nastavení proměnných do glob templaty
-  $t->assign(array(
+  $t->assign([
     'u'         => $u,
     'base'      => URL_WEBU.'/',
     'admin'     => URL_ADMIN,
@@ -74,7 +74,7 @@ if($m->bezStranky()) {
     'chyba'     => Chyba::vyzvedniHtml(),
     'info'      => $m->info() ? $m->info()->html() : '',
     'a'         => $u ? $u->koncA() : '',
-  ));
+  ]);
   // tisk věcí a zdar
   if(!$m->bezMenu())                                $t->assign('menu', $menu->cele());
   if($u && $u->maPravo(P_ADMIN_UVOD))               $t->parse('index.prihlasen.admin');

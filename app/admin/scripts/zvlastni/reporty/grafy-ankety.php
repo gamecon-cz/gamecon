@@ -8,10 +8,10 @@ $graf='';
 if(post('hodnoty'))
 {
   $hodnoty=explode("\n",post('hodnoty'));
-  $matice=array(); //matice[typ][hodnoceni]=pocet
-  $maticeSum=array();
+  $matice=[]; //matice[typ][hodnoceni]=pocet
+  $maticeSum=[];
   $hlavicky=explode("\t",$hodnoty[0]);
-  $relevanceSlovne=array(1=>'velmi důležité', 2=>'důležité a víc', 3=>'středně důležité a víc', 4=>'není jim to jedno', 5=>'(ignorovat)');
+  $relevanceSlovne=[1=>'velmi důležité', 2=>'důležité a víc', 3=>'středně důležité a víc', 4=>'není jim to jedno', 5=>'(ignorovat)'];
   unset($hlavicky[count($hlavicky)-1]);//poslední prvek zrušit, je nějak vadný (nové řádky or)
   unset($hodnoty[0]);
   foreach($hodnoty as $r)

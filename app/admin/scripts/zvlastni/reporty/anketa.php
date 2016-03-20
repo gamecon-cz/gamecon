@@ -15,8 +15,8 @@ $o=dbQuery('
   WHERE id_ankety='.$id.'
   ORDER BY id_otazky');
 
-$otazkyId=array();
-$otazky=array();
+$otazkyId=[];
+$otazky=[];
 while($r=mysql_fetch_assoc($o))
 {
   $otazkyId[]=$r['id_otazky'];

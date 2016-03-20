@@ -47,12 +47,12 @@ class Pokoj {
 
   /** Vrátí letošní pokoj s číslem $cislo */
   static function zCisla($cislo) {
-    return self::zWhere('WHERE pokoj = $1 AND rok = $2', array($cislo, ROK));
+    return self::zWhere('WHERE pokoj = $1 AND rok = $2', [$cislo, ROK]);
   }
 
   /** Vrátí pokoj, kde letos bydlí uživatel $u */
   static function zUzivatele(Uzivatel $u) {
-    return self::zWhere('WHERE rok = $2 AND pokoj = (SELECT MAX(pokoj) FROM ubytovani WHERE id_uzivatele = $1 AND rok = $2)', array($u->id(), ROK));
+    return self::zWhere('WHERE rok = $2 AND pokoj = (SELECT MAX(pokoj) FROM ubytovani WHERE id_uzivatele = $1 AND rok = $2)', [$u->id(), ROK]);
   }
 
   /** Vrátí iterátor pokojů podle zadané where klauzule */

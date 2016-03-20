@@ -15,12 +15,12 @@ foreach(Aktivita::zRozmezi($od, $do, Aktivita::JEN_VOLNE | Aktivita::VEREJNE) as
 {
   if($posledniBlok && $posledniBlok!=$a->zacatek()->format('z'))
     $xtpl->parse('tabule.blok');
-  $xtpl->assign(array(
+  $xtpl->assign([
     'nazev'       =>  $a->nazev(),
     'obsazenost'  =>  $a->obsazenostHtml(),
     'cas'         =>  $a->zacatek()->format('G:i'),
     'zitra'       =>  $a->zacatek()->rozdilDne($od)
-  ));
+  ]);
   $xtpl->parse('tabule.blok.aktivita');
   $posledniBlok=$a->zacatek()->format('z');
 }

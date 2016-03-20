@@ -14,7 +14,7 @@ if(get('vypravec')) {
 
 // Přesměrování na kanonickou URL pokud existuje pro daný dotaz
 if(get('rok') == ROK) unset($_GET['rok']);
-if(array_keys($_GET) == array('req', 'typ') && $_GET['typ']) {
+if(array_keys($_GET) == ['req', 'typ'] && $_GET['typ']) {
   back($_GET['typ']);
 }
 
@@ -23,29 +23,29 @@ if($this->param('typ')) $_GET['typ'] = $_GET['req']; // TODO inteligentnější 
 if($this->param('org')) $_GET['org'] = $_GET['req']; // TODO inteligentnější načítání z názvu typu
 
 // Nabídka filtrů
-$filtry = array();
-$filtry[] = array(
+$filtry = [];
+$filtry[] = [
   'nazev'     =>  'Typ',
   'name'      =>  'typ',
   'moznosti'  =>  Menu::$linie,
-);
-$roky = array(
+];
+$roky = [
   'nazev'     =>  'Rok',
   'name'      =>  'rok',
-  'moznosti'  =>  array(),
-);
+  'moznosti'  =>  [],
+];
 for($i = ROK; $i >= 2009; $i--) {
   $roky['moznosti'][$i] = $i;
 }
 $filtry[] = $roky;
-$filtry[] = array(
+$filtry[] = [
   'nazev' =>  'Obsazenost',
   'name'  =>  'jenVolne',
-  'moznosti'  =>  array(
+  'moznosti'  =>  [
     '1'  =>  'jen volné',
     ''  =>  '(jakákoli)',
-  )
-);
+  ]
+];
 
 // Zobrazení filtrovacího boxu
 foreach($filtry as $filtr) {
@@ -60,7 +60,7 @@ foreach($filtry as $filtr) {
 }
 
 // Vyfiltrování aktivit
-$filtr = array();
+$filtr = [];
 $filtr['rok'] = get('rok') ?: ROK;
 if($this->param('typ')) $filtr['typ'] = $this->param('typ')->id();
 elseif(get('typ') && ($typ = Typ::zUrl(get('typ')))) $filtr['typ'] = $typ->id();
@@ -93,12 +93,12 @@ while($a) {
   }
 
   // vlastnosti per termín
-  $t->assign(array(
+  $t->assign([
     'a'             =>  $a,
     'prihlasovatko' =>  $a->prihlasovatko($u),
     //TODO ne/přihlašovatelnost odlišená vzhledem (třídou?) termínu aktivity
     //TODO ajax na zobrazení bubliny ne/úspěšného přihlášení
-  ));
+  ]);
   if( $v = $a->vyberTeamu($u) ) {
     $t->assign('vyber', $v);
     $t->parse('aktivity.aktivita.tymTermin.vyber');
@@ -122,14 +122,14 @@ while($a) {
   if(!$dalsi || !$dalsi->patriPod() || $dalsi->patriPod() != $a->patriPod()) {
     if(CENY_VIDITELNE && $a->cena()) {
       $do = new DateTime(SLEVA_DO);
-      $t->assign(array(
+      $t->assign([
         'cena' => $a->cena($u),
         'stdCena' => $a->cena(),
         'zakladniCena' => $a->cenaZaklad().'&thinsp;Kč',
         'rozhodneDatum' => $do->format('j.n.'),
         //TODO způsob načtení a zobrazení orgů (per termín, per aktivita, proklik na jejich osobní stránku, ...?)
         //TODO optimalizace načítání popisků (do jiné tabulky, jeden dotaz, pokud bude výkonnostně problém)
-      ));
+      ]);
       if($a->bezSlevy())                $t->parse('aktivity.aktivita.cena.fixni');
       elseif($u && $u->gcPrihlasen())   $t->parse('aktivity.aktivita.cena.moje');
       else                              $t->parse('aktivity.aktivita.cena.obecna');

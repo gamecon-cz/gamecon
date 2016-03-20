@@ -33,7 +33,7 @@ class Titulek
   public function cely()
   {
     if($this->stranka)
-      return strtr($this->format, array('%1'=>$this->stranka));
+      return strtr($this->format, ['%1'=>$this->stranka]);
     else
       return $this->default;
   }

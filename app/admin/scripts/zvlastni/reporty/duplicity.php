@@ -10,7 +10,7 @@ $form =  <<<'EOT'
   </form>')
 EOT;
 
-$pole = array(
+$pole = [
   'id_uzivatele as id',
   'login_uzivatele as login',
   'jmeno_uzivatele as jméno',
@@ -19,7 +19,7 @@ $pole = array(
   //'email2_uzivatele as "alt. mail"',
   'datum_narozeni as narození',
   'ulice_a_cp_uzivatele as ulice',
-);
+];
 
 $r = Report::zSql('
   SELECT

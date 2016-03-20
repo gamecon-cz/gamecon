@@ -20,11 +20,11 @@ class VyjimkovacChyba {
    * ...)
    */
   private static function radekInit() {
-    $r = array(
+    $r = [
       'vznikla' => time(),
       'url'     => 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'],
       'zdroj'   => @$_SERVER['HTTP_REFERER'] ?: null,
-    );
+    ];
     if($u = Uzivatel::zSession()) {
       $r['uzivatel'] = $u->id();
     }

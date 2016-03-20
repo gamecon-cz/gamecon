@@ -8,13 +8,13 @@ class DbffMarkdownDirect extends DbFormField {
 
   function html() {
     $t = new XTemplate(__DIR__.'/dbff-markdown.xtpl');
-    $t->assign(array(
+    $t->assign([
       //'pnOldId' => $this->postName('oldVal'),
       //'oldId'   => $this->value(),
       'pnText'  => $this->postName(),
       'text'    => htmlspecialchars($this->value()),
       'mdText'  => markdownNoCache($this->value()),
-    ));
+    ]);
     $t->parse('md');
     return $t->text('md');
   }

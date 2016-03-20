@@ -25,13 +25,13 @@ class HTML_To_Markdown
     /**
      * @var array Class-wide options users can override.
      */
-    private $options = array(
+    private $options = [
         'header_style'    => 'setext', // Set to "atx" to output H1 and H2 headers as # Header1 and ## Header2
         'suppress_errors' => true, // Set to false to show warnings when loading malformed HTML
         'strip_tags'      => false, // Set to true to strip tags that don't have markdown equivalents. N.B. Strips tags, not their content. Useful to clean MS Word HTML output.
         'bold_style'      => '**', // Set to '__' if you prefer the underlined style
         'italic_style'    => '*', // Set to '_' if you prefer the underlined style
-    );
+    ];
 
 
     /**
@@ -174,7 +174,7 @@ class HTML_To_Markdown
         $markdown = html_entity_decode($markdown, ENT_QUOTES, 'UTF-8');
         $markdown = html_entity_decode($markdown, ENT_QUOTES, 'UTF-8'); // Double decode to cover cases like &amp;nbsp; http://www.php.net/manual/en/function.htmlentities.php#99984
         $markdown = preg_replace("/<!DOCTYPE [^>]+>/", "", $markdown); // Strip doctype declaration
-        $unwanted = array('<html>', '</html>', '<body>', '</body>', '<head>', '</head>', '<?xml encoding="UTF-8">', '&#xD;');
+        $unwanted = ['<html>', '</html>', '<body>', '</body>', '<head>', '</head>', '<?xml encoding="UTF-8">', '&#xD;'];
         $markdown = str_replace($unwanted, '', $markdown); // Strip unwanted tags
         $markdown = trim($markdown, "\n\r\0\x0B");
 
@@ -427,7 +427,7 @@ class HTML_To_Markdown
         $markdown = '';
 
         $code_content = html_entity_decode($node->C14N());
-        $code_content = str_replace(array("<code>", "</code>"), "", $code_content);
+        $code_content = str_replace(["<code>", "</code>"], "", $code_content);
 
         $lines = preg_split('/\r\n|\r|\n/', $code_content);
         $total = count($lines);

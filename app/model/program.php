@@ -208,14 +208,14 @@ class Program {
     $kon = (int)$a->konec()->format('G');
     if($kon == 0) $kon = 24;
     $grpf = $this->grpf; // MAGIC (dynamické volání metody podle jména
-    $a = array(
+    $a = [
       'grp' => $a->$grpf(),
       'zac' => $zac,
       'kon' => $kon,
       'den' => (int)$a->zacatek()->format('z'),
       'del' => $kon - $zac,
       'obj' => $a
-    );
+    ];
     $iterator->next();
     // přeskočit případné speciální (neviditelné) aktivity
     if(

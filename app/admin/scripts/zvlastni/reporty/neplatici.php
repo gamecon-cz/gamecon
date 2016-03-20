@@ -18,7 +18,7 @@ echo(chr(0xEF).chr(0xBB).chr(0xBF)); //BOM bajty pro nastavení UTF-8 ve výsled
 
 $out=fopen('php://output','w'); //získáme filedescriptor výstupu stránky pro použití v fputcsv
 
-$seznam=array();
+$seznam=[];
 
 //načtení uživatelů jednotlivě, filtr těch s záporným zůstatkem
 do
@@ -50,7 +50,7 @@ do
     }
   }
   if($un->finance()->stav()<0)
-    $seznam[]=array(
+    $seznam[]=[
       $r['id_uzivatele'],
       $r['login_uzivatele'],
       $r['jmeno_uzivatele'],
@@ -60,15 +60,15 @@ do
       $un->finance()->cenaPredmety(),
       $un->finance()->cenaAktivity(),
       $drd,$rpg,$larp,$deskovky,$bonusy,
-      $stav);
+      $stav];
 }while($r=mysql_fetch_assoc($o));
 
 //ksort($seznam);
 
-fputcsv($out,array('ID','login','jméno','příjmení','stav účtu',
+fputcsv($out,['ID','login','jméno','příjmení','stav účtu',
   'ubytování','předměty','aktivity',
   'DrD','RPG','larpy','deskovky','bonusy',
-  'poznámka'),$CSV_SEP);
+  'poznámka'],$CSV_SEP);
 foreach($seznam as $r)
   fputcsv($out,$r,$CSV_SEP);
 

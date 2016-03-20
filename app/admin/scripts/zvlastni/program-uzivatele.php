@@ -2,7 +2,7 @@
 
 $osobniProgram = isset($osobniProgram) ? (bool)$osobniProgram : false;
 
-$program = new Program($uPracovni, array(
+$program = new Program($uPracovni, [
   'drdPj'       => true,
   'drdPrihlas'  => true,
   'plusMinus'   => true,
@@ -10,7 +10,7 @@ $program = new Program($uPracovni, array(
   'teamVyber'   => true,
   'technicke'   => true,
   'zpetne'      => $u->maPravo(P_ZMENA_HISTORIE),
-));
+]);
 if($uPracovni) {
   Aktivita::prihlasovatkoZpracuj($uPracovni,
     Aktivita::PLUSMINUS_KAZDY |

@@ -10,17 +10,17 @@ class Shop
   protected
     $u,
     $cenik,               // instance ceníku
-    $nastaveni = array(   // případné spec. chování shopu
+    $nastaveni = [   // případné spec. chování shopu
       'ubytovaniBezZamku' => false,   // ignorovat pozastavení objednávek u ubytování
       'jidloBezZamku'     => false,   // ignorovat pozastavení objednávek u jídla
-    ),
-    $ubytovani=array(),
-    $tricka=array(),
-    $predmety=array(),
-    $jidlo=array(),
+    ],
+    $ubytovani=[],
+    $tricka=[],
+    $predmety=[],
+    $jidlo=[],
     $ubytovaniOd,
     $ubytovaniDo,
-    $ubytovaniTypy=array(),
+    $ubytovaniTypy=[],
     $vstupne,       // dobrovolné vstupné (složka zaplacená regurélně včas)
     $vstupnePozde,  // dobrovolné vstupné (složka zaplacená pozdě)
     $vstupneJeVcas, // jestli se dobrovolné vstupné v tento okamžik chápe jako zaplacené včas
@@ -32,7 +32,7 @@ class Shop
     $klicS='shopS'; //klíč formu pro identifikaci polí se slevami
     //$quiet //todo
 
-  protected static $skoly=array(
+  protected static $skoly=[
     'UK Univerzita Karlova Praha',
     'MU Masarykova univerzita Brno',
     'VUT Vysoké učení technické Brno',
@@ -53,8 +53,8 @@ class Shop
     'VŠO Vysoká škola obchodní v Praze',
     'UJAK Univerzita Jana Amose Komenského',
     'VŠCHT Vysoká škola chemicko-technologická v Praze'
-  );
-  protected static $dny = array('středa', 'čtvrtek', 'pátek', 'sobota', 'neděle');
+  ];
+  protected static $dny = ['středa', 'čtvrtek', 'pátek', 'sobota', 'neděle'];
 
   const
     PREDMET = 1,
@@ -92,8 +92,8 @@ class Shop
     ', [ROK, $this->u->id()]);
 
     //inicializace
-    $this->jidlo['dny'] = array();
-    $this->jidlo['druhy'] = array();
+    $this->jidlo['dny'] = [];
+    $this->jidlo['druhy'] = [];
 
     while($r = mysql_fetch_assoc($o)) {
       $typ = $r['typ'];
@@ -290,9 +290,9 @@ class Shop
     }
     // mazání
     if($nechce) {
-      dbQueryS('DELETE FROM shop_nakupy WHERE id_uzivatele = $1 AND rok = $2 AND id_predmetu IN($3)', array(
+      dbQueryS('DELETE FROM shop_nakupy WHERE id_uzivatele = $1 AND rok = $2 AND id_predmetu IN($3)', [
         $this->u->id(), ROK, $nechce
-      ));
+      ]);
     }
   }
 
@@ -307,7 +307,7 @@ class Shop
     if(isset($_POST[$this->klicP]) && isset($_POST[$this->klicT]))
     {
       // pole s předměty, které jsou vyplněné ve formuláři
-      $nove=array();
+      $nove=[];
       foreach($_POST[$this->klicP] as $idPredmetu => $pocet)
         for($i=0;$i<$pocet;$i++)
           $nove[]=(int)$idPredmetu;
@@ -316,13 +316,13 @@ class Shop
           $nove[]=(int)$idTricka;
       sort($nove);
       // pole s předměty, které už má objednané dříve (bez ubytování)
-      $stare=array();
+      $stare=[];
       $o=dbQuery('SELECT id_predmetu FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE id_uzivatele='.$this->u->id().' AND rok='.ROK.' AND typ IN('.self::PREDMET.','.self::TRICKO.') ORDER BY id_predmetu');
       while($r=mysql_fetch_assoc($o))
         $stare[]=(int)$r['id_predmetu'];
       // určení rozdílů polí (note: array_diff ignoruje vícenásobné výskyty hodnot a nedá se použít)
       $i=$j=0;
-      $odstranit=array(); //čísla (kvůli nutností více delete dotazů s limitem)
+      $odstranit=[]; //čísla (kvůli nutností více delete dotazů s limitem)
       $pridat=''; //část sql dotazu
       while(!empty($nove[$i]) || !empty($stare[$j]))
         if(empty($stare[$j]) || (!empty($nove[$i]) && $nove[$i]<$stare[$j]))
@@ -405,7 +405,7 @@ class Shop
       else
         $this->u->vemZidli(Z_STUDENT);
       if(@$slevy['skola'])
-        dbQueryS('UPDATE uzivatele_hodnoty SET skola=$0 WHERE id_uzivatele='.$this->u->id(),array($slevy['skola']));
+        dbQueryS('UPDATE uzivatele_hodnoty SET skola=$0 WHERE id_uzivatele='.$this->u->id(),[$slevy['skola']]);
       else
         dbQueryS('UPDATE uzivatele_hodnoty SET skola=NULL WHERE id_uzivatele='.$this->u->id());
       dbQuery('UPDATE uzivatele_hodnoty SET guru=NULL WHERE guru='.$this->u->id()); // reset nováčků
@@ -427,8 +427,8 @@ class Shop
   /** Zpracuje formulář s jídlem */
   function zpracujJidlo() {
     if(!isset($_POST[self::PN_JIDLO_ZMEN])) return;
-    $ma = array_keys( @$this->jidlo['jidloObednano'] ?: array() );
-    $chce = array_keys( post(self::PN_JIDLO) ?: array() );
+    $ma = array_keys( @$this->jidlo['jidloObednano'] ?: [] );
+    $chce = array_keys( post(self::PN_JIDLO) ?: [] );
     $this->zmenObjednavku($ma, $chce);
   }
 
@@ -516,7 +516,7 @@ class Shop
    */
   protected function vyberSelect($predmety) {
     // načtení aktuálně koupených triček
-    $koupene = array();
+    $koupene = [];
     foreach($predmety as $p) {
       for($i = 0; $i < $p['kusu_uzivatele']; $i++) {
         $koupene[] = $p['id_predmetu'];

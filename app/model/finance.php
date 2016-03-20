@@ -13,9 +13,9 @@ class Finance {
     $logovat = true,    // ukládat seznam předmětů?
     $cenik,             // instance ceníku
     // tabulky s přehledy
-    $prehled=array(),   // tabulka s detaily o platbách
-    $slevyA=array(),    // pole s textovými popisy slev uživatele na aktivity
-    $slevyO=array(),    // pole s textovými popisy obecných slev
+    $prehled=[],   // tabulka s detaily o platbách
+    $slevyA=[],    // pole s textovými popisy slev uživatele na aktivity
+    $slevyO=[],    // pole s textovými popisy obecných slev
     // součásti výsledné ceny
     $cenaAktivity   = 0.0,  // cena aktivit
     $cenaUbytovani  = 0.0,  // cena objednaného ubytování
@@ -29,7 +29,7 @@ class Finance {
 
   protected static
     $maxSlevaAktivit=100, // v procentech
-    $slevaZaAktivitu = array( // ve formátu max. délka => sleva
+    $slevaZaAktivitu = [ // ve formátu max. délka => sleva
       1  =>  60,
       2  =>  90,
       5  => 180,
@@ -37,7 +37,7 @@ class Finance {
       9  => 360,
       11 => 450,
       13 => 540,
-    );
+    ];
 
   const
     // idčka typů, podle kterých se řadí výstupní tabulka $prehled
@@ -138,11 +138,11 @@ class Finance {
     if($kategorie == 4) $nkat = 3;
     $kategorie = $nkat;
     // přidání
-    $this->prehled[] = array(
+    $this->prehled[] = [
       $nazev,
       $castka,
       $kategorie
-    );
+    ];
   }
 
   /**
@@ -179,14 +179,14 @@ class Finance {
   static function pripis(Uzivatel $u, $castka, $poznamka = null, Uzivatel $provedl = null) {
     $poznamka= empty($poznamka) ? null : $poznamka;
     $orgId= $provedl instanceof Uzivatel ? $provedl->id() : 0;
-    dbInsertUpdate('platby',array(
+    dbInsertUpdate('platby',[
       'id_uzivatele'=>$u->id(),
       'castka'=>$castka,
       'rok'=>ROK,
       'provedeno'=>date("Y-m-d H:i:s"),
       'provedl'=>$orgId,
       'poznamka'=>$poznamka
-    ));
+    ]);
   }
 
   /** Vrátí aktuální stav na účtu uživatele pro tento rok */
@@ -400,7 +400,7 @@ class Finance {
       JOIN shop_predmety p USING(id_predmetu)
       WHERE n.id_uzivatele = $uid AND n.rok = $rok
     ");
-    $soucty = array();
+    $soucty = [];
     while($r = mysql_fetch_assoc($o)) {
       $cena = $this->cenik->shop($r);
       // započtení ceny

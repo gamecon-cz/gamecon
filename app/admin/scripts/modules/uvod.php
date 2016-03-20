@@ -22,7 +22,7 @@ if(!empty($_POST['platba']) && $uPracovni && $uPracovni->gcPrihlasen())
 
 if(!empty($_POST['zrusitNovacka']) && $uPracovni && $uPracovni->gcPrihlasen())
 {
-  dbQueryS('UPDATE uzivatele_hodnoty SET guru=NULL WHERE id_uzivatele=$0',array($_POST['zrusitNovacka']));
+  dbQueryS('UPDATE uzivatele_hodnoty SET guru=NULL WHERE id_uzivatele=$0',[$_POST['zrusitNovacka']]);
   back();
 }
 
@@ -58,7 +58,7 @@ if(!empty($_POST['rychloreg']))
 
 if(!empty($_POST['telefon']) && $uPracovni)
 {
-  dbQueryS('UPDATE uzivatele_hodnoty SET telefon_uzivatele=$0 WHERE id_uzivatele='.$uPracovni->id(),array($_POST['telefon']));
+  dbQueryS('UPDATE uzivatele_hodnoty SET telefon_uzivatele=$0 WHERE id_uzivatele='.$uPracovni->id(),[$_POST['telefon']]);
   $uPracovni->otoc();
   back();
 }
@@ -93,7 +93,7 @@ if(post('poznamkaNastav')) {
 }
 
 if(post('zmenitUdaj')) {
-  dbUpdate('uzivatele_hodnoty', post('udaj'), array('id_uzivatele' => $uPracovni->id()));
+  dbUpdate('uzivatele_hodnoty', post('udaj'), ['id_uzivatele' => $uPracovni->id()]);
   $uPracovni->otoc();
   back();
 }
@@ -120,8 +120,8 @@ if($uPracovni && $uPracovni->gcPrihlasen())
       .'</ul></li>';
   },$up->novacci());
   $pokoj = Pokoj::zUzivatele($up);
-  $spolubydlici = $pokoj ? $pokoj->ubytovani() : array();
-  $x->assign(array(
+  $spolubydlici = $pokoj ? $pokoj->ubytovani() : [];
+  $x->assign([
     'a'               =>  $up->koncA(),
     'stav'            =>  ($up->finance()->stav()<0 ? $err : $ok ).' '.$up->finance()->stavHr(),
     'prehled'         =>  $up->finance()->prehledHtml(),
@@ -140,7 +140,7 @@ if($uPracovni && $uPracovni->gcPrihlasen())
     'aa'              =>  $u->koncA(),
     'org'             =>  $u->jmenoNick(),
     'up'              =>  $up,
-  ));
+  ]);
   if($up->finance()->stav() < 0 && !$up->gcPritomen()) $x->parse('uvod.uzivatel.nepritomen.upoMaterialy');
   if(!$up->gcPritomen())    $x->parse('uvod.uzivatel.nepritomen');
   elseif(!$up->gcOdjel())   $x->parse('uvod.uzivatel.pritomen');
@@ -153,11 +153,11 @@ if($uPracovni && $uPracovni->gcPrihlasen())
 }
 else if($uPracovni && !$uPracovni->gcPrihlasen()) // kvůli zkratovému vyhodnocení a nevolání metody na non-object
 {
-  $x->assign(array(
+  $x->assign([
     'a'   =>  $uPracovni->koncA(),
     'ka'  =>  $uPracovni->koncA() ? 'ka' : '',
     'rok' =>  ROK
-  ));
+  ]);
   $x->parse('uvod.neprihlasen');
 }
 else
@@ -184,7 +184,7 @@ $x->assign('predmety',$moznosti);
 
 // form s osobními údaji
 if($uPracovni) {
-  $udaje = array(
+  $udaje = [
     'jmeno_uzivatele'       =>  'Jméno',
     'prijmeni_uzivatele'    =>  'Příjmení',
     'ulice_a_cp_uzivatele'  =>  'Ulice',
@@ -194,15 +194,15 @@ if($uPracovni) {
     'datum_narozeni'        =>  'Narozen'.$uPracovni->koncA(),
     'email1_uzivatele'      =>  'E-mail',
     'poznamka'              =>  'Poznámka',
-  );
+  ];
   $r = dbOneLine('SELECT '.implode(',', array_keys($udaje)).' FROM uzivatele_hodnoty WHERE id_uzivatele = '.$uPracovni->id());
   foreach($udaje as $sloupec => $nazev) {
     $hodnota = $r[$sloupec];
-    $x->assign(array(
+    $x->assign([
       'nazev' => $nazev,
       'sloupec' => $sloupec,
       'hodnota' => $hodnota,
-    ));
+    ]);
     if($hodnota == '' && $sloupec != 'poznamka') $x->parse('uvod.udaje.udaj.chybi');
     if($sloupec != 'poznamka') $x->parse('uvod.udaje.udaj.input');
     else $x->parse('uvod.udaje.udaj.text');

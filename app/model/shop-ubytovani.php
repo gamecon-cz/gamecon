@@ -95,7 +95,7 @@ class ShopUbytovani {
         dbQuery($q);
       // uložit s kým chce být na pokoji
       if($_POST[$this->pnPokoj])
-        dbQueryS('UPDATE uzivatele_hodnoty SET ubytovan_s=$0 WHERE id_uzivatele='.$this->u->id(),array($_POST[$this->pnPokoj]));
+        dbQueryS('UPDATE uzivatele_hodnoty SET ubytovan_s=$0 WHERE id_uzivatele='.$this->u->id(),[$_POST[$this->pnPokoj]]);
       else
         dbQuery('UPDATE uzivatele_hodnoty SET ubytovan_s=NULL WHERE id_uzivatele='.$this->u->id());
       return true;

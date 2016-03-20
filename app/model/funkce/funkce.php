@@ -14,7 +14,7 @@ function aktivityDiverzifikace($poleTypu)
   $pocty=$poleTypu;
   rsort($pocty,SORT_NUMERIC);
   $max=($pocet-$pocty[0])/($pocet*($typu-1));
-  $nPocty=array();
+  $nPocty=[];
   for($i=1;$i<$typu;$i++)
   { //první počet přeskočit
     if($pocty[$i]/$pocet>$max)
@@ -55,8 +55,8 @@ function datum2($dbRadek)
  *  akceptuje vše, co žere strtotime */
 function datum3($datum)
 {
-  $mesic=array('ledna', 'února', 'března', 'dubna', 'května', 'června',
-    'července', 'srpna', 'září', 'října', 'listopadu', 'prosince');
+  $mesic=['ledna', 'února', 'března', 'dubna', 'května', 'června',
+    'července', 'srpna', 'září', 'října', 'listopadu', 'prosince'];
   return date('j. ',strtotime($datum)).
     $mesic[date('n',strtotime($datum))-1];
 }
@@ -96,8 +96,8 @@ function dbText($hash) {
   } else {
     $text = func_get_arg(1);
     $nhash = scrc32($text);
-    $nrow = array('text' => $text, 'id' => $nhash);
-    if($hash) dbUpdate('texty', $nrow, array('id' => $hash));
+    $nrow = ['text' => $text, 'id' => $nhash];
+    if($hash) dbUpdate('texty', $nrow, ['id' => $hash]);
     else dbInsert('texty', $nrow);
     return $nhash;
   }
@@ -145,24 +145,24 @@ function hlaska($nazev,$u=null) {
   elseif($u instanceof Uzivatel)
   {
     $koncA=$u->pohlavi()=='f'?'a':'';
-    return strtr($HLASKY_SUBST[$nazev],array(
+    return strtr($HLASKY_SUBST[$nazev],[
       "\n"=>'<br />',
       '{a}'=>$koncA,
       '%1' =>func_num_args()>2?func_get_arg(2):'',
       '%2' =>func_num_args()>3?func_get_arg(3):'',
       '%3' =>func_num_args()>4?func_get_arg(4):'',
       '%4' =>func_num_args()>5?func_get_arg(5):''
-    ));
+    ]);
   }
   elseif(func_num_args()>1)
   {
-    return strtr($HLASKY_SUBST[$nazev],array(
+    return strtr($HLASKY_SUBST[$nazev],[
       "\n"=>'<br />',
       '%1' =>func_num_args()>1?func_get_arg(1):'',
       '%2' =>func_num_args()>2?func_get_arg(2):'',
       '%3' =>func_num_args()>3?func_get_arg(3):'',
       '%4' =>func_num_args()>4?func_get_arg(4):''
-    ));
+    ]);
   }
   else
   {
@@ -251,7 +251,7 @@ function markdownNoCache($text) {
  */
 function maVolno($uid,$poleCas,$vyjimka=null)
 {
-  $GLOBALS['maVolnoKolizePole'] = array();      //pole kolizních aktivit
+  $GLOBALS['maVolnoKolizePole'] = [];      //pole kolizních aktivit
   if($uid===0 || $uid==='0') return true;       //"žádný" organizátor má vždy volno
   if(!$poleCas['zacatek']) return true;         //aktivita s neurčeným časem neblokuje
   if(ma_pravo($uid, P_KRYTI_AKCI)) return true; //aktivity se můžou krýt
@@ -268,7 +268,7 @@ function maVolno($uid,$poleCas,$vyjimka=null)
       AND a.rok='.ROK.') as a
     WHERE NOT (zacatek>=$2 OR konec<=$1) -- zacne az pak nebo skonci pred'."\n".
     ($vyjimka?'AND id_akce!=$3':''),
-    array($uid, $poleCas['zacatek'], $poleCas['konec'], $vyjimka));
+    [$uid, $poleCas['zacatek'], $poleCas['konec'], $vyjimka]);
   if(mysql_num_rows($a))
   {
     while($r=mysql_fetch_assoc($a))
@@ -277,7 +277,7 @@ function maVolno($uid,$poleCas,$vyjimka=null)
   }
   else
   {
-    $GLOBALS['maVolnoKolizePole'][]=array();
+    $GLOBALS['maVolnoKolizePole'][]=[];
     return true;
   }
 }
@@ -287,7 +287,7 @@ function maVolno($uid,$poleCas,$vyjimka=null)
 function maVolnoKolize()
 { 
   return isset($GLOBALS['maVolnoKolizePole'])?
-    $GLOBALS['maVolnoKolizePole']:array();
+    $GLOBALS['maVolnoKolizePole']:[];
 }
 
 
@@ -350,7 +350,7 @@ function perfectcache($args) {
     if($typ == 'js') {
       foreach($args as $a) if($a) file_put_contents($minf, file_get_contents($a), FILE_APPEND);
     } else {
-      $parser = new Less_Parser(array('compress' => true));
+      $parser = new Less_Parser(['compress' => true]);
       foreach($args as $a) if($a) {
         if(substr($a, -4) != '.ttf') $parser->parseFile($a, URL_WEBU.'/soubory/styl/');
         else $parser->ModifyVars([ perfectcacheFontNazev($a) => 'url("'.perfectcacheFont($a).'")' ]); // prozatím u fontu stačí věřit, že modifikace odpovídá modifikaci stylu

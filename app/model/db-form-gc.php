@@ -1,12 +1,12 @@
 <?php
 
-foreach(array(
+foreach([
   'db-form',
   'db-form-field',
   'dbff-pkey',
   'dbff-string',
   'dbff-text',
-) as $f) {
+] as $f) {
   require __DIR__ . '/knihovny/DbForm/'.$f.'.php';
 }
 

@@ -76,9 +76,9 @@ class Vyjimkovac
   /** Zobrazí public omluvnou stránku uživateli */
   function zobrazOmluvu() {
     $out = file_get_contents(__DIR__ . '/vyjimkovac-omluva.xtpl');
-    $out = strtr($out, array(
+    $out = strtr($out, [
       '{picard}'  => URL_WEBU . '/soubory/styl/exception.jpg',
-    ));
+    ]);
     echo $out;
   }
 

@@ -34,7 +34,7 @@ echo(chr(0xEF).chr(0xBB).chr(0xBF)); //BOM bajty pro nastavení UTF-8 ve výsled
 $out=fopen('php://output','w'); //získáme filedescriptor výstupu stránky pro použití v fputcsv
 
 $r=mysql_fetch_assoc($o);
-fputcsv($out,array_merge(array_keys($r),array("Σ cena",'Diverzifikace')),$CSV_SEP);
+fputcsv($out,array_merge(array_keys($r),["Σ cena",'Diverzifikace']),$CSV_SEP);
 do
 {
    //sql subdotazy, zlo

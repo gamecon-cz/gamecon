@@ -9,7 +9,7 @@
 
 if(post('prezenceAktivity')) {
   $a = Aktivita::zId(post('prezenceAktivity'));
-  $dorazili = Uzivatel::zIds(array_keys(post('dorazil') ?: array()));
+  $dorazili = Uzivatel::zIds(array_keys(post('dorazil') ?: []));
   $a->ulozPrezenci($dorazili);
   back();
 }
@@ -19,7 +19,7 @@ $t = new XTemplate('prezence.xtpl');
 require('_casy.php'); // vhackování vybírátka času
 $t->assign('casy', _casy($zacatek));
 
-$aktivity = $zacatek ? Aktivita::zRozmezi($zacatek, $zacatek) : array();
+$aktivity = $zacatek ? Aktivita::zRozmezi($zacatek, $zacatek) : [];
 
 if($zacatek && count($aktivity) == 0) $t->parse('prezence.zadnaAktivita');
 if(!$zacatek) $t->parse('prezence.nevybrano');

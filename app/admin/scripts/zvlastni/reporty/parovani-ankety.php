@@ -14,7 +14,7 @@ if(post('znacky'))
     JOIN r_uzivatele_zidle z ON(z.id_uzivatele = u.id_uzivatele AND z.id_zidle='.Z_PRIHLASEN.')
   ');
   $i=0;
-  $uzivatele=array();
+  $uzivatele=[];
   while($r=mysql_fetch_assoc($o))
   {
     $un=new Uzivatel($r);

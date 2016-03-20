@@ -3,7 +3,7 @@
 //samo sebe volání ajaxu
 if(isset($_GET['testMailu']))
 {
-  if(mysql_num_rows(dbQueryS('SELECT 1 FROM uzivatele_hodnoty WHERE email1_uzivatele=$0',array($_GET['mail'])))>0)
+  if(mysql_num_rows(dbQueryS('SELECT 1 FROM uzivatele_hodnoty WHERE email1_uzivatele=$0',[$_GET['mail']]))>0)
     echo('{"vysledek":true}');
   else
     echo('{"vysledek":false}');
@@ -71,7 +71,7 @@ if($u && $pokracovat)
 
 //todo gamecon neběží a podobně
 
-$udb=array();
+$udb=[];
 if($u)
   $udb=$u->rawDb();
 $avatar=$u?$u->avatar():Uzivatel::avatarDefault();

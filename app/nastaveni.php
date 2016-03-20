@@ -90,7 +90,7 @@ define('FIO_TOKEN', '');
 // Řetězcové konstanty //
 /////////////////////////
 
-$GLOBALS['HLASKY']=array(
+$GLOBALS['HLASKY']=[
   'aktivaceOk'=>'Účet aktivován. Děkujeme.',
   'aktualizacePrihlasky'=>'Přihláška aktualizována.',
   'avatarChybaMazani'=>'Obrázek se nepodařilo smazat.',
@@ -112,8 +112,8 @@ $GLOBALS['HLASKY']=array(
   'upravaUzivatele'=>'Změny registračních údajů uloženy.',
   'uzPrihlasen'=>'Už jsi přihlášen na GameCon, zde můžeš upravit svou přihlášku.',
   'zamcena'=>'Aktivitu už někdo zabral',
-);
-$GLOBALS['HLASKY_SUBST']=array(
+];
+$GLOBALS['HLASKY_SUBST']=[
   'zapomenuteHeslo'=>
 'Ahoj,
 
@@ -141,7 +141,7 @@ zaregistroval{a} ses na serveru GameCon.cz pod přihlašovacím jménem %1. Pro 
 děkujeme, že ses letos zúčastnil{a} GameConu. Kliknutím na odkaz níže potvrdíš registraci na web a můžeš si nastavit přezdívku a heslo, pokud chceš používat web a třeba přijet příští rok. (Pokud by ses registroval{a} na web později, musel{a} by sis nechat vygenerovat heslo znova)
 
 <a href="http://gamecon.cz/potvrzeni-registrace/%2">http://gamecon.cz/potvrzeni-registrace/%2</a>',
-);
+];
 
 
 //////////////////////////////////////////////
