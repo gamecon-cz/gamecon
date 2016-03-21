@@ -59,13 +59,14 @@ class Finance {
     $this->u = $u;
     if(!$u->gcPrihlasen()) return;
 
-    $this->cenik = new Cenik($u);
-
     $this->zapoctiAktivity();
+    $this->zapoctiVedeniAktivit();
+
+    $this->cenik = new Cenik($u, $this->sleva);
+
     $this->zapoctiShop();
     $this->zapoctiPlatby();
     $this->zapoctiZustatek();
-    $this->zapoctiVedeniAktivit();
 
     $cena =
       + $this->cenaPredmety
@@ -213,13 +214,6 @@ class Finance {
   }
 
   /**
-   * Výše vypravěčské slevy (celková)
-   */
-  function slevaVypravecMax() {
-    return $this->sleva;
-  }
-
-  /**
    * Vrátí výchozí vygenerovanou slevu za vedení dané aktivity
    */
   static function slevaZaAktivitu(Aktivita $a) {
@@ -234,6 +228,13 @@ class Finance {
       }
     }
     return $sleva;
+  }
+
+  /**
+   * Výše vypravěčské slevy (celková)
+   */
+  function slevaVypravecMax() {
+    return $this->sleva;
   }
 
   /**

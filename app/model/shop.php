@@ -71,7 +71,7 @@ class Shop
   function __construct(Uzivatel $u, $nastaveni = null)
   {
     $this->u = $u;
-    $this->cenik = new Cenik($u);
+    $this->cenik = new Cenik($u, $u->finance()->slevaVypravecMax());
     if(is_array($nastaveni)) {
       $this->nastaveni = array_replace($this->nastaveni, $nastaveni);
     }
@@ -122,17 +122,24 @@ class Shop
           $r['stav'] == 3 && $this->nastaveni['ubytovaniBezZamku'];
         $fronta = &$this->ubytovani[];
       } elseif( $typ == self::TRICKO ) {
-        $r['nabizet'] = $r['nabizet'] ||
-          $r['stav'] == 2 && strpos($r['nazev'],'modré')!==false && $this->u->maPravo(P_TRIKO_ZAPUL) ||  // modrá trička
-          $r['stav'] == 2 && strpos($r['nazev'],'červené')!==false && $this->u->maPravo(P_TRIKO_ZDARMA); // červená trička
+        $smiModre = $this->u->maPravo(P_TRIKO_ZA_SLEVU_MODRE) || $this->u->maPravo(P_TRIKO_SLEVA_MODRE);
+        $smiCervene = $this->u->maPravo(P_TRIKO_ZDARMA);
+        $r['nabizet'] = (
+          $r['nabizet'] ||
+          $r['stav'] == 2 && mb_stripos($r['nazev'], 'modré') !== false && $smiModre ||
+          $r['stav'] == 2 && mb_stripos($r['nazev'], 'červené') !== false && $smiCervene
+        );
         $fronta = &$this->tricka[];
         // hack pro výběr správného automaticky objednaného trička
-        $barva = 'zelené';
-        if($this->u->maPravo(P_TRIKO_ZAPUL)) $barva = 'modré';
-        if($this->u->maPravo(P_TRIKO_ZDARMA)) $barva = 'červené';
-        $r['auto'] = $r['nabizet'] && (
-          $this->u->pohlavi() == 'm' && strpos($r['nazev'], "Tričko $barva pánské L") !== false ||
-          $this->u->pohlavi() == 'f' && strpos($r['nazev'], "Tílko $barva dámské S") !== false
+        if($smiCervene)                 $barva = 'červené';
+        elseif($smiModre)               $barva = 'modré';
+        else                            $barva = '.*';
+        if($this->u->pohlavi() == 'f')  $typTricka = 'tílko.*dámské';
+        else                            $typTricka = 'tričko.*pánské';
+        $r['auto'] = (
+          $r['nabizet'] &&
+          preg_match("@$barva@i", $r['nazev']) &&
+          preg_match("@$typTricka@i", $r['nazev'])
         );
       } elseif($typ == self::VSTUPNE) {
         if(strpos($r['nazev'], 'pozdě') === false) {
@@ -220,8 +227,8 @@ class Shop
     $ka = $this->u->pohlavi() == 'f' ? 'ka' : '';
     if($this->u->maPravo(P_TRIKO_ZDARMA))
       $out .= '<p><i>Jako pro organizátora pro tebe výš uvedené ceny neplatí a máš jedno červené tričko, kostku, placku a veškeré jídlo zdarma :)</i></p>';
-    else if($this->u->maPravo(P_TRIKO_ZAPUL))
-      $out .= "<p><i>Jako vypravěč$ka máš poloviční slevu na modré (vypravěčské) tričko nebo tílko. Kostku a placku máš zdarma. Výš uvedené ceny pro tebe tedy neplatí.</i></p>";
+    else if($this->u->maPravo(P_TRIKO_ZA_SLEVU_MODRE) || $this->u->maPravo(P_TRIKO_SLEVA_MODRE))
+      $out .= "<p><i>Jako vypravěč$ka máš (vypravěčské) tričko nebo tílko se slevou (a při větším počtu aktivit zdarma). Výš uvedené ceny pro tebe tedy neplatí.</i></p>";
 
     return $out;
   }
