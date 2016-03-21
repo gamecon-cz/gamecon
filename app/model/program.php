@@ -173,26 +173,28 @@ class Program {
 
   /** Vytisknutí konkrétní aktivity (formátování atd...) */
   private function tiskAktivity($a) {
+    $ao = $a['obj'];
     $classes = [];
-    if($this->u && $a['obj']->prihlasen($this->u))  $classes[] = 'prihlasen';
-    if($this->u && $a['obj']->organizuje($this->u)) $classes[] = 'organizator';
-    if($a['obj']->vDalsiVlne())                     $classes[] = 'vDalsiVlne';
-    if(!$a['obj']->volnoPro($this->u))              $classes[] = 'plno';
+    if($this->u && $ao->prihlasen($this->u))  $classes[] = 'prihlasen';
+    if($this->u && $ao->organizuje($this->u)) $classes[] = 'organizator';
+    if($ao->vDalsiVlne())                     $classes[] = 'vDalsiVlne';
+    if(!$ao->volnoPro($this->u))              $classes[] = 'plno';
     $classes = $classes ? ' class="'.implode(' ', $classes).'"' : '';
-    echo '<td colspan="'.$a['del'].'"'.$classes.'><div>'.$a['obj']->nazev();
-    if($this->nastaveni['drdPj'] && $a['obj']->typ() == 9 && $a['obj']->prihlasovatelna()) {
-      echo ' ('.$a['obj']->orgJmena().') ';
+    echo '<td colspan="'.$a['del'].'"'.$classes.'><div>';
+    echo '<a href="' . $ao->url() . '" target="_blank">' . $ao->nazev() . '</a>';
+    if($this->nastaveni['drdPj'] && $ao->typ() == 9 && $ao->prihlasovatelna()) {
+      echo ' ('.$ao->orgJmena().') ';
     }
-    echo $a['obj']->obsazenost();
-    if($a['obj']->typ() != 9 || $this->nastaveni['drdPrihlas']) { // hack na nezobrazování přihlašovátek pro DrD
+    echo $ao->obsazenost();
+    if($ao->typ() != 9 || $this->nastaveni['drdPrihlas']) { // hack na nezobrazování přihlašovátek pro DrD
       $parametry = 0;
       if($this->nastaveni['plusMinus'])   $parametry |= Aktivita::PLUSMINUS_KAZDY;
       if($this->nastaveni['zpetne'])      $parametry |= Aktivita::ZPETNE;
       if($this->nastaveni['technicke'])   $parametry |= Aktivita::TECHNICKE;
-      echo ' '.$a['obj']->prihlasovatko($this->u, $parametry);
+      echo ' '.$ao->prihlasovatko($this->u, $parametry);
     }
     if($this->nastaveni['teamVyber']) {
-      echo $a['obj']->vyberTeamu($this->u);
+      echo $ao->vyberTeamu($this->u);
     }
     echo '</div></td>';
   }

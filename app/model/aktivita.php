@@ -1061,6 +1061,25 @@ class Aktivita
     }
   }
 
+  /**
+   * @return string absolutní url k anotaci aktivity na webu
+   */
+  function url() {
+    static $typy; // TODO hack na cacheování názvů typů kvůli chybějícímu orm
+    if(!$typy) {
+      $o = dbQuery('SELECT id_typu, url_typu_mn FROM akce_typy');
+      while($r = mysql_fetch_row($o)) $typy[$r[0]] = $r[1];
+    }
+    return URL_WEBU . '/' . $typy[$this->a['typ']] . '#' . $this->a['url_akce'];
+  }
+
+  /**
+   * @return string část url identifikující aktivitu (unikátní v dané linii)
+   */
+  function urlId() {
+    return $this->a['url_akce'];
+  }
+
   /** Vrátí, jestli aktivita bude aktivována v další vlně */
   function vDalsiVlne() {
     return $this->a['stav'] == self::PRIPRAVENA || $this->a['stav'] == self::PUBLIKOVANA;

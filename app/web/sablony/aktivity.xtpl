@@ -68,7 +68,7 @@
   </div>
 
   <!-- begin:aktivita -->
-  <div class="blok">
+  <div class="blok" id="{a.urlId}">
     <div class="aktivita {extra}">
       <img src="{a.obrazek}">
       <div class="ahlav">
