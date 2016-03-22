@@ -230,11 +230,7 @@ function markdown($text) {
 function markdownNoCache($text) {
   if(!$text) return '';
   $text = \Michelf\MarkdownExtra::defaultTransform($text);
-  $text = preg_replace_callback('@(p|h\d|strong|em|/)>[^<]+<@', function($m){
-    $m[0] = str_replace('...', '…', $m[0]);
-    $m[0] = str_replace(' - ', ' – ', $m[0]);
-    return preg_replace('@"([^"]+)"@', '„$1“', $m[0]);
-  }, $text);
+  $text = Smartyp::defaultTransform($text);
   return $text;
 }
 
