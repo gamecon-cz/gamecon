@@ -5,8 +5,8 @@ dbQuery('
   UPDATE akce_seznam
   SET
     rok = '.ROK.',
-    zacatek = zacatek + interval 1 year - interval 1 day,
-    konec = konec + interval 1 year - interval 1 day
+    zacatek = zacatek + interval 1 year + interval 5 day,
+    konec = konec + interval 1 year + interval 5 day
   WHERE rok = '.(ROK - 1).'
 ');
 
