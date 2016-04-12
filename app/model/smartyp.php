@@ -44,7 +44,7 @@ class Smartyp {
     $text = $this->clean($text);
     $this->flip = []; // reset cache for flipflop rules
     $rulesInternal = $this->getRulesInternal();
-    return preg_replace_callback('@(^|>)([^<]+)(<|$)@', function($m)use($rulesInternal) {
+    return preg_replace_callback('@(^|(?:p|h\d|strong|em|/)>)([^<]+)(<|$)@', function($m)use($rulesInternal) {
       $r = preg_replace_callback_array($rulesInternal, $m[2]);
       return $m[1] . $r . $m[3];
     }, $text);
