@@ -17,11 +17,12 @@ class Menu {
 
   protected $stranky = [
     'prihlaska'           =>  'Přihláška:&ensp;',
-    'o-gameconu'          =>  'O GameConu',
-    'chci-se-zapojit'     =>  'Chci se zapojit',
+    'o-gameconu'          =>  'Co je GameCon?',
+    'chci-se-zapojit'     =>  'Chci pomoci',
     'chci-se-prihlasit'   =>  'Chci se přihlásit',
+    'en'                  =>  'English program',
     'prakticke-informace' =>  'Praktické informace',
-    'forum'               =>  'Fórum',
+    'https://www.facebook.com/groups/gamecon/'               =>  'Fórum',
     'kontakty'            =>  'Kontakty',
     'https://www.facebook.com/media/set/?set=a.1049227911755210.1073741834.127768447234499&type=3&pnref=story&hc_location=ufi' => 'Fotogalerie',
   ];

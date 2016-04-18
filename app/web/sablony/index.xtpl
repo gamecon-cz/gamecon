@@ -34,6 +34,7 @@
     </div>
     <div class="prihlasovani">
       <!-- begin:neprihlasen -->
+      <a class="vlajka" href="/en"></a>
       <div class="neprihlasen">
         <strong>Nejste přihlášeni na web</strong><br>
         <a href="#" onclick="$('#prihlasit').slideToggle(); return false;"><strong>Přihlásit</strong></a> / <a href="registrace">registrovat</a> /
