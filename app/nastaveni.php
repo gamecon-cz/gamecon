@@ -22,7 +22,7 @@ error_reporting($puvodni ^ E_NOTICE);
 define('ROK', 2016);                                // aktuální rok // při změně roku viz https://docs.google.com/document/d/1H_PM70WjNpQ1Xz65OYfr1BeSTdLrNQSkScMIZEtxWEc/edit?usp=sharing
 define('GC_BEZI_OD',      ROK.'-07-21 07:00:00');   // začátek GameConu (přepnutí stránek do režimu "úpravy na jen na infopultu")
 define('GC_BEZI_DO',      ROK.'-07-24 20:00:00');   // konec GameCou (přepnutí stránek do režimu "gc skončil, úpravy nemožné")
-define('REG_GC_OD',       ROK.'-04-26 20:16:00');   // spuštění možnosti registrace na GameCon
+define('REG_GC_OD',       ROK.'-05-03 20:16:00');   // spuštění možnosti registrace na GameCon
 define('REG_GC_DO',       GC_BEZI_DO);              // ukončení možnosti registrace na GameCon
 define('REG_AKTIVIT_OD',  ROK.'-05-03 20:16:00');   // spuštění možnosti registrace na aktivity, pokud jsou aktivované
 define('REG_AKTIVIT_DO',  GC_BEZI_DO);              // ukončení možnosti registrace na aktivity
