@@ -2,7 +2,7 @@
 
 <input type="checkbox" name="{postname}[chci]" id="chci" {vChci}>
 <label for="chci" class="hinted i">Chci se zapojit
-  <span class="hint">Vážíme si každé pomoci ať už formou dobrovolného vstupného nebo přímo. GameCon funguje právě díky dobrovolníkům – ať už máš nápad na skvělou aktivitu do programu nebo bys chtěl{a} pomoct s drobnostmi na místě, zaškrtni políčko a vyber si konkrétní oblast, kde by ses chtěl{a} zapojit.</span>
+  <span class="hint">Za to, že je GameCon tak skvělý, jak je, vděčíme nejen vypravěčům a organizátorům, ale i lidem, kteří pomáhají vybudovat jeho zázemí (příprava prostor, pomoc na infopultu apod.). Sháníme ochotné lidi z řad účastníků, kteří by nám pomohli. Více se dozvíš na <a href="http://gamecon.cz/chci-se-zapojit" target="_blank">gamecon.cz/chci-se-zapojit</a></span>
 </label>
 <div id="pomoc" style="display:{displayVice}">
   &ensp;jako:<br>

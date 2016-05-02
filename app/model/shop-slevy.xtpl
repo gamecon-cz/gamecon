@@ -10,9 +10,11 @@
     </script>
 
     <!-- begin:vcas -->
-    <br>Pokud <b class="hinted i">zaplatím do {slevaDo}<span class="hint">
+    <br>Pokud <b>zaplatím do {slevaDo}
+    <!--<span class="hint">
       Pro slevu za včasnou platbu je potřeba, aby peníze dorazily do <b>30.6. na účet GC</b>. Převod může trvat až 2 dny.
-    </span></b> mám slevu dalších <b>20%</b>
+    </span>-->
+    </b> mám slevu dalších <b>20%</b>
     <!-- end:vcas -->
 
     <br>Vezmu <b class="hinted i">nováčka <span class="hint">
