@@ -2,18 +2,7 @@
 
 class Menu {
 
-  static $linie = [ // TODO cacheování databáze
-    'deskovky'  => 'Deskovky a turnaje',
-    'rpg'       => 'RPG',
-    'larpy'     => 'Larpy',
-    'drd'       => 'Mistrovství v DrD',
-    'legendy'   => 'Legendy Klubu dobrodruhů',
-    'bonusy'    => 'Akční hry a bonusy',
-    'epic'      => 'Epické deskovky',
-    'prednasky' => 'Přednášky',
-    'workshopy' => 'Workshopy',
-    'wargaming' => 'Wargaming',
-  ];
+  protected static $linie;
 
   protected $stranky = [
     'prihlaska'           =>  'Přihláška:&ensp;',
@@ -55,16 +44,28 @@ class Menu {
 
   /** Seznam linií s prokliky (html) */
   function linie() {
-    $linie = self::$linie;
+    $linie = self::linieSeznam();
     // ne/zobrazení linku na program
-    if(PROGRAM_VIDITELNY && !isset(self::$linie['program']))  $linie = ['program' => 'Program'] + $linie;
-    elseif(!isset(self::$linie['pripravujeme']))              $linie = ['pripravujeme' => 'Letos připravujeme…'] + $linie;
+    if(PROGRAM_VIDITELNY && !isset($linie['program']))  $linie = ['program' => 'Program'] + $linie;
+    elseif(!isset($linie['pripravujeme']))              $linie = ['pripravujeme' => 'Letos připravujeme…'] + $linie;
     // výstup
     $o = '';
     foreach($linie as $a => $l) {
       $o .= "<li><a href=\"$a\">$l</a></li>";
     }
     return $o;
+  }
+
+  /** Asoc. pole url linie => název */
+  static function linieSeznam() {
+    if(!isset(self::$linie)) { // TODO cacheování
+      $typy = Typ::zViditelnych();
+      usort($typy, function($a, $b) { return $a->poradi() - $b->poradi(); });
+      foreach($typy as $typ) {
+        self::$linie[$typ->url()] = mb_ucfirst($typ->nazev());
+      }
+    }
+    return self::$linie;
   }
 
   /** Seznam stránek s prokliky (html) */

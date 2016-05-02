@@ -33,13 +33,21 @@ class Typ extends DbObject {
     return $s ? $s->html() : null;
   }
 
+  function poradi() {
+    return $this->r['poradi'];
+  }
+
   function url() {
-    return $this->r['url_typu'];
+    return $this->r['url_typu_mn'];
   }
 
   static function zUrl($url = null) {
     if($url === null) $url = Url::zAktualni()->cela();
     return self::zWhereRadek('url_typu_mn = $1', [$url]);
+  }
+
+  static function zViditelnych() {
+    return self::zWhere('poradi > 0');
   }
 
 }

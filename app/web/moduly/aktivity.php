@@ -27,7 +27,7 @@ $filtry = [];
 $filtry[] = [
   'nazev'     =>  'Typ',
   'name'      =>  'typ',
-  'moznosti'  =>  Menu::$linie,
+  'moznosti'  =>  Menu::linieSeznam(),
 ];
 $roky = [
   'nazev'     =>  'Rok',
