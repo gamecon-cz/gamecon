@@ -19,13 +19,15 @@
     (function(){
 
       var predmety = [
-        { od: 30, vec: "Náramek GameCon"},
-        { od: 80, vec: "Klíčenka s otevírákem"},
-        { od: 150, vec: "RPG hra Fate: Rozcestí"},
-        { od: 200, vec: "Přívěšek: Kostka na šnůrce"},
-        { od: 350, vec: "Deset dřevěných tokenů na hry"},
-        { od: 500, do: 999, vec: "Měšec s logem GameConu"},
-        { od: 1000, vec: "Přívěšek: Kovová kostka na řetízku"}
+        { od: 30,  do: 99,  vec: "Dočasné mafianské tetování Soldato"},
+        { od: 100, do: 199, vec: "Dočasné mafianské tetování Caporegime"},
+        { od: 100, do: 199, vec: "GameConní hlavolam"},
+        { od: 200, do: 499, vec: "Dočasné mafianské tetování Consigliere"},
+        { od: 200, do: 499, vec: "Antistresová GC hrací kostka"},
+        { od: 500, do: 999, vec: "Dočasné mafianské tetování Capo Bastone"},
+        { od: 500, do: 999, vec: "GameConní rubikova kostka"},
+        { od: 1000,         vec: "Dočasné mafianské tetování Capo Crimini"},
+        { od: 1000,         vec: "GameConní hrnek popisovatelný křídou"}
       ];
       var nastaveni = {
         min: 0,
@@ -63,7 +65,7 @@
         predmety.forEach(function(e){
           if(!e.od) e.od = 0;
           if(!e.do) e.do = Infinity;
-          if(e.od <= castka && castka < e.do) aktualni += '<li>'+e.vec+'</li>';
+          if(e.od <= castka && castka <= e.do) aktualni += '<li>'+e.vec+'</li>';
         });
         if(aktualni != posledni) {
           posledni = aktualni;
