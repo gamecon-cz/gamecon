@@ -1080,9 +1080,14 @@ class Aktivita
     return $this->a['url_akce'];
   }
 
+  /** Vrátí, jestli aktivita bude aktivována v budoucnu, později než v další vlně */
+  function vBudoucnu() {
+    return $this->a['stav'] == self::PUBLIKOVANA;
+  }
+
   /** Vrátí, jestli aktivita bude aktivována v další vlně */
   function vDalsiVlne() {
-    return $this->a['stav'] == self::PRIPRAVENA || $this->a['stav'] == self::PUBLIKOVANA;
+    return $this->a['stav'] == self::PRIPRAVENA;
   }
 
   /** Vrátí typ volných míst na aktivitě */

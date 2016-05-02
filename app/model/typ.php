@@ -8,6 +8,8 @@ class Typ extends DbObject {
   protected static $tabulka = 'akce_typy';
   protected static $pk = 'id_typu';
 
+  const DRD = 9;
+
   /** Vrátí popisek bez html a názvu */
   function bezNazvu() {
     return trim(strip_tags(preg_replace(

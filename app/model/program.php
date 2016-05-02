@@ -9,7 +9,7 @@ class Program {
   private $posledniVydana = null;
   private $dbPosledni = null;
   private $aktFronta = [];
-  private $program;
+  private $program; // iterátor aktivit seřazených pro použití v programu
   private $nastaveni = [
     'drdPj'         => false, // u DrD explicitně zobrazit jména PJů
     'drdPrihlas'    => false, // jestli se zobrazují přihlašovátka pro DrD
@@ -22,9 +22,12 @@ class Program {
     'prazdne'       => false, // zobrazovat prázdné skupiny?
     'zpetne'        => false, // jestli smí měnit přihlášení zpětně
   ];
-  private $grpf; // název metody na objektu aktivita, podle které se groupuje
+  private $grpf; // název metody na objektu aktivita, podle které se shlukuje
+  private $skupiny; // pole skupin, do kterých se shlukuje program, ve stylu id => název
 
-  /** Konstruktor bere uživatele a specifikaci, jestli je to osobní program */
+  /**
+   * Konstruktor bere uživatele a specifikaci, jestli je to osobní program
+   */
   function __construct(Uzivatel $u=null, $nastaveni=null) {
     if($u instanceof Uzivatel) {
       $this->u=$u;
@@ -36,32 +39,28 @@ class Program {
   }
 
   /**
+   * Vytiskne hlavičkový style tag pro program
+   */
+  static function css() {
+    echo '<style>';
+    readfile(__DIR__ . '/program.css');
+    echo '</style>';
+  }
+
+  /**
+   * Vrátí hlavičkový style tag pro program jako řetězec
+   */
+  static function cssRetezec() {
+    ob_start();
+    self::css();
+    return ob_get_clean();
+  }
+
+  /**
    * Přímý tisk programu na výstup
    */
-  public function tisk() {
-    // načtení seznamu pro groupování
-    if($this->nastaveni['skupiny'] == 'mistnosti') {
-      $this->program = Aktivita::zProgramu('poradi');
-      $grp = Lokace::zVsech();
-      $this->grpf = 'lokaceId';
-      $labelf = 'nazevInterni';
-      usort($grp, function($a, $b) {
-        return $a->poradi() > $b->poradi();
-      });
-    } else {
-      $this->program = Aktivita::zProgramu('typ');
-      $grp = Typ::zVsech();
-      $this->grpf = 'typ'; // MAGIC dynamické volání metody dle jména
-      $labelf = 'nazev';
-      usort($grp, function($a, $b) {
-        return $a->id() > $b->id();
-      });
-    }
-    $typy['0'] = 'Ostatní';
-    foreach($grp as $t)
-      $typy[$t->id()] = ucfirst($t->$labelf());
-
-    ////////// tisk samotného programu //////////
+  function tisk() {
+    $this->init();
 
     $aktivita = $this->dalsiAktivita();
     for( $den=new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen() )
@@ -71,7 +70,7 @@ class Program {
       for($cas=PROGRAM_ZACATEK; $cas<PROGRAM_KONEC; $cas++)   //výpis hlavičkového řádku s čísly
         echo('<th>'.$cas.'</th>');
       $aktivit=0;
-      foreach($typy as $typ => $typNazev)
+      foreach($this->skupiny as $typ => $typNazev)
       {
         if( (!$aktivita || $aktivita['grp'] != $typ) && !$this->nastaveni['prazdne'] ) continue;  //v lokaci není aktivita, přeskočit
         ob_start();  //výstup bufferujeme, pro případ že bude na víc řádků
@@ -104,10 +103,37 @@ class Program {
     }
   }
 
-
   ////////////////////
   // pomocné funkce //
   ////////////////////
+
+  /**
+   * Inicializuje privátní proměnné skupiny (podle kterých se shlukuje) a
+   * program (iterátor aktivit)
+   */
+  private function init() {
+    if($this->nastaveni['skupiny'] == 'mistnosti') {
+      $this->program = Aktivita::zProgramu('poradi');
+      $grp = Lokace::zVsech();
+      $this->grpf = 'lokaceId';
+      $labelf = 'nazevInterni';
+      usort($grp, function($a, $b) {
+        return $a->poradi() > $b->poradi();
+      });
+    } else {
+      $this->program = Aktivita::zProgramu('typ');
+      $grp = Typ::zVsech();
+      $this->grpf = 'typ'; // MAGIC dynamické volání metody dle jména
+      $labelf = 'nazev';
+      usort($grp, function($a, $b) {
+        return $a->id() > $b->id();
+      });
+    }
+
+    $this->skupiny['0'] = 'Ostatní';
+    foreach($grp as $t)
+      $this->skupiny[$t->id()] = ucfirst($t->$labelf());
+  }
 
   /** detekce kolize dvou aktivit (jsou ve stejné místnosti v kryjícím se čase) */
   private static function koliduje($a = null, $b = null) {
@@ -132,17 +158,17 @@ class Program {
   }
 
   /**
-   * Vrátí následující nekolizní záznam z fronty aktivit a zruší ho, nebo FALSE
+   * Vrátí následující nekolizní záznam z fronty aktivit a zruší ho, nebo null
    */
   private function popNasledujiciNekolizni(&$fronta) {
-    foreach($fronta as $key=>$prvek) {
+    foreach($fronta as $key => $prvek) {
       if( $prvek['zac'] >= $this->posledniVydana['kon'] ) {
-        $t=$prvek;
+        $t = $prvek;
         unset($fronta[$key]);
         return $t;
       }
     }
-    return false;
+    return null;
   }
 
   /**
@@ -171,31 +197,43 @@ class Program {
     }
   }
 
-  /** Vytisknutí konkrétní aktivity (formátování atd...) */
+  /**
+   * Vytisknutí konkrétní aktivity (formátování atd...)
+   */
   private function tiskAktivity($a) {
     $ao = $a['obj'];
+
+    // určení css tříd
     $classes = [];
     if($this->u && $ao->prihlasen($this->u))  $classes[] = 'prihlasen';
     if($this->u && $ao->organizuje($this->u)) $classes[] = 'organizator';
     if($ao->vDalsiVlne())                     $classes[] = 'vDalsiVlne';
     if(!$ao->volnoPro($this->u))              $classes[] = 'plno';
+    if($ao->vBudoucnu())                      $classes[] = 'vBudoucnu';
     $classes = $classes ? ' class="'.implode(' ', $classes).'"' : '';
-    echo '<td colspan="'.$a['del'].'"'.$classes.'><div>';
+
+    // název a url aktivity
+    echo '<td colspan="'.$a['del'].'"><div'.$classes.'>';
     echo '<a href="' . $ao->url() . '" target="_blank">' . $ao->nazev() . '</a>';
-    if($this->nastaveni['drdPj'] && $ao->typ() == 9 && $ao->prihlasovatelna()) {
+    if($this->nastaveni['drdPj'] && $ao->typ() == Typ::DRD && $ao->prihlasovatelna()) {
       echo ' ('.$ao->orgJmena().') ';
     }
     echo $ao->obsazenost();
-    if($ao->typ() != 9 || $this->nastaveni['drdPrihlas']) { // hack na nezobrazování přihlašovátek pro DrD
+
+    // přihlašovátko
+    if($ao->typ() != Typ::DRD || $this->nastaveni['drdPrihlas']) { // hack na nezobrazování přihlašovátek pro DrD
       $parametry = 0;
       if($this->nastaveni['plusMinus'])   $parametry |= Aktivita::PLUSMINUS_KAZDY;
       if($this->nastaveni['zpetne'])      $parametry |= Aktivita::ZPETNE;
       if($this->nastaveni['technicke'])   $parametry |= Aktivita::TECHNICKE;
       echo ' '.$ao->prihlasovatko($this->u, $parametry);
     }
+
+    // případný formulář pro výběr týmu
     if($this->nastaveni['teamVyber']) {
       echo $ao->vyberTeamu($this->u);
     }
+
     echo '</div></td>';
   }
 
@@ -236,57 +274,6 @@ class Program {
     for($cas = PROGRAM_ZACATEK; $cas < PROGRAM_KONEC; $cas++)
       $bunky .= '<td></td>';
     return "<tr><td>$nazev</td>$bunky</tr>";
-  }
-
-
-  ////////////////////////////
-  // Default CSSko programu //
-  ////////////////////////////
-
-  public static function css() {
-    ?><style>
-      table.program {
-        text-align: center;
-        border-top: none;
-        border-spacing: 0px;
-        margin: 0;
-        table-layout: fixed;
-        min-width: 800px; }
-      table.program td, table.program th {
-        width: 5%;
-        padding: 3px;
-        margin: 0px;
-        border-left: 1px solid #fff;
-        border-right: 1px solid #000;
-        border-top: 1px solid #fff;
-        border-bottom: 1px solid #000;
-        overflow: hidden;
-        vertical-align: middle;
-        text-align: center; }
-      table.program th { border-top:0; background-color: #700; }
-      table.program th:first-child { min-width: 165px; border-top-left-radius: 10px; border-left-color: #888; }
-      table.program th:last-child { border-top-right-radius: 10px; }
-      table.program tr:nth-child(odd) { background-color: #CAAE99; }
-      table.program tr { background-color: #D2C0B2; }
-      table.program tr:first-child { background-color: transparent; }
-      table.program th { color: #fff; font-weight: normal; }
-      /*
-      table.program td.prihlasen { background-color: #bab2d2; }
-      table.program td.organizator { background-color: #bad2b2; }
-      */
-      table.program td a { color:#fff; text-decoration:none; }
-      table.program td a:hover { text-decoration: underline; }
-      table.program td form input:hover { text-decoration: underline; }
-      table.program td .f { color: #e0d; }
-      table.program td .m { color: #0ff; }
-      table.program td .neprihlasovatelna { color: #777; }
-    </style><?php
-  }
-
-  public static function cssRetezec() {
-    ob_start();
-    self::css();
-    return ob_get_clean();
   }
 
 }
