@@ -24,7 +24,7 @@ define('GC_BEZI_OD',      ROK.'-07-21 07:00:00');   // začátek GameConu (přep
 define('GC_BEZI_DO',      ROK.'-07-24 20:00:00');   // konec GameCou (přepnutí stránek do režimu "gc skončil, úpravy nemožné")
 define('REG_GC_OD',       ROK.'-05-03 20:16:00');   // spuštění možnosti registrace na GameCon
 define('REG_GC_DO',       GC_BEZI_DO);              // ukončení možnosti registrace na GameCon
-define('REG_AKTIVIT_OD',  ROK.'-05-03 20:16:00');   // spuštění možnosti registrace na aktivity, pokud jsou aktivované
+define('REG_AKTIVIT_OD',  ROK.'-05-10 20:16:00');   // spuštění možnosti registrace na aktivity, pokud jsou aktivované
 define('REG_AKTIVIT_DO',  GC_BEZI_DO);              // ukončení možnosti registrace na aktivity
 define('SLEVA_DO',        ROK.'-06-30 23:59:59');   // do kdy se oficiálně počítá platba včas
 define('PROGRAM_OD',      GC_BEZI_OD);              // první den programu
