@@ -270,9 +270,12 @@ class Program {
       table.program tr { background-color: #D2C0B2; }
       table.program tr:first-child { background-color: transparent; }
       table.program th { color: #fff; font-weight: normal; }
+      /*
       table.program td.prihlasen { background-color: #bab2d2; }
       table.program td.organizator { background-color: #bad2b2; }
-      table.program td a { color:#a00; text-decoration:none; }
+      */
+      table.program td a { color:#fff; text-decoration:none; }
+      table.program td a:hover { text-decoration: underline; }
       table.program td form input:hover { text-decoration: underline; }
       table.program td .f { color: #e0d; }
       table.program td .m { color: #0ff; }

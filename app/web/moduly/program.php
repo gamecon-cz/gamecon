@@ -34,6 +34,7 @@ if(!$u || !$u->maPravo(P_ORG_AKCI)) $legenda = preg_replace('@.*organizuji.*@', 
     border-radius: 6px;
     background-color: #444;
   }
+  /*
   table.program td.vDalsiVlne { background-color: transparent; }
   table.program td.vDalsiVlne div, .legenda .vDalsiVlne { background-color: #a34; }
   table.program td.plno { background-color: transparent; }
@@ -42,6 +43,7 @@ if(!$u || !$u->maPravo(P_ORG_AKCI)) $legenda = preg_replace('@.*organizuji.*@', 
   table.program td.prihlasen div, .legenda .prihlasen { background-color: #bab2d2; }
   table.program td.organizator { background-color: transparent; }
   table.program td.organizator div, .legenda .organizator { background-color: #bad2b2; }
+  */
 
   table.program th {
     border: none;
