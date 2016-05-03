@@ -86,7 +86,7 @@ class Shop
         SUM(  IF(n.id_uzivatele = $2 AND n.rok = $1, cena_nakupni, 0)) sum_cena_nakupni
       FROM shop_predmety p
       LEFT JOIN shop_nakupy n USING(id_predmetu)
-      WHERE stav > 0 OR n.rok = '.ROK.'
+      WHERE stav > 0 OR n.rok = $1
       GROUP BY id_predmetu
       ORDER BY typ, ubytovani_den, nazev, model_rok DESC
     ', [ROK, $this->u->id()]);
@@ -134,8 +134,8 @@ class Shop
         if($smiCervene)                 $barva = 'červené';
         elseif($smiModre)               $barva = 'modré';
         else                            $barva = '.*';
-        if($this->u->pohlavi() == 'f')  $typTricka = 'tílko.*dámské';
-        else                            $typTricka = 'tričko.*pánské';
+        if($this->u->pohlavi() == 'f')  $typTricka = 'tričko.*dámské S';
+        else                            $typTricka = 'tričko.*pánské L';
         $r['auto'] = (
           $r['nabizet'] &&
           preg_match("@$barva@i", $r['nazev']) &&
