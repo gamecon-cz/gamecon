@@ -54,7 +54,7 @@
     Ubytování
     <span class="hint" style="z-index: 9999">
       Čísla ukazují počet obsazených míst / celkem. Ubytování je pro zájemce k dispozici už od středy, program začíná ve <strong>čtvrtek</strong> v poledne. Ubytování v neděli znamená noc z neděle na pondělí, kdy už opět neprobíhá program a v pondělí je potřeba pokoj vyklidit v 9:00.<br><br>
-      Ubytování je možné změnit/zrušit do 12. července, poté se při zrušení účtuje storno poplatek ve výši ceny první noci.
+      Ubytování je možné změnit/zrušit do 17. července, poté se při zrušení účtuje storno poplatek ve výši ceny první noci.
     </span>
   </span></h2>
   <div class="ubytovani">{ubytovani}</div>
