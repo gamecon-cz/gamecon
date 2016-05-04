@@ -79,7 +79,7 @@ if(!$zaplaceno)
   </p>
 
   <?php if($limit){ ?>
-    <p>GameCon je nutné zaplatit převodem <strong>do <?=$limit?></strong>. Platíš celkem <strong><?=$castka?></strong>, variabilní symbol je tvoje ID <strong><?=$uid?></strong>. Při pozdější platbě ti systém <strong>1.7 automaticky odhlásí aktivity</strong>. Počítá se datum, kdy peníze dorazí na účet GC, mezibankovní převod může trvat až 2 dny.</p>
+    <p>GameCon je nutné zaplatit převodem <strong>do <?=$limit?></strong>. Platíš celkem <strong><?=$castka?></strong>, variabilní symbol je tvoje ID <strong><?=$uid?></strong>. Při pozdější platbě ti systém <strong>1.7 automaticky odhlásí aktivity</strong>.</p>
     <p>Pokud si aktivity (znovu) přihlásíš po 30.6., beze slevy nebo na místě pak platíš <?=$pozde?>.</p>
     <p>Při plánování aktivit si na účet pošli klidně více peněz. Přebytek ti vrátíme na infopultu nebo ho můžeš využít k přihlašování uvolněných aktivit na místě.</p>
   <?php }else{ ?>
