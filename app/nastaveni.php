@@ -74,6 +74,7 @@ define('P_SLEVA_STUDENT',1007); //má studentskou slevu 20%
 define('P_SLEVA_VCAS',1006);    //má slevu 20% za platbu včas
 define('P_SLEVA_AKTIVITY',1009); //za pořádané aktivity se mu vypočítává sleva
 define('P_UBYTOVANI_ZDARMA',1008); //má _všechno_ ubytování zdarma
+define('P_UBYTOVANI_STREDA_ZDARMA', 1015); // má středeční noc zdarma
 define('P_ADMIN_UVOD', 100);    //přístup na titulku adminu
 define('P_ADMIN_MUJ_PREHLED', 109);
 unset($pre);

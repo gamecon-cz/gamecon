@@ -26,6 +26,7 @@ class Cenik {
     P_KOSTKA_ZDARMA => 'kostka zdarma',
     P_PLACKA_ZDARMA => 'placka zdarma',
     P_UBYTOVANI_ZDARMA  => 'ubytování zdarma',
+    P_UBYTOVANI_STREDA_ZDARMA => ['ubytování ve středu zdarma', P_UBYTOVANI_ZDARMA],
     P_JIDLO_ZDARMA  => 'jídlo zdarma',
     P_JIDLO_SLEVA   => ['jídlo se slevou', P_JIDLO_ZDARMA],
     P_JIDLO_SNIDANE => 'možnost objednat si snídani',
@@ -34,7 +35,7 @@ class Cenik {
   /**
    * Konstruktor
    * @param Uzivatel $u pro kterého uživatele se cena počítá
-   * @param int $sleva celková sleva získaná za aktivity
+   * @param int $sleva celková sleva získaná za pořádané aktivity
    */
   function __construct(Uzivatel $u, $sleva) {
     $this->u = $u;
@@ -142,6 +143,8 @@ class Cenik {
       if($this->slevaTrickaTyp & self::NORMALNI)
         self::aplikujSlevu($cena, $this->slevaTricka);
     } elseif($typ == Shop::UBYTOVANI && $this->u->maPravo(P_UBYTOVANI_ZDARMA)) {
+      $cena = 0;
+    } elseif($typ == Shop::UBYTOVANI && $r['ubytovani_den'] == 0 && $this->u->maPravo(P_UBYTOVANI_STREDA_ZDARMA)) {
       $cena = 0;
     } elseif($typ == Shop::JIDLO) {
       if($this->u->maPravo(P_JIDLO_ZDARMA)) $cena = 0;
