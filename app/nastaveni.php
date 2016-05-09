@@ -133,12 +133,6 @@ v rámci GameConu tě %1 přihlásil{a} na aktivitu %2, která se koná %3. Poku
 
 Pokud člověka, který tě přihlásil, neznáš, kontaktuj nás prosím na <a href="mailto:info@gamecon.cz">info@gamecon.cz</a>.',
   'kapacitaMaxUpo'=>'Z ubytovací kapacity typu %1 je naplněno %2 míst z maxima %3 míst.',
-  'registraceMail'=>
-'Ahoj,
-
-zaregistroval{a} ses na serveru GameCon.cz pod přihlašovacím jménem %1. Pro potvrzení a dokončení registrace prosím klikni na níže uvedený odkaz:
-
-<a href="http://gamecon.cz/potvrzeni-registrace/%2">http://gamecon.cz/potvrzeni-registrace/%2</a>',
   'rychloregMail'=>
 'Ahoj,
 

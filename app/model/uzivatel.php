@@ -530,14 +530,6 @@ class Uzivatel
     $tab['random']=$rand=randHex(20);
     dbInsert('uzivatele_hodnoty',array_merge($tab,['registrovan'=>date("Y-m-d H:i:s")]));
     $uid=dbLastId();
-    //poslání mailu
-    $tab['id_uzivatele']=$uid;
-    $u=new Uzivatel($tab); //pozor, spekulativní, nekompletní! využito kvůli std rozhraní hlaskaMail
-    $mail=new GcMail(hlaskaMail('registraceMail',$u,$tab['email1_uzivatele'],$rand));
-    $mail->adresat($tab['email1_uzivatele']);
-    $mail->predmet('Registrace na GameCon.cz');
-    if(!$mail->odeslat())
-      die('Chyba: Email s novým heslem NEBYL odeslán, uživatel má pravděpodobně nastavený neplatný email nebo nastala neočekávaná chyba databáze. Kontaktujte nás prosím e-mailem <a href="mailto:info@gamecon.cz">info@gamecon.cz</a>');
     return $uid;
   }
 
