@@ -23,7 +23,7 @@ if(!isset($_GET['typ']))
 }
 
 $odpoved=dbQuery('
-  SELECT a.nazev_akce as nazevAktivity, a.id_akce as id, (a.kapacita+a.kapacita_m+a.kapacita_f) as kapacita, a.zacatek, a.konec,
+  SELECT a.nazev_akce as nazevAktivity, a.id_akce as id, (a.kapacita+a.kapacita_m+a.kapacita_f) as kapacita, a.zacatek, a.konec, a.team_nazev,
     u.login_uzivatele as nick, u.jmeno_uzivatele as jmeno, u.id_uzivatele,
     u.prijmeni_uzivatele as prijmeni, u.email1_uzivatele as mail, u.telefon_uzivatele as telefon,
     GROUP_CONCAT(org.login_uzivatele) AS orgove,
@@ -59,6 +59,7 @@ while($totoPrihlaseni) {
     $xtpl2->assign('orgove', $totoPrihlaseni['orgove']);
     $xtpl2->assign('obsazenost',$obsazenost.
       ($totoPrihlaseni['kapacita']?'/'.$totoPrihlaseni['kapacita']:''));
+    $xtpl2->assign('druzina', $totoPrihlaseni['team_nazev'] ? ($totoPrihlaseni['team_nazev'].' - ') : '');
     if($obsazenost)
       $xtpl2->parse('prihlaseni.aktivita.lide');
     $xtpl2->parse('prihlaseni.aktivita');
