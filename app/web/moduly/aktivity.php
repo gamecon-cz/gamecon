@@ -67,7 +67,7 @@ elseif(get('typ') && ($typ = Typ::zUrl(get('typ')))) $filtr['typ'] = $typ->id();
 if($this->param('org')) $filtr['organizator'] = $this->param('org')->id();
 if(get('jenVolne')) $filtr['jenVolne'] = true;
 $filtr['jenViditelne'] = true;
-$aktivity = Aktivita::zFiltru($filtr, ['nazev_akce', 'zacatek']);
+$aktivity = Aktivita::zFiltru($filtr, ['nazev_akce', 'patri_pod', 'zacatek']);
 
 // Statické stránky
 // TODO hack
