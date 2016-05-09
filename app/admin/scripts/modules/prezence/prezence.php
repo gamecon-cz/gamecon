@@ -17,7 +17,7 @@ if(post('prezenceAktivity')) {
 $t = new XTemplate('prezence.xtpl');
 
 require('_casy.php'); // vhackování vybírátka času
-$t->assign('casy', _casy($zacatek));
+$t->assign('casy', _casy($zacatek, true));
 
 $aktivity = $zacatek ? Aktivita::zRozmezi($zacatek, $zacatek) : [];
 

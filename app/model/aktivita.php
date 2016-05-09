@@ -184,12 +184,10 @@ class Aktivita
       $xtpl->assign('den',0);
       $xtpl->assign('denSlovy','(neurčeno)');
       $xtpl->parse('upravy.tabulka.den');
-      $aDen = $a && $a->zacatek() ? $a->zacatek()->format('l') : PHP_INT_MAX;
-      foreach($GLOBALS['PROGRAM_DNY'] as $den=>$denSlovy) {
-        $den = (new DateTimeCz(PROGRAM_OD))->add(new DateInterval('P'.$den.'D'));
-        $xtpl->assign('sel', $den->format('l')==$aDen ? 'selected' : '');
+      for($den = new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen()) {
+        $xtpl->assign('sel', $a && $den->stejnyDen($a->zacatek()) ? 'selected' : '');
         $xtpl->assign('den', $den->format('Y-m-d'));
-        $xtpl->assign('denSlovy',$denSlovy);
+        $xtpl->assign('denSlovy', $den->format('l'));
         $xtpl->parse('upravy.tabulka.den');
       }
       // načtení časů

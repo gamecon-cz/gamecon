@@ -10,7 +10,7 @@
 $t = new XTemplate('tisk.xtpl');
 
 require('_casy.php'); // vhackování vybírátka času
-$t->assign('casy', _casy($zacatek, true));
+$t->assign('casy', _casy($zacatek));
 
 $aktivity = $zacatek ? Aktivita::zRozmezi($zacatek, $zacatek) : [];
 $ids = [];

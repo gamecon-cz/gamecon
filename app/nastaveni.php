@@ -27,7 +27,7 @@ define('REG_GC_DO',       GC_BEZI_DO);              // ukončení možnosti regi
 define('REG_AKTIVIT_OD',  ROK.'-05-10 20:16:00');   // spuštění možnosti registrace na aktivity, pokud jsou aktivované
 define('REG_AKTIVIT_DO',  GC_BEZI_DO);              // ukončení možnosti registrace na aktivity
 define('SLEVA_DO',        ROK.'-06-30 23:59:59');   // do kdy se oficiálně počítá platba včas
-define('PROGRAM_OD',      GC_BEZI_OD);              // první den programu
+define('PROGRAM_OD',      ROK.'-07-20');            // první den programu
 define('PROGRAM_DO',      GC_BEZI_DO);              // poslední den programu
 define('PROGRAM_VIDITELNY', po(REG_GC_OD));         // jestli jsou viditelné linky na program
 define('CENY_VIDITELNE',  PROGRAM_VIDITELNY && pred(GC_BEZI_DO)); // jestli jsou viditelné ceny aktivit
@@ -184,11 +184,3 @@ $GLOBALS['UCET_SK']=UCET_SK;
 define('DEN_PRVNI_DATE',date('Y-m-d',strtotime(PROGRAM_OD))); //první den v programu ve formátu YYYY-MM-DD
 define('PROGRAM_ZACATEK',$GLOBALS['PROGRAM_ZACATEK']=8);      //první hodina programu
 define('PROGRAM_KONEC',$GLOBALS['PROGRAM_KONEC']=24);         //konec programu (tuto hodinu už se nehraje)
-define('PROGRAM_DEN_PRVNI',$GLOBALS['PROGRAM_DEN_PRVNI']=1);  //index prvniho dne programu
-define('PROGRAM_DEN_POSLEDNI',$GLOBALS['PROGRAM_DEN_POSLEDNI']=4);   //index posledního dne programu
-for($i=0; $i<=PROGRAM_DEN_POSLEDNI-PROGRAM_DEN_PRVNI; $i++)
-{
-  $den=new DateTimeCz(PROGRAM_OD);
-  $GLOBALS['PROGRAM_DNY'][]=$den->add(new DateInterval('P'.$i.'D'))->format('l');
-  $GLOBALS['PROGRAM_DATA'][]=$den->format('j.n.');
-}
