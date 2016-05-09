@@ -2,7 +2,7 @@
 
 /** 
  * nazev: Návod
- * pravo: 2
+ * pravo: 105
  */
 
 $demo='
@@ -40,7 +40,7 @@ seznam pomocí čísel
 
 <h2>Informace</h2>
 
-<p>K formátování většiny textů na webu (aktivity, stránky) používáme jazyk Markdown (který používá Redbooth, Github, Google a další). Viz ukázka. Do Markdownu je možné vkládat html značky, pokud je to možné snažíme se toho ale vyvarovat.</p>
+<p>K formátování většiny textů na webu (aktivity, stránky) používáme jazyk Markdown (který používá Trello, Github, Google a další). Viz ukázka. Do Markdownu je možné vkládat html značky, pokud je to možné snažíme se toho ale vyvarovat.</p>
 <p><b>FAQ:</b></p>
 <ul>
   <li>Odkazy mimo stránky se automaticky otevřou v novém tabu, není dobré je psát ručně přes html.</li>
