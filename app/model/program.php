@@ -273,7 +273,7 @@ class Program {
     $bunky = '';
     for($cas = PROGRAM_ZACATEK; $cas < PROGRAM_KONEC; $cas++)
       $bunky .= '<td></td>';
-    return "<tr><td>$nazev</td>$bunky</tr>";
+    return "<tr><td rowspan=\"1\">$nazev</td>$bunky</tr>";
   }
 
 }
