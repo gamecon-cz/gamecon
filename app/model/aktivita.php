@@ -21,6 +21,7 @@ class Aktivita
     PN_PLUSMINUSM='cAktivitaPlusminusm',  // název post proměnné pro úpravy typu mínus
     HAJENI          = 72,      // počet hodin po kterýc aktivita automatick vykopává nesestavený tým
     // stavy aktivity
+    AKTIVOVANA      = 1,
     PUBLIKOVANA     = 4,
     PRIPRAVENA      = 5,
     //ignore a parametry kolem přihlašovátka
@@ -1085,7 +1086,7 @@ class Aktivita
 
   /** Vrátí, jestli aktivita bude aktivována v další vlně */
   function vDalsiVlne() {
-    return $this->a['stav'] == self::PRIPRAVENA;
+    return $this->a['stav'] == self::PRIPRAVENA || !REG_AKTIVIT && $this->a['stav'] == self::AKTIVOVANA;
   }
 
   /** Vrátí typ volných míst na aktivitě */
