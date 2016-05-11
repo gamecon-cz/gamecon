@@ -134,7 +134,7 @@ class Shop
         if($smiCervene)                 $barva = 'červené';
         elseif($smiModre)               $barva = 'modré';
         else                            $barva = '.*';
-        if($this->u->pohlavi() == 'f')  $typTricka = 'tričko.*dámské S';
+        if($this->u->pohlavi() == 'f')  $typTricka = 'tílko.*dámské S';
         else                            $typTricka = 'tričko.*pánské L';
         $r['auto'] = (
           $r['nabizet'] &&
