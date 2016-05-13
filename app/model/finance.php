@@ -30,13 +30,13 @@ class Finance {
   protected static
     $maxSlevaAktivit=100, // v procentech
     $slevaZaAktivitu = [ // ve formátu max. délka => sleva
-      1  =>  60,
-      2  =>  90,
-      5  => 180,
-      7  => 270,
-      9  => 360,
-      11 => 450,
-      13 => 540,
+      1  =>  55,
+      2  => 110,
+      5  => 220,
+      7  => 330,
+      9  => 440,
+      11 => 550,
+      13 => 660,
     ];
 
   const
