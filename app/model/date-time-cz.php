@@ -32,6 +32,16 @@ class DateTimeCz extends DateTime
     'December'  =>  'prosince',
   ];
 
+  /**
+   * Obalovací fce, umožňuje vložit přímo řetězec pro konstruktor DateIntervalu
+   */
+  function add($interval) {
+    if($interval instanceof DateInterval)
+      return parent::add($interval);
+    else
+      return parent::add(new DateInterval($interval));
+  }
+
   /** Formát data s upravenými dny česky */
   function format($f) {
     return strtr(parent::format($f), self::$dny);
@@ -74,10 +84,10 @@ class DateTimeCz extends DateTime
     else
       return $dny;
   }
-  
+
   /**
    * Vrátí „včera“, „předevčírem“, „pozítří“ apod. (místo dnes vrací emptystring)
-   */     
+   */
   function rozdilDne(DateTime $od) {
     $od=clone $od; // nutné znulování času pro funkční porovnání počtu dní
     $od->setTime(0,0);
@@ -106,7 +116,7 @@ class DateTimeCz extends DateTime
       $d2 = new self($d2);
     return $this->format('Y-m-d') == $d2->format('Y-m-d');
   }
-  
+
   /** Zaokrouhlí nahoru na nejbližší vyšší jednotku */
   function zaokrouhlitNahoru($jednotka='H') {
     //TODO jednotka
@@ -115,5 +125,5 @@ class DateTimeCz extends DateTime
     else
       return $this->modify($this->format('Y-m-d H:00:00'))->add(new DateInterval('PT1H'));
   }
-          
+
 }

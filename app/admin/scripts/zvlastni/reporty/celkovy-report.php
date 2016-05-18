@@ -66,8 +66,6 @@ while($r=mysql_fetch_assoc($o))
   $ucastiHistorie=[];
   foreach($gcDoted as $rok => $nul)
     $ucastiHistorie[]=$un->maPravo((int)( '-'.substr($rok,2).'02' ))?'ano':'ne';
-  //datum
-  $denPrvni=new DateTime(DEN_PRVNI_DATE);
   $stat = '';
   try { $stat = $un->stat(); } catch(Exception $e) {}
   $obsah[] = array_merge(
@@ -89,10 +87,12 @@ while($r=mysql_fetch_assoc($o))
       $r['psc_uzivatele'],
       $r['skola'],
       $r['ubytovan_s'],
-      $r['den_prvni']!==null ? $denPrvni->add( DateInterval::createFromDateString(($r['den_prvni']-1).' days') )->format('j.n.Y') : '-',
-      $r['den_posledni'] ? $denPrvni->add(new DateInterval('P'.($r['den_posledni']-$r['den_prvni']).'D'))->format('j.n.Y') : '-',
+      $r['den_prvni'] === null ? '-' :
+        (new DateTimeCz(DEN_PRVNI_UBYTOVANI))->add("P$r[den_prvni]D")->format('j.n.Y'),
+      $r['den_posledni'] === null ? '-' :
+        (new DateTimeCz(DEN_PRVNI_UBYTOVANI))->add("P$r[den_posledni]D")->format('j.n.Y'),
       ut($r['ubytovani_typ']),
-      $un->gcPritomen()?'ano':'ne'
+      $un->gcPritomen() ? 'ano' : 'ne'
     ],
     $ucastiHistorie,
     [
