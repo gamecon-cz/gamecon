@@ -74,6 +74,7 @@ if(!$zidle) {
     $t->assign($r);
     $t->parse('zidle.pravo');
   }
+  $t->assign('id_zidle', $zidle); // bugfix pro židle s 0 právy
   // nabídka židlí
   $o = dbQueryS('
     SELECT p.*
