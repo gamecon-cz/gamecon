@@ -73,7 +73,7 @@ $aktivity = Aktivita::zFiltru($filtr, ['nazev_akce', 'patri_pod', 'zacatek']);
 // TODO hack
 // TODO nejasné načítání typu
 $stranky = [];
-$prefixy = ['drd', 'legendy'];
+$prefixy = ['drd', 'legendy', 'rpg'];
 if(isset($typ) && $typ && in_array($typ->url(), $prefixy))
   $stranky = Stranka::zUrlPrefixu($typ->url());
 usort($stranky, function($a, $b){ return $a->poradi() - $b->poradi(); });
