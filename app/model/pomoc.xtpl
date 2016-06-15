@@ -11,7 +11,7 @@
   <input type="radio" name="{postname}[typ]" id="{id}" value="{id}" {checked}><label for="{id}" class="hinted">{nazev}<span class="hint">{popis}</span></label>&ensp;
   <!-- end:typ -->
 
-  <textarea name="{postname}[detail]" placeholder="sem můžeš napsat víc o tom, jak by ses chtěl{a} zapojit" style="margin-top: 0.3em">{vDetail}</textarea>
+  <textarea name="{postname}[detail]" placeholder="Zde můžeš napsat více o tom, jak by ses chtěl{a} zapojit. Hlaste se prosím o výpomoc jen u věcí, na které zatím nejste s nikým domluveni." style="margin-top: 0.3em">{vDetail}</textarea>
 
 </div>
 <script>
