@@ -439,6 +439,7 @@ class Finance {
    */
   protected function zapoctiVedeniAktivit() {
     if(!$this->u->maPravo(P_ORG_AKCI)) return;
+    if(!$this->u->maPravo(P_SLEVA_AKTIVITY)) return;
     foreach(Aktivita::zOrganizatora($this->u) as $a) {
       $this->sleva += self::slevaZaAktivitu($a);
     }
