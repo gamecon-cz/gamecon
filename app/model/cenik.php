@@ -44,8 +44,10 @@ class Cenik {
 
     if($u->maPravo(P_TRIKO_ZDARMA))
       $this->slevaTricka = 150;
-    elseif(($u->maPravo(P_TRIKO_ZA_SLEVU_MODRE) || $u->maPravo(P_TRIKO_ZA_SLEVU)) && $sleva >= 660)
+    elseif($u->maPravo(P_TRIKO_ZA_SLEVU_MODRE) && $sleva >= 660)
       $this->slevaTricka = 150;
+    elseif($u->maPravo(P_TRIKO_ZA_SLEVU) && $sleva >= 660)
+      $this->slevaTricka = 200;
     elseif($u->maPravo(P_TRIKO_SLEVA_MODRE) || $u->maPravo(P_TRIKO_SLEVA))
       $this->slevaTricka = 50;
 
