@@ -627,6 +627,10 @@ class Uzivatel
     );
   }
 
+  function status() {
+    return trim(strip_tags($this->statusHtml()));
+  }
+
   /** Vrátí html formátovaný „status“ uživatele (pro interní informaci) */
   function statusHtml()
   {
