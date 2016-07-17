@@ -36,10 +36,10 @@ class Pokoj {
       JOIN shop_predmety p USING(id_predmetu)
       WHERE n.id_uzivatele = $1 AND n.rok = $2 AND p.typ = 2
     ', [$u->id(), ROK]);
-    if(mysql_num_rows($o) == 0) throw new Chyba('Uživatel nemá ubytování nebo ubytování pro daný den neexistuje');
+    if(mysqli_num_rows($o) == 0) throw new Chyba('Uživatel nemá ubytování nebo ubytování pro daný den neexistuje');
     dbQueryS('DELETE FROM ubytovani WHERE rok = $2 AND id_uzivatele = $1', [$u->id(), ROK]);
     $q = 'INSERT INTO ubytovani(id_uzivatele, den, pokoj, rok) VALUES '."\n";
-    while($r = mysql_fetch_assoc($o))
+    while($r = mysqli_fetch_assoc($o))
       $q .= '('.$u->id().','.$r['ubytovani_den'].','.dbQv($pokoj).','.ROK."),\n";
     $q = substr($q, 0, -2).';';
     dbQuery($q);

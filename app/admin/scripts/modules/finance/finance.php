@@ -34,7 +34,7 @@ if(isset($_GET['minimum']))
   $min=(int)$_GET['minimum'];
   $o=dbQuery("SELECT u.* FROM uzivatele_hodnoty u JOIN r_uzivatele_zidle z ON(z.id_uzivatele=u.id_uzivatele AND z.id_zidle=".Z_PRIHLASEN.")");
   $ids='';
-  while($r=mysql_fetch_assoc($o))
+  while($r=mysqli_fetch_assoc($o))
   {
     $un=new Uzivatel($r);
     $un->nactiPrava();

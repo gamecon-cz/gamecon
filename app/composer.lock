@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "326d096025ed555ffa29cad5309724b4",
-    "content-hash": "f0645b38e28733debad4536b6822eb6a",
+    "hash": "e815c2ab94811f33c690a9c75e41bd0a",
+    "content-hash": "8cd76d65fbe1498dcea3f2b9d41d9501",
     "packages": [
         {
             "name": "dg/mysql-dump",
@@ -17,7 +17,7 @@
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dg/MySQL-dump/zipball/c1c00a6b7ded9cab37f0280fa2940b1809835f90",
+                "url": "https://api.github.com/repos/dg/MySQL-dump/zipball/462eaac79ea4ad9da75645b8930ce96a8eb10be2",
                 "reference": "462eaac79ea4ad9da75645b8930ce96a8eb10be2",
                 "shasum": ""
             },
@@ -183,28 +183,34 @@
         },
         {
             "name": "tracy/tracy",
-            "version": "v2.2.6",
+            "version": "v2.4.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nette/tracy.git",
-                "reference": "1233094e59830eb9d4406f8e187733d8cec8b416"
+                "reference": "89cd0c8cfd7e246a39a504f860cf2fbb5a5095f1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nette/tracy/zipball/1233094e59830eb9d4406f8e187733d8cec8b416",
-                "reference": "1233094e59830eb9d4406f8e187733d8cec8b416",
+                "url": "https://api.github.com/repos/nette/tracy/zipball/89cd0c8cfd7e246a39a504f860cf2fbb5a5095f1",
+                "reference": "89cd0c8cfd7e246a39a504f860cf2fbb5a5095f1",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.3.1"
+                "php": ">=5.4.4"
             },
             "require-dev": {
-                "nette/tester": "~1.0"
+                "nette/di": "~2.3",
+                "nette/tester": "~2.0"
             },
             "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.4-dev"
+                }
+            },
             "autoload": {
                 "classmap": [
-                    "src/Tracy"
+                    "src"
                 ],
                 "files": [
                     "src/shortcuts.php"
@@ -219,21 +225,21 @@
             "authors": [
                 {
                     "name": "David Grudl",
-                    "homepage": "http://davidgrudl.com"
+                    "homepage": "https://davidgrudl.com"
                 },
                 {
                     "name": "Nette Community",
-                    "homepage": "http://nette.org/contributors"
+                    "homepage": "https://nette.org/contributors"
                 }
             ],
             "description": "Tracy: useful PHP debugger",
-            "homepage": "http://tracy.nette.org",
+            "homepage": "https://tracy.nette.org",
             "keywords": [
                 "debug",
                 "debugger",
                 "nette"
             ],
-            "time": "2014-12-30 01:16:35"
+            "time": "2016-06-30 19:57:01"
         }
     ],
     "packages-dev": [],

@@ -22,7 +22,7 @@ $o=dbQuery('
   GROUP BY pri.id_uzivatele
 ');
   
-$r=mysql_fetch_assoc($o);
+$r=mysqli_fetch_assoc($o);
 if(!$r) exit('V tabulce nejsou žádná data.');
 
 header('Content-type: application/csv; charset=utf-8');
@@ -34,7 +34,7 @@ echo('ID;Jméno;Příjmení;Nick;Ulice;Město;PSČ;Aktivity;Objednávky');
 do
 {
   echo "\n\"".implode('";"',$r)."\"";
-}while($r=mysql_fetch_assoc($o));
+}while($r=mysqli_fetch_assoc($o));
 
 /*
 for($i=1;$i<=6;$i++)
@@ -52,7 +52,7 @@ do
   {
     echo ';'.implode(';',array_slice($r,11));
   }
-}while($r=mysql_fetch_assoc($o));
+}while($r=mysqli_fetch_assoc($o));
 */
 
 ?>

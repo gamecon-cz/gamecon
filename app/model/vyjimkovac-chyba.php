@@ -86,7 +86,7 @@ class VyjimkovacChyba {
     $db->insert('chyby', $this->r);
   }
 
-  static function zVyjimky(Exception $e) {
+  static function zVyjimky($e) {
     $r = self::radekInit();
     try {
       $es = serialize($e);

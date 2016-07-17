@@ -96,7 +96,7 @@ $o = dbQuery('
   FROM novinky_obsah n
   JOIN uzivatele_hodnoty u on (u.id_uzivatele = n.autor)
   WHERE stav = "Y"');
-while($r = mysql_fetch_assoc($o)) {
+while($r = mysqli_fetch_assoc($o)) {
   $t = preg_split('@<h2>(.+?)</h2>\s*<h3>(.+?)</h3>@', $r['obsah'], 2, PREG_SPLIT_DELIM_CAPTURE);
   $text = trim($markdown->convert($t[3]));
   $hash = scrc32($text);
@@ -117,7 +117,7 @@ while($r = mysql_fetch_assoc($o)) {
 ///////////////////////////////////
 $this->q('ALTER TABLE `akce_seznam` ENGINE=InnoDB');
 $o = dbQuery('SELECT * FROM akce_seznam WHERE popis IS NOT NULL AND popis != "" AND popis NOT RLIKE "^-?[0-9]+$"');
-while($r = mysql_fetch_assoc($o)) {
+while($r = mysqli_fetch_assoc($o)) {
   $h = sprintf('%d', scrc32($r['popis']));
   try {
     dbInsert('texty', [
@@ -159,11 +159,11 @@ $this->q('CREATE TABLE akce_tagy (
   KEY (id_tagu)
 ) ENGINE="MyISAM" COLLATE "utf8_czech_ci";');
 $o = dbQuery("select * from akce_seznam where nazev_akce like '%(%)' and typ = 4 and zacatek > '2011-01'");
-while($r = mysql_fetch_assoc($o)) {
+while($r = mysqli_fetch_assoc($o)) {
   $tag = preg_replace('@.*\((.*)\)@', '$1', $r['nazev_akce']);
   try {
     dbQueryS('INSERT INTO tagy(nazev) VALUES ($1)', [$tag]);
-    $tagId = mysql_insert_id();
+    $tagId = mysqli_insert_id();
   } catch(Exception $e) {
     $tagId = dbOneCol('SELECT id FROM tagy WHERE nazev = $1', [$tag]);
   }

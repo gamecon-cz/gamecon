@@ -59,7 +59,7 @@ $filtr=isset($_SESSION['adminAktivityFiltr'])?
   $_SESSION['adminAktivityFiltr']:'';
 $o = dbQuery('SELECT * FROM akce_typy');
 $varianty = [];
-while($r = mysql_fetch_assoc($o)) {
+while($r = mysqli_fetch_assoc($o)) {
   $varianty[$r['id_typu']] = ['popis' => $r['typ_1pmn'], 'db' => $r['id_typu']];
 }
 foreach($varianty as $k => $v) {

@@ -12,7 +12,7 @@ $dbTransactionDepth = 0;
 function dbArrayCol($q, $param = null) {
   $a = dbQueryS($q, $param);
   $o = [];
-  while($r = mysql_fetch_row($a)) {
+  while($r = mysqli_fetch_row($a)) {
     $o[$r[0]] = $r[1];
   }
   return $o;
@@ -62,16 +62,13 @@ function dbConnect() {
     $dbNumQ     = 0;    //počet dotazů do databáze
     $dbExecTime = 0.0;  //délka výpočtu dotazů
     // připojení
-    $start=microtime(true);
-    $puvodni = error_reporting(); // vymaskováni deprekace mysql_*
-    error_reporting($puvodni ^ E_DEPRECATED);
-    $spojeni = mysql_connect($dbhost, $dbuser, $dbpass);
-    error_reporting($puvodni);
-    if(!$spojeni) die(mysql_error($spojeni));
-    mysql_select_db($dbname, $spojeni);
-    mysql_set_charset('utf8', $spojeni);
-    $end=microtime(true);
-    $GLOBALS['dbExecTime']+=$end-$start;
+    $start = microtime(true);
+    $spojeni = mysqli_connect('p:' . $dbhost, $dbuser, $dbpass); // persistent connection
+    if(!$spojeni) die(mysqli_error($spojeni));
+    mysqli_select_db($spojeni, $dbname);
+    mysqli_set_charset($spojeni, 'utf8');
+    $end = microtime(true);
+    $GLOBALS['dbExecTime'] += $end - $start;
     dbQuery('SET SESSION group_concat_max_len = 65536');
   }
 }
@@ -94,7 +91,7 @@ function dbDelete($table, $whereArray) {
 function dbDescribe($table) {
   $a = dbQuery('show full columns from '.dbQi($table));
   $out = [];
-  while($r = mysql_fetch_assoc($a)) $out[] = $r;
+  while($r = mysqli_fetch_assoc($a)) $out[] = $r;
   return $out;
 }
 
@@ -112,7 +109,7 @@ function dbGetExceptionType() {
   $keys = [
     1062 => 'DbDuplicateEntryException',
   ];
-  if(isset($keys[mysql_errno()])) return $keys[mysql_errno()];
+  if(isset($keys[mysqli_errno($GLOBALS['spojeni'])])) return $keys[mysqli_errno($GLOBALS['spojeni'])];
   else return 'DbException';
 }
 
@@ -139,7 +136,7 @@ function dbInsert($table, $valArray) {
   $hodnoty=substr($hodnoty,0,-1);
   $q='INSERT INTO '.$table.' ('.$sloupce.') VALUES ('.$hodnoty.')';
   $dbLastQ=$q;
-  if(!mysql_query($q, $spojeni)) { $type = dbGetExceptionType(); throw new $type(); }
+  if(!mysqli_query($spojeni, $q)) { $type = dbGetExceptionType(); throw new $type(); }
 }
 
 /**
@@ -162,7 +159,7 @@ function dbInsertUpdate($table, $valArray) {
   $q=$update.$vals.$dupl.$vals; 
   $dbLastQ=$q;
   $start=microtime(true);
-  $r=mysql_query($q,$GLOBALS['spojeni']);
+  $r=mysqli_query($GLOBALS['spojeni'], $q);
   $end=microtime(true);
   if(!$r) { $type = dbGetExceptionType(); throw new $type(); }
 }
@@ -173,14 +170,14 @@ function dbInsertUpdate($table, $valArray) {
  */
 function dbIterator($q, $p = null) {
   $o = dbQuery($q, $p);
-  while($r = mysql_fetch_assoc($o)) yield $r;
+  while($r = mysqli_fetch_assoc($o)) yield $r;
 }
 
 /**
  * Return last AUTO INCREMENT value
  */
 function dbLastId() {
-  return mysql_insert_id($GLOBALS['spojeni']);
+  return mysqli_insert_id($GLOBALS['spojeni']);
 }
 
 /**
@@ -212,7 +209,7 @@ function dbNumQ() {
 function dbOneArray($q, $p = null) {
   $o = dbQuery($q, $p);
   $a = [];
-  while(list($v) = mysql_fetch_row($o)) $a[] = $v;
+  while(list($v) = mysqli_fetch_row($o)) $a[] = $v;
   return $a;
 }
 
@@ -231,9 +228,9 @@ function dbOneCol($q, $p = null) {
  */
 function dbOneLine($q, $p = null) {
   $r = dbQueryS($q, $p);
-  if(mysql_num_rows($r)>1) die('multiple lines matched!');
-  elseif(mysql_num_rows($r)<1) return FALSE;
-  else return mysql_fetch_assoc($r);
+  if(mysqli_num_rows($r)>1) die('multiple lines matched!');
+  elseif(mysqli_num_rows($r)<1) return FALSE;
+  else return mysqli_fetch_assoc($r);
 }
 
 /**
@@ -244,9 +241,9 @@ function dbOneLine($q, $p = null) {
 function dbOneLineS($q,$array=null)
 {
   $r=dbQueryS($q,$array);
-  if(mysql_num_rows($r)>1) die('multiple lines matched!');
-  elseif(mysql_num_rows($r)<1) return FALSE;
-  else return mysql_fetch_assoc($r);
+  if(mysqli_num_rows($r)>1) die('multiple lines matched!');
+  elseif(mysqli_num_rows($r)<1) return FALSE;
+  else return mysqli_fetch_assoc($r);
 }
 
 /**
@@ -259,7 +256,7 @@ function dbQuery($q, $param = null) {
   dbConnect();
   $GLOBALS['dbLastQ'] = $q;
   $start = microtime(true);
-  $r = mysql_query($q, $GLOBALS['spojeni']);
+  $r = mysqli_query($GLOBALS['spojeni'], $q);
   $end = microtime(true);
   if(!$r) throw new DbException();
   $GLOBALS['dbNumQ']++;
@@ -361,7 +358,7 @@ function dbUpdate($table, $vals, $where) {
   // query execution
   $dbLastQ=$q;
   $start=microtime(true);
-  $r=mysql_query($q,$GLOBALS['spojeni']);
+  $r=mysqli_query($GLOBALS['spojeni'], $q);
   $end=microtime(true);
   if(!$r) throw new DbException();
 }
@@ -372,7 +369,7 @@ function dbUpdate($table, $vals, $where) {
 class DbException extends Exception {
 
   function __construct() {
-    $this->message = mysql_error();
+    $this->message = mysqli_error($GLOBALS['spojeni']);
   }
 
 }

@@ -101,9 +101,9 @@ class Report
       return $this->hlavicky;
     if(!$this->o)
       $this->o=dbQuery($this->sql);
-    for($i=0; $i<mysql_num_fields($this->o); $i++) 
+    for($i=0; $i<mysqli_num_fields($this->o); $i++)
     {
-        $field_info=mysql_fetch_field($this->o,$i);
+        $field_info=mysqli_fetch_field($this->o);
         $this->hlavicky[]=$field_info->name;
     }
     return $this->hlavicky;
@@ -118,7 +118,7 @@ class Report
     }
     if(!$this->o)
       $this->o=dbQuery($this->sql);
-    return mysql_fetch_row($this->o);    
+    return mysqli_fetch_row($this->o);
   }
   
 }

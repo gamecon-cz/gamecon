@@ -23,7 +23,7 @@ $o = dbQuery('
 ');
 
 $p = [];
-while($r = mysql_fetch_assoc($o)) {
+while($r = mysqli_fetch_assoc($o)) {
   $a = Aktivita::zId($r['id_akce']);
   $r['priznany_bonus'] = $a ? Finance::slevaZaAktivitu($a) * count($a->organizatori()) : 0;
   $p[] = $r;

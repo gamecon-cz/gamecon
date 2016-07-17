@@ -73,7 +73,7 @@ abstract class DbObject {
   protected static function zWhere($where, $params = null) {
     $o = dbQuery(static::dotaz($where), $params); // static aby odděděná třída mohla přepsat dotaz na něco složitějšího
     $a = [];
-    while($r = mysql_fetch_assoc($o))
+    while($r = mysqli_fetch_assoc($o))
       $a[] = new static($r); // static aby vznikaly objekty správné třídy
       // TODO id jako klíč pole?
       // TODO cacheování?

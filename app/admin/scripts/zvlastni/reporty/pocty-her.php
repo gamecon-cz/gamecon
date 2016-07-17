@@ -23,7 +23,7 @@ $o=dbQuery('
   JOIN akce_seznam a USING(id_akce)
   WHERE a.rok='.ROK.'
   GROUP BY p.id_uzivatele');
-if(mysql_num_rows($o)==0) 
+if(mysqli_num_rows($o)==0)
   exit('V tabulce nejsou žádná data.');
 
 header('Content-type: application/csv; charset=utf-8');
@@ -33,7 +33,7 @@ echo(chr(0xEF).chr(0xBB).chr(0xBF)); //BOM bajty pro nastavení UTF-8 ve výsled
 
 $out=fopen('php://output','w'); //získáme filedescriptor výstupu stránky pro použití v fputcsv
 
-$r=mysql_fetch_assoc($o);
+$r=mysqli_fetch_assoc($o);
 fputcsv($out,array_merge(array_keys($r),["Σ cena",'Diverzifikace']),$CSV_SEP);
 do
 {
@@ -46,7 +46,7 @@ do
   $r[]=$div;
   fputcsv($out,$r,$CSV_SEP);
 }
-while($r=mysql_fetch_assoc($o));
+while($r=mysqli_fetch_assoc($o));
 
 fclose($out);
 

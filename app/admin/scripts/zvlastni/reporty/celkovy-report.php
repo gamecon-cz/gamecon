@@ -49,11 +49,11 @@ $o=dbQuery('
   LEFT JOIN r_uzivatele_zidle pritomen ON(pritomen.id_zidle = $1 AND pritomen.id_uzivatele = u.id_uzivatele)
   WHERE z.id_zidle='.Z_PRIHLASEN.'
   ', [Z_PRITOMEN]);
-if(mysql_num_rows($o)==0) 
+if(mysqli_num_rows($o)==0)
   exit('V tabulce nejsou žádná data.');
 
 $obsah[] = $hlavicka2;
-while($r=mysql_fetch_assoc($o))
+while($r=mysqli_fetch_assoc($o))
 {
   $un=new Uzivatel($r);
   $un->nactiPrava(); //sql subdotaz, zlo

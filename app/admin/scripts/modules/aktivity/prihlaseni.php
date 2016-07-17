@@ -10,7 +10,7 @@
 $xtpl2=new XTemplate('prihlaseni.xtpl');
 
 $o = dbQuery('SELECT id_typu, typ_1pmn FROM akce_typy');
-while($r = mysql_fetch_assoc($o)) {
+while($r = mysqli_fetch_assoc($o)) {
   $xtpl2->assign($r);
   $xtpl2->parse('prihlaseni.vyber');
 }
@@ -40,8 +40,8 @@ $odpoved=dbQuery('
   GROUP BY u.id_uzivatele, a.id_akce
   ORDER BY a.zacatek, a.nazev_akce, a.id_akce, p.id_uzivatele');
 
-$totoPrihlaseni=mysql_fetch_array($odpoved);
-$dalsiPrihlaseni=mysql_fetch_array($odpoved);
+$totoPrihlaseni=mysqli_fetch_assoc($odpoved);
+$dalsiPrihlaseni=mysqli_fetch_assoc($odpoved);
 $obsazenost=0;
 $odd=0;
 $maily=[];
@@ -68,7 +68,7 @@ while($totoPrihlaseni) {
     $maily=[];
   }
   $totoPrihlaseni=$dalsiPrihlaseni;
-  $dalsiPrihlaseni=mysql_fetch_array($odpoved);
+  $dalsiPrihlaseni=mysqli_fetch_assoc($odpoved);
 }
 
 $xtpl2->parse('prihlaseni');

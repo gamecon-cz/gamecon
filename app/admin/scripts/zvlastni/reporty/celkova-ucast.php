@@ -9,7 +9,7 @@ $sloupce_roky = [];
 $query_roky = [];
 
 // pro kazdy rok vygenerujeme sloupec
-while(list($rok) = mysql_fetch_row($sql_roky)){
+while(list($rok) = mysqli_fetch_row($sql_roky)){
 	array_push($sloupce_roky, $rok);
 	array_push(
 		$query_roky,
@@ -49,7 +49,7 @@ $query = dbQuery("
   GROUP BY u.id_uzivatele;
   ");
   
-if(mysql_num_rows($query) <= 0) {
+if(mysqli_num_rows($query) <= 0) {
   exit('V databázi asi nejsou žádná data (ale spíše se stala chyba někde jinde).');
 }
 
@@ -67,7 +67,7 @@ foreach($sloupce_roky as $val){
 }
 echo "</tr>\n";
 
-while($data = mysql_fetch_row($query)){
+while($data = mysqli_fetch_row($query)){
 	echo "<tr>\n";
 	foreach($data as $sloupec){
 		echo "  <td>$sloupec</td>\n";
@@ -93,7 +93,7 @@ foreach($sloupce_roky as $key=>$value){
 fputcsv($out, $sloupce, $CSV_SEP);
 
 // data
-while($data = mysql_fetch_row($query)){
+while($data = mysqli_fetch_row($query)){
 	fputcsv($out, $data, $CSV_SEP);
 }
 

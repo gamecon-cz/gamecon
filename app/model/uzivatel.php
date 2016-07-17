@@ -109,7 +109,7 @@ class Uzivatel
     if($z==0)
       return false;
     $o=dbQuery('SELECT * FROM r_prava_zidle WHERE id_zidle='.$z);
-    while($r=mysql_fetch_assoc($o))
+    while($r=mysqli_fetch_assoc($o))
       if(!$this->maPravo($r['id_prava']))
       {
         $this->u['prava'][]=(int)$r['id_prava'];
@@ -176,7 +176,7 @@ class Uzivatel
     // finální odebrání židle "registrován na GC"
     $this->vemZidli(ID_ZIDLE_PRIHLASEN);
     // odeslání upozornění, pokud u nás má peníze
-    if(mysql_num_rows(dbQuery('SELECT 1 FROM platby WHERE rok='.ROK.' AND id_uzivatele='.$this->id()))>0)
+    if(mysqli_num_rows(dbQuery('SELECT 1 FROM platby WHERE rok='.ROK.' AND id_uzivatele='.$this->id()))>0)
       mail(
         'info@gamecon.cz',
         'Uživatel '.$this->jmenoNick().' se odhlásil ale platil',
@@ -319,7 +319,7 @@ class Uzivatel
         LEFT JOIN r_prava_zidle pz USING(id_zidle)
         WHERE uz.id_uzivatele='.$this->id());
       $prava=[]; //inicializace nutná, aby nepadala výjimka pro uživatele bez práv
-      while($r=mysql_fetch_assoc($p))
+      while($r=mysqli_fetch_assoc($p))
         $prava[]=(int)$r['id_prava'];
       $this->u['prava']=$prava;
     }
@@ -452,7 +452,7 @@ class Uzivatel
       LEFT JOIN r_prava_zidle pz USING(id_zidle)
       WHERE uz.id_uzivatele='.$id);
     $prava = []; // inicializace nutná, aby nepadala výjimka pro uživatele bez práv
-    while($r = mysql_fetch_assoc($p))
+    while($r = mysqli_fetch_assoc($p))
       $prava[] = (int)$r['id_prava'];
     $_SESSION[$klic]['prava'] = $prava;
     return new Uzivatel($_SESSION[$klic]);
@@ -477,7 +477,7 @@ class Uzivatel
         LEFT JOIN r_prava_zidle pz USING(id_zidle)
         WHERE uz.id_uzivatele='.$id);
       $prava=[]; //inicializace nutná, aby nepadala výjimka pro uživatele bez práv
-      while($r=mysql_fetch_assoc($p))
+      while($r=mysqli_fetch_assoc($p))
         $prava[]=(int)$r['id_prava'];
       $_SESSION[$klic]['prava']=$prava;
       $u=new Uzivatel($_SESSION[$klic]);
@@ -852,7 +852,7 @@ class Uzivatel
       GROUP BY u.id_uzivatele
     '.$extra, $param);
     $uzivatele = [];
-    while($r = mysql_fetch_assoc($o)) {
+    while($r = mysqli_fetch_assoc($o)) {
       $u = new static($r);
       $u->u['prava'] = explode(',',$u->u['prava']);
       $uzivatele[] = $u;
@@ -879,7 +879,7 @@ class Uzivatel
       LEFT JOIN r_prava_zidle pz USING(id_zidle)
       WHERE uz.id_uzivatele='.$this->id());
     $prava=[]; //inicializace nutná, aby nepadala výjimka pro uživatele bez práv
-    while($r=mysql_fetch_assoc($p))
+    while($r=mysqli_fetch_assoc($p))
       $prava[]=(int)$r['id_prava'];
     $_SESSION[$this->klic]['prava']=$prava;
     $this->u['prava']=$prava;
@@ -903,7 +903,7 @@ class Uzivatel
       '.$where.'
       GROUP BY u.id_uzivatele');
     $uzivatele=[];
-    while($r=mysql_fetch_assoc($o))
+    while($r=mysqli_fetch_assoc($o))
     {
       $u=new self($r);
       $u->u['prava']=explode(',',$u->u['prava']);

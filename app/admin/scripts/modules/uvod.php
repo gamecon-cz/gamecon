@@ -176,7 +176,7 @@ $o=dbQuery('
   GROUP BY p.id_predmetu
   ORDER BY model_rok DESC, nazev');
 $moznosti='<option value="0">(vyber)</option>';
-while($r=mysql_fetch_assoc($o)) {
+while($r=mysqli_fetch_assoc($o)) {
   $zbyva = $r['zbyva'] === null ? '&infin;' : $r['zbyva'];
   $moznosti.='<option value="'.$r['id_predmetu'].'"'.($r['zbyva']>0||$r['zbyva']===null?'':' disabled').'>'.$r['nazev'].' ('.$zbyva.') '.$r['cena'].'&thinsp;Kč</option>';
 }

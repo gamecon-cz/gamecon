@@ -15,20 +15,20 @@ if(!isset($_GET['ciste'])) {
     ORDER BY u.id_uzivatele, p.ubytovani_den, p.nazev
   ');
 
-  $curr = mysql_fetch_assoc($o);
-  $next = mysql_fetch_assoc($o);
+  $curr = mysqli_fetch_assoc($o);
+  $next = mysqli_fetch_assoc($o);
   while($curr) {
     $t->assign($curr);
     $t->parse('stravenky.uzivatel.jidlo');
     if(!$next || $curr['id_uzivatele'] != $next['id_uzivatele']) $t->parse('stravenky.uzivatel');
     $curr = $next;
-    $next = mysql_fetch_assoc($o);
+    $next = mysqli_fetch_assoc($o);
   }
 
 } else {
 
   $o = dbQuery('SELECT nazev FROM shop_predmety WHERE model_rok = '.ROK.' AND typ = '.Shop::JIDLO);
-  while($r = mysql_fetch_assoc($o)) $jidla[] = $r['nazev'];
+  while($r = mysqli_fetch_assoc($o)) $jidla[] = $r['nazev'];
 
   for($i = 0; $i < 24; $i++) {
     foreach($jidla as $jidlo) {

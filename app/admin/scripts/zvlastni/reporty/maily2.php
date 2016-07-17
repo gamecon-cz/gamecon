@@ -12,7 +12,7 @@ $o=dbQuery('
   WHERE id_prava='.ID_PRAVO_PRIHLASEN.'
   AND email1_uzivatele LIKE "%@%"');
 $i=1;
-while($r=mysql_fetch_assoc($o))
+while($r=mysqli_fetch_assoc($o))
 {
   echo $r['email1_uzivatele'].'; ';
   if(!($i%MAX_MAILU)) echo '<br /><br />';

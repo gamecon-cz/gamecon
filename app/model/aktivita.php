@@ -172,7 +172,7 @@ class Aktivita
     if(!$omezeni || !empty($omezeni['lokace']))
     {
       $q=dbQuery('SELECT * FROM akce_lokace ORDER BY poradi');
-      while($r=mysql_fetch_assoc($q))
+      while($r=mysqli_fetch_assoc($q))
         $xtpl->assign('sel',$a && $aktivita['lokace']==$r['id_lokace']?'selected':'') xor
         $xtpl->assign($r) xor
         $xtpl->parse('upravy.tabulka.lokace');
@@ -217,7 +217,7 @@ class Aktivita
         GROUP BY u.id_uzivatele
         ORDER BY u.login_uzivatele');
       $vsichniOrg = [ 0 => '(nikdo)' ];
-      while($r = mysql_fetch_assoc($q)) {
+      while($r = mysqli_fetch_assoc($q)) {
         $vsichniOrg[$r['id_uzivatele']] = Uzivatel::jmenoNickZjisti($r);
       }
       $aktOrg = $a && $a->a['organizatori'] ? explode(',', substr($a->a['organizatori'], 1, -1)) : [];
@@ -244,7 +244,7 @@ class Aktivita
       $xtpl->assign(['sel'=>'','id_typu'=>0,'typ_1p'=>'(bez typu – organizační)']);
       $xtpl->parse('upravy.tabulka.typ');
       $q=dbQuery('SELECT * FROM akce_typy');
-      while($r=mysql_fetch_assoc($q))
+      while($r=mysqli_fetch_assoc($q))
         $xtpl->assign('sel',$a && $r['id_typu']==$aktivita['typ']?'selected':'') xor
         $xtpl->assign($r) xor
         $xtpl->parse('upravy.tabulka.typ');
@@ -332,7 +332,7 @@ class Aktivita
       empty($a['nazev_akce'])?$a['nazev_akce']='(neurčený název)':0;
       // vložení, nahrání obrzáku
       dbInsertUpdate('akce_seznam',$a);
-      $a['id_akce']=mysql_insert_id();
+      $a['id_akce']=mysqli_insert_id();
       $aktivita = self::zId($a['id_akce']);
       $aktivita->nova=true;
     }
@@ -487,7 +487,7 @@ class Aktivita
   static function odemciHromadne() {
     $o = dbQuery('SELECT id_akce, zamcel FROM akce_seznam WHERE zamcel AND zamcel_cas < NOW() - interval '.self::HAJENI.' hour');
     $i = 0;
-    while( list($aid, $uid) = mysql_fetch_row($o) ) {
+    while( list($aid, $uid) = mysqli_fetch_row($o) ) {
       Aktivita::zId($aid)->odhlas(Uzivatel::zId($uid));
       $i++;
     }
@@ -1067,7 +1067,7 @@ class Aktivita
     static $typy; // TODO hack na cacheování názvů typů kvůli chybějícímu orm
     if(!$typy) {
       $o = dbQuery('SELECT id_typu, url_typu_mn FROM akce_typy');
-      while($r = mysql_fetch_row($o)) $typy[$r[0]] = $r[1];
+      while($r = mysqli_fetch_row($o)) $typy[$r[0]] = $r[1];
     }
     return URL_WEBU . '/' . $typy[$this->a['typ']] . '#' . $this->a['url_akce'];
   }
@@ -1481,7 +1481,7 @@ class Aktivita
       $order
     ", $args);
     $p = [];
-    while($r = mysql_fetch_assoc($o)) {
+    while($r = mysqli_fetch_assoc($o)) {
       $r['url_akce'] = $r['url_temp'];
       $p[] = new self($r);
     }

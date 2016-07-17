@@ -11,7 +11,7 @@ $o=dbQuery('
   WHERE z.id_zidle='.Z_ORG_AKCI.'
   AND email1_uzivatele LIKE "%@%"');
 $i=1;
-while($r=mysql_fetch_assoc($o))
+while($r=mysqli_fetch_assoc($o))
 {
   echo $r['email1_uzivatele'].'; ';
   if(!($i%MAX_MAILU)) echo '<br /><br />';

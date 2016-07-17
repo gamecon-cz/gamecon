@@ -83,7 +83,7 @@ class Vyjimkovac
   }
 
   /** Uloží výjimku a zobrazí info podle verze ostrá / dev */
-  protected function zpracuj(Exception $e) {
+  protected function zpracuj($e) {
     // uložení
     VyjimkovacChyba::zVyjimky($e)->uloz($this->db());
     // hlavičky

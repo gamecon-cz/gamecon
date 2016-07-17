@@ -159,7 +159,7 @@ class ShopUbytovani {
       FROM uzivatele_hodnoty
       WHERE jmeno_uzivatele != "" AND prijmeni_uzivatele != "" AND id_uzivatele != $1
     ', [$this->u->id()]);
-    while($u = mysql_fetch_row($o)) $a[] = $u[0];
+    while($u = mysqli_fetch_row($o)) $a[] = $u[0];
     return json_encode($a);
   }
 

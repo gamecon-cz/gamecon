@@ -3,7 +3,7 @@
 //samo sebe volání ajaxu
 if(isset($_GET['testMailu']))
 {
-  if(mysql_num_rows(dbQueryS('SELECT 1 FROM uzivatele_hodnoty WHERE email1_uzivatele=$0',[$_GET['mail']]))>0)
+  if(mysqli_num_rows(dbQueryS('SELECT 1 FROM uzivatele_hodnoty WHERE email1_uzivatele=$0',[$_GET['mail']]))>0)
     echo('{"vysledek":true}');
   else
     echo('{"vysledek":false}');
@@ -78,7 +78,7 @@ $avatar=$u?$u->avatar():Uzivatel::avatarDefault();
 // zabrané přezdívky uživatelů
 $o=dbQuery('SELECT login_uzivatele FROM uzivatele_hodnoty '.($u?'WHERE id_uzivatele!='.$u->id():''));
 $loginy='';
-while($r=mysql_fetch_row($o))
+while($r=mysqli_fetch_row($o))
   $loginy.='"'.strtolower($r[0]).'",';
 $loginy=substr($loginy,0,-1);
 

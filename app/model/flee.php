@@ -165,7 +165,7 @@ class Flee {
       try {
         $a = dbQuery('SELECT * FROM _vars WHERE name LIKE "'.$prefix.'%"');
         $this->dbSchema = new stdClass();
-        while(list($name, $value) = mysql_fetch_row($a)) {
+        while(list($name, $value) = mysqli_fetch_row($a)) {
           $name = str_replace($prefix, '', $name);
           $this->dbSchema->$name = $value;
           $loaded = true;
@@ -307,7 +307,8 @@ class Flee {
    */
   private function rollbackMigrations() {
     $todos = [];
-    $last = end((array_values($this->migrationFiles()))); // pass by reference hack
+    $mf = array_values($this->migrationFiles());
+    $last = end($mf);
     if($this->isModifiedRollback($last)) {
       $todos[] = $last;
     }

@@ -22,11 +22,11 @@ $o=dbQuery('
   JOIN akce_seznam a USING(id_akce)
   WHERE a.rok='.ROK.'
   GROUP BY p.id_uzivatele');
-if(mysql_num_rows($o)==0) 
+if(mysqli_num_rows($o)==0)
   exit('V tabulce nejsou žádná data.');
 
 $typu=8; //počet typů aktivit
-while($r=mysql_fetch_assoc($o))
+while($r=mysqli_fetch_assoc($o))
 {
   $pocet=$r['pocet'];
   $pocty=array_slice($r,2,8);

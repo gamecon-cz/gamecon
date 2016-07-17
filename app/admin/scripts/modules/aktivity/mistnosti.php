@@ -40,8 +40,8 @@ if(post('novaMistnost'))
 $tpl=new XTemplate('mistnosti.xtpl');
 
 $o=dbQuery('SELECT * FROM akce_lokace ORDER BY poradi');
-$l=mysql_num_rows($o);
-for($i=0;$r=mysql_fetch_assoc($o);$i++)
+$l=mysqli_num_rows($o);
+for($i=0;$r=mysqli_fetch_assoc($o);$i++)
 {
   $tpl->assign($r);
   if($i>0)

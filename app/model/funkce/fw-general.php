@@ -159,11 +159,11 @@ function tabHtml($tab)
 function tabMysql($a)
 {
   $tabOut="<table>\n";
-  if(!$r=mysql_fetch_assoc($a))
+  if(!$r=mysqli_fetch_assoc($a))
     return '';
   $tabOut.="  <tr>\n    <th>".implode("</th>\n    <th>",array_keys($r))."</th>\n  </tr>\n";
   $tabOut.="  <tr>\n    <td>".implode("</td>\n    <td>",$r)."</td>\n  </tr>\n";
-  while($r=mysql_fetch_row($a))
+  while($r=mysqli_fetch_row($a))
     $tabOut.="  <tr>\n    <td>".implode("</td>\n    <td>",$r)."</td>\n  </tr>\n";
   $tabOut.="</table>\n\n";
   return $tabOut;
@@ -174,10 +174,10 @@ function tabMysql($a)
  */ 
 function tabMysqlArray($a)
 {
-  $r=mysql_fetch_assoc($a);
+  $r=mysqli_fetch_assoc($a);
   $oa[]=array_keys($r);
   $oa[]=array_values($r);
-  while($r=mysql_fetch_row($a))
+  while($r=mysqli_fetch_row($a))
     $oa[]=$r;
   return $oa;
 }

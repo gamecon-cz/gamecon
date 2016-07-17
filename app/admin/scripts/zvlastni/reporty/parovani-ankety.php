@@ -15,7 +15,7 @@ if(post('znacky'))
   ');
   $i=0;
   $uzivatele=[];
-  while($r=mysql_fetch_assoc($o))
+  while($r=mysqli_fetch_assoc($o))
   {
     $un=new Uzivatel($r);
     $pohlavi=$r['pohlavi']=='f'?'žena':'muž';

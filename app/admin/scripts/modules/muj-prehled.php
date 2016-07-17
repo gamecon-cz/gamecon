@@ -18,7 +18,7 @@ if(empty($aktivity)) $t->parse('prehled.zadnaAktivita');
 foreach($aktivity as $a) {
   $ucastnici = $a->prihlaseni();
   $o = dbQueryS('SELECT id_uzivatele, MAX(cas) as cas FROM akce_prihlaseni_log WHERE id_akce = $1 GROUP BY id_uzivatele', [$a->id()]);
-  while($r = mysql_fetch_assoc($o)) {
+  while($r = mysqli_fetch_assoc($o)) {
     $casyPrihlaseni[$r['id_uzivatele']] = new DateTimeCz($r['cas']);
   }
   foreach($ucastnici as $ua) {

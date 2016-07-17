@@ -352,7 +352,7 @@ class Finance {
       WHERE rok = $rok
     ");
     $a = $this->u->koncA();
-    while($r = mysql_fetch_assoc($o)) {
+    while($r = mysqli_fetch_assoc($o)) {
       if($r['cena'] >= 0) {
         $this->cenaAktivity += $r['cena'];
         $this->deltaPozde += $r['cenaPozde'] - $r['cena'];
@@ -383,7 +383,7 @@ class Finance {
       FROM platby
       WHERE id_uzivatele = $uid AND rok = $rok
     ");
-    while($r = mysql_fetch_assoc($o)) {
+    while($r = mysqli_fetch_assoc($o)) {
       $this->platby += $r['cena'];
       $this->log($r['nazev'], $r['cena'], self::PLATBA);
     }
@@ -402,7 +402,7 @@ class Finance {
       WHERE n.id_uzivatele = $uid AND n.rok = $rok
     ");
     $soucty = [];
-    while($r = mysql_fetch_assoc($o)) {
+    while($r = mysqli_fetch_assoc($o)) {
       $cena = $this->cenik->shop($r);
       // započtení ceny
       if($r['typ'] == Shop::UBYTOVANI) {

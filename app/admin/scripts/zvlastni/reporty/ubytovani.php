@@ -18,7 +18,7 @@ $o = dbQuery('
 ');
 
 $vystup = [];
-while($r = mysql_fetch_assoc($o)) {
+while($r = mysqli_fetch_assoc($o)) {
   $u = Uzivatel::zId($r['id_uzivatele']);
   $r['pozice'] = $u->status();
   $vystup[] = $r;

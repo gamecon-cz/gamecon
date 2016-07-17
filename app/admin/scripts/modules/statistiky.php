@@ -117,7 +117,7 @@ $zacatek = new DateTime(ROK.'-05-02');
 $pocet = 0;
 do {
   $pocet += @$r['prihlasen']; // první prázdný ignorovat, další brát "o kolo zpět"
-  $r = mysql_fetch_assoc($o);
+  $r = mysqli_fetch_assoc($o);
   $den = new DateTimeCz($r['den']);
 } while( $den->pred($zacatek) && $r['den'] ); // kontrola dne proti zacyklení
 // dny před GC
@@ -145,7 +145,7 @@ for(
   {
     $pocet+=$r['prihlasen'];
     $prihlaseni.=$pocet.',';
-    $r=mysql_fetch_assoc($o);
+    $r=mysqli_fetch_assoc($o);
   }
   else
   {

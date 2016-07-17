@@ -95,7 +95,7 @@ class Shop
     $this->jidlo['dny'] = [];
     $this->jidlo['druhy'] = [];
 
-    while($r = mysql_fetch_assoc($o)) {
+    while($r = mysqli_fetch_assoc($o)) {
       $typ = $r['typ'];
       unset($fronta); // $fronta reference na frontu kam vložit předmět (nelze dát =null, přepsalo by předchozí vrch fronty)
       if($r['nabizet_do'] && strtotime($r['nabizet_do']) < time()) $r['stav'] = 3;
@@ -325,7 +325,7 @@ class Shop
       // pole s předměty, které už má objednané dříve (bez ubytování)
       $stare=[];
       $o=dbQuery('SELECT id_predmetu FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE id_uzivatele='.$this->u->id().' AND rok='.ROK.' AND typ IN('.self::PREDMET.','.self::TRICKO.') ORDER BY id_predmetu');
-      while($r=mysql_fetch_assoc($o))
+      while($r=mysqli_fetch_assoc($o))
         $stare[]=(int)$r['id_predmetu'];
       // určení rozdílů polí (note: array_diff ignoruje vícenásobné výskyty hodnot a nedá se použít)
       $i=$j=0;

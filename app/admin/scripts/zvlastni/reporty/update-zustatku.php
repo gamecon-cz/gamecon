@@ -17,7 +17,7 @@ $o=dbQuery('
   WHERE z.id_zidle='.Z_PRIHLASEN);
 $i=0;
 $dotazy='';
-while($r=mysql_fetch_assoc($o))
+while($r=mysqli_fetch_assoc($o))
 {
   $un=new Uzivatel($r);
   $un->nactiPrava(); //sql subdotaz, zlo

@@ -265,9 +265,9 @@ function maVolno($uid,$poleCas,$vyjimka=null)
     WHERE NOT (zacatek>=$2 OR konec<=$1) -- zacne az pak nebo skonci pred'."\n".
     ($vyjimka?'AND id_akce!=$3':''),
     [$uid, $poleCas['zacatek'], $poleCas['konec'], $vyjimka]);
-  if(mysql_num_rows($a))
+  if(mysqli_num_rows($a))
   {
-    while($r=mysql_fetch_assoc($a))
+    while($r=mysqli_fetch_assoc($a))
       $GLOBALS['maVolnoKolizePole'][]=$r;
     return false;
   }
@@ -446,7 +446,7 @@ function ma_pravo($uzivatel,$cislo_prava)
         uzivatele_zidle.id_zidle = prava_zidle.id_zidle and
         prava_zidle.id_prava = $cislo_prava";
         
-      if(mysql_num_rows(dbQuery($sql))>0)
+      if(mysqli_num_rows(dbQuery($sql))>0)
         return true;
       else
         return false;

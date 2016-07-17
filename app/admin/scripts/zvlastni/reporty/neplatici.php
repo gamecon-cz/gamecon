@@ -8,7 +8,7 @@ $o=dbQuery('
   JOIN uzivatele_hodnoty u USING(id_uzivatele)
   WHERE id_zidle='.Z_PRIHLASEN);
   
-$r=mysql_fetch_assoc($o);
+$r=mysqli_fetch_assoc($o);
 if(!$r) exit('V tabulce nejsou žádná data.');
 
 header('Content-type: application/csv; charset=utf-8');
@@ -38,7 +38,7 @@ do
     JOIN akce_seznam a USING(id_akce)
     WHERE id_uzivatele='.$un->id().' AND rok='.ROK.'
     GROUP BY typ');
-  while($typ=mysql_fetch_assoc($subs))
+  while($typ=mysqli_fetch_assoc($subs))
   {
     switch($typ['typ'])
     {
@@ -61,7 +61,7 @@ do
       $un->finance()->cenaAktivity(),
       $drd,$rpg,$larp,$deskovky,$bonusy,
       $stav];
-}while($r=mysql_fetch_assoc($o));
+}while($r=mysqli_fetch_assoc($o));
 
 //ksort($seznam);
 

@@ -29,16 +29,16 @@ if (!empty($_POST["jak_najit"])){
     $sql="select id_uzivatele,email1_uzivatele,login_uzivatele,pohlavi from uzivatele_hodnoty where email1_uzivatele like '$_POST[mail]'";
   }
   $result=dbQuery($sql);
-  if (mysql_num_rows($result) <> 1){
+  if (mysqli_num_rows($result) <> 1){
     $chyba_zobraz .= "Chyba: Zadané uživatelské jméno nebo email neexistují.<br />";
   }
   else {
   
-    $uzivatel=new Uzivatel(mysql_fetch_assoc($result));
-    $id_uzivatele=mysql_result($result,0,0);
-    $email_uzivatele=mysql_result($result,0,1);
-    $login_uzivatele=mysql_result($result,0,2);
-    $pohlavi=mysql_result($result,0,3);
+    $uzivatel=new Uzivatel(mysqli_fetch_assoc($result));
+    $id_uzivatele=$uzivatel['id_uzivatele'];
+    $email_uzivatele=$uzivatel['email1_uzivatele'];
+    $login_uzivatele=$uzivatel['login_uzivatele'];
+    $pohlavi=$uzivatel['pohlavi'];
     $nove_heslo=nahodne_hex_cislo(10);
     $heslo_zasifrovane=md5($nove_heslo);
     $sql="update uzivatele_hodnoty set heslo_md5='$heslo_zasifrovane' where id_uzivatele=$id_uzivatele";

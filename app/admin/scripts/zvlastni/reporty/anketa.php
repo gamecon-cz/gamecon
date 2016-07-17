@@ -17,7 +17,7 @@ $o=dbQuery('
 
 $otazkyId=[];
 $otazky=[];
-while($r=mysql_fetch_assoc($o))
+while($r=mysqli_fetch_assoc($o))
 {
   $otazkyId[]=$r['id_otazky'];
   $otazky[]=$r['text'];
@@ -61,7 +61,7 @@ $o=dbQuery('
   WHERE h.id_ankety='.$id.'
   ORDER BY h.id_uzivatele, h.id_otazky');
 
-$r=mysql_fetch_assoc($o);
+$r=mysqli_fetch_assoc($o);
 $uzivatel=0;
 while(1)
 {
@@ -88,7 +88,7 @@ while(1)
         //PŮVODNĚ: přidáváme sloupce, dokud je to stejná otázka a stejný uživatel (to je pokud se použije místo if while, není komplet implementováno)
         //NYNÍ: potenciálně buggy. Mělo by to fungovat tak, že do $otazkyId se dají multiodpovědi víckrát.
         $odpovedi[]= $r['odpoved']=='#Y#'?$r['text']:$r['odpoved'];
-        $r=mysql_fetch_assoc($o);
+        $r=mysqli_fetch_assoc($o);
         //TODO: rozbije se to, pokud člověk vyplní víc než limit u checkboxů (pořešit situaci $idOtazky>$r['id_otazky'] asi) 
       }
     }
