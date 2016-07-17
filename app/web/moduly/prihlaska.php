@@ -35,16 +35,15 @@ if(!empty($_POST)) {
     $_SESSION['ga_tracking_prihlaska'] = true; //hack pro zobrazení js kódu úspěšné google analytics konverze
     oznameni(hlaska('prihlaseniNaGc',$u));
   } else {
-    oznameni(hlaska('aktualizacePrihlasky')); 
+    oznameni(hlaska('aktualizacePrihlasky'));
   }
 }
 
 // hack pro zobrazení js kódu úspěšné google analytics konverze
+$gaTrack = '';
 if(isset($_SESSION['ga_tracking_prihlaska'])) {
-  $gaTrack = "<script>_gaq.push(['_trackEvent', 'gamecon', 'prihlaseni']);</script>";
+  //$gaTrack = "<script>_gaq.push(['_trackEvent', 'gamecon', 'prihlaseni']);</script>"; // GA tracking není funkční
   unset($_SESSION['ga_tracking_prihlaska']);
-} else {
-  $gaTrack = '';
 }
 
 $t->assign([
