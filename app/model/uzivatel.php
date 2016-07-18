@@ -529,7 +529,7 @@ class Uzivatel
       throw new Exception('špatný formát $tab (je to pole?)');
     $tab['random']=$rand=randHex(20);
     dbInsert('uzivatele_hodnoty',array_merge($tab,['registrovan'=>date("Y-m-d H:i:s")]));
-    $uid=dbLastId();
+    $uid=dbInsertId();
     return $uid;
   }
 
@@ -557,7 +557,7 @@ class Uzivatel
       if($e->key() == 'login_uzivatele')   throw new DuplicitniLoginException;
       throw $e;
     }
-    $uid = dbLastId();
+    $uid = dbInsertId();
     //poslání mailu
     if($opt['informovat']) {
       $tab['id_uzivatele'] = $uid;
@@ -778,7 +778,7 @@ class Uzivatel
       $pole['nechce_maily'] = null;
       $pole['mrtvy_mail'] = 1;
       dbInsert('uzivatele_hodnoty', $pole);
-      return self::zId(dbLastId());
+      return self::zId(dbInsertId());
     } else {
       throw new Exception('nepodporováno');
     }
