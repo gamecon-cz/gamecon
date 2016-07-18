@@ -34,11 +34,12 @@ if (!empty($_POST["jak_najit"])){
   }
   else {
   
-    $uzivatel=new Uzivatel(mysqli_fetch_assoc($result));
-    $id_uzivatele=$uzivatel['id_uzivatele'];
-    $email_uzivatele=$uzivatel['email1_uzivatele'];
-    $login_uzivatele=$uzivatel['login_uzivatele'];
-    $pohlavi=$uzivatel['pohlavi'];
+    $uzivatelPole = mysqli_fetch_assoc($result);
+    $uzivatel = new Uzivatel($uzivatelPole);
+    $id_uzivatele=$uzivatelPole['id_uzivatele'];
+    $email_uzivatele=$uzivatelPole['email1_uzivatele'];
+    $login_uzivatele=$uzivatelPole['login_uzivatele'];
+    $pohlavi=$uzivatelPole['pohlavi'];
     $nove_heslo=nahodne_hex_cislo(10);
     $heslo_zasifrovane=md5($nove_heslo);
     $sql="update uzivatele_hodnoty set heslo_md5='$heslo_zasifrovane' where id_uzivatele=$id_uzivatele";
