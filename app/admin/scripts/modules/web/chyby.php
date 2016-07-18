@@ -1,6 +1,6 @@
 <?php
 
-/** 
+/**
  * nazev: Chyby
  * pravo: 105
  */
@@ -18,7 +18,8 @@ $o = $db->query('
     COUNT(1) as vyskytu,
     COUNT(DISTINCT uzivatel) as uzivatelu,
     MAX(vznikla) as posledni,
-    GROUP_CONCAT(rowid) as ids
+    GROUP_CONCAT(rowid) as ids,
+    GROUP_CONCAT(uzivatel, "<br>") as uzivatele
   FROM chyby
   GROUP BY zprava, soubor, radek, url
   ORDER BY posledni DESC

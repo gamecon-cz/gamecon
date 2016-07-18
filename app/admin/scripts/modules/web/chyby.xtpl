@@ -32,7 +32,7 @@
     <div class="bubliny">
       <span>{soubor}: {radek}</span>
       <div>{jazyk}</div>
-      <div>{uzivatelu}</div>
+      <div class="hinted">{uzivatelu}<div class="hint">{uzivatele}</div></div>
       <div>{posledni}</div>
     </div>
   </div>
