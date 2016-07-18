@@ -113,7 +113,7 @@ class DbForm {
         dbUpdate($this->table(), $r, [$pkey->name() => $pkey->value()]);
       } else {
         dbInsert($this->table(), $r);
-        $newId = mysqli_insert_id();
+        $newId = dbInsertId();
       }
       // final cleanup
       foreach($this->fields() as $f) $f->postInsert();

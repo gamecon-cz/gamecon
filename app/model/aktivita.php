@@ -332,7 +332,7 @@ class Aktivita
       empty($a['nazev_akce'])?$a['nazev_akce']='(neurčený název)':0;
       // vložení, nahrání obrzáku
       dbInsertUpdate('akce_seznam',$a);
-      $a['id_akce']=mysqli_insert_id();
+      $a['id_akce'] = dbInsertId();
       $aktivita = self::zId($a['id_akce']);
       $aktivita->nova=true;
     }

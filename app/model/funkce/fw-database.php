@@ -140,6 +140,16 @@ function dbInsert($table, $valArray) {
 }
 
 /**
+ * Return last AUTO INCREMENT value
+ */
+function dbInsertId() {
+  $id = mysqli_insert_id($GLOBALS['spojeni']);
+  if(!is_int($id) || $id == 0)
+    throw new DbException('no last id');
+  return $id;
+}
+
+/**
  * Insert with actualisation
  * @see dbInsert
  */
@@ -156,7 +166,7 @@ function dbInsertUpdate($table, $valArray) {
       $vals .= $key.'='.dbQv($val).', ';
   }
   $vals=substr($vals,0,-2); //odstranění čárky na konci
-  $q=$update.$vals.$dupl.$vals; 
+  $q=$update.$vals.$dupl.$vals;
   $dbLastQ=$q;
   $start=microtime(true);
   $r=mysqli_query($GLOBALS['spojeni'], $q);
@@ -171,13 +181,6 @@ function dbInsertUpdate($table, $valArray) {
 function dbIterator($q, $p = null) {
   $o = dbQuery($q, $p);
   while($r = mysqli_fetch_assoc($o)) yield $r;
-}
-
-/**
- * Return last AUTO INCREMENT value
- */
-function dbLastId() {
-  return mysqli_insert_id($GLOBALS['spojeni']);
 }
 
 /**
