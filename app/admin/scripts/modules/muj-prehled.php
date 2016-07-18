@@ -1,8 +1,8 @@
 <?php
 
-/** 
+/**
  * Úvodní karta organizátora s přehledem jeho aktivit
- * 
+ *
  * nazev: Moje aktivity
  * pravo: 109
  */
@@ -26,7 +26,7 @@ foreach($aktivity as $a) {
       'jmeno' => $ua->jmenoNick(),
       'mail' => $ua->mail(),
       'telefon' => $ua->telefon(),
-      'casPrihlaseni' => $casyPrihlaseni[$ua->id()]->format('j.n. H:i'),
+      'casPrihlaseni' => isset($casyPrihlaseni[$ua->id()]) ? $casyPrihlaseni[$ua->id()]->format('j.n. H:i') : '<i>???</i>',
     ]);
     $t->parse('prehled.aktivita.ucast.ucastnik');
   }
