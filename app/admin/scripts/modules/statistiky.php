@@ -216,6 +216,9 @@ $prihlaseni='['.substr($prihlaseni,0,-1).']';
           name: 'Přihlášení 2015',
           data: [2,60,123,141,148,163,178,192,230,254,266,269,281,284,290,294,299,304,308,310,312,318,321,325,329,332,335,338,340,352,353,359,361,362,368,376,381,382,385,385,386,386,386,388,388,389,399,404,408,410,421,422,430,434,436,437,442,447,448,448,454,455,470,476,483,486,490,493,494,495,495,501,503,509,514,516,521,531,541,545,559,568,590,595],
         },{
+          name: 'Přihlášení 2016',
+          data: [0,87,156,176,191,203,215,226,291,322,336,340,343,351,352,357,367,371,375,379,387,397,405,407,407,410,412,420,426,441,447,447,447,448,452,455,466,474,479,482,482,484,488,491,497,500,503,505,507,509,511,514,520,520,522,526,531,536,537,538,540,542,543,544,545,552,559,560,566,568,572,577,586,590,592,597,602,613,631,646,652,674,687],
+        },{
           name: 'Přihlášení',
           data: <?=$prihlaseni?>,
         }
@@ -266,15 +269,15 @@ $prihlaseni='['.substr($prihlaseni,0,-1).']';
 <div class="dlouhodobeStaty">
 
 <table>
-  <tr><th></th>                       <th>2009</th>   <th>2010</th>   <th>2011</th>   <th>2012</th>   <th>2013</th>   <th>2014</th>   <th>2015</th>   <th>2016</th></tr>
-  <tr><td>Registrovaní</td>           <td>339</td>    <td>377</td>    <td>383</td>    <td>357</td>    <td>433</td>    <td>520</td>    <td>595</td>    <td>?</td></tr>
-  <tr><td>Dorazilo</td>               <td>68?</td>    <td>350</td>    <td>339</td>    <td>319</td>    <td>389</td>    <td>470</td>    <td>536</td>    <td>?</td></tr>
-  <tr><td>&emsp;z toho studenti</td>  <td></td>       <td></td>       <td></td>       <td></td>       <td>149</td>    <td>172</td>    <td>148</td>    <td>?</td></tr>
-  <tr><td>&emsp;z toho ostatní</td>   <td></td>       <td></td>       <td></td>       <td></td>       <td>152</td>    <td> </td>      <td>388</td>    <td>?</td></tr>
-  <tr><td>Podpůrný tým</td>           <td>43</td>     <td>45</td>     <td>71</td>     <td>74</td>     <td>88</td>     <td>109</td>    <td>111</td>    <td>?</td></tr>
-  <tr><td>&emsp;organizátoři</td>     <td>6</td>      <td>8</td>      <td>13</td>     <td>17</td>     <td>17</td>     <td>22</td>     <td>24</td>     <td>?</td></tr>
-  <tr><td>&emsp;zázemí</td>           <td>7</td>      <td>7</td>      <td>6</td>      <td>10</td>     <td>8</td>      <td>1</td>      <td>3</td>      <td>?</td></tr>
-  <tr><td>&emsp;vypravěči</td>        <td>30</td>     <td>30</td>     <td>52</td>     <td>47</td>     <td>63</td>     <td>86</td>     <td>95</td>     <td>?</td></tr>
+  <tr><th></th>                       <th>2009</th>   <th>2010</th>   <th>2011</th>   <th>2012</th>   <th>2013</th>   <th>2014</th>   <th>2015</th>   <th>2016</th>   <th>2016</th>   </tr>
+  <tr><td>Registrovaní</td>           <td>339</td>    <td>377</td>    <td>383</td>    <td>357</td>    <td>433</td>    <td>520</td>    <td>595</td>    <td>689</td>    <td>?</td>      </tr>
+  <tr><td>Dorazilo</td>               <td>68?</td>    <td>350</td>    <td>339</td>    <td>319</td>    <td>389</td>    <td>470</td>    <td>536</td>    <td>605</td>    <td>?</td>      </tr>
+  <tr><td>&emsp;z toho studenti</td>  <td></td>       <td></td>       <td></td>       <td></td>       <td>149</td>    <td>172</td>    <td>148</td>    <td>175</td>    <td>?</td>      </tr>
+  <tr><td>&emsp;z toho ostatní</td>   <td></td>       <td></td>       <td></td>       <td></td>       <td>152</td>    <td> </td>      <td>388</td>    <td>430</td>    <td>?</td>      </tr>
+  <tr><td>Podpůrný tým</td>           <td>43</td>     <td>45</td>     <td>71</td>     <td>74</td>     <td>88</td>     <td>109</td>    <td>111</td>    <td>133</td>    <td>?</td>      </tr>
+  <tr><td>&emsp;organizátoři</td>     <td>6</td>      <td>8</td>      <td>13</td>     <td>17</td>     <td>17</td>     <td>22</td>     <td>24</td>     <td>28</td>     <td>?</td>      </tr>
+  <tr><td>&emsp;zázemí</td>           <td>7</td>      <td>7</td>      <td>6</td>      <td>10</td>     <td>8</td>      <td>1</td>      <td>3</td>      <td>1</td>      <td>?</td>      </tr>
+  <tr><td>&emsp;vypravěči</td>        <td>30</td>     <td>30</td>     <td>52</td>     <td>47</td>     <td>63</td>     <td>86</td>     <td>95</td>     <td>122</td>    <td>?</td>      </tr>
 </table>
 <a href="#" onclick="return!$(this).next().toggle()">dotaz</a>
 <pre style="display:none">
@@ -304,19 +307,19 @@ $prihlaseni='['.substr($prihlaseni,0,-1).']';
 '))?><br>
   
 <table>
-  <tr><th></th>                       <th>2009</th>   <th>2010</th>   <th>2011</th>   <th>2012</th>   <th>2013</th>   <th>2014</th>   <th>2015</th>   <th>2016</th></tr>
-  <tr><td>Prodané placky</td>         <td>43</td>     <td>45</td>     <td>206</td>    <td>224</td>    <td>207</td>    <td>266</td>    <td>266</td>    <td>?</td></tr>
-  <tr><td>&emsp;před začátkem</td>    <td></td>       <td></td>       <td>135</td>    <td>150</td>    <td>110</td>    <td> </td>      <td> </td>      <td>?</td></tr>
-  <tr><td>&emsp;na místě</td>         <td></td>       <td></td>       <td></td>       <td></td>       <td>9</td>      <td> </td>      <td> </td>      <td>?</td></tr>
-  <tr><td>&emsp;zdarma</td>           <td>43</td>     <td>45</td>     <td>71</td>     <td>74</td>     <td>88</td>     <td> </td>      <td> </td>      <td>?</td></tr>
-  <tr><td>Prodané kostky</td>         <td>43</td>     <td>45</td>     <td>247</td>    <td>154</td>    <td>192</td>    <td>382</td>    <td>327</td>    <td>?</td></tr>
-  <tr><td>&emsp;před začátkem</td>    <td></td>       <td></td>       <td>176</td>    <td>80</td>     <td>104</td>    <td> </td>      <td> </td>      <td>?</td></tr>
-  <tr><td>&emsp;na místě</td>         <td></td>       <td></td>       <td></td>       <td></td>       <td></td>       <td> </td>      <td> </td>      <td>?</td></tr>
-  <tr><td>&emsp;zdarma</td>           <td>43</td>     <td>45</td>     <td>71</td>     <td>74</td>     <td>88</td>     <td> </td>      <td> </td>      <td>?</td></tr>
-  <tr><td>Prodaná trička</td>         <td>6</td>      <td>8</td>      <td>104</td>    <td>121</td>    <td>139</td>    <td>179</td>    <td>176</td>    <td>?</td></tr>
-  <tr><td>&emsp;zdarma</td>           <td>6</td>      <td>8</td>      <td>13</td>     <td>17</td>     <td>19</td>     <td> </td>      <td> </td>      <td>?</td></tr>
-  <tr><td>&emsp;za 50%</td>           <td></td>       <td></td>       <td>34</td>     <td>40</td>     <td>35</td>     <td> </td>      <td> </td>      <td>?</td></tr>
-  <tr><td>&emsp;plná cena</td>        <td></td>       <td></td>       <td>57</td>     <td>64</td>     <td>85</td>     <td> </td>      <td> </td>      <td>?</td></tr>
+  <tr><th></th>                       <th>2009</th>   <th>2010</th>   <th>2011</th>   <th>2012</th>   <th>2013</th>   <th>2014</th>   <th>2015</th>   <th>2016</th>   <th>2017</th> </tr>
+  <tr><td>Prodané placky</td>         <td>43</td>     <td>45</td>     <td>206</td>    <td>224</td>    <td>207</td>    <td>266</td>    <td>266</td>    <td>277</td>    <td>?</td>    </tr>
+  <!-- <tr><td>&emsp;před začátkem</td>    <td></td>       <td></td>       <td>135</td>    <td>150</td>    <td>110</td>    <td> </td>      <td> </td>      <td></td>       <td>?</td>    </tr> -->
+  <!-- <tr><td>&emsp;na místě</td>         <td></td>       <td></td>       <td></td>       <td></td>       <td>9</td>      <td> </td>      <td> </td>      <td></td>       <td>?</td>    </tr> -->
+  <!-- <tr><td>&emsp;zdarma</td>           <td>43</td>     <td>45</td>     <td>71</td>     <td>74</td>     <td>88</td>     <td> </td>      <td> </td>      <td></td>       <td>?</td>    </tr> -->
+  <tr><td>Prodané kostky</td>         <td>43</td>     <td>45</td>     <td>247</td>    <td>154</td>    <td>192</td>    <td>382</td>    <td>327</td>    <td>425</td>    <td>?</td>    </tr>
+  <!-- <tr><td>&emsp;před začátkem</td>    <td></td>       <td></td>       <td>176</td>    <td>80</td>     <td>104</td>    <td> </td>      <td> </td>      <td></td>       <td>?</td>    </tr> -->
+  <!-- <tr><td>&emsp;na místě</td>         <td></td>       <td></td>       <td></td>       <td></td>       <td></td>       <td> </td>      <td> </td>      <td></td>       <td>?</td>    </tr> -->
+  <!-- <tr><td>&emsp;zdarma</td>           <td>43</td>     <td>45</td>     <td>71</td>     <td>74</td>     <td>88</td>     <td> </td>      <td> </td>      <td></td>       <td>?</td>    </tr> -->
+  <tr><td>Prodaná trička</td>         <td>6</td>      <td>8</td>      <td>104</td>    <td>121</td>    <td>139</td>    <td>179</td>    <td>176</td>    <td>200</td>    <td>?</td>    </tr>
+  <!-- <tr><td>&emsp;zdarma</td>           <td>6</td>      <td>8</td>      <td>13</td>     <td>17</td>     <td>19</td>     <td> </td>      <td> </td>      <td></td>       <td>?</td>    </tr> -->
+  <!-- <tr><td>&emsp;za 50%</td>           <td></td>       <td></td>       <td>34</td>     <td>40</td>     <td>35</td>     <td> </td>      <td> </td>      <td></td>       <td>?</td>    </tr> -->
+  <!-- <tr><td>&emsp;plná cena</td>        <td></td>       <td></td>       <td>57</td>     <td>64</td>     <td>85</td>     <td> </td>      <td> </td>      <td></td>       <td>?</td>    </tr> -->
 </table>
 <a href="#" onclick="return!$(this).next().toggle()">dotaz</a>
 <pre style="display:none">
