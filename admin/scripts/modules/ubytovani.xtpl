@@ -1,0 +1,116 @@
+<!-- begin:ubytovani -->
+<h1>Ubytování</h1>
+
+<!-- TODO upo na výběr uživatele -->
+
+
+<div class="aBox">
+  <h3>Ubytování uživatele</h3>
+  <!-- begin:ubytovani -->
+  Standardně povolujeme pouze změnu ubytování ze spacáku na postel nebo jiný „upgrade“ (v opačném případě by postel zůstala volná a reálně by ji tak platil GameCon). Odhlášení z ubytování umožňujeme nejpozději den předem, pokud člověk např. nečekaně musí odjet. Odhlášení neděle povolujeme (člověk se často splete).<br><br>
+  <form method="post">
+    {shop.ubytovaniHtml}<br>
+    <input type="submit" name="zpracujUbytovani" value="Uložit">
+  </form>
+  <!-- end:ubytovani -->
+  {status}
+</div>
+
+
+<div class="aBox">
+  <h3>Jídlo uživatele</h3>
+  <!-- begin:jidlo -->
+  Zrušit jídlo je možné jenom oproti vrácené stravence. Při objednání jídla je naopak potřeba předat stravenku (a zkontrolovat stav financí). Snídaně nabízíme jen organizátorům a vypravěčům.<br><br>
+  <form method="post">
+    {shop.jidloHtml}
+    <input type="submit" name="zpracujJidlo" value="Uložit">
+  </form>
+  <!-- end:jidlo -->
+  {status}
+</div>
+
+
+<div class="aBox">
+  <h3>Nastavení pokojů</h3>
+
+  <div style="float:left">
+    Přidělit pokoj (přepíše stávající stav)<br>
+    <form method="post">
+      <table>
+        <tr>
+          <td>ID uživatele:</td>
+          <td><input type="integer" value="{uid}" name="uid"></td>
+        </tr>
+        <tr>
+          <td>Pokoj:</td>
+          <td><input type="integer" name="pokoj"></td>
+        </tr>
+      </table>
+      <input type="submit" name="pridelitPokoj" value="Přidělit">
+    </form>
+  </div>
+
+  <div style="float:left; margin-left:10px">
+    Vypsat lidi na pokoji číslo<br>
+    <form method="get">
+      <table>
+        <tr>
+          <td>Číslo pokoje:</td>
+          <td><input type="integer" value="{pokoj}" name="pokoj"></td>
+        </tr>
+        <tr>
+          <td>Ubytovaní:</td>
+          <td>{ubytovani}</td>
+        </tr>
+      </table>
+      <input type="submit" value="Vypsat">
+    </form>
+  </div>
+
+  <div style="clear: both"></div>
+</div>
+
+<div class="aBox">
+  <h3>Prohození aktivit</h3>
+  Prohodí vybrané aktivity mezi uživateli (pouze pro běžné aktivity). Pokud jsou aktivity vybrány špatně, tj. jednomu uživateli se nová aktivita překrývá s něčím jiným, přihlášen na ni nebude (ovšem bude odhlášen z původní aby uvolnil místo druhému).<br><br>
+  <form method="post">
+    <table>
+      <tr>
+        <td>ID uživatelů:</td>
+        <td><input type="text" class="omnibox" name="u1" value="{u1}"></td>
+        <td><input type="text" class="omnibox" name="u2" value="{u2}"></td>
+      </tr>
+      <tr>
+        <td>Aktivity k výměně:</td>
+        <td>
+          <select name="a1">
+            <!-- begin:au1 --><option value="{a.id}">{a.nazev} {a.denCas}</option><!-- end:au1 -->
+          </select>
+        </td>
+        <td>
+          <select name="a2">
+            <!-- begin:au2 --><option value="{a.id}">{a.nazev} {a.denCas}</option><!-- end:au2 -->
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="3">
+          <input type="submit" name="prohozeniNacist" value="Načíst jejich aktivity">
+          <input type="submit" name="prohozeniProvest" value="Prohodit">
+        </td>
+      </tr>
+    </table>
+  </form>
+</div>
+
+<div class="aBox">
+  <h3>Importér ubytování</h3>
+  Přepíše kompletně letošní údaje o ubytování. Jako soubor slouží ubytovací report ve formátu CSV. (Pozor, excel při zmáčknutí ctrl+s soubor zmrší a při opětovném otevření už ho sám nepřečte. Místo toho je potřeba ručně dát „uložit jako“ a z nabídky typů vybrat „CSV oddělený středníkem“)
+  <br><br>
+  <form method="post" enctype="multipart/form-data">
+    <input type="file" name="pokojeSoubor"><br><br>
+    <input type="submit" name="pokojeImport" value="Nahrát">
+  </form>
+</div>
+
+<!-- end:ubytovani -->

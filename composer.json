@@ -1,0 +1,18 @@
+{
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/godric-cz/xtemplate"
+    }
+  ],
+  "require": {
+    "michelf/php-markdown": "~1.4",
+    "oyejorge/less.php": "~1.7",
+    "dg/mysql-dump": "dev-master",
+    "tracy/tracy": "~2.4",
+    "godric/xtemplate": "dev-master"
+  },
+  "require-dev": {
+    "dg/ftp-deployment": "~2.7"
+  }
+}

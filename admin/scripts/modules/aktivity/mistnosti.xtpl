@@ -1,0 +1,80 @@
+<!-- begin:mistnosti -->
+
+<style>
+.skryteRadky tr:nth-child(4n) { background-color: #f0f0f0; }  
+.skryteRadky tr:nth-child(4n+1) { background-color: #f0f0f0; }
+.skryteRadky tr:nth-child(4n+2) { background-color: #ffffff; }
+.skryteRadky tr:nth-child(4n+3) { background-color: #ffffff; }
+.skryteRadky input[type="text"] { padding: 0; margin: -2px; font: inherit; }
+td.redukovany { padding-left: 0; } /* sloupce s inputem tak, aby inputy přimykaly k sobě */
+#mistnostiTabulka th { min-width: 140px; }
+#mistnostiTabulka th[colspan] { min-width: 0; }
+</style>
+
+<table class="skryteRadky zvyraznovana" id="mistnostiTabulka">
+  <tr>
+    <th colspan="2">Pořadí</th>
+    <th>Název</th>
+    <th>Interní název</th>
+    <th>Dveře</th>
+    <th>Poznámka</th>
+    <th colspan="1">Úpr.</th>
+  </tr>
+  <!-- begin:mistnost -->
+  <tr id="lokace{id_lokace}">
+    <td>
+      <!-- begin:nahoru --><form method="post">
+        <input type="hidden" name="nahoru" value="{id_lokace}" />
+        <input type="hidden" name="poradi" value="{poradi}" />
+        <input type="submit" value="▲" />
+      </form><!-- end:nahoru -->
+    </td>
+    <td class="redukovany">
+      <!-- begin:dolu --><form method="post">
+        <input type="hidden" name="dolu" value="{id_lokace}" />
+        <input type="hidden" name="poradi" value="{poradi}" />
+        <input type="submit" value="▼" />
+      </form><!-- end:dolu -->
+    </td>
+    <td>{nazev}</td>
+    <td>{nazev_interni}</td>
+    <td>{dvere}</td>
+    <td>{poznamka}</td>
+    <td>
+      <form method="post">
+        <input type="submit" value="uprav" onclick="
+          $('#edit{id_lokace}').show();
+          $('#lokace{id_lokace}').hide();
+          return false;
+        " />
+      </form>
+    </td>
+  </tr>
+  <tr style="display:none" id="edit{id_lokace}">
+    <td colspan="2"></td>
+    <form method="post">
+    <td><input type="text" name="fields[nazev]" value="{nazev}" /></td>
+    <td><input type="text" name="fields[nazev_interni]" value="{nazev_interni}" /></td>
+    <td><input type="text" name="fields[dvere]" value="{dvere}" /></td>
+    <td><input type="text" name="fields[poznamka]" value="{poznamka}" /></td>
+    <td colspan="1">
+      <input type="hidden" name="fields[id_lokace]" value="{id_lokace}" />
+      <input type="submit" name="upravit" value="ulož" class="tlacitko" onclick="" />
+      <input type="submit" value="zruš" class="tlacitko" onclick="
+        $('#edit{id_lokace}').hide();
+        $('#lokace{id_lokace}').show();
+        return false;
+      " />
+    </td>
+    </form>
+  </tr>
+  <!-- end:mistnost -->
+</table>
+
+<br />
+<br />
+<form method="post">
+  <input type="submit" name="novaMistnost" value="vytvořit další místnost" />
+</form>
+
+<!-- end:mistnosti -->

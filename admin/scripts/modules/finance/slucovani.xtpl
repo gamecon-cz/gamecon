@@ -1,0 +1,87 @@
+<!-- begin:slucovani -->
+
+<p>
+Výsledné ID by se vždy mělo zvolit nižší. Přihláška na GC se uživateli zachová, i když bude mít přihlášku původně s vyšším ID. Pokud je uživatel vybrán pro práci, je potřeba ho zrušit a vybrat znova. Případné dluhy / zůstatky se sečtou. Pokud se vyskytne chyba, hlásit.
+</p>
+
+<p>
+Vhodné vycházet z <a href="reporty/duplicity">reportu</a> s potenciálně duplicitními uživateli.
+</p>
+
+<form method="post">
+
+  <table>
+    <tr>
+      <th></th>
+      <th>První</th>
+      <th>Druhý</th>
+    </tr>
+    <tr>
+      <td>ID</td>
+      <td><input type="text" name="u1" value="{uaid}"></td>
+      <td><input type="text" name="u2" value="{ubid}"></td>
+    </tr>
+    <!-- begin:detaily -->
+    <tr>
+      <td>Přihlášen</td>
+      <!-- begin:aPrihlasen -->
+      <td style="background-color: #8d8">ano</td>
+      <!-- end:aPrihlasen -->
+      <!-- begin:aNeprihlasen -->
+      <td style="background-color: #faa">ne</td>
+      <!-- end:aNeprihlasen -->
+      <!-- begin:bPrihlasen -->
+      <td style="background-color: #8d8">ano</td>
+      <!-- end:bPrihlasen -->
+      <!-- begin:bNeprihlasen -->
+      <td style="background-color: #faa">ne</td>
+      <!-- end:bNeprihlasen -->
+    </tr>
+    <tr>
+      <td>Login</td>
+      <td><input type="radio" name="login" value="{uaid}" checked>{ua.jmenoNick}</td>
+      <td><input type="radio" name="login" value="{ubid}">{ub.jmenoNick}</td>
+    </tr>
+    <tr>
+      <td>Heslo</td>
+      <td><input type="radio" name="heslo" value="{uaid}" checked>od id {ua.id}</td>
+      <td><input type="radio" name="heslo" value="{ubid}">od id {ub.id}</td>
+    </tr>
+    <tr>
+      <td>Mail</td>
+      <td><input type="radio" name="mail" value="{uaid}" checked>{ua.mail} {amrtvy}</td>
+      <td><input type="radio" name="mail" value="{ubid}">{ub.mail} {bmrtvy}</td>
+    </tr>
+    <tr>
+      <td>Nové ID</td>
+      <td><input type="radio" name="id" value="{uaid}" checked>{ua.id}</td>
+      <td><input type="radio" name="id" value="{ubid}">{ub.id}</td>
+    </tr>
+    <tr>
+      <td>Zůstatek</td>
+      <td>{ua.zustatek}</td>
+      <td>{ub.zustatek}</td>
+    </tr>
+    <!-- TODO později
+    <tr>
+      <td>Upo mailem</td>
+      <td colspan="2"><input type="checkbox" name="upo"></td>
+    </tr>
+    -->
+    <tr>
+      <td colspan="3" style="text-align: center">
+        <input type="submit" name="sloucit" value="Sloučit uživatele" onclick="return confirm('Opravdu sloučit?')">
+      </td>
+    </tr>
+    <!-- end:detaily -->
+  </table>
+
+  <br>
+  <input type="submit" name="pripravit" value="Načíst údaje">
+
+</form>
+
+
+
+
+<!-- end:slucovani -->

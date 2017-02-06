@@ -1,0 +1,23 @@
+<html>
+<head>
+  <title>Chyba</title>
+  <style>
+  h2 { color: #000; }
+  a { color: #08f; }
+  .b { margin: 60px auto; max-width: 500px; color: #888; }
+  .b > * { border-radius: 5px; box-shadow: 0 20px 30px #222; margin-top: 40px; }
+  .b > div { background-color: #fff; padding: 10px 30px; }
+  .b > img { width: 100%; }
+  </style>
+</head>
+<body style="background-color: #444; font-family: sans-serif">
+  <div class="b">
+    <div>
+      <h2>Vyskytla se chyba</h2>
+      <p>Omlouváme se, stránku není možné zobrazit.</p>
+      <p>Informace o chybě se uložila a budeme ji řešit jak to půjde. Jestli ale chcete, můžete nás urgovat na <a href="mailto:info@gamecon.cz">info@gamecon.cz</a> a dáme vám vědět, jak to dopadlo. Zkuste se vrátit na <a href="#" onclick="window.history.back(); return false">předchozí stránku</a>.</p>
+    </div>
+    <img src="{picard}">
+  </div>
+</body>
+</html>

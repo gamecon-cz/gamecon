@@ -1,0 +1,318 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "890a5c80061178d459386d0a855fd984",
+    "packages": [
+        {
+            "name": "dg/mysql-dump",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/dg/MySQL-dump.git",
+                "reference": "c1c00a6b7ded9cab37f0280fa2940b1809835f90"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/dg/MySQL-dump/zipball/c1c00a6b7ded9cab37f0280fa2940b1809835f90",
+                "reference": "c1c00a6b7ded9cab37f0280fa2940b1809835f90",
+                "shasum": ""
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "src/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "David Grudl",
+                    "homepage": "http://davidgrudl.com"
+                }
+            ],
+            "description": "MySQL database dump.",
+            "homepage": "https://github.com/dg/MySQL-dump",
+            "keywords": [
+                "mysql"
+            ],
+            "time": "2015-04-18 14:09:50"
+        },
+        {
+            "name": "godric/xtemplate",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/godric-cz/xtemplate.git",
+                "reference": "a00586ef557b0d1592c2f592647077cce8346176"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/godric-cz/xtemplate/zipball/a00586ef557b0d1592c2f592647077cce8346176",
+                "reference": "a00586ef557b0d1592c2f592647077cce8346176",
+                "shasum": ""
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "src/"
+                ]
+            },
+            "description": "simple templating engine",
+            "support": {
+                "source": "https://github.com/godric-cz/xtemplate/tree/master",
+                "issues": "https://github.com/godric-cz/xtemplate/issues"
+            },
+            "time": "2016-02-28 19:55:11"
+        },
+        {
+            "name": "michelf/php-markdown",
+            "version": "1.7.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/michelf/php-markdown.git",
+                "reference": "1f51cc520948f66cd2af8cbc45a5ee175e774220"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/michelf/php-markdown/zipball/1f51cc520948f66cd2af8cbc45a5ee175e774220",
+                "reference": "1f51cc520948f66cd2af8cbc45a5ee175e774220",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-lib": "1.4.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-0": {
+                    "Michelf": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Michel Fortin",
+                    "email": "michel.fortin@michelf.ca",
+                    "homepage": "https://michelf.ca/",
+                    "role": "Developer"
+                },
+                {
+                    "name": "John Gruber",
+                    "homepage": "https://daringfireball.net/"
+                }
+            ],
+            "description": "PHP Markdown",
+            "homepage": "https://michelf.ca/projects/php-markdown/",
+            "keywords": [
+                "markdown"
+            ],
+            "time": "2016-10-29T18:58:20+00:00"
+        },
+        {
+            "name": "oyejorge/less.php",
+            "version": "v1.7.0.10",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/oyejorge/less.php.git",
+                "reference": "a1e2d3c20794b37ac4d0baeb24613e579584033b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/oyejorge/less.php/zipball/a1e2d3c20794b37ac4d0baeb24613e579584033b",
+                "reference": "a1e2d3c20794b37ac4d0baeb24613e579584033b",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "~4.8.18"
+            },
+            "bin": [
+                "bin/lessc"
+            ],
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Less": "lib/"
+                },
+                "classmap": [
+                    "lessc.inc.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "Matt Agar",
+                    "homepage": "https://github.com/agar"
+                },
+                {
+                    "name": "Martin Jantošovič",
+                    "homepage": "https://github.com/Mordred"
+                },
+                {
+                    "name": "Josh Schmidt",
+                    "homepage": "https://github.com/oyejorge"
+                }
+            ],
+            "description": "PHP port of the Javascript version of LESS http://lesscss.org",
+            "homepage": "http://lessphp.gpeasy.com",
+            "keywords": [
+                "css",
+                "less",
+                "less.js",
+                "lesscss",
+                "php",
+                "stylesheet"
+            ],
+            "time": "2015-12-30T05:47:36+00:00"
+        },
+        {
+            "name": "tracy/tracy",
+            "version": "v2.4.6",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/nette/tracy.git",
+                "reference": "c9fbca15b0a11d904c7783b7aad114182618d8d4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/nette/tracy/zipball/c9fbca15b0a11d904c7783b7aad114182618d8d4",
+                "reference": "c9fbca15b0a11d904c7783b7aad114182618d8d4",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "ext-session": "*",
+                "php": ">=5.4.4"
+            },
+            "require-dev": {
+                "nette/di": "~2.3",
+                "nette/tester": "~2.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.4-dev"
+                }
+            },
+            "autoload": {
+                "classmap": [
+                    "src"
+                ],
+                "files": [
+                    "src/shortcuts.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause",
+                "GPL-2.0",
+                "GPL-3.0"
+            ],
+            "authors": [
+                {
+                    "name": "David Grudl",
+                    "homepage": "https://davidgrudl.com"
+                },
+                {
+                    "name": "Nette Community",
+                    "homepage": "https://nette.org/contributors"
+                }
+            ],
+            "description": "Tracy: useful PHP debugger",
+            "homepage": "https://tracy.nette.org",
+            "keywords": [
+                "debug",
+                "debugger",
+                "nette"
+            ],
+            "time": "2017-01-29T19:39:20+00:00"
+        }
+    ],
+    "packages-dev": [
+        {
+            "name": "dg/ftp-deployment",
+            "version": "v2.7",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/dg/ftp-deployment.git",
+                "reference": "89d0123008fc3b695af6881253013dc96ee49b7a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/dg/ftp-deployment/zipball/89d0123008fc3b695af6881253013dc96ee49b7a",
+                "reference": "89d0123008fc3b695af6881253013dc96ee49b7a",
+                "shasum": ""
+            },
+            "require": {
+                "ext-zlib": "*",
+                "php": ">=5.4.0"
+            },
+            "require-dev": {
+                "nette/tester": "~1.3"
+            },
+            "suggest": {
+                "ext-ftp": "to connect to ftp:// server",
+                "ext-json": "to preprocess CSS files via online service",
+                "ext-openssl": "to connect to ftps:// server and preprocess CSS files",
+                "ext-ssh2": "to connect to sftp:// server"
+            },
+            "bin": [
+                "deployment"
+            ],
+            "type": "project",
+            "autoload": {
+                "classmap": [
+                    "src/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause",
+                "GPL-2.0",
+                "GPL-3.0"
+            ],
+            "authors": [
+                {
+                    "name": "David Grudl",
+                    "homepage": "https://davidgrudl.com"
+                }
+            ],
+            "description": "A tool for automated deployment of web applications to an FTP server.",
+            "homepage": "https://github.com/dg/ftp-deployment",
+            "keywords": [
+                "deployment",
+                "ftp",
+                "ssh"
+            ],
+            "time": "2016-12-22T20:37:08+00:00"
+        }
+    ],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": {
+        "dg/mysql-dump": 20,
+        "godric/xtemplate": 20
+    },
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": [],
+    "platform-dev": []
+}

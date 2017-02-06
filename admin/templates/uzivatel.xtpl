@@ -1,0 +1,24 @@
+<!-- begin:uzivatel -->
+<div class="uzivatel">
+  <!-- begin:omnibox -->
+  <form method="post">
+    <input type="hidden" name="vybratUzivateleProPraci" value="1">
+    <input id="omnibox" class="omnibox autosubmit" type="text" name="id">
+  </form>
+  <div class="tip">↑ vyberte uživatele: napište pár písmen přezdívky, jména, příjmení nebo ID (alt+U)</div>
+  <!-- end:omnibox -->
+  <!-- begin:vybrany -->
+  <div class="detail">
+    <img class="avatar" src="{avatar}">
+    <div class="nick" style="overflow-x:hidden"><h3>{nick}</h3></div>
+    {jmeno}<br>
+    <div class="status">{status}</div>
+  </div>
+  <form method="post" id="zrusit" style="clear:both">
+    <input type="hidden" name="zrusitUzivateleProPraci" value="1">
+    <input type="submit" value="z̲rušit">
+    <!-- todo záporný zůstatek -->
+  </form>
+  <!-- end:vybrany -->
+</div>
+<!-- end:uzivatel -->

@@ -1,0 +1,43 @@
+
+body { font-size: 16px; }
+
+.obal { min-width: 320px; }
+
+.sloupR { margin: 0; padding: 0; }
+.sloupL { position: relative; width: 100%; overflow: hidden; height: 50px; min-height: 50px; z-index: 20; }
+.sloupL.mobrozbal { height: auto; }
+
+.mobmenu { display: block; position: absolute; top: 0; right: 0;
+  color: #aaa; font-size: 30px; font-weight: bold; text-align: center;
+  border-left: solid 1px #444; height: 50px; width: 60px; }
+.mobmenu > img { width: 100%; height: 100%; }
+.uzivatel { margin: 0 61px 0 0; padding: 0; background: none; border-radius: 0; color: #aaa;
+  font-size: 0.8em; line-height: 1.2em; }
+.uzivatel .omnibox { margin: 8px; width: 92%; height: 27px; box-sizing: content-box; font-size: 18px; }
+.uzivatel #zrusit { }
+.uzivatel #zrusit > input {
+  position: absolute; top: 0; right: 60px; width: 60px; height: 50px;
+  border: none; background: none; background-color: #3b3b3b; color: #aaa;
+  border-radius: 0; border-left: solid 1px #444; }
+.uzivatel .avatar { width: 50px; height: 50px; }
+.uzivatel .nick { padding-top: 2px; }
+.uzivatel .status { font-weight: normal; }
+
+.menu > div { height: 42px; border-radius: 0; background: #bbb; width: 48%; float: left; margin: 3px 1%; }
+.menu > div > a { line-height: 36px; }
+.menu > div:last-child { margin-bottom: 8px; }
+.menu .active .roh { display: none; }
+
+.operator { margin-right: 0; clear: both; border-radius: 0; margin: 8px 1%; }
+
+.mobstin { position: absolute; z-index: 20; width: 100%; height: 3px; background-image: url('mobstin.png'); }
+
+.main { padding: 8px;  border-radius: 0; }
+
+.aBox.grid { margin-right: 0; width: auto; float: none; }
+
+.main > ol { padding-left: 25px; }
+
+.paticka .protip { display: none; }
+
+.error, .success, .warning { padding-right: 16px; }

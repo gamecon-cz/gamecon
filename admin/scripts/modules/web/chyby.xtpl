@@ -1,0 +1,42 @@
+<!-- begin:chyby -->
+
+<style>
+.chyba { margin: 16px 0; min-height: 60px; clear: both; }
+.chyba .vyskytu { width:60px; height:60px; border-radius:30px; line-height:60px;
+  text-align:center; font-weight:normal; color:#fff; font-size:22px;
+  float: left; }
+.chyba.z1 .vyskytu { background-color: #48d; }
+.chyba.z2 .vyskytu { /* background-color: #fa0; */ background-color: #48d; }
+.chyba.z3 .vyskytu { background-color: #f40; }
+.chyba.z4 .vyskytu { background-color: #f40; }
+.chyba .text { margin-left: 70px; }
+.chyba h2 { font-size: 14px; margin: 0; }
+.chyba form { float: right; margin-top: 18px; }
+.chyba:hover { background-color: #eee }
+.chyba .bubliny span { float: left; }
+.chyba .bubliny div { float: left; margin-left: 10px; margin-top: 4px; color: #fff; padding: 1px 5px;
+  background-color: #ddd; border-radius: 5px; }
+.chyba a { text-decoration: none; color: #04f; }
+</style>
+
+<!-- begin:chyba -->
+<div class="chyba z{zavaznost}">
+  <div class="vyskytu">{vyskytu}</div>
+  <form method="post">
+    <input type="hidden" name="vyresit" value="{ids}">
+    <input type="submit" value="Vyřešit">
+  </form>
+  <div class="text">
+    <h2>{zprava}</h2>
+    <a href="{url}" target="_blank">{url}</a>{zdroj}<br>
+    <div class="bubliny">
+      <span>{soubor}: {radek}</span>
+      <div>{jazyk}</div>
+      <div class="hinted">{uzivatelu}<div class="hint">{uzivatele}</div></div>
+      <div>{posledni}</div>
+    </div>
+  </div>
+</div>
+<!-- end:chyba -->
+
+<!-- end:chyby -->

@@ -1,0 +1,16 @@
+Přihlášení<br><br>
+<form method="post">
+<table>
+<tr>
+  <td>Jméno:</td>
+  <td><input type="text" name="loginNAdm"></td>
+</tr>
+<tr>
+  <td>Heslo:</td>
+  <td><input type="password" name="hesloNAdm"></td>
+</tr>
+<tr>
+  <td colspan="2"><input type="submit" value="Přihlásit" style="width: 100%"></td>
+</tr>
+</table>
+</form>

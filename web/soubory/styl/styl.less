@@ -1,0 +1,343 @@
+
+@sirka:     1000px; // max šířka při širokém zobrazení
+@stredni:   ~"(min-width: 550px) and (max-width: 799px)";
+@siroke:    ~"(min-width: 800px)";
+@sloupm:    3%; // margin sloupců při vícesloupcovém designu
+
+a { color: #06d; text-decoration: none; }
+a:hover { text-decoration: underline; }
+a[name] { color: inherit; }
+
+hr { border: none; border-top: solid 1px #eee; }
+
+body { margin: 0; font: 14px Open Sans, sans-serif; overflow-y: scroll; line-height: 150%;
+  background-image: url('pozadi-2015.jpg'); background-color: #f6f3ea; background-attachment: fixed; background-position: center; background-size: cover; }
+
+.hlavicka { text-align: center; position: relative; line-height: 1.3em; color: #f8f8f8;
+  background-image: url('hlavicka.jpg'); background-color: #a8a890; background-size: auto 100%; }
+.hlavicka a { color: #d6283e; }
+.hlavicka .claim { display: none; color: #d6283e; text-transform: uppercase; font-weight: bold; font-size: 0.9em; opacity: 0.8; }
+.hlavicka .linfo a { display: none; }
+.hlavicka .linfo b { font-size: 1em; line-height: 1.4em; }
+.hlavicka .logo { margin-top: 10px; display: inline-block; max-width: 80%; }
+.hlavicka .logo:hover { text-decoration: none; }
+.hlavicka .logo img { width: 100%; }
+.hlavicka .ifb { background-image: data-uri('ikonky.png'); display: block; float: left; height: 35px; width: 35px; margin: 0 6px; }
+.hlavicka .neprihlasen > form { position: absolute; .blok; z-index: 10; padding: 10px; text-align: left; margin: 0; }
+.hlavicka .prihlasen { overflow: hidden; text-align: right; min-width: 250px; display:inline-block;}
+.hlavicka .avatar { float: right; }
+.hlavicka .prihlasen > div { margin: 4px 110px 0 0; }
+
+hr.stin { border: none; background-image: data-uri('gradient2.png'); height: 4px; margin: 0 0 -4px 0; }
+
+.menu { text-align: center; color: #fff; position: relative; z-index: 1;
+  background-image: url('hlavicka.jpg'); background-color: #727968; background-position: center top; }
+.menu > ul { margin: 0 auto; padding: 0; max-width: @sirka; }
+.menu > ul > li { display: inline-block; margin: 0; position: relative; padding: 0; width: 100%; cursor: default; }
+.menu > ul > li > span { display: inline-block; text-transform: uppercase; font-size: 130%; padding: 0.6em 1em 0.3em 1em; border-bottom: solid 0.3em rgba(0,0,0,0); }
+.menu li.aktivni > span { border-bottom-color: #823; }
+.menu .sub { position: absolute; width: 100%; z-index: 10; display: none; padding-top: 10px; }
+.menu .mlist { text-align: left;  margin: 0 10px; box-shadow: 0 0 3px #444; color: #000; }
+.menu li:hover .sub { display: block; }
+@media @stredni {
+  .menu .sub { padding-top: 0; }
+}
+@media @siroke {
+  .hlavicka { width: 100%; height: 100px; }
+  .hlavicka .claim { display: block; }
+  .hlavicka .linfo { position: absolute; top: 30px; left: 10px; text-align: left; width: 250px; }
+  .hlavicka .linfo a { display: block; margin-top: 0.5em; }
+  .hlavicka .linfo b { display: block; font-size: 1.3em; }
+  .hlavicka .prihlasovani { position: absolute; top: 0; right: 0; }
+  .hlavicka .vlajka {width: 48px; height: 32px; display: inline-block !important; margin-left: 4px; background-image: data-uri('eng_flag.jpg');}
+  .hlavicka .neprihlasen { text-align: right; margin-top: 30px; margin-right: 14px; display:inline-block; }
+  .hlavicka .neprihlasen > form { margin: 0 10px 0 -50px; }
+  .hlavicka .avatar { height: 100px; }
+  .menu > ul > li { width: 33.33334%; }
+  .menu li:first-child .mlist { margin: 0 20px 0 0; }
+  .menu li:last-child .mlist { margin: 0 0 0 20px; }
+  .menu .sub { margin-top: -10px; padding-top: 0; } // u mobilů posun menu nahoru způsobuje nechtěné kliknutí na první položku
+}
+
+@media (min-width: 1100px) {
+  .hlavicka .linfo { width: auto; white-space: nowrap; }
+  .hlavicka .linfo a { margin-top: 0; }
+  .hlavicka .linfo b { display: inline; font-size: 1.5em; line-height: 1.7em; }
+}
+
+.hlavni { max-width: @sirka; margin: 0 auto 40px auto; position: relative; }
+.obsah { position: relative; }
+
+.sponzori {
+  padding-bottom: 1px;
+  p a { font-size: 40px; /* hack pro vyšší klikací plochu odkazu */ }
+  p { text-align: center; margin-bottom: -10px; }
+  img { margin: 0 5px 10px 5px; vertical-align: bottom; }
+  .licence { margin: 2%; color: #666; font-size: 90%; }
+}
+
+
+
+.blok { box-shadow: 0 0 3px #444; background-color: #fff; margin-top: 20px; }
+.pruh { background-color: rgba(0, 0, 0, 0.8); color: #fff; padding: 0.6em; font-size: 120%; }
+
+
+/* blogy a stránky */
+.stranka {
+  @tpad: 4.8em; // odsazení prvního odstavce (místo pro nadpis)
+  position: relative;
+  line-height: 1.6em;
+  padding-bottom: 1px; // hack aby i závěrečný margin zůstal "uvnitř bloku"
+  img { width: 100%; display: block; }
+  p { text-align: justify; margin: 1.6em 0; }
+  .obal { // kvůli bugu v webkitu nelze použít padding pro .stranka ale je nutné použít obalovací div a margin
+    > h1:first-child, > h2:first-child {
+      .pruh;
+      margin: 0;
+      padding-left: 2%;
+      padding-right: 2%;
+      width: 96%;
+      position: absolute;
+      + * { padding-top: @tpad; margin-top: 0; }
+      + p > img { margin-top: -@tpad; }
+    }
+  }
+}
+.stranka-mix(@bpad) {
+  // mixin starající se o různou šířku okrajů podle parametru aby nebylo potřeba
+  // toto rozkopírovávat do různých media queries
+  .obal {
+    margin: 0 @bpad @bpad*0.75 @bpad;
+    > h1:first-child, > h2:first-child {
+      margin-left: -@bpad;
+      + p > img { width: 10000 / (100 - 2 * @bpad); margin-left: -(100 * @bpad) / (100 - 2 * @bpad); }
+    }
+  }
+}
+.stranka {
+  .stranka-mix(3%);
+}
+@media @siroke {
+  @sloupw: (100 - 2 * @sloupm) / 3;
+  @bpad: 8%;
+  .stranka {
+    width: 2 * @sloupw + @sloupm;
+    .stranka-mix(@bpad);
+    // odsazení spodních bannerů napravo od hlavního okna
+    + .sloupce { position: absolute; top: 0; right: 0; width: @sloupw; padding: 5px; margin: -5px; padding-bottom: 0; margin-bottom: 0; height: 100%; overflow: hidden; }
+    + .sloupce .blok { width: 100%; }
+    + .sloupce > .blok:first-child { margin-top: 0; }
+  }
+}
+
+
+
+/* aktivity */
+.aktivita { position: relative; overflow: hidden; }
+.aktivita > img { width: 100%; display: block; }
+.atext { margin: 2% 2.5%; text-align: justify; overflow: hidden; max-height: 8.7em;  }
+.atext > :first-child { margin-top: 0; }
+.atext > :last-child { margin-bottom: 0; }
+.ahlav { .pruh; position: relative; font-size: 100%; }
+.ahlav > h2 { font-size: 120%; margin: 0; }
+.ahlav {
+  .info { margin-bottom: -1px; } // nějaký divnobug aby bylo možné skládat popisky pod sebe
+  .vice, a { border-bottom: dotted 1px; cursor: pointer; color: #fff; }
+  a:hover { text-decoration: none; border-bottom: solid 1px #fff; }
+  .termin  { .ikona.hodiny; &:before { .ikona; margin-right: 0.3em; } }
+  .cena    { .ikona.mince;  &:before { .ikona;  } }
+  .vice    { .ikona.dolu;   &:before { .ikona; margin-right: 0.2em; } }
+  .tym     { .ikona.lide;   &:before { .ikona; margin-right: 0.2em; } }
+  .org     { .ikona.clovek; &:before { .ikona; margin-right: 0.1em; } }
+  .tag     { .ikona.stitek; &:before { .ikona; margin-right: 0.2em; } }
+  .mene    { .ikona.nahoru; &:before { .ikona; margin-right: 0.2em; } }
+}
+.filtr { form { padding: 4em 2.25% 1em; font-weight: normal; }; select { margin: 0; } }
+@media @siroke {
+  @sloupw: (100 - 2 * @sloupm) / 3;
+  .aktivita > img { float: left; width: @sloupw; position: absolute; }
+  .ahlav { padding-left: @sloupw + 1%; }
+  .ahlav > h2 { left: 0.6em; max-width: @sloupw; position: absolute; }
+  .ahlav .info { float: left; margin-right: 1.2em; }
+  .ahlav:after { content: "."; display: block; clear: both; visibility: hidden; height: 0; }
+  .atext { padding-left: @sloupw; max-height: 5.8em; margin-top: 1.1em; margin-bottom: 1.4em; }
+  .aktivita.drd {
+    .tym { margin-right: -999px; }
+    .termin { clear: both; min-width: 16.5em; }
+    .org { min-width: 14em; }
+    .cena { clear: both; }
+  }
+  .filtr { float: right; margin: 0; width: @sloupw; form { padding: 4em 1.5em 1em; } }
+}
+
+
+
+
+.mlist { padding: 0; margin: 0; }
+.mlist li { display: block; }
+.mlist li > a { display: block; background-image: data-uri('rozcestnik.png'); height: 49px; border-top: 1px solid #fff; border-bottom: 1px solid #ccc; line-height: 49px; text-decoration: none; color: inherit; font-weight: bold; padding: 0 10px; }
+.mlist li > a:hover { background: #e6e6e6; color: #b00; }
+
+
+
+.upoutavka { position: relative; display: block; font-weight: bold; min-height: 100px; }
+.upoutavka > img { width: 100%; background-color: #aaa; display: block; }
+.upoutavka .horni, .upoutavka .stredni, .upoutavka .dolni { position: absolute; color: #fff; background-color: rgba(0, 0, 0, 0.7); width: 100%; }
+.upoutavka > div > div { margin: 10px; }
+.upoutavka .horni { top: 0; }
+.upoutavka .dolni { bottom: 0; text-transform: uppercase; text-align: center; }
+.upoutavka .stredni { top: 12%; }
+.upoutavka .gradient { width: 100%; height: 50px; background-image: data-uri('gradient.png'); position: absolute; bottom: 0; }
+
+
+/* titulka, novinky titulka */
+.novt { padding-bottom: 5px; }
+.novt > h2 { text-transform: uppercase; text-align: center; font-size: 100%; margin: 5px 0; }
+.novt > h2 a { text-decoration: none; color: #fff; display: inline-block; }
+.novt .ntext { margin: 0 27px 0 30px; padding-right: 5px; text-align: justify; overflow: hidden; }
+.novt .ntext:not(:last-child) { margin-top: -30px; position: relative; z-index: 1; }
+.novt .ntext:last-child { margin-bottom: 1em; }
+.novt .ntext > h3 { font-size: 120%; margin: 0; text-align: left; }
+.novt .ntext ol { padding-left: 15px; }
+.novt .ntext p { margin: 0.7em 0; }
+.novt .ntext .datum { float: right; color: #bbb; font-style: italic; margin-left: 10px; }
+.novt .ntext .orez { margin-bottom: -1.5em; }
+.novt .ntext .vice { display: block; position: absolute; background-color: #fff; bottom: 0; right: 0; padding: 0 5px; }
+
+
+/* Registrace */
+.registrace .pokyn { float: right; width: 240px; }
+.registrace input[type="text"], .registrace input[type="password"], .registrace select { display: block; width: 210px; }
+.registrace select { width: 224px; }
+.registrace .avatar { float: left; margin: -8px 8px 0 2px; border-radius: 3px; height: 100px; width: initial; }
+
+
+/* Formuláře */
+input[type="text"], input[type="password"], input[type="submit"], input[type="number"], select, textarea {
+  color: #000; background-color: #e8e8e8; border: none; border-radius: 3px; font-family: inherit; font-size: 100%;
+  padding: 0.2em 0.5em; margin: 2px; }
+input[type="submit"] { color: #fff; background-color: #444; font-weight: bold; cursor: pointer; }
+input[type="submit"]:hover { color: #ddd; }
+label { color: #999; }
+:checked + label { color: #000; }
+
+
+/* Obecné speciality */
+.hinted { border-bottom: dotted 1px; cursor: pointer; margin-bottom: -1px; display: inline-block; }
+.hinted.i:after { .ikona; .flaticon-info30; color: #444; font-size: 0.8em; line-height: 1em; vertical-align: 10%; }
+.hinted .hint { display: none; }
+.hinted:hover .hint {
+  @sh: 8px;
+  line-height: 130%; font-size: 14px; font-weight: normal; color: #fff; z-index: 10; border-radius: 4px;
+  display: block; position: absolute; max-width: 20em; padding: 0.8em; background-color: rgba(0,0,0,0.8); margin-top: @sh; margin-left: -5px;
+  text-shadow: 0 0 2px #000;
+  &:before { content: " "; display: block; border: solid @sh transparent; border-bottom-color: rgba(0,0,0,0.8); position: absolute; top: -2*@sh; left: 15px; }
+  a:before { content: " "; position: absolute; top: -@sh; left: 0; height: @sh; width: 100%; }
+}
+.chybaBlok { position: fixed; z-index: 999; text-align: center; width: 100%; margin: 1em 0px; }
+.chybaBlok > div { display: inline-block; background-color: rgba(255, 192, 192, 0.9); padding: 2em 5em; color: #d00; border-radius: 5px; max-width: @sirka; box-shadow: 0 15px 45px #444; }
+.chybaBlok > .oznameni { background-color: rgba(150, 200, 150, 0.9); color: #040; }
+.fotka {
+  position: relative;
+  width: 150px; height: 150px;
+  background-size: cover; background-position: center center;
+  &:before { background-image: url('fotka-prekryv.png'); background-size: 100% 100%; width: 100%; height: 100%; position: absolute; display: block; content: ""; }
+}
+.drdStaty {
+  > div:nth-child(odd) { float: left; min-width: 7em; }
+  > div:nth-child(even) hr { .ikona; .ikona.hvezda; display: inline; border: none; color: #888; margin-right: 0.3em; }
+  &:after { content: " "; display:block; clear: both; }
+}
+#easyCenter { background: transparent; } // fixy videoplayeru
+#easyContainer { img, iframe { box-shadow: 0 0 10px #000; }}
+#easyOverlay { background-color: #666; }
+#easyCaption { color: #fff; }
+
+
+/* Elementy generované sdílenými třídami */
+.cShopJidlo td, .cShopPredmety td { padding: 0 1em 0 0; line-height: 1.4em; }
+.cShopJidlo input[type="checkbox"] { margin: 0 1px; }
+.cShopPredmety .plus, .predmety .minus { background-color: #444; color: #fff; text-decoration: none !important; padding: 0 1em; font-weight: bold;  border-radius: 3px; }
+.cShopPredmety .plus:hover, .predmety .minus:hover { color: #ddd; }
+.cShopPredmety .neaktivni { background-color: #e8e8e8; }
+.cShopPredmety .neaktivni:hover { color: #fff; cursor: default; }
+
+
+/* Responsivní design */
+
+@media @stredni {
+  .sloupce:after { content: "."; display: block; clear: both; visibility: hidden; height: 0; }
+  .sloupce .blok { float: left; width: (100 - @sloupm) / 2; }
+  .sloupce .blok:not(:nth-child(2n)) { margin-right: @sloupm; }
+  .menu > ul > li { width: 50%; }
+}
+
+@media @siroke {
+  @sloupw: (100 - 2 * @sloupm) / 3;
+  .sloupce:after { content: "."; display: block; clear: both; visibility: hidden; height: 0; }
+  .sloupce .blok { float: left; width: @sloupw; }
+  .sloupce .blok:not(:nth-child(3n)) { margin-right: @sloupm; }
+}
+
+
+
+/* LESS specific věci */
+
+.column-count(@arg) {
+  -webkit-column-count: @arg;
+  -moz-column-count: @arg;
+  column-count: @arg;
+}
+
+.column-gap(@arg) {
+  -webkit-column-gap: @arg;
+  -moz-column-gap: @arg;
+  column-gap: @arg;
+}
+
+
+// Ikonfonty - nutno mít zde kvůli cacheování
+// toto je nutno vykopírovat z flaticonu a odstranit :before
+.flaticon-clock96 {
+  content: "\e000";
+}
+.flaticon-coins24 {
+  content: "\e001";
+}
+.flaticon-down119 {
+  content: "\e002";
+}
+.flaticon-favourites7 {
+  content: "\e003";
+}
+.flaticon-info30 {
+  content: "\e004";
+}
+.flaticon-multiple25 {
+  content: "\e005";
+}
+.flaticon-play38 {
+  content: "\e006";
+}
+.flaticon-silhouette78 {
+  content: "\e007";
+}
+.flaticon-tag31 {
+  content: "\e008";
+}
+.flaticon-up151 {
+  content: "\e009";
+}
+
+// Toto je relevantní kód
+@font-face { font-family: "Ikony"; src: @fontflaticon; font-weight: normal; font-style: normal; }
+.ikona { font-family: Ikony; font-weight: normal; font-style: normal; }
+.ikona.hodiny     { &:before { .flaticon-clock96; }}
+.ikona.mince      { &:before { .flaticon-coins24; }}
+.ikona.dolu       { &:before { .flaticon-down119; }}
+.ikona.nahoru     { &:before { .flaticon-up151; }}
+.ikona.lide       { &:before { .flaticon-multiple25; }}
+.ikona.play       { &:before { .flaticon-play38; }}
+.ikona.clovek     { &:before { .flaticon-silhouette78; }}
+.ikona.stitek     { &:before { .flaticon-tag31; }}
+.ikona.hvezda     { &:before { .flaticon-favourites7; }}

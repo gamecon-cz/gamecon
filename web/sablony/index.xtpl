@@ -1,0 +1,102 @@
+<!-- begin: index -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <base href="{base}">
+  <link rel="shortcut icon" href="soubory/styl/favicon.ico">
+  <link rel="stylesheet" type="text/css" href="{css}" media="screen,projection">
+  <script src="{js}"></script>
+  {jsVyjimkovac}
+  {info}
+  <!-- begin:googleAnalytics -->
+  <script>
+      ga=function(){ga.q.push(arguments)};ga.q=[];ga.l=+new Date;
+      ga('create','UA-30024399-1','auto');ga('send','pageview');
+  </script>
+  <script src="https://www.google-analytics.com/analytics.js" async defer></script>
+  <!-- end:googleAnalytics -->
+</head>
+<body>
+
+  {chyba}
+
+  <div class="hlavicka">
+    <a class="logo" href="">
+      <img src="soubory/styl/logo.png" alt="GameCon"><br>
+      <span class="claim">Největší festival nepočítačových her</span>
+    </a>
+    <div class="linfo">
+      <a class="ifb" href="https://www.facebook.com/gamecon"></a>
+      <b>20.–23. 7. 2017</b>
+      <b>v Pardubicích</b>
+    </div>
+    <div class="prihlasovani">
+      <!-- begin:neprihlasen -->
+      <a class="vlajka" href="/en"></a>
+      <div class="neprihlasen">
+        <strong>Nejste přihlášeni na web</strong><br>
+        <a href="#" onclick="$('#prihlasit').slideToggle(); return false;"><strong>Přihlásit</strong></a> / <a href="registrace">registrovat</a> /
+        <a href="zapomenute-heslo">obnovit heslo</a>
+        <form method="post" action="prihlaseni" id="prihlasit" style="display: none">
+          <input type="text" name="login" placeholder="e-mail nebo login" style="width:190px"><br>
+          <input type="password" name="heslo" placeholder="heslo" style="width:190px"><br>
+          <input type="submit" name="prihlasit" value="Přihlásit"> <input type="checkbox" name="zapamatovat" id="zapamatovat" checked="true" style="position:relative;top:3px;left:3px"> <label for="zapamatovat">zapamatovat</label>
+        </form>
+      </div>
+      <!-- end:neprihlasen -->
+      <!-- begin:prihlasen -->
+      <div class="prihlasen">
+        <img src="{u.avatar}" class="avatar">
+        <div>
+          <strong>{u.nick}</strong> | id: {u.id} | {finance} | <a href="#" onclick="$('#odhlasit').submit(); return false;">odhlásit</a><br>
+          <a href="finance">finance</a><br>
+          <a href="registrace">nastavení</a><br>
+          <!-- begin:admin --><a href="{admin}" target="_blank">administrace</a><br><!-- end:admin -->
+          <!-- begin:mujPrehled --><a href="{admin}/muj-prehled" target="_blank">hry které vedu</a><br><!-- end:mujPrehled -->
+          <!-- begin:gcNeprihlasen --><img src="soubory/styl/error.png" style="margin-bottom:-3px"> <a href="prihlaska">nepřihlášen{a} na GC</a><!-- end:gcNeprihlasen -->
+          <!-- begin:gcPrihlasen --><img src="soubory/styl/ok.png" style="margin-bottom:-3px"> <a href="prihlaska">přihlášen{a} na GC</a><!-- end:gcPrihlasen -->
+          <form method="post" action="prihlaseni" id="odhlasit">
+            <input type="hidden" name="odhlasit" value="true">
+          </form>
+        </div>
+      </div>
+      <!-- end:prihlasen -->
+    </div>
+  </div>
+
+  {menu}
+
+  <hr class="stin">
+
+  <div class="hlavni"><!-- hlavní obsah -->
+    <div class="obsah">
+      {obsah}
+      <div class="sloupce">
+        <a class="blok upoutavka" href="velka-soutez">
+          <img src="soubory/obsah/titulka/velka-soutez-2016.jpg">
+          <div class="stredni"><div>Velká soutěž o GameCon zdarma</div></div>
+        </a>
+        <a class="blok upoutavka yt" href="http://www.youtube.com/watch?v=fPs0hmLJlV0" data-height="480">
+          <div class="ikona play" style="position:absolute; font-size:140px; line-height:100%; width: 100%; text-align: center; color: #fff; opacity: 0.8; margin-top: 18px; text-shadow: 0 0 5px #000;"></div>
+          <img src="soubory/obsah/titulka/video.jpg">
+        </a>
+        <a class="blok upoutavka" href="minihra">
+          <img src="soubory/obsah/titulka/minihra.jpg">
+          <div class="stredni"><div>Minihra na GC</div></div>
+        </a>
+        <!--<a class="blok upoutavka" href="chci-se-zapojit">
+          <img src="soubory/obsah/titulka/chci-se-zapojit.jpg">
+          <div class="stredni"><div>Chci se zapojit</div></div>
+        </a> -->
+      </div>
+    </div>
+    <div class="blok sponzori">
+      {sponzori}
+    </div>
+  </div>
+
+</body>
+</html>
+<!-- end: index -->

@@ -1,0 +1,17 @@
+<!-- begin:editaceStranek -->
+
+<h1>Stránky</h1>
+<table class="vypis">
+  <tr>
+    <th>URL</th>
+    <th>Akce</th>
+  </tr>
+  <!-- begin:radek -->
+  <tr>
+    <td>{stranka.url}</td>
+    <td><a href="web/editace-stranek?id={stranka.id}" class="tlacitko">upravit</a></td>
+  </tr>
+  <!-- end:radek -->
+</table>
+
+<!-- end:editaceStranek -->

@@ -1,0 +1,42 @@
+<!-- begin:blog -->
+
+<!-- begin:post -->
+  <h1>{blog.nazev}</h1>
+  {blog.text}
+<!-- end:post -->
+
+<!-- begin:seznam -->
+<script>
+  // přesměrování starých url článků
+  if(location.hash) {
+    location.href = location.href.replace('#', '/');
+  }
+</script>
+<style>
+  @media (min-width: 800px) {
+    .ahlav .info { float: right; }
+    .ahlav h2 { max-width: 60%; }
+    .ahlav .info:hover { text-decoration: none; }
+  }
+</style>
+<div class="aktivity">
+  <!-- begin:post -->
+    <div class="blok">
+      <div class="aktivita">
+        <img src="{blog.obrazek}">
+        <div class="ahlav">
+          <h2>{blog.nazev}</h2>
+          <a href="blog/{blog.url}" class="info vice">více</a>
+          <div class="info termin">{blog.vydat.formatBlog}</div>
+          <div class="info org">{blog.autor}</div>
+        </div>
+        <div class="atext">
+          {blog.nahled}
+        </div>
+      </div>
+    </div>
+  <!-- end:post -->
+</div>
+<!-- end:seznam -->
+
+<!-- end:blog -->

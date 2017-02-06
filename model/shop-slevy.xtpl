@@ -1,0 +1,25 @@
+<!-- begin:slevy -->
+
+    Jsem <b>student</b> a mám nárok na slevu <b>20%</b>:
+    <input type="checkbox" name="{postname}[student]" value="1" {checked}>
+    <input type="text" id="skola" placeholder="škola" name="{postname}[skola]" value="{skola}">
+    <script>
+      $("#skola").autocomplete({source:[
+        {skoly}
+      ]});
+    </script>
+
+    <!-- begin:vcas -->
+    <br>Pokud <b>zaplatím do {slevaDo}
+    <!--<span class="hint">
+      Pro slevu za včasnou platbu je potřeba, aby peníze dorazily do <b>30.6. na účet GC</b>. Převod může trvat až 2 dny.
+    </span>-->
+    </b> mám slevu dalších <b>20%</b>
+    <!-- end:vcas -->
+
+    <br>Vezmu <b class="hinted i">nováčka <span class="hint">
+      Jako nováček se bere každý účastník, který <b>skutečně dojede</b> a na GameConu nebyl aspoň 3 roky nebo nikdy. Pokud nováčka nebereš, nech pole prázdné. Pokud bereš víc nováčků, napiš jejich ID (číslo, které mají uvedené v pravém horním rohu webu) oddělená čárkou.
+    </span></b>, za což mám slevu dalších <b>20%</b>:
+    <input type="text" placeholder="id nováčka" name="{postname}[novacek]" value="{novacci}">
+
+<!-- end:slevy -->

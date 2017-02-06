@@ -1,0 +1,116 @@
+<!-- begin:vstupne -->
+
+  <script src="{jsSlider}"></script>
+
+  <div id="myslider_1"></div>
+  <div id="percentage">1</div>
+  <ul id="odmena"></ul>
+  <input type="hidden" name="{postname}">
+
+  <style>
+    #myslider_1 { box-shadow: 8px 4px 16px #333 inset; border-bottom: 1px solid #eee; }
+    #myslider_1 .follow_bar { background-color: #07e; box-shadow: 0px 1px 3px #444 inset; }
+    #myslider_1 .slider_bar { background-color: #999; }
+    #percentage { min-height: 2.3em; margin-top: 0.5em; }
+    #odmena { margin-top: 0; }
+  </style>
+
+  <script>
+    (function(){
+
+      var predmety = [
+        { od: 30,  do: 99,  vec: "Dočasné mafianské tetování Soldato"},
+        { od: 100, do: 199, vec: "Dočasné mafianské tetování Caporegime"},
+        { od: 100, do: 199, vec: "GameConní hlavolam"},
+        { od: 200, do: 499, vec: "Dočasné mafianské tetování Consigliere"},
+        { od: 200, do: 499, vec: "Antistresová GC hrací kostka"},
+        { od: 500, do: 999, vec: "Dočasné mafianské tetování Capo Bastone"},
+        { od: 500, do: 999, vec: "GameConní rubikova kostka"},
+        { od: 1000,         vec: "Dočasné mafianské tetování Capo Crimini"},
+        { od: 1000,         vec: "GameConní hrnek popisovatelný křídou"}
+      ];
+      var nastaveni = {
+        min: 0,
+        max: 1001,
+        zaklad: {stav},
+        setMin: {min}, // minimum, které se dá zvolit
+        gamma: 0.5
+      };
+      var nastaveniGlide = {
+        height    : 10,
+        image   : '{knoflik}',
+        startAt   : vtop(nastaveni.zaklad),
+        //colorShift  : ['#3a4d31', '#7bb560'],
+        //buttons   : true,
+        //onButton  : displayResult,
+        drag    : displayResult,
+        onload    : displayResult
+      };
+      var odmena = $('#odmena');
+      var posledni = $('#odmena').html();
+      var slider = $('#myslider_1');
+      var castkaInput = $('#percentage').siblings('[name="{postname}"]');
+
+      slider.sGlide(nastaveniGlide);
+
+      function displayResult(o){
+        var castka = ptov(o.percent);
+        var aktualni = '';
+        if(castka < nastaveni.setMin) {
+          slider.sGlide('startAt', vtop(nastaveni.setMin));
+          displayResult({percent:  vtop(nastaveni.setMin)});
+          return;
+        }
+        castkaInput.val(castka);
+        predmety.forEach(function(e){
+          if(!e.od) e.od = 0;
+          if(!e.do) e.do = Infinity;
+          if(e.od <= castka && castka <= e.do) aktualni += '<li>'+e.vec+'</li>';
+        });
+        if(aktualni != posledni) {
+          posledni = aktualni;
+          $('#odmena').html(aktualni);
+        }
+        if(o.percent >= 100) {
+          $('#percentage').html(
+            'Vlastní výběr: '+
+            '<input type="number" value="'+castka+'">'+
+            '&thinsp;Kč'
+          );
+          $('#percentage input').change(customChange);
+        } else {
+          $('#percentage').html(castka+'&thinsp;Kč');
+        }
+      }
+
+      function customChange() {
+        var castka = $(this).val();
+        if(vtop(castka) < 100) {
+          var pct = vtop(castka);
+          slider.sGlide('startAt', pct);
+          setTimeout(function(){ //lol, timeout nějak automagicky předejde bugu, který by jinak zablokoval odeslání formu
+            displayResult({percent: pct});
+          }, 0);
+        } else {
+          castkaInput.val(castka);
+        }
+      }
+
+      // value to percent
+      function vtop(v) {
+        v = v / nastaveni.max; //normalizace
+        var out = Math.pow(v, nastaveni.gamma);
+        return out * 100;
+      }
+
+      // percent to value
+      function ptov(p) {
+        p = p / 100; //normalizace
+        var out = Math.pow(p, 1 / nastaveni.gamma);
+        return Math.round(out * nastaveni.max);
+      }
+
+    })();
+  </script>
+
+<!-- end:vstupne -->

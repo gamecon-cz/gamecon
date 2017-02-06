@@ -1,0 +1,1 @@
+﻿Soubory zde se dají zobrazit pomocí odkazu /nazev-souboru (přípona aplikuje se na všechny soubory .php). Slouží pro výpisy a podobné, v případě přihlášeného uživatele se nic netiskne a výstup je v režii skriptu.
