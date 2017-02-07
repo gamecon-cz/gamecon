@@ -1,6 +1,6 @@
 <?php
 
-require_once('sdilene-hlavicky.hhp');
+require_once('sdilene-hlavicky.php');
 
 $delay = 500;
 $predmet = 'Jaký byl Gamecon 2015?';

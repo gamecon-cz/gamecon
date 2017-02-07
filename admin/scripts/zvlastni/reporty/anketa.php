@@ -1,6 +1,6 @@
 <?php
 
-require_once('sdilene-hlavicky.hhp');
+require_once('sdilene-hlavicky.php');
 
 //$MULTI_CHECK=3; //počet duplicitních sloupců vyhrazených pro otázky s checboxy //zatím neimplementováno
 

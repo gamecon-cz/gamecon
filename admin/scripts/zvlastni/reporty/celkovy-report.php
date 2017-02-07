@@ -1,6 +1,6 @@
 <?php
 
-require_once('sdilene-hlavicky.hhp');
+require_once('sdilene-hlavicky.php');
 
 function ed($datum) { // excel datum
   if(!$datum) return null;

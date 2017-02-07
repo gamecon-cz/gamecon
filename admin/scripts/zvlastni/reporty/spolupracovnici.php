@@ -1,6 +1,6 @@
 <?php
 
-require_once('sdilene-hlavicky.hhp');
+require_once('sdilene-hlavicky.php');
 
 $o=dbQuery('
   SELECT pri.*, GROUP_CONCAT(p.nazev SEPARATOR "\n")
