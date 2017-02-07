@@ -27,8 +27,10 @@ $reporty = [
   ['stravenky?ciste',   'Stravenky (bianco)',                     ['html']],
   ['programove-reporty', 'Programový report (2015)', ['csv', 'html']],
   ['zaplnenost-programu-ucastniku', 'Zaplněnost programu účastníků (2015)', ['csv', 'html']],
-  ['vsechny-maily-mailchimp', 'Všechny maily pro mailchimp'],
-  ['prihlaseni-maily',  'Všechny maily přihlášených účastníků pro mailchimp'],
+  ['maily-prihlaseni',  'Maily – přihlášení na GC (vč. unsubscribed)', ['csv', 'html']],
+  ['maily-neprihlaseni','Maily – nepřihlášení na GC',             ['csv', 'html']],
+  ['maily-vypraveci',   'Maily – vypravěči (vč. unsubscribed)',   ['csv', 'html']],
+  ['maily-vsichni',     'Maily – všichni',                        ['csv', 'html']],
   ['celkovy-report',    '<br>Celkový report '.ROK.'<br><br>',     ['csv', 'html']],
 ];
 
@@ -62,12 +64,6 @@ $reporty = [
     </tr>
   <?php } ?>
 </table>
-
-<h2>Seznamy mailů</h2>
-<a href="./reporty/maily1" onclick="return!window.open(this.href)">nepřihlášení na letošní GC</a>, 
-<a href="./reporty/maily2" onclick="return!window.open(this.href)">přihlášení na letošní GC</a>,
-<a href="./reporty/maily3" onclick="return!window.open(this.href)">vypravěči (aktuální)</a>
-
 
 <h2>Quick reporty <span class="hinted">ℹ<span class="hint">tyto reporty samy náhodně mizí a nelze tomu zabránit. Proto není možné na ně spoléhat</span></span></h2>
 

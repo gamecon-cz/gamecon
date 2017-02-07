@@ -8,7 +8,7 @@
  * na více místech), že se tak stalo.   
  */  
 
-require_once('sdilene-hlavicky.hhp');
+require_once('sdilene-hlavicky.php');
 
 $o=dbQuery('
   SELECT u.*

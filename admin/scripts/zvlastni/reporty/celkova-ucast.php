@@ -1,6 +1,6 @@
 <?php
 
-require_once('sdilene-hlavicky.hhp');
+require_once('sdilene-hlavicky.php');
 
 // seznam roku vezmeme z aktivit
 $sql_roky = dbQuery("SELECT MIN(rok) FROM akce_seznam GROUP BY rok ORDER BY rok");

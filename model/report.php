@@ -32,6 +32,17 @@ class Report
   }
 
   /**
+   * Vytiskne report v zadaném formátu. Pokud není zadán, použije výchozí csv.
+   * @throws Exception pokud formát není podporován
+   */
+  function tFormat($format = null) {
+    if(!$format)                $this->tCsv(); // výchozí
+    elseif($format == 'csv')    $this->tCsv();
+    elseif($format == 'html')   $this->tHtml();
+    else                        throw new Exception('formát není podporován');
+  }
+
+  /**
    * Vytiskne report jako HTML tabulku
    */
   function tHtml($param = 0)

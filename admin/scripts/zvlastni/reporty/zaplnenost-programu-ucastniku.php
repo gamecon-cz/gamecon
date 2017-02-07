@@ -1,6 +1,6 @@
 <?php
 
-require_once('sdilene-hlavicky.hhp');
+require_once('sdilene-hlavicky.php');
 
 $sums = "";
 for ($i = 16; $i <= 19; $i++) { //16 a 19 jsou data pořádání GC v roce 2015
