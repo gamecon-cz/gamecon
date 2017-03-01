@@ -2,7 +2,9 @@
 
 <!-- begin:post -->
   <h1>{blog.nazev}</h1>
-  {blog.text}
+  <p><img src="{blog.obrazek}"></p>
+  <div class="autor">{blog.autor}, {blog.vydat.formatBlog}</div>
+  {blog.hlavniText}
 <!-- end:post -->
 
 <!-- begin:seznam -->

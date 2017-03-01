@@ -102,7 +102,20 @@ hr.stin { border: none; background-image: data-uri('gradient2.png'); height: 4px
       + p > img { margin-top: -@tpad; }
     }
   }
+  .autor {
+    text-align: right;
+    font-style: italic;
+    color: #888;
+    margin-top: -16px;
+    margin-bottom: -4px;
+  }
+  @media @siroke {
+    .autor { //výpis autora a datumu blogu na konci stránky
+      margin-right: -37px;
+    }
+  }
 }
+
 .stranka-mix(@bpad) {
   // mixin starající se o různou šířku okrajů podle parametru aby nebylo potřeba
   // toto rozkopírovávat do různých media queries
@@ -114,9 +127,11 @@ hr.stin { border: none; background-image: data-uri('gradient2.png'); height: 4px
     }
   }
 }
+
 .stranka {
   .stranka-mix(3%);
 }
+
 @media @siroke {
   @sloupw: (100 - 2 * @sloupm) / 3;
   @bpad: 8%;
