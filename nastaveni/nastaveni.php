@@ -75,6 +75,7 @@ define('P_UBYTOVANI_ZDARMA',1008); //má _všechno_ ubytování zdarma
 define('P_UBYTOVANI_STREDA_ZDARMA', 1015); // má středeční noc zdarma
 define('P_ADMIN_UVOD', 100);    //přístup na titulku adminu
 define('P_ADMIN_MUJ_PREHLED', 109);
+define('P_NERUSIT_OBJEDNAVKY', 1016); // nebudou mu automaticky rušeny objednávky
 unset($pre);
 
 

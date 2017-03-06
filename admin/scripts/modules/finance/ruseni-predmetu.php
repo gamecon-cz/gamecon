@@ -20,7 +20,7 @@ $uzivatele = [];
 if(post('vypsat') || post('rusit')) {
   foreach(Uzivatel::zPrihlasenych() as $un) {
     if($un->finance()->stav() < $zustatek) {
-      // TODO vyjmout z výběru uživatele se spec. právem, uvést že jsou vyňati do popisu
+      if($un->maPravo(P_NERUSIT_OBJEDNAVKY)) continue;
       $uzivatele[] = $un;
     }
   }
