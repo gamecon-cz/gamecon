@@ -1,6 +1,6 @@
 <?php
 
-/** 
+/**
  * Rychlé finanční transakce (obsolete) (starý kód)
  *
  * nazev: Finance
