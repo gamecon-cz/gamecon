@@ -27,3 +27,4 @@ define('URL_CACHE', '/gamecon/cache/public'); // url sdílených cachí
 define('GOOGLE_ANALYTICS', false);
 define('CRON_KEY', '123');
 define('UNIVERZALNI_HESLO', ''); // obejití zadávání hesla pro vývojové prostředí
+define('MIGRACE_HESLO', '');
