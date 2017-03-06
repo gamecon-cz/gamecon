@@ -4,7 +4,7 @@
  * Nástroj na automatické rušení předmětů daného typu uživatelům s zůstatkem
  * menším jak X.
  *
- * nazev: Automatické rušení objednávek
+ * nazev: Hromadné rušení objednávek
  * pravo: 108
  */
 
