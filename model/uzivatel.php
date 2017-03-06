@@ -785,6 +785,19 @@ class Uzivatel
   }
 
   /**
+   * Vrátí pole uživatelů přihlášených na letošní GC
+   */
+  static function zPrihlasenych() {
+    return self::zWhere('
+      WHERE u.id_uzivatele IN(
+        SELECT id_uzivatele
+        FROM r_uzivatele_zidle
+        WHERE id_zidle = ' . Z_PRIHLASEN . '
+      )
+    ');
+  }
+
+  /**
    * Pokusí se načíst uživatele podle aktivní session případně z perzistentního
    * přihlášení.
    * @param string $klic klíč do $_SESSION kde očekáváme hodnoty uživatele

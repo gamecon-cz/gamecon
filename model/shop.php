@@ -439,6 +439,22 @@ class Shop
     $this->zmenObjednavku($ma, $chce);
   }
 
+  static function zrusObjednavkyPro($uzivatele, $typ) {
+    $povoleneTypy = [self::PREDMET, self::UBYTOVANI, self::TRICKO, self::JIDLO];
+    if(!in_array($typ, $povoleneTypy)) {
+      throw new Exception('Tento typ objednávek není možné hromadně zrušit');
+    }
+
+    $ids = array_map(function($u) { return $u->id(); }, $uzivatele);
+
+    dbQuery('
+      DELETE sn
+      FROM shop_nakupy sn
+      JOIN shop_predmety sp ON sp.id_predmetu = sn.id_predmetu AND sp.typ = $1
+      WHERE sn.id_uzivatele IN ($2) AND sn.rok = $3
+    ', [$typ, $ids, ROK]);
+  }
+
   ////////////////////
   // Protected věci //
   ////////////////////
