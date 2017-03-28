@@ -7,6 +7,8 @@
 
 require __DIR__ . '/../nastaveni/zavadec.php';
 
+//if(HTTPS_ONLY) httpsOnly(); // TODO wedos cron nepodporuje https, zakomentováno
+
 if(!defined('CRON_KEY') || get('key') !== CRON_KEY)
   die('špatný klíč');
 

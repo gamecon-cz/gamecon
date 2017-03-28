@@ -25,6 +25,9 @@ define('URL_ADMIN', '/gamecon/admin'); // absolutní url adminu
 define('URL_CACHE', '/gamecon/cache/public'); // url sdílených cachí
 
 define('GOOGLE_ANALYTICS', false);
+define('MIGRACE_HESLO', '');
+define('HTTPS_ONLY', false);
+
+// nepovinné konstanty
 define('CRON_KEY', '123');
 define('UNIVERZALNI_HESLO', ''); // obejití zadávání hesla pro vývojové prostředí
-define('MIGRACE_HESLO', '');

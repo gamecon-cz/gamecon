@@ -51,6 +51,6 @@ system("php $deployment $nastaveniOstra");
 echo "\nMigrace DB - ostrá\n";
 system(
   'curl --data "cFleeVar=' . OSTRA_MIGRACE_HESLO . '" --silent ' . // skrýt progressbar
-  escapeshellarg('http://admin.gamecon.cz/migrace.php')
+  escapeshellarg('https://admin.gamecon.cz/migrace.php')
 );
 echo "\n\n";
