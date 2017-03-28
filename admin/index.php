@@ -5,6 +5,8 @@ require __DIR__ . '/../nastaveni/zavadec.php';
 require_once __DIR__ . '/scripts/konstanty.php'; // lokální konstanty pro admin
 require_once __DIR__ . '/scripts/admin-menu.php'; // třída administračního menu
 
+if(HTTPS_ONLY) httpsOnly();
+
 // nastaví uživatele $u a $uPracovni
 require('scripts/prihlaseni.php');
 

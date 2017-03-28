@@ -2,6 +2,8 @@
 
 require __DIR__ . '/../nastaveni/zavadec.php';
 
+if(HTTPS_ONLY) httpsOnly();
+
 (new Flee([
   'migrationFolder' =>  __DIR__ . '/../migrace',
   'backupFolder'    =>  SPEC . '/db-backup',

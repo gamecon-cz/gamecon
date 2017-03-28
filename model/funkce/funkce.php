@@ -183,6 +183,20 @@ function hlaskaMail($nazev,$u=null) {
 
 
 /**
+ * Přesměruje na adresu s https, pokud jde požadavek z adresy s http,
+ * a následně ukončí skript.
+ */
+function httpsOnly() {
+  if(empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == 'off') {
+    $redirect = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+    //header('HTTP/1.1 301 Moved Permanently');
+    header('Location: ' . $redirect);
+    exit();
+  }
+}
+
+
+/**
  * Předá chybu volajícímu skriptu, vyvolá reload
  */
 function chyba($zprava) {
@@ -415,6 +429,10 @@ function profilInfo()
     </div>';
 }
 
+
+/**
+ * Vytvoří zapisovatelnou složku, pokud taková už neexistuje
+ */
 function pripravCache($slozka) {
   if(is_writable($slozka)) return;
   if(is_dir($slozka)) throw new Exception("Do existující cache složky '$slozka' není možné zapisovat");
