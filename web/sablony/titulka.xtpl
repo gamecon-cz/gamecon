@@ -89,8 +89,8 @@
 <!-- hack na posun dolních panelů -->
 <style>
 @media (min-width: 800px) {
-.obsah > .sloupce:last-child > :nth-child(1) { margin-top: -200px; height: 395px; overflow: hidden; }
-.obsah > .sloupce:last-child > :nth-child(3) { margin-top: -80px; height: 275px; overflow: hidden; }
+.obsah > .sloupce:last-child > :nth-child(1) { margin-top: -95px; height: 290px; overflow: hidden; }
+.obsah > .sloupce:last-child > :nth-child(3) { margin-top: -53px; height: 250px; overflow: hidden; }
 }
 </style>
 
