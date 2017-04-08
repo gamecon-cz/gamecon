@@ -25,18 +25,11 @@ class Nahled {
 
   /** Vrátí url obrázku, je možné ji cacheovat navždy */
   function __toString() {
-    $hash = md5($this->soubor . $this->mod . $this->v . $this->s . $this->kvalita);
-    $cache = CACHE . '/img/' . $hash . '.jpg';
-    $url = URL_CACHE . '/img/' . $hash . '.jpg?m=' . $this->datum;
     try {
-      if(@filemtime($cache) < $this->datum) {
-        pripravCache(CACHE . '/img/');
-        $this->uloz($cache);
-      }
+      return $this->url();
     } catch(Exception $e) {
-      $url = '';
+      return ''; // __toString nesmí vyhazovat výjimky
     }
-    return $url;
   }
 
   /** Nastaví kvalitu jpeg exportu */
@@ -76,6 +69,18 @@ class Nahled {
     if($this->mod == self::POKRYJ) $o->fillCrop($s, $v);
     if($this->mod == self::POKRYJ_OREZ) $o->fill($s, $v);
     $o->uloz($cil, $this->kvalita);
+  }
+
+  /** Vrátí url obrázku, je možné ji cacheovat navždy */
+  function url() {
+    $hash = md5($this->soubor . $this->mod . $this->v . $this->s . $this->kvalita);
+    $cache = CACHE . '/img/' . $hash . '.jpg';
+    $url = URL_CACHE . '/img/' . $hash . '.jpg?m=' . $this->datum;
+    if(@filemtime($cache) < $this->datum) {
+      pripravCache(CACHE . '/img/');
+      $this->uloz($cache);
+    }
+    return $url;
   }
 
   static function zSouboru($nazev) {

@@ -179,7 +179,7 @@ class Obrazek
     $o = @imagecreatefromjpeg($soubor)
       ?: @imagecreatefrompng($soubor)
       ?: @imagecreatefromgif($soubor);
-    if($o === false) throw new Exception('Obrázek se nepodařilo načíst.');
+    if($o === false) throw new Exception("Obrázek '$soubor' se nepodařilo načíst.");
     return new self($o, $soubor);
   }
 
