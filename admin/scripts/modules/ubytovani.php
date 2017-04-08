@@ -1,6 +1,6 @@
 <?php
 
-/** 
+/**
  * Stránka k editaci ubytovacích informací
  *
  * nazev: Ubytování
@@ -76,6 +76,12 @@ if(post('zpracujJidlo')) {
 }
 
 
+if(post('zpracujParcon')) {
+  $shop->parconZpracuj();
+  oznameni('Nastavení přihlášky na Parcon upraveno');
+}
+
+
 $t = new XTemplate('ubytovani.xtpl');
 
 
@@ -111,6 +117,7 @@ if($uPracovni && $uPracovni->gcPrihlasen()) {
   $t->assign('shop', $shop);
   $t->parse('ubytovani.ubytovani');
   $t->parse('ubytovani.jidlo');
+  $t->parse('ubytovani.parcon');
 }
 
 if(!$uPracovni) {
