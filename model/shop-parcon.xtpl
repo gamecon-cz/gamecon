@@ -1,0 +1,14 @@
+<!-- begin: parcon -->
+
+<p>
+  <input type="checkbox" name="{postname}" id="parcon" {checked}>
+  <label for="parcon">
+    Chci se účastnit Parconu ({cena}&thinsp;Kč)
+  </label>
+</p>
+
+<!-- begin: zdarma -->
+<p><i>Jako vypravěč{ka} (přednášející) máš Parcon zdarma.</i></p>
+<!-- end: zdarma -->
+
+<!-- end: parcon -->

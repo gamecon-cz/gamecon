@@ -30,6 +30,7 @@ if(!empty($_POST)) {
   $shop->zpracujSlevy();
   $shop->zpracujJidlo();
   $shop->zpracujVstupne();
+  $shop->parconZpracuj();
   $pomoc->zpracuj();
   if($prihlasovani) {
     $_SESSION['ga_tracking_prihlaska'] = true; //hack pro zobrazení js kódu úspěšné google analytics konverze
@@ -57,13 +58,15 @@ $t->assign([
   'ulozitNeboPrihlasit' =>  $u->gcPrihlasen() ? 'Uložit změny' : 'Přihlásit na GameCon',
   'vstupne'   =>  $shop->vstupneHtml(),
   'pomoc'     =>  $pomoc->html(),
+  'parcon'    =>  $shop->parconHtml(),
 ]);
 
 $predmety = ['tricko', 'kostka', 'placka'];
 foreach($predmety as $p) {
   foreach(['', '_m'] as $k) { // přidaná koncovka (modifikátor) k názvu
     $n = $p.$k;
-    $t->assign($n, Nahled::zSouboru('soubory/obsah/materialy/2015/'.$n.'.jpg')->kvalita(98).'.jpg'); //jpg na konec kvůli lightbox bugu
+    $nahled = Nahled::zSouboru('soubory/obsah/materialy/'.ROK.'/'.$n.'.jpg')->kvalita(98)->url();
+    $t->assign($n, $nahled . '.jpg'); // další .jpg na konec kvůli lightbox bugu
   }
 }
 
