@@ -7,6 +7,7 @@ class Menu {
   protected $stranky = [
     'prihlaska'           =>  'Přihláška:&ensp;',
     'o-gameconu'          =>  'Co je GameCon?',
+    'o-parconu'           =>  'Co je ParCon?',
     'chci-se-zapojit'     =>  'Chci pomoci',
     'chci-se-prihlasit'   =>  'Chci se přihlásit',
     'en'                  =>  'English program',
