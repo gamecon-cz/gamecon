@@ -685,6 +685,30 @@ class Aktivita
   }
 
   /**
+   * @return počet týmů přihlášených na tuto aktivitu
+   */
+  protected function pocetTeamu() {
+    $id = $this->id();
+    $idRegex = '(^|,)' . $this->id() . '(,|$)'; // reg. výraz odpovídající id aktivity v seznamu odděleném čárkami
+    return dbOneCol('
+      SELECT COUNT(1)
+      FROM (
+        -- vybereme aktivity základního kola, z kterých se dá dostat do této aktivity (viz WHERE)
+        SELECT a.id_akce
+        FROM akce_seznam a
+        -- připojíme k každé aktivitě přihlášené účastníky
+        LEFT JOIN akce_prihlaseni prihlaseni_zaklad ON prihlaseni_zaklad.id_akce = a.id_akce
+        -- připojíme k každému účastníkovi, jestli je přihlášen i na tuto semifinálovou aktivitu
+        LEFT JOIN akce_prihlaseni prihlaseni_toto ON prihlaseni_toto.id_uzivatele = prihlaseni_zaklad.id_uzivatele AND prihlaseni_toto.id_akce = $0
+        WHERE a.dite RLIKE $1
+        GROUP BY a.id_akce
+        -- vybereme jenom aktivity, z který je víc jak 0 přihlášeno i na toto semifinále
+        HAVING COUNT(prihlaseni_toto.id_uzivatele) > 0
+      ) poddotaz
+    ', [$id, $idRegex]);
+  }
+
+  /**
    * Přihlásí uživatele na aktivitu
    * @todo koncepčnější ignorování stavu
    */
@@ -700,6 +724,19 @@ class Aktivita
         if($rodic->prihlasen($u)) throw new Chyba(hlaska('maxJednou'));
       }
     }
+    if($this->a['team_kapacita'] !== null) {
+      $jeNovyTym = false; // jestli se uživatel přihlašuje jako první z nového/dalšího týmu
+      foreach($this->rodice() as $rodic) {
+        if($rodic->prihlasen($u) && $rodic->prihlaseno() == 1) {
+          $jeNovyTym = true;
+          break;
+        }
+      }
+      if($jeNovyTym && $this->pocetTeamu() >= $this->a['team_kapacita']) {
+        throw new Exception('Na aktivitu ' . $this->nazev() . ': ' . $this->denCas() . ' je už přihlášen maximální počet týmů');
+      }
+    }
+
     // potlačitelné kontroly
     if($this->a['zamcel'] && !($ignorovat & self::ZAMEK)) throw new Chyba(hlaska('zamcena'));
     if(!$this->prihlasovatelna($ignorovat)) {
@@ -710,6 +747,7 @@ class Aktivita
       $this->a['stav'] = $puvodniStav;
       if(!$prihlasovatelna) throw new Exception('Aktivita není otevřena pro přihlašování.');
     }
+
     // přihlášení na navázané aktivity (jen pokud není teamleader)
     if($this->a['dite'] && $this->prihlaseno() > 0) {
       $deti = $this->deti();
@@ -730,6 +768,7 @@ class Aktivita
         if(!$uspech) throw new Exception('Nepodařilo se určit výběr dalšího kola.');
       }
     }
+
     // přihlášení na samu aktivitu (uložení věcí do DB)
     $aid = $this->id();
     $uid = $u->id();
