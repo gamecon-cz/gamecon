@@ -43,8 +43,10 @@
   <hr>
 
   <h2 style="margin-bottom:0"><span class="hinted i">Jídlo <span class="hint">
-    Jídlo je možné objednat nebo zrušit vždy nejpozději 2 dny předem.<br><br>
-    Máme na výběr z 3–5 jídel, která jsou vždy stejná na oběd i večeři a jedno vegetariánské jídlo.
+    <ul class="seznam-bez-okraje">
+    <li>Jídlo je možné objednat nebo zrušit do 16.7.</li>
+    <li>Na výběr je z 3–5 jídel, která jsou vždy stejná na oběd i večeři a jedno vegetariánské jídlo.</li>
+    </ul>
   </span></span></h2>
   {jidlo}
 
@@ -53,8 +55,12 @@
   <h2 style="margin-bottom:0"><span class="hinted i">
     Ubytování
     <span class="hint" style="z-index: 9999">
-      Čísla ukazují počet obsazených míst / celkem. Ubytování je pro zájemce k dispozici už od středy, program začíná ve <strong>čtvrtek</strong> v poledne. Ubytování v neděli znamená noc z neděle na pondělí, kdy už opět neprobíhá program a v pondělí je potřeba pokoj vyklidit v 9:00.<br><br>
-      Ubytování je možné změnit/zrušit do 17. července, poté se při zrušení účtuje storno poplatek ve výši ceny první noci.
+      <ul class="seznam-bez-okraje">
+      <li>Ubytování je možné objednat nebo zrušit do 16.7.</li>
+      <li>Čísla ukazují počet obsazených míst / celkem.</li> 
+      <li>Ubytování je k dispozici od středy, program začíná ve <strong>čtvrtek</strong> v poledne.</li>
+      <li>Ubytování v neděli znamená noc z neděle na pondělí, kdy už neprobíhá program. V pondělí je potřeba pokoj vyklidit do 9:00.</li>
+      </ul>
     </span>
   </span></h2>
   <div class="ubytovani">{ubytovani}</div>
