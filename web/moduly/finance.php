@@ -79,9 +79,13 @@ if(!$zaplaceno)
   </p>
 
   <?php if($limit){ ?>
-    <p>GameCon je nutné zaplatit převodem <strong>do <?=$limit?></strong>. Platíš celkem <strong><?=$castka?></strong>, variabilní symbol je tvoje ID <strong><?=$uid?></strong>. Při pozdější platbě ti systém <strong>1.7 automaticky odhlásí aktivity</strong>.</p>
-    <p>Pokud si aktivity (znovu) přihlásíš po 30.6., beze slevy nebo na místě pak platíš <?=$pozde?>.</p>
-    <p>Při plánování aktivit si na účet pošli klidně více peněz. Přebytek ti vrátíme na infopultu nebo ho můžeš využít k přihlašování uvolněných aktivit na místě.</p>
+    <p>GameCon je nutné zaplatit převodem <strong>do <?=$limit?></strong>. Platíš celkem <strong><?=$castka?></strong>, variabilní symbol je tvoje ID <strong><?=$uid?></strong>.</p>
+    
+    <ul class="seznam-bez-okraje">
+    <li class="poznamka">Při pozdější platbě tě systém dne <strong>1.7</strong> (příp. 16.7. při pozdější přihlášce)<strong> automaticky odhlásí</strong>.</li>
+    <li class="poznamka">Pokud si aktivity (znovu) přihlásíš po 30.6., beze slevy nebo na místě pak platíš <?=$pozde?>.</li>
+    <li class="poznamka">Při plánování aktivit si na účet pošli klidně více peněz. Přebytek ti vrátíme na infopultu nebo ho můžeš využít k přihlašování uvolněných aktivit na místě.</li>
+    </ul>
   <?php }else{ ?>
     <p>Období pro slevu za včasnou platbu vypršelo, zaplatit tedy můžeš převodem nebo na místě celkem <strong><?=$castka?></strong>.</p>
   <?php } ?>
