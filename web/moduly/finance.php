@@ -63,24 +63,30 @@ if(!$zaplaceno)
 
 <div style="clear:both"></div>
 
-<h2 id="placeni">Platba</h2>
 <?php if(!$zaplaceno){ ?>
   <p>
   <?php if($u->stat()=='CZ'){ ?>
-    <strong>Číslo účtu:</strong> <?=UCET_CZ?>
+    <h2 id="placeni">Platba</h2>
+    <strong>Číslo účtu:</strong> <?=UCET_CZ?><br>
+    <strong>Variabilní symbol:</strong> <?=$uid?><br>
   <?php }else{ ?>
-    <strong>Číslo účtu pro SR:</strong> <?=UCET_SK?> (Platba v Eurech)
-  <?php } ?><br>
-  <strong>Variabilní symbol:</strong> <?=$uid?><br>
+    <h2 id="placeni">Platba (SEPA)</h2>
+    <strong>IBAN:</strong> <?=IBAN?><br>
+    <strong>BIC/SWIFT:</strong> <?=BIC_SWIFT?><br>
+    <strong>Poznámka pro příjemce:</strong> /VS/<?=$uid?> <i>(vč. lomítek)</i><br>
+  <?php } ?>
   <strong>Částka k zaplacení:</strong> <?=$castka?>
   <?php if($limit){ ?>
-    do <?=$limit?> (<?=$pozde?> později)
+    do <?=$limit?> <i>(<?=$pozde?> později)</i>
   <?php } ?>
   </p>
 
   <?php if($limit){ ?>
-    <p>GameCon je nutné zaplatit převodem <strong>do <?=$limit?></strong>. Platíš celkem <strong><?=$castka?></strong>, variabilní symbol je tvoje ID <strong><?=$uid?></strong>.</p>
-    
+    <?php if($u->stat()=='CZ'){ ?>
+      <p>GameCon je nutné zaplatit převodem <strong>do <?=$limit?></strong>. Platíš celkem <strong><?=$castka?></strong>, variabilní symbol je tvoje ID <strong><?=$uid?></strong>.</p>
+    <?php }else{ ?>
+      <p>GameCon je nutné zaplatit převodem <strong>do <?=$limit?></strong>. Platíš celkem <strong><?=$castka?></strong>, přesné údaje o platbě nalezneš výše.</p>
+    <?php } ?>
     <ul class="seznam-bez-okraje">
     <li class="poznamka">Při pozdější platbě tě systém dne <strong>1.7</strong> (příp. 16.7. při pozdější přihlášce)<strong> automaticky odhlásí</strong>.</li>
     <li class="poznamka">Pokud si aktivity (znovu) přihlásíš po 30.6., beze slevy nebo na místě pak platíš <?=$pozde?>.</li>
@@ -90,11 +96,16 @@ if(!$zaplaceno)
     <p>Období pro slevu za včasnou platbu vypršelo, zaplatit tedy můžeš převodem nebo na místě celkem <strong><?=$castka?></strong>.</p>
   <?php } ?>
 <?php }else{ ?>
-  <p>Všechny tvoje pohledávky jsou <strong style="color:green">v pořádku zaplaceny</strong>, není potřeba nic platit. Pokud si ale chceš dokupovat aktivity na místě se slevou nebo bez nutnosti používat hotovost, můžeš si samozřejmě kdykoli převést peníze do zásoby na:</p>
   <?php if($u->stat()=='CZ'){ ?>
-    <strong>Číslo účtu:</strong> <?=UCET_CZ?>
+    <h2 id="placeni">Platba</h2>
+    <p>Všechny tvoje pohledávky jsou <strong style="color:green">v pořádku zaplaceny</strong>, není potřeba nic platit. Pokud si ale chceš dokupovat aktivity na místě se slevou nebo bez nutnosti používat hotovost, můžeš si samozřejmě kdykoli převést peníze do zásoby na:</p>
+    <strong>Číslo účtu:</strong> <?=UCET_CZ?><br>
+    <strong>Variabilní symbol:</strong> <?=$uid?><br>
   <?php }else{ ?>
-    <strong>Číslo účtu pro SR:</strong> <?=UCET_SK?> (Platba v Eurech)
-  <?php } ?><br>
-  <strong>Variabilní symbol:</strong> <?=$uid?><br>
+    <h2 id="placeni">Platba (SEPA)</h2>
+    <p>Všechny tvoje pohledávky jsou <strong style="color:green">v pořádku zaplaceny</strong>, není potřeba nic platit. Pokud si ale chceš dokupovat aktivity na místě se slevou nebo bez nutnosti používat hotovost, můžeš si samozřejmě kdykoli převést peníze do zásoby na:</p>
+    <strong>IBAN:</strong> <?=IBAN?><br>
+    <strong>BIC/SWIFT:</strong> <?=BIC_SWIFT?><br>
+    <strong>Poznámka pro příjemce:</strong> /VS/<?=$uid?> <i>(vč. lomítek)</i><br>
+  <?php } ?>
 <?php } ?>

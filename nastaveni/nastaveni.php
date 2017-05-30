@@ -84,9 +84,10 @@ unset($pre);
 // Finanční nastavení //
 ////////////////////////
 
-define('KURZ_EURO',26.00);            // kurz kč:euro
-define('UCET_CZ','2800035147/2010');  // číslo účtu pro platby v CZK - v statických stránkách není
-define('UCET_SK','2800035147/8330');  // číslo účtu pro platby v EUR - v statických stránkách není
+define('KURZ_EURO', 26.00);                 // kurz kč:euro
+define('UCET_CZ', '2800035147/2010');       // číslo účtu pro platby v CZK - v statických stránkách není
+define('IBAN', 'CZ2820100000002800035147'); // mezinárodní číslo účtu
+define('BIC_SWIFT', 'FIOBCZPPXXX');         // mezinárodní ID (něco jako mezinárodní VS)
 //define('FIO_TOKEN', ''); // tajné - musí nastavit lokální soubor definic
 
 
@@ -173,9 +174,6 @@ define('ODHLASENI_POKUTA_KONTROLA_DATE',ROK.'-07-18'); //den, od kterého (00:00
 define('ODHLASENI_POKUTA_KONTROLA',time()-strtotime(ODHLASENI_POKUTA_KONTROLA_DATE)>0);  //jestli se má kontrolovat pozdní odhlášní z aktivit
 define('ODHLASENI_POKUTA1_H',24);      //kolik hodin před aktivitou se začne uplatňovat pokuta 1
 //ceny věcí
-$GLOBALS['KURZ_EURO']=KURZ_EURO;
-$GLOBALS['UCET_CZ']=UCET_CZ;
-$GLOBALS['UCET_SK']=UCET_SK;
 define('DEN_PRVNI_DATE', date('Y-m-d', strtotime(PROGRAM_OD))); // první den v programu ve formátu YYYY-MM-DD
 define('DEN_PRVNI_UBYTOVANI', DEN_PRVNI_DATE);                  // datum, kterému odpovídá ubytovani_den (tabulka shop_predmety) v hodnotě 0
 define('PROGRAM_ZACATEK', $GLOBALS['PROGRAM_ZACATEK'] = 8);     // první hodina programu
