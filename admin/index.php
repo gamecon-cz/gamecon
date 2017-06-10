@@ -70,6 +70,7 @@ else
   {
     $_SESSION['id_admin'] = $u->id(); // součást interface starých modulů
     $_SESSION['id_uzivatele'] = $uPracovni ? $uPracovni->id() : null ; // součást interface starých modulů
+    $BEZ_DEKORACE = false;
     $cwd = getcwd(); // uložíme si aktuální working directory pro pozdější návrat
     if(isset($submenu) && $submenu)
     {
@@ -83,10 +84,13 @@ else
     }
     ob_start(); // výstup uložíme do bufferu
     require($soubor);
-    $xtpl->assign('obsahRetezec',ob_get_clean());
+    $vystup = ob_get_clean();
+    if($BEZ_DEKORACE) echo $vystup;
+    else              $xtpl->assign('obsahRetezec', $vystup);
     chdir($cwd);
     unset($_SESSION['id_uzivatele']);
     unset($_SESSION['id_admin']);
+    if($BEZ_DEKORACE) return;
   }
   elseif(!$u->maPravo($menu[$stranka]['pravo']))
     $xtpl->parse('all.nenalezeno');
