@@ -68,9 +68,9 @@ else
   // konstrukce stránky
   if(isset($menu[$stranka]) && $u->maPravo($menu[$stranka]['pravo']))
   {
-    $_SESSION['id_admin'] = $u->id(); //součást interface starých modulů
-    $_SESSION['id_uzivatele'] = $uPracovni ? $uPracovni->id() : null ; //součást interface starých modulů
-    $cwd=getcwd(); //uložíme si aktuální working directory pro pozdější návrat
+    $_SESSION['id_admin'] = $u->id(); // součást interface starých modulů
+    $_SESSION['id_uzivatele'] = $uPracovni ? $uPracovni->id() : null ; // součást interface starých modulů
+    $cwd = getcwd(); // uložíme si aktuální working directory pro pozdější návrat
     if(isset($submenu) && $submenu)
     {
       chdir('./scripts/modules/'.$stranka.'/');
@@ -81,7 +81,7 @@ else
       chdir('./scripts/modules/');
       $soubor=$cwd.'/'.$menu[$stranka]['soubor'];
     }
-    ob_start(); //výstup uložíme do bufferu
+    ob_start(); // výstup uložíme do bufferu
     require($soubor);
     $xtpl->assign('obsahRetezec',ob_get_clean());
     chdir($cwd);
@@ -141,5 +141,5 @@ else
   $xtpl->assign('jsVyjimkovac', Vyjimkovac::js(URL_WEBU.'/ajax-vyjimkovac'));
   $xtpl->parse('all');
   $xtpl->out('all');
-  profilInfo();  
+  profilInfo();
 }
