@@ -2,6 +2,7 @@
 
 /**
  * Stránka s linky na reporty
+ *
  * Reporty jsou obecně neoptimalizovaný kód (cyklické db dotazy apod.), nepočítá
  * se s jejich časově kritickým použitím.
  *
@@ -34,48 +35,32 @@ $reporty = [
   ['celkovy-report',    '<br>Celkový report '.ROK.'<br><br>',     ['csv', 'html']],
 ];
 
+$t = new XTemplate('reporty.xtpl');
 
-?>
+foreach($reporty as $r) {
+  $kontext = [
+    'nazev' =>  $r[1],
+    'html'  =>  '',
+    'csv'   =>  '',
+  ];
+  if(!isset($r[2]) || $r[2][0] == 'csv') {
+    $kontext['csv'] = '<a href="reporty/'.$r[0].'">csv</a>';
+  }
+  if(isset($r[2])) {
+    if($r[2][0] == 'html') {
+      $kontext['html'] = '<a href="reporty/'.$r[0].'" target="_blank">html</a>';
+    } else {
+      $kontext['html'] = '<a href="reporty/'.$r[0].'?format=html" target="_blank">html</a>';
+    }
+  }
+  $t->assign($kontext);
+  $t->parse('reporty.report');
+}
 
-<h2>Univerzální reporty</h2>
+foreach(dbIterator('SELECT * FROM reporty') as $r) {
+  $t->assign($r);
+  $t->parse('reporty.quick');
+}
 
-<table class="zvyraznovana">
-  <tr>
-    <th>Report</th>
-    <th colspan="2">Formáty</th>
-  </tr>
-  <?php foreach($reporty as $r) { ?>
-    <tr>
-      <td><?=$r[1]?></td>
-      <td>
-        <?php if(!isset($r[2]) || $r[2][0] == 'csv') { ?>
-          <a href="reporty/<?=$r[0]?>">csv</a>
-        <?php } ?>
-      </td>
-      <td>
-        <?php if(isset($r[2])) { ?>
-          <?php if($r[2][0] == 'html') { ?>
-            <a href="reporty/<?=$r[0]?>" target="_blank">html</a>
-          <?php } else { ?>
-            <a href="reporty/<?=$r[0]?>?format=html" target="_blank">html</a>
-          <?php } ?>
-        <?php } ?>
-      </td>
-    </tr>
-  <?php } ?>
-</table>
-
-<h2>Quick reporty <span class="hinted">ℹ<span class="hint">tyto reporty samy náhodně mizí a nelze tomu zabránit. Proto není možné na ně spoléhat</span></span></h2>
-
-<table class="zvyraznovana">
-  <tr>
-    <th>Název</th>
-    <th></th>
-  </tr>
-  <?php foreach(dbIterator('SELECT * FROM reporty') as $r) { ?>
-  <tr>
-    <td><?=$r['nazev']?></td>
-    <td><a href="reporty/quick?id=<?=$r['id']?>" class="tlacitko">upravit</a></td>
-  </tr>
-  <?php } ?>
-</table>
+$t->parse('reporty');
+$t->out('reporty');

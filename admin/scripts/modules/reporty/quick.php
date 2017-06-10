@@ -27,7 +27,14 @@ if($r) {
   $sql = strtr($r['dotaz'], getConstants());
   try {
     ob_start();
-    Report::zSql($sql)->tHtml(Report::BEZ_STYLU);
+    $report = Report::zSql($sql);
+    if(get('format')) {
+      $BEZ_DEKORACE = true;
+      $report->tFormat(get('format'));
+      return;
+    } else {
+      $report->tHtml(Report::BEZ_STYLU);
+    }
     ob_end_flush();
   } catch(DbException $e) {
     ob_end_clean();
@@ -35,7 +42,6 @@ if($r) {
   }
   echo '<br><br>';
 }
-
 
 ?>
 
