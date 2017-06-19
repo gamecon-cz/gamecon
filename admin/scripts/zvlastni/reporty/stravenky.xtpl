@@ -2,7 +2,7 @@
 <style>
 
 .radek { page-break-inside: avoid; display: inline-block; font-family: sans-serif; border-left: none; }
-.radek > div { float: left; width: 40mm; height: 24mm; padding: 2mm; box-shadow:
+.radek > div { float: left; width: 22mm; height: 22mm; padding: 2mm; box-shadow:
     1px 0 0 0,
     0 1px 0 0,
     1px 1px 0 0,   /* Just to fix the corner */
@@ -20,8 +20,8 @@
   <!-- begin:jidlo -->
   <div class="jidlo">
     <img src="../files/design/logo.png">
-    <div>{nazev}</div>
-    <div style="color: #888; font-style: italic;">{login_uzivatele} ({id_uzivatele})</div>
+    <div style="font-weight: bold;">{nazev}</div>
+    <div style="color: #444; font-style: italic; text-align: right; font-size: 11pt; margin-top: 2mm;">{login_uzivatele} ({id_uzivatele})</div>
   </div>
   <!-- end:jidlo -->
   <hr>
