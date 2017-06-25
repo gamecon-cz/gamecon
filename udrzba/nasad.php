@@ -22,8 +22,8 @@ $deployment = escapeshellarg(realpath(__DIR__ . '/../vendor/dg/ftp-deployment/de
 exec('git rev-parse --abbrev-ref HEAD', $out);
 $vetev = $out[0]; // TODO test na master?
 if($vetev !== 'master') {
-  echo "error: you're not on master branch\n";
-  exit(1);
+  echo "notice: you're not on master branch, skipping auto deployment\n";
+  exit(0);
 }
 exec('git status', $out);
 if(end($out) !== 'nothing to commit, working directory clean') {
