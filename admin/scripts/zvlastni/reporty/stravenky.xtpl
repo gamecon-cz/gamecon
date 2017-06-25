@@ -1,12 +1,17 @@
 <!-- begin:stravenky -->
 <style>
 
-.radek { border: solid 0.3mm; page-break-inside: avoid; display: inline-block; font-family: sans-serif; border-left: none; }
-.radek > div { float: left; width: 16mm; height: 16mm; padding: 2mm; border-left: solid 0.3mm; overflow: hidden; position: relative; }
+body { font-size: 4mm; font-family: sans-serif; }
+.radek { border: solid 0.3mm; page-break-inside: avoid; display: inline-block; border-left: none; }
+.radek > div { float: left; width: 16mm; height: 32mm; padding: 2mm; border-left: solid 0.3mm; overflow: hidden; position: relative; }
 .radek > hr { margin: 0; border: 0; clear: both; height: 0; }
 .jidlo > img { width: 100%; position: absolute; top: 0; left: 0; opacity: 0.5; }
 
 </style>
+
+<!-- begin:upozorneni -->
+<h1 style="color: red">Tisknout na šířku!</h1>
+<!-- end:upozorneni -->
 
 <!-- begin:uzivatel -->
 <div class="radek">
@@ -14,7 +19,7 @@
   <!-- begin:jidlo -->
   <div class="jidlo">
     <img src="../files/design/logo.png">
-    <div style="position:absolute">{nazev}</div>
+    <div>{nazev}<br><br>{login_uzivatele} ({id_uzivatele})</div>
   </div>
   <!-- end:jidlo -->
   <hr>
