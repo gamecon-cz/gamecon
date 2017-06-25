@@ -12,7 +12,7 @@ if(!isset($_GET['ciste'])) {
     JOIN r_uzivatele_zidle z ON(z.id_uzivatele = u.id_uzivatele AND z.id_zidle = '.Z_PRIHLASEN.')
     JOIN shop_nakupy n ON(n.id_uzivatele = u.id_uzivatele AND n.rok = '.ROK.')
     JOIN shop_predmety p ON(p.id_predmetu = n.id_predmetu AND p.typ = '.Shop::JIDLO.')
-    ORDER BY u.id_uzivatele, p.ubytovani_den, p.nazev
+    ORDER BY u.id_uzivatele, p.ubytovani_den DESC, p.nazev DESC
   ');
 
   $curr = mysqli_fetch_assoc($o);
@@ -24,6 +24,8 @@ if(!isset($_GET['ciste'])) {
     $curr = $next;
     $next = mysqli_fetch_assoc($o);
   }
+
+  $t->parse('stravenky.upozorneni');
 
 } else {
 
@@ -37,6 +39,8 @@ if(!isset($_GET['ciste'])) {
     }
     $t->parse('stravenky.uzivatel');
   }
+
+  // Netisknout upozornění, protože se tiskne 1 list. Zabíralo by místo.
 
 }
 
