@@ -13,7 +13,7 @@ class Menu {
     'en'                  =>  'English program',
     'prakticke-informace' =>  'Praktické informace',
     'kontakty'            =>  'Kontakty',
-    'https://www.facebook.com/media/set/?set=a.1049227911755210.1073741834.127768447234499&type=3&pnref=story&hc_location=ufi' => 'Fotogalerie',
+    'https://www.facebook.com/pg/gamecon/photos/?tab=album&album_id=1646393038705358' => 'Fotogalerie',
   ];
   protected $url;
 
