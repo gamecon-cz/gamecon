@@ -3,12 +3,15 @@
 /**
  * Třída aktivity
  */
-class Aktivita
-{
+class Aktivita {
 
-  protected
-    $a,     // databázový řádek s aktivitou
-    $nova;  // jestli jde o nově uloženou aktivitu nebo načtenou z DB
+  use Prednacitani;
+
+  private
+    $a,         // databázový řádek s aktivitou
+    $kolekce,   // nadřízená kolekce, v rámci které byla aktivita načtena
+    $nova,      // jestli jde o nově uloženou aktivitu nebo načtenou z DB
+    $organizatori;
 
   const
     AJAXKLIC='aEditFormTest',  // název post proměnné, ve které jdou data, pokud chceme ajaxově testovat jejich platnost a čekáme json odpověď
@@ -384,6 +387,10 @@ class Aktivita
     return $this->a['kapacita'] + $this->a['kapacita_m'] + $this->a['kapacita_f'];
   }
 
+  protected function kolekce() {
+    return $this->kolekce->getArrayCopy();
+  }
+
   /** Vrátí DateTime objekt konce aktivity */
   function konec() {
     if(is_string($this->a['konec']))
@@ -537,9 +544,16 @@ class Aktivita
         if((int)$id)
           dbQuery('INSERT INTO akce_organizatori(id_akce, id_uzivatele)
             VALUES ('.$this->id().','.(int)$id.')');
+    } else {
+      if(!isset($this->organizatori)) $this->prednactiMN([
+        'atribut'       =>  'organizatori',
+        'cil'           =>  Uzivatel::class,
+        'tabulka'       =>  'akce_organizatori',
+        'zdrojSloupec'  =>  'id_akce',
+        'cilSloupec'    =>  'id_uzivatele',
+      ]);
+      return $this->organizatori;
     }
-    $orgs = $this->a['organizatori'] ? substr($this->a['organizatori'], 1, -1) : null;
-    return Uzivatel::zIds($orgs);
   }
 
   /**
@@ -570,34 +584,6 @@ class Aktivita
     else
       $id = (int)$u;
     return strpos($this->a['organizatori'], ','.$id.',') !== false;
-  }
-
-  /**
-   * Vrátí pole odkazů (html) na organizátory
-   * @todo hack obcházející nedořešené orm, viz
-   * @see orgJmena (to je stejný případ)
-   */
-  function orgUrls() {
-    $a = [];
-    $ids = explode(',', trim($this->a['organizatori'], ','));
-    foreach(explode(',', trim($this->a['orgJmena'], ',')) as $i => $r) {
-      if(!$r) continue;
-      $r = explode('|', $r);
-      $zobrazit = Uzivatel::jmenoNickZjisti([
-        'jmeno_uzivatele' => $r[0],
-        'login_uzivatele' => $r[1],
-        'prijmeni_uzivatele' => $r[2]
-      ]);
-      $url = mb_strtolower($r[1]);
-      if(!$r[0]) // nemá jméno
-        0; // nedělat nic, asi vypravěčská skupina nebo podobně
-      elseif(!Url::povolena($url))
-        $zobrazit = '<a href="aktivity?vypravec='.$ids[$i].'">'.$zobrazit.'</a>';
-      else
-        $zobrazit = '<a href="'.$url.'">'.$zobrazit.'</a>';
-      $a[] = $zobrazit;
-    }
-    return $a;
   }
 
   /**
@@ -1500,7 +1486,7 @@ class Aktivita
     $url_akce       = 'IF(t2.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = t2.patri_pod), t2.url_akce) as url_temp';
     $prihlaseni     = 'CONCAT(",",GROUP_CONCAT(p.id_uzivatele,u.pohlavi,p.id_stavu_prihlaseni),",") AS prihlaseni';
     $organizatori   = 'CONCAT(",",GROUP_CONCAT(o.id_uzivatele),",") AS organizatori';
-    $orgJmena       = 'CONCAT(",",GROUP_CONCAT(u.jmeno_uzivatele, "|", u.login_uzivatele, "|", u.prijmeni_uzivatele  ),",") AS orgJmena';
+    $orgJmena       = 'CONCAT(",",GROUP_CONCAT(u.jmeno_uzivatele, "|", u.login_uzivatele, "|", u.prijmeni_uzivatele  ),",") AS orgJmena'; // TODO nakonec smazat org-related věci v souvislosti s zavedením ORM
     $tagy           = 'GROUP_CONCAT(t.nazev) as tagy';
     $o = dbQueryS("
       SELECT t3.*, $tagy FROM (
@@ -1525,12 +1511,16 @@ class Aktivita
       GROUP BY t3.id_akce
       $order
     ", $args);
-    $p = [];
+
+    $kolekce = new ArrayIterator();
     while($r = mysqli_fetch_assoc($o)) {
       $r['url_akce'] = $r['url_temp'];
-      $p[] = new self($r);
+      $aktivita = new self($r);
+      $aktivita->kolekce = $kolekce;
+      $kolekce[$r['id_akce']] = $aktivita;
     }
-    return new ArrayIterator($p);
+
+    return $kolekce;
   }
 
 

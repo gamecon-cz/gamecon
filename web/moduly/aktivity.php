@@ -6,6 +6,17 @@ Aktivita::prihlasovatkoZpracuj($u);
 Aktivita::vyberTeamuZpracuj($u);
 Tym::vypisZpracuj($u);
 
+/**
+ * Pomocná fce pro vykreslení seznamu linků na základě organizátorů
+ */
+function orgUrls($organizatori) {
+  $vystup = [];
+  foreach($organizatori as $o) {
+    if(!$o->url()) continue;
+    $vystup[] = '<a href="'.$o->url().'">'.$o->jmenoNick().'</a>';
+  }
+  return $vystup;
+}
 
 // Načtení organizátora, pokud je zadán přes ID
 if(get('vypravec')) {
@@ -111,11 +122,11 @@ while($a) {
         $t->parse('aktivity.aktivita.tymTermin.vypis');
       }
     }
-    $t->assign('orgJmenaTym', implode($a->orgUrls()));
+    $t->assign('orgJmenaTym', implode(orgUrls($a->organizatori())));
     $t->parse('aktivity.aktivita.tymTermin');
   } else {
     $t->parse('aktivity.aktivita.termin');
-    $orgUrls = array_merge($orgUrls, $a->orgUrls());
+    $orgUrls = array_merge($orgUrls, orgUrls($a->organizatori()));
   }
 
   // vlastnosti per skupina (hack)

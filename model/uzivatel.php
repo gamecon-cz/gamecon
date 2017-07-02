@@ -655,6 +655,19 @@ class Uzivatel
     return $this->u['telefon_uzivatele'];
   }
 
+  /**
+   * @return Vrátí url cestu k stránce uživatele (bez domény).
+   */
+  function url() {
+    $url = mb_strtolower($this->u['login_uzivatele']);
+    if(!$this->u['jmeno_uzivatele'])
+      return null; // nevracet url, asi vypravěčská skupina nebo podobně
+    elseif(!Url::povolena($url))
+      return 'aktivity?vypravec=' . $this->id();
+    else
+      return $url;
+  }
+
   public function vek()
   {
     if($this->u['datum_narozeni'] == '0000-00-00' || $this->u['datum_narozeni'] == '1970-01-01') return null;
