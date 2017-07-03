@@ -587,22 +587,16 @@ class Aktivita {
   }
 
   /**
-   * Vrátí iterátor jmen organizátorů v lidsky čitelné podobě
-   * @todo hack obcházející nedořešené orm (vracet pole uživatelů neumíme efektivně)
+   * @return Vrátí iterátor jmen organizátorů v lidsky čitelné podobě.
+   * @deprecated Použít přístup přes organizatori() a jmenoNick() například.
    */
   function orgJmena() {
-    $orgove = [];
-    $orgIn = explode(',', substr($this->a['orgJmena'], 1, -1));
-    foreach($orgIn as $org) {
-      if(!$org) continue;
-      $r = explode('|', $org);
-      $orgove[] = Uzivatel::jmenoNickZjisti([
-        'jmeno_uzivatele' => $r[0],
-        'login_uzivatele' => $r[1],
-        'prijmeni_uzivatele' => $r[2]
-      ]);
+    // TODO logování deprekace
+    $jmena = new ArrayIteratorTos;
+    foreach($this->organizatori() as $o) {
+        $jmena[] = $o->jmenoNick();
     }
-    return new ArrayIteratorTos($orgove);
+    return $jmena;
   }
 
   /** Vrátí specifické označení organizátora pro aktivitu tohoto typu */
@@ -1485,13 +1479,15 @@ class Aktivita {
   protected static function zWhere($where, $args = null, $order = null) {
     $url_akce       = 'IF(t2.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = t2.patri_pod), t2.url_akce) as url_temp';
     $prihlaseni     = 'CONCAT(",",GROUP_CONCAT(p.id_uzivatele,u.pohlavi,p.id_stavu_prihlaseni),",") AS prihlaseni';
+
+    // TODO nakonec smazat org-related věci v souvislosti s zavedením ORM
     $organizatori   = 'CONCAT(",",GROUP_CONCAT(o.id_uzivatele),",") AS organizatori';
-    $orgJmena       = 'CONCAT(",",GROUP_CONCAT(u.jmeno_uzivatele, "|", u.login_uzivatele, "|", u.prijmeni_uzivatele  ),",") AS orgJmena'; // TODO nakonec smazat org-related věci v souvislosti s zavedením ORM
+
     $tagy           = 'GROUP_CONCAT(t.nazev) as tagy';
     $o = dbQueryS("
       SELECT t3.*, $tagy FROM (
         SELECT t2.*, $prihlaseni, $url_akce FROM (
-          SELECT t1.*, $organizatori, $orgJmena FROM (
+          SELECT t1.*, $organizatori FROM (
             SELECT a.*, at.url_typu, al.poradi
             FROM akce_seznam a
             LEFT JOIN akce_typy at ON (at.id_typu = a.typ)
@@ -1499,7 +1495,6 @@ class Aktivita {
             $where
           ) as t1
           LEFT JOIN akce_organizatori o ON (o.id_akce = t1.id_akce)
-          LEFT JOIN uzivatele_hodnoty u ON (u.id_uzivatele = o.id_uzivatele)
           GROUP BY t1.id_akce
         ) as t2
         LEFT JOIN akce_prihlaseni p ON (p.id_akce = t2.id_akce)
