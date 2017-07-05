@@ -13,6 +13,7 @@ return [
       !/cache/private/.htaccess
       /cache/public/*
       !/cache/public/.htaccess
+      /dokumentace
       /nastaveni/*
       !/nastaveni/nastaveni-produkce.php
       !/nastaveni/nastaveni.php
