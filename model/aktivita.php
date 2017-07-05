@@ -146,22 +146,28 @@ class Aktivita {
    */
   protected static function editorChyby($a) {
     $chyby = [];
-    if(empty($a['den'])) return [];
-    // hack - převod začátku a konce z formátu formu na legitimní formát data a času
-    $a['zacatek'] = (new DateTimeCz($a['den']))->add(new DateInterval('PT'.$a['zacatek'].'H'))->formatDb();
-    $a['konec'] = (new DateTimeCz($a['den']))->add(new DateInterval('PT'.$a['konec'].'H'))->formatDb();
-    foreach($a['organizatori'] as $org) {
-      if(!maVolno($org, $a, isset($a['id_akce'])?$a['id_akce']:null)) {
-        $k = maVolnoKolize();
-        $k = current($k);
-        $chyby[] = 'Organizátor '.Uzivatel::zId($org)->jmenoNick().' má v danou dobu '.$k['nazev_akce'].' ('.datum2($k).')';
+
+    // kontrola dostupnosti organizátorů v daný čas
+    if(!empty($a['den'])) {
+      // hack - převod začátku a konce z formátu formu na legitimní formát data a času
+      $a['zacatek'] = (new DateTimeCz($a['den']))->add(new DateInterval('PT'.$a['zacatek'].'H'))->formatDb();
+      $a['konec'] = (new DateTimeCz($a['den']))->add(new DateInterval('PT'.$a['konec'].'H'))->formatDb();
+      foreach($a['organizatori'] as $org) {
+        if(!maVolno($org, $a, isset($a['id_akce'])?$a['id_akce']:null)) {
+          $k = maVolnoKolize();
+          $k = current($k);
+          $chyby[] = 'Organizátor '.Uzivatel::zId($org)->jmenoNick().' má v danou dobu '.$k['nazev_akce'].' ('.datum2($k).')';
+        }
       }
     }
+
+    // kontrola duplicit url
     if(dbOneLineS('SELECT 1 FROM akce_seznam
       WHERE url_akce = $1 AND ( patri_pod = 0 OR patri_pod != $2 ) AND id_akce != $3 AND rok = $4',
       [$a['url_akce'], $a['patri_pod'], $a['id_akce'], ROK])) {
       $chyby[] = 'Url je už použitá pro jinou aktivitu. Vyberte jinou, nebo použijte tlačítko „inst“ v seznamu aktivit pro duplikaci.';
     }
+
     return $chyby;
   }
 
