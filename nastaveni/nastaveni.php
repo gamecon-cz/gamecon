@@ -177,5 +177,5 @@ define('ODHLASENI_POKUTA1_H',24);      //kolik hodin před aktivitou se začne u
 //ceny věcí
 define('DEN_PRVNI_DATE', date('Y-m-d', strtotime(PROGRAM_OD))); // první den v programu ve formátu YYYY-MM-DD
 define('DEN_PRVNI_UBYTOVANI', DEN_PRVNI_DATE);                  // datum, kterému odpovídá ubytovani_den (tabulka shop_predmety) v hodnotě 0
-define('PROGRAM_ZACATEK', $GLOBALS['PROGRAM_ZACATEK'] = 8);     // první hodina programu
-define('PROGRAM_KONEC', $GLOBALS['PROGRAM_KONEC'] = 24);        // konec programu (tuto hodinu už se nehraje)
+define('PROGRAM_ZACATEK', 8);   // první hodina programu
+define('PROGRAM_KONEC', 24);    // konec programu (tuto hodinu už se nehraje)

@@ -131,34 +131,59 @@ class Aktivita {
   /**
    * Vrátí HTML kód editoru aktivit určený pro vytváření a editaci aktivity.
    * Podle nastavení $a buď aktivitu edituje nebo vytváří.
+   * @todo Zkusit refaktorovat editor na samostatnou třídu, pokud to půjde bez
+   * vytvoření závislostí na vnitřní proměnné aktivity.
    */
-  static function editor(Aktivita $a=null)
-  {
+  static function editor(Aktivita $a = null) {
     return self::editorParam($a);
+  }
+
+  /**
+   * Vrátí pole obsahující chyby znemožňující úpravu aktivity. Hodnoty jsou
+   * chybové hlášky. Význam indexů ndef (todo možno rozšířit).
+   * @param $a Pole odpovídající strukturou vkládanému (upravovanému) řádku DB,
+   * podle toho nemá (má) id aktivity
+   */
+  protected static function editorChyby($a) {
+    $chyby = [];
+    if(empty($a['den'])) return [];
+    // hack - převod začátku a konce z formátu formu na legitimní formát data a času
+    $a['zacatek'] = (new DateTimeCz($a['den']))->add(new DateInterval('PT'.$a['zacatek'].'H'))->formatDb();
+    $a['konec'] = (new DateTimeCz($a['den']))->add(new DateInterval('PT'.$a['konec'].'H'))->formatDb();
+    foreach($a['organizatori'] as $org) {
+      if(!maVolno($org, $a, isset($a['id_akce'])?$a['id_akce']:null)) {
+        $k = maVolnoKolize();
+        $k = current($k);
+        $chyby[] = 'Organizátor '.Uzivatel::zId($org)->jmenoNick().' má v danou dobu '.$k['nazev_akce'].' ('.datum2($k).')';
+      }
+    }
+    if(dbOneLineS('SELECT 1 FROM akce_seznam
+      WHERE url_akce = $1 AND ( patri_pod = 0 OR patri_pod != $2 ) AND id_akce != $3 AND rok = $4',
+      [$a['url_akce'], $a['patri_pod'], $a['id_akce'], ROK])) {
+      $chyby[] = 'Url je už použitá pro jinou aktivitu. Vyberte jinou, nebo použijte tlačítko „inst“ v seznamu aktivit pro duplikaci.';
+    }
+    return $chyby;
   }
 
   /**
    * Vrátí v chyby v JSON formátu (pro ajax) nebo FALSE pokud žádné nejsou
    */
-  static function editorChybyJson()
-  {
-    //if(!$_POST[self::AJAXKLIC]) ?
-    $a=$_POST[self::POSTKLIC];
-    return json_encode(['chyby'=>self::editorChyby($a)]);
+  static function editorChybyJson() {
+    $a = $_POST[self::POSTKLIC];
+    return json_encode(['chyby' => self::editorChyby($a)]);
   }
 
   /**
    * Vrátí html kód editoru, je možné parametrizovat, co se pomocí něj dá
    * měnit (todo)
    */
-  protected static function editorParam(Aktivita $a=null,$omezeni=[])
-  {
-    $aktivita=$a?$a->a:null; //databázový řádek
+  protected static function editorParam(Aktivita $a = null, $omezeni = []) {
+    $aktivita = $a ? $a->a : null; // databázový řádek
+
     // inicializace šablony
-    $xtpl=new XTemplate(__DIR__.'/editor.xtpl');
-    $xtpl->assign('fields',self::POSTKLIC); // název proměnné (pole) v kterém se mají posílat věci z formuláře
+    $xtpl = new XTemplate(__DIR__.'/editor.xtpl');
+    $xtpl->assign('fields', self::POSTKLIC); // název proměnné (pole) v kterém se mají posílat věci z formuláře
     $xtpl->assign('ajaxKlic',self::AJAXKLIC);
-    //  $xtpl->assign('readonly','disabled');
     $xtpl->assign('obrKlic', self::OBRKLIC);
     $xtpl->assign('obrKlicUrl', self::OBRKLIC.'Url');
     $xtpl->assign('pnTagy', self::TAGYKLIC);
@@ -171,18 +196,19 @@ class Aktivita {
       $xtpl->assign('urlObrazku', $a->obrazek());
       $xtpl->assign('vybaveni', $a->vybaveni());
     }
+
     // načtení lokací
-    if(!$omezeni || !empty($omezeni['lokace']))
-    {
-      $q=dbQuery('SELECT * FROM akce_lokace ORDER BY poradi');
-      while($r=mysqli_fetch_assoc($q))
-        $xtpl->assign('sel',$a && $aktivita['lokace']==$r['id_lokace']?'selected':'') xor
-        $xtpl->assign($r) xor
+    if(!$omezeni || !empty($omezeni['lokace'])) {
+      $q = dbQuery('SELECT * FROM akce_lokace ORDER BY poradi');
+      while($r = mysqli_fetch_assoc($q)) {
+        $xtpl->assign('sel', $a && $aktivita['lokace'] == $r['id_lokace'] ? 'selected' : '');
+        $xtpl->assign($r);
         $xtpl->parse('upravy.tabulka.lokace');
+      }
     }
+
     // editace dnů + časů
-    if(!$omezeni || !empty($omezeni['zacatek']))
-    {
+    if(!$omezeni || !empty($omezeni['zacatek'])) {
       // načtení dnů
       $xtpl->assign('sel',$a && !$a->zacatek() ? 'selected' : '');
       $xtpl->assign('den',0);
@@ -197,28 +223,29 @@ class Aktivita {
       // načtení časů
       $aZacatek = $a && $a->zacatek() ? $a->zacatek()->format('G') : PHP_INT_MAX;
       $aKonec = $a && $a->konec() ? $a->konec()->sub(new DateInterval('PT1H'))->format('G') : PHP_INT_MAX;
-      for($i=$GLOBALS['PROGRAM_ZACATEK']=8;$i<$GLOBALS['PROGRAM_KONEC']=24;$i++)
-      {
-        $xtpl->assign('sel', $aZacatek==$i ? 'selected' : '');
-        $xtpl->assign('zacatek',$i);
-        $xtpl->assign('zacatekSlovy',$i.':00');
+      for($i = PROGRAM_ZACATEK; $i < PROGRAM_KONEC; $i++) {
+        $xtpl->assign('sel', $aZacatek == $i ? 'selected' : '');
+        $xtpl->assign('zacatek', $i);
+        $xtpl->assign('zacatekSlovy', $i.':00');
         $xtpl->parse('upravy.tabulka.zacatek');
-        $xtpl->assign('sel', $aKonec==$i ? 'selected' : '');
+        $xtpl->assign('sel', $aKonec == $i ? 'selected' : '');
         $xtpl->assign('konec', $i+1);
         $xtpl->assign('konecSlovy',($i+1).':00');
         $xtpl->parse('upravy.tabulka.konec');
       }
     }
+
     // načtení organizátorů
-    if(!$omezeni || !empty($omezeni['organizator']))
-    {
-      $q=dbQuery('SELECT u.id_uzivatele, u.login_uzivatele, u.jmeno_uzivatele, u.prijmeni_uzivatele
+    if(!$omezeni || !empty($omezeni['organizator'])) {
+      $q = dbQuery('
+        SELECT u.id_uzivatele, u.login_uzivatele, u.jmeno_uzivatele, u.prijmeni_uzivatele
         FROM uzivatele_hodnoty u
         LEFT JOIN r_uzivatele_zidle z USING(id_uzivatele)
         LEFT JOIN r_prava_zidle p USING(id_zidle)
-        WHERE p.id_prava='.P_ORG_AKCI.'
+        WHERE p.id_prava = '.P_ORG_AKCI.'
         GROUP BY u.id_uzivatele
-        ORDER BY u.login_uzivatele');
+        ORDER BY u.login_uzivatele
+      ');
       $vsichniOrg = [ 0 => '(nikdo)' ];
       while($r = mysqli_fetch_assoc($q)) {
         $vsichniOrg[$r['id_uzivatele']] = Uzivatel::jmenoNickZjisti($r);
@@ -241,19 +268,21 @@ class Aktivita {
         $xtpl->parse('upravy.tabulka.orgBox');
       }
     }
+
     // načtení typů
-    if(!$omezeni || !empty($omezeni['typ']))
-    {
+    if(!$omezeni || !empty($omezeni['typ'])) {
       $xtpl->assign(['sel'=>'','id_typu'=>0,'typ_1p'=>'(bez typu – organizační)']);
       $xtpl->parse('upravy.tabulka.typ');
-      $q=dbQuery('SELECT * FROM akce_typy');
-      while($r=mysqli_fetch_assoc($q))
-        $xtpl->assign('sel',$a && $r['id_typu']==$aktivita['typ']?'selected':'') xor
-        $xtpl->assign($r) xor
+      $q = dbQuery('SELECT * FROM akce_typy');
+      while($r = mysqli_fetch_assoc($q)) {
+        $xtpl->assign('sel', $a && $r['id_typu'] == $aktivita['typ'] ? 'selected' : '');
+        $xtpl->assign($r);
         $xtpl->parse('upravy.tabulka.typ');
+      }
     }
+
     // výstup
-    if(empty($omezeni)) $xtpl->parse('upravy.tabulka'); // todo ne pokud je bez omezení, ale pokud je omezeno všechno. Pokud jen něco, doprogramovat selektivní omezení pro prvky tabulky i u IFů nahoře a vložit do šablony
+    if(empty($omezeni)) $xtpl->parse('upravy.tabulka'); // TODO ne pokud je bez omezení, ale pokud je omezeno všechno. Pokud jen něco, doprogramovat selektivní omezení pro prvky tabulky i u IFů nahoře a vložit do šablony
     $xtpl->parse('upravy');
     return $xtpl->text('upravy');
   }
@@ -261,8 +290,7 @@ class Aktivita {
   /**
    * Vrátí, jestli se volající stránka snaží získat JSON data pro ověření formu
    */
-  static function editorTestJson()
-  {
+  static function editorTestJson() {
     if(isset($_POST[self::AJAXKLIC]))
       return true;
     else
@@ -274,12 +302,15 @@ class Aktivita {
    * @return vrací null pokud se nic nestalo nebo aktualizovaný objekt Aktivita,
    *   pokud k nějaké aktualizaci došlo.
    */
-  static function editorZpracuj()
-  {
+  static function editorZpracuj() {
     if(!isset($_POST[self::POSTKLIC])) return null;
-    $a=$_POST[self::POSTKLIC];
-    if(empty($a['url_akce']) && !empty($_POST[self::POSTKLIC.'staraUrl'])) // v případě nezobrazení tabulky a tudíž chybějícího text. pole s url (viz šablona) se použije hidden pole s původní url
-      $a['url_akce']=$_POST[self::POSTKLIC.'staraUrl'];
+
+    // úprava přijatých dat
+    $a = $_POST[self::POSTKLIC];
+    // v případě nezobrazení tabulky a tudíž chybějícího text. pole s url (viz šablona) se použije hidden pole s původní url
+    if(empty($a['url_akce']) && !empty($_POST[self::POSTKLIC.'staraUrl'])) {
+      $a['url_akce'] = $_POST[self::POSTKLIC.'staraUrl'];
+    }
     $a['bez_slevy'] = (int)!empty($a['bez_slevy']); //checkbox pro "bez_slevy"
     $a['teamova']   = (int)!empty($a['teamova']);   //checkbox pro "teamova"
     $a['team_min']  = $a['teamova'] ? (int)$a['team_min'] : null;
@@ -299,46 +330,47 @@ class Aktivita {
     unset($a['organizatori']);
     $popis = $a['popis'];
     unset($a['popis']);
-    if(!$a['patri_pod'] && $a['id_akce'])
-    { // editace jediné aktivity
-      dbInsertUpdate('akce_seznam',$a);
+
+    // uložení změn do akce_seznam
+    if(!$a['patri_pod'] && $a['id_akce']) {
+      // editace jediné aktivity
+      dbInsertUpdate('akce_seznam', $a);
       $aktivita = self::zId($a['id_akce']);
-    }
-    else if($a['patri_pod'])
-    { // editace aktivity z rodiny instancí
-      $doHlavni = ['url_akce', 'popis', 'vybaveni']; // věci, které se mají změnit jen u hlavní (master) instance
-      $doAktualni=['lokace','zacatek','konec']; // věci, které se mají změnit jen u aktuální instance
-      $aktivita = self::zId($a['id_akce']);
+    } elseif($a['patri_pod']) {
+      // editace aktivity z rodiny instancí
+      $doHlavni   = ['url_akce', 'popis', 'vybaveni'];  // věci, které se mají změnit jen u hlavní (master) instance
+      $doAktualni = ['lokace','zacatek','konec'];       // věci, které se mají změnit jen u aktuální instance
+      $aktivita   = self::zId($a['id_akce']);
       // (zbytek se změní v obou)
       // určení hlavní aktivity
-      $idHlavni=dbOneCol('SELECT MIN(id_akce) FROM akce_seznam WHERE patri_pod='.(int)$a['patri_pod']);
-      $patriPod=$a['patri_pod'];
+      $idHlavni = dbOneCol('SELECT MIN(id_akce) FROM akce_seznam WHERE patri_pod = '.(int)$a['patri_pod']);
+      $patriPod = $a['patri_pod'];
       unset($a['patri_pod']);
       // změny v hlavní aktivitě
-      $zmenyHlavni=array_diff_key($a,array_flip($doAktualni));
-      $zmenyHlavni['id_akce']=$idHlavni;
-      dbInsertUpdate('akce_seznam',$zmenyHlavni);
+      $zmenyHlavni = array_diff_key($a, array_flip($doAktualni));
+      $zmenyHlavni['id_akce'] = $idHlavni;
+      dbInsertUpdate('akce_seznam', $zmenyHlavni);
       // změny v konkrétní instanci
-      $zmenyAktualni=array_diff_key($a,array_flip($doHlavni));
-      dbInsertUpdate('akce_seznam',$zmenyAktualni);
+      $zmenyAktualni = array_diff_key($a, array_flip($doHlavni));
+      dbInsertUpdate('akce_seznam', $zmenyAktualni);
       // změny u všech
-      $zmenyVse=array_diff_key($a,array_flip(array_merge($doHlavni,$doAktualni)));
-      unset($zmenyVse['patri_pod'],$zmenyVse['id_akce']); //id se nesmí updatovat!
-      dbUpdate('akce_seznam',$zmenyVse,['patri_pod'=>$patriPod]);
-    }
-    else
-    { // vkládání nové aktivity
+      $zmenyVse = array_diff_key($a, array_flip(array_merge($doHlavni, $doAktualni)));
+      unset($zmenyVse['patri_pod'], $zmenyVse['id_akce']); // id se nesmí updatovat!
+      dbUpdate('akce_seznam', $zmenyVse, ['patri_pod' => $patriPod]);
+    } else {
+      // vkládání nové aktivity
       // inicializace hodnot pro novou aktivitu
-      $a['id_akce']=null;
-      $a['rok']=ROK;
+      $a['id_akce'] = null;
+      $a['rok'] = ROK;
       if($a['teamova']) $a['kapacita'] = $a['team_max']; // při vytváření nové aktivity se kapacita inicializuje na max. teamu
-      empty($a['nazev_akce'])?$a['nazev_akce']='(neurčený název)':0;
-      // vložení, nahrání obrzáku
-      dbInsertUpdate('akce_seznam',$a);
+      if(empty($a['nazev_akce'])) $a['nazev_akce'] = '(neurčený název)';
+      // vložení
+      dbInsertUpdate('akce_seznam', $a);
       $a['id_akce'] = dbInsertId();
       $aktivita = self::zId($a['id_akce']);
-      $aktivita->nova=true;
+      $aktivita->nova = true;
     }
+
     // objektová rozhraní
     if($f = postFile(self::OBRKLIC))      $aktivita->obrazek(Obrazek::zJpg($f));
     if($url = post(self::OBRKLIC.'Url'))  $aktivita->obrazek(Obrazek::zUrl($url));
@@ -351,6 +383,7 @@ class Aktivita {
       if($t) $tagy[] = $t;
     }
     $aktivita->tagy($tagy);
+
     return $aktivita;
   }
 
@@ -1516,39 +1549,6 @@ class Aktivita {
     }
 
     return $kolekce;
-  }
-
-
-  ////////////////////
-  // Protected věci //
-  ////////////////////
-
-  /**
-   * Vrátí pole obsahující chyby znemožňující úpravu aktivity. Hodnoty jsou
-   * chybové hlášky. Význam indexů ndef (todo možno rozšířit).
-   * @param $a Pole odpovídající strukturou vkládanému (upravovanému) řádku DB,
-   * podle toho nemá (má) id aktivity
-   */
-  protected static function editorChyby($a)
-  {
-    $chyby=[];
-    if(empty($a['den'])) return [];
-    // hack - převod začátku a konce z formátu formu na legitimní formát data a času
-    $a['zacatek'] = (new DateTimeCz($a['den']))->add(new DateInterval('PT'.$a['zacatek'].'H'))->formatDb();
-    $a['konec'] = (new DateTimeCz($a['den']))->add(new DateInterval('PT'.$a['konec'].'H'))->formatDb();
-    foreach($a['organizatori'] as $org) {
-      if(!maVolno($org, $a, isset($a['id_akce'])?$a['id_akce']:null)) {
-        $k=maVolnoKolize();
-        $k=current($k);
-        $chyby[]='Organizátor '.Uzivatel::zId($org)->jmenoNick().' má v danou dobu '.$k['nazev_akce'].' ('.datum2($k).')';
-      }
-    }
-    if(dbOneLineS('SELECT 1 FROM akce_seznam
-      WHERE url_akce = $1 AND ( patri_pod = 0 OR patri_pod != $2 ) AND id_akce != $3 AND rok = $4',
-      [$a['url_akce'], $a['patri_pod'], $a['id_akce'], ROK])) {
-      $chyby[] = 'Url je už použitá pro jinou aktivitu. Vyberte jinou, nebo použijte tlačítko „inst“ v seznamu aktivit pro duplikaci.';
-    }
-    return $chyby;
   }
 
 }
