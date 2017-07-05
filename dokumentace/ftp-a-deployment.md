@@ -9,7 +9,7 @@ __Editování struktury databáze přes Adminer je zakázáno.__ K změnám stru
 
 ## Deployment
 
-K nasazení (deploymentu) se používá knihovna FTP deployment. Nasazení na ostrou i betu (vč. upgrade databáze) provádí skript `udrzba/nasad.php`. Nasazení provádí jen jeden člověk, typicky po schválení pull requestu. K nasazení je nutné mít připraveny konfigurační soubory pro betu a produkci.
+K nasazení (deploymentu) se používá knihovna FTP deployment. Nasazení na ostrou i betu (vč. upgrade databáze) provádí skript `udrzba/nasad.php`. Nasazení provádí jen jeden člověk, typicky po schválení pull requestu. K nasazení je nutné mít připraveny konfigurační soubory pro betu a produkci. Které soubory se automaticky nasazují, je určeno v souboru [`udrzba/pomocne/nastaveni-ftpdeploy-ostra.php`](../udrzba/pomocne/nastaveni-ftpdeploy-ostra.php).
 
 Skript pro nasazení se typicky používá jako git pre-push hook, tzn. nasazení probíhá z __lokálního stroje__ v okamžiku, kdy člověk pověřený nasazováním verze dá `git push`.
 
