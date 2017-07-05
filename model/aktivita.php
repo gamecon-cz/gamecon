@@ -256,7 +256,7 @@ class Aktivita {
       while($r = mysqli_fetch_assoc($q)) {
         $vsichniOrg[$r['id_uzivatele']] = Uzivatel::jmenoNickZjisti($r);
       }
-      $aktOrg = $a && $a->a['organizatori'] ? explode(',', substr($a->a['organizatori'], 1, -1)) : [];
+      $aktOrg = $a ? array_map(function($e) { return $e->id(); }, $a->organizatori()) : [];
       $aktOrg[] = 0; // poslední pole má selected 0 (žádný org)
       $poli = count($aktOrg);
       for($i = 0; $i < $poli; $i++) {
@@ -613,19 +613,6 @@ class Aktivita {
   }
 
   /**
-   * Jestli zadaný uživatel/id organizuje tuto aktivitu
-   * @todo vygrepovat a odstranit možnost zadávání přes ID a místo toho se
-   *  na daných místech pokusit získat objekty typu Uživatel
-   */
-  function organizuje($u) {
-    if($u instanceof Uzivatel)
-      $id = $u->id();
-    else
-      $id = (int)$u;
-    return strpos($this->a['organizatori'], ','.$id.',') !== false;
-  }
-
-  /**
    * @return Vrátí iterátor jmen organizátorů v lidsky čitelné podobě.
    * @deprecated Použít přístup přes organizatori() a jmenoNick() například.
    */
@@ -892,7 +879,7 @@ class Aktivita {
         if($stav == 2) $out .= '<em>jako náhradník</em>';
         if($stav == 3) $out .= '<em>neúčast</em>';
         if($stav == 4) $out .= '<em>pozdní odhlášení</em>';
-      } elseif($this->organizuje($u->id())) {
+      } elseif($u->organizuje($this)) {
         $out = '';
       } elseif($this->a['zamcel']) {
         $out = '&#128274;'; //zámek
@@ -1518,23 +1505,15 @@ class Aktivita {
   protected static function zWhere($where, $args = null, $order = null) {
     $url_akce       = 'IF(t2.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = t2.patri_pod), t2.url_akce) as url_temp';
     $prihlaseni     = 'CONCAT(",",GROUP_CONCAT(p.id_uzivatele,u.pohlavi,p.id_stavu_prihlaseni),",") AS prihlaseni';
-
-    // TODO nakonec smazat org-related věci v souvislosti s zavedením ORM
-    $organizatori   = 'CONCAT(",",GROUP_CONCAT(o.id_uzivatele),",") AS organizatori';
-
     $tagy           = 'GROUP_CONCAT(t.nazev) as tagy';
     $o = dbQueryS("
       SELECT t3.*, $tagy FROM (
         SELECT t2.*, $prihlaseni, $url_akce FROM (
-          SELECT t1.*, $organizatori FROM (
-            SELECT a.*, at.url_typu, al.poradi
-            FROM akce_seznam a
-            LEFT JOIN akce_typy at ON (at.id_typu = a.typ)
-            LEFT JOIN akce_lokace al ON (al.id_lokace = a.lokace)
-            $where
-          ) as t1
-          LEFT JOIN akce_organizatori o ON (o.id_akce = t1.id_akce)
-          GROUP BY t1.id_akce
+          SELECT a.*, at.url_typu, al.poradi
+          FROM akce_seznam a
+          LEFT JOIN akce_typy at ON (at.id_typu = a.typ)
+          LEFT JOIN akce_lokace al ON (al.id_lokace = a.lokace)
+          $where
         ) as t2
         LEFT JOIN akce_prihlaseni p ON (p.id_akce = t2.id_akce)
         LEFT JOIN uzivatele_hodnoty u ON (u.id_uzivatele = p.id_uzivatele)

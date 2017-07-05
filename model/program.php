@@ -206,7 +206,7 @@ class Program {
     // určení css tříd
     $classes = [];
     if($this->u && $ao->prihlasen($this->u))  $classes[] = 'prihlasen';
-    if($this->u && $ao->organizuje($this->u)) $classes[] = 'organizator';
+    if($this->u && $this->u->organizuje($ao)) $classes[] = 'organizator';
     if($ao->vDalsiVlne())                     $classes[] = 'vDalsiVlne';
     if(!$ao->volnoPro($this->u))              $classes[] = 'plno';
     if($ao->vBudoucnu())                      $classes[] = 'vBudoucnu';

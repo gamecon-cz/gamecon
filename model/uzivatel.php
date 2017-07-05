@@ -368,6 +368,21 @@ class Uzivatel
     dbQueryS('UPDATE uzivatele_hodnoty SET nechce_maily = NOW() WHERE id_uzivatele = $1', [$id]);
   }
 
+  /**
+   * @return bool Jestli uživatel organizuje danou aktivitu nebo ne.
+   */
+  function organizuje(Aktivita $a) {
+    if(!isset($this->organizovaneAktivityIds)) {
+      $this->organizovaneAktivityIds = dbOneIndex('
+        SELECT a.id_akce
+        FROM akce_organizatori ao
+        JOIN akce_seznam a ON a.id_akce = ao.id_akce AND a.rok = $2
+        WHERE ao.id_uzivatele = $1
+      ', [$this->id(), ROK]);
+    }
+    return isset($this->organizovaneAktivityIds[$a->id()]);
+  }
+
   /** Vrátí medailonek vypravěče */
   function oSobe() {
     return $this->medailonek() ? $this->medailonek()->oSobe() : null;

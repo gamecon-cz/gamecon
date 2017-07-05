@@ -225,6 +225,16 @@ function dbOneCol($q, $p = null) {
 }
 
 /**
+ * Expects one column in select, returns array structured like: col value => true.
+ */
+function dbOneIndex($q, $p = null) {
+  $o = dbQuery($q, $p);
+  $a = [];
+  while(list($v) = mysqli_fetch_row($o)) $a[$v] = true;
+  return $a;
+}
+
+/**
  * Intended for selecting single lines from whatever. If no line found, returns
  * false, otherwise returns asociative array with one line. If multiple lines
  * found, causes crash.
