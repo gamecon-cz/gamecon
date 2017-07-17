@@ -79,7 +79,7 @@ $avatar=$u?$u->avatar():Uzivatel::avatarDefault();
 $o=dbQuery('SELECT login_uzivatele FROM uzivatele_hodnoty '.($u?'WHERE id_uzivatele!='.$u->id():''));
 $loginy='';
 while($r=mysqli_fetch_row($o))
-  $loginy.='"'.strtolower($r[0]).'",';
+  $loginy.='"'.strtolower(strtr($r[0], ['"' => '', "\n" => ''])).'",';
 $loginy=substr($loginy,0,-1);
 
 ?>
