@@ -54,8 +54,8 @@ if(post('prohozeniProvest')) {
   $u2 = Uzivatel::zId(post('u2'));
   $a1 = Aktivita::zId(post('a1'));
   $a2 = Aktivita::zId(post('a2'));
-  $a1->odhlas($u1, BEZ_POKUT);
-  $a2->odhlas($u2, BEZ_POKUT);
+  $a1->odhlas($u1, Aktivita::BEZ_POKUT);
+  $a2->odhlas($u2, Aktivita::BEZ_POKUT);
   $a1 = Aktivita::zId(post('a1')); // hack znovunačtení kvůli chybějícímu invalidate v aktivitě
   $a2 = Aktivita::zId(post('a2'));
   $a1->prihlas($u2);
@@ -89,6 +89,7 @@ if(post('prohozeniNacist')) {
   $t->assign($_POST);
   foreach(['u1', 'u2'] as $name) {
     $ux = Uzivatel::zId(post($name));
+    if(!$ux) chyba('Zadaný uživatel neexistuje');
     foreach(Aktivita::zUzivatele($ux) as $a) {
       if(!$a->teamova() && $a->prihlasovatelna()) {
         $t->assign('a', $a);
