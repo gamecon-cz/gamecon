@@ -259,9 +259,8 @@ class Program {
     $iterator->next();
     // přeskočit případné speciální (neviditelné) aktivity
     if(
-      $a['obj']->viditelna() ||
-      $this->nastaveni['technicke'] ||
-      $this->u && $a['obj']->prihlasen($this->u)
+      $a['obj']->viditelnaPro($this->u) ||
+      $this->nastaveni['technicke']
     ) {
       return $a;
     } else {

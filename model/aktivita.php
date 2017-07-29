@@ -1158,10 +1158,16 @@ class Aktivita
   }
 
   /**
-   * Jestli má být aktivita běžně veřejně vidět
+   * Jestli má uživatel aktivitu vidět (případně jestli má být vidět veřejně,
+   * pokud $u == null).
    */
-  function viditelna() {
-    return in_array($this->a['stav'], [1, 2, 4, 5]);
+  function viditelnaPro(Uzivatel $u = null) {
+    return (
+      in_array($this->a['stav'], [1, 2, 4, 5]) // podle stavu je aktivita viditelná
+        && !($this->a['typ'] == Typ::TECHNICKA && $this->a['stav'] == 2) || // ale skrýt technické proběhnuté
+      $u && $this->prihlasen($u) ||
+      $u && $this->organizuje($u)
+    );
   }
 
   /**

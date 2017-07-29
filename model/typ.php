@@ -9,6 +9,7 @@ class Typ extends DbObject {
   protected static $pk = 'id_typu';
 
   const DRD = 9;
+  const TECHNICKA = 10;
 
   /** Vrátí popisek bez html a názvu */
   function bezNazvu() {
