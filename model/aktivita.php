@@ -1172,7 +1172,7 @@ class Aktivita {
       in_array($this->a['stav'], [1, 2, 4, 5]) // podle stavu je aktivita viditelná
         && !($this->a['typ'] == Typ::TECHNICKA && $this->a['stav'] == 2) || // ale skrýt technické proběhnuté
       $u && $this->prihlasen($u) ||
-      $u && $this->organizuje($u)
+      $u && $u->organizuje($this)
     );
   }
 
