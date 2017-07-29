@@ -12,7 +12,7 @@ if(post('loginNAdm') && post('hesloNAdm')) {
 }
 $u = Uzivatel::zSession();
 if(post('odhlasNAdm')) {
-  $u->odhlas();
+  if($u) $u->odhlas();
   back();
 }
 
