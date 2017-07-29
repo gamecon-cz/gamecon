@@ -167,10 +167,11 @@ class Obrazek
   }
 
   /** Načte obrázek z JPG souboru */
-  static function zJpg($soubor)
-  {
-    $o = imagecreatefromjpeg($soubor);
-    if($o === false) throw new Exception('Obrázek se nepodařilo načíst.');
+  static function zJpg($soubor) {
+    $o = false;
+    if(@exif_imagetype($soubor) !== IMAGETYPE_JPEG) throw new ObrazekException;
+    $o = @imagecreatefromjpeg($soubor);
+    if($o === false) throw new ObrazekException;
     return new self($o, $soubor);
   }
 
@@ -186,11 +187,15 @@ class Obrazek
   /** Stáhne a nahraje obrázek z url */
   static function zUrl($url, $soubor = null)
   {
-    $o = @imagecreatefromjpeg($url)
-      ?: @imagecreatefrompng($url)
-      ?: @imagecreatefromgif($url);
-    if($o === false) throw new Exception('Obrázek se nepodařilo načíst.');
+    $o = false;
+    $typ = @exif_imagetype($url);
+    if($typ === IMAGETYPE_JPEG) $o = @imagecreatefromjpeg($url);
+    if($typ === IMAGETYPE_PNG)  $o = @imagecreatefrompng($url);
+    if($typ === IMAGETYPE_GIF)  $o = @imagecreatefromgif($url);
+    if($o === false) throw new ObrazekException;
     return new self($o, $soubor ?: $url);
   }
 
 }
+
+class ObrazekException extends Exception {}
