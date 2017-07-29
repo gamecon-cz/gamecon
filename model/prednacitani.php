@@ -68,10 +68,10 @@ trait Prednacitani {
 
     // načtení ids cílů plus jejich vložení do zdrojových objektů
     $cilIds = '0';
-    foreach($q as $r) {
-      $zdrojObjekt = $kolekce[$r[$zdrojSloupec]];
-      $zdrojObjekt->$atribut = explode(',', $r[$cilSloupec]);
-      $cilIds .= ',' . $r[$cilSloupec];
+    while($r = mysqli_fetch_row($q)) {
+      $zdrojObjekt = $kolekce[$r[0]];
+      $zdrojObjekt->$atribut = explode(',', $r[1]);
+      $cilIds .= ',' . $r[1];
     }
 
     // vytvoření indexu cílů k vyhledávání podle id
@@ -84,8 +84,9 @@ trait Prednacitani {
     // nahrazení ids v zdrojových objektech za skutečné cílové objekty
     foreach($kolekce as $zdrojObjekt) {
       if(!isset($zdrojObjekt->$atribut)) $zdrojObjekt->$atribut = [];
-      foreach($zdrojObjekt->$atribut as &$a) $a = $cileIndex[$a];
-      unset($a);
+      else $zdrojObjekt->$atribut = array_map(function($a)use($cileIndex) {
+        return $cileIndex[$a];
+      }, $zdrojObjekt->$atribut);
     }
   }
 
