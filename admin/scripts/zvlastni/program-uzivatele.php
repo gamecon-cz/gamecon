@@ -1,5 +1,10 @@
 <?php
 
+if(!$uPracovni) {
+  echo 'Není vybrán uživatel.';
+  return;
+}
+
 $osobniProgram = isset($osobniProgram) ? (bool)$osobniProgram : false;
 
 $program = new Program($uPracovni, [
@@ -11,6 +16,7 @@ $program = new Program($uPracovni, [
   'technicke'   => true,
   'zpetne'      => $u->maPravo(P_ZMENA_HISTORIE),
 ]);
+
 if($uPracovni) {
   Aktivita::prihlasovatkoZpracuj($uPracovni,
     Aktivita::PLUSMINUS_KAZDY |
