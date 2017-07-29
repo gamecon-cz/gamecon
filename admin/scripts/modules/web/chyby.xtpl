@@ -34,6 +34,7 @@
       <div>{jazyk}</div>
       <div class="hinted">{uzivatelu}<div class="hint">{uzivatele}</div></div>
       <div>{posledni}</div>
+      <!-- begin: detailUrl --><div><a href="{detailUrl}" target="_blank">zobrazit</a></div><!-- end: detailUrl -->
     </div>
   </div>
 </div>
