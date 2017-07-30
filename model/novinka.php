@@ -15,7 +15,7 @@ class Novinka extends DbObject {
   function datum() {
     return date('j.n.', strtotime($this->r['vydat']));
   }
-  
+
   function hlavniText() {
     return preg_replace(self::$prvniObrazek, '', $this->text(), 1);
   }
