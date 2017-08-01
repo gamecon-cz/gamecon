@@ -19,7 +19,7 @@ class AdminMenu
       if(strpos($file,'.php') && substr($file,0,1)!='_')
       { //načtení souboru, vyhledání proměnných v hlavičkách
         $url=substr($file,0,-4);
-        $fc=file_get_contents('./'.$src.$file,false,null,-1,2048);
+        $fc=file_get_contents('./'.$src.$file,false,null,0,2048);
         preg_match('@\* nazev: (.*)@',$fc,$m);
         $this->menu[$url]['nazev']=$m[1];
         preg_match('@\* pravo: (.*)@',$fc,$m);
@@ -30,7 +30,7 @@ class AdminMenu
         && is_dir($src.$file))
       {
         $url=$file;
-        $fc=file_get_contents($src.$file.'/'.$file.'.php',false,null,-1,2048);
+        $fc=file_get_contents($src.$file.'/'.$file.'.php',false,null,0,2048);
         preg_match('@\* nazev: (.*)@',$fc,$m);
         $this->menu[$url]['nazev']=$m[1];
         preg_match('@\* pravo: (.*)@',$fc,$m);
