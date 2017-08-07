@@ -591,55 +591,13 @@ class Uzivatel
    * v poli $zmeny případně aktualizuje podle hodnot smazaného uživatele.
    */
   function sluc(Uzivatel $u, $zmeny = []) {
-    $old = $u->id();
-    $new = $this->id();
-    $tabulky = [ // páry název sloupce / tabulky kde upravit id uživatele
-      'id_uzivatele' => [
-        //'r_uzivatele_zidle', // speciální dotaz s ignore
-        'akce_organizatori',
-        'akce_prihlaseni',
-        'akce_prihlaseni_log',
-        'akce_prihlaseni_spec',
-        'forum_cteno',
-        'minihra',
-        'platby',
-        'shop_nakupy',
-        'stazeni',
-        'ubytovani',
-      ],
-      'uzivatel'  => ['chyby', 'forum_clanky'],
-      'zamcel'    => ['akce_seznam'],
-      'autor'     => ['novinky_obsah'],
-      'publikoval'=> ['novinky_obsah'],
-      'upravil'   => ['novinky_obsah'],
-      'provedl'   => ['platby'],
-      'guru'      => ['uzivatele_hodnoty'],
-    ];
     $zmeny = array_intersect_key($u->u, array_flip($zmeny));
     $zmeny['zustatek'] = $this->u['zustatek'] + $u->u['zustatek'];
-    // převedení referencí na tohoto uživatele
-    dbQuery("UPDATE IGNORE r_uzivatele_zidle SET id_uzivatele = $new WHERE id_uzivatele = $old");
-    foreach($tabulky as $sloupec => $mnozina) {
-      foreach($mnozina as $tabulka) {
-        dbQuery("UPDATE $tabulka SET $sloupec = $new WHERE $sloupec = $old");
-      }
-    }
-    // smazání duplicitního uživatele - první aby update nezpůsobil duplicity
-    dbDelete('uzivatele_hodnoty', ['id_uzivatele' => $u->id()]);
-    // aktualizace uživatele
-    $zmeny['id_uzivatele'] = $this->id();
-    dbInsertUpdate('uzivatele_hodnoty', $zmeny);
-    $this->slucLog("K id $new sloučeno a smazáno id $old");
-    // TODO otáčení, ale nejen pro uživatele v session
-  }
 
-  /** Dummy logování pro situaci kdy se slučují uživatelé */
-  protected function slucLog($zprava) {
-    file_put_contents(
-      ADMIN.'/files/logs/slucovani',
-      (new DateTimeCz)->formatDb().' '.$zprava."\n",
-      FILE_APPEND
-    );
+    $slucovani = new UzivatelSlucovani;
+    $slucovani->sluc($u, $this, $zmeny);
+
+    // TODO přenačíst aktuálního uživatele
   }
 
   function status() {

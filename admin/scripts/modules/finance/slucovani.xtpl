@@ -39,23 +39,23 @@ Vhodné vycházet z <a href="reporty/duplicity">reportu</a> s potenciálně dupl
     </tr>
     <tr>
       <td>Login</td>
-      <td><input type="radio" name="login" value="{uaid}" checked>{ua.jmenoNick}</td>
-      <td><input type="radio" name="login" value="{ubid}">{ub.jmenoNick}</td>
+      <td><label><input type="radio" name="login" value="{uaid}" checked> {ua.jmenoNick}</label></td>
+      <td><label><input type="radio" name="login" value="{ubid}"> {ub.jmenoNick}</label></td>
     </tr>
     <tr>
       <td>Heslo</td>
-      <td><input type="radio" name="heslo" value="{uaid}" checked>od id {ua.id}</td>
-      <td><input type="radio" name="heslo" value="{ubid}">od id {ub.id}</td>
+      <td><label><input type="radio" name="heslo" value="{uaid}" checked> od id {ua.id}</label></td>
+      <td><label><input type="radio" name="heslo" value="{ubid}"> od id {ub.id}</label></td>
     </tr>
     <tr>
       <td>Mail</td>
-      <td><input type="radio" name="mail" value="{uaid}" checked>{ua.mail} {amrtvy}</td>
-      <td><input type="radio" name="mail" value="{ubid}">{ub.mail} {bmrtvy}</td>
+      <td><label><input type="radio" name="mail" value="{uaid}" checked> {ua.mail} {amrtvy}</label></td>
+      <td><label><input type="radio" name="mail" value="{ubid}"> {ub.mail} {bmrtvy}</label></td>
     </tr>
     <tr>
       <td>Nové ID</td>
-      <td><input type="radio" name="id" value="{uaid}" checked>{ua.id}</td>
-      <td><input type="radio" name="id" value="{ubid}">{ub.id}</td>
+      <td><label><input type="radio" name="id" value="{uaid}" checked> {ua.id}</label></td>
+      <td><label><input type="radio" name="id" value="{ubid}"> {ub.id}</label></td>
     </tr>
     <tr>
       <td>Zůstatek</td>

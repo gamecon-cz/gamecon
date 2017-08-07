@@ -16,7 +16,7 @@ if(post('sloucit')) {
   if(post('heslo') == $old->id()) $zmeny[] = 'heslo_md5';
   if(post('mail') == $old->id())  $zmeny[] = 'email1_uzivatele';
   $new->sluc($old, $zmeny);
-  back();
+  oznameni('Uživatelé sloučeni, nové id ' . $new->id() . '.');
 }
 
 // připraví / předvyplní form pro sloučení uživatelů
