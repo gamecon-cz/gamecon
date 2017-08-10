@@ -63,6 +63,7 @@ while($r=mysqli_fetch_assoc($o))
   elseif($un->maZidli(Z_INFO) || $un->maZidli(Z_ZAZEMI))  $stav = 'zázemí/infopult';
   elseif($un->maZidli(Z_ORG_AKCI))                        $stav = 'vypravěč';
   elseif($un->maZidli(Z_PARTNER))                         $stav = 'partner';
+  elseif($un->maZidli(Z_DOBROVOLNIK_S))                   $stav = 'dobrovolník senior';
   $ucastiHistorie=[];
   foreach($gcDoted as $rok => $nul)
     $ucastiHistorie[]=$un->maPravo((int)( '-'.substr($rok,2).'02' ))?'ano':'ne';
