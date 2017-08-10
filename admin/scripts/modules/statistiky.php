@@ -337,12 +337,12 @@ $prihlaseni='['.substr($prihlaseni,0,-1).']';
 <?=tabMysqlR(dbQuery('
   select
     n.rok as "",
-    sum(nazev like "trojlůžák%" or nazev like "dvojlůžák%") as "Postel",
-    sum((nazev like "trojlůžák%" or nazev like "dvojlůžák%") and ubytovani_den=0) as "&emsp;středa",
-    sum((nazev like "trojlůžák%" or nazev like "dvojlůžák%") and ubytovani_den=1) as "&emsp;čtvrtek",
-    sum((nazev like "trojlůžák%" or nazev like "dvojlůžák%") and ubytovani_den=2) as "&emsp;pátek",
-    sum((nazev like "trojlůžák%" or nazev like "dvojlůžák%") and ubytovani_den=3) as "&emsp;sobota",
-    sum((nazev like "trojlůžák%" or nazev like "dvojlůžák%") and ubytovani_den=4) as "&emsp;neděle",
+    sum(nazev like "%lůžák%") as "Postel",
+    sum(nazev like "%lůžák%" and ubytovani_den=0) as "&emsp;středa",
+    sum(nazev like "%lůžák%" and ubytovani_den=1) as "&emsp;čtvrtek",
+    sum(nazev like "%lůžák%" and ubytovani_den=2) as "&emsp;pátek",
+    sum(nazev like "%lůžák%" and ubytovani_den=3) as "&emsp;sobota",
+    sum(nazev like "%lůžák%" and ubytovani_den=4) as "&emsp;neděle",
     sum(nazev like "spacák%") as "Spacák",
     sum(nazev like "spacák%" and ubytovani_den=0) as "&emsp;středa ",
     sum(nazev like "spacák%" and ubytovani_den=1) as "&emsp;čtvrtek ",
