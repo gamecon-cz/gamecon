@@ -15,14 +15,21 @@ while($r = mysqli_fetch_assoc($o)) {
   $xtpl2->parse('prihlaseni.vyber');
 }
 
-if(!isset($_GET['typ']))
-{
+if(!get('typ')) {
   $xtpl2->parse('prihlaseni');
   $xtpl2->out('prihlaseni');
   return;
 }
 
-$odpoved=dbQuery('
+function zjistiSemifinale($r) {
+  $tym = Aktivita::zId($r['id'])->tym();
+  if(!$tym) return '';
+  $semifinale = $tym->semifinale();
+  if(!$semifinale) return '';
+  return $semifinale->denCas();
+}
+
+$odpoved = dbQuery('
   SELECT a.nazev_akce as nazevAktivity, a.id_akce as id, (a.kapacita+a.kapacita_m+a.kapacita_f) as kapacita, a.zacatek, a.konec, a.team_nazev,
     u.login_uzivatele as nick, u.jmeno_uzivatele as jmeno, u.id_uzivatele,
     u.prijmeni_uzivatele as prijmeni, u.email1_uzivatele as mail, u.telefon_uzivatele as telefon,
@@ -34,11 +41,12 @@ $odpoved=dbQuery('
   LEFT JOIN akce_organizatori ao ON (ao.id_akce = a.id_akce)
   LEFT JOIN uzivatele_hodnoty org ON (org.id_uzivatele = ao.id_uzivatele)
   LEFT JOIN akce_lokace l ON (l.id_lokace = a.lokace)
-  WHERE a.rok='.ROK.'
+  WHERE a.rok = $1
   AND a.zacatek
-  AND a.typ='.get('typ').'
+  AND a.typ = $2
   GROUP BY u.id_uzivatele, a.id_akce
-  ORDER BY a.zacatek, a.nazev_akce, a.id_akce, p.id_uzivatele');
+  ORDER BY a.zacatek, a.nazev_akce, a.id_akce, p.id_uzivatele
+', [ROK, get('typ')]);
 
 $totoPrihlaseni=mysqli_fetch_assoc($odpoved);
 $dalsiPrihlaseni=mysqli_fetch_assoc($odpoved);
@@ -60,6 +68,7 @@ while($totoPrihlaseni) {
     $xtpl2->assign('obsazenost',$obsazenost.
       ($totoPrihlaseni['kapacita']?'/'.$totoPrihlaseni['kapacita']:''));
     $xtpl2->assign('druzina', $totoPrihlaseni['team_nazev'] ? ($totoPrihlaseni['team_nazev'].' - ') : '');
+    $xtpl2->assign('semifinale', get('typ') == Typ::DRD ? zjistiSemifinale($totoPrihlaseni) . ' - ' : '');
     if($obsazenost)
       $xtpl2->parse('prihlaseni.aktivita.lide');
     $xtpl2->parse('prihlaseni.aktivita');

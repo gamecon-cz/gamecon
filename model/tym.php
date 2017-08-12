@@ -55,6 +55,18 @@ class Tym {
     return $this->r['team_nazev'];
   }
 
+  /**
+   * @return Aktivita|null semifinále, které si tým vybral, nebo null.
+   */
+  function semifinale() {
+    $hrac = current($this->a->prihlaseni());
+    if(!$hrac) return null;
+    foreach($this->a->deti() as $d) {
+      if($d->prihlasen($hrac)) return $d;
+    }
+    return null;
+  }
+
   private function volnych() {
     return $this->kapacita() - count($this->clenove());
   }
