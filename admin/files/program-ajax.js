@@ -13,7 +13,12 @@ $(function(){
       var blok = $(this).closest('td');
       blok.find('a').replaceWith('…');
       $.post(document.URL, $(this).serialize(), function(data){
-        var a = $(data).find('input[name="odhlasit"][value="'+id+'"], input[name="prihlasit"][value="'+id+'"]');
+        var a = $(data).find(
+          'input[name="odhlasit"][value="'+id+'"], ' +
+          'input[name="prihlasit"][value="'+id+'"], ' +
+          'input[name="cAktivitaPlusminusm"][value="'+id+'"], ' +
+          'input[name="cAktivitaPlusminusp"][value="'+id+'"]'
+        );
         var err = $(data).find('#chybovaZprava');
         var fin = $(data).find('#stavUctu');
         blok.replaceWith(a.closest('td'));
