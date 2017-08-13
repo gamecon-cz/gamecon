@@ -10,13 +10,21 @@
   <script src="{js}"></script>
   {jsVyjimkovac}
   {info}
-  <!-- begin:googleAnalytics -->
-  <script>
-      ga=function(){ga.q.push(arguments)};ga.q=[];ga.l=+new Date;
-      ga('create','UA-30024399-1','auto');ga('send','pageview');
+  <!-- begin: analytics -->
+  <script type="text/javascript">
+    var _paq = _paq || [];
+    /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+    _paq.push(['trackPageView']);
+    _paq.push(['enableLinkTracking']);
+    (function() {
+      var u="//pw.gamecon.cz/";
+      _paq.push(['setTrackerUrl', u+'js/']);
+      _paq.push(['setSiteId', '1']);
+      var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+      g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'js/'; s.parentNode.insertBefore(g,s);
+    })();
   </script>
-  <script src="https://www.google-analytics.com/analytics.js" async defer></script>
-  <!-- end:googleAnalytics -->
+  <!-- end: analytics -->
 </head>
 <body>
 

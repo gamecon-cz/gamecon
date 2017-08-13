@@ -85,7 +85,7 @@ if($m->bezStranky()) {
   if($u && $u->gcPrihlasen() && FINANCE_VIDITELNE)  $t->assign('finance', $u->finance()->stavHr());
   if($u && $u->gcPrihlasen())                       $t->parse('index.prihlasen.gcPrihlasen');
   elseif($u && REG_GC)                              $t->parse('index.prihlasen.gcNeprihlasen');
-  if(GOOGLE_ANALYTICS)                              $t->parse('index.googleAnalytics');
+  if(ANALYTICS)                                     $t->parse('index.analytics');
   $t->parse( $u ? 'index.prihlasen' : 'index.neprihlasen' );
   $t->parse('index');
   $t->out('index');

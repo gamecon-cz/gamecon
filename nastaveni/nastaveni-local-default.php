@@ -24,7 +24,7 @@ define('URL_WEBU',  '/gamecon/web'); // absolutní url uživatelského webu
 define('URL_ADMIN', '/gamecon/admin'); // absolutní url adminu
 define('URL_CACHE', '/gamecon/cache/public'); // url sdílených cachí
 
-define('GOOGLE_ANALYTICS', false);
+define('ANALYTICS', false);
 define('MIGRACE_HESLO', '');
 define('HTTPS_ONLY', false);
 
