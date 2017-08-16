@@ -21,14 +21,6 @@ if(!get('typ')) {
   return;
 }
 
-function zjistiSemifinale($r) {
-  $tym = Aktivita::zId($r['id'])->tym();
-  if(!$tym) return '';
-  $semifinale = $tym->semifinale();
-  if(!$semifinale) return '';
-  return $semifinale->denCas();
-}
-
 $odpoved = dbQuery('
   SELECT a.nazev_akce as nazevAktivity, a.id_akce as id, (a.kapacita+a.kapacita_m+a.kapacita_f) as kapacita, a.zacatek, a.konec, a.team_nazev,
     u.login_uzivatele as nick, u.jmeno_uzivatele as jmeno, u.id_uzivatele,
@@ -68,7 +60,6 @@ while($totoPrihlaseni) {
     $xtpl2->assign('obsazenost',$obsazenost.
       ($totoPrihlaseni['kapacita']?'/'.$totoPrihlaseni['kapacita']:''));
     $xtpl2->assign('druzina', $totoPrihlaseni['team_nazev'] ? ($totoPrihlaseni['team_nazev'].' - ') : '');
-    $xtpl2->assign('semifinale', get('typ') == Typ::DRD ? zjistiSemifinale($totoPrihlaseni) . ' - ' : '');
     if($obsazenost)
       $xtpl2->parse('prihlaseni.aktivita.lide');
     $xtpl2->parse('prihlaseni.aktivita');

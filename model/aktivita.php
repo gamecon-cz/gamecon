@@ -807,21 +807,6 @@ class Aktivita {
     return $this->a['prihlaseni'];
   }
 
-  /**
-   * @return bool jestli účastníci této aktivity jsou přihlášení také na
-   * aktivitu $a
-   */
-  function prihlaseniTake(Aktivita $a) {
-    if(strlen($this->prihlaseniRaw()) <= 2) return false;
-    if(strlen($a->prihlaseniRaw()) <= 2) return false;
-    $prvniPrihlaseny = substr(
-      $this->prihlaseniRaw(),
-      0,
-      strpos($this->prihlaseniRaw(), ',', 1) - 2
-    );
-    return strpos($a->prihlaseniRaw(), $prvniPrihlaseny) !== false;
-  }
-
   /** Počet přihlášených */
   protected function prihlaseno()
   {
