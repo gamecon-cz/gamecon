@@ -96,6 +96,15 @@ function postFile($name)
 }
 
 /**
+ * Converts '"~"' to '"([^"])+"'
+ */
+function preg_quote_wildcard($re) {
+  $re = preg_quote($re);
+  $re = preg_replace('@~(\\\\?.)@', '([^$1]*)$1', $re);
+  return $re;
+}
+
+/**
  * Returns random hexadecimal number in with $chars number of characters (ie.
  * half $chars bytes)
  */
