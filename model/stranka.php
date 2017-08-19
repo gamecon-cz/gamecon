@@ -6,6 +6,16 @@ class Stranka extends DbObject {
   protected static $pk = 'id_stranky';
 
   function html() {
+    $raw = $this->htmlRaw();
+    $raw = preg_replace_callback('@(<p>)?\(widget:([a-z\-]+)\)(</p>)?@', function($m) {
+      $w = Widget::zNazvu($m[2]);
+      if($w)  return $w->html();
+      else    return 'widget neexistuje';
+    }, $raw);
+    return $raw;
+  }
+
+  protected function htmlRaw() {
     if(!isset($this->html)) {
       $this->html = markdownNoCache($this->r['obsah']);
     }
@@ -13,12 +23,12 @@ class Stranka extends DbObject {
   }
 
   function nadpis() {
-    preg_match('@<h1>([^<]+)</h1>@', $this->html(), $m);
+    preg_match('@<h1>([^<]+)</h1>@', $this->htmlRaw(), $m);
     return @$m[1];
   }
 
   function obrazek() {
-    preg_match('@<img src="([^"]+)"[^>]*>@', $this->html(), $m);
+    preg_match('@<img src="([^"]+)"[^>]*>@', $this->htmlRaw(), $m);
     return @$m[1];
   }
 

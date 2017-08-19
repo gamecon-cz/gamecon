@@ -1,0 +1,26 @@
+<!-- begin: drdPj -->
+
+<!-- begin: pj -->
+<div class="pj">
+  <img class="leftPj" src="{pj.fotka}">
+  <div class="rightPj">
+    <div class="description">
+      <div class="name">{pj.nick}</div>
+      <div class="position">{tituly}</div>
+    </div>
+    <div class="aboutButton">
+      <a href="#" onclick="$(this).closest('.pj').next().next().animate({height: 'toggle'}); return false;">O sobě píše</a>
+    </div>
+    <div class="aboutButton">
+      <a href="#" onclick="$(this).closest('.pj').next().next().next().animate({height: 'toggle'}); return false;">Herní profil</a>
+    </div>
+  </div>
+</div>
+
+<div style="clear: both"></div>
+
+<div class="oSobe" style="display: none">{pj.oSobe}</div>
+<div class="profil" style="display: none">{pj.drdProfil}</div>
+<!-- end: pj -->
+
+<!-- end: drdPj -->

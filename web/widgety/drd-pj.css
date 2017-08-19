@@ -1,0 +1,6 @@
+.pj { margin-top: 40px; height:150px }
+.leftPj { border-radius:50%; width:150px !important; height:150px; float: left; margin-right: 50px; margin-bottom: 12px; }
+.rightPj { float:left; }
+.description { min-height: 108px; max-width: 260px; }
+.name { font-size: 14pt; margin-bottom: 18px; font-weight: bold; }
+.oSobe, .profil { overflow: hidden; } /* ošetření proti poskakování */

@@ -126,6 +126,15 @@ class Uzivatel
     return $this->medailonek() ? $this->medailonek()->drd() : null;
   }
 
+  /**
+   * @return array pole "titulů" u organizátora DrD
+   */
+  function drdTituly() {
+    $tituly = ['Pán Jeskyně', 'vypravěč'];
+    if($this->maZidli(Z_ORG)) $tituly[] = 'organizátor GC';
+    return $tituly;
+  }
+
   /** Vrátí finance daného uživatele */
   function finance()
   {

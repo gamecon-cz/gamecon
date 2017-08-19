@@ -108,6 +108,17 @@ function randHex($chars)
 
 
 /**
+ * Convert snake_case to camelCase
+ */
+function snakeToCamel($str) {
+  $str = ucwords($str, '-');
+  $str = str_replace('-', '', $str);
+  $str = lcfirst($str);
+  return $str;
+}
+
+
+/**
  * Returns part of string after rightmost occurence of delimiter
  */ 
 function strrafter($string, $delimiter)
