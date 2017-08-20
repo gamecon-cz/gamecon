@@ -1,5 +1,21 @@
 <?php
 
+/**
+ * Pomocná funkce pro náhled předmětu pro aktuální ročník
+ */
+function nahledPredmetu($soubor) {
+  $cesta = 'soubory/obsah/materialy/' . ROK . '/' . $soubor;
+  try {
+    $nahled = Nahled::zSouboru($cesta)->kvalita(98)->url();
+    $nahled .= '.jpg'; // další .jpg na konec kvůli lightbox bugu
+  } catch(Exception $e) {
+    // pokud soubor neexistuje, nepoužít cache ale vypsat do html přímo cestu
+    // při zkoumání html je pak přímo vidět, kam je potřeba nahrát soubor
+    $nahled = $cesta;
+  }
+  return $nahled;
+}
+
 if(GAMECON_BEZI || $u && $u->gcPritomen()) {
   echo hlaska('prihlaseniJenInfo');
   return;
@@ -59,16 +75,16 @@ $t->assign([
   'vstupne'   =>  $shop->vstupneHtml(),
   'pomoc'     =>  $pomoc->html(),
   'parcon'    =>  $shop->parconHtml(),
-]);
 
-$predmety = ['tricko', 'kostka', 'placka'];
-foreach($predmety as $p) {
-  foreach(['', '_m'] as $k) { // přidaná koncovka (modifikátor) k názvu
-    $n = $p.$k;
-    $nahled = Nahled::zSouboru('soubory/obsah/materialy/'.ROK.'/'.$n.'.jpg')->kvalita(98)->url();
-    $t->assign($n, $nahled . '.jpg'); // další .jpg na konec kvůli lightbox bugu
-  }
-}
+  // náhledy předmětů
+  // záměrně rozkopírované, generování pomocí cyklu bylo neprůhledné
+  'tricko'    =>  nahledPredmetu('tricko.jpg'),
+  'tricko_m'  =>  nahledPredmetu('tricko_m.jpg'),
+  'kostka'    =>  nahledPredmetu('kostka.jpg'),
+  'kostka_m'  =>  nahledPredmetu('kostka_m.jpg'),
+  'placka'    =>  nahledPredmetu('placka.jpg'),
+  'placka_m'  =>  nahledPredmetu('placka_m.jpg'),
+]);
 
 $t->parse($u->gcPrihlasen() ? 'prihlaska.prihlasen' : 'prihlaska.neprihlasen');
 if($u->gcPrihlasen()) $t->parse('prihlaska.odhlasit');
