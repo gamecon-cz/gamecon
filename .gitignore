@@ -1,11 +1,24 @@
+/_*
 
-# Bordel složky
-/_*/
-/.*
+/cache/private/*
+!/cache/private/.htaccess
+/cache/public/*
+!/cache/public/.htaccess
 
-# Neverzované věci z webu
-/app/vendor/*
-/app/web/soubory/*
-!/app/web/soubory/styl
-!/app/web/soubory/*.js
-/spec/*
+/nastaveni/nastaveni-beta.php
+/nastaveni/nastaveni-ftpdeploy.php
+/nastaveni/nastaveni-local.php
+/nastaveni/nastaveni-produkce.php
+
+/vendor
+
+/web/soubory/*
+!/web/soubory/styl
+!/web/soubory/*.js
+!/web/soubory/systemove
+/web/soubory/systemove/aktivity/*
+!/web/soubory/systemove/aktivity/.keep
+/web/soubory/systemove/avatary/*
+!/web/soubory/systemove/avatary/.keep
+/web/soubory/systemove/fotky/*
+!/web/soubory/systemove/fotky/.keep

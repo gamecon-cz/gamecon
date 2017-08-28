@@ -1,0 +1,7 @@
+
+# bez tohoto nefunguje kořenová url na wedosu
+RewriteEngine On
+
+# cache 1 rok
+ExpiresActive On
+ExpiresDefault A31557600
