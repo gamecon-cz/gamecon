@@ -1190,13 +1190,16 @@ class Aktivita {
   /**
    * Vrátí formulář pro výběr teamu na aktivitu. Pokud není zadán uživatel,
    * vrací nějakou false ekvivalentní hodnotu.
-   * @todo převést html do template
+   * @todo ideálně převést na nějaké statické metody týmu nebo samostatnou třídu
    */
   function vyberTeamu(Uzivatel $u = null) {
-    if(!$u || $this->a['zamcel']!=$u->id() || !$this->prihlasovatelna()) return null;
+    if(!$u || $this->a['zamcel'] != $u->id() || !$this->prihlasovatelna()) return null;
+
+    $t = new XTemplate(__DIR__ . '/tym-formular.xtpl');
+
     // výběr instancí, pokud to aktivita vyžaduje
-    $vyberKol = '';
     if($this->a['dite']) {
+
       // načtení "kol" (podle hloubky zanoření v grafu instancí)
       $urovne[] = [$this];
       do {
@@ -1209,68 +1212,42 @@ class Aktivita {
           $urovne[] = self::zIds($dalsi);
       } while($dalsi);
       unset($urovne[0]); // aktuální aktivitu už má přihlášenu - ignorovat
+
       // vybírací formy dle "kol"
-      ob_start();
-      echo '<b>Výběr dalších kol:</b><br>';
       foreach($urovne as $i => $uroven) {
-        echo '<select name="'.self::KOLA.'['.$i.']">';
+        $t->assign('postnameKolo', self::KOLA . '[' . $i . ']');
         foreach($uroven as $varianta) {
-          echo '<option value="'.$varianta->id().'">'.$varianta->nazev().': '.$varianta->denCas().'</option>';
+          $t->assign([
+            'koloId' => $varianta->id(),
+            'nazev' => $varianta->nazev() . ': ' . $varianta->denCas(),
+          ]);
+          $t->parse('formular.kola.uroven.varianta');
         }
-        echo '</select><br>';
+        $t->parse('formular.kola.uroven');
       }
-      $vyberKol = ob_get_clean();
+      $t->parse('formular.kola');
+
     }
-    // zbývající čas na vyplnění
+
+    // políčka pro výběr míst
+    for($i = 0; $i < $this->kapacita() - 1; $i++) {
+      $t->assign('postnameMisto', self::TEAMKLIC . '[' . $i . ']');
+      if($i >= $this->a['team_min'] - 1) // -1 za týmlídra
+        $t->parse('formular.misto.odebrat');
+      $t->parse('formular.misto');
+    }
+
+    // zbytek formuláře
     $zbyva = strtotime($this->a['zamcel_cas']) + self::HAJENI * 60 * 60 - time();
-    // vybírací formulář
-    ob_start();
-    ?>
-    <b>Na vyplnění ti zbývá:</b> <?=floor($zbyva/3600)?> hodin <?=floor($zbyva%3600/60)?> minut
-    <form method="post">
-    <b>Název týmu</b> (nepovinný):<br>
-    <input type="text" name="<?=self::TEAMKLIC.'Nazev'?>" maxlength="255"><br>
-    <?=$vyberKol?>
-    <b>Výběr spoluhráčů:</b><br>
-    <input type="text" value="<?=$u->id()?>" disabled="disabled"><br>
-    <?php
-    for($i=0; $i < $this->kapacita()-1; $i++) {
-      echo '<input name="'.self::TEAMKLIC.'['.$i.']" type="text" class="tymHrac">';
-      if($i >= $this->a['team_min']-1) // -1 za leadera, prevUntil kvůli jquery ui bugu (přidává element)
-        echo ' <a href="#" onclick="$(this).prevUntil(\'br\').fadeOut(function(){ $(this).val(-1); }); $(this).fadeOut(); return false;">odebrat</a>';
-      echo '<br>';
-    }
-    ?>
-    <input type="hidden" name="<?=self::TEAMKLIC.'Aktivita'?>" value="<?=$this->id()?>">
-    <input type="button" value="potvrdit">
-    </form>
-    <script>
-    (function(){
-      var form = $('script:last').prev();
-      var button = form.find('input[type=button]');
-      button.click(function(){
-        button.prop("disabled", true);
-        $.post(document.URL, form.serialize(), function(data){
-          if(data.chyby.length) {
-            alert(data.chyby);
-            button.prop("disabled", false);
-          } else {
-            location.reload();
-          }
-        }, 'json');
-      });
-      form.find('input.tymHrac').autocomplete({
-        source: 'ajax-omnibox',
-        minLength: 2,
-        autoFocus: true, // automatický výběr první hodnoty, aby uživatel mohl zmáčknout rovnou enter
-        focus: function(event,ui) {
-          event.preventDefault(); // neměnit text inputu při výběru
-        }
-      });
-    })();
-    </script>
-    <?php
-    return ob_get_clean();
+    $t->assign([
+      'zbyva'       =>  floor($zbyva / 3600) . ' hodin ' . floor($zbyva % 3600 / 60) . ' minut',
+      'postname'    =>  self::TEAMKLIC,
+      'prihlasenyUzivatelId' => $u->id(),
+      'aktivitaId'  =>  $this->id(),
+    ]);
+    $t->parse('formular');
+
+    return $t->text('formular');
   }
 
   /**
