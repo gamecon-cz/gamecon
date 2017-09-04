@@ -1,8 +1,14 @@
 <!-- begin: formular -->
 <b>Na vyplnění ti zbývá:</b> {zbyva}
 <form method="post">
+  <!-- begin: nazevVolitelny -->
   <b>Název týmu</b> (nepovinný):<br>
   <input type="text" name="{postname}Nazev" maxlength="255"><br>
+  <!-- end: nazevVolitelny -->
+  <!-- begin: nazevPovinny -->
+  <b>Název týmu</b>:<br>
+  <input type="text" name="{postname}Nazev" maxlength="255" required><br>
+  <!-- end: nazevPovinny -->
 
   <!-- begin: kola -->
   <b>Výběr dalších kol:</b><br>
@@ -35,8 +41,14 @@
   (function(){
     var form = $('script:last').prev();
     var button = form.find('input[type=button]');
+    var nazev = form.find('input[name={postname}Nazev]');
     button.click(function(){
       button.prop("disabled", true);
+      if(nazev.prop('required') && !nazev.val()) {
+        alert('Vyplň prosím nějaký název týmu.');
+        button.prop('disabled', false);
+        return;
+      }
       $.post(document.URL, form.serialize(), function(data){
         if(data.chyby.length) {
           alert(data.chyby);

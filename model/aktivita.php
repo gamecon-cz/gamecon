@@ -1197,6 +1197,15 @@ class Aktivita {
 
     $t = new XTemplate(__DIR__ . '/tym-formular.xtpl');
 
+    // obecné proměnné šablony
+    $zbyva = strtotime($this->a['zamcel_cas']) + self::HAJENI * 60 * 60 - time();
+    $t->assign([
+      'zbyva'       =>  floor($zbyva / 3600) . ' hodin ' . floor($zbyva % 3600 / 60) . ' minut',
+      'postname'    =>  self::TEAMKLIC,
+      'prihlasenyUzivatelId' => $u->id(),
+      'aktivitaId'  =>  $this->id(),
+    ]);
+
     // výběr instancí, pokud to aktivita vyžaduje
     if($this->a['dite']) {
 
@@ -1237,16 +1246,12 @@ class Aktivita {
       $t->parse('formular.misto');
     }
 
-    // zbytek formuláře
-    $zbyva = strtotime($this->a['zamcel_cas']) + self::HAJENI * 60 * 60 - time();
-    $t->assign([
-      'zbyva'       =>  floor($zbyva / 3600) . ' hodin ' . floor($zbyva % 3600 / 60) . ' minut',
-      'postname'    =>  self::TEAMKLIC,
-      'prihlasenyUzivatelId' => $u->id(),
-      'aktivitaId'  =>  $this->id(),
-    ]);
-    $t->parse('formular');
+    // název (povinný pro DrD)
+    if($this->a['typ'] == Typ::DRD)   $t->parse('formular.nazevPovinny');
+    else                              $t->parse('formular.nazevVolitelny');
 
+    // výpis celého formuláře
+    $t->parse('formular');
     return $t->text('formular');
   }
 
