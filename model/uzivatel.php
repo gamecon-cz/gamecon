@@ -809,7 +809,7 @@ class Uzivatel
       $u->klic=$klic;
       return $u;
     }
-    elseif(isset($_COOKIE['gcTrvalePrihlaseni']))
+    elseif(isset($_COOKIE['gcTrvalePrihlaseni']) && $klic == 'uzivatel')
     {
       $id=dbOneLineS('
         SELECT id_uzivatele
