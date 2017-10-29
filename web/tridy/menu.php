@@ -44,10 +44,16 @@ class Menu {
 
   /** Seznam linií s prokliky (html) */
   function linie() {
-    $linie = self::linieSeznam();
+    $linie = self::linieSeznam();    
+    $u = Uzivatel::zSession();
+    
     // ne/zobrazení linku na program
-    if(PROGRAM_VIDITELNY && !isset($linie['program']))  $linie = ['program' => 'Program'] + $linie;
-    elseif(!isset($linie['pripravujeme']))              $linie = ['pripravujeme' => 'Letos připravujeme…'] + $linie;
+    if(PROGRAM_VIDITELNY && !isset($linie['program']))  {      
+      if(isset($u)){
+        $linie = ['muj-program' => 'Můj program'] + $linie;
+      }
+      $linie = ['program' => 'Program'] + $linie;
+    }elseif(!isset($linie['pripravujeme']))              $linie = ['pripravujeme' => 'Letos připravujeme…'] + $linie;
     // výstup
     $o = '';
     foreach($linie as $a => $l) {

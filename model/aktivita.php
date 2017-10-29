@@ -7,7 +7,7 @@ class Aktivita {
 
   use Prednacitani;
 
-  private
+  protected
     $a,         // databázový řádek s aktivitou
     $kolekce,   // nadřízená kolekce, v rámci které byla aktivita načtena
     $nova,      // jestli jde o nově uloženou aktivitu nebo načtenou z DB
@@ -44,7 +44,7 @@ class Aktivita {
    * "přihlášen") je vztažen vůči uživateli, je potřeba ho zadat teď jako $u,
    * později to nebude možné.
    */
-  private function __construct($db)
+  function __construct($db)
   {
     if(!$db)
       throw new Exception('prázdný parametr konstruktoru');
@@ -1043,7 +1043,7 @@ class Aktivita {
    */
   function typ()
   { return $this->a['typ']; }
-
+  
   /**
    * Vrátí pole s přihlášenými účastníky
    */
