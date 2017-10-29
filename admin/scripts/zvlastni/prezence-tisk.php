@@ -6,6 +6,16 @@ $t = new XTemplate('prezence-tisk.xtpl');
 
 $aktivity = Aktivita::zIds(get('ids'));
 
+//Řazení podle typu a názvu.
+$aktivity->uasort(function ($a, $b) {
+  $c = $a->typ() - $b->typ();     // seřazní podle typu aktivity
+  if($c != 0) {
+    return $c;
+  }
+
+  return  strcmp($a->nazev(), $b->nazev()); // seřazení podle názvu aktivity
+});
+
 foreach($aktivity as $a) {
   $a->zamci();
   $t->assign('a', $a);
