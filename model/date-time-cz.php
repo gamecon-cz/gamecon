@@ -7,7 +7,7 @@
 class DateTimeCz extends DateTime
 {
 
-  protected static $dny = [
+  protected static $czTexty = [
     'Monday'    => 'pondělí',
     'Tuesday'   => 'úterý',
     'Wednesday' => 'středa',
@@ -15,9 +15,6 @@ class DateTimeCz extends DateTime
     'Friday'    => 'pátek',
     'Saturday'  => 'sobota',
     'Sunday'    => 'neděle',
-  ];
-
-  protected static $mesice = [
     'January'   =>  'ledna',
     'February'  =>  'února',
     'March'     =>  'března',
@@ -44,7 +41,7 @@ class DateTimeCz extends DateTime
 
   /** Formát data s upravenými dny česky */
   function format($f) {
-    return strtr(parent::format($f), self::$dny);
+    return strtr(parent::format($f), self::$czTexty);
   }
 
   /** Vrací formát kompatibilní s mysql */
@@ -54,7 +51,18 @@ class DateTimeCz extends DateTime
 
   /** Vrací blogový/dopisový formát */
   function formatBlog() {
-    return strtr(parent::format('j. F Y'), self::$mesice);
+    return $this->format('j. F Y');  
+//    return strtr(parent::format('j. F Y'), self::$mesice);
+  }
+  
+  /** Vrací den ve formátu pro program */
+  function formatProgram() {
+    return $this->format('l j.n.Y');
+  }
+          
+  /** Vrací den ve formátu dne v roce */
+  function formatDenVRoce() {
+    return parent::format('z');  
   }
 
   /** Zvýší časový údaj o jeden den. Upravuje objekt. */
@@ -109,7 +117,7 @@ class DateTimeCz extends DateTime
           return "za $diff dní";
     }
   }
-
+ 
   /** Jestli tento den je stejný s $d2 v formátu DateTime nebo string s časem */
   function stejnyDen($d2) {
     if(!($d2 instanceof DateTime))

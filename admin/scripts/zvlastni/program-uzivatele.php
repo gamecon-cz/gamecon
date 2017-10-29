@@ -7,7 +7,7 @@ if(!$uPracovni) {
 
 $osobniProgram = isset($osobniProgram) ? (bool)$osobniProgram : false;
 
-$program = new Program($uPracovni, [
+$program = new OsobniProgram($uPracovni, [
   'drdPj'       => true,
   'drdPrihlas'  => true,
   'plusMinus'   => true,
