@@ -24,7 +24,7 @@ class Tym {
 
   /** Vrací číslo družiny (zvyk z DrD) a to generuje z ID aktivity */
   function cislo() {
-    $typ = $this->a->typ();
+    $typ = $this->a->typId();
     if(!isset(self::$aktivityId[$typ])) {
       self::$aktivityId[$typ] = explode(',', dbOneCol(
         'SELECT GROUP_CONCAT(id_akce) FROM akce_seznam WHERE typ = $1 AND rok = $2', [$typ, ROK]

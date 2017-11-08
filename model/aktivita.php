@@ -11,7 +11,8 @@ class Aktivita {
     $a,         // databázový řádek s aktivitou
     $kolekce,   // nadřízená kolekce, v rámci které byla aktivita načtena
     $nova,      // jestli jde o nově uloženou aktivitu nebo načtenou z DB
-    $organizatori;
+    $organizatori,
+    $typ;
 
   const
     AJAXKLIC='aEditFormTest',  // název post proměnné, ve které jdou data, pokud chceme ajaxově testovat jejich platnost a čekáme json odpověď
@@ -1036,13 +1037,17 @@ class Aktivita {
       return null;
   }
 
-  /**
-   * Vrátí ID typu aktivity
-   * @todo na této úrovni není dořešené ORM, toto by se mělo přejmenovat na
-   *  typId() a nějak koncepčně fixnout
-   */
-  function typ()
-  { return $this->a['typ']; }
+  function typ() {
+    if(is_numeric($this->typ)) $this->prednactiN1([
+      'atribut' =>  'typ',
+      'cil'     =>  Typ::class,
+    ]);
+    return $this->typ;
+  }
+
+  function typId() {
+    return $this->a['typ'];
+  }
 
   /**
    * Vrátí pole s přihlášenými účastníky
@@ -1512,6 +1517,7 @@ class Aktivita {
       $r['url_akce'] = $r['url_temp'];
       $aktivita = new self($r);
       $aktivita->kolekce = $kolekce;
+      $aktivita->typ = $r['typ'];
       $kolekce[$r['id_akce']] = $aktivita;
     }
 

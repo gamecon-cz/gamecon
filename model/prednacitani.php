@@ -91,11 +91,42 @@ trait Prednacitani {
   }
 
   /**
+   * Načte objekty s vazbou N:1, tj. kde v atributu je přímo ID cílového
+   * objektu. Nahradí ID v atributu skutečným objektem (nebo ponechá null tam,
+   * kde je null).
    *
+   * Při použití je vhodné testovat `is_numeric($this->atribut)`, aby se
+   * tato metoda zbytečně nevolala, pokud je atribut všude null.
+   *
+   * @param atribut Název atributu, do kterého se má zapsat objekt.
+   * @param cil Název třídy, jejíž instance se mají vytvořit jako cíle. Vhodné
+   * použít zápis Trida::class místo 'Trida'.
    */
   protected function prednactiN1($argumenty) {
-    // TODO uvést, že je to přímá varianta
-    throw new Exception('not implemented');
+    // načtení pojmenovaných argumentů
+    $atribut  = $argumenty['atribut'];
+    $cil      = $argumenty['cil'];
+    $kolekce  = $this->kolekce();
+
+    // načtení ids cílů
+    $cileIds = array_map(function($a)use($atribut) {
+      return $a->$atribut;
+    }, $kolekce);
+    $cileIds = array_unique($cileIds);
+
+    // vytvoření indexu cílů k vyhledávání podle id
+    $cile = $cil::zIds($cileIds);
+    $cileIndex = [];
+    foreach($cile as $c) {
+      $cileIndex[$c->id()] = $c;
+    }
+
+    // nahrazení ids v zdrojových objektech za skutečné cílové objekty
+    foreach($kolekce as $zdrojObjekt) {
+      if(isset($zdrojObjekt->$atribut)) {
+        $zdrojObjekt->$atribut = $cileIndex[$zdrojObjekt->$atribut];
+      }
+    }
   }
 
 }

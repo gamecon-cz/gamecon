@@ -97,7 +97,7 @@ $orgUrls = [];
 while($a) {
 
   //TODO hack přeskočení drd a lkd druhých kol
-  if(($a->typ() == 8 || $a->typ() == 9) && $a->cenaZaklad() == 0) {
+  if(($a->typId() == Typ::LKD || $a->typId() == Typ::DRD) && $a->cenaZaklad() == 0) {
     $a = $dalsi;
     $dalsi = next($aktivity);
     continue;
@@ -157,7 +157,7 @@ while($a) {
       $t->parse('aktivity.aktivita.organizatori');
       $orgUrls = [];
     }
-    $t->assign('extra', $a->typ() == 9 ? 'drd' : '');
+    $t->assign('extra', $a->typId() == Typ::DRD ? 'drd' : '');
     $t->assign('popis', $popis);
     $t->parse('aktivity.aktivita');
   }

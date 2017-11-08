@@ -123,7 +123,7 @@ class Program {
     } else {
       $this->program = Aktivita::zProgramu('typ');
       $grp = Typ::zVsech();
-      $this->grpf = 'typ'; // MAGIC dynamické volání metody dle jména
+      $this->grpf = 'typId';
       $labelf = 'nazev';
       usort($grp, function($a, $b) {
         return $a->id() > $b->id();
@@ -215,13 +215,13 @@ class Program {
     // název a url aktivity
     echo '<td colspan="'.$a['del'].'"><div'.$classes.'>';
     echo '<a href="' . $ao->url() . '" target="_blank">' . $ao->nazev() . '</a>';
-    if($this->nastaveni['drdPj'] && $ao->typ() == Typ::DRD && $ao->prihlasovatelna()) {
+    if($this->nastaveni['drdPj'] && $ao->typId() == Typ::DRD && $ao->prihlasovatelna()) {
       echo ' ('.$ao->orgJmena().') ';
     }
     echo $ao->obsazenost();
 
     // přihlašovátko
-    if($ao->typ() != Typ::DRD || $this->nastaveni['drdPrihlas']) { // hack na nezobrazování přihlašovátek pro DrD
+    if($ao->typId() != Typ::DRD || $this->nastaveni['drdPrihlas']) { // hack na nezobrazování přihlašovátek pro DrD
       $parametry = 0;
       if($this->nastaveni['plusMinus'])   $parametry |= Aktivita::PLUSMINUS_KAZDY;
       if($this->nastaveni['zpetne'])      $parametry |= Aktivita::ZPETNE;
@@ -247,9 +247,12 @@ class Program {
     $zac = (int)$a->zacatek()->format('G');
     $kon = (int)$a->konec()->format('G');
     if($kon == 0) $kon = 24;
-    $grpf = $this->grpf; // MAGIC (dynamické volání metody podle jména
+    if($this->grpf == 'typId')          $grp = $a->typId();
+    elseif($this->grpf == 'lokaceId')   $grp = $a->lokaceId();
+    else                                throw new Exception('nepodporovaný typ shlukování aktivit');
+
     $a = [
-      'grp' => $a->$grpf(),
+      'grp' => $grp,
       'zac' => $zac,
       'kon' => $kon,
       'den' => (int)$a->zacatek()->format('z'),
@@ -257,6 +260,7 @@ class Program {
       'obj' => $a
     ];
     $iterator->next();
+
     // přeskočit případné speciální (neviditelné) aktivity
     if(
       $a['obj']->viditelnaPro($this->u) ||
