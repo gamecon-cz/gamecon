@@ -10,6 +10,7 @@ class Aktivita {
   private
     $a,         // databázový řádek s aktivitou
     $kolekce,   // nadřízená kolekce, v rámci které byla aktivita načtena
+    $lokace,
     $nova,      // jestli jde o nově uloženou aktivitu nebo načtenou z DB
     $organizatori,
     $typ;
@@ -449,12 +450,17 @@ class Aktivita {
     ]);
   }
 
-  function lokaceId()
-  { return $this->a['lokace']; }
-
   /** Vrátí lokaci (ndef. formát, ale musí podporovat __toString) */
   function lokace() {
-    return Lokace::zId($this->a['lokace']);
+    if(is_numeric($this->lokace)) $this->prednactiN1([
+      'atribut' =>  'lokace',
+      'cil'     =>  Lokace::class,
+    ]);
+    return $this->lokace;
+  }
+
+  function lokaceId() {
+    return $this->a['lokace'];
   }
 
   function nazev()
@@ -1518,6 +1524,7 @@ class Aktivita {
       $aktivita = new self($r);
       $aktivita->kolekce = $kolekce;
       $aktivita->typ = $r['typ'];
+      $aktivita->lokace = $r['lokace'];
       $kolekce[$r['id_akce']] = $aktivita;
     }
 
