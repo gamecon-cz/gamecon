@@ -35,6 +35,10 @@ class UzivatelSlucovani {
     }
 
     $this->zaloguj("do id $novyId sloučeno a smazáno id $staryId");
+    $this->zaloguj("  původní zůstatek smazaného účtu:  " . $stary->finance()->zustatek());
+    $this->zaloguj("  původní zůstatek nového účtu:     " . $novy->finance()->zustatek());
+    $novy = Uzivatel::zId($novy->id()); // přenačtení uživatele, aby se aktualizovaly finance
+    $this->zaloguj("  aktuální nový zůstatek:           " . $novy->finance()->zustatek() . "\n");
   }
 
   /**

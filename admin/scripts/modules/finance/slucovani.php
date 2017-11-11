@@ -23,6 +23,7 @@ if(post('sloucit')) {
 if(post('pripravit')) {
   $a = Uzivatel::zId(post('u1'));
   $b = Uzivatel::zId(post('u2'));
+
   $t->assign([
     'uaid'  =>  $a->id(),
     'ubid'  =>  $b->id(),
@@ -31,8 +32,22 @@ if(post('pripravit')) {
     'amrtvy' => $a->mrtvyMail() ? '(mrtvý)' : '',
     'bmrtvy' => $b->mrtvyMail() ? '(mrtvý)' : '',
   ]);
-  $t->parse($a->gcPrihlasen() ? 'slucovani.detaily.aPrihlasen' : 'slucovani.detaily.aNeprihlasen');
-  $t->parse($b->gcPrihlasen() ? 'slucovani.detaily.bPrihlasen' : 'slucovani.detaily.bNeprihlasen');
+
+  for($rok = 2009; $rok <= ROK; $rok++) {
+    $t->assign('rok', $rok);
+    $t->parse(
+      in_array($rok, $a->historiePrihlaseni()) ?
+      'slucovani.detaily.historiePrihlaseni.aPrihlasen' :
+      'slucovani.detaily.historiePrihlaseni.aNeprihlasen'
+    );
+    $t->parse(
+      in_array($rok, $b->historiePrihlaseni()) ?
+      'slucovani.detaily.historiePrihlaseni.bPrihlasen' :
+      'slucovani.detaily.historiePrihlaseni.bNeprihlasen'
+    );
+    $t->parse('slucovani.detaily.historiePrihlaseni');
+  }
+
   $t->parse('slucovani.detaily');
 }
 

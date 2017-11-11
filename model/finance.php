@@ -3,8 +3,8 @@
 /**
  * Třída zodpovídající za spočítání finanční bilance uživatele na GC.
  */
-
 class Finance {
+
   protected
     $u,       // uživatel, jehož finance se počítají
     $stav=0,  // celkový výsledný stav uživatele na účtu
@@ -24,7 +24,7 @@ class Finance {
     $cenaVstupnePozde = 0.0,
     $sleva          = 0.0,  // sleva za tech. aktivity a odvedené aktivity
     $slevaVyuzita   = 0.0,  // sleva za odvedené aktivity (využitá část)
-    $zustatek       = 0.0,  // zůstatek z minula
+    $zustatek       = 0,    // zůstatek z minula
     $platby         = 0.0;  // platby připsané na účet
 
   protected static
@@ -52,11 +52,12 @@ class Finance {
     VYSLEDNY      = 16;
 
   /**
-   * Konstruktor
    * @param Uzivatel $u uživatel, pro kterého se finance sestavují   
+   * @param int $zustatek zůstatek na účtu z minulých GC
    */
-  function __construct(Uzivatel $u) {
+  function __construct(Uzivatel $u, int $zustatek) {
     $this->u = $u;
+    $this->zustatek = $zustatek;
     if(!$u->gcPrihlasen()) return;
 
     $this->zapoctiAktivity();
@@ -449,10 +450,14 @@ class Finance {
    * Započítá do mezisoučtů zůstatek z minulých let
    */
   protected function zapoctiZustatek() {
-    $this->zustatek += dbOneCol(
-      'SELECT zustatek FROM uzivatele_hodnoty WHERE id_uzivatele = '.$this->u->id()
-    );
     $this->log('Zůstatek z minulých let', $this->zustatek, self::ZUSTATEK);
+  }
+
+  /**
+   * @return int zůstatek na účtu z minulých GC
+   */
+  function zustatek() {
+    return $this->zustatek;
   }
 
 }

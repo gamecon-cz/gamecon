@@ -22,21 +22,15 @@ Vhodné vycházet z <a href="reporty/duplicity">reportu</a> s potenciálně dupl
       <td><input type="text" name="u2" value="{ubid}"></td>
     </tr>
     <!-- begin:detaily -->
-    <tr>
-      <td>Přihlášen</td>
-      <!-- begin:aPrihlasen -->
-      <td style="background-color: #8d8">ano</td>
-      <!-- end:aPrihlasen -->
-      <!-- begin:aNeprihlasen -->
-      <td style="background-color: #faa">ne</td>
-      <!-- end:aNeprihlasen -->
-      <!-- begin:bPrihlasen -->
-      <td style="background-color: #8d8">ano</td>
-      <!-- end:bPrihlasen -->
-      <!-- begin:bNeprihlasen -->
-      <td style="background-color: #faa">ne</td>
-      <!-- end:bNeprihlasen -->
-    </tr>
+      <!-- begin: historiePrihlaseni -->
+      <tr>
+        <td>Přihlášen {rok}</td>
+        <!-- begin:aPrihlasen --><td style="background-color: #8d8">ano</td><!-- end:aPrihlasen -->
+        <!-- begin:aNeprihlasen --><td style="background-color: #faa">ne</td><!-- end:aNeprihlasen -->
+        <!-- begin:bPrihlasen --><td style="background-color: #8d8">ano</td><!-- end:bPrihlasen -->
+        <!-- begin:bNeprihlasen --><td style="background-color: #faa">ne</td><!-- end:bNeprihlasen -->
+      </tr>
+      <!-- end: historiePrihlaseni -->
     <tr>
       <td>Login</td>
       <td><label><input type="radio" name="login" value="{uaid}" checked> {ua.jmenoNick}</label></td>
@@ -59,8 +53,8 @@ Vhodné vycházet z <a href="reporty/duplicity">reportu</a> s potenciálně dupl
     </tr>
     <tr>
       <td>Zůstatek</td>
-      <td>{ua.zustatek}</td>
-      <td>{ub.zustatek}</td>
+      <td>{ua.finance.zustatek}</td>
+      <td>{ub.finance.zustatek}</td>
     </tr>
     <!-- TODO později
     <tr>

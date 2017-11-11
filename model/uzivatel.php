@@ -6,8 +6,8 @@
  *   zofrenie v adminovi (nehrozí špatný přístup při nadměrném volání např. při
  *   práci s více uživateli někde jinde?)
  */
-class Uzivatel
-{
+class Uzivatel {
+
   protected
     $u=[],
     $klic='',
@@ -140,7 +140,7 @@ class Uzivatel
   {
     //pokud chceme finance poprvé, spočteme je a uložíme
     if(!$this->finance)
-      $this->finance = new Finance($this);
+      $this->finance = new Finance($this, $this->u['zustatek']);
     return $this->finance;
   }
 
@@ -228,6 +228,23 @@ class Uzivatel
   function gcPritomen()
   {
     return $this->maPravo(ID_PRAVO_PRITOMEN);
+  }
+
+  /**
+   * @return int[] roky, kdy byl přihlášen na GC
+   */
+  function historiePrihlaseni() {
+    if(!isset($this->historiePrihlaseni)) {
+      $q = dbQuery('
+        SELECT 2000 - (id_zidle DIV 100) AS "rok"
+        FROM r_uzivatele_zidle
+        WHERE id_zidle < 0 AND id_zidle MOD 100 = -1 AND id_uzivatele = $0
+      ', [$this->id()]);
+      $roky = mysqli_fetch_all($q);
+      $roky = array_map(function($e) { return (int) $e[0]; }, $roky);
+      $this->historiePrihlaseni = $roky;
+    }
+    return $this->historiePrihlaseni;
   }
 
   /** Jméno a příjmení uživatele v běžném (zákonném) tvaru */
@@ -701,14 +718,6 @@ class Uzivatel
    */
   function rawDb()
   { return $this->u; }
-
-  /**
-   * Zůstatek na uživatelově účtu z minulých let
-   * @todo převést do financí?
-   */
-  function zustatek() {
-    return $this->u['zustatek'];
-  }
 
   /**
    * Na základě řetězce $dotaz zkusí najít všechny uživatele, kteří odpovídají
