@@ -57,6 +57,9 @@ body {
 .paticka .obsah { border-radius: 0 0 8px 8px; padding: 8px; padding-top: 24px; display: none;
   background-color: #bbb; background: linear-gradient(to bottom, #888 8px, #bbb 16px); margin-bottom: -8px; }
 
+/* Obecný styl prvků */
+hr { border: none; border-top: solid 1px #ddd; margin: 1.5em 0; }
+
 /* Formuláře */
 input, textarea, select, .tlacitko { border: solid 1px #999; padding: 2px; border-radius: 2px; margin: 0; font: inherit; background-color: #fff; color: inherit; }
 input::-moz-focus-inner { border: 0; padding: 0; /* margin-top:-2px; margin-bottom: -2px; */ /* FF fix */ }

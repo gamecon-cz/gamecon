@@ -21,8 +21,9 @@ if(!empty($_POST['priznat']))
 
 if(!empty($_POST['odebrat']))
 {
-  dbQuery('DELETE FROM r_uzivatele_zidle WHERE id_zidle='.Z_VCAS);
-  back();
+  $q = dbQuery('DELETE FROM r_uzivatele_zidle WHERE id_zidle='.Z_VCAS);
+  $n = dbNumRows($q);
+  oznameni("Židle „zaplatil včas“ odebrána $n uživatelům.");
 }
 
 

@@ -28,6 +28,8 @@ Přiznat těmto lidem včasnou platbu nyní <input type="submit" value="Přiznat
 <!-- end:uzivatele -->
 <!-- begin:nikdo -->(žádní uživatelé)<br><!-- end:nikdo -->
 
+<hr>
+
 <form method="post">
 Odebrat <strong>všem</strong> uživatelům židli platby včas <input type="submit" name="odebrat" value="Odebrat">
 </form>

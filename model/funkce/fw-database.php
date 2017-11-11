@@ -207,6 +207,21 @@ function dbNumQ() {
 }
 
 /**
+ * @return number of rows affected / returned by query
+ */
+function dbNumRows($query) {
+  if($query === true) {
+    // result of mysqli_query INSERT / UPDATE / DELETE
+    return $GLOBALS['spojeni']->affected_rows;
+  } elseif($query instanceof mysqli_result) {
+    // result of mysqli_query SELECT
+    throw new Exception('not implemented');
+  } else {
+    throw new Exception('query failed or returned unexpected type');
+  }
+}
+
+/**
  * Expects one column in select. Returns array of selected values.
  */
 function dbOneArray($q, $p = null) {
