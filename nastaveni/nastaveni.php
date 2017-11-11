@@ -17,9 +17,9 @@ error_reporting($puvodni ^ E_NOTICE);
 // Základní nastavení //
 ////////////////////////
 
-define('ROK', 2017);                                  // aktuální rok -- při změně roku viz http://bit.ly/2l5olnb
-define('GC_BEZI_OD',        ROK.'-07-20 07:00:00');   // začátek GameConu (přepnutí stránek do režimu "úpravy na jen na infopultu")
-define('GC_BEZI_DO',        ROK.'-07-23 20:00:00');   // konec GameCou (přepnutí stránek do režimu "gc skončil, úpravy nemožné")
+define('ROK', 2018);                                  // aktuální rok -- při změně roku viz http://bit.ly/2l5olnb
+define('GC_BEZI_OD',        ROK.'-07-19 07:00:00');   // začátek GameConu (přepnutí stránek do režimu "úpravy na jen na infopultu")
+define('GC_BEZI_DO',        ROK.'-07-22 20:00:00');   // konec GameCou (přepnutí stránek do režimu "gc skončil, úpravy nemožné")
 define('REG_GC_OD',         ROK.'-05-02 20:17:00');   // spuštění možnosti registrace na GameCon
 define('REG_GC_DO',         GC_BEZI_DO);              // ukončení možnosti registrace na GameCon
 define('REG_AKTIVIT_OD',    ROK.'-05-09 20:17:00');   // spuštění možnosti registrace na aktivity, pokud jsou aktivované
