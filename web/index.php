@@ -77,6 +77,7 @@ if($m->bezStranky()) {
     'chyba'     => Chyba::vyzvedniHtml(),
     'info'      => $m->info() ? $m->info()->html() : '',
     'a'         => $u ? $u->koncA() : '',
+    'datum'     => date('j.', strtotime(GC_BEZI_OD)) . '–' . date('j. n. Y', strtotime(GC_BEZI_DO)),
   ]);
   // tisk věcí a zdar
   if(!$m->bezMenu())                                $t->assign('menu', $menu->cele());
