@@ -7,7 +7,10 @@
 // autoloader Gamecon webu (modelu)
 spl_autoload_register(function($trida) {
   $trida = strtolower(preg_replace('@[A-Z]@', '-$0', lcfirst($trida)));
-  require __DIR__ . '/../model/' . $trida . '.php';
+
+  $nalezeno = false;
+  if(!$nalezeno) $nalezeno &= @include __DIR__ . '/../model/' . $trida . '.php';
+  if(!$nalezeno) $nalezeno &= @include __DIR__ . '/../model/' . $trida . '/' . $trida . '.php';
 });
 
 // autoloader Composeru

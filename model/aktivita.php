@@ -1432,17 +1432,6 @@ class Aktivita {
   }
 
   /**
-   * Vrátí pole aktivit které se letos potenciálně zobrazí v programu
-   */
-  static function zProgramu($order) {
-    return self::zWhere(
-      'WHERE a.rok = $1 AND a.zacatek AND ( a.stav IN(1,2,3,4,5) OR a.typ = 10 )',
-      [ROK],
-      'ORDER BY DAY(zacatek), '.dbQi($order).', HOUR(zacatek), nazev_akce'
-    );
-  }
-
-  /**
    * Vrátí aktivity z rozmezí (aktuálně s začátkem v rozmezí konkrétně)
    * @todo možno přidat flag 'celé v rozmezí'
    */
