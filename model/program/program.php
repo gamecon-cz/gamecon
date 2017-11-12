@@ -2,11 +2,10 @@
 
 class Program {
 
-  function __construct() {
-    // TODO
-    $this->jsPromenna   = 'foo';
-    $this->jsElementId  = 'bar';
-  }
+  private
+    $jsElementId = 'cProgramElement', // TODO v případě použití více instancí řešit příslušnost k instancím
+    $jsPromenna = 'cProgramPromenna',
+    $jsObserveri = [];
 
   function htmlHlavicky() {
     // TODO toto by mohla být statická metoda (pro případ více programů v stránce), ovšem může být problém s více komponentami vkládajícími opakovaně react a s více daty (např. jiné aktivity pro dvě instance programu)
@@ -15,7 +14,8 @@ class Program {
         var '.$this->jsPromenna.' = {
           "elementId": "'.$this->jsElementId.'",
           "aktivity": '.$this->jsonAktivity().',
-          "linie": '.$this->jsonLinie().'
+          "linie": '.$this->jsonLinie().',
+          "notifikace": '.$this->jsonNotifikace().'
         }
       </script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.24.0/babel.js"></script>
@@ -26,7 +26,7 @@ class Program {
 
   function htmlObsah() {
     // TODO perfectcache
-    //copy(__DIR__ . '/test1.jsx', CACHE . '/greeting.jsx');
+    copy(__DIR__ . '/test1.jsx', CACHE . '/greeting.jsx');
 
     return '
       <div id="'.$this->jsElementId.'"></div>
@@ -42,6 +42,7 @@ class Program {
     // TODO listovat tech. aktivity jenom tomu, kdo je může vidět
     $q = dbQuery('
       SELECT
+        a.id_akce as "id",
         a.nazev_akce as "nazev",
         a.typ as "linie"
       FROM akce_seznam a
@@ -73,6 +74,14 @@ class Program {
     $out[strlen($out) - 1] = '}';
 
     return $out;
+  }
+
+  private function jsonNotifikace() {
+    return '[' . implode(',', $this->jsObserveri) . ']';
+  }
+
+  function zaregistrujJsObserver($nazevFunkce) {
+    $this->jsObserveri[] = $nazevFunkce;
   }
 
 }
