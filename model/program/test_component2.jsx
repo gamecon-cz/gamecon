@@ -1,5 +1,5 @@
 
-var Greeting = React.createClass({
+var Greetinggggg = React.createClass({
   render: function() {
 
     // příklad zavolání všech notifikací
@@ -9,9 +9,4 @@ var Greeting = React.createClass({
       <p>Hello, Universe</p>
     )
   }
-});
-
-ReactDOM.render(
-  <Greeting/>,
-  document.getElementById(programData.elementId)
-);
+})

@@ -3,9 +3,14 @@
 class Program {
 
   private
+    $cacheSouboru,
     $jsElementId = 'cProgramElement', // TODO v případě použití více instancí řešit příslušnost k instancím
     $jsPromenna = 'cProgramPromenna',
     $jsObserveri = [];
+
+  function __construct() {
+    $this->cacheSouboru = new PerfectCache(CACHE, URL_CACHE);
+  }
 
   function htmlHlavicky() {
     // TODO toto by mohla být statická metoda (pro případ více programů v stránce), ovšem může být problém s více komponentami vkládajícími opakovaně react a s více daty (např. jiné aktivity pro dvě instance programu)
@@ -21,19 +26,23 @@ class Program {
       <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.24.0/babel.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react.min.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react-dom.min.js"></script>
+      ' . $this->cacheSouboru->sestavReact([
+        __DIR__ . '/*.js',
+        __DIR__ . '/*.jsx',
+        '!' . __DIR__ . '/render.jsx'
+      ]) . '
     ';
   }
 
   function htmlObsah() {
-    // TODO perfectcache
-    copy(__DIR__ . '/test1.jsx', CACHE . '/greeting.jsx');
+    // TODO na produkci udělat vkládaný react inline (jsou to cca 2 řádky)
 
     return '
       <div id="'.$this->jsElementId.'"></div>
       <script>
         var programData = '.$this->jsPromenna.'
       </script>
-      <script type="text/babel" src="'.URL_CACHE.'/greeting.jsx"></script>
+      ' . $this->cacheSouboru->sestavReact([__DIR__ . '/render.jsx']) . '
     ';
   }
 
