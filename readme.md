@@ -1,9 +1,7 @@
 
 <p align="center"><a href="http://gamecon.cz" target="_blank"><img width="346" height="55" src="http://gamecon.cz/soubory/styl/logo-github.png" alt="GameCon"></a></p>
 
-## Základní informace
-
-Brzy…
+Web a informační systém festivalu nepočítačových her [GameCon](https://gamecon.cz).
 
 ## Návod na rozjetí
 
@@ -46,10 +44,12 @@ composer install
   - `composer install` není instalace composeru, ale stažení knihoven do složky s gc webem
   - _v Linuxu povolit zápis do složek `/web/soubory/systemove/*`, `/cache/*`_
   - Ověřit funkčnost http://localhost/gamecon/web
+- Další informace o struktuře repozitáře a architektuře kódu je možné si přečíst v [složce dokumentace](dokumentace).
 
 ## Návod na přispívání
 
-- Nejdříve je potřeba se nechat přidat do organizace https://github.com/gamecon-cz
+- Pokud se chcete nejdřív seznámit s gitem, dobrá je online knížka [Pro Git](https://git-scm.com/book/cs/v2) (důležité jsou první tři kapitoly).
+- Před přispíváním je potřeba se nechat přidat do organizace https://github.com/gamecon-cz
   - Dá se tomu vyhnout, pokud mám vlastní fork, ale to zatím neumíme kvůli nutnosti posílat si zálohu db
 - Standardní způsob, jak něco přidat:
   - Vytvořím si novou větev `git checkout -b nejaky-nazev`
