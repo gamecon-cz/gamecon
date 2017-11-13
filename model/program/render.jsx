@@ -1,5 +1,5 @@
 
 ReactDOM.render(
-  <Greeting/>,
+  <Program/>,
   document.getElementById(programData.elementId)
 )

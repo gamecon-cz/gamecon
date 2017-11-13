@@ -1,12 +1,13 @@
+//nechávam ako príklad v podobe podobnej pôvodnej - Duli
 
-var Greetinggggg = React.createClass({
+var Header = React.createClass({
   render: function() {
 
     // příklad zavolání všech notifikací
     programData.notifikace.forEach(function(notifikace) { notifikace() });
 
     return (
-      <p>Hello, Universe</p>
+      <h1>Program</h1>
     )
   }
 })
