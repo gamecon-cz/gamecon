@@ -19,7 +19,7 @@ class ZvolLinie extends React.Component{
         }
         this.props.zvolTytoLinie(noveZvoleneLinie);
     }
-    
+
     render(){
         //vyfiltruj záporné pořadí
         var linie = this.props.linie.filter(lajna => lajna.poradi>0);
