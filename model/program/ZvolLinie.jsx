@@ -11,7 +11,7 @@ class ZvolLinie extends React.Component{
         var indexLajny = this.props.zvoleneLinie.findIndex((lajnaVPoli) => {
             return lajnaVPoli.nazev == lajna.nazev;
         });
-        if (indexLajny > 0){
+        if (indexLajny >= 0){
             noveZvoleneLinie.splice(indexLajny, 1);
         }
         else {
@@ -28,9 +28,10 @@ class ZvolLinie extends React.Component{
         var tlacitkaLinii = linie.map(lajna => {
             //farba pro nezvolené linie je experimentálně červená
             var styl = {backgroundColor: "#f00" };
+            var index = this.props.zvoleneLinie.findIndex(lajnaVPoli => lajnaVPoli.nazev == lajna.nazev);
 
             //jestli je linie mezi zvolenými, uděláme jí experimentálně zelenou
-            if (this.props.zvoleneLinie.find((lajnaVPoli) => lajnaVPoli.poradi == lajna.poradi)){
+            if (index>-1){
                 styl = {backgroundColor: "#0f0"};
             }
 

@@ -76,6 +76,7 @@ class Program {
     $out = '{';
     foreach($q as $r) {
       $out .= '"'.$r['id'].'":{'.
+        '"id":"'.$r['id'].'",'.  
         '"nazev":"'.$r['nazev'].'",'.
         '"poradi":'.$r['poradi'].
       '},';

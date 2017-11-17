@@ -1,13 +1,11 @@
 class Program extends React.Component{
     constructor(props){
         super(props);
-        var data = programData;
-        data.linie = this.uklidLinie(data.linie);
+        programData.linie = this.uklidLinie(programData.linie);
 
         //na začátku jsou všechny linie zvolené(viditelné)
         this.state = {
-            data: data,
-            zvoleneLinie: data.linie.slice()
+            zvoleneLinie: programData.linie.slice()
         };
 
         this.zvolTytoLinie = this.zvolTytoLinie.bind(this);
@@ -29,7 +27,8 @@ class Program extends React.Component{
         return (
             <div>
                 <Header/>
-                <ZvolLinie linie = {this.state.data.linie} zvoleneLinie = {this.state.zvoleneLinie} zvolTytoLinie = {this.zvolTytoLinie}/>
+                    <ZvolLinie linie = {programData.linie} zvoleneLinie = {this.state.zvoleneLinie} zvolTytoLinie = {this.zvolTytoLinie}/>
+                <Rozvrh zvoleneLinie = {this.state.zvoleneLinie} />
             </div>
         )
     }
