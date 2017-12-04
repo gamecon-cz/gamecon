@@ -231,6 +231,14 @@ class Uzivatel {
   }
 
   /**
+   * Nastaví nové heslo (pouze setter)
+   */
+  function heslo($noveHeslo) {
+    $novyHash = password_hash($noveHeslo, PASSWORD_DEFAULT);
+    dbQuery('UPDATE uzivatele_hodnoty SET heslo_md5 = $1 WHERE id_uzivatele = $2', [$novyHash, $this->id()]);
+  }
+
+  /**
    * @return int[] roky, kdy byl přihlášen na GC
    */
   function historiePrihlaseni() {
@@ -771,6 +779,11 @@ class Uzivatel {
   static function zMailu($mail) {
     $uzivatel = Uzivatel::zWhere('WHERE email1_uzivatele = $1', [$mail]);
     return isset($uzivatel[0]) ? $uzivatel[0] : null; 
+  }
+
+  static function zNicku($nick) {
+    $uzivatel = Uzivatel::zWhere('WHERE login_uzivatele = $1', [$nick]);
+    return isset($uzivatel[0]) ? $uzivatel[0] : null;
   }
 
   /**

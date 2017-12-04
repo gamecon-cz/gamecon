@@ -10,7 +10,8 @@
     "oyejorge/less.php": "~1.7",
     "dg/mysql-dump": "dev-master",
     "tracy/tracy": "~2.4",
-    "godric/xtemplate": "dev-master"
+    "godric/xtemplate": "dev-master",
+    "roderik/pwgen-php": "^0.1.7"
   },
   "require-dev": {
     "dg/ftp-deployment": "~2.7"

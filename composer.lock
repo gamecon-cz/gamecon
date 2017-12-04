@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "890a5c80061178d459386d0a855fd984",
+    "content-hash": "db918bbaba7c1dec3e761ff68565dd05",
     "packages": [
         {
             "name": "dg/mysql-dump",
@@ -182,6 +182,50 @@
                 "stylesheet"
             ],
             "time": "2015-12-30T05:47:36+00:00"
+        },
+        {
+            "name": "roderik/pwgen-php",
+            "version": "0.1.7",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/roderik/pwgen-php.git",
+                "reference": "dc432897665cfe258a1d08f0eac1784bc04f0f08"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/roderik/pwgen-php/zipball/dc432897665cfe258a1d08f0eac1784bc04f0f08",
+                "reference": "dc432897665cfe258a1d08f0eac1784bc04f0f08",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "PWGen": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL"
+            ],
+            "authors": [
+                {
+                    "name": "Theodore Ts'o",
+                    "email": "tytso@alum.mit.edu"
+                },
+                {
+                    "name": "Superwayne",
+                    "email": "superwayne@superwayne.org"
+                }
+            ],
+            "description": "pwgen-php is a simple PHP class which aims to clone the GNU pwgen functionality.",
+            "keywords": [
+                "generator",
+                "password"
+            ],
+            "time": "2017-08-15T07:59:33+00:00"
         },
         {
             "name": "tracy/tracy",

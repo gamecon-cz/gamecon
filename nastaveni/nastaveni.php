@@ -124,7 +124,7 @@ $GLOBALS['HLASKY_SUBST']=[
   'zapomenuteHeslo'=>
 'Ahoj,
 
-nechal{a} sis vygenerovat nové heslo na Gamecon.cz. Tvoje přihlašovací jméno je %1, tvoje nové heslo je %2. Heslo si prosím po přihlášení změň.
+nechal{a} sis vygenerovat nové heslo na Gamecon.cz. Tvoje přihlašovací jméno je stejné jako e-mail (%1), tvoje nové heslo je %2. Heslo si prosím po přihlášení změň.
 
 S pozdravem Tým organizátorů GameConu',
   'odhlaseniZGc'=>'Odhlásil{a} ses z GameConu '.ROK,
