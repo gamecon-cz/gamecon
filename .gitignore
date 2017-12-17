@@ -8,7 +8,10 @@
 /nastaveni/nastaveni-beta.php
 /nastaveni/nastaveni-ftpdeploy.php
 /nastaveni/nastaveni-local.php
+/nastaveni/nastaveni-nasazovani.php
 /nastaveni/nastaveni-produkce.php
+
+/node_modules
 
 /vendor
 
