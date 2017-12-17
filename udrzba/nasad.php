@@ -55,6 +55,6 @@ if($vetev == 'master') {
     'ciloveFtp'       =>  $nastaveni['redesign']['ftp'],
     'urlMigrace'      =>  $nastaveni['redesign']['urlMigrace'],
     'hesloMigrace'    =>  $nastaveni['redesign']['hesloMigrace'],
-    'souborNastaveni' =>  'nastaveni-beta.php', // TODO
+    'souborNastaveni' =>  'nastaveni-redesign.php',
   ]);
 }
