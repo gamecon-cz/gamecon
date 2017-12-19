@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "db918bbaba7c1dec3e761ff68565dd05",
+    "content-hash": "5a6f9884371ae0ad397929c7fdcd989b",
     "packages": [
         {
             "name": "dg/mysql-dump",
-            "version": "dev-master",
+            "version": "v1.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dg/MySQL-dump.git",
-                "reference": "c1c00a6b7ded9cab37f0280fa2940b1809835f90"
+                "reference": "8970328c9a8665e65f3855c849f5d4de94075f13"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dg/MySQL-dump/zipball/c1c00a6b7ded9cab37f0280fa2940b1809835f90",
-                "reference": "c1c00a6b7ded9cab37f0280fa2940b1809835f90",
+                "url": "https://api.github.com/repos/dg/MySQL-dump/zipball/8970328c9a8665e65f3855c849f5d4de94075f13",
+                "reference": "8970328c9a8665e65f3855c849f5d4de94075f13",
                 "shasum": ""
             },
             "type": "library",
@@ -41,7 +41,37 @@
             "keywords": [
                 "mysql"
             ],
-            "time": "2015-04-18 14:09:50"
+            "time": "2017-05-24T12:44:51+00:00"
+        },
+        {
+            "name": "godric/db-backup",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/godric-cz/db-backup.git",
+                "reference": "a7f44a98c3d23fa0dec3b887c485be22a234ad23"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/godric-cz/db-backup/zipball/a7f44a98c3d23fa0dec3b887c485be22a234ad23",
+                "reference": "a7f44a98c3d23fa0dec3b887c485be22a234ad23",
+                "shasum": ""
+            },
+            "require": {
+                "dg/mysql-dump": "^1.4"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Godric\\DbBackup\\": "src/"
+                }
+            },
+            "description": "Backup mysql database to FTP with pure PHP. No mysqldump on server needed.",
+            "support": {
+                "source": "https://github.com/godric-cz/db-backup/tree/master",
+                "issues": "https://github.com/godric-cz/db-backup/issues"
+            },
+            "time": "2017-12-19 15:08:59"
         },
         {
             "name": "godric/xtemplate",
@@ -352,8 +382,8 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "dg/mysql-dump": 20,
-        "godric/xtemplate": 20
+        "godric/xtemplate": 20,
+        "godric/db-backup": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,

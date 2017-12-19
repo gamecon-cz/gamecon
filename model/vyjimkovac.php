@@ -3,38 +3,62 @@
 /**
  * Třída starající se o zpracování, zobrazení a zaznamenávání výjimek a chyb
  */
+class Vyjimkovac {
 
-class Vyjimkovac
-{
+  private
+    $dbFile,
+    $db,
+    $ukoncitPriNotice = true, // TODO nastavení zvenčí
+    $zobrazeni = self::PLAIN;
 
-  private $dbFile;
-  private $db;
+  const
+    NIC     = 1,
+    PLAIN   = 2,
+    TRACY   = 3,
+    PICARD  = 4;
 
   function __construct($dbFile) {
     $this->dbFile = $dbFile;
+
+    // TODO odstranit a ošetřit pomocí volání `zobrazeni` v zavaděči. Zatím
+    // nelze, protože zavaděče jsou přepracované i v rámci redesignu a bude
+    // merge-hell.
+    if(VETEV == VYVOJOVA) {
+      $this->zobrazeni = self::TRACY;
+    } else {
+      $this->zobrazeni = self::PICARD;
+    }
   }
 
-  /** Zapne zpracování výjimek */
+  /**
+   * Zapne zpracování výjimek
+   */
   function aktivuj() {
+
     // fatal errory
-    register_shutdown_function(function(){
-      $e = error_get_last();
-      if($e["type"] == E_ERROR) {
-        //ob_end_clean(); // odstranění výstupu xdebugu či výstupu stránky
-        $this->zpracuj(Tracy\Helpers::fixStack(new ErrorException($e['message'], 0, $e['type'], $e['file'], $e['line'])));
-      }
+    register_shutdown_function(function() {
+      $error = error_get_last();
+      if($error["type"] != E_ERROR) return;
+
+      $eException = new ErrorException($error['message'], 0, $error['type'], $error['file'], $error['line']);
+      $eFixed = Tracy\Helpers::fixStack($eException);
+      $this->zpracuj($eFixed);
     });
+
     // typicky notice, warningy a stricty
-    set_error_handler(function($typ, $msg, $file, $line, $context){
+    set_error_handler(function($typ, $msg, $file, $line, $context) {
       // omezení typu na pouze aktuálně reportované
       // (nutné kvůli operátoru @ použitého typicky v parse_ metodách šablon,
       // který by jinak tento handler odchytával)
-      if(error_reporting() & $typ) {
-        $this->zpracuj(Tracy\Helpers::fixStack(new ErrorException($msg, 0, $typ, $file, $line)));
-      }
+      if(!(error_reporting() & $typ)) return;
+
+      $eException = new ErrorException($msg, 0, $typ, $file, $line);
+      $eFixed = Tracy\Helpers::fixStack($eException);
+      $this->zpracuj($eFixed);
     });
+
     // standardní výjimky
-    set_exception_handler(function($e){
+    set_exception_handler(function($e) {
       if($e instanceof Chyba)
         $e->zpet(); // u zobrazitelných chyb ignorovat a jen zobrazit upo
       elseif($e instanceof XTemplateRecompilationException)
@@ -42,9 +66,12 @@ class Vyjimkovac
       else
         $this->zpracuj($e);
     });
+
   }
 
-  /** Vrátí PDO instanci s připravenou databází pro uložení / čtení chyb */
+  /**
+   * Vrátí PDO instanci s připravenou databází pro uložení / čtení chyb
+   */
   protected function db() {
     if(!$this->db) {
       $this->db = new EPDO('sqlite:'.$this->dbFile);
@@ -52,7 +79,10 @@ class Vyjimkovac
     return $this->db;
   }
 
-  /** Vrátí HTML skript element s kódem aktivujícím js výjimkovač */
+  /**
+   * Vrátí HTML skript element s kódem aktivujícím js výjimkovač
+   * @todo předělat z jQuery volání na vanilla JS
+   */
   static function js($url) {
     ob_start();
     ?><script>
@@ -67,13 +97,25 @@ class Vyjimkovac
     return ob_get_clean();
   }
 
-  /** Zavoláno ze stránky zpracovávající ajaxové info z výjimkovače */
+  /**
+   * Zavoláno ze stránky zpracovávající ajaxové info z výjimkovače
+   */
   function jsZpracuj() {
     $e = new JsException(post('msg'), post('url'), post('line'));
     $this->zpracuj($e);
   }
 
-  /** Zobrazí public omluvnou stránku uživateli */
+  function zobrazeni(...$args) {
+    if(!$args) {
+      return $this->zobrazeni;
+    } else {
+      $this->zobrazeni = $args[0];
+    }
+  }
+
+  /**
+   * Zobrazí public omluvnou stránku uživateli
+   */
   function zobrazOmluvu() {
     $out = file_get_contents(__DIR__ . '/vyjimkovac-omluva.xtpl');
     $out = strtr($out, [
@@ -82,23 +124,36 @@ class Vyjimkovac
     echo $out;
   }
 
-  /** Uloží výjimku a zobrazí info podle verze ostrá / dev */
+  /**
+   * Uloží výjimku a zobrazí info podle nastaveného stylu zobrazování chyb
+   * a případně ukončí skript.
+   */
   protected function zpracuj($e) {
     // uložení
     VyjimkovacChyba::zVyjimky($e)->uloz($this->db());
+
     // hlavičky
     if($e instanceof JsException)       return; // js výjimky nezobrazovat
     elseif($e instanceof UrlException)  header('HTTP/1.1 400 Bad Request'); // nastavení chybových hlaviček
     else                                header('HTTP/1.1 500 Internal Server Error');
+
     // zobrazení
-    if(VETEV == VYVOJOVA) {
+    if($this->zobrazeni == self::PLAIN) {
+      echo $e . "\n";
+    } elseif($this->zobrazeni == self::TRACY) {
       (new Tracy\BlueScreen)->render($e);
       if($e instanceof DbException) echo '<pre>', dbLastQ();
-    } else {
+    } elseif($this->zobrazeni == self::PICARD) {
       $this->zobrazOmluvu(); // TODO možná nějaké maily / reporting?
+    } else {
+      // self::NIC => nezobrazovat nic
     }
-    // radši umřít než riskovat nekonzistenci na ostré
-    die();
+
+    // ukončení skriptu - efektivně řešíme jen notice, vše ostatní by vedlo
+    // k ukončení skriptu automaticky i po návratu z funkce `zpracuj`
+    if($this->ukoncitPriNotice) {
+      exit(1);
+    }
   }
 
 }

@@ -3,15 +3,20 @@
     {
       "type": "vcs",
       "url": "https://github.com/godric-cz/xtemplate"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/godric-cz/db-backup"
     }
   ],
   "require": {
     "michelf/php-markdown": "~1.4",
     "oyejorge/less.php": "~1.7",
-    "dg/mysql-dump": "dev-master",
+    "dg/mysql-dump": "^1.4",
     "tracy/tracy": "~2.4",
     "godric/xtemplate": "dev-master",
-    "roderik/pwgen-php": "^0.1.7"
+    "roderik/pwgen-php": "^0.1.7",
+    "godric/db-backup": "dev-master"
   },
   "require-dev": {
     "dg/ftp-deployment": "~2.7"

@@ -33,6 +33,7 @@ if(!defined('VETEV')) throw new Exception('Konstanta VETEV není nastavena, nast
 require __DIR__ . '/nastaveni.php';
 
 // nastavení cache složky pro třídy, které ji potřebují
-(new Vyjimkovac(SPEC . '/chyby.sqlite'))->aktivuj();
+$vyjimkovac = new Vyjimkovac(SPEC . '/chyby.sqlite');
+$vyjimkovac->aktivuj();
 pripravCache(SPEC . '/xtpl');
 XTemplate::cache(SPEC . '/xtpl');
