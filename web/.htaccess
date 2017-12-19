@@ -1,3 +1,5 @@
+Allow from all
+
 AddDefaultCharset   UTF-8
 RewriteEngine       On
 

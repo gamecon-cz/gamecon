@@ -1,3 +1,4 @@
+Allow from all
 
 # bez tohoto nefunguje kořenová url na wedosu
 RewriteEngine On
