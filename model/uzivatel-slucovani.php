@@ -6,6 +6,27 @@
 class UzivatelSlucovani {
 
   /**
+   * @return pole dvojic [tabulka, sloupec] odkazující na id_uzivatele
+   */
+  private function odkazujiciTabulky() {
+    $odkazy = dbQuery('
+      SELECT table_name, column_name
+      FROM information_schema.key_column_usage
+      WHERE
+        table_schema = "' . DB_NAME . '" AND
+        referenced_table_name = "uzivatele_hodnoty" AND
+        referenced_column_name = "id_uzivatele"
+    ')->fetch_all();
+
+    // přidat odkazy kde není v db nastaven cizí klíč
+    $odkazy[] = ['akce_prihlaseni_log', 'id_uzivatele'];
+    $odkazy[] = ['platby', 'provedl'];
+    $odkazy[] = ['akce_seznam', 'zamcel'];
+
+    return $odkazy;
+  }
+  
+  /**
    * @param array $zmeny páry sloupec => hodnota, které se mají upravit v
    * novém uživateli
    */
@@ -37,29 +58,11 @@ class UzivatelSlucovani {
     $this->zaloguj("do id $novyId sloučeno a smazáno id $staryId");
     $this->zaloguj("  původní zůstatek smazaného účtu:  " . $stary->finance()->zustatek());
     $this->zaloguj("  původní zůstatek nového účtu:     " . $novy->finance()->zustatek());
+    $this->zaloguj("  email smazaného účtu:             " . $stary->mail());
+    $this->zaloguj("  email nového účtu:                " . $novy->mail());
     $novy = Uzivatel::zId($novy->id()); // přenačtení uživatele, aby se aktualizovaly finance
-    $this->zaloguj("  aktuální nový zůstatek:           " . $novy->finance()->zustatek() . "\n");
-  }
-
-  /**
-   * @return pole dvojic [tabulka, sloupec] odkazující na id_uzivatele
-   */
-  private function odkazujiciTabulky() {
-    $odkazy = dbQuery('
-      SELECT table_name, column_name
-      FROM information_schema.key_column_usage
-      WHERE
-        table_schema = "' . DB_NAME . '" AND
-        referenced_table_name = "uzivatele_hodnoty" AND
-        referenced_column_name = "id_uzivatele"
-    ')->fetch_all();
-
-    // přidat odkazy kde není v db nastaven cizí klíč
-    $odkazy[] = ['akce_prihlaseni_log', 'id_uzivatele'];
-    $odkazy[] = ['platby', 'provedl'];
-    $odkazy[] = ['akce_seznam', 'zamcel'];
-
-    return $odkazy;
+    $this->zaloguj("  aktuální nový zůstatek:           " . $novy->finance()->zustatek());
+    $this->zaloguj("  aktuální nový email:              " . $novy->mail() . "\n");
   }
 
   /**

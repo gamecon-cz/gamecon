@@ -22,6 +22,11 @@ Vhodné vycházet z <a href="reporty/duplicity">reportu</a> s potenciálně dupl
       <td><input type="text" name="u2" value="{ubid}"></td>
     </tr>
     <!-- begin:detaily -->
+      <tr>
+        <td></td>
+        <td><input type="hidden" name="skrytyU1" value="{uaid}"></td>
+        <td><input type="hidden" name="skrytyU2" value="{ubid}"></td>
+      </tr>
       <!-- begin: historiePrihlaseni -->
       <tr>
         <td>Přihlášen {rok}</td>
@@ -33,8 +38,8 @@ Vhodné vycházet z <a href="reporty/duplicity">reportu</a> s potenciálně dupl
       <!-- end: historiePrihlaseni -->
     <tr>
       <td>Login</td>
-      <td><label><input type="radio" name="login" value="{uaid}" checked> {ua.jmenoNick}</label></td>
-      <td><label><input type="radio" name="login" value="{ubid}"> {ub.jmenoNick}</label></td>
+      <td><label><input type="radio" name="login" value="{uaid}" checked> {ua.nick}</label></td>
+      <td><label><input type="radio" name="login" value="{ubid}"> {ub.nick}</label></td>
     </tr>
     <tr>
       <td>Heslo</td>
@@ -47,14 +52,56 @@ Vhodné vycházet z <a href="reporty/duplicity">reportu</a> s potenciálně dupl
       <td><label><input type="radio" name="mail" value="{ubid}"> {ub.mail} {bmrtvy}</label></td>
     </tr>
     <tr>
-      <td>Nové ID</td>
-      <td><label><input type="radio" name="id" value="{uaid}" checked> {ua.id}</label></td>
-      <td><label><input type="radio" name="id" value="{ubid}"> {ub.id}</label></td>
+      <td>Jméno a příjmení</td>
+      <td><label><input type="radio" name="jmeno" value="{uaid}" checked> {ua.jmeno}</label></td>
+      <td><label><input type="radio" name="jmeno" value="{ubid}"> {ub.jmeno}</label></td>
+    </tr>
+    <tr>
+      <td>Adresa</td>
+      <td><label><input type="radio" name="adresa" value="{uaid}" checked> {ua.adresa}</label></td>
+      <td><label><input type="radio" name="adresa" value="{ubid}"> {ub.adresa}</label></td>
+    </tr>
+    <tr>
+      <td>Telefon</td>
+      <td><label><input type="radio" name="telefon" value="{uaid}" checked> {ua.telefon}</label></td>
+      <td><label><input type="radio" name="telefon" value="{ubid}"> {ub.telefon}</label></td>
+    </tr>
+    <tr>
+      <td>Poznámka</td>
+      <td><label><input type="radio" name="poznamka" value="{uaid}" checked> {ua.poznamka}</label></td>
+      <td><label><input type="radio" name="poznamka" value="{ubid}"> {ub.poznamka}</label></td>
+    </tr>
+    <tr>
+      <td>OP</td>
+      <td><label><input type="radio" name="op" value="{uaid}" checked> {ua.obcanskyPrukaz}</label></td>
+      <td><label><input type="radio" name="op" value="{ubid}"> {ub.obcanskyPrukaz}</label></td>
+    </tr>
+    <!--  TODO později
+    <tr>
+      <td>Medailonek</td>
+      <td><label><input type="radio" name="medailonek" value="{uaid}" checked> {ua.id}</label></td>
+      <td><label><input type="radio" name="medailonek" value="{ubid}"> {ub.id}</label></td>
+    </tr>
+    -->
+    <tr>
+      <td>Pohlaví</td>
+      <td><label><input type="radio" name="pohlavi" value="{uaid}" checked> {ua.pohlavi}</label></td>
+      <td><label><input type="radio" name="pohlavi" value="{ubid}"> {ub.pohlavi}</label></td>
+    </tr>
+    <tr>
+      <td>Datum narození</td>
+      <td><label><input type="radio" name="datum_narozeni" value="{uaid}" checked> {ua.datumNarozeni.formatDatumStandard}</label></td>
+      <td><label><input type="radio" name="datum_narozeni" value="{ubid}"> {ub.datumNarozeni.formatDatumStandard}</label></td>
     </tr>
     <tr>
       <td>Zůstatek</td>
       <td>{ua.finance.zustatek}</td>
       <td>{ub.finance.zustatek}</td>
+    </tr>
+    <tr>
+      <td>Poslední Platba</td>
+      <td>{ua.finance.posledniPlatba}</td>
+      <td>{ub.finance.posledniPlatba}</td>
     </tr>
     <!-- TODO později
     <tr>
