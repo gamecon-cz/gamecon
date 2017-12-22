@@ -144,7 +144,7 @@ $loginy=substr($loginy,0,-1);
     </select>
     <br>
     <input type="text" placeholder="Telefon" name="tab[telefon_uzivatele]" value="<?=@$udb['telefon_uzivatele']?>">
-    <input type="text" placeholder="Datum narození jako 1.1.1990" name="datumNarozeni" value="<?=$u?$u->datumNarozeni()->format('j.n.Y'):''?>" >
+    <input type="text" placeholder="Datum narození jako 1.1.1990" name="datumNarozeni" value="<?=$u?$u->datumNarozeni()->formatDatumStandard():''?>" >
     <input type="password" placeholder="Heslo" name="heslo2">
     <input type="password" placeholder="Heslo pro kontrolu" name="heslo3">
     <input type="checkbox" id="udaje" style="margin-top:1em" checked required>

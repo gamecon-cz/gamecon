@@ -25,7 +25,8 @@ class Finance {
     $sleva          = 0.0,  // sleva za tech. aktivity a odvedené aktivity
     $slevaVyuzita   = 0.0,  // sleva za odvedené aktivity (využitá část)
     $zustatek       = 0,    // zůstatek z minula
-    $platby         = 0.0;  // platby připsané na účet
+    $platby         = 0.0,  // platby připsané na účet
+    $posledniPlatba;        // datum poslední připsané platby
 
   protected static
     $maxSlevaAktivit=100, // v procentech
@@ -157,6 +158,23 @@ class Finance {
   /** Vrátí sumu plateb (připsaných peněz) */
   function platby() {
     return $this->platby;
+  }
+
+  /**
+   * Vrátí / nastaví datum posledního provedení platby
+   *
+   * @return string datum poslední platby
+   */
+  function posledniPlatba() {
+    if(!isset($this->posledniPlatba)) {
+      $uid = $this->u->id();
+      $this->posledniPlatba = dbOneCol("
+        SELECT max(provedeno) as datum
+        FROM platby
+        WHERE castka > 0 AND id_uzivatele = $1",[$uid]
+      );
+    }
+    return $this->posledniPlatba;
   }
 
   /**
@@ -459,5 +477,4 @@ class Finance {
   function zustatek() {
     return $this->zustatek;
   }
-
 }

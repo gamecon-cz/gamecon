@@ -37,6 +37,14 @@ class Uzivatel {
       throw new Exception('Špatný vstup konstruktoru uživatele');
   }
 
+  /** 
+   * @return string adresa uživatele ve formátu Město, Ulice ČP, PSČ, stát
+   */
+  function adresa() {
+    $adresa = $this->u['mesto_uzivatele'].', '.$this->u['ulice_a_cp_uzivatele'].', '.$this->u['psc_uzivatele'].', '.$this->stat();
+    return $adresa;
+  }
+
   /**
    * Vrátí aboslutní adresu avataru včetně http. Pokud avatar neexistuje, vrací
    * default avatar. Pomocí adresy je docíleno, aby se při nezměně obrázku dalo
@@ -81,8 +89,7 @@ class Uzivatel {
   }
 
   /** Smaže avatar uživatele. (jen uživatelská část webu) */
-  function avatarSmaz()
-  {
+  function avatarSmaz() {
     if(is_file('./soubory/systemove/avatary/'.$this->id().'.jpg'))
       return unlink('./soubory/systemove/avatary/'.$this->id().'.jpg');
     else
@@ -92,19 +99,17 @@ class Uzivatel {
   /**
    * Vrátí datum narození uživatele jako DateTime
    */
-  public function datumNarozeni()
-  {
+  public function datumNarozeni() {
     if((int)$this->u['datum_narozeni']) //hack, neplatný formát je '0000-00-00'
-      return new DateTime($this->u['datum_narozeni']);
+      return new DateTimeCz($this->u['datum_narozeni']);
     else
-      return new DateTime('1970-01-01');
+      return new DateTimeCz('0001-01-01');
   }
 
   /**
    * Přidá uživateli židli (posadí uživatele na židli)
    */
-  function dejZidli($idZidle)
-  {
+  function dejZidli($idZidle) {
     $z=(int)$idZidle;
     if($z==0)
       return false;
@@ -256,8 +261,7 @@ class Uzivatel {
   }
 
   /** Jméno a příjmení uživatele v běžném (zákonném) tvaru */
-  function jmeno()
-  {
+  function jmeno() {
     return $this->u['jmeno_uzivatele'].' '.$this->u['prijmeni_uzivatele'];
   }
 
@@ -417,6 +421,14 @@ class Uzivatel {
     return isset($this->organizovaneAktivityIds[$a->id()]);
   }
 
+  /** 
+   *
+   * @return string číslo občanského průkazu
+   */
+  function obcanskyPrukaz() {
+    return $this->u['op'];
+  }
+  
   /** Vrátí medailonek vypravěče */
   function oSobe() {
     return $this->medailonek() ? $this->medailonek()->oSobe() : null;
