@@ -11,28 +11,29 @@
  */
 
 $reporty = [
-  ['aktivity',          'Historie přihlášení na aktivity',        ['csv', 'html']],
-  //['neplatici',         'Neplatiči letos'], // duplikuje bfgr a finance, nemá smysl udržovat
-  //['spolupracovnici',   'Spolupracovníci (orgové, info, zázemí, vypravěči+aktivity)'], // neudržované, asi lze zjistit z bfgr
-  ['pocty-her',         'Účastníci a počty jejich aktivit'],
-  ['pocty-her-graf',    'Graf rozložení rozmanitosti her',        ['html']],
-  ['rozesilani-ankety', 'Rozesílání ankety s tokenem',            ['html']],
-  ['parovani-ankety',   'Párování ankety a údajů uživatelů',      ['html']],
-  ['grafy-ankety',      'Grafy k anketě',                         ['html']],
-  ['update-zustatku',   'UPDATE příkaz zůstatků pro letošní GC',  ['html']],
-  ['ubytovani',         'Ubytování',                              ['csv', 'html']],
-  //['celkova-ucast',     'Celková účast'], // už dlouho nefunkční, asi přehled účasti po letech
-  ['neprihlaseni-vypraveci', 'Nepřihlášení a neubytovaní vypravěči', ['html']],
-  ['duplicity',         'Duplicitní uživatelé',                   ['html']],
-  ['stravenky',         'Stravenky uživatelů',                    ['html']],
-  ['stravenky?ciste',   'Stravenky (bianco)',                     ['html']],
-  ['programove-reporty', 'Programový report (2015)', ['csv', 'html']],
-  ['zaplnenost-programu-ucastniku', 'Zaplněnost programu účastníků (2015)', ['csv', 'html']],
-  ['maily-prihlaseni',  'Maily – přihlášení na GC (vč. unsubscribed)', ['csv', 'html']],
-  ['maily-neprihlaseni','Maily – nepřihlášení na GC',             ['csv', 'html']],
-  ['maily-vypraveci',   'Maily – vypravěči (vč. unsubscribed)',   ['csv', 'html']],
-  ['maily-vsichni',     'Maily – všichni',                        ['csv', 'html']],
-  ['celkovy-report',    '<br>Celkový report '.ROK.'<br><br>',     ['csv', 'html']],
+  ['aktivity',                              'Historie přihlášení na aktivity',              ['csv', 'html']],
+  //['neplatici',                           'Neplatiči letos'], // duplikuje bfgr a finance, nemá smysl udržovat
+  //['spolupracovnici',                     'Spolupracovníci (orgové, info, zázemí, vypravěči+aktivity)'], // neudržované, asi lze zjistit z bfgr
+  ['pocty-her',                             'Účastníci a počty jejich aktivit'],
+  ['pocty-her-graf',                        'Graf rozložení rozmanitosti her',              ['html']],
+  ['rozesilani-ankety',                     'Rozesílání ankety s tokenem',                  ['html']],
+  ['parovani-ankety',                       'Párování ankety a údajů uživatelů',            ['html']],
+  ['grafy-ankety',                          'Grafy k anketě',                               ['html']],
+  ['update-zustatku',                       'UPDATE příkaz zůstatků pro letošní GC',        ['html']],
+  ['ubytovani',                             'Ubytování',                                    ['csv', 'html']],
+  //['celkova-ucast',                       'Celková účast'], // už dlouho nefunkční, asi přehled účasti po letech
+  ['neprihlaseni-vypraveci',                'Nepřihlášení a neubytovaní vypravěči',         ['html']],
+  ['duplicity',                             'Duplicitní uživatelé',                         ['html']],
+  ['stravenky',                             'Stravenky uživatelů',                          ['html']],
+  ['stravenky?ciste',                       'Stravenky (bianco)',                           ['html']],
+  ['programove-reporty',                    'Programový report (2015)',                     ['csv', 'html']],
+  ['zaplnenost-programu-ucastniku',         'Zaplněnost programu účastníků (2015)',         ['csv', 'html']],
+  ['maily-prihlaseni',                      'Maily – přihlášení na GC (vč. unsubscribed)',  ['csv', 'html']],
+  ['maily-neprihlaseni',                    'Maily – nepřihlášení na GC',                   ['csv', 'html']],
+  ['maily-vypraveci',                       'Maily – vypravěči (vč. unsubscribed)',         ['csv', 'html']],
+  ['maily-dle-data-ucasti?start=0',         'Maily - nedávní účastníci (prvních 2000)'],
+  ['maily-dle-data-ucasti?start=2000',      'Maily - dávní účastníci (dalších 2000)'],
+  ['celkovy-report',                        '<br>Celkový report '.ROK.'<br><br>',           ['csv', 'html']],
 ];
 
 $t = new XTemplate('reporty.xtpl');
