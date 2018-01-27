@@ -246,11 +246,6 @@ class Finance {
     return $this->stav().'&thinsp;Kč';
   }
 
-  /** Vrátí stav na účtu uživatele pro tento rok, pokud by neplatila sleva za včasnou platbu */
-  function stavPozde() {
-    return $this->stav - $this->deltaPozde;
-  }
-
   /**
    * Vrací součinitel ceny aktivit jako float číslo. Např. 0.0 pro aktivity
    * zdarma a 1.0 pro aktivity za plnou cenu.   
@@ -308,35 +303,16 @@ class Finance {
   /**
    * Vrátí součinitel ceny aktivit, tedy slevy uživatele vztahující se k
    * aktivitám. Vrátí hodnotu.
-   * @todo přesunout výpočet konstant pro židle předloni, předpředloni atd…
    */
   protected function soucinitelAktivit() {
     if(!isset($this->scnA)) {
       // pomocné proměnné
       $sleva=0; // v procentech
-      $uid=$this->u->id();
-      $rok=ROK;
-      $zLoni=   -(ROK%2000-1)*100-1;
-      $zPLoni=  -(ROK%2000-2)*100-1;
-      $zPPLoni= -(ROK%2000-3)*100-1;
       // výpočet pravidel
-      if($this->u->maPravo(P_SLEVA_STUDENT))
-        // sleva 20%, pokud je student
-        $sleva+=20 xor
-        $this->slevyA[]='studentská sleva 20%'.($this->u->maPravo(P_ORG_AKCI)?' (pro vypravěče automaticky)':'');
-      if($this->u->maPravo(P_SLEVA_VCAS) || SLEVA_AKTIVNI)
-        // sleva 20%, pokud zaplatil včas (resp. ještě může zaplatit včas)
-        $sleva+=20 xor
-        $this->slevyA[]='sleva 20% za včasnou platbu'.(SLEVA_AKTIVNI?' (pokud zaplatíš do '.datum3(SLEVA_DO).' nebo už máš zaplaceno)':'');
-      if(($novacku=dbOneCol("
-        SELECT count(1)
-        FROM uzivatele_hodnoty u
-        LEFT JOIN r_uzivatele_zidle z ON(u.id_uzivatele=z.id_uzivatele AND ( z.id_zidle=$zLoni OR z.id_zidle=$zPLoni OR z.id_zidle=$zPPLoni ))
-        WHERE u.guru=$uid AND ISNULL(z.id_zidle)
-        "))>0)
-        // sleva 20% za _každého_ nováčka
-        $sleva+=$novacku*20 xor
-        $this->slevyA[]='za každého nového účastníka 20% (tj. '.($novacku*20).'% celkem)';
+      if($this->u->maPravo(P_SLEVA_AKTIVITA))
+        // sleva 40%
+        $sleva+=40 xor
+        $this->slevyA[]='sleva 40%';      
       if($sleva>self::$maxSlevaAktivit)
         // omezení výše slevy na maximální hodnotu
         $sleva=self::$maxSlevaAktivit;
@@ -345,17 +321,6 @@ class Finance {
       $this->scnA = $slevaAktivity;
     }
     return $this->scnA;
-  }
-
-  /**
-   * Součinitel ceny za aktivity při pozdní platbě
-   * @todo hardcode obejití pro vypravěče není dobrý :(
-   */
-  protected function soucinitelAktivitPozde() {
-    if(SLEVA_AKTIVNI && !$this->u->maPravo(P_ORG_AKCI))
-      return $this->soucinitelAktivit() + 0.2;
-    else
-      return $this->soucinitelAktivit();
   }
 
   function vstupne() {
@@ -372,7 +337,6 @@ class Finance {
    */
   protected function zapoctiAktivity() {
     $scn = $this->soucinitelAktivit();
-    $scnPozde = $this->soucinitelAktivitPozde();
     $rok = ROK;
     $uid = $this->u->id();
     $o = dbQuery("
@@ -383,11 +347,6 @@ class Finance {
           IF(a.bez_slevy OR a.typ=10, 1.0, $scn) *
           IF(a.typ = 10 AND p.id_stavu_prihlaseni IN(3,4), 0.0, 1.0) *    -- zrušit 'storno' pro pozdě odhlášené tech. aktivity
           IF(a.typ=10,-1.0,1.0) as cena,
-        a.cena *
-          (st.platba_procent/100) *
-          IF(a.bez_slevy OR a.typ=10, 1.0, $scnPozde) *
-          IF(a.typ = 10 AND p.id_stavu_prihlaseni IN(3,4), 0.0, 1.0) *
-          IF(a.typ=10,-1.0,1.0) as cenaPozde,
         st.id_stavu_prihlaseni
       FROM (
         SELECT * FROM akce_prihlaseni WHERE id_uzivatele = $uid
@@ -401,7 +360,6 @@ class Finance {
     while($r = mysqli_fetch_assoc($o)) {
       if($r['cena'] >= 0) {
         $this->cenaAktivity += $r['cena'];
-        $this->deltaPozde += $r['cenaPozde'] - $r['cena'];
       } else {
         $this->sleva -= $r['cena'];
       }

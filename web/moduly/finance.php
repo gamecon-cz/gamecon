@@ -16,18 +16,14 @@ $limit=false;
 $a=$u->koncA();
 $uid=$u->id();
 
-if(!$zaplaceno)
-{
+if(!$zaplaceno) {
   $castka=-$fin->stav();
-  $pozde=-round($fin->stavPozde());
-  if(SLEVA_AKTIVNI)
-    $limit=datum3(SLEVA_DO);
+  $limit=datum3(HROMADNE_ODHLASOVANI);
+  $limit2=datum3(HROMADNE_ODHLASOVANI_2);
   if($u->stat()=='CZ') {
     $castka.='&thinsp;Kč';
-    $pozde.='&thinsp;Kč';
   } else {
     $castka=round($castka/KURZ_EURO,2).'&thinsp;€';
-    $pozde=round($pozde/KURZ_EURO,2).'&thinsp;€';
   }
 }
 
@@ -76,24 +72,38 @@ if(!$zaplaceno)
     <strong>Poznámka pro příjemce:</strong> /VS/<?=$uid?> <i>(vč. lomítek)</i><br>
   <?php } ?>
   <strong>Částka k zaplacení:</strong> <?=$castka?>
-  <?php if($limit){ ?>
-    do <?=$limit?> <i>(<?=$pozde?> později)</i>
-  <?php } ?>
   </p>
 
-  <?php if($limit){ ?>
+  <?php if(pred(HROMADNE_ODHLASOVANI)) { ?>
     <?php if($u->stat()=='CZ'){ ?>
       <p>GameCon je nutné zaplatit převodem <strong>do <?=$limit?></strong>. Platíš celkem <strong><?=$castka?></strong>, variabilní symbol je tvoje ID <strong><?=$uid?></strong>.</p>
     <?php }else{ ?>
       <p>GameCon je nutné zaplatit převodem <strong>do <?=$limit?></strong>. Platíš celkem <strong><?=$castka?></strong>, přesné údaje o platbě nalezneš výše.</p>
     <?php } ?>
     <ul class="seznam-bez-okraje">
-    <li class="poznamka">Při pozdější platbě tě systém dne <strong>1.7</strong> (příp. 16.7. při pozdější přihlášce)<strong> automaticky odhlásí</strong>.</li>
-    <li class="poznamka">Pokud si aktivity (znovu) přihlásíš po 30.6., beze slevy nebo na místě pak platíš <?=$pozde?>.</li>
-    <li class="poznamka">Při plánování aktivit si na účet pošli klidně více peněz. Přebytek ti vrátíme na infopultu nebo ho můžeš využít k přihlašování uvolněných aktivit na místě.</li>
+      <li class="poznamka">Při pozdější platbě tě systém dne <strong><?php echo datum3(HROMADNE_ODHLASOVANI) ?></strong> (příp. <?php echo datum3(HROMADNE_ODHLASOVANI_2) ?> při pozdější přihlášce)<strong> automaticky odhlásí</strong>.</li>
+      <li class="poznamka">Při plánování aktivit si na účet pošli klidně více peněz. Přebytek ti vrátíme na infopultu nebo ho můžeš využít k přihlašování uvolněných aktivit na místě.</li>
+    </ul>
+  <?php } elseif(pred(HROMADNE_ODHLASOVANI_2)) { ?>
+    <?php if($u->stat()=='CZ'){ ?>
+      <p>GameCon je nutné zaplatit převodem <strong>do <?=$limit2?></strong>. Platíš celkem <strong><?=$castka?></strong>, variabilní symbol je tvoje ID <strong><?=$uid?></strong>.</p>
+    <?php }else{ ?>
+      <p>GameCon je nutné zaplatit převodem <strong>do <?=$limit2?></strong>. Platíš celkem <strong><?=$castka?></strong>, přesné údaje o platbě nalezneš výše.</p>
+    <?php } ?>
+    <ul class="seznam-bez-okraje">
+      <li class="poznamka">Při pozdější platbě tě systém dne <strong><?php echo datum3(HROMADNE_ODHLASOVANI_2) ?> automaticky odhlásí</strong>.</li>
+      <li class="poznamka">Při plánování aktivit si na účet pošli klidně více peněz. Přebytek ti vrátíme na infopultu nebo ho můžeš využít k přihlašování uvolněných aktivit na místě.</li>
     </ul>
   <?php }else{ ?>
-    <p>Období pro slevu za včasnou platbu vypršelo, zaplatit tedy můžeš převodem nebo na místě celkem <strong><?=$castka?></strong>.</p>
+     <!--TODO hláška po druhém odhlašování-->
+    <?php if($u->stat()=='CZ'){ ?>
+      <p>Zaplatit můžeš převodem nebo na místě. Platíš celkem <strong><?=$castka?></strong>, variabilní symbol je tvoje ID <strong><?=$uid?></strong>.</p>
+    <?php }else{ ?>
+      <p>Zaplatit můžeš převodem nebo na místě. Platíš celkem <strong><?=$castka?></strong>, přesné údaje o platbě nalezneš výše.</p>
+    <?php } ?>
+    <ul class="seznam-bez-okraje">
+      <li class="poznamka">Při plánování aktivit si na účet pošli klidně více peněz. Přebytek ti vrátíme na infopultu nebo ho můžeš využít k přihlašování uvolněných aktivit na místě.</li>
+    </ul>
   <?php } ?>
 <?php }else{ ?>
   <?php if($u->stat()=='CZ'){ ?>

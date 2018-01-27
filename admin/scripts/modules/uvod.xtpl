@@ -129,13 +129,11 @@
 
 <!-- begin:slevy -->
 <div class="aBox grid">
-  <h3>Slevy a nováčci</h3>
+  <h3>Slevy</h3>
   <strong>Na aktivity:</strong>
   <ul>{slevyAktivity}</ul>
   <strong>Na všechno:</strong>
   <ul>{slevyVse}</ul>
-  <strong>Nováčci:</strong><br>
-  <ul>{novacci}</ul>
 </div>
 <!-- end:slevy -->
 

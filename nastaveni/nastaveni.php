@@ -17,19 +17,20 @@ error_reporting($puvodni ^ E_NOTICE);
 // Základní nastavení //
 ////////////////////////
 
-define('ROK', 2018);                                  // aktuální rok -- při změně roku viz http://bit.ly/2l5olnb
-define('GC_BEZI_OD',        ROK.'-07-19 07:00:00');   // začátek GameConu (přepnutí stránek do režimu "úpravy na jen na infopultu")
-define('GC_BEZI_DO',        ROK.'-07-22 21:00:00');   // konec GameCou (přepnutí stránek do režimu "gc skončil, úpravy nemožné")
-define('REG_GC_OD',         ROK.'-05-08 20:18:00');   // spuštění možnosti registrace na GameCon
-define('REG_GC_DO',         GC_BEZI_DO);              // ukončení možnosti registrace na GameCon
-define('REG_AKTIVIT_OD',    ROK.'-05-22 20:18:00');   // spuštění možnosti registrace na aktivity, pokud jsou aktivované
-define('REG_AKTIVIT_DO',    GC_BEZI_DO);              // ukončení možnosti registrace na aktivity
-define('SLEVA_DO',          ROK.'-07-03 23:59:59');   // do kdy se oficiálně počítá platba včas
-define('PROGRAM_OD',        ROK.'-07-18');            // první den programu
-define('PROGRAM_DO',        GC_BEZI_DO);              // poslední den programu
-define('PROGRAM_VIDITELNY', po(REG_GC_OD));           // jestli jsou viditelné linky na program
-define('CENY_VIDITELNE',    PROGRAM_VIDITELNY && pred(GC_BEZI_DO)); // jestli jsou viditelné ceny aktivit
-define('FINANCE_VIDITELNE', po(REG_GC_OD));           // jestli jsou public viditelné finance
+define('ROK',                    2018);                    // aktuální rok -- při změně roku viz http://bit.ly/2l5olnb
+define('GC_BEZI_OD',             ROK.'-07-19 07:00:00');   // začátek GameConu (přepnutí stránek do režimu "úpravy na jen na infopultu")
+define('GC_BEZI_DO',             ROK.'-07-22 20:00:00');   // konec GameCou (přepnutí stránek do režimu "gc skončil, úpravy nemožné")
+define('REG_GC_OD',              ROK.'-05-02 20:17:00');   // spuštění možnosti registrace na GameCon
+define('REG_GC_DO',              GC_BEZI_DO);              // ukončení možnosti registrace na GameCon
+define('REG_AKTIVIT_OD',         ROK.'-05-09 20:17:00');   // spuštění možnosti registrace na aktivity, pokud jsou aktivované
+define('REG_AKTIVIT_DO',         GC_BEZI_DO);              // ukončení možnosti registrace na aktivity
+define('PROGRAM_OD',             ROK.'-07-19');            // první den programu
+define('PROGRAM_DO',             GC_BEZI_DO);              // poslední den programu
+define('PROGRAM_VIDITELNY',      po(REG_GC_OD));           // jestli jsou viditelné linky na program
+define('CENY_VIDITELNE',         PROGRAM_VIDITELNY && pred(GC_BEZI_DO)); // jestli jsou viditelné ceny aktivit
+define('FINANCE_VIDITELNE',      po(REG_GC_OD));           // jestli jsou public viditelné finance
+define('HROMADNE_ODHLASOVANI',   ROK.'-07-01 20:18:00');   // datum hromadného odhlašování neplatičů
+define('HROMADNE_ODHLASOVANI_2', ROK.'-07-16 20:18:00');   // datum druhého hromadného odhlašování neplatičů
 
 
 ///////////////////
@@ -47,8 +48,6 @@ define('Z_ODJEL',     $pre-3);  //prošel infopultem na odchodu a odjel z GC
 define('Z_ORG', 2);             //organizátor z core org teamu
 define('Z_ORG_AKCI',6);         //vypravěč (org akcí)
 define('Z_ORG_SKUPINA',9);      //organizátorská skupina (Albi, Černobor, …)
-define('Z_STUDENT',10);         //student (uvedl o sobě)
-define('Z_VCAS',11);            //zaplatil včas
 define('Z_PARTNER',13);         //partner
 define('Z_INFO',8);             //operátor/ka infopultu
 define('Z_ZAZEMI',7);           //člen/ka zázemí
@@ -69,8 +68,6 @@ define('P_KOSTKA_ZDARMA',1003);
 define('P_JIDLO_SLEVA',1004);   //může si kupovat jídlo se slevou
 define('P_JIDLO_ZDARMA',1005);  //může si objednávat jídlo a má ho zdarma
 define('P_JIDLO_SNIDANE',1010); //může si objednat snídani
-define('P_SLEVA_STUDENT',1007); //má studentskou slevu 20%
-define('P_SLEVA_VCAS',1006);    //má slevu 20% za platbu včas
 define('P_SLEVA_AKTIVITY',1009); //za pořádané aktivity se mu vypočítává sleva
 define('P_UBYTOVANI_ZDARMA',1008); //má _všechno_ ubytování zdarma
 define('P_UBYTOVANI_STREDA_ZDARMA', 1015); // má středeční noc zdarma
@@ -79,6 +76,7 @@ define('P_ADMIN_UVOD', 100);    //přístup na titulku adminu
 define('P_ADMIN_MUJ_PREHLED', 109);
 define('P_NERUSIT_OBJEDNAVKY', 1016); // nebudou mu automaticky rušeny objednávky
 define('P_PRIPSANI_SLEVY', 111); // může ručně připsat slevu uživateli
+define('P_SLEVA_AKTIVITA', 1019); // sleva na aktivity pro orgy
 unset($pre);
 
 
@@ -171,8 +169,6 @@ define('ID_PRAVO_TESTER',$GLOBALS['ID_PRAVO_TESTER']=999);      //právo pro tes
 define('ID_PRAVO_ORG_AKCI',$GLOBALS['ID_PRAVO_ORG_AKCI']=P_ORG_AKCI);  //právo pořádat akce z něhož vyplývá viditelnost v nabídce vypravěčů v tvorbě aktivit
 
 define('P_ORG',2); // DEPRECATED právo organizátor čistě idetifikující organizátora !bez další sémantiky! (v podstatě čistě židle organizátor). Použití max. v adminu pro "uživatel je organizátor" apod.
-define('SLEVA_AKTIVNI',pred(SLEVA_DO));  //jestli se počítá sleva za včasnou platbu
-define('BONUS_ZAPORNY',$GLOBALS['BONUS_ZAPORNY']=SLEVA_AKTIVNI);   //jestli smí být bonus při odečítání věcí záporný
 define('ODHLASENI_POKUTA_KONTROLA_DATE',ROK.'-07-18'); //den, od kterého (00:00) začíná systém kontrolovat, jestli jsou aktivity odhlašovány včas (mělo by být víc než 24h před první aktivitou)
 define('ODHLASENI_POKUTA_KONTROLA',time()-strtotime(ODHLASENI_POKUTA_KONTROLA_DATE)>0);  //jestli se má kontrolovat pozdní odhlášní z aktivit
 define('ODHLASENI_POKUTA1_H',24);      //kolik hodin před aktivitou se začne uplatňovat pokuta 1

@@ -91,10 +91,8 @@ class Aktivita {
       return round($this->cenaZaklad()).'&thinsp;Kč';
     else if($u && $u->gcPrihlasen())
       return round($this->cenaZaklad()*$u->finance()->slevaAktivity()).'&thinsp;Kč';
-    else if(SLEVA_AKTIVNI)
-      return round($this->cenaZaklad()*0.8).'&thinsp;Kč / '.round($this->cenaZaklad()*0.6).'&thinsp;Kč';
     else
-      return round($this->cenaZaklad()*1.0).'&thinsp;Kč / '.round($this->cenaZaklad()*0.8).'&thinsp;Kč';
+      return round($this->cenaZaklad()).'&thinsp;Kč';
   }
 
   /** Základní cena aktivity */

@@ -241,22 +241,6 @@ class Shop
     return !$this->u->gcPrihlasen();
   }
 
-  /** Vrátí html kód formuláře pro naklikání slev */
-  function slevyHtml() {
-    $t = new XTemplate(__DIR__.'/shop-slevy.xtpl');
-    $t->assign([
-      'postname'  =>  $this->klicS,
-      'checked'   =>  $this->u->maZidli(Z_STUDENT) ? 'checked' : '',
-      'skola'     =>  dbOneCol('SELECT skola FROM uzivatele_hodnoty WHERE id_uzivatele = '.$this->u->id()),
-      'skoly'     =>  '"' . implode('","', self::$skoly) . '"',
-      'slevaDo'   =>  date('j.n.', strtotime(SLEVA_DO)),
-      'novacci'   =>  dbOneCol('SELECT GROUP_CONCAT(id_uzivatele) FROM uzivatele_hodnoty WHERE guru = '.$this->u->id().' AND YEAR(registrovan) >= '.ROK),
-    ]);
-    if(SLEVA_AKTIVNI) $t->parse('slevy.vcas');
-    $t->parse('slevy');
-    return $t->text('slevy');
-  }
-
   /** Vrátí html kód s rádiobuttonky pro vyklikání ubytování */
   function ubytovaniHtml() {
     return $this->ubytovani->html();
@@ -397,38 +381,6 @@ class Shop
     }
     if($vstupnePozde != $this->vstupnePozde['sum_cena_nakupni']) {
       $zmeny($this->vstupnePozde, $vstupnePozde);
-    }
-  }
-
-  /**
-   * Zpracuje část formuláře se slevami
-   */
-  function zpracujSlevy()
-  {
-    if(isset($_POST[$this->klicS]))
-    {
-      $slevy=$_POST[$this->klicS];
-      if(@$slevy['student'])
-        $this->u->dejZidli(Z_STUDENT);
-      else
-        $this->u->vemZidli(Z_STUDENT);
-      if(@$slevy['skola'])
-        dbQueryS('UPDATE uzivatele_hodnoty SET skola=$0 WHERE id_uzivatele='.$this->u->id(),[$slevy['skola']]);
-      else
-        dbQueryS('UPDATE uzivatele_hodnoty SET skola=NULL WHERE id_uzivatele='.$this->u->id());
-      dbQuery('UPDATE uzivatele_hodnoty SET guru=NULL WHERE guru='.$this->u->id()); // reset nováčků
-      if(@$slevy['novacek'])
-      {
-        $novacci=preg_replace('/\s+/','',$slevy['novacek']);
-        $novacci=explode(',',$novacci);
-        if(count($novacci)>0 && count($novacci)<10)
-        {
-          $upd='UPDATE uzivatele_hodnoty SET guru='.$this->u->id().' WHERE 0';
-          foreach($novacci as $novacek)
-            $upd.=' OR id_uzivatele='.(int)$novacek;
-          dbQuery($upd);
-        }
-      }
     }
   }
 

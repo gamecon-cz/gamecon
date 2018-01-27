@@ -103,10 +103,10 @@
         <!-- begin:cena -->
         <div class="info hinted cena">
           <!-- begin:obecna -->
-          <span class="hint">Cena je uvedena ve formátu pracující / student při včasné platbě. Je možné získat i výrazné další <b>slevy</b> podle přehledu <a href="ceny-slevy-placeni">cen a slev</a>. Při platbě po {rozhodneDatum} bez slev je cena {zakladniCena}.</span>
+          <span class="hint">Cena aktivity bez slevy.</span>
           <!-- end:obecna -->
           <!-- begin:moje -->
-          <span class="hint">Zobrazená cena platí pro tebe při použití všech slev, které máš nastavené v <a href="prihlaska">přihlášce</a>. Standardní cena je <b>{stdCena}</b> (pro pracujícího / studenta) a řídí se podle <a href="ceny-slevy-placeni">cen a slev</a>.</span>
+          <span class="hint">Zobrazená cena platí pro tebe při použití všech slev, které máš. Standardní cena je <b>{stdCena}</b></span>
           <!-- end:moje -->
           <!-- begin:fixni -->
           <span class="hint">Pevná cena – Zobrazená cena platí pro všechny stejně a nelze na ni uplatnit slevy.</span>

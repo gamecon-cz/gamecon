@@ -132,12 +132,10 @@ while($a) {
   // vlastnosti per skupina (hack)
   if(!$dalsi || !$dalsi->patriPod() || $dalsi->patriPod() != $a->patriPod()) {
     if(CENY_VIDITELNE && $a->cena()) {
-      $do = new DateTime(SLEVA_DO);
       $t->assign([
         'cena' => $a->cena($u),
         'stdCena' => $a->cena(),
         'zakladniCena' => $a->cenaZaklad().'&thinsp;Kč',
-        'rozhodneDatum' => $do->format('j.n.'),
         //TODO způsob načtení a zobrazení orgů (per termín, per aktivita, proklik na jejich osobní stránku, ...?)
         //TODO optimalizace načítání popisků (do jiné tabulky, jeden dotaz, pokud bude výkonnostně problém)
       ]);

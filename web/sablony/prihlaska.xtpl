@@ -91,12 +91,6 @@
 
   <hr>
 
-  <h2>Slevy</h2>
-  <p>Můžeš získat následující slevy <b>na aktivity</b> (sčítají se):</p>
-  <div class="slevy">{slevy}</div>
-
-  <hr style="margin: 1.6em 0">
-
   <input type="submit" name="wut" value="{ulozitNeboPrihlasit}">
   <!-- begin:odhlasit -->
   <input type="submit" name="odhlasit" value="Odhlásit se z GameConu"

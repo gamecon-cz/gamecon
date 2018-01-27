@@ -43,7 +43,6 @@ if(!empty($_POST)) {
     $prihlasovani=$u->gcPrihlas();
   $shop->zpracujPredmety();
   $shop->zpracujUbytovani();
-  $shop->zpracujSlevy();
   $shop->zpracujJidlo();
   $shop->zpracujVstupne();
   $pomoc->zpracuj();
@@ -68,7 +67,6 @@ $t->assign([
   'jidlo'     =>  $shop->jidloHtml(),
   'predmety'  =>  $shop->predmetyHtml(),
   'rok'       =>  ROK,
-  'slevy'     =>  $shop->slevyHtml(),
   'ubytovani' =>  $shop->ubytovaniHtml(),
   'ulozitNeboPrihlasit' =>  $u->gcPrihlasen() ? 'Uložit změny' : 'Přihlásit na GameCon',
   'vstupne'   =>  $shop->vstupneHtml(),

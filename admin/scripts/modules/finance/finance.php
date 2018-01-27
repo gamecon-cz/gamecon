@@ -7,29 +7,7 @@
  * pravo: 108
  */
 
-if(!empty($_POST['priznat']))
-{
-  $q='INSERT IGNORE INTO r_uzivatele_zidle(id_uzivatele,id_zidle) VALUES '; //pozor, insert ignore zabije i jiné chyby než duplikáty
-  foreach(explode(',',$_POST['priznat']) as $uid)
-  {
-    $q.="\n".'('.(int)$uid.','.Z_VCAS.'),';
-  }
-  $q=substr($q,0,-1).';';
-  dbQuery($q);
-  back();
-}
-
-if(!empty($_POST['odebrat']))
-{
-  $q = dbQuery('DELETE FROM r_uzivatele_zidle WHERE id_zidle='.Z_VCAS);
-  $n = dbNumRows($q);
-  oznameni("Židle „zaplatil včas“ odebrána $n uživatelům.");
-}
-
-
-
 $x=new XTemplate('finance.xtpl');
-SLEVA_AKTIVNI ? $x->parse('finance.slevaAno') : $x->parse('finance.slevaNe');
 if(isset($_GET['minimum']))
 {
   $min=(int)$_GET['minimum'];
@@ -47,7 +25,6 @@ if(isset($_GET['minimum']))
         'aktivity'  =>  $un->finance()->cenaAktivity(),
         'ubytovani' =>  $un->finance()->cenaUbytovani(),
         'predmety'  =>  $un->finance()->cenaPredmety(),
-        'vcas'      =>  $un->maPravo(P_SLEVA_VCAS) ? '<img src="files/design/ok-s.png">' : '<img src="files/design/error-s.png">',
       ]);
       $x->parse('finance.uzivatele.uzivatel');
       $ids.=$un->id().',';

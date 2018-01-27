@@ -25,12 +25,6 @@ if(($castka = post('sleva')) && $uPracovni && $uPracovni->gcPrihlasen()) {
   back();
 }
 
-if(!empty($_POST['zrusitNovacka']) && $uPracovni && $uPracovni->gcPrihlasen())
-{
-  dbQueryS('UPDATE uzivatele_hodnoty SET guru=NULL WHERE id_uzivatele=$0',[$_POST['zrusitNovacka']]);
-  back();
-}
-
 if(!empty($_POST['gcPrihlas']) && $uPracovni && !$uPracovni->gcPrihlasen())
 {
   $uPracovni->gcPrihlas();
@@ -111,19 +105,6 @@ if($uPracovni && $uPracovni->gcPrihlasen())
   $x->assign('ok', $ok='<img src="files/design/ok-s.png" style="margin-bottom:-2px">');
   $x->assign('err',$err='<img src="files/design/error-s.png" style="margin-bottom:-2px">');
   $a=$up->koncA();
-  $novacci=array_map(function($n){
-    global $ok, $err;
-    $a=$n->koncA()?$n->koncA().',':',&ensp;';
-    return 
-      $n->jmenoNick()
-      .'&emsp;<form method="post" class="radkovy"><input type="submit" value="zrušit"><input type="hidden" name="zrusitNovacka" value="'.$n->id().'"></form>'
-      .'<ul><li>'
-      .($n->gcPrihlasen() ? $ok.' přihlášen'.$a : $err.' nepřihlášen'.$a )
-      .($n->gcPritomen()  ? $ok.' dorazil'.$a   : $err.' nedorazil'.$a )
-      .($n->finance()->stav()<0 ? $err : $ok)
-      .' '.$n->finance()->stavHr().''
-      .'</ul></li>';
-  },$up->novacci());
   $pokoj = Pokoj::zUzivatele($up);
   $spolubydlici = $pokoj ? $pokoj->ubytovani() : [];
   $x->assign([
@@ -136,9 +117,6 @@ if($uPracovni && $uPracovni->gcPrihlasen())
     'slevyVse'        =>  ($vse=$up->finance()->slevyVse()) ?
       '<li>'.implode('<li>',$vse) :
       '(žádné)',
-    'novacci'         =>  $novacci ?
-      '<li>'.implode('<li>',$novacci) :
-      '(žádní)',
     'id'              =>  $up->id(),
     'pokoj'           =>  $pokoj ? $pokoj->cislo() : '(nepřidělen)',
     'spolubydlici'    =>  array_uprint($spolubydlici, function($e){ return "<li> {$e->jmenoNick()} ({$e->id()}) {$e->telefon()} </li>"; }),

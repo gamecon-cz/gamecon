@@ -2,11 +2,6 @@
 
 <h1>Finance</h1>
 
-<p>
-<!-- begin:slevaAno -->Sleva za včasnou platbu je pro všechny <strong>aktivní</strong> a má smysl jim včasnou platbu uznat.<!-- end:slevaAno -->
-<!-- begin:slevaNe --> Sleva za včasnou platbu <strong>už skončila</strong> a hromadně uznávat podle stavu účtu nemá smysl (musela by se znova aktivovat pro smysluplné výsledky).<!-- end:slevaNe -->
-</p>
-
 <form>
 Vypsat uživatele, kteří mají stav účtu vyšší rovno jak 
 <input type="text" name="minimum" value="{minimum}">
@@ -16,22 +11,13 @@ Vypsat uživatele, kteří mají stav účtu vyšší rovno jak
 <!-- begin:uzivatele -->
 <em>pozn.: vypravěči mají právo „zaplatil včas“ vždy</em>
 <table>
-  <tr><th>Login</th><th>Stav účtu</th><th>aktiv</th><th>ubyt</th><th>předm</th><th>včas</th></tr>
+  <tr><th>Login</th><th>Stav účtu</th><th>aktiv</th><th>ubyt</th><th>předm</th></tr>
   <!-- begin:uzivatel -->
-  <tr><td>{login}</td><td>{stav}</td><td>{aktivity}</td><td>{ubytovani}</td><td>{predmety}</td><td>{vcas}</td></tr>
+  <tr><td>{login}</td><td>{stav}</td><td>{aktivity}</td><td>{ubytovani}</td><td>{predmety}</td></tr>
   <!-- end:uzivatel -->
 </table>
-<form method="post">
-Přiznat těmto lidem včasnou platbu nyní <input type="submit" value="Přiznat">
-<input type="hidden" name="priznat" value="{ids}">
-</form>
 <!-- end:uzivatele -->
 <!-- begin:nikdo -->(žádní uživatelé)<br><!-- end:nikdo -->
 
 <hr>
-
-<form method="post">
-Odebrat <strong>všem</strong> uživatelům židli platby včas <input type="submit" name="odebrat" value="Odebrat">
-</form>
-
 <!-- end:finance -->

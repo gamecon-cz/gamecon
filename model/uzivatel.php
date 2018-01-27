@@ -364,15 +364,6 @@ class Uzivatel {
     }
   }
 
-  /**
-   * Vrátí pole s nováčky (uživateli), kteří mají tohoto uživatele jako "guru"
-   */
-  function novacci()
-  {
-    $n=self::nactiUzivatele('WHERE guru='.$this->id());
-    return $n;
-  }
-
   /** Vrátí přezdívku (nickname) uživatele */
   function nick()
   {
