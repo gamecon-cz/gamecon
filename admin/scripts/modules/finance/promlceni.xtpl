@@ -1,0 +1,23 @@
+<!-- begin:promlceni -->
+<form method="post">
+<p>
+Promlčet zůstatek vyšší jak <td><input type="text" name="castka" value="{castka}"></td> Kč u všech uživatelů, jejichž poslední připsaná platba je starší než <td><input type="text" name="rok" value="{rok}"></td> let.
+</p>
+<table>
+  <tr><th>ID</th><th>Jméno</th><th>Příjmení</th><th>Stav účtu</th><th>Účast</th><th>Poslední pohyb</th></tr>
+  <!-- begin:detaily -->
+  <tr>
+    <td>{id}</td>
+    <td>{jmeno}</td>
+    <td>{prijmeni}</td>
+    <td>{stav}</td>
+    <td>{ucast}</td>
+    <td>{pohyb}</td>
+  </tr>
+  <!-- end:detaily -->
+</table>
+<!-- begin:nekdo --><input type="hidden" name="ids" value="{ids}"><input type="submit" name="promlcet" value="Promlčet"><br><!-- end:nekdo -->
+<!-- begin:nikdo -->(žádní uživatelé)<br><!-- end:nikdo -->
+  <br><input type="submit" name="pripravit" value="Zobrazit uživatele">
+</form>
+<!-- end:promlceni -->
