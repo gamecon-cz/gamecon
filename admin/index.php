@@ -56,23 +56,33 @@ elseif(is_file('./scripts/zvlastni/'.$stranka.'/'.$podstranka.'.php'))
 else
 {
   // načtení menu
-  $menu=new AdminMenu('./scripts/modules/');
-  $menu=$menu->pole();
+  $menu = new AdminMenu('./scripts/modules/');
+  $menu = $menu->pole();
+
   // načtení submenu
   $submenu = [];
   if(isset($menu[$stranka]['submenu']) && $menu[$stranka]['submenu'])
   {
-    $submenu=new AdminMenu('./scripts/modules/'.$stranka.'/');
-    $submenu=$submenu->pole();
+    $submenu = new AdminMenu('./scripts/modules/'.$stranka.'/');
+    $submenu = $submenu->pole();
   }
+
+  // zjištění práv na zobrazení stránky
+  $strankaExistuje = isset($menu[$stranka]) && (!$podstranka || isset($submenu[$podstranka]));
+  $uzivatelMaPristup = (
+    $strankaExistuje &&
+    $u->maPravo($menu[$stranka]['pravo']) &&
+    (!$podstranka || $u->maPravo($submenu[$podstranka]['pravo']))
+  );
+
   // konstrukce stránky
-  if(isset($menu[$stranka]) && $u->maPravo($menu[$stranka]['pravo']))
+  if($strankaExistuje && $uzivatelMaPristup)
   {
     $_SESSION['id_admin'] = $u->id(); // součást interface starých modulů
     $_SESSION['id_uzivatele'] = $uPracovni ? $uPracovni->id() : null ; // součást interface starých modulů
     $BEZ_DEKORACE = false;
     $cwd = getcwd(); // uložíme si aktuální working directory pro pozdější návrat
-    if(isset($submenu) && $submenu)
+    if($submenu)
     {
       chdir('./scripts/modules/'.$stranka.'/');
       $soubor=$podstranka?$cwd.'/'.$submenu[$podstranka]['soubor']:$cwd.'/'.$submenu[$stranka]['soubor'];
@@ -92,10 +102,17 @@ else
     unset($_SESSION['id_admin']);
     if($BEZ_DEKORACE) return;
   }
-  elseif(!$u->maPravo($menu[$stranka]['pravo']))
-    $xtpl->parse('all.nenalezeno');
-  else
+  elseif($strankaExistuje && !$uzivatelMaPristup)
+  {
+    http_response_code(403);
     $xtpl->parse('all.zakazano');
+  }
+  else
+  {
+    http_response_code(404);
+    $xtpl->parse('all.nenalezeno');
+  }
+
   // operátor - info & odhlašování
   $xtpl->assign('a', $u->koncA());
   $xtpl->assign('operator', $u->jmenoNick());
@@ -116,6 +133,7 @@ else
     }
     $xtpl->parse('all.uzivatel');
   }
+
   // výstup menu
   foreach($menu as $url=>$polozka)
   {
@@ -127,6 +145,7 @@ else
       $xtpl->parse('all.menuPolozka');
     }
   }
+
   // výstup submenu
   foreach($submenu as $url=>$polozka)
   {
@@ -138,6 +157,7 @@ else
     }
   }
   $xtpl->parse('all.submenu');
+
   // výstup
   $xtpl->assign('protip', $protipy[array_rand($protipy)]);
   $xtpl->parse('all.paticka');
