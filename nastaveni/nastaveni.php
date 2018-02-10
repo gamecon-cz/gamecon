@@ -53,6 +53,7 @@ define('Z_PARTNER',13);         //partner
 define('Z_INFO',8);             //operátor/ka infopultu
 define('Z_ZAZEMI',7);           //člen/ka zázemí
 define('Z_DOBROVOLNIK_S', 17);  //dobrovolník senior
+define('Z_SPRAVCE_FINANCI', 20);//správce financí GC
 // práva - konkrétní práva identifikující nějak vlastnost uživatele
 define('P_ORG_AKCI',4);         //může organizovat aktivity
 define('P_KRYTI_AKCI',5);       //může být na víc aktivitách naráz (org skupiny typicky)
