@@ -140,9 +140,8 @@ class Uzivatel {
     return $tituly;
   }
 
-  /** Vrátí finance daného uživatele
-   *
-   * @return Finance finance
+  /** 
+   * @return Finance finance daného uživatele
    */
   function finance()
   {
@@ -567,15 +566,6 @@ class Uzivatel {
     return $u;
   }
 
-  /** Vynuluje stav účtu
-   *
-   * @param int $idAdm id admina, který provedl promlčení
-   */
-  function promlc($idAdm) {
-    $up = new UzivatelPromlceni();
-    $up->promlc($this, $idAdm);
-  }
-
   /**
    * Vrátí timestamp prvního bloku kdy uživatel má aktivitu
    */
@@ -774,9 +764,8 @@ class Uzivatel {
   }
 
   /**
-   *
    * @param int $id
-   * @return Uzivatel
+   * @return Uzivatel|null
    */
   static function zId($id) {
     $o = self::zIds((int)$id);
@@ -892,13 +881,6 @@ class Uzivatel {
     $u = self::nactiUzivatele('WHERE u.login_uzivatele = '.dbQv($url));
     if(count($u) !== 1) return null;
     return $u[0];
-  }
-
-  /**
-   * @return int zůstatek
-   */
-  function zustatek() {
-    return $this->u['zustatek'];
   }
 
   /**
