@@ -20,12 +20,12 @@ class UzivatelMaVolnoTest extends GcDbTest {
 
   function ruzneVarianty() {
     return [
-      ['17:00', '19:00', null, false],
-      ['15:00', '19:00', null, false],
-      ['08:00', '19:00', null, false],
-      ['18:00', '19:00', null, true],
-      ['15:00', '16:00', null, true],
-      ['15:00', '19:00', 1,    true],
+      'překrytí konce'                =>  ['17:00', '19:00', null, false],
+      'překrytí celé aktivity'        =>  ['15:00', '19:00', null, false],
+      'překrytí více aktivit'         =>  ['08:00', '19:00', null, false],
+      'těsně po konci'                =>  ['18:00', '19:00', null, true],
+      'těsně před začátkem'           =>  ['15:00', '16:00', null, true],
+      'překrytí ignorované aktivity'  =>  ['15:00', '19:00', 1,    true],
     ];
   }
 
