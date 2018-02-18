@@ -117,11 +117,19 @@ class AktivitaTymovePrihlasovaniTest extends GcDbTest {
     }
   }
 
+  /**
+   * @doesNotPerformAssertions
+   */
+  function testPrihlaseniTymuOpakovaneNelze() {
+    $this->ctvrtfinale->prihlas($this->tymlidr);
+    $this->ctvrtfinale->prihlasTym([], null, null, [$this->semifinaleA, $this->finale]);
+    try {
+      $this->ctvrtfinale->prihlasTym([], null, null, [$this->semifinaleB, $this->finale]);
+      $this->fail('Opakovaně přihlásit tým nesmí jít.');
+    } catch(Exception $e) {}
+  }
+
   // TODO další scénáře:
-  //  validní všechno
-  //    počet míst se nastaví
-  //    týmlídr je přihlášen na vybraná kola
-  //    každý spoluhráč je přihlášen na vybraná kola
   //  nevalidní ne-první člen
   //    všechno se rollbackne
   //    (že přihlášení jednoho člověka háže výjimku např. při překrytí tady netřeba testovat)
