@@ -20,6 +20,11 @@ if(!empty($_POST['platba']) && $uPracovni && $uPracovni->gcPrihlasen())
   back();
 }
 
+if(($castka = post('sleva')) && $uPracovni && $uPracovni->gcPrihlasen()) {
+  $uPracovni->finance()->pripisSlevu($castka, post('poznamka'), $u);
+  back();
+}
+
 if(!empty($_POST['zrusitNovacka']) && $uPracovni && $uPracovni->gcPrihlasen())
 {
   dbQueryS('UPDATE uzivatele_hodnoty SET guru=NULL WHERE id_uzivatele=$0',[$_POST['zrusitNovacka']]);

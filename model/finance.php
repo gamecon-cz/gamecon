@@ -8,6 +8,7 @@ class Finance {
   protected
     $u,       // uživatel, jehož finance se počítají
     $stav=0,  // celkový výsledný stav uživatele na účtu
+    $stavSlevy = 0,  // celková sleva uživatele na účtu
     $deltaPozde=0,      // o kolik se zvýší platba při zaplacení pozdě
     $scnA,              // součinitel ceny aktivit
     $logovat = true,    // ukládat seznam předmětů?
@@ -41,18 +42,21 @@ class Finance {
 
   const
     // idčka typů, podle kterých se řadí výstupní tabulka $prehled
-    AKTIVITA      = -1,
+    AKTIVITA        = -1,
+    PREDMETY_STRAVA = 1,
+    UBYTOVANI       = 2,
     // mezera na typy předmětů (1-4? viz db)
-    ORGSLEVA      = 10,
-    VSTUPNE       = 11,
-    CELKOVA       = 12,
-    PLATBY_NADPIS = 13,
-    ZUSTATEK      = 14,
-    PLATBA        = 15,
-    VYSLEDNY      = 16;
+    ORGSLEVA        = 10,
+    PRIPSANE_SLEVY  = 11,
+    VSTUPNE         = 12,
+    CELKOVA         = 13,
+    PLATBY_NADPIS   = 14,
+    ZUSTATEK        = 15,
+    PLATBA          = 16,
+    VYSLEDNY        = 17;
 
   /**
-   * @param Uzivatel $u uživatel, pro kterého se finance sestavují   
+   * @param Uzivatel $u uživatel, pro kterého se finance sestavují
    * @param int $zustatek zůstatek na účtu z minulých GC
    */
   function __construct(Uzivatel $u, int $zustatek) {
@@ -82,6 +86,8 @@ class Finance {
       '<b>'.$this->slevaVypravecVyuzita().'</b><br>&emsp;',
       self::ORGSLEVA);
 
+    $cena = $this->zapoctiStavSleva($cena);
+
     $cena = $cena
       + $this->cenaVstupne
       + $this->cenaVstupnePozde;
@@ -94,8 +100,8 @@ class Finance {
       + $this->zustatek;
 
     $this->logb('Aktivity', $this->cenaAktivity, self::AKTIVITA);
-    $this->logb('Ubytování', $this->cenaUbytovani, 2);
-    $this->logb('Předměty a strava', $this->cenaPredmety, 1);
+    $this->logb('Ubytování', $this->cenaUbytovani, self::UBYTOVANI);
+    $this->logb('Předměty a strava', $this->cenaPredmety, self::PREDMETY_STRAVA);
     $this->logb('Připsané platby', $this->platby + $this->zustatek, self::PLATBY_NADPIS);
     $this->logb('Stav financí', $this->stav, self::VYSLEDNY);
   }
@@ -191,9 +197,34 @@ class Finance {
     ]);
   }
 
+  /**
+   * Připíše aktuálnímu uživateli $u slevu ve výši $sleva
+   * @param Uzivatel $u
+   * @param float $sleva
+   * @param string|null $poznamka
+   * @param Uzivatel|null $provedl
+   */
+  function pripisSlevu($sleva, $poznamka = null, Uzivatel $provedl = null) {
+    $poznamka = $poznamka ?: null;
+    $orgId = $provedl->id();
+    dbInsertUpdate('slevy', [
+      'id_uzivatele' => $this->u->id(),
+      'castka' => $sleva,
+      'rok' => ROK,
+      'provedeno' => date("Y-m-d H:i:s"),
+      'provedl' => $orgId,
+      'poznamka' => $poznamka
+    ]);
+  }
+
   /** Vrátí aktuální stav na účtu uživatele pro tento rok */
   function stav() {
     return $this->stav;
+  }
+
+  /** Vrátí aktuální výši slev na účtu uživatele pro tento rok */
+  function stavSlevy() {
+    return $this->stavSlevy;
   }
 
   /** Vrátí člověkem čitelný stav účtu */
@@ -451,6 +482,25 @@ class Finance {
    */
   protected function zapoctiZustatek() {
     $this->log('Zůstatek z minulých let', $this->zustatek, self::ZUSTATEK);
+  }
+
+  protected function zapoctiStavSleva($cena) {
+    $rok = ROK;
+    $uid = $this->u->id();
+    $sum = dbOneCol("
+      SELECT SUM(castka) AS sleva_sum
+      FROM slevy
+      WHERE id_uzivatele = $uid AND rok = $rok
+    ");
+    $this->stavSlevy = (float) $sum;
+    if ($this->stavSlevy) {
+      $stavSlevy = $this->stavSlevy;
+      Cenik::aplikujSlevu($cena, $this->stavSlevy);
+      $this->log('<b>Slevy</b><br>využitá z celkem ' . $stavSlevy . '',
+        '<b>' . ($stavSlevy - $this->stavSlevy) . '<b>',
+        self::PRIPSANE_SLEVY);
+    }
+    return $cena;
   }
 
   /**

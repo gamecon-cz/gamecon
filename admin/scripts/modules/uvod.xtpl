@@ -87,6 +87,30 @@
     </table>
     <input type="submit" value="Připsat">
   </form>
+  <br>
+  <strong>Připsat slevu</strong>
+  <form method="post">
+    <table>
+      <tr>
+        <td>Výše slevy:</td>
+        <td>
+          <input type="text" name="sleva"  title="Zadej výši slevy"
+                 style="text-align:right;width:40px" pattern="[0-9,]+" required>&thinsp;Kč
+        </td>
+      </tr>
+      <tr>
+        <td>Poznámka:</td>
+        <td>
+          <input type="text" name="poznamka" title="Zadej poznámku" pattern="[^\s]{3,}" required>
+        </td>
+      </tr>
+      <tr>
+        <td>Připsal{aa}:</td>
+        <td><input type="text" value="{org}" disabled></td>
+      </tr>
+    </table>
+    <input type="submit" value="Připsat">
+  </form>
   <!-- begin:gcOdhlas -->
   <form method="post" style="float:right;margin-top:-22px">
     <input type="submit" name="gcOdhlas" value="Odhlásit z GC">

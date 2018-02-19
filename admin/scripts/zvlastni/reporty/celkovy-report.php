@@ -34,7 +34,7 @@ $hlavicka2=array_merge(
   $gcDoted,
   [
   'Celkem dní','Cena / den','Ubytování','Předměty a strava',
-  'Aktivity','vypravěčská sleva využitá','vypravěčská sleva přiznaná','dobrovolné vstupné','dobrovolné vstupné (pozdě)','stav','zůstatek z minula','připsané platby','první blok','poslední blok','dobrovolník pozice','dobrovolník info','Slevy','Objednávky']
+  'Aktivity','vypravěčská sleva využitá','vypravěčská sleva přiznaná','dobrovolné vstupné','dobrovolné vstupné (pozdě)','stav', 'slevy','zůstatek z minula','připsané platby','první blok','poslední blok','dobrovolník pozice','dobrovolník info','Slevy','Objednávky']
 );
 $o=dbQuery('
   SELECT 
@@ -107,6 +107,7 @@ while($r=mysqli_fetch_assoc($o))
       $f->vstupne(),
       $f->vstupnePozde(),
       ec($f->stav()),
+      ec($f->stavSlevy()),
       ec($r['zustatek']),
       ec($f->platby()),
       ed($un->prvniBlok()),
