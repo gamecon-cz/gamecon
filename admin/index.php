@@ -31,9 +31,9 @@ $xtpl->assign([
 // nastavení stránky, prázdná url => přesměrování na úvod
 if(!get('req'))
   back('uvod');
-$req=explode('/',get('req'));
-$stranka=$req[0];
-$podstranka=isset($req[1])?$req[1]:'';
+$req = explode('/', get('req'));
+$stranka = $req[0];
+$podstranka = isset($req[1]) ? $req[1] : '';
 
 // zobrazení stránky
 if(!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny']))
@@ -68,11 +68,11 @@ else
   }
 
   // zjištění práv na zobrazení stránky
-  $strankaExistuje = isset($menu[$stranka]) && (!$podstranka || isset($submenu[$podstranka]));
+  $strankaExistuje = isset($menu[$stranka]);
+  $podstrankaExistuje = isset($submenu[$podstranka]);
   $uzivatelMaPristup = (
-    $strankaExistuje &&
-    $u->maPravo($menu[$stranka]['pravo']) &&
-    (!$podstranka || $u->maPravo($submenu[$podstranka]['pravo']))
+    $strankaExistuje && $podstrankaExistuje  && $u->maPravo($submenu[$podstranka]['pravo']) ||
+    $strankaExistuje && !$podstrankaExistuje && $u->maPravo($menu[$stranka]['pravo'])
   );
 
   // konstrukce stránky
