@@ -19,12 +19,12 @@ error_reporting($puvodni ^ E_NOTICE);
 
 define('ROK',                    2018);                    // aktuální rok -- při změně roku viz http://bit.ly/2l5olnb
 define('GC_BEZI_OD',             ROK.'-07-19 07:00:00');   // začátek GameConu (přepnutí stránek do režimu "úpravy na jen na infopultu")
-define('GC_BEZI_DO',             ROK.'-07-22 20:00:00');   // konec GameCou (přepnutí stránek do režimu "gc skončil, úpravy nemožné")
-define('REG_GC_OD',              ROK.'-05-02 20:17:00');   // spuštění možnosti registrace na GameCon
+define('GC_BEZI_DO',             ROK.'-07-22 21:00:00');   // konec GameCou (přepnutí stránek do režimu "gc skončil, úpravy nemožné")
+define('REG_GC_OD',              ROK.'-05-08 20:18:00');   // spuštění možnosti registrace na GameCon
 define('REG_GC_DO',              GC_BEZI_DO);              // ukončení možnosti registrace na GameCon
-define('REG_AKTIVIT_OD',         ROK.'-05-09 20:17:00');   // spuštění možnosti registrace na aktivity, pokud jsou aktivované
+define('REG_AKTIVIT_OD',         ROK.'-05-22 20:18:00');   // spuštění možnosti registrace na aktivity, pokud jsou aktivované
 define('REG_AKTIVIT_DO',         GC_BEZI_DO);              // ukončení možnosti registrace na aktivity
-define('PROGRAM_OD',             ROK.'-07-19');            // první den programu
+define('PROGRAM_OD',             ROK.'-07-18');            // první den programu
 define('PROGRAM_DO',             GC_BEZI_DO);              // poslední den programu
 define('PROGRAM_VIDITELNY',      po(REG_GC_OD));           // jestli jsou viditelné linky na program
 define('CENY_VIDITELNE',         PROGRAM_VIDITELNY && pred(GC_BEZI_DO)); // jestli jsou viditelné ceny aktivit
