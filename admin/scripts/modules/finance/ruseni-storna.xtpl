@@ -2,6 +2,8 @@
 
 <h1>Rušení storna za aktivity</h1>
 
+<p>Zrušení storna vymaže i záznam, že účastník na aktivitu nedorazil.</p>
+
 <table class="zvyraznovana">
   <tr>
     <th>Id</th>
