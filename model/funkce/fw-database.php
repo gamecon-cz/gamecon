@@ -215,7 +215,7 @@ function dbNumRows($query) {
     return $GLOBALS['spojeni']->affected_rows;
   } elseif($query instanceof mysqli_result) {
     // result of mysqli_query SELECT
-    throw new Exception('not implemented');
+    return $query->num_rows;
   } else {
     throw new Exception('query failed or returned unexpected type');
   }

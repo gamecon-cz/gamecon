@@ -1,0 +1,36 @@
+<!-- begin: ruseniStorna -->
+
+<h1>Rušení storna za aktivity</h1>
+
+<table class="zvyraznovana">
+  <tr>
+    <th>Id</th>
+    <th>Uživatel</th>
+    <th>Aktivita</th>
+    <th style="width: 15em">Začátek aktivity</th>
+    <th style="width: 10em">Typ storna</th>
+    <th></th>
+  </tr>
+  <!-- begin: storno -->
+  <tr>
+    <td>{id_uzivatele}</td>
+    <td>{uzivatel.jmenoNick}</td>
+    <td>{nazev_akce}</td>
+    <td>{zacatek}</td>
+    <td>{nazev_stavu}</td>
+    <td>
+      <form method="post">
+        <input type="hidden" name="uzivatelId" value="{id_uzivatele}">
+        <input type="hidden" name="aktivitaId" value="{id_akce}">
+        <input type="submit" name="zrusit" value="zrušit" />
+      </form>
+    </td>
+  </tr>
+  <!-- end: storno -->
+</table>
+
+<!-- begin: nikdo -->
+<p>Letos zatím žádná storna.</p>
+<!-- end: nikdo -->
+
+<!-- end: ruseniStorna -->
