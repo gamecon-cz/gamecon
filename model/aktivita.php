@@ -569,6 +569,10 @@ class Aktivita {
       dbQuery("UPDATE akce_seznam SET zamcel=NULL, zamcel_cas=NULL, team_nazev=NULL WHERE id_akce=$aid");
     if($this->a['teamova'] && $this->prihlaseno()==1) // odhlašuje se poslední hráč
       dbQuery("UPDATE akce_seznam SET kapacita=team_max WHERE id_akce=$aid");
+    // Poslání mailu lidem na watchlistu
+    if($this->volno()=="x") { // Před odhlášením byla aktivita plná
+      $this->poslatMailNahradnikum();
+    }
     $this->refresh();
   }
 
@@ -792,6 +796,7 @@ class Aktivita {
     if(ODHLASENI_POKUTA_KONTROLA) //pokud by náhodou měl záznam za pokutu a přihlásil se teď, tak smazat
       dbQueryS('DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0
         AND id_akce=$1 AND id_stavu_prihlaseni=4', [$uid, $aid]);
+    // TODO(david): Odhlásit ze všech watchlistů ve stejnou dobu. Kód bude podobný jako funkce maVolno(). Vrátí se true pokud byly nějaké watchlisty smazány, aby UI mohlo vypsat hlášku.
     $this->refresh();
   }
 
@@ -1361,6 +1366,83 @@ class Aktivita {
   function zamci() {
     dbQuery('UPDATE akce_seznam SET stav = 2 WHERE id_akce = ' . $this->id());
     // TODO invalidate $this
+  }
+
+  /**
+   * Přihlásí uživatele jako náhradníka (watchlist)
+   */
+  function prihlasNahradnika(Uzivatel $u) {
+    // Uživatel nesmí být přihlášen na aktivitu nebo jako náhradník
+    if($this->prihlasen($u) || $this->prihlasenJakoNahradnik($u)) return;
+    // Uživatel nesmí mít ve stejný slot jinou přihlášenou aktivitu
+    if(!maVolno($u->id(), $this->a)) throw new Chyba(hlaska('kolizeAktivit'));
+    // Uživatel musí být přihlášen na GameCon
+    if(!$u->gcPrihlasen()) throw new Exception('Nemáš aktivní přihlášku na GameCon.');
+    // Na podřazenou aktivitu se nejde přihlašovat jako náhradník
+    if($this->a['dite'] !== null) throw new Exception('Na podřazené aktivity se nelze přihlašovat jako náhradník');
+    // Na týmové aktivity se nejde přihlašovat jako náhradník
+    if($this->a['team_kapacita'] !== null) throw new Exception('Na teamové aktivity se nelze přihlašovat jako náhradník');
+    // Uložení přihlášení do DB
+    $aid = $this->id();
+    $uid = $u->id();
+    dbQuery("INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$uid, id_akce=$aid, id_stavu_prihlaseni=5");
+    dbQuery("INSERT INTO akce_prihlaseni_log SET id_uzivatele=$uid, id_akce=$aid, typ='prihlaseni_watchlist'");
+    $this->refresh();
+  }
+
+  /**
+   * Odhlásí uživatele z náhradníků (watchlistu)
+   */
+  function odhlasNahradnika(Uzivatel $u) {
+    // Ignorovat pokud není přihlášen jako náhradník
+    if(!$this->prihlasenJakoNahradnik($u)) return;
+    // Uložení odhlášení do DB
+    $aid = $this->id();
+    $uid = $u->id();
+    dbQuery("DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$uid AND id_akce=$aid");
+    dbQuery("INSERT INTO akce_prihlaseni_log SET id_uzivatele=$uid, id_akce=$aid, typ='odhlaseni_watchlist'");
+    $this->refresh();
+  }
+
+
+  /**
+   * Vrací true pokud je uživatel přihlášen jako náhradník (ve watchlistu).
+   */
+  function prihlasenJakoNahradnik(Uzivatel $u) {
+    $aid = $this->id();
+    $uid = $u->id();
+    $query = dbQuery("SELECT FROM akce_prihlaseni_spec WHERE id_uzivatele=$uid AND id_akce=$aid AND id_stavu_prihlaseni=5");
+    return dbNumRows($query) > 0;
+  }
+
+  /**
+   * Vrací pole ids uživatelů přihlášených jako náhradníci (ve watchlistu).
+   */
+  function prihlaseniNahradnici() {
+    $aid = $this->id();
+    $query = dbQuery("SELECT id_uzivatele FROM akce_prihlaseni_spec WHERE id_akce=$aid AND id_stavu_prihlaseni=5");
+    return dbOneArray($query);
+  }
+
+  /**
+   * Pošle mail náhradníkům o volném místě na aktivitě.
+   */
+  function poslatMailNahradnikum() {
+    $aid = $this->id();
+    $query = dbQuery("
+          SELECT u.email1_uzivatele
+          FROM akce_prihlaseni_spec a
+          LEFT JOIN uzivatele_hodnoty u ON (u.id_uzivatele = a.id_uzivatele)
+          WHERE a.id_akce=$aid AND a.id_stavu_prihlaseni=5");
+    $emaily = dbOneArray($query);
+    foreach($emaily as $email) {
+      $mail = new GcMail();
+      $mail->predmet('Gamecon: Volné místo na aktivitě ' . $this->nazev());
+      $mujProgram = "https://gamecon.cz/mujprogram"; // TODO(david): správný link na můj program
+      $mail->text("Na aktivitě '" + $this->nazev()+"', která se koná v "+$this->denCas()+" se uvolnilo místo. Tento e-mail dostáváš jako přihlášený náhradník. Přihlaš se na aktivitu zde:\n\n"+$mujProgram+"\n\n(Pokud nebudeš dost rychlý, je možné že místo sebere jiný náhradník)");
+      $mail->adresat($email);
+      $mail->odeslat();
+    }
   }
 
   /**
