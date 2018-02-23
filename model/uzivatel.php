@@ -140,7 +140,9 @@ class Uzivatel {
     return $tituly;
   }
 
-  /** Vrátí finance daného uživatele */
+  /** 
+   * @return Finance finance daného uživatele
+   */
   function finance()
   {
     //pokud chceme finance poprvé, spočteme je a uložíme
@@ -761,6 +763,10 @@ class Uzivatel {
     ", null, 'LIMIT 20');
   }
 
+  /**
+   * @param int $id
+   * @return Uzivatel|null
+   */
   static function zId($id) {
     $o = self::zIds((int)$id);
     return $o ? $o[0] : null;
