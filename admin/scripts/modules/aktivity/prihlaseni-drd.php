@@ -21,7 +21,7 @@ $t = new XTemplate(__DIR__ . '/prihlaseni-drd.xtpl');
 
 $semifinale = [];
 $finale = [];
-foreach(Aktivita::zFiltru(['typ' => 9, 'rok' => ROK]) as $a) {
+foreach(Aktivita::zFiltru(['typ' => Typ::DRD, 'rok' => ROK]) as $a) {
   if($a->cenaZaklad() == 0) {
     assert(stripos($a->nazev(), 'finále')); // (semi)finále nebo finále musí být v názvu
     continue; // hack na určení finále a semifinále
@@ -30,14 +30,19 @@ foreach(Aktivita::zFiltru(['typ' => 9, 'rok' => ROK]) as $a) {
     foreach($a->deti() as $dite) $semifinale[] = $dite;
     foreach($semifinale[0]->deti() as $dite) $finale[] = $dite;
   }
+
+  // přeskočení aktivit, kde zatím není družina
+  $prihlaseni = $a->prihlaseni();
+  if(!$prihlaseni)  continue; // prázdná aktivita
+  if(!$a->tym())    continue; // družina se teprv sestavuje
+
   // tisk konkrétní družiny / aktivity
   $t->assign('a', $a);
   $uc = null;
-  foreach($a->prihlaseni() as $uc) {
+  foreach($prihlaseni as $uc) {
     $t->assign('u', $uc);
     $t->parse('drd.druzina.clen');
   }
-  if($uc === null) continue; //jarik je debil a má družiny o 0 lidech, fixme
   if($uc && !$semifinale[0]->prihlasen($uc) && !$semifinale[1]->prihlasen($uc)) {
     $t->parse('drd.druzina.zakladni');
   } elseif($uc && !$finale[0]->prihlasen($uc)) {
