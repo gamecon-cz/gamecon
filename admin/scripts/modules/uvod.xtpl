@@ -87,6 +87,8 @@
     </table>
     <input type="submit" value="Připsat">
   </form>
+
+  <!-- begin: pripsatSlevu -->
   <br>
   <strong>Připsat slevu</strong>
   <form method="post">
@@ -111,6 +113,8 @@
     </table>
     <input type="submit" value="Připsat">
   </form>
+  <!-- end: pripsatSlevu -->
+
   <!-- begin:gcOdhlas -->
   <form method="post" style="float:right;margin-top:-22px">
     <input type="submit" name="gcOdhlas" value="Odhlásit z GC">
