@@ -192,14 +192,13 @@ class Uzivatel {
     // finální odebrání židle "registrován na GC"
     $this->vemZidli(ID_ZIDLE_PRIHLASEN);
     // odeslání upozornění, pokud u nás má peníze
-    if(mysqli_num_rows(dbQuery('SELECT 1 FROM platby WHERE rok='.ROK.' AND id_uzivatele='.$this->id()))>0)
-      mail(
-        'info@gamecon.cz',
-        'Uživatel '.$this->jmenoNick().' se odhlásil ale platil',
-        'Uživatel '.$this->jmenoNick().' (ID '.$this->id().') se odhlásil z
-        GameConu, ale v aktuálním roce ('.ROK.') si převedl nějaké peníze. Bude
-        vhodné to prověřit popř. smazat platbu z připsaných a dát do zůstatku
-        v seznamu uživatelů, aby mu peníze nepropadly');
+    if(mysqli_num_rows(dbQuery('SELECT 1 FROM platby WHERE rok='.ROK.' AND id_uzivatele='.$this->id()))>0) {
+      (new GcMail)
+        ->adresat('info@gamecon.cz')
+        ->predmet('Uživatel ' . $this->jmenoNick() . ' se odhlásil ale platil')
+        ->text(hlaskaMail('odhlasilPlatil', $this->jmenoNick(), $this->id(), ROK))
+        ->odeslat();
+    }
   }
 
   /** „Odjede“ uživatele z GC */

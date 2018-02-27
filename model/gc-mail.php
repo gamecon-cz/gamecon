@@ -13,7 +13,12 @@ class GcMail {
   }
 
   function adresat($a = null) {
-    return $a ? $this->adresat = $a : $this->adresat;
+    if($a === null) {
+      return $this->adresat;
+    } else {
+      $this->adresat = $a;
+      return $this;
+    }
   }
 
   function odesilatel($a = null) {
@@ -43,8 +48,13 @@ class GcMail {
     );
   }
 
-  function predmet($a = null) {
-    return $a ? $this->predmet = $a : $this->predmet;
+  function predmet($p = null) {
+    if($p === null) {
+      return $this->predmet;
+    } else {
+      $this->predmet = $p;
+      return $this;
+    }
   }
 
   function text(/* variadic */) {

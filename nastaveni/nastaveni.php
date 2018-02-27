@@ -122,6 +122,7 @@ $GLOBALS['HLASKY']=[
   'zamcena'=>'Aktivitu už někdo zabral',
 ];
 $GLOBALS['HLASKY_SUBST']=[
+  'odhlasilPlatil' => 'Uživatel %1 (ID %2) se odhlásil z GameConu, ale v aktuálním roce (%3) si převedl nějaké peníze. Bude vhodné to prověřit popř. smazat platbu z připsaných a dát do zůstatku v seznamu uživatelů, aby mu peníze nepropadly',
   'zapomenuteHeslo'=>
 'Ahoj,
 

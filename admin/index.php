@@ -12,12 +12,11 @@ require('scripts/prihlaseni.php');
 
 // odesílání bugreportu
 if(post('bugreport')) {
-  mail(
-    'gamecon.external_tasks.101564.godric@app.teambox.com',
-    '[bug] '.post('nazev'),
-    post('popis')."\n\n(reportoval".$u->koncA()." ".$u->jmenoNick()." - ".$u->mail().")",
-    'From: info@gamecon.cz'."\r\n".'Reply-To: info@gamecon.cz'
-  );
+  (new GcMail)
+    ->adresat('info@gamecon.cz')
+    ->predmet('Bugreport z adminu: '.post('nazev'))
+    ->text(post('popis')."\n\n(reportoval".$u->koncA()." ".$u->jmenoNick()." - ".$u->mail().")")
+    ->odeslat();
   oznameni('hlášení chyby odesláno');
 }
 
