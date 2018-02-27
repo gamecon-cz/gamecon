@@ -14,9 +14,9 @@ if(!empty($_POST['datMaterialy']) && $uPracovni && $uPracovni->gcPrihlasen())
   back();
 }
 
-if(!empty($_POST['platba']) && $uPracovni && $uPracovni->gcPrihlasen())
+if(post('platba') && $uPracovni && $uPracovni->gcPrihlasen())
 {
-  Finance::pripis($uPracovni,$_POST['platba'],$_POST['poznamka'],$u);
+  $uPracovni->finance()->pripis(post('platba'), $u, post('poznamka'));
   back();
 }
 

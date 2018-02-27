@@ -199,19 +199,15 @@ class Finance {
   }
 
   /**
-   * Připíše uživateli $u platbu ve výši $castka aktuálnímu uživateli
-   * @todo rozlišení neznámý uživatel (nezadáno) vs. provedl systém
+   * Připíše aktuálnímu uživateli platbu ve výši $castka.
    */
-  static function pripis(Uzivatel $u, $castka, $poznamka = null, Uzivatel $provedl = null) {
-    $poznamka= empty($poznamka) ? null : $poznamka;
-    $orgId= $provedl instanceof Uzivatel ? $provedl->id() : 0;
-    dbInsertUpdate('platby',[
-      'id_uzivatele'=>$u->id(),
-      'castka'=>$castka,
-      'rok'=>ROK,
-      'provedeno'=>date("Y-m-d H:i:s"),
-      'provedl'=>$orgId,
-      'poznamka'=>$poznamka
+  function pripis($castka, Uzivatel $provedl, $poznamka = null) {
+    dbInsert('platby', [
+      'id_uzivatele'  =>  $this->u->id(),
+      'castka'        =>  $castka,
+      'rok'           =>  ROK,
+      'provedl'       =>  $provedl->id(),
+      'poznamka'      =>  $poznamka ?: null,
     ]);
   }
 
