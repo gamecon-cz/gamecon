@@ -9,28 +9,39 @@
  
 $zidle = @$req[1];
 
+function zaloguj($zprava) {
+  $cas = (new DateTimeCz)->formatDb();
+  file_put_contents(SPEC . '/zidle.log', "$cas $zprava\n", FILE_APPEND);
+}
+
 if($z = get('posad')) {
   $uPracovni->dejZidli($z);
+  zaloguj('Uživatel '.$u->jmenoNick()." posadil na židli $z uživatele ".$uPracovni->jmenoNick());
   back();
 }
 
 if($z = get('sesad')) {
   $uPracovni->vemZidli($z);
+  zaloguj('Uživatel '.$u->jmenoNick()." sesadil ze židle $z uživatele ".$uPracovni->jmenoNick());
   back();
 }
 
 if($p = get('odeberPravo')) {
   dbQueryS('DELETE FROM r_prava_zidle WHERE id_prava = $1 AND id_zidle = $2', [$p, $zidle]);
+  zaloguj('Uživatel '.$u->jmenoNick()." odebral židli $zidle právo $p");
   back();
 }
 
 if($p = get('dejPravo')) {
   dbInsert('r_prava_zidle', [ 'id_prava'=>$p, 'id_zidle'=>$zidle ]);
+  zaloguj('Uživatel '.$u->jmenoNick()." přidal židli $zidle právo $p");
   back();
 }
 
 if($uid = get('sesadUzivatele')) {
-  Uzivatel::zId($uid)->vemZidli($zidle);
+  $u2 = Uzivatel::zId($uid);
+  $u2->vemZidli($zidle);
+  zaloguj('Uživatel '.$u->jmenoNick()." sesadil ze židle $zidle uživatele ".$u2->jmenoNick());
   back();
 }
 
