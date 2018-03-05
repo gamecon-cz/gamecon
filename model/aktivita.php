@@ -1405,7 +1405,7 @@ class Aktivita {
    * Vrací true pokud je uživatel přihlášen jako náhradník (ve watchlistu).
    */
   function prihlasenJakoNahradnik(Uzivatel $u) {
-    $query = dbQuery("SELECT FROM akce_prihlaseni_spec WHERE id_uzivatele=$0 AND id_akce=$1 AND id_stavu_prihlaseni=5", [$u->id(), $this->id()]);
+    $query = dbQuery("SELECT id_akce FROM akce_prihlaseni_spec WHERE id_uzivatele=$0 AND id_akce=$1 AND id_stavu_prihlaseni=5", [$u->id(), $this->id()]);
     return dbNumRows($query) > 0;
   }
 
@@ -1421,17 +1421,16 @@ class Aktivita {
    * Pošle mail náhradníkům o volném místě na aktivitě.
    */
   function poslatMailNahradnikum() {
-    $query = dbQuery("
+    $emaily = dbOneArray("
           SELECT u.email1_uzivatele
           FROM akce_prihlaseni_spec a
           LEFT JOIN uzivatele_hodnoty u ON (u.id_uzivatele = a.id_uzivatele)
           WHERE a.id_akce=$0 AND a.id_stavu_prihlaseni=5", [$this->id()]);
-    $emaily = dbOneArray($query);
     foreach($emaily as $email) {
       $mail = new GcMail();
       $mail->predmet('Gamecon: Volné místo na aktivitě ' . $this->nazev());
       $mujProgram = "https://gamecon.cz/mujprogram"; // TODO(david): správný link na můj program
-      $mail->text("Na aktivitě '" + $this->nazev()+"', která se koná v "+$this->denCas()+" se uvolnilo místo. Tento e-mail dostáváš jako přihlášený náhradník. Přihlaš se na aktivitu zde:\n\n"+$mujProgram+"\n\n(Pokud nebudeš dost rychlý, je možné že místo sebere jiný náhradník)");
+      $mail->text("Na aktivitě '" . $this->nazev()."', která se koná v ".$this->denCas()." se uvolnilo místo. Tento e-mail dostáváš jako přihlášený náhradník. Přihlaš se na aktivitu zde:\n\n".$mujProgram."\n\n(Pokud nebudeš dost rychlý, je možné že místo sebere jiný náhradník)");
       $mail->adresat($email);
       $mail->odeslat();
     }
