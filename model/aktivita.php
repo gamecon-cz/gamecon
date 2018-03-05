@@ -1383,10 +1383,8 @@ class Aktivita {
     // Na týmové aktivity se nejde přihlašovat jako náhradník
     if($this->a['team_kapacita'] !== null) throw new Exception('Na teamové aktivity se nelze přihlašovat jako náhradník');
     // Uložení přihlášení do DB
-    $aid = $this->id();
-    $uid = $u->id();
-    dbQuery("INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$uid, id_akce=$aid, id_stavu_prihlaseni=5");
-    dbQuery("INSERT INTO akce_prihlaseni_log SET id_uzivatele=$uid, id_akce=$aid, typ='prihlaseni_watchlist'");
+    dbQuery("INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=5", [$u->id(), $this->id()]);
+    dbQuery("INSERT INTO akce_prihlaseni_log SET id_uzivatele=$0, id_akce=$1, typ='prihlaseni_watchlist'", [$u->id(), $this->id()]);
     $this->refresh();
   }
 
@@ -1397,10 +1395,8 @@ class Aktivita {
     // Ignorovat pokud není přihlášen jako náhradník
     if(!$this->prihlasenJakoNahradnik($u)) return;
     // Uložení odhlášení do DB
-    $aid = $this->id();
-    $uid = $u->id();
-    dbQuery("DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$uid AND id_akce=$aid");
-    dbQuery("INSERT INTO akce_prihlaseni_log SET id_uzivatele=$uid, id_akce=$aid, typ='odhlaseni_watchlist'");
+    dbQuery("DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0 AND id_akce=$1", [$u->id(), $this->id()]);
+    dbQuery("INSERT INTO akce_prihlaseni_log SET id_uzivatele=$0, id_akce=$1, typ='odhlaseni_watchlist'", [$u->id(), $this->id()]);
     $this->refresh();
   }
 
@@ -1409,9 +1405,7 @@ class Aktivita {
    * Vrací true pokud je uživatel přihlášen jako náhradník (ve watchlistu).
    */
   function prihlasenJakoNahradnik(Uzivatel $u) {
-    $aid = $this->id();
-    $uid = $u->id();
-    $query = dbQuery("SELECT FROM akce_prihlaseni_spec WHERE id_uzivatele=$uid AND id_akce=$aid AND id_stavu_prihlaseni=5");
+    $query = dbQuery("SELECT FROM akce_prihlaseni_spec WHERE id_uzivatele=$0 AND id_akce=$1 AND id_stavu_prihlaseni=5", [$u->id(), $this->id()]);
     return dbNumRows($query) > 0;
   }
 
@@ -1419,8 +1413,7 @@ class Aktivita {
    * Vrací pole ids uživatelů přihlášených jako náhradníci (ve watchlistu).
    */
   function prihlaseniNahradnici() {
-    $aid = $this->id();
-    $query = dbQuery("SELECT id_uzivatele FROM akce_prihlaseni_spec WHERE id_akce=$aid AND id_stavu_prihlaseni=5");
+    $query = dbQuery("SELECT id_uzivatele FROM akce_prihlaseni_spec WHERE id_akce=$0 AND id_stavu_prihlaseni=5", [$this->id()]);
     return dbOneArray($query);
   }
 
@@ -1428,12 +1421,11 @@ class Aktivita {
    * Pošle mail náhradníkům o volném místě na aktivitě.
    */
   function poslatMailNahradnikum() {
-    $aid = $this->id();
     $query = dbQuery("
           SELECT u.email1_uzivatele
           FROM akce_prihlaseni_spec a
           LEFT JOIN uzivatele_hodnoty u ON (u.id_uzivatele = a.id_uzivatele)
-          WHERE a.id_akce=$aid AND a.id_stavu_prihlaseni=5");
+          WHERE a.id_akce=$0 AND a.id_stavu_prihlaseni=5", [$this->id()]);
     $emaily = dbOneArray($query);
     foreach($emaily as $email) {
       $mail = new GcMail();
