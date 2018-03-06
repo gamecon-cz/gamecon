@@ -46,7 +46,6 @@ if(!empty($_POST)) {
   $shop->zpracujSlevy();
   $shop->zpracujJidlo();
   $shop->zpracujVstupne();
-  $shop->parconZpracuj();
   $pomoc->zpracuj();
   if($prihlasovani) {
     $_SESSION['ga_tracking_prihlaska'] = true; //hack pro zobrazení js kódu úspěšné google analytics konverze
@@ -74,7 +73,6 @@ $t->assign([
   'ulozitNeboPrihlasit' =>  $u->gcPrihlasen() ? 'Uložit změny' : 'Přihlásit na GameCon',
   'vstupne'   =>  $shop->vstupneHtml(),
   'pomoc'     =>  $pomoc->html(),
-  'parcon'    =>  $shop->parconHtml(),
 
   // náhledy předmětů
   // záměrně rozkopírované, generování pomocí cyklu bylo neprůhledné

@@ -24,7 +24,6 @@ class Shop
     $vstupne,       // dobrovolné vstupné (složka zaplacená regurélně včas)
     $vstupnePozde,  // dobrovolné vstupné (složka zaplacená pozdě)
     $vstupneJeVcas, // jestli se dobrovolné vstupné v tento okamžik chápe jako zaplacené včas
-    $parcon,
     $klicU='shopU', //klíč formu pro identifikaci polí
     $klicUPokoj='shopUPokoj', //s kým chce být na pokoji
     $klicV='shopV', //klíč formu pro identifikaci vstupného
@@ -63,7 +62,6 @@ class Shop
     TRICKO = 3,
     JIDLO = 4,
     VSTUPNE = 5,
-    PARCON = 6,
     PN_JIDLO = 'cShopJidlo',          // post proměnná pro jídlo
     PN_JIDLO_ZMEN = 'cShopJidloZmen'; // post proměnná indikující, že se má jídlo aktualizovat
 
@@ -96,7 +94,6 @@ class Shop
     //inicializace
     $this->jidlo['dny'] = [];
     $this->jidlo['druhy'] = [];
-    $parconPredmety = [];
 
     while($r = mysqli_fetch_assoc($o)) {
       $typ = $r['typ'];
@@ -151,8 +148,6 @@ class Shop
         } else {
           $this->vstupnePozde = $r;
         }
-      } elseif($typ == self::PARCON) {
-        $fronta = &$parconPredmety[];
       } else {
         throw new Exception('Objevil se nepodporovaný typ předmětu s č.'.$r['typ']);
       }
@@ -165,7 +160,6 @@ class Shop
     }
 
     $this->ubytovani = new ShopUbytovani($this->ubytovani, $this->u); // náhrada reprezentace polem za objekt
-    $this->parcon = new ShopParcon($parconPredmety, $this->u);
   }
 
   /** Smaže z názvu identifikaci dne */
@@ -215,14 +209,6 @@ class Shop
     $t->assign('pnJidloZmen', self::PN_JIDLO_ZMEN);
     $t->parse('jidlo');
     return $t->text('jidlo');
-  }
-
-  function parconHtml() {
-    return $this->parcon->html();
-  }
-
-  function parconZpracuj() {
-    return $this->parcon->zpracuj();
   }
 
   /**

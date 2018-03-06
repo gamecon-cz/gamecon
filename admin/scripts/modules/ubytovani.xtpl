@@ -31,18 +31,6 @@
 
 
 <div class="aBox">
-  <h3>Přihláška na Parcon</h3>
-  <!-- begin:parcon -->
-  <form method="post">
-    {shop.parconHtml}
-    <input type="submit" name="zpracujParcon" value="Uložit">
-  </form>
-  <!-- end:parcon -->
-  {status}
-</div>
-
-
-<div class="aBox">
   <h3>Nastavení pokojů</h3>
 
   <div style="float:left">
