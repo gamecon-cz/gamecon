@@ -1373,7 +1373,7 @@ class Aktivita {
    */
   function prihlasNahradnika(Uzivatel $u) {
     // Uživatel nesmí být přihlášen na aktivitu nebo jako náhradník
-    if($this->prihlasen($u) || $this->prihlasenJakoNahradnik($u)) return;
+    if($this->prihlasen($u) || $u->prihlasenJakoNahradnikNa($this)) return;
     // Uživatel nesmí mít ve stejný slot jinou přihlášenou aktivitu
     if(!maVolno($u->id(), $this->a)) throw new Chyba(hlaska('kolizeAktivit'));
     // Uživatel musí být přihlášen na GameCon
@@ -1393,28 +1393,18 @@ class Aktivita {
    */
   function odhlasNahradnika(Uzivatel $u) {
     // Ignorovat pokud není přihlášen jako náhradník
-    if(!$this->prihlasenJakoNahradnik($u)) return;
+    if(!$u->prihlasenJakoNahradnikNa($this)) return;
     // Uložení odhlášení do DB
     dbQuery("DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0 AND id_akce=$1", [$u->id(), $this->id()]);
     dbQuery("INSERT INTO akce_prihlaseni_log SET id_uzivatele=$0, id_akce=$1, typ='odhlaseni_watchlist'", [$u->id(), $this->id()]);
     $this->refresh();
   }
 
-
-  /**
-   * Vrací true pokud je uživatel přihlášen jako náhradník (ve watchlistu).
-   */
-  function prihlasenJakoNahradnik(Uzivatel $u) {
-    $query = dbQuery("SELECT id_akce FROM akce_prihlaseni_spec WHERE id_uzivatele=$0 AND id_akce=$1 AND id_stavu_prihlaseni=5", [$u->id(), $this->id()]);
-    return dbNumRows($query) > 0;
-  }
-
   /**
    * Vrací pole ids uživatelů přihlášených jako náhradníci (ve watchlistu).
    */
   function prihlaseniNahradnici() {
-    $query = dbQuery("SELECT id_uzivatele FROM akce_prihlaseni_spec WHERE id_akce=$0 AND id_stavu_prihlaseni=5", [$this->id()]);
-    return dbOneArray($query);
+    return dbOneArray("SELECT id_uzivatele FROM akce_prihlaseni_spec WHERE id_akce=$0 AND id_stavu_prihlaseni=5", [$this->id()]);
   }
 
   /**
