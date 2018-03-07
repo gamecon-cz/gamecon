@@ -741,6 +741,16 @@ class Uzivatel {
   { return $this->u; }
 
   /**
+   * Vrací true, pokud je uživatel přihlášen jako náhradník na aktivitu (ve watchlistu).
+   */
+  function prihlasenJakoNahradnikNa($aktivita) {
+    if (!isset($u["aktivity_jako_nahradnik"])) {
+      $u["aktivity_jako_nahradnik"] = dbOneArray("SELECT id_akce FROM akce_prihlaseni_spec WHERE id_uzivatele=$0 AND id_stavu_prihlaseni=5", [$this->id()]);
+    }
+    return in_array($aktivita->id(), $u["aktivity_jako_nahradnik"]);
+  }
+
+  /**
    * Na základě řetězce $dotaz zkusí najít všechny uživatele, kteří odpovídají
    * jménem, nickem, apod.
    */
