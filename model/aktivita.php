@@ -797,6 +797,10 @@ class Aktivita {
       dbQueryS('DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0
         AND id_akce=$1 AND id_stavu_prihlaseni=4', [$uid, $aid]);
     // TODO(david): Odhlásit ze všech watchlistů ve stejnou dobu. Kód bude podobný jako funkce maVolno(). Vrátí se true pokud byly nějaké watchlisty smazány, aby UI mohlo vypsat hlášku.
+    $odhlasenoZNahradnickychSlotu = $this->odhlasZNahradnickychSlotu($u);
+    if ($odhlasenoZNahradnickychSlotu) {
+      // TODO: Vypsat informační hlášku, že náhradnické sloty ve stejnou dobu byly smazány
+    }
     $this->refresh();
   }
 
@@ -1419,11 +1423,28 @@ class Aktivita {
     foreach($emaily as $email) {
       $mail = new GcMail();
       $mail->predmet('Gamecon: Volné místo na aktivitě ' . $this->nazev());
-      $mujProgram = "https://gamecon.cz/mujprogram"; // TODO(david): správný link na můj program
+      $mujProgram = "https://gamecon.cz/mujprogram"; // TODO: správný link na můj program
       $mail->text("Na aktivitě '" . $this->nazev()."', která se koná v ".$this->denCas()." se uvolnilo místo. Tento e-mail dostáváš jako přihlášený náhradník. Přihlaš se na aktivitu zde:\n\n".$mujProgram."\n\n(Pokud nebudeš dost rychlý, je možné že místo sebere jiný náhradník)");
       $mail->adresat($email);
       $mail->odeslat();
     }
+  }
+
+  /**
+   * Odhlásí ze všech náhradnických slotů ve stejný čas jako aktivita po přihlášení na aktivitu.
+   * @return bool True pokud došlo k odhlášení nějakých náhradnických slotů
+   */
+  function odhlasZNahradnickychSlotu(Uzivatel $u) {
+    $idKonfliktnichAkci = dbOneArray("
+      SELECT p.id_akce 
+      FROM `akce_prihlaseni_spec` AS p 
+      JOIN akce_seznam AS a USING(id_akce)
+      WHERE p.id_stavu_prihlaseni=5 AND p.id_uzivatele=$0 AND a.zacatek>=$1 AND a.konec<=$2", [$u->id(), $this->a['zacatek'], $this->a['konec']]);
+    foreach ($idKonfliktnichAkci as $idAkce) {
+      dbQuery("DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0 AND id_akce=$1", [$u->id(), $idAkce]);
+      dbQuery("INSERT INTO akce_prihlaseni_log SET id_uzivatele=$0, id_akce=$1, typ='odhlaseni_watchlist'", [$u->id(), $idAkce]);
+    }
+    return count($idKonfliktnichAkci) > 0;
   }
 
   /**
