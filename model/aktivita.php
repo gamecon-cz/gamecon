@@ -796,7 +796,6 @@ class Aktivita {
     if(ODHLASENI_POKUTA_KONTROLA) //pokud by náhodou měl záznam za pokutu a přihlásil se teď, tak smazat
       dbQueryS('DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0
         AND id_akce=$1 AND id_stavu_prihlaseni=4', [$uid, $aid]);
-    // TODO(david): Odhlásit ze všech watchlistů ve stejnou dobu. Kód bude podobný jako funkce maVolno(). Vrátí se true pokud byly nějaké watchlisty smazány, aby UI mohlo vypsat hlášku.
     $odhlasenoZNahradnickychSlotu = $this->odhlasZNahradnickychSlotu($u);
     if ($odhlasenoZNahradnickychSlotu) {
       // TODO: Vypsat informační hlášku, že náhradnické sloty ve stejnou dobu byly smazány
