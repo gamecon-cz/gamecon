@@ -92,7 +92,11 @@ if(post('poznamkaNastav')) {
 }
 
 if(post('zmenitUdaj')) {
-  dbUpdate('uzivatele_hodnoty', post('udaj'), ['id_uzivatele' => $uPracovni->id()]);
+  try {
+    dbUpdate('uzivatele_hodnoty', post('udaj'), ['id_uzivatele' => $uPracovni->id()]);
+  } catch (DbDuplicateEntryException $e) {
+    throw new Chyba('Uživatel se stejnou přezdívkou již existuje.');
+  }
   $uPracovni->otoc();
   back();
 }
@@ -169,6 +173,7 @@ $x->assign('predmety',$moznosti);
 // form s osobními údaji
 if($uPracovni) {
   $udaje = [
+    'login_uzivatele'       =>  'Přezdívka',
     'jmeno_uzivatele'       =>  'Jméno',
     'prijmeni_uzivatele'    =>  'Příjmení',
     'ulice_a_cp_uzivatele'  =>  'Ulice',
