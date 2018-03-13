@@ -9,16 +9,23 @@
   <!-- end:omnibox -->
   <!-- begin:vybrany -->
   <div class="detail">
-    <img class="avatar" src="{avatar}">
-    <div class="nick" style="overflow-x:hidden"><h3>{nick}</h3></div>
-    {jmeno}<br>
-    <div class="status">{status}</div>
+    <div class="avatar">
+      <img src="{avatar}">
+      <div class="zrusit">
+        <form method="post" id="zrusit">
+          <input type="hidden" name="zrusitUzivateleProPraci" value="1">
+          <input type="submit" value="z̲rušit">
+          <!-- todo záporný zůstatek -->
+        </form>
+      </div>
+    </div>
+    <div class="udaje">
+      <div class="nick"><h3>{nick}</h3></div>
+      <div>{jmeno}</div>
+      <div class="status">{status}</div>
+      <div class="id">ID: {id}</div>
+    </div>
   </div>
-  <form method="post" id="zrusit" style="clear:both">
-    <input type="hidden" name="zrusitUzivateleProPraci" value="1">
-    <input type="submit" value="z̲rušit">
-    <!-- todo záporný zůstatek -->
-  </form>
   <!-- end:vybrany -->
 </div>
 <!-- end:uzivatel -->
