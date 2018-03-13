@@ -122,6 +122,7 @@ else
     if($uPracovni) {
       $xtpl->assign([
         'avatar'  =>  $uPracovni->avatar(),
+        'id'      =>  $uPracovni->id(),
         'jmeno'   =>  $uPracovni->jmeno(),
         'nick'    =>  $uPracovni->prezdivka(),
         'status'  =>  $uPracovni->statusHtml(),

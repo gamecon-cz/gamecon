@@ -20,13 +20,19 @@ body {
 
 .operator {  }
 
-.uzivatel { background-color: #fff; }
-.uzivatel .detail {  }
+.uzivatel { background-color: #fff; display: flex; flex-direction: column; }
+.uzivatel .detail { }
 .uzivatel .tip { color: #aaa; margin: 4px 8px 0 8px; font-size: 0.8em; }
-.uzivatel .avatar { float: left; max-width: 60px; max-height: 60px; margin: 0 8px 8px 0; }
+.uzivatel .avatar { float: left; max-width: 60px; margin-right: 8px; }
+.uzivatel .nick { overflow-x: hidden; }
+.uzivatel .id { margin-top: 4px; color: #888; }
+.uzivatel .udaje { float: left; max-width: 80px; padding-right: 8px; line-height: 1.2;}
+.uzivatel .udaje div { margin-bottom: 4px; }
+.uzivatel .udaje .status { margin-bottom: 0px; font-weight: bold; }
+.uzivatel .zrusit { margin-top: 4px; }
+.uzivatel .zrusit input[type="submit"] { padding: 4px 8px; width: 60px; }
 .uzivatel h3 { margin: 0 0 3px 0; font-size: 1.2em; line-height: 0.9em; }
 .uzivatel .omnibox { width: 100%; box-sizing: border-box; -moz-box-sizing: border-box; }
-.uzivatel .status { font-weight: bold; }
 
 .mobmenu { display: none; }
 
