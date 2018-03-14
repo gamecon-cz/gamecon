@@ -25,6 +25,7 @@ class Aktivita {
     PN_PLUSMINUSP='cAktivitaPlusminusp',  // název post proměnné pro úpravy typu plus
     PN_PLUSMINUSM='cAktivitaPlusminusm',  // název post proměnné pro úpravy typu mínus
     HAJENI          = 72,      // počet hodin po kterýc aktivita automatick vykopává nesestavený tým
+    LIMIT_POPIS_KRATKY = 140,  // max počet znaků v krátkém popisku
     // stavy aktivity
     AKTIVOVANA      = 1,
     PUBLIKOVANA     = 4,
@@ -197,6 +198,7 @@ class Aktivita {
     $xtpl->assign('pnTagy', self::TAGYKLIC);
     $xtpl->assign('viceScript', file_get_contents(WWW.'/soubory/doplnovani-vice.js'));
     $xtpl->assign('tagyMoznosti', json_encode(dbOneArray('SELECT nazev FROM tagy')));
+    $xtpl->assign('limitPopisKratky', self::LIMIT_POPIS_KRATKY);
     if($a) {
       $xtpl->assign($a->a);
       $xtpl->assign('popis', dbText($aktivita['popis']));
