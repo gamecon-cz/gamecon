@@ -15,7 +15,6 @@ td.redukovany { padding-left: 0; } /* sloupce s inputem tak, aby inputy přimyka
   <tr>
     <th colspan="2">Pořadí</th>
     <th>Název</th>
-    <th>Interní název</th>
     <th>Dveře</th>
     <th>Poznámka</th>
     <th colspan="1">Úpr.</th>
@@ -37,7 +36,6 @@ td.redukovany { padding-left: 0; } /* sloupce s inputem tak, aby inputy přimyka
       </form><!-- end:dolu -->
     </td>
     <td>{nazev}</td>
-    <td>{nazev_interni}</td>
     <td>{dvere}</td>
     <td>{poznamka}</td>
     <td>
@@ -54,7 +52,6 @@ td.redukovany { padding-left: 0; } /* sloupce s inputem tak, aby inputy přimyka
     <td colspan="2"></td>
     <form method="post">
     <td><input type="text" name="fields[nazev]" value="{nazev}" /></td>
-    <td><input type="text" name="fields[nazev_interni]" value="{nazev_interni}" /></td>
     <td><input type="text" name="fields[dvere]" value="{dvere}" /></td>
     <td><input type="text" name="fields[poznamka]" value="{poznamka}" /></td>
     <td colspan="1">

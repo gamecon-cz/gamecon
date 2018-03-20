@@ -6,11 +6,11 @@ class Lokace extends DbObject {
   protected static $pk = 'id_lokace';
 
   function __toString() {
-    return $this->r['nazev'] . ', ' . $this->r['nazev_interni'] . ', ' . $this->r['dvere'];
+    return $this->r['nazev'] . ', ' . $this->r['dvere'];
   }
 
-  function nazevInterni() {
-    return $this->r['nazev_interni'];
+  function nazev() {
+    return $this->r['nazev'];
   }
 
   function poradi() {

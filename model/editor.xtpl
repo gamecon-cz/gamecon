@@ -58,7 +58,7 @@ $(function(){
     <th>Místnost¹</th>
     <td>
       <select name="{fields}[lokace]">
-        <!-- begin:lokace --><option {sel} value="{id_lokace}">{nazev_interni}</option><!-- end:lokace -->
+        <!-- begin:lokace --><option {sel} value="{id_lokace}">{nazev}</option><!-- end:lokace -->
       </select>
     </td>
   </tr>

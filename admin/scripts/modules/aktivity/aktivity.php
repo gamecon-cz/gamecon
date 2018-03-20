@@ -83,7 +83,7 @@ $filtr = array_merge(['rok' => ROK], $filtr);
 $typy = dbArrayCol('SELECT id_typu, typ_1p FROM akce_typy');
 $typy[0] = '';
 
-$mistnosti = dbArrayCol('SELECT id_lokace, nazev_interni FROM akce_lokace');
+$mistnosti = dbArrayCol('SELECT id_lokace, nazev FROM akce_lokace');
 
 $aktivity = Aktivita::zFiltru($filtr, $razeni);
 

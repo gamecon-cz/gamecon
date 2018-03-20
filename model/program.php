@@ -112,27 +112,29 @@ class Program {
    * program (iterátor aktivit)
    */
   private function init() {
+    $this->skupiny['0'] = 'Ostatní';
+
     if($this->nastaveni['skupiny'] == 'mistnosti') {
       $this->program = Aktivita::zProgramu('poradi');
       $grp = Lokace::zVsech();
       $this->grpf = 'lokaceId';
-      $labelf = 'nazevInterni';
       usort($grp, function($a, $b) {
         return $a->poradi() > $b->poradi();
       });
+      foreach($grp as $t) {
+        $this->skupiny[$t->id()] = ucfirst($t->nazev());
+      }
     } else {
       $this->program = Aktivita::zProgramu('typ');
       $grp = Typ::zVsech();
       $this->grpf = 'typId';
-      $labelf = 'nazev';
       usort($grp, function($a, $b) {
         return $a->id() > $b->id();
       });
+      foreach($grp as $t) {
+        $this->skupiny[$t->id()] = ucfirst($t->nazev());
+      }
     }
-
-    $this->skupiny['0'] = 'Ostatní';
-    foreach($grp as $t)
-      $this->skupiny[$t->id()] = ucfirst($t->$labelf());
   }
 
   /** detekce kolize dvou aktivit (jsou ve stejné místnosti v kryjícím se čase) */

@@ -26,7 +26,7 @@ $odpoved = dbQuery('
     u.login_uzivatele as nick, u.jmeno_uzivatele as jmeno, u.id_uzivatele,
     u.prijmeni_uzivatele as prijmeni, u.email1_uzivatele as mail, u.telefon_uzivatele as telefon,
     GROUP_CONCAT(org.login_uzivatele) AS orgove,
-    CONCAT(l.nazev,", ",l.nazev_interni,", ",l.dvere) as mistnost
+    CONCAT(l.nazev,", ",l.dvere) as mistnost
   FROM akce_seznam a
   LEFT JOIN akce_prihlaseni p ON (a.id_akce=p.id_akce)
   LEFT JOIN uzivatele_hodnoty u ON (p.id_uzivatele=u.id_uzivatele)
