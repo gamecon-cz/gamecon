@@ -30,6 +30,8 @@ class Aktivita {
     AKTIVOVANA      = 1,
     PUBLIKOVANA     = 4,
     PRIPRAVENA      = 5,
+    // stavy přihlášení
+    NAHRADNIK       = 5,
     //ignore a parametry kolem přihlašovátka
     BEZ_POKUT       = 0b00010000,   // odhlášení bez pokut
     PLUSMINUS       = 0b00000001,   // plus/mínus zkratky pro měnění míst v team. aktivitě
@@ -569,7 +571,45 @@ class Aktivita {
       dbQuery("UPDATE akce_seznam SET zamcel=NULL, zamcel_cas=NULL, team_nazev=NULL WHERE id_akce=$aid");
     if($this->a['teamova'] && $this->prihlaseno()==1) // odhlašuje se poslední hráč
       dbQuery("UPDATE akce_seznam SET kapacita=team_max WHERE id_akce=$aid");
+    // Poslání mailu lidem na watchlistu
+    if($this->volno()=="x") { // Před odhlášením byla aktivita plná
+      $this->poslatMailNahradnikum();
+    }
     $this->refresh();
+  }
+
+  /**
+   * Odhlásí uživatele z náhradníků (watchlistu)
+   */
+  function odhlasNahradnika(Uzivatel $u) {
+    // Ignorovat pokud není přihlášen jako náhradník
+    if(!$u->prihlasenJakoNahradnikNa($this)) return;
+    // Uložení odhlášení do DB
+    dbQuery("DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0 AND id_akce=$1 AND id_stavu_prihlaseni=$2", [$u->id(), $this->id(), self::NAHRADNIK]);
+    dbQuery("INSERT INTO akce_prihlaseni_log SET id_uzivatele=$0, id_akce=$1, typ='odhlaseni_watchlist'", [$u->id(), $this->id()]);
+    $this->refresh();
+  }
+
+  /**
+   * Odhlásí ze všech náhradnických slotů ve stejný čas jako aktivita po přihlášení na aktivitu.
+   * @return bool True pokud došlo k odhlášení nějakých náhradnických slotů
+   */
+  private function odhlasZNahradnickychSlotu(Uzivatel $u) {
+    $konfliktniAktivity = self::zIds(dbOneArray("
+      SELECT p.id_akce
+      FROM akce_prihlaseni_spec p
+      JOIN akce_seznam a ON a.id_akce = p.id_akce
+      WHERE
+        p.id_stavu_prihlaseni = $3 AND
+        p.id_uzivatele = $0 AND
+        NOT (a.konec <= $1 OR $2 <= a.zacatek) -- aktivita 'a' se kryje s aktuální aktivitou
+    ", [
+      $u->id(), $this->a['zacatek'], $this->a['konec'], self::NAHRADNIK
+    ]));
+    foreach($konfliktniAktivity as $aktivita) {
+      $aktivita->odhlasNahradnika($u);
+    }
+    return count($konfliktniAktivity) > 0;
   }
 
   /** Vráti aktivitu ze stavu připravená do stavu publikovaná */
@@ -722,6 +762,25 @@ class Aktivita {
   }
 
   /**
+   * Pošle mail náhradníkům o volném místě na aktivitě.
+   */
+  private function poslatMailNahradnikum() {
+    $emaily = dbOneArray("
+      SELECT u.email1_uzivatele
+      FROM akce_prihlaseni_spec a
+      JOIN uzivatele_hodnoty u ON u.id_uzivatele = a.id_uzivatele
+      WHERE a.id_akce = $0 AND a.id_stavu_prihlaseni = $1
+    ", [$this->id(), self::NAHRADNIK]);
+    foreach($emaily as $email) {
+      $mail = new GcMail();
+      $mail->predmet('Gamecon: Volné místo na aktivitě ' . $this->nazev());
+      $mail->text(hlaskaMail('uvolneneMisto', $this->nazev(), $this->denCas()));
+      $mail->adresat($email);
+      $mail->odeslat();
+    }
+  }
+
+  /**
    * Přihlásí uživatele na aktivitu
    * @todo koncepčnější ignorování stavu
    */
@@ -781,6 +840,9 @@ class Aktivita {
         if(!$uspech) throw new Exception('Nepodařilo se určit výběr dalšího kola.');
       }
     }
+
+    // odhlášení náhradnictví v kolidujících aktivitách
+    $this->odhlasZNahradnickychSlotu($u);
 
     // přihlášení na samu aktivitu (uložení věcí do DB)
     $aid = $this->id();
@@ -942,6 +1004,26 @@ class Aktivita {
     ');
     dbQuery("DELETE FROM akce_prihlaseni WHERE id_akce IN($pKolize) AND id_uzivatele IN(".implode(',',$uids).')');
     dbQuery('INSERT INTO akce_prihlaseni(id_akce,id_uzivatele) VALUES ('.$this->id().','.implode('),('.$this->id().',',$uids).')');
+  }
+
+  /**
+   * Přihlásí uživatele jako náhradníka (watchlist)
+   */
+  function prihlasNahradnika(Uzivatel $u) {
+    // Uživatel nesmí být přihlášen na aktivitu nebo jako náhradník
+    if($this->prihlasen($u) || $u->prihlasenJakoNahradnikNa($this)) return;
+    // Uživatel nesmí mít ve stejný slot jinou přihlášenou aktivitu
+    if(!maVolno($u->id(), $this->a)) throw new Chyba(hlaska('kolizeAktivit'));
+    // Uživatel musí být přihlášen na GameCon
+    if(!$u->gcPrihlasen()) throw new Exception('Nemáš aktivní přihlášku na GameCon.');
+    // Na podřazenou aktivitu se nejde přihlašovat jako náhradník
+    if($this->a['dite'] !== null) throw new Exception('Na podřazené aktivity se nelze přihlašovat jako náhradník');
+    // Na týmové aktivity se nejde přihlašovat jako náhradník
+    if($this->teamova()) throw new Exception('Na teamové aktivity se nelze přihlašovat jako náhradník');
+    // Uložení přihlášení do DB
+    dbQuery("INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=$2", [$u->id(), $this->id(), self::NAHRADNIK]);
+    dbQuery("INSERT INTO akce_prihlaseni_log SET id_uzivatele=$0, id_akce=$1, typ='prihlaseni_watchlist'", [$u->id(), $this->id()]);
+    $this->refresh();
   }
 
   /** Nastaví aktivitu jako "připravena pro aktivaci" */
@@ -1420,6 +1502,7 @@ class Aktivita {
    */
   static function zIds($ids) {
     if(!is_array($ids)) $ids = explode(',', $ids);
+    if(empty($ids)) return [];
     return self::zWhere('WHERE a.id_akce IN('.dbQa($ids).')');
   }
 

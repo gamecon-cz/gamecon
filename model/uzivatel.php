@@ -9,6 +9,7 @@
 class Uzivatel {
 
   protected
+    $aktivityJakoNahradnik, // pole s klíči id aktvit, kde je jako náhradník
     $u=[],
     $klic='',
     $zidle,         // pole s klíči id židlí uživatele
@@ -554,6 +555,20 @@ class Uzivatel {
       setcookie('gcTrvalePrihlaseni',$rand,time()+3600*24*365,'/');
     }
     return $u;
+  }
+
+  /**
+   * @return bool true, pokud je uživatel přihlášen jako náhradník na aktivitu (ve watchlistu).
+   */
+  function prihlasenJakoNahradnikNa(Aktivita $a) {
+    if(!isset($this->aktivityJakoNahradnik)) {
+      $this->aktivityJakoNahradnik = dbOneIndex("
+        SELECT id_akce
+        FROM akce_prihlaseni_spec
+        WHERE id_uzivatele = $0 AND id_stavu_prihlaseni = $1
+      ", [$this->id(), Aktivita::NAHRADNIK]);
+    }
+    return isset($this->aktivityJakoNahradnik[$a->id()]);
   }
 
   /**
