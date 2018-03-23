@@ -964,6 +964,21 @@ class Aktivita {
           $out = 'pouze ženská místa';
         elseif($volno == 'm')
           $out = 'pouze mužská místa';
+        else {
+          if($u->prihlasenJakoNahradnikNa($this)) {
+            $out =
+              '<form method="post" style="display:inline">' .
+              '<input type="hidden" name="odhlasNahradnika" value="' . $this->id() . '">' .
+              '<a href="#" onclick="$(this).parent().submit(); return false">odhlásit jako náhradník</a>' .
+              '</form>';
+          } else {
+            $out =
+              '<form method="post" style="display:inline">' .
+              '<input type="hidden" name="prihlasNahradnika" value="' . $this->id() . '">' .
+              '<a href="#" onclick="$(this).parent().submit(); return false">přihlásit jako náhradník</a>' .
+              '</form>';
+          }
+        }
       }
     }
     if($parametry & self::PLUSMINUS_KAZDY) {
@@ -982,6 +997,14 @@ class Aktivita {
     if(post('odhlasit')) {
       $bezPokut = $parametry & self::ZPETNE ? self::BEZ_POKUT : 0; // v případě zpětných změn bez pokut
       self::zId(post('odhlasit'))->odhlas($u, $bezPokut);
+      back();
+    }
+    if(post('prihlasNahradnika')) {
+      self::zId(post('prihlasNahradnika'))->prihlasNahradnika($u);
+      back();
+    }
+    if(post('odhlasNahradnika')) {
+      self::zId(post('odhlasNahradnika'))->odhlasNahradnika($u);
       back();
     }
     if($parametry & self::PLUSMINUS_KAZDY) {
