@@ -22,10 +22,14 @@ foreach($aktivity as $a) {
     $casyPrihlaseni[$r['id_uzivatele']] = new DateTimeCz($r['cas']);
   }
   foreach($ucastnici as $ua) {
+    $vek = $ua->vekKDatu($a->zacatek());
+    if($vek === null) $vek = "?";
+    elseif($vek >= 18) $vek = "18+";
     $t->assign([
-      'jmeno' => $ua->jmenoNick(),
-      'mail' => $ua->mail(),
-      'telefon' => $ua->telefon(),
+      'jmeno'         => $ua->jmenoNick(),
+      'mail'          => $ua->mail(),
+      'vek'           => $vek,
+      'telefon'       => $ua->telefon(),
       'casPrihlaseni' => isset($casyPrihlaseni[$ua->id()]) ? $casyPrihlaseni[$ua->id()]->format('j.n. H:i') : '<i>???</i>',
     ]);
     $t->parse('prehled.aktivita.ucast.ucastnik');
