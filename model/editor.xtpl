@@ -11,7 +11,7 @@ function overeni()
 
   if(err)
   {
-    alert('Nepodařilo se uložit, protože:'+msg); 
+    alert('Nepodařilo se uložit, protože:'+msg);
     return false;
   }
   else
@@ -203,7 +203,7 @@ $(function(){
     </tr>
       <td>vodorovná čára</td>
       <td>---</td>
-    </tr>    
+    </tr>
       <td><strong>Nadpis</strong></td>
       <td>##Nadpis (více křížků=menší nadpis)</td>
     </tr>
@@ -215,7 +215,7 @@ $(function(){
     <th style="width: 50px">Krátký popis</th>
     <td style="position: relative">
       <div style="position: absolute; right: 8px; bottom: 5px; color: #888; font-size: 10px" id="pocitadlo{fields}{id_akce}"></div>
-      <textarea style="width: 440px; font-size: 12px; resize: none" maxlength="140" id="kratkypopis{fields}{id_akce}" name="{fields}[popis_kratky]">{popis_kratky}</textarea>
+      <textarea style="width: 440px; font-size: 12px; resize: none" maxlength="{limitPopisKratky}" id="kratkypopis{fields}{id_akce}" name="{fields}[popis_kratky]">{popis_kratky}</textarea>
     </td>
     <script>
       var textarea  = document.getElementById('kratkypopis{fields}{id_akce}')
@@ -258,7 +258,7 @@ $(function(){
     </td>
   </tr>
 </table>
-  
+
 
 ¹ Položky specifické pro instanci, pokud má aktivita víc instancí
 <!-- end:upravy -->
