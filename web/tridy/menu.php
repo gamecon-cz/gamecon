@@ -9,7 +9,6 @@ class Menu {
     'o-gameconu'          =>  'Co je GameCon?',
     'organizacni-vypomoc'     =>  'Organizační výpomoc',
     'chci-se-prihlasit'   =>  'Chci se přihlásit',
-    'en'                  =>  'English program',
     'prakticke-informace' =>  'Praktické informace',
     'kontakty'            =>  'Kontakty',
     'https://www.facebook.com/pg/gamecon/photos/?tab=album&album_id=1646393038705358' => 'Fotogalerie',
