@@ -25,7 +25,7 @@ class Aktivita {
     PN_PLUSMINUSP='cAktivitaPlusminusp',  // název post proměnné pro úpravy typu plus
     PN_PLUSMINUSM='cAktivitaPlusminusm',  // název post proměnné pro úpravy typu mínus
     HAJENI          = 72,      // počet hodin po kterýc aktivita automatick vykopává nesestavený tým
-    LIMIT_POPIS_KRATKY = 140,  // max počet znaků v krátkém popisku
+    LIMIT_POPIS_KRATKY = 180,  // max počet znaků v krátkém popisku
     // stavy aktivity
     AKTIVOVANA      = 1,
     PUBLIKOVANA     = 4,
