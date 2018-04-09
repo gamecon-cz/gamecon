@@ -397,16 +397,16 @@ class Finance {
    * Započítá do mezisoučtů nákupy v eshopu
    */
   protected function zapoctiShop() {
-    $rok = ROK;
-    $uid = $this->u->id();
-    $o = dbQuery("
+    $o = dbQuery('
       SELECT p.id_predmetu, p.nazev, n.cena_nakupni, p.typ, p.ubytovani_den, p.model_rok
       FROM shop_nakupy n
       JOIN shop_predmety p USING(id_predmetu)
-      WHERE n.id_uzivatele = $uid AND n.rok = $rok
-    ");
+      WHERE n.id_uzivatele = $0 AND n.rok = $1
+      ORDER BY n.cena_nakupni -- od nejlevnějších kvůli aplikaci slev na trička
+    ', [$this->u->id(), ROK]);
+
     $soucty = [];
-    while($r = mysqli_fetch_assoc($o)) {
+    foreach($o as $r) {
       $cena = $this->cenik->shop($r);
       // započtení ceny
       if($r['typ'] == Shop::UBYTOVANI) {
@@ -433,6 +433,7 @@ class Finance {
         $this->log($r['nazev'], $cena, $r['typ']);
       }
     }
+
     foreach($soucty as $p) {
       $this->log($p['nazev'].'  '.$p['pocet'].'×', $p['suma'], $p['typ']); // dvojmezera kvůli řazení
     }

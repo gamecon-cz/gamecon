@@ -6,30 +6,27 @@
 
 class Cenik {
 
-  protected $u;
-  protected $slevaKostky;
-  protected $slevaPlacky;
-  protected $slevaTricka = 0;
-  protected $slevaTrickaTyp = 0;
-  protected $slevaTrickaPuvodni = 0;
-
-  const
-    CERVENE   = 0b0001, // typy triček, na které je aplikovatelná sleva
-    MODRE     = 0b0010,
-    NORMALNI  = 0b0100;
+  private
+    $u,
+    $slevaKostky = 0,
+    $slevaPlacky = 0,
+    $jakychkoliTricekZdarma = 0,
+    $modrychTricekZdarma = 0,
+    $textySlevExtra = [];
 
   /**
    * Zobrazitelné texty k právům (jen statické). Nestatické texty nutno řešit
    * ručně. V polích se případně udává, které právo daný index „přebíjí“.
    */
-  protected static $textSlev = [
-    P_KOSTKA_ZDARMA => 'kostka zdarma',
-    P_PLACKA_ZDARMA => 'placka zdarma',
-    P_UBYTOVANI_ZDARMA  => 'ubytování zdarma',
-    P_UBYTOVANI_STREDA_ZDARMA => ['ubytování ve středu zdarma', P_UBYTOVANI_ZDARMA],
-    P_JIDLO_ZDARMA  => 'jídlo zdarma',
-    P_JIDLO_SLEVA   => ['jídlo se slevou', P_JIDLO_ZDARMA],
-    P_JIDLO_SNIDANE => 'možnost objednat si snídani',
+  private static $textySlev = [
+    P_KOSTKA_ZDARMA           =>  'kostka zdarma',
+    P_PLACKA_ZDARMA           =>  'placka zdarma',
+    P_UBYTOVANI_ZDARMA        =>  'ubytování zdarma',
+    P_UBYTOVANI_STREDA_ZDARMA =>  ['ubytování ve středu zdarma', P_UBYTOVANI_ZDARMA],
+    P_JIDLO_ZDARMA            =>  'jídlo zdarma',
+    P_JIDLO_SLEVA             =>  ['jídlo se slevou', P_JIDLO_ZDARMA],
+    P_JIDLO_SNIDANE           =>  'možnost objednat si snídani',
+    P_DVE_TRICKA_ZDARMA       =>  'dvě jakákoli trička zdarma',
   ];
 
   /**
@@ -39,26 +36,17 @@ class Cenik {
    */
   function __construct(Uzivatel $u, $sleva) {
     $this->u = $u;
-    $this->slevaKostky = $u->maPravo(P_KOSTKA_ZDARMA) ? 15 : 0;
-    $this->slevaPlacky = $u->maPravo(P_PLACKA_ZDARMA) ? 15 : 0;
 
-    if($u->maPravo(P_TRIKO_ZDARMA))
-      $this->slevaTricka = 150;
-    elseif($u->maPravo(P_TRIKO_ZA_SLEVU_MODRE) && $sleva >= 660)
-      $this->slevaTricka = 150;
-    elseif($u->maPravo(P_TRIKO_ZA_SLEVU) && $sleva >= 660)
-      $this->slevaTricka = 200;
-    elseif($u->maPravo(P_TRIKO_SLEVA_MODRE) || $u->maPravo(P_TRIKO_SLEVA))
-      $this->slevaTricka = 50;
-
-    $this->slevaTrickaPuvodni = $this->slevaTricka;
-
-    if($u->maPravo(P_TRIKO_ZDARMA))
-      $this->slevaTrickaTyp |= self::CERVENE;
-    if($u->maPravo(P_TRIKO_SLEVA_MODRE) || $u->maPravo(P_TRIKO_ZA_SLEVU_MODRE))
-      $this->slevaTrickaTyp |= self::MODRE;
-    if($u->maPravo(P_TRIKO_SLEVA) || $u->maPravo(P_TRIKO_ZA_SLEVU))
-      $this->slevaTrickaTyp |= self::NORMALNI;
+    if($u->maPravo(P_KOSTKA_ZDARMA))
+      $this->slevaKostky = 15;
+    if($u->maPravo(P_PLACKA_ZDARMA))
+      $this->slevaPlacky = 15;
+    if($u->maPravo(P_DVE_TRICKA_ZDARMA))
+      $this->jakychkoliTricekZdarma = 2;
+    if($u->maPravo(P_TRICKO_ZA_SLEVU_MODRE) && $sleva >= 660) {
+      $this->modrychTricekZdarma = 1;
+      $this->textySlevExtra[] = 'modré tričko zdarma';
+    }
   }
 
   /**
@@ -94,7 +82,7 @@ class Cenik {
     $slevy = [];
 
     // standardní slevy vyplývající z práv
-    foreach(self::$textSlev as $pravo => $text) {
+    foreach(self::$textySlev as $pravo => $text) {
       // přeskočení práv, která mohou být přebita + normalizace textu
       if(is_array($text)) {
         foreach($text as $i => $pravoPrebiji) {
@@ -106,21 +94,14 @@ class Cenik {
       if($u->maPravo($pravo)) $slevy[] = $text;
     }
 
-    // spec. sleva na trička řešící barvy
-    $trickaTypy = [];
-    if($this->slevaTrickaTyp & self::CERVENE)     $trickaTypy[] = 'červené organizátorské';
-    if($this->slevaTrickaTyp & self::MODRE)       $trickaTypy[] = 'modré vypravěčské';
-    if($this->slevaTrickaTyp & self::NORMALNI)    $trickaTypy[] = 'běžné';
-    if($this->slevaTrickaTyp === self::NORMALNI)  $trickaTypy = ['']; // obejití, aby se "běžné" psalo jen, pokud má i jiné možnosti trička
-    if($trickaTypy) {
-      $slevy[] = implode(' nebo ', $trickaTypy) . ' tričko ' . ($this->slevaTrickaPuvodni == 200 ? 'zdarma' : 'se slevou');
-    }
+    // přidání extra slev vypočítaných za chodu
+    $slevy = array_merge($slevy, $this->textySlevExtra);
 
     return $slevy;
   }
 
   /**
-   * Vrátí cenu věci v e-shopu pro daného uživatele
+   * @return float cena věci v e-shopu pro daného uživatele
    */
   function shop($r) {
     if(isset($r['cena_aktualni'])) $cena = $r['cena_aktualni'];
@@ -136,15 +117,12 @@ class Cenik {
       } elseif($r['nazev'] == 'Placka' && $this->slevaPlacky) {
         self::aplikujSlevu($cena, $this->slevaPlacky);
       }
-    } elseif($typ == Shop::TRICKO && mb_stripos($r['nazev'], 'červené') !== false) {
-      if($this->slevaTrickaTyp & self::CERVENE)
-        self::aplikujSlevu($cena, $this->slevaTricka);
-    } elseif($typ == Shop::TRICKO && mb_stripos($r['nazev'], 'modré') !== false) {
-      if($this->slevaTrickaTyp & self::MODRE)
-        self::aplikujSlevu($cena, $this->slevaTricka);
-    } elseif($typ == Shop::TRICKO) {
-      if($this->slevaTrickaTyp & self::NORMALNI)
-        self::aplikujSlevu($cena, $this->slevaTricka);
+    } elseif($typ == Shop::TRICKO && mb_stripos($r['nazev'], 'modré') !== false && $this->modrychTricekZdarma > 0) {
+      $cena = 0;
+      $this->modrychTricekZdarma--;
+    } elseif($typ == Shop::TRICKO && $this->jakychkoliTricekZdarma > 0) {
+      $cena = 0;
+      $this->jakychkoliTricekZdarma--;
     } elseif($typ == Shop::UBYTOVANI && $this->u->maPravo(P_UBYTOVANI_ZDARMA)) {
       $cena = 0;
     } elseif($typ == Shop::UBYTOVANI && $r['ubytovani_den'] == 0 && $this->u->maPravo(P_UBYTOVANI_STREDA_ZDARMA)) {

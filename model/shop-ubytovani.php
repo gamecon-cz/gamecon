@@ -44,7 +44,7 @@ class ShopUbytovani {
     }
     // specifická info podle uživatele a stavu nabídky
     if(reset($this->typy)['stav'] == 3)           $t->parse('ubytovani.konec');
-    if($this->u->maPravo(P_TRIKO_ZDARMA))         $t->parse('ubytovani.infoOrg');
+    if($this->u->maPravo(P_UBYTOVANI_ZDARMA))     $t->parse('ubytovani.infoOrg');
     elseif($this->u->maPravo(P_SLEVA_AKTIVITY))   $t->parse('ubytovani.infoVypravec');
     $t->parse('ubytovani');
     return $t->text('ubytovani');

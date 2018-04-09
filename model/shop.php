@@ -122,8 +122,8 @@ class Shop
           $r['stav'] == 3 && $this->nastaveni['ubytovaniBezZamku'];
         $fronta = &$this->ubytovani[];
       } elseif( $typ == self::TRICKO ) {
-        $smiModre = $this->u->maPravo(P_TRIKO_ZA_SLEVU_MODRE) || $this->u->maPravo(P_TRIKO_SLEVA_MODRE);
-        $smiCervene = $this->u->maPravo(P_TRIKO_ZDARMA);
+        $smiModre   = $this->u->maPravo(P_TRICKO_MODRA_BARVA);
+        $smiCervene = $this->u->maPravo(P_TRICKO_CERVENA_BARVA);
         $r['nabizet'] = (
           $r['nabizet'] ||
           $r['stav'] == 2 && mb_stripos($r['nazev'], 'modré') !== false && $smiModre ||
@@ -224,12 +224,12 @@ class Shop
     if(current($this->tricka)['stav'] == 3) $out .= 'Objednávka triček je ukončena.<br>';
     $out .= $this->vyberSelect($this->tricka);
 
-    // slovně popsané slvey fixme nedokonalé, na pevno zadrátované
+    // TODO texty ne na 100% odpovídají pravům a měly by se generovat nějak inteligentněji
     $ka = $this->u->pohlavi() == 'f' ? 'ka' : '';
-    if($this->u->maPravo(P_TRIKO_ZDARMA))
-      $out .= '<p><i>Jako pro organizátora pro tebe výš uvedené ceny neplatí a máš jedno červené tričko, kostku, placku a veškeré jídlo zdarma :)</i></p>';
-    else if($this->u->maPravo(P_TRIKO_ZA_SLEVU_MODRE) || $this->u->maPravo(P_TRIKO_SLEVA_MODRE))
-      $out .= "<p><i>Jako vypravěč$ka máš (vypravěčské) tričko nebo tílko se slevou (a při větším počtu aktivit zdarma). Výš uvedené ceny pro tebe tedy neplatí.</i></p>";
+    if($this->u->maPravo(P_DVE_TRICKA_ZDARMA))
+      $out .= '<p><i>Jako pro organizátora pro tebe výš uvedené ceny neplatí a máš dvě trička, kostku, placku a veškeré jídlo zdarma :)</i></p>';
+    else if($this->u->maPravo(P_TRICKO_ZA_SLEVU_MODRE))
+      $out .= "<p><i>Jako vypravěč$ka máš modré tričko nebo tílko při odvedení většího počtu aktivit zdarma.</i></p>";
 
     return $out;
   }

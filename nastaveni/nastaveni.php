@@ -58,11 +58,10 @@ define('P_KRYTI_AKCI',5);       //může být na víc aktivitách naráz (org sk
 define('P_SPOULUPRACOVNIK',6);  //zobrazení v reportu spolupracovníci
 define('P_PLNY_SERVIS',7);      //uživatele kompletně platí a zajišťuje GC
 define('P_ZMENA_HISTORIE', 8);
-define('P_TRIKO_ZDARMA',1000);  //(organizátorské) tričko zdarma
-define('P_TRIKO_ZA_SLEVU', 1011);
-define('P_TRIKO_ZA_SLEVU_MODRE', 1012);
-define('P_TRIKO_SLEVA', 1013);
-define('P_TRIKO_SLEVA_MODRE', 1014);
+define('P_TRICKO_ZA_SLEVU_MODRE', 1012);  // modré tričko zdarma při slevě 660
+define('P_DVE_TRICKA_ZDARMA', 1020);      // dvě jakákoli trička zdarma
+define('P_TRICKO_MODRA_BARVA', 1021);     // může objednávat modrá trička
+define('P_TRICKO_CERVENA_BARVA', 1022);   // může objednávat červená trička
 define('P_PLACKA_ZDARMA',1002);
 define('P_KOSTKA_ZDARMA',1003);
 define('P_JIDLO_SLEVA',1004);   //může si kupovat jídlo se slevou
