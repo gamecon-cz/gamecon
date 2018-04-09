@@ -293,16 +293,23 @@ class Uzivatel {
       return $r['login_uzivatele'];
     }
   }
-  
-  /** Vrátí koncovku "a" pro holky (resp. "" pro kluky) */
-  function koncA()
-  {
-    if($this->pohlavi()=='f') return 'a'; return '';
+
+  /** Vrátí koncovku "a" pro holky (resp. "" pro kluky)
+   * @return string
+   */
+  function koncA() {
+    if($this->pohlavi() == 'f') return 'a'; return '';
+  }
+
+  /** Vrátí koncovku "ice" pro holky (resp. "ík" pro kluky)
+   * @return string
+   */
+  function koncovkaNahradnik() {
+    if($this->pohlavi() == 'f') return 'ice'; return 'ík';
   }
 
   /** Vrátí primární mailovou adresu uživatele */
-  function mail()
-  {
+  function mail() {
     return $this->u['email1_uzivatele'];
   }
 
