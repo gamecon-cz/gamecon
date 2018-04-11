@@ -66,7 +66,7 @@
   <tr><td>ID uživ.:</td><td> {id}</td></tr>
   <tr><td>Pokoj:</td><td> {pokoj}</td></tr>
   <tr><td>Na pokoji:</td><td><ul>{spolubydlici}</ul></td></tr>
-  <tr><td><span class="hinted">Poznámka:<span class="hint">k úpravě klikněte na pole poznámka v osobních údajích</span></span></td><td style="cursor:pointer" onclick="alert('k úpravě klikněte na pole poznámka v osobních údajích')">{up.poznamka}</td></tr>
+  <tr><td><span class="hinted">Poznámka:<span class="hint">K úpravě klikněte na pole poznámka v osobních údajích</span></span></td><td style="cursor:pointer" onclick="alert('k úpravě klikněte na pole poznámka v osobních údajích')">{poznamka}</td></tr>
   </table><br>
 
   <a href="program-uzivatele">Program účastníka</a> | <a href="program-osobni">Filtrovaný program</a><br><br>
