@@ -113,7 +113,7 @@ class Aktivita {
   /** Vrací datum ve stylu Pátek 14:00-18:00 */
   function denCas() {
     if($z = $this->zacatek())
-      return $z->format('l G:i').'–'.$this->konec()->format('G:i');
+      return $z->format('l G').'–'.$this->konec()->format('G');
     else
       return '';
   }
@@ -439,6 +439,13 @@ class Aktivita {
     if(is_string($this->a['konec']))
       $this->a['konec'] = new DateTimeCz($this->a['konec']);
     return $this->a['konec'];
+  }
+
+  /**
+   * Vrátí krátký formátovaný (html) popis aktivity
+   */
+  function kratkyPopis() {
+      return $this->a['popis_kratky'];
   }
 
   /**
