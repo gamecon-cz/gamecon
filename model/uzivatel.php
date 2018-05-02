@@ -98,6 +98,25 @@ class Uzivatel {
   }
 
   /**
+   * Vrátí / nastaví číslo občanského průkazu.
+   */
+  function cisloOp($op = null) {
+    if($op) {
+      dbQuery('
+        UPDATE uzivatele_hodnoty
+        SET op="'.(Sifrovatko::zasifruj($op)).'"
+        WHERE id_uzivatele='.$this->u['id_uzivatele']);
+      return $op;
+    }
+
+    if($this->u['op']) {
+      return Sifrovatko::desifruj($this->u['op']);
+    } else {
+      return '';
+    }
+  }
+
+  /**
    * Vrátí datum narození uživatele jako DateTime
    */
   public function datumNarozeni() {
@@ -414,14 +433,6 @@ class Uzivatel {
     return isset($this->organizovaneAktivityIds[$a->id()]);
   }
 
-  /** 
-   *
-   * @return string číslo občanského průkazu
-   */
-  function obcanskyPrukaz() {
-    return $this->u['op'];
-  }
-  
   /** Vrátí medailonek vypravěče */
   function oSobe() {
     return $this->medailonek() ? $this->medailonek()->oSobe() : null;

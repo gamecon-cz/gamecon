@@ -21,6 +21,7 @@ $vystup = [];
 while($r = mysqli_fetch_assoc($o)) {
   $u = Uzivatel::zId($r['id_uzivatele']);
   $r['pozice'] = $u->status();
+  $r['cislo_op'] = $u->cisloOp();
   $vystup[] = $r;
 }
 

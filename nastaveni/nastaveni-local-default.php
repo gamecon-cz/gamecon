@@ -27,6 +27,7 @@ define('URL_CACHE', '/gamecon/cache/public'); // url sdílených cachí
 define('ANALYTICS', false);
 define('MIGRACE_HESLO', '');
 define('HTTPS_ONLY', false);
+define('SECRET_CRYPTO_KEY', 'def0000066cba9ae32fdda839a143276cc0646b3880920c93876ecc1bbaca96ee6ed251559516b1804f4742c2165e4c7eb3ed5c7a5abe857c6db8608e3b5fe97a8cdf15a');
 
 // nepovinné konstanty
 define('CRON_KEY', '123');

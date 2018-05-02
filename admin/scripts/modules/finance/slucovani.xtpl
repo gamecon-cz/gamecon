@@ -73,8 +73,8 @@ Vhodné vycházet z <a href="reporty/duplicity">reportu</a> s potenciálně dupl
     </tr>
     <tr>
       <td>OP</td>
-      <td><label><input type="radio" name="op" value="{uaid}" checked> {ua.obcanskyPrukaz}</label></td>
-      <td><label><input type="radio" name="op" value="{ubid}"> {ub.obcanskyPrukaz}</label></td>
+      <td><label><input type="radio" name="op" value="{uaid}" checked> {ua.cisloOp}</label></td>
+      <td><label><input type="radio" name="op" value="{ubid}"> {ub.cisloOp}</label></td>
     </tr>
     <!--  TODO později
     <tr>

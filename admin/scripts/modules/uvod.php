@@ -92,10 +92,15 @@ if(post('poznamkaNastav')) {
 }
 
 if(post('zmenitUdaj')) {
-  try {
-    dbUpdate('uzivatele_hodnoty', post('udaj'), ['id_uzivatele' => $uPracovni->id()]);
-  } catch (DbDuplicateEntryException $e) {
-    throw new Chyba('Uživatel se stejnou přezdívkou již existuje.');
+  $op = post('udaj', 'op');
+  if($op) {
+    $uPracovni->cisloOp($op);
+  } else {
+    try {
+      dbUpdate('uzivatele_hodnoty', post('udaj'), ['id_uzivatele' => $uPracovni->id()]);
+    } catch (DbDuplicateEntryException $e) {
+      chyba('Uživatel se stejnou přezdívkou již existuje.');
+    }
   }
   $uPracovni->otoc();
   back();
@@ -188,6 +193,9 @@ if($uPracovni) {
   $r = dbOneLine('SELECT '.implode(',', array_keys($udaje)).' FROM uzivatele_hodnoty WHERE id_uzivatele = '.$uPracovni->id());
   foreach($udaje as $sloupec => $nazev) {
     $hodnota = $r[$sloupec];
+    if($sloupec == 'op') {
+      $hodnota = $uPracovni->cisloOp();
+    }
     $x->assign([
       'nazev' => $nazev,
       'sloupec' => $sloupec,
