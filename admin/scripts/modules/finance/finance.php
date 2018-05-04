@@ -7,6 +7,11 @@
  * pravo: 108
  */
 
+if(($castka = post('sleva')) && $uPracovni && $uPracovni->gcPrihlasen()) {
+  $uPracovni->finance()->pripisSlevu($castka, post('poznamka'), $u);
+  back();
+}
+
 $x=new XTemplate('finance.xtpl');
 if(isset($_GET['minimum']))
 {
@@ -34,5 +39,11 @@ if(isset($_GET['minimum']))
   $x->assign('ids',substr($ids,0,-1));
   $ids ? $x->parse('finance.uzivatele') : $x->parse('finance.nikdo');
 }
+
+$x->assign([
+  'id'              =>  $uPracovni ? $uPracovni->id() : null,
+  'org'             =>  $u->jmenoNick(),
+]);
+$x->parse('finance.pripsatSlevu');
 $x->parse('finance');
 $x->out('finance');

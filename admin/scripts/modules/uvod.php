@@ -20,11 +20,6 @@ if(post('platba') && $uPracovni && $uPracovni->gcPrihlasen())
   back();
 }
 
-if(($castka = post('sleva')) && $uPracovni && $uPracovni->gcPrihlasen()) {
-  $uPracovni->finance()->pripisSlevu($castka, post('poznamka'), $u);
-  back();
-}
-
 if(!empty($_POST['gcPrihlas']) && $uPracovni && !$uPracovni->gcPrihlasen())
 {
   $uPracovni->gcPrihlas();
@@ -141,7 +136,6 @@ if($uPracovni && $uPracovni->gcPrihlasen())
   else                      $x->parse('uvod.uzivatel.odjel');
   if(!$up->gcPritomen())    $x->parse('uvod.uzivatel.gcOdhlas');
   if(GC_BEZI && (!$up->gcPritomen() || $up->finance()->stav() < 0)) $x->parse('uvod.potvrditZruseniPrace');
-  if($u->maPravo(P_PRIPSANI_SLEVY)) $x->parse('uvod.uzivatel.pripsatSlevu');
   $x->parse('uvod.uzivatel');
   $x->parse('uvod.slevy');
   $x->parse('uvod.objednavky');

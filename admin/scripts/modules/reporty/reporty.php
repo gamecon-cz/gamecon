@@ -20,7 +20,6 @@ $reporty = [
   ['parovani-ankety',                       'Párování ankety a údajů uživatelů',            ['html']],
   ['grafy-ankety',                          'Grafy k anketě',                               ['html']],
   ['update-zustatku',                       'UPDATE příkaz zůstatků pro letošní GC',        ['html']],
-  ['ubytovani',                             'Ubytování',                                    ['csv', 'html']],
   //['celkova-ucast',                       'Celková účast'], // už dlouho nefunkční, asi přehled účasti po letech
   ['neprihlaseni-vypraveci',                'Nepřihlášení a neubytovaní vypravěči',         ['html']],
   ['duplicity',                             'Duplicitní uživatelé',                         ['html']],
