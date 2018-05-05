@@ -20,12 +20,12 @@ chdir(__DIR__ . '/../');
 // testování větve před pushem a čistoty repa, aby se na FTP nedostalo smetí
 exec('git rev-parse --abbrev-ref HEAD', $out);
 $vetev = $out[0];
-if(!($vetev === 'master' || strpos($vetev, 'redesign') === 0)) {
+if($vetev !== 'preview') {
   echo "notice: you're not on automatically deployed branch, deplyoment skipped\n";
   exit(0);
 }
 exec('git status', $out);
-if(end($out) !== 'nothing to commit, working directory clean') {
+if(!in_array('nothing to commit, working tree clean', $out)) {
   echo "error: working directory is not clean\n";
   exit(1);
 }
@@ -34,7 +34,7 @@ if(end($out) !== 'nothing to commit, working directory clean') {
 call_check(['php', __DIR__ . '/sestav.php']);
 
 // nasazení
-if($vetev == 'master') {
+if($vetev == 'preview') {
   nasad([
     'zdrojovaSlozka'  =>  __DIR__ . '/..',
     'ciloveFtp'       =>  $nastaveni['ostra']['ftp'],
