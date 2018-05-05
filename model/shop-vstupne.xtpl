@@ -19,9 +19,11 @@
     (function(){
 
       var predmety = [
+        /* Zakomentováno pro případ, že by GC znovu zavedl odměny za dobr. vstupné
         { od: 100,          vec: "Nástroj na vyhlazení lidstva"},
         { od: 500, do: 999, vec: "Transformovaný toaster"},
         { od: 1000,         vec: "Křemíkové nebe"}
+        */
       ];
       var nastaveni = {
         min: 0,
