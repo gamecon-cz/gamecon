@@ -147,10 +147,10 @@ $loginy=substr($loginy,0,-1);
     <input type="text" placeholder="Datum narození jako 1.1.1990" name="datumNarozeni" value="<?=$u?$u->datumNarozeni()->formatDatumStandard():''?>" >
     <input type="password" placeholder="Heslo" name="heslo2">
     <input type="password" placeholder="Heslo pro kontrolu" name="heslo3">
-    <input type="checkbox" id="udaje" style="margin-top:1em" checked required>
-    <label for="udaje">Souhlasím se <span class="hinted i">zpracováním údajů
+    <input type="checkbox" id="udaje" style="margin-top:1em" required>
+    <label for="udaje">Souhlasím se <span class="hinted i">zpracováním osobních údajů
     <span class="hint">
-      Prosíme o souhlas se zpracováním tvých údajů. Slibujeme, že je že je nikomu nepředáme, pokud to nebude kvůli GameConu vyloženě potřeba (např. pokud tě bude chtít kontaktovat vypravěč aktivity, na kterou se hlásíš). Kontaktovat tě budeme v rozumné míře pouze v souvislosti s GameConem.<br><br>
+      Prosíme o souhlas se zpracováním tvých údajů. Slibujeme, že je předáme jen těm, komu to bude kvůli vyloženě potřeba (např. vypravěčům nebo poskytovatlei ubytování). Kontaktovat tě budeme v rozumné míře pouze v souvislosti s GameConem.<br><br>
       Plné právní znění najdeš <a href="legal" target="_blank">zde</a>.
     </span></span></label><br>
     <br>
