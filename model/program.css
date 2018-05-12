@@ -62,3 +62,16 @@ table.program .vBudoucnu, .legenda .vBudoucnu       { background-color: #c66 !im
 table.program .plno, .legenda .plno                 { background-color: #bbb !important; }
 table.program .prihlasen, .legenda .prihlasen       { background-color: #2a2 !important; }
 table.program .organizator, .legenda .organizator   { background-color: #44c !important; }
+
+.muj-program div {
+  float: right;
+  text-transform: uppercase;
+  padding: 8px 20px;
+  border: solid 1px #444;
+  background-color: #d13f3f;
+  color: #fff;
+  font-weight: bold;
+  margin: -8px 0px 0px 24px;
+  font-size: 1.2em;
+  border-radius: 6px;
+}

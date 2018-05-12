@@ -263,6 +263,11 @@ class Program {
     ];
     $iterator->next();
 
+    if($this->nastaveni['osobni']) {
+      if(!$a['obj']->prihlasen($this->u) && !$this->u->prihlasenJakoNahradnikNa($a['obj']) && !$this->u->organizuje($a['obj'])) {
+        return $this->nactiAktivitu($iterator);
+      }
+    }
     // přeskočit případné speciální (neviditelné) aktivity
     if(
       $a['obj']->viditelnaPro($this->u) ||

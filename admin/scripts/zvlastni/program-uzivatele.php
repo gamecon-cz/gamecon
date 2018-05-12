@@ -44,7 +44,11 @@ $chyba = chyba::vyzvedniHtml();
         font-size: 11px;
         text-align: center;
         background-color: #f0f0f0;
-        overflow-y: scroll; }
+        overflow-y: scroll;
+      }
+      .program-odkaz {
+        color: white;
+      }
     </style>
     <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-1.10.3.custom.min.css">
   </head>
@@ -68,12 +72,9 @@ $chyba = chyba::vyzvedniHtml();
     ">
     <?=$uPracovni->jmenoNick()?><br>
     <span id="stavUctu"><?=$uPracovni->finance()->stavHr()?></span><br>
-    <!--
-    TODO osobní program
-    celkový program
-    <a href="program-osobni">osobní program</a>
-    <a href="program-uzivatele">celkový program</a> osobní program
-    -->
+
+    <a href="program-osobni" class="program-odkaz">Program účastníka</a> |
+    <a href="program-uzivatele" class="program-odkaz">Vyfiltrovaný program</a>
   </div>
 
   <?=$chyba?>
