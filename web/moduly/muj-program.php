@@ -16,6 +16,7 @@ $a = $u ? $u->koncA() : '';
 // hack na staticko-dynamické zobrazení legendy
 $legenda = Stranka::zUrl('program-legenda')->html();
 $legenda = str_replace('{a}', $u ? $u->koncA() : '', $legenda);
+$legenda = str_replace('{n}', $u ? $u->koncovkaNahradnik(): 'ík', $legenda);
 if(!$u || !$u->maPravo(P_ORG_AKCI)) $legenda = preg_replace('@.*organizuji.*@', '', $legenda);
 
 ?>
