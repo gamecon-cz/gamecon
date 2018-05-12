@@ -18,7 +18,7 @@
 <div style="width:5em; float:left">
   <div>&nbsp;</div>
   <!-- begin:cena -->
-  <div style="text-align:right;height:{vyska}">{cena}&thinsp;Kč&emsp;</div>
+  <div style="text-align:right;height:{vyska};line-height:{vyska}">{cena}&thinsp;Kč&emsp;</div>
   <!-- end:cena -->
 </div>
 
@@ -26,7 +26,7 @@
 <div style="width:4.7em; float:left">
   <div>{den}</div>
   <!-- begin:typ -->
-  <div style="height:{vyska}">
+  <div style="height:{vyska};line-height:{vyska}">
     <input style="margin:0" type="radio" name="{postnameDen}" value="{idPredmetu}" {sel} {lock}>
     <span style="font-size:80%;position:relative;top:-2px">{obsazeno}/{kapacita}</span>
   </div>
