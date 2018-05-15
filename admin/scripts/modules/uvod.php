@@ -92,16 +92,18 @@ if(post('poznamkaNastav')) {
 }
 
 if(post('zmenitUdaj')) {
-  $op = post('udaj', 'op');
-  if($op) {
-    $uPracovni->cisloOp($op);
-  } else {
-    try {
-      dbUpdate('uzivatele_hodnoty', post('udaj'), ['id_uzivatele' => $uPracovni->id()]);
-    } catch (DbDuplicateEntryException $e) {
-      chyba('Uživatel se stejnou přezdívkou již existuje.');
-    }
+  $udaje = post('udaj');
+  if($udaje['op'] ?? null) {
+    // občanku potřebujeme zašiforvat
+    $uPracovni->cisloOp($udaje['op']);
+    unset($udaje['op']);
   }
+  try {
+    dbUpdate('uzivatele_hodnoty', $udaje, ['id_uzivatele' => $uPracovni->id()]);
+  } catch (DbDuplicateEntryException $e) {
+    chyba('Uživatel se stejnou přezdívkou již existuje.');
+  }
+
   $uPracovni->otoc();
   back();
 }
