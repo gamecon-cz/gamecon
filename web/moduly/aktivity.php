@@ -122,9 +122,11 @@ while($a) {
         $t->parse('aktivity.aktivita.tym.vypis');
       }
     }
+    $t->assign('orgJmena', implode(orgUrls($a->organizatori())));
     if($a->typId() == Typ::DRD) {
-      $t->assign('orgJmena', implode(orgUrls($a->organizatori())));
       $t->parse('aktivity.aktivita.tym.tymOrg');
+    } else {
+      $t->parse('aktivity.aktivita.organizatori');
     }
     $t->parse('aktivity.aktivita.tym');
   } else {
