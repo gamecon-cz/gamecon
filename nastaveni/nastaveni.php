@@ -75,7 +75,8 @@ define('P_ADMIN_UVOD', 100);    //přístup na titulku adminu
 define('P_ADMIN_MUJ_PREHLED', 109);
 define('P_NERUSIT_OBJEDNAVKY', 1016); // nebudou mu automaticky rušeny objednávky
 define('P_PRIPSANI_SLEVY', 111); // může ručně připsat slevu uživateli
-define('P_SLEVA_AKTIVITA', 1019); // sleva na aktivity pro orgy
+define('P_SLEVA_AKTIVITA', 1019); // 40% sleva na aktivity pro orgy
+define('P_SLEVA_AKTIVITA_ZDARMA', 1023); // 100% sleva na aktivity pro orgy
 unset($pre);
 
 
