@@ -78,7 +78,7 @@
         {orgJmena}
         <!-- end:organizatori -->
         |&nbsp;
-          <!-- begin:cena -->
+        <!-- begin:cena -->
           <div class="info hinted cena">
             <!-- begin:obecna -->
             <span class="hint">Cena aktivity bez slevy.</span>
