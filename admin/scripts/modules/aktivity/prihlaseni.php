@@ -48,9 +48,9 @@ $maily=[];
 while($totoPrihlaseni) {
   $xtpl2->assign($totoPrihlaseni);
   if($totoPrihlaseni['id_uzivatele']) {
-    $u = Uzivatel::zId($totoPrihlaseni['id_uzivatele']);
+    $prihlasenyUzivatel = Uzivatel::zId($totoPrihlaseni['id_uzivatele']);
     $datum = new DateTimeCz($totoPrihlaseni['zacatek']);
-    $vek = $u->vekKDatu($datum);
+    $vek = $prihlasenyUzivatel->vekKDatu($datum);
     if($vek === null) $vek = "Nevyplnil";
     elseif($vek >= 18) $vek = "18+";
 
