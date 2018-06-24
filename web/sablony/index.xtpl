@@ -82,22 +82,18 @@
     <div class="obsah">
       {obsah}
       <div class="sloupce">
-        <a class="blok upoutavka" href="velka-soutez">
-          <img src="soubory/obsah/titulka/velka-soutez.jpg">
-          <div class="stredni"><div>Velká soutěž o GameCon zdarma</div></div>
+        <a class="blok upoutavka" href="soutez">
+          <img src="soubory/obsah/titulka/soutez.jpg">
+          <div class="stredni"><div>Soutěž o skvělé deskovky</div></div>
         </a>
         <a class="blok upoutavka yt" href="https://www.youtube.com/watch?v=-SBu7WGPkO4" data-height="480">
           <div class="ikona play" style="position:absolute; font-size:140px; line-height:100%; width: 100%; text-align: center; color: #fff; opacity: 0.8; margin-top: 18px; text-shadow: 0 0 5px #000;"></div>
           <img src="soubory/obsah/titulka/video2017.jpg">
         </a>
-        <!--<a class="blok upoutavka" href="minihra">
-          <img src="soubory/obsah/titulka/minihra.jpg">
-          <div class="stredni"><div>Minihra na GC</div></div>
+        <a class="blok upoutavka" href="celohra">
+          <img src="soubory/obsah/titulka/celohra.jpg">
+          <div class="stredni"><div>Celohra na GC</div></div>
         </a>
-        <a class="blok upoutavka" href="chci-se-zapojit">
-          <img src="soubory/obsah/titulka/chci-se-zapojit.jpg">
-          <div class="stredni"><div>Chci se zapojit</div></div>
-        </a> -->
       </div>
     </div>
     <div class="blok sponzori">
