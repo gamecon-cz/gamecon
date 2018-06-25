@@ -112,18 +112,23 @@ while($a) {
   ]);
   if( $v = $a->vyberTeamu($u) ) {
     $t->assign('vyber', $v);
-    $t->parse('aktivity.aktivita.tymTermin.vyber');
+    $t->parse('aktivity.aktivita.tym.vyber');
   }
   if($a->teamova()) {
     if($tym = $a->tym()) {
       $t->assign('tym', $tym);
-      $t->parse('aktivity.aktivita.tymTermin.tym');
+      $t->parse('aktivity.aktivita.tym.tymInfo');
       if($u && $a->prihlasen($u)) {
-        $t->parse('aktivity.aktivita.tymTermin.vypis');
+        $t->parse('aktivity.aktivita.tym.vypis');
       }
     }
-    $t->assign('orgJmenaTym', implode(orgUrls($a->organizatori())));
-    $t->parse('aktivity.aktivita.tymTermin');
+    $t->assign('orgJmena', implode(orgUrls($a->organizatori())));
+    if($a->typId() == Typ::DRD) {
+      $t->parse('aktivity.aktivita.tym.tymOrg');
+    } else {
+      $t->parse('aktivity.aktivita.organizatori');
+    }
+    $t->parse('aktivity.aktivita.tym');
   } else {
     $t->parse('aktivity.aktivita.termin');
     $orgUrls = array_merge($orgUrls, orgUrls($a->organizatori()));
@@ -144,19 +149,19 @@ while($a) {
       else                              $t->parse('aktivity.aktivita.cena.obecna');
       $t->parse('aktivity.aktivita.cena');
     }
-    foreach($a->tagy() as $tag) {
-      $t->assign('tag', $tag);
-      $t->parse('aktivity.aktivita.tag');
+    if($a->typId() != Typ::DRD) {
+      foreach($a->tagy() as $tag) {
+        $t->assign('tag', $tag);
+        $t->parse('aktivity.aktivita.popis.tag');
+      }
+      $t->parse('aktivity.aktivita.popis');
     }
-    $popis = $a->popis();
-    if(strlen($popis) > 370) $t->parse('aktivity.aktivita.vice');
     if(!$a->teamova()) {
       $t->assign('orgJmena', implode(', ', array_unique($orgUrls)));
       $t->parse('aktivity.aktivita.organizatori');
       $orgUrls = [];
     }
     $t->assign('extra', $a->typId() == Typ::DRD ? 'drd' : '');
-    $t->assign('popis', $popis);
     $t->parse('aktivity.aktivita');
   }
 

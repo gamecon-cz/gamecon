@@ -25,15 +25,19 @@
   <!-- begin:post -->
     <div class="blok">
       <div class="aktivita">
-        <img src="{blog.obrazek}">
+        <img src="{blog.obrazek}" class="blog_obrazek">
         <div class="ahlav">
-          <h2>{blog.nazev}</h2>
-          <a href="blog/{blog.url}" class="info vice">více</a>
-          <div class="info termin">{blog.vydat.formatBlog}</div>
-          <div class="info org">{blog.autor}</div>
+          <div class="blog_nadpis">{blog.nazev}</div>
+          <div class="blog_info">
+            <div class="termin">{blog.vydat.formatBlog}</div>
+            <div class="org">{blog.autor}</div>
+          </div>
         </div>
-        <div class="atext">
+        <div class="blog_text">
           {blog.nahled}
+          <a href="blog/{blog.url}" class="blog_vice">
+            <div>Více</div>
+          </a>
         </div>
       </div>
     </div>
