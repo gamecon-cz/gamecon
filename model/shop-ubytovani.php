@@ -9,6 +9,9 @@ class ShopUbytovani {
     $pnPokoj = 'shopUbytovaniPokoj',
     $u;
 
+  private static
+    $maxLen = 15;
+
   function __construct($predmety, $uzivatel) {
     $this->u = $uzivatel;
     foreach($predmety as $p) {
@@ -24,19 +27,18 @@ class ShopUbytovani {
       'poDokonceni'   =>  $this->u->gcPrihlasen() ? '' : 'po dokončení registrace',
       'spolubydlici'  =>  dbOneCol('SELECT ubytovan_s FROM uzivatele_hodnoty WHERE id_uzivatele='.$this->u->id()),
       'postnameSpolubydlici'  =>  $this->pnPokoj,
-      'vyska'         =>  '1.4em',
       'ka'            =>  $ka = $this->u->pohlavi() == 'f' ? 'ka' : '',
       'uzivatele'     =>  $this->mozniUzivatele(),
       'viceScript'    =>  file_get_contents(WWW.'/soubory/doplnovani-vice.js'),
     ]);
     $this->htmlDny($t);
     // sloupce popisků
-    $maxLen = 13;
     foreach($this->typy as $typ => $predmet) {
       $t->assign([
-        'typ'   =>  mb_strlen($typ) > $maxLen ? mb_substr($typ, 0, $maxLen).'&hellip;' : $typ,
+        'typ'   =>  $typ,
         'hint'  =>  $predmet['popis'],
         'cena'  =>  round($predmet['cena_aktualni']),
+        'vyska' =>  $this->vyska($typ),
       ]);
       $t->parse($predmet['popis'] ? 'ubytovani.typ.hinted' : 'ubytovani.typ.normal');
       $t->parse('ubytovani.typ');
@@ -68,6 +70,7 @@ class ShopUbytovani {
           'lock'        =>  !$sel && ( !$this->existujeUbytovani($den,$typ) || $this->plno($den,$typ) ) ? 'disabled' : '',
           'obsazeno'    =>  $this->obsazenoMist($den, $typ),
           'kapacita'    =>  $this->kapacita($den, $typ),
+          'vyska'       =>  $this->vyska($typ),
         ])->parse('ubytovani.den.typ');
       }
       $t->assign([
@@ -128,6 +131,19 @@ class ShopUbytovani {
   /** Vrátí, jestli je v daný den a typ ubytování plno */
   private function plno($den, $typ) {
     return $this->zbyvaMist($den,$typ) <= 0;
+  }
+
+  /**
+   * Podle zadaného textu vypočítá počet řádků
+   *
+   * @param type $text
+   * @return string
+   */
+  private function vyska($text) {
+    $radku = ceil(mb_strlen($text) / self::$maxLen);
+    $vyska = 1.4 * $radku;
+    $vyska = $vyska . 'em';
+    return $vyska;
   }
 
   /**

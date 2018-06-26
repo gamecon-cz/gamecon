@@ -11,7 +11,7 @@
     .prihlaska .slevy input { margin: -0.2em 0; }
     .prihlaska .slevy input[type="checkbox"] { margin: 0; position: relative; top: 2px; }
     /* TODO zarovnání. Pozor na to, že checkbox vypadá a rovná se různě v různých prohlížečích, pozor na to aby bylo zřejmé, že je potřeba ho zaškrtnout. */
-    .prihlaska .hinted { line-height: 1em; }
+    .prihlaska .hinted { line-height: 1.4em; }
     /* .prihlaska .pomoc label[for="chci"] { color: inherit; } */
     .prihlaska .pomoc textarea { width: 100%; box-sizing: border-box; height: 7em; }
     .prihlaska .ubytovani input[type="text"] { width: 100%; box-sizing: border-box; }
