@@ -703,6 +703,20 @@ class Uzivatel {
   }
 
   /**
+   * Vrátí věk uživatele k zadanému datu. Pokud nemá uživatel datum narození, vrací se null.
+   *
+   * @param DateTimeCz $datum
+   * @return ?int
+   */
+  public function vekKDatu(DateTimeCz $datum) {
+    if($this->u['datum_narozeni'] == '0000-00-00') {
+      return null;
+    } else {
+      return date_diff($this->datumNarozeni(), $datum)->y;
+    }
+  }
+
+  /**
    * Odstraní uživatele z židle a aktualizuje jeho práva.
    */
   public function vemZidli($zidle)

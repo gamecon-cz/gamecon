@@ -29,6 +29,7 @@ function tgl(id)
     <th style="min-width: 125px">Login</th>
     <th style="min-width: 175px">Jméno</th>
     <th style="min-width: 200px">E-mail</th>
+    <th style="min-width: 55px">Věk</th>
     <th style="min-width: 125px">Telefon</th>
   </tr>
   <!-- begin:clovek -->
@@ -36,6 +37,7 @@ function tgl(id)
     <td>{nick}</td>
     <td>{jmeno} {prijmeni}</td>
     <td>{mail}</td>
+    <td>{vek}</td>
     <td>{telefon}</td>
   </tr>
   <!-- end:clovek -->

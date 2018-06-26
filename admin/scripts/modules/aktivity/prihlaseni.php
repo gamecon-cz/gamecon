@@ -48,7 +48,14 @@ $maily=[];
 while($totoPrihlaseni) {
   $xtpl2->assign($totoPrihlaseni);
   if($totoPrihlaseni['id_uzivatele']) {
-    $xtpl2->assign('odd',$odd?$odd='':$odd='odd');
+    $hrac = Uzivatel::zId($totoPrihlaseni['id_uzivatele']);
+    $datum = new DateTimeCz($totoPrihlaseni['zacatek']);
+    $vek = $hrac->vekKDatu($datum);
+    if($vek === null) $vek = "Nevyplnil";
+    elseif($vek >= 18) $vek = "18+";
+
+    $xtpl2->assign('vek', $vek);
+    $xtpl2->assign('odd', $odd?$odd='':$odd='odd');
     $xtpl2->parse('prihlaseni.aktivita.lide.clovek');
     $maily[]=$totoPrihlaseni['mail'];
     $obsazenost++;
