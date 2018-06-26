@@ -207,11 +207,12 @@ class Program {
 
     // určení css tříd
     $classes = [];
-    if($this->u && $ao->prihlasen($this->u))  $classes[] = 'prihlasen';
-    if($this->u && $this->u->organizuje($ao)) $classes[] = 'organizator';
-    if($ao->vDalsiVlne())                     $classes[] = 'vDalsiVlne';
-    if(!$ao->volnoPro($this->u))              $classes[] = 'plno';
-    if($ao->vBudoucnu())                      $classes[] = 'vBudoucnu';
+    if($this->u && $ao->prihlasen($this->u))                $classes[] = 'prihlasen';
+    if($this->u && $this->u->organizuje($ao))               $classes[] = 'organizator';
+    if($this->u && $this->u->prihlasenJakoNahradnikNa($ao)) $classes[] = 'nahradnik';
+    if($ao->vDalsiVlne())                                   $classes[] = 'vDalsiVlne';
+    if(!$ao->volnoPro($this->u))                            $classes[] = 'plno';
+    if($ao->vBudoucnu())                                    $classes[] = 'vBudoucnu';
     $classes = $classes ? ' class="'.implode(' ', $classes).'"' : '';
 
     // název a url aktivity

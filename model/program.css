@@ -62,3 +62,4 @@ table.program .vBudoucnu, .legenda .vBudoucnu       { background-color: #c66 !im
 table.program .plno, .legenda .plno                 { background-color: #bbb !important; }
 table.program .prihlasen, .legenda .prihlasen       { background-color: #2a2 !important; }
 table.program .organizator, .legenda .organizator   { background-color: #44c !important; }
+table.program .nahradnik, .legenda .nahradnik       { background-color: #daa520 !important; }
