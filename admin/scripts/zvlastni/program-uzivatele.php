@@ -44,7 +44,11 @@ $chyba = chyba::vyzvedniHtml();
         font-size: 11px;
         text-align: center;
         background-color: #f0f0f0;
-        overflow-y: scroll; }
+        overflow-y: scroll;
+      }
+      .program-odkaz {
+        color: #fff;
+      }
     </style>
     <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-1.10.3.custom.min.css">
   </head>
@@ -64,16 +68,13 @@ $chyba = chyba::vyzvedniHtml();
     <input type="button" value="Zavřít" onclick="window.location = '<?=URL_ADMIN?>/uvod'" style="
       float: right;
       width: 100px;
-      height: 40px;
+      height: 35px;
     ">
     <?=$uPracovni->jmenoNick()?><br>
     <span id="stavUctu"><?=$uPracovni->finance()->stavHr()?></span><br>
-    <!--
-    TODO osobní program
-    celkový program
-    <a href="program-osobni">osobní program</a>
-    <a href="program-uzivatele">celkový program</a> osobní program
-    -->
+
+    <a href="program-uzivatele" class="program-odkaz">Program účastníka</a> |
+    <a href="program-osobni" class="program-odkaz">Filtrovaný program</a>
   </div>
 
   <?=$chyba?>

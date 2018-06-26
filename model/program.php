@@ -14,7 +14,7 @@ class Program {
     'drdPj'         => false, // u DrD explicitně zobrazit jména PJů
     'drdPrihlas'    => false, // jestli se zobrazují přihlašovátka pro DrD
     'plusMinus'     => false, // jestli jsou v programu '+' a '-' pro změnu kapacity team. aktivit
-    'osobni'        => false, // TODO již se používá jestli se zobrazuje osobní program (jinak full)
+    'osobni'        => false, // jestli se zobrazuje osobní program (jinak se zobrazuje full)
     'tableClass'    => 'program', //todo edit
     'teamVyber'     => false, // jestli se u teamové aktivity zobrazí full výběr teamu přímo v programu
     'technicke'     => false, // jestli jdou vidět i skryté technické aktivity
@@ -262,6 +262,13 @@ class Program {
       'obj' => $a
     ];
     $iterator->next();
+
+    // u osobního programu vydat jenom aktivity, kde je přihlášen
+    if($this->nastaveni['osobni']) {
+      if(!$a['obj']->prihlasen($this->u) && !$this->u->prihlasenJakoNahradnikNa($a['obj']) && !$this->u->organizuje($a['obj'])) {
+        return $this->nactiAktivitu($iterator);
+      }
+    }
 
     // přeskočit případné speciální (neviditelné) aktivity
     if(
