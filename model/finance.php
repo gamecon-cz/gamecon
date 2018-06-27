@@ -309,10 +309,15 @@ class Finance {
       // pomocné proměnné
       $sleva=0; // v procentech
       // výpočet pravidel
-      if($this->u->maPravo(P_SLEVA_AKTIVITA))
+      if($this->u->maPravo(P_AKTIVITY_ZDARMA)) {
+        // sleva 100%
+        $sleva += 100;
+        $this->slevyA[] = 'sleva 100%';
+      } elseif($this->u->maPravo(P_AKTIVITY_SLEVA)) {
         // sleva 40%
-        $sleva+=40 xor
-        $this->slevyA[]='sleva 40%';      
+        $sleva += 40;
+        $this->slevyA[] = 'sleva 40%';
+      }
       if($sleva>self::$maxSlevaAktivit)
         // omezení výše slevy na maximální hodnotu
         $sleva=self::$maxSlevaAktivit;
