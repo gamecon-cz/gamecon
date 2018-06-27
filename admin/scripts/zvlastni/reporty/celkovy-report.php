@@ -29,7 +29,7 @@ $hlavicka1=array_merge(
   'Ostatní platby','','','','','','','','','','','','','','']
 );
 $hlavicka2=array_merge(
-  ['ID','Příjmení','Jméno','Přezdívka','Mail','Pozice','Datum registrace','Prošel infopultem','Den','Měsíc','Rok','Stát','Město','Ulice',
+  ['ID','Příjmení','Jméno','Přezdívka','Mail','Židle','Práva','Datum registrace','Prošel infopultem','Den','Měsíc','Rok','Stát','Město','Ulice',
   'PSČ','Škola','Chci bydlet s','První noc','Poslední noc (počátek)','Typ','Dorazil na GC'],
   $gcDoted,
   [
@@ -37,12 +37,25 @@ $hlavicka2=array_merge(
   'Aktivity','vypravěčská sleva využitá','vypravěčská sleva přiznaná','dobrovolné vstupné','dobrovolné vstupné (pozdě)','stav', 'slevy','zůstatek z minula','připsané platby','první blok','poslední blok','dobrovolník pozice','dobrovolník info','Slevy','Objednávky']
 );
 $o=dbQuery('
-  SELECT 
+  SELECT
     u.*,
     z.posazen,
-    ( SELECT MIN(p.ubytovani_den) FROM shop_nakupy n JOIN shop_predmety p USING(id_predmetu) WHERE n.rok='.ROK.' AND n.id_uzivatele=z.id_uzivatele AND p.typ=2 ) den_prvni, 
+    ( SELECT MIN(p.ubytovani_den) FROM shop_nakupy n JOIN shop_predmety p USING(id_predmetu) WHERE n.rok='.ROK.' AND n.id_uzivatele=z.id_uzivatele AND p.typ=2 ) den_prvni,
     ( SELECT MAX(p.ubytovani_den) FROM shop_nakupy n JOIN shop_predmety p USING(id_predmetu) WHERE n.rok='.ROK.' AND n.id_uzivatele=z.id_uzivatele AND p.typ=2 ) as den_posledni,
     ( SELECT MAX(p.nazev) FROM shop_nakupy n JOIN shop_predmety p USING(id_predmetu) WHERE n.rok='.ROK.' AND n.id_uzivatele=z.id_uzivatele AND p.typ=2 ) as ubytovani_typ,
+    ( SELECT GROUP_CONCAT(rps.jmeno_prava SEPARATOR ", ")
+      FROM r_uzivatele_zidle ruz
+      JOIN r_prava_zidle rpz ON ruz.id_zidle=rpz.id_zidle
+      JOIN r_prava_soupis rps ON rps.id_prava=rpz.id_prava
+      WHERE ruz.id_uzivatele=u.id_uzivatele AND ruz.id_zidle > 0
+      GROUP BY ruz.id_uzivatele
+    ) as pravaZDotazu,
+    ( SELECT GROUP_CONCAT(rzs.jmeno_zidle SEPARATOR ", ")
+      FROM r_uzivatele_zidle ruz
+      LEFT JOIN r_zidle_soupis rzs ON ruz.id_zidle = rzs.id_zidle
+      WHERE ruz.id_uzivatele=u.id_uzivatele AND ruz.id_zidle > 0
+      GROUP BY ruz.id_uzivatele
+    ) as zidleZDotazu,
     pritomen.posazen as prosel_info
   FROM r_uzivatele_zidle z
   JOIN uzivatele_hodnoty u ON(z.id_uzivatele=u.id_uzivatele)
@@ -58,12 +71,6 @@ while($r=mysqli_fetch_assoc($o))
   $un=new Uzivatel($r);
   $un->nactiPrava(); //sql subdotaz, zlo
   $f = $un->finance();
-  $stav='účastník';
-  if($un->maZidli(Z_ORG))                                 $stav = 'organizátor';
-  elseif($un->maZidli(Z_INFO) || $un->maZidli(Z_ZAZEMI))  $stav = 'zázemí/infopult';
-  elseif($un->maZidli(Z_ORG_AKCI))                        $stav = 'vypravěč';
-  elseif($un->maZidli(Z_PARTNER))                         $stav = 'partner';
-  elseif($un->maZidli(Z_DOBROVOLNIK_S))                   $stav = 'dobrovolník senior';
   $ucastiHistorie=[];
   foreach($gcDoted as $rok => $nul)
     $ucastiHistorie[]=$un->maPravo((int)( '-'.substr($rok,2).'02' ))?'ano':'ne';
@@ -76,7 +83,8 @@ while($r=mysqli_fetch_assoc($o))
       $r['jmeno_uzivatele'],
       $r['login_uzivatele'],
       $r['email1_uzivatele'],
-      $stav,
+      $r['zidleZDotazu'],
+      $r['pravaZDotazu'],
       ed($r['posazen']),
       ed($r['prosel_info']),
       date('j',strtotime($r['datum_narozeni'])),
