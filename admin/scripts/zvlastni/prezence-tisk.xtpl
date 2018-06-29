@@ -4,33 +4,29 @@
 <head>
 
   <style>
-  body { width: 280mm; font-size: 4.3mm; }
+  body { width: 140mm; font-size: 4.3mm; }
   table { border-collapse: collapse; }
   td, th { border: solid 0.3mm #000000; padding: 1mm 1mm; overflow: hidden; }
-  .hlavicka { text-align: left; width: 1mm; }  /* přizpůsobit potomkům */
+  .hlavicka { text-align: left; width: 1mm; font-variant: normal; }  /* přizpůsobit potomkům */
   .hlavicka .info { font-weight: normal; }
   .hlavicka .nazev { font-size: 150%; max-width: 110mm; }
+  .hlavicka .typ {font-variant: small-caps}
   .paticka { text-align: justify; font-size: 3.4mm; border: none; padding: 0; padding-top: 3mm; }
 
   tr > td:nth-child(1) { width: 80mm; }
-  tr > td:nth-child(2) { width: 35mm; }
+  tr > td:nth-child(2) { width: 25mm; }
   tr > td:nth-child(3) { width: 10mm; }
 
-  .aktivitaBlok { float: left; }
-  body > *:nth-child(4n+1) { float: left; }
-  body > *:nth-child(4n+2) {  }
-  body > *:nth-child(4n+3) { margin-left: 5mm; float: right; }
-  body > *:nth-child(4n+4) { display: block; clear: both; page-break-after: always; }
+  body > *:nth-child(2n+2) { display: block; clear: both; page-break-after: always; }
   </style>
 
   <style media="screen">
   body { margin: 5mm auto; }
-  body > *:nth-child(4n+4) { margin: 10mm -5mm; border-bottom: dashed 1px #ccc; position: relative; top: 5mm; }
+  body > *:nth-child(2n+2) { margin: 10mm -5mm; border-bottom: dashed 1px #ccc; position: relative; top: 5mm; }
   </style>
 
   <style media="print">
   body { margin: 0; }
-  body > *:nth-child(4n+4) { margin: 0; }
   </style>
 
 </head>
@@ -40,28 +36,63 @@
 <div class="aktivitaBlok">
   <table>
     <tr>
-      <th colspan="3" class="hlavicka">
+      <th colspan="4" class="hlavicka">
+        <div class="typ">{a.typ.nazev}</div>
         <div class="nazev">{a.nazev}</div>
-        <span class="info">{a.typ.nazev} – {a.orgJmena} – {a.denCas} – {a.lokace}</span>
+        <span class="info">{a.orgJmena} – {a.denCas} – {a.lokace}</span>
       </th>
     </tr>
     <tr>
       <th>Jméno</th>
       <th>Telefon</th>
+      <th>Věk</th>
       <th>✔/✘</th>
     </tr>
     <!-- begin:ucastnik -->
     <tr>
       <td>{u.jmenoNick}</td>
       <td>{u.telefon}</td>
+      <td>{vek}</td>
       <td></td>
     </tr>
     <!-- end:ucastnik -->
-    <tr><td>&nbsp;</td><td></td><td></td></tr>
-    <tr><td>&nbsp;</td><td></td><td></td></tr>
-    <tr><td>&nbsp;</td><td></td><td></td></tr>
-    <tr><td>&nbsp;</td><td></td><td></td></tr>
-    <tr><td colspan="3" class="paticka">Hráče kteří dorazili prosím odškrtni a případné náhradníky dopiš do volných políček. Prezenci v okamžik začátku aktivity předáš spojce, od které výměnou dostaneš klíčky od místnosti.</td></tr>
+
+    <!-- begin:volneRadky -->
+    <tr><td>&nbsp;</td><td></td><td></td><td></td></tr>
+    <tr><td>&nbsp;</td><td></td><td></td><td></td></tr>
+    <tr><td>&nbsp;</td><td></td><td></td><td></td></tr>
+    <tr><td>&nbsp;</td><td></td><td></td><td></td></tr>
+
+    <!-- end:volneRadky -->
+
+    <!-- begin:hlavickaNahradnik -->
+    <tr>
+      <th colspan="4"> </th>
+    </tr>
+    <tr>
+      <th colspan="4" class="hlavicka"> Náhradníci</th>
+    </tr>
+    <tr>
+      <th>Jméno</th>
+      <th>Telefon</th>
+      <th>Věk</th>
+      <th>✔/✘</th>
+    </tr>
+    <!-- end:hlavickaNahradnik -->
+
+    <!-- begin:nahradnik -->
+    <tr>
+      <td>{u.jmenoNick}</td>
+      <td>{u.telefon}</td>
+      <td>{vek}</td>
+      <td></td>
+    </tr>
+    <!-- end:nahradnik -->
+    <tr><td colspan="3" class="paticka">
+    Hráče, kteří dorazili prosím odškrtni.<br>
+    Případné náhradníky odškrtni nebo dopiš.<br>
+    Prezenci na začátku aktivity předej spojce nebo nech v krabici.<br>
+</td></tr>
   </table>
 </div>
 <span class="breaker"></span>
