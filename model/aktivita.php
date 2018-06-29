@@ -1508,11 +1508,16 @@ class Aktivita {
     if(!empty($filtr['do']))
       $wheres[] = 'a.zacatek <= '.dbQv($filtr['do']);
     $where = implode(' AND ', $wheres);
+
+    // sestavení řazení
+    $povolenePhpRazeni = ['organizatori'];
+    $dbRazeni = array_diff($razeni, $povolenePhpRazeni);
     $order = null;
-    foreach($razeni as $sloupec) {
+    foreach($dbRazeni as $sloupec) {
       $order[] = dbQi($sloupec);
     }
     if($order) $order = 'ORDER BY '.implode(', ', $order);
+
     // select
     $aktivity = (array)self::zWhere('WHERE '.$where, null, $order); // přetypování nutné kvůli správné funkci unsetu
     if(!empty($filtr['jenVolne'])) {
@@ -1520,6 +1525,17 @@ class Aktivita {
         if($a->volno() == 'x') unset($aktivity[$id]);
       }
     }
+
+    // řazení v php
+    $phpRazeni = array_intersect($razeni, $povolenePhpRazeni);
+    if(in_array('organizatori', $phpRazeni)) { // prozatím podporujeme jen řazení dle orga
+      usort($aktivity, function($a, $b) {
+        $jmenoA = $a->organizatori() ? current($a->organizatori())->jmenoNick() : '';
+        $jmenoB = $b->organizatori() ? current($b->organizatori())->jmenoNick() : '';
+        return strcmp($jmenoA, $jmenoB);
+      });
+    }
+
     return $aktivity;
   }
 
