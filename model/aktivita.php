@@ -938,6 +938,13 @@ class Aktivita {
   }
 
   /**
+   * @return bool jestli je na aktivitu povoleno přihlašování náhradníků
+   */
+  function prihlasovatelnaNahradnikum() {
+    return !$this->teamova() && !$this->a['dite'];
+  }
+
+  /**
    * Vrátí html kód pro přihlášení / odhlášení / informaci o zaplněnosti pro
    * daného uživatele. Pokud není zadán, vrací prázdný řetězec.
    * @todo v rodině instancí maximálně jedno přihlášení?
@@ -973,7 +980,7 @@ class Aktivita {
           $out = 'pouze ženská místa';
         elseif($volno == 'm')
           $out = 'pouze mužská místa';
-        else {
+        elseif($this->prihlasovatelnaNahradnikum()) {
           if($u->prihlasenJakoNahradnikNa($this)) {
             $out =
               '<form method="post" style="display:inline">' .
@@ -1042,16 +1049,15 @@ class Aktivita {
    * Přihlásí uživatele jako náhradníka (watchlist)
    */
   function prihlasNahradnika(Uzivatel $u) {
+    // Aktivita musí mít přihlašování náhradníků povoleno
+    if(!$this->prihlasovatelnaNahradnikum()) throw new Exception('Na aktivitu se nelze přihlašovat jako náhradník.');
     // Uživatel nesmí být přihlášen na aktivitu nebo jako náhradník
     if($this->prihlasen($u) || $u->prihlasenJakoNahradnikNa($this)) return;
     // Uživatel nesmí mít ve stejný slot jinou přihlášenou aktivitu
     if(!maVolno($u->id(), $this->a)) throw new Chyba(hlaska('kolizeAktivit'));
     // Uživatel musí být přihlášen na GameCon
     if(!$u->gcPrihlasen()) throw new Exception('Nemáš aktivní přihlášku na GameCon.');
-    // Na podřazenou aktivitu se nejde přihlašovat jako náhradník
-    if($this->a['dite'] !== null) throw new Exception('Na podřazené aktivity se nelze přihlašovat jako náhradník');
-    // Na týmové aktivity se nejde přihlašovat jako náhradník
-    if($this->teamova()) throw new Exception('Na teamové aktivity se nelze přihlašovat jako náhradník');
+
     // Uložení přihlášení do DB
     dbQuery("INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=$2", [$u->id(), $this->id(), self::NAHRADNIK]);
     dbQuery("INSERT INTO akce_prihlaseni_log SET id_uzivatele=$0, id_akce=$1, typ='prihlaseni_watchlist'", [$u->id(), $this->id()]);
