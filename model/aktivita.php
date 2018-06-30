@@ -13,6 +13,7 @@ class Aktivita {
     $lokace,
     $nova,      // jestli jde o nově uloženou aktivitu nebo načtenou z DB
     $organizatori,
+    $nahradnici,
     $typ;
 
   const
@@ -472,6 +473,22 @@ class Aktivita {
 
   function lokaceId() {
     return $this->a['lokace'];
+  }
+
+  /**
+   * Vrátí pole uživatelů, kteří jsou náhradníky na aktivitě .
+   */
+  function nahradnici() {
+    if(!isset($this->nahradnici)) {
+      return Uzivatel::zIds(dbOneCol('
+        SELECT GROUP_CONCAT(aps.id_uzivatele)
+        FROM akce_seznam a
+        LEFT JOIN akce_prihlaseni_spec aps USING (id_akce)
+        WHERE aps.id_akce = '.$this->id() . ' AND aps.id_stavu_prihlaseni = '. self::NAHRADNIK
+      ));
+    } else {
+      return $this->nahradnici;
+    }
   }
 
   function nazev()

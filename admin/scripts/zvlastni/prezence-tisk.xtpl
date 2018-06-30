@@ -14,8 +14,9 @@
   .paticka { text-align: justify; font-size: 3.4mm; border: none; padding: 0; padding-top: 3mm; }
 
   tr > td:nth-child(1) { width: 80mm; }
-  tr > td:nth-child(2) { width: 25mm; }
-  tr > td:nth-child(3) { width: 10mm; }
+  tr > td:nth-child(2) { width: 30mm; }
+  tr > td:nth-child(3) { width:  9mm; }
+  tr > td:nth-child(4) { width:  9mm; }
 
   body > *:nth-child(2n+2) { display: block; clear: both; page-break-after: always; }
   </style>
@@ -36,7 +37,7 @@
 <div class="aktivitaBlok">
   <table>
     <tr>
-      <th colspan="3" class="hlavicka">
+      <th colspan="4" class="hlavicka">
         <div class="typ">{a.typ.nazev}</div>
         <div class="nazev">{a.nazev}</div>
         <span class="info">{a.orgJmena} – {a.denCas} – {a.lokace}</span>
@@ -45,20 +46,54 @@
     <tr>
       <th>Jméno</th>
       <th>Telefon</th>
+      <th>Věk</th>
       <th>✔/✘</th>
     </tr>
     <!-- begin:ucastnik -->
     <tr>
       <td>{u.jmenoNick}</td>
       <td>{u.telefon}</td>
+      <td>{vek}</td>
       <td></td>
     </tr>
     <!-- end:ucastnik -->
-    <tr><td>&nbsp;</td><td></td><td></td></tr>
-    <tr><td>&nbsp;</td><td></td><td></td></tr>
-    <tr><td>&nbsp;</td><td></td><td></td></tr>
-    <tr><td>&nbsp;</td><td></td><td></td></tr>
-    <tr><td colspan="3" class="paticka">Hráče kteří dorazili prosím odškrtni a případné náhradníky dopiš do volných políček. Prezenci v okamžik začátku aktivity předáš spojce, od které výměnou dostaneš klíčky od místnosti.</td></tr>
+
+    <!-- begin:volneRadky -->
+    <tr><td>&nbsp;</td><td></td><td></td><td></td></tr>
+    <tr><td>&nbsp;</td><td></td><td></td><td></td></tr>
+    <tr><td>&nbsp;</td><td></td><td></td><td></td></tr>
+    <tr><td>&nbsp;</td><td></td><td></td><td></td></tr>
+
+    <!-- end:volneRadky -->
+
+    <!-- begin:hlavickaNahradnik -->
+    <tr>
+      <th colspan="4"> </th>
+    </tr>
+    <tr>
+      <th colspan="4" class="hlavicka"> Náhradníci</th>
+    </tr>
+    <tr>
+      <th>Jméno</th>
+      <th>Telefon</th>
+      <th>Věk</th>
+      <th>✔/✘</th>
+    </tr>
+    <!-- end:hlavickaNahradnik -->
+
+    <!-- begin:nahradnik -->
+    <tr>
+      <td>{u.jmenoNick}</td>
+      <td>{u.telefon}</td>
+      <td>{vek}</td>
+      <td></td>
+    </tr>
+    <!-- end:nahradnik -->
+    <tr><td colspan="3" class="paticka">
+    Hráče, kteří dorazili prosím odškrtni.<br>
+    Případné náhradníky odškrtni nebo dopiš.<br>
+    Prezenci na začátku aktivity předej spojce nebo nech v krabici.<br>
+</td></tr>
   </table>
 </div>
 <span class="breaker"></span>
