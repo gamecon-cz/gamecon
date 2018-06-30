@@ -29,8 +29,8 @@ define('PROGRAM_DO',             GC_BEZI_DO);              // poslední den prog
 define('PROGRAM_VIDITELNY',      po(REG_GC_OD));           // jestli jsou viditelné linky na program
 define('CENY_VIDITELNE',         PROGRAM_VIDITELNY && pred(GC_BEZI_DO)); // jestli jsou viditelné ceny aktivit
 define('FINANCE_VIDITELNE',      po(REG_GC_OD));           // jestli jsou public viditelné finance
-define('HROMADNE_ODHLASOVANI',   ROK.'-07-01 20:18:00');   // datum hromadného odhlašování neplatičů
-define('HROMADNE_ODHLASOVANI_2', ROK.'-07-16 20:18:00');   // datum druhého hromadného odhlašování neplatičů
+define('HROMADNE_ODHLASOVANI',   ROK.'-06-30 23:59:00');   // datum hromadného odhlašování neplatičů
+define('HROMADNE_ODHLASOVANI_2', ROK.'-07-15 23:59:00');   // datum druhého hromadného odhlašování neplatičů
 
 
 ///////////////////
