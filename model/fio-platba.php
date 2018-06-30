@@ -21,8 +21,18 @@ class FioPlatba {
     $f = $d . '/' . md5($url) . '.json';
     if(!is_dir($d))
       mkdir($d);
-    if(@filemtime($f) < time() - 60)
-      file_put_contents($f, file_get_contents($url));
+    if(@filemtime($f) < time() - 60) {
+      // opakovat načtení až 5x
+      $i = 0;
+      do {
+        $odpoved = @file_get_contents($url); // v prvních pokusech chyby maskovat
+        $i++;
+      } while($odpoved === false && $i < 4);
+      if($odpoved === false)
+        $odpoved = file_get_contents($url); // v záverečném pokusu chybu reportovat
+
+      file_put_contents($f, $odpoved);
+    }
     return preg_replace('@"value":([\d\.]+),@', '"value":"$1",', file_get_contents($f)); // konverze čísel na stringy kvůli velkým ID
   }
 
