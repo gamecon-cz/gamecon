@@ -7,9 +7,12 @@
  * pravo: 108
  */
 
-if(($castka = post('sleva')) && $uPracovni && $uPracovni->gcPrihlasen()) {
-  $uPracovni->finance()->pripisSlevu($castka, post('poznamka'), $u);
-  back();
+if(post('sleva')) {
+  $uzivatel = Uzivatel::zId(post('uzivatel'));
+  if(!$uzivatel) chyba('Uživatel neexistuje.');
+  if(!$uzivatel->gcPrihlasen()) chyba('Uživatel není přihlášen na GameCon.');
+  $uzivatel->finance()->pripisSlevu(post('sleva'), post('poznamka'), $u);
+  oznameni('Sleva připsána.');
 }
 
 $x=new XTemplate('finance.xtpl');

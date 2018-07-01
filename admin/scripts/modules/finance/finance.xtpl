@@ -34,7 +34,7 @@ Vypsat uživatele, kteří mají stav účtu vyšší rovno jak
     </tr>
     <tr>
       <td>Uživateli s ID:</td>
-      <td><input type="text" value="{id}"></td>
+      <td><input type="text" name="uzivatel" value="{id}"></td>
     </tr>
     <tr>
       <td>Poznámka:</td>
