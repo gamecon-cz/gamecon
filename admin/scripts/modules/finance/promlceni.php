@@ -2,7 +2,7 @@
 
 /**
  * nazev: Promlčení zůstatků
- * pravo: 110
+ * pravo: 108
  * TODO
  */
 

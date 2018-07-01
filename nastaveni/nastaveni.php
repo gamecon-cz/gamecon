@@ -74,7 +74,6 @@ define('P_UBYTOVANI_NEDELE_ZDARMA', 1018); // má nedělní noc zdarma
 define('P_ADMIN_UVOD', 100);    //přístup na titulku adminu
 define('P_ADMIN_MUJ_PREHLED', 109);
 define('P_NERUSIT_OBJEDNAVKY', 1016); // nebudou mu automaticky rušeny objednávky
-define('P_PRIPSANI_SLEVY', 111);      // může ručně připsat slevu uživateli
 define('P_AKTIVITY_SLEVA', 1019);     // má 40% slevu na aktivity
 define('P_AKTIVITY_ZDARMA', 1023);    // má 100% slevu na aktivity
 unset($pre);
