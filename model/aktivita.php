@@ -483,8 +483,8 @@ class Aktivita {
       return Uzivatel::zIds(dbOneCol('
         SELECT GROUP_CONCAT(aps.id_uzivatele)
         FROM akce_seznam a
-        LEFT JOIN akce_prihlaseni_spec aps USING (id_akce)
-        WHERE aps.id_akce = '.$this->id() . ' AND aps.id_stavu_prihlaseni = '. self::NAHRADNIK
+        LEFT JOIN akce_prihlaseni_spec aps ON aps.id_akce = a.id_akce
+        WHERE aps.id_akce = ' . $this->id() . ' AND aps.id_stavu_prihlaseni = ' . self::NAHRADNIK
       ));
     } else {
       return $this->nahradnici;

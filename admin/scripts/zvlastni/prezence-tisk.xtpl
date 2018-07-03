@@ -49,6 +49,7 @@
       <th>Věk</th>
       <th>✔/✘</th>
     </tr>
+
     <!-- begin:ucastnik -->
     <tr>
       <td>{u.jmenoNick}</td>
@@ -58,13 +59,9 @@
     </tr>
     <!-- end:ucastnik -->
 
-    <!-- begin:volneRadky -->
+    <!-- begin:prazdnyRadek -->
     <tr><td>&nbsp;</td><td></td><td></td><td></td></tr>
-    <tr><td>&nbsp;</td><td></td><td></td><td></td></tr>
-    <tr><td>&nbsp;</td><td></td><td></td><td></td></tr>
-    <tr><td>&nbsp;</td><td></td><td></td><td></td></tr>
-
-    <!-- end:volneRadky -->
+    <!-- end:prazdnyRadek -->
 
     <!-- begin:hlavickaNahradnik -->
     <tr>
@@ -89,11 +86,12 @@
       <td></td>
     </tr>
     <!-- end:nahradnik -->
+
     <tr><td colspan="3" class="paticka">
     Hráče, kteří dorazili prosím odškrtni.<br>
     Případné náhradníky odškrtni nebo dopiš.<br>
     Prezenci na začátku aktivity předej spojce nebo nech v krabici.<br>
-</td></tr>
+    </td></tr>
   </table>
 </div>
 <span class="breaker"></span>
