@@ -104,6 +104,7 @@ $zbyva=new DateTime(DEN_PRVNI_DATE);
 $zbyva=$zbyva->diff(new DateTime());
 $zbyva=$zbyva->format('%a dní').' ('.round($zbyva->format('%a')/7,1).' týdnů)';
 
+// graf účasti
 $q='SELECT 
     DATE(z.posazen) as den, 
     COUNT(1) as prihlasen,
@@ -113,7 +114,7 @@ $q='SELECT
   WHERE z.id_zidle='.ID_ZIDLE_PRIHLASEN.'
   GROUP BY DATE(posazen)';
 $o = dbQuery($q);
-$zacatek = new DateTime(ROK.'-05-02');
+$zacatek = new DateTime(ROK.'-04-30'); // zde ladit, dokud se grafy nezarovnají na poslední den
 $pocet = 0;
 do {
   $pocet += @$r['prihlasen']; // první prázdný ignorovat, další brát "o kolo zpět"
@@ -122,13 +123,13 @@ do {
 } while( $den->pred($zacatek) && $r['den'] ); // kontrola dne proti zacyklení
 // dny před GC
 $dny = $prihlaseni = '';
-$konecDatum = new DateTime(DEN_PRVNI_DATE);
-$konecDatum->add(new DateInterval('P4D'));
-for( 
+$konec = new DateTime(GC_BEZI_DO);
+
+for(
   $den = $zacatek;
-  $den->diff($konecDatum)->format('%a') > 0; 
-  $den->add(new DateInterval('P1D')) )
-{
+  $den <= $konec;
+  $den->add(new DateInterval('P1D'))
+) {
   $denDb=new DateTime($r['den']);
   if($r===FALSE)
   { // z DB už vše vyčteno
@@ -155,6 +156,7 @@ for(
 }
 $dny='['.substr($dny,0,-1).']';
 $prihlaseni='['.substr($prihlaseni,0,-1).']';
+$pocetDni = substr_count($dny, ',');
 
 ?>
 
@@ -178,7 +180,12 @@ $prihlaseni='['.substr($prihlaseni,0,-1).']';
         labels: {
           rotation: -90,
           style: { fontSize: '8px' }
-        }
+        },
+        plotLines: [{
+          color: '#cccccc',
+          width: 1,
+          value: <?=$pocetDni?> - 3.5
+        }]
       },
       yAxis: {
         min: 0,
@@ -254,7 +261,6 @@ $prihlaseni='['.substr($prihlaseni,0,-1).']';
   </span></span>
 </div>
 <div style="float:left;margin-left:20px;width:650px;height:300px" id="vyvojRegu"></div>
-<div style="position:absolute; margin: 10px 0 0 855px; height:254px; width:1px; background-color:#ccc;"></div>
 <div style="clear:both"></div><br>
 
 <div style="float:left"><?=$predmety?></div>
