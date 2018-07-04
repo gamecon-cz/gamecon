@@ -33,16 +33,21 @@ function array_uprint($array, callable $func, $sep = '') {
   return $out;
 }
 
-/** ends current script execution and reloads page to http referrer
- *  @param $to alternative location to go to instead of referrer */
-function back($to=null)
-{
+/**
+ * Ends current script execution and reloads page to http referrer.
+ * @param string $to alternative location to go to instead of referrer
+ */
+function back($to=null) {
   if($to)
     header('Location: '.$to, true, 303);
+  elseif(isset($_SERVER['HTTP_REFERER']))
+    header('Location: '.$_SERVER['HTTP_REFERER'], true, 303);
+  elseif($_SERVER['REQUEST_METHOD'] != 'GET')
+    header('Location: '.$_SERVER['REQUEST_URI'], true, 303);
   else
-    header('Location: '.$_SERVER['HTTP_REFERER'], true, 303); 
+    header('Location: /', true, 303);
+
   exit();
-  //todo when header fails
 }
 
 function get($name)
