@@ -5,7 +5,7 @@
   <div id="myslider_1"></div>
   <div id="percentage">1</div>
   <ul id="odmena"></ul>
-  <input type="hidden" name="{postname}">
+  <input type="hidden" name="{postname}" value="{stav}">
 
   <style>
     #myslider_1 { box-shadow: 8px 4px 16px #333 inset; border-bottom: 1px solid #eee; }
