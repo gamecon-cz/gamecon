@@ -673,13 +673,12 @@ class Uzivatel {
   {
     $ka = $this->pohlavi()=='f' ? 'ka' : '';
     $out = '';
-    if($this->maZidli(Z_ORG))       $out .= '<span style="color:red">Organizátor'.$ka.'</span>, ';
-    if($this->maZidli(Z_ORG_AKCI))  $out .= '<span style="color:blue">Vypravěč'.$ka.'</span>, ';
-    if($this->maZidli(Z_PARTNER))   $out .= "Partner$ka, ";
-    if($this->maZidli(Z_INFO))      $out .= "Infopult, ";
-    if($this->maZidli(Z_ZAZEMI))    $out .= "Zázemí, ";
-    if(!$out) $out = 'Účastník, ';
-    $out[strlen($out) - 2] = ' ';
+    if($this->maZidli(Z_ORG))       $out .= '<div class="status" style="color:red">Organizátor'.$ka.'</div>';
+    if($this->maZidli(Z_ORG_AKCI))  $out .= '<div class="status" style="color:blue">Vypravěč'.$ka.'</div>';
+    if($this->maZidli(Z_PARTNER))   $out .= '<div class="status">Partner'.$ka.'</div>';
+    if($this->maZidli(Z_INFO))      $out .= '<div class="status">Infopult</div>';
+    if($this->maZidli(Z_ZAZEMI))    $out .= '<div class="status">Zázemí</div>';
+    if(!$out) $out = '<div class="status">Účastník</div>';
     return $out;
   }
 
