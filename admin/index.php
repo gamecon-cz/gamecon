@@ -120,12 +120,7 @@ else
   if($u->maPravo(100)) // panel úvod - fixme magická konstanta
   {
     if($uPracovni) {
-      $xtpl->assign([
-        'avatar'  =>  $uPracovni->avatar(),
-        'jmeno'   =>  $uPracovni->jmeno(),
-        'nick'    =>  $uPracovni->prezdivka(),
-        'status'  =>  $uPracovni->statusHtml(),
-      ]);
+      $xtpl->assign('uPracovni', $uPracovni);
       $xtpl->parse('all.uzivatel.vybrany');
     } else {
       $xtpl->parse('all.uzivatel.omnibox');

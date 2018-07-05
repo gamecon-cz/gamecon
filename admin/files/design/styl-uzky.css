@@ -22,6 +22,7 @@ body { font-size: 16px; }
 .uzivatel .avatar { width: 50px; height: 50px; }
 .uzivatel .nick { padding-top: 2px; }
 .uzivatel .status { font-weight: normal; }
+.uzivatel .pravy { float: none; width: auto; }
 
 .menu > div { height: 42px; border-radius: 0; background: #bbb; width: 48%; float: left; margin: 3px 1%; }
 .menu > div > a { line-height: 36px; }
