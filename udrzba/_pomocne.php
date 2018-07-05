@@ -5,7 +5,7 @@ function nasad($nastaveni) {
   $deployment = realpath(__DIR__ . '/../vendor/dg/ftp-deployment/deployment');
 
   $nastaveniDeploymentu = '
-    log     = /dev/null
+    log     = C:\Users\e7450\.tmp\ftp_nasad.log
     remote  = ' . $nastaveni['ciloveFtp'] . '
     local   = ' . realpath($nastaveni['zdrojovaSlozka']) . '
     ignore  = "
@@ -40,12 +40,12 @@ function nasad($nastaveni) {
 
   // nahrání souborů
   msg('synchronizuji soubory na vzdáleném ftp');
-  $souborNastaveniDeploymentu = '/tmp/' . mt_rand();
+  $souborNastaveniDeploymentu = 'c:/Users/e7450/.tmp/' . mt_rand();
   file_put_contents($souborNastaveniDeploymentu, $nastaveniDeploymentu);
   try {
     call_check(['php', $deployment, $souborNastaveniDeploymentu]);
   } finally {
-    unlink($souborNastaveniDeploymentu);
+    //unlink($souborNastaveniDeploymentu);
   }
 
   // migrace DB
@@ -54,6 +54,7 @@ function nasad($nastaveni) {
     'curl',
     '--data', 'cFleeVar=' . $nastaveni['hesloMigrace'],
     '--silent', // skrýt progressbar
+    '--insecure',
     $nastaveni['urlMigrace']
   ]);
 
