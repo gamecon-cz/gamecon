@@ -7,26 +7,31 @@
  * pravo: 107
  */
 
+// tabulka účasti
+$sledovaneZidle = array_merge(
+  [Z_PRIHLASEN, Z_PRITOMEN],
+  dbOneArray('SELECT id_zidle FROM r_prava_zidle WHERE id_prava = $0', [P_STATISTIKY_UCAST])
+);
+
 $ucast = tabMysql(dbQuery('
   SELECT
-    if(jmeno_zidle="Vypravěč","Vypravěč (-org)",jmeno_zidle) as " ", 
-    count(z.id_uzivatele) as "Celkem",
-    count(tPrihlasen.id_zidle) as Přihlášen
-  FROM r_zidle_soupis zs
-  LEFT JOIN r_uzivatele_zidle z ON(zs.id_zidle=z.id_zidle AND 
-    IF(zs.id_zidle='.Z_ORG_AKCI.',
-      IF( z.id_uzivatele IN (SELECT id_uzivatele FROM r_uzivatele_zidle WHERE id_zidle=2),
-        0,
-        1
-      ),
-      1
-    )
-  )
-  LEFT JOIN r_uzivatele_zidle tPrihlasen ON(tPrihlasen.id_zidle='.ID_ZIDLE_PRIHLASEN.' AND tPrihlasen.id_uzivatele=z.id_uzivatele)
-  WHERE zs.id_zidle IN (10,6,7,2,'.ID_ZIDLE_PRIHLASEN.','.ID_ZIDLE_PRITOMEN.')
-  GROUP BY zs.id_zidle
-'));
+    jmeno_zidle as " ",
+    COUNT(uz.id_uzivatele) as Celkem,
+    COUNT(z_prihlasen.id_zidle) as Přihlášen
+  FROM r_zidle_soupis z
+  LEFT JOIN r_uzivatele_zidle uz ON z.id_zidle = uz.id_zidle
+  LEFT JOIN r_uzivatele_zidle z_prihlasen ON
+    z_prihlasen.id_zidle = $1 AND
+    z_prihlasen.id_uzivatele = uz.id_uzivatele
+  WHERE z.id_zidle IN ($0)
+  GROUP BY z.id_zidle
+  ORDER BY SUBSTR(z.jmeno_zidle, 1, 10), z.id_zidle
+', [
+  $sledovaneZidle,
+  Z_PRIHLASEN,
+]));
 
+// tabulky nákupů
 $predmety = tabMysql(dbQuery('
   SELECT
     p.nazev Název,

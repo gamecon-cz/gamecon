@@ -76,6 +76,7 @@ define('P_ADMIN_MUJ_PREHLED', 109);
 define('P_NERUSIT_OBJEDNAVKY', 1016); // nebudou mu automaticky rušeny objednávky
 define('P_AKTIVITY_SLEVA', 1019);     // má 40% slevu na aktivity
 define('P_AKTIVITY_ZDARMA', 1023);    // má 100% slevu na aktivity
+define('P_STATISTIKY_UCAST', 1024);   // židle se vypisuje se v tabulce účasti v statistikách
 unset($pre);
 
 
