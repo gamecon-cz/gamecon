@@ -1,5 +1,11 @@
 <?php
 
+$sledovaneZidle = dbOneArray('SELECT id_zidle FROM r_prava_zidle WHERE id_prava = $0', [P_REPORT_NEUBYTOVANI]);
+if(empty($sledovaneZidle))
+  die('Žádná židle nemá nastaveno právo, aby se vypisovala v tomto reportu.');
+
+$sledovaneZidleSql = implode(',', $sledovaneZidle);
+
 $r = Report::zSql('
   SELECT
     u.id_uzivatele,
@@ -26,14 +32,14 @@ $r = Report::zSql('
     ) akt ON (akt.id_uzivatele = z.id_uzivatele)
   LEFT JOIN (
       SELECT id_uzivatele FROM shop_nakupy sn
-      JOIN shop_predmety sp ON (sp.id_predmetu = sn.id_predmetu AND sp.typ = 2)
+      JOIN shop_predmety sp ON (sp.id_predmetu = sn.id_predmetu AND sp.typ = '.Shop::UBYTOVANI.')
       WHERE sn.rok = '.ROK.'
       GROUP BY sn.id_uzivatele
     ) ub ON (ub.id_uzivatele = z.id_uzivatele)
-  WHERE z.id_zidle IN (2, 6, 7, 8) AND (
+  WHERE z.id_zidle IN ('.$sledovaneZidleSql.') AND (
       zp.id_zidle IS NULL OR
       ub.id_uzivatele IS NULL OR
-      akt.id_uzivatele IS NULL AND z.id_zidle = 6
+      akt.id_uzivatele IS NULL AND z.id_zidle = '.Z_ORG_AKCI.'
     )
   GROUP BY u.id_uzivatele
   ORDER BY sekce, jmeno_zidle, prijmeni_uzivatele, jmeno_uzivatele
