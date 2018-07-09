@@ -37,7 +37,7 @@ Dočasné židle (pro aktuální rok):
 
 Práva židle <strong>{jmeno_zidle}</strong> ({popis_zidle}):
 <table class="zvyraznovana">
-  <tr><th>Název práva</th><th>Popis práva</th><th></th></tr>
+  <tr><th>Název práva</th><th>Popis práva</th><th style="min-width: 100px"></th></tr>
   <!-- begin:pravo -->
   <tr>
     <td>{jmeno_prava}</td>
