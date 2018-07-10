@@ -55,7 +55,6 @@ define('Z_DOBROVOLNIK_S', 17);  //dobrovolník senior
 // práva - konkrétní práva identifikující nějak vlastnost uživatele
 define('P_ORG_AKCI',4);         //může organizovat aktivity
 define('P_KRYTI_AKCI',5);       //může být na víc aktivitách naráz (org skupiny typicky)
-define('P_SPOULUPRACOVNIK',6);  //zobrazení v reportu spolupracovníci
 define('P_PLNY_SERVIS',7);      //uživatele kompletně platí a zajišťuje GC
 define('P_ZMENA_HISTORIE', 8);
 define('P_TRICKO_ZA_SLEVU_MODRE', 1012);  // modré tričko zdarma při slevě 660

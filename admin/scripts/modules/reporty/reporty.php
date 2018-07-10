@@ -12,15 +12,12 @@
 
 $reporty = [
   ['aktivity',                              'Historie přihlášení na aktivity',              ['csv', 'html']],
-  //['neplatici',                           'Neplatiči letos'], // duplikuje bfgr a finance, nemá smysl udržovat
-  //['spolupracovnici',                     'Spolupracovníci (orgové, info, zázemí, vypravěči+aktivity)'], // neudržované, asi lze zjistit z bfgr
   ['pocty-her',                             'Účastníci a počty jejich aktivit'],
   ['pocty-her-graf',                        'Graf rozložení rozmanitosti her',              ['html']],
   ['rozesilani-ankety',                     'Rozesílání ankety s tokenem',                  ['html']],
   ['parovani-ankety',                       'Párování ankety a údajů uživatelů',            ['html']],
   ['grafy-ankety',                          'Grafy k anketě',                               ['html']],
   ['update-zustatku',                       'UPDATE příkaz zůstatků pro letošní GC',        ['html']],
-  //['celkova-ucast',                       'Celková účast'], // už dlouho nefunkční, asi přehled účasti po letech
   ['neprihlaseni-vypraveci',                'Nepřihlášení a neubytovaní vypravěči',         ['html']],
   ['duplicity',                             'Duplicitní uživatelé',                         ['html']],
   ['stravenky',                             'Stravenky uživatelů',                          ['html']],
