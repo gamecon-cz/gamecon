@@ -156,7 +156,7 @@ class Uzivatel {
    */
   function drdTituly() {
     $tituly = ['Pán Jeskyně', 'vypravěč'];
-    if($this->maZidli(Z_ORG)) $tituly[] = 'organizátor GC';
+    if($this->maPravo(P_TITUL_ORG)) $tituly[] = 'organizátor GC';
     return $tituly;
   }
 
@@ -673,7 +673,7 @@ class Uzivatel {
   {
     $ka = $this->pohlavi()=='f' ? 'ka' : '';
     $out = '';
-    if($this->maZidli(Z_ORG))       $out .= '<span style="color:red">Organizátor'.$ka.'</span>, ';
+    if($this->maPravo(P_TITUL_ORG)) $out .= '<span style="color:red">Organizátor'.$ka.'</span>, ';
     if($this->maZidli(Z_ORG_AKCI))  $out .= '<span style="color:blue">Vypravěč'.$ka.'</span>, ';
     if($this->maZidli(Z_PARTNER))   $out .= "Partner$ka, ";
     if($this->maZidli(Z_INFO))      $out .= "Infopult, ";

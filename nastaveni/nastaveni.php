@@ -45,7 +45,6 @@ define('Z_PRIHLASEN', $pre-1);  //přihlášen na GameCon
 define('Z_PRITOMEN',  $pre-2);  //prošel infopultem a je na GameConu
 define('Z_ODJEL',     $pre-3);  //prošel infopultem na odchodu a odjel z GC
 // TODO byl přihlášen na GC a už není (kvůli počítání financí apod.)
-define('Z_ORG', 2);             //organizátor z core org teamu
 define('Z_ORG_AKCI',6);         //vypravěč (org akcí)
 define('Z_ORG_SKUPINA',9);      //organizátorská skupina (Albi, Černobor, …)
 define('Z_PARTNER',13);         //partner
@@ -77,6 +76,7 @@ define('P_AKTIVITY_SLEVA', 1019);     // má 40% slevu na aktivity
 define('P_AKTIVITY_ZDARMA', 1023);    // má 100% slevu na aktivity
 define('P_STATISTIKY_UCAST', 1024);   // židle se vypisuje se v tabulce účasti v statistikách
 define('P_REPORT_NEUBYTOVANI', 1025); // v reportu neubytovaných se vypisuje
+define('P_TITUL_ORG', 1026);          // v různých výpisech se označuje jako organizátor
 unset($pre);
 
 
