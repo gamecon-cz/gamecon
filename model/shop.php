@@ -224,12 +224,14 @@ class Shop
     if(current($this->tricka)['stav'] == 3) $out .= 'Objednávka triček je ukončena.<br>';
     $out .= $this->vyberSelect($this->tricka);
 
-    // TODO texty ne na 100% odpovídají pravům a měly by se generovat nějak inteligentněji
-    $ka = $this->u->pohlavi() == 'f' ? 'ka' : '';
-    if($this->u->maPravo(P_DVE_TRICKA_ZDARMA))
-      $out .= '<p><i>Jako pro organizátora pro tebe výš uvedené ceny neplatí a máš dvě trička, kostku, placku a veškeré jídlo zdarma :)</i></p>';
-    else if($this->u->maPravo(P_TRICKO_ZA_SLEVU_MODRE))
-      $out .= "<p><i>Jako vypravěč$ka máš modré tričko nebo tílko při odvedení většího počtu aktivit zdarma.</i></p>";
+    // informace o slevách (jídlo nevypisovat, protože tabulka správně vypisuje cenu po slevě)
+    $slevy = $this->u->finance()->slevyVse();
+    $slevy = array_diff($slevy, ['jídlo zdarma', 'jídlo se slevou']);
+    if($slevy) {
+      $titul = mb_strtolower($this->u->status());
+      $bonusy = implode(', ', $slevy);
+      $out .= "<p><i>Jako $titul máš místo uvedených cen ještě následující bonusy: $bonusy.</i></p>";
+    }
 
     return $out;
   }

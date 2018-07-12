@@ -63,12 +63,14 @@ class Finance {
   function __construct(Uzivatel $u, int $zustatek) {
     $this->u = $u;
     $this->zustatek = $zustatek;
+
+    $this->zapoctiVedeniAktivit();
+    $this->cenik = new Cenik($u, $this->sleva); // musí být načteno, i pokud není přihlášen na GC
+
     if(!$u->gcPrihlasen()) return;
 
     $this->zapoctiAktivity();
-    $this->zapoctiVedeniAktivit();
 
-    $this->cenik = new Cenik($u, $this->sleva);
 
     $this->zapoctiShop();
     $this->zapoctiPlatby();
