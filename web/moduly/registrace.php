@@ -106,7 +106,7 @@ $loginy=substr($loginy,0,-1);
     <?php if(!$pokracovat){ ?>
     <input type="submit" name="prihlasit" value="Přihlásit">
     <?php } ?>
-    <?php if(REGISTRACE_AKTIVNI){ ?>
+    <?php if(REG_GC){ ?>
     <input type="submit" name="prihlasit2" value="Přihlásit na GameCon">
     <?php } ?>
   </div>
@@ -162,9 +162,9 @@ $loginy=substr($loginy,0,-1);
     <input type="submit" name="upravit" value="Upravit">
     <?php } ?>
     <?php if(!$u && !$pokracovat){ ?>
-    <input type="submit" name="registrovat" value="<?=REGISTRACE_AKTIVNI?'Jen registrovat':'Registrovat'?>">
+    <input type="submit" name="registrovat" value="<?=REG_GC?'Jen registrovat':'Registrovat'?>">
     <?php } ?>
-    <?php if(!$u && REGISTRACE_AKTIVNI){ ?>
+    <?php if(!$u && REG_GC){ ?>
     <input type="submit" name="registrovatAPrihlasit" value="Přihlásit na GameCon"><br>
     <?php } ?>
   </div>

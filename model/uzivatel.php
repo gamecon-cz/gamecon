@@ -210,7 +210,7 @@ class Uzivatel {
     // zrušení nákupů
     dbQuery('DELETE FROM shop_nakupy WHERE rok='.ROK.' AND id_uzivatele='.$this->id());
     // finální odebrání židle "registrován na GC"
-    $this->vemZidli(ID_ZIDLE_PRIHLASEN);
+    $this->vemZidli(Z_PRIHLASEN);
     // odeslání upozornění, pokud u nás má peníze
     if(mysqli_num_rows(dbQuery('SELECT 1 FROM platby WHERE rok='.ROK.' AND id_uzivatele='.$this->id()))>0) {
       (new GcMail)
@@ -244,7 +244,7 @@ class Uzivatel {
   {
     if($this->gcPrihlasen())
       return true;
-    else if($this->dejZidli(ID_ZIDLE_PRIHLASEN))
+    else if($this->dejZidli(Z_PRIHLASEN))
       return true;
     return false;
   }

@@ -16,12 +16,12 @@ function nahledPredmetu($soubor) {
   return $nahled;
 }
 
-if(GAMECON_BEZI || $u && $u->gcPritomen()) {
+if(GC_BEZI || $u && $u->gcPritomen()) {
   echo hlaska('prihlaseniJenInfo');
   return;
 }
 
-if(!REGISTRACE_AKTIVNI) {
+if(!REG_GC) {
   echo hlaska('prihlaseniVypnuto');
   return;
 }

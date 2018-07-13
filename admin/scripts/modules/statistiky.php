@@ -99,10 +99,9 @@ $pohlavi = tabMysqlR(dbQuery('
     SUM(IF(u.pohlavi="m",1,0)) as Muži,
     SUM(IF(u.pohlavi="f",1,0)) as Ženy,
     ROUND(SUM(IF(u.pohlavi="f",1,0))/COUNT(1),2) as Poměr
-  FROM r_prava_zidle pz
-  JOIN r_uzivatele_zidle uz ON(pz.id_zidle=uz.id_zidle)
+  FROM r_uzivatele_zidle uz
   JOIN uzivatele_hodnoty u ON(uz.id_uzivatele=u.id_uzivatele)
-  WHERE pz.id_prava='.ID_PRAVO_PRIHLASEN.'
+  WHERE uz.id_zidle = ' . Z_PRIHLASEN . '
 '));
 
 $zbyva=new DateTime(DEN_PRVNI_DATE);
@@ -116,7 +115,7 @@ $q='SELECT
     COUNT(IF(YEAR(u.registrovan)='.ROK.',1,NULL)) as novy
   FROM r_uzivatele_zidle z
   JOIN uzivatele_hodnoty u USING(id_uzivatele)
-  WHERE z.id_zidle='.ID_ZIDLE_PRIHLASEN.'
+  WHERE z.id_zidle=' . Z_PRIHLASEN . '
   GROUP BY DATE(posazen)';
 $o = dbQuery($q);
 $zacatek = new DateTime(ROK.'-04-30'); // zde ladit, dokud se grafy nezarovnají na poslední den

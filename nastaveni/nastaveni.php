@@ -154,26 +154,13 @@ define('REG_GC', mezi(REG_GC_OD, REG_GC_DO));
 define('REG_AKTIVIT', mezi(REG_AKTIVIT_OD, REG_AKTIVIT_DO));
 define('GC_BEZI', mezi(GC_BEZI_OD, GC_BEZI_DO)); // jestli gamecon aktivně běží (zakázání online registrací ubytování aj.) - do budoucna se vyvarovat a používat speciální konstanty per vlastnost
 
-define('ROK_AKTUALNI',$GLOBALS['ROK_AKTUALNI']=ROK);
-define('ARCHIV_OD',2009);           //rok, od kterého se vedou (nabízejí) archivy (aktivit atp.)
-define('REGISTRACE_AKTIVNI',$GLOBALS['REGISTRACE_AKTIVNI']=REG_GC);
-define('GAMECON_BEZI', GC_BEZI);
-define('REG_DRD',false); // DEPRECATED jestli se smí registrovat na mistrovství v DrD
-define('ID_PRAVO_PRIHLASEN',$GLOBALS['ID_PRAVO_PRIHLASEN']= Z_PRIHLASEN); // fixme
-define('ID_PRAVO_PRITOMEN',$GLOBALS['ID_PRAVO_PRITOMEN']=   Z_PRITOMEN);
-define('ID_ZIDLE_PRIHLASEN',$GLOBALS['ID_ZIDLE_PRIHLASEN']= Z_PRIHLASEN);
-define('ID_ZIDLE_PRITOMEN',$GLOBALS['ID_ZIDLE_PRITOMEN']=   Z_PRITOMEN);
+define('ARCHIV_OD', 2009);           //rok, od kterého se vedou (nabízejí) archivy (aktivit atp.)
+define('ID_PRAVO_PRIHLASEN', Z_PRIHLASEN); // fixme zůstává kvůli uložení práva v session
+define('ID_PRAVO_PRITOMEN',  Z_PRITOMEN);  // fixme zůstává kvůli uložení práva v session
 
-define('ID_PRAVO_TAB_PROGRAM_REPORTY',$GLOBALS['ID_PRAVO_TAB_PROGRAM_REPORTY']=200);  //právo vidět reporty v tabulce programu
-define('ID_PRAVO_ORG_SEKCE',$GLOBALS['ID_PRAVO_ORG_SEKCE']=2);     //viditelnost org sekce ve fóru a org sekcí na různých stránkách
-define('ID_PRAVO_TESTER',$GLOBALS['ID_PRAVO_TESTER']=999);      //právo pro testery (zobrazení testovacích věcí)
-define('ID_PRAVO_ORG_AKCI',$GLOBALS['ID_PRAVO_ORG_AKCI']=P_ORG_AKCI);  //právo pořádat akce z něhož vyplývá viditelnost v nabídce vypravěčů v tvorbě aktivit
+define('ODHLASENI_POKUTA_KONTROLA', po(ROK.'-07-18 00:00:01')); // jestli se má kontrolovat pozdní odhlášní z aktivit
+define('ODHLASENI_POKUTA1_H', 24); // kolik hodin před aktivitou se začne uplatňovat pokuta 1
 
-define('P_ORG',2); // DEPRECATED právo organizátor čistě idetifikující organizátora !bez další sémantiky! (v podstatě čistě židle organizátor). Použití max. v adminu pro "uživatel je organizátor" apod.
-define('ODHLASENI_POKUTA_KONTROLA_DATE',ROK.'-07-18'); //den, od kterého (00:00) začíná systém kontrolovat, jestli jsou aktivity odhlašovány včas (mělo by být víc než 24h před první aktivitou)
-define('ODHLASENI_POKUTA_KONTROLA',time()-strtotime(ODHLASENI_POKUTA_KONTROLA_DATE)>0);  //jestli se má kontrolovat pozdní odhlášní z aktivit
-define('ODHLASENI_POKUTA1_H',24);      //kolik hodin před aktivitou se začne uplatňovat pokuta 1
-//ceny věcí
 define('DEN_PRVNI_DATE', date('Y-m-d', strtotime(PROGRAM_OD))); // první den v programu ve formátu YYYY-MM-DD
 define('DEN_PRVNI_UBYTOVANI', DEN_PRVNI_DATE);                  // datum, kterému odpovídá ubytovani_den (tabulka shop_predmety) v hodnotě 0
 define('PROGRAM_ZACATEK', 8);   // první hodina programu
