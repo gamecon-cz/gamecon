@@ -77,6 +77,7 @@ define('P_AKTIVITY_ZDARMA', 1023);    // má 100% slevu na aktivity
 define('P_STATISTIKY_UCAST', 1024);   // židle se vypisuje se v tabulce účasti v statistikách
 define('P_REPORT_NEUBYTOVANI', 1025); // v reportu neubytovaných se vypisuje
 define('P_TITUL_ORG', 1026);          // v různých výpisech se označuje jako organizátor
+define('P_UNIKATNI_ZIDLE', 1027);     // uživatel může mít jen jednu židli s tímto právem
 unset($pre);
 
 

@@ -129,21 +129,25 @@ class Uzivatel {
   /**
    * Přidá uživateli židli (posadí uživatele na židli)
    */
-  function dejZidli($idZidle) {
-    $z=(int)$idZidle;
-    if($z==0)
-      return false;
-    $o=dbQuery('SELECT * FROM r_prava_zidle WHERE id_zidle='.$z);
-    while($r=mysqli_fetch_assoc($o))
-      if(!$this->maPravo($r['id_prava']))
-      {
-        $this->u['prava'][]=(int)$r['id_prava'];
+  function dejZidli(int $idZidle) {
+    if($this->maZidli($idZidle)) return;
+
+    $novaPrava = dbOneArray('SELECT id_prava FROM r_prava_zidle WHERE id_zidle = $0', [$idZidle]);
+
+    if($this->maPravo(P_UNIKATNI_ZIDLE) && in_array(P_UNIKATNI_ZIDLE, $novaPrava)) {
+      throw new Chyba('Uživatel už má jinou unikátní židli.');
+    }
+
+    foreach($novaPrava as $pravo) {
+      if(!$this->maPravo($pravo)) {
+        $this->u['prava'][] = (int) $pravo;
         if($this->klic)
-          $_SESSION[$this->klic]['prava'][]=(int)$r['id_prava'];
+          $_SESSION[$this->klic]['prava'][] = (int) $pravo;
       }
+    }
+
     dbQuery('INSERT IGNORE INTO r_uzivatele_zidle(id_uzivatele,id_zidle)
-      VALUES ('.$this->id().','.$z.')');
-    return true;
+      VALUES ('.$this->id().','.$idZidle.')');
   }
 
   /** Vrátí profil uživatele pro DrD */

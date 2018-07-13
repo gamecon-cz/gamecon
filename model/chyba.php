@@ -71,7 +71,7 @@ class Chyba extends Exception
       return '<div class="chybaBlok"><div class="chyba '.$typ.'" id="chybovaZprava">'.$ch.'</div></div>
         <script>
           var len=$("#chybovaZprava").html().length;
-          $("#chybovaZprava").delay(1000+len*20).fadeOut(1500);
+          $("#chybovaZprava").delay(2000+len*30).fadeOut(1500);
         </script>';
     else
       return '';
