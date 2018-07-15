@@ -1,7 +1,5 @@
 <?php
 
-error_reporting(E_ALL);
-
 // uživatel s základním přístupem
 define('DB_USER', 'root');
 define('DB_PASS', '');
@@ -34,3 +32,5 @@ define('CRON_KEY', '123');
 define('UNIVERZALNI_HESLO', ''); // obejití zadávání hesla pro vývojové prostředí
 define('FIO_TOKEN', '123456'); // přístup k api fio banky pro načítání plateb
 define('FTP_ZALOHA_DB', 'ftp://user:password@server/directory'); // FTP pro zálohy databáze
+
+error_reporting(E_ALL);

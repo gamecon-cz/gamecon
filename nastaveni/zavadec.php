@@ -4,6 +4,8 @@
  * Soubor který připraví prostředí aplikace: autoloadery, konstanty atd
  */
 
+// TODO upravit tak, aby využívalo zavadec-zaklad.php
+
 // autoloader Gamecon webu (modelu)
 spl_autoload_register(function($trida) {
   $trida = strtolower(preg_replace('@[A-Z]@', '-$0', lcfirst($trida)));

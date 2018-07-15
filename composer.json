@@ -7,6 +7,10 @@
     {
       "type": "vcs",
       "url": "https://github.com/godric-cz/db-backup"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/godric-cz/db-test"
     }
   ],
   "require": {
@@ -17,7 +21,8 @@
     "godric/xtemplate": "dev-master",
     "roderik/pwgen-php": "^0.1.7",
     "godric/db-backup": "dev-master",
-    "defuse/php-encryption": "^2.1"
+    "defuse/php-encryption": "^2.1",
+    "godric/db-test": "dev-master"
   },
   "require-dev": {
     "dg/ftp-deployment": "~2.7"

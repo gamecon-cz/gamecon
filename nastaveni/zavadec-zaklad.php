@@ -1,16 +1,13 @@
 <?php
 
 /**
- * Soubor který zpřístupní definice pro gamecon (třídy, konstanty)
+ * Soubor, který zpřístupní definice pro gamecon (třídy, konstanty).
  */
 
 // autoloader Gamecon webu (modelu)
 spl_autoload_register(function($trida) {
   $trida = strtolower(preg_replace('@[A-Z]@', '-$0', lcfirst($trida)));
-
-  $nalezeno = false;
-  if(!$nalezeno) $nalezeno &= @include __DIR__ . '/../model/' . $trida . '.php';
-  if(!$nalezeno) $nalezeno &= @include __DIR__ . '/../model/' . $trida . '/' . $trida . '.php';
+  @include __DIR__ . '/../model/' . $trida . '.php'; // chyby potlačeny - třída může být načtena i později pomocí composeru
 });
 
 // autoloader Composeru
@@ -21,10 +18,15 @@ require __DIR__ . '/../model/funkce/fw-general.php';
 require __DIR__ . '/../model/funkce/fw-database.php';
 require __DIR__ . '/../model/funkce/funkce.php';
 
-// nastavení pomocí glob. konstant -- podle toho v jakém prostředí fungujeme
-define('VYVOJOVA', 1); // možnosti pro výběr verze
+// načtení konfiguračních konstant
+
+// TODO refaktorovat:
+// konstanty pro výběr prostředí / větve. Odstranit a převést na konstanty pro konkrétní funkcionalitu.
+define('VYVOJOVA', 1);
 define('OSTRA', 2);
+
 error_reporting(E_ALL & ~E_NOTICE); // skrýt notice, aby se konstanty daly "přetížit" dřív vloženými
+
 if(PHP_SAPI == 'cli' || $_SERVER['REMOTE_ADDR'] == '127.0.0.1' || $_SERVER['REMOTE_ADDR'] == '::1') {
   @include __DIR__ . '/nastaveni-local.php'; // nepovinné lokální nastavení
   require __DIR__ . '/nastaveni-local-default.php'; // výchozí lokální nastavení
@@ -38,6 +40,8 @@ if(PHP_SAPI == 'cli' || $_SERVER['REMOTE_ADDR'] == '127.0.0.1' || $_SERVER['REMO
   die('nelze načíst nastavení verze');
 }
 
-// TODO odstranit konstantu VETEV a dodělat specifické konstanty, příp. přidat nastaveni-default.php
+// TODO refaktorovat:
+// konstantu VETEV odstranit a dodělat specifické konstanty, příp. přidat nastaveni-default.php
 if(!defined('VETEV')) throw new Exception('Konstanta VETEV není nastavena, nastavte na OSTRA nebo VYVOJOVA v lokálním souboru s nastavením');
+
 require __DIR__ . '/nastaveni.php';
