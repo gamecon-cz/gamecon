@@ -155,14 +155,15 @@ class Aktivita {
 
     // kontrola dostupnosti organizátorů v daný čas
     if(!empty($a['den'])) {
-      // hack - převod začátku a konce z formátu formu na legitimní formát data a času
-      $a['zacatek'] = (new DateTimeCz($a['den']))->add(new DateInterval('PT'.$a['zacatek'].'H'))->formatDb();
-      $a['konec'] = (new DateTimeCz($a['den']))->add(new DateInterval('PT'.$a['konec'].'H'))->formatDb();
-      foreach($a['organizatori'] as $org) {
-        if(!maVolno($org, $a, isset($a['id_akce'])?$a['id_akce']:null)) {
-          $k = maVolnoKolize();
-          $k = current($k);
-          $chyby[] = 'Organizátor '.Uzivatel::zId($org)->jmenoNick().' má v danou dobu '.$k['nazev_akce'].' ('.datum2($k).')';
+      $zacatek = (new DateTimeCz($a['den']))->add('PT'.$a['zacatek'].'H');
+      $konec   = (new DateTimeCz($a['den']))->add('PT'.$a['konec'].'H');
+      $ignorovatAktivitu = isset($a['id_akce']) ? self::zId($a['id_akce']) : null;
+      foreach($a['organizatori'] as $orgId) {
+        if($orgId == 0) continue; // bug formuláře, posíla na konci vždy 0
+        $org = Uzivatel::zId($orgId);
+        if(!$org->maVolno($zacatek, $konec, $ignorovatAktivitu)) {
+          $chyby[] = 'Organizátor ' . $org->jmenoNick() . ' má v danou dobu jinou aktivitu.';
+          // TODO doplnit název kolizní aktivity
         }
       }
     }
@@ -813,10 +814,14 @@ class Aktivita {
   function prihlas(Uzivatel $u, $ignorovat = 0)
   {
     // kontroly
-    if($this->prihlasen($u))          return;
-    if(!maVolno($u->id(), $this->a))  throw new Chyba(hlaska('kolizeAktivit')); // TODO převést na metodu uživatele
-    if(!$u->gcPrihlasen())            throw new Exception('Nemáš aktivní přihlášku na GameCon.');
-    if($this->volno()!='u' && $this->volno()!=$u->pohlavi()) throw new Chyba(hlaska('plno'));
+    if($this->prihlasen($u))
+      return;
+    if(!$u->maVolno($this->zacatek(), $this->konec()))
+      throw new Chyba(hlaska('kolizeAktivit'));
+    if(!$u->gcPrihlasen())
+      throw new Exception('Nemáš aktivní přihlášku na GameCon.');
+    if($this->volno() != 'u' && $this->volno() != $u->pohlavi())
+      throw new Chyba(hlaska('plno'));
     foreach($this->deti() as $dite) { // nemůže se přihlásit na aktivitu, pokud už je přihášen na jinou aktivitu s stejnými potomky
       foreach($dite->rodice() as $rodic) {
         if($rodic->prihlasen($u)) throw new Chyba(hlaska('maxJednou'));

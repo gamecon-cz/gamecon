@@ -249,58 +249,6 @@ function markdownNoCache($text) {
 }
 
 
-/** Zjistí, jestli uživatel má volno v určitém časovém intervalu. (např. preve-
- *  nce kolizí aktivit nebo kolizí u orgů.
- *  @param array $poleCas pole s časovými údají odpovídajícími evidenci aktivit
- *  v databázi (den, zacatek jako od, konec jako do)
- *  @param int vyjimka ID akce, která se má vyjmout z hledání (typicky při editu
- *  akce testujeme kolizi ale nezajímá nás kolize "se sebou samou"  
- *  @return vrací true nebo false
- *  @todo tato operace by měla být řešena v rámci nějaké třídy speciální
- *  výjimkou, která ponese i seznam kolidujících aktivit v sobě.
- */
-function maVolno($uid,$poleCas,$vyjimka=null)
-{
-  $GLOBALS['maVolnoKolizePole'] = [];      //pole kolizních aktivit
-  if($uid===0 || $uid==='0') return true;       //"žádný" organizátor má vždy volno
-  if(!$poleCas['zacatek']) return true;         //aktivita s neurčeným časem neblokuje
-  if(ma_pravo($uid, P_KRYTI_AKCI)) return true; //aktivity se můžou krýt
-  // nalezení aktivit a určení překrytí
-  $a=dbQueryS('SELECT * FROM
-      (SELECT a.* FROM akce_prihlaseni p
-      JOIN akce_seznam a USING(id_akce)
-      WHERE p.id_uzivatele=$0
-      AND a.rok='.ROK.'
-      UNION
-      SELECT a.* FROM akce_seznam a
-      JOIN akce_organizatori ao USING(id_akce)
-      WHERE ao.id_uzivatele=$0
-      AND a.rok='.ROK.') as a
-    WHERE NOT (zacatek>=$2 OR konec<=$1) -- zacne az pak nebo skonci pred'."\n".
-    ($vyjimka?'AND id_akce!=$3':''),
-    [$uid, $poleCas['zacatek'], $poleCas['konec'], $vyjimka]);
-  if(mysqli_num_rows($a))
-  {
-    while($r=mysqli_fetch_assoc($a))
-      $GLOBALS['maVolnoKolizePole'][]=$r;
-    return false;
-  }
-  else
-  {
-    $GLOBALS['maVolnoKolizePole'][]=[];
-    return true;
-  }
-}
-
-
-/** Vrací pole kolizních aktivit posledního "maVolno" volání */
-function maVolnoKolize()
-{ 
-  return isset($GLOBALS['maVolnoKolizePole'])?
-    $GLOBALS['maVolnoKolizePole']:[];
-}
-
-
 /** Multibyte (utf-8) první písmeno velké */
 function mb_ucfirst($string, $encoding=null)
 {
@@ -438,45 +386,6 @@ function pripravCache($slozka) {
   if(is_dir($slozka)) throw new Exception("Do existující cache složky '$slozka' není možné zapisovat");
   if(!mkdir($slozka)) throw new Exception("Složku '$slozka' se nepodařilo vytvořit");
   if(VETEV === VYVOJOVA) chmod($slozka, 0777); // dovolit upravit složku komukoli pro devel mód
-}
-
-
-/**
- * Říká, zdali uživatel má určité právo identifikované číslem
- * @deprecated
- */
-function ma_pravo($uzivatel,$cislo_prava)
-{
-
-  //Ptáme se na práva aktuálně přihlášeného uživatele? Pokud ano, obejdeme DB
-  $u=Uzivatel::zSession();
-  if($u && $uzivatel==$u->id()) {
-    return $u->maPravo($cislo_prava);
-  }
-
-  //Ptáme se obecně - načtení z DB
-  if(isset($uzivatel) && $uzivatel)
-  {
-    $sql = "
-      select
-        uzivatele_zidle.id_zidle,
-        uzivatele_zidle.id_uzivatele,
-        prava_zidle.id_zidle,
-        prava_zidle.id_prava
-      from
-        r_uzivatele_zidle uzivatele_zidle,
-        r_prava_zidle prava_zidle
-      where
-        uzivatele_zidle.id_uzivatele = $uzivatel and
-        uzivatele_zidle.id_zidle = prava_zidle.id_zidle and
-        prava_zidle.id_prava = $cislo_prava";
-        
-      if(mysqli_num_rows(dbQuery($sql))>0)
-        return true;
-      else
-        return false;
-  }
-  return false;
 }
 
 

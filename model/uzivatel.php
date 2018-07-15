@@ -338,6 +338,42 @@ class Uzivatel {
   }
 
   /**
+   * @return bool jestli se uživatel v daném čase neúčastní / neorganizuje
+   *  žádnou aktivitu (případně s výjimkou $ignorovanaAktivita)
+   */
+  function maVolno(DateTimeInterface $od, DateTimeInterface $do, Aktivita $ignorovanaAktivita = null) {
+    // právo na překrytí aktivit dává volno vždy automaticky
+    // TODO zkontrolovat, jestli vlastníci práva dřív měli někdy paralelně i účast nebo jen organizovali a pokud jen organizovali, vyhodit test odsud a vložit do kontroly kdy se ukládá aktivita
+    if($this->maPravo(P_KRYTI_AKCI))
+      return true;
+
+    $ignorovanaAktivitaId = $ignorovanaAktivita ? $ignorovanaAktivita->id() : 0;
+
+    // TODO převést dotaz na lazy loading aktivit uživatele a kontrolu lokálně bez použití databáze (viz $this->organizuje())
+    $o = dbQuery('
+      SELECT a.id_akce
+      FROM (
+        SELECT a.id_akce, a.zacatek, a.konec
+        FROM akce_prihlaseni p
+        JOIN akce_seznam a ON a.id_akce = p.id_akce
+        WHERE p.id_uzivatele = $0 AND a.rok = $4
+        UNION
+        SELECT a.id_akce, a.zacatek, a.konec
+        FROM akce_seznam a
+        JOIN akce_organizatori ao ON ao.id_akce = a.id_akce
+        WHERE ao.id_uzivatele = $0 AND a.rok = $4
+      ) a
+      WHERE
+        NOT (zacatek >= $2 OR konec <= $1) AND -- zacne az pak nebo skonci pred
+        id_akce != $3
+    ', [
+      $this->id(), $od, $do, $ignorovanaAktivitaId, ROK
+    ]);
+
+    return dbNumRows($o) == 0;
+  }
+
+  /**
    * Sedí uživatel na dané židli?
    * NEslouží k čekování vlastností uživatele, které obecně řeší práva resp.
    * Uzivatel::maPravo(), skutečně výhradně k správě židlí jako takových.

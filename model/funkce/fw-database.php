@@ -338,10 +338,12 @@ function dbQa($array) {
 function dbQv($val) {
   if(is_array($val))
     return implode(',', array_map(function($val){ return dbQv($val); }, $val));
-  elseif($val===null)
+  elseif($val === null)
     return 'NULL';
   elseif(is_int($val))
     return $val;
+  elseif($val instanceof DateTimeInterface)
+    return '"'.$val->format('Y-m-d H:i:s').'"';
   else
     return '"'.( get_magic_quotes_gpc() ? $val : addslashes($val) ).'"';
 }
