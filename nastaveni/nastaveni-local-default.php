@@ -32,5 +32,6 @@ define('CRON_KEY', '123');
 define('UNIVERZALNI_HESLO', ''); // obejití zadávání hesla pro vývojové prostředí
 define('FIO_TOKEN', '123456'); // přístup k api fio banky pro načítání plateb
 define('FTP_ZALOHA_DB', 'ftp://user:password@server/directory'); // FTP pro zálohy databáze
+define('MAILY_DO_SOUBORU', SPEC . '/maily.log');
 
 error_reporting(E_ALL);

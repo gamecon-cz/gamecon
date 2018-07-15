@@ -3,10 +3,12 @@
 /**
  * Třída pro sestavování mailu
  */
-
 class GcMail {
 
-  protected $predmet, $adresat, $odesilatel, $text;
+  private
+    $adresat,
+    $predmet,
+    $text;
 
   function __construct($zprava = '') {
     $this->text = $zprava;
@@ -21,17 +23,19 @@ class GcMail {
     }
   }
 
-  function odesilatel($a = null) {
-    //todo (potřeba implementovat v GcMail::odeslat())
+  /**
+   * @param string $text utf-8 řetězec
+   * @return string enkódovaný řetězec pro použití v hlavičce
+   */
+  private static function encode($text) {
+    return '=?UTF-8?B?'.base64_encode($text).'?=';
   }
 
   /**
-   * Odešle sestavenou zprávu
-   * Starý kód, možno fixnout
+   * Odešle sestavenou zprávu.
+   * @return bool jestli se zprávu podařilo odeslat
    */
-  public function odeslat() {
-    $adresat = VETEV == VYVOJOVA ? 'godric@korh.cz' : $this->adresat ; //TODO místo odeslání někam logovat
-
+  function odeslat() {
     $from = self::encode('GameCon').' <info@gamecon.cz>';
     $headers = [
       'MIME-Version: 1.0',
@@ -40,12 +44,16 @@ class GcMail {
       'Reply-To: ' . $from
     ];
 
-    return mail(
-      $adresat,
-      self::encode($this->predmet),
-      $this->text,
-      implode("\r\n", $headers)
-    );
+    if(defined('MAILY_DO_SOUBORU') && MAILY_DO_SOUBORU) {
+      return $this->zalogovatDo(MAILY_DO_SOUBORU, $headers);
+    } else {
+      return mail(
+        $this->adresat,
+        self::encode($this->predmet),
+        $this->text,
+        implode("\r\n", $headers)
+      );
+    }
   }
 
   function predmet($p = null) {
@@ -63,10 +71,15 @@ class GcMail {
     return $this;
   }
 
-  /** Enkóduje utf-8 text pro použití v hlavičce */
-  protected static function encode($text) {
-    return '=?UTF-8?B?'.base64_encode($text).'?=';
-    //return "=?$encoding?Q?".imap_8bit($text)."?=";
+  private function zalogovatDo($soubor, $hlavicky) {
+    $text = (
+      implode("\n", $hlavicky) . "\n" .
+      "Čas: " . (new DateTimeCz)->formatDb() . "\n" .
+      "Adresát: '$this->adresat'\n" .
+      "Předmět: '$this->predmet'\n" .
+      trim($this->text) . "\n\n"
+    );
+    return file_put_contents($soubor, $text, FILE_APPEND);
   }
 
 }
