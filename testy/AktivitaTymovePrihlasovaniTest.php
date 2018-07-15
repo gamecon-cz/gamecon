@@ -23,6 +23,8 @@ class AktivitaTymovePrihlasovaniTest extends GcDbTest {
     $this->clen1 = self::prihlasenyUzivatel();
   }
 
+  /*
+  // TODO - nutné zaintegrovat nejdříve upravený model pro týmové aktivity z redesignu
   function testPrihlaseniTymlidra() {
     // aktivita se zamče
     $this->ctvrtfinale->prihlas($this->tymlidr);
@@ -42,6 +44,7 @@ class AktivitaTymovePrihlasovaniTest extends GcDbTest {
       }
     }
   }
+  */
 
   // tým:
   //  validní všechno
@@ -68,6 +71,8 @@ class AktivitaTymovePrihlasovaniTest extends GcDbTest {
     $this->ctvrtfinale->prihlas($this->clen1); // již projde
   }
 
+  /*
+  // TODO - nutné zaintegrovat nejdříve upravený model pro týmové aktivity z redesignu
   function testOdhlaseniPosledniho() {
     $this->ctvrtfinale->prihlas($this->tymlidr);
     $this->ctvrtfinale->prihlasTym([$this->clen1], null, null, [$this->semifinaleA, $this->finale]);
@@ -75,5 +80,6 @@ class AktivitaTymovePrihlasovaniTest extends GcDbTest {
     // počet míst se obnoví
     // opětovné přihlášení se chová jako u týmovky, tj. jako přihlášení týmlídra
   }
+  */
 
 }
