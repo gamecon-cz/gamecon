@@ -1,4 +1,52 @@
 <!-- begin:aktivity -->
+<script>
+
+// funkce pro zabránění poskočení při znovunačtení stránky
+$(function(){
+  var sneaky = new ScrollSneak(location.hostname);
+  $('.aktivita a[href="#"]').each(function(){
+    $(this).click(sneaky.sneak);
+  });
+});
+
+// funkce pro rozbalení / skrytí popisu aktivity
+function tgAkt(event) {
+  event.preventDefault()
+  // Změň nápis a ikonu při toggle
+  if ($(event.target).parent().hasClass('avice-ikonaDolu')) {
+    $(event.target).parent().addClass('avice-ikonaNahoru')
+    $(event.target).parent().removeClass('avice-ikonaDolu')
+    $(event.target).html("Méně")
+  } else {
+    $(event.target).parent().addClass('avice-ikonaDolu')
+    $(event.target).parent().removeClass('avice-ikonaNahoru')
+    $(event.target).html("Více")
+  }
+  // Zobraz nebo skryj obsah
+  zobrazSkryj(event)
+  return false;
+}
+
+// funkce pro rozbalení / skrytí položek v medailonku vypravěče
+function tgEl(e, fo, fc) {
+  fo = typeof fo !== 'undefined' ? fo : function () {}
+  fc = typeof fc !== 'undefined' ? fc : function () {}
+  var ap = e
+  var oh = ap.height()
+  ap.css({'max-height': 'none', 'height': 'auto'})
+  var mh = ap.height()
+  if(mh > oh) {
+    ap.height(oh)
+    ap.data('oh', oh)
+    ap.animate({height: mh}, fo)
+  } else {
+    ap.animate({height: ap.data('oh')}, fc)
+  }
+  return false
+}
+
+</script>
+
 <div class="aktivity">
 
   <div class="blok upoutavka filtr">
@@ -145,52 +193,4 @@
   <!-- end:aktivita -->
 
 </div>
-
-<script>
-
-// funkce pro zabránění poskočení při znovunačtení stránky
-$(function(){
-  var sneaky = new ScrollSneak(location.hostname);
-  $('.aktivita a[href="#"]').each(function(){
-    $(this).click(sneaky.sneak);
-  });
-});
-
-// funkce pro rozbalení / skrytí popisu aktivity
-function tgAkt(event) {
-  event.preventDefault()
-  // Změň nápis a ikonu při toggle
-  if ($(event.target).parent().hasClass('avice-ikonaDolu')) {
-    $(event.target).parent().addClass('avice-ikonaNahoru')
-    $(event.target).parent().removeClass('avice-ikonaDolu')
-    $(event.target).html("Méně")
-  } else {
-    $(event.target).parent().addClass('avice-ikonaDolu')
-    $(event.target).parent().removeClass('avice-ikonaNahoru')
-    $(event.target).html("Více")
-  }
-  // Zobraz nebo skryj obsah
-  zobrazSkryj(event)
-  return false;
-}
-
-// funkce pro rozbalení / skrytí položek v medailonku vypravěče
-function tgEl(e, fo, fc) {
-  fo = typeof fo !== 'undefined' ? fo : function () {}
-  fc = typeof fc !== 'undefined' ? fc : function () {}
-  var ap = e
-  var oh = ap.height()
-  ap.css({'max-height': 'none', 'height': 'auto'})
-  var mh = ap.height()
-  if(mh > oh) {
-    ap.height(oh)
-    ap.data('oh', oh)
-    ap.animate({height: mh}, fo)
-  } else {
-    ap.animate({height: ap.data('oh')}, fc)
-  }
-  return false
-}
-
-</script>
 <!-- end:aktivity -->
