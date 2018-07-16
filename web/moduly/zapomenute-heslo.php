@@ -4,7 +4,7 @@ function obnovHesloUzivateli($uzivatel) {
   if(!$uzivatel) chyba('Chyba: Zadané uživatelské jméno nebo email neexistují.');
 
   // vygenerování nového hesla
-  $pwgen = new PWGen();
+  $pwgen = new PWGen\PWGen();
   $pwgen->setAmbiguous(false);
   $noveHeslo = $pwgen->generate();
 
