@@ -1076,7 +1076,7 @@ class Aktivita {
     // Uživatel nesmí být přihlášen na aktivitu nebo jako náhradník
     if($this->prihlasen($u) || $u->prihlasenJakoNahradnikNa($this)) return;
     // Uživatel nesmí mít ve stejný slot jinou přihlášenou aktivitu
-    if(!maVolno($u->id(), $this->a)) throw new Chyba(hlaska('kolizeAktivit'));
+    if(!$u->maVolno($this->zacatek(), $this->konec())) throw new Chyba(hlaska('kolizeAktivit'));
     // Uživatel musí být přihlášen na GameCon
     if(!$u->gcPrihlasen()) throw new Exception('Nemáš aktivní přihlášku na GameCon.');
 
