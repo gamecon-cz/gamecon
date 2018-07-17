@@ -20,8 +20,7 @@ function tgl(id)
 <h2>{nazevAktivity} ({obsazenost})</h2>
 {cas} - {orgove} - {mistnost} - {druzina}
 <a href="mailto:?subject=Gamecon: {nazevAktivity}&amp;bcc={maily}">e-mail všem</a> -
-<a href="#" onclick="return tgl('maily{id}')">zobrazit maily</a> -
-<a href="./tisk/aktivita-ucast.php?id={id}" onclick="window.open(this.href);return false">tisk</a> 
+<a href="#" onclick="return tgl('maily{id}')">zobrazit maily</a>
 <div id="maily{id}" style="display:none"><br />{maily}<br /><br /></div>
 <!-- begin:lide -->
 <table class="vypis">

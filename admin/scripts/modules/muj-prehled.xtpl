@@ -15,8 +15,7 @@ function tgl(id)
 <h3>{nazevAktivity} {obsazenost}</h3>
 {cas} -
 <a href="mailto:?subject=Gamecon: {nazevAktivity}&amp;bcc={maily}">e-mail všem</a> -
-<a href="#" onclick="return tgl('maily{id}')">zobrazit maily</a> -
-<a href="./tisk/aktivita-ucast.php?id={id}" onclick="window.open(this.href);return false">tisk</a>
+<a href="#" onclick="return tgl('maily{id}')">zobrazit maily</a>
 <!-- begin:editor -->
 - <a href="#" onclick="return tgl('editor{id}')">upravit popisek</a> 
 <form method="post" enctype="multipart/form-data" style="display:none" id="editor{id}">
