@@ -1237,6 +1237,7 @@ class Aktivita {
       ]);
     }
     foreach($nahradnici as $u) {
+      $this->odhlasZNahradnickychSlotu($u);
       dbInsert('akce_prihlaseni', [
         'id_uzivatele' => $u->id(),
         'id_akce' => $this->id(),
