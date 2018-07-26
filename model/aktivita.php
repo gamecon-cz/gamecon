@@ -35,6 +35,7 @@ class Aktivita {
     NAHRADNIK       = 5,
     //ignore a parametry kolem přihlašovátka
     BEZ_POKUT       = 0b00010000,   // odhlášení bez pokut
+    NEPOSILAT_MAILY = 0b10000000,   // odhlášení bez mailů náhradníkům
     PLUSMINUS       = 0b00000001,   // plus/mínus zkratky pro měnění míst v team. aktivitě
     PLUSMINUS_KAZDY = 0b00000010,   // plus/mínus zkratky pro každého
     STAV            = 0b00000100,   // ignorování stavu
@@ -599,7 +600,7 @@ class Aktivita {
     if($this->a['teamova'] && $this->prihlaseno()==1) // odhlašuje se poslední hráč
       dbQuery("UPDATE akce_seznam SET kapacita=team_max WHERE id_akce=$aid");
     // Poslání mailu lidem na watchlistu
-    if($this->volno()=="x") { // Před odhlášením byla aktivita plná
+    if($this->volno() == "x" && !($params & self::NEPOSILAT_MAILY)) { // Před odhlášením byla aktivita plná
       $this->poslatMailNahradnikum();
     }
     $this->refresh();
@@ -1122,30 +1123,41 @@ class Aktivita {
    * Smaže aktivitu z DB
    */
   function smaz() {
-    foreach($this->prihlaseni() as $u) {
-      $this->odhlas($u);
-    }
-    dbQuery('DELETE FROM akce_organizatori WHERE id_akce = ' . $this->id());
-    dbQuery('DELETE FROM akce_seznam WHERE id_akce = ' . $this->id());
-    // řešení instancí, pokud patří do rodiny instancí
-    $rodina = $this->a['patri_pod'];
-    if($rodina) {
-      // načtení id mateřské instance
-      $r = dbOneLine('SELECT MIN(id_akce) as mid, COUNT(1) as pocet FROM akce_seznam WHERE patri_pod = ' . $rodina);
-      $mid = $r['mid'];
-      $pocet = $r['pocet'];
-      // zbyla jediná instance, zrušit u ní patri_pod
-      if($pocet == 1) {
-        dbQuery('UPDATE akce_seznam SET patri_pod = 0 WHERE patri_pod = ' . $rodina);
+    dbBegin();
+    try {
+      foreach($this->prihlaseni() as $u) {
+        $this->odhlas($u, self::BEZ_POKUT | self::NEPOSILAT_MAILY);
       }
-      // id zrušené instance bylo nejnižší => je potřeba uložit url a popisek do nové instance
-      if($this->id() < $mid) {
-        dbQueryS(
-          'UPDATE akce_seznam SET url_akce=$1, popis=$2, vybaveni=$3 WHERE id_akce=$4',
-          [$this->a['url_akce'], $this->a['popis'], $this->a['vybaveni'], $mid]
-        );
+      dbDelete('akce_prihlaseni_spec',  ['id_akce' => $this->id(), 'id_stavu_prihlaseni' => self::NAHRADNIK]);
+      dbDelete('akce_organizatori',     ['id_akce' => $this->id()]);
+      dbDelete('akce_seznam',           ['id_akce' => $this->id()]);
+
+      // řešení instancí, pokud patří do rodiny instancí
+      $rodina = $this->a['patri_pod'];
+      if($rodina) {
+        // načtení id mateřské instance
+        $r = dbOneLine('SELECT MIN(id_akce) as mid, COUNT(1) as pocet FROM akce_seznam WHERE patri_pod = ' . $rodina);
+        $mid = $r['mid'];
+        $pocet = $r['pocet'];
+        // zbyla jediná instance, zrušit u ní patri_pod
+        if($pocet == 1) {
+          dbQuery('UPDATE akce_seznam SET patri_pod = 0 WHERE patri_pod = ' . $rodina);
+        }
+        // id zrušené instance bylo nejnižší => je potřeba uložit url a popisek do nové instance
+        if($this->id() < $mid) {
+          dbQueryS(
+            'UPDATE akce_seznam SET url_akce=$1, popis=$2, vybaveni=$3 WHERE id_akce=$4',
+            [$this->a['url_akce'], $this->a['popis'], $this->a['vybaveni'], $mid]
+          );
+        }
       }
+
+      dbCommit();
+    } catch(Exception $e) {
+      dbRollback();
+      throw $e;
     }
+
     // invalidace aktuální instance
     $this->a = null;
   }
