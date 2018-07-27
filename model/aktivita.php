@@ -104,6 +104,20 @@ class Aktivita {
     return $this->a['cena'];
   }
 
+  /**
+   * @return array Vrací pole dalších kol této aktivity. Každé další kolo je
+   *  samo polem, v kterém jsou jednotlivé aktivity (varianty) z kterých se dá
+   *  v daném kole vybírat.
+   */
+  function dalsiKola() {
+    $dalsiKola = [];
+    $dalsiKolo = [$this];
+    while($dalsiKolo = current($dalsiKolo)->deti()) {
+      $dalsiKola[] = $dalsiKolo;
+    }
+    return $dalsiKola;
+  }
+
   /** Délka aktivity v hodinách (float) */
   function delka() {
     if($zacatek = $this->zacatek())
@@ -427,6 +441,28 @@ class Aktivita {
         ' WHERE id_akce='.$this->id()); //update původní aktivity
       dbInsert('akce_seznam',$akt);
     }
+  }
+
+  /**
+   * @param self[] $aktivity
+   * @return bool jestli zadané aktivity jsou platným výběrem dalších kol
+   *  stávající aktivity
+   */
+  protected function jsouDalsiKola($aktivity) {
+    $dalsiKola = $this->dalsiKola();
+
+    if(count($aktivity) != count($dalsiKola)) return false;
+
+    foreach($this->dalsiKola() as $i => $varianty) {
+      $idsVariant = [];
+      foreach($varianty as $varianta) $idsVariant[] = $varianta->id();
+
+      $idVybraneVarianty = $aktivity[$i]->id();
+
+      if(!in_array($idVybraneVarianty, $idsVariant)) return false;
+    }
+
+    return true;
   }
 
   /** Vrací celkovou kapacitu aktivity */
@@ -1087,6 +1123,74 @@ class Aktivita {
     $this->refresh();
   }
 
+  /**
+   * Přihlásí na aktivitu vybrané uživatele jako tým vč. přihlášení na vybraná
+   * navazující kola a úpravy počtu míst v týmu.
+   * @param Uzivatel[] $uzivatele
+   * @param string $nazevTymu
+   * @param int $pocetMist požadovaný počet míst v týmu
+   * @param self[] $dalsiKola
+   */
+  function prihlasTym($uzivatele, $nazevTymu = null, $pocetMist = null, $dalsiKola = []) {
+    if(!$this->tymova()) throw new Exception('Nelze přihlásit tým na netýmovou aktivitu.');
+    if(!$this->a['zamcel']) throw new Exception('Pro přihlášení týmu musí být aktivita zamčená.');
+    if(!$this->jsouDalsiKola($dalsiKola)) throw new Exception('Nepovolený výběr dalších kol.');
+
+    $lidr = Uzivatel::zId($this->a['zamcel']);
+    $chybnyClen = null; // nastavíme v případě, že u daného člena týmu nastala při přihlášení chyba
+
+    dbBegin();
+    try {
+      // přihlášení týmlídra na zvolená další kola (pokud jsou)
+      // nutno jít od konce, jinak vazby na potomky můžou vyvolat chyby kvůli
+      // duplicitním pokusům o přihlášení
+      foreach(array_reverse($dalsiKola) as $kolo) {
+        $kolo->prihlas($lidr, self::STAV);
+      }
+
+      // přihlášení členů týmu
+      foreach($uzivatele as $clen) {
+        try {
+          $this->prihlas($clen, self::ZAMEK);
+        } catch(Exception $e) {
+          $chybnyClen = $clen;
+          throw $e;
+        }
+      }
+
+      // doplňující úpravy aktivity
+      dbUpdate('akce_seznam', [
+        'zamcel'      =>  null,
+        'zamcel_cas'  =>  null,
+        'team_nazev'  =>  $nazevTymu ?: null,
+      ], [
+        'id_akce'     =>  $this->id(),
+      ]);
+
+      // tým je nyní přihlášen - dodatečné změny na už přihlášeném týmu
+      $this->refresh();
+      $this->tym()->kapacita($pocetMist);
+      $this->a['kapacita'] = $pocetMist; // TODO workaround pro aktualizaci dat
+    } catch(Exception $e) {
+      dbRollback();
+      if($chybnyClen)
+        throw new Chyba(hlaska('chybaClenaTymu', $chybnyClen->jmenoNick(), $chybnyClen->id(), $e->getMessage()));
+      else
+        throw $e;
+    }
+    dbCommit();
+
+    // maily přihlášeným
+    $mail = new GcMail(hlaskaMail('prihlaseniTeamMail',
+      $lidr, $lidr->jmenoNick(), $this->nazev(), $this->denCas()
+    ));
+    $mail->predmet('Přihláška na ' . $this->nazev());
+    foreach($uzivatele as $clen) {
+      $mail->adresat($clen->mail());
+      $mail->odeslat();
+    }
+  }
+
   /** Nastaví aktivitu jako "připravena pro aktivaci" */
   function priprav() {
     dbUpdate('akce_seznam', ['stav' => self::PRIPRAVENA], ['id_akce' => $this->id()]);
@@ -1611,6 +1715,7 @@ class Aktivita {
    * @todo sanitizace před veřejným použitím a podpora řetězce, nejen pole
    */
   static function zIds($ids) {
+    if(empty($ids)) return [];
     if(!is_array($ids)) $ids = explode(',', $ids);
     if(empty($ids)) return [];
     return self::zWhere('WHERE a.id_akce IN('.dbQa($ids).')');

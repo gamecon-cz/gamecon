@@ -122,6 +122,7 @@ $GLOBALS['HLASKY']=[
 $GLOBALS['HLASKY_SUBST']=[
   'odhlasilPlatil' => 'Uživatel %1 (ID %2) se odhlásil z GameConu, ale v aktuálním roce (%3) si převedl nějaké peníze. Bude vhodné to prověřit popř. smazat platbu z připsaných a dát do zůstatku v seznamu uživatelů, aby mu peníze nepropadly',
   'uvolneneMisto' => 'Na aktivitě %1, která se koná v %2 se uvolnilo místo. Tento e-mail dostáváš jako přihlášený náhradník. Přihlaš se na aktivitu přes <a href="http://gamecon.cz/program">program</a> (pokud nebudeš dost rychlý, je možné že místo sebere jiný náhradník).',
+  'chybaClenaTymu'=>'Nepodařilo se přihlásit tým. Při přihlášování uživatele %1 (id %2) se u něj objevila chyba: %3',
   'zapomenuteHeslo'=>
 'Ahoj,
 
