@@ -115,7 +115,7 @@ class Program {
     $this->skupiny['0'] = 'Ostatní';
 
     if($this->nastaveni['skupiny'] == 'mistnosti') {
-      $this->program = Aktivita::zProgramu('poradi');
+      $this->program = new ArrayIterator(Aktivita::zProgramu('poradi'));
       $grp = Lokace::zVsech();
       $this->grpf = 'lokaceId';
       usort($grp, function($a, $b) {
@@ -125,7 +125,7 @@ class Program {
         $this->skupiny[$t->id()] = ucfirst($t->nazev());
       }
     } else {
-      $this->program = Aktivita::zProgramu('typ');
+      $this->program = new ArrayIterator(Aktivita::zProgramu('typ'));
       $grp = Typ::zVsech();
       $this->grpf = 'typId';
       usort($grp, function($a, $b) {
