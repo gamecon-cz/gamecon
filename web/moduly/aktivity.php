@@ -114,7 +114,7 @@ while($a) {
     $t->assign('vyber', $v);
     $t->parse('aktivity.aktivita.tym.vyber');
   }
-  if($a->teamova()) {
+  if($a->tymova()) {
     if($tym = $a->tym()) {
       $t->assign('tym', $tym);
       $t->parse('aktivity.aktivita.tym.tymInfo');
@@ -156,7 +156,7 @@ while($a) {
       }
       $t->parse('aktivity.aktivita.popis');
     }
-    if(!$a->teamova()) {
+    if(!$a->tymova()) {
       $t->assign('orgJmena', implode(', ', array_unique($orgUrls)));
       $t->parse('aktivity.aktivita.organizatori');
       $orgUrls = [];

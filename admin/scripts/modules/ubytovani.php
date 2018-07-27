@@ -85,7 +85,7 @@ if(post('prohozeniNacist')) {
     $ux = Uzivatel::zId(post($name));
     if(!$ux) chyba('Zadaný uživatel neexistuje');
     foreach(Aktivita::zUzivatele($ux) as $a) {
-      if(!$a->teamova() && $a->prihlasovatelna()) {
+      if(!$a->tymova() && $a->prihlasovatelna()) {
         $t->assign('a', $a);
         $t->parse('ubytovani.a'.$name);
       }

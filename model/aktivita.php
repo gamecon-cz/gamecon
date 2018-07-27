@@ -964,7 +964,7 @@ class Aktivita {
    * @return bool jestli je na aktivitu povoleno přihlašování náhradníků
    */
   function prihlasovatelnaNahradnikum() {
-    return !$this->teamova() && !$this->a['dite'];
+    return !$this->tymova() && !$this->a['dite'];
   }
 
   /**
@@ -1184,14 +1184,14 @@ class Aktivita {
   }
 
   /**
-   * Je aktivita teamová?
+   * Je aktivita týmová?
    */
-  function teamova() {
+  function tymova() {
     return $this->a['teamova'];
   }
 
   function tym() {
-    if($this->teamova() && $this->prihlaseno() > 0 && !$this->a['zamcel'])
+    if($this->tymova() && $this->prihlaseno() > 0 && !$this->a['zamcel'])
       return new Tym($this, $this->a);
     else
       return null;
