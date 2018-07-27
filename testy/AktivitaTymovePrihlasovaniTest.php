@@ -4,11 +4,11 @@ class AktivitaTymovePrihlasovaniTest extends GcDbTest {
 
   static $initData = '
     # akce_seznam
-    id_akce, dite,  stav, typ, teamova, zacatek,          konec
-    1,       "2,3", 1,    1,   1,       2099-01-01 08:00, 2099-01-01 14:00
-    2,       4,     4,    1,   0,       2099-01-01 08:00, 2099-01-01 14:00
-    3,       4,     4,    1,   0,       2099-01-01 15:00, 2099-01-01 16:00
-    4,       NULL,  4,    1,   0,       2099-01-01 08:00, 2099-01-01 14:00
+    id_akce, dite,  stav, typ, teamova, team_min, team_max, zacatek,          konec
+    1,       "2,3", 1,    1,   1,       2,        3,        2099-01-01 08:00, 2099-01-01 14:00
+    2,       4,     4,    1,   0,       NULL,     NULL,     2099-01-01 08:00, 2099-01-01 14:00
+    3,       4,     4,    1,   0,       NULL,     NULL,     2099-01-01 15:00, 2099-01-01 16:00
+    4,       NULL,  4,    1,   0,       NULL,     NULL,     2099-01-01 08:00, 2099-01-01 14:00
   ';
 
   function setUp() {
@@ -21,6 +21,62 @@ class AktivitaTymovePrihlasovaniTest extends GcDbTest {
 
     $this->tymlidr = self::prihlasenyUzivatel();
     $this->clen1 = self::prihlasenyUzivatel();
+    $this->clen2 = self::prihlasenyUzivatel();
+  }
+
+  function testOdhlaseniPosledniho() {
+    $this->ctvrtfinale->prihlas($this->tymlidr);
+    $this->ctvrtfinale->prihlasTym([$this->clen1], null, 2, [$this->semifinaleA, $this->finale]);
+
+    $this->assertEquals(2, $this->ctvrtfinale->rawDb()['kapacita']);
+
+    // počet míst se obnoví
+    $this->ctvrtfinale->odhlas($this->tymlidr);
+    $this->ctvrtfinale->odhlas($this->clen1);
+    $this->assertEquals(3, $this->ctvrtfinale->rawDb()['kapacita']);
+
+    // opětovné přihlášení se chová jako u týmovky, tj. jako přihlášení týmlídra
+    $this->ctvrtfinale->prihlas($this->tymlidr);
+    try {
+      $this->ctvrtfinale->prihlas($this->clen1);
+      $this->fail('Aktivita musí být opět zamčená.');
+    } catch(Exception $e) {}
+  }
+
+  function testOdhlaseniPredPotvrzenim() {
+    $this->ctvrtfinale->prihlas($this->tymlidr);
+
+    $this->ctvrtfinale->odhlas($this->tymlidr);
+    $this->ctvrtfinale->prihlas($this->clen1);
+    $this->assertTrue($this->ctvrtfinale->prihlasen($this->clen1));
+  }
+
+  /**
+   * @expectedException Exception
+   * @expectedExceptionMessageRegExp / plná/
+   */
+  function testOmezeniKapacity() {
+    $this->ctvrtfinale->prihlas($this->tymlidr);
+    $this->ctvrtfinale->prihlasTym([$this->clen1], null, 2, [$this->semifinaleA, $this->finale]);
+    $this->ctvrtfinale->prihlas($this->clen2);
+  }
+
+  function testPrihlaseniDalsiho() {
+    $this->ctvrtfinale->prihlas($this->tymlidr);
+    $this->ctvrtfinale->prihlasTym([$this->clen1], null, 3, [$this->semifinaleA, $this->finale]);
+    $this->ctvrtfinale->prihlas($this->clen2);
+
+    // TODO nutnost refreshování vyplývá z chybějících identity map, spravit
+    $this->ctvrtfinale->refresh();
+    $this->semifinaleA->refresh();
+    $this->semifinaleB->refresh();
+    $this->finale->refresh();
+
+    $this->assertTrue($this->ctvrtfinale->prihlasen($this->clen2));
+    $this->assertTrue($this->semifinaleA->prihlasen($this->clen2));
+    $this->assertTrue($this->finale->prihlasen($this->clen2));
+
+    $this->assertFalse($this->semifinaleB->prihlasen($this->clen2));
   }
 
   function testPrihlaseniTymlidra() {
@@ -32,7 +88,6 @@ class AktivitaTymovePrihlasovaniTest extends GcDbTest {
     } catch(Exception $e) {}
 
     // je přihlášen na první kolo
-    // TODO refresh?
     $this->assertTrue($this->ctvrtfinale->prihlasen($this->tymlidr));
 
     // není přihlášen na další kola
@@ -43,7 +98,26 @@ class AktivitaTymovePrihlasovaniTest extends GcDbTest {
     }
   }
 
-  // tým:
+  function testPrihlaseniTymu() {
+    $this->ctvrtfinale->prihlas($this->tymlidr);
+    $this->ctvrtfinale->prihlasTym([$this->clen1], null, null, [$this->semifinaleA, $this->finale]);
+
+    // TODO nutnost refreshování vyplývá z chybějících identity map, spravit
+    $this->ctvrtfinale->refresh();
+    $this->semifinaleA->refresh();
+    $this->semifinaleB->refresh();
+    $this->finale->refresh();
+
+    foreach([$this->tymlidr, $this->clen1] as $hrac) {
+      $this->assertTrue($this->ctvrtfinale->prihlasen($hrac));
+      $this->assertTrue($this->semifinaleA->prihlasen($hrac));
+      $this->assertTrue($this->finale->prihlasen($hrac));
+
+      $this->assertFalse($this->semifinaleB->prihlasen($hrac));
+    }
+  }
+
+  // TODO další scénáře:
   //  validní všechno
   //    počet míst se nastaví
   //    týmlídr je přihlášen na vybraná kola
@@ -56,24 +130,5 @@ class AktivitaTymovePrihlasovaniTest extends GcDbTest {
   //    vynechání kola
   //    vybrání dvou aktivit stejného kola
   //    vybrání korektně a něco navíc
-
-  /**
-   * @doesNotPerformAssertions
-   */
-  function testOdhlaseniPredPotvrzenim() {
-    $this->ctvrtfinale->prihlas($this->tymlidr);
-
-    $this->ctvrtfinale->odhlas($this->tymlidr);
-    // TODO refresh?
-    $this->ctvrtfinale->prihlas($this->clen1); // již projde
-  }
-
-  function testOdhlaseniPosledniho() {
-    $this->ctvrtfinale->prihlas($this->tymlidr);
-    $this->ctvrtfinale->prihlasTym([$this->clen1], null, null, [$this->semifinaleA, $this->finale]);
-
-    // počet míst se obnoví
-    // opětovné přihlášení se chová jako u týmovky, tj. jako přihlášení týmlídra
-  }
 
 }
