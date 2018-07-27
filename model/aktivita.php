@@ -873,7 +873,7 @@ class Aktivita {
         }
       }
       if($jeNovyTym && $this->pocetTeamu() >= $this->a['team_kapacita']) {
-        throw new Exception('Na aktivitu ' . $this->nazev() . ': ' . $this->denCas() . ' je už přihlášen maximální počet týmů');
+        throw new Chyba('Na aktivitu ' . $this->nazev() . ': ' . $this->denCas() . ' je už přihlášen maximální počet týmů');
       }
     }
 
@@ -1129,7 +1129,7 @@ class Aktivita {
    * @param Uzivatel[] $uzivatele
    * @param string $nazevTymu
    * @param int $pocetMist požadovaný počet míst v týmu
-   * @param self[] $dalsiKola
+   * @param self[] $dalsiKola - pořadí musí odpovídat návaznosti kol
    */
   function prihlasTym($uzivatele, $nazevTymu = null, $pocetMist = null, $dalsiKola = []) {
     if(!$this->tymova()) throw new Exception('Nelze přihlásit tým na netýmovou aktivitu.');
@@ -1549,71 +1549,38 @@ class Aktivita {
   /**
    * Zpracuje data formuláře pro výběr teamu a vrátí případné chyby jako json.
    * Ukončuje skript.
-   * @todo kontrola, jestli nezamčel moc míst
    */
   static function vyberTeamuZpracuj(Uzivatel $leader = null) {
-    if( !$leader || !($t = post(self::TEAMKLIC)) ) return;
-    $chyby = [];
-    $prihlaseni = []; // pro rollback
-    $prihlaseniLeadera = []; // pro rollback kol u leadera
-    $chybny = null; // pro uživatele jehož jméno se zobrazí v rámci chyby
-    try
-    {
-      dbBegin();
-      $a = Aktivita::zId(post(self::TEAMKLIC.'Aktivita'));
-      if($leader->id() != $a->a['zamcel']) throw new Exception('Nejsi teamleader.');
-      // přihlášení teamleadera na zvolená další kola (pokud jsou)
-      $kola = post(self::KOLA) ?: [];
-      foreach($kola as $koloId) {
-        $kolo = self::zId($koloId);
-        $kolo->prihlas($leader, self::STAV);
-        $prihlaseniLeadera[] = $kolo;
-      }
-      // načtení zvolených členů teamu
-      $up = post(self::TEAMKLIC);
-      $zamceno = 0;
-      foreach($up as $i=>$uid) {
-        if($uid==-1 || !$uid)
-          unset($up[$i]);
-        if($uid==-1)
-          $zamceno++;
-      }
-      // kontrola a pokus o přihlášení jednotlivých členů
-      $clenove = Uzivatel::zIds($up);
-      if(count($clenove) != count($up)) throw new Exception('Zadáno neplatné id uživatele.');
-      foreach($clenove as $clen) {
-        $chybny = $clen;
-        $a->prihlas($clen, self::ZAMEK);
-        $prihlaseni[] = $clen;
-      }
-      // maily přihlášeným
-      $mail = new GcMail(hlaskaMail('prihlaseniTeamMail',
-        $leader, $leader->jmenoNick(), $a->nazev(), $a->denCas()
-      )); // TODO link na stránku aktivity
-      $mail->predmet('Přihláška na '.$a->nazev()); // TODO korektní pády atd
-      foreach($clenove as $clen) {
-        $mail->adresat($clen->mail());
-        $mail->odeslat();
-      }
-      // hotovo, odemčít aktivitu, snížit počet míst a nastavit název týmu
-      dbUpdate('akce_seznam', [
-        'kapacita'    =>  $a->a['kapacita'] - $zamceno,
-        'zamcel'      =>  null,
-        'zamcel_cas'  =>  null,
-        'team_nazev'  =>  post(self::TEAMKLIC.'Nazev') ?: null,
-      ], ['id_akce' => $a->id()]);
+    if(!$leader || !post(self::TEAMKLIC)) return;
+
+    $a = Aktivita::zId(post(self::TEAMKLIC . 'Aktivita'));
+    if($leader->id() != $a->a['zamcel']) throw new Exception('Nejsi teamleader.');
+
+    // načtení zvolených parametrů z formuláře (spoluhráči, kola, ...)
+    $up = post(self::TEAMKLIC);
+    $zamceno = 0;
+    foreach($up as $i=>$uid) {
+      if($uid == -1 || !$uid)
+        unset($up[$i]);
+      if($uid == -1)
+        $zamceno++;
     }
-    catch(Exception $e)
-    {
-      dbRollback();
-      // zobrazení
-      if($chybny)
-        $chyby[] = 'Nelze, uživateli '.$chybny->jmenoNick().'('.$chybny->id().')'." se při přihlašování objevila chyba:\n• ".$e->getMessage();
-      else
-        $chyby[] = $e->getMessage();
+    $clenove = Uzivatel::zIds($up);
+    $novaKapacita = $a->kapacita() - $zamceno;
+    $nazev = post(self::TEAMKLIC . 'Nazev');
+    $dalsiKola = array_values(array_map(function($id) { // array_map kvůli nutnosti zachovat pořadí
+      return self::zId($id);
+    }, post(self::KOLA)));
+
+    // přihlášení týmu
+    try {
+      $a->prihlasTym($clenove, $nazev, $novaKapacita, $dalsiKola);
+      $chyby = [];
+    } catch(Chyba $ch) {
+      $chyby = [$ch->getMessage()];
     }
-    if(empty($chyby)) dbCommit();
-    echo json_encode(['chyby'=>$chyby]);
+
+    echo json_encode(['chyby' => $chyby]);
     die();
   }
 
