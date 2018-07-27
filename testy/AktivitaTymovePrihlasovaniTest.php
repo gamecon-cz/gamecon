@@ -9,6 +9,7 @@ class AktivitaTymovePrihlasovaniTest extends GcDbTest {
     2,       4,     4,    1,   0,       NULL,     NULL,     2099-01-01 08:00, 2099-01-01 14:00
     3,       4,     4,    1,   0,       NULL,     NULL,     2099-01-01 15:00, 2099-01-01 16:00
     4,       NULL,  4,    1,   0,       NULL,     NULL,     2099-01-01 08:00, 2099-01-01 14:00
+    5,       NULL,  1,    1,   0,       NULL,     NULL,     2099-01-01 08:00, 2099-01-01 14:00
   ';
 
   function setUp() {
@@ -22,6 +23,17 @@ class AktivitaTymovePrihlasovaniTest extends GcDbTest {
     $this->tymlidr = self::prihlasenyUzivatel();
     $this->clen1 = self::prihlasenyUzivatel();
     $this->clen2 = self::prihlasenyUzivatel();
+  }
+
+  function spatnaVolbaDalsichKol() {
+    return [
+      'nevybrání ničeho'        =>  [[]],
+      'vybrání i čtvrtfinále'   =>  [[1, 2, 4]],
+      'vybrání dvou semifinále' =>  [[2, 3, 4]],
+      'nevybrání finále'        =>  [[2]],
+      'špatné pořadí'           =>  [[4, 2]],
+      'smetí navíc'             =>  [[2, 4, 5]],
+    ];
   }
 
   function testOdhlaseniPosledniho() {
@@ -124,19 +136,27 @@ class AktivitaTymovePrihlasovaniTest extends GcDbTest {
     $this->ctvrtfinale->prihlas($this->tymlidr);
     $this->ctvrtfinale->prihlasTym([], null, null, [$this->semifinaleA, $this->finale]);
     try {
+      // TODO co když by se přihlašoval na jiné čtvrtfinále?
       $this->ctvrtfinale->prihlasTym([], null, null, [$this->semifinaleB, $this->finale]);
       $this->fail('Opakovaně přihlásit tým nesmí jít.');
     } catch(Exception $e) {}
+  }
+
+  /**
+   * @dataProvider spatnaVolbaDalsichKol
+   * @expectedException Exception
+   * @expectedExceptionMessage Nepovolený výběr dalších kol.
+   */
+  function testSpatnaVolbaDalsichKolNelze($dalsiKolaIds) {
+    $this->ctvrtfinale->prihlas($this->tymlidr);
+    $this->ctvrtfinale->prihlasTym([], null, null, array_map(function($id) {
+      return Aktivita::zId($id);
+    }, $dalsiKolaIds));
   }
 
   // TODO další scénáře:
   //  nevalidní ne-první člen
   //    všechno se rollbackne
   //    (že přihlášení jednoho člověka háže výjimku např. při překrytí tady netřeba testovat)
-  //  nevalidní volba kol - různé faily (testovat zde, nebo nějak konkrétní metodu?)
-  //    volba úplně nesmyslů
-  //    vynechání kola
-  //    vybrání dvou aktivit stejného kola
-  //    vybrání korektně a něco navíc
 
 }
