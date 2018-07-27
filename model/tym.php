@@ -39,7 +39,7 @@ class Tym {
     return $this->clenove;
   }
 
-  private function kapacita() {
+  function kapacita() {
     return $this->r['kapacita']; // u týmovek nepodporujeme rozdělení ž/m
   }
 
