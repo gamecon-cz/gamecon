@@ -25,6 +25,8 @@ function nasad($nastaveni) {
       !/nastaveni/zavadec-zaklad.php
       !/nastaveni/zavadec.php
 
+      /testy
+      /udrzba
       /node_modules
 
       /web/soubory/*
