@@ -30,6 +30,9 @@ if(end($out) !== 'nothing to commit, working directory clean') {
   exit(1);
 }
 
+// spuštění testů
+call_check(['php', __DIR__ . '/testuj.php']);
+
 // sestavení souborů
 call_check(['php', __DIR__ . '/sestav.php']);
 

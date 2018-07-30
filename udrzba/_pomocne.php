@@ -69,6 +69,6 @@ function call_check($params) {
     $args    = array_map('escapeshellarg', array_slice($params, 1));
     $args    = implode(' ', $args);
 
-    system($command . ' ' . $args, $exitStatus);
+    passthru($command . ' ' . $args, $exitStatus);
     if ($exitStatus !== 0) throw new Exception('Příkaz skončil chybou.');
 }
