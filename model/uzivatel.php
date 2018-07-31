@@ -520,6 +520,11 @@ class Uzivatel {
     }
   }
 
+  /** Vrátí formátovanou (html) poznámku uživatele **/
+  function poznamkaHtml() {
+    return markdown($this->u['poznamka']);
+  }
+
   /**
    * Přihlásí uživatele s loginem $login k stránce
    * @param string $klic klíč do $_SESSION kde poneseme hodnoty uživatele

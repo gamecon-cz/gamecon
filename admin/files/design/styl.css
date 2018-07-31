@@ -91,7 +91,6 @@ table.cista > tbody > tr > td:first-child { padding: 0; }
 /* obalovací boxy */
 .aBox, .cista .aBox, .cista .aBox:first-child { border: solid 1px #ddd; margin: 20px 0; padding: 5px; padding-top: 10px; }
 .aBox h3:first-child { margin-top: -20px; background-color: #fff; position: absolute; padding: 0 5px; }
-.aBox strong:first-child { display: block; margin-top: -5px; }
 .aBox ul { margin: 0 0 5px 0; padding-left: 22px; }
 .cista .aBox, .cista .aBox:first-child { min-width: 200px; }
 .aBox.grid { float: left; width: 300px; margin: 0 10px 10px 0; }

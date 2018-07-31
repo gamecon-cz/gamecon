@@ -128,6 +128,7 @@ if($uPracovni && $uPracovni->gcPrihlasen())
     'spolubydlici'    =>  array_uprint($spolubydlici, function($e){ return "<li> {$e->jmenoNick()} ({$e->id()}) {$e->telefon()} </li>"; }),
     'aa'              =>  $u->koncA(),
     'org'             =>  $u->jmenoNick(),
+    'poznamka'        =>  $up->poznamkaHtml(),
     'up'              =>  $up,
   ]);
   if($up->finance()->stav() < 0 && !$up->gcPritomen()) $x->parse('uvod.uzivatel.nepritomen.upoMaterialy');
