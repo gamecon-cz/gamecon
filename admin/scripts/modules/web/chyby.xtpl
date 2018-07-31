@@ -19,6 +19,34 @@
 .chyba a { text-decoration: none; color: #04f; }
 </style>
 
+<table class="zvyraznovana">
+  <tr>
+    <th>Ignorované (ID uživatele|hláška)</th>
+    <th></th>
+  </tr>
+  <!-- begin: ignorovany -->
+  <tr>
+    <td>{hodnota}</td>
+    <td>
+      <form method="post">
+        <input name="smazatIgnorovanouHodnotu" value="{hodnota}" type="hidden">
+        <input value="smaž" type="submit">
+      </form>
+    </td>
+  </tr>
+  <!-- end: ignorovany -->
+  <tr>
+    <form method="post">
+      <td>
+        <input type="text" name="pridatIgnorovanouHodnotu">
+      </td>
+      <td>
+        <input type="submit" value="přidej">
+      </td>
+    </form>
+  </tr>
+</table>
+
 <!-- begin:chyba -->
 <div class="chyba z{zavaznost}">
   <div class="vyskytu">{vyskytu}</div>

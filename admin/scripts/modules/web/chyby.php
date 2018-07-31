@@ -6,9 +6,22 @@
  */
 
 $db = new EPDO('sqlite:'.SPEC.'/chyby.sqlite');
+$ignorovane = json_decode($_COOKIE['ignorovaneChyby'] ?? '[]');
 
 if(post('vyresit')) {
   $db->query('DELETE FROM chyby WHERE rowid IN('.dbQa(explode(',', post('vyresit'))).')');
+  back();
+}
+
+if(post('smazatIgnorovanouHodnotu')) {
+  $ignorovane = array_diff($ignorovane, [post('smazatIgnorovanouHodnotu')]);
+  setcookie('ignorovaneChyby', json_encode($ignorovane), 2**31 - 1);
+  back();
+}
+
+if(post('pridatIgnorovanouHodnotu')) {
+  $ignorovane[] = post('pridatIgnorovanouHodnotu');
+  setcookie('ignorovaneChyby', json_encode($ignorovane), 2**31 - 1);
   back();
 }
 
@@ -29,19 +42,28 @@ if(get('vyjimka')) {
 }
 
 // zobrazení přehledu všech výjimek
-$o = $db->query('
+$ignorovaneSql = array_map([$db, 'quote'], $ignorovane);
+$ignorovaneSql = implode(',', $ignorovaneSql);
+$ignorovaneSqlZpravy = array_map(function($e)use($db) {
+  return $db->quote(explode('|', $e)[1] ?? '');
+}, $ignorovane);
+$ignorovaneSqlZpravy = implode(',', $ignorovaneSqlZpravy);
+$o = $db->query("
   SELECT
     *,
     COUNT(1) as vyskytu,
     COUNT(DISTINCT uzivatel) as uzivatelu,
     MAX(vznikla) as posledni,
     GROUP_CONCAT(rowid) as ids,
-    GROUP_CONCAT(uzivatel, "<br>") as uzivatele,
+    GROUP_CONCAT(uzivatel, '<br>') as uzivatele,
     rowid
   FROM chyby
+  WHERE
+    uzivatel IS NULL AND zprava NOT IN ($ignorovaneSqlZpravy) OR
+    uzivatel || '|' || zprava NOT IN ($ignorovaneSql)
   GROUP BY zprava, soubor, radek, url
   ORDER BY posledni DESC
-');
+");
 
 $t = new XTemplate('chyby.xtpl');
 
@@ -66,6 +88,11 @@ foreach($o as $r) {
   // výstup
   $t->assign($r);
   $t->parse('chyby.chyba');
+}
+
+foreach($ignorovane as $ignorovanaPolozka) {
+  $t->assign('hodnota', $ignorovanaPolozka);
+  $t->parse('chyby.ignorovany');
 }
 
 $t->parse('chyby');
