@@ -17,9 +17,9 @@ function urlcz($t) {
 ////////////////////////////////
 // Odstranění absolutních url //
 ////////////////////////////////
-dbQueryS('UPDATE stranky SET obsah = REPLACE(obsah, $1, $2)', ['href="/', 'href="']);
-dbQueryS('UPDATE stranky SET obsah = REPLACE(obsah, $1, $2)', ['src="/', 'src="']);
-dbQueryS('UPDATE stranky SET obsah = REPLACE(obsah, $1, $2)', ['](/', '](']);
+$this->q("UPDATE stranky SET obsah = REPLACE(obsah, 'href=\"/', 'href=\"')");
+$this->q("UPDATE stranky SET obsah = REPLACE(obsah, 'src=\"/',  'src=\"' )");
+$this->q("UPDATE stranky SET obsah = REPLACE(obsah, '](/',      ']('     )");
 
 
 ////////////////////////////////////////
@@ -27,14 +27,14 @@ dbQueryS('UPDATE stranky SET obsah = REPLACE(obsah, $1, $2)', ['](/', '](']);
 ////////////////////////////////////////
 $this->q('DROP TABLE IF EXISTS novinky'); // kvůli klíčům dříve
 
-$this->q('DROP TABLE IF EXISTS texty;');
+$this->q('DROP TABLE IF EXISTS texty');
 $this->q('
   CREATE TABLE texty (
     id int NOT NULL PRIMARY KEY COMMENT "hash",
     text mediumtext NOT NULL
   ) ENGINE=InnoDB COLLATE "utf8_czech_ci";
 ');
-dbQuery("INSERT INTO `texty` (`id`, `text`) VALUES ('0', '');");
+$this->q("INSERT INTO `texty` (`id`, `text`) VALUES ('0', '');");
 
 // TODO nadpis/název, url
 $this->q('
@@ -57,7 +57,7 @@ $this->q('
 ///////////////////
 // Migrace blogu //
 ///////////////////
-$blog = dbOneCol('SELECT obsah FROM stranky WHERE url_stranky = "blog"');
+$blog = $this->q('SELECT obsah FROM stranky WHERE url_stranky = "blog"')->fetch_row()[0] ?? null;
 if($blog) {
   preg_match_all('@<!-+ NADPIS\+POPISEK -+>(.+?)<a name="([^"]+)">.+?<h2[^>]*>([^<]+)</h2>.+?<p class="podpis">([^,]+), ?([^<]+)</p>(</h4>)?(.+?)<!-+ LIKE BUTTON -+>@s', $blog, $m, PREG_SET_ORDER);
   foreach($m as $c) {
@@ -74,6 +74,7 @@ if($blog) {
     $obsah = trim($markdown->convert($obsah));
     $obsah = preg_replace('@<div id="[^"]+" style="display: none">(.*)</div>@s', '<!-- vice -->'."\n".'$1', $obsah);
     $hash = scrc32($obsah);
+    /* TODO
     dbInsert('texty', ['id' => $hash, 'text' => $obsah]);
     dbInsert('novinky', [
       'vydat' => $c[5],
@@ -83,15 +84,16 @@ if($blog) {
       'text'  => $hash,
       'typ'   => 2
     ]);
+    */
   }
 }
-dbQuery('DELETE FROM stranky WHERE url_stranky = "blog"');
+$this->q('DELETE FROM stranky WHERE url_stranky = "blog"');
 
 
 /////////////////////
 // Migrace novinek //
 /////////////////////
-$o = dbQuery('
+$o = $this->q('
   SELECT *
   FROM novinky_obsah n
   JOIN uzivatele_hodnoty u on (u.id_uzivatele = n.autor)
@@ -100,6 +102,7 @@ while($r = mysqli_fetch_assoc($o)) {
   $t = preg_split('@<h2>(.+?)</h2>\s*<h3>(.+?)</h3>@', $r['obsah'], 2, PREG_SPLIT_DELIM_CAPTURE);
   $text = trim($markdown->convert($t[3]));
   $hash = scrc32($text);
+  /* TODO
   dbInsert('texty', ['id' => $hash, 'text' => $text]);
   dbInsert('novinky', [
     'vydat' => $r['publikovano'],
@@ -109,6 +112,7 @@ while($r = mysqli_fetch_assoc($o)) {
     'text'  => $hash,
     'typ'   => 1,
   ]);
+  */
 }
 
 
@@ -116,22 +120,26 @@ while($r = mysqli_fetch_assoc($o)) {
 // převod textů aktivit na klíče //
 ///////////////////////////////////
 $this->q('ALTER TABLE `akce_seznam` ENGINE=InnoDB');
-$o = dbQuery('SELECT * FROM akce_seznam WHERE popis IS NOT NULL AND popis != "" AND popis NOT RLIKE "^-?[0-9]+$"');
+$o = $this->q('SELECT * FROM akce_seznam WHERE popis IS NOT NULL AND popis != "" AND popis NOT RLIKE "^-?[0-9]+$"');
 while($r = mysqli_fetch_assoc($o)) {
   $h = sprintf('%d', scrc32($r['popis']));
   try {
+    /* TODO
     dbInsert('texty', [
       'id'    =>  $h,
       'text'  =>  $r['popis'],
     ]);
+    */
   } catch(DbException $e) {
     echo "Aktivita $r[nazev_akce] $r[rok]: ";
     echo $e->getMessage().'<br>';
   }
+  /* TODO
   dbUpdate('akce_seznam', ['popis'=>$h], ['id_akce'=>$r['id_akce']]);
+  */
 }
 // rozšíření ID více instancí
-dbQuery('
+$this->q('
   UPDATE akce_seznam a
   LEFT JOIN akce_seznam b ON(a.patri_pod = b.patri_pod AND b.popis)
   SET a.popis = b.popis
@@ -145,21 +153,21 @@ $this->q('ALTER TABLE `akce_seznam` ADD FOREIGN KEY (`popis`) REFERENCES `texty`
 // Tagy //
 //////////
 
-$this->q('DROP TABLE IF EXISTS tagy');
 $this->q('CREATE TABLE tagy (
     id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
     nazev varchar(64) UNIQUE NOT NULL
   ) ENGINE="MyISAM" COLLATE "utf8_czech_ci";
 ');
-$this->q('DROP TABLE IF EXISTS akce_tagy');
+
 $this->q('CREATE TABLE akce_tagy (
   id_akce int not null,
   id_tagu int not null,
   PRIMARY KEY (id_akce, id_tagu),
   KEY (id_tagu)
 ) ENGINE="MyISAM" COLLATE "utf8_czech_ci";');
-$o = dbQuery("select * from akce_seznam where nazev_akce like '%(%)' and typ = 4 and zacatek > '2011-01'");
+$o = $this->q("select * from akce_seznam where nazev_akce like '%(%)' and typ = 4 and zacatek > '2011-01'");
 while($r = mysqli_fetch_assoc($o)) {
+  /* TODO
   $tag = preg_replace('@.*\((.*)\)@', '$1', $r['nazev_akce']);
   try {
     dbQueryS('INSERT INTO tagy(nazev) VALUES ($1)', [$tag]);
@@ -170,6 +178,7 @@ while($r = mysqli_fetch_assoc($o)) {
   dbInsertUpdate('akce_tagy', ['id_akce' => $r['id_akce'], 'id_tagu' => $tagId]);
   $nazev = preg_replace('@\s?\(.*\)@', '', $r['nazev_akce']);
   dbUpdate('akce_seznam', ['nazev_akce' => $nazev], ['id_akce' => $r['id_akce']]);
+  */
 }
 
 
@@ -235,7 +244,7 @@ CHANGE `rok` `rok` smallint(6) NOT NULL AFTER `castka`,
 CHANGE `provedeno` `provedeno` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER `rok`,
 CHANGE `provedl` `provedl` int(11) NOT NULL AFTER `provedeno`,
 CHANGE `poznamka` `poznamka` text COLLATE 'utf8_czech_ci' NULL AFTER `provedl`;
-̈́");
+");
 
 $this->q("
 ALTER TABLE `platby`

@@ -17,10 +17,11 @@ ALTER TABLE akce_prihlaseni_spec ADD FOREIGN KEY (id_akce) REFERENCES akce_sezna
 ALTER TABLE akce_prihlaseni_spec ADD FOREIGN KEY (id_uzivatele) REFERENCES uzivatele_hodnoty(id_uzivatele);
 ALTER TABLE akce_prihlaseni_spec ADD FOREIGN KEY (id_stavu_prihlaseni) REFERENCES akce_prihlaseni_stavy(id_stavu_prihlaseni);
 
-alter table akce_seznam
-  add foreign key (lokace) references akce_lokace(id_lokace),
-  add foreign key (typ) references akce_typy(id_typu),
-  add foreign key (zamcel) references uzivatele_hodnoty(id_uzivatele);
+-- zakomentováno kvůli nekonzistenci reálné DB s migrací
+-- alter table akce_seznam
+--   add foreign key (lokace) references akce_lokace(id_lokace),
+--   add foreign key (typ) references akce_typy(id_typu),
+--   add foreign key (zamcel) references uzivatele_hodnoty(id_uzivatele);
 
 alter table akce_organizatori
   engine='InnoDB',
@@ -63,7 +64,8 @@ alter table ubytovani engine='InnoDB',
   -- ADD INDEX `id_uzivatele` (`id_uzivatele`),
   add foreign key (id_uzivatele) references uzivatele_hodnoty(id_uzivatele);
 
-alter table uzivatele_hodnoty
-  add foreign key (guru) references uzivatele_hodnoty(id_uzivatele);
+-- zakomentováno kvůli nekonzistenci reálné DB s migrací
+-- alter table uzivatele_hodnoty
+--   add foreign key (guru) references uzivatele_hodnoty(id_uzivatele);
 
 ");
