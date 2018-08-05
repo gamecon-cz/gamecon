@@ -50,8 +50,8 @@ function dbCommit() {
  */
 function dbConnect() {
   global $spojeni, $dbLastQ, $dbNumQ, $dbExecTime;
-  if($spojeni==NULL)
-  {
+
+  if($spojeni === null) {
     // inicializace glob. nastavení
     $dbhost     = DB_SERV;
     $dbname     = DB_NAME;
@@ -61,6 +61,7 @@ function dbConnect() {
     $dbLastQ    = '';   //vztahuje se pouze na dotaz v aktualnim skriptu
     $dbNumQ     = 0;    //počet dotazů do databáze
     $dbExecTime = 0.0;  //délka výpočtu dotazů
+
     // připojení
     $start = microtime(true);
     $spojeni = mysqli_connect('p:' . $dbhost, $dbuser, $dbpass); // persistent connection
@@ -71,6 +72,8 @@ function dbConnect() {
     $GLOBALS['dbExecTime'] += $end - $start;
     dbQuery('SET SESSION group_concat_max_len = 65536');
   }
+
+  return $spojeni;
 }
 
 /**

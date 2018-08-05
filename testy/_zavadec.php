@@ -11,6 +11,17 @@ define('REG_AKTIVIT_DO', '2099-01-01 00:00:00');
 
 require_once __DIR__ . '/../nastaveni/zavadec-zaklad.php';
 
+// příprava databáze
+dbQuery('CREATE DATABASE IF NOT EXISTS gamecon_test COLLATE "utf8_czech_ci"');
+dbQuery('USE gamecon_test');
+require '../db-migrations/vendor/autoload.php'; // TODO publikovat a normálně použít přes composer
+(new Godric\DbMigrations\DbMigrations([
+  'connection'          =>  dbConnect(), // předpokládá se, že spojení pro testy má administrativní práva
+  'migrationsDirectory' =>  'migrace',
+  'doBackups'           =>  false,
+  // TODO povolit zálohy do samostatné složky a zprovoznit rollbacky při změně poslední migrace
+]))->run();
+
 // třída zajišťující volání do testovací DB pro testovací framework
 class GcDbWrapper extends Godric\DbTest\DbWrapper {
 
@@ -42,15 +53,6 @@ class GcDbTest extends Godric\DbTest\DbTest {
   }
 
 }
-
-// TODO vložení židlí a práv - nějak automatizovat
-dbInsertUpdate('r_zidle_soupis', ['id_zidle' => Z_PRIHLASEN]);
-dbInsertUpdate('r_prava_soupis', ['id_prava' => ID_PRAVO_PRIHLASEN]);
-dbInsertUpdate('r_prava_zidle', [
-  'id_prava' => ID_PRAVO_PRIHLASEN,
-  'id_zidle' => Z_PRIHLASEN,
-]);
-dbInsertUpdate('akce_prihlaseni_stavy', ['id_stavu_prihlaseni' => 0]); // FCK
 
 dbConnect(); // nutno inicalizovat spojení
 
