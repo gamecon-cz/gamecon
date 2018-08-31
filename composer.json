@@ -11,6 +11,10 @@
     {
       "type": "vcs",
       "url": "https://github.com/godric-cz/db-test"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/godric-cz/db-migrations"
     }
   ],
   "require": {
@@ -22,7 +26,8 @@
     "roderik/pwgen-php": "^0.1.7",
     "godric/db-backup": "dev-master",
     "defuse/php-encryption": "^2.1",
-    "godric/db-test": "dev-master"
+    "godric/db-test": "dev-master",
+    "godric/db-migrations": "dev-master"
   },
   "require-dev": {
     "dg/ftp-deployment": "~2.7"

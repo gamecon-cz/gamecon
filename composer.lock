@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "ca2a1d5660c5ebad907237c8d7b2fb8e",
+    "content-hash": "a16688743d37b215f63f60567e807463",
     "packages": [
         {
             "name": "defuse/php-encryption",
@@ -135,6 +135,36 @@
                 "issues": "https://github.com/godric-cz/db-backup/issues"
             },
             "time": "2017-12-19 15:08:59"
+        },
+        {
+            "name": "godric/db-migrations",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/godric-cz/db-migrations.git",
+                "reference": "c713aceb487919c050faafe48a82ac6371ea35bd"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/godric-cz/db-migrations/zipball/c713aceb487919c050faafe48a82ac6371ea35bd",
+                "reference": "c713aceb487919c050faafe48a82ac6371ea35bd",
+                "shasum": ""
+            },
+            "require": {
+                "dg/mysql-dump": "^1.4"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Godric\\DbMigrations\\": "src/"
+                }
+            },
+            "description": "Database migration tool with automagic and possibly without commandline.",
+            "support": {
+                "source": "https://github.com/godric-cz/db-migrations/tree/master",
+                "issues": "https://github.com/godric-cz/db-migrations/issues"
+            },
+            "time": "2018-08-31 19:24:03"
         },
         {
             "name": "godric/db-test",
@@ -524,7 +554,8 @@
     "stability-flags": {
         "godric/xtemplate": 20,
         "godric/db-backup": 20,
-        "godric/db-test": 20
+        "godric/db-test": 20,
+        "godric/db-migrations": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,

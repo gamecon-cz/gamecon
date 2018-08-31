@@ -14,12 +14,11 @@ require_once __DIR__ . '/../nastaveni/zavadec-zaklad.php';
 // příprava databáze
 dbQuery('CREATE DATABASE IF NOT EXISTS gamecon_test COLLATE "utf8_czech_ci"');
 dbQuery('USE gamecon_test');
-require '../db-migrations/vendor/autoload.php'; // TODO publikovat a normálně použít přes composer
 (new Godric\DbMigrations\DbMigrations([
   'connection'          =>  dbConnect(), // předpokládá se, že spojení pro testy má administrativní práva
   'migrationsDirectory' =>  'migrace',
   'doBackups'           =>  false,
-  // TODO povolit zálohy do samostatné složky a zprovoznit rollbacky při změně poslední migrace
+  'rewriteDatabaseOnInitialMigrationChange' => true,
 ]))->run();
 
 // třída zajišťující volání do testovací DB pro testovací framework
