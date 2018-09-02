@@ -1,0 +1,11 @@
+#!/usr/bin/php
+<?php
+
+/**
+ * Skript, který by si vývojář měl pomocí symlinku nastavit jako pre-commit
+ * git hook.
+ *
+ * Obsahuje testy, do budoucna by měl obsahovat i linter a podobně.
+ */
+
+require 'udrzba/testuj.php'; // cwd je vždy root gitu
