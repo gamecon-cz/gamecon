@@ -342,7 +342,7 @@ function pred($cas) {
 /** Tisk informace profileru. */
 function profilInfo()
 {
-  if(VETEV == OSTRA)
+  if(!PROFILOVACI_LISTA)
     return false; //v ostré verzi se neprofiluje
   $schema = 'data:image/png;base64,';
   $iDb = $schema.base64_encode(file_get_contents(__DIR__.'/db.png'));
@@ -385,7 +385,7 @@ function pripravCache($slozka) {
   if(is_writable($slozka)) return;
   if(is_dir($slozka)) throw new Exception("Do existující cache složky '$slozka' není možné zapisovat");
   if(!mkdir($slozka)) throw new Exception("Složku '$slozka' se nepodařilo vytvořit");
-  if(VETEV === VYVOJOVA) chmod($slozka, 0777); // dovolit upravit složku komukoli pro devel mód
+  chmod($slozka, CACHE_SLOZKY_PRAVA);
 }
 
 

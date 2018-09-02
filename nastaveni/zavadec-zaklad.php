@@ -20,11 +20,6 @@ require __DIR__ . '/../model/funkce/funkce.php';
 
 // načtení konfiguračních konstant
 
-// TODO refaktorovat:
-// konstanty pro výběr prostředí / větve. Odstranit a převést na konstanty pro konkrétní funkcionalitu.
-define('VYVOJOVA', 1);
-define('OSTRA', 2);
-
 error_reporting(E_ALL & ~E_NOTICE); // skrýt notice, aby se konstanty daly "přetížit" dřív vloženými
 
 if(PHP_SAPI == 'cli' || $_SERVER['REMOTE_ADDR'] == '127.0.0.1' || $_SERVER['REMOTE_ADDR'] == '::1') {
@@ -40,8 +35,11 @@ if(PHP_SAPI == 'cli' || $_SERVER['REMOTE_ADDR'] == '127.0.0.1' || $_SERVER['REMO
   die('nelze načíst nastavení verze');
 }
 
-// TODO refaktorovat:
-// konstantu VETEV odstranit a dodělat specifické konstanty, příp. přidat nastaveni-default.php
-if(!defined('VETEV')) throw new Exception('Konstanta VETEV není nastavena, nastavte na OSTRA nebo VYVOJOVA v lokálním souboru s nastavením');
-
 require __DIR__ . '/nastaveni.php';
+
+// výchozí hodnoty konstant
+// (nezobrazovat chyby, pokud už konstanta byla nastavena dřív)
+$puvodniErrorReporting = error_reporting();
+error_reporting($puvodniErrorReporting ^ E_NOTICE);
+require __DIR__ . '/nastaveni-vychozi.php';
+error_reporting($puvodniErrorReporting);

@@ -19,15 +19,6 @@ class Vyjimkovac {
 
   function __construct($dbFile) {
     $this->dbFile = $dbFile;
-
-    // TODO odstranit a ošetřit pomocí volání `zobrazeni` v zavaděči. Zatím
-    // nelze, protože zavaděče jsou přepracované i v rámci redesignu a bude
-    // merge-hell.
-    if(VETEV == VYVOJOVA) {
-      $this->zobrazeni = self::TRACY;
-    } else {
-      $this->zobrazeni = self::PICARD;
-    }
   }
 
   /**

@@ -22,8 +22,9 @@ function nasad($nastaveni) {
       /nastaveni/*
       !/nastaveni/' . $nastaveni['souborNastaveni'] . '
       !/nastaveni/nastaveni.php
-      !/nastaveni/zavadec-zaklad.php
+      !/nastaveni/nastaveni-vychozi.php
       !/nastaveni/zavadec.php
+      !/nastaveni/zavadec-zaklad.php
 
       /testy
       /udrzba

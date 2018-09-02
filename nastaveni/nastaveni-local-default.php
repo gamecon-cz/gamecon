@@ -12,12 +12,6 @@ define('DBM_PASS', '');
 define('DBM_NAME', 'gamecon');
 define('DBM_SERV', 'localhost');
 
-define('VETEV', VYVOJOVA);
-
-define('WWW',       __DIR__ . '/../web');
-define('ADMIN',     __DIR__ . '/../admin');
-define('SPEC',      __DIR__ . '/../cache/private');
-define('CACHE',     __DIR__ . '/../cache/public');
 define('URL_WEBU',  '/gamecon/web'); // absolutní url uživatelského webu
 define('URL_ADMIN', '/gamecon/admin'); // absolutní url adminu
 define('URL_CACHE', '/gamecon/cache/public'); // url sdílených cachí
@@ -32,6 +26,9 @@ define('CRON_KEY', '123');
 define('UNIVERZALNI_HESLO', ''); // obejití zadávání hesla pro vývojové prostředí
 define('FIO_TOKEN', '123456'); // přístup k api fio banky pro načítání plateb
 define('FTP_ZALOHA_DB', 'ftp://user:password@server/directory'); // FTP pro zálohy databáze
-define('MAILY_DO_SOUBORU', SPEC . '/maily.log');
+define('MAILY_DO_SOUBORU', __DIR__ . '/../cache/private/maily.log');
+define('AUTOMATICKE_MIGRACE', true);
+define('PROFILOVACI_LISTA', true);
+define('CACHE_SLOZKY_PRAVA', 0777);
 
 error_reporting(E_ALL);
