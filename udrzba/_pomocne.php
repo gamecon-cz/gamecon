@@ -54,7 +54,7 @@ function nasad($nastaveni) {
   msg('spouštím migrace na vzdálené databázi');
   call_check([
     'curl',
-    '--data', 'cFleeVar=' . $nastaveni['hesloMigrace'],
+    '--data', 'migraceHeslo=' . $nastaveni['hesloMigrace'],
     '--silent', // skrýt progressbar
     $nastaveni['urlMigrace']
   ]);

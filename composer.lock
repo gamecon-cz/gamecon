@@ -142,12 +142,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/godric-cz/db-migrations.git",
-                "reference": "c713aceb487919c050faafe48a82ac6371ea35bd"
+                "reference": "ee7544e84ce71649b558f7ace90839dd2a94c2a1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/godric-cz/db-migrations/zipball/c713aceb487919c050faafe48a82ac6371ea35bd",
-                "reference": "c713aceb487919c050faafe48a82ac6371ea35bd",
+                "url": "https://api.github.com/repos/godric-cz/db-migrations/zipball/ee7544e84ce71649b558f7ace90839dd2a94c2a1",
+                "reference": "ee7544e84ce71649b558f7ace90839dd2a94c2a1",
                 "shasum": ""
             },
             "require": {
@@ -164,7 +164,7 @@
                 "source": "https://github.com/godric-cz/db-migrations/tree/master",
                 "issues": "https://github.com/godric-cz/db-migrations/issues"
             },
-            "time": "2018-08-31 19:24:03"
+            "time": "2018-09-02 14:11:37"
         },
         {
             "name": "godric/db-test",
