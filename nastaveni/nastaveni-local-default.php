@@ -30,5 +30,6 @@ define('MAILY_DO_SOUBORU', __DIR__ . '/../cache/private/maily.log');
 define('AUTOMATICKE_MIGRACE', true);
 define('PROFILOVACI_LISTA', true);
 define('CACHE_SLOZKY_PRAVA', 0777);
+define('ZOBRAZIT_STACKTRACE_VYJIMKY', true);
 
 error_reporting(E_ALL);

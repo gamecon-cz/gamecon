@@ -11,13 +11,19 @@ require __DIR__ . '/zavadec-zaklad.php';
 pripravCache(SPEC . '/xtpl');
 XTemplate::cache(SPEC . '/xtpl');
 
+// automatické migrace
+if(AUTOMATICKE_MIGRACE) {
+  (new Godric\DbMigrations\DbMigrations([
+    'connection'          =>  dbConnect(), // musí mít admin práva
+    'migrationsDirectory' =>  __DIR__ . '/../migrace',
+    'doBackups'           =>  false,
+    'checkInitialMigrationChanges' => false,
+    'webGui'              =>  true,
+  ]))->run();
+}
+
 // zapnutí logování výjimek
 $typZobrazeni = ZOBRAZIT_STACKTRACE_VYJIMKY ? Vyjimkovac::TRACY : Vyjimkovac::PICARD;
 $vyjimkovac = new Vyjimkovac(SPEC . '/chyby.sqlite');
 $vyjimkovac->zobrazeni($typZobrazeni);
 $vyjimkovac->aktivuj();
-
-// automatické migrace
-if(AUTOMATICKE_MIGRACE) {
-  // TODO
-}
