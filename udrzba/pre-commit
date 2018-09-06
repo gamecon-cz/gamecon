@@ -1,11 +1,10 @@
-#!/usr/bin/php
-<?php
+#!/bin/sh
+php udrzba/testuj.php
 
-/**
- * Skript, který by si vývojář měl pomocí symlinku nastavit jako pre-commit
- * git hook.
- *
- * Obsahuje testy, do budoucna by měl obsahovat i linter a podobně.
- */
-
-require 'udrzba/testuj.php'; // cwd je vždy root gitu
+# Skript, který by si vývojář měl pomocí symlinku nastavit jako pre-commit
+# git hook.
+# Obsahuje testy, do budoucna by měl obsahovat i linter a podobně. Návratová
+# hodnota z php se propaguje jako návratová hodnota skriptu, tj. chyba testu
+# správně způsobí zastavení commitu.
+# TODO při přidání dalších věcí předělat nejspíš na volání samostatného
+# pre-commit.php a tam volat testy, linter, ...

@@ -57,17 +57,18 @@ function dbConnect() {
     $dbname     = DB_NAME;
     $dbuser     = DB_USER;
     $dbpass     = DB_PASS;
-    $spojeni    = NULL;
+    $spojeni    = null;
     $dbLastQ    = '';   //vztahuje se pouze na dotaz v aktualnim skriptu
     $dbNumQ     = 0;    //počet dotazů do databáze
     $dbExecTime = 0.0;  //délka výpočtu dotazů
 
     // připojení
     $start = microtime(true);
-    $spojeni = mysqli_connect('p:' . $dbhost, $dbuser, $dbpass); // persistent connection
-    if(!$spojeni) die(mysqli_error($spojeni));
-    mysqli_select_db($spojeni, $dbname);
-    mysqli_set_charset($spojeni, 'utf8');
+    $spojeni = mysqli_connect('p:' . $dbhost, $dbuser, $dbpass, $dbname); // persistent connection
+    if(!$spojeni)
+      throw new Exception('Failed to connect to the database, error: "' . mysqli_connect_error() . '".');
+    if(!$spojeni->set_charset('utf8'))
+      throw new Exception('Failed to set charset to db connection.');
     $end = microtime(true);
     $GLOBALS['dbExecTime'] += $end - $start;
     dbQuery('SET SESSION group_concat_max_len = 65536');

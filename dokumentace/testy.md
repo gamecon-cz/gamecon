@@ -15,7 +15,14 @@ Testy by se měly spouštět před každým commitem, abychom necommitovali smet
 
 Když pak dám `git commit`, automaticky se mi na pozadí spustí testy, a pokud failnou, git vypíše chybu a commit neudělá. Pokud projdou, commit se vytvoří normálně.
 
-Pokud jsem v rootu repozitáře, automatické testy před commitem nastavím následovně:
+Pokud jsem v rootu repozitáře, automatické testy před commitem nastavím následovně (na Windows):
+
+```
+cd .git\hooks
+mklink pre-commit ..\..\udrzba\pre-commit
+```
+
+Případně na Linuxu:
 
 ```bash
 cd .git/hooks/

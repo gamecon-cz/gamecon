@@ -5,9 +5,9 @@ define('DB_NAME', 'gamecon_test'); // TODO přetížit údaje pro připojení n�
 // konfigurace
 // TODO dokud není konfigurace vyřešena jinak, než přes konstanty, musíme testovat jen jeden vydefinovaný stav, tj. "reg na aktivity i GC běží"
 define('REG_GC_OD', '2000-01-01 00:00:00');
-define('REG_GC_DO', '2099-01-01 00:00:00');
+define('REG_GC_DO', '2038-01-01 00:00:00');
 define('REG_AKTIVIT_OD', '2000-01-01 00:00:00');
-define('REG_AKTIVIT_DO', '2099-01-01 00:00:00');
+define('REG_AKTIVIT_DO', '2038-01-01 00:00:00');
 
 require_once __DIR__ . '/../nastaveni/zavadec-zaklad.php';
 

@@ -9,8 +9,13 @@
 
 require_once __DIR__ . '/_pomocne.php';
 
-$cache = realpath(__DIR__ . '/../cache/private');
-if(!$cache || !is_writable($cache)) throw new Exception('Nelze zapisovat do cache/private. Zkontrolujte, že existuje a je zapisovatelná');
+$cache = __DIR__ . '/../cache/private';
+if(!is_writable($cache)) {
+  @mkdir($cache, 0777);
+  @chmod($cache, 0777);
+  if(!is_writable($cache))
+    throw new Exception('Nelze zapisovat do cache/private. Zkontrolujte, že existuje a je zapisovatelná.');
+}
 $phpunit = $cache . '/phpunit';
 
 if(@filemtime($phpunit) < time() - 3600 * 24 * 7) {
