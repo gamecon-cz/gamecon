@@ -1570,7 +1570,7 @@ class Aktivita {
     $nazev = post(self::TEAMKLIC . 'Nazev');
     $dalsiKola = array_values(array_map(function($id) { // array_map kvůli nutnosti zachovat pořadí
       return self::zId($id);
-    }, post(self::KOLA)));
+    }, post(self::KOLA) ?: []));
 
     // přihlášení týmu
     try {
