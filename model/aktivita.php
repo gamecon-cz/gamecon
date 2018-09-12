@@ -419,7 +419,23 @@ class Aktivita {
   function id()
   { return $this->a['id_akce']; }
 
-  /** Vytvoří novou instanci aktivity */
+  /**
+   * @return self[] pole instancí této aktivity (vč. sebe sama, i pokud více
+   *  instancí nemá)
+   */
+  private function instance() {
+    if($this->a['patri_pod']) {
+      $ids = dbOneArray('SELECT id_akce FROM akce_seznam WHERE patri_pod = $0', [$this->a['patri_pod']]);
+      return Aktivita::zIds($ids);
+    } else {
+      return [$this];
+    }
+  }
+
+  /**
+   * Vytvoří novou instanci aktivity
+   * @return self nově vytvořená instance
+   */
   function instanciuj()
   {
     $akt = dbOneLine('SELECT * FROM akce_seznam WHERE id_akce='.$this->id());
@@ -441,6 +457,12 @@ class Aktivita {
         ' WHERE id_akce='.$this->id()); //update původní aktivity
       dbInsert('akce_seznam',$akt);
     }
+
+    // nastavení vlastností pomocí OO rozhraní
+    $novaAktivita = self::zId(dbInsertId());
+    $novaAktivita->tagy($this->tagy());
+
+    return $novaAktivita;
   }
 
   /**
@@ -1277,13 +1299,25 @@ class Aktivita {
         return [];
     } else {
       $tagy = func_get_arg(0);
-      dbDelete('akce_tagy', ['id_akce' => $this->id()]);
-      if(!$tagy) return;
-      $qtagy = array_map(function($e){ return '('.dbQv($e).')'; }, $tagy);
-      dbQuery('INSERT IGNORE INTO tagy(nazev) VALUES '.implode(',', $qtagy).'');
-      dbQuery('INSERT INTO akce_tagy(id_akce, id_tagu)
-        SELECT $1, id FROM tagy WHERE nazev IN('.dbQa($tagy).')
-      ', [$this->id()]);
+
+      // vložit nové tagy do tabulky
+      if($tagy) {
+        $qtagy = array_map(function($e){ return '('.dbQv($e).')'; }, $tagy);
+        dbQuery('INSERT IGNORE INTO tagy(nazev) VALUES '.implode(',', $qtagy).'');
+      }
+
+      // nastavit tagy aktivitám
+      foreach($this->instance() as $aktivita) {
+        dbDelete('akce_tagy', ['id_akce' => $aktivita->id()]);
+        if(!$tagy) continue;
+
+        dbQuery('
+          INSERT INTO akce_tagy(id_akce, id_tagu)
+          SELECT $1, id FROM tagy WHERE nazev IN('.dbQa($tagy).')
+        ', [$aktivita->id()]);
+      }
+
+      $this->otoc();
     }
   }
 
