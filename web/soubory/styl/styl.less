@@ -151,6 +151,20 @@ hr.stin { border: none; background-image: data-uri('gradient2.png'); height: 4px
   }
 }
 
+.blog_obrazek { width: 100%; max-width: 360px; display: block; float: left; }
+.blog_nadpis { width: 100%; font-size: 140%; font-weight: bold; }
+.blog_info { margin-top: 6px; }
+.blog_vice { text-align: center; width: 100%; float: right; margin-bottom: 7px; font-weight: bold;
+  &:before { .ikona; display: inline-block; margin-right: 0.2em; color: #06d; }
+  & div { border-bottom: dotted 1px; display: inline-block;}
+  a { border-bottom: dotted 1px; cursor: pointer; }
+  a:hover { text-decoration: none; border-bottom: solid 1px #fff; }
+}
+.blog_text { clear: both; margin: 0.6em; text-align: justify; }
+@media @siroke {
+  .blog_text { clear: none; float: right; max-width: 333px; margin: 0.9em 2em 0 0; }
+  .blog_obrazek { width: 312px; min-height: 176px; }
+}
 
 
 /* aktivity */
@@ -208,19 +222,6 @@ hr.stin { border: none; background-image: data-uri('gradient2.png'); height: 4px
   }
   .filtr { float: right; margin: 0; width: @sloupw; form { padding: 4em 1.5em 1em; } }
 }
-
-/* blog */
-.blog_obrazek { width: 312px; height: 176px; display: block; float: left;
-}
-.blog_nadpis { width: 100%; font-size: 140%; font-weight: bold; }
-.blog_info { margin-top: 6px; }
-.blog_vice { text-align: center; width: 100%; float: right; margin-bottom: 7px; font-weight: bold;
-  &:before { .ikona; display: inline-block; margin-right: 0.2em; color: #06d; }
-  & div { border-bottom: dotted 1px; display: inline-block;}
-  a { border-bottom: dotted 1px; cursor: pointer; }
-  a:hover { text-decoration: none; border-bottom: solid 1px #fff; }
-}
-.blog_text { margin: 2% 2.5%; text-align: justify; padding-left: 62%; max-width: 333px; }
 
 /* CSS použité mimo stránku aktivity */
 .atext { margin: 2% 2.5%; text-align: justify; overflow: hidden; max-height: 8.7em;  }
