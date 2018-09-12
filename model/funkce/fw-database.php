@@ -46,9 +46,9 @@ function dbCommit() {
 }
 
 /**
- *
+ * @param bool $selectDb if database should be selected on connect or not
  */
-function dbConnect() {
+function dbConnect($selectDb = true) {
   global $spojeni, $dbLastQ, $dbNumQ, $dbExecTime;
 
   if($spojeni === null) {
@@ -64,7 +64,7 @@ function dbConnect() {
 
     // připojení
     $start = microtime(true);
-    $spojeni = mysqli_connect('p:' . $dbhost, $dbuser, $dbpass, $dbname); // persistent connection
+    $spojeni = mysqli_connect('p:' . $dbhost, $dbuser, $dbpass, $selectDb ? $dbname : ''); // persistent connection
     if(!$spojeni)
       throw new Exception('Failed to connect to the database, error: "' . mysqli_connect_error() . '".');
     if(!$spojeni->set_charset('utf8'))

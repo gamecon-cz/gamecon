@@ -12,6 +12,7 @@ define('REG_AKTIVIT_DO', '2038-01-01 00:00:00');
 require_once __DIR__ . '/../nastaveni/zavadec-zaklad.php';
 
 // příprava databáze
+dbConnect(false);
 dbQuery('CREATE DATABASE IF NOT EXISTS gamecon_test COLLATE "utf8_czech_ci"');
 dbQuery('USE gamecon_test');
 (new Godric\DbMigrations\DbMigrations([
