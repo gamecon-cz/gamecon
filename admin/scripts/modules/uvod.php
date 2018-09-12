@@ -148,6 +148,8 @@ else if($uPracovni && !$uPracovni->gcPrihlasen()) // kvůli zkratovému vyhodnoc
     'ka'  =>  $uPracovni->koncA() ? 'ka' : '',
     'rok' =>  ROK
   ]);
+  if(REG_GC)  $x->parse('uvod.neprihlasen.prihlasit');
+  else        $x->parse('uvod.neprihlasen.nelze');
   $x->parse('uvod.neprihlasen');
 }
 else
@@ -205,6 +207,9 @@ if($uPracovni) {
   }
   $x->parse('uvod.udaje');
 }
+
+// rychloregistrace
+if(REG_GC) $x->parse('uvod.rychloregPrihlasitNaGc');
 
 $x->parse('uvod');
 $x->out('uvod');

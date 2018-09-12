@@ -7,7 +7,12 @@
 <!-- end:neUzivatel -->
 <!-- begin:neprihlasen -->
   <div class="error">Uživatel{ka} není přihlášen{a} na GameCon.</div>
+  <!-- begin: prihlasit -->
   Přihlásit na GameCon {rok}: <form class="radkovy" method="post"><input type="submit" name="gcPrihlas" value="Přihlásit"></form><br><br>
+  <!-- end: prihlasit -->
+  <!-- begin: nelze -->
+  <div class="error">Registrace na GameCon není spuštěna.</div>
+  <!-- end: nelze -->
 <!-- end:neprihlasen -->
 
 
@@ -223,7 +228,9 @@
     </label></td></tr>
     <tr><td colspan="2">
       <input type="submit" value="Jen registrovat">
+      <!-- begin: rychloregPrihlasitNaGc -->
       <input type="submit" name="vcetnePrihlaseni" value="Reg. a přihlásit na GC">
+      <!-- end: rychloregPrihlasitNaGc -->
       </td></tr>
   </table>
   </form>
