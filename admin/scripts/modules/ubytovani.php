@@ -49,7 +49,6 @@ if(post('pridelitPokoj')) {
 
 
 if(post('prohozeniProvest')) {
-  var_dump($_POST);
   $u1 = Uzivatel::zId(post('u1'));
   $u2 = Uzivatel::zId(post('u2'));
   $a1 = Aktivita::zId(post('a1'));
