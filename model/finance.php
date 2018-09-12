@@ -346,6 +346,7 @@ class Finance {
     $scn = $this->soucinitelAktivit();
     $rok = ROK;
     $uid = $this->u->id();
+
     $o = dbQuery("
       SELECT
         a.nazev_akce as nazev,
@@ -363,6 +364,7 @@ class Finance {
       JOIN akce_prihlaseni_stavy st USING(id_stavu_prihlaseni)
       WHERE rok = $rok
     ");
+
     $a = $this->u->koncA();
     while($r = mysqli_fetch_assoc($o)) {
       if($r['cena'] >= 0) {
@@ -370,9 +372,11 @@ class Finance {
       } else {
         $this->sleva -= $r['cena'];
       }
+
       $poznamka = '';
       if($r['id_stavu_prihlaseni'] == 3) $poznamka = " <i>(nedorazil$a)</i>";
       if($r['id_stavu_prihlaseni'] == 4) $poznamka = " <i>(odhlášen$a pozdě)</i>";
+      if($r['id_stavu_prihlaseni'] == Aktivita::NAHRADNIK) continue;
       $this->log($r['nazev'].$poznamka, $r['cena'] < 0 ? 0 : $r['cena'], self::AKTIVITA);
     }
   }
