@@ -8,7 +8,6 @@ class Finance {
   protected
     $u,       // uživatel, jehož finance se počítají
     $stav=0,  // celkový výsledný stav uživatele na účtu
-    $stavSlevy = 0,  // celková sleva uživatele na účtu
     $deltaPozde=0,      // o kolik se zvýší platba při zaplacení pozdě
     $scnA,              // součinitel ceny aktivit
     $logovat = true,    // ukládat seznam předmětů?
@@ -24,6 +23,7 @@ class Finance {
     $cenaVstupne    = 0.0,
     $cenaVstupnePozde = 0.0,
     $sleva          = 0.0,  // sleva za tech. aktivity a odvedené aktivity
+    $slevaObecna    = 0.0,  // sleva získaná z tabulky slev
     $slevaVyuzita   = 0.0,  // sleva za odvedené aktivity (využitá část)
     $zustatek       = 0,    // zůstatek z minula
     $platby         = 0.0,  // platby připsané na účet
@@ -65,13 +65,13 @@ class Finance {
     $this->zustatek = $zustatek;
 
     $this->zapoctiVedeniAktivit();
+    $this->zapoctiSlevy();
+
     $this->cenik = new Cenik($u, $this->sleva); // musí být načteno, i pokud není přihlášen na GC
 
     if(!$u->gcPrihlasen()) return;
 
     $this->zapoctiAktivity();
-
-
     $this->zapoctiShop();
     $this->zapoctiPlatby();
     $this->zapoctiZustatek();
@@ -89,7 +89,12 @@ class Finance {
       '<b>'.$this->slevaVypravecVyuzita().'</b><br>&emsp;',
       self::ORGSLEVA);
 
-    $cena = $this->zapoctiStavSleva($cena);
+    $zbyvajiciObecnaSleva = $this->slevaObecna;
+    Cenik::aplikujSlevu($cena, $zbyvajiciObecnaSleva);
+    if($this->slevaObecna) $this->log(
+      '<b>Sleva</b><br>využitá z celkem ' . $this->slevaObecna,
+      '<b>' . ($this->slevaObecna - $zbyvajiciObecnaSleva) . '</b>',
+      self::PRIPSANE_SLEVY);
 
     $cena = $cena
       + $this->cenaVstupne
@@ -218,18 +223,15 @@ class Finance {
    * @param Uzivatel $u
    * @param float $sleva
    * @param string|null $poznamka
-   * @param Uzivatel|null $provedl
+   * @param Uzivatel $provedl
    */
-  function pripisSlevu($sleva, $poznamka = null, Uzivatel $provedl = null) {
-    $poznamka = $poznamka ?: null;
-    $orgId = $provedl->id();
-    dbInsertUpdate('slevy', [
-      'id_uzivatele' => $this->u->id(),
-      'castka' => $sleva,
-      'rok' => ROK,
-      'provedeno' => date("Y-m-d H:i:s"),
-      'provedl' => $orgId,
-      'poznamka' => $poznamka
+  function pripisSlevu($sleva, $poznamka, Uzivatel $provedl) {
+    dbInsert('slevy', [
+      'id_uzivatele'  =>  $this->u->id(),
+      'castka'        =>  $sleva,
+      'rok'           =>  ROK,
+      'provedl'       =>  $provedl->id(),
+      'poznamka'      =>  $poznamka ?: null,
     ]);
   }
 
@@ -238,9 +240,9 @@ class Finance {
     return $this->stav;
   }
 
-  /** Vrátí aktuální výši slev na účtu uživatele pro tento rok */
-  function stavSlevy() {
-    return $this->stavSlevy;
+  /** Vrátí výši obecné slevy připsané uživateli pro tento rok. */
+  function slevaObecna() {
+    return $this->slevaObecna;
   }
 
   /** Vrátí člověkem čitelný stav účtu */
@@ -250,7 +252,7 @@ class Finance {
 
   /**
    * Vrací součinitel ceny aktivit jako float číslo. Např. 0.0 pro aktivity
-   * zdarma a 1.0 pro aktivity za plnou cenu.   
+   * zdarma a 1.0 pro aktivity za plnou cenu.
    */
   function slevaAktivity() {
     return $this->soucinitelAktivit(); //todo když není přihlášen na GameCon, možná raději řešit zobrazení ceny defaultně (protože neznáme jeho studentství etc.). Viz také třída Aktivita
@@ -451,6 +453,29 @@ class Finance {
   }
 
   /**
+   * Započítá ručně zadané slevy z tabulky slev.
+   */
+  protected function zapoctiSlevy() {
+    $q = dbQuery('
+      SELECT *
+      FROM slevy
+      WHERE id_uzivatele = $0 AND rok = $1
+    ', [$this->u->id(), ROK]);
+
+    foreach($q as $sleva) {
+      if(strpos($sleva['poznamka'], '#kompenzace') !== false) {
+        // speciální typ slevy: kompenzace
+        // započítává se stejně jako sleva za vedené aktivity
+        $this->sleva += $sleva['castka'];
+      } else {
+        // normální sleva
+        // započítává se zvlášť
+        $this->slevaObecna += $sleva['castka'];
+      }
+    }
+  }
+
+  /**
    * Započítá do mezisoučtů slevy za organizované aktivity
    */
   protected function zapoctiVedeniAktivit() {
@@ -466,25 +491,6 @@ class Finance {
    */
   protected function zapoctiZustatek() {
     $this->log('Zůstatek z minulých let', $this->zustatek, self::ZUSTATEK);
-  }
-
-  protected function zapoctiStavSleva($cena) {
-    $rok = ROK;
-    $uid = $this->u->id();
-    $sum = dbOneCol("
-      SELECT SUM(castka) AS sleva_sum
-      FROM slevy
-      WHERE id_uzivatele = $uid AND rok = $rok
-    ");
-    $this->stavSlevy = (float) $sum;
-    if ($this->stavSlevy) {
-      $stavSlevy = $this->stavSlevy;
-      Cenik::aplikujSlevu($cena, $this->stavSlevy);
-      $this->log('<b>Slevy</b><br>využitá z celkem ' . $stavSlevy . '',
-        '<b>' . ($stavSlevy - $this->stavSlevy) . '<b>',
-        self::PRIPSANE_SLEVY);
-    }
-    return $cena;
   }
 
   /**

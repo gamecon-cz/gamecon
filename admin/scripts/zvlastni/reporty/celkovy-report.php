@@ -22,11 +22,11 @@ for($i = 2009; $i <= $maxRok; $i++) {
 }
 
 $hlavicka1=array_merge(
-  ['Účastník','','','','','','','','Datum narození','','','Bydliště','','','','','',
+  ['Účastník','','','','','','','','','Datum narození','','','Bydliště','','','','','',
   'Ubytovací informace','','',''],
   array_fill(0,count($gcDoted),''),
   ['Celkové náklady','','',
-  'Ostatní platby','','','','','','','','','','','','','','']
+  'Ostatní platby','','','','','','','','','','','','','','','']
 );
 $hlavicka2=array_merge(
   ['ID','Příjmení','Jméno','Přezdívka','Mail','Židle','Práva','Datum registrace','Prošel infopultem','Den','Měsíc','Rok','Stát','Město','Ulice',
@@ -115,7 +115,7 @@ while($r=mysqli_fetch_assoc($o))
       $f->vstupne(),
       $f->vstupnePozde(),
       ec($f->stav()),
-      ec($f->stavSlevy()),
+      ec($f->slevaObecna()),
       ec($r['zustatek']),
       ec($f->platby()),
       ed($un->prvniBlok()),
