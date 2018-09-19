@@ -112,12 +112,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/godric-cz/db-backup.git",
-                "reference": "a7f44a98c3d23fa0dec3b887c485be22a234ad23"
+                "reference": "33b5a05b7d4890f6a7ca6c4cea81841aa65b6302"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/godric-cz/db-backup/zipball/a7f44a98c3d23fa0dec3b887c485be22a234ad23",
-                "reference": "a7f44a98c3d23fa0dec3b887c485be22a234ad23",
+                "url": "https://api.github.com/repos/godric-cz/db-backup/zipball/33b5a05b7d4890f6a7ca6c4cea81841aa65b6302",
+                "reference": "33b5a05b7d4890f6a7ca6c4cea81841aa65b6302",
                 "shasum": ""
             },
             "require": {
@@ -134,7 +134,7 @@
                 "source": "https://github.com/godric-cz/db-backup/tree/master",
                 "issues": "https://github.com/godric-cz/db-backup/issues"
             },
-            "time": "2017-12-19 15:08:59"
+            "time": "2018-09-19 20:51:29"
         },
         {
             "name": "godric/db-migrations",
