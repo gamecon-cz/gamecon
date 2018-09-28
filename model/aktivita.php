@@ -758,11 +758,6 @@ class Aktivita {
     return $jmena;
   }
 
-  /** Vrátí specifické označení organizátora pro aktivitu tohoto typu */
-  function orgTitul() {
-    return dbOneCol('SELECT titul_orga FROM akce_typy WHERE id_typu='.$this->a['typ']);
-  }
-
   /** Alias */
   function otoc() {
     $this->refresh();
@@ -1758,23 +1753,6 @@ class Aktivita {
   }
 
   /**
-   * Vrátí pole instancí s danou url (jen ty letošní veřejně viditelné)
-   * @param $url url aktivity
-   * @param $typ url typu
-   */
-  static function zUrlViditelne($url, $typ) {
-    return self::zWhere(
-      'WHERE at.url_typu = $1 AND a.stav IN(1,2,4,5) AND a.rok = $3 AND (
-        a.url_akce = $2 OR IF(a.patri_pod, a.patri_pod = (
-          SELECT patri_pod FROM akce_seznam WHERE url_typu = $1 AND stav IN(1,2,4,5) AND rok = $3 AND url_akce = $2
-        ), 0)
-      )',
-      [$typ, $url, ROK],
-      'ORDER BY zacatek, id_akce'
-    );
-  }
-
-  /**
    * Vrátí iterátor letošních aktivit daného uživatele
    */
   static function zUzivatele(Uzivatel $u) {
@@ -1801,9 +1779,8 @@ class Aktivita {
     $o = dbQueryS("
       SELECT t3.*, $tagy FROM (
         SELECT t2.*, $prihlaseni, $url_akce FROM (
-          SELECT a.*, at.url_typu, al.poradi
+          SELECT a.*, al.poradi
           FROM akce_seznam a
-          LEFT JOIN akce_typy at ON (at.id_typu = a.typ)
           LEFT JOIN akce_lokace al ON (al.id_lokace = a.lokace)
           $where
         ) as t2
