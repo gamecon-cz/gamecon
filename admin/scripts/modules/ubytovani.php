@@ -48,21 +48,6 @@ if(post('pridelitPokoj')) {
 }
 
 
-if(post('prohozeniProvest')) {
-  $u1 = Uzivatel::zId(post('u1'));
-  $u2 = Uzivatel::zId(post('u2'));
-  $a1 = Aktivita::zId(post('a1'));
-  $a2 = Aktivita::zId(post('a2'));
-  $a1->odhlas($u1, Aktivita::BEZ_POKUT);
-  $a2->odhlas($u2, Aktivita::BEZ_POKUT);
-  $a1 = Aktivita::zId(post('a1')); // hack znovunačtení kvůli chybějícímu invalidate v aktivitě
-  $a2 = Aktivita::zId(post('a2'));
-  $a1->prihlas($u2);
-  $a2->prihlas($u1);
-  oznameni('Aktivity prohozeny');
-}
-
-
 if(post('zpracujUbytovani')) {
   $shop->zpracujUbytovani();
   oznameni('Ubytování uloženo');
@@ -76,21 +61,6 @@ if(post('zpracujJidlo')) {
 
 
 $t = new XTemplate('ubytovani.xtpl');
-
-
-if(post('prohozeniNacist')) {
-  $t->assign($_POST);
-  foreach(['u1', 'u2'] as $name) {
-    $ux = Uzivatel::zId(post($name));
-    if(!$ux) chyba('Zadaný uživatel neexistuje');
-    foreach(Aktivita::zUzivatele($ux) as $a) {
-      if(!$a->tymova() && $a->prihlasovatelna()) {
-        $t->assign('a', $a);
-        $t->parse('ubytovani.a'.$name);
-      }
-    }
-  }
-}
 
 
 $pokoj = Pokoj::zCisla(get('pokoj'));
