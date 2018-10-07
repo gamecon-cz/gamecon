@@ -372,7 +372,8 @@ class Finance {
       if($r['cena'] >= 0) {
         $this->cenaAktivity += $r['cena'];
       } else {
-        $this->sleva -= $r['cena'];
+        if(!$this->u->maPravo(P_NEMA_SLEVU_AKTIVITY))
+          $this->sleva -= $r['cena'];
       }
 
       $poznamka = '';
