@@ -25,7 +25,6 @@ class Cenik {
     P_UBYTOVANI_STREDA_ZDARMA =>  ['ubytování ve středu zdarma', P_UBYTOVANI_ZDARMA],
     P_JIDLO_ZDARMA            =>  'jídlo zdarma',
     P_JIDLO_SLEVA             =>  ['jídlo se slevou', P_JIDLO_ZDARMA],
-    P_JIDLO_SNIDANE           =>  'možnost objednat si snídani',
     P_DVE_TRICKA_ZDARMA       =>  'dvě jakákoli trička zdarma',
   ];
 

@@ -105,8 +105,6 @@ class Shop
         $fronta = &$this->predmety[];
       } elseif( $typ == self::JIDLO ) {
         $r['nabizet'] = $r['nabizet'] ||
-          $r['stav'] == 2 && strpos($r['nazev'],'Snídaně')!==false && $this->u->maPravo(P_JIDLO_SNIDANE) ||
-          //TODO pokud ostatní jídla nebudou public, nutno přidat nabízení na základě dalších práv
           $r['stav'] == 3 && $this->nastaveni['jidloBezZamku'];
         $den = $r['ubytovani_den'];
         $druh = self::bezDne($r['nazev']);

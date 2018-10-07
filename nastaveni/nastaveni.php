@@ -64,7 +64,6 @@ define('P_PLACKA_ZDARMA',1002);
 define('P_KOSTKA_ZDARMA',1003);
 define('P_JIDLO_SLEVA',1004);   //může si kupovat jídlo se slevou
 define('P_JIDLO_ZDARMA',1005);  //může si objednávat jídlo a má ho zdarma
-define('P_JIDLO_SNIDANE',1010); //může si objednat snídani
 define('P_SLEVA_AKTIVITY',1009); //za pořádané aktivity se mu vypočítává sleva
 define('P_UBYTOVANI_ZDARMA',1008); //má _všechno_ ubytování zdarma
 define('P_UBYTOVANI_STREDA_ZDARMA', 1015); // má středeční noc zdarma
