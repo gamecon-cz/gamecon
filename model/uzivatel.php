@@ -381,10 +381,7 @@ class Uzivatel {
    */
   function maZidli($zidle) {
     if(!isset($this->zidle)) {
-      $zidleMa = explode(',', dbOneCol('SELECT GROUP_CONCAT(id_zidle) FROM r_uzivatele_zidle WHERE id_uzivatele = '.$this->id()));
-      foreach($zidleMa as $id) {
-        $this->zidle[(int)$id] = true;
-      }
+      $this->zidle = dbOneIndex('SELECT id_zidle FROM r_uzivatele_zidle WHERE id_uzivatele = '.$this->id());
     }
     return isset($this->zidle[$zidle]);
   }

@@ -64,7 +64,6 @@ define('P_PLACKA_ZDARMA',1002);
 define('P_KOSTKA_ZDARMA',1003);
 define('P_JIDLO_SLEVA',1004);   //může si kupovat jídlo se slevou
 define('P_JIDLO_ZDARMA',1005);  //může si objednávat jídlo a má ho zdarma
-define('P_SLEVA_AKTIVITY',1009); //za pořádané aktivity se mu vypočítává sleva
 define('P_UBYTOVANI_ZDARMA',1008); //má _všechno_ ubytování zdarma
 define('P_UBYTOVANI_STREDA_ZDARMA', 1015); // má středeční noc zdarma
 define('P_UBYTOVANI_NEDELE_ZDARMA', 1018); // má nedělní noc zdarma
@@ -77,6 +76,7 @@ define('P_STATISTIKY_UCAST', 1024);   // židle se vypisuje se v tabulce účast
 define('P_REPORT_NEUBYTOVANI', 1025); // v reportu neubytovaných se vypisuje
 define('P_TITUL_ORG', 1026);          // v různých výpisech se označuje jako organizátor
 define('P_UNIKATNI_ZIDLE', 1027);     // uživatel může mít jen jednu židli s tímto právem
+define('P_NEMA_SLEVU_AKTIVITY', 1028);// nedostává slevu za odvedené a tech. aktivity
 unset($pre);
 
 

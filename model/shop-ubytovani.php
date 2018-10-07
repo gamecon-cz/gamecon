@@ -44,10 +44,15 @@ class ShopUbytovani {
       $t->parse('ubytovani.typ');
       $t->parse('ubytovani.cena');
     }
+
     // specifická info podle uživatele a stavu nabídky
-    if(reset($this->typy)['stav'] == 3)           $t->parse('ubytovani.konec');
-    if($this->u->maPravo(P_UBYTOVANI_ZDARMA))     $t->parse('ubytovani.infoOrg');
-    elseif($this->u->maPravo(P_SLEVA_AKTIVITY))   $t->parse('ubytovani.infoVypravec');
+    if(reset($this->typy)['stav'] == 3)
+      $t->parse('ubytovani.konec');
+    if($this->u->maPravo(P_UBYTOVANI_ZDARMA))
+      $t->parse('ubytovani.infoOrg');
+    elseif($this->u->maPravo(P_ORG_AKCI) && !$this->u->maPravo(P_NEMA_SLEVU_AKTIVITY))
+      $t->parse('ubytovani.infoVypravec');
+
     $t->parse('ubytovani');
     return $t->text('ubytovani');
   }
