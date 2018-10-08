@@ -54,7 +54,7 @@ foreach($reporty as $r) {
   $t->parse('reporty.report');
 }
 
-foreach(dbIterator('SELECT * FROM reporty') as $r) {
+foreach(dbQuery('SELECT * FROM reporty') as $r) {
   $t->assign($r);
   $t->parse('reporty.quick');
 }

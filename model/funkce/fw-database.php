@@ -179,15 +179,6 @@ function dbInsertUpdate($table, $valArray) {
 }
 
 /**
- * Returns iterator suitable for:
- *   foreach(dbIterator( ...query... ) as $row) { ... }
- */
-function dbIterator($q, $p = null) {
-  $o = dbQuery($q, $p);
-  while($r = mysqli_fetch_assoc($o)) yield $r;
-}
-
-/**
  * Return last query
  */
 function dbLastQ() {
