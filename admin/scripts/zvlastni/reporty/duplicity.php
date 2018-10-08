@@ -30,7 +30,7 @@ $r = Report::zSql('
   JOIN uzivatele_hodnoty b ON((
     (a.jmeno_uzivatele = b.jmeno_uzivatele AND a.prijmeni_uzivatele = b.prijmeni_uzivatele AND a.jmeno_uzivatele != "") AND
     (a.datum_narozeni = b.datum_narozeni AND a.datum_narozeni != 0 AND a.datum_narozeni != "1970-01-01" AND a.pohlavi = b.pohlavi)
-  ) AND a.id_uzivatele != b.id_uzivatele)
+  ) AND a.id_uzivatele < b.id_uzivatele)
 ');
 
 $r->tHtml();
