@@ -56,17 +56,16 @@ class GcMail {
     }
   }
 
-  function predmet($p = null) {
-    if($p === null) {
-      return $this->predmet;
-    } else {
-      $this->predmet = $p;
-      return $this;
-    }
+  function predmet(/* variadic */) {
+    if(func_num_args() == 0) return $this->predmet;
+
+    $this->predmet = func_get_arg(0);
+    return $this;
   }
 
   function text(/* variadic */) {
     if(func_num_args() == 0) return $this->text;
+
     $this->text = func_get_arg(0);
     return $this;
   }
