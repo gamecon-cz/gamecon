@@ -100,6 +100,8 @@ class ShopUbytovani {
     foreach($_POST[$this->pnDny] as $predmet) {
       if(!$predmet) continue;
       $q .= '('.$this->u->id().','.(int)$predmet.','.ROK.',(SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu='.(int)$predmet.'),NOW()),'."\n";
+      if($this->presKapacitu($predmet))
+        Log::warning('Uživateli '.$this->u->jmenoNick().' bylo objednáno ubytování id '.$predmet.' přes kapacitu.');
     }
     $q = substr($q,0,-2);
     if(substr($q,-1) == ')') //hack, test že se vložila aspoň jedna položka
@@ -139,6 +141,28 @@ class ShopUbytovani {
   /** Vrátí, jestli je v daný den a typ ubytování plno */
   private function plno($den, $typ) {
     return $this->zbyvaMist($den,$typ) <= 0;
+  }
+
+  /**
+   * @param int $idPredmetu ID předmětu "ubytování v určitý den"
+   * @return bool jestli si uživatel objednává ubytování přes kapacitu
+   */
+  private function presKapacitu($idPredmetu) {
+    // načtení předmětu
+    $predmet = null;
+    foreach($this->dny as $den) {
+      foreach($den as $moznyPredmet) {
+        if($moznyPredmet['id_predmetu'] == $idPredmetu) {
+          $predmet = $moznyPredmet;
+          break;
+        }
+      }
+    }
+
+    $melObjednanoDrive = $predmet['kusu_uzivatele'] > 0;
+    $kapacitaVycerpana = $predmet['kusu_vyrobeno'] <= $predmet['kusu_prodano'];
+
+    return $kapacitaVycerpana && !$melObjednanoDrive;
   }
 
   /**
