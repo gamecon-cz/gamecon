@@ -87,28 +87,31 @@ class ShopUbytovani {
   }
 
   function zpracuj() {
-    if(isset($_POST[$this->pnDny])) {
-      // smazat veškeré stávající ubytování uživatele
-      dbQuery('
-        DELETE n.* FROM shop_nakupy n
-        JOIN shop_predmety p USING(id_predmetu)
-        WHERE n.id_uzivatele='.$this->u->id().' AND p.typ=2 AND n.rok='.ROK);
-      // vložit jeho zaklikané věci - note: není zabezpečeno
-      $q = 'INSERT INTO shop_nakupy(id_uzivatele,id_predmetu,rok,cena_nakupni,datum) VALUES '."\n";
-      foreach($_POST[$this->pnDny] as $predmet)
-        if($predmet)
-          $q.='('.$this->u->id().','.(int)$predmet.','.ROK.',(SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu='.(int)$predmet.'),NOW()),'."\n";
-      $q = substr($q,0,-2);
-      if(substr($q,-1) == ')') //hack, test že se vložila aspoň jedna položka
-        dbQuery($q);
-      // uložit s kým chce být na pokoji
-      if($_POST[$this->pnPokoj])
-        dbQueryS('UPDATE uzivatele_hodnoty SET ubytovan_s=$0 WHERE id_uzivatele='.$this->u->id(),[$_POST[$this->pnPokoj]]);
-      else
-        dbQuery('UPDATE uzivatele_hodnoty SET ubytovan_s=NULL WHERE id_uzivatele='.$this->u->id());
-      return true;
+    if(!isset($_POST[$this->pnDny])) return false;
+
+    // smazat veškeré stávající ubytování uživatele
+    dbQuery('
+      DELETE n.* FROM shop_nakupy n
+      JOIN shop_predmety p USING(id_predmetu)
+      WHERE n.id_uzivatele='.$this->u->id().' AND p.typ=2 AND n.rok='.ROK);
+
+    // vložit jeho zaklikané věci - note: není zabezpečeno
+    $q = 'INSERT INTO shop_nakupy(id_uzivatele,id_predmetu,rok,cena_nakupni,datum) VALUES '."\n";
+    foreach($_POST[$this->pnDny] as $predmet) {
+      if(!$predmet) continue;
+      $q .= '('.$this->u->id().','.(int)$predmet.','.ROK.',(SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu='.(int)$predmet.'),NOW()),'."\n";
     }
-    return false;
+    $q = substr($q,0,-2);
+    if(substr($q,-1) == ')') //hack, test že se vložila aspoň jedna položka
+      dbQuery($q);
+
+    // uložit s kým chce být na pokoji
+    if($_POST[$this->pnPokoj])
+      dbQueryS('UPDATE uzivatele_hodnoty SET ubytovan_s=$0 WHERE id_uzivatele='.$this->u->id(),[$_POST[$this->pnPokoj]]);
+    else
+      dbQuery('UPDATE uzivatele_hodnoty SET ubytovan_s=NULL WHERE id_uzivatele='.$this->u->id());
+
+    return true;
   }
 
   /////////////
