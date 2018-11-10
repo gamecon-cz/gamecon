@@ -3,11 +3,12 @@
 function nasad($nastaveni) {
 
   $deployment = realpath(__DIR__ . '/../vendor/dg/ftp-deployment/deployment');
+  $zdrojovaSlozka = realpath($nastaveni['zdrojovaSlozka']);
 
   $nastaveniDeploymentu = '
     log     = /dev/null
     remote  = ' . $nastaveni['ciloveFtp'] . '
-    local   = ' . realpath($nastaveni['zdrojovaSlozka']) . '
+    local   = ' . $zdrojovaSlozka . '
     ignore  = "
       /_*
 
@@ -40,6 +41,11 @@ function nasad($nastaveni) {
     preprocess = no
     allowDelete = yes
   ';
+
+  // kontroly
+  if(!is_file($zdrojovaSlozka . '/nastaveni/' . $nastaveni['souborNastaveni'])) {
+    throw new Exception('Nenalezen soubor s nastaveními pro vzdálený server.');
+  }
 
   // nahrání souborů
   msg('synchronizuji soubory na vzdáleném ftp');
