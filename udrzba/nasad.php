@@ -25,7 +25,7 @@ if(!($vetev === 'master' || strpos($vetev, 'redesign') === 0)) {
   exit(0);
 }
 exec('git status', $out);
-if(end($out) !== 'nothing to commit, working directory clean') {
+if(!preg_match('/^nothing to commit, working (tree|directory) clean$/', end($out))) {
   echo "error: working directory is not clean\n";
   exit(1);
 }
