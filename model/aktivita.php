@@ -32,6 +32,9 @@ class Aktivita {
     PUBLIKOVANA     = 4,
     PRIPRAVENA      = 5,
     // stavy přihlášení
+    DORAZIL         = 1,
+    DORAZIL_NAHRADNIK = 2,
+    NEDORAZIL       = 3,
     NAHRADNIK       = 5,
     //ignore a parametry kolem přihlašovátka
     BEZ_POKUT       = 0b00010000,   // odhlášení bez pokut
@@ -509,17 +512,6 @@ class Aktivita {
    */
   function kratkyPopis() {
       return $this->a['popis_kratky'];
-  }
-
-  /**
-   * Zapíše do přihlašovacího kombinaci aktivita + uživatel + zpráva
-   */
-  function log(Uzivatel $u, $zprava) {
-    dbInsert('akce_prihlaseni_log', [
-      'id_uzivatele' => $u->id(),
-      'id_akce' => $this->id(),
-      'typ' => $zprava,
-    ]);
   }
 
   /** Vrátí lokaci (ndef. formát, ale musí podporovat __toString) */
@@ -1377,52 +1369,8 @@ class Aktivita {
    * @param $dorazili uživatelé, kteří se nakonec aktivity zúčastnili
    */
   function ulozPrezenci($dorazili) {
-    $prihlaseni = [];  // přihlášení kteří dorazili
-    $nahradnici = [];  // náhradníci
-    $nedorazili = [];  // přihlášení kteří nedorazili
-    $doraziliIds = []; // id všech co dorazili (kvůli kontrole přítomnosti)
-    // určení skupin kdo dorazil a kdo ne
-    foreach($dorazili as $u) {
-      if($this->prihlasen($u)) {
-        $prihlaseni[] = $u;
-      } else {
-        $nahradnici[] = $u;
-      }
-      $doraziliIds[$u->id()] = true;
-    }
-    foreach($this->prihlaseni() as $u) {
-      if(isset($doraziliIds[$u->id()])) continue;
-      $nedorazili[] = $u;
-    }
-    // úprava stavu přihlášení podle toho do jaké skupiny spadá
-    foreach($prihlaseni as $u) {
-      dbInsertUpdate('akce_prihlaseni', [
-        'id_uzivatele' => $u->id(),
-        'id_akce' => $this->id(),
-        'id_stavu_prihlaseni' => 1
-      ]);
-    }
-    foreach($nahradnici as $u) {
-      $this->odhlasZNahradnickychSlotu($u);
-      dbInsert('akce_prihlaseni', [
-        'id_uzivatele' => $u->id(),
-        'id_akce' => $this->id(),
-        'id_stavu_prihlaseni' => 2
-      ]);
-      $this->log($u, 'prihlaseni_nahradnik');
-    }
-    foreach($nedorazili as $u) {
-      dbDelete('akce_prihlaseni', [
-        'id_uzivatele' => $u->id(),
-        'id_akce' => $this->id()
-      ]);
-      dbInsert('akce_prihlaseni_spec', [
-        'id_uzivatele' => $u->id(),
-        'id_akce' => $this->id(),
-        'id_stavu_prihlaseni' => 3
-      ]);
-      $this->log($u, 'nedostaveni_se');
-    }
+    $prezence = new AktivitaPrezence($this);
+    $prezence->uloz($dorazili);
   }
 
   /**

@@ -41,6 +41,10 @@ class Typ extends DbObject {
     return $this->r['poradi'];
   }
 
+  function posilatMailyNedorazivsim() {
+    return (bool) $this->r['mail_neucast'];
+  }
+
   function url() {
     return $this->r['url_typu_mn'];
   }

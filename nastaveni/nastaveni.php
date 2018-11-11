@@ -143,6 +143,21 @@ Pokud člověka, který tě přihlásil, neznáš, kontaktuj nás prosím na <a 
 děkujeme, že ses letos zúčastnil{a} GameConu. Kliknutím na odkaz níže potvrdíš registraci na web a můžeš si nastavit přezdívku a heslo, pokud chceš používat web a třeba přijet příští rok. (Pokud by ses registroval{a} na web později, musel{a} by sis nechat vygenerovat heslo znova)
 
 <a href="http://gamecon.cz/potvrzeni-registrace/%2">http://gamecon.cz/potvrzeni-registrace/%2</a>',
+  'nedostaveniSeNaAktivituMail' =>
+'Ahoj,
+
+Zdá se, že jsi nedorazil{a} na přihlášenou aktivitu…
+
+Chápeme, že se může stát spousta věcí, které změní situaci, a ty se nemůžeš/nechceš zúčastnit. Moc tě ale prosíme:
+
+<div style="text-align: center; font-weight: bold">Vždy se z aktivity odhlaš.</div>
+
+Vypravěč ani další účastníci na Tebe nemusí čekat a zjišťovat, jestli přijdeš. Zjednoduší se tím také hledání náhradníka. Když to navíc uděláš včas, dostaneš i nějaké peníze zpátky.
+
+<div style="font-size: small">Pokud ses aktivity zúčastnil{a}, pak pravděpodobně nastala chyba v našem systému a my se za ni moc omlouváme. Můžeš tedy tento email ignorovat.</div>
+
+Děkujeme za spolupráci,
+Organizační tým GameConu'
 ];
 
 
