@@ -8,8 +8,8 @@ $t = new XTemplate('prezence-tisk.xtpl');
 
 $aktivity = Aktivita::zIds(get('ids'));
 
-//Řazení podle typu a názvu.
-$aktivity->uasort(function ($a, $b) {
+// řazení podle typu a názvu
+usort($aktivity, function($a, $b) {
   $c = $a->typId() - $b->typId(); // seřazní podle typu aktivity
   if($c != 0) {
     return $c;
