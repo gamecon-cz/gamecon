@@ -33,7 +33,6 @@
             <ul>
               <li>Vyrovnaný nedoplatek</li>
               <li>Vrácený klíč od pokoje</li>
-              <li>Nahlášení nováčci dorazili</li>
             </ul>
           </span>
         </span>
@@ -47,7 +46,6 @@
           <span class="hint">
             Před odkliknutím zkontroluj že proběhlo:
             <ul>
-              <li>Nahlášení nováčci mají stav účtu v plusu nebo max. -100</li>
               <li>Předání trička, placky, stravenek, číslo pokoje, srovnání nedoplatku</li>
               <li>Předání manuálu účastníka a vysvětlení last moment přihlašování.</li>
               <li>Doplnění chybějících údajů, jako adresy, telefonu</li>
