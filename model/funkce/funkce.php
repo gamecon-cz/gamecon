@@ -384,7 +384,7 @@ function profilInfo()
 function pripravCache($slozka) {
   if(is_writable($slozka)) return;
   if(is_dir($slozka)) throw new Exception("Do existující cache složky '$slozka' není možné zapisovat");
-  if(!mkdir($slozka)) throw new Exception("Složku '$slozka' se nepodařilo vytvořit");
+  if(!mkdir($slozka, 0777, true)) throw new Exception("Složku '$slozka' se nepodařilo vytvořit");
   chmod($slozka, CACHE_SLOZKY_PRAVA);
 }
 
