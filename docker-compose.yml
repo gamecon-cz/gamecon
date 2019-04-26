@@ -1,0 +1,22 @@
+version: "3"
+services:
+  gamecon:
+    build: .
+    container_name: gamecon.loc
+    volumes:
+      - .:/var/www/html:delegated
+    command: sh -c "sudo -u www-data composer install &&
+      chgrp -R www-data /var/www/html/cache &&
+      chmod -R g+rw /var/www/html/cache &&
+      apache2-foreground"
+    labels:
+      - "traefik.frontend.rule=Host:gamecon.loc"
+      - "traefik.docker.network=docker-www"
+    networks:
+      - default
+      - proxy
+
+networks:
+  proxy:
+    external:
+      name: docker-www
