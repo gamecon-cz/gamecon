@@ -16,7 +16,9 @@
 
 /vendor
 
-/web/soubory/*
+/admin/*.sql.gz
+
+/web/soubory/
 !/web/soubory/styl
 !/web/soubory/*.js
 !/web/soubory/systemove
