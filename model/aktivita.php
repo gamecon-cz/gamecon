@@ -1053,13 +1053,13 @@ class Aktivita {
             $out =
               '<form method="post" style="display:inline">' .
               '<input type="hidden" name="odhlasNahradnika" value="' . $this->id() . '">' .
-              '<a href="#" onclick="$(this).parent().submit(); return false">odhlásit jako náhradník</a>' .
+              '<a href="#" onclick="$(this).parent().submit(); return false">zrušit sledování</a>' .
               '</form>';
           } else {
             $out =
               '<form method="post" style="display:inline">' .
               '<input type="hidden" name="prihlasNahradnika" value="' . $this->id() . '">' .
-              '<a href="#" onclick="$(this).parent().submit(); return false">přihlásit jako náhradník</a>' .
+              '<a href="#" onclick="$(this).parent().submit(); return false">sledovat</a>' .
               '</form>';
           }
         }
