@@ -80,7 +80,7 @@ class Shop
     $o = dbQuery('
       SELECT
         p.*,
-        IF(p.model_rok = $1, nazev, CONCAT(nazev," ",model_rok)) as nazev,
+        IF(p.model_rok = $1, nazev, CONCAT(nazev," (",popis,")")) as nazev,
         COUNT(IF(n.rok = $1, 1, NULL)) kusu_prodano,
         COUNT(IF(n.id_uzivatele = $2 AND n.rok = $1, 1, NULL)) kusu_uzivatele,
         SUM(  IF(n.id_uzivatele = $2 AND n.rok = $1, cena_nakupni, 0)) sum_cena_nakupni

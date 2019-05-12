@@ -6,7 +6,7 @@ function nasad($nastaveni) {
   $zdrojovaSlozka = realpath($nastaveni['zdrojovaSlozka']);
 
   $nastaveniDeploymentu = '
-    log     = /dev/null
+    log     = nasad.log
     remote  = ' . $nastaveni['ciloveFtp'] . '
     local   = ' . $zdrojovaSlozka . '
     ignore  = "
@@ -49,7 +49,7 @@ function nasad($nastaveni) {
 
   // nahrání souborů
   msg('synchronizuji soubory na vzdáleném ftp');
-  $souborNastaveniDeploymentu = '/tmp/' . mt_rand();
+  $souborNastaveniDeploymentu = 'tmp-' . mt_rand();
   file_put_contents($souborNastaveniDeploymentu, $nastaveniDeploymentu);
   try {
     call_check(['php', $deployment, $souborNastaveniDeploymentu]);
