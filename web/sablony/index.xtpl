@@ -82,7 +82,7 @@
     <div class="obsah">
       {obsah}
       <div class="sloupce">
-        <a class="blok upoutavka" href="soutez">
+        <!--a class="blok upoutavka" href="soutez">
           <img src="soubory/obsah/titulka/soutez.jpg">
           <div class="stredni"><div>Soutěž o skvělé deskovky</div></div>
         </a>
@@ -93,7 +93,7 @@
         <a class="blok upoutavka" href="celohra">
           <img src="soubory/obsah/titulka/celohra.jpg">
           <div class="stredni"><div>Celohra na GC</div></div>
-        </a>
+        </a-->
       </div>
     </div>
     <div class="blok sponzori">
