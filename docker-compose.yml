@@ -19,10 +19,16 @@ services:
   sql.gamecon:
     image: mariadb:10.1
     environment:
-      - MYSQL_ALLOW_EMPTY_PASSWORD=1
+      - MYSQL_ROOT_PASSWORD=root
     labels:
+      - "traefik.backend=sql.gamecon"
+      - "traefik.frontend.rule=Host:sql.gamecon.loc"
       - "traefik.docker.network=docker-www"
-      - "traefik.docker.port=3306"
+    ports:
+      - 13306:3306
+    networks:
+      - default
+      - proxy
 
 networks:
   proxy:
