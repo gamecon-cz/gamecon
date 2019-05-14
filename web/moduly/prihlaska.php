@@ -80,6 +80,10 @@ $t->assign([
   'kostka_m'  =>  nahledPredmetu('kostka_m.jpg'),
   'placka'    =>  nahledPredmetu('placka.jpg'),
   'placka_m'  =>  nahledPredmetu('placka_m.jpg'),
+  'nicknack'    =>  nahledPredmetu('nicknack.jpg'),
+  'nicknack_m'  =>  nahledPredmetu('nicknack_m.jpg'),
+  'batoh'    =>  nahledPredmetu('batoh.jpg'),
+  'batoh_m'  =>  nahledPredmetu('batoh_m.jpg'),  
 ]);
 
 $t->parse($u->gcPrihlasen() ? 'prihlaska.prihlasen' : 'prihlaska.neprihlasen');

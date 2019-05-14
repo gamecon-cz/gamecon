@@ -28,8 +28,12 @@
   <hr>
 
   <div class="nahledy">
+    <a href="{batoh}" class="lightbox" title="Batoh">
+    <img src="{batoh_m}"></a>
     <a href="{kostka}" class="lightbox" title="Kostka">
     <img src="{kostka_m}"></a>
+    <a href="{nicknack}" class="lightbox" title="Nicknack">
+    <img src="{nicknack_m}"></a>
     <a href="{placka}" class="lightbox" title="Placka">
     <img src="{placka_m}"></a>
     <a href="{tricko}" class="lightbox" title="Tričko">
