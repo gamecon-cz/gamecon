@@ -43,4 +43,4 @@ RUN userdel -f www-data && \
 		mkdir -p /home/www-data && \
 		chown www-data:www-data /home/www-data
 
-ENV environment=local
+ENV ENV=local
