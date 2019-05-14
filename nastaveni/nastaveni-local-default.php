@@ -33,7 +33,9 @@ $constants = [
     'ZOBRAZIT_STACKTRACE_VYJIMKY' => true,
 ];
 foreach ($constants as $constantName => $constantValue) {
-    define($constantName, $constantValue);
+    if (!defined($constantName)) {
+        define($constantName, $constantValue);
+    }
 }
 unset($constants, $constantName, $constantValue);
 
