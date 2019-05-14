@@ -2,7 +2,6 @@ version: "3"
 services:
   gamecon:
     build: .
-    container_name: gamecon.loc
     volumes:
       - .:/var/www/html:delegated
     command: sh -c "sudo -u www-data composer install &&
@@ -12,9 +11,18 @@ services:
     labels:
       - "traefik.frontend.rule=Host:gamecon.loc"
       - "traefik.docker.network=docker-www"
+      - "traefik.docker.port=80"
     networks:
       - default
       - proxy
+
+  sql.gamecon:
+    image: mariadb:10.1
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=1
+    labels:
+      - "traefik.docker.network=docker-www"
+      - "traefik.docker.port=3306"
 
 networks:
   proxy:
