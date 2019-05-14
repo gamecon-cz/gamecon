@@ -5,20 +5,24 @@ ARG GROUP_ID=1000
 
 # Install other missed extensions
 RUN apt-get update && apt-get install -y \
-      mc \
-      vim \
       zlib1g-dev \
       libaio-dev \
       libxml2-dev \
       librabbitmq-dev \
+      libyaml-0-2 libyaml-dev
+
+# Install tools
+RUN apt-get install -y \
+      mc \
+      vim \
       curl \
       gnupg \
-      libyaml-0-2 libyaml-dev \
       git \
       sudo \
     && apt-get clean; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
 RUN a2enmod rewrite expires && \
+	# avoid warning on start
     echo 'ServerName localhost' >> /etc/apache2/apache2.conf
 
 # Fix debconf warnings upon build
@@ -30,6 +34,7 @@ RUN docker-php-ext-install mysqli pdo_mysql intl \
 RUN echo 'alias ll="ls -al"' >> ~/.bashrc \
     && mkdir -p /var/log
 
+# re-build www-data user with same user ID and group ID as a current host user (you)
 RUN userdel -f www-data && \
         if getent group www-data ; then groupdel www-data; fi && \
         groupadd --gid ${GROUP_ID} www-data && \
