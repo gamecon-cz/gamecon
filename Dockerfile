@@ -43,4 +43,10 @@ RUN userdel -f www-data && \
 		mkdir -p /home/www-data && \
 		chown www-data:www-data /home/www-data
 
+COPY ./.docker/gamecon-run.sh /
+
+RUN chmod +x /gamecon-run.sh
+
 ENV ENV=local
+
+ENTRYPOINT /gamecon-run.sh
