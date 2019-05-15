@@ -64,7 +64,7 @@ function dbConnect($selectDb = true) {
 
     // připojení
     $start = microtime(true);
-    $spojeni = mysqli_connect('p:' . $dbhost, $dbuser, $dbpass, $selectDb ? $dbname : ''); // persistent connection
+    $spojeni = @mysqli_connect('p:' . $dbhost, $dbuser, $dbpass, $selectDb ? $dbname : ''); // persistent connection
     if(!$spojeni)
       throw new Exception('Failed to connect to the database, error: "' . mysqli_connect_error() . '".');
     if(!$spojeni->set_charset('utf8'))
