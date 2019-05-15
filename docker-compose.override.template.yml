@@ -1,0 +1,13 @@
+version: "3"
+services:
+  gamecon:
+    build: .
+    ports:
+      - 80:80
+
+  sql.gamecon:
+    image: mariadb:10.1
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    ports:
+      - 13306:3306
