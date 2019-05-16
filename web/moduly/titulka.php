@@ -5,8 +5,8 @@ $this->bezDekorace(true);
 
 $t->assign([
   'menu'    =>  $menu,
-  'blog'    =>  Novinka::zNejnovejsi(Novinka::BLOG),
-  'novinka' =>  Novinka::zNejnovejsi(Novinka::NOVINKA),
+  'blog'    =>  Novinka::zNejnovejsi(Novinka::BLOG) ?? Novinka::vytvorPrazdne(),
+  'novinka' =>  Novinka::zNejnovejsi(Novinka::NOVINKA) ?? Novinka::vytvorPrazdne(),
   'a'       =>  $u ? $u->koncA() : '',
 ]);
 
