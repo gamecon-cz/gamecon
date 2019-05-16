@@ -18,6 +18,7 @@
     }
   ],
   "require": {
+    "php": ">=7.1",
     "michelf/php-markdown": "~1.4",
     "oyejorge/less.php": "~1.7",
     "dg/mysql-dump": "^1.4",
