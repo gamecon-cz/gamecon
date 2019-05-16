@@ -18,6 +18,7 @@
     }
   ],
   "require": {
+    "php": ">=7.1",
     "ext-json": "*",
     "michelf/php-markdown": "~1.4",
     "oyejorge/less.php": "~1.7",
