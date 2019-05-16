@@ -25,6 +25,10 @@ RUN a2enmod rewrite expires && \
 	# avoid warning on start
     echo 'ServerName localhost' >> /etc/apache2/apache2.conf
 
+# Install additional PHP extensions
+RUN yes | pecl install xdebug-2.6.1 \
+    && docker-php-ext-install intl
+
 # Fix debconf warnings upon build
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -43,10 +47,10 @@ RUN userdel -f www-data && \
 		mkdir -p /home/www-data && \
 		chown www-data:www-data /home/www-data
 
-COPY ./.docker/gamecon-run.sh /
+COPY ./.docker/ /.docker
 
-RUN chmod +x /gamecon-run.sh
+RUN chmod +x /.docker/*.sh
 
 ENV ENV=local
 
-ENTRYPOINT /gamecon-run.sh
+ENTRYPOINT /.docker/gamecon-run.sh
