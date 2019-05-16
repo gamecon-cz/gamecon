@@ -2,13 +2,15 @@
 
 $this->bezOkraju(true);
 
+/** @type Uzivatel|null $u */
 if($u) Aktivita::prihlasovatkoZpracuj($u);
 
 $program = new Program($u, ['osobni' => $this->param('osobni')]);
 $a = $u ? $u->koncA() : '';
 
 // hack na staticko-dynamické zobrazení legendy
-$legenda = Stranka::zUrl('program-legenda')->html();
+$legendaStranka = Stranka::zUrl('program-legenda');
+$legenda = $legendaStranka ? $legendaStranka->html() : '';
 $legenda = str_replace('{a}', $u ? $u->koncA() : '', $legenda);
 $legenda = str_replace('{n}', $u && $u->pohlavi() == 'f' ? 'ice' : 'ík', $legenda);
 if(!$u || !$u->maPravo(P_ORG_AKCI)) $legenda = preg_replace('@.*organizuji.*@', '', $legenda);
