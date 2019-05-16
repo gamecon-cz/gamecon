@@ -8,7 +8,23 @@
  */
 
 $this->q(
-<<<EOT
+<<<SQL
+
+CREATE TABLE IF NOT EXISTS `_vars`
+(
+    `name` varchar(64) NOT NULL
+        PRIMARY KEY,
+    `value` varchar(4096) NULL
+)
+    COLLATE=utf8_czech_ci;
+
+CREATE TABLE IF NOT EXISTS `db_migrations`
+(
+    `name` varchar(200) NOT NULL
+        PRIMARY KEY,
+    `value` varchar(5000) NULL
+)
+    COLLATE=utf8_czech_ci;
 
 -- ------- --
 -- Tabulky --
@@ -366,5 +382,5 @@ INSERT INTO `akce_prihlaseni_stavy` (`id_stavu_prihlaseni`, `nazev`, `platba_pro
 
 INSERT INTO stranky (id_stranky) VALUES (77);
 
-EOT
+SQL
 );
