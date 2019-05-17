@@ -2,6 +2,9 @@ version: "3"
 services:
   gamecon:
     build: .
+    volumes:
+      - .:/var/www/html/gamecon:delegated
+    entrypoint: /.docker/xdebug.gamecon-run.sh
     ports:
       - 80:80
 
