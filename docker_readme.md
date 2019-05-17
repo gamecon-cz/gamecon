@@ -40,6 +40,20 @@ Do SQL databáze máš otevřený port 13306. K databázi se můžeš připojit 
 - URL zadej 127.0.0.1 a port 13306
 - jméno a heslo je `root`, `root` (nebo co máš napsané v `nastaveni/nastaveni-local.php`
 
+### XDebug
+Při vývoji se často hodí [XDebug](https://deliciousbrains.com/xdebug-advanced-php-debugging/), kterým jde odkrokovat jednotlivá volání a prohlédnout si hodnoty v proměnných.
+
+Přednastavený Docker kontejner už v sobě XDebug má aktivovaný, takže ho potřebuješ "jen" nastavit u sebe.
+
+TODO
+
+#### Vypnutí XDebugu
+Xdebug dost zpomaluje, což většinou nevadí, ale při náročnějších operacích je prodleva už nepříjemná.
+
+Pokud ho chceš vypnout, přepiš ve svém  `docker-compose.override.yml` řádek
+- `entrypoint: /.docker/xdebug.gamecon-run.sh` na `entrypoint: /.docker/gamecon-run.sh`
+	- není to žádná magie, prostě se jen použije jiný spouštěcí skript z naší složky `.docker`, schválně se do ní podívej
+
 ### Potíže s Dockerem
 
 #### Konflikt portů
