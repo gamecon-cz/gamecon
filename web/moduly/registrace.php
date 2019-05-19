@@ -180,10 +180,10 @@ $(function(){
     let err='';
     let loginy = <?=json_encode($loginy)?>;
     loginy.forEach(function(login, loginIndex){
-        loginy[loginIndex] = bezdiakritiky(login);
+        loginy[loginIndex] = bezdiakritiky(login.toLowerCase().trim());
     });
     let novyLogin = $('[name="tab[login_uzivatele]"]').val();
-    if(loginy.indexOf(bezdiakritiky(novyLogin.toLowerCase())) !== -1)
+    if(loginy.indexOf(bezdiakritiky(novyLogin.toLowerCase().trim())) !== -1)
     {
       err+='Přezdívka je už zabraná. ';
       <?php if(!$u){ ?>
