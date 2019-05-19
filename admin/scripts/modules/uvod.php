@@ -187,7 +187,7 @@ if($uPracovni) {
     'datum_narozeni'        =>  'Narozen'.$uPracovni->koncA(),
     'email1_uzivatele'      =>  'E-mail',
     'poznamka'              =>  'Poznámka',
-    'op'                    =>  'Číslo OP',
+    // 'op'                    =>  'Číslo OP',
   ];
   $r = dbOneLine('SELECT '.implode(',', array_keys($udaje)).' FROM uzivatele_hodnoty WHERE id_uzivatele = '.$uPracovni->id());
   foreach($udaje as $sloupec => $nazev) {
