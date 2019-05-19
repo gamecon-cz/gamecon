@@ -77,11 +77,11 @@ if($u)
 $avatar=$u?$u->avatar():Uzivatel::avatarDefault();
 // zabrané přezdívky uživatelů
 $o=dbQuery('SELECT login_uzivatele FROM uzivatele_hodnoty '.($u?'WHERE id_uzivatele!='.$u->id():''));
-$loginy='';
-while($r=mysqli_fetch_row($o))
-  $loginy.='"'.strtolower(strtr($r[0], ['"' => '', "\n" => ''])).'",';
-$loginy=substr($loginy,0,-1);
-
+$loginy=[];
+while ($row=mysqli_fetch_row($o)) {
+  $login = $row[0];
+  $loginy[] = strtolower(strtr($login, ['"' => '', "\n" => '']));
+}
 ?>
 
 
@@ -176,12 +176,14 @@ $loginy=substr($loginy,0,-1);
 
 <script>
 $(function(){
-
   function formChyby(){
-    err='';
-    var loginy = [<?=$loginy?>];
-    loginy.forEach(function(a, i){ loginy[i] = bezdiak(a); });
-    if( loginy.indexOf(bezdiak($('[name="tab[login_uzivatele]"]').val().toLowerCase())) != -1 )
+    let err='';
+    let loginy = <?=json_encode($loginy)?>;
+    loginy.forEach(function(login, loginIndex){
+        loginy[loginIndex] = bezdiakritiky(login);
+    });
+    let novyLogin = $('[name="tab[login_uzivatele]"]').val();
+    if(loginy.indexOf(bezdiakritiky(novyLogin.toLowerCase())) !== -1)
     {
       err+='Přezdívka je už zabraná. ';
       <?php if(!$u){ ?>
@@ -216,16 +218,17 @@ $(function(){
     });
   }
 
-  sdiak="áäčďéěíĺľňóôőöŕšťúůűüýřžÁÄČĎÉĚÍĹĽŇÓÔŐÖŔŠŤÚŮŰÜÝŘŽ";
-  bdiak="aacdeeillnoooorstuuuuyrzAACDEEILLNOOOORSTUUUUYRZ";
-  function bezdiak(v) {
-    tx=""; txt=v;
-    for(p=0;p<txt.length;p++) {
-      if (sdiak.indexOf(txt.charAt(p))!=-1)
-      tx+=bdiak.charAt(sdiak.indexOf(txt.charAt(p)));
-      else tx+=txt.charAt(p);
+  function bezdiakritiky(text) {
+    const sDiakritikou="áäčďéěíĺľňóôőöŕšťúůűüýřžÁÄČĎÉĚÍĹĽŇÓÔŐÖŔŠŤÚŮŰÜÝŘŽ";
+    const bezDiakritiky="aacdeeillnoooorstuuuuyrzAACDEEILLNOOOORSTUUUUYRZ";
+    let cistyText="";
+    for(let poziceZnaku=0;poziceZnaku<text.length;poziceZnaku++) {
+      if (sDiakritikou.indexOf(text.charAt(poziceZnaku))!==-1) {
+          cistyText += bezDiakritiky.charAt(sDiakritikou.indexOf(text.charAt(poziceZnaku)));
+      }
+      else cistyText+=text.charAt(poziceZnaku);
     }
-    return tx;
+    return cistyText;
   }
 
   <?php if(!$u){ ?>
