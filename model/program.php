@@ -27,7 +27,7 @@ class Program {
 
   private $aktivityUzivatele = []; // aktivity uživatele
   private $maxPocetAktivit = []; // maximální počet souběžných aktivit v daném dni
-  
+
   /**
    * Konstruktor bere uživatele a specifikaci, jestli je to osobní program
    */
@@ -94,7 +94,7 @@ class Program {
               }
               if($prazdnaBunka === true) {
                   echo('<td></td>');
-              }              
+              }
             }
 
             $radku++;
@@ -130,7 +130,7 @@ class Program {
                 $this->tiskAktivity($aktivita);
                 $aktivita = $this->dalsiAktivita();
                 $aktivit++;
-              } 
+              }
               else
                 echo('<td></td>');
             }
@@ -355,11 +355,11 @@ class Program {
     $this->maxPocetAktivit [$denId] = 0;
     $this->aktivityUzivatele =  new ArrayObject();
 
-    while($aktivita && $denId==$aktivita['den']) {
+    while($aktivita) {
       if($denId == $aktivita['den']) {
         $this->aktivityUzivatele->append($aktivita);
       }
-      
+
       $aktivita = $this->dalsiAktivita();
     }
 
@@ -375,6 +375,8 @@ class Program {
         }
       }
     }
+
+    $this->program->rewind(); // vrácení iterátoru na začátek pro případ, potřeby projít aktivity znovu pro jiný den
   }
 
   private function prazdnaMistnost($nazev) {
