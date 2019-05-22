@@ -1,5 +1,5 @@
 <?php
-// smazání hodnoty občanský průkaz u všech uživatelů
+// Provázání čtvrtfinále a semifinále DrD, aby byli hráči při zápisu rovnou zapsáni i tam
 
 /** @var \Godric\DbMigrations\Migration $this */
 $this->q("
