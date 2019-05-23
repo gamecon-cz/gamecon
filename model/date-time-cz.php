@@ -58,7 +58,7 @@ class DateTimeCz extends DateTime
    * @return string
    */
   function formatDatumStandard() {
-    return parent::format('j.n.Y');
+    return parent::format('j. n. Y');
   }
 
   /** Vrací blogový/dopisový formát */
