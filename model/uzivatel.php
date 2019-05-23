@@ -567,9 +567,9 @@ class Uzivatel {
 
   /**
    * Vytvoří v session na indexu $klic dalšího uživatele pro práci
-   * @return objekt Uzivatel nebo null
+   * @return null|Uzivatel nebo null
    */
-  public static function prihlasId($id,$klic='uzivatel')
+  public static function prihlasId($id,$klic='uzivatel'): ?Uzivatel
   {
     $u=dbOneLineS('SELECT * FROM uzivatele_hodnoty WHERE id_uzivatele=$0',
       [$id]);

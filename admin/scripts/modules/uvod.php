@@ -89,9 +89,12 @@ if(post('poznamkaNastav')) {
 if(post('zmenitUdaj')) {
   $udaje = post('udaj');
   if($udaje['op'] ?? null) {
-    // občanku potřebujeme zašiforvat
     $uPracovni->cisloOp($udaje['op']);
     unset($udaje['op']);
+  }
+  if (empty($udaje['potvrzeni_zakonneho_zastupce'])) {
+      // datum potvrzeni je odskrnute (prohlizec nezaskrtly chceckbox neposle), musime ho smazat
+      $udaje['potvrzeni_zakonneho_zastupce'] = null;
   }
   try {
     dbUpdate('uzivatele_hodnoty', $udaje, ['id_uzivatele' => $uPracovni->id()]);
@@ -177,32 +180,67 @@ $x->assign('predmety',$moznosti);
 // form s osobními údaji
 if($uPracovni) {
   $udaje = [
-    'login_uzivatele'       =>  'Přezdívka',
-    'jmeno_uzivatele'       =>  'Jméno',
-    'prijmeni_uzivatele'    =>  'Příjmení',
-    'ulice_a_cp_uzivatele'  =>  'Ulice',
-    'mesto_uzivatele'       =>  'Město',
-    'psc_uzivatele'         =>  'PSČ',
-    'telefon_uzivatele'     =>  'Telefon',
-    'datum_narozeni'        =>  'Narozen'.$uPracovni->koncA(),
-    'email1_uzivatele'      =>  'E-mail',
-    'poznamka'              =>  'Poznámka',
-    // 'op'                    =>  'Číslo OP',
+    'login_uzivatele'       =>          'Přezdívka',
+    'jmeno_uzivatele'       =>          'Jméno',
+    'prijmeni_uzivatele'    =>          'Příjmení',
+    'ulice_a_cp_uzivatele'  =>          'Ulice',
+    'mesto_uzivatele'       =>          'Město',
+    'psc_uzivatele'         =>          'PSČ',
+    'telefon_uzivatele'     =>          'Telefon',
+    'datum_narozeni'        =>          'Narozen'.$uPracovni->koncA(),
+    'email1_uzivatele'      =>          'E-mail',
+    'poznamka'              =>          'Poznámka',
+    // 'op'                    =>          'Číslo OP',
+    'potvrzeni_zakonneho_zastupce' => 'Potvrzení &lt; 15'
   ];
   $r = dbOneLine('SELECT '.implode(',', array_keys($udaje)).' FROM uzivatele_hodnoty WHERE id_uzivatele = '.$uPracovni->id());
+    $datumNarozeni = new DateTime($r['datum_narozeni']);
+  $potrebujePotvrzeni = potrebujePotvrzeni(
+      $datumNarozeni,
+      $r['potvrzeni_zakonneho_zastupce']
+          ? new DateTime($r['potvrzeni_zakonneho_zastupce'])
+          : null
+  );
   foreach($udaje as $sloupec => $nazev) {
     $hodnota = $r[$sloupec];
     if($sloupec == 'op') {
-      $hodnota = $uPracovni->cisloOp();
+       $hodnota = $uPracovni->cisloOp(); // desifruj cislo obcanskeho prukazu
+    }
+    $zobrazenaHodnota = $hodnota;
+    $vstupniHodnota = $hodnota;
+    $popisek = '';
+    if ($sloupec === 'potvrzeni_zakonneho_zastupce') {
+        $popisek = sprintf(
+            'Zda máme letošní potvrzení od rodiče nebo zákonného zástupce, že účastník může na Gamecon, i když mu do začátku Gameconu (%s) ještě nebude patnáct.',
+            (new DateTimeCz(zacatekLetosnihoGameconu()->format(DATE_ATOM)))->formatDatumStandard()
+        );
+        $vstupniHodnota = $potrebujePotvrzeni
+            ? date('Y-m-d') // zmeni se na dnesni datum pouze pokud je zaskrtly checkbox
+            : $hodnota; // nepotrebujeme nove potvrzeni, nechavame puvodni hodnotu
+        $zobrazenaHodnota = $potrebujePotvrzeni ? '' : 'máme';
     }
     $x->assign([
       'nazev' => $nazev,
       'sloupec' => $sloupec,
-      'hodnota' => $hodnota,
+      'vztupniHodnota' => $vstupniHodnota,
+      'zobrazenaHodnota' => $zobrazenaHodnota,
+      'popisek' => $popisek
     ]);
-    if($hodnota == '' && $sloupec != 'poznamka') $x->parse('uvod.udaje.udaj.chybi');
-    if($sloupec != 'poznamka') $x->parse('uvod.udaje.udaj.input');
-    else $x->parse('uvod.udaje.udaj.text');
+    if($sloupec === 'poznamka') {
+        $x->parse('uvod.udaje.udaj.text');
+    } else if ($sloupec === 'potvrzeni_zakonneho_zastupce') {
+        $x->assign([
+            'checked' => !$potrebujePotvrzeni && !empty($r['potvrzeni_zakonneho_zastupce'])
+                ? 'checked' // letosni potvrzeni mame
+                : ''
+        ]);
+        $x->parse('uvod.udaje.udaj.checkbox');
+    } else {
+        $x->parse('uvod.udaje.udaj.input');
+    }
+    if(($hodnota == '' && $sloupec != 'poznamka') || ($sloupec === 'potvrzeni_zakonneho_zastupce' && $potrebujePotvrzeni)) {
+        $x->parse('uvod.udaje.udaj.chybi');
+    }
     $x->parse('uvod.udaje.udaj');
   }
   $x->parse('uvod.udaje');

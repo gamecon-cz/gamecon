@@ -51,7 +51,7 @@ function datum2($dbRadek)
 }
 
 
-/** Vrací datum ve stylu 1. července 
+/** Vrací datum ve stylu 1. července
  *  akceptuje vše, co žere strtotime */
 function datum3($datum)
 {
@@ -398,4 +398,29 @@ function scrc32($data) {
     $crc = -$crc;
   }
   return $crc;
+}
+
+function potrebujePotvrzeni(DateTimeInterface $narozeni, ?DateTimeInterface $datumPredchozihoPotvrzeni): bool {
+    if ($datumPredchozihoPotvrzeni && $datumPredchozihoPotvrzeni->format('Y') === date('Y')) {
+        return false;  // mame letosni potvrzeni, nepotrebujeme nove
+    }
+    // cilene bez hodin, minut a sekund
+    return vek($narozeni, zacatekLetosnihoGameconu()) < 15;
+}
+
+function vek(DateTimeInterface $narozeni, ?DateTimeInterface $kDatu): int {
+    $kDatu = $kDatu ?? new DateTimeImmutable(date('Y-m-d 00:00:00'));
+    return $kDatu->diff($narozeni)->y;
+}
+
+function zacatekLetosnihoGameconu(): DateTimeInterface {
+    $letostniCervenecText = date('Y-07-01');
+    $letostniCervenec = DateTimeImmutable::createFromFormat('Y-m-d', $letostniCervenecText);
+    $pocetDniDoCtvrtka = 4 - $letostniCervenec->format('w');
+    if ($pocetDniDoCtvrtka < 0) {
+        $pocetDniDoCtvrtka = 7 + $pocetDniDoCtvrtka; // napriklad sobota ma index 6, 4 - 6 = -2, 7 + -2 = 5
+    }
+    $prvniCtvrtekVCervenci = $letostniCervenec->modify("+ $pocetDniDoCtvrtka days");
+    $tretiCtvrtekVCervenci = $prvniCtvrtekVCervenci->modify('+ 2 weeks');
+    return $tretiCtvrtekVCervenci;
 }
