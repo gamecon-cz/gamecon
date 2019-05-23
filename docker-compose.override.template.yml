@@ -4,7 +4,10 @@ services:
     build: .
     volumes:
       - .:/var/www/html/gamecon:delegated
-    entrypoint: /.docker/xdebug.gamecon-run.sh
+    entrypoint:
+      - sh
+      - -c
+      - head -n 1 /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini > /tmp/docker-php-ext-xdebug.ini && cat /tmp/docker-php-ext-xdebug.ini > /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini && echo "\nxdebug.remote_host=172.0.0.2\nxdebug.remote_port=9000\nxdebug.remote_enable=1\nxdebug.idekey=PHPSTORM\nxdebug.remote_log=/tmp/xdebug.log" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini && /.docker/gamecon-run.sh
     ports:
       - 80:80
 
