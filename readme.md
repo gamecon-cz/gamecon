@@ -46,6 +46,8 @@ composer install
   - Ověřit funkčnost http://localhost/gamecon/web
 - Další informace o struktuře repozitáře a architektuře kódu je možné si přečíst v [složce dokumentace](dokumentace).
 
+Gamecon lze puštět i v Dockeru, viz [docker_readme.md](docker_readme.md).
+
 ## Návod na přispívání
 
 - Pokud se chcete nejdřív seznámit s gitem, dobrá je online knížka [Pro Git](https://git-scm.com/book/cs/v2) (důležité jsou první tři kapitoly).
