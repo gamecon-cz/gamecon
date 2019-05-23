@@ -400,27 +400,21 @@ function scrc32($data) {
   return $crc;
 }
 
-function potrebujePotvrzeni(DateTimeInterface $narozeni, ?DateTimeInterface $datumPredchozihoPotvrzeni): bool {
-    if ($datumPredchozihoPotvrzeni && $datumPredchozihoPotvrzeni->format('Y') === date('Y')) {
-        return false;  // mame letosni potvrzeni, nepotrebujeme nove
-    }
+function potrebujePotvrzeni(DateTimeImmutable $datumNarozeni): bool {
     // cilene bez hodin, minut a sekund
-    return vek($narozeni, zacatekLetosnihoGameconu()) < 15;
+    return vekNaZacatkuLetosnihoGameconu($datumNarozeni) < 15;
 }
 
-function vek(DateTimeInterface $narozeni, ?DateTimeInterface $kDatu): int {
+function vekNaZacatkuLetosnihoGameconu(DateTimeImmutable $datumNarozeni): int {
+    // cilene bez hodin, minut a sekund
+    return vek($datumNarozeni->setTime(0, 0, 0), zacatekLetosnihoGameconu()->setTime(0, 0, 0));
+}
+
+function vek(DateTimeInterface $datumNarozeni, ?DateTimeInterface $kDatu): int {
     $kDatu = $kDatu ?? new DateTimeImmutable(date('Y-m-d 00:00:00'));
-    return $kDatu->diff($narozeni)->y;
+    return $kDatu->diff($datumNarozeni)->y;
 }
 
-function zacatekLetosnihoGameconu(): DateTimeInterface {
-    $letostniCervenecText = date('Y-07-01');
-    $letostniCervenec = DateTimeImmutable::createFromFormat('Y-m-d', $letostniCervenecText);
-    $pocetDniDoCtvrtka = 4 - $letostniCervenec->format('w');
-    if ($pocetDniDoCtvrtka < 0) {
-        $pocetDniDoCtvrtka = 7 + $pocetDniDoCtvrtka; // napriklad sobota ma index 6, 4 - 6 = -2, 7 + -2 = 5
-    }
-    $prvniCtvrtekVCervenci = $letostniCervenec->modify("+ $pocetDniDoCtvrtka days");
-    $tretiCtvrtekVCervenci = $prvniCtvrtekVCervenci->modify('+ 2 weeks');
-    return $tretiCtvrtekVCervenci;
+function zacatekLetosnihoGameconu(): DateTimeImmutable {
+    return new DateTimeImmutable(GC_BEZI_OD);
 }

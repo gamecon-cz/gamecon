@@ -194,13 +194,10 @@ if($uPracovni) {
     'potvrzeni_zakonneho_zastupce' => 'Potvrzení &lt; 15'
   ];
   $r = dbOneLine('SELECT '.implode(',', array_keys($udaje)).' FROM uzivatele_hodnoty WHERE id_uzivatele = '.$uPracovni->id());
-    $datumNarozeni = new DateTime($r['datum_narozeni']);
-  $potrebujePotvrzeni = potrebujePotvrzeni(
-      $datumNarozeni,
-      $r['potvrzeni_zakonneho_zastupce']
-          ? new DateTime($r['potvrzeni_zakonneho_zastupce'])
-          : null
-  );
+  $datumNarozeni = new DateTimeImmutable($r['datum_narozeni']);
+  $potvrzeniOd = $r['potvrzeni_zakonneho_zastupce'] ? new DateTimeImmutable($r['potvrzeni_zakonneho_zastupce']) : null;
+  $potrebujePotvrzeni = potrebujePotvrzeni($datumNarozeni);
+  $mameLetosniPotvrzeni = $potvrzeniOd && $potvrzeniOd->format('y') === date('y');
   foreach($udaje as $sloupec => $nazev) {
     $hodnota = $r[$sloupec];
     if($sloupec == 'op') {
@@ -214,10 +211,12 @@ if($uPracovni) {
             'Zda máme letošní potvrzení od rodiče nebo zákonného zástupce, že účastník může na Gamecon, i když mu do začátku Gameconu (%s) ještě nebude patnáct.',
             (new DateTimeCz(zacatekLetosnihoGameconu()->format(DATE_ATOM)))->formatDatumStandard()
         );
-        $vstupniHodnota = $potrebujePotvrzeni
+        $vstupniHodnota = $potrebujePotvrzeni && !$mameLetosniPotvrzeni
             ? date('Y-m-d') // zmeni se na dnesni datum pouze pokud je zaskrtly checkbox
             : $hodnota; // nepotrebujeme nove potvrzeni, nechavame puvodni hodnotu
-        $zobrazenaHodnota = $potrebujePotvrzeni ? '' : 'máme';
+        $zobrazenaHodnota = $mameLetosniPotvrzeni ? 'máme' : '';
+    } else if ($sloupec === 'datum_narozeni') {
+        $popisek = sprintf('Věk na začátku Gameconu %d let', vekNaZacatkuLetosnihoGameconu($datumNarozeni));
     }
     $x->assign([
       'nazev' => $nazev,
@@ -230,7 +229,7 @@ if($uPracovni) {
         $x->parse('uvod.udaje.udaj.text');
     } else if ($sloupec === 'potvrzeni_zakonneho_zastupce') {
         $x->assign([
-            'checked' => !$potrebujePotvrzeni && !empty($r['potvrzeni_zakonneho_zastupce'])
+            'checked' => $mameLetosniPotvrzeni
                 ? 'checked' // letosni potvrzeni mame
                 : ''
         ]);
@@ -238,8 +237,14 @@ if($uPracovni) {
     } else {
         $x->parse('uvod.udaje.udaj.input');
     }
-    if(($hodnota == '' && $sloupec != 'poznamka') || ($sloupec === 'potvrzeni_zakonneho_zastupce' && $potrebujePotvrzeni)) {
-        $x->parse('uvod.udaje.udaj.chybi');
+    if ($sloupec === 'potvrzeni_zakonneho_zastupce') {
+        if ($potrebujePotvrzeni && !$mameLetosniPotvrzeni) {
+            $x->parse('uvod.udaje.udaj.chybi');
+        }
+    } else if ($sloupec !== 'poznamka') {
+        if ($hodnota == '') {
+            $x->parse('uvod.udaje.udaj.chybi');
+        }
     }
     $x->parse('uvod.udaje.udaj');
   }
