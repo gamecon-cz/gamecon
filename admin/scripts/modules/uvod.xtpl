@@ -131,7 +131,7 @@
     <table>
       <!-- begin:udaj -->
       <tr>
-        <td style="width:80px;white-space: nowrap" >
+        <td style="width:80px" >
 					<!-- begin:nazevSPopiskem -->
 						<span class="hinted">{nazev}:<span class="hint">{popisek}</span></span>
 					<!-- end:nazevSPopiskem -->

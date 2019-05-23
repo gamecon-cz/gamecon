@@ -191,7 +191,7 @@ if($uPracovni) {
     'email1_uzivatele'      =>          'E-mail',
     'poznamka'              =>          'Poznámka',
     // 'op'                    =>          'Číslo OP',
-    'potvrzeni_zakonneho_zastupce' => 'Potvrzení &lt; 15'
+    'potvrzeni_zakonneho_zastupce' => 'Potvrzení'
   ];
   $r = dbOneLine('SELECT '.implode(',', array_keys($udaje)).' FROM uzivatele_hodnoty WHERE id_uzivatele = '.$uPracovni->id());
   $datumNarozeni = new DateTimeImmutable($r['datum_narozeni']);
