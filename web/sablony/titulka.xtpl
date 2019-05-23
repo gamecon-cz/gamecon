@@ -4,6 +4,7 @@
 
   <div class="blok novt">
 
+		<!-- begin:blog -->
     <a class="upoutavka" href="blog/{blog.url}">
       <img src="{blog.obrazek}">
       <div class="horni"><div>{blog.nazev}</div></div>
@@ -16,12 +17,14 @@
       </div>
       <a class="vice" href="blog/{blog.url}">…více</a>
     </div>
+		<!-- end:blog -->
 
     <h2 class="pruh">
       <a href="novinky">&#9660; Novinky</a> &emsp; | &emsp;
       <a href="blog">Blog &#9650;</a> &emsp;
     </h2>
 
+		<!-- begin:novinka -->
     <div class="ntext">
       <div class="orez">
         <h3>
@@ -31,6 +34,7 @@
         {novinka.nahled}
       </div>
     </div>
+		<!-- end:novinka -->
 
   </div>
 

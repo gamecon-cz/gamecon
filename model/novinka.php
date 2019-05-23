@@ -82,19 +82,4 @@ class Novinka extends DbObject {
   static function zVsech() {
     return self::zWhere('1 ORDER BY vydat = 0 DESC, vydat DESC');
   }
-
-    /**
-     * @deprecated Odstranit az budeme mit lepsi sablonovaci jazyk, ktery umi if (ted vykreslujeme prazdny obdelnik)
-     * @return Novinka
-     */
-  static function vytvorPrazdne(): Novinka {
-      return new static([
-          static::$pk => null,
-          'url' => null,
-          'typ' => null,
-          'text' => '',
-          'nazev' => null,
-          'vydat' => '2001-01-01',
-      ]);
-  }
 }
