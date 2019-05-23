@@ -208,7 +208,7 @@ if($uPracovni) {
     $popisek = '';
     if ($sloupec === 'potvrzeni_zakonneho_zastupce') {
         $popisek = sprintf(
-            'Zda máme letošní potvrzení od rodiče nebo zákonného zástupce, že účastník může na Gamecon, i když mu do začátku Gameconu (%s) ještě nebude patnáct.',
+            'Zda máme letošní potvrzení od rodiče nebo zákonného zástupce, že účastník může na Gamecon, i když mu na začátku Gameconu (%s) ještě nebude patnáct.',
             (new DateTimeCz(zacatekLetosnihoGameconu()->format(DATE_ATOM)))->formatDatumStandard()
         );
         $vstupniHodnota = $potrebujePotvrzeni && !$mameLetosniPotvrzeni
@@ -225,6 +225,11 @@ if($uPracovni) {
       'zobrazenaHodnota' => $zobrazenaHodnota,
       'popisek' => $popisek
     ]);
+    if ($popisek) {
+        $x->parse('uvod.udaje.udaj.nazevSPopiskem');
+    } else {
+        $x->parse('uvod.udaje.udaj.nazevBezPopisku');
+    }
     if($sloupec === 'poznamka') {
         $x->parse('uvod.udaje.udaj.text');
     } else if ($sloupec === 'potvrzeni_zakonneho_zastupce') {

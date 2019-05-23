@@ -130,8 +130,15 @@
   <form method="post" class="udaje">
     <table>
       <!-- begin:udaj -->
-      <tr title="{popisek}">
-        <td style="width:80px;white-space: nowrap" >{nazev}:</td>
+      <tr>
+        <td style="width:80px;white-space: nowrap" >
+					<!-- begin:nazevSPopiskem -->
+						<span class="hinted">{nazev}:<span class="hint">{popisek}</span></span>
+					<!-- end:nazevSPopiskem -->
+					<!-- begin:nazevBezPopisku -->
+						{nazev}:
+					<!-- end:nazevBezPopisku -->
+        </td>
         <td style="padding:0">
           <div onclick="$('.udaje .label').hide(); $('.udaje .input').show().find('input, textarea').first().focus()"
                style="width: 100%; cursor: pointer;" class="label">
