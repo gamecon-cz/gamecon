@@ -45,7 +45,15 @@ Při vývoji se často hodí [XDebug](https://deliciousbrains.com/xdebug-advance
 
 Přednastavený Docker kontejner už v sobě XDebug má aktivovaný, takže ho potřebuješ "jen" nastavit u sebe.
 
-TODO
+#### Jak funguje XDebug
+Je dobré vědět, jak věci fungují, snáze se to pak nastavuje a opravuje.
+
+Xdebug běží v PHP a hlásí ven, co se v něm děje. Sám ale nečeká, až ho někdo kontaktuje a požádá ho, jestli by mohl reportovat i jemu. Xdebug buďto hlásí všechno od začátku, nebo vůbec nic a hlásí to po jediném kanálu, který má od začátku (běhu PHP instance) nastavený.
+
+My se tedy k XDebugu nepřipojujeme, on se připojuje k **nám**.
+Když si chceme zobrazit Gamecon, tak my jsme klient, který se chce připojit k serveru (tady Apache) v Dockeru. Ovšem Xdebug je ten klient, co se chce připojit ven k nám, k našemu IDE (například k PHPStormu), které dělá **server**.
+
+A stejně jako my potřebujeme vědět adresu Docker kontejneru, ve kterém nám běží Gamecon, tak XDebug potřebuje znát adresu hosta, tedy našeho stroje.
 
 #### Vypnutí XDebugu
 Xdebug dost zpomaluje, což většinou nevadí, ale při náročnějších operacích je prodleva už nepříjemná.
