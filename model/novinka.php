@@ -23,7 +23,7 @@ class Novinka extends DbObject {
   /** Prvních $n znaků příspěvku */
   function nahled($n = 250) {
     $sub = mb_substr(strip_tags($this->text()), 0, $n);
-    if($sub[0] == '_') $sub[0] = ' ';
+    if(isset($sub[0]) && $sub[0] == '_') $sub[0] = ' ';
     return $sub;
   }
 
@@ -82,5 +82,4 @@ class Novinka extends DbObject {
   static function zVsech() {
     return self::zWhere('1 ORDER BY vydat = 0 DESC, vydat DESC');
   }
-
 }

@@ -11,15 +11,9 @@ require __DIR__ . '/zavadec-zaklad.php';
 pripravCache(SPEC . '/xtpl');
 XTemplate::cache(SPEC . '/xtpl');
 
-// automatické migrace
+// automatické migrace databáze
 if(AUTOMATICKE_MIGRACE) {
-  (new Godric\DbMigrations\DbMigrations([
-    'connection'          =>  dbConnect(), // musí mít admin práva
-    'migrationsDirectory' =>  __DIR__ . '/../migrace',
-    'doBackups'           =>  false,
-    'checkInitialMigrationChanges' => false,
-    'webGui'              =>  true,
-  ]))->run();
+    require __DIR__ . '/db-migrace.php';
 }
 
 // zapnutí logování výjimek

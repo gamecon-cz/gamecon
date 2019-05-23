@@ -10,8 +10,11 @@ abstract class DbObject {
   protected static $tabulka;    // název tabulky - odděděná třída _musí_ přepsat
   protected static $pk = 'id';  // název primárního klíče - odděděná třída může přepsat
 
-  /** Vytvoří objekt na základě řádku z databáze */
-  protected function __construct($r) {
+  /**
+   * Vytvoří objekt na základě řádku z databáze
+   * @param array $r
+   */
+  protected function __construct(array $r) {
     $this->r = $r;
   }
 

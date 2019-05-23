@@ -18,6 +18,7 @@
     }
   ],
   "require": {
+    "php": ">=7.1",
     "ext-json": "*",
     "ext-mysqli": "*",
     "michelf/php-markdown": "~1.4",
