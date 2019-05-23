@@ -131,11 +131,18 @@
     <table>
       <!-- begin:udaj -->
       <tr>
-        <td style="width:80px">{nazev}:</td>
+        <td style="width:80px" >
+					<!-- begin:nazevSPopiskem -->
+						<span class="hinted">{nazev}:<span class="hint">{popisek}</span></span>
+					<!-- end:nazevSPopiskem -->
+					<!-- begin:nazevBezPopisku -->
+						{nazev}:
+					<!-- end:nazevBezPopisku -->
+        </td>
         <td style="padding:0">
           <div onclick="$('.udaje .label').hide(); $('.udaje .input').show().find('input, textarea').first().focus()"
                style="width: 100%; cursor: pointer;" class="label">
-            {hodnota} &nbsp;
+            {zobrazenaHodnota} &nbsp;
             <!-- begin:chybi -->
             <img src="files/design/error-s.png" style="margin-bottom:-2px">
             požádej o doplnění
@@ -145,12 +152,16 @@
             <table class="cista input" style="width:100%;display:none;">
               <tr>
                 <!-- begin:input -->
-                <td><input type="text" name="udaj[{sloupec}]" value="{hodnota}" style="margin-left: -3px;"></td>
+                <td><input type="text" name="udaj[{sloupec}]" value="{vztupniHodnota}" style="margin-left: -3px;"></td>
                 <td><input type="submit" name="zmenitUdaj" value="uložit"></td>
                 <!-- end:input -->
+                <!-- begin:checkbox -->
+                <td><input type="checkbox" name="udaj[{sloupec}]" value="{vztupniHodnota}" {checked} style="margin-left: -3px;"></td>
+                <td><input type="submit" name="zmenitUdaj" value="uložit"></td>
+                <!-- end:checkbox -->
                 <!-- begin:text -->
                 <td colspan="2">
-                  <textarea name="udaj[{sloupec}]" style="margin-left: -3px; margin-top: -1px">{hodnota}</textarea>
+                  <textarea name="udaj[{sloupec}]" style="margin-left: -3px; margin-top: -1px">{vztupniHodnota}</textarea>
                 </td>
                 <td><input type="submit" name="zmenitUdaj" value="uložit"></td>
                 <!-- end:text -->
