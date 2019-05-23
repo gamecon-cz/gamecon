@@ -33,9 +33,9 @@ RUN a2enmod rewrite expires && \
 	# avoid warning on start
     echo 'ServerName localhost' >> /etc/apache2/apache2.conf
 
-# Install additional PHP extensions
+# XDebug
 RUN yes | pecl install xdebug-2.6.1 \
-    && docker-php-ext-install intl
+    && docker-php-ext-enable xdebug
 
 # Fix debconf warnings upon build
 ARG DEBIAN_FRONTEND=noninteractive
