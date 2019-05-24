@@ -50,24 +50,37 @@ Přednastavený Docker kontejner už v sobě XDebug má aktivovaný, takže ho p
 #### Jak funguje XDebug
 Je dobré vědět, jak věci fungují, snáze se to pak nastavuje a opravuje.
 
-Xdebug běží v PHP a hlásí ven, co se v něm děje. Sám ale nečeká, až ho někdo kontaktuje a požádá ho, jestli by mohl reportovat i jemu. Xdebug buďto hlásí všechno od začátku, nebo vůbec nic a hlásí to po jediném kanálu, který má od začátku (běhu PHP instance) nastavený.
+Xdebug běží v PHP a hlásí **ven**, co se v něm děje. Sám ale nečeká, až ho někdo kontaktuje a začne ho žádat, jestli by mohl reportovat i jemu. Xdebug buďto hlásí všechno od začátku, nebo vůbec nic a hlásí to po jediném kanálu, který má od začátku (běhu PHP instance) nastavený.
 
 My se tedy k XDebugu nepřipojujeme, on se připojuje k **nám**.
-Když si chceme zobrazit Gamecon, tak my jsme klient, který se chce připojit k serveru (tady Apache) v Dockeru. Ovšem Xdebug je ten klient, co se chce připojit ven k nám, k našemu IDE (například k PHPStormu), které dělá **server**.
+Když si chceme zobrazit Gamecon, tak náš prohlížeč je klient, který se chce připojit k serveru (tady Apache na portu 80) v Dockeru. Ovšem Xdebug je ten klient, co se chce připojit k nám, k našemu IDE (například k PHPStormu), které dělá **server** (obvykle na portu 9000).
 
-A stejně jako my potřebujeme vědět adresu Docker kontejneru, ve kterém nám běží Gamecon, tak XDebug potřebuje znát adresu hosta, tedy našeho stroje.
+A stejně jako my potřebujeme vědět adresu serveru, na který se chceme připojit, třeba gamecon.cz:80, tak i XDebug potřebuje znát adresu serveru, tedy našeho stroje.
 
-#### Vypnutí XDebugu
-Xdebug dost zpomaluje, což většinou nevadí, ale při náročnějších operacích je prodleva už nepříjemná.
+#### Adresa našeho stroje (hosta) z Dockeru
 
-Pokud ho chceš vypnout, přepiš ve svém  `docker-compose.override.yml` řádek
-- `entrypoint: /.docker/xdebug.gamecon-run.sh` na `entrypoint: /.docker/gamecon-run.sh`
-	- není to žádná magie, prostě se jen použije jiný spouštěcí skript z naší složky `.docker`, schválně se do ní podívej
+Protože je ale Docker svět sám pro sebe, tak má vlastní síť a vlastní rozsahy IP adres, takže XDebug v Dcokeru neuvidí tvůj počítač pod adresou 127.0.0.1 - pod tou má sám sebe.
+
+Bránu a její IP adresu, přes kterou komunikuje Docker s tvým počítačem, najdeš u sebe v přehledu sítí.
+
+- na Windows dej v příklazovvém řádku `ipconfig`
+- na Linuxu `ifconfig`, nebo `ip address`
+
+a hledej síť s názvem `docker0`. Bude u ní něco jako `inet 10.10.0.1/24`, což znamená internal network s bránou 10.10.0.1 a nějakým rozsahem podadres. Zajímá nás samozřejmě ta IP adresa brány - to je IP adresa, na které každý náš Docker kontejner vidí náš počítač.
+
+Ta se hodí například pro XDebug.
+
+#### Nastavení adresy pro XDebug
+Máme adresu našeho počítače, ke kterému se má z Dockeru připojit XDebug. Teď už ji jenom potřebujeme PHP nějak předat.
+
+Zkopíruj si `docker-compose.override.template.yml` jako `docker-compose.override.yml`. Otevři `docker-compose.override.yml` a uprav IP adresu v textu `xdebug.remote_host=172.0.0.2` na tu, kterou jsi našel ve svýc sítích pod názvem `docker0`. V našem příkladu by z toho vzniklo `xdebug.remote_host=10.10.0.1`.
+
+Soubor ulož a pusť docker přes `docker-compose up` (přes příkazovou řádku, musíš být v adresáři s gameconem, respektive se soubory `Docker` a `docker-compose.override.yml`).
 
 ### Potíže s Dockerem
 
 #### Konflikt portů
-Pokud už na svém počítači máš obsazený port 80, nebo port 13306, tak je můžeš změnit v `docker-compose.override.yml`
+Pokud už na svém počítači máš obsazený port 80, nebo port 13306, tak je můžeš změnit v `docker-compose.override.yml` (zkopíruj `docker-compose.override.template.yml`).
 
 - v části `ports` je něco jako `80:80`, to levé číslo je port na tvém počítači a to tě zajímá (to pravé pak port, na kterém běží Apache v Dockeru)
 	- změň ho na co chceš, třeba `8080` pokud máš takový port volný (zjištíš spuštěním)
