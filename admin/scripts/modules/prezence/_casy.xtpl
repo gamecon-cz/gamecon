@@ -1,16 +1,19 @@
 <!-- begin:casy -->
 <div style="position: relative">
-<div style="position: absolute; right: 0px; bottom: 5px; text-align: right">
+<div style="position: absolute; right: 5px; top: -4em; text-align: right">
   Stránka načtena {datum} v {casAktualni}<br />
   <!-- begin:casMan -->Čas vybrán manuálně (<a href="prezence">vybrat automaticky</a>)<br /><!-- end:casMan -->
   <!-- begin:casAuto -->Čas vybrán automaticky<br /><!-- end:casAuto -->
   Zobrazují se aktivity začínající od
-  <form method="get" style="display: inline" id="cas">
+  <form method="get" style="display: inline-block" id="cas">
     <select name="cas" onchange="$('#cas').submit()" style="margin-right:0">
       <option value="">(zvolte čas)</option>
       <!-- begin:cas --><option {sel} value="{val}">{cas}</option><!-- end:cas -->
     </select>
   </form>
+  <!-- begin:chybaCasu -->
+    <div class="error textDoprava">Čas '{chybnyCas}' nelze rozpoznat. Zkuste to znovu.</div>
+  <!-- end:chybaCasu -->
 </div>
 </div>
 <!-- end:casy -->

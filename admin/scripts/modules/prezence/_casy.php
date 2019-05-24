@@ -17,24 +17,27 @@ function _casy(&$zacatekDt, $pre = false) {
   $gcZacatek = new DateTimeCz(DEN_PRVNI_DATE);
   $delta = $ted->getTimestamp() - $gcZacatek->getTimestamp(); //rozdíl sekund od začátku GC
 
-  if(get('cas')) {
+  $vybrany = null;
+  if (get('cas')) {
     // čas zvolený manuálně
-    $vybrany = new DateTimeCz(get('cas'));
-  } elseif(0 < $delta && $delta < 3600*24*4) {
+    try {
+      $vybrany = new DateTimeCz(get('cas'));
+    } catch (Throwable $throwable) {
+      $t->assign('chybnyCas', get('cas'));
+      $t->parse('casy.chybaCasu');
+    }
+  } elseif (0 < $delta && $delta < 3600 * 24 * 4) {
     // nejspíš GC právě probíhá, čas předvolit automaticky
     $vybrany = clone $ted;
     $vybrany->zaokrouhlitNahoru('H');
-    if($pre) $vybrany->sub(new DateInterval('PT1H'));
+    if ($pre) $vybrany->sub(new DateInterval('PT1H'));
     $t->parse('casy.casAuto');
-  } else {
-    // žádný čas
-    $vybrany = null;
   }
 
-  for($den = new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen()) {
-    for($hodina = PROGRAM_ZACATEK; $hodina < PROGRAM_KONEC; $hodina++) {
-      $t->assign('cas', $den->format('l').' '.$hodina.':00');
-      $t->assign('val', $den->format('Y-m-d').' '.$hodina.':00');
+  for ($den = new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen()) {
+    for ($hodina = PROGRAM_ZACATEK; $hodina < PROGRAM_KONEC; $hodina++) {
+      $t->assign('cas', $den->format('l') . ' ' . $hodina . ':00');
+      $t->assign('val', $den->format('Y-m-d') . ' ' . $hodina . ':00');
       $t->assign('sel', $vybrany && $vybrany->stejnyDen($den) && $vybrany->format('H') == $hodina ? 'selected' : '');
       $t->parse('casy.cas');
     }
