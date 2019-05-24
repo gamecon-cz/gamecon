@@ -34,11 +34,13 @@ define('DBM_SERV', 'sql.gamecon');
 Kdykoli později budeš chtít pustit Gamecon u sebe, spusť `docker-compose up` v adresáři s Gameconem.
 
 ### Připojení k databázi
-Do SQL databáze máš otevřený port 13306. K databázi se můžeš připojit třeba přes program [HeidiSQL](https://www.heidisql.com/), kde zvol
+Do SQL databáze máš otevřený port 3306. K databázi se můžeš připojit třeba přes program [HeidiSQL](https://www.heidisql.com/), kde zvol
 
 - typ databáze MariaDB (nebo MySQL, jestli tam MariaDB není)
-- URL zadej 127.0.0.1 a port 13306
+- URL zadej 127.0.0.1 a port 3306
 - jméno a heslo je `root`, `root` (nebo co máš napsané v `nastaveni/nastaveni-local.php`
+
+Podobně se připojíš i přes příkazový řádek, pokud máš mysql klienta nainstalovaného ve svém počítači. Například pro nahrání anonimizované databáze použiješ něco jako `mysql --user=root --password=root --host=127.0.0.1 --port=3306 gamecon < /home/jaroslav/Downloads/gamecon_anonym_2019_05_08.sql`
 
 ### XDebug
 Při vývoji se často hodí [XDebug](https://deliciousbrains.com/xdebug-advanced-php-debugging/), kterým jde odkrokovat jednotlivá volání a prohlédnout si hodnoty v proměnných.
