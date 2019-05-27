@@ -3,10 +3,10 @@
 /**
  * Vhackovaný code snippet na zobrazení vybírátka času
  * @param DateTimeCz $zacatekDt do tohoto se přiřadí vybraný čas začátku aktivit
- * @param bool $pre jestli se má vybírat hodina od vybraného času, nebo hodina před vybraným časem
+ * @param bool $pred true jestli se má vybírat hodina před vybraným časem a false jestli vybraná hodina
  * @return string html kód vybírátka
  */
-function _casy(&$zacatekDt, $pre = false) {
+function _casy(&$zacatekDt, bool $pred = false) {
 
   $t = new XTemplate(__DIR__ . '/_casy.xtpl');
 
@@ -30,7 +30,7 @@ function _casy(&$zacatekDt, $pre = false) {
     // nejspíš GC právě probíhá, čas předvolit automaticky
     $vybrany = clone $ted;
     $vybrany->zaokrouhlitNahoru('H');
-    if ($pre) $vybrany->sub(new DateInterval('PT1H'));
+    if ($pred) $vybrany->sub(new DateInterval('PT1H'));
     $t->parse('casy.casAuto');
   }
 

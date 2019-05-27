@@ -1357,8 +1357,9 @@ class Aktivita {
 
   /**
    * Vrátí pole s přihlášenými účastníky
+   * @return Uzivatel[]
    */
-  function prihlaseni() {
+  function prihlaseni(): array {
     $u = substr($this->prihlaseniRaw(), 1, -1);
     $u = preg_replace('@(m|f)\d+@', '', $u);
     return Uzivatel::zIds($u);
@@ -1745,6 +1746,14 @@ class Aktivita {
     }
 
     return array_values($kolekce);
+  }
+
+  public static function hodinaNejblizsiAktivity(DateTimeInterface $po = null) {
+    dbQuery('
+        SELECT *
+        FROM akce_seznam
+        WHERE CASE WHEN ? THEN zacatek > ? ELSE TRUE END
+    ');
   }
 
 }
