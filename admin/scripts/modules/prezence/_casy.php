@@ -15,6 +15,8 @@ function _casy(&$zacatekDt, bool $pred = false) {
   $t->assign('datum', $ted->format('j.n.'));
   $t->assign('casAktualni', $ted->format('H:i:s'));
 
+  $zacatkyAktivit = Aktivita::zacatkyAktivit(new DateTimeCz(PROGRAM_OD), new DateTimeCz(PROGRAM_DO), 0, ['zacatek']);
+
   $vybrany = null;
   if (get('cas')) {
     // čas zvolený manuálně
@@ -31,23 +33,19 @@ function _casy(&$zacatekDt, bool $pred = false) {
     if ($pred) $vybrany->sub(new DateInterval('PT1H'));
     $t->parse('casy.casAuto');
   } else { // zvolíme první cas, ve kterém je nějaká aktivita
-    $vsechnyAktivity = Aktivita::zRozmezi(new DateTimeCz(PROGRAM_OD), new DateTimeCz(PROGRAM_DO), 0, ['id']);
-    /** @var Aktivita $prvniAktivita */
-    $prvniAktivita = $vsechnyAktivity[0] ?? null;
-    if ($prvniAktivita) {
-      $vybrany = $prvniAktivita->zacatek();
+    /** @var DateTimeCz $prvniZacatek */
+    $prvniZacatek = reset($zacatkyAktivit);
+    if ($prvniZacatek) {
+      $vybrany = $prvniZacatek;
+      $t->parse('casy.casAutoPrvni');
     }
-    $t->parse('casy.casAutoPrvni');
-    unset($vsechnyAktivity, $prvniAktivita);
   }
 
-  for ($den = new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen()) {
-    for ($hodina = PROGRAM_ZACATEK; $hodina < PROGRAM_KONEC; $hodina++) {
-      $t->assign('cas', $den->format('l') . ' ' . $hodina . ':00');
-      $t->assign('val', $den->format('Y-m-d') . ' ' . $hodina . ':00');
-      $t->assign('sel', $vybrany && $vybrany->stejnyDen($den) && $vybrany->format('H') == $hodina ? 'selected' : '');
-      $t->parse('casy.cas');
-    }
+  foreach ($zacatkyAktivit as $zacatek) {
+    $t->assign('cas', $zacatek->format('l') . ' ' . $zacatek->format('H') . ':00');
+    $t->assign('val', $zacatek->format('Y-m-d') . ' ' . $zacatek->format('H') . ':00');
+    $t->assign('sel', $vybrany && $vybrany->format('Y-m-d H') === $zacatek->format('Y-m-d H') ? 'selected' : '');
+    $t->parse('casy.cas');
   }
 
   $zacatekDt = $vybrany ? clone $vybrany : null;
