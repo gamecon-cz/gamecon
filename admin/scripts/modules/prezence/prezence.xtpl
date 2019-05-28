@@ -17,12 +17,17 @@
     <input type="hidden" name="prezenceAktivity" value="{a.id}" />
     <table class="ucastnici zvyraznovana">
       <tr>
-        <th><span class="hinted">?<span class="hint">
-          Jestli je uživatel přítomen v tomto okamžiku na GC (prošel infopultem)</span></span></th>
+        <th>
+          <span class="hinted">?
+            <span class="hint">Jestli je uživatel přítomen v tomto okamžiku na GC (prošel infopultem)</span>
+          </span>
+        </th>
         <th>ID</th>
         <th>Jméno</th>
         <th>Telefon</th>
-        <th></th>
+        <th>
+          <span class="hinted">?<span class="hint">Dorazil účastník na aktivitu?</span></span>
+        </th>
       </tr>
       <!-- begin:ucastnik -->
       <tr>
