@@ -41,11 +41,16 @@ function _casy(&$zacatekDt, bool $pred = false) {
     }
   }
 
-  foreach ($zacatkyAktivit as $zacatek) {
-    $t->assign('cas', $zacatek->format('l') . ' ' . $zacatek->format('H') . ':00');
-    $t->assign('val', $zacatek->format('Y-m-d') . ' ' . $zacatek->format('H') . ':00');
-    $t->assign('sel', $vybrany && $vybrany->format('Y-m-d H') === $zacatek->format('Y-m-d H') ? 'selected' : '');
-    $t->parse('casy.cas');
+  if ($zacatkyAktivit) {
+    foreach ($zacatkyAktivit as $zacatek) {
+      $t->assign('cas', $zacatek->format('l') . ' ' . $zacatek->format('H') . ':00');
+      $t->assign('val', $zacatek->format('Y-m-d') . ' ' . $zacatek->format('H') . ':00');
+      $t->assign('sel', $vybrany && $vybrany->format('Y-m-d H') === $zacatek->format('Y-m-d H') ? 'selected' : '');
+      $t->parse('casy.vyberCasu.cas');
+    }
+    $t->parse('casy.vyberCasu');
+  } else {
+    $t->parse('casy.zadnyCas');
   }
 
   $zacatekDt = $vybrany ? clone $vybrany : null;
