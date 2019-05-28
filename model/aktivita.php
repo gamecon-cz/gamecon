@@ -672,7 +672,7 @@ class Aktivita {
    * Odhlásí ze všech náhradnických slotů ve stejný čas jako aktivita po přihlášení na aktivitu.
    * @return bool True pokud došlo k odhlášení nějakých náhradnických slotů
    */
-  private function odhlasZNahradnickychSlotu(Uzivatel $u) {
+  public function odhlasZNahradnickychSlotu(Uzivatel $u): bool {
     $konfliktniAktivity = self::zIds(dbOneArray("
       SELECT p.id_akce
       FROM akce_prihlaseni_spec p
