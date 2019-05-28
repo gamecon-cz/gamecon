@@ -11,7 +11,7 @@ function _casy(&$zacatekDt, bool $pred = false) {
   $t = new XTemplate(__DIR__ . '/_casy.xtpl');
 
   $ted = new DateTimeCz();
-  //$ted = new DateTimeCz('2016-07-21 14:10'); // debug
+//  $ted = (new DateTimeCz(PROGRAM_DO))->modify('-1 day'); // pro testovani "probihajiciho" Gamecon
   $t->assign('datum', $ted->format('j.n.'));
   $t->assign('casAktualni', $ted->format('H:i:s'));
 
@@ -28,10 +28,23 @@ function _casy(&$zacatekDt, bool $pred = false) {
     }
   } elseif (new DateTime(PROGRAM_OD) <= $ted && $ted <= (new DateTime(PROGRAM_DO))->setTime(23, 59, 59)) {
     // nejspíš GC právě probíhá, čas předvolit automaticky
-    $vybrany = clone $ted;
-    $vybrany->zaokrouhlitNahoru('H');
-    if ($pred) $vybrany->sub(new DateInterval('PT1H'));
-    $t->parse('casy.casAuto');
+    $chtenyZacatek = (clone $ted)->setTime(0, 0, 0);
+    $chtenyZacatek->zaokrouhlitNaHodinyNahoru('H'); // nejblizsi hodina
+    if ($pred) $chtenyZacatek->sub(new DateInterval('PT1H'));
+    $posledniVhodnyZacatek = null;
+    foreach ($zacatkyAktivit as $zacatekAktivity) {
+      // zacatky aktivit jsou razeny od nejstarsich
+      if ($zacatekAktivity <= $chtenyZacatek || !$posledniVhodnyZacatek) {
+        $posledniVhodnyZacatek = $zacatekAktivity;
+      }
+      if ($zacatekAktivity == $chtenyZacatek) {
+        break; // pozdejsi zacatek uz nenajdeme / nechceme
+      }
+    }
+    if ($posledniVhodnyZacatek) {
+      $vybrany = $posledniVhodnyZacatek;
+      $t->parse('casy.casAuto');
+    }
   } else { // zvolíme první cas, ve kterém je nějaká aktivita
     /** @var DateTimeCz $prvniZacatek */
     $prvniZacatek = reset($zacatkyAktivit);

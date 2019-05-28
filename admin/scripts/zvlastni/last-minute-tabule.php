@@ -26,7 +26,7 @@ foreach(Aktivita::zRozmezi($od, $do, Aktivita::JEN_VOLNE | Aktivita::VEREJNE) as
 }
 if(!$posledniBlok)
 {
-  $xtpl->assign('cas',$od->zaokrouhlitNahoru()->format('G:i'));
+  $xtpl->assign('cas',$od->zaokrouhlitNaHodinyNahoru()->format('G:i'));
   $xtpl->parse('tabule.blok.nic');
 }
 $xtpl->parse('tabule.blok');

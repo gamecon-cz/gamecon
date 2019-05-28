@@ -127,9 +127,8 @@ class DateTimeCz extends DateTime
   }
 
   /** Zaokrouhlí nahoru na nejbližší vyšší jednotku */
-  function zaokrouhlitNahoru($jednotka='H') {
-    //TODO jednotka
-    if($this->format('is')==='0000')
+  function zaokrouhlitNaHodinyNahoru() {
+    if($this->format('is')==='0000') // neni co zaokrouhlovat
       return $this->modify($this->format('Y-m-d H:00:00'));
     else
       return $this->modify($this->format('Y-m-d H:00:00'))->add(new DateInterval('PT1H'));
