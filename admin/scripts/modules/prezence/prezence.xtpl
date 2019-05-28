@@ -1,6 +1,7 @@
 <!-- begin:prezence -->
 
 <script src="files/prezence.js"></script>
+<script src="files/query-do-odkazu-submenu.js"></script>
 
 <div class="prezence">
 
