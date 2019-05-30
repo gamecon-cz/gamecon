@@ -37,6 +37,12 @@ table.program { box-shadow: 0 0 3px #444; }
 }
 </style>
 
+<?php if(!$this->param('osobni')) { ?>
+  <div id="programSkryvaniLinii_ovladani" class="programSkryvaniLinii_ovladani">
+    <span class="programSkryvaniLinii_popisek">Filtrovat linie: </span>
+  </div>
+<?php } ?>
+
 <?php if($u) { ?>
   <?php if($this->param('osobni')) { ?>
     <a class="muj-program" href="program">celkový program</a>
@@ -50,6 +56,8 @@ table.program { box-shadow: 0 0 3px #444; }
 <?php $program->tisk(); ?>
 
 <script>
+programSkryvaniLinii($('table.program'), $('#programSkryvaniLinii_ovladani'));
+
 $(function(){
   var sneaky = new ScrollSneak(location.hostname);
   $('table.program a').each(function(){
