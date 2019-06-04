@@ -2,7 +2,7 @@
 
 // uživatel s základním přístupem
 define('DB_USER', 'root');
-define('DB_PASS', '');
+define('DB_PASS', 'alfabravo12');
 define('DB_NAME', 'gamecon');
 define('DB_SERV', 'localhost');
 
