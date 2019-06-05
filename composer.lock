@@ -1,10 +1,10 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a16688743d37b215f63f60567e807463",
+    "content-hash": "1812a71f4f38dfb4b7145d575ce71568",
     "packages": [
         {
             "name": "defuse/php-encryption",
@@ -134,7 +134,7 @@
                 "source": "https://github.com/godric-cz/db-backup/tree/master",
                 "issues": "https://github.com/godric-cz/db-backup/issues"
             },
-            "time": "2018-09-19 20:51:29"
+            "time": "2018-09-19T20:51:29+00:00"
         },
         {
             "name": "godric/db-migrations",
@@ -164,7 +164,7 @@
                 "source": "https://github.com/godric-cz/db-migrations/tree/master",
                 "issues": "https://github.com/godric-cz/db-migrations/issues"
             },
-            "time": "2018-09-04 12:38:38"
+            "time": "2018-09-04T12:38:38+00:00"
         },
         {
             "name": "godric/db-test",
@@ -191,7 +191,7 @@
                 "source": "https://github.com/godric-cz/db-test/tree/master",
                 "issues": "https://github.com/godric-cz/db-test/issues"
             },
-            "time": "2018-07-15 16:17:18"
+            "time": "2018-07-15T16:17:18+00:00"
         },
         {
             "name": "godric/xtemplate",
@@ -218,7 +218,7 @@
                 "source": "https://github.com/godric-cz/xtemplate/tree/master",
                 "issues": "https://github.com/godric-cz/xtemplate/issues"
             },
-            "time": "2016-02-28 19:55:11"
+            "time": "2016-02-28T19:55:11+00:00"
         },
         {
             "name": "michelf/php-markdown",
@@ -425,6 +425,52 @@
             "time": "2017-12-01T08:47:54+00:00"
         },
         {
+            "name": "setasign/tfpdf",
+            "version": "1.25",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Setasign/tFPDF.git",
+                "reference": "f5fa74ebca027c685de70b48ee9212ae30e9f0eb"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Setasign/tFPDF/zipball/f5fa74ebca027c685de70b48ee9212ae30e9f0eb",
+                "reference": "f5fa74ebca027c685de70b48ee9212ae30e9f0eb",
+                "shasum": ""
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "tfpdf.php",
+                    "font/unifont/ttfonts.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "LGPL-2.1"
+            ],
+            "authors": [
+                {
+                    "name": "Olivier Plathey",
+                    "email": "oliver@fpdf.org",
+                    "homepage": "http://fpdf.org/"
+                },
+                {
+                    "name": "Ian Back",
+                    "email": "ian@bpm1.com"
+                }
+            ],
+            "description": "This class is a modified version of FPDF that adds UTF-8 support. It is based on FPDF 1.7.",
+            "homepage": "http://fpdf.org/en/script/script92.php",
+            "keywords": [
+                "fpdf",
+                "pdf",
+                "tfpdf",
+                "unicode"
+            ],
+            "time": "2018-09-05T15:36:21+00:00"
+        },
+        {
             "name": "tracy/tracy",
             "version": "v2.5.1",
             "source": {
@@ -559,6 +605,8 @@
     },
     "prefer-stable": false,
     "prefer-lowest": false,
-    "platform": [],
+    "platform": {
+        "ext-json": "*"
+    },
     "platform-dev": []
 }
