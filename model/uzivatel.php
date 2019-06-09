@@ -847,8 +847,10 @@ class Uzivatel {
   /**
    * Vrátí pole uživatelů podle zadaných ID. Lze použít pole nebo string s čísly
    * oddělenými čárkami.
+   * @param string|int[] $ids
+   * @return Uzivatel[]
    */
-  static function zIds($ids) {
+  static function zIds($ids): array {
     if(is_array($ids)) {
       if(empty($ids)) return [];
       return self::nactiUzivatele('WHERE u.id_uzivatele IN('.dbQv($ids).')');
@@ -1008,8 +1010,10 @@ class Uzivatel {
   /**
    * Načte uživatele včetně práv z DB podle zadané where klauzule. Tabulka se
    * aliasuje jako u.*
+   * @param string $where
+   * @return Uzivatel[]
    */
-  protected static function nactiUzivatele($where)
+  protected static function nactiUzivatele(string $where): array
   {
     $o=dbQuery('SELECT
         u.*,

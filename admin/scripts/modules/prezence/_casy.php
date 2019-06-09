@@ -3,41 +3,67 @@
 /**
  * Vhackovaný code snippet na zobrazení vybírátka času
  * @param DateTimeCz $zacatekDt do tohoto se přiřadí vybraný čas začátku aktivit
- * @param bool $pre jestli se má vybírat hodina od vybraného času, nebo hodina před vybraným časem
+ * @param bool $pred true jestli se má vybírat hodina před vybraným časem a false jestli vybraná hodina
  * @return string html kód vybírátka
  */
-function _casy(&$zacatekDt, $pre = false) {
+function _casy(&$zacatekDt, bool $pred = false) {
 
   $t = new XTemplate(__DIR__ . '/_casy.xtpl');
 
   $ted = new DateTimeCz();
-  //$ted = new DateTimeCz('2016-07-21 14:10'); // debug
+//  $ted = (new DateTimeCz(PROGRAM_DO))->modify('-1 day'); // pro testovani "probihajiciho" Gamecon
   $t->assign('datum', $ted->format('j.n.'));
   $t->assign('casAktualni', $ted->format('H:i:s'));
-  $gcZacatek = new DateTimeCz(DEN_PRVNI_DATE);
-  $delta = $ted->getTimestamp() - $gcZacatek->getTimestamp(); //rozdíl sekund od začátku GC
 
-  if(get('cas')) {
+  $zacatkyAktivit = Aktivita::zacatkyAktivit(new DateTimeCz(PROGRAM_OD), new DateTimeCz(PROGRAM_DO), 0, ['zacatek']);
+
+  $vybrany = null;
+  if (get('cas')) {
     // čas zvolený manuálně
-    $vybrany = new DateTimeCz(get('cas'));
-  } elseif(0 < $delta && $delta < 3600*24*4) {
+    try {
+      $vybrany = new DateTimeCz(get('cas'));
+    } catch (Throwable $throwable) {
+      $t->assign('chybnyCas', get('cas'));
+      $t->parse('casy.chybaCasu');
+    }
+  } elseif (new DateTime(PROGRAM_OD) <= $ted && $ted <= (new DateTime(PROGRAM_DO))->setTime(23, 59, 59)) {
     // nejspíš GC právě probíhá, čas předvolit automaticky
-    $vybrany = clone $ted;
-    $vybrany->zaokrouhlitNahoru('H');
-    if($pre) $vybrany->sub(new DateInterval('PT1H'));
-    $t->parse('casy.casAuto');
-  } else {
-    // žádný čas
-    $vybrany = null;
+    $chtenyZacatek = (clone $ted)->setTime(0, 0, 0);
+    $chtenyZacatek->zaokrouhlitNaHodinyNahoru('H'); // nejblizsi hodina
+    if ($pred) $chtenyZacatek->sub(new DateInterval('PT1H'));
+    $posledniVhodnyZacatek = null;
+    foreach ($zacatkyAktivit as $zacatekAktivity) {
+      // zacatky aktivit jsou razeny od nejstarsich
+      if ($zacatekAktivity <= $chtenyZacatek || !$posledniVhodnyZacatek) {
+        $posledniVhodnyZacatek = $zacatekAktivity;
+      }
+      if ($zacatekAktivity == $chtenyZacatek) {
+        break; // pozdejsi zacatek uz nenajdeme / nechceme
+      }
+    }
+    if ($posledniVhodnyZacatek) {
+      $vybrany = $posledniVhodnyZacatek;
+      $t->parse('casy.casAuto');
+    }
+  } else { // zvolíme první cas, ve kterém je nějaká aktivita
+    /** @var DateTimeCz $prvniZacatek */
+    $prvniZacatek = reset($zacatkyAktivit);
+    if ($prvniZacatek) {
+      $vybrany = $prvniZacatek;
+      $t->parse('casy.casAutoPrvni');
+    }
   }
 
-  for($den = new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen()) {
-    for($hodina = PROGRAM_ZACATEK; $hodina < PROGRAM_KONEC; $hodina++) {
-      $t->assign('cas', $den->format('l').' '.$hodina.':00');
-      $t->assign('val', $den->format('Y-m-d').' '.$hodina.':00');
-      $t->assign('sel', $vybrany && $vybrany->stejnyDen($den) && $vybrany->format('H') == $hodina ? 'selected' : '');
-      $t->parse('casy.cas');
+  if ($zacatkyAktivit) {
+    foreach ($zacatkyAktivit as $zacatek) {
+      $t->assign('cas', $zacatek->format('l') . ' ' . $zacatek->format('H') . ':00');
+      $t->assign('val', $zacatek->format('Y-m-d') . ' ' . $zacatek->format('H') . ':00');
+      $t->assign('sel', $vybrany && $vybrany->format('Y-m-d H') === $zacatek->format('Y-m-d H') ? 'selected' : '');
+      $t->parse('casy.vyberCasu.cas');
     }
+    $t->parse('casy.vyberCasu');
+  } else {
+    $t->parse('casy.zadnyCas');
   }
 
   $zacatekDt = $vybrany ? clone $vybrany : null;

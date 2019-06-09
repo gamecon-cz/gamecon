@@ -672,7 +672,7 @@ class Aktivita {
    * Odhlásí ze všech náhradnických slotů ve stejný čas jako aktivita po přihlášení na aktivitu.
    * @return bool True pokud došlo k odhlášení nějakých náhradnických slotů
    */
-  private function odhlasZNahradnickychSlotu(Uzivatel $u) {
+  public function odhlasZNahradnickychSlotu(Uzivatel $u): bool {
     $konfliktniAktivity = self::zIds(dbOneArray("
       SELECT p.id_akce
       FROM akce_prihlaseni_spec p
@@ -1357,8 +1357,9 @@ class Aktivita {
 
   /**
    * Vrátí pole s přihlášenými účastníky
+   * @return Uzivatel[]
    */
-  function prihlaseni() {
+  function prihlaseni(): array {
     $u = substr($this->prihlaseniRaw(), 1, -1);
     $u = preg_replace('@(m|f)\d+@', '', $u);
     return Uzivatel::zIds($u);
@@ -1569,7 +1570,10 @@ class Aktivita {
     return 0 < dbOneCol('SELECT MAX(id_stavu_prihlaseni) FROM akce_prihlaseni WHERE id_akce = '.$this->id());
   }
 
-  /** Vrátí DateTime objekt začátku aktivity */
+  /**
+   * Vrátí DateTime objekt začátku aktivity
+   * @return DateTimeCz
+   */
   function zacatek() {
     if(is_string($this->a['zacatek']))
       $this->a['zacatek'] = new DateTimeCz($this->a['zacatek']);
@@ -1596,7 +1600,7 @@ class Aktivita {
    * @todo explicitní filtr i pro řazení (např. pole jako mapa veřejný řadící
    *  parametr => sloupec
    */
-  static function zFiltru($filtr, $razeni = []) {
+  static function zFiltru($filtr, $razeni = []): array {
     // sestavení filtrů
     $wheres = [];
     if(!empty($filtr['rok']))
@@ -1686,18 +1690,42 @@ class Aktivita {
 
   /**
    * Vrátí aktivity z rozmezí (aktuálně s začátkem v rozmezí konkrétně)
+   * @return Aktivita[]
    * @todo možno přidat flag 'celé v rozmezí'
    */
-  static function zRozmezi(DateTimeCz $od, DateTimeCz $do, $flags = 0) {
-    $aktivity = self::zFiltru([
-      'jenViditelne'  =>  (bool)($flags & self::VEREJNE),
-      'od'            =>  $od->formatDb(),
-      'do'            =>  $do->formatDb(),
-    ]);
+  static function zRozmezi(DateTimeCz $od, DateTimeCz $do, $flags = 0, $razeni = []): array {
+    $aktivity = self::zFiltru(
+        [
+          'jenViditelne'  =>  (bool)($flags & self::VEREJNE),
+          'od'            =>  $od->formatDb(),
+          'do'            =>  $do->formatDb(),
+        ],
+        $razeni
+    );
     if($flags & self::JEN_VOLNE)
       foreach($aktivity as $i => $a)
         if($a->volno() == 'x') unset($aktivity[$i]);
     return $aktivity;
+  }
+
+  /**
+   * @param DateTimeCz $od
+   * @param DateTimeCz $do
+   * @param int $flags
+   * @param array|string[] $razeni
+   * @return array|DateTimeCz[]
+   */
+  static function zacatkyAktivit(DateTimeCz $od, DateTimeCz $do, $flags = 0, $razeni = []): array {
+    $aktivity = self::zRozmezi($od, $do, $flags, $razeni);
+    /** @var DateTime[][] $zacatky */
+    $zacatky = [];
+    foreach ($aktivity as $aktivita) {
+      $zacatekHodin = $aktivita->zacatek()->format('YmdH');
+      if (!array_key_exists($zacatekHodin, $zacatky)) {
+        $zacatky[$zacatekHodin] = $aktivita->zacatek();
+      }
+    }
+    return $zacatky;
   }
 
   /**
@@ -1745,6 +1773,14 @@ class Aktivita {
     }
 
     return array_values($kolekce);
+  }
+
+  public static function hodinaNejblizsiAktivity(DateTimeInterface $po = null) {
+    dbQuery('
+        SELECT *
+        FROM akce_seznam
+        WHERE CASE WHEN ? THEN zacatek > ? ELSE TRUE END
+    ');
   }
 
 }
