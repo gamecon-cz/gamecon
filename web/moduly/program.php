@@ -44,6 +44,7 @@ table.program { box-shadow: 0 0 3px #444; }
 <?php } ?>
 
 <?php if($u) { ?>
+  <a class="muj-program" target="_blank" href="programKTisku">k tisku</a>
   <?php if($this->param('osobni')) { ?>
     <a class="muj-program" href="program">celkový program</a>
   <?php } else { ?>

@@ -30,7 +30,8 @@
     "godric/db-backup": "dev-master",
     "defuse/php-encryption": "^2.1",
     "godric/db-test": "dev-master",
-    "godric/db-migrations": "dev-master"
+    "godric/db-migrations": "dev-master",
+    "setasign/tfpdf": "^1.25"
   },
   "require-dev": {
     "dg/ftp-deployment": "~2.7"

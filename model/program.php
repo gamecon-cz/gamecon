@@ -59,6 +59,70 @@ class Program {
     return ob_get_clean();
   }
 
+
+
+  /**
+   * Příprava pro tisk programu
+   */
+  function tiskToPrint() {
+     $this->init();
+     
+     require_once __DIR__ . '\..\vendor\setasign\tfpdf\tfpdf.php';
+     $pdf = new tFPDF();
+     $pdf->AddPage();
+     $pdf->AddFont('DejaVu','','DejaVuSansCondensed.ttf',true);
+     $pdf->SetFont('DejaVu','',20);
+     $pdf->Cell(0,10,"Můj program (" . $this->u->jmeno() . ")",0,1,'L');
+     $pdf->SetFillColor(202,204,206);
+     $pdf->SetFont('DejaVu','',12);
+     
+     for($den=new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen()){
+      $denId = (int)$den->format('z');
+      $this->nactiAktivityDne($denId);
+      
+      if((count($this->aktivityUzivatele)>0)) {
+        $pocetPrihlasenychAktivit = 0;
+        foreach($this->aktivityUzivatele as $key => $akt) {
+          if($akt['obj']->prihlasen($this->u)){
+            $pocetPrihlasenychAktivit += 1;
+          }
+        }
+
+        if($pocetPrihlasenychAktivit > 0){
+          $pdf->Cell(0,10,mb_ucfirst($den->format('l j.n.Y')), 1,1,'L',true);
+          for($cas=PROGRAM_ZACATEK; $cas<PROGRAM_KONEC; $cas++) {
+            
+            foreach($this->aktivityUzivatele as $key => $akt) {
+              if($akt['obj']->prihlasen($this->u)){      
+                if( $akt && $denId==$akt['den'] && $cas==$akt['zac']) {
+                  $start = $cas;
+                  $konec = $cas + $akt['del'];
+
+                  $pdf->Cell(30,10,$start . ":00 - " . $konec . ":00", 1);
+                  
+                  if($this->u->prihlasenJakoNahradnikNa($akt['obj'])){
+                    $pdf->Cell(100,10,"* " . $akt['obj']->nazev(), 1);
+                  } else{
+                    $pdf->Cell(100,10,$akt['obj']->nazev(), 1);
+                  }
+                  
+                  $pdf->Cell(60,10,mb_ucfirst($akt['obj']->typ()->nazev()), 1,1);
+                  
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      $pdf->Cell(0,1,"",0,1);
+    }   
+    
+    $pdf->Output();
+    
+  }
+
   /**
    * Přímý tisk programu na výstup
    */
