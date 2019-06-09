@@ -1,7 +1,7 @@
 <?php
 /** @var \Godric\DbMigrations\Migration $this */
 $this->q("
-INSERT INTO gamecon.reporty (nazev, dotaz)
+INSERT INTO reporty (nazev, dotaz)
 VALUES (
         'Potvrzení pro návštěvníky mladší patnácti let',
         \"SELECT *
