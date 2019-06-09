@@ -1,6 +1,6 @@
 <?php
-// 
+/** @var \Godric\DbMigrations\Migration $this */
 $this->q("
-INSERT INTO `stranky` (`url_stranky`, `obsah`, `poradi`)
-VALUES ('info-po-gc', '#Info po GC a zpětná vazba', '0');
+ALTER TABLE uzivatele_hodnoty 
+ADD COLUMN potvrzeni_zakonneho_zastupce DATE DEFAULT NULL
 ");
