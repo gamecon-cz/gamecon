@@ -139,6 +139,12 @@ if($uPracovni && $uPracovni->gcPrihlasen())
   elseif(!$up->gcOdjel())   $x->parse('uvod.uzivatel.pritomen');
   else                      $x->parse('uvod.uzivatel.odjel');
   if(!$up->gcPritomen())    $x->parse('uvod.uzivatel.gcOdhlas');
+  $r = dbOneLine('SELECT datum_narozeni, potvrzeni_zakonneho_zastupce FROM uzivatele_hodnoty WHERE id_uzivatele = '.$uPracovni->id());
+  $datumNarozeni = new DateTimeImmutable($r['datum_narozeni']);
+  $potvrzeniOd = $r['potvrzeni_zakonneho_zastupce'] ? new DateTimeImmutable($r['potvrzeni_zakonneho_zastupce']) : null;
+  $potrebujePotvrzeni = potrebujePotvrzeni($datumNarozeni);
+  $mameLetosniPotvrzeni = $potvrzeniOd && $potvrzeniOd->format('y') === date('y');
+  if (!$mameLetosniPotvrzeni) $x->parse('uvod.uzivatel.chybiPotvrzeni');
   if(GC_BEZI && (!$up->gcPritomen() || $up->finance()->stav() < 0)) $x->parse('uvod.potvrditZruseniPrace');
   $x->parse('uvod.uzivatel');
   $x->parse('uvod.slevy');
@@ -221,7 +227,7 @@ if($uPracovni) {
     $x->assign([
       'nazev' => $nazev,
       'sloupec' => $sloupec,
-      'vztupniHodnota' => $vstupniHodnota,
+      'vstupniHodnota' => $vstupniHodnota,
       'zobrazenaHodnota' => $zobrazenaHodnota,
       'popisek' => $popisek
     ]);
@@ -243,8 +249,15 @@ if($uPracovni) {
         $x->parse('uvod.udaje.udaj.input');
     }
     if ($sloupec === 'potvrzeni_zakonneho_zastupce') {
-        if ($potrebujePotvrzeni && !$mameLetosniPotvrzeni) {
+        if ($potrebujePotvrzeni) {
+          $potrebujePotvrzeniZprava = sprintf(
+            'Uživalel potřebuje letošní potvrzení od rodiče nebo zákonného zástupce, že může na Gamecon, i když mu na začátku Gameconu (%s) ještě nebude patnáct. Přesto uložit?',
+            (new DateTimeCz(zacatekLetosnihoGameconu()->format(DATE_ATOM)))->formatDatumStandard()
+          );
+            $x->assign(['potrebujePotvrzeni' => $potrebujePotvrzeni, 'potrebujePotvrzeniZprava' => $potrebujePotvrzeniZprava]);
+          if (!$mameLetosniPotvrzeni) {
             $x->parse('uvod.udaje.udaj.chybi');
+          }
         }
     } else if ($sloupec !== 'poznamka') {
         if ($hodnota == '') {
