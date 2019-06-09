@@ -67,7 +67,7 @@ class Program {
   function tiskToPrint() {
      $this->init();
      
-     require_once __DIR__ . '\..\vendor\setasign\tfpdf\tfpdf.php';
+     require_once __DIR__ . '/../vendor/setasign/tfpdf/tfpdf.php';
      $pdf = new tFPDF();
      $pdf->AddPage();
      $pdf->AddFont('DejaVu','','DejaVuSansCondensed.ttf',true);
