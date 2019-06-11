@@ -40,7 +40,7 @@ class Stranka extends DbObject {
     return $this->r['url_stranky'];
   }
 
-  static function zUrl($url = null) {
+  static function zUrl($url = null): ?Stranka {
     if(!$url) $url = Url::zAktualni()->cela();
     return self::zWhereRadek('url_stranky = $1', [$url]);
   }

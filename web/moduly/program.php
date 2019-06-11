@@ -2,13 +2,15 @@
 
 $this->bezOkraju(true);
 
+/** @type Uzivatel|null $u */
 if($u) Aktivita::prihlasovatkoZpracuj($u);
 
 $program = new Program($u, ['osobni' => $this->param('osobni')]);
 $a = $u ? $u->koncA() : '';
 
 // hack na staticko-dynamické zobrazení legendy
-$legenda = Stranka::zUrl('program-legenda')->html();
+$legendaStranka = Stranka::zUrl('program-legenda');
+$legenda = $legendaStranka ? $legendaStranka->html() : '';
 $legenda = str_replace('{a}', $u ? $u->koncA() : '', $legenda);
 $legenda = str_replace('{n}', $u && $u->pohlavi() == 'f' ? 'ice' : 'ík', $legenda);
 if(!$u || !$u->maPravo(P_ORG_AKCI)) $legenda = preg_replace('@.*organizuji.*@', '', $legenda);
@@ -35,6 +37,12 @@ table.program { box-shadow: 0 0 3px #444; }
 }
 </style>
 
+<?php if(!$this->param('osobni')) { ?>
+  <div id="programSkryvaniLinii_ovladani" class="programSkryvaniLinii_ovladani">
+    <span class="programSkryvaniLinii_popisek">Filtrovat linie: </span>
+  </div>
+<?php } ?>
+
 <?php if($u) { ?>
   <a class="muj-program" target="_blank" href="programKTisku">k tisku</a>
   <?php if($this->param('osobni')) { ?>
@@ -49,6 +57,8 @@ table.program { box-shadow: 0 0 3px #444; }
 <?php $program->tisk(); ?>
 
 <script>
+programSkryvaniLinii($('table.program'), $('#programSkryvaniLinii_ovladani'));
+
 $(function(){
   var sneaky = new ScrollSneak(location.hostname);
   $('table.program a').each(function(){

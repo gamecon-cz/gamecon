@@ -1,5 +1,7 @@
 <!-- begin:tisk -->
 
+<script src="files/query-do-odkazu-submenu.js"></script>
+
 <div>{casy}</div>
 
 <h2>Tisk prezenčních listů</h2>

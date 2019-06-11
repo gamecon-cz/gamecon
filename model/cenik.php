@@ -130,7 +130,7 @@ class Cenik {
       $cena = 0;
     } elseif($typ == Shop::JIDLO) {
       if($this->u->maPravo(P_JIDLO_ZDARMA)) $cena = 0;
-      elseif($this->u->maPravo(P_JIDLO_SLEVA) && strpos($r['nazev'], 'Snídaně') === false) $cena -= 15;
+      elseif($this->u->maPravo(P_JIDLO_SLEVA) && strpos($r['nazev'], 'Snídaně') === false) $cena -= 20;
     }
 
     return (float)$cena;

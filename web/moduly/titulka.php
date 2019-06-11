@@ -1,14 +1,26 @@
 <?php
 
+/** @var Modul $this */
 $this->bezMenu(true);
 $this->bezDekorace(true);
 
+$blog = Novinka::zNejnovejsi(Novinka::BLOG);
+$novinka = Novinka::zNejnovejsi(Novinka::NOVINKA);
 $t->assign([
   'menu'    =>  $menu,
-  'blog'    =>  Novinka::zNejnovejsi(Novinka::BLOG),
-  'novinka' =>  Novinka::zNejnovejsi(Novinka::NOVINKA),
+  'novinka' =>  $novinka,
   'a'       =>  $u ? $u->koncA() : '',
 ]);
+
+if ($blog) {
+    $t->assign(['blog' => $blog]);
+    $t->parse('titulka.blog');
+}
+
+if ($novinka) {
+    $t->assign(['novinka' => $novinka]);
+    $t->parse('titulka.novinka');
+}
 
 if($u && $u->gcPrihlasen() && REG_GC)   $t->parse('titulka.prihlasen');
 elseif($u && REG_GC)                    $t->parse('titulka.neprihlasen');

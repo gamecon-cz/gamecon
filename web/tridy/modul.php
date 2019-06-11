@@ -47,7 +47,7 @@ class Modul {
     return $this->bezStranky;
   }
 
-  function info($val = null) {
+  function info(Info $val = null): ?Info {
     if(isset($val)) $this->info = $val;
     return $this->info;
   }

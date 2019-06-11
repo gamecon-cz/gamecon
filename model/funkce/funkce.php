@@ -51,7 +51,7 @@ function datum2($dbRadek)
 }
 
 
-/** Vrací datum ve stylu 1. července 
+/** Vrací datum ve stylu 1. července
  *  akceptuje vše, co žere strtotime */
 function datum3($datum)
 {
@@ -398,4 +398,23 @@ function scrc32($data) {
     $crc = -$crc;
   }
   return $crc;
+}
+
+function potrebujePotvrzeni(DateTimeImmutable $datumNarozeni): bool {
+    // cilene bez hodin, minut a sekund
+    return vekNaZacatkuLetosnihoGameconu($datumNarozeni) < 15;
+}
+
+function vekNaZacatkuLetosnihoGameconu(DateTimeImmutable $datumNarozeni): int {
+    // cilene bez hodin, minut a sekund
+    return vek($datumNarozeni->setTime(0, 0, 0), zacatekLetosnihoGameconu()->setTime(0, 0, 0));
+}
+
+function vek(DateTimeInterface $datumNarozeni, ?DateTimeInterface $kDatu): int {
+    $kDatu = $kDatu ?? new DateTimeImmutable(date('Y-m-d 00:00:00'));
+    return $kDatu->diff($datumNarozeni)->y;
+}
+
+function zacatekLetosnihoGameconu(): DateTimeImmutable {
+    return new DateTimeImmutable(GC_BEZI_OD);
 }

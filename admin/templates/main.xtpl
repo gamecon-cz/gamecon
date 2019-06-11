@@ -32,7 +32,7 @@
       <div class="mobstin"></div>
       <div class="main">
         <!-- begin:submenu -->
-        <ul>
+        <ul id="submenu">
           <!-- begin:polozka --><li><a href="{url}">{nazev}</a></li><!-- end:polozka -->
         </ul>
         <!-- end:submenu -->

@@ -8,15 +8,16 @@
  */
 
 if(post('prezenceAktivity')) {
-  $a = Aktivita::zId(post('prezenceAktivity'));
+  $aktivita = Aktivita::zId(post('prezenceAktivity'));
   $dorazili = Uzivatel::zIds(array_keys(post('dorazil') ?: []));
-  $a->ulozPrezenci($dorazili);
+  $aktivita->ulozPrezenci($dorazili);
   back();
 }
 
 $t = new XTemplate('prezence.xtpl');
 
 require('_casy.php'); // vhackování vybírátka času
+$zacatek = null; // bude nastaven přes referenci v nasledujici funkci
 $t->assign('casy', _casy($zacatek, true));
 
 $aktivity = $zacatek ? Aktivita::zRozmezi($zacatek, $zacatek) : [];
@@ -24,14 +25,14 @@ $aktivity = $zacatek ? Aktivita::zRozmezi($zacatek, $zacatek) : [];
 if($zacatek && count($aktivity) == 0) $t->parse('prezence.zadnaAktivita');
 if(!$zacatek) $t->parse('prezence.nevybrano');
 
-foreach($aktivity as $a) {
-  $vyplnena = $a->vyplnenaPrezence();
-  $zamcena = $a->zamcena();
-  $t->assign('a', $a);
-  foreach($a->prihlaseni() as $uc) {
-    $t->assign('u', $uc);
+foreach($aktivity as $aktivita) {
+  $vyplnena = $aktivita->vyplnenaPrezence();
+  $zamcena = $aktivita->zamcena();
+  $t->assign('a', $aktivita);
+  foreach($aktivita->prihlaseni() as $prihlasenyUzivatel) {
+    $t->assign('u', $prihlasenyUzivatel);
     if(!$vyplnena && $zamcena) $t->parse('prezence.aktivita.form.ucastnik.checkbox');
-    $t->parse('prezence.aktivita.form.ucastnik.' . ($uc->gcPritomen() ? 'pritomen' : 'nepritomen'));
+    $t->parse('prezence.aktivita.form.ucastnik.' . ($prihlasenyUzivatel->gcPritomen() ? 'pritomen' : 'nepritomen'));
     $t->parse('prezence.aktivita.form.ucastnik');
   }
   if($vyplnena) $t->parse('prezence.aktivita.vyplnena');
