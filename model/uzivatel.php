@@ -910,7 +910,7 @@ class Uzivatel {
    * Pokusí se načíst uživatele podle aktivní session případně z perzistentního
    * přihlášení.
    * @param string $klic klíč do $_SESSION kde očekáváme hodnoty uživatele
-   * @return mixed objekt uživatele nebo null
+   * @return Uzivatel|null objekt uživatele nebo null
    * @todo nenačítat znovu jednou načteného, cacheovat
    */
   public static function zSession($klic='uzivatel')
@@ -921,7 +921,6 @@ class Uzivatel {
     {
       $u=new Uzivatel($_SESSION[$klic]);
       $u->klic=$klic;
-      $u->otoc(); // nacti cerstva data do session
       return $u;
     }
     elseif(isset($_COOKIE['gcTrvalePrihlaseni']) && $klic == 'uzivatel')
