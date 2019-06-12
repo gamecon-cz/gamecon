@@ -7,6 +7,7 @@ require __DIR__ . '/tridy/menu.php';
 if(HTTPS_ONLY) httpsOnly();
 
 $u = Uzivatel::zSession();
+$u->otoc(); // nacti cerstva data do session
 try {
   $url = Url::zAktualni();
 } catch(UrlException $e) {
