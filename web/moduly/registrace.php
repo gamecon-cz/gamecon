@@ -10,6 +10,7 @@ if(isset($_GET['testMailu']))
   exit;
 }
 
+/** @var Uzivatel|null $u */
 //zpracování úpravy dat
 if($u && isset($_POST['upravit']))
 {

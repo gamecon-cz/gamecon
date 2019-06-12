@@ -921,6 +921,7 @@ class Uzivatel {
     {
       $u=new Uzivatel($_SESSION[$klic]);
       $u->klic=$klic;
+      $u->otoc(); // nacti cerstva data do session
       return $u;
     }
     elseif(isset($_COOKIE['gcTrvalePrihlaseni']) && $klic == 'uzivatel')
