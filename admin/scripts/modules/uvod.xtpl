@@ -168,6 +168,16 @@
                 <td><input type="checkbox" name="udaj[{sloupec}]" value="{vstupniHodnota}" {checked} style="margin-left: -3px;"></td>
                 <td><input type="submit" name="zmenitUdaj" value="uložit"></td>
                 <!-- end:checkbox -->
+                <!-- begin:select -->
+                <td>
+                    <select name="udaj[{sloupec}]" style="margin-left: -3px; width: 15.3em"">
+                        <!-- begin:option -->
+                        <option value="{optionValue}" {optionSelected}>{optionText}</option>
+                        <!-- end:option -->
+                    </select>
+                </td>
+                <td><input type="submit" name="zmenitUdaj" value="uložit"></td>
+                <!-- end:select -->
                 <!-- begin:text -->
                 <td colspan="2">
                   <textarea name="udaj[{sloupec}]" style="margin-left: -3px; margin-top: -1px">{vstupniHodnota}</textarea>

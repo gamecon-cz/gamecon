@@ -189,6 +189,7 @@ if($uPracovni) {
     'login_uzivatele'       =>          'Přezdívka',
     'jmeno_uzivatele'       =>          'Jméno',
     'prijmeni_uzivatele'    =>          'Příjmení',
+    'pohlavi'               =>          'Pohlaví',
     'ulice_a_cp_uzivatele'  =>          'Ulice',
     'mesto_uzivatele'       =>          'Město',
     'psc_uzivatele'         =>          'PSČ',
@@ -211,7 +212,12 @@ if($uPracovni) {
     }
     $zobrazenaHodnota = $hodnota;
     $vstupniHodnota = $hodnota;
+    $vyber = [];
     $popisek = '';
+    if ($sloupec === 'pohlavi') {
+      $vyber = ['f' => 'žena', 'm' => 'muž'];
+      $zobrazenaHodnota = $vyber[$r['pohlavi']] ?? '';
+    }
     if ($sloupec === 'potvrzeni_zakonneho_zastupce') {
         $popisek = sprintf(
             'Zda máme letošní potvrzení od rodiče nebo zákonného zástupce, že účastník může na Gamecon, i když mu na začátku Gameconu (%s) ještě nebude patnáct.',
@@ -229,6 +235,7 @@ if($uPracovni) {
       'sloupec' => $sloupec,
       'vstupniHodnota' => $vstupniHodnota,
       'zobrazenaHodnota' => $zobrazenaHodnota,
+      'vyber' => $vyber,
       'popisek' => $popisek
     ]);
     if ($popisek) {
@@ -236,7 +243,19 @@ if($uPracovni) {
     } else {
         $x->parse('uvod.udaje.udaj.nazevBezPopisku');
     }
-    if($sloupec === 'poznamka') {
+    if ($sloupec === 'pohlavi') {
+      foreach ($vyber as $optionValue => $optionText) {
+        $x->assign([
+          'optionValue' => $optionValue,
+          'optionText' => $optionText,
+          'optionSelected' => $vstupniHodnota === $optionValue
+            ? 'selected'
+            : '',
+        ]);
+        $x->parse('uvod.udaje.udaj.select.option');
+      }
+      $x->parse('uvod.udaje.udaj.select');
+    } else if($sloupec === 'poznamka') {
         $x->parse('uvod.udaje.udaj.text');
     } else if ($sloupec === 'potvrzeni_zakonneho_zastupce') {
         $x->assign([
