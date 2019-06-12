@@ -15,7 +15,7 @@ if($u && isset($_POST['upravit']))
 {
   $tab=$_POST['tab'];
   $tab['id_uzivatele']=$u->id();
-  $narozeni=new DateTime(strtr(post('datumNarozeni'),'.','-'));
+  $narozeni=DateTime::createFromFormat('j.n.Y', preg_replace('~\s~', '', post('datumNarozeni')));
   $tab['datum_narozeni']=$narozeni->format('Y-m-d');
   if(post('heslo2'))
     $tab['heslo_md5'] = password_hash(post('heslo2'), PASSWORD_DEFAULT);
@@ -148,7 +148,7 @@ while ($row=mysqli_fetch_row($o)) {
     <input type="password" placeholder="Heslo" name="heslo2">
     <input type="password" placeholder="Heslo pro kontrolu" name="heslo3">
     <input type="checkbox" id="udaje" style="margin-top:1em" required>
-    <label for="udaje">Souhlasím se <span class="hinted i">zpracováním osobních údajů
+    <label for="udaje" class="">Souhlasím se <span class="hinted i">zpracováním osobních údajů
     <span class="hint">
       Prosíme o souhlas se zpracováním tvých údajů. Slibujeme, že je předáme jen těm, komu to bude kvůli vyloženě potřeba (např. vypravěčům nebo poskytovatlei ubytování). Kontaktovat tě budeme v rozumné míře pouze v souvislosti s GameConem.<br><br>
       Plné právní znění najdeš <a href="legal" target="_blank">zde</a>.
@@ -198,7 +198,7 @@ $(function(){
     if(!$('[name="tab[mesto_uzivatele]"]').val()) err+='Vyplňte prosím město.\n';
     if($('[name="tab[psc_uzivatele]"]').val().search(/^[\d ]+$/)==-1) err+='Vyplňte prosím PSČ, např. 602 00.\n';
     if($('[name="tab[telefon_uzivatele]"]').val().search(/^[\d \+]+$/)==-1) err+='Vyplňte prosím telefon, např. +420 123 456 789.\n';
-    if($('[name=datumNarozeni]').val().search(/^\d{1,2}\.\d{1,2}\.\d{4}$/)==-1) err+='Datum narození, např. 1.1.1990.\n';
+    if($('[name=datumNarozeni]').val().search(/^\d{1,2}\s*\.\s*\d{1,2}\s*\.\s*\d{4}$/)==-1) err+='Datum narození, např. 1. 1. 1990.\n';
     <?php if(!$u){ ?>
     if( !$('[name=heslo2]').val() || !$('[name=heslo3]').val() ) err+='Je třeba vyplnit heslo.\n';
     <?php } ?>
