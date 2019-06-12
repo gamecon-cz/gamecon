@@ -93,22 +93,23 @@ class Program {
           for($cas=PROGRAM_ZACATEK; $cas<PROGRAM_KONEC; $cas++) {
             
             foreach($this->aktivityUzivatele as $key => $akt) {
-              if($akt['obj']->prihlasen($this->u)){      
+            
                 if( $akt && $denId==$akt['den'] && $cas==$akt['zac']) {
                   $start = $cas;
                   $konec = $cas + $akt['del'];
+                  
+                  if($this->u->prihlasenJakoNahradnikNa($akt['obj']) || 
+                    $akt['obj']->prihlasen($this->u) || $this->u->organizuje($akt['obj'])){
 
-                  $pdf->Cell(30,10,$start . ":00 - " . $konec . ":00", 1);
-                  
-                  if($this->u->prihlasenJakoNahradnikNa($akt['obj'])){
-                    $pdf->Cell(100,10,"* " . $akt['obj']->nazev(), 1);
-                  } else{
-                    $pdf->Cell(100,10,$akt['obj']->nazev(), 1);
-                  }
-                  
-                  $pdf->Cell(60,10,mb_ucfirst($akt['obj']->typ()->nazev()), 1,1);
-                  
-                  break;
+                    $pdf->Cell(30,10,$start . ":00 - " . $konec . ":00", 1);  
+                    if($this->u->prihlasenJakoNahradnikNa($akt['obj'])){
+                      $pdf->Cell(100,10,"(n) " . $akt['obj']->nazev(), 1);
+                    } else if($akt['obj']->prihlasen($this->u)){
+                      $pdf->Cell(100,10,$akt['obj']->nazev(), 1);
+                    }else if($this->u->organizuje($akt['obj'])){
+                      $pdf->Cell(100,10,"(o) " . $akt['obj']->nazev(), 1);
+                    }
+                    $pdf->Cell(60,10,mb_ucfirst($akt['obj']->typ()->nazev()), 1,1);
                 }
               }
             }
@@ -145,6 +146,7 @@ class Program {
           $radku=0;
 
           while(count($this->aktivityUzivatele) > 0) {
+          
             for($cas=PROGRAM_ZACATEK; $cas<PROGRAM_KONEC; $cas++) {
               $prazdnaBunka = true;
               foreach($this->aktivityUzivatele as $key => $akt) {
