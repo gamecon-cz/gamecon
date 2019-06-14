@@ -84,7 +84,7 @@ unset($pre);
 // Finanční nastavení //
 ////////////////////////
 
-define('KURZ_EURO', 25);                    // kurz kč:euro
+define('KURZ_EURO', 24);                    // kurz kč:euro
 define('UCET_CZ', '2800035147/2010');       // číslo účtu pro platby v CZK - v statických stránkách není
 define('IBAN', 'CZ2820100000002800035147'); // mezinárodní číslo účtu
 define('BIC_SWIFT', 'FIOBCZPPXXX');         // mezinárodní ID (něco jako mezinárodní VS)
