@@ -68,7 +68,8 @@ if($m->bezStranky()) {
       'soubory/styl/styl.less',
       'soubory/styl/fonty.less',
       'soubory/styl/jquery-ui.min.css',
-      'soubory/styl/program-skryvani-linii.less'
+      'soubory/styl/program-skryvani-linii.less',
+      'soubory/styl/program-nahled.less'
     ),
     'js'        => perfectcache(
       'soubory/jquery-2.1.1.min.js',
@@ -76,7 +77,8 @@ if($m->bezStranky()) {
       'soubory/aplikace.js',
       'soubory/jquery-ui.min.js',
       'soubory/easybox.distrib.min.js', //nějaká debiláž, musí být poslední
-      'soubory/program-skryvani-linii.js'
+      'soubory/program-skryvani-linii.js',
+      'soubory/program-nahled.js'
     ),
     'jsVyjimkovac'  => Vyjimkovac::js(URL_WEBU.'/ajax-vyjimkovac'),
     'chyba'     => Chyba::vyzvedniHtml(),

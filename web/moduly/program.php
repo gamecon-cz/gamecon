@@ -26,38 +26,46 @@ table.program { box-shadow: 0 0 3px #444; }
   float: right;
   display: block;
   text-transform: uppercase;
-  padding: 8px 20px;
+  padding: 6px 20px;
   border: solid 1px #444;
   background-color: #d13f3f;
   color: #fff;
   font-weight: bold;
-  margin: -8px 0px 0px 24px;
-  font-size: 1.2em;
+  margin: -8px 0px 0px 16px;
+  font-size: 14px;
   border-radius: 6px;
 }
 </style>
 
-<?php if(!$this->param('osobni')) { ?>
-  <div id="programSkryvaniLinii_ovladani" class="programSkryvaniLinii_ovladani">
-    <span class="programSkryvaniLinii_popisek">Filtrovat linie: </span>
-  </div>
-<?php } ?>
+<?php require __DIR__ . '/../soubory/program-nahled.html'; ?>
 
-<?php if($u) { ?>
-  <a class="muj-program" target="_blank" href="programKTisku">k tisku</a>
-  <?php if($this->param('osobni')) { ?>
-    <a class="muj-program" href="program">celkový program</a>
-  <?php } else { ?>
-    <a class="muj-program" href="muj-program">můj program</a>
+<div class="programNahled_obalProgramu">
+
+  <?php if(!$this->param('osobni')) { ?>
+    <div id="programSkryvaniLinii_ovladani" class="programSkryvaniLinii_ovladani">
+      <span class="programSkryvaniLinii_popisek">Filtrovat linie: </span>
+    </div>
   <?php } ?>
-<?php } ?>
 
-<?=$legenda?>
+  <a class="muj-program" id="programNahled_externiPrepinac" href="#"></a>
+  <?php if($u) { ?>
+    <a class="muj-program" target="_blank" href="programKTisku">k tisku</a>
+    <?php if($this->param('osobni')) { ?>
+      <a class="muj-program" href="program">celkový program</a>
+    <?php } else { ?>
+      <a class="muj-program" href="muj-program">můj program</a>
+    <?php } ?>
+  <?php } ?>
 
-<?php $program->tisk(); ?>
+  <?=$legenda?>
+
+  <?php $program->tisk(); ?>
+
+</div>
 
 <script>
 programSkryvaniLinii($('table.program'), $('#programSkryvaniLinii_ovladani'));
+programNahled($('.programNahled_obalNahledu'), $('.programNahled_obalProgramu'), $('.programNahled_odkaz'), $('#programNahled_externiPrepinac'));
 
 $(function(){
   var sneaky = new ScrollSneak(location.hostname);

@@ -96,7 +96,7 @@ class Modul {
     if($this->bezDekorace || $this->bezStranky)
       return $this->vystup;
     elseif($this->bezOkraju)
-      return $this->vystup . '<style>.hlavni { max-width: 95% }</style>';
+      return $this->vystup . '<style>.hlavni { max-width: 100%; }</style>';
     else
       return '<div class="blok stranka"><div class="obal">' . $this->vystup . '</div></div>';
   }
