@@ -144,7 +144,7 @@ if($uPracovni && $uPracovni->gcPrihlasen())
   $potvrzeniOd = $r['potvrzeni_zakonneho_zastupce'] ? new DateTimeImmutable($r['potvrzeni_zakonneho_zastupce']) : null;
   $potrebujePotvrzeni = potrebujePotvrzeni($datumNarozeni);
   $mameLetosniPotvrzeni = $potvrzeniOd && $potvrzeniOd->format('y') === date('y');
-  if (!$mameLetosniPotvrzeni) $x->parse('uvod.uzivatel.chybiPotvrzeni');
+  if ($potrebujePotvrzeni && !$mameLetosniPotvrzeni) $x->parse('uvod.uzivatel.chybiPotvrzeni');
   if(GC_BEZI) {
     $zpravyProPotvrzeniZruseniPrace = [];
     if (!$up->gcPritomen()) {
