@@ -8,6 +8,8 @@
 class AdminMenu
 {
   var $menu=array();
+
+  private $patickaSoubor;
   
   function __construct($src)
   {
@@ -49,6 +51,8 @@ class AdminMenu
             $this->menu[$url]['pravo']=(int)$m[1];
           }
         }*/
+      } else if ($file === '_paticka.php') {
+        $this->patickaSoubor = $src . $file;
       }
     }
     closedir($d);
@@ -64,5 +68,8 @@ class AdminMenu
   /** Export menu do pole. Iterátory a věci (?) */
   function pole()
   { return $this->menu; }
-  
+
+  public function getPatickaSoubor(): ?string {
+    return $this->patickaSoubor;
+  }
 }
