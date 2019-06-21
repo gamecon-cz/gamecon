@@ -1,12 +1,27 @@
 <?php
+function vytvorDatumZeVstupuUzivatele(string $datumJakoText): DateTime {
+  return DateTime::createFromFormat('j.n.Y', preg_replace('~\s~', '', $datumJakoText));
+}
 
-//samo sebe volání ajaxu
-if(isset($_GET['testMailu']))
-{
-  if(mysqli_num_rows(dbQueryS('SELECT 1 FROM uzivatele_hodnoty WHERE email1_uzivatele=$0',[$_GET['mail']]))>0)
-    echo('{"vysledek":true}');
-  else
-    echo('{"vysledek":false}');
+if (!empty($_GET['ajax'])) { //samo sebe volání ajaxu
+    $vysledek = false;
+    if(isset($_GET['testMailu'])) {
+        $vysledek = mysqli_num_rows(dbQueryS('SELECT 1 FROM uzivatele_hodnoty WHERE email1_uzivatele=$0',[$_GET['mail'] ?? '']))>0;
+    } else if (!empty($_GET['testLoginu'])) {
+        $vysledek = mysqli_num_rows(dbQueryS('SELECT 1 FROM uzivatele_hodnoty WHERE login_uzivatele=$0', [$_GET['login'] ?? ''])) > 0;
+    } else if (!empty($_GET['testDataNarozeni'])) {
+      $vysledek = false;
+      if ($_GET['datum'] ?? '') {
+          try {
+              $datumProKontrolu = vytvorDatumZeVstupuUzivatele($_GET['datum']);
+              $vysledek = $datumProKontrolu < new DateTime();
+          } catch (Exception $exception) {
+              // spatny format data, $vysledek zustava false
+          }
+      }
+    }
+  header('Content-Type: application/json');
+  echo json_encode(['vysledek' => $vysledek]);
   exit;
 }
 
@@ -16,7 +31,7 @@ if($u && isset($_POST['upravit']))
 {
   $tab=$_POST['tab'];
   $tab['id_uzivatele']=$u->id();
-  $narozeni=DateTime::createFromFormat('j.n.Y', preg_replace('~\s~', '', post('datumNarozeni')));
+  $narozeni=vytvorDatumZeVstupuUzivatele(post('datumNarozeni'));
   $tab['datum_narozeni']=$narozeni->format('Y-m-d');
   if(post('heslo2'))
     $tab['heslo_md5'] = password_hash(post('heslo2'), PASSWORD_DEFAULT);
@@ -50,7 +65,7 @@ if( !$u && ( post('prihlasit') || post('prihlasit2') ) )
 if(!$u && (post('registrovat')||post('registrovatAPrihlasit')))
 {
   $tab=$_POST['tab'];
-  $narozeni=new DateTime(strtr(post('datumNarozeni'),'.','-'));
+  $narozeni=vytvorDatumZeVstupuUzivatele(post('datumNarozeni'));
   $tab['datum_narozeni']=$narozeni->format('Y-m-d');
   $tab['heslo_md5'] = password_hash(post('heslo2'), PASSWORD_DEFAULT);
   $u=Uzivatel::prihlasId(Uzivatel::registruj($tab));
@@ -67,8 +82,10 @@ if(!$u && (post('registrovat')||post('registrovatAPrihlasit')))
 ////////////////////////////////////////
 
 $pokracovat=isset($_GET['prihlaska']); //pokračovat v přihlášce dle GETu?
-if($u && $pokracovat)
-  exit(header('Location: '.URL_WEBU.'/prihlaska'));
+if($u && $pokracovat) {
+  header('Location: ' . URL_WEBU . '/prihlaska', true, 302);
+  exit();
+}
 
 //todo gamecon neběží a podobně
 
@@ -76,13 +93,6 @@ $udb=[];
 if($u)
   $udb=$u->rawDb();
 $avatar=$u?$u->avatar():Uzivatel::avatarDefault();
-// zabrané přezdívky uživatelů
-$o=dbQuery('SELECT login_uzivatele FROM uzivatele_hodnoty '.($u?'WHERE id_uzivatele!='.$u->id():''));
-$loginy=[];
-while ($row=mysqli_fetch_row($o)) {
-  $login = $row[0];
-  $loginy[] = strtolower(strtr($login, ['"' => '', "\n" => '']));
-}
 ?>
 
 
@@ -100,7 +110,7 @@ while ($row=mysqli_fetch_row($o)) {
 <?php } ?>
 
 <form method="post" id="regForm" class="registrace" enctype="multipart/form-data">
-  <input type="text" placeholder="e-mail" name="tab[email1_uzivatele]" value="<?=@$udb['email1_uzivatele']?>">
+  <input type="email" placeholder="e-mail" name="tab[email1_uzivatele]" value="<?=$udb['email1_uzivatele'] ?? ''?>" required>
   <div id="existujiciUzivatel" style="display:none">
     <div class="pokyn">Uživatel s tímto e-mailem už existuje. Pokud jsi to ty, přihlaš se svým heslem nebo si nech <a href="zapomenute-heslo" tabindex="10">vygenerovat nové</a>, pokud si ho nepamatuješ.</div>
     <input type="password" placeholder="heslo" name="heslo" style="margin-top:0"><br>
@@ -126,28 +136,28 @@ while ($row=mysqli_fetch_row($o)) {
     </div>
     <?php } ?>
     <br>
-    <input type="text" placeholder="Přezdívka" name="tab[login_uzivatele]" value="<?=@$udb['login_uzivatele']?>">
-    <input type="text" placeholder="Jméno" name="tab[jmeno_uzivatele]" value="<?=@$udb['jmeno_uzivatele']?>">
-    <input type="text" placeholder="Příjmení" name="tab[prijmeni_uzivatele]" value="<?=@$udb['prijmeni_uzivatele']?>">
-    <input type="radio" name="tab[pohlavi]" value="f" id="pohlaviZena"
-      <?php if(@$udb['pohlavi']=='f'){ ?>checked<?php } ?>>
+    <input type="text" placeholder="Přezdívka" name="tab[login_uzivatele]" value="<?=$udb['login_uzivatele'] ?? ''?>" required>
+    <input type="text" placeholder="Jméno" name="tab[jmeno_uzivatele]" value="<?=$udb['jmeno_uzivatele'] ?? ''?>" required>
+    <input type="text" placeholder="Příjmení" name="tab[prijmeni_uzivatele]" value="<?=$udb['prijmeni_uzivatele'] ?? ''?>" required>
+    <input type="radio" name="tab[pohlavi]" value="f" id="pohlaviZena" required
+      <?php if(($udb['pohlavi'] ?? '')=='f'){ ?>checked<?php } ?>>
       <label for="pohlaviZena">Žena</label> &ensp;
     <input type="radio" name="tab[pohlavi]" value="m" id="pohlaviMuz"
-      <?php if(@$udb['pohlavi']=='m'){ ?>checked<?php } ?>>
+      <?php if(($udb['pohlavi'] ?? '')=='m'){ ?>checked<?php } ?>>
       <label for="pohlaviMuz">Muž</label>
-    <input type="text" placeholder="Ulice a číslo popisné" name="tab[ulice_a_cp_uzivatele]" value="<?=@$udb['ulice_a_cp_uzivatele']?>">
-    <input type="text" placeholder="Město" name="tab[mesto_uzivatele]" value="<?=@$udb['mesto_uzivatele']?>">
-    <input type="text" placeholder="PSČ" name="tab[psc_uzivatele]" value="<?=@$udb['psc_uzivatele']?>">
+    <input type="text" placeholder="Ulice a číslo popisné" name="tab[ulice_a_cp_uzivatele]" value="<?=$udb['ulice_a_cp_uzivatele'] ?? ''?>" required>
+    <input type="text" placeholder="Město" name="tab[mesto_uzivatele]" value="<?=$udb['mesto_uzivatele'] ?? ''?>" required>
+    <input type="text" placeholder="PSČ" name="tab[psc_uzivatele]" value="<?=$udb['psc_uzivatele'] ?? ''?>" required>
     <select name="tab[stat_uzivatele]">
-      <option value="1" <?=@$udb['stat_uzivatele']==1?'selected':''?>>Česká republika</option>
-      <option value="2" <?=@$udb['stat_uzivatele']==2?'selected':''?>>Slovenská republika</option>
-      <option value="-1" <?=@$udb['stat_uzivatele']==-1?'selected':''?>>(jiný stát)</option>
+      <option value="1" <?=($udb['stat_uzivatele'] ?? '')==1?'selected':''?>>Česká republika</option>
+      <option value="2" <?=($udb['stat_uzivatele'] ?? '')==2?'selected':''?>>Slovenská republika</option>
+      <option value="-1" <?=($udb['stat_uzivatele'] ?? '')==-1?'selected':''?>>(jiný stát)</option>
     </select>
     <br>
-    <input type="text" placeholder="Telefon" name="tab[telefon_uzivatele]" value="<?=@$udb['telefon_uzivatele']?>">
-    <input type="text" placeholder="Datum narození jako 1.1.1990" name="datumNarozeni" value="<?=$u?$u->datumNarozeni()->formatDatumStandard():''?>" >
-    <input type="password" placeholder="Heslo" name="heslo2">
-    <input type="password" placeholder="Heslo pro kontrolu" name="heslo3">
+    <input type="text" placeholder="Telefon" name="tab[telefon_uzivatele]" value="<?=$udb['telefon_uzivatele'] ?? ''?>" required>
+    <input type="text" placeholder="Datum narození jako 1. 1. 1990" name="datumNarozeni" value="<?=$u && $u->datumNarozeni() ? $u->datumNarozeni()->formatDatumStandard():''?>" required>
+    <input type="password" placeholder="Heslo" name="heslo2" <?php if(!$u){ ?>required <?php } ?>>
+    <input type="password" placeholder="Heslo pro kontrolu" name="heslo3" <?php if(!$u){ ?>required <?php } ?>>
     <input type="checkbox" id="udaje" style="margin-top:1em" required>
     <label for="udaje" class="">Souhlasím se <span class="hinted i">zpracováním osobních údajů
     <span class="hint">
@@ -177,20 +187,18 @@ while ($row=mysqli_fetch_row($o)) {
 
 <script>
 $(function(){
-  function formChyby(){
+  function formChyby(novyUzivatel){
     let err='';
-    let loginy = <?=json_encode($loginy)?>;
-    loginy.forEach(function(login, loginIndex){
-        loginy[loginIndex] = bezdiakritiky(login.toLowerCase().trim());
-    });
-    let novyLogin = $('[name="tab[login_uzivatele]"]').val();
-    if(loginy.indexOf(bezdiakritiky(novyLogin.toLowerCase().trim())) !== -1)
-    {
-      err+='Přezdívka je už zabraná. ';
-      <?php if(!$u){ ?>
-      err+='Jestli je tvoje, zkus se přihlásit nebo kliknout na „zapomenuté heslo“ vpravo nahoře.\n';
-      <?php } ?>
-      return err;
+    if (novyUzivatel) {
+        let novyLogin = $('[name="tab[login_uzivatele]"]').val();
+        let jeRegistrovany = registrovanyLogin(novyLogin);
+        if(jeRegistrovany){
+          err+='Přezdívka je už zabraná.';
+          <?php if(!$u){ ?>
+          err+=' Jestli je tvoje, zkus se přihlásit nebo kliknout na „zapomenuté heslo“ vpravo nahoře.\n';
+          <?php } ?>
+          return err;
+        }
     }
     if(!$('[name="tab[jmeno_uzivatele]"]').val()) err+='Je třeba vyplnit jméno.\n';
     if(!$('[name="tab[prijmeni_uzivatele]"]').val()) err+='Je třeba vyplnit příjmení.\n';
@@ -199,10 +207,10 @@ $(function(){
     if(!$('[name="tab[mesto_uzivatele]"]').val()) err+='Vyplňte prosím město.\n';
     if($('[name="tab[psc_uzivatele]"]').val().search(/^[\d ]+$/)==-1) err+='Vyplňte prosím PSČ, např. 602 00.\n';
     if($('[name="tab[telefon_uzivatele]"]').val().search(/^[\d \+]+$/)==-1) err+='Vyplňte prosím telefon, např. +420 123 456 789.\n';
-    if($('[name=datumNarozeni]').val().search(/^\d{1,2}\s*\.\s*\d{1,2}\s*\.\s*\d{4}$/)==-1) err+='Datum narození, např. 1. 1. 1990.\n';
-    <?php if(!$u){ ?>
-    if( !$('[name=heslo2]').val() || !$('[name=heslo3]').val() ) err+='Je třeba vyplnit heslo.\n';
-    <?php } ?>
+    if($('[name=datumNarozeni]').val().search(/^\d{1,2}\s*\.\s*\d{1,2}\s*\.\s*\d{4}$/)==-1 || !platneDatum($('[name=datumNarozeni]').val())) {
+      err+='Datum narození, např. 1. 1. 1990.\n';
+    }
+    if( novyUzivatel && (!$('[name=heslo2]').val() || !$('[name=heslo3]').val()) ) err+='Je třeba vyplnit heslo.\n';
     if( ($('[name=heslo2]').val()) != ($('[name=heslo3]').val()) ) err+='Hesla se neshodují.\n';
     if(!jeMail($('[name="tab[email1_uzivatele]"]').val())) err+='Je třeba zadat platný e-mail.\n';
     if(!$('[name="tab[pohlavi]"]:checked').size()) err+='Není vybráno pohlaví.\n';
@@ -214,22 +222,25 @@ $(function(){
   }
 
   function registrovanyMail(mail,complete){
-    $.getJSON(document.URL,{testMailu:true,mail:mail},function(data){
+    $.getJSON(document.URL,{ajax:true,testMailu:true,mail:mail},function(data){
       complete(data.vysledek);
     });
   }
 
-  function bezdiakritiky(text) {
-    const sDiakritikou="áäčďéěíĺľňóôőöŕšťúůűüýřžÁÄČĎÉĚÍĹĽŇÓÔŐÖŔŠŤÚŮŰÜÝŘŽ";
-    const bezDiakritiky="aacdeeillnoooorstuuuuyrzAACDEEILLNOOOORSTUUUUYRZ";
-    let cistyText="";
-    for(let poziceZnaku=0;poziceZnaku<text.length;poziceZnaku++) {
-      if (sDiakritikou.indexOf(text.charAt(poziceZnaku))!==-1) {
-          cistyText += bezDiakritiky.charAt(sDiakritikou.indexOf(text.charAt(poziceZnaku)));
-      }
-      else cistyText+=text.charAt(poziceZnaku);
-    }
-    return cistyText;
+  function registrovanyLogin(login){
+    let jeRegistrovany;
+    $.ajax({dataType:"json",url: document.URL,data:{ajax:true,testLoginu:true,login:login},success:function(data){
+        jeRegistrovany = data.vysledek;
+    },async:false});
+    return jeRegistrovany;
+  }
+
+  function platneDatum(datum){
+    let jePlatne;
+    $.ajax({dataType:"json",url: document.URL,data:{ajax:true,testDataNarozeni:true,datum:datum},success:function(data){
+        jePlatne = data.vysledek;
+      },async:false});
+    return jePlatne;
   }
 
   <?php if(!$u){ ?>
@@ -253,9 +264,10 @@ $(function(){
   });
   <?php } ?>
   $('[name=upravit], [name=registrovat], [name=registrovatAPrihlasit]').click(function(){
-    if(!formChyby())
+    let formChybyText = formChyby($(this).attr('name') !== 'upravit' /* registrace noveho uzivatele? */);
+    if(!formChybyText)
       return true;
-    alert(formChyby());
+    alert(formChybyText);
     return false;
   });
   $('.registrace [name=prihlasit], .registrace [name=prihlasit2]').click(function(){
