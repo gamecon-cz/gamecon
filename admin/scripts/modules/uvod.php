@@ -145,7 +145,24 @@ if($uPracovni && $uPracovni->gcPrihlasen())
   $potrebujePotvrzeni = potrebujePotvrzeni($datumNarozeni);
   $mameLetosniPotvrzeni = $potvrzeniOd && $potvrzeniOd->format('y') === date('y');
   if (!$mameLetosniPotvrzeni) $x->parse('uvod.uzivatel.chybiPotvrzeni');
-  if(GC_BEZI && (!$up->gcPritomen() || $up->finance()->stav() < 0)) $x->parse('uvod.potvrditZruseniPrace');
+  if(GC_BEZI) {
+    $zpravyProPotvrzeniZruseniPrace = [];
+    if (!$up->gcPritomen()) {
+      $zpravyProPotvrzeniZruseniPrace[] = 'nedostal materiály';
+    }
+    if ($up->finance()->stav() < 0) {
+      $zpravyProPotvrzeniZruseniPrace[] = 'má záporný zůstatek';
+    }
+    if ($potrebujePotvrzeni && !$mameLetosniPotvrzeni) {
+      $zpravyProPotvrzeniZruseniPrace[] = 'nemá potvrzení od rodičů';
+    }
+    if ($zpravyProPotvrzeniZruseniPrace) {
+      $x->assign([
+        'zpravaProPotvrzeniZruseniPrace' => 'Uživatel ' . implode(', ', $zpravyProPotvrzeniZruseniPrace) . '. Přesto ukončit práci s uživatelem?'
+      ]);
+      $x->parse('uvod.potvrditZruseniPrace');
+    }
+  }
   $x->parse('uvod.uzivatel');
   $x->parse('uvod.slevy');
   $x->parse('uvod.objednavky');
