@@ -156,9 +156,9 @@ if($uPracovni && $uPracovni->gcPrihlasen())
     if ($potrebujePotvrzeni && !$mameLetosniPotvrzeni) {
       $zpravyProPotvrzeniZruseniPrace[] = 'nemá potvrzení od rodičů';
     }
-    if ($zpravyProPotvrzeniZruseniPrace) {
+    foreach ($zpravyProPotvrzeniZruseniPrace as $zpravaProPotvrzeniZruseniPrace) {
       $x->assign([
-        'zpravaProPotvrzeniZruseniPrace' => 'Uživatel ' . implode(', ', $zpravyProPotvrzeniZruseniPrace) . '. Přesto ukončit práci s uživatelem?'
+        'zpravaProPotvrzeniZruseniPrace' => "Uživatel {$zpravaProPotvrzeniZruseniPrace}. Přesto ukončit práci s uživatelem?"
       ]);
       $x->parse('uvod.potvrditZruseniPrace');
     }
