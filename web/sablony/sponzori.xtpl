@@ -3,7 +3,7 @@
 
 <p>
 <!-- begin:sponzor -->
-<a href="http://{url}"><img src="{img}"></a>
+<a href="{url}"><img src="{img}"></a>
 <!-- end:sponzor -->
 </p>
 
@@ -11,7 +11,7 @@
 
 <p>
 <!-- begin:partner -->
-<a href="http://{url}"><img src="{img}"></a>
+<a href="{url}"><img src="{img}"></a>
 <!-- end:partner -->
 </p>
 
