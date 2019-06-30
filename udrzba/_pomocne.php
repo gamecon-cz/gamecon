@@ -33,7 +33,8 @@ function nasad($nastaveni) {
 
       /web/soubory/*
       !/web/soubory/styl
-      !/web/soubory/*.*
+      !/web/soubory/*.js
+      !/web/soubory/*.html
       !/web/soubory/systemove/aktivity/.keep
       !/web/soubory/systemove/avatary/.keep
       !/web/soubory/systemove/fotky/.keep

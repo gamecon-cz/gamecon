@@ -26,19 +26,19 @@ function programNahled(obalNahledu, obalProgramu, odkazy, prepinac) {
     zobraz() {
       this.obalProgramu.addClass('programNahled_obalProgramu-zuzeny')
       this.obalNahledu.addClass('programNahled_obalNahledu-viditelny')
-      this.storage.setItem('viditelny', '1')
+      this.storage.setItem('programNahled_viditelny', '1')
       this.prepinac.html('vypnout náhledy')
     }
 
     skryj() {
       this.obalProgramu.removeClass('programNahled_obalProgramu-zuzeny')
       this.obalNahledu.removeClass('programNahled_obalNahledu-viditelny')
-      this.storage.setItem('viditelny', '')
+      this.storage.setItem('programNahled_viditelny', '')
       this.prepinac.html('zapnout náhledy')
     }
 
     get viditelny() {
-      return this.storage.getItem('viditelny')
+      return this.storage.getItem('programNahled_viditelny')
     }
 
     zobrazSkryj() {
@@ -85,7 +85,7 @@ function programNahled(obalNahledu, obalProgramu, odkazy, prepinac) {
     obalNahledu,
     obalProgramu,
     prepinac,
-    window.localStorage // TODO později přidat nějaký wrapper objekt kvůli prefixování
+    window.localStorage
   )
 
   var api = new Api()
