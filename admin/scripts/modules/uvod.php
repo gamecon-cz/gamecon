@@ -221,6 +221,7 @@ if($uPracovni) {
   $datumNarozeni = new DateTimeImmutable($r['datum_narozeni']);
   $potvrzeniOd = $r['potvrzeni_zakonneho_zastupce'] ? new DateTimeImmutable($r['potvrzeni_zakonneho_zastupce']) : null;
   $potrebujePotvrzeni = potrebujePotvrzeni($datumNarozeni);
+  $potrebujePotvrzeniZprava = '';
   $mameLetosniPotvrzeni = $potvrzeniOd && $potvrzeniOd->format('y') === date('y');
   foreach($udaje as $sloupec => $nazev) {
     $hodnota = $r[$sloupec];
@@ -290,7 +291,6 @@ if($uPracovni) {
             'Uživalel potřebuje letošní potvrzení od rodiče nebo zákonného zástupce, že může na Gamecon, i když mu na začátku Gameconu (%s) ještě nebude patnáct. Přesto uložit?',
             (new DateTimeCz(zacatekLetosnihoGameconu()->format(DATE_ATOM)))->formatDatumStandard()
           );
-            $x->assign(['potrebujePotvrzeni' => $potrebujePotvrzeni, 'potrebujePotvrzeniZprava' => $potrebujePotvrzeniZprava]);
           if (!$mameLetosniPotvrzeni) {
             $x->parse('uvod.udaje.udaj.chybi');
           }
@@ -302,6 +302,10 @@ if($uPracovni) {
     }
     $x->parse('uvod.udaje.udaj');
   }
+  $x->assign([
+    'potrebujePotvrzeni' => $potrebujePotvrzeni ? '1' : '0',
+    'potrebujePotvrzeniZprava' => $potrebujePotvrzeniZprava
+  ]);
   $x->parse('uvod.udaje');
 }
 

@@ -191,7 +191,7 @@
       <!-- end:udaj -->
     </table>
       <script>
-        let potebujePotvrzeni = {potrebujePotvrzeni};
+        let potebujePotvrzeni = Boolean({potrebujePotvrzeni});
         const osobniUdajeForm = $('#osobni_udaje');
         const potvrzeniZakonnehoZastupce = osobniUdajeForm.find('input[name="udaj[potvrzeni_zakonneho_zastupce]"]');
         osobniUdajeForm.submit(function(){
