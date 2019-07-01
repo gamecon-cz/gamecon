@@ -335,7 +335,7 @@ class Program {
     if($this->nastaveni['osobni']) {
       echo mb_ucfirst($ao->typ()->nazev()) . ': ';
     }
-    echo '<a href="' . $ao->url() . '" target="_blank">' . $ao->nazev() . '</a>';
+    echo '<a href="' . $ao->url() . '" target="_blank" class="programNahled_odkaz" data-program-nahled-id="' . $ao->id() . '">' . $ao->nazev() . '</a>';
     if($this->nastaveni['drdPj'] && $ao->typId() == Typ::DRD && $ao->prihlasovatelna()) {
       echo ' ('.$ao->orgJmena().') ';
     }
