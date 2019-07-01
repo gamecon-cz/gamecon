@@ -431,12 +431,20 @@ class Uzivatel {
    *  @param bool $back rovnou otočit na referrer?   */
   static function odhlas($back=false)
   {
-    if(!session_id())
-      session_start();
-    session_destroy();
+    self::odhlasProTed();
     if(isset($_COOKIE['gcTrvalePrihlaseni']))
       setcookie('gcTrvalePrihlaseni','',0,'/');
     if($back) back();
+  }
+
+  /**
+   * Odhlásí aktuálně přihlášeného uživatele
+   */
+  static function odhlasProTed()
+  {
+    if(!session_id())
+      session_start();
+    session_destroy();
   }
 
   /** Odpojí od session uživatele na indexu $klic */
@@ -486,9 +494,9 @@ class Uzivatel {
     //máme obnovit starou proměnnou pro id uživatele (otáčíme aktuálně přihlášeného uživatele)?
     $sesObnovit=(isset($_SESSION['id_uzivatele']) && $_SESSION['id_uzivatele']==$this->id());
     if($klic=='uzivatel') //pokud je klíč default, zničíme celou session
-      $this->odhlas();
+      self::odhlasProTed(); // ponech případnou cookie pro trvalé přihášení
     else //pokud je speciální, pouze přemažeme položku v session
-      $this->odhlasKlic($klic);
+      self::odhlasKlic($klic);
     $u=Uzivatel::prihlasId($id,$klic);
     $this->u=$u->u;
     if($sesObnovit) $_SESSION['id_uzivatele']=$this->id();
