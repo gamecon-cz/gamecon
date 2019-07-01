@@ -55,15 +55,15 @@ elseif(is_file('./scripts/zvlastni/'.$stranka.'/'.$podstranka.'.php'))
 else
 {
   // načtení menu
-  $menu = new AdminMenu('./scripts/modules/');
-  $menu = $menu->pole();
+  $menuObject = new AdminMenu('./scripts/modules/');
+  $menu = $menuObject->pole();
 
   // načtení submenu
   $submenu = [];
   if(isset($menu[$stranka]['submenu']) && $menu[$stranka]['submenu'])
   {
-    $submenu = new AdminMenu('./scripts/modules/'.$stranka.'/');
-    $submenu = $submenu->pole();
+    $submenuObject = new AdminMenu('./scripts/modules/'.$stranka.'/');
+    $submenu = $submenuObject->pole();
   }
 
   // zjištění práv na zobrazení stránky
@@ -93,6 +93,11 @@ else
     }
     ob_start(); // výstup uložíme do bufferu
     require($soubor);
+
+    if ($submenuObject->getPatickaSoubor()) {
+      require $submenuObject->getPatickaSoubor();
+    }
+
     $vystup = ob_get_clean();
     if($BEZ_DEKORACE) echo $vystup;
     else              $xtpl->assign('obsahRetezec', $vystup);
