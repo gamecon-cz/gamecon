@@ -291,10 +291,16 @@
 <div style="clear:both"></div>
 <script>
 var $boxy = $('.aBox');
+var previousColCount = 0;
 function sloupce() {
   var $sloupce = $('.sloupce');
   var fullw = $sloupce.width();
   var colw = $('.sloupce > .sloup').width();
+  var currentColCount = Math.floor(fullw / colw);
+  if (currentColCount == previousColCount) {
+    return; // sloupce se preskladaji jen pokud to ma smysl (pokud se jich nove vejde vic nebo min)
+  }
+  previousColCount = currentColCount;
   // vysypat boxy mimo, pokud tam jsou
   $boxy.insertAfter($sloupce);
   // vytvořit adekvátní počet sloupců
