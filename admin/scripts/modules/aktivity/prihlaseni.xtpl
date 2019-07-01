@@ -30,6 +30,7 @@ function tgl(id)
     <th style="min-width: 200px">E-mail</th>
     <th style="min-width: 55px">Věk</th>
     <th style="min-width: 125px">Telefon</th>
+    <th style="min-width: 125px">Datum</th>
   </tr>
   <!-- begin:clovek -->
   <tr class="{odd}">
@@ -38,6 +39,7 @@ function tgl(id)
     <td>{mail}</td>
     <td>{vek}</td>
     <td>{telefon}</td>
+    <td style="text-align:right">{datum_prihlaseni}</td>
   </tr>
   <!-- end:clovek -->
 </table>

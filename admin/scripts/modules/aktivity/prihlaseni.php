@@ -26,10 +26,12 @@ $odpoved = dbQuery('
     u.login_uzivatele as nick, u.jmeno_uzivatele as jmeno, u.id_uzivatele,
     u.prijmeni_uzivatele as prijmeni, u.email1_uzivatele as mail, u.telefon_uzivatele as telefon,
     GROUP_CONCAT(org.login_uzivatele) AS orgove,
-    CONCAT(l.nazev,", ",l.dvere) as mistnost
+    CONCAT(l.nazev,", ",l.dvere) as mistnost,
+    MAX(log.cas) datum_prihlaseni
   FROM akce_seznam a
   LEFT JOIN akce_prihlaseni p ON (a.id_akce=p.id_akce)
   LEFT JOIN uzivatele_hodnoty u ON (p.id_uzivatele=u.id_uzivatele)
+  LEFT JOIN akce_prihlaseni_log log ON (log.id_akce=a.id_akce AND log.id_uzivatele=u.id_uzivatele)
   LEFT JOIN akce_organizatori ao ON (ao.id_akce = a.id_akce)
   LEFT JOIN uzivatele_hodnoty org ON (org.id_uzivatele = ao.id_uzivatele)
   LEFT JOIN akce_lokace l ON (l.id_lokace = a.lokace)
@@ -53,7 +55,12 @@ while($totoPrihlaseni) {
     $vek = $hrac->vekKDatu($datum);
     if($vek === null) $vek = "Nevyplnil";
     elseif($vek >= 18) $vek = "18+";
-
+    
+    if($totoPrihlaseni['datum_prihlaseni'] != null)
+    {
+      $prihlasen = new DateTimeCz($totoPrihlaseni['datum_prihlaseni']);
+      $xtpl2->assign('datum_prihlaseni', $prihlasen->format('j.n. H:i'));
+    } 
     $xtpl2->assign('vek', $vek);
     $xtpl2->assign('odd', $odd?$odd='':$odd='odd');
     $xtpl2->parse('prihlaseni.aktivita.lide.clovek');
