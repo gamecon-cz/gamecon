@@ -326,7 +326,7 @@ $(window).resize(function() { sloupce(); });
 <!-- begin:potvrditZruseniPrace -->
 <script>
 $('#zrusit').submit(function(){
-  return confirm('Uživatel nedostal materiály nebo má záporný zůstatek. Ukončit práci s uživatelem?');
+  return confirm('{zpravaProPotvrzeniZruseniPrace}');
 });
 </script>
 <!-- end:potvrdZruseniPrace -->
