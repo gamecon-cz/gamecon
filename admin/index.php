@@ -94,11 +94,8 @@ else
     ob_start(); // výstup uložíme do bufferu
     require($soubor);
 
-    if(isset($menu[$stranka]['submenu']) && $menu[$stranka]['submenu'])
-    {
-      if ($submenuObject->getPatickaSoubor()) {
-        require $submenuObject->getPatickaSoubor();
-      }
+    if(!empty($submenuObject) && $submenuObject->getPatickaSoubor()) {
+      require $submenuObject->getPatickaSoubor();
     }
 
     $vystup = ob_get_clean();
