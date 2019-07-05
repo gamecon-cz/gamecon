@@ -10,6 +10,7 @@ class Menu {
     'organizacni-vypomoc'     =>  'Organizační výpomoc',
     'chci-se-prihlasit'   =>  'Chci se přihlásit',
     'prakticke-informace' =>  'Praktické informace',
+    'celohra'            =>  'Celohra',
     'kontakty'            =>  'Kontakty',
     'info-po-gc'          =>  'Info po GC a zpětná vazba',
     #'https://www.facebook.com/pg/gamecon/photos/?tab=album&album_id=1646393038705358' => 'Fotogalerie',
