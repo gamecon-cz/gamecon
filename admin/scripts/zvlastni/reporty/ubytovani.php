@@ -5,7 +5,7 @@ $o = dbQuery('
     GROUP_CONCAT(DISTINCT IF(
       p.nazev LIKE "Spacák%",
       "Spacák",
-      SUBSTR(p.nazev,1,13)
+      SUBSTR(p.nazev,1, LOCATE(" ", p.nazev))
     )) as typ,
     GROUP_CONCAT(DISTINCT IFNULL(ub.pokoj,"")) as pokoj,
     MIN(p.ubytovani_den) as prvni_noc,
