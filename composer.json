@@ -20,6 +20,7 @@
   "require": {
     "php": ">=7.1",
     "ext-json": "*",
+    "ext-intl": "*",
     "ext-mysqli": "*",
     "ext-mbstring": "*",
     "ext-intl": "*",
