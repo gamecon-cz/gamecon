@@ -20,6 +20,7 @@
   "require": {
     "php": ">=7.1",
     "ext-json": "*",
+    "ext-intl": "*",
     "ext-mysqli": "*",
     "michelf/php-markdown": "~1.4",
     "oyejorge/less.php": "~1.7",
