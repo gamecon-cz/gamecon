@@ -1,0 +1,366 @@
+orig. pořadí;id;puvodni nazev;Kategorie;Kategorie - hypotetické;opraveny nazev;poznamka
+39;1837;Debata;typ Přednášky;;Debata;
+100;5283;gamebook;různé;;Gamebook;
+154;95;Legendary Tales;styl RPG;;Vyprávění dle karet;
+371;;minimální výška 120 cm;omezení;;Výška: 120+;Lasergame, asi dobré využití štítku
+291;5074;Věk: 10+;omezení Věk;;Věk: 10+;
+292;4120;Věk: 12+;omezení Věk;;Věk: 12+;
+293;4055;Věk: 14+;omezení Věk;;Věk: 14+;
+287;9334;Věk 15+;omezení Věk;;Věk: 15+;U věku bych nakonec udělal výjimku a kategorii psal, je to tak srozumitelnější a asi to i vypadá lépe.
+294;4067;Věk: 15+;omezení Věk;;Věk: 15+;
+359;;Věk: 16+;omezení Věk;;Věk: 16+;
+295;4464;Věk: 18+;omezení Věk;;Věk: 18+;
+288;12345;Věk 6+;omezení Věk;;Věk: 6+;Není schválený, ale možná bych nechal rozvolněné.
+358;;Věk: 7+;omezení Věk;;Věk: 7+;
+289;5235;Věk 8+;omezení Věk;;Věk: 8+;
+296;4941;Věk: 8+;omezení Věk;;Věk: 8+;
+297;8759;Věk: 9+;omezení Věk;;Věk: 9+;Není schválený, ale možná bych nechal rozvolněné.
+360;;Věk: do 15;omezení Věk;;Věk: do 15;akční hra Turnaj na ostrově příšerek JUNIOR
+41;72;deluxe;Primary;;Deluxe;
+81;1534;Eng Only;Primary;;Eng Only;
+83;62;English;Primary;;Eng Only;
+139;104;i pro nováčky;Primary;;I pro nováčky;
+191;10865;Playtest;Primary;;Playtest;
+199;69;pro pokročilé;Primary;;Pro pokročilé;
+279;74;Turnaj;Primary;;Turnaj;
+280;73;Turnaj Párty hra;Primary;;Turnaj;Bude lepší použít štítky “Turnaj” a “Párty hra”
+281;1047;Týmová;Primary;;Týmová;
+91;316;Fantasy/Sci-Fi;prostředí;;-;Nedostatečně specifický, prosím smazat.
+6;769;Alternativní historie;prostředí;;Alternativní historie;
+324;5295;Žánr: Alternativní historie;prostředí;;Alternativní historie;
+15;8282;Asterion;prostředí;;Asterion;
+27;2182;Cthuhu Mythos;prostředí;;Cthulhu Mythos;
+28;8126;Cthulhu Mythos;prostředí;;Cthulhu Mythos;
+200;4621;Prostředí: Cthuhu Mythos;prostředí;;Cthulhu Mythos;
+30;9246;Časová smyčka;prostředí;;Časová smyčka;
+36;2648;Dark Fantasy;prostředí;;Dark Fantasy;
+326;6150;Žánr: Dark Fantasy;prostředí;;Dark Fantasy;
+90;1110;Fantasy;prostředí;;Fantasy;
+329;4503;Žánr: Fantasy;prostředí;;Fantasy;
+97;299;Forgotten Realms;prostředí;;Forgotten Realms;
+130;300;High Fantasy;prostředí;;High Fantasy;
+131;351;Historický;prostředí;;Historie;
+132;11986;historie;prostředí;;Historie;
+330;4940;Žánr: Historický;prostředí;;Historie;
+331;4459;Žánr: History fiction;prostředí;;Historie;
+157;1672;Low Fantasy;prostředí;;Low Fantasy;
+184;1853;Pán prstenů;prostředí;;Pán prstenů;
+202;5303;Prostředí: Současnost;prostředí;;Současnost;
+212;89;Realita;prostředí;;Současnost;Pravděpodobně.
+235;2431;Současnost;prostředí;;Současnost;
+203;4488;Prostředí: Star Wars;prostředí;;Star Wars;
+237;2126;Star Wars;prostředí;;Star Wars;
+363;;Neklidný Tauril;prostředí;;Tauril;
+205;4455;Prostředí: Vesmír;prostředí;;Vesmír;Ročníkově specifický štítek prostředí. U turnaje v Marsu Teraformci. Jako asi ok.
+299;2586;Viktoriánská doba;prostředí;;Viktoriánská doba;
+372;;Warhammer;prostředí;;Warhammer;Prostředí, jako obdoba Warhammer 40k. Právě jsem doplnil k Chaosu.
+47;4955;Divoký západ;prostředí;;Western;
+312;7279;Western;prostředí;;Western;
+343;5044;Žánr: Western;prostředí;;Western;
+7;4944;Amazonie;prostředí LKD;;Amazonie;Pravděpodobně ročníkově specifický štítek prostředí LKD.
+23;87;Blázinec;prostředí LKD;;Blázinec;Pravděpodobně ročníkově specifický štítek prostředí LKD.
+352;;Čechy;prostředí LKD;;Čechy;Letošní prostředí LKD
+32;84;Čína;prostředí LKD;;Čína;Pravděpodobně ročníkově specifický štítek LKD
+98;1372;Francie;prostředí LKD;;Francie;Letošní prostředí LKD.
+141;83;Itálie;prostředí LKD;;Itálie;Letošní prostředí LKD.
+144;85;Kensington;prostředí LKD;;Kensington;Pravděpodobně ročníkově specifický štítek prostředí LKD.
+148;94;Konstantinopol;prostředí LKD;;Konstantinopol;Pravděpodobně ročníkově specifický štítek prostředí LKD.
+156;1855;Londýn;prostředí LKD;;Londýn;Pravděpodobně ročníkově specifický štítek prostředí LKD.
+159;92;Malajsie;prostředí LKD;;Malajsie;Pravděpodobně ročníkově specifický štítek LKD.
+161;5875;Mexiko;prostředí LKD;;Mexiko;Letošní prostředí LKD.
+355;;Mexico;prostředí LKD;;Mexiko;Letošní prostředí LKD. Psal bych to česky.
+169;93;Nanking;prostředí LKD;;Nanking;Pravděpodobně ročníkově specifický štítek prostředí LKD.
+353;;Německo;prostředí LKD;;Německo;Letošní prostředí LKD
+175;1859;Norsko;prostředí LKD;;Norsko;Pravděpodobně ročníkově specifický štítek prostředí LKD.
+195;1863;Praha;prostředí LKD;;Praha;Letošní prostředí LKD.
+217;5717;rovníková Afrika;prostředí LKD;;Rovníková Afrika;Pravděpodobně ročníkově specifický štítek prostředí LKD.
+229;4947;Sibiř;prostředí LKD;;Sibiř;Pravděpodobně ročníkově specifický štítek LKD
+230;82;Singapur;prostředí LKD;;Singapur;Pravděpodobně ročníkově specifický štítek LKD
+232;86;Sny;prostředí LKD;;Sny;Pravděpodobně ročníkově specifický štítek prostředí LKD.
+270;5807;Tasmánie;prostředí LKD;;Tasmánie;Pravděpodobně ročníkově specifický štítek LKD
+271;1377;Taškent;prostředí LKD;;Taškent;Pravděpodobně ročníkově specifický štítek prostředí LKD.
+277;5869;Tibet;prostředí LKD;;Tibet;Pravděpodobně ročníkově specifický štítek prostředí LKD.
+204;4026;Prostředí: Tropické;prostředí LKD;;Tropy;Ročníkově specifický štítek prostředí.
+354;;Uhry;prostředí LKD;;Uhry;Letošní prostředí LKD
+147;36;Končina;prostředí RPG;;Končina;
+269;2368;Taria;prostředí RPG;;Taria;
+357;;CGE;různé Partner;;CGE;
+44;9107;deskofobie;různé Partner;;Deskofobie;
+356;;mindok;různé Partner;;Mindok;
+5;109;akční;styl;;Akční;
+16;7536;Atmosférický;styl;;Atmosférická;
+107;3665;Herní styl: Atmosférická;styl;;Atmosférická;Atmosférická
+108;6578;Herní styl: Atmosférický;styl;;Atmosférická;Atmosférická
+78;11987;edukativní;styl;;Edukativní;
+124;5229;Herní styl: Učící;styl;;Edukativní;
+282;920;Učící;styl;;Edukativní;
+134;371;Horor;styl;;Horor;
+140;11764;Improvizační;styl;;Improvizační;
+166;11785;Muzikál;styl;;Muzikál;Nový, ale dává smysl.
+116;6035;Herní styl: Odlehčený;styl;;Odlehčená;
+178;223;Odlehčená;styl;;Odlehčená;
+179;7518;Odlehčený;styl;;Odlehčená;
+210;8242;Psychologická;styl;;Psychologická;
+370;;Rozhodovací;styl;;Rozhodovací;larp Speciální Jednotka
+125;7992;Herní styl: Vážný;styl;;Vážná;
+285;1599;Vážná;styl;;Vážná;
+286;274;Vážný;styl;;Vážná;
+126;5804;Herní styl: Vyjednávací;styl;;Vyjednávací;
+127;6089;Herní styl: Vyprávěcí;styl;;Vyprávěcí;
+301;71;vyprávěcí;styl;;Vyprávěcí;
+19;919;Běhací;styl Akční;;Běhací;
+109;3762;Herní styl: Běhací;styl Akční;;Běhací;
+117;5377;Herní styl: Odpočinková;styl Akční;;Odpočinková;
+180;1054;Odpočinková;styl Akční;;Odpočinková;
+120;4908;Herní styl: Přemýšlecí;styl Akční;;Přemýšlecí;
+207;1046;Přemýšlecí;styl Akční;;Přemýšlecí;
+298;76;Venkovní;styl Akční;;Venkovní;
+320;690;workshop;styl Akční;;Workshop;
+42;10284;Demohraní;styl Desk;;Demohraní;
+79;5078;ekonomická;styl Desk;;Ekonomická;
+112;6264;Herní styl: Ekonomická;styl Desk;;Ekonomická;
+105;4655;Herní styl: akooperativní;typ Desk;;Kooperativní;
+115;4620;Herní styl: Kooperativní;typ Desk;;Kooperativní;
+149;67;kooperativní;typ Desk;;Kooperativní;
+119;6297;Herní styl: Párty hra;typ Desk;;Párty hra;
+186;75;Párty hra;typ Desk;;Párty hra;
+121;4673;Herní styl: Semi-kooperativní;typ Desk;;Semi-kooperativní;
+222;4559;semi;typ Desk;;Semi-kooperativní;
+223;63;semi-kooperativní;typ Desk;;Semi-kooperativní;
+122;5824;Herní styl: Strategická;styl Desk;;Strategická;
+241;64;strategická;styl Desk;;Strategická;
+128;6389;Herní styl: Wargame;typ Desk;;Wargame;
+305;108;wargame;typ Desk;;Wargame;
+319;4278;worker placement;typ Desk;;Worker Placement;
+14;277;Argumentační;styl Larp;;Argumentační;
+348;;Emoční;styl Larp;;Emoční;
+150;12316;kostýmová;styl Larp;;Kostýmová;
+151;355;Kostýmový;styl Larp;;Kostýmová;
+233;11765;Sociální drama;styl Larp;;Sociální drama;
+300;65;vyjednávací;styl Larp;;Vyjednávací;
+303;11766;Vztahová;styl Larp;;Vztahová;
+304;276;Vztahový;styl Larp;;Vztahová;
+344;79;žánrovka;styl Larp;;Žánrovka;
+21;7991;Bez vypravěče;styl RPG;;Bez vypravěče;
+77;8162;Dungeoncrawl;styl RPG;;Dungeoncrawl;
+111;8109;Herní styl: Dungeoncrawl;styl RPG;;Dungeoncrawl;
+118;8075;Herní styl: Oldschool;styl RPG;;Oldschool;
+182;3768;Old School;styl RPG;;Oldschool;
+183;8331;Oldschool;styl RPG;;Oldschool;
+365;;Vícepostavová;styl RPG;;Vícepostavová;
+26;77;Card Driven Storytelling;styl RPG;;Vyprávění dle karet;
+2;57;13th;systém RPG;;13th Age;
+3;45;13th Age;systém RPG;;13th Age;
+13;99;Apocalypse World;systém RPG;;Apocalypse World;
+248;8071;Systém: Apocalypse World;systém RPG;;Apocalypse World;
+18;776;Aye Dark Overlord;systém RPG;;Aye Dark Overlord;
+249;5286;Systém: Aye Dark Overlord;systém RPG;;Aye Dark Overlord;
+20;9245;Bez systému;systém RPG;;Bez systému;
+170;232;Nepravidlová;systém RPG;;Bez systému;
+22;2615;Blades in the Dark;systém RPG;;Blades in the Dark;
+24;2790;Bliss Stage;systém RPG;;Bliss Stage;
+25;2784;Capes Superhero;systém RPG;;Capes RPG;
+362;;City of Mist;systém RPG;;City of Mist;
+31;768;Časy se mění;systém RPG;;Časy se mění;
+250;5294;Systém: Časy se mění;systém RPG;;Časy se mění;
+35;8161;Dakara;systém RPG;;Dakara;
+33;37;D&D 4e;systém RPG;;DnD 4e;
+48;12;DnD 4e;systém RPG;;DnD 4e;
+49;26;DnD 4e Lair assault;systém RPG;;DnD 4e;
+34;80;D&D 5e;systém RPG;;DnD 5e;
+50;2496;Dnd 5;systém RPG;;DnD 5e;
+51;50;DnD 5e;systém RPG;;DnD 5e;
+52;9342;DnD5e klon;systém RPG;;DnD 5e klon;
+56;13;Dogs in the Vineyard;systém RPG;;Dogs in the Vineyard;
+59;60;Dračí doupě;systém RPG;;Dračí doupě;Kvůli přednáškám.
+62;2;Dračí kutloch;systém RPG;;Dračí kutloch;
+69;38;DrD+;systém RPG;;DrD +;
+60;49;Dračí doupě 1.0;systém RPG;;DrD 1.0;
+57;3661;Dračák;systém RPG;;DrD 1.6;
+61;48;Dračí doupě 1.6;systém RPG;;DrD 1.6;
+64;3660;DrD;systém RPG;;DrD 1.6;
+65;14;DrD 1.6;systém RPG;;DrD 1.6;
+66;22;DrD 1.x;systém RPG;;DrD 1.6;Štítek by měl být specifický jako všechny ostatní, přemazal bych nejpravděpodobnější možností.
+72;5;DrDo;systém RPG;;DrD 1.6;
+252;7996;Systém: DrD 1.6;systém RPG;;DrD 1.6;
+67;24;DrD II;systém RPG;;DrD II;
+68;30;DrD II Mistři;systém RPG;;DrD II;
+70;18;DrDII;systém RPG;;DrD II;
+71;27;DrDII Mistři;systém RPG;;DrD II;
+244;9333;Stříbrná hlídka;systém RPG;;DrD klon;
+58;12245;Dračák podle staré školy;systém RPG;;DrD klon;
+253;5186;Systém: DrD+;systém RPG;;DrD+;
+73;39;Dread;systém RPG;;Dread;
+74;7;Dread!;systém RPG;;Dread;
+76;9008;Dungeon World;systém RPG;;Dungeon World;
+80;7510;End of the World;systém RPG;;End of the World;
+254;5302;Systém: End of the World;systém RPG;;End of the World;
+82;16;Engel;systém RPG;;Engel;
+86;10;Exalted;systém RPG;;Exalted;
+88;33;FAE;systém RPG;;FAE;
+255;4502;Systém: FAE;systém RPG;;FAE;
+89;2181;Fall of Delta Green;systém RPG;;Fall of Delta Green;
+92;1;FATE;systém RPG;;Fate;Tady prosim nechat Fate bez oznaceni, pouzivam v pripadech, kdy neni jasne, kterou verzi Fate vypravec pouzije
+93;32;Fate 3e Core;systém RPG;;Fate 4e;"CHYBA - má být ""Fate 4e"""
+94;59;Fate 4e;systém RPG;;Fate 4e;
+95;43;Fate 4e Core;systém RPG;;Fate 4e;
+256;4024;Systém: Fate 4e;systém RPG;;Fate 4e;
+364;;Feng Shui 2;systém RPG;;Feng Shui 2;
+96;41;Fiasco;systém RPG;;Fiasco;
+257;8099;Systém: Fiasco;systém RPG;;Fiasco;
+101;2142;GUMSHOE;systém RPG;;GUMSHOE;
+102;17;GURPS;systém RPG;;GURPS;
+103;42;GURPS 4e;systém RPG;;GURPS;
+136;11102;Hunter: the Vigil;systém RPG;;Hunter: the Vigil;
+137;2416;Chuubo's Marvelous Wish Granting Engine;systém RPG;;Chuubo;
+366;;k6 core;systém RPG;;k6 core;
+153;8332;Labyrinth Lord;systém RPG;;Labyrinth Lord;
+258;8074;Systém: Labyrint Lord;systém RPG;;Labyrinth Lord;
+259;8089;Systém: Labyrinth Lord;systém RPG;;Labyrinth Lord;
+158;31;Mage tA;systém RPG;;Mage;
+160;2220;Malifaux;systém RPG;;Malifaux;
+163;2308;Microscope;systém RPG;;Microscope;
+260;4027;Systém: Microscope;systém RPG;;Microscope;
+162;21;MG;systém RPG;;Mouse Guard;
+165;47;Mouse Guard;systém RPG;;Mouse Guard;
+261;6034;Systém: Mouse Guard;systém RPG;;Mouse Guard;
+167;2652;My Little Pony;systém RPG;;My Little Pony;
+172;2141;Night's black agents;systém RPG;;Night's Black Agents;
+173;8268;Night’s Black Agents;systém RPG;;Night's Black Agents;
+176;34;Numenéra;systém RPG;;Numenéra;
+262;4208;Systém: Numenéra;systém RPG;;Numenéra;
+181;52;Og;systém RPG;;Og;
+185;230;Paranoia XP;systém RPG;;Paranoia XP;
+187;46;Pathfinder;systém RPG;;Pathfinder;
+188;15;Pendragon;systém RPG;;Pendragon;
+189;8241;Penny for my thoughts;systém RPG;;Penny for My Thoughts;
+192;8352;Polaris;systém RPG;;Polaris;
+263;7989;Systém: Polaris;systém RPG;;Polaris;
+246;96;Svět Dračáku / Powered by the Apocalypse;systém RPG;;Powered by the Apocalypse;
+197;25;Prime Time Adventures;systém RPG;;Primetime Adventures;
+198;44;Primetime Adventures;systém RPG;;Primetime Adventures;
+208;9;Příběhy imp.;systém RPG;;Příběhy Impéria;
+209;20;Příběhy Impéria;systém RPG;;Příběhy Impéria;
+213;40;Renaissance Deluxe;systém RPG;;Renaissance Deluxe;
+214;7519;Risus;systém RPG;;Risus;
+264;6049;Systém: Risus;systém RPG;;Risus;
+224;101;Shadow of the Demon Lord;systém RPG;;Shadow of the Demon Lord;
+225;29;Shadowrun;systém RPG;;Shadowrun 2e;
+226;102;Shadowrun II. Edice;systém RPG;;Shadowrun 2e;
+227;6;shadows;systém RPG;;Shadows;
+228;58;Shadows of Esteren;systém RPG;;Shadows of Esteren;
+37;1488;Das schwarze Auge;systém RPG;;Schwarze Auge 5e;
+38;8328;Das schwarze Auge 5e;systém RPG;;Schwarze Auge 5e;
+251;7993;Systém: Das schwarze Auge 5e;systém RPG;;Schwarze Auge 5e;
+234;8;Solar;systém RPG;;Solar;
+265;4452;Systém: Solar;systém RPG;;Solar;
+238;98;Star Wars Saga Edition (d20);systém RPG;;Star Wars Saga Edition;
+242;23;Strepy snu;systém RPG;;Střepy snů;
+243;4;střepy snů;systém RPG;;Střepy snů;
+247;10994;Symbaroum;systém RPG;;Symbaroum;
+267;2651;Tails of Equestria;systém RPG;;Tails of Equestria;
+266;3663;Systém: Ten Candles;systém RPG;;Ten Candles;
+273;1598;Ten candles;systém RPG;;Ten Candles;
+274;1852;The one Ring;systém RPG;;The One Ring;
+275;226;The Sprawl;systém RPG;;The Sprawl;
+276;2219;Through the breach;systém RPG;;Through the Breach;
+316;1246;WH40K;systém RPG;;Warhammer 40k;
+315;19;WH40: DH;systém RPG;;Warhammer 40k: Dark Heresy;
+215;56;Rogue Trader;systém RPG;;Warhammer 40k: Rogue Trader;
+310;51;Warhammer Fantasy Roleplay;systém RPG;;Warhammer Fantasy Roleplay;dlouhý... 
+313;35;WFR 2e;systém RPG;;Warhammer Fantasy Roleplay 2e;WHFR 2e...
+314;28;WFRP 3e;systém RPG;;Warhammer Fantasy Roleplay 3e;WHFR 3e...
+318;103;WoD;systém RPG;;World of Darkness 4e;
+321;11103;World of Darkness;systém RPG;;World of Darkness 4e;
+240;11;Storyteller /WoD system;systém RPG;;World of Darkness 5e;
+322;10825;World of Darkness 5e;systém RPG;;World of Darkness 5e;Tohle byl Sirienův loňský v páté edici, tak bych nechal.
+361;;Zaklínač RPG;systém RPG;;Zaklínač RPG;
+152;1109;KoW;systém WG;;Kings of War;
+219;1132;Saga;systém WG;;Saga;
+307;54;Warhammer 40;systém WG;;Warhammer 40k;
+308;55;Warhammer 40k;systém WG;;Warhammer 40k;
+75;11857;Dreadfleet;systém WG;;Warhammer Fantasy Battle;Vytvořený omylem, Dreadfleet je deskovka na pomezí WG z daného prostředí.
+309;11856;Warhammer Fantasy Battle;systém WG;;Warhammer Fantasy Battle;dlouhý...
+317;1129;WHFB;systém WG;;Warhammer Fantasy Battle;
+311;1223;warzone;systém WG;;Warzone;
+306;11855;Wargaming;typ;;Wargaming;Přijde mi poněkud zbytečné, aby měl veškerý wargaming štítek wargaming. Maximálně tak, kdyby o něm byla přednáška. Asi smazat.
+218;3659;RPG;typ;;RPG;Hodí se pro přednášky a momentálně i wargaming.
+123;3763;Herní styl: Týmová;typ;;Týmová;
+268;12317;taneční;typ Akční;;Taneční;Nový, ale dává smysl.
+4;2309;Abstraktní;typ Desk;;Abstraktní;
+8;100;ame;typ Desk;;Ameritrash;
+9;105;amer;typ Desk;;Ameritrash;
+10;106;amer**;typ Desk;;Ameritrash;
+11;66;ameritrash;typ Desk;;Ameritrash;
+106;4619;Herní styl: Ameritrash;typ Desk;;Ameritrash;
+40;97;deckbuilding;typ Desk;;Deckbuilding;
+110;6388;Herní styl: Deckbuilding;typ Desk;;Deckbuilding;
+84;68;euro;typ Desk;;Euro;
+85;107;eurovka;typ Desk;;Euro;
+113;4678;Herní styl: Euro;typ Desk;;Euro;
+284;70;válečná;typ Desk;;Wargame;
+129;5761;Herní styl: Worker Placement;typ Desk;;Worker Placement;
+142;2633;Jeep;typ Larp;;Jeepforma;
+143;12315;jeepforma;typ Larp;;Jeepforma;
+231;315;Skriptovaný;typ Larp;;Skriptovaná;
+323;4490;Žánr: Akční;žánr;;Akční;
+29;227;Cyberpunk;žánr;;Cyberpunk;
+325;6196;Žánr: Cyberpunk;žánr;;Cyberpunk;
+46;88;Detektivní;žánr;;Detektivka;
+327;4489;Žánr: Detektivní;žánr;;Detektivka;
+53;11826;dobrodružná;žánr;;Dobrodružná;
+54;2598;Dobrodružné;žánr;;Dobrodružná;
+55;7320;Dobrodružný;žánr;;Dobrodružná;
+328;6088;Žánr: Dobrodružný;žánr;;Dobrodružná;
+332;3664;Žánr: Horor;žánr;;Horor;
+145;233;Komediální;žánr;;Komedie;
+146;78;komedie;žánr;;Komedie;
+333;5287;Žánr: Komediální;žánr;;Komedie;
+168;2432;Mysteriózní;žánr;;Mysteriózní;
+334;4025;Žánr: Mysteriózní;žánr;;Mysteriózní;
+368;;Mystická;žánr;;Mystická;Go to Gate 6
+171;2614;New weird;žánr;;New Weird;
+174;1464;noir;žánr;;Noir;
+190;1569;Piráti;žánr;;Piráti;
+193;7207;Post-apo;žánr;;Post-apo;
+194;1468;Postapokalyptická;žánr;;Post-apo;
+201;4210;Prostředí: Postapokalyptické;žánr;;Post-apo;
+335;4463;Žánr: Post-apo;žánr;;Post-apo;
+211;2599;Pulp;žánr;;Pulp;
+216;7528;Romance;žánr;;Romance;
+336;4454;Žánr: Romance;žánr;;Romance;
+220;231;Sci-fi;žánr;;Sci-fi;
+337;4674;Žánr: Sci-fi;žánr;;Sci-fi;
+221;1469;Science-fantasy;žánr;;Science-fantasy;
+338;4209;Žánr: Science-fantasy;žánr;;Science-fantasy;
+236;1463;Space opera;žánr;;Space opera;
+339;4498;Žánr: Space Opera;žánr;;Space opera;
+239;2221;steampunk;žánr;;Steampunk;
+340;4453;Žánr: Steampunk;žánr;;Steampunk;
+245;2785;Superhrdinové;žánr;;Superhrdinové;Neschválený, ale dává smysl.
+278;8353;Tragédie;žánr;;Tragédie;
+341;7990;Žánr: Tragédie;žánr;;Tragédie;
+283;2143;Urbanfantasy;žánr;;Urbanfantasy;
+342;5782;Žánr: Urbanfantasy;žánr;;Urbanfantasy;
+1;1455;100;;;-;Wtf - netuším, o co jde. Prosím smazat.
+12;90;Andělé a démoni;;;-;Příliš tématicky omezený, prosím smazat.
+17;61;awesomeness:5;;;-;Nevhodný, prosím smazat.
+43;53;Derry;;;-;Wtf - netuším, o co jde, prosím smazat.
+45;6144;deskové hry;;;-;Nevhodný, prosím smazat.
+63;275;Drama;;;-;Duplicitní vůči jiným štítkům, prosím smazat.
+87;3697;ezměte si figurku a stvořte si vlastního drsňáka nebo bojové mon;;;-;Očividně omyl, prosím smazat.
+99;3;free;;;-;Wtf - netuším, o co jde, prosím smazat.
+104;4322;HELP;;;-;Někdo si asi už při zadávání štítků zoufal :-) Prosím smazat.
+114;8076;Herní styl: Hádanky;;;-;Nevhodný, prosím smazat.
+133;3662;Hlídka;;;-;Příliš tématicky omezený, prosím smazat.
+135;3700;hrdý i děsivý život;;;-;Očividně omyl, prosím smazat.
+138;4939;i pro;;;-;Očividně omyl, prosím smazat.
+155;81;Legendy;;;-;Je zbytečné, aby celé LKD mělo štítek Legendy. Letos to už ani nepoužívají. Prosím smazat.
+164;3698;mocný;;;-;Očividně omyl, prosím smazat.
+177;91;Obchod;;;-;Nevhodný, prosím smazat.
+196;301;Pravidlová;;;-;Nicneříkající, prosím smazat.
+206;6702;přednáška;;;-;Přijde mi poněkud zbytečné, aby měly všechny přednášky štítek přednáška. Prosím smazat.
+272;10995;Temné;;;-;Nevhodný, je lepší upřesnit např. Dark Fantasy, Horor, Tragedie apod. Prosím smazat
+290;4154;věk:;;;-;Prosím smazat
+302;3699;vznešený;;;-;Nevhodný, prosím smazat.
+369;;vaši oblíbení knižní hrdinové;;;-;larp Ook! Do předschváleného seznamu nevhodný :-) Prosím smazat
