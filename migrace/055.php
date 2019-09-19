@@ -48,6 +48,8 @@ $removeDiacriticsAndToLower = function (string $value): string {
 
 $checkNameUniqueness = function (array $tags) use ($removeDiacriticsAndToLower) {
   $opraveneNazvy = [];
+  $puvodniNazvy = [];
+  $duplicitniPuvodniNazvy = [];
   $duplicitniNazvy = [];
   $opraveneNazvyBezDiakritiky = [];
   $duplicitniNazvyBezDiakritiky = [];
@@ -58,6 +60,14 @@ $checkNameUniqueness = function (array $tags) use ($removeDiacriticsAndToLower) 
     if ($opravenyNazev === '-') {
       continue; // convinced for deletion
     }
+    $puvodniNazev = $tag[2];
+    $predchoziPuvodniNazev = $puvodniNazvy[$puvodniNazev][2] ?? false;
+    if ($predchoziPuvodniNazev) {
+      $duplicitniPuvodniNazvy[] = $puvodniNazev;
+      continue;
+    }
+    $puvodniNazvy[$puvodniNazev] = $tag;
+
     $predchoziKategorie = $opraveneNazvy[$opravenyNazev][3] ?? false;
     $kategorie = $tag[3];
     if ($predchoziKategorie !== false && $kategorie !== $predchoziKategorie) {
@@ -103,6 +113,10 @@ $checkNameUniqueness = function (array $tags) use ($removeDiacriticsAndToLower) 
     sort($duplicitniNazvy);
     $errorMessages[] = sprintf('Nektere opravene nazvy jsou vicekrat: %s', implode(', ', $duplicitniNazvy));
   }
+  if ($duplicitniPuvodniNazvy) {
+    sort($duplicitniPuvodniNazvy);
+    $errorMessages[] = sprintf('Nektere puvodni nazvy jsou vicekrat: %s', implode(', ', $duplicitniPuvodniNazvy));
+  }
   if ($duplicitniNazvyBezDiakritiky) {
     sort($duplicitniNazvyBezDiakritiky);
     $errorMessages[] = sprintf('Nektere opravene nazvy jsou bez hacku a carek a malymi pismeny stejne: %s', implode(', ', $duplicitniNazvyBezDiakritiky));
@@ -117,8 +131,33 @@ $checkNameUniqueness = function (array $tags) use ($removeDiacriticsAndToLower) 
 };
 $checkNameUniqueness($tags);
 
+$tags = array_map(
+  function (array $row) {
+    if (!$row[1]) {
+      $row[1] = null; // turn empty ID (empty string) into null to activate MySQL auto-increment
+    }
+    return $row;
+  },
+  $tags
+);
+
+// has to move tags without ID to end to avoid conflict of auto-generated ID with an existing ID, if auto-generated were inserted first
+usort($tags, function (array $someRow, array $anotherRow) {
+  $someId = $someRow[1];
+  $anotherId = $anotherRow[1];
+  if ($someId && $anotherId) {
+    return $someId <=> $anotherId; // lower first
+  }
+  if ($someId) {
+    return -1; // someId exists and goes first, anotherId is empty and goes last
+  }
+  if ($anotherId) {
+    return 1; // someId is empty and goes last, anotherId exist and goes first
+  }
+  return strcmp($someRow[5], $anotherRow[5]); // both IDs are empty, just sort them alphabetically by name
+});
 $fixedTagsSql = implode(
-  ',', // ('foo','bar'),('baz','quz')
+  ",\n", // ('foo','bar'),('baz','quz')
   array_map(
     function (array $row) {
       return sprintf(
@@ -126,8 +165,10 @@ $fixedTagsSql = implode(
         implode(
           ',', // 'foo','bar'
           array_map(
-            function (string $value) {
-              return "'" . mysqli_real_escape_string($this->db, $value) . "'"; // 'foo'
+            function (?string $value) {
+              return $value !== null
+                ? "'" . mysqli_real_escape_string($this->db, $value) . "'" // 'foo'
+                : 'NULL';
             },
             $row
           )
@@ -144,8 +185,7 @@ foreach ($tags as $tag) {
 }
 $autoIncrementStart++; // start after previous last ID to avoid (almost impossible) accidental usage of new record instead of old one
 
-/** @var \Godric\DbMigrations\Migration $this */
-$this->q(<<<SQL
+$query = <<<SQL
 CREATE TEMPORARY TABLE sjednocene_tagy_temp LIKE tagy;
 ALTER TABLE sjednocene_tagy_temp ADD COLUMN kategorie VARCHAR(128), ADD COLUMN opraveny_nazev VARCHAR(128), ADD COLUMN poznamka TEXT;
 INSERT INTO sjednocene_tagy_temp(id, nazev, kategorie, opraveny_nazev, poznamka) VALUES {$fixedTagsSql};
@@ -165,13 +205,23 @@ CREATE TABLE IF NOT EXISTS sjednocene_tagy (
     FOREIGN KEY FK_kategorie_tagu(id_kategorie_tagu) REFERENCES kategorie_tagu(id)
 );
 ALTER TABLE sjednocene_tagy AUTO_INCREMENT={$autoIncrementStart};
-INSERT /* intentionally not IGNORE to detect invalid input data, see bellow */ INTO sjednocene_tagy(id_kategorie_tagu, nazev, poznamka)
-SELECT kategorie_tagu.id, sjednocene_tagy_temp.opraveny_nazev, GROUP_CONCAT(DISTINCT sjednocene_tagy_temp.poznamka SEPARATOR '; ')
+INSERT /* intentionally not IGNORE to detect invalid input data, see bellow */ INTO sjednocene_tagy(id, id_kategorie_tagu, nazev, poznamka)
+SELECT sjednocene_tagy_temp.id, kategorie_tagu.id, sjednocene_tagy_temp.opraveny_nazev, GROUP_CONCAT(DISTINCT sjednocene_tagy_temp.poznamka SEPARATOR '; ')
 FROM sjednocene_tagy_temp
 JOIN kategorie_tagu ON kategorie_tagu.kategorie = sjednocene_tagy_temp.kategorie
 WHERE sjednocene_tagy_temp.opraveny_nazev != '-' -- strange records convinced for deletion
 GROUP BY sjednocene_tagy_temp.opraveny_nazev, kategorie_tagu.id; -- intentionally grouped also by kategorie_tagu.id to get fatal in case of duplicated opraveny_nazev but different kategorie_tagu.id => logic error in source data
 
 DROP TEMPORARY TABLE sjednocene_tagy_temp;
-SQL
-);
+SQL;
+
+try {
+  /** @var \Godric\DbMigrations\Migration $this */
+  $this->q($query);
+} catch (\Exception $exception) {
+  throw new RuntimeException(
+    sprintf("Migration %s failed: '%s'. Check it: \n%s", basename(__FILE__, '.php'), $exception->getMessage(), $query),
+    $exception->getCode(),
+    $exception
+  );
+}
