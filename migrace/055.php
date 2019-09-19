@@ -11,7 +11,14 @@ $fetchTags = function (): array {
 
   if (!$fetchedHeaders || $fetchedHeaders !== $expectedHeader) {
     fclose($fixedTagsHandle);
-    throw new RuntimeException("Corrupted $fixedTagsSourceFile, header does not match: " . array_diff($expectedHeader, $fetchedHeaders ?? []));
+    throw new RuntimeException(
+      sprintf(
+        'Chybny vstupni soubor %s, v zahlavi chybí sloupce %s a prebyvaji %s',
+        $fixedTagsSourceFile,
+        var_export(array_diff($expectedHeader, $fetchedHeaders ?? []), true),
+        var_export(array_diff($fetchedHeaders ?? [], $expectedHeader), true)
+      )
+    );
   }
 
   $fixedTags = [];

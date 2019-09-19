@@ -25,6 +25,7 @@ orig. pořadí;id;puvodni nazev;Kategorie;Kategorie - hypotetické;opraveny naze
 279;74;Turnaj;Primary;;Turnaj;
 280;73;Turnaj Párty hra;Primary;;Turnaj;Bude lepší použít štítky “Turnaj” a “Párty hra”
 281;1047;Týmová;Primary;;Týmová;
+123;3763;Herní styl: Týmová;Primary;;Týmová;
 91;316;Fantasy/Sci-Fi;prostředí;;-;Nedostatečně specifický, prosím smazat.
 6;769;Alternativní historie;prostředí;;Alternativní historie;
 324;5295;Žánr: Alternativní historie;prostředí;;Alternativní historie;
@@ -53,7 +54,7 @@ orig. pořadí;id;puvodni nazev;Kategorie;Kategorie - hypotetické;opraveny naze
 363;;Neklidný Tauril;prostředí;;Tauril;
 205;4455;Prostředí: Vesmír;prostředí;;Vesmír;Ročníkově specifický štítek prostředí. U turnaje v Marsu Teraformci. Jako asi ok.
 299;2586;Viktoriánská doba;prostředí;;Viktoriánská doba;
-372;;Warhammer;prostředí;;Warhammer;Prostředí, jako obdoba Warhammer 40k. Právě jsem doplnil k Chaosu.
+372;;Warhammer;prostředí;;Warhammer (svět);Prostředí, jako obdoba Warhammer 40k. Právě jsem doplnil k Chaosu.
 47;4955;Divoký západ;prostředí;;Western;
 312;7279;Western;prostředí;;Western;
 343;5044;Žánr: Western;prostředí;;Western;
@@ -87,14 +88,12 @@ orig. pořadí;id;puvodni nazev;Kategorie;Kategorie - hypotetické;opraveny naze
 357;;CGE;různé Partner;;CGE;
 44;9107;deskofobie;různé Partner;;Deskofobie;
 356;;mindok;různé Partner;;Mindok;
-5;109;akční;styl;;Akční;
 16;7536;Atmosférický;styl;;Atmosférická;
 107;3665;Herní styl: Atmosférická;styl;;Atmosférická;Atmosférická
 108;6578;Herní styl: Atmosférický;styl;;Atmosférická;Atmosférická
 78;11987;edukativní;styl;;Edukativní;
 124;5229;Herní styl: Učící;styl;;Edukativní;
 282;920;Učící;styl;;Edukativní;
-134;371;Horor;styl;;Horor;
 140;11764;Improvizační;styl;;Improvizační;
 166;11785;Muzikál;styl;;Muzikál;Nový, ale dává smysl.
 116;6035;Herní styl: Odlehčený;styl;;Odlehčená;
@@ -106,6 +105,7 @@ orig. pořadí;id;puvodni nazev;Kategorie;Kategorie - hypotetické;opraveny naze
 285;1599;Vážná;styl;;Vážná;
 286;274;Vážný;styl;;Vážná;
 126;5804;Herní styl: Vyjednávací;styl;;Vyjednávací;
+300;65;vyjednávací;styl;;Vyjednávací;
 127;6089;Herní styl: Vyprávěcí;styl;;Vyprávěcí;
 301;71;vyprávěcí;styl;;Vyprávěcí;
 19;919;Běhací;styl Akční;;Běhací;
@@ -137,7 +137,6 @@ orig. pořadí;id;puvodni nazev;Kategorie;Kategorie - hypotetické;opraveny naze
 150;12316;kostýmová;styl Larp;;Kostýmová;
 151;355;Kostýmový;styl Larp;;Kostýmová;
 233;11765;Sociální drama;styl Larp;;Sociální drama;
-300;65;vyjednávací;styl Larp;;Vyjednávací;
 303;11766;Vztahová;styl Larp;;Vztahová;
 304;276;Vztahový;styl Larp;;Vztahová;
 344;79;žánrovka;styl Larp;;Žánrovka;
@@ -174,7 +173,7 @@ orig. pořadí;id;puvodni nazev;Kategorie;Kategorie - hypotetické;opraveny naze
 56;13;Dogs in the Vineyard;systém RPG;;Dogs in the Vineyard;
 59;60;Dračí doupě;systém RPG;;Dračí doupě;Kvůli přednáškám.
 62;2;Dračí kutloch;systém RPG;;Dračí kutloch;
-69;38;DrD+;systém RPG;;DrD +;
+69;38;DrD+;systém RPG;;DrD+;
 60;49;Dračí doupě 1.0;systém RPG;;DrD 1.0;
 57;3661;Dračák;systém RPG;;DrD 1.6;
 61;48;Dračí doupě 1.6;systém RPG;;DrD 1.6;
@@ -201,6 +200,7 @@ orig. pořadí;id;puvodni nazev;Kategorie;Kategorie - hypotetické;opraveny naze
 255;4502;Systém: FAE;systém RPG;;FAE;
 89;2181;Fall of Delta Green;systém RPG;;Fall of Delta Green;
 92;1;FATE;systém RPG;;Fate;Tady prosim nechat Fate bez oznaceni, pouzivam v pripadech, kdy neni jasne, kterou verzi Fate vypravec pouzije
+367;;FATE;systém RPG;;Fate;
 93;32;Fate 3e Core;systém RPG;;Fate 4e;"CHYBA - má být ""Fate 4e"""
 94;59;Fate 4e;systém RPG;;Fate 4e;
 95;43;Fate 4e Core;systém RPG;;Fate 4e;
@@ -264,10 +264,10 @@ orig. pořadí;id;puvodni nazev;Kategorie;Kategorie - hypotetické;opraveny naze
 274;1852;The one Ring;systém RPG;;The One Ring;
 275;226;The Sprawl;systém RPG;;The Sprawl;
 276;2219;Through the breach;systém RPG;;Through the Breach;
-316;1246;WH40K;systém RPG;;Warhammer 40k;
+316;1246;WH40K;systém RPG;;Warhammer 40k (RPG);
 315;19;WH40: DH;systém RPG;;Warhammer 40k: Dark Heresy;
 215;56;Rogue Trader;systém RPG;;Warhammer 40k: Rogue Trader;
-310;51;Warhammer Fantasy Roleplay;systém RPG;;Warhammer Fantasy Roleplay;dlouhý... 
+310;51;Warhammer Fantasy Roleplay;systém RPG;;Warhammer Fantasy Roleplay;dlouhý...
 313;35;WFR 2e;systém RPG;;Warhammer Fantasy Roleplay 2e;WHFR 2e...
 314;28;WFRP 3e;systém RPG;;Warhammer Fantasy Roleplay 3e;WHFR 3e...
 318;103;WoD;systém RPG;;World of Darkness 4e;
@@ -277,15 +277,14 @@ orig. pořadí;id;puvodni nazev;Kategorie;Kategorie - hypotetické;opraveny naze
 361;;Zaklínač RPG;systém RPG;;Zaklínač RPG;
 152;1109;KoW;systém WG;;Kings of War;
 219;1132;Saga;systém WG;;Saga;
-307;54;Warhammer 40;systém WG;;Warhammer 40k;
-308;55;Warhammer 40k;systém WG;;Warhammer 40k;
+307;54;Warhammer 40;systém WG;;Warhammer 40k (WG);
+308;55;Warhammer 40k;systém WG;;Warhammer 40k (WG);
 75;11857;Dreadfleet;systém WG;;Warhammer Fantasy Battle;Vytvořený omylem, Dreadfleet je deskovka na pomezí WG z daného prostředí.
 309;11856;Warhammer Fantasy Battle;systém WG;;Warhammer Fantasy Battle;dlouhý...
 317;1129;WHFB;systém WG;;Warhammer Fantasy Battle;
 311;1223;warzone;systém WG;;Warzone;
 306;11855;Wargaming;typ;;Wargaming;Přijde mi poněkud zbytečné, aby měl veškerý wargaming štítek wargaming. Maximálně tak, kdyby o něm byla přednáška. Asi smazat.
 218;3659;RPG;typ;;RPG;Hodí se pro přednášky a momentálně i wargaming.
-123;3763;Herní styl: Týmová;typ;;Týmová;
 268;12317;taneční;typ Akční;;Taneční;Nový, ale dává smysl.
 4;2309;Abstraktní;typ Desk;;Abstraktní;
 8;100;ame;typ Desk;;Ameritrash;
@@ -304,6 +303,7 @@ orig. pořadí;id;puvodni nazev;Kategorie;Kategorie - hypotetické;opraveny naze
 143;12315;jeepforma;typ Larp;;Jeepforma;
 231;315;Skriptovaný;typ Larp;;Skriptovaná;
 323;4490;Žánr: Akční;žánr;;Akční;
+5;109;akční;žánr;;Akční;
 29;227;Cyberpunk;žánr;;Cyberpunk;
 325;6196;Žánr: Cyberpunk;žánr;;Cyberpunk;
 46;88;Detektivní;žánr;;Detektivka;
@@ -313,6 +313,7 @@ orig. pořadí;id;puvodni nazev;Kategorie;Kategorie - hypotetické;opraveny naze
 55;7320;Dobrodružný;žánr;;Dobrodružná;
 328;6088;Žánr: Dobrodružný;žánr;;Dobrodružná;
 332;3664;Žánr: Horor;žánr;;Horor;
+134;371;Horor;žánr;;Horor;
 145;233;Komediální;žánr;;Komedie;
 146;78;komedie;žánr;;Komedie;
 333;5287;Žánr: Komediální;žánr;;Komedie;
