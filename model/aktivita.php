@@ -1295,7 +1295,7 @@ class Aktivita {
       // vložit nové tagy do tabulky
       if($tagy) {
         $qtagy = array_map(function($e){ return '('.dbQv($e).')'; }, $tagy);
-        dbQuery('INSERT IGNORE INTO tagy(nazev) VALUES '.implode(',', $qtagy).'');
+        dbQuery('INSERT IGNORE INTO tagy(nazev) VALUES '.implode(',', $qtagy));
       }
 
       // nastavit tagy aktivitám
