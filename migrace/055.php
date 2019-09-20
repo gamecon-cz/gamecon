@@ -212,6 +212,13 @@ JOIN kategorie_tagu ON kategorie_tagu.kategorie = sjednocene_tagy_temp.kategorie
 WHERE sjednocene_tagy_temp.opraveny_nazev != '-' -- strange records convinced for deletion
 GROUP BY sjednocene_tagy_temp.opraveny_nazev, kategorie_tagu.id; -- intentionally grouped also by kategorie_tagu.id to get fatal in case of duplicated opraveny_nazev but different kategorie_tagu.id => logic error in source data
 
+CREATE TABLE IF NOT EXISTS akce_sjednocene_tagy LIKE akce_tagy;
+INSERT IGNORE INTO akce_sjednocene_tagy(id_akce, id_tagu) 
+SELECT akce_tagy.id_akce, sjednocene_tagy.id
+FROM akce_tagy
+INNER JOIN sjednocene_tagy_temp ON sjednocene_tagy_temp.id = akce_tagy.id_tagu
+INNER JOIN sjednocene_tagy ON sjednocene_tagy.nazev = sjednocene_tagy_temp.opraveny_nazev;
+
 DROP TEMPORARY TABLE sjednocene_tagy_temp;
 SQL;
 
