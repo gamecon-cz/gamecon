@@ -194,7 +194,7 @@ ALTER TABLE sjednocene_tagy_temp ADD INDEX (kategorie), ADD INDEX (opraveny_naze
 CREATE TABLE IF NOT EXISTS kategorie_tagu(
     id INT UNSIGNED NOT NULL UNIQUE AUTO_INCREMENT,
     kategorie VARCHAR(128) PRIMARY KEY
-);
+) DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
 INSERT IGNORE INTO kategorie_tagu(kategorie) SELECT kategorie FROM sjednocene_tagy_temp;
 
 CREATE TABLE IF NOT EXISTS sjednocene_tagy (
@@ -203,7 +203,7 @@ CREATE TABLE IF NOT EXISTS sjednocene_tagy (
     nazev VARCHAR(128) PRIMARY KEY,
     poznamka TEXT,
     FOREIGN KEY FK_kategorie_tagu(id_kategorie_tagu) REFERENCES kategorie_tagu(id)
-);
+) DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
 ALTER TABLE sjednocene_tagy AUTO_INCREMENT={$autoIncrementStart};
 INSERT /* intentionally not IGNORE to detect invalid input data, see bellow */ INTO sjednocene_tagy(id, id_kategorie_tagu, nazev, poznamka)
 SELECT sjednocene_tagy_temp.id, kategorie_tagu.id, sjednocene_tagy_temp.opraveny_nazev, GROUP_CONCAT(DISTINCT sjednocene_tagy_temp.poznamka SEPARATOR '; ')
