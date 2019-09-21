@@ -102,7 +102,7 @@
     </div></span></th>
   </tr>
   <!-- begin:aktivita --><tr>
-    <td>{nazev}</td>
+    <td><span class="hinted">{nazev}<span class="hint">{tagy}</span></span></td>
     <td>{cas}</td>
     <td>{organizatori}</td>
     <td>{mistnost}</td>
