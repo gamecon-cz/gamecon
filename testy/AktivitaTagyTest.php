@@ -37,7 +37,7 @@ class AktivitaTagyTest extends GcDbTest {
    */
   function testNastaveni($idNastavovaneAktivity, $idCteneAktivity, $nastaveneTagy) {
     $a = Aktivita::zId($idNastavovaneAktivity);
-    $a->tagy($nastaveneTagy);
+    $a->nastavTagy($nastaveneTagy);
     $b = Aktivita::zId($idCteneAktivity);
     $this->assertEquals($nastaveneTagy, $b->tagy(),
       "Tagy nastavené aktivitě $idNastavovaneAktivity musí odpovídat tagům přečteným z aktivity $idCteneAktivity."
@@ -49,7 +49,7 @@ class AktivitaTagyTest extends GcDbTest {
    */
   function testKopiePriInstanciaci($idAktivity, $_, $tagy) {
     $a = Aktivita::zId($idAktivity);
-    $a->tagy($tagy);
+    $a->nastavTagy($tagy);
     $b = $a->instanciuj();
     $this->assertEquals($tagy, $b->tagy(),
       "Tagy se musí propsat i do nově vytvořené instance"
