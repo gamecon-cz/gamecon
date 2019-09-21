@@ -338,8 +338,10 @@ class Aktivita {
    * @return vrací null pokud se nic nestalo nebo aktualizovaný objekt Aktivita,
    *   pokud k nějaké aktualizaci došlo.
    */
-  static function editorZpracuj() {
-    if(!isset($_POST[self::POSTKLIC])) return null;
+  static function editorZpracuj(): ?Aktivita {
+    if(!isset($_POST[self::POSTKLIC])) {
+      return null;
+    }
 
     // úprava přijatých dat
     $a = $_POST[self::POSTKLIC];
@@ -408,17 +410,23 @@ class Aktivita {
     }
 
     // objektová rozhraní
-    if($f = postFile(self::OBRKLIC))      $aktivita->obrazek(Obrazek::zJpg($f));
-    if($url = post(self::OBRKLIC.'Url'))  $aktivita->obrazek(Obrazek::zUrl($url));
+    if($f = postFile(self::OBRKLIC)) {
+      $aktivita->obrazek(Obrazek::zJpg($f));
+    }
+    if($url = post(self::OBRKLIC.'Url')) {
+      $aktivita->obrazek(Obrazek::zUrl($url));
+    }
     $aktivita->organizatori($organizatori);
     $aktivita->popis($popis);
     $tagy = [];
-    foreach(explode(',', post(self::TAGYKLIC)) as $t) {
-      $t = trim($t);
-      $t = preg_replace('@\s+@', ' ', $t);
-      if($t) $tagy[] = $t;
+    foreach(explode(',', post(self::TAGYKLIC)) as $tag) {
+      $tag = trim($tag);
+      $tag = preg_replace('@\s+@', ' ', $tag);
+      if($tag !== '') {
+        $tagy[] = $tag;
+      }
     }
-    $aktivita->tagy($tagy);
+    $aktivita->nastavTagy($tagy);
 
     return $aktivita;
   }
@@ -467,7 +475,7 @@ class Aktivita {
 
     // nastavení vlastností pomocí OO rozhraní
     $novaAktivita = self::zId(dbInsertId());
-    $novaAktivita->tagy($this->tagy());
+    $novaAktivita->nastavTagy($this->tagy());
 
     return $novaAktivita;
   }
@@ -1283,41 +1291,33 @@ class Aktivita {
   /**
    * Vrátí iterátor tagů
    */
-  function tagy() {
-    if(func_num_args() == 0) {
-      if($this->a['tagy'])
+  function tagy(): array {
+      if($this->a['tagy']) {
         return explode(',', $this->a['tagy']);
-      else
-        return [];
-    } else {
-      $tagy = func_get_arg(0);
+      }
+      return [];
+  }
 
-      // vložit nové tagy do tabulky
+  function nastavTagy(array $tagy) {
+    // nastavit tagy aktivitám
+    foreach($this->instance() as $aktivita) {
+      dbQuery('DELETE FROM akce_sjednocene_tagy WHERE id_akce = $1', [$aktivita->id()]);
       if($tagy) {
-        $qtagy = array_map(function($e){ return '('.dbQv($e).')'; }, $tagy);
-        dbQuery('INSERT IGNORE INTO tagy(nazev) VALUES '.implode(',', $qtagy));
+        dbQuery(
+          'INSERT INTO akce_sjednocene_tagy(id_akce, id_tagu) SELECT $1, id FROM sjednocene_tagy WHERE nazev IN ('.dbQa($tagy).')',
+          [$aktivita->id()]
+        );
       }
-
-      // nastavit tagy aktivitám
-      foreach($this->instance() as $aktivita) {
-        dbDelete('akce_tagy', ['id_akce' => $aktivita->id()]);
-        if(!$tagy) continue;
-
-        dbQuery('
-          INSERT INTO akce_tagy(id_akce, id_tagu)
-          SELECT $1, id FROM tagy WHERE nazev IN('.dbQa($tagy).')
-        ', [$aktivita->id()]);
-      }
-
-      $this->otoc();
     }
+
+    $this->otoc();
   }
 
   function tym() {
-    if($this->tymova() && $this->prihlaseno() > 0 && !$this->a['zamcel'])
+    if($this->tymova() && $this->prihlaseno() > 0 && !$this->a['zamcel']) {
       return new Tym($this, $this->a);
-    else
-      return null;
+    }
+    return null;
   }
 
   function tymMaxKapacita() {
@@ -1744,12 +1744,11 @@ class Aktivita {
    *  paměti
    */
   protected static function zWhere($where, $args = null, $order = null) {
-    $url_akce       = 'IF(t2.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = t2.patri_pod), t2.url_akce) as url_temp';
-    $prihlaseni     = 'CONCAT(",",GROUP_CONCAT(p.id_uzivatele,u.pohlavi,p.id_stavu_prihlaseni),",") AS prihlaseni';
-    $tagy           = 'GROUP_CONCAT(t.nazev) as tagy';
     $o = dbQueryS("
-      SELECT t3.*, $tagy FROM (
-        SELECT t2.*, $prihlaseni, $url_akce FROM (
+      SELECT t3.*, GROUP_CONCAT(t.nazev) as tagy FROM (
+        SELECT t2.*, CONCAT(',',GROUP_CONCAT(p.id_uzivatele,u.pohlavi,p.id_stavu_prihlaseni),',') AS prihlaseni,
+               IF(t2.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = t2.patri_pod), t2.url_akce) as url_temp
+        FROM (
           SELECT a.*, al.poradi
           FROM akce_seznam a
           LEFT JOIN akce_lokace al ON (al.id_lokace = a.lokace)
@@ -1759,8 +1758,8 @@ class Aktivita {
         LEFT JOIN uzivatele_hodnoty u ON (u.id_uzivatele = p.id_uzivatele)
         GROUP BY t2.id_akce
       ) as t3
-      LEFT JOIN akce_tagy at ON (at.id_akce = t3.id_akce)
-      LEFT JOIN tagy t ON (t.id = at.id_tagu)
+      LEFT JOIN akce_sjednocene_tagy at ON (at.id_akce = t3.id_akce)
+      LEFT JOIN sjednocene_tagy t ON (t.id = at.id_tagu)
       GROUP BY t3.id_akce
       $order
     ", $args);
