@@ -174,7 +174,7 @@ $(function(){
   </tr>
   <tr>
     <th>
-      <span class="hinted">Tagy<span class="hint">zadávejte oddělené čárkou, můžete zadat cokoli (nejen z nabídky)</span></span>
+      <span class="hinted">Tagy<span class="hint">Zadávejte oddělené čárkou (jen existující)</span></span>
     </th>
     <td>
       <input class="full" type="text" name="{pnTagy}" value="{tagy}">
