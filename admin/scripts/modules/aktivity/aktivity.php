@@ -1,12 +1,12 @@
 <?php
 
-/** 
+/**
  * Stránka pro tvorbu a správu aktivit.
  *
  * nazev: Aktivity
  * pravo: 102
  */
- 
+
 if(post('filtr')) {
   if(post('filtr')=='vsechno')
     unset($_SESSION['adminAktivityFiltr']);
@@ -93,6 +93,7 @@ foreach($aktivity as $a)
   $tpl->assign([
     'id_akce'   => $a->id(),
     'nazev'     => $a->nazev(),
+    'tagy'      => implode(' | ', $a->tagy()),
     'cas'       => $a->denCas(),
     'organizatori' => $a->orgJmena(),
     // TODO fixnout s lepším ORM
