@@ -9,7 +9,7 @@
     Zobrazit jen:
     <select name="filtr" onchange="this.form.submit()">
       <option value="vsechno">(všechno)</option>
-      <!-- begin:filtrMoznost --><option value="{val}" {sel}>{nazev}</option><!-- end:filtrMoznost -->
+      <!-- begin:filtrMoznost --><option value="{val}" {sel}>{nazev_akce}</option><!-- end:filtrMoznost -->
     <select>
   </form>
 </div>
@@ -102,7 +102,7 @@
     </div></span></th>
   </tr>
   <!-- begin:aktivita --><tr>
-    <td><span class="hinted">{nazev}<span class="hint">{tagy}</span></span></td>
+    <td><span class="hinted">{nazev_akce}<span class="hint">{tagy}</span></span></td>
     <td>{cas}</td>
     <td>{organizatori}</td>
     <td>{mistnost}</td>

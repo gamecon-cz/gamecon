@@ -92,7 +92,7 @@ foreach($aktivity as $a)
   $r = $a->rawDb();
   $tpl->assign([
     'id_akce'   => $a->id(),
-    'nazev'     => $a->nazev(),
+    'nazev_akce'     => $a->nazev(),
     'tagy'      => implode(' | ', $a->tagy()),
     'cas'       => $a->denCas(),
     'organizatori' => $a->orgJmena(),
