@@ -237,6 +237,9 @@ class Aktivita {
         $xtpl->assign('tag_selected', in_array($nazevTagu, $vybraneTagy, true) ? 'selected' : '');
         $xtpl->parse('upravy.tabulka.tag');
       }
+      $editorTaguSablona = new XTemplate(__DIR__ . '/editor-tagu.xtpl');
+      $editorTaguSablona->parse('editorTagu');
+      $xtpl->assign('editorTagu', $editorTaguSablona->text('editorTagu'));
     }
 
     // načtení lokací
