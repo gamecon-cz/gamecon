@@ -11,6 +11,8 @@
   <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-1.10.3.custom.min.css" />
   <link rel="stylesheet" href="files/design/jquery-multiselect/jquery.multiselect-2.4.16.css" />
   <link rel="stylesheet" href="files/design/jquery-multiselect/jquery.multiselect.gamecon.css?version=7726af9be4b35c7389767c3225d93d9a" />
+  <link rel="stylesheet" href="files/design/jquery-modal/jquery.modal-0.9.1.min.css" />
+  <link rel="stylesheet" href="files/design/jquery-modal/jquery.modal.gamecon.css?version=f946305a5585486a6c3448dd9a304720" />
   <script src="files/jquery-3.4.1.min.js"></script>
   <script src="files/jquery-migrate-3.1.0.js"></script>
   {jsVyjimkovac}
@@ -21,6 +23,8 @@
   <script src="files/aplikace.js?version=f4a8464b38ba6a06a94a8c1bc881bebc"></script>
   <script src="files/omnibox.js?version=e5cd9171d8ae5178823bdcf81f68b43d"></script>
   <script src="files/jquery.multiselect-2.4.16.js"></script>
+  <script src="files/jquery.multiselect-2.4.16.js"></script>
+  <script src="files/jquery.modal-0.9.1.min.js"></script>
 </head>
 <body>
   <div class="obal">

@@ -1,0 +1,15 @@
+.jquery-modal {
+  z-index: 100
+}
+
+.jquery-modal .blocker {
+  z-index: 101
+}
+
+.jquery-modal .modal {
+  z-index: 102
+}
+
+a[rel~="modal:open"], a[rel~="modal:open"] .hinted {
+  cursor: pointer;
+}
