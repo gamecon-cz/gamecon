@@ -216,20 +216,27 @@ class Aktivita {
     $aktivita = $a ? $a->a : null; // databázový řádek
 
     // inicializace šablony
-    $xtpl = new XTemplate(__DIR__ . '/editor_aktivity.xtpl');
+    $xtpl = new XTemplate(__DIR__ . '/editor-aktivity.xtpl');
     $xtpl->assign('fields', self::POSTKLIC); // název proměnné (pole) v kterém se mají posílat věci z formuláře
     $xtpl->assign('ajaxKlic',self::AJAXKLIC);
     $xtpl->assign('obrKlic', self::OBRKLIC);
     $xtpl->assign('obrKlicUrl', self::OBRKLIC.'Url');
     $xtpl->assign('aEditTag', self::TAGYKLIC);
-    $xtpl->assign('tagyMoznosti', json_encode(dbOneArray('SELECT nazev FROM sjednocene_tagy')));
     $xtpl->assign('limitPopisKratky', self::LIMIT_POPIS_KRATKY);
     if($a) {
       $xtpl->assign($a->a);
       $xtpl->assign('popis', dbText($aktivita['popis']));
-      $xtpl->assign('tagy', implode(', ', $a->tagy()));
       $xtpl->assign('urlObrazku', $a->obrazek());
       $xtpl->assign('vybaveni', $a->vybaveni());
+      // načtení tagů
+      $vsechnyTagy = dbArrayCol('SELECT id, nazev FROM sjednocene_tagy ORDER BY nazev');
+      $vybraneTagy = $a->tagy();
+      foreach ($vsechnyTagy as $idTagu => $nazevTagu) {
+        $xtpl->assign('id_tagu', $idTagu);
+        $xtpl->assign('nazev_tagu', $nazevTagu);
+        $xtpl->assign('tag_selected', in_array($nazevTagu, $vybraneTagy, true) ? 'selected' : '');
+        $xtpl->parse('upravy.tabulka.tag');
+      }
     }
 
     // načtení lokací
@@ -313,18 +320,6 @@ class Aktivita {
         $xtpl->assign('sel', $a && $r['id_typu'] == $aktivita['typ'] ? 'selected' : '');
         $xtpl->assign($r);
         $xtpl->parse('upravy.tabulka.typ');
-      }
-    }
-
-    // načtení tagů
-    if ($a) {
-      $vsechnyTagy = dbArrayCol('SELECT id, nazev FROM sjednocene_tagy ORDER BY nazev');
-      $vybraneTagy = $a->tagy();
-      foreach ($vsechnyTagy as $idTagu => $nazevTagu) {
-        $xtpl->assign('id_tagu', $idTagu);
-        $xtpl->assign('nazev_tagu', $nazevTagu);
-        $xtpl->assign('tag_selected', in_array($nazevTagu, $vybraneTagy, true) ? 'selected' : '');
-        $xtpl->parse('upravy.tabulka.tag');
       }
     }
 
