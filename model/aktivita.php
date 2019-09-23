@@ -216,14 +216,13 @@ class Aktivita {
     $aktivita = $a ? $a->a : null; // databázový řádek
 
     // inicializace šablony
-    $xtpl = new XTemplate(__DIR__.'/editor.xtpl');
+    $xtpl = new XTemplate(__DIR__ . '/editor_aktivity.xtpl');
     $xtpl->assign('fields', self::POSTKLIC); // název proměnné (pole) v kterém se mají posílat věci z formuláře
     $xtpl->assign('ajaxKlic',self::AJAXKLIC);
     $xtpl->assign('obrKlic', self::OBRKLIC);
     $xtpl->assign('obrKlicUrl', self::OBRKLIC.'Url');
-    $xtpl->assign('pnTagy', self::TAGYKLIC);
-    $xtpl->assign('viceScript', file_get_contents(WWW.'/soubory/doplnovani-vice.js'));
-    $xtpl->assign('tagyMoznosti', json_encode(dbOneArray('SELECT nazev FROM tagy')));
+    $xtpl->assign('aEditTag', self::TAGYKLIC);
+    $xtpl->assign('tagyMoznosti', json_encode(dbOneArray('SELECT nazev FROM sjednocene_tagy')));
     $xtpl->assign('limitPopisKratky', self::LIMIT_POPIS_KRATKY);
     if($a) {
       $xtpl->assign($a->a);
@@ -314,6 +313,18 @@ class Aktivita {
         $xtpl->assign('sel', $a && $r['id_typu'] == $aktivita['typ'] ? 'selected' : '');
         $xtpl->assign($r);
         $xtpl->parse('upravy.tabulka.typ');
+      }
+    }
+
+    // načtení tagů
+    if ($a) {
+      $vsechnyTagy = dbArrayCol('SELECT id, nazev FROM sjednocene_tagy ORDER BY nazev');
+      $vybraneTagy = $a->tagy();
+      foreach ($vsechnyTagy as $idTagu => $nazevTagu) {
+        $xtpl->assign('id_tagu', $idTagu);
+        $xtpl->assign('nazev_tagu', $nazevTagu);
+        $xtpl->assign('tag_selected', in_array($nazevTagu, $vybraneTagy, true) ? 'selected' : '');
+        $xtpl->parse('upravy.tabulka.tag');
       }
     }
 
@@ -418,15 +429,14 @@ class Aktivita {
     }
     $aktivita->organizatori($organizatori);
     $aktivita->popis($popis);
-    $tagy = [];
-    foreach(explode(',', post(self::TAGYKLIC)) as $tag) {
-      $tag = trim($tag);
-      $tag = preg_replace('@\s+@', ' ', $tag);
-      if($tag !== '') {
-        $tagy[] = $tag;
+    $tagIds = [];
+    foreach(post(self::TAGYKLIC) as $tagId) {
+      $tagId = (int)$tagId;
+      if($tagId) {
+        $tagIds[] = $tagId;
       }
     }
-    $aktivita->nastavTagy($tagy);
+    $aktivita->nastavTagyPodleId($tagIds);
 
     return $aktivita;
   }
@@ -1305,6 +1315,21 @@ class Aktivita {
       if($tagy) {
         dbQuery(
           'INSERT INTO akce_sjednocene_tagy(id_akce, id_tagu) SELECT $1, id FROM sjednocene_tagy WHERE nazev IN ('.dbQa($tagy).')',
+          [$aktivita->id()]
+        );
+      }
+    }
+
+    $this->otoc();
+  }
+
+  function nastavTagyPodleId(array $idTagu) {
+    // nastavit tagy aktivitám
+    foreach($this->instance() as $aktivita) {
+      dbQuery('DELETE FROM akce_sjednocene_tagy WHERE id_akce = $1', [$aktivita->id()]);
+      if($idTagu) {
+        dbQuery(
+          'INSERT INTO akce_sjednocene_tagy(id_akce, id_tagu) SELECT $1, id FROM sjednocene_tagy WHERE id IN ('.dbQa($idTagu).')',
           [$aktivita->id()]
         );
       }
