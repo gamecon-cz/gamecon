@@ -421,7 +421,7 @@ class Aktivita {
     $aktivita->organizatori($organizatori);
     $aktivita->popis($popis);
     $tagIds = [];
-    foreach(post(self::TAGYKLIC) as $tagId) {
+    foreach((array)post(self::TAGYKLIC) as $tagId) {
       $tagId = (int)$tagId;
       if($tagId) {
         $tagIds[] = $tagId;
