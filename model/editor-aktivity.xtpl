@@ -174,7 +174,9 @@ $(function(){
   </tr>
   <tr>
     <th>
-      <span class="hinted">Tagy<span class="hint">Jen existující</span></span>
+      Tagy <a href="#editorTagu" rel="modal:open">
+            <span class="hinted">(+)<span class="hint">Přidat nový tag</span></span>
+           </a>
     </th>
     <td>
         <select name="{aEditTag}[]" multiple="multiple">
@@ -202,6 +204,7 @@ $(function(){
                 selectAll: true
             });
         </script>
+        {editorTagu}
     </td>
   </tr>
   <tr>
