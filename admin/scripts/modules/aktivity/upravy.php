@@ -32,6 +32,6 @@ $editor=Aktivita::editor($a);         // načtení html editoru aktivity
 
 
 
-<form method="post" enctype="multipart/form-data">
+<form method="post" enctype="multipart/form-data" style="position: relative">
   <?=$editor?>
 </form>
