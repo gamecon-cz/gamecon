@@ -187,30 +187,32 @@ $autoIncrementStart++; // start after previous last ID to avoid (almost impossib
 
 $query = <<<SQL
 CREATE TEMPORARY TABLE sjednocene_tagy_temp LIKE tagy;
-ALTER TABLE sjednocene_tagy_temp ADD COLUMN kategorie VARCHAR(128), ADD COLUMN opraveny_nazev VARCHAR(128), ADD COLUMN poznamka TEXT;
-INSERT INTO sjednocene_tagy_temp(id, nazev, kategorie, opraveny_nazev, poznamka) VALUES {$fixedTagsSql};
-ALTER TABLE sjednocene_tagy_temp ADD INDEX (kategorie), ADD INDEX (opraveny_nazev);
+ALTER TABLE sjednocene_tagy_temp ADD COLUMN nazev_kategorie VARCHAR(128), ADD COLUMN opraveny_nazev VARCHAR(128), ADD COLUMN poznamka TEXT;
+INSERT INTO sjednocene_tagy_temp(id, nazev, nazev_kategorie, opraveny_nazev, poznamka) VALUES {$fixedTagsSql};
+ALTER TABLE sjednocene_tagy_temp ADD INDEX (nazev_kategorie), ADD INDEX (opraveny_nazev);
 
-CREATE TABLE IF NOT EXISTS kategorie_tagu(
+CREATE TABLE IF NOT EXISTS kategorie_sjednocenych_tagu(
     id INT UNSIGNED NOT NULL UNIQUE AUTO_INCREMENT,
-    kategorie VARCHAR(128) PRIMARY KEY
+    nazev VARCHAR(128) PRIMARY KEY
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
-INSERT IGNORE INTO kategorie_tagu(kategorie) SELECT kategorie FROM sjednocene_tagy_temp;
+INSERT IGNORE INTO kategorie_sjednocenych_tagu(nazev)
+SELECT nazev_kategorie FROM sjednocene_tagy_temp
+WHERE sjednocene_tagy_temp.opraveny_nazev != '-'; -- strange records convinced for deletion
 
 CREATE TABLE IF NOT EXISTS sjednocene_tagy (
     id INT UNSIGNED NOT NULL UNIQUE AUTO_INCREMENT,
     id_kategorie_tagu INT UNSIGNED NULL,
     nazev VARCHAR(128) PRIMARY KEY,
     poznamka TEXT,
-    FOREIGN KEY FK_kategorie_tagu(id_kategorie_tagu) REFERENCES kategorie_tagu(id)
+    FOREIGN KEY FK_kategorie_tagu(id_kategorie_tagu) REFERENCES kategorie_sjednocenych_tagu(id)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
 ALTER TABLE sjednocene_tagy AUTO_INCREMENT={$autoIncrementStart};
 INSERT /* intentionally not IGNORE to detect invalid input data, see bellow */ INTO sjednocene_tagy(id, id_kategorie_tagu, nazev, poznamka)
-SELECT sjednocene_tagy_temp.id, kategorie_tagu.id, sjednocene_tagy_temp.opraveny_nazev, GROUP_CONCAT(DISTINCT sjednocene_tagy_temp.poznamka SEPARATOR '; ')
+SELECT sjednocene_tagy_temp.id, kategorie_sjednocenych_tagu.id, sjednocene_tagy_temp.opraveny_nazev, GROUP_CONCAT(DISTINCT sjednocene_tagy_temp.poznamka SEPARATOR '; ')
 FROM sjednocene_tagy_temp
-JOIN kategorie_tagu ON kategorie_tagu.kategorie = sjednocene_tagy_temp.kategorie
+JOIN kategorie_sjednocenych_tagu ON kategorie_sjednocenych_tagu.nazev = sjednocene_tagy_temp.nazev_kategorie
 WHERE sjednocene_tagy_temp.opraveny_nazev != '-' -- strange records convinced for deletion
-GROUP BY sjednocene_tagy_temp.opraveny_nazev, kategorie_tagu.id; -- intentionally grouped also by kategorie_tagu.id to get fatal in case of duplicated opraveny_nazev but different kategorie_tagu.id => logic error in source data
+GROUP BY sjednocene_tagy_temp.opraveny_nazev, kategorie_sjednocenych_tagu.id; -- intentionally grouped also by kategorie_sjednocenych_tagu.id to get fatal in case of duplicated opraveny_nazev but different kategorie_sjednocenych_tagu.id => logic error in source data
 
 CREATE TABLE IF NOT EXISTS akce_sjednocene_tagy LIKE akce_tagy;
 INSERT IGNORE INTO akce_sjednocene_tagy(id_akce, id_tagu) 

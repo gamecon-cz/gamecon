@@ -116,9 +116,9 @@ orig. pořadí;id;puvodni nazev;Kategorie;Kategorie - hypotetické;opraveny naze
 207;1046;Přemýšlecí;styl Akční;;Přemýšlecí;
 298;76;Venkovní;styl Akční;;Venkovní;
 320;690;workshop;styl Akční;;Workshop;
-42;10284;Demohraní;styl Desk;;Demohraní;
-79;5078;ekonomická;styl Desk;;Ekonomická;
-112;6264;Herní styl: Ekonomická;styl Desk;;Ekonomická;
+42;10284;Demohraní;styl Deskovky;;Demohraní;
+79;5078;ekonomická;styl Deskovky;;Ekonomická;
+112;6264;Herní styl: Ekonomická;styl Deskovky;;Ekonomická;
 105;4655;Herní styl: akooperativní;typ Desk;;Kooperativní;
 115;4620;Herní styl: Kooperativní;typ Desk;;Kooperativní;
 149;67;kooperativní;typ Desk;;Kooperativní;
@@ -127,8 +127,8 @@ orig. pořadí;id;puvodni nazev;Kategorie;Kategorie - hypotetické;opraveny naze
 121;4673;Herní styl: Semi-kooperativní;typ Desk;;Semi-kooperativní;
 222;4559;semi;typ Desk;;Semi-kooperativní;
 223;63;semi-kooperativní;typ Desk;;Semi-kooperativní;
-122;5824;Herní styl: Strategická;styl Desk;;Strategická;
-241;64;strategická;styl Desk;;Strategická;
+122;5824;Herní styl: Strategická;styl Deskovky;;Strategická;
+241;64;strategická;styl Deskovky;;Strategická;
 128;6389;Herní styl: Wargame;typ Desk;;Wargame;
 305;108;wargame;typ Desk;;Wargame;
 319;4278;worker placement;typ Desk;;Worker Placement;

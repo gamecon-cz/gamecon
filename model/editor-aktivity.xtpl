@@ -179,18 +179,18 @@ $(function(){
            </a>
     </th>
     <td>
-        <select name="{aEditTag}[]" multiple="multiple">
+        <select name="{aEditTag}[]" multiple="multiple" id="vyberTagu">
             <!-- begin:tag -->
                 <option {tag_selected} value="{id_tagu}">{nazev_tagu}</option>
             <!-- end:tag -->
         </select>
         <script type="text/javascript">
-            const clientWidth = document.getElementsByClassName('main')[0].getElementsByTagName('form')[0].clientWidth;
-            let tagsMultiselectColumns = parseInt(clientWidth / 250);
+            const clientWidthForEditorAktivity = document.getElementsByClassName('main')[0].getElementsByTagName('form')[0].clientWidth;
+            let tagsMultiselectColumns = parseInt(clientWidthForEditorAktivity / 250);
             if (tagsMultiselectColumns < 1) {
                 tagsMultiselectColumns = 1;
             }
-            const $tagsMultiselect = $('select[multiple]');
+            const $tagsMultiselect = $('#vyberTagu');
             $tagsMultiselect.multiselect({
                 columns: tagsMultiselectColumns,
                 search: true,
@@ -201,6 +201,7 @@ $(function(){
                     'selectAll': 'Vyber vše (klikni znovu pro "Zruš vše")',
                     'unselectAll': 'Zruš vše (klikni znovu pro "Vyber vše")'
                 },
+                maxPlaceholderOpts: 8,
                 selectAll: true
             });
         </script>
