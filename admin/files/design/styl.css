@@ -150,3 +150,7 @@ form table .orez img { width: 50px; }
 .editor-tagu input[type='text'], .editor-tagu textarea {
   min-width: 30em;
 }
+button .ajax-loader {
+  margin-left: 1em;
+  vertical-align: middle;
+}

@@ -43,7 +43,7 @@ $(function(){
 <input type="hidden" name="{fields}staraUrl" value="{url_akce}">
 
 <!-- begin:tabulka -->
-<table style="float:left;margin-right:20px">
+<table style="float:left;margin-right:20px" id="editorAktivity">
   <tr>
     <th>Název</th>
     <td><input class="full" type="text" name="{fields}[nazev_akce]" value="{nazev_akce}"></td>
@@ -185,25 +185,29 @@ $(function(){
             <!-- end:tag -->
         </select>
         <script type="text/javascript">
-            const clientWidthForEditorAktivity = document.getElementsByClassName('main')[0].getElementsByTagName('form')[0].clientWidth;
-            let tagsMultiselectColumns = parseInt(clientWidthForEditorAktivity / 250);
+          const $tagsMultiselect = $('#vyberTagu');
+          document.addEventListener('DOMContentLoaded', function () {
+            const clientWidthForEditorAktivity = document.getElementById('editorAktivity').clientWidth;
+            let tagsMultiselectColumns = parseInt(clientWidthForEditorAktivity / 110);
             if (tagsMultiselectColumns < 1) {
-                tagsMultiselectColumns = 1;
+              tagsMultiselectColumns = 1;
             }
-            const $tagsMultiselect = $('#vyberTagu');
-            $tagsMultiselect.multiselect({
-                columns: tagsMultiselectColumns,
-                search: true,
-                texts: {
-                    'placeholder': 'Zadej tag',
-                    'search': 'Hledej tag',
-                    'selectedOptions': ' vybraných tagů',
-                    'selectAll': 'Vyber vše (klikni znovu pro "Zruš vše")',
-                    'unselectAll': 'Zruš vše (klikni znovu pro "Vyber vše")'
-                },
-                maxPlaceholderOpts: 8,
-                selectAll: true
-            });
+            $tagsMultiselect.multiselect('settings', {columns: tagsMultiselectColumns});
+          });
+
+          $tagsMultiselect.multiselect({
+            columns: 3,
+            search: true,
+            texts: {
+              'placeholder': 'Zadej tag',
+              'search': 'Hledej tag',
+              'selectedOptions': ' vybraných tagů',
+              'selectAll': 'Vyber vše (klikni znovu pro "Zruš vše")',
+              'unselectAll': 'Zruš vše (klikni znovu pro "Vyber vše")'
+            },
+            maxPlaceholderOpts: 8,
+            selectAll: true
+          });
         </script>
     </td>
   </tr>

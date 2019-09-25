@@ -3,37 +3,43 @@
     <form method="post" action="">
         <table>
             <tr>
-                <td><label for="idKategorieTaguEditorTagu">Kategorie tagu*</label></dt>
+                <td><label for="nazevTaguEditorTagu">Název tagu*</label></td>
+                <td><input id="nazevTaguEditorTagu" type="text" name="{aEditTag}[{aEditNazevTagu}]" value="{nazevTagu}" required style="padding: 5px">
+                </td>
+            </tr>
+            <tr>
+                <td><label for="idKategorieTaguEditorTagu">Kategorie tagu*</label></td>
                 <td>
-                    <select id="idKategorieTaguEditorTagu" name="{aEditKategorieTagu}[]" multiple="multiple" required>
+                    <select id="idKategorieTaguEditorTagu" name="{aEditTag}[{aEditKategorieTagu}][]" multiple="multiple" required>
                         <!-- begin:kategorie -->
                         <option {kategorie_selected} value="{id_kategorie}">{nazev_kategorie}</option>
                         <!-- end:kategorie -->
                     </select>
                 </td>
             <tr>
-                <td><label for="nazevTaguEditorTagu">Název tagu*</label></td>
-                <td><input id="nazevTaguEditorTagu" type="text" name="{aEditNazevTagu}" value="{nazevTagu}" required></td>
-            </tr>
-            <tr>
                 <td><label for="poznamkaEditorTagu">Poznámka</label></td>
-                <td><textarea id="poznamkaEditorTagu" name="{aEditPoznamkaTagu}">{poznamkaTagu}</textarea></td>
+                <td><textarea id="poznamkaEditorTagu" name="{aEditTag}[{aEditPoznamkaTagu}]">{poznamkaTagu}</textarea></td>
             </tr>
         </table>
         <div>
-            <input type="submit" value="Uložit">
+            <button type="submit">Uložit</button>
         </div>
     </form>
 </div>
 <script type="text/javascript">
-  const clientWidthForEditorTagu = document.getElementsByClassName('main')[0].getElementsByTagName('form')[0].clientWidth;
-  let categoriesMultiselectColumns = parseInt(clientWidthForEditorTagu / 250);
-  if (categoriesMultiselectColumns < 1) {
-    categoriesMultiselectColumns = 1;
-  }
+  const $editorTagu = $('#editorTagu');
   const $categoriesMultiselect = $('#idKategorieTaguEditorTagu');
+  $editorTagu.on($.modal.OPEN, function () {
+    const clientWidthForEditorTagu = document.getElementById("editorTagu").clientWidth;
+    let categoriesMultiselectColumns = parseInt(clientWidthForEditorTagu / 220);
+    if (categoriesMultiselectColumns < 1) {
+      categoriesMultiselectColumns = 1;
+    }
+    $categoriesMultiselect.multiselect('settings', {columns: categoriesMultiselectColumns});
+  });
+
   $categoriesMultiselect.multiselect({
-    columns: categoriesMultiselectColumns,
+    columns: 2,
     search: true,
     texts: {
       'placeholder': 'Zadej kategorii',
@@ -48,9 +54,13 @@
 
   $('#editorTagu form').on('submit', function (event) {
     event.preventDefault();
+    const form = $(this)
+    const loader = $('<img class="ajax-loader" src="files/design/ajax-loader.gif">')
+    const submit = form.find('button[type=submit]')
+    submit.append(loader)
     $.post(
       document.URL,
-      $(this).serialize(),
+      form.serialize(),
       function (response) {
         console.log(response);
       }
