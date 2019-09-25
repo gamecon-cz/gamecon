@@ -7,8 +7,9 @@
  * pravo: 102
  */
 
-if(Aktivita::editorTestJson())        // samo sebe volání ajaxu
+if(Aktivita::editorTestJson()) {       // samo sebe volání ajaxu
   die(Aktivita::editorChybyJson());
+}
 
 try {
   if($a = Aktivita::editorZpracuj())  // úspěšné uložení změn ve formuláři
@@ -25,11 +26,18 @@ try {
   }
 }
 
+require_once(__DIR__ . '/_editor-tagu.php');
+$editorTagu = new EditorTagu();
+
+if ($jsonZmeny = $editorTagu->editorZpracuj()) {
+  header('Content-Type: application/json');
+  echo json_encode(['tag' => $jsonZmeny]);
+  die;
+}
+
 $a=Aktivita::zId(get('aktivitaId'));  // načtení aktivity podle předaného ID
 $editor=Aktivita::editor($a);         // načtení html editoru aktivity
 
-require_once(__DIR__ . '/_editor-tagu.php');
-$editorTagu = new EditorTagu(Aktivita::KATEGORIE_TAGU_KLIC, Aktivita::NAZEV_TAGU_KLIC, Aktivita::POZNAMKA_TAGU_KLIC);
 
 ?>
 
