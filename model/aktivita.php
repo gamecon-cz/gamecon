@@ -21,6 +21,7 @@ class Aktivita {
     KOLA='aTeamFormKolo',      // název post proměnné s výběrem kol pro team
     OBRKLIC='aEditObrazek',    // název proměnné, v které bude případně obrázek
     TAGYKLIC='aEditTag',       // název proměnné, v které jdou tagy
+    KATEGORIE_TAGU_KLIC='aEditKategorieTagu',       // název proměnné, v které jdou kategorie tagů
     POSTKLIC='aEditForm',      // název proměnné (ve výsledku pole), v které bude editační formulář aktivity předávat data
     TEAMKLIC='aTeamForm',      // název post proměnné s formulářem pro výběr teamu
     PN_PLUSMINUSP='cAktivitaPlusminusp',  // název post proměnné pro úpravy typu plus
@@ -238,6 +239,20 @@ class Aktivita {
         $xtpl->parse('upravy.tabulka.tag');
       }
       $editorTaguSablona = new XTemplate(__DIR__ . '/editor-tagu.xtpl');
+      $vsechnyKategorieTagu = dbArrayCol(
+        'SELECT kategorie_sjednocenych_tagu.id, kategorie_sjednocenych_tagu.nazev
+FROM kategorie_sjednocenych_tagu
+ORDER BY kategorie_sjednocenych_tagu.nazev'
+      );
+      $vybraneTagy = $a->tagy();
+      foreach ($vsechnyKategorieTagu as $idKategorie => $nazevKategorie) {
+        $editorTaguSablona->assign('id_kategorie', $idKategorie);
+        $editorTaguSablona->assign('nazev_kategorie', $nazevKategorie);
+        $editorTaguSablona->assign('nazev_kategorie', $nazevKategorie);
+        $editorTaguSablona->assign('kategorie_selected', false);
+        $editorTaguSablona->parse('editorTagu.kategorie');
+      }
+      $editorTaguSablona->assign('aEditKategorieTagu', self::KATEGORIE_TAGU_KLIC);
       $editorTaguSablona->parse('editorTagu');
       $xtpl->assign('editorTagu', $editorTaguSablona->text('editorTagu'));
     }

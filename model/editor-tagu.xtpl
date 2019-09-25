@@ -1,5 +1,49 @@
 <!-- begin:editorTagu -->
 <div id="editorTagu" class="modal">
-    <p>Modal jak svina</p>
+    <form method="post" action="">
+        <table>
+            <tr>
+                <td><label for="idKategorieTaguEditorTagu">Kategorie tagu</label></dt>
+                <td>
+                    <select id="idKategorieTaguEditorTagu" name="{aEditKategorieTagu}[]" multiple="multiple" required>
+                        <!-- begin:kategorie -->
+                        <option {kategorie_selected} value="{id_kategorie}">{nazev_kategorie}</option>
+                        <!-- end:kategorie -->
+                    </select>
+                </td>
+            <tr>
+                <td><label for="nazevTaguEditorTagu">Název tagu</label></td>
+                <td><input id="nazevTaguEditorTagu" type="text" name="nazev_tagu" value="{nazevTagu}" required></td>
+            </tr>
+            <tr>
+                <td><label for="poznamkaEditorTagu">Poznámka</label></td>
+                <td><input id="poznamkaEditorTagu" type="text" name="poznamka_tagu" value="{poznamkaTagu}"></td>
+            </tr>
+        </table>
+        <div>
+            <input type="submit" value="Uložit">
+        </div>
+    </form>
 </div>
+<script type="text/javascript">
+  const clientWidthForEditorTagu = document.getElementsByClassName('main')[0].getElementsByTagName('form')[0].clientWidth;
+  let categoriesMultiselectColumns = parseInt(clientWidthForEditorTagu / 250);
+  if (categoriesMultiselectColumns < 1) {
+    categoriesMultiselectColumns = 1;
+  }
+  const $categoriesMultiselect = $('#idKategorieTaguEditorTagu');
+  $categoriesMultiselect.multiselect({
+    columns: categoriesMultiselectColumns,
+    search: true,
+    texts: {
+      'placeholder': 'Zadej kategorii',
+      'search': 'Hledej kategorii',
+      'selectedOptions': ' vybraných kategorií',
+      'selectAll': 'Vyber vše (klikni znovu pro "Zruš vše")',
+      'unselectAll': 'Zruš vše (klikni znovu pro "Vyber vše")'
+    },
+    maxPlaceholderOpts: 5,
+    selectAll: true
+  });
+</script>
 <!-- end:editorTagu -->
