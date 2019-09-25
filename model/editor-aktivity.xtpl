@@ -205,7 +205,6 @@ $(function(){
                 selectAll: true
             });
         </script>
-        {editorTagu}
     </td>
   </tr>
   <tr>

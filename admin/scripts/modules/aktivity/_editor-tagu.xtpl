@@ -1,9 +1,9 @@
 <!-- begin:editorTagu -->
-<div id="editorTagu" class="modal">
+<div id="editorTagu" class="modal editor-tagu">
     <form method="post" action="">
         <table>
             <tr>
-                <td><label for="idKategorieTaguEditorTagu">Kategorie tagu</label></dt>
+                <td><label for="idKategorieTaguEditorTagu">Kategorie tagu*</label></dt>
                 <td>
                     <select id="idKategorieTaguEditorTagu" name="{aEditKategorieTagu}[]" multiple="multiple" required>
                         <!-- begin:kategorie -->
@@ -12,12 +12,12 @@
                     </select>
                 </td>
             <tr>
-                <td><label for="nazevTaguEditorTagu">Název tagu</label></td>
-                <td><input id="nazevTaguEditorTagu" type="text" name="nazev_tagu" value="{nazevTagu}" required></td>
+                <td><label for="nazevTaguEditorTagu">Název tagu*</label></td>
+                <td><input id="nazevTaguEditorTagu" type="text" name="{aEditNazevTagu}" value="{nazevTagu}" required></td>
             </tr>
             <tr>
                 <td><label for="poznamkaEditorTagu">Poznámka</label></td>
-                <td><input id="poznamkaEditorTagu" type="text" name="poznamka_tagu" value="{poznamkaTagu}"></td>
+                <td><textarea id="poznamkaEditorTagu" name="{aEditPoznamkaTagu}">{poznamkaTagu}</textarea></td>
             </tr>
         </table>
         <div>
@@ -44,6 +44,17 @@
     },
     maxPlaceholderOpts: 5,
     selectAll: true
+  });
+
+  $('#editorTagu form').on('submit', function (event) {
+    event.preventDefault();
+    $.post(
+      document.URL,
+      $(this).serialize(),
+      function (response) {
+        console.log(response);
+      }
+    )
   });
 </script>
 <!-- end:editorTagu -->
