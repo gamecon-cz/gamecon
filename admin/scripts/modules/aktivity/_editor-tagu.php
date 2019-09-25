@@ -2,15 +2,10 @@
 
 class EditorTagu
 {
-  private $aEditKategorieTagu;
-  private $aEditNazevTagu;
-  private $aEditPoznamkaTagu;
-
-  public function __constructor(string $aEditKategorieTagu, string $aEditNazevTagu, string $aEditPoznamkaTagu) {
-    $this->aEditKategorieTagu = $aEditKategorieTagu;
-    $this->aEditNazevTagu = $aEditNazevTagu;
-    $this->aEditPoznamkaTagu = $aEditPoznamkaTagu;
-  }
+  private const POST_KLIC = 'aEditTag';
+  private const KATEGORIE_TAGU_KLIC = 'aEditKategorieTagu';       // název proměnné, v které jsou kategorie tagů
+  private const NAZEV_TAGU_KLIC = 'aEditNazevTagu';       // název proměnné, v které je název tagu
+  private const POZNAMKA_TAGU_KLIC = 'aEditPoznamkaTagu';       // název proměnné, v které je poznámka k tagu
 
   public function novyTag() {
     $editorTaguSablona = new XTemplate(__DIR__ . '/_editor-tagu.xtpl');
@@ -22,9 +17,10 @@ class EditorTagu
       $editorTaguSablona->assign('kategorie_selected', false);
       $editorTaguSablona->parse('editorTagu.kategorie');
     }
-    $editorTaguSablona->assign('aEditKategorieTagu', $this->aEditKategorieTagu);
-    $editorTaguSablona->assign('aEditNazevTagu', $this->aEditNazevTagu);
-    $editorTaguSablona->assign('aEditPoznamkaTagu', $this->aEditPoznamkaTagu);
+    $editorTaguSablona->assign('aEditTag', self::POST_KLIC);
+    $editorTaguSablona->assign('aEditKategorieTagu', self::KATEGORIE_TAGU_KLIC);
+    $editorTaguSablona->assign('aEditNazevTagu', self::NAZEV_TAGU_KLIC);
+    $editorTaguSablona->assign('aEditPoznamkaTagu', self::POZNAMKA_TAGU_KLIC);
     $editorTaguSablona->parse('editorTagu');
 
     return $editorTaguSablona->text('editorTagu');
@@ -36,5 +32,13 @@ class EditorTagu
 FROM kategorie_sjednocenych_tagu
 ORDER BY kategorie_sjednocenych_tagu.nazev'
     );
+  }
+
+  public function editorZpracuj(): array {
+    if(empty($_POST[self::POST_KLIC])) {
+      return [];
+    }
+    $a = $_POST[self::POST_KLIC];
+    return [];
   }
 }
