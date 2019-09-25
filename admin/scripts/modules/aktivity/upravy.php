@@ -28,10 +28,13 @@ try {
 $a=Aktivita::zId(get('aktivitaId'));  // načtení aktivity podle předaného ID
 $editor=Aktivita::editor($a);         // načtení html editoru aktivity
 
+require_once(__DIR__ . '/_editor-tagu.php');
+$editorTagu = new EditorTagu(Aktivita::KATEGORIE_TAGU_KLIC, Aktivita::NAZEV_TAGU_KLIC, Aktivita::POZNAMKA_TAGU_KLIC);
+
 ?>
-
-
 
 <form method="post" enctype="multipart/form-data" style="position: relative">
   <?=$editor?>
 </form>
+
+<?= $editorTagu->novyTag() ?>

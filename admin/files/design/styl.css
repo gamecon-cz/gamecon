@@ -146,3 +146,7 @@ form table .orez img { width: 50px; }
   background-color: rgba(255, 191, 191, 0.85); text-align: center; z-index: 99;
   box-shadow: 0 0 10px #aaa; padding: 28px; color:#a00; font-size: 20px; }
 .chybaBlok > .oznameni { background-color: rgba(212, 241, 212, 0.75); color:#252; }
+
+.editor-tagu input[type='text'], .editor-tagu textarea {
+  min-width: 30em;
+}
