@@ -154,3 +154,7 @@ button .ajax-loader {
   margin-left: 1em;
   vertical-align: middle;
 }
+
+.editor-tagu input, .editor-tagu textarea {
+  padding: 5px;
+}
