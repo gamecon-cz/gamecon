@@ -4,7 +4,7 @@
         <table>
             <tr>
                 <td><label for="nazevTaguEditorTagu">Název tagu*</label></td>
-                <td><input id="nazevTaguEditorTagu" type="text" name="{aEditTag}[{aEditNazevTagu}]" value="{nazevTagu}" required style="padding: 5px">
+                <td><input id="nazevTaguEditorTagu" type="text" name="{aEditTag}[{aEditNazevTagu}]" value="{nazevTagu}" required>
                 </td>
             </tr>
             <tr>
