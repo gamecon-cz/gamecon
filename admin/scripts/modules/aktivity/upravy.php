@@ -29,9 +29,9 @@ try {
 require_once(__DIR__ . '/_editor-tagu.php');
 $editorTagu = new EditorTagu();
 
-if ($jsonZmeny = $editorTagu->editorZpracuj()) {
+if ($zpracovanyNovyTag = $editorTagu->zpracujTag()) {
   header('Content-Type: application/json');
-  echo json_encode(['tag' => $jsonZmeny['tag'] ?? [], 'errors' => $jsonZmeny['errors'] ?? []]);
+  echo json_encode(['tag' => $zpracovanyNovyTag['tag'] ?? [], 'errors' => $zpracovanyNovyTag['errors'] ?? []]);
   exit;
 }
 

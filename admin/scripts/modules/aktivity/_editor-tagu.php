@@ -3,6 +3,7 @@
 class EditorTagu
 {
   private const POST_KLIC = 'aEditTag';
+  private const ID_TAGU_KLIC = 'aEditTagId';
   private const KATEGORIE_TAGU_KLIC = 'aEditKategorieTagu';       // název proměnné, v které jsou kategorie tagů
   private const NAZEV_TAGU_KLIC = 'aEditNazevTagu';       // název proměnné, v které je název tagu
   private const POZNAMKA_TAGU_KLIC = 'aEditPoznamkaTagu';       // název proměnné, v které je poznámka k tagu
@@ -31,6 +32,7 @@ class EditorTagu
     $editorTaguSablona->assign('allTagNamesJson', $allTagNamesJsonEncoded);
 
     $editorTaguSablona->assign('aEditTag', self::POST_KLIC);
+    $editorTaguSablona->assign('aEditIdTagu', self::ID_TAGU_KLIC);
     $editorTaguSablona->assign('aEditNazevTagu', self::NAZEV_TAGU_KLIC);
     $editorTaguSablona->assign('aEditKategorieTagu', self::KATEGORIE_TAGU_KLIC);
     $editorTaguSablona->assign('aEditPoznamkaTagu', self::POZNAMKA_TAGU_KLIC);
@@ -55,7 +57,7 @@ FROM sjednocene_tagy'
     );
   }
 
-  public function editorZpracuj(): array {
+  public function zpracujTag(): array {
     if (empty($_POST[self::POST_KLIC])) {
       return [];
     }
@@ -72,18 +74,29 @@ FROM sjednocene_tagy'
     if ($errors) {
       return ['errors' => $errors];
     }
+    $idTagu = trim($values[self::ID_TAGU_KLIC] ?? '');
     $poznamkaTagu = trim($values[self::POZNAMKA_TAGU_KLIC] ?? '');
-    $result = dbQuery(
-      $query = 'INSERT IGNORE INTO sjednocene_tagy (id, id_kategorie_tagu, nazev, poznamka) VALUES (NULL, $0, $1, $2)',
-      [$idKategorieTagu, $nazevTagu, $poznamkaTagu]
-    );
+    if ($idTagu) {
+      $result = dbQuery(
+        $query = 'UPDATE sjednocene_tagy SET id_kategorie_tagu = $1, poznamka = $2 WHERE id = $3',
+        [$idKategorieTagu, $poznamkaTagu, $idTagu]
+      );
+    } else {
+      $result = dbQuery(
+        $query = 'INSERT IGNORE INTO sjednocene_tagy (id, id_kategorie_tagu, nazev, poznamka) VALUES (NULL, $0, $1, $2)',
+        [$idKategorieTagu, $nazevTagu, $poznamkaTagu]
+      );
+    }
     if (!$result) {
       throw new \RuntimeException('Failed SQL execution of ' . dbLastQ());
     }
-    $newTagId = dbInsertId(false /* do not raise exception if no ID */);
-    if (!$newTagId) {
-      return ['errors' => ["Tag '{$nazevTagu}' už existuje"]];
+    if (!$idTagu) {
+      $newTagId = dbInsertId(false /* do not raise exception if no ID */);
+      if (!$newTagId) {
+        return ['errors' => ["Tag '{$nazevTagu}' už existuje"]];
+      }
+      $idTagu = $newTagId;
     }
-    return ['tag' => dbOneLine('SELECT * FROM sjednocene_tagy WHERE id = $1', [$newTagId])];
+    return ['tag' => dbOneLine('SELECT * FROM sjednocene_tagy WHERE id = $1', [$idTagu])];
   }
 }
