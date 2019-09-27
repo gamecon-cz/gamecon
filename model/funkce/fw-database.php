@@ -146,10 +146,11 @@ function dbInsert($table, $valArray) {
 /**
  * Return last AUTO INCREMENT value
  */
-function dbInsertId() {
+function dbInsertId(bool $strict = true) {
   $id = mysqli_insert_id($GLOBALS['spojeni']);
-  if(!is_int($id) || $id == 0)
+  if($strict && (!is_int($id) || $id == 0)) {
     throw new DbException('no last id');
+  }
   return $id;
 }
 

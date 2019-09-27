@@ -1,16 +1,19 @@
 <!-- begin:editorTagu -->
 <div id="editorTagu" class="modal editor-tagu">
+    <div id="chybyEditoruTagu"></div>
     <form method="post" action="">
         <table>
             <tr>
                 <td><label for="nazevTaguEditorTagu">Název tagu*</label></td>
-                <td><input id="nazevTaguEditorTagu" type="text" name="{aEditTag}[{aEditNazevTagu}]" value="{nazevTagu}" required>
+                <td><input id="nazevTaguEditorTagu" type="text" name="{aEditTag}[{aEditNazevTagu}]" value="{nazevTagu}"
+                           required>
                 </td>
             </tr>
             <tr>
                 <td><label for="idKategorieTaguEditorTagu">Kategorie tagu*</label></td>
                 <td>
-                    <select id="idKategorieTaguEditorTagu" name="{aEditTag}[{aEditKategorieTagu}][]" multiple="multiple" required>
+                    <select id="idKategorieTaguEditorTagu" name="{aEditTag}[{aEditKategorieTagu}]" required>
+                        <option value=""></option>
                         <!-- begin:kategorie -->
                         <option {kategorie_selected} value="{id_kategorie}">{nazev_kategorie}</option>
                         <!-- end:kategorie -->
@@ -18,7 +21,8 @@
                 </td>
             <tr>
                 <td><label for="poznamkaEditorTagu">Poznámka</label></td>
-                <td><textarea id="poznamkaEditorTagu" name="{aEditTag}[{aEditPoznamkaTagu}]">{poznamkaTagu}</textarea></td>
+                <td><textarea id="poznamkaEditorTagu" name="{aEditTag}[{aEditPoznamkaTagu}]">{poznamkaTagu}</textarea>
+                </td>
             </tr>
         </table>
         <div>
@@ -27,33 +31,25 @@
     </form>
 </div>
 <script type="text/javascript">
-  const $editorTagu = $('#editorTagu');
-  const $categoriesMultiselect = $('#idKategorieTaguEditorTagu');
-  $editorTagu.on($.modal.OPEN, function () {
-    const clientWidthForEditorTagu = document.getElementById("editorTagu").clientWidth;
-    let categoriesMultiselectColumns = parseInt(clientWidthForEditorTagu / 220);
-    if (categoriesMultiselectColumns < 1) {
-      categoriesMultiselectColumns = 1;
+  const allTagNames = {allTagNamesJson};
+  const chybyEditoruTagu = $('#chybyEditoruTagu');
+  const detectDuplicity = function (event) {
+    chybyEditoruTagu.html('');
+    const $input = $(this);
+    const tagValue = $input.val();
+    if (allTagNames.includes(tagValue.toLowerCase())) {
+      chybyEditoruTagu.append($('<div id="tagAlreadyExists" class="warning">Tag "' + tagValue + '" už existuje</div>'));
     }
-    $categoriesMultiselect.multiselect('settings', {columns: categoriesMultiselectColumns});
-  });
-
-  $categoriesMultiselect.multiselect({
-    columns: 2,
-    search: true,
-    texts: {
-      'placeholder': 'Zadej kategorii',
-      'search': 'Hledej kategorii',
-      'selectedOptions': ' vybraných kategorií',
-      'selectAll': 'Vyber vše (klikni znovu pro "Zruš vše")',
-      'unselectAll': 'Zruš vše (klikni znovu pro "Vyber vše")'
-    },
-    maxPlaceholderOpts: 5,
-    selectAll: true
-  });
+  };
+  const nazevTaguEditorTagu = $('#nazevTaguEditorTagu');
+  nazevTaguEditorTagu.on('change', detectDuplicity);
+  nazevTaguEditorTagu.on('input', detectDuplicity);
 
   $('#editorTagu form').on('submit', function (event) {
     event.preventDefault();
+
+    chybyEditoruTagu.html('');
+
     const form = $(this)
     const loader = $('<img class="ajax-loader" src="files/design/ajax-loader.gif">')
     const submit = form.find('button[type=submit]')
@@ -61,8 +57,23 @@
     $.post(
       document.URL,
       form.serialize(),
-      function (response) {
-        console.log(response);
+      function (response, status) {
+        if (response.errors && response.errors.length > 0) {
+          for (let error of response.errors) {
+            chybyEditoruTagu.append($('<p class="error">' + error + '</p>'));
+          }
+          submit.find('.ajax-loader').remove();
+          return false;
+        }
+        if (response.tag) {
+          let event = new CustomEvent('newTagCreated', {detail: response.tag});
+          window.dispatchEvent(event);
+          submit.find('.ajax-loader').remove();
+          chybyEditoruTagu.html('');
+          $.modal.close();
+          return true;
+        }
+        chybyEditoruTagu.append($('<p class="error">' + status + '</p>'));
       }
     )
   });
