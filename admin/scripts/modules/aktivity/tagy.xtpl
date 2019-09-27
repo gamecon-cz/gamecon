@@ -1,0 +1,34 @@
+<!-- begin:tagy -->
+
+<table class="skryteRadky zvyraznovana" id="tagyTabulka">
+  <tr>
+    <th>Název</th>
+    <th>Kategorie</th>
+    <th>Poznámka</th>
+    <th colspan="1">Úpr.</th>
+  </tr>
+  <!-- begin:tag -->
+  <tr id="tag{id}">
+    <td>{nazev}</td>
+    <td style="white-space: nowrap">{nazev_kategorie}</td>
+    <td>{poznamka}</td>
+    <td>
+      <form method="post">
+        <input type="submit" value="uprav" onclick="
+          $('#edit{id_lokace}').show();
+          $('#lokace{id_lokace}').hide();
+          return false;
+        " />
+      </form>
+    </td>
+  </tr>
+  <!-- end:tag -->
+</table>
+
+<br />
+<br />
+<form method="post">
+  <input type="submit" name="novaMistnost" value="Přidat tag" />
+</form>
+
+<!-- end:mistnosti -->
