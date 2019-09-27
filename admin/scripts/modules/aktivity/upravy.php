@@ -31,8 +31,8 @@ $editorTagu = new EditorTagu();
 
 if ($jsonZmeny = $editorTagu->editorZpracuj()) {
   header('Content-Type: application/json');
-  echo json_encode(['tag' => $jsonZmeny]);
-  die;
+  echo json_encode(['tag' => $jsonZmeny['tag'] ?? [], 'errors' => $jsonZmeny['errors'] ?? []]);
+  exit;
 }
 
 $a=Aktivita::zId(get('aktivitaId'));  // načtení aktivity podle předaného ID
