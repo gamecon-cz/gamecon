@@ -11,7 +11,7 @@ td.redukovany { padding-left: 0; } /* sloupce s inputem tak, aby inputy přimyka
 #mistnostiTabulka th[colspan] { min-width: 0; }
 </style>
 
-<table class="skryteRadky zvyraznovana" id="mistnostiTabulka">
+<table class="skryteRadky zvyraznovana" id="tagyTabulka">
   <tr>
     <th colspan="2">Pořadí</th>
     <th>Název</th>
