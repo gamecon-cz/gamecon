@@ -33,17 +33,19 @@
 <script type="text/javascript">
   const allTagNames = {allTagNamesJson};
   const chybyEditoruTagu = $('#chybyEditoruTagu');
-  const detectDuplicity = function (event) {
+  const nazevTaguEditorTagu = $('#nazevTaguEditorTagu');
+  const detectDuplicity = function () {
     chybyEditoruTagu.html('');
-    const $input = $(this);
-    const tagValue = $input.val();
+    const tagValue = nazevTaguEditorTagu.val();
     if (allTagNames.includes(tagValue.toLowerCase())) {
       chybyEditoruTagu.append($('<div id="tagAlreadyExists" class="warning">Tag "' + tagValue + '" už existuje</div>'));
     }
   };
-  const nazevTaguEditorTagu = $('#nazevTaguEditorTagu');
   nazevTaguEditorTagu.on('change', detectDuplicity);
   nazevTaguEditorTagu.on('input', detectDuplicity);
+  $('#editorTagu').on($.modal.OPEN, function () {
+    detectDuplicity()
+  });
 
   $('#editorTagu form').on('submit', function (event) {
     event.preventDefault();
@@ -66,8 +68,16 @@
           return false;
         }
         if (response.tag) {
-          let event = new CustomEvent('newTagCreated', {detail: response.tag});
-          window.dispatchEvent(event);
+          allTagNames.push(response.tag.nazev);
+          let event = new CustomEvent('newTagCreated', {
+            detail: {
+              tag: {
+                id: response.tag.id,
+                nazev: response.tag.nazev
+              }
+            }
+          });
+          document.getElementById('editorTagu').dispatchEvent(event);
           submit.find('.ajax-loader').remove();
           chybyEditoruTagu.html('');
           $.modal.close();

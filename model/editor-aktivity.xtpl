@@ -177,6 +177,18 @@ $(function(){
       Tagy <a href="#editorTagu" rel="modal:open">
             <span class="hinted">(+)<span class="hint">Přidat nový tag</span></span>
            </a>
+      <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+          document.getElementById('editorTagu').addEventListener('newTagCreated', function(event) {
+            const newTag = event.detail && event.detail.tag;
+            if (newTag) {
+              const $tagsMultiselect = $('#vyberTagu');
+              $tagsMultiselect.append('<option selected value="' + newTag.id + '">' + escape(newTag.nazev) + '</option>');
+              $tagsMultiselect.multiselect('reload');
+            }
+          });
+        });
+      </script>
     </th>
     <td>
         <select name="{aEditTag}[]" multiple="multiple" id="vyberTagu">
