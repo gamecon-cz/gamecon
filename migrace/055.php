@@ -203,7 +203,7 @@ CREATE TABLE IF NOT EXISTS sjednocene_tagy (
     id INT UNSIGNED NOT NULL UNIQUE AUTO_INCREMENT,
     id_kategorie_tagu INT UNSIGNED NULL,
     nazev VARCHAR(128) PRIMARY KEY,
-    poznamka TEXT,
+    poznamka TEXT NOT NULL DEFAULT '',
     FOREIGN KEY FK_kategorie_tagu(id_kategorie_tagu) REFERENCES kategorie_sjednocenych_tagu(id)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
 ALTER TABLE sjednocene_tagy AUTO_INCREMENT={$autoIncrementStart};
