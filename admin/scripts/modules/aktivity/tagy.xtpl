@@ -12,9 +12,9 @@
   </tr>
   <!-- begin:tag -->
   <tr id="tag{id}" data-tag="{tag_json}">
-    <td>{nazev}</td>
-    <td style="white-space: nowrap">{nazev_kategorie}</td>
-    <td>{poznamka}</td>
+    <td id="tag{id}Nazev">{nazev}</td>
+    <td id="tag{id}NazevKategorie" style="white-space: nowrap">{nazev_kategorie}</td>
+    <td id="tag{id}Poznamka">{poznamka}</td>
     <td>
       <form method="post">
         <input type="submit" value="uprav" onclick="editTag('tag{id}'); return false;"/>
@@ -31,7 +31,19 @@
     const editorTagu = $('#{editorTaguHtmlId}');
     editorTagu.data('{editorTaguData}', tag);
     editorTagu.modal();
-  }
+  };
+
+  document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('{editorTaguHtmlId}').addEventListener('tagEdited', function (event) {
+      const editedTag = event.detail && event.detail.tag;
+      if (editedTag) {
+        $('#tag' + editedTag.id).data('tag', editedTag);
+        document.getElementById('tag' + editedTag.id + 'Nazev').textContent = editedTag.nazev;
+        document.getElementById('tag' + editedTag.id + 'NazevKategorie').textContent = editedTag.nazev_kategorie;
+        document.getElementById('tag' + editedTag.id + 'Poznamka').textContent = editedTag.poznamka;
+      }
+    });
+  });
 </script>
 
 <div style="text-align: right; padding-top: 1em">
