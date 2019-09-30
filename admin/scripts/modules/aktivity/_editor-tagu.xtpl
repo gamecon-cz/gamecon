@@ -1,34 +1,35 @@
 <!-- begin:editorTagu -->
-<div id="editorTagu" class="modal editor-tagu">
-    <div id="chybyEditoruTagu"></div>
-    <form method="post" action="">
-        <table>
-            <tr>
-                <td><label for="nazevTaguEditorTagu">Název tagu*</label></td>
-                <td><input id="nazevTaguEditorTagu" type="text" name="{aEditTag}[{aEditNazevTagu}]" value="{nazevTagu}"
-                           required>
-                </td>
-            </tr>
-            <tr>
-                <td><label for="idKategorieTaguEditorTagu">Kategorie tagu*</label></td>
-                <td>
-                    <select id="idKategorieTaguEditorTagu" name="{aEditTag}[{aEditKategorieTagu}]" required>
-                        <option value=""></option>
-                        <!-- begin:kategorie -->
-                        <option {kategorie_selected} value="{id_kategorie}">{nazev_kategorie}</option>
-                        <!-- end:kategorie -->
-                    </select>
-                </td>
-            <tr>
-                <td><label for="poznamkaEditorTagu">Poznámka</label></td>
-                <td><textarea id="poznamkaEditorTagu" name="{aEditTag}[{aEditPoznamkaTagu}]">{poznamkaTagu}</textarea>
-                </td>
-            </tr>
-        </table>
-        <div>
-            <button type="submit">Uložit</button>
-        </div>
-    </form>
+<div id="{editorTaguHtmlId}" class="modal editor-tagu" data-{editorTaguData}="{}">
+  <div id="chybyEditoruTagu"></div>
+  <form method="post" action="">
+    <input name="{aEditTag}[{aEditIdTagu}]" type="hidden" id="idTaguEditorTagu" value="{idTagu}">
+    <table>
+      <tr>
+        <td><label for="nazevTaguEditorTagu">Název tagu*</label></td>
+        <td><input id="nazevTaguEditorTagu" type="text" name="{aEditTag}[{aEditNazevTagu}]" value="{nazevTagu}"
+                   required>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="idKategorieTaguEditorTagu">Kategorie tagu*</label></td>
+        <td>
+          <select id="idKategorieTaguEditorTagu" name="{aEditTag}[{aEditKategorieTagu}]" required>
+            <option value=""></option>
+            <!-- begin:kategorie -->
+            <option {kategorie_selected} value="{id_kategorie}">{nazev_kategorie}</option>
+            <!-- end:kategorie -->
+          </select>
+        </td>
+      <tr>
+        <td><label for="poznamkaEditorTagu">Poznámka</label></td>
+        <td><textarea id="poznamkaEditorTagu" name="{aEditTag}[{aEditPoznamkaTagu}]">{poznamkaTagu}</textarea>
+        </td>
+      </tr>
+    </table>
+    <div>
+      <button type="submit">Uložit</button>
+    </div>
+  </form>
 </div>
 <script type="text/javascript">
   const allTagNames = {allTagNamesJson};
@@ -36,35 +37,50 @@
   const nazevTaguEditorTagu = $('#nazevTaguEditorTagu');
   const detectDuplicity = function () {
     chybyEditoruTagu.html('');
+    if (document.getElementById('idTaguEditorTagu').value) {
+      return false; // tag has an ID, so duplicity of a new record is irrelevant as the record is just edited
+    }
     const tagValue = nazevTaguEditorTagu.val();
     if (allTagNames.includes(tagValue.toLowerCase())) {
       chybyEditoruTagu.append($('<div id="tagAlreadyExists" class="warning">Tag "' + tagValue + '" už existuje</div>'));
     }
   };
+  const fillFromData = function (element) {
+    const tag = $(element).data('{editorTaguData}');
+    if (tag && typeof (tag) === 'object' && tag.id) {
+      document.getElementById('idTaguEditorTagu').value = tag.id;
+      document.getElementById('nazevTaguEditorTagu').value = tag.nazev;
+      $('#idKategorieTaguEditorTagu').find('option[value="' + tag.id_kategorie + '"]').attr('selected', 'selected');
+      document.getElementById('poznamkaEditorTagu').value = tag.poznamka;
+    }
+  };
   nazevTaguEditorTagu.on('change', detectDuplicity);
   nazevTaguEditorTagu.on('input', detectDuplicity);
-  $('#editorTagu').on($.modal.OPEN, function () {
+  $('#{editorTaguHtmlId}').on($.modal.OPEN, function () {
+    fillFromData(this)
     detectDuplicity()
   });
 
-  $('#editorTagu form').on('submit', function (event) {
+  $('#{editorTaguHtmlId} form').on('submit', function (event) {
     event.preventDefault();
 
-    chybyEditoruTagu.html('');
+    chybyEditoruTagu.css('text-decoration', 'line-through');
 
     const form = $(this)
-    const loader = $('<img class="ajax-loader" src="files/design/ajax-loader.gif">')
+    const ajaxLoader = $('<img class="ajax-loader" src="files/design/ajax-loader.gif">')
     const submit = form.find('button[type=submit]')
-    submit.append(loader)
+    submit.attr('disabled', 'disabled').append(ajaxLoader)
     $.post(
       document.URL,
       form.serialize(),
       function (response, status) {
+        console.log("chybyEditoruTagu.css('text-decoration', 'inherit');");
+        chybyEditoruTagu.html('').css('text-decoration', 'inherit');
         if (response.errors && response.errors.length > 0) {
           for (let error of response.errors) {
             chybyEditoruTagu.append($('<p class="error">' + error + '</p>'));
           }
-          submit.find('.ajax-loader').remove();
+          submit.attr('disabled', null).find('.ajax-loader').remove();
           return false;
         }
         if (response.tag) {
@@ -77,13 +93,12 @@
               }
             }
           });
-          document.getElementById('editorTagu').dispatchEvent(event);
-          submit.find('.ajax-loader').remove();
-          chybyEditoruTagu.html('');
+          document.getElementById('{editorTaguHtmlId}').dispatchEvent(event);
+          submit.attr('disabled', null).find('.ajax-loader').remove();
           $.modal.close();
           return true;
         }
-        chybyEditoruTagu.append($('<p class="error">' + status + '</p>'));
+        chybyEditoruTagu.append($('<p class="error">Něco se nepovedlo: "' + status + '"</p>'));
       }
     )
   });

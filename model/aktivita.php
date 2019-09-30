@@ -223,6 +223,7 @@ class Aktivita {
     $xtpl->assign('obrKlicUrl', self::OBRKLIC.'Url');
     $xtpl->assign('aEditTag', self::TAGYKLIC);
     $xtpl->assign('limitPopisKratky', self::LIMIT_POPIS_KRATKY);
+    $xtpl->assign('editorTaguHtmlId', EditorTagu::EDITOR_TAGU_HTML_ID);
     if($a) {
       $xtpl->assign($a->a);
       $xtpl->assign('popis', dbText($aktivita['popis']));
