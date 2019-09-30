@@ -2,6 +2,8 @@
 
 class EditorTagu
 {
+  public const EDITOR_TAGU_HTML_ID = 'editorTagu';
+  public const EDITOR_TAGU_DATA = 'tag';
   private const POST_KLIC = 'aEditTag';
   private const ID_TAGU_KLIC = 'aEditTagId';
   private const KATEGORIE_TAGU_KLIC = 'aEditKategorieTagu';       // název proměnné, v které jsou kategorie tagů
@@ -14,7 +16,6 @@ class EditorTagu
     $vsechnyKategorieTagu = $this->getAllCategories();
     foreach ($vsechnyKategorieTagu as $idKategorie => $nazevKategorie) {
       $editorTaguSablona->assign('id_kategorie', $idKategorie);
-      $editorTaguSablona->assign('nazev_kategorie', $nazevKategorie);
       $editorTaguSablona->assign('nazev_kategorie', $nazevKategorie);
       $editorTaguSablona->assign('kategorie_selected', false);
       $editorTaguSablona->parse('editorTagu.kategorie');
@@ -31,6 +32,8 @@ class EditorTagu
     $allTagNamesJsonEncoded = json_encode($allTagNamesHtmlEncoded, JSON_UNESCAPED_UNICODE);
     $editorTaguSablona->assign('allTagNamesJson', $allTagNamesJsonEncoded);
 
+    $editorTaguSablona->assign('editorTaguHtmlId', self::EDITOR_TAGU_HTML_ID);
+    $editorTaguSablona->assign('editorTaguData', self::EDITOR_TAGU_DATA);
     $editorTaguSablona->assign('aEditTag', self::POST_KLIC);
     $editorTaguSablona->assign('aEditIdTagu', self::ID_TAGU_KLIC);
     $editorTaguSablona->assign('aEditNazevTagu', self::NAZEV_TAGU_KLIC);

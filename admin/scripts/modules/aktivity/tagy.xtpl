@@ -1,34 +1,40 @@
 <!-- begin:tagy -->
 
+<div style="text-align: right; padding-bottom: 1em">
+  <button type="button" onclick="$('#{editorTaguHtmlId}').modal()">Přidat tag</button>
+</div>
 <table class="skryteRadky zvyraznovana" id="tagyTabulka">
   <tr>
     <th>Název</th>
     <th>Kategorie</th>
     <th>Poznámka</th>
-    <th colspan="1">Úpr.</th>
+    <th>Upravit</th>
   </tr>
   <!-- begin:tag -->
-  <tr id="tag{id}">
+  <tr id="tag{id}" data-tag="{tag_json}">
     <td>{nazev}</td>
     <td style="white-space: nowrap">{nazev_kategorie}</td>
     <td>{poznamka}</td>
     <td>
       <form method="post">
-        <input type="submit" value="uprav" onclick="
-          $('#edit{id_lokace}').show();
-          $('#lokace{id_lokace}').hide();
-          return false;
-        " />
+        <input type="submit" value="uprav" onclick="editTag('tag{id}'); return false;"/>
       </form>
     </td>
   </tr>
   <!-- end:tag -->
 </table>
 
-<br />
-<br />
-<form method="post">
-  <input type="submit" name="novaMistnost" value="Přidat tag" />
-</form>
+<script type="text/javascript">
+  editTag = function (rowId) {
+    const data = $('#' + rowId).data();
+    const tag = data.tag;
+    const editorTagu = $('#{editorTaguHtmlId}');
+    editorTagu.data('{editorTaguData}', tag);
+    editorTagu.modal();
+  }
+</script>
 
-<!-- end:mistnosti -->
+<div style="text-align: right; padding-top: 1em">
+  <button type="button" onclick="$('#{editorTaguHtmlId}').modal()">Přidat tag</button>
+</div>
+<!-- end:tagy -->
