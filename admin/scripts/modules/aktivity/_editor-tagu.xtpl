@@ -32,15 +32,17 @@
 </div>
 <script type="text/javascript">
   const allTagNames = {allTagNamesJson};
+  const allTagNamesArray = Object.values(allTagNames);
   const chybyEditoruTagu = $('#chybyEditoruTagu');
   const nazevTaguEditorTagu = $('#nazevTaguEditorTagu');
   const detectDuplicity = function () {
     chybyEditoruTagu.html('');
-    if (document.getElementById('idTaguEditorTagu').value) {
-      return false; // tag has an ID, so duplicity of a new record is irrelevant as the record is just edited
-    }
+    const tagId = document.getElementById('idTaguEditorTagu').value;
     const tagValue = nazevTaguEditorTagu.val();
-    if (allTagNames.includes(tagValue.toLowerCase())) {
+    if (allTagNamesArray.includes(tagValue.toLowerCase())
+      // tag has an ID, so duplicity can occur only if tag has changed name to already used name of another tag
+      && (!tagId || !allTagNames.hasOwnProperty(tagId) || allTagNames[tagId].toLowerCase() !== tagValue.toLowerCase())
+    ) {
       chybyEditoruTagu.append($('<div id="tagAlreadyExists" class="warning">Tag "' + tagValue + '" už existuje</div>'));
     }
   };
