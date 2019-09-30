@@ -29,7 +29,7 @@ class EditorTagu
       },
       $allTagNames
     );
-    $allTagNamesJsonEncoded = json_encode($allTagNamesHtmlEncoded, JSON_UNESCAPED_UNICODE);
+    $allTagNamesJsonEncoded = json_encode($allTagNamesHtmlEncoded, JSON_UNESCAPED_UNICODE | JSON_FORCE_OBJECT);
     $editorTaguSablona->assign('allTagNamesJson', $allTagNamesJsonEncoded);
 
     $editorTaguSablona->assign('editorTaguHtmlId', self::EDITOR_TAGU_HTML_ID);
@@ -54,8 +54,8 @@ ORDER BY kategorie_sjednocenych_tagu.nazev'
   }
 
   private function getAllTagNames(): array {
-    return dbOneArray(
-      'SELECT sjednocene_tagy.nazev
+    return dbArrayCol(
+      'SELECT sjednocene_tagy.id, sjednocene_tagy.nazev
 FROM sjednocene_tagy'
     );
   }
