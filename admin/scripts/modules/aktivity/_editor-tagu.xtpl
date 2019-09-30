@@ -49,7 +49,6 @@
     if (tag && typeof (tag) === 'object' && tag.id) {
       document.getElementById('idTaguEditorTagu').value = tag.id;
       const nazevTaguElement = document.getElementById('nazevTaguEditorTagu');
-      nazevTaguElement.setAttribute('disabled', 'disabled');
       nazevTaguElement.value = tag.nazev;
       $('#idKategorieTaguEditorTagu').find('option[value="' + tag.id_kategorie_tagu + '"]').attr('selected', 'selected');
       document.getElementById('poznamkaEditorTagu').value = tag.poznamka;
