@@ -179,7 +179,7 @@ $(function(){
            </a>
       <script type="text/javascript">
         document.addEventListener('DOMContentLoaded', function() {
-          document.getElementById('{editorTaguHtmlId}').addEventListener('newTagCreated', function(event) {
+          document.getElementById('{editorTaguHtmlId}').addEventListener('tagCreated', function(event) {
             const newTag = event.detail && event.detail.tag;
             if (newTag) {
               const $tagsMultiselect = $('#vyberTagu');
