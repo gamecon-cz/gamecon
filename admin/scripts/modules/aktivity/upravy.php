@@ -36,13 +36,13 @@ if ($zpracovanyNovyTag = $editorTagu->zpracujTag()) {
 }
 
 $a=Aktivita::zId(get('aktivitaId'));  // načtení aktivity podle předaného ID
-$editor=Aktivita::editor($a);         // načtení html editoru aktivity
+$editorAktivity=Aktivita::editor($a);         // načtení html editoru aktivity
 
 
 ?>
 
 <form method="post" enctype="multipart/form-data" style="position: relative">
-  <?=$editor?>
+  <?=$editorAktivity?>
 </form>
 
 <?= $editorTagu->novyTag() ?>

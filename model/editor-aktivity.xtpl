@@ -174,12 +174,12 @@ $(function(){
   </tr>
   <tr>
     <th>
-      Tagy <a href="#editorTagu" rel="modal:open" style="text-decoration: none">
+      Tagy <a href="#{editorTaguHtmlId}" rel="modal:open" style="text-decoration: none">
             <span class="hinted">➕<span class="hint">Přidat nový tag</span></span>
            </a>
       <script type="text/javascript">
         document.addEventListener('DOMContentLoaded', function() {
-          document.getElementById('editorTagu').addEventListener('newTagCreated', function(event) {
+          document.getElementById('{editorTaguHtmlId}').addEventListener('newTagCreated', function(event) {
             const newTag = event.detail && event.detail.tag;
             if (newTag) {
               const $tagsMultiselect = $('#vyberTagu');
