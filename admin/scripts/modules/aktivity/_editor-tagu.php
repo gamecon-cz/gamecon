@@ -109,7 +109,9 @@ FROM sjednocene_tagy
 JOIN kategorie_sjednocenych_tagu ON kategorie_sjednocenych_tagu.id = sjednocene_tagy.id_kategorie_tagu
 WHERE sjednocene_tagy.id = $1',
         [$idTagu]
-      )
+      ),
+      'isNew' => !empty($newTagId),
+      'isEdited' => empty($newTagId),
     ];
   }
 }

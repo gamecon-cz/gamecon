@@ -175,7 +175,7 @@ $(function(){
             const newTag = event.detail && event.detail.tag;
             if (newTag) {
               const $tagsMultiselect = $('#vyberTagu');
-                $tagsMultiselect.append('<option selected value="' + newTag.id + '">' + escape(newTag.nazev) + '</option>');
+              $tagsMultiselect.append('<option selected value="' + newTag.id + '">' + escape(newTag.nazev) + '</option>');
               $tagsMultiselect.multiselect('reload');
             }
           });
