@@ -152,6 +152,10 @@ form table .orez img { width: 50px; }
   min-width: 30em;
 }
 
+.editor-tagu .error, .editor-tagu .success, .editor-tagu .warning {
+  padding: 8px 8px 8px 40px;
+}
+
 button {
   cursor: pointer;
 }
