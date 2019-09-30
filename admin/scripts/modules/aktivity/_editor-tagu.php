@@ -80,10 +80,11 @@ FROM sjednocene_tagy'
       return ['errors' => $errors];
     }
     if ($idTagu) {
-      $result = dbQuery(
-        $query = 'UPDATE sjednocene_tagy SET nazev = $1, id_kategorie_tagu = $2, poznamka = $3 WHERE id = $4',
-        [$nazevTagu, $idKategorieTagu, $poznamkaTagu, $idTagu]
-      );
+      try {
+        $result = dbUpdate('sjednocene_tagy', ['nazev' => $nazevTagu, 'id_kategorie_tagu' => $idKategorieTagu, 'poznamka' => $poznamkaTagu], ['id' => $idTagu]);
+      } catch (DbDuplicateEntryException $dbDuplicateEntryException) {
+        return ['errors' => ["Název tagu '$nazevTagu' už je obsazený: {$dbDuplicateEntryException->getMessage()}"]];
+      }
     } else {
       $result = dbQuery(
         $query = 'INSERT IGNORE INTO sjednocene_tagy (id, id_kategorie_tagu, nazev, poznamka) VALUES (NULL, $0, $1, $2)',

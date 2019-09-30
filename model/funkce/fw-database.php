@@ -387,6 +387,7 @@ function dbUpdate($table, $vals, $where) {
   $r=mysqli_query($GLOBALS['spojeni'], $q);
   $end=microtime(true);
   if(!$r) { $type = dbGetExceptionType(); throw new $type(); };
+  return $r;
 }
 
 /**
