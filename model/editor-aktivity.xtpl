@@ -87,41 +87,33 @@ $(function(){
     </th>
     <td>
       <!-- begin:orgBox -->
-      <select name="{fields}[organizatori][{i}]" id="vyberOrganizatoru" >
-        <!-- begin:organizator --><option {sel} value="{organizator}">{organizatorJmeno}</option><!-- end:organizator -->
+      <select name="{fields}[organizatori][]" multiple="multiple" id="vyberOrganizatoru">
+        <!-- begin:organizator --><option {organisatorSelected} value="{organizatorId}">{organizatorJmeno}</option><!-- end:organizator -->
       </select>
-      <span class="hinted">
-        <span id="pocetNalezenychOrganizatoru" style="font-style: italic; color: gray"></span>
-        <div class="hint">Počet nalezených organizátorů podle přezdívky</div>
-      </span>
-      <input type="text" id="hledejOrganizatora" placeholder="Hledej přezdívku..." style="width: 8em">
-      <br>
       <script type="text/javascript">
-      const ukazPocetOrganizatoru = function() {
-        let pocetNalezenychOrganizatoru = 0;
-        $('#vyberOrganizatoru > option').each(function () {
-            if (!$(this).hasClass('hidden')) {
-                pocetNalezenychOrganizatoru++;
-            }
+        const $organisatorsMultiselect = $('#vyberOrganizatoru');
+        document.addEventListener('DOMContentLoaded', function () {
+          const clientWidthForEditorAktivity = document.getElementById('editorAktivity').clientWidth;
+          let organisatorsMultiselectColumns = parseInt(clientWidthForEditorAktivity / 110);
+          if (organisatorsMultiselectColumns < 1) {
+            organisatorsMultiselectColumns = 1;
+          }
+          $organisatorsMultiselect.multiselect('settings', {columns: organisatorsMultiselectColumns});
         });
-        $('#pocetNalezenychOrganizatoru').text(pocetNalezenychOrganizatoru);
-      }
-      ukazPocetOrganizatoru();
-      $('#hledejOrganizatora').keyup(function () {
-          let organizator = $(this).val().toLowerCase();
 
-          $('#vyberOrganizatoru > option').each(function () {
-              var text = $(this).text().toLowerCase();
-              if (text.indexOf(organizator) !== -1) {
-                  $(this).show().removeClass('hidden');
-                  $(this).prop('selected',true);
-              } else {
-                  $(this).hide().addClass('hidden');
-              }
-          });
-
-          ukazPocetOrganizatoru();
-      });
+        $organisatorsMultiselect.multiselect({
+          columns: 3,
+          search: true,
+          texts: {
+            'placeholder': 'Zadej jméno organizátora',
+            'search': 'Hledej jméno organizátora',
+            'selectedOptions': ' vybraných organizátorů',
+            'selectAll': 'Vyber vše (klikni znovu pro "Zruš vše")',
+            'unselectAll': 'Zruš vše (klikni znovu pro "Vyber vše")'
+          },
+          maxPlaceholderOpts: 8,
+          selectAll: true
+        });
       </script>
       <!-- end:orgBox -->
     </td>

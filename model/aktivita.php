@@ -176,8 +176,7 @@ class Aktivita {
       $zacatek = (new DateTimeCz($a['den']))->add('PT'.$a['zacatek'].'H');
       $konec   = (new DateTimeCz($a['den']))->add('PT'.$a['konec'].'H');
       $ignorovatAktivitu = isset($a['id_akce']) ? self::zId($a['id_akce']) : null;
-      foreach($a['organizatori'] as $orgId) {
-        if($orgId == 0) continue; // bug formuláře, posíla na konci vždy 0
+      foreach($a['organizatori'] ?? [] as $orgId) {
         $org = Uzivatel::zId($orgId);
         if(!$org->maVolno($zacatek, $konec, $ignorovatAktivitu)) {
           $chyby[] = 'Organizátor ' . $org->jmenoNick() . ' má v danou dobu jinou aktivitu.';
@@ -285,27 +284,30 @@ class Aktivita {
         GROUP BY u.id_uzivatele
         ORDER BY u.login_uzivatele
       ');
-      $vsichniOrg = [ 0 => '(nikdo)' ];
+      $vsichniOrg = [];
       while($r = mysqli_fetch_assoc($q)) {
         $vsichniOrg[$r['id_uzivatele']] = Uzivatel::jmenoNickZjisti($r);
       }
-      $aktOrg = $a ? array_map(function($e) { return $e->id(); }, $a->organizatori()) : [];
+      $aktOrg = $a
+        ? array_map(
+          function($e) {
+            return (int) $e->id();
+          },
+          $a->organizatori()
+        )
+        : [];
       $aktOrg[] = 0; // poslední pole má selected 0 (žádný org)
-      $poli = count($aktOrg);
-      for($i = 0; $i < $poli; $i++) {
-        foreach($vsichniOrg as $id => $org) {
-          if($id == $aktOrg[$i]) {
-            $xtpl->assign('sel', 'selected');
-          } else {
-            $xtpl->assign('sel', '');
-          }
-          $xtpl->assign('organizator', $id);
-          $xtpl->assign('organizatorJmeno', $org);
-          $xtpl->parse('upravy.tabulka.orgBox.organizator');
+      foreach($vsichniOrg as $id => $org) {
+        if(in_array($id, $aktOrg, false)) {
+          $xtpl->assign('organisatorSelected', 'selected');
+        } else {
+          $xtpl->assign('organisatorSelected', '');
         }
-        $xtpl->assign('i', $i);
-        $xtpl->parse('upravy.tabulka.orgBox');
+        $xtpl->assign('organizatorId', $id);
+        $xtpl->assign('organizatorJmeno', $org);
+        $xtpl->parse('upravy.tabulka.orgBox.organizator');
       }
+      $xtpl->parse('upravy.tabulka.orgBox');
     }
 
     // načtení typů
@@ -367,7 +369,7 @@ class Aktivita {
     }
     unset($a['den']);
     // extra položky kvůli sep. tabulkám
-    $organizatori = $a['organizatori'];
+    $organizatori = $a['organizatori'] ?? [];
     unset($a['organizatori']);
     $popis = $a['popis'];
     unset($a['popis']);
@@ -715,13 +717,18 @@ class Aktivita {
    * parametru poli ID nastaví tyto organizátory.
    * @todo dělat diff a ne delete/insert
    */
-  function organizatori($ids = null) {
-    if(is_array($ids)) {
+  function organizatori(array $ids = null) {
+    if ($ids !== null) {
       dbQuery('DELETE FROM akce_organizatori WHERE id_akce = '.$this->id());
-      foreach($ids as $id)
-        if((int)$id)
+    }
+    if($ids) {
+      foreach($ids as $id) {
+        $id = (int)$id;
+        if($id) {
           dbQuery('INSERT INTO akce_organizatori(id_akce, id_uzivatele)
-            VALUES ('.$this->id().','.(int)$id.')');
+            VALUES ('.$this->id().','.$id.')');
+        }
+      }
     } else {
       if(!isset($this->organizatori)) $this->prednactiMN([
         'atribut'       =>  'organizatori',
