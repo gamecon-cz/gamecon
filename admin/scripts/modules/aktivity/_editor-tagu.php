@@ -81,8 +81,8 @@ FROM sjednocene_tagy'
     }
     if ($idTagu) {
       $result = dbQuery(
-        $query = 'UPDATE sjednocene_tagy SET id_kategorie_tagu = $1, poznamka = $2 WHERE id = $3',
-        [$idKategorieTagu, $poznamkaTagu, $idTagu]
+        $query = 'UPDATE sjednocene_tagy SET nazev = $1, id_kategorie_tagu = $2, poznamka = $3 WHERE id = $4',
+        [$nazevTagu, $idKategorieTagu, $poznamkaTagu, $idTagu]
       );
     } else {
       $result = dbQuery(
