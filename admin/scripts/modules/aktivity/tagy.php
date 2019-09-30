@@ -19,14 +19,21 @@ if ($zpracovanyNovyTag = $editorTagu->zpracujTag()) {
 
 $tpl = new XTemplate('tagy.xtpl');
 
-$result = dbQuery('SELECT sjednocene_tagy.id, kategorie_sjednocenych_tagu.nazev AS nazev_kategorie, kategorie_sjednocenych_tagu.id AS id_kategorie, sjednocene_tagy.nazev, sjednocene_tagy.poznamka
+$result = dbQuery('SELECT sjednocene_tagy.id, kategorie_sjednocenych_tagu.nazev AS nazev_kategorie,
+       sjednocene_tagy.id_kategorie_tagu, sjednocene_tagy.nazev, sjednocene_tagy.poznamka
 FROM sjednocene_tagy
 JOIN kategorie_sjednocenych_tagu on sjednocene_tagy.id_kategorie_tagu = kategorie_sjednocenych_tagu.id
 ORDER BY sjednocene_tagy.nazev
 ');
 $lines = mysqli_num_rows($result);
 for ($i = 0; $row = mysqli_fetch_assoc($result); $i++) {
-  $mappedTag = ['id' => $row['id'], 'nazev' => $row['nazev'], 'nazev_kategorie' => $row['nazev_kategorie'], 'id_kategorie' => $row['id_kategorie'], 'poznamka' => $row['poznamka']];
+  $mappedTag = [
+    'id' => $row['id'],
+    'nazev' => $row['nazev'],
+    'nazev_kategorie' => $row['nazev_kategorie'],
+    'id_kategorie_tagu' => $row['id_kategorie_tagu'],
+    'poznamka' => $row['poznamka']
+  ];
   $encodedTag = [];
   foreach ($mappedTag as $tagKey => $tagValue) {
     $encodedTag[$tagKey] = htmlspecialchars($tagValue);

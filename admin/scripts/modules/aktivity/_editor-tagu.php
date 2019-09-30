@@ -15,7 +15,7 @@ class EditorTagu
 
     $vsechnyKategorieTagu = $this->getAllCategories();
     foreach ($vsechnyKategorieTagu as $idKategorie => $nazevKategorie) {
-      $editorTaguSablona->assign('id_kategorie', $idKategorie);
+      $editorTaguSablona->assign('id_kategorie_tagu', $idKategorie);
       $editorTaguSablona->assign('nazev_kategorie', $nazevKategorie);
       $editorTaguSablona->assign('kategorie_selected', false);
       $editorTaguSablona->parse('editorTagu.kategorie');
@@ -67,8 +67,10 @@ FROM sjednocene_tagy'
     $values = $_POST[self::POST_KLIC];
     $nazevTagu = trim($values[self::NAZEV_TAGU_KLIC] ?? '');
     $idKategorieTagu = trim($values[self::KATEGORIE_TAGU_KLIC] ?? '');
+    $idTagu = trim($values[self::ID_TAGU_KLIC] ?? '');
+    $poznamkaTagu = trim($values[self::POZNAMKA_TAGU_KLIC] ?? '');
     $errors = [];
-    if ($nazevTagu === '') {
+    if ($idTagu === '' && $nazevTagu === '') {
       $errors[] = 'Název tagu je prázdný';
     }
     if ($idKategorieTagu === '') {
@@ -77,8 +79,6 @@ FROM sjednocene_tagy'
     if ($errors) {
       return ['errors' => $errors];
     }
-    $idTagu = trim($values[self::ID_TAGU_KLIC] ?? '');
-    $poznamkaTagu = trim($values[self::POZNAMKA_TAGU_KLIC] ?? '');
     if ($idTagu) {
       $result = dbQuery(
         $query = 'UPDATE sjednocene_tagy SET id_kategorie_tagu = $1, poznamka = $2 WHERE id = $3',
@@ -100,6 +100,15 @@ FROM sjednocene_tagy'
       }
       $idTagu = $newTagId;
     }
-    return ['tag' => dbOneLine('SELECT * FROM sjednocene_tagy WHERE id = $1', [$idTagu])];
+    return [
+      'tag' => dbOneLine(
+        'SELECT sjednocene_tagy.id, sjednocene_tagy.id_kategorie_tagu, kategorie_sjednocenych_tagu.nazev AS nazev_kategorie,
+       sjednocene_tagy.nazev, sjednocene_tagy.poznamka
+FROM sjednocene_tagy
+JOIN kategorie_sjednocenych_tagu ON kategorie_sjednocenych_tagu.id = sjednocene_tagy.id_kategorie_tagu
+WHERE sjednocene_tagy.id = $1',
+        [$idTagu]
+      )
+    ];
   }
 }

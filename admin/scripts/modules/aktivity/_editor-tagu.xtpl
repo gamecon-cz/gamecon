@@ -2,12 +2,11 @@
 <div id="{editorTaguHtmlId}" class="modal editor-tagu" data-{editorTaguData}="{}">
   <div id="chybyEditoruTagu"></div>
   <form method="post" action="">
-    <input name="{aEditTag}[{aEditIdTagu}]" type="hidden" id="idTaguEditorTagu" value="{idTagu}">
+    <input name="{aEditTag}[{aEditIdTagu}]" type="hidden" id="idTaguEditorTagu">
     <table>
       <tr>
         <td><label for="nazevTaguEditorTagu">Název tagu*</label></td>
-        <td><input id="nazevTaguEditorTagu" type="text" name="{aEditTag}[{aEditNazevTagu}]" value="{nazevTagu}"
-                   required>
+        <td><input id="nazevTaguEditorTagu" type="text" name="{aEditTag}[{aEditNazevTagu}]" required>
         </td>
       </tr>
       <tr>
@@ -16,13 +15,13 @@
           <select id="idKategorieTaguEditorTagu" name="{aEditTag}[{aEditKategorieTagu}]" required>
             <option value=""></option>
             <!-- begin:kategorie -->
-            <option {kategorie_selected} value="{id_kategorie}">{nazev_kategorie}</option>
+            <option {kategorie_selected} value="{id_kategorie_tagu}">{nazev_kategorie}</option>
             <!-- end:kategorie -->
           </select>
         </td>
       <tr>
         <td><label for="poznamkaEditorTagu">Poznámka</label></td>
-        <td><textarea id="poznamkaEditorTagu" name="{aEditTag}[{aEditPoznamkaTagu}]">{poznamkaTagu}</textarea>
+        <td><textarea id="poznamkaEditorTagu" name="{aEditTag}[{aEditPoznamkaTagu}]"></textarea>
         </td>
       </tr>
     </table>
@@ -49,19 +48,22 @@
     const tag = $(element).data('{editorTaguData}');
     if (tag && typeof (tag) === 'object' && tag.id) {
       document.getElementById('idTaguEditorTagu').value = tag.id;
-      document.getElementById('nazevTaguEditorTagu').value = tag.nazev;
-      $('#idKategorieTaguEditorTagu').find('option[value="' + tag.id_kategorie + '"]').attr('selected', 'selected');
+      const nazevTaguElement = document.getElementById('nazevTaguEditorTagu');
+      nazevTaguElement.setAttribute('disabled', 'disabled');
+      nazevTaguElement.value = tag.nazev;
+      $('#idKategorieTaguEditorTagu').find('option[value="' + tag.id_kategorie_tagu + '"]').attr('selected', 'selected');
       document.getElementById('poznamkaEditorTagu').value = tag.poznamka;
     }
   };
   nazevTaguEditorTagu.on('change', detectDuplicity);
   nazevTaguEditorTagu.on('input', detectDuplicity);
-  $('#{editorTaguHtmlId}').on($.modal.OPEN, function () {
+  const editorTagu = $('#{editorTaguHtmlId}');
+  editorTagu.on($.modal.OPEN, function () {
     fillFromData(this)
     detectDuplicity()
   });
 
-  $('#{editorTaguHtmlId} form').on('submit', function (event) {
+  editorTagu.find('form').on('submit', function (event) {
     event.preventDefault();
 
     chybyEditoruTagu.css('text-decoration', 'line-through');
@@ -74,7 +76,6 @@
       document.URL,
       form.serialize(),
       function (response, status) {
-        console.log("chybyEditoruTagu.css('text-decoration', 'inherit');");
         chybyEditoruTagu.html('').css('text-decoration', 'inherit');
         if (response.errors && response.errors.length > 0) {
           for (let error of response.errors) {
@@ -84,15 +85,31 @@
           return false;
         }
         if (response.tag) {
-          allTagNames.push(response.tag.nazev);
-          let event = new CustomEvent('newTagCreated', {
-            detail: {
-              tag: {
-                id: response.tag.id,
-                nazev: response.tag.nazev
+          let event;
+          if (response.tag.isNew) {
+            allTagNames.push(response.tag.nazev);
+            event = new CustomEvent('tagCreated', {
+              detail: {
+                tag: {
+                  id: response.tag.id,
+                  nazev: response.tag.nazev
+                }
               }
-            }
-          });
+            });
+          } else {
+            editorTagu.data('{editorTaguData}', response.tag);
+            event = new CustomEvent('tagEdited', {
+              detail: {
+                tag: {
+                  id: response.tag.id,
+                  nazev: response.tag.nazev,
+                  id_kategorie_tagu: response.tag.id_kategorie_tagu,
+                  nazev_kategorie: response.tag.nazev_kategorie,
+                  poznamka: response.tag.poznamka,
+                }
+              }
+            });
+          }
           document.getElementById('{editorTaguHtmlId}').dispatchEvent(event);
           submit.attr('disabled', null).find('.ajax-loader').remove();
           $.modal.close();

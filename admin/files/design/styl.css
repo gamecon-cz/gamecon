@@ -63,6 +63,7 @@ hr { border: none; border-top: solid 1px #ddd; margin: 1.5em 0; }
 
 /* Formuláře */
 input, textarea, select, .tlacitko { border: solid 1px #999; padding: 2px; border-radius: 2px; margin: 0; font: inherit; background-color: #fff; color: inherit; }
+input[disabled], textarea[disabled], select[disabled] { background-color: lightgray; cursor: not-allowed }
 input::-moz-focus-inner { border: 0; padding: 0; /* margin-top:-2px; margin-bottom: -2px; */ /* FF fix */ }
 input[type="submit"], input[type="button"], .tlacitko { background: linear-gradient(to top, #d8d8d8 0%, #fafafa 100%); padding: 2px 8px; }
 input[type="submit"]:hover, input[type="button"]:hover, .tlacitko:hover { border-color: #666; cursor: pointer; }
