@@ -76,6 +76,9 @@ FROM sjednocene_tagy'
       $query = 'INSERT IGNORE INTO sjednocene_tagy (id, id_kategorie_tagu, nazev, poznamka) VALUES (NULL, $0, $1, $2)',
       [$idKategorieTagu, $nazevTagu, $poznamkaTagu]
     );
+    if (!$result) {
+      throw new \RuntimeException('Failed SQL execution of ' . dbLastQ());
+    }
     $newTagId = dbInsertId(false /* do not raise exception if no ID */);
     if (!$newTagId) {
       return ['errors' => ["Tag '{$nazevTagu}' už existuje"]];
