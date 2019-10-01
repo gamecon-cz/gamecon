@@ -11,7 +11,11 @@ require_once(__DIR__ . '/_editor-tagu.php');
 
 $editorTagu = new EditorTagu();
 
-if ($zpracovanyTag = $editorTagu->zpracujTag()) {
+$zpracovanyTag = $editorTagu->pridejNovyTag();
+if (!$zpracovanyTag) {
+  $zpracovanyTag = $editorTagu->editujTag();
+}
+if ($zpracovanyTag) {
   header('Content-Type: application/json');
   echo json_encode([
     'tag' => $zpracovanyTag['tag'] ?? [],
@@ -54,4 +58,4 @@ $tpl->assign('editorTaguData', EditorTagu::EDITOR_TAGU_DATA);
 $tpl->parse('tagy');
 $tpl->out('tagy');
 
-echo $editorTagu->novyTag();
+echo $editorTagu->getTagEditor();
