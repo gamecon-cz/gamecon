@@ -36,11 +36,15 @@
   const nazevTaguEditorTagu = $('#nazevTaguEditorTagu');
   const detectDuplicity = function () {
     chybyEditoruTagu.html('');
+    const tagValue = nazevTaguEditorTagu.val().trim();
+    if (tagValue === '') {
+      return false;
+    }
+    const tagValueLoverCased = tagValue.toLowerCase()
     const tagId = document.getElementById('idTaguEditorTagu').value;
-    const tagValue = nazevTaguEditorTagu.val();
-    if (Object.values(allTagNames).includes(tagValue.toLowerCase())
+    if (Object.values(allTagNames).includes(tagValueLoverCased)
       // tag has an ID, so duplicity can occur only if tag has changed name to already used name of another tag
-      && (!tagId || !allTagNames.hasOwnProperty(tagId) || allTagNames[tagId].toLowerCase() !== tagValue.toLowerCase())
+      && (!tagId || !allTagNames.hasOwnProperty(tagId) || allTagNames[tagId].toLowerCase() !== tagValueLoverCased)
     ) {
       chybyEditoruTagu.append($('<div id="tagAlreadyExists" class="warning">Tag "' + tagValue + '" už existuje</div>'));
     }
@@ -85,7 +89,7 @@
       }
       let event;
       if (response.tagIsNew) {
-        allTagNames[response.tag.id] = response.tag;
+        allTagNames[response.tag.id] = response.tag.nazev;
         event = new CustomEvent('tagCreated', {
           detail: {
             tag: {
@@ -96,6 +100,7 @@
         });
         editorTagu.find('input, textarea').val(''); // reset editor values
       } else if (response.tagIsEdited) {
+        allTagNames[response.tag.id] = response.tag.nazev;
         editorTagu.data('{editorTaguData}', response.tag);
         event = new CustomEvent('tagEdited', {
           detail: {
