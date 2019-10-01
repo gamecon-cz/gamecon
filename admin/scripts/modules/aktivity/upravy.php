@@ -29,13 +29,13 @@ try {
 require_once(__DIR__ . '/_editor-tagu.php');
 $editorTagu = new EditorTagu();
 
-if ($zpracovanyTag = $editorTagu->zpracujTag()) {
+if ($novyTag = $editorTagu->pridejNovyTag()) {
   header('Content-Type: application/json');
   echo json_encode([
-    'tag' => $zpracovanyTag['tag'] ?? [],
-    'errors' => $zpracovanyTag['errors'] ?? [],
-    'tagIsNew' => $zpracovanyTag['isNew'] ?? null,
-    'tagIsEdited' => $zpracovanyTag['isEdited'] ?? null
+    'tag' => $novyTag['tag'] ?? [],
+    'errors' => $novyTag['errors'] ?? [],
+    'tagIsNew' => $novyTag['isNew'] ?? null,
+    'tagIsEdited' => $novyTag['isEdited'] ?? null
   ]);
   exit;
 }
@@ -50,4 +50,4 @@ $editorAktivity=Aktivita::editor($a);         // načtení html editoru aktivity
   <?=$editorAktivity?>
 </form>
 
-<?= $editorTagu->novyTag() ?>
+<?= $editorTagu->getTagEditor() ?>

@@ -80,7 +80,7 @@
         }
         return false;
       }
-      if (!response.tag) {
+      if (typeof response.tag === 'undefined' || !response.tag) {
         chybyEditoruTagu.append($('<p class="error">Něco se nepovedlo: "' + status + '"</p>'));
       }
       let event;
@@ -95,7 +95,7 @@
           }
         });
         editorTagu.find('input, textarea').val(''); // reset editor values
-      } else {
+      } else if (response.tagIsEdited) {
         editorTagu.data('{editorTaguData}', response.tag);
         event = new CustomEvent('tagEdited', {
           detail: {

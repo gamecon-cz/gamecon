@@ -10,7 +10,7 @@ class EditorTagu
   private const NAZEV_TAGU_KLIC = 'aEditNazevTagu';       // název proměnné, v které je název tagu
   private const POZNAMKA_TAGU_KLIC = 'aEditPoznamkaTagu';       // název proměnné, v které je poznámka k tagu
 
-  public function novyTag() {
+  public function getTagEditor() {
     $editorTaguSablona = new XTemplate(__DIR__ . '/_editor-tagu.xtpl');
 
     $vsechnyKategorieTagu = $this->getAllCategories();
@@ -60,7 +60,34 @@ FROM sjednocene_tagy'
     );
   }
 
-  public function zpracujTag(): array {
+  public function pridejNovyTag(): array {
+    $data = $this->parseTagRequest();
+    if (!$data) { // nothing to do here
+      return [];
+    }
+    if (!empty($data['errors'])) {
+      return ['errors' => $data['errors']];
+    }
+    ['id' => $idTagu, 'nazev' => $nazevTagu, 'id_kategorie_tagu' => $idKategorieTagu, 'poznamka' => $poznamkaTagu] = $data;
+    if ($idTagu) { // this is not a new tag but existing one
+      return [];
+    }
+    $result = dbQuery(
+      $query = 'INSERT IGNORE INTO sjednocene_tagy (id, id_kategorie_tagu, nazev, poznamka) VALUES (NULL, $0, $1, $2)',
+      [$idKategorieTagu, $nazevTagu, $poznamkaTagu]
+    );
+    $newTagId = dbInsertId(false /* do not raise exception if no ID */);
+    if (!$newTagId) {
+      return ['errors' => ["Tag '{$nazevTagu}' už existuje"]];
+    }
+    return [
+      'tag' => $this->getTagById($newTagId),
+      'isNew' => true,
+      'isEdited' => false,
+    ];
+  }
+
+  private function parseTagRequest(): array {
     if (empty($_POST[self::POST_KLIC])) {
       return [];
     }
@@ -79,39 +106,44 @@ FROM sjednocene_tagy'
     if ($errors) {
       return ['errors' => $errors];
     }
-    if ($idTagu) {
-      try {
-        $result = dbUpdate('sjednocene_tagy', ['nazev' => $nazevTagu, 'id_kategorie_tagu' => $idKategorieTagu, 'poznamka' => $poznamkaTagu], ['id' => $idTagu]);
-      } catch (DbDuplicateEntryException $dbDuplicateEntryException) {
-        return ['errors' => ["Název tagu '$nazevTagu' už je obsazený: {$dbDuplicateEntryException->getMessage()}"]];
-      }
-    } else {
-      $result = dbQuery(
-        $query = 'INSERT IGNORE INTO sjednocene_tagy (id, id_kategorie_tagu, nazev, poznamka) VALUES (NULL, $0, $1, $2)',
-        [$idKategorieTagu, $nazevTagu, $poznamkaTagu]
-      );
-    }
-    if (!$result) {
-      throw new \RuntimeException('Failed SQL execution of ' . dbLastQ());
-    }
-    if (!$idTagu) {
-      $newTagId = dbInsertId(false /* do not raise exception if no ID */);
-      if (!$newTagId) {
-        return ['errors' => ["Tag '{$nazevTagu}' už existuje"]];
-      }
-      $idTagu = $newTagId;
-    }
-    return [
-      'tag' => dbOneLine(
-        'SELECT sjednocene_tagy.id, sjednocene_tagy.id_kategorie_tagu, kategorie_sjednocenych_tagu.nazev AS nazev_kategorie,
+    return ['id' => $idTagu, 'nazev' => $nazevTagu, 'id_kategorie_tagu' => $idKategorieTagu, 'poznamka' => $poznamkaTagu];
+  }
+
+  private function getTagById(int $id): array {
+    return dbOneLine(
+      'SELECT sjednocene_tagy.id, sjednocene_tagy.id_kategorie_tagu, kategorie_sjednocenych_tagu.nazev AS nazev_kategorie,
        sjednocene_tagy.nazev, sjednocene_tagy.poznamka
 FROM sjednocene_tagy
 JOIN kategorie_sjednocenych_tagu ON kategorie_sjednocenych_tagu.id = sjednocene_tagy.id_kategorie_tagu
 WHERE sjednocene_tagy.id = $1',
-        [$idTagu]
-      ),
-      'isNew' => !empty($newTagId),
-      'isEdited' => empty($newTagId),
+      [$id]
+    );
+  }
+
+  public function editujTag(): array {
+    $data = $this->parseTagRequest();
+    if (!$data) { // nothing to do here
+      return [];
+    }
+    if (!empty($data['errors'])) {
+      return ['errors' => $data['errors']];
+    }
+    ['id' => $idTagu, 'nazev' => $nazevTagu, 'id_kategorie_tagu' => $idKategorieTagu, 'poznamka' => $poznamkaTagu] = $data;
+    if (!$idTagu) { // this is not an update
+      return [];
+    }
+    try {
+      $result = dbUpdate('sjednocene_tagy', ['nazev' => $nazevTagu, 'id_kategorie_tagu' => $idKategorieTagu, 'poznamka' => $poznamkaTagu], ['id' => $idTagu]);
+    } catch (DbDuplicateEntryException $dbDuplicateEntryException) {
+      return ['errors' => ["Název tagu '$nazevTagu' už je obsazený: {$dbDuplicateEntryException->getMessage()}"]];
+    }
+    if (!$result) {
+      throw new \RuntimeException('Failed SQL execution of ' . dbLastQ());
+    }
+    return [
+      'tag' => $this->getTagById($idTagu),
+      'isNew' => false,
+      'isEdited' => true,
     ];
   }
 }
