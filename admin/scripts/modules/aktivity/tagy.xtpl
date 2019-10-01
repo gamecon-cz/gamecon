@@ -1,7 +1,7 @@
 <!-- begin:tagy -->
 
 <div style="text-align: right; padding-bottom: 1em">
-  <button type="button" onclick="$('#{editorTaguHtmlId}').modal()">Přidat tag</button>
+  <button type="button" onclick="$('#{editorTaguHtmlId}').modal(); resetTagEditorValues()">Přidat tag</button>
 </div>
 <table class="skryteRadky zvyraznovana" id="tagyTabulka">
   <tr>
@@ -47,6 +47,6 @@
 </script>
 
 <div style="text-align: right; padding-top: 1em">
-  <button type="button" onclick="$('#{editorTaguHtmlId}').modal()">Přidat tag</button>
+  <button type="button" onclick="$('#{editorTaguHtmlId}').modal(); resetTagEditorValues()">Přidat tag</button>
 </div>
 <!-- end:tagy -->

@@ -20,8 +20,8 @@ if ($zpracovanyTag) {
   echo json_encode([
     'tag' => $zpracovanyTag['tag'] ?? [],
     'errors' => $zpracovanyTag['errors'] ?? [],
-    'tagIsNew' => $zpracovanyTag['isNew'],
-    'tagIsEdited' => $zpracovanyTag['isEdited']
+    'tagIsNew' => $zpracovanyTag['isNew'] ?? null,
+    'tagIsEdited' => $zpracovanyTag['isEdited'] ?? null
   ]);
   exit;
 }
