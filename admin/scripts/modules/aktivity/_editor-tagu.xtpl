@@ -66,6 +66,9 @@
     fillFromData(this)
     detectDuplicity()
   });
+  const resetTagEditorValues = function () {
+    editorTagu.find('input, textarea').val(''); // reset editor values
+  };
 
   editorTagu.find('form').on('submit', function (event) {
     event.preventDefault();
@@ -88,31 +91,33 @@
         chybyEditoruTagu.append($('<p class="error">Něco se nepovedlo: "' + status + '"</p>'));
       }
       let event;
-      if (response.tagIsNew) {
-        allTagNames[response.tag.id] = response.tag.nazev;
-        event = new CustomEvent('tagCreated', {
-          detail: {
-            tag: {
-              id: response.tag.id,
-              nazev: response.tag.nazev
-            }
-          }
-        });
+      if (response.tag) {
+        resetTagEditorValues();
         editorTagu.find('input, textarea').val(''); // reset editor values
-      } else if (response.tagIsEdited) {
         allTagNames[response.tag.id] = response.tag.nazev;
-        editorTagu.data('{editorTaguData}', response.tag);
-        event = new CustomEvent('tagEdited', {
-          detail: {
-            tag: {
-              id: response.tag.id,
-              nazev: response.tag.nazev,
-              id_kategorie_tagu: response.tag.id_kategorie_tagu,
-              nazev_kategorie: response.tag.nazev_kategorie,
-              poznamka: response.tag.poznamka,
+        if (response.tagIsNew) {
+          event = new CustomEvent('tagCreated', {
+            detail: {
+              tag: {
+                id: response.tag.id,
+                nazev: response.tag.nazev
+              }
             }
-          }
-        });
+          });
+        } else if (response.tagIsEdited) {
+          editorTagu.data('{editorTaguData}', response.tag);
+          event = new CustomEvent('tagEdited', {
+            detail: {
+              tag: {
+                id: response.tag.id,
+                nazev: response.tag.nazev,
+                id_kategorie_tagu: response.tag.id_kategorie_tagu,
+                nazev_kategorie: response.tag.nazev_kategorie,
+                poznamka: response.tag.poznamka,
+              }
+            }
+          });
+        }
       }
       document.getElementById('{editorTaguHtmlId}').dispatchEvent(event);
       $.modal.close();
