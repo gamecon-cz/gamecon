@@ -105,7 +105,7 @@
             }
           });
         } else if (response.tagIsEdited) {
-          editorTagu.data('{editorTaguData}', response.tag);
+          editorTagu.data('{editorTaguData}', response.tag); // to fill the form later on open for edit
           event = new CustomEvent('tagEdited', {
             detail: {
               tag: {
