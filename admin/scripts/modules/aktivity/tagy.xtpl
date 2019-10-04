@@ -34,7 +34,8 @@
   };
 
   document.addEventListener('DOMContentLoaded', function () {
-    document.getElementById('{editorTaguHtmlId}').addEventListener('tagEdited', function (event) {
+    const editorTagu = document.getElementById('{editorTaguHtmlId}')
+    editorTagu.addEventListener('tagEdited', function (event) {
       const editedTag = event.detail && event.detail.tag;
       if (editedTag) {
         $('#tag' + editedTag.id).data('tag', editedTag);
@@ -42,6 +43,9 @@
         document.getElementById('tag' + editedTag.id + 'NazevKategorie').textContent = editedTag.nazev_kategorie;
         document.getElementById('tag' + editedTag.id + 'Poznamka').textContent = editedTag.poznamka;
       }
+    })
+    editorTagu.addEventListener('tagCreated', function (event) {
+      location.reload();
     });
   });
 </script>
