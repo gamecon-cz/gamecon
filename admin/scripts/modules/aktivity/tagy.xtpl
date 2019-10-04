@@ -11,6 +11,7 @@
     <th>Upravit</th>
   </tr>
   <!-- begin:tag -->
+  {hlavniKategorieTr}
   <tr id="tag{id}" data-tag="{tag_json}">
     <td id="tag{id}Nazev">{nazev}</td>
     <td id="tag{id}NazevKategorie" style="white-space: nowrap">{nazev_kategorie}</td>

@@ -18,7 +18,7 @@ class EditorTagu
       $editorTaguSablona->assign('optgroup_kategorie_start', $kategorie['hlavni'] ? sprintf('<optgroup label="%s">', $kategorie['nazev']) : '');
       $editorTaguSablona->assign('optgroup_kategorie_end', $kategorie['hlavni'] ? '</optgroup>' : '');
       $editorTaguSablona->assign('id_kategorie_tagu', $kategorie['id']);
-      $editorTaguSablona->assign('nazev_kategorie', $kategorie['nazev']);
+      $editorTaguSablona->assign('nazev_kategorie', htmlspecialchars($kategorie['nazev']));
       $editorTaguSablona->assign('kategorie_selected', false);
       $editorTaguSablona->parse('editorTagu.kategorie');
     }
