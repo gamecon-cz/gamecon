@@ -270,6 +270,15 @@ function dbOneLineS($q,$array=null)
   else return mysqli_fetch_assoc($r);
 }
 
+function dbFetchAll(string $query, array $params = []): array {
+  $result = dbQuery($query, $params);
+  $resultAsArray = [];
+  while($row = mysqli_fetch_assoc($result)) {
+    $resultAsArray[] = $row;
+  }
+  return $resultAsArray;
+}
+
 /**
  * Executes arbitrary query on database
  * strings $1, $2, ... are replaced with values from $param

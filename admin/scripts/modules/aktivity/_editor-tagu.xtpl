@@ -15,7 +15,9 @@
           <select id="idKategorieTaguEditorTagu" name="{aEditTag}[{aEditKategorieTagu}]" required>
             <option value=""></option>
             <!-- begin:kategorie -->
-            <option {kategorie_selected} value="{id_kategorie_tagu}">{nazev_kategorie}</option>
+            {optgroup_kategorie_start}
+              <option {kategorie_selected} value="{id_kategorie_tagu}">{nazev_kategorie}</option>
+            {optgroup_end}
             <!-- end:kategorie -->
           </select>
         </td>
