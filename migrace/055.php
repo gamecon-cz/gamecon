@@ -1,4 +1,50 @@
 <?php
+// CATEGORIES
+$fetchCategories = function (): array {
+  $categoriesSourceFile = __DIR__ . '/pomocne/055_kategorie_sjednocenych_tagu.csv';
+  $categoriesHandle = fopen($categoriesSourceFile, 'rb');
+  if (!$categoriesHandle) {
+    throw new RuntimeException('Can not open ' . $categoriesSourceFile);
+  }
+
+  $expectedCategoryHeaders = ['Kategorie', 'Subkategorie', 'Řadící kód'];
+  $fetchedCategoryHeaders = fgetcsv($categoriesHandle, 0, ',');
+
+  if (!$fetchedCategoryHeaders || $fetchedCategoryHeaders !== $expectedCategoryHeaders) {
+    fclose($categoriesHandle);
+    throw new RuntimeException(
+      sprintf(
+        'Chybny vstupni soubor %s, v zahlavi chybi sloupce %s a prebyvaji %s',
+        $categoriesSourceFile,
+        var_export(array_diff($expectedCategoryHeaders, $fetchedCategoryHeaders ?? []), true),
+        var_export(array_diff($fetchedCategoryHeaders ?? [], $expectedCategoryHeaders), true)
+      )
+    );
+  }
+
+  $categories = [];
+  while ($row = fgetcsv($categoriesHandle, 0, ',')) {
+    $categories[] = array_map('trim', $row);
+  }
+  fclose($categoriesHandle);
+  return $categories;
+};
+
+$categories = $fetchCategories();
+
+$mainCategories = [];
+$parentCategoryName = null;
+$subCategories = [];
+foreach ($categories as $category) {
+  if ($category[0]) { // Kategorie
+    $mainCategories[] = $category;
+    $parentCategoryName = $category[0];
+  } else {
+    $subCategories[$parentCategoryName][] = $category;
+  }
+}
+
+// TAGS
 $fetchTags = function (): array {
   $fixedTagsSourceFile = __DIR__ . '/pomocne/055_sjednocene_tagy.csv';
   $fixedTagsHandle = fopen($fixedTagsSourceFile, 'rb');
@@ -6,25 +52,25 @@ $fetchTags = function (): array {
     throw new RuntimeException('Can not open ' . $fixedTagsSourceFile);
   }
 
-  $expectedHeader = ['orig. pořadí', 'id', 'puvodni nazev', 'Kategorie', 'Kategorie - hypotetické', 'opraveny nazev', 'poznamka'];
-  $fetchedHeaders = fgetcsv($fixedTagsHandle, 0, ';');
+  $expectedTagHeaders = ['orig. pořadí', 'id', 'puvodni nazev', 'Kategorie', 'Kategorie - hypotetické', 'opraveny nazev', 'poznamka'];
+  $fetchedTagHeaders = fgetcsv($fixedTagsHandle, 0, ',');
 
-  if (!$fetchedHeaders || $fetchedHeaders !== $expectedHeader) {
+  if (!$fetchedTagHeaders || $fetchedTagHeaders !== $expectedTagHeaders) {
     fclose($fixedTagsHandle);
     throw new RuntimeException(
       sprintf(
-        'Chybny vstupni soubor %s, v zahlavi chybí sloupce %s a prebyvaji %s',
+        'Chybny vstupni soubor %s, v zahlavi chybi sloupce %s a prebyvaji %s',
         $fixedTagsSourceFile,
-        var_export(array_diff($expectedHeader, $fetchedHeaders ?? []), true),
-        var_export(array_diff($fetchedHeaders ?? [], $expectedHeader), true)
+        var_export(array_diff($expectedTagHeaders, $fetchedTagHeaders ?? []), true),
+        var_export(array_diff($fetchedTagHeaders ?? [], $expectedTagHeaders), true)
       )
     );
   }
 
   $fixedTags = [];
-  while ($row = fgetcsv($fixedTagsHandle, 0, ';')) {
+  while ($row = fgetcsv($fixedTagsHandle, 0, ',')) {
     unset($row[0] /* orig. pořadí */, $row[4] /* Kategorie - hypotetické */);
-    $fixedTags[] = $row;
+    $fixedTags[] = array_map('trim', $row);
   }
   fclose($fixedTagsHandle);
   return $fixedTags;
@@ -131,8 +177,10 @@ $checkNameUniqueness = function (array $tags) use ($removeDiacriticsAndToLower) 
 };
 $checkNameUniqueness($tags);
 
-$tags = array_map(
-  function (array $row) {
+// TAGS FOR SQL
+
+$tagsForSql = array_map(
+  function (array $row): array {
     if (!$row[1]) {
       $row[1] = null; // turn empty ID (empty string) into null to activate MySQL auto-increment
     }
@@ -142,7 +190,7 @@ $tags = array_map(
 );
 
 // has to move tags without ID to end to avoid conflict of auto-generated ID with an existing ID, if auto-generated were inserted first
-usort($tags, function (array $someRow, array $anotherRow) {
+usort($tagsForSql, function (array $someRow, array $anotherRow) {
   $someId = $someRow[1];
   $anotherId = $anotherRow[1];
   if ($someId && $anotherId) {
@@ -156,34 +204,74 @@ usort($tags, function (array $someRow, array $anotherRow) {
   }
   return strcmp($someRow[5], $anotherRow[5]); // both IDs are empty, just sort them alphabetically by name
 });
-$fixedTagsSql = implode(
-  ",\n", // ('foo','bar'),('baz','quz')
-  array_map(
-    function (array $row) {
-      return sprintf(
-        '(%s)', // ('foo','bar')
-        implode(
-          ',', // 'foo','bar'
-          array_map(
-            function (?string $value) {
-              return $value !== null
-                ? "'" . mysqli_real_escape_string($this->db, $value) . "'" // 'foo'
-                : 'NULL';
-            },
-            $row
-          )
-        )
-      );
-    },
-    $tags
-  )
-);
 
-$autoIncrementStart = 0;
+$intoSqlValues = function (array $values): string {
+  return implode(
+    ",\n", // ('foo','bar'),('baz','quz')
+    array_map(
+      function (array $row): string {
+        return sprintf(
+          '(%s)', // ('foo','bar')
+          implode(
+            ',', // 'foo','bar'
+            array_map(
+              function (?string $value): string {
+                if ($value === null) {
+                  return 'NULL';
+                }
+                if (preg_match('~^[(].+[)]$~', $value)) {
+                  return $value; // some sub-select
+                }
+                return sprintf("'%s'", mysqli_real_escape_string($this->db, $value));
+              },
+              $row
+            )
+          )
+        );
+      },
+      $values
+    )
+  );
+};
+
+$fixedTagsSql = $intoSqlValues($tagsForSql);
+
+$tagsAutoIncrementStart = 0;
 foreach ($tags as $tag) {
-  $autoIncrementStart = max($autoIncrementStart, (int)$tag[1] /* id */);
+  $tagsAutoIncrementStart = max($tagsAutoIncrementStart, (int)$tag[1] /* id */);
 }
-$autoIncrementStart++; // start after previous last ID to avoid (almost impossible) accidental usage of new record instead of old one
+$tagsAutoIncrementStart++; // start after previous last ID to avoid (almost impossible) accidental usage of new record instead of old one
+
+// CATEGORIES FOR SQL
+$mainCategoriesForSql = array_map(
+  function (array $mainCategory): array {
+    $mainCategory[1] = null; // no parent category
+    return $mainCategory;
+  },
+  $mainCategories
+);
+$mainCategoriesSql = $intoSqlValues($mainCategoriesForSql);
+
+$subCategoriesForSql = [];
+foreach ($subCategories as $parentCategoryName => $subCategoriesWithSameParent) {
+  $subCategoriesWithSameParentForSql = array_map(
+    function (array $subCategory) use ($parentCategoryName): array {
+      $subCategory[0] = $subCategory[1]; // sub-category name moved to first position
+      $subCategory[1] = sprintf(
+        '(SELECT id FROM kategorie_sjednocenych_tagu AS parent_category WHERE nazev = "%s")',
+        mysqli_real_escape_string($this->db, $parentCategoryName)
+      ); // parent category ID
+      return $subCategory;
+    },
+    $subCategoriesWithSameParent
+  );
+  foreach ($subCategoriesWithSameParentForSql as $subCategoryWithSameParentForSql) {
+    $subCategoriesForSql[] = $subCategoryWithSameParentForSql;
+  }
+}
+$subCategoriesSql = $intoSqlValues($subCategoriesForSql);
+
+// SQL INSERT
 
 $query = <<<SQL
 CREATE TEMPORARY TABLE sjednocene_tagy_temp LIKE tagy;
@@ -193,11 +281,17 @@ ALTER TABLE sjednocene_tagy_temp ADD INDEX (nazev_kategorie), ADD INDEX (opraven
 
 CREATE TABLE IF NOT EXISTS kategorie_sjednocenych_tagu(
     id INT UNSIGNED NOT NULL UNIQUE AUTO_INCREMENT,
-    nazev VARCHAR(128) PRIMARY KEY
+    nazev VARCHAR(128) PRIMARY KEY,
+    id_hlavni_kategorie INT UNSIGNED,
+    poradi INT UNSIGNED NOT NULL,
+    FOREIGN KEY (id_hlavni_kategorie) REFERENCES kategorie_sjednocenych_tagu(id) ON UPDATE CASCADE ON DELETE RESTRICT
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
-INSERT IGNORE INTO kategorie_sjednocenych_tagu(nazev)
-SELECT nazev_kategorie FROM sjednocene_tagy_temp
-WHERE sjednocene_tagy_temp.opraveny_nazev != '-'; -- strange records convinced for deletion
+
+INSERT INTO kategorie_sjednocenych_tagu(nazev, id_hlavni_kategorie, poradi)
+VALUES {$mainCategoriesSql};
+
+INSERT INTO kategorie_sjednocenych_tagu(nazev, id_hlavni_kategorie, poradi)
+VALUES {$subCategoriesSql};
 
 CREATE TABLE IF NOT EXISTS sjednocene_tagy (
     id INT UNSIGNED NOT NULL UNIQUE AUTO_INCREMENT,
@@ -206,7 +300,7 @@ CREATE TABLE IF NOT EXISTS sjednocene_tagy (
     poznamka TEXT NOT NULL DEFAULT '',
     FOREIGN KEY FK_kategorie_tagu(id_kategorie_tagu) REFERENCES kategorie_sjednocenych_tagu(id)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
-ALTER TABLE sjednocene_tagy AUTO_INCREMENT={$autoIncrementStart};
+ALTER TABLE sjednocene_tagy AUTO_INCREMENT={$tagsAutoIncrementStart};
 INSERT /* intentionally not IGNORE to detect invalid input data, see bellow */ INTO sjednocene_tagy(id, id_kategorie_tagu, nazev, poznamka)
 SELECT sjednocene_tagy_temp.id, kategorie_sjednocenych_tagu.id, sjednocene_tagy_temp.opraveny_nazev, GROUP_CONCAT(DISTINCT sjednocene_tagy_temp.poznamka SEPARATOR '; ')
 FROM sjednocene_tagy_temp
