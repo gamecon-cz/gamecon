@@ -15,7 +15,12 @@ class EditorTagu
 
     $vsechnyKategorieTagu = $this->getAllCategories();
     foreach ($vsechnyKategorieTagu as $kategorie) {
-      $editorTaguSablona->assign('optgroup_kategorie_start', $kategorie['hlavni'] ? sprintf('<optgroup label="%s">', $kategorie['nazev']) : '');
+      $editorTaguSablona->assign(
+        'optgroup_kategorie_start',
+        $kategorie['hlavni']
+          ? sprintf('<optgroup label="%s">', mb_ucfirst($kategorie['nazev']))
+          : ''
+      );
       $editorTaguSablona->assign('optgroup_kategorie_end', $kategorie['hlavni'] ? '</optgroup>' : '');
       $editorTaguSablona->assign('id_kategorie_tagu', $kategorie['id']);
       $editorTaguSablona->assign('nazev_kategorie', htmlspecialchars($kategorie['nazev']));
