@@ -26,20 +26,6 @@ try {
   }
 }
 
-require_once(__DIR__ . '/_editor-tagu.php');
-$editorTagu = new EditorTagu();
-
-if ($novyTag = $editorTagu->pridejNovyTag()) {
-  header('Content-Type: application/json');
-  echo json_encode([
-    'tag' => $novyTag['tag'] ?? [],
-    'errors' => $novyTag['errors'] ?? [],
-    'tagIsNew' => $novyTag['isNew'] ?? null,
-    'tagIsEdited' => $novyTag['isEdited'] ?? null
-  ]);
-  exit;
-}
-
 $a=Aktivita::zId(get('aktivitaId'));  // načtení aktivity podle předaného ID
 $editorAktivity=Aktivita::editor($a);         // načtení html editoru aktivity
 
@@ -49,5 +35,3 @@ $editorAktivity=Aktivita::editor($a);         // načtení html editoru aktivity
 <form method="post" enctype="multipart/form-data" style="position: relative">
   <?=$editorAktivity?>
 </form>
-
-<?= $editorTagu->getTagEditor() ?>
