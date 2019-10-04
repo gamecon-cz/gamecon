@@ -1,0 +1,51 @@
+Kategorie,Subkategorie,Řadící kód
+Primary,,1
+typ,,10
+,typ RPG,11
+,typ LKD,12
+,typ mDrD,13
+,typ Larp,14
+,typ Akční,15
+,typ Desk,16
+,typ WG,17
+,typ Přednášky,18
+žánr,,20
+,žánr RPG,21
+,žánr LKD,22
+,žánr mDrD,23
+,žánr Larp,24
+,žánr Akční,25
+,žánr Desk,26
+,žánr WG,27
+,žánr Přednášky,28
+prostředí,,30
+,prostředí RPG,31
+,prostředí LKD,32
+,prostředí mDrD,33
+,prostředí Larp,34
+,prostředí Akční,35
+,prostředí Desk,36
+,prostředí WG,37
+,prostředí Přednášky,38
+styl,,40
+,styl RPG,41
+,styl LKD,42
+,styl mDrD,43
+,styl Larp,44
+,styl Akční,45
+,styl Desk,46
+,styl WG,47
+,styl Přednášky,48
+systém,,50
+,systém RPG,51
+,systém LKD,52
+,systém mDrD,53
+,systém Larp,54
+,systém Akční,55
+,systém Desk,56
+,systém WG,57
+,systém Přednášky,58
+různé,,80
+,různé Partner,81
+omezení,,90
+,omezení Věk,95
