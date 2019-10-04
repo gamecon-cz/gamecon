@@ -14,9 +14,11 @@ class EditorTagu
     $editorTaguSablona = new XTemplate(__DIR__ . '/_editor-tagu.xtpl');
 
     $vsechnyKategorieTagu = $this->getAllCategories();
-    foreach ($vsechnyKategorieTagu as $idKategorie => $nazevKategorie) {
-      $editorTaguSablona->assign('id_kategorie_tagu', $idKategorie);
-      $editorTaguSablona->assign('nazev_kategorie', $nazevKategorie);
+    foreach ($vsechnyKategorieTagu as $kategorie) {
+      $editorTaguSablona->assign('optgroup_kategorie_start', $kategorie['hlavni'] ? sprintf('<optgroup label="%s">', $kategorie['nazev']) : '');
+      $editorTaguSablona->assign('optgroup_kategorie_end', $kategorie['hlavni'] ? '</optgroup>' : '');
+      $editorTaguSablona->assign('id_kategorie_tagu', $kategorie['id']);
+      $editorTaguSablona->assign('nazev_kategorie', $kategorie['nazev']);
       $editorTaguSablona->assign('kategorie_selected', false);
       $editorTaguSablona->parse('editorTagu.kategorie');
     }
@@ -46,10 +48,10 @@ class EditorTagu
   }
 
   private function getAllCategories(): array {
-    return dbArrayCol(
-      'SELECT kategorie_sjednocenych_tagu.id, kategorie_sjednocenych_tagu.nazev
+    return dbFetchAll(
+      'SELECT kategorie_sjednocenych_tagu.id, kategorie_sjednocenych_tagu.nazev, kategorie_sjednocenych_tagu.id_hlavni_kategorie IS NULL AS hlavni
 FROM kategorie_sjednocenych_tagu
-ORDER BY kategorie_sjednocenych_tagu.nazev'
+ORDER BY kategorie_sjednocenych_tagu.poradi'
     );
   }
 
