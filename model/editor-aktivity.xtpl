@@ -169,7 +169,10 @@ $(function(){
     <td>
         <select name="{aEditTag}[]" multiple="multiple" id="vyberTagu">
             <!-- begin:tag -->
+            {previous_optgroup_tag_end}
+            {optgroup_tag_start}
                 <option {tag_selected} value="{id_tagu}">{nazev_tagu}</option>
+            {last_optgroup_tag_end}
             <!-- end:tag -->
         </select>
         <script type="text/javascript">
