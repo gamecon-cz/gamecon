@@ -156,4 +156,34 @@ WHERE sjednocene_tagy.id = $1',
       'isEdited' => true,
     ];
   }
+
+  public function getTagy(): array {
+    $result = dbQuery('SELECT sjednocene_tagy.id, sjednocene_tagy.nazev, sjednocene_tagy.poznamka,
+       kategorie_sjednocenych_tagu.nazev AS nazev_kategorie,
+       IF (kategorie_sjednocenych_tagu.id_hlavni_kategorie IS NULL, kategorie_sjednocenych_tagu.nazev, (SELECT hlavni_kategorie.nazev FROM kategorie_sjednocenych_tagu AS hlavni_kategorie WHERE hlavni_kategorie.id = kategorie_sjednocenych_tagu.id_hlavni_kategorie)) AS nazev_hlavni_kategorie,
+       sjednocene_tagy.id_kategorie_tagu
+FROM sjednocene_tagy
+JOIN kategorie_sjednocenych_tagu on sjednocene_tagy.id_kategorie_tagu = kategorie_sjednocenych_tagu.id
+ORDER BY kategorie_sjednocenych_tagu.poradi, sjednocene_tagy.nazev
+');
+    $mappedTags = [];
+    $pouzitaHlavniKategorie = null;
+    for ($i = 0; $row = mysqli_fetch_assoc($result); $i++) {
+      $mappedTag = [
+        'id' => $row['id'],
+        'nazev' => $row['nazev'],
+        'nazev_kategorie' => $row['nazev_kategorie'],
+        'nazev_hlavni_kategorie' => $row['nazev_hlavni_kategorie'],
+        'id_kategorie_tagu' => $row['id_kategorie_tagu'],
+        'poznamka' => $row['poznamka'],
+        'je_nova_hlavni_kategorie' => $row['nazev_hlavni_kategorie'] && (!$pouzitaHlavniKategorie || $row['nazev_hlavni_kategorie'] !== $pouzitaHlavniKategorie)
+      ];
+      if ($row['nazev_hlavni_kategorie']) {
+        $pouzitaHlavniKategorie = $row['nazev_hlavni_kategorie'];
+      }
+      $mappedTags[] = $mappedTag;
+    }
+
+    return $mappedTags;
+  }
 }

@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/../admin/scripts/modules/aktivity/_editor-tagu.php';
+
 /**
  * Třída aktivity
  */
@@ -163,7 +165,7 @@ class Aktivita {
    * vytvoření závislostí na vnitřní proměnné aktivity.
    */
   static function editor(Aktivita $a = null) {
-    return self::editorParam($a);
+    return self::editorParam(new EditorTagu(), $a);
   }
 
   /**
@@ -211,7 +213,7 @@ class Aktivita {
    * Vrátí html kód editoru, je možné parametrizovat, co se pomocí něj dá
    * měnit (todo)
    */
-  protected static function editorParam(Aktivita $a = null, $omezeni = []) {
+  protected static function editorParam(EditorTagu $editorTagu, Aktivita $a = null, $omezeni = []) {
     $aktivita = $a ? $a->a : null; // databázový řádek
 
     // inicializace šablony
@@ -228,12 +230,35 @@ class Aktivita {
       $xtpl->assign('urlObrazku', $a->obrazek());
       $xtpl->assign('vybaveni', $a->vybaveni());
       // načtení tagů
-      $vsechnyTagy = dbArrayCol('SELECT id, nazev FROM sjednocene_tagy ORDER BY nazev');
       $vybraneTagy = $a->tagy();
-      foreach ($vsechnyTagy as $idTagu => $nazevTagu) {
-        $xtpl->assign('id_tagu', $idTagu);
-        $xtpl->assign('nazev_tagu', $nazevTagu);
-        $xtpl->assign('tag_selected', in_array($nazevTagu, $vybraneTagy, true) ? 'selected' : '');
+      $vsechnyTagy = $editorTagu->getTagy();
+      $pocetVsechTagu = count($vsechnyTagy);
+      foreach ($vsechnyTagy as $indexTagu => $mappedTag) {
+        $encodedTag = [];
+        foreach ($mappedTag as $tagKey => $tagValue) {
+          $encodedTag[$tagKey] = htmlspecialchars($tagValue);
+        }
+        $xtpl->assign('id_tagu', $encodedTag['id']);
+        $xtpl->assign('nazev_tagu', $encodedTag['nazev']);
+        $xtpl->assign('tag_selected', in_array($encodedTag['nazev'], $vybraneTagy, true) ? 'selected' : '');
+        $xtpl->assign(
+          'previous_optgroup_tag_end',
+          $encodedTag['je_nova_hlavni_kategorie']
+            ? '</optgroup>'
+            : ''
+        );
+        $xtpl->assign(
+          'optgroup_tag_start',
+          $encodedTag['je_nova_hlavni_kategorie']
+            ? '<optgroup label="' . mb_ucfirst($encodedTag['nazev_hlavni_kategorie']) . '">'
+            : ''
+        );
+        $xtpl->assign(
+          'last_optgroup_tag_end',
+          $indexTagu + 1 === $pocetVsechTagu
+            ? '</optgroup>'
+            : ''
+        );
         $xtpl->parse('upravy.tabulka.tag');
       }
     }
