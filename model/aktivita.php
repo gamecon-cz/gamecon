@@ -239,26 +239,20 @@ class Aktivita {
         foreach ($mappedTag as $tagKey => $tagValue) {
           $encodedTag[$tagKey] = htmlspecialchars($tagValue);
         }
-        $jeNovaVedlejsiKategorie = !$mappedTag['je_nova_hlavni_kategorie'] && $nazevPredchoziKategorie && $nazevPredchoziKategorie !== $encodedTag['nazev_kategorie'];
+        $jeNovaKategorie = $nazevPredchoziKategorie !== $encodedTag['nazev_kategorie'];
         $xtpl->assign('id_tagu', $encodedTag['id']);
         $xtpl->assign('nazev_tagu', $encodedTag['nazev']);
         $xtpl->assign('tag_selected', in_array($encodedTag['nazev'], $vybraneTagy, true) ? 'selected' : '');
         $xtpl->assign(
           'previous_optgroup_tag_end',
-          $encodedTag['je_nova_hlavni_kategorie'] || $jeNovaVedlejsiKategorie
+          $jeNovaKategorie
             ? '</optgroup>'
             : ''
         );
-        $nadpisSNovouKategorii = '';
-        if ($encodedTag['je_nova_hlavni_kategorie']) {
-          $nadpisSNovouKategorii = $encodedTag['nazev_hlavni_kategorie'];
-        } else if ($jeNovaVedlejsiKategorie) {
-          $nadpisSNovouKategorii = $encodedTag['nazev_kategorie'];
-        }
         $xtpl->assign(
           'optgroup_tag_start',
-          $nadpisSNovouKategorii
-            ? '<optgroup label="' . mb_ucfirst($nadpisSNovouKategorii) . '">'
+          $jeNovaKategorie
+            ? '<optgroup label="' . mb_ucfirst($encodedTag['nazev_kategorie']) . '">'
             : ''
         );
         $xtpl->assign(

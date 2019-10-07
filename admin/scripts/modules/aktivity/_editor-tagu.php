@@ -167,7 +167,6 @@ JOIN kategorie_sjednocenych_tagu on sjednocene_tagy.id_kategorie_tagu = kategori
 ORDER BY kategorie_sjednocenych_tagu.poradi, sjednocene_tagy.nazev
 ');
     $mappedTags = [];
-    $pouzitaHlavniKategorie = null;
     for ($i = 0; $row = mysqli_fetch_assoc($result); $i++) {
       $mappedTag = [
         'id' => $row['id'],
@@ -176,11 +175,7 @@ ORDER BY kategorie_sjednocenych_tagu.poradi, sjednocene_tagy.nazev
         'nazev_hlavni_kategorie' => $row['nazev_hlavni_kategorie'],
         'id_kategorie_tagu' => $row['id_kategorie_tagu'],
         'poznamka' => $row['poznamka'],
-        'je_nova_hlavni_kategorie' => $row['nazev_hlavni_kategorie'] && (!$pouzitaHlavniKategorie || $row['nazev_hlavni_kategorie'] !== $pouzitaHlavniKategorie)
       ];
-      if ($row['nazev_hlavni_kategorie']) {
-        $pouzitaHlavniKategorie = $row['nazev_hlavni_kategorie'];
-      }
       $mappedTags[] = $mappedTag;
     }
 
