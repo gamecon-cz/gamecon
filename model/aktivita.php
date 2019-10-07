@@ -233,24 +233,32 @@ class Aktivita {
       $vybraneTagy = $a->tagy();
       $vsechnyTagy = $editorTagu->getTagy();
       $pocetVsechTagu = count($vsechnyTagy);
+      $nazevPredchoziKategorie = null;
       foreach ($vsechnyTagy as $indexTagu => $mappedTag) {
         $encodedTag = [];
         foreach ($mappedTag as $tagKey => $tagValue) {
           $encodedTag[$tagKey] = htmlspecialchars($tagValue);
         }
+        $jeNovaVedlejsiKategorie = !$mappedTag['je_nova_hlavni_kategorie'] && $nazevPredchoziKategorie && $nazevPredchoziKategorie !== $encodedTag['nazev_kategorie'];
         $xtpl->assign('id_tagu', $encodedTag['id']);
         $xtpl->assign('nazev_tagu', $encodedTag['nazev']);
         $xtpl->assign('tag_selected', in_array($encodedTag['nazev'], $vybraneTagy, true) ? 'selected' : '');
         $xtpl->assign(
           'previous_optgroup_tag_end',
-          $encodedTag['je_nova_hlavni_kategorie']
+          $encodedTag['je_nova_hlavni_kategorie'] || $jeNovaVedlejsiKategorie
             ? '</optgroup>'
             : ''
         );
+        $nadpisSNovouKategorii = '';
+        if ($encodedTag['je_nova_hlavni_kategorie']) {
+          $nadpisSNovouKategorii = $encodedTag['nazev_hlavni_kategorie'];
+        } else if ($jeNovaVedlejsiKategorie) {
+          $nadpisSNovouKategorii = $encodedTag['nazev_kategorie'];
+        }
         $xtpl->assign(
           'optgroup_tag_start',
-          $encodedTag['je_nova_hlavni_kategorie']
-            ? '<optgroup label="' . mb_ucfirst($encodedTag['nazev_hlavni_kategorie']) . '">'
+          $nadpisSNovouKategorii
+            ? '<optgroup label="' . mb_ucfirst($nadpisSNovouKategorii) . '">'
             : ''
         );
         $xtpl->assign(
@@ -260,6 +268,7 @@ class Aktivita {
             : ''
         );
         $xtpl->parse('upravy.tabulka.tag');
+        $nazevPredchoziKategorie = $encodedTag['nazev_kategorie'];
       }
     }
 
