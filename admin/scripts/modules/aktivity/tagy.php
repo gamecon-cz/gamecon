@@ -28,6 +28,7 @@ if ($zpracovanyTag) {
 
 $tpl = new XTemplate('tagy.xtpl');
 
+$pouzitaHlavniKategorie = null;
 foreach ($editorTagu->getTagy() as $mappedTag) {
   $encodedTag = [];
   foreach ($mappedTag as $tagKey => $tagValue) {
@@ -35,13 +36,16 @@ foreach ($editorTagu->getTagy() as $mappedTag) {
   }
   $tpl->assign(
     'hlavniKategorieTr',
-    $encodedTag['je_nova_hlavni_kategorie']
+    $encodedTag['nazev_hlavni_kategorie'] && (!$pouzitaHlavniKategorie || $encodedTag['nazev_hlavni_kategorie'] !== $pouzitaHlavniKategorie)
       ? '<tr><th colspan="100%"><h3 style="text-transform: capitalize">' . $encodedTag['nazev_hlavni_kategorie'] . '</h3></th></tr>'
       : ''
   );
   $tpl->assign($encodedTag);
   $tpl->assign('tag_json', htmlspecialchars(json_encode($mappedTag, JSON_UNESCAPED_UNICODE | JSON_FORCE_OBJECT)));
   $tpl->parse('tagy.tag');
+  if ($encodedTag['nazev_hlavni_kategorie']) {
+    $pouzitaHlavniKategorie = $encodedTag['nazev_hlavni_kategorie'];
+  }
 }
 
 $tpl->assign('editorTaguHtmlId', EditorTagu::EDITOR_TAGU_HTML_ID);
