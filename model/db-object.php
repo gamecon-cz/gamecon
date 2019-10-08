@@ -73,7 +73,7 @@ abstract class DbObject {
   }
 
   /** Načte a vrátí objekty pomocí dané where klauzule */
-  protected static function zWhere($where, $params = null) {
+  protected static function zWhere($where, $params = null): array{
     $o = dbQuery(static::dotaz($where), $params); // static aby odděděná třída mohla přepsat dotaz na něco složitějšího
     $a = [];
     while($r = mysqli_fetch_assoc($o))
