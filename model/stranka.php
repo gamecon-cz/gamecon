@@ -45,9 +45,8 @@ class Stranka extends DbObject {
     return self::zWhereRadek('url_stranky = $1', [$url]);
   }
 
-  /** Vrátí všechny stránky s url $prefix/něco */
-  static function zUrlPrefixu($prefix) {
-    return self::zWhere('url_stranky LIKE $1', [$prefix.'/%']);
+  public static function zUrlPrefixu(string $url): array {
+    return self::zWhere('url_prefix = $1', [$url]);
   }
 
   static function zVsech() {
