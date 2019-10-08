@@ -59,18 +59,16 @@ class Aktivita {
    * Vytvoří aktivitu dle výstupu z databáze. Pokud výstup (např. položkou
    * "přihlášen") je vztažen vůči uživateli, je potřeba ho zadat teď jako $u,
    * později to nebude možné.
+   * @param array $dbRow
+   * @throws \Exception
    */
-  private function __construct($db)
+  private function __construct(array $dbRow)
   {
-    if(!$db)
+    if(!$dbRow) {
       throw new Exception('prázdný parametr konstruktoru');
-    else if(is_array($db))
-    {
-      $this->a=$db;
-      $this->nova=false;
     }
-    else
-      throw new Exception('nesprávný vstup konstruktoru (nepodporovaný typ)');
+    $this->a=$dbRow;
+    $this->nova=false;
   }
 
   /**
@@ -1330,6 +1328,7 @@ class Aktivita {
 
   /**
    * Vrátí iterátor tagů
+   * @return string[]
    */
   function tagy(): array {
       if($this->a['tagy']) {
@@ -1800,7 +1799,14 @@ class Aktivita {
    */
   protected static function zWhere($where, $args = null, $order = null) {
     $o = dbQueryS("
-      SELECT t3.*, GROUP_CONCAT(t.nazev) as tagy FROM (
+      SELECT t3.*,
+             (SELECT GROUP_CONCAT(sjednocene_tagy.nazev ORDER BY kst.poradi, sjednocene_tagy.nazev)
+FROM sjednocene_tagy
+         JOIN akce_sjednocene_tagy ON akce_sjednocene_tagy.id_tagu = sjednocene_tagy.id
+         JOIN kategorie_sjednocenych_tagu kst on sjednocene_tagy.id_kategorie_tagu = kst.id
+             WHERE akce_sjednocene_tagy.id_akce = t3.id_akce
+             ) AS tagy
+      FROM (
         SELECT t2.*, CONCAT(',',GROUP_CONCAT(p.id_uzivatele,u.pohlavi,p.id_stavu_prihlaseni),',') AS prihlaseni,
                IF(t2.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = t2.patri_pod), t2.url_akce) as url_temp
         FROM (
@@ -1813,9 +1819,6 @@ class Aktivita {
         LEFT JOIN uzivatele_hodnoty u ON (u.id_uzivatele = p.id_uzivatele)
         GROUP BY t2.id_akce
       ) as t3
-      LEFT JOIN akce_sjednocene_tagy at ON (at.id_akce = t3.id_akce)
-      LEFT JOIN sjednocene_tagy t ON (t.id = at.id_tagu)
-      GROUP BY t3.id_akce
       $order
     ", $args);
 

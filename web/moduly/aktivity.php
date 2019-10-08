@@ -89,7 +89,9 @@ usort($stranky, function($a, $b){ return $a->poradi() - $b->poradi(); });
 $t->parseEach($stranky, 'stranka', 'aktivity.stranka');
 
 // Zobrazení aktivit
+/** @var Aktivita|null $a */
 $a = reset($aktivity);
+/** @var Aktivita|null $dalsi */
 $dalsi = next($aktivity);
 $orgUrls = [];
 while($a) {
