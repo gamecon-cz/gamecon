@@ -51,8 +51,10 @@ class Cenik {
   /**
    * Sníží $cena o částku $sleva až do nuly. Změnu odečte i z $sleva.
    */
-  static function aplikujSlevu(&$cena, &$sleva) {
-    if($sleva <= 0) return; // nedělat nic
+  static function aplikujSlevu(&$cena, &$sleva): array {
+    if($sleva <= 0) { // nedělat nic
+      return ['cena' => $cena, 'sleva' => $sleva];
+    }
     if($sleva <= $cena) {
       $cena -= $sleva;
       $sleva = 0;
@@ -60,6 +62,7 @@ class Cenik {
       $sleva -= $cena;
       $cena = 0;
     }
+    return ['cena' => $cena, 'sleva' => $sleva];
   }
 
   /**
@@ -112,9 +115,9 @@ class Cenik {
     if($typ == Shop::PREDMET) {
       // hack podle názvu
       if($r['nazev'] == 'Kostka' && $this->slevaKostky) {
-        self::aplikujSlevu($cena, $this->slevaKostky);
+        ['cena' => $cena, 'sleva' => $this->slevaKostky] = self::aplikujSlevu($cena, $this->slevaKostky);
       } elseif($r['nazev'] == 'Placka' && $this->slevaPlacky) {
-        self::aplikujSlevu($cena, $this->slevaPlacky);
+        ['cena' => $cena, 'sleva' => $this->slevaPlacky] = self::aplikujSlevu($cena, $this->slevaPlacky);
       }
     } elseif($typ == Shop::TRICKO && mb_stripos($r['nazev'], 'modré') !== false && $this->modrychTricekZdarma > 0) {
       $cena = 0;

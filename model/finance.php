@@ -82,19 +82,23 @@ class Finance {
       + $this->cenaAktivity;
 
     $sleva = $this->sleva;
-    Cenik::aplikujSlevu($cena, $sleva);
+    ['cena' => $cena, 'sleva' => $sleva] = Cenik::aplikujSlevu($cena, $sleva);
     $this->slevaVyuzita = $this->sleva - $sleva;
-    if($this->sleva) $this->log(
-      '<b>Sleva za organizované aktivity</b><br>využitá z celkem '.$this->slevaVypravecMax().'',
-      '<b>'.$this->slevaVypravecVyuzita().'</b><br>&emsp;',
-      self::ORGSLEVA);
+    if($this->sleva) {
+      $this->log(
+        '<b>Sleva za organizované aktivity</b><br>využitá z celkem ' . $this->slevaVypravecMax() . '',
+        '<b>' . $this->slevaVypravecVyuzita() . '</b><br>&emsp;',
+        self::ORGSLEVA);
+    }
 
     $zbyvajiciObecnaSleva = $this->slevaObecna;
-    Cenik::aplikujSlevu($cena, $zbyvajiciObecnaSleva);
-    if($this->slevaObecna) $this->log(
-      '<b>Sleva</b><br>využitá z celkem ' . $this->slevaObecna,
-      '<b>' . ($this->slevaObecna - $zbyvajiciObecnaSleva) . '</b>',
-      self::PRIPSANE_SLEVY);
+    ['cena' => $cena, 'sleva' => $zbyvajiciObecnaSleva] = Cenik::aplikujSlevu($cena, $zbyvajiciObecnaSleva);
+    if($this->slevaObecna) {
+      $this->log(
+        '<b>Sleva</b><br>využitá z celkem ' . $this->slevaObecna,
+        '<b>' . ($this->slevaObecna - $zbyvajiciObecnaSleva) . '</b>',
+        self::PRIPSANE_SLEVY);
+    }
 
     $cena = $cena
       + $this->cenaVstupne
