@@ -1,4 +1,5 @@
 <?php
+// takzvaný BFGR report
 
 require_once('sdilene-hlavicky.php');
 
@@ -12,7 +13,7 @@ function ec($cislo) { // excel číslo
 }
 
 function ut($typ) { // ubytování typ - z názvu předmětu odhadne typ
-  return preg_replace('@ ?(pondělí|úterý|středa|čtvrtek|pátek|sobota|neděle) ?@i', '', $typ);
+  return preg_replace('@ ?(pondělí|úterý|středa|čtvrtek|pátek|sobota|neděle) ?@iu', '', $typ);
 }
 
 $gcDoted = [];
