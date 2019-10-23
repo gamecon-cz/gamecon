@@ -5,7 +5,7 @@
  */
 class Finance {
 
-  protected
+  private
     $u,       // uživatel, jehož finance se počítají
     $stav=0,  // celkový výsledný stav uživatele na účtu
     $deltaPozde=0,      // o kolik se zvýší platba při zaplacení pozdě
@@ -29,7 +29,7 @@ class Finance {
     $platby         = 0.0,  // platby připsané na účet
     $posledniPlatba;        // datum poslední připsané platby
 
-  protected static
+  private static
     $maxSlevaAktivit=100, // v procentech
     $slevaZaAktivitu = [ // ve formátu max. délka => sleva
       1  =>  55,
@@ -148,7 +148,7 @@ class Finance {
   /**
    * Zaloguje do seznamu nákupů položku (pokud je logování zapnuto)
    */
-  protected function log($nazev, $castka, $kategorie = null) {
+  private function log($nazev, $castka, $kategorie = null) {
     if(!$this->logovat) return;
     if(is_numeric($castka)) $castka = round($castka);
     // hack změna řazení
@@ -168,7 +168,7 @@ class Finance {
   /**
    * Zaloguje zvýrazněný záznam
    */
-  protected function logb($nazev, $castka, $kategorie = null) {
+  private function logb($nazev, $castka, $kategorie = null) {
     $this->log("<b>$nazev</b>", "<b>$castka</b>", $kategorie);
   }
 
@@ -199,14 +199,26 @@ class Finance {
    * @todo přesun css někam sdíleně
    */
   function prehledHtml() {
-    usort($this->prehled,'self::cmp');
-    $out='';
-    $out.='<table>';
-    foreach($this->prehled as $r)
-      $out.= '<tr><td style="text-align:left">' . $r[0] . '</td>'.
-        '<td style="text-align:right">' . $r[1] . '</td></tr>';
+    $out='<table>';
+    foreach($this->serazenyPrehled() as $r) {
+      $out .= '<tr><td style="text-align:left">' . $r[0] . '</td><td style="text-align:right">' . $r[1] . '</td></tr>';
+    }
     $out.='</table>';
     return $out;
+  }
+
+  public function prehledPopis(): string {
+    $out = [];
+    foreach($this->serazenyPrehled() as $r) {
+      $out[] = $r[0] . ' ' . $r[1];
+    }
+    return implode(', ', $out);
+  }
+
+  private function serazenyPrehled(): array {
+    $prehled = $this->prehled;
+    usort($prehled,[static::class, 'cmp']);
+    return $prehled;
   }
 
   /**
@@ -308,7 +320,7 @@ class Finance {
    * Vrátí součinitel ceny aktivit, tedy slevy uživatele vztahující se k
    * aktivitám. Vrátí hodnotu.
    */
-  protected function soucinitelAktivit() {
+  private function soucinitelAktivit() {
     if(!isset($this->scnA)) {
       // pomocné proměnné
       $sleva=0; // v procentech
@@ -345,7 +357,7 @@ class Finance {
    * Započítá do mezisoučtů aktivity uživatele
    * @todo odstranit zbytečnosti
    */
-  protected function zapoctiAktivity() {
+  private function zapoctiAktivity() {
     $scn = $this->soucinitelAktivit();
     $rok = ROK;
     $uid = $this->u->id();
@@ -390,7 +402,7 @@ class Finance {
    * Započítá do mezisoučtů platby na účet
    * @todo odstranit zbytečnosti
    */
-  protected function zapoctiPlatby() {
+  private function zapoctiPlatby() {
     $rok = ROK;
     $uid = $this->u->id();
     $o = dbQuery("
@@ -412,7 +424,7 @@ class Finance {
   /**
    * Započítá do mezisoučtů nákupy v eshopu
    */
-  protected function zapoctiShop() {
+  private function zapoctiShop() {
     $o = dbQuery('
       SELECT p.id_predmetu, p.nazev, n.cena_nakupni, p.typ, p.ubytovani_den, p.model_rok
       FROM shop_nakupy n
@@ -458,7 +470,7 @@ class Finance {
   /**
    * Započítá ručně zadané slevy z tabulky slev.
    */
-  protected function zapoctiSlevy() {
+  private function zapoctiSlevy() {
     $q = dbQuery('
       SELECT castka, poznamka
       FROM slevy
@@ -481,7 +493,7 @@ class Finance {
   /**
    * Započítá do mezisoučtů slevy za organizované aktivity
    */
-  protected function zapoctiVedeniAktivit() {
+  private function zapoctiVedeniAktivit() {
     if(!$this->u->maPravo(P_ORG_AKCI)) return;
     if($this->u->maPravo(P_NEMA_SLEVU_AKTIVITY)) return;
     foreach(Aktivita::zOrganizatora($this->u) as $a) {
@@ -492,7 +504,7 @@ class Finance {
   /**
    * Započítá do mezisoučtů zůstatek z minulých let
    */
-  protected function zapoctiZustatek() {
+  private function zapoctiZustatek() {
     $this->log('Zůstatek z minulých let', $this->zustatek, self::ZUSTATEK);
   }
 

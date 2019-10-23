@@ -125,7 +125,7 @@ while($r=mysqli_fetch_assoc($o))
       $r['pomoc_typ'],
       $r['pomoc_vice'],
       implode(", ",array_merge($f->slevyVse(),$f->slevyAktivity())),
-      strip_tags(strtr($f->prehledHtml(),['</tr>'=>", ", '</td>'=>' '])),
+      $f->prehledPopis(),
     ]
   );
 }
