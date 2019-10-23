@@ -150,12 +150,20 @@ class Finance {
    */
   private function log($nazev, $castka, $kategorie = null) {
     if(!$this->logovat) return;
-    if(is_numeric($castka)) $castka = round($castka);
+    if(is_numeric($castka)) {
+      $castka = round($castka);
+    }
     // hack změna řazení
     $nkat = $kategorie;
-    if($kategorie == 2) $nkat = 4;
-    if($kategorie == 3) $nkat = 2;
-    if($kategorie == 4) $nkat = 3;
+    if($kategorie == 2) {
+      $nkat = 4;
+    }
+    if($kategorie == 3) {
+      $nkat = 2;
+    }
+    if($kategorie == 4) {
+      $nkat = 3;
+    }
     $kategorie = $nkat;
     // přidání
     $this->prehled[] = [
@@ -440,8 +448,11 @@ class Finance {
       if($r['typ'] == Shop::UBYTOVANI) {
         $this->cenaUbytovani += $cena;
       } elseif($r['typ'] == Shop::VSTUPNE) {
-        if(strpos($r['nazev'], 'pozdě') === false)  $this->cenaVstupne = $cena;
-        else                                        $this->cenaVstupnePozde = $cena;
+        if(strpos($r['nazev'], 'pozdě') === false) {
+          $this->cenaVstupne = $cena;
+        } else {
+          $this->cenaVstupnePozde = $cena;
+        }
       } else {
         $this->cenaPredmety += $cena;
       }
