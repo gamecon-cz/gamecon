@@ -211,32 +211,28 @@ class Finance {
 
   /**
    * Připíše aktuálnímu uživateli platbu ve výši $castka.
+   * @param float $castka
+   * @param Uzivatel $provedl
+   * @param string|null $poznamka
    */
   function pripis($castka, Uzivatel $provedl, $poznamka = null) {
-    dbInsert('platby', [
-      'id_uzivatele'  =>  $this->u->id(),
-      'castka'        =>  $castka,
-      'rok'           =>  ROK,
-      'provedl'       =>  $provedl->id(),
-      'poznamka'      =>  $poznamka ?: null,
-    ]);
+    dbQuery(
+      'INSERT INTO platby(id_uzivatele, castka, rok, provedl, poznamka) VALUES ($1, $2, $3, $4, $5)',
+      [$this->u->id(), $castka, ROK, $provedl->id(), $poznamka ?: null]
+    );
   }
 
   /**
    * Připíše aktuálnímu uživateli $u slevu ve výši $sleva
-   * @param Uzivatel $u
    * @param float $sleva
    * @param string|null $poznamka
    * @param Uzivatel $provedl
    */
   function pripisSlevu($sleva, $poznamka, Uzivatel $provedl) {
-    dbInsert('slevy', [
-      'id_uzivatele'  =>  $this->u->id(),
-      'castka'        =>  $sleva,
-      'rok'           =>  ROK,
-      'provedl'       =>  $provedl->id(),
-      'poznamka'      =>  $poznamka ?: null,
-    ]);
+    dbQuery(
+      'INSERT INTO slevy(id_uzivatele, castka, rok, provedl, poznamka) VALUES ($1, $2, $3, $4, $5)',
+      [$this->u->id(), $sleva, ROK, $provedl->id(), $poznamka ?: null]
+    );
   }
 
   /** Vrátí aktuální stav na účtu uživatele pro tento rok */
@@ -326,9 +322,10 @@ class Finance {
         $sleva += 40;
         $this->slevyA[] = 'sleva 40%';
       }
-      if($sleva>self::$maxSlevaAktivit)
+      if($sleva>self::$maxSlevaAktivit) {
         // omezení výše slevy na maximální hodnotu
-        $sleva=self::$maxSlevaAktivit;
+        $sleva = self::$maxSlevaAktivit;
+      }
       $slevaAktivity=(100-$sleva)/100;
       // výsledek
       $this->scnA = $slevaAktivity;
@@ -376,8 +373,9 @@ class Finance {
       if($r['cena'] >= 0) {
         $this->cenaAktivity += $r['cena'];
       } else {
-        if(!$this->u->maPravo(P_NEMA_SLEVU_AKTIVITY))
+        if (!$this->u->maPravo(P_NEMA_SLEVU_AKTIVITY)) {
           $this->sleva -= $r['cena'];
+        }
       }
 
       $poznamka = '';
@@ -462,7 +460,7 @@ class Finance {
    */
   protected function zapoctiSlevy() {
     $q = dbQuery('
-      SELECT *
+      SELECT castka, poznamka
       FROM slevy
       WHERE id_uzivatele = $0 AND rok = $1
     ', [$this->u->id(), ROK]);
