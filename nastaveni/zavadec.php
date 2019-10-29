@@ -6,6 +6,7 @@
  */
 
 require __DIR__ . '/zavadec-zaklad.php';
+require __DIR__ . '/../model/funkce/web-funkce.php';
 
 // nastavení cache složky pro třídy, které ji potřebují
 pripravCache(SPEC . '/xtpl');
