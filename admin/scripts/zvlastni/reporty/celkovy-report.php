@@ -16,23 +16,23 @@ function ut($typ) { // ubytování typ - z názvu předmětu odhadne typ
   return preg_replace('@ ?(pondělí|úterý|středa|čtvrtek|pátek|sobota|neděle) ?@iu', '', $typ);
 }
 
-$gcDoted = [];
+$ucastPodleRoku = [];
 $maxRok = po(REG_GC_DO) ? ROK : ROK - 1;
 for($i = 2009; $i <= $maxRok; $i++) {
-  $gcDoted[$i] = 'účast '.$i;
+  $ucastPodleRoku[$i] = 'účast '.$i;
 }
 
 $hlavicka1=array_merge(
   ['Účastník','','','','','','','','','Datum narození','','','Bydliště','','','','','',
   'Ubytovací informace','','',''],
-  array_fill(0,count($gcDoted),''),
+  array_fill(0,count($ucastPodleRoku),''),
   ['Celkové náklady','','',
   'Ostatní platby','','','','','','','','','','','','','','','']
 );
 $hlavicka2=array_merge(
   ['ID','Příjmení','Jméno','Přezdívka','Mail','Židle','Práva','Datum registrace','Prošel infopultem','Den','Měsíc','Rok','Stát','Město','Ulice',
   'PSČ','Škola','Chci bydlet s','První noc','Poslední noc (počátek)','Typ','Dorazil na GC'],
-  $gcDoted,
+  $ucastPodleRoku,
   [
   'Celkem dní','Cena / den','Ubytování','Předměty a strava',
   'Aktivity','vypravěčská sleva využitá','vypravěčská sleva přiznaná','dobrovolné vstupné','dobrovolné vstupné (pozdě)','stav', 'slevy','zůstatek z minula','připsané platby','první blok','poslední blok','dobrovolník pozice','dobrovolník info','Slevy','Objednávky']
@@ -74,7 +74,7 @@ while($r=mysqli_fetch_assoc($o))
   $un->nactiPrava(); //sql subdotaz, zlo
   $f = $un->finance();
   $ucastiHistorie=[];
-  foreach($gcDoted as $rok => $nul)
+  foreach($ucastPodleRoku as $rok => $nul)
     $ucastiHistorie[]=$un->maPravo((int)( '-'.substr($rok,2).'02' ))?'ano':'ne';
   $stat = '';
   try { $stat = $un->stat(); } catch(Exception $e) {}
