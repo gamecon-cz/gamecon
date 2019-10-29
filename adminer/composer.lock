@@ -1,0 +1,60 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "f8836bdd8e27e89124223aac795ae614",
+    "packages": [],
+    "packages-dev": [
+        {
+            "name": "vrana/adminer",
+            "version": "v4.7.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/vrana/adminer.git",
+                "reference": "b9594d13d6af838760936634a9a234e3d7c70e18"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/vrana/adminer/zipball/b9594d13d6af838760936634a9a234e3d7c70e18",
+                "reference": "b9594d13d6af838760936634a9a234e3d7c70e18",
+                "shasum": ""
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "plugins/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0",
+                "GPL-2.0-only"
+            ],
+            "authors": [
+                {
+                    "name": "Jakub Vrána",
+                    "homepage": "https://www.vrana.cz/"
+                }
+            ],
+            "description": "Database management in a single PHP file.",
+            "homepage": "https://www.adminer.org/",
+            "keywords": [
+                "database"
+            ],
+            "time": "2019-10-22T06:33:20+00:00"
+        }
+    ],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": [],
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": {
+        "php": ">=7.1",
+        "ext-json": "*",
+        "ext-mysqli": "*"
+    },
+    "platform-dev": []
+}
