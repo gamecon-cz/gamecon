@@ -361,6 +361,10 @@ class Finance {
     return $this->cenaVstupnePozde;
   }
 
+  function vyuzityBonusZaAktivity() { // TODO
+    return $this->vyuzityBonusZaAktivity;
+  }
+
   /**
    * Započítá do mezisoučtů aktivity uživatele
    * @todo odstranit zbytečnosti
