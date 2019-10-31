@@ -35,7 +35,7 @@ $hlavicka2=array_merge(
   $ucastPodleRoku,
   [
   'Celkem dní','Cena / den','Ubytování','Předměty a strava',
-  'Aktivity','vypravěčská sleva využitá','vypravěčská sleva přiznaná','dobrovolné vstupné','dobrovolné vstupné (pozdě)','stav', 'slevy','zůstatek z minula','připsané platby','první blok','poslední blok','dobrovolník pozice','dobrovolník info','Slevy','Objednávky']
+  'Aktivity','vypravěčská sleva využitá','vypravěčská sleva přiznaná','dobrovolné vstupné','dobrovolné vstupné (pozdě)','bonus za aktivity, využitý','stav', 'slevy','zůstatek z minula','připsané platby','první blok','poslední blok','dobrovolník pozice','dobrovolník info','Slevy','Objednávky']
 );
 $o=dbQuery(
   'SELECT
@@ -116,16 +116,17 @@ while($r=mysqli_fetch_assoc($o))
       $f->slevaVypravecMax(),
       $f->vstupne(),
       $f->vstupnePozde(),
+      $f->vyuzityBonusZaAktivity(),
       ec($f->stav()),
       ec($f->slevaObecna()),
       ec($r['zustatek']),
-      ec($f->platby()),
+      ec($f->platby()), // připsané platby
       ed($un->prvniBlok()),
       ed($un->posledniBlok()),
-      $r['pomoc_typ'],
-      $r['pomoc_vice'],
-      implode(", ",array_merge($f->slevyVse(),$f->slevyAktivity())),
-      $f->prehledPopis(),
+      $r['pomoc_typ'], // dobrovolník pozice
+      $r['pomoc_vice'], // dobrovolník info
+      implode(", ",array_merge($f->slevyVse(),$f->slevyAktivity())), // Slevy
+      $f->prehledPopis(), // Objednávky
     ]
   );
 }
