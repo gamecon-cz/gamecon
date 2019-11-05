@@ -10,16 +10,6 @@ if(HTTPS_ONLY) httpsOnly();
 // nastaví uživatele $u a $uPracovni
 require('scripts/prihlaseni.php');
 
-// odesílání bugreportu
-if(post('bugreport')) {
-  (new GcMail)
-    ->adresat('info@gamecon.cz')
-    ->predmet('Bugreport z adminu: '.post('nazev'))
-    ->text(post('popis')."\n\n(reportoval".$u->koncA()." ".$u->jmenoNick()." - ".$u->mail().")")
-    ->odeslat();
-  oznameni('hlášení chyby odesláno');
-}
-
 // xtemplate inicializace
 $xtpl=new XTemplate('./templates/main.xtpl');
 $xtpl->assign([

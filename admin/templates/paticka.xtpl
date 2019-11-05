@@ -1,26 +1,6 @@
 <!-- begin:paticka -->
 <div class="paticka">
-  <div class="obsah" id="bugreport">
-    <form method="post">
-      <table>
-        <tr>
-          <td>Co nefunguje:</td>
-          <td><input type="text" name="nazev" placeholder="(např. 'špatně se počítá sleva PJům')" style="width:400px"></td>
-        </tr>
-        <tr>
-          <td>Popis chyby:</td>
-          <td><textarea rows="4" name="popis" placeholder="(detailnější popis jak se chyba projevuje a jak by to mělo fungovat správně, např. 'pjům se počítá sleva za blok poloviční než má a nepočítá se jim jídlo zdarma')" style="width:400px"></textarea></td>
-        </tr>
-        <tr>
-          <td colspan="2">
-            <input type="submit" name="bugreport" value="Odeslat">
-          </td>
-        </tr>
-      </table>
-    </form>
-  </div>
   <div class="nabidka">
-    <a href="#" onclick="$('#bugreport').slideToggle(); return false">Nahlásit chybu</a> –
     <a href="program-obecny" target="_blank">Program GameConu</a> –
     <a href="last-minute-tabule" target="_blank">Volná místa</a>
     <!--
