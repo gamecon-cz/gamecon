@@ -22,7 +22,7 @@ $o = dbQuery(<<<SQL
       t.typ_1p as typ,
       if(a.typ = $6, 1, 0) as technicka,
       a.cena,
-      TIMESTAMPDIFF(HOUR, a.zacatek, a.konec) as delka
+      FORMAT(TIMESTAMPDIFF(SECOND, a.zacatek, a.konec) / 3600, 1) as delka_v_hodinach
     FROM akce_seznam a
     LEFT JOIN akce_prihlaseni p ON (a.id_akce=p.id_akce)
     LEFT JOIN akce_typy t ON (a.typ=t.id_typu)
