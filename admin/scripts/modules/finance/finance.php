@@ -15,6 +15,37 @@ if(post('sleva')) {
   oznameni('Sleva připsána.');
 }
 
+if (get('ajax') === 'uzivatel-k-vyplaceni-aktivity') {
+  $organizatoriAkciQuery=dbQuery(<<<SQL
+SELECT uzivatele_hodnoty.*
+FROM uzivatele_hodnoty
+JOIN r_uzivatele_zidle
+    ON r_uzivatele_zidle.id_uzivatele = uzivatele_hodnoty.id_uzivatele AND r_uzivatele_zidle.id_zidle IN($1, $2)
+GROUP BY uzivatele_hodnoty.id_uzivatele
+SQL
+    , [Z_ORG_AKCI, Z_PRIHLASEN]
+  );
+  $organizatorAkciData = [];
+  while($organizatorAkciRadek=mysqli_fetch_assoc($organizatoriAkciQuery)) {
+    $organizatorAkci = new Uzivatel($organizatorAkciRadek);
+    $bonusZaAktivity = $organizatorAkci->finance()->slevaVypravecMax();
+    if (!$bonusZaAktivity) {
+      continue;
+    }
+    $organizatorAkciData[] = [
+      'id' => $organizatorAkci->id(),
+      'jmeno' => $organizatorAkci->jmenoNick(),
+      'bonusZaAktivity' => $bonusZaAktivity,
+    ];
+  }
+
+  header('Content-type: application/json');
+  echo json_encode(
+    $organizatorAkciData,
+    JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+  exit();
+}
+
 $x=new XTemplate('finance.xtpl');
 if(isset($_GET['minimum']))
 {
@@ -48,5 +79,6 @@ $x->assign([
   'org'             =>  $u->jmenoNick(),
 ]);
 $x->parse('finance.pripsatSlevu');
+$x->parse('finance.vyplatitBonusZaVedeniAktivity');
 $x->parse('finance');
 $x->out('finance');
