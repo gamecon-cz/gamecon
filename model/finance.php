@@ -16,6 +16,7 @@ class Finance {
     $prehled=[],   // tabulka s detaily o platbách
     $slevyA=[],    // pole s textovými popisy slev uživatele na aktivity
     $slevyO=[],    // pole s textovými popisy obecných slev
+    $proplacenyBonus = 0, // "sleva" za aktivity, nebo-li bonus vypravěče, nebo-li odměna za vedení hry, převedená na peníze
     // součásti výsledné ceny
     $cenaAktivity   = 0.0,  // cena aktivit
     $cenaUbytovani  = 0.0,  // cena objednaného ubytování
@@ -86,7 +87,9 @@ class Finance {
     $this->slevaVyuzita = $this->sleva - $sleva;
     if($this->sleva) {
       $this->log(
-        '<b>Sleva za organizované aktivity</b><br>využitá z celkem ' . $this->slevaVypravecMax() . '',
+        '<b>Sleva za organizované aktivity</b><br>
+         využitá z celkem ' . $this->slevaVypravecMax() . '<br>
+         (z toho proplacené bonusy ' . $this->proplacenyBonus() . ')',
         '<b>' . $this->slevaVypravecVyuzita() . '</b><br>&emsp;',
         self::ORGSLEVA);
     }
@@ -154,17 +157,13 @@ class Finance {
       $castka = round($castka);
     }
     // hack změna řazení
-    $nkat = $kategorie;
     if($kategorie == 2) {
-      $nkat = 4;
+      $kategorie = 4;
+    } else if($kategorie == 3) {
+      $kategorie = 2;
+    } else if($kategorie == 4) {
+      $kategorie = 3;
     }
-    if($kategorie == 3) {
-      $nkat = 2;
-    }
-    if($kategorie == 4) {
-      $nkat = 3;
-    }
-    $kategorie = $nkat;
     // přidání
     $this->prehled[] = [
       $nazev,
@@ -361,8 +360,8 @@ class Finance {
     return $this->cenaVstupnePozde;
   }
 
-  function vyuzityBonusZaAktivity() { // TODO
-    return $this->vyuzityBonusZaAktivity;
+  public function proplacenyBonus(): float {
+    return $this->proplacenyBonus;
   }
 
   /**
@@ -461,7 +460,7 @@ class Finance {
         $this->cenaPredmety += $cena;
       }
       // přidání roku do názvu
-      if($r['model_rok'] != ROK) {
+      if($r['model_rok'] && $r['model_rok'] != ROK) {
         $r['nazev'] = $r['nazev'].' '.$r['model_rok'];
       }
       // logování do výpisu
@@ -472,6 +471,8 @@ class Finance {
         @$soucty[$r['id_predmetu']]['suma'] += $cena;
       } elseif($r['typ'] == Shop::VSTUPNE) {
         $this->logb($r['nazev'], $cena, self::VSTUPNE);
+      } elseif($r['typ'] == Shop::PROPLACENI_BONUSU) {
+        $this->proplacenyBonus += $cena;
       } else {
         $this->log($r['nazev'], $cena, $r['typ']);
       }
