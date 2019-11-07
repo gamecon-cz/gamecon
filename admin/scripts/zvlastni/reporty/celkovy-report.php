@@ -35,7 +35,7 @@ $hlavicka2=array_merge(
   $ucastPodleRoku,
   [
   'Celkem dní','Cena / den','Ubytování','Předměty a strava',
-  'Aktivity','vypravěčská sleva využitá','vypravěčská sleva přiznaná','dobrovolné vstupné','dobrovolné vstupné (pozdě)','bonus za aktivity, využitý','stav', 'slevy','zůstatek z minula','připsané platby','první blok','poslední blok','dobrovolník pozice','dobrovolník info','Slevy','Objednávky']
+  'Aktivity','vypravěčská sleva využitá','vypravěčská sleva přiznaná','dobrovolné vstupné','dobrovolné vstupné (pozdě)','proplacený bonus za vedení aktivity','stav', 'slevy','zůstatek z minula','připsané platby','první blok','poslední blok','dobrovolník pozice','dobrovolník info','Slevy','Objednávky']
 );
 $o=dbQuery(
   'SELECT
@@ -116,7 +116,7 @@ while($r=mysqli_fetch_assoc($o))
       $f->slevaVypravecMax(),
       $f->vstupne(),
       $f->vstupnePozde(),
-      $f->vyuzityBonusZaAktivity(),
+      $f->proplacenyBonus(),
       ec($f->stav()),
       ec($f->slevaObecna()),
       ec($r['zustatek']),

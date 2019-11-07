@@ -56,12 +56,14 @@ class Shop
   ];
   protected static $dny = ['středa', 'čtvrtek', 'pátek', 'sobota', 'neděle'];
 
-  const
+  public const
     PREDMET = 1,
     UBYTOVANI = 2,
     TRICKO = 3,
     JIDLO = 4,
     VSTUPNE = 5,
+    PARCON = 6,
+    PROPLACENI_BONUSU = 7,
     PN_JIDLO = 'cShopJidlo',          // post proměnná pro jídlo
     PN_JIDLO_ZMEN = 'cShopJidloZmen'; // post proměnná indikující, že se má jídlo aktualizovat
 

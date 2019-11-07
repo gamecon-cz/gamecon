@@ -38,7 +38,7 @@ class Uzivatel {
       throw new Exception('Špatný vstup konstruktoru uživatele');
   }
 
-  /** 
+  /**
    * @return string adresa uživatele ve formátu Město, Ulice ČP, PSČ, stát
    */
   function adresa() {
@@ -164,7 +164,7 @@ class Uzivatel {
     return $tituly;
   }
 
-  /** 
+  /**
    * @return Finance finance daného uživatele
    */
   function finance()
@@ -295,7 +295,7 @@ class Uzivatel {
   function jmenoNick() {
     return self::jmenoNickZjisti($this->u);
   }
-  
+
   /**
    * Určuje jméno a nick uživatele z pole odpovídajícího strukturou databázovému
    * řádku z tabulky uzivatel_hodnoty. Pokud vyžadovaná pole chybí, zjistí
@@ -316,7 +316,7 @@ class Uzivatel {
       return $r['login_uzivatele'];
     }
   }
-  
+
   /** Vrátí koncovku "a" pro holky (resp. "" pro kluky) */
   function koncA()
   {
@@ -330,11 +330,10 @@ class Uzivatel {
   }
 
   function maPravo($pravo) {
-    if(isset($this->u['prava'])) {
-      return in_array($pravo, $this->u['prava']);
-    } else {
-      throw new Exception('Nenačtena práva pro uživatele.');
+    if(!isset($this->u['prava'])) {
+      $this->nactiPrava();
     }
+    return in_array($pravo, $this->u['prava']);
   }
 
   /**
@@ -454,12 +453,12 @@ class Uzivatel {
       session_start();
     unset($_SESSION[$klic]);
   }
-  
+
   /**
    * Odebere uživatele z příjemců pravidelných mail(er)ů
-   */  
+   */
   function odhlasZMaileru() {
-    $id = $this->id(); 
+    $id = $this->id();
     dbQueryS('UPDATE uzivatele_hodnoty SET nechce_maily = NOW() WHERE id_uzivatele = $1', [$id]);
   }
 
@@ -872,13 +871,13 @@ class Uzivatel {
       throw new Exception('neplatný formát množiny id');
     }
   }
-  
+
   /**
    * Vrátí uživatele dle zadaného mailu.
    */
   static function zMailu($mail) {
     $uzivatel = Uzivatel::zWhere('WHERE email1_uzivatele = $1', [$mail]);
-    return isset($uzivatel[0]) ? $uzivatel[0] : null; 
+    return isset($uzivatel[0]) ? $uzivatel[0] : null;
   }
 
   static function zNicku($nick) {
