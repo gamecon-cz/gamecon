@@ -25,6 +25,7 @@ class Finance {
     $cenaVstupnePozde = 0.0,
     $sleva          = 0.0,  // sleva za tech. aktivity a odvedené aktivity
     $slevaObecna    = 0.0,  // sleva získaná z tabulky slev
+    $zbyvajiciSleva   = 0.0,  // zbývající sleva za odvedené aktivity (nevyužitá část)
     $slevaVyuzita   = 0.0,  // sleva za odvedené aktivity (využitá část)
     $zustatek       = 0,    // zůstatek z minula
     $platby         = 0.0,  // platby připsané na účet
@@ -83,8 +84,8 @@ class Finance {
       + $this->cenaAktivity;
 
     $sleva = $this->sleva;
-    ['cena' => $cena, 'sleva' => $sleva] = Cenik::aplikujSlevu($cena, $sleva);
-    $this->slevaVyuzita = $this->sleva - $sleva;
+    ['cena' => $cena, 'sleva' => $this->zbyvajiciSleva] = Cenik::aplikujSlevu($cena, $sleva);
+    $this->slevaVyuzita = $this->sleva - $this->zbyvajiciSleva;
     if($this->sleva) {
       $this->log(
         '<b>Sleva za organizované aktivity</b><br>
@@ -299,6 +300,13 @@ class Finance {
    */
   function slevaVypravecMax() {
     return $this->sleva;
+  }
+
+  /**
+   * Výše zbývající vypravěčské slevy
+   */
+  public function zbyvajiciSleva(): float {
+    return $this->zbyvajiciSleva;
   }
 
   /**
