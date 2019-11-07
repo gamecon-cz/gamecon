@@ -99,6 +99,9 @@ class Shop
 
     while($r = mysqli_fetch_assoc($o)) {
       $typ = $r['typ'];
+      if ($typ == self::PROPLACENI_BONUSU) {
+        continue; // není určeno k přímému prodeji
+      }
       unset($fronta); // $fronta reference na frontu kam vložit předmět (nelze dát =null, přepsalo by předchozí vrch fronty)
       if($r['nabizet_do'] && strtotime($r['nabizet_do']) < time()) $r['stav'] = 3;
       $r['nabizet'] = $r['stav'] == 1; // v základu nabízet vše v stavu 1
@@ -530,4 +533,33 @@ class Shop
     return $out;
   }
 
+  /**
+   * @return float Hodnota prevodu prevedena na penize
+   * @throws DbException
+   */
+  public function kupPrevodBonusuNaPenize(): float {
+    $zbyvajiciSleva = $this->u->finance()->zbyvajiciSleva();
+    if (!$zbyvajiciSleva) {
+      return 0.0;
+    }
+    $idPredmetuPrevodBonsuNaPenize = dbOneCol(<<<SQL
+SELECT id_predmetu
+FROM shop_predmety
+WHERE typ = $1
+ORDER BY model_rok DESC
+LIMIT 1
+SQL
+    , [self::PROPLACENI_BONUSU]
+);
+    if (!$idPredmetuPrevodBonsuNaPenize) {
+      throw new RuntimeException(sprintf('Chybi virtualni "predmet" pro prevod bonusu na penize s typem %d', self::PROPLACENI_BONUSU));
+    }
+    dbQuery(<<<SQL
+INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni, datum) 
+    VALUES ($1, $2, $3, $4, NOW())
+SQL
+    , [$this->u->id(), $idPredmetuPrevodBonsuNaPenize, ROK, $zbyvajiciSleva]
+  );
+    return $zbyvajiciSleva;
+  }
 }
