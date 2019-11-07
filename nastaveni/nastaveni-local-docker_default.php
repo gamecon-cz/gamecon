@@ -1,4 +1,5 @@
 <?php
+ini_set('display_errors', true); // zobrazovat chyby při lokálním vývoji (pokud by se stala chyba dřív, než zobrazování chyb převezme Tracy)
 
 // uživatel s základním přístupem
 define('DB_USER', 'root');
