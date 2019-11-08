@@ -124,6 +124,11 @@ Vypsat uživatele, kteří mají stav účtu vyšší rovno jak
     <td><a href="reporty/ubytovani">csv</a></td>
     <td><a href="reporty/ubytovani?format=html" target="_blank">html</a></td>
   </tr>
+  <tr>
+    <td>Celkový report {rok}</td>
+    <td><a href="reporty/celkovy-report">csv</a></td>
+    <td><a href="reporty/celkovy-report?format=html" target="_blank">html</a></td>
+  </tr>
   </tbody>
 </table>
 
