@@ -103,5 +103,8 @@ $x->assign([
 ]);
 $x->parse('finance.pripsatSlevu');
 $x->parse('finance.vyplatitBonusZaVedeniAktivity');
+
+$x->assign('rok', ROK);
+
 $x->parse('finance');
 $x->out('finance');
