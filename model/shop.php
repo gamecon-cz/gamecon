@@ -73,7 +73,7 @@ class Shop
   function __construct(Uzivatel $u, $nastaveni = null)
   {
     $this->u = $u;
-    $this->cenik = new Cenik($u, $u->finance()->slevaVypravecMax());
+    $this->cenik = new Cenik($u, $u->finance()->bonusZaVedeniAktivit());
     if(is_array($nastaveni)) {
       $this->nastaveni = array_replace($this->nastaveni, $nastaveni);
     }
@@ -534,12 +534,12 @@ class Shop
   }
 
   /**
-   * @return float Hodnota prevodu prevedena na penize
+   * @return float Hodnota prevedeneho bonusu prevedena na penize
    * @throws DbException
    */
   public function kupPrevodBonusuNaPenize(): float {
-    $zbyvajiciSleva = $this->u->finance()->zbyvajiciSleva();
-    if (!$zbyvajiciSleva) {
+    $nevyuzityBonusZaAktivity = $this->u->finance()->nevyuzityBonusZaAktivity();
+    if (!$nevyuzityBonusZaAktivity) {
       return 0.0;
     }
     $idPredmetuPrevodBonsuNaPenize = dbOneCol(<<<SQL
@@ -558,8 +558,8 @@ SQL
 INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni, datum) 
     VALUES ($1, $2, $3, $4, NOW())
 SQL
-    , [$this->u->id(), $idPredmetuPrevodBonsuNaPenize, ROK, $zbyvajiciSleva]
+    , [$this->u->id(), $idPredmetuPrevodBonsuNaPenize, ROK, $nevyuzityBonusZaAktivity]
   );
-    return $zbyvajiciSleva;
+    return $nevyuzityBonusZaAktivity;
   }
 }

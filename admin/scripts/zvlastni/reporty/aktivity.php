@@ -46,10 +46,10 @@ $p = [];
 while ($r = mysqli_fetch_assoc($o)) {
   $a = Aktivita::zId($r['id_akce']);
   $r['suma_priznanych_bonusu_vypravecum'] = $a
-    ? Finance::slevaZaAktivitu($a) * count($a->organizatori())
+    ? Finance::bonusZaAktivitu($a) * count($a->organizatori())
     : 0;
   $r['priznany_bonus_jednomu_vypraveci'] = $a
-    ? Finance::slevaZaAktivitu($a)
+    ? Finance::bonusZaAktivitu($a)
     : 0;
   $r['vypraveci_jmena'] = '';
   $r['vypraveci_ids'] = '';

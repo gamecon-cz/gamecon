@@ -51,14 +51,14 @@ SQL
   $organizatorAkciData = [];
   while($organizatorAkciRadek=mysqli_fetch_assoc($organizatoriAkciQuery)) {
     $organizatorAkci = new Uzivatel($organizatorAkciRadek);
-    $zbyvajiciBonusZaAktivity = $organizatorAkci->finance()->zbyvajiciSleva();
-    if (!$zbyvajiciBonusZaAktivity) {
+    $nevyuzityBonusZaAktivity = $organizatorAkci->finance()->nevyuzityBonusZaAktivity();
+    if (!$nevyuzityBonusZaAktivity) {
       continue;
     }
     $organizatorAkciData[] = [
       'id' => $organizatorAkci->id(),
       'jmeno' => $organizatorAkci->jmenoNick(),
-      'bonusZaAktivity' => $numberFormatter->formatCurrency($zbyvajiciBonusZaAktivity, 'CZK'),
+      'nevyuzityBonusZaAktivity' => $numberFormatter->formatCurrency($nevyuzityBonusZaAktivity, 'CZK'),
     ];
   }
 
