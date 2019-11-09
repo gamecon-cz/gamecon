@@ -34,8 +34,9 @@ $hlavicka2=array_merge(
   'PSČ','Škola','Chci bydlet s','První noc','Poslední noc (počátek)','Typ','Dorazil na GC'],
   $ucastPodleRoku,
   [
-  'Celkem dní','Cena / den','Ubytování','Předměty a strava',
-  'Aktivity','vypravěčská sleva využitá','vypravěčská sleva přiznaná','dobrovolné vstupné','dobrovolné vstupné (pozdě)','proplacený bonus za vedení aktivity','stav', 'slevy','zůstatek z minula','připsané platby','první blok','poslední blok','dobrovolník pozice','dobrovolník info','Slevy','Objednávky']
+  'Celkem dní','Cena / den','Ubytování','Předměty a strava', 'Aktivity',
+    'Bonus za vedení aktivit','Využitý bonus za vedení aktivit','Proplacený bonus za vedení aktivit',
+    'dobrovolné vstupné','dobrovolné vstupné (pozdě)','stav', 'slevy','zůstatek z minula','připsané platby','první blok','poslední blok','dobrovolník pozice','dobrovolník info','Slevy','Objednávky']
 );
 $o=dbQuery(
   'SELECT
@@ -112,11 +113,13 @@ while($r=mysqli_fetch_assoc($o))
       $f->cenaUbytovani(),
       $f->cenaPredmety(),
       $f->cenaAktivity(),
-      $f->slevaVypravecVyuzita(),
-      $f->slevaVypravecMax(),
+
+      $f->bonusZaVedeniAktivit(),
+      $f->vyuzityBonusZaAktivity(),
+      $f->proplacenyBonusZaAktivity(),
+
       $f->vstupne(),
       $f->vstupnePozde(),
-      $f->proplacenyBonus(),
       ec($f->stav()),
       ec($f->slevaObecna()),
       ec($r['zustatek']),

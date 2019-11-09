@@ -123,6 +123,7 @@ form table .orez img { width: 50px; }
 .error { color:#f22; background-image: url('error.png'); background-color: #ffeaea; }
 .success { color:#252; background-image: url('ok.png'); background-color: #ddf4dd; }
 .warning { color:#770; background-image: url('warning.png'); background-color: #ffa; }
+.error.inline, .warning.inline, .success.inline { padding: 0 8px 0 24px;background-position: 0; }
 
 /* stránkově specifické */
 .prezence .blokAktivita { border:solid 1px #898c95; margin: 0 0 10px 0; }

@@ -25,7 +25,7 @@ $o = dbQuery('
 $p = [];
 while($r = mysqli_fetch_assoc($o)) {
   $a = Aktivita::zId($r['id_akce']);
-  $r['priznany_bonus'] = $a ? Finance::slevaZaAktivitu($a) * count($a->organizatori()) : 0;
+  $r['priznany_bonus'] = $a ? Finance::bonusZaAktivitu($a) * count($a->organizatori()) : 0;
   $p[] = $r;
 }
 

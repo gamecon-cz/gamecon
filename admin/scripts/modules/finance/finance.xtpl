@@ -73,18 +73,24 @@ Vypsat uživatele, kteří mají stav účtu vyšší rovno jak
             async: true,
             method: 'GET',
             url: window.location.pathname + '?ajax=uzivatel-k-vyplaceni-aktivity',
+            timeout: 20 * 1000, // milliseconds
             success: function (data) {
               data.forEach(function(vypravec) {
                 const option = jQuery(
                   '<option value="' + encodeURIComponent(vypravec.id) + '">'
                     + vypravec.jmeno
-                    + ' - bonus k vyplacení ' + vypravec.bonusZaAktivity
+                    + ' - bonus k vyplacení ' + vypravec.nevyuzityBonusZaAktivity
                   + '</option>'
                 );
                 uzivatelKVyplaceniAktivity.append(option);
               });
               jQuery('#nahravamUzivateleKVyplaceniAktivity').remove();
               uzivatelKVyplaceniAktivity.css('display', 'initial');
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              jQuery('#nahravamUzivateleKVyplaceniAktivity').replaceWith(
+                '<span class="error inline">Něco se nepovedlo: "' + errorThrown + '"</span>'
+              );
             }
           })
         </script>
