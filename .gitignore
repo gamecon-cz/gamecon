@@ -25,7 +25,7 @@
 /web/soubory/systemove/aktivity/*
 !/web/soubory/systemove/aktivity/.keep
 /web/soubory/systemove/avatary/*
-!/web/soubory/systemove/avatary/.keep
+!/web/soubory/systemove/avatary/default.png
 /web/soubory/systemove/fotky/*
 !/web/soubory/systemove/fotky/.keep
 
