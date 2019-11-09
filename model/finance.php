@@ -16,24 +16,26 @@ class Finance {
     $prehled=[],   // tabulka s detaily o platbách
     $slevyA=[],    // pole s textovými popisy slev uživatele na aktivity
     $slevyO=[],    // pole s textovými popisy obecných slev
-    $proplacenyBonus = 0, // "sleva" za aktivity, nebo-li bonus vypravěče, nebo-li odměna za vedení hry, převedená na peníze
+    $proplacenyBonusZaVedeniAktivit = 0, // "sleva" za aktivity, nebo-li bonus vypravěče, nebo-li odměna za vedení hry, převedená na peníze
     // součásti výsledné ceny
     $cenaAktivity   = 0.0,  // cena aktivit
     $cenaUbytovani  = 0.0,  // cena objednaného ubytování
     $cenaPredmety   = 0.0,  // cena předmětů a dalších objednávek v shopu
     $cenaVstupne    = 0.0,
     $cenaVstupnePozde = 0.0,
-    $sleva          = 0.0,  // sleva za tech. aktivity a odvedené aktivity
+    $bonusZaVedeniAktivit = 0.0,  // sleva za tech. aktivity a odvedené aktivity
     $slevaObecna    = 0.0,  // sleva získaná z tabulky slev
-    $zbyvajiciSleva   = 0.0,  // zbývající sleva za odvedené aktivity (nevyužitá část)
-    $slevaVyuzita   = 0.0,  // sleva za odvedené aktivity (využitá část)
-    $zustatek       = 0,    // zůstatek z minula
+    $nevyuzityBonusZaVedeniAktivit   = 0.0,  // zbývající sleva za odvedené aktivity (nevyužitá část)
+    $vyuzityBonusZaVedenAktivit   = 0.0,  // sleva za odvedené aktivity (využitá část)
+    $zbyvajiciObecnaSleva = 0.0,
+    $vyuzitaSlevaObecna = 0.0,
+    $zustatekZPredchozichRocniku       = 0,    // zůstatek z minula
     $platby         = 0.0,  // platby připsané na účet
     $posledniPlatba;        // datum poslední připsané platby
 
   private static
     $maxSlevaAktivit=100, // v procentech
-    $slevaZaAktivitu = [ // ve formátu max. délka => sleva
+    $bonusZaVedeniAktivity = [ // ve formátu max. délka => sleva
       1  =>  55,
       2  => 110,
       5  => 220,
@@ -54,55 +56,37 @@ class Finance {
     VSTUPNE         = 12,
     CELKOVA         = 13,
     PLATBY_NADPIS   = 14,
-    ZUSTATEK        = 15,
+    ZUSTATEK_Z_PREDCHOZICH_LET        = 15,
     PLATBA          = 16,
     VYSLEDNY        = 17;
 
   /**
    * @param Uzivatel $u uživatel, pro kterého se finance sestavují
-   * @param int $zustatek zůstatek na účtu z minulých GC
+   * @param float $zustatek zůstatek na účtu z minulých GC
    */
-  function __construct(Uzivatel $u, int $zustatek) {
+  function __construct(Uzivatel $u, float $zustatek) {
     $this->u = $u;
-    $this->zustatek = $zustatek;
+    $this->zustatekZPredchozichRocniku = $zustatek;
 
     $this->zapoctiVedeniAktivit();
     $this->zapoctiSlevy();
 
-    $this->cenik = new Cenik($u, $this->sleva); // musí být načteno, i pokud není přihlášen na GC
+    $this->cenik = new Cenik($u, $this->bonusZaVedeniAktivit); // musí být načteno, i pokud není přihlášen na GC
 
     if(!$u->gcPrihlasen()) return;
 
     $this->zapoctiAktivity();
     $this->zapoctiShop();
     $this->zapoctiPlatby();
-    $this->zapoctiZustatek();
+    $this->zapoctiZustatekZPredchozichRocniku();
 
     $cena =
       + $this->cenaPredmety
       + $this->cenaUbytovani
       + $this->cenaAktivity;
 
-    $sleva = $this->sleva;
-    ['cena' => $cena, 'sleva' => $this->zbyvajiciSleva] = Cenik::aplikujSlevu($cena, $sleva);
-    $this->slevaVyuzita = $this->sleva - $this->zbyvajiciSleva;
-    if($this->sleva) {
-      $this->log(
-        '<b>Sleva za organizované aktivity</b><br>
-         využitá z celkem ' . $this->slevaVypravecMax() . '<br>
-         (z toho proplacené bonusy ' . $this->proplacenyBonus() . ')',
-        '<b>' . $this->slevaVypravecVyuzita() . '</b><br>&emsp;',
-        self::ORGSLEVA);
-    }
-
-    $zbyvajiciObecnaSleva = $this->slevaObecna;
-    ['cena' => $cena, 'sleva' => $zbyvajiciObecnaSleva] = Cenik::aplikujSlevu($cena, $zbyvajiciObecnaSleva);
-    if($this->slevaObecna) {
-      $this->log(
-        '<b>Sleva</b><br>využitá z celkem ' . $this->slevaObecna,
-        '<b>' . ($this->slevaObecna - $zbyvajiciObecnaSleva) . '</b>',
-        self::PRIPSANE_SLEVY);
-    }
+    $cena = $this->aplikujBonusZaVedeniAktivit($cena);
+    $cena = $this->aplikujSlevy($cena);
 
     $cena = $cena
       + $this->cenaVstupne
@@ -113,13 +97,13 @@ class Finance {
     $this->stav =
       - $cena
       + $this->platby
-      + $this->zustatek;
+      + $this->zustatekZPredchozichRocniku;
 
     $this->logb('Aktivity', $this->cenaAktivity, self::AKTIVITA);
     $this->logb('Ubytování', $this->cenaUbytovani, self::UBYTOVANI);
     $this->logb('Předměty a strava', $this->cenaPredmety, self::PREDMETY_STRAVA);
-    $this->logb('Připsané platby', $this->platby + $this->zustatek, self::PLATBY_NADPIS);
-    $this->logb('Stav financí', $this->stav, self::VYSLEDNY);
+    $this->logb('Připsané platby', $this->platby + $this->zustatekZPredchozichRocniku, self::PLATBY_NADPIS);
+    $this->logb('Stav financí', $this->stav(), self::VYSLEDNY);
   }
 
   /** Cena za uživatelovy aktivity */
@@ -281,12 +265,12 @@ class Finance {
   /**
    * Vrátí výchozí vygenerovanou slevu za vedení dané aktivity
    */
-  static function slevaZaAktivitu(Aktivita $a) {
+  static function bonusZaAktivitu(Aktivita $a) {
     if($a->nedavaSlevu()) return 0;
     $delka = $a->delka();
     if($delka == 0) return 0;
     $sleva = 0;
-    foreach(self::$slevaZaAktivitu as $tabDelka => $tabSleva) {
+    foreach(self::$bonusZaVedeniAktivity as $tabDelka => $tabSleva) {
       if($delka <= $tabDelka) {
         $sleva = $tabSleva;
         break;
@@ -298,22 +282,22 @@ class Finance {
   /**
    * Výše vypravěčské slevy (celková)
    */
-  function slevaVypravecMax() {
-    return $this->sleva;
+  function bonusZaVedeniAktivit(): float {
+    return $this->bonusZaVedeniAktivit;
   }
 
   /**
    * Výše zbývající vypravěčské slevy
    */
-  public function zbyvajiciSleva(): float {
-    return $this->zbyvajiciSleva;
+  public function nevyuzityBonusZaAktivity(): float {
+    return $this->nevyuzityBonusZaVedeniAktivit;
   }
 
   /**
-   * Výše vyčerpané vypravěčské slevy
+   * Výše použitého bonusu za vypravěčství (vyčerpané vypravěčské slevy)
    */
-  function slevaVypravecVyuzita() {
-    return $this->slevaVyuzita;
+  function vyuzityBonusZaAktivity(): float {
+    return $this->vyuzityBonusZaVedenAktivit;
   }
 
   /**
@@ -368,8 +352,8 @@ class Finance {
     return $this->cenaVstupnePozde;
   }
 
-  public function proplacenyBonus(): float {
-    return $this->proplacenyBonus;
+  public function proplacenyBonusZaAktivity(): float {
+    return $this->proplacenyBonusZaVedeniAktivit;
   }
 
   /**
@@ -405,7 +389,7 @@ class Finance {
         $this->cenaAktivity += $r['cena'];
       } else {
         if (!$this->u->maPravo(P_NEMA_SLEVU_AKTIVITY)) {
-          $this->sleva -= $r['cena'];
+          $this->bonusZaVedeniAktivit -= $r['cena'];
         }
       }
 
@@ -480,7 +464,7 @@ class Finance {
       } elseif($r['typ'] == Shop::VSTUPNE) {
         $this->logb($r['nazev'], $cena, self::VSTUPNE);
       } elseif($r['typ'] == Shop::PROPLACENI_BONUSU) {
-        $this->proplacenyBonus += $cena;
+        $this->proplacenyBonusZaVedeniAktivit += $cena;
       } else {
         $this->log($r['nazev'], $cena, $r['typ']);
       }
@@ -505,7 +489,7 @@ class Finance {
       if(strpos($sleva['poznamka'], '#kompenzace') !== false) {
         // speciální typ slevy: kompenzace
         // započítává se stejně jako sleva za vedené aktivity
-        $this->sleva += $sleva['castka'];
+        $this->bonusZaVedeniAktivit += $sleva['castka'];
       } else {
         // normální sleva
         // započítává se zvlášť
@@ -521,21 +505,66 @@ class Finance {
     if(!$this->u->maPravo(P_ORG_AKCI)) return;
     if($this->u->maPravo(P_NEMA_SLEVU_AKTIVITY)) return;
     foreach(Aktivita::zOrganizatora($this->u) as $a) {
-      $this->sleva += self::slevaZaAktivitu($a);
+      $this->bonusZaVedeniAktivit += self::bonusZaAktivitu($a);
     }
   }
 
   /**
    * Započítá do mezisoučtů zůstatek z minulých let
    */
-  private function zapoctiZustatek() {
-    $this->log('Zůstatek z minulých let', $this->zustatek, self::ZUSTATEK);
+  private function zapoctiZustatekZPredchozichRocniku() {
+    $this->log('Zůstatek z minulých let', $this->zustatekZPredchozichRocniku, self::ZUSTATEK_Z_PREDCHOZICH_LET);
+  }
+
+  private function aplikujBonusZaVedeniAktivit(float $cena): float {
+    $bonusZaVedeniAktivit = $this->bonusZaVedeniAktivit;
+    ['cena' => $cena, 'sleva' => $this->nevyuzityBonusZaVedeniAktivit] = Cenik::aplikujSlevu($cena, $bonusZaVedeniAktivit);
+    $this->vyuzityBonusZaVedenAktivit = $this->bonusZaVedeniAktivit - $this->nevyuzityBonusZaVedeniAktivit;
+    if($this->bonusZaVedeniAktivit) {
+      $this->log(
+        '<b>Bonus za aktivity - využitý</b>',
+        '<b>' . $this->vyuzityBonusZaVedenAktivit . '</b>',
+        self::ORGSLEVA
+      );
+      $this->log(
+        '<i>(z toho proplacený bonus ' . $this->proplacenyBonusZaVedeniAktivit . ')</i>',
+        '&nbsp;',
+        self::ORGSLEVA
+      );
+      $this->log(
+        '<i>Bonus za aktivity - celkový ' . $this->bonusZaVedeniAktivit . '</i>',
+        '&nbsp;',
+        self::ORGSLEVA
+      );
+    }
+
+    return $cena;
+  }
+
+  private function aplikujSlevy(float $cena) {
+    $slevaObecna = $this->slevaObecna;
+    ['cena' => $cena, 'sleva' => $this->zbyvajiciObecnaSleva] = Cenik::aplikujSlevu($cena, $slevaObecna);
+    $this->vyuzitaSlevaObecna = $this->slevaObecna - $this->zbyvajiciObecnaSleva;
+    if($this->slevaObecna) {
+      $this->log(
+        '<b>Sleva</b>',
+        '<b>' . $this->slevaObecna . '</b>',
+        self::PRIPSANE_SLEVY
+      );
+      $this->log(
+        '<i>Využitá sleva ' . $this->vyuzitaSlevaObecna . '</i>',
+        '&nbsp;',
+        self::PRIPSANE_SLEVY
+      );
+    }
+
+    return $cena;
   }
 
   /**
    * @return int zůstatek na účtu z minulých GC
    */
-  function zustatek() {
-    return $this->zustatek;
+  function zustatekZPredchozichRocniku(): float {
+    return $this->zustatekZPredchozichRocniku;
   }
 }
