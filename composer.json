@@ -22,6 +22,7 @@
     "ext-json": "*",
     "ext-mysqli": "*",
     "ext-mbstring": "*",
+    "ext-intl": "*",
     "michelf/php-markdown": "~1.4",
     "oyejorge/less.php": "~1.7",
     "dg/mysql-dump": "^1.4",

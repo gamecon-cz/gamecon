@@ -25,7 +25,7 @@ class UzivatelSlucovani {
 
     return $odkazy;
   }
-  
+
   /**
    * @param array $zmeny páry sloupec => hodnota, které se mají upravit v
    * novém uživateli
@@ -56,12 +56,12 @@ class UzivatelSlucovani {
     }
 
     $this->zaloguj("do id $novyId sloučeno a smazáno id $staryId");
-    $this->zaloguj("  původní zůstatek smazaného účtu:  " . $stary->finance()->zustatek());
-    $this->zaloguj("  původní zůstatek nového účtu:     " . $novy->finance()->zustatek());
+    $this->zaloguj("  původní zůstatek smazaného účtu:  " . $stary->finance()->zustatekZPredchozichRocniku());
+    $this->zaloguj("  původní zůstatek nového účtu:     " . $novy->finance()->zustatekZPredchozichRocniku());
     $this->zaloguj("  email smazaného účtu:             " . $stary->mail());
     $this->zaloguj("  email nového účtu:                " . $novy->mail());
     $novy = Uzivatel::zId($novy->id()); // přenačtení uživatele, aby se aktualizovaly finance
-    $this->zaloguj("  aktuální nový zůstatek:           " . $novy->finance()->zustatek());
+    $this->zaloguj("  aktuální nový zůstatek:           " . $novy->finance()->zustatekZPredchozichRocniku());
     $this->zaloguj("  aktuální nový email:              " . $novy->mail() . "\n");
   }
 

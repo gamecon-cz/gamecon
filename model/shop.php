@@ -56,12 +56,14 @@ class Shop
   ];
   protected static $dny = ['středa', 'čtvrtek', 'pátek', 'sobota', 'neděle'];
 
-  const
+  public const
     PREDMET = 1,
     UBYTOVANI = 2,
     TRICKO = 3,
     JIDLO = 4,
     VSTUPNE = 5,
+    PARCON = 6,
+    PROPLACENI_BONUSU = 7,
     PN_JIDLO = 'cShopJidlo',          // post proměnná pro jídlo
     PN_JIDLO_ZMEN = 'cShopJidloZmen'; // post proměnná indikující, že se má jídlo aktualizovat
 
@@ -71,7 +73,7 @@ class Shop
   function __construct(Uzivatel $u, $nastaveni = null)
   {
     $this->u = $u;
-    $this->cenik = new Cenik($u, $u->finance()->slevaVypravecMax());
+    $this->cenik = new Cenik($u, $u->finance()->bonusZaVedeniAktivit());
     if(is_array($nastaveni)) {
       $this->nastaveni = array_replace($this->nastaveni, $nastaveni);
     }
@@ -97,6 +99,9 @@ class Shop
 
     while($r = mysqli_fetch_assoc($o)) {
       $typ = $r['typ'];
+      if ($typ == self::PROPLACENI_BONUSU) {
+        continue; // není určeno k přímému prodeji
+      }
       unset($fronta); // $fronta reference na frontu kam vložit předmět (nelze dát =null, přepsalo by předchozí vrch fronty)
       if($r['nabizet_do'] && strtotime($r['nabizet_do']) < time()) $r['stav'] = 3;
       $r['nabizet'] = $r['stav'] == 1; // v základu nabízet vše v stavu 1
@@ -528,4 +533,33 @@ class Shop
     return $out;
   }
 
+  /**
+   * @return float Hodnota prevedeneho bonusu prevedena na penize
+   * @throws DbException
+   */
+  public function kupPrevodBonusuNaPenize(): float {
+    $nevyuzityBonusZaAktivity = $this->u->finance()->nevyuzityBonusZaAktivity();
+    if (!$nevyuzityBonusZaAktivity) {
+      return 0.0;
+    }
+    $idPredmetuPrevodBonsuNaPenize = dbOneCol(<<<SQL
+SELECT id_predmetu
+FROM shop_predmety
+WHERE typ = $1
+ORDER BY model_rok DESC
+LIMIT 1
+SQL
+    , [self::PROPLACENI_BONUSU]
+);
+    if (!$idPredmetuPrevodBonsuNaPenize) {
+      throw new RuntimeException(sprintf('Chybi virtualni "predmet" pro prevod bonusu na penize s typem %d', self::PROPLACENI_BONUSU));
+    }
+    dbQuery(<<<SQL
+INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni, datum) 
+    VALUES ($1, $2, $3, $4, NOW())
+SQL
+    , [$this->u->id(), $idPredmetuPrevodBonsuNaPenize, ROK, $nevyuzityBonusZaAktivity]
+  );
+    return $nevyuzityBonusZaAktivity;
+  }
 }

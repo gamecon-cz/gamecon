@@ -1,4 +1,5 @@
 <?php
+// takzvaný BFGR report
 
 require_once('sdilene-hlavicky.php');
 
@@ -12,56 +13,58 @@ function ec($cislo) { // excel číslo
 }
 
 function ut($typ) { // ubytování typ - z názvu předmětu odhadne typ
-  return preg_replace('@ ?(pondělí|úterý|středa|čtvrtek|pátek|sobota|neděle) ?@i', '', $typ);
+  return preg_replace('@ ?(pondělí|úterý|středa|čtvrtek|pátek|sobota|neděle) ?@iu', '', $typ);
 }
 
-$gcDoted = [];
+$ucastPodleRoku = [];
 $maxRok = po(REG_GC_DO) ? ROK : ROK - 1;
 for($i = 2009; $i <= $maxRok; $i++) {
-  $gcDoted[$i] = 'účast '.$i;
+  $ucastPodleRoku[$i] = 'účast '.$i;
 }
 
 $hlavicka1=array_merge(
   ['Účastník','','','','','','','','','Datum narození','','','Bydliště','','','','','',
   'Ubytovací informace','','',''],
-  array_fill(0,count($gcDoted),''),
+  array_fill(0,count($ucastPodleRoku),''),
   ['Celkové náklady','','',
   'Ostatní platby','','','','','','','','','','','','','','','']
 );
 $hlavicka2=array_merge(
   ['ID','Příjmení','Jméno','Přezdívka','Mail','Židle','Práva','Datum registrace','Prošel infopultem','Den','Měsíc','Rok','Stát','Město','Ulice',
   'PSČ','Škola','Chci bydlet s','První noc','Poslední noc (počátek)','Typ','Dorazil na GC'],
-  $gcDoted,
+  $ucastPodleRoku,
   [
-  'Celkem dní','Cena / den','Ubytování','Předměty a strava',
-  'Aktivity','vypravěčská sleva využitá','vypravěčská sleva přiznaná','dobrovolné vstupné','dobrovolné vstupné (pozdě)','stav', 'slevy','zůstatek z minula','připsané platby','první blok','poslední blok','dobrovolník pozice','dobrovolník info','Slevy','Objednávky']
+  'Celkem dní','Cena / den','Ubytování','Předměty a strava', 'Aktivity',
+    'Bonus za vedení aktivit','Využitý bonus za vedení aktivit','Proplacený bonus za vedení aktivit',
+    'dobrovolné vstupné','dobrovolné vstupné (pozdě)','stav', 'slevy','zůstatek z minula','připsané platby','první blok','poslední blok','dobrovolník pozice','dobrovolník info','Slevy','Objednávky']
 );
-$o=dbQuery('
-  SELECT
-    u.*,
-    z.posazen,
-    ( SELECT MIN(p.ubytovani_den) FROM shop_nakupy n JOIN shop_predmety p USING(id_predmetu) WHERE n.rok='.ROK.' AND n.id_uzivatele=z.id_uzivatele AND p.typ=2 ) den_prvni,
-    ( SELECT MAX(p.ubytovani_den) FROM shop_nakupy n JOIN shop_predmety p USING(id_predmetu) WHERE n.rok='.ROK.' AND n.id_uzivatele=z.id_uzivatele AND p.typ=2 ) as den_posledni,
-    ( SELECT MAX(p.nazev) FROM shop_nakupy n JOIN shop_predmety p USING(id_predmetu) WHERE n.rok='.ROK.' AND n.id_uzivatele=z.id_uzivatele AND p.typ=2 ) as ubytovani_typ,
-    ( SELECT GROUP_CONCAT(rps.jmeno_prava SEPARATOR ", ")
-      FROM r_uzivatele_zidle ruz
-      JOIN r_prava_zidle rpz ON ruz.id_zidle=rpz.id_zidle
-      JOIN r_prava_soupis rps ON rps.id_prava=rpz.id_prava
-      WHERE ruz.id_uzivatele=u.id_uzivatele AND ruz.id_zidle > 0
-      GROUP BY ruz.id_uzivatele
+$o=dbQuery(
+  'SELECT
+    uzivatele_hodnoty.*,
+    r_uzivatele_zidle.posazen,
+    ( SELECT MIN(shop_predmety.ubytovani_den) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok='.ROK.' AND shop_nakupy.id_uzivatele=r_uzivatele_zidle.id_uzivatele AND shop_predmety.typ=2 ) AS den_prvni,
+    ( SELECT MAX(shop_predmety.ubytovani_den) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok='.ROK.' AND shop_nakupy.id_uzivatele=r_uzivatele_zidle.id_uzivatele AND shop_predmety.typ=2 ) AS den_posledni,
+    ( SELECT MAX(shop_predmety.nazev) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok='.ROK.' AND shop_nakupy.id_uzivatele=r_uzivatele_zidle.id_uzivatele AND shop_predmety.typ=2 ) AS ubytovani_typ,
+    ( SELECT GROUP_CONCAT(r_prava_soupis.jmeno_prava SEPARATOR ", ")
+      FROM r_uzivatele_zidle
+      JOIN r_prava_zidle ON r_uzivatele_zidle.id_zidle=r_prava_zidle.id_zidle
+      JOIN r_prava_soupis ON r_prava_soupis.id_prava=r_prava_zidle.id_prava
+      WHERE r_uzivatele_zidle.id_uzivatele=uzivatele_hodnoty.id_uzivatele AND r_uzivatele_zidle.id_zidle > 0
+      GROUP BY r_uzivatele_zidle.id_uzivatele
     ) as pravaZDotazu,
-    ( SELECT GROUP_CONCAT(rzs.jmeno_zidle SEPARATOR ", ")
-      FROM r_uzivatele_zidle ruz
-      LEFT JOIN r_zidle_soupis rzs ON ruz.id_zidle = rzs.id_zidle
-      WHERE ruz.id_uzivatele=u.id_uzivatele AND ruz.id_zidle > 0
-      GROUP BY ruz.id_uzivatele
+    ( SELECT GROUP_CONCAT(r_zidle_soupis.jmeno_zidle SEPARATOR ", ")
+      FROM r_uzivatele_zidle
+      LEFT JOIN r_zidle_soupis ON r_uzivatele_zidle.id_zidle = r_zidle_soupis.id_zidle
+      WHERE r_uzivatele_zidle.id_uzivatele=uzivatele_hodnoty.id_uzivatele AND r_uzivatele_zidle.id_zidle > 0
+      GROUP BY r_uzivatele_zidle.id_uzivatele
     ) as zidleZDotazu,
     pritomen.posazen as prosel_info
-  FROM r_uzivatele_zidle z
-  JOIN uzivatele_hodnoty u ON(z.id_uzivatele=u.id_uzivatele)
-  LEFT JOIN r_uzivatele_zidle pritomen ON(pritomen.id_zidle = $1 AND pritomen.id_uzivatele = u.id_uzivatele)
-  WHERE z.id_zidle='.Z_PRIHLASEN.'
-  ', [Z_PRITOMEN]);
+  FROM r_uzivatele_zidle
+  JOIN uzivatele_hodnoty ON(r_uzivatele_zidle.id_uzivatele=uzivatele_hodnoty.id_uzivatele)
+  LEFT JOIN r_uzivatele_zidle pritomen ON(pritomen.id_zidle = $1 AND pritomen.id_uzivatele = uzivatele_hodnoty.id_uzivatele)
+  WHERE r_uzivatele_zidle.id_zidle='.Z_PRIHLASEN,
+  [Z_PRITOMEN]
+);
 if(mysqli_num_rows($o)==0)
   exit('V tabulce nejsou žádná data.');
 
@@ -72,7 +75,7 @@ while($r=mysqli_fetch_assoc($o))
   $un->nactiPrava(); //sql subdotaz, zlo
   $f = $un->finance();
   $ucastiHistorie=[];
-  foreach($gcDoted as $rok => $nul)
+  foreach($ucastPodleRoku as $rok => $nul)
     $ucastiHistorie[]=$un->maPravo((int)( '-'.substr($rok,2).'02' ))?'ano':'ne';
   $stat = '';
   try { $stat = $un->stat(); } catch(Exception $e) {}
@@ -110,20 +113,23 @@ while($r=mysqli_fetch_assoc($o))
       $f->cenaUbytovani(),
       $f->cenaPredmety(),
       $f->cenaAktivity(),
-      $f->slevaVypravecVyuzita(),
-      $f->slevaVypravecMax(),
+
+      $f->bonusZaVedeniAktivit(),
+      $f->vyuzityBonusZaAktivity(),
+      $f->proplacenyBonusZaAktivity(),
+
       $f->vstupne(),
       $f->vstupnePozde(),
       ec($f->stav()),
       ec($f->slevaObecna()),
       ec($r['zustatek']),
-      ec($f->platby()),
+      ec($f->platby()), // připsané platby
       ed($un->prvniBlok()),
       ed($un->posledniBlok()),
-      $r['pomoc_typ'],
-      $r['pomoc_vice'],
-      implode(", ",array_merge($f->slevyVse(),$f->slevyAktivity())),
-      strip_tags(strtr($f->prehledHtml(),['</tr>'=>", ", '</td>'=>' '])),
+      $r['pomoc_typ'], // dobrovolník pozice
+      $r['pomoc_vice'], // dobrovolník info
+      implode(", ",array_merge($f->slevyVse(),$f->slevyAktivity())), // Slevy
+      $f->prehledPopis(), // Objednávky
     ]
   );
 }
