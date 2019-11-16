@@ -31,10 +31,14 @@ class Aktivita {
     AKTIVOVANA      = 1,
     PUBLIKOVANA     = 4,
     PRIPRAVENA      = 5,
+    // typy aktivity
+    TECHNICKA       = 10,
     // stavy přihlášení
+    PRIHLASEN       = 0,
     DORAZIL         = 1,
     DORAZIL_NAHRADNIK = 2,
     NEDORAZIL       = 3,
+    POZDE_ZRUSIL    = 4,
     NAHRADNIK       = 5,
     //ignore a parametry kolem přihlašovátka
     BEZ_POKUT       = 0b00010000,   // odhlášení bez pokut
@@ -700,6 +704,7 @@ class Aktivita {
    * Vrátí pole uživatelů, kteří jsou organizátory této aktivity. Při zadaném
    * parametru poli ID nastaví tyto organizátory.
    * @todo dělat diff a ne delete/insert
+   * @return Uzivatel[]
    */
   function organizatori($ids = null) {
     if(is_array($ids)) {
