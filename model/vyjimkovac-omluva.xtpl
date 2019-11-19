@@ -1,4 +1,4 @@
-<html>
+<html lang="cs">
 <head>
   <title>Chyba</title>
   <style>
@@ -13,11 +13,13 @@
 <body style="background-color: #444; font-family: sans-serif">
   <div class="b">
     <div>
-      <h2>Vyskytla se chyba</h2>
-      <p>Omlouváme se, stránku není možné zobrazit.</p>
-      <p>Informace o chybě se uložila a budeme ji řešit jak to půjde. Jestli ale chcete, můžete nás urgovat na <a href="mailto:info@gamecon.cz">info@gamecon.cz</a> a dáme vám vědět, jak to dopadlo. Zkuste se vrátit na <a href="#" onclick="window.history.back(); return false">předchozí stránku</a>.</p>
+      <h2>Vyskytla se chyba!</h2>
+      <p>Omlouváme se, stránku není možné zobrazit, ale žádný strach, naši IT hrdinové už nejspíš sjednávají nápravu.</p>
+      <p>Pokud prahnete po kousku GameConu už teď, můžete se zatím zastavit na kus řeči na <a href="https://www.facebook.com/groups/gamecon">www.facebook.com/groups/gamecon</a>.</p>
+      <p>Jestli ale chcete, můžete nás urgovat na <a href="mailto:info@gamecon.cz">info@gamecon.cz</a> a my vám dáme vědět, jak to dopadlo.</p>
+      <p>Můžete se také zkusit vrátit na <a href="#" onclick="window.history.back(); return false">předchozí stránku</a>.</p>
     </div>
-    <img src="{picard}">
+    <img src="{picard}" alt="Kapitán Pickard to také nevidí rád">
   </div>
 </body>
 </html>
