@@ -28,7 +28,7 @@ $hlavicka=array_merge(
   ['Bydliště' => ['Stát','Město','Ulice','PSČ','Škola']],
   ['Ubytovací informace' => array_merge(['Chci bydlet s','První noc','Poslední noc (počátek)','Typ','Dorazil na GC'], $ucastPodleRoku)],
   ['Celkové náklady'=> ['Celkem dní','Cena / den','Ubytování', 'Předměty a strava']],
-  ['Ostatní platby' => ['Aktivity', 'Bonus za vedení aktivit','Využitý bonus za vedení aktivit','Proplacený bonus za vedení aktivit', 'dobrovolné vstupné','dobrovolné vstupné (pozdě)','stav', 'slevy','zůstatek z minula','připsané platby','první blok','poslední blok','dobrovolník pozice','dobrovolník info','Slevy','Objednávky']]
+  ['Ostatní platby' => ['Aktivity', 'Bonus za vedení aktivit','Využitý bonus za vedení aktivit','Proplacený bonus za vedení aktivit', 'dobrovolné vstupné','dobrovolné vstupné (pozdě)','stav', 'slevy','zůstatek z minula','připsané platby','první blok','poslední blok','dobrovolník pozice','dobrovolník info','Slevy','Objednávky', 'Poznámka']]
 );
 $o=dbQuery(
   'SELECT
@@ -132,6 +132,7 @@ while($r=mysqli_fetch_assoc($o))
       $r['pomoc_vice'], // dobrovolník info
       implode(", ",array_merge($f->slevyVse(),$f->slevyAktivity())), // Slevy
       $f->prehledPopis(), // Objednávky
+      $r['poznamka']
     ]
   );
 }
