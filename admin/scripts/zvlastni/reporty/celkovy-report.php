@@ -22,21 +22,13 @@ for($i = 2009; $i <= $maxRok; $i++) {
   $ucastPodleRoku[$i] = 'účast '.$i;
 }
 
-$hlavicka1=array_merge(
-  ['Účastník','','','','','','','','','Datum narození','','','Bydliště','','','','','',
-  'Ubytovací informace','','',''],
-  array_fill(0,count($ucastPodleRoku),''),
-  ['Celkové náklady','','',
-  'Ostatní platby','','','','','','','','','','','','','','','']
-);
-$hlavicka2=array_merge(
-  ['ID','Příjmení','Jméno','Přezdívka','Mail','Židle','Práva','Datum registrace','Prošel infopultem','Den','Měsíc','Rok','Stát','Město','Ulice',
-  'PSČ','Škola','Chci bydlet s','První noc','Poslední noc (počátek)','Typ','Dorazil na GC'],
-  $ucastPodleRoku,
-  [
-  'Celkem dní','Cena / den','Ubytování','Předměty a strava', 'Aktivity',
-    'Bonus za vedení aktivit','Využitý bonus za vedení aktivit','Proplacený bonus za vedení aktivit',
-    'dobrovolné vstupné','dobrovolné vstupné (pozdě)','stav', 'slevy','zůstatek z minula','připsané platby','první blok','poslední blok','dobrovolník pozice','dobrovolník info','Slevy','Objednávky']
+$hlavicka=array_merge(
+  ['Účastník' => ['ID','Příjmení','Jméno','Přezdívka','Mail','Židle','Práva','Datum registrace','Prošel infopultem']],
+  ['Datum narození' => ['Den','Měsíc','Rok']],
+  ['Bydliště' => ['Stát','Město','Ulice','PSČ','Škola']],
+  ['Ubytovací informace' => array_merge(['Chci bydlet s','První noc','Poslední noc (počátek)','Typ','Dorazil na GC'], $ucastPodleRoku)],
+  ['Celkové náklady'=> ['Celkem dní','Cena / den','Ubytování']],
+  ['Ostatní platby' => ['Předměty a strava', 'Aktivity', 'Bonus za vedení aktivit','Využitý bonus za vedení aktivit','Proplacený bonus za vedení aktivit', 'dobrovolné vstupné','dobrovolné vstupné (pozdě)','stav', 'slevy','zůstatek z minula','připsané platby','první blok','poslední blok','dobrovolník pozice','dobrovolník info','Slevy','Objednávky']]
 );
 $o=dbQuery(
   'SELECT
@@ -68,7 +60,17 @@ $o=dbQuery(
 if(mysqli_num_rows($o)==0)
   exit('V tabulce nejsou žádná data.');
 
-$obsah[] = $hlavicka2;
+$obsah = [0 => []];
+$hlavniHlavicka = [];
+foreach ($hlavicka as $hlavni => $vedlejsiHlavicka) {
+  $hlavniHlavicka[] = $hlavni;
+  for ($vypln = 1, $celkemVyplne = count($vedlejsiHlavicka) - 1; $vypln < $celkemVyplne; $vypln++) {
+    $hlavniHlavicka[][] = '';
+  }
+  foreach ($vedlejsiHlavicka as $vedlejsi) {
+    $obsah[0][] = $vedlejsi; // pod-hlavicka je prvnim radkem obsahu
+  }
+}
 while($r=mysqli_fetch_assoc($o))
 {
   $un=new Uzivatel($r);
@@ -134,6 +136,8 @@ while($r=mysqli_fetch_assoc($o))
   );
 }
 
-$report = Report::zPoli($hlavicka1, $obsah); // TODO druhá hlavička
-$format = get('format') == 'html' ? 'tHtml' : 'tCsv';
+$report = Report::zPoli($hlavniHlavicka, $obsah);
+$format = get('format') === 'html'
+  ? 'tHtml'
+  : 'tCsv';
 $report->$format();

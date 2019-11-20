@@ -72,10 +72,10 @@ class Report
 
   /**
    * Vytvoří report ze zadaných polí
-   * @param $hlavicky hlavičkový řádek
-   * @param $obsah pole normálních řádků
+   * @param array $hlavicky hlavičkový řádek
+   * @param array  $obsah pole normálních řádků
    */
-  static function zPoli($hlavicky, $obsah)
+  static function zPoli(array $hlavicky, array $obsah)
   {
     $report = new self();
     $report->hlavicky = $hlavicky;
