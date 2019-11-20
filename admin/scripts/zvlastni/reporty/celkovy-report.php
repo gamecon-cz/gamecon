@@ -27,8 +27,8 @@ $hlavicka=array_merge(
   ['Datum narození' => ['Den','Měsíc','Rok']],
   ['Bydliště' => ['Stát','Město','Ulice','PSČ','Škola']],
   ['Ubytovací informace' => array_merge(['Chci bydlet s','První noc','Poslední noc (počátek)','Typ','Dorazil na GC'], $ucastPodleRoku)],
-  ['Celkové náklady'=> ['Celkem dní','Cena / den','Ubytování']],
-  ['Ostatní platby' => ['Předměty a strava', 'Aktivity', 'Bonus za vedení aktivit','Využitý bonus za vedení aktivit','Proplacený bonus za vedení aktivit', 'dobrovolné vstupné','dobrovolné vstupné (pozdě)','stav', 'slevy','zůstatek z minula','připsané platby','první blok','poslední blok','dobrovolník pozice','dobrovolník info','Slevy','Objednávky']]
+  ['Celkové náklady'=> ['Celkem dní','Cena / den','Ubytování', 'Předměty a strava']],
+  ['Ostatní platby' => ['Aktivity', 'Bonus za vedení aktivit','Využitý bonus za vedení aktivit','Proplacený bonus za vedení aktivit', 'dobrovolné vstupné','dobrovolné vstupné (pozdě)','stav', 'slevy','zůstatek z minula','připsané platby','první blok','poslední blok','dobrovolník pozice','dobrovolník info','Slevy','Objednávky']]
 );
 $o=dbQuery(
   'SELECT
@@ -60,12 +60,12 @@ $o=dbQuery(
 if(mysqli_num_rows($o)==0)
   exit('V tabulce nejsou žádná data.');
 
-$obsah = [0 => []];
 $hlavniHlavicka = [];
+$obsah = [0 => []];
 foreach ($hlavicka as $hlavni => $vedlejsiHlavicka) {
   $hlavniHlavicka[] = $hlavni;
-  for ($vypln = 1, $celkemVyplne = count($vedlejsiHlavicka) - 1; $vypln < $celkemVyplne; $vypln++) {
-    $hlavniHlavicka[][] = '';
+  for ($vypln = 0, $celkemVyplne = count($vedlejsiHlavicka) - 1; $vypln < $celkemVyplne; $vypln++) {
+    $hlavniHlavicka[] = '';
   }
   foreach ($vedlejsiHlavicka as $vedlejsi) {
     $obsah[0][] = $vedlejsi; // pod-hlavicka je prvnim radkem obsahu
