@@ -1,17 +1,18 @@
 <?php
 
 /**
- * Třída pro vytvoření a vypsání reportu 
+ * Třída pro vytvoření a vypsání reportu
  */
 
 class Report
 {
   private
-    $sql,         // text dotazu, z kterého se report generuje
-    $o,           // odpověď dotazu
-    $hlavicky,    // hlavičky (názvy sloupců) výsledku
-    $poleObsah,   // obsah ve formě pole
-    $csvSep=';';  // oddělovač v csv souborech
+    $sql,          // text dotazu, z kterého se report generuje
+    $sqlParametry, // parametry dotazu, z kterého se report generuje
+    $o,            // odpověď dotazu
+    $hlavicky,     // hlavičky (názvy sloupců) výsledku
+    $poleObsah,    // obsah ve formě pole
+    $csvSep=';';   // oddělovač v csv souborech
 
   const
     BEZ_STYLU = 1;
@@ -85,41 +86,44 @@ class Report
 
   /**
    * Vytvoří report ze zadaného SQL dotazu (selectu)
-   */   
-  static function zSql($dotaz)
+   * @param string $dotaz
+   * @param array|null $dotazParametry = []
+   */
+  static function zSql(string $dotaz, array $dotazParametry = null)
   {
     $report=new self();
     $report->sql=$dotaz;
+    $report->sqlParametry=$dotazParametry;
     return $report;
   }
-  
+
   //////////////////////
   // Neveřejné metody //
   //////////////////////
-  
+
   /**
    * Konstruktor
-   */           
+   */
   protected function __construct()
   {
     $o=null;
     $hlavicky=null;
   }
-  
+
   private function hlavicky()
   {
     if($this->hlavicky)
       return $this->hlavicky;
     if(!$this->o)
-      $this->o=dbQuery($this->sql);
-    for($i=0; $i<mysqli_num_fields($this->o); $i++)
+      $this->o=dbQuery($this->sql, $this->sqlParametry);
+    for($i=0, $sloupcu=mysqli_num_fields($this->o); $i<$sloupcu; $i++)
     {
         $field_info=mysqli_fetch_field($this->o);
         $this->hlavicky[]=$field_info->name;
     }
     return $this->hlavicky;
   }
-  
+
   private function radek()
   {
     if(isset($this->poleObsah)) {
@@ -128,8 +132,8 @@ class Report
       return $t;
     }
     if(!$this->o)
-      $this->o=dbQuery($this->sql);
+      $this->o=dbQuery($this->sql, $this->sqlParametry);
     return mysqli_fetch_row($this->o);
   }
-  
+
 }
