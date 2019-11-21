@@ -16,9 +16,9 @@ function getConstants() {
 }
 
 $r = null;
-$f = new DbFormGc('reporty');
+$f = new DbFormGc('quick_reporty');
 if(get('id')) {
-  $r = dbOneLine('select * from reporty where id = $1', [get('id')]);
+  $r = dbOneLine('select * from quick_reporty where id = $1', [get('id')]);
   $f->loadRow($r);
 }
 $f->processPost();

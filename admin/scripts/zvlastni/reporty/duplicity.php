@@ -1,4 +1,5 @@
 <?php
+require_once('sdilene-hlavicky.php');
 
 // hack proklikávací form na stránku slučování
 $form =  <<<'EOT'

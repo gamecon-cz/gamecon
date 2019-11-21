@@ -1,4 +1,5 @@
 <?php
+require_once('sdilene-hlavicky.php');
 
 $t = new XTemplate('stravenky.xtpl');
 
