@@ -40,7 +40,7 @@ $reporty = [
   ['zazemi-a-program-zarizeni-mistnosti',                           'Zázemí & Program: Zařízení místností',                           ['csv', 'html']],
   ['zazemi-a-program-honko-report-pro-aktualni-rok',                'Zázemí & Program: Hoňko report pro aktuální rok',                ['csv', 'html']],
   ['zazemi-a-program-emaily-na-vypravece-dle-linii',                'Zázemí & Program: Emaily na vypravěče dle linií',                ['csv', 'html']],
-  ['zazemi-a-program-emaily na ucastniky dle linii',                'Zázemí & Program: Emaily na účastníky dle linií',                ['csv', 'html']],
+  ['zazemi-a-program-emaily-na-ucastniky-dle-linii',                'Zázemí & Program: Emaily na účastníky dle linií',                ['csv', 'html']],
   ['zazemi-a-program-aktivity-pro-dotaznik-dle-linii',              'Zázemí & Program: Aktivity pro dotazník dle linií',              ['csv', 'html']],
   ['zazemi-a-program-potvrzeni-pro-navstevniky-mladsi-patnacti-let','Zázemí & Program: Potvrzení pro návštěvníky mladší patnácti let',['csv', 'html']],
   ['zazemi-a-program-casy-a-umisteni-aktivit',                      'Zázemí & Program: Časy a umístění aktivit',                      ['csv', 'html']],
