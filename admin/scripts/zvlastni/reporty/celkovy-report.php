@@ -28,7 +28,7 @@ $hlavicka=array_merge(
   ['Bydliště' => ['Stát','Město','Ulice','PSČ','Škola']],
   ['Ubytovací informace' => array_merge(['Chci bydlet s','První noc','Poslední noc (počátek)','Typ','Dorazil na GC'], $ucastPodleRoku)],
   ['Celkové náklady'=> ['Celkem dní','Cena / den','Ubytování', 'Předměty a strava']],
-  ['Ostatní platby' => ['Aktivity', 'Bonus za vedení aktivit','Využitý bonus za vedení aktivit','Proplacený bonus za vedení aktivit', 'dobrovolné vstupné','dobrovolné vstupné (pozdě)','stav', 'slevy','zůstatek z minula','připsané platby','první blok','poslední blok','dobrovolník pozice','dobrovolník info','Slevy','Objednávky', 'Poznámka']]
+  ['Ostatní platby' => ['Aktivity', 'Bonus za vedení aktivit','Využitý bonus za vedení aktivit','Proplacený bonus za vedení aktivit', 'dobrovolné vstupné','dobrovolné vstupné (pozdě)','stav', 'suma slev','zůstatek z minula','připsané platby','první blok','poslední blok','dobrovolník pozice','dobrovolník info','Dárky a zlevněné nákupy','Objednávky', 'Poznámka']]
 );
 $o=dbQuery(
   'SELECT
@@ -123,14 +123,14 @@ while($r=mysqli_fetch_assoc($o))
       $f->vstupne(),
       $f->vstupnePozde(),
       ec($f->stav()),
-      ec($f->slevaObecna()),
+      ec($f->slevaObecna()),  // Suma slev
       ec($r['zustatek']),
       ec($f->platby()), // připsané platby
       ed($un->prvniBlok()),
       ed($un->posledniBlok()),
       $r['pomoc_typ'], // dobrovolník pozice
       $r['pomoc_vice'], // dobrovolník info
-      implode(", ",array_merge($f->slevyVse(),$f->slevyAktivity())), // Slevy
+      implode(", ",array_merge($f->slevyVse(),$f->slevyAktivity())), // Dárky a zlevněné nákupy
       $f->prehledPopis(), // Objednávky
       $r['poznamka']
     ]
