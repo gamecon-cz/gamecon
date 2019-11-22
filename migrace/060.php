@@ -37,7 +37,7 @@ VALUES
 ('zazemi-a-program-drd-historie-ucasti',                          'Zázemí & Program: DrD: Historie účasti', 1, 1),
 ('zazemi-a-program-drd-seznam-prihlasenych-pro-aktualni-rok',     'Zázemí & Program: DrD: Seznam přihlášených pro aktuální rok', 1, 1),
 ('zazemi-a-program-zarizeni-mistnosti',                           'Zázemí & Program: Zařízení místností', 1, 1),
-('zazemi-a-program-honko-report-pro-aktualni-rok',                'Zázemí & Program: Hoňko report pro aktuální rok', 1, 1),
+('zazemi-a-program-pocet-sledujicich-pro-aktualni-rok',           'Zázemí & Program: Počet sledujících pro aktuální rok', 1, 1),
 ('zazemi-a-program-emaily-na-vypravece-dle-linii',                'Zázemí & Program: Emaily na vypravěče dle linií', 1, 1),
 ('zazemi-a-program-emaily-na-ucastniky-dle-linii',                'Zázemí & Program: Emaily na účastníky dle linií', 1, 1),
 ('zazemi-a-program-aktivity-pro-dotaznik-dle-linii',              'Zázemí & Program: Aktivity pro dotazník dle linií', 1, 1),
