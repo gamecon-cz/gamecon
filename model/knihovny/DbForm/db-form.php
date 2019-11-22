@@ -94,9 +94,12 @@ class DbForm {
    *  (for case of restricted privileges) but only for update? ...?
    * @todo remove is_ajax and die in favor of methods on request object or
    *  something like that, which should be passed as parameter or injected.
+   * @param callable $validationCallback = null
+   * @param bool $redirect = true
+   * @return int|bool
    */
-  function processPost() {
-    if(empty($_POST[$this->postName()])) return;
+  function processPost(callable $validationCallback = null, bool $redirect = true) {
+    if(empty($_POST[$this->postName()])) return false;
     try {
       $this->loadPost();
       // preparations when needed
@@ -108,6 +111,9 @@ class DbForm {
       foreach($this->fields() as $f) {
         $r[$f->name()] = $f->value();
         if($f instanceof DbffPkey) $pkey = $f;
+      }
+      if ($validationCallback) {
+        $validationCallback($r);
       }
       if($pkey->value()) {
         dbUpdate($this->table(), $r, [$pkey->name() => $pkey->value()]);
@@ -121,9 +127,15 @@ class DbForm {
       if(is_ajax()) die(json_encode(['error' => $e->getMessage()]));
       else throw $e;
     }
+    if (!$redirect) {
+      return $newId ?: true;
+    }
     // redirect
-    if(is_ajax()) die(json_encode(['id' => $newId]));
-    else header('Location: '.$_SERVER['HTTP_REFERER'], true, 303);
+    if(is_ajax()) {
+      die(json_encode(['id' => $newId]));
+    }
+    header('Location: '.$_SERVER['HTTP_REFERER'], true, 303);
+    return null;
   }
 
   /**

@@ -32,7 +32,7 @@
     <td>{nazev}</td>
     <td><a href="reporty/quick?id={id}&format=csv" target="_blank">csv</a></td>
     <td><a href="reporty/quick?id={id}&format=html" target="_blank">html</a></td>
-    <td><a href="reporty/quick?id={id}" class="tlacitko">upravit</a></td>
+    <td><a href="reporty/quick-reporty?id={id}" class="tlacitko">upravit</a></td>
   </tr>
   <!-- end: quick -->
 </table>
