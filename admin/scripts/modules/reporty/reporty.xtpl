@@ -4,12 +4,20 @@
 
 <table class="zvyraznovana">
   <tr>
-    <th>Report</th>
+    <th colspan="2">Report</th>
     <th colspan="2">Formáty</th>
   </tr>
   <!-- begin: report -->
   <tr>
     <td>{nazev}</td>
+    <td>
+      <span class="hinted">i
+        <span class="hint">
+            poslední použití {jmeno_posledniho_uzivatele} {cas_posledniho_pouziti}<br>
+            celkem použito {pocet_pouziti}✕
+        </span>
+      </span>
+    </td>
     <td>{csv}</td>
     <td>{html}</td>
   </tr>
@@ -23,13 +31,21 @@
 
 <table class="zvyraznovana">
   <tr>
-    <th>Report</th>
+    <th colspan="2">Report</th>
     <th colspan="2">Formáty</th>
     <th></th>
   </tr>
   <!-- begin: quick -->
   <tr>
     <td>{nazev}</td>
+    <td>
+      <span class="hinted">i
+        <span class="hint">
+            poslední použití {jmeno_posledniho_uzivatele} {cas_posledniho_pouziti}<br>
+            celkem použito {pocet_pouziti}✕
+        </span>
+      </span>
+    </td>
     <td><a href="reporty/quick?id={id}&format=csv" target="_blank">csv</a></td>
     <td><a href="reporty/quick?id={id}&format=html" target="_blank">html</a></td>
     <td><a href="reporty/quick-reporty?id={id}" class="tlacitko">upravit</a></td>

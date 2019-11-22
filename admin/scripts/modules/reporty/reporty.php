@@ -10,33 +10,41 @@
  * pravo: 104
  */
 
-$t = new XTemplate('reporty.xtpl');
-
-$univerzalniReporty = dbFetchAll(<<<SQL
-SELECT reporty.*, reporty_log_pouziti.id_uzivatele AS id_posledniho_uzivatele, reporty_log_pouziti.cas_pouziti AS cas_posledniho_pouziti,
-       reporty_log_pouziti.casova_zona AS casova_zona_posledniho_pouziti
-FROM
-(SELECT skript, nazev, format_csv, format_html,
-       COUNT(reporty_log_pouziti.id) AS pocet_pouziti, MAX(reporty_log_pouziti.id) AS id_posledniho_logu
-FROM reporty
-LEFT JOIN reporty_log_pouziti ON reporty.id = reporty_log_pouziti.id_reportu
-LEFT JOIN uzivatele_hodnoty ON reporty_log_pouziti.id_uzivatele = uzivatele_hodnoty.id_uzivatele
-WHERE reporty.viditelny
-GROUP BY reporty.id) AS reporty
-LEFT JOIN reporty_log_pouziti ON id = id_posledniho_logu
-SQL
-);
-
-foreach ($univerzalniReporty as $r) {
-  $pouziti = [
+$pouzitiReportu = static function (array $r): array {
+  return [
     'jmeno_posledniho_uzivatele' => $r['id_posledniho_uzivatele']
       ? (new Uzivatel(dbOneLine('SELECT * FROM uzivatele_hodnoty WHERE id_uzivatele=' . $r['id_posledniho_uzivatele'])))->jmenoNick()
       : '',
     'cas_posledniho_pouziti' => $r['cas_posledniho_pouziti']
-      ? new DateTime($r['cas_posledniho_pouziti'], new DateTimeZone($r['casova_zona_posledniho_pouziti']))
+      ? (new DateTime($r['cas_posledniho_pouziti'], new DateTimeZone($r['casova_zona_posledniho_pouziti'])))->format('j. m. Y H:m:s')
       : '',
     'pocet_pouziti' => $r['pocet_pouziti']
   ];
+};
+
+$t = new XTemplate('reporty.xtpl');
+
+$univerzalniReporty = dbFetchAll(<<<SQL
+SELECT reporty.*,
+       reporty_log_pouziti.id_uzivatele AS id_posledniho_uzivatele,
+       reporty_log_pouziti.cas_pouziti AS cas_posledniho_pouziti,
+       reporty_log_pouziti.casova_zona AS casova_zona_posledniho_pouziti
+FROM (
+  SELECT skript, nazev, format_csv, format_html,
+        COUNT(reporty_log_pouziti.id) AS pocet_pouziti,
+        MAX(reporty_log_pouziti.id) AS id_posledniho_logu
+  FROM reporty
+  LEFT JOIN reporty_log_pouziti ON reporty.id = reporty_log_pouziti.id_reportu
+  LEFT JOIN uzivatele_hodnoty ON reporty_log_pouziti.id_uzivatele = uzivatele_hodnoty.id_uzivatele
+  WHERE reporty.viditelny
+  GROUP BY reporty.id
+) AS reporty
+LEFT JOIN reporty_log_pouziti ON reporty_log_pouziti.id = id_posledniho_logu
+SQL
+);
+
+foreach ($univerzalniReporty as $r) {
+  $pouziti = $pouzitiReportu($r);
   $kontext = [
     'nazev' => str_replace('{ROK}', ROK, $r['nazev']),
     'html' => $r['format_html']
@@ -45,15 +53,43 @@ foreach ($univerzalniReporty as $r) {
     'csv' => $r['format_csv']
       ? '<a href="reporty/' . $r['skript'] . (strpos('?', $r['skript']) === false ? '?' : '&') . 'format=csv">csv</a>'
       : '',
-    'pouziti' => $pouziti
+    'jmeno_posledniho_uzivatele' => $pouziti['jmeno_posledniho_uzivatele'],
+    'cas_posledniho_pouziti' => $pouziti['cas_posledniho_pouziti'],
+    'pocet_pouziti' => $pouziti['pocet_pouziti'],
   ];
   $t->assign($kontext);
   $t->parse('reporty.report');
 }
 
-$quickReporty = dbFetchAll('SELECT id, nazev FROM reporty_quick ORDER BY nazev');
+$quickReporty = dbFetchAll(<<<SQL
+SELECT reporty_quick.*,
+       reporty_log_pouziti.id_uzivatele AS id_posledniho_uzivatele,
+       reporty_log_pouziti.cas_pouziti AS cas_posledniho_pouziti,
+       reporty_log_pouziti.casova_zona AS casova_zona_posledniho_pouziti
+FROM (
+  SELECT reporty_quick.id, reporty_quick.nazev,
+  COUNT(reporty_log_pouziti.id) AS pocet_pouziti,
+  MAX(reporty_log_pouziti.id) AS id_posledniho_logu
+  FROM reporty_quick
+  LEFT JOIN reporty ON reporty.skript = CONCAT('quick-', reporty_quick.id)
+  LEFT JOIN reporty_log_pouziti ON reporty.id = reporty_log_pouziti.id_reportu
+  LEFT JOIN uzivatele_hodnoty ON reporty_log_pouziti.id_uzivatele = uzivatele_hodnoty.id_uzivatele
+  GROUP BY reporty_quick.id
+) AS reporty_quick
+LEFT JOIN reporty_log_pouziti ON reporty_log_pouziti.id = id_posledniho_logu
+ORDER BY nazev
+SQL
+);
 foreach ($quickReporty as $r) {
-  $t->assign($r);
+  $pouziti = $pouzitiReportu($r);
+  $kontext = [
+    'id' => $r['id'],
+    'nazev' => $r['nazev'],
+    'jmeno_posledniho_uzivatele' => $pouziti['jmeno_posledniho_uzivatele'],
+    'cas_posledniho_pouziti' => $pouziti['cas_posledniho_pouziti'],
+    'pocet_pouziti' => $pouziti['pocet_pouziti'],
+  ];
+  $t->assign($kontext);
   $t->parse('reporty.quick');
 }
 
