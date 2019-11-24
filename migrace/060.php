@@ -24,8 +24,11 @@ VALUES
 ('duplicity',                                                     'Duplicitní uživatelé', 0, 1),                                          
 ('stravenky',                                                     'Stravenky uživatelů', 0, 1),                                           
 ('stravenky?ciste',                                               'Stravenky (bianco)', 1, 1),
-('programove-reporty',                                            'Programový report (2015)', 1, 1),
-('zaplnenost-programu-ucastniku',                                 'Zaplněnost programu účastníků (2015)', 1, 1),
+/*
+  Dva nouzové reporty z roku 2015 už nejsou potřeba, nebudeme je převádět a necháme je zmizet
+  ('programove-reporty',                                            'Programový report (2015)', 1, 1),
+  ('zaplnenost-programu-ucastniku',                                 'Zaplněnost programu účastníků (2015)', 1, 1),
+ */
 ('maily-prihlaseni',                                              'Maily – přihlášení na GC (vč. unsubscribed)', 1, 1),
 ('maily-neprihlaseni',                                            'Maily – nepřihlášení na GC', 1, 1),
 ('maily-vypraveci',                                               'Maily – vypravěči (vč. unsubscribed)', 1, 1),
