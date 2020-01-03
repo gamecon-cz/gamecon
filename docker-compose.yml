@@ -2,6 +2,7 @@ version: "3"
 services:
   gamecon:
     build: .
+    restart: always
     volumes:
       - .:/var/www/html/gamecon:delegated
     networks:
