@@ -2,6 +2,7 @@ version: "3"
 services:
   gamecon:
     build: .
+    restart: "no"
     volumes:
       - .:/var/www/html/gamecon:delegated
     entrypoint:
@@ -13,7 +14,7 @@ services:
 
   sql.gamecon:
     image: mariadb:10.1
-    restart: always
+    restart: "no"
     environment:
       - MYSQL_ROOT_PASSWORD=root
     ports:
