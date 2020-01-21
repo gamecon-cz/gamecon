@@ -94,9 +94,9 @@ Vhodné vycházet z <a href="reporty/duplicity">reportu</a> s potenciálně dupl
       <td><label><input type="radio" name="datum_narozeni" value="{ubid}"> {ub.datumNarozeni.formatDatumStandard}</label></td>
     </tr>
     <tr>
-      <td>Zůstatek</td>
-      <td>{ua.finance.zustatek}</td>
-      <td>{ub.finance.zustatek}</td>
+      <td>Zůstatek z předchozích ročníků</td>
+      <td>{ua.finance.zustatekZPredchozichRocniku}</td>
+      <td>{ub.finance.zustatekZPredchozichRocniku}</td>
     </tr>
     <tr>
       <td>Poslední Platba</td>
