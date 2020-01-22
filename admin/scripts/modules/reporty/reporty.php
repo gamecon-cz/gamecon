@@ -10,52 +10,86 @@
  * pravo: 104
  */
 
-$reporty = [
-  ['aktivity',                              'Historie přihlášení na aktivity',              ['csv', 'html']],
-  ['pocty-her',                             'Účastníci a počty jejich aktivit'],
-  ['pocty-her-graf',                        'Graf rozložení rozmanitosti her',              ['html']],
-  ['rozesilani-ankety',                     'Rozesílání ankety s tokenem',                  ['html']],
-  ['parovani-ankety',                       'Párování ankety a údajů uživatelů',            ['html']],
-  ['grafy-ankety',                          'Grafy k anketě',                               ['html']],
-  ['update-zustatku',                       'UPDATE příkaz zůstatků pro letošní GC',        ['html']],
-  ['neprihlaseni-vypraveci',                'Nepřihlášení a neubytovaní vypravěči',         ['html']],
-  ['duplicity',                             'Duplicitní uživatelé',                         ['html']],
-  ['stravenky',                             'Stravenky uživatelů',                          ['html']],
-  ['stravenky?ciste',                       'Stravenky (bianco)',                           ['html']],
-  ['programove-reporty',                    'Programový report (2015)',                     ['csv', 'html']],
-  ['zaplnenost-programu-ucastniku',         'Zaplněnost programu účastníků (2015)',         ['csv', 'html']],
-  ['maily-prihlaseni',                      'Maily – přihlášení na GC (vč. unsubscribed)',  ['csv', 'html']],
-  ['maily-neprihlaseni',                    'Maily – nepřihlášení na GC',                   ['csv', 'html']],
-  ['maily-vypraveci',                       'Maily – vypravěči (vč. unsubscribed)',         ['csv', 'html']],
-  ['maily-dle-data-ucasti?start=0',         'Maily - nedávní účastníci (prvních 2000)'],
-  ['maily-dle-data-ucasti?start=2000',      'Maily - dávní účastníci (dalších 2000)'],
-  ['celkovy-report',                        '<br>Celkový report '.ROK.'<br><br>',           ['csv', 'html']],
-];
+$pouzitiReportu = static function (array $r): array {
+  return [
+    'jmeno_posledniho_uzivatele' => $r['id_posledniho_uzivatele']
+      ? (new Uzivatel(dbOneLine('SELECT * FROM uzivatele_hodnoty WHERE id_uzivatele=' . $r['id_posledniho_uzivatele'])))->jmenoNick()
+      : '',
+    'cas_posledniho_pouziti' => $r['cas_posledniho_pouziti']
+      ? (new DateTime($r['cas_posledniho_pouziti'], new DateTimeZone($r['casova_zona_posledniho_pouziti'])))->format('j. m. Y H:m:s')
+      : '',
+    'pocet_pouziti' => $r['pocet_pouziti']
+  ];
+};
 
 $t = new XTemplate('reporty.xtpl');
 
-foreach($reporty as $r) {
+$univerzalniReporty = dbFetchAll(<<<SQL
+SELECT reporty.*,
+       reporty_log_pouziti.id_uzivatele AS id_posledniho_uzivatele,
+       reporty_log_pouziti.cas_pouziti AS cas_posledniho_pouziti,
+       reporty_log_pouziti.casova_zona AS casova_zona_posledniho_pouziti
+FROM (
+  SELECT skript, nazev, format_csv, format_html,
+        COUNT(reporty_log_pouziti.id) AS pocet_pouziti,
+        MAX(reporty_log_pouziti.id) AS id_posledniho_logu
+  FROM reporty
+  LEFT JOIN reporty_log_pouziti ON reporty.id = reporty_log_pouziti.id_reportu
+  LEFT JOIN uzivatele_hodnoty ON reporty_log_pouziti.id_uzivatele = uzivatele_hodnoty.id_uzivatele
+  WHERE reporty.viditelny
+  GROUP BY reporty.id
+) AS reporty
+LEFT JOIN reporty_log_pouziti ON reporty_log_pouziti.id = id_posledniho_logu
+SQL
+);
+
+foreach ($univerzalniReporty as $r) {
+  $pouziti = $pouzitiReportu($r);
   $kontext = [
-    'nazev' =>  $r[1],
-    'html'  =>  '',
-    'csv'   =>  '',
+    'nazev' => str_replace('{ROK}', ROK, $r['nazev']),
+    'html' => $r['format_html']
+      ? '<a href="reporty/' . $r['skript'] . (strpos('?', $r['skript']) === false ? '?' : '&') . 'format=html" target="_blank">html</a>'
+      : '',
+    'csv' => $r['format_csv']
+      ? '<a href="reporty/' . $r['skript'] . (strpos('?', $r['skript']) === false ? '?' : '&') . 'format=csv">csv</a>'
+      : '',
+    'jmeno_posledniho_uzivatele' => $pouziti['jmeno_posledniho_uzivatele'],
+    'cas_posledniho_pouziti' => $pouziti['cas_posledniho_pouziti'],
+    'pocet_pouziti' => $pouziti['pocet_pouziti'],
   ];
-  if(!isset($r[2]) || $r[2][0] == 'csv') {
-    $kontext['csv'] = '<a href="reporty/'.$r[0].'">csv</a>';
-  }
-  if(isset($r[2])) {
-    if($r[2][0] == 'html') {
-      $kontext['html'] = '<a href="reporty/'.$r[0].'" target="_blank">html</a>';
-    } else {
-      $kontext['html'] = '<a href="reporty/'.$r[0].'?format=html" target="_blank">html</a>';
-    }
-  }
   $t->assign($kontext);
   $t->parse('reporty.report');
 }
 
-foreach(dbQuery('SELECT * FROM reporty ORDER BY nazev') as $r) {
-  $t->assign($r);
+$quickReporty = dbFetchAll(<<<SQL
+SELECT reporty_quick.*,
+       reporty_log_pouziti.id_uzivatele AS id_posledniho_uzivatele,
+       reporty_log_pouziti.cas_pouziti AS cas_posledniho_pouziti,
+       reporty_log_pouziti.casova_zona AS casova_zona_posledniho_pouziti
+FROM (
+  SELECT reporty_quick.id, reporty_quick.nazev,
+  COUNT(reporty_log_pouziti.id) AS pocet_pouziti,
+  MAX(reporty_log_pouziti.id) AS id_posledniho_logu
+  FROM reporty_quick
+  LEFT JOIN reporty ON reporty.skript = CONCAT('quick-', reporty_quick.id)
+  LEFT JOIN reporty_log_pouziti ON reporty.id = reporty_log_pouziti.id_reportu
+  LEFT JOIN uzivatele_hodnoty ON reporty_log_pouziti.id_uzivatele = uzivatele_hodnoty.id_uzivatele
+  GROUP BY reporty_quick.id
+) AS reporty_quick
+LEFT JOIN reporty_log_pouziti ON reporty_log_pouziti.id = id_posledniho_logu
+ORDER BY nazev
+SQL
+);
+foreach ($quickReporty as $r) {
+  $pouziti = $pouzitiReportu($r);
+  $kontext = [
+    'id' => $r['id'],
+    'nazev' => $r['nazev'],
+    'jmeno_posledniho_uzivatele' => $pouziti['jmeno_posledniho_uzivatele'],
+    'cas_posledniho_pouziti' => $pouziti['cas_posledniho_pouziti'],
+    'pocet_pouziti' => $pouziti['pocet_pouziti'],
+  ];
+  $t->assign($kontext);
   $t->parse('reporty.quick');
 }
 

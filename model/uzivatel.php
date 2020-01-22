@@ -922,8 +922,12 @@ class Uzivatel {
    */
   public static function zSession($klic='uzivatel')
   {
-    if(!session_id())
+    if(!session_id()) {
+      if (headers_sent($file, $line)) {
+        throw new \RuntimeException("Headers have been already sent in file '$file' on line $line, can not start session");
+      }
       session_start();
+    }
     if(isset($_SESSION[$klic]))
     {
       $u=new Uzivatel($_SESSION[$klic]);

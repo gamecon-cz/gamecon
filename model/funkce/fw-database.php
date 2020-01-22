@@ -393,8 +393,8 @@ function dbUpdate($table, $vals, $where) {
  */
 class DbException extends Exception {
 
-  function __construct() {
-    $this->message = mysqli_error($GLOBALS['spojeni']);
+  public function __construct() {
+    $this->message = mysqli_error($GLOBALS['spojeni']) . ' caused by ' . $GLOBALS['dbLastQ'];
   }
 
 }

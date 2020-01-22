@@ -125,8 +125,10 @@ class Vyjimkovac {
 
     // hlavičky
     if($e instanceof JsException)       return; // js výjimky nezobrazovat
-    elseif($e instanceof UrlException)  header('HTTP/1.1 400 Bad Request'); // nastavení chybových hlaviček
-    else                                header('HTTP/1.1 500 Internal Server Error');
+    if (!headers_sent()) {
+      if ($e instanceof UrlException)     header('HTTP/1.1 400 Bad Request'); // nastavení chybových hlaviček
+      else                                header('HTTP/1.1 500 Internal Server Error');
+    }
 
     // zobrazení
     if($this->zobrazeni == self::PLAIN) {
