@@ -146,10 +146,11 @@ function dbInsert($table, $valArray) {
 /**
  * Return last AUTO INCREMENT value
  */
-function dbInsertId() {
+function dbInsertId(bool $strict = true) {
   $id = mysqli_insert_id($GLOBALS['spojeni']);
-  if(!is_int($id) || $id == 0)
+  if($strict && (!is_int($id) || $id == 0)) {
     throw new DbException('no last id');
+  }
   return $id;
 }
 
@@ -269,6 +270,15 @@ function dbOneLineS($q,$array=null)
   else return mysqli_fetch_assoc($r);
 }
 
+function dbFetchAll(string $query, array $params = []): array {
+  $result = dbQuery($query, $params);
+  $resultAsArray = [];
+  while($row = mysqli_fetch_assoc($result)) {
+    $resultAsArray[] = $row;
+  }
+  return $resultAsArray;
+}
+
 /**
  * Executes arbitrary query on database
  * strings $1, $2, ... are replaced with values from $param
@@ -386,6 +396,7 @@ function dbUpdate($table, $vals, $where) {
   $r=mysqli_query($GLOBALS['spojeni'], $q);
   $end=microtime(true);
   if(!$r) { $type = dbGetExceptionType(); throw new $type(); };
+  return $r;
 }
 
 /**

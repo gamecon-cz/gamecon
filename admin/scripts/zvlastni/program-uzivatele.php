@@ -35,7 +35,7 @@ $chyba = chyba::vyzvedniHtml();
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <script src="files/jquery-2.1.0.min.js"></script>
     <script src="files/jquery-ui-1.10.3.custom.min.js"></script>
-    <script src="files/program-ajax.js"></script>
+    <script src="files/program-ajax.js?version=6bd8244fd9a9874ea2703cdea497877b"></script>
     <base href="<?=URL_ADMIN?>/">
     <?php $program->css(); ?>
     <style>

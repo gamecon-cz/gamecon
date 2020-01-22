@@ -1,0 +1,10 @@
+.ms-options-wrap > .ms-options > ul input[type="checkbox"] {
+  position: initial;
+  margin: 0;
+  vertical-align: bottom;
+  margin-right: 0.5em
+}
+
+.ms-options-wrap > .ms-options > ul li label {
+  cursor: pointer;
+}

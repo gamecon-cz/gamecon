@@ -81,17 +81,17 @@ $filtr['jenViditelne'] = true;
 $aktivity = Aktivita::zFiltru($filtr, ['nazev_akce', 'patri_pod', 'zacatek']);
 
 // Statické stránky
-// TODO hack
-// TODO nejasné načítání typu
 $stranky = [];
-$prefixy = ['drd', 'legendy', 'rpg', 'larpy'];
-if(isset($typ) && $typ && in_array($typ->url(), $prefixy))
-  $stranky = Stranka::zUrlPrefixu($typ->url());
+if(!empty($typ)) {
+  $stranky = Stranka::zUrlPrefixu($typ->url()); // empty array or some pages if URL matches a prefix
+}
 usort($stranky, function($a, $b){ return $a->poradi() - $b->poradi(); });
 $t->parseEach($stranky, 'stranka', 'aktivity.stranka');
 
 // Zobrazení aktivit
+/** @var Aktivita|null $a */
 $a = reset($aktivity);
+/** @var Aktivita|null $dalsi */
 $dalsi = next($aktivity);
 $orgUrls = [];
 while($a) {

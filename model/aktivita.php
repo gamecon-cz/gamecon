@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/../admin/scripts/modules/aktivity/_editor-tagu.php';
+
 /**
  * Třída aktivity
  */
@@ -57,18 +59,16 @@ class Aktivita {
    * Vytvoří aktivitu dle výstupu z databáze. Pokud výstup (např. položkou
    * "přihlášen") je vztažen vůči uživateli, je potřeba ho zadat teď jako $u,
    * později to nebude možné.
+   * @param array $dbRow
+   * @throws \Exception
    */
-  private function __construct($db)
+  private function __construct(array $dbRow)
   {
-    if(!$db)
+    if(!$dbRow) {
       throw new Exception('prázdný parametr konstruktoru');
-    else if(is_array($db))
-    {
-      $this->a=$db;
-      $this->nova=false;
     }
-    else
-      throw new Exception('nesprávný vstup konstruktoru (nepodporovaný typ)');
+    $this->a=$dbRow;
+    $this->nova=false;
   }
 
   /**
@@ -163,7 +163,7 @@ class Aktivita {
    * vytvoření závislostí na vnitřní proměnné aktivity.
    */
   static function editor(Aktivita $a = null) {
-    return self::editorParam($a);
+    return self::editorParam(new EditorTagu(), $a);
   }
 
   /**
@@ -180,8 +180,7 @@ class Aktivita {
       $zacatek = (new DateTimeCz($a['den']))->add('PT'.$a['zacatek'].'H');
       $konec   = (new DateTimeCz($a['den']))->add('PT'.$a['konec'].'H');
       $ignorovatAktivitu = isset($a['id_akce']) ? self::zId($a['id_akce']) : null;
-      foreach($a['organizatori'] as $orgId) {
-        if($orgId == 0) continue; // bug formuláře, posíla na konci vždy 0
+      foreach($a['organizatori'] ?? [] as $orgId) {
         $org = Uzivatel::zId($orgId);
         if(!$org->maVolno($zacatek, $konec, $ignorovatAktivitu)) {
           $chyby[] = 'Organizátor ' . $org->jmenoNick() . ' má v danou dobu jinou aktivitu.';
@@ -212,25 +211,57 @@ class Aktivita {
    * Vrátí html kód editoru, je možné parametrizovat, co se pomocí něj dá
    * měnit (todo)
    */
-  protected static function editorParam(Aktivita $a = null, $omezeni = []) {
+  protected static function editorParam(EditorTagu $editorTagu, Aktivita $a = null, $omezeni = []) {
     $aktivita = $a ? $a->a : null; // databázový řádek
 
     // inicializace šablony
-    $xtpl = new XTemplate(__DIR__.'/editor.xtpl');
+    $xtpl = new XTemplate(__DIR__ . '/editor-aktivity.xtpl');
     $xtpl->assign('fields', self::POSTKLIC); // název proměnné (pole) v kterém se mají posílat věci z formuláře
     $xtpl->assign('ajaxKlic',self::AJAXKLIC);
     $xtpl->assign('obrKlic', self::OBRKLIC);
     $xtpl->assign('obrKlicUrl', self::OBRKLIC.'Url');
-    $xtpl->assign('pnTagy', self::TAGYKLIC);
-    $xtpl->assign('viceScript', file_get_contents(WWW.'/soubory/doplnovani-vice.js'));
-    $xtpl->assign('tagyMoznosti', json_encode(dbOneArray('SELECT nazev FROM tagy')));
+    $xtpl->assign('aEditTag', self::TAGYKLIC);
     $xtpl->assign('limitPopisKratky', self::LIMIT_POPIS_KRATKY);
     if($a) {
       $xtpl->assign($a->a);
       $xtpl->assign('popis', dbText($aktivita['popis']));
-      $xtpl->assign('tagy', implode(', ', $a->tagy()));
       $xtpl->assign('urlObrazku', $a->obrazek());
       $xtpl->assign('vybaveni', $a->vybaveni());
+      // načtení tagů
+      $vybraneTagy = $a->tagy();
+      $vsechnyTagy = $editorTagu->getTagy();
+      $pocetVsechTagu = count($vsechnyTagy);
+      $nazevPredchoziKategorie = null;
+      foreach ($vsechnyTagy as $indexTagu => $mappedTag) {
+        $encodedTag = [];
+        foreach ($mappedTag as $tagKey => $tagValue) {
+          $encodedTag[$tagKey] = htmlspecialchars($tagValue);
+        }
+        $jeNovaKategorie = $nazevPredchoziKategorie !== $encodedTag['nazev_kategorie'];
+        $xtpl->assign('id_tagu', $encodedTag['id']);
+        $xtpl->assign('nazev_tagu', $encodedTag['nazev']);
+        $xtpl->assign('tag_selected', in_array($encodedTag['nazev'], $vybraneTagy, true) ? 'selected' : '');
+        $xtpl->assign(
+          'previous_optgroup_tag_end',
+          $jeNovaKategorie
+            ? '</optgroup>'
+            : ''
+        );
+        $xtpl->assign(
+          'optgroup_tag_start',
+          $jeNovaKategorie
+            ? '<optgroup label="' . mb_ucfirst($encodedTag['nazev_kategorie']) . '">'
+            : ''
+        );
+        $xtpl->assign(
+          'last_optgroup_tag_end',
+          $indexTagu + 1 === $pocetVsechTagu
+            ? '</optgroup>'
+            : ''
+        );
+        $xtpl->parse('upravy.tabulka.tag');
+        $nazevPredchoziKategorie = $encodedTag['nazev_kategorie'];
+      }
     }
 
     // načtení lokací
@@ -282,27 +313,30 @@ class Aktivita {
         GROUP BY u.id_uzivatele
         ORDER BY u.login_uzivatele
       ');
-      $vsichniOrg = [ 0 => '(nikdo)' ];
+      $vsichniOrg = [];
       while($r = mysqli_fetch_assoc($q)) {
         $vsichniOrg[$r['id_uzivatele']] = Uzivatel::jmenoNickZjisti($r);
       }
-      $aktOrg = $a ? array_map(function($e) { return $e->id(); }, $a->organizatori()) : [];
+      $aktOrg = $a
+        ? array_map(
+          function($e) {
+            return (int) $e->id();
+          },
+          $a->organizatori()
+        )
+        : [];
       $aktOrg[] = 0; // poslední pole má selected 0 (žádný org)
-      $poli = count($aktOrg);
-      for($i = 0; $i < $poli; $i++) {
-        foreach($vsichniOrg as $id => $org) {
-          if($id == $aktOrg[$i]) {
-            $xtpl->assign('sel', 'selected');
-          } else {
-            $xtpl->assign('sel', '');
-          }
-          $xtpl->assign('organizator', $id);
-          $xtpl->assign('organizatorJmeno', $org);
-          $xtpl->parse('upravy.tabulka.orgBox.organizator');
+      foreach($vsichniOrg as $id => $org) {
+        if(in_array($id, $aktOrg, false)) {
+          $xtpl->assign('organisatorSelected', 'selected');
+        } else {
+          $xtpl->assign('organisatorSelected', '');
         }
-        $xtpl->assign('i', $i);
-        $xtpl->parse('upravy.tabulka.orgBox');
+        $xtpl->assign('organizatorId', $id);
+        $xtpl->assign('organizatorJmeno', $org);
+        $xtpl->parse('upravy.tabulka.orgBox.organizator');
       }
+      $xtpl->parse('upravy.tabulka.orgBox');
     }
 
     // načtení typů
@@ -338,8 +372,10 @@ class Aktivita {
    * @return vrací null pokud se nic nestalo nebo aktualizovaný objekt Aktivita,
    *   pokud k nějaké aktualizaci došlo.
    */
-  static function editorZpracuj() {
-    if(!isset($_POST[self::POSTKLIC])) return null;
+  static function editorZpracuj(): ?Aktivita {
+    if(!isset($_POST[self::POSTKLIC])) {
+      return null;
+    }
 
     // úprava přijatých dat
     $a = $_POST[self::POSTKLIC];
@@ -362,7 +398,7 @@ class Aktivita {
     }
     unset($a['den']);
     // extra položky kvůli sep. tabulkám
-    $organizatori = $a['organizatori'];
+    $organizatori = $a['organizatori'] ?? [];
     unset($a['organizatori']);
     $popis = $a['popis'];
     unset($a['popis']);
@@ -408,17 +444,22 @@ class Aktivita {
     }
 
     // objektová rozhraní
-    if($f = postFile(self::OBRKLIC))      $aktivita->obrazek(Obrazek::zJpg($f));
-    if($url = post(self::OBRKLIC.'Url'))  $aktivita->obrazek(Obrazek::zUrl($url));
+    if($f = postFile(self::OBRKLIC)) {
+      $aktivita->obrazek(Obrazek::zJpg($f));
+    }
+    if($url = post(self::OBRKLIC.'Url')) {
+      $aktivita->obrazek(Obrazek::zUrl($url));
+    }
     $aktivita->organizatori($organizatori);
     $aktivita->popis($popis);
-    $tagy = [];
-    foreach(explode(',', post(self::TAGYKLIC)) as $t) {
-      $t = trim($t);
-      $t = preg_replace('@\s+@', ' ', $t);
-      if($t) $tagy[] = $t;
+    $tagIds = [];
+    foreach((array)post(self::TAGYKLIC) as $tagId) {
+      $tagId = (int)$tagId;
+      if($tagId) {
+        $tagIds[] = $tagId;
+      }
     }
-    $aktivita->tagy($tagy);
+    $aktivita->nastavTagyPodleId($tagIds);
 
     return $aktivita;
   }
@@ -467,7 +508,7 @@ class Aktivita {
 
     // nastavení vlastností pomocí OO rozhraní
     $novaAktivita = self::zId(dbInsertId());
-    $novaAktivita->tagy($this->tagy());
+    $novaAktivita->nastavTagy($this->tagy());
 
     return $novaAktivita;
   }
@@ -706,13 +747,18 @@ class Aktivita {
    * @todo dělat diff a ne delete/insert
    * @return Uzivatel[]
    */
-  function organizatori($ids = null) {
-    if(is_array($ids)) {
+  function organizatori(array $ids = null) {
+    if ($ids !== null) {
       dbQuery('DELETE FROM akce_organizatori WHERE id_akce = '.$this->id());
-      foreach($ids as $id)
-        if((int)$id)
+    }
+    if($ids) {
+      foreach($ids as $id) {
+        $id = (int)$id;
+        if($id) {
           dbQuery('INSERT INTO akce_organizatori(id_akce, id_uzivatele)
-            VALUES ('.$this->id().','.(int)$id.')');
+            VALUES ('.$this->id().','.$id.')');
+        }
+      }
     } else {
       if(!isset($this->organizatori)) $this->prednactiMN([
         'atribut'       =>  'organizatori',
@@ -1282,42 +1328,50 @@ class Aktivita {
 
   /**
    * Vrátí iterátor tagů
+   * @return string[]
    */
-  function tagy() {
-    if(func_num_args() == 0) {
-      if($this->a['tagy'])
+  function tagy(): array {
+      if($this->a['tagy']) {
         return explode(',', $this->a['tagy']);
-      else
-        return [];
-    } else {
-      $tagy = func_get_arg(0);
+      }
+      return [];
+  }
 
-      // vložit nové tagy do tabulky
+  function nastavTagy(array $tagy) {
+    // nastavit tagy aktivitám
+    foreach($this->instance() as $aktivita) {
+      dbQuery('DELETE FROM akce_sjednocene_tagy WHERE id_akce = $1', [$aktivita->id()]);
       if($tagy) {
-        $qtagy = array_map(function($e){ return '('.dbQv($e).')'; }, $tagy);
-        dbQuery('INSERT IGNORE INTO tagy(nazev) VALUES '.implode(',', $qtagy).'');
+        dbQuery(
+          'INSERT INTO akce_sjednocene_tagy(id_akce, id_tagu) SELECT $1, id FROM sjednocene_tagy WHERE nazev IN ('.dbQa($tagy).')',
+          [$aktivita->id()]
+        );
       }
-
-      // nastavit tagy aktivitám
-      foreach($this->instance() as $aktivita) {
-        dbDelete('akce_tagy', ['id_akce' => $aktivita->id()]);
-        if(!$tagy) continue;
-
-        dbQuery('
-          INSERT INTO akce_tagy(id_akce, id_tagu)
-          SELECT $1, id FROM tagy WHERE nazev IN('.dbQa($tagy).')
-        ', [$aktivita->id()]);
-      }
-
-      $this->otoc();
     }
+
+    $this->otoc();
+  }
+
+  function nastavTagyPodleId(array $idTagu) {
+    // nastavit tagy aktivitám
+    foreach($this->instance() as $aktivita) {
+      dbQuery('DELETE FROM akce_sjednocene_tagy WHERE id_akce = $1', [$aktivita->id()]);
+      if($idTagu) {
+        dbQuery(
+          'INSERT INTO akce_sjednocene_tagy(id_akce, id_tagu) SELECT $1, id FROM sjednocene_tagy WHERE id IN ('.dbQa($idTagu).')',
+          [$aktivita->id()]
+        );
+      }
+    }
+
+    $this->otoc();
   }
 
   function tym() {
-    if($this->tymova() && $this->prihlaseno() > 0 && !$this->a['zamcel'])
+    if($this->tymova() && $this->prihlaseno() > 0 && !$this->a['zamcel']) {
       return new Tym($this, $this->a);
-    else
-      return null;
+    }
+    return null;
   }
 
   function tymMaxKapacita() {
@@ -1744,12 +1798,18 @@ class Aktivita {
    *  paměti
    */
   protected static function zWhere($where, $args = null, $order = null) {
-    $url_akce       = 'IF(t2.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = t2.patri_pod), t2.url_akce) as url_temp';
-    $prihlaseni     = 'CONCAT(",",GROUP_CONCAT(p.id_uzivatele,u.pohlavi,p.id_stavu_prihlaseni),",") AS prihlaseni';
-    $tagy           = 'GROUP_CONCAT(t.nazev) as tagy';
     $o = dbQueryS("
-      SELECT t3.*, $tagy FROM (
-        SELECT t2.*, $prihlaseni, $url_akce FROM (
+      SELECT t3.*,
+             (SELECT GROUP_CONCAT(sjednocene_tagy.nazev ORDER BY kst.poradi, sjednocene_tagy.nazev)
+FROM sjednocene_tagy
+         JOIN akce_sjednocene_tagy ON akce_sjednocene_tagy.id_tagu = sjednocene_tagy.id
+         JOIN kategorie_sjednocenych_tagu kst on sjednocene_tagy.id_kategorie_tagu = kst.id
+             WHERE akce_sjednocene_tagy.id_akce = t3.id_akce
+             ) AS tagy
+      FROM (
+        SELECT t2.*, CONCAT(',',GROUP_CONCAT(p.id_uzivatele,u.pohlavi,p.id_stavu_prihlaseni),',') AS prihlaseni,
+               IF(t2.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = t2.patri_pod), t2.url_akce) as url_temp
+        FROM (
           SELECT a.*, al.poradi
           FROM akce_seznam a
           LEFT JOIN akce_lokace al ON (al.id_lokace = a.lokace)
@@ -1759,9 +1819,6 @@ class Aktivita {
         LEFT JOIN uzivatele_hodnoty u ON (u.id_uzivatele = p.id_uzivatele)
         GROUP BY t2.id_akce
       ) as t3
-      LEFT JOIN akce_tagy at ON (at.id_akce = t3.id_akce)
-      LEFT JOIN tagy t ON (t.id = at.id_tagu)
-      GROUP BY t3.id_akce
       $order
     ", $args);
 

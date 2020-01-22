@@ -45,11 +45,11 @@ class Typ extends DbObject {
     return (bool) $this->r['mail_neucast'];
   }
 
-  function url() {
+  function url(): string {
     return $this->r['url_typu_mn'];
   }
 
-  static function zUrl($url = null) {
+  static function zUrl($url = null): ?Typ {
     if($url === null) $url = Url::zAktualni()->cela();
     return self::zWhereRadek('url_typu_mn = $1', [$url]);
   }

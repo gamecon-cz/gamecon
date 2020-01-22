@@ -1,0 +1,57 @@
+<!-- begin:tagy -->
+
+<div style="text-align: right; padding-bottom: 1em">
+  <button type="button" onclick="$('#{editorTaguHtmlId}').modal(); resetTagEditorValues()">Přidat tag</button>
+</div>
+<table class="skryteRadky zvyraznovana" id="tagyTabulka">
+  <tr>
+    <th>Název</th>
+    <th>Kategorie</th>
+    <th>Poznámka</th>
+    <th>Upravit</th>
+  </tr>
+  <!-- begin:tag -->
+  {hlavniKategorieTr}
+  <tr id="tag{id}" data-tag="{tag_json}">
+    <td id="tag{id}Nazev">{nazev}</td>
+    <td id="tag{id}NazevKategorie" style="white-space: nowrap">{nazev_kategorie}</td>
+    <td id="tag{id}Poznamka">{poznamka}</td>
+    <td>
+      <form method="post">
+        <input type="submit" value="uprav" onclick="editTag('tag{id}'); return false;"/>
+      </form>
+    </td>
+  </tr>
+  <!-- end:tag -->
+</table>
+
+<script type="text/javascript">
+  editTag = function (rowId) {
+    const data = $('#' + rowId).data();
+    const tag = data.tag;
+    const editorTagu = $('#{editorTaguHtmlId}');
+    editorTagu.data('{editorTaguData}', tag);
+    editorTagu.modal();
+  };
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const editorTagu = document.getElementById('{editorTaguHtmlId}')
+    editorTagu.addEventListener('tagEdited', function (event) {
+      const editedTag = event.detail && event.detail.tag;
+      if (editedTag) {
+        $('#tag' + editedTag.id).data('tag', editedTag);
+        document.getElementById('tag' + editedTag.id + 'Nazev').textContent = editedTag.nazev;
+        document.getElementById('tag' + editedTag.id + 'NazevKategorie').textContent = editedTag.nazev_kategorie;
+        document.getElementById('tag' + editedTag.id + 'Poznamka').textContent = editedTag.poznamka;
+      }
+    })
+    editorTagu.addEventListener('tagCreated', function (event) {
+      location.reload();
+    });
+  });
+</script>
+
+<div style="text-align: right; padding-top: 1em">
+  <button type="button" onclick="$('#{editorTaguHtmlId}').modal(); resetTagEditorValues()">Přidat tag</button>
+</div>
+<!-- end:tagy -->

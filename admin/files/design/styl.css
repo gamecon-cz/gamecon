@@ -63,6 +63,7 @@ hr { border: none; border-top: solid 1px #ddd; margin: 1.5em 0; }
 
 /* Formuláře */
 input, textarea, select, .tlacitko { border: solid 1px #999; padding: 2px; border-radius: 2px; margin: 0; font: inherit; background-color: #fff; color: inherit; }
+input[disabled], textarea[disabled], select[disabled] { background-color: lightgray; cursor: not-allowed }
 input::-moz-focus-inner { border: 0; padding: 0; /* margin-top:-2px; margin-bottom: -2px; */ /* FF fix */ }
 input[type="submit"], input[type="button"], .tlacitko { background: linear-gradient(to top, #d8d8d8 0%, #fafafa 100%); padding: 2px 8px; }
 input[type="submit"]:hover, input[type="button"]:hover, .tlacitko:hover { border-color: #666; cursor: pointer; }
@@ -146,3 +147,24 @@ form table .orez img { width: 50px; }
   background-color: rgba(255, 191, 191, 0.85); text-align: center; z-index: 99;
   box-shadow: 0 0 10px #aaa; padding: 28px; color:#a00; font-size: 20px; }
 .chybaBlok > .oznameni { background-color: rgba(212, 241, 212, 0.75); color:#252; }
+
+.editor-tagu input[type='text'], .editor-tagu textarea {
+  min-width: 30em;
+}
+
+.editor-tagu .error, .editor-tagu .success, .editor-tagu .warning {
+  padding: 8px 8px 8px 40px;
+}
+
+button {
+  cursor: pointer;
+}
+
+button .ajax-loader {
+  margin-left: 1em;
+  vertical-align: middle;
+}
+
+.editor-tagu input, .editor-tagu input[type=text], .editor-tagu select , .editor-tagu textarea {
+  padding: 5px;
+}

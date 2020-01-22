@@ -7,8 +7,9 @@
  * pravo: 102
  */
 
-if(Aktivita::editorTestJson())        // samo sebe volání ajaxu
+if(Aktivita::editorTestJson()) {       // samo sebe volání ajaxu
   die(Aktivita::editorChybyJson());
+}
 
 try {
   if($a = Aktivita::editorZpracuj())  // úspěšné uložení změn ve formuláři
@@ -26,12 +27,11 @@ try {
 }
 
 $a=Aktivita::zId(get('aktivitaId'));  // načtení aktivity podle předaného ID
-$editor=Aktivita::editor($a);         // načtení html editoru aktivity
+$editorAktivity=Aktivita::editor($a);         // načtení html editoru aktivity
+
 
 ?>
 
-
-
-<form method="post" enctype="multipart/form-data">
-  <?=$editor?>
+<form method="post" enctype="multipart/form-data" style="position: relative">
+  <?=$editorAktivity?>
 </form>
