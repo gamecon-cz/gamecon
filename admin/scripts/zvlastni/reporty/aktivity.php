@@ -7,6 +7,8 @@ $o = dbQuery(<<<SQL
     (SELECT
       a.id_akce,
       a.nazev_akce,
+      a.bez_slevy,
+      a.teamova,
       count(p.id_uzivatele) as prihlaseno_celkem,
       count(if(p.id_stavu_prihlaseni IN ($1, $2), 1, null)) as dorazilo_celkem,
       count(if(p.id_stavu_prihlaseni = $2, 1, null)) as dorazilo_nahradniku,
@@ -67,5 +69,5 @@ while ($r = mysqli_fetch_assoc($o)) {
 }
 
 $report = Report::zPole($p);
-$format = get('format') == 'html' ? 'tHtml' : 'tCsv';
+$format = get('format') === 'html' ? 'tHtml' : 'tCsv';
 $report->$format();
