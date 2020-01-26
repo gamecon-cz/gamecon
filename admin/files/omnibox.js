@@ -19,10 +19,10 @@ $(function() {
   });
 
   // Klávesové zkratky
-  $(document).bind('keydown', 'alt+u', function(){
+  $(document).on('keydown', null, 'alt+u', function(){
     $('#omnibox').focus();
     return false;
-  }).bind('keydown', 'alt+z', function(){
+  }).on('keydown', null, 'alt+z', function(){
     $('#zrusit').submit();
     return false;
   });

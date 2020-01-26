@@ -71,7 +71,7 @@ function tgEl(e, fo, fc) {
       </div>
     </form>
     <script>
-      $('form').last().submit(function(){
+      $('form').last().on('submit', function(){
         $(this).find(':selected[value=""]').attr('disabled', true);
       });
     </script>
