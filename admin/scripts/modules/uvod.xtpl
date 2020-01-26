@@ -56,7 +56,7 @@
       </form>
       <!-- begin:upoMaterialy -->
       <script>
-        $('form').last().submit(function(){
+        $('form').last().on('submit', function(){
           return confirm('Uživatel má záporný stav financí, přesto dát materiály?');
         });
       </script>
@@ -201,7 +201,7 @@
         });
       </script>
   </form>
-  <script src="files/jquery.autosize.js"></script>
+  <script src="files/jquery.autosize-1.18.13.js"></script>
   <script>
     $('textarea').last().focus(function(){ $(this).css('width', '98%').autosize() });
   </script>
@@ -229,7 +229,7 @@
   </form>
   <script>
     if("{id}")  $('[name="prodej[id_uzivatele]"]').attr('disabled',true);
-    $('form').last().submit(function(){
+    $('form').last().on('submit', function(){
       if($(this).find('[name="prodej[id_predmetu]"]').val()==0)
       {
         alert('vyber předmět');
@@ -273,8 +273,8 @@
   </table>
   </form>
   <script>
-    $('form').last().submit(function(){
-      if($(this).find('[name="rychloreg[email1_uzivatele]"]').val()=='' || $(this).find('[name="rychloreg[pohlavi]"]:checked').size()==0)
+    $('form').last().on('submit', function(){
+      if($(this).find('[name="rychloreg[email1_uzivatele]"]').val()=='' || $(this).find('[name="rychloreg[pohlavi]"]:checked').length==0)
       {
         alert('všechny položky jsou povinné');
         return false;
@@ -304,7 +304,7 @@ function sloupce() {
   // vysypat boxy mimo, pokud tam jsou
   $boxy.insertAfter($sloupce);
   // vytvořit adekvátní počet sloupců
-  var i = $('.sloupce > .sloup').size();
+  var i = $('.sloupce > .sloup').length;
   while(i * colw < fullw - colw) {
     $sloupce.append( $('.sloupce > .sloup').last().clone() );
     i++;
@@ -325,7 +325,7 @@ function sloupce() {
   });
 };
 sloupce();
-$(window).resize(function() { sloupce(); });
+$(window).on('resize', function() { sloupce(); });
 </script>
 
 
