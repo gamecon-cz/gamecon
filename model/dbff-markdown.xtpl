@@ -9,7 +9,7 @@
   </tr>
 </table>
 <script src="files/showdown.js"></script>
-<script src="files/jquery.autosize.js"></script>
+<script src="files/jquery.autosize-1.18.13.js"></script>
 <script>
   var $text = $('textarea[name="{pnText}"]').last();
   $text.autosize();
