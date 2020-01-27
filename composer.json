@@ -23,7 +23,6 @@
   "require": {
     "php": ">=7.3",
     "ext-json": "*",
-    "ext-intl": "*",
     "ext-mysqli": "*",
     "ext-mbstring": "*",
     "ext-pdo": "*",
@@ -36,7 +35,8 @@
     "godric/db-backup": "dev-master",
     "defuse/php-encryption": "^2.1",
     "godric/db-migrations": "dev-master",
-    "setasign/tfpdf": "^1.25"
+    "setasign/tfpdf": "^1.25",
+    "google/apiclient": "^2.4"
   },
   "require-dev": {
     "dg/ftp-deployment": "~2.7",
