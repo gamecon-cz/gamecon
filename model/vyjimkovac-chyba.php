@@ -25,8 +25,12 @@ class VyjimkovacChyba {
       'url'     => 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'],
       'zdroj'   => @$_SERVER['HTTP_REFERER'] ?: null,
     ];
-    if($u = Uzivatel::zSession()) {
-      $r['uzivatel'] = $u->id();
+    $u = null;
+    try {
+      if ($u = Uzivatel::zSession()) { // selze pokud uz session jeste nebezi a na vystupu uz je nejaky outpout
+        $r['uzivatel'] = $u->id();
+      }
+    } catch (\Exception $exception) {
     }
     return $r;
   }
