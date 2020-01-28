@@ -17,6 +17,11 @@
       "url": "https://github.com/godric-cz/db-migrations"
     }
   ],
+  "autoload": {
+    "psr-4": {
+      "Gamecon\\Admin\\Modules\\Aktivity\\GoogleSheets\\": "admin/scripts/modules/aktivity/_GoogleSheets"
+    }
+  },
   "require": {
     "php": ">=7.1",
     "ext-json": "*",
