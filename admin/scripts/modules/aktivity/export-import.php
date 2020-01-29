@@ -11,12 +11,12 @@ use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleApiTokenStorage;
  */
 
 $g = new GoogleApiTokenStorage();
-var_dump($g->deleteTokenFor(123));
-var_dump($g->hasTokenFor(123));
-var_dump($g->setTokenFor(['foo', 'aha' => 'coze'], 123));
-var_dump($g->hasTokenFor(123));
-var_dump($g->getTokenFor(123));
-var_dump($g->deleteTokenFor(123));
+var_dump($g->deleteTokensFor(123));
+var_dump($g->hasTokensFor(123));
+var_dump($g->setTokensFor(['foo', 'aha' => 'coze'], 123));
+var_dump($g->hasTokensFor(123));
+var_dump($g->getTokensFor(123));
+var_dump($g->deleteTokensFor(123));
 die;
 
 try {
