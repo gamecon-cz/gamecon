@@ -2,14 +2,14 @@
 
 namespace Gamecon\Admin\Modules\Aktivity\GoogleSheets;
 
-use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\FailedSavingGoogleApiToken;
+use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\FailedSavingGoogleApiTokens;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleApiException;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleApiTokenNotFound;
-use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\InvalidGoogleApiTokenStructure;
+use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\InvalidGoogleApiTokensStructure;
 
 class GoogleApiTokenStorage
 {
-  public function hasTokenFor(int $userId): bool {
+  public function hasTokensFor(int $userId): bool {
     return (bool)dbOneCol(<<<'SQL'
 SELECT 1 FROM google_api_user_tokens WHERE user_id=$0
 SQL
@@ -21,30 +21,30 @@ SQL
    * @param int $userId
    * @return array
    * @throws GoogleApiTokenNotFound
-   * @throws InvalidGoogleApiTokenStructure
+   * @throws InvalidGoogleApiTokensStructure
    */
-  public function getTokenFor(int $userId): array {
-    $encodedToken = dbOneCol(<<<SQL
-SELECT token FROM google_api_user_tokens WHERE user_id=$0
+  public function getTokensFor(int $userId): array {
+    $encodedTokens = dbOneCol(<<<SQL
+SELECT tokens FROM google_api_user_tokens WHERE user_id=$0
 SQL
       , [0 => $userId]
     );
-    if (!$encodedToken) {
-      throw new GoogleApiTokenNotFound("No Google API token found for user $userId");
+    if (!$encodedTokens) {
+      throw new GoogleApiTokenNotFound("No Google API tokens found for user $userId");
     }
-    return $this->tokenFromString((string)$encodedToken);
+    return $this->tokensFromString((string)$encodedTokens);
   }
 
   /**
-   * @param string $tokenAsString
+   * @param string $tokensAsString
    * @return array
-   * @throws InvalidGoogleApiTokenStructure
+   * @throws InvalidGoogleApiTokensStructure
    */
-  private function tokenFromString(string $tokenAsString): array {
-    $decoded = json_decode($tokenAsString, true);
+  private function tokensFromString(string $tokensAsString): array {
+    $decoded = json_decode($tokensAsString, true);
     if ($decoded === null) {
-      throw new InvalidGoogleApiTokenStructure(
-        'Given token can not be decoded from string to JSON: ' . json_last_error_msg(),
+      throw new InvalidGoogleApiTokensStructure(
+        'Given tokens can not be decoded from string to JSON: ' . json_last_error_msg(),
         json_last_error()
       );
     }
@@ -52,23 +52,23 @@ SQL
   }
 
   /**
-   * @param array $token
+   * @param array $tokens
    * @param int $userId
-   * @throws FailedSavingGoogleApiToken
-   * @throws InvalidGoogleApiTokenStructure
+   * @throws FailedSavingGoogleApiTokens
+   * @throws InvalidGoogleApiTokensStructure
    */
-  public function setTokenFor(array $token, int $userId) {
+  public function setTokensFor(array $tokens, int $userId) {
     try {
       dbQuery(<<<SQL
-INSERT INTO google_api_user_tokens (token, user_id)
+INSERT INTO google_api_user_tokens (tokens, user_id)
 VALUES ($0, $1)
-ON DUPLICATE KEY UPDATE token = $0
+ON DUPLICATE KEY UPDATE tokens = $0
 SQL
-        , [0 => $this->tokenToString($token), 1 => $userId]
+        , [0 => $this->tokensToString($tokens), 1 => $userId]
       );
     } catch (\DbException $dbException) {
-      throw new FailedSavingGoogleApiToken(
-        sprintf('Can not save Google API token for user %s: %s', $userId, $dbException->getMessage()),
+      throw new FailedSavingGoogleApiTokens(
+        sprintf('Can not save Google API tokens for user %s: %s', $userId, $dbException->getMessage()),
         $dbException->getCode(),
         $dbException
       );
@@ -76,15 +76,15 @@ SQL
   }
 
   /**
-   * @param array $token
+   * @param array $tokens
    * @return string
-   * @throws InvalidGoogleApiTokenStructure
+   * @throws InvalidGoogleApiTokensStructure
    */
-  private function tokenToString(array $token): string {
-    $encoded = json_encode($token, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+  private function tokensToString(array $tokens): string {
+    $encoded = json_encode($tokens, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     if ($encoded === false) {
-      throw new InvalidGoogleApiTokenStructure(
-        'Given token can not be encoded as JSON string: ' . json_last_error_msg(),
+      throw new InvalidGoogleApiTokensStructure(
+        'Given tokens can not be encoded as JSON string: ' . json_last_error_msg(),
         json_last_error()
       );
     }
@@ -96,7 +96,7 @@ SQL
    * @return bool
    * @throws GoogleApiException
    */
-  public function deleteTokenFor(int $userId): bool {
+  public function deleteTokensFor(int $userId): bool {
     try {
       dbQuery(<<<SQL
 DELETE FROM google_api_user_tokens WHERE user_id=$0
@@ -105,7 +105,7 @@ SQL
       );
     } catch (\DbException $exception) {
       throw new GoogleApiException(
-        "Can not delete Google API token for user $userId: {$exception->getMessage()}",
+        "Can not delete Google API tokens for user $userId: {$exception->getMessage()}",
         $exception->getCode(),
         $exception
       );
