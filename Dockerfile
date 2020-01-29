@@ -11,8 +11,8 @@ RUN apt-get update && apt-get install -y \
       librabbitmq-dev \
       libyaml-0-2 libyaml-dev \
       libfreetype6-dev libjpeg62-turbo-dev \
-      libgd-dev
-      mysql-client
+      libgd-dev \
+      mysql-common
 
 # Install tools
 RUN apt-get install -y \
