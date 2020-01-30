@@ -3,12 +3,13 @@
 /**
  *
  */
-class UzivatelSlucovani {
+class UzivatelSlucovani
+{
 
   /**
-   * @return pole dvojic [tabulka, sloupec] odkazující na id_uzivatele
+   * @return array pole dvojic [tabulka, sloupec] odkazující na id_uzivatele
    */
-  private function odkazujiciTabulky() {
+  private function odkazujiciTabulky(): array {
     $odkazy = dbQuery('
       SELECT table_name, column_name
       FROM information_schema.key_column_usage
@@ -30,26 +31,30 @@ class UzivatelSlucovani {
    * @param array $zmeny páry sloupec => hodnota, které se mají upravit v
    * novém uživateli
    */
-  function sluc(Uzivatel $stary, Uzivatel $novy, $zmeny) {
+  function sluc(Uzivatel $stary, Uzivatel $novy, array $zmeny) {
     $staryId = $stary->id();
-    $novyId  = $novy->id();
+    $novyId = $novy->id();
 
     dbBegin();
     try {
       // převedení referencí na nového uživatele
-      foreach($this->odkazujiciTabulky() as [$tabulka, $sloupec]) {
-        $ignore = $tabulka == 'r_uzivatele_zidle' ? 'IGNORE' : ''; // u židlí ignorovat duplicity
+      foreach ($this->odkazujiciTabulky() as [$tabulka, $sloupec]) {
+        $ignore = $tabulka === 'r_uzivatele_zidle' ? 'IGNORE' : ''; // u židlí ignorovat duplicity
         dbQuery("UPDATE $ignore $tabulka SET $sloupec = $novyId WHERE $sloupec = $staryId");
       }
 
       // smazání duplicitního uživatele - první aby update nezpůsobil duplicity
-      dbDelete('uzivatele_hodnoty', ['id_uzivatele' => $staryId]);
+      dbQuery(<<<SQL
+DELETE FROM uzivatele_hodnoty WHERE id_uzivatele = $1
+SQL
+        , [$staryId]
+      );
 
       // aktualizace nového uživatele
       dbUpdate('uzivatele_hodnoty', $zmeny, ['id_uzivatele' => $novyId]);
 
       dbCommit();
-    } catch(Exception $e) {
+    } catch (Exception $e) {
       // catch a rollback nutný, jinak chyba způsobí visící perzist. spojení a deadlocky
       dbRollback();
       throw $e;
