@@ -11,8 +11,7 @@ RUN apt-get update && apt-get install -y \
       librabbitmq-dev \
       libyaml-0-2 libyaml-dev \
       libfreetype6-dev libjpeg62-turbo-dev \
-      libgd-dev \
-      mysql-common
+      libgd-dev
 
 # Install tools
 RUN apt-get install -y \
@@ -22,6 +21,7 @@ RUN apt-get install -y \
       gnupg \
       git \
       sudo \
+      mysql-common \
     && apt-get clean; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
 # images support, like imagecreatefromjpeg()
