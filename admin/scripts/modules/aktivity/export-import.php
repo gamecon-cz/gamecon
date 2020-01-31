@@ -1,6 +1,8 @@
 <?php
 namespace Gamecon\Admin\Modules\Aktivity;
 
+use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleApiClient;
+use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleApiCredentials;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleApiTokenStorage;
 
 /**
@@ -10,13 +12,22 @@ use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleApiTokenStorage;
  * pravo: 102
  */
 
-$g = new GoogleApiTokenStorage();
-var_dump($g->deleteTokensFor(123));
-var_dump($g->hasTokensFor(123));
-var_dump($g->setTokensFor(['foo', 'aha' => 'coze'], 123));
-var_dump($g->hasTokensFor(123));
-var_dump($g->getTokensFor(123));
-var_dump($g->deleteTokensFor(123));
+/** @type \Uzivatel $u */
+$googleApiClient = new GoogleApiClient(
+  new GoogleApiCredentials(GOOGLE_API_CREDENTIALS),
+  new GoogleApiTokenStorage(),
+  $u->id()
+);
+
+if (isset($_GET['code'])) {
+  $googleApiClient->validateAuthorizationByCode($_GET['code']);
+}
+
+var_dump($googleApiClient);
+var_dump($googleApiClient->isAuthorized());
+if (!$googleApiClient->isAuthorized()) {
+  echo $googleApiClient->getAuthorizationUrl();
+}
 die;
 
 try {
