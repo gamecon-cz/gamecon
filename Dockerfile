@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y \
       libgd-dev
 
 # Install tools
-RUN apt-get install -y \
+RUN apt-get update && apt-get install -y \
       mc \
       vim \
       curl \
