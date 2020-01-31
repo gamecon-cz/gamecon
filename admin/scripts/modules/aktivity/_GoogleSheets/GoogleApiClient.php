@@ -91,17 +91,17 @@ class GoogleApiClient
   }
 
   public function getAuthorizationUrl(): string {
-    return $this->nativeClient->createAuthUrl();
+    return $this->getNativeClient()->createAuthUrl();
   }
 
   public function validateAuthorizationByCode(string $authCode) {
     // Exchange authorization code for an access token.
-    $tokens = $this->nativeClient->fetchAccessTokenWithAuthCode($authCode);
+    $tokens = $this->getNativeClient()->fetchAccessTokenWithAuthCode($authCode);
     // Check to see if there was an error.
     if (array_key_exists('error', $tokens)) {
       throw new GoogleApiClientInvalidAuthorization("Invalid authorization by code '{$authCode}': " . implode(', ', $tokens));
     }
-    $this->nativeClient->setAccessToken($tokens);
-    $this->googleApiTokenStorage->setTokensFor($this->nativeClient->getAccessToken(), $this->userId);
+    $this->getNativeClient()->setAccessToken($tokens);
+    $this->googleApiTokenStorage->setTokensFor($this->getNativeClient()->getAccessToken(), $this->userId);
   }
 }
