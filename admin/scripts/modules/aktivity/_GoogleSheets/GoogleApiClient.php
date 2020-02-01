@@ -131,7 +131,7 @@ class GoogleApiClient
    * @throws GoogleApiClientInvalidAuthorization
    * @throws GoogleApiException
    */
-  public function validateAuthorizationByCode(string $authCode): void {
+  public function authorizeByCode(string $authCode): void {
     // Exchange authorization code for an access token.
     $tokens = $this->getNativeClient()->fetchAccessTokenWithAuthCode($authCode);
     // Check to see if there was an error.
