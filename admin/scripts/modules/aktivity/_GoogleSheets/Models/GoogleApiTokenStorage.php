@@ -5,6 +5,7 @@ namespace Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\FailedSavingGoogleApiTokens;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleApiException;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleApiTokenNotFound;
+use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleSheetsException;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\InvalidGoogleApiTokensStructure;
 
 class GoogleApiTokenStorage
@@ -94,7 +95,7 @@ SQL
   /**
    * @param int $userId
    * @return bool
-   * @throws GoogleApiException
+   * @throws GoogleSheetsException
    */
   public function deleteTokensFor(int $userId): bool {
     try {
@@ -104,7 +105,7 @@ SQL
         , [0 => $userId]
       );
     } catch (\DbException $exception) {
-      throw new GoogleApiException(
+      throw new GoogleSheetsException(
         "Can not delete Google API tokens for user $userId: {$exception->getMessage()}",
         $exception->getCode(),
         $exception

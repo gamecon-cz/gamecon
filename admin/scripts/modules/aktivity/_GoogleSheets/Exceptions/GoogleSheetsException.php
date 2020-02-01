@@ -2,7 +2,7 @@
 
 namespace Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions;
 
-class GoogleApiException extends GoogleSheetsException
+class GoogleSheetsException extends \Exception
 {
 
 }

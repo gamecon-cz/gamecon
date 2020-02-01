@@ -3,6 +3,7 @@
 namespace Gamecon\Admin\Modules\Aktivity\GoogleSheets;
 
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleApiException;
+use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleSheetsException;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\DirForGoogle;
 
 class GoogleDriveService
@@ -97,6 +98,48 @@ class GoogleDriveService
     return $this->getNativeDrive()->files->get(
       $id,
       ['fields' => 'parents']
+    );
+  }
+
+  /**
+   * @param string $folderId
+   * @return string
+   * @throws GoogleSheetsException
+   */
+  public function getFolderPath(string $folderId): string {
+    $file = $this->getFolderById($folderId);
+    $dirsChainFromRoot = $this->getParentDirsChain($file);
+    $dirsPath = '/' . implode('/', $dirsChainFromRoot);
+    return $dirsPath . '/' . $file->getName();
+  }
+
+  /**
+   * @param \Google_Service_Drive_DriveFile $file
+   * @return array
+   * @throws GoogleSheetsException
+   */
+  private function getParentDirsChain(\Google_Service_Drive_DriveFile $file): array {
+    $dirsChain = [];
+    $topParent = $file;
+    /** @var \Google_Service_Drive_DriveFile $parent */
+    foreach ($file->getParents() as $parent) {
+      $topParent = $parent;
+      if (!$parent->getTrashed() && !$parent->getExplicitlyTrashed() && $parent->getId() !== 'root') {
+        $dirsChain[] = $parent->getName();
+        $dirsChain = array_merge($dirsChain, $this->getParentDirsChain($parent->getId()));
+        break;
+      }
+    }
+    if ($topParent && $topParent->getId() !== 'root') {
+      return array_flip($dirsChain); // they are ordered from file to root and we need them reversed, from root to file
+    }
+    throw new GoogleSheetsException(
+      sprintf(
+        "Can not find out full path for file '%s' of ID '%s'. Find out only '%s'.",
+        $file->getName(),
+        $file->getId(),
+        implode(',', $dirsChain)
+      )
     );
   }
 }
