@@ -37,7 +37,7 @@ class GoogleSheetsService
    * @throws Exceptions\GoogleApiException
    * @throws Exceptions\UnauthorizedGoogleApiClient
    */
-  public function createNewSheet(string $title): \Google_Service_Sheets_Spreadsheet {
+  public function createNewSpreadsheet(string $title): \Google_Service_Sheets_Spreadsheet {
     $spreadsheet = new \Google_Service_Sheets_Spreadsheet();
 
     $spreadsheetProperties = new \Google_Service_Sheets_SpreadsheetProperties();
@@ -57,10 +57,47 @@ SQL
       );
     } catch (\DbException $exception) {
       throw new GoogleSheetsException(
-        "Can not save reference to a Google spreadsheet localy: {$exception->getMessage()}",
+        "Can not save reference to a Google spreadsheet locally: {$exception->getMessage()}",
         $exception->getCode(),
         $exception
       );
     }
+  }
+
+  /**
+   * @param int $userId
+   * @return array | \Google_Service_Sheets_Spreadsheet[]
+   * @throws GoogleSheetsException
+   */
+  public function getUserSpreadsheets(int $userId): array {
+    try {
+      $spreadsheetIds = dbOneArray(<<<SQL
+SELECT spreadsheet_id FROM google_spreadsheets
+WHERE user_id = $1
+SQL
+        , [$userId]
+      );
+    } catch (\DbException $exception) {
+      throw new GoogleSheetsException(
+        "Can not get references of Google spreadsheets for user ${userId}: {$exception->getMessage()}",
+        $exception->getCode(),
+        $exception
+      );
+    }
+    $spreadsheets = [];
+    foreach ($spreadsheetIds as $spreadsheetId) {
+      $spreadsheets[] = $this->getSpreadsheet($spreadsheetId);
+    }
+    return $spreadsheets;
+  }
+
+
+  /**
+   * @param string $spreadsheetId
+   * @return \Google_Service_Sheets_Spreadsheet
+   * @throws Exceptions\GoogleApiException
+   */
+  public function getSpreadsheet(string $spreadsheetId): \Google_Service_Sheets_Spreadsheet {
+    return $this->getNativeSheets()->spreadsheets->get($spreadsheetId);
   }
 }
