@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Gamecon\Admin\Modules\Aktivity\GoogleSheets;
+namespace Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models;
 
 class GoogleApiCredentials
 {
