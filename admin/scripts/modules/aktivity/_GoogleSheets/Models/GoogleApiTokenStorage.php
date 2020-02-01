@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Gamecon\Admin\Modules\Aktivity\GoogleSheets;
+namespace Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models;
 
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\FailedSavingGoogleApiTokens;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleApiException;
