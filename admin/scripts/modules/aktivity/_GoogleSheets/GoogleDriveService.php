@@ -176,4 +176,37 @@ SQL
       )
     );
   }
+
+  public function getFileWeblink(string $fileId): string {
+    $file = $this->getNativeDrive()->files->get($fileId, ['fields' => 'webViewLink']);
+    return $file->getWebViewLink();
+  }
+
+  public function getAsXlsx(string $fileId): string {
+    /** @var \GuzzleHttp\Psr7\Response $response */
+    $response = $this->getNativeDrive()->files->export($fileId, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    $body = $response->getBody();
+    $body->rewind();
+    $content = '';
+    while (!$body->eof()) {
+      $content .= $body->read(1024);
+    }
+    return $content;
+  }
+
+  public function importXlsx(string $xlsxFile, string $name): \Google_Service_Drive_DriveFile {
+    $uploadFile = new \Google_Service_Drive_DriveFile();
+    $uploadFile->setMimeType('application/vnd.google-apps.spreadsheet');
+    // $uploadFile->setParents($spreadSheetDirParentId);
+    $uploadFile->setName($name);
+    return $this->getNativeDrive()->files->create(
+      $uploadFile,
+      [
+        'data' => file_get_contents($xlsxFile),
+        'uploadType' => 'multipart',
+        'fields' => 'webViewLink,id',
+      ]
+    );
+  }
+
 }

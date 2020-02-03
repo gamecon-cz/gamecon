@@ -14,9 +14,14 @@ class GoogleSheetsService
    * @var \Google_Service_Sheets
    */
   private $nativeSheets;
+  /**
+   * @var GoogleDriveService
+   */
+  private $googleDriveService;
 
-  public function __construct(GoogleApiClient $googleApiClient) {
+  public function __construct(GoogleApiClient $googleApiClient, GoogleDriveService $googleDriveService) {
     $this->googleApiClient = $googleApiClient;
+    $this->googleDriveService = $googleDriveService;
   }
 
   /**
@@ -187,5 +192,17 @@ SQL
     $request->setUpdateSheetProperties($updateSheetPropertiesRequest);
 
     return $request;
+  }
+
+  public function getSheetWeblink(string $sheetId): string {
+    return $this->googleDriveService->getFileWeblink($sheetId);
+  }
+
+  public function getAsXlsx(string $sheetId): string {
+    return $this->googleDriveService->getAsXlsx($sheetId);
+  }
+
+  public function importXlsx(string $xlsxFile, string $name): \Google_Service_Drive_DriveFile {
+    return $this->googleDriveService->importXlsx($xlsxFile, $name);
   }
 }
