@@ -41,10 +41,44 @@ class GoogleDriveService
   }
 
   private function getDirsWithParents(string $name, array $parentIds): \Google_Service_Drive_FileList {
-    $prarentsString = implode(',', $parentIds);
+    $parentsString = implode(',', $parentIds);
     return $this->getNativeDrive()->files->listFiles(
-      ['q' => "mimeType='application/vnd.google-apps.folder' and '{$prarentsString}' in parents and name='{$name}}' and trashed=false"]
+      ['q' => "mimeType='application/vnd.google-apps.folder' and '{$parentsString}' in parents and name='{$name}}' and trashed=false"]
     );
+  }
+
+  public function saveDirReference(\Google_Service_Drive_DriveFile $dir, int $userId) {
+    try {
+      dbQuery(<<<SQL
+REPLACE INTO google_drive_dirs(dir_id, original_name, user_id)
+VALUES ($1, $2, $3)
+SQL
+        , [$dir->getId(), $dir->getName(), $userId]
+      );
+    } catch (\DbException $exception) {
+      throw new GoogleSheetsException(
+        "Can not save reference to a Google dir locally: {$exception->getMessage()}",
+        $exception->getCode(),
+        $exception
+      );
+    }
+  }
+
+  public function getDirIdByName(string $name, int $userId) {
+    try {
+      dbQuery(<<<SQL
+SELECT dir_id FROM google_drive_dirs
+WHERE user_id = $1 AND original_name = $2
+SQL
+        , [$userId, $name]
+      );
+    } catch (\DbException $exception) {
+      throw new GoogleSheetsException(
+        "Can not save reference to a Google dir locally: {$exception->getMessage()}",
+        $exception->getCode(),
+        $exception
+      );
+    }
   }
 
   public function dirExists(DirForGoogle $dir): bool {

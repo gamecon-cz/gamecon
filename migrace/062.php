@@ -14,8 +14,18 @@ CREATE TABLE google_spreadsheets (
     id INT UNSIGNED UNIQUE AUTO_INCREMENT,
     user_id INTEGER NOT NULL,
     spreadsheet_id VARCHAR(128) PRIMARY KEY,
-    title TEXT NOT NULL,
+    original_title TEXT NOT NULL,
     CONSTRAINT FOREIGN KEY FK_google_spreadsheets_to_uzivatele_hodnoty(user_id) REFERENCES uzivatele_hodnoty(id_uzivatele)
+        ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE InnoDB;
+
+CREATE TABLE google_drive_dirs (
+    id INT UNSIGNED UNIQUE AUTO_INCREMENT,
+    user_id INTEGER NOT NULL,
+    dir_id VARCHAR(128) PRIMARY KEY,
+    original_name VARCHAR(64) NOT NULL,
+    UNIQUE KEY user_and_name(user_id, original_name),
+    CONSTRAINT FOREIGN KEY FK_google_drive_dirs_to_uzivatele_hodnoty(user_id) REFERENCES uzivatele_hodnoty(id_uzivatele)
         ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE InnoDB
 SQL
