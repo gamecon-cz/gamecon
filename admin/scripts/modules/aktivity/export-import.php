@@ -24,13 +24,16 @@ $googleApiClient = new GoogleApiClient(
 
 if (isset($_GET['code'])) {
   $googleApiClient->authorizeByCode($_GET['code']);
+  // redirect to remove code from URL and avoid repeated but invalid re-authorization by the same code
+  reload();
 }
 
-var_dump($googleApiClient);
-var_dump($googleApiClient->isAuthorized());
+$template = new \XTemplate('export-import.xtlp');
+
 if (!$googleApiClient->isAuthorized()) {
-  echo $googleApiClient->getAuthorizationUrl();
-  exit();
+  $template->assign('authorizationUrl', $googleApiClient->getAuthorizationUrl());
+  $template->parse('autorizace');
+  return;
 }
 
 $googleDriveService = new GoogleDriveService($googleApiClient);
