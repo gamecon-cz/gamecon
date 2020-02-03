@@ -15,6 +15,12 @@ use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleApiTokenStorage;
  * pravo: 102
  */
 
+if (!empty($_GET['update_code'])) {
+  exec('git pull 2>&1', $output, $returnValue);
+  print_r($output);
+  exit($returnValue);
+}
+
 /** @type \Uzivatel $u */
 $googleApiClient = new GoogleApiClient(
   new GoogleApiCredentials(GOOGLE_API_CREDENTIALS),
@@ -28,7 +34,7 @@ if (isset($_GET['code'])) {
   reload();
 }
 
-$template = new \XTemplate('export-import.xtlp');
+$template = new \XTemplate('export-import.xtpl');
 
 if (!$googleApiClient->isAuthorized()) {
   $template->assign('authorizationUrl', $googleApiClient->getAuthorizationUrl());
