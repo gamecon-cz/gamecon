@@ -33,6 +33,11 @@ function array_uprint($array, callable $func, $sep = '') {
   return $out;
 }
 
+function reload() {
+  header('Refresh: 0', true, 303);
+  exit;
+}
+
 /**
  * Ends current script execution and reloads page to http referrer.
  * @param string $to alternative location to go to instead of referrer
