@@ -3,6 +3,7 @@
 namespace Gamecon\Admin\Modules\Aktivity;
 
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleApiClient;
+use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleApiCredentials;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleApiTokenStorage;
@@ -32,5 +33,8 @@ if (!$googleApiClient->isAuthorized()) {
   exit();
 }
 
-$googleSheets = new GoogleSheetsService($googleApiClient);
+$googleDriveService = new GoogleDriveService($googleApiClient);
+
+$googleSheets = new GoogleSheetsService($googleApiClient, $googleDriveService);
 $userSpreadsheets = $googleSheets->getUserSpreadsheets($u->id());
+var_dump($userSpreadsheets);
