@@ -25,9 +25,6 @@ if ($_GET['zpet'] ?? '' === 'aktivity') {
   back(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) . '/..');
 }
 
-//zpracování filtru
-include __DIR__ . '/_filtr-moznosti.php';
-
 /** @type \Uzivatel $u */
 $googleApiClient = new GoogleApiClient(
   new GoogleApiCredentials(GOOGLE_API_CREDENTIALS),
@@ -41,24 +38,45 @@ if (isset($_GET['code'])) {
   reload();
 }
 
+$aktivity = include __DIR__ . '/_aktivity-z-filtru.php';
+$activityTypeIds = array_unique(
+  array_map(
+    static function (\Aktivita $aktivita) {
+      return $aktivita->typId();
+    },
+    $aktivity
+  )
+);
+
 $template = new \XTemplate('export.xtpl');
 
-if (FALSE && !$googleApiClient->isAuthorized()) {
-  $template->assign('authorizationUrl', $googleApiClient->getAuthorizationUrl());
-  $template->parse('export.autorizace');
-} else {
-  $aktivityIds = array_filter(
-    explode(',', $_POST['aktivity_ids'] ?? ''),
-    static function ($idAktivity) {
-      return $idAktivity !== '';
-    }
-  );
+$template->assign('urlNaAktivity', $_SERVER['REQUEST_URI'] . '/..');
 
-  $template->assign('urlNaAktivity', $_SERVER['REQUEST_URI'] . '/..');
+if (count($activityTypeIds) > 1) {
+  $template->parse('export.neniVybranTyp');
+} else if (count($activityTypeIds) === 0) {
+  $template->parse('export.zadneAktivity');
+} else if (count($activityTypeIds) === 1) {
+  $activityTypeId = reset($activityTypeIds);
 
-  $template->assign('aktivityIds', implode(';', $aktivityIds));
-  $template->assign('pocetAktivit', count($aktivityIds));
-  $template->parse('export.exportovat');
+  if (!empty($_POST['activity_type_id']) && (int)$_POST['activity_type_id'] === (int)$activityTypeId) {
+  } else {
+    $template->assign('activityTypeId', $activityTypeId);
+
+    $typAktivity = \Typ::zId($activityTypeId);
+    $template->assign('nazevTypu', mb_ucfirst($typAktivity->nazev()));
+    $template->assign('pocetAktivit', count($aktivity));
+    $template->assign('exportDisabled', $googleApiClient->isAuthorized()
+      ? ''
+      : 'disabled'
+    );
+
+    $template->parse('export.exportovat');
+  }
+  if (!$googleApiClient->isAuthorized()) {
+    $template->assign('authorizationUrl', $googleApiClient->getAuthorizationUrl());
+    $template->parse('export.autorizace');
+  }
 }
 
 $template->parse('export');

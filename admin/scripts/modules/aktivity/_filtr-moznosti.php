@@ -7,9 +7,13 @@ if (post('filtr')) {
   }
 }
 
-$varianty = ($moznostFiltrovatVse ?? false)
-  ? ['vsechno' => ['popis' => '(všechno)']]
-  : [];
+//načtení aktivit a zpracování
+if (get('sort')) { //řazení
+  setcookie('akceRazeni', get('sort'), time() + 365 * 24 * 60 * 60);
+  $_COOKIE['akceRazeni'] = get('sort');
+}
+
+$varianty = ['vsechno' => ['popis' => '(všechno)']];
 
 $adminAktivityFiltr = $_SESSION['adminAktivityFiltr'] ?? '';
 
@@ -33,4 +37,14 @@ foreach ($varianty as $idTypu => $varianta) {
 $tplFiltrMoznosti->parse('filtr');
 $tplFiltrMoznosti->out('filtr');
 
-return $adminAktivityFiltr;
+$razeni = ['nazev_akce', 'zacatek'];
+if (!empty($_COOKIE['akceRazeni'])) {
+  array_unshift($razeni, $_COOKIE['akceRazeni']);
+}
+
+$filtr = empty($adminAktivityFiltr)
+  ? []
+  : ['typ' => $varianty[$adminAktivityFiltr]['db']];
+$filtr = array_merge(['rok' => ROK], $filtr);
+
+return [$filtr, $razeni];
