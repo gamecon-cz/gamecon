@@ -4,19 +4,21 @@
   <li><a href="program-mistnosti" target="_blank">Program po místnostech</a></li>
 </ul>
 
-<div style="position:absolute;right:20px;top:100px">
-  <form method="post">
-    Zobrazit jen:
-    <select name="filtr" onchange="this.form.submit()">
-      <option value="vsechno">(všechno)</option>
-      <!-- begin:filtrMoznost --><option value="{val}" {sel}>{nazev_akce}</option><!-- end:filtrMoznost -->
-    <select>
+<!-- begin:importExport -->
+<div>
+  <form action="{urlProImport}" method="get" style="float: left">
+    <input type="submit" value="Importovat">
   </form>
+  <form method="get" action="{urlProExport}" style="float: right">
+    <input type="submit" name="exportovat" value="Exportovat">
+  </form>
+  <div style="clear: both"></div>
 </div>
+<!-- end:importExport -->
 
 <!-- begin:aktivovatVse -->
 <form method="post" style="position:absolute;right:20px;top:60px">
-  <input type="submit" name="aktivovatVse" value="aktivovat hromadně" 
+  <input type="submit" name="aktivovatVse" value="aktivovat hromadně"
     onclick="return window.confirm('Toto aktivuje všechny aktivity označené jako „připravené“ ve všech kategoriích. Určitě?');" />
 </form>
 <!-- end:aktivovatVse -->
@@ -81,13 +83,32 @@
 <style> th > a { text-decoration:none; color:#88c; position: relative; top: -2px; left: 2px; } </style>
 <table class="zvyraznovana aktivity" style="width: 100%">
   <tr>
-    <th><span class="hinted">Název<div class="hint">
+    <th>
+      <span class="hinted">Název<div class="hint">
       Trojúhelníčky slouží k řazení.</div></span>
-      <a href="aktivity?sort=nazev_akce">▲</a> </th>
-    <th style="width:120px">Čas <a href="aktivity?sort=zacatek">▲</a> </th>
-    <th style="width:190px">Organizátor <a href="aktivity?sort=organizatori">▲</a>  </th>
-    <th style="width:90px">Místnost <a href="aktivity?sort=lokace">▲</a>  </th>
-    <th>Typ <a href="aktivity?sort=typ">▲</a> </th>
+      <a href="aktivity?sort=nazev_akce ASC">▲</a>
+      <a href="aktivity?sort=nazev_akce DESC">▼</a>
+    </th>
+    <th style="width:120px">
+      Čas
+      <a href="aktivity?sort=zacatek ASC">▲</a>
+      <a href="aktivity?sort=zacatek DESC">▼</a>
+    </th>
+    <th style="width:190px">
+      Organizátor
+      <a href="aktivity?sort=organizatori ASC">▲</a>
+      <a href="aktivity?sort=organizatori DESC">▼</a>
+    </th>
+    <th style="width:90px">
+      Místnost
+      <a href="aktivity?sort=lokace ASC">▲</a>
+      <a href="aktivity?sort=lokace DESC">▼</a>
+    </th>
+    <th>
+      Typ
+      <a href="aktivity?sort=typ ASC">▲</a>
+      <a href="aktivity?sort=typ DESC">▼</a>
+    </th>
     <th><span class="hinted">Ins<div class="hint">
       Řetěz znamená, že aktivita je členem nějaké rodiny instancí a ve výpisu webu se zobrazuje pouze jednou a s více nabídkami termínu pro přihlášení.
     </div></span></th>
