@@ -1658,8 +1658,9 @@ class Aktivita {
    * @todo filtr dle orga
    * @todo explicitní filtr i pro řazení (např. pole jako mapa veřejný řadící
    *  parametr => sloupec
+   * @return
    */
-  static function zFiltru($filtr, $razeni = []): array {
+  static function zFiltru($filtr, array $razeni = []): array {
     // sestavení filtrů
     $wheres = [];
     if(!empty($filtr['rok']))
@@ -1677,30 +1678,56 @@ class Aktivita {
     $where = implode(' AND ', $wheres);
 
     // sestavení řazení
-    $povolenePhpRazeni = ['organizatori'];
-    $dbRazeni = array_diff($razeni, $povolenePhpRazeni);
     $order = null;
-    foreach($dbRazeni as $sloupec) {
-      $order[] = dbQi($sloupec);
+    $phpRazeni = [];
+    $orderBy = [];
+    foreach($razeni as $sloupec) {
+      $directionRegExp = '~\s(?<direction>ASC|DESC)\s*$~i';
+      preg_match($directionRegExp, $sloupec, $matches);
+      $direction = 'ASC';
+      if (!empty($matches['direction'])) {
+        $direction = strtoupper(trim($matches['direction']));
+        $sloupec = preg_replace($directionRegExp, '', $sloupec);
+      }
+      if ($sloupec === 'organizatori') {
+        $phpRazeni[$sloupec] = $direction;
+      } else {
+        $orderBy[] = sprintf('%s %s', dbQi($sloupec), $direction);
+      }
     }
-    if($order) $order = 'ORDER BY '.implode(', ', $order);
+    if(count($orderBy) > 0) {
+      $order = 'ORDER BY '.implode(', ', $orderBy);
+    }
 
     // select
     $aktivity = (array)self::zWhere('WHERE '.$where, null, $order); // přetypování nutné kvůli správné funkci unsetu
     if(!empty($filtr['jenVolne'])) {
       foreach($aktivity as $id => $a) {
-        if($a->volno() == 'x') unset($aktivity[$id]);
+        if($a->volno() === 'x') unset($aktivity[$id]);
       }
     }
 
     // řazení v php
-    $phpRazeni = array_intersect($razeni, $povolenePhpRazeni);
-    if(in_array('organizatori', $phpRazeni)) { // prozatím podporujeme jen řazení dle orga
-      usort($aktivity, function($a, $b) {
-        $jmenoA = $a->organizatori() ? current($a->organizatori())->jmenoNick() : '';
-        $jmenoB = $b->organizatori() ? current($b->organizatori())->jmenoNick() : '';
-        return strcmp($jmenoA, $jmenoB);
-      });
+    if(!empty($phpRazeni['organizatori'])) { // prozatím podporujeme jen řazení dle orga
+      if ($phpRazeni['organizatori'] === 'DESC') {
+        usort(
+          $aktivity,
+          static function(Aktivita $a, Aktivita $b) {
+            $jmenoA = $a->organizatori() ? current($a->organizatori())->jmenoNick() : '';
+            $jmenoB = $b->organizatori() ? current($b->organizatori())->jmenoNick() : '';
+            return strcmp($jmenoB, $jmenoA);
+          }
+        );
+      } else {
+        usort(
+          $aktivity,
+          static function(Aktivita $a, Aktivita $b) {
+            $jmenoA = $a->organizatori() ? current($a->organizatori())->jmenoNick() : '';
+            $jmenoB = $b->organizatori() ? current($b->organizatori())->jmenoNick() : '';
+            return strcmp($jmenoA, $jmenoB);
+          }
+        );
+      }
     }
 
     return $aktivity;
@@ -1790,14 +1817,14 @@ class Aktivita {
   /**
    * Vrátí iterátor s aktivitami podle zadané where klauzule. Alias tabulky
    * akce_seznam je 'a'.
-   * @param $where obsah where klauzule (bez úvodního klíč. slova WHERE)
+   * @param string $where obsah where klauzule (bez úvodního klíč. slova WHERE)
    * @param $args volitelné pole argumentů pro dbQueryS()
    * @param $order volitelně celá klauzule ORDER BY včetně klíč. slova
    * @todo třída která obstará reálný iterátor, nejenom obalení pole (nevýhoda
    *  pole je nezměněná nutnost čekat, než se celá odpověď načte a přesype do
    *  paměti
    */
-  protected static function zWhere($where, $args = null, $order = null) {
+  protected static function zWhere($where, $args = null, $order = null): array {
     $o = dbQueryS("
       SELECT t3.*,
              (SELECT GROUP_CONCAT(sjednocene_tagy.nazev ORDER BY kst.poradi, sjednocene_tagy.nazev)
