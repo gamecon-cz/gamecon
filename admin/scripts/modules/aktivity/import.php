@@ -9,9 +9,9 @@ use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleApiCredentials;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleApiTokenStorage;
 
 /**
- * Stránka pro hromadný export a opětovný import aktivit.
+ * Stránka pro hromadný import aktivit.
  *
- * nazev: Export & import
+ * nazev: Import
  * pravo: 102
  */
 
@@ -19,6 +19,10 @@ if (!empty($_GET['update_code'])) {
   exec('git pull 2>&1', $output, $returnValue);
   print_r($output);
   exit($returnValue);
+}
+
+if ($_GET['zpet'] ?? '' === 'aktivity') {
+  back(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) . '/..');
 }
 
 /** @type \Uzivatel $u */
@@ -34,16 +38,30 @@ if (isset($_GET['code'])) {
   reload();
 }
 
-$template = new \XTemplate('export-import.xtpl');
+$template = new \XTemplate('export.xtpl');
 
-if (!$googleApiClient->isAuthorized()) {
+if (FALSE && !$googleApiClient->isAuthorized()) {
   $template->assign('authorizationUrl', $googleApiClient->getAuthorizationUrl());
   $template->parse('autorizace');
   return;
 }
 
-$googleDriveService = new GoogleDriveService($googleApiClient);
+$aktivityIds = array_filter(
+  explode(',', $_POST['aktivity_ids'] ?? ''),
+  static function ($idAktivity) {
+    return $idAktivity !== '';
+  }
+);
+if (!$aktivityIds) {
+  $template->assign('urlNaAktivity', $_SERVER['REQUEST_URI'] . '/..');
+  $template->parse('zadneAktivity');
+  return;
+}
 
-$googleSheets = new GoogleSheetsService($googleApiClient, $googleDriveService);
-$userSpreadsheets = $googleSheets->getUserSpreadsheets($u->id());
-var_dump($userSpreadsheets);
+$template->assign('aktivityIds', implode(';', $aktivityIds));
+$template->assign('pocetAktivit', count($aktivityIds));
+$template->parse('exportovat');
+
+// $googleDriveService = new GoogleDriveService($googleApiClient);
+
+// $googleSheets = new GoogleSheetsService($googleApiClient, $googleDriveService);
