@@ -1658,7 +1658,7 @@ class Aktivita {
    * @todo filtr dle orga
    * @todo explicitní filtr i pro řazení (např. pole jako mapa veřejný řadící
    *  parametr => sloupec
-   * @return
+   * @return Aktivita[]
    */
   static function zFiltru($filtr, array $razeni = []): array {
     // sestavení filtrů

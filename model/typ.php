@@ -2,6 +2,7 @@
 
 /**
  * Typ aktivit (programová linie)
+ * @method static Typ zId($id)
  */
 class Typ extends DbObject {
 

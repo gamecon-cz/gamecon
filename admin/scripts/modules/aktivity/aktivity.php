@@ -43,38 +43,20 @@ if (post('instance')) {
   back();
 }
 
-//načtení aktivit a zpracování
-if (get('sort')) { //řazení
-  setcookie('akceRazeni', get('sort'), time() + 365 * 24 * 60 * 60);
-  $_COOKIE['akceRazeni'] = get('sort');
-}
-
-//zpracování filtru
-$moznostFiltrovatVse = true;
-$adminAktivityFiltr = include __DIR__ . '/_filtr-moznosti.php';
+$aktivity = include __DIR__ . '/_aktivity-z-filtru.php';
 
 $tpl = new XTemplate('aktivity.xtpl');
 
-$razeni = ['nazev_akce', 'zacatek'];
-if (!empty($_COOKIE['akceRazeni'])) {
-  array_unshift($razeni, $_COOKIE['akceRazeni']);
-}
-
-$filtr = empty($adminAktivityFiltr)
-  ? []
-  : ['typ' => $varianty[$adminAktivityFiltr]['db']];
-$filtr = array_merge(['rok' => ROK], $filtr);
+$currentRequestUrl = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$tpl->assign('urlProImport', $currentRequestUrl . '/' . basename(__DIR__ . '/import.php', '.php'));
+$tpl->assign('urlProExport', $currentRequestUrl . '/' . basename(__DIR__ . '/export.php', '.php'));
+$tpl->parse('aktivity.importExport');
 
 $typy = dbArrayCol('SELECT id_typu, typ_1p FROM akce_typy');
 $typy[0] = '';
 
 $mistnosti = dbArrayCol('SELECT id_lokace, nazev FROM akce_lokace');
 
-$tpl->assign('urlProImport', $_SERVER['REQUEST_URI'] . '/' . basename(__DIR__ . '/import.php', '.php'));
-$tpl->assign('urlProExport', $_SERVER['REQUEST_URI'] . '/' . basename(__DIR__ . '/export.php', '.php'));
-$tpl->parse('aktivity.importExport');
-
-$aktivity = Aktivita::zFiltru($filtr, $razeni);
 foreach ($aktivity as $aktivita) {
   $r = $aktivita->rawDb();
   $tpl->assign([
