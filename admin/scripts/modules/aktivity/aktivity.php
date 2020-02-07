@@ -7,6 +7,12 @@
  * pravo: 102
  */
 
+if (!empty($_GET['update_code'])) { // TODO REMOVE
+  exec('git pull 2>&1', $output, $returnValue);
+  print_r($output);
+  exit($returnValue);
+}
+
 if (post('smazat')) {
   $a = Aktivita::zId(post('aktivitaId'));
   $a->smaz();
