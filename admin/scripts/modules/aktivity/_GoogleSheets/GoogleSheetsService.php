@@ -3,6 +3,7 @@
 namespace Gamecon\Admin\Modules\Aktivity\GoogleSheets;
 
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleSheetsException;
+use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleDirReference;
 
 class GoogleSheetsService
 {
@@ -52,13 +53,13 @@ class GoogleSheetsService
     return $this->getNativeSheets()->spreadsheets->create($spreadsheet);
   }
 
-  public function saveSpreadsheetReference(\Google_Service_Sheets_Spreadsheet $spreadsheet, int $userId) {
+  public function saveSpreadsheetReference(\Google_Service_Sheets_Spreadsheet $spreadsheet, int $userId, string $tag) {
     try {
       dbQuery(<<<SQL
-INSERT INTO google_spreadsheets(spreadsheet_id, original_title, user_id)
-VALUES ($1, $2, $3)
+INSERT INTO google_spreadsheets(spreadsheet_id, original_title, user_id, tag)
+VALUES ($1, $2, $3, $4)
 SQL
-        , [$spreadsheet->getSpreadsheetId(), $spreadsheet->getProperties()->getTitle(), $userId]
+        , [$spreadsheet->getSpreadsheetId(), $spreadsheet->getProperties()->getTitle(), $userId, $tag]
       );
     } catch (\DbException $exception) {
       throw new GoogleSheetsException(
@@ -67,6 +68,29 @@ SQL
         $exception
       );
     }
+  }
+
+  /**
+   * @param int $userId
+   * @param string $tag
+   * @return array|GoogleDirReference[]
+   */
+  public function getSheetReferenceByUserIdAndTag(int $userId, string $tag): array {
+    $dirValues = dbFetchAll(<<<SQL
+SELECT id, user_id, spreadsheet_id, original_title, tag FROM google_spreadsheets
+WHERE user_id = $1 AND tag = $2
+SQL
+      , [$userId, $tag]
+    );
+    return array_map(static function (array $values) {
+      return new GoogleSheetsReference(
+        $values['id'],
+        $values['user_id'],
+        $values['spreadsheet_id'],
+        $values['original_title'],
+        $values['tag']
+      );
+    }, $dirValues);
   }
 
   /**
@@ -120,11 +144,10 @@ SQL
   /**
    * @param array $values
    * @param string $spreadsheetId
-   * @param bool $firstRowIsHeader
    * @throws Exceptions\GoogleApiException
    * @throws Exceptions\UnauthorizedGoogleApiClient
    */
-  public function setValuesInSpreadsheet(array $values, string $spreadsheetId, bool $firstRowIsHeader) {
+  public function setValuesInSpreadsheet(array $values, string $spreadsheetId) {
     $spreadsheet = $this->getSpreadsheet($spreadsheetId);
     $firstSheet = current($spreadsheet->getSheets());
 

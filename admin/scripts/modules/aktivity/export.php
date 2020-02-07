@@ -2,6 +2,7 @@
 
 namespace Gamecon\Admin\Modules\Aktivity;
 
+use Gamecon\Admin\Modules\Aktivity\Export\ExporterAktivit;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleApiClient;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
@@ -38,7 +39,8 @@ if (isset($_GET['code'])) {
   reload();
 }
 
-$aktivity = include __DIR__ . '/_aktivity-z-filtru.php';
+[$filtr, $razeni] = include __DIR__ . '/_filtr-moznosti.php';
+$aktivity = \Aktivita::zFiltru($filtr, $razeni);
 $activityTypeIds = array_unique(
   array_map(
     static function (\Aktivita $aktivita) {
@@ -59,7 +61,11 @@ if (count($activityTypeIds) > 1) {
 } else if (count($activityTypeIds) === 1) {
   $activityTypeId = reset($activityTypeIds);
 
-  if (!empty($_POST['activity_type_id']) && (int)$_POST['activity_type_id'] === (int)$activityTypeId) {
+  if (!empty($_POST['activity_type_id']) && (int)$_POST['activity_type_id'] === (int)$activityTypeId && $googleApiClient->isAuthorized()) {
+    $googleDriveService = new GoogleDriveService($googleApiClient);
+    $googleSheetsService = new GoogleSheetsService($googleApiClient, $googleDriveService);
+    $exportAktivit = new ExporterAktivit($u->id(), $googleDriveService, $googleSheetsService);
+    $exportAktivit->exportAktivit($aktivity, ROK);
   } else {
     $template->assign('activityTypeId', $activityTypeId);
 
