@@ -43,7 +43,8 @@ if (post('instance')) {
   back();
 }
 
-$aktivity = include __DIR__ . '/_aktivity-z-filtru.php';
+[$filtr, $razeni] = include __DIR__ . '/_filtr-moznosti.php';
+$aktivity = Aktivita::zFiltru($filtr, $razeni);
 
 $tpl = new XTemplate('aktivity.xtpl');
 

@@ -4,7 +4,7 @@ namespace Gamecon\Admin\Modules\Aktivity\GoogleSheets;
 
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleApiException;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleSheetsException;
-use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\DirForGoogle;
+use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleDirReference;
 
 class GoogleDriveService
 {
@@ -23,13 +23,13 @@ class GoogleDriveService
   }
 
   /**
-   * @param DirForGoogle $dirForGoogle
+   * @param string $dirForGoogle
    * @return \Google_Service_Drive_DriveFile[]]
    */
-  public function getDirsByName(DirForGoogle $dirForGoogle): array {
+  public function getDirsByName(string $dirForGoogle): array {
     $parentIds = ['root'];
     $lastDirs = [];
-    foreach ($dirForGoogle->getHierarchy() as $pathPart) {
+    foreach ($this->getDirHierarchy($dirForGoogle) as $pathPart) {
       $lastDirs = $this->getDirsWithParents($pathPart, $parentIds);
       $parentIds = [];
       /** @var \Google_Service_Drive_DriveFile $dir */
@@ -40,6 +40,10 @@ class GoogleDriveService
     return $lastDirs; // it should be just a single dir, but Google allows multiple dirs of same name, so there may be more of them
   }
 
+  private function getDirHierarchy(string $dir): array {
+    return explode('/', trim($dir, '/'));
+  }
+
   private function getDirsWithParents(string $name, array $parentIds): \Google_Service_Drive_FileList {
     $parentsString = implode(',', $parentIds);
     return $this->getNativeDrive()->files->listFiles(
@@ -47,13 +51,13 @@ class GoogleDriveService
     );
   }
 
-  public function saveDirReference(\Google_Service_Drive_DriveFile $dir, int $userId) {
+  public function saveDirReference(\Google_Service_Drive_DriveFile $dir, int $userId, string $tag) {
     try {
       dbQuery(<<<SQL
-REPLACE INTO google_drive_dirs(dir_id, original_name, user_id)
-VALUES ($1, $2, $3)
+REPLACE INTO google_drive_dirs(dir_id, original_name, user_id, tag)
+VALUES ($1, $2, $3, $4)
 SQL
-        , [$dir->getId(), $dir->getName(), $userId]
+        , [$dir->getId(), $dir->getName(), $userId, $tag]
       );
     } catch (\DbException $exception) {
       throw new GoogleSheetsException(
@@ -62,6 +66,29 @@ SQL
         $exception
       );
     }
+  }
+
+  /**
+   * @param int $userId
+   * @param string $tag
+   * @return array|GoogleDirReference[]
+   */
+  public function getDirsReferencesByUserIdAndTag(int $userId, string $tag): array {
+    $dirValues = dbFetchAll(<<<SQL
+SELECT id, user_id, dir_id, original_name, tag FROM google_drive_dirs
+WHERE user_id = $1 AND tag = $2
+SQL
+      , [$userId, $tag]
+    );
+    return array_map(static function (array $values) {
+      return new GoogleDirReference(
+        $values['id'],
+        $values['user_id'],
+        $values['dir_id'],
+        $values['original_name'],
+        $values['tag']
+      );
+    }, $dirValues);
   }
 
   public function getDirIdByName(string $name, int $userId) {
@@ -81,14 +108,14 @@ SQL
     }
   }
 
-  public function dirExists(DirForGoogle $dir): bool {
+  public function dirExists(string $dir): bool {
     return count($this->getDirsByName($dir)) > 0;
   }
 
-  public function createDir(DirForGoogle $dirForGoogle): \Google_Service_Drive_DriveFile {
+  public function createDir(string $dirForGoogle): \Google_Service_Drive_DriveFile {
     $parentId = 'root';
     $lastDir = null;
-    foreach ($dirForGoogle as $pathPart) {
+    foreach ($this->getDirHierarchy($dirForGoogle) as $pathPart) {
       $folder = new \Google_Service_Drive_DriveFile();
       $folder->setName($pathPart);
       $folder->setParents([$parentId]);
@@ -133,6 +160,10 @@ SQL
       $id,
       ['fields' => 'parents']
     );
+  }
+
+  public function folderByIdExists(string $folderId): bool {
+    return (bool)$this->getNativeDrive()->files->get($folderId);
   }
 
   /**
