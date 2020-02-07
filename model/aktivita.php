@@ -1407,11 +1407,13 @@ class Aktivita {
     }
   }
 
-  function typ() {
-    if(is_numeric($this->typ)) $this->prednactiN1([
-      'atribut' =>  'typ',
-      'cil'     =>  Typ::class,
-    ]);
+  function typ(): Typ {
+    if (is_numeric($this->typ)) {
+      $this->prednactiN1([
+        'atribut' => 'typ',
+        'cil' => Typ::class,
+      ]);
+    }
     return $this->typ;
   }
 

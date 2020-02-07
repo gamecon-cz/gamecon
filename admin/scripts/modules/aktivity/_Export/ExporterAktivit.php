@@ -73,7 +73,7 @@ class ExporterAktivit
   private function getActivitiesTypeNames(array $aktivity): array {
     return array_map(
       static function (\Aktivita $aktivita) {
-        return $aktivita->typ();
+        return $aktivita->typ()->nazev();
       },
       $aktivity
     );
