@@ -15,12 +15,6 @@ use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleApiTokenStorage;
  * pravo: 102
  */
 
-if (!empty($_GET['update_code'])) {
-  exec('git pull 2>&1', $output, $returnValue);
-  print_r($output);
-  exit($returnValue);
-}
-
 if ($_GET['zpet'] ?? '' === 'aktivity') {
   back(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) . '/..');
 }
