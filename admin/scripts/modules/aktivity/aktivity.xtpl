@@ -10,7 +10,7 @@
     <input type="submit" value="Importovat">
   </form>
   <form method="get" action="{urlProExport}" style="float: right">
-    <input type="submit" name="exportovat" value="Exportovat">
+    <input type="submit" value="Exportovat">
   </form>
   <div style="clear: both"></div>
 </div>
