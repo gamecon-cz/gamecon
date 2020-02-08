@@ -106,7 +106,7 @@ class GoogleApiClient
    */
   private function refreshAccessTokenIfNeeded(\Google_Client $nativeClient): void {
     // If there is no previous token or it's expired.
-    if (!$nativeClient->isAccessTokenExpired()) {
+    if ($nativeClient->isAccessTokenExpired()) {
       // Refresh the token if possible, else fetch a new one.
       $refreshToken = $nativeClient->getRefreshToken();
       if ($refreshToken) {
