@@ -31,7 +31,7 @@ $googleApiClient = new GoogleApiClient(
 if (isset($_GET['code'])) {
   $googleApiClient->authorizeByCode($_GET['code']);
   // redirect to remove code from URL and avoid repeated but invalid re-authorization by the same code
-  reload();
+  back(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
 }
 
 [$filtr, $razeni] = include __DIR__ . '/_filtr-moznosti.php';
