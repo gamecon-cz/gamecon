@@ -3,18 +3,28 @@
 namespace Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models;
 
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\FailedSavingGoogleApiTokens;
-use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleApiException;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleApiTokenNotFound;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleSheetsException;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\InvalidGoogleApiTokensStructure;
 
 class GoogleApiTokenStorage
 {
+  /**
+   * @var string
+   */
+  private $googleClientId;
+
+  public function __construct(string $googleClientId) {
+    $this->googleClientId = $googleClientId;
+  }
+
   public function hasTokensFor(int $userId): bool {
     return (bool)dbOneCol(<<<'SQL'
-SELECT 1 FROM google_api_user_tokens WHERE user_id=$0
+SELECT 1 FROM google_api_user_tokens
+WHERE user_id = $1
+AND google_client_id = $2
 SQL
-      , [$userId]
+      , [$userId, $this->googleClientId]
     );
   }
 
@@ -26,12 +36,16 @@ SQL
    */
   public function getTokensFor(int $userId): array {
     $encodedTokens = dbOneCol(<<<SQL
-SELECT tokens FROM google_api_user_tokens WHERE user_id=$0
+SELECT tokens FROM google_api_user_tokens
+WHERE user_id = $1
+AND google_client_id = $2
 SQL
-      , [0 => $userId]
+      , [$userId, $this->googleClientId]
     );
     if (!$encodedTokens) {
-      throw new GoogleApiTokenNotFound("No Google API tokens found for user $userId");
+      throw new GoogleApiTokenNotFound(
+        "No Google API tokens found for user '$userId' and Google client ID '{$this->googleClientId}'"
+      );
     }
     return $this->tokensFromString((string)$encodedTokens);
   }
@@ -61,11 +75,11 @@ SQL
   public function setTokensFor(array $tokens, int $userId) {
     try {
       dbQuery(<<<SQL
-INSERT INTO google_api_user_tokens (tokens, user_id)
-VALUES ($0, $1)
-ON DUPLICATE KEY UPDATE tokens = $0
+INSERT INTO google_api_user_tokens (tokens, user_id, google_client_id)
+VALUES ($1, $2, $3)
+ON DUPLICATE KEY UPDATE tokens = $1
 SQL
-        , [0 => $this->tokensToString($tokens), 1 => $userId]
+        , [$this->tokensToString($tokens), $userId, $this->googleClientId]
       );
     } catch (\DbException $dbException) {
       throw new FailedSavingGoogleApiTokens(
@@ -100,9 +114,11 @@ SQL
   public function deleteTokensFor(int $userId): bool {
     try {
       dbQuery(<<<SQL
-DELETE FROM google_api_user_tokens WHERE user_id=$0
+DELETE FROM google_api_user_tokens
+WHERE user_id = $1
+AND google_client_id = $2
 SQL
-        , [0 => $userId]
+        , [$userId, $this->googleClientId]
       );
     } catch (\DbException $exception) {
       throw new GoogleSheetsException(

@@ -4,7 +4,6 @@ namespace Gamecon\Admin\Modules\Aktivity\Export;
 
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
-use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleDirReference;
 
 class ExporterAktivit
 {
@@ -37,33 +36,30 @@ class ExporterAktivit
 
   /**
    * @param array|\Aktivita[] $aktivity
-   * @param int $rok
+   * @param int $rokAktivit
    */
-  public function exportAktivit(array $aktivity, int $rok) {
-    $sheetTitle = $this->getSheetTitle($aktivity, $rok);
-    $sheetBaseName = $this->getSheetBaseName($aktivity, $rok);
-    $spreadSheet = $this->createSheetForActivities($sheetTitle, $sheetBaseName);
+  public function exportAktivit(array $aktivity, int $rokAktivit) {
+    $sheetTitle = $this->getSheetTitle($aktivity, $rokAktivit);
+    $spreadSheet = $this->createSheetForActivities($sheetTitle);
     $this->saveData([['header FOO'], ['content BAR']], $spreadSheet);
     $this->moveSpreadSheetToexportDir($spreadSheet);
   }
 
-  private function createSheetForActivities(string $sheetTitle, string $tag): \Google_Service_Sheets_Spreadsheet {
+  private function saveData(array $values, \Google_Service_Sheets_Spreadsheet $spreadsheet) {
+    $this->googleSheetsService->setValuesInSpreadsheet($values, $spreadsheet->getSpreadsheetId());
+  }
+
+  private function createSheetForActivities(string $sheetTitle): \Google_Service_Sheets_Spreadsheet {
     $newSpreadsheet = $this->googleSheetsService->createNewSpreadsheet($sheetTitle);
     $this->googleSheetsService->setFirstRowAsHeader($newSpreadsheet->getSpreadsheetId());
-    $this->googleSheetsService->saveSpreadsheetReference($newSpreadsheet, $this->userId, $tag);
+    $this->googleSheetsService->saveSpreadsheetReference($newSpreadsheet, $this->userId);
     return $newSpreadsheet;
   }
 
-  private function getSheetBaseName(array $aktivity, int $rok): string {
+  private function getSheetTitle(array $aktivity, int $rokAktivit): string {
     $activitiesTypeNames = $this->getActivitiesTypeNames($aktivity);
     sort($activitiesTypeNames);
-    return sprintf('%d_%s', $rok, implode('-', $activitiesTypeNames));
-  }
-
-  private function getSheetTitle(array $aktivity, int $rok): string {
-    $activitiesTypeNames = $this->getActivitiesTypeNames($aktivity);
-    sort($activitiesTypeNames);
-    return sprintf('%s (%d)', implode(' a ', $activitiesTypeNames), $rok);
+    return sprintf('%d %s - %s', $rokAktivit, implode(' a ', $activitiesTypeNames), date('j. n. Y H:m:s'));
   }
 
   /**

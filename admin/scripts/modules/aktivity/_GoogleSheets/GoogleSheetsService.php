@@ -4,6 +4,7 @@ namespace Gamecon\Admin\Modules\Aktivity\GoogleSheets;
 
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleSheetsException;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleDirReference;
+use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleSheetsReference;
 
 class GoogleSheetsService
 {
@@ -53,13 +54,13 @@ class GoogleSheetsService
     return $this->getNativeSheets()->spreadsheets->create($spreadsheet);
   }
 
-  public function saveSpreadsheetReference(\Google_Service_Sheets_Spreadsheet $spreadsheet, int $userId, string $tag) {
+  public function saveSpreadsheetReference(\Google_Service_Sheets_Spreadsheet $spreadsheet, int $userId) {
     try {
       dbQuery(<<<SQL
-INSERT INTO google_spreadsheets(spreadsheet_id, original_title, user_id, tag)
-VALUES ($1, $2, $3, $4)
+INSERT INTO google_spreadsheets(spreadsheet_id, original_title, user_id, created_at)
+VALUES ($1, $2, $3, NOW())
 SQL
-        , [$spreadsheet->getSpreadsheetId(), $spreadsheet->getProperties()->getTitle(), $userId, $tag]
+        , [$spreadsheet->getSpreadsheetId(), $spreadsheet->getProperties()->getTitle(), $userId]
       );
     } catch (\DbException $exception) {
       throw new GoogleSheetsException(
@@ -72,25 +73,46 @@ SQL
 
   /**
    * @param int $userId
-   * @param string $tag
-   * @return array|GoogleDirReference[]
+   * @return GoogleSheetsReference[]
    */
-  public function getSheetReferenceByUserIdAndTag(int $userId, string $tag): array {
-    $dirValues = dbFetchAll(<<<SQL
-SELECT id, user_id, spreadsheet_id, original_title, tag FROM google_spreadsheets
-WHERE user_id = $1 AND tag = $2
+  public function getSheetReferencesByUserId(int $userId): array {
+    $referencesValues = dbFetchAll(<<<SQL
+SELECT id, user_id, spreadsheet_id, original_title, created_at FROM google_spreadsheets
+WHERE user_id = $1
+ORDER BY created_at DESC
 SQL
-      , [$userId, $tag]
+      , [$userId]
     );
-    return array_map(static function (array $values) {
-      return new GoogleSheetsReference(
-        $values['id'],
-        $values['user_id'],
-        $values['spreadsheet_id'],
-        $values['original_title'],
-        $values['tag']
+    return array_map(
+      static function (array $referenceValues) {
+        return new GoogleSheetsReference(
+          $referenceValues['id'],
+          $referenceValues['user_id'],
+          $referenceValues['spreadsheet_id'],
+          $referenceValues['original_title'],
+          $referenceValues['created_at']
+        );
+      },
+      $referencesValues
+    );
+  }
+
+  public function deleteSpreadsheetReference(string $spreadsheetId, int $userId) {
+    try {
+      dbQuery(<<<SQL
+DELETE FROM google_spreadsheets
+WHERE spreadsheet_id = $1
+AND user_id = $2 -- just to be sure
+SQL
+        , [$spreadsheetId, $userId]
       );
-    }, $dirValues);
+    } catch (\DbException $exception) {
+      throw new GoogleSheetsException(
+        "Can not remove local reference to a Google spreadsheet: {$exception->getMessage()}",
+        $exception->getCode(),
+        $exception
+      );
+    }
   }
 
   /**

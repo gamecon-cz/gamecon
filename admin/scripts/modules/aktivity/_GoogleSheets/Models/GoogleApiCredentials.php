@@ -16,4 +16,8 @@ class GoogleApiCredentials
   public function getValues(): array {
     return $this->values;
   }
+
+  public function getClientId(): string {
+    return $this->getValues()['web']['client_id'];
+  }
 }
