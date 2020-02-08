@@ -30,7 +30,7 @@ $googleApiClient = new GoogleApiClient(
 
 if (isset($_GET['code'])) {
   $googleApiClient->authorizeByCode($_GET['code']);
-  oznameni('Spárování s Google bylo úspěšné');
+  oznameni('Spárování s Google bylo úspěšné', false);
   // redirect to remove code from URL and avoid repeated but invalid re-authorization by the same code
   back(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
 }
