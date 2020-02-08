@@ -57,7 +57,7 @@ class ExporterAktivit
   }
 
   private function getSheetTitle(array $aktivity, int $rokAktivit): string {
-    $activitiesTypeNames = $this->getActivitiesTypeNames($aktivity);
+    $activitiesTypeNames = $this->getActivitiesUniqueTypeNames($aktivity);
     sort($activitiesTypeNames);
     return sprintf('%d %s - %s', $rokAktivit, implode(' a ', $activitiesTypeNames), date('j. n. Y H:m:s'));
   }
@@ -66,12 +66,14 @@ class ExporterAktivit
    * @param array $aktivity
    * @return array|string[]
    */
-  private function getActivitiesTypeNames(array $aktivity): array {
-    return array_map(
-      static function (\Aktivita $aktivita) {
-        return $aktivita->typ()->nazev();
-      },
-      $aktivity
+  private function getActivitiesUniqueTypeNames(array $aktivity): array {
+    return array_unique(
+      array_map(
+        static function (\Aktivita $aktivita) {
+          return $aktivita->typ()->nazev();
+        },
+        $aktivity
+      )
     );
   }
 
