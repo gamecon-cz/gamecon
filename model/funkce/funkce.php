@@ -288,3 +288,18 @@ function vek(DateTimeInterface $datumNarozeni, ?DateTimeInterface $kDatu): int {
 function zacatekLetosnihoGameconu(): DateTimeImmutable {
     return new DateTimeImmutable(GC_BEZI_OD);
 }
+
+function odstranDiakritiku(string $value): string {
+  $valueWithoutDiacritics = '';
+  $valueWithSpecialsReplaced = \str_replace(
+    ['̱', '̤', '̩', 'Ə', 'ə', 'ʿ', 'ʾ', 'ʼ',],
+    ['', '', '', 'E', 'e', "'", "'", "'",],
+    $value
+  );
+  \preg_match_all('~(?<words>\w*)(?<nonWords>\W*)~u', $valueWithSpecialsReplaced, $matches);
+  foreach ($matches['words'] as $index => $word) {
+    $wordWithoutDiacritics = \transliterator_transliterate('Any-Latin; Latin-ASCII', $word);
+    $valueWithoutDiacritics .= $wordWithoutDiacritics . $matches['nonWords'][$index];
+  }
+  return $valueWithoutDiacritics;
+}

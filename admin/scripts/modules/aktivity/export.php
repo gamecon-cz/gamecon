@@ -20,10 +20,11 @@ if ($_GET['zpet'] ?? '' === 'aktivity') {
   back(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) . '/..');
 }
 
+$googleApiCredentials = new GoogleApiCredentials(GOOGLE_API_CREDENTIALS);
 /** @type \Uzivatel $u */
 $googleApiClient = new GoogleApiClient(
-  new GoogleApiCredentials(GOOGLE_API_CREDENTIALS),
-  new GoogleApiTokenStorage(),
+  $googleApiCredentials,
+  new GoogleApiTokenStorage($googleApiCredentials->getClientId()),
   $u->id()
 );
 

@@ -4,8 +4,10 @@
 $this->q(<<<SQL
 CREATE TABLE google_api_user_tokens (
     id INT UNSIGNED UNIQUE AUTO_INCREMENT,
-    user_id INTEGER NOT NULL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    google_client_id VARCHAR(128) NOT NULL,
     tokens TEXT NOT NULL,
+    PRIMARY KEY user_id_google_client_id(user_id, google_client_id),
     CONSTRAINT FOREIGN KEY FK_google_api_user_tokens_to_uzivatele_hodnoty(user_id) REFERENCES uzivatele_hodnoty(id_uzivatele)
         ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE InnoDB;
@@ -15,8 +17,7 @@ CREATE TABLE google_spreadsheets (
     user_id INTEGER NOT NULL,
     spreadsheet_id VARCHAR(128) PRIMARY KEY,
     original_title TEXT NOT NULL,
-    tag VARCHAR(128) NOT NULL DEFAULT '',
-    KEY tag(tag),
+    created_at DATETIME NOT NULL DEFAULT NOW(),
     CONSTRAINT FOREIGN KEY FK_google_spreadsheets_to_uzivatele_hodnoty(user_id) REFERENCES uzivatele_hodnoty(id_uzivatele)
         ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE InnoDB;
