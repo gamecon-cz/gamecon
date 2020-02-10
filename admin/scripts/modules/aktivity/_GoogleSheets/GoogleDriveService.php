@@ -24,20 +24,24 @@ class GoogleDriveService
 
   /**
    * @param string $dirForGoogle
-   * @return \Google_Service_Drive_DriveFile[]]
+   * @return array|\Google_Service_Drive_DriveFile[]
    */
   public function getDirsByName(string $dirForGoogle): array {
     $parentIds = ['root'];
     $lastDirs = [];
     foreach ($this->getDirHierarchy($dirForGoogle) as $pathPart) {
       $lastDirs = $this->getDirsWithParents($pathPart, $parentIds);
+      if ($lastDirs->count() === 0) {
+        return [];
+      }
       $parentIds = [];
       /** @var \Google_Service_Drive_DriveFile $dir */
       foreach ($lastDirs as $dir) {
+        var_dump($dir);
         $parentIds[] = $dir->getId();
       }
     }
-    return $lastDirs; // it should be just a single dir, but Google allows multiple dirs of same name, so there may be more of them
+    return $lastDirs->getFiles(); // it should be just a single dir, but Google allows multiple dirs of same name, so there may be more of them
   }
 
   private function getDirHierarchy(string $dir): array {
@@ -47,7 +51,9 @@ class GoogleDriveService
   private function getDirsWithParents(string $name, array $parentIds): \Google_Service_Drive_FileList {
     $parentsString = implode(',', $parentIds);
     return $this->getNativeDrive()->files->listFiles(
-      ['q' => "mimeType='application/vnd.google-apps.folder' and '{$parentsString}' in parents and name='{$name}}' and trashed=false"]
+      [
+        'q' => "mimeType='application/vnd.google-apps.folder' and '{$parentsString}' in parents and name='{$name}}' and trashed=false"
+      ]
     );
   }
 
@@ -82,8 +88,8 @@ SQL
     );
     return array_map(static function (array $values) {
       return new GoogleDirReference(
-        $values['id'],
-        $values['user_id'],
+        (int)$values['id'],
+        (int)$values['user_id'],
         $values['dir_id'],
         $values['original_name'],
         $values['tag']
@@ -150,12 +156,15 @@ SQL
     string $fileToMoveId,
     string $dirId
   ): void {
-    $file = $this->getFolderbyId($fileToMoveId);
+    $file = $this->getFileById($fileToMoveId);
+    if (!$file) {
+      throw new GoogleSheetsException("No file to move has been found by id $fileToMoveId");
+    }
     $file->setParents($dirId);
-    $this->getNativeDrive()->files->update($file->getId(), $file);
+    $this->getNativeDrive()->files->update($fileToMoveId, $file);
   }
 
-  private function getFolderById(string $id): \Google_Service_Drive_DriveFile {
+  private function getFileById(string $id): \Google_Service_Drive_DriveFile {
     return $this->getNativeDrive()->files->get(
       $id,
       ['fields' => 'parents']
@@ -167,12 +176,12 @@ SQL
   }
 
   /**
-   * @param string $folderId
+   * @param string $fileId
    * @return string
    * @throws GoogleSheetsException
    */
-  public function getFolderPath(string $folderId): string {
-    $file = $this->getFolderById($folderId);
+  public function getFilePath(string $fileId): string {
+    $file = $this->getFileById($fileId);
     $dirsChainFromRoot = $this->getParentDirsChain($file);
     $dirsPath = '/' . implode('/', $dirsChainFromRoot);
     return $dirsPath . '/' . $file->getName();
