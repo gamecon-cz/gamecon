@@ -61,7 +61,7 @@ class ExporterAktivit
   private function getSheetTitle(array $aktivity, string $prefix): string {
     $activitiesTypeNames = $this->getActivitiesUniqueTypeNames($aktivity);
     sort($activitiesTypeNames);
-    return sprintf('%d %s - %s', $prefix, implode(' a ', $activitiesTypeNames), date('j. n. Y H:i'));
+    return sprintf('%d %s - %s', $prefix, implode(' a ', $activitiesTypeNames), date('j. n. Y H:i:s'));
   }
 
   /**
@@ -88,9 +88,10 @@ class ExporterAktivit
     if ($wrappedRootExportDir) {
       $rootExportDir = reset($wrappedRootExportDir);
       $rootExportDirId = $rootExportDir->getGoogleDirId();
-      if ($this->googleDriveService->folderByIdExists($rootExportDirId)) {
+      if ($this->googleDriveService->dirByIdExists($rootExportDirId)) {
         return $rootExportDirId;
       }
+      $this->googleDriveService->deleteDirReferenceByDirId($rootExportDirId);
     }
     $createdDir = $this->createDirForGameconExport();
     return $createdDir->getId();
