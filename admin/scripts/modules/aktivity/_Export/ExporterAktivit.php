@@ -61,7 +61,7 @@ class ExporterAktivit
   private function getSheetTitle(array $aktivity, string $prefix): string {
     $activitiesTypeNames = $this->getActivitiesUniqueTypeNames($aktivity);
     sort($activitiesTypeNames);
-    return sprintf('%d %s - %s', $prefix, implode(' a ', $activitiesTypeNames), date('j. n. Y H:m:s'));
+    return sprintf('%d %s - %s', $prefix, implode(' a ', $activitiesTypeNames), date('j. n. Y H:i'));
   }
 
   /**
