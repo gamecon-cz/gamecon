@@ -42,7 +42,27 @@ class ExporterAktivit
   public function exportujAktivity(array $aktivity, string $prefix): string {
     $sheetTitle = $this->getSheetTitle($aktivity, $prefix);
     $spreadSheet = $this->createSheetForActivities($sheetTitle);
-    $this->saveData([['header FOO'], ['content BAR']], $spreadSheet);
+    $data[] = [
+      'ID',
+      'Programová linie',
+      'Název',
+      'URL',
+      'Krátká anotace',
+      'Dlouhá anotace',
+      'Tagy',
+    ];
+    foreach ($aktivity as $aktivita) {
+      $data[] = [
+        $aktivita->id(),
+        $aktivita->typ()->nazev(), // Programová linie
+        $aktivita->nazev(),
+        $aktivita->urlId(),
+        $aktivita->kratkyPopis(),
+        $aktivita->popis(),
+        implode(',', $aktivita->tagy()),
+      ];
+    }
+    $this->saveData($data, $spreadSheet);
     $this->moveSpreadsheetToExportDir($spreadSheet);
     return $sheetTitle;
   }
