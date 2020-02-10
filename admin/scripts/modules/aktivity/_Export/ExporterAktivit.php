@@ -36,13 +36,15 @@ class ExporterAktivit
 
   /**
    * @param array|\Aktivita[] $aktivity
-   * @param int $rokAktivit
+   * @param string $prefix
+   * @return string Name of exported file
    */
-  public function exportAktivit(array $aktivity, int $rokAktivit) {
-    $sheetTitle = $this->getSheetTitle($aktivity, $rokAktivit);
+  public function exportujAktivity(array $aktivity, string $prefix): string {
+    $sheetTitle = $this->getSheetTitle($aktivity, $prefix);
     $spreadSheet = $this->createSheetForActivities($sheetTitle);
     $this->saveData([['header FOO'], ['content BAR']], $spreadSheet);
-    $this->moveSpreadSheetToexportDir($spreadSheet);
+    $this->moveSpreadsheetToExportDir($spreadSheet);
+    return $sheetTitle;
   }
 
   private function saveData(array $values, \Google_Service_Sheets_Spreadsheet $spreadsheet) {
@@ -56,10 +58,10 @@ class ExporterAktivit
     return $newSpreadsheet;
   }
 
-  private function getSheetTitle(array $aktivity, int $rokAktivit): string {
+  private function getSheetTitle(array $aktivity, string $prefix): string {
     $activitiesTypeNames = $this->getActivitiesUniqueTypeNames($aktivity);
     sort($activitiesTypeNames);
-    return sprintf('%d %s - %s', $rokAktivit, implode(' a ', $activitiesTypeNames), date('j. n. Y H:m:s'));
+    return sprintf('%d %s - %s', $prefix, implode(' a ', $activitiesTypeNames), date('j. n. Y H:m:s'));
   }
 
   /**
