@@ -62,7 +62,7 @@ if (count($activityTypeIds) > 1) {
     $googleSheetsService = new GoogleSheetsService($googleApiClient, $googleDriveService);
     $exportAktivit = new ExporterAktivit($u->id(), $googleDriveService, $googleSheetsService);
     $nazevExportovanehoSouboru = $exportAktivit->exportujAktivity($aktivity, (string)ROK);
-    oznameni('Aktivity byly exportovány do Google sheets pod názvem ' . $nazevExportovanehoSouboru);
+    oznameni(sprintf("Aktivity byly exportovány do Google sheets pod názvem '%s'", $nazevExportovanehoSouboru));
   } else {
     $template->assign('activityTypeId', $activityTypeId);
 
