@@ -128,14 +128,18 @@ SQL
   }
 
   public function createDir(string $dirForGoogle): \Google_Service_Drive_DriveFile {
-    $parentId = 'root';
+    /** @var null|string $parentId */
+    $parentId = null;
     $lastDir = null;
     foreach ($this->getDirHierarchy($dirForGoogle) as $pathPart) {
       $folder = new \Google_Service_Drive_DriveFile();
       $folder->setName($pathPart);
-      $folder->setParents([$parentId]);
       $folder->setMimeType('application/vnd.google-apps.folder');
       $lastDir = $this->getNativeDrive()->files->create($folder);
+      if ($parentId) {
+        $this->moveFileToDir($lastDir->getId(), $parentId);
+      }
+      $parentId = $lastDir->getId();
     }
     if (!$lastDir) {
       throw new GoogleApiException("Can not create dir {$dirForGoogle}");
@@ -158,8 +162,7 @@ SQL
     if (!$file) {
       throw new GoogleSheetsException("No file to move has been found by id $fileToMoveId");
     }
-    $file->setParents($dirId);
-    $this->getNativeDrive()->files->update($fileToMoveId, $file);
+    $this->getNativeDrive()->files->update($fileToMoveId, new \Google_Service_Drive_DriveFile(), ['removeParents' => $file->getParents(), 'addParents' => $dirId]);
   }
 
   private function getFileById(string $id): \Google_Service_Drive_DriveFile {

@@ -8,7 +8,7 @@ use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
 class ExporterAktivit
 {
 
-  private const EXPORT_DIR = '/gamecon.cz/admin/aktivity/export';
+  private const EXPORT_DIR = '/admin.gamecon.cz/aktivity';
   private const EXPORT_DIR_TAG = 'root-export-dir';
 
   /**
