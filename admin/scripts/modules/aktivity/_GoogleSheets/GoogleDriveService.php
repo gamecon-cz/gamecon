@@ -97,6 +97,15 @@ SQL
     }, $dirValues);
   }
 
+  public function deleteDirReferenceByDirId(string $dirId): void {
+    dbQuery(<<<SQL
+DELETE FROM google_drive_dirs
+WHERE dir_id = $1
+SQL
+      , [$dirId]
+    );
+  }
+
   public function getDirIdByName(string $name, int $userId) {
     try {
       dbQuery(<<<SQL
@@ -141,17 +150,6 @@ SQL
     return $this->nativeDrive;
   }
 
-  /**
-   * @param \Google_Service_Sheets_Spreadsheet $spreadsheet
-   * @param string $dirId
-   */
-  public function moveSpreadsheetToDir(
-    \Google_Service_Sheets_Spreadsheet $spreadsheet,
-    string $dirId
-  ): void {
-    $this->moveFileToDir($spreadsheet->getSpreadsheetId(), $dirId);
-  }
-
   public function moveFileToDir(
     string $fileToMoveId,
     string $dirId
@@ -171,8 +169,49 @@ SQL
     );
   }
 
-  public function folderByIdExists(string $folderId): bool {
-    return (bool)$this->getNativeDrive()->files->get($folderId);
+  public function dirByIdExists(string $folderId): bool {
+    try {
+      $file = $this->getNativeDrive()->files->get($folderId);
+    } catch (\Google_Service_Exception $exception) {
+      if ($exception->getCode() !== 404) {
+        throw $exception;
+      }
+      $error = $exception->getErrors()[0] ?? null;
+      if (!$error) {
+        throw $exception;
+      }
+      if ($error['reason'] !== 'notFound' || $error['location'] !== 'fileId') {
+        throw $exception;
+      }
+      return false; // simply not found
+    }
+    if ($file->getTrashed() || $file->getExplicitlyTrashed()) { // sadly this does not mean the user itself does not deleted the dir
+      return false;
+    }
+    $list = $this->getNativeDrive()->files->listFiles(
+      [
+        'q' => "mimeType='application/vnd.google-apps.folder' and name='{$file->getName()}' and trashed=false"
+      ]
+    );
+    if ($list->count() === 0) {
+      return false;
+    }
+    /** @var \Google_Service_Drive_DriveFile $sameNamedFile */
+    foreach ($list->getFiles() as $sameNamedFile) {
+      if ($sameNamedFile->getId() === $folderId) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private function getFile(string $name, array $parentIds): \Google_Service_Drive_FileList {
+    $parentsString = implode(',', $parentIds);
+    return $this->getNativeDrive()->files->listFiles(
+      [
+        'q' => "mimeType='application/vnd.google-apps.folder' and '{$parentsString}' in parents and name='{$name}}' and trashed=false"
+      ]
+    );
   }
 
   /**
