@@ -3,7 +3,6 @@
 namespace Gamecon\Admin\Modules\Aktivity\GoogleSheets;
 
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleSheetsException;
-use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleDirReference;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleSheetsReference;
 
 class GoogleSheetsService
@@ -193,7 +192,7 @@ SQL
    */
   public function setFirstRowAsHeader(string $spreadsheetId) {
     $requests = [];
-    $requests[] = $this->createFirstRowCenteredAndBoldRequest();
+    $requests[] = $this->createFirstRowBoldRequest();
     $requests[] = $this->createFreezeFirstRowRequest();
 
     $update = new \Google_Service_Sheets_BatchUpdateSpreadsheetRequest();
@@ -201,7 +200,7 @@ SQL
     $this->getNativeSheets()->spreadsheets->batchUpdate($spreadsheetId, $update);
   }
 
-  private function createFirstRowCenteredAndBoldRequest(): \Google_Service_Sheets_Request {
+  private function createFirstRowBoldRequest(): \Google_Service_Sheets_Request {
     $repeatCellRequest = new \Google_Service_Sheets_RepeatCellRequest();
     $repeatCellRequest->setFields("userEnteredFormat(textFormat,horizontalAlignment)");
     $repeatCellRequestRange = new \Google_Service_Sheets_GridRange();
@@ -211,7 +210,6 @@ SQL
 
     $cell = new \Google_Service_Sheets_CellData();
     $cellFormat = new \Google_Service_Sheets_CellFormat();
-    $cellFormat->setHorizontalAlignment("CENTER");
     $textFormat = new \Google_Service_Sheets_TextFormat();
     $textFormat->setBold(true);
     $cellFormat->setTextFormat($textFormat);
@@ -235,6 +233,19 @@ SQL
 
     $request = new \Google_Service_Sheets_Request();
     $request->setUpdateSheetProperties($updateSheetPropertiesRequest);
+
+    return $request;
+  }
+
+  private function createAutoResizeFirstRowRequest(string $spreadsheetId): \Google_Service_Sheets_Request {
+    $autoResizeDimensionsRequest = new \Google_Service_Sheets_AutoResizeDimensionsRequest();
+    $dimensionRange = new \Google_Service_Sheets_DimensionRange();
+    $dimensionRange->setSheetId($spreadsheetId);
+    $dimensionRange->setDimension('COLUMN');
+    $autoResizeDimensionsRequest->setDimensions($dimensionRange);
+
+    $request = new \Google_Service_Sheets_Request();
+    $request->setAutoResizeDimensions($autoResizeDimensionsRequest);
 
     return $request;
   }

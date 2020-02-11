@@ -2,7 +2,7 @@
 
 /**
  * Datum a čas s českými názvy dnů a měsíců + další vychytávky
- */ 
+ */
 
 class DateTimeCz extends DateTime
 {
@@ -53,12 +53,30 @@ class DateTimeCz extends DateTime
   }
 
   /**
-   * Vrací běžně používaný formát data - tvar d.m.yyyy
-   * 
+   * Vrací běžně používaný formát data - tvar d. m. yyyy
+   *
    * @return string
    */
   function formatDatumStandard() {
     return parent::format('j. n. Y');
+  }
+
+  /**
+   * Vrací běžně používaný formát data a času s přesností na minuty - tvar d. m. yyyy 16:46
+   *
+   * @return string
+   */
+  function formatCasNaMinutyStandard() {
+    return parent::format('j. n. Y H:i');
+  }
+
+  /**
+   * Vrací běžně používaný formát data a času - tvar d. m. yyyy 16:46:33
+   *
+   * @return string
+   */
+  function formatCasStandard() {
+    return parent::format('j. n. Y H:i:s');
   }
 
   /** Vrací blogový/dopisový formát */
