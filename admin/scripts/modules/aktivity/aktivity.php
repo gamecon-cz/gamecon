@@ -14,7 +14,7 @@ if (post('smazat')) {
 }
 
 if (post('publikovat')) {
-  dbQueryS('UPDATE akce_seznam SET stav=4 WHERE id_akce=$0', [post('aktivitaId')]); // TODO převést do modelu
+  Aktivita::zId(post('aktivitaId'))->publikuj();
   back();
 }
 
@@ -34,7 +34,7 @@ if (post('aktivovat')) {
 }
 
 if (post('aktivovatVse')) {
-  dbQuery('UPDATE akce_seznam SET stav=1 WHERE stav=5 AND rok=' . ROK); // TODO převést do modelu
+  Aktivita::aktivujVsePripravene(ROK);
   back();
 }
 

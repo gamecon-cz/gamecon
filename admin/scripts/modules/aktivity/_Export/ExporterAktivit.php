@@ -43,13 +43,27 @@ class ExporterAktivit
     $sheetTitle = $this->getSheetTitle($aktivity, $prefix);
     $spreadSheet = $this->createSheetForActivities($sheetTitle);
     $data[] = [
-      'ID',
+      'ID aktivity',
       'Programová linie',
       'Název',
       'URL',
       'Krátká anotace',
       'Dlouhá anotace',
       'Tagy',
+      'Začátek',
+      'Konec',
+      'Místnost',
+      'Vypravěči',
+      'Kapacita unisex',
+      'Kapacita muži',
+      'Kapacita ženy',
+      'Je týmová',
+      'Minimální kapacita týmu',
+      'Maximální kapacita týmu',
+      'Cena',
+      'Bez slev',
+      'Vybavení',
+      'Stav',
     ];
     foreach ($aktivity as $aktivita) {
       $data[] = [
@@ -60,6 +74,24 @@ class ExporterAktivit
         $aktivita->kratkyPopis(),
         $aktivita->popis(),
         implode(',', $aktivita->tagy()),
+        $aktivita->zacatek()->formatCasNaMinutyStandard(),
+        $aktivita->konec()->formatCasNaMinutyStandard(),
+        (string)$aktivita->lokace(),
+        implode(',', $aktivita->getOrganizatoriIds()),
+        $aktivita->getKapacitaUnisex(),
+        $aktivita->getKapacitaMuzu(),
+        $aktivita->getKapacitaZen(),
+        $aktivita->tymova()
+          ? 'ano'
+          : 'ne',
+        $aktivita->tymMinKapacita() ?? '',
+        $aktivita->tymMaxKapacita() ?? '',
+        (float)$aktivita->cenaZaklad(),
+        $aktivita->bezSlevy()
+          ? 'ano'
+          : 'ne',
+        (string)$aktivita->vybaveni(),
+        $aktivita->getStavNazev(),
       ];
     }
     $this->saveData($data, $spreadSheet);
