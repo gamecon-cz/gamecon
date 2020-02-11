@@ -11,8 +11,8 @@ $(function(){
   $('.formAktivita').submit(function(){
     var aktivita = $(this).closest('.blokAktivita');
     // test na vyplnění políček / potvrzení
-    var policek = aktivita.find('[type=checkbox]').size();
-    var vybrano = aktivita.find('[type=checkbox]:checked').size();
+    var policek = aktivita.find('[type=checkbox]').length;
+    var vybrano = aktivita.find('[type=checkbox]:checked').length;
     if(vybrano < policek / 2) {
       if(!confirm('Opravdu uložit s účastí menší jak polovina?')) return false;
     }

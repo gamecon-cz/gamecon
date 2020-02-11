@@ -2,7 +2,7 @@
 <img src="files/design/android-dots.png">
 </div>
 <script>
-$('.mobmenu').click(function(){
+$('.mobmenu').on('click', function(){
   $(this).parent().toggleClass('mobrozbal');
 });
 </script>

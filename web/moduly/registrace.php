@@ -213,7 +213,7 @@ $(function(){
     if( novyUzivatel && (!$('[name=heslo2]').val() || !$('[name=heslo3]').val()) ) err+='Je třeba vyplnit heslo.\n';
     if( ($('[name=heslo2]').val()) != ($('[name=heslo3]').val()) ) err+='Hesla se neshodují.\n';
     if(!jeMail($('[name="tab[email1_uzivatele]"]').val())) err+='Je třeba zadat platný e-mail.\n';
-    if(!$('[name="tab[pohlavi]"]:checked').size()) err+='Není vybráno pohlaví.\n';
+    if(!$('[name="tab[pohlavi]"]:checked').length) err+='Není vybráno pohlaví.\n';
     return err;
   }
 

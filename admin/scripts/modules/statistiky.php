@@ -257,7 +257,7 @@ $pocetDni = substr_count($dny, ',');
     });
   });
 </script>
-<script src="files/highcharts.js"></script>
+<script src="files/highcharts-v4.2.7.js"></script>
 
 <h2>Aktuální statistiky</h2>
 
