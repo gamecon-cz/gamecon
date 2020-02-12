@@ -8,6 +8,10 @@ use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleDirReference;
 
 class GoogleDriveService
 {
+  private const SPREADSHEET_MIME_TYPE = 'application/vnd.google-apps.spreadsheet';
+  private const OPENOFFICE_SHEET_MIME_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  private const DIR_MIME_TYPE = 'application/vnd.google-apps.folder';
+
   /**
    * @var \Google_Service_Drive
    */
@@ -52,12 +56,17 @@ class GoogleDriveService
     $parentsString = implode(',', $parentIds);
     return $this->getNativeDrive()->files->listFiles(
       [
-        'q' => "mimeType='application/vnd.google-apps.folder' and '{$parentsString}' in parents and name='{$name}}' and trashed=false"
+        'q' => sprintf(
+          "mimeType='%s' and '%s' in parents and name='%s' and trashed=false",
+          self::DIR_MIME_TYPE,
+          $parentsString,
+          $name
+        ),
       ]
     );
   }
 
-  public function saveDirReference(\Google_Service_Drive_DriveFile $dir, int $userId, string $tag) {
+  public function saveDirReferenceLocally(\Google_Service_Drive_DriveFile $dir, int $userId, string $tag) {
     try {
       dbQuery(<<<SQL
 REPLACE INTO google_drive_dirs(dir_id, original_name, user_id, tag)
@@ -79,7 +88,7 @@ SQL
    * @param string $tag
    * @return array|GoogleDirReference[]
    */
-  public function getDirsReferencesByUserIdAndTag(int $userId, string $tag): array {
+  public function getLocalDirsReferencesByUserIdAndTag(int $userId, string $tag): array {
     $dirValues = dbFetchAll(<<<SQL
 SELECT id, user_id, dir_id, original_name, tag FROM google_drive_dirs
 WHERE user_id = $1 AND tag = $2
@@ -97,30 +106,13 @@ SQL
     }, $dirValues);
   }
 
-  public function deleteDirReferenceByDirId(string $dirId): void {
+  public function deleteLocalDirReferenceByDirId(string $dirId): void {
     dbQuery(<<<SQL
 DELETE FROM google_drive_dirs
 WHERE dir_id = $1
 SQL
       , [$dirId]
     );
-  }
-
-  public function getDirIdByName(string $name, int $userId) {
-    try {
-      dbQuery(<<<SQL
-SELECT dir_id FROM google_drive_dirs
-WHERE user_id = $1 AND original_name = $2
-SQL
-        , [$userId, $name]
-      );
-    } catch (\DbException $exception) {
-      throw new GoogleSheetsException(
-        "Can not save reference to a Google dir locally: {$exception->getMessage()}",
-        $exception->getCode(),
-        $exception
-      );
-    }
   }
 
   public function dirExists(string $dir): bool {
@@ -134,7 +126,7 @@ SQL
     foreach ($this->getDirHierarchy($dirForGoogle) as $pathPart) {
       $folder = new \Google_Service_Drive_DriveFile();
       $folder->setName($pathPart);
-      $folder->setMimeType('application/vnd.google-apps.folder');
+      $folder->setMimeType(self::DIR_MIME_TYPE);
       $lastDir = $this->getNativeDrive()->files->create($folder);
       if ($parentId) {
         $this->moveFileToDir($lastDir->getId(), $parentId);
@@ -193,7 +185,7 @@ SQL
     }
     $list = $this->getNativeDrive()->files->listFiles(
       [
-        'q' => "mimeType='application/vnd.google-apps.folder' and name='{$file->getName()}' and trashed=false"
+        'q' => sprintf("mimeType='%s' and name='%s' and trashed=false", self::DIR_MIME_TYPE, $file->getName()),
       ]
     );
     if ($list->count() === 0) {
@@ -206,15 +198,6 @@ SQL
       }
     }
     return false;
-  }
-
-  private function getFile(string $name, array $parentIds): \Google_Service_Drive_FileList {
-    $parentsString = implode(',', $parentIds);
-    return $this->getNativeDrive()->files->listFiles(
-      [
-        'q' => "mimeType='application/vnd.google-apps.folder' and '{$parentsString}' in parents and name='{$name}}' and trashed=false"
-      ]
-    );
   }
 
   /**
@@ -266,7 +249,7 @@ SQL
 
   public function getAsXlsx(string $fileId): string {
     /** @var \GuzzleHttp\Psr7\Response $response */
-    $response = $this->getNativeDrive()->files->export($fileId, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    $response = $this->getNativeDrive()->files->export($fileId, self::OPENOFFICE_SHEET_MIME_TYPE);
     $body = $response->getBody();
     $body->rewind();
     $content = '';
@@ -278,7 +261,7 @@ SQL
 
   public function importXlsx(string $xlsxFile, string $name): \Google_Service_Drive_DriveFile {
     $uploadFile = new \Google_Service_Drive_DriveFile();
-    $uploadFile->setMimeType('application/vnd.google-apps.spreadsheet');
+    $uploadFile->setMimeType(self::SPREADSHEET_MIME_TYPE);
     // $uploadFile->setParents($spreadSheetDirParentId);
     $uploadFile->setName($name);
     return $this->getNativeDrive()->files->create(
@@ -287,6 +270,16 @@ SQL
         'data' => file_get_contents($xlsxFile),
         'uploadType' => 'multipart',
         'fields' => 'webViewLink,id',
+      ]
+    );
+  }
+
+  public function getAllSheetFiles(): \Google_Service_Drive_FileList {
+    return $this->getNativeDrive()->files->listFiles(
+      [
+        'q' => sprintf("mimeType='%s' and trashed=false", self::SPREADSHEET_MIME_TYPE),
+        'fields' => 'files(id,name,createdTime,modifiedTime,webViewLink)',
+        'orderBy' => 'modifiedTime desc',
       ]
     );
   }
