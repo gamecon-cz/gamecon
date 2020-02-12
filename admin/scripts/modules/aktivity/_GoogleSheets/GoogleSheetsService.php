@@ -3,6 +3,7 @@
 namespace Gamecon\Admin\Modules\Aktivity\GoogleSheets;
 
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleSheetsException;
+use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleSheetsPreview;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleSheetsReference;
 
 class GoogleSheetsService
@@ -260,5 +261,23 @@ SQL
 
   public function importXlsx(string $xlsxFile, string $name): \Google_Service_Drive_DriveFile {
     return $this->googleDriveService->importXlsx($xlsxFile, $name);
+  }
+
+  /**
+   * @return array|GoogleSheetsPreview[]
+   */
+  public function getAllSpreadsheets(): array {
+    $spreadsheetPreviews = [];
+    /** @var \Google_Service_Drive_DriveFile $file */
+    foreach ($this->googleDriveService->getAllSheetFiles() as $file) {
+      $spreadsheetPreviews[] = new GoogleSheetsPreview(
+        $file->getId(),
+        $file->getName(),
+        $file->getWebViewLink(),
+        $file->getCreatedTime(),
+        $file->getModifiedTime()
+      );
+    }
+    return $spreadsheetPreviews;
   }
 }

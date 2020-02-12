@@ -49,9 +49,10 @@ $aktivity = Aktivita::zFiltru($filtr, $razeni);
 $tpl = new XTemplate('aktivity.xtpl');
 
 $currentRequestUrl = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$tpl->assign('urlProImport', $currentRequestUrl . '/' . basename(__DIR__ . '/import.php', '.php'));
-$tpl->assign('urlProExport', $currentRequestUrl . '/' . basename(__DIR__ . '/export.php', '.php'));
-$tpl->parse('aktivity.importExport');
+$exportImportUrl = $currentRequestUrl . '/export-import';
+$tpl->assign('urlProExport', $exportImportUrl);
+$tpl->assign('urlProImport', $exportImportUrl);
+$tpl->parse('aktivity.exportImport');
 
 $typy = dbArrayCol('SELECT id_typu, typ_1p FROM akce_typy');
 $typy[0] = '';
