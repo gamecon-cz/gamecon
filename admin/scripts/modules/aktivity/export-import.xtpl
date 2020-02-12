@@ -47,7 +47,14 @@
 <hr>
 
 <form method="post">
-  <input type="submit" value="Importovat" id="importSubmit" disabled>
+  <div>
+    <div style="margin: 1em 1em 1em 0; padding: 4px 4px 4px 0; float: left">
+      <input type="submit" value="Importovat" id="importSubmit">
+    </div>
+    <div id="googleSheetNotSelected" class="warning" style="float: left; margin: 1em 0 0 1em; padding-right: 1em; display: none">
+      Pro import vyber soubor ↓
+    </div>
+  </div>
   <!-- begin:spreadsheets -->
   <table class="zvyraznovana" style="width: 100%; margin-top: 1em">
     <thead>
@@ -61,7 +68,7 @@
     <tbody>
     <!-- begin:spreadsheet -->
     <tr>
-      <td><input type="radio" name="import" value="{idEncoded}"></td>
+      <td><input type="radio" name="googleSheetId" value="{googleSheetIdEncoded}"></td>
       <td><a href="{url}" target="_blank">{nazev}</a></td>
       <td>{vytvorenoKdy}</td>
       <td>{upravenoKdy}</td>
@@ -70,9 +77,27 @@
     </tbody>
   </table>
   <script type="text/javascript">
-    jQuery('input[type=radio][name=import]').on('change', function () {
-      $('#importSubmit').attr('disabled', null);
-    })
+    const solveImportSubmitActivation = function () {
+      let submitIsAllowed = false;
+      jQuery('input[type=radio][name=googleSheetId]').each(function (index, radio) {
+        if (radio.checked) {
+          submitIsAllowed = true;
+        }
+      });
+      const disabled = submitIsAllowed
+        ? null
+        : true;
+      $('#importSubmit').attr('disabled', disabled);
+      if (submitIsAllowed) {
+        $('#googleSheetNotSelected').hide();
+      } else {
+        $('#googleSheetNotSelected').show();
+      }
+    };
+    jQuery('input[type=radio][name=googleSheetId]').on('change', function () {
+      solveImportSubmitActivation();
+    });
+    solveImportSubmitActivation();
   </script>
   <!-- end:spreadsheets -->
 </form>

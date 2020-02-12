@@ -96,9 +96,13 @@ if (!$googleApiClient->isAuthorized()) {
 
 // IMPORT
 if ($googleApiClient->isAuthorized()) {
+  if (!empty($_POST['googleSheetId'])) {
+    oznameni('Jakoby "importuji" Google sheet ' . $_POST['googleSheetId']); // TODO
+  }
+
   $spreadsheets = $googleSheetsService->getAllSpreadsheets();
   foreach ($spreadsheets as $spreadsheet) {
-    $template->assign('idEncoded', htmlentities($spreadsheet->getId()));
+    $template->assign('googleSheetIdEncoded', htmlentities($spreadsheet->getId()));
     $template->assign('nazev', $spreadsheet->getName());
     $template->assign('url', $spreadsheet->getUrl());
     $template->assign('vytvorenoKdy', $spreadsheet->getCreatedAt()->formatCasStandard());
