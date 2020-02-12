@@ -4,7 +4,7 @@
   <li><a href="program-mistnosti" target="_blank">Program po místnostech</a></li>
 </ul>
 
-<!-- begin:importExport -->
+<!-- begin:exportImport -->
 <div>
   <form action="{urlProImport}" method="get" style="float: left">
     <input type="submit" value="Importovat">
@@ -14,7 +14,7 @@
   </form>
   <div style="clear: both"></div>
 </div>
-<!-- end:importExport -->
+<!-- end:exportImport -->
 
 <!-- begin:aktivovatVse -->
 <form method="post" style="position:absolute;right:20px;top:60px">

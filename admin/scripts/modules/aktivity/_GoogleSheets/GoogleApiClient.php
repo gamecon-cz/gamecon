@@ -153,4 +153,8 @@ class GoogleApiClient
     }
     return $this->getNativeClient();
   }
+
+  public function flushAllAuthorizations() {
+    $this->googleApiTokenStorage->deleteAllTokens();
+  }
 }

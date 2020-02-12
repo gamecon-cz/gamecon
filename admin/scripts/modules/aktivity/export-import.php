@@ -12,7 +12,7 @@ use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleApiTokenStorage;
 /**
  * Stránka pro hromadný export aktivit.
  *
- * nazev: Export
+ * nazev: Export & Import
  * pravo: 102
  */
 
@@ -27,6 +27,10 @@ $googleApiClient = new GoogleApiClient(
   new GoogleApiTokenStorage($googleApiCredentials->getClientId()),
   $u->id()
 );
+
+if (!empty($_GET['flush-authorization'])) {
+  $googleApiClient->flushAllAuthorizations();
+}
 
 if (isset($_GET['code'])) {
   $googleApiClient->authorizeByCode($_GET['code']);
@@ -46,10 +50,14 @@ $activityTypeIds = array_unique(
   )
 );
 
-$template = new \XTemplate('export.xtpl');
+$template = new \XTemplate(__DIR__ . '/export-import.xtpl');
 
 $template->assign('urlNaAktivity', $_SERVER['REQUEST_URI'] . '/..');
 
+$googleDriveService = new GoogleDriveService($googleApiClient);
+$googleSheetsService = new GoogleSheetsService($googleApiClient, $googleDriveService);
+
+// EXPORT
 if (count($activityTypeIds) > 1) {
   $template->parse('export.neniVybranTyp');
 } else if (count($activityTypeIds) === 0) {
@@ -58,33 +66,47 @@ if (count($activityTypeIds) > 1) {
   $activityTypeId = reset($activityTypeIds);
 
   if (!empty($_POST['activity_type_id']) && (int)$_POST['activity_type_id'] === (int)$activityTypeId && $googleApiClient->isAuthorized()) {
-    $googleDriveService = new GoogleDriveService($googleApiClient);
-    $googleSheetsService = new GoogleSheetsService($googleApiClient, $googleDriveService);
     $exportAktivit = new ExporterAktivit($u->id(), $googleDriveService, $googleSheetsService);
     $nazevExportovanehoSouboru = $exportAktivit->exportujAktivity($aktivity, (string)ROK);
     oznameni(sprintf("Aktivity byly exportovány do Google sheets pod názvem '%s'", $nazevExportovanehoSouboru));
-  } else {
-    $template->assign('activityTypeId', $activityTypeId);
-
-    $typAktivity = \Typ::zId($activityTypeId);
-    $template->assign('nazevTypu', mb_ucfirst($typAktivity->nazev()));
-    $template->assign('pocetAktivit', count($aktivity));
-    $template->assign('exportDisabled', $googleApiClient->isAuthorized()
-      ? ''
-      : 'disabled'
-    );
-
-    $template->parse('export.exportovat');
+    exit;
   }
-  if (!$googleApiClient->isAuthorized()) {
-    $template->assign('authorizationUrl', $googleApiClient->getAuthorizationUrl());
-    $template->parse('export.autorizace');
-  }
+  $template->assign('activityTypeId', $activityTypeId);
+
+  $typAktivity = \Typ::zId($activityTypeId);
+  $template->assign('nazevTypu', mb_ucfirst($typAktivity->nazev()));
+  $template->assign('pocetAktivit', count($aktivity));
+  $template->assign('exportDisabled', $googleApiClient->isAuthorized()
+    ? ''
+    : 'disabled'
+  );
+
+  $template->parse('export.exportovat');
 }
 
 $template->parse('export');
 $template->out('export');
 
-// $googleDriveService = new GoogleDriveService($googleApiClient);
+// AUTHOIZACE
+if (!$googleApiClient->isAuthorized()) {
+  $template->assign('authorizationUrl', $googleApiClient->getAuthorizationUrl());
+  $template->parse('autorizace');
+  $template->out('autorizace');
+}
 
-// $googleSheets = new GoogleSheetsService($googleApiClient, $googleDriveService);
+// IMPORT
+if ($googleApiClient->isAuthorized()) {
+  $spreadsheets = $googleSheetsService->getAllSpreadsheets();
+  foreach ($spreadsheets as $spreadsheet) {
+    $template->assign('idEncoded', htmlentities($spreadsheet->getId()));
+    $template->assign('nazev', $spreadsheet->getName());
+    $template->assign('url', $spreadsheet->getUrl());
+    $template->assign('vytvorenoKdy', $spreadsheet->getCreatedAt()->formatCasStandard());
+    $template->assign('upravenoKdy', $spreadsheet->getModifiedAt()->formatCasStandard());
+    $template->parse('import.spreadsheets.spreadsheet');
+  }
+  $template->parse('import.spreadsheets');
+
+  $template->parse('import');
+  $template->out('import');
+}

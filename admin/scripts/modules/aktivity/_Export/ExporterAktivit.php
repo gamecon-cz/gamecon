@@ -136,14 +136,14 @@ class ExporterAktivit
   }
 
   private function getExportDirId(): string {
-    $wrappedRootExportDir = $this->googleDriveService->getDirsReferencesByUserIdAndTag($this->userId, self::EXPORT_DIR_TAG);
+    $wrappedRootExportDir = $this->googleDriveService->getLocalDirsReferencesByUserIdAndTag($this->userId, self::EXPORT_DIR_TAG);
     if ($wrappedRootExportDir) {
       $rootExportDir = reset($wrappedRootExportDir);
       $rootExportDirId = $rootExportDir->getGoogleDirId();
       if ($this->googleDriveService->dirByIdExists($rootExportDirId)) {
         return $rootExportDirId;
       }
-      $this->googleDriveService->deleteDirReferenceByDirId($rootExportDirId);
+      $this->googleDriveService->deleteLocalDirReferenceByDirId($rootExportDirId);
     }
     $createdDir = $this->createDirForGameconExport();
     return $createdDir->getId();
@@ -155,7 +155,7 @@ class ExporterAktivit
       $exportDirName = uniqid($exportDirName, true);
     }
     $createdDir = $this->googleDriveService->createDir($exportDirName);
-    $this->googleDriveService->saveDirReference($createdDir, $this->userId, self::EXPORT_DIR_TAG);
+    $this->googleDriveService->saveDirReferenceLocally($createdDir, $this->userId, self::EXPORT_DIR_TAG);
     return $createdDir;
   }
 }

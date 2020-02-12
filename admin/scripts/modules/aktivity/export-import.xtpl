@@ -1,0 +1,80 @@
+<!-- begin:export -->
+
+<div>
+  <div style="float: left">
+    <form method="get" action="{urlNaAktivity}">
+      <input type="submit" value="↶ Zpět na aktivity">
+    </form>
+  </div>
+  <div style="float: right">
+    <!-- begin:exportovat -->
+    <form method="post">
+      <input type="hidden" name="activity_type_id" value="{activityTypeId}">
+      <input type="submit" name="exportovat" value="Exportovat {pocetAktivit} aktivit typu {nazevTypu}"
+             {exportDisabled}>
+    </form>
+    <!-- end:exportovat -->
+
+    <!-- begin:neniVybranTyp -->
+    <div class="warning" style="margin: 0; padding-right: 1em">
+      Pro export nejdříve vyber konkrétní typ akce ↑
+    </div>
+    <!-- end:neniVybranTyp -->
+
+    <!-- begin:zadneAktivity -->
+    <div class="error" style="margin: 0">
+      Vybraný typ nemá žádné aktivity, není co exportovat.
+    </div>
+    <!-- end:zadneAktivity -->
+  </div>
+  <div style="clear: both"></div>
+</div>
+
+<!-- end:export -->
+
+<!-- begin:autorizace -->
+<hr>
+
+<div class="warning" style="padding-right: 40px">
+  <p><a href="{authorizationUrl}">Povol Gameconu přístup</a> ke tvému Google drive a Google sheets, aby Gamecon mohl
+    vybrané aktivity exportovat a nazpět importovat.</p>
+  <p>Gamecon bude moci číst a zapisovat <strong>pouze</strong> soubory, které sám vytvoří. Nedostane práva k žádným tvým
+    soukromým datům.</p>
+</div>
+<!-- end:autorizace -->
+
+<!-- begin:import -->
+<hr>
+
+<form method="post">
+  <input type="submit" value="Importovat" id="importSubmit" disabled>
+  <!-- begin:spreadsheets -->
+  <table class="zvyraznovana" style="width: 100%; margin-top: 1em">
+    <thead>
+    <tr>
+      <th></th>
+      <th>Název exportu</th>
+      <th>Vytvořen</th>
+      <th>Naposledy upraven</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- begin:spreadsheet -->
+    <tr>
+      <td><input type="radio" name="import" value="{idEncoded}"></td>
+      <td><a href="{url}" target="_blank">{nazev}</a></td>
+      <td>{vytvorenoKdy}</td>
+      <td>{upravenoKdy}</td>
+    </tr>
+    <!-- end:spreadsheet -->
+    </tbody>
+  </table>
+  <script type="text/javascript">
+    jQuery('input[type=radio][name=import]').on('change', function () {
+      $('#importSubmit').attr('disabled', null);
+    })
+  </script>
+  <!-- end:spreadsheets -->
+</form>
+
+<!-- end:import -->
