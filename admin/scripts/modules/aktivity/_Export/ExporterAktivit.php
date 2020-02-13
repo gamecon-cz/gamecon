@@ -93,12 +93,12 @@ class ExporterAktivit
         ? $aktivita->konec()->format('G:i')
         : '';
       $konecCas = preg_replace('~:00$~', '', $konecCas);
-      if (($zacatekDen !== '' || $konecDen !== '')
-        && $zacatekDen !== $konecDen
-        && ($konecCas !== '0' // midnight
-          || $aktivita->zacatek()->modify('+1 day')->format('Ymd') !== $aktivita->konec()->format('Ymd') // end on midnight is OK (like čtvrtek 10:00...pátek 0:00)
-        )
-      ) {
+      $endAtSameDayAtMidnight = $konecCas === '0' // midnight
+        && $aktivita->zacatek()->modify('+1 day')->format('Ymd') === $aktivita->konec()->format('Ymd');
+      if ($endAtSameDayAtMidnight) {
+        $konecCas = '24'; // midnight
+      }
+      if (($zacatekDen !== '' || $konecDen !== '') && $zacatekDen !== $konecDen && !$endAtSameDayAtMidnight) {
         throw new ActivitiesExportException(
           "Aktivita by neměla začínat a končit v jiný den: začátek '$zacatekDen':'$zacatekCas', konec '$konecDen':'$konecCas' u aktivity {$aktivita->id()} ({$aktivita->nazev()})"
         );
