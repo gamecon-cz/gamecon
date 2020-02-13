@@ -105,8 +105,10 @@ if ($googleApiClient->isAuthorized()) {
     $template->assign('googleSheetIdEncoded', htmlentities($spreadsheet->getId()));
     $template->assign('nazev', $spreadsheet->getName());
     $template->assign('url', $spreadsheet->getUrl());
-    $template->assign('vytvorenoKdy', $spreadsheet->getCreatedAt()->formatCasStandard());
-    $template->assign('upravenoKdy', $spreadsheet->getModifiedAt()->formatCasStandard());
+    $template->assign('vytvorenoKdy', $spreadsheet->getCreatedAt()->relativni());
+    $template->assign('upravenoKdy', $spreadsheet->getModifiedAt()->relativni());
+    $template->assign('vytvorenoKdyPresne', $spreadsheet->getCreatedAt()->formatCasStandard());
+    $template->assign('upravenoKdyPresne', $spreadsheet->getModifiedAt()->formatCasStandard());
     $template->parse('import.spreadsheets.spreadsheet');
   }
   $template->parse('import.spreadsheets');

@@ -70,8 +70,8 @@
     <tr>
       <td><input type="radio" name="googleSheetId" value="{googleSheetIdEncoded}"></td>
       <td><a href="{url}" target="_blank">{nazev}</a></td>
-      <td>{vytvorenoKdy}</td>
-      <td>{upravenoKdy}</td>
+      <td title="{vytvorenoKdyPresne}">{vytvorenoKdy}</td>
+      <td title="{upravenoKdyPresne}">{upravenoKdy}</td>
     </tr>
     <!-- end:spreadsheet -->
     </tbody>
