@@ -12,16 +12,6 @@ CREATE TABLE google_api_user_tokens (
         ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE InnoDB;
 
-CREATE TABLE google_spreadsheets (
-    id INT UNSIGNED UNIQUE AUTO_INCREMENT,
-    user_id INTEGER NOT NULL,
-    spreadsheet_id VARCHAR(128) PRIMARY KEY,
-    original_title TEXT NOT NULL,
-    created_at DATETIME NOT NULL DEFAULT NOW(),
-    CONSTRAINT FOREIGN KEY FK_google_spreadsheets_to_uzivatele_hodnoty(user_id) REFERENCES uzivatele_hodnoty(id_uzivatele)
-        ON UPDATE CASCADE ON DELETE CASCADE
-) ENGINE InnoDB;
-
 CREATE TABLE google_drive_dirs (
     id INT UNSIGNED UNIQUE AUTO_INCREMENT,
     user_id INTEGER NOT NULL,
