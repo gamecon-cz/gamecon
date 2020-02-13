@@ -35,13 +35,12 @@ class GoogleDriveService
     $lastDirs = [];
     foreach ($this->getDirHierarchy($dirForGoogle) as $pathPart) {
       $lastDirs = $this->getDirsWithParents($pathPart, $parentIds);
-      if ($lastDirs->count() === 0) {
+      if (!$lastDirs || $lastDirs->count() === 0) {
         return [];
       }
       $parentIds = [];
       /** @var \Google_Service_Drive_DriveFile $dir */
       foreach ($lastDirs as $dir) {
-        var_dump($dir);
         $parentIds[] = $dir->getId();
       }
     }
@@ -52,18 +51,25 @@ class GoogleDriveService
     return explode('/', trim($dir, '/'));
   }
 
-  private function getDirsWithParents(string $name, array $parentIds): \Google_Service_Drive_FileList {
+  private function getDirsWithParents(string $name, array $parentIds): ?\Google_Service_Drive_FileList {
     $parentsString = implode(',', $parentIds);
-    return $this->getNativeDrive()->files->listFiles(
-      [
-        'q' => sprintf(
-          "mimeType='%s' and '%s' in parents and name='%s' and trashed=false",
-          self::DIR_MIME_TYPE,
-          $parentsString,
-          $name
-        ),
-      ]
-    );
+    try {
+      return $this->getNativeDrive()->files->listFiles(
+        [
+          'q' => sprintf(
+            "mimeType='%s' and '%s' in parents and name='%s' and trashed=false",
+            self::DIR_MIME_TYPE,
+            $parentsString,
+            $name
+          ),
+        ]
+      );
+    } catch (\Google_Service_Exception $exception) {
+      if ($exception->getCode() === 404) {
+        return null;
+      }
+      throw $exception;
+    }
   }
 
   public function saveDirReferenceLocally(\Google_Service_Drive_DriveFile $dir, int $userId, string $tag) {
