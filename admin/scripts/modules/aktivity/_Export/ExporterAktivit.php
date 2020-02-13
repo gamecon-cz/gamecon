@@ -2,6 +2,7 @@
 
 namespace Gamecon\Admin\Modules\Aktivity\Export;
 
+use Gamecon\Admin\Modules\Aktivity\Export\Exceptions\ActivitiesExportException;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
 
@@ -40,16 +41,28 @@ class ExporterAktivit
    * @return string Name of exported file
    */
   public function exportujAktivity(array $aktivity, string $prefix): string {
+    $data = $this->getActivityData($aktivity);
     $sheetTitle = $this->getSheetTitle($aktivity, $prefix);
     $spreadSheet = $this->createSheetForActivities($sheetTitle);
+    $this->saveData($data, $spreadSheet);
+    $this->moveSpreadsheetToExportDir($spreadSheet);
+    return $sheetTitle;
+  }
+
+  /**
+   * @param \Aktivita[] $aktivity
+   * @return array
+   */
+  private function getActivityData(array $aktivity): array {
     $data[] = [
       'ID aktivity',
       'Programová linie',
       'Název',
       'URL',
       'Krátká anotace',
-      'Dlouhá anotace',
       'Tagy',
+      'Dlouhá anotace',
+      'Den',
       'Začátek',
       'Konec',
       'Místnost',
@@ -66,37 +79,55 @@ class ExporterAktivit
       'Stav',
     ];
     foreach ($aktivity as $aktivita) {
+      $zacatekDen = $aktivita->zacatek()
+        ? $aktivita->zacatek()->format('l')
+        : '';
+      $konecDen = $aktivita->konec()
+        ? $aktivita->konec()->format('l')
+        : '';
+      $zacatekCas = $aktivita->zacatek()
+        ? $aktivita->zacatek()->format('G:i')
+        : '';
+      $zacatekCas = preg_replace('~:00$~', '', $zacatekCas);
+      $konecCas = $aktivita->konec()
+        ? $aktivita->konec()->format('G:i')
+        : '';
+      $konecCas = preg_replace('~:00$~', '', $konecCas);
+      if (($zacatekDen !== '' || $konecDen !== '') && $zacatekDen !== $konecDen && $zacatekCas !== $konecCas) {
+        throw new ActivitiesExportException(
+          "Aktivita by neměla začínat a končit v jiný den: začátek '$zacatekDen':'$zacatekCas', konec '$konecDen':'$konecCas' u aktivity {$aktivita->id()} ({$aktivita->nazev()})"
+        );
+      }
       $data[] = [
-        $aktivita->id(),
+        $aktivita->id(), // ID aktivity
         $aktivita->typ()->nazev(), // Programová linie
-        $aktivita->nazev(),
-        $aktivita->urlId(),
-        $aktivita->kratkyPopis(),
-        $aktivita->popis(),
-        implode(',', $aktivita->tagy()),
-        $aktivita->zacatek()->formatCasNaMinutyStandard(),
-        $aktivita->konec()->formatCasNaMinutyStandard(),
-        (string)$aktivita->lokace(),
-        implode(',', $aktivita->getOrganizatoriIds()),
-        $aktivita->getKapacitaUnisex(),
-        $aktivita->getKapacitaMuzu(),
-        $aktivita->getKapacitaZen(),
-        $aktivita->tymova()
+        $aktivita->nazev(), // Název
+        $aktivita->urlId(), // URL
+        $aktivita->kratkyPopis(), // Krátká anotace
+        implode(',', $aktivita->tagy()), // Tagy
+        $aktivita->getPopisRaw(), // Dlouhá anotace
+        $zacatekDen, // Den
+        $zacatekCas, // Začátek
+        $konecCas, // Konec
+        $aktivita->lokace()->nazev(), // Místnost
+        implode(',', $aktivita->getOrganizatoriIds()), // Vypravěči
+        $aktivita->getKapacitaUnisex(), // Kapacita unisex
+        $aktivita->getKapacitaMuzu(), // Kapacita muži
+        $aktivita->getKapacitaZen(), // Kapacita ženy
+        $aktivita->tymova() // Je týmová
           ? 'ano'
           : 'ne',
-        $aktivita->tymMinKapacita() ?? '',
-        $aktivita->tymMaxKapacita() ?? '',
-        (float)$aktivita->cenaZaklad(),
-        $aktivita->bezSlevy()
+        $aktivita->tymMinKapacita() ?? '', // Minimální kapacita týmu
+        $aktivita->tymMaxKapacita() ?? '', // Maximální kapacita týmu
+        (float)$aktivita->cenaZaklad(), // Cena
+        $aktivita->bezSlevy() // Bez slev
           ? 'ano'
           : 'ne',
-        (string)$aktivita->vybaveni(),
-        $aktivita->getStavNazev(),
+        (string)$aktivita->vybaveni(), // Vybavení
+        $aktivita->getStavNazev(), // Stav
       ];
     }
-    $this->saveData($data, $spreadSheet);
-    $this->moveSpreadsheetToExportDir($spreadSheet);
-    return $sheetTitle;
+    return $data;
   }
 
   private function saveData(array $values, \Google_Service_Sheets_Spreadsheet $spreadsheet) {
@@ -106,7 +137,6 @@ class ExporterAktivit
   private function createSheetForActivities(string $sheetTitle): \Google_Service_Sheets_Spreadsheet {
     $newSpreadsheet = $this->googleSheetsService->createNewSpreadsheet($sheetTitle);
     $this->googleSheetsService->setFirstRowAsHeader($newSpreadsheet->getSpreadsheetId());
-    $this->googleSheetsService->saveSpreadsheetReference($newSpreadsheet, $this->userId);
     return $newSpreadsheet;
   }
 

@@ -836,6 +836,16 @@ class Aktivita
     }
   }
 
+  public function getPopisRaw(): ?string {
+    return dbOneCol(<<<SQL
+SELECT text
+FROM texty
+WHERE id = $1
+SQL
+      , [$this->a['popis']]
+    );
+  }
+
   /**
    * Vrátí form(y) s vybírátky plus a mínus pro změny počtů míst teamových akt.
    * @todo parametry typu komplexnost výpisu a že nemůže měnit kdokoli aktivut
