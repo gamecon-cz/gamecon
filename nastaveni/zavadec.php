@@ -15,8 +15,8 @@ pripravCache(SPEC . '/xtpl');
 XTemplate::cache(SPEC . '/xtpl');
 
 // zapnutí logování výjimek
-$typZobrazeni = ZOBRAZIT_STACKTRACE_VYJIMKY ? Vyjimkovac::TRACY : Vyjimkovac::PICARD;
-$vyjimkovac = new Vyjimkovac(SPEC . '/chyby.sqlite');
+$typZobrazeni = ZOBRAZIT_STACKTRACE_VYJIMKY ? \Gamecon\Vyjimkovac\Vyjimkovac::TRACY : \Gamecon\Vyjimkovac\Vyjimkovac::PICARD;
+$vyjimkovac = new \Gamecon\Vyjimkovac\Vyjimkovac(SPEC . '/chyby.sqlite');
 $vyjimkovac->zobrazeni($typZobrazeni);
 $vyjimkovac->aktivuj();
 define('SHUTDOWN_FUNCTION_REGISTERED', true);

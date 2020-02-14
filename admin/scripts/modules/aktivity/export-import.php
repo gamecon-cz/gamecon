@@ -8,6 +8,7 @@ use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleApiCredentials;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleApiTokenStorage;
+use Gamecon\Admin\Modules\Aktivity\Import\ImporterAktivit;
 
 /**
  * Stránka pro hromadný export aktivit.
@@ -41,7 +42,7 @@ if (isset($_GET['code'])) {
 
 [$filtr, $razeni] = include __DIR__ . '/_filtr-moznosti.php';
 $aktivity = \Aktivita::zFiltru($filtr, $razeni);
-$activityTypeIds = array_unique(
+$activityTypeIdsFromFilter = array_unique(
   array_map(
     static function (\Aktivita $aktivita) {
       return $aktivita->typId();
@@ -58,22 +59,22 @@ $googleDriveService = new GoogleDriveService($googleApiClient);
 $googleSheetsService = new GoogleSheetsService($googleApiClient, $googleDriveService);
 
 // EXPORT
-if (count($activityTypeIds) > 1) {
+if (count($activityTypeIdsFromFilter) > 1) {
   $template->parse('export.neniVybranTyp');
-} else if (count($activityTypeIds) === 0) {
+} else if (count($activityTypeIdsFromFilter) === 0) {
   $template->parse('export.zadneAktivity');
-} else if (count($activityTypeIds) === 1) {
-  $activityTypeId = reset($activityTypeIds);
+} else if (count($activityTypeIdsFromFilter) === 1) {
+  $activityTypeIdFromFilter = reset($activityTypeIdsFromFilter);
 
-  if (!empty($_POST['activity_type_id']) && (int)$_POST['activity_type_id'] === (int)$activityTypeId && $googleApiClient->isAuthorized()) {
+  if (!empty($_POST['export_activity_type_id']) && (int)$_POST['export_activity_type_id'] === (int)$activityTypeIdFromFilter && $googleApiClient->isAuthorized()) {
     $exportAktivit = new ExporterAktivit($u->id(), $googleDriveService, $googleSheetsService);
     $nazevExportovanehoSouboru = $exportAktivit->exportujAktivity($aktivity, (string)ROK);
     oznameni(sprintf("Aktivity byly exportovány do Google sheets pod názvem '%s'", $nazevExportovanehoSouboru));
     exit;
   }
-  $template->assign('activityTypeId', $activityTypeId);
+  $template->assign('activityTypeId', $activityTypeIdFromFilter);
 
-  $typAktivity = \Typ::zId($activityTypeId);
+  $typAktivity = \Typ::zId($activityTypeIdFromFilter);
   $template->assign('nazevTypu', mb_ucfirst($typAktivity->nazev()));
   $template->assign('pocetAktivit', count($aktivity));
   $template->assign('exportDisabled', $googleApiClient->isAuthorized()
@@ -97,7 +98,9 @@ if (!$googleApiClient->isAuthorized()) {
 // IMPORT
 if ($googleApiClient->isAuthorized()) {
   if (!empty($_POST['googleSheetId'])) {
-    oznameni('Jakoby "importuji" Google sheet ' . $_POST['googleSheetId']); // TODO
+    $importerAktivit = new ImporterAktivit($u->id(), $googleDriveService, $googleSheetsService, ROK);
+    [$naimportovanoPocet, $nazevImportovanehoSouboru] = $importerAktivit->importujAktivity($_POST['googleSheetId']);
+    oznameni(sprintf("Bylo naimportováno %d aktivit z Google sheet '%s'", $naimportovanoPocet, $nazevImportovanehoSouboru));
   }
 
   $spreadsheets = $googleSheetsService->getAllSpreadsheets();

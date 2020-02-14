@@ -80,7 +80,7 @@ if($m->bezStranky()) {
       'soubory/program-skryvani-linii.js',
       'soubory/program-nahled.js'
     ),
-    'jsVyjimkovac'  => Vyjimkovac::js(URL_WEBU.'/ajax-vyjimkovac'),
+    'jsVyjimkovac'  => \Gamecon\Vyjimkovac\Vyjimkovac::js(URL_WEBU.'/ajax-vyjimkovac'),
     'chyba'     => Chyba::vyzvedniHtml(),
     'info'      => $m->info() ? $m->info()->html() : '',
     'a'         => $u ? $u->koncA() : '',
