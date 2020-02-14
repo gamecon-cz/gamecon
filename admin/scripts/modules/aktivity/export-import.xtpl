@@ -51,8 +51,9 @@
     <div style="margin: 1em 1em 1em 0; padding: 4px 4px 4px 0; float: left">
       <input type="submit" value="Importovat" id="importSubmit">
     </div>
-    <div id="googleSheetNotSelected" class="warning" style="float: left; margin: 1em 0 0 1em; padding-right: 1em; display: none">
-      Pro import vyber soubor ↓
+    <div id="googleSheetNotSelected" class="warning"
+         style="float: left; margin: 1em 0 0 1em; padding-right: 1em; display: none">
+      ↓ Pro import vyber soubor
     </div>
   </div>
   <!-- begin:spreadsheets -->
@@ -67,7 +68,7 @@
     </thead>
     <tbody>
     <!-- begin:spreadsheet -->
-    <tr>
+    <tr class="click-to-select" style="cursor: pointer">
       <td><input type="radio" name="googleSheetId" value="{googleSheetIdEncoded}"></td>
       <td><a href="{url}" target="_blank">{nazev}</a></td>
       <td title="{vytvorenoKdyPresne}">{vytvorenoKdy}</td>
@@ -77,27 +78,49 @@
     </tbody>
   </table>
   <script type="text/javascript">
-    const solveImportSubmitActivation = function () {
-      let submitIsAllowed = false;
-      jQuery('input[type=radio][name=googleSheetId]').each(function (index, radio) {
-        if (radio.checked) {
-          submitIsAllowed = true;
+    (function ($) {
+        $('.click-to-select').on('click', function () {
+          const clickToSelect = this
+          $(clickToSelect).parent().find('input[type=radio]').each(function () {
+            if (this !== clickToSelect) {
+              this.checked = false
+            }
+          })
+
+          const radio = $(clickToSelect).find('input[type=radio]')
+          if (!radio.prop('checked')) {
+            radio.prop('checked', true)
+            radio.trigger('change')
+          }
+        })
+
+        $('.click-to-select a, .click-to-select input[type=radio]').on('click', function (event) {
+          event.stopPropagation()
+        })
+
+        const solveImportSubmitActivation = function () {
+          let submitIsAllowed = false
+          $('input[type=radio][name=googleSheetId]').each(function (index, radio) {
+            if (radio.checked) {
+              submitIsAllowed = true
+            }
+          })
+          const disabled = submitIsAllowed
+            ? null
+            : true
+          $('#importSubmit').attr('disabled', disabled)
+          if (submitIsAllowed) {
+            $('#googleSheetNotSelected').hide()
+          } else {
+            $('#googleSheetNotSelected').show()
+          }
         }
-      });
-      const disabled = submitIsAllowed
-        ? null
-        : true;
-      $('#importSubmit').attr('disabled', disabled);
-      if (submitIsAllowed) {
-        $('#googleSheetNotSelected').hide();
-      } else {
-        $('#googleSheetNotSelected').show();
+        $('input[type=radio][name=googleSheetId]').on('change', function () {
+          solveImportSubmitActivation()
+        })
+        solveImportSubmitActivation()
       }
-    };
-    jQuery('input[type=radio][name=googleSheetId]').on('change', function () {
-      solveImportSubmitActivation();
-    });
-    solveImportSubmitActivation();
+    )(jQuery)
   </script>
   <!-- end:spreadsheets -->
 </form>
