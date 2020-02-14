@@ -1,5 +1,7 @@
 <?php
 
+namespace Gamecon\Vyjimkovac;
+
 class VyjimkovacChyba {
 
   private $r;
@@ -12,7 +14,7 @@ class VyjimkovacChyba {
     if(isset($this->r[$metoda]) && $args === []) {
       return $this->r[$metoda];
     }
-    throw new BadMethodCallException();
+    throw new \BadMethodCallException();
   }
 
   /**
@@ -26,7 +28,7 @@ class VyjimkovacChyba {
       'zdroj'   => @$_SERVER['HTTP_REFERER'] ?: null,
     ];
     try {
-      if ($u = Uzivatel::zSession()) {
+      if ($u = \Uzivatel::zSession()) { // selze pokud uz session jeste nebezi a na vystupu uz je nejaky outpout
         $r['uzivatel'] = $u->id();
       }
     } catch (\Throwable $throwable) {
@@ -71,7 +73,7 @@ class VyjimkovacChyba {
       return substr($return,2);
   }
 
-  function uloz(EPDO $db) {
+  function uloz(\EPDO $db) {
     $db->query('CREATE TABLE IF NOT EXISTS chyby(
       jazyk     TEXT,
       typ       TEXT,
@@ -94,7 +96,7 @@ class VyjimkovacChyba {
     $r = self::radekInit();
     try {
       $es = serialize($e);
-    } catch(Exception $e) {
+    } catch(\Throwable $e) {
       $es = null;
     }
     $r = array_merge($r, [
@@ -106,7 +108,7 @@ class VyjimkovacChyba {
       'zprava'    => $e->getMessage(),
       'vyjimka'   => base64_encode($es),
     ]);
-    if($e instanceof DbException) {
+    if($e instanceof \DbException) {
       $r['data'] = trim($e->getTrace()[0]['args'][0]);
     }
     if($e instanceof JsException) {
@@ -114,7 +116,7 @@ class VyjimkovacChyba {
       $r['zavaznost'] = 2;
       $r['jazyk'] = 'js';
     }
-    if($e instanceof ErrorException) {
+    if($e instanceof \ErrorException) {
       $s = $e->getSeverity();
       $r['typ'] = self::typHr($s);
       $r['zavaznost'] = 1;

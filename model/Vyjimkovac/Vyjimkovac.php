@@ -1,9 +1,11 @@
 <?php
 
+namespace Gamecon\Vyjimkovac;
+
 /**
  * Třída starající se o zpracování, zobrazení a zaznamenávání výjimek a chyb
  */
-class Vyjimkovac {
+class Vyjimkovac implements Logovac {
 
   private
     $dbFile,
@@ -31,8 +33,8 @@ class Vyjimkovac {
       $error = error_get_last();
       if($error["type"] != E_ERROR) return;
 
-      $eException = new ErrorException($error['message'], 0, $error['type'], $error['file'], $error['line']);
-      $eFixed = Tracy\Helpers::fixStack($eException);
+      $eException = new \ErrorException($error['message'], 0, $error['type'], $error['file'], $error['line']);
+      $eFixed = \Tracy\Helpers::fixStack($eException);
       $this->zpracuj($eFixed);
     });
 
@@ -43,16 +45,16 @@ class Vyjimkovac {
       // který by jinak tento handler odchytával)
       if(!(error_reporting() & $typ)) return;
 
-      $eException = new ErrorException($msg, 0, $typ, $file, $line);
-      $eFixed = Tracy\Helpers::fixStack($eException);
+      $eException = new \ErrorException($msg, 0, $typ, $file, $line);
+      $eFixed = \Tracy\Helpers::fixStack($eException);
       $this->zpracuj($eFixed);
     });
 
     // standardní výjimky
     set_exception_handler(function($e) {
-      if($e instanceof Chyba)
+      if($e instanceof \Chyba)
         $e->zpet(); // u zobrazitelných chyb ignorovat a jen zobrazit upo
-      elseif($e instanceof XTemplateRecompilationException)
+      elseif($e instanceof \XTemplateRecompilationException)
         back($_SERVER['REQUEST_URI']);
       else
         $this->zpracuj($e);
@@ -65,7 +67,7 @@ class Vyjimkovac {
    */
   protected function db() {
     if(!$this->db) {
-      $this->db = new EPDO('sqlite:'.$this->dbFile);
+      $this->db = new \EPDO('sqlite:'.$this->dbFile);
     }
     return $this->db;
   }
@@ -121,12 +123,12 @@ class Vyjimkovac {
    */
   protected function zpracuj($e) {
     // uložení
-    VyjimkovacChyba::zVyjimky($e)->uloz($this->db());
+    $this->zaloguj($e);
 
     // hlavičky
     if($e instanceof JsException)       return; // js výjimky nezobrazovat
     if (!headers_sent()) {
-      if ($e instanceof UrlException)     header('HTTP/1.1 400 Bad Request'); // nastavení chybových hlaviček
+      if ($e instanceof \UrlException)     header('HTTP/1.1 400 Bad Request'); // nastavení chybových hlaviček
       else                                header('HTTP/1.1 500 Internal Server Error');
     }
 
@@ -134,8 +136,8 @@ class Vyjimkovac {
     if($this->zobrazeni == self::PLAIN) {
       echo $e . "\n";
     } elseif($this->zobrazeni == self::TRACY) {
-      (new Tracy\BlueScreen)->render($e);
-      if($e instanceof DbException) echo '<pre>', dbLastQ();
+      (new \Tracy\BlueScreen)->render($e);
+      if($e instanceof \DbException) echo '<pre>', dbLastQ();
     } elseif($this->zobrazeni == self::PICARD) {
       $this->zobrazOmluvu(); // TODO možná nějaké maily / reporting?
     } else {
@@ -149,16 +151,20 @@ class Vyjimkovac {
     }
   }
 
+  public function zaloguj(\Throwable $e) {
+    VyjimkovacChyba::zVyjimky($e)->uloz($this->db());
+  }
+
 }
 
 /**
  * Speciální výjimka, která se nevyhazuje, ale pouze slouží jako reprezentace
  * javascriptové výjimky obdržené ajaxem (aby mohla být dále zpracována).
  */
-class JsException extends Exception {
+class JsException extends \Exception {
 
   function __construct($zprava, $soubor, $radek) {
-    $this->message = $zprava;
+    parent::__construct($zprava);
     $this->file = $soubor;
     $this->line = $radek;
   }

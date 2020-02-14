@@ -2,4 +2,4 @@
 
 $this->bezStranky(true);
 
-(new Vyjimkovac(SPEC.'/chyby.sqlite'))->jsZpracuj();
+(new \Gamecon\Vyjimkovac\Vyjimkovac(SPEC.'/chyby.sqlite'))->jsZpracuj();

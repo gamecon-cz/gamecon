@@ -404,7 +404,7 @@ function dbUpdate($table, $vals, $where) {
 class DbException extends Exception {
 
   public function __construct() {
-    $this->message = mysqli_error($GLOBALS['spojeni']) . ' caused by ' . $GLOBALS['dbLastQ'];
+    parent::__construct(mysqli_error($GLOBALS['spojeni']) . ' caused by ' . $GLOBALS['dbLastQ'], mysqli_errno($GLOBALS['spojeni']));
   }
 
 }
