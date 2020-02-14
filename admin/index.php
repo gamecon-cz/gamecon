@@ -151,7 +151,7 @@ else
   $xtpl->assign('protip', $protipy[array_rand($protipy)]);
   $xtpl->parse('all.paticka');
   $xtpl->assign('chyba', chyba::vyzvedniHtml());
-  $xtpl->assign('jsVyjimkovac', Vyjimkovac::js(URL_WEBU.'/ajax-vyjimkovac'));
+  $xtpl->assign('jsVyjimkovac', \Gamecon\Vyjimkovac\Vyjimkovac::js(URL_WEBU.'/ajax-vyjimkovac'));
   $xtpl->parse('all');
   $xtpl->out('all');
   profilInfo();

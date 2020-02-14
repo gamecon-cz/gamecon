@@ -156,18 +156,33 @@ SQL
     string $fileToMoveId,
     string $dirId
   ): void {
-    $file = $this->getFileById($fileToMoveId);
+    $file = $this->getFile($fileToMoveId);
     if (!$file) {
       throw new GoogleSheetsException("No file to move has been found by id $fileToMoveId");
     }
     $this->getNativeDrive()->files->update($fileToMoveId, new \Google_Service_Drive_DriveFile(), ['removeParents' => $file->getParents(), 'addParents' => $dirId]);
   }
 
-  private function getFileById(string $id): \Google_Service_Drive_DriveFile {
+  private function getFile(string $id): \Google_Service_Drive_DriveFile {
     return $this->getNativeDrive()->files->get(
       $id,
-      ['fields' => 'parents']
+      ['fields' => 'parents,name']
     );
+  }
+
+  public function getFileName(string $id): ?string {
+    try {
+      $file = $this->getNativeDrive()->files->get($id);
+      if (!$file) {
+        return null;
+      }
+      return $file->getName();
+    } catch (\Google_Service_Exception $exception) {
+      if ($exception->getCode() === 404) {
+        return null;
+      }
+      throw $exception;
+    }
   }
 
   public function dirByIdExists(string $folderId): bool {
@@ -212,7 +227,7 @@ SQL
    * @throws GoogleSheetsException
    */
   public function getFilePath(string $fileId): string {
-    $file = $this->getFileById($fileId);
+    $file = $this->getFile($fileId);
     $dirsChainFromRoot = $this->getParentDirsChain($file);
     $dirsPath = '/' . implode('/', $dirsChainFromRoot);
     return $dirsPath . '/' . $file->getName();

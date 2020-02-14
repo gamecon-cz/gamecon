@@ -125,7 +125,7 @@ if($m->bezStranky()) {
       'soubory/jquery-ui.min.js',
       'soubory/easybox.distrib.min.js' // nějaká debiláž, musí být poslední
     ),
-    'jsVyjimkovac'  => Vyjimkovac::js(URL_WEBU.'/ajax-vyjimkovac'),
+    'jsVyjimkovac'  => \Gamecon\Vyjimkovac\Vyjimkovac::js(URL_WEBU.'/ajax-vyjimkovac'),
     'chyba'     => Chyba::vyzvedniHtml(),
     'info'      => $m->info() ? $m->info()->html() : '',
     'a'         => $u ? $u->koncA() : '',

@@ -9,7 +9,7 @@
   <div style="float: right">
     <!-- begin:exportovat -->
     <form method="post">
-      <input type="hidden" name="activity_type_id" value="{activityTypeId}">
+      <input type="hidden" name="export_activity_type_id" value="{activityTypeId}">
       <input type="submit" name="exportovat" value="Exportovat {pocetAktivit} aktivit typu {nazevTypu}"
              {exportDisabled}>
     </form>

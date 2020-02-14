@@ -9,7 +9,7 @@ require __DIR__ . '/../nastaveni/zavadec.php';
 
 // TODO nutný hack před zmergeování zavaděče mezi redesignem a masterem
 // tato proměnná je nastavena zavaděčem a zde upravíme zobrazení výjimek
-$vyjimkovac->zobrazeni(Vyjimkovac::PLAIN);
+$vyjimkovac->zobrazeni(\Gamecon\Vyjimkovac\Vyjimkovac::PLAIN);
 
 //////////////////////////////// pomocné funkce ////////////////////////////////
 
