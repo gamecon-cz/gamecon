@@ -3,6 +3,7 @@
 namespace Gamecon\Admin\Modules\Aktivity\Import;
 
 use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
+use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleApiException;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
 use Gamecon\Vyjimkovac\Logovac;
@@ -58,7 +59,13 @@ class ImporterAktivit
     try {
       $result['processedFileName'] = $this->googleDriveService->getFileName($spreadsheetId);
       $values = $this->getIndexedValues($spreadsheetId);
-      $this->guardSingleActivityTypeOnly($values);
+
+      ['error' => $singleProgramLineError] = $this->guardSingleProgramLineOnly($values);
+      if ($singleProgramLineError) {
+        $result['messages']['errors'][] = $singleProgramLineError;
+        return $result;
+      }
+
       $mainInstanceId = null;
       foreach ($values as $activityValues) {
         $idAktivity = $this->parseIdAktivity($activityValues);
@@ -68,9 +75,12 @@ class ImporterAktivit
             $result['messages']['errors'][] = $error;
             continue;
           }
+          if (!empty($success)) {
+            $result['messages']['notices'][] = $success;
+          }
           $mainInstanceId = $activityValues[ExportAktivitSloupce::ID_AKTIVITY];
         } else {
-          $mainInstanceId = $this->importNewActivity($activityValues, $mainInstanceId);
+          $mainInstanceId = $this->importNewActivity($mainInstanceId, $activityValues);
         }
       }
     } catch (\Google_Service_Exception $exception) {
@@ -81,19 +91,65 @@ class ImporterAktivit
     return $result;
   }
 
+  private function parseIdAktivity(array $values): ?int {
+    $id = trim($values[ExportAktivitSloupce::ID_AKTIVITY]);
+    return $id
+      ? (int)$id
+      : null;
+  }
+
+  private function guardSingleProgramLineOnly(array $values): array {
+    $programLines = [];
+    foreach ($values as $row) {
+      $programLine = $row[ExportAktivitSloupce::PROGRAMOVA_LINIE] ?? null;
+      if ($programLine !== null && $programLine !== '' && !in_array($programLine, $programLines, true)) {
+        $programLines[] = $programLine;
+      }
+    }
+    if (count($programLines) > 1) {
+      return [
+        'success' => false,
+        'error' => sprintf(
+          'Importovat lze pouze jednu programovou linii. Importní soubor jich má %d: %s',
+          count($programLines),
+          implode(',', self::wrapByQuotes($programLines))
+        ),
+      ];
+    }
+    if (count($programLines) === 0) {
+      return [
+        'success' => false,
+        'error' => 'Import musí určit programovou linii.',
+      ];
+    }
+    return ['success' => true, 'error' => false];
+  }
+
+  private static function wrapByQuotes(array $values): array {
+    return array_map(static function ($value) {
+      return "'$value'";
+    }, $values);
+  }
+
   private function getIndexedValues(string $spreadsheetId): array {
-    $values = $this->googleSheetsService->getSpreadsheetValues($spreadsheetId);
-    $lastResult = $this->cleanseValues($values);
-    ['success' => $cleansedValues, 'error' => $error] = $lastResult;
+    try {
+      $values = $this->googleSheetsService->getSpreadsheetValues($spreadsheetId);
+    } catch (GoogleApiException $exception) {
+      $this->logovac->zaloguj($exception);
+      return ['success' => false, 'error' => 'Google Sheets API je dočasně nedostupné, zkuste to znovu za chvíli.'];
+    }
+    $cleanseValuesResult = $this->cleanseValues($values);
+    ['success' => $cleansedValues, 'error' => $error] = $cleanseValuesResult;
     if ($error) {
       return ['success' => false, 'error' => $error];
     }
-    $lastResult = $this->getCleansedHeader($cleansedValues);
-    ['success' => $cleansedHeader, 'error' => $error] = $lastResult;
+    $cleansedHeaderResult = $this->getCleansedHeader($cleansedValues);
+    ['success' => $cleansedHeader, 'error' => $error] = $cleansedHeaderResult;
     if ($error) {
       return ['success' => false, 'error' => $error];
     }
-    unset($cleansedValues[array_key_first($cleansedValues)]);
+    unset($cleansedValues[array_key_first($cleansedValues)]); // remove row with header
+
     $indexedValues = [];
     $positionsOfValuesWithoutHeaders = [];
     foreach ($cleansedValues as $cleansedRow) {
@@ -189,20 +245,25 @@ class ImporterAktivit
   }
 
   private function importExistingActivity(int $id, array $values): array {
-    $result = ['success' => false, 'error' => null];
     $aktivita = \Aktivita::zId($id);
     if (!$aktivita) {
-      $result['error'] = sprintf("Aktivita s ID '%s' neexistuje. Nelze ji proto importem upravit.", $id);
-      return $result;
+      return [
+        'success' => false,
+        'error' => sprintf("Aktivita s ID '%s' neexistuje. Nelze ji proto importem upravit.", $id),
+      ];
     }
-    $result['success'] = 'Zatím nic TODO';
-    return $result;
+    if($aktivita->getStav())
+    return ['success' => 'Zatím nic s existující aktivitou ' . $id, 'error' => false];
   }
 
-  private function parseIdAktivity(array $values): ?int {
-    $id = trim($values[ExportAktivitSloupce::ID_AKTIVITY]);
-    return $id
-      ? (int)$id
-      : null;
+  private function importNewActivity(int $parentId, array $values): array {
+    $aktivita = \Aktivita::zId($parentId);
+    if (!$aktivita) {
+      return [
+        'success' => false,
+        'error' => sprintf("Aktivita s ID '%s' neexistuje. Nelze ji proto importem upravit.", $parentId),
+      ];
+    }
+    return ['success' => 'Zatím nic snovou aktivitou ' . $parentId, 'error' => false];
   }
 }
