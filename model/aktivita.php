@@ -33,6 +33,7 @@ class Aktivita
     // stavy aktivity
     NOVA = 0,
     AKTIVOVANA = 1,
+    PROBEHNUTA = 2,
     PUBLIKOVANA = 4,
     PRIPRAVENA = 5,
     // typy aktivity
@@ -859,7 +860,7 @@ SQL
    */
   protected function plusminus(Uzivatel $u = null, $parametry = 0) {
     // kontroly
-    if (!$this->a['teamova'] || $this->a['stav'] != 1) return '';
+    if (!$this->a['teamova'] || $this->a['stav'] != self::AKTIVOVANA) return '';
     if ($parametry & self::PLUSMINUS && (!$u || !$this->prihlasen($u))) return '';
     // tisk formu
     $out = '';
@@ -964,7 +965,7 @@ SQL
     if (!$this->prihlasovatelna($ignorovat)) {
       // hack na ignorování stavu
       $puvodniStav = $this->a['stav'];
-      if ($ignorovat & self::STAV) $this->a['stav'] = 1; // nastavíme stav jako by bylo vše ok
+      if ($ignorovat & self::STAV) $this->a['stav'] = self::AKTIVOVANA; // nastavíme stav jako by bylo vše ok
       $prihlasovatelna = $this->prihlasovatelna($ignorovat);
       $this->a['stav'] = $puvodniStav;
       if (!$prihlasovatelna) throw new Exception('Aktivita není otevřena pro přihlašování.');
@@ -1063,9 +1064,9 @@ SQL
     return (
       (REG_AKTIVIT || $zpetne && po(REG_GC_DO)) &&
       (
-        $this->a['stav'] == 1 ||
-        $technicke && $this->a['stav'] == 0 && $this->a['typ'] == 10 ||
-        $zpetne && $this->a['stav'] == 2
+        $this->a['stav'] == self::AKTIVOVANA ||
+        $technicke && $this->a['stav'] == self::NOVA && $this->a['typ'] == self::TECHNICKA ||
+        $zpetne && $this->a['stav'] == self::PROBEHNUTA
       ) &&
       $this->a['zacatek'] &&
       $this->a['typ']
@@ -1274,8 +1275,8 @@ SQL
 
   /** Zdali už aktivita začla a proběhla (rozhodný okamžik je vyjetí seznamů
    *  přihlášených na infopultu) */
-  function probehnuta() {
-    return $this->a['stav'] == 2;
+  function probehnuta(): bool {
+    return $this->a['stav'] == self::PROBEHNUTA;
   }
 
   public function getStav(): int {
@@ -1489,7 +1490,7 @@ SQL
   }
 
   /** Vrátí, jestli aktivita bude aktivována v budoucnu, později než v další vlně */
-  function vBudoucnu() {
+  function vBudoucnu(): bool {
     return $this->a['stav'] == self::PUBLIKOVANA;
   }
 
@@ -1544,8 +1545,8 @@ SQL
    */
   function viditelnaPro(Uzivatel $u = null) {
     return (
-      in_array($this->a['stav'], [1, 2, 4, 5]) // podle stavu je aktivita viditelná
-      && !($this->a['typ'] == Typ::TECHNICKA && $this->a['stav'] == 2) || // ale skrýt technické proběhnuté
+      in_array($this->a['stav'], [self::AKTIVOVANA, self::PROBEHNUTA, self::PUBLIKOVANA, self::PRIPRAVENA]) // podle stavu je aktivita viditelná
+      && !($this->a['typ'] == Typ::TECHNICKA && $this->a['stav'] == self::PROBEHNUTA) || // ale skrýt technické proběhnuté
       $u && $this->prihlasen($u) ||
       $u && $u->organizuje($this)
     );
@@ -1690,8 +1691,8 @@ SQL
   }
 
   /** Je aktivita už proběhlá resp. už uzavřená pro změny? */
-  function zamcena() {
-    return $this->a['stav'] == 2;
+  function zamcena(): bool {
+    return $this->a['stav'] == self::PROBEHNUTA;
   }
 
   /** Zamče aktivitu pro další změny (k použití před jejím začátkem) */
