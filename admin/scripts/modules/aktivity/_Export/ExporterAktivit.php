@@ -72,7 +72,7 @@ class ExporterAktivit
       ExportAktivitSloupce::KAPACITA_ZENY,
       ExportAktivitSloupce::JE_TYMOVA,
       ExportAktivitSloupce::MINIMALNI_KAPACITA_TYMU,
-      ExportAktivitSloupce::MAXIMÁLNÍ_KAPACITA_TYMU,
+      ExportAktivitSloupce::MAXIMALNI_KAPACITA_TYMU,
       ExportAktivitSloupce::CENA,
       ExportAktivitSloupce::BEZ_SLEV,
       ExportAktivitSloupce::VYBAVENI,
