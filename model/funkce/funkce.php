@@ -303,3 +303,12 @@ function odstranDiakritiku(string $value): string {
   }
   return $valueWithoutDiacritics;
 }
+
+if (!function_exists('array_key_first')) {
+  function array_key_first(array $values) {
+    foreach($values as $key => $unused) {
+      return $key;
+    }
+    return null;
+  }
+}
