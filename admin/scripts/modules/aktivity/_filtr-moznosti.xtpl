@@ -2,10 +2,10 @@
 
 <div style="position:absolute;right:20px;top:100px">
   <form method="post">
-    <label for="typAkce">Typ akce:</label>
-    <select id="typAkce" name="filtr" onchange="this.form.submit()">
+    <label for="programovaLinie">Programová linie:</label>
+    <select id="programovaLinie" name="filtr" onchange="this.form.submit()">
       <!-- begin:moznost -->
-      <option value="{val}" {sel}>{nazev_akce}</option>
+      <option value="{val}" {sel}>{nazev_programove_linie}</option>
       <!-- end:moznost -->
     </select>
   </form>
