@@ -21,9 +21,36 @@ class ExportAktivitSloupce
   public const KAPACITA_ZENY = 'Kapacita ženy';
   public const JE_TYMOVA = 'Je týmová';
   public const MINIMALNI_KAPACITA_TYMU = 'Minimální kapacita týmu';
-  public const MAXIMÁLNÍ_KAPACITA_TYMU = 'Maximální kapacita týmu';
+  public const MAXIMALNI_KAPACITA_TYMU = 'Maximální kapacita týmu';
   public const CENA = 'Cena';
   public const BEZ_SLEV = 'Bez slev';
   public const VYBAVENI = 'Vybavení';
   public const STAV = 'Stav';
+
+  public static function getVsechnySloupce(): array {
+    return [
+      self::ID_AKTIVITY,
+      self::PROGRAMOVA_LINIE,
+      self::NAZEV,
+      self::URL,
+      self::KRATKA_ANOTACE,
+      self::TAGY,
+      self::DLOUHA_ANOTACE,
+      self::DEN,
+      self::ZACATEK,
+      self::KONEC,
+      self::MISTNOST,
+      self::VYPRAVECI,
+      self::KAPACITA_UNISEX,
+      self::KAPACITA_MUZI,
+      self::KAPACITA_ZENY,
+      self::JE_TYMOVA,
+      self::MINIMALNI_KAPACITA_TYMU,
+      self::MAXIMALNI_KAPACITA_TYMU,
+      self::CENA,
+      self::BEZ_SLEV,
+      self::VYBAVENI,
+      self::STAV,
+    ];
+  }
 }
