@@ -26,7 +26,7 @@ $tplFiltrMoznosti = new XTemplate(__DIR__ . '/_filtr-moznosti.xtpl');
 
 foreach ($varianty as $idTypu => $varianta) {
   $tplFiltrMoznosti->assign('val', $idTypu);
-  $tplFiltrMoznosti->assign('nazev_akce', ucfirst($varianta['popis']));
+  $tplFiltrMoznosti->assign('nazev_programove_linie', ucfirst($varianta['popis']));
   $tplFiltrMoznosti->assign('sel', $adminAktivityFiltr == $idTypu
     ? 'selected="selected"'
     : ''
