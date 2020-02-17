@@ -98,10 +98,13 @@ class ExporterAktivit
       if ($endAtSameDayAtMidnight) {
         $konecCas = '24'; // midnight
       }
-      if (($zacatekDen !== '' || $konecDen !== '') && $zacatekDen !== $konecDen && !$endAtSameDayAtMidnight) {
-        throw new ActivitiesExportException(
-          "Aktivita by neměla začínat a končit v jiný den: začátek '$zacatekDen':'$zacatekCas', konec '$konecDen':'$konecCas' u aktivity {$aktivita->id()} ({$aktivita->nazev()})"
-        );
+      if ($aktivita->zacatek() && $aktivita->konec()) {
+        $trvaniAktivity = $aktivita->zacatek()->diff($aktivita->konec());
+        if ($trvaniAktivity->days > 1 || ($trvaniAktivity->days === 1 && ($trvaniAktivity->h > 0 || $trvaniAktivity->i > 0))) {
+          throw new ActivitiesExportException(
+            "Aktivita by neměla začínat a končit v jiný den, nanejvýše o půlnoci: začátek '$zacatekDen':'$zacatekCas', konec '$konecDen':'$konecCas' u aktivity {$aktivita->id()} ({$aktivita->nazev()})"
+          );
+        }
       }
       $data[] = [
         $aktivita->id(), // ID aktivity
