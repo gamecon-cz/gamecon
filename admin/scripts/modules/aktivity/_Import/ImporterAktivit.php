@@ -255,7 +255,19 @@ class ImporterAktivit
     if (!$aktivita->bezpecneEditovatelna()) {
       return [
         'success' => false,
-        'error' => sprintf("Aktivitu '%s' (%d) už nelze editovat importem, protože je ve stavu ''%s", $aktivita->nazev(), $id, $aktivita->getStavNazev()),
+        'error' => sprintf("Aktivitu '%s' (%d) už nelze editovat importem, protože je ve stavu '%s'", $aktivita->nazev(), $id, $aktivita->getStavNazev()),
+      ];
+    }
+    if ($aktivita->zacatek() && $aktivita->zacatek()->getTimestamp() <= time()) {
+      return [
+        'success' => false,
+        'error' => sprintf("Aktivitu '%s' (%d) už nelze editovat importem, protože už začala (začátek v %s)", $aktivita->nazev(), $id, $aktivita->zacatek()->formatCasNaMinutyStandard()),
+      ];
+    }
+    if ($aktivita->konec() && $aktivita->konec()->getTimestamp() <= time()) {
+      return [
+        'success' => false,
+        'error' => sprintf("Aktivitu '%s' (%d) už nelze editovat importem, protože už skončila (konec v %s)", $aktivita->nazev(), $id, $aktivita->konec()->formatCasNaMinutyStandard()),
       ];
     }
     return ['success' => 'Zatím nic s existující aktivitou ' . $id, 'error' => false];

@@ -97,6 +97,14 @@ class DateTimeCz extends DateTime
       return $this->getTimestamp() < strtotime($d2);
   }
 
+  /** Jestli je tento okamžik po okamžiku $d2 */
+  function po($d2) {
+    if($d2 instanceof DateTime)
+      return $this->getTimestamp() > $d2->getTimestamp();
+    else
+      return $this->getTimestamp() > strtotime($d2);
+  }
+
   /** Vrací relativní formát času vůči současnému okamžiku */
   function relativni() {
     $rozdil = time() - $this->getTimestamp();
