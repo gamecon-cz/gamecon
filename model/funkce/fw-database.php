@@ -37,10 +37,26 @@ function dbBegin() {
 function dbCommit() {
   if($GLOBALS['dbTransactionDepth'] == 0) {
     throw new Exception('nothing to commit');
-  } elseif($GLOBALS['dbTransactionDepth'] == 1) {
+  }
+  if($GLOBALS['dbTransactionDepth'] == 1) {
     dbQuery('COMMIT');
   } else {
     dbQuery('RELEASE SAVEPOINT nesttrans' . ($GLOBALS['dbTransactionDepth'] - 1));
+  }
+  $GLOBALS['dbTransactionDepth']--;
+}
+
+/**
+ * Commits transaction
+ */
+function dbRollback() {
+  if($GLOBALS['dbTransactionDepth'] == 0) {
+    return;
+  }
+  if($GLOBALS['dbTransactionDepth'] == 1) {
+    dbQuery('ROLLBACK');
+  } else {
+    dbQuery('ROLLBACK TO SAVEPOINT nesttrans' . ($GLOBALS['dbTransactionDepth'] - 1));
   }
   $GLOBALS['dbTransactionDepth']--;
 }
@@ -358,20 +374,6 @@ function dbQv($val) {
  */
 function dbQi($val) {
   return '`'.( get_magic_quotes_gpc() ? $val : addslashes($val) ).'`';
-}
-
-/**
- *
- */
-function dbRollback() {
-  if($GLOBALS['dbTransactionDepth'] == 0) {
-    throw new Exception('nothing to rollback');
-  } elseif($GLOBALS['dbTransactionDepth'] == 1) {
-    dbQuery('ROLLBACK');
-  } else {
-    dbQuery('ROLLBACK TO SAVEPOINT nesttrans' . ($GLOBALS['dbTransactionDepth'] - 1));
-  }
-  $GLOBALS['dbTransactionDepth']--;
 }
 
 /**

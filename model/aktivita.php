@@ -410,7 +410,7 @@ class Aktivita
       $aktivita = self::zId($a['id_akce']);
     } elseif ($a['patri_pod']) {
       // editace aktivity z rodiny instancí
-      $doHlavni = ['url_akce', 'popis', 'vybaveni'];  // věci, které se mají změnit jen u hlavní (master) instance
+      $doHlavni = ['url_akce', 'popis', 'vybaveni'];  // věci, které se mají změnit jen u hlavní (master) `instanc`e
       $doAktualni = ['lokace', 'zacatek', 'konec'];       // věci, které se mají změnit jen u aktuální instance
       $aktivita = self::zId($a['id_akce']);
       // (zbytek se změní v obou)
@@ -469,16 +469,15 @@ class Aktivita
   }
 
   /**
-   * @return self[] pole instancí této aktivity (vč. sebe sama, i pokud více
+   * @return Aktivita[] pole instancí této aktivity (vč. sebe sama, i pokud více
    *  instancí nemá)
    */
-  private function instance() {
+  private function instance(): array {
     if ($this->a['patri_pod']) {
       $ids = dbOneArray('SELECT id_akce FROM akce_seznam WHERE patri_pod = $0', [$this->a['patri_pod']]);
       return Aktivita::zIds($ids);
-    } else {
-      return [$this];
     }
+    return [$this];
   }
 
   /**
@@ -494,13 +493,18 @@ class Aktivita
     if ($akt['patri_pod'] > 0) { //aktivita už má instanční skupinu, použije se stávající
       dbInsert('akce_seznam', $akt);
     } else { //aktivita je zatím bez instanční skupiny - vytvoříme
-      //todo lock
-      $max = dbOneLine('SELECT max(patri_pod) as max FROM akce_seznam');
-      $patriPod = $max['max'] + 1; //nové ID rodiny instancí
-      $akt['patri_pod'] = $patriPod;
-      dbQuery('UPDATE akce_seznam SET patri_pod=' . $patriPod .
-        ' WHERE id_akce=' . $this->id()); //update původní aktivity
-      dbInsert('akce_seznam', $akt);
+      dbBegin();
+      try {
+        $max = dbOneLine('SELECT max(patri_pod) as max FROM akce_seznam');
+        $patriPod = $max['max'] + 1; //nové ID rodiny instancí
+        $akt['patri_pod'] = $patriPod;
+        dbQuery('UPDATE akce_seznam SET patri_pod=' . $patriPod . ' WHERE id_akce=' . $this->id()); //update původní aktivity
+        dbInsert('akce_seznam', $akt);
+        dbCommit();
+      } catch (\Exception $exception) {
+        dbRollback();
+        throw $exception;
+      }
     }
 
     // nastavení vlastností pomocí OO rozhraní
