@@ -1279,16 +1279,20 @@ SQL
     return (int)$this->a['stav'];
   }
 
+  public function bezpecneEditovatelna(): bool {
+    return in_array($this->getStav(), [self::NOVA, self::PRIPRAVENA], true);
+  }
+
   public function getStavNazev(): string {
     switch ($this->getStav()) {
+      case self::NOVA :
+        return 'nová';
       case self::AKTIVOVANA :
         return 'aktivovaná';
       case self::PUBLIKOVANA :
         return 'publikovaná';
       case self::PRIPRAVENA :
         return 'pripravená';
-      case self::NOVA :
-        return 'nová';
       default :
         return '';
     }

@@ -252,7 +252,12 @@ class ImporterAktivit
         'error' => sprintf("Aktivita s ID '%s' neexistuje. Nelze ji proto importem upravit.", $id),
       ];
     }
-    if($aktivita->getStav())
+    if (!$aktivita->bezpecneEditovatelna()) {
+      return [
+        'success' => false,
+        'error' => sprintf("Aktivitu '%s' (%d) už nelze editovat importem, protože je ve stavu ''%s", $aktivita->nazev(), $id, $aktivita->getStavNazev()),
+      ];
+    }
     return ['success' => 'Zatím nic s existující aktivitou ' . $id, 'error' => false];
   }
 
