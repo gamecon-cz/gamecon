@@ -40,7 +40,7 @@ SQL
     Aktivita::NEDORAZIL,
     Aktivita::POZDE_ZRUSIL,
     Aktivita::NAHRADNIK, // ve skutecnosti tohle znamena "sledujici"
-    Aktivita::TECHNICKA,
+    Typ::TECHNICKA,
   ]
 );
 
