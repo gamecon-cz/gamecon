@@ -162,9 +162,10 @@ function dbInsert($table, $valArray) {
  * Return last AUTO INCREMENT value
  */
 function dbInsertId(bool $strict = true) {
+  global $dbLastQ;
   $id = mysqli_insert_id($GLOBALS['spojeni']);
   if($strict && (!is_int($id) || $id == 0)) {
-    throw new DbException('no last id');
+    throw new DbException("No last id. Last known query was '{$dbLastQ}'");
   }
   return $id;
 }
@@ -250,7 +251,7 @@ function dbOneArray($q, $p = null) {
 }
 
 /**
- * For selecting single-line one column values
+ * For selecting single-line one column value
  */
 function dbOneCol($q, $p = null) {
   $a = dbOneLine($q, $p);
@@ -417,8 +418,8 @@ function dbUpdate($table, $vals, $where) {
  */
 class DbException extends Exception {
 
-  public function __construct() {
-    parent::__construct(mysqli_error($GLOBALS['spojeni']) . ' caused by ' . $GLOBALS['dbLastQ'], mysqli_errno($GLOBALS['spojeni']));
+  public function __construct($message = null) {
+    parent::__construct(($message ?? '') . ' ' . mysqli_error($GLOBALS['spojeni']) . ' caused by ' . $GLOBALS['dbLastQ'], mysqli_errno($GLOBALS['spojeni']));
   }
 
 }
