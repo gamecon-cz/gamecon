@@ -71,7 +71,7 @@ foreach ($aktivity as $aktivita) {
     'typ' => $typy[$r['typ']],
     'mistnost' => $mistnosti[$r['lokace']],
   ]);
-  if ($r['patri_pod']) $tpl->parse('aktivity.aktivita.instSymbol');
+  if ($r['patri_pod']) $tpl->parse('aktivity.aktivita.symbolInstance');
   if ($r['stav'] == 0) $tpl->parse('aktivity.aktivita.tlacitka.publikovat');
   if ($r['stav'] == 4) $tpl->parse('aktivity.aktivita.tlacitka.pripravit');
   if ($r['stav'] == 5) $tpl->parse('aktivity.aktivita.tlacitka.odpripravit');

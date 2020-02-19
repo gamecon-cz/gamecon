@@ -128,9 +128,9 @@
     <td>{organizatori}</td>
     <td>{mistnost}</td>
     <td>{typ}</td>
-    <td><!-- begin:instSymbol -->
+    <td><!-- begin:symbolInstance -->
       <img src="files/design/chain-icon.png" />
-    <!-- end:instSymbol --></td>
+    <!-- end:symbolInstance --></td>
     <td>
       <!-- begin:tlacitka -->
         <form method="post">

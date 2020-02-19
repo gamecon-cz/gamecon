@@ -31,13 +31,12 @@ class Aktivita
     HAJENI = 72,      // počet hodin po kterýc aktivita automatick vykopává nesestavený tým
     LIMIT_POPIS_KRATKY = 180,  // max počet znaků v krátkém popisku
     // stavy aktivity
-    NOVA = 0,
+    NOVA = 0, // v přípravě
     AKTIVOVANA = 1,
     PROBEHNUTA = 2,
-    PUBLIKOVANA = 4,
+    SYSTEMOVA = 3, // deprecated
+    PUBLIKOVANA = 4, // videtelná, nepřihlašovatelá
     PRIPRAVENA = 5,
-    // typy aktivity
-    TECHNICKA = 10,
     // stavy přihlášení
     PRIHLASEN = 0,
     DORAZIL = 1,
@@ -191,9 +190,10 @@ class Aktivita
 
     // kontrola duplicit url
     if (dbOneLineS('SELECT 1 FROM akce_seznam
-      WHERE url_akce = $1 AND ( patri_pod = 0 OR patri_pod != $2 ) AND id_akce != $3 AND rok = $4',
-      [$a['url_akce'], $a['patri_pod'], $a['id_akce'], ROK])) {
-      $chyby[] = 'Url je už použitá pro jinou aktivitu. Vyberte jinou, nebo použijte tlačítko „inst“ v seznamu aktivit pro duplikaci.';
+      WHERE url_akce = $1 AND ( patri_pod IS NULL OR patri_pod != $2 ) AND id_akce != $3 AND rok = $4',
+      [$a['url_akce'], $a['patri_pod'], $a['id_akce'], ROK])
+    ) {
+      $chyby[] = sprintf("Url '%s' je už letos použitá pro jinou aktivitu. Vyberte jinou, nebo použijte tlačítko „inst“ v seznamu aktivit pro duplikaci.", $a['url_akce']);
     }
 
     return $chyby;
@@ -490,16 +490,18 @@ class Aktivita
     //stav se vloží implicitní hodnota v DB
     unset($akt['id_akce'], $akt['url_akce'], $akt['stav'], $akt['zamcel'], $akt['vybaveni']);
     if ($akt['teamova']) $akt['kapacita'] = $akt['team_max'];
-    if ($akt['patri_pod'] > 0) { //aktivita už má instanční skupinu, použije se stávající
+    if ($akt['patri_pod']) { //aktivita už má instanční skupinu, použije se stávající
       dbInsert('akce_seznam', $akt);
+      $idNoveAktivity = dbInsertId();
     } else { //aktivita je zatím bez instanční skupiny - vytvoříme
       dbBegin();
       try {
-        $max = dbOneLine('SELECT max(patri_pod) as max FROM akce_seznam');
-        $patriPod = $max['max'] + 1; //nové ID rodiny instancí
+        dbQuery('INSERT INTO akce_instance(id_hlavni_akce) VALUES($1)', [$this->id()]);
+        $patriPod = dbInsertId();
         $akt['patri_pod'] = $patriPod;
         dbQuery('UPDATE akce_seznam SET patri_pod=' . $patriPod . ' WHERE id_akce=' . $this->id()); //update původní aktivity
         dbInsert('akce_seznam', $akt);
+        $idNoveAktivity = dbInsertId();
         dbCommit();
       } catch (\Exception $exception) {
         dbRollback();
@@ -508,7 +510,7 @@ class Aktivita
     }
 
     // nastavení vlastností pomocí OO rozhraní
-    $novaAktivita = self::zId(dbInsertId());
+    $novaAktivita = self::zId($idNoveAktivity);
     $novaAktivita->nastavTagy($this->tagy());
 
     return $novaAktivita;
@@ -1063,7 +1065,7 @@ SQL
       (REG_AKTIVIT || $zpetne && po(REG_GC_DO)) &&
       (
         $this->a['stav'] == self::AKTIVOVANA ||
-        $technicke && $this->a['stav'] == self::NOVA && $this->a['typ'] == self::TECHNICKA ||
+        $technicke && $this->a['stav'] == self::NOVA && $this->a['typ'] == Typ::TECHNICKA ||
         $zpetne && $this->a['stav'] == self::PROBEHNUTA
       ) &&
       $this->a['zacatek'] &&
@@ -1336,15 +1338,16 @@ SQL
       dbDelete('akce_seznam', ['id_akce' => $this->id()]);
 
       // řešení instancí, pokud patří do rodiny instancí
-      $rodina = $this->a['patri_pod'];
-      if ($rodina) {
-        // načtení id mateřské instance
-        $r = dbOneLine('SELECT MIN(id_akce) as mid, COUNT(1) as pocet FROM akce_seznam WHERE patri_pod = ' . $rodina);
+      $instance = $this->a['patri_pod'];
+      if ($instance) {
+        // načtení id mateřské instance PO smazání současné aktivity
+        $r = dbOneLine('SELECT MIN(id_akce) as mid, COUNT(1) as pocet FROM akce_seznam WHERE patri_pod = $1 GROUP BY id_akce', [$instance]);
         $mid = $r['mid'];
         $pocet = $r['pocet'];
         // zbyla jediná instance, zrušit u ní patri_pod
-        if ($pocet == 1) {
-          dbQuery('UPDATE akce_seznam SET patri_pod = 0 WHERE patri_pod = ' . $rodina);
+        if ($pocet === 1) {
+          dbQuery('DELETE FROM akce_instance WHERE id = ' .$instance);
+          dbQuery('UPDATE akce_seznam SET patri_pod = NULL WHERE patri_pod = ' . $instance);
         }
         // id zrušené instance bylo nejnižší => je potřeba uložit url a popisek do nové instance
         if ($this->id() < $mid) {

@@ -4,14 +4,25 @@
  * Typ aktivit (programová linie)
  * @method static Typ zId($id)
  */
-class Typ extends DbObject {
+class Typ extends DbObject
+{
 
   protected static $tabulka = 'akce_typy';
   protected static $pk = 'id_typu';
 
-  const LKD = 8;
-  const DRD = 9;
+  const TURNAJ_V_DESKOVKACH = 1;
+  const LARP = 2;
+  const PREDNASKA = 3;
+  const RPG = 4;
+  const WORKSHOP = 5;
+  const WARGAMING = 6;
+  const BONUS = 7;
+  const LKD = 8; // legendy klubu dobrodruhů
+  const DRD = 9; // mistrovství v DrD
   const TECHNICKA = 10;
+  const EPIC = 11;
+  const DOPROVODNY_PROGRAM = 12;
+  const DESKOHERNA = 13;
 
   /** Vrátí popisek bez html a názvu */
   function bezNazvu() {
@@ -43,7 +54,7 @@ class Typ extends DbObject {
   }
 
   function posilatMailyNedorazivsim() {
-    return (bool) $this->r['mail_neucast'];
+    return (bool)$this->r['mail_neucast'];
   }
 
   function url(): string {
@@ -51,7 +62,7 @@ class Typ extends DbObject {
   }
 
   static function zUrl($url = null): ?Typ {
-    if($url === null) $url = Url::zAktualni()->cela();
+    if ($url === null) $url = Url::zAktualni()->cela();
     return self::zWhereRadek('url_typu_mn = $1', [$url]);
   }
 

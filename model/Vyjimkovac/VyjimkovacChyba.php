@@ -109,7 +109,7 @@ class VyjimkovacChyba {
       'vyjimka'   => base64_encode($es),
     ]);
     if($e instanceof \DbException) {
-      $r['data'] = trim($e->getTrace()[0]['args'][0]);
+      $r['data'] = trim($e->getTrace()[0]['args'][0] ?? null);
     }
     if($e instanceof JsException) {
       $r['url'] = @$_SERVER['HTTP_REFERER'] ?: null;
