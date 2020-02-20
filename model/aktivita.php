@@ -1,5 +1,7 @@
 <?php
 
+use \Gamecon\Cas\DateTimeCz;
+
 require_once __DIR__ . '/../admin/scripts/modules/aktivity/_editor-tagu.php';
 
 /**
@@ -484,7 +486,7 @@ class Aktivita
    * Vytvoří novou instanci aktivity
    * @return self nově vytvořená instance
    */
-  function instanciuj() {
+  function instancuj() {
     $akt = dbOneLine('SELECT * FROM akce_seznam WHERE id_akce=' . $this->id());
     //odstraníme id, url a popisek, abychom je nepoužívali/neduplikovali při vkládání
     //stav se vloží implicitní hodnota v DB
@@ -1454,8 +1456,10 @@ SQL
     return $this->typ;
   }
 
-  function typId() {
-    return $this->a['typ'];
+  function typId(): ?int {
+    return (string)$this->a['typ'] !== ''
+      ? (int)$this->a['typ']
+      : null;
   }
 
   /**
@@ -1792,11 +1796,11 @@ SQL
    * Pokusí se vyčíst aktivitu z dodaného ID.
    * @return self|null
    */
-  static function zId($id) {
-    if ((int)$id)
+  static function zId($id): ?Aktivita {
+    if ((int)$id) {
       return current(self::zWhere('WHERE a.id_akce=' . (int)$id));
-    else
-      return null;
+    }
+    return null;
   }
 
   /**

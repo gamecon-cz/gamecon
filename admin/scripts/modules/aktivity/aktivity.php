@@ -39,7 +39,7 @@ if (post('aktivovatVse')) {
 }
 
 if (post('instance')) {
-  Aktivita::zId(post('aktivitaId'))->instanciuj();
+  Aktivita::zId(post('aktivitaId'))->instancuj();
   back();
 }
 

@@ -1,16 +1,18 @@
 <?php
 
-/** 
+/**
  * Správa uživatelských práv a židlí (starý kód)
  *
  * nazev: Práva
  * pravo: 106
  */
- 
+
+use \Gamecon\Cas\DateTimeCz;
+
 $zidle = @$req[1];
 
 function zaloguj($zprava) {
-  $cas = (new DateTimeCz)->formatDb();
+  $cas = (new DateTimeCz())->formatDb();
   file_put_contents(SPEC . '/zidle.log', "$cas $zprava\n", FILE_APPEND);
 }
 

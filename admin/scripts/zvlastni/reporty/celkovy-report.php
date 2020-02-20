@@ -1,6 +1,8 @@
 <?php
 // takzvaný BFGR report
 
+use \Gamecon\Cas\DateTimeCz;
+
 require_once('sdilene-hlavicky.php');
 
 function ed($datum) { // excel datum

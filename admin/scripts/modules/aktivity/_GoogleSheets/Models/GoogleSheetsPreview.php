@@ -2,6 +2,8 @@
 
 namespace Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models;
 
+use Gamecon\Cas\DateTimeCz;
+
 class GoogleSheetsPreview
 {
   /**
@@ -17,11 +19,11 @@ class GoogleSheetsPreview
    */
   private $url;
   /**
-   * @var \DateTimeCz
+   * @var DateTimeCz
    */
   private $createdAt;
   /**
-   * @var \DateTimeCz
+   * @var DateTimeCz
    */
   private $modifiedAt;
 
@@ -29,8 +31,8 @@ class GoogleSheetsPreview
     $this->id = $id;
     $this->name = $name;
     $this->url = $url;
-    $this->createdAt = new \DateTimeCz($createdAt);
-    $this->modifiedAt = new \DateTimeCz($modifiedAt);
+    $this->createdAt = new DateTimeCz($createdAt);
+    $this->modifiedAt = new DateTimeCz($modifiedAt);
   }
 
   /**
@@ -54,11 +56,11 @@ class GoogleSheetsPreview
     return $this->url;
   }
 
-  public function getCreatedAt(): \DateTimeCz {
+  public function getCreatedAt(): DateTimeCz {
     return $this->createdAt;
   }
 
-  public function getModifiedAt(): \DateTimeCz {
+  public function getModifiedAt(): DateTimeCz {
     return $this->modifiedAt;
   }
 

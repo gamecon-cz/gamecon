@@ -1,5 +1,7 @@
 <?php
 
+use \Gamecon\Cas\DateTimeCz;
+
 $GLOBALS['SKRIPT_ZACATEK'] = microtime(true); // profiling
 
 /**

@@ -7,6 +7,8 @@
  * pravo: 102
  */
 
+use \Gamecon\Cas\DateTimeCz;
+
 $xtpl2=new XTemplate('prihlaseni.xtpl');
 
 $o = dbQuery('SELECT id_typu, typ_1pmn FROM akce_typy');
@@ -55,12 +57,12 @@ while($totoPrihlaseni) {
     $vek = $hrac->vekKDatu($datum);
     if($vek === null) $vek = "Nevyplnil";
     elseif($vek >= 18) $vek = "18+";
-    
+
     if($totoPrihlaseni['datum_prihlaseni'] != null)
     {
       $prihlasen = new DateTimeCz($totoPrihlaseni['datum_prihlaseni']);
       $xtpl2->assign('datum_prihlaseni', $prihlasen->format('j.n. H:i'));
-    } 
+    }
     $xtpl2->assign('vek', $vek);
     $xtpl2->assign('odd', $odd?$odd='':$odd='odd');
     $xtpl2->parse('prihlaseni.aktivita.lide.clovek');
