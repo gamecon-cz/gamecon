@@ -1,6 +1,7 @@
 <?php
 
 use \Gamecon\Cas\DateTimeCz;
+use \Gamecon\Cas\DateTimeGamecon;
 
 $GLOBALS['SKRIPT_ZACATEK'] = microtime(true); // profiling
 
@@ -400,16 +401,12 @@ function seskupenePodle($pole, $funkce) {
 
 function vekNaZacatkuLetosnihoGameconu(DateTimeImmutable $datumNarozeni): int {
     // cilene bez hodin, minut a sekund
-    return vek($datumNarozeni->setTime(0, 0, 0), zacatekLetosnihoGameconu()->setTime(0, 0, 0));
+    return vek($datumNarozeni->setTime(0, 0, 0), DateTimeGamecon::zacatekLetosnihoGameconu()->setTime(0, 0, 0));
 }
 
 function vek(DateTimeInterface $datumNarozeni, ?DateTimeInterface $kDatu): int {
     $kDatu = $kDatu ?? new DateTimeImmutable(date('Y-m-d 00:00:00'));
     return $kDatu->diff($datumNarozeni)->y;
-}
-
-function zacatekLetosnihoGameconu(): DateTimeImmutable {
-    return new DateTimeImmutable(GC_BEZI_OD);
 }
 
 function odstranDiakritiku(string $value): string {

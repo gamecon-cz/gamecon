@@ -9,6 +9,7 @@
  */
 
 use \Gamecon\Cas\DateTimeCz;
+use \Gamecon\Cas\DateTimeGamecon;
 
 if(!empty($_POST['datMaterialy']) && $uPracovni && $uPracovni->gcPrihlasen())
 {
@@ -241,7 +242,7 @@ if($uPracovni) {
     if ($sloupec === 'potvrzeni_zakonneho_zastupce') {
         $popisek = sprintf(
             'Zda máme letošní potvrzení od rodiče nebo zákonného zástupce, že účastník může na Gamecon, i když mu na začátku Gameconu (%s) ještě nebude patnáct.',
-            (new DateTimeCz(zacatekLetosnihoGameconu()->format(DATE_ATOM)))->formatDatumStandard()
+            DateTimeGamecon::zacatekLetosnihoGameconu()->formatDatumStandard()
         );
         $vstupniHodnota = $potrebujePotvrzeni && !$mameLetosniPotvrzeni
             ? date('Y-m-d') // zmeni se na dnesni datum pouze pokud je zaskrtly checkbox
@@ -291,7 +292,7 @@ if($uPracovni) {
         if ($potrebujePotvrzeni) {
           $potrebujePotvrzeniZprava = sprintf(
             'Uživalel potřebuje letošní potvrzení od rodiče nebo zákonného zástupce, že může na Gamecon, i když mu na začátku Gameconu (%s) ještě nebude patnáct. Přesto uložit?',
-            (new DateTimeCz(zacatekLetosnihoGameconu()->format(DATE_ATOM)))->formatDatumStandard()
+            DateTimeGamecon::zacatekLetosnihoGameconu()->formatDatumStandard()
           );
           if (!$mameLetosniPotvrzeni) {
             $x->parse('uvod.udaje.udaj.chybi');
