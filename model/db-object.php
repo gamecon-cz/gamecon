@@ -3,7 +3,8 @@
 /**
  * Abstrakce jednoduché třídy nad tabulkou databáze
  */
-abstract class DbObject {
+abstract class DbObject
+{
 
   protected $r; // řádek z databáze
 
@@ -26,13 +27,13 @@ abstract class DbObject {
    * přidávat bižuterii typu join, groupy, řazení, ...
    */
   protected static function dotaz($where) {
-    return 'SELECT * FROM '.static::$tabulka.' WHERE '.$where;
+    return 'SELECT * FROM ' . static::$tabulka . ' WHERE ' . $where;
   }
 
   /** Vrátí formulář pro editaci objektu s daným ID nebo pro přidání nového */
   static function form($id = null) {
     $f = new DbFormGc(static::$tabulka);
-    if($id) {
+    if ($id) {
       $s = self::zId($id);
       $f->loadRow($s->r);
     }
@@ -46,7 +47,7 @@ abstract class DbObject {
 
   /** Načte a vrátí objekt s daným ID nebo null */
   static function zId($id) {
-    return self::zWhereRadek(static::$pk.' = '.dbQv($id));
+    return self::zWhereRadek(static::$pk . ' = ' . dbQv($id));
   }
 
   /**
@@ -54,12 +55,12 @@ abstract class DbObject {
    * @param $ids pole čísel nebo řetězec čísel oddělených čárkami
    */
   static function zIds($ids) {
-    if(is_array($ids)) {
-      if(empty($ids)) return []; // vůbec se nedotazovat DB
-      return self::zWhere(static::$pk.' IN ('.dbQa($ids).')');
-    } else if(preg_match('@^([0-9]+,)*[0-9]+$@', $ids)) {
-      return self::zWhere(static::$pk.' IN ('.$ids.')');
-    } else if($ids === '') {
+    if (is_array($ids)) {
+      if (empty($ids)) return []; // vůbec se nedotazovat DB
+      return self::zWhere(static::$pk . ' IN (' . dbQa($ids) . ')');
+    } else if (preg_match('@^([0-9]+,)*[0-9]+$@', $ids)) {
+      return self::zWhere(static::$pk . ' IN (' . $ids . ')');
+    } else if ($ids === '') {
       return [];
     } else {
       throw new InvalidArgumentException('Argument musí být pole čísel nebo řetězec čísel oddělených čárkou');
@@ -73,30 +74,29 @@ abstract class DbObject {
   }
 
   /** Načte a vrátí objekty pomocí dané where klauzule */
-  protected static function zWhere($where, $params = null): array{
+  protected static function zWhere($where, $params = null): array {
     $o = dbQuery(static::dotaz($where), $params); // static aby odděděná třída mohla přepsat dotaz na něco složitějšího
     $a = [];
-    while($r = mysqli_fetch_assoc($o))
+    while ($r = mysqli_fetch_assoc($o))
       $a[] = new static($r); // static aby vznikaly objekty správné třídy
-      // TODO id jako klíč pole?
-      // TODO cacheování?
+    // TODO id jako klíč pole?
+    // TODO cacheování?
     return $a;
   }
 
   /**
    * Načte a vrátí objekt vyhovující where klauzuli nebo null
-   * @throws Exception pokud se načte více řádků
+   * @throws RuntimeException pokud se načte více řádků
    */
   protected static function zWhereRadek($where, $params = null) {
     $a = self::zWhere($where, $params);
-    if(count($a) == 1) {
+    if (count($a) === 1) {
       return $a[0];
-    } else if(empty($a)) {
-      return null;
-    } else {
-      throw new Exception('Více jak jeden řádek odpovídá where klauzuli');
-      // TODO typ výjimky? Runtime nebo compile time?
     }
+    if (!$a) {
+      return null;
+    }
+    throw new RuntimeException(sprintf("Více jak jeden řádek (%d) odpovídá where klauzuli '%s'", count($a), $where));
   }
 
 }
