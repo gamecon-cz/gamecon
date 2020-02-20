@@ -1,5 +1,7 @@
 <?php
 
+use \Gamecon\Cas\DateTimeCz;
+
 class Novinka extends DbObject {
 
   protected static $tabulka = 'novinky';

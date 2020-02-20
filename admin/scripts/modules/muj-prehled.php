@@ -7,6 +7,8 @@
  * pravo: 109
  */
 
+use \Gamecon\Cas\DateTimeCz;
+
 $aktivity = Aktivita::zFiltru([
   'organizator' => $u->id(),
   'rok' => ROK,

@@ -1,11 +1,20 @@
 <?php
 
+namespace Gamecon\Cas;
+
 /**
  * Datum a čas s českými názvy dnů a měsíců + další vychytávky
  */
 
-class DateTimeCz extends DateTime
+class DateTimeCz extends \DateTime
 {
+  public const PONDELI = 'pondělí';
+  public const UTERY = 'úterý';
+  public const STREDA = 'středa';
+  public const CTVRTEK = 'čtvrtek';
+  public const PATEK = 'pátek';
+  public const SOBOTA = 'sobota';
+  public const NEDELE = 'neděle';
 
   protected static $dny = [
     'Monday'    => 'pondělí',
@@ -32,19 +41,42 @@ class DateTimeCz extends DateTime
     'December'  =>  'prosince',
   ];
 
+  public static function poradiDne(string $den): int {
+    $denBezDiakritiky = odstranDiakritiku($den);
+    $prvniDvePismena = substr($denBezDiakritiky, 0, 2);
+    switch ($prvniDvePismena) {
+      case 'po' :
+        return 1;
+      case 'ut' :
+        return 2;
+      case 'st' :
+        return 3;
+      case 'c' :
+        return 4;
+      case 'pa' :
+        return 5;
+      case 'so' :
+        return 6;
+      case 'ne' :
+        return 7;
+      default :
+        throw new \RuntimeException("Unknown czech day name '$den'");
+    }
+  }
+
   /**
    * Obalovací fce, umožňuje vložit přímo řetězec pro konstruktor DateIntervalu
    */
   function add($interval) {
-    if($interval instanceof DateInterval)
+    if($interval instanceof \DateInterval) {
       return parent::add($interval);
-    else
-      return parent::add(new DateInterval($interval));
+    }
+    return parent::add(new \DateInterval($interval));
   }
 
   /** Formát data s upravenými dny česky */
   function format($f) {
-    return strtr(parent::format($f), self::$dny);
+    return strtr(parent::format($f), static::$dny);
   }
 
   /** Vrací formát kompatibilní s mysql */
@@ -81,17 +113,17 @@ class DateTimeCz extends DateTime
 
   /** Vrací blogový/dopisový formát */
   function formatBlog() {
-    return strtr(parent::format('j. F Y'), self::$mesice);
+    return strtr(parent::format('j. F Y'), static::$mesice);
   }
 
   /** Zvýší časový údaj o jeden den. Upravuje objekt. */
   function plusDen() {
-    $this->add(new DateInterval('P1D'));
+    $this->add(new \DateInterval('P1D'));
   }
 
   /** Jestli je tento okamžik před okamžikem $d2 */
   function pred($d2) {
-    if($d2 instanceof DateTime)
+    if($d2 instanceof \DateTime)
       return $this->getTimestamp() < $d2->getTimestamp();
     else
       return $this->getTimestamp() < strtotime($d2);
@@ -99,7 +131,7 @@ class DateTimeCz extends DateTime
 
   /** Jestli je tento okamžik po okamžiku $d2 */
   function po($d2) {
-    if($d2 instanceof DateTime)
+    if($d2 instanceof \DateTime)
       return $this->getTimestamp() > $d2->getTimestamp();
     else
       return $this->getTimestamp() > strtotime($d2);
@@ -114,7 +146,7 @@ class DateTimeCz extends DateTime
       return "před $rozdil vteřinami";
     if($rozdil < 60*60)
       return 'před '.round($rozdil/60).' minutami';
-    if(!$dny = $this->rozdilDne(new self())) // dnes
+    if(!$dny = $this->rozdilDne(new static())) // dnes
       return $this->format('G:i');
     else
       return $dny;
@@ -123,7 +155,7 @@ class DateTimeCz extends DateTime
   /**
    * Vrátí „včera“, „předevčírem“, „pozítří“ apod. (místo dnes vrací emptystring)
    */
-  function rozdilDne(DateTime $od) {
+  function rozdilDne(\DateTime $od) {
     $od=clone $od; // nutné znulování času pro funkční porovnání počtu dní
     $od->setTime(0,0);
     $do=clone $this;
@@ -136,28 +168,30 @@ class DateTimeCz extends DateTime
       case 1: return 'zítra';
       case 2: return 'pozítří';
       default:
-        if($diff<0)
+        if($diff<0) {
           return 'před '.(-$diff).' dny';
-        else if($diff<5)
+        }
+        if($diff<5) {
           return "za $diff dny";
-        else
-          return "za $diff dní";
+        }
+        return "za $diff dní";
     }
   }
 
-  /** Jestli tento den je stejný s $d2 v formátu DateTime nebo string s časem */
-  function stejnyDen($d2) {
-    if(!($d2 instanceof DateTime))
-      $d2 = new self($d2);
+  /** Jestli tento den je stejný s $d2 v formátu \DateTime nebo string s časem */
+  function stejnyDen($d2): bool {
+    if(!($d2 instanceof \DateTime)) {
+      $d2 = new static($d2);
+    }
     return $this->format('Y-m-d') == $d2->format('Y-m-d');
   }
 
   /** Zaokrouhlí nahoru na nejbližší vyšší jednotku */
-  function zaokrouhlitNaHodinyNahoru() {
-    if($this->format('is')==='0000') // neni co zaokrouhlovat
+  function zaokrouhlitNaHodinyNahoru(): DateTimeCz {
+    if($this->format('is')==='0000') { // neni co zaokrouhlovat
       return $this->modify($this->format('Y-m-d H:00:00'));
-    else
-      return $this->modify($this->format('Y-m-d H:00:00'))->add(new DateInterval('PT1H'));
+    }
+    return $this->modify($this->format('Y-m-d H:00:00'))->add(new \DateInterval('PT1H'));
   }
 
 }

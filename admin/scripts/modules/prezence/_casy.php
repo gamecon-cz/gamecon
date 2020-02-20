@@ -1,5 +1,7 @@
 <?php
 
+use \Gamecon\Cas\DateTimeCz;
+
 /**
  * Vhackovaný code snippet na zobrazení vybírátka času
  * @param DateTimeCz $zacatekDt do tohoto se přiřadí vybraný čas začátku aktivit

@@ -7,6 +7,8 @@
  * pravo: 107
  */
 
+use \Gamecon\Cas\DateTimeCz;
+
 // tabulka účasti
 $sledovaneZidle = array_merge(
   [Z_PRIHLASEN, Z_PRITOMEN],
@@ -63,11 +65,11 @@ $ubytovaniKratce = tabMysql(dbQuery('
   WHERE n.rok='.ROK.' AND (p.typ=2)
   GROUP BY p.ubytovani_den
 UNION ALL
-  SELECT "neubytovaní" as Den, COUNT(1) as Počet 
+  SELECT "neubytovaní" as Den, COUNT(1) as Počet
   FROM r_uzivatele_zidle z
   LEFT JOIN(
-    SELECT n.id_uzivatele 
-    FROM shop_nakupy n 
+    SELECT n.id_uzivatele
+    FROM shop_nakupy n
     JOIN shop_predmety p ON(n.id_predmetu=p.id_predmetu AND p.typ=2)
     WHERE n.rok='.ROK.'
     GROUP BY n.id_uzivatele
@@ -109,8 +111,8 @@ $zbyva=$zbyva->diff(new DateTime());
 $zbyva=$zbyva->format('%a dní').' ('.round($zbyva->format('%a')/7,1).' týdnů)';
 
 // graf účasti
-$q='SELECT 
-    DATE(z.posazen) as den, 
+$q='SELECT
+    DATE(z.posazen) as den,
     COUNT(1) as prihlasen,
     COUNT(IF(YEAR(u.registrovan)='.ROK.',1,NULL)) as novy
   FROM r_uzivatele_zidle z
@@ -267,7 +269,7 @@ $pocetDni = substr_count($dny, ',');
   Do gameconu zbývá <?=$zbyva?><br><br>
   <span class="hinted">Vysvětlivky ke grafu<span class="hint">
     Data z předchozích let jsou převedena tak, aby počet dní do GameConu na loňské křivce odpovídal počtu dní do GameConu na letošní křivce.<br>
-    Svislá čára představuje začátek GameConu. Počet platí pro dané datum v 23:59. 
+    Svislá čára představuje začátek GameConu. Počet platí pro dané datum v 23:59.
   </span></span>
 </div>
 <div style="float:left;margin-left:20px;width:650px;height:300px" id="vyvojRegu"></div>
@@ -311,7 +313,7 @@ $pocetDni = substr_count($dny, ',');
 </pre><br><br>
 
 <?=tabMysqlR(dbQuery('
-  select 
+  select
     2000-(id_zidle div 100) as "",
     count(id_zidle) "Lidé na GC celkem",
     sum(pohlavi="m") as "&emsp;z toho muži",
