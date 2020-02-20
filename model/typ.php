@@ -2,13 +2,18 @@
 
 /**
  * Typ aktivit (programová linie)
- * @method static Typ zId($id)
+ * @method static Typ|null zId($id)
  */
 class Typ extends DbObject
 {
 
+  public static function zNazvu(string $nazev): ?Typ {
+    return static::zWhereRadek(static::$sloupecNazev . ' = ' . dbQv($nazev));
+  }
+
   protected static $tabulka = 'akce_typy';
   protected static $pk = 'id_typu';
+  protected static $sloupecNazev = 'typ_1pmn';
 
   const TURNAJ_V_DESKOVKACH = 1;
   const LARP = 2;
@@ -23,6 +28,10 @@ class Typ extends DbObject
   const EPIC = 11;
   const DOPROVODNY_PROGRAM = 12;
   const DESKOHERNA = 13;
+
+  public function id(): int {
+    return (int)parent::id();
+  }
 
   /** Vrátí popisek bez html a názvu */
   function bezNazvu() {

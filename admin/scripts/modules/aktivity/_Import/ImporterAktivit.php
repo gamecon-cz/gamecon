@@ -30,26 +30,35 @@ class ImporterAktivit
    */
   private $currentYear;
   /**
+   * @var \DateTimeInterface
+   */
+  private $now;
+  /**
    * @var Logovac
    */
   private $logovac;
-
   /**
    * @var array|\Aktivita[]|null[]
    */
   private $oldActivities = [];
+  /**
+   * @var array|\Typ[][]
+   */
+  private $programovaLinieCache = ['id' => [], 'name' => []];
 
   public function __construct(
     int $userId,
     GoogleDriveService $googleDriveService,
     GoogleSheetsService $googleSheetsService,
     int $currentYear,
+    \DateTimeInterface $now,
     Logovac $logovac
   ) {
     $this->googleDriveService = $googleDriveService;
     $this->googleSheetsService = $googleSheetsService;
     $this->userId = $userId;
     $this->currentYear = $currentYear;
+    $this->now = $now;
     $this->logovac = $logovac;
   }
 
@@ -223,40 +232,40 @@ SQL
     return $this->success(null);
   }
 
-  private function getZacatek(array $values): array {
-    if (empty($values[ExportAktivitSloupce::ZACATEK])) {
+  private function getZacatek(array $activityValues): array {
+    if (empty($activityValues[ExportAktivitSloupce::ZACATEK])) {
       return $this->success(null);
     }
-    if (empty($values[ExportAktivitSloupce::DEN])) {
-      return $this->error(sprintf('U aktivity %s je sice začátek (%s), ale chybí u ní den.', $this->describeActivityFromValues($values), $values[ExportAktivitSloupce::ZACATEK]));
+    if (empty($activityValues[ExportAktivitSloupce::DEN])) {
+      return $this->error(sprintf('U aktivity %s je sice začátek (%s), ale chybí u ní den.', $this->describeActivityFromValues($activityValues), $activityValues[ExportAktivitSloupce::ZACATEK]));
     }
-    return $this->createDateTimeFromRangeBorder($this->currentYear, $values[ExportAktivitSloupce::DEN], $values[ExportAktivitSloupce::ZACATEK]);
+    return $this->createDateTimeFromRangeBorder($this->currentYear, $activityValues[ExportAktivitSloupce::DEN], $activityValues[ExportAktivitSloupce::ZACATEK]);
   }
 
-  private function getKonec(array $values): array {
-    if (empty($values[ExportAktivitSloupce::KONEC])) {
+  private function getKonec(array $activityValues): array {
+    if (empty($activityValues[ExportAktivitSloupce::KONEC])) {
       return $this->success(null);
     }
-    if (empty($values[ExportAktivitSloupce::DEN])) {
-      return $this->error(sprintf('U aktivity %s je sice konec (%s), ale chybí u ní den.', $this->describeActivityFromValues($values), $values[ExportAktivitSloupce::KONEC]));
+    if (empty($activityValues[ExportAktivitSloupce::DEN])) {
+      return $this->error(sprintf('U aktivity %s je sice konec (%s), ale chybí u ní den.', $this->describeActivityFromValues($activityValues), $activityValues[ExportAktivitSloupce::KONEC]));
     }
-    return $this->createDateTimeFromRangeBorder($this->currentYear, $values[ExportAktivitSloupce::DEN], $values[ExportAktivitSloupce::KONEC]);
+    return $this->createDateTimeFromRangeBorder($this->currentYear, $activityValues[ExportAktivitSloupce::DEN], $activityValues[ExportAktivitSloupce::KONEC]);
   }
 
-  private function describeActivityFromValues(array $values): string {
-    $id = $values[ExportAktivitSloupce::ID_AKTIVITY] ?? '';
-    $nazev = $values[ExportAktivitSloupce::NAZEV] ?? '';
+  private function describeActivityFromValues(array $activityValues): string {
+    $id = $activityValues[ExportAktivitSloupce::ID_AKTIVITY] ?? '';
+    $nazev = $activityValues[ExportAktivitSloupce::NAZEV] ?? '';
     if ($id && $nazev) {
       return "$nazev ($id)";
     }
-    $url = $values[ExportAktivitSloupce::URL] ?? '';
+    $url = $activityValues[ExportAktivitSloupce::URL] ?? '';
     if ($nazev && $url) {
       return "$nazev s URL '$url'";
     }
     if ($nazev) {
       return $nazev;
     }
-    $kratkaAnotace = $values[ExportAktivitSloupce::KRATKA_ANOTACE] ?? '';
+    $kratkaAnotace = $activityValues[ExportAktivitSloupce::KRATKA_ANOTACE] ?? '';
     return $kratkaAnotace ?: "'bez názvu'";
   }
 
@@ -401,7 +410,7 @@ SQL
     return $this->success($cleansedValues);
   }
 
-  private function importExistingActivity(int $id, array $values): array {
+  private function importExistingActivity(int $id, array $activityValues): array {
     $aktivita = $this->findOldActivityById($id);
     if (!$aktivita) {
       return $this->error(sprintf("Aktivita s ID '%s' neexistuje. Nelze ji proto importem upravit.", $id));
@@ -409,16 +418,97 @@ SQL
     if (!$aktivita->bezpecneEditovatelna()) {
       return $this->error(sprintf("Aktivitu '%s' (%d) už nelze editovat importem, protože je ve stavu '%s'", $aktivita->nazev(), $id, $aktivita->getStavNazev()));
     }
-    if ($aktivita->zacatek() && $aktivita->zacatek()->getTimestamp() <= time()) {
+    if ($aktivita->zacatek() && $aktivita->zacatek()->getTimestamp() <= $this->now->getTimestamp()) {
       return $this->error(sprintf("Aktivitu '%s' (%d) už nelze editovat importem, protože už začala (začátek v %s)", $aktivita->nazev(), $id, $aktivita->zacatek()->formatCasNaMinutyStandard()));
     }
-    if ($aktivita->konec() && $aktivita->konec()->getTimestamp() <= time()) {
+    if ($aktivita->konec() && $aktivita->konec()->getTimestamp() <= $this->now->getTimestamp()) {
       return $this->error(sprintf("Aktivitu '%s' (%d) už nelze editovat importem, protože už skončila (konec v %s)", $aktivita->nazev(), $id, $aktivita->konec()->formatCasNaMinutyStandard()));
     }
-    return $this->success('TODO Zatím nic s existující aktivitou ' . $id);
+    $sanitizedValues = [$aktivita->rawDb()];
+
+    ['success' => $activityName, 'error' => $activityNameError] = $this->getValidatedActivityName($activityValues, $aktivita);
+    if ($activityNameError) {
+      return $this->error($activityNameError);
+    }
+    $sanitizedValues[AktivitaSqlSloupce::NAZEV_AKCE] = $activityName;
+
+    ['success' => $programLineId, 'error' => $programLineError] = $this->getValidatedProgramLineId($activityValues, $aktivita);
+    if ($programLineError) {
+      return $this->error($programLineError);
+    }
+    $sanitizedValues[AktivitaSqlSloupce::TYP] = $programLineId;
+
+    return $this->success('TODO Zatím nic s existující aktivitou ' . implode(';', $sanitizedValues));
   }
 
-  private function importNewActivity(array $values): array {
-    return $this->success('TODO Zatím nic snovou aktivitou ' . implode(';', $values));
+  private function getValidatedActivityName(array $activityValues, \Aktivita $aktivita): array {
+    $activityNameValue = $activityValues[ExportAktivitSloupce::NAZEV] ?? null;
+    if (!$activityNameValue) {
+      return $this->success($aktivita->nazev());
+    }
+    $existingActivityId = dbOneCol('SELECT id_akce FROM akce_seznam WHERE nazev_akce = $1 AND rok = $2', [$activityNameValue, $this->currentYear]);
+    if ($existingActivityId) {
+      return $this->error(sprintf("Název aktivity '%s' už je obsazený stejnojmennou aktivitou %d", $activityNameValue, $existingActivityId));
+    }
+    return $this->success($activityNameValue);
+  }
+
+  private function getValidatedProgramLineId(array $activityValues, \Aktivita $aktivita): array {
+    $programovaLinieValue = $activityValues[ExportAktivitSloupce::PROGRAMOVA_LINIE] ?? null;
+    if (!$programovaLinieValue) {
+      return $this->success($aktivita->typId());
+    }
+    $programovaLinie = $this->getProgramLineFromValue((string)$programovaLinieValue);
+    if ($programovaLinie) {
+      return $this->success($programovaLinie->id());
+    }
+    return $this->error(sprintf("Neznámá programová linie '%s'", $programovaLinieValue));
+  }
+
+  private function getProgramLineFromValue(string $programovaLinieValue): ?\Typ {
+    $programovaLinieInt = (int)$programovaLinieValue;
+    if ($programovaLinieInt > 0) {
+      $programovaLinie = $this->getProgramLineFromCacheById($programovaLinieInt);
+      if ($programovaLinie) {
+        return $programovaLinie;
+      }
+      $programovaLinie = \Typ::zId($programovaLinieInt);
+      if ($programovaLinie) {
+        $this->cacheProgramLine($programovaLinie);
+        return $programovaLinie;
+      }
+      return null;
+    }
+    $programovaLinie = $this->getProgramLineFromCacheByName($programovaLinieValue);
+    if ($programovaLinie) {
+      return $programovaLinie;
+    }
+    $programovaLinie = \Typ::zNazvu($programovaLinieValue);
+    if ($programovaLinie) {
+      $this->cacheProgramLine($programovaLinie);
+      return $programovaLinie;
+    }
+    return null;
+  }
+
+  private function getProgramLineFromCacheById($id): ?\Typ {
+    return $this->programovaLinieCache['id'][$id] ?? null;
+  }
+
+  private function getProgramLineFromCacheByName($name): ?\Typ {
+    return $this->programovaLinieCache['name'][$this->toUnifiedKey($name)] ?? null;
+  }
+
+  private function cacheProgramLine(\Typ $programovaLinie) {
+    $this->programovaLinieCache['id'][$programovaLinie->id()] = $programovaLinie;
+    $this->programovaLinieCache['name'][$this->toUnifiedKey($programovaLinie->nazev())] = $programovaLinie;
+  }
+
+  private function toUnifiedKey(string $value): string {
+    return strtolower(preg_replace('~\s*~', '', odstranDiakritiku($value)));
+  }
+
+  private function importNewActivity(array $activityValues): array {
+    return $this->success('TODO Zatím nic snovou aktivitou ' . implode(';', $activityValues));
   }
 }

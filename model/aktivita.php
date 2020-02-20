@@ -1311,11 +1311,9 @@ SQL
   }
 
   /**
-   * Vrací surový databázový řádek, nepoužívat (pouze pro debug a zpětnou
-   * kompatibilitu, postupně odstranit).
-   * @deprecated
+   * Vrací surový databázový řádek, nepoužívat (pouze pro debug a zpětnou kompatibilitu, postupně odstranit).
    */
-  function rawDb() {
+  function rawDb(): array {
     return $this->a;
   }
 
@@ -1891,6 +1889,7 @@ SQL
    * @todo třída která obstará reálný iterátor, nejenom obalení pole (nevýhoda
    *  pole je nezměněná nutnost čekat, než se celá odpověď načte a přesype do
    *  paměti
+   * @return Aktivita[]
    */
   protected static function zWhere($where, $args = null, $order = null): array {
     $o = dbQueryS("
