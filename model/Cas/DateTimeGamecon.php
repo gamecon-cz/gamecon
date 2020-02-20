@@ -42,4 +42,8 @@ class DateTimeGamecon extends DateTimeCz
     $rozdilDnu = $poradiDne - $poradiCtvrtka;
     return $zacatekGameconu->modify($rozdilDnu . ' days');
   }
+
+  public static function zacatekLetosnihoGameconu(): DateTimeGamecon {
+    return static::zacatekGameconu(GC_BEZI_OD);
+  }
 }
