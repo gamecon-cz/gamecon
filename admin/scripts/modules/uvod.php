@@ -8,6 +8,8 @@
  * pravo: 100
  */
 
+use \Gamecon\Cas\DateTimeCz;
+
 if(!empty($_POST['datMaterialy']) && $uPracovni && $uPracovni->gcPrihlasen())
 {
   $uPracovni->dejZidli(Z_PRITOMEN);
@@ -65,7 +67,7 @@ if(!empty($_POST['prodej']))
     $prodej['id_uzivatele']=$uPracovni->id();
   if(!$prodej['id_uzivatele'])
     $prodej['id_uzivatele']=0;
-  dbQuery('INSERT INTO shop_nakupy(id_uzivatele,id_predmetu,rok,cena_nakupni,datum) 
+  dbQuery('INSERT INTO shop_nakupy(id_uzivatele,id_predmetu,rok,cena_nakupni,datum)
     VALUES ('.$prodej['id_uzivatele'].','.$prodej['id_predmetu'].','.ROK.',(SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu='.$prodej['id_predmetu'].'),NOW())');
   back();
 }
@@ -183,12 +185,12 @@ else
 
 // načtení předmětů a form s rychloprodejem předmětů, fixme
 $o=dbQuery('
-  SELECT 
+  SELECT
     CONCAT(nazev," ",model_rok) as nazev,
     kusu_vyrobeno-count(n.id_predmetu) as zbyva,
     p.id_predmetu,
-    ROUND(p.cena_aktualni) as cena 
-  FROM shop_predmety p 
+    ROUND(p.cena_aktualni) as cena
+  FROM shop_predmety p
   LEFT JOIN shop_nakupy n ON(n.id_predmetu=p.id_predmetu)
   WHERE p.stav > 0
   GROUP BY p.id_predmetu

@@ -1,5 +1,8 @@
 <?php
 
+use \Gamecon\Cas\DateTimeCz;
+
+
 /**
  * Třída popisující uživatele a jeho vlastnosti
  * @todo načítání separátního (nepřihlášeného uživatele) např. pro účely schi-
@@ -921,9 +924,8 @@ class Uzivatel {
   public function vekKDatu(DateTimeCz $datum) {
     if($this->u['datum_narozeni'] == '0000-00-00') {
       return null;
-    } else {
-      return date_diff($this->datumNarozeni(), $datum)->y;
     }
+    return date_diff($this->datumNarozeni(), $datum)->y;
   }
 
   /**

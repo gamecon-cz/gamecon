@@ -1,5 +1,7 @@
 <?php
 
+use \Gamecon\Cas\DateTimeCz;
+
 /**
  * Třída pro sestavování mailu
  */

@@ -1,5 +1,7 @@
 <?php
 
+use \Gamecon\Cas\DateTimeCz;
+
 /**
  * Zrychlený výpis programu
  */

@@ -1,5 +1,7 @@
 <?php
 
+use \Gamecon\Cas\DateTimeCz;
+
 $xtpl=new XTemplate(__DIR__.'/last-minute-tabule.xtpl');
 
 $test=null; //debug
