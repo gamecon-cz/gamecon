@@ -25,5 +25,8 @@ WHERE patri_pod = 0;
 ALTER TABLE akce_seznam
 ADD CONSTRAINT FOREIGN KEY FK_akce_seznam_to_akce_instance(patri_pod) REFERENCES akce_instance(id)
         ON UPDATE CASCADE ON DELETE RESTRICT;
+
+ALTER TABLE akce_lokace
+ADD UNIQUE KEY nazev_rok(nazev, rok);
 SQL
 );
