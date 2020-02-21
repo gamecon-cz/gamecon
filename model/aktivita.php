@@ -550,10 +550,11 @@ class Aktivita
   }
 
   /** Vrátí DateTime objekt konce aktivity */
-  function konec(): DateTimeCz {
-    if (is_string($this->a['konec']))
+  function konec(): ?DateTimeCz {
+    if ($this->a['konec'] && is_string($this->a['konec'])) {
       $this->a['konec'] = new DateTimeCz($this->a['konec']);
-    return $this->a['konec'];
+    }
+    return $this->a['konec'] ?: null;
   }
 
   /**
@@ -1346,7 +1347,7 @@ SQL
         $pocet = $r['pocet'];
         // zbyla jediná instance, zrušit u ní patri_pod
         if ($pocet === 1) {
-          dbQuery('DELETE FROM akce_instance WHERE id = ' .$instance);
+          dbQuery('DELETE FROM akce_instance WHERE id = ' . $instance);
           dbQuery('UPDATE akce_seznam SET patri_pod = NULL WHERE patri_pod = ' . $instance);
         }
         // id zrušené instance bylo nejnižší => je potřeba uložit url a popisek do nové instance
@@ -1675,7 +1676,7 @@ SQL
     }
 
     echo json_encode(['chyby' => $chyby]);
-    die();
+    exit();
   }
 
   /**
@@ -1688,12 +1689,13 @@ SQL
 
   /**
    * Vrátí DateTime objekt začátku aktivity
-   * @return DateTimeCz
+   * @return DateTimeCz|null
    */
-  function zacatek(): DateTimeCz {
-    if (is_string($this->a['zacatek']))
+  function zacatek(): ?DateTimeCz {
+    if ($this->a['zacatek'] && is_string($this->a['zacatek'])) {
       $this->a['zacatek'] = new DateTimeCz($this->a['zacatek']);
-    return $this->a['zacatek'];
+    }
+    return $this->a['zacatek'] ?: null;
   }
 
   /** Je aktivita už proběhlá resp. už uzavřená pro změny? */
@@ -1877,10 +1879,10 @@ SQL
    * @param string $where obsah where klauzule (bez úvodního klíč. slova WHERE)
    * @param $args volitelné pole argumentů pro dbQueryS()
    * @param $order volitelně celá klauzule ORDER BY včetně klíč. slova
+   * @return Aktivita[]
    * @todo třída která obstará reálný iterátor, nejenom obalení pole (nevýhoda
    *  pole je nezměněná nutnost čekat, než se celá odpověď načte a přesype do
    *  paměti
-   * @return Aktivita[]
    */
   protected static function zWhere($where, $args = null, $order = null): array {
     $o = dbQueryS("
