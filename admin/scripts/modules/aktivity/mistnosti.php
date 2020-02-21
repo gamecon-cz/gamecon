@@ -1,6 +1,6 @@
 <?php
 
-/** 
+/**
  * Stránka pro přehled všech přihlášených na aktivity
  *
  * nazev: Místnosti
@@ -32,10 +32,10 @@ if(post('dolu'))
 if(post('novaMistnost'))
 {
   $a=dbOneLine('SELECT MAX(poradi) as posledni FROM akce_lokace');
-  $posledni=$a['posledni'];
-  dbInsertUpdate('akce_lokace',['nazev'=>'Nová místnost', 'poradi'=>$posledni+1]);
+  $poradi = $a['posledni'] + 1;
+  dbInsertUpdate('akce_lokace', ['nazev'=>'Nová místnost ' . $poradi, 'poradi' => $poradi]);
   back();
-} 
+}
 
 $tpl=new XTemplate('mistnosti.xtpl');
 
@@ -53,5 +53,5 @@ for($i=0;$r=mysqli_fetch_assoc($o);$i++)
 
 $tpl->parse('mistnosti');
 $tpl->out('mistnosti');
- 
+
 ?>
