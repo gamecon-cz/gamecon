@@ -3,6 +3,7 @@
 /**
  * Typ aktivit (programová linie)
  * @method static Typ|null zId($id)
+ * @method static Typ[] zVsech()
  */
 class Typ extends DbObject
 {
