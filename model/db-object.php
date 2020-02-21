@@ -69,7 +69,7 @@ abstract class DbObject
   }
 
   /** Načte a vrátí všechny objekt z databáze */
-  static function zVsech() {
+  static function zVsech(): array {
     return self::zWhere('1');
   }
 
