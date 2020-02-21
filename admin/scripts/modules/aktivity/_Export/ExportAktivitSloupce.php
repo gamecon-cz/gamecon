@@ -4,28 +4,28 @@ namespace Gamecon\Admin\Modules\Aktivity\Export;
 
 class ExportAktivitSloupce
 {
-  public const ID_AKTIVITY = 'ID aktivity';
-  public const PROGRAMOVA_LINIE = 'Programová linie';
-  public const NAZEV = 'Název';
-  public const URL = 'URL';
-  public const KRATKA_ANOTACE = 'Krátká anotace';
+  public const ID_AKTIVITY = 'ID aktivity'; // id_akce
+  public const PROGRAMOVA_LINIE = 'Programová linie'; // typ
+  public const NAZEV = 'Název'; // nazev_akce
+  public const URL = 'URL'; // url_akce
+  public const KRATKA_ANOTACE = 'Krátká anotace'; // popis_kratky
   public const TAGY = 'Tagy';
-  public const DLOUHA_ANOTACE = 'Dlouhá anotace';
-  public const DEN = 'Den';
-  public const ZACATEK = 'Začátek';
-  public const KONEC = 'Konec';
-  public const MISTNOST = 'Místnost';
+  public const DLOUHA_ANOTACE = 'Dlouhá anotace'; // popis
+  public const DEN = 'Den'; // zacatek / konec
+  public const ZACATEK = 'Začátek'; // zacatek
+  public const KONEC = 'Konec'; // konec
+  public const MISTNOST = 'Místnost'; // lokace
   public const VYPRAVECI = 'Vypravěči';
-  public const KAPACITA_UNISEX = 'Kapacita unisex';
-  public const KAPACITA_MUZI = 'Kapacita muži';
-  public const KAPACITA_ZENY = 'Kapacita ženy';
-  public const JE_TYMOVA = 'Je týmová';
-  public const MINIMALNI_KAPACITA_TYMU = 'Minimální kapacita týmu';
-  public const MAXIMALNI_KAPACITA_TYMU = 'Maximální kapacita týmu';
-  public const CENA = 'Cena';
-  public const BEZ_SLEV = 'Bez slev';
-  public const VYBAVENI = 'Vybavení';
-  public const STAV = 'Stav';
+  public const KAPACITA_UNISEX = 'Kapacita unisex'; // kapacita
+  public const KAPACITA_MUZI = 'Kapacita muži'; // kapacita_m
+  public const KAPACITA_ZENY = 'Kapacita ženy'; // kapacita_f
+  public const JE_TYMOVA = 'Je týmová'; // teamova
+  public const MINIMALNI_KAPACITA_TYMU = 'Minimální kapacita týmu'; // team_min
+  public const MAXIMALNI_KAPACITA_TYMU = 'Maximální kapacita týmu'; // team_max
+  public const CENA = 'Cena'; // cena
+  public const BEZ_SLEV = 'Bez slev'; // bez_slevy
+  public const VYBAVENI = 'Vybavení'; // vybaveni
+  public const STAV = 'Stav'; // stav
 
   public static function getVsechnySloupce(): array {
     return [
