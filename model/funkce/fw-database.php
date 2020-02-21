@@ -268,9 +268,13 @@ function dbOneIndex($q, $p = null) {
  */
 function dbOneLine($q, $p = null) {
   $r = dbQueryS($q, $p);
-  if(mysqli_num_rows($r)>1) die('multiple lines matched!');
-  elseif(mysqli_num_rows($r)<1) return FALSE;
-  else return mysqli_fetch_assoc($r);
+  if(mysqli_num_rows($r)>1) {
+    throw new RuntimeException('Multiple lines matched on query ' . $q);
+  }
+  if(mysqli_num_rows($r)<1) {
+    return FALSE;
+  }
+  return mysqli_fetch_assoc($r);
 }
 
 /**
@@ -281,9 +285,13 @@ function dbOneLine($q, $p = null) {
 function dbOneLineS($q,$array=null)
 {
   $r=dbQueryS($q,$array);
-  if(mysqli_num_rows($r)>1) die('multiple lines matched!');
-  elseif(mysqli_num_rows($r)<1) return FALSE;
-  else return mysqli_fetch_assoc($r);
+  if(mysqli_num_rows($r)>1) {
+    throw new RuntimeException('Multiple lines matched on query ' . $q);
+  }
+  if(mysqli_num_rows($r)<1) {
+    return FALSE;
+  }
+  return mysqli_fetch_assoc($r);
 }
 
 function dbFetchAll(string $query, array $params = []): array {
