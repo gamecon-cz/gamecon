@@ -28,5 +28,27 @@ ADD CONSTRAINT FOREIGN KEY FK_akce_seznam_to_akce_instance(patri_pod) REFERENCES
 
 ALTER TABLE akce_lokace
 ADD UNIQUE KEY nazev_rok(nazev, rok);
+
+ALTER TABLE akce_seznam
+MODIFY COLUMN stav INTEGER NOT NULL;
+
+CREATE TABLE akce_stav(
+    id INTEGER UNIQUE KEY AUTO_INCREMENT,
+    nazev VARCHAR(128) PRIMARY KEY
+);
+SET SQL_MODE = 'NO_AUTO_VALUE_ON_ZERO'; -- jinak to místo nuly vloží novou autoincrement hodnotu
+INSERT INTO akce_stav(id, nazev)
+VALUES
+(0, 'nová'),
+(1, 'aktivovaná'),
+(2, 'proběhnutá'),
+(3, 'systémová'),
+(4, 'publikovaná'),
+(5, 'pripravená');
+SET SQL_MODE = '';
+
+ALTER TABLE akce_seznam
+ADD CONSTRAINT FOREIGN KEY FK_akce_seznam_to_akce_stav(stav) REFERENCES akce_stav(id)
+    ON UPDATE CASCADE ON DELETE RESTRICT;
 SQL
 );
