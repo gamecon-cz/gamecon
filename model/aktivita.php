@@ -1417,12 +1417,16 @@ SQL
     return null;
   }
 
-  function tymMaxKapacita() {
-    return $this->a['team_max'];
+  function tymMaxKapacita(): ?int {
+    return (string)$this->a['team_max'] !== ''
+      ? (int)$this->a['team_max']
+      : null;
   }
 
-  function tymMinKapacita() {
-    return $this->a['team_min'];
+  function tymMinKapacita(): ?int {
+    return (string)$this->a['team_min'] !== ''
+      ? (int)$this->a['team_min']
+      : null;
   }
 
   /**
