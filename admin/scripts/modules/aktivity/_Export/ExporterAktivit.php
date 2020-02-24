@@ -132,7 +132,7 @@ class ExporterAktivit
           ? 'ano'
           : 'ne',
         (string)$aktivita->vybaveni(), // Vybavení
-        $aktivita->getStavNazev(), // Stav
+        $aktivita->stav()->nazev(), // Stav
       ];
     }
     return $data;

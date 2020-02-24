@@ -16,6 +16,7 @@ class Aktivita
     $a,         // databázový řádek s aktivitou
     $kolekce,   // nadřízená kolekce, v rámci které byla aktivita načtena
     $lokace,
+    $stav,
     $nova,      // jestli jde o nově uloženou aktivitu nebo načtenou z DB
     $organizatori,
     $nahradnici,
@@ -32,13 +33,6 @@ class Aktivita
     PN_PLUSMINUSM = 'cAktivitaPlusminusm',  // název post proměnné pro úpravy typu mínus
     HAJENI = 72,      // počet hodin po kterýc aktivita automatick vykopává nesestavený tým
     LIMIT_POPIS_KRATKY = 180,  // max počet znaků v krátkém popisku
-    // stavy aktivity
-    NOVA = 0, // v přípravě
-    AKTIVOVANA = 1,
-    PROBEHNUTA = 2,
-    SYSTEMOVA = 3, // deprecated
-    PUBLIKOVANA = 4, // videtelná, nepřihlašovatelá
-    PRIPRAVENA = 5,
     // stavy přihlášení
     PRIHLASEN = 0,
     DORAZIL = 1,
@@ -68,7 +62,7 @@ class Aktivita
    */
   private function __construct(array $dbRow) {
     if (!$dbRow) {
-      throw new Exception('prázdný parametr konstruktoru');
+      throw new Exception('Nelze vytvořiit aktivitu. Prázdný parametr jejího konstruktoru.');
     }
     $this->a = $dbRow;
     $this->nova = false;
@@ -79,7 +73,7 @@ class Aktivita
    */
   function aktivuj() {
     if (!$this->zacatek()) throw new Chyba('Aktivita nemá nastavený čas');
-    dbQuery('UPDATE akce_seznam SET stav = $1 WHERE id_akce = $2', [self::AKTIVOVANA, $this->id()]);
+    dbQuery('UPDATE akce_seznam SET stav = $1 WHERE id_akce = $2', [Stav::AKTIVOVANA, $this->id()]);
     // TODO invalidate $this
   }
 
@@ -566,10 +560,12 @@ class Aktivita
 
   /** Vrátí lokaci (ndef. formát, ale musí podporovat __toString) */
   function lokace(): Lokace {
-    if (is_numeric($this->lokace)) $this->prednactiN1([
-      'atribut' => 'lokace',
-      'cil' => Lokace::class,
-    ]);
+    if (is_numeric($this->lokace)) {
+      $this->prednactiN1([
+        'atribut' => 'lokace',
+        'cil' => Lokace::class,
+      ]);
+    }
     return $this->lokace;
   }
 
@@ -742,13 +738,13 @@ class Aktivita
 
   /** Vráti aktivitu ze stavu připravená do stavu publikovaná */
   function odpriprav() {
-    if ($this->getStav() == self::PUBLIKOVANA) {
+    if ($this->stav()->id() == Stav::PUBLIKOVANA) {
       return;
     }
-    if ($this->getStav() != self::PRIPRAVENA) {
+    if ($this->stav()->id() != Stav::PRIPRAVENA) {
       throw new Exception('Aktivita není v stavu "připravená"');
     }
-    dbQuery('UPDATE akce_seznam SET stav=$1 WHERE id_akce=$2', [self::PUBLIKOVANA, $this->id()]);
+    dbQuery('UPDATE akce_seznam SET stav=$1 WHERE id_akce=$2', [Stav::PUBLIKOVANA, $this->id()]);
   }
 
   /**
@@ -863,7 +859,7 @@ SQL
    */
   protected function plusminus(Uzivatel $u = null, $parametry = 0) {
     // kontroly
-    if (!$this->a['teamova'] || $this->a['stav'] != self::AKTIVOVANA) return '';
+    if (!$this->a['teamova'] || $this->a['stav'] != Stav::AKTIVOVANA) return '';
     if ($parametry & self::PLUSMINUS && (!$u || !$this->prihlasen($u))) return '';
     // tisk formu
     $out = '';
@@ -968,7 +964,7 @@ SQL
     if (!$this->prihlasovatelna($ignorovat)) {
       // hack na ignorování stavu
       $puvodniStav = $this->a['stav'];
-      if ($ignorovat & self::STAV) $this->a['stav'] = self::AKTIVOVANA; // nastavíme stav jako by bylo vše ok
+      if ($ignorovat & self::STAV) $this->a['stav'] = Stav::AKTIVOVANA; // nastavíme stav jako by bylo vše ok
       $prihlasovatelna = $this->prihlasovatelna($ignorovat);
       $this->a['stav'] = $puvodniStav;
       if (!$prihlasovatelna) throw new Exception('Aktivita není otevřena pro přihlašování.');
@@ -1067,9 +1063,9 @@ SQL
     return (
       (REG_AKTIVIT || $zpetne && po(REG_GC_DO)) &&
       (
-        $this->a['stav'] == self::AKTIVOVANA ||
-        $technicke && $this->a['stav'] == self::NOVA && $this->a['typ'] == Typ::TECHNICKA ||
-        $zpetne && $this->a['stav'] == self::PROBEHNUTA
+        $this->a['stav'] == Stav::AKTIVOVANA ||
+        $technicke && $this->a['stav'] == Stav::NOVA && $this->a['typ'] == Typ::TECHNICKA ||
+        $zpetne && $this->a['stav'] == Stav::PROBEHNUTA
       ) &&
       $this->a['zacatek'] &&
       $this->a['typ']
@@ -1270,41 +1266,32 @@ SQL
   }
 
   public function publikuj() {
-    dbQuery('UPDATE akce_seznam SET stav=$1 WHERE id_akce=$2', [self::PUBLIKOVANA, $this->id()]);
+    dbQuery('UPDATE akce_seznam SET stav=$1 WHERE id_akce=$2', [Stav::PUBLIKOVANA, $this->id()]);
   }
 
   /** Nastaví aktivitu jako "připravena pro aktivaci" */
   function priprav() {
-    dbUpdate('akce_seznam', ['stav' => self::PRIPRAVENA], ['id_akce' => $this->id()]);
+    dbUpdate('akce_seznam', ['stav' => Stav::PRIPRAVENA], ['id_akce' => $this->id()]);
   }
 
   /** Zdali už aktivita začla a proběhla (rozhodný okamžik je vyjetí seznamů
    *  přihlášených na infopultu) */
   function probehnuta(): bool {
-    return $this->a['stav'] == self::PROBEHNUTA;
-  }
-
-  public function getStav(): int {
-    return (int)$this->a['stav'];
+    return $this->a['stav'] == Stav::PROBEHNUTA;
   }
 
   public function bezpecneEditovatelna(): bool {
-    return in_array($this->getStav(), [self::NOVA, self::PRIPRAVENA], true);
+    return in_array($this->stav()->id(), [Stav::NOVA, Stav::PRIPRAVENA], true);
   }
 
-  public function getStavNazev(): string {
-    switch ($this->getStav()) {
-      case self::NOVA :
-        return 'nová';
-      case self::AKTIVOVANA :
-        return 'aktivovaná';
-      case self::PUBLIKOVANA :
-        return 'publikovaná';
-      case self::PRIPRAVENA :
-        return 'pripravená';
-      default :
-        return '';
+  public function stav(): \Stav {
+    if (is_numeric($this->stav)) {
+      $this->prednactiN1([
+        'atribut' => 'stav',
+        'cil' => Stav::class,
+      ]);
     }
+    return $this->stav;
   }
 
   /**
@@ -1505,12 +1492,12 @@ SQL
 
   /** Vrátí, jestli aktivita bude aktivována v budoucnu, později než v další vlně */
   function vBudoucnu(): bool {
-    return $this->a['stav'] == self::PUBLIKOVANA;
+    return $this->a['stav'] == Stav::PUBLIKOVANA;
   }
 
   /** Vrátí, jestli aktivita bude aktivována v další vlně */
   function vDalsiVlne() {
-    return $this->a['stav'] == self::PRIPRAVENA || !REG_AKTIVIT && $this->a['stav'] == self::AKTIVOVANA;
+    return $this->a['stav'] == Stav::PRIPRAVENA || !REG_AKTIVIT && $this->a['stav'] == Stav::AKTIVOVANA;
   }
 
   /** Vrátí typ volných míst na aktivitě */
@@ -1559,8 +1546,8 @@ SQL
    */
   function viditelnaPro(Uzivatel $u = null) {
     return (
-      in_array($this->a['stav'], [self::AKTIVOVANA, self::PROBEHNUTA, self::PUBLIKOVANA, self::PRIPRAVENA]) // podle stavu je aktivita viditelná
-      && !($this->a['typ'] == Typ::TECHNICKA && $this->a['stav'] == self::PROBEHNUTA) || // ale skrýt technické proběhnuté
+      in_array($this->a['stav'], [Stav::AKTIVOVANA, Stav::PROBEHNUTA, Stav::PUBLIKOVANA, Stav::PRIPRAVENA]) // podle stavu je aktivita viditelná
+      && !($this->a['typ'] == Typ::TECHNICKA && $this->a['stav'] == Stav::PROBEHNUTA) || // ale skrýt technické proběhnuté
       $u && $this->prihlasen($u) ||
       $u && $u->organizuje($this)
     );
@@ -1704,7 +1691,7 @@ SQL
 
   /** Je aktivita už proběhlá resp. už uzavřená pro změny? */
   function zamcena(): bool {
-    return $this->a['stav'] == self::PROBEHNUTA;
+    return $this->a['stav'] == Stav::PROBEHNUTA;
   }
 
   /** Zamče aktivitu pro další změny (k použití před jejím začátkem) */
@@ -1920,6 +1907,7 @@ FROM sjednocene_tagy
       $aktivita = new self($r);
       $aktivita->typ = $r['typ'];
       $aktivita->lokace = $r['lokace'];
+      $aktivita->stav = $r['stav'];
 
       $aktivita->kolekce = &$kolekce;
       $aktivita->kolekce[$r['id_akce']] = $aktivita;
@@ -1937,7 +1925,7 @@ FROM sjednocene_tagy
   }
 
   public static function aktivujVsePripravene(int $rok) {
-    dbQuery('UPDATE akce_seznam SET stav=$1 WHERE stav=$2 AND rok=$3', [self::AKTIVOVANA, self::PRIPRAVENA, $rok]);
+    dbQuery('UPDATE akce_seznam SET stav=$1 WHERE stav=$2 AND rok=$3', [Stav::AKTIVOVANA, Stav::PRIPRAVENA, $rok]);
   }
 
 }

@@ -368,7 +368,7 @@ SQL
       return $this->error(sprintf("Aktivita s ID '%s' neexistuje. Nelze ji proto importem upravit.", $id));
     }
     if (!$aktivita->bezpecneEditovatelna()) {
-      return $this->error(sprintf("Aktivitu '%s' (%d) už nelze editovat importem, protože je ve stavu '%s'", $aktivita->nazev(), $id, $aktivita->getStavNazev()));
+      return $this->error(sprintf("Aktivitu '%s' (%d) už nelze editovat importem, protože je ve stavu '%s'", $aktivita->nazev(), $id, $aktivita->stav()->nazev()));
     }
     if ($aktivita->zacatek() && $aktivita->zacatek()->getTimestamp() <= $this->now->getTimestamp()) {
       return $this->error(sprintf("Aktivitu '%s' (%d) už nelze editovat importem, protože už začala (začátek v %s)", $aktivita->nazev(), $id, $aktivita->zacatek()->formatCasNaMinutyStandard()));
@@ -496,8 +496,17 @@ SQL
     }
     $sanitizedValues[AktivitaSqlSloupce::BEZ_SLEVY] = $withoutDiscount;
 
-    // vybavevni
-    // stav
+    ['success' => $equipment, 'error' => $equipmentError] = $this->getValidatedEquipment($activityValues, $aktivita);
+    if ($equipmentError) {
+      return $this->error($equipmentError);
+    }
+    $sanitizedValues[AktivitaSqlSloupce::VYBAVENI] = $equipment;
+
+    ['success' => $state, 'error' => $stateError] = $this->getValidatedState($activityValues, $aktivita);
+    if ($stateError) {
+      return $this->error($stateError);
+    }
+    $sanitizedValues[AktivitaSqlSloupce::STAV] = $state;
 
     ['success' => $year, 'error' => $yearError] = $this->getValidatedYear($activityValues, $aktivita);
     if ($yearError) {
@@ -506,6 +515,69 @@ SQL
     $sanitizedValues[AktivitaSqlSloupce::ROK] = $year;
 
     return $this->success($sanitizedValues);
+  }
+
+  private function getValidatedState(array $activityValues, \Aktivita $aktivita): array {
+    $statesString = $activityValues[ExportAktivitSloupce::STAV] ?? '';
+    if ((string)$statesString === '') {
+      return $this->success($aktivita->stav()->nazev());
+    }
+    $stateNames = [];
+    $invalidStateValues = [];
+    $stateValues = array_map('trim', explode(',', $statesString)); // TODO single value only
+    foreach ($stateValues as $stateValue) {
+      $stav = $this->getStavFromValue($stateValue);
+      if (!$stav) {
+        $invalidStateValues[] = $stateValue;
+      } else {
+        $stateNames[] = $stav->nazev();
+      }
+    }
+    if ($invalidStateValues) {
+      $this->error(
+        sprintf('Neznámé stavy %s', implode(',', array_map(static function (string $invalidStateValue) {
+          return "'$invalidStateValue'";
+        }, $invalidStateValues)))
+      );
+    }
+    return $this->success($stateNames);
+  }
+
+  private function getStavFromValue(string $StateValue): ?\Stav {
+    $StateInt = (int)$StateValue;
+    if ($StateInt > 0) {
+      return $this->getStateById($StateInt);
+    }
+    return $this->getStateByName($StateValue);
+  }
+
+  private function getStateById(int $id): ?\Stav {
+    return $this->getStatesCache()['id'][$id] ?? null;
+  }
+
+  private function getStateByName(string $name): ?\Stav {
+    return $this->getStatesCache()['keyFromName'][$this->toUnifiedKey($name, [])] ?? null;
+  }
+
+  private function getStatesCache(): array {
+    if (!$this->StatesCache) {
+      $this->StatesCache = ['id' => [], 'keyFromName' => []];
+      $States = \State::zVsech();
+      foreach ($States as $State) {
+        $this->StatesCache['id'][$State->id()] = $State;
+        $keyFromName = $this->toUnifiedKey($State->nazev(), array_keys($this->StatesCache['keyFromName']));
+        $this->StatesCache['keyFromName'][$keyFromName] = $State;
+      }
+    }
+    return $this->StatesCache;
+  }
+
+  private function getValidatedEquipment(array $activityValues, \Aktivita $aktivita): array {
+    $equipmentValue = $activityValues[ExportAktivitSloupce::VYBAVENI] ?? null;
+    if ((string)$equipmentValue === '') {
+      return $this->success($aktivita->vybaveni());
+    }
+    return $this->success($equipmentValue);
   }
 
   private function getValidatedMinimalTeamCapacity(array $activityValues, \Aktivita $aktivita): array {
