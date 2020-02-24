@@ -423,7 +423,7 @@ SQL
     if ($longAnnotationError) {
       return $this->error($longAnnotationError);
     }
-    $sanitizedValues[AktivitaSqlSloupce::POPIS_KRATKY] = $longAnnotation;
+    $sanitizedValues[AktivitaSqlSloupce::POPIS] = $longAnnotation;
 
     ['success' => $activityBeginning, 'error' => $activityBeginningError] = $this->getValidatedBeginning($activityValues, $aktivita);
     if ($activityBeginningError) {
@@ -466,6 +466,24 @@ SQL
     }
     $sanitizedValues[AktivitaSqlSloupce::KAPACITA_F] = $womenCapacity;
 
+    ['success' => $forTeam, 'error' => $forTeamError] = $this->getValidatedForTeam($activityValues, $aktivita);
+    if ($forTeamError) {
+      return $this->error($forTeamError);
+    }
+    $sanitizedValues[AktivitaSqlSloupce::TEAMOVA] = $forTeam;
+
+    ['success' => $minimalTeamCapacity, 'error' => $minimalTeamCapacityError] = $this->getValidatedMinimalTeamCapacity($activityValues, $aktivita);
+    if ($minimalTeamCapacityError) {
+      return $this->error($minimalTeamCapacityError);
+    }
+    $sanitizedValues[AktivitaSqlSloupce::TEAM_MIN] = $minimalTeamCapacity;
+
+    ['success' => $maximalTeamCapacity, 'error' => $maximalTeamCapacityError] = $this->getValidatedMaximalTeamCapacity($activityValues, $aktivita);
+    if ($maximalTeamCapacityError) {
+      return $this->error($maximalTeamCapacityError);
+    }
+    $sanitizedValues[AktivitaSqlSloupce::TEAM_MAX] = $maximalTeamCapacity;
+
     ['success' => $price, 'error' => $priceError] = $this->getValidatedPrice($activityValues, $aktivita);
     if ($priceError) {
       return $this->error($priceError);
@@ -478,15 +496,66 @@ SQL
     }
     $sanitizedValues[AktivitaSqlSloupce::BEZ_SLEVY] = $withoutDiscount;
 
+    // vybavevni
+    // stav
+
     ['success' => $year, 'error' => $yearError] = $this->getValidatedYear($activityValues, $aktivita);
     if ($yearError) {
       return $this->error($yearError);
     }
     $sanitizedValues[AktivitaSqlSloupce::ROK] = $year;
 
-    // TODO rok
-
     return $this->success($sanitizedValues);
+  }
+
+  private function getValidatedMinimalTeamCapacity(array $activityValues, \Aktivita $aktivita): array {
+    $minimalTeamCapacityValue = $activityValues[ExportAktivitSloupce::MINIMALNI_KAPACITA_TYMU] ?? null;
+    if ((string)$minimalTeamCapacityValue === '') {
+      return $this->success($aktivita->tymMinKapacita());
+    }
+    $minimalTeamCapacity = (int)$minimalTeamCapacityValue;
+    if ($minimalTeamCapacity > 0) {
+      return $this->success($minimalTeamCapacity);
+    }
+    if ((string)$minimalTeamCapacityValue === '0') {
+      return $this->success(0);
+    }
+    return $this->error(sprintf("Podivná minimální kapacita týmu '%s'. Očekáváme celé kladné číslo.", $minimalTeamCapacityValue));
+  }
+
+  private function getValidatedMaximalTeamCapacity(array $activityValues, \Aktivita $aktivita): array {
+    $maximalTeamCapacityValue = $activityValues[ExportAktivitSloupce::MAXIMALNI_KAPACITA_TYMU] ?? null;
+    if ((string)$maximalTeamCapacityValue === '') {
+      return $this->success($aktivita->tymMaxKapacita());
+    }
+    $maximalTeamCapacity = (int)$maximalTeamCapacityValue;
+    if ($maximalTeamCapacity > 0) {
+      return $this->success($maximalTeamCapacity);
+    }
+    if ((string)$maximalTeamCapacityValue === '0') {
+      return $this->success(0);
+    }
+    return $this->error(sprintf("Podivná maximální kapacita týmu '%s'. Očekáváme celé kladné číslo.", $maximalTeamCapacityValue));
+  }
+
+  private function getValidatedForTeam(array $activityValues, \Aktivita $aktivita): array {
+    $forTeamValue = $activityValues[ExportAktivitSloupce::JE_TYMOVA] ?? null;
+    if ((string)$forTeamValue === '') {
+      return $this->success(
+        $aktivita->tymova()
+          ? 1
+          : 0
+      );
+    }
+    $forTeam = $this->parseBoolean($forTeamValue);
+    if ($forTeam !== null) {
+      return $this->success(
+        $forTeam
+          ? 1
+          : 0
+      );
+    }
+    return $this->error(sprintf("Podivný zápis, zda je aktivita týmová: '%s'. Očekáváme pouze 1, 0, ano, ne.", $forTeamValue));
   }
 
   private function getValidatedStorytellersIds(array $activityValues, \Aktivita $aktivita): array {
@@ -649,7 +718,7 @@ SQL
     if ((string)$capacityValue === '0') {
       return $this->success(0);
     }
-    return $this->error(sprintf("Podivná unisex kapacita '%s'. Očekáváme celé číslo.", $capacityValue));
+    return $this->error(sprintf("Podivná unisex kapacita '%s'. Očekáváme celé kladné číslo.", $capacityValue));
   }
 
   private function getValidatedMenCapacity(array $activityValues, \Aktivita $aktivita): array {
@@ -664,7 +733,7 @@ SQL
     if ((string)$capacityValue === '0') {
       return $this->success(0);
     }
-    return $this->error(sprintf("Podivná kapacita mužů '%s'. Očekáváme celé číslo.", $capacityValue));
+    return $this->error(sprintf("Podivná kapacita mužů '%s'. Očekáváme celé kladné číslo.", $capacityValue));
   }
 
   private function getValidatedWomenCapacity(array $activityValues, \Aktivita $aktivita): array {
@@ -679,7 +748,7 @@ SQL
     if ((string)$capacityValue === '0') {
       return $this->success(0);
     }
-    return $this->error(sprintf("Podivná kapacita žen '%s'. Očekáváme celé číslo.", $capacityValue));
+    return $this->error(sprintf("Podivná kapacita žen '%s'. Očekáváme celé kladné číslo.", $capacityValue));
   }
 
   private function getValidatedPrice(array $activityValues, \Aktivita $aktivita): array {
