@@ -4,7 +4,6 @@
  * Tag aktivity
  * @method static Tag|null zId($id)
  * @method static Tag[] zVsech()
- * @method int id
  */
 class Tag extends DbObject
 {
@@ -16,6 +15,10 @@ class Tag extends DbObject
   protected static $tabulka = 'sjednocene_tagy';
   protected static $pk = 'id';
   protected static $sloupecNazev = 'nazev';
+
+  public function id(): int {
+    return (int)parent::id();
+  }
 
   public function nazev(): string {
     return $this->r[static::$sloupecNazev];
