@@ -2,9 +2,7 @@
 
 namespace Gamecon\Admin\Modules\Aktivity\GoogleSheets;
 
-use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleSheetsException;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleSheetsPreview;
-use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleSheetsReference;
 
 class GoogleSheetsService
 {
@@ -70,7 +68,8 @@ class GoogleSheetsService
    * @throws Exceptions\UnauthorizedGoogleApiClient
    */
   public function getSpreadsheetValues(string $spreadsheetId): array {
-    $valueRange = $this->getNativeSheets()->spreadsheets_values->get($spreadsheetId, new \Google_Service_Sheets_ValueRange());
+    $wholeFirstSheetRange = $this->getWholeFirstSheetRange($spreadsheetId);
+    $valueRange = $this->getNativeSheets()->spreadsheets_values->get($spreadsheetId, $wholeFirstSheetRange);
     return $valueRange->getValues();
   }
 
@@ -81,10 +80,7 @@ class GoogleSheetsService
    * @throws Exceptions\UnauthorizedGoogleApiClient
    */
   public function setValuesInSpreadsheet(array $values, string $spreadsheetId) {
-    $spreadsheet = $this->getSpreadsheet($spreadsheetId);
-    $firstSheet = current($spreadsheet->getSheets());
-
-    $sheetNameAsWholeSheetRange = $firstSheet->getProperties()->getTitle();
+    $sheetNameAsWholeSheetRange = $this->getWholeFirstSheetRange($spreadsheetId);
 
     $valueRange = new \Google_Service_Sheets_ValueRange();
     $valueRange->setValues($values);
@@ -95,6 +91,14 @@ class GoogleSheetsService
       $valueRange,
       ['valueInputOption' => 'USER_ENTERED']
     );
+  }
+
+  private function getWholeFirstSheetRange(string $spreadsheetId): string {
+    $spreadsheet = $this->getSpreadsheet($spreadsheetId);
+    $firstSheet = current($spreadsheet->getSheets());
+
+    // first sheet title, like "Sheet 1" is the range to target whole first sheet
+    return $firstSheet->getProperties()->getTitle();
   }
 
   /**
