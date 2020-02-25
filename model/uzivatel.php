@@ -11,6 +11,21 @@ use \Gamecon\Cas\DateTimeCz;
  */
 class Uzivatel {
 
+
+  /**
+   * @return Uzivatel[]
+   */
+  public static function organizatori(): array {
+    $organizatoriIds = dbOneArray(<<<SQL
+SELECT uzivatele_hodnoty.id_uzivatele
+FROM uzivatele_hodnoty
+JOIN r_uzivatele_zidle on uzivatele_hodnoty.id_uzivatele = r_uzivatele_zidle.id_uzivatele
+WHERE id_zidle > 0
+SQL
+    );
+    return static::zIds($organizatoriIds);
+  }
+
   protected
     $aktivityJakoNahradnik, // pole s klíči id aktvit, kde je jako náhradník
     $u=[],
@@ -107,8 +122,10 @@ class Uzivatel {
     if($op) {
       dbQuery('
         UPDATE uzivatele_hodnoty
-        SET op="'.(Sifrovatko::zasifruj($op)).'"
-        WHERE id_uzivatele='.$this->u['id_uzivatele']);
+        SET op=$1
+        WHERE id_uzivatele='.$this->u['id_uzivatele'],
+        [Sifrovatko::zasifruj($op)]
+      );
       return $op;
     }
 
@@ -299,6 +316,12 @@ class Uzivatel {
     return self::jmenoNickZjisti($this->u);
   }
 
+  public function nick(): string {
+    return strpos($this->u['login_uzivatele'], '@') === false
+      ? $this->u['login_uzivatele']
+      : '';
+  }
+
   /**
    * Určuje jméno a nick uživatele z pole odpovídajícího strukturou databázovému
    * řádku z tabulky uzivatel_hodnoty. Pokud vyžadovaná pole chybí, zjistí
@@ -424,7 +447,7 @@ class Uzivatel {
   }
 
   /** Vrátí přezdívku (nickname) uživatele */
-  function nick()
+  function login(): string
   {
     return $this->u['login_uzivatele'];
   }
