@@ -6,6 +6,7 @@ use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleApiException;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
+use Gamecon\Admin\Modules\Aktivity\Import\Exceptions\DuplicatedUnifiedKeyException;
 use Gamecon\Admin\Modules\Aktivity\Import\Exceptions\ImportAktivitException;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Vyjimkovac\Logovac;
@@ -53,6 +54,18 @@ class ImporterAktivit
    * @var array|\Tag[][]
    */
   private $tagsCache;
+  /**
+   * @var array|\Stav[][]
+   */
+  private $StatesCache;
+  /**
+   * @var \Uzivatel[]
+   */
+  private $storytellersCache;
+  /**
+   * @var array|int[]
+   */
+  private $keyUnifyDepth = [];
 
   public function __construct(
     int $userId,
@@ -62,9 +75,9 @@ class ImporterAktivit
     \DateTimeInterface $now,
     Logovac $logovac
   ) {
+    $this->userId = $userId;
     $this->googleDriveService = $googleDriveService;
     $this->googleSheetsService = $googleSheetsService;
-    $this->userId = $userId;
     $this->currentYear = $currentYear;
     $this->now = $now;
     $this->logovac = $logovac;
@@ -174,7 +187,7 @@ class ImporterAktivit
       return false; // different activity URL, this can not be an instance
     }
 
-    return true; // it seems that this activity can be an instance of given parent activity
+    return true; // it seems that this activity can be an instance of given parent activity (no or same name and no or same URL)
   }
 
   private function getOldActivityById(int $id): \Aktivita {
@@ -518,32 +531,18 @@ SQL
   }
 
   private function getValidatedState(array $activityValues, \Aktivita $aktivita): array {
-    $statesString = $activityValues[ExportAktivitSloupce::STAV] ?? '';
-    if ((string)$statesString === '') {
+    $stateValue = $activityValues[ExportAktivitSloupce::STAV] ?? null;
+    if ((string)$stateValue === '') {
       return $this->success($aktivita->stav()->nazev());
     }
-    $stateNames = [];
-    $invalidStateValues = [];
-    $stateValues = array_map('trim', explode(',', $statesString)); // TODO single value only
-    foreach ($stateValues as $stateValue) {
-      $stav = $this->getStavFromValue($stateValue);
-      if (!$stav) {
-        $invalidStateValues[] = $stateValue;
-      } else {
-        $stateNames[] = $stav->nazev();
-      }
+    $state = $this->getStateFromValue((string)$stateValue);
+    if ($state) {
+      return $this->success($state->nazev());
     }
-    if ($invalidStateValues) {
-      $this->error(
-        sprintf('Neznámé stavy %s', implode(',', array_map(static function (string $invalidStateValue) {
-          return "'$invalidStateValue'";
-        }, $invalidStateValues)))
-      );
-    }
-    return $this->success($stateNames);
+    return $this->error(sprintf("Neznámý stav '%s'", $stateValue));
   }
 
-  private function getStavFromValue(string $StateValue): ?\Stav {
+  private function getStateFromValue(string $StateValue): ?\Stav {
     $StateInt = (int)$StateValue;
     if ($StateInt > 0) {
       return $this->getStateById($StateInt);
@@ -562,7 +561,7 @@ SQL
   private function getStatesCache(): array {
     if (!$this->StatesCache) {
       $this->StatesCache = ['id' => [], 'keyFromName' => []];
-      $States = \State::zVsech();
+      $States = \Stav::zVsech();
       foreach ($States as $State) {
         $this->StatesCache['id'][$State->id()] = $State;
         $keyFromName = $this->toUnifiedKey($State->nazev(), array_keys($this->StatesCache['keyFromName']));
@@ -639,8 +638,7 @@ SQL
     $invalidStorytellersValues = [];
     $storytellersValues = array_map('trim', explode(',', $storytellersString));
     foreach ($storytellersValues as $storytellerValue) {
-      // TODO
-      $storyteller = $this->getStorrytellerFromValue($storytellerValue);
+      $storyteller = $this->getStorytellerFromValue($storytellerValue);
       if (!$storyteller) {
         $invalidStorytellersValues[] = $storytellerValue;
       } else {
@@ -655,6 +653,94 @@ SQL
       );
     }
     return $this->success($storytellersIds);
+  }
+
+  private function getStorytellerFromValue(string $storytellerValue): ?\Uzivatel {
+    $storytellerInt = (int)$storytellerValue;
+    if ($storytellerInt > 0) {
+      return $this->getStorytellerById($storytellerInt);
+    }
+    return $this->getStorytellerByEmail($storytellerValue)
+      ?? $this->getStorytellerByName($storytellerValue)
+      ?? $this->getStorytellerByNick($storytellerValue);
+  }
+
+  private function getStorytellerById(int $id): ?\Uzivatel {
+    return $this->getStorytellersCache()['id'][$id] ?? null;
+  }
+
+  private function getStorytellerByEmail(string $email): ?\Uzivatel {
+    if (strpos($email, '@') === false) {
+      return null;
+    }
+    $key = $this->toUnifiedKey($email, [], self::UNIFY_UP_TO_SPACES);
+    return $this->getStorytellersCache()['keyFromEmail'][$key] ?? null;
+  }
+
+  private function getStorytellerByName(string $name): ?\Uzivatel {
+    $key = $this->toUnifiedKey($name, [], $this->keyUnifyDepth['storytellers']['fromName']);
+    return $this->getStorytellersCache()['keyFromName'][$key] ?? null;
+  }
+
+  private function getStorytellerByNick(string $nick): ?\Uzivatel {
+    $key = $this->toUnifiedKey($nick, [], $this->keyUnifyDepth['storytellers']['fromNick']);
+    return $this->getStorytellersCache()['keyFromNick'][$key] ?? null;
+  }
+
+  private function getStorytellersCache(): array {
+    if (!$this->storytellersCache) {
+      $this->storytellersCache = ['id' => [], 'keyFromName' => [], 'keyFromNick' => []];
+      $this->keyUnifyDepth['storytellers'] = ['fromName' => self::UNIFY_UP_TO_LETTERS, 'fromNick' => self::UNIFY_UP_TO_LETTERS];
+
+      $storytellers = \Uzivatel::organizatori();
+
+      foreach ($storytellers as $storyteller) {
+        $this->storytellersCache['id'][$storyteller->id()] = $storyteller;
+        $keyFromEmail = $this->toUnifiedKey($storyteller->mail(), array_keys($this->storytellersCache['keyFromEmail']), self::UNIFY_UP_TO_SPACES);
+        $this->storytellersCache['keyFromEmail'][$keyFromEmail] = $storyteller;
+      }
+
+      for ($nameKeyUnifyDepth = $this->keyUnifyDepth['storytellers']['fromName']; $nameKeyUnifyDepth >= 0; $nameKeyUnifyDepth--) {
+        $keyFromNameCache = [];
+        foreach ($storytellers as $storyteller) {
+          $name = $storyteller->jmeno();
+          if ($name === '') {
+            continue;
+          }
+          try {
+            $keyFromCivilName = $this->toUnifiedKey($name, array_keys($this->storytellersCache['keyFromName']), $nameKeyUnifyDepth);
+            $keyFromNameCache[$keyFromCivilName] = $storyteller;
+            // if unification was too aggressive and we had to lower level of depth / lossy compression, we have to store the lowest level for later picking-up values from cache
+          } catch (DuplicatedUnifiedKeyException $unifiedKeyException) {
+            continue 2; // lower key depth
+          }
+        }
+        $this->storytellersCache['keyFromName'] = $keyFromNameCache;
+        $this->keyUnifyDepth['storytellers']['fromName'] = min($this->keyUnifyDepth['storytellers']['fromName'], $nameKeyUnifyDepth);
+        break; // all names converted to unified and unique keys
+      }
+
+      for ($nickKeyUnifyDepth = $this->keyUnifyDepth['storytellers']['fromNick']; $nickKeyUnifyDepth >= 0; $nickKeyUnifyDepth--) {
+        $keyFromNickCache = [];
+        foreach ($storytellers as $storyteller) {
+          $nick = $storyteller->nick();
+          if ($nick === '') {
+            continue;
+          }
+          try {
+            $keyFromNick = $this->toUnifiedKey($nick, array_keys($this->storytellersCache['keyFromNick']), $nickKeyUnifyDepth);
+            $keyFromNickCache[$keyFromNick] = $storyteller;
+            // if unification was too aggressive and we had to lower level of depth / lossy compression, we have to store the lowest level for later picking-up values from cache
+          } catch (DuplicatedUnifiedKeyException $unifiedKeyException) {
+            continue 2; // lower key depth
+          }
+        }
+        $this->storytellersCache['keyFromNick'] = $keyFromNickCache;
+        $this->keyUnifyDepth['storytellers']['fromNick'] = min($this->keyUnifyDepth['storytellers']['fromNick'], $nickKeyUnifyDepth);
+        break; // all nicks converted to unified and unique keys
+      }
+    }
+    return $this->storytellersCache;
   }
 
   private function getValidatedLongAnnotation(array $activityValues, \Aktivita $aktivita): array {
@@ -1036,10 +1122,21 @@ SQL
     return $this->programLinesCache;
   }
 
-  private function toUnifiedKey(string $value, array $occupiedKeys): string {
-    $unifiedKey = strtolower(preg_replace('~\s*~', '', odstranDiakritiku($value)));
+  private const UNIFY_UP_TO_WHITESPACES = 1;
+  private const UNIFY_UP_TO_CASE = 2;
+  private const UNIFY_UP_TO_SPACES = 3;
+  private const UNIFY_UP_TO_WORD_CHARACTERS = 4;
+  private const UNIFY_UP_TO_DIACRITIC = 5;
+  private const UNIFY_UP_TO_LETTERS = 6;
+
+  private function toUnifiedKey(
+    string $value,
+    array $occupiedKeys,
+    int $unifyDepth = self::UNIFY_UP_TO_LETTERS
+  ): string {
+    $unifiedKey = $this->createUnifiedKey($value, $unifyDepth);
     if (array_key_exists($unifiedKey, $occupiedKeys)) {
-      throw new \LogicException(
+      throw new DuplicatedUnifiedKeyException(
         sprintf(
           "Can not create unified key from '%s' as resulting key '%s' already exists: %s",
           $value,
@@ -1047,10 +1144,42 @@ SQL
           implode(';', array_map(static function (string $occupiedKey) {
             return "'$occupiedKey'";
           }, $occupiedKeys))
-        )
+        ),
+        $unifiedKey
       );
     }
     return $unifiedKey;
+  }
+
+  private function createUnifiedKey(string $value, int $depth): string {
+    if ($depth <= 0) {
+      return $value;
+    }
+    $value = preg_replace('~\s+~', ' ', $value);
+    if ($depth === self::UNIFY_UP_TO_WHITESPACES) {
+      return $value;
+    }
+    $value = mb_strtolower($value, 'UTF-8');
+    if ($depth === self::UNIFY_UP_TO_CASE) {
+      return $value;
+    }
+    $value = (string)str_replace(' ', '', $value);
+    if ($depth === self::UNIFY_UP_TO_SPACES) {
+      return $value;
+    }
+    $value = preg_replace('~\W~u', '', $value);
+    if ($depth === self::UNIFY_UP_TO_WORD_CHARACTERS) {
+      return $value;
+    }
+    $value = odstranDiakritiku($value);
+    if ($depth === self::UNIFY_UP_TO_DIACRITIC) {
+      return $value;
+    }
+    $value = preg_replace('~[^a-z]~', '', $value);
+    if ($depth === self::UNIFY_UP_TO_LETTERS) {
+      return $value;
+    }
+    return $value;
   }
 
   private function importNewActivity(array $activityValues): array {

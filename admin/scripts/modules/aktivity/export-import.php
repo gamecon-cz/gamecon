@@ -9,6 +9,7 @@ use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleApiCredentials;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleApiTokenStorage;
 use Gamecon\Admin\Modules\Aktivity\Import\ImporterAktivit;
+use Gamecon\Vyjimkovac\Logovac;
 
 /**
  * Stránka pro hromadný export aktivit.
@@ -98,7 +99,8 @@ if (!$googleApiClient->isAuthorized()) {
 // IMPORT
 if ($googleApiClient->isAuthorized()) {
   if (!empty($_POST['googleSheetId'])) {
-    $importerAktivit = new ImporterAktivit($u->id(), $googleDriveService, $googleSheetsService, ROK);
+    /** @var Logovac $vyjimkovac */
+    $importerAktivit = new ImporterAktivit($u->id(), $googleDriveService, $googleSheetsService, ROK, new \DateTimeImmutable(), $vyjimkovac);
     [$naimportovanoPocet, $nazevImportovanehoSouboru] = $importerAktivit->importujAktivity($_POST['googleSheetId']);
     oznameni(sprintf("Bylo naimportováno %d aktivit z Google sheet '%s'", $naimportovanoPocet, $nazevImportovanehoSouboru));
   }
