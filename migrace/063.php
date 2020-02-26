@@ -50,5 +50,16 @@ SET SQL_MODE = '';
 ALTER TABLE akce_seznam
 ADD CONSTRAINT FOREIGN KEY FK_akce_seznam_to_akce_stav(stav) REFERENCES akce_stav(id)
     ON UPDATE CASCADE ON DELETE RESTRICT;
+
+CREATE TABLE mutex(
+    id INTEGER UNSIGNED NOT NULL UNIQUE AUTO_INCREMENT,
+    akce VARCHAR(128) NOT NULL PRIMARY KEY,
+    klic VARCHAR(128) NOT NULL UNIQUE,
+    zamknul INTEGER NULL,
+    od DATETIME NOT NULL DEFAULT NOW(),
+    do DATETIME NULL,
+    FOREIGN KEY FK_mutex_to_uzivatele_hodnoty(zamknul) REFERENCES uzivatele_hodnoty(id_uzivatele)
+        ON UPDATE CASCADE ON DELETE SET NULL
+);
 SQL
 );

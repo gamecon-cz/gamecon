@@ -9,6 +9,7 @@ use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
 use Gamecon\Admin\Modules\Aktivity\Import\Exceptions\DuplicatedUnifiedKeyException;
 use Gamecon\Admin\Modules\Aktivity\Import\Exceptions\ImportAktivitException;
 use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Mutex\Mutex;
 use Gamecon\Vyjimkovac\Logovac;
 
 class ImporterAktivit
@@ -66,6 +67,10 @@ class ImporterAktivit
    * @var array|int[]
    */
   private $keyUnifyDepth = [];
+  /**
+   * @var string
+   */
+  private $mutexKey;
 
   public function __construct(
     int $userId,
@@ -73,7 +78,8 @@ class ImporterAktivit
     GoogleSheetsService $googleSheetsService,
     int $currentYear,
     \DateTimeInterface $now,
-    Logovac $logovac
+    Logovac $logovac,
+    Mutex $mutex
   ) {
     $this->userId = $userId;
     $this->googleDriveService = $googleDriveService;
@@ -81,6 +87,7 @@ class ImporterAktivit
     $this->currentYear = $currentYear;
     $this->now = $now;
     $this->logovac = $logovac;
+    $this->mutex = $mutex;
   }
 
   public function importujAktivity(string $spreadsheetId): array {
@@ -101,9 +108,14 @@ class ImporterAktivit
         return $result;
       }
 
-      ['error' => $singleProgramLineError] = $this->guardSingleProgramLineOnly($activitiesValues);
+      ['success' => $programLine, 'error' => $singleProgramLineError] = $this->guardSingleProgramLineOnly($activitiesValues);
       if ($singleProgramLineError) {
         $result['messages']['errors'][] = $singleProgramLineError;
+        return $result;
+      }
+
+      if (!$this->getExclusiveLock($programLine)) {
+        $result['warnins'][] = 'Právě probíhá jiný import aktivit. Zkus to za chvíli znovu.';
         return $result;
       }
 
@@ -148,9 +160,26 @@ class ImporterAktivit
     } catch (\Google_Service_Exception $exception) {
       $result['messages']['errors'][] = 'Google sheets API je dočasně nedostupné. Zuste to prosím za chvíli znovu.';
       $this->logovac->zaloguj($exception);
+      $this->releaseExclusiveLock();
       return $result;
     }
+    $this->releaseExclusiveLock();
     return $result;
+  }
+
+  private function getExclusiveLock(string $programLine): bool {
+    return $this->mutex->cekejAZamkni(3500 /* milliseconds */, new \DateTimeImmutable('+10 seconds'), $this->getMutexKey($programLine), $this->userId);
+  }
+
+  private function releaseExclusiveLock() {
+    $this->mutex->odemkni($this->getMutexKey());
+  }
+
+  private function getMutexKey(string $programLine): string {
+    if ($this->mutexKey === null) {
+      $this->mutexKey = uniqid('import-aktivit-' . $programLine, true);
+    }
+    return $this->mutexKey;
   }
 
   private function importInstance(int $parentActivityId, array $values): array {
@@ -275,7 +304,7 @@ SQL
     if (count($programLines) === 0) {
       return $this->error('V importovaném souboru chybí programová linie.');
     }
-    return $this->success(true);
+    return $this->success(reset($programLines));
   }
 
   private static function wrapByQuotes(array $values): array {
