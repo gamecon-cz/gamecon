@@ -46,6 +46,40 @@
 <!-- begin:import -->
 <hr>
 
+<!-- begin:oznameni -->
+{oznameni}
+<!-- end:oznameni -->
+
+<!-- begin:errors -->
+<div class="error fullwidth">
+  <ul>
+    <!-- begin:error -->
+    <li>{error}</li>
+    <!-- end:error -->
+  </ul>
+</div>
+<!-- end:errors -->
+
+<!-- begin:warnings -->
+<div class="warning fullwidth">
+  <ul>
+    <!-- begin:warning -->
+    <li>{warning}</li>
+    <!-- end:warning -->
+  </ul>
+</div>
+<!-- end:warnings -->
+
+<!-- begin:notices -->
+<div class="notice fullwidth">
+  <ul>
+    <!-- begin:notice -->
+    <li>{notice}</li>
+    <!-- end:notice -->
+  </ul>
+</div>
+<!-- end:notices -->
+
 <form method="post">
   <div>
     <div style="margin: 1em 1em 1em 0; padding: 4px 4px 4px 0; float: left">
