@@ -101,20 +101,42 @@ if ($googleApiClient->isAuthorized()) {
   if (!empty($_POST['googleSheetId'])) {
     /** @var Logovac $vyjimkovac */
     $importerAktivit = new ImporterAktivit($u->id(), $googleDriveService, $googleSheetsService, ROK, new \DateTimeImmutable(), $vyjimkovac);
-    [
-      'importedCount' => $naimportovanoPocet,
-      'processedFileName' => $nazevImportovanehoSouboru,
-      'messages' => $messages,
-    ] = $importerAktivit->importujAktivity($_POST['googleSheetId']);
+    $vysledekImportuAktivit = $importerAktivit->importujAktivity($_POST['googleSheetId']);
+
+    ['importedCount' => $naimportovanoPocet, 'processedFileName' => $nazevImportovanehoSouboru, 'messages' => $messages] = $vysledekImportuAktivit;
     ['notices' => $notices, 'warnings' => $warnings, 'errors' => $errors] = $messages;
-    oznameni(sprintf(
-      "Bylo naimportováno %d aktivit z Google sheet '%s' s chybami %s, varováními %s a zprávami %s",
-      $naimportovanoPocet,
-      $nazevImportovanehoSouboru,
-      implode(';', $errors),
-      implode(';', $warnings),
-      implode(';', $notices)
-    ));
+
+    $zprava = sprintf("Bylo naimportováno %d aktivit z Google sheet '%s'", $naimportovanoPocet, $nazevImportovanehoSouboru);
+    if ($naimportovanoPocet > 0) {
+      oznameni($zprava, false);
+    } else {
+      chyba($zprava, false);
+    }
+    $oznameni = \Chyba::vyzvedniHtml();
+    $template->assign('oznameni', $oznameni);
+    $template->parse('import.oznameni');
+
+    if ($errors) {
+      foreach ($errors as $error) {
+        $template->assign('error', $error);
+        $template->parse('import.errors.error');
+      }
+      $template->parse('import.errors');
+    }
+    if ($warnings) {
+      foreach ($warnings as $warning) {
+        $template->assign('warning', $warning);
+        $template->parse('import.warnings.warning');
+      }
+      $template->parse('import.warnings');
+    }
+    if ($notices) {
+      foreach ($notices as $notice) {
+        $template->assign('notice', $notice);
+        $template->parse('import.notices.notice');
+      }
+      $template->parse('import.notices');
+    }
   }
 
   $spreadsheets = $googleSheetsService->getAllSpreadsheets();

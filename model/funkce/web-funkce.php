@@ -72,9 +72,22 @@ function httpsOnly() {
 /**
  * Předá chybu volajícímu skriptu, vyvolá reload
  */
-function chyba($zprava) {
+function chyba($zprava, $back = true) {
   Chyba::nastav($zprava, Chyba::CHYBA);
-  back();
+  if ($back) {
+    back();
+  }
+}
+
+/**
+ * Předá oznámení volajícímu skritpu, vyvolá reload
+ * @param back bool má se reloadovat?
+ */
+function oznameni($zprava, $back = true) {
+  Chyba::nastav($zprava, Chyba::OZNAMENI);
+  if ($back) {
+    back();
+  }
 }
 
 
@@ -110,7 +123,7 @@ function profilInfo()
     </style>
     <img src="'.$iHodiny.'" alt="délka skriptu včetně DB">
     <span style="'.$barva.'">'.round($delka*1000).'&thinsp;ms</span>
-    &ensp; 
+    &ensp;
     <img src="'.$iDb.'" alt="délka odbavení DB/počet dotazů">
     '.round(dbExecTime()*1000).'&thinsp;ms ('.dbNumQ().' dotazů)
     </div>';
