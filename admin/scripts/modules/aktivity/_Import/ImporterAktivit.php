@@ -95,7 +95,11 @@ class ImporterAktivit
     ];
     try {
       $result['processedFileName'] = $this->googleDriveService->getFileName($spreadsheetId);
-      $activitiesValues = $this->getIndexedValues($spreadsheetId);
+      ['success' => $activitiesValues, 'error' => $activitiesValuesError] = $this->getIndexedValues($spreadsheetId);
+      if ($activitiesValuesError) {
+        $result['messages']['errors'][] = $activitiesValuesError;
+        return $result;
+      }
 
       ['error' => $singleProgramLineError] = $this->guardSingleProgramLineOnly($activitiesValues);
       if ($singleProgramLineError) {
@@ -222,7 +226,7 @@ SQL
         , [$url, $this->currentYear, $programovaLinie]
       );
       if ($id) {
-        return ['success' => (int)$id, 'error' => false];
+        $this->success((int)$id);
       }
     }
     if ($url) {
@@ -269,7 +273,7 @@ SQL
       ));
     }
     if (count($programLines) === 0) {
-      return $this->error('Import musí určit programovou linii.');
+      return $this->error('V importovaném souboru chybí programová linie.');
     }
     return $this->success(true);
   }
@@ -282,20 +286,18 @@ SQL
 
   private function getIndexedValues(string $spreadsheetId): array {
     try {
-      $values = $this->googleSheetsService->getSpreadsheetValues($spreadsheetId);
+      $rawValues = $this->googleSheetsService->getSpreadsheetValues($spreadsheetId);
     } catch (GoogleApiException $exception) {
       $this->logovac->zaloguj($exception);
       return $this->error('Google Sheets API je dočasně nedostupné, zkuste to znovu za chvíli.');
     }
-    $cleanseValuesResult = $this->cleanseValues($values);
-    ['success' => $cleansedValues, 'error' => $error] = $cleanseValuesResult;
-    if ($error) {
-      return ['success' => false, 'error' => $error];
+    ['success' => $cleansedValues, 'error' => $cleansedValuesError] = $this->cleanseValues($rawValues);
+    if ($cleansedValuesError) {
+      return $this->error($cleansedValuesError);
     }
-    $cleansedHeaderResult = $this->getCleansedHeader($cleansedValues);
-    ['success' => $cleansedHeader, 'error' => $error] = $cleansedHeaderResult;
-    if ($error) {
-      return ['success' => false, 'error' => $error];
+    ['success' => $cleansedHeader, 'error' => $cleansedHeaderError] = $this->getCleansedHeader($cleansedValues);
+    if ($cleansedHeaderError) {
+      return $this->error($cleansedHeaderError);
     }
     unset($cleansedValues[array_key_first($cleansedValues)]); // remove row with header
 
@@ -312,29 +314,27 @@ SQL
         }
       }
       if (count($positionsOfValuesWithoutHeaders) > 0) {
-        return [
-          'success' => false,
-          'error' => sprintf('Některým sloupcům chybí název a to na pozicích %s', implode(',', $positionsOfValuesWithoutHeaders)),
-        ];
+        $this->error(sprintf('Některým sloupcům chybí název a to na pozicích %s', implode(',', $positionsOfValuesWithoutHeaders)));
       }
       $indexedValues[] = $indexedRow;
     }
-    return $indexedValues;
+    return $this->success($indexedValues);
   }
 
   private function getCleansedHeader(array $values): array {
-    $cleanse = static function (string $value) {
-      strtolower(odstranDiakritiku($value));
-    };
-    $cleansedKnownColumns = array_map($cleanse, ExportAktivitSloupce::getVsechnySloupce());
+    $unifiedKnownColumns = [];
+    foreach (ExportAktivitSloupce::getVsechnySloupce() as $knownColumn) {
+      $keyFromColumn = self::toUnifiedKey($knownColumn, $unifiedKnownColumns, self::UNIFY_UP_TO_LETTERS);;
+      $unifiedKnownColumns[$keyFromColumn] = $knownColumn;
+    }
     $header = reset($values);
     $cleansedHeader = [];
     $unknownColumns = [];
     $emptyColumnsPositions = [];
     foreach ($header as $index => $value) {
-      $cleansedValue = $cleanse($value);
-      if (in_array($cleansedValue, $cleansedKnownColumns, true)) {
-        $cleansedHeader[$index] = $cleansedValue;
+      $unifiedValue = self::toUnifiedKey($value, [], self::UNIFY_UP_TO_LETTERS);
+      if (array_key_exists($unifiedValue, $unifiedKnownColumns)) {
+        $cleansedHeader[$index] = $unifiedKnownColumns[$unifiedValue];
       } else if ($value === '') {
         $emptyColumnsPositions[$index] = $index + 1;
       } else {
@@ -555,7 +555,7 @@ SQL
   }
 
   private function getStateByName(string $name): ?\Stav {
-    return $this->getStatesCache()['keyFromName'][$this->toUnifiedKey($name, [])] ?? null;
+    return $this->getStatesCache()['keyFromName'][self::toUnifiedKey($name, [])] ?? null;
   }
 
   private function getStatesCache(): array {
@@ -564,7 +564,7 @@ SQL
       $States = \Stav::zVsech();
       foreach ($States as $State) {
         $this->StatesCache['id'][$State->id()] = $State;
-        $keyFromName = $this->toUnifiedKey($State->nazev(), array_keys($this->StatesCache['keyFromName']));
+        $keyFromName = self::toUnifiedKey($State->nazev(), array_keys($this->StatesCache['keyFromName']));
         $this->StatesCache['keyFromName'][$keyFromName] = $State;
       }
     }
@@ -673,17 +673,17 @@ SQL
     if (strpos($email, '@') === false) {
       return null;
     }
-    $key = $this->toUnifiedKey($email, [], self::UNIFY_UP_TO_SPACES);
+    $key = self::toUnifiedKey($email, [], self::UNIFY_UP_TO_SPACES);
     return $this->getStorytellersCache()['keyFromEmail'][$key] ?? null;
   }
 
   private function getStorytellerByName(string $name): ?\Uzivatel {
-    $key = $this->toUnifiedKey($name, [], $this->keyUnifyDepth['storytellers']['fromName']);
+    $key = self::toUnifiedKey($name, [], $this->keyUnifyDepth['storytellers']['fromName']);
     return $this->getStorytellersCache()['keyFromName'][$key] ?? null;
   }
 
   private function getStorytellerByNick(string $nick): ?\Uzivatel {
-    $key = $this->toUnifiedKey($nick, [], $this->keyUnifyDepth['storytellers']['fromNick']);
+    $key = self::toUnifiedKey($nick, [], $this->keyUnifyDepth['storytellers']['fromNick']);
     return $this->getStorytellersCache()['keyFromNick'][$key] ?? null;
   }
 
@@ -696,7 +696,7 @@ SQL
 
       foreach ($storytellers as $storyteller) {
         $this->storytellersCache['id'][$storyteller->id()] = $storyteller;
-        $keyFromEmail = $this->toUnifiedKey($storyteller->mail(), array_keys($this->storytellersCache['keyFromEmail']), self::UNIFY_UP_TO_SPACES);
+        $keyFromEmail = self::toUnifiedKey($storyteller->mail(), array_keys($this->storytellersCache['keyFromEmail']), self::UNIFY_UP_TO_SPACES);
         $this->storytellersCache['keyFromEmail'][$keyFromEmail] = $storyteller;
       }
 
@@ -708,7 +708,7 @@ SQL
             continue;
           }
           try {
-            $keyFromCivilName = $this->toUnifiedKey($name, array_keys($this->storytellersCache['keyFromName']), $nameKeyUnifyDepth);
+            $keyFromCivilName = self::toUnifiedKey($name, array_keys($this->storytellersCache['keyFromName']), $nameKeyUnifyDepth);
             $keyFromNameCache[$keyFromCivilName] = $storyteller;
             // if unification was too aggressive and we had to lower level of depth / lossy compression, we have to store the lowest level for later picking-up values from cache
           } catch (DuplicatedUnifiedKeyException $unifiedKeyException) {
@@ -728,7 +728,7 @@ SQL
             continue;
           }
           try {
-            $keyFromNick = $this->toUnifiedKey($nick, array_keys($this->storytellersCache['keyFromNick']), $nickKeyUnifyDepth);
+            $keyFromNick = self::toUnifiedKey($nick, array_keys($this->storytellersCache['keyFromNick']), $nickKeyUnifyDepth);
             $keyFromNickCache[$keyFromNick] = $storyteller;
             // if unification was too aggressive and we had to lower level of depth / lossy compression, we have to store the lowest level for later picking-up values from cache
           } catch (DuplicatedUnifiedKeyException $unifiedKeyException) {
@@ -786,7 +786,7 @@ SQL
   }
 
   private function getTagByName(string $name): ?\Tag {
-    return $this->getTagsCache()['keyFromName'][$this->toUnifiedKey($name, [])] ?? null;
+    return $this->getTagsCache()['keyFromName'][self::toUnifiedKey($name, [])] ?? null;
   }
 
   private function getTagsCache(): array {
@@ -795,7 +795,7 @@ SQL
       $tags = \Tag::zVsech();
       foreach ($tags as $tag) {
         $this->tagsCache['id'][$tag->id()] = $tag;
-        $keyFromName = $this->toUnifiedKey($tag->nazev(), array_keys($this->tagsCache['keyFromName']));
+        $keyFromName = self::toUnifiedKey($tag->nazev(), array_keys($this->tagsCache['keyFromName']));
         $this->tagsCache['keyFromName'][$keyFromName] = $tag;
       }
     }
@@ -949,7 +949,7 @@ SQL
   }
 
   private function getProgramLocationByName(string $name): ?\Lokace {
-    return $this->getProgramLocationsCache()['keyFromName'][$this->toUnifiedKey($name, [])] ?? null;
+    return $this->getProgramLocationsCache()['keyFromName'][self::toUnifiedKey($name, [])] ?? null;
   }
 
   private function getProgramLocationsCache(): array {
@@ -958,7 +958,7 @@ SQL
       $locations = \Lokace::zVsech();
       foreach ($locations as $location) {
         $this->programLocationsCache['id'][$location->id()] = $location;
-        $keyFromName = $this->toUnifiedKey($location->nazev(), array_keys($this->programLocationsCache['keyFromName']));
+        $keyFromName = self::toUnifiedKey($location->nazev(), array_keys($this->programLocationsCache['keyFromName']));
         $this->programLocationsCache['keyFromName'][$keyFromName] = $location;
       }
     }
@@ -1106,7 +1106,7 @@ SQL
   }
 
   private function getProgramLineByName(string $name): ?\Typ {
-    return $this->getProgramLinesCache()['keyFromName'][$this->toUnifiedKey($name, [])] ?? null;
+    return $this->getProgramLinesCache()['keyFromName'][self::toUnifiedKey($name, [])] ?? null;
   }
 
   private function getProgramLinesCache(): array {
@@ -1115,7 +1115,7 @@ SQL
       $programLines = \Typ::zVsech();
       foreach ($programLines as $programLine) {
         $this->programLinesCache['id'][$programLine->id()] = $programLine;
-        $keyFromName = $this->toUnifiedKey($programLine->nazev(), array_keys($this->programLinesCache['keyFromName']));
+        $keyFromName = self::toUnifiedKey($programLine->nazev(), array_keys($this->programLinesCache['keyFromName']));
         $this->programLinesCache['keyFromName'][$keyFromName] = $programLine;
       }
     }
@@ -1129,12 +1129,12 @@ SQL
   private const UNIFY_UP_TO_DIACRITIC = 5;
   private const UNIFY_UP_TO_LETTERS = 6;
 
-  private function toUnifiedKey(
+  private static function toUnifiedKey(
     string $value,
     array $occupiedKeys,
     int $unifyDepth = self::UNIFY_UP_TO_LETTERS
   ): string {
-    $unifiedKey = $this->createUnifiedKey($value, $unifyDepth);
+    $unifiedKey = self::createUnifiedKey($value, $unifyDepth);
     if (array_key_exists($unifiedKey, $occupiedKeys)) {
       throw new DuplicatedUnifiedKeyException(
         sprintf(
@@ -1151,7 +1151,7 @@ SQL
     return $unifiedKey;
   }
 
-  private function createUnifiedKey(string $value, int $depth): string {
+  private static function createUnifiedKey(string $value, int $depth): string {
     if ($depth <= 0) {
       return $value;
     }
