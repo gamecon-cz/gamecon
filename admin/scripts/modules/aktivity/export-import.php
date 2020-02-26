@@ -101,8 +101,20 @@ if ($googleApiClient->isAuthorized()) {
   if (!empty($_POST['googleSheetId'])) {
     /** @var Logovac $vyjimkovac */
     $importerAktivit = new ImporterAktivit($u->id(), $googleDriveService, $googleSheetsService, ROK, new \DateTimeImmutable(), $vyjimkovac);
-    [$naimportovanoPocet, $nazevImportovanehoSouboru] = $importerAktivit->importujAktivity($_POST['googleSheetId']);
-    oznameni(sprintf("Bylo naimportováno %d aktivit z Google sheet '%s'", $naimportovanoPocet, $nazevImportovanehoSouboru));
+    [
+      'importedCount' => $naimportovanoPocet,
+      'processedFileName' => $nazevImportovanehoSouboru,
+      'messages' => $messages,
+    ] = $importerAktivit->importujAktivity($_POST['googleSheetId']);
+    ['notices' => $notices, 'warnings' => $warnings, 'errors' => $errors] = $messages;
+    oznameni(sprintf(
+      "Bylo naimportováno %d aktivit z Google sheet '%s' s chybami %s, varováními %s a zprávami %s",
+      $naimportovanoPocet,
+      $nazevImportovanehoSouboru,
+      implode(';', $errors),
+      implode(';', $warnings),
+      implode(';', $notices)
+    ));
   }
 
   $spreadsheets = $googleSheetsService->getAllSpreadsheets();
