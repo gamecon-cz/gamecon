@@ -70,7 +70,8 @@ class GoogleSheetsService
   public function getSpreadsheetValues(string $spreadsheetId): array {
     $wholeFirstSheetRange = $this->getWholeFirstSheetRange($spreadsheetId);
     $valueRange = $this->getNativeSheets()->spreadsheets_values->get($spreadsheetId, $wholeFirstSheetRange);
-    return $valueRange->getValues();
+    // empty spreadsheet gives null, so we have to convert it to an array
+    return (array)$valueRange->getValues();
   }
 
   /**
