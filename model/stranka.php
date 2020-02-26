@@ -49,7 +49,7 @@ class Stranka extends DbObject {
     return self::zWhere('url_prefix = $1', [$url]);
   }
 
-  static function zVsech() {
+  static function zVsech(): array {
     return self::zWhere('1 ORDER BY url_stranky');
   }
 

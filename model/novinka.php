@@ -81,7 +81,7 @@ class Novinka extends DbObject {
     return self::zWhereRadek('url = $1 AND typ = $2', [$url, $typ]);
   }
 
-  static function zVsech() {
+  static function zVsech(): array {
     return self::zWhere('1 ORDER BY vydat = 0 DESC, vydat DESC');
   }
 }
