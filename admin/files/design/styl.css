@@ -127,6 +127,7 @@ form table .orez img { width: 50px; }
 .warning { color:#770; background-image: url('warning.png'); background-color: #ffa; }
 .error.inline, .warning.inline, .success.inline { padding: 0 8px 0 24px;background-position: 0; }
 .error.fullwidth, .warning.fullwidth, .success.fullwidth { padding-right: 1em; margin: 0; }
+.error.no-image, .warning.no-image, .success.no-image { background-image: none; padding-left: 1em }
 
 /* stránkově specifické */
 .prezence .blokAktivita { border:solid 1px #898c95; margin: 0 0 10px 0; }
