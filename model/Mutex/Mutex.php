@@ -42,26 +42,30 @@ class Mutex
 
   public function zamkni(\DateTimeInterface $do, string $klic, int $userId = null): bool {
     dbQuery(<<<SQL
-DELETE FROM mutex WHERE akce = $1 AND do < NOW()
+DELETE FROM mutex WHERE akce = $1 AND do < $2
 SQL
-      , [$this->akce]
+      , [$this->akce, $this->getNow()]
     );
     if ($this->zamceno()) {
       return false;
     }
     dbQuery(<<<SQL
-INSERT IGNORE INTO mutex(akce, klic, zamknul, od, do) VALUES ($1, $2, $3, NOW(), $4)
+INSERT IGNORE INTO mutex(akce, klic, zamknul, od, do) VALUES ($1, $2, $3, $4, $5)
 SQL
-      , [$this->akce, $klic, $userId, $do->format(DateTimeCz::FORMAT_DB)]
+      , [$this->akce, $klic, $userId, $this->getNow(), $do->format(DateTimeCz::FORMAT_DB)]
     );
     return $this->zamceno();
   }
 
+  private function getNow(): string {
+    return (new DateTimeCz())->formatDb();
+  }
+
   public function zamceno(): bool {
     return (bool)dbOneCol(<<<SQL
-SELECT 1 FROM mutex WHERE akce = $1 AND do >= NOW()
+SELECT 1 FROM mutex WHERE akce = $1 AND do >= $2
 SQL
-      , [$this->akce]
+      , [$this->akce, $this->getNow()]
     );
   }
 
