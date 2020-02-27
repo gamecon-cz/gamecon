@@ -19,6 +19,12 @@ class Mutex
     $this->akce = $akce;
   }
 
+  public function dejProPodAkci(string $podAkce): Mutex {
+    $clone = clone $this;
+    $clone->akce = $clone->akce . '-' . $podAkce;
+    return $clone;
+  }
+
   public function cekejAZamkni(int $cekejMaxMilisekund, \DateTimeInterface $do, string $klic, int $uzivatelId = null): bool {
     $start = microtime(true);
     $zbyvaMilisekund = $cekejMaxMilisekund;

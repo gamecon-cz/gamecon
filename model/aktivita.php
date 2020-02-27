@@ -460,8 +460,8 @@ class Aktivita
     return $aktivita;
   }
 
-  function id() {
-    return $this->a['id_akce'];
+  function id(): int {
+    return (int)$this->a['id_akce'];
   }
 
   /**
