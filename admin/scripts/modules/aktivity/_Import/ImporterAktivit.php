@@ -71,6 +71,14 @@ class ImporterAktivit
    * @var string
    */
   private $mutexKey;
+  /**
+   * @var Mutex
+   */
+  private $mutexPattern;
+  /**
+   * @var Mutex
+   */
+  private $mutexForProgramLine;
 
   public function __construct(
     int $userId,
@@ -79,7 +87,7 @@ class ImporterAktivit
     int $currentYear,
     \DateTimeInterface $now,
     Logovac $logovac,
-    Mutex $mutex
+    Mutex $mutexPattern
   ) {
     $this->userId = $userId;
     $this->googleDriveService = $googleDriveService;
@@ -87,7 +95,7 @@ class ImporterAktivit
     $this->currentYear = $currentYear;
     $this->now = $now;
     $this->logovac = $logovac;
-    $this->mutex = $mutex;
+    $this->mutexPattern = $mutexPattern;
   }
 
   public function importujAktivity(string $spreadsheetId): array {
@@ -95,7 +103,7 @@ class ImporterAktivit
       'importedCount' => 0,
       'processedFileName' => null,
       'messages' => [
-        'notices' => [],
+        'successes' => [],
         'warnings' => [],
         'errors' => [],
       ],
@@ -134,7 +142,7 @@ class ImporterAktivit
             continue;
           }
           if ($importExistingActivitySuccess) {
-            $result['messages']['notices'][] = $importExistingActivitySuccess;
+            $result['messages']['successes'][] = $importExistingActivitySuccess;
           }
           $parentActivityId = $activityId;
         } else if ($parentActivityId && $this->mayBeInstance($parentActivityId, $activityValues)) {
@@ -144,7 +152,7 @@ class ImporterAktivit
             continue;
           }
           if ($importInstanceSuccess) {
-            $result['messages']['notices'][] = $importInstanceSuccess;
+            $result['messages']['successes'][] = $importInstanceSuccess;
           }
         } else {
           ['success' => $importNewActivitySuccess, 'error' => $importNewActivityError] = $parentActivityId = $this->importNewActivity($activityValues);
@@ -153,7 +161,7 @@ class ImporterAktivit
             continue;
           }
           if ($importNewActivitySuccess) {
-            $result['messages']['notices'][] = $importNewActivitySuccess;
+            $result['messages']['successes'][] = $importNewActivitySuccess;
           }
         }
       }
@@ -168,11 +176,26 @@ class ImporterAktivit
   }
 
   private function getExclusiveLock(string $programLine): bool {
-    return $this->mutex->cekejAZamkni(3500 /* milliseconds */, new \DateTimeImmutable('+1 minute'), $this->createMutexKey($programLine), $this->userId);
+    $mutex = $this->createMutexForProgramLine($programLine);
+    return $mutex->cekejAZamkni(3500 /* milliseconds */, new \DateTimeImmutable('+1 minute'), $this->createMutexKey($programLine), $this->userId);
+  }
+
+  private function createMutexForProgramLine(string $programLine): Mutex {
+    if (!$this->mutexForProgramLine) {
+      $this->mutexForProgramLine = $this->mutexPattern->dejProPodAkci($programLine);
+    }
+    return $this->mutexForProgramLine;
   }
 
   private function releaseExclusiveLock() {
-    $this->mutex->odemkni($this->getMutexKey());
+    $this->getMutexForProgramLine()->odemkni($this->getMutexKey());
+  }
+
+  private function getMutexForProgramLine(): Mutex {
+    if (!$this->mutexForProgramLine) {
+      throw new ImportAktivitException('Mutex for imported program line does not exists yet');
+    }
+    return $this->mutexForProgramLine;
   }
 
   private function createMutexKey(string $programLine): string {
@@ -431,7 +454,7 @@ SQL
       return $this->error($sanitizedValuesError);
     }
 
-    return $this->success('TODO Zatím nic s existující aktivitou ' . implode(';', $sanitizedValues));
+    return $this->success('TODO Zatím nic s existující aktivitou ' . implode('; ', $sanitizedValues));
   }
 
   private function sanitizeValues(array $activityValues, \Aktivita $aktivita): array {
@@ -725,7 +748,7 @@ SQL
 
   private function getStorytellersCache(): array {
     if (!$this->storytellersCache) {
-      $this->storytellersCache = ['id' => [], 'keyFromName' => [], 'keyFromNick' => []];
+      $this->storytellersCache = ['id' => [], 'keyFromEmail' => [], 'keyFromName' => [], 'keyFromNick' => []];
       $this->keyUnifyDepth['storytellers'] = ['fromName' => self::UNIFY_UP_TO_LETTERS, 'fromNick' => self::UNIFY_UP_TO_LETTERS];
 
       $storytellers = \Uzivatel::organizatori();
@@ -1100,7 +1123,10 @@ SQL
     $occupiedByActivities = dbFetchAll('SELECT id_akce, nazev_akce FROM akce_seznam WHERE url_akce = $1 AND rok = $2', [$activityUrl, $this->currentYear]);
     if ($occupiedByActivities) {
       $occupiedByActivity = reset($occupiedByActivities);
-      return $this->error(sprintf("URL aktivity '%s' už je obsazena aktivitou '%s' (%d)", $activityUrl, $occupiedByActivity['nazev_akce'], $occupiedByActivity['id_akce']));
+      $occupiedByActivityId = (int)$occupiedByActivity['id_akce'];
+      if ($occupiedByActivityId && $occupiedByActivityId !== $aktivita->id()) {
+        return $this->error(sprintf("URL aktivity '%s' už je obsazena aktivitou '%s' (%d)", $activityUrl, $occupiedByActivity['nazev_akce'], $occupiedByActivity['id_akce']));
+      }
     }
     return $this->success($activityUrl);
   }
@@ -1111,8 +1137,8 @@ SQL
       return $this->success($aktivita->nazev());
     }
     $occupiedByActivityId = dbOneCol('SELECT id_akce FROM akce_seznam WHERE nazev_akce = $1 AND rok = $2', [$activityNameValue, $this->currentYear]);
-    if ($occupiedByActivityId) {
-      return $this->error(sprintf("Název aktivity '%s' už je obsazený stejnojmennou aktivitou %d", $activityNameValue, $occupiedByActivityId));
+    if ($occupiedByActivityId && (int)$occupiedByActivityId !== $aktivita->id()) {
+      return $this->error(sprintf("Název aktivity '%s' už je obsazený aktivitou %s (%d)", $activityNameValue, $activityNameValue, $occupiedByActivityId));
     }
     return $this->success($activityNameValue);
   }
