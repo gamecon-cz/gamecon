@@ -9,6 +9,7 @@ use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleApiCredentials;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleApiTokenStorage;
 use Gamecon\Admin\Modules\Aktivity\Import\ImporterAktivit;
+use Gamecon\Mutex\Mutex;
 use Gamecon\Vyjimkovac\Logovac;
 
 /**
@@ -100,7 +101,7 @@ if (!$googleApiClient->isAuthorized()) {
 if ($googleApiClient->isAuthorized()) {
   if (!empty($_POST['googleSheetId'])) {
     /** @var Logovac $vyjimkovac */
-    $importerAktivit = new ImporterAktivit($u->id(), $googleDriveService, $googleSheetsService, ROK, new \DateTimeImmutable(), $vyjimkovac);
+    $importerAktivit = new ImporterAktivit($u->id(), $googleDriveService, $googleSheetsService, ROK, new \DateTimeImmutable(), $vyjimkovac, Mutex::proAktivity());
     $vysledekImportuAktivit = $importerAktivit->importujAktivity($_POST['googleSheetId']);
 
     ['importedCount' => $naimportovanoPocet, 'processedFileName' => $nazevImportovanehoSouboru, 'messages' => $messages] = $vysledekImportuAktivit;

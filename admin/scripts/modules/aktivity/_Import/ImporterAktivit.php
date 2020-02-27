@@ -115,7 +115,7 @@ class ImporterAktivit
       }
 
       if (!$this->getExclusiveLock($programLine)) {
-        $result['warnins'][] = 'Právě probíhá jiný import aktivit. Zkus to za chvíli znovu.';
+        $result['messages']['warnings'][] = sprintf("Právě probíhá jiný import aktivit z programové linie '%s'. Zkus to za chvíli znovu.", $programLine);
         return $result;
       }
 
@@ -168,16 +168,23 @@ class ImporterAktivit
   }
 
   private function getExclusiveLock(string $programLine): bool {
-    return $this->mutex->cekejAZamkni(3500 /* milliseconds */, new \DateTimeImmutable('+10 seconds'), $this->getMutexKey($programLine), $this->userId);
+    return $this->mutex->cekejAZamkni(3500 /* milliseconds */, new \DateTimeImmutable('+1 minute'), $this->createMutexKey($programLine), $this->userId);
   }
 
   private function releaseExclusiveLock() {
     $this->mutex->odemkni($this->getMutexKey());
   }
 
-  private function getMutexKey(string $programLine): string {
+  private function createMutexKey(string $programLine): string {
     if ($this->mutexKey === null) {
-      $this->mutexKey = uniqid('import-aktivit-' . $programLine, true);
+      $this->mutexKey = uniqid($programLine . '-', true);
+    }
+    return $this->mutexKey;
+  }
+
+  private function getMutexKey(): string {
+    if (!$this->mutexKey) {
+      throw new ImportAktivitException('Mutex key is empty');
     }
     return $this->mutexKey;
   }
