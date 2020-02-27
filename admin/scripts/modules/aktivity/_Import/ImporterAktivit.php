@@ -79,6 +79,10 @@ class ImporterAktivit
    * @var Mutex
    */
   private $mutexForProgramLine;
+  /**
+   * @var string
+   */
+  private $editActivityUrlSkeleton;
 
   public function __construct(
     int $userId,
@@ -86,6 +90,7 @@ class ImporterAktivit
     GoogleSheetsService $googleSheetsService,
     int $currentYear,
     \DateTimeInterface $now,
+    string $editActivityUrlSkeleton,
     Logovac $logovac,
     Mutex $mutexPattern
   ) {
@@ -96,6 +101,7 @@ class ImporterAktivit
     $this->now = $now;
     $this->logovac = $logovac;
     $this->mutexPattern = $mutexPattern;
+    $this->editActivityUrlSkeleton = $editActivityUrlSkeleton;
   }
 
   public function importujAktivity(string $spreadsheetId): array {
@@ -123,7 +129,7 @@ class ImporterAktivit
       }
 
       if (!$this->getExclusiveLock($programLine)) {
-        $result['messages']['warnings'][] = sprintf("Právě probíhá jiný import aktivit z programové linie '%s'. Zkus to za chvíli znovu.", $programLine);
+        $result['messages']['warnings'][] = sprintf("Právě probíhá jiný import aktivit z programové linie '%s'. Zkus to za chvíli znovu.", mb_ucfirst($programLine));
         return $result;
       }
 
@@ -143,6 +149,7 @@ class ImporterAktivit
           }
           if ($importExistingActivitySuccess) {
             $result['messages']['successes'][] = $importExistingActivitySuccess;
+            $result['importedCount']++;
           }
           $parentActivityId = $activityId;
         } else if ($parentActivityId && $this->mayBeInstance($parentActivityId, $activityValues)) {
@@ -382,7 +389,7 @@ SQL
 
   private function getCleansedHeader(array $values): array {
     $unifiedKnownColumns = [];
-    foreach (ExportAktivitSloupce::getVsechnySloupce() as $knownColumn) {
+    foreach (ExportAktivitSloupce::vsechnySloupce() as $knownColumn) {
       $keyFromColumn = self::toUnifiedKey($knownColumn, $unifiedKnownColumns, self::UNIFY_UP_TO_LETTERS);;
       $unifiedKnownColumns[$keyFromColumn] = $knownColumn;
     }
@@ -453,13 +460,27 @@ SQL
     if ($sanitizedValuesError) {
       return $this->error($sanitizedValuesError);
     }
+    ['values' => $values, 'longAnnotation' => $longAnnotation, 'storytellersIds' => $storytellersIds, 'tagIds' => $tagIds] = $sanitizedValues;
 
-    return $this->success('TODO Zatím nic s existující aktivitou ' . implode('; ', $sanitizedValues));
+    try {
+      $savedActivity = \Aktivita::uloz($values, $longAnnotation, $storytellersIds, $tagIds);
+    } catch (\Exception $exception) {
+      $this->logovac->zaloguj($exception);
+      return $this->error(sprintf('Nepodařilo se uložit aktivitu %s', $this->describeActivity($activityValues, $aktivita)));
+    }
+    return $this->success(
+      sprintf('Aktulizována aktivita <a target="_blank" href="%s%d">%s</a>', $this->editActivityUrlSkeleton, $savedActivity->id(), $this->describeActivity([], $savedActivity))
+    );
   }
 
   private function sanitizeValues(array $activityValues, \Aktivita $aktivita): array {
     $sanitizedValues = $aktivita->rawDb();
-    $tagsNames = null;
+    // remove values originating in another tables
+    $sanitizedValues = array_intersect_key(
+      $sanitizedValues,
+      array_fill_keys(AktivitaSqlSloupce::vsechnySloupce(), true)
+    );
+    $tagIds = null;
     $storytellersIds = null;
 
     ['success' => $programLineId, 'error' => $programLineIdError] = $this->getValidatedProgramLineId($activityValues, $aktivita);
@@ -486,16 +507,15 @@ SQL
     }
     $sanitizedValues[AktivitaSqlSloupce::POPIS_KRATKY] = $shortAnnotation;
 
-    ['success' => $tagsNames, 'error' => $tagsError] = $this->getValidatedTags($activityValues, $aktivita);
-    if ($tagsError) {
-      return $this->error($tagsError);
+    ['success' => $tagIds, 'error' => $tagIdsError] = $this->getValidatedTagIds($activityValues, $aktivita);
+    if ($tagIdsError) {
+      return $this->error($tagIdsError);
     }
 
     ['success' => $longAnnotation, 'error' => $longAnnotationError] = $this->getValidatedLongAnnotation($activityValues, $aktivita);
     if ($longAnnotationError) {
       return $this->error($longAnnotationError);
     }
-    $sanitizedValues[AktivitaSqlSloupce::POPIS] = $longAnnotation;
 
     ['success' => $activityBeginning, 'error' => $activityBeginningError] = $this->getValidatedBeginning($activityValues, $aktivita);
     if ($activityBeginningError) {
@@ -574,11 +594,11 @@ SQL
     }
     $sanitizedValues[AktivitaSqlSloupce::VYBAVENI] = $equipment;
 
-    ['success' => $state, 'error' => $stateError] = $this->getValidatedState($activityValues, $aktivita);
-    if ($stateError) {
-      return $this->error($stateError);
+    ['success' => $stateId, 'error' => $stateIdError] = $this->getValidatedStateId($activityValues, $aktivita);
+    if ($stateIdError) {
+      return $this->error($stateIdError);
     }
-    $sanitizedValues[AktivitaSqlSloupce::STAV] = $state;
+    $sanitizedValues[AktivitaSqlSloupce::STAV] = $stateId;
 
     ['success' => $year, 'error' => $yearError] = $this->getValidatedYear($activityValues, $aktivita);
     if ($yearError) {
@@ -586,17 +606,17 @@ SQL
     }
     $sanitizedValues[AktivitaSqlSloupce::ROK] = $year;
 
-    return $this->success($sanitizedValues);
+    return $this->success(['values' => $sanitizedValues, 'longAnnotation' => $longAnnotation, 'storytellersIds' => $storytellersIds, 'tagIds' => $tagIds]);
   }
 
-  private function getValidatedState(array $activityValues, \Aktivita $aktivita): array {
+  private function getValidatedStateId(array $activityValues, \Aktivita $aktivita): array {
     $stateValue = $activityValues[ExportAktivitSloupce::STAV] ?? null;
     if ((string)$stateValue === '') {
-      return $this->success($aktivita->stav()->nazev());
+      return $this->success($aktivita->stav()->id());
     }
     $state = $this->getStateFromValue((string)$stateValue);
     if ($state) {
-      return $this->success($state->nazev());
+      return $this->success($state->id());
     }
     return $this->error(sprintf("Neznámý stav '%s'", $stateValue));
   }
@@ -806,12 +826,28 @@ SQL
     return $this->success($activityValues[ExportAktivitSloupce::DLOUHA_ANOTACE] ?: $aktivita->popis());
   }
 
-  private function getValidatedTags(array $activityValues, \Aktivita $aktivita): array {
+  private function getValidatedTagIds(array $activityValues, \Aktivita $aktivita): array {
     $tagsString = $activityValues[ExportAktivitSloupce::TAGY] ?? '';
     if ($tagsString === '') {
-      return $this->success($aktivita->tagy());
+      $tagIds = [];
+      $invalidTagsValues = [];
+      foreach ($aktivita->tagy() as $tagValue) {
+        $tag = $this->getTagFromValue($tagValue);
+        if (!$tag) {
+          $invalidTagsValues[] = $tagValue;
+        } else {
+          $tagIds[] = $tag->id();
+        }
+      }
+      if ($invalidTagsValues) {
+        trigger_error(
+          E_USER_WARNING,
+          sprintf('There are some strange tags comming from activity %s, which are unknown %s', $aktivita->id(), implode(',', $invalidTagsValues))
+        );
+      }
+      return $this->success($tagIds);
     }
-    $tagNames = [];
+    $tagIds = [];
     $invalidTagsValues = [];
     $tagsValues = array_map('trim', explode(',', $tagsString));
     foreach ($tagsValues as $tagValue) {
@@ -819,7 +855,7 @@ SQL
       if (!$tag) {
         $invalidTagsValues[] = $tagValue;
       } else {
-        $tagNames[] = $tag->nazev();
+        $tagIds[] = $tag->id();
       }
     }
     if ($invalidTagsValues) {
@@ -829,7 +865,7 @@ SQL
         }, $invalidTagsValues)))
       );
     }
-    return $this->success($tagNames);
+    return $this->success($tagIds);
   }
 
   private function getTagFromValue(string $tagValue): ?\Tag {
@@ -1111,7 +1147,7 @@ SQL
     if (!$dateTime) {
       return $this->error(sprintf("Nepodařilo se nastavit čas u datumu z roku %d, dne '%s' a času '%s'. Chybný formát času.", $year, $dayName, $hoursAndMinutes));
     }
-    return $this->success($dateTime);
+    return $this->success($dateTime->formatDb());
   }
 
   private function getValidatedUrl(array $activityValues, \Aktivita $aktivita): array {

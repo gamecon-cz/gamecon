@@ -27,7 +27,7 @@ class ExportAktivitSloupce
   public const VYBAVENI = 'Vybavení'; // vybaveni
   public const STAV = 'Stav'; // stav
 
-  public static function getVsechnySloupce(): array {
+  public static function vsechnySloupce(): array {
     return [
       self::ID_AKTIVITY,
       self::PROGRAMOVA_LINIE,

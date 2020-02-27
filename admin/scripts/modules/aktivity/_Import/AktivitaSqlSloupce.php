@@ -34,4 +34,36 @@ class AktivitaSqlSloupce
   public const POPIS = 'popis'; // int not null,
   public const POPIS_KRATKY = 'popis_kratky'; // varchar(255) not null,
   public const VYBAVENI = 'vybaveni'; // text not null,
+
+  public static function vsechnySloupce(): array {
+    return [
+      self::ID_AKCE,
+      self::PATRI_POD,
+      self::NAZEV_AKCE,
+      self::URL_AKCE,
+      self::ZACATEK,
+      self::KONEC,
+      self::LOKACE,
+      self::KAPACITA,
+      self::KAPACITA_F,
+      self::KAPACITA_M,
+      self::CENA,
+      self::BEZ_SLEVY,
+      self::NEDAVA_SLEVU,
+      self::TYP,
+      self::DITE,
+      self::ROK,
+      self::STAV,
+      self::TEAMOVA,
+      self::TEAM_MIN,
+      self::TEAM_MAX,
+      self::TEAM_KAPACITA,
+      self::TEAM_NAZEV,
+      self::ZAMCEL,
+      self::ZAMCEL_CAS,
+      self::POPIS,
+      self::POPIS_KRATKY,
+      self::VYBAVENI,
+    ];
+  }
 }

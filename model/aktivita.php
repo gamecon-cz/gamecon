@@ -379,15 +379,10 @@ class Aktivita
     if (empty($a['url_akce']) && !empty($_POST[self::POSTKLIC . 'staraUrl'])) {
       $a['url_akce'] = $_POST[self::POSTKLIC . 'staraUrl'];
     }
-    $a['bez_slevy'] = (int)!empty($a['bez_slevy']); //checkbox pro "bez_slevy"
-    $a['teamova'] = (int)!empty($a['teamova']);   //checkbox pro "teamova"
-    $a['team_min'] = $a['teamova'] ? (int)$a['team_min'] : null;
-    $a['team_max'] = $a['teamova'] ? (int)$a['team_max'] : null;
-    // u teamových aktivit se kapacita ignoruje - později se nechá jak je nebo přepíše minimem, pokud jde o novou aktivitu
-    if ($a['teamova']) unset($a['kapacita'], $a['kapacita_f'], $a['kapacita_m']);
     // přepočet času
     if (empty($a['den'])) {
-      $a['zacatek'] = $a['konec'] = null;
+      $a['zacatek'] = null;
+      $a['konec'] = null;
     } else {
       $a['zacatek'] = (new DateTimeCz($a['den']))->add(new DateInterval('PT' . $a['zacatek'] . 'H'))->formatDb();
       $a['konec'] = (new DateTimeCz($a['den']))->add(new DateInterval('PT' . $a['konec'] . 'H'))->formatDb();
@@ -399,55 +394,6 @@ class Aktivita
     $popis = $a['popis'];
     unset($a['popis']);
 
-    // uložení změn do akce_seznam
-    if (!$a['patri_pod'] && $a['id_akce']) {
-      // editace jediné aktivity
-      dbInsertUpdate('akce_seznam', $a);
-      $aktivita = self::zId($a['id_akce']);
-    } elseif ($a['patri_pod']) {
-      // editace aktivity z rodiny instancí
-      $doHlavni = ['url_akce', 'popis', 'vybaveni'];  // věci, které se mají změnit jen u hlavní (master) `instanc`e
-      $doAktualni = ['lokace', 'zacatek', 'konec'];       // věci, které se mají změnit jen u aktuální instance
-      $aktivita = self::zId($a['id_akce']);
-      // (zbytek se změní v obou)
-      // určení hlavní aktivity
-      $idHlavni = dbOneCol('SELECT MIN(id_akce) FROM akce_seznam WHERE patri_pod = ' . (int)$a['patri_pod']);
-      $patriPod = $a['patri_pod'];
-      unset($a['patri_pod']);
-      // změny v hlavní aktivitě
-      $zmenyHlavni = array_diff_key($a, array_flip($doAktualni));
-      $zmenyHlavni['id_akce'] = $idHlavni;
-      dbInsertUpdate('akce_seznam', $zmenyHlavni);
-      // změny v konkrétní instanci
-      $zmenyAktualni = array_diff_key($a, array_flip($doHlavni));
-      dbInsertUpdate('akce_seznam', $zmenyAktualni);
-      // změny u všech
-      $zmenyVse = array_diff_key($a, array_flip(array_merge($doHlavni, $doAktualni)));
-      unset($zmenyVse['patri_pod'], $zmenyVse['id_akce']); // id se nesmí updatovat!
-      dbUpdate('akce_seznam', $zmenyVse, ['patri_pod' => $patriPod]);
-    } else {
-      // vkládání nové aktivity
-      // inicializace hodnot pro novou aktivitu
-      $a['id_akce'] = null;
-      $a['rok'] = ROK;
-      if ($a['teamova']) $a['kapacita'] = $a['team_max']; // při vytváření nové aktivity se kapacita inicializuje na max. teamu
-      if (empty($a['nazev_akce'])) $a['nazev_akce'] = '(neurčený název)';
-      // vložení
-      dbInsertUpdate('akce_seznam', $a);
-      $a['id_akce'] = dbInsertId();
-      $aktivita = self::zId($a['id_akce']);
-      $aktivita->nova = true;
-    }
-
-    // objektová rozhraní
-    if ($f = postFile(self::OBRKLIC)) {
-      $aktivita->obrazek(Obrazek::zJpg($f));
-    }
-    if ($url = post(self::OBRKLIC . 'Url')) {
-      $aktivita->obrazek(Obrazek::zUrl($url));
-    }
-    $aktivita->organizatori($organizatori);
-    $aktivita->popis($popis);
     $tagIds = [];
     foreach ((array)post(self::TAGYKLIC) as $tagId) {
       $tagId = (int)$tagId;
@@ -455,6 +401,70 @@ class Aktivita
         $tagIds[] = $tagId;
       }
     }
+
+    $obrazekSoubor = postFile(self::OBRKLIC);
+    $obrazekUrl = post(self::OBRKLIC . 'Url');
+
+    return self::uloz($a, $popis, $organizatori, $tagIds, $obrazekSoubor, $obrazekUrl);
+  }
+
+  public static function uloz(array $data, ?string $markdownPopis, array $organizatoriIds, array $tagIds, string $obrazekSoubor = null, string $obrazekUrl = null): Aktivita {
+    $a['bez_slevy'] = (int)!empty($a['bez_slevy']); //checkbox pro "bez_slevy"
+    $a['teamova'] = (int)!empty($a['teamova']);   //checkbox pro "teamova"
+    $a['team_min'] = $a['teamova'] ? (int)$a['team_min'] : null;
+    $a['team_max'] = $a['teamova'] ? (int)$a['team_max'] : null;
+    // u teamových aktivit se kapacita ignoruje - později se nechá jak je nebo přepíše minimem, pokud jde o novou aktivitu
+    if ($a['teamova']) {
+      unset($a['kapacita'], $a['kapacita_f'], $a['kapacita_m']);
+    }
+
+    // uložení změn do akce_seznam
+    if (!$data['patri_pod'] && $data['id_akce']) {
+      // editace jediné aktivity
+      dbInsertUpdate('akce_seznam', $data);
+      $aktivita = self::zId($data['id_akce']);
+    } elseif ($data['patri_pod']) {
+      // editace aktivity z rodiny instancí
+      $doHlavni = ['url_akce', 'popis', 'vybaveni'];  // věci, které se mají změnit jen u hlavní (master) `instanc`e
+      $doAktualni = ['lokace', 'zacatek', 'konec'];       // věci, které se mají změnit jen u aktuální instance
+      $aktivita = self::zId($data['id_akce']);
+      // (zbytek se změní v obou)
+      // určení hlavní aktivity
+      $idHlavni = dbOneCol('SELECT MIN(id_akce) FROM akce_seznam WHERE patri_pod = ' . (int)$data['patri_pod']);
+      $patriPod = $data['patri_pod'];
+      unset($data['patri_pod']);
+      // změny v hlavní aktivitě
+      $zmenyHlavni = array_diff_key($data, array_flip($doAktualni));
+      $zmenyHlavni['id_akce'] = $idHlavni;
+      dbInsertUpdate('akce_seznam', $zmenyHlavni);
+      // změny v konkrétní instanci
+      $zmenyAktualni = array_diff_key($data, array_flip($doHlavni));
+      dbInsertUpdate('akce_seznam', $zmenyAktualni);
+      // změny u všech
+      $zmenyVse = array_diff_key($data, array_flip(array_merge($doHlavni, $doAktualni)));
+      unset($zmenyVse['patri_pod'], $zmenyVse['id_akce']); // id se nesmí updatovat!
+      dbUpdate('akce_seznam', $zmenyVse, ['patri_pod' => $patriPod]);
+    } else {
+      // vkládání nové aktivity
+      // inicializace hodnot pro novou aktivitu
+      $data['id_akce'] = null;
+      $data['rok'] = ROK;
+      if ($data['teamova']) $data['kapacita'] = $data['team_max']; // při vytváření nové aktivity se kapacita inicializuje na max. teamu
+      if (empty($data['nazev_akce'])) $data['nazev_akce'] = '(neurčený název)';
+      // vložení
+      dbInsertUpdate('akce_seznam', $data);
+      $data['id_akce'] = dbInsertId();
+      $aktivita = self::zId($data['id_akce']);
+      $aktivita->nova = true;
+    }
+
+    if ($obrazekSoubor) {
+      $aktivita->obrazek(Obrazek::zJpg($obrazekSoubor));
+    } else if ($obrazekUrl) {
+      $aktivita->obrazek(Obrazek::zUrl($obrazekUrl));
+    }
+    $aktivita->organizatori($organizatoriIds);
+    $aktivita->popis($markdownPopis);
     $aktivita->nastavTagyPodleId($tagIds);
 
     return $aktivita;
@@ -827,19 +837,19 @@ class Aktivita
   /**
    * Vrátí formátovaný (html) popisek aktivity
    */
-  function popis() {
-    if (func_num_args() == 0) {
+  function popis(string $popis = null) {
+    if ($popis === null) {
       return dbMarkdown($this->a['popis']);
-    } else {
-      $oldId = $this->a['popis'];
-      $id = dbTextHash(func_get_arg(0));
-      if ($this->a['patri_pod'])
-        dbUpdate('akce_seznam', ['popis' => $id], ['patri_pod' => $this->a['patri_pod']]);
-      else
-        dbUpdate('akce_seznam', ['popis' => $id], ['id_akce' => $this->id()]);
-      $this->a['popis'] = $id;
-      dbTextClean($oldId);
     }
+    $oldId = $this->a['popis'];
+    $id = dbTextHash(func_get_arg(0));
+    if ($this->a['patri_pod']) {
+      dbUpdate('akce_seznam', ['popis' => $id], ['patri_pod' => $this->a['patri_pod']]);
+    } else {
+      dbUpdate('akce_seznam', ['popis' => $id], ['id_akce' => $this->id()]);
+    }
+    $this->a['popis'] = $id;
+    dbTextClean($oldId);
   }
 
   public function getPopisRaw(): ?string {
