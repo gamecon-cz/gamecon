@@ -6,7 +6,7 @@
   <base href="{base}">
   <title>{pageTitle}</title>
   <link rel="shortcut icon" href="files/favicon.ico" />
-  <link rel="stylesheet" href="files/design/styl.css?version=a6e65d2e241054c6aec43ebf31689c89" />
+  <link rel="stylesheet" href="files/design/styl.css?version=c1b61cb0a27ac37ad0fc68e22c72cdf3" />
   <link rel="stylesheet" href="files/design/styl-uzky.css?version=fdbbe35e87cd38dd2672cfaebca49ece" media="(max-width: 550px)">
   <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-1.10.3.custom.min.css" />
   <link rel="stylesheet" href="files/design/jquery-multiselect/jquery.multiselect-2.4.16.css" />

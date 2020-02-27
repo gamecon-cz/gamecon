@@ -6,6 +6,10 @@ use Gamecon\Cas\DateTimeCz;
 
 class Mutex
 {
+  public static function proAktivity(): Mutex {
+    return new static('aktivity');
+  }
+
   /**
    * @var string
    */
@@ -19,9 +23,13 @@ class Mutex
     $start = microtime(true);
     $zbyvaMilisekund = $cekejMaxMilisekund;
     while (!($zamceno = $this->zamkni($do, $klic, $uzivatelId))) {
-      $trvani = microtime(true) - $start;
+      $trvani = (int)(microtime(true) - $start);
       $zbyvaMilisekund -= $trvani;
-      usleep(min($zbyvaMilisekund, 100));
+      $sleep = min($zbyvaMilisekund, 100);
+      if ($sleep <= 0) {
+        break;
+      }
+      usleep($sleep);
     }
     return $zamceno;
   }
@@ -45,8 +53,9 @@ SQL
 
   public function zamceno(): bool {
     return (bool)dbOneCol(<<<SQL
-SELECT 1 FROM mutex WHERE klic = $1 AND do >= NOW()
+SELECT 1 FROM mutex WHERE akce = $1 AND do >= NOW()
 SQL
+      , [$this->akce]
     );
   }
 
