@@ -55,7 +55,8 @@ $activityTypeIdsFromFilter = array_unique(
 
 $template = new \XTemplate(__DIR__ . '/export-import.xtpl');
 
-$template->assign('urlNaAktivity', $_SERVER['REQUEST_URI'] . '/..');
+$urlNaAktivity = $_SERVER['REQUEST_URI'] . '/..';
+$template->assign('urlNaAktivity', $urlNaAktivity);
 
 $googleDriveService = new GoogleDriveService($googleApiClient);
 $googleSheetsService = new GoogleSheetsService($googleApiClient, $googleDriveService);
@@ -106,10 +107,20 @@ if (!$googleApiClient->isAuthorized()) {
 }
 
 // IMPORT
+$urlNaEditaciAktivity = $urlNaAktivity . '/upravy?aktivitaId=';
 if ($googleApiClient->isAuthorized()) {
   if (!empty($_POST['googleSheetId'])) {
     /** @var Logovac $vyjimkovac */
-    $importerAktivit = new ImporterAktivit($u->id(), $googleDriveService, $googleSheetsService, ROK, new \DateTimeImmutable(), $vyjimkovac, Mutex::proAktivity());
+    $importerAktivit = new ImporterAktivit(
+      $u->id(),
+      $googleDriveService,
+      $googleSheetsService,
+      ROK,
+      new \DateTimeImmutable(),
+      $urlNaEditaciAktivity,
+      $vyjimkovac,
+      Mutex::proAktivity()
+    );
     $vysledekImportuAktivit = $importerAktivit->importujAktivity($_POST['googleSheetId']);
 
     ['importedCount' => $naimportovanoPocet, 'processedFileName' => $nazevImportovanehoSouboru, 'messages' => $messages] = $vysledekImportuAktivit;
