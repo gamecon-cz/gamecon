@@ -1,6 +1,7 @@
 <?php
 
-class Lokace extends DbObject {
+class Lokace extends DbObject
+{
 
   protected static $tabulka = 'akce_lokace';
   protected static $pk = 'id_lokace';
@@ -17,4 +18,7 @@ class Lokace extends DbObject {
     return $this->r['poradi'];
   }
 
+  public function id(): int {
+    return (int)parent::id();
+  }
 }
