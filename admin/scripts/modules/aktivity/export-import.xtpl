@@ -10,7 +10,7 @@
     <!-- begin:exportovat -->
     <form method="post">
       <input type="hidden" name="export_activity_type_id" value="{activityTypeId}">
-      <input type="submit" name="exportovat" value="Exportovat {pocetAktivit} aktivit typu {nazevTypu}"
+      <input type="submit" name="exportovat" value="Exportovat {pocetAktivit} {pocetAktivitSlovo} typu {nazevTypu}"
              {exportDisabled}>
     </form>
     <!-- end:exportovat -->
@@ -22,7 +22,7 @@
     <!-- end:neniVybranTyp -->
 
     <!-- begin:zadneAktivity -->
-    <div class="error" style="margin: 0">
+    <div class="error no-image" style="margin: 0">
       Vybraný typ nemá žádné aktivity, není co exportovat.
     </div>
     <!-- end:zadneAktivity -->
@@ -70,15 +70,15 @@
 </div>
 <!-- end:warnings -->
 
-<!-- begin:notices -->
-<div class="notice fullwidth">
+<!-- begin:successes -->
+<div class="success fullwidth">
   <ul>
-    <!-- begin:notice -->
-    <li>{notice}</li>
-    <!-- end:notice -->
+    <!-- begin:success -->
+    <li>{success}</li>
+    <!-- end:success -->
   </ul>
 </div>
-<!-- end:notices -->
+<!-- end:successes -->
 
 <form method="post">
   <div>

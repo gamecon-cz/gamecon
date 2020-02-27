@@ -78,7 +78,15 @@ if (count($activityTypeIdsFromFilter) > 1) {
 
   $typAktivity = \Typ::zId($activityTypeIdFromFilter);
   $template->assign('nazevTypu', mb_ucfirst($typAktivity->nazev()));
-  $template->assign('pocetAktivit', count($aktivity));
+  $pocetAktivit = count($aktivity);
+  $pocetAktivitSlovo = 'aktivit';
+  if ($pocetAktivit === 1) {
+    $pocetAktivitSlovo = 'aktivitu';
+  } elseif ($pocetAktivit > 1 && $pocetAktivit < 5) {
+    $pocetAktivitSlovo = 'aktivity';
+  }
+  $template->assign('pocetAktivit', $pocetAktivit);
+  $template->assign('pocetAktivitSlovo', $pocetAktivitSlovo);
   $template->assign('exportDisabled', $googleApiClient->isAuthorized()
     ? ''
     : 'disabled'
@@ -105,7 +113,7 @@ if ($googleApiClient->isAuthorized()) {
     $vysledekImportuAktivit = $importerAktivit->importujAktivity($_POST['googleSheetId']);
 
     ['importedCount' => $naimportovanoPocet, 'processedFileName' => $nazevImportovanehoSouboru, 'messages' => $messages] = $vysledekImportuAktivit;
-    ['notices' => $notices, 'warnings' => $warnings, 'errors' => $errors] = $messages;
+    ['successes' => $successes, 'warnings' => $warnings, 'errors' => $errors] = $messages;
 
     $zprava = sprintf("Bylo naimportováno %d aktivit z Google sheet '%s'", $naimportovanoPocet, $nazevImportovanehoSouboru);
     if ($naimportovanoPocet > 0) {
@@ -131,12 +139,12 @@ if ($googleApiClient->isAuthorized()) {
       }
       $template->parse('import.warnings');
     }
-    if ($notices) {
-      foreach ($notices as $notice) {
-        $template->assign('notice', $notice);
-        $template->parse('import.notices.notice');
+    if ($successes) {
+      foreach ($successes as $success) {
+        $template->assign('success', $success);
+        $template->parse('import.successes.success');
       }
-      $template->parse('import.notices');
+      $template->parse('import.successes');
     }
   }
 
