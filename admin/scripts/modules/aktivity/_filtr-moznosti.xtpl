@@ -2,12 +2,31 @@
 
 <div style="position:absolute;right:20px;top:100px">
   <form method="post">
-    <label for="programovaLinie">Programová linie:</label>
-    <select id="programovaLinie" name="filtr" onchange="this.form.submit()">
-      <!-- begin:moznost -->
-      <option value="{val}" {sel}>{nazev_programove_linie}</option>
-      <!-- end:moznost -->
-    </select>
+    <table>
+      <tbody>
+      <!-- begin:programoveLinie -->
+      <tr>
+        <td><label for="programovaLinie">Programová linie:</label></td>
+        <td style="text-align: right"><select id="programovaLinie" name="filtr" onchange="this.form.submit()">
+          <!-- begin:programovaLinie -->
+          <option value="{idTypu}" {selected}>{nazev_programove_linie}</option>
+          <!-- end:programovaLinie -->
+        </select></td>
+      </tr>
+      <!-- end:programoveLinie -->
+
+      <!-- begin:roky -->
+      <tr>
+        <td><label for="rok">Rok:</label></td>
+        <td style="text-align: right"><select id="rok" name="filtrRoku" onchange="this.form.submit()">
+          <!-- begin:rok -->
+          <option value="{rok}" {selected}>{nazevRoku} (aktivit {pocetAktivit})</option>
+          <!-- end:rok -->
+        </select></td>
+      </tr>
+      <!-- end:programoveLinie -->
+      </tbody>
+    </table>
   </form>
 </div>
 
