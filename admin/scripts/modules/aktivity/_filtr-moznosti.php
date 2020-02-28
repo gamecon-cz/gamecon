@@ -48,7 +48,10 @@ foreach ($typy as $typ) {
 
 foreach ($varianty as $idTypu => $varianta) {
   $tplFiltrMoznosti->assign('idTypu', $idTypu);
-  $tplFiltrMoznosti->assign('nazev_programove_linie', sprintf('%s (aktivit %d)', ucfirst($varianta['popis']), $varianta['pocet_aktivit']));
+  $tplFiltrMoznosti->assign(
+    'nazev_programove_linie',
+    sprintf('%s (aktivit %d)', ucfirst($varianta['popis']) . ($filtrRoku != ROK ? (' ' . $filtrRoku) : ''), $varianta['pocet_aktivit'])
+  );
   $tplFiltrMoznosti->assign('selected', $adminAktivityFiltr == $idTypu
     ? 'selected="selected"'
     : ''
