@@ -42,6 +42,7 @@ if (isset($_GET['code'])) {
   back(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
 }
 
+/** @noinspection PhpUnusedLocalVariableInspection */
 $filtrovatPodleRoku = true;
 [$filtr, $razeni] = include __DIR__ . '/_filtr-moznosti.php';
 $aktivity = \Aktivita::zFiltru($filtr, $razeni);
@@ -72,14 +73,14 @@ if (count($activityTypeIdsFromFilter) > 1) {
 
   if (!empty($_POST['export_activity_type_id']) && (int)$_POST['export_activity_type_id'] === (int)$activityTypeIdFromFilter && $googleApiClient->isAuthorized()) {
     $exportAktivit = new ExporterAktivit($u->id(), $googleDriveService, $googleSheetsService);
-    $nazevExportovanehoSouboru = $exportAktivit->exportujAktivity($aktivity, (string)ROK);
+    $nazevExportovanehoSouboru = $exportAktivit->exportujAktivity($aktivity, (string)($filtr['rok'] ?? ROK));
     oznameni(sprintf("Aktivity byly exportovány do Google sheets pod názvem '%s'", $nazevExportovanehoSouboru));
     exit;
   }
   $template->assign('activityTypeId', $activityTypeIdFromFilter);
 
   $typAktivity = \Typ::zId($activityTypeIdFromFilter);
-  $template->assign('nazevTypu', mb_ucfirst($typAktivity->nazev()));
+  $template->assign('nazevTypu', mb_ucfirst($typAktivity->nazev()) . (($filtr['rok'] ?? ROK) != ROK ? (' ' . $filtr['rok']) : ''));
   $pocetAktivit = count($aktivity);
   $pocetAktivitSlovo = 'aktivit';
   if ($pocetAktivit === 1) {
