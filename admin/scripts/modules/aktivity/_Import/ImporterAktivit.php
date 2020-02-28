@@ -464,14 +464,14 @@ SQL
     }
     ['values' => $values, 'longAnnotation' => $longAnnotation, 'storytellersIds' => $storytellersIds, 'tagIds' => $tagIds] = $sanitizedValues;
 
-    ['error' => $storytellersAccessibilityError] = $this->checkStorytellersAccessibility(
-      $storytellersIds,
-      $values[AktivitaSqlSloupce::ZACATEK],
-      $values[AktivitaSqlSloupce::KONEC],
-      $id
-    );
+    ['error' => $storytellersAccessibilityError] = $this->checkStorytellersAccessibility($storytellersIds, $values[AktivitaSqlSloupce::ZACATEK], $values[AktivitaSqlSloupce::KONEC], $id);
     if ($storytellersAccessibilityError) {
       return $this->error($storytellersAccessibilityError);
+    }
+
+    ['error' => $locationAccessibilityError] = $this->checkLocationAccessibility($values[AktivitaSqlSloupce::LOKACE], $values[AktivitaSqlSloupce::ZACATEK], $values[AktivitaSqlSloupce::KONEC], $id);
+    if ($locationAccessibilityError) {
+      return $this->error($locationAccessibilityError);
     }
 
     ['success' => $savedActivity, 'error' => $savedActivityError] = $this->saveActivity($values, $longAnnotation, $storytellersIds, $tagIds, $aktivita);
@@ -485,22 +485,13 @@ SQL
   }
 
   private function checkStorytellersAccessibility(array $storytellersIds, ?string $zacatekString, ?string $konecString, int $currentActivityId): array {
-    if ($zacatekString === null && $konecString === null) {
-      // nothing to check, we do not know the activity time
+    $rangeDates = $this->createRangeDates($zacatekString, $konecString);
+    if (!$rangeDates) {
       return $this->success(true);
     }
-    $zacatek = $zacatekString
-      ? DateTimeCz::createFromFormat(DateTimeCz::FORMAT_DB, $zacatekString)
-      : null;
-    $konec = $konecString
-      ? DateTimeCz::createFromFormat(DateTimeCz::FORMAT_DB, $konecString)
-      : null;
-    if (!$zacatek) {
-      $zacatek = (clone $konec)->modify('-1 hour');
-    }
-    if (!$konec) {
-      $konec = (clone $zacatek)->modify('+1 hour');
-    }
+    /** @var DateTimeCz $zacatek */
+    /** @var DateTimeCz $konec */
+    ['start' => $zacatek, 'end' => $konec] = $rangeDates;
     $occupiedStorytellers = dbArrayCol(<<<SQL
 SELECT akce_organizatori.id_uzivatele, GROUP_CONCAT(akce_organizatori.id_akce SEPARATOR ',') AS activity_ids
 FROM akce_organizatori
@@ -533,6 +524,65 @@ SQL
       );
     }
     return $this->error(implode('<br>', $errors));
+  }
+
+  private function createRangeDates(?string $zacatekString, ?string $konecString): ?array {
+    if ($zacatekString === null && $konecString === null) {
+      // nothing to check, we do not know the activity time
+      return null;
+    }
+    $zacatek = $zacatekString
+      ? DateTimeCz::createFromFormat(DateTimeCz::FORMAT_DB, $zacatekString)
+      : null;
+    $konec = $konecString
+      ? DateTimeCz::createFromFormat(DateTimeCz::FORMAT_DB, $konecString)
+      : null;
+    if (!$zacatek) {
+      $zacatek = (clone $konec)->modify('-1 hour');
+    }
+    if (!$konec) {
+      $konec = (clone $zacatek)->modify('+1 hour');
+    }
+    return ['start' => $zacatek, 'end' => $konec];
+  }
+
+  private function checkLocationAccessibility(?int $locationId, ?string $zacatekString, ?string $konecString, int $currentActivityId): array {
+    if ($locationId === null) {
+      return $this->success(true);
+    }
+    $rangeDates = $this->createRangeDates($zacatekString, $konecString);
+    if (!$rangeDates) {
+      return $this->success(true);
+    }
+    /** @var DateTimeCz $zacatek */
+    /** @var DateTimeCz $konec */
+    ['start' => $zacatek, 'end' => $konec] = $rangeDates;
+    $locationOccupyingActivityId = dbOneCol(<<<SQL
+SELECT id_akce
+FROM akce_seznam
+WHERE akce_seznam.lokace = $1
+AND akce_seznam.zacatek >= $2
+AND akce_seznam.konec <= $3
+AND akce_seznam.id_akce != $4
+LIMIT 1
+SQL
+      , [$locationId, $currentActivityId, $zacatek->format(DateTimeCz::FORMAT_DB), $konec->format(DateTimeCz::FORMAT_DB)]
+    );
+    if (!$locationOccupyingActivityId) {
+      return $this->success(true);
+    }
+    return $this->error(sprintf(
+      'Místnost %s je někdy mezi %s a %s již zabraná aktivitou %s',
+      $this->describeLocationById($locationId),
+      $zacatek->formatCasStandard(),
+      $konec->formatCasStandard(),
+      $this->describeActivityById($currentActivityId)
+    ));
+  }
+
+  private function describeLocationById(int $locationId): string {
+    $lokace = \Lokace::zId($locationId);
+    return sprintf('%s (%s)', $lokace->nazev(), $lokace->id());
   }
 
   private function descriveUserById(int $userId): string {
@@ -601,11 +651,11 @@ SQL
       return $this->error($longAnnotationError);
     }
 
-    ['success' => $activityBeginning, 'error' => $activityBeginningError] = $this->getValidatedBeginning($activityValues, $aktivita);
-    if ($activityBeginningError) {
-      return $this->error($activityBeginningError);
+    ['success' => $activityStart, 'error' => $activityStartError] = $this->getValidatedStart($activityValues, $aktivita);
+    if ($activityStartError) {
+      return $this->error($activityStartError);
     }
-    $sanitizedValues[AktivitaSqlSloupce::ZACATEK] = $activityBeginning;
+    $sanitizedValues[AktivitaSqlSloupce::ZACATEK] = $activityStart;
 
     ['success' => $activityEnd, 'error' => $activityEndError] = $this->getValidatedEnd($activityValues, $aktivita);
     if ($activityEndError) {
@@ -1144,7 +1194,7 @@ SQL
     return $this->programLocationsCache;
   }
 
-  private function getValidatedBeginning(array $activityValues, \Aktivita $aktivita): array {
+  private function getValidatedStart(array $activityValues, \Aktivita $aktivita): array {
     $beginning = $activityValues[ExportAktivitSloupce::ZACATEK] ?? null;
     if (!$beginning) {
       $beginningObject = $aktivita->zacatek();
@@ -1183,7 +1233,7 @@ SQL
         )
       );
     }
-    return $this->createDateTimeFromRangeBorder($this->currentYear, $activityValues[ExportAktivitSloupce::DEN], $activityValues[ExportAktivitSloupce::ZACATEK]);
+    return $this->createDateTimeFromRangeBorder($this->currentYear, $activityValues[ExportAktivitSloupce::DEN], $activityValues[ExportAktivitSloupce::KONEC]);
   }
 
   private function describeActivity(array $activityValues, ?\Aktivita $aktivita): string {
