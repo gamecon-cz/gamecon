@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * @method static Lokace zId($id)
+ */
 class Lokace extends DbObject
 {
 
