@@ -8,6 +8,7 @@ use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
 use Gamecon\Admin\Modules\Aktivity\Import\Exceptions\DuplicatedUnifiedKeyException;
 use Gamecon\Admin\Modules\Aktivity\Import\Exceptions\ImportAktivitException;
+use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Mutex\Mutex;
 use Gamecon\Vyjimkovac\Logovac;
@@ -92,7 +93,8 @@ class ImporterAktivit
     \DateTimeInterface $now,
     string $editActivityUrlSkeleton,
     Logovac $logovac,
-    Mutex $mutexPattern
+    Mutex $mutexPattern,
+    string $newLineString
   ) {
     $this->userId = $userId;
     $this->googleDriveService = $googleDriveService;
@@ -102,6 +104,7 @@ class ImporterAktivit
     $this->logovac = $logovac;
     $this->mutexPattern = $mutexPattern;
     $this->editActivityUrlSkeleton = $editActivityUrlSkeleton;
+    $this->newLineString = $newLineString;
   }
 
   public function importujAktivity(string $spreadsheetId): array {
@@ -463,6 +466,11 @@ SQL
     }
     ['values' => $values, 'longAnnotation' => $longAnnotation, 'storytellersIds' => $storytellersIds, 'tagIds' => $tagIds] = $sanitizedValues;
 
+    ['error' => $storytellersAccessibilityError] = $this->checkStorytellersAccessibility($storytellersIds, $values[AktivitaSqlSloupce::ZACATEK], $values[AktivitaSqlSloupce::KONEC]);
+    if ($storytellersAccessibilityError) {
+      return $this->error($storytellersAccessibilityError);
+    }
+
     ['success' => $savedActivity, 'error' => $savedActivityError] = $this->saveActivity($values, $longAnnotation, $storytellersIds, $tagIds, $aktivita);
 
     if ($savedActivityError) {
@@ -471,6 +479,65 @@ SQL
     return $this->success(
       sprintf('Aktulizována aktivita <a target="_blank" href="%s%d">%s</a>', $this->editActivityUrlSkeleton, $savedActivity->id(), $this->describeActivity([], $savedActivity))
     );
+  }
+
+  private function checkStorytellersAccessibility(array $storytellersIds, ?string $zacatekString, ?string $konecString): array {
+    if ($zacatekString === null && $konecString === null) {
+      // nothing to check, we do not know the activity time
+      return $this->success(true);
+    }
+    $zacatek = $zacatekString
+      ? DateTimeCz::createFromFormat(DateTimeCz::FORMAT_DB, $zacatekString)
+      : null;
+    $konec = $konecString
+      ? DateTimeCz::createFromFormat(DateTimeCz::FORMAT_DB, $konecString)
+      : null;
+    if (!$zacatek) {
+      $zacatek = (clone $konec)->modify('-1 hour');
+    }
+    if (!$konec) {
+      $konec = (clone $zacatek)->modify('+1 hour');
+    }
+    $occupiedStorytellers = dbArrayCol(<<<SQL
+SELECT akce_organizatori.id_uzivatele, GROUP_CONCAT(akce_organizatori.id_akce SEPARATOR ',') AS activity_ids
+FROM akce_organizatori
+JOIN akce_seznam ON akce_organizatori.id_akce = akce_seznam.id_akce
+WHERE akce_seznam.zacatek >= $1
+AND akce_seznam.konec <= $2
+GROUP BY akce_organizatori.id_uzivatele
+SQL
+      , [$zacatek->format(DateTimeCz::FORMAT_DB), $konec->format(DateTimeCz::FORMAT_DB)]
+    );
+    $conflictingStorytellers = array_intersect_key($occupiedStorytellers, array_fill_keys($storytellersIds, true));
+    if (!$conflictingStorytellers) {
+      return $this->success(true);
+    }
+    $errors = [];
+    foreach ($conflictingStorytellers as $conflictingStorytellerId => $activityIds) {
+      $errors[] = sprintf(
+        'Vypravěč %s je v čase od %s do %s na %s %s',
+        $this->descriveUserById((int)$conflictingStorytellerId),
+        $zacatek->formatCasStandard(),
+        $konec->formatCasStandard(),
+        count($activityIds) === 1
+          ? 'aktivitě'
+          : 'aktivitách',
+        implode(' a ', array_map(static function ($activityId) {
+          return $this->describeActivityById($activityId);
+        }, $activityIds))
+      );
+    }
+    return $this->error(implode($this->newLineString, $errors));
+  }
+
+  private function descriveUserById(int $userId): string {
+    $uzivatel = \Uzivatel::zId($userId);
+    return sprintf('%s (%s)', $uzivatel->jmenoNick(), $uzivatel->id());
+  }
+
+  private function describeActivityById(int $activityId): string {
+    $aktivita = \Aktivita::zId($activityId);
+    return sprintf('%s (%s)', $aktivita->nazev(), $aktivita->id());
   }
 
   private function saveActivity(array $values, ?string $longAnnotation, array $storytellersIds, array $tagIds, \Aktivita $originalActivity): array {

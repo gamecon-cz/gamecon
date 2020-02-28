@@ -4,6 +4,7 @@ namespace Gamecon\Cas;
 
 /**
  * Datum a čas s českými názvy dnů a měsíců + další vychytávky
+ * @method static DateTimeCz createFromFormat($format, $time, \DateTimeZone $timezone=null)
  */
 
 class DateTimeCz extends \DateTime
