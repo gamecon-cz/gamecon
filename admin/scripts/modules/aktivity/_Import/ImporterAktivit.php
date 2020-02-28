@@ -169,6 +169,7 @@ class ImporterAktivit
           }
           if ($importNewActivitySuccess) {
             $result['messages']['successes'][] = $importNewActivitySuccess;
+            $result['importedCount']++;
           }
         }
       }
@@ -462,24 +463,35 @@ SQL
     }
     ['values' => $values, 'longAnnotation' => $longAnnotation, 'storytellersIds' => $storytellersIds, 'tagIds' => $tagIds] = $sanitizedValues;
 
-    try {
-      $savedActivity = \Aktivita::uloz($values, $longAnnotation, $storytellersIds, $tagIds);
-    } catch (\Exception $exception) {
-      $this->logovac->zaloguj($exception);
-      return $this->error(sprintf('Nepodařilo se uložit aktivitu %s', $this->describeActivity($activityValues, $aktivita)));
+    ['success' => $savedActivity, 'error' => $savedActivityError] = $this->saveActivity($values, $longAnnotation, $storytellersIds, $tagIds, $aktivita);
+
+    if ($savedActivityError) {
+      return $this->error($savedActivityError);
     }
     return $this->success(
       sprintf('Aktulizována aktivita <a target="_blank" href="%s%d">%s</a>', $this->editActivityUrlSkeleton, $savedActivity->id(), $this->describeActivity([], $savedActivity))
     );
   }
 
-  private function sanitizeValues(array $activityValues, \Aktivita $aktivita): array {
-    $sanitizedValues = $aktivita->rawDb();
-    // remove values originating in another tables
-    $sanitizedValues = array_intersect_key(
-      $sanitizedValues,
-      array_fill_keys(AktivitaSqlSloupce::vsechnySloupce(), true)
-    );
+  private function saveActivity(array $values, ?string $longAnnotation, array $storytellersIds, array $tagIds, \Aktivita $originalActivity): array {
+    try {
+      return $this->success(\Aktivita::uloz($values, $longAnnotation, $storytellersIds, $tagIds));
+    } catch (\Exception $exception) {
+      $this->logovac->zaloguj($exception);
+      return $this->error(sprintf('Nepodařilo se uložit aktivitu %s', $this->describeActivity($values, $originalActivity)));
+    }
+  }
+
+  private function sanitizeValues(array $activityValues, ?\Aktivita $aktivita): array {
+    $sanitizedValues = [];
+    if ($aktivita) {
+      $sanitizedValues = $aktivita->rawDb();
+      // remove values originating in another tables
+      $sanitizedValues = array_intersect_key(
+        $sanitizedValues,
+        array_fill_keys(AktivitaSqlSloupce::vsechnySloupce(), true)
+      );
+    }
     $tagIds = null;
     $storytellersIds = null;
 
@@ -634,7 +646,7 @@ SQL
   }
 
   private function getStateByName(string $name): ?\Stav {
-    return $this->getStatesCache()['keyFromName'][self::toUnifiedKey($name, [])] ?? null;
+    return $this->getStatesCache()['keyFromName'][self::toUnifiedKey(mb_substr($name, 0, 3, 'UTF-8'), [])] ?? null;
   }
 
   private function getStatesCache(): array {
@@ -643,7 +655,7 @@ SQL
       $States = \Stav::zVsech();
       foreach ($States as $State) {
         $this->StatesCache['id'][$State->id()] = $State;
-        $keyFromName = self::toUnifiedKey($State->nazev(), array_keys($this->StatesCache['keyFromName']));
+        $keyFromName = self::toUnifiedKey(mb_substr($State->nazev(), 0, 3, 'UTF-8'), array_keys($this->StatesCache['keyFromName']));
         $this->StatesCache['keyFromName'][$keyFromName] = $State;
       }
     }
@@ -1167,10 +1179,12 @@ SQL
     return $this->success($activityUrl);
   }
 
-  private function getValidatedActivityName(array $activityValues, \Aktivita $aktivita): array {
+  private function getValidatedActivityName(array $activityValues, ?\Aktivita $aktivita): array {
     $activityNameValue = $activityValues[ExportAktivitSloupce::NAZEV] ?? null;
     if (!$activityNameValue) {
-      return $this->success($aktivita->nazev());
+      return $aktivita
+        ? $this->success($aktivita->nazev())
+        : $this->error(sprintf('Chybí název aktivity pro %s', $this->describeActivity($activityValues, null)));
     }
     $occupiedByActivityId = dbOneCol('SELECT id_akce FROM akce_seznam WHERE nazev_akce = $1 AND rok = $2', [$activityNameValue, $this->currentYear]);
     if ($occupiedByActivityId && (int)$occupiedByActivityId !== $aktivita->id()) {
@@ -1179,16 +1193,17 @@ SQL
     return $this->success($activityNameValue);
   }
 
-  private function getValidatedProgramLineId(array $activityValues, \Aktivita $aktivita): array {
+  private function getValidatedProgramLineId(array $activityValues, ?\Aktivita $aktivita): array {
     $programLineValue = $activityValues[ExportAktivitSloupce::PROGRAMOVA_LINIE] ?? null;
-    if (!$programLineValue) {
-      return $this->success($aktivita->typId());
+    if ((string)$programLineValue === '') {
+      return $aktivita
+        ? $this->success($aktivita->typId())
+        : $this->error(sprintf("Chybí programová linie u aktivity %s", $this->describeActivity($activityValues, null)));
     }
     $programLine = $this->getProgramLineFromValue((string)$programLineValue);
-    if ($programLine) {
-      return $this->success($programLine->id());
-    }
-    return $this->error(sprintf("Neznámá programová linie '%s'", $programLineValue));
+    return $programLine
+      ? $this->success($programLine->id())
+      : $this->error(sprintf("Neznámá programová linie '%s'", $programLineValue));
   }
 
   private function getProgramLineFromValue(string $programLineValue): ?\Typ {
@@ -1281,6 +1296,22 @@ SQL
   }
 
   private function importNewActivity(array $activityValues): array {
-    return $this->success('TODO Zatím nic snovou aktivitou ' . implode(';', $activityValues));
+
+    return $this->success('TODO zatím nic');
+    ['success' => $sanitizedValues, 'error' => $sanitizedValuesError] = $this->sanitizeValues($activityValues, null);
+    if ($sanitizedValuesError) {
+      return $this->error($sanitizedValuesError);
+    }
+    ['values' => $values, 'longAnnotation' => $longAnnotation, 'storytellersIds' => $storytellersIds, 'tagIds' => $tagIds] = $sanitizedValues;
+
+    /** @var \Aktivita $savedActivity */
+    ['success' => $savedActivity, 'error' => $savedActivityError] = $this->saveActivity($values, $longAnnotation, $storytellersIds, $tagIds);
+
+    if ($savedActivityError) {
+      return $this->error($savedActivityError);
+    }
+    return $this->success(
+      sprintf('Nahrána nová aktivita <a target="_blank" href="%s%d">%s</a>', $this->editActivityUrlSkeleton, $savedActivity->id(), $this->describeActivity([], $savedActivity))
+    );
   }
 }
