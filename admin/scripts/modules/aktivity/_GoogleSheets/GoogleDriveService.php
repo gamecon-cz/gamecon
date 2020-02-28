@@ -28,27 +28,44 @@ class GoogleDriveService
 
   /**
    * @param string $dirForGoogle
+   * @param string|int $parentId
    * @return array|\Google_Service_Drive_DriveFile[]
    */
-  public function getDirsByName(string $dirForGoogle): array {
-    $parentIds = ['root'];
-    $lastDirs = [];
-    foreach ($this->getDirHierarchy($dirForGoogle) as $pathPart) {
-      $lastDirs = $this->getDirsWithParents($pathPart, $parentIds);
-      if (!$lastDirs || $lastDirs->count() === 0) {
-        return [];
+  public function getDirsByName(string $dirForGoogle, $parentId = 'root'): array {
+    $dirHierarchy = $this->getDirHierarchy($dirForGoogle, 2);
+    $topDir = $dirHierarchy[0];
+    $subDirsPath = $dirHierarchy[1] ?? '';
+    $subDirs = $this->getDirWithParent($topDir, $parentId);
+    if ($subDirsPath === '') { // we are on end
+      return $subDirs;
+    }
+    /** @var \Google_Service_Drive_DriveFile $dir */
+    foreach ($subDirs as $dir) {
+      $subDirs = $this->getDirsByName($subDirsPath, $dir->getId());
+      if ($subDirs) {
+        // it should be just a single dir, but Google allows multiple dirs of same name, so there may be more of them
+        return $subDirs;
       }
-      $parentIds = [];
-      /** @var \Google_Service_Drive_DriveFile $dir */
-      foreach ($lastDirs as $dir) {
-        $parentIds[] = $dir->getId();
-      }
+    }
+    return [];
+  }
+
+  /**
+   * @param string $dirName
+   * @param $parentId
+   * @return array|\Google_Service_Drive_DriveFile[]
+   * @throws \Google_Service_Exception
+   */
+  private function getDirWithParent(string $dirName, $parentId): array {
+    $lastDirs = $this->getDirsWithParents($dirName, [$parentId]);
+    if (!$lastDirs || $lastDirs->count() === 0) {
+      return [];
     }
     return $lastDirs->getFiles(); // it should be just a single dir, but Google allows multiple dirs of same name, so there may be more of them
   }
 
-  private function getDirHierarchy(string $dir): array {
-    return explode('/', trim($dir, '/'));
+  private function getDirHierarchy(string $dir, int $limit = null): array {
+    return explode('/', trim($dir, '/'), $limit);
   }
 
   private function getDirsWithParents(string $name, array $parentIds): ?\Google_Service_Drive_FileList {
