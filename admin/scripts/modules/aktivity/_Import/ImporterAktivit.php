@@ -116,7 +116,13 @@ class ImporterAktivit
       ],
     ];
     try {
-      $result['processedFileName'] = $this->googleDriveService->getFileName($spreadsheetId);
+      ['success' => $processedFileName, 'error' => $processedFileNameError] = $this->getProcessedFileName($spreadsheetId);
+      if ($processedFileNameError) {
+        $result['messages']['errors'][] = $processedFileNameError;
+        return $result;
+      }
+      $result['processedFileName'] = $processedFileName;
+
       ['success' => $activitiesValues, 'error' => $activitiesValuesError] = $this->getIndexedValues($spreadsheetId);
       if ($activitiesValuesError) {
         $result['messages']['errors'][] = $activitiesValuesError;
@@ -143,7 +149,10 @@ class ImporterAktivit
           continue;
         }
         if ($activityId) {
-          ['success' => $importExistingActivitySuccess, 'error' => $importExistingActivityError] = $this->importExistingActivity($activityId, $activityValues);
+          ['success' => $importExistingActivitySuccess, 'warning' => $importExistingActivityWarning, 'error' => $importExistingActivityError] = $this->importExistingActivity($activityId, $activityValues);
+          if ($importExistingActivityWarning) {
+            $result['messages']['warnings'][] = $importExistingActivityWarning;
+          }
           if ($importExistingActivityError) {
             $result['messages']['errors'][] = $importExistingActivityError;
             continue;
@@ -182,6 +191,14 @@ class ImporterAktivit
     }
     $this->releaseExclusiveLock();
     return $result;
+  }
+
+  private function getProcessedFileName(string $spreadsheetId): array {
+    $filename = $this->googleDriveService->getFileName($spreadsheetId);
+    if ($filename === null) {
+      return $this->error(sprintf("Žádný soubor nebyl na Google API nalezen pod ID '$spreadsheetId'"));
+    }
+    return $this->success($filename);
   }
 
   private function getExclusiveLock(string $programLine): bool {
@@ -226,11 +243,19 @@ class ImporterAktivit
   }
 
   private function success($success): array {
-    return ['success' => $success, 'error' => false];
+    return ['success' => $success, 'warning' => false, 'error' => false];
+  }
+
+  private function warning(string $warning): array {
+    return ['success' => false, 'warning' => $warning, 'error' => false];
   }
 
   private function error(string $error): array {
-    return ['success' => false, 'error' => $error];
+    return ['success' => false, 'warning' => false, 'error' => $error];
+  }
+
+  private function result($success, ?string $warning, ?string $error): array {
+    return ['success' => $success, 'warning' => $warning, 'error' => $error];
   }
 
   private function mayBeInstance(int $parentActivityId, array $values): bool {
@@ -449,13 +474,13 @@ SQL
       return $this->error(sprintf("Aktivita s ID '%s' neexistuje. Nelze ji proto importem upravit.", $id));
     }
     if (!$aktivita->bezpecneEditovatelna()) {
-      return $this->error(sprintf("Aktivitu '%s' (%d) už nelze editovat importem, protože je ve stavu '%s'", $aktivita->nazev(), $id, $aktivita->stav()->nazev()));
+      return $this->error(sprintf("Aktivitu %s už nelze editovat importem, protože je ve stavu '%s'", $this->describeActivity($aktivita), $aktivita->stav()->nazev()));
     }
     if ($aktivita->zacatek() && $aktivita->zacatek()->getTimestamp() <= $this->now->getTimestamp()) {
-      return $this->error(sprintf("Aktivitu '%s' (%d) už nelze editovat importem, protože už začala (začátek v %s)", $aktivita->nazev(), $id, $aktivita->zacatek()->formatCasNaMinutyStandard()));
+      return $this->error(sprintf("Aktivitu %s už nelze editovat importem, protože už začala (začátek v %s)", $this->describeActivity($aktivita), $aktivita->zacatek()->formatCasNaMinutyStandard()));
     }
     if ($aktivita->konec() && $aktivita->konec()->getTimestamp() <= $this->now->getTimestamp()) {
-      return $this->error(sprintf("Aktivitu '%s' (%d) už nelze editovat importem, protože už skončila (konec v %s)", $aktivita->nazev(), $id, $aktivita->konec()->formatCasNaMinutyStandard()));
+      return $this->error(sprintf("Aktivitu %s už nelze editovat importem, protože už skončila (konec v %s)", $this->describeActivity($aktivita), $aktivita->konec()->formatCasNaMinutyStandard()));
     }
 
     ['success' => $sanitizedValues, 'error' => $sanitizedValuesError] = $this->sanitizeValues($activityValues, $aktivita);
@@ -469,7 +494,7 @@ SQL
       return $this->error($storytellersAccessibilityError);
     }
 
-    ['error' => $locationAccessibilityError] = $this->checkLocationAccessibility($values[AktivitaSqlSloupce::LOKACE], $values[AktivitaSqlSloupce::ZACATEK], $values[AktivitaSqlSloupce::KONEC], $id);
+    ['warning' => $locationAccessibilityWarning, 'error' => $locationAccessibilityError] = $this->checkLocationByAccessibility($values[AktivitaSqlSloupce::LOKACE], $values[AktivitaSqlSloupce::ZACATEK], $values[AktivitaSqlSloupce::KONEC], $id);
     if ($locationAccessibilityError) {
       return $this->error($locationAccessibilityError);
     }
@@ -479,8 +504,10 @@ SQL
     if ($savedActivityError) {
       return $this->error($savedActivityError);
     }
-    return $this->success(
-      sprintf('Aktulizována aktivita <a target="_blank" href="%s%d">%s</a>', $this->editActivityUrlSkeleton, $savedActivity->id(), $this->describeActivity([], $savedActivity))
+    return $this->result(
+      sprintf('Aktulizována aktivita <a target="_blank" href="%s%d">%s</a>', $this->editActivityUrlSkeleton, $savedActivity->id(), $this->describeActivityByValues([], $savedActivity)),
+      $locationAccessibilityWarning ?: null,
+      null
     );
   }
 
@@ -547,9 +574,9 @@ SQL
     return ['start' => $zacatek, 'end' => $konec];
   }
 
-  private function checkLocationAccessibility(?int $locationId, ?string $zacatekString, ?string $konecString, int $currentActivityId): array {
+  private function checkLocationByAccessibility(?int $locationId, ?string $zacatekString, ?string $konecString, int $currentActivityId): array {
     if ($locationId === null) {
-      return $this->success(true);
+      return $this->success(null);
     }
     $rangeDates = $this->createRangeDates($zacatekString, $konecString);
     if (!$rangeDates) {
@@ -570,10 +597,10 @@ SQL
       , [$locationId, $currentActivityId, $zacatek->format(DateTimeCz::FORMAT_DB), $konec->format(DateTimeCz::FORMAT_DB)]
     );
     if (!$locationOccupyingActivityId) {
-      return $this->success(true);
+      return $this->success($locationId);
     }
-    return $this->error(sprintf(
-      'Místnost %s je někdy mezi %s a %s již zabraná aktivitou %s. Aktivita %s byla vynechána.',
+    return $this->warning(sprintf(
+      'Místnost %s je někdy mezi %s a %s již zabraná aktivitou %s. Aktivita %s byla nahrána <strong>bez</strong> místnosti.',
       $this->describeLocationById($locationId),
       $zacatek->formatCasStandard(),
       $konec->formatCasStandard(),
@@ -594,6 +621,10 @@ SQL
 
   private function describeActivityById(int $activityId): string {
     $aktivita = \Aktivita::zId($activityId);
+    return $this->describeActivity($aktivita);
+  }
+
+  private function describeActivity(\Aktivita $aktivita): string {
     return $this->getLinkToActivity($aktivita);
   }
 
@@ -602,7 +633,7 @@ SQL
       return $this->success(\Aktivita::uloz($values, $longAnnotation, $storytellersIds, $tagIds));
     } catch (\Exception $exception) {
       $this->logovac->zaloguj($exception);
-      return $this->error(sprintf('Nepodařilo se uložit aktivitu %s', $this->describeActivity($values, $originalActivity)));
+      return $this->error(sprintf('Nepodařilo se uložit aktivitu %s', $this->describeActivityByValues($values, $originalActivity)));
     }
   }
 
@@ -1049,7 +1080,7 @@ SQL
     if ($year) {
       if ($year !== $this->currentYear) {
         $this->error(
-          sprintf('Aktivita %s je pro ročník %d, ale teď je ročník %d', $this->describeActivity([], $aktivita), $year, $this->currentYear)
+          sprintf('Aktivita %s je pro ročník %d, ale teď je ročník %d', $this->describeActivityByValues([], $aktivita), $year, $this->currentYear)
         );
       }
       return $this->success($year);
@@ -1209,7 +1240,7 @@ SQL
       return $this->error(
         sprintf(
           'U aktivity %s je sice začátek (%s), ale chybí u ní den.',
-          $this->describeActivity($activityValues, $aktivita),
+          $this->describeActivityByValues($activityValues, $aktivita),
           $activityValues[ExportAktivitSloupce::ZACATEK]
         )
       );
@@ -1230,7 +1261,7 @@ SQL
       return $this->error(
         sprintf(
           'U aktivity %s je sice konec (%s), ale chybí u ní den.',
-          $this->describeActivity($activityValues, $aktivita),
+          $this->describeActivityByValues($activityValues, $aktivita),
           $activityValues[ExportAktivitSloupce::KONEC]
         )
       );
@@ -1238,7 +1269,7 @@ SQL
     return $this->createDateTimeFromRangeBorder($this->currentYear, $activityValues[ExportAktivitSloupce::DEN], $activityValues[ExportAktivitSloupce::KONEC]);
   }
 
-  private function describeActivity(array $activityValues, ?\Aktivita $aktivita): string {
+  private function describeActivityByValues(array $activityValues, ?\Aktivita $aktivita): string {
     $id = $activityValues[ExportAktivitSloupce::ID_AKTIVITY]
       ?? $aktivita
         ? $aktivita->id()
@@ -1297,7 +1328,7 @@ SQL
       $occupiedByActivity = reset($occupiedByActivities);
       $occupiedByActivityId = (int)$occupiedByActivity['id_akce'];
       if ($occupiedByActivityId && $occupiedByActivityId !== $aktivita->id()) {
-        return $this->error(sprintf("URL aktivity '%s' už je obsazena aktivitou '%s' (%d)", $activityUrl, $occupiedByActivity['nazev_akce'], $occupiedByActivity['id_akce']));
+        return $this->error(sprintf("URL '%s' aktivity %s už je obsazena aktivitou %s", $activityUrl, $this->describeActivity($aktivita), $this->describeActivityById($occupiedByActivity['id_akce'])));
       }
     }
     return $this->success($activityUrl);
@@ -1308,11 +1339,11 @@ SQL
     if (!$activityNameValue) {
       return $aktivita
         ? $this->success($aktivita->nazev())
-        : $this->error(sprintf('Chybí název aktivity pro %s', $this->describeActivity($activityValues, null)));
+        : $this->error(sprintf('Chybí název aktivity pro %s', $this->describeActivityByValues($activityValues, null)));
     }
     $occupiedByActivityId = dbOneCol('SELECT id_akce FROM akce_seznam WHERE nazev_akce = $1 AND rok = $2', [$activityNameValue, $this->currentYear]);
     if ($occupiedByActivityId && (int)$occupiedByActivityId !== $aktivita->id()) {
-      return $this->error(sprintf("Název aktivity '%s' už je obsazený aktivitou %s (%d)", $activityNameValue, $activityNameValue, $occupiedByActivityId));
+      return $this->error(sprintf("Název aktivity '%s' už je obsazený aktivitou %s", $activityNameValue, $this->describeActivityById($occupiedByActivityId)));
     }
     return $this->success($activityNameValue);
   }
@@ -1322,7 +1353,7 @@ SQL
     if ((string)$programLineValue === '') {
       return $aktivita
         ? $this->success($aktivita->typId())
-        : $this->error(sprintf("Chybí programová linie u aktivity %s", $this->describeActivity($activityValues, null)));
+        : $this->error(sprintf("Chybí programová linie u aktivity %s", $this->describeActivityByValues($activityValues, null)));
     }
     $programLine = $this->getProgramLineFromValue((string)$programLineValue);
     return $programLine
@@ -1438,6 +1469,6 @@ SQL
   }
 
   private function getLinkToActivity(\Aktivita $aktivita): string {
-    return sprintf('<a target="_blank" href="%s%d">%s</a>', $this->editActivityUrlSkeleton, $aktivita->id(), $this->describeActivity([], $aktivita));
+    return sprintf('<a target="_blank" href="%s%d">%s</a>', $this->editActivityUrlSkeleton, $aktivita->id(), $this->describeActivityByValues([], $aktivita));
   }
 }
