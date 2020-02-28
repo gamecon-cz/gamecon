@@ -93,8 +93,7 @@ class ImporterAktivit
     \DateTimeInterface $now,
     string $editActivityUrlSkeleton,
     Logovac $logovac,
-    Mutex $mutexPattern,
-    string $newLineString
+    Mutex $mutexPattern
   ) {
     $this->userId = $userId;
     $this->googleDriveService = $googleDriveService;
@@ -104,7 +103,6 @@ class ImporterAktivit
     $this->logovac = $logovac;
     $this->mutexPattern = $mutexPattern;
     $this->editActivityUrlSkeleton = $editActivityUrlSkeleton;
-    $this->newLineString = $newLineString;
   }
 
   public function importujAktivity(string $spreadsheetId): array {
@@ -466,7 +464,12 @@ SQL
     }
     ['values' => $values, 'longAnnotation' => $longAnnotation, 'storytellersIds' => $storytellersIds, 'tagIds' => $tagIds] = $sanitizedValues;
 
-    ['error' => $storytellersAccessibilityError] = $this->checkStorytellersAccessibility($storytellersIds, $values[AktivitaSqlSloupce::ZACATEK], $values[AktivitaSqlSloupce::KONEC]);
+    ['error' => $storytellersAccessibilityError] = $this->checkStorytellersAccessibility(
+      $storytellersIds,
+      $values[AktivitaSqlSloupce::ZACATEK],
+      $values[AktivitaSqlSloupce::KONEC],
+      $id
+    );
     if ($storytellersAccessibilityError) {
       return $this->error($storytellersAccessibilityError);
     }
@@ -481,7 +484,7 @@ SQL
     );
   }
 
-  private function checkStorytellersAccessibility(array $storytellersIds, ?string $zacatekString, ?string $konecString): array {
+  private function checkStorytellersAccessibility(array $storytellersIds, ?string $zacatekString, ?string $konecString, int $currentActivityId): array {
     if ($zacatekString === null && $konecString === null) {
       // nothing to check, we do not know the activity time
       return $this->success(true);
@@ -504,16 +507,18 @@ FROM akce_organizatori
 JOIN akce_seznam ON akce_organizatori.id_akce = akce_seznam.id_akce
 WHERE akce_seznam.zacatek >= $1
 AND akce_seznam.konec <= $2
+AND akce_seznam.id_akce != $3
 GROUP BY akce_organizatori.id_uzivatele
 SQL
-      , [$zacatek->format(DateTimeCz::FORMAT_DB), $konec->format(DateTimeCz::FORMAT_DB)]
+      , [$zacatek->format(DateTimeCz::FORMAT_DB), $konec->format(DateTimeCz::FORMAT_DB), $currentActivityId]
     );
     $conflictingStorytellers = array_intersect_key($occupiedStorytellers, array_fill_keys($storytellersIds, true));
     if (!$conflictingStorytellers) {
       return $this->success(true);
     }
     $errors = [];
-    foreach ($conflictingStorytellers as $conflictingStorytellerId => $activityIds) {
+    foreach ($conflictingStorytellers as $conflictingStorytellerId => $implodedActivityIds) {
+      $activityIds = explode(',', $implodedActivityIds);
       $errors[] = sprintf(
         'Vypravěč %s je v čase od %s do %s na %s %s',
         $this->descriveUserById((int)$conflictingStorytellerId),
@@ -522,12 +527,12 @@ SQL
         count($activityIds) === 1
           ? 'aktivitě'
           : 'aktivitách',
-        implode(' a ', array_map(static function ($activityId) {
-          return $this->describeActivityById($activityId);
+        implode(' a ', array_map(function ($activityId) {
+          return $this->describeActivityById((int)$activityId);
         }, $activityIds))
       );
     }
-    return $this->error(implode($this->newLineString, $errors));
+    return $this->error(implode('<br>', $errors));
   }
 
   private function descriveUserById(int $userId): string {
@@ -537,10 +542,10 @@ SQL
 
   private function describeActivityById(int $activityId): string {
     $aktivita = \Aktivita::zId($activityId);
-    return sprintf('%s (%s)', $aktivita->nazev(), $aktivita->id());
+    return $this->getLinkToActivity($aktivita);
   }
 
-  private function saveActivity(array $values, ?string $longAnnotation, array $storytellersIds, array $tagIds, \Aktivita $originalActivity): array {
+  private function saveActivity(array $values, ?string $longAnnotation, array $storytellersIds, array $tagIds, ?\Aktivita $originalActivity): array {
     try {
       return $this->success(\Aktivita::uloz($values, $longAnnotation, $storytellersIds, $tagIds));
     } catch (\Exception $exception) {
@@ -1217,14 +1222,14 @@ SQL
       return $this->error(sprintf("Nepodařilo se vytvořit datum z roku %d, dne '%s' a času '%s'. Chybný formát datumu. Detail: %s", $year, $dayName, $hoursAndMinutes, $exception->getMessage()));
     }
 
-    if (!preg_match('~^(?<hours>\d+)\s*:\s*(?<minutes>\d*)$~', $hoursAndMinutes, $timeMatches)) {
-      return $this->error(sprintf("Nepodařilo se nastavit čas u datumu z roku %d, dne '%s' a času '%s'. Chybný formát času.", $year, $dayName, $hoursAndMinutes));
+    if (!preg_match('~^(?<hours>\d+)(\s*:\s*(?<minutes>\d+))?$~', $hoursAndMinutes, $timeMatches)) {
+      return $this->error(sprintf("Nepodařilo se nastavit čas podle roku %d, dne '%s' a času '%s'. Chybný formát času '%s'.", $year, $dayName, $hoursAndMinutes, $hoursAndMinutes));
     }
     $hours = (int)$timeMatches['hours'];
     $minutes = (int)($timeMatches['minutes'] ?? 0);
     $dateTime = $date->setTime($hours, $minutes, 0, 0);
     if (!$dateTime) {
-      return $this->error(sprintf("Nepodařilo se nastavit čas u datumu z roku %d, dne '%s' a času '%s'. Chybný formát času.", $year, $dayName, $hoursAndMinutes));
+      return $this->error(sprintf("Nepodařilo se nastavit čas podle roku %d, dne '%s' a času '%s'. Chybný formát.", $year, $dayName, $hoursAndMinutes));
     }
     return $this->success($dateTime->formatDb());
   }
@@ -1372,13 +1377,15 @@ SQL
     ['values' => $values, 'longAnnotation' => $longAnnotation, 'storytellersIds' => $storytellersIds, 'tagIds' => $tagIds] = $sanitizedValues;
 
     /** @var \Aktivita $savedActivity */
-    ['success' => $savedActivity, 'error' => $savedActivityError] = $this->saveActivity($values, $longAnnotation, $storytellersIds, $tagIds);
+    ['success' => $savedActivity, 'error' => $savedActivityError] = $this->saveActivity($values, $longAnnotation, $storytellersIds, $tagIds, null);
 
     if ($savedActivityError) {
       return $this->error($savedActivityError);
     }
-    return $this->success(
-      sprintf('Nahrána nová aktivita <a target="_blank" href="%s%d">%s</a>', $this->editActivityUrlSkeleton, $savedActivity->id(), $this->describeActivity([], $savedActivity))
-    );
+    return $this->success(sprintf('Nahrána nová aktivita %s', $this->getLinkToActivity($savedActivity)));
+  }
+
+  private function getLinkToActivity(\Aktivita $aktivita): string {
+    return sprintf('<a target="_blank" href="%s%d">%s</a>', $this->editActivityUrlSkeleton, $aktivita->id(), $this->describeActivity([], $aktivita));
   }
 }
