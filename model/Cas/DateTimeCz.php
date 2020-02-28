@@ -57,7 +57,7 @@ class DateTimeCz extends \DateTime
         return 2;
       case 'st' :
         return 3;
-      case 'c' :
+      case 'ct' :
         return 4;
       case 'pa' :
         return 5;
