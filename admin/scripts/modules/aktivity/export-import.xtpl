@@ -17,7 +17,7 @@
 
     <!-- begin:neniVybranTyp -->
     <div class="warning no-image" style="margin: 0; padding-right: 1em">
-      Pro export nejdříve vyber konkrétní typ akce ↑
+      Pro export nejdříve vyber programovou linii ↑
     </div>
     <!-- end:neniVybranTyp -->
 
@@ -35,7 +35,7 @@
 <!-- begin:autorizace -->
 <hr>
 
-<div class="warning" style="padding-right: 40px">
+<div class="warning no-image fullwidth">
   <p><a href="{authorizationUrl}">Povol Gameconu přístup</a> ke tvému Google drive a Google sheets, aby Gamecon mohl
     vybrané aktivity exportovat a nazpět importovat.</p>
   <p>Gamecon bude moci číst a zapisovat <strong>pouze</strong> soubory, které sám vytvoří. Nedostane práva k žádným tvým

@@ -42,6 +42,7 @@ if (isset($_GET['code'])) {
   back(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
 }
 
+$filtrovatPodleRoku = true;
 [$filtr, $razeni] = include __DIR__ . '/_filtr-moznosti.php';
 $aktivity = \Aktivita::zFiltru($filtr, $razeni);
 $activityTypeIdsFromFilter = array_unique(
