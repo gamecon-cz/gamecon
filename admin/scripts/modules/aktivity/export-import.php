@@ -121,7 +121,8 @@ if ($googleApiClient->isAuthorized()) {
       new \DateTimeImmutable(),
       $urlNaEditaciAktivity,
       $vyjimkovac,
-      Mutex::proAktivity()
+      Mutex::proAktivity(),
+      '<br>'
     );
     $vysledekImportuAktivit = $importerAktivit->importujAktivity($_POST['googleSheetId']);
 
