@@ -44,7 +44,7 @@ VALUES
 (2, 'proběhnutá'),
 (3, 'systémová'),
 (4, 'publikovaná'),
-(5, 'pripravená');
+(5, 'připravená');
 SET SQL_MODE = '';
 
 ALTER TABLE akce_seznam

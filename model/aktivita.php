@@ -1291,7 +1291,7 @@ SQL
   }
 
   public function bezpecneEditovatelna(): bool {
-    return in_array($this->stav()->id(), [Stav::NOVA, Stav::PRIPRAVENA], true);
+    return in_array($this->stav()->id(), [Stav::NOVA, Stav::PUBLIKOVANA, Stav::PRIPRAVENA], true);
   }
 
   public function stav(): \Stav {
