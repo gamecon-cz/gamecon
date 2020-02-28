@@ -978,7 +978,7 @@ SQL
       if ($invalidTagsValues) {
         trigger_error(
           E_USER_WARNING,
-          sprintf('There are some strange tags comming from activity %s, which are unknown %s', $aktivita->id(), implode(',', $invalidTagsValues))
+          sprintf('There are some strange tags coming from activity %s, which are unknown %s', $aktivita->id(), implode(',', $invalidTagsValues))
         );
       }
       return $this->success($tagIds);
