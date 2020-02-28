@@ -511,7 +511,7 @@ SQL
     foreach ($conflictingStorytellers as $conflictingStorytellerId => $implodedActivityIds) {
       $activityIds = explode(',', $implodedActivityIds);
       $errors[] = sprintf(
-        'Vypravěč %s je v čase od %s do %s na %s %s',
+        'Vypravěč %s je v čase od %s do %s na %s %s.',
         $this->descriveUserById((int)$conflictingStorytellerId),
         $zacatek->formatCasStandard(),
         $konec->formatCasStandard(),
@@ -523,6 +523,7 @@ SQL
         }, $activityIds))
       );
     }
+    $errors[] = sprintf('Aktivita %s byla vynechána.', $this->describeActivityById($currentActivityId));
     return $this->error(implode('<br>', $errors));
   }
 
@@ -572,10 +573,11 @@ SQL
       return $this->success(true);
     }
     return $this->error(sprintf(
-      'Místnost %s je někdy mezi %s a %s již zabraná aktivitou %s',
+      'Místnost %s je někdy mezi %s a %s již zabraná aktivitou %s. Aktivita %s byla vynechána.',
       $this->describeLocationById($locationId),
       $zacatek->formatCasStandard(),
       $konec->formatCasStandard(),
+      $this->describeActivityById((int)$locationOccupyingActivityId),
       $this->describeActivityById($currentActivityId)
     ));
   }
