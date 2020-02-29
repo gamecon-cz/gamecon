@@ -456,7 +456,7 @@ SQL
     }
     if ($existingActivity) {
       return $this->result(
-        sprintf('Upravena aktivita %s', $this->describeActivity($savedActivity)),
+        sprintf('Upravena existující aktivita %s', $this->describeActivity($savedActivity)),
         $locationAccessibilityWarning ?: null,
         null
       );
@@ -795,7 +795,7 @@ SQL
     // have to be last, respectively needs URL and ID
     ['success' => $instanceId, 'error' => $instanceIdError] = $this->getValidatedInstanceId(
       $existingActivity,
-      $activityValues[AktivitaSqlSloupce::URL_AKCE],
+      $sanitizedValues[AktivitaSqlSloupce::URL_AKCE],
       $singleProgramLine->id()
     );
     if ($instanceIdError) {
@@ -1432,11 +1432,14 @@ SQL
             || ($occupiedByActivityId !== $aktivita->id() && (!$patriPod || $patriPod !== $aktivita->patriPod())))
         ) {
           return $this->error(sprintf(
-            "URL '%s' %simportované aktivity %s už je obsazena existující aktivitou %s",
+            "URL '%s'%s %s %s aktivity už je obsazena jinou existující aktivitou %s",
             $activityUrl,
             empty($activityValues[ExportAktivitSloupce::URL])
-              ? '(odhadnutá z názvu) '
+              ? ' (odhadnutá z názvu)'
               : '',
+            $aktivita
+              ? 'upravované'
+              : 'nové',
             $this->describeActivityByValues($activityValues, $aktivita),
             $this->describeActivityById((int)$occupiedByActivity['id_akce'])
           ));
@@ -1465,7 +1468,7 @@ SQL
         $activityNameValue,
         $aktivita
           ? sprintf('upravované aktivity %s', $this->describeActivity($aktivita))
-          : 'importované aktivity',
+          : 'nové aktivity',
         $this->describeActivityById((int)$occupiedByActivityId)
       ));
     }
