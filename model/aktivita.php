@@ -1333,28 +1333,32 @@ SQL
       }
       dbDelete('akce_prihlaseni_spec', ['id_akce' => $this->id(), 'id_stavu_prihlaseni' => self::NAHRADNIK]);
       dbDelete('akce_organizatori', ['id_akce' => $this->id()]);
-      dbDelete('akce_seznam', ['id_akce' => $this->id()]);
 
       // řešení instancí, pokud patří do rodiny instancí
-      $instance = $this->a['patri_pod'];
-      if ($instance) {
-        // načtení id mateřské instance PO smazání současné aktivity
-        $r = dbOneLine('SELECT MIN(id_akce) as mid, COUNT(1) as pocet FROM akce_seznam WHERE patri_pod = $1 GROUP BY id_akce', [$instance]);
-        $mid = $r['mid'];
-        $pocet = $r['pocet'];
+      $instanceId = $this->a['patri_pod'];
+      if ($instanceId) {
+        $r = dbOneLine(
+          'SELECT MIN(id_akce) as id_nove_materske, COUNT(1) as pocet FROM akce_seznam WHERE id_akce != $1 AND patri_pod = $1 GROUP BY id_akce',
+          [$this->id(), $instanceId]
+        );
+        $idNoveMaterske = $r['id_nove_materske'];
+        $pocet = (int)$r['pocet'];
         // zbyla jediná instance, zrušit u ní patri_pod
         if ($pocet === 1) {
-          dbQuery('DELETE FROM akce_instance WHERE id = ' . $instance);
-          dbQuery('UPDATE akce_seznam SET patri_pod = NULL WHERE patri_pod = ' . $instance);
+          dbQuery('DELETE FROM akce_instance WHERE id = ' . $instanceId);
+          dbQuery('UPDATE akce_seznam SET patri_pod = NULL WHERE patri_pod = ' . $instanceId);
         }
         // id zrušené instance bylo nejnižší => je potřeba uložit url a popisek do nové instance
-        if ($this->id() < $mid) {
+        if ($this->id() < $idNoveMaterske) {
+          dbQuery('INSERT INTO akce_instance(id, id_hlavni_akce) VALUES ($1, $2) ON DUPLICATE KEY UPDATE id_hlavni_akce = $2', [$instanceId, $idNoveMaterske]);
           dbQueryS(
             'UPDATE akce_seznam SET url_akce=$1, popis=$2, vybaveni=$3 WHERE id_akce=$4',
-            [$this->a['url_akce'], $this->a['popis'], $this->a['vybaveni'], $mid]
+            [$this->a['url_akce'], $this->a['popis'], $this->a['vybaveni'], $idNoveMaterske]
           );
         }
       }
+
+      dbDelete('akce_seznam', ['id_akce' => $this->id()]); // posledni kvuli SQL cizim klicum a cascade
 
       dbCommit();
     } catch (Exception $e) {
