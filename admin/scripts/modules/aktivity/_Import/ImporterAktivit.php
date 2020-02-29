@@ -253,28 +253,14 @@ class ImporterAktivit
     return ['success' => $success, 'warning' => $warning, 'error' => $error];
   }
 
-  private function findParentInstanceId(?\Aktivita $originalActivity, ?string $url, int $programLineId): ?int {
+  private function findParentInstanceId(?\Aktivita $originalActivity): ?int {
     if ($originalActivity) {
       $instanceId = $originalActivity->patriPod();
       return $instanceId
         ? (int)$instanceId
         : null;
     }
-    if (!$url) {
-      return null;
-    }
-    $instanceId = dbOneCol(<<<SQL
-SELECT akce_instance.id
-FROM akce_seznam
-JOIN akce_instance on akce_seznam.id_akce = akce_instance.id_hlavni_akce
-WHERE akce_seznam.url_akce = $1 AND akce_seznam.rok = $2 AND akce_seznam.typ = $3
-LIMIT 1
-SQL
-      , [$url, $this->currentYear, $programLineId]
-    );
-    return $instanceId
-      ? (int)$instanceId
-      : null;
+    return null;
   }
 
   private function findNewInstanceParentActivityId(?string $url, int $programLineId): ?int {
@@ -285,7 +271,6 @@ SQL
 SELECT MIN(akce_seznam.id_akce)
 FROM akce_seznam
 WHERE akce_seznam.url_akce = $1 AND akce_seznam.rok = $2 AND akce_seznam.typ = $3
-LIMIT 1
 SQL
       , [$url, $this->currentYear, $programLineId]
     );
@@ -673,8 +658,9 @@ SQL
       if (!$values[AktivitaSqlSloupce::ID_AKCE] && !$values[AktivitaSqlSloupce::PATRI_POD]) {
         $newInstanceParentActivityId = $this->findNewInstanceParentActivityId($values[AktivitaSqlSloupce::URL_AKCE], $singleProgramLine->id());
         if ($newInstanceParentActivityId) {
-          $newInstanceId = $this->createInstanceForParentActivity($newInstanceParentActivityId);
-          $values[AktivitaSqlSloupce::PATRI_POD] = $newInstanceId;
+          $newInstance = $this->createInstanceForParentActivity($newInstanceParentActivityId);
+          $values[AktivitaSqlSloupce::ID_AKCE] = $newInstance->id();
+          $values[AktivitaSqlSloupce::PATRI_POD] = $newInstance->patriPod();
         }
       }
       return $this->success(\Aktivita::uloz($values, $longAnnotation, $storytellersIds, $tagIds));
@@ -684,9 +670,9 @@ SQL
     }
   }
 
-  private function createInstanceForParentActivity(int $parentActivityId): int {
+  private function createInstanceForParentActivity(int $parentActivityId): \Aktivita {
     $parentActivity = \Aktivita::zId($parentActivityId);
-    return $parentActivity->vytvorInstanci();
+    return $parentActivity->instancuj();
   }
 
   private function validateValues(\Typ $singleProgramLine, array $activityValues, ?\Aktivita $existingActivity): array {
@@ -718,7 +704,7 @@ SQL
     }
     $sanitizedValues[AktivitaSqlSloupce::URL_AKCE] = $activityUrl;
 
-    ['success' => $activityName, 'error' => $activityNameError] = $this->getValidatedActivityName($activityValues, $activityUrl, $existingActivity);
+    ['success' => $activityName, 'error' => $activityNameError] = $this->getValidatedActivityName($activityValues, $activityUrl, $singleProgramLine, $existingActivity);
     if ($activityNameError) {
       return $this->error($activityNameError);
     }
@@ -752,11 +738,11 @@ SQL
     }
     $sanitizedValues[AktivitaSqlSloupce::KONEC] = $activityEnd;
 
-    ['success' => $programLocationId, 'error' => $programLocationIdError] = $this->getValidatedProgramLocationId($activityValues, $existingActivity);
-    if ($programLocationIdError) {
-      return $this->error($programLocationIdError);
+    ['success' => $locationId, 'error' => $locationIdError] = $this->getValidatedLocationId($activityValues, $existingActivity);
+    if ($locationIdError) {
+      return $this->error($locationIdError);
     }
-    $sanitizedValues[AktivitaSqlSloupce::LOKACE] = $programLocationId;
+    $sanitizedValues[AktivitaSqlSloupce::LOKACE] = $locationId;
 
     ['success' => $storytellersIds, 'error' => $storytellersIdsError] = $this->getValidatedStorytellersIds($activityValues, $existingActivity);
     if ($storytellersIdsError) {
@@ -830,11 +816,7 @@ SQL
     $sanitizedValues[AktivitaSqlSloupce::ROK] = $year;
 
     // have to be last, respectively needs URL and ID
-    ['success' => $instanceId, 'error' => $instanceIdError] = $this->getValidatedInstanceId(
-      $existingActivity,
-      $sanitizedValues[AktivitaSqlSloupce::URL_AKCE],
-      $singleProgramLine->id()
-    );
+    ['success' => $instanceId, 'error' => $instanceIdError] = $this->getValidatedInstanceId($existingActivity);
     if ($instanceIdError) {
       return $this->error($instanceIdError);
     }
@@ -1161,8 +1143,8 @@ SQL
     );
   }
 
-  private function getValidatedInstanceId(?\Aktivita $originalActivity, ?string $url, int $programLineId): array {
-    return $this->success($this->findParentInstanceId($originalActivity, $url, $programLineId));
+  private function getValidatedInstanceId(?\Aktivita $originalActivity): array {
+    return $this->success($this->findParentInstanceId($originalActivity));
   }
 
   private function getValidatedYear(array $activityValues, ?\Aktivita $aktivita): array {
@@ -1297,7 +1279,7 @@ SQL
     return $this->error(sprintf("Podivná cena aktivity '%s'. Očekáváme číslo.", $priceValue));
   }
 
-  private function getValidatedProgramLocationId(array $activityValues, ?\Aktivita $aktivita): array {
+  private function getValidatedLocationId(array $activityValues, ?\Aktivita $aktivita): array {
     $locationValue = $activityValues[ExportAktivitSloupce::MISTNOST] ?? null;
     if (!$locationValue) {
       if (!$aktivita) {
@@ -1305,19 +1287,19 @@ SQL
       }
       return $this->success($aktivita->lokaceId());
     }
-    $location = $this->getProgramLocationFromValue((string)$locationValue);
+    $location = $this->getLocationFromValue((string)$locationValue);
     if ($location) {
       return $this->success($location->id());
     }
     return $this->error(sprintf("Neznámá lokace '%s'", $locationValue));
   }
 
-  private function getProgramLocationFromValue(string $programLocationValue): ?\Lokace {
-    $programLocationInt = (int)$programLocationValue;
+  private function getLocationFromValue(string $locationValue): ?\Lokace {
+    $programLocationInt = (int)$locationValue;
     if ($programLocationInt > 0) {
       return $this->getProgramLocationById($programLocationInt);
     }
-    return $this->getProgramLocationByName($programLocationValue);
+    return $this->getProgramLocationByName($locationValue);
   }
 
   private function getProgramLocationById(int $id): ?\Lokace {
@@ -1405,7 +1387,7 @@ SQL
       $nazev = (string)$nazev;
     }
     if ($id && $nazev) {
-      return $this->createLinkToActivity($id, $nazev);
+      return sprintf('%s (%d)', $this->createLinkToActivity($id, $nazev), $id);
     }
     $url = $activityValues[ExportAktivitSloupce::URL] ?? null;
     if (!$url && $originalActivity) {
@@ -1458,10 +1440,10 @@ SQL
     $occupiedByActivities = dbFetchAll(<<<SQL
 SELECT id_akce, nazev_akce, patri_pod
 FROM akce_seznam
-WHERE url_akce = $1 AND rok = $2
+WHERE url_akce = $1 AND rok = $2 AND typ = $3
 SQL
       ,
-      [$activityUrl, $this->currentYear]
+      [$activityUrl, $this->currentYear, $singleProgramLine->id()]
     );
     if ($occupiedByActivities) {
       foreach ($occupiedByActivities as $occupiedByActivity) {
@@ -1469,16 +1451,7 @@ SQL
         $occupiedActivityInstanceId = $occupiedByActivity['patri_pod']
           ? (int)$occupiedByActivity['patri_pod']
           : null;
-        if ($occupiedByActivityId
-          && (!$originalActivity
-            || ($occupiedByActivityId !== $originalActivity->id() && (!$occupiedActivityInstanceId || $occupiedActivityInstanceId !== $originalActivity->patriPod()))
-            || ($occupiedActivityInstanceId
-              && ($parentInstanceId = $this->findParentInstanceId($originalActivity, $activityUrl, $singleProgramLine->id()))
-              && $occupiedActivityInstanceId != \Aktivita::zId($parentInstanceId)->patriPod()
-            )
-          )
-          && !$this->findNewInstanceParentActivityId($activityUrl, $singleProgramLine->id())
-        ) {
+        if ($this->isIdentifierOccupied($occupiedByActivityId, $occupiedActivityInstanceId, $activityUrl, $singleProgramLine, $originalActivity)) {
           return $this->error(sprintf(
             "URL '%s'%s %s aktivity %s už je obsazena jinou existující aktivitou %s",
             $activityUrl,
@@ -1489,7 +1462,7 @@ SQL
               ? 'upravované'
               : 'nové',
             $this->describeActivityByValues($activityValues, $originalActivity),
-            $this->describeActivityById((int)$occupiedByActivity['id_akce'])
+            $this->describeActivityById($occupiedByActivityId)
           ));
         }
       }
@@ -1497,28 +1470,53 @@ SQL
     return $this->success($activityUrl);
   }
 
+  private function isIdentifierOccupied(int $occupiedByActivityId, ?int $occupiedActivityInstanceId, ?string $activityUrl, \Typ $singleProgramLine, ?\Aktivita $originalActivity): bool {
+    return (!$originalActivity
+        || ($occupiedByActivityId !== $originalActivity->id() && (!$occupiedActivityInstanceId || $occupiedActivityInstanceId !== $originalActivity->patriPod()))
+        || ($occupiedActivityInstanceId
+          && ($parentInstanceId = $this->findParentInstanceId($originalActivity))
+          && $occupiedActivityInstanceId != $parentInstanceId
+        )
+      )
+      && !$this->findNewInstanceParentActivityId($activityUrl, $singleProgramLine->id());
+  }
+
   private function toUrl(string $value): string {
     $sanitized = strtolower(odstranDiakritiku($value));
     return preg_replace('~\W+~', '-', $sanitized);
   }
 
-  private function getValidatedActivityName(array $activityValues, ?string $activityUrl, ?\Aktivita $aktivita): array {
+  private function getValidatedActivityName(array $activityValues, ?string $activityUrl, \Typ $singleProgramLine, ?\Aktivita $originalActivity): array {
     $activityNameValue = $activityValues[ExportAktivitSloupce::NAZEV] ?? null;
     if (!$activityNameValue) {
-      return $aktivita
-        ? $this->success($aktivita->nazev())
-        : $this->error(sprintf('Chybí název aktivity pro %s', $this->describeActivityByValues($activityValues, $aktivita)));
+      return $originalActivity
+        ? $this->success($originalActivity->nazev())
+        : $this->error(sprintf('Chybí název aktivity u importované aktivity %s', $this->describeActivityByValues($activityValues, $originalActivity)));
     }
-    $occupiedByActivityId = dbOneCol('SELECT id_akce FROM akce_seznam WHERE nazev_akce = $1 AND rok = $2', [$activityNameValue, $this->currentYear]);
-    if ($occupiedByActivityId && (!$aktivita || (int)$occupiedByActivityId !== $aktivita->id())) {
-      return $this->error(sprintf(
-        "Název '%s' %s už je obsazený existující aktivitou %s",
-        $activityNameValue,
-        $aktivita
-          ? sprintf('upravované aktivity %s', $this->describeActivity($aktivita))
-          : 'nové aktivity',
-        $this->describeActivityById((int)$occupiedByActivityId)
-      ));
+    $occupiedByActivities = dbFetchAll(<<<SQL
+SELECT id_akce, nazev_akce, patri_pod
+FROM akce_seznam
+WHERE nazev_akce = $1 AND rok = $2 AND typ = $3 LIMIT 1
+SQL
+      , [$activityNameValue, $this->currentYear, $singleProgramLine->id()]
+    );
+    if ($occupiedByActivities) {
+      foreach ($occupiedByActivities as $occupiedByActivity) {
+        $occupiedByActivityId = (int)$occupiedByActivity['id_akce'];
+        $occupiedActivityInstanceId = $occupiedByActivity['patri_pod']
+          ? (int)$occupiedByActivity['patri_pod']
+          : null;
+        if ($this->isIdentifierOccupied($occupiedByActivityId, $occupiedActivityInstanceId, $activityUrl, $singleProgramLine, $originalActivity)) {
+          return $this->error(sprintf(
+            "Název '%s' %s už je obsazený jinou existující aktivitou %s",
+            $activityNameValue,
+            $originalActivity
+              ? sprintf('upravované aktivity %s', $this->describeActivity($originalActivity))
+              : 'nové aktivity',
+            $this->describeActivityById((int)$occupiedByActivityId)
+          ));
+        }
+      }
     }
     return $this->success($activityNameValue);
   }

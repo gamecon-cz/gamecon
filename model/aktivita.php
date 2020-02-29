@@ -433,7 +433,7 @@ class Aktivita
       // editace aktivity z rodiny instancí
       $doHlavni = ['url_akce', 'popis', 'vybaveni'];  // věci, které se mají změnit jen u hlavní (master) `instance
       $doAktualni = ['lokace', 'zacatek', 'konec'];       // věci, které se mají změnit jen u aktuální instance
-      $aktivita = self::zId($data['id_akce']);
+      $aktivita = self::zId($data['id_akce']); // instance už musí existovat
       // (zbytek se změní v obou)
       // určení hlavní aktivity
       $idHlavni = dbOneCol('SELECT MIN(id_akce) FROM akce_seznam WHERE patri_pod = ' . (int)$data['patri_pod']);
@@ -526,7 +526,7 @@ class Aktivita
     return $novaAktivita;
   }
 
-  public function vytvorInstanci(): int {
+  private function vytvorInstanci(): int {
     if ($this->patriPod()) {
       return $this->patriPod();
     }
