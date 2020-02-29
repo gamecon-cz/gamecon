@@ -419,25 +419,25 @@ SQL
     return $this->success($cleansedValues);
   }
 
-  private function importActivity(array $validatedValues, ?\Aktivita $existingAcivity): array {
-    if ($existingAcivity) {
-      if (!$existingAcivity->bezpecneEditovatelna()) {
+  private function importActivity(array $validatedValues, ?\Aktivita $existingActivity): array {
+    if ($existingActivity) {
+      if (!$existingActivity->bezpecneEditovatelna()) {
         return $this->error(sprintf(
           "Aktivitu %s už nelze editovat importem, protože je ve stavu '%s'",
-          $this->describeActivity($existingAcivity), $existingAcivity->stav()->nazev()
+          $this->describeActivity($existingActivity), $existingActivity->stav()->nazev()
         ));
       }
-      if ($existingAcivity->zacatek() && $existingAcivity->zacatek()->getTimestamp() <= $this->now->getTimestamp()) {
+      if ($existingActivity->zacatek() && $existingActivity->zacatek()->getTimestamp() <= $this->now->getTimestamp()) {
         return $this->error(sprintf(
           "Aktivitu %s už nelze editovat importem, protože už začala (začátek v %s)",
-          $this->describeActivity($existingAcivity), $existingAcivity->zacatek()->formatCasNaMinutyStandard()
+          $this->describeActivity($existingActivity), $existingActivity->zacatek()->formatCasNaMinutyStandard()
         ));
       }
-      if ($existingAcivity->konec() && $existingAcivity->konec()->getTimestamp() <= $this->now->getTimestamp()) {
+      if ($existingActivity->konec() && $existingActivity->konec()->getTimestamp() <= $this->now->getTimestamp()) {
         return $this->error(sprintf(
           "Aktivitu %s už nelze editovat importem, protože už skončila (konec v %s)",
-          $this->describeActivity($existingAcivity),
-          $existingAcivity->konec()->formatCasNaMinutyStandard()
+          $this->describeActivity($existingActivity),
+          $existingActivity->konec()->formatCasNaMinutyStandard()
         ));
       }
     }
@@ -453,8 +453,8 @@ SQL
       $storytellersIds,
       $values[AktivitaSqlSloupce::ZACATEK],
       $values[AktivitaSqlSloupce::KONEC],
-      $existingAcivity
-        ? $existingAcivity->id()
+      $existingActivity
+        ? $existingActivity->id()
         : null,
       $values
     );
@@ -466,8 +466,8 @@ SQL
       $values[AktivitaSqlSloupce::LOKACE],
       $values[AktivitaSqlSloupce::ZACATEK],
       $values[AktivitaSqlSloupce::KONEC],
-      $existingAcivity
-        ? $existingAcivity->id()
+      $existingActivity
+        ? $existingActivity->id()
         : null,
       $values
     );
@@ -476,12 +476,12 @@ SQL
     }
 
     /** @var \Aktivita $savedActivity */
-    ['success' => $savedActivity, 'error' => $savedActivityError] = $this->saveActivity($values, $longAnnotation, $storytellersIds, $tagIds, $existingAcivity);
+    ['success' => $savedActivity, 'error' => $savedActivityError] = $this->saveActivity($values, $longAnnotation, $storytellersIds, $tagIds, $existingActivity);
 
     if ($savedActivityError) {
       return $this->error($savedActivityError);
     }
-    if ($existingAcivity) {
+    if ($existingActivity) {
       return $this->result(
         sprintf('Upravena aktivita %s', $this->describeActivity($savedActivity)),
         $locationAccessibilityWarning ?: null,
@@ -677,10 +677,10 @@ SQL
     }
   }
 
-  private function validateValues(array $activityValues, ?\Aktivita $aktivita): array {
+  private function validateValues(array $activityValues, ?\Aktivita $existingActivity): array {
     $sanitizedValues = [];
-    if ($aktivita) {
-      $sanitizedValues = $aktivita->rawDb();
+    if ($existingActivity) {
+      $sanitizedValues = $existingActivity->rawDb();
       // remove values originating in another tables
       $sanitizedValues = array_intersect_key(
         $sanitizedValues,
@@ -690,130 +690,134 @@ SQL
     $tagIds = null;
     $storytellersIds = null;
 
-    ['success' => $programLineId, 'error' => $programLineIdError] = $this->getValidatedProgramLineId($activityValues, $aktivita);
+    $sanitizedValues[AktivitaSqlSloupce::ID_AKCE] = $existingActivity
+      ? $existingActivity->id()
+      : null;
+
+    ['success' => $programLineId, 'error' => $programLineIdError] = $this->getValidatedProgramLineId($activityValues, $existingActivity);
     if ($programLineIdError) {
       return $this->error($programLineIdError);
     }
     $sanitizedValues[AktivitaSqlSloupce::TYP] = $programLineId;
 
-    ['success' => $activityName, 'error' => $activityNameError] = $this->getValidatedActivityName($activityValues, $aktivita);
+    ['success' => $activityName, 'error' => $activityNameError] = $this->getValidatedActivityName($activityValues, $existingActivity);
     if ($activityNameError) {
       return $this->error($activityNameError);
     }
     $sanitizedValues[AktivitaSqlSloupce::NAZEV_AKCE] = $activityName;
 
-    ['success' => $activityUrl, 'error' => $activityUrlError] = $this->getValidatedUrl($activityValues, $aktivita);
+    ['success' => $activityUrl, 'error' => $activityUrlError] = $this->getValidatedUrl($activityValues, $existingActivity);
     if ($activityUrlError) {
       return $this->error($activityUrlError);
     }
     $sanitizedValues[AktivitaSqlSloupce::URL_AKCE] = $activityUrl;
 
-    ['success' => $shortAnnotation, 'error' => $shortAnnotationError] = $this->getValidatedShortAnnotation($activityValues, $aktivita);
+    ['success' => $shortAnnotation, 'error' => $shortAnnotationError] = $this->getValidatedShortAnnotation($activityValues, $existingActivity);
     if ($shortAnnotationError) {
       return $this->error($shortAnnotationError);
     }
     $sanitizedValues[AktivitaSqlSloupce::POPIS_KRATKY] = $shortAnnotation;
 
-    ['success' => $tagIds, 'error' => $tagIdsError] = $this->getValidatedTagIds($activityValues, $aktivita);
+    ['success' => $tagIds, 'error' => $tagIdsError] = $this->getValidatedTagIds($activityValues, $existingActivity);
     if ($tagIdsError) {
       return $this->error($tagIdsError);
     }
 
-    ['success' => $longAnnotation, 'error' => $longAnnotationError] = $this->getValidatedLongAnnotation($activityValues, $aktivita);
+    ['success' => $longAnnotation, 'error' => $longAnnotationError] = $this->getValidatedLongAnnotation($activityValues, $existingActivity);
     if ($longAnnotationError) {
       return $this->error($longAnnotationError);
     }
 
-    ['success' => $activityStart, 'error' => $activityStartError] = $this->getValidatedStart($activityValues, $aktivita);
+    ['success' => $activityStart, 'error' => $activityStartError] = $this->getValidatedStart($activityValues, $existingActivity);
     if ($activityStartError) {
       return $this->error($activityStartError);
     }
     $sanitizedValues[AktivitaSqlSloupce::ZACATEK] = $activityStart;
 
-    ['success' => $activityEnd, 'error' => $activityEndError] = $this->getValidatedEnd($activityValues, $aktivita);
+    ['success' => $activityEnd, 'error' => $activityEndError] = $this->getValidatedEnd($activityValues, $existingActivity);
     if ($activityEndError) {
       return $this->error($activityEndError);
     }
     $sanitizedValues[AktivitaSqlSloupce::KONEC] = $activityEnd;
 
-    ['success' => $programLocationId, 'error' => $programLocationIdError] = $this->getValidatedProgramLocationId($activityValues, $aktivita);
+    ['success' => $programLocationId, 'error' => $programLocationIdError] = $this->getValidatedProgramLocationId($activityValues, $existingActivity);
     if ($programLocationIdError) {
       return $this->error($programLocationIdError);
     }
     $sanitizedValues[AktivitaSqlSloupce::LOKACE] = $programLocationId;
 
-    ['success' => $storytellersIds, 'error' => $storytellersIdsError] = $this->getValidatedStorytellersIds($activityValues, $aktivita);
+    ['success' => $storytellersIds, 'error' => $storytellersIdsError] = $this->getValidatedStorytellersIds($activityValues, $existingActivity);
     if ($storytellersIdsError) {
       return $this->error($storytellersIdsError);
     }
 
-    ['success' => $unisexCapacity, 'error' => $unisexCapacityError] = $this->getValidatedUnisexCapacity($activityValues, $aktivita);
+    ['success' => $unisexCapacity, 'error' => $unisexCapacityError] = $this->getValidatedUnisexCapacity($activityValues, $existingActivity);
     if ($unisexCapacityError) {
       return $this->error($unisexCapacityError);
     }
     $sanitizedValues[AktivitaSqlSloupce::KAPACITA] = $unisexCapacity;
 
-    ['success' => $menCapacity, 'error' => $menCapacityError] = $this->getValidatedMenCapacity($activityValues, $aktivita);
+    ['success' => $menCapacity, 'error' => $menCapacityError] = $this->getValidatedMenCapacity($activityValues, $existingActivity);
     if ($menCapacityError) {
       return $this->error($menCapacityError);
     }
     $sanitizedValues[AktivitaSqlSloupce::KAPACITA_M] = $menCapacity;
 
-    ['success' => $womenCapacity, 'error' => $womenCapacityError] = $this->getValidatedWomenCapacity($activityValues, $aktivita);
+    ['success' => $womenCapacity, 'error' => $womenCapacityError] = $this->getValidatedWomenCapacity($activityValues, $existingActivity);
     if ($womenCapacityError) {
       return $this->error($womenCapacityError);
     }
     $sanitizedValues[AktivitaSqlSloupce::KAPACITA_F] = $womenCapacity;
 
-    ['success' => $forTeam, 'error' => $forTeamError] = $this->getValidatedForTeam($activityValues, $aktivita);
+    ['success' => $forTeam, 'error' => $forTeamError] = $this->getValidatedForTeam($activityValues, $existingActivity);
     if ($forTeamError) {
       return $this->error($forTeamError);
     }
     $sanitizedValues[AktivitaSqlSloupce::TEAMOVA] = $forTeam;
 
-    ['success' => $minimalTeamCapacity, 'error' => $minimalTeamCapacityError] = $this->getValidatedMinimalTeamCapacity($activityValues, $aktivita);
+    ['success' => $minimalTeamCapacity, 'error' => $minimalTeamCapacityError] = $this->getValidatedMinimalTeamCapacity($activityValues, $existingActivity);
     if ($minimalTeamCapacityError) {
       return $this->error($minimalTeamCapacityError);
     }
     $sanitizedValues[AktivitaSqlSloupce::TEAM_MIN] = $minimalTeamCapacity;
 
-    ['success' => $maximalTeamCapacity, 'error' => $maximalTeamCapacityError] = $this->getValidatedMaximalTeamCapacity($activityValues, $aktivita);
+    ['success' => $maximalTeamCapacity, 'error' => $maximalTeamCapacityError] = $this->getValidatedMaximalTeamCapacity($activityValues, $existingActivity);
     if ($maximalTeamCapacityError) {
       return $this->error($maximalTeamCapacityError);
     }
     $sanitizedValues[AktivitaSqlSloupce::TEAM_MAX] = $maximalTeamCapacity;
 
-    ['success' => $price, 'error' => $priceError] = $this->getValidatedPrice($activityValues, $aktivita);
+    ['success' => $price, 'error' => $priceError] = $this->getValidatedPrice($activityValues, $existingActivity);
     if ($priceError) {
       return $this->error($priceError);
     }
     $sanitizedValues[AktivitaSqlSloupce::CENA] = $price;
 
-    ['success' => $withoutDiscount, 'error' => $withoutDiscountError] = $this->getValidatedWithoutDiscount($activityValues, $aktivita);
+    ['success' => $withoutDiscount, 'error' => $withoutDiscountError] = $this->getValidatedWithoutDiscount($activityValues, $existingActivity);
     if ($withoutDiscountError) {
       return $this->error($withoutDiscountError);
     }
     $sanitizedValues[AktivitaSqlSloupce::BEZ_SLEVY] = $withoutDiscount;
 
-    ['success' => $equipment, 'error' => $equipmentError] = $this->getValidatedEquipment($activityValues, $aktivita);
+    ['success' => $equipment, 'error' => $equipmentError] = $this->getValidatedEquipment($activityValues, $existingActivity);
     if ($equipmentError) {
       return $this->error($equipmentError);
     }
     $sanitizedValues[AktivitaSqlSloupce::VYBAVENI] = $equipment;
 
-    ['success' => $stateId, 'error' => $stateIdError] = $this->getValidatedStateId($activityValues, $aktivita);
+    ['success' => $stateId, 'error' => $stateIdError] = $this->getValidatedStateId($activityValues, $existingActivity);
     if ($stateIdError) {
       return $this->error($stateIdError);
     }
     $sanitizedValues[AktivitaSqlSloupce::STAV] = $stateId;
 
-    ['success' => $year, 'error' => $yearError] = $this->getValidatedYear($activityValues, $aktivita);
+    ['success' => $year, 'error' => $yearError] = $this->getValidatedYear($activityValues, $existingActivity);
     if ($yearError) {
       return $this->error($yearError);
     }
     $sanitizedValues[AktivitaSqlSloupce::ROK] = $year;
 
-    ['success' => $instanceId, 'error' => $instanceIdError] = $this->getValidatedInstanceId($activityValues, $aktivita);
+    ['success' => $instanceId, 'error' => $instanceIdError] = $this->getValidatedInstanceId($activityValues, $existingActivity);
     if ($instanceIdError) {
       return $this->error($instanceIdError);
     }
