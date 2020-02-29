@@ -502,10 +502,8 @@ class Aktivita
     } else { //aktivita je zatím bez instanční skupiny - vytvoříme
       dbBegin();
       try {
-        dbQuery('INSERT INTO akce_instance(id_hlavni_akce) VALUES($1)', [$this->id()]);
-        $patriPod = dbInsertId();
+        $patriPod = $this->vytvorInstanci();
         $akt['patri_pod'] = $patriPod;
-        dbQuery('UPDATE akce_seznam SET patri_pod=' . $patriPod . ' WHERE id_akce=' . $this->id()); //update původní aktivity
         dbInsert('akce_seznam', $akt);
         $idNoveAktivity = dbInsertId();
         dbCommit();
@@ -520,6 +518,16 @@ class Aktivita
     $novaAktivita->nastavTagy($this->tagy());
 
     return $novaAktivita;
+  }
+
+  public function vytvorInstanci(): int {
+    if ($this->patriPod()) {
+      return $this->patriPod();
+    }
+    dbQuery('INSERT INTO akce_instance(id_hlavni_akce) VALUES ($1)', [$this->id()]);
+    $patriPod = dbInsertId();
+    dbQuery('UPDATE akce_seznam SET patri_pod = $1 WHERE id_akce = $2', [$patriPod, $this->id()]); // update původní aktivity
+    return $patriPod;
   }
 
   /**
@@ -812,7 +820,7 @@ class Aktivita
   }
 
   /**
-   * @return Vrátí iterátor jmen organizátorů v lidsky čitelné podobě.
+   * @return string[]|ArrayIterator Vrátí iterátor jmen organizátorů v lidsky čitelné podobě.
    * @deprecated Použít přístup přes organizatori() a jmenoNick() například.
    */
   function orgJmena() {
@@ -827,6 +835,29 @@ class Aktivita
   /** Alias */
   function otoc() {
     $this->refresh();
+  }
+
+  public function patriPodAktivitu(): ?Aktivita {
+    $patriPodInstanciId = $this->patriPod();
+    if (!$patriPodInstanciId) {
+      return null;
+    }
+    $hlavniAktivitaId = dbOneCol(<<<SQL
+SELECT akce_instance.id_hlavni_akce FROM akce_instance
+WHERE akce_instance.id = $1
+SQL
+      , [$patriPodInstanciId]
+    );
+    if (!$hlavniAktivitaId) {
+      trigger_error("Aktivita {$this->id()} tvrdí, že je instancí aktivity {$hlavniAktivitaId}, ale v tabulce instancí taková není.", E_USER_WARNING);
+      return null;
+    }
+    $hlavniAktivita = Aktivita::zId($hlavniAktivitaId);
+    if (!$hlavniAktivita) {
+      trigger_error("Aktivita {$this->id()} tvrdí, že je instancí aktivity {$hlavniAktivitaId}, ale taková aktivita neexistuje.", E_USER_WARNING);
+      return null;
+    }
+    return $hlavniAktivita;
   }
 
   /** Skupina (id) aktivit. Spíše hack, raději refaktorovat */
