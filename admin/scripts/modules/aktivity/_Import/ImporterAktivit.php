@@ -131,7 +131,8 @@ class ImporterAktivit
 
       ['success' => $programLine, 'error' => $singleProgramLineError] = $this->guardSingleProgramLineOnly($activitiesValues);
       if ($singleProgramLineError) {
-        return $this->error($singleProgramLineError);
+        $result['messages']['errors'][] = $singleProgramLineError;
+        return $result;
       }
 
       if (!$this->getExclusiveLock($programLine)) {
@@ -159,7 +160,8 @@ class ImporterAktivit
 
         ['success' => $validatedValues, 'error' => $validatedValuesError] = $this->validateValues($activityValues, $aktivita);
         if ($validatedValuesError) {
-          return $this->error($validatedValuesError);
+          $result['messages']['errors'][] = $validatedValuesError;
+          continue;
         }
 
         ['success' => $importActivitySuccess, 'warning' => $importActivityWarning, 'error' => $importActivityError] = $this->importActivity($validatedValues, $aktivita);
@@ -481,13 +483,13 @@ SQL
     }
     if ($existingAcivity) {
       return $this->result(
-        sprintf('Upravena aktivita <a target="_blank" href="%s%d">%s</a>', $this->editActivityUrlSkeleton, $savedActivity->id(), $this->describeActivity($savedActivity)),
+        sprintf('Upravena aktivita %s', $this->describeActivity($savedActivity)),
         $locationAccessibilityWarning ?: null,
         null
       );
     }
     return $this->result(
-      sprintf('Nahrána nová aktivita <a target="_blank" href="%s%d">%s</a>', $this->editActivityUrlSkeleton, $savedActivity->id(), $this->describeActivity($savedActivity)),
+      sprintf('Nahrána nová aktivita %s', $this->describeActivity($savedActivity)),
       $locationAccessibilityWarning ?: null,
       null
     );
@@ -633,14 +635,17 @@ SQL
       return $this->success($locationId);
     }
     return $this->warning(sprintf(
-      'Místnost %s je někdy mezi %s a %s již zabraná aktivitou %s. Aktivita %s byla nahrána <strong>bez</strong> místnosti.',
+      'Místnost %s je někdy mezi %s a %s již zabraná jinou aktivitou %s. Nahrávaná aktivita %s byla proto %s.',
       $this->describeLocationById($locationId),
-      $zacatek->formatCasStandard(),
-      $konec->formatCasStandard(),
+      $zacatek->formatCasNaMinutyStandard(),
+      $konec->formatCasNaMinutyStandard(),
       $this->describeActivityById((int)$locationOccupyingActivityId),
       $currentActivityId
         ? $this->describeActivityById($currentActivityId)
-        : $values[AktivitaSqlSloupce::URL_AKCE] || $values[AktivitaSqlSloupce::NAZEV_AKCE] || var_export($values, true)
+        : $values[AktivitaSqlSloupce::URL_AKCE] || $values[AktivitaSqlSloupce::NAZEV_AKCE] || var_export($values, true),
+      $currentActivityId
+        ? sprintf('ponechána v původní místnosti %s', \Aktivita::zId($currentActivityId)->lokace()->nazev())
+        : 'nahrána <strong>bez</strong> místnosti'
     ));
   }
 
@@ -1364,7 +1369,7 @@ SQL
         ? $aktivita->nazev()
         : '';
     if ($id && $nazev) {
-      return "$nazev ($id)";
+      return $this->createLinkToActivity($id, $nazev);
     }
     $url = $activityValues[ExportAktivitSloupce::URL]
       ?? $aktivita
@@ -1411,9 +1416,9 @@ SQL
       if (empty($activityValues[ExportAktivitSloupce::NAZEV])) {
         return $this->error(sprintf('Nová aktivita %s nemá ani URL, ani název, ze kterého by URL šlo vytvořit.', $this->describeActivityByValues($activityValues, $aktivita)));
       }
-      $activityUrl = $this->createUrl($activityValues[ExportAktivitSloupce::NAZEV]);
+      $activityUrl = $this->toUrl($activityValues[ExportAktivitSloupce::NAZEV]);
     }
-    $activityUrl = $this->createUrl($activityUrl);
+    $activityUrl = $this->toUrl($activityUrl);
     $occupiedByActivities = dbFetchAll(<<<SQL
 SELECT id_akce, nazev_akce, patri_pod
 FROM akce_seznam
@@ -1433,12 +1438,13 @@ SQL
             || ($occupiedByActivityId !== $aktivita->id() && (!$patriPod || $patriPod !== $aktivita->patriPod())))
         ) {
           return $this->error(sprintf(
-            "URL '%s' %saktivity %s už je obsazena aktivitou %s",
+            "URL '%s' %simportované aktivity %s už je obsazena existující aktivitou %s",
+            $activityUrl,
             empty($activityValues[ExportAktivitSloupce::URL])
               ? '(odhadnutá z názvu) '
               : '',
-            $activityUrl,
-            $this->describeActivityByValues($activityValues, $aktivita), $this->describeActivityById($occupiedByActivity['id_akce'])
+            $this->describeActivityByValues($activityValues, $aktivita),
+            $this->describeActivityById((int)$occupiedByActivity['id_akce'])
           ));
         }
       }
@@ -1446,9 +1452,9 @@ SQL
     return $this->success($activityUrl);
   }
 
-  private function createUrl(string $value): string {
+  private function toUrl(string $value): string {
     $sanitized = strtolower(odstranDiakritiku($value));
-    return preg_replace('~[^a-z]+~', '-', $sanitized);
+    return preg_replace('~\W+~', '-', $sanitized);
   }
 
   private function getValidatedActivityName(array $activityValues, ?\Aktivita $aktivita): array {
@@ -1568,6 +1574,10 @@ SQL
   }
 
   private function getLinkToActivity(\Aktivita $aktivita): string {
-    return sprintf('<a target="_blank" href="%s%d">%s</a>', $this->editActivityUrlSkeleton, $aktivita->id(), $this->describeActivity($aktivita));
+    return $this->createLinkToActivity($aktivita->id(), $this->describeActivityByValues([], $aktivita));
+  }
+
+  private function createLinkToActivity(int $id, string $name): string {
+    return sprintf('<a target="_blank" href="%s%d">%s</a>', $this->editActivityUrlSkeleton, $id, $name);
   }
 }
