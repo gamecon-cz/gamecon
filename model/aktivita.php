@@ -830,8 +830,10 @@ class Aktivita
   }
 
   /** Skupina (id) aktivit. Spíše hack, raději refaktorovat */
-  function patriPod() {
-    return $this->a['patri_pod'];
+  function patriPod(): ?int {
+    return $this->a['patri_pod']
+      ? (int)$this->a['patri_pod']
+      : null;
   }
 
   /**
