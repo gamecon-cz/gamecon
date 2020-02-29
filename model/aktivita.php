@@ -419,11 +419,11 @@ class Aktivita
     }
 
     // uložení změn do akce_seznam
-    if (!$data['patri_pod'] && $data['id_akce']) {
+    if (empty($data['patri_pod']) && !empty($data['id_akce'])) {
       // editace jediné aktivity
       dbInsertUpdate('akce_seznam', $data);
       $aktivita = self::zId($data['id_akce']);
-    } elseif ($data['patri_pod']) {
+    } elseif (!empty($data['patri_pod'])) {
       // editace aktivity z rodiny instancí
       $doHlavni = ['url_akce', 'popis', 'vybaveni'];  // věci, které se mají změnit jen u hlavní (master) `instanc`e
       $doAktualni = ['lokace', 'zacatek', 'konec'];       // věci, které se mají změnit jen u aktuální instance
@@ -449,8 +449,8 @@ class Aktivita
       // inicializace hodnot pro novou aktivitu
       $data['id_akce'] = null;
       $data['rok'] = ROK;
-      if ($data['teamova']) $data['kapacita'] = $data['team_max']; // při vytváření nové aktivity se kapacita inicializuje na max. teamu
-      if (empty($data['nazev_akce'])) $data['nazev_akce'] = '(neurčený název)';
+      if (!empty($data['teamova'])) $data['kapacita'] = $data['team_max'] ?? 0; // při vytváření nové aktivity se kapacita inicializuje na max. teamu
+      if (empty($data['nazev_akce'])) $data['nazev_akce'] = '(bez názvu)';
       // vložení
       dbInsertUpdate('akce_seznam', $data);
       $data['id_akce'] = dbInsertId();
