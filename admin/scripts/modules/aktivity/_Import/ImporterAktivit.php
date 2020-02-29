@@ -67,7 +67,7 @@ class ImporterAktivit
   /**
    * @var array|int[]
    */
-  private $keyUnifyDepth = [];
+  private $keyUnifyDepth = ['storytellers' => ['fromName' => self::UNIFY_UP_TO_LETTERS, 'fromNick' => self::UNIFY_UP_TO_LETTERS]];
   /**
    * @var string
    */
@@ -1017,8 +1017,7 @@ SQL
 
   private function getStorytellersCache(): array {
     if (!$this->storytellersCache) {
-      $this->storytellersCache = ['id' => [], 'keyFromEmail' => [], 'keyFromName' => [], 'keyFromNick' => []];
-      $this->keyUnifyDepth['storytellers'] = ['fromName' => self::UNIFY_UP_TO_LETTERS, 'fromNick' => self::UNIFY_UP_TO_LETTERS];
+      $this->storytellersCache = ['id' => [], 'keyFromEmail' => [], 'keyFromName' => [], 'keyFromNick' => [], 'storytellers' => []];
 
       $storytellers = \Uzivatel::organizatori();
 
