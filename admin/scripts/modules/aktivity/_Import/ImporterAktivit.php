@@ -1312,14 +1312,14 @@ SQL
   }
 
   private function getValidatedStart(array $activityValues, ?\Aktivita $aktivita): array {
-    $beginning = $activityValues[ExportAktivitSloupce::ZACATEK] ?? null;
-    if (!$beginning) {
-      if ($aktivita) {
+    $start = $activityValues[ExportAktivitSloupce::ZACATEK] ?? null;
+    if (!$start) {
+      if (!$aktivita) {
         return $this->success(null);
       }
-      $beginningObject = $aktivita->zacatek();
-      return $this->success($beginningObject
-        ? $beginningObject->formatDb()
+      $startZacatek = $aktivita->zacatek();
+      return $this->success($startZacatek
+        ? $startZacatek->formatDb()
         : null
       );
     }
