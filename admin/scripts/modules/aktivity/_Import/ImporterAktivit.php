@@ -1484,7 +1484,14 @@ SQL
     }
     $occupiedByActivityId = dbOneCol('SELECT id_akce FROM akce_seznam WHERE nazev_akce = $1 AND rok = $2', [$activityNameValue, $this->currentYear]);
     if ($occupiedByActivityId && (!$aktivita || (int)$occupiedByActivityId !== $aktivita->id())) {
-      return $this->error(sprintf("Název aktivity '%s' už je obsazený aktivitou %s", $activityNameValue, $this->describeActivityById((int)$occupiedByActivityId)));
+      return $this->error(sprintf(
+        "Název '%s' %s už je obsazený existující aktivitou %s",
+        $activityNameValue,
+        $aktivita
+          ? sprintf('upravované aktivity %s', $this->describeActivity($aktivita))
+          : 'importované aktivity',
+        $this->describeActivityById((int)$occupiedByActivityId)
+      ));
     }
     return $this->success($activityNameValue);
   }
