@@ -1135,7 +1135,7 @@ SQL
     );
   }
 
-  private function getValidatedYear(array $activityValues, \Aktivita $aktivita): array {
+  private function getValidatedYear(array $activityValues, ?\Aktivita $aktivita): array {
     if (!$aktivita) {
       return $this->success($this->currentYear);
     }
