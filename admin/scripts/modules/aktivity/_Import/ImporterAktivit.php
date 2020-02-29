@@ -813,6 +813,12 @@ SQL
     }
     $sanitizedValues[AktivitaSqlSloupce::ROK] = $year;
 
+    ['success' => $instanceId, 'error' => $instanceIdError] = $this->getValidatedInstanceId($activityValues, $aktivita);
+    if ($instanceIdError) {
+      return $this->error($instanceIdError);
+    }
+    $sanitizedValues[AktivitaSqlSloupce::PATRI_POD] = $instanceId;
+
     return $this->success(['values' => $sanitizedValues, 'longAnnotation' => $longAnnotation, 'storytellersIds' => $storytellersIds, 'tagIds' => $tagIds]);
   }
 
@@ -1133,6 +1139,14 @@ SQL
       ? $aktivita->kratkyPopis()
       : ''
     );
+  }
+
+  private function getValidatedInstanceId(array $activityValues, ?\Aktivita $aktivita): array {
+    if ($aktivita) {
+      $this->success($aktivita->patriPod());
+    }
+    return $this->success(null);
+    // TODO solve instance determination
   }
 
   private function getValidatedYear(array $activityValues, ?\Aktivita $aktivita): array {
