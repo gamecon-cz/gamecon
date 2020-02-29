@@ -129,14 +129,15 @@ class ImporterAktivit
         return $result;
       }
 
-      ['success' => $programLine, 'error' => $singleProgramLineError] = $this->guardSingleProgramLineOnly($activitiesValues);
+      /** @var \Typ $singleProgramLine */
+      ['success' => $singleProgramLine, 'error' => $singleProgramLineError] = $this->guardSingleProgramLineOnly($activitiesValues);
       if ($singleProgramLineError) {
         $result['messages']['errors'][] = $singleProgramLineError;
         return $result;
       }
 
-      if (!$this->getExclusiveLock($programLine)) {
-        $result['messages']['warnings'][] = sprintf("Právě probíhá jiný import aktivit z programové linie '%s'. Zkus to za chvíli znovu.", mb_ucfirst($programLine));
+      if (!$this->getExclusiveLock($singleProgramLine->nazev())) {
+        $result['messages']['warnings'][] = sprintf("Právě probíhá jiný import aktivit z programové linie '%s'. Zkus to za chvíli znovu.", mb_ucfirst($singleProgramLine->nazev()));
         return $result;
       }
 
@@ -158,7 +159,7 @@ class ImporterAktivit
           }
         }
 
-        ['success' => $validatedValues, 'error' => $validatedValuesError] = $this->validateValues($activityValues, $aktivita);
+        ['success' => $validatedValues, 'error' => $validatedValuesError] = $this->validateValues($singleProgramLine, $activityValues, $aktivita);
         if ($validatedValuesError) {
           $result['messages']['errors'][] = $validatedValuesError;
           continue;
@@ -232,10 +233,6 @@ class ImporterAktivit
     return $this->mutexKey;
   }
 
-  private function importInstance(int $parentActivityId, array $values): array {
-    return $this->success("TODO Zatím nic s instancí mateřské aktivity $parentActivityId: " . implode(';', $values));
-  }
-
   private function success($success): array {
     return ['success' => $success, 'warning' => false, 'error' => false];
   }
@@ -252,52 +249,28 @@ class ImporterAktivit
     return ['success' => $success, 'warning' => $warning, 'error' => $error];
   }
 
-  private function mayBeInstance(array $activityValues, ?int $parentActivityId): bool {
-    if (!empty($activityValues[ExportAktivitSloupce::ID_AKTIVITY])) {
-      $aktivita = \Aktivita::zId((int)$activityValues[ExportAktivitSloupce::ID_AKTIVITY]);
-      return (bool)$aktivita->patriPod();
-    }
-    $programovaLinie = $activityValues[ExportAktivitSloupce::PROGRAMOVA_LINIE] ?? null; // may be name or ID
-    $url = $activityValues[ExportAktivitSloupce::URL] ?? null;
-    if ($url && $programovaLinie) {
-      $parentId = dbOneCol(<<<SQL
-SELECT MIN(id_akce) AS parent_id
-FROM akce_seznam
-INNER JOIN akce_typy ON akce_typy.id_typu = akce_seznam.typ
-WHERE url_akce = $1 AND rok = $2 AND (akce_typy.typ_1pmn = $3 OR akce_typy.id_typu = $3)
-SQL
-        , [$url, $this->currentYear, $programovaLinie /* name or ID */]
-      );
-      if ($parentId) {
-        return true;
-      }
+  private function findParentInstanceId(?\Aktivita $originalActivity, ?string $url, int $programLineId): ?int {
+    if ($originalActivity) {
+      $parentId = $originalActivity->patriPod();
+      return $parentId
+        ? (int)$parentId
+        : null;
     }
     if ($url) {
-      $ids = dbOneArray(<<<SQL
-SELECT id_akce
+      $parentId = dbOneCol(<<<SQL
+SELECT akce_instance.id_hlavni_akce
 FROM akce_seznam
-WHERE url_akce = $1 AND rok = $2
+JOIN akce_instance on akce_seznam.id_akce = akce_instance.id_hlavni_akce
+WHERE akce_seznam.url_akce = $1 AND akce_seznam.rok = $2 AND akce_seznam.typ = $3
+LIMIT 1
 SQL
-        , [$url, $this->currentYear]
+        , [$url, $this->currentYear, $programLineId]
       );
-      if (count($ids) === 1) { // without type there may be more IDs per URL-and-year
-        return true;
+      if ($parentId) {
+        return (int)$parentId;
       }
     }
-    $nazevAkce = $activityValues[ExportAktivitSloupce::NAZEV];
-    if ($nazevAkce) {
-      $ids = dbOneArray(<<<SQL
-SELECT id_akce
-FROM akce_seznam
-WHERE nazev_akce = $1 AND rok = $2
-SQL
-        , [$nazevAkce, $this->currentYear]
-      );
-      if (count($ids) === 1) { // there may be more IDs per name-and-year
-        return true;
-      }
-    }
-    return false;
+    return null;
   }
 
   private function getValidatedOldActivityById(int $id): array {
@@ -496,37 +469,39 @@ SQL
   }
 
   private function guardSingleProgramLineOnly(array $activitiesValues): array {
-    $programLineNames = [];
+    $programLines = [];
     foreach ($activitiesValues as $row) {
-      $programLineName = null;
+      $programLine = null;
+      $programLineId = null;
       $programLineValue = $row[ExportAktivitSloupce::PROGRAMOVA_LINIE] ?? null;
       if ($programLineValue) {
         $programLine = $this->getProgramLineFromValue((string)$programLineValue);
-        if ($programLine) {
-          $programLineName = $programLine->nazev();
-        }
       }
-      if (!$programLineName && $row[ExportAktivitSloupce::ID_AKTIVITY]) {
+      if (!$programLine && $row[ExportAktivitSloupce::ID_AKTIVITY]) {
         $aktivita = \Aktivita::zId($row[ExportAktivitSloupce::ID_AKTIVITY]);
-        if ($aktivita) {
-          $programLineName = $aktivita->typ() && $aktivita->typ()->nazev();
+        if ($aktivita && $aktivita->typ()) {
+          $programLine = $aktivita->typ();
         }
       }
-      if ($programLineName && !in_array($programLineName, $programLineNames, true)) {
-        $programLineNames[] = $programLineName;
+      if ($programLine && !array_key_exists($programLine->id(), $programLines)) {
+        $programLines[$programLineId] = $programLine;
       }
     }
-    if (count($programLineNames) > 1) {
+    if (count($programLines) > 1) {
       return $this->error(sprintf(
         'Importovat lze pouze jednu programovou linii. Importní soubor jich má %d: %s',
-        count($programLineNames),
-        implode(',', self::wrapByQuotes($programLineNames))
-      ));
+        count($programLines),
+        implode(
+          ',',
+          self::wrapByQuotes(array_map(static function (\Typ $typ) {
+            return $typ->nazev();
+          }, $programLines))
+        )));
     }
-    if (count($programLineNames) === 0) {
+    if (count($programLines) === 0) {
       return $this->error('V importovaném souboru chybí programová linie, nebo alespoň existující aktivita s nastavenou programovou linií.');
     }
-    return $this->success(reset($programLineNames));
+    return $this->success(reset($programLines));
   }
 
   private function checkStorytellersAccessibility(array $storytellersIds, ?string $zacatekString, ?string $konecString, ?int $currentActivityId, array $values): array {
@@ -677,7 +652,7 @@ SQL
     }
   }
 
-  private function validateValues(array $activityValues, ?\Aktivita $existingActivity): array {
+  private function validateValues(\Typ $singleProgramLine, array $activityValues, ?\Aktivita $existingActivity): array {
     $sanitizedValues = [];
     if ($existingActivity) {
       $sanitizedValues = $existingActivity->rawDb();
@@ -817,7 +792,12 @@ SQL
     }
     $sanitizedValues[AktivitaSqlSloupce::ROK] = $year;
 
-    ['success' => $instanceId, 'error' => $instanceIdError] = $this->getValidatedInstanceId($activityValues, $existingActivity);
+    // have to be last, respectively needs URL and ID
+    ['success' => $instanceId, 'error' => $instanceIdError] = $this->getValidatedInstanceId(
+      $existingActivity,
+      $activityValues[AktivitaSqlSloupce::URL_AKCE],
+      $singleProgramLine->id()
+    );
     if ($instanceIdError) {
       return $this->error($instanceIdError);
     }
@@ -1145,12 +1125,8 @@ SQL
     );
   }
 
-  private function getValidatedInstanceId(array $activityValues, ?\Aktivita $aktivita): array {
-    if ($aktivita) {
-      $this->success($aktivita->patriPod());
-    }
-    return $this->success(null);
-    // TODO solve instance determination
+  private function getValidatedInstanceId(?\Aktivita $originalActivity, ?string $url, int $programLineId): array {
+    return $this->success($this->findParentInstanceId($originalActivity, $url, $programLineId));
   }
 
   private function getValidatedYear(array $activityValues, ?\Aktivita $aktivita): array {
