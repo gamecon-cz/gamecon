@@ -409,13 +409,14 @@ class Aktivita
   }
 
   public static function uloz(array $data, ?string $markdownPopis, array $organizatoriIds, array $tagIds, string $obrazekSoubor = null, string $obrazekUrl = null): Aktivita {
-    $a['bez_slevy'] = (int)!empty($a['bez_slevy']); //checkbox pro "bez_slevy"
-    $a['teamova'] = (int)!empty($a['teamova']);   //checkbox pro "teamova"
-    $a['team_min'] = $a['teamova'] ? (int)$a['team_min'] : null;
-    $a['team_max'] = $a['teamova'] ? (int)$a['team_max'] : null;
+    $data['bez_slevy'] = (int)!empty($data['bez_slevy']); //checkbox pro "bez_slevy"
+    $data['teamova'] = (int)!empty($data['teamova']);   //checkbox pro "teamova"
+    $data['team_min'] = $data['teamova'] ? (int)$data['team_min'] : null;
+    $data['team_max'] = $data['teamova'] ? (int)$data['team_max'] : null;
+    $data['patri_pod'] = !empty($data['patri_pod']) ? $data['patri_pod'] : null;
     // u teamových aktivit se kapacita ignoruje - později se nechá jak je nebo přepíše minimem, pokud jde o novou aktivitu
-    if ($a['teamova']) {
-      unset($a['kapacita'], $a['kapacita_f'], $a['kapacita_m']);
+    if ($data['teamova']) {
+      unset($data['kapacita'], $data['kapacita_f'], $data['kapacita_m']);
     }
 
     // uložení změn do akce_seznam
@@ -425,7 +426,7 @@ class Aktivita
       $aktivita = self::zId($data['id_akce']);
     } elseif (!empty($data['patri_pod'])) {
       // editace aktivity z rodiny instancí
-      $doHlavni = ['url_akce', 'popis', 'vybaveni'];  // věci, které se mají změnit jen u hlavní (master) `instanc`e
+      $doHlavni = ['url_akce', 'popis', 'vybaveni'];  // věci, které se mají změnit jen u hlavní (master) `instance
       $doAktualni = ['lokace', 'zacatek', 'konec'];       // věci, které se mají změnit jen u aktuální instance
       $aktivita = self::zId($data['id_akce']);
       // (zbytek se změní v obou)
@@ -449,7 +450,7 @@ class Aktivita
       // inicializace hodnot pro novou aktivitu
       $data['id_akce'] = null;
       $data['rok'] = ROK;
-      if (!empty($data['teamova'])) $data['kapacita'] = $data['team_max'] ?? 0; // při vytváření nové aktivity se kapacita inicializuje na max. teamu
+      if ($data['teamova']) $data['kapacita'] = $data['team_max'] ?? 0; // při vytváření nové aktivity se kapacita inicializuje na max. teamu
       if (empty($data['nazev_akce'])) $data['nazev_akce'] = '(bez názvu)';
       // vložení
       dbInsertUpdate('akce_seznam', $data);
