@@ -284,7 +284,7 @@ SQL
     if ($aktivita) {
       return $this->success($aktivita);
     }
-    return $this->error(sprintf('Aktivita s ID %d neexistuje. Nelze ji proto importem upravit', $id));
+    return $this->error(sprintf('Aktivita s ID %d neexistuje. Nelze ji proto importem upravit.', $id));
   }
 
   private function findOldActivityById(int $id): ?\Aktivita {
