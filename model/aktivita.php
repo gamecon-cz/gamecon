@@ -1842,7 +1842,8 @@ SQL
    */
   static function zId($id): ?Aktivita {
     if ((int)$id) {
-      return current(self::zWhere('WHERE a.id_akce=' . (int)$id));
+      $aktivita = current(self::zWhere('WHERE a.id_akce=' . (int)$id));
+      return $aktivita ?: null;
     }
     return null;
   }
