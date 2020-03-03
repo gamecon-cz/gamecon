@@ -545,7 +545,7 @@ SQL
       $activityIds = explode(',', $implodedActivityIds);
       $errors[] = sprintf(
         'Vypravěč %s je v čase od %s do %s na %s %s.',
-        $this->descriveUserById((int)$conflictingStorytellerId),
+        $this->describeUserById((int)$conflictingStorytellerId),
         $zacatek->formatCasStandard(),
         $konec->formatCasStandard(),
         count($activityIds) === 1
@@ -639,7 +639,7 @@ SQL
     return sprintf('%s (%s)', $lokace->nazev(), $lokace->id());
   }
 
-  private function descriveUserById(int $userId): string {
+  private function describeUserById(int $userId): string {
     $uzivatel = \Uzivatel::zId($userId);
     return sprintf('%s (%s)', $uzivatel->jmenoNick(), $uzivatel->id());
   }
@@ -1282,10 +1282,10 @@ SQL
   private function getValidatedLocationId(array $activityValues, ?\Aktivita $aktivita): array {
     $locationValue = $activityValues[ExportAktivitSloupce::MISTNOST] ?? null;
     if (!$locationValue) {
-      if (!$aktivita) {
-        return $this->success(null);
+      if ($aktivita) {
+        return $this->success($aktivita->lokaceId());
       }
-      return $this->success($aktivita->lokaceId());
+      return $this->error(sprintf('"Místnost" je povinná. Aktivitě %s chybí "místnost".', $this->describeActivityByValues($activityValues, $aktivita)));
     }
     $location = $this->getLocationFromValue((string)$locationValue);
     if ($location) {
