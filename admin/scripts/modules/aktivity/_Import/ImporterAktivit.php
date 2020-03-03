@@ -830,7 +830,7 @@ SQL
     if ((string)$stateValue === '') {
       return $this->success($originalActivity && $originalActivity->stav()
         ? $originalActivity->stav()->id()
-        : null
+        : \Stav::NOVA
       );
     }
     $state = $this->getStateFromValue((string)$stateValue);
