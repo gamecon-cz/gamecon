@@ -454,7 +454,7 @@ SQL
       return $this->error($locationAccessibilityError);
     }
 
-    /** @var \Aktivita $savedActivity */
+    /** @var  \Aktivita $savedActivity */
     ['success' => $savedActivity, 'error' => $savedActivityError] = $this->saveActivity($values, $longAnnotation, $storytellersIds, $tagIds, $singleProgramLine, $existingActivity);
 
     if ($savedActivityError) {
@@ -1295,9 +1295,9 @@ SQL
   }
 
   private function getLocationFromValue(string $locationValue): ?\Lokace {
-    $programLocationInt = (int)$locationValue;
-    if ($programLocationInt > 0) {
-      return $this->getProgramLocationById($programLocationInt);
+    $locationInt = (int)$locationValue;
+    if ($locationInt > 0) {
+      return $this->getProgramLocationById($locationInt);
     }
     return $this->getProgramLocationByName($locationValue);
   }
@@ -1307,7 +1307,7 @@ SQL
   }
 
   private function getProgramLocationByName(string $name): ?\Lokace {
-    return $this->getProgramLocationsCache()['keyFromName'][self::toUnifiedKey($name, [])] ?? null;
+    return $this->getProgramLocationsCache()['keyFromName'][self::toUnifiedKey($name, [], self::UNIFY_UP_TO_NUMBERS_AND_LETTERS)] ?? null;
   }
 
   private function getProgramLocationsCache(): array {
@@ -1316,7 +1316,7 @@ SQL
       $locations = \Lokace::zVsech();
       foreach ($locations as $location) {
         $this->programLocationsCache['id'][$location->id()] = $location;
-        $keyFromName = self::toUnifiedKey($location->nazev(), array_keys($this->programLocationsCache['keyFromName']));
+        $keyFromName = self::toUnifiedKey($location->nazev(), array_keys($this->programLocationsCache['keyFromName']), self::UNIFY_UP_TO_NUMBERS_AND_LETTERS);
         $this->programLocationsCache['keyFromName'][$keyFromName] = $location;
       }
     }
@@ -1568,12 +1568,13 @@ SQL
   private const UNIFY_UP_TO_SPACES = 3;
   private const UNIFY_UP_TO_WORD_CHARACTERS = 4;
   private const UNIFY_UP_TO_DIACRITIC = 5;
-  private const UNIFY_UP_TO_LETTERS = 6;
+  private const UNIFY_UP_TO_NUMBERS_AND_LETTERS = 6;
+  private const UNIFY_UP_TO_LETTERS = 7;
 
   private static function toUnifiedKey(
     string $value,
     array $occupiedKeys,
-    int $unifyDepth = self::UNIFY_UP_TO_LETTERS
+    int $unifyDepth = self::UNIFY_UP_TO_NUMBERS_AND_LETTERS
   ): string {
     $unifiedKey = self::createUnifiedKey($value, $unifyDepth);
     if (array_key_exists($unifiedKey, $occupiedKeys)) {
@@ -1614,6 +1615,10 @@ SQL
     }
     $value = odstranDiakritiku($value);
     if ($depth === self::UNIFY_UP_TO_DIACRITIC) {
+      return $value;
+    }
+    $value = preg_replace('~[^a-z0-9]~', '', $value);
+    if ($depth === self::UNIFY_UP_TO_NUMBERS_AND_LETTERS) {
       return $value;
     }
     $value = preg_replace('~[^a-z]~', '', $value);
