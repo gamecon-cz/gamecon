@@ -455,6 +455,9 @@ class Aktivita
       $data['rok'] = ROK;
       if ($data['teamova']) $data['kapacita'] = $data['team_max'] ?? 0; // při vytváření nové aktivity se kapacita inicializuje na max. teamu
       if (empty($data['nazev_akce'])) $data['nazev_akce'] = '(bez názvu)';
+      if (empty($data['stav'])) {
+        $data['stav'] = Stav::NOVA;
+      }
       // vložení
       dbInsertUpdate('akce_seznam', $data);
       $data['id_akce'] = dbInsertId();
