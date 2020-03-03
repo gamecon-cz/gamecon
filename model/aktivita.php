@@ -409,6 +409,9 @@ class Aktivita
   }
 
   public static function uloz(array $data, ?string $markdownPopis, array $organizatoriIds, array $tagIds, string $obrazekSoubor = null, string $obrazekUrl = null): Aktivita {
+    $data['kapacita'] = !empty($data['kapacita']) ? $data['kapacita'] : 0;
+    $data['kapacita_f'] = !empty($data['kapacita_f']) ? $data['kapacita_f'] : 0;
+    $data['kapacita_m'] = !empty($data['kapacita_m']) ? $data['kapacita_m'] : 0;
     $data['bez_slevy'] = (int)!empty($data['bez_slevy']); //checkbox pro "bez_slevy"
     $data['teamova'] = (int)!empty($data['teamova']);   //checkbox pro "teamova"
     $data['team_min'] = $data['teamova'] ? (int)$data['team_min'] : null;
