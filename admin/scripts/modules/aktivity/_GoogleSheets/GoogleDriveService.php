@@ -3,6 +3,7 @@
 namespace Gamecon\Admin\Modules\Aktivity\GoogleSheets;
 
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleApiException;
+use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleConnectionException;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleSheetsException;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleDirReference;
 
@@ -201,6 +202,8 @@ SQL
         return null;
       }
       throw $exception;
+    } catch (\GuzzleHttp\Exception\ConnectException $connectException) {
+      throw new GoogleConnectionException($connectException->getMessage(), $connectException->getCode(), $connectException);
     }
   }
 
