@@ -4,6 +4,7 @@ namespace Gamecon\Admin\Modules\Aktivity\Import;
 
 use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleApiException;
+use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleConnectionException;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
 use Gamecon\Admin\Modules\Aktivity\Import\Exceptions\DuplicatedUnifiedKeyException;
@@ -189,7 +190,12 @@ class ImporterAktivit
   }
 
   private function getProcessedFileName(string $spreadsheetId): array {
-    $filename = $this->googleDriveService->getFileName($spreadsheetId);
+    try {
+      $filename = $this->googleDriveService->getFileName($spreadsheetId);
+    } catch (GoogleConnectionException $connectionException) {
+      $this->logovac->zaloguj($connectionException);
+      return $this->error('Google sheets API je dočasně nedostupné. Zuste to prosím za chvíli znovu.');
+    }
     if ($filename === null) {
       return $this->error(sprintf("Žádný soubor nebyl na Google API nalezen pod ID '$spreadsheetId'"));
     }
@@ -347,7 +353,7 @@ SQL
   private function getCleansedHeader(array $values): array {
     $unifiedKnownColumns = [];
     foreach (ExportAktivitSloupce::vsechnySloupce() as $knownColumn) {
-      $keyFromColumn = self::toUnifiedKey($knownColumn, $unifiedKnownColumns, self::UNIFY_UP_TO_LETTERS);;
+      $keyFromColumn = self::toUnifiedKey($knownColumn, $unifiedKnownColumns, self::UNIFY_UP_TO_LETTERS);
       $unifiedKnownColumns[$keyFromColumn] = $knownColumn;
     }
     $header = reset($values);
@@ -1577,12 +1583,13 @@ SQL
     int $unifyDepth = self::UNIFY_UP_TO_NUMBERS_AND_LETTERS
   ): string {
     $unifiedKey = self::createUnifiedKey($value, $unifyDepth);
-    if (array_key_exists($unifiedKey, $occupiedKeys)) {
+    if (in_array($unifiedKey, $occupiedKeys, true)) {
       throw new DuplicatedUnifiedKeyException(
         sprintf(
-          "Can not create unified key from '%s' as resulting key '%s' already exists: %s",
+          "Can not create unified key from '%s' as resulting key '%s' using unify depth %d already exists. Existing keys: %s",
           $value,
           $unifiedKey,
+          $unifyDepth,
           implode(';', array_map(static function (string $occupiedKey) {
             return "'$occupiedKey'";
           }, $occupiedKeys))
