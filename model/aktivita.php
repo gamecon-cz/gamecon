@@ -466,7 +466,7 @@ class Aktivita
     }
 
     if ($obrazekSoubor) {
-      $aktivita->obrazek(Obrazek::zJpg($obrazekSoubor));
+      $aktivita->obrazek(Obrazek::zSouboru($obrazekSoubor));
     } else if ($obrazekUrl) {
       $aktivita->obrazek(Obrazek::zUrl($obrazekUrl));
     }
@@ -637,20 +637,30 @@ class Aktivita
   /**
    * Vrací absolutní adresu k obrázku aktivity. Ošetřeno cacheování.
    */
-  function obrazek() {
-    $url = URL_WEBU . '/soubory/systemove/aktivity/' . $this->a['url_akce'] . '.jpg';
-    $soub = WWW . '/soubory/systemove/aktivity/' . $this->a['url_akce'] . '.jpg';
-    if (func_num_args() == 0) {
+  function obrazek(Obrazek $obrazek = null) {
+    $soub = $this->cestaObrazku();
+    if (!$obrazek) {
       try {
         return Nahled::zSouboru($soub)->pasuj(400);
       } catch (Exception $e) {
         return '';
       }
     } else {
-      $o = func_get_arg(0);
-      $o->fitCrop(2048, 2048);
-      $o->uloz($soub);
+      $obrazek->fitCrop(2048, 2048);
+      $obrazek->uloz($soub);
     }
+  }
+
+  public function cestaObrazku(): string {
+    return rtrim(WWW, '/') . '/soubory/systemove/aktivity/' . $this->a['url_akce'] . '.jpg';
+  }
+
+  public function maObrazek(): bool {
+    return file_exists($this->cestaObrazku());
+  }
+
+  public function urlObrazku(): string {
+    return rtrim(URL_WEBU, '/') . '/soubory/systemove/aktivity/' . $this->a['url_akce'] . '.jpg';
   }
 
   /** (Správný) alias pro obsazenostHtml() */

@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Vyjimkovac\Logovac;
+
 /**
  * Stránka pro tvorbu a editaci aktivit. Brand new.
  *
@@ -11,6 +13,7 @@ if(Aktivita::editorTestJson()) {       // samo sebe volání ajaxu
   die(Aktivita::editorChybyJson());
 }
 
+/** @var Logovac $vyjimkovac */
 try {
   if($a = Aktivita::editorZpracuj())  // úspěšné uložení změn ve formuláři
     if($a->nova())
@@ -18,6 +21,7 @@ try {
     else
       back();
 } catch(ObrazekException $e) {
+  $vyjimkovac->zaloguj($e);
   if(get('aktivitaId'))
     chyba('Obrázek nelze přečíst.');
   else {
