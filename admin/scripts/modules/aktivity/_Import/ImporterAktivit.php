@@ -722,7 +722,7 @@ SQL
     $tagIdsResult = $this->getValidatedTagIds($activityValues, $existingActivity);
     $tagIds = $tagIdsResult->getSuccess();
     if ($tagIdsResult->isError()) {
-      return ResultOfImportStep::error($tagIdsResult->getError());
+      return ResultOfImportStep::error(sprintf('%s Aktivita byla přeskočena.', $tagIdsResult->getError()));
     }
 
     $longAnnotationResult = $this->getValidatedLongAnnotation($activityValues, $existingActivity);
@@ -1117,9 +1117,16 @@ SQL
     }
     if ($invalidTagsValues) {
       return ResultOfImportStep::error(
-        sprintf('Neznámé tagy %s', implode(',', array_map(static function (string $invalidTagValue) {
-          return "'$invalidTagValue'";
-        }, $invalidTagsValues)))
+        sprintf(
+          'U aktivity %s jsou neznámé tagy %s.',
+          $this->describeActivityByExportValues($activityValues, $aktivita),
+          implode(',', array_map(static function (string $invalidTagValue) {
+              return "'$invalidTagValue'";
+            },
+              $invalidTagsValues
+            )
+          )
+        )
       );
     }
     return ResultOfImportStep::success($tagIds);
@@ -1154,12 +1161,12 @@ SQL
     return $this->tagsCache;
   }
 
-  private function getValidatedShortAnnotation(array $activityValues, ?\Aktivita $aktivita): ResultOfImportStep {
+  private function getValidatedShortAnnotation(array $activityValues, ?\Aktivita $existingActivity): ResultOfImportStep {
     if (!empty($activityValues[ExportAktivitSloupce::KRATKA_ANOTACE])) {
       return ResultOfImportStep::success($activityValues[ExportAktivitSloupce::KRATKA_ANOTACE]);
     }
-    return ResultOfImportStep::success($aktivita
-      ? $aktivita->kratkyPopis()
+    return ResultOfImportStep::success($existingActivity
+      ? $existingActivity->kratkyPopis()
       : ''
     );
   }
@@ -1168,22 +1175,22 @@ SQL
     return ResultOfImportStep::success($this->findParentInstanceId($originalActivity));
   }
 
-  private function getValidatedYear(array $activityValues, ?\Aktivita $aktivita): ResultOfImportStep {
-    if (!$aktivita) {
+  private function getValidatedYear(array $activityValues, ?\Aktivita $existingActivity): ResultOfImportStep {
+    if (!$existingActivity) {
       return ResultOfImportStep::success($this->currentYear);
     }
-    $year = $aktivita->zacatek()
-      ? (int)$aktivita->zacatek()->format('Y')
+    $year = $existingActivity->zacatek()
+      ? (int)$existingActivity->zacatek()->format('Y')
       : null;
     if (!$year) {
-      $year = $aktivita->konec()
-        ? (int)$aktivita->konec()->format('Y')
+      $year = $existingActivity->konec()
+        ? (int)$existingActivity->konec()->format('Y')
         : null;
     }
     if ($year) {
       if ($year !== $this->currentYear) {
         return ResultOfImportStep::error(
-          sprintf('Aktivita %s je pro ročník %d, ale teď je ročník %d', $this->describeActivity($aktivita), $year, $this->currentYear)
+          sprintf('Aktivita %s je pro ročník %d, ale teď je ročník %d', $this->describeActivity($existingActivity), $year, $this->currentYear)
         );
       }
       return ResultOfImportStep::success($year);
@@ -1402,12 +1409,12 @@ SQL
     );
   }
 
-  private function describeActivityByImportValues(array $activityValues, ?\Aktivita $originalActivity) {
+  private function describeActivityByImportValues(array $remappedValues, ?\Aktivita $originalActivity) {
     return $this->describeActivityByValues(
-      $activityValues[AktivitaSqlSloupce::ID_AKCE] ?? null,
-      $activityValues[AktivitaSqlSloupce::NAZEV_AKCE] ?? null,
-      $activityValues[AktivitaSqlSloupce::URL_AKCE] ?? null,
-      $activityValues[AktivitaSqlSloupce::POPIS_KRATKY] ?? null,
+      $remappedValues[AktivitaSqlSloupce::ID_AKCE] ?? null,
+      $remappedValues[AktivitaSqlSloupce::NAZEV_AKCE] ?? null,
+      $remappedValues[AktivitaSqlSloupce::URL_AKCE] ?? null,
+      $remappedValues[AktivitaSqlSloupce::POPIS_KRATKY] ?? null,
       $originalActivity
     );
   }
