@@ -1319,7 +1319,7 @@ SQL
     if ($location) {
       return ResultOfImportStep::success($location->id());
     }
-    return ResultOfImportStep::error(sprintf("Neznámá lokace '%s'", $locationValue));
+    return ResultOfImportStep::error(sprintf("Neznámá lokace '%s' u aktivity %s", $locationValue, $this->describeActivityByExportValues($activityValues, $aktivita)));
   }
 
   private function getLocationFromValue(string $locationValue): ?\Lokace {
