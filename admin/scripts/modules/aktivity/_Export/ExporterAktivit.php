@@ -100,7 +100,9 @@ class ExporterAktivit
         $zacatekDen, // Den
         $zacatekCas, // Začátek
         $konecCas, // Konec
-        $aktivita->lokace()->nazev(), // Místnost
+        $aktivita->lokace()
+          ? $aktivita->lokace()->nazev()
+          : '', // Místnost
         implode(',', $aktivita->getOrganizatoriIds()), // Vypravěči
         $aktivita->getKapacitaUnisex(), // Kapacita unisex
         $aktivita->getKapacitaMuzu(), // Kapacita muži

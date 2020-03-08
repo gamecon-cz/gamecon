@@ -61,5 +61,8 @@ CREATE TABLE mutex(
     FOREIGN KEY FK_mutex_to_uzivatele_hodnoty(zamknul) REFERENCES uzivatele_hodnoty(id_uzivatele)
         ON UPDATE CASCADE ON DELETE SET NULL
 );
+
+ALTER TABLE akce_seznam
+MODIFY COLUMN lokace INT NULL DEFAULT NULL;
 SQL
 );
