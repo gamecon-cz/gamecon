@@ -166,22 +166,9 @@ class Obrazek
     return imagesx($this->o);
   }
 
-  /** Načte obrázek z JPG souboru */
-  static function zJpg($soubor) {
-    $o = false;
-    if(@exif_imagetype($soubor) !== IMAGETYPE_JPEG) throw new ObrazekException;
-    $o = @imagecreatefromjpeg($soubor);
-    if($o === false) throw new ObrazekException;
-    return new self($o, $soubor);
-  }
-
   /** Načte obrázek z některého z podporovaných typů souboru */
   static function zSouboru($soubor) {
-    $o = @imagecreatefromjpeg($soubor)
-      ?: @imagecreatefrompng($soubor)
-      ?: @imagecreatefromgif($soubor);
-    if($o === false) throw new Exception("Obrázek '$soubor' se nepodařilo načíst.");
-    return new self($o, $soubor);
+    return static::zUrl($soubor, $soubor);
   }
 
   /** Stáhne a nahraje obrázek z url */
@@ -189,13 +176,26 @@ class Obrazek
   {
     $o = false;
     $typ = @exif_imagetype($url);
+    if ($typ === false) {
+      throw new ObrazekException("Obrázek se nepodařilo načíst ze zdroje '$soubor'");
+    }
     if($typ === IMAGETYPE_JPEG) $o = @imagecreatefromjpeg($url);
     if($typ === IMAGETYPE_PNG)  $o = @imagecreatefrompng($url);
     if($typ === IMAGETYPE_GIF)  $o = @imagecreatefromgif($url);
-    if($o === false) throw new ObrazekException;
+    if($o === false) {
+      throw new ObrazekException(
+        sprintf(
+          "Nepodporavný formát obrázku '%d'. Podporované jsou pouze JPEG (%d), PNG (%d) a GIF (%d)",
+          $typ,
+          IMAGETYPE_JPEG,
+          IMAGETYPE_PNG,
+          IMAGETYPE_GIF
+        )
+      );
+    }
     return new self($o, $soubor ?: $url);
   }
 
 }
 
-class ObrazekException extends Exception {}
+class ObrazekException extends \RuntimeException {}
