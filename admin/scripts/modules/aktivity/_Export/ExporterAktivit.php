@@ -24,15 +24,21 @@ class ExporterAktivit
    * @var int
    */
   private $userId;
+  /**
+   * @var string
+   */
+  private $baseUrl;
 
   public function __construct(
     int $userId,
     GoogleDriveService $googleDriveService,
-    GoogleSheetsService $googleSheetsService
+    GoogleSheetsService $googleSheetsService,
+    string $baseUrl
   ) {
     $this->googleDriveService = $googleDriveService;
     $this->googleSheetsService = $googleSheetsService;
     $this->userId = $userId;
+    $this->baseUrl = rtrim($baseUrl, '/');
   }
 
   /**
@@ -54,30 +60,7 @@ class ExporterAktivit
    * @return array
    */
   private function getActivityData(array $aktivity): array {
-    $data[] = [
-      ExportAktivitSloupce::ID_AKTIVITY,
-      ExportAktivitSloupce::PROGRAMOVA_LINIE,
-      ExportAktivitSloupce::NAZEV,
-      ExportAktivitSloupce::URL,
-      ExportAktivitSloupce::KRATKA_ANOTACE,
-      ExportAktivitSloupce::TAGY,
-      ExportAktivitSloupce::DLOUHA_ANOTACE,
-      ExportAktivitSloupce::DEN,
-      ExportAktivitSloupce::ZACATEK,
-      ExportAktivitSloupce::KONEC,
-      ExportAktivitSloupce::MISTNOST,
-      ExportAktivitSloupce::VYPRAVECI,
-      ExportAktivitSloupce::KAPACITA_UNISEX,
-      ExportAktivitSloupce::KAPACITA_MUZI,
-      ExportAktivitSloupce::KAPACITA_ZENY,
-      ExportAktivitSloupce::JE_TYMOVA,
-      ExportAktivitSloupce::MINIMALNI_KAPACITA_TYMU,
-      ExportAktivitSloupce::MAXIMALNI_KAPACITA_TYMU,
-      ExportAktivitSloupce::CENA,
-      ExportAktivitSloupce::BEZ_SLEV,
-      ExportAktivitSloupce::VYBAVENI,
-      ExportAktivitSloupce::STAV,
-    ];
+    $data[] = ExportAktivitSloupce::vsechnySloupce();
     foreach ($aktivity as $aktivita) {
       $zacatekDen = $aktivita->zacatek()
         ? $aktivita->zacatek()->format('l')
@@ -133,6 +116,9 @@ class ExporterAktivit
           : 'ne',
         (string)$aktivita->vybaveni(), // Vybavení
         $aktivita->stav()->nazev(), // Stav
+        $aktivita->maObrazek()
+          ? $this->baseUrl . '/' . ltrim($aktivita->urlObrazku(), '/')
+          : '', // Obrázek
       ];
     }
     return $data;

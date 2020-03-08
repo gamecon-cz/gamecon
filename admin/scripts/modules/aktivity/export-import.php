@@ -72,7 +72,8 @@ if (count($activityTypeIdsFromFilter) > 1) {
   $activityTypeIdFromFilter = reset($activityTypeIdsFromFilter);
 
   if (!empty($_POST['export_activity_type_id']) && (int)$_POST['export_activity_type_id'] === (int)$activityTypeIdFromFilter && $googleApiClient->isAuthorized()) {
-    $exportAktivit = new ExporterAktivit($u->id(), $googleDriveService, $googleSheetsService);
+    $baseUrl = (($_SERVER['HTTPS'] ?? 'off') === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
+    $exportAktivit = new ExporterAktivit($u->id(), $googleDriveService, $googleSheetsService, $baseUrl);
     $nazevExportovanehoSouboru = $exportAktivit->exportujAktivity($aktivity, (string)($filtr['rok'] ?? ROK));
     oznameni(sprintf("Aktivity byly exportovány do Google sheets pod názvem '%s'", $nazevExportovanehoSouboru));
     exit;
@@ -121,8 +122,7 @@ if ($googleApiClient->isAuthorized()) {
       new \DateTimeImmutable(),
       $urlNaEditaciAktivity,
       $vyjimkovac,
-      Mutex::proAktivity(),
-      '<br>'
+      Mutex::proAktivity()
     );
     $vysledekImportuAktivit = $importerAktivit->importujAktivity($_POST['googleSheetId']);
 

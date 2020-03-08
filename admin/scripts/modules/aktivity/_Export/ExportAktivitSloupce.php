@@ -26,6 +26,7 @@ class ExportAktivitSloupce
   public const BEZ_SLEV = 'Bez slev'; // bez_slevy
   public const VYBAVENI = 'Vybavení'; // vybaveni
   public const STAV = 'Stav'; // stav
+  public const OBRAZEK = 'Obrázek'; // /soubory/systemove/aktivity/{URL}.jpg';
 
   public static function vsechnySloupce(): array {
     return [
@@ -51,6 +52,7 @@ class ExportAktivitSloupce
       self::BEZ_SLEV,
       self::VYBAVENI,
       self::STAV,
+      self::OBRAZEK,
     ];
   }
 }
