@@ -42,7 +42,7 @@ RUN yes | pecl install xdebug
 # Fix debconf warnings upon build
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN docker-php-ext-install mysqli pdo_mysql intl \
+RUN docker-php-ext-install mysqli pdo_mysql intl exif \
     && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin/ --filename=composer
 
 RUN echo 'alias ll="ls -al"' >> ~/.bashrc \
