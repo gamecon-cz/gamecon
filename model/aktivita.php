@@ -231,7 +231,9 @@ class Aktivita
 
     // načtení lokací
     if (!$omezeni || !empty($omezeni['lokace'])) {
-      $q = dbQuery('SELECT * FROM akce_lokace ORDER BY poradi');
+      $q = dbQuery('SELECT id_lokace, nazev FROM akce_lokace ORDER BY poradi');
+      $xtpl->assign(['id_lokace' => null, 'nazev' => '(žádná)']);
+      $xtpl->parse('upravy.tabulka.lokace');
       while ($r = mysqli_fetch_assoc($q)) {
         $xtpl->assign('sel', $a && $aktivita['lokace'] == $r['id_lokace'] ? 'selected' : '');
         $xtpl->assign($r);
@@ -422,6 +424,7 @@ class Aktivita
     $data['team_min'] = $data['teamova'] ? (int)$data['team_min'] : null;
     $data['team_max'] = $data['teamova'] ? (int)$data['team_max'] : null;
     $data['patri_pod'] = !empty($data['patri_pod']) ? $data['patri_pod'] : null;
+    $data['lokace'] = !empty($data['lokace']) ? $data['lokace'] : null;
     // u teamových aktivit se kapacita ignoruje - později se nechá jak je nebo přepíše minimem, pokud jde o novou aktivitu
     if ($data['teamova']) {
       unset($data['kapacita'], $data['kapacita_f'], $data['kapacita_m']);
@@ -589,14 +592,14 @@ class Aktivita
   }
 
   /** Vrátí lokaci (ndef. formát, ale musí podporovat __toString) */
-  function lokace(): Lokace {
+  function lokace(): ?Lokace {
     if (is_numeric($this->lokace)) {
       $this->prednactiN1([
         'atribut' => 'lokace',
         'cil' => Lokace::class,
       ]);
     }
-    return $this->lokace;
+    return $this->lokace ?: null;
   }
 
   function lokaceId() {

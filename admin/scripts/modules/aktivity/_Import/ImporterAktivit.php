@@ -625,7 +625,7 @@ SQL
           $currentActivityId
             ? $this->describeActivityById($currentActivityId)
             : $values[AktivitaSqlSloupce::URL_AKCE] || $values[AktivitaSqlSloupce::NAZEV_AKCE] || var_export($values, true),
-          $currentActivityId
+          $currentActivityId && \Aktivita::zId($currentActivityId)->lokace()
             ? sprintf('ponechána v původní místnosti %s', \Aktivita::zId($currentActivityId)->lokace()->nazev())
             : 'nahrána <strong>bez</strong> místnosti'
         ),
@@ -1313,7 +1313,7 @@ SQL
       if ($aktivita) {
         return ResultOfImportStep::success($aktivita->lokaceId());
       }
-      return ResultOfImportStep::error(sprintf('"Místnost" je povinná. Aktivitě %s chybí "místnost".', $this->describeActivityByExportValues($activityValues, $aktivita)));
+      return ResultOfImportStep::success(null);
     }
     $location = $this->getLocationFromValue((string)$locationValue);
     if ($location) {
