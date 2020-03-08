@@ -123,7 +123,7 @@
     </div></span></th>
   </tr>
   <!-- begin:aktivita --><tr>
-    <td><span class="hinted">{nazev_akce}<span class="hint">{tagy}</span></span></td>
+    <td><span class="{hinted}">{nazev_akce}<!-- begin:hint --><span class="hint">{tagy}</span><!-- end:hint --></span></td>
     <td>{cas}</td>
     <td>{organizatori}</td>
     <td>{mistnost}</td>

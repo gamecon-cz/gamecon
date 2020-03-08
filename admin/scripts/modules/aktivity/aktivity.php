@@ -64,13 +64,18 @@ foreach ($aktivity as $aktivita) {
   $tpl->assign([
     'id_akce' => $aktivita->id(),
     'nazev_akce' => $aktivita->nazev(),
-    'tagy' => implode(' | ', $aktivita->tagy()),
+    'hinted' => $aktivita->tagy() ? 'hinted' : '',
     'cas' => $aktivita->denCas(),
     'organizatori' => $aktivita->orgJmena(),
     // TODO fixnout s lepším ORM
     'typ' => $typy[$r['typ']],
-    'mistnost' => $mistnosti[$r['lokace']] ?? '',
+    'mistnost' => $mistnosti[$r['lokace']] ?? '(žádná)',
   ]);
+  if ($aktivita->tagy()) {
+    $tpl->assign('tagy', implode(' | ', $aktivita->tagy()));
+    $tpl->parse('aktivity.aktivita.hint');
+  }
+
   if ($r['patri_pod']) $tpl->parse('aktivity.aktivita.symbolInstance');
   if ($r['stav'] == 0) $tpl->parse('aktivity.aktivita.tlacitka.publikovat');
   if ($r['stav'] == 4) $tpl->parse('aktivity.aktivita.tlacitka.pripravit');
