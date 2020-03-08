@@ -132,10 +132,10 @@ class Aktivita
    * @return string datum ve stylu Pátek 14-18
    */
   function denCas() {
-    if ($z = $this->zacatek())
-      return $z->format('l G') . '–' . $this->konec()->format('G');
-    else
-      return '';
+    if ($this->zacatek() && $this->konec()) {
+      return $this->zacatek()->format('l G') . '–' . $this->konec()->format('G');
+    }
+    return '';
   }
 
   /** Vrátí potomky této aktivity (=navázané aktivity, další kola, ...) */
