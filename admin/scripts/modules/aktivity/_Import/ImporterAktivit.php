@@ -458,21 +458,22 @@ SQL
     if ($savedActivityResult->isError()) {
       return ResultOfImportStep::error($savedActivityResult->getError());
     }
+    $warnings = array_filter(array_merge($storytellersAccessibilityWarnings, $locationAccessibilityWarnings));
     if ($originalActivity) {
       return ResultOfImportStep::successWithWarnings(
         sprintf('Upravena existující aktivita %s', $this->describeActivity($savedActivity)),
-        array_filter(array_merge($storytellersAccessibilityWarnings, $locationAccessibilityWarnings))
+        $warnings
       );
     }
     if ($savedActivity->patriPod()) {
       return ResultOfImportStep::successWithWarnings(
         sprintf('Nahrána nová instance %s k hlavní aktivitě %s', $this->describeActivity($savedActivity), $this->describeActivity($savedActivity->patriPodAktivitu())),
-        array_filter([$storytellersAccessibilityWarnings ?: null, $locationAccessibilityWarnings ?: null])
+        $warnings
       );
     }
     return ResultOfImportStep::successWithWarnings(
       sprintf('Nahrána nová aktivita %s', $this->describeActivity($savedActivity)),
-      array_filter([$storytellersAccessibilityWarnings ?: null, $locationAccessibilityWarnings ?: null])
+      $warnings
     );
   }
 
