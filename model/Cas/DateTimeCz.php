@@ -152,7 +152,8 @@ class DateTimeCz extends \DateTime
       return "před $rozdil vteřinami";
     if ($rozdil < 60 * 60)
       return 'před ' . round($rozdil / 60) . ' minutami';
-    if (!$dny = $this->rozdilDne(new static())) // dnes
+    $dny = $this->rozdilDne(new static('now', $this->getTimezone()));
+    if (!$dny) // dnes
       return $this->format('G:i');
     else
       return $dny;
@@ -192,7 +193,7 @@ class DateTimeCz extends \DateTime
   /** Jestli tento den je stejný s $d2 v formátu \DateTime nebo string s časem */
   function stejnyDen($d2): bool {
     if (!($d2 instanceof \DateTime)) {
-      $d2 = new static($d2);
+      $d2 = new static($d2, $this->getTimezone());
     }
     return $this->format('Y-m-d') == $d2->format('Y-m-d');
   }
