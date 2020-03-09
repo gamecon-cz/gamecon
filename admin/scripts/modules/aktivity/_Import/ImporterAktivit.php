@@ -467,7 +467,7 @@ SQL
     }
     if ($savedActivity->patriPod()) {
       return ResultOfImportStep::successWithWarnings(
-        sprintf('Nahrána nová instance %s k hlavní aktivitě %s', $this->describeActivity($savedActivity), $this->describeActivity($savedActivity->patriPodAktivitu())),
+        sprintf('Nahrána nová <strong>instance</strong> %s k hlavní aktivitě %s', $this->describeActivity($savedActivity), $this->describeActivity($savedActivity->patriPodAktivitu())),
         $warnings
       );
     }
@@ -663,7 +663,8 @@ SQL
           $values[AktivitaSqlSloupce::PATRI_POD] = $newInstance->patriPod();
         }
       }
-      return ResultOfImportStep::success(\Aktivita::uloz($values, $longAnnotation, $storytellersIds, $tagIds));
+      $savedActivity = \Aktivita::uloz($values, $longAnnotation, $storytellersIds, $tagIds);
+      return ResultOfImportStep::success($savedActivity);
     } catch (\Exception $exception) {
       $this->logovac->zaloguj($exception);
       return ResultOfImportStep::error(sprintf(
