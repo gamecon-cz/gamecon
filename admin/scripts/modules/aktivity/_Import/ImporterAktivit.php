@@ -115,6 +115,7 @@ class ImporterAktivit
         return $result;
       }
       $processedFileName = $processedFileNameResult->getSuccess();
+      unset($processedFileNameResult);
       $result->setProcessedFilename($processedFileName);
 
       $activitiesValuesResult = $this->getIndexedValues($spreadsheetId);
@@ -123,6 +124,7 @@ class ImporterAktivit
         return $result;
       }
       $activitiesValues = $activitiesValuesResult->getSuccess();
+      unset($activitiesValuesResult);
 
       $singleProgramLineResult = $this->guardSingleProgramLineOnly($activitiesValues, $processedFileName);
       if ($singleProgramLineResult->isError()) {
@@ -131,6 +133,7 @@ class ImporterAktivit
       }
       /** @var \Typ $singleProgramLine */
       $singleProgramLine = $singleProgramLineResult->getSuccess();
+      unset($singleProgramLineResult);
 
       if (!$this->getExclusiveLock($singleProgramLine->nazev())) {
         $result->addWarningMessage(sprintf(
@@ -163,11 +166,12 @@ class ImporterAktivit
 
         $validatedValuesResult = $this->validateValues($singleProgramLine, $activityValues, $aktivita);
         if ($validatedValuesResult->isError()) {
-          $errorMessage = $this->getErrorMessageWithSkippedActivityNote($activitiesValuesResult);
+          $errorMessage = $this->getErrorMessageWithSkippedActivityNote($validatedValuesResult);
           $result->addErrorMessage($errorMessage);
           continue;
         }
         $validatedValues = $validatedValuesResult->getSuccess();
+        unset($validatedValuesResult);
 
         $importActivityResult = $this->importActivity($validatedValues, $singleProgramLine, $aktivita);
         if ($importActivityResult->hasWarnings()) {
@@ -181,6 +185,7 @@ class ImporterAktivit
           continue;
         }
         $result->addSuccessMessage($importActivityResult->getSuccess());
+        unset($importActivityResult);
         $result->incrementImportedCount();
       }
     } catch (\Google_Service_Exception $exception) {
@@ -856,9 +861,23 @@ SQL
 
   private function getErrorMessageWithSkippedActivityNote(ResultOfImportStep $resultOfImportStep): string {
     if (!$resultOfImportStep->isError()) {
-      throw new \LogicException('Result of import step should be an error, got ' . var_export($resultOfImportStep, true));
+      throw new \LogicException('Result of import step should be an error, got ' . $this->getResultTypeName($resultOfImportStep));
     }
     return sprintf('%s Aktivita byla přeskočena.', $resultOfImportStep->getError());
+  }
+
+  private function getResultTypeName(ResultOfImportStep $resultOfImportStep): string {
+    $nameParts = [];
+    if ($resultOfImportStep->isError()) {
+      $nameParts[] = 'error';
+    }
+    if ($resultOfImportStep->isSuccess()) {
+      $nameParts[] = 'success';
+    }
+    if ($resultOfImportStep->hasWarnings()) {
+      $nameParts[] = 'warnings';
+    }
+    return implode(',', $nameParts);
   }
 
   private function getValidatedStateId(array $activityValues, ?\Aktivita $originalActivity): ResultOfImportStep {
