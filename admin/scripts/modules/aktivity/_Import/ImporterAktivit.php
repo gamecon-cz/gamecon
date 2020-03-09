@@ -1480,7 +1480,9 @@ SQL
 
   private function describeActivityByInputValues(array $activityValues, ?\Aktivita $originalActivity): string {
     return $this->describeActivityByValues(
-      $activityValues[ExportAktivitSloupce::ID_AKTIVITY] ?? null,
+      empty($activityValues[ExportAktivitSloupce::ID_AKTIVITY])
+        ? null
+        : (int)$activityValues[ExportAktivitSloupce::ID_AKTIVITY],
       $activityValues[ExportAktivitSloupce::NAZEV] ?? null,
       $activityValues[ExportAktivitSloupce::URL] ?? null,
       $activityValues[ExportAktivitSloupce::KRATKA_ANOTACE] ?? null,
