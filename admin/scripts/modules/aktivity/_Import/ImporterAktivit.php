@@ -472,7 +472,12 @@ SQL
     }
     if ($savedActivity->patriPod()) {
       return ResultOfImportStep::successWithWarnings(
-        sprintf('Nahrána nová <strong>instance</strong> %s k hlavní aktivitě %s', $this->describeActivity($savedActivity), $this->describeActivity($savedActivity->patriPodAktivitu())),
+        sprintf(
+          'Nahrána nová aktivita %s jako %d. <strong>instance</strong> k hlavní aktivitě %s.',
+          $this->describeActivity($savedActivity),
+          $savedActivity->pocetInstanci(),
+          $this->describeActivity($savedActivity->patriPodAktivitu())
+        ),
         $warnings
       );
     }
@@ -619,6 +624,7 @@ SQL
     if (!$locationOccupyingActivityId) {
       return ResultOfImportStep::success($locationId);
     }
+    $currentActivity = \Aktivita::zId($currentActivityId);
     return ResultOfImportStep::successWithWarnings(
       true,
       [
@@ -628,10 +634,8 @@ SQL
           $zacatek->formatCasNaMinutyStandard(),
           $konec->formatCasNaMinutyStandard(),
           $this->describeActivityById((int)$locationOccupyingActivityId),
-          $currentActivityId
-            ? $this->describeActivityById($currentActivityId)
-            : $values[AktivitaSqlSloupce::URL_AKCE] || $values[AktivitaSqlSloupce::NAZEV_AKCE] || var_export($values, true),
-          $currentActivityId && \Aktivita::zId($currentActivityId)->lokace()
+          $this->describeActivityBySqlMappedValues($values, $currentActivity),
+          $currentActivity && $currentActivity->lokace()
             ? sprintf('ponechána v původní místnosti %s', \Aktivita::zId($currentActivityId)->lokace()->nazev())
             : 'nahrána <strong>bez</strong> místnosti'
         ),
@@ -863,7 +867,7 @@ SQL
     if (!$resultOfImportStep->isError()) {
       throw new \LogicException('Result of import step should be an error, got ' . $this->getResultTypeName($resultOfImportStep));
     }
-    return sprintf('%s Aktivita byla přeskočena.', $resultOfImportStep->getError());
+    return sprintf('%s Aktivita byla <strong>přeskočena</strong>.', $resultOfImportStep->getError());
   }
 
   private function getResultTypeName(ResultOfImportStep $resultOfImportStep): string {
@@ -1245,7 +1249,7 @@ SQL
     if ($year) {
       if ($year !== $this->currentYear) {
         return ResultOfImportStep::error(sprintf(
-          'Aktivita %s je pro ročník %d, ale teď je ročník %d',
+          'Aktivita %s je pro ročník %d, ale teď je ročník %d.',
           $this->describeActivity($originalActivity),
           $year,
           $this->currentYear
@@ -1517,13 +1521,13 @@ SQL
       $nazev = (string)$nazev;
     }
     if ($id && $nazev) {
-      return sprintf('%s (%d)', $this->createLinkToActivity($id, $nazev), $id);
+      return sprintf("'%s' (%d)", $this->createLinkToActivity($id, $nazev), $id);
     }
     if (!$url && $originalActivity) {
       $url = $originalActivity->urlId();
     }
     if ($nazev && $url) {
-      return "$nazev s URL '$url'";
+      return "'$nazev' s URL '$url'";
     }
     if ($nazev) {
       return $nazev;
@@ -1531,7 +1535,7 @@ SQL
     if (!$kratkaAnotace && $originalActivity) {
       $kratkaAnotace = $originalActivity->kratkyPopis();
     }
-    return $kratkaAnotace ?: "(bez názvu)";
+    return $kratkaAnotace ?: '(bez názvu)';
   }
 
   private function createDateTimeFromRangeBorder(int $year, string $dayName, string $hoursAndMinutes): ResultOfImportStep {

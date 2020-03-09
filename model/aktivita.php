@@ -495,10 +495,17 @@ class Aktivita
    */
   private function instance(): array {
     if ($this->a['patri_pod']) {
-      $ids = dbOneArray('SELECT id_akce FROM akce_seznam WHERE patri_pod = $0', [$this->a['patri_pod']]);
+      $ids = dbOneArray('SELECT id_akce FROM akce_seznam WHERE patri_pod = $1', [$this->a['patri_pod']]);
       return Aktivita::zIds($ids);
     }
     return [$this];
+  }
+
+  public function pocetInstanci(): int {
+    if (!$this->a['patri_pod']) {
+      return 0;
+    }
+    return (int)dbOneCol('SELECT COUNT(*) FROM akce_seznam WHERE patri_pod = $1', [$this->a['patri_pod']]);
   }
 
   /**
