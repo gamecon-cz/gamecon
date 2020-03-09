@@ -1160,6 +1160,9 @@ SQL
     $invalidTagsValues = [];
     $tagsValues = array_map('trim', explode(',', $tagsString));
     foreach ($tagsValues as $tagValue) {
+      if ($tagValue === '') {
+        continue;
+      }
       $tag = $this->getTagFromValue($tagValue);
       if (!$tag) {
         $invalidTagsValues[] = $tagValue;
