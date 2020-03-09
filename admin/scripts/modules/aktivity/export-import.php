@@ -125,9 +125,11 @@ if ($googleApiClient->isAuthorized()) {
       Mutex::proAktivity()
     );
     $vysledekImportuAktivit = $importerAktivit->importujAktivity($_POST['googleSheetId']);
-
-    ['importedCount' => $naimportovanoPocet, 'processedFileName' => $nazevImportovanehoSouboru, 'messages' => $messages] = $vysledekImportuAktivit;
-    ['successes' => $successes, 'warnings' => $warnings, 'errors' => $errors] = $messages;
+    $naimportovanoPocet = $vysledekImportuAktivit->getImportedCount();
+    $nazevImportovanehoSouboru = $vysledekImportuAktivit->getProcessedFilename();
+    $successMessages = $vysledekImportuAktivit->getSuccessMessages();
+    $warningMessages = $vysledekImportuAktivit->getWarningMessages();
+    $errorMessages = $vysledekImportuAktivit->getErrorMessages();
 
     $zprava = sprintf("Bylo naimportováno %d aktivit z Google sheet '%s'", $naimportovanoPocet, $nazevImportovanehoSouboru);
     if ($naimportovanoPocet > 0) {
@@ -139,23 +141,23 @@ if ($googleApiClient->isAuthorized()) {
     $template->assign('oznameni', $oznameni);
     $template->parse('import.oznameni');
 
-    if ($errors) {
-      foreach ($errors as $error) {
-        $template->assign('error', $error);
+    if ($errorMessages) {
+      foreach ($errorMessages as $errorMessage) {
+        $template->assign('error', $errorMessage);
         $template->parse('import.errors.error');
       }
       $template->parse('import.errors');
     }
-    if ($warnings) {
-      foreach ($warnings as $warning) {
-        $template->assign('warning', $warning);
+    if ($warningMessages) {
+      foreach ($warningMessages as $warningMessage) {
+        $template->assign('warning', $warningMessage);
         $template->parse('import.warnings.warning');
       }
       $template->parse('import.warnings');
     }
-    if ($successes) {
-      foreach ($successes as $success) {
-        $template->assign('success', $success);
+    if ($successMessages) {
+      foreach ($successMessages as $successMessage) {
+        $template->assign('success', $successMessage);
         $template->parse('import.successes.success');
       }
       $template->parse('import.successes');
