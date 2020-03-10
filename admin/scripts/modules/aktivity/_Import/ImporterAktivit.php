@@ -173,7 +173,23 @@ class ImporterAktivit
         $validatedValues = $validatedValuesResult->getSuccess();
         unset($validatedValuesResult);
 
-        $importActivityResult = $this->importActivity($validatedValues, $singleProgramLine, $aktivita);
+        [
+          'values' => $values,
+          'longAnnotation' => $longAnnotation,
+          'storytellersIds' => $storytellersIds,
+          'tagIds' => $tagIds,
+          'imageUrl' => $imageUrl,
+        ] = $validatedValues;
+
+        $importActivityResult = $this->importActivity(
+          $values,
+          $longAnnotation,
+          $storytellersIds,
+          $tagIds,
+          $imageUrl,
+          $singleProgramLine,
+          $aktivita
+        );
         if ($importActivityResult->hasWarnings()) {
           foreach ($importActivityResult->getWarnings() as $warning) {
             $result->addWarningMessage($warning);
@@ -399,7 +415,15 @@ SQL
     return ResultOfImportStep::success($cleansedValues);
   }
 
-  private function importActivity(array $validatedValues, \Typ $singleProgramLine, ?\Aktivita $originalActivity): ResultOfImportStep {
+  private function importActivity(
+    $values,
+    $longAnnotation,
+    $storytellersIds,
+    $tagIds,
+    $imageUrl,
+    \Typ $singleProgramLine,
+    ?\Aktivita $originalActivity
+  ): ResultOfImportStep {
     if ($originalActivity) {
       if (!$originalActivity->bezpecneEditovatelna()) {
         return ResultOfImportStep::error(sprintf(
@@ -421,13 +445,6 @@ SQL
         ));
       }
     }
-
-    [
-      'values' => $values,
-      'longAnnotation' => $longAnnotation,
-      'storytellersIds' => $storytellersIds,
-      'tagIds' => $tagIds,
-    ] = $validatedValues;
 
     $storytellersAccessibilityResult = $this->checkStorytellersAccessibility(
       $storytellersIds,
@@ -457,7 +474,15 @@ SQL
     $locationAccessibilityWarnings = $locationAccessibilityResult->getWarnings();
 
     /** @var  \Aktivita $savedActivity */
-    $savedActivityResult = $this->saveActivity($values, $longAnnotation, $availableStorytellerIds, $tagIds, $singleProgramLine, $originalActivity);
+    $savedActivityResult = $this->saveActivity(
+      $values,
+      $longAnnotation,
+      $availableStorytellerIds,
+      $tagIds,
+      $imageUrl,
+      $singleProgramLine,
+      $originalActivity
+    );
     $savedActivity = $savedActivityResult->getSuccess();
 
     if ($savedActivityResult->isError()) {
@@ -662,7 +687,15 @@ SQL
     return $this->getLinkToActivity($activity);
   }
 
-  private function saveActivity(array $values, ?string $longAnnotation, array $storytellersIds, array $tagIds, \Typ $singleProgramLine, ?\Aktivita $originalActivity): ResultOfImportStep {
+  private function saveActivity(
+    array $values,
+    ?string $longAnnotation,
+    array $storytellersIds,
+    array $tagIds,
+    ?string $imageUrl,
+    \Typ $singleProgramLine,
+    ?\Aktivita $originalActivity
+  ): ResultOfImportStep {
     try {
       if (!$values[AktivitaSqlSloupce::ID_AKCE] && !$values[AktivitaSqlSloupce::PATRI_POD]) {
         $newInstanceParentActivityId = $this->findNewInstanceParentActivityId($values[AktivitaSqlSloupce::URL_AKCE], $singleProgramLine->id());
@@ -672,7 +705,7 @@ SQL
           $values[AktivitaSqlSloupce::PATRI_POD] = $newInstance->patriPod();
         }
       }
-      $savedActivity = \Aktivita::uloz($values, $longAnnotation, $storytellersIds, $tagIds);
+      $savedActivity = \Aktivita::uloz($values, $longAnnotation, $storytellersIds, $tagIds, null, $imageUrl);
       return ResultOfImportStep::success($savedActivity);
     } catch (\Exception $exception) {
       $this->logovac->zaloguj($exception);
@@ -846,7 +879,7 @@ SQL
     $sanitizedValues[AktivitaSqlSloupce::STAV] = $stateIdResult->getSuccess();
     unset($stateIdResult);
 
-    $yearResult = $this->getValidatedYear($activityValues, $originalActivity);
+    $yearResult = $this->getValidatedYear($originalActivity);
     if ($yearResult->isError()) {
       return ResultOfImportStep::error($yearResult->getError());
     }
@@ -860,7 +893,20 @@ SQL
     $sanitizedValues[AktivitaSqlSloupce::PATRI_POD] = $instanceIdResult->getSuccess();
     unset($instanceIdResult);
 
-    return ResultOfImportStep::success(['values' => $sanitizedValues, 'longAnnotation' => $longAnnotation, 'storytellersIds' => $storytellersIds, 'tagIds' => $tagIds]);
+    $imageUrlResult = $this->getValidatedImageUrl($activityValues, $originalActivity);
+    if ($imageUrlResult->isError()) {
+      return ResultOfImportStep::error($imageUrlResult->getError());
+    }
+    $imageUrl = $imageUrlResult->getSuccess();
+    unset($imageUrlResult);
+
+    return ResultOfImportStep::success([
+      'values' => $sanitizedValues,
+      'longAnnotation' => $longAnnotation,
+      'storytellersIds' => $storytellersIds,
+      'tagIds' => $tagIds,
+      'imageUrl' => $imageUrl,
+    ]);
   }
 
   private function getErrorMessageWithSkippedActivityNote(ResultOfImportStep $resultOfImportStep): string {
@@ -1234,7 +1280,7 @@ SQL
     return ResultOfImportStep::success($this->findParentInstanceId($originalActivity));
   }
 
-  private function getValidatedYear(array $activityValues, ?\Aktivita $originalActivity): ResultOfImportStep {
+  private function getValidatedYear(?\Aktivita $originalActivity): ResultOfImportStep {
     if (!$originalActivity) {
       return ResultOfImportStep::success($this->currentYear);
     }
