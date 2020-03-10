@@ -23,12 +23,15 @@ if ($_GET['zpet'] ?? '' === 'aktivity') {
   back(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) . '/..');
 }
 
-$googleApiCredentials = new GoogleApiCredentials(GOOGLE_API_CREDENTIALS);
 /** @type \Uzivatel $u */
+$currentUserId = (int)$u->id() === 4032 // kostrivec TODO remove
+  ? 102 // sirien
+  : $u->id();
+$googleApiCredentials = new GoogleApiCredentials(GOOGLE_API_CREDENTIALS);
 $googleApiClient = new GoogleApiClient(
   $googleApiCredentials,
   new GoogleApiTokenStorage($googleApiCredentials->getClientId()),
-  $u->id()
+  $currentUserId
 );
 
 if (!empty($_GET['flush-authorization'])) {
@@ -115,7 +118,7 @@ if ($googleApiClient->isAuthorized()) {
   if (!empty($_POST['googleSheetId'])) {
     /** @var Logovac $vyjimkovac */
     $importerAktivit = new ImporterAktivit(
-      $u->id(),
+      $currentUserId,
       $googleDriveService,
       $googleSheetsService,
       ROK,

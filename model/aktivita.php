@@ -1395,32 +1395,43 @@ SQL
       foreach ($this->prihlaseni() as $u) {
         $this->odhlas($u, self::BEZ_POKUT | self::NEPOSILAT_MAILY);
       }
-      $materskaProInstanciId = dbOneCol('SELECT id FROM akce_instance WHERE id_hlavni_akce = $1', [$this->id()]);
-      // řešení instancí, pokud patří do rodiny instancí
-      if ($materskaProInstanciId) {
-        $novaMaterska = dbOneLine(
-          'SELECT MIN(id_akce) as idNoveMaterske, COUNT(1) AS zbyde FROM akce_seznam WHERE id_akce != $1 AND patri_pod = $2 GROUP BY id_akce',
-          [$this->id(), $materskaProInstanciId]
+      $idInstance = $this->patriPod();
+      $idNoveMaterskeAktivity = null;
+      if ($idInstance) {
+        $materskaProInstanciId = dbOneCol('SELECT id FROM akce_instance WHERE id_hlavni_akce = $1', [$this->id()]);
+        if ($materskaProInstanciId && (int)$materskaProInstanciId !== (int)$idInstance) {
+          throw new \RuntimeException(sprintf('Aktivita s ID %d tvrdí, že patří pod instanci %d, ale patří pod %d', $this->id(), $idInstance, $materskaProInstanciId));
+        }
+        $zbyde = (int)dbOneCol(
+          'SELECT COUNT(1) AS zbyde FROM akce_seznam WHERE id_akce != $1 AND patri_pod = $2 GROUP BY id_akce',
+          [$this->id(), $idInstance]
         );
-        $idNoveMaterske = $novaMaterska['idNoveMaterske'];
-        $zbyde = (int)$novaMaterska['zbyde'];
+        if ($materskaProInstanciId) {
+          $idNoveMaterskeAktivity = dbOneCol(
+            'SELECT MIN(id_akce) AS idNoveMaterskeAktivity FROM akce_seznam WHERE id_akce != $1 AND patri_pod = $2',
+            [$this->id(), $materskaProInstanciId]
+          );
+        }
         // nezbyde žádná, nebo jen jediná instance, zrušit instanci
         if ($zbyde <= 1) {
-          dbQuery('UPDATE akce_seznam SET patri_pod = NULL WHERE patri_pod = ' . $materskaProInstanciId);
-          dbQuery('DELETE FROM akce_instance WHERE id = ' . $materskaProInstanciId);
-        } else {
-          dbQuery('UPDATE akce_instance SET id_hlavni_akce = $1 WHERE id = $2', [$idNoveMaterske, $materskaProInstanciId]);
+          dbQuery('UPDATE akce_seznam SET patri_pod = NULL WHERE patri_pod = ' . $idInstance);
+          dbQuery('DELETE FROM akce_instance WHERE id = ' . $idInstance);
+        } else if ($idNoveMaterskeAktivity) {
+          dbQuery('UPDATE akce_instance SET id_hlavni_akce = $1 WHERE id = $2', [$idNoveMaterskeAktivity, $idInstance]);
         }
-        // zrušená aktivita byla mateřskou => je potřeba uložit url a popisek do nové instance
-        dbQuery(
-          'UPDATE akce_seznam SET url_akce = $1, popis = $2, vybaveni = $3 WHERE id_akce = $4',
-          [$this->a['url_akce'], $this->a['popis'], $this->a['vybaveni'], $idNoveMaterske]
-        );
       }
 
       dbQuery('DELETE FROM akce_prihlaseni_spec WHERE id_akce = $1 AND id_stavu_prihlaseni = $2', [$this->id(), self::NAHRADNIK]);
       dbQuery('DELETE FROM akce_organizatori WHERE id_akce = $1', [$this->id()]);
       dbQuery('DELETE FROM akce_seznam WHERE id_akce = $1', [$this->id()]); // posledni kvuli SQL cizim klicum a cascade
+
+      if ($idNoveMaterskeAktivity) {
+        // zrušená aktivita byla mateřskou => je potřeba uložit url a popisek do nové instance (až po smazání původní mateřské aktivity kvůli unikátnímu klíči)
+        dbQuery(
+          'UPDATE akce_seznam SET url_akce = $1, popis = $2, vybaveni = $3 WHERE id_akce = $4',
+          [$this->a['url_akce'], $this->a['popis'], $this->a['vybaveni'], $idNoveMaterskeAktivity]
+        );
+      }
 
       dbCommit();
     } catch (Exception $e) {
