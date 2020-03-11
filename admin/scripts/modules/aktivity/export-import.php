@@ -24,9 +24,8 @@ if ($_GET['zpet'] ?? '' === 'aktivity') {
 }
 
 /** @type \Uzivatel $u */
-$currentUserId = (int)$u->id() === 4032 // kostrivec TODO remove
-  ? 102 // sirien
-  : $u->id();
+$currentUserId = $u->id();
+// $currentUserId = (int)$u->id() === 4032 /*kostrivec*/ ? 102 /*sirien*/ : $u->id(); // TODO remove
 $googleApiCredentials = new GoogleApiCredentials(GOOGLE_API_CREDENTIALS);
 $googleApiClient = new GoogleApiClient(
   $googleApiCredentials,
@@ -66,6 +65,8 @@ $template->assign('urlNaAktivity', $urlNaAktivity);
 $googleDriveService = new GoogleDriveService($googleApiClient);
 $googleSheetsService = new GoogleSheetsService($googleApiClient, $googleDriveService);
 
+$baseUrl = (($_SERVER['HTTPS'] ?? 'off') === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
+
 // EXPORT
 if (count($activityTypeIdsFromFilter) > 1) {
   $template->parse('export.neniVybranTyp');
@@ -75,7 +76,6 @@ if (count($activityTypeIdsFromFilter) > 1) {
   $activityTypeIdFromFilter = reset($activityTypeIdsFromFilter);
 
   if (!empty($_POST['export_activity_type_id']) && (int)$_POST['export_activity_type_id'] === (int)$activityTypeIdFromFilter && $googleApiClient->isAuthorized()) {
-    $baseUrl = (($_SERVER['HTTPS'] ?? 'off') === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
     $exportAktivit = new ExporterAktivit($u->id(), $googleDriveService, $googleSheetsService, $baseUrl);
     $nazevExportovanehoSouboru = $exportAktivit->exportujAktivity($aktivity, (string)($filtr['rok'] ?? ROK));
     oznameni(sprintf("Aktivity byly exportovány do Google sheets pod názvem '%s'", $nazevExportovanehoSouboru));
@@ -125,7 +125,8 @@ if ($googleApiClient->isAuthorized()) {
       new \DateTimeImmutable(),
       $urlNaEditaciAktivity,
       $vyjimkovac,
-      Mutex::proAktivity()
+      Mutex::proAktivity(),
+      $baseUrl
     );
     $vysledekImportuAktivit = $importerAktivit->importujAktivity($_POST['googleSheetId']);
     $naimportovanoPocet = $vysledekImportuAktivit->getImportedCount();

@@ -652,17 +652,17 @@ class Aktivita
   /**
    * Vrací absolutní adresu k obrázku aktivity. Ošetřeno cacheování.
    */
-  function obrazek(Obrazek $obrazek = null) {
+  function obrazek(Obrazek $obrazek = null): bool {
     $soub = $this->cestaObrazku();
     if (!$obrazek) {
       try {
-        return Nahled::zSouboru($soub)->pasuj(400);
+        return Nahled::zSouboru($soub)->pasuj(400) !== null;
       } catch (Exception $e) {
-        return '';
+        return null;
       }
     } else {
       $obrazek->fitCrop(2048, 2048);
-      $obrazek->uloz($soub);
+      return $obrazek->uloz($soub);
     }
   }
 
@@ -674,8 +674,12 @@ class Aktivita
     return file_exists($this->cestaObrazku());
   }
 
-  public function urlObrazku(): string {
-    return rtrim(URL_WEBU, '/') . '/soubory/systemove/aktivity/' . $this->a['url_akce'] . '.jpg';
+  public function urlObrazku(string $baseUrl = null): string {
+    $urlObrazku = rtrim(URL_WEBU, '/') . '/soubory/systemove/aktivity/' . $this->a['url_akce'] . '.jpg';
+    if ($baseUrl === null) {
+      return $urlObrazku;
+    }
+    return $baseUrl . '/' . ltrim($urlObrazku, '/');
   }
 
   /** (Správný) alias pro obsazenostHtml() */
@@ -1889,12 +1893,22 @@ SQL
 
   /**
    * Načte aktivitu z pole ID nebo řetězce odděleného čárkami
-   * @todo sanitizace před veřejným použitím a podpora řetězce, nejen pole
+   * @return Aktivita[]
    */
-  static function zIds($ids) {
-    if (empty($ids)) return [];
-    if (!is_array($ids)) $ids = explode(',', $ids);
-    if (empty($ids)) return [];
+  static function zIds($ids): array {
+    if (empty($ids)) {
+      return [];
+    }
+    if (!is_array($ids)) {
+      $ids = explode(',', $ids);
+    }
+    $ids = array_map('trim', $ids);
+    $ids = array_filter($ids, static function ($id) {
+      return $id !== '';
+    });
+    if (empty($ids)) {
+      return [];
+    }
     return self::zWhere('WHERE a.id_akce IN(' . dbQa($ids) . ')');
   }
 

@@ -151,14 +151,15 @@ class Obrazek
   }
 
   /** Uloží obrázek, přepíše původní */
-  function uloz($cil = null, $kvalita = null)
+  function uloz($cil = null, $kvalita = null): bool
   {
-    if($cil === null) $cil = $this->soubor;
-    if($this->o == $this->original) { // žádné změny
-      copy($this->soubor, $cil); // použít originál
-    } else {
-      imagejpeg($this->o, $cil, $kvalita ?: 98); // uložit
+    if($cil === null) {
+      $cil = $this->soubor;
     }
+    if($this->o == $this->original) { // žádné změny
+      return copy($this->soubor, $cil); // použít originál
+    }
+    return imagejpeg($this->o, $cil, $kvalita ?: 98); // uložit
   }
 
   function width()
@@ -167,12 +168,12 @@ class Obrazek
   }
 
   /** Načte obrázek z některého z podporovaných typů souboru */
-  static function zSouboru($soubor) {
+  static function zSouboru($soubor): Obrazek {
     return static::zUrl($soubor, $soubor);
   }
 
   /** Stáhne a nahraje obrázek z url */
-  static function zUrl($url, $soubor = null)
+  static function zUrl($url, $soubor = null): Obrazek
   {
     $o = false;
     $typ = @exif_imagetype($url);
