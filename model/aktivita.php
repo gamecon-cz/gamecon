@@ -652,18 +652,18 @@ class Aktivita
   /**
    * Vrací absolutní adresu k obrázku aktivity. Ošetřeno cacheování.
    */
-  function obrazek(Obrazek $obrazek = null): bool {
+  function obrazek(Obrazek $obrazek = null): ?Nahled {
     $soub = $this->cestaObrazku();
     if (!$obrazek) {
       try {
-        return Nahled::zSouboru($soub)->pasuj(400) !== null;
+        return Nahled::zSouboru($soub)->pasuj(400);
       } catch (Exception $e) {
         return null;
       }
-    } else {
-      $obrazek->fitCrop(2048, 2048);
-      return $obrazek->uloz($soub);
     }
+    $obrazek->fitCrop(2048, 2048);
+    $obrazek->uloz($soub);
+    return null;
   }
 
   public function cestaObrazku(): string {

@@ -117,7 +117,7 @@ class ImporterAktivit
     try {
       $processedFileNameResult = $this->getProcessedFileName($spreadsheetId);
       if ($processedFileNameResult->isError()) {
-        $result->addErrorMessage(sprintf('%s Import byl přerušen.', $processedFileNameResult->getError()));
+        $result->addErrorMessage(sprintf('%s Import byl <strong>přerušen</strong>.', $processedFileNameResult->getError()));
         return $result;
       }
       $processedFileName = $processedFileNameResult->getSuccess();
@@ -126,7 +126,7 @@ class ImporterAktivit
 
       $activitiesValuesResult = $this->getIndexedValues($spreadsheetId);
       if ($activitiesValuesResult->isError()) {
-        $result->addErrorMessage(sprintf('%s Import byl přerušen.', $activitiesValuesResult->getError()));
+        $result->addErrorMessage(sprintf('%s Import byl <strong>přerušen</strong>.', $activitiesValuesResult->getError()));
         return $result;
       }
       $activitiesValues = $activitiesValuesResult->getSuccess();
@@ -134,7 +134,7 @@ class ImporterAktivit
 
       $singleProgramLineResult = $this->guardSingleProgramLineOnly($activitiesValues, $processedFileName);
       if ($singleProgramLineResult->isError()) {
-        $result->addErrorMessage(sprintf('%s Import byl přerušen.', $singleProgramLineResult->getError()));
+        $result->addErrorMessage(sprintf('%s Import byl <strong>přerušen</strong>.', $singleProgramLineResult->getError()));
         return $result;
       }
       /** @var \Typ $singleProgramLine */
@@ -143,7 +143,7 @@ class ImporterAktivit
 
       if (!$this->getExclusiveLock($singleProgramLine->nazev())) {
         $result->addWarningMessage(sprintf(
-          "Právě probíhá jiný import aktivit z programové linie '%s'. Import byl přerušen. Zkus to za chvíli znovu.",
+          "Právě probíhá jiný import aktivit z programové linie '%s'. Import byl <strong>přerušen</strong>. Zkus to za chvíli znovu.",
           mb_ucfirst($singleProgramLine->nazev())
         ));
         return $result;
@@ -177,7 +177,6 @@ class ImporterAktivit
         }
         $validatedValues = $validatedValuesResult->getSuccess();
         unset($validatedValuesResult);
-
         [
           'values' => $values,
           'longAnnotation' => $longAnnotation,
@@ -208,12 +207,14 @@ class ImporterAktivit
         $result->addSuccessMessage($successMessage);
         unset($importActivityResult);
 
-        $potentialImageUrlsPerActivity[$importedActivityId] = $potentialImageUrls;
+        if (count($potentialImageUrls) > 0) {
+          $potentialImageUrlsPerActivity[$importedActivityId] = $potentialImageUrls;
+        }
 
         $result->incrementImportedCount();
       }
     } catch (\Google_Service_Exception $exception) {
-      $result->addErrorMessage('Google sheets API je dočasně nedostupné. Import byl přerušen. Zkus to za chvíli znovu.');
+      $result->addErrorMessage('Google sheets API je dočasně nedostupné. Import byl <strong>přerušen</strong>. Zkus to za chvíli znovu.');
       $this->logovac->zaloguj($exception);
       $this->releaseExclusiveLock();
       return $result;
@@ -227,7 +228,7 @@ class ImporterAktivit
   }
 
   private function saveImages(array $potentialImageUrlsPerActivity): ResultOfImportStep {
-    if (count($potentialImageUrlsPerActivity)) {
+    if (count($potentialImageUrlsPerActivity) === 0) {
       return ResultOfImportStep::success(null);
     }
     $warnings = [];
@@ -255,12 +256,14 @@ class ImporterAktivit
     }
     $imageUrls = array_unique($imageUrls);
     ['files' => $downloadedImages, 'errors' => $downloadingImagesErrors] = hromadneStazeni($imageUrls, 10);
-    $warnings[] = sprintf('Některé obrázky se nepodařilo stáhnout: %s', implode(', ', $downloadingImagesErrors));
+    if (count($downloadingImagesErrors) > 0) {
+      $warnings[] = sprintf('Některé obrázky se nepodařilo stáhnout: %s', implode(', ', $downloadingImagesErrors));
+    }
     foreach ($downloadedImages as $imageUrl => $downloadedImage) {
       $activity = $imageUrlsToActivity[$imageUrl];
       try {
         $obrazek = \Obrazek::zSouboru($downloadedImage);
-        $activity->obrazek(\Obrazek::zSouboru($obrazek));
+        $activity->obrazek($obrazek);
       } catch (\ObrazekException $obrazekException) {
         $warnings[] = sprintf(
           'Nepodařilo se uložit obrázek %s k aktivitě %s z důvodu: %s',
@@ -548,18 +551,24 @@ SQL
     $warnings = array_filter(array_merge($storytellersAccessibilityWarnings, $locationAccessibilityWarnings));
     if ($originalActivity) {
       return ResultOfImportStep::successWithWarnings(
-        sprintf('Upravena existující aktivita %s', $this->describeActivity($importedActivity)),
+        [
+          'message' => sprintf('Upravena existující aktivita %s', $this->describeActivity($importedActivity)),
+          'importedActivityId' => $importedActivity->id(),
+        ],
         $warnings
       );
     }
     if ($importedActivity->patriPod()) {
       return ResultOfImportStep::successWithWarnings(
-        sprintf(
-          'Nahrána nová aktivita %s jako %d. <strong>instance</strong> k hlavní aktivitě %s.',
-          $this->describeActivity($importedActivity),
-          $importedActivity->pocetInstanci(),
-          $this->describeActivity($importedActivity->patriPodAktivitu())
-        ),
+        [
+          'message' => sprintf(
+            'Nahrána nová aktivita %s jako %d. <strong>instance</strong> k hlavní aktivitě %s.',
+            $this->describeActivity($importedActivity),
+            $importedActivity->pocetInstanci(),
+            $this->describeActivity($importedActivity->patriPodAktivitu())
+          ),
+          'importedActivityId' => $importedActivity->id(),
+        ],
         $warnings
       );
     }
@@ -956,7 +965,7 @@ SQL
     if ($potentialImageUrlsResult->isError()) {
       return ResultOfImportStep::error($potentialImageUrlsResult->getError());
     }
-    $potentialImageUrls = []; // $imageUrlResult->getSuccess();
+    $potentialImageUrls = $potentialImageUrlsResult->getSuccess();
     unset($potentialImageUrlsResult);
 
     return ResultOfImportStep::success([
