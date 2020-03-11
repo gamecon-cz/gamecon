@@ -9,23 +9,21 @@ $GLOBALS['SKRIPT_ZACATEK'] = microtime(true); // profiling
  * Vrátí míru diverzifikace aktivit v poli udávajícím počty aktivit od jedno-
  * tlivých typů. Délka pole ovlivňuje výsledek (je potřeba aby obsahovalo i 0)
  */
-function aktivityDiverzifikace($poleTypu)
-{
-  $typu=count($poleTypu);
-  $pocet=array_sum($poleTypu);
-  if($pocet == 0) return 0.0;
-  $pocty=$poleTypu;
-  rsort($pocty,SORT_NUMERIC);
-  $max=($pocet-$pocty[0])/($pocet*($typu-1));
-  $nPocty=[];
-  for($i=1;$i<$typu;$i++)
-  { //první počet přeskočit
-    if($pocty[$i]/$pocet>$max)
-      $nPocty[]=$max;
+function aktivityDiverzifikace($poleTypu) {
+  $typu = count($poleTypu);
+  $pocet = array_sum($poleTypu);
+  if ($pocet == 0) return 0.0;
+  $pocty = $poleTypu;
+  rsort($pocty, SORT_NUMERIC);
+  $max = ($pocet - $pocty[0]) / ($pocet * ($typu - 1));
+  $nPocty = [];
+  for ($i = 1; $i < $typu; $i++) { //první počet přeskočit
+    if ($pocty[$i] / $pocet > $max)
+      $nPocty[] = $max;
     else
-      $nPocty[]=$pocty[$i]/$pocet;
+      $nPocty[] = $pocty[$i] / $pocet;
   }
-  return array_sum($nPocty)*$typu/($typu-1); //výsledná míra diverzifikace 0.0 - 1.0
+  return array_sum($nPocty) * $typu / ($typu - 1); //výsledná míra diverzifikace 0.0 - 1.0
 }
 
 
@@ -38,17 +36,16 @@ function aktivityDiverzifikace($poleTypu)
  * @todo nepovinné přepisování ('%d' => 'přihlásil se 1 uživatel', případně slovy apod)
  */
 function cislo($i, $jeden, $dva, $pet) {
-  if($i == 1) return $i.$jeden;
-  if(1 < $i && $i < 5) return $i.$dva;
-  else return $i.$pet;
+  if ($i == 1) return $i . $jeden;
+  if (1 < $i && $i < 5) return $i . $dva;
+  else return $i . $pet;
 }
 
 
 /** Vrací datum ve stylu "pátek 14:00-18:00" na základě řádku db */
-function datum2($dbRadek)
-{
-  if($dbRadek['zacatek'])
-    return (new DateTimeCz($dbRadek['zacatek']))->format('l G:i').'–'.(new DateTimeCz($dbRadek['konec']))->format('G:i');
+function datum2($dbRadek) {
+  if ($dbRadek['zacatek'])
+    return (new DateTimeCz($dbRadek['zacatek']))->format('l G:i') . '–' . (new DateTimeCz($dbRadek['konec']))->format('G:i');
   else
     return '';
 }
@@ -56,22 +53,21 @@ function datum2($dbRadek)
 
 /** Vrací datum ve stylu 1. července
  *  akceptuje vše, co žere strtotime */
-function datum3($datum)
-{
-  $mesic=['ledna', 'února', 'března', 'dubna', 'května', 'června',
+function datum3($datum) {
+  $mesic = ['ledna', 'února', 'března', 'dubna', 'května', 'června',
     'července', 'srpna', 'září', 'října', 'listopadu', 'prosince'];
-  return date('j. ',strtotime($datum)).
-    $mesic[date('n',strtotime($datum))-1];
+  return date('j. ', strtotime($datum)) .
+    $mesic[date('n', strtotime($datum)) - 1];
 }
 
 
 /** Vrátí markdown textu daného hashe (cacheované, text musí být v DB) */
 function dbMarkdown($hash) {
-  if($hash == 0) return '';
+  if ($hash == 0) return '';
   $out = kvs('markdown', $hash);
-  if(!$out) {
-    $text = dbOneCol('SELECT text FROM texty WHERE id = '.(int)$hash);
-    if(!$text) throw new Exception('Text s daným ID se nenachází v databázi');
+  if (!$out) {
+    $text = dbOneCol('SELECT text FROM texty WHERE id = ' . (int)$hash);
+    if (!$text) throw new Exception('Text s daným ID se nenachází v databázi');
     $out = markdown($text);
   }
   return $out;
@@ -91,16 +87,16 @@ function dbMarkdown($hash) {
  *  TODO co s duplicitami
  */
 function dbText($hash) {
-  if(func_num_args() == 1) {
-    return dbOneCol('SELECT text FROM texty WHERE id = '.(int)$hash);
-  } elseif(func_num_args() == 2 and !func_get_arg(1)) {
-    dbQuery('DELETE FROM texty WHERE id = '.(int)$hash);
+  if (func_num_args() == 1) {
+    return dbOneCol('SELECT text FROM texty WHERE id = ' . (int)$hash);
+  } elseif (func_num_args() == 2 and !func_get_arg(1)) {
+    dbQuery('DELETE FROM texty WHERE id = ' . (int)$hash);
     return 0;
   } else {
     $text = func_get_arg(1);
     $nhash = scrc32($text);
     $nrow = ['text' => $text, 'id' => $nhash];
-    if($hash) dbUpdate('texty', $nrow, ['id' => $hash]);
+    if ($hash) dbUpdate('texty', $nrow, ['id' => $hash]);
     else dbInsert('texty', $nrow);
     return $nhash;
   }
@@ -113,8 +109,9 @@ function dbText($hash) {
 function dbTextHash($text) {
   $hash = scrc32($text);
   try {
-    dbInsert('texty', ['id'=>$hash, 'text'=>$text]);
-  } catch(DbException $e) {}
+    dbInsert('texty', ['id' => $hash, 'text' => $text]);
+  } catch (DbException $e) {
+  }
   return $hash;
 }
 
@@ -124,25 +121,26 @@ function dbTextHash($text) {
  */
 function dbTextClean($hash) {
   try {
-    dbQuery('DELETE FROM texty WHERE id = '.(int)$hash);
-  } catch(DbException $e) {}
+    dbQuery('DELETE FROM texty WHERE id = ' . (int)$hash);
+  } catch (DbException $e) {
+  }
 }
 
 /** Načte / uloží hodnotu do key-value storage s daným názvem */
 function kvs($nazev, $index, $hodnota = null) {
-  if(!isset($GLOBALS['CACHEDB'][$nazev])) {
-    $db = new SQLite3(SPEC.'/'.$nazev.'.sqlite');
+  if (!isset($GLOBALS['CACHEDB'][$nazev])) {
+    $db = new SQLite3(SPEC . '/' . $nazev . '.sqlite');
     $GLOBALS['CACHEDB'][$nazev] = $db;
     $db->exec("create table if not exists kvs (k integer primary key, v text)");
   }
   $db = $GLOBALS['CACHEDB'][$nazev];
-  if($hodnota === null) {
+  if ($hodnota === null) {
     // načítání
-    $o = $db->query('select v from kvs where k = '.$index)->fetchArray(SQLITE3_NUM);
-    if($o === false) return null;
+    $o = $db->query('select v from kvs where k = ' . $index)->fetchArray(SQLITE3_NUM);
+    if ($o === false) return null;
     else return $o[0];
   } else {
-    $db->exec('insert into kvs values('.$index.',\''.SQLite3::escapeString($hodnota).'\')');
+    $db->exec('insert into kvs values(' . $index . ',\'' . SQLite3::escapeString($hodnota) . '\')');
   }
 }
 
@@ -155,7 +153,7 @@ function kvs($nazev, $index, $hodnota = null) {
 function markdown($text) {
   $hash = scrc32($text);
   $out = kvs('markdown', $hash);
-  if($out === null) {
+  if ($out === null) {
     kvs('markdown', $hash, markdownNoCache($text));
     $out = kvs('markdown', $hash);
   }
@@ -165,7 +163,7 @@ function markdown($text) {
 
 /** Převede text markdown na html (přímo on the fly) */
 function markdownNoCache($text) {
-  if(!$text) return '';
+  if (!$text) return '';
   $text = \Michelf\MarkdownExtra::defaultTransform($text);
   $text = Smartyp::defaultTransform($text);
   return $text;
@@ -173,9 +171,8 @@ function markdownNoCache($text) {
 
 
 /** Multibyte (utf-8) první písmeno velké */
-function mb_ucfirst($string, $encoding=null)
-{
-  if(!$encoding) $encoding = mb_internal_encoding();
+function mb_ucfirst($string, $encoding = null) {
+  if (!$encoding) $encoding = mb_internal_encoding();
   $firstChar = mb_substr($string, 0, 1, $encoding);
   $then = mb_substr($string, 1, mb_strlen($string), $encoding);
   return mb_strtoupper($firstChar, $encoding) . $then;
@@ -187,7 +184,7 @@ function mb_ucfirst($string, $encoding=null)
  * akceptují php funce (např. strtotime)
  */
 function mezi($od, $do) {
-  return strtotime($od)<=time() && time()<=strtotime($do);
+  return strtotime($od) <= time() && time() <= strtotime($do);
 }
 
 
@@ -205,40 +202,40 @@ function perfectcache($args) {
   $lastf = end($args);
   $typ = substr($lastf, -3) == '.js' ? 'js' : 'css';
   $last = 0;
-  foreach($args as $a) {
-    if(!$a) continue;
+  foreach ($args as $a) {
+    if (!$a) continue;
     $m = filemtime($a);
-    if($last < $m) $last = $m;
+    if ($last < $m) $last = $m;
   }
   $mind = CACHE . '/' . $typ;
   $minf = $mind . '/' . md5(implode('', $args)) . '.' . $typ;
   $minu = URL_CACHE . '/' . $typ . '/' . md5(implode('', $args)) . '.' . $typ;
   $m = @filemtime($minf);
   // případná rekompilace
-  if($m < $last) {
+  if ($m < $last) {
     pripravCache($mind);
-    if(is_file($minf)) unlink($minf);
-    if($typ == 'js') {
-      foreach($args as $a) if($a) file_put_contents($minf, file_get_contents($a), FILE_APPEND);
+    if (is_file($minf)) unlink($minf);
+    if ($typ == 'js') {
+      foreach ($args as $a) if ($a) file_put_contents($minf, file_get_contents($a), FILE_APPEND);
     } else {
       $parser = new Less_Parser(['compress' => true]);
-      foreach($args as $a) if($a) {
-        if(substr($a, -4) != '.ttf') $parser->parseFile($a, URL_WEBU.'/soubory/styl/');
-        else $parser->ModifyVars([ perfectcacheFontNazev($a) => 'url("'.perfectcacheFont($a).'")' ]); // prozatím u fontu stačí věřit, že modifikace odpovídá modifikaci stylu
+      foreach ($args as $a) if ($a) {
+        if (substr($a, -4) != '.ttf') $parser->parseFile($a, URL_WEBU . '/soubory/styl/');
+        else $parser->ModifyVars([perfectcacheFontNazev($a) => 'url("' . perfectcacheFont($a) . '")']); // prozatím u fontu stačí věřit, že modifikace odpovídá modifikaci stylu
       }
       file_put_contents($minf, $parser->getCss());
     }
   }
-  return $minu.'?v='.$last;
+  return $minu . '?v=' . $last;
 }
 
 function perfectcacheFont($font) {
   // font musí pocházet ze stejné url - nelze použít cache
-  return URL_WEBU.'/'.$font.'?v='.filemtime($font);
+  return URL_WEBU . '/' . $font . '?v=' . filemtime($font);
 }
 
 function perfectcacheFontNazev($font) {
-  return 'font'.preg_replace('@.*/([^/]+)\.ttf$@', '$1', $font);
+  return 'font' . preg_replace('@.*/([^/]+)\.ttf$@', '$1', $font);
 }
 
 
@@ -255,9 +252,9 @@ function pred($cas) {
  * Vytvoří zapisovatelnou složku, pokud taková už neexistuje
  */
 function pripravCache($slozka) {
-  if(is_writable($slozka)) return;
-  if(is_dir($slozka)) throw new Exception("Do existující cache složky '$slozka' není možné zapisovat");
-  if(!mkdir($slozka, 0777, true)) throw new Exception("Složku '$slozka' se nepodařilo vytvořit");
+  if (is_writable($slozka)) return;
+  if (is_dir($slozka)) throw new Exception("Do existující cache složky '$slozka' není možné zapisovat");
+  if (!mkdir($slozka, 0777, true)) throw new Exception("Složku '$slozka' se nepodařilo vytvořit");
   chmod($slozka, CACHE_SLOZKY_PRAVA);
 }
 
@@ -265,7 +262,7 @@ function pripravCache($slozka) {
 /** Znaménkové crc32 chovající se stejně na 32bit i 64bit systémech */
 function scrc32($data) {
   $crc = crc32($data);
-  if($crc & 0x80000000){
+  if ($crc & 0x80000000) {
     $crc ^= 0xffffffff;
     $crc += 1;
     $crc = -$crc;
@@ -274,18 +271,18 @@ function scrc32($data) {
 }
 
 function potrebujePotvrzeni(DateTimeImmutable $datumNarozeni): bool {
-    // cilene bez hodin, minut a sekund
-    return vekNaZacatkuLetosnihoGameconu($datumNarozeni) < 15;
+  // cilene bez hodin, minut a sekund
+  return vekNaZacatkuLetosnihoGameconu($datumNarozeni) < 15;
 }
 
 function vekNaZacatkuLetosnihoGameconu(DateTimeImmutable $datumNarozeni): int {
-    // cilene bez hodin, minut a sekund
-    return vek($datumNarozeni->setTime(0, 0, 0), DateTimeGamecon::zacatekLetosnihoGameconu()->setTime(0, 0, 0));
+  // cilene bez hodin, minut a sekund
+  return vek($datumNarozeni->setTime(0, 0, 0), DateTimeGamecon::zacatekLetosnihoGameconu()->setTime(0, 0, 0));
 }
 
 function vek(DateTimeInterface $datumNarozeni, ?DateTimeInterface $kDatu): int {
-    $kDatu = $kDatu ?? new DateTimeImmutable(date('Y-m-d 00:00:00'));
-    return $kDatu->diff($datumNarozeni)->y;
+  $kDatu = $kDatu ?? new DateTimeImmutable(date('Y-m-d 00:00:00'));
+  return $kDatu->diff($datumNarozeni)->y;
 }
 
 function odstranDiakritiku(string $value): string {
@@ -305,9 +302,148 @@ function odstranDiakritiku(string $value): string {
 
 if (!function_exists('array_key_first')) {
   function array_key_first(array $values) {
-    foreach($values as $key => $unused) {
+    foreach ($values as $key => $unused) {
       return $key;
     }
     return null;
   }
+}
+
+
+/**
+ * @param array|string[] $urls
+ * @param int $timeout
+ * @param string|null $dirToSaveTo
+ * @return string[][] Cesty ke staženým souborům a chyby [ ['files'][], ['errors'][] ]
+ */
+function hromadneStazeni(array $urls, int $timeout = 60, string $dirToSaveTo = null): array {
+  $urls = array_map('trim', $urls);
+  $urls = array_filter($urls, static function (string $url) {
+    return $url !== '';
+  });
+  $result = [
+    'errors' => [],
+    'files' => [],
+  ];
+  if (count($urls) === 0) {
+    return $result;
+  }
+  $urls = array_unique($urls);
+  $sanitizedUrls = [];
+  foreach ($urls as $url) {
+    $sanitizedUrls[$url] = sanitizeUrlForCurl($url);
+  }
+  if ($dirToSaveTo === null) {
+    $dirToSaveTo = sys_get_temp_dir() . '/' . uniqid(__FUNCTION__, true);
+  }
+  if (!mkdir($dirToSaveTo, 0777, true) && !is_dir($dirToSaveTo)) {
+    throw new \RuntimeException(sprintf('Directory "%s" was not created', $dirToSaveTo));
+  }
+  $multiCurl = curl_multi_init();
+  $curlHandles = [];
+  $fileHandles = [];
+
+  // Add curl multi handles, one per file we don't already have
+  foreach ($sanitizedUrls as $originalUrl => $sanitizedUrl) {
+    $path = parse_url($sanitizedUrl, PHP_URL_PATH);
+    $basename = basename($path);
+    $file = $dirToSaveTo . '/' . $basename;
+    $curlHandle = curl_init($sanitizedUrl);
+    if (!$curlHandle) {
+      $result['errors'][$originalUrl] = sprintf("Nelze otevřít CURL handle pro URL '%s'", $sanitizedUrl);
+      continue;
+    }
+    $fileHandle = fopen($file, 'wb');
+    if (!$fileHandle) {
+      $result['errors'][$originalUrl] = sprintf("Nelze otevřít file handle pro soubor '%s'", $file);
+      continue;
+    }
+    curl_setopt($curlHandle, CURLOPT_FILE, $fileHandle);
+    curl_setopt($curlHandle, CURLOPT_HEADER, 0); // hlavičky nepotřebujeme
+    curl_setopt($curlHandle, CURLOPT_CONNECTTIMEOUT, 5); // timeout na připojení
+    curl_setopt($curlHandle, CURLOPT_TIMEOUT, $timeout); // timeout na stahování
+    curl_multi_add_handle($multiCurl, $curlHandle);
+
+    $result['files'][$originalUrl] = $file;
+    $curlHandles[$sanitizedUrl] = $curlHandle;
+    $fileHandles[$sanitizedUrl] = $fileHandle;
+  }
+
+  // stahování souborů
+  do {
+    $totalResultCode = curl_multi_exec($multiCurl, $running);
+    // Wait for activity on any curl-connection
+    if ($running > 0 && curl_multi_select($multiCurl) === -1) {
+      usleep(100000);
+    }
+  } while ($running > 0 && $totalResultCode === CURLM_OK);
+  if ($totalResultCode !== CURLM_OK) {
+    $result['errors'][] = sprintf(
+      'Nepodařilo se stahovat soubory z URLs %s s chybou %s (%d)',
+      implode('; ', $sanitizedUrls),
+      curl_multi_strerror($totalResultCode),
+      $totalResultCode
+    );
+    return $result;
+  }
+
+  foreach ($curlHandles as $sanitizedUrl => $curlHandle) {
+    curl_multi_remove_handle($multiCurl, $curlHandle);
+    curl_close($curlHandle);
+    fclose($fileHandles[$sanitizedUrl]);
+  }
+
+  do {
+    $info = curl_multi_info_read($multiCurl, $remainingMessages);
+    if ($info) {
+      ['result' => $resultCode, 'curlHandle' => $curlHandle] = $info;
+      if ($resultCode !== CURLE_OK) {
+        $result['errors'][] = sprintf('%s (%d)', curl_strerror($resultCode), $resultCode);
+      }
+    }
+  } while ($info && $remainingMessages);
+
+  curl_multi_close($multiCurl);
+
+  return $result;
+}
+
+function sanitizeUrlForCurl(string $url): string {
+  $urlParts = parse_url($url);
+
+  $sanitizedUrl = '';
+
+  if (!empty($urlParts['scheme'])) {
+    $sanitizedUrl .= $urlParts['scheme'] . '://';
+  }
+
+  if (!empty($urlParts['user'])) {
+    $sanitizedUrl .= $urlParts['user'];
+    if (!empty($urlParts['pass'])) {
+      $sanitizedUrl .= ':' . $urlParts['user'];
+    }
+    $sanitizedUrl .= '@';
+  }
+
+  if (!empty($urlParts['host'])) {
+    $sanitizedUrl .= $urlParts['host'];
+  }
+
+  if (!empty($urlParts['port'])) {
+    $sanitizedUrl .= ':' . $urlParts['port'];
+  }
+
+  if (($urlParts['path'] ?? null) !== null) {
+    $sanitizedUrl .= str_replace(' ', rawurldecode(' '), $urlParts['path']);
+  }
+
+  if (($urlParts['query'] ?? null) !== null) {
+    $sanitizedUrl .= '?' . str_replace(' ', rawurldecode(' '), $urlParts['query']);
+  }
+
+  if (($urlParts['fragment'] ?? null) !== null) {
+    $sanitizedUrl .= '#' . str_replace(' ', rawurldecode(' '), $urlParts['fragment']);
+  }
+
+  return $sanitizedUrl;
 }

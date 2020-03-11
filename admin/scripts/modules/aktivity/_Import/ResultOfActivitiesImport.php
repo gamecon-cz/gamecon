@@ -55,6 +55,13 @@ class ResultOfActivitiesImport
     return $this;
   }
 
+  public function addWarningMessages(array $warningMessages): ResultOfActivitiesImport {
+    foreach ($warningMessages as $warningMessage) {
+      $this->addWarningMessage($warningMessage);
+    }
+    return $this;
+  }
+
   public function addSuccessMessage(string $successMessage): ResultOfActivitiesImport {
     $this->successMessages[] = $successMessage;
     return $this;

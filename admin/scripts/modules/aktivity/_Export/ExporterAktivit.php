@@ -119,7 +119,7 @@ class ExporterAktivit
         (string)$aktivita->vybaveni(), // Vybavení
         $aktivita->stav()->nazev(), // Stav
         $aktivita->maObrazek()
-          ? $this->baseUrl . '/' . ltrim($aktivita->urlObrazku(), '/')
+          ? $aktivita->urlObrazku($this->baseUrl)
           : '', // Obrázek
       ];
     }

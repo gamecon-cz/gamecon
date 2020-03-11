@@ -85,6 +85,10 @@ class ImporterAktivit
    * @var string
    */
   private $editActivityUrlSkeleton;
+  /**
+   * @var string
+   */
+  private $baseUrl;
 
   public function __construct(
     int $userId,
@@ -94,7 +98,8 @@ class ImporterAktivit
     \DateTimeInterface $now,
     string $editActivityUrlSkeleton,
     Logovac $logovac,
-    Mutex $mutexPattern
+    Mutex $mutexPattern,
+    string $baseUrl
   ) {
     $this->userId = $userId;
     $this->googleDriveService = $googleDriveService;
@@ -104,6 +109,7 @@ class ImporterAktivit
     $this->logovac = $logovac;
     $this->mutexPattern = $mutexPattern;
     $this->editActivityUrlSkeleton = $editActivityUrlSkeleton;
+    $this->baseUrl = $baseUrl;
   }
 
   public function importujAktivity(string $spreadsheetId): ResultOfActivitiesImport {
@@ -143,28 +149,27 @@ class ImporterAktivit
         return $result;
       }
 
-      /** @var int|null $parentActivityId */
-      $parentActivityId = null;
+      $potentialImageUrlsPerActivity = [];
       foreach ($activitiesValues as $activityValues) {
-        $activityIdResult = $this->getActivityId($activityValues);
-        if ($activityIdResult->isError()) {
-          $result->addErrorMessage($activityIdResult->getError());
+        $originalActivityIdResult = $this->getActivityId($activityValues);
+        if ($originalActivityIdResult->isError()) {
+          $result->addErrorMessage($originalActivityIdResult->getError());
           continue;
         }
-        $activityId = $activityIdResult->getSuccess();
+        $oiginalActivityId = $originalActivityIdResult->getSuccess();
 
-        $aktivita = null;
-        if ($activityId) {
-          $aktivitaResult = $this->getValidatedOldActivityById($activityId);
-          if ($aktivitaResult->isError()) {
-            $errorMessage = $this->getErrorMessageWithSkippedActivityNote($aktivitaResult);
+        $originalActivity = null;
+        if ($oiginalActivityId) {
+          $originalActivityResult = $this->getValidatedOriginalActivity($oiginalActivityId);
+          if ($originalActivityResult->isError()) {
+            $errorMessage = $this->getErrorMessageWithSkippedActivityNote($originalActivityResult);
             $result->addErrorMessage($errorMessage);
             continue;
           }
-          $aktivita = $aktivitaResult->getSuccess();
+          $originalActivity = $originalActivityResult->getSuccess();
         }
 
-        $validatedValuesResult = $this->validateValues($singleProgramLine, $activityValues, $aktivita);
+        $validatedValuesResult = $this->validateValues($singleProgramLine, $activityValues, $originalActivity);
         if ($validatedValuesResult->isError()) {
           $errorMessage = $this->getErrorMessageWithSkippedActivityNote($validatedValuesResult);
           $result->addErrorMessage($errorMessage);
@@ -178,7 +183,7 @@ class ImporterAktivit
           'longAnnotation' => $longAnnotation,
           'storytellersIds' => $storytellersIds,
           'tagIds' => $tagIds,
-          'imageUrl' => $imageUrl,
+          'potentialImageUrls' => $potentialImageUrls,
         ] = $validatedValues;
 
         $importActivityResult = $this->importActivity(
@@ -186,9 +191,8 @@ class ImporterAktivit
           $longAnnotation,
           $storytellersIds,
           $tagIds,
-          $imageUrl,
           $singleProgramLine,
-          $aktivita
+          $originalActivity
         );
         if ($importActivityResult->hasWarnings()) {
           foreach ($importActivityResult->getWarnings() as $warning) {
@@ -200,8 +204,12 @@ class ImporterAktivit
           $result->addErrorMessage($errorMessage);
           continue;
         }
-        $result->addSuccessMessage($importActivityResult->getSuccess());
+        ['message' => $successMessage, 'importedActivityId' => $importedActivityId] = $importActivityResult->getSuccess();
+        $result->addSuccessMessage($successMessage);
         unset($importActivityResult);
+
+        $potentialImageUrlsPerActivity[$importedActivityId] = $potentialImageUrls;
+
         $result->incrementImportedCount();
       }
     } catch (\Google_Service_Exception $exception) {
@@ -210,8 +218,59 @@ class ImporterAktivit
       $this->releaseExclusiveLock();
       return $result;
     }
+    $savingImagesResult = $this->saveImages($potentialImageUrlsPerActivity);
+    if ($savingImagesResult->hasWarnings()) {
+      $result->addWarningMessages($savingImagesResult->getWarnings());
+    }
     $this->releaseExclusiveLock();
     return $result;
+  }
+
+  private function saveImages(array $potentialImageUrlsPerActivity): ResultOfImportStep {
+    if (count($potentialImageUrlsPerActivity)) {
+      return ResultOfImportStep::success(null);
+    }
+    $warnings = [];
+    $imageUrls = [];
+    /** @var \Aktivita[] $imageUrlsToActivity */
+    $imageUrlsToActivity = [];
+    /** @var \Aktivita[] $activities */
+    $activities = [];
+    $activityIds = array_keys($potentialImageUrlsPerActivity);
+    foreach (\Aktivita::zIds($activityIds) as $activity) {
+      $activities[$activity->id()] = $activity;
+      unset($activity);
+    }
+    foreach ($potentialImageUrlsPerActivity as $activityId => $potentialImageUrls) {
+      $activity = $activities[$activityId];
+      foreach ($potentialImageUrls as $potentialImageUrl) {
+        // Image URL is same as current, therefore came from an export and there is no change from it
+        if ($potentialImageUrl === $activity->urlObrazku($this->baseUrl)) {
+          continue;
+        }
+        $imageUrls[] = $potentialImageUrl;
+        $imageUrlsToActivity[$potentialImageUrl] = $activity;
+        unset($activity);
+      }
+    }
+    $imageUrls = array_unique($imageUrls);
+    ['files' => $downloadedImages, 'errors' => $downloadingImagesErrors] = hromadneStazeni($imageUrls, 10);
+    $warnings[] = sprintf('Některé obrázky se nepodařilo stáhnout: %s', implode(', ', $downloadingImagesErrors));
+    foreach ($downloadedImages as $imageUrl => $downloadedImage) {
+      $activity = $imageUrlsToActivity[$imageUrl];
+      try {
+        $obrazek = \Obrazek::zSouboru($downloadedImage);
+        $activity->obrazek(\Obrazek::zSouboru($obrazek));
+      } catch (\ObrazekException $obrazekException) {
+        $warnings[] = sprintf(
+          'Nepodařilo se uložit obrázek %s k aktivitě %s z důvodu: %s',
+          $imageUrl,
+          $this->describeActivity($activity), $obrazekException->getMessage()
+        );
+        continue;
+      }
+    }
+    return ResultOfImportStep::successWithWarnings(true, $warnings);
   }
 
   private function getProcessedFileName(string $spreadsheetId): ResultOfImportStep {
@@ -290,7 +349,7 @@ SQL
       : null;
   }
 
-  private function getValidatedOldActivityById(int $id): ResultOfImportStep {
+  private function getValidatedOriginalActivity(int $id): ResultOfImportStep {
     $aktivita = $this->findOldActivityById($id);
     if ($aktivita) {
       return ResultOfImportStep::success($aktivita);
@@ -420,7 +479,6 @@ SQL
     $longAnnotation,
     $storytellersIds,
     $tagIds,
-    $imageUrl,
     \Typ $singleProgramLine,
     ?\Aktivita $originalActivity
   ): ResultOfImportStep {
@@ -473,17 +531,16 @@ SQL
     }
     $locationAccessibilityWarnings = $locationAccessibilityResult->getWarnings();
 
-    /** @var  \Aktivita $savedActivity */
+    /** @var  \Aktivita $importedActivity */
     $savedActivityResult = $this->saveActivity(
       $values,
       $longAnnotation,
       $availableStorytellerIds,
       $tagIds,
-      $imageUrl,
       $singleProgramLine,
       $originalActivity
     );
-    $savedActivity = $savedActivityResult->getSuccess();
+    $importedActivity = $savedActivityResult->getSuccess();
 
     if ($savedActivityResult->isError()) {
       return ResultOfImportStep::error($savedActivityResult->getError());
@@ -491,23 +548,26 @@ SQL
     $warnings = array_filter(array_merge($storytellersAccessibilityWarnings, $locationAccessibilityWarnings));
     if ($originalActivity) {
       return ResultOfImportStep::successWithWarnings(
-        sprintf('Upravena existující aktivita %s', $this->describeActivity($savedActivity)),
+        sprintf('Upravena existující aktivita %s', $this->describeActivity($importedActivity)),
         $warnings
       );
     }
-    if ($savedActivity->patriPod()) {
+    if ($importedActivity->patriPod()) {
       return ResultOfImportStep::successWithWarnings(
         sprintf(
           'Nahrána nová aktivita %s jako %d. <strong>instance</strong> k hlavní aktivitě %s.',
-          $this->describeActivity($savedActivity),
-          $savedActivity->pocetInstanci(),
-          $this->describeActivity($savedActivity->patriPodAktivitu())
+          $this->describeActivity($importedActivity),
+          $importedActivity->pocetInstanci(),
+          $this->describeActivity($importedActivity->patriPodAktivitu())
         ),
         $warnings
       );
     }
     return ResultOfImportStep::successWithWarnings(
-      sprintf('Nahrána nová aktivita %s', $this->describeActivity($savedActivity)),
+      [
+        'message' => sprintf('Nahrána nová aktivita %s', $this->describeActivity($importedActivity)),
+        'importedActivityId' => $importedActivity->id(),
+      ],
       $warnings
     );
   }
@@ -692,7 +752,6 @@ SQL
     ?string $longAnnotation,
     array $storytellersIds,
     array $tagIds,
-    ?string $imageUrl,
     \Typ $singleProgramLine,
     ?\Aktivita $originalActivity
   ): ResultOfImportStep {
@@ -705,7 +764,7 @@ SQL
           $values[AktivitaSqlSloupce::PATRI_POD] = $newInstance->patriPod();
         }
       }
-      $savedActivity = \Aktivita::uloz($values, $longAnnotation, $storytellersIds, $tagIds, null, $imageUrl);
+      $savedActivity = \Aktivita::uloz($values, $longAnnotation, $storytellersIds, $tagIds);
       return ResultOfImportStep::success($savedActivity);
     } catch (\Exception $exception) {
       $this->logovac->zaloguj($exception);
@@ -893,19 +952,19 @@ SQL
     $sanitizedValues[AktivitaSqlSloupce::PATRI_POD] = $instanceIdResult->getSuccess();
     unset($instanceIdResult);
 
-    $imageUrlResult = $this->getValidatedImageUrl($activityValues, $originalActivity);
-    if ($imageUrlResult->isError()) {
-      return ResultOfImportStep::error($imageUrlResult->getError());
+    $potentialImageUrlsResult = $this->getPotencialImageUrls($activityValues, $activityUrl, $originalActivity);
+    if ($potentialImageUrlsResult->isError()) {
+      return ResultOfImportStep::error($potentialImageUrlsResult->getError());
     }
-    $imageUrl = $imageUrlResult->getSuccess();
-    unset($imageUrlResult);
+    $potentialImageUrls = []; // $imageUrlResult->getSuccess();
+    unset($potentialImageUrlsResult);
 
     return ResultOfImportStep::success([
       'values' => $sanitizedValues,
       'longAnnotation' => $longAnnotation,
       'storytellersIds' => $storytellersIds,
       'tagIds' => $tagIds,
-      'imageUrl' => $imageUrl,
+      'potentialImageUrls' => $potentialImageUrls,
     ]);
   }
 
@@ -928,6 +987,22 @@ SQL
       $nameParts[] = 'warnings';
     }
     return implode(',', $nameParts);
+  }
+
+  private function getPotencialImageUrls(array $activityValues, string $activityUrl, ?\Aktivita $originalActivity): ResultOfImportStep {
+    $imageUrl = $activityValues[ExportAktivitSloupce::OBRAZEK] ?? null;
+    if (!$imageUrl) {
+      return ResultOfImportStep::success([]);
+    }
+    if (preg_match('~[.](jpg|png|gif)$~i', $imageUrl)) {
+      return ResultOfImportStep::success([$imageUrl]);
+    }
+    $imageUrlWithoutExtension = rtrim($imageUrl, '/') . '/' . $activityUrl;
+    return ResultOfImportStep::success([
+      $imageUrlWithoutExtension . '.jpg',
+      $imageUrlWithoutExtension . '.png',
+      $imageUrlWithoutExtension . '.gif',
+    ]);
   }
 
   private function getValidatedStateId(array $activityValues, ?\Aktivita $originalActivity): ResultOfImportStep {

@@ -38,7 +38,7 @@ class Nahled {
     return $this;
   }
 
-  protected function mod($s, $v, $mod) {
+  protected function mod($s, $v, $mod): Nahled {
     $this->mod = $mod;
     $this->s = $s;
     $this->v = $v;
@@ -46,7 +46,7 @@ class Nahled {
   }
 
   /** Zmenší obrázek aby pasoval do obdelníku s šířkou $s a výškou $v */
-  function pasuj($s, $v = null) {
+  function pasuj($s, $v = null): Nahled {
     return $this->mod($s, $v, self::PASUJ);
   }
 
