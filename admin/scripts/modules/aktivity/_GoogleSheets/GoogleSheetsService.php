@@ -66,6 +66,7 @@ class GoogleSheetsService
    * @return array
    * @throws Exceptions\GoogleApiException
    * @throws Exceptions\UnauthorizedGoogleApiClient
+   * @throws \Google_Service_Exception
    */
   public function getSpreadsheetValues(string $spreadsheetId): array {
     $wholeFirstSheetRange = $this->getWholeFirstSheetRange($spreadsheetId);
