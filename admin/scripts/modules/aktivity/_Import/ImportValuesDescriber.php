@@ -88,4 +88,14 @@ class ImportValuesDescriber
 HTML
       ;
   }
+
+  public function describeLocationById(int $locationId): string {
+    $location = ImportModelsFetcher::fetchLocation($locationId);
+    return sprintf('%s (%s)', $location->nazev(), $location->id());
+  }
+
+  public function describeUserById(int $userId): string {
+    $user = ImportModelsFetcher::fetchUser($userId);
+    return sprintf('%s (%s)', $user->jmenoNick(), $user->id());
+  }
 }
