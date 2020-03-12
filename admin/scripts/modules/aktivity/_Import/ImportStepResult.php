@@ -2,7 +2,7 @@
 
 namespace Gamecon\Admin\Modules\Aktivity\Import;
 
-class ResultOfImportStep
+class ImportStepResult
 {
   /**
    * @var mixed
@@ -17,15 +17,15 @@ class ResultOfImportStep
    */
   private $error;
 
-  public static function error(string $error): ResultOfImportStep {
+  public static function error(string $error): ImportStepResult {
     return new static(false, [], $error);
   }
 
-  public static function success($success): ResultOfImportStep {
+  public static function success($success): ImportStepResult {
     return new static($success, [], '');
   }
 
-  public static function successWithWarnings($success, array $warnings): ResultOfImportStep {
+  public static function successWithWarnings($success, array $warnings): ImportStepResult {
     return new static($success, $warnings, '');
   }
 

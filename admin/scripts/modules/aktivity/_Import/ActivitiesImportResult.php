@@ -2,7 +2,7 @@
 
 namespace Gamecon\Admin\Modules\Aktivity\Import;
 
-class ResultOfActivitiesImport
+class ActivitiesImportResult
 {
   /**
    * @var int
@@ -34,7 +34,7 @@ class ResultOfActivitiesImport
     return $this->importedCount;
   }
 
-  public function setProcessedFilename(string $processedFilename): ResultOfActivitiesImport {
+  public function setProcessedFilename(string $processedFilename): ActivitiesImportResult {
     if ($this->processedFilename !== null && $this->processedFilename !== $processedFilename) {
       throw new \LogicException(sprintf('Processed filename is already set to %s and can not be changed to %s.', $this->processedFilename, $processedFilename));
     }
@@ -45,24 +45,24 @@ class ResultOfActivitiesImport
     return $this;
   }
 
-  public function addErrorMessage(string $errorMessage): ResultOfActivitiesImport {
+  public function addErrorMessage(string $errorMessage): ActivitiesImportResult {
     $this->errorMessages[] = $errorMessage;
     return $this;
   }
 
-  public function addWarningMessage(string $warningMessage): ResultOfActivitiesImport {
+  public function addWarningMessage(string $warningMessage): ActivitiesImportResult {
     $this->warningMessages[] = $warningMessage;
     return $this;
   }
 
-  public function addWarningMessages(array $warningMessages): ResultOfActivitiesImport {
+  public function addWarningMessages(array $warningMessages): ActivitiesImportResult {
     foreach ($warningMessages as $warningMessage) {
       $this->addWarningMessage($warningMessage);
     }
     return $this;
   }
 
-  public function addSuccessMessage(string $successMessage): ResultOfActivitiesImport {
+  public function addSuccessMessage(string $successMessage): ActivitiesImportResult {
     $this->successMessages[] = $successMessage;
     return $this;
   }

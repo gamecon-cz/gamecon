@@ -86,7 +86,7 @@ SQL
   /**
    * Načte a uloží avatar uživatele poslaný pomoci POST. Pokud se obrázek ne-
    * poslal, nestane se nic a vrátí false.
-   * @param $name název post proměnné, ve které je obrázek, např. html input
+   * @param string $name název post proměnné, ve které je obrázek, např. html input
    * <input type="file" name="obrazek"> má $name='obrazek'. U formu je potřeba
    * nastavit <form method="post" enctype="multipart/form-data"> enctype aby to
    * fungovalo
@@ -847,7 +847,7 @@ SQL
    * @param int $id
    * @return Uzivatel|null
    */
-  static function zId($id) {
+  static function zId($id): ?Uzivatel {
     $o = self::zIds((int)$id);
     return $o ? $o[0] : null;
   }
@@ -859,18 +859,16 @@ SQL
    * @return Uzivatel[]
    */
   static function zIds($ids): array {
-    if (is_array($ids)) {
-      if (empty($ids)) return [];
-      return self::nactiUzivatele('WHERE u.id_uzivatele IN(' . dbQv($ids) . ')');
-    } else if ($ids === null) {
+    if (empty($ids)) {
       return [];
-    } else if (preg_match('@[0-9,]+@', $ids)) {
-      return self::nactiUzivatele('WHERE u.id_uzivatele IN(' . $ids . ')');
-    } else if ($ids === '') {
-      return [];
-    } else {
-      throw new Exception('neplatný formát množiny id');
     }
+    if (is_array($ids)) {
+      return self::nactiUzivatele('WHERE u.id_uzivatele IN(' . dbQv($ids) . ')');
+    }
+    if (preg_match('@[0-9,]+@', $ids)) {
+      return self::nactiUzivatele('WHERE u.id_uzivatele IN(' . $ids . ')');
+    }
+    throw new Exception('neplatný formát množiny id: ' . var_export($ids, true));
   }
 
   /**
