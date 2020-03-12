@@ -982,7 +982,7 @@ SQL
       ));
   }
 
-  private function getProgramLineFromValue(string $programLineValue): ?\Typ {
+  public function getProgramLineFromValue(string $programLineValue): ?\Typ {
     $programLineInt = (int)$programLineValue;
     if ($programLineInt > 0) {
       return $this->getProgramLineById($programLineInt);
@@ -1019,25 +1019,30 @@ SQL
     ?\Aktivita $originalActivity
   ): bool {
     return (!$originalActivity
-        || ($occupiedByActivityId !== $originalActivity->id() && (!$occupiedActivityInstanceId || $occupiedActivityInstanceId !== $originalActivity->patriPod()))
+        || ($occupiedByActivityId !== $originalActivity->id() // it comes from different activity
+          && (!$occupiedActivityInstanceId
+            || $occupiedActivityInstanceId !== $originalActivity->patriPod() // it comes from different instance family (same instance family can share URL)
+          )
+        )
         || ($occupiedActivityInstanceId
           && ($parentInstanceId = $this->findParentInstanceId($originalActivity))
-          && $occupiedActivityInstanceId != $parentInstanceId
+          && $occupiedActivityInstanceId !== $parentInstanceId // it comes from different instance family
         )
       )
       && ($activityUrl === null
-        || \Aktivita::idMozneHlavniAktivityPodleUrl($activityUrl, $this->currentYear, $singleProgramLine->id()) === null
+        || $this->getInstanceParentActivityId($activityUrl, $singleProgramLine->id()) === null
       );
   }
 
+  private function getInstanceParentActivityId(string $url, int $programLineId): ?int {
+    return \Aktivita::idMozneHlavniAktivityPodleUrl($url, $this->currentYear, $programLineId);
+  }
+
   private function findParentInstanceId(?\Aktivita $originalActivity): ?int {
-    if ($originalActivity) {
-      $instanceId = $originalActivity->patriPod();
-      return $instanceId
-        ? (int)$instanceId
-        : null;
+    if (!$originalActivity) {
+      return null;
     }
-    return null;
+    return $originalActivity->patriPod();
   }
 
 }

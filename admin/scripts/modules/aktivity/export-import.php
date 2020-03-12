@@ -25,7 +25,6 @@ if ($_GET['zpet'] ?? '' === 'aktivity') {
 
 /** @type \Uzivatel $u */
 $currentUserId = $u->id();
-// $currentUserId = (int)$u->id() === 4032 /*kostrivec*/ ? 102 /*sirien*/ : $u->id(); // TODO remove
 $googleApiCredentials = new GoogleApiCredentials(GOOGLE_API_CREDENTIALS);
 $googleApiClient = new GoogleApiClient(
   $googleApiCredentials,

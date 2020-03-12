@@ -402,12 +402,12 @@ class ImporterAktivit
       $programLineId = null;
       $programLineValue = $row[ExportAktivitSloupce::PROGRAMOVA_LINIE] ?? null;
       if ($programLineValue) {
-        $programLine = $this->getProgramLineFromValue((string)$programLineValue);
+        $programLine = $this->importValuesValidator->getProgramLineFromValue((string)$programLineValue);
       }
       if (!$programLine && $row[ExportAktivitSloupce::ID_AKTIVITY]) {
-        $aktivita = ImportModelsFetcher::fetchActivity($row[ExportAktivitSloupce::ID_AKTIVITY]);
-        if ($aktivita && $aktivita->typ()) {
-          $programLine = $aktivita->typ();
+        $activity = ImportModelsFetcher::fetchActivity($row[ExportAktivitSloupce::ID_AKTIVITY]);
+        if ($activity && $activity->typ()) {
+          $programLine = $activity->typ();
         }
       }
       if ($programLine && !array_key_exists($programLine->id(), $programLines)) {
