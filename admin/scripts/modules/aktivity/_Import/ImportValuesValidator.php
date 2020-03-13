@@ -705,11 +705,8 @@ SQL
     );
     if ($occupiedByActivities) {
       foreach ($occupiedByActivities as $occupiedByActivity) {
-        $occupiedByActivityId = (int)$occupiedByActivity['id_akce'];
-        $occupiedActivityInstanceId = $occupiedByActivity['patri_pod']
-          ? (int)$occupiedByActivity['patri_pod']
-          : null;
-        if ($this->isIdentifierOccupied($occupiedByActivityId, $occupiedActivityInstanceId, $activityUrl, $singleProgramLine, $originalActivity)) {
+        if ($this->isIdentifierOccupied($occupiedByActivity, $activityUrl, $singleProgramLine, $originalActivity)) {
+          $occupiedByActivityId = (int)$occupiedByActivity['id_akce'];
           return ImportStepResult::error(sprintf(
             "URL '%s'%s %s aktivity %s už je obsazena jinou existující aktivitou %s.",
             $activityUrl,
@@ -743,27 +740,24 @@ SQL
           $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity)
         ));
     }
-    $occupiedByActivities = dbFetchAll(<<<SQL
+    $nameOccupiedByActivities = dbFetchAll(<<<SQL
 SELECT id_akce, nazev_akce, patri_pod
 FROM akce_seznam
 WHERE nazev_akce = $1 AND rok = $2 AND typ = $3 LIMIT 1
 SQL
       , [$activityNameValue, $this->currentYear, $singleProgramLine->id()]
     );
-    if ($occupiedByActivities) {
-      foreach ($occupiedByActivities as $occupiedByActivity) {
-        $occupiedByActivityId = (int)$occupiedByActivity['id_akce'];
-        $occupiedActivityInstanceId = $occupiedByActivity['patri_pod']
-          ? (int)$occupiedByActivity['patri_pod']
-          : null;
-        if ($this->isIdentifierOccupied($occupiedByActivityId, $occupiedActivityInstanceId, $activityUrl, $singleProgramLine, $originalActivity)) {
+    if ($nameOccupiedByActivities) {
+      foreach ($nameOccupiedByActivities as $occupiedByActivity) {
+        if ($this->isIdentifierOccupied($occupiedByActivity, $activityUrl, $singleProgramLine, $originalActivity)) {
+          $occupiedByActivityId = (int)$occupiedByActivity['id_akce'];
           return ImportStepResult::error(sprintf(
             "Název '%s' %s už je obsazený jinou existující aktivitou %s.",
             $activityNameValue,
             $originalActivity
               ? sprintf('upravované aktivity %s', $this->importValuesDescriber->describeActivity($originalActivity))
               : 'nové aktivity',
-            $this->importValuesDescriber->describeActivityById((int)$occupiedByActivityId)
+            $this->importValuesDescriber->describeActivityById($occupiedByActivityId)
           ));
         }
       }
@@ -789,26 +783,30 @@ SQL
   }
 
   private function isIdentifierOccupied(
-    int $occupiedByActivityId,
-    ?int $occupiedActivityInstanceId,
+    array $occupiedByActivityValues,
     ?string $activityUrl,
     \Typ $singleProgramLine,
     ?\Aktivita $originalActivity
   ): bool {
-    return (!$originalActivity
-        || ($occupiedByActivityId !== $originalActivity->id() // it comes from different activity
-          && (!$occupiedActivityInstanceId
-            || $occupiedActivityInstanceId !== $originalActivity->patriPod() // it comes from different instance family (same instance family can share URL)
-          )
-        )
-        || ($occupiedActivityInstanceId
-          && ($parentInstanceId = $this->findParentInstanceId($originalActivity))
-          && $occupiedActivityInstanceId !== $parentInstanceId // it comes from different instance family
-        )
-      )
-      && ($activityUrl === null
-        || $this->getInstanceParentActivityId($activityUrl, $singleProgramLine->id()) === null
-      );
+    $occupiedByActivityId = (int)$occupiedByActivityValues['id_akce'];
+    $occupiedActivityInstanceId = $occupiedByActivityValues['patri_pod']
+      ? (int)$occupiedByActivityValues['patri_pod']
+      : null;
+    if ($originalActivity) {
+      return $occupiedByActivityId !== $originalActivity->id();
+    }
+    if (!$occupiedActivityInstanceId) {
+      if ($activityUrl === null) {
+        return false;
+      }
+      $parentInstanceId = $this->getInstanceParentActivityId($activityUrl, $singleProgramLine->id());
+      return $parentInstanceId && $occupiedActivityInstanceId !== $parentInstanceId;
+    }
+    if ($originalActivity) {
+      return $occupiedActivityInstanceId !== $originalActivity->patriPod();
+    }
+    $parentInstanceId = $this->findParentInstanceId($originalActivity);
+    return $parentInstanceId && $occupiedActivityInstanceId !== $parentInstanceId;
   }
 
   private function getInstanceParentActivityId(string $url, int $programLineId): ?int {
