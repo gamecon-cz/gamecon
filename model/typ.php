@@ -48,6 +48,10 @@ class Typ extends DbObject
     return $this->r['typ_1pmn'];
   }
 
+  public function __toString() {
+    return (string)$this->nazev();
+  }
+
   /** Název natáhnutý ze stránky */
   function nazevDlouhy() {
     preg_match('@<h1>([^<]+)</h1>@', $this->oTypu(), $m);
