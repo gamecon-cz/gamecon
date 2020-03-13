@@ -66,6 +66,10 @@ class ImporterAktivit
    * @var ImportValuesValidator
    */
   private $importValuesValidator;
+  /**
+   * @var ImportObjectsContainer
+   */
+  private $importObjectsContainer;
 
   public function __construct(
     int $userId,
@@ -84,10 +88,15 @@ class ImporterAktivit
     $this->now = $now;
     $this->logovac = $logovac;
     $this->mutexPattern = $mutexPattern;
+
+    $importValuesDescriber = new ImportValuesDescriber($editActivityUrlSkeleton);
+    $importObjectsContainer = new ImportObjectsContainer();
+
     $this->importValuesReader = new ImportValuesReader($googleSheetsService, $logovac);
-    $this->importValuesDescriber = new ImportValuesDescriber($editActivityUrlSkeleton);
-    $this->imagesImporter = new ImagesImporter($baseUrl, $this->importValuesDescriber);
-    $this->importValuesValidator = new ImportValuesValidator($this->importValuesDescriber, $this->currentYear);
+    $this->imagesImporter = new ImagesImporter($baseUrl, $importValuesDescriber);
+    $this->importValuesValidator = new ImportValuesValidator($importValuesDescriber, $importObjectsContainer, $this->currentYear);
+    $this->importValuesDescriber = $importValuesDescriber;
+    $this->importObjectsContainer = $importObjectsContainer;
   }
 
   public function importujAktivity(string $spreadsheetId): ActivitiesImportResult {
@@ -402,7 +411,7 @@ class ImporterAktivit
       $programLineId = null;
       $programLineValue = $row[ExportAktivitSloupce::PROGRAMOVA_LINIE] ?? null;
       if ($programLineValue) {
-        $programLine = $this->importValuesValidator->getProgramLineFromValue((string)$programLineValue);
+        $programLine = $this->importObjectsContainer->getProgramLineFromValue((string)$programLineValue);
       }
       if (!$programLine && $row[ExportAktivitSloupce::ID_AKTIVITY]) {
         $activity = ImportModelsFetcher::fetchActivity($row[ExportAktivitSloupce::ID_AKTIVITY]);
