@@ -322,6 +322,7 @@ function hromadneStazeni(array $urls, int $timeout = 60, string $dirToSaveTo = n
     return $url !== '';
   });
   $result = [
+    'errorUrls' => [],
     'errors' => [],
     'files' => [],
   ];
@@ -351,15 +352,16 @@ function hromadneStazeni(array $urls, int $timeout = 60, string $dirToSaveTo = n
     $curlHandle = curl_init($sanitizedUrl);
     if (!$curlHandle) {
       $result['errors'][$originalUrl] = sprintf("Nelze otevřít CURL handle pro URL '%s'", $sanitizedUrl);
+      $result['errorUrls'][] = $originalUrl;
       continue;
     }
     $fileHandle = fopen($file, 'wb');
     if (!$fileHandle) {
       $result['errors'][$originalUrl] = sprintf("Nelze otevřít file handle pro soubor '%s'", $file);
+      $result['errorUrls'][] = $originalUrl;
       continue;
     }
     curl_setopt($curlHandle, CURLOPT_FILE, $fileHandle);
-    curl_setopt($curlHandle, CURLOPT_HEADER, 0); // hlavičky nepotřebujeme
     curl_setopt($curlHandle, CURLOPT_CONNECTTIMEOUT, 5); // timeout na připojení
     curl_setopt($curlHandle, CURLOPT_TIMEOUT, $timeout); // timeout na stahování
     curl_multi_add_handle($multiCurl, $curlHandle);
@@ -387,23 +389,34 @@ function hromadneStazeni(array $urls, int $timeout = 60, string $dirToSaveTo = n
     return $result;
   }
 
-  foreach ($curlHandles as $sanitizedUrl => $curlHandle) {
-    curl_multi_remove_handle($multiCurl, $curlHandle);
-    curl_close($curlHandle);
-    fclose($fileHandles[$sanitizedUrl]);
-  }
-
   do {
-    $info = curl_multi_info_read($multiCurl, $remainingMessages);
-    if ($info) {
-      ['result' => $resultCode, 'curlHandle' => $curlHandle] = $info;
+    $multiInfo = curl_multi_info_read($multiCurl, $remainingMessages);
+    if ($multiInfo) {
+      ['result' => $resultCode] = $multiInfo;
       if ($resultCode !== CURLE_OK) {
         $result['errors'][] = sprintf('%s (%d)', curl_strerror($resultCode), $resultCode);
       }
     }
-  } while ($info && $remainingMessages);
+  } while ($multiInfo && $remainingMessages);
+
+
+  foreach ($curlHandles as $sanitizedUrl => $curlHandle) {
+    fclose($fileHandles[$sanitizedUrl]);
+
+    $info = curl_getinfo($curlHandle);
+    if ($info['http_code'] >= 400) {
+      $result['errors'][$info['url']] = sprintf('Stahování %s skončilo s response code %d', $sanitizedUrl, $info['http_code']);
+      $originalUrl = array_search($sanitizedUrl, $sanitizedUrls, true);
+      $result['errorUrls'][] = $originalUrl;
+      unset($result['files'][$originalUrl]);
+    }
+    curl_multi_remove_handle($multiCurl, $curlHandle);
+    curl_close($curlHandle);
+  }
 
   curl_multi_close($multiCurl);
+
+  $result['errorUrls'] = array_unique($result['errorUrls']);
 
   return $result;
 }
