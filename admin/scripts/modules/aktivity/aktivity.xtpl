@@ -80,6 +80,13 @@
   </div>
 </div>
 
+  <!-- begin:smazatTyp -->
+<div>
+  <form method="post">
+    <button type="submit" name="smazatVsechnyTypu" value="1">Smazat všechny aktivity '{nazev_typu}' (celkem {pocet})</button>
+  </form>
+</div>
+<!-- end:smazatTyp -->
 <style> th > a { text-decoration:none; color:#88c; position: relative; top: -2px; left: 2px; } </style>
 <table class="zvyraznovana aktivity" style="width: 100%">
   <tr>

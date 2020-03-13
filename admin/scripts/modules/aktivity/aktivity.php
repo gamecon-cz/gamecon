@@ -46,6 +46,13 @@ if (post('instance')) {
 [$filtr, $razeni] = include __DIR__ . '/_filtr-moznosti.php';
 $aktivity = Aktivita::zFiltru($filtr, $razeni);
 
+if (defined('TESTING') && TESTING && !empty($filtr['typ']) && post('smazatVsechnyTypu')) {
+  foreach ($aktivity as $aktivita) {
+    $aktivita->smaz();
+  }
+  back();
+}
+
 $tpl = new XTemplate('aktivity.xtpl');
 
 $currentRequestUrl = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -53,6 +60,14 @@ $exportImportUrl = $currentRequestUrl . '/export-import';
 $tpl->assign('urlProExport', $exportImportUrl);
 $tpl->assign('urlProImport', $exportImportUrl);
 $tpl->parse('aktivity.exportImport');
+
+if (defined('TESTING') && TESTING && !empty($filtr['typ'])) {
+  $tpl->assign('pocet', count($aktivity));
+  $idTypu = $filtr['typ'];
+  $tpl->assign('id_typu', $idTypu);
+  $tpl->assign('nazev_typu', Typ::zId($idTypu)->nazev());
+  $tpl->parse('aktivity.smazatTyp');
+}
 
 $typy = dbArrayCol('SELECT id_typu, typ_1p FROM akce_typy');
 $typy[0] = '';
