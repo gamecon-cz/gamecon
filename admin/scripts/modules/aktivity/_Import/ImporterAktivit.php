@@ -153,6 +153,9 @@ class ImporterAktivit
           $result->addErrorMessage($errorMessage);
           continue;
         }
+        if ($validatedValuesResult->hasWarnings()) {
+          $result->addWarningMessages($validatedValuesResult->getWarnings());
+        }
         $validatedValues = $validatedValuesResult->getSuccess();
         unset($validatedValuesResult);
         [

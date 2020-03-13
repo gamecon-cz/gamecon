@@ -32,6 +32,7 @@ class ImportValuesValidator
 
   public function validateValues(\Typ $singleProgramLine, array $activityValues, ?\Aktivita $originalActivity): ImportStepResult {
     $sanitizedValues = [];
+    $warnings = [];
     if ($originalActivity) {
       $sanitizedValues = $originalActivity->rawDb();
       // remove values originating in another tables
@@ -107,6 +108,11 @@ class ImportValuesValidator
     $locationIdResult = $this->getValidatedLocationId($activityValues, $originalActivity);
     if ($locationIdResult->isError()) {
       return ImportStepResult::error($locationIdResult->getError());
+    }
+    if ($locationIdResult->hasWarnings()) {
+      foreach ($locationIdResult->getWarnings() as $warning) {
+        $warnings[] = $warning;
+      }
     }
     $sanitizedValues[AktivitaSqlSloupce::LOKACE] = $locationIdResult->getSuccess();
     unset($locationIdResult);
@@ -209,13 +215,16 @@ class ImportValuesValidator
     $potentialImageUrls = $potentialImageUrlsResult->getSuccess();
     unset($potentialImageUrlsResult);
 
-    return ImportStepResult::success([
-      'values' => $sanitizedValues,
-      'longAnnotation' => $longAnnotation,
-      'storytellersIds' => $storytellersIds,
-      'tagIds' => $tagIds,
-      'potentialImageUrls' => $potentialImageUrls,
-    ]);
+    return ImportStepResult::successWithWarnings(
+      [
+        'values' => $sanitizedValues,
+        'longAnnotation' => $longAnnotation,
+        'storytellersIds' => $storytellersIds,
+        'tagIds' => $tagIds,
+        'potentialImageUrls' => $potentialImageUrls,
+      ],
+      $warnings
+    );
   }
 
   private function getPotentialImageUrls(array $activityValues, string $activityUrl): ImportStepResult {
@@ -606,11 +615,16 @@ class ImportValuesValidator
     if ($location) {
       return ImportStepResult::success($location->id());
     }
-    return ImportStepResult::error(sprintf(
-      "Neznámá lokace '%s' u aktivity %s.",
-      $locationValue,
-      $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity)
-    ));
+    return ImportStepResult::successWithWarnings(
+      null,
+      [
+        sprintf(
+          "Neznámá místnost '%s' u aktivity %s. Aktivita je bez místnosti.",
+          $locationValue,
+          $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity)
+        ),
+      ]
+    );
   }
 
   private function getValidatedStart(array $activityValues, ?\Aktivita $originalActivity): ImportStepResult {
