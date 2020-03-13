@@ -32,27 +32,25 @@ class ImagesImporter
     $activityIds = array_keys($potentialImageUrlsPerActivity);
     foreach (\Aktivita::zIds($activityIds) as $activity) {
       $activities[$activity->id()] = $activity;
-      unset($activity);
     }
     foreach ($potentialImageUrlsPerActivity as $activityId => $potentialImageUrls) {
       $activity = $activities[$activityId];
       foreach ($potentialImageUrls as $potentialImageUrl) {
         // Image URL is same as current, therefore came from an export and there is no change from it
         if ($potentialImageUrl === $activity->urlObrazku($this->baseUrl)) {
-          continue;
+          continue 2;
         }
         $imageUrls[] = $potentialImageUrl;
         $imageUrlsToActivity[$potentialImageUrl] = $activity;
-        unset($activity);
       }
     }
     $imageUrls = array_unique($imageUrls);
-    ['files' => $downloadedImages, 'errors' => $downloadingImagesErrors] = hromadneStazeni($imageUrls, 10);
-    if (count($downloadingImagesErrors) > 0) {
-      $warnings[] = sprintf('Některé obrázky se nepodařilo stáhnout: %s', implode(', ', $downloadingImagesErrors));
-    }
+    ['files' => $downloadedImages, 'errors' => $downloadingImagesErrors, 'errorUrls' => $errorUrls] = hromadneStazeni($imageUrls, 10);
+
+    $successfulActivityIds = [];
     foreach ($downloadedImages as $imageUrl => $downloadedImage) {
       $activity = $imageUrlsToActivity[$imageUrl];
+      $successfulActivityIds[] = $activity->id();
       try {
         $obrazek = \Obrazek::zSouboru($downloadedImage);
         $activity->obrazek($obrazek);
@@ -64,6 +62,24 @@ class ImagesImporter
         );
         continue;
       }
+    }
+    foreach ($potentialImageUrlsPerActivity as $activityId => $potentialImageUrls) {
+      if (in_array($activityId, $successfulActivityIds, true)) {
+        foreach ($potentialImageUrls as $potentialImageUrl) {
+          unset($downloadingImagesErrors[$potentialImageUrl]); // failures of other images are useless
+        }
+      }
+    }
+    if (count($downloadingImagesErrors) > 0) {
+      $warnings[] = sprintf(
+        'Některé obrázky se nepodařilo stáhnout: <ol>%s</ol>',
+        implode(
+          "\n",
+          array_map(static function (string $downloadingImageError) {
+            return "<li>$downloadingImageError</li>";
+          }, $downloadingImagesErrors)
+        )
+      );
     }
     return ImportStepResult::successWithWarnings(true, $warnings);
   }
