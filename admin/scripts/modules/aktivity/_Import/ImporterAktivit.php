@@ -547,7 +547,9 @@ SQL
     if (!$locationOccupyingActivityId) {
       return ImportStepResult::success($locationId);
     }
-    $currentActivity = ImportModelsFetcher::fetchActivity($currentActivityId);
+    $currentActivity = $currentActivityId
+      ? ImportModelsFetcher::fetchActivity($currentActivityId)
+      : null;
     $currentActivityLocation = $currentActivity
       ? $currentActivity->lokace()
       : null;
