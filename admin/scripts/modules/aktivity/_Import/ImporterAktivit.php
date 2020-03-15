@@ -279,7 +279,10 @@ class ImporterAktivit
     return ImportStepResult::error(sprintf('Aktivita s ID %d neexistuje. Nelze ji proto importem upravit.', $originalActivityId));
   }
 
-  private function findOriginalActivity(int $id): ?\Aktivita {
+  private function findOriginalActivity(?int $id): ?\Aktivita {
+    if (!$id) {
+      return null;
+    }
     if (!array_key_exists($id, $this->originalActivities)) {
       $activity = \Aktivita::zId($id);
       if (!$activity) {
