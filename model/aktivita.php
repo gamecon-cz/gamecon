@@ -1408,7 +1408,7 @@ SQL
           throw new \RuntimeException(sprintf('Aktivita s ID %d tvrdí, že patří pod instanci %d, ale patří pod %d', $this->id(), $idInstance, $materskaProInstanciId));
         }
         $zbyde = (int)dbOneCol(
-          'SELECT COUNT(1) AS zbyde FROM akce_seznam WHERE id_akce != $1 AND patri_pod = $2 GROUP BY id_akce',
+          'SELECT COUNT(*) AS zbyde FROM akce_seznam WHERE id_akce != $1 AND patri_pod = $2 GROUP BY id_akce',
           [$this->id(), $idInstance]
         );
         if ($materskaProInstanciId) {
