@@ -272,6 +272,9 @@ class ImporterAktivit
       return ImportStepResult::error($originalActivityIdResult->getError());
     }
     $originalActivityId = $originalActivityIdResult->getSuccess();
+    if (!$originalActivityId) {
+      return ImportStepResult::success(null);
+    }
     $originalActivity = $this->findOriginalActivity($originalActivityId);
     if ($originalActivity) {
       return ImportStepResult::success($originalActivity);
@@ -279,10 +282,7 @@ class ImporterAktivit
     return ImportStepResult::error(sprintf('Aktivita s ID %d neexistuje. Nelze ji proto importem upravit.', $originalActivityId));
   }
 
-  private function findOriginalActivity(?int $id): ?\Aktivita {
-    if (!$id) {
-      return null;
-    }
+  private function findOriginalActivity(int $id): ?\Aktivita {
     if (!array_key_exists($id, $this->originalActivities)) {
       $activity = \Aktivita::zId($id);
       if (!$activity) {
