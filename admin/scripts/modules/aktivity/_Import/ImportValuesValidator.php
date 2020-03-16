@@ -48,7 +48,7 @@ class ImportValuesValidator
       ? $originalActivity->id()
       : null;
 
-    $programLineIdResult = $this->getValidatedProgramLineId($activityValues, $originalActivity);
+    $programLineIdResult = $this->getValidatedProgramLineId($activityValues, $singleProgramLine);
     if ($programLineIdResult->isError()) {
       return ImportStepResult::error($programLineIdResult->getError());
     }
@@ -779,21 +779,27 @@ SQL
     return ImportStepResult::success($activityNameValue);
   }
 
-  private function getValidatedProgramLineId(array $activityValues, ?\Aktivita $originalActivity): ImportStepResult {
+  private function getValidatedProgramLineId(array $activityValues, \Typ $singleProgramLine): ImportStepResult {
     $programLineValue = $activityValues[ExportAktivitSloupce::PROGRAMOVA_LINIE] ?? null;
     if ((string)$programLineValue === '') {
-      return $originalActivity
-        ? ImportStepResult::success($originalActivity->typId())
-        : ImportStepResult::error(sprintf('Chybí programová linie u aktivity %s.', $this->importValuesDescriber->describeActivityByInputValues($activityValues, null)));
+      return ImportStepResult::success($singleProgramLine->id());
     }
     $programLine = $this->importObjectsContainer->getProgramLineFromValue((string)$programLineValue);
-    return $programLine
-      ? ImportStepResult::success($programLine->id())
-      : ImportStepResult::error(sprintf(
+    if (!$programLine) {
+      ImportStepResult::error(sprintf(
         "Neznámá programová linie '%s' u aktivity %s.",
         $programLineValue,
         $this->importValuesDescriber->describeActivityByInputValues($activityValues, null)
       ));
+    }
+    if ($programLine->id() !== $singleProgramLine->id()) {
+      ImportStepResult::error(sprintf(
+        'Importovat lze pouze jednu programovou linii. Aktivita %s má navíc %s.',
+        $this->importValuesDescriber->describeActivityByInputValues($activityValues, null),
+        $programLineValue
+      ));
+    }
+    return ImportStepResult::success($programLine->id());
   }
 
   private function isIdentifierOccupied(
