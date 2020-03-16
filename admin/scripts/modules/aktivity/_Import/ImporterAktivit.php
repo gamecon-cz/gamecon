@@ -530,7 +530,7 @@ SQL
     /** @var DateTimeCz $zacatek */
     /** @var DateTimeCz $konec */
     ['start' => $zacatek, 'end' => $konec] = $rangeDates;
-    $locationOccupyingActivityId = dbOneCol(<<<SQL
+    $locationOccupyingActivityIds = dbOneArray(<<<SQL
 SELECT id_akce
 FROM akce_seznam
 WHERE akce_seznam.lokace = $1
@@ -540,32 +540,34 @@ AND CASE
     WHEN $4 IS NULL THEN TRUE
     ELSE akce_seznam.id_akce != $4
     END
-LIMIT 1
 SQL
       , [$locationId, $zacatek->format(DateTimeCz::FORMAT_DB), $konec->format(DateTimeCz::FORMAT_DB), $currentActivityId]
     );
-    if (!$locationOccupyingActivityId) {
+    if (count($locationOccupyingActivityIds) === 0) {
       return ImportStepResult::success($locationId);
     }
     $currentActivity = $currentActivityId
       ? ImportModelsFetcher::fetchActivity($currentActivityId)
       : null;
-    $currentActivityLocation = $currentActivity
-      ? $currentActivity->lokace()
-      : null;
     return ImportStepResult::successWithWarnings(
-      true,
+      $locationId,
       [
         sprintf(
-          'Místnost %s je někdy mezi %s a %s již zabraná jinou aktivitou %s. Nahrávaná aktivita %s byla proto %s.',
+          'Místnost %s je někdy mezi %s a %s již zabraná jinou aktivitou %s. Nahrávaná aktivita %s je tak už %d. aktivitou v této místnosti.',
           $this->importValuesDescriber->describeLocationById($locationId),
           $zacatek->formatCasNaMinutyStandard(),
           $konec->formatCasNaMinutyStandard(),
-          $this->importValuesDescriber->describeActivityById((int)$locationOccupyingActivityId),
+          implode(
+            ' a ',
+            array_map(
+              function ($locationOccupyingActivityIds) {
+                return $this->importValuesDescriber->describeActivityById((int)$locationOccupyingActivityIds);
+              },
+              $locationOccupyingActivityIds
+            )
+          ),
           $this->importValuesDescriber->describeActivityBySqlMappedValues($values, $currentActivity),
-          $currentActivityLocation
-            ? sprintf('ponechána v původní místnosti %s', $currentActivityLocation->nazev())
-            : 'nahrána <strong>bez</strong> místnosti'
+          count($locationOccupyingActivityIds) + 1
         ),
       ]
     );
