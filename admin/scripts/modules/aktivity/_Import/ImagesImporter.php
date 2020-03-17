@@ -45,7 +45,7 @@ class ImagesImporter
       }
     }
     $imageUrls = array_unique($imageUrls);
-    ['files' => $downloadedImages, 'errors' => $downloadingImagesErrors, 'errorUrls' => $errorUrls] = hromadneStazeni($imageUrls, 10);
+    ['files' => $downloadedImages, 'errors' => $downloadingImagesErrors] = hromadneStazeni($imageUrls, 10);
 
     $successfulActivityIds = [];
     foreach ($downloadedImages as $imageUrl => $downloadedImage) {
@@ -81,6 +81,6 @@ class ImagesImporter
         )
       );
     }
-    return ImportStepResult::successWithWarnings(true, $warnings);
+    return ImportStepResult::successWithErrorLikeWarnings(true, $warnings);
   }
 }

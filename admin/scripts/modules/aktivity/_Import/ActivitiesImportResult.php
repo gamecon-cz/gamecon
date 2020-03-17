@@ -24,6 +24,10 @@ class ActivitiesImportResult
   /**
    * @var string[]
    */
+  private $errorLikeWarningMessages = [];
+  /**
+   * @var string[]
+   */
   private $errorMessages = [];
 
   public function __construct() {
@@ -55,10 +59,22 @@ class ActivitiesImportResult
     return $this;
   }
 
-  public function addWarningMessages(array $warningMessages): ActivitiesImportResult {
-    foreach ($warningMessages as $warningMessage) {
+  public function addWarnings(ImportStepResult $importStepResult): ActivitiesImportResult {
+    foreach ($importStepResult->getWarnings() as $warningMessage) {
       $this->addWarningMessage($warningMessage);
     }
+    return $this;
+  }
+
+  public function addErrorLikeWarnings(ImportStepResult $importStepResult): ActivitiesImportResult {
+    foreach ($importStepResult->getErrorLikeWarnings() as $errorLikeWarningMessage) {
+      $this->addErrorLikeWarningMessage($errorLikeWarningMessage);
+    }
+    return $this;
+  }
+
+  public function addErrorLikeWarningMessage(string $errorLikeWarningMessage): ActivitiesImportResult {
+    $this->errorLikeWarningMessages[] = $errorLikeWarningMessage;
     return $this;
   }
 
@@ -99,6 +115,9 @@ class ActivitiesImportResult
    * @return string[]
    */
   public function getErrorMessages(): array {
-    return $this->errorMessages;
+    return array_merge(
+      $this->errorMessages,
+      $this->errorLikeWarningMessages
+    );
   }
 }

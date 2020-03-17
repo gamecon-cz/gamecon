@@ -154,7 +154,10 @@ class ImporterAktivit
           continue;
         }
         if ($validatedValuesResult->hasWarnings()) {
-          $result->addWarningMessages($validatedValuesResult->getWarnings());
+          $result->addWarnings($validatedValuesResult);
+        }
+        if ($validatedValuesResult->hasErrorLikeWarnings()) {
+          $result->addErrorLikeWarnings($validatedValuesResult);
         }
         $validatedValues = $validatedValuesResult->getSuccess();
         unset($validatedValuesResult);
@@ -202,7 +205,10 @@ class ImporterAktivit
     }
     $savingImagesResult = $this->imagesImporter->saveImages($potentialImageUrlsPerActivity);
     if ($savingImagesResult->hasWarnings()) {
-      $result->addWarningMessages($savingImagesResult->getWarnings());
+      $result->addWarnings($savingImagesResult);
+    }
+    if ($savingImagesResult->hasErrorLikeWarnings()) {
+      $result->addErrorLikeWarnings($savingImagesResult);
     }
     $this->releaseExclusiveLock();
     return $result;
@@ -346,7 +352,8 @@ class ImporterAktivit
     if ($storytellersAccessibilityResult->isError()) {
       return ImportStepResult::error($storytellersAccessibilityResult->getError());
     }
-    $storytellersAccessibilityWarnings = $storytellersAccessibilityResult->getWarnings();
+    $warnings = $storytellersAccessibilityResult->getWarnings();
+    $errorLikeWarnings = $storytellersAccessibilityResult->getErrorLikeWarnings();
     $availableStorytellerIds = $storytellersAccessibilityResult->getSuccess();
 
     $locationAccessibilityResult = $this->checkLocationByAccessibility(
@@ -361,7 +368,8 @@ class ImporterAktivit
     if ($locationAccessibilityResult->isError()) {
       return ImportStepResult::error($locationAccessibilityResult->getError());
     }
-    $locationAccessibilityWarnings = $locationAccessibilityResult->getWarnings();
+    $warnings = array_merge($warnings, $locationAccessibilityResult->getWarnings());
+    $errorLikeWarnings = array_merge($errorLikeWarnings, $locationAccessibilityResult->getErrorLikeWarnings());
 
     /** @var  \Aktivita $importedActivity */
     $savedActivityResult = $this->saveActivity(
@@ -377,14 +385,14 @@ class ImporterAktivit
     if ($savedActivityResult->isError()) {
       return ImportStepResult::error($savedActivityResult->getError());
     }
-    $warnings = array_filter(array_merge($storytellersAccessibilityWarnings, $locationAccessibilityWarnings));
     if ($originalActivity) {
       return ImportStepResult::successWithWarnings(
         [
           'message' => sprintf('Upravena existující aktivita %s', $this->importValuesDescriber->describeActivity($importedActivity)),
           'importedActivityId' => $importedActivity->id(),
         ],
-        $warnings
+        $warnings,
+        $errorLikeWarnings
       );
     }
     if ($importedActivity->patriPod()) {
@@ -398,7 +406,8 @@ class ImporterAktivit
           ),
           'importedActivityId' => $importedActivity->id(),
         ],
-        $warnings
+        $warnings,
+        $errorLikeWarnings
       );
     }
     return ImportStepResult::successWithWarnings(
@@ -406,7 +415,8 @@ class ImporterAktivit
         'message' => sprintf('Nahrána nová aktivita %s', $this->importValuesDescriber->describeActivity($importedActivity)),
         'importedActivityId' => $importedActivity->id(),
       ],
-      $warnings
+      $warnings,
+      $errorLikeWarnings
     );
   }
 
@@ -490,7 +500,10 @@ SQL
         $this->importValuesDescriber->describeActivityBySqlMappedValues($values, $originalActivity)
       );
     }
-    return ImportStepResult::successWithWarnings(array_diff($storytellersIds, array_keys($occupiedStorytellers)), $warnings);
+    return ImportStepResult::successWithErrorLikeWarnings(
+      array_diff($storytellersIds, array_keys($occupiedStorytellers)),
+      $warnings
+    );
   }
 
   private function createRangeDates(?string $zacatekString, ?string $konecString): ?array {
@@ -549,11 +562,12 @@ SQL
     $currentActivity = $currentActivityId
       ? ImportModelsFetcher::fetchActivity($currentActivityId)
       : null;
-    return ImportStepResult::successWithWarnings(
+    return ImportStepResult::successWithErrorLikeWarnings(
       $locationId,
       [
         sprintf(
-          'Místnost %s je někdy mezi %s a %s již zabraná jinou aktivitou %s. Nahrávaná aktivita %s je tak už %d. aktivitou v této místnosti.',
+          '%s: Místnost %s je někdy mezi %s a %s již zabraná jinou aktivitou %s. Nahrávaná aktivita je tak už %d. aktivitou v této místnosti.',
+          $this->importValuesDescriber->describeActivityBySqlMappedValues($values, $currentActivity),
           $this->importValuesDescriber->describeLocationById($locationId),
           $zacatek->formatCasNaMinutyStandard(),
           $konec->formatCasNaMinutyStandard(),
@@ -566,7 +580,6 @@ SQL
               $locationOccupyingActivityIds
             )
           ),
-          $this->importValuesDescriber->describeActivityBySqlMappedValues($values, $currentActivity),
           count($locationOccupyingActivityIds) + 1
         ),
       ]
