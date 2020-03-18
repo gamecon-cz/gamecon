@@ -29,8 +29,8 @@ class ImportStepResult
     return new static($success, [], [], '');
   }
 
-  public static function successWithWarnings($success, array $warnings, array $errorLikeWarnings): ImportStepResult {
-    return new static($success, $warnings, $errorLikeWarnings, '');
+  public static function successWithWarnings($success, array $warnings): ImportStepResult {
+    return new static($success, $warnings, [], '');
   }
 
   public static function successWithErrorLikeWarnings($success, array $errorLikeWarnings): ImportStepResult {
