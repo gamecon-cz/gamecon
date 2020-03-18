@@ -325,6 +325,7 @@ function hromadneStazeni(array $urls, int $timeout = 60, string $dirToSaveTo = n
     'errorUrls' => [],
     'errors' => [],
     'files' => [],
+    'responseCodes' => [],
   ];
   if (count($urls) === 0) {
     return $result;
@@ -404,8 +405,16 @@ function hromadneStazeni(array $urls, int $timeout = 60, string $dirToSaveTo = n
     fclose($fileHandles[$sanitizedUrl]);
 
     $info = curl_getinfo($curlHandle);
+    $result['responseCodes'][$info['url']] = $info['http_code'];
     if ($info['http_code'] >= 400) {
-      $result['errors'][$info['url']] = sprintf('Stahování %s skončilo s response code %d', $sanitizedUrl, $info['http_code']);
+      $result['errors'][$info['url']] = sprintf(
+        'Stahování %s skončilo s response code %d%s',
+        $sanitizedUrl,
+        $info['http_code'],
+        $info['http_code'] === 404
+          ? ' (nenalezeno)'
+          : ''
+      );
       $originalUrl = array_search($sanitizedUrl, $sanitizedUrls, true);
       $result['errorUrls'][] = $originalUrl;
       unset($result['files'][$originalUrl]);
