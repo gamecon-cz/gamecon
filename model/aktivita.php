@@ -2031,16 +2031,17 @@ FROM sjednocene_tagy
     dbQuery('UPDATE akce_seznam SET stav=$1 WHERE stav=$2 AND rok=$3', [Stav::AKTIVOVANA, Stav::PRIPRAVENA, $rok]);
   }
 
-  public static function idMozneHlavniAktivityPodleUrl(string $url, int $rok, int $typId): ?int {
-    $idHlavniAktivity = dbOneCol(<<<SQL
-SELECT MIN(akce_seznam.id_akce)
+  public static function idInstancePodleUrl(string $url, int $rok, int $typId): ?int {
+    $idInstance = dbOneCol(<<<SQL
+SELECT akce_seznam.patri_pod
 FROM akce_seznam
-WHERE akce_seznam.url_akce = $1 AND akce_seznam.rok = $2 AND akce_seznam.typ = $3
+WHERE akce_seznam.url_akce = $1 AND akce_seznam.rok = $2 AND akce_seznam.typ = $3 AND akce_seznam.patri_pod IS NULL
+LIMIT 1
 SQL
       , [$url, $rok, $typId]
     );
-    return $idHlavniAktivity
-      ? (int)$idHlavniAktivity
+    return $idInstance
+      ? (int)$idInstance
       : null;
   }
 }
