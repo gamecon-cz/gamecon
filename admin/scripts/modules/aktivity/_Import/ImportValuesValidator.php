@@ -816,14 +816,14 @@ SQL
     }
     $programLine = $this->importObjectsContainer->getProgramLineFromValue((string)$programLineValue);
     if (!$programLine) {
-      ImportStepResult::error(sprintf(
+      return ImportStepResult::error(sprintf(
         "Neznámá programová linie '%s' u aktivity %s.",
         $programLineValue,
         $this->importValuesDescriber->describeActivityByInputValues($activityValues, null)
       ));
     }
     if ($programLine->id() !== $singleProgramLine->id()) {
-      ImportStepResult::error(sprintf(
+      return ImportStepResult::error(sprintf(
         'Importovat lze pouze jednu programovou linii. Aktivita %s má navíc %s.',
         $this->importValuesDescriber->describeActivityByInputValues($activityValues, null),
         $programLineValue
