@@ -735,7 +735,7 @@ SQL
             empty($activityValues[ExportAktivitSloupce::URL])
               ? ' (odhadnutá z názvu)'
               : '',
-            $this->importValuesDescriber->describeActivityById($occupiedByActivity)
+            $this->importValuesDescriber->describeActivityById($occupiedByActivityId)
           ));
         }
       }
