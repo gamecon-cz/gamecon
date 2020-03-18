@@ -605,8 +605,9 @@ SQL
     } catch (\Exception $exception) {
       $this->logovac->zaloguj($exception);
       return ImportStepResult::error(sprintf(
-        'Nepodařilo se uložit aktivitu %s: %s',
-        $this->importValuesDescriber->describeActivityByInputValues($values, $originalActivity), $exception->getMessage()
+        '%s: aktivitu se nepodařilo uložit: %s',
+        $this->importValuesDescriber->describeActivityByInputValues($values, $originalActivity),
+        $exception->getMessage()
       ));
     }
   }
