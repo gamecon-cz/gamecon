@@ -713,7 +713,7 @@ class ImportValuesValidator
       $activityUrl = $this->toUrl($activityValues[ExportAktivitSloupce::NAZEV]);
     }
     $activityUrl = $this->toUrl($activityUrl);
-    $occupiedByActivities = dbOneArray(<<<SQL
+    $occupiedByActivities = dbFetchAll(<<<SQL
 SELECT id_akce, patri_pod
 FROM akce_seznam
 WHERE url_akce = $1 AND rok = $2 AND typ = $3
