@@ -256,9 +256,9 @@ class ImportValuesValidator
       return ImportStepResult::success($state->id());
     }
     return ImportStepResult::error(sprintf(
-      "Neznámý stav '%s' u aktivity %s",
-      $stateValue,
-      $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity)
+      "%s: neznámý stav '%s'",
+      $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
+      $stateValue
     ));
   }
 
@@ -289,9 +289,9 @@ class ImportValuesValidator
       return ImportStepResult::success(0);
     }
     return ImportStepResult::error(sprintf(
-      "Podivná minimální kapacita týmu '%s' u aktivity %s. Očekáváme celé kladné číslo.",
-      $minimalTeamCapacityValue,
-      $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity)
+      "%s: Podivná minimální kapacita týmu '%s'. Očekáváme celé kladné číslo.",
+      $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
+      $minimalTeamCapacityValue
     ));
   }
 
@@ -311,9 +311,9 @@ class ImportValuesValidator
       return ImportStepResult::success(0);
     }
     return ImportStepResult::error(sprintf(
-      "Podivná maximální kapacita týmu '%s' u aktivity %s. Očekáváme celé kladné číslo.",
-      $maximalTeamCapacityValue,
-      $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity)
+      "%s: Podivná maximální kapacita týmu '%s'. Očekáváme celé kladné číslo.",
+      $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
+      $maximalTeamCapacityValue
     ));
   }
 
@@ -335,9 +335,9 @@ class ImportValuesValidator
       );
     }
     return ImportStepResult::error(sprintf(
-      "Podivný zápis, zda je aktivita týmová '%s' u aktivity %s. Očekáváme pouze 1, 0, ano, ne.",
-      $forTeamValue,
-      $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity)
+      "%s: podivný zápis, zda je aktivita týmová '%s'. Očekáváme pouze 1, 0, ano, ne.",
+      $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
+      $forTeamValue
     ));
   }
 
@@ -362,11 +362,11 @@ class ImportValuesValidator
     }
     if ($invalidStorytellersValues) {
       return ImportStepResult::error(sprintf(
-        'Neznámí vypravěči %s pro aktivitu %s.',
+        '%s: neznámí vypravěči %s',
+        $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
         implode(',', array_map(static function (string $invalidStorytellerValue) {
           return "'$invalidStorytellerValue'";
-        }, $invalidStorytellersValues)),
-        $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity)
+        }, $invalidStorytellersValues))
       ));
     }
     return ImportStepResult::success($storytellersIds);
@@ -420,7 +420,7 @@ class ImportValuesValidator
     if ($invalidTagsValues) {
       return ImportStepResult::error(
         sprintf(
-          'U aktivity %s jsou neznámé tagy %s.',
+          '%s: neznámé tagy %s',
           $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
           implode(',', array_map(static function (string $invalidTagValue) {
               return "'$invalidTagValue'";
@@ -495,9 +495,9 @@ class ImportValuesValidator
       );
     }
     return ImportStepResult::error(sprintf(
-      "Podivný zápis 'bez slevy': '%s' u aktivity %s. Očekáváme pouze 1, 0, ano, ne.",
-      $withoutDiscountValue,
-      $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity)
+      "%s: Podivný zápis 'bez slevy': '%s'. Očekáváme pouze 1, 0 nebo ano, ne.",
+      $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
+      $withoutDiscountValue
     ));
   }
 
@@ -535,9 +535,9 @@ class ImportValuesValidator
       return ImportStepResult::success(0);
     }
     return ImportStepResult::error(sprintf(
-      "Podivná unisex kapacita '%s' u aktivity %s. Očekáváme celé kladné číslo.",
-      $capacityValue,
-      $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity)
+      "%s: Podivná unisex kapacita '%s'. Očekáváme celé kladné číslo.",
+      $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
+      $capacityValue
     ));
   }
 
@@ -557,9 +557,9 @@ class ImportValuesValidator
       return ImportStepResult::success(0);
     }
     return ImportStepResult::error(sprintf(
-      "Podivná kapacita mužů '%s' u aktivity %s. Očekáváme celé kladné číslo.",
-      $capacityValue,
-      $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity)
+      "%s: Podivná kapacita mužů '%s'. Očekáváme celé kladné číslo.",
+      $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
+      $capacityValue
     ));
   }
 
@@ -579,9 +579,9 @@ class ImportValuesValidator
       return ImportStepResult::success(0);
     }
     return ImportStepResult::error(sprintf(
-      "Podivná kapacita žen '%s' u aktivity %s. Očekáváme celé kladné číslo.",
-      $capacityValue,
-      $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity)
+      "%s: Podivná kapacita žen '%s'. Očekáváme celé kladné číslo.",
+      $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
+      $capacityValue
     ));
   }
 
@@ -601,9 +601,9 @@ class ImportValuesValidator
       return ImportStepResult::success(0.0);
     }
     return ImportStepResult::error(sprintf(
-      "Podivná cena aktivity '%s' u aktivity %s. Očekáváme číslo.",
-      $priceValue,
-      $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity)
+      "%s: Podivná cena aktivity '%s'. Očekáváme číslo.",
+      $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
+      $priceValue
     ));
   }
 
@@ -646,7 +646,7 @@ class ImportValuesValidator
     if (empty($activityValues[ExportAktivitSloupce::DEN])) {
       return ImportStepResult::error(
         sprintf(
-          'U aktivity %s je sice začátek (%s), ale chybí u ní den.',
+          '%s: Aktivita má sice uvedený začátek (%s), ale chybí u ní den.',
           $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
           $activityValues[ExportAktivitSloupce::ZACATEK]
         )
@@ -670,7 +670,7 @@ class ImportValuesValidator
     if (empty($activityValues[ExportAktivitSloupce::DEN])) {
       return ImportStepResult::error(
         sprintf(
-          'U aktivity %s je sice konec (%s), ale chybí u ní den.',
+          '%s: aktivita má sice uvedený konec (%s), ale chybí u ní den',
           $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
           $activityValues[ExportAktivitSloupce::KONEC]
         )
@@ -706,7 +706,7 @@ class ImportValuesValidator
       }
       if (empty($activityValues[ExportAktivitSloupce::NAZEV])) {
         return ImportStepResult::error(sprintf(
-          'Nová aktivita %s nemá ani URL, ani název, ze kterého by URL šlo vytvořit.',
+          '%s: Nová aktivita nemá ani URL, ani název, ze kterého by URL šlo vytvořit.',
           $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity)
         ));
       }
@@ -760,7 +760,7 @@ SQL
       return $originalActivity
         ? ImportStepResult::success($originalActivity->nazev())
         : ImportStepResult::error(sprintf(
-          '%s: chybí název',
+          '%s: chybí povinný název',
           $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity)
         ));
     }
@@ -817,14 +817,14 @@ SQL
     $programLine = $this->importObjectsContainer->getProgramLineFromValue((string)$programLineValue);
     if (!$programLine) {
       return ImportStepResult::error(sprintf(
-        "Neznámá programová linie '%s' u aktivity %s.",
-        $programLineValue,
-        $this->importValuesDescriber->describeActivityByInputValues($activityValues, null)
+        "%s: Neznámá programová linie '%s'.",
+        $this->importValuesDescriber->describeActivityByInputValues($activityValues, null),
+        $programLineValue
       ));
     }
     if ($programLine->id() !== $singleProgramLine->id()) {
       return ImportStepResult::error(sprintf(
-        'Importovat lze pouze jednu programovou linii. Aktivita %s má navíc %s.',
+        '%s: Importovat lze pouze jednu programovou linii. Aktivita má navíc %s.',
         $this->importValuesDescriber->describeActivityByInputValues($activityValues, null),
         $programLineValue
       ));
