@@ -623,9 +623,9 @@ class ImportValuesValidator
       null,
       [
         sprintf(
-          "%s: Neznámá místnost %s. Aktivita je bez místnosti.",
-          $locationValue,
-          $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity)
+          "%s: Neznámá místnost '%s'. Aktivita je bez místnosti.",
+          $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
+          $locationValue
         ),
       ]
     );
