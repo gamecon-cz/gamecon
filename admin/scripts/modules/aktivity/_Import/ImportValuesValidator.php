@@ -623,7 +623,7 @@ class ImportValuesValidator
       null,
       [
         sprintf(
-          "%s: Neznámá místnost '%s'. Aktivita je bez místnosti.",
+          "%s: Neznámá místnost %s. Aktivita je bez místnosti.",
           $locationValue,
           $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity)
         ),
@@ -716,10 +716,10 @@ class ImportValuesValidator
     $occupiedByActivities = dbFetchAll(<<<SQL
 SELECT id_akce, patri_pod
 FROM akce_seznam
-WHERE url_akce = $1 AND rok = $2 AND typ = $3
+WHERE url_akce = $1 AND rok = $2 AND typ = $3 AND id_akce != $4
 SQL
       ,
-      [$activityUrl, $this->currentYear, $singleProgramLine->id()]
+      [$activityUrl, $this->currentYear, $singleProgramLine->id(), $originalActivity ? $originalActivity->id() : 0]
     );
     if ($occupiedByActivities) {
       foreach ($occupiedByActivities as $occupiedByActivity) {
@@ -727,7 +727,9 @@ SQL
         $occupiedByInstanceId = $occupiedByActivity['patri_pod']
           ? (int)$occupiedByActivity['patri_pod']
           : null;
-        if ($this->isDifferentActivityAndInstance($occupiedByActivityId, $occupiedByInstanceId, $activityUrl, $singleProgramLine, $originalActivity)) {
+        if (($occupiedByInstanceId && $this->isDifferentInstance($activityUrl, $singleProgramLine, $occupiedByInstanceId, $originalActivity))
+          || (!$occupiedByInstanceId && $this->canNotBeNewInstanceOfActivity($activityUrl, $singleProgramLine, $occupiedByActivityId))
+        ) {
           return ImportStepResult::error(sprintf(
             "%s: URL '%s'%s už je obsazena jinou existující aktivitou %s.",
             $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
@@ -765,9 +767,9 @@ SQL
     $nameOccupiedByActivities = dbFetchAll(<<<SQL
 SELECT id_akce, nazev_akce, patri_pod
 FROM akce_seznam
-WHERE nazev_akce = $1 AND rok = $2 AND typ = $3
+WHERE nazev_akce = $1 AND rok = $2 AND typ = $3 AND id_akce != $4
 SQL
-      , [$activityNameValue, $this->currentYear, $singleProgramLine->id()]
+      , [$activityNameValue, $this->currentYear, $singleProgramLine->id(), $originalActivity ? $originalActivity->id() : 0]
     );
     if ($nameOccupiedByActivities) {
       foreach ($nameOccupiedByActivities as $occupiedByActivity) {
@@ -775,8 +777,9 @@ SQL
         $occupiedByInstanceId = $occupiedByActivity['patri_pod']
           ? (int)$occupiedByActivity['patri_pod']
           : null;
-        if ($this->isDifferentActivityAndInstance($occupiedByActivityId, $occupiedByInstanceId, $activityUrl, $singleProgramLine, $originalActivity)) {
-          $occupiedByActivityId = (int)$occupiedByActivity['id_akce'];
+        if (($occupiedByInstanceId && $this->isDifferentInstance($activityUrl, $singleProgramLine, $occupiedByInstanceId, $originalActivity))
+          || (!$occupiedByInstanceId && $this->canNotBeNewInstanceOfActivity($activityUrl, $singleProgramLine, $occupiedByActivityId))
+        ) {
           return ImportStepResult::error(sprintf(
             "%s: název '%s' už je obsazený jinou existující aktivitou %s.",
             $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
@@ -789,17 +792,9 @@ SQL
     return ImportStepResult::success($activityNameValue);
   }
 
-  private function isDifferentActivityAndInstance(
-    int $occupiedByActivityId,
-    ?int $occupiedByInstanceId,
-    string $activityUrl,
-    \Typ $singleProgramLine,
-    ?\Aktivita $originalActivity
-  ): bool {
-    return $this->isDifferentActivity($occupiedByActivityId, $originalActivity)
-      && (!$occupiedByInstanceId
-        || $this->isDifferentInstance($activityUrl, $singleProgramLine, $occupiedByInstanceId, $originalActivity)
-      );
+  private function canNotBeNewInstanceOfActivity(string $url, \Typ $singleProgramLine, int $parentActivityId): bool {
+    $possibleParentActivityId = \Aktivita::idMozneHlavniAktivityPodleUrl($url, $this->currentYear, $singleProgramLine->id());
+    return $possibleParentActivityId !== $parentActivityId;
   }
 
   private function isDifferentInstance(
@@ -811,12 +806,7 @@ SQL
     $instanceId = $originalActivity
       ? $originalActivity->patriPod()
       : $this->getInstanceIdByUrl($activityUrl, $singleProgramLine->id());
-    return !$instanceId // no instance means no "family"
-      || $instanceId !== $occupiedByInstanceId; // belongs to different "family"
-  }
-
-  private function isDifferentActivity(int $occupiedByActivityId, ?\Aktivita $originalActivity): bool {
-    return !$originalActivity || $occupiedByActivityId !== $originalActivity->id();
+    return $instanceId && $instanceId !== $occupiedByInstanceId;
   }
 
   private function getValidatedProgramLineId(array $activityValues, \Typ $singleProgramLine): ImportStepResult {
