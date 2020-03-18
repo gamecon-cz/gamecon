@@ -713,18 +713,21 @@ class ImportValuesValidator
       $activityUrl = $this->toUrl($activityValues[ExportAktivitSloupce::NAZEV]);
     }
     $activityUrl = $this->toUrl($activityUrl);
-    $occupiedByActivityIds = dbOneArray(<<<SQL
-SELECT id_akce
+    $occupiedByActivities = dbOneArray(<<<SQL
+SELECT id_akce, patri_pod
 FROM akce_seznam
 WHERE url_akce = $1 AND rok = $2 AND typ = $3
 SQL
       ,
       [$activityUrl, $this->currentYear, $singleProgramLine->id()]
     );
-    if ($occupiedByActivityIds) {
-      foreach ($occupiedByActivityIds as $occupiedByActivityId) {
-        $occupiedByActivityId = (int)$occupiedByActivityId;
-        if ($this->isDifferentActivity($occupiedByActivityId, $originalActivity)) {
+    if ($occupiedByActivities) {
+      foreach ($occupiedByActivities as $occupiedByActivity) {
+        $occupiedByActivityId = (int)$occupiedByActivity['id_akce'];
+        $occupiedByInstanceId = $occupiedByActivity['patri_pod']
+          ? (int)$occupiedByActivity['patri_pod']
+          : null;
+        if ($this->isDifferentActivityAndInstance($occupiedByActivityId, $occupiedByInstanceId, $activityUrl, $singleProgramLine, $originalActivity)) {
           return ImportStepResult::error(sprintf(
             "%s: URL '%s'%s už je obsazena jinou existující aktivitou %s.",
             $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
@@ -732,7 +735,7 @@ SQL
             empty($activityValues[ExportAktivitSloupce::URL])
               ? ' (odhadnutá z názvu)'
               : '',
-            $this->importValuesDescriber->describeActivityById($occupiedByActivityId)
+            $this->importValuesDescriber->describeActivityById($occupiedByActivity)
           ));
         }
       }
@@ -768,7 +771,11 @@ SQL
     );
     if ($nameOccupiedByActivities) {
       foreach ($nameOccupiedByActivities as $occupiedByActivity) {
-        if ($this->isDifferentActivityAndInstance($occupiedByActivity, $activityUrl, $singleProgramLine, $originalActivity)) {
+        $occupiedByActivityId = (int)$occupiedByActivity['id_akce'];
+        $occupiedByInstanceId = $occupiedByActivity['patri_pod']
+          ? (int)$occupiedByActivity['patri_pod']
+          : null;
+        if ($this->isDifferentActivityAndInstance($occupiedByActivityId, $occupiedByInstanceId, $activityUrl, $singleProgramLine, $originalActivity)) {
           $occupiedByActivityId = (int)$occupiedByActivity['id_akce'];
           return ImportStepResult::error(sprintf(
             "%s: název '%s' už je obsazený jinou existující aktivitou %s.",
@@ -783,15 +790,12 @@ SQL
   }
 
   private function isDifferentActivityAndInstance(
-    array $occupiedByActivityValues,
+    int $occupiedByActivityId,
+    ?int $occupiedByInstanceId,
     string $activityUrl,
     \Typ $singleProgramLine,
     ?\Aktivita $originalActivity
   ): bool {
-    $occupiedByActivityId = (int)$occupiedByActivityValues['id_akce'];
-    $occupiedByInstanceId = $occupiedByActivityValues['patri_pod']
-      ? (int)$occupiedByActivityValues['patri_pod']
-      : null;
     return $this->isDifferentActivity($occupiedByActivityId, $originalActivity)
       && (!$occupiedByInstanceId
         || $this->isDifferentInstance($activityUrl, $singleProgramLine, $occupiedByInstanceId, $originalActivity)
