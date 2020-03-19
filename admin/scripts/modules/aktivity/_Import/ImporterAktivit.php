@@ -70,6 +70,10 @@ class ImporterAktivit
    * @var ImportObjectsContainer
    */
   private $importObjectsContainer;
+  /**
+   * @var string
+   */
+  private $baseUrl;
 
   public function __construct(
     int $userId,
@@ -97,6 +101,7 @@ class ImporterAktivit
     $this->importValuesValidator = new ImportValuesValidator($importValuesDescriber, $importObjectsContainer, $this->currentYear);
     $this->importValuesDescriber = $importValuesDescriber;
     $this->importObjectsContainer = $importObjectsContainer;
+    $this->baseUrl = $baseUrl;
   }
 
   public function importujAktivity(string $spreadsheetId): ActivitiesImportResult {
@@ -198,7 +203,10 @@ class ImporterAktivit
         $result->incrementImportedCount();
       }
     } catch (\Exception $exception) {
-      $result->addErrorMessage('Něco se nepovedlo. Import byl <strong>přerušen</strong>. Zkus to za chvíli znovu.');
+      $result->addErrorMessage(sprintf(
+        'Něco se <a href="%s/admin/web/chyby" target="_blank">nepovedlo</a>. Import byl <strong>přerušen</strong>. Zkus to za chvíli znovu.',
+        $this->baseUrl
+      ));
       $this->logovac->zaloguj($exception);
       $this->releaseExclusiveLock();
       return $result;
