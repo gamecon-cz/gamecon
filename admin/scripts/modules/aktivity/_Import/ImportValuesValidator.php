@@ -365,20 +365,20 @@ class ImportValuesValidator
     }
     $errors = [];
     if ($invalidStorytellersValues) {
-      $errors[] = ImportStepResult::error(sprintf(
+      $errors[] = sprintf(
         'neznámí uživatelé %s',
         implode(',', array_map(static function (string $invalidStorytellerValue) {
           return "'$invalidStorytellerValue'";
         }, $invalidStorytellersValues))
-      ));
+      );
     }
     if ($notStorytellers) {
-      $errors[] = ImportStepResult::error(sprintf(
+      $errors[] = sprintf(
         'nejsou to vypravěči %s',
         implode(',', array_map(static function (\Uzivatel $user) {
           return $this->importValuesDescriber->describeUser($user);
         }, $notStorytellers))
-      ));
+      );
     }
     if ($errors) {
       return ImportStepResult::error(sprintf(
