@@ -320,19 +320,19 @@ class ImporterAktivit
     if ($originalActivity) {
       if (!$originalActivity->bezpecneEditovatelna()) {
         return ImportStepResult::error(sprintf(
-          "Aktivitu %s už nelze editovat importem, protože je ve stavu '%s'",
+          "Aktivitu %s už nelze editovat importem, protože je ve stavu '%s'.",
           $this->importValuesDescriber->describeActivity($originalActivity), $originalActivity->stav()->nazev()
         ));
       }
       if ($originalActivity->zacatek() && $originalActivity->zacatek()->getTimestamp() <= $this->now->getTimestamp()) {
         return ImportStepResult::error(sprintf(
-          "Aktivitu %s už nelze editovat importem, protože už začala (začátek v %s)",
+          "Aktivitu %s už nelze editovat importem, protože už začala (začátek v %s).",
           $this->importValuesDescriber->describeActivity($originalActivity), $originalActivity->zacatek()->formatCasNaMinutyStandard()
         ));
       }
       if ($originalActivity->konec() && $originalActivity->konec()->getTimestamp() <= $this->now->getTimestamp()) {
         return ImportStepResult::error(sprintf(
-          "Aktivitu %s už nelze editovat importem, protože už skončila (konec v %s)",
+          "Aktivitu %s už nelze editovat importem, protože už skončila (konec v %s).",
           $this->importValuesDescriber->describeActivity($originalActivity),
           $originalActivity->konec()->formatCasNaMinutyStandard()
         ));
@@ -605,7 +605,7 @@ SQL
     } catch (\Exception $exception) {
       $this->logovac->zaloguj($exception);
       return ImportStepResult::error(sprintf(
-        '%s: aktivitu se nepodařilo uložit: %s',
+        '%s: aktivitu se nepodařilo uložit: %s.',
         $this->importValuesDescriber->describeActivityByInputValues($values, $originalActivity),
         $exception->getMessage()
       ));

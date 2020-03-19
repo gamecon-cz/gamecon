@@ -351,22 +351,40 @@ class ImportValuesValidator
     }
     $storytellersIds = [];
     $invalidStorytellersValues = [];
+    $notStorytellers = [];
     $storytellersValues = array_map('trim', explode(',', $storytellersString));
     foreach ($storytellersValues as $storytellerValue) {
-      $storyteller = $this->importObjectsContainer->getStorytellerFromValue($storytellerValue);
+      $storyteller = $this->importObjectsContainer->getUserFromValue($storytellerValue);
       if (!$storyteller) {
         $invalidStorytellersValues[] = $storytellerValue;
+      } elseif (!$storyteller->jeOrganizator()) {
+        $notStorytellers[] = $storyteller;
       } else {
         $storytellersIds[] = $storyteller->id();
       }
     }
+    $errors = [];
     if ($invalidStorytellersValues) {
-      return ImportStepResult::error(sprintf(
-        '%s: neznámí vypravěči %s',
-        $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
+      $errors[] = ImportStepResult::error(sprintf(
+        'neznámí uživatelé %s',
         implode(',', array_map(static function (string $invalidStorytellerValue) {
           return "'$invalidStorytellerValue'";
         }, $invalidStorytellersValues))
+      ));
+    }
+    if ($notStorytellers) {
+      $errors[] = ImportStepResult::error(sprintf(
+        'nejsou to vypravěči %s',
+        implode(',', array_map(static function (\Uzivatel $user) {
+          return $this->importValuesDescriber->describeUser($user);
+        }, $notStorytellers))
+      ));
+    }
+    if ($errors) {
+      return ImportStepResult::error(sprintf(
+        '%s: %s',
+        $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
+        implode('; ', $errors)
       ));
     }
     return ImportStepResult::success($storytellersIds);
@@ -760,7 +778,7 @@ SQL
       return $originalActivity
         ? ImportStepResult::success($originalActivity->nazev())
         : ImportStepResult::error(sprintf(
-          '%s: chybí povinný název',
+          '%s: chybí povinný název.',
           $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity)
         ));
     }

@@ -98,6 +98,10 @@ HTML
 
   public function describeUserById(int $userId): string {
     $user = ImportModelsFetcher::fetchUser($userId);
+    return $this->describeUser($user);
+  }
+
+  public function describeUser(\Uzivatel $user): string {
     return sprintf('%s (%s)', $user->jmenoNick(), $user->id());
   }
 }

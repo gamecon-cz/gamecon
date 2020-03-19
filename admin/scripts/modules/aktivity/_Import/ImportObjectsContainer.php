@@ -2,8 +2,6 @@
 
 namespace Gamecon\Admin\Modules\Aktivity\Import;
 
-use Gamecon\Admin\Modules\Aktivity\Import\Exceptions\DuplicatedUnifiedKeyException;
-
 class ImportObjectsContainer
 {
 
@@ -23,16 +21,15 @@ class ImportObjectsContainer
    * @var array|\Stav[][]
    */
   private $StatesCache;
+
   /**
-   * @var \Uzivatel[]
+   * @var ImportUsersCache
    */
-  private $storytellersCache;
-  /**
-   * @var array|int[]
-   */
-  private $cacheKeysUnifyDepth = [
-    'storytellers' => ['fromName' => ImportKeyUnifier::UNIFY_UP_TO_LETTERS, 'fromNick' => ImportKeyUnifier::UNIFY_UP_TO_LETTERS],
-  ];
+  private $importUserCache;
+
+  public function __construct(ImportUsersCache $importUserCache) {
+    $this->importUserCache = $importUserCache;
+  }
 
   public function getProgramLineFromValue(string $programLineValue): ?\Typ {
     $programLineInt = (int)$programLineValue;
@@ -92,91 +89,14 @@ class ImportObjectsContainer
     return $this->StatesCache;
   }
 
-  public function getStorytellerFromValue(string $storytellerValue): ?\Uzivatel {
-    $storytellerInt = (int)$storytellerValue;
-    if ($storytellerInt > 0) {
-      return $this->getStorytellerById($storytellerInt);
+  public function getUserFromValue(string $userValue): ?\Uzivatel {
+    $userInt = (int)$userValue;
+    if ($userInt > 0) {
+      return $this->importUserCache->getUserById($userInt);
     }
-    return $this->getStorytellerByEmail($storytellerValue)
-      ?? $this->getStorytellerByName($storytellerValue)
-      ?? $this->getStorytellerByNick($storytellerValue);
-  }
-
-  private function getStorytellerById(int $id): ?\Uzivatel {
-    return $this->getStorytellersCache()['id'][$id] ?? null;
-  }
-
-  private function getStorytellerByEmail(string $email): ?\Uzivatel {
-    if (strpos($email, '@') === false) {
-      return null;
-    }
-    $key = ImportKeyUnifier::toUnifiedKey($email, [], ImportKeyUnifier::UNIFY_UP_TO_SPACES);
-    return $this->getStorytellersCache()['keyFromEmail'][$key] ?? null;
-  }
-
-  private function getStorytellerByName(string $name): ?\Uzivatel {
-    $key = ImportKeyUnifier::toUnifiedKey($name, [], $this->cacheKeysUnifyDepth['storytellers']['fromName']);
-    return $this->getStorytellersCache()['keyFromName'][$key] ?? null;
-  }
-
-  private function getStorytellerByNick(string $nick): ?\Uzivatel {
-    $key = ImportKeyUnifier::toUnifiedKey($nick, [], $this->cacheKeysUnifyDepth['storytellers']['fromNick']);
-    return $this->getStorytellersCache()['keyFromNick'][$key] ?? null;
-  }
-
-  private function getStorytellersCache(): array {
-    if (!$this->storytellersCache) {
-      $this->storytellersCache = ['id' => [], 'keyFromEmail' => [], 'keyFromName' => [], 'keyFromNick' => [], 'storytellers' => []];
-
-      $storytellers = \Uzivatel::organizatori();
-
-      foreach ($storytellers as $storyteller) {
-        $this->storytellersCache['id'][$storyteller->id()] = $storyteller;
-        $keyFromEmail = ImportKeyUnifier::toUnifiedKey($storyteller->mail(), array_keys($this->storytellersCache['keyFromEmail']), ImportKeyUnifier::UNIFY_UP_TO_SPACES);
-        $this->storytellersCache['keyFromEmail'][$keyFromEmail] = $storyteller;
-      }
-
-      for ($nameKeyUnifyDepth = $this->cacheKeysUnifyDepth['storytellers']['fromName']; $nameKeyUnifyDepth >= 0; $nameKeyUnifyDepth--) {
-        $keyFromNameCache = [];
-        foreach ($storytellers as $storyteller) {
-          $name = $storyteller->jmeno();
-          if ($name === '') {
-            continue;
-          }
-          try {
-            $keyFromCivilName = ImportKeyUnifier::toUnifiedKey($name, array_keys($this->storytellersCache['keyFromName']), $nameKeyUnifyDepth);
-            $keyFromNameCache[$keyFromCivilName] = $storyteller;
-            // if unification was too aggressive and we had to lower level of depth / lossy compression, we have to store the lowest level for later picking-up values from cache
-          } catch (DuplicatedUnifiedKeyException $unifiedKeyException) {
-            continue 2; // lower key depth
-          }
-        }
-        $this->storytellersCache['keyFromName'] = $keyFromNameCache;
-        $this->cacheKeysUnifyDepth['storytellers']['fromName'] = min($this->cacheKeysUnifyDepth['storytellers']['fromName'], $nameKeyUnifyDepth);
-        break; // all names converted to unified and unique keys
-      }
-
-      for ($nickKeyUnifyDepth = $this->cacheKeysUnifyDepth['storytellers']['fromNick']; $nickKeyUnifyDepth >= 0; $nickKeyUnifyDepth--) {
-        $keyFromNickCache = [];
-        foreach ($storytellers as $storyteller) {
-          $nick = $storyteller->nick();
-          if ($nick === '') {
-            continue;
-          }
-          try {
-            $keyFromNick = ImportKeyUnifier::toUnifiedKey($nick, array_keys($this->storytellersCache['keyFromNick']), $nickKeyUnifyDepth);
-            $keyFromNickCache[$keyFromNick] = $storyteller;
-            // if unification was too aggressive and we had to lower level of depth / lossy compression, we have to store the lowest level for later picking-up values from cache
-          } catch (DuplicatedUnifiedKeyException $unifiedKeyException) {
-            continue 2; // lower key depth
-          }
-        }
-        $this->storytellersCache['keyFromNick'] = $keyFromNickCache;
-        $this->cacheKeysUnifyDepth['storytellers']['fromNick'] = min($this->cacheKeysUnifyDepth['storytellers']['fromNick'], $nickKeyUnifyDepth);
-        break; // all nicks converted to unified and unique keys
-      }
-    }
-    return $this->storytellersCache;
+    return $this->importUserCache->getUserByEmail($userValue)
+      ?? $this->importUserCache->getUserByName($userValue)
+      ?? $this->importUserCache->getUserByNick($userValue);
   }
 
   public function getTagFromValue(string $tagValue): ?\Tag {
