@@ -10,8 +10,8 @@ class ImportKeyUnifier
   public const UNIFY_UP_TO_WHITESPACES = 1;
   public const UNIFY_UP_TO_CASE = 2;
   public const UNIFY_UP_TO_SPACES = 3;
-  public const UNIFY_UP_TO_WORD_CHARACTERS = 4;
-  public const UNIFY_UP_TO_DIACRITIC = 5;
+  public const UNIFY_UP_TO_DIACRITIC = 4;
+  public const UNIFY_UP_TO_WORD_CHARACTERS = 5;
   public const UNIFY_UP_TO_NUMBERS_AND_LETTERS = 6;
   public const UNIFY_UP_TO_LETTERS = 7;
 
@@ -54,12 +54,12 @@ class ImportKeyUnifier
     if ($depth === self::UNIFY_UP_TO_SPACES) {
       return $value;
     }
-    $value = preg_replace('~\W~u', '', $value);
-    if ($depth === self::UNIFY_UP_TO_WORD_CHARACTERS) {
-      return $value;
-    }
     $value = odstranDiakritiku($value);
     if ($depth === self::UNIFY_UP_TO_DIACRITIC) {
+      return $value;
+    }
+    $value = preg_replace('~\W~u', '', $value);
+    if ($depth === self::UNIFY_UP_TO_WORD_CHARACTERS) {
       return $value;
     }
     $value = preg_replace('~[^a-z0-9]~', '', $value);

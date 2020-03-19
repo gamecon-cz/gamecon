@@ -12,7 +12,6 @@ use \Gamecon\Cas\DateTimeCz;
 class Uzivatel
 {
 
-
   /**
    * @return Uzivatel[]
    */
@@ -21,11 +20,23 @@ class Uzivatel
 SELECT DISTINCT uzivatele_hodnoty.id_uzivatele
 FROM uzivatele_hodnoty
 JOIN r_uzivatele_zidle on uzivatele_hodnoty.id_uzivatele = r_uzivatele_zidle.id_uzivatele
-WHERE id_zidle = $1
+WHERE r_uzivatele_zidle.id_zidle = $1
 SQL
       , [\Gamecon\Zidle::VYPRAVEC]
     );
     return static::zIds($organizatoriIds);
+  }
+
+  /**
+   * @return Uzivatel[]
+   */
+  public static function vsichni(): array {
+    $ids = dbOneArray(<<<SQL
+SELECT DISTINCT uzivatele_hodnoty.id_uzivatele
+FROM uzivatele_hodnoty
+SQL
+    );
+    return static::zIds($ids);
   }
 
   protected
@@ -51,8 +62,13 @@ SQL
     {
     }
     */
-    else
+    else {
       throw new Exception('Špatný vstup konstruktoru uživatele');
+    }
+  }
+
+  public function jeOrganizator(): bool {
+    return $this->maZidli(\Gamecon\Zidle::VYPRAVEC);
   }
 
   /**
@@ -396,7 +412,7 @@ SQL
    * Uzivatel::maPravo(), skutečně výhradně k správě židlí jako takových.
    * @todo při načítání práv udělat pole místo načítání z DB
    */
-  function maZidli($zidle) {
+  function maZidli($zidle): bool {
     if (!isset($this->zidle)) {
       $this->zidle = dbOneIndex('SELECT id_zidle FROM r_uzivatele_zidle WHERE id_uzivatele = ' . $this->id());
     }
