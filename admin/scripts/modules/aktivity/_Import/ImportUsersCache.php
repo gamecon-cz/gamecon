@@ -6,13 +6,17 @@ use Gamecon\Admin\Modules\Aktivity\Import\Exceptions\DuplicatedUnifiedKeyExcepti
 
 class ImportUsersCache
 {
-  private $storage;
+  private $users;
+  private $usersPerId;
+  private $usersPerEmail;
+  private $usersPerName;
+  private $usersPerNick;
   private $fromNameKeyUnifyDepth = ImportKeyUnifier::UNIFY_UP_TO_LETTERS;
   private $fromNickKeyUnifyDepth = ImportKeyUnifier::UNIFY_UP_TO_LETTERS;
 
 
   public function getUserById(int $id): ?\Uzivatel {
-    return $this->getStorage()['id'][$id] ?? null;
+    return $this->getUsersPerId()[$id] ?? null;
   }
 
   public function getUserByEmail(string $email): ?\Uzivatel {
@@ -20,75 +24,121 @@ class ImportUsersCache
       return null;
     }
     $key = ImportKeyUnifier::toUnifiedKey($email, [], ImportKeyUnifier::UNIFY_UP_TO_DIACRITIC);
-    return $this->getStorage()['keyFromEmail'][$key] ?? null;
+    return $this->getUsersPerEmail()[$key] ?? null;
   }
 
   public function getUserByName(string $name): ?\Uzivatel {
     $key = ImportKeyUnifier::toUnifiedKey($name, [], $this->fromNameKeyUnifyDepth);
-    return $this->getStorage()['keyFromName'][$key] ?? null;
+    return $this->getUsersPerName()[$key] ?? null;
   }
 
   public function getUserByNick(string $nick): ?\Uzivatel {
     $key = ImportKeyUnifier::toUnifiedKey($nick, [], $this->fromNickKeyUnifyDepth);
-    return $this->getStorage()['keyFromNick'][$key] ?? null;
+    return $this->getUsersPerNick()[$key] ?? null;
   }
 
-  private function getStorage(): array {
-    if (!$this->storage) {
-      $this->storage = ['id' => [], 'keyFromEmail' => [], 'keyFromName' => [], 'keyFromNick' => [], 'users' => []];
+  /**
+   * @return \Uzivatel[]
+   */
+  private function getUsersPerId(): array {
+    if ($this->usersPerId === null) {
+      $this->usersPerId = [];
+      foreach ($this->getUsers() as $user) {
+        $this->usersPerId[$user->id()] = $user;
+      }
+    }
+    return $this->usersPerId;
+  }
 
-      $users = \Uzivatel::vsichni();
-
-      foreach ($users as $user) {
-        $this->storage['id'][$user->id()] = $user;
+  /**
+   * @return \Uzivatel[]
+   */
+  private function getUsersPerEmail(): array {
+    if ($this->usersPerEmail === null) {
+      $this->usersPerEmail = [];
+      foreach ($this->getUsers() as $user) {
         $keyFromEmail = ImportKeyUnifier::toUnifiedKey(
           $user->mail(),
-          array_keys($this->storage['keyFromEmail']),
+          array_keys($this->usersPerEmail),
           ImportKeyUnifier::UNIFY_UP_TO_DIACRITIC
         );
-        $this->storage['keyFromEmail'][$keyFromEmail] = $user;
+        $this->usersPerEmail[$keyFromEmail] = $user;
       }
+    }
+    return $this->usersPerEmail;
+  }
 
+  /**
+   * @return \Uzivatel[]
+   */
+  private function getUsersPerName(): array {
+    if ($this->usersPerName === null) {
+      $this->usersPerName = [];
       for ($nameKeyUnifyDepth = $this->fromNameKeyUnifyDepth; $nameKeyUnifyDepth >= 0; $nameKeyUnifyDepth--) {
-        $keyFromNameCache = [];
-        foreach ($users as $user) {
+        $usersPerNameKey = [];
+        foreach ($this->getUsers() as $user) {
           $name = $user->jmeno();
           if ($name === '') {
             continue;
           }
           try {
-            $keyFromCivilName = ImportKeyUnifier::toUnifiedKey($name, array_keys($this->storage['keyFromName']), $nameKeyUnifyDepth);
-            $keyFromNameCache[$keyFromCivilName] = $user;
+            $keyFromCivilName = ImportKeyUnifier::toUnifiedKey($name, array_keys($this->usersPerName), $nameKeyUnifyDepth);
+            $usersPerNameKey[$keyFromCivilName] = $user;
             // if unification was too aggressive and we had to lower level of depth / lossy compression, we have to store the lowest level for later picking-up values from cache
           } catch (DuplicatedUnifiedKeyException $unifiedKeyException) {
-            continue 2; // lower key depth
+            if ($nameKeyUnifyDepth > 0) {
+              continue 2; // lower key depth
+            }
+            throw $unifiedKeyException;
           }
         }
-        $this->storage['keyFromName'] = $keyFromNameCache;
+        $this->usersPerName = $usersPerNameKey;
         $this->fromNameKeyUnifyDepth = min($this->fromNameKeyUnifyDepth, $nameKeyUnifyDepth);
         break; // all names converted to unified and unique keys
       }
+    }
+    return $this->usersPerName;
+  }
 
+  /**
+   * @return \Uzivatel[]
+   */
+  private function getUsersPerNick(): array {
+    if ($this->usersPerNick === null) {
+      $this->usersPerNick = [];
       for ($nickKeyUnifyDepth = $this->fromNickKeyUnifyDepth; $nickKeyUnifyDepth >= 0; $nickKeyUnifyDepth--) {
-        $keyFromNickCache = [];
-        foreach ($users as $user) {
+        $usersPerNickKey = [];
+        foreach ($this->getUsers() as $user) {
           $nick = $user->nick();
           if ($nick === '') {
             continue;
           }
           try {
-            $keyFromNick = ImportKeyUnifier::toUnifiedKey($nick, array_keys($this->storage['keyFromNick']), $nickKeyUnifyDepth);
-            $keyFromNickCache[$keyFromNick] = $user;
+            $keyFromNick = ImportKeyUnifier::toUnifiedKey($nick, array_keys($this->usersPerNick), $nickKeyUnifyDepth);
+            $usersPerNickKey[$keyFromNick] = $user;
             // if unification was too aggressive and we had to lower level of depth / lossy compression, we have to store the lowest level for later picking-up values from cache
           } catch (DuplicatedUnifiedKeyException $unifiedKeyException) {
-            continue 2; // lower key depth
+            if ($nickKeyUnifyDepth > 0) {
+              continue 2; // lower key depth
+            }
+            throw $unifiedKeyException;
           }
         }
-        $this->storage['keyFromNick'] = $keyFromNickCache;
+        $this->usersPerNick = $usersPerNickKey;
         $this->fromNickKeyUnifyDepth = min($this->fromNickKeyUnifyDepth, $nickKeyUnifyDepth);
         break; // all nicks converted to unified and unique keys
       }
     }
-    return $this->storage;
+    return $this->usersPerNick;
+  }
+
+  /**
+   * @return \Uzivatel[]
+   */
+  private function getUsers(): array {
+    if ($this->users === null) {
+      $this->users = \Uzivatel::vsichni();
+    }
+    return $this->users;
   }
 }
