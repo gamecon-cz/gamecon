@@ -316,7 +316,7 @@ SQL
 
   /** Jméno a příjmení uživatele v běžném (zákonném) tvaru */
   function jmeno() {
-    return $this->u['jmeno_uzivatele'] . ' ' . $this->u['prijmeni_uzivatele'];
+    return trim($this->u['jmeno_uzivatele'] . ' ' . $this->u['prijmeni_uzivatele']);
   }
 
   /** Vrátí řetězec s jménem i nickemu uživatele jak se zobrazí např. u
