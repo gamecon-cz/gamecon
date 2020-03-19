@@ -6,7 +6,7 @@ use Gamecon\Admin\Modules\Aktivity\Import\Exceptions\DuplicatedUnifiedKeyExcepti
 
 class ImportUsersCache
 {
-  private $storage = ['id' => [], 'keyFromEmail' => [], 'keyFromName' => [], 'keyFromNick' => [], 'users' => []];
+  private $storage;
   private $fromNameKeyUnifyDepth = ImportKeyUnifier::UNIFY_UP_TO_LETTERS;
   private $fromNickKeyUnifyDepth = ImportKeyUnifier::UNIFY_UP_TO_LETTERS;
 
