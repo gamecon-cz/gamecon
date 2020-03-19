@@ -20,7 +20,7 @@ class ImportObjectsContainer
   /**
    * @var array|\Stav[][]
    */
-  private $StatesCache;
+  private $statesCache;
 
   /**
    * @var ImportUsersCache
@@ -77,16 +77,16 @@ class ImportObjectsContainer
   }
 
   private function getStatesCache(): array {
-    if (!$this->StatesCache) {
-      $this->StatesCache = ['id' => [], 'keyFromName' => []];
+    if (!$this->statesCache) {
+      $this->statesCache = ['id' => [], 'keyFromName' => []];
       $States = \Stav::zVsech();
       foreach ($States as $State) {
-        $this->StatesCache['id'][$State->id()] = $State;
-        $keyFromName = ImportKeyUnifier::toUnifiedKey(mb_substr($State->nazev(), 0, 3, 'UTF-8'), array_keys($this->StatesCache['keyFromName']));
-        $this->StatesCache['keyFromName'][$keyFromName] = $State;
+        $this->statesCache['id'][$State->id()] = $State;
+        $keyFromName = ImportKeyUnifier::toUnifiedKey(mb_substr($State->nazev(), 0, 3, 'UTF-8'), array_keys($this->statesCache['keyFromName']));
+        $this->statesCache['keyFromName'][$keyFromName] = $State;
       }
     }
-    return $this->StatesCache;
+    return $this->statesCache;
   }
 
   public function getUserFromValue(string $userValue): ?\Uzivatel {
