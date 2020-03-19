@@ -19,15 +19,21 @@ class ImportValuesValidator
    * @var ImportObjectsContainer
    */
   private $importObjectsContainer;
+  /**
+   * @var string
+   */
+  private $storytellersPermissionsUrl;
 
   public function __construct(
     ImportValuesDescriber $importValuesDescriber,
     ImportObjectsContainer $importObjectsContainer,
-    int $currentYear
+    int $currentYear,
+    string $storytellersPermissionsUrl
   ) {
     $this->importValuesDescriber = $importValuesDescriber;
     $this->currentYear = $currentYear;
     $this->importObjectsContainer = $importObjectsContainer;
+    $this->storytellersPermissionsUrl = $storytellersPermissionsUrl;
   }
 
   public function validateValues(\Typ $singleProgramLine, array $activityValues, ?\Aktivita $originalActivity): ImportStepResult {
@@ -374,7 +380,8 @@ class ImportValuesValidator
     }
     if ($notStorytellers) {
       $errors[] = sprintf(
-        'uživatelé nejsou vypravěči: %s',
+        'uživatelé nejsou <a href="%s" target="_blank">vypravěči</a>: %s',
+        $this->storytellersPermissionsUrl,
         implode(',', array_map(function (\Uzivatel $user) {
           return $this->importValuesDescriber->describeUser($user);
         }, $notStorytellers))

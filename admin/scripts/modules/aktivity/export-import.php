@@ -11,6 +11,7 @@ use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleApiTokenStorage;
 use Gamecon\Admin\Modules\Aktivity\Import\ImporterAktivit;
 use Gamecon\Mutex\Mutex;
 use Gamecon\Vyjimkovac\Logovac;
+use Gamecon\Zidle;
 
 /**
  * Stránka pro hromadný export aktivit.
@@ -123,6 +124,7 @@ if ($googleApiClient->isAuthorized()) {
       ROK,
       new \DateTimeImmutable(),
       $urlNaEditaciAktivity,
+      $baseUrl . '/admin/prava/' . Zidle::VYPRAVEC,
       $vyjimkovac,
       Mutex::proAktivity(),
       $baseUrl

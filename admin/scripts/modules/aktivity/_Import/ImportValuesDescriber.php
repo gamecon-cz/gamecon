@@ -12,13 +12,12 @@ class ImportValuesDescriber
   private $editActivityUrlSkeleton;
 
   public function __construct(string $editActivityUrlSkeleton) {
-
     $this->editActivityUrlSkeleton = $editActivityUrlSkeleton;
   }
 
   public function describeActivityById(int $activityId): string {
-    $aktivita = ImportModelsFetcher::fetchActivity($activityId);
-    return $this->describeActivity($aktivita);
+    $activity = ImportModelsFetcher::fetchActivity($activityId);
+    return $this->describeActivity($activity);
   }
 
   public function describeActivity(\Aktivita $activity): string {
