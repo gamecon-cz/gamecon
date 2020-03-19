@@ -442,7 +442,7 @@ class Aktivita
       $aktivita = self::zId($data['id_akce']); // instance už musí existovat
       // (zbytek se změní v obou)
       // určení hlavní aktivity
-      $idHlavni = dbOneCol('SELECT MIN(id_akce) FROM akce_seznam WHERE patri_pod = ' . (int)$data['patri_pod']);
+      $idHlavni = $aktivita->idHlavni();
       $patriPod = $data['patri_pod'];
       unset($data['patri_pod']);
       // změny v hlavní aktivitě
@@ -508,6 +508,23 @@ class Aktivita
     return (int)dbOneCol('SELECT COUNT(*) FROM akce_seznam WHERE patri_pod = $1', [$this->a['patri_pod']]);
   }
 
+  public function hlavni(): Aktivita {
+    if (!$this->a['patri_pod']) {
+      return $this;
+    }
+    return static::zId($this->idHlavni());
+  }
+
+  public function idHlavni(): int {
+    if (!$this->a['patri_pod']) {
+      return $this->id();
+    }
+    $idHlavniAkce = dbOneCol('SELECT id_hlavni_akce FROM akce_instance WHERE id = ' . $this->a['patri_pod']);
+    if ($idHlavniAkce) {
+      return (int)$idHlavniAkce;
+    }
+    throw new \RuntimeException("Chybí záznam o hlavní aktivitě pro instanci {$this->a['patri_pod']}");
+  }
   /**
    * Vytvoří novou instanci aktivity
    * @return self nově vytvořená instance
