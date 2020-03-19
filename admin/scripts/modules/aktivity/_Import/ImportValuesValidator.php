@@ -374,7 +374,7 @@ class ImportValuesValidator
     }
     if ($notStorytellers) {
       $errors[] = sprintf(
-        'nejsou to vypravěči %s',
+        'uživatelé nejsou vypravěči: %s',
         implode(',', array_map(function (\Uzivatel $user) {
           return $this->importValuesDescriber->describeUser($user);
         }, $notStorytellers))
