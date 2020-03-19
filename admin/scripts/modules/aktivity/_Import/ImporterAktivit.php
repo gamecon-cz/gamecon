@@ -90,7 +90,7 @@ class ImporterAktivit
     $this->mutexPattern = $mutexPattern;
 
     $importValuesDescriber = new ImportValuesDescriber($editActivityUrlSkeleton);
-    $importObjectsContainer = new ImportObjectsContainer();
+    $importObjectsContainer = new ImportObjectsContainer(new ImportUsersCache());
 
     $this->importValuesReader = new ImportValuesReader($googleSheetsService, $logovac);
     $this->imagesImporter = new ImagesImporter($baseUrl, $importValuesDescriber);
