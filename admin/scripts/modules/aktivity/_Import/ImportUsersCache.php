@@ -74,6 +74,7 @@ class ImportUsersCache
   private function getUsersPerName(): array {
     if ($this->usersPerName === null) {
       $this->usersPerName = [];
+      $conflictingKeys = [];
       for ($nameKeyUnifyDepth = $this->fromNameKeyUnifyDepth; $nameKeyUnifyDepth >= 0; $nameKeyUnifyDepth--) {
         $usersPerNameKey = [];
         foreach ($this->getUsers() as $user) {
@@ -82,14 +83,18 @@ class ImportUsersCache
             continue;
           }
           try {
-            $keyFromCivilName = ImportKeyUnifier::toUnifiedKey($name, array_keys($this->usersPerName), $nameKeyUnifyDepth);
+            $keyFromCivilName = ImportKeyUnifier::toUnifiedKey($name, array_keys($usersPerNameKey), $nameKeyUnifyDepth);
+            if (in_array($keyFromCivilName, $conflictingKeys, true)) {
+              continue; // can not use this user as his name is in conflict with another one
+            }
             $usersPerNameKey[$keyFromCivilName] = $user;
             // if unification was too aggressive and we had to lower level of depth / lossy compression, we have to store the lowest level for later picking-up values from cache
           } catch (DuplicatedUnifiedKeyException $unifiedKeyException) {
             if ($nameKeyUnifyDepth > 0) {
               continue 2; // lower key depth
             }
-            throw $unifiedKeyException;
+            $conflictingKeys[] = $unifiedKeyException->getDuplicatedKey();
+            unset($usersPerNameKey[$unifiedKeyException->getDuplicatedKey()]); // better to remove conflicting names than throw them all
           }
         }
         $this->usersPerName = $usersPerNameKey;
@@ -106,6 +111,7 @@ class ImportUsersCache
   private function getUsersPerNick(): array {
     if ($this->usersPerNick === null) {
       $this->usersPerNick = [];
+      $conflictingKeys = [];
       for ($nickKeyUnifyDepth = $this->fromNickKeyUnifyDepth; $nickKeyUnifyDepth >= 0; $nickKeyUnifyDepth--) {
         $usersPerNickKey = [];
         foreach ($this->getUsers() as $user) {
@@ -114,14 +120,18 @@ class ImportUsersCache
             continue;
           }
           try {
-            $keyFromNick = ImportKeyUnifier::toUnifiedKey($nick, array_keys($this->usersPerNick), $nickKeyUnifyDepth);
+            $keyFromNick = ImportKeyUnifier::toUnifiedKey($nick, array_keys($usersPerNickKey), $nickKeyUnifyDepth);
+            if (in_array($keyFromNick, $conflictingKeys, true)) {
+              continue; // can not use this user as his nick is in conflict with another one
+            }
             $usersPerNickKey[$keyFromNick] = $user;
             // if unification was too aggressive and we had to lower level of depth / lossy compression, we have to store the lowest level for later picking-up values from cache
           } catch (DuplicatedUnifiedKeyException $unifiedKeyException) {
             if ($nickKeyUnifyDepth > 0) {
               continue 2; // lower key depth
             }
-            throw $unifiedKeyException;
+            $conflictingKeys[] = $unifiedKeyException->getDuplicatedKey();
+            unset($usersPerNickKey[$unifiedKeyException->getDuplicatedKey()]); // better to remove conflicting nicks than throw them all
           }
         }
         $this->usersPerNick = $usersPerNickKey;
