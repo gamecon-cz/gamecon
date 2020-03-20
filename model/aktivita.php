@@ -2073,11 +2073,11 @@ FROM sjednocene_tagy
     dbQuery('UPDATE akce_seznam SET stav=$1 WHERE stav=$2 AND rok=$3', [Stav::AKTIVOVANA, Stav::PRIPRAVENA, $rok]);
   }
 
-  public static function idInstancePodleUrl(string $url, int $rok, int $typId): ?int {
+  public static function idExistujiciInstancePodleUrl(string $url, int $rok, int $typId): ?int {
     $idInstance = dbOneCol(<<<SQL
 SELECT akce_seznam.patri_pod
 FROM akce_seznam
-WHERE akce_seznam.url_akce = $1 AND akce_seznam.rok = $2 AND akce_seznam.typ = $3 AND akce_seznam.patri_pod IS NULL
+WHERE akce_seznam.url_akce = $1 AND akce_seznam.rok = $2 AND akce_seznam.typ = $3 AND akce_seznam.patri_pod IS NOT NULL
 LIMIT 1
 SQL
       , [$url, $rok, $typId]
@@ -2098,5 +2098,13 @@ SQL
     return $idHlavniAktivity
       ? (int)$idHlavniAktivity
       : null;
+  }
+
+  public static function moznaHlavniAktivitaPodleUrl(string $url, int $rok, int $typId): ?\Aktivita {
+    $idHlavniAktivity = static::idMozneHlavniAktivityPodleUrl($url, $rok, $typId);
+    if (!$idHlavniAktivity) {
+      return null;
+    }
+    return static::zId($idHlavniAktivity);
   }
 }
