@@ -31,14 +31,11 @@ class ImportModelsFetcher
   }
 
   public static function fetchActivity(int $activityId): \Aktivita {
-    static $activities = [];
-    if (!array_key_exists($activityId, $activities)) {
-      $activity = \Aktivita::zId($activityId);
-      if (!$activity) {
-        throw new ImportAktivitException("Activity with ID '$activityId' does not exist");
-      }
+    $activity = \Aktivita::zId($activityId);
+    if (!$activity) {
+      throw new ImportAktivitException("Activity with ID '$activityId' does not exist");
     }
-    return $activities[$activityId];
+    return $activity;
   }
 
 }
