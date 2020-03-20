@@ -1584,10 +1584,12 @@ SQL
    * @return string absolutní url k anotaci aktivity na webu
    */
   function url() {
-    static $typy; // TODO hack na cacheování názvů typů kvůli chybějícímu orm
+    static $typy;
     if (!$typy) {
       $o = dbQuery('SELECT id_typu, url_typu_mn FROM akce_typy');
-      while ($r = mysqli_fetch_row($o)) $typy[$r[0]] = $r[1];
+      while ($r = mysqli_fetch_row($o)) {
+        $typy[$r[0]] = $r[1];
+      }
     }
     return URL_WEBU . '/' . $typy[$this->a['typ']] . '#' . $this->a['url_akce'];
   }

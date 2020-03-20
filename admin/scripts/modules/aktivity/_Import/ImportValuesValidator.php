@@ -221,6 +221,10 @@ class ImportValuesValidator
     $potentialImageUrls = $potentialImageUrlsResult->getSuccess();
     unset($potentialImageUrlsResult);
 
+    if ($originalActivity && $originalActivity->urlId() === 'apocalypse-world42') {
+      var_dump($sanitizedValues);die;
+    }
+
     return ImportStepResult::successWithWarnings(
       [
         'values' => $sanitizedValues,
@@ -489,16 +493,13 @@ class ImportValuesValidator
         ? (int)$originalActivity->konec()->format('Y')
         : null;
     }
-    if ($year) {
-      if ($year !== $this->currentYear) {
-        return ImportStepResult::error(sprintf(
-          'Aktivita %s je pro ročník %d, ale teď je ročník %d.',
-          $this->importValuesDescriber->describeActivity($originalActivity),
-          $year,
-          $this->currentYear
-        ));
-      }
-      return ImportStepResult::success($year);
+    if ($year && $year !== $this->currentYear) {
+      return ImportStepResult::error(sprintf(
+        'Aktivita %s je pro ročník %d, ale teď je ročník %d.',
+        $this->importValuesDescriber->describeActivity($originalActivity),
+        $year,
+        $this->currentYear
+      ));
     }
     return ImportStepResult::success($this->currentYear);
   }
