@@ -8,27 +8,37 @@ class ImportModelsFetcher
 {
 
   public static function fetchLocation(int $locationId): \Lokace {
-    $location = \Lokace::zId($locationId);
-    if (!$location) {
-      throw new ImportAktivitException("Location with ID '$locationId' does not exist");
+    static $locations = [];
+    if (!array_key_exists($locationId, $locations)) {
+      $location = \Lokace::zId($locationId);
+      if (!$location) {
+        throw new ImportAktivitException("Location with ID '$locationId' does not exist");
+      }
+      $locations[$locationId] = $location;
     }
-    return $location;
+    return $locations[$locationId];
   }
 
   public static function fetchUser(int $userId): \Uzivatel {
-    $user = \Uzivatel::zId($userId);
-    if (!$user) {
-      throw new ImportAktivitException("User with ID '$userId' does not exist");
+    static $users = [];
+    if (!array_key_exists($userId, $users)) {
+      $user = \Uzivatel::zId($userId);
+      if (!$user) {
+        throw new ImportAktivitException("User with ID '$userId' does not exist");
+      }
     }
-    return $user;
+    return $users[$userId];
   }
 
   public static function fetchActivity(int $activityId): \Aktivita {
-    $activity = \Aktivita::zId($activityId);
-    if (!$activity) {
-      throw new ImportAktivitException("Activity with ID '$activityId' does not exist");
+    static $activities = [];
+    if (!array_key_exists($activityId, $activities)) {
+      $activity = \Aktivita::zId($activityId);
+      if (!$activity) {
+        throw new ImportAktivitException("Activity with ID '$activityId' does not exist");
+      }
     }
-    return $activity;
+    return $activities[$activityId];
   }
 
 }
