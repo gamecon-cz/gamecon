@@ -222,7 +222,8 @@ class ImportValuesValidator
     unset($potentialImageUrlsResult);
 
     if ($originalActivity && $originalActivity->urlId() === 'apocalypse-world42') {
-      var_dump($sanitizedValues);die;
+      var_dump($sanitizedValues);
+      die;
     }
 
     return ImportStepResult::successWithWarnings(
@@ -376,7 +377,7 @@ class ImportValuesValidator
     $errors = [];
     if ($invalidStorytellersValues) {
       $errors[] = sprintf(
-        'neznámí uživatelé %s',
+        'Neznámí uživatelé %s.',
         implode(',', array_map(static function (string $invalidStorytellerValue) {
           return "'$invalidStorytellerValue'";
         }, $invalidStorytellersValues))
@@ -384,7 +385,7 @@ class ImportValuesValidator
     }
     if ($notStorytellers) {
       $errors[] = sprintf(
-        'uživatelé nejsou <a href="%s" target="_blank">vypravěči</a>: %s',
+        'Uživatelé nejsou <a href="%s" target="_blank">vypravěči</a>: %s.',
         $this->storytellersPermissionsUrl,
         implode(',', array_map(function (\Uzivatel $user) {
           return $this->importValuesDescriber->describeUser($user);
@@ -392,10 +393,17 @@ class ImportValuesValidator
       );
     }
     if ($errors) {
+      $errorsDescription = count($errors) <= 1
+        ? implode($errors)
+        : sprintf(
+          '<ul>%s</ul>',
+          implode(array_map(static function (string $error) {
+            return "<li>$error</li>";
+          }, $errors)));
       return ImportStepResult::error(sprintf(
         '%s: %s',
         $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
-        implode('; ', $errors)
+        $errorsDescription
       ));
     }
     return ImportStepResult::success($storytellersIds);
