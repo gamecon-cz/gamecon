@@ -221,11 +221,6 @@ class ImportValuesValidator
     $potentialImageUrls = $potentialImageUrlsResult->getSuccess();
     unset($potentialImageUrlsResult);
 
-    if ($originalActivity && $originalActivity->urlId() === 'apocalypse-world42') {
-      var_dump($sanitizedValues);
-      die;
-    }
-
     return ImportStepResult::successWithWarnings(
       [
         'values' => $sanitizedValues,
