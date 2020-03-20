@@ -274,7 +274,7 @@ class ImporterAktivit
     return $this->mutexKey;
   }
 
-  private function findNewInstanceParentActivityId(string $url, \Typ $singleProgramLine): ?int {
+  private function findParentActivityId(string $url, \Typ $singleProgramLine): ?int {
     return \Aktivita::idMozneHlavniAktivityPodleUrl($url, $this->currentYear, $singleProgramLine->id());
   }
 
@@ -601,8 +601,8 @@ SQL
     ?\Aktivita $originalActivity
   ): ImportStepResult {
     try {
-      if (!$values[AktivitaSqlSloupce::ID_AKCE] && !$values[AktivitaSqlSloupce::PATRI_POD]) {
-        $newInstanceParentActivityId = $this->findNewInstanceParentActivityId($values[AktivitaSqlSloupce::URL_AKCE], $singleProgramLine);
+      if (!$values[AktivitaSqlSloupce::ID_AKCE]) {
+        $newInstanceParentActivityId = $this->findParentActivityId($values[AktivitaSqlSloupce::URL_AKCE], $singleProgramLine);
         if ($newInstanceParentActivityId) {
           $newInstance = $this->createInstanceForParentActivity($newInstanceParentActivityId);
           $values[AktivitaSqlSloupce::ID_AKCE] = $newInstance->id();
