@@ -494,11 +494,24 @@ class Aktivita
    *  instancí nemá)
    */
   private function instance(): array {
-    if ($this->a['patri_pod']) {
-      $ids = dbOneArray('SELECT id_akce FROM akce_seznam WHERE patri_pod = $1', [$this->a['patri_pod']]);
+    if ($this->patriPod()) {
+      $ids = dbOneArray('SELECT id_akce FROM akce_seznam WHERE patri_pod = $1', [$this->patriPod()]);
       return Aktivita::zIds($ids);
     }
     return [$this];
+  }
+
+  /**
+   * @return int[] pole s ID instancí této aktivity (vč. sebe sama, i pokud více *  instancí nemá)
+   */
+  private function idInstanci(): array {
+    if ($this->patriPod()) {
+      $ids = dbOneArray('SELECT id_akce FROM akce_seznam WHERE patri_pod = $1', [$this->patriPod()]);
+      return array_map(static function ($id) {
+        return (int)$id;
+      }, $ids);
+    }
+    return [$this->id()];
   }
 
   public function pocetInstanci(): int {
@@ -525,6 +538,7 @@ class Aktivita
     }
     throw new \RuntimeException("Chybí záznam o hlavní aktivitě pro instanci {$this->a['patri_pod']}");
   }
+
   /**
    * Vytvoří novou instanci aktivity
    * @return self nově vytvořená instance
@@ -1478,14 +1492,19 @@ SQL
 
   function nastavTagy(array $tagy) {
     // nastavit tagy aktivitám
-    foreach ($this->instance() as $aktivita) {
-      dbQuery('DELETE FROM akce_sjednocene_tagy WHERE id_akce = $1', [$aktivita->id()]);
-      if ($tagy) {
-        dbQuery(
-          'INSERT INTO akce_sjednocene_tagy(id_akce, id_tagu) SELECT $1, id FROM sjednocene_tagy WHERE nazev IN (' . dbQa($tagy) . ')',
-          [$aktivita->id()]
-        );
-      }
+    $idInstanci = $this->idInstanci();
+    $idInstanciSql = dbQa($idInstanci);
+    dbQuery("DELETE FROM akce_sjednocene_tagy WHERE id_akce IN ($idInstanciSql)");
+    if ($tagy) {
+      $tagySql = dbQa($tagy);
+      dbQuery(<<<SQL
+INSERT INTO akce_sjednocene_tagy(id_akce, id_tagu)
+SELECT akce_seznam.id_akce, sjednocene_tagy.id
+FROM akce_seznam
+JOIN sjednocene_tagy ON sjednocene_tagy.nazev IN ($tagySql)
+AND akce_seznam.id_akce IN ($idInstanciSql)
+SQL
+      );
     }
 
     $this->otoc();
