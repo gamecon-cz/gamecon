@@ -1,6 +1,7 @@
 <?php
 
 use \Gamecon\Cas\DateTimeCz;
+use Gamecon\Admin\Modules\Aktivity\Import\AktivitaSqlSloupce;
 
 require_once __DIR__ . '/../admin/scripts/modules/aktivity/_editor-tagu.php';
 
@@ -440,6 +441,10 @@ class Aktivita
       $doHlavni = ['url_akce', 'popis', 'vybaveni'];  // věci, které se mají změnit jen u hlavní (master) `instance
       $doAktualni = ['lokace', 'zacatek', 'konec'];       // věci, které se mají změnit jen u aktuální instance
       $aktivita = self::zId($data['id_akce']); // instance už musí existovat
+      if (array_key_exists(AktivitaSqlSloupce::STAV, $data)) {
+        $aktivita->zmenStav($data[AktivitaSqlSloupce::STAV]);
+        unset($data[AktivitaSqlSloupce::STAV]); // stav se může měnit jenom u jedné instance
+      }
       // (zbytek se změní v obou)
       // určení hlavní aktivity
       $idHlavni = $aktivita->idHlavni();
@@ -824,10 +829,10 @@ class Aktivita
 
   /** Vráti aktivitu ze stavu připravená do stavu publikovaná */
   function odpriprav() {
-    if ($this->stav()->id() == Stav::PUBLIKOVANA) {
+    if ($this->idStavu() === Stav::PUBLIKOVANA) {
       return;
     }
-    if ($this->stav()->id() != Stav::PRIPRAVENA) {
+    if ($this->idStavu() !== Stav::PRIPRAVENA) {
       throw new Exception('Aktivita není v stavu "připravená"');
     }
     dbQuery('UPDATE akce_seznam SET stav=$1 WHERE id_akce=$2', [Stav::PUBLIKOVANA, $this->id()]);
@@ -1375,12 +1380,19 @@ SQL
   }
 
   public function publikuj() {
-    dbQuery('UPDATE akce_seznam SET stav=$1 WHERE id_akce=$2', [Stav::PUBLIKOVANA, $this->id()]);
+    $this->zmenStav(Stav::PUBLIKOVANA);
+  }
+
+  private function zmenStav(int $novyStav) {
+    if (!Stav::jeZnamy($novyStav)) {
+      throw new \LogicException("Neznámý stav aktivity '$novyStav'");
+    }
+    dbQuery('UPDATE akce_seznam SET stav=$1 WHERE id_akce=$2', [$novyStav, $this->id()]);
   }
 
   /** Nastaví aktivitu jako "připravena pro aktivaci" */
   function priprav() {
-    dbUpdate('akce_seznam', ['stav' => Stav::PRIPRAVENA], ['id_akce' => $this->id()]);
+    $this->zmenStav(Stav::PRIPRAVENA);
   }
 
   /** Zdali už aktivita začla a proběhla (rozhodný okamžik je vyjetí seznamů
@@ -1390,7 +1402,7 @@ SQL
   }
 
   public function bezpecneEditovatelna(): bool {
-    return in_array($this->stav()->id(), [Stav::NOVA, Stav::PUBLIKOVANA, Stav::PRIPRAVENA], true);
+    return in_array($this->idStavu(), [Stav::NOVA, Stav::PUBLIKOVANA, Stav::PRIPRAVENA], true);
   }
 
   public function stav(): \Stav {
@@ -1401,6 +1413,13 @@ SQL
       ]);
     }
     return $this->stav;
+  }
+
+  public function idStavu(): ?int {
+    $idStavu = $this->a[AktivitaSqlSloupce::STAV];
+    return $idStavu !== null
+      ? (int)$idStavu
+      : null;
   }
 
   /**

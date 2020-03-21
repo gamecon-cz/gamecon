@@ -9,6 +9,24 @@ class Stav extends DbObject
   public const PUBLIKOVANA = 4; // videtelná, nepřihlašovatelá
   public const PRIPRAVENA = 5;
 
+  public static function jeZnamy(int $stav): bool {
+    return in_array($stav, self::vsechnyStavy(), true);
+  }
+
+  /**
+   * @return int[]
+   */
+  public static function vsechnyStavy(): array {
+    return [
+      self::NOVA,
+      self::AKTIVOVANA,
+      self::PROBEHNUTA,
+      self::SYSTEMOVA,
+      self::PUBLIKOVANA,
+      self::PRIPRAVENA,
+    ];
+  }
+
   protected static $tabulka = 'akce_stav';
   protected static $pk = 'id';
 
