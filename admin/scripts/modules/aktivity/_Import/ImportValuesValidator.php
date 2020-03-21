@@ -260,8 +260,8 @@ class ImportValuesValidator
     $stateValue = $activityValues[ExportAktivitSloupce::STAV] ?? null;
     if ((string)$stateValue === '') {
       $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
-      return ImportStepResult::success($sourceActivity && $sourceActivity->stav()
-        ? $sourceActivity->stav()->id()
+      return ImportStepResult::success($sourceActivity && $sourceActivity->idStavu() !== null
+        ? $sourceActivity->idStavu()
         : \Stav::NOVA
       );
     }
