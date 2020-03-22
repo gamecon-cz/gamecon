@@ -102,7 +102,7 @@
     </thead>
     <tbody>
     <!-- begin:spreadsheet -->
-    <tr class="click-to-select" style="cursor: pointer">
+    <tr class="click-to-select">
       <td><input type="radio" name="googleSheetId" value="{googleSheetIdEncoded}"></td>
       <td><a href="{url}" target="_blank">{nazev}</a></td>
       <td title="{vytvorenoKdyPresne}">{vytvorenoKdy}</td>
@@ -113,7 +113,8 @@
   </table>
   <script type="text/javascript">
     (function ($) {
-        $('.click-to-select').on('click', function () {
+        const clickToSelectElements = $('.click-to-select')
+        clickToSelectElements.on('click', function () {
           const clickToSelect = this
           $(clickToSelect).parent().find('input[type=radio]').each(function () {
             if (this !== clickToSelect) {
@@ -128,7 +129,8 @@
           }
         })
 
-        $('.click-to-select a, .click-to-select input[type=radio]').on('click', function (event) {
+        clickToSelectElements.css('cursor', 'pointer')
+        clickToSelectElements.find('a, input[type=radio]').on('click', function (event) {
           event.stopPropagation()
         })
 
