@@ -347,7 +347,18 @@ class ImportValuesSanitizer
     }
     $state = $this->importObjectsContainer->getStateFromValue((string)$stateValue);
     if ($state) {
-      return ImportStepResult::success($state->id());
+      if ($state->jeNanejvysPripravenaKAktivaci()) {
+        return ImportStepResult::success($state->id());
+      }
+      return ImportStepResult::successWithErrorLikeWarnings(
+        \Stav::PRIPRAVENA,
+        [sprintf(
+          "%s: Aktivovat musíš aktivity ručně. Požadovaný stav '%s' byl nahrán jako '%s'.",
+          $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
+          $state->nazev(),
+          \Stav::zId(\Stav::PRIPRAVENA)->nazev()
+        )]
+      );
     }
     return ImportStepResult::error(sprintf(
       "%s: neznámý stav '%s'",

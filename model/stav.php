@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * @method static Stav zId($id)
+ */
 class Stav extends DbObject
 {
   public const NOVA = 0; // v přípravě
@@ -40,5 +43,9 @@ class Stav extends DbObject
 
   function nazev(): string {
     return (string)$this->r['nazev'];
+  }
+
+  public function jeNanejvysPripravenaKAktivaci(): bool {
+    return in_array($this->id(), [self::NOVA, self::PUBLIKOVANA, self::PRIPRAVENA], true);
   }
 }
