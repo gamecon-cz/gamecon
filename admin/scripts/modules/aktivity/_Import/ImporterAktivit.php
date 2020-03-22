@@ -68,6 +68,10 @@ class ImporterAktivit
    * @var ImportAccessibilityChecker
    */
   private $importAccessibilityChecker;
+  /**
+   * @var ImportRequirementsQuardian
+   */
+  private $importRequirementsQuardian;
 
   public function __construct(
     int $userId,
@@ -95,7 +99,7 @@ class ImporterAktivit
     $this->importValuesReader = new ImportValuesReader($googleSheetsService, $logovac);
     $this->imagesImporter = new ImagesImporter($baseUrl, $importValuesDescriber);
     $this->importValuesSanitizer = new ImportValuesSanitizer($importValuesDescriber, $importObjectsContainer, $this->currentYear, $storytellersPermissionsUrl);
-    $this->importValuesGuardian = new ImportValuesGuardian($importObjectsContainer);
+    $this->importRequirementsQuardian = new ImportRequirementsQuardian($importObjectsContainer);
     $this->importValuesDescriber = $importValuesDescriber;
     $this->baseUrl = $baseUrl;
     $this->importAccessibilityChecker = $importAccessibilityChecker;
@@ -121,7 +125,7 @@ class ImporterAktivit
       $activitiesValues = $activitiesValuesResult->getSuccess();
       unset($activitiesValuesResult);
 
-      $singleProgramLineResult = $this->importValuesGuardian->guardSingleProgramLineOnly($activitiesValues, $processedFileName);
+      $singleProgramLineResult = $this->importRequirementsQuardian->guardSingleProgramLineOnly($activitiesValues, $processedFileName);
       if ($singleProgramLineResult->isError()) {
         $result->addErrorMessage(sprintf('%s Import byl <strong>přerušen</strong>.', $singleProgramLineResult->getError()));
         return $result;
