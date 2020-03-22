@@ -5,7 +5,7 @@ namespace Gamecon\Admin\Modules\Aktivity\Import;
 use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
 use Gamecon\Cas\DateTimeGamecon;
 
-class ImportValuesValidator
+class ImportValuesSanitizer
 {
   /**
    * @var ImportValuesDescriber
@@ -40,7 +40,7 @@ class ImportValuesValidator
     $this->storytellersPermissionsUrl = $storytellersPermissionsUrl;
   }
 
-  public function validateValues(\Typ $singleProgramLine, array $activityValues): ImportStepResult {
+  public function sanitizeValues(\Typ $singleProgramLine, array $activityValues): ImportStepResult {
     $sanitizedValues = [];
     $warnings = [];
 

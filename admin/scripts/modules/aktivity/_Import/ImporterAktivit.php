@@ -2,7 +2,6 @@
 
 namespace Gamecon\Admin\Modules\Aktivity\Import;
 
-use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleConnectionException;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
@@ -58,13 +57,9 @@ class ImporterAktivit
    */
   private $importValuesDescriber;
   /**
-   * @var ImportValuesValidator
+   * @var ImportValuesSanitizer
    */
-  private $importValuesValidator;
-  /**
-   * @var ImportObjectsContainer
-   */
-  private $importObjectsContainer;
+  private $importValuesSanitizer;
   /**
    * @var string
    */
@@ -99,9 +94,9 @@ class ImporterAktivit
 
     $this->importValuesReader = new ImportValuesReader($googleSheetsService, $logovac);
     $this->imagesImporter = new ImagesImporter($baseUrl, $importValuesDescriber);
-    $this->importValuesValidator = new ImportValuesValidator($importValuesDescriber, $importObjectsContainer, $this->currentYear, $storytellersPermissionsUrl);
+    $this->importValuesSanitizer = new ImportValuesSanitizer($importValuesDescriber, $importObjectsContainer, $this->currentYear, $storytellersPermissionsUrl);
+    $this->importValuesGuardian = new ImportValuesGuardian($importObjectsContainer);
     $this->importValuesDescriber = $importValuesDescriber;
-    $this->importObjectsContainer = $importObjectsContainer;
     $this->baseUrl = $baseUrl;
     $this->importAccessibilityChecker = $importAccessibilityChecker;
   }
@@ -126,7 +121,7 @@ class ImporterAktivit
       $activitiesValues = $activitiesValuesResult->getSuccess();
       unset($activitiesValuesResult);
 
-      $singleProgramLineResult = $this->guardSingleProgramLineOnly($activitiesValues, $processedFileName);
+      $singleProgramLineResult = $this->importValuesGuardian->guardSingleProgramLineOnly($activitiesValues, $processedFileName);
       if ($singleProgramLineResult->isError()) {
         $result->addErrorMessage(sprintf('%s Import byl <strong>přerušen</strong>.', $singleProgramLineResult->getError()));
         return $result;
@@ -145,7 +140,7 @@ class ImporterAktivit
 
       $potentialImageUrlsPerActivity = [];
       foreach ($activitiesValues as $activityValues) {
-        $validatedValuesResult = $this->importValuesValidator->validateValues($singleProgramLine, $activityValues);
+        $validatedValuesResult = $this->importValuesSanitizer->sanitizeValues($singleProgramLine, $activityValues);
         if ($validatedValuesResult->isError()) {
           $errorMessage = $this->getErrorMessageWithSkippedActivityNote($validatedValuesResult);
           $result->addErrorMessage($errorMessage);
@@ -271,12 +266,6 @@ HTML
     return \Aktivita::idMozneHlavniAktivityPodleUrl($url, $this->currentYear, $singleProgramLine->id());
   }
 
-  private static function wrapByQuotes(array $values): array {
-    return array_map(static function ($value) {
-      return "'$value'";
-    }, $values);
-  }
-
   private function importActivity(
     $values,
     $longAnnotation,
@@ -383,43 +372,6 @@ HTML
       $warnings,
       $errorLikeWarnings
     );
-  }
-
-  private function guardSingleProgramLineOnly(array $activitiesValues, string $processedFileName): ImportStepResult {
-    $programLines = [];
-    foreach ($activitiesValues as $row) {
-      $programLine = null;
-      $programLineId = null;
-      $programLineValue = $row[ExportAktivitSloupce::PROGRAMOVA_LINIE] ?? null;
-      if ($programLineValue) {
-        $programLine = $this->importObjectsContainer->getProgramLineFromValue((string)$programLineValue);
-      }
-      if (!$programLine && $row[ExportAktivitSloupce::ID_AKTIVITY]) {
-        $activity = ImportModelsFetcher::fetchActivity($row[ExportAktivitSloupce::ID_AKTIVITY]);
-        if ($activity && $activity->typ()) {
-          $programLine = $activity->typ();
-        }
-      }
-      if ($programLine && !array_key_exists($programLine->id(), $programLines)) {
-        $programLines[$programLineId] = $programLine;
-      }
-    }
-    if (count($programLines) > 1) {
-      return ImportStepResult::error(sprintf(
-        'Importovat lze pouze jednu programovou linii. Importní soubor %s jich má %d: %s.',
-        $processedFileName,
-        count($programLines),
-        implode(
-          ',',
-          self::wrapByQuotes(array_map(static function (\Typ $typ) {
-            return $typ->nazev();
-          }, $programLines))
-        )));
-    }
-    if (count($programLines) === 0) {
-      return ImportStepResult::error('V importovaném souboru chybí programová linie, nebo alespoň existující aktivita s nastavenou programovou linií.');
-    }
-    return ImportStepResult::success(reset($programLines));
   }
 
   private function saveActivity(
