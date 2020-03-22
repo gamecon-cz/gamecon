@@ -8,7 +8,7 @@ use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleApiCredentials;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleApiTokenStorage;
-use Gamecon\Admin\Modules\Aktivity\Import\ImporterAktivit;
+use Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImporter;
 use Gamecon\Mutex\Mutex;
 use Gamecon\Vyjimkovac\Logovac;
 use Gamecon\Zidle;
@@ -117,7 +117,7 @@ $urlNaEditaciAktivity = $urlNaAktivity . '/upravy?aktivitaId=';
 if ($googleApiClient->isAuthorized()) {
   if (!empty($_POST['googleSheetId'])) {
     /** @var Logovac $vyjimkovac */
-    $importerAktivit = new ImporterAktivit(
+    $activitiesImporter = new ActivitiesImporter(
       $currentUserId,
       $googleDriveService,
       $googleSheetsService,
@@ -130,7 +130,7 @@ if ($googleApiClient->isAuthorized()) {
       Mutex::proAktivity(),
       $baseUrl . '/admin/web/chyby'
     );
-    $vysledekImportuAktivit = $importerAktivit->importujAktivity($_POST['googleSheetId']);
+    $vysledekImportuAktivit = $activitiesImporter->importActivities($_POST['googleSheetId']);
     $naimportovanoPocet = $vysledekImportuAktivit->getImportedCount();
     $nazevImportovanehoSouboru = $vysledekImportuAktivit->getProcessedFilename();
     $successMessages = $vysledekImportuAktivit->getSuccessMessages();

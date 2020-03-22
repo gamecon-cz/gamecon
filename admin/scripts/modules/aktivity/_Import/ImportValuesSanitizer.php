@@ -429,9 +429,9 @@ class ImportValuesSanitizer
         $storytellersIds[] = $storyteller->id();
       }
     }
-    $errors = [];
+    $errorLikeWarnings = [];
     if ($invalidStorytellersValues) {
-      $errors[] = sprintf(
+      $errorLikeWarnings[] = sprintf(
         'Neznámí uživatelé %s.',
         implode(',', array_map(static function (string $invalidStorytellerValue) {
           return "'$invalidStorytellerValue'";
@@ -443,26 +443,12 @@ class ImportValuesSanitizer
         return $this->importValuesDescriber->describeUser($user);
       }, $notStorytellers));
       $notStorytellersHtml = htmlentities($notStorytellersString);
-      $errors[] = sprintf(<<<HTML
+      $errorLikeWarnings[] = sprintf(<<<HTML
         'Uživatelé nejsou <a href="{$this->storytellersPermissionsUrl}" target="_blank">vypravěči</a>: {$notStorytellersHtml}.
 HTML
       );
     }
-    if ($errors) {
-      $errorsDescription = count($errors) <= 1
-        ? implode($errors)
-        : sprintf(
-          '<ul>%s</ul>',
-          implode(array_map(static function (string $error) {
-            return "<li>$error</li>";
-          }, $errors)));
-      return ImportStepResult::error(sprintf(
-        '%s: %s',
-        $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
-        $errorsDescription
-      ));
-    }
-    return ImportStepResult::success($storytellersIds);
+    return ImportStepResult::successWithErrorLikeWarnings($storytellersIds, $errorLikeWarnings);
   }
 
   private function getValidatedLongAnnotation(array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
