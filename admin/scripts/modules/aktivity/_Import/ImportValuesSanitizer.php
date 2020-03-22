@@ -777,12 +777,13 @@ HTML
       );
     }
     if (empty($activityValues[ExportAktivitSloupce::DEN])) {
-      return ImportStepResult::error(
-        sprintf(
-          '%s: Aktivita má sice uvedený začátek (%s), ale chybí u ní den.',
+      return ImportStepResult::successWithErrorLikeWarnings(
+        null,
+        [sprintf(
+          '%s: Aktivita má sice uvedený začátek (%s), ale chybí u ní den. Čas aktivity je vynechán.',
           $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
           $activityValues[ExportAktivitSloupce::ZACATEK]
-        )
+        )]
       );
     }
     return $this->createDateTimeFromRangeBorder($this->currentYear, $activityValues[ExportAktivitSloupce::DEN], $activityValues[ExportAktivitSloupce::ZACATEK]);
@@ -802,12 +803,13 @@ HTML
       );
     }
     if (empty($activityValues[ExportAktivitSloupce::DEN])) {
-      return ImportStepResult::error(
-        sprintf(
-          '%s: aktivita má sice uvedený konec (%s), ale chybí u ní den',
+      return ImportStepResult::successWithErrorLikeWarnings(
+        null,
+        [sprintf(
+          '%s: aktivita má sice uvedený konec (%s), ale chybí u ní den. Čas aktivity je vynechán.',
           $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
           $activityValues[ExportAktivitSloupce::KONEC]
-        )
+        )]
       );
     }
     return $this->createDateTimeFromRangeBorder($this->currentYear, $activityValues[ExportAktivitSloupce::DEN], $activityValues[ExportAktivitSloupce::KONEC]);
@@ -817,17 +819,26 @@ HTML
     try {
       $date = DateTimeGamecon::denKolemZacatkuGameconuProRok($dayName, $year);
     } catch (\Exception $exception) {
-      return ImportStepResult::error(sprintf("Nepodařilo se vytvořit datum z roku %d, dne '%s' a času '%s'. Chybný formát datumu. Detail: %s", $year, $dayName, $hoursAndMinutes, $exception->getMessage()));
+      return ImportStepResult::successWithErrorLikeWarnings(
+        null,
+        [sprintf("Nepodařilo se vytvořit datum z roku %d, dne '%s' a času '%s'. Chybný formát datumu. Detail: %s", $year, $dayName, $hoursAndMinutes, $exception->getMessage())]
+      );
     }
 
     if (!preg_match('~^(?<hours>\d+)(\s*:\s*(?<minutes>\d+))?$~', $hoursAndMinutes, $timeMatches)) {
-      return ImportStepResult::error(sprintf("Nepodařilo se nastavit čas podle roku %d, dne '%s' a času '%s'. Chybný formát času '%s'.", $year, $dayName, $hoursAndMinutes, $hoursAndMinutes));
+      return ImportStepResult::successWithErrorLikeWarnings(
+        null,
+        [sprintf("Nepodařilo se nastavit čas podle roku %d, dne '%s' a času '%s'. Chybný formát času '%s'.", $year, $dayName, $hoursAndMinutes, $hoursAndMinutes)]
+      );
     }
     $hours = (int)$timeMatches['hours'];
     $minutes = (int)($timeMatches['minutes'] ?? 0);
     $dateTime = $date->setTime($hours, $minutes, 0, 0);
     if (!$dateTime) {
-      return ImportStepResult::error(sprintf("Nepodařilo se nastavit čas podle roku %d, dne '%s' a času '%s'. Chybný formát.", $year, $dayName, $hoursAndMinutes));
+      return ImportStepResult::successWithErrorLikeWarnings(
+        null,
+        [sprintf("Nepodařilo se nastavit čas podle roku %d, dne '%s' a času '%s'. Chybný formát.", $year, $dayName, $hoursAndMinutes)]
+      );
     }
     return ImportStepResult::success($dateTime->formatDb());
   }
