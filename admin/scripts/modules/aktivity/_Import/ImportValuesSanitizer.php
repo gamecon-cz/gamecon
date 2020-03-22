@@ -42,7 +42,9 @@ class ImportValuesSanitizer
 
   public function sanitizeValues(\Typ $singleProgramLine, array $activityValues): ImportStepResult {
     $sanitizedValues = [];
+    $stepsResults = [];
     $warnings = [];
+    $errorLikeWarnings = [];
 
     $originalActivity = null;
     $originalActivityResult = $this->getValidatedOriginalActivity($activityValues);
@@ -71,6 +73,7 @@ class ImportValuesSanitizer
       return ImportStepResult::error($programLineIdResult->getError());
     }
     $sanitizedValues[AktivitaSqlSloupce::TYP] = $programLineIdResult->getSuccess();
+    $stepsResults[] = $programLineIdResult;
     unset($programLineIdResult);
 
     $activityUrlResult = $this->getValidatedUrl($activityValues, $singleProgramLine, $originalActivity);
@@ -79,6 +82,7 @@ class ImportValuesSanitizer
     }
     $activityUrl = $activityUrlResult->getSuccess();
     $sanitizedValues[AktivitaSqlSloupce::URL_AKCE] = $activityUrl;
+    $stepsResults[] = $activityUrlResult;
     unset($activityUrlResult);
 
     $parentActivityResult = $this->getValidatedParentActivity($activityUrl, $singleProgramLine);
@@ -86,6 +90,7 @@ class ImportValuesSanitizer
       return ImportStepResult::error($parentActivityResult->getError());
     }
     $parentActivity = $parentActivityResult->getSuccess();
+    $stepsResults[] = $parentActivityResult;
     unset($parentActivityResult);
 
     $activityNameResult = $this->getValidatedActivityName($activityValues, $activityUrl, $singleProgramLine, $originalActivity, $parentActivity);
@@ -93,6 +98,7 @@ class ImportValuesSanitizer
       return ImportStepResult::error($activityNameResult->getError());
     }
     $sanitizedValues[AktivitaSqlSloupce::NAZEV_AKCE] = $activityNameResult->getSuccess();
+    $stepsResults[] = $activityNameResult;
     unset($activityNameResult);
 
     $shortAnnotationResult = $this->getValidatedShortAnnotation($activityValues, $originalActivity, $parentActivity);
@@ -100,6 +106,7 @@ class ImportValuesSanitizer
       return ImportStepResult::error($shortAnnotationResult->getError());
     }
     $sanitizedValues[AktivitaSqlSloupce::POPIS_KRATKY] = $shortAnnotationResult->getSuccess();
+    $stepsResults[] = $shortAnnotationResult;
     unset($shortAnnotationResult);
 
     $tagIdsResult = $this->getValidatedTagIds($activityValues, $originalActivity, $parentActivity);
@@ -107,6 +114,7 @@ class ImportValuesSanitizer
       return ImportStepResult::error($tagIdsResult->getError());
     }
     $tagIds = $tagIdsResult->getSuccess();
+    $stepsResults[] = $tagIdsResult;
     unset($tagIdsResult);
 
     $longAnnotationResult = $this->getValidatedLongAnnotation($activityValues, $originalActivity, $parentActivity);
@@ -114,6 +122,7 @@ class ImportValuesSanitizer
       return ImportStepResult::error($longAnnotationResult->getError());
     }
     $longAnnotation = $longAnnotationResult->getSuccess();
+    $stepsResults[] = $longAnnotationResult;
     unset($longAnnotationResult);
 
     $activityStartResult = $this->getValidatedStart($activityValues, $originalActivity, $parentActivity);
@@ -121,6 +130,7 @@ class ImportValuesSanitizer
       return ImportStepResult::error($activityStartResult->getError());
     }
     $sanitizedValues[AktivitaSqlSloupce::ZACATEK] = $activityStartResult->getSuccess();
+    $stepsResults[] = $activityStartResult;
     unset($activityStartResult);
 
     $activityEndResult = $this->getValidatedEnd($activityValues, $originalActivity, $parentActivity);
@@ -128,18 +138,15 @@ class ImportValuesSanitizer
       return ImportStepResult::error($activityEndResult->getError());
     }
     $sanitizedValues[AktivitaSqlSloupce::KONEC] = $activityEndResult->getSuccess();
+    $stepsResults[] = $activityEndResult;
     unset($activityEndResult);
 
     $locationIdResult = $this->getValidatedLocationId($activityValues, $originalActivity, $parentActivity);
     if ($locationIdResult->isError()) {
       return ImportStepResult::error($locationIdResult->getError());
     }
-    if ($locationIdResult->hasWarnings()) {
-      foreach ($locationIdResult->getWarnings() as $warning) {
-        $warnings[] = $warning;
-      }
-    }
     $sanitizedValues[AktivitaSqlSloupce::LOKACE] = $locationIdResult->getSuccess();
+    $stepsResults[] = $locationIdResult;
     unset($locationIdResult);
 
     $storytellersIdsResult = $this->getValidatedStorytellersIds($activityValues, $originalActivity, $parentActivity);
@@ -147,6 +154,7 @@ class ImportValuesSanitizer
       return ImportStepResult::error($storytellersIdsResult->getError());
     }
     $storytellersIds = $storytellersIdsResult->getSuccess();
+    $stepsResults[] = $storytellersIdsResult;
     unset($storytellersIdsResult);
 
     $unisexCapacityResult = $this->getValidatedUnisexCapacity($activityValues, $originalActivity, $parentActivity);
@@ -154,6 +162,7 @@ class ImportValuesSanitizer
       return ImportStepResult::error($unisexCapacityResult->getError());
     }
     $sanitizedValues[AktivitaSqlSloupce::KAPACITA] = $unisexCapacityResult->getSuccess();
+    $stepsResults[] = $unisexCapacityResult;
     unset($unisexCapacityResult);
 
     $menCapacityResult = $this->getValidatedMenCapacity($activityValues, $originalActivity, $parentActivity);
@@ -161,6 +170,7 @@ class ImportValuesSanitizer
       return ImportStepResult::error($menCapacityResult->getError());
     }
     $sanitizedValues[AktivitaSqlSloupce::KAPACITA_M] = $menCapacityResult->getSuccess();
+    $stepsResults[] = $menCapacityResult;
     unset($menCapacityResult);
 
     $womenCapacityResult = $this->getValidatedWomenCapacity($activityValues, $originalActivity, $parentActivity);
@@ -168,6 +178,7 @@ class ImportValuesSanitizer
       return ImportStepResult::error($womenCapacityResult->getError());
     }
     $sanitizedValues[AktivitaSqlSloupce::KAPACITA_F] = $womenCapacityResult->getSuccess();
+    $stepsResults[] = $womenCapacityResult;
     unset($womenCapacityResult);
 
     $forTeamResult = $this->getValidatedForTeam($activityValues, $originalActivity, $parentActivity);
@@ -175,6 +186,7 @@ class ImportValuesSanitizer
       return ImportStepResult::error($forTeamResult->getError());
     }
     $sanitizedValues[AktivitaSqlSloupce::TEAMOVA] = $forTeamResult->getSuccess();
+    $stepsResults[] = $forTeamResult;
     unset($forTeamResult);
 
     $minimalTeamCapacityResult = $this->getValidatedMinimalTeamCapacity($activityValues, $originalActivity, $parentActivity);
@@ -182,6 +194,7 @@ class ImportValuesSanitizer
       return ImportStepResult::error($minimalTeamCapacityResult->getError());
     }
     $sanitizedValues[AktivitaSqlSloupce::TEAM_MIN] = $minimalTeamCapacityResult->getSuccess();
+    $stepsResults[] = $minimalTeamCapacityResult;
     unset($minimalTeamCapacityResult);
 
     $maximalTeamCapacityResult = $this->getValidatedMaximalTeamCapacity($activityValues, $originalActivity, $parentActivity);
@@ -189,6 +202,7 @@ class ImportValuesSanitizer
       return ImportStepResult::error($maximalTeamCapacityResult->getError());
     }
     $sanitizedValues[AktivitaSqlSloupce::TEAM_MAX] = $maximalTeamCapacityResult->getSuccess();
+    $stepsResults[] = $maximalTeamCapacityResult;
     unset($maximalTeamCapacityResult);
 
     $priceResult = $this->getValidatedPrice($activityValues, $originalActivity, $parentActivity);
@@ -196,6 +210,7 @@ class ImportValuesSanitizer
       return ImportStepResult::error($priceResult->getError());
     }
     $sanitizedValues[AktivitaSqlSloupce::CENA] = $priceResult->getSuccess();
+    $stepsResults[] = $priceResult;
     unset($priceResult);
 
     $withoutDiscountResult = $this->getValidatedWithoutDiscount($activityValues, $originalActivity, $parentActivity);
@@ -203,6 +218,7 @@ class ImportValuesSanitizer
       return ImportStepResult::error($withoutDiscountResult->getError());
     }
     $sanitizedValues[AktivitaSqlSloupce::BEZ_SLEVY] = $withoutDiscountResult->getSuccess();
+    $stepsResults[] = $withoutDiscountResult;
     unset($withoutDiscountResult);
 
     $equipmentResult = $this->getValidatedEquipment($activityValues, $originalActivity, $parentActivity);
@@ -210,6 +226,7 @@ class ImportValuesSanitizer
       return ImportStepResult::error($equipmentResult->getError());
     }
     $sanitizedValues[AktivitaSqlSloupce::VYBAVENI] = $equipmentResult->getSuccess();
+    $stepsResults[] = $equipmentResult;
     unset($equipmentResult);
 
     $stateIdResult = $this->getValidatedStateId($activityValues, $originalActivity, $parentActivity);
@@ -217,6 +234,7 @@ class ImportValuesSanitizer
       return ImportStepResult::error($stateIdResult->getError());
     }
     $sanitizedValues[AktivitaSqlSloupce::STAV] = $stateIdResult->getSuccess();
+    $stepsResults[] = $stateIdResult;
     unset($stateIdResult);
 
     $yearResult = $this->getValidatedYear($originalActivity, $parentActivity);
@@ -224,6 +242,7 @@ class ImportValuesSanitizer
       return ImportStepResult::error($yearResult->getError());
     }
     $sanitizedValues[AktivitaSqlSloupce::ROK] = $yearResult->getSuccess();
+    $stepsResults[] = $yearResult;
     unset($yearResult);
 
     $instanceIdResult = $this->getValidatedInstanceId($originalActivity, $parentActivity);
@@ -231,6 +250,7 @@ class ImportValuesSanitizer
       return ImportStepResult::error($instanceIdResult->getError());
     }
     $sanitizedValues[AktivitaSqlSloupce::PATRI_POD] = $instanceIdResult->getSuccess();
+    $stepsResults[] = $instanceIdResult;
     unset($instanceIdResult);
 
     $potentialImageUrlsResult = $this->getPotentialImageUrls($activityValues, $activityUrl);
@@ -238,7 +258,12 @@ class ImportValuesSanitizer
       return ImportStepResult::error($potentialImageUrlsResult->getError());
     }
     $potentialImageUrls = $potentialImageUrlsResult->getSuccess();
+    $stepsResults[] = $potentialImageUrlsResult;
     unset($potentialImageUrlsResult);
+
+    foreach ($stepsResults as $stepsResult) {
+      ['warnings' => $warnings, 'errorLikeWarnings' => $errorLikeWarnings] = $this->collectWarnings($stepsResult, $warnings, $errorLikeWarnings);
+    }
 
     return ImportStepResult::successWithWarnings(
       [
@@ -249,8 +274,16 @@ class ImportValuesSanitizer
         'tagIds' => $tagIds,
         'potentialImageUrls' => $potentialImageUrls,
       ],
-      $warnings
+      $warnings,
+      $errorLikeWarnings
     );
+  }
+
+  private function collectWarnings(ImportStepResult $importStepResult, array $warnings, array $errorLikeWarnings): array {
+    return [
+      'warnings' => array_merge($warnings, $importStepResult->getWarnings()),
+      'errorLikeWarnings' => array_merge($errorLikeWarnings, $importStepResult->getErrorLikeWarnings()),
+    ];
   }
 
   private function getValidatedOriginalActivity(array $activityValues): ImportStepResult {
