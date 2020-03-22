@@ -63,7 +63,7 @@ class ImportValuesDescriber
     if ($nazev) {
       $nazev = (string)$nazev;
     }
-    if ($id && $nazev) {
+    if ($nazev && $id) {
       return sprintf("'%s' (%d)", $this->createLinkToActivity($id, $nazev), $id);
     }
     if (!$url && $originalActivity) {
@@ -79,7 +79,7 @@ class ImportValuesDescriber
       $kratkaAnotace = $originalActivity->kratkyPopis();
     }
     return $kratkaAnotace
-      ? "'$kratkaAnotace'"
+      ? "(bez názvu) '$kratkaAnotace'"
       : '(bez názvu)';
   }
 

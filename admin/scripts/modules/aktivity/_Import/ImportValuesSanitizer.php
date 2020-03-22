@@ -465,7 +465,8 @@ class ImportValuesSanitizer
     $errorLikeWarnings = [];
     if ($invalidStorytellersValues) {
       $errorLikeWarnings[] = sprintf(
-        'Neznámí uživatelé %s.',
+        '%s: Neznámí uživatelé %s. Byli vynecháni.',
+        $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
         implode(',', array_map(static function (string $invalidStorytellerValue) {
           return "'$invalidStorytellerValue'";
         }, $invalidStorytellersValues))
@@ -477,8 +478,9 @@ class ImportValuesSanitizer
       }, $notStorytellers));
       $notStorytellersHtml = htmlentities($notStorytellersString);
       $errorLikeWarnings[] = sprintf(<<<HTML
-        'Uživatelé nejsou <a href="{$this->storytellersPermissionsUrl}" target="_blank">vypravěči</a>: {$notStorytellersHtml}.
+        '%s: Uživatelé nejsou <a href="{$this->storytellersPermissionsUrl}" target="_blank">vypravěči</a>: {$notStorytellersHtml}. Byli vynecháni.
 HTML
+        , $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity)
       );
     }
     return ImportStepResult::successWithErrorLikeWarnings($storytellersIds, $errorLikeWarnings);
