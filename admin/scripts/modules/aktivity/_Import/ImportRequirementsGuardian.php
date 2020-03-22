@@ -4,7 +4,7 @@ namespace Gamecon\Admin\Modules\Aktivity\Import;
 
 use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
 
-class ImportRequirementsQuardian
+class ImportRequirementsGuardian
 {
 
   /**
