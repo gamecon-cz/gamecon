@@ -9,7 +9,7 @@ use Gamecon\Admin\Modules\Aktivity\Import\Exceptions\ImportAktivitException;
 use Gamecon\Mutex\Mutex;
 use Gamecon\Vyjimkovac\Logovac;
 
-class ImporterAktivit
+class ActivitiesImporter
 {
 
   /**
@@ -95,7 +95,7 @@ class ImporterAktivit
     $this->errorsListUrl = $errorsListUrl;
   }
 
-  public function importujAktivity(string $spreadsheetId): ActivitiesImportResult {
+  public function importActivities(string $spreadsheetId): ActivitiesImportResult {
     $result = new ActivitiesImportResult();
     try {
       $processedFileNameResult = $this->getProcessedFileName($spreadsheetId);

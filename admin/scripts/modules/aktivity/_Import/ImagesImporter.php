@@ -23,7 +23,7 @@ class ImagesImporter
     if (count($potentialImageUrlsPerActivity) === 0) {
       return ImportStepResult::success(null);
     }
-    $warnings = [];
+    $errorLikeWarnings = [];
     $imageUrls = [];
     /** @var \Aktivita[] $imageUrlsToActivity */
     $imageUrlsToActivity = [];
@@ -55,7 +55,7 @@ class ImagesImporter
         $obrazek = \Obrazek::zSouboru($downloadedImage);
         $activity->obrazek($obrazek);
       } catch (\ObrazekException $obrazekException) {
-        $warnings[] = sprintf(
+        $errorLikeWarnings[] = sprintf(
           'Nepodařilo se uložit obrázek %s k aktivitě %s z důvodu: %s',
           $imageUrl,
           $this->importValuesDescriber->describeActivity($activity), $obrazekException->getMessage()
@@ -71,7 +71,7 @@ class ImagesImporter
       }
     }
     if (count($downloadingImagesErrors) > 0) {
-      $warnings[] = sprintf(
+      $errorLikeWarnings[] = sprintf(
         'Některé obrázky se nepodařilo stáhnout: <ol>%s</ol>',
         implode(
           "\n",
@@ -81,6 +81,6 @@ class ImagesImporter
         )
       );
     }
-    return ImportStepResult::successWithErrorLikeWarnings(true, $warnings);
+    return ImportStepResult::successWithErrorLikeWarnings(true, $errorLikeWarnings);
   }
 }

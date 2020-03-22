@@ -101,10 +101,10 @@ SQL
     if (!$conflictingStorytellers) {
       return ImportStepResult::success($storytellersIds);
     }
-    $warnings = [];
+    $errorLikeWarnings = [];
     foreach ($conflictingStorytellers as $conflictingStorytellerId => $implodedActivityIds) {
       $activityIds = explode(',', $implodedActivityIds);
-      $warnings[] = sprintf(
+      $errorLikeWarnings[] = sprintf(
         'Vypravěč %s je v čase od %s do %s na %s %s. K aktivitě %s nebyl přiřazen.',
         $this->importValuesDescriber->describeUserById((int)$conflictingStorytellerId),
         $zacatek->formatCasStandard(),
@@ -120,7 +120,7 @@ SQL
     }
     return ImportStepResult::successWithErrorLikeWarnings(
       array_diff($storytellersIds, array_keys($occupiedStorytellers)),
-      $warnings
+      $errorLikeWarnings
     );
   }
 
