@@ -45,10 +45,6 @@ class ActivitiesImporter
    */
   private $imagesImporter;
   /**
-   * @var ImportValuesDescriber
-   */
-  private $importValuesDescriber;
-  /**
    * @var ImportValuesSanitizer
    */
   private $importValuesSanitizer;
@@ -91,7 +87,7 @@ class ActivitiesImporter
     $this->imagesImporter = new ImagesImporter($baseUrl, $importValuesDescriber);
     $this->importValuesSanitizer = new ImportValuesSanitizer($importValuesDescriber, $importObjectsContainer, $currentYear, $storytellersPermissionsUrl);
     $this->importRequirementsGuardian = new ImportRequirementsGuardian($importObjectsContainer);
-    $this->activityImporter = new ActivityImporter($this->importValuesDescriber, $importAccessibilityChecker, $now, $currentYear, $logovac);
+    $this->activityImporter = new ActivityImporter($importValuesDescriber, $importAccessibilityChecker, $now, $currentYear, $logovac);
     $this->errorsListUrl = $errorsListUrl;
   }
 
