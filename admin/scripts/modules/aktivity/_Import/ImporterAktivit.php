@@ -53,10 +53,6 @@ class ImporterAktivit
    */
   private $importValuesSanitizer;
   /**
-   * @var string
-   */
-  private $baseUrl;
-  /**
    * @var ImportRequirementsGuardian
    */
   private $importRequirementsGuardian;
@@ -64,19 +60,23 @@ class ImporterAktivit
    * @var ActivityImporter
    */
   private $activityImporter;
+  /**
+   * @var string
+   */
+  private $errorsListUrl;
 
   public function __construct(
     int $userId,
     GoogleDriveService $googleDriveService,
     GoogleSheetsService $googleSheetsService,
     int $currentYear,
-    \DateTimeInterface $now,
     string $editActivityUrlSkeleton,
-    ImportAccessibilityChecker $importAccessibilityChecker,
+    \DateTimeInterface $now,
     string $storytellersPermissionsUrl,
     Logovac $logovac,
+    string $baseUrl,
     Mutex $mutexPattern,
-    string $baseUrl
+    string $errorsListUrl
   ) {
     $this->userId = $userId;
     $this->googleDriveService = $googleDriveService;
@@ -85,13 +85,14 @@ class ImporterAktivit
 
     $importValuesDescriber = new ImportValuesDescriber($editActivityUrlSkeleton);
     $importObjectsContainer = new ImportObjectsContainer(new ImportUsersCache());
+    $importAccessibilityChecker = new ImportAccessibilityChecker($importValuesDescriber);
 
     $this->importValuesReader = new ImportValuesReader($googleSheetsService, $logovac);
     $this->imagesImporter = new ImagesImporter($baseUrl, $importValuesDescriber);
     $this->importValuesSanitizer = new ImportValuesSanitizer($importValuesDescriber, $importObjectsContainer, $currentYear, $storytellersPermissionsUrl);
     $this->importRequirementsGuardian = new ImportRequirementsGuardian($importObjectsContainer);
     $this->activityImporter = new ActivityImporter($this->importValuesDescriber, $importAccessibilityChecker, $now, $currentYear, $logovac);
-    $this->baseUrl = $baseUrl;
+    $this->errorsListUrl = $errorsListUrl;
   }
 
   public function importujAktivity(string $spreadsheetId): ActivitiesImportResult {
@@ -186,7 +187,7 @@ class ImporterAktivit
       }
     } catch (\Exception $exception) {
       $result->addErrorMessage(<<<HTML
-Něco se <a href="{$this->baseUrl}/admin/web/chyby" target="_blank">nepovedlo</a>. Import byl <strong>přerušen</strong>. Zkus to za chvíli znovu.
+Něco se <a href="{$this->errorsListUrl}" target="_blank">nepovedlo</a>. Import byl <strong>přerušen</strong>. Zkus to za chvíli znovu.
 HTML
       );
       $this->logovac->zaloguj($exception);
