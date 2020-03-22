@@ -23,6 +23,10 @@ class ImportValuesValidator
    * @var string
    */
   private $storytellersPermissionsUrl;
+  /**
+   * @var array|\Aktivita[]|null[]
+   */
+  private $originalActivities = [];
 
   public function __construct(
     ImportValuesDescriber $importValuesDescriber,
@@ -36,9 +40,17 @@ class ImportValuesValidator
     $this->storytellersPermissionsUrl = $storytellersPermissionsUrl;
   }
 
-  public function validateValues(\Typ $singleProgramLine, array $activityValues, ?\Aktivita $originalActivity): ImportStepResult {
+  public function validateValues(\Typ $singleProgramLine, array $activityValues): ImportStepResult {
     $sanitizedValues = [];
     $warnings = [];
+
+    $originalActivity = null;
+    $originalActivityResult = $this->getValidatedOriginalActivity($activityValues);
+    if ($originalActivityResult->isError()) {
+      return ImportStepResult::error($originalActivityResult->getError());
+    }
+    $originalActivity = $originalActivityResult->getSuccess();
+
     if ($originalActivity) {
       $sanitizedValues = $originalActivity->rawDb();
       // remove values originating in another tables
@@ -231,6 +243,7 @@ class ImportValuesValidator
     return ImportStepResult::successWithWarnings(
       [
         'values' => $sanitizedValues,
+        'originalActivity' => $originalActivity,
         'longAnnotation' => $longAnnotation,
         'storytellersIds' => $storytellersIds,
         'tagIds' => $tagIds,
@@ -238,6 +251,40 @@ class ImportValuesValidator
       ],
       $warnings
     );
+  }
+
+  private function getValidatedOriginalActivity(array $activityValues): ImportStepResult {
+    $originalActivityIdResult = $this->getActivityId($activityValues);
+    if ($originalActivityIdResult->isError()) {
+      return ImportStepResult::error($originalActivityIdResult->getError());
+    }
+    $originalActivityId = $originalActivityIdResult->getSuccess();
+    if (!$originalActivityId) {
+      return ImportStepResult::success(null);
+    }
+    $originalActivity = $this->findOriginalActivity($originalActivityId);
+    if ($originalActivity) {
+      return ImportStepResult::success($originalActivity);
+    }
+    return ImportStepResult::error(sprintf('Aktivita s ID %d neexistuje. Nelze ji proto importem upravit.', $originalActivityId));
+  }
+
+  private function findOriginalActivity(int $id): ?\Aktivita {
+    if (!array_key_exists($id, $this->originalActivities)) {
+      $activity = \Aktivita::zId($id);
+      if (!$activity) {
+        return null;
+      }
+      $this->originalActivities[$id] = $activity;
+    }
+    return $this->originalActivities[$id];
+  }
+
+  private function getActivityId(array $activityValues): ImportStepResult {
+    if ($activityValues[ExportAktivitSloupce::ID_AKTIVITY]) {
+      return ImportStepResult::success((int)$activityValues[ExportAktivitSloupce::ID_AKTIVITY]);
+    }
+    return ImportStepResult::success(null);
   }
 
   private function getPotentialImageUrls(array $activityValues, string $activityUrl): ImportStepResult {
