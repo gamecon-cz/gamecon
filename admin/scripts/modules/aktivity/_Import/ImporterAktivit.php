@@ -7,7 +7,6 @@ use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleConnectionExcep
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
 use Gamecon\Admin\Modules\Aktivity\Import\Exceptions\ImportAktivitException;
-use Gamecon\Cas\DateTimeCz;
 use Gamecon\Mutex\Mutex;
 use Gamecon\Vyjimkovac\Logovac;
 
@@ -34,10 +33,6 @@ class ImporterAktivit
    * @var Logovac
    */
   private $logovac;
-  /**
-   * @var array|\Aktivita[]|null[]
-   */
-  private $originalActivities = [];
   /**
    * @var string
    */
@@ -74,6 +69,10 @@ class ImporterAktivit
    * @var string
    */
   private $baseUrl;
+  /**
+   * @var ImportAccessibilityChecker
+   */
+  private $importAccessibilityChecker;
 
   public function __construct(
     int $userId,
@@ -82,6 +81,7 @@ class ImporterAktivit
     int $currentYear,
     \DateTimeInterface $now,
     string $editActivityUrlSkeleton,
+    ImportAccessibilityChecker $importAccessibilityChecker,
     string $storytellersPermissionsUrl,
     Logovac $logovac,
     Mutex $mutexPattern,
@@ -103,6 +103,7 @@ class ImporterAktivit
     $this->importValuesDescriber = $importValuesDescriber;
     $this->importObjectsContainer = $importObjectsContainer;
     $this->baseUrl = $baseUrl;
+    $this->importAccessibilityChecker = $importAccessibilityChecker;
   }
 
   public function importujAktivity(string $spreadsheetId): ActivitiesImportResult {
@@ -144,16 +145,7 @@ class ImporterAktivit
 
       $potentialImageUrlsPerActivity = [];
       foreach ($activitiesValues as $activityValues) {
-        $originalActivity = null;
-        $originalActivityResult = $this->getValidatedOriginalActivity($activityValues);
-        if ($originalActivityResult->isError()) {
-          $errorMessage = $this->getErrorMessageWithSkippedActivityNote($originalActivityResult);
-          $result->addErrorMessage($errorMessage);
-          continue;
-        }
-        $originalActivity = $originalActivityResult->getSuccess();
-
-        $validatedValuesResult = $this->importValuesValidator->validateValues($singleProgramLine, $activityValues, $originalActivity);
+        $validatedValuesResult = $this->importValuesValidator->validateValues($singleProgramLine, $activityValues);
         if ($validatedValuesResult->isError()) {
           $errorMessage = $this->getErrorMessageWithSkippedActivityNote($validatedValuesResult);
           $result->addErrorMessage($errorMessage);
@@ -169,6 +161,7 @@ class ImporterAktivit
         unset($validatedValuesResult);
         [
           'values' => $values,
+          'originalActivity' => $originalActivity,
           'longAnnotation' => $longAnnotation,
           'storytellersIds' => $storytellersIds,
           'tagIds' => $tagIds,
@@ -204,10 +197,10 @@ class ImporterAktivit
         $result->incrementImportedCount();
       }
     } catch (\Exception $exception) {
-      $result->addErrorMessage(sprintf(
-        'Něco se <a href="%s/admin/web/chyby" target="_blank">nepovedlo</a>. Import byl <strong>přerušen</strong>. Zkus to za chvíli znovu.',
-        $this->baseUrl
-      ));
+      $result->addErrorMessage(<<<HTML
+Něco se <a href="{$this->baseUrl}/admin/web/chyby" target="_blank">nepovedlo</a>. Import byl <strong>přerušen</strong>. Zkus to za chvíli znovu.
+HTML
+      );
       $this->logovac->zaloguj($exception);
       $this->releaseExclusiveLock();
       return $result;
@@ -278,40 +271,6 @@ class ImporterAktivit
     return \Aktivita::idMozneHlavniAktivityPodleUrl($url, $this->currentYear, $singleProgramLine->id());
   }
 
-  private function getValidatedOriginalActivity(array $activityValues): ImportStepResult {
-    $originalActivityIdResult = $this->getActivityId($activityValues);
-    if ($originalActivityIdResult->isError()) {
-      return ImportStepResult::error($originalActivityIdResult->getError());
-    }
-    $originalActivityId = $originalActivityIdResult->getSuccess();
-    if (!$originalActivityId) {
-      return ImportStepResult::success(null);
-    }
-    $originalActivity = $this->findOriginalActivity($originalActivityId);
-    if ($originalActivity) {
-      return ImportStepResult::success($originalActivity);
-    }
-    return ImportStepResult::error(sprintf('Aktivita s ID %d neexistuje. Nelze ji proto importem upravit.', $originalActivityId));
-  }
-
-  private function findOriginalActivity(int $id): ?\Aktivita {
-    if (!array_key_exists($id, $this->originalActivities)) {
-      $activity = \Aktivita::zId($id);
-      if (!$activity) {
-        return null;
-      }
-      $this->originalActivities[$id] = $activity;
-    }
-    return $this->originalActivities[$id];
-  }
-
-  private function getActivityId(array $activityValues): ImportStepResult {
-    if ($activityValues[ExportAktivitSloupce::ID_AKTIVITY]) {
-      return ImportStepResult::success((int)$activityValues[ExportAktivitSloupce::ID_AKTIVITY]);
-    }
-    return ImportStepResult::success(null);
-  }
-
   private static function wrapByQuotes(array $values): array {
     return array_map(static function ($value) {
       return "'$value'";
@@ -348,7 +307,7 @@ class ImporterAktivit
       }
     }
 
-    $storytellersAccessibilityResult = $this->checkStorytellersAccessibility(
+    $storytellersAccessibilityResult = $this->importAccessibilityChecker->checkStorytellersAccessibility(
       $storytellersIds,
       $values[AktivitaSqlSloupce::ZACATEK],
       $values[AktivitaSqlSloupce::KONEC],
@@ -362,7 +321,7 @@ class ImporterAktivit
     $errorLikeWarnings = $storytellersAccessibilityResult->getErrorLikeWarnings();
     $availableStorytellerIds = $storytellersAccessibilityResult->getSuccess();
 
-    $locationAccessibilityResult = $this->checkLocationByAccessibility(
+    $locationAccessibilityResult = $this->importAccessibilityChecker->checkLocationByAccessibility(
       $values[AktivitaSqlSloupce::LOKACE],
       $values[AktivitaSqlSloupce::ZACATEK],
       $values[AktivitaSqlSloupce::KONEC],
@@ -461,135 +420,6 @@ class ImporterAktivit
       return ImportStepResult::error('V importovaném souboru chybí programová linie, nebo alespoň existující aktivita s nastavenou programovou linií.');
     }
     return ImportStepResult::success(reset($programLines));
-  }
-
-  private function checkStorytellersAccessibility(array $storytellersIds, ?string $zacatekString, ?string $konecString, ?\Aktivita $originalActivity, array $values): ImportStepResult {
-    $rangeDates = $this->createRangeDates($zacatekString, $konecString);
-    if (!$rangeDates) {
-      return ImportStepResult::success($storytellersIds);
-    }
-    /** @var DateTimeCz $zacatek */
-    /** @var DateTimeCz $konec */
-    ['start' => $zacatek, 'end' => $konec] = $rangeDates;
-    $occupiedStorytellers = dbArrayCol(<<<SQL
-SELECT akce_organizatori.id_uzivatele, GROUP_CONCAT(akce_organizatori.id_akce SEPARATOR ',') AS activity_ids
-FROM akce_organizatori
-JOIN akce_seznam ON akce_organizatori.id_akce = akce_seznam.id_akce
-WHERE akce_seznam.zacatek >= $1
-AND akce_seznam.konec <= $2
-AND CASE
-    WHEN $3 IS NULL THEN TRUE
-    ELSE akce_seznam.id_akce != $3
-    END
-GROUP BY akce_organizatori.id_uzivatele
-SQL
-      , [$zacatek->format(DateTimeCz::FORMAT_DB), $konec->format(DateTimeCz::FORMAT_DB), $originalActivity ? $originalActivity->id() : null]
-    );
-    $conflictingStorytellers = array_intersect_key($occupiedStorytellers, array_fill_keys($storytellersIds, true));
-    if (!$conflictingStorytellers) {
-      return ImportStepResult::success($storytellersIds);
-    }
-    $warnings = [];
-    foreach ($conflictingStorytellers as $conflictingStorytellerId => $implodedActivityIds) {
-      $activityIds = explode(',', $implodedActivityIds);
-      $warnings[] = sprintf(
-        'Vypravěč %s je v čase od %s do %s na %s %s. K aktivitě %s nebyl přiřazen.',
-        $this->importValuesDescriber->describeUserById((int)$conflictingStorytellerId),
-        $zacatek->formatCasStandard(),
-        $konec->formatCasStandard(),
-        count($activityIds) === 1
-          ? 'aktivitě'
-          : 'aktivitách',
-        implode(' a ', array_map(function ($activityId) {
-          return $this->importValuesDescriber->describeActivityById((int)$activityId);
-        }, $activityIds)),
-        $this->importValuesDescriber->describeActivityBySqlMappedValues($values, $originalActivity)
-      );
-    }
-    return ImportStepResult::successWithErrorLikeWarnings(
-      array_diff($storytellersIds, array_keys($occupiedStorytellers)),
-      $warnings
-    );
-  }
-
-  private function createRangeDates(?string $zacatekString, ?string $konecString): ?array {
-    if ($zacatekString === null && $konecString === null) {
-      // nothing to check, we do not know the activity time
-      return null;
-    }
-    $zacatek = $zacatekString
-      ? DateTimeCz::createFromFormat(DateTimeCz::FORMAT_DB, $zacatekString)
-      : null;
-    $konec = $konecString
-      ? DateTimeCz::createFromFormat(DateTimeCz::FORMAT_DB, $konecString)
-      : null;
-    if (!$zacatek) {
-      $zacatek = (clone $konec)->modify('-1 hour');
-    }
-    if (!$konec) {
-      $konec = (clone $zacatek)->modify('+1 hour');
-    }
-    return ['start' => $zacatek, 'end' => $konec];
-  }
-
-  private function checkLocationByAccessibility(
-    ?int $locationId,
-    ?string $zacatekString,
-    ?string $konecString,
-    ?int $currentActivityId,
-    array $values
-  ): ImportStepResult {
-    if ($locationId === null) {
-      return ImportStepResult::success(null);
-    }
-    $rangeDates = $this->createRangeDates($zacatekString, $konecString);
-    if (!$rangeDates) {
-      return ImportStepResult::success(true);
-    }
-    /** @var DateTimeCz $zacatek */
-    /** @var DateTimeCz $konec */
-    ['start' => $zacatek, 'end' => $konec] = $rangeDates;
-    $locationOccupyingActivityIds = dbOneArray(<<<SQL
-SELECT id_akce
-FROM akce_seznam
-WHERE akce_seznam.lokace = $1
-AND akce_seznam.zacatek >= $2
-AND akce_seznam.konec <= $3
-AND CASE
-    WHEN $4 IS NULL THEN TRUE
-    ELSE akce_seznam.id_akce != $4
-    END
-SQL
-      , [$locationId, $zacatek->format(DateTimeCz::FORMAT_DB), $konec->format(DateTimeCz::FORMAT_DB), $currentActivityId]
-    );
-    if (count($locationOccupyingActivityIds) === 0) {
-      return ImportStepResult::success($locationId);
-    }
-    $currentActivity = $currentActivityId
-      ? ImportModelsFetcher::fetchActivity($currentActivityId)
-      : null;
-    return ImportStepResult::successWithErrorLikeWarnings(
-      $locationId,
-      [
-        sprintf(
-          '%s: Místnost %s je někdy mezi %s a %s již zabraná jinou aktivitou %s. Nahrávaná aktivita je tak už %d. aktivitou v této místnosti.',
-          $this->importValuesDescriber->describeActivityBySqlMappedValues($values, $currentActivity),
-          $this->importValuesDescriber->describeLocationById($locationId),
-          $zacatek->formatCasNaMinutyStandard(),
-          $konec->formatCasNaMinutyStandard(),
-          implode(
-            ' a ',
-            array_map(
-              function ($locationOccupyingActivityIds) {
-                return $this->importValuesDescriber->describeActivityById((int)$locationOccupyingActivityIds);
-              },
-              $locationOccupyingActivityIds
-            )
-          ),
-          count($locationOccupyingActivityIds) + 1
-        ),
-      ]
-    );
   }
 
   private function saveActivity(
