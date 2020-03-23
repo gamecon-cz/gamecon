@@ -23,10 +23,6 @@ class ImportValuesSanitizer
    * @var string
    */
   private $storytellersPermissionsUrl;
-  /**
-   * @var array|\Aktivita[]|null[]
-   */
-  private $originalActivities = [];
 
   public function __construct(
     ImportValuesDescriber $importValuesDescriber,
@@ -41,29 +37,21 @@ class ImportValuesSanitizer
   }
 
   public function sanitizeValues(\Typ $singleProgramLine, array $activityValues): ImportStepResult {
-    $sanitizedValues = [];
     $stepsResults = [];
 
     $tagIds = null;
     $storytellersIds = null;
 
-    /** @var \Aktivita | null $originalActivity */
-    $originalActivity = null;
     $originalActivityResult = $this->getValidatedOriginalActivity($activityValues);
     if ($originalActivityResult->isError()) {
       return ImportStepResult::error($originalActivityResult->getError());
     }
+    /** @var \Aktivita | null $originalActivity */
     $originalActivity = $originalActivityResult->getSuccess();
+    $stepsResults[] = $originalActivityResult;
+    unset($originalActivityResult);
 
-    if ($originalActivity) {
-      // few values remains intact
-      $sanitizedValues = $originalActivity->rawDb();
-      // remove values originating in another tables
-      $sanitizedValues = array_intersect_key(
-        $sanitizedValues,
-        array_fill_keys(AktivitaSqlSloupce::vsechnySloupce(), true)
-      );
-    }
+    $sanitizedValues = $this->getInitialSanitizedValues($originalActivity);
 
     $programLineIdResult = $this->getValidatedProgramLineId($activityValues, $singleProgramLine);
     if ($programLineIdResult->isError()) {
@@ -274,6 +262,19 @@ class ImportValuesSanitizer
     );
   }
 
+  private function getInitialSanitizedValues(?\Aktivita $originalActivity): array {
+    if (!$originalActivity) {
+      return [];
+    }
+    $sanitizedValues = $originalActivity->rawDb();
+    // remove values originating in another tables
+    $sanitizedValues = array_intersect_key(
+      $sanitizedValues,
+      array_fill_keys(AktivitaSqlSloupce::vsechnySloupce(), true)
+    );
+    return $sanitizedValues;
+  }
+
   private function getValidatedOriginalActivity(array $activityValues): ImportStepResult {
     $originalActivityIdResult = $this->getActivityId($activityValues);
     if ($originalActivityIdResult->isError()) {
@@ -283,22 +284,11 @@ class ImportValuesSanitizer
     if (!$originalActivityId) {
       return ImportStepResult::success(null);
     }
-    $originalActivity = $this->findOriginalActivity($originalActivityId);
+    $originalActivity = \Aktivita::zId($originalActivityId);
     if ($originalActivity) {
       return ImportStepResult::success($originalActivity);
     }
     return ImportStepResult::error(sprintf('Aktivita s ID %d neexistuje. Nelze ji proto importem upravit.', $originalActivityId));
-  }
-
-  private function findOriginalActivity(int $id): ?\Aktivita {
-    if (!array_key_exists($id, $this->originalActivities)) {
-      $activity = \Aktivita::zId($id);
-      if (!$activity) {
-        return null;
-      }
-      $this->originalActivities[$id] = $activity;
-    }
-    return $this->originalActivities[$id];
   }
 
   private function getActivityId(array $activityValues): ImportStepResult {
@@ -326,8 +316,8 @@ class ImportValuesSanitizer
 
   private function getValidatedStateId(array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
     $stateValue = $activityValues[ExportAktivitSloupce::STAV] ?? null;
+    $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
     if ((string)$stateValue === '') {
-      $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
       return ImportStepResult::success($sourceActivity && $sourceActivity->idStavu() !== null
         ? $sourceActivity->idStavu()
         : \Stav::NOVA
@@ -335,21 +325,21 @@ class ImportValuesSanitizer
     }
     $state = $this->importObjectsContainer->getStateFromValue((string)$stateValue);
     if ($state) {
-      if ($state->jeNanejvysPripravenaKAktivaci()) {
-        return ImportStepResult::success($state->id());
-      }
+      return ImportStepResult::success($state->id());
+    }
+    if ($sourceActivity && $sourceActivity->idStavu()) {
       return ImportStepResult::successWithErrorLikeWarnings(
-        \Stav::PRIPRAVENA,
+        $sourceActivity->idStavu(),
         [sprintf(
-          "%s: Aktivovat musíš aktivity ručně. Požadovaný stav '%s' byl nahrán jako '%s'.",
+          "%s: Neznámý stav '%s'. Bude použit původní '%s'.",
           $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
-          $state->nazev(),
-          \Stav::zId(\Stav::PRIPRAVENA)->nazev()
+          $stateValue,
+          $sourceActivity->stav()->nazev()
         )]
       );
     }
     return ImportStepResult::error(sprintf(
-      "%s: neznámý stav '%s'",
+      "%s: Neznámý stav '%s'.",
       $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
       $stateValue
     ));
