@@ -11,7 +11,7 @@ class ActivityImporter
    */
   private $importValuesDescriber;
   /**
-   * @var ImportAccessibilityChecker
+   * @var ImportValuesChecker
    */
   private $importAccessibilityChecker;
   /**
@@ -29,7 +29,7 @@ class ActivityImporter
 
   public function __construct(
     ImportValuesDescriber $importValuesDescriber,
-    ImportAccessibilityChecker $importAccessibilityChecker,
+    ImportValuesChecker $importAccessibilityChecker,
     \DateTimeInterface $now,
     int $currentYear,
     Logovac $logovac
@@ -71,6 +71,16 @@ class ActivityImporter
       }
     }
 
+    $checkResults = [];
+
+    $stateUsabilityResult = $this->importAccessibilityChecker->checkStateUsability($values, $originalActivity);
+    if ($stateUsabilityResult->isError()) {
+      return ImportStepResult::error($stateUsabilityResult->getError());
+    }
+    $values[AktivitaSqlSloupce::STAV] = $stateUsabilityResult->getSuccess();
+    $checkResults[] = $stateUsabilityResult;
+    unset($stateUsabilityResult);
+
     $storytellersAccessibilityResult = $this->importAccessibilityChecker->checkStorytellersAccessibility(
       $storytellersIds,
       $values[AktivitaSqlSloupce::ZACATEK],
@@ -81,24 +91,22 @@ class ActivityImporter
     if ($storytellersAccessibilityResult->isError()) {
       return ImportStepResult::error($storytellersAccessibilityResult->getError());
     }
-    $warnings = $storytellersAccessibilityResult->getWarnings();
-    $errorLikeWarnings = $storytellersAccessibilityResult->getErrorLikeWarnings();
     $availableStorytellerIds = $storytellersAccessibilityResult->getSuccess();
+    $checkResults[] = $storytellersAccessibilityResult;
+    unset($storytellersAccessibilityResult);
 
     $locationAccessibilityResult = $this->importAccessibilityChecker->checkLocationByAccessibility(
       $values[AktivitaSqlSloupce::LOKACE],
       $values[AktivitaSqlSloupce::ZACATEK],
       $values[AktivitaSqlSloupce::KONEC],
-      $originalActivity
-        ? $originalActivity->id()
-        : null,
+      $originalActivity,
       $values
     );
     if ($locationAccessibilityResult->isError()) {
       return ImportStepResult::error($locationAccessibilityResult->getError());
     }
-    $warnings = array_merge($warnings, $locationAccessibilityResult->getWarnings());
-    $errorLikeWarnings = array_merge($errorLikeWarnings, $locationAccessibilityResult->getErrorLikeWarnings());
+    $checkResults[] = $locationAccessibilityResult;
+    unset($locationAccessibilityResult);
 
     /** @var  \Aktivita $importedActivity */
     $savedActivityResult = $this->saveActivity(
@@ -114,6 +122,11 @@ class ActivityImporter
     if ($savedActivityResult->isError()) {
       return ImportStepResult::error($savedActivityResult->getError());
     }
+    $checkResults[] = $savedActivityResult;
+    unset($savedActivityResult);
+
+    ['warnings' => $warnings, 'errorLikeWarnings' => $errorLikeWarnings] = ImportStepResult::collectWarningsFromSteps($checkResults);
+
     if ($originalActivity) {
       return ImportStepResult::successWithWarnings(
         [

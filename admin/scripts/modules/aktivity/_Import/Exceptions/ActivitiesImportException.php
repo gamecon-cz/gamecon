@@ -2,7 +2,7 @@
 
 namespace Gamecon\Admin\Modules\Aktivity\Import\Exceptions;
 
-class ImportAktivitException extends \Exception
+class ActivitiesImportException extends \Exception
 {
 
 }

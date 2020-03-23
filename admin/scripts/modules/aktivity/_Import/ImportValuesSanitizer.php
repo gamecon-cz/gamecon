@@ -43,9 +43,11 @@ class ImportValuesSanitizer
   public function sanitizeValues(\Typ $singleProgramLine, array $activityValues): ImportStepResult {
     $sanitizedValues = [];
     $stepsResults = [];
-    $warnings = [];
-    $errorLikeWarnings = [];
 
+    $tagIds = null;
+    $storytellersIds = null;
+
+    /** @var \Aktivita | null $originalActivity */
     $originalActivity = null;
     $originalActivityResult = $this->getValidatedOriginalActivity($activityValues);
     if ($originalActivityResult->isError()) {
@@ -54,6 +56,7 @@ class ImportValuesSanitizer
     $originalActivity = $originalActivityResult->getSuccess();
 
     if ($originalActivity) {
+      // few values remains intact
       $sanitizedValues = $originalActivity->rawDb();
       // remove values originating in another tables
       $sanitizedValues = array_intersect_key(
@@ -61,12 +64,6 @@ class ImportValuesSanitizer
         array_fill_keys(AktivitaSqlSloupce::vsechnySloupce(), true)
       );
     }
-    $tagIds = null;
-    $storytellersIds = null;
-
-    $sanitizedValues[AktivitaSqlSloupce::ID_AKCE] = $originalActivity
-      ? $originalActivity->id()
-      : null;
 
     $programLineIdResult = $this->getValidatedProgramLineId($activityValues, $singleProgramLine);
     if ($programLineIdResult->isError()) {
@@ -261,9 +258,7 @@ class ImportValuesSanitizer
     $stepsResults[] = $potentialImageUrlsResult;
     unset($potentialImageUrlsResult);
 
-    foreach ($stepsResults as $stepsResult) {
-      ['warnings' => $warnings, 'errorLikeWarnings' => $errorLikeWarnings] = $this->collectWarnings($stepsResult, $warnings, $errorLikeWarnings);
-    }
+    ['warnings' => $warnings, 'errorLikeWarnings' => $errorLikeWarnings] = ImportStepResult::collectWarningsFromSteps($stepsResults);
 
     return ImportStepResult::successWithWarnings(
       [
@@ -277,13 +272,6 @@ class ImportValuesSanitizer
       $warnings,
       $errorLikeWarnings
     );
-  }
-
-  private function collectWarnings(ImportStepResult $importStepResult, array $warnings, array $errorLikeWarnings): array {
-    return [
-      'warnings' => array_merge($warnings, $importStepResult->getWarnings()),
-      'errorLikeWarnings' => array_merge($errorLikeWarnings, $importStepResult->getErrorLikeWarnings()),
-    ];
   }
 
   private function getValidatedOriginalActivity(array $activityValues): ImportStepResult {
@@ -476,7 +464,7 @@ class ImportValuesSanitizer
     $errorLikeWarnings = [];
     if ($invalidStorytellersValues) {
       $errorLikeWarnings[] = sprintf(
-        '%s: Neznámí uživatelé %s. Byli vynecháni.',
+        '%s: Neznámí uživatelé %s. Jsou vynecháni.',
         $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
         implode(',', array_map(static function (string $invalidStorytellerValue) {
           return "'$invalidStorytellerValue'";
@@ -489,7 +477,7 @@ class ImportValuesSanitizer
       }, $notStorytellers));
       $notStorytellersHtml = htmlentities($notStorytellersString);
       $errorLikeWarnings[] = sprintf(<<<HTML
-        '%s: Uživatelé nejsou <a href="{$this->storytellersPermissionsUrl}" target="_blank">vypravěči</a>: {$notStorytellersHtml}. Byli vynecháni.
+        '%s: Uživatelé nejsou <a href="{$this->storytellersPermissionsUrl}" target="_blank">vypravěči</a>: {$notStorytellersHtml}. Jsou vynecháni.
 HTML
         , $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity)
       );

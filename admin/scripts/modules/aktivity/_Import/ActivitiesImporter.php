@@ -5,7 +5,7 @@ namespace Gamecon\Admin\Modules\Aktivity\Import;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleConnectionException;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
-use Gamecon\Admin\Modules\Aktivity\Import\Exceptions\ImportAktivitException;
+use Gamecon\Admin\Modules\Aktivity\Import\Exceptions\ActivitiesImportException;
 use Gamecon\Mutex\Mutex;
 use Gamecon\Vyjimkovac\Logovac;
 
@@ -81,7 +81,7 @@ class ActivitiesImporter
 
     $importValuesDescriber = new ImportValuesDescriber($editActivityUrlSkeleton);
     $importObjectsContainer = new ImportObjectsContainer(new ImportUsersCache());
-    $importAccessibilityChecker = new ImportAccessibilityChecker($importValuesDescriber);
+    $importAccessibilityChecker = new ImportValuesChecker($importValuesDescriber);
 
     $this->importValuesReader = new ImportValuesReader($googleSheetsService, $logovac);
     $this->imagesImporter = new ImagesImporter($baseUrl, $importValuesDescriber);
@@ -233,7 +233,7 @@ HTML
 
   private function getMutexForProgramLine(): Mutex {
     if (!$this->mutexForProgramLine) {
-      throw new ImportAktivitException('Mutex for imported program line does not exists yet');
+      throw new ActivitiesImportException('Mutex for imported program line does not exists yet');
     }
     return $this->mutexForProgramLine;
   }
@@ -247,7 +247,7 @@ HTML
 
   private function getMutexKey(): string {
     if (!$this->mutexKey) {
-      throw new ImportAktivitException('Mutex key is empty');
+      throw new ActivitiesImportException('Mutex key is empty');
     }
     return $this->mutexKey;
   }

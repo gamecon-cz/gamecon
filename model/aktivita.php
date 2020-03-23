@@ -140,11 +140,11 @@ class Aktivita
   }
 
   /** Vrátí potomky této aktivity (=navázané aktivity, další kola, ...) */
-  function deti() {
-    if ($this->a['dite'])
+  function deti(): array {
+    if ($this->a['dite']) {
       return self::zIds($this->a['dite']);
-    else
-      return [];
+    }
+    return [];
   }
 
   /** Počet hodin do začátku aktivity (float) */
@@ -674,8 +674,8 @@ class Aktivita
   /**
    * Aktivita negeneruje slevu organizátorovi
    */
-  function nedavaSlevu() {
-    return $this->a['nedava_slevu'];
+  function nedavaSlevu(): bool {
+    return (bool)$this->a['nedava_slevu'];
   }
 
   /**

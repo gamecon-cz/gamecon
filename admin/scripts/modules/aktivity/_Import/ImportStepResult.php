@@ -37,6 +37,27 @@ class ImportStepResult
     return new static($success, [], $errorLikeWarnings, '');
   }
 
+  /**
+   * @param array | ImportStepResult[] $importStepsResults
+   * @return array
+   */
+  public static function collectWarningsFromSteps(array $importStepsResults): array {
+    $warnings = [];
+    $errorLikeWarnings = [];
+    foreach ($importStepsResults as $importStepResult) {
+      foreach ($importStepResult->getWarnings() as $warning) {
+        $warnings[] = $warning;
+      }
+      foreach ($importStepResult->getErrorLikeWarnings() as $errorLikeWarning) {
+        $errorLikeWarnings[] = $errorLikeWarning;
+      }
+    }
+    return [
+      'warnings' => $warnings,
+      'errorLikeWarnings' => $errorLikeWarnings,
+    ];
+  }
+
   private function __construct($success, array $warnings, array $errorLikeWarnings, string $error) {
     $this->success = $success;
     $this->warnings = $warnings;
