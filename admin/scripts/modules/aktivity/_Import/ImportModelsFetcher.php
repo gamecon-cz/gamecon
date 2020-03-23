@@ -2,7 +2,7 @@
 
 namespace Gamecon\Admin\Modules\Aktivity\Import;
 
-use Gamecon\Admin\Modules\Aktivity\Import\Exceptions\ImportAktivitException;
+use Gamecon\Admin\Modules\Aktivity\Import\Exceptions\ActivitiesImportException;
 
 class ImportModelsFetcher
 {
@@ -12,7 +12,7 @@ class ImportModelsFetcher
     if (!array_key_exists($locationId, $locations)) {
       $location = \Lokace::zId($locationId);
       if (!$location) {
-        throw new ImportAktivitException("Location with ID '$locationId' does not exist");
+        throw new ActivitiesImportException("Location with ID '$locationId' does not exist");
       }
       $locations[$locationId] = $location;
     }
@@ -24,7 +24,7 @@ class ImportModelsFetcher
     if (!array_key_exists($userId, $users)) {
       $user = \Uzivatel::zId($userId);
       if (!$user) {
-        throw new ImportAktivitException("User with ID '$userId' does not exist");
+        throw new ActivitiesImportException("User with ID '$userId' does not exist");
       }
     }
     return $users[$userId];
@@ -33,7 +33,7 @@ class ImportModelsFetcher
   public static function fetchActivity(int $activityId): \Aktivita {
     $activity = \Aktivita::zId($activityId);
     if (!$activity) {
-      throw new ImportAktivitException("Activity with ID '$activityId' does not exist");
+      throw new ActivitiesImportException("Activity with ID '$activityId' does not exist");
     }
     return $activity;
   }

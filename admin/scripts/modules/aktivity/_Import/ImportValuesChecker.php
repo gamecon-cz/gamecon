@@ -4,7 +4,7 @@ namespace Gamecon\Admin\Modules\Aktivity\Import;
 
 use Gamecon\Cas\DateTimeCz;
 
-class ImportAccessibilityChecker
+class ImportValuesChecker
 {
   /**
    * @var ImportValuesDescriber
@@ -15,11 +15,31 @@ class ImportAccessibilityChecker
     $this->importValuesDescriber = $importValuesDescriber;
   }
 
+  public function checkStateUsability(array $values, ?\Aktivita $originalActivity): ImportStepResult {
+    $stateId = $values[AktivitaSqlSloupce::STAV];
+    if ($stateId === null) {
+      return ImportStepResult::success(null);
+    }
+    $state = \Stav::zId($stateId);
+    if ($state->jeNanejvysPripravenaKAktivaci()) {
+      return ImportStepResult::success($state->id());
+    }
+    return ImportStepResult::successWithErrorLikeWarnings(
+      \Stav::PRIPRAVENA,
+      [sprintf(
+        "%s: Aktivovat musíš aktivity ručně. Požadovaný stav '%s' byl nahrán jako '%s'.",
+        $this->importValuesDescriber->describeActivityBySqlMappedValues($values, $originalActivity),
+        $state->nazev(),
+        \Stav::zId(\Stav::PRIPRAVENA)->nazev()
+      )]
+    );
+  }
+
   public function checkLocationByAccessibility(
     ?int $locationId,
     ?string $zacatekString,
     ?string $konecString,
-    ?int $currentActivityId,
+    ?\Aktivita $originalActivity,
     array $values
   ): ImportStepResult {
     if ($locationId === null) {
@@ -43,20 +63,17 @@ AND CASE
     ELSE akce_seznam.id_akce != $4
     END
 SQL
-      , [$locationId, $zacatek->format(DateTimeCz::FORMAT_DB), $konec->format(DateTimeCz::FORMAT_DB), $currentActivityId]
+      , [$locationId, $zacatek->format(DateTimeCz::FORMAT_DB), $konec->format(DateTimeCz::FORMAT_DB), $originalActivity ? $originalActivity->id() : null]
     );
     if (count($locationOccupyingActivityIds) === 0) {
       return ImportStepResult::success($locationId);
     }
-    $currentActivity = $currentActivityId
-      ? ImportModelsFetcher::fetchActivity($currentActivityId)
-      : null;
     return ImportStepResult::successWithErrorLikeWarnings(
       $locationId,
       [
         sprintf(
           '%s: Místnost %s je někdy mezi %s a %s již zabraná jinou aktivitou %s. Nahrávaná aktivita je tak už %d. aktivitou v této místnosti.',
-          $this->importValuesDescriber->describeActivityBySqlMappedValues($values, $currentActivity),
+          $this->importValuesDescriber->describeActivityBySqlMappedValues($values, $originalActivity),
           $this->importValuesDescriber->describeLocationById($locationId),
           $zacatek->formatCasNaMinutyStandard(),
           $konec->formatCasNaMinutyStandard(),

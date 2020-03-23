@@ -4,7 +4,7 @@ namespace Gamecon\Admin\Modules\Aktivity\Import\Exceptions;
 
 use Throwable;
 
-class DuplicatedUnifiedKeyException extends ImportAktivitException
+class DuplicatedUnifiedKeyException extends ActivitiesImportException
 {
   private $duplicatedKey;
 
