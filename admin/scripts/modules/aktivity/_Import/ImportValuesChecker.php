@@ -2,6 +2,7 @@
 
 namespace Gamecon\Admin\Modules\Aktivity\Import;
 
+use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
 use Gamecon\Cas\DateTimeCz;
 
 class ImportValuesChecker
@@ -10,9 +11,105 @@ class ImportValuesChecker
    * @var ImportValuesDescriber
    */
   private $importValuesDescriber;
+  /**
+   * @var int
+   */
+  private $currentYear;
 
-  public function __construct(ImportValuesDescriber $importValuesDescriber) {
+  public function __construct(
+    int $currentYear,
+    ImportValuesDescriber $importValuesDescriber
+  ) {
     $this->importValuesDescriber = $importValuesDescriber;
+    $this->currentYear = $currentYear;
+  }
+
+  public function checkUrlUniqueness(array $sqlMappedValues, \Typ $singleProgramLine, ?\Aktivita $originalActivity): ImportStepResult {
+    $activityUrl = $sqlMappedValues[AktivitaSqlSloupce::URL_AKCE];
+    $occupiedByActivities = dbFetchAll(<<<SQL
+SELECT id_akce, patri_pod
+FROM akce_seznam
+WHERE url_akce = $1 AND rok = $2 AND typ = $3 AND id_akce != $4
+SQL
+      ,
+      [$activityUrl, $this->currentYear, $singleProgramLine->id(), $originalActivity ? $originalActivity->id() : 0]
+    );
+    if (!$occupiedByActivities) {
+      return ImportStepResult::success(null);
+    }
+    foreach ($occupiedByActivities as $occupiedByActivity) {
+      $occupiedByActivityId = (int)$occupiedByActivity['id_akce'];
+      $occupiedByInstanceId = $occupiedByActivity['patri_pod']
+        ? (int)$occupiedByActivity['patri_pod']
+        : null;
+      if (($occupiedByInstanceId && $this->isDifferentInstance($activityUrl, $singleProgramLine, $occupiedByInstanceId, $originalActivity))
+        || (!$occupiedByInstanceId && $this->canNotBeNewInstanceOfActivity($activityUrl, $singleProgramLine, $occupiedByActivityId))
+      ) {
+        return ImportStepResult::error(sprintf(
+          "%s: URL '%s'%s už je obsazena jinou existující aktivitou %s.",
+          $this->importValuesDescriber->describeActivityBySqlMappedValues($sqlMappedValues, $originalActivity),
+          $activityUrl,
+          empty($activityValues[ExportAktivitSloupce::URL])
+            ? ' (odhadnutá z názvu)'
+            : '',
+          $this->importValuesDescriber->describeActivityById($occupiedByActivityId)
+        ));
+      }
+    }
+    return ImportStepResult::success(null);
+  }
+
+  private function canNotBeNewInstanceOfActivity(string $url, \Typ $singleProgramLine, int $parentActivityId): bool {
+    $possibleParentActivityId = \Aktivita::idMozneHlavniAktivityPodleUrl($url, $this->currentYear, $singleProgramLine->id());
+    return $possibleParentActivityId !== $parentActivityId;
+  }
+
+  private function isDifferentInstance(
+    string $activityUrl,
+    \Typ $singleProgramLine,
+    int $occupiedByInstanceId,
+    ?\Aktivita $originalActivity
+  ): bool {
+    $instanceId = $originalActivity
+      ? $originalActivity->patriPod()
+      : $this->getInstanceIdByUrl($activityUrl, $singleProgramLine->id());
+    return $instanceId && $instanceId !== $occupiedByInstanceId;
+  }
+
+  private function getInstanceIdByUrl(string $url, int $programLineId): ?int {
+    return \Aktivita::idExistujiciInstancePodleUrl($url, $this->currentYear, $programLineId);
+  }
+
+  public function checkNameUniqueness(array $sqlMappedValues, \Typ $singleProgramLine, ?\Aktivita $originalActivity): ImportStepResult {
+    $activityUrl = $sqlMappedValues[AktivitaSqlSloupce::URL_AKCE];
+    $activityName = $sqlMappedValues[AktivitaSqlSloupce::NAZEV_AKCE];
+    $nameOccupiedByActivities = dbFetchAll(<<<SQL
+SELECT id_akce, nazev_akce, patri_pod
+FROM akce_seznam
+WHERE nazev_akce = $1 AND rok = $2 AND typ = $3 AND id_akce != $4
+SQL
+      , [$activityName, $this->currentYear, $singleProgramLine->id(), $originalActivity ? $originalActivity->id() : 0]
+    );
+    if (!$nameOccupiedByActivities) {
+      return ImportStepResult::success(null);
+    }
+    foreach ($nameOccupiedByActivities as $occupiedByActivity) {
+      $occupiedByActivityId = (int)$occupiedByActivity['id_akce'];
+      $occupiedByInstanceId = $occupiedByActivity['patri_pod']
+        ? (int)$occupiedByActivity['patri_pod']
+        : null;
+      if (($occupiedByInstanceId && $this->isDifferentInstance($activityUrl, $singleProgramLine, $occupiedByInstanceId, $originalActivity))
+        || (!$occupiedByInstanceId && $this->canNotBeNewInstanceOfActivity($activityUrl, $singleProgramLine, $occupiedByActivityId))
+      ) {
+        return ImportStepResult::error(sprintf(
+          "%s: název '%s' už je obsazený jinou existující aktivitou %s.",
+          $this->importValuesDescriber->describeActivityBySqlMappedValues($sqlMappedValues, $originalActivity),
+          $activityName,
+          $this->importValuesDescriber->describeActivityById($occupiedByActivityId)
+        ));
+      }
+    }
+    return ImportStepResult::success(null);
   }
 
   public function checkStateUsability(array $values, ?\Aktivita $originalActivity): ImportStepResult {

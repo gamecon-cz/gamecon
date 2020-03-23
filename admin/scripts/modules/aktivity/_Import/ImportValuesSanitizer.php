@@ -61,7 +61,7 @@ class ImportValuesSanitizer
     $stepsResults[] = $programLineIdResult;
     unset($programLineIdResult);
 
-    $activityUrlResult = $this->getValidatedUrl($activityValues, $singleProgramLine, $originalActivity);
+    $activityUrlResult = $this->getValidatedUrl($activityValues, $originalActivity);
     if ($activityUrlResult->isError()) {
       return ImportStepResult::error($activityUrlResult->getError());
     }
@@ -78,7 +78,7 @@ class ImportValuesSanitizer
     $stepsResults[] = $parentActivityResult;
     unset($parentActivityResult);
 
-    $activityNameResult = $this->getValidatedActivityName($activityValues, $activityUrl, $singleProgramLine, $originalActivity, $parentActivity);
+    $activityNameResult = $this->getValidatedActivityName($activityValues, $originalActivity, $parentActivity);
     if ($activityNameResult->isError()) {
       return ImportStepResult::error($activityNameResult->getError());
     }
@@ -821,7 +821,7 @@ HTML
     return ImportStepResult::success($dateTime->formatDb());
   }
 
-  private function getValidatedUrl(array $activityValues, \Typ $singleProgramLine, ?\Aktivita $originalActivity): ImportStepResult {
+  private function getValidatedUrl(array $activityValues, ?\Aktivita $originalActivity): ImportStepResult {
     $activityUrl = $activityValues[ExportAktivitSloupce::URL] ?? null;
     if (!$activityUrl) {
       if ($originalActivity) {
@@ -836,35 +836,6 @@ HTML
       $activityUrl = $this->toUrl($activityValues[ExportAktivitSloupce::NAZEV]);
     }
     $activityUrl = $this->toUrl($activityUrl);
-    $occupiedByActivities = dbFetchAll(<<<SQL
-SELECT id_akce, patri_pod
-FROM akce_seznam
-WHERE url_akce = $1 AND rok = $2 AND typ = $3 AND id_akce != $4
-SQL
-      ,
-      [$activityUrl, $this->currentYear, $singleProgramLine->id(), $originalActivity ? $originalActivity->id() : 0]
-    );
-    if ($occupiedByActivities) {
-      foreach ($occupiedByActivities as $occupiedByActivity) {
-        $occupiedByActivityId = (int)$occupiedByActivity['id_akce'];
-        $occupiedByInstanceId = $occupiedByActivity['patri_pod']
-          ? (int)$occupiedByActivity['patri_pod']
-          : null;
-        if (($occupiedByInstanceId && $this->isDifferentInstance($activityUrl, $singleProgramLine, $occupiedByInstanceId, $originalActivity))
-          || (!$occupiedByInstanceId && $this->canNotBeNewInstanceOfActivity($activityUrl, $singleProgramLine, $occupiedByActivityId))
-        ) {
-          return ImportStepResult::error(sprintf(
-            "%s: URL '%s'%s už je obsazena jinou existující aktivitou %s.",
-            $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
-            $activityUrl,
-            empty($activityValues[ExportAktivitSloupce::URL])
-              ? ' (odhadnutá z názvu)'
-              : '',
-            $this->importValuesDescriber->describeActivityById($occupiedByActivityId)
-          ));
-        }
-      }
-    }
     return ImportStepResult::success($activityUrl);
   }
 
@@ -872,16 +843,12 @@ SQL
     return ImportStepResult::success(\Aktivita::moznaHlavniAktivitaPodleUrl($url, $this->currentYear, $singleProgramLine->id()));
   }
 
-  private function getInstanceIdByUrl(string $url, int $programLineId): ?int {
-    return \Aktivita::idExistujiciInstancePodleUrl($url, $this->currentYear, $programLineId);
-  }
-
   private function toUrl(string $value): string {
     $sanitized = strtolower(odstranDiakritiku($value));
     return preg_replace('~\W+~', '-', $sanitized);
   }
 
-  private function getValidatedActivityName(array $activityValues, string $activityUrl, \Typ $singleProgramLine, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
+  private function getValidatedActivityName(array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
     $activityNameValue = $activityValues[ExportAktivitSloupce::NAZEV] ?? null;
     if (!$activityNameValue) {
       $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
@@ -892,53 +859,11 @@ SQL
           $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity)
         ));
     }
-    $nameOccupiedByActivities = dbFetchAll(<<<SQL
-SELECT id_akce, nazev_akce, patri_pod
-FROM akce_seznam
-WHERE nazev_akce = $1 AND rok = $2 AND typ = $3 AND id_akce != $4
-SQL
-      , [$activityNameValue, $this->currentYear, $singleProgramLine->id(), $originalActivity ? $originalActivity->id() : 0]
-    );
-    if ($nameOccupiedByActivities) {
-      foreach ($nameOccupiedByActivities as $occupiedByActivity) {
-        $occupiedByActivityId = (int)$occupiedByActivity['id_akce'];
-        $occupiedByInstanceId = $occupiedByActivity['patri_pod']
-          ? (int)$occupiedByActivity['patri_pod']
-          : null;
-        if (($occupiedByInstanceId && $this->isDifferentInstance($activityUrl, $singleProgramLine, $occupiedByInstanceId, $originalActivity))
-          || (!$occupiedByInstanceId && $this->canNotBeNewInstanceOfActivity($activityUrl, $singleProgramLine, $occupiedByActivityId))
-        ) {
-          return ImportStepResult::error(sprintf(
-            "%s: název '%s' už je obsazený jinou existující aktivitou %s.",
-            $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
-            $activityNameValue,
-            $this->importValuesDescriber->describeActivityById($occupiedByActivityId)
-          ));
-        }
-      }
-    }
     return ImportStepResult::success($activityNameValue);
   }
 
   private function getSourceActivity(?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ?\Aktivita {
     return $originalActivity ?: $parentActivity;
-  }
-
-  private function canNotBeNewInstanceOfActivity(string $url, \Typ $singleProgramLine, int $parentActivityId): bool {
-    $possibleParentActivityId = \Aktivita::idMozneHlavniAktivityPodleUrl($url, $this->currentYear, $singleProgramLine->id());
-    return $possibleParentActivityId !== $parentActivityId;
-  }
-
-  private function isDifferentInstance(
-    string $activityUrl,
-    \Typ $singleProgramLine,
-    int $occupiedByInstanceId,
-    ?\Aktivita $originalActivity
-  ): bool {
-    $instanceId = $originalActivity
-      ? $originalActivity->patriPod()
-      : $this->getInstanceIdByUrl($activityUrl, $singleProgramLine->id());
-    return $instanceId && $instanceId !== $occupiedByInstanceId;
   }
 
   private function getValidatedProgramLineId(array $activityValues, \Typ $singleProgramLine): ImportStepResult {

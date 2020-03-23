@@ -40,12 +40,12 @@ class ImportValuesDescriber
     );
   }
 
-  public function describeActivityBySqlMappedValues(array $remappedValues, ?\Aktivita $originalActivity): string {
+  public function describeActivityBySqlMappedValues(array $sqlMappedValues, ?\Aktivita $originalActivity): string {
     return $this->describeActivityByValues(
-      $remappedValues[AktivitaSqlSloupce::ID_AKCE] ?? null,
-      $remappedValues[AktivitaSqlSloupce::NAZEV_AKCE] ?? null,
-      $remappedValues[AktivitaSqlSloupce::URL_AKCE] ?? null,
-      $remappedValues[AktivitaSqlSloupce::POPIS_KRATKY] ?? null,
+      $sqlMappedValues[AktivitaSqlSloupce::ID_AKCE] ?? null,
+      $sqlMappedValues[AktivitaSqlSloupce::NAZEV_AKCE] ?? null,
+      $sqlMappedValues[AktivitaSqlSloupce::URL_AKCE] ?? null,
+      $sqlMappedValues[AktivitaSqlSloupce::POPIS_KRATKY] ?? null,
       $originalActivity
     );
   }

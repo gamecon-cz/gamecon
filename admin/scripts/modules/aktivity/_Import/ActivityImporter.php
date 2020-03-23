@@ -13,7 +13,7 @@ class ActivityImporter
   /**
    * @var ImportValuesChecker
    */
-  private $importAccessibilityChecker;
+  private $importValuesChecker;
   /**
    * @var \DateTimeInterface
    */
@@ -29,13 +29,13 @@ class ActivityImporter
 
   public function __construct(
     ImportValuesDescriber $importValuesDescriber,
-    ImportValuesChecker $importAccessibilityChecker,
+    ImportValuesChecker $importValuesChecker,
     \DateTimeInterface $now,
     int $currentYear,
     Logovac $logovac
   ) {
     $this->importValuesDescriber = $importValuesDescriber;
-    $this->importAccessibilityChecker = $importAccessibilityChecker;
+    $this->importValuesChecker = $importValuesChecker;
     $this->now = $now;
     $this->currentYear = $currentYear;
     $this->logovac = $logovac;
@@ -73,7 +73,21 @@ class ActivityImporter
 
     $checkResults = [];
 
-    $stateUsabilityResult = $this->importAccessibilityChecker->checkStateUsability($values, $originalActivity);
+    $urlUniquenessResult = $this->importValuesChecker->checkUrlUniqueness($values, $singleProgramLine, $originalActivity);
+    if ($urlUniquenessResult->isError()) {
+      return ImportStepResult::error($urlUniquenessResult->getError());
+    }
+    $checkResults[] = $urlUniquenessResult;
+    unset($urlUniquenessResult);
+
+    $nameUniqueness = $this->importValuesChecker->checkNameUniqueness($values, $singleProgramLine, $originalActivity);
+    if ($nameUniqueness->isError()) {
+      return ImportStepResult::error($nameUniqueness->getError());
+    }
+    $checkResults[] = $nameUniqueness;
+    unset($nameUniqueness);
+
+    $stateUsabilityResult = $this->importValuesChecker->checkStateUsability($values, $originalActivity);
     if ($stateUsabilityResult->isError()) {
       return ImportStepResult::error($stateUsabilityResult->getError());
     }
@@ -81,7 +95,7 @@ class ActivityImporter
     $checkResults[] = $stateUsabilityResult;
     unset($stateUsabilityResult);
 
-    $storytellersAccessibilityResult = $this->importAccessibilityChecker->checkStorytellersAccessibility(
+    $storytellersAccessibilityResult = $this->importValuesChecker->checkStorytellersAccessibility(
       $storytellersIds,
       $values[AktivitaSqlSloupce::ZACATEK],
       $values[AktivitaSqlSloupce::KONEC],
@@ -95,7 +109,7 @@ class ActivityImporter
     $checkResults[] = $storytellersAccessibilityResult;
     unset($storytellersAccessibilityResult);
 
-    $locationAccessibilityResult = $this->importAccessibilityChecker->checkLocationByAccessibility(
+    $locationAccessibilityResult = $this->importValuesChecker->checkLocationByAccessibility(
       $values[AktivitaSqlSloupce::LOKACE],
       $values[AktivitaSqlSloupce::ZACATEK],
       $values[AktivitaSqlSloupce::KONEC],

@@ -81,7 +81,7 @@ class ActivitiesImporter
 
     $importValuesDescriber = new ImportValuesDescriber($editActivityUrlSkeleton);
     $importObjectsContainer = new ImportObjectsContainer(new ImportUsersCache());
-    $importAccessibilityChecker = new ImportValuesChecker($importValuesDescriber);
+    $importAccessibilityChecker = new ImportValuesChecker($currentYear, $importValuesDescriber);
 
     $this->importValuesReader = new ImportValuesReader($googleSheetsService, $logovac);
     $this->imagesImporter = new ImagesImporter($baseUrl, $importValuesDescriber);
