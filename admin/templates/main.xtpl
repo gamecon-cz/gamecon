@@ -1,5 +1,5 @@
 <!-- begin: all --><!DOCTYPE html>
-<html>
+<html lang="cs">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width" />
@@ -13,17 +13,17 @@
   <link rel="stylesheet" href="files/design/jquery-multiselect/jquery.multiselect.gamecon.css?version=7726af9be4b35c7389767c3225d93d9a" />
   <link rel="stylesheet" href="files/design/jquery-modal/jquery.modal-0.9.1.min.css" />
   <link rel="stylesheet" href="files/design/jquery-modal/jquery.modal.gamecon.css?version=f946305a5585486a6c3448dd9a304720" />
-  <script src="files/jquery-3.4.1.min.js"></script>
+  <script type="text/javascript" src="files/jquery-3.4.1.min.js"></script>
   {jsVyjimkovac}
-  <script src="files/jquery-ui-v1.12.1.min.js"></script>
-  <script src="files/jquery.hotkeys-0.8.0.js"></script>
-  <script src="files/jquery.serializeobject.js?version=756c72ca3178bfe417882afe5b460406"></script>
-  <script src="files/jquery.cookie-v1.4.1.js"></script>
-  <script src="files/aplikace.js?version=f4a8464b38ba6a06a94a8c1bc881bebc"></script>
-  <script src="files/omnibox.js?version=e5cd9171d8ae5178823bdcf81f68b43d"></script>
-  <script src="files/jquery.multiselect-2.4.16.js"></script>
-  <script src="files/jquery.multiselect-2.4.16.js"></script>
-  <script src="files/jquery.modal-0.9.1.min.js"></script>
+  <script type="text/javascript" src="files/jquery-ui-v1.12.1.min.js"></script>
+  <script type="text/javascript" src="files/jquery.hotkeys-0.8.0.js"></script>
+  <script type="text/javascript" src="files/jquery.serializeobject.js?version=756c72ca3178bfe417882afe5b460406"></script>
+  <script type="text/javascript" src="files/jquery.cookie-v1.4.1.js"></script>
+  <script type="text/javascript" src="files/aplikace.js?version=f4a8464b38ba6a06a94a8c1bc881bebc"></script>
+  <script type="text/javascript" src="files/omnibox.js?version=e5cd9171d8ae5178823bdcf81f68b43d"></script>
+  <script type="text/javascript" src="files/jquery.multiselect-2.4.16.js"></script>
+  <script type="text/javascript" src="files/jquery.multiselect-2.4.16.js"></script>
+  <script type="text/javascript" src="files/jquery.modal-0.9.1.min.js"></script>
 </head>
 <body>
   <div class="obal">
