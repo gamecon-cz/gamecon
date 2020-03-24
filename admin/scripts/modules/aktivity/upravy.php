@@ -9,20 +9,20 @@ use Gamecon\Vyjimkovac\Logovac;
  * pravo: 102
  */
 
-if(Aktivita::editorTestJson()) {       // samo sebe volání ajaxu
+if (Aktivita::editorTestJson()) {       // samo sebe volání ajaxu
   die(Aktivita::editorChybyJson());
 }
 
 /** @var Logovac $vyjimkovac */
 try {
-  if($a = Aktivita::editorZpracuj())  // úspěšné uložení změn ve formuláři
-    if($a->nova())
-      back('aktivity/upravy?aktivitaId='.$a->id());
+  if ($a = Aktivita::editorZpracuj())  // úspěšné uložení změn ve formuláři
+    if ($a->nova())
+      back('aktivity/upravy?aktivitaId=' . $a->id());
     else
       back();
-} catch(ObrazekException $e) {
+} catch (ObrazekException $e) {
   $vyjimkovac->zaloguj($e);
-  if(get('aktivitaId'))
+  if (get('aktivitaId'))
     chyba('Obrázek nelze přečíst.');
   else {
     oznameni('Aktivita vytvořena.', false); // hack - obrázek selhal, ale zbytek nejspíš prošel, vypíšeme úspěch
@@ -30,12 +30,12 @@ try {
   }
 }
 
-$a=Aktivita::zId(get('aktivitaId'));  // načtení aktivity podle předaného ID
-$editorAktivity=Aktivita::editor($a);         // načtení html editoru aktivity
+$a = Aktivita::zId(get('aktivitaId'));  // načtení aktivity podle předaného ID
+$editorAktivity = Aktivita::editor($a);         // načtení html editoru aktivity
 
 
 ?>
 
 <form method="post" enctype="multipart/form-data" style="position: relative">
-  <?=$editorAktivity?>
+  <?= $editorAktivity ?>
 </form>

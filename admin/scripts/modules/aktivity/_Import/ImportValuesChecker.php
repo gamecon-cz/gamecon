@@ -30,23 +30,62 @@ class ImportValuesChecker
     if (!$startString && !$endString) {
       return ImportStepResult::success(['start' => null, 'end' => null]);
     }
-    if (!$startString || !$endString) { // TODO resolve just start or just end
-      return ImportStepResult::success(['start' => $startString, 'end' => $endString]);
+    if (!$startString || !$endString) {
+      return ImportStepResult::successWithErrorLikeWarnings(
+        ['start' => null, 'end' => null],
+        [sprintf(
+          "%s: Není vyplněný %s, pouze %s '%s'. Čas aktivity je vynechán.",
+          $this->importValuesDescriber->describeActivityBySqlMappedValues($sqlMappedValues, $originalActivity),
+          !$startString
+            ? 'začátek'
+            : 'konec',
+          $startString
+            ? 'začátek'
+            : 'konec',
+          $startString
+            ? DateTimeCz::createFromFormat(DateTimeCz::FORMAT_DB, $startString)->formatCasNaMinutyStandard()
+            : DateTimeCz::createFromFormat(DateTimeCz::FORMAT_DB, $endString)->formatCasNaMinutyStandard()
+        )]
+      );
     }
     $start = DateTimeCz::createFromFormat(DateTimeCz::FORMAT_DB, $startString);
     $end = DateTimeCz::createFromFormat(DateTimeCz::FORMAT_DB, $endString);
     if ($start->getTimestamp() > $end->getTimestamp()) {
+      if ($originalActivity && $originalActivity->zacatek() && $originalActivity->konec()) {
+        return ImportStepResult::successWithErrorLikeWarnings(
+          ['start' => $originalActivity->zacatek()->formatDb(), 'end' => $originalActivity->konec()->formatDb()],
+          [sprintf(
+            "%s: Začátek '%s' je až po konci '%s'. Ponechán původní čas od '%s' do '%s'.",
+            $this->importValuesDescriber->describeActivityBySqlMappedValues($sqlMappedValues, $originalActivity),
+            $start->formatCasNaMinutyStandard(),
+            $end->formatCasNaMinutyStandard(),
+            $originalActivity->zacatek()->formatCasNaMinutyStandard(),
+            $originalActivity->konec()->formatCasNaMinutyStandard()
+          )]
+        );
+      }
       return ImportStepResult::successWithErrorLikeWarnings(
         ['start' => null, 'end' => null],
         [sprintf(
-          "%s: Začátek '%s' je až po konci '%s'. Čas aktivity byl zrušen.",
+          "%s: Začátek '%s' je až po konci '%s'. Čas aktivity je vynechán.",
           $this->importValuesDescriber->describeActivityBySqlMappedValues($sqlMappedValues, $originalActivity),
           $start->formatCasNaMinutyStandard(),
           $end->formatCasNaMinutyStandard()
         )]
       );
     }
-    // TODO resolve too short activity
+    if ($end->getTimestamp() - $start->getTimestamp() < 3600) {
+      return ImportStepResult::successWithErrorLikeWarnings(
+        ['start' => null, 'end' => null],
+        [sprintf(
+          "%s: Aktivita by měla trvat alespoň hodinu. Konec '%s' je jenom %d minut po začátku '%s'. Čas aktivity je vynechán.",
+          $this->importValuesDescriber->describeActivityBySqlMappedValues($sqlMappedValues, $originalActivity),
+          $end->formatCasNaMinutyStandard(),
+          $end->diff($start)->i,
+          $start->formatCasNaMinutyStandard()
+        )]
+      );
+    }
     return ImportStepResult::success(['start' => $startString, 'end' => $endString]);
   }
 
@@ -195,11 +234,14 @@ SQL
       $locationId,
       [
         sprintf(
-          '%s: Místnost %s je někdy mezi %s a %s již zabraná jinou aktivitou %s. Nahrávaná aktivita je tak už %d. aktivitou v této místnosti.',
+          '%s: Místnost %s je někdy mezi %s a %s již zabraná %s %s. Nyní tak byla přidána už %d. aktivita do této místnosti.',
           $this->importValuesDescriber->describeActivityBySqlMappedValues($values, $originalActivity),
           $this->importValuesDescriber->describeLocationById($locationId),
           $zacatek->formatCasNaMinutyStandard(),
           $konec->formatCasNaMinutyStandard(),
+          count($locationOccupyingActivityIds) > 1
+            ? 'jinými aktivitami'
+            : 'jinou aktivitou',
           implode(
             ' a ',
             array_map(

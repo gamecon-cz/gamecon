@@ -79,7 +79,7 @@ class ActivityImporter
     if ($originalActivity) {
       return ImportStepResult::successWithWarnings(
         [
-          'message' => sprintf('%s: Upravena existující.', $this->importValuesDescriber->describeActivity($importedActivity)),
+          'message' => sprintf('%s: Upravena existující aktivita.', $this->importValuesDescriber->describeActivity($importedActivity)),
           'importedActivityId' => $importedActivity->id(),
         ],
         $warnings,
@@ -140,11 +140,9 @@ class ActivityImporter
     if ($durationResult->isError()) {
       return ImportStepResult::error($durationResult->getError());
     }
-    /** @var null | DateTimeCz $start */
-    /** @var null | DateTimeCz $end */
     ['start' => $start, 'end' => $end] = $durationResult->getSuccess();
-    $values[AktivitaSqlSloupce::ZACATEK] = $start ? $start->formatDb() : null;
-    $values[AktivitaSqlSloupce::KONEC] = $end ? $end->formatDb() : null;
+    $values[AktivitaSqlSloupce::ZACATEK] = $start ?: null;
+    $values[AktivitaSqlSloupce::KONEC] = $end ?: null;
     $checkResults[] = $durationResult;
     unset($durationResult);
 

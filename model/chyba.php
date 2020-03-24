@@ -18,16 +18,16 @@ class Chyba extends Exception
    */
   public function zpet()
   {
-    self::seCookie('CHYBY_CLASS', $this->getMessage(), time() + self::COOKIE_ZIVOTNOST);
+    self::setCookie('CHYBY_CLASS', $this->getMessage(), time() + self::COOKIE_ZIVOTNOST);
     back();
   }
 
   static function nastav($zprava, $typ) {
     $postname = $typ == self::OZNAMENI ? 'CHYBY_CLASS_OZNAMENI' : 'CHYBY_CLASS';
-    self::seCookie($postname, $zprava, time() + self::COOKIE_ZIVOTNOST);
+    self::setCookie($postname, $zprava, time() + self::COOKIE_ZIVOTNOST);
   }
 
-  private static function seCookie(string $postname, $zprava, int $ttl) {
+  private static function setCookie(string $postname, $zprava, int $ttl) {
     setcookie($postname, $zprava, $ttl);
     $_COOKIE[$postname] = $zprava;
   }
@@ -39,7 +39,7 @@ class Chyba extends Exception
   {
     if(isset($_COOKIE['CHYBY_CLASS']) && $ch=$_COOKIE['CHYBY_CLASS'])
     {
-      self::seCookie('CHYBY_CLASS', '', 0);
+      self::setCookie('CHYBY_CLASS', '', 0);
       return $ch;
     }
     else
@@ -55,7 +55,7 @@ class Chyba extends Exception
   {
     if(isset($_COOKIE['CHYBY_CLASS_OZNAMENI']) && $ch=$_COOKIE['CHYBY_CLASS_OZNAMENI'])
     {
-      self::seCookie('CHYBY_CLASS_OZNAMENI', '', 0);
+      self::setCookie('CHYBY_CLASS_OZNAMENI', '', 0);
       return $ch;
     }
     else
@@ -67,19 +67,26 @@ class Chyba extends Exception
   /**
    * Vrací html zformátovaný boxík s chybou
    */
-  public static function vyzvedniHtml()
+  public static function vyzvedniHtml(): string
   {
-    $ch=Chyba::vyzvedni();
-    $typ=$ch?'':'oznameni'; //závisí na pořadí ($ch může být později přepsáno oznámením)
-    if(!$ch) $ch=Chyba::vyzvedniOznameni();
-    if($ch)
-      return '<div class="chybaBlok"><div class="chyba '.$typ.'" id="chybovaZprava">'.$ch.'</div></div>
+    $zpravy= [];
+    $error = Chyba::vyzvedni();
+    if ($error) {
+      $zpravy[] = self::vytvorHtmlZpravu($error, '');
+    }
+    $oznameni = Chyba::vyzvedniOznameni();
+    if ($oznameni) {
+      $zpravy[] = self::vytvorHtmlZpravu($oznameni, 'oznameni');
+    }
+    return implode($zpravy);
+  }
+
+  private static function vytvorHtmlZpravu(string $zprava, string $typ): string {
+    return '<div class="chybaBlok"><div class="chyba '.$typ.'" id="chybovaZprava">'.$zprava.'</div></div>
         <script>
           var len=$("#chybovaZprava").html().length;
           $("#chybovaZprava").delay(2000+len*30).fadeOut(1500);
         </script>';
-    else
-      return '';
   }
 
 }

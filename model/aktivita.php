@@ -172,7 +172,7 @@ class Aktivita
     $chyby = [];
 
     // kontrola dostupnosti organizátorů v daný čas
-    if (!empty($a['den'])) {
+    if (!empty($a['den']) && !empty($a['zacatek']) && !empty($a['konec'])) {
       $zacatek = (new DateTimeCz($a['den']))->add('PT' . $a['zacatek'] . 'H');
       $konec = (new DateTimeCz($a['den']))->add('PT' . $a['konec'] . 'H');
       $ignorovatAktivitu = isset($a['id_akce']) ? self::zId($a['id_akce']) : null;
@@ -247,7 +247,7 @@ class Aktivita
       // načtení dnů
       $xtpl->assign('sel', $a && !$a->zacatek() ? 'selected' : '');
       $xtpl->assign('den', 0);
-      $xtpl->assign('denSlovy', '(neurčeno)');
+      $xtpl->assign('denSlovy', '?');
       $xtpl->parse('upravy.tabulka.den');
       for ($den = new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen()) {
         $xtpl->assign('sel', $a && $den->stejnyDen($a->zacatek()) ? 'selected' : '');
@@ -256,16 +256,22 @@ class Aktivita
         $xtpl->parse('upravy.tabulka.den');
       }
       // načtení časů
-      $aZacatek = $a && $a->zacatek() ? $a->zacatek()->format('G') : PHP_INT_MAX;
-      $aKonec = $a && $a->konec() ? $a->konec()->sub(new DateInterval('PT1H'))->format('G') : PHP_INT_MAX;
-      for ($i = PROGRAM_ZACATEK; $i < PROGRAM_KONEC; $i++) {
-        $xtpl->assign('sel', $aZacatek == $i ? 'selected' : '');
-        $xtpl->assign('zacatek', $i);
-        $xtpl->assign('zacatekSlovy', $i . ':00');
+      $aZacatek = $a && $a->zacatek()
+        ? (int)$a->zacatek()->format('G')
+        : null;
+      $aKonec = $a && $a->konec()
+        ? (int)$a->konec()->sub(new DateInterval('PT1H'))->format('G')
+        : null;
+      $hodinyZacatku = range(PROGRAM_ZACATEK, PROGRAM_KONEC - 1, 1);
+      array_unshift($hodinyZacatku, null);
+      foreach ($hodinyZacatku as $hodinaZacatku) {
+        $xtpl->assign('sel', $aZacatek === $hodinaZacatku ? 'selected' : '');
+        $xtpl->assign('zacatek', $hodinaZacatku);
+        $xtpl->assign('zacatekSlovy', $hodinaZacatku !== null ? ($hodinaZacatku . ':00') : '?');
         $xtpl->parse('upravy.tabulka.zacatek');
-        $xtpl->assign('sel', $aKonec == $i ? 'selected' : '');
-        $xtpl->assign('konec', $i + 1);
-        $xtpl->assign('konecSlovy', ($i + 1) . ':00');
+        $xtpl->assign('sel', $aKonec === $hodinaZacatku ? 'selected' : '');
+        $xtpl->assign('konec', ($hodinaZacatku !== null ? $hodinaZacatku + 1 : null));
+        $xtpl->assign('konecSlovy', $hodinaZacatku !== null ? (($hodinaZacatku + 1) . ':00') : '?');
         $xtpl->parse('upravy.tabulka.konec');
       }
     }
@@ -388,7 +394,10 @@ class Aktivita
       $a['url_akce'] = $_POST[self::POSTKLIC . 'staraUrl'];
     }
     // přepočet času
-    if (empty($a['den'])) {
+    if (empty($a['den']) || empty($a['zacatek']) || empty($a['konec'])) {
+      if (!empty($a['den']) || !empty($a['zacatek']) || !empty($a['konec'])) {
+        chyba('Buďto vyplň den, začátek i konec, nebo nic. Čas byl zrušen.', false);
+      }
       $a['zacatek'] = null;
       $a['konec'] = null;
     } else {
@@ -413,7 +422,9 @@ class Aktivita
     $obrazekSoubor = postFile(self::OBRKLIC);
     $obrazekUrl = post(self::OBRKLIC . 'Url');
 
-    return self::uloz($a, $popis, $organizatori, $tagIds, $obrazekSoubor, $obrazekUrl);
+    $aktivita = self::uloz($a, $popis, $organizatori, $tagIds, $obrazekSoubor, $obrazekUrl);
+    oznameni('Aktivia byla uložena', false);
+    return $aktivita;
   }
 
   public static function uloz(array $data, ?string $markdownPopis, array $organizatoriIds, array $tagIds, string $obrazekSoubor = null, string $obrazekUrl = null): Aktivita {
