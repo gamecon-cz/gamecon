@@ -24,6 +24,32 @@ class ImportValuesChecker
     $this->currentYear = $currentYear;
   }
 
+  public function checkDuration(array $sqlMappedValues, ?\Aktivita $originalActivity): ImportStepResult {
+    $startString = $sqlMappedValues[AktivitaSqlSloupce::ZACATEK];
+    $endString = $sqlMappedValues[AktivitaSqlSloupce::KONEC];
+    if (!$startString && !$endString) {
+      return ImportStepResult::success(['start' => null, 'end' => null]);
+    }
+    if (!$startString || !$endString) { // TODO resolve just start or just end
+      return ImportStepResult::success(['start' => $startString, 'end' => $endString]);
+    }
+    $start = DateTimeCz::createFromFormat(DateTimeCz::FORMAT_DB, $startString);
+    $end = DateTimeCz::createFromFormat(DateTimeCz::FORMAT_DB, $endString);
+    if ($start->getTimestamp() > $end->getTimestamp()) {
+      return ImportStepResult::successWithErrorLikeWarnings(
+        ['start' => null, 'end' => null],
+        [sprintf(
+          "%s: Začátek '%s' je až po konci '%s'. Čas aktivity byl zrušen.",
+          $this->importValuesDescriber->describeActivityBySqlMappedValues($sqlMappedValues, $originalActivity),
+          $start->formatCasNaMinutyStandard(),
+          $end->formatCasNaMinutyStandard()
+        )]
+      );
+    }
+    // TODO resolve too short activity
+    return ImportStepResult::success(['start' => $startString, 'end' => $endString]);
+  }
+
   public function checkUrlUniqueness(array $sqlMappedValues, \Typ $singleProgramLine, ?\Aktivita $originalActivity): ImportStepResult {
     $activityUrl = $sqlMappedValues[AktivitaSqlSloupce::URL_AKCE];
     $occupiedByActivities = dbFetchAll(<<<SQL
