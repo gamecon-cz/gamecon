@@ -161,11 +161,8 @@ class ActivitiesImporter
           $singleProgramLine,
           $originalActivity
         );
-        if ($importActivityResult->hasWarnings()) {
-          foreach ($importActivityResult->getWarnings() as $warning) {
-            $result->addWarningMessage($warning);
-          }
-        }
+        $result->addWarnings($importActivityResult);
+        $result->addErrorLikeWarnings($importActivityResult);
         if ($importActivityResult->isError()) {
           $errorMessage = $this->getErrorMessageWithSkippedActivityNote($importActivityResult);
           $result->addErrorMessage($errorMessage);
