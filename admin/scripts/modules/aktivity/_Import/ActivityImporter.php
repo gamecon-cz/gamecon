@@ -49,78 +49,12 @@ class ActivityImporter
     \Typ $singleProgramLine,
     ?\Aktivita $originalActivity
   ): ImportStepResult {
-    if ($originalActivity) {
-      if (!$originalActivity->bezpecneEditovatelna()) {
-        return ImportStepResult::error(sprintf(
-          "Aktivitu %s už nelze editovat importem, protože je ve stavu '%s'.",
-          $this->importValuesDescriber->describeActivity($originalActivity), $originalActivity->stav()->nazev()
-        ));
-      }
-      if ($originalActivity->zacatek() && $originalActivity->zacatek()->getTimestamp() <= $this->now->getTimestamp()) {
-        return ImportStepResult::error(sprintf(
-          "Aktivitu %s už nelze editovat importem, protože už začala (začátek v %s).",
-          $this->importValuesDescriber->describeActivity($originalActivity), $originalActivity->zacatek()->formatCasNaMinutyStandard()
-        ));
-      }
-      if ($originalActivity->konec() && $originalActivity->konec()->getTimestamp() <= $this->now->getTimestamp()) {
-        return ImportStepResult::error(sprintf(
-          "Aktivitu %s už nelze editovat importem, protože už skončila (konec v %s).",
-          $this->importValuesDescriber->describeActivity($originalActivity),
-          $originalActivity->konec()->formatCasNaMinutyStandard()
-        ));
-      }
+    $checkBeforeSaveResult = $this->checkBeforeSave($values, $storytellersIds, $singleProgramLine, $originalActivity);
+    if ($checkBeforeSaveResult->isError()) {
+      return ImportStepResult::error($checkBeforeSaveResult->getError());
     }
 
-    $checkResults = [];
-
-    $urlUniquenessResult = $this->importValuesChecker->checkUrlUniqueness($values, $singleProgramLine, $originalActivity);
-    if ($urlUniquenessResult->isError()) {
-      return ImportStepResult::error($urlUniquenessResult->getError());
-    }
-    $checkResults[] = $urlUniquenessResult;
-    unset($urlUniquenessResult);
-
-    $nameUniqueness = $this->importValuesChecker->checkNameUniqueness($values, $singleProgramLine, $originalActivity);
-    if ($nameUniqueness->isError()) {
-      return ImportStepResult::error($nameUniqueness->getError());
-    }
-    $checkResults[] = $nameUniqueness;
-    unset($nameUniqueness);
-
-    $stateUsabilityResult = $this->importValuesChecker->checkStateUsability($values, $originalActivity);
-    if ($stateUsabilityResult->isError()) {
-      return ImportStepResult::error($stateUsabilityResult->getError());
-    }
-    $values[AktivitaSqlSloupce::STAV] = $stateUsabilityResult->getSuccess();
-    $checkResults[] = $stateUsabilityResult;
-    unset($stateUsabilityResult);
-
-    $storytellersAccessibilityResult = $this->importValuesChecker->checkStorytellersAccessibility(
-      $storytellersIds,
-      $values[AktivitaSqlSloupce::ZACATEK],
-      $values[AktivitaSqlSloupce::KONEC],
-      $originalActivity,
-      $values
-    );
-    if ($storytellersAccessibilityResult->isError()) {
-      return ImportStepResult::error($storytellersAccessibilityResult->getError());
-    }
-    $availableStorytellerIds = $storytellersAccessibilityResult->getSuccess();
-    $checkResults[] = $storytellersAccessibilityResult;
-    unset($storytellersAccessibilityResult);
-
-    $locationAccessibilityResult = $this->importValuesChecker->checkLocationByAccessibility(
-      $values[AktivitaSqlSloupce::LOKACE],
-      $values[AktivitaSqlSloupce::ZACATEK],
-      $values[AktivitaSqlSloupce::KONEC],
-      $originalActivity,
-      $values
-    );
-    if ($locationAccessibilityResult->isError()) {
-      return ImportStepResult::error($locationAccessibilityResult->getError());
-    }
-    $checkResults[] = $locationAccessibilityResult;
-    unset($locationAccessibilityResult);
+    ['availableStorytellerIds' => $availableStorytellerIds, 'checkResults' => $checkResults] = $checkBeforeSaveResult->getSuccess();
 
     /** @var  \Aktivita $importedActivity */
     $savedActivityResult = $this->saveActivity(
@@ -176,6 +110,90 @@ class ActivityImporter
     );
   }
 
+  private function checkBeforeSave(array $values, array $storytellersIds, \Typ $singleProgramLine, ?\Aktivita $originalActivity): ImportStepResult {
+    if ($originalActivity) {
+      if (!$originalActivity->bezpecneEditovatelna()) {
+        return ImportStepResult::error(sprintf(
+          "Aktivitu %s už nelze editovat importem, protože je ve stavu '%s'.",
+          $this->importValuesDescriber->describeActivity($originalActivity), $originalActivity->stav()->nazev()
+        ));
+      }
+      if ($originalActivity->zacatek() && $originalActivity->zacatek()->getTimestamp() <= $this->now->getTimestamp()) {
+        return ImportStepResult::error(sprintf(
+          "Aktivitu %s už nelze editovat importem, protože už začala (začátek v %s).",
+          $this->importValuesDescriber->describeActivity($originalActivity), $originalActivity->zacatek()->formatCasNaMinutyStandard()
+        ));
+      }
+      if ($originalActivity->konec() && $originalActivity->konec()->getTimestamp() <= $this->now->getTimestamp()) {
+        return ImportStepResult::error(sprintf(
+          "Aktivitu %s už nelze editovat importem, protože už skončila (konec v %s).",
+          $this->importValuesDescriber->describeActivity($originalActivity),
+          $originalActivity->konec()->formatCasNaMinutyStandard()
+        ));
+      }
+    }
+
+    $checkResults = [];
+
+    $durationResult = $this->importValuesChecker->checkDuration($values, $originalActivity);
+    if ($durationResult->isError()) {
+      return ImportStepResult::error($durationResult->getError());
+    }
+    $checkResults[] = $durationResult;
+    unset($durationResult);
+
+    $urlUniquenessResult = $this->importValuesChecker->checkUrlUniqueness($values, $singleProgramLine, $originalActivity);
+    if ($urlUniquenessResult->isError()) {
+      return ImportStepResult::error($urlUniquenessResult->getError());
+    }
+    $checkResults[] = $urlUniquenessResult;
+    unset($urlUniquenessResult);
+
+    $nameUniqueness = $this->importValuesChecker->checkNameUniqueness($values, $singleProgramLine, $originalActivity);
+    if ($nameUniqueness->isError()) {
+      return ImportStepResult::error($nameUniqueness->getError());
+    }
+    $checkResults[] = $nameUniqueness;
+    unset($nameUniqueness);
+
+    $stateUsabilityResult = $this->importValuesChecker->checkStateUsability($values, $originalActivity);
+    if ($stateUsabilityResult->isError()) {
+      return ImportStepResult::error($stateUsabilityResult->getError());
+    }
+    $values[AktivitaSqlSloupce::STAV] = $stateUsabilityResult->getSuccess();
+    $checkResults[] = $stateUsabilityResult;
+    unset($stateUsabilityResult);
+
+    $storytellersAccessibilityResult = $this->importValuesChecker->checkStorytellersAccessibility(
+      $storytellersIds,
+      $values[AktivitaSqlSloupce::ZACATEK],
+      $values[AktivitaSqlSloupce::KONEC],
+      $originalActivity,
+      $values
+    );
+    if ($storytellersAccessibilityResult->isError()) {
+      return ImportStepResult::error($storytellersAccessibilityResult->getError());
+    }
+    $availableStorytellerIds = $storytellersAccessibilityResult->getSuccess();
+    $checkResults[] = $storytellersAccessibilityResult;
+    unset($storytellersAccessibilityResult);
+
+    $locationAccessibilityResult = $this->importValuesChecker->checkLocationByAccessibility(
+      $values[AktivitaSqlSloupce::LOKACE],
+      $values[AktivitaSqlSloupce::ZACATEK],
+      $values[AktivitaSqlSloupce::KONEC],
+      $originalActivity,
+      $values
+    );
+    if ($locationAccessibilityResult->isError()) {
+      return ImportStepResult::error($locationAccessibilityResult->getError());
+    }
+    $checkResults[] = $locationAccessibilityResult;
+    unset($locationAccessibilityResult);
+
+    return ImportStepResult::success(['availableStorytellerIds' => $availableStorytellerIds, 'checkResults' => $checkResults]);
+  }
+
   private function saveActivity(
     array $values,
     ?string $longAnnotation,
@@ -185,7 +203,7 @@ class ActivityImporter
     ?\Aktivita $originalActivity
   ): ImportStepResult {
     try {
-      if (!$values[AktivitaSqlSloupce::ID_AKCE]) {
+      if (empty($values[AktivitaSqlSloupce::ID_AKCE])) {
         $newInstanceParentActivityId = $this->findParentActivityId($values[AktivitaSqlSloupce::URL_AKCE], $singleProgramLine);
         if ($newInstanceParentActivityId) {
           $newInstance = $this->createInstanceForParentActivity($newInstanceParentActivityId);

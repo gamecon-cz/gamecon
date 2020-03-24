@@ -855,7 +855,7 @@ HTML
       return $sourceActivity
         ? ImportStepResult::success($sourceActivity->nazev())
         : ImportStepResult::error(sprintf(
-          '%s: chybí povinný název.',
+          '%s: Chybí povinný název.',
           $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity)
         ));
     }
