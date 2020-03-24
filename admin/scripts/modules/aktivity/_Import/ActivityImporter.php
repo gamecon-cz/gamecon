@@ -2,6 +2,7 @@
 
 namespace Gamecon\Admin\Modules\Aktivity\Import;
 
+use Gamecon\Cas\DateTimeCz;
 use Gamecon\Vyjimkovac\Logovac;
 
 class ActivityImporter
@@ -54,7 +55,7 @@ class ActivityImporter
       return ImportStepResult::error($checkBeforeSaveResult->getError());
     }
 
-    ['availableStorytellerIds' => $availableStorytellerIds, 'checkResults' => $checkResults] = $checkBeforeSaveResult->getSuccess();
+    ['values' => $values, 'availableStorytellerIds' => $availableStorytellerIds, 'checkResults' => $checkResults] = $checkBeforeSaveResult->getSuccess();
 
     /** @var  \Aktivita $importedActivity */
     $savedActivityResult = $this->saveActivity(
@@ -78,7 +79,7 @@ class ActivityImporter
     if ($originalActivity) {
       return ImportStepResult::successWithWarnings(
         [
-          'message' => sprintf('Upravena existující aktivita %s', $this->importValuesDescriber->describeActivity($importedActivity)),
+          'message' => sprintf('%s: Upravena existující.', $this->importValuesDescriber->describeActivity($importedActivity)),
           'importedActivityId' => $importedActivity->id(),
         ],
         $warnings,
@@ -89,7 +90,7 @@ class ActivityImporter
       return ImportStepResult::successWithWarnings(
         [
           'message' => sprintf(
-            'Nahrána nová aktivita %s jako %d. <strong>instance</strong> k hlavní aktivitě %s.',
+            '%s: Nahrána jako nová, %d. <strong>instance</strong> k hlavní aktivitě %s.',
             $this->importValuesDescriber->describeActivity($importedActivity),
             $importedActivity->pocetInstanci(),
             $this->importValuesDescriber->describeActivity($importedActivity->patriPodAktivitu())
@@ -102,7 +103,7 @@ class ActivityImporter
     }
     return ImportStepResult::successWithWarnings(
       [
-        'message' => sprintf('Nahrána nová aktivita %s', $this->importValuesDescriber->describeActivity($importedActivity)),
+        'message' => sprintf('%s: Nahrána jako nová aktivita. ', $this->importValuesDescriber->describeActivity($importedActivity)),
         'importedActivityId' => $importedActivity->id(),
       ],
       $warnings,
@@ -139,6 +140,11 @@ class ActivityImporter
     if ($durationResult->isError()) {
       return ImportStepResult::error($durationResult->getError());
     }
+    /** @var null | DateTimeCz $start */
+    /** @var null | DateTimeCz $end */
+    ['start' => $start, 'end' => $end] = $durationResult->getSuccess();
+    $values[AktivitaSqlSloupce::ZACATEK] = $start ? $start->formatDb() : null;
+    $values[AktivitaSqlSloupce::KONEC] = $end ? $end->formatDb() : null;
     $checkResults[] = $durationResult;
     unset($durationResult);
 
@@ -191,7 +197,7 @@ class ActivityImporter
     $checkResults[] = $locationAccessibilityResult;
     unset($locationAccessibilityResult);
 
-    return ImportStepResult::success(['availableStorytellerIds' => $availableStorytellerIds, 'checkResults' => $checkResults]);
+    return ImportStepResult::success(['values' => $values, 'availableStorytellerIds' => $availableStorytellerIds, 'checkResults' => $checkResults]);
   }
 
   private function saveActivity(

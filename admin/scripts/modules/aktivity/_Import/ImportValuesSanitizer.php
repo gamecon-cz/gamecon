@@ -272,6 +272,9 @@ class ImportValuesSanitizer
       $sanitizedValues,
       array_fill_keys(AktivitaSqlSloupce::vsechnySloupce(), true)
     );
+    $sanitizedValues[AktivitaSqlSloupce::ID_AKCE] = $sanitizedValues[AktivitaSqlSloupce::ID_AKCE]
+      ? (int)$sanitizedValues[AktivitaSqlSloupce::ID_AKCE]
+      : null;
     return $sanitizedValues;
   }
 
@@ -784,7 +787,7 @@ HTML
       return ImportStepResult::successWithErrorLikeWarnings(
         null,
         [sprintf(
-          '%s: aktivita má sice uvedený konec (%s), ale chybí u ní den. Čas aktivity je vynechán.',
+          '%s: Aktivita má sice uvedený konec (%s), ale chybí u ní den. Čas aktivity je vynechán.',
           $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
           $activityValues[ExportAktivitSloupce::KONEC]
         )]
