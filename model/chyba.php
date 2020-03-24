@@ -18,16 +18,16 @@ class Chyba extends Exception
    */
   public function zpet()
   {
-    self::seCookie('CHYBY_CLASS', $this->getMessage(), time() + self::COOKIE_ZIVOTNOST);
+    self::setCookie('CHYBY_CLASS', $this->getMessage(), time() + self::COOKIE_ZIVOTNOST);
     back();
   }
 
   static function nastav($zprava, $typ=null) {
     $postname = $typ == self::OZNAMENI ? 'CHYBY_CLASS_OZNAMENI' : 'CHYBY_CLASS';
-    self::seCookie($postname, $zprava, time() + self::COOKIE_ZIVOTNOST);
+    self::setCookie($postname, $zprava, time() + self::COOKIE_ZIVOTNOST);
   }
 
-  private static function seCookie(string $postname, $zprava, int $ttl) {
+  private static function setCookie(string $postname, $zprava, int $ttl) {
     setcookie($postname, $zprava, $ttl);
     $_COOKIE[$postname] = $zprava;
   }
@@ -39,7 +39,7 @@ class Chyba extends Exception
   {
     if(isset($_COOKIE['CHYBY_CLASS']) && $ch=$_COOKIE['CHYBY_CLASS'])
     {
-      self::seCookie('CHYBY_CLASS', '', 0);
+      self::setCookie('CHYBY_CLASS', '', 0);
       return $ch;
     }
     else
@@ -55,7 +55,7 @@ class Chyba extends Exception
   {
     if(isset($_COOKIE['CHYBY_CLASS_OZNAMENI']) && $ch=$_COOKIE['CHYBY_CLASS_OZNAMENI'])
     {
-      self::seCookie('CHYBY_CLASS_OZNAMENI', '', 0);
+      self::setCookie('CHYBY_CLASS_OZNAMENI', '', 0);
       return $ch;
     }
     else
@@ -67,22 +67,29 @@ class Chyba extends Exception
   /**
    * Vrací html zformátovaný boxík s chybou
    */
-  public static function vyzvedniHtml()
+  public static function vyzvedniHtml(): string
   {
-    $zprava = Chyba::vyzvedni();
-    $tridyNavic = $zprava ? '' : 'chybaBlok-oznameni';
-    if(!$zprava) {
-      $zprava = Chyba::vyzvedniOznameni();
+    $zpravy= [];
+    $error = Chyba::vyzvedni();
+    if ($error) {
+      $zpravy[] = self::vytvorHtmlZpravu($error, '');
     }
+    $oznameni = Chyba::vyzvedniOznameni();
+    if ($oznameni) {
+      $zpravy[] = self::vytvorHtmlZpravu($oznameni, 'oznameni');
+    }
+    return implode($zpravy);
+  }
 
-    if($zprava) {
-      $zobrazeni = 5.0; // sekund
-      $mizeni = 2.0; // sekund
-      return '
-        <div class="chybaBlok '.$tridyNavic.'">
-          '.$zprava.'
-          <div class="chybaBlok_zavrit">✕</div>
-          <script>
+  private static function vytvorHtmlZpravu(string $zprava, string $typ): string {
+    $tridyNavic = $typ ? "chybaBlok-$typ" : "";
+    $zobrazeni = 5.0; // sekund
+    $mizeni = 2.0; // sekund
+
+    return '<div class="chybaBlok '.$tridyNavic.'" id="chybovaZprava">
+      '.$zprava.'
+      <div class="chybaBlok_zavrit">✕</div>
+      <script>
             (() => {
               let chyba = document.currentScript.parentNode
               setTimeout(() => {
@@ -93,11 +100,7 @@ class Chyba extends Exception
               chyba.querySelector(".chybaBlok_zavrit").onclick = () => chyba.remove()
             })()
           </script>
-        </div>
-      ';
-    } else {
-      return '';
-    }
+    </div>';
   }
 
 }
