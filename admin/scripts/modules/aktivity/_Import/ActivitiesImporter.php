@@ -60,6 +60,10 @@ class ActivitiesImporter
    * @var string
    */
   private $errorsListUrl;
+  /**
+   * @var ActivitiesImportLogger
+   */
+  private $activitiesImportLogger;
 
   public function __construct(
     int $userId,
@@ -72,7 +76,8 @@ class ActivitiesImporter
     Logovac $logovac,
     string $baseUrl,
     Mutex $mutexPattern,
-    string $errorsListUrl
+    string $errorsListUrl,
+    ActivitiesImportLogger $activitiesImportLogger
   ) {
     $this->userId = $userId;
     $this->googleDriveService = $googleDriveService;
@@ -89,6 +94,7 @@ class ActivitiesImporter
     $this->importRequirementsGuardian = new ImportRequirementsGuardian($importObjectsContainer);
     $this->activityImporter = new ActivityImporter($importValuesDescriber, $importAccessibilityChecker, $now, $currentYear, $logovac);
     $this->errorsListUrl = $errorsListUrl;
+    $this->activitiesImportLogger = $activitiesImportLogger;
   }
 
   public function importActivities(string $spreadsheetId): ActivitiesImportResult {
@@ -193,6 +199,9 @@ HTML
     }
     if ($savingImagesResult->hasErrorLikeWarnings()) {
       $result->addErrorLikeWarnings($savingImagesResult);
+    }
+    if ($result->getImportedCount() > 0) {
+      $this->activitiesImportLogger->logUsedSpreadsheet($this->userId, $spreadsheetId, new \DateTimeImmutable());
     }
     $this->releaseExclusiveLock();
     return $result;

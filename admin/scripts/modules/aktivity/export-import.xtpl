@@ -91,6 +91,7 @@
     </div>
   </div>
   <!-- begin:spreadsheets -->
+  <!-- begin:unused -->
   <table class="zvyraznovana" style="width: 100%; margin-top: 1em">
     <thead>
     <tr>
@@ -112,6 +113,30 @@
     </tbody>
   </table>
   <script type="text/javascript" src="files/click-to-select.js"></script>
+  <!-- end:unused -->
+  <!-- begin:used -->
+  <table class="zvyraznovana" style="width: 100%; margin-top: 1em">
+    <caption><h4>Použité exporty</h4></caption>
+    <thead>
+    <tr>
+      <th>Název exportu</th>
+      <th>Vytvořen</th>
+      <th>Naposledy upraven</th>
+      <th>Použit</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- begin:spreadsheet -->
+    <tr>
+      <td><a href="{url}" target="_blank">{nazev}</a></td>
+      <td title="{vytvorenoKdyPresne}">{vytvorenoKdy}</td>
+      <td title="{upravenoKdyPresne}">{upravenoKdy}</td>
+      <td title="{pouzitoKdyPresne}">{pouzitoKdy}</td>
+    </tr>
+    <!-- end:spreadsheet -->
+    </tbody>
+  </table>
+  <!-- end:used -->
   <!-- end:spreadsheets -->
 </form>
 
