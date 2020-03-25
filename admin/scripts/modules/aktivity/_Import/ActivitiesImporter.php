@@ -200,7 +200,7 @@ HTML
     if ($savingImagesResult->hasErrorLikeWarnings()) {
       $result->addErrorLikeWarnings($savingImagesResult);
     }
-    if ($result->getImportedCount() > 0) {
+    if ($result->getImportedCount() > 0 && (!defined('TESTING') || !TESTING)) {
       $this->activitiesImportLogger->logUsedSpreadsheet($this->userId, $spreadsheetId, new \DateTimeImmutable());
     }
     $this->releaseExclusiveLock();
