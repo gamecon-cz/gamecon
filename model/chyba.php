@@ -16,8 +16,7 @@ class Chyba extends Exception
    * Vyvolá reload na volající stránku, která si chybu může vyzvednout pomocí
    * Chyba::vyzvedni()
    */
-  public function zpet()
-  {
+  public function zpet() {
     self::setCookie('CHYBY_CLASS', $this->getMessage(), time() + self::COOKIE_ZIVOTNOST);
     back();
   }
@@ -35,15 +34,11 @@ class Chyba extends Exception
   /**
    * Vrátí text poslední chyby
    */
-  public static function vyzvedni()
-  {
-    if(isset($_COOKIE['CHYBY_CLASS']) && $ch=$_COOKIE['CHYBY_CLASS'])
-    {
+  public static function vyzvedni() {
+    if (isset($_COOKIE['CHYBY_CLASS']) && $ch = $_COOKIE['CHYBY_CLASS']) {
       self::setCookie('CHYBY_CLASS', '', 0);
       return $ch;
-    }
-    else
-    {
+    } else {
       return '';
     }
   }
@@ -51,15 +46,11 @@ class Chyba extends Exception
   /**
    * Vrátí text posledního oznámení
    */
-  private static function vyzvedniOznameni()
-  {
-    if(isset($_COOKIE['CHYBY_CLASS_OZNAMENI']) && $ch=$_COOKIE['CHYBY_CLASS_OZNAMENI'])
-    {
+  private static function vyzvedniOznameni() {
+    if (isset($_COOKIE['CHYBY_CLASS_OZNAMENI']) && $ch = $_COOKIE['CHYBY_CLASS_OZNAMENI']) {
       self::setCookie('CHYBY_CLASS_OZNAMENI', '', 0);
       return $ch;
-    }
-    else
-    {
+    } else {
       return '';
     }
   }
@@ -67,26 +58,61 @@ class Chyba extends Exception
   /**
    * Vrací html zformátovaný boxík s chybou
    */
-  public static function vyzvedniHtml(): string
-  {
-    $zpravy= [];
+  public static function vyzvedniHtml(): string {
+    $zpravyPodleTypu = [];
     $error = Chyba::vyzvedni();
     if ($error) {
-      $zpravy[] = self::vytvorHtmlZpravu($error, '');
+      $zpravyPodleTypu['error'] = [$error];
     }
     $oznameni = Chyba::vyzvedniOznameni();
     if ($oznameni) {
-      $zpravy[] = self::vytvorHtmlZpravu($oznameni, 'oznameni');
+      $zpravyPodleTypu['oznameni'] = [$oznameni];
     }
-    return implode($zpravy);
+    if (!$zpravyPodleTypu) {
+      return '';
+    }
+    return self::vytvorHtmlZpravu($zpravyPodleTypu);
   }
 
-  private static function vytvorHtmlZpravu(string $zprava, string $typ): string {
-    return '<div class="chybaBlok"><div class="chyba '.$typ.'" id="chybovaZprava">'.$zprava.'</div></div>
-        <script>
-          var len=$("#chybovaZprava").html().length;
-          $("#chybovaZprava").delay(2000+len*30).fadeOut(1500);
-        </script>';
+  private static function vytvorHtmlZpravu(array $zpravyPodleTypu): string {
+    $zpravy = '';
+    $chybaBlokId = uniqid('chybaBlokId', true);
+    foreach ($zpravyPodleTypu as $typ => $zpravyJednohoTypu) {
+      switch ($typ) {
+        case 'oznameni':
+          $tridaPodleTypu = 'oznameni';
+          break;
+        default :
+          $tridaPodleTypu = 'errorHlaska';
+      }
+      $zpravyJednohoTypuHtml = '';
+      foreach ($zpravyJednohoTypu as $zprava) {
+        $zpravyJednohoTypuHtml .= sprintf('<div class="hlaska %s">%s</div>', $tridaPodleTypu, htmlentities($zprava));
+      }
+      $zpravy .= sprintf('<div>%s</div>', $zpravyJednohoTypuHtml);
+    }
+    return <<<HTML
+<div class="chybaBlok" id="{$chybaBlokId}">
+{$zpravy}
+</div>
+<script>
+const hlasky = $('.hlaska')
+let pocetHlasek = hlasky.length
+const oHlaskuMin = function() {
+  pocetHlasek--
+  if (pocetHlasek <= 0) {
+    $('{$chybaBlokId}').remove()
+  }
+}
+hlasky.each(function() {
+  const length = $(this).html().length;
+  $(this).delay(2000 + length * 30).fadeOut(1500, function() {
+    oHlaskuMin()
+  });
+})
+</script>
+HTML
+      ;
   }
 
 }

@@ -15,6 +15,7 @@ $xtpl=new XTemplate('./templates/main.xtpl');
 $xtpl->assign([
   'pageTitle' =>  'GameCon – Administrace',
   'base'      =>  URL_ADMIN.'/',
+  'cssVersions' => new \Gamecon\Web\VerzeSouboru(__DIR__ . '/files/design', 'css'),
 ]);
 
 // nastavení stránky, prázdná url => přesměrování na úvod

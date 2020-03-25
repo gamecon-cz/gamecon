@@ -396,7 +396,7 @@ class Aktivita
     // přepočet času
     if (empty($a['den']) || empty($a['zacatek']) || empty($a['konec'])) {
       if (!empty($a['den']) || !empty($a['zacatek']) || !empty($a['konec'])) {
-        chyba('Buďto vyplň den, začátek i konec, nebo nic. Čas byl zrušen.', false);
+        chyba('Buďto vyplň den se začátkem i koncem, nebo nic. Čas byl zrušen.', false);
       }
       $a['zacatek'] = null;
       $a['konec'] = null;
@@ -423,7 +423,7 @@ class Aktivita
     $obrazekUrl = post(self::OBRKLIC . 'Url');
 
     $aktivita = self::uloz($a, $popis, $organizatori, $tagIds, $obrazekSoubor, $obrazekUrl);
-    oznameni('Aktivia byla uložena', false);
+    oznameni('Aktivita byla uložena', false);
     return $aktivita;
   }
 

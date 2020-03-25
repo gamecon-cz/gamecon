@@ -293,8 +293,9 @@ label { color: #999; cursor: pointer }
   a:before { content: " "; position: absolute; top: -@sh; left: 0; height: @sh; width: 100%; }
 }
 .chybaBlok { position: fixed; z-index: 999; text-align: center; width: 100%; margin: 1em 0px; }
-.chybaBlok > div { display: inline-block; background-color: rgba(255, 192, 192, 0.9); padding: 2em 5em; color: #d00; border-radius: 5px; max-width: @sirka; box-shadow: 0 15px 45px #444; }
-.chybaBlok > .oznameni { background-color: rgba(150, 200, 150, 0.9); color: #040; }
+.chybaBlok .hlaska { display: inline-block; padding: 2em 5em; color: #d00; border-radius: 5px; max-width: @sirka; box-shadow: 0 15px 45px #444; }
+.chybaBlok .error { background-color: rgba(255, 192, 192, 0.9); }
+.chybaBlok .oznameni { background-color: rgba(150, 200, 150, 0.9); color: #040; }
 .fotka {
   position: relative;
   width: 150px; height: 150px;
