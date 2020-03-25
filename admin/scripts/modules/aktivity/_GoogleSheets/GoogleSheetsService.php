@@ -187,7 +187,7 @@ class GoogleSheetsService
     $spreadsheetPreviews = [];
     /** @var \Google_Service_Drive_DriveFile $file */
     foreach ($this->googleDriveService->getAllSheetFiles() as $file) {
-      $spreadsheetPreviews[] = new GoogleSheetsPreview(
+      $spreadsheetPreviews[$file->getId()] = new GoogleSheetsPreview(
         $file->getId(),
         $file->getName(),
         $file->getWebViewLink(),

@@ -9,7 +9,9 @@ use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleApiCredentials;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleApiTokenStorage;
+use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleSheetsPreview;
 use Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImporter;
+use Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImportLogger;
 use Gamecon\Admin\Modules\Aktivity\Import\ImportStepResult;
 use Gamecon\Mutex\Mutex;
 use Gamecon\Vyjimkovac\Logovac;
@@ -109,31 +111,38 @@ try {
   $template->parse('export');
   $template->out('export');
 
-// AUTHOIZACE
+  // AUTHOIZACE
   if (!$googleApiClient->isAuthorized()) {
     $template->assign('authorizationUrl', $googleApiClient->getAuthorizationUrl());
     $template->parse('autorizace');
     $template->out('autorizace');
   }
 
-// IMPORT
+  $activitiesImportLogger = new ActivitiesImportLogger();
+  $ted = new \DateTimeImmutable();
+  // IMPORT
   $urlNaEditaciAktivity = $urlNaAktivity . '/upravy?aktivitaId=';
   if ($googleApiClient->isAuthorized()) {
     if (!empty($_POST['googleSheetId'])) {
+      $googleSheetId = $_POST['googleSheetId'];
+      if ($activitiesImportLogger->wasImported($googleSheetId)) {
+        chyba(sprintf("Export '%s' už byl použit. Zkus jiný.", $googleDriveService->getFileName($googleSheetId)));
+      }
       $activitiesImporter = new ActivitiesImporter(
         $currentUserId,
         $googleDriveService,
         $googleSheetsService,
         ROK,
         $urlNaEditaciAktivity,
-        new \DateTimeImmutable(),
+        $ted,
         $baseUrl . '/admin/prava/' . Zidle::VYPRAVEC,
         $vyjimkovac,
         $baseUrl,
         Mutex::proAktivity(),
-        $baseUrl . '/admin/web/chyby'
+        $baseUrl . '/admin/web/chyby',
+        $activitiesImportLogger
       );
-      $vysledekImportuAktivit = $activitiesImporter->importActivities($_POST['googleSheetId']);
+      $vysledekImportuAktivit = $activitiesImporter->importActivities($googleSheetId);
       $naimportovanoPocet = $vysledekImportuAktivit->getImportedCount();
       $nazevImportovanehoSouboru = $vysledekImportuAktivit->getProcessedFilename();
       $successMessages = $vysledekImportuAktivit->getSuccessMessages();
@@ -174,7 +183,10 @@ try {
     }
 
     $spreadsheets = $googleSheetsService->getAllSpreadsheets();
-    foreach ($spreadsheets as $spreadsheet) {
+    ['used' => $usedSpreadSheetIds, 'unused' => $unusedSpreadSheetIds] = $activitiesImportLogger->splitGoogleSheetIdsToUsedAndUnused(array_keys($spreadsheets));
+    foreach ($unusedSpreadSheetIds as $unusedSpreadSheetId) {
+      $spreadsheet = $spreadsheets[$unusedSpreadSheetId];
+      unset($spreadsheets[$unusedSpreadSheetId]);
       $template->assign('googleSheetIdEncoded', htmlentities($spreadsheet->getId()));
       $template->assign('nazev', $spreadsheet->getName());
       $template->assign('url', $spreadsheet->getUrl());
@@ -182,8 +194,33 @@ try {
       $template->assign('upravenoKdy', $spreadsheet->getModifiedAt()->relativni());
       $template->assign('vytvorenoKdyPresne', $spreadsheet->getCreatedAt()->formatCasStandard());
       $template->assign('upravenoKdyPresne', $spreadsheet->getModifiedAt()->formatCasStandard());
-      $template->parse('import.spreadsheets.spreadsheet');
+      $template->parse('import.spreadsheets.unused.spreadsheet');
     }
+    $template->parse('import.spreadsheets.unused');
+
+    $sheetsPouzityKdy = [];
+    foreach ($usedSpreadSheetIds as $usedSpreadSheetId) {
+      $pouzitoKdy = $activitiesImportLogger->getImportedAt($usedSpreadSheetId, $ted->getTimezone());
+      $sheetsPouzityKdy[$usedSpreadSheetId] = $pouzitoKdy;
+    }
+    uasort($sheetsPouzityKdy, static function (\DateTimeInterface $jedenSheetPouzitKdy, \DateTimeInterface $druhySheetPouzitKdy) {
+      return $druhySheetPouzitKdy <=> $jedenSheetPouzitKdy;
+    });
+    foreach ($sheetsPouzityKdy as $usedSpreadSheetId => $sheetPouzitKdy) {
+      $spreadsheet = $spreadsheets[$usedSpreadSheetId];
+      $template->assign('googleSheetIdEncoded', htmlentities($spreadsheet->getId()));
+      $template->assign('nazev', $spreadsheet->getName());
+      $template->assign('url', $spreadsheet->getUrl());
+      $template->assign('vytvorenoKdy', $spreadsheet->getCreatedAt()->relativni());
+      $template->assign('upravenoKdy', $spreadsheet->getModifiedAt()->relativni());
+      $template->assign('vytvorenoKdyPresne', $spreadsheet->getCreatedAt()->formatCasStandard());
+      $template->assign('upravenoKdyPresne', $spreadsheet->getModifiedAt()->formatCasStandard());
+      $template->assign('pouzitoKdy', $sheetPouzitKdy->relativni());
+      $template->assign('pouzitoKdyPresne', $sheetPouzitKdy->formatCasStandard());
+      $template->parse('import.spreadsheets.used.spreadsheet');
+    }
+    $template->parse('import.spreadsheets.used');
+
     $template->parse('import.spreadsheets');
 
     $template->parse('import');
