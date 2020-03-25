@@ -4,9 +4,11 @@ namespace Gamecon\Admin\Modules\Aktivity\GoogleSheets;
 
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleApiClientInvalidAuthorization;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleApiException;
+use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleConnectionException;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\UnauthorizedGoogleApiClient;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleApiCredentials;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleApiTokenStorage;
+use GuzzleHttp\Exception\ConnectException;
 
 class GoogleApiClient
 {
@@ -42,9 +44,17 @@ class GoogleApiClient
    * @throws GoogleApiException
    */
   public function isAuthorized(): bool {
-    $nativeClient = $this->getNativeClient();
-    $this->refreshAccessTokenIfNeeded($nativeClient);
-    return !$nativeClient->isAccessTokenExpired();
+    try {
+      $nativeClient = $this->getNativeClient();
+      $this->refreshAccessTokenIfNeeded($nativeClient);
+      return !$nativeClient->isAccessTokenExpired();
+    } catch (ConnectException $connectException) {
+      throw new GoogleConnectionException(
+        "Can not find out if client is already authorized: {$connectException->getMessage()}",
+        $connectException->getCode(),
+        $connectException
+      );
+    }
   }
 
   /**
