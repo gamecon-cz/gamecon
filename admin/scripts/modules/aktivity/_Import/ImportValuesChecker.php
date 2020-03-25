@@ -74,15 +74,13 @@ class ImportValuesChecker
         )]
       );
     }
-    if ($end->getTimestamp() - $start->getTimestamp() < 3600) {
+    if ($end->getTimestamp() === $start->getTimestamp()) {
       return ImportStepResult::successWithErrorLikeWarnings(
         ['start' => null, 'end' => null],
         [sprintf(
-          "%s: Aktivita by měla trvat alespoň hodinu. Konec '%s' je jenom %d minut po začátku '%s'. Čas aktivity je vynechán.",
+          "%s: Konec je stejný jako začátek '%s'. Aktivita by měla mít nějaké trvání. Čas aktivity je vynechán.",
           $this->importValuesDescriber->describeActivityBySqlMappedValues($sqlMappedValues, $originalActivity),
-          $end->formatCasNaMinutyStandard(),
-          $end->diff($start)->i,
-          $start->formatCasNaMinutyStandard()
+          $end->formatCasNaMinutyStandard()
         )]
       );
     }
