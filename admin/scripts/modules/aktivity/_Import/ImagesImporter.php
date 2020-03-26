@@ -56,30 +56,43 @@ class ImagesImporter
         $activity->obrazek($obrazek);
       } catch (\ObrazekException $obrazekException) {
         $errorLikeWarnings[] = sprintf(
-          'Nepodařilo se uložit obrázek %s k aktivitě %s z důvodu: %s',
+          '%s: Nepodařilo se uložit obrázek %s k z důvodu: %s',
+          $this->importValuesDescriber->describeActivity($activity),
           $imageUrl,
-          $this->importValuesDescriber->describeActivity($activity), $obrazekException->getMessage()
+          $obrazekException->getMessage()
         );
         continue;
       }
     }
+    $downloadingImagesErrorsPerActivity = [];
     foreach ($potentialImageUrlsPerActivity as $activityId => $potentialImageUrls) {
       if (in_array($activityId, $successfulActivityIds, true)) {
         foreach ($potentialImageUrls as $potentialImageUrl) {
           unset($downloadingImagesErrors[$potentialImageUrl]); // failures of other images are useless
         }
+      } else {
+        $downloadingImagesErrorsPerActivity[$activityId] = [];
+        foreach ($potentialImageUrls as $potentialImageUrl) {
+          $downloadingImagesErrorsPerActivity[$activityId][$potentialImageUrl] = $downloadingImagesErrors[$potentialImageUrl];
+        }
       }
     }
-    if (count($downloadingImagesErrors) > 0) {
-      $errorLikeWarnings[] = sprintf(
-        'Některé obrázky se nepodařilo stáhnout: <ol>%s</ol>',
-        implode(
-          "\n",
-          array_map(static function (string $downloadingImageError) {
-            return "<li>$downloadingImageError</li>";
-          }, $downloadingImagesErrors)
-        )
-      );
+    if (count($downloadingImagesErrorsPerActivity) > 0) {
+      foreach ($downloadingImagesErrorsPerActivity as $activityId => $downloadingImagesErrorsOfActivity) {
+        $errorLikeWarnings[$activityId] = sprintf(
+          '%s: Nepodařilo se stáhnout %s: <ol>%s</ol>',
+          $this->importValuesDescriber->describeActivityById($activityId),
+          count($downloadingImagesErrorsOfActivity) > 1
+            ? 'ani jeden z možných obrázků'
+            : 'obrázek',
+          implode(
+            "\n",
+            array_map(static function (string $downloadingImageError) {
+              return "<li>$downloadingImageError</li>";
+            }, $downloadingImagesErrorsOfActivity)
+          )
+        );
+      }
     }
     return ImportStepResult::successWithErrorLikeWarnings(true, $errorLikeWarnings);
   }
