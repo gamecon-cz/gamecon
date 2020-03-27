@@ -732,7 +732,7 @@ HTML
     if ($location) {
       return ImportStepResult::success($location->id());
     }
-    return ImportStepResult::successWithWarnings(
+    return ImportStepResult::successWithErrorLikeWarnings(
       null,
       [
         sprintf(
