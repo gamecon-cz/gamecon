@@ -187,7 +187,7 @@ SQL
     return ImportStepResult::successWithErrorLikeWarnings(
       \Stav::PRIPRAVENA,
       [sprintf(
-        "%s: Aktivovat musíš aktivity ručně. Požadovaný stav '%s' byl nahrán jako '%s'.",
+        "%s: Aktivovat musíš aktivity ručně. Požadovaný stav '%s' byl změněn na '%s'.",
         $this->importValuesDescriber->describeActivityBySqlMappedValues($values, $originalActivity),
         $state->nazev(),
         \Stav::zId(\Stav::PRIPRAVENA)->nazev()

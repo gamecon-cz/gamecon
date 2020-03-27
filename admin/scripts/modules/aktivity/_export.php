@@ -2,6 +2,10 @@
 
 use Gamecon\Admin\Modules\Aktivity\Export\ExporterAktivit;
 
+class ExportAktivit {
+
+}
+
 $filtrovatPodleRoku = true;
 [$filtr, $razeni] = include __DIR__ . '/_filtr-moznosti.php';
 $aktivity = \Aktivita::zFiltru($filtr, $razeni);
