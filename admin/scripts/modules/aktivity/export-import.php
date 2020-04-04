@@ -1,4 +1,10 @@
 <?php
+/**
+ * Stránka pro hromadný export aktivit.
+ *
+ * nazev: Export & Import
+ * pravo: 102
+ */
 
 namespace Gamecon\Admin\Modules\Aktivity;
 
@@ -9,13 +15,6 @@ use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleApiCredentials;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleApiTokenStorage;
 use Gamecon\Vyjimkovac\Logovac;
-
-/**
- * Stránka pro hromadný export aktivit.
- *
- * nazev: Export & Import
- * pravo: 102
- */
 
 if ($_GET['zpet'] ?? '' === 'aktivity') {
   back(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) . '/..');
@@ -52,9 +51,7 @@ try {
   /** @noinspection PhpUnusedLocalVariableInspection */
   $googleSheetsService = new GoogleSheetsService($googleApiClient, $googleDriveService);
 
-  // EXPORT
-  require __DIR__ . '/_export.php';
-
+  ob_start();
   // AUTHOIZACE
   if (!$googleApiClient->isAuthorized()) {
     $template->assign('authorizationUrl', $googleApiClient->getAuthorizationUrl());
@@ -64,6 +61,13 @@ try {
     // IMPORT
     require __DIR__ . '/_import.php';
   }
+  $importOutput = ob_get_clean();
+
+  // EXPORT
+  require __DIR__ . '/_export.php';
+
+  echo $importOutput;
+
 } catch (GoogleConnectionException | \Google_Service_Exception $connectionException) {
   /** @var Logovac $vyjimkovac */
   $vyjimkovac->zaloguj($connectionException);
