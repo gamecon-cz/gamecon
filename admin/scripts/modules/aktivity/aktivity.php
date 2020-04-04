@@ -43,7 +43,13 @@ if (post('instance')) {
   back();
 }
 
-[$filtr, $razeni] = include __DIR__ . '/_filtr-moznosti.php';
+require_once __DIR__ . '/_filtr-moznosti.php';
+
+$filtrMoznosti = FiltrMoznosti::vytvorZGlobals(FiltrMoznosti::NEFILTROVAT_PODLE_ROKU);
+
+$filtrMoznosti->zobraz();
+
+[$filtr, $razeni] = $filtrMoznosti->dejFiltr();
 $aktivity = Aktivita::zFiltru($filtr, $razeni);
 
 if (defined('TESTING') && TESTING && !empty($filtr['typ']) && post('smazatVsechnyTypu')) {

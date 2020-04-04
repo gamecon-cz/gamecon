@@ -2,12 +2,13 @@
 
 use Gamecon\Admin\Modules\Aktivity\Export\ExporterAktivit;
 
-class ExportAktivit {
+require_once __DIR__ . '/_filtr-moznosti.php';
 
-}
+$filtrMoznosti = FiltrMoznosti::vytvorZGlobals(FiltrMoznosti::FILTROVAT_PODLE_ROKU);
 
-$filtrovatPodleRoku = true;
-[$filtr, $razeni] = include __DIR__ . '/_filtr-moznosti.php';
+$filtrMoznosti->zobraz();
+
+[$filtr, $razeni] = $filtrMoznosti->dejFiltr();
 $aktivity = \Aktivita::zFiltru($filtr, $razeni);
 
 $activityTypeIdsFromFilter = array_unique(
