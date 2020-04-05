@@ -13,6 +13,7 @@ class ImportUsersCache
   private $usersPerNick;
   private $fromNameKeyUnifyDepth = ImportKeyUnifier::UNIFY_UP_TO_LETTERS;
   private $fromNickKeyUnifyDepth = ImportKeyUnifier::UNIFY_UP_TO_LETTERS;
+  private $fromEmailKeyUnifyDepth = ImportKeyUnifier::UNIFY_UP_TO_DIACRITIC;
 
 
   public function getUserById(int $id): ?\Uzivatel {
@@ -56,13 +57,32 @@ class ImportUsersCache
   private function getUsersPerEmail(): array {
     if ($this->usersPerEmail === null) {
       $this->usersPerEmail = [];
-      foreach ($this->getUsers() as $user) {
-        $keyFromEmail = ImportKeyUnifier::toUnifiedKey(
-          $user->mail(),
-          array_keys($this->usersPerEmail),
-          ImportKeyUnifier::UNIFY_UP_TO_DIACRITIC
-        );
-        $this->usersPerEmail[$keyFromEmail] = $user;
+      $conflictingKeys = [];
+      for ($emailKeyUnifyDepth = $this->fromEmailKeyUnifyDepth; $emailKeyUnifyDepth >= 0; $emailKeyUnifyDepth--) {
+        $usersPerEmail = [];
+        foreach ($this->getUsers() as $user) {
+          $mail = $user->mail();
+          if ($mail === '') {
+            continue;
+          }
+          try {
+            $keyFromEmail = ImportKeyUnifier::toUnifiedKey($mail, array_keys($usersPerEmail), $emailKeyUnifyDepth);
+            if (in_array($keyFromEmail, $conflictingKeys, true)) {
+              continue; // can not use this user as his mail is in conflict with another one
+            }
+            $usersPerEmail[$keyFromEmail] = $user;
+            // if unification was too aggressive and we had to lower level of depth / lossy compression, we have to store the lowest level for later picking-up values from cache
+          } catch (DuplicatedUnifiedKeyException $unifiedKeyException) {
+            if ($emailKeyUnifyDepth > 0) {
+              continue 2; // lower key depth
+            }
+            $conflictingKeys[] = $unifiedKeyException->getDuplicatedKey();
+            unset($usersPerEmail[$unifiedKeyException->getDuplicatedKey()]); // better to remove conflicting emails than throw them all
+          }
+        }
+        $this->usersPerEmail = $usersPerEmail;
+        $this->fromEmailKeyUnifyDepth = min($this->fromEmailKeyUnifyDepth, $emailKeyUnifyDepth);
+        break; // all emails converted to unified and unique keys
       }
     }
     return $this->usersPerEmail;
@@ -76,28 +96,28 @@ class ImportUsersCache
       $this->usersPerName = [];
       $conflictingKeys = [];
       for ($nameKeyUnifyDepth = $this->fromNameKeyUnifyDepth; $nameKeyUnifyDepth >= 0; $nameKeyUnifyDepth--) {
-        $usersPerNameKey = [];
+        $usersPerName = [];
         foreach ($this->getUsers() as $user) {
           $name = $user->jmeno();
           if ($name === '') {
             continue;
           }
           try {
-            $keyFromCivilName = ImportKeyUnifier::toUnifiedKey($name, array_keys($usersPerNameKey), $nameKeyUnifyDepth);
+            $keyFromCivilName = ImportKeyUnifier::toUnifiedKey($name, array_keys($usersPerName), $nameKeyUnifyDepth);
             if (in_array($keyFromCivilName, $conflictingKeys, true)) {
               continue; // can not use this user as his name is in conflict with another one
             }
-            $usersPerNameKey[$keyFromCivilName] = $user;
+            $usersPerName[$keyFromCivilName] = $user;
             // if unification was too aggressive and we had to lower level of depth / lossy compression, we have to store the lowest level for later picking-up values from cache
           } catch (DuplicatedUnifiedKeyException $unifiedKeyException) {
             if ($nameKeyUnifyDepth > 0) {
               continue 2; // lower key depth
             }
             $conflictingKeys[] = $unifiedKeyException->getDuplicatedKey();
-            unset($usersPerNameKey[$unifiedKeyException->getDuplicatedKey()]); // better to remove conflicting names than throw them all
+            unset($usersPerName[$unifiedKeyException->getDuplicatedKey()]); // better to remove conflicting names than throw them all
           }
         }
-        $this->usersPerName = $usersPerNameKey;
+        $this->usersPerName = $usersPerName;
         $this->fromNameKeyUnifyDepth = min($this->fromNameKeyUnifyDepth, $nameKeyUnifyDepth);
         break; // all names converted to unified and unique keys
       }
