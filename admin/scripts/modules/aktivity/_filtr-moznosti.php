@@ -53,14 +53,18 @@ class FiltrMoznosti
     return new static($adminAktivityFiltr, ROK, $filtrRoku, $filtrovatPodleRoku);
   }
 
-  public function __construct(string $adminAktivityFiltr, int $letosniRok, int $filtrRoku, bool $filtrovatPodleRoku) {
+  private function __construct(string $adminAktivityFiltr, int $letosniRok, int $filtrRoku, bool $filtrovatPodleRoku) {
     $this->adminAktivityFiltr = $adminAktivityFiltr;
     $this->letosniRok = $letosniRok;
     $this->filtrRoku = $filtrRoku;
     $this->filtrovatPodleRoku = $filtrovatPodleRoku;
   }
 
-  public function naplnTemplate(): XTemplate {
+  public function zobraz() {
+    $this->naplnTemplate()->out('filtr');
+  }
+
+  private function naplnTemplate(): XTemplate {
     $tplFiltrMoznosti = new XTemplate(__DIR__ . '/_filtr-moznosti.xtpl');
     $typy = $this->typy();
     $varianty = $this->varianty($typy);
@@ -121,11 +125,6 @@ SQL
     return (int)array_sum(array_map(static function (array $typ) {
       return $typ['pocet_aktivit'];
     }, $typy));
-  }
-
-  public function zobraz(XTemplate $tplFiltrMoznosti = null) {
-    $tplFiltrMoznosti = $tplFiltrMoznosti ?? $this->naplnTemplate();
-    $tplFiltrMoznosti->out('filtr');
   }
 
   public function dejFiltr(): array {
