@@ -68,11 +68,11 @@ SQL
   }
 
   public function jeVypravec(): bool {
-    return $this->maZidli(\Gamecon\Zidle::VYPRAVEC);
+    return \Gamecon\Zidle::jeVypravec($this->dejZidle());
   }
 
   public function jeOrganizator(): bool {
-    return $this->maZidli(\Gamecon\Zidle::ORGANIZATOR);
+    return \Gamecon\Zidle::jeOrganizator($this->dejZidle());
   }
 
   /**
@@ -417,10 +417,24 @@ SQL
    * @todo při načítání práv udělat pole místo načítání z DB
    */
   function maZidli($zidle): bool {
-    if (!isset($this->zidle)) {
-      $this->zidle = dbOneIndex('SELECT id_zidle FROM r_uzivatele_zidle WHERE id_uzivatele = ' . $this->id());
+    $idZidle = (int)$zidle;
+    if (!$idZidle) {
+      return false;
     }
-    return isset($this->zidle[$zidle]);
+    return in_array($idZidle, $this->dejZidle(), true);
+  }
+
+  /**
+   * @return int[]
+   */
+  public function dejZidle(): array {
+    if (!isset($this->zidle)) {
+      $zidle = dbOneArray('SELECT id_zidle FROM r_uzivatele_zidle WHERE id_uzivatele = ' . $this->id());
+      $this->zidle = array_map(static function ($idZidle) {
+        return (int)$idZidle;
+      }, $zidle);
+    }
+    return $this->zidle;
   }
 
   protected function medailonek() {

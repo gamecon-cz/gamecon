@@ -18,4 +18,24 @@ class Zidle extends \DbObject
   public const SPRAVCE = 20; // financí GC,"Organizátor, který může nakládat s financemi GC"
   public const ORGANIZATOR_S_BONUSY_1 = 21; // (s bonusy 1),""
   public const ORGANIZATOR_S_BONUSY_2 = 22; // (s bonusy 2),""
+
+  /**
+   * @param int[] $zidle
+   * @return bool
+   */
+  public static function jeVypravec(array $zidle): bool {
+    return in_array(self::VYPRAVEC, $zidle, false);
+  }
+
+  /**
+   * @param int[] $zidle
+   * @return bool
+   */
+  public static function jeOrganizator(array $zidle): bool {
+    $idZidli = array_map(static function ($idZidle) {
+      return (int)$idZidle;
+    }, $zidle);
+    $maZidle = array_intersect($idZidli, [self::ORGANIZATOR, self::ORGANIZATOR_S_BONUSY_1, self::ORGANIZATOR_S_BONUSY_2]);
+    return count($maZidle) > 0;
+  }
 }
