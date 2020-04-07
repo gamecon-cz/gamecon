@@ -445,13 +445,13 @@ class ImportValuesSanitizer
     $notStorytellers = [];
     $storytellersValues = $this->parseArrayFromString($storytellersString);
     foreach ($storytellersValues as $storytellerValue) {
-      $storyteller = $this->importObjectsContainer->getUserFromValue($storytellerValue);
-      if (!$storyteller) {
+      $user = $this->importObjectsContainer->getUserFromValue($storytellerValue);
+      if (!$user) {
         $invalidStorytellersValues[] = $storytellerValue;
-      } elseif (!$storyteller->jeOrganizator()) {
-        $notStorytellers[] = $storyteller;
+      } elseif (!$user->jeVypravec() && !$user->jeOrganizator()) {
+        $notStorytellers[] = $user;
       } else {
-        $storytellersIds[] = $storyteller->id();
+        $storytellersIds[] = $user->id();
       }
     }
     $errorLikeWarnings = [];
@@ -470,7 +470,7 @@ class ImportValuesSanitizer
       }, $notStorytellers));
       $notStorytellersHtml = htmlentities($notStorytellersString);
       $errorLikeWarnings[] = sprintf(<<<HTML
-        '%s: Uživatelé nejsou <a href="{$this->storytellersPermissionsUrl}" target="_blank">vypravěči</a>: {$notStorytellersHtml}. Jsou vynecháni.
+        '%s: Uživatelé nejsou <a href="{$this->storytellersPermissionsUrl}" target="_blank">vypravěči ani organizátoři</a>: {$notStorytellersHtml}. Jsou vynecháni.
 HTML
         , $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity)
       );

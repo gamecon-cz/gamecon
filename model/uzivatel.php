@@ -67,8 +67,12 @@ SQL
     }
   }
 
-  public function jeOrganizator(): bool {
+  public function jeVypravec(): bool {
     return $this->maZidli(\Gamecon\Zidle::VYPRAVEC);
+  }
+
+  public function jeOrganizator(): bool {
+    return $this->maZidli(\Gamecon\Zidle::ORGANIZATOR);
   }
 
   /**
