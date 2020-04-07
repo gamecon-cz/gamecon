@@ -25,7 +25,7 @@ class ImportRequirementsGuardian
       if ($programLineValue) {
         $programLine = $this->importObjectsContainer->getProgramLineFromValue((string)$programLineValue);
       }
-      if (!$programLine && $row[ExportAktivitSloupce::ID_AKTIVITY]) {
+      if (!$programLine && !empty($row[ExportAktivitSloupce::ID_AKTIVITY])) {
         $activity = ImportModelsFetcher::fetchActivity($row[ExportAktivitSloupce::ID_AKTIVITY]);
         if ($activity && $activity->typ()) {
           $programLine = $activity->typ();
