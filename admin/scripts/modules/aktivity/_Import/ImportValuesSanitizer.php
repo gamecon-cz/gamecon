@@ -432,7 +432,7 @@ class ImportValuesSanitizer
   }
 
   private function getValidatedStorytellersIds(array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
-    $storytellersString = $activityValues[ExportAktivitSloupce::VYPRAVECI] ?? null;
+    $storytellersString = $activityValues[ExportAktivitSloupce::VYPRAVECI] ?? '';
     if (!$storytellersString) {
       $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
       return ImportStepResult::success($sourceActivity
@@ -443,7 +443,7 @@ class ImportValuesSanitizer
     $storytellersIds = [];
     $invalidStorytellersValues = [];
     $notStorytellers = [];
-    $storytellersValues = array_map('trim', explode(',', $storytellersString));
+    $storytellersValues = $this->parseArrayFromString($storytellersString);
     foreach ($storytellersValues as $storytellerValue) {
       $storyteller = $this->importObjectsContainer->getUserFromValue($storytellerValue);
       if (!$storyteller) {
@@ -476,6 +476,18 @@ HTML
       );
     }
     return ImportStepResult::successWithErrorLikeWarnings($storytellersIds, $errorLikeWarnings);
+  }
+
+  /**
+   * @param string $string
+   * @return string[]
+   */
+  private function parseArrayFromString(string $string): array {
+    $semicolonExploded = explode(';', $string);
+    $commaAndSemicolonExploded = array_map(static function (string $chunk) {
+      return explode(',', $chunk);
+    }, $semicolonExploded);
+    return array_map('trim', $commaAndSemicolonExploded);
   }
 
   private function getValidatedLongAnnotation(array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
@@ -513,7 +525,7 @@ HTML
     }
     $tagIds = [];
     $invalidTagsValues = [];
-    $tagsValues = array_map('trim', explode(',', $tagsString));
+    $tagsValues = $this->parseArrayFromString($tagsString);
     foreach ($tagsValues as $tagValue) {
       if ($tagValue === '') {
         continue;

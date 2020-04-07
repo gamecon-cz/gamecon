@@ -95,7 +95,7 @@ class ExporterAktivit
         $aktivita->nazev(), // Název
         $aktivita->urlId(), // URL
         $aktivita->kratkyPopis(), // Krátká anotace
-        implode(',', $aktivita->tagy()), // Tagy
+        implode('; ', $aktivita->tagy()), // Tagy
         $aktivita->getPopisRaw(), // Dlouhá anotace
         $zacatekDen, // Den
         $zacatekCas, // Začátek
@@ -103,7 +103,7 @@ class ExporterAktivit
         $aktivita->lokace()
           ? $aktivita->lokace()->nazev()
           : '', // Místnost
-        implode(',', $aktivita->getOrganizatoriIds()), // Vypravěči
+        implode('; ', $aktivita->getOrganizatoriIds()), // Vypravěči
         $aktivita->getKapacitaUnisex(), // Kapacita unisex
         $aktivita->getKapacitaMuzu(), // Kapacita muži
         $aktivita->getKapacitaZen(), // Kapacita ženy
