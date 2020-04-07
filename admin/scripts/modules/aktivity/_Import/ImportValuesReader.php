@@ -121,7 +121,7 @@ class ImportValuesReader
       return ImportStepResult::error('Chybí názvy sloupců v prvním řádku.');
     }
     if (count($emptyColumnsPositions) > 0 && max(array_keys($cleansedHeader)) > min(array_keys($emptyColumnsPositions))) {
-      return ImportStepResult::error(sprintf('Některé náxvy sloupců jsou prázdné a to na pozicích %s', implode(',', $emptyColumnsPositions)));
+      return ImportStepResult::error(sprintf('Některé názvy sloupců jsou prázdné a to na pozicích %s', implode(',', $emptyColumnsPositions)));
     }
     return ImportStepResult::success($cleansedHeader);
   }
