@@ -295,7 +295,7 @@ class ImportValuesSanitizer
   }
 
   private function getActivityId(array $activityValues): ImportStepResult {
-    if ($activityValues[ExportAktivitSloupce::ID_AKTIVITY]) {
+    if (!empty($activityValues[ExportAktivitSloupce::ID_AKTIVITY])) {
       return ImportStepResult::success((int)$activityValues[ExportAktivitSloupce::ID_AKTIVITY]);
     }
     return ImportStepResult::success(null);
@@ -483,11 +483,9 @@ HTML
    * @return string[]
    */
   private function parseArrayFromString(string $string): array {
-    $semicolonExploded = explode(';', $string);
-    $commaAndSemicolonExploded = array_map(static function (string $chunk) {
-      return explode(',', $chunk);
-    }, $semicolonExploded);
-    return array_map('trim', $commaAndSemicolonExploded);
+    $semicolonOnly = str_replace(',', ';', $string);
+    $exploded = explode(';', $semicolonOnly);
+    return array_map('trim', $exploded);
   }
 
   private function getValidatedLongAnnotation(array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
