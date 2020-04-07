@@ -26,6 +26,7 @@ class ImportModelsFetcher
       if (!$user) {
         throw new ActivitiesImportException("User with ID '$userId' does not exist");
       }
+      $users[$userId] = $user;
     }
     return $users[$userId];
   }
