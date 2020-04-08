@@ -15,21 +15,6 @@ class Uzivatel
   /**
    * @return Uzivatel[]
    */
-  public static function organizatori(): array {
-    $organizatoriIds = dbOneArray(<<<SQL
-SELECT DISTINCT uzivatele_hodnoty.id_uzivatele
-FROM uzivatele_hodnoty
-JOIN r_uzivatele_zidle on uzivatele_hodnoty.id_uzivatele = r_uzivatele_zidle.id_uzivatele
-WHERE r_uzivatele_zidle.id_zidle = $1
-SQL
-      , [\Gamecon\Zidle::VYPRAVEC]
-    );
-    return static::zIds($organizatoriIds);
-  }
-
-  /**
-   * @return Uzivatel[]
-   */
   public static function vsichni(): array {
     $ids = dbOneArray(<<<SQL
 SELECT DISTINCT uzivatele_hodnoty.id_uzivatele
@@ -43,7 +28,7 @@ SQL
     $aktivityJakoNahradnik, // pole s klíči id aktvit, kde je jako náhradník
     $u = [],
     $klic = '',
-    $zidle,         // pole s klíči id židlí uživatele
+    $idZidli,         // pole s klíči id židlí uživatele
     $finance = null;
 
   const
@@ -67,12 +52,24 @@ SQL
     }
   }
 
+  public function jePoradatelAktivit(): bool {
+    return (bool)dbOneCol(<<<SQL
+SELECT 1
+FROM r_uzivatele_zidle
+JOIN r_prava_zidle ON r_uzivatele_zidle.id_zidle = r_prava_zidle.id_zidle
+WHERE r_uzivatele_zidle.id_uzivatele = $1
+AND r_prava_zidle.id_prava = $2
+SQL
+      , [$this->id(), \Gamecon\Pravo::PORADANI_AKTIVIT]
+    );
+  }
+
   public function jeVypravec(): bool {
-    return \Gamecon\Zidle::obsahujiVypravece($this->dejZidle());
+    return \Gamecon\Zidle::obsahujiVypravece($this->dejIdZidli());
   }
 
   public function jeOrganizator(): bool {
-    return \Gamecon\Zidle::obsahujiOrganizatora($this->dejZidle());
+    return \Gamecon\Zidle::obsahujiOrganizatora($this->dejIdZidli());
   }
 
   /**
@@ -421,20 +418,20 @@ SQL
     if (!$idZidle) {
       return false;
     }
-    return in_array($idZidle, $this->dejZidle(), true);
+    return in_array($idZidle, $this->dejIdZidli(), true);
   }
 
   /**
    * @return int[]
    */
-  public function dejZidle(): array {
-    if (!isset($this->zidle)) {
+  public function dejIdZidli(): array {
+    if (!isset($this->idZidli)) {
       $zidle = dbOneArray('SELECT id_zidle FROM r_uzivatele_zidle WHERE id_uzivatele = ' . $this->id());
-      $this->zidle = array_map(static function ($idZidle) {
+      $this->idZidli = array_map(static function ($idZidle) {
         return (int)$idZidle;
       }, $zidle);
     }
-    return $this->zidle;
+    return $this->idZidli;
   }
 
   protected function medailonek() {
