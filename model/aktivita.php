@@ -900,22 +900,30 @@ class Aktivita
         LEFT JOIN akce_organizatori ao USING (id_akce)
         WHERE a.patri_pod = ' . $this->a['patri_pod']
       ));
-    } else {
-      return $this->organizatori();
     }
+    return $this->organizatori();
   }
 
   /**
    * @return string[]|ArrayIterator Vrátí iterátor jmen organizátorů v lidsky čitelné podobě.
-   * @deprecated Použít přístup přes organizatori() a jmenoNick() například.
    */
   function orgJmena() {
-    // TODO logování deprekace
     $jmena = new ArrayIteratorTos;
     foreach ($this->organizatori() as $o) {
       $jmena[] = $o->jmenoNick();
     }
     return $jmena;
+  }
+
+  /**
+   * @return string[]|ArrayIterator Vrátí iterátor loginů organizátorů
+   */
+  function orgLoginy() {
+    $loginy = new ArrayIteratorTos;
+    foreach ($this->organizatori() as $o) {
+      $loginy[] = $o->login();
+    }
+    return $loginy;
   }
 
   /** Alias */

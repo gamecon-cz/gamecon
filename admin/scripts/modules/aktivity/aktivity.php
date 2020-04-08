@@ -87,8 +87,9 @@ foreach ($aktivity as $aktivita) {
     'nazev_akce' => $aktivita->nazev(),
     'hinted' => $aktivita->tagy() ? 'hinted' : '',
     'cas' => $aktivita->denCas(),
-    'organizatori' => $aktivita->orgJmena(),
-    // TODO fixnout s lepším ORM
+    'organizatori' => array_map(static function(Uzivatel $organizator) {
+      return $organizator->jmenoNick();
+    }, $aktivita->organizatori()),
     'typ' => $typy[$r['typ']],
     'mistnost' => $mistnosti[$r['lokace']] ?? '(žádná)',
   ]);

@@ -103,7 +103,7 @@ class ExporterAktivit
         $aktivita->lokace()
           ? $aktivita->lokace()->nazev()
           : '', // Místnost
-        implode('; ', $aktivita->getOrganizatoriIds()), // Vypravěči
+        implode('; ', $aktivita->orgLoginy()->getArrayCopy()), // Vypravěči
         $aktivita->getKapacitaUnisex(), // Kapacita unisex
         $aktivita->getKapacitaMuzu(), // Kapacita muži
         $aktivita->getKapacitaZen(), // Kapacita ženy
