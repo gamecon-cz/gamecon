@@ -283,8 +283,8 @@ class Aktivita
         FROM uzivatele_hodnoty u
         LEFT JOIN r_uzivatele_zidle z USING(id_uzivatele)
         LEFT JOIN r_prava_zidle p USING(id_zidle)
-        WHERE p.id_prava = ' . P_ORG_AKCI . '
-        GROUP BY u.id_uzivatele
+        WHERE p.id_prava = ' . \Gamecon\Pravo::PORADANI_AKTIVIT . '
+        GROUP BY u.login_uzivatele
         ORDER BY u.login_uzivatele
       ');
       $vsichniOrg = [];
