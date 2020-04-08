@@ -1,6 +1,6 @@
 <?php
 
-use Gamecon\Admin\Modules\Aktivity\Export\ExporterAktivit;
+use Gamecon\Admin\Modules\Aktivity\Export\ActivitiesExporter;
 
 require_once __DIR__ . '/_filtr-moznosti.php';
 
@@ -29,8 +29,8 @@ if (count($activityTypeIdsFromFilter) > 1) {
 
   if (!empty($_POST['export_activity_type_id']) && (int)$_POST['export_activity_type_id'] === (int)$activityTypeIdFromFilter && $googleApiClient->isAuthorized()) {
     $baseUrl = (($_SERVER['HTTPS'] ?? 'off') === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
-    $exportAktivit = new ExporterAktivit($u->id(), $googleDriveService, $googleSheetsService, $baseUrl);
-    $nazevExportovanehoSouboru = $exportAktivit->exportujAktivity($aktivity, (string)($filtr['rok'] ?? ROK));
+    $activitiesExporter = new ActivitiesExporter($u->id(), $googleDriveService, $googleSheetsService, $baseUrl);
+    $nazevExportovanehoSouboru = $activitiesExporter->exportActivities($aktivity, (string)($filtr['rok'] ?? ROK));
     oznameni(sprintf("Aktivity byly exportovány do Google sheets pod názvem '%s'", $nazevExportovanehoSouboru));
     exit;
   }
