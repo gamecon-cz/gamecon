@@ -29,7 +29,8 @@ SQL
     $u = [],
     $klic = '',
     $idZidli,         // pole s klíči id židlí uživatele
-    $finance = null;
+    $finance,
+    $idPrav;
 
   const
     FAKE = 0x01,  // modifikátor "fake uživatel"
@@ -53,15 +54,22 @@ SQL
   }
 
   public function jePoradatelAktivit(): bool {
-    return (bool)dbOneCol(<<<SQL
-SELECT 1
+    return \Gamecon\Pravo::obsahujePravoPoradatAktivity($this->dejIdPrav());
+  }
+
+  private function dejIdPrav(): array {
+    if ($this->idPrav === null) {
+      $this->idPrav = dbOneArray(<<<SQL
+SELECT r_prava_zidle.id_prava
 FROM r_uzivatele_zidle
 JOIN r_prava_zidle ON r_uzivatele_zidle.id_zidle = r_prava_zidle.id_zidle
 WHERE r_uzivatele_zidle.id_uzivatele = $1
-AND r_prava_zidle.id_prava = $2
 SQL
-      , [$this->id(), \Gamecon\Pravo::PORADANI_AKTIVIT]
-    );
+        ,
+        [$this->id()]
+      );
+    }
+    return $this->idPrav;
   }
 
   public function jeVypravec(): bool {
