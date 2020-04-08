@@ -68,11 +68,11 @@ SQL
   }
 
   public function jeVypravec(): bool {
-    return \Gamecon\Zidle::jeVypravec($this->dejZidle());
+    return \Gamecon\Zidle::obsahujiVypravece($this->dejZidle());
   }
 
   public function jeOrganizator(): bool {
-    return \Gamecon\Zidle::jeOrganizator($this->dejZidle());
+    return \Gamecon\Zidle::obsahujiOrganizatora($this->dejZidle());
   }
 
   /**
