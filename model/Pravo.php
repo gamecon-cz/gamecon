@@ -42,4 +42,7 @@ class Pravo extends \DbObject
   public const UNIKATNI_ZIDLE = 1027; // Uživatel může mít jen jednu židli s tímto právem
   public const BEZ_SLEVY_ZA_AKTIVITY = 1028; // Nedostává slevu za vedení aktivit ani účast na tech. aktivitách
 
+  public static function obsahujePravoPoradatAktivity(array $idPrav): bool {
+    return in_array(self::PORADANI_AKTIVIT, $idPrav, false);
+  }
 }
