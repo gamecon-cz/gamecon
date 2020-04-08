@@ -6,7 +6,7 @@ use Gamecon\Admin\Modules\Aktivity\Export\Exceptions\ActivitiesExportException;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
 
-class ExporterAktivit
+class ActivitiesExporter
 {
 
   private const EXPORT_DIR = '/admin.gamecon.cz/aktivity';
@@ -46,7 +46,7 @@ class ExporterAktivit
    * @param string $prefix
    * @return string Name of exported file
    */
-  public function exportujAktivity(array $aktivity, string $prefix): string {
+  public function exportActivities(array $aktivity, string $prefix): string {
     $data = $this->getActivityData($aktivity);
     $sheetTitle = $this->getSheetTitle($aktivity, $prefix);
     $spreadSheet = $this->createSheetForActivities($sheetTitle);
