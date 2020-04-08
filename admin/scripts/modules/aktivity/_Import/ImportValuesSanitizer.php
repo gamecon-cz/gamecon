@@ -448,7 +448,7 @@ class ImportValuesSanitizer
       $user = $this->importObjectsContainer->getUserFromValue($storytellerValue);
       if (!$user) {
         $invalidStorytellersValues[] = $storytellerValue;
-      } elseif (!$user->jeVypravec() && !$user->jeOrganizator()) {
+      } elseif (!$user->jePoradatelAktivit()) {
         $notStorytellers[] = $user;
       } else {
         $storytellersIds[] = $user->id();
