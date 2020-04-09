@@ -2,6 +2,7 @@
 
 namespace Gamecon\Admin\Modules\Aktivity\GoogleSheets;
 
+use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleSheetsException;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleSheetsPreview;
 
 class GoogleSheetsService
@@ -75,14 +76,33 @@ class GoogleSheetsService
     return (array)$valueRange->getValues();
   }
 
+  private function getWholeFirstSheetRange(string $spreadsheetId): string {
+    return $this->getWholeSheetRange($spreadsheetId, 1);
+  }
+
+  private function getWholeSheetRange(string $spreadsheetId, int $wantedSheetNumber): string {
+    $spreadsheet = $this->getSpreadsheet($spreadsheetId);
+    /** @var \Google_Service_Sheets_Sheet[] $sheets */
+    $sheets = $spreadsheet->getSheets();
+    $currentSheetNumber = 1;
+    foreach ($sheets as $sheet) {
+      if ($currentSheetNumber === $wantedSheetNumber) {
+        // sheet title, like "Sheet 1" is the range to target whole first sheet
+        return $sheet->getProperties()->getTitle();
+      }
+    }
+    throw new GoogleSheetsException("Sheet with number $wantedSheetNumber is not available for spreadsheet $spreadsheetId");
+  }
+
   /**
    * @param array $values
    * @param string $spreadsheetId
+   * @param int $sheetNumber
    * @throws Exceptions\GoogleApiException
    * @throws Exceptions\UnauthorizedGoogleApiClient
    */
-  public function setValuesInSpreadsheet(array $values, string $spreadsheetId) {
-    $sheetNameAsWholeSheetRange = $this->getWholeFirstSheetRange($spreadsheetId);
+  public function setValuesInSpreadsheet(array $values, string $spreadsheetId, int $sheetNumber) {
+    $sheetNameAsWholeSheetRange = $this->getWholeSheetRange($spreadsheetId, $sheetNumber);
 
     $valueRange = new \Google_Service_Sheets_ValueRange();
     $valueRange->setValues($values);
@@ -95,13 +115,6 @@ class GoogleSheetsService
     );
   }
 
-  private function getWholeFirstSheetRange(string $spreadsheetId): string {
-    $spreadsheet = $this->getSpreadsheet($spreadsheetId);
-    $firstSheet = current($spreadsheet->getSheets());
-
-    // first sheet title, like "Sheet 1" is the range to target whole first sheet
-    return $firstSheet->getProperties()->getTitle();
-  }
 
   /**
    * @param string $spreadsheetId
