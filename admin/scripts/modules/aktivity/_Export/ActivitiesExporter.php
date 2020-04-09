@@ -53,7 +53,7 @@ class ActivitiesExporter
     $spreadSheet = $this->createSheetForActivities($spreadsheetTitle, $activitySheetTitle);
 
     $activityData = $this->getActivityData($aktivity);
-    $this->saveActivityData($activityData, $spreadSheet); // TODO export rooms, states
+    $this->saveActivityData($activityData, $spreadSheet); // TODO export states
 
     $allTagsData = $this->getAllTagsData();
     $this->saveTagsData($allTagsData, $spreadSheet);
@@ -63,6 +63,9 @@ class ActivitiesExporter
 
     $allRoomsData = $this->getAllRoomsData();
     $this->saveRoomsData($allRoomsData, $spreadSheet);
+
+    $allActivityStatesData = $this->getAllActivityStatesData();
+    $this->saveActivityStatesData($allActivityStatesData, $spreadSheet);
 
     $this->moveSpreadsheetToExportDir($spreadSheet);
     return $spreadsheetTitle;
@@ -180,6 +183,17 @@ class ActivitiesExporter
     return $data;
   }
 
+  private function getAllActivityStatesData(): array {
+    $data[] = ExportStavuAktivitSloupce::vsechnySloupce();
+    $stavy = \Stav::zVsech();
+    foreach ($stavy as $stav) {
+      $data[] = [
+        $stav->nazev(),
+      ];
+    }
+    return $data;
+  }
+
   private function saveActivityData(array $activityData, \Google_Service_Sheets_Spreadsheet $spreadsheet) {
     $this->googleSheetsService->setValuesInSpreadsheet($activityData, $spreadsheet->getSpreadsheetId(), 1);
   }
@@ -196,10 +210,14 @@ class ActivitiesExporter
     $this->googleSheetsService->setValuesInSpreadsheet($roomsData, $spreadsheet->getSpreadsheetId(), 4);
   }
 
+  private function saveActivityStatesData(array $activityStatesData, \Google_Service_Sheets_Spreadsheet $spreadsheet) {
+    $this->googleSheetsService->setValuesInSpreadsheet($activityStatesData, $spreadsheet->getSpreadsheetId(), 5);
+  }
+
   private function createSheetForActivities(string $sheetTitle, string $activitySheetTitle): \Google_Service_Sheets_Spreadsheet {
     $newSpreadsheet = $this->googleSheetsService->createNewSpreadsheet(
       $sheetTitle,
-      [mb_ucfirst($activitySheetTitle), 'Tagy', 'Pořadatelé', 'Místnosti']
+      [mb_ucfirst($activitySheetTitle), 'Tagy', 'Pořadatelé', 'Místnosti', 'Stavy']
     );
     $sheets = $newSpreadsheet->getSheets();
     /** @var \Google_Service_Sheets_Sheet $sheet */

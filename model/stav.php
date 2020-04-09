@@ -2,6 +2,7 @@
 
 /**
  * @method static Stav zId($id)
+ * @method static Stav[] zVsech()
  */
 class Stav extends DbObject
 {
