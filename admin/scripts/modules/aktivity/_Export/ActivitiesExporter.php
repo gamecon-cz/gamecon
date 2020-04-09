@@ -47,10 +47,15 @@ class ActivitiesExporter
    * @return string Name of exported file
    */
   public function exportActivities(array $aktivity, string $prefix): string {
-    $data = $this->getActivityData($aktivity);
     $sheetTitle = $this->getSheetTitle($aktivity, $prefix);
     $spreadSheet = $this->createSheetForActivities($sheetTitle);
-    $this->saveData($data, $spreadSheet);
+
+    $activityData = $this->getActivityData($aktivity);
+    $this->saveActivityData($activityData, $spreadSheet); // TODO export storytellers, rooms, states
+
+    $allTagsData = $this->getAllTagsData();
+    $this->saveTagsData($allTagsData, $spreadSheet);
+
     $this->moveSpreadsheetToExportDir($spreadSheet);
     return $sheetTitle;
   }
@@ -126,8 +131,26 @@ class ActivitiesExporter
     return $data;
   }
 
-  private function saveData(array $values, \Google_Service_Sheets_Spreadsheet $spreadsheet) {
-    $this->googleSheetsService->setValuesInSpreadsheet($values, $spreadsheet->getSpreadsheetId());
+  private function getAllTagsData(): array {
+    $data[] = ExportTaguSloupce::vsechnySloupce();
+    $tagy = \Tag::zVsech();
+    foreach ($tagy as $tag) {
+      $data[] = [
+        $tag->id(),
+        $tag->katregorieTagu()->nazev(),
+        $tag->nazev(),
+        $tag->poznamka(),
+      ];
+    }
+    return $data;
+  }
+
+  private function saveActivityData(array $activityData, \Google_Service_Sheets_Spreadsheet $spreadsheet) {
+    $this->googleSheetsService->setValuesInSpreadsheet($activityData, $spreadsheet->getSpreadsheetId(), 1);
+  }
+
+  private function saveTagsData(array $tagsData, \Google_Service_Sheets_Spreadsheet $spreadsheet) {
+    $this->googleSheetsService->setValuesInSpreadsheet($tagsData, $spreadsheet->getSpreadsheetId(), 2);
   }
 
   private function createSheetForActivities(string $sheetTitle): \Google_Service_Sheets_Spreadsheet {
