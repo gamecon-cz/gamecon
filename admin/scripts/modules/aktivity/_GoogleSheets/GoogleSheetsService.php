@@ -38,17 +38,27 @@ class GoogleSheetsService
   }
 
   /**
-   * @param string $title
+   * @param string $spreadSheetTitle
+   * @param string[] $sheetTitles
    * @return \Google_Service_Sheets_Spreadsheet
    * @throws Exceptions\GoogleApiException
    * @throws Exceptions\UnauthorizedGoogleApiClient
    */
-  public function createNewSpreadsheet(string $title): \Google_Service_Sheets_Spreadsheet {
+  public function createNewSpreadsheet(string $spreadSheetTitle, array $sheetTitles): \Google_Service_Sheets_Spreadsheet {
     $spreadsheet = new \Google_Service_Sheets_Spreadsheet();
 
     $spreadsheetProperties = new \Google_Service_Sheets_SpreadsheetProperties();
-    $spreadsheetProperties->setTitle($title);
+    $spreadsheetProperties->setTitle($spreadSheetTitle);
     $spreadsheet->setProperties($spreadsheetProperties);
+    $sheets = [];
+    foreach ($sheetTitles as $sheetTitle) {
+      $sheet = new \Google_Service_Sheets_Sheet();
+      $sheetProperties = new \Google_Service_Sheets_SheetProperties();
+      $sheetProperties->setTitle($sheetTitle);
+      $sheet->setProperties($sheetProperties);
+      $sheets[] = $sheet;
+    }
+    $spreadsheet->setSheets($sheets);
 
     return $this->getNativeSheets()->spreadsheets->create($spreadsheet);
   }
@@ -90,6 +100,7 @@ class GoogleSheetsService
         // sheet title, like "Sheet 1" is the range to target whole first sheet
         return $sheet->getProperties()->getTitle();
       }
+      $currentSheetNumber++;
     }
     throw new GoogleSheetsException("Sheet with number $wantedSheetNumber is not available for spreadsheet $spreadsheetId");
   }
@@ -115,28 +126,29 @@ class GoogleSheetsService
     );
   }
 
-
   /**
    * @param string $spreadsheetId
+   * @param int $sheetId
    * @throws Exceptions\GoogleApiException
    * @throws Exceptions\UnauthorizedGoogleApiClient
    */
-  public function setFirstRowAsHeader(string $spreadsheetId) {
+  public function setFirstRowAsHeader(string $spreadsheetId, int $sheetId) {
     $requests = [];
-    $requests[] = $this->createFirstRowBoldRequest();
-    $requests[] = $this->createFreezeFirstRowRequest();
+    $requests[] = $this->createFirstRowBoldRequest($sheetId);
+    $requests[] = $this->createFreezeFirstRowRequest($sheetId);
 
     $update = new \Google_Service_Sheets_BatchUpdateSpreadsheetRequest();
     $update->setRequests($requests);
     $this->getNativeSheets()->spreadsheets->batchUpdate($spreadsheetId, $update);
   }
 
-  private function createFirstRowBoldRequest(): \Google_Service_Sheets_Request {
+  private function createFirstRowBoldRequest(int $sheetId): \Google_Service_Sheets_Request {
     $repeatCellRequest = new \Google_Service_Sheets_RepeatCellRequest();
     $repeatCellRequest->setFields("userEnteredFormat(textFormat,horizontalAlignment)");
     $repeatCellRequestRange = new \Google_Service_Sheets_GridRange();
     $repeatCellRequestRange->setStartRowIndex(0);
     $repeatCellRequestRange->setEndRowIndex(1);
+    $repeatCellRequestRange->setSheetId($sheetId);
     $repeatCellRequest->setRange($repeatCellRequestRange);
 
     $cell = new \Google_Service_Sheets_CellData();
@@ -153,12 +165,13 @@ class GoogleSheetsService
     return $request;
   }
 
-  private function createFreezeFirstRowRequest(): \Google_Service_Sheets_Request {
+  private function createFreezeFirstRowRequest(int $sheetId): \Google_Service_Sheets_Request {
     $updateSheetPropertiesRequest = new \Google_Service_Sheets_UpdateSheetPropertiesRequest();
     $sheetProperties = new \Google_Service_Sheets_SheetProperties();
     $gridProperties = new \Google_Service_Sheets_GridProperties();
     $gridProperties->setFrozenRowCount(1);
     $sheetProperties->setGridProperties($gridProperties);
+    $sheetProperties->setSheetId($sheetId);
     $updateSheetPropertiesRequest->setFields("gridProperties.frozenRowCount");
     $updateSheetPropertiesRequest->setProperties($sheetProperties);
 
