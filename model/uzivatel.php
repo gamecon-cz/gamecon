@@ -24,6 +24,22 @@ SQL
     return static::zIds($ids);
   }
 
+  /**
+   * @return Uzivatel[]
+   */
+  public static function poradateleAktivit(): array {
+    $ids = dbOneArray(<<<SQL
+SELECT DISTINCT uzivatele_hodnoty.id_uzivatele
+FROM uzivatele_hodnoty
+JOIN r_uzivatele_zidle ON uzivatele_hodnoty.id_uzivatele = r_uzivatele_zidle.id_uzivatele
+JOIN r_prava_zidle ON r_uzivatele_zidle.id_zidle = r_prava_zidle.id_zidle
+WHERE r_prava_zidle.id_prava = $1
+SQL
+    , [\Gamecon\Pravo::PORADANI_AKTIVIT]
+    );
+    return static::zIds($ids);
+  }
+
   protected
     $aktivityJakoNahradnik, // pole s klíči id aktvit, kde je jako náhradník
     $u = [],
