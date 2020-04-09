@@ -18,8 +18,20 @@ class Lokace extends DbObject
     return $this->r['nazev'];
   }
 
-  function poradi() {
-    return $this->r['poradi'];
+  function dvere() {
+    return $this->r['dvere'];
+  }
+
+  function poznamka() {
+    return $this->r['poznamka'];
+  }
+
+  function poradi(): int {
+    return (int)$this->r['poradi'];
+  }
+
+  function rok(): int {
+    return (int)$this->r['rok'];
   }
 
   public function id(): int {

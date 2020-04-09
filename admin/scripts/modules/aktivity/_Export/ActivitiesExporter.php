@@ -53,13 +53,16 @@ class ActivitiesExporter
     $spreadSheet = $this->createSheetForActivities($spreadsheetTitle, $activitySheetTitle);
 
     $activityData = $this->getActivityData($aktivity);
-    $this->saveActivityData($activityData, $spreadSheet); // TODO export storytellers, rooms, states
+    $this->saveActivityData($activityData, $spreadSheet); // TODO export rooms, states
 
     $allTagsData = $this->getAllTagsData();
     $this->saveTagsData($allTagsData, $spreadSheet);
 
     $allStorytellersData = $this->getAllStorytellersData();
     $this->saveStorytellersData($allStorytellersData, $spreadSheet);
+
+    $allRoomsData = $this->getAllRoomsData();
+    $this->saveRoomsData($allRoomsData, $spreadSheet);
 
     $this->moveSpreadsheetToExportDir($spreadSheet);
     return $spreadsheetTitle;
@@ -163,6 +166,20 @@ class ActivitiesExporter
     return $data;
   }
 
+  private function getAllRoomsData(): array {
+    $data[] = ExportLokaciSloupce::vsechnySloupce();
+    $lokace = \Lokace::zVsech();
+    foreach ($lokace as $jednaLokace) {
+      $data[] = [
+        $jednaLokace->id(),
+        $jednaLokace->nazev(),
+        $jednaLokace->dvere(),
+        $jednaLokace->poznamka(),
+      ];
+    }
+    return $data;
+  }
+
   private function saveActivityData(array $activityData, \Google_Service_Sheets_Spreadsheet $spreadsheet) {
     $this->googleSheetsService->setValuesInSpreadsheet($activityData, $spreadsheet->getSpreadsheetId(), 1);
   }
@@ -173,6 +190,10 @@ class ActivitiesExporter
 
   private function saveStorytellersData(array $storytellersData, \Google_Service_Sheets_Spreadsheet $spreadsheet) {
     $this->googleSheetsService->setValuesInSpreadsheet($storytellersData, $spreadsheet->getSpreadsheetId(), 3);
+  }
+
+  private function saveRoomsData(array $roomsData, \Google_Service_Sheets_Spreadsheet $spreadsheet) {
+    $this->googleSheetsService->setValuesInSpreadsheet($roomsData, $spreadsheet->getSpreadsheetId(), 4);
   }
 
   private function createSheetForActivities(string $sheetTitle, string $activitySheetTitle): \Google_Service_Sheets_Spreadsheet {
