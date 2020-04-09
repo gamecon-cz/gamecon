@@ -5,6 +5,7 @@ namespace Gamecon\Admin\Modules\Aktivity\Export;
 use Gamecon\Admin\Modules\Aktivity\Export\Exceptions\ActivitiesExportException;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
+use Gamecon\Cas\DateTimeCz;
 
 class ActivitiesExporter
 {
@@ -47,8 +48,9 @@ class ActivitiesExporter
    * @return string Name of exported file
    */
   public function exportActivities(array $aktivity, string $prefix): string {
-    $sheetTitle = $this->getSheetTitle($aktivity, $prefix);
-    $spreadSheet = $this->createSheetForActivities($sheetTitle);
+    $activitySheetTitle = $this->getActivitySheetTitle($aktivity);
+    $spreadsheetTitle = $this->getSpreadsheetTitle($prefix, $activitySheetTitle);
+    $spreadSheet = $this->createSheetForActivities($spreadsheetTitle, $activitySheetTitle);
 
     $activityData = $this->getActivityData($aktivity);
     $this->saveActivityData($activityData, $spreadSheet); // TODO export storytellers, rooms, states
@@ -57,7 +59,7 @@ class ActivitiesExporter
     $this->saveTagsData($allTagsData, $spreadSheet);
 
     $this->moveSpreadsheetToExportDir($spreadSheet);
-    return $sheetTitle;
+    return $spreadsheetTitle;
   }
 
   /**
@@ -137,9 +139,9 @@ class ActivitiesExporter
     foreach ($tagy as $tag) {
       $data[] = [
         $tag->id(),
-        $tag->katregorieTagu()->nazev(),
         $tag->nazev(),
         $tag->poznamka(),
+        $tag->katregorieTagu()->nazev(),
       ];
     }
     return $data;
@@ -153,16 +155,27 @@ class ActivitiesExporter
     $this->googleSheetsService->setValuesInSpreadsheet($tagsData, $spreadsheet->getSpreadsheetId(), 2);
   }
 
-  private function createSheetForActivities(string $sheetTitle): \Google_Service_Sheets_Spreadsheet {
-    $newSpreadsheet = $this->googleSheetsService->createNewSpreadsheet($sheetTitle);
-    $this->googleSheetsService->setFirstRowAsHeader($newSpreadsheet->getSpreadsheetId());
+  private function createSheetForActivities(string $sheetTitle, string $activitySheetTitle): \Google_Service_Sheets_Spreadsheet {
+    $newSpreadsheet = $this->googleSheetsService->createNewSpreadsheet(
+      $sheetTitle,
+      [mb_ucfirst($activitySheetTitle), 'Tagy']
+    );
+    $sheets = $newSpreadsheet->getSheets();
+    /** @var \Google_Service_Sheets_Sheet $sheet */
+    foreach ($sheets as $sheet) {
+      $this->googleSheetsService->setFirstRowAsHeader($newSpreadsheet->getSpreadsheetId(), $sheet->getProperties()->getSheetId());
+    }
     return $newSpreadsheet;
   }
 
-  private function getSheetTitle(array $aktivity, string $prefix): string {
+  private function getSpreadsheetTitle(string $prefix, string $baseTitle): string {
+    return sprintf('%d %s - %s', $prefix, $baseTitle, (new DateTimeCz())->formatCasStandard());
+  }
+
+  private function getActivitySheetTitle(array $aktivity): string {
     $activitiesTypeNames = $this->getActivitiesUniqueTypeNames($aktivity);
     sort($activitiesTypeNames);
-    return sprintf('%d %s - %s', $prefix, implode(' a ', $activitiesTypeNames), date('j. n. Y H:i:s'));
+    return implode(' a ', $activitiesTypeNames);
   }
 
   /**

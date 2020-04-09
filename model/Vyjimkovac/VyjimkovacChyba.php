@@ -94,10 +94,13 @@ class VyjimkovacChyba {
 
   static function zVyjimky($e) {
     $r = self::radekInit();
+    $es = null;
     try {
       $es = serialize($e);
-    } catch(\Throwable $e) {
-      $es = null;
+    } catch(\Throwable $serializeError) {
+      if ($e instanceof \Throwable) {
+        $es = $e->getTraceAsString();
+      }
     }
     $r = array_merge($r, [
       'jazyk'     => 'php',
