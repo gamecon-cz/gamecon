@@ -58,6 +58,9 @@ class ActivitiesExporter
     $allTagsData = $this->getAllTagsData();
     $this->saveTagsData($allTagsData, $spreadSheet);
 
+    $allStorytellersData = $this->getAllStorytellersData();
+    $this->saveStorytellersData($allStorytellersData, $spreadSheet);
+
     $this->moveSpreadsheetToExportDir($spreadSheet);
     return $spreadsheetTitle;
   }
@@ -147,6 +150,19 @@ class ActivitiesExporter
     return $data;
   }
 
+  private function getAllStorytellersData(): array {
+    $data[] = ExportVypravecuSloupce::vsechnySloupce();
+    $poradateleAktivit = \Uzivatel::poradateleAktivit();
+    foreach ($poradateleAktivit as $poradatelAktivit) {
+      $data[] = [
+        $poradatelAktivit->id(),
+        $poradatelAktivit->mail(),
+        $poradatelAktivit->jmenoNick(),
+      ];
+    }
+    return $data;
+  }
+
   private function saveActivityData(array $activityData, \Google_Service_Sheets_Spreadsheet $spreadsheet) {
     $this->googleSheetsService->setValuesInSpreadsheet($activityData, $spreadsheet->getSpreadsheetId(), 1);
   }
@@ -155,10 +171,14 @@ class ActivitiesExporter
     $this->googleSheetsService->setValuesInSpreadsheet($tagsData, $spreadsheet->getSpreadsheetId(), 2);
   }
 
+  private function saveStorytellersData(array $storytellersData, \Google_Service_Sheets_Spreadsheet $spreadsheet) {
+    $this->googleSheetsService->setValuesInSpreadsheet($storytellersData, $spreadsheet->getSpreadsheetId(), 3);
+  }
+
   private function createSheetForActivities(string $sheetTitle, string $activitySheetTitle): \Google_Service_Sheets_Spreadsheet {
     $newSpreadsheet = $this->googleSheetsService->createNewSpreadsheet(
       $sheetTitle,
-      [mb_ucfirst($activitySheetTitle), 'Tagy']
+      [mb_ucfirst($activitySheetTitle), 'Tagy', 'Pořadatelé']
     );
     $sheets = $newSpreadsheet->getSheets();
     /** @var \Google_Service_Sheets_Sheet $sheet */
