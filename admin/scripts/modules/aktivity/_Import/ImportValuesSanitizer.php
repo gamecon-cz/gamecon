@@ -928,7 +928,7 @@ HTML
     }
     if ($programLine->id() !== $singleProgramLine->id()) {
       return ImportStepResult::error(sprintf(
-        '%s: Importovat lze pouze jednu programovou linii. Aktivita má navíc %s.',
+        "%s: Importovat lze pouze jednu programovou linii. Tato aktivita patří do další linie '%s'.",
         $this->importValuesDescriber->describeActivityByInputValues($activityValues, null),
         $programLineValue
       ));
