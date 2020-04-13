@@ -2,7 +2,6 @@
 
 namespace Gamecon\Admin\Modules\Aktivity\Import;
 
-use Gamecon\Cas\DateTimeCz;
 use Gamecon\Vyjimkovac\Logovac;
 
 class ActivityImporter
@@ -12,7 +11,7 @@ class ActivityImporter
    */
   private $importValuesDescriber;
   /**
-   * @var ImportValuesChecker
+   * @var ImportSqlMappedValuesChecker
    */
   private $importValuesChecker;
   /**
@@ -30,7 +29,7 @@ class ActivityImporter
 
   public function __construct(
     ImportValuesDescriber $importValuesDescriber,
-    ImportValuesChecker $importValuesChecker,
+    ImportSqlMappedValuesChecker $importValuesChecker,
     \DateTimeInterface $now,
     int $currentYear,
     Logovac $logovac
@@ -43,33 +42,33 @@ class ActivityImporter
   }
 
   public function importActivity(
-    $values,
-    $longAnnotation,
-    $storytellersIds,
-    $tagIds,
+    string $activityGuid,
+    array $sqlMappedValues,
+    ?string $longAnnotation,
+    array $storytellersIds,
+    array $tagIds,
     \Typ $singleProgramLine,
     ?\Aktivita $originalActivity
   ): ImportStepResult {
-    $checkBeforeSaveResult = $this->checkBeforeSave($values, $storytellersIds, $singleProgramLine, $originalActivity);
+    $checkBeforeSaveResult = $this->checkBeforeSave($sqlMappedValues, $storytellersIds, $singleProgramLine, $originalActivity);
     if ($checkBeforeSaveResult->isError()) {
-      return ImportStepResult::error($checkBeforeSaveResult->getError());
+      return ImportStepResult::error("$activityGuid: " . $checkBeforeSaveResult->getError());
     }
 
-    ['values' => $values, 'availableStorytellerIds' => $availableStorytellerIds, 'checkResults' => $checkResults] = $checkBeforeSaveResult->getSuccess();
+    ['values' => $sqlMappedValues, 'availableStorytellerIds' => $availableStorytellerIds, 'checkResults' => $checkResults] = $checkBeforeSaveResult->getSuccess();
 
     /** @var  \Aktivita $importedActivity */
     $savedActivityResult = $this->saveActivity(
-      $values,
+      $sqlMappedValues,
       $longAnnotation,
       $availableStorytellerIds,
       $tagIds,
-      $singleProgramLine,
-      $originalActivity
+      $singleProgramLine
     );
     $importedActivity = $savedActivityResult->getSuccess();
 
     if ($savedActivityResult->isError()) {
-      return ImportStepResult::error($savedActivityResult->getError());
+      return ImportStepResult::error("$activityGuid: " . $savedActivityResult->getError());
     }
     $checkResults[] = $savedActivityResult;
     unset($savedActivityResult);
@@ -79,7 +78,7 @@ class ActivityImporter
     if ($originalActivity) {
       return ImportStepResult::successWithWarnings(
         [
-          'message' => sprintf('%s: Upravena existující aktivita.', $this->importValuesDescriber->describeActivity($importedActivity)),
+          'message' => sprintf('%s: Upravena existující aktivita.', $activityGuid),
           'importedActivityId' => $importedActivity->id(),
         ],
         $warnings,
@@ -91,11 +90,11 @@ class ActivityImporter
         [
           'message' => sprintf(
             '%s: Nahrána jako nová, %d. <strong>instance</strong> k hlavní aktivitě %s.',
-            $this->importValuesDescriber->describeActivity($importedActivity),
+            $activityGuid,
             $importedActivity->pocetInstanci(),
             $this->importValuesDescriber->describeActivity($importedActivity->patriPodAktivitu())
           ),
-          'importedActivityId' => $importedActivity->id(),
+          'importedActivity' => $importedActivity,
         ],
         $warnings,
         $errorLikeWarnings
@@ -103,15 +102,15 @@ class ActivityImporter
     }
     return ImportStepResult::successWithWarnings(
       [
-        'message' => sprintf('%s: Nahrána jako nová aktivita. ', $this->importValuesDescriber->describeActivity($importedActivity)),
-        'importedActivityId' => $importedActivity->id(),
+        'message' => sprintf('%s: Nahrána jako nová aktivita. ', $activityGuid),
+        'importedActivity' => $importedActivity,
       ],
       $warnings,
       $errorLikeWarnings
     );
   }
 
-  private function checkBeforeSave(array $values, array $storytellersIds, \Typ $singleProgramLine, ?\Aktivita $originalActivity): ImportStepResult {
+  private function checkBeforeSave(array $sqlMappedValues, array $storytellersIds, \Typ $singleProgramLine, ?\Aktivita $originalActivity): ImportStepResult {
     if ($originalActivity) {
       if (!$originalActivity->bezpecneEditovatelna()) {
         return ImportStepResult::error(sprintf(
@@ -136,44 +135,43 @@ class ActivityImporter
 
     $checkResults = [];
 
-    $durationResult = $this->importValuesChecker->checkDuration($values, $originalActivity);
+    $durationResult = $this->importValuesChecker->checkDuration($sqlMappedValues, $originalActivity);
     if ($durationResult->isError()) {
       return ImportStepResult::error($durationResult->getError());
     }
     ['start' => $start, 'end' => $end] = $durationResult->getSuccess();
-    $values[AktivitaSqlSloupce::ZACATEK] = $start ?: null;
-    $values[AktivitaSqlSloupce::KONEC] = $end ?: null;
+    $sqlMappedValues[AktivitaSqlSloupce::ZACATEK] = $start ?: null;
+    $sqlMappedValues[AktivitaSqlSloupce::KONEC] = $end ?: null;
     $checkResults[] = $durationResult;
     unset($durationResult);
 
-    $urlUniquenessResult = $this->importValuesChecker->checkUrlUniqueness($values, $singleProgramLine, $originalActivity);
+    $urlUniquenessResult = $this->importValuesChecker->checkUrlUniqueness($sqlMappedValues, $singleProgramLine, $originalActivity);
     if ($urlUniquenessResult->isError()) {
       return ImportStepResult::error($urlUniquenessResult->getError());
     }
     $checkResults[] = $urlUniquenessResult;
     unset($urlUniquenessResult);
 
-    $nameUniqueness = $this->importValuesChecker->checkNameUniqueness($values, $singleProgramLine, $originalActivity);
+    $nameUniqueness = $this->importValuesChecker->checkNameUniqueness($sqlMappedValues, $singleProgramLine, $originalActivity);
     if ($nameUniqueness->isError()) {
       return ImportStepResult::error($nameUniqueness->getError());
     }
     $checkResults[] = $nameUniqueness;
     unset($nameUniqueness);
 
-    $stateUsabilityResult = $this->importValuesChecker->checkStateUsability($values, $originalActivity);
+    $stateUsabilityResult = $this->importValuesChecker->checkStateUsability($sqlMappedValues);
     if ($stateUsabilityResult->isError()) {
       return ImportStepResult::error($stateUsabilityResult->getError());
     }
-    $values[AktivitaSqlSloupce::STAV] = $stateUsabilityResult->getSuccess();
+    $sqlMappedValues[AktivitaSqlSloupce::STAV] = $stateUsabilityResult->getSuccess();
     $checkResults[] = $stateUsabilityResult;
     unset($stateUsabilityResult);
 
     $storytellersAccessibilityResult = $this->importValuesChecker->checkStorytellersAccessibility(
       $storytellersIds,
-      $values[AktivitaSqlSloupce::ZACATEK],
-      $values[AktivitaSqlSloupce::KONEC],
-      $originalActivity,
-      $values
+      $sqlMappedValues[AktivitaSqlSloupce::ZACATEK],
+      $sqlMappedValues[AktivitaSqlSloupce::KONEC],
+      $originalActivity
     );
     if ($storytellersAccessibilityResult->isError()) {
       return ImportStepResult::error($storytellersAccessibilityResult->getError());
@@ -183,11 +181,10 @@ class ActivityImporter
     unset($storytellersAccessibilityResult);
 
     $locationAccessibilityResult = $this->importValuesChecker->checkLocationByAccessibility(
-      $values[AktivitaSqlSloupce::LOKACE],
-      $values[AktivitaSqlSloupce::ZACATEK],
-      $values[AktivitaSqlSloupce::KONEC],
-      $originalActivity,
-      $values
+      $sqlMappedValues[AktivitaSqlSloupce::LOKACE],
+      $sqlMappedValues[AktivitaSqlSloupce::ZACATEK],
+      $sqlMappedValues[AktivitaSqlSloupce::KONEC],
+      $originalActivity
     );
     if ($locationAccessibilityResult->isError()) {
       return ImportStepResult::error($locationAccessibilityResult->getError());
@@ -195,35 +192,30 @@ class ActivityImporter
     $checkResults[] = $locationAccessibilityResult;
     unset($locationAccessibilityResult);
 
-    return ImportStepResult::success(['values' => $values, 'availableStorytellerIds' => $availableStorytellerIds, 'checkResults' => $checkResults]);
+    return ImportStepResult::success(['values' => $sqlMappedValues, 'availableStorytellerIds' => $availableStorytellerIds, 'checkResults' => $checkResults]);
   }
 
   private function saveActivity(
-    array $values,
+    array $sqlMappedValues,
     ?string $longAnnotation,
     array $storytellersIds,
     array $tagIds,
-    \Typ $singleProgramLine,
-    ?\Aktivita $originalActivity
+    \Typ $singleProgramLine
   ): ImportStepResult {
     try {
-      if (empty($values[AktivitaSqlSloupce::ID_AKCE])) {
-        $newInstanceParentActivityId = $this->findParentActivityId($values[AktivitaSqlSloupce::URL_AKCE], $singleProgramLine);
+      if (empty($sqlMappedValues[AktivitaSqlSloupce::ID_AKCE])) {
+        $newInstanceParentActivityId = $this->findParentActivityId($sqlMappedValues[AktivitaSqlSloupce::URL_AKCE], $singleProgramLine);
         if ($newInstanceParentActivityId) {
           $newInstance = $this->createInstanceForParentActivity($newInstanceParentActivityId);
-          $values[AktivitaSqlSloupce::ID_AKCE] = $newInstance->id();
-          $values[AktivitaSqlSloupce::PATRI_POD] = $newInstance->patriPod();
+          $sqlMappedValues[AktivitaSqlSloupce::ID_AKCE] = $newInstance->id();
+          $sqlMappedValues[AktivitaSqlSloupce::PATRI_POD] = $newInstance->patriPod();
         }
       }
-      $savedActivity = \Aktivita::uloz($values, $longAnnotation, $storytellersIds, $tagIds);
+      $savedActivity = \Aktivita::uloz($sqlMappedValues, $longAnnotation, $storytellersIds, $tagIds);
       return ImportStepResult::success($savedActivity);
     } catch (\Exception $exception) {
       $this->logovac->zaloguj($exception);
-      return ImportStepResult::error(sprintf(
-        '%s: aktivitu se nepodařilo uložit: %s.',
-        $this->importValuesDescriber->describeActivityByInputValues($values, $originalActivity),
-        $exception->getMessage()
-      ));
+      return ImportStepResult::error(sprintf('Aktivitu se nepodařilo uložit: %s.', $exception->getMessage()));
     }
   }
 

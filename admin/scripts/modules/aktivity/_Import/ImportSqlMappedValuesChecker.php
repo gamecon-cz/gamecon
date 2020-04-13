@@ -5,7 +5,7 @@ namespace Gamecon\Admin\Modules\Aktivity\Import;
 use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
 use Gamecon\Cas\DateTimeCz;
 
-class ImportValuesChecker
+class ImportSqlMappedValuesChecker
 {
   /**
    * @var ImportValuesDescriber
@@ -34,8 +34,7 @@ class ImportValuesChecker
       return ImportStepResult::successWithErrorLikeWarnings(
         ['start' => null, 'end' => null],
         [sprintf(
-          "%s: Není vyplněný %s, pouze %s '%s'. Čas aktivity je vynechán.",
-          $this->importValuesDescriber->describeActivityBySqlMappedValues($sqlMappedValues, $originalActivity),
+          "Není vyplněný %s, pouze %s '%s'. Čas aktivity je vynechán.",
           !$startString
             ? 'začátek'
             : 'konec',
@@ -55,8 +54,7 @@ class ImportValuesChecker
         return ImportStepResult::successWithErrorLikeWarnings(
           ['start' => $originalActivity->zacatek()->formatDb(), 'end' => $originalActivity->konec()->formatDb()],
           [sprintf(
-            "%s: Začátek '%s' je až po konci '%s'. Ponechán původní čas od '%s' do '%s'.",
-            $this->importValuesDescriber->describeActivityBySqlMappedValues($sqlMappedValues, $originalActivity),
+            "Začátek '%s' je až po konci '%s'. Ponechán původní čas od '%s' do '%s'.",
             $start->formatCasNaMinutyStandard(),
             $end->formatCasNaMinutyStandard(),
             $originalActivity->zacatek()->formatCasNaMinutyStandard(),
@@ -67,8 +65,7 @@ class ImportValuesChecker
       return ImportStepResult::successWithErrorLikeWarnings(
         ['start' => null, 'end' => null],
         [sprintf(
-          "%s: Začátek '%s' je až po konci '%s'. Čas aktivity je vynechán.",
-          $this->importValuesDescriber->describeActivityBySqlMappedValues($sqlMappedValues, $originalActivity),
+          "Začátek '%s' je až po konci '%s'. Čas aktivity je vynechán.",
           $start->formatCasNaMinutyStandard(),
           $end->formatCasNaMinutyStandard()
         )]
@@ -78,8 +75,7 @@ class ImportValuesChecker
       return ImportStepResult::successWithErrorLikeWarnings(
         ['start' => null, 'end' => null],
         [sprintf(
-          "%s: Konec je stejný jako začátek '%s'. Aktivita by měla mít nějaké trvání. Čas aktivity je vynechán.",
-          $this->importValuesDescriber->describeActivityBySqlMappedValues($sqlMappedValues, $originalActivity),
+          "Konec je stejný jako začátek '%s'. Aktivita by měla mít nějaké trvání. Čas aktivity je vynechán.",
           $end->formatCasNaMinutyStandard()
         )]
       );
@@ -109,8 +105,7 @@ SQL
         || (!$occupiedByInstanceId && $this->canNotBeNewInstanceOfActivity($activityUrl, $singleProgramLine, $occupiedByActivityId))
       ) {
         return ImportStepResult::error(sprintf(
-          "%s: URL '%s'%s už je obsazena jinou existující aktivitou %s.",
-          $this->importValuesDescriber->describeActivityBySqlMappedValues($sqlMappedValues, $originalActivity),
+          "URL '%s'%s už je obsazena jinou existující aktivitou %s.",
           $activityUrl,
           empty($activityValues[ExportAktivitSloupce::URL])
             ? ' (odhadnutá z názvu)'
@@ -165,8 +160,7 @@ SQL
         || (!$occupiedByInstanceId && $this->canNotBeNewInstanceOfActivity($activityUrl, $singleProgramLine, $occupiedByActivityId))
       ) {
         return ImportStepResult::error(sprintf(
-          "%s: název '%s' už je obsazený jinou existující aktivitou %s.",
-          $this->importValuesDescriber->describeActivityBySqlMappedValues($sqlMappedValues, $originalActivity),
+          "Název '%s' už je obsazený jinou existující aktivitou %s.",
           $activityName,
           $this->importValuesDescriber->describeActivityById($occupiedByActivityId)
         ));
@@ -175,8 +169,8 @@ SQL
     return ImportStepResult::success(null);
   }
 
-  public function checkStateUsability(array $values, ?\Aktivita $originalActivity): ImportStepResult {
-    $stateId = $values[AktivitaSqlSloupce::STAV];
+  public function checkStateUsability(array $sqlMappedValues): ImportStepResult {
+    $stateId = $sqlMappedValues[AktivitaSqlSloupce::STAV];
     if ($stateId === null) {
       return ImportStepResult::success(null);
     }
@@ -187,8 +181,7 @@ SQL
     return ImportStepResult::successWithErrorLikeWarnings(
       \Stav::PRIPRAVENA,
       [sprintf(
-        "%s: Aktivovat musíš aktivity ručně. Požadovaný stav '%s' byl změněn na '%s'.",
-        $this->importValuesDescriber->describeActivityBySqlMappedValues($values, $originalActivity),
+        "Aktivovat musíš aktivity ručně. Požadovaný stav '%s' byl změněn na '%s'.",
         $state->nazev(),
         \Stav::zId(\Stav::PRIPRAVENA)->nazev()
       )]
@@ -199,8 +192,7 @@ SQL
     ?int $locationId,
     ?string $zacatekString,
     ?string $konecString,
-    ?\Aktivita $originalActivity,
-    array $values
+    ?\Aktivita $originalActivity
   ): ImportStepResult {
     if ($locationId === null) {
       return ImportStepResult::success(null);
@@ -232,8 +224,7 @@ SQL
       $locationId,
       [
         sprintf(
-          '%s: Místnost %s je někdy mezi %s a %s již zabraná %s %s. Nyní tak byla přidána už %d. aktivita do této místnosti.',
-          $this->importValuesDescriber->describeActivityBySqlMappedValues($values, $originalActivity),
+          'Místnost %s je někdy mezi %s a %s již zabraná %s %s. Nyní tak byla přidána už %d. aktivita do této místnosti.',
           $this->importValuesDescriber->describeLocationById($locationId),
           $zacatek->formatCasNaMinutyStandard(),
           $konec->formatCasNaMinutyStandard(),
@@ -255,7 +246,7 @@ SQL
     );
   }
 
-  public function checkStorytellersAccessibility(array $storytellersIds, ?string $zacatekString, ?string $konecString, ?\Aktivita $originalActivity, array $values): ImportStepResult {
+  public function checkStorytellersAccessibility(array $storytellersIds, ?string $zacatekString, ?string $konecString, ?\Aktivita $originalActivity): ImportStepResult {
     $rangeDates = $this->createRangeDates($zacatekString, $konecString);
     if (!$rangeDates) {
       return ImportStepResult::success($storytellersIds);
@@ -283,19 +274,18 @@ SQL
     }
     $errorLikeWarnings = [];
     foreach ($conflictingStorytellers as $conflictingStorytellerId => $implodedActivityIds) {
-      $activityIds = explode(',', $implodedActivityIds);
+      $anotherActivityIds = explode(',', $implodedActivityIds);
       $errorLikeWarnings[] = sprintf(
-        'Vypravěč %s je v čase od %s do %s na %s %s. K aktivitě %s nebyl přiřazen.',
+        'Vypravěč %s je v čase od %s do %s na %s %s. K aktivitě nebyl přiřazen.',
         $this->importValuesDescriber->describeUserById((int)$conflictingStorytellerId),
         $zacatek->formatCasStandard(),
         $konec->formatCasStandard(),
-        count($activityIds) === 1
+        count($anotherActivityIds) === 1
           ? 'aktivitě'
           : 'aktivitách',
-        implode(' a ', array_map(function ($activityId) {
-          return $this->importValuesDescriber->describeActivityById((int)$activityId);
-        }, $activityIds)),
-        $this->importValuesDescriber->describeActivityBySqlMappedValues($values, $originalActivity)
+        implode(' a ', array_map(function ($anotherActivityId) {
+          return $this->importValuesDescriber->describeActivityById((int)$anotherActivityId);
+        }, $anotherActivityIds))
       );
     }
     return ImportStepResult::successWithErrorLikeWarnings(

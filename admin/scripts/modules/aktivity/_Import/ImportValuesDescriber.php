@@ -50,7 +50,7 @@ class ImportValuesDescriber
     );
   }
 
-  public function describeActivityByValues(?int $id, ?string $nazev, ?string $url, ?string $kratkaAnotace, ?\Aktivita $originalActivity): string {
+  private function describeActivityByValues(?int $id, ?string $nazev, ?string $url, ?string $kratkaAnotace, ?\Aktivita $originalActivity): string {
     if (!$id && $originalActivity) {
       $id = $originalActivity->id();
     }
