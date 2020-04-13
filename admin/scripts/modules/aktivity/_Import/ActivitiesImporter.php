@@ -37,6 +37,10 @@ class ActivitiesImporter
    */
   private $mutexForProgramLine;
   /**
+   * @var ImportValuesDescriber
+   */
+  private $importValuesDescriber;
+  /**
    * @var ImportValuesReader
    */
   private $importValuesReader;
@@ -86,8 +90,9 @@ class ActivitiesImporter
 
     $importValuesDescriber = new ImportValuesDescriber($editActivityUrlSkeleton);
     $importObjectsContainer = new ImportObjectsContainer(new ImportUsersCache());
-    $importAccessibilityChecker = new ImportValuesChecker($currentYear, $importValuesDescriber);
+    $importAccessibilityChecker = new ImportSqlMappedValuesChecker($currentYear, $importValuesDescriber);
 
+    $this->importValuesDescriber = $importValuesDescriber;
     $this->importValuesReader = new ImportValuesReader($googleSheetsService, $logovac);
     $this->imagesImporter = new ImagesImporter($baseUrl, $importValuesDescriber);
     $this->importValuesSanitizer = new ImportValuesSanitizer($importValuesDescriber, $importObjectsContainer, $currentYear, $storytellersPermissionsUrl);
@@ -102,7 +107,7 @@ class ActivitiesImporter
     try {
       $processedFileNameResult = $this->getProcessedFileName($spreadsheetId);
       if ($processedFileNameResult->isError()) {
-        $result->addErrorMessage(sprintf('%s Import byl <strong>přerušen</strong>.', $processedFileNameResult->getError()));
+        $result->addErrorMessage(sprintf('%s Import byl <strong>přerušen</strong>.', $processedFileNameResult->getError()), null);
         return $result;
       }
       $processedFileName = $processedFileNameResult->getSuccess();
@@ -111,7 +116,7 @@ class ActivitiesImporter
 
       $activitiesValuesResult = $this->importValuesReader->getIndexedValues($spreadsheetId);
       if ($activitiesValuesResult->isError()) {
-        $result->addErrorMessage(sprintf('%s Import byl <strong>přerušen</strong>.', $activitiesValuesResult->getError()));
+        $result->addErrorMessage(sprintf('%s Import byl <strong>přerušen</strong>.', $activitiesValuesResult->getError()), null);
         return $result;
       }
       $activitiesValues = $activitiesValuesResult->getSuccess();
@@ -119,7 +124,7 @@ class ActivitiesImporter
 
       $singleProgramLineResult = $this->importRequirementsGuardian->guardSingleProgramLineOnly($activitiesValues, $processedFileName);
       if ($singleProgramLineResult->isError()) {
-        $result->addErrorMessage(sprintf('%s Import byl <strong>přerušen</strong>.', $singleProgramLineResult->getError()));
+        $result->addErrorMessage(sprintf('%s Import byl <strong>přerušen</strong>.', $singleProgramLineResult->getError()), null);
         return $result;
       }
       /** @var \Typ $singleProgramLine */
@@ -127,31 +132,39 @@ class ActivitiesImporter
       unset($singleProgramLineResult);
 
       if (!$this->getExclusiveLock($singleProgramLine->nazev())) {
-        $result->addWarningMessage(sprintf(
-          "Právě probíhá jiný import aktivit z programové linie '%s'. Import byl <strong>přerušen</strong>. Zkus to za chvíli znovu.",
-          mb_ucfirst($singleProgramLine->nazev())
-        ));
+        $result->addWarningMessage(
+          sprintf(
+            "Právě probíhá jiný import aktivit z programové linie '%s'. Import byl <strong>přerušen</strong>. Zkus to za chvíli znovu.",
+            mb_ucfirst($singleProgramLine->nazev())
+          ),
+          null
+        );
         return $result;
       }
 
       $potentialImageUrlsPerActivity = [];
       foreach ($activitiesValues as $activityValues) {
+        $activityGuid = uniqid('importActivity', true);
+
         $validatedValuesResult = $this->importValuesSanitizer->sanitizeValues($singleProgramLine, $activityValues);
         if ($validatedValuesResult->isError()) {
           $errorMessage = $this->getErrorMessageWithSkippedActivityNote($validatedValuesResult);
-          $result->addErrorMessage($errorMessage);
+          $result->addErrorMessage($errorMessage, $activityGuid);
+          $activityFinalDescription = $validatedValuesResult->getLastActivityDescription()
+            ?? $this->importValuesDescriber->describeActivityByInputValues($activityValues, null);
+          $result->solveActivityDescription($activityGuid, $activityFinalDescription);
           continue;
         }
         if ($validatedValuesResult->hasWarnings()) {
-          $result->addWarnings($validatedValuesResult);
+          $result->addWarnings($validatedValuesResult, $activityGuid);
         }
         if ($validatedValuesResult->hasErrorLikeWarnings()) {
-          $result->addErrorLikeWarnings($validatedValuesResult);
+          $result->addErrorLikeWarnings($validatedValuesResult, $activityGuid);
         }
         $validatedValues = $validatedValuesResult->getSuccess();
         unset($validatedValuesResult);
         [
-          'values' => $values,
+          'values' => $sqlMappedValues,
           'originalActivity' => $originalActivity,
           'longAnnotation' => $longAnnotation,
           'storytellersIds' => $storytellersIds,
@@ -160,34 +173,42 @@ class ActivitiesImporter
         ] = $validatedValues;
 
         $importActivityResult = $this->activityImporter->importActivity(
-          $values,
+          $activityGuid,
+          $sqlMappedValues,
           $longAnnotation,
           $storytellersIds,
           $tagIds,
           $singleProgramLine,
           $originalActivity
         );
-        $result->addWarnings($importActivityResult);
-        $result->addErrorLikeWarnings($importActivityResult);
+        $result->addWarnings($importActivityResult, $activityGuid);
+        $result->addErrorLikeWarnings($importActivityResult, $activityGuid);
         if ($importActivityResult->isError()) {
           $errorMessage = $this->getErrorMessageWithSkippedActivityNote($importActivityResult);
-          $result->addErrorMessage($errorMessage);
+          $result->addErrorMessage($errorMessage, $activityGuid);
+          $activityFinalDescription = $this->importValuesDescriber->describeActivityBySqlMappedValues($sqlMappedValues, $originalActivity);
+          $result->solveActivityDescription($activityGuid, $activityFinalDescription);
           continue;
         }
-        ['message' => $successMessage, 'importedActivityId' => $importedActivityId] = $importActivityResult->getSuccess();
+        /** @var \Aktivita $importedActivity */
+        ['message' => $successMessage, 'importedActivity' => $importedActivity] = $importActivityResult->getSuccess();
         $result->addSuccessMessage($successMessage);
         unset($importActivityResult);
 
         if (count($potentialImageUrls) > 0) {
-          $potentialImageUrlsPerActivity[$importedActivityId] = $potentialImageUrls;
+          $potentialImageUrlsPerActivity[$importedActivity->id()] = $potentialImageUrls;
         }
 
         $result->incrementImportedCount();
+
+        $activityFinalDescription = $this->importValuesDescriber->describeActivity($importedActivity);
+        $result->solveActivityDescription($activityGuid, $activityFinalDescription);
       }
     } catch (\Exception $exception) {
       $result->addErrorMessage(<<<HTML
 Něco se <a href="{$this->errorsListUrl}" target="_blank">nepovedlo</a>. Import byl <strong>přerušen</strong>. Zkus to za chvíli znovu.
 HTML
+        , null
       );
       $this->logovac->zaloguj($exception);
       $this->releaseExclusiveLock();
@@ -195,10 +216,10 @@ HTML
     }
     $savingImagesResult = $this->imagesImporter->saveImages($potentialImageUrlsPerActivity);
     if ($savingImagesResult->hasWarnings()) {
-      $result->addWarnings($savingImagesResult);
+      $result->addWarnings($savingImagesResult, null);
     }
     if ($savingImagesResult->hasErrorLikeWarnings()) {
-      $result->addErrorLikeWarnings($savingImagesResult);
+      $result->addErrorLikeWarnings($savingImagesResult, null);
     }
     if ($result->getImportedCount() > 0) {
       $this->activitiesImportLogger->logUsedSpreadsheet($this->userId, $spreadsheetId, new \DateTimeImmutable());

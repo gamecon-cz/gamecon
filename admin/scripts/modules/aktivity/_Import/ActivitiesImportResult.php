@@ -30,9 +30,6 @@ class ActivitiesImportResult
    */
   private $errorMessages = [];
 
-  public function __construct() {
-  }
-
   public function incrementImportedCount(): int {
     $this->importedCount++;
     return $this->importedCount;
@@ -49,38 +46,59 @@ class ActivitiesImportResult
     return $this;
   }
 
-  public function addErrorMessage(string $errorMessage): ActivitiesImportResult {
-    $this->errorMessages[] = $errorMessage;
+  public function addErrorMessage(string $errorMessage, ?string $activityGuid): ActivitiesImportResult {
+    $this->errorMessages[] = $activityGuid !== null
+      ? "{$activityGuid}: {$errorMessage}"
+      : $errorMessage;
     return $this;
   }
 
-  public function addWarningMessage(string $warningMessage): ActivitiesImportResult {
-    $this->warningMessages[] = $warningMessage;
+  public function addWarningMessage(string $warningMessage, ?string $activityGuid): ActivitiesImportResult {
+    $this->warningMessages[] = $activityGuid !== null
+      ? "{$activityGuid}: {$warningMessage}"
+      : $warningMessage;
     return $this;
   }
 
-  public function addWarnings(ImportStepResult $importStepResult): ActivitiesImportResult {
+  public function addWarnings(ImportStepResult $importStepResult, ?string $activityGuid): ActivitiesImportResult {
     foreach ($importStepResult->getWarnings() as $warningMessage) {
-      $this->addWarningMessage($warningMessage);
+      $this->addWarningMessage($warningMessage, $activityGuid);
     }
     return $this;
   }
 
-  public function addErrorLikeWarnings(ImportStepResult $importStepResult): ActivitiesImportResult {
+  public function addErrorLikeWarnings(ImportStepResult $importStepResult, ?string $activityGuid): ActivitiesImportResult {
     foreach ($importStepResult->getErrorLikeWarnings() as $errorLikeWarningMessage) {
-      $this->addErrorLikeWarningMessage($errorLikeWarningMessage);
+      $this->addErrorLikeWarningMessage($errorLikeWarningMessage, $activityGuid);
     }
     return $this;
   }
 
-  public function addErrorLikeWarningMessage(string $errorLikeWarningMessage): ActivitiesImportResult {
-    $this->errorLikeWarningMessages[] = $errorLikeWarningMessage;
+  public function addErrorLikeWarningMessage(string $errorLikeWarningMessage, ?string $activityGuid): ActivitiesImportResult {
+    $this->errorLikeWarningMessages[] = $activityGuid !== null
+      ? "{$activityGuid}: {$errorLikeWarningMessage}"
+      : $errorLikeWarningMessage;
     return $this;
   }
 
   public function addSuccessMessage(string $successMessage): ActivitiesImportResult {
     $this->successMessages[] = $successMessage;
     return $this;
+  }
+
+  public function solveActivityDescription(string $activityGuid, string $activityFinalDescription) {
+    foreach ($this->errorMessages as $index => $errorMessage) {
+      $this->errorMessages[$index] = str_replace($activityGuid, $activityFinalDescription, $errorMessage);
+    }
+    foreach ($this->errorLikeWarningMessages as $index => $errorLikeWarningMessage) {
+      $this->errorLikeWarningMessages[$index] = str_replace($activityGuid, $activityFinalDescription, $errorLikeWarningMessage);
+    }
+    foreach ($this->warningMessages as $index => $warningMessage) {
+      $this->warningMessages[$index] = str_replace($activityGuid, $activityFinalDescription, $warningMessage);
+    }
+    foreach ($this->successMessages as $index => $successMessage) {
+      $this->successMessages[$index] = str_replace($activityGuid, $activityFinalDescription, $successMessage);
+    }
   }
 
   /**

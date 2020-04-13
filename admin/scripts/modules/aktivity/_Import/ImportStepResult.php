@@ -20,6 +20,10 @@ class ImportStepResult
    * @var string
    */
   private $error;
+  /**
+   * @var string|null
+   */
+  private $lastActivityDescription;
 
   public static function error(string $error): ImportStepResult {
     return new static(false, [], [], $error);
@@ -63,6 +67,15 @@ class ImportStepResult
     $this->warnings = $warnings;
     $this->errorLikeWarnings = $errorLikeWarnings;
     $this->error = $error;
+  }
+
+  public function setLastActivityDescription(string $lastActivityDescription): ImportStepResult {
+    $this->lastActivityDescription = $lastActivityDescription;
+    return $this;
+  }
+
+  public function getLastActivityDescription(): ?string {
+    return $this->lastActivityDescription;
   }
 
   public function isSuccess(): bool {

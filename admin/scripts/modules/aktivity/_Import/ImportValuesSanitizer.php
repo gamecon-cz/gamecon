@@ -36,24 +36,68 @@ class ImportValuesSanitizer
     $this->storytellersPermissionsUrl = $storytellersPermissionsUrl;
   }
 
-  public function sanitizeValues(\Typ $singleProgramLine, array $activityValues): ImportStepResult {
+  public function sanitizeValues(\Typ $singleProgramLine, array $inputValues): ImportStepResult {
     $stepsResults = [];
 
-    $tagIds = null;
-    $storytellersIds = null;
-
-    $originalActivityResult = $this->getValidatedOriginalActivity($activityValues);
+    $originalActivityResult = $this->getValidatedOriginalActivity($inputValues);
     if ($originalActivityResult->isError()) {
-      return ImportStepResult::error($originalActivityResult->getError());
+      return ImportStepResult::error($originalActivityResult->getError())
+        ->setLastActivityDescription($this->importValuesDescriber->describeActivityByInputValues($inputValues, null));
     }
     /** @var \Aktivita | null $originalActivity */
     $originalActivity = $originalActivityResult->getSuccess();
     $stepsResults[] = $originalActivityResult;
     unset($originalActivityResult);
 
+    $sanitizedValuesResult = $this->getSanitizedValues($inputValues, $singleProgramLine, $originalActivity);
+    if ($sanitizedValuesResult->isError()) {
+      return ImportStepResult::error($sanitizedValuesResult->getError())
+        ->setLastActivityDescription($this->importValuesDescriber->describeActivityByInputValues($inputValues, $originalActivity));
+    }
+    [
+      'sanitizedValues' => $sanitizedValues,
+      'stepsResults' => $sanitizedValuesStepsResults,
+      'longAnnotation' => $longAnnotation,
+      'tagIds' => $tagIds,
+      'activityUrl' => $activityUrl,
+      'storytellersIds' => $storytellersIds,
+    ] = $sanitizedValuesResult->getSuccess();
+
+    $stepsResults = array_merge($stepsResults, $sanitizedValuesStepsResults);
+
+    $potentialImageUrlsResult = $this->getPotentialImageUrls($inputValues, $activityUrl);
+    if ($potentialImageUrlsResult->isError()) {
+      return ImportStepResult::error($potentialImageUrlsResult->getError())
+        ->setLastActivityDescription($this->importValuesDescriber->describeActivityByInputValues($inputValues, $originalActivity));
+    }
+    $potentialImageUrls = $potentialImageUrlsResult->getSuccess();
+    $stepsResults[] = $potentialImageUrlsResult;
+    unset($potentialImageUrlsResult);
+
+    ['warnings' => $warnings, 'errorLikeWarnings' => $errorLikeWarnings] = ImportStepResult::collectWarningsFromSteps($stepsResults);
+
+    return ImportStepResult::successWithWarnings(
+      [
+        'values' => $sanitizedValues,
+        'originalActivity' => $originalActivity,
+        'longAnnotation' => $longAnnotation,
+        'storytellersIds' => $storytellersIds,
+        'tagIds' => $tagIds,
+        'potentialImageUrls' => $potentialImageUrls,
+      ],
+      $warnings,
+      $errorLikeWarnings
+    )->setLastActivityDescription($this->importValuesDescriber->describeActivityByInputValues($inputValues, $originalActivity));
+  }
+
+  private function getSanitizedValues(array $inputValues, \Typ $singleProgramLine, ?\Aktivita $originalActivity): ImportStepResult {
     $sanitizedValues = $this->getInitialSanitizedValues($originalActivity);
 
-    $programLineIdResult = $this->getValidatedProgramLineId($activityValues, $singleProgramLine);
+    $tagIds = null;
+    $storytellersIds = null;
+    $stepsResults = [];
+
+    $programLineIdResult = $this->getValidatedProgramLineId($inputValues, $singleProgramLine);
     if ($programLineIdResult->isError()) {
       return ImportStepResult::error($programLineIdResult->getError());
     }
@@ -61,7 +105,7 @@ class ImportValuesSanitizer
     $stepsResults[] = $programLineIdResult;
     unset($programLineIdResult);
 
-    $activityUrlResult = $this->getValidatedUrl($activityValues, $originalActivity);
+    $activityUrlResult = $this->getValidatedUrl($inputValues, $originalActivity);
     if ($activityUrlResult->isError()) {
       return ImportStepResult::error($activityUrlResult->getError());
     }
@@ -78,7 +122,7 @@ class ImportValuesSanitizer
     $stepsResults[] = $parentActivityResult;
     unset($parentActivityResult);
 
-    $activityNameResult = $this->getValidatedActivityName($activityValues, $originalActivity, $parentActivity);
+    $activityNameResult = $this->getValidatedActivityName($inputValues, $originalActivity, $parentActivity);
     if ($activityNameResult->isError()) {
       return ImportStepResult::error($activityNameResult->getError());
     }
@@ -86,7 +130,7 @@ class ImportValuesSanitizer
     $stepsResults[] = $activityNameResult;
     unset($activityNameResult);
 
-    $shortAnnotationResult = $this->getValidatedShortAnnotation($activityValues, $originalActivity, $parentActivity);
+    $shortAnnotationResult = $this->getValidatedShortAnnotation($inputValues, $originalActivity, $parentActivity);
     if ($shortAnnotationResult->isError()) {
       return ImportStepResult::error($shortAnnotationResult->getError());
     }
@@ -94,7 +138,7 @@ class ImportValuesSanitizer
     $stepsResults[] = $shortAnnotationResult;
     unset($shortAnnotationResult);
 
-    $tagIdsResult = $this->getValidatedTagIds($activityValues, $originalActivity, $parentActivity);
+    $tagIdsResult = $this->getValidatedTagIds($inputValues, $originalActivity, $parentActivity);
     if ($tagIdsResult->isError()) {
       return ImportStepResult::error($tagIdsResult->getError());
     }
@@ -102,7 +146,7 @@ class ImportValuesSanitizer
     $stepsResults[] = $tagIdsResult;
     unset($tagIdsResult);
 
-    $longAnnotationResult = $this->getValidatedLongAnnotation($activityValues, $originalActivity, $parentActivity);
+    $longAnnotationResult = $this->getValidatedLongAnnotation($inputValues, $originalActivity, $parentActivity);
     if ($longAnnotationResult->isError()) {
       return ImportStepResult::error($longAnnotationResult->getError());
     }
@@ -110,7 +154,7 @@ class ImportValuesSanitizer
     $stepsResults[] = $longAnnotationResult;
     unset($longAnnotationResult);
 
-    $activityStartResult = $this->getValidatedStart($activityValues, $originalActivity, $parentActivity);
+    $activityStartResult = $this->getValidatedStart($inputValues, $originalActivity, $parentActivity);
     if ($activityStartResult->isError()) {
       return ImportStepResult::error($activityStartResult->getError());
     }
@@ -118,7 +162,7 @@ class ImportValuesSanitizer
     $stepsResults[] = $activityStartResult;
     unset($activityStartResult);
 
-    $activityEndResult = $this->getValidatedEnd($activityValues, $originalActivity, $parentActivity);
+    $activityEndResult = $this->getValidatedEnd($inputValues, $originalActivity, $parentActivity);
     if ($activityEndResult->isError()) {
       return ImportStepResult::error($activityEndResult->getError());
     }
@@ -126,7 +170,7 @@ class ImportValuesSanitizer
     $stepsResults[] = $activityEndResult;
     unset($activityEndResult);
 
-    $locationIdResult = $this->getValidatedLocationId($activityValues, $originalActivity, $parentActivity);
+    $locationIdResult = $this->getValidatedLocationId($inputValues, $originalActivity, $parentActivity);
     if ($locationIdResult->isError()) {
       return ImportStepResult::error($locationIdResult->getError());
     }
@@ -134,7 +178,7 @@ class ImportValuesSanitizer
     $stepsResults[] = $locationIdResult;
     unset($locationIdResult);
 
-    $storytellersIdsResult = $this->getValidatedStorytellersIds($activityValues, $originalActivity, $parentActivity);
+    $storytellersIdsResult = $this->getValidatedStorytellersIds($inputValues, $originalActivity, $parentActivity);
     if ($storytellersIdsResult->isError()) {
       return ImportStepResult::error($storytellersIdsResult->getError());
     }
@@ -142,7 +186,7 @@ class ImportValuesSanitizer
     $stepsResults[] = $storytellersIdsResult;
     unset($storytellersIdsResult);
 
-    $unisexCapacityResult = $this->getValidatedUnisexCapacity($activityValues, $originalActivity, $parentActivity);
+    $unisexCapacityResult = $this->getValidatedUnisexCapacity($inputValues, $originalActivity, $parentActivity);
     if ($unisexCapacityResult->isError()) {
       return ImportStepResult::error($unisexCapacityResult->getError());
     }
@@ -150,7 +194,7 @@ class ImportValuesSanitizer
     $stepsResults[] = $unisexCapacityResult;
     unset($unisexCapacityResult);
 
-    $menCapacityResult = $this->getValidatedMenCapacity($activityValues, $originalActivity, $parentActivity);
+    $menCapacityResult = $this->getValidatedMenCapacity($inputValues, $originalActivity, $parentActivity);
     if ($menCapacityResult->isError()) {
       return ImportStepResult::error($menCapacityResult->getError());
     }
@@ -158,7 +202,7 @@ class ImportValuesSanitizer
     $stepsResults[] = $menCapacityResult;
     unset($menCapacityResult);
 
-    $womenCapacityResult = $this->getValidatedWomenCapacity($activityValues, $originalActivity, $parentActivity);
+    $womenCapacityResult = $this->getValidatedWomenCapacity($inputValues, $originalActivity, $parentActivity);
     if ($womenCapacityResult->isError()) {
       return ImportStepResult::error($womenCapacityResult->getError());
     }
@@ -166,7 +210,7 @@ class ImportValuesSanitizer
     $stepsResults[] = $womenCapacityResult;
     unset($womenCapacityResult);
 
-    $forTeamResult = $this->getValidatedForTeam($activityValues, $originalActivity, $parentActivity);
+    $forTeamResult = $this->getValidatedForTeam($inputValues, $originalActivity, $parentActivity);
     if ($forTeamResult->isError()) {
       return ImportStepResult::error($forTeamResult->getError());
     }
@@ -174,7 +218,7 @@ class ImportValuesSanitizer
     $stepsResults[] = $forTeamResult;
     unset($forTeamResult);
 
-    $minimalTeamCapacityResult = $this->getValidatedMinimalTeamCapacity($activityValues, $originalActivity, $parentActivity);
+    $minimalTeamCapacityResult = $this->getValidatedMinimalTeamCapacity($inputValues, $originalActivity, $parentActivity);
     if ($minimalTeamCapacityResult->isError()) {
       return ImportStepResult::error($minimalTeamCapacityResult->getError());
     }
@@ -182,7 +226,7 @@ class ImportValuesSanitizer
     $stepsResults[] = $minimalTeamCapacityResult;
     unset($minimalTeamCapacityResult);
 
-    $maximalTeamCapacityResult = $this->getValidatedMaximalTeamCapacity($activityValues, $originalActivity, $parentActivity);
+    $maximalTeamCapacityResult = $this->getValidatedMaximalTeamCapacity($inputValues, $originalActivity, $parentActivity);
     if ($maximalTeamCapacityResult->isError()) {
       return ImportStepResult::error($maximalTeamCapacityResult->getError());
     }
@@ -190,7 +234,7 @@ class ImportValuesSanitizer
     $stepsResults[] = $maximalTeamCapacityResult;
     unset($maximalTeamCapacityResult);
 
-    $priceResult = $this->getValidatedPrice($activityValues, $originalActivity, $parentActivity);
+    $priceResult = $this->getValidatedPrice($inputValues, $originalActivity, $parentActivity);
     if ($priceResult->isError()) {
       return ImportStepResult::error($priceResult->getError());
     }
@@ -198,7 +242,7 @@ class ImportValuesSanitizer
     $stepsResults[] = $priceResult;
     unset($priceResult);
 
-    $withoutDiscountResult = $this->getValidatedWithoutDiscount($activityValues, $originalActivity, $parentActivity);
+    $withoutDiscountResult = $this->getValidatedWithoutDiscount($inputValues, $originalActivity, $parentActivity);
     if ($withoutDiscountResult->isError()) {
       return ImportStepResult::error($withoutDiscountResult->getError());
     }
@@ -206,7 +250,7 @@ class ImportValuesSanitizer
     $stepsResults[] = $withoutDiscountResult;
     unset($withoutDiscountResult);
 
-    $equipmentResult = $this->getValidatedEquipment($activityValues, $originalActivity, $parentActivity);
+    $equipmentResult = $this->getValidatedEquipment($inputValues, $originalActivity, $parentActivity);
     if ($equipmentResult->isError()) {
       return ImportStepResult::error($equipmentResult->getError());
     }
@@ -214,7 +258,7 @@ class ImportValuesSanitizer
     $stepsResults[] = $equipmentResult;
     unset($equipmentResult);
 
-    $stateIdResult = $this->getValidatedStateId($activityValues, $originalActivity, $parentActivity);
+    $stateIdResult = $this->getValidatedStateId($inputValues, $originalActivity, $parentActivity);
     if ($stateIdResult->isError()) {
       return ImportStepResult::error($stateIdResult->getError());
     }
@@ -238,28 +282,14 @@ class ImportValuesSanitizer
     $stepsResults[] = $instanceIdResult;
     unset($instanceIdResult);
 
-    $potentialImageUrlsResult = $this->getPotentialImageUrls($activityValues, $activityUrl);
-    if ($potentialImageUrlsResult->isError()) {
-      return ImportStepResult::error($potentialImageUrlsResult->getError());
-    }
-    $potentialImageUrls = $potentialImageUrlsResult->getSuccess();
-    $stepsResults[] = $potentialImageUrlsResult;
-    unset($potentialImageUrlsResult);
-
-    ['warnings' => $warnings, 'errorLikeWarnings' => $errorLikeWarnings] = ImportStepResult::collectWarningsFromSteps($stepsResults);
-
-    return ImportStepResult::successWithWarnings(
-      [
-        'values' => $sanitizedValues,
-        'originalActivity' => $originalActivity,
-        'longAnnotation' => $longAnnotation,
-        'storytellersIds' => $storytellersIds,
-        'tagIds' => $tagIds,
-        'potentialImageUrls' => $potentialImageUrls,
-      ],
-      $warnings,
-      $errorLikeWarnings
-    );
+    return ImportStepResult::success([
+      'sanitizedValues' => $sanitizedValues,
+      'stepsResults' => $stepsResults,
+      'longAnnotation' => $longAnnotation,
+      'tagIds' => $tagIds,
+      'activityUrl' => $activityUrl,
+      'storytellersIds' => $storytellersIds,
+    ]);
   }
 
   private function getInitialSanitizedValues(?\Aktivita $originalActivity): array {
@@ -334,16 +364,14 @@ class ImportValuesSanitizer
       return ImportStepResult::successWithErrorLikeWarnings(
         $sourceActivity->idStavu(),
         [sprintf(
-          "%s: Neznámý stav '%s'. Bude použit původní '%s'.",
-          $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
+          "Neznámý stav '%s'. Bude použit původní '%s'.",
           $stateValue,
           $sourceActivity->stav()->nazev()
         )]
       );
     }
     return ImportStepResult::error(sprintf(
-      "%s: Neznámý stav '%s'.",
-      $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
+      "Neznámý stav '%s'.",
       $stateValue
     ));
   }
@@ -377,8 +405,7 @@ class ImportValuesSanitizer
       return ImportStepResult::success(0);
     }
     return ImportStepResult::error(sprintf(
-      "%s: Podivná minimální kapacita týmu '%s'. Očekáváme celé kladné číslo.",
-      $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
+      "Podivná minimální kapacita týmu '%s'. Očekáváme celé kladné číslo.",
       $minimalTeamCapacityValue
     ));
   }
@@ -400,8 +427,7 @@ class ImportValuesSanitizer
       return ImportStepResult::success(0);
     }
     return ImportStepResult::error(sprintf(
-      "%s: Podivná maximální kapacita týmu '%s'. Očekáváme celé kladné číslo.",
-      $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
+      "Podivná maximální kapacita týmu '%s'. Očekáváme celé kladné číslo.",
       $maximalTeamCapacityValue
     ));
   }
@@ -425,8 +451,7 @@ class ImportValuesSanitizer
       );
     }
     return ImportStepResult::error(sprintf(
-      "%s: podivný zápis, zda je aktivita týmová '%s'. Očekáváme pouze 1, 0, ano, ne.",
-      $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
+      "Podivný zápis, zda je aktivita týmová '%s'. Očekáváme pouze 1, 0, ano, ne.",
       $forTeamValue
     ));
   }
@@ -457,8 +482,7 @@ class ImportValuesSanitizer
     $errorLikeWarnings = [];
     if ($invalidStorytellersValues) {
       $errorLikeWarnings[] = sprintf(
-        '%s: Neznámí uživatelé %s. Jsou vynecháni.',
-        $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
+        'Neznámí uživatelé %s. Jsou vynecháni.',
         implode(',', array_map(static function (string $invalidStorytellerValue) {
           return "'$invalidStorytellerValue'";
         }, $invalidStorytellersValues))
@@ -469,11 +493,9 @@ class ImportValuesSanitizer
         return $this->importValuesDescriber->describeUser($user);
       }, $notStorytellers));
       $notStorytellersHtml = htmlentities($notStorytellersString);
-      $errorLikeWarnings[] = sprintf(<<<HTML
-        '%s: Uživatelé nejsou <a href="{$this->storytellersPermissionsUrl}" target="_blank">vypravěči ani organizátoři</a>: {$notStorytellersHtml}. Jsou vynecháni.
-HTML
-        , $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity)
-      );
+      $errorLikeWarnings[] = <<<HTML
+        'Uživatelé nejsou <a href="{$this->storytellersPermissionsUrl}" target="_blank">vypravěči ani organizátoři</a>: {$notStorytellersHtml}. Jsou vynecháni.
+HTML;
     }
     return ImportStepResult::successWithErrorLikeWarnings($storytellersIds, $errorLikeWarnings);
   }
@@ -538,8 +560,7 @@ HTML
     if ($invalidTagsValues) {
       return ImportStepResult::error(
         sprintf(
-          '%s: neznámé tagy %s',
-          $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
+          'Neznámé tagy %s',
           implode(',', array_map(static function (string $invalidTagValue) {
               return "'$invalidTagValue'";
             },
@@ -586,8 +607,7 @@ HTML
     }
     if ($year && $year !== $this->currentYear) {
       return ImportStepResult::error(sprintf(
-        'Aktivita %s je pro ročník %d, ale teď je ročník %d.',
-        $this->importValuesDescriber->describeActivity($sourceActivity),
+        'Aktivita je pro ročník %d, ale teď je ročník %d.',
         $year,
         $this->currentYear
       ));
@@ -613,8 +633,7 @@ HTML
       );
     }
     return ImportStepResult::error(sprintf(
-      "%s: Podivný zápis 'bez slevy': '%s'. Očekáváme pouze 1, 0 nebo ano, ne.",
-      $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
+      "Podivný zápis 'bez slevy': '%s'. Očekáváme pouze 1, 0 nebo ano, ne.",
       $withoutDiscountValue
     ));
   }
@@ -654,8 +673,7 @@ HTML
       return ImportStepResult::success(0);
     }
     return ImportStepResult::error(sprintf(
-      "%s: Podivná unisex kapacita '%s'. Očekáváme celé kladné číslo.",
-      $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
+      "Podivná unisex kapacita '%s'. Očekáváme celé kladné číslo.",
       $capacityValue
     ));
   }
@@ -677,8 +695,7 @@ HTML
       return ImportStepResult::success(0);
     }
     return ImportStepResult::error(sprintf(
-      "%s: Podivná kapacita mužů '%s'. Očekáváme celé kladné číslo.",
-      $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
+      "Podivná kapacita mužů '%s'. Očekáváme celé kladné číslo.",
       $capacityValue
     ));
   }
@@ -700,8 +717,7 @@ HTML
       return ImportStepResult::success(0);
     }
     return ImportStepResult::error(sprintf(
-      "%s: Podivná kapacita žen '%s'. Očekáváme celé kladné číslo.",
-      $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
+      "Podivná kapacita žen '%s'. Očekáváme celé kladné číslo.",
       $capacityValue
     ));
   }
@@ -723,8 +739,7 @@ HTML
       return ImportStepResult::success(0.0);
     }
     return ImportStepResult::error(sprintf(
-      "%s: Podivná cena aktivity '%s'. Očekáváme číslo.",
-      $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
+      "Podivná cena aktivity '%s'. Očekáváme číslo.",
       $priceValue
     ));
   }
@@ -744,13 +759,10 @@ HTML
     }
     return ImportStepResult::successWithErrorLikeWarnings(
       null,
-      [
-        sprintf(
-          "%s: Neznámá místnost '%s'. Aktivita je bez místnosti.",
-          $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
+      [sprintf(
+          "Neznámá místnost '%s'. Aktivita je bez místnosti.",
           $locationValue
-        ),
-      ]
+      )]
     );
   }
 
@@ -771,8 +783,7 @@ HTML
       return ImportStepResult::successWithErrorLikeWarnings(
         null,
         [sprintf(
-          '%s: Aktivita má sice uvedený začátek (%s), ale chybí u ní den. Čas aktivity je vynechán.',
-          $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
+          'Aktivita má sice uvedený začátek (%s), ale chybí u ní den. Čas aktivity je vynechán.',
           $activityValues[ExportAktivitSloupce::ZACATEK]
         )]
       );
@@ -797,8 +808,7 @@ HTML
       return ImportStepResult::successWithErrorLikeWarnings(
         null,
         [sprintf(
-          '%s: Aktivita má sice uvedený konec (%s), ale chybí u ní den. Čas aktivity je vynechán.',
-          $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity),
+          'Aktivita má sice uvedený konec (%s), ale chybí u ní den. Čas aktivity je vynechán.',
           $activityValues[ExportAktivitSloupce::KONEC]
         )]
       );
@@ -875,10 +885,7 @@ HTML
         return ImportStepResult::success($originalActivity->urlId());
       }
       if (empty($activityValues[ExportAktivitSloupce::NAZEV])) {
-        return ImportStepResult::error(sprintf(
-          '%s: Nová aktivita nemá ani URL, ani název, ze kterého by URL šlo vytvořit.',
-          $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity)
-        ));
+        return ImportStepResult::error('Nová aktivita nemá ani URL, ani název, ze kterého by URL šlo vytvořit.');
       }
       $activityUrl = $this->toUrl($activityValues[ExportAktivitSloupce::NAZEV]);
     }
@@ -901,10 +908,7 @@ HTML
       $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
       return $sourceActivity
         ? ImportStepResult::success($sourceActivity->nazev())
-        : ImportStepResult::error(sprintf(
-          '%s: Chybí povinný název.',
-          $this->importValuesDescriber->describeActivityByInputValues($activityValues, $originalActivity)
-        ));
+        : ImportStepResult::error('Chybí povinný název.');
     }
     return ImportStepResult::success($activityNameValue);
   }
@@ -921,15 +925,13 @@ HTML
     $programLine = $this->importObjectsContainer->getProgramLineFromValue((string)$programLineValue);
     if (!$programLine) {
       return ImportStepResult::error(sprintf(
-        "%s: Neznámá programová linie '%s'.",
-        $this->importValuesDescriber->describeActivityByInputValues($activityValues, null),
+        "Neznámá programová linie '%s'.",
         $programLineValue
       ));
     }
     if ($programLine->id() !== $singleProgramLine->id()) {
       return ImportStepResult::error(sprintf(
-        "%s: Importovat lze pouze jednu programovou linii. Tato aktivita patří do další linie '%s'.",
-        $this->importValuesDescriber->describeActivityByInputValues($activityValues, null),
+        "Importovat lze pouze jednu programovou linii. Tato aktivita patří do další linie '%s'.",
         $programLineValue
       ));
     }
