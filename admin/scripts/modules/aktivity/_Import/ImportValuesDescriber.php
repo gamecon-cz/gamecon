@@ -73,14 +73,18 @@ class ImportValuesDescriber
       return "'$nazev' s URL '$url'";
     }
     if ($nazev) {
-      return "'nazev'";
+      return "'$nazev'";
+    }
+    if ($url) {
+      return "(bez názvu) s URL '$url'";
     }
     if (!$kratkaAnotace && $originalActivity) {
       $kratkaAnotace = $originalActivity->kratkyPopis();
     }
-    return $kratkaAnotace
-      ? "(bez názvu) '$kratkaAnotace'"
-      : '(bez názvu)';
+    if ($kratkaAnotace) {
+      return "(bez názvu) '$kratkaAnotace'";
+    }
+    return '(bez názvu)';
   }
 
   private function createLinkToActivity(int $id, string $name): string {
