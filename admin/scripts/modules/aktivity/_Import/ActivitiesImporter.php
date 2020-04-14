@@ -173,7 +173,6 @@ class ActivitiesImporter
         ] = $validatedValues;
 
         $importActivityResult = $this->activityImporter->importActivity(
-          $activityGuid,
           $sqlMappedValues,
           $longAnnotation,
           $storytellersIds,
@@ -192,7 +191,7 @@ class ActivitiesImporter
         }
         /** @var \Aktivita $importedActivity */
         ['message' => $successMessage, 'importedActivity' => $importedActivity] = $importActivityResult->getSuccess();
-        $result->addSuccessMessage($successMessage);
+        $result->addSuccessMessage($successMessage, $activityGuid);
         unset($importActivityResult);
 
         if (count($potentialImageUrls) > 0) {

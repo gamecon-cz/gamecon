@@ -81,8 +81,10 @@ class ActivitiesImportResult
     return $this;
   }
 
-  public function addSuccessMessage(string $successMessage): ActivitiesImportResult {
-    $this->successMessages[] = $successMessage;
+  public function addSuccessMessage(string $successMessage, ?string $activityGuid): ActivitiesImportResult {
+    $this->successMessages[] = $activityGuid !== null
+      ? "{$activityGuid}: {$successMessage}"
+      : $successMessage;
     return $this;
   }
 
