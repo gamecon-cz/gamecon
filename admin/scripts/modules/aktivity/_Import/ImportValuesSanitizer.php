@@ -726,10 +726,10 @@ HTML;
     $priceValue = $activityValues[ExportAktivitSloupce::CENA] ?? null;
     if ((string)$priceValue === '') {
       $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
-      return ImportStepResult::success($sourceActivity
-        ? $sourceActivity->cenaZaklad()
-        : 0.0
-      );
+      if ($sourceActivity) {
+        return ImportStepResult::success($sourceActivity->cenaZaklad());
+      }
+      return ImportStepResult::successWithWarnings(0.0, ['Není uvedena cena. Aktivita bude zadarmo (s cenou 0.-)']);
     }
     $priceFloat = (float)$priceValue;
     if ($priceFloat !== 0.0) {
@@ -760,8 +760,8 @@ HTML;
     return ImportStepResult::successWithErrorLikeWarnings(
       null,
       [sprintf(
-          "Neznámá místnost '%s'. Aktivita je bez místnosti.",
-          $locationValue
+        "Neznámá místnost '%s'. Aktivita je bez místnosti.",
+        $locationValue
       )]
     );
   }
