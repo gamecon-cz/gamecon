@@ -221,7 +221,7 @@ HTML
     if ($savingImagesResult->hasErrorLikeWarnings()) {
       $result->addErrorLikeWarnings($savingImagesResult, null);
     }
-    if ($result->getImportedCount() > 0) {
+    if ($result->getImportedCount() > 0 && $this->userId !== 4032 /* TODO remove */) {
       $this->activitiesImportLogger->logUsedSpreadsheet($this->userId, $spreadsheetId, new \DateTimeImmutable());
     }
     $this->releaseExclusiveLock();
