@@ -218,7 +218,7 @@ class ImportValuesSanitizer
     $stepsResults[] = $forTeamResult;
     unset($forTeamResult);
 
-    $minimalTeamCapacityResult = $this->getValidatedMinimalTeamCapacity($inputValues, $originalActivity, $parentActivity);
+    $minimalTeamCapacityResult = $this->getValidatedMinimalTeamCapacity((bool)$sanitizedValues[AktivitaSqlSloupce::TEAMOVA], $inputValues, $originalActivity, $parentActivity);
     if ($minimalTeamCapacityResult->isError()) {
       return ImportStepResult::error($minimalTeamCapacityResult->getError());
     }
@@ -226,7 +226,7 @@ class ImportValuesSanitizer
     $stepsResults[] = $minimalTeamCapacityResult;
     unset($minimalTeamCapacityResult);
 
-    $maximalTeamCapacityResult = $this->getValidatedMaximalTeamCapacity($inputValues, $originalActivity, $parentActivity);
+    $maximalTeamCapacityResult = $this->getValidatedMaximalTeamCapacity((bool)$sanitizedValues[AktivitaSqlSloupce::TEAMOVA], $inputValues, $originalActivity, $parentActivity);
     if ($maximalTeamCapacityResult->isError()) {
       return ImportStepResult::error($maximalTeamCapacityResult->getError());
     }
@@ -388,48 +388,57 @@ class ImportValuesSanitizer
     return ImportStepResult::success($equipmentValue);
   }
 
-  private function getValidatedMinimalTeamCapacity(array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
+  private function getValidatedMinimalTeamCapacity(bool $forTeam, array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
     $minimalTeamCapacityValue = $activityValues[ExportAktivitSloupce::MINIMALNI_KAPACITA_TYMU] ?? null;
-    if ((string)$minimalTeamCapacityValue === '') {
+    return $this->getValidatedTeamCapacity($forTeam, $minimalTeamCapacityValue, 'minimální', $originalActivity, $parentActivity);
+  }
+
+  private function getValidatedTeamCapacity(bool $forTeam, ?string $teamCapacityValue, string $capacityName, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
+    if ((string)$teamCapacityValue === '') {
       $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
+      if ($sourceActivity) {
+        if (!$forTeam && $sourceActivity->tymMinKapacita()) {
+          return ImportStepResult::error(sprintf(
+            'Aktivita není týmová, ale má %s kapacitu %d%s.',
+            $capacityName,
+            $sourceActivity->tymMinKapacita(),
+            $originalActivity === $parentActivity
+              ? ', převzatou z hlavní aktivity.'
+              : ''
+          ));
+        }
+        if ($forTeam && !$sourceActivity->tymMinKapacita()) {
+          return ImportStepResult::error(sprintf('Aktivita je týmová, ale nemá uvedenou %s kapacitu.', $capacityName));
+        }
+      }
       return ImportStepResult::success($sourceActivity
         ? $sourceActivity->tymMinKapacita()
         : 0
       );
     }
-    $minimalTeamCapacity = (int)$minimalTeamCapacityValue;
-    if ($minimalTeamCapacity > 0) {
-      return ImportStepResult::success($minimalTeamCapacity);
+    $teamCapacity = (int)$teamCapacityValue;
+    if ($teamCapacity > 0) {
+      if (!$forTeam) {
+        return ImportStepResult::error(sprintf('Aktivita není týmová, ale má %s kapacitu %d.', $capacityName, $teamCapacity));
+      }
+      return ImportStepResult::success($teamCapacity);
     }
-    if ((string)$minimalTeamCapacityValue === '0') {
+    if ((string)$teamCapacityValue === '0') {
+      if ($forTeam) {
+        return ImportStepResult::error(sprintf('Aktivita je týmová, ale nemá %s kapacitu.', $capacityName));
+      }
       return ImportStepResult::success(0);
     }
     return ImportStepResult::error(sprintf(
-      "Podivná minimální kapacita týmu '%s'. Očekáváme celé kladné číslo.",
-      $minimalTeamCapacityValue
+      "Podivná %s kapacita týmu '%s'. Očekáváme celé kladné číslo.",
+      $capacityName,
+      $teamCapacityValue
     ));
   }
 
-  private function getValidatedMaximalTeamCapacity(array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
+  private function getValidatedMaximalTeamCapacity(bool $forTeam, array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
     $maximalTeamCapacityValue = $activityValues[ExportAktivitSloupce::MAXIMALNI_KAPACITA_TYMU] ?? null;
-    if ((string)$maximalTeamCapacityValue === '') {
-      $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
-      return ImportStepResult::success($sourceActivity
-        ? $sourceActivity->tymMaxKapacita()
-        : 0
-      );
-    }
-    $maximalTeamCapacity = (int)$maximalTeamCapacityValue;
-    if ($maximalTeamCapacity > 0) {
-      return ImportStepResult::success($maximalTeamCapacity);
-    }
-    if ((string)$maximalTeamCapacityValue === '0') {
-      return ImportStepResult::success(0);
-    }
-    return ImportStepResult::error(sprintf(
-      "Podivná maximální kapacita týmu '%s'. Očekáváme celé kladné číslo.",
-      $maximalTeamCapacityValue
-    ));
+    return $this->getValidatedTeamCapacity($forTeam, $maximalTeamCapacityValue, 'maximální', $originalActivity, $parentActivity);
   }
 
   private function getValidatedForTeam(array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
