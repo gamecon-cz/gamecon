@@ -42,7 +42,6 @@ class ActivityImporter
   }
 
   public function importActivity(
-    string $activityGuid,
     array $sqlMappedValues,
     ?string $longAnnotation,
     array $storytellersIds,
@@ -52,7 +51,7 @@ class ActivityImporter
   ): ImportStepResult {
     $checkBeforeSaveResult = $this->checkBeforeSave($sqlMappedValues, $storytellersIds, $singleProgramLine, $originalActivity);
     if ($checkBeforeSaveResult->isError()) {
-      return ImportStepResult::error("$activityGuid: " . $checkBeforeSaveResult->getError());
+      return ImportStepResult::error($checkBeforeSaveResult->getError());
     }
 
     ['values' => $sqlMappedValues, 'availableStorytellerIds' => $availableStorytellerIds, 'checkResults' => $checkResults] = $checkBeforeSaveResult->getSuccess();
@@ -68,7 +67,7 @@ class ActivityImporter
     $importedActivity = $savedActivityResult->getSuccess();
 
     if ($savedActivityResult->isError()) {
-      return ImportStepResult::error("$activityGuid: " . $savedActivityResult->getError());
+      return ImportStepResult::error($savedActivityResult->getError());
     }
     $checkResults[] = $savedActivityResult;
     unset($savedActivityResult);
@@ -78,7 +77,7 @@ class ActivityImporter
     if ($originalActivity) {
       return ImportStepResult::successWithWarnings(
         [
-          'message' => sprintf('%s: Upravena existující aktivita.', $activityGuid),
+          'message' => 'Upravena existující aktivita.',
           'importedActivityId' => $importedActivity->id(),
         ],
         $warnings,
@@ -89,8 +88,7 @@ class ActivityImporter
       return ImportStepResult::successWithWarnings(
         [
           'message' => sprintf(
-            '%s: Nahrána jako nová, %d. <strong>instance</strong> k hlavní aktivitě %s.',
-            $activityGuid,
+            'Nahrána jako nová, %d. <strong>instance</strong> k hlavní aktivitě %s.',
             $importedActivity->pocetInstanci(),
             $this->importValuesDescriber->describeActivity($importedActivity->patriPodAktivitu())
           ),
@@ -102,7 +100,7 @@ class ActivityImporter
     }
     return ImportStepResult::successWithWarnings(
       [
-        'message' => sprintf('%s: Nahrána jako nová aktivita. ', $activityGuid),
+        'message' => 'Nahrána jako nová aktivita.',
         'importedActivity' => $importedActivity,
       ],
       $warnings,
