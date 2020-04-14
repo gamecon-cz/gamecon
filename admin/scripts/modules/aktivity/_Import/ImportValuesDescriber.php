@@ -64,7 +64,7 @@ class ImportValuesDescriber
       $nazev = (string)$nazev;
     }
     if ($nazev && $id) {
-      return sprintf("'%s' (%d)", $this->createLinkToActivity($id, $nazev), $id);
+      return $this->createLinkToActivity($id, sprintf("'%s' (%d)", $nazev, $id));
     }
     if (!$url && $originalActivity) {
       $url = $originalActivity->urlId();
