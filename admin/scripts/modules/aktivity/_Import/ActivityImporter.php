@@ -109,39 +109,17 @@ class ActivityImporter
   }
 
   private function checkBeforeSave(array $sqlMappedValues, array $storytellersIds, \Typ $singleProgramLine, ?\Aktivita $originalActivity): ImportStepResult {
-    if ($originalActivity) {
-      if (!$originalActivity->bezpecneEditovatelna()) {
-        return ImportStepResult::error(sprintf(
-          "Aktivitu %s už nelze editovat importem, protože je ve stavu '%s'.",
-          $this->importValuesDescriber->describeActivity($originalActivity), $originalActivity->stav()->nazev()
-        ));
-      }
-      if ($originalActivity->zacatek() && $originalActivity->zacatek()->getTimestamp() <= $this->now->getTimestamp()) {
-        return ImportStepResult::error(sprintf(
-          "Aktivitu %s už nelze editovat importem, protože už začala (začátek v %s).",
-          $this->importValuesDescriber->describeActivity($originalActivity), $originalActivity->zacatek()->formatCasNaMinutyStandard()
-        ));
-      }
-      if ($originalActivity->konec() && $originalActivity->konec()->getTimestamp() <= $this->now->getTimestamp()) {
-        return ImportStepResult::error(sprintf(
-          "Aktivitu %s už nelze editovat importem, protože už skončila (konec v %s).",
-          $this->importValuesDescriber->describeActivity($originalActivity),
-          $originalActivity->konec()->formatCasNaMinutyStandard()
-        ));
-      }
-    }
-
     $checkResults = [];
 
-    $durationResult = $this->importValuesChecker->checkDuration($sqlMappedValues, $originalActivity);
-    if ($durationResult->isError()) {
-      return ImportStepResult::error($durationResult->getError());
+    $timeResult = $this->importValuesChecker->checkTime($sqlMappedValues, $originalActivity);
+    if ($timeResult->isError()) {
+      return ImportStepResult::error($timeResult->getError());
     }
-    ['start' => $start, 'end' => $end] = $durationResult->getSuccess();
+    ['start' => $start, 'end' => $end] = $timeResult->getSuccess();
     $sqlMappedValues[AktivitaSqlSloupce::ZACATEK] = $start ?: null;
     $sqlMappedValues[AktivitaSqlSloupce::KONEC] = $end ?: null;
-    $checkResults[] = $durationResult;
-    unset($durationResult);
+    $checkResults[] = $timeResult;
+    unset($timeResult);
 
     $urlUniquenessResult = $this->importValuesChecker->checkUrlUniqueness($sqlMappedValues, $singleProgramLine, $originalActivity);
     if ($urlUniquenessResult->isError()) {
@@ -157,7 +135,7 @@ class ActivityImporter
     $checkResults[] = $nameUniqueness;
     unset($nameUniqueness);
 
-    $stateUsabilityResult = $this->importValuesChecker->checkStateUsability($sqlMappedValues);
+    $stateUsabilityResult = $this->importValuesChecker->checkStateUsability($sqlMappedValues, $originalActivity);
     if ($stateUsabilityResult->isError()) {
       return ImportStepResult::error($stateUsabilityResult->getError());
     }
