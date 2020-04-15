@@ -353,11 +353,15 @@ function dbQueryS($q,$pole=null)
  * Quotes array to be used in IN(1,2,3..N) queries
  * @example 'something IN('.dbQa($array).')'
  */
-function dbQa($array) {
-  $out = '';
-  foreach($array as $v)
-    $out .= dbQv($v).',';
-  return substr($out, 0, -1);
+function dbQa(array $array): string {
+  if (count($array) === 0) {
+    return 'NULL';
+  }
+  $out = [];
+  foreach($array as $value) {
+    $out[] = dbQv($value);
+  }
+  return implode(',', $out);
 }
 
 /**

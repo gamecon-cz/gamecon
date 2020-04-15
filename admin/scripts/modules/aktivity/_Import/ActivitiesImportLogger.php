@@ -20,6 +20,12 @@ SQL
    * @return string[]
    */
   public function splitGoogleSheetIdsToUsedAndUnused(array $spreadsheetIds): array {
+    if (count($spreadsheetIds) === 0) {
+      return [
+        'used' => [],
+        'unused' => [],
+      ];
+    }
     $spreadsheetIdsSql = dbQa($spreadsheetIds);
     $usedSpreadsheetIds = dbOneArray(<<<SQL
 SELECT google_sheet_id
