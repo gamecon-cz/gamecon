@@ -12,19 +12,41 @@ class ImportSqlMappedValuesChecker
    */
   private $importValuesDescriber;
   /**
+   * @var \DateTimeInterface
+   */
+  private $now;
+  /**
    * @var int
    */
   private $currentYear;
 
   public function __construct(
     int $currentYear,
+    \DateTimeInterface $now,
     ImportValuesDescriber $importValuesDescriber
   ) {
     $this->importValuesDescriber = $importValuesDescriber;
+    $this->now = $now;
     $this->currentYear = $currentYear;
   }
 
-  public function checkDuration(array $sqlMappedValues, ?\Aktivita $originalActivity): ImportStepResult {
+  public function checkTime(array $sqlMappedValues, ?\Aktivita $originalActivity): ImportStepResult {
+    if ($originalActivity) {
+      if ($originalActivity->zacatek() && $originalActivity->zacatek()->getTimestamp() <= $this->now->getTimestamp()) {
+        return ImportStepResult::error(sprintf(
+          'Aktivitu %s už nelze editovat importem, protože už začala (začátek v %s).',
+          $this->importValuesDescriber->describeActivity($originalActivity), $originalActivity->zacatek()->formatCasNaMinutyStandard()
+        ));
+      }
+      if ($originalActivity->konec() && $originalActivity->konec()->getTimestamp() <= $this->now->getTimestamp()) {
+        return ImportStepResult::error(sprintf(
+          'Aktivitu %s už nelze editovat importem, protože už skončila (konec v %s).',
+          $this->importValuesDescriber->describeActivity($originalActivity),
+          $originalActivity->konec()->formatCasNaMinutyStandard()
+        ));
+      }
+    }
+
     $startString = $sqlMappedValues[AktivitaSqlSloupce::ZACATEK];
     $endString = $sqlMappedValues[AktivitaSqlSloupce::KONEC];
     if (!$startString && !$endString) {
@@ -169,7 +191,13 @@ SQL
     return ImportStepResult::success(null);
   }
 
-  public function checkStateUsability(array $sqlMappedValues): ImportStepResult {
+  public function checkStateUsability(array $sqlMappedValues, ?\Aktivita $originalActivity): ImportStepResult {
+    if ($originalActivity && !$originalActivity->bezpecneEditovatelna()) {
+      return ImportStepResult::error(sprintf(
+        "Aktivitu %s už nelze editovat importem, protože je ve stavu '%s'.",
+        $this->importValuesDescriber->describeActivity($originalActivity), $originalActivity->stav()->nazev()
+      ));
+    }
     $stateId = $sqlMappedValues[AktivitaSqlSloupce::STAV];
     if ($stateId === null) {
       return ImportStepResult::success(null);
