@@ -216,6 +216,70 @@ SQL
     );
   }
 
+  public function checkRequiredValuesForState(array $sqlMappedValues, array $tagIds): ImportStepResult {
+    $stateId = $sqlMappedValues[AktivitaSqlSloupce::STAV];
+    if ($stateId === null) {
+      return ImportStepResult::success(null);
+    }
+    $state = \Stav::zId($stateId);
+    $requiredFieldsForPublishingResult = $this->checkRequiredFieldsForPublishing($state, $tagIds);
+    if ($requiredFieldsForPublishingResult->isError()) {
+      return $requiredFieldsForPublishingResult;
+    }
+    if ($state->jeNanejvysPripravenaKAktivaci()) {
+      return ImportStepResult::success($state->id());
+    }
+    return ImportStepResult::successWithErrorLikeWarnings(
+      \Stav::PRIPRAVENA,
+      [sprintf(
+        "Aktivovat musíš aktivity ručně. Požadovaný stav '%s' byl změněn na '%s'.",
+        $state->nazev(),
+        \Stav::zId(\Stav::PRIPRAVENA)->nazev()
+      )]
+    );
+  }
+
+  private function checkRequiredFieldsForPublishing(\Stav $state, array $tagIds) {
+    $fieldsToNames = [
+      AktivitaSqlSloupce::NAZEV_AKCE => ExportAktivitSloupce::NAZEV,
+      AktivitaSqlSloupce::URL_AKCE => ExportAktivitSloupce::URL,
+      AktivitaSqlSloupce::POPIS_KRATKY => ExportAktivitSloupce::KRATKA_ANOTACE,
+      AktivitaSqlSloupce::POPIS => ExportAktivitSloupce::DLOUHA_ANOTACE,
+      'tags' => ExportAktivitSloupce::TAGY,
+      'image' => ExportAktivitSloupce::OBRAZEK,
+    ];
+    if ($state->jePublikovana()) {
+      $requiredFields = [
+        AktivitaSqlSloupce::NAZEV_AKCE,
+        AktivitaSqlSloupce::URL_AKCE,
+        AktivitaSqlSloupce::POPIS_KRATKY,
+        AktivitaSqlSloupce::POPIS,
+      ];
+      $missingFields = [];
+      foreach ($requiredFields as $requiredField) {
+        if (empty($sqlMappedValues[$requiredField])) {
+          $missingFields[$requiredField] = $requiredField;
+        }
+      }
+      if (count($tagIds) === 0) {
+        $missingFields['tags'] = 'tags';
+      }
+      if (false /* TODO solve image existence */) {
+        $missingFields['image'] = 'image';
+      }
+      if ($missingFields) {
+        $missingNames = array_intersect_key($fieldsToNames, $missingFields);
+        return ImportStepResult::error(sprintf(
+          'Pro publikování aktivity jí musíš vyplnit ještě %s.',
+          implode(', ', array_map(static function (string $name) {
+            return mb_strtolower($name, 'UTF-8');
+          }, $missingNames))
+        ));
+      }
+    }
+    return ImportStepResult::success(null);
+  }
+
   public function checkLocationByAccessibility(
     ?int $locationId,
     ?string $zacatekString,

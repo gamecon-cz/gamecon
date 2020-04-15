@@ -49,7 +49,7 @@ class ActivityImporter
     \Typ $singleProgramLine,
     ?\Aktivita $originalActivity
   ): ImportStepResult {
-    $checkBeforeSaveResult = $this->checkBeforeSave($sqlMappedValues, $storytellersIds, $singleProgramLine, $originalActivity);
+    $checkBeforeSaveResult = $this->checkBeforeSave($sqlMappedValues, $tagIds, $storytellersIds, $singleProgramLine, $originalActivity);
     if ($checkBeforeSaveResult->isError()) {
       return ImportStepResult::error($checkBeforeSaveResult->getError());
     }
@@ -108,7 +108,7 @@ class ActivityImporter
     );
   }
 
-  private function checkBeforeSave(array $sqlMappedValues, array $storytellersIds, \Typ $singleProgramLine, ?\Aktivita $originalActivity): ImportStepResult {
+  private function checkBeforeSave(array $sqlMappedValues, array $tagIds, array $storytellersIds, \Typ $singleProgramLine, ?\Aktivita $originalActivity): ImportStepResult {
     $checkResults = [];
 
     $timeResult = $this->importValuesChecker->checkTime($sqlMappedValues, $originalActivity);
@@ -142,6 +142,14 @@ class ActivityImporter
     $sqlMappedValues[AktivitaSqlSloupce::STAV] = $stateUsabilityResult->getSuccess();
     $checkResults[] = $stateUsabilityResult;
     unset($stateUsabilityResult);
+
+    $requiredValuesForStateResult = $this->importValuesChecker->checkRequiredValuesForState($sqlMappedValues, $tagIds);
+    if ($requiredValuesForStateResult->isError()) {
+      return ImportStepResult::error($requiredValuesForStateResult->getError());
+    }
+    $sqlMappedValues[AktivitaSqlSloupce::STAV] = $requiredValuesForStateResult->getSuccess();
+    $checkResults[] = $requiredValuesForStateResult;
+    unset($requiredValuesForStateResult);
 
     $storytellersAccessibilityResult = $this->importValuesChecker->checkStorytellersAccessibility(
       $storytellersIds,

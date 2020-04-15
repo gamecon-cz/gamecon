@@ -10,7 +10,7 @@ class Stav extends DbObject
   public const AKTIVOVANA = 1;
   public const PROBEHNUTA = 2;
   public const SYSTEMOVA = 3; // deprecated
-  public const PUBLIKOVANA = 4; // videtelná, nepřihlašovatelá
+  public const PUBLIKOVANA = 4; // viditelná, nepřihlašovatelá
   public const PRIPRAVENA = 5;
 
   public static function jeZnamy(int $stav): bool {
@@ -48,5 +48,29 @@ class Stav extends DbObject
 
   public function jeNanejvysPripravenaKAktivaci(): bool {
     return in_array($this->id(), [self::NOVA, self::PUBLIKOVANA, self::PRIPRAVENA], true);
+  }
+
+  public function jeNova(): bool {
+    return $this->id() === self::NOVA;
+  }
+
+  public function jeAktivovana(): bool {
+    return $this->id() === self::AKTIVOVANA;
+  }
+
+  public function jeProbehnuta(): bool {
+    return $this->id() === self::PROBEHNUTA;
+  }
+
+  public function jeSystemova(): bool {
+    return $this->id() === self::SYSTEMOVA;
+  }
+
+  public function jePublikovana(): bool {
+    return $this->id() === self::PUBLIKOVANA;
+  }
+
+  public function jePripravena(): bool {
+    return $this->id() === self::PRIPRAVENA;
   }
 }
