@@ -222,9 +222,16 @@ SQL
       return ImportStepResult::success(null);
     }
     $state = \Stav::zId($stateId);
-    $requiredFieldsForPublishingResult = $this->checkRequiredFieldsForPublishing($state, $tagIds);
-    if ($requiredFieldsForPublishingResult->isError()) {
-      return $requiredFieldsForPublishingResult;
+    if ($state->jePublikovana()) {
+      $requiredFieldsForPublishingResult = $this->checkRequiredFieldsForPublishing($sqlMappedValues, $tagIds);
+      if ($requiredFieldsForPublishingResult->isError()) {
+        return $requiredFieldsForPublishingResult;
+      }
+    } elseif ($state->jePripravenaKAktivaci()) {
+      $requiredFieldsForReadyForActivationResult = $this->checkRequiredFieldsForReadyToActivation($sqlMappedValues, $tagIds);
+      if ($requiredFieldsForReadyForActivationResult->isError()) {
+        return $requiredFieldsForReadyForActivationResult;
+      }
     }
     if ($state->jeNanejvysPripravenaKAktivaci()) {
       return ImportStepResult::success($state->id());
@@ -239,8 +246,87 @@ SQL
     );
   }
 
-  private function checkRequiredFieldsForPublishing(\Stav $state, array $tagIds) {
-    $fieldsToNames = [
+  private function checkRequiredFieldsForReadyToActivation(array $sqlMappedValues, array $tagIds): ImportStepResult {
+    $requiredNonEmptyFields = [
+      AktivitaSqlSloupce::NAZEV_AKCE,
+      AktivitaSqlSloupce::URL_AKCE,
+      AktivitaSqlSloupce::ZACATEK,
+      AktivitaSqlSloupce::KONEC,
+      AktivitaSqlSloupce::LOKACE,
+      AktivitaSqlSloupce::POPIS_KRATKY,
+      AktivitaSqlSloupce::POPIS,
+      AktivitaSqlSloupce::VYBAVENI,
+    ];
+    $requiredZeroableFields = [
+      AktivitaSqlSloupce::CENA,
+      AktivitaSqlSloupce::BEZ_SLEVY,
+      AktivitaSqlSloupce::NEDAVA_SLEVU,
+      AktivitaSqlSloupce::KAPACITA,
+      AktivitaSqlSloupce::KAPACITA_F,
+      AktivitaSqlSloupce::KAPACITA_M,
+    ];
+    if ($sqlMappedValues[AktivitaSqlSloupce::TEAMOVA]) {
+      $requiredZeroableFields[] = AktivitaSqlSloupce::TEAM_MIN;
+      $requiredZeroableFields[] = AktivitaSqlSloupce::TEAM_MAX;
+    }
+    $missingNames = $this->getMissingRequiredFieldsForState($sqlMappedValues, $tagIds, $requiredNonEmptyFields, $requiredZeroableFields);
+
+    if ($missingNames) {
+      return ImportStepResult::error(sprintf(
+        'Pro připravení k aktivaci musíš aktivitě vyplnit ještě %s.',
+        implode(', ', $missingNames)
+      ));
+    }
+    return ImportStepResult::success(null);
+  }
+
+  private function checkRequiredFieldsForPublishing(array $sqlMappedValues, array $tagIds): ImportStepResult {
+    $requiredNonEmptyFields = [
+      AktivitaSqlSloupce::NAZEV_AKCE,
+      AktivitaSqlSloupce::URL_AKCE,
+      AktivitaSqlSloupce::POPIS_KRATKY,
+      AktivitaSqlSloupce::POPIS,
+    ];
+    $missingNames = $this->getMissingRequiredFieldsForState($sqlMappedValues, $tagIds, $requiredNonEmptyFields, []);
+    if ($missingNames) {
+      return ImportStepResult::error(sprintf(
+        'Pro publikování musíš aktivitě vyplnit ještě %s.',
+        implode(', ', $missingNames)
+      ));
+    }
+    return ImportStepResult::success(null);
+  }
+
+  private function getMissingRequiredFieldsForState(array $sqlMappedValues, array $tagIds, array $requiredNonEmptyFields, array $requiredZeroableFields): array {
+    $missingFields = [];
+    foreach ($requiredNonEmptyFields as $requiredNonEmptyField) {
+      if (empty($sqlMappedValues[$requiredNonEmptyField])) {
+        $missingFields[] = $requiredNonEmptyField;
+      }
+    }
+    foreach ($requiredZeroableFields as $requiredZeroableField) {
+      if (!isset($sqlMappedValues[$requiredZeroableField]) || (string)$sqlMappedValues[$requiredZeroableField] === '') {
+        $missingFields[] = $requiredZeroableField;
+      }
+    }
+    if (count($tagIds) === 0) {
+      $missingFields[] = 'tags';
+    }
+    if (false /* TODO solve image existence */) {
+      $missingFields[] = 'image';
+    }
+    if ($missingFields) {
+      $missingFieldsAsKeys = array_fill_keys($missingFields, true);
+      $missingNames = array_intersect_key(self::getFieldsToNames(), $missingFieldsAsKeys);
+      return array_map(static function (string $name) {
+        return mb_strtolower($name, 'UTF-8');
+      }, $missingNames);
+    }
+    return [];
+  }
+
+  private static function getFieldsToNames(): array {
+    return [
       AktivitaSqlSloupce::NAZEV_AKCE => ExportAktivitSloupce::NAZEV,
       AktivitaSqlSloupce::URL_AKCE => ExportAktivitSloupce::URL,
       AktivitaSqlSloupce::POPIS_KRATKY => ExportAktivitSloupce::KRATKA_ANOTACE,
@@ -248,36 +334,6 @@ SQL
       'tags' => ExportAktivitSloupce::TAGY,
       'image' => ExportAktivitSloupce::OBRAZEK,
     ];
-    if ($state->jePublikovana()) {
-      $requiredFields = [
-        AktivitaSqlSloupce::NAZEV_AKCE,
-        AktivitaSqlSloupce::URL_AKCE,
-        AktivitaSqlSloupce::POPIS_KRATKY,
-        AktivitaSqlSloupce::POPIS,
-      ];
-      $missingFields = [];
-      foreach ($requiredFields as $requiredField) {
-        if (empty($sqlMappedValues[$requiredField])) {
-          $missingFields[$requiredField] = $requiredField;
-        }
-      }
-      if (count($tagIds) === 0) {
-        $missingFields['tags'] = 'tags';
-      }
-      if (false /* TODO solve image existence */) {
-        $missingFields['image'] = 'image';
-      }
-      if ($missingFields) {
-        $missingNames = array_intersect_key($fieldsToNames, $missingFields);
-        return ImportStepResult::error(sprintf(
-          'Pro publikování aktivity jí musíš vyplnit ještě %s.',
-          implode(', ', array_map(static function (string $name) {
-            return mb_strtolower($name, 'UTF-8');
-          }, $missingNames))
-        ));
-      }
-    }
-    return ImportStepResult::success(null);
   }
 
   public function checkLocationByAccessibility(

@@ -70,7 +70,7 @@ class Stav extends DbObject
     return $this->id() === self::PUBLIKOVANA;
   }
 
-  public function jePripravena(): bool {
+  public function jePripravenaKAktivaci(): bool {
     return $this->id() === self::PRIPRAVENA;
   }
 }
