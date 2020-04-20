@@ -462,4 +462,17 @@ SQL
     return ['start' => $zacatek, 'end' => $konec];
   }
 
+  public function checkTeamCapacityRange(bool $isTeamActivity, ?int $minimalTeamCapacity, ?int $maximalTeamCapacity): ImportStepResult {
+    if (!$isTeamActivity) {
+      return ImportStepResult::success(null);
+    }
+    if ($minimalTeamCapacity > $maximalTeamCapacity) {
+      return ImportStepResult::error(sprintf(
+        'Minimální týmová kapacita %d nemůže být větší než maximální %d.',
+        $minimalTeamCapacity,
+        $maximalTeamCapacity
+      ));
+    }
+    return ImportStepResult::success(null);
+  }
 }
