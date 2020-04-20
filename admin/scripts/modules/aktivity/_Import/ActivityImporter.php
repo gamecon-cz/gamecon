@@ -176,6 +176,17 @@ class ActivityImporter
     $checkResults[] = $locationAccessibilityResult;
     unset($locationAccessibilityResult);
 
+    $teamCapacityRangeResult = $this->importValuesChecker->checkTeamCapacityRange(
+      (bool)$sqlMappedValues[AktivitaSqlSloupce::TEAMOVA],
+      $sqlMappedValues[AktivitaSqlSloupce::TEAM_MIN],
+      $sqlMappedValues[AktivitaSqlSloupce::TEAM_MAX]
+    );
+    if ($teamCapacityRangeResult->isError()) {
+      return ImportStepResult::error($teamCapacityRangeResult->getError());
+    }
+    $checkResults[] = $teamCapacityRangeResult;
+    unset($teamCapacityRangeResult);
+
     return ImportStepResult::success(['values' => $sqlMappedValues, 'availableStorytellerIds' => $availableStorytellerIds, 'checkResults' => $checkResults]);
   }
 
