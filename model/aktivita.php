@@ -411,10 +411,10 @@ class Aktivita
     $popis = $a['popis'];
     unset($a['popis']);
 
-    if ($a['teamova'] && isset($a['team_min'], $a['team_max']) && $a['team_min'] < $a['team_max']) {
+    if (!empty($a['teamova']) && isset($a['team_min'], $a['team_max']) && $a['team_min'] > $a['team_max']) {
       chyba(
         sprintf(
-          'Minimální kapacita týmu %d nemůže být větší než maximální kapacita týmu %d. Kapacity týmu byly zrušeny.',
+          'Minimální kapacita týmu (%d) nemůže být větší než maximální kapacita týmu (%d). Kapacity týmu byly zrušeny.',
           $a['team_min'],
           $a['team_max']
         ),
