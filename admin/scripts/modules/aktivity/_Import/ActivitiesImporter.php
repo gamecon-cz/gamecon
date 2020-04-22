@@ -191,7 +191,11 @@ class ActivitiesImporter
         }
         /** @var \Aktivita $importedActivity */
         ['message' => $successMessage, 'importedActivity' => $importedActivity] = $importActivityResult->getSuccess();
-        $result->addSuccessMessage($successMessage, $activityGuid);
+        if ($importActivityResult->hasErrorLikeWarnings()) {
+          $result->addWarningMessage($successMessage . ' Import ale nebyl bez problémů, viz výše.', $activityGuid);
+        } else {
+          $result->addSuccessMessage($successMessage, $activityGuid);
+        }
         unset($importActivityResult);
 
         if (count($potentialImageUrls) > 0) {

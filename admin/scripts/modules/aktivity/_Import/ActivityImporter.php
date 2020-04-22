@@ -78,7 +78,7 @@ class ActivityImporter
       return ImportStepResult::successWithWarnings(
         [
           'message' => 'Upravena existující aktivita.',
-          'importedActivityId' => $importedActivity->id(),
+          'importedActivity' => $importedActivity,
         ],
         $warnings,
         $errorLikeWarnings
