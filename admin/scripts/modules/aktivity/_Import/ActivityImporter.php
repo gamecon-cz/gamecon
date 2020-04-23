@@ -187,6 +187,18 @@ class ActivityImporter
     $checkResults[] = $teamCapacityRangeResult;
     unset($teamCapacityRangeResult);
 
+    $nonTeamCapacityResult = $this->importValuesChecker->checkNonTeamCapacity(
+      (bool)$sqlMappedValues[AktivitaSqlSloupce::TEAMOVA],
+      $sqlMappedValues[AktivitaSqlSloupce::KAPACITA],
+      $sqlMappedValues[AktivitaSqlSloupce::KAPACITA_M],
+      $sqlMappedValues[AktivitaSqlSloupce::KAPACITA_F]
+    );
+    if ($nonTeamCapacityResult->isError()) {
+      return ImportStepResult::error($nonTeamCapacityResult->getError());
+    }
+    $checkResults[] = $nonTeamCapacityResult;
+    unset($teamCapacityRangeResult);
+
     return ImportStepResult::success(['values' => $sqlMappedValues, 'availableStorytellerIds' => $availableStorytellerIds, 'checkResults' => $checkResults]);
   }
 
