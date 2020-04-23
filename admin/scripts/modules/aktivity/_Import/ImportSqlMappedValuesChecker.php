@@ -475,4 +475,19 @@ SQL
     }
     return ImportStepResult::success(null);
   }
+
+  public function checkNonTeamCapacity(bool $isTeamActivity, ?int $unisexCapacity, ?int $menCapacity, ?int $womenCapacity): ImportStepResult {
+    if ($isTeamActivity) {
+      return ImportStepResult::success(null);
+    }
+    if (($unisexCapacity ?: 0) + ($menCapacity ?: 0) + ($womenCapacity ?: 0) === 0) {
+      return ImportStepResult::successWithWarnings(
+        null,
+        [
+          'Kapacita aktivity by neměla být nulová. Alespoň jedna z kapacit unisex, mužská nebo ženská by měly být vyplněné.',
+        ]
+      );
+    }
+    return ImportStepResult::success(null);
+  }
 }
