@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="files/design/jquery-modal/jquery.modal.gamecon.css?version=f946305a5585486a6c3448dd9a304720" />
   <script src="files/jquery-3.4.1.min.js"></script>
   {jsVyjimkovac}
-  <script src="files/jquery-ui-1.10.3.custom.min.js"></script>
+  <script src="files/jquery-ui-v1.12.1.min.js"></script>
   <script src="files/jquery.hotkeys-0.8.0.js"></script>
   <script src="files/jquery.serializeobject.js?version=756c72ca3178bfe417882afe5b460406"></script>
   <script src="files/jquery.cookie-v1.4.1.js"></script>
