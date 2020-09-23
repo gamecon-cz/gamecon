@@ -1,0 +1,38 @@
+name: Run tests
+on: push
+jobs:
+  run-tests:
+    name: Run tests job
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:5.5 # musí odpovídat verzi na wedosu
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.1' # musí odpovídat verzi na wedosu
+          tools: composer, phpunit:7.0.1 # shit od v8 s :void return typy
+          coverage: none
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v1
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+
+      - name: Install dependencies
+        run: composer install
+
+      - name: Run tests
+        run: phpunit

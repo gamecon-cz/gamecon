@@ -131,8 +131,7 @@ function dbInsert($table, $valArray) {
       $hodnoty.='NULL,';
     } else {
       $sloupce.=$sloupec.',';
-      if(!get_magic_quotes_gpc()) //vstup není slashován
-        $hodnota=addslashes($hodnota);
+      $hodnota=addslashes($hodnota);
       $hodnoty.='"'.$hodnota.'",';
     }
   }
@@ -350,14 +349,14 @@ function dbQv($val) {
   elseif($val instanceof DateTimeInterface)
     return '"'.$val->format('Y-m-d H:i:s').'"';
   else
-    return '"'.( get_magic_quotes_gpc() ? $val : addslashes($val) ).'"';
+    return '"'.addslashes($val).'"';
 }
 
 /**
  * Quotes $val as identifier
  */
 function dbQi($val) {
-  return '`'.( get_magic_quotes_gpc() ? $val : addslashes($val) ).'`';
+  return '`'.addslashes($val).'`';
 }
 
 /**

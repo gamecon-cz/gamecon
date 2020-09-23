@@ -165,7 +165,7 @@ $this->q('CREATE TABLE akce_tagy (
   PRIMARY KEY (id_akce, id_tagu),
   KEY (id_tagu)
 ) ENGINE="MyISAM" COLLATE "utf8_czech_ci";');
-$o = $this->q("select * from akce_seznam where nazev_akce like '%(%)' and typ = 4 and zacatek > '2011-01'");
+$o = $this->q("select * from akce_seznam where nazev_akce like '%(%)' and typ = 4 and zacatek > '2011-01-01'");
 while($r = mysqli_fetch_assoc($o)) {
   /* TODO
   $tag = preg_replace('@.*\((.*)\)@', '$1', $r['nazev_akce']);

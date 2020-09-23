@@ -5,7 +5,7 @@ ini_set('display_errors', true); // zobrazovat chyby při lokálním vývoji (po
 @define('DB_USER', 'root');
 @define('DB_PASS', '');
 @define('DB_NAME', 'gamecon');
-@define('DB_SERV', 'localhost');
+@define('DB_SERV', '127.0.0.1');
 
 // uživatel s přístupem k změnám struktury
 @define('DBM_USER', 'root');
