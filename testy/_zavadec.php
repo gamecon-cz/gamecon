@@ -9,6 +9,8 @@ define('REG_GC_DO', '2038-01-01 00:00:00');
 define('REG_AKTIVIT_OD', '2000-01-01 00:00:00');
 define('REG_AKTIVIT_DO', '2038-01-01 00:00:00');
 
+define('MAILY_DO_SOUBORU', '/dev/null'); // TODO přidat speciální nastavení pro CI
+
 require_once __DIR__ . '/../nastaveni/zavadec-zaklad.php';
 
 // příprava databáze
