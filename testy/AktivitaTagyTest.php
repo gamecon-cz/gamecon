@@ -11,15 +11,14 @@ class AktivitaTagyTest extends GcDbTest {
     4,       20
     5,       20
 
-    # tagy
-    id, nazev
-    1,  Tak určitě
+    # kategorie_sjednocenych_tagu
+    id,   nazev
+    2001, Za co?
 
-    # akce_tagy
-    id_akce, id_tagu
-    4,       1
-    5,       1
-    1,       1
+    # sjednocene_tagy
+    id,   nazev, id_kategorie_tagu
+    1001, První, 2001
+    1002, druhý, 2001
   ';
 
   function aktivity() {
@@ -39,7 +38,7 @@ class AktivitaTagyTest extends GcDbTest {
     $a = Aktivita::zId($idNastavovaneAktivity);
     $a->nastavTagy($nastaveneTagy);
     $b = Aktivita::zId($idCteneAktivity);
-    $this->assertEquals($nastaveneTagy, $b->tagy(),
+    $this->assertEquals(serazene($nastaveneTagy), serazene($b->tagy()),
       "Tagy nastavené aktivitě $idNastavovaneAktivity musí odpovídat tagům přečteným z aktivity $idCteneAktivity."
     );
   }
@@ -51,9 +50,18 @@ class AktivitaTagyTest extends GcDbTest {
     $a = Aktivita::zId($idAktivity);
     $a->nastavTagy($tagy);
     $b = $a->instanciuj();
-    $this->assertEquals($tagy, $b->tagy(),
+    $this->assertEquals(serazene($tagy), serazene($b->tagy()),
       "Tagy se musí propsat i do nově vytvořené instance"
     );
   }
 
+}
+
+/**
+ * Vrátí seřazenou kopii pole bez modifikace původního pole.
+ */
+function serazene($pole) {
+  $serazene = $pole;
+  sort($serazene);
+  return $serazene;
 }
