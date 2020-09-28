@@ -53,6 +53,15 @@ if(!$i->titulek())
 // výstup (s ohledem na to co modul nastavil)
 if($m->bezStranky()) {
   echo $m->vystup();
+} elseif($m->blackarrowStyl()) {
+  $t = new XTemplate('sablony/blackarrow/index.xtpl');
+  $t->assign([
+    'obsah' => $m->vystup(),
+    'css'   => perfectcache('soubory/blackarrow/less/*.less'),
+  ]);
+  $t->parse('index');
+  $t->out('index');
+  echo profilInfo();
 } else {
   $t = new XTemplate('sablony/index.xtpl');
   // templata a nastavení proměnných do glob templaty

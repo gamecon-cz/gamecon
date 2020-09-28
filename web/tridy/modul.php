@@ -14,6 +14,7 @@ class Modul {
   protected $bezMenu = false;
   protected $bezStranky = false;
   protected $bezOkraju = false;
+  protected $blackarrowStyl = false;
   protected $info;
 
   const VYCHOZI = 'titulka';
@@ -47,6 +48,15 @@ class Modul {
     return $this->bezStranky;
   }
 
+  /**
+   * Jestli je modul v novém vizuálním stylu (codename blackarrow).
+   * TODO po zmigrování všech modulů je možné toto postupně odstranit.
+   */
+  function blackarrowStyl($val = null) {
+    if (isset($val)) $this->blackarrowStyl = $val;
+    return $this->blackarrowStyl;
+  }
+
   function info(Info $val = null): ?Info {
     if(isset($val)) $this->info = $val;
     return $this->info;
@@ -65,7 +75,12 @@ class Modul {
 
   /** Vrátí výchozí šablonu pro tento modul (pokud existuje) */
   protected function sablona() {
-    $soubor = 'sablony/'.$this->nazev().'.xtpl';
+    if($this->blackarrowStyl) {
+      $soubor = 'sablony/blackarrow/'.$this->nazev().'.xtpl';
+    } else {
+      $soubor = 'sablony/'.$this->nazev().'.xtpl';
+    }
+
     if(is_file($soubor)) {
       return new XTemplate($soubor);
     } else {

@@ -1,0 +1,18 @@
+<!-- begin: index -->
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- TODO načíst fonty hned tady -->
+    <link rel="stylesheet" href="{css}">
+</head>
+<body>
+
+    <div class="menu">
+        <div class="menu_hlavicka">Generating works.</div>
+    </div>
+
+    {obsah}
+
+</body>
+</html>
+<!-- end: index -->

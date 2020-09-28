@@ -32,6 +32,7 @@ function nasad($nastaveni) {
       /node_modules
 
       /web/soubory/*
+      !/web/soubory/blackarrow
       !/web/soubory/styl
       !/web/soubory/*.js
       !/web/soubory/*.html

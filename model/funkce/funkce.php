@@ -287,8 +287,8 @@ function oznameni($zprava, $back = true) {
  * @todo nějaký hash počtu / názvu souborů? (když se přidá nový soubor se starým
  *  timestampem, nic se nestane)
  */
-function perfectcache($args) {
-  $args = func_get_args();
+function perfectcache(/* variadic */) {
+  $args = perfectcacheExpandujArgumenty(func_get_args());
   $lastf = end($args);
   $typ = substr($lastf, -3) == '.js' ? 'js' : 'css';
   $last = 0;
@@ -317,6 +317,18 @@ function perfectcache($args) {
     }
   }
   return $minu.'?v='.$last;
+}
+
+function perfectcacheExpandujArgumenty($argumenty) {
+  $out = [];
+  foreach ($argumenty as $argument) {
+    if (str_contains($argument, '*')) {
+      $out = array_merge($out, glob($argument));
+    } else {
+      $out[] = $argument;
+    }
+  }
+  return $out;
 }
 
 function perfectcacheFont($font) {
