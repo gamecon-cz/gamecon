@@ -13,6 +13,7 @@
 @define('CACHE', __DIR__ . '/../cache/public');
 
 @define('AUTOMATICKE_MIGRACE', false);
+@define('AUTOMATICKA_TVORBA_DB', false);
 @define('ZOBRAZIT_STACKTRACE_VYJIMKY', false);
 @define('PROFILOVACI_LISTA', false);
 @define('CACHE_SLOZKY_PRAVA', 0770);

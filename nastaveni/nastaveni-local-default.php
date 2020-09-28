@@ -29,6 +29,7 @@ ini_set('display_errors', true); // zobrazovat chyby při lokálním vývoji (po
 @define('FTP_ZALOHA_DB', 'ftp://user:password@server/directory'); // FTP pro zálohy databáze
 @define('MAILY_DO_SOUBORU', __DIR__ . '/../cache/private/maily.log');
 @define('AUTOMATICKE_MIGRACE', true);
+@define('AUTOMATICKA_TVORBA_DB', true);
 @define('PROFILOVACI_LISTA', true);
 @define('CACHE_SLOZKY_PRAVA', 0777);
 @define('ZOBRAZIT_STACKTRACE_VYJIMKY', true);

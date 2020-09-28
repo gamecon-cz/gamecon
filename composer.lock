@@ -202,12 +202,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/godric-cz/xtemplate.git",
-                "reference": "a00586ef557b0d1592c2f592647077cce8346176"
+                "reference": "bad94b1348477cce8868c54a066cbea11938f962"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/godric-cz/xtemplate/zipball/a00586ef557b0d1592c2f592647077cce8346176",
-                "reference": "a00586ef557b0d1592c2f592647077cce8346176",
+                "url": "https://api.github.com/repos/godric-cz/xtemplate/zipball/bad94b1348477cce8868c54a066cbea11938f962",
+                "reference": "bad94b1348477cce8868c54a066cbea11938f962",
                 "shasum": ""
             },
             "type": "library",
@@ -221,7 +221,7 @@
                 "source": "https://github.com/godric-cz/xtemplate/tree/master",
                 "issues": "https://github.com/godric-cz/xtemplate/issues"
             },
-            "time": "2016-02-28T19:55:11+00:00"
+            "time": "2020-09-28T19:28:21+00:00"
         },
         {
             "name": "michelf/php-markdown",

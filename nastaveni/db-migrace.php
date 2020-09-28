@@ -1,5 +1,6 @@
 <?php
-if (defined('ENVIRONMENT') && ENVIRONMENT === 'local') {
+
+if (AUTOMATICKA_TVORBA_DB) {
     $connection = dbConnect(false /* bez konkrétní databáze */);
     $confirmedDatabase = dbOneCol(sprintf("SHOW DATABASES LIKE '%s'", DB_NAME));
     if ($confirmedDatabase !== DB_NAME) {
@@ -7,6 +8,7 @@ if (defined('ENVIRONMENT') && ENVIRONMENT === 'local') {
     }
     dbQuery(sprintf('USE `%s`', DB_NAME));
 }
+
 (new Godric\DbMigrations\DbMigrations([
     'connection'          =>  dbConnect(), // musí mít admin práva
     'migrationsDirectory' =>  __DIR__ . '/../migrace',
