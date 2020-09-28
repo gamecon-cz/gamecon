@@ -21,7 +21,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '7.1' # musí odpovídat verzi na wedosu
+          php-version: '7.3' # musí odpovídat verzi na wedosu
           tools: composer, phpunit:7.0.1 # shit od v8 s :void return typy
           coverage: none
 
