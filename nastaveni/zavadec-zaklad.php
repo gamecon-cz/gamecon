@@ -25,6 +25,7 @@ require __DIR__ . '/../model/funkce/funkce.php';
 
 error_reporting(E_ALL & ~E_NOTICE); // skrýt notice, aby se konstanty daly "přetížit" dřív vloženými
 
+$host = $_SERVER['SERVER_NAME'] ?? null;
 if (PHP_SAPI == 'cli' || in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1']) || ($_ENV['ENV'] ?? '') === 'local') {
     define('ENVIRONMENT', 'local');
   if (file_exists(__DIR__ . '/nastaveni-local.php')) {
@@ -34,9 +35,10 @@ if (PHP_SAPI == 'cli' || in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '
 } elseif (substr($_SERVER['SERVER_NAME'], -15) == 'beta.gamecon.cz') {
     define('ENVIRONMENT', 'beta');
   require __DIR__ . '/nastaveni-beta.php';
-} elseif (substr($_SERVER['SERVER_NAME'], -19) == 'redesign.gamecon.cz') {
-    define('ENVIRONMENT', 'redesign');
-  require __DIR__ . '/nastaveni-redesign.php';
+} elseif (str_ends_with($host, 'blackarrow.gamecon.cz')) {
+  // TODO vymazat konstantu ENVIRONMENT a nahradit konstantou pro konkrétní
+  // feature, tj. automatickou tvorbu databáze, pokud neexistuje.
+  require __DIR__ . '/nastaveni-blackarrow.php';
 } elseif ($_SERVER['SERVER_NAME'] == 'admin.gamecon.cz' || $_SERVER['SERVER_NAME'] == 'gamecon.cz') {
     define('ENVIRONMENT', 'produkce');
   require __DIR__ . '/nastaveni-produkce.php';

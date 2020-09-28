@@ -1,6 +1,8 @@
 <?php
+
 ini_set('display_errors', false); // nezobrazovat chyby (lze přetížít, třeba v lokálních nastaveních)
-require_once __DIR__ . '/initial-fatal-error-handler.php'; // pro ten kritický kousek, než naběhne Tracy (Vyjimkovac)
+// TODO nefunguje, opravit jak najede
+//require_once __DIR__ . '/initial-fatal-error-handler.php'; // pro ten kritický kousek, než naběhne Tracy (Vyjimkovac)
 
 /**
  * Zavaděč pro web - soubor který připraví prostředí aplikace: autoloadery,

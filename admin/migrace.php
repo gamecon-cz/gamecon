@@ -16,6 +16,7 @@ ini_set('error_reporting',  E_ALL ^ E_STRICT); // vybrat typy chyb k zobrazení
 ini_set('html_errors',      false); // chyby zobrazovat jako plaintext
 
 // spustit migrace
+pripravCache(SPEC . '/db-backup');
 (new Godric\DbMigrations\DbMigrations([
   'connection'          =>  new mysqli(DBM_SERV, DBM_USER, DBM_PASS, DBM_NAME),
   'migrationsDirectory' =>  __DIR__ . '/../migrace',

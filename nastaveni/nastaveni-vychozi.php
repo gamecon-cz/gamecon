@@ -15,4 +15,4 @@
 @define('AUTOMATICKE_MIGRACE', false);
 @define('ZOBRAZIT_STACKTRACE_VYJIMKY', false);
 @define('PROFILOVACI_LISTA', false);
-@define('CACHE_SLOZKY_PRAVA', 0700);
+@define('CACHE_SLOZKY_PRAVA', 0770);

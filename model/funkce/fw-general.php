@@ -131,6 +131,9 @@ function snakeToCamel($str) {
   return $str;
 }
 
+function str_ends_with($str, $ending) {
+  return substr($str, -strlen($ending)) == $ending;
+}
 
 /**
  * Returns part of string after rightmost occurence of delimiter
