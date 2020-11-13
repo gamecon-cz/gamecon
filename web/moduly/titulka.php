@@ -3,6 +3,20 @@
 /** @var Modul $this */
 $this->blackarrowStyl(true);
 $t = $this->sablona();
+$t->parseEach([
+    'soubory/blackarrow/zazijes/test_warg.png',
+    'soubory/blackarrow/zazijes/test_boj.png',
+    'soubory/blackarrow/zazijes/test_warg.png',
+    'soubory/blackarrow/zazijes/test_wrg.png',
+    'soubory/blackarrow/zazijes/test_warg.png',
+    'soubory/blackarrow/zazijes/test_warg.png',
+    'soubory/blackarrow/zazijes/test_warg.png',
+    'soubory/blackarrow/zazijes/test_warg.png',
+    'soubory/blackarrow/zazijes/test_boj.png',
+    'soubory/blackarrow/zazijes/test_boj.png',
+    'soubory/blackarrow/zazijes/test_boj.png',
+    'soubory/blackarrow/zazijes/test_warg.png',
+], 'linie', 'titulka.linie');
 
 /*
 $this->bezMenu(true);

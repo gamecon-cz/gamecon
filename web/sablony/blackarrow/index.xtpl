@@ -2,13 +2,59 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- TODO načíst fonty hned tady -->
     <link rel="stylesheet" href="{css}">
 </head>
 <body>
 
     <div class="menu">
-        <div class="menu_hlavicka">Generating works.</div>
+        <div class="menu_obal">
+            <div class="menu_obal2">
+                <a href="TODO" class="menu_nazev">GameCon</a>
+
+                <div class="menu_menu">
+                    <a href="program" class="menu_odkaz">program</a>
+                    <div class="menu_kategorie">
+                        <div class="menu_nazevkategorie">aktivity</div>
+                        <div class="menu_polozky">
+                            <a href="TODO" class="menu_polozka">RPG</a>
+                            <a href="TODO" class="menu_polozka">Larpy</a>
+                            <a href="TODO" class="menu_polozka">Lorem ipsum</a>
+                        </div>
+                    </div>
+                    <div class="menu_kategorie">
+                        <div class="menu_nazevkategorie">o gameconu</div>
+                        <div class="menu_polozky">
+                            <a href="TODO" class="menu_polozka">Larpy</a>
+                            <a href="TODO" class="menu_polozka">RPG</a>
+                            <a href="TODO" class="menu_polozka">Wargaming</a>
+                        </div>
+                    </div>
+                    <div class="menu_kategorie">
+                        <div class="menu_nazevkategorie">informace</div>
+                        <div class="menu_polozky">
+                            <a href="TODO" class="menu_polozka">Wargaming</a>
+                            <a href="TODO" class="menu_polozka">Larpy</a>
+                            <a href="TODO" class="menu_polozka">RPG</a>
+                            <a href="TODO" class="menu_polozka">Legendy klubu dobrodruhů</a>
+                            <a href="TODO" class="menu_polozka">Bonusové aktivity</a>
+                            <a href="TODO" class="menu_polozka">Mistrovství v DrD</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="menu_uzivatel">
+                    <div class="menu_jmeno">mrasek</div>
+                    <div class="menu_uzivatelpolozky">
+                        <a href="TODO">finance</a>
+                        <a href="TODO">pičoviny</a>
+                        <a href="TODO">admin</a>
+                    </div>
+                    <!-- TODO login -->
+                </div>
+            </div>
+        </div>
     </div>
 
     {obsah}

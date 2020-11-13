@@ -1,11 +1,134 @@
 .menu {
-    padding: 10px 30px;
-    margin-bottom: 30px;
-    border-radius: 2px;
-    background-color: #ddd;
+    min-height: 70px; // fix přetékání na malém monitoru
+    background-color: #E22630;
+    color: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
-.menu_hlavicka {
-    font-style: italic;
-    color: #444;
+.menu::after { // fix přetékání na malém monitoru
+    content: '';
+    display: block;
+    clear:both;
+}
+
+.menu_obal {
+    max-width: 1920px;
+    margin: 0 auto;
+}
+
+.menu_obal2 {
+    margin: 0 146px;
+}
+
+// levá část
+
+.menu_nazev {
+    display: block;
+    font-size: 24px;
+    font-weight: bold;
+    padding-top: 20px;
+    color: inherit;
+    text-decoration: none;
+    float: left;
+    margin-right: 100px;
+}
+
+.menu_menu {
+    float: left;
+}
+
+.menu_odkaz, .menu_nazevkategorie {
+    color: inherit;
+    line-height: 70px;
+    text-decoration: none;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 1px;
+    padding: 0 30px;
+    font-weight: bold;
+}
+
+.menu_odkaz:hover, .menu_kategorie:hover {
+    background-color: #10111A;
+}
+
+.menu_kategorie, .menu_odkaz {
+    display: block;
+    float: left;
+}
+
+.menu_nazevkategorie {
+    cursor: default;
+}
+
+.menu_kategorie:hover .menu_polozky {
+    display: block;
+}
+
+.menu_polozky {
+    position: absolute;
+    display: none;
+    background-color: #10111A;
+    left: 0;
+    width: 100%;
+    padding: 25px 220px; // aby seděly tři sloupce na šířku 1280
+    box-sizing: border-box;
+}
+
+.menu_polozka {
+    color: inherit;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 18px;
+    display: block;
+    float: left;
+    height: 23px; // přetékání se ignoruje a má zobrazit kvůli paddingům
+    width: 270px; // aby se vešly "Bonusové aktivity"
+    padding: 0 60px;
+    margin: 15px 0; // pozor že kvůli floatu se marginy nekolabují
+    box-sizing: border-box;
+}
+
+.menu_polozka::after {
+    content: '';
+    display: inline-block;
+    width:  8px;
+    height: 8px;
+    margin: -100px -100px 1px 8px;
+    border-bottom: solid 2px #CE232D;
+    border-right:  solid 2px #CE232D;
+    transform: rotate(-45deg);
+}
+
+// pravá část
+
+.menu_uzivatel {
+    float: right;
+    margin-top: 28px;
+    position: relative;
+}
+
+.menu_jmeno::after {
+    content: '';
+    display: inline-block;
+    width:  6px;
+    height: 6px;
+    margin: -100px 0 3px 10px;
+    border-bottom: solid 1px #fff;
+    border-right:  solid 1px #fff;
+    transform: rotate(45deg);
+}
+
+.menu_uzivatelpolozky {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: #fff;
+    padding: 10px;
+}
+
+.menu_uzivatel:hover .menu_uzivatelpolozky {
+    display: initial;
 }
