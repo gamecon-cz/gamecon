@@ -57,7 +57,7 @@ if($m->bezStranky()) {
   $t = new XTemplate('sablony/blackarrow/index.xtpl');
   $t->assign([
     'obsah' => $m->vystup(),
-    'css'   => perfectcache('soubory/blackarrow/less/*.less'),
+    'css'   => perfectcache('soubory/blackarrow/*/*.less'),
   ]);
   $t->parse('index');
   $t->out('index');
