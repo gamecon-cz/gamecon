@@ -310,8 +310,17 @@ function perfectcache(/* variadic */) {
     } else {
       $parser = new Less_Parser(['compress' => true]);
       foreach($args as $a) if($a) {
-        if(substr($a, -4) != '.ttf') $parser->parseFile($a, URL_WEBU.'/soubory/styl/');
-        else $parser->ModifyVars([ perfectcacheFontNazev($a) => 'url("'.perfectcacheFont($a).'")' ]); // prozatím u fontu stačí věřit, že modifikace odpovídá modifikaci stylu
+        if(substr($a, -4) != '.ttf') {
+          $tmpSouborStylu = tempnam(sys_get_temp_dir(), 'perfectcacheCss');
+          $css = file_get_contents($a);
+          $css = pefrectcacheProcessRel($css, 1920, 1200);
+          file_put_contents($tmpSouborStylu, $css);
+          $parser->parseFile($tmpSouborStylu, URL_WEBU.'/soubory/styl/');
+          unlink($tmpSouborStylu);
+        } else {
+          // prozatím u fontu stačí věřit, že modifikace odpovídá modifikaci stylu
+          $parser->ModifyVars([ perfectcacheFontNazev($a) => 'url("'.perfectcacheFont($a).'")' ]);
+        }
       }
       file_put_contents($minf, $parser->getCss());
     }
@@ -340,6 +349,39 @@ function perfectcacheFontNazev($font) {
   return 'font'.preg_replace('@.*/([^/]+)\.ttf$@', '$1', $font);
 }
 
+/**
+ * Přeformátuje speciální jednotku `rel` (pixel relative) v css řetězci na
+ * kombinaci vw (odpovídající $originalWidth) s relativním zmenšením až na
+ * $minWidth, kde se zmenšování zastaví (pomocí media queries).
+ */
+function pefrectcacheProcessRel($css, $originalWidth, $minWidth) {
+  $toVw = function ($line) use ($originalWidth) {
+    return preg_replace_callback(
+      '/(\d+)rel/',
+      fn ($m) => round($m[1] / ($originalWidth / 100), 3) . 'vw',
+      $line
+    );
+  };
+
+  $toPx = function ($line) use ($originalWidth, $minWidth) {
+    $new = preg_replace_callback(
+      '/(\d+)rel/',
+      fn ($m) => round($m[1] * ($minWidth / $originalWidth), 0) . 'px',
+      $line
+    );
+
+    return
+    "    @media (max-width: " . $minWidth . "px) {\n" .
+    "        " . $new . "\n" .
+    "    }";
+  };
+
+  return preg_replace_callback(
+    '/^.*\drel.*$/m',
+    fn ($m) => $toVw($m[0]) . "\n" . $toPx($m[0]),
+    $css,
+  );
+}
 
 function po($cas) {
   return strtotime($cas) < time();
