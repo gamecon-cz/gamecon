@@ -1,3 +1,19 @@
 <!-- begin: titulka -->
-The stage is set.
+
+<div class="zazijes">
+    <div class="zazijes_vrsek"></div>
+    <div class="zazijes_spodek"></div>
+    <h2 class="zazijes_nadpis">Co na GameConu zažiješ?</h2>
+    <div class="zazijes_karty">
+        <!-- begin: linie -->
+        <a href="TODO" class="zazijes_karta" style="background-image: url({linie})">
+            <div class="zazijes_nadpiskarty">
+                <div class="zazijes_cislo">02</div>
+                <div class="zazijes_nazevlinie">Wargaming</div>
+            </div>
+        </a>
+        <!-- end: linie -->
+    </div>
+</div>
+
 <!-- end: titulka -->
