@@ -358,7 +358,9 @@ function pefrectcacheProcessRel($css, $originalWidth, $minWidth) {
   $toVw = function ($line) use ($originalWidth) {
     return preg_replace_callback(
       '/(\d+)rel/',
-      fn ($m) => round($m[1] / ($originalWidth / 100), 3) . 'vw',
+      function ($m) use ($originalWidth) {
+        return round($m[1] / ($originalWidth / 100), 3) . 'vw';
+      },
       $line
     );
   };
@@ -366,7 +368,9 @@ function pefrectcacheProcessRel($css, $originalWidth, $minWidth) {
   $toPx = function ($line) use ($originalWidth, $minWidth) {
     $new = preg_replace_callback(
       '/(\d+)rel/',
-      fn ($m) => round($m[1] * ($minWidth / $originalWidth), 0) . 'px',
+      function ($m) use ($minWidth, $originalWidth) {
+        return round($m[1] * ($minWidth / $originalWidth), 0) . 'px';
+      },
       $line
     );
 
@@ -378,7 +382,9 @@ function pefrectcacheProcessRel($css, $originalWidth, $minWidth) {
 
   return preg_replace_callback(
     '/^.*\drel.*$/m',
-    fn ($m) => $toVw($m[0]) . "\n" . $toPx($m[0]),
+    function ($m) use ($toVw, $toPx) {
+      return $toVw($m[0]) . "\n" . $toPx($m[0]);
+    },
     $css,
   );
 }
