@@ -1,0 +1,50 @@
+.cisla {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 173/19.2vw 0;
+}
+
+.cisla::before {
+    content: '';
+    position: absolute;
+    background: url('../blackarrow/cisla/pily.svg');
+    width: 8vw;
+    height: 371px;
+    right: 0;
+}
+
+.cisla_polozka {
+    margin: 50px 105/19.2vw;
+    @media (max-width: 1800px) {
+        margin: 50px 90/19.2vw;
+    }
+    @media (max-width: 600px) {
+        transform: scale(0.5);
+        width: 200px;
+        margin: 0 -20px;
+    }
+}
+
+.cisla_polozka > img {
+    position: absolute;
+    mix-blend-mode: multiply; // bílá do průhlednosti
+}
+
+.cisla_cislo {
+    font-size: 100px;
+    line-height: 1.26;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #E22630;
+}
+
+.cisla_text {
+    text-transform: uppercase;
+    font-size: 14px;
+    letter-spacing: 2px;
+    font-weight: bold;
+    @media (max-width: 600px) {
+        font-size: 28px; // kvůli 0.5 transformu na mobilu
+    }
+}
