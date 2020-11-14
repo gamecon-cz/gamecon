@@ -1,0 +1,16 @@
+.fotky {
+    background: url('../blackarrow/fotky/pozadi.jpg') no-repeat;
+    @media (max-width: 1800px) { background-size: 100% auto; }
+    @media (min-width: 2000px) { background-size: 100% auto; } // kvůli rovnání pozadí a fotek na vyšší rozlišení
+    height: 55vw;
+    position: relative; // kvůli pozicování fotek
+}
+
+.fotky > img {
+    display: block;
+    position: absolute;
+    transform-origin: top left;
+    @media (max-width: 1800px) { transform: scale(0.70); }
+    @media (max-width: 1300px) { transform: scale(0.65); }
+    @media (max-width:  600px) { transform: scale(0.25); }
+}
