@@ -1,0 +1,37 @@
+.popisbox {
+    background:
+        url('../blackarrow/popisbox/vlnky.svg') no-repeat -140px 76%,
+        linear-gradient(to right, transparent, transparent 1.5%, #10111A 1.5%, #10111A 98.5%, transparent 98.5%, transparent),
+    ;
+    @media (max-width: 1000px) {
+        background-position: -330px 76%, 0 0;
+    }
+    font-size: 42rel;
+    line-height: 1.43;
+    font-weight: bold;
+    color: #A1A1A1;
+    overflow: hidden;
+}
+
+.popisbox::before {
+    content: '';
+    display: block;
+    position: absolute;
+    width: 105px;
+    height: 105px;
+    background: url('../blackarrow/popisbox/bublina.svg');
+    margin-top: -50px;
+    left: 85vw;
+}
+
+.popisbox_obsah {
+    margin: 10% 22.7%;
+    @media (max-width: 600px) {
+        margin: 10% 10%;
+    }
+}
+
+.popisbox_obsah > a {
+    color: #fff;
+    text-decoration: none;
+}
