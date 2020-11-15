@@ -1,0 +1,72 @@
+.odpocet {
+    background: linear-gradient(to right, transparent, transparent 1.5%, #10111A 1.5%, #10111A 98.5%, transparent 98.5%, transparent);
+    padding: 80rel 0 105rel 287/19.2vw;
+    position: relative; // kvůli odkazu
+}
+
+.odpocet > h2 {
+    font-weight: bold;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #F6F1EA;
+    margin: 0;
+}
+
+.odpocet_cas {
+    line-height: 1.0; // kvůli předejití divností s marginy apod.
+    margin: 70rel 0 0 0;
+}
+
+.odpocet_cas > span {
+    font-size: 180/19.2vw;
+    letter-spacing: 9/19.2vw;
+    font-weight: bold;
+    color: #10111A;
+    text-shadow:
+        -2px -2px #fff,
+        -2px 0 #fff,
+        -2px 2px #fff,
+        0 -2px #fff,
+        0 2px #fff,
+        2px -2px #fff,
+        2px 0 #fff,
+        2px 2px #fff;
+    // font-variant-numeric: tabular-nums; // TODO prevence skákání - chceme?
+}
+
+.odpocet_cas > b {
+    color: #E22630;
+    font-size: 54/19.2vw;
+    margin-right: 52/19.2vw;
+    vertical-align: 110/19.2vw;
+}
+
+.odpocet_prihlasit {
+    font-weight: bold;
+    font-size: 14px;
+    text-transform: uppercase;
+    text-decoration: none;
+    display: block;
+    position: absolute;
+    height: 54px;
+    width: 238px;
+    box-sizing: border-box;
+    border: solid 1px #10111A;
+    color: #10111A;
+    padding: 19px 0 0 16px;
+    bottom: -17px;
+    background: #fff url('../blackarrow/odpocet/sipka.svg') no-repeat 193px 14px;
+}
+
+.odpocet::before {
+    content: '';
+    display: block;
+    position: absolute;
+    bottom: -48px;
+    left: 87vw;
+    width: 13vw; // doplnění k left aby nepřetékalo na mobilu
+    max-width: 136px; // fix bugu s posuvníkem a přetékáním pro ne-mobil
+    height: 136px;
+    background: url('../blackarrow/odpocet/bublina.svg') no-repeat;
+}
