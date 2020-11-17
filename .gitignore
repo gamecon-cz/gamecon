@@ -24,9 +24,5 @@
 !/web/soubory/styl
 !/web/soubory/*.js
 !/web/soubory/systemove
-/web/soubory/systemove/aktivity/*
-!/web/soubory/systemove/aktivity/.keep
-/web/soubory/systemove/avatary/*
-!/web/soubory/systemove/avatary/default.png
-/web/soubory/systemove/fotky/*
-!/web/soubory/systemove/fotky/.keep
+/web/soubory/systemove/*/*
+!/web/soubory/systemove/*/.keep

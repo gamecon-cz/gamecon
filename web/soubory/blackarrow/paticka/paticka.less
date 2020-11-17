@@ -1,0 +1,58 @@
+.paticka {
+    background:
+        url('../blackarrow/paticka/vrsek.svg') -1vw 0 ~'/' 102% auto, // fix podivných bugů s přetíkáním
+        linear-gradient(to bottom, #fff, #fff 4vw, #E22630 4vw);
+    margin: 0 1.5vw 1.5vw;
+    padding: 88/19.2vw 255/19.2vw 70/19.2vw;
+    @media (max-width: 600px) {
+        padding: 10vw;
+    }
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    &::after { content: ''; display: block; clear: both; }
+}
+
+.paticka_info {
+    float: left;
+}
+
+.paticka_info > a {
+    display: block;
+    color: inherit;
+    font-weight: bold;
+    font-size: 30rel;
+    border-bottom: solid 2px;
+    text-decoration: none;
+    position: absolute; // kvůli borderu dole aby nešel přes celé
+}
+
+.paticka_copy {
+    margin-top: 60rel;
+    opacity: 0.7;
+}
+
+.paticka_odkazy {
+    float: right;
+    text-transform: uppercase;
+    margin-top: 40rel;
+}
+
+.paticka_odkazy > a {
+    text-decoration: none;
+    color: inherit;
+    margin-right: 38px;
+    letter-spacing: 1px;
+    opacity: 0.7;
+    display: inline-block; // kvůli hraně u facebooku
+    height: 28px;
+    line-height: 28px;
+}
+
+.paticka_odkazy > a.paticka_facebook {
+    opacity: 1.0;
+    border-left: solid 1px rgba(255, 255, 255, 0.7);
+    margin-left: -10px;
+    padding-left: 63px;
+    background: url('../blackarrow/paticka/facebook.svg') no-repeat 30px 3px;
+}

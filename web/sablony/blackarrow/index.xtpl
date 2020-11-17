@@ -59,6 +59,19 @@
 
     {obsah}
 
+    <div class="paticka">
+        <div class="paticka_info">
+            <a href="mailto:info@gamecon.cz">info@gamecon.cz</a>
+            <div class="paticka_copy">© 2021 Gamecon, Created by Gamecon</div>
+        </div>
+        <div class="paticka_odkazy">
+            <a href="TODO">o GameConu</a>
+            <a href="TODO">organizátoři</a>
+            <a href="TODO">kontakt</a>
+            <a href="https://www.facebook.com/groups/gamecon" target="_blank" class="paticka_facebook">Facebook</a>
+        </div>
+    </div>
+
 </body>
 </html>
 <!-- end: index -->
