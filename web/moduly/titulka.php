@@ -4,19 +4,39 @@
 $this->blackarrowStyl(true);
 $t = $this->sablona();
 $t->parseEach([
-    'soubory/blackarrow/zazijes/test_warg.png',
-    'soubory/blackarrow/zazijes/test_boj.png',
-    'soubory/blackarrow/zazijes/test_warg.png',
-    'soubory/blackarrow/zazijes/test_wrg.png',
-    'soubory/blackarrow/zazijes/test_warg.png',
-    'soubory/blackarrow/zazijes/test_warg.png',
-    'soubory/blackarrow/zazijes/test_warg.png',
-    'soubory/blackarrow/zazijes/test_warg.png',
-    'soubory/blackarrow/zazijes/test_boj.png',
-    'soubory/blackarrow/zazijes/test_boj.png',
-    'soubory/blackarrow/zazijes/test_boj.png',
-    'soubory/blackarrow/zazijes/test_warg.png',
+  'soubory/blackarrow/zazijes/test_warg.png',
+  'soubory/blackarrow/zazijes/test_boj.png',
+  'soubory/blackarrow/zazijes/test_warg.png',
+  'soubory/blackarrow/zazijes/test_wrg.png',
+  'soubory/blackarrow/zazijes/test_warg.png',
+  'soubory/blackarrow/zazijes/test_warg.png',
+  'soubory/blackarrow/zazijes/test_warg.png',
+  'soubory/blackarrow/zazijes/test_warg.png',
+  'soubory/blackarrow/zazijes/test_boj.png',
+  'soubory/blackarrow/zazijes/test_boj.png',
+  'soubory/blackarrow/zazijes/test_boj.png',
+  'soubory/blackarrow/zazijes/test_warg.png',
 ], 'linie', 'titulka.linie');
+
+$t->parseEach([ // TODO uložení sponzorů dořešit
+  'soubory/blackarrow/sponzori/sponzori/altar.cz.gif',
+  'soubory/blackarrow/sponzori/sponzori/blackfire.cz.jpg',
+  'soubory/blackarrow/sponzori/sponzori/blackoil.cz.jpg',
+  'soubory/blackarrow/sponzori/sponzori/Fafrin.jpg',
+  'soubory/blackarrow/sponzori/sponzori/fantasyobchod.cz.jpg',
+  'soubory/blackarrow/sponzori/sponzori/Fist.jpg',
+  'soubory/blackarrow/sponzori/sponzori/hopestudio.cz.jpg',
+  'soubory/blackarrow/sponzori/sponzori/www.pardubice.eu.jpg',
+  'soubory/blackarrow/sponzori/sponzori/albi.cz.png',
+  'soubory/blackarrow/sponzori/sponzori/czechgames.com.png',
+  'soubory/blackarrow/sponzori/sponzori/mindok.cz.png',
+  'soubory/blackarrow/sponzori/sponzori/pardubice.eu.png',
+  'soubory/blackarrow/sponzori/sponzori/pardubickykraj.cz.png',
+  'soubory/blackarrow/sponzori/sponzori/rexhry.cz.png',
+  'soubory/blackarrow/sponzori/sponzori/www.dmpce.cz.png',
+  'soubory/blackarrow/sponzori/sponzori/www.tlamagames.com.png',
+], 'src', 'titulka.sponzor');
+
 
 /*
 $this->bezMenu(true);

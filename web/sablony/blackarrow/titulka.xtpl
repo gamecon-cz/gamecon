@@ -128,6 +128,19 @@
 })()
 </script>
 
+<div class="sponzori">
+    <h2>Děkujeme našim partnerům!</h2>
+    <div class="sponzori_loga">
+        <div class="sponzori_logo"><img src="soubory/blackarrow/sponzori/sp1.jpg"></div>
+        <div class="sponzori_logo"><img class="sponzori_generickelogo" src="soubory/blackarrow/sponzori/sp2.png"></div>
+        <!-- begin: sponzor -->
+        <div class="sponzori_logo">
+            <img class="sponzori_generickelogo" src="{src}">
+        </div>
+        <!-- end:sponzor -->
+    </div>
+</div>
+
 <div style="height: 300px"></div>
 
 <!-- end: titulka -->
