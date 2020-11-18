@@ -6,7 +6,9 @@
     - [ ] hlavička
     - [ ] fotky
 - [ ] hovery
-    - [ ] hovery na liniích
+    - [x] hovery na liniích
+    - [ ] texty na hovery na liniích + ikony
+    - ...
 - [ ] načítat reálná data
 - [x] zkusit vm jednotky
     - řádek obsahující vm se přepíše na vw a dogeneruje pod něj mediaselector s minimem

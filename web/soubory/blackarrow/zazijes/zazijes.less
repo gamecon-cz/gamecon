@@ -61,6 +61,29 @@
     bottom: 0;
 }
 
+.zazijes_prekryv {
+    position: absolute;
+    background:
+        url('../blackarrow/zazijes/flek.png') no-repeat 50% 30%,
+        rgba(32, 35, 50, 0.8);
+    height: 100%;
+    width: 100%;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.zazijes_karta:hover .zazijes_prekryv {
+    opacity: 1;
+}
+
+.zazijes_ikona {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background-position: 50% 30%;
+    background-repeat: no-repeat;
+}
+
 .zazijes_nadpiskarty {
     position: absolute;
     left: 30rel;
@@ -77,4 +100,16 @@
     font-size: 14rel;
     letter-spacing: 0.1em;
     color: #F6F1EA;
+}
+
+.zazijes_detail {
+    font-size: 16px;
+    margin: 8rel 0 12rel 0;
+    width: 450rel;
+    line-height: 1.75;
+    display: none;
+}
+
+.zazijes_karta:hover .zazijes_detail {
+    display: block;
 }

@@ -80,9 +80,13 @@
     <div class="zazijes_karty">
         <!-- begin: linie -->
         <a href="{url}" class="zazijes_karta" style="background-image: url({obrazek})">
+            <div class="zazijes_prekryv">
+                <div class="zazijes_ikona" style="background-image: url(soubory/blackarrow/zazijes/_test.png)"></div>
+            </div>
             <div class="zazijes_nadpiskarty">
                 <div class="zazijes_cislo">{cislo}</div>
                 <div class="zazijes_nazevlinie">{nazev}</div>
+                <div class="zazijes_detail">Lorem ipsum dolor sit amet, consectetur elit aenean ac vulputate tellus congue.</div>
             </div>
         </a>
         <!-- end: linie -->
