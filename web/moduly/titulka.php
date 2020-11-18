@@ -3,25 +3,24 @@
 /** @var Modul $this */
 $this->blackarrowStyl(true);
 $t = $this->sablona();
-$t->parseEach([
-  'soubory/blackarrow/zazijes/test_warg.png',
-  'soubory/blackarrow/zazijes/test_boj.png',
-  'soubory/blackarrow/zazijes/test_warg.png',
-  'soubory/blackarrow/zazijes/test_wrg.png',
-  'soubory/blackarrow/zazijes/test_warg.png',
-  'soubory/blackarrow/zazijes/test_warg.png',
-  'soubory/blackarrow/zazijes/test_warg.png',
-  'soubory/blackarrow/zazijes/test_warg.png',
-  'soubory/blackarrow/zazijes/test_boj.png',
-  'soubory/blackarrow/zazijes/test_boj.png',
-  'soubory/blackarrow/zazijes/test_boj.png',
-  'soubory/blackarrow/zazijes/test_warg.png',
-], 'linie', 'titulka.linie');
+
+$typy = serazenePodle(Typ::zViditelnych(), 'poradi');
+foreach ($typy as $i => $typ) {
+  $t->assign([
+    'cislo'   => sprintf('%02d', $i + 1),
+    'nazev'   => mb_ucfirst($typ->nazev()),
+    'url'     => $typ->url(),
+    'obrazek' => 'soubory/systemove/linie/' . $typ->id() . '.jpg',
+  ]);
+  $t->parse('titulka.linie');
+}
 
 foreach (glob('soubory/systemove/sponzori/*') as $soubor) {
-  // TODO uložení sponzorů dořešit
   $info = pathinfo($soubor);
-  $t->assign(['src' => $soubor, 'url' => 'http://' . $info['filename']]);
+  $t->assign([
+    'src' => $soubor,
+    'url' => 'http://' . $info['filename'],
+  ]);
   $t->parse('titulka.sponzor');
 }
 

@@ -79,10 +79,10 @@
     <h2 class="zazijes_nadpis">Co na GameConu zažiješ?</h2>
     <div class="zazijes_karty">
         <!-- begin: linie -->
-        <a href="TODO" class="zazijes_karta" style="background-image: url({linie})">
+        <a href="{url}" class="zazijes_karta" style="background-image: url({obrazek})">
             <div class="zazijes_nadpiskarty">
-                <div class="zazijes_cislo">02</div>
-                <div class="zazijes_nazevlinie">Wargaming</div>
+                <div class="zazijes_cislo">{cislo}</div>
+                <div class="zazijes_nazevlinie">{nazev}</div>
             </div>
         </a>
         <!-- end: linie -->

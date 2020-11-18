@@ -1,0 +1,17 @@
+- [ ] htaccess a cacheování resourců (nějaká funkce na modify parametr)
+- [ ] projet TODOs
+- [ ] srovnat, jaké prvky chybí proti stávající titulce / indexu (viz šablona a kód)
+- [ ] dodělat responzivy, kde nejsou
+    - [ ] menu
+    - [ ] hlavička
+    - [ ] fotky
+- [ ] hovery
+    - [ ] hovery na liniích
+- [ ] načítat reálná data
+- [x] zkusit vm jednotky
+    - řádek obsahující vm se přepíše na vw a dogeneruje pod něj mediaselector s minimem
+    - dořešit nastavení minimální šířky
+    - poladit taky podle martinových ne/protestů na mobilní chování _zazijes_
+    - možná raději "rel" (pixel relative) vůči 1920 a ten min width vkládat jako agument
+- [ ] relativní cesty v .less souborech
+- [ ] TODO odstranit nebo přesunout tyto poznámky

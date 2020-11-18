@@ -465,6 +465,19 @@ function potrebujePotvrzeni(DateTimeImmutable $datumNarozeni): bool {
     return vekNaZacatkuLetosnihoGameconu($datumNarozeni) < 15;
 }
 
+function serazenePodle($pole, $kriterium) {
+  if (is_string($kriterium)) {
+    usort($pole, function ($a, $b) use ($kriterium) {
+      return $a->$kriterium() - $b->$kriterium();
+    });
+  } else {
+    usort($pole, function ($a, $b) use ($kriterium) {
+      return $kriterium($a) - $kriterium($b);
+    });
+  }
+  return $pole;
+}
+
 function vekNaZacatkuLetosnihoGameconu(DateTimeImmutable $datumNarozeni): int {
     // cilene bez hodin, minut a sekund
     return vek($datumNarozeni->setTime(0, 0, 0), zacatekLetosnihoGameconu()->setTime(0, 0, 0));
