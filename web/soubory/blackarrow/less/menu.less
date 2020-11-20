@@ -4,6 +4,7 @@
     color: #fff;
     top: 0;
     z-index: 10;
+    position: relative; // kvůli z-indexu na mobilu
     @media (min-width: 600px) {
         position: sticky;
     }
@@ -22,6 +23,9 @@
 
 .menu_obal2 {
     margin: 0 146px;
+    @media (max-width: 600px) {
+        margin: 0;
+    }
 }
 
 // levá část
@@ -35,6 +39,9 @@
     text-decoration: none;
     float: left;
     margin-right: 100px;
+    @media (max-width: 600px) {
+        margin-left: 20px;
+    }
 }
 
 .menu_menu {
@@ -50,6 +57,10 @@
     letter-spacing: 1px;
     padding: 0 30px;
     font-weight: bold;
+    @media (max-width: 600px) {
+        line-height: 50px;
+        padding: 0 20px;
+    }
 }
 
 .menu_odkaz:hover, .menu_kategorie:hover {
@@ -77,6 +88,10 @@
     width: 100%;
     padding: 25px 220px; // aby seděly tři sloupce na šířku 1280
     box-sizing: border-box;
+    z-index: 20; // aby překrylo jméno na mobilu
+    @media (max-width: 600px) {
+        padding: 20px 0;
+    }
 }
 
 .menu_polozka {
@@ -91,6 +106,9 @@
     padding: 0 60px;
     margin: 15px 0; // pozor že kvůli floatu se marginy nekolabují
     box-sizing: border-box;
+    @media (max-width: 600px) {
+        padding: 0 20px;
+    }
 }
 
 .menu_polozka::after {
@@ -110,6 +128,9 @@
     float: right;
     margin-top: 28px;
     position: relative;
+    @media (max-width: 600px) {
+        margin: -34px 18px 0 0;
+    }
 }
 
 .menu_jmeno::after {
