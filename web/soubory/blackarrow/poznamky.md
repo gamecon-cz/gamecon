@@ -1,8 +1,9 @@
 - [ ] htaccess a cacheování resourců (nějaká funkce na modify parametr)
 - [ ] projet TODOs
-- [ ] srovnat, jaké prvky chybí proti stávající titulce / indexu (viz šablona a kód)
+- [ ] srovnat, jaké prvky chybí proti stávající titulce / indexu
+    - (viz šablona a kód)
 - [ ] dodělat responzivy, kde nejsou
-    - [ ] menu
+    - [x] menu
     - [ ] hlavička
     - [ ] fotky
 - [ ] hovery

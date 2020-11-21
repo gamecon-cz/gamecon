@@ -55,6 +55,10 @@ if($m->bezStranky()) {
   echo $m->vystup();
 } elseif($m->blackarrowStyl()) {
   $t = new XTemplate('sablony/blackarrow/index.xtpl');
+
+  $typy = serazenePodle(Typ::zViditelnych(), 'poradi');
+  $t->parseEach($typy, 'typ', 'index.typAktivit');
+
   $t->assign([
     'obsah' => $m->vystup(),
     'css'   => perfectcache('soubory/blackarrow/*/*.less'),
