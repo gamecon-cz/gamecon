@@ -4,6 +4,9 @@
     @media (min-width: 2000px) { background-size: 100% auto; } // kvůli rovnání pozadí a fotek na vyšší rozlišení
     height: 55vw;
     position: relative; // kvůli pozicování fotek
+    @media (max-width: 600px) {
+        display: none; // dokud není responzivní verze, tak nezobrazovat
+    }
 }
 
 .fotky > img {

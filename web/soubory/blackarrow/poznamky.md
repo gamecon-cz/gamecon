@@ -5,7 +5,7 @@
 - [ ] dodělat responzivy, kde nejsou
     - [x] menu
     - [ ] hlavička
-    - [ ] fotky
+    - [-] fotky -- pro MVP na mobil jenom skrýt
 - [ ] hovery
     - [x] hovery na liniích
     - [ ] texty na hovery na liniích + ikony
