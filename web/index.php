@@ -15,7 +15,6 @@ try {
 } catch(UrlException $e) {
   $url = null;
 }
-$menu = new Menu($u, $url);
 
 // určení modulu, který zpracuje požadavek (router)
 $m = $url ? Modul::zUrl() : Modul::zNazvu('neexistujici');
@@ -34,7 +33,6 @@ if(!$m) {
 
 // spuštění kódu modulu + buffering výstupu a nastavení
 $m->param('u', $u);
-$m->param('menu', $menu);
 $m->param('url', $url);
 $i = (new Info())
   ->obrazek('soubory/styl/og-image.jpg')
@@ -51,17 +49,25 @@ if(!$i->titulek())
   else              $i->titulek('GameCon')->nazev('GameCon');
 
 // výstup (s ohledem na to co modul nastavil)
+$menu = '';
+if(!$m->bezStranky() && !$m->bezMenu()) {
+  $typy = serazenePodle(Typ::zViditelnych(), 'poradi');
+
+  $t = new XTemplate('sablony/blackarrow/menu.xtpl');
+  $t->parseEach($typy, 'typ', 'menu.typAktivit');
+  $t->parse('menu');
+  $menu = $t->text('menu');
+  // TODO odstranit staré menu
+}
+
 if($m->bezStranky()) {
   echo $m->vystup();
 } elseif($m->blackarrowStyl()) {
   $t = new XTemplate('sablony/blackarrow/index.xtpl');
-
-  $typy = serazenePodle(Typ::zViditelnych(), 'poradi');
-  $t->parseEach($typy, 'typ', 'index.typAktivit');
-
   $t->assign([
-    'obsah' => $m->vystup(),
     'css'   => perfectcache('soubory/blackarrow/*/*.less'),
+    'menu'  => $menu,
+    'obsah' => $m->vystup(),
   ]);
   $t->parse('index');
   $t->out('index');
@@ -82,7 +88,8 @@ if($m->bezStranky()) {
       'soubory/styl/fonty.less',
       'soubory/styl/jquery-ui.min.css',
       'soubory/styl/program-skryvani-linii.less',
-      'soubory/styl/program-nahled.less'
+      'soubory/styl/program-nahled.less',
+      'soubory/blackarrow/less/menu.less' // TODO pravděpodobně se změní
     ),
     'js'        => perfectcache(
       'soubory/jquery-2.1.1.min.js',
@@ -98,9 +105,9 @@ if($m->bezStranky()) {
     'info'      => $m->info() ? $m->info()->html() : '',
     'a'         => $u ? $u->koncA() : '',
     'datum'     => date('j.', strtotime(GC_BEZI_OD)) . '–' . date('j. n. Y', strtotime(GC_BEZI_DO)),
+    'menu'      => $menu,
   ]);
   // tisk věcí a zdar
-  if(!$m->bezMenu())                                $t->assign('menu', $menu->cele());
   if($u && $u->maPravo(P_ADMIN_UVOD))               $t->parse('index.prihlasen.admin');
   elseif($u && $u->maPravo(P_ADMIN_MUJ_PREHLED))    $t->parse('index.prihlasen.mujPrehled');
   if($u && $u->gcPrihlasen() && FINANCE_VIDITELNE)  $t->assign('finance', $u->finance()->stavHr());

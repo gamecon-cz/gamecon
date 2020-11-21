@@ -8,50 +8,7 @@
 </head>
 <body>
 
-    <div class="menu">
-        <div class="menu_obal">
-            <div class="menu_obal2">
-                <a href="" class="menu_nazev">GameCon</a>
-
-                <div class="menu_menu">
-                    <a href="program" class="menu_odkaz">program</a>
-                    <div class="menu_kategorie">
-                        <div class="menu_nazevkategorie">aktivity</div>
-                        <div class="menu_polozky">
-                            <!-- begin: typAktivit -->
-                            <a href="{typ.url}" class="menu_polozka">{typ.nazev}</a>
-                            <!-- end: typAktivit -->
-                        </div>
-                    </div>
-                    <div class="menu_kategorie">
-                        <div class="menu_nazevkategorie">informace</div>
-                        <div class="menu_polozky">
-                            <a class="menu_polozka" href="prihlaska">Přihláška</a>
-                            <a class="menu_polozka" href="novinky">Novinky</a>
-                            <a class="menu_polozka" href="blog">Blog</a>
-                            <a class="menu_polozka" href="o-gameconu">Co je GameCon?</a>
-                            <a class="menu_polozka" href="organizacni-vypomoc">Organizační výpomoc</a>
-                            <a class="menu_polozka" href="chci-se-prihlasit">Chci se přihlásit</a>
-                            <a class="menu_polozka" href="prakticke-informace">Praktické informace</a>
-                            <a class="menu_polozka" href="celohra">Celohra</a>
-                            <a class="menu_polozka" href="kontakty">Kontakty</a>
-                            <a class="menu_polozka" href="info-po-gc">Info po GC a zpětná vazba</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="menu_uzivatel">
-                    <div class="menu_jmeno">mrasek</div>
-                    <div class="menu_uzivatelpolozky">
-                        <a href="TODO">finance</a>
-                        <a href="TODO">pičoviny</a>
-                        <a href="TODO">admin</a>
-                    </div>
-                    <!-- TODO login -->
-                </div>
-            </div>
-        </div>
-    </div>
+    {menu}
 
     {obsah}
 
