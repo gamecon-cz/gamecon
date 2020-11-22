@@ -4,12 +4,12 @@
 
 <div class="gchlavicka">
     <img
-        style="position: absolute; width: 22.031vw; top: 27.343vw; left: 7.604vw"
+        class="img1"
         src="soubory/blackarrow/gchlavicka/obr_1.jpg"
         data-aos="fade-right"
     >
     <img
-        style="position: absolute; width: 26.042vw; top: 1.562vw; left: 51.042vw"
+        class="img2"
         src="soubory/blackarrow/gchlavicka/obr_2.jpg"
         data-aos="fade-left"
     >
@@ -20,7 +20,7 @@
     <div class="gchlavicka_claim" data-aos="zoom-out">Nejvetší festival nepočítačových her</div>
     <div class="gchlavicka_datum">19. 7. &ndash; 21. 7.</div>
     <div class="gchlavicka_misto" data-aos="zoom-out">P A R D U B I C E</div>
-    <a class="gchlavicka_video" href="TODO">přehrát video</a>
+    <a class="gchlavicka_video" href="https://www.youtube.com/watch?v=-SBu7WGPkO4" target="_blank" data-aos="zoom-out" data-aos-offset="-200">přehrát video</a>
 </div>
 
 <div class="karty">

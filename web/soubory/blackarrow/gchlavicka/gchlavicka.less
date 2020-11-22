@@ -4,23 +4,63 @@
     background-size: contain;
     height: 1011rel;
     overflow: hidden;
+    @media (max-width: 600px) {
+        background-image: url('../blackarrow/gchlavicka/pozadi-mobil.jpg');
+        margin-top: 6px;
+        background-size: 100% auto;
+    }
 }
 
 .gchlavicka > .p {
     position: absolute;
-    font-size: 230rel;
+    font-size: 230/19.2vw;
     font-weight: bold;
+    @media (max-width: 600px) {
+        font-size: 60/3.2vw;
+        line-height: 1.5;
+    }
 }
-.p1 { top:  20rel; left: 285rel; }
-.p2 { top: 191rel; left: 722rel; }
-.p3 { top: 443rel; left: 683rel; }
-.p4 { top: 641rel; left: 933rel; }
+.p1 { top:  20/19.2vw; left: 285/19.2vw; }
+.p2 { top: 191/19.2vw; left: 722/19.2vw; }
+.p3 { top: 443/19.2vw; left: 683/19.2vw; }
+.p4 { top: 641/19.2vw; left: 933/19.2vw; }
+@media (max-width: 600px) {
+    .p1 { top:  53/3.2vw; left:  16/3.2vw; }
+    .p2 { top:  65/3.2vw; left: 151/3.2vw; }
+    .p3 { top: 138/3.2vw; left: 139/3.2vw; }
+    .p4 { top: 166/3.2vw; left: 205/3.2vw; }
+}
+
+.gchlavicka > .img1 {
+    position: absolute;
+    width: 22.031vw;
+    top: 27.343vw;
+    left: 7.604vw;
+    @media (max-width: 600px) {
+        top: 260/3.2vw;
+        left: 20/3.2vw;
+        width: 197/3.2vw;
+    }
+}
+
+.gchlavicka > .img2 {
+    position: absolute;
+    width: 26.042vw;
+    top: 1.562vw;
+    left: 51.042vw;
+    @media (max-width: 600px) { display: none; }
+}
 
 .gchlavicka_claim {
     position: absolute;
     font-size: 20px;
-    top: 475rel;
-    left: 148rel;
+    top: 475/19.2vw;
+    left: 148/19.2vw;
+    @media (max-width: 600px) {
+        font-size: 14/3.2vw;
+        top: 28px;
+        left: 20px;
+    }
 }
 
 .gchlavicka_datum {
@@ -33,8 +73,12 @@
     width: 252rel;
     padding: 15rel 0 15rel 50rel;
     box-sizing: border-box;
-    top: 605rel;
-    left: 1227rel;
+    top: 605/19.2vw;
+    left: 1227/19.2vw;
+    @media (max-width: 600px) {
+        top: 245/3.2vw;
+        left: 118.3/3.2vw;
+    }
 }
 
 .gchlavicka_misto {
@@ -52,13 +96,18 @@
     display: block;
     position: absolute;
     vertical-align: top;
-    top: 762rel;
-    left: 1536rel;
+    top: 762/19.2vw;
+    left: 1536/19.2vw;
     line-height: 44px;
     font-weight: bold;
     text-transform: uppercase;
     text-decoration: none;
     color: inherit;
+    @media (max-width: 600px) {
+        top: 354/3.2vw;
+        left: 243/3.2vw;
+        color: transparent; // trik na zakrytí textu
+    }
 }
 
 .gchlavicka_video::before {
