@@ -1,36 +1,40 @@
 <!-- begin: titulka -->
 
+<link rel="stylesheet" href="soubory/blackarrow/_spolecne/aos.css">
+
 <div class="gchlavicka">
     <img
         style="position: absolute; width: 22.031vw; top: 27.343vw; left: 7.604vw"
         src="soubory/blackarrow/gchlavicka/obr_1.jpg"
+        data-aos="fade-right"
     >
     <img
         style="position: absolute; width: 26.042vw; top: 1.562vw; left: 51.042vw"
         src="soubory/blackarrow/gchlavicka/obr_2.jpg"
+        data-aos="fade-left"
     >
-    <div class="p p1">GA</div>
-    <div class="p p2">ME</div>
-    <div class="p p3">C</div>
-    <div class="p p4">ON</div>
-    <div class="gchlavicka_claim">Nejvetší festival nepočítačových her</div>
+    <div class="p p1" data-aos="zoom-out" data-aos-delay="200">GA</div>
+    <div class="p p2" data-aos="zoom-out" data-aos-delay="250">ME</div>
+    <div class="p p3" data-aos="zoom-out" data-aos-delay="550">C</div>
+    <div class="p p4" data-aos="zoom-out" data-aos-delay="600">ON</div>
+    <div class="gchlavicka_claim" data-aos="zoom-out">Nejvetší festival nepočítačových her</div>
     <div class="gchlavicka_datum">19. 7. &ndash; 21. 7.</div>
-    <div class="gchlavicka_misto">P A R D U B I C E</div>
+    <div class="gchlavicka_misto" data-aos="zoom-out">P A R D U B I C E</div>
     <a class="gchlavicka_video" href="TODO">přehrát video</a>
 </div>
 
 <div class="karty">
-    <div class="karty_karta">
+    <div class="karty_karta" data-aos="fade-right">
         <img src="soubory/blackarrow/karty/1.jpg">
         <h2>Akce pro všechny</h2>
         <div class="karty_text">Jsme otevřeni, vítáme všechny mezi 0&ndash;99 lety a tykáme si</div>
     </div>
-    <div class="karty_karta">
+    <div class="karty_karta" data-aos="fade-right" data-aos-delay="200">
         <img src="soubory/blackarrow/karty/2.jpg">
         <h2>Festival aktivní zábavy</h2>
         <div class="karty_text">Na všech aktivitách je potřeba zapojit své tělo, mozek či obojí</div>
     </div>
-    <div class="karty_karta">
+    <div class="karty_karta" data-aos="fade-right" data-aos-delay="400">
         <img src="soubory/blackarrow/karty/3.jpg">
         <h2>Volná deskoherna</h2>
         <div class="karty_text">Stovky deskových her zdarma k vyzkoušení, hry Vás rádi naučíme</div>
@@ -142,5 +146,13 @@
         <!-- end:sponzor -->
     </div>
 </div>
+
+<script src="soubory/blackarrow/_spolecne/aos.js"></script>
+<script>
+    AOS.init({
+        once: true,
+        disableMutationObserver: true,
+    });
+</script>
 
 <!-- end: titulka -->
