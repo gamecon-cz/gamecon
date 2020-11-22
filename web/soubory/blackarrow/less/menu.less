@@ -127,11 +127,20 @@
 
 .menu_uzivatel {
     float: right;
-    margin-top: 26px;
     position: relative;
+    line-height: 70px;
+    padding: 0 30px;
     @media (max-width: 600px) {
-        margin: -72px 20px 0 0;
+        margin: -100px 0 0 0;
     }
+}
+
+.menu_uzivatel:hover {
+    background-color: #10111A;
+}
+
+.menu_jmeno {
+    cursor: default;
 }
 
 .menu_jmeno::after {
@@ -148,9 +157,24 @@
 .menu_uzivatelpolozky {
     display: none;
     position: absolute;
-    right: 0;
-    background-color: #fff;
-    padding: 10px;
+    left: 0;
+    background-color: #10111A;
+    width: 220px;
+    line-height: 1.0;
+    font-weight: bold;
+    font-size: 18px;
+    padding: 17px 0 20px 0;
+    @media (max-width: 600px) {
+        left: initial;
+        right: 0;
+    }
+}
+
+.menu_uzivatelpolozky > a {
+    color: inherit;
+    text-decoration: none;
+    display: block;
+    margin: 19px 0 19px 39px;
 }
 
 .menu_uzivatel:hover .menu_uzivatelpolozky {

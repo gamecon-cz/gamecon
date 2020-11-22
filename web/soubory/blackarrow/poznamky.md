@@ -2,13 +2,14 @@
 - [ ] projet TODOs
 - [ ] srovnat, jaké prvky chybí proti stávající titulce / indexu
     - (viz šablona a kód)
-- [ ] dodělat responzivy, kde nejsou
+- [x] dodělat responzivy, kde nejsou
     - [x] menu
-    - [ ] hlavička
+    - [x] hlavička
     - [-] fotky -- pro MVP na mobil jenom skrýt
 - [ ] hovery
     - [x] hovery na liniích
     - [ ] texty na hovery na liniích + ikony
+    - [x] uživatelské menu
     - ...
 - [ ] načítat reálná data
 - [x] zkusit vm jednotky

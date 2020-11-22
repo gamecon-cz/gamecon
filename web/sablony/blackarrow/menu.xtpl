@@ -34,9 +34,9 @@
             <div class="menu_uzivatel">
                 <div class="menu_jmeno">mrasek</div>
                 <div class="menu_uzivatelpolozky">
-                    <a href="TODO">finance</a>
-                    <a href="TODO">pičoviny</a>
-                    <a href="TODO">admin</a>
+                    <a href="TODO">Finance</a>
+                    <a href="TODO">Pičoviny</a>
+                    <a href="TODO">Admin</a>
                 </div>
                 <!-- TODO login -->
             </div>
