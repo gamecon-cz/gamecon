@@ -537,6 +537,10 @@ class Uzivatel {
    * @return mixed objekt s uživatelem nebo null
    */
   public static function prihlas($login, $heslo, $klic = 'uzivatel') {
+    if(!$login || !$heslo) {
+      return null;
+    }
+
     $u = dbOneLineS('
       SELECT * FROM uzivatele_hodnoty
       WHERE login_uzivatele = $0 OR email1_uzivatele = $0

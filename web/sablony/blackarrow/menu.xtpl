@@ -2,7 +2,7 @@
 <div class="menu">
     <div class="menu_obal">
         <div class="menu_obal2">
-            <a href="" class="menu_nazev">GameCon</a>
+            <a href="." class="menu_nazev">GameCon</a>
 
             <div class="menu_menu">
                 <a href="program" class="menu_odkaz">program</a>
@@ -32,13 +32,21 @@
             </div>
 
             <div class="menu_uzivatel">
-                <div class="menu_jmeno">mrasek</div>
+                <!-- begin: neprihlasen -->
+                <a class="menu_prihlasit" href="prihlaseni">přihlásit</a>
+                <!-- end: neprihlasen -->
+                <!-- begin: prihlasen -->
+                <div class="menu_jmeno">{u.mail}</div>
                 <div class="menu_uzivatelpolozky">
                     <a href="TODO">Finance</a>
                     <a href="TODO">Pičoviny</a>
                     <a href="TODO">Admin</a>
+                    <a href="#" onclick="odhlasForm.submit(); return false;">Odhlásit</a>
+                    <form id="odhlasForm" method="post" action="prihlaseni">
+                        <input type="hidden" name="odhlasit" value="true">
+                    </form>
                 </div>
-                <!-- TODO login -->
+                <!-- end: prihlasen -->
             </div>
         </div>
     </div>

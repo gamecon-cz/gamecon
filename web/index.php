@@ -51,13 +51,17 @@ if(!$i->titulek())
 // výstup (s ohledem na to co modul nastavil)
 $menu = '';
 if(!$m->bezStranky() && !$m->bezMenu()) {
-  $typy = serazenePodle(Typ::zViditelnych(), 'poradi');
-
   $t = new XTemplate('sablony/blackarrow/menu.xtpl');
+
+  $typy = serazenePodle(Typ::zViditelnych(), 'poradi');
   $t->parseEach($typy, 'typ', 'menu.typAktivit');
+
+  $t->assign(['u' => $u]);
+  $t->parse($u ? 'menu.prihlasen' : 'menu.neprihlasen');
+
   $t->parse('menu');
   $menu = $t->text('menu');
-  // TODO odstranit staré menu
+  // TODO odstranit starou třídu menu
 }
 
 if($m->bezStranky()) {
@@ -66,6 +70,7 @@ if($m->bezStranky()) {
   $t = new XTemplate('sablony/blackarrow/index.xtpl');
   $t->assign([
     'css'   => perfectcache('soubory/blackarrow/*/*.less'),
+    'chyba' => Chyba::vyzvedniHtml(),
     'menu'  => $menu,
     'obsah' => $m->vystup(),
   ]);

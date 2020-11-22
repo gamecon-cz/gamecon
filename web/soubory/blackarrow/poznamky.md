@@ -18,4 +18,7 @@
     - poladit taky podle martinových ne/protestů na mobilní chování _zazijes_
     - možná raději "rel" (pixel relative) vůči 1920 a ten min width vkládat jako agument
 - [ ] relativní cesty v .less souborech
+- [ ] indikace zbyktu financí (?) a přihlášenosti na GC
+- [ ] novinka
+- [ ] v sponzorech ještě nejsou partneři (!)
 - [ ] TODO odstranit nebo přesunout tyto poznámky
