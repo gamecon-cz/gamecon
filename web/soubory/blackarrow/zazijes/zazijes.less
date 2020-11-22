@@ -11,9 +11,12 @@
 
 .zazijes_nadpis {
     color: #E22630;
-    font-size: 80rel;
+    font-size: 80/19.2vw;
     font-weight: bold;
     margin: 6.25vw 0 5.208vw 7.604vw;
+    @media (max-width: 600px) {
+        font-size: 32/3.2vw;
+    }
 }
 
 .zazijes_karty {
@@ -43,7 +46,8 @@
         &:nth-child(3n+3) { top: 3.177vw; }
     }
     @media (max-width: 600px) {
-        margin-bottom: 10vw;
+        margin-bottom: 20/3.2vw;
+        height: 143/3.2vw;
     }
 
     text-decoration: none;
