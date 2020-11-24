@@ -15,10 +15,15 @@ foreach ($typy as $i => $typ) {
   $t->parse('titulka.linie');
 }
 
-foreach (glob('soubory/systemove/sponzori/*') as $soubor) {
-  $info = pathinfo($soubor);
+
+$obrazky = array_merge(
+  glob('soubory/systemove/sponzori/*'),
+  glob('soubory/systemove/partneri/*'),
+);
+foreach ($obrazky as $obrazek) {
+  $info = pathinfo($obrazek);
   $t->assign([
-    'src' => $soubor,
+    'src' => Nahled::zSouboru($obrazek)->pasuj(120, 60),
     'url' => 'http://' . $info['filename'],
   ]);
   $t->parse('titulka.sponzor');

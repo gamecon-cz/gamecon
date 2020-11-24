@@ -20,7 +20,7 @@
 - [ ] relativní cesty v .less souborech
 - [ ] indikace zbyktu financí (?) a přihlášenosti na GC
 - [ ] novinka
-- [ ] v sponzorech ještě nejsou partneři (!)
+- [x] v sponzorech ještě nejsou partneři (!)
 - [ ] v modulu prihlaseni.php registrace na GC
     - mít tam vysvětleno, jestli registrace na GC běží a pochopitelný link
     - případně řešit jinak (původně link "přihláška" na titulce)
