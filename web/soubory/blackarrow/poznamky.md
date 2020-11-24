@@ -21,4 +21,12 @@
 - [ ] indikace zbyktu financí (?) a přihlášenosti na GC
 - [ ] novinka
 - [ ] v sponzorech ještě nejsou partneři (!)
+- [ ] v modulu prihlaseni.php registrace na GC
+    - mít tam vysvětleno, jestli registrace na GC běží a pochopitelný link
+    - případně řešit jinak (původně link "přihláška" na titulce)
+    - [ ] flow přihlašování -> registrace -> zadám existujícího a správné údaje -> (chyba / nic se nestane)
 - [ ] TODO odstranit nebo přesunout tyto poznámky
+
+Minor
+
+- [ ] favicon
