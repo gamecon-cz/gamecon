@@ -42,26 +42,26 @@
 </div>
 
 <div class="popisbox">
-    <div class="popisbox_obsah"><a href="">Deskové</a> a <a href="">karetní hry</a>, <a href="">RPG</a> a <a href="">Larpy</a>, <a href="">akční hry</a>, <a href="">wargaming</a>, mistrovství světa v <a href="">Dračím doupěti</a>, pohybové <a href="">workshopy</a>, koncert a párty. Skvělí účastníci a žážitky, na které se budete těšit zase za rok, to je Gamecon.</div>
+    <div class="popisbox_obsah" data-aos="zoom-out"><a href="">Deskové</a> a <a href="">karetní hry</a>, <a href="">RPG</a> a <a href="">Larpy</a>, <a href="">akční hry</a>, <a href="">wargaming</a>, mistrovství světa v <a href="">Dračím doupěti</a>, pohybové <a href="">workshopy</a>, koncert a párty. Skvělí účastníci a žážitky, na které se budete těšit zase za rok, to je Gamecon.</div>
 </div>
 
 <div class="cisla">
-    <div class="cisla_polozka">
+    <div class="cisla_polozka" data-aos="fade-up" data-aos-delay="200">
         <img src="soubory/blackarrow/cisla/1.jpg" style="margin: -30px 0 0 87px">
         <div class="cisla_cislo">820+</div>
         <div class="cisla_text">spokojených účastníků</div>
     </div>
-    <div class="cisla_polozka">
+    <div class="cisla_polozka" data-aos="fade-up">
         <img src="soubory/blackarrow/cisla/2.jpg" style="margin: -13px 0 0 73px">
         <div class="cisla_cislo">200+</div>
         <div class="cisla_text">rozdílných aktivit</div>
     </div>
-    <div class="cisla_polozka">
+    <div class="cisla_polozka" data-aos="fade-up" data-aos-delay="100">
         <img src="soubory/blackarrow/cisla/3.jpg" style="margin: -23px 0 0 30px">
         <div class="cisla_cislo">4</div>
         <div class="cisla_text">dny zábavy</div>
     </div>
-    <div class="cisla_polozka">
+    <div class="cisla_polozka" data-aos="fade-up" data-aos-delay="50">
         <img src="soubory/blackarrow/cisla/4.jpg" style="margin: -13px 0 0 30px">
         <div class="cisla_cislo">2</div>
         <div class="cisla_text">super párty</div>
@@ -83,7 +83,7 @@
     <h2 class="zazijes_nadpis">Co na GameConu zažiješ?</h2>
     <div class="zazijes_karty">
         <!-- begin: linie -->
-        <a href="{url}" class="zazijes_karta" style="background-image: url({obrazek})">
+        <a href="{url}" class="zazijes_karta" style="background-image: url({obrazek})" data-aos="flip-left">
             <div class="zazijes_prekryv">
                 <div class="zazijes_ikona" style="background-image: url(soubory/blackarrow/zazijes/_test.png)"></div>
             </div>

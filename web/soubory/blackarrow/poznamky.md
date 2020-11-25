@@ -1,4 +1,3 @@
-- [ ] htaccess a cacheování resourců (nějaká funkce na modify parametr)
 - [ ] projet TODOs
 - [ ] srovnat, jaké prvky chybí proti stávající titulce / indexu
     - (viz šablona a kód)
@@ -26,7 +25,15 @@
     - případně řešit jinak (původně link "přihláška" na titulce)
     - [ ] flow přihlašování -> registrace -> zadám existujícího a správné údaje -> (chyba / nic se nestane)
 - [ ] TODO odstranit nebo přesunout tyto poznámky
+- [ ] animace
+- [ ] fotky linií
 
 Minor
 
 - [ ] favicon
+- [ ] htaccess a cacheování resourců (nějaká funkce na modify parametr)
+- [ ] projet TODOs again
+
+Migrace
+
+- [ ] překopírovat linie, sponzory a partnery
