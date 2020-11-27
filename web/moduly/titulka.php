@@ -4,13 +4,16 @@
 $this->blackarrowStyl(true);
 $t = $this->sablona();
 
+$offsety = [120, 320, 280];
 $typy = serazenePodle(Typ::zViditelnych(), 'poradi');
 foreach ($typy as $i => $typ) {
   $t->assign([
-    'cislo'   => sprintf('%02d', $i + 1),
-    'nazev'   => mb_ucfirst($typ->nazev()),
-    'url'     => $typ->url(),
-    'obrazek' => 'soubory/systemove/linie/' . $typ->id() . '.jpg',
+    'cislo'     => sprintf('%02d', $i + 1),
+    'nazev'     => mb_ucfirst($typ->nazev()),
+    'url'       => $typ->url(),
+    'obrazek'   => 'soubory/systemove/linie/' . $typ->id() . '.jpg',
+    'ikona'     => 'soubory/systemove/linie-ikony/' . $typ->id() . '.png',
+    'aosOffset' => $offsety[$i % 3],
   ]);
   $t->parse('titulka.linie');
 }

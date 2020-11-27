@@ -67,9 +67,7 @@
 
 .zazijes_prekryv {
     position: absolute;
-    background:
-        url('../blackarrow/zazijes/flek.png') no-repeat 50% 30%,
-        rgba(32, 35, 50, 0.8);
+    background: rgba(32, 35, 50, 0.8);
     height: 100%;
     width: 100%;
     opacity: 0;
@@ -82,10 +80,21 @@
 
 .zazijes_ikona {
     position: absolute;
-    height: 100%;
-    width: 100%;
-    background-position: 50% 30%;
+    height: 150/19.2vw;
+    margin-top: -75/19.2vw;
+    width: 150/19.2vw;
+    margin-left: -75/19.2vw;
+    top: 40%;
+    left: 50%;
+    background: url('../blackarrow/zazijes/flek.png') center ~'/' contain no-repeat;
+}
+
+.zazijes_ikonavnitrni {
     background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    height: 60%;
+    margin: 20% 15%;
 }
 
 .zazijes_nadpiskarty {
