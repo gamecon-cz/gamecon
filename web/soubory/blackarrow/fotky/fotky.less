@@ -7,13 +7,30 @@
     @media (max-width: 600px) {
         display: none; // dokud není responzivní verze, tak nezobrazovat
     }
+    overflow: hidden;
 }
 
 .fotky > img {
     display: block;
     position: absolute;
     transform-origin: top left;
-    @media (max-width: 1800px) { transform: scale(0.70); }
-    @media (max-width: 1300px) { transform: scale(0.65); }
-    @media (max-width:  600px) { transform: scale(0.25); }
+}
+
+[data-aos="fotky"] {
+    opacity: 0;
+    transition-property: transform, opacity;
+    transform: perspective(2500px) rotateY(-100deg);
+    backface-visibility: hidden;
+
+    &.aos-animate {
+        opacity: 1;
+        transform: perspective(2500px) rotateY(0);
+    }
+
+    @media (max-width: 1300px) {
+        transform: scale(0.65) perspective(2500px) rotateY(-100deg);
+        &.aos-animate {
+            transform: scale(0.65) perspective(2500px) rotateY(0);
+        }
+    }
 }

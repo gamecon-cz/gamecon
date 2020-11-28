@@ -69,12 +69,12 @@
 </div>
 
 <div class="fotky">
-    <img src="soubory/blackarrow/fotky/1.jpg" style="top: 12.344vw; left:       0vw">
-    <img src="soubory/blackarrow/fotky/2.jpg" style="top:  6.042vw; left:  22.083vw">
-    <img src="soubory/blackarrow/fotky/3.jpg" style="top: 28.177vw; left:  25.990vw">
-    <img src="soubory/blackarrow/fotky/4.jpg" style="top: 15.417vw; left:  46.667vw">
-    <img src="soubory/blackarrow/fotky/5.jpg" style="top: 37.188vw; left:  65.521vw">
-    <img src="soubory/blackarrow/fotky/6.jpg" style="top:  2.969vw; right:      0vw; transform-origin: top right">
+    <img src="soubory/blackarrow/fotky/1.jpg" data-aos="fotky" data-aos-offset="200" style="top: 12.344vw; left:       0vw">
+    <img src="soubory/blackarrow/fotky/2.jpg" data-aos="fotky" data-aos-offset="200" style="top:  6.042vw; left:  22.083vw">
+    <img src="soubory/blackarrow/fotky/3.jpg" data-aos="fotky" data-aos-offset="200" style="top: 28.177vw; left:  25.990vw">
+    <img src="soubory/blackarrow/fotky/4.jpg" data-aos="fotky" data-aos-offset="200" style="top: 15.417vw; left:  46.667vw">
+    <img src="soubory/blackarrow/fotky/5.jpg" data-aos="fotky" data-aos-offset="200" style="top: 37.188vw; left:  65.521vw">
+    <img src="soubory/blackarrow/fotky/6.jpg" data-aos="fotky" data-aos-offset="200" style="top:  2.969vw; right:      0vw; transform-origin: top right">
 </div>
 
 <div class="zazijes">

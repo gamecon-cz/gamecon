@@ -56,7 +56,15 @@
     color: #10111A;
     padding: 19px 0 0 16px;
     bottom: -17px;
-    background: #fff url('../blackarrow/odpocet/sipka.svg') no-repeat 193px 14px;
+    background:
+        url('../blackarrow/odpocet/sipka.svg') no-repeat 193px 14px,
+        #fff url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP89vHVfwAJiAPS07F4CwAAAABJRU5ErkJggg==) no-repeat -238px 0 ~'/' 100% 100%;
+    transition: background-position 0.3s;
+
+}
+
+.odpocet_prihlasit:hover {
+    background-position: 199px 14px, 0 0;
 }
 
 .odpocet::before {
