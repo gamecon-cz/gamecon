@@ -5,9 +5,9 @@
     - [x] menu
     - [x] hlavička
     - [-] fotky -- pro MVP na mobil jenom skrýt
-- [ ] hovery
+- [x] hovery
     - [x] hovery na liniích
-    - [ ] texty na hovery na liniích + ikony
+    - [x] texty na hovery na liniích + ikony
     - [x] uživatelské menu
     - ...
 - [ ] načítat reálná data
@@ -33,6 +33,9 @@ Minor
 - [ ] favicon
 - [ ] htaccess a cacheování resourců (nějaká funkce na modify parametr)
 - [ ] projet TODOs again
+- [ ] lazy loading
+    - jestli se načítají všechny obrázky při čerstvém zobrazení stránky
+    - nativní lazy loading (+fonty), viz https://developer.mozilla.org/en-US/docs/Web/Performance/Lazy_loading
 
 Migrace
 
