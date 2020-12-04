@@ -76,6 +76,19 @@
     cursor: default;
 }
 
+.menu_nazevkategorie::after {
+    content: '';
+    display: inline-block;
+    width:  6px;
+    height: 6px;
+    margin: -100px -10px 2px 10px;
+    border-bottom: solid 1px #fff;
+    border-right:  solid 1px #fff;
+    transform: rotate(45deg);
+}
+
+// levá část - submenu
+
 .menu_kategorie:hover .menu_polozky {
     display: block;
 }
@@ -86,7 +99,7 @@
     background-color: #10111A;
     left: 0;
     width: 100%;
-    padding: 25px 220px; // aby seděly tři sloupce na šířku 1280
+    padding: 40px 0 15px 220px;
     box-sizing: border-box;
     z-index: 20; // aby překrylo jméno na mobilu
     @media (max-width: 600px) {
@@ -98,14 +111,14 @@
     color: inherit;
     text-decoration: none;
     font-weight: bold;
-    font-size: 18px;
+    font-size: 16px;
     display: block;
     float: left;
-    height: 23px; // přetékání se ignoruje a má zobrazit kvůli paddingům
-    width: 270px; // aby se vešly "Bonusové aktivity"
-    padding: 0 60px;
-    margin: 15px 0; // pozor že kvůli floatu se marginy nekolabují
-    box-sizing: border-box;
+    width: 240px;
+    padding: 0 0 11px 0;
+    margin: 0 40px 30px 0; // pozor že kvůli floatu se marginy nekolabují
+    border-bottom: solid 1px #515151;
+    position: relative; // kvůli šipce vpravo
     @media (max-width: 600px) {
         padding: 0 20px;
     }
@@ -114,13 +127,20 @@
 
 .menu_polozka::after {
     content: '';
-    display: inline-block;
+    display: block;
+    position: absolute;
+    right: 5px;
+    top: 5px;
     width:  8px;
     height: 8px;
-    margin: -100px -100px 1px 8px;
     border-bottom: solid 2px #CE232D;
     border-right:  solid 2px #CE232D;
     transform: rotate(-45deg);
+    transition: right 0.3s;
+}
+
+.menu_polozka:hover::after {
+    right: 0;
 }
 
 // pravá část
