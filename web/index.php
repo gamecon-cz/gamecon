@@ -94,7 +94,7 @@ if($m->bezStranky()) {
       'soubory/styl/jquery-ui.min.css',
       'soubory/styl/program-skryvani-linii.less',
       'soubory/styl/program-nahled.less',
-      'soubory/blackarrow/less/menu.less' // TODO pravděpodobně se změní
+      'soubory/blackarrow/menu/menu.less'
     ),
     'js'        => perfectcache(
       'soubory/jquery-2.1.1.min.js',
