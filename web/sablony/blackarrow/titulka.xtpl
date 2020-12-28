@@ -97,6 +97,14 @@
         </a>
         <!-- end: linie -->
     </div>
+    <script>
+        (() => {
+            // přepsat offset kvůli zobrazení na menších rozlišeních
+            if (window.screen.width < 1000) {
+                document.querySelectorAll('.zazijes_karta').forEach(e => e.setAttribute('data-aos-offset', '100'))
+            }
+        })()
+    </script>
 </div>
 
 <div class="odpocet">
