@@ -28,6 +28,7 @@
 - [ ] fotky linií
 - [ ] menu: menu uživatele
 - [ ] skákání při načtení (asi výška menu a fonty)
+- [x] proporciální hlavička
 
 - [ ] program
     - [x] scrollery

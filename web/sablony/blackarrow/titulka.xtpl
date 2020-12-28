@@ -1,5 +1,15 @@
 <!-- begin: titulka -->
 
+<style>
+/* hack kvůli nutné relativní výšce hlavičky */
+@media (min-width: 600px) {
+    .menu {
+        position: fixed;
+        width: 100%;
+    }
+}
+</style>
+
 <link rel="stylesheet" href="soubory/blackarrow/_spolecne/aos.css">
 
 <div class="gchlavicka">
@@ -13,10 +23,10 @@
         src="soubory/blackarrow/gchlavicka/obr_2.jpg"
         data-aos="fade-left"
     >
-    <div class="p p1" data-aos="zoom-out" data-aos-delay="200">GA</div>
-    <div class="p p2" data-aos="zoom-out" data-aos-delay="250">ME</div>
-    <div class="p p3" data-aos="zoom-out" data-aos-delay="550">C</div>
-    <div class="p p4" data-aos="zoom-out" data-aos-delay="600">ON</div>
+    <div class="p p1" data-aos="zoom-out" data-aos-delay="200" data-aos-offset="0">GA</div>
+    <div class="p p2" data-aos="zoom-out" data-aos-delay="250" data-aos-offset="0">ME</div>
+    <div class="p p3" data-aos="zoom-out" data-aos-delay="550" data-aos-offset="0">C</div>
+    <div class="p p4" data-aos="zoom-out" data-aos-delay="600" data-aos-offset="0">ON</div>
     <div class="gchlavicka_claim" data-aos="zoom-out">Nejvetší festival nepočítačových her</div>
     <div class="gchlavicka_datum">19. 7. &ndash; 21. 7.</div>
     <div class="gchlavicka_misto" data-aos="zoom-out">P A R D U B I C E</div>
@@ -137,7 +147,7 @@
     }
 
     function nastavCasFix() {
-        const casGc = 1626825600 // TODO
+        const casGc = 1618444800 // TODO
         nastavCas(casGc - Math.floor(Date.now() / 1000), dnu, hodin, minut, sekund)
     }
 
