@@ -841,10 +841,10 @@ class Aktivita {
     // tisk formu
     $out = '';
     if($this->a['team_max'] > $this->a['kapacita']) {
-      $out .= ' <form method="post" style="display:inline"><input type="hidden" name="'.self::PN_PLUSMINUSP.'" value="'.$this->id().'"><a href="#" onclick="$(this).closest(\'form\').submit(); return false">▲</a></form>';
+      $out .= ' <form method="post" style="display:inline"><input type="hidden" name="'.self::PN_PLUSMINUSP.'" value="'.$this->id().'"><a href="#" onclick="this.parentNode.submit(); return false">▲</a></form>';
     }
     if($this->a['team_min'] < $this->a['kapacita'] && $this->prihlaseno() < $this->a['kapacita']) {
-      $out .= ' <form method="post" style="display:inline"><input type="hidden" name="'.self::PN_PLUSMINUSM.'" value="'.$this->id().'"><a href="#" onclick="$(this).closest(\'form\').submit(); return false">▼</a></form>';
+      $out .= ' <form method="post" style="display:inline"><input type="hidden" name="'.self::PN_PLUSMINUSM.'" value="'.$this->id().'"><a href="#" onclick="this.parentNode.submit(); return false">▼</a></form>';
     }
     return $out;
   }
@@ -1077,7 +1077,7 @@ class Aktivita {
           $out .=
             '<form method="post" style="display:inline">'.
             '<input type="hidden" name="odhlasit" value="'.$this->id().'">'.
-            '<a href="#" onclick="$(this).parent().submit(); return false">odhlásit</a>'.
+            '<a href="#" onclick="this.parentNode.submit(); return false">odhlásit</a>'.
             '</form>';
         if($stav == 1) $out .= '<em>účast</em>';
         if($stav == 2) $out .= '<em>jako náhradník</em>';
@@ -1093,7 +1093,7 @@ class Aktivita {
           $out =
             '<form method="post" style="display:inline">'.
             '<input type="hidden" name="prihlasit" value="'.$this->id().'">'.
-            '<a href="#" onclick="$(this).parent().submit(); return false">přihlásit</a>'.
+            '<a href="#" onclick="this.parentNode.submit(); return false">přihlásit</a>'.
             '</form>';
         elseif($volno == 'f')
           $out = 'pouze ženská místa';
@@ -1104,13 +1104,13 @@ class Aktivita {
             $out =
               '<form method="post" style="display:inline">' .
               '<input type="hidden" name="odhlasNahradnika" value="' . $this->id() . '">' .
-              '<a href="#" onclick="$(this).parent().submit(); return false">zrušit sledování</a>' .
+              '<a href="#" onclick="this.parentNode.submit(); return false">zrušit sledování</a>' .
               '</form>';
           } else {
             $out =
               '<form method="post" style="display:inline">' .
               '<input type="hidden" name="prihlasNahradnika" value="' . $this->id() . '">' .
-              '<a href="#" onclick="$(this).parent().submit(); return false">sledovat</a>' .
+              '<a href="#" onclick="this.parentNode.submit(); return false">sledovat</a>' .
               '</form>';
           }
         }

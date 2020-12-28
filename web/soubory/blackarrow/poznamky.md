@@ -1,4 +1,3 @@
-- [ ] projet TODOs
 - [ ] srovnat, jaké prvky chybí proti stávající titulce / indexu
     - (viz šablona a kód)
 - [x] dodělat responzivy, kde nejsou
@@ -19,7 +18,7 @@
 - [ ] relativní cesty v .less souborech
 - [ ] indikace zbyktu financí (?) a přihlášenosti na GC
 - [ ] novinka
-- [x] v sponzorech ještě nejsou partneři (!)
+- [x] doplnit do sponzorů partnery
 - [ ] v modulu prihlaseni.php registrace na GC
     - mít tam vysvětleno, jestli registrace na GC běží a pochopitelný link
     - případně řešit jinak (původně link "přihláška" na titulce)
@@ -27,6 +26,47 @@
 - [ ] TODO odstranit nebo přesunout tyto poznámky
 - [ ] animace
 - [ ] fotky linií
+- [ ] menu: menu uživatele
+- [ ] skákání při načtení (asi výška menu a fonty)
+
+- [ ] program
+    - [x] scrollery
+    - [x] dny
+    - [x] pamatování horizontálního scrollu
+        - sneak nefunguje, nutno napsat vlastní
+    - [x] server nebo js rendering? server
+        - jako nastavení třídy program, v adminu výpis všeho
+    - [ ] osobní program
+        - [x] throw new Neprihlasen()
+        - UrlNotFound -> Nenalezeno?
+        - [ ] naskinovat nebo předělat do jednotného kódu s normálním programem
+    - [ ] sledování / náhradnictví
+    - [ ] přesunutí souborů do jedné složky, uklizení
+        - nápady: metoda css() jak teď, nebo cssSoubor()
+    - [ ] sidebar
+    - [ ] integrace v adminu
+        - možná posuvníky v adminu ani nepoužívat
+    - [ ] (minor) filtry (viz také server rendering / url)
+    - [ ] výška položek
+    - [ ] legenda (možná ne? intuitivita / užitečnost pro uživatele?)
+        - možná nějaké symboly s hoverem, třeba :hodiny: 12.5., :hodiny: :otazník:
+        - [ ] muži / ženy rozlišovák
+    - [ ] responziva
+        - viz také vertikální názvy linií a chování sidebaru
+    - [ ] (minor) co, když program není?
+    - [ ] (future) zamyšlení, kdy zobrazovat přihlašovátka
+        - aby uživatel věděl, že se musí přihlásit na GC apod.
+    - [ ] chybové hlášky (máš už aktivitu v daný čas apod.)
+    - [ ] projet TODOs, necommitovat
+    - [ ] (minor) dávat alternativní datumy do náhledu?
+    - [ ] (minor) Cookie „CHYBY_CLASS“
+        - bude brzy blokována, protože obsahuje atribut „SameSite“ s neplatnou hodnotou nebo hodnotou „None“, která není bez bez atributu „secure“ povolená. Podrobnosti o atributu „SameSite“ najdete na https://developer.mozilla.org/docs/Web/HTTP/Headers/Set-Cookie/SameSite
+
+- [ ] aktivity
+    - [ ] po přepsání možno odstranit scroll sneak z webu úplně
+    - ...
+
+- [ ] projet TODOs
 
 Minor
 

@@ -3,13 +3,12 @@
 require __DIR__ . '/../nastaveni/zavadec.php';
 require __DIR__ . '/tridy/modul.php';
 require __DIR__ . '/tridy/menu.php';
+require __DIR__ . '/tridy/vyjimky.php';
 
 if(HTTPS_ONLY) httpsOnly();
 
 $u = Uzivatel::zSession();
-if ($u) {
-  $u->otoc(); // nacti cerstva data do session
-}
+
 try {
   $url = Url::zAktualni();
 } catch(UrlException $e) {
@@ -41,8 +40,10 @@ $i = (new Info())
 $m->info($i);
 try {
   $m->spust();
-} catch(UrlNotFoundException $e) {
+} catch(Nenalezeno $e) {
   $m = Modul::zNazvu('neexistujici')->spust();
+} catch(Neprihlasen $e) {
+  $m = Modul::zNazvu('neprihlasen')->spust();
 }
 if(!$i->titulek())
   if($i->nazev())   $i->titulek($i->nazev().' – GameCon');
@@ -73,6 +74,7 @@ if($m->bezStranky()) {
     'chyba' => Chyba::vyzvedniHtml(),
     'menu'  => $menu,
     'obsah' => $m->vystup(),
+    'base'  => URL_WEBU.'/',
   ]);
   $t->parse('index');
   $t->out('index');

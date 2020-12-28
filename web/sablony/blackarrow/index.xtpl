@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- TODO načíst fonty hned tady -->
     <link rel="stylesheet" href="{css}">
+    <base href="{base}">
 </head>
 <body>
 

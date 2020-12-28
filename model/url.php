@@ -67,4 +67,3 @@ class Url
  * Výjimky pro chyby v url
  */
 class UrlException extends Exception {}
-class UrlNotFoundException extends UrlException {}
