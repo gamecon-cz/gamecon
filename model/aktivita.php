@@ -643,18 +643,18 @@ class Aktivita {
     if(!$kc)
       return '';
     if(!$this->prihlasovatelna() && !$this->probehnuta()) //u proběhnutých aktivit se zobrazí čísla. Možno měnit.
-      return " <span class=\"neprihlasovatelna\">($c/$kc)</span>";
+      return " <span class=\"neprihlasovatelna\">$c/$kc</span>";
     switch($this->volno())
     {
       case 'u':
       case 'x':
-        return " ($c/$kc)";
+        return " $c/$kc";
       case 'f':
-        return ' <span class="f">('.$f.'/'.$kf.')</span>'.
-          ' <span class="m">('.$m.'/'.($km+$ku).')</span>';
+        return ' <span class="f">'.$f.'/'.$kf.'</span>'.
+          ' <span class="m">'.$m.'/'.($km+$ku).'</span>';
       case 'm':
-        return ' <span class="f">('.$f.'/'.($kf+$ku).')</span>'.
-          ' <span class="m">('.$m.'/'.$km.')</span>';
+        return ' <span class="f">'.$f.'/'.($kf+$ku).'</span>'.
+          ' <span class="m">'.$m.'/'.$km.'</span>';
     }
   }
 

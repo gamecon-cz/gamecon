@@ -37,17 +37,19 @@
         - sneak nefunguje, nutno napsat vlastní
     - [x] server nebo js rendering? server
         - jako nastavení třídy program, v adminu výpis všeho
-    - [ ] osobní program
+    - [x] osobní program
         - [x] throw new Neprihlasen()
-        - UrlNotFound -> Nenalezeno?
-        - [ ] naskinovat nebo předělat do jednotného kódu s normálním programem
+        - [x] UrlNotFound -> Nenalezeno
+        - [x] naskinovat nebo předělat do jednotného kódu s normálním programem
     - [ ] odkaz na tisk
-    - [ ] sledování / náhradnictví
-    - [ ] přesunutí souborů do jedné složky, uklizení
-        - nápady: metoda css() jak teď, nebo cssSoubor()
+    - [x] sledování / náhradnictví
     - [ ] sidebar
     - [ ] integrace v adminu
         - možná posuvníky v adminu ani nepoužívat
+        - [ ] výběr týmu v programu
+    - [ ] přesunutí souborů do jedné složky, uklizení
+        - nápady: metoda css() jak teď, nebo cssSoubor()
+        - souvisí s integrací v adminu
     - [ ] (minor) filtry (viz také server rendering / url)
     - [ ] výška položek
     - [ ] legenda (možná ne? intuitivita / užitečnost pro uživatele?)

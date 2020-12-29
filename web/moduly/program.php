@@ -88,6 +88,7 @@ $zobrazitMujProgramOdkaz = isset($u);
         vertical-align: top;
         position: sticky;
         left: 0;
+        z-index: 1; /* aby bylo nad symboly v programu */
     }
 
     .program td {
@@ -96,25 +97,102 @@ $zobrazitMujProgramOdkaz = isset($u);
         padding: 0;
     }
 
-    /*.program td a {
-        font-size: 14px;
-        font-weight: bold;
-        text-decoration: none;
-        color: inherit;
-        display: block;
-        margin: 15px 0 0 16px;
-    }
-
-    .program td span {
-        font-size: 12px;
-        display: block;
-        margin: 12px 16px;
-    }*/
-
     .program td > div {
         background-color: #F6F1EA;
         height: 72px;
         overflow: hidden;
+        padding: 15px;
+        box-sizing: border-box;
+
+        font-size: 12px;
+    }
+
+    .program td > div > a {
+        text-decoration: none;
+        font-weight: bold;
+        color: inherit;
+        font-size: 14px;
+        display: block;
+        min-height: 28px;
+        max-height: 35px;
+        margin-bottom: 2px;
+        overflow: hidden;
+        width: -moz-fit-content;
+        width: fit-content;
+    }
+
+    .program td > div > a:hover {
+        text-decoration: underline;
+    }
+
+    .program td > div > form > a {
+        color: inherit;
+        text-decoration: none;
+        border-left: solid 1px #0002;
+        padding-left: 9px;
+        margin-left: 7px;
+    }
+
+    .program td > div > a + form > a {
+        border: 0;
+        padding: 0;
+        margin: 0;
+    }
+
+    .program td > div > form > a:hover {
+        text-decoration: underline;
+    }
+
+    .program_osobniTyp {
+        border-left: solid 1px #0002;
+        padding-left: 9px;
+        margin-left: 9px;
+    }
+
+    .program_obsazenost {
+        display: inline-block;
+        background-color: inherit;
+        padding-left: 16px;
+    }
+
+    .program_obsazenost::before {
+        content: '';
+        display: block;
+        position: absolute;
+        width: 9px;
+        height: 14px;
+        margin: -2px 0 0 -17px;
+        background: url('soubory/blackarrow/program/clovek.svg');
+    }
+
+    .program_obsazenost .f {
+        background-color: inherit;
+    }
+
+    .program_obsazenost .f::before {
+        content: '';
+        display: block;
+        position: absolute;
+        width: 9px;
+        height: 16px;
+        margin: -2px 0 0 -17px;
+        background: url('soubory/blackarrow/program/zena.svg') 0 2px no-repeat;
+        background-color: inherit;
+    }
+
+    .program_obsazenost .m {
+        display: inline-block;
+        padding-left: 32px;
+    }
+
+    .program_obsazenost .m::before {
+        content: '';
+        display: block;
+        position: absolute;
+        width: 13px;
+        height: 13px;
+        margin: 0 0 0 -19px;
+        background: url('soubory/blackarrow/program/muz.svg');
     }
 
     .program_posuv {

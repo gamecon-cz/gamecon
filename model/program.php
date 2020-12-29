@@ -289,22 +289,28 @@ class Program {
 
     // název a url aktivity
     echo '<td colspan="'.$a['del'].'"><div'.$classes.'>';
-    if($this->nastaveni['osobni']) {
-      echo mb_ucfirst($ao->typ()->nazev()) . ': ';
-    }
     echo '<a href="' . $ao->url() . '" target="_blank" class="programNahled_odkaz" data-program-nahled-id="' . $ao->id() . '">' . $ao->nazev() . '</a>';
+
+    // doplňkové informace (druhý řádek)
     if($this->nastaveni['drdPj'] && $ao->typId() == Typ::DRD && $ao->prihlasovatelna()) {
       echo ' ('.$ao->orgJmena().') ';
     }
-    echo $ao->obsazenost();
 
-    // přihlašovátko
+    if($a['del'] > 1) {
+      $obsazenost = $ao->obsazenost();
+      if($obsazenost) echo '<span class="program_obsazenost">' . $obsazenost . '</span>';
+    }
+
     if($ao->typId() != Typ::DRD || $this->nastaveni['drdPrihlas']) { // hack na nezobrazování přihlašovátek pro DrD
       $parametry = 0;
       if($this->nastaveni['plusMinus'])   $parametry |= Aktivita::PLUSMINUS_KAZDY;
       if($this->nastaveni['zpetne'])      $parametry |= Aktivita::ZPETNE;
       if($this->nastaveni['technicke'])   $parametry |= Aktivita::TECHNICKE;
       echo ' '.$ao->prihlasovatko($this->u, $parametry);
+    }
+
+    if($this->nastaveni['osobni']) {
+      echo '<span class="program_osobniTyp">' . mb_ucfirst($ao->typ()->nazev()) . '</span>';
     }
 
     // případný formulář pro výběr týmu
