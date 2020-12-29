@@ -5,7 +5,7 @@
  */
 class Program {
 
-  private $u = null; //aktuální uživatel v objektu
+  private $u = null; // aktuální uživatel v objektu
   private $posledniVydana = null;
   private $dbPosledni = null;
   private $aktFronta = [];
@@ -48,6 +48,10 @@ class Program {
     if(is_array($nastaveni)) {
       $this->nastaveni = array_replace($this->nastaveni, $nastaveni);
     }
+
+    if ($this->nastaveni['osobni']) {
+      $this->nastaveni['prazdne'] = true;
+    }
   }
 
   /**
@@ -68,27 +72,25 @@ class Program {
     return ob_get_clean();
   }
 
-
-
   /**
    * Příprava pro tisk programu
    */
   function tiskToPrint() {
-     $this->init();
-     
-     require_once __DIR__ . '/../vendor/setasign/tfpdf/tfpdf.php';
-     $pdf = new tFPDF();
-     $pdf->AddPage();
-     $pdf->AddFont('DejaVu','','DejaVuSansCondensed.ttf',true);
-     $pdf->SetFont('DejaVu','',20);
-     $pdf->Cell(0,10,"Můj program (" . $this->u->jmeno() . ")",0,1,'L');
-     $pdf->SetFillColor(202,204,206);
-     $pdf->SetFont('DejaVu','',12);
-     
-     for($den=new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen()){
+    $this->init();
+
+    require_once __DIR__ . '/../vendor/setasign/tfpdf/tfpdf.php';
+    $pdf = new tFPDF();
+    $pdf->AddPage();
+    $pdf->AddFont('DejaVu','','DejaVuSansCondensed.ttf',true);
+    $pdf->SetFont('DejaVu','',20);
+    $pdf->Cell(0,10,"Můj program (" . $this->u->jmeno() . ")",0,1,'L');
+    $pdf->SetFillColor(202,204,206);
+    $pdf->SetFont('DejaVu','',12);
+
+    for($den=new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen()){
       $denId = (int)$den->format('z');
       $this->nactiAktivityDne($denId);
-      
+
       if((count($this->aktivityUzivatele)>0)) {
         $pocetPrihlasenychAktivit = 0;
         foreach($this->aktivityUzivatele as $key => $akt) {
@@ -100,17 +102,17 @@ class Program {
         if($pocetPrihlasenychAktivit > 0){
           $pdf->Cell(0,10,mb_ucfirst($den->format('l j.n.Y')), 1,1,'L',true);
           for($cas=PROGRAM_ZACATEK; $cas<PROGRAM_KONEC; $cas++) {
-            
+
             foreach($this->aktivityUzivatele as $key => $akt) {
-            
+
                 if( $akt && $denId==$akt['den'] && $cas==$akt['zac']) {
                   $start = $cas;
                   $konec = $cas + $akt['del'];
-                  
-                  if($this->u->prihlasenJakoNahradnikNa($akt['obj']) || 
+
+                  if($this->u->prihlasenJakoNahradnikNa($akt['obj']) ||
                     $akt['obj']->prihlasen($this->u) || $this->u->organizuje($akt['obj'])){
 
-                    $pdf->Cell(30,10,$start . ":00 - " . $konec . ":00", 1);  
+                    $pdf->Cell(30,10,$start . ":00 - " . $konec . ":00", 1);
                     if($this->u->prihlasenJakoNahradnikNa($akt['obj'])){
                       $pdf->Cell(100,10,"(n) " . $akt['obj']->nazev(), 1);
                     } else if($akt['obj']->prihlasen($this->u)){
@@ -127,10 +129,9 @@ class Program {
       }
 
       $pdf->Cell(0,1,"",0,1);
-    }   
-    
+    }
+
     $pdf->Output();
-    
   }
 
   /**
@@ -139,96 +140,14 @@ class Program {
   function tisk() {
     $this->init();
 
-    if($this->nastaveni['osobni'] === true) {
-      $this->tiskHlavicka("Můj program");
-
-      for($den=new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen()){
-        $denId = (int)$den->format('z');
-        $this->nactiAktivityDne($denId);
-        $pocetKolizi = $this->getMaximumKolizi($denId);               // pocet kolizí 1 znamená že kolize není
-        $this->tiskNadpisRadku($den, $pocetKolizi);
-
-        if((count($this->aktivityUzivatele)==0)) {
-          echo('<td colspan="16" bgcolor="black">Žádné aktivity tento den</td></tr>'); //během dne není aktivita
-        } else {
-          ob_start();  //výstup bufferujeme, pro případ že bude na víc řádků
-          $radku=0;
-
-          while(count($this->aktivityUzivatele) > 0) {
-          
-            for($cas=PROGRAM_ZACATEK; $cas<PROGRAM_KONEC; $cas++) {
-              $prazdnaBunka = true;
-              foreach($this->aktivityUzivatele as $key => $akt) {
-                if( $akt && $denId==$akt['den'] && $cas==$akt['zac']) {
-                  $cas += $akt['del'] -1; //na konci cyklu jeste bude ++
-                  $this->aktivityUzivatele->offsetUnset($key);
-                  $this->tiskAktivity($akt);
-                  $prazdnaBunka = false;
-                  break;
-                }
-              }
-              if($prazdnaBunka === true) {
-                  echo('<td></td>');
-              }
-            }
-
-            $radku++;
-            if($radku < $pocetKolizi) {
-              echo('</tr><tr>');
-            }
-          }
-
-          $radky=substr(ob_get_clean(),0,-5);
-          if($radku>0) {
-            echo $radky;
-          }
-        }
-      }
-
-      echo('</table>');
+    $aktivita = $this->dalsiAktivita();
+    if ($this->nastaveni['osobni'] || $this->nastaveni['den']) {
+      $this->tiskTabulky($aktivita);
     } else {
-      $aktivita = $this->dalsiAktivita();
-      for($den=new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen()) {
-        $denId = (int)$den->format('z');
-        if ($this->nastaveni['den'] && $this->nastaveni['den'] != $denId) {
-          continue;
-        }
-
-        $this->tiskHlavicka(mb_ucfirst($den->format('l j.n.Y')));
-
-        $aktivit=0;
-        foreach($this->skupiny as $typ => $typNazev) {
-          if( (!$aktivita || $aktivita['grp'] != $typ) && !$this->nastaveni['prazdne']) continue;  //v lokaci není aktivita, přeskočit
-          ob_start();  //výstup bufferujeme, pro případ že bude na víc řádků
-          $radku=0;
-          //ošetření proti kolidujícím aktivitám v místnosti
-          while( $aktivita && $typ==$aktivita['grp'] && $denId==$aktivita['den']) {
-            for($cas=PROGRAM_ZACATEK; $cas<PROGRAM_KONEC; $cas++) {
-              if( $aktivita && $typ==$aktivita['grp'] && $cas==$aktivita['zac']) { //pokud je aktivita už v jiné lokaci, dojedeme stávající řádek
-                $cas += $aktivita['del'] - 1; //na konci cyklu jeste bude ++
-                $this->tiskAktivity($aktivita);
-                $aktivita = $this->dalsiAktivita();
-                $aktivit++;
-              }
-              else
-                echo('<td></td>');
-            }
-            echo('</tr><tr>');
-            $radku++;
-          }
-          $radky=substr(ob_get_clean(),0,-4);
-          if($radku > 0) {
-            $pozadi  = self::$barvy[$typ][0] ?? '#222';
-            $popredi = self::$barvy[$typ][1] ?? '#fff';
-            echo '<tr><td rowspan="'.$radku.'" style="background-color: '.$pozadi.'; color: '.$popredi.'">'.$typNazev.'</td>';
-            echo $radky;
-          } else if($this->nastaveni['prazdne'] && $radku == 0) {
-            echo $this->prazdnaMistnost($typNazev);
-          }
-        }
-        if($aktivit==0)
-          echo('<tr><td colspan="17">Žádné aktivity tento den</td></tr>'); //fixme magická konstanta
-        echo '</table></div></div>';
+      foreach ($this->dny() as $den) {
+        $datum = mb_ucfirst($den->format('l j.n.Y'));
+        echo "<h2>$datum</h2>";
+        $this->tiskTabulky($aktivita, $den->format('z'));
       }
     }
   }
@@ -249,36 +168,43 @@ class Program {
   // pomocné funkce //
   ////////////////////
 
+  private function dny() {
+    $dny = [];
+    for ($den = new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen()) {
+      $dny[] = clone $den;
+    }
+    return $dny;
+  }
+
   /**
    * Inicializuje privátní proměnné skupiny (podle kterých se shlukuje) a
    * program (iterátor aktivit)
    */
   private function init() {
-    $this->skupiny['0'] = 'Ostatní';
-
-    if($this->nastaveni['skupiny'] == 'mistnosti') {
+    if ($this->nastaveni['skupiny'] == 'mistnosti') {
       $this->program = new ArrayIterator(Aktivita::zProgramu('poradi'));
-      $grp = Lokace::zVsech();
       $this->grpf = 'lokaceId';
-      usort($grp, function($a, $b) {
-        return $a->poradi() > $b->poradi();
-      });
+
+      $this->skupiny['0'] = 'Ostatní';
+      $grp = serazenePodle(Lokace::zVsech(), 'poradi');
       foreach($grp as $t) {
         $this->skupiny[$t->id()] = ucfirst($t->nazev());
+      }
+    } else if ($this->nastaveni['osobni']) {
+      $this->program = new ArrayIterator(Aktivita::zProgramu('zacatek'));
+      $this->grpf = 'den';
+
+      foreach ($this->dny() as $den) {
+        $this->skupiny[$den->format('z')] = mb_ucfirst($den->format('l'));
       }
     } else {
-      if($this->nastaveni['osobni']) {
-        $this->program = new ArrayIterator(Aktivita::zProgramu('zacatek'));
-      } else {
-        $this->program = new ArrayIterator(Aktivita::zProgramu('typ'));
-      }
-      $grp = Typ::zVsech();
+      $this->program = new ArrayIterator(Aktivita::zProgramu('typ'));
       $this->grpf = 'typId';
-      usort($grp, function($a, $b) {
-        return $a->id() > $b->id();
-      });
+
+      // řazení podle ID nutné proto, že v tomto pořadí je i seznam aktivit
+      $grp = serazenePodle(Typ::zVsech(), 'id');
       foreach($grp as $t) {
-        $this->skupiny[$t->id()] = ucfirst($t->nazev());
+        $this->skupiny[$t->id()] = mb_ucfirst($t->nazev());
       }
     }
   }
@@ -390,13 +316,78 @@ class Program {
   }
 
   /**
-   * Vrátí počet kolizí v daném dni
-   *
-   * @param int $denId číslo dne v roce (formát dateTimeCZ->format('z'))
-   * @return int $this->maxKolize[$den] počet kolizí
+   * Vytiskne tabulku programu
    */
-  function getMaximumKolizi($denId){
-    return $this->maxPocetAktivit[$denId];
+  function tiskTabulky(&$aktivita, $denId = null) {
+    echo '
+      <div class="program_obaltabulky2">
+      <div class="program_obaltabulky">
+      <table class="'.$this->nastaveni['tableClass'].'">
+    ';
+
+    // tisk hlavičkového řádku s čísly
+    echo '<tr><th></th>';
+    for ($cas = PROGRAM_ZACATEK; $cas < PROGRAM_KONEC; $cas++) {
+      echo '<th>'.$cas.':00</th>';
+    }
+    echo '</tr>';
+
+    $this->tiskObsahuTabulky($aktivita, $denId);
+
+    echo '
+      </table>
+      </div>
+      </div>
+    ';
+  }
+
+  /**
+   * Vytiskne obsah (vnitřní řádky) tabulky
+   */
+  function tiskObsahuTabulky(&$aktivita, $denId = null) {
+    $aktivit = 0;
+    foreach($this->skupiny as $typ => $typNazev) {
+      // pokud v skupině není aktivita a nemají se zobrazit prázdné skupiny, přeskočit
+      if(!$this->nastaveni['prazdne'] && (!$aktivita || $aktivita['grp'] != $typ)) {
+        continue;
+      }
+
+      ob_start(); // výstup bufferujeme, pro případ že bude na víc řádků
+      $radku = 0;
+      while($aktivita && $typ == $aktivita['grp']) {
+        if($denId && $aktivita['den'] != $denId) {
+          break;
+        }
+
+        for($cas = PROGRAM_ZACATEK; $cas < PROGRAM_KONEC; $cas++) {
+          if($aktivita && $typ == $aktivita['grp'] && $cas == $aktivita['zac']) {
+            $cas += $aktivita['del'] - 1; // na konci cyklu jeste bude ++
+            $this->tiskAktivity($aktivita);
+            $aktivita = $this->dalsiAktivita();
+            $aktivit++;
+          } else {
+            echo '<td></td>';
+          }
+        }
+        echo '</tr><tr>';
+        $radku++;
+      }
+      $radky = substr(ob_get_clean(), 0, -4);
+
+      if($radku > 0) {
+        $pozadi  = self::$barvy[$typ][0] ?? '#222';
+        $popredi = self::$barvy[$typ][1] ?? '#fff';
+        echo '<tr><td rowspan="'.$radku.'" style="background-color: '.$pozadi.'; color: '.$popredi.'">'.$typNazev.'</td>';
+        echo $radky;
+      } else if($this->nastaveni['prazdne'] && $radku == 0) {
+        echo $this->prazdnaMistnost($typNazev);
+      }
+    }
+
+    if($aktivit == 0) {
+      $sloupcu = PROGRAM_KONEC - PROGRAM_ZACATEK + 1;
+      echo "<tr><td colspan=\"$sloupcu\">Žádné aktivity tento den</td></tr>";
+    }
   }
 
   /**
@@ -411,6 +402,7 @@ class Program {
     if($kon == 0) $kon = 24;
     if($this->grpf == 'typId')          $grp = $a->typId();
     elseif($this->grpf == 'lokaceId')   $grp = $a->lokaceId();
+    elseif($this->grpf == 'den')        $grp = $a->zacatek()->format('z');
     else                                throw new Exception('nepodporovaný typ shlukování aktivit');
 
     $a = [
@@ -490,43 +482,5 @@ class Program {
     for($cas = PROGRAM_ZACATEK; $cas < PROGRAM_KONEC; $cas++)
       $bunky .= '<td></td>';
     return "<tr><td rowspan=\"1\">$nazev</td>$bunky</tr>";
-  }
-
-  /**
-   * Vypíše nadpis a časovou osu programu
-   *
-   * @param String $nadpis
-   */
-  private function tiskHlavicka($nadpis) {
-    if (!$this->nastaveni['den']) {
-      echo '<h2>'.$nadpis.'</h2>';
-    }
-
-    echo '
-      <div class="program_obaltabulky2">
-      <div class="program_obaltabulky">
-      <table class="'.$this->nastaveni['tableClass'].'">
-    ';
-
-    // výpis hlavičkového řádku s čísly
-    echo '<tr><th></th>';
-    for($cas = PROGRAM_ZACATEK; $cas < PROGRAM_KONEC; $cas++){
-      echo('<th>'.$cas.':00</th>');
-    }
-    echo '</tr>';
-  }
-
-  /**
-   * Vypíše první buňku programu - den programu
-   *
-   * @param type $den
-   * @param type $pocetKolizi
-   */
-  private function tiskNadpisRadku ($den, $pocetKolizi=0) {
-    $rowspan = '';
-    if($pocetKolizi > 0) {
-      $rowspan = ' rowspan = '.$pocetKolizi;
-    }
-    echo '<tr><th'.$rowspan.'>'.mb_ucfirst($den->format('l j.n.Y')).'</th>';
   }
 }

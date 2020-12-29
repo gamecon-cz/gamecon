@@ -41,6 +41,7 @@
         - [x] throw new Neprihlasen()
         - UrlNotFound -> Nenalezeno?
         - [ ] naskinovat nebo předělat do jednotného kódu s normálním programem
+    - [ ] odkaz na tisk
     - [ ] sledování / náhradnictví
     - [ ] přesunutí souborů do jedné složky, uklizení
         - nápady: metoda css() jak teď, nebo cssSoubor()
