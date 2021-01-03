@@ -1,0 +1,189 @@
+@okrajProgramu: 0px;
+@sirkaPruhu: 300px;
+@sirkaPruhu2: 360px;
+@programNahled_siroke: ~"(min-width: 1500px)";
+
+.programNahled_nahled {
+  width: @sirkaPruhu;
+  height: 100vh;
+  background-color: #fff;
+  float: right;
+  position: sticky;
+  top: 0;
+  right: 0;
+  margin-top: 30px;
+  display: none; // ve výchozím stavu je náhled skrytý
+  @media @programNahled_siroke {
+    width: @sirkaPruhu2;
+  }
+}
+
+.programNahled_obrazek {
+  width: @sirkaPruhu;
+  height: floor(@sirkaPruhu * 0.5625); // fixní 16/9, aby obsah neposkakoval
+  display: block;
+  flex-shrink: 0;
+  @media @programNahled_siroke {
+    width: @sirkaPruhu2;
+    height: floor(@sirkaPruhu2 * 0.5625);
+  }
+}
+
+.programNahled_obsah {
+  display: none; // ve výchozím stavu je obsah nenačtený, tj. skrytý
+  height: 100%;
+
+  color: #333;
+  font-size: 13px;
+  line-height: 20px;
+  background-color: #F6F1EA;
+
+  flex-direction: column;
+}
+
+.programNahled_hlavicka {
+  margin: 30px 30px 0 30px;
+  flex-shrink: 0;
+}
+
+.programNahled_text {
+  overflow-y: scroll;
+  margin-left: 30px;
+  padding-right: 10px;
+  margin-right: 8px;
+
+  // standardized scrollbar (firefox)
+  scrollbar-color: #aaa #fff;
+  scrollbar-width: thin;
+
+  // webkit/chrome scrollbar
+  &::-webkit-scrollbar {
+    width: 6px;
+    background-color: #fff;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: #aaa;
+  }
+}
+
+.programNahled_nazev {
+  font-weight: bold;
+  font-size: 26px;
+  line-height: 120%;
+  margin-bottom: 20px;
+  color: #222;
+}
+
+.programNahled_kratkyPopis {
+  font-weight: bold;
+}
+
+.programNahled_popis {
+}
+
+.programNahled_vypraveci {
+  &::before {
+    content: 'Vypravěč: ';
+    font-weight: bold;
+  }
+  margin-bottom: 8px;
+}
+
+.programNahled_stitek {
+  display: inline-block;
+  background-color: #eaeaea;
+  color: #444;
+  font-weight: bold;
+  font-size: 11px;
+  padding: 0px 8px;
+  margin: 0 5px 3px 0;
+}
+
+.programNahled_stitky {
+  margin-bottom: 22px;
+  margin-right: -10px;
+}
+
+.programNahled_paticka {
+  text-align: right;
+  position: absolute;
+  top: 0px;
+  width: 100%;
+}
+
+.programNahled_zaviratko {
+  display: none;
+  padding: 4px 30px 4px 12px;
+  border: solid 1px #aaa;
+  border-radius: 4px;
+  font-weight: bold;
+  background-color: #eaeaea;
+  margin: 5px;
+  text-align: center;
+  &::before {
+    content: "🗙";
+    display: block;
+    position: absolute;
+    top: 9px;
+    right: 15px;
+    color: #aaa;
+    line-height: 20px;
+  }
+
+  cursor: pointer;
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.programNahled_obsah:hover .programNahled_zaviratko {
+  display: inline-block;
+}
+
+// placeholder
+
+.programNahled_placeholder {
+  text-align: center;
+}
+
+.programNahled_vyzva {
+  font-size: 35px;
+  margin-top: 2em;
+  color: #333;
+}
+
+.programNahled_sipka {
+  margin-top: 20vh;
+  display: inline-block;
+  width: 200px;
+  height: 200px;
+  opacity: 0.8;
+}
+
+// ostatní
+
+.programNahled_obalNahledu {
+  height: 100%;
+  width: 0;
+  right: 0;
+  position: absolute;
+  &-viditelny {
+    .programNahled_nahled { display: block; }
+  }
+  &-maData {
+    .programNahled_obsah { display: flex; }
+    .programNahled_placeholder { display: none; }
+  }
+}
+
+.programNahled_obalProgramu {
+  margin-left: @okrajProgramu;
+  margin-right: @okrajProgramu;
+
+  &-zuzeny {
+    margin-right: @okrajProgramu + @sirkaPruhu;
+    @media @programNahled_siroke {
+      margin-right: @okrajProgramu + @sirkaPruhu2;
+    }
+  }
+}

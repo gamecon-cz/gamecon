@@ -6,6 +6,7 @@
     <!-- TODO načíst fonty hned tady -->
     <link rel="stylesheet" href="{css}">
     <base href="{base}">
+    <script src="soubory/blackarrow/program-nahled/program-nahled.js"></script><!-- TODO v hlavičce umožňuje sync načtení aby program neproblikával, vyřešit koncepčně -->
 </head>
 <body>
 

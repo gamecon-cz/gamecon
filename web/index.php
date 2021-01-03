@@ -16,7 +16,7 @@ try {
 }
 
 // určení modulu, který zpracuje požadavek (router)
-$m = $url ? Modul::zUrl() : Modul::zNazvu('neexistujici');
+$m = $url ? Modul::zUrl() : Modul::zNazvu('nenalezeno');
 if(!$m && ($stranka = Stranka::zUrl())) {
   $m = Modul::zNazvu('stranka');
   $m->param('stranka', $stranka);
@@ -27,7 +27,7 @@ if(!$m && ( ($typ = Typ::zUrl()) || ($org = Uzivatel::zUrl()) )) {
   $m->param('org', !$typ ? $org : null);
 }
 if(!$m) {
-  $m = Modul::zNazvu('neexistujici');
+  $m = Modul::zNazvu('nenalezeno');
 }
 
 // spuštění kódu modulu + buffering výstupu a nastavení
@@ -41,7 +41,7 @@ $m->info($i);
 try {
   $m->spust();
 } catch(Nenalezeno $e) {
-  $m = Modul::zNazvu('neexistujici')->spust();
+  $m = Modul::zNazvu('nenalezeno')->spust();
 } catch(Neprihlasen $e) {
   $m = Modul::zNazvu('neprihlasen')->spust();
 }

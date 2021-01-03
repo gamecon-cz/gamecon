@@ -41,9 +41,11 @@
         - [x] throw new Neprihlasen()
         - [x] UrlNotFound -> Nenalezeno
         - [x] naskinovat nebo předělat do jednotného kódu s normálním programem
-    - [ ] odkaz na tisk
     - [x] sledování / náhradnictví
     - [ ] sidebar
+        - [-] skákání F5: kliknu náhled, nascrolluji doprava, refresh, kliknu znova, skočí (děje se jen po F5, testováno ve FF, nedělá to js ale sám prohlížeč)
+        - [x] skákání přihlásit: kliknu náhled, nascrolluju vpravo, dám přihlásit
+        - [ ] styl
     - [ ] integrace v adminu
         - možná posuvníky v adminu ani nepoužívat
         - [ ] výběr týmu v programu
@@ -52,12 +54,15 @@
         - souvisí s integrací v adminu
     - [ ] (minor) filtry (viz také server rendering / url)
     - [ ] výška položek
+    - [ ] odkaz na tisk
     - [ ] legenda (možná ne? intuitivita / užitečnost pro uživatele?)
-        - možná nějaké symboly s hoverem, třeba :hodiny: 12.5., :hodiny: :otazník:
+        - možná nějaké symboly s hoverem, třeba :hodiny: 12.5., :hodiny: :otazník: -- ano a možná (minor) a nedávat zatím
         - [ ] muži / ženy rozlišovák
     - [ ] responziva
         - viz také vertikální názvy linií a chování sidebaru
     - [ ] (minor) co, když program není?
+        - [ ] vůbec není program
+        - [ ] nejsou žádné aktivity daný den
     - [ ] (future) zamyšlení, kdy zobrazovat přihlašovátka
         - aby uživatel věděl, že se musí přihlásit na GC apod.
     - [ ] chybové hlášky (máš už aktivitu v daný čas apod.)
@@ -71,6 +76,7 @@
     - ...
 
 - [ ] projet TODOs
+- [ ] (future) zrušit povinnost přezdívek
 
 Minor
 

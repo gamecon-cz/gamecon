@@ -29,14 +29,6 @@ class Program {
   private $aktivityUzivatele = []; // aktivity uživatele
   private $maxPocetAktivit = []; // maximální počet souběžných aktivit v daném dni
 
-  private static $barvy = [ // barvy linií ve formátu idTypu => [pozadí, text]
-    1 => ['#515151', '#FFFFFF'],
-    2 => ['#EBEBEB', '#10111A'],
-    3 => ['#FDC689', '#10111A'],
-    4 => ['#10111A', '#FFFFFF'],
-    // TODO barvy pro zbytek linií
-  ];
-
   /**
    * Konstruktor bere uživatele a specifikaci, jestli je to osobní program
    */
@@ -381,9 +373,7 @@ class Program {
       $radky = substr(ob_get_clean(), 0, -4);
 
       if($radku > 0) {
-        $pozadi  = self::$barvy[$typ][0] ?? '#222';
-        $popredi = self::$barvy[$typ][1] ?? '#fff';
-        echo '<tr><td rowspan="'.$radku.'" style="background-color: '.$pozadi.'; color: '.$popredi.'">'.$typNazev.'</td>';
+        echo '<tr><td rowspan="'.$radku.'">'.$typNazev.'</td>';
         echo $radky;
       } else if($this->nastaveni['prazdne'] && $radku == 0) {
         echo $this->prazdnaMistnost($typNazev);

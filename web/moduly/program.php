@@ -89,6 +89,8 @@ $zobrazitMujProgramOdkaz = isset($u);
         position: sticky;
         left: 0;
         z-index: 1; /* aby bylo nad symboly v programu */
+        background-color: #FDC689;
+        color: #10111A;
     }
 
     .program td {
@@ -215,6 +217,7 @@ $zobrazitMujProgramOdkaz = isset($u);
         left: 0;
         width: 40px;
         height: 100vh;
+        max-height: 100%;
         background-color: #E22630;
     }
 
@@ -237,7 +240,11 @@ $zobrazitMujProgramOdkaz = isset($u);
 
     .program .plno { background-color: #EBEBEB }
     .program .prihlasen { background-color: #B7E4B6 }
+    .program .nahradnik { background-color: #FEE2C4; }
+    .program .organizator { background-color: #DCE3F1; }
 </style>
+
+
 
 <div class="program_hlavicka">
     <h1>Program <?=ROK?></h1>
@@ -251,9 +258,63 @@ $zobrazitMujProgramOdkaz = isset($u);
     </div>
 </div>
 
-<?php $program->tisk(); ?>
+
+
+<!-- TODO relative obal nutný kvůli sidebaru -->
+<div style="position: relative">
+    <?php require __DIR__ . '/../soubory/blackarrow/program-nahled/program-nahled.html'; ?>
+
+    <div class="programNahled_obalProgramu">
+        <?php $program->tisk(); ?>
+    </div>
+</div>
 
 <div style="height: 70px"></div>
+
+
+
+<script>
+// TODO teď se načítá na tvrdo v hlavičce, nejspíš přes proměnnou / param
+// nastavit do modulu a vyzvednout v indexu a pak do hlavičky ne/dat dle toho
+// (viz také co bude s dalšími assety programu)
+programNahled(
+    document.querySelector('.programNahled_obalNahledu'),
+    document.querySelector('.programNahled_obalProgramu'),
+    document.querySelectorAll('.programNahled_odkaz'),
+    document.querySelectorAll('.program form > a')
+)
+</script>
+
+<script>
+(() => {
+    // TODO nutno pořešit v adminu, kde asi bude víc program_obaltabulky :/
+    // první po porgramu, aby se zamezilo skákání
+    scrollObnov()
+    document.querySelectorAll('.program form > a').forEach(e => {
+        e.addEventListener('click', () => scrollUloz())
+    })
+
+    function scrollObnov() {
+        let top = window.localStorage.getItem('scrollUloz_top')
+        window.localStorage.removeItem('scrollUloz_top')
+        if (top) {
+            window.scrollTo({top: top})
+        }
+
+        let left = window.localStorage.getItem('scrollUloz_left')
+        window.localStorage.removeItem('scrollUloz_left')
+        if (left) {
+            document.getElementsByClassName('program_obaltabulky')[0].scrollLeft = left
+        }
+    }
+
+    function scrollUloz() {
+        let left = document.getElementsByClassName('program_obaltabulky')[0].scrollLeft
+        window.localStorage.setItem('scrollUloz_top', window.scrollY)
+        window.localStorage.setItem('scrollUloz_left', left)
+    }
+})()
+</script>
 
 <script>
 // TODO foreach?
@@ -282,7 +343,7 @@ function posuvniky(obal2) {
     obal2.append(rposuv)
 
     checkScroll()
-    // TODO přepočítat na resize?
+    new ResizeObserver(checkScroll).observe(obal)
 
     function checkScroll() {
         let left = obal.scrollLeft
@@ -318,34 +379,4 @@ function posuvniky(obal2) {
         }
     }
 }
-</script>
-
-<script>
-(() => {
-    // TODO nutno pořešit v adminu, kde asi bude víc program_obaltabulky :/
-    scrollObnov()
-    document.querySelectorAll('.program a').forEach(e => {
-        e.addEventListener('click', () => scrollUloz())
-    })
-
-    function scrollObnov() {
-        let top = window.localStorage.getItem('scrollUloz_top')
-        window.localStorage.removeItem('scrollUloz_top')
-        if (top) {
-            window.scrollTo({top: top})
-        }
-
-        let left = window.localStorage.getItem('scrollUloz_left')
-        window.localStorage.removeItem('scrollUloz_left')
-        if (left) {
-            document.getElementsByClassName('program_obaltabulky')[0].scrollLeft = left
-        }
-    }
-
-    function scrollUloz() {
-        let left = document.getElementsByClassName('program_obaltabulky')[0].scrollLeft
-        window.localStorage.setItem('scrollUloz_top', window.scrollY)
-        window.localStorage.setItem('scrollUloz_left', left)
-    }
-})()
 </script>
