@@ -25,12 +25,14 @@ $program = new Program($u, $nastaveni);
 $program->zpracujPost();
 
 // pomocná funkce pro zobrazení aktivního odkazu
-$odkaz = function ($urlOdkazu, $tridy, $tridaAktivni, $text) use ($url, $alternativniUrl) {
-    $vysledneTridy = $tridy;
+$aktivni = function ($urlOdkazu) use ($url, $alternativniUrl) {
+    $tridy = 'program_den';
+
     if ($urlOdkazu == $url->cela() || $urlOdkazu == $alternativniUrl) {
-        $vysledneTridy .= ' ' . $tridaAktivni;
+        $tridy .= ' program_den-aktivni';
     }
-    return '<a href="'.$urlOdkazu.'" class="'.$vysledneTridy.'">'.$text.'</a>';
+
+    return 'href="'.$urlOdkazu.'" class="'.$tridy.'"';
 };
 
 $zobrazitMujProgramOdkaz = isset($u);
@@ -247,14 +249,17 @@ $zobrazitMujProgramOdkaz = isset($u);
 
 
 <div class="program_hlavicka">
+    <?php if ($u) { ?>
+        <a href="program-k-tisku" class="program_tisk" target="_blank">Program v PDF</a>
+    <?php } ?>
     <h1>Program <?=ROK?></h1>
     <div class="program_dny">
-        <?php foreach ($dny as $denSlug => $den)
-            echo $odkaz('program/'.$denSlug, 'program_den', 'program_den-aktivni', $den->format('l d.n.'));
-        ?>
-        <?php if ($zobrazitMujProgramOdkaz)
-            echo $odkaz('program/muj', 'program_den', 'program_den-aktivni', 'můj program');
-        ?>
+        <?php foreach ($dny as $denSlug => $den) { ?>
+            <a <?=$aktivni('program/'.$denSlug)?>><?=$den->format('l d.n.')?></a>
+        <?php } ?>
+        <?php if ($zobrazitMujProgramOdkaz) { ?>
+            <a <?=$aktivni('program/muj')?>>můj program</a>
+        <?php } ?>
     </div>
 </div>
 

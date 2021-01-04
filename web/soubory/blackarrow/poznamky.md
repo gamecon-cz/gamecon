@@ -54,7 +54,7 @@
         - souvisí s integrací v adminu
     - [ ] (minor) filtry (viz také server rendering / url)
     - [ ] výška položek
-    - [ ] odkaz na tisk
+    - [x] odkaz na tisk
     - [ ] legenda (možná ne? intuitivita / užitečnost pro uživatele?)
         - možná nějaké symboly s hoverem, třeba :hodiny: 12.5., :hodiny: :otazník: -- ano a možná (minor) a nedávat zatím
         - [ ] muži / ženy rozlišovák
