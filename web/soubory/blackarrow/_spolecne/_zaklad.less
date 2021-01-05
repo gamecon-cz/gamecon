@@ -25,9 +25,38 @@ body {
     margin: 0;
     font-family: Gilroy, sans-serif;
     background-color: #fff;
+    color: #10111A;
     overflow-y: scroll;
 }
 
 .chybaBlok {
-    position: absolute; // chyby z třídy Chyba, TODO
+    position: fixed;
+    background: #FFF700 url('../blackarrow/_spolecne/chyba-err.svg') no-repeat 28px 50%;
+    font-weight: bold;
+    color: #E22630;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+    padding: 20px 60px 16px;
+    width: 323px;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.16);
+    left: 50%;
+    margin-left: -220px;
+    bottom: 24px;
+    z-index: 100;
+}
+
+.chybaBlok_zavrit {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    line-height: 1.0;
+    font-size: 16px;
+    cursor: pointer;
+    color: #515151;
+}
+
+.chybaBlok-oznameni {
+    color: #10111A;
+    background-color: #B7E4B6;
+    background-image: url('../blackarrow/_spolecne/chyba-ok.svg');
 }

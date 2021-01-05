@@ -65,7 +65,8 @@
         - [ ] nejsou žádné aktivity daný den
     - [ ] (future) zamyšlení, kdy zobrazovat přihlašovátka
         - aby uživatel věděl, že se musí přihlásit na GC apod.
-    - [ ] chybové hlášky (máš už aktivitu v daný čas apod.)
+    - [x] chybové hlášky (máš už aktivitu v daný čas apod.)
+        - uprostřed dole nebude problém s překryvem u formulářů?
     - [ ] projet TODOs, necommitovat
     - [ ] (minor) dávat alternativní datumy do náhledu?
     - [ ] (minor) Cookie „CHYBY_CLASS“

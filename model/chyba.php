@@ -58,23 +58,41 @@ class Chyba extends Exception
       return '';
     }
   }
-  
+
   /**
    * Vrací html zformátovaný boxík s chybou
-   */     
+   */
   public static function vyzvedniHtml()
   {
-    $ch=Chyba::vyzvedni();
-    $typ=$ch?'':'oznameni'; //závisí na pořadí ($ch může být později přepsáno oznámením)
-    if(!$ch) $ch=Chyba::vyzvedniOznameni();
-    if($ch)
-      return '<div class="chybaBlok"><div class="chyba '.$typ.'" id="chybovaZprava">'.$ch.'</div></div>
-        <script>
-          var len=$("#chybovaZprava").html().length;
-          $("#chybovaZprava").delay(2000+len*30).fadeOut(1500);
-        </script>';
-    else
+    $zprava = Chyba::vyzvedni();
+    $tridyNavic = $zprava ? '' : 'chybaBlok-oznameni';
+    if(!$zprava) {
+      $zprava = Chyba::vyzvedniOznameni();
+    }
+
+    if($zprava) {
+      $zobrazeni = 5.0; // sekund
+      $mizeni = 2.0; // sekund
+      return '
+        <div class="chybaBlok '.$tridyNavic.'">
+          '.$zprava.'
+          <div class="chybaBlok_zavrit">✕</div>
+          <script>
+            (() => {
+              let chyba = document.currentScript.parentNode
+              setTimeout(() => {
+                chyba.style.transition = "opacity "+'.$mizeni.'+"s"
+                chyba.style.opacity = 0.0
+                setTimeout(() => chyba.remove(), '.($mizeni * 1000).')
+              }, '.($zobrazeni * 1000).')
+              chyba.querySelector(".chybaBlok_zavrit").onclick = () => chyba.remove()
+            })()
+          </script>
+        </div>
+      ';
+    } else {
       return '';
+    }
   }
-   
+
 }
