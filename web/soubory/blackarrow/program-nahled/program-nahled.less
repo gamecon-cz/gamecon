@@ -1,189 +1,201 @@
-@okrajProgramu: 0px;
-@sirkaPruhu: 300px;
-@sirkaPruhu2: 360px;
+@sirkaPruhu: 320px;
+@sirkaPruhu2: 500px;
 @programNahled_siroke: ~"(min-width: 1500px)";
+@programNahled_vysoke: ~"(min-height: 650px)";
 
-.programNahled_nahled {
-  width: @sirkaPruhu;
-  height: 100vh;
-  background-color: #fff;
-  float: right;
-  position: sticky;
-  top: 0;
-  right: 0;
-  margin-top: 30px;
-  display: none; // ve výchozím stavu je náhled skrytý
-  @media @programNahled_siroke {
-    width: @sirkaPruhu2;
-  }
-}
-
-.programNahled_obrazek {
-  width: @sirkaPruhu;
-  height: floor(@sirkaPruhu * 0.5625); // fixní 16/9, aby obsah neposkakoval
-  display: block;
-  flex-shrink: 0;
-  @media @programNahled_siroke {
-    width: @sirkaPruhu2;
-    height: floor(@sirkaPruhu2 * 0.5625);
-  }
-}
-
-.programNahled_obsah {
-  display: none; // ve výchozím stavu je obsah nenačtený, tj. skrytý
-  height: 100%;
-
-  color: #333;
-  font-size: 13px;
-  line-height: 20px;
-  background-color: #F6F1EA;
-
-  flex-direction: column;
-}
-
-.programNahled_hlavicka {
-  margin: 30px 30px 0 30px;
-  flex-shrink: 0;
-}
-
-.programNahled_text {
-  overflow-y: scroll;
-  margin-left: 30px;
-  padding-right: 10px;
-  margin-right: 8px;
-
-  // standardized scrollbar (firefox)
-  scrollbar-color: #aaa #fff;
-  scrollbar-width: thin;
-
-  // webkit/chrome scrollbar
-  &::-webkit-scrollbar {
-    width: 6px;
-    background-color: #fff;
-  }
-  &::-webkit-scrollbar-thumb {
-    background-color: #aaa;
-  }
-}
-
-.programNahled_nazev {
-  font-weight: bold;
-  font-size: 26px;
-  line-height: 120%;
-  margin-bottom: 20px;
-  color: #222;
-}
-
-.programNahled_kratkyPopis {
-  font-weight: bold;
-}
-
-.programNahled_popis {
-}
-
-.programNahled_vypraveci {
-  &::before {
-    content: 'Vypravěč: ';
-    font-weight: bold;
-  }
-  margin-bottom: 8px;
-}
-
-.programNahled_stitek {
-  display: inline-block;
-  background-color: #eaeaea;
-  color: #444;
-  font-weight: bold;
-  font-size: 11px;
-  padding: 0px 8px;
-  margin: 0 5px 3px 0;
-}
-
-.programNahled_stitky {
-  margin-bottom: 22px;
-  margin-right: -10px;
-}
-
-.programNahled_paticka {
-  text-align: right;
-  position: absolute;
-  top: 0px;
-  width: 100%;
-}
-
-.programNahled_zaviratko {
-  display: none;
-  padding: 4px 30px 4px 12px;
-  border: solid 1px #aaa;
-  border-radius: 4px;
-  font-weight: bold;
-  background-color: #eaeaea;
-  margin: 5px;
-  text-align: center;
-  &::before {
-    content: "🗙";
-    display: block;
-    position: absolute;
-    top: 9px;
-    right: 15px;
-    color: #aaa;
-    line-height: 20px;
-  }
-
-  cursor: pointer;
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
-.programNahled_obsah:hover .programNahled_zaviratko {
-  display: inline-block;
-}
-
-// placeholder
-
-.programNahled_placeholder {
-  text-align: center;
-}
-
-.programNahled_vyzva {
-  font-size: 35px;
-  margin-top: 2em;
-  color: #333;
-}
-
-.programNahled_sipka {
-  margin-top: 20vh;
-  display: inline-block;
-  width: 200px;
-  height: 200px;
-  opacity: 0.8;
-}
-
-// ostatní
+// obaly
 
 .programNahled_obalNahledu {
-  height: 100%;
-  width: 0;
-  right: 0;
-  position: absolute;
-  &-viditelny {
-    .programNahled_nahled { display: block; }
-  }
-  &-maData {
-    .programNahled_obsah { display: flex; }
-    .programNahled_placeholder { display: none; }
-  }
+    height: 100%;
+    width: 0;
+    right: 0;
+    position: absolute;
+    &-viditelny {
+        .programNahled_nahled { display: block; }
+    }
+    &-maData {
+        .programNahled_obsah { display: flex; }
+        .programNahled_placeholder { display: none; }
+    }
 }
 
 .programNahled_obalProgramu {
-  margin-left: @okrajProgramu;
-  margin-right: @okrajProgramu;
-
-  &-zuzeny {
-    margin-right: @okrajProgramu + @sirkaPruhu;
-    @media @programNahled_siroke {
-      margin-right: @okrajProgramu + @sirkaPruhu2;
+    &-zuzeny {
+        margin-right: @sirkaPruhu;
+        @media @programNahled_siroke {
+            margin-right: @sirkaPruhu2;
+        }
     }
-  }
+}
+
+.programNahled_nahled {
+    width: @sirkaPruhu;
+    height: 100vh;
+    background-color: #fff;
+    float: right;
+    position: sticky;
+    top: 0;
+    right: 0;
+    margin-top: 30px;
+    display: none; // ve výchozím stavu je náhled skrytý
+    overflow-y: scroll;
+    z-index: 10;
+    @media @programNahled_siroke {
+        width: @sirkaPruhu2;
+    }
+    @media @programNahled_vysoke {
+        overflow-y: auto;
+    }
+}
+
+// obsah
+
+.programNahled_obsah {
+    display: none; // ve výchozím stavu je obsah nenačtený, tj. skrytý
+    min-height: 100%;
+    background: #F6F1EA;
+    border: solid 10px #fff;
+    box-sizing: border-box;
+    padding: 40px 15px 0;
+
+    font-size: 12px;
+    line-height: 19/12;
+    letter-spacing: 0.05em;
+
+    flex-direction: column;
+
+    @media @programNahled_vysoke {
+        height: 100%;
+    }
+
+    @media @programNahled_siroke {
+        padding: 60px 45px 80px;
+        font-size: 13px;
+        background:
+            url('../blackarrow/program-nahled/spodek.jpg') no-repeat 0 100%,
+            url('../blackarrow/program-nahled/flek.jpg') no-repeat 20px 20px,
+            #F6F1EA;
+    }
+}
+
+.programNahled_zaviratko {
+    position: absolute;
+    top: 25px;
+    right: 25px;
+    text-transform: uppercase;
+    font-size: 26px;
+    line-height: 1.0;
+    cursor: pointer;
+    &::before {
+        color: #666;
+        content: '✕';
+    }
+}
+
+.programNahled_hlavicka {
+    padding-bottom: 15px;
+    border-bottom: solid 2px #e7e7e4;
+    margin-bottom: 24px;
+    flex-shrink: 0;
+    @media @programNahled_siroke {
+        margin-bottom: 30px;
+        padding-bottom: 25px;
+    }
+}
+
+.programNahled_nazev {
+    font-size: 28px;
+    font-weight: bold;
+    letter-spacing: 0;
+    line-height: 1.25;
+    margin-bottom: 17px;
+    @media @programNahled_siroke {
+        font-size: 32px;
+        margin-bottom: 30px;
+    }
+}
+
+.programNahled_vypraveci {
+    &::before {
+        content: 'Vypravěč: ';
+        font-weight: bold;
+    }
+    margin-bottom: 12px;
+}
+
+.programNahled_stitek {
+    display: inline-block;
+    background-color: #FDC689;
+    font-weight: bold;
+    font-size: 10px;
+    padding: 6px 12px 5px;
+    margin: 0 8px 8px 0;
+}
+
+.programNahled_text {
+    padding-right: 15px;
+
+    // standardized scrollbar (firefox)
+    scrollbar-color: #FDC689 #EDE3D6;
+    scrollbar-width: thin;
+
+    // webkit/chrome scrollbar
+    &::-webkit-scrollbar {
+        width: 6px;
+        background-color: #EDE3D6;
+    }
+    &::-webkit-scrollbar-thumb {
+        background-color: #FDC689;
+    }
+
+    @media @programNahled_vysoke {
+        overflow-y: auto;
+    }
+}
+
+.programNahled_kratkyPopis {
+    font-weight: bold;
+}
+
+.programNahled_paticka {
+    margin-top: 5px;
+    flex-shrink: 0;
+    @media @programNahled_siroke {
+        margin-top: 41px;
+        height: 180px;
+    }
+}
+
+.programNahled_obsazenost, .programNahled_cas, .programNahled_cena {
+    font-weight: bold;
+    font-size: 13px;
+    line-height: 20px;
+    margin: 10px 0;
+    padding-left: 30px;
+}
+
+.programNahled_obsazenost {
+    background: url('../blackarrow/program-nahled/clovek.svg') no-repeat 2px 30%;
+    @media @programNahled_siroke {
+        margin-top: 47px;
+    }
+}
+
+.programNahled_cas {
+    background: url('../blackarrow/program-nahled/hodiny.svg') no-repeat 0 30%;
+}
+
+.programNahled_cena {
+    background: url('../blackarrow/program-nahled/dolary.svg') no-repeat 1px 30%;
+}
+
+.programNahled_obrazek {
+    display: none;
+    position: absolute;
+    height: 180px;
+    max-width: 180px * 16/9;
+    right: 0;
+    @media @programNahled_siroke {
+        display: block;
+    }
 }

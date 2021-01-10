@@ -42,10 +42,11 @@
         - [x] UrlNotFound -> Nenalezeno
         - [x] naskinovat nebo předělat do jednotného kódu s normálním programem
     - [x] sledování / náhradnictví
-    - [ ] sidebar
+    - [x] sidebar
         - [-] skákání F5: kliknu náhled, nascrolluji doprava, refresh, kliknu znova, skočí (děje se jen po F5, testováno ve FF, nedělá to js ale sám prohlížeč)
         - [x] skákání přihlásit: kliknu náhled, nascrolluju vpravo, dám přihlásit
-        - [ ] styl
+        - [x] styl
+        - [ ] (future) přihlašovací tlačítko
     - [ ] integrace v adminu
         - možná posuvníky v adminu ani nepoužívat
         - [ ] výběr týmu v programu

@@ -50,10 +50,13 @@ function programNahled(obalNahledu, obalProgramu, odkazy, odkazyZapamatovat) {
       this.obalNahledu.querySelector('.programNahled_kratkyPopis').innerHTML = data.kratkyPopis
       this.obalNahledu.querySelector('.programNahled_popis').innerHTML = data.popis
       this.obalNahledu.querySelector('.programNahled_obrazek').setAttribute('src', data.obrazek)
+      this.obalNahledu.querySelector('.programNahled_obsazenost').innerHTML = data.obsazenost
+      this.obalNahledu.querySelector('.programNahled_cena').innerHTML = data.cena
+      this.obalNahledu.querySelector('.programNahled_cas').innerHTML = data.cas
 
       this.obalNahledu.classList.add('programNahled_obalNahledu-maData') // TODO možná není potřeba
 
-      // this.obalNahledu.querySelector('.programNahled_text').scrollTop(0); // TODO nefunguje
+      this.obalNahledu.querySelector('.programNahled_text').scroll(0, 0);
     }
   }
 
