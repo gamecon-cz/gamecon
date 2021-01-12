@@ -26,33 +26,33 @@ if($uPracovni) {
   Aktivita::vyberTeamuZpracuj($uPracovni);
 }
 
-$chyba = chyba::vyzvedniHtml();
+$chyba = Chyba::vyzvedniHtml();
 
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="cs" lang="cs">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <script src="files/jquery-2.1.0.min.js"></script>
-    <script src="files/jquery-ui-1.10.3.custom.min.js"></script>
-    <script src="files/program-ajax.js?version=6bd8244fd9a9874ea2703cdea497877b"></script>
-    <base href="<?=URL_ADMIN?>/">
-    <?php $program->css(); ?>
-    <style>
-      body {
-        font-family: tahoma, sans;
-        font-size: 11px;
-        text-align: center;
-        background-color: #f0f0f0;
-        overflow-y: scroll;
-      }
-      .program-odkaz {
-        color: #fff;
-      }
-    </style>
-    <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-1.10.3.custom.min.css">
-  </head>
-  <body>
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- jquery kvůli týmovým formulářům -->
+  <script src="files/jquery-3.4.1.min.js"></script>
+  <script src="files/jquery-ui-1.10.3.custom.min.js"></script>
+  <script src="files/jquery-migrate-3.1.0.js"></script>
+  <base href="<?=URL_ADMIN?>/">
+  <link rel="stylesheet" href="<?=$program->cssUrl()?>">
+  <style>
+    body {
+      font-family: tahoma, sans;
+      font-size: 11px;
+      line-height: 1.2;
+      background-color: #fff;
+      overflow-y: scroll;
+    }
+    .program-odkaz {
+      color: #fff;
+    }
+  </style>
+  <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-1.10.3.custom.min.css">
+</head>
+<body>
 
   <div style="
     text-align: left;
@@ -64,6 +64,7 @@ $chyba = chyba::vyzvedniHtml();
     color: #fff;
     background-color: rgba(0,0,0,0.8);
     border-bottom-right-radius: 12px;
+    z-index: 20;
   ">
     <input type="button" value="Zavřít" onclick="window.location = '<?=URL_ADMIN?>/uvod'" style="
       float: right;
@@ -81,7 +82,31 @@ $chyba = chyba::vyzvedniHtml();
 
   <?php $program->tisk(); ?>
 
+  <script>
+  (() => {
+      scrollObnov()
+      document.querySelectorAll('.program form > a').forEach(e => {
+          e.addEventListener('click', () => scrollUloz())
+      })
+
+      function scrollObnov() {
+          let top = window.localStorage.getItem('scrollUloz_top')
+          window.localStorage.removeItem('scrollUloz_top')
+          let left = window.localStorage.getItem('scrollUloz_left')
+          window.localStorage.removeItem('scrollUloz_left')
+          if (top || left) {
+              window.scrollTo({top: top, left: left})
+          }
+    }
+
+      function scrollUloz() {
+          window.localStorage.setItem('scrollUloz_top', window.scrollY)
+          window.localStorage.setItem('scrollUloz_left', window.scrollX)
+      }
+  })()
+  </script>
+
   <?php profilInfo(); ?>
 
-  </body>
+</body>
 </html>

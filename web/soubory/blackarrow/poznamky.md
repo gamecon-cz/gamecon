@@ -47,10 +47,11 @@
         - [x] skákání přihlásit: kliknu náhled, nascrolluju vpravo, dám přihlásit
         - [x] styl
         - [ ] (future) přihlašovací tlačítko
-    - [ ] integrace v adminu
+    - [x] integrace v adminu
         - možná posuvníky v adminu ani nepoužívat
-        - [ ] výběr týmu v programu
-    - [ ] přesunutí souborů do jedné složky, uklizení
+        - [x] magic ajax nahradit obnovením scrollu
+        - [x] výběr týmu v programu
+    - [x] přesunutí souborů do jedné složky, uklizení
         - nápady: metoda css() jak teď, nebo cssSoubor()
         - souvisí s integrací v adminu
     - [ ] (minor) filtry (viz také server rendering / url)
@@ -61,6 +62,7 @@
         - [ ] muži / ženy rozlišovák
     - [ ] responziva
         - viz také vertikální názvy linií a chování sidebaru
+        - [ ] vertikální názvy linií, menší scrollery, menší políčka
     - [ ] (minor) co, když program není?
         - [ ] vůbec není program
         - [ ] nejsou žádné aktivity daný den
@@ -92,3 +94,7 @@ Minor
 Migrace
 
 - [ ] překopírovat linie, sponzory a partnery
+
+Future
+
+- [ ] admin last minute tabule (zatím nemá styl ale nějak jede)

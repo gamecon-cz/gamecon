@@ -76,6 +76,8 @@ if($m->bezStranky()) {
     'obsah' => $m->vystup(),
     'base'  => URL_WEBU.'/',
   ]);
+  $t->parseEach($m->cssUrls(), 'url', 'index.extraCss');
+  $t->parseEach($m->jsUrls(), 'url', 'index.extraJs');
   $t->parse('index');
   $t->out('index');
   echo profilInfo();

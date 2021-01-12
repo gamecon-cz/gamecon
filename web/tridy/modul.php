@@ -16,6 +16,8 @@ class Modul {
   protected $bezOkraju = false;
   protected $blackarrowStyl = false;
   protected $info;
+  protected $cssUrls = [];
+  protected $jsUrls = [];
 
   const VYCHOZI = 'titulka';
 
@@ -57,9 +59,17 @@ class Modul {
     return $this->blackarrowStyl;
   }
 
+  function cssUrls() {
+    return $this->cssUrls;
+  }
+
   function info(Info $val = null): ?Info {
     if(isset($val)) $this->info = $val;
     return $this->info;
+  }
+
+  function jsUrls() {
+    return $this->jsUrls;
   }
 
   /** Název modulu (odpovídá části názvu souboru) */
@@ -71,6 +81,16 @@ class Modul {
   function param($nazev) {
     if(func_num_args() == 2) $this->params[$nazev] = func_get_arg(1);
     else return @$this->params[$nazev];
+  }
+
+  function pridejCssUrl($url) {
+    $this->cssUrls[] = $url;
+  }
+
+  function pridejJsSoubor($cestaNaWebu) {
+    $verze = substr(filemtime(WWW . '/' . $cestaNaWebu), -6);
+    $url = URL_WEBU . '/' . $cestaNaWebu . '?v=' . $verze;
+    $this->jsUrls[] = $url;
   }
 
   /** Vrátí výchozí šablonu pro tento modul (pokud existuje) */

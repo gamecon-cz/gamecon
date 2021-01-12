@@ -4,9 +4,10 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- TODO načíst fonty hned tady -->
-    <link rel="stylesheet" href="{css}">
     <base href="{base}">
-    <script src="soubory/blackarrow/program-nahled/program-nahled.js"></script><!-- TODO v hlavičce umožňuje sync načtení aby program neproblikával, vyřešit koncepčně -->
+    <link rel="stylesheet" href="{css}">
+    <!-- begin: extraCss --><link rel="stylesheet" href="{url}"><!-- end: extraCss -->
+    <!-- begin: extraJs --><script src="{url}"></script><!-- end: extraJs -->
 </head>
 <body>
 

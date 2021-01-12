@@ -47,21 +47,12 @@ class Program {
   }
 
   /**
-   * Vytiskne hlavičkový style tag pro program
+   * @return string url k stylu programu
    */
-  static function css() {
-    echo '<style>';
-    readfile(__DIR__ . '/program.css');
-    echo '</style>';
-  }
-
-  /**
-   * Vrátí hlavičkový style tag pro program jako řetězec
-   */
-  static function cssRetezec() {
-    ob_start();
-    self::css();
-    return ob_get_clean();
+  function cssUrl() {
+    $soubor = 'soubory/blackarrow/program/program-trida.css';
+    $verze = substr(filemtime(WWW . '/' . $soubor), -6);
+    return URL_WEBU . '/' . $soubor . '?v=' . $verze;
   }
 
   /**
@@ -317,11 +308,7 @@ class Program {
    * Vytiskne tabulku programu
    */
   function tiskTabulky(&$aktivita, $denId = null) {
-    echo '
-      <div class="program_obaltabulky2">
-      <div class="program_obaltabulky">
-      <table class="'.$this->nastaveni['tableClass'].'">
-    ';
+    echo '<table class="'.$this->nastaveni['tableClass'].'">';
 
     // tisk hlavičkového řádku s čísly
     echo '<tr><th></th>';
@@ -332,11 +319,7 @@ class Program {
 
     $this->tiskObsahuTabulky($aktivita, $denId);
 
-    echo '
-      </table>
-      </div>
-      </div>
-    ';
+    echo '</table>';
   }
 
   /**

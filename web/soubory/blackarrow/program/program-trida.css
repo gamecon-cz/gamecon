@@ -1,0 +1,159 @@
+/**
+ * Speciální soubor který se nekompiluje pro web ale používá ho třída Program
+ * pomocí odkazu (i pro admin).
+ */
+
+table.program {
+    position: relative; /* kvůli výšce šrafovaných oddělovačů hodin */
+    border-spacing: 10px;
+    margin: -10px;
+}
+
+.program tr {
+    border: none;
+}
+
+.program th {
+    font-weight: normal;
+    text-align: left;
+    font-size: 14px;
+    padding: 0;
+    height: 20px;
+    vertical-align: bottom;
+}
+
+.program th::before {
+    content: '';
+    display: block;
+    position: absolute;
+    height: calc(100% - 50px);
+    border-right: dashed 1px #0002;
+    margin: 28px 0 0 -1px;
+}
+
+.program th:nth-child(1)::before {
+    display: none;
+}
+
+.program td[rowspan] {
+    padding: 16px;
+    font-weight: bold;
+    font-size: 14px;
+    vertical-align: top;
+    position: sticky;
+    left: 0;
+    z-index: 1; /* aby bylo nad symboly v programu */
+    background-color: #FDC689;
+    color: #10111A;
+}
+
+.program td {
+    min-width: 100px;
+    max-width: 100px;
+    padding: 0;
+}
+
+.program td > div {
+    background-color: #F6F1EA;
+    height: 72px;
+    padding: 15px;
+    box-sizing: border-box;
+    /* nechat přetékat kvůli týmovému formuláři v adminu */
+
+    font-size: 12px;
+}
+
+.program td > div > a {
+    text-decoration: none;
+    font-weight: bold;
+    color: inherit;
+    font-size: 14px;
+    display: block;
+    min-height: 28px;
+    max-height: 35px;
+    margin-bottom: 2px;
+    overflow: hidden;
+    width: -moz-fit-content;
+    width: fit-content;
+}
+
+.program td > div > a:hover {
+    text-decoration: underline;
+}
+
+.program td > div > form > a {
+    color: inherit;
+    text-decoration: none;
+    border-left: solid 1px #0002;
+    padding-left: 9px;
+    margin-left: 7px;
+}
+
+.program td > div > a + form > a {
+    border: 0;
+    padding: 0;
+    margin: 0;
+}
+
+.program td > div > form > a:hover {
+    text-decoration: underline;
+}
+
+/* druhý řádek */
+.program_osobniTyp {
+    border-left: solid 1px #0002;
+    padding-left: 9px;
+    margin-left: 9px;
+}
+
+.program_obsazenost {
+    display: inline-block;
+    background-color: inherit;
+    padding-left: 16px;
+}
+
+.program_obsazenost::before {
+    content: '';
+    display: block;
+    position: absolute;
+    width: 9px;
+    height: 14px;
+    margin: -2px 0 0 -17px;
+    background: url('clovek.svg');
+}
+
+.program_obsazenost .f {
+    background-color: inherit;
+}
+
+.program_obsazenost .f::before {
+    content: '';
+    display: block;
+    position: absolute;
+    width: 9px;
+    height: 16px;
+    margin: -2px 0 0 -17px;
+    background: url('zena.svg') 0 2px no-repeat;
+    background-color: inherit;
+}
+
+.program_obsazenost .m {
+    display: inline-block;
+    padding-left: 32px;
+}
+
+.program_obsazenost .m::before {
+    content: '';
+    display: block;
+    position: absolute;
+    width: 13px;
+    height: 13px;
+    margin: 0 0 0 -19px;
+    background: url('muz.svg');
+}
+
+/* legenda */
+.program .plno { background-color: #EBEBEB }
+.program .prihlasen { background-color: #B7E4B6 }
+.program .nahradnik { background-color: #FEE2C4; }
+.program .organizator { background-color: #DCE3F1; }

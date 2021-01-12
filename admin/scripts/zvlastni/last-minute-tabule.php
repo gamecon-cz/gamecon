@@ -36,6 +36,6 @@ $xtpl->assign('lupa',$zoom);
 $xtpl->assign('lupaPlus',$zoom+10);
 $xtpl->assign('lupaMinus',$zoom-10);
 
-$xtpl->assign('programCss',Program::cssRetezec());
+$xtpl->assign('programCss', '');
 $xtpl->parse('tabule');
 $xtpl->out('tabule');

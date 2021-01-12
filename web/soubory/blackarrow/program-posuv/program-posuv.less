@@ -1,0 +1,52 @@
+.programPosuv_obal2 {
+    position: relative;
+}
+
+.programPosuv_obal {
+    overflow-y: hidden;
+    scrollbar-width: none;
+    position: relative;
+}
+
+.programPosuv_posuv {
+    position: absolute;
+    top: 30px;
+    height: ~'calc(100% - 30px)';
+}
+
+.programPosuv_lposuv {
+    left: 132px;
+}
+
+.programPosuv_rposuv {
+    right: 0;
+}
+
+.programPosuv_posuv > div {
+    position: sticky;
+    top: 0;
+    left: 0;
+    width: 40px;
+    height: 100vh;
+    max-height: 100%;
+    background-color: #E22630;
+    cursor: pointer;
+}
+
+.programPosuv_posuv > div::before {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 48%;
+    left: 6px;
+    width: 15px;
+    height: 15px;
+    border-bottom: solid 4px #fff;
+    border-right:  solid 4px #fff;
+    transform: rotate(-45deg);
+}
+
+.programPosuv_lposuv > div::before {
+    left: 14px;
+    transform: rotate(135deg);
+}
