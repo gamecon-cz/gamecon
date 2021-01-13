@@ -40,11 +40,44 @@ table.program {
     font-weight: bold;
     font-size: 14px;
     vertical-align: top;
-    position: sticky;
+    position: sticky; /* pozor, zajišťuje i pozicování .program_nazevLinie */
     left: 0;
     z-index: 1; /* aby bylo nad symboly v programu */
     background-color: #FDC689;
     color: #10111A;
+}
+@media (max-width: 1300px) {.program td[rowspan] {
+    padding: 0;
+    overflow: hidden;
+}}
+
+@media (max-width: 1300px) {
+    .program_nazevLinie {
+        transform: rotate(-90deg);
+        transform-origin: bottom right;
+        width: 230px;
+        height: 40px;
+        top: -40px;
+        right: 0;
+        margin-top: 15px;
+        overflow: hidden;
+        position: absolute;
+        display: flex;
+        align-items: center;
+        justify-content: right;
+        text-align: right;
+    }
+    [rowspan="1"] .program_nazevLinie {
+        width: 63px;
+        justify-content: center;
+        text-align: center;
+        margin-top: 5px;
+        font-size: 80%;
+    }
+    [rowspan="2"] .program_nazevLinie {
+        margin-top: 10px;
+        width: 140px;
+    }
 }
 
 .program td {
@@ -52,8 +85,12 @@ table.program {
     max-width: 100px;
     padding: 0;
 }
+@media (max-width: 1300px) { .program td:first-child {
+    min-width: 40px;
+    max-width: 40px;
+}}
 
-.program td > div {
+.program td:not([rowspan]) > div {
     background-color: #F6F1EA;
     height: 72px;
     padding: 15px;

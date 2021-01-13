@@ -16,6 +16,9 @@
 
 .programPosuv_lposuv {
     left: 132px;
+    @media (max-width: 1300px) {
+        left: 40px;
+    }
 }
 
 .programPosuv_rposuv {
@@ -31,6 +34,9 @@
     max-height: 100%;
     background-color: #E22630;
     cursor: pointer;
+    @media (max-width: 1300px) {
+        width: 30px;
+    }
 }
 
 .programPosuv_posuv > div::before {
@@ -44,9 +50,15 @@
     border-bottom: solid 4px #fff;
     border-right:  solid 4px #fff;
     transform: rotate(-45deg);
+    @media (max-width: 1300px) {
+        left: 1px;
+    }
 }
 
 .programPosuv_lposuv > div::before {
     left: 14px;
     transform: rotate(135deg);
+    @media (max-width: 1300px) {
+        left: 10px;
+    }
 }

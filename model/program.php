@@ -356,7 +356,7 @@ class Program {
       $radky = substr(ob_get_clean(), 0, -4);
 
       if($radku > 0) {
-        echo '<tr><td rowspan="'.$radku.'">'.$typNazev.'</td>';
+        echo '<tr><td rowspan="'.$radku.'"><div class="program_nazevLinie">'.$typNazev.'</div></td>';
         echo $radky;
       } else if($this->nastaveni['prazdne'] && $radku == 0) {
         echo $this->prazdnaMistnost($typNazev);
@@ -460,6 +460,6 @@ class Program {
     $bunky = '';
     for($cas = PROGRAM_ZACATEK; $cas < PROGRAM_KONEC; $cas++)
       $bunky .= '<td></td>';
-    return "<tr><td rowspan=\"1\">$nazev</td>$bunky</tr>";
+    return "<tr><td rowspan=\"1\"><div class=\"program_nazevLinie\">$nazev</div></td>$bunky</tr>";
   }
 }

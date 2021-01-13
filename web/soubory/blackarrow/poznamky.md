@@ -62,7 +62,9 @@
         - [ ] muži / ženy rozlišovák
     - [ ] responziva
         - viz také vertikální názvy linií a chování sidebaru
-        - [ ] vertikální názvy linií, menší scrollery, menší políčka
+        - [x] vertikální názvy linií
+        - [ ] menší scrollery -- počkat, co Martin
+        - [ ] menší políčka
     - [ ] (minor) co, když program není?
         - [ ] vůbec není program
         - [ ] nejsou žádné aktivity daný den
@@ -74,6 +76,7 @@
     - [ ] (minor) dávat alternativní datumy do náhledu?
     - [ ] (minor) Cookie „CHYBY_CLASS“
         - bude brzy blokována, protože obsahuje atribut „SameSite“ s neplatnou hodnotou nebo hodnotou „None“, která není bez bez atributu „secure“ povolená. Podrobnosti o atributu „SameSite“ najdete na https://developer.mozilla.org/docs/Web/HTTP/Headers/Set-Cookie/SameSite
+    - [ ] (minor) drag scroll
 
 - [ ] aktivity
     - [ ] po přepsání možno odstranit scroll sneak z webu úplně
