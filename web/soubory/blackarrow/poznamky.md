@@ -55,7 +55,7 @@
         - nápady: metoda css() jak teď, nebo cssSoubor()
         - souvisí s integrací v adminu
     - [ ] (minor) filtry (viz také server rendering / url)
-    - [ ] výška položek
+    - [x] výška položek
     - [x] odkaz na tisk
     - [ ] legenda (možná ne? intuitivita / užitečnost pro uživatele?)
         - možná nějaké symboly s hoverem, třeba :hodiny: 12.5., :hodiny: :otazník: -- ano a možná (minor) a nedávat zatím
@@ -64,7 +64,7 @@
         - viz také vertikální názvy linií a chování sidebaru
         - [x] vertikální názvy linií
         - [ ] menší scrollery -- počkat, co Martin
-        - [ ] menší políčka
+        - [x] menší políčka
     - [ ] (minor) co, když program není?
         - [ ] vůbec není program
         - [ ] nejsou žádné aktivity daný den

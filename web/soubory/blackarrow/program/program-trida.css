@@ -7,6 +7,10 @@ table.program {
     position: relative; /* kvůli výšce šrafovaných oddělovačů hodin */
     border-spacing: 10px;
     margin: -10px;
+    } @media (max-width: 800px) { table.program {
+        border-spacing: 6px;
+        margin: -6px;
+    }
 }
 
 .program tr {
@@ -79,25 +83,52 @@ table.program {
         width: 140px;
     }
 }
+@media (max-width: 800px) {
+    [rowspan="1"] .program_nazevLinie {
+        margin-top: 4px;
+        width: 44px;
+        text-align: left;
+        justify-content: left;
+    }
+    [rowspan="2"] .program_nazevLinie {
+        margin-top: 10px;
+        width: 120px;
+    }
+}
 
 .program td {
     min-width: 100px;
     max-width: 100px;
     padding: 0;
+    } @media (max-width: 1300px) { .program td:first-child {
+        min-width: 40px;
+        max-width: 40px;
+    }} @media (max-width: 800px) { .program td {
+        min-width: 70px;
+        max-width: 70px;
+    }
 }
-@media (max-width: 1300px) { .program td:first-child {
-    min-width: 40px;
-    max-width: 40px;
-}}
+
+.program td > div {
+    background-color: #F6F1EA;
+}
+
+.program td > .program_nazevLinie {
+    background-color: transparent; /* obejití barev kvůli legendě */
+}
 
 .program td:not([rowspan]) > div {
-    background-color: #F6F1EA;
     height: 72px;
     padding: 15px;
     box-sizing: border-box;
     /* nechat přetékat kvůli týmovému formuláři v adminu */
 
     font-size: 12px;
+    } @media (max-width: 800px) { .program td:not([rowspan]) > div {
+        padding: 10px;
+        height: 52px;
+        overflow: hidden;
+    }
 }
 
 .program td > div > a {
@@ -112,6 +143,13 @@ table.program {
     overflow: hidden;
     width: -moz-fit-content;
     width: fit-content;
+    } @media (max-width: 800px) { .program td > div > a {
+        line-height: 14px;
+        min-height: 14px;
+        max-height: 14px;
+        min-width: 200px; /* vynutit jeden řádek */
+        margin-bottom: 7px;
+    }
 }
 
 .program td > div > a:hover {
