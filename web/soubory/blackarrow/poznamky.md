@@ -57,9 +57,10 @@
     - [ ] (minor) filtry (viz také server rendering / url)
     - [x] výška položek
     - [x] odkaz na tisk
-    - [ ] legenda (možná ne? intuitivita / užitečnost pro uživatele?)
-        - [ ] muži / ženy rozlišovák
-        - [ ] symbol čekání na další vlnu s datumem a/nebo hoverem
+    - [x] legenda, infosymboly, barvy
+        - možná ne legenda? intuitivita / užitečnost pro uživatele?
+        - [x] muži / ženy rozlišovák
+        - [ ] (minor) symbol čekání na další vlnu s datumem a/nebo hoverem
     - [x] responziva
         - viz také vertikální názvy linií a chování sidebaru
         - [x] vertikální názvy linií
@@ -77,6 +78,9 @@
     - [ ] (minor) Cookie „CHYBY_CLASS“
         - bude brzy blokována, protože obsahuje atribut „SameSite“ s neplatnou hodnotou nebo hodnotou „None“, která není bez bez atributu „secure“ povolená. Podrobnosti o atributu „SameSite“ najdete na https://developer.mozilla.org/docs/Web/HTTP/Headers/Set-Cookie/SameSite
     - [ ] (minor) drag scroll
+    - [ ] (minor) v adminu použít $program->zpracujPost()
+        - v admin/scripts/zvlastni/program-uzivatele.php (a možná dalších) použít výš zmíněnou metodu
+        - do metody přesunout logiku s parametry přihlašovátka (už jsou jednou nastaveny jako parametry pro program, vyčíst z toho)
 
 - [ ] aktivity
     - [ ] po přepsání možno odstranit scroll sneak z webu úplně
