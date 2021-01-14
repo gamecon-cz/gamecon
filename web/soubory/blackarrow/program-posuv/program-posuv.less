@@ -12,6 +12,10 @@
     position: absolute;
     top: 30px;
     height: ~'calc(100% - 30px)';
+    @media (max-width: 800px) {
+        top: 26px;
+        height: ~'calc(100% - 26px)';
+    }
 }
 
 .programPosuv_lposuv {
@@ -37,6 +41,18 @@
     @media (max-width: 1300px) {
         width: 30px;
     }
+    @media (max-width: 800px) {
+        top: ~'calc(50% - 40px)';
+        height: 80px;
+        border-radius: 5px 0 0 5px;
+        opacity: 0.33;
+    }
+}
+
+.programPosuv_lposuv > div {
+    @media (max-width: 800px) {
+        border-radius: 0 5px 5px 0;
+    }
 }
 
 .programPosuv_posuv > div::before {
@@ -52,6 +68,9 @@
     transform: rotate(-45deg);
     @media (max-width: 1300px) {
         left: 1px;
+    }
+    @media (max-width: 800px) {
+        top: 32px;
     }
 }
 

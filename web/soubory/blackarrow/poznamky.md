@@ -58,12 +58,12 @@
     - [x] výška položek
     - [x] odkaz na tisk
     - [ ] legenda (možná ne? intuitivita / užitečnost pro uživatele?)
-        - možná nějaké symboly s hoverem, třeba :hodiny: 12.5., :hodiny: :otazník: -- ano a možná (minor) a nedávat zatím
         - [ ] muži / ženy rozlišovák
-    - [ ] responziva
+        - [ ] symbol čekání na další vlnu s datumem a/nebo hoverem
+    - [x] responziva
         - viz také vertikální názvy linií a chování sidebaru
         - [x] vertikální názvy linií
-        - [ ] menší scrollery -- počkat, co Martin
+        - [x] menší scrollery
         - [x] menší políčka
     - [ ] (minor) co, když program není?
         - [ ] vůbec není program
