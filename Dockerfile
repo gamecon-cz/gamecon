@@ -1,4 +1,4 @@
-FROM php:7.2-apache
+FROM php:7.3-apache
 
 ARG USER_ID=1000
 ARG GROUP_ID=1000
@@ -21,6 +21,8 @@ RUN apt-get update && apt-get install -y \
       gnupg \
       git \
       sudo \
+      iputils-ping \
+      wget \
     && apt-get clean; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
 # images support, like imagecreatefromjpeg()
@@ -33,9 +35,8 @@ RUN a2enmod rewrite expires && \
 	# avoid warning on start
     echo 'ServerName localhost' >> /etc/apache2/apache2.conf
 
-# XDebug
-RUN yes | pecl install xdebug-2.6.1 \
-    && docker-php-ext-enable xdebug
+# XDebug - to start it use docker compose
+RUN yes | pecl install xdebug
 
 # Fix debconf warnings upon build
 ARG DEBIAN_FRONTEND=noninteractive
@@ -65,5 +66,7 @@ RUN sed -ri -e "s!/var/www/html!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/sites-av
 RUN sed -ri -e "s!/var/www/!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
 ENV ENV=local
+
+WORKDIR $APACHE_DOCUMENT_ROOT
 
 ENTRYPOINT /.docker/gamecon-run.sh
