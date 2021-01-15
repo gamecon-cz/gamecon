@@ -38,9 +38,15 @@
                 <!-- begin: prihlasen -->
                 <div class="menu_jmeno">{u.mail}</div>
                 <div class="menu_uzivatelpolozky">
-                    <a href="TODO">Finance</a>
-                    <a href="TODO">Pičoviny</a>
-                    <a href="TODO">Admin</a>
+                    <a href="finance">Finance</a>
+                    <a href="registrace">Nastavení</a>
+                    <!-- begin: admin -->
+                        <a href="{adminUrl}" target="_blank">Admin</a>
+                    <!-- end: admin -->
+                    <!-- begin: mujPrehled -->
+                        <a href="{adminUrl}/muj-prehled" target="_blank">Hry, které vedu</a>
+                    <!-- end: mujPrehled -->
+                    <a href="prihlaska">Přihláška na GC</a>
                     <a href="#" onclick="odhlasForm.submit(); return false;">Odhlásit</a>
                     <form id="odhlasForm" method="post" action="prihlaseni">
                         <input type="hidden" name="odhlasit" value="true">

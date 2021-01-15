@@ -1,34 +1,44 @@
-- [ ] srovnat, jaké prvky chybí proti stávající titulce / indexu
-    - (viz šablona a kód)
-- [x] dodělat responzivy, kde nejsou
-    - [x] menu
-    - [x] hlavička
-    - [-] fotky -- pro MVP na mobil jenom skrýt
-- [x] hovery
-    - [x] hovery na liniích
-    - [x] texty na hovery na liniích + ikony
-    - [x] uživatelské menu
-    - ...
-- [ ] načítat reálná data
 - [x] zkusit vm jednotky
     - řádek obsahující vm se přepíše na vw a dogeneruje pod něj mediaselector s minimem
     - dořešit nastavení minimální šířky
     - poladit taky podle martinových ne/protestů na mobilní chování _zazijes_
     - možná raději "rel" (pixel relative) vůči 1920 a ten min width vkládat jako agument
 - [ ] relativní cesty v .less souborech
-- [ ] indikace zbyktu financí (?) a přihlášenosti na GC
-- [ ] novinka
 - [x] doplnit do sponzorů partnery
 - [ ] v modulu prihlaseni.php registrace na GC
     - mít tam vysvětleno, jestli registrace na GC běží a pochopitelný link
     - případně řešit jinak (původně link "přihláška" na titulce)
     - [ ] flow přihlašování -> registrace -> zadám existujícího a správné údaje -> (chyba / nic se nestane)
 - [ ] TODO odstranit nebo přesunout tyto poznámky
-- [ ] animace
-- [ ] fotky linií
-- [ ] menu: menu uživatele
-- [ ] skákání při načtení (asi výška menu a fonty)
-- [x] proporciální hlavička
+
+- [ ] menu
+    - [ ] menu uživatele
+    - [ ] indikace zbyktu financí (?) a přihlášenosti na GC
+    - [ ] (minor) v menu položka "přihláška na GC"
+        - podle ne/přihlášenosti, případně spuštění regu
+
+- [ ] titulka
+    - [x] proporciální hlavička
+    - [ ] texty na hover linií
+    - [ ] novinka
+    - [ ] fotky linií
+    - [ ] animace
+    - [ ] (minor) ne/zobrazit CTA "přihlásit se" dle situace
+        - jestli je uživatel přihlášen na web, jestli GC reg ne/běží, ...
+    - [x] dodělat responzivy, kde nejsou
+        - [x] menu
+        - [x] hlavička
+        - [ ] (future) fotky -- pro MVP na mobil jenom skrýt
+    - [x] hovery
+        - [x] hovery na liniích
+        - [x] texty na hovery na liniích + ikony
+        - [x] uživatelské menu
+        - ...
+    - [ ] načítat reálná data
+    - [ ] skákání při načtení (asi výška menu a fonty)
+    - [ ] srovnat, jaké prvky chybí proti stávající titulce / indexu
+        - (viz stará šablona a zakomentovaný kód v titulka.php)
+    - [ ] (minor) prozkoumat / vyhodit old_titulka.xtpl
 
 - [ ] program
     - [x] scrollery
@@ -73,7 +83,7 @@
         - aby uživatel věděl, že se musí přihlásit na GC apod.
     - [x] chybové hlášky (máš už aktivitu v daný čas apod.)
         - uprostřed dole nebude problém s překryvem u formulářů?
-    - [ ] projet TODOs, necommitovat
+    - [x] projet TODOs
     - [ ] (minor) dávat alternativní datumy do náhledu?
     - [ ] (minor) Cookie „CHYBY_CLASS“
         - bude brzy blokována, protože obsahuje atribut „SameSite“ s neplatnou hodnotou nebo hodnotou „None“, která není bez bez atributu „secure“ povolená. Podrobnosti o atributu „SameSite“ najdete na https://developer.mozilla.org/docs/Web/HTTP/Headers/Set-Cookie/SameSite

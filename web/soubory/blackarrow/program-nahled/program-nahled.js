@@ -54,9 +54,9 @@ function programNahled(obalNahledu, obalProgramu, odkazy, odkazyZapamatovat) {
       this.obalNahledu.querySelector('.programNahled_cena').innerHTML = data.cena
       this.obalNahledu.querySelector('.programNahled_cas').innerHTML = data.cas
 
-      this.obalNahledu.classList.add('programNahled_obalNahledu-maData') // TODO možná není potřeba
+      this.obalNahledu.classList.add('programNahled_obalNahledu-maData')
 
-      this.obalNahledu.querySelector('.programNahled_text').scroll(0, 0);
+      this.obalNahledu.querySelector('.programNahled_text').scroll(0, 0)
     }
   }
 

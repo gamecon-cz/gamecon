@@ -32,6 +32,10 @@ foreach ($obrazky as $obrazek) {
   $t->parse('titulka.sponzor');
 }
 
+$t->assign([
+  'gcZacatekTimestamp' => strtotime(GC_BEZI_OD),
+]);
+
 
 /*
 $this->bezMenu(true);

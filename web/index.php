@@ -49,7 +49,7 @@ if(!$i->titulek())
   if($i->nazev())   $i->titulek($i->nazev().' – GameCon');
   else              $i->titulek('GameCon')->nazev('GameCon');
 
-// výstup (s ohledem na to co modul nastavil)
+// sestavení menu
 $menu = '';
 if(!$m->bezStranky() && !$m->bezMenu()) {
   $t = new XTemplate('sablony/blackarrow/menu.xtpl');
@@ -57,14 +57,30 @@ if(!$m->bezStranky() && !$m->bezMenu()) {
   $typy = serazenePodle(Typ::zViditelnych(), 'poradi');
   $t->parseEach($typy, 'typ', 'menu.typAktivit');
 
-  $t->assign(['u' => $u]);
-  $t->parse($u ? 'menu.prihlasen' : 'menu.neprihlasen');
+  // položky uživatelského menu
+  if($u) {
+    $t->assign([
+      'u'        => $u,
+      'adminUrl' => URL_ADMIN,
+    ]);
+
+    if($u->maPravo(P_ADMIN_UVOD)) {
+      $t->parse('menu.prihlasen.admin');
+    } elseif($u->maPravo(P_ADMIN_MUJ_PREHLED)) {
+      $t->parse('menu.prihlasen.mujPrehled');
+    }
+
+    $t->parse('menu.prihlasen');
+  } else {
+    $t->parse('menu.neprihlasen');
+  }
 
   $t->parse('menu');
   $menu = $t->text('menu');
   // TODO odstranit starou třídu menu
 }
 
+// výstup (s ohledem na to co modul nastavil)
 if($m->bezStranky()) {
   echo $m->vystup();
 } elseif($m->blackarrowStyl()) {
