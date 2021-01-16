@@ -91,6 +91,24 @@
     - [ ] (minor) v adminu použít $program->zpracujPost()
         - v admin/scripts/zvlastni/program-uzivatele.php (a možná dalších) použít výš zmíněnou metodu
         - do metody přesunout logiku s parametry přihlašovátka (už jsou jednou nastaveny jako parametry pro program, vyčíst z toho)
+    - [ ] dodělávky
+        - [ ] 4 responzivní záhlaví
+        - [ ] 3 pozadí časů
+        - [x] 3 vzhled dnů
+        - [ ] 3 průhlednost scrollerů (2 odsazení a zarovnání)
+        - [ ] 3 sidebar až po menu
+        - [x] 3 scrollbar textu víc vpravo
+        -  ?  ~~3 přihlásit~~ - nelze asi
+        - [ ] 2 vertikální linie už i na 1366
+        -  ?  2 plynulá animace lišty
+        - [ ] 1 zarovnat $$
+        - [ ] 1 barva nadpisu černá
+        -  ?  1 změna pozadí záhlaví
+
+- [ ] společné prvky
+    - zejména dropdowny, input
+    - taky ale výchozí velikost písma, vzdálenost písmen, řádkování
+    - čím později, tím větší riziko fuckupu velikostí / marginů někde
 
 - [ ] aktivity
     - [ ] po přepsání možno odstranit scroll sneak z webu úplně

@@ -4,16 +4,25 @@
     padding: 0 140rel;
     overflow: hidden;
     margin-bottom: 50rel;
+    @media (max-width: 800px) {
+        padding: 0 20px;
+    }
 }
 
 .program_hlavicka > h1 {
-    color: #E22630;
+    color: #10111A;
     font-size: 80rel;
-    margin: 58rel 0;
+    margin: 58/19.2vw 0;
+    @media (max-width: 800px) {
+        font-size: 32px;
+        margin: 20px 0;
+    }
 }
 
 .program_dny {
-    margin-left: -10px;
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: -10px; // pro mobil
 }
 
 .program_den {
@@ -24,18 +33,29 @@
     text-decoration: none;
     color: inherit;
 
-    display: inline-block;
-    width: 184px;
-    height: 59px;
-    line-height: 59px;
+    display: block;
+    width: 156px;
+    margin-right: 16px;
+    height: 48px;
+    line-height: 48px;
     text-align: center;
-    background: url('../blackarrow/program/den.png') no-repeat;
-    margin-right: -5px;
+    background: #fff;
+    border: solid 1px #FDC689;
+    @media (max-width: 800px) {
+        margin: 0 10px 10px 0;
+        width: 130px;
+        flex-grow: 1;
+    }
+}
+
+.program_den:hover {
+    border-color: #E22630;
 }
 
 .program_den-aktivni {
-    background-image: url('../blackarrow/program/den-aktivni.png');
     color: #fff;
+    background-color: #E22630;
+    border-color: #E22630;
 }
 
 .program_tisk {
