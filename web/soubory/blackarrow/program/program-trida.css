@@ -50,12 +50,12 @@ table.program {
     background-color: #FDC689;
     color: #10111A;
 }
-@media (max-width: 1300px) {.program td[rowspan] {
+@media (max-width: 1500px) {.program td[rowspan] {
     padding: 0;
     overflow: hidden;
 }}
 
-@media (max-width: 1300px) {
+@media (max-width: 1500px) {
     .program_nazevLinie {
         transform: rotate(-90deg);
         transform-origin: bottom right;
@@ -100,7 +100,7 @@ table.program {
     min-width: 100px;
     max-width: 100px;
     padding: 0;
-    } @media (max-width: 1300px) { .program td:first-child {
+    } @media (max-width: 1500px) { .program td:first-child {
         min-width: 40px;
         max-width: 40px;
     }} @media (max-width: 800px) { .program td {

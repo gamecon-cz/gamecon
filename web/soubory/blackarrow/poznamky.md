@@ -92,18 +92,20 @@
         - v admin/scripts/zvlastni/program-uzivatele.php (a možná dalších) použít výš zmíněnou metodu
         - do metody přesunout logiku s parametry přihlašovátka (už jsou jednou nastaveny jako parametry pro program, vyčíst z toho)
     - [ ] dodělávky
-        - [ ] 4 responzivní záhlaví
-        - [ ] 3 pozadí časů
+        - https://docs.google.com/document/d/1T28GpTWB_wtOXr1RD3jKY73ULswPKo4y5nu_EAp7-8g/edit#
+        - [x] 4 responzivní záhlaví
+        - [ ] (minor) 3 pozadí časů - nejde kvůli border-spacingu
         - [x] 3 vzhled dnů
-        - [ ] 3 průhlednost scrollerů (2 odsazení a zarovnání)
-        - [ ] 3 sidebar až po menu
+        - [x] 3 průhlednost scrollerů
+            - 2 odsazení a zarovnání - ne, vypadá divně podjíždění aktivit, snižuje místo, bez podbarvení časů funguje hůř
+        - [x] 3 sidebar až po menu
         - [x] 3 scrollbar textu víc vpravo
-        -  ?  ~~3 přihlásit~~ - nelze asi
-        - [ ] 2 vertikální linie už i na 1366
-        -  ?  2 plynulá animace lišty
-        - [ ] 1 zarovnat $$
-        - [ ] 1 barva nadpisu černá
-        -  ?  1 změna pozadí záhlaví
+        - [ ] (future) 3 přihlásit - nelze asi
+        - [x] 2 vertikální linie už i na 1366
+        - [ ] (future) 2 plynulá animace lišty - obalování etc hodně práce
+        - [x] 1 zarovnat $$
+        - [x] 1 barva nadpisu černá
+        - [ ] (minor) 1 změna pozadí záhlaví
 
 - [ ] společné prvky
     - zejména dropdowny, input

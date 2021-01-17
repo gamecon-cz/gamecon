@@ -47,28 +47,29 @@ $zobrazitMujProgramOdkaz = isset($u);
 <style>
     /* na stránce programu nedělat sticky menu, aby bylo maximum místa pro progam */
     .menu {
-        position: initial;
+        position: relative; /* relative, aby fungoval z-index */
     }
 </style>
 
-<div class="program_hlavicka">
-    <?php if ($u) { ?>
-        <a href="program-k-tisku" class="program_tisk" target="_blank">Můj program v PDF</a>
-    <?php } ?>
-    <h1>Program <?=ROK?></h1>
-    <div class="program_dny">
-        <?php foreach ($dny as $denSlug => $den) { ?>
-            <a <?=$aktivni('program/'.$denSlug)?>><?=$den->format('l d.n.')?></a>
-        <?php } ?>
-        <?php if ($zobrazitMujProgramOdkaz) { ?>
-            <a <?=$aktivni('program/muj')?>>můj program</a>
-        <?php } ?>
-    </div>
-</div>
-
-<!-- relative obal nutný kvůli sidebaru -->
+<!-- relativní obal kvůli náhledu -->
 <div style="position: relative">
+
     <?php require __DIR__ . '/../soubory/blackarrow/program-nahled/program-nahled.html'; ?>
+
+    <div class="program_hlavicka">
+        <?php if ($u) { ?>
+            <a href="program-k-tisku" class="program_tisk" target="_blank">Můj program v PDF</a>
+        <?php } ?>
+        <h1>Program <?=ROK?></h1>
+        <div class="program_dny">
+            <?php foreach ($dny as $denSlug => $den) { ?>
+                <a <?=$aktivni('program/'.$denSlug)?>><?=$den->format('l d.n.')?></a>
+            <?php } ?>
+            <?php if ($zobrazitMujProgramOdkaz) { ?>
+                <a <?=$aktivni('program/muj')?>>můj program</a>
+            <?php } ?>
+        </div>
+    </div>
 
     <div class="programNahled_obalProgramu">
         <div class="programPosuv_obal2">
@@ -77,6 +78,7 @@ $zobrazitMujProgramOdkaz = isset($u);
             </div>
         </div>
     </div>
+
 </div>
 
 <div style="height: 70px"></div>
