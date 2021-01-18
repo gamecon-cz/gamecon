@@ -4,6 +4,11 @@
  *
  * nazev: Export & Import
  * pravo: 102
+ *
+ * Google API credentials lze získat přes https://console.developers.google.com/
+ * NEW PROJECT -> Gamecon ... -> Credentials -> CREATE CREDENTIALS -> OAuth client ID -> Application type = Web application; Name = gamecon.cz (třeba); Authorized Javascript origins = https://admin.gamecon.cz; Authorised redirect URIs = https://admin.gamecon.cz/admin/aktivity/export-import -> Download
+ * Stažený soubor zkopírovat do Gameconu pod názvem nastaveni/google-api-client-secret.json - nezapomeň ho zkopírovat hlavně do produkce, protože soubor je ignorovaný Gitem (měl by být!) a při deploy se do produkce tedy nedostane.
+ * Pokud crecentials uniknou (byť třeba commitnutím do Gitu a pushnutím na Github - Github umožňuje procházet i smazanou historii, takže přepsání historie už nepomůže), nezapomeň credentials přegenerovat - zase v https://console.developers.google.com/ přes Credentials ->  OAuth 2.0 Client IDs -> edit -> RESET SECRET a nahrát do produkce nový JSON.
  */
 
 namespace Gamecon\Admin\Modules\Aktivity;
