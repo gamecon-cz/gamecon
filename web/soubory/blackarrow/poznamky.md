@@ -16,6 +16,8 @@
     - [ ] indikace zbyktu financí (?) a přihlášenosti na GC
     - [ ] (minor) v menu položka "přihláška na GC"
         - podle ne/přihlášenosti, případně spuštění regu
+    - [ ] hover na mobilu
+        - na některých mobilech možná nejde "kliknout" na rozbalovací části menu, otestovat, ověřit
 
 - [ ] titulka
     - [x] proporciální hlavička
@@ -112,6 +114,11 @@
     - taky ale výchozí velikost písma, vzdálenost písmen, řádkování
     - čím později, tím větší riziko fuckupu velikostí / marginů někde
 
+- [ ] přihlášení, registrace, přihláška
+    - [ ] csrf (zkusit, možná jde nějak headrem omezit)
+    - [ ] (minor) tlačítko (+/-) pro js přidávání/ubírání triček za letu
+    - [ ] (minor) trvalé přihlášení (možná nastavit jako default)
+
 - [ ] aktivity
     - [ ] po přepsání možno odstranit scroll sneak z webu úplně
     - ...
@@ -130,7 +137,7 @@ Minor
 
 Migrace
 
-- [ ] překopírovat linie, sponzory a partnery
+- [ ] překopírovat obrázky + texty linií, sponzory a partnery
 
 Future
 

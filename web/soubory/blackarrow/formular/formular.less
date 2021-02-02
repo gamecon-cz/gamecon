@@ -1,0 +1,119 @@
+@levyOkraj: 45%;
+
+.formular_stranka {
+    min-height: 100vh;
+    background:
+        linear-gradient(to right, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.8) @levyOkraj, rgba(0, 0, 0, 0.0) @levyOkraj),
+        url('../blackarrow/formular/obrazek.jpg') no-repeat fixed 0 0 ~'/' @levyOkraj auto;
+    padding: 60px;
+    padding-left: ~'calc(' @levyOkraj ~'+ 60px)';
+    position: relative; // kvůli nadpisu
+    @media (max-width: 600px) {
+        padding: 20px;
+        background: none;
+    }
+}
+
+.formular_stranka-login {
+    padding-top: 170px;
+    @media (max-width: 600px) {
+        padding-top: 50px;
+    }
+}
+
+.formular_strankaNadpis {
+    position: absolute;
+    top: 35vh;
+    left: 0;
+    text-align: center;
+    font-weight: bold;
+    font-size: 52px;
+    color: #fff;
+    width: @levyOkraj;
+    @media (max-width: 600px) {
+        display: none;
+    }
+}
+
+.formular_zapomenuteHeslo {
+    position: absolute;
+    width: 200px;
+    margin-left: 244px;
+    text-align: right;
+    font-size: 13px;
+    color: inherit;
+    opacity: 0.5;
+    @media (max-width: 600px) {
+        right: 20px;
+    }
+}
+
+.formular_registrovat {
+    font-weight: bold;
+    font-size: 14px;
+    margin-top: 19px;
+    & > a {
+        color: #E22630;
+    }
+}
+
+// generický formulář
+
+.formular label {
+    font-size: 13px;
+    display: block;
+    margin-bottom: 17px;
+}
+
+.formular input[type=text], .formular input[type=password] {
+    display: block;
+    border: solid 1px #DBDBDB;
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 44px;
+    width: 424px;
+    max-width: ~'calc(100% - 20px)';
+    margin-top: 7px;
+    padding: 0 10px;
+}
+
+.formular input:focus {
+    border-color: #10111A;
+}
+
+.formular input:placeholder-shown {
+    background-color: #F6F1EA;
+}
+
+.formular-chyba input[type=text], .formular-chyba input[type=password] {
+    background-color: #FCE9EA;
+    border-color: #E22630;
+}
+
+.formular_primarni {
+    font-weight: bold;
+    font-size: 14px;
+    text-transform: uppercase;
+    text-decoration: none;
+    text-align: left;
+    display: block;
+    color: #fff;
+    background-color: #10111A;
+
+    line-height: 50px;
+    min-width: 200px;
+    box-sizing: border-box;
+    border: none;
+    padding: 0 50px 0 16px;
+    margin-top: 35px;
+    background:
+        url('../blackarrow/formular/sipka.svg') no-repeat ~'calc(100% - 16px)' 13px,
+        #10111A;
+    transition: background-position 0.3s;
+    cursor: pointer;
+}
+
+.formular_primarni:hover {
+    background-position: ~'calc(100% - 10px)' 13px;
+    background-color: #30323E;
+}

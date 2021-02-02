@@ -22,9 +22,10 @@ class Chyba extends Exception
     back();
   }
 
-  static function nastav($zprava, $typ) {
+  static function nastav($zprava, $typ=null) {
     $postname = $typ == self::OZNAMENI ? 'CHYBY_CLASS_OZNAMENI' : 'CHYBY_CLASS';
     setcookie($postname, $zprava, time() + self::COOKIE_ZIVOTNOST);
+    $_COOKIE[$postname] = $zprava;
   }
   
   /**
