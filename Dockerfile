@@ -30,14 +30,19 @@ RUN apt-get update && apt-get install -y \
 RUN docker-php-ext-configure gd \
       --with-freetype-dir=/usr/include/ \
       --with-jpeg-dir=/usr/include/
-RUN docker-php-ext-install gd mysqli pdo_mysql intl exif
+RUN docker-php-ext-install gd mysqli pdo_mysql intl
+
+RUN docker-php-ext-install exif
+RUN docker-php-ext-configure exif \
+            --enable-exif
 
 RUN a2enmod rewrite expires && \
 	# avoid warning on start
     echo 'ServerName localhost' >> /etc/apache2/apache2.conf
 
 # XDebug - to start it use docker compose
-RUN yes | pecl install xdebug
+RUN pecl channel-update pecl.php.net \
+    && yes | pecl install xdebug
 
 # Fix debconf warnings upon build
 ARG DEBIAN_FRONTEND=noninteractive
