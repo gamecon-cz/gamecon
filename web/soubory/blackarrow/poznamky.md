@@ -18,6 +18,7 @@
         - podle ne/přihlášenosti, případně spuštění regu
     - [ ] hover na mobilu
         - na některých mobilech možná nejde "kliknout" na rozbalovací části menu, otestovat, ověřit
+    - [ ] (minor) na fullHD snížit počet sloupců
 
 - [ ] titulka
     - [x] proporciální hlavička
@@ -118,6 +119,12 @@
     - [ ] csrf (zkusit, možná jde nějak headrem omezit)
     - [ ] (minor) tlačítko (+/-) pro js přidávání/ubírání triček za letu
     - [ ] (minor) trvalé přihlášení (možná nastavit jako default)
+    - [ ] (minor) pokud by login měl přesměrovat sám na sebe, tak přesměrovat na homepage
+    - [ ] (minor) když vejdu na login a jsem už přihlášen
+    - k inputům - nemusí to být jen POST prefil, může to být existující data u registrace (kvůli zamyšlení nad abstrakcí inputů)
+    - [ ] zrušit přezdívky: možná trik vyplnit do přezdívky v registraci tiše e-mail, pokud je prázdná
+        - zkontrolovat, jestli se nedá "ukrást" účet někomu tím, že použiju jeho e-mail jako svou přezdívku (nebo naopak).
+    - [ ] nevyplněné položky v chromu
 
 - [ ] aktivity
     - [ ] po přepsání možno odstranit scroll sneak z webu úplně

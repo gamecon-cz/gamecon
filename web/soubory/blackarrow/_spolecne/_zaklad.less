@@ -60,3 +60,23 @@ body {
     background-color: #B7E4B6;
     background-image: url('../blackarrow/_spolecne/chyba-ok.svg');
 }
+
+.tooltip {
+    cursor: default;
+}
+
+.tooltip_obsah {
+    display: none;
+    color: #fff;
+    background-color: #000;
+    text-align: left;
+    position: absolute;
+    z-index: 20;
+    width: 250px;
+    padding: 20px;
+    font-weight: normal;
+}
+
+.tooltip:hover > .tooltip_obsah {
+    display: block;
+}
