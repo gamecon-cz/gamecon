@@ -562,7 +562,7 @@ class Uzivatel {
     // přihlášení uživatele
     // TODO refactorovat do jedné fce volané z dílčích prihlas* metod
     $id = $u['id_uzivatele'];
-    if(!session_id()) session_start();
+    if(!session_id() && PHP_SAPI != 'cli') session_start();
     $_SESSION[$klic] = $u;
     $_SESSION[$klic]['id_uzivatele'] = (int)$u['id_uzivatele'];
     // načtení uživatelských práv

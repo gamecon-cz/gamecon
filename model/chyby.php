@@ -38,6 +38,7 @@ class Chyby extends Chyba {
     static function zPole($pole) {
         $ch = new self();
         $ch->chyby = $pole;
+        $ch->message = implode(', ', $pole); // kvůli čitelnosti testů
         return $ch;
     }
 }
