@@ -379,6 +379,9 @@ function dbRollback() {
  */
 function dbUpdate($table, $vals, $where) {
   global $dbspojeni, $dbLastQ;
+
+  if ($vals === []) return;
+
   dbConnect();
   $q='UPDATE '.dbQi($table)." SET \n";
   foreach($vals as $key=>$val)

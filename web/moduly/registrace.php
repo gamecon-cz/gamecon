@@ -36,9 +36,9 @@ $zpracujUpravu = function () use ($u) {
     if (!post('upravit')) return;
     if (!$u) throw Chyby::jedna('Došlo k odhlášení, přilaš se prosím znovu.');
 
-    $u->uprav($TODOtab);
+    $u->uprav(post('formData'));
 
-    back();
+    oznameni(hlaska('upravaUzivatele'));
 };
 
 
@@ -134,14 +134,17 @@ $select = function ($nazev, $klic, $moznosti) use ($formData, $chyby) {
 ?>
 
 <form method="post" class="formular_stranka">
-    <!-- TODO jiný nadpis pro registrovaného uživatele -->
     <!-- TODO review možností v html starého formu -->
-    <div class="formular_strankaNadpis">Registrace</div>
-    <div class="fromular_strankaPodtitul">
-        <div style="max-width: 250px">
-            Jsi jenom krok od toho stát se součástí naprosto boží akce!
+    <?php if ($u) { ?>
+        <div class="formular_strankaNadpis">Nastavení</div>
+    <?php } else { ?>
+        <div class="formular_strankaNadpis">Registrace</div>
+        <div class="fromular_strankaPodtitul">
+            <div style="max-width: 250px">
+                Jsi jenom krok od toho stát se součástí naprosto boží akce!
+            </div>
         </div>
-    </div>
+    <?php } ?>
 
     <div class="formular_prihlasit formular_duleziteInfo">
         Již mám účet <a href="prihlaseni">přihlásit se</a>

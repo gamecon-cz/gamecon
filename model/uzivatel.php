@@ -487,7 +487,12 @@ class Uzivatel {
    */
   public function otoc()
   {
-    if(!$this->klic) Throw new Exception('Neznámý klíč uživatele v session');
+    if (PHP_SAPI == 'cli') {
+      $this->u = self::zId($this->id())->u;
+      return;
+    }
+
+    if(!$this->klic) throw new Exception('Neznámý klíč uživatele v session');
     $id=$this->id();
     $klic=$this->klic;
     //máme obnovit starou proměnnou pro id uživatele (otáčíme aktuálně přihlášeného uživatele)?
@@ -652,34 +657,76 @@ class Uzivatel {
    * Zaregistruje uživatele podle asoc.pole $tab, které by mělo odpovídat
    * struktuře tabulky uzivatele_hodnoty.
    *
-   * Extra položky: heslo a heslo_kontrola (metoda si je převede na hash).
+   * Extra položky: heslo a heslo_kontrola (metoda si je sama převede na hash).
    *
    * @return int id nově vytvořeného uživatele
    */
-  static function registruj($tab)
-  {
+  static function registruj($tab) {
+    return self::registrujUprav($tab);
+  }
+
+  /**
+   * Zregistruje nového uživatele nebo upraví stávajícího $u, pokud je zadán.
+   */
+  private static function registrujUprav($tab, $u = null) {
     $dbTab = $tab;
     $chyby = [];
-    $mailRegex = '^[a-z0-9_\-\.]+@[a-z0-9_\-\.]+\.[a-z]+$';
+    $preskocitChybejiciPole = (bool) $u;
 
     // opravy
     $dbTab = array_map(function ($e) {
       return preg_replace('/\s+/', ' ', trim($e));
     }, $dbTab);
 
-    $dbTab['email1_uzivatele'] = mb_strtolower($dbTab['email1_uzivatele']);
-    $dbTab['random'] = randHex(20);
-    $dbTab['heslo_md5'] = password_hash($dbTab['heslo'], PASSWORD_DEFAULT); // TODO setter?
-    $dbTab['registrovan'] = (new DateTimeCz)->formatDb();
+    if (isset($dbTab['email1_uzivatele'])) {
+      $dbTab['email1_uzivatele'] = mb_strtolower($dbTab['email1_uzivatele']);
+    }
+
     // TODO fallback prázdná přezdívka -> mail?
 
-    // validace
-    // TODO co s položkami navíc? Attack vector na DB? (vzít ale v úvahu optional)
+    // validátory
+    $validaceLoginu = function ($login) use ($u) {
+      if (empty($login)) return 'vyber si prosím přezdívku';
+
+      $u2 = Uzivatel::zNicku($login);
+      if ($u2 && !$u) {
+        return 'přezdívka už je zabraná. Pokud je tvoje, přihlaš se nebo si resetuj heslo';
+      }
+      if ($u2 && $u && $u2->id() != $u->id()) {
+        return 'přezdívka už je zabraná. Vyber si prosím jinou';
+      }
+    };
+
+    $validaceMailu = function ($mail) use ($u) {
+      if (!preg_match('/^[a-z0-9_\-\.]+@[a-z0-9_\-\.]+\.[a-z]+$/', $mail)) {
+        return 'zadej prosím platný e-mail';
+      }
+
+      $u2 = Uzivatel::zMailu($mail);
+      if ($u2 && !$u) {
+        return 'e-mail už máš zaregistrovaný. Přihlaš se nebo si resetuj heslo';
+      }
+      if ($u2 && $u && $u2->id() != $u->id()) {
+        return 'e-mail už je zabraný. Pokud je tvůj, resetuj si heslo';
+      }
+    };
+
+    $validaceHesla = function ($heslo) use ($dbTab) {
+      if (empty($heslo)) return 'vyplň prosím heslo';
+
+      if (
+        $heslo != ($dbTab['heslo'] ?? null) ||
+        $heslo != ($dbTab['heslo_kontrola'] ?? null)
+      ) {
+        return 'hesla se neshodují';
+      }
+    };
+
     $validace = [
       'jmeno_uzivatele'      => ['.+', 'jméno nesmí být prázdné'],
       'prijmeni_uzivatele'   => ['.+', 'příjmení nesmí být prázdné'],
-      'login_uzivatele'      => ['.+', 'vyber si prosím přezdívku'], // TODO
-      'email1_uzivatele'     => [$mailRegex, 'zadej prosím platný e-mail'],
+      'login_uzivatele'      => $validaceLoginu,
+      'email1_uzivatele'     => $validaceMailu,
       'pohlavi'              => ['^(m|f)$', 'vyber prosím pohlaví'],
       'ulice_a_cp_uzivatele' => ['.+ [\d\/a-z]+$', 'vyplň prosím ulici, např. Česká 27'],
       'mesto_uzivatele'      => ['.+', 'vyplň prosím město'],
@@ -687,33 +734,54 @@ class Uzivatel {
       'stat_uzivatele'       => ['^(1|2|-1)$', 'vyber prosím stát'],
       'telefon_uzivatele'    => ['^[\d \+]+$', 'vyplň prosím telefon, např. +420 789 123 456'],
       'datum_narozeni'       => ['\d+', 'vyber prosím datum narození'], // TODO
-      'heslo'                => ['.+', 'vyplň prosím heslo'],
-      'heslo_kontrola'       => ['.+', 'vyplň prosím heslo pro kontrolu'],
+      'heslo'                => $validaceHesla,
+      'heslo_kontrola'       => $validaceHesla,
     ];
 
-    foreach ($validace as $klic => list($regex, $popisChyby)) {
-      if (!isset($dbTab[$klic]) || !preg_match("/$regex/", $dbTab[$klic])) {
-        $chyby[$klic] = $popisChyby;
+    // provedení validací
+    $navic = array_diff(array_keys($dbTab), array_keys($validace));
+    if ($navic) {
+      throw new Exception('Data obsahují nepovolené hodnoty');
+    }
+
+    foreach ($validace as $klic => $validator) {
+      $hodnota = $dbTab[$klic] ?? null;
+
+      if ($hodnota === null && $preskocitChybejiciPole) {
+        continue;
       }
-    }
 
-    if ($dbTab['heslo'] != $dbTab['heslo_kontrola']) {
-      $chyby['heslo'] = 'hesla se neshodují';
-      $chyby['heslo_kontrola'] = 'hesla se neshodují';
-    }
-
-    if (self::zNicku($dbTab['login_uzivatele'])) {
-      $chyby['login_uzivatele'] = 'přezdívka už je zabraná. Pokud je tvoje, přihlaš se nebo si resetuj heslo';
-    }
-
-    if (self::zMailu($dbTab['email1_uzivatele'])) {
-      $chyby['email1_uzivatele'] = 'e-mail už máš zaregistrovaný. Přihlaš se nebo si resetuj heslo';
+      if (is_array($validator)) {
+        $regex = $validator[0];
+        $popisChyby = $validator[1];
+        if (!preg_match("/$regex/", $hodnota)) {
+          $chyby[$klic] = $popisChyby;
+        }
+      } else {
+        $chyba = $validator($hodnota);
+        if ($chyba) {
+          $chyby[$klic] = $chyba;
+        }
+      }
     }
 
     if ($chyby) {
       $ch = Chyby::zPole($chyby);
-      $ch->globalniChyba('Registrace se nepodařila. Oprav prosím zvýrazněné položky.');
+      $ch->globalniChyba($u ?
+        'Úprava se nepodařila, oprav prosím zvýrazněné položky.' :
+        'Registrace se nepodařila. Oprav prosím zvýrazněné položky.'
+      );
       throw $ch;
+    }
+
+    // doplnění dopočítaných polí
+    if (isset($dbTab['heslo'])) {
+      $dbTab['heslo_md5'] = password_hash($dbTab['heslo'], PASSWORD_DEFAULT);
+    }
+
+    if (!$u) {
+      $dbTab['random'] = randHex(20);
+      $dbTab['registrovan'] = (new DateTimeCz)->formatDb();
     }
 
     // odstranění polí, co nebudou v DB
@@ -721,9 +789,15 @@ class Uzivatel {
     unset($dbTab['heslo_kontrola']);
 
     // uložení
-    dbInsert('uzivatele_hodnoty', $dbTab);
-    $id = dbInsertId();
-    return $id;
+    if ($u) {
+      dbUpdate('uzivatele_hodnoty', $dbTab, ['id_uzivatele' => $u->id()]);
+      $u->otoc();
+      return $u->id();
+    } else {
+      dbInsert('uzivatele_hodnoty', $dbTab);
+      $id = dbInsertId();
+      return $id;
+    }
   }
 
   /**
@@ -804,6 +878,19 @@ class Uzivatel {
   function telefon()
   {
     return $this->u['telefon_uzivatele'];
+  }
+
+  /**
+   * Upraví hodnoty uživatele podle asoc.pole $tab, které by mělo odpovídat
+   * struktuře tabulky uzivatele_hodnoty.
+   *
+   * Položky, které nebudou zadány, se nebudou měnit.
+   *
+   * Extra položky: heslo a heslo_kontrola (metoda si je sama převede na hash).
+   */
+  function uprav($tab) {
+    $tab = array_filter($tab);
+    return self::registrujUprav($tab, $this);
   }
 
   /**
