@@ -5,7 +5,7 @@
     background:
         linear-gradient(to right, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.8) @levyOkraj, rgba(0, 0, 0, 0.0) @levyOkraj),
         url('../blackarrow/formular/obrazek.jpg') no-repeat fixed 0 0 ~'/' @levyOkraj auto;
-    padding: 60px;
+    padding: 60px 60px 120px; // dolní padding kvůli tooltipu na os. údaje
     padding-left: ~'calc(' @levyOkraj ~'+ 60px)';
     position: relative; // kvůli nadpisu
     @media (max-width: 600px) {
@@ -22,8 +22,8 @@
 }
 
 .formular_strankaNadpis {
-    position: absolute;
-    top: 35vh;
+    position: fixed;
+    top: 40vh;
     left: 0;
     text-align: center;
     font-weight: bold;
@@ -36,8 +36,8 @@
 }
 
 .fromular_strankaPodtitul {
-    position: absolute;
-    top: ~'calc(35vh + 80px)';
+    position: fixed;
+    top: ~'calc(40vh + 80px)';
     left: 0;
     text-align: center;
     font-size: 16px;
@@ -89,7 +89,6 @@
     font-size: 13px;
     display: block;
     margin-bottom: 17px;
-    // background-color: #F00;
     max-width: 444px;
     clear: both;
 }
@@ -173,11 +172,17 @@ input[type=checkbox] {
     letter-spacing: 0.15em;
 }
 
-// TODO zatím nepoužito
-// .formular-chyba input[type=text], .formular-chyba input[type=password] {
-//     background-color: #FCE9EA;
-//     border-color: #E22630;
-// }
+.formular_polozka-chyba input, .formular_polozka-chyba select {
+    background-color: #FCE9EA;
+    border-color: #E22630;
+}
+
+.formular_chyba {
+    position: absolute;
+    font-size: 10px;
+    color: #E22630;
+    margin-top: 2px;
+}
 
 .formular_duleziteInfo {
     font-weight: bold;

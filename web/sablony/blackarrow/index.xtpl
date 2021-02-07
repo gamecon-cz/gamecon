@@ -17,6 +17,7 @@
 
     {obsah}
 
+    <!-- begin: paticka -->
     <div class="paticka">
         <div class="paticka_info">
             <a href="mailto:info@gamecon.cz">info@gamecon.cz</a>
@@ -29,6 +30,7 @@
             <a href="https://www.facebook.com/groups/gamecon" target="_blank" class="paticka_facebook">Facebook</a>
         </div>
     </div>
+    <!-- end: paticka -->
 
 </body>
 </html>

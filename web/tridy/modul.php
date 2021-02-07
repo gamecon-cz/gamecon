@@ -14,6 +14,7 @@ class Modul {
   protected $bezMenu = false;
   protected $bezStranky = false;
   protected $bezOkraju = false;
+  protected $bezPaticky = false;
   protected $blackarrowStyl = false;
   protected $info;
   protected $cssUrls = [];
@@ -48,6 +49,11 @@ class Modul {
   function bezStranky($val = null) {
     if(isset($val)) $this->bezStranky = $val;
     return $this->bezStranky;
+  }
+
+  function bezPaticky($val = null) {
+    if(isset($val)) $this->bezPaticky = $val;
+    return $this->bezPaticky;
   }
 
   /**

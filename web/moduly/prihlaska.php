@@ -26,7 +26,7 @@ if(!REG_GC) {
   return;
 }
 
-if(!$u) exit(header('Location: '.URL_WEBU.'/registrace?prihlaska'));
+if(!$u) exit(header('Location: '.URL_WEBU.'/registrace'));
 
 $shop = new Shop($u);
 $pomoc = new Pomoc($u);

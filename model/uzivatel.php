@@ -649,20 +649,81 @@ class Uzivatel {
   }
 
   /**
-   * Zaregistruje uživatele podle asoc.pole $tab, které by mělo odpovídat stru-
-   * ktuře tabulky uzivatele_hodnoty.
-   * @return id nově vytvořeného uživatele
-   * @todo (jen) pokud bude potřeba další parametry typu "automaticky aktivovat
-   * a neposílat aktivační mail" a podobné válce.
+   * Zaregistruje uživatele podle asoc.pole $tab, které by mělo odpovídat
+   * struktuře tabulky uzivatele_hodnoty.
+   *
+   * Extra položky: heslo a heslo_kontrola (metoda si je převede na hash).
+   *
+   * @return int id nově vytvořeného uživatele
    */
   static function registruj($tab)
   {
-    if(!isset($tab['login_uzivatele']) || !isset($tab['email1_uzivatele']))
-      throw new Exception('špatný formát $tab (je to pole?)');
-    $tab['random']=$rand=randHex(20);
-    dbInsert('uzivatele_hodnoty',array_merge($tab,['registrovan'=>date("Y-m-d H:i:s")]));
-    $uid=dbInsertId();
-    return $uid;
+    $dbTab = $tab;
+    $chyby = [];
+    $mailRegex = '^[a-z0-9_\-\.]+@[a-z0-9_\-\.]+\.[a-z]+$';
+
+    // opravy
+    $dbTab = array_map(function ($e) {
+      return preg_replace('/\s+/', ' ', trim($e));
+    }, $dbTab);
+
+    $dbTab['email1_uzivatele'] = mb_strtolower($dbTab['email1_uzivatele']);
+    $dbTab['random'] = randHex(20);
+    $dbTab['heslo_md5'] = password_hash($dbTab['heslo'], PASSWORD_DEFAULT); // TODO setter?
+    $dbTab['registrovan'] = (new DateTimeCz)->formatDb();
+    // TODO fallback prázdná přezdívka -> mail?
+
+    // validace
+    // TODO co s položkami navíc? Attack vector na DB? (vzít ale v úvahu optional)
+    $validace = [
+      'jmeno_uzivatele'      => ['.+', 'jméno nesmí být prázdné'],
+      'prijmeni_uzivatele'   => ['.+', 'příjmení nesmí být prázdné'],
+      'login_uzivatele'      => ['.+', 'vyber si prosím přezdívku'], // TODO
+      'email1_uzivatele'     => [$mailRegex, 'zadej prosím platný e-mail'],
+      'pohlavi'              => ['^(m|f)$', 'vyber prosím pohlaví'],
+      'ulice_a_cp_uzivatele' => ['.+ [\d\/a-z]+$', 'vyplň prosím ulici, např. Česká 27'],
+      'mesto_uzivatele'      => ['.+', 'vyplň prosím město'],
+      'psc_uzivatele'        => ['^[\d ]+$', 'vyplň prosím PSČ, např. 602 00'],
+      'stat_uzivatele'       => ['^(1|2|-1)$', 'vyber prosím stát'],
+      'telefon_uzivatele'    => ['^[\d \+]+$', 'vyplň prosím telefon, např. +420 789 123 456'],
+      'datum_narozeni'       => ['\d+', 'vyber prosím datum narození'], // TODO
+      'heslo'                => ['.+', 'vyplň prosím heslo'],
+      'heslo_kontrola'       => ['.+', 'vyplň prosím heslo pro kontrolu'],
+    ];
+
+    foreach ($validace as $klic => list($regex, $popisChyby)) {
+      if (!isset($dbTab[$klic]) || !preg_match("/$regex/", $dbTab[$klic])) {
+        $chyby[$klic] = $popisChyby;
+      }
+    }
+
+    if ($dbTab['heslo'] != $dbTab['heslo_kontrola']) {
+      $chyby['heslo'] = 'hesla se neshodují';
+      $chyby['heslo_kontrola'] = 'hesla se neshodují';
+    }
+
+    if (self::zNicku($dbTab['login_uzivatele'])) {
+      $chyby['login_uzivatele'] = 'přezdívka už je zabraná. Pokud je tvoje, přihlaš se nebo si resetuj heslo';
+    }
+
+    if (self::zMailu($dbTab['email1_uzivatele'])) {
+      $chyby['email1_uzivatele'] = 'e-mail už máš zaregistrovaný. Přihlaš se nebo si resetuj heslo';
+    }
+
+    if ($chyby) {
+      $ch = Chyby::zPole($chyby);
+      $ch->globalniChyba('Registrace se nepodařila. Oprav prosím zvýrazněné položky.');
+      throw $ch;
+    }
+
+    // odstranění polí, co nebudou v DB
+    unset($dbTab['heslo']);
+    unset($dbTab['heslo_kontrola']);
+
+    // uložení
+    dbInsert('uzivatele_hodnoty', $dbTab);
+    $id = dbInsertId();
+    return $id;
   }
 
   /**
@@ -880,11 +941,13 @@ class Uzivatel {
    * Vrátí uživatele dle zadaného mailu.
    */
   static function zMailu($mail) {
+    if (!$mail) return null;
     $uzivatel = Uzivatel::zWhere('WHERE email1_uzivatele = $1', [$mail]);
     return isset($uzivatel[0]) ? $uzivatel[0] : null;
   }
 
   static function zNicku($nick) {
+    if (!$nick) return null;
     $uzivatel = Uzivatel::zWhere('WHERE login_uzivatele = $1', [$nick]);
     return isset($uzivatel[0]) ? $uzivatel[0] : null;
   }

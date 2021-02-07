@@ -94,6 +94,9 @@ if($m->bezStranky()) {
   ]);
   $t->parseEach($m->cssUrls(), 'url', 'index.extraCss');
   $t->parseEach($m->jsUrls(), 'url', 'index.extraJs');
+  if (!$m->bezPaticky()) {
+    $t->parse('index.paticka');
+  }
   $t->parse('index');
   $t->out('index');
   echo profilInfo();

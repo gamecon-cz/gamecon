@@ -1,50 +1,141 @@
 <?php
 
-$this->blackarrowStyl(true);
+/**
+ * Stránka pro registraci a úpravu registračních údajů.
+ *
+ * Pokud je uživatel přihlášen, stránka vždycky slouží jen k úpravě. Pokud
+ * uživatel přihlášen není, slouží vždy k registraci a poslání dál na přihlášku
+ * na GC (pokud reg jede).
+ *
+ * Pokud uživatel není přihlášen a zkusí se přihlásit na GC, přihláška ho pošle
+ * právě sem.
+ */
 
 
-$udb = []; // TODO temp
+/**
+ *
+ */
+$zpracujRegistraci = function () use ($u) {
+    if (!post('registrovat')) return;
+    if ($u) throw Chyby::jedna('Jiný uživatel v tomto prohlížeči už je přihlášený.');
 
-// pomocná funkce pro inputy
-$input = function ($nazev, $typ, $klic) use ($udb) {
-    $predvyplneno = $udb[$klic] ?? '';
+    $id = Uzivatel::registruj(post('formData'));
+    Uzivatel::prihlasId($id);
 
-    return '
-        <label class="formular_polozka">
-            '.$nazev.'
-            <input
-                type="'.$typ.'"
-                name="tab['.$klic.']"
-                value="'.$predvyplneno.'"
-                placeholder=""
-                required
-            >
-        </label>
-    ';
+    if (post('aPrihlasit')) {
+        oznameniPresmeruj(hlaska('regOkNyniPrihlaska'), 'prihlaska');
+    } else {
+        oznameni(hlaska('regOk'));
+    }
 };
 
-// pomocná funcke pro selecty
-$select = function ($nazev, $klic, $moznosti) use ($udb) {
-    //...
+/**
+ *
+ */
+$zpracujUpravu = function () use ($u) {
+    if (!post('upravit')) return;
+    if (!$u) throw Chyby::jedna('Došlo k odhlášení, přilaš se prosím znovu.');
 
-    $htmlMoznosti = '<option disabled value selected></option>';
-    foreach ($moznosti as $hodnota => $popis) {
-        $htmlMoznosti .= '<option value="'.$hodnota.'">'.$popis.'</option>';
+    $u->uprav($TODOtab);
+
+    back();
+};
+
+
+
+$this->blackarrowStyl(true);
+$this->bezPaticky(true);
+
+$chyby = null;
+try {
+    $zpracujRegistraci();
+    $zpracujUpravu();
+} catch (Chyby $e) {
+    $chyby = $e;
+}
+
+$formData = post('formData') ?? ($u ? $u->rawDb() : null);
+$souhlasilOsUdaje = $u || post('registrovat');
+if ($chyby && $chyby->globalniChyba()) {
+    Chyba::nastav($chyby->globalniChyba());
+}
+
+
+
+
+// TODO registrace?prihlaska ignorovat, vždy dávat default akci "a přihlásit, pokud to jde"
+// ale pozor, že přihlášený uživatel může chtít se pak regnout na GC
+// asi OK protože linky jsou vždy na přihlášku a ta jen hodí na registraci pokud uživatel neexistuje
+
+// ... na co vždy myslet: uživatel přihlášen/nepřihlášen, GC běží/neběží
+
+
+
+/**
+ * Pomocná funkce pro inputy
+ */
+$input = function ($nazev, $typ, $klic) use ($formData, $chyby) {
+    $predvyplneno = $formData[$klic] ?? '';
+
+    $chybaHtml = '';
+    $chybaTrida = '';
+    if ($chyby && ($chyba = $chyby->klic($klic))) {
+        $chybaHtml = '<div class="formular_chyba">'.$chyba.'</div>';
+        $chybaTrida = 'formular_polozka-chyba';
     }
 
     return '
-        <label class="formular_polozka">
+        <label class="formular_polozka '.$chybaTrida.'">
             '.$nazev.'
-            <select required>
-                '.$htmlMoznosti.'
-            </select>
+            <input
+                type="'.$typ.'"
+                name="formData['.$klic.']"
+                value="'.$predvyplneno.'"
+                placeholder=""
+            >
+            '.$chybaHtml.'
         </label>
     ';
+    // TODO required?
+};
+
+/**
+ * Pomocná funcke pro selecty
+ */
+$select = function ($nazev, $klic, $moznosti) use ($formData, $chyby) {
+    //...
+
+    $moznostiHtml = '<option disabled value selected></option>';
+    foreach ($moznosti as $hodnota => $popis) {
+        $selected = ($formData[$klic] ?? null) == $hodnota;
+        $selectedHtml = $selected ? 'selected' : '';
+        $moznostiHtml .= '<option value="'.$hodnota.'" '.$selectedHtml.'>'.$popis.'</option>';
+    }
+
+    $chybaHtml = '';
+    $chybaTrida = '';
+    if ($chyby && ($chyba = $chyby->klic($klic))) {
+        $chybaHtml = '<div class="formular_chyba">'.$chyba.'</div>';
+        $chybaTrida = 'formular_polozka-chyba';
+    }
+
+    return '
+        <label class="formular_polozka '.$chybaTrida.'">
+            '.$nazev.'
+            <select name="formData['.$klic.']">
+                '.$moznostiHtml.'
+            </select>
+            '.$chybaHtml.'
+        </label>
+    ';
+    // TODO required?
 };
 
 ?>
 
 <form method="post" class="formular_stranka">
+    <!-- TODO jiný nadpis pro registrovaného uživatele -->
+    <!-- TODO review možností v html starého formu -->
     <div class="formular_strankaNadpis">Registrace</div>
     <div class="fromular_strankaPodtitul">
         <div style="max-width: 250px">
@@ -100,11 +191,11 @@ $select = function ($nazev, $klic, $moznosti) use ($udb) {
         <?=$input('Přezdívka', 'text', 'login_uzivatele')?>
     </div>
 
-    <?=$input('Heslo', 'password', 'heslo2')?><!-- TODO toto je jinak asi -->
-    <?=$input('Heslo pro kontrolu', 'password', 'heslo3')?>
+    <?=$input('Heslo', 'password', 'heslo')?>
+    <?=$input('Heslo pro kontrolu', 'password', 'heslo_kontrola')?>
 
     <label style="margin: 30px 0 40px; display: block">
-        <input type="checkbox">
+        <input type="checkbox" required <?=$souhlasilOsUdaje ? 'checked' : ''?>>
         <span class="formular_duleziteInfo">
             Souhlasím se
             <span class="tooltip">
@@ -116,8 +207,19 @@ $select = function ($nazev, $klic, $moznosti) use ($udb) {
             </span>
         </span>
     </label>
+    <!-- TODO tooltip zakrývá submity -->
 
-    <input type="submit" value="Přihlásit na GameCon" class="formular_primarni">
-    <input type="submit" value="Jen vytvořit účet" class="formular_sekundarni">
+    <?php if ($u) { ?>
+        <input type="hidden" name="upravit" value="true">
+        <input type="submit" value="Uložit" class="formular_primarni">
+    <?php } else if (REG_GC) { ?>
+        <input type="hidden" name="registrovat" value="true">
+        <input type="submit" name="aPrihlasit" value="Přihlásit na GameCon" class="formular_primarni">
+        <input type="submit" value="Jen vytvořit účet" class="formular_sekundarni">
+    <?php } else { ?>
+        <input type="hidden" name="registrovat" value="true">
+        <input type="submit" value="Vytvořit účet" class="formular_primarni">
+        <!-- TODO spíš šedé tlačítko přihlásit na GC a tooltip "přihlašování na GameCon bude spuštěno 20.5. a " -->
+    <?php } ?>
 
 </form>

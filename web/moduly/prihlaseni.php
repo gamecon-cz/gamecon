@@ -1,6 +1,7 @@
 <?php
 
 $this->blackarrowStyl(true);
+$this->bezPaticky(true);
 
 $chyba = '';
 
