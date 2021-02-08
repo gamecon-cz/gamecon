@@ -1,9 +1,9 @@
-@levyOkraj: 45%;
+@levyOkraj: 76vh;
 
 .formular_stranka {
     min-height: 100vh;
     background:
-        url('../blackarrow/formular/pozadi.jpg') no-repeat fixed 0 0 ~'/' @levyOkraj+2 auto;
+        url('../blackarrow/formular/pozadi.jpg') no-repeat fixed 0 7vh ~'/' auto 93vh;
     padding: 60px 60px 120px; // dolní padding kvůli tooltipu na os. údaje
     padding-left: ~'calc(' @levyOkraj ~'+ 60px)';
     position: relative; // kvůli nadpisu
@@ -22,11 +22,11 @@
 
 .formular_strankaNadpis {
     position: fixed;
-    top: 21vw; // vw aby se neposouval nadpis vůči ikoně
+    top: ~'calc(43vh)'; // vh aby se neposouval nadpis vůči ikoně
     left: 0;
     text-align: center;
     font-weight: bold;
-    font-size: 73rel;
+    font-size: 64rel;
     color: #fff;
     width: @levyOkraj;
     @media (max-width: 600px) {
@@ -36,7 +36,7 @@
 
 .fromular_strankaPodtitul {
     position: fixed;
-    top: ~'calc(21vw + 110rel)';
+    top: ~'calc(43vh + 110rel)';
     left: 0;
     text-align: center;
     font-size: 16px;
@@ -87,6 +87,7 @@
 
 .formular_polozka {
     font-size: 13px;
+    letter-spacing: 0.03em;
     display: block;
     margin-bottom: 17px;
     max-width: 444px;
@@ -188,7 +189,7 @@ input[type=checkbox] {
 .formular_duleziteInfo {
     font-weight: bold;
     font-size: 14px;
-    & > a, .formular_duleziteOdkaz {
+    & > a {
         color: #E22630;
         text-decoration: underline;
     }

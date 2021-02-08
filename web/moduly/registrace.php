@@ -133,11 +133,11 @@ $select = function ($nazev, $klic, $moznosti) use ($formData, $chyby) {
                 Jsi jenom krok od toho stát se součástí naprosto boží akce!
             </div>
         </div>
-    <?php } ?>
 
-    <div class="formular_prihlasit formular_duleziteInfo">
-        Již mám účet <a href="prihlaseni">přihlásit se</a>
-    </div>
+        <div class="formular_prihlasit formular_duleziteInfo">
+            Již mám účet <a href="prihlaseni">přihlásit se</a>
+        </div>
+    <?php } ?>
 
     <h2 class="formular_sekceNadpis">Osobní</h2>
 
@@ -186,20 +186,21 @@ $select = function ($nazev, $klic, $moznosti) use ($formData, $chyby) {
     <?=$input('Heslo', 'password', 'heslo')?>
     <?=$input('Heslo pro kontrolu', 'password', 'heslo_kontrola')?>
 
+    <div class="formular_bydlisteTooltip" style="margin-top: 15px">
+        <span class="tooltip">
+            Shrnutí souhlasu
+            <div class="tooltip_obsah">
+                Prosíme o souhlas se zpracováním tvých údajů. Slibujeme, že je předáme jen těm, komu to bude kvůli vyloženě potřeba (např. vypravěčům nebo poskytovatlei ubytování). Kontaktovat tě budeme v rozumné míře pouze v souvislosti s GameConem.<br><br>
+                Plné právní znění najdeš <a href="legal" target="_blank">zde</a>
+            </div>
+        </span>
+    </div>
     <label style="margin: 30px 0 40px; display: block" class="formular_polozka-checkbox">
         <input type="checkbox" required <?=$souhlasilOsUdaje ? 'checked' : ''?>>
         <span class="formular_duleziteInfo">
-            Souhlasím se
-            <span class="tooltip">
-                <span class="formular_duleziteOdkaz">zpracováním osobních údajů</span>
-                <div class="tooltip_obsah">
-                    Prosíme o souhlas se zpracováním tvých údajů. Slibujeme, že je předáme jen těm, komu to bude kvůli vyloženě potřeba (např. vypravěčům nebo poskytovatlei ubytování). Kontaktovat tě budeme v rozumné míře pouze v souvislosti s GameConem.<br><br>
-                    Plné právní znění najdeš <a href="legal" target="_blank">zde</a>
-                </div>
-            </span>
+            Souhlasím se <a href="legal" target="_blank">zpracováním osobních údajů</a>
         </span>
     </label>
-    <!-- TODO tooltip zakrývá submity -->
 
     <?php if ($u) { ?>
         <input type="hidden" name="upravit" value="true">

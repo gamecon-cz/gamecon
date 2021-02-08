@@ -129,13 +129,14 @@
         - tj. oběť by musela mít přezdívku e-mail co nepoužívá a útočník si nastavit jako e-mail tento e-mail.
     - [x] nevyplněné položky v chromu
         - stačilo required=" "
-    - [ ] dodělávky od Martina
+    - [x] dodělávky od Martina
         - [x] odstranit patičku
-        - [ ] malé písmo popisků (co s tím?)
+        - [x] malé písmo popisků (co s tím? -- letter spacing)
         - [x] prohození inputů
-        - [ ] shrnutí souhlasu
+        - [x] shrnutí souhlasu
         - [x] hover pointer na checkbox label
         - [x] nové pozadí
+        - [x] pozadí na fixní výšku
     - [ ] (minor) zkusit udělat inputy non-required (problém s css podbarvením)
 
 - [ ] aktivity
