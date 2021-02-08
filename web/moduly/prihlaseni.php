@@ -40,7 +40,7 @@ if(post('prihlasit')) {
     <input type="password" name="heslo" placeholder="">
   </label>
 
-  <label style="margin: 30px 0; display: block">
+  <label style="margin: 30px 0; display: block" class="formular_polozka-checkbox">
     <input type="checkbox" name="trvale" value="true" checked>
     Trvale přihlásit
   </label>

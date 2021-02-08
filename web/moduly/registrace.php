@@ -146,8 +146,8 @@ $select = function ($nazev, $klic, $moznosti) use ($formData, $chyby) {
     <div class="formular_sloupce">
         <?=$input('Jméno', 'text', 'jmeno_uzivatele')?>
         <?=$input('Příjmení', 'text', 'prijmeni_uzivatele')?>
+        <?=$input('Přezdívka', 'text', 'login_uzivatele')?>
         <?=$input('Datum narození', 'date', 'datum_narozeni')?>
-        <?=$select('Pohlaví', 'pohlavi', ['f' => 'žena', 'm' => 'muž'])?>
     </div>
 
     <div class="formular_bydlisteTooltip">
@@ -180,13 +180,13 @@ $select = function ($nazev, $klic, $moznosti) use ($formData, $chyby) {
 
     <div class="formular_sloupce">
         <?=$input('Telefonní číslo', 'text', 'telefon_uzivatele')?>
-        <?=$input('Přezdívka', 'text', 'login_uzivatele')?>
+        <?=$select('Pohlaví', 'pohlavi', ['f' => 'žena', 'm' => 'muž'])?>
     </div>
 
     <?=$input('Heslo', 'password', 'heslo')?>
     <?=$input('Heslo pro kontrolu', 'password', 'heslo_kontrola')?>
 
-    <label style="margin: 30px 0 40px; display: block">
+    <label style="margin: 30px 0 40px; display: block" class="formular_polozka-checkbox">
         <input type="checkbox" required <?=$souhlasilOsUdaje ? 'checked' : ''?>>
         <span class="formular_duleziteInfo">
             Souhlasím se

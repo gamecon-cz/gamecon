@@ -3,8 +3,7 @@
 .formular_stranka {
     min-height: 100vh;
     background:
-        linear-gradient(to right, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.8) @levyOkraj, rgba(0, 0, 0, 0.0) @levyOkraj),
-        url('../blackarrow/formular/obrazek.jpg') no-repeat fixed 0 0 ~'/' @levyOkraj auto;
+        url('../blackarrow/formular/pozadi.jpg') no-repeat fixed 0 0 ~'/' @levyOkraj+2 auto;
     padding: 60px 60px 120px; // dolní padding kvůli tooltipu na os. údaje
     padding-left: ~'calc(' @levyOkraj ~'+ 60px)';
     position: relative; // kvůli nadpisu
@@ -23,11 +22,11 @@
 
 .formular_strankaNadpis {
     position: fixed;
-    top: 40vh;
+    top: 21vw; // vw aby se neposouval nadpis vůči ikoně
     left: 0;
     text-align: center;
     font-weight: bold;
-    font-size: 52px;
+    font-size: 73rel;
     color: #fff;
     width: @levyOkraj;
     @media (max-width: 600px) {
@@ -37,10 +36,11 @@
 
 .fromular_strankaPodtitul {
     position: fixed;
-    top: ~'calc(40vh + 80px)';
+    top: ~'calc(21vw + 110rel)';
     left: 0;
     text-align: center;
     font-size: 16px;
+    line-height: 1.5;
     color: #fff;
     width: @levyOkraj;
     box-sizing: border-box;
@@ -192,6 +192,11 @@ input[type=checkbox] {
         color: #E22630;
         text-decoration: underline;
     }
+}
+
+.formular_polozka-checkbox {
+    cursor: pointer;
+    input { cursor: pointer; }
 }
 
 // generický formulář - submity

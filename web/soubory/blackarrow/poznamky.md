@@ -130,6 +130,12 @@
     - [x] nevyplněné položky v chromu
         - stačilo required=" "
     - [ ] dodělávky od Martina
+        - [x] odstranit patičku
+        - [ ] malé písmo popisků (co s tím?)
+        - [x] prohození inputů
+        - [ ] shrnutí souhlasu
+        - [x] hover pointer na checkbox label
+        - [x] nové pozadí
     - [ ] (minor) zkusit udělat inputy non-required (problém s css podbarvením)
 
 - [ ] aktivity
