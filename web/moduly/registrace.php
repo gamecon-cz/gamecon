@@ -62,20 +62,13 @@ if ($chyby && $chyby->globalniChyba()) {
 
 
 
-
-// TODO registrace?prihlaska ignorovat, vždy dávat default akci "a přihlásit, pokud to jde"
-// ale pozor, že přihlášený uživatel může chtít se pak regnout na GC
-// asi OK protože linky jsou vždy na přihlášku a ta jen hodí na registraci pokud uživatel neexistuje
-
-// ... na co vždy myslet: uživatel přihlášen/nepřihlášen, GC běží/neběží
-
-
-
 /**
  * Pomocná funkce pro inputy
  */
 $input = function ($nazev, $typ, $klic) use ($formData, $chyby) {
     $predvyplneno = $formData[$klic] ?? '';
+
+    $requiredHtml = $typ == 'date' ? 'required' : '';
 
     $chybaHtml = '';
     $chybaTrida = '';
@@ -91,20 +84,18 @@ $input = function ($nazev, $typ, $klic) use ($formData, $chyby) {
                 type="'.$typ.'"
                 name="formData['.$klic.']"
                 value="'.$predvyplneno.'"
-                placeholder=""
+                placeholder=" "
+                '.$requiredHtml.'
             >
             '.$chybaHtml.'
         </label>
     ';
-    // TODO required?
 };
 
 /**
  * Pomocná funcke pro selecty
  */
 $select = function ($nazev, $klic, $moznosti) use ($formData, $chyby) {
-    //...
-
     $moznostiHtml = '<option disabled value selected></option>';
     foreach ($moznosti as $hodnota => $popis) {
         $selected = ($formData[$klic] ?? null) == $hodnota;
@@ -122,19 +113,17 @@ $select = function ($nazev, $klic, $moznosti) use ($formData, $chyby) {
     return '
         <label class="formular_polozka '.$chybaTrida.'">
             '.$nazev.'
-            <select name="formData['.$klic.']">
+            <select name="formData['.$klic.']" required>
                 '.$moznostiHtml.'
             </select>
             '.$chybaHtml.'
         </label>
     ';
-    // TODO required?
 };
 
 ?>
 
 <form method="post" class="formular_stranka">
-    <!-- TODO review možností v html starého formu -->
     <?php if ($u) { ?>
         <div class="formular_strankaNadpis">Nastavení</div>
     <?php } else { ?>

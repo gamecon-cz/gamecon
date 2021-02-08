@@ -121,10 +121,16 @@
     - [ ] (minor) trvalé přihlášení (možná nastavit jako default)
     - [ ] (minor) pokud by login měl přesměrovat sám na sebe, tak přesměrovat na homepage
     - [ ] (minor) když vejdu na login a jsem už přihlášen
-    - k inputům - nemusí to být jen POST prefil, může to být existující data u registrace (kvůli zamyšlení nad abstrakcí inputů)
+    - [x] k inputům - nemusí to být jen POST prefil, může to být existující data u registrace (kvůli zamyšlení nad abstrakcí inputů)
     - [ ] zrušit přezdívky: možná trik vyplnit do přezdívky v registraci tiše e-mail, pokud je prázdná
+    - [ ] ošetření unikátnosti e-mail vs login
         - zkontrolovat, jestli se nedá "ukrást" účet někomu tím, že použiju jeho e-mail jako svou přezdívku (nebo naopak).
-    - [ ] nevyplněné položky v chromu
+        - zjištěno: e-mail při loginu vždy vyhrává
+        - tj. oběť by musela mít přezdívku e-mail co nepoužívá a útočník si nastavit jako e-mail tento e-mail.
+    - [x] nevyplněné položky v chromu
+        - stačilo required=" "
+    - [ ] dodělávky od Martina
+    - [ ] (minor) zkusit udělat inputy non-required (problém s css podbarvením)
 
 - [ ] aktivity
     - [ ] po přepsání možno odstranit scroll sneak z webu úplně
