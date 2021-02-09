@@ -688,7 +688,7 @@ class Uzivatel {
     $validaceLoginu = function ($login) use ($u) {
       if (empty($login)) return 'vyber si prosím přezdívku';
 
-      $u2 = Uzivatel::zNicku($login);
+      $u2 = Uzivatel::zNicku($login) ?? Uzivatel::zMailu($login);
       if ($u2 && !$u) {
         return 'přezdívka už je zabraná. Pokud je tvoje, přihlaš se nebo si resetuj heslo';
       }
@@ -702,7 +702,7 @@ class Uzivatel {
         return 'zadej prosím platný e-mail';
       }
 
-      $u2 = Uzivatel::zMailu($mail);
+      $u2 = Uzivatel::zNicku($mail) ?? Uzivatel::zMailu($mail);
       if ($u2 && !$u) {
         return 'e-mail už máš zaregistrovaný. Přihlaš se nebo si resetuj heslo';
       }

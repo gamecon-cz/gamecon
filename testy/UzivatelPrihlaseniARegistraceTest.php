@@ -4,7 +4,7 @@
  * Testy pokrývající metody na přihlášení a registraci.
  */
 class UzivatelPrihlaseniARegistraceTest extends GcDbTest {
-    protected static $uzivatelTab = [
+    private static $uzivatelTab = [
         'jmeno_uzivatele'      => 'a',
         'prijmeni_uzivatele'   => 'b',
         'login_uzivatele'      => 'a',
@@ -20,7 +20,17 @@ class UzivatelPrihlaseniARegistraceTest extends GcDbTest {
         'heslo_kontrola'       => 'a',
     ];
 
-    function uzivatel($prepis = []) {
+    static function setUpBeforeClass() {
+        parent::setUpBeforeClass();
+
+        // "oběť" pro testy kolizí
+        Uzivatel::registruj(array_merge(self::$uzivatelTab, [
+            'login_uzivatele'  => 'login@obeti.cz',
+            'email1_uzivatele' => 'email@obeti.cz',
+        ]));
+    }
+
+    private function uzivatel($prepis = []) {
         return array_merge(self::$uzivatelTab, $prepis);
     }
 
@@ -30,6 +40,31 @@ class UzivatelPrihlaseniARegistraceTest extends GcDbTest {
         $this->assertNotNull(Uzivatel::prihlas('a', 'a'), 'přihlášení loginem');
         $this->assertNotNull(Uzivatel::prihlas('a@b.c', 'a'), 'přihlášení heslem');
         $this->assertNull(Uzivatel::prihlas('a', 'b'), 'nepřihlášení špatnými údaji');
+    }
+
+    function providerRegistrujDuplicity() {
+        return [
+            ['nekolizni_login', 'email@obeti.cz', 'email1_uzivatele', '/e-mail.*zaregistrovaný/'],
+            ['nekolizni_login', 'login@obeti.cz', 'email1_uzivatele', '/e-mail.*zaregistrovaný/'],
+            ['login@obeti.cz',  'ok@mail.com',    'login_uzivatele',  '/přezdívka.*zabraná/'],
+            ['email@obeti.cz',  'ok@mail.com',    'login_uzivatele',  '/přezdívka.*zabraná/'],
+        ];
+    }
+
+    /**
+     * @dataProvider providerRegistrujDuplicity
+     */
+    function testRegistrujDuplicity($login, $email, $klicChyby, $chyba) {
+        $e = null;
+        try {
+            Uzivatel::registruj($this->uzivatel([
+                'login_uzivatele'  => $login,
+                'email1_uzivatele' => $email,
+            ]));
+        } catch (Exception $e) {}
+
+        $this->assertInstanceOf(Chyby::class, $e);
+        $this->assertRegExp($chyba, $e->klic($klicChyby));
     }
 
     /**

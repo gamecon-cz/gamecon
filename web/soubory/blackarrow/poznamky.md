@@ -123,7 +123,7 @@
     - [ ] (minor) když vejdu na login a jsem už přihlášen
     - [x] k inputům - nemusí to být jen POST prefil, může to být existující data u registrace (kvůli zamyšlení nad abstrakcí inputů)
     - [ ] zrušit přezdívky: možná trik vyplnit do přezdívky v registraci tiše e-mail, pokud je prázdná
-    - [ ] ošetření unikátnosti e-mail vs login
+    - [x] ošetření unikátnosti e-mail vs login
         - zkontrolovat, jestli se nedá "ukrást" účet někomu tím, že použiju jeho e-mail jako svou přezdívku (nebo naopak).
         - zjištěno: e-mail při loginu vždy vyhrává
         - tj. oběť by musela mít přezdívku e-mail co nepoužívá a útočník si nastavit jako e-mail tento e-mail.
