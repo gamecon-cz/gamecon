@@ -269,6 +269,24 @@ function mezi($od, $do) {
 
 
 /**
+ * Zamezení csrf pro POST požadavky podle referreru.
+ *
+ * OWASP compliance: https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#identifying-source-origin-via-originreferer-header
+ */
+function omezCsrf() {
+  $referrerHost = parse_url($_SERVER['HTTP_REFERER'] ?? null, PHP_URL_HOST);
+
+  if(
+    $_SERVER['REQUEST_METHOD'] == 'POST' &&
+    $referrerHost != $_SERVER['HTTP_HOST']
+  ) {
+    // výjimka, aby došlo k zalogování
+    throw new Exception('Referrer POST požadavku neodpovídá doméně.');
+  }
+}
+
+
+/**
  * Předá oznámení volajícímu skritpu, vyvolá reload
  * @param back bool má se reloadovat?
  */

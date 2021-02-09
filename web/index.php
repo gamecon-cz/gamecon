@@ -6,6 +6,7 @@ require __DIR__ . '/tridy/menu.php';
 require __DIR__ . '/tridy/vyjimky.php';
 
 if(HTTPS_ONLY) httpsOnly();
+omezCsrf();
 
 $u = Uzivatel::zSession();
 
