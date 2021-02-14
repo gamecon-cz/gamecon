@@ -101,13 +101,12 @@ class Modul {
 
   /** Vrátí výchozí šablonu pro tento modul (pokud existuje) */
   protected function sablona() {
-    if($this->blackarrowStyl) {
-      $soubor = 'sablony/blackarrow/'.$this->nazev().'.xtpl';
-    } else {
-      $soubor = 'sablony/'.$this->nazev().'.xtpl';
-    }
+    $soubor = 'sablony/'.$this->nazev().'.xtpl';
+    $blackarrowSoubor = 'sablony/blackarrow/'.$this->nazev().'.xtpl';
 
-    if(is_file($soubor)) {
+    if (is_file($blackarrowSoubor)) {
+      return new XTemplate($blackarrowSoubor);
+    } else if (is_file($soubor)) {
       return new XTemplate($soubor);
     } else {
       return null;

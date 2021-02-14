@@ -2,7 +2,6 @@
 
 /** @var Modul $this */
 $this->blackarrowStyl(true);
-$t = $this->sablona();
 
 $offsety = [120, 320, 280];
 $typy = serazenePodle(Typ::zViditelnych(), 'poradi');

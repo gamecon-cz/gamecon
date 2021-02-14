@@ -18,7 +18,7 @@
         - podle ne/přihlášenosti, případně spuštění regu
     - [ ] hover na mobilu
         - na některých mobilech možná nejde "kliknout" na rozbalovací části menu, otestovat, ověřit
-    - [ ] (minor) na fullHD snížit počet sloupců
+    - [ ] (minor) na fullHD snížit počet sloupců (grid?)
 
 - [ ] titulka
     - [x] proporciální hlavička
@@ -115,9 +115,8 @@
     - taky ale výchozí velikost písma, vzdálenost písmen, řádkování
     - čím později, tím větší riziko fuckupu velikostí / marginů někde
 
-- [ ] přihlášení, registrace, přihláška
+- [ ] přihlášení, registrace
     - [x] csrf (zkusit, možná jde nějak headrem omezit)
-    - [ ] (minor) tlačítko (+/-) pro js přidávání/ubírání triček za letu
     - [x] (minor) trvalé přihlášení (možná nastavit jako default)
     - [ ] (minor) pokud by login měl přesměrovat sám na sebe, tak přesměrovat na homepage
     - [ ] (minor) když vejdu na login a jsem už přihlášen
@@ -138,6 +137,11 @@
         - [x] nové pozadí
         - [x] pozadí na fixní výšku
     - [ ] (minor) zkusit udělat inputy non-required (problém s css podbarvením)
+
+- [ ] přihláška
+    - [ ] integrace do adminu (styly)
+    - [ ] projet TODOs
+    - [ ] (minor) tlačítko (+/-) pro js přidávání/ubírání triček za letu
 
 - [ ] aktivity
     - [ ] po přepsání možno odstranit scroll sneak z webu úplně

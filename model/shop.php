@@ -57,6 +57,7 @@ class Shop
   protected static $dny = ['středa', 'čtvrtek', 'pátek', 'sobota', 'neděle'];
 
   public const
+    // typy předmětů
     PREDMET = 1,
     UBYTOVANI = 2,
     TRICKO = 3,
@@ -64,6 +65,10 @@ class Shop
     VSTUPNE = 5,
     PARCON = 6,
     PROPLACENI_BONUSU = 7,
+
+    // stavy předmětů
+    POZASTAVENY = 3,
+
     PN_JIDLO = 'cShopJidlo',          // post proměnná pro jídlo
     PN_JIDLO_ZMEN = 'cShopJidloZmen'; // post proměnná indikující, že se má jídlo aktualizovat
 
@@ -221,22 +226,85 @@ class Shop
    */
   function predmetyHtml()
   {
-    $out = '';
-    if(current($this->predmety)['stav'] == 3) $out .= 'Objednávka předmětů je ukončena.<br>';
-    $out .= $this->vyberPlusminus($this->predmety);
-    if(current($this->tricka)['stav'] == 3) $out .= 'Objednávka triček je ukončena.<br>';
-    $out .= $this->vyberSelect($this->tricka);
+    $t = new XTemplate(__DIR__ . '/shop-predmety.xtpl');
 
-    // informace o slevách (jídlo nevypisovat, protože tabulka správně vypisuje cenu po slevě)
-    $slevy = $this->u->finance()->slevyVse();
-    $slevy = array_diff($slevy, ['jídlo zdarma', 'jídlo se slevou']);
-    if($slevy) {
-      $titul = mb_strtolower($this->u->status());
-      $bonusy = implode(', ', $slevy);
-      $out .= "<p><i>Jako $titul máš místo uvedených cen ještě následující bonusy: $bonusy.</i></p>";
+    // předměty
+    if (current($this->predmety)['stav'] == self::POZASTAVENY) {
+      $t->parse('predmety.predmetyPozastaveny');
     }
 
-    return $out;
+    foreach ($this->predmety as $predmet) {
+      $t->assign([
+        'nazev'          => $predmet['nazev'],
+        'cena'           => round($predmet['cena_aktualni']).'&thinsp;Kč',
+        'kusu_uzivatele' => $predmet['kusu_uzivatele'],
+        'postName'       => $this->klicP.'['.$predmet['id_predmetu'].']',
+      ]);
+
+      if ($predmet['nabizet']) {
+        $t->parse('predmety.predmet.nakup');
+        $t->parse('predmety.predmet');
+      } else if ($predmet['kusu_uzivatele']) {
+        $t->parse('predmety.predmet.fixniPocet');
+        $t->parse('predmety.predmet');
+      } else {
+        // přeskočit
+      }
+    }
+
+    // trička
+    $zamceno = false;
+    if (current($this->tricka)['stav'] == self::POZASTAVENY) {
+      $t->parse('predmety.trickaPozastavena');
+      $zamceno = true;
+    }
+
+    $koupenaTricka = [];
+    foreach ($this->tricka as $tricko) {
+      for ($i = 0; $i < $tricko['kusu_uzivatele']; $i++) {
+        $koupenaTricka[] = $tricko['id_predmetu'];
+      }
+    }
+
+    $selecty = $koupenaTricka;
+    $selecty[] = 0;
+
+    foreach ($selecty as $i => $pid) {
+      $t->assign([
+        'postName' => $this->klicT . '[' . $i . ']',
+        'cena'     => round($this->cenaTricka()) . '&thinsp;Kč',
+        'rok'      => ROK,
+      ]);
+
+      // nagenerovat výběr triček
+      if (!$zamceno || $pid == 0) {
+        $t->assign([
+          'id_predmetu' => 0,
+          'nazev'       => '(žádné tričko)',
+        ]);
+        $t->parse('predmety.tricko.moznost');
+      }
+
+      foreach ($this->tricka as $tricko) {
+        $koupene = ($tricko['id_predmetu'] == $pid);
+
+        if ($zamceno && !$koupene) {
+          continue;
+        }
+
+        $t->assign([
+          'id_predmetu' => $tricko['id_predmetu'],
+          'nazev'       => ($zamceno ? '&#128274;' : '') . $tricko['nazev'],
+          'selected'    => $koupene ? 'selected' : '',
+        ]);
+        $t->parse('predmety.tricko.moznost');
+      }
+
+      $t->parse('predmety.tricko');
+    }
+
+    $t->parse('predmety');
+    return $t->text('predmety');
   }
 
   /**
@@ -417,120 +485,9 @@ class Shop
   // Protected věci //
   ////////////////////
 
-  /**
-   * Vrátí html s výběrem předmetů s každou možností zvlášť a vybírátky + a -
-   * @todo nerozlišovat hardcode jídlo, ale např. přidat do db sloupec limit
-   *  objednávek nebo něco podobného
-   * @todo dodělat ne/dostupnost předmětu do db
-   */
-  protected function vyberPlusminus($predmety) {
-    foreach($predmety as &$p) {
-      $name = $this->klicP.'['.$p['id_predmetu'].']';
-      $p['cena'] = round($p['cena_aktualni']).'&thinsp;Kč';
-      $p['vybiratko'] = '';
-      if(!$p['nabizet'] && $p['kusu_uzivatele']) {
-        // pouze znovuposlat stávající stav
-        $p['vybiratko'] = '<input type="hidden"  name="'.$name.'" value="'.$p['kusu_uzivatele'].'">&#128274;';
-      } elseif($p['nabizet'] && $p['typ'] == 4) {
-        // checkbox pro jídlo
-        $checked = $p['kusu_uzivatele'] ? 'checked' : '';
-        $p['vybiratko'] = '<input type="checkbox" name="'.$name.'" value="1" '.$checked.'>';
-      } elseif($p['nabizet']) {
-        // plusmínus pro předměty
-        $p['vybiratko'] = '
-          <input type="hidden"  name="'.$name.'" value="'.$p['kusu_uzivatele'].'">
-          <a href="#" onclick="return sniz('.$p['id_predmetu'].', this)" class="minus'.($p['kusu_uzivatele']?'':' neaktivni').'">-</a>
-          <a href="#" onclick="return prikup('.$p['id_predmetu'].' ,this)" class="plus">+</a>
-        ';
-      }
-    }
-    unset($p); //php internal hack, viz dokumentace referencí a foreach
-
-    ob_start();
-    ?>
-    <script>
-      function lokator(id) {
-        return $('[name="<?=$this->klicP?>['+id+']"]');
-      }
-      function prikup(id, tlacitko) {
-        var pocet = lokator(id).val();
-        pocet++;
-        lokator(id).val(pocet);
-        $('#pocet'+id).html(pocet);
-        if(pocet==1) // po inkrementu
-          $(tlacitko).siblings('.minus').removeClass('neaktivni');
-        return false;
-      }
-      function sniz(id, tlacitko) {
-        var pocet = lokator(id).val();
-        if(pocet>0) {
-          pocet--;
-          lokator(id).val(pocet);
-          $('#pocet'+id).html(pocet);
-        }
-        if(pocet<=0) // po dekrementu
-          $(tlacitko).addClass('neaktivni');
-        return false;
-      }
-    </script>
-    <table class="predmety cShopPredmety">
-      <?php foreach($predmety as $p) { ?>
-      <?php if($p['nabizet'] || $p['kusu_uzivatele']) { ?>
-      <tr>
-        <td><?=$p['nazev']?></td>
-        <td><?=$p['cena']?></td>
-        <td>
-          <span id="pocet<?=$p['id_predmetu']?>"><?=$p['kusu_uzivatele']?></span>&times;
-        </td>
-        <td><?=$p['vybiratko']?></td>
-      </tr>
-      <?php } ?>
-      <?php } ?>
-    </table>
-    <?php
-    return ob_get_clean();
-  }
-
-  /**
-   * Vrátí html kód s výběrem předmětů pomocí selectboxu s automatickým
-   * vytvářením dalších boxů pro výběr více kusů
-   */
-  protected function vyberSelect($predmety) {
-    // načtení aktuálně koupených triček
-    $koupene = [];
-    foreach($predmety as $p) {
-      for($i = 0; $i < $p['kusu_uzivatele']; $i++) {
-        $koupene[] = $p['id_predmetu'];
-      }
-    }
-    $koupene[] = 0; // plus jedno "default" na závěr
-    // tisk boxů
-    $out = '';
-    $i = 0;
-    foreach($koupene as $pid) {
-      $out .= '<select name="'.$this->klicT.'['.$i.']">';
-      $trikaOut = '';
-      $zamceno = '';
-      foreach($this->tricka as $t) {
-        // nagenerovat výběry triček, případně pokud je aktuální tričko zamčené, nagenerovat jediný výběr zvlášť
-        $sel = $t['id_predmetu'] == $pid ? 'selected' : '';
-        if($sel || $t['nabizet']) {
-          $trikaOut .= '<option value="'.$t['id_predmetu'].'" '.$sel.'>'.$t['nazev'].'</option>';
-        }
-        if($sel && !$t['nabizet']) {
-          $zamceno = '<option value="'.$t['id_predmetu'].'" '.$sel.'>&#128274;'.$t['nazev'].'</option>';
-        }
-      }
-      if(!$zamceno || $pid == 0) {
-        $out .= '<option value="0">(žádné tričko)</option>';
-      }
-      $out .= $zamceno ?: $trikaOut; // pokud je zamčeno, nevypisovat jiné nabídky
-      $out .= '</select>';
-      $out .= ' '.round($t['cena_aktualni']).'&thinsp;Kč';
-      $out .= '<br>';
-      $i++;
-    }
-    return $out;
+  private function cenaTricka() {
+    $ceny = array_map(function ($t) { return $t['cena_aktualni']; }, $this->tricka);
+    return max($ceny);
   }
 
   /**

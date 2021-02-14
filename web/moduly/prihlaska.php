@@ -1,5 +1,8 @@
 <?php
 
+$this->blackarrowStyl(true);
+$this->bezPaticky(true);
+
 /**
  * Pomocná funkce pro náhled předmětu pro aktuální ročník
  */
@@ -61,6 +64,17 @@ if(isset($_SESSION['ga_tracking_prihlaska'])) {
   unset($_SESSION['ga_tracking_prihlaska']);
 }
 
+// informace o slevách (jídlo nevypisovat, protože tabulka správně vypisuje cenu po slevě)
+$slevy = $u->finance()->slevyVse();
+$slevy = array_diff($slevy, ['jídlo zdarma', 'jídlo se slevou']);
+if ($slevy) {
+  $t->assign([
+    'slevy' => implode(', ', $slevy),
+    'titul' => mb_strtolower($u->status()),
+  ]);
+  $t->parse('prihlaska.slevy');
+}
+
 $t->assign([
   'a'         =>  $u->koncA(),
   'gaTrack'   =>  $gaTrack,
@@ -83,7 +97,7 @@ $t->assign([
   'nicknack'    =>  nahledPredmetu('nicknack.jpg'),
   'nicknack_m'  =>  nahledPredmetu('nicknack_m.jpg'),
   'batoh'    =>  nahledPredmetu('batoh.jpg'),
-  'batoh_m'  =>  nahledPredmetu('batoh_m.jpg'),  
+  'batoh_m'  =>  nahledPredmetu('batoh_m.jpg'),
 ]);
 
 $t->parse($u->gcPrihlasen() ? 'prihlaska.prihlasen' : 'prihlaska.neprihlasen');
