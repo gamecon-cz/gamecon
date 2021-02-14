@@ -5,6 +5,7 @@ $this->bezPaticky(true);
 
 /**
  * Pomocná funkce pro náhled předmětu pro aktuální ročník
+ * TODO spíš vyhodit? - možná ručně přidat ?v k souboru
  */
 function nahledPredmetu($soubor) {
   $cesta = 'soubory/obsah/materialy/' . ROK . '/' . $soubor;
@@ -75,6 +76,23 @@ if ($slevy) {
   $t->parse('prihlaska.slevy');
 }
 
+// náhledy
+$nahledy = [
+  ['tricko.jpg',   'tricko_m.jpg',   'Tričko'],
+  ['kostka.jpg',   'kostka_m.jpg',   'Kostka'],
+  ['placka.jpg',   'placka_m.jpg',   'Placka'],
+  ['nicknack.jpg', 'nicknack_m.jpg', 'Nicknack'],
+  ['batoh.jpg',    'batoh_m.jpg',    'Batoh'],
+];
+foreach($nahledy as $nahled) {
+  $t->assign([
+    'obrazek'   => nahledPredmetu($nahled[0]),
+    'miniatura' => nahledPredmetu($nahled[1]),
+    'nazev'     => $nahled[2],
+  ]);
+  $t->parse('prihlaska.nahled');
+}
+
 $t->assign([
   'a'         =>  $u->koncA(),
   'gaTrack'   =>  $gaTrack,
@@ -85,19 +103,6 @@ $t->assign([
   'ulozitNeboPrihlasit' =>  $u->gcPrihlasen() ? 'Uložit změny' : 'Přihlásit na GameCon',
   'vstupne'   =>  $shop->vstupneHtml(),
   'pomoc'     =>  $pomoc->html(),
-
-  // náhledy předmětů
-  // záměrně rozkopírované, generování pomocí cyklu bylo neprůhledné
-  'tricko'    =>  nahledPredmetu('tricko.jpg'),
-  'tricko_m'  =>  nahledPredmetu('tricko_m.jpg'),
-  'kostka'    =>  nahledPredmetu('kostka.jpg'),
-  'kostka_m'  =>  nahledPredmetu('kostka_m.jpg'),
-  'placka'    =>  nahledPredmetu('placka.jpg'),
-  'placka_m'  =>  nahledPredmetu('placka_m.jpg'),
-  'nicknack'    =>  nahledPredmetu('nicknack.jpg'),
-  'nicknack_m'  =>  nahledPredmetu('nicknack_m.jpg'),
-  'batoh'    =>  nahledPredmetu('batoh.jpg'),
-  'batoh_m'  =>  nahledPredmetu('batoh_m.jpg'),
 ]);
 
 $t->parse($u->gcPrihlasen() ? 'prihlaska.prihlasen' : 'prihlaska.neprihlasen');

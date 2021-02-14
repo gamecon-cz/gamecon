@@ -36,7 +36,7 @@ $t->assign([
 ]);
 
 
-/*
+/* TODO
 $this->bezMenu(true);
 $this->bezDekorace(true);
 

@@ -1,3 +1,72 @@
-.prihlaska_predmety {
-    max-width: 710px;
+.prihlaska h2 {
+    font-size: 40px;
+    margin: 80px 0 40px;
+}
+
+.prihlaska_sekce {
+    padding-right: 320 + 60px;
+    box-sizing: border-box;
+    max-width: 1100px;
+    margin: auto;
+}
+
+.prihlaska_sekceObal {
+    margin: 0 16px;
+    background-color: #10111A;
+    color: #fff;
+    h2 {
+        margin-top: 0;
+        padding-top: 60px;
+    }
+}
+
+// náhledy
+.prihlaska_nahledy {
+    margin-top: 36px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    column-gap: 12px;
+    row-gap: 12px;
+}
+
+.prihlaska_nahled {
+    background-color: #f8f8f8;
+    max-height: 75px;
+    overflow: hidden;
+    & > img {
+        display: block;
+        width: 100%;
+    }
+}
+
+// infopruh
+.prihlaska_infoPruh {
+    width: 320px;
+    float: right;
+    margin-right: -320 - 60px;
+}
+
+.prihlaska_info {
+    background-color: #FDC689;
+    color: #10111A;
+    margin-bottom: 16px;
+    padding: 24-16px 50px 24-16px 24px;
+    font-size: 14px;
+    line-height: 20/14;
+    letter-spacing: 0.03em;
+    position: relative; // kvůli symbolu
+    p { margin: 16px 0; }
+    h3 { margin: 16px 0; font-size: 18px; }
+    ul { padding-left: 12px; }
+}
+
+.prihlaska_info-ikona {
+    font-weight: bold;
+    padding: 24-16px 24px 24-16px 58px;
+    background: #FDC689 url('../blackarrow/prihlaska/i.svg') no-repeat 22px 22px;
+}
+
+.prihlaska_infoSymbol {
+    display: block;
+    position: absolute;
 }

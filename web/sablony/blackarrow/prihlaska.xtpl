@@ -1,92 +1,114 @@
 <!-- begin:prihlaska -->
 
-<style>.menu { display:none; }</style><!-- TODO -->
-
 <h1>Přihláška na GameCon</h1>
 
-<form method="post">
+<!-- begin:prihlasen -->
+<p>Jsi přihlášen{a} na GameCon {rok}. Níž si můžeš upravit svou přihlášku, tj. objednané ubytování a předměty až téměř do začátku GameConu.</p>
+<!-- end:prihlasen -->
 
-  <!-- begin:prihlasen -->
-  <p>Jsi přihlášen{a} na GameCon {rok}. Níž si můžeš upravit svou přihlášku, tj. objednané ubytování a předměty až téměř do začátku GameConu.</p>
-  <!-- end:prihlasen -->
+<!-- begin:neprihlasen -->
+<p>Vyplněním údajů se přihlásíš na GameCon {rok}. Můžeš si vybrat předměty a ubytování s GameCon tématikou, které budeš chtít. Výber jde i později změnit.</p>
+<!-- end:neprihlasen -->
 
-  <!-- begin:neprihlasen -->
-  <p>Vyplněním údajů se přihlásíš na GameCon {rok}. Můžeš si vybrat předměty a ubytování s GameCon tématikou, které budeš chtít. Výber jde i později změnit.</p>
-  <!-- end:neprihlasen -->
+<form method="post" class="prihlaska">
 
-  <hr>
+  <div class="prihlaska_sekce">
+    <h2>Předměty</h2>
 
-  <!-- TODO
-  <div class="nahledy">
-    <a href="{batoh}" class="lightbox" title="Batoh">
-    <img src="{batoh_m}"></a>
-    <a href="{kostka}" class="lightbox" title="Kostka">
-    <img src="{kostka_m}"></a>
-    <a href="{nicknack}" class="lightbox" title="Nicknack">
-    <img src="{nicknack_m}"></a>
-    <a href="{placka}" class="lightbox" title="Placka">
-    <img src="{placka_m}"></a>
-    <a href="{tricko}" class="lightbox" title="Tričko">
-    <img src="{tricko_m}"></a>
-  </div>
-  -->
+    <div class="prihlaska_infoPruh">
+      <div class="prihlaska_info">
+        <img class="prihlaska_infoSymbol" src="soubory/blackarrow/prihlaska/hra.png" style="top: -40px; right: -19px">
+        <h3>GameCon merch</h3>
+        <p>Placek, kostek i triček s logem GameConu si můžeš objednat více. Stačí kliknout na tlačítko + nebo u triček vyplnit jedno a po potvrzení formuláře se ti nabídne položka pro výběr dalšího.<br>
+        <b>Výběr jde změnit do 30.6.</b></p>
+      </div>
+      <!-- begin: slevy -->
+      <div class="prihlaska_info prihlaska_info-ikona">
+        <p>Jako {titul} máš nárok na následující bonusy (pokud si je objednáš): {slevy}.</p>
+      </div>
+      <!-- end: slevy -->
+    </div>
 
-  <h2>Předměty</h2>
-
-  <div class="prihlaska_predmety">
     {predmety}
+
+    <div class="prihlaska_nahledy">
+      <!-- begin: nahled -->
+      <a href="{obrazek}" class="prihlaska_nahled TODO lightbox" title="{nazev}">
+        <img src="{miniatura}">
+      </a>
+      <!-- end: nahled -->
+    </div>
   </div>
 
-  <!-- begin: slevy -->
-  <p>Jako {titul} máš nárok na následující bonusy (pokud si je objednáš): {slevy}.</p>
-  <!-- end: slevy -->
+  <!--------------------------------------------------------------------------->
 
-  <p>Placek, kostek i triček s logem GameConu si můžeš objednat více. Stačí kliknout na tlačítko + nebo u triček vyplnit jedno a po potvrzení formuláře se ti nabídne položka pro výběr dalšího. Výběr jde změnit do 30.6.</p>
+  <div class="prihlaska_sekce">
+    <h2>Jídlo</h2>
 
-  <hr>
+    <div class="prihlaska_infoPruh">
+      <div class="prihlaska_info">
+        <img class="prihlaska_infoSymbol" src="soubory/blackarrow/prihlaska/rum.png" style="top: -48px; right: -8px">
+        <h3>Informace ke stravování</h3>
+        <ul>
+          <li>Jídlo je možné objednat nebo zrušit do 14.7.</li>
+          <li>Na výběr je z 3–5 jídel, která jsou vždy stejná na oběd i večeři a jedno vegetariánské jídlo.</li>
+        </ul>
+      </div>
+    </div>
 
-  <h2 style="margin-bottom:0"><span class="hinted i">Jídlo <span class="hint">
-    <ul class="seznam-bez-okraje">
-    <li>Jídlo je možné objednat nebo zrušit do 14.7.</li>
-    <li>Na výběr je z 3–5 jídel, která jsou vždy stejná na oběd i večeři a jedno vegetariánské jídlo.</li>
-    </ul>
-  </span></span></h2>
-  {jidlo}
+    {jidlo}
+  </div>
 
-  <hr>
+  <!--------------------------------------------------------------------------->
 
-  <h2 style="margin-bottom:0"><span class="hinted i">
-    Ubytování
-    <span class="hint" style="z-index: 9999">
-      <ul class="seznam-bez-okraje">
-      <li>Ubytování je možné objednat nebo zrušit do 14.7.</li>
-      <li>Čísla ukazují počet obsazených míst / celkem.</li>
-      <li>Ubytování je k dispozici od středy, program začíná ve <strong>čtvrtek</strong> v poledne.</li>
-      <li>Ubytování v neděli znamená noc z neděle na pondělí, kdy už neprobíhá program. V pondělí je potřeba pokoj vyklidit do 9:00.</li>
-      </ul>
-    </span>
-  </span></h2>
-  <div class="ubytovani">{ubytovani}</div>
+  <div class="prihlaska_sekce">
+    <h2>Ubytování</h2>
 
-  <hr>
+    <div class="prihlaska_infoPruh">
+      <div class="prihlaska_info">
+        <img class="prihlaska_infoSymbol" src="soubory/blackarrow/prihlaska/mapa.png" style="top: -33px; right: -15px">
+        <h3>Informace k ubytování</h3>
+        <ul>
+          <li>Ubytování je možné objednat nebo zrušit do 14.7.</li>
+          <li>Čísla ukazují počet obsazených míst / celkem.</li>
+          <li>Ubytování je k dispozici od středy, program začíná ve <strong>čtvrtek</strong> v poledne.</li>
+          <li>Ubytování v neděli znamená noc z neděle na pondělí, kdy už neprobíhá program. V pondělí je potřeba pokoj vyklidit do 9:00.</li>
+        </ul>
+      </div>
+      <!-- TODO org info / slevy -->
+    </div>
 
-  <h2 style="margin-bottom: 1.3em"><span class="hinted i">Dobrovolné vstupné <span class="hint" style="z-index: 9999">
-    Je spousta příjemných maličkostí, které by nám zpříjemnily organizaci a vám udělaly lepší GameCon. Již z minulého dobrovolného vstupného jsme pro tento rok zajistili:
+    {ubytovani}
+  </div>
 
-    <ul>
-    <li>prodlouženou otevírací dobu deskoherny</li>
-    <li>koncert a improshow</li>
-    <li>několik odměn do soutěží a miniher</li>
-    <li>rekvizity pro hry</li>
-    <li>ventilátory pro epické hraní a wargaming</li>
-    </ul>
+  <!--------------------------------------------------------------------------->
 
-    To stejné a možná i něco navíc chceme zajistit i příští rok. Vašich příspěvků si moc vážíme a děkujeme za ně.
-  </span></span></h2>
-  {vstupne}
-  <div class="pomoc">{pomoc}</div>
+  <div class="prihlaska_sekceObal prihlaska_sekceObal-vstupne">
+  <div class="prihlaska_sekce">
+    <h2>Dobrovolné vstupné</h2>
 
-  <hr>
+    <div class="prihlaska_infoPruh">
+      <div class="prihlaska_info">
+        <h3>K čemu slouží vstupné</h3>
+        <p><b>Je spousta příjemných maličkostí, které by nám zpříjemnily organizaci a vám udělaly lepší GameCon. Již z minulého dobrovolného vstupného jsme pro tento rok zajistili:</b></p>
+        <ul>
+          <li>prodlouženou otevírací dobu deskoherny</li>
+          <li>koncert a improshow</li>
+          <li>několik odměn do soutěží a miniher</li>
+          <li>rekvizity pro hry</li>
+          <li>ventilátory pro epické hraní a wargaming</li>
+        </ul>
+        <p>To stejné a možná i něco navíc chceme zajistit i příští rok. Vašich příspěvků si moc vážíme a děkujeme za ně.</p>
+      </div>
+    </div>
+
+    {vstupne}
+  </div>
+  </div>
+
+  <!--------------------------------------------------------------------------->
+
+  <div class="pomoc">{pomoc}</div><!-- TODO -->
 
   <input type="submit" name="wut" value="{ulozitNeboPrihlasit}">
   <!-- begin:odhlasit -->
@@ -97,5 +119,11 @@
 </form>
 
 {gaTrack}
+
+<link rel="stylesheet" href="soubory/blackarrow/_spolecne/baguetteBox.min.css">
+<script src="soubory/blackarrow/_spolecne/baguetteBox.min.js"></script>
+<script>
+  baguetteBox.run('.prihlaska_nahledy');
+</script>
 
 <!-- end:prihlaska -->
