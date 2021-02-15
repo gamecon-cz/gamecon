@@ -1,37 +1,46 @@
 <!-- begin:ubytovani -->
 
-<!-- begin:konec -->Objednávání ubytování online bylo zastaveno, změny jsou možné na místě.<br><!-- end:konec -->
+<!-- begin:konec -->
+<p>Objednávání ubytování online bylo zastaveno, změny jsou možné na místě.</p>
+<!-- end:konec -->
 
 <div style="width:9em; float:left; overflow: hidden;">
-  <div>&nbsp;</div>
+  <div class="shop_den shopUbytovani_den">&nbsp;</div>
   <!-- begin:typ -->
-    <!-- begin:normal -->
-    <div style="height:{vyska}">{typ}</div>
-    <!-- end:normal -->
-    <!-- begin:hinted -->
-    <div style="height:{vyska}"><span class="hinted i">{typ} <span class="hint">{hint}</span></span></div>
-    <!-- end:hinted -->
-  <!-- end:typ -->
-  <div>Žádné</div>
-</div>
 
-<div style="width:5em; float:left">
-  <div>&nbsp;</div>
-  <!-- begin:cena -->
-  <div style="text-align:right;height:{vyska};line-height:{vyska}">{cena}&thinsp;Kč&emsp;</div>
-  <!-- end:cena -->
+    <!-- begin:normal -->
+    <div class="shop_popis shopUbytovani_radek">
+      {typ}
+      <div class="shop_popisCena">{cena}&thinsp;Kč</div>
+    </div>
+    <!-- end:normal -->
+
+    <!-- begin:hinted -->
+    <div class="shop_popis shopUbytovani_radek tooltip">
+      {typ}
+      <div class="shop_popisCena">{cena}&thinsp;Kč</div>
+      <div class="tooltip_obsah">{hint}</div>
+    </div>
+    <!-- end:hinted -->
+
+  <!-- end:typ -->
+  <div class="shopUbytovani_zadne">
+    <div class="shop_popis">Žádné</div>
+  </div>
 </div>
 
 <!-- begin:den -->
-<div style="width:4.7em; float:left">
-  <div>{den}</div>
+<div class="shopUbytovani_sloupec">
+  <div class="shop_den shopUbytovani_den">{den}</div>
   <!-- begin:typ -->
-  <div style="height:{vyska};line-height:{vyska}">
-    <input style="margin:0" type="radio" name="{postnameDen}" value="{idPredmetu}" {sel} {lock}>
-    <span style="font-size:80%;position:relative;top:-2px">{obsazeno}/{kapacita}</span>
+  <div class="shopUbytovani_radek">
+    <input type="radio" class="shopUbytovani_radio" name="{postnameDen}" value="{idPredmetu}" {sel} {lock}>
+    <div class="shopUbytovani_kapacita">{obsazeno}/{kapacita}</div>
   </div>
   <!-- end:typ -->
-  <div><input style="margin:0" type="radio" name="{postnameDen}" value="" {sel} {lock}></div>
+  <div class="shopUbytovani_zadne">
+    <input type="radio" class="shopUbytovani_radio" name="{postnameDen}" value="" {sel} {lock}>
+  </div>
 </div>
 <!-- end:den -->
 

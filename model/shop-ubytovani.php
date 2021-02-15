@@ -38,11 +38,9 @@ class ShopUbytovani {
         'typ'   =>  $typ,
         'hint'  =>  $predmet['popis'],
         'cena'  =>  round($predmet['cena_aktualni']),
-        'vyska' =>  $this->vyska($typ),
       ]);
       $t->parse($predmet['popis'] ? 'ubytovani.typ.hinted' : 'ubytovani.typ.normal');
       $t->parse('ubytovani.typ');
-      $t->parse('ubytovani.cena');
     }
 
     // specifická info podle uživatele a stavu nabídky
@@ -75,7 +73,6 @@ class ShopUbytovani {
           'lock'        =>  !$sel && ( !$this->existujeUbytovani($den,$typ) || $this->plno($den,$typ) ) ? 'disabled' : '',
           'obsazeno'    =>  $this->obsazenoMist($den, $typ),
           'kapacita'    =>  $this->kapacita($den, $typ),
-          'vyska'       =>  $this->vyska($typ),
         ])->parse('ubytovani.den.typ');
       }
       $t->assign([
@@ -163,19 +160,6 @@ class ShopUbytovani {
     $kapacitaVycerpana = $predmet['kusu_vyrobeno'] <= $predmet['kusu_prodano'];
 
     return $kapacitaVycerpana && !$melObjednanoDrive;
-  }
-
-  /**
-   * Podle zadaného textu vypočítá počet řádků
-   *
-   * @param type $text
-   * @return string
-   */
-  private function vyska($text) {
-    $radku = ceil(mb_strlen($text) / self::$maxLen);
-    $vyska = 1.4 * $radku;
-    $vyska = $vyska . 'em';
-    return $vyska;
   }
 
   /**

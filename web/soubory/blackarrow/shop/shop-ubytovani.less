@@ -1,0 +1,45 @@
+.shopUbytovani_radek {
+    height: 65px;
+}
+
+.shopUbytovani_zadne {
+    padding-top: 24px;
+    border-top: solid 2px #eff3ef;
+    margin-top: 8px;
+}
+
+.shopUbytovani_den {
+    margin-bottom: 13px;
+}
+
+.shopUbytovani_sloupec {
+    float: left;
+    width: 114px;
+    text-align: center;
+}
+
+.shopUbytovani_radio {
+    appearance: none;
+    width: 28px;
+    height: 28px;
+    margin: 0;
+    background: url('../blackarrow/shop/radio.svg') no-repeat;
+    cursor: pointer;
+
+    &:checked {
+        background-image: url('../blackarrow/shop/radio-checked.svg');
+    }
+
+    &:disabled {
+        background-image: url('../blackarrow/shop/radio-disabled.svg');
+        cursor: not-allowed;
+    }
+
+    &:hover {
+        opacity: 0.8;
+    }
+}
+
+.shopUbytovani_kapacita {
+    font-size: 13px;
+}
