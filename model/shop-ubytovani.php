@@ -24,12 +24,9 @@ class ShopUbytovani {
   function html() {
     $t = new XTemplate(__DIR__.'/shop-ubytovani.xtpl');
     $t->assign([
-      'poDokonceni'   =>  $this->u->gcPrihlasen() ? '' : 'po dokončení registrace',
       'spolubydlici'  =>  dbOneCol('SELECT ubytovan_s FROM uzivatele_hodnoty WHERE id_uzivatele='.$this->u->id()),
       'postnameSpolubydlici'  =>  $this->pnPokoj,
-      'ka'            =>  $ka = $this->u->pohlavi() == 'f' ? 'ka' : '',
       'uzivatele'     =>  $this->mozniUzivatele(),
-      'viceScript'    =>  file_get_contents(WWW.'/soubory/doplnovani-vice.js'),
     ]);
     $this->htmlDny($t);
     // sloupce popisků
@@ -46,10 +43,6 @@ class ShopUbytovani {
     // specifická info podle uživatele a stavu nabídky
     if(reset($this->typy)['stav'] == 3)
       $t->parse('ubytovani.konec');
-    if($this->u->maPravo(P_UBYTOVANI_ZDARMA))
-      $t->parse('ubytovani.infoOrg');
-    elseif($this->u->maPravo(P_ORG_AKCI) && !$this->u->maPravo(P_NEMA_SLEVU_AKTIVITY))
-      $t->parse('ubytovani.infoVypravec');
 
     $t->parse('ubytovani');
     return $t->text('ubytovani');

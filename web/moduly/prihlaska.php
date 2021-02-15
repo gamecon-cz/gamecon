@@ -76,6 +76,13 @@ if ($slevy) {
   $t->parse('prihlaska.slevy');
 }
 
+$t->assign('ka', $u->koncA() ? 'ka' : '');
+if ($u->maPravo(P_UBYTOVANI_ZDARMA)) {
+  $t->parse('prihlaska.ubytovaniInfoOrg');
+} else if ($u->maPravo(P_ORG_AKCI) && !$u->maPravo(P_NEMA_SLEVU_AKTIVITY)) {
+  $t->parse('prihlaska.ubytovaniInfoVypravec');
+}
+
 // náhledy
 $nahledy = [
   ['tricko.jpg',   'tricko_m.jpg',   'Tričko'],

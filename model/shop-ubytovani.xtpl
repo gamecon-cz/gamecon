@@ -44,19 +44,12 @@
 </div>
 <!-- end:den -->
 
-<div style="clear:both; margin-bottom:-5px"></div>
+<div style="clear: both"></div>
 
-<p>
-  Na pokoji chci být s:<br>
-  <input type="text" name="{postnameSpolubydlici}" value="{spolubydlici}" style="min-width:20em" placeholder="jména oddělená čárkou, nebo nech prázdné">
-</p>
-
-<script>{viceScript}</script>
-<script>doplnovatVice($('[name="{postnameSpolubydlici}"]'), {uzivatele});</script>
-
-<!-- begin:infoVypravec --><p><i>Jako vypravěč{ka} máš na ubytování (i aktivity) slevu ve výši cca jeden nocleh+jídlo za dvě uspořádané aktivity. Její přesnou výšku najdeš {poDokonceni} v svém finančním přehledu.</i></p><!-- end:infoVypravec -->
-
-<!-- begin:infoOrg --><p><i>Jako organizátor{ka} máš veškeré ubytování také zdarma.</i></p><!-- end:infoOrg -->
-
+<div class="shopUbytovani_spolubydlici">
+  Na pokoji chci být s:
+  <input type="text" class="formular_input" name="{postnameSpolubydlici}" value="{spolubydlici}" placeholder="jména oddělená čárkou, nebo nech prázdné">
+</div>
+<!-- TODO doplňování jmen spolubydlících -->
 
 <!-- end:ubytovani -->

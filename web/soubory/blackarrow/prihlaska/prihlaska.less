@@ -1,13 +1,14 @@
 .prihlaska h2 {
     font-size: 40px;
-    margin: 80px 0 40px;
+    margin: 0 0 40px;
 }
 
 .prihlaska_sekce {
     padding-right: 320 + 60px;
     box-sizing: border-box;
     max-width: 1100px;
-    margin: auto;
+    margin: 80px auto;
+    position: relative; // kvůli pozicování infopruhu
 }
 
 .prihlaska_sekceObal {
@@ -42,8 +43,8 @@
 // infopruh
 .prihlaska_infoPruh {
     width: 320px;
-    float: right;
-    margin-right: -320 - 60px;
+    position: absolute; // ne float kvůli kolizím s clear: both v formulářích
+    right: 0;
 }
 
 .prihlaska_info {

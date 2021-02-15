@@ -142,6 +142,7 @@
     - [ ] integrace do adminu (styly)
     - [ ] projet TODOs
     - [ ] (minor) tlačítko (+/-) pro js přidávání/ubírání triček za letu
+    - [ ] (minor) doplňování jména u spolubydlících
 
 - [ ] aktivity
     - [ ] po přepsání možno odstranit scroll sneak z webu úplně

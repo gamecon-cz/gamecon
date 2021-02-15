@@ -99,6 +99,7 @@
 
 .formular_polozka > input,
 .formular_polozka > select,
+.formular_input,
 .formular_select {
     display: block;
     border: solid 1px #DBDBDB;
@@ -112,15 +113,19 @@
 }
 
 .formular_polozka > input:focus,
-.formular_polozka > select:focus {
+.formular_polozka > select:focus,
+.formular_input:focus,
+.formular_select:focus {
     border-color: #10111A;
 }
 
-.formular_polozka > input:placeholder-shown {
+.formular_polozka > input:placeholder-shown,
+.formular_input:placeholder-shown {
     background-color: #F6F1EA;
 }
 
-.formular_polozka > input[type="date"]:invalid {
+.formular_polozka > input[type="date"]:invalid,
+.formular_input[type="date"]:invalid {
     background-color: #F6F1EA;
     color: #0004;
 }
