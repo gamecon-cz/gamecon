@@ -1,0 +1,41 @@
+.shopJidlo_tabulka {
+    border-spacing: 24px   8px;
+    margin:         -8px -24px;
+    td { padding: 0; }
+}
+
+.shopJidlo_den {
+    font-weight: bold;
+    font-size: 18px;
+    text-align: center;
+}
+
+.shopJidlo_popis {
+    margin-right: 70px;
+}
+
+.shopJidlo_checkbox[type=checkbox] {
+    display: block;
+    width: 90px;
+    height: 50px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 0;
+    background: #F6F1EA url('../blackarrow/shop/krizek.svg') no-repeat center;
+
+    &:checked {
+        background: #10111A url('../blackarrow/shop/fajfka.svg') no-repeat center;
+    }
+
+    &:hover {
+        background-color: #F3EDE4;
+    }
+
+    &:hover:checked {
+        background-color: #30323E;
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+    }
+}

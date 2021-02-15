@@ -1,27 +1,30 @@
 <!-- begin:jidlo -->
 <!-- begin:pozastaveno -->
-Objednávání jídla online bylo zastaveno, změny jsou možné na místě.
+<p>Objednávání jídla online bylo zastaveno, změny jsou možné na místě.</p>
 <!-- end:pozastaveno -->
-<table class="cShopJidlo">
+<table class="shopJidlo_tabulka">
   <tr>
     <td></td>
-    <td></td>
     <!-- begin:den -->
-    <td>{den}</td>
+    <td class="shopJidlo_den">{den}</td>
     <!-- end:den -->
   </tr>
   <!-- begin:druh -->
   <tr>
-    <td>{druh}</td>
-    <td>{cena}</td>
+    <td>
+      <div class="shop_popis shopJidlo_popis">
+        {druh}
+        <div class="shop_popisCena">{cena}</div>
+      </div>
+    </td>
     <!-- begin:den -->
     <td>
       <!-- begin:checkbox -->
-      <input type="checkbox" name="{pnName}" {selected}>
+      <input type="checkbox" class="shopJidlo_checkbox" name="{pnName}" {selected}>
       <!-- end:checkbox -->
       <!-- begin:locked -->
       <input type="hidden" name="{pnName}" value="{selected}">
-      <input type="checkbox" {selected} disabled>
+      <input type="checkbox" class="shopJidlo_checkbox" {selected} disabled>
       <!-- end:locked -->
     </td>
     <!-- end:den -->
