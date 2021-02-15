@@ -67,16 +67,30 @@ body {
 
 .tooltip_obsah {
     display: none;
-    color: #fff;
-    background-color: #000;
+    color: #10111A;
+    background-color: #fff;
     text-align: left;
     position: absolute;
     z-index: 20;
     width: 250px;
-    padding: 20px;
+    padding: 22px 32px 20px 28px;
     font-weight: normal;
     font-size: 14px;
-    line-height: 1.33;
+    line-height: 1.5;
+    box-shadow: 0 3px 20px rgba(0, 0, 0, 0.16);
+}
+
+.tooltip_obsah::before {
+    content: '';
+    position: absolute;
+    background-color: #fff;
+    width: 10px;
+    height: 10px;
+    top: -6px;
+    left: 50px;
+    transform: rotate(45deg);
+    border-top:  solid 1px #e8e8e8;
+    border-left: solid 1px #e8e8e8;
 }
 
 .tooltip:hover > .tooltip_obsah {
