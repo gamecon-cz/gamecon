@@ -57,7 +57,7 @@ try {
   $googleSheetsService = new GoogleSheetsService($googleApiClient, $googleDriveService);
 
   ob_start();
-  // AUTHOIZACE
+  // AUTHORIZATION
   if (!$googleApiClient->isAuthorized()) {
     $template->assign('authorizationUrl', $googleApiClient->getAuthorizationUrl());
     $template->parse('autorizace');

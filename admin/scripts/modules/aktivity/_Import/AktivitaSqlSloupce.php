@@ -35,6 +35,9 @@ class AktivitaSqlSloupce
   public const POPIS_KRATKY = 'popis_kratky'; // varchar(255) not null,
   public const VYBAVENI = 'vybaveni'; // text not null,
 
+  public const VIRTUAL_IMAGE = 'image'; // není v tabulce, jenom na disku
+  public const VIRTUAL_TAGS = 'tags'; // je dostupné přes vazební tabulku akce_sjednocene_tagy
+
   public static function vsechnySloupce(): array {
     return [
       self::ID_AKCE,
