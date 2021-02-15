@@ -302,7 +302,7 @@ class ImportValuesSanitizer
       $sanitizedValues,
       array_fill_keys(AktivitaSqlSloupce::vsechnySloupce(), true)
     );
-    $sanitizedValues[AktivitaSqlSloupce::ID_AKCE] = $sanitizedValues[AktivitaSqlSloupce::ID_AKCE]
+    $sanitizedValues[AktivitaSqlSloupce::ID_AKCE] = !empty($sanitizedValues[AktivitaSqlSloupce::ID_AKCE])
       ? (int)$sanitizedValues[AktivitaSqlSloupce::ID_AKCE]
       : null;
     return $sanitizedValues;

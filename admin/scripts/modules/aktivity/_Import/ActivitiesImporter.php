@@ -178,6 +178,7 @@ class ActivitiesImporter
           $storytellersIds,
           $tagIds,
           $singleProgramLine,
+          $potentialImageUrls,
           $originalActivity
         );
         $result->addWarnings($importActivityResult, $activityGuid);
