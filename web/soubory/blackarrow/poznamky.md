@@ -141,6 +141,8 @@
 - [ ] přihláška
     - [ ] integrace do adminu (styly)
     - [ ] projet TODOs
+    - [ ] responziva
+        - infa možno skrýt (nikdo asi nebude na mobilu primárně přihlášku používat)
     - [ ] (minor) tlačítko (+/-) pro js přidávání/ubírání triček za letu
     - [ ] (minor) doplňování jména u spolubydlících
 

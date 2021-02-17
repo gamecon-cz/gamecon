@@ -1,0 +1,128 @@
+.shopVstupne_range {
+    width: 100%;
+    -webkit-appearance: none;
+    height: 8px;
+    background-color: #737373;
+
+    display: block;
+    margin: 35px 0 20px;
+}
+
+.shopVstupne_thumbMixin,
+.shopVstupne_range::-moz-range-thumb {
+    -webkit-appearance: none;
+    height: 34px;
+    width: 34px;
+    background: radial-gradient(#fff, #fff 37%, #E22630 42%);
+    border: solid 3px #10111A;
+    border-radius: 100%;
+    box-sizing: border-box;
+    cursor: grab;
+    &:active { cursor: grabbing; }
+}
+
+/* nepoužito kvůli absenci podpory ve webkitu
+.shopVstupne_range::-moz-range-progress {
+    background-color: #E22630;
+    height: 100%;
+}
+*/
+
+.shopVstupne_range::-webkit-slider-thumb {
+    .shopVstupne_thumbMixin();
+}
+
+.shopVstupne_stav {
+    color: #fff;
+    font-weight: bold;
+    font-size: 22px;
+    background: #313539 no-repeat 12px 8px; // no-repeat kvůli smajlíku
+    border: none;
+    text-align: right;
+    height: 50px;
+    width: 122px;
+    padding-right: 20px;
+    margin-top: -3px;
+}
+
+.shopVstupne_castkaRadek {
+    display: flex;
+}
+
+.shopVstupne_castka {
+    line-height: 50px;
+    font-weight: bold;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    margin-right: 58px;
+}
+
+.shopVstupne_kc {
+    font-size: 14px;
+    line-height: 50px;
+    margin-left: 12px;
+}
+
+.shopVstupne_kostkaObal {
+    position: relative; // kvůli relativní pozici na šířku
+}
+
+.shopVstupne_kostka {
+    position: absolute;
+    height: 25px;
+    width: 25px;
+    margin: 25px 0 0 -12px;
+    left: 33%;
+    background: url('../blackarrow/shop/kostka.png');
+}
+
+.shopVstupne_skala {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    opacity: 0.5;
+    margin: 0 10px; // margin kvůli šířce knoflíku
+}
+
+.shopVstupne_skalaHodnota {
+    width: 50px;
+    margin: 0 -25px;
+    text-align: center;
+    position: relative;
+    padding-top: 24px;
+}
+
+.shopVstupne_skalaHodnota::before {
+    content: '';
+    position: absolute;
+    width: 1px;
+    height: 16px;
+    left: 25px;
+    top: 0;
+    background-color: #fff;
+}
+
+.shopVstupne_skalaDelic {
+    height: 10px;
+    width: 1px;
+    margin-top: 3px;
+    background-color: #fff;
+}
+
+.shopVstupne_kostkaLegenda {
+    font-size: 14px;
+    font-style: italic;
+    color: #fff8;
+    text-align: right;
+    margin-top: 53px;
+}
+
+.shopVstupne_kostkaLegenda::before {
+    content: '';
+    display: inline-block;
+    position: absolute;
+    width: 25px;
+    height: 25px;
+    background: url('../blackarrow/shop/kostka.png');
+    margin: -5px 0 0 -31px;
+}

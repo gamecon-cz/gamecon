@@ -96,8 +96,6 @@
 
   <div class="prihlaska_sekceObal prihlaska_sekceObal-vstupne">
   <div class="prihlaska_sekce">
-    <h2>Dobrovolné vstupné</h2>
-
     <div class="prihlaska_infoPruh">
       <div class="prihlaska_info">
         <h3>K čemu slouží vstupné</h3>
@@ -112,6 +110,8 @@
         <p>To stejné a možná i něco navíc chceme zajistit i příští rok. Vašich příspěvků si moc vážíme a děkujeme za ně.</p>
       </div>
     </div>
+
+    <h2>Dobrovolné vstupné</h2>
 
     {vstupne}
   </div>

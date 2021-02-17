@@ -1,112 +1,42 @@
 <!-- begin:vstupne -->
 
-  <script src="{jsSlider}"></script>
+<script src="{jsSlider}"></script>
 
-  <div id="myslider_1"></div>
-  <div id="percentage">1</div>
-  <ul id="odmena"></ul>
-  <input type="hidden" name="{postname}" value="{stav}">
+<div class="shopVstupne_castkaRadek">
+  <div class="shopVstupne_castka">ČÁSTKA:</div>
+  <input type="text" class="shopVstupne_stav" name="{postname}" value="{stav}">
+  <div class="shopVstupne_kc">Kč</div>
+</div>
 
-  <style>
-    #myslider_1 { box-shadow: 8px 4px 16px #333 inset; border-bottom: 1px solid #eee; }
-    #myslider_1 .follow_bar { background-color: #07e; box-shadow: 0px 1px 3px #444 inset; }
-    #myslider_1 .slider_bar { background-color: #999; }
-    #percentage { min-height: 2.3em; margin-top: 0.5em; }
-    #odmena { margin-top: 0; }
-  </style>
+<div class="shopVstupne_kostkaObal">
+  <div class="shopVstupne_kostka"></div>
+</div>
 
-  <script>
-    (function(){
+<input type="range" class="shopVstupne_range" min="0" max="1" step="any">
 
-      var predmety = [
-        /* Zakomentováno pro případ, že by GC znovu zavedl odměny za dobr. vstupné
-        { od: 100,          vec: "Nástroj na vyhlazení lidstva"},
-        { od: 500, do: 999, vec: "Transformovaný toaster"},
-        { od: 1000,         vec: "Křemíkové nebe"}
-        */
-      ];
-      var nastaveni = {
-        min: 0,
-        max: 1001,
-        zaklad: {stav},
-        setMin: {min}, // minimum, které se dá zvolit
-        gamma: 0.5
-      };
-      var nastaveniGlide = {
-        height    : 10,
-        image   : '{knoflik}',
-        startAt   : vtop(nastaveni.zaklad),
-        //colorShift  : ['#3a4d31', '#7bb560'],
-        //buttons   : true,
-        //onButton  : displayResult,
-        drag    : displayResult,
-        onload    : displayResult
-      };
-      var odmena = $('#odmena');
-      var posledni = $('#odmena').html();
-      var slider = $('#myslider_1');
-      var castkaInput = $('#percentage').siblings('[name="{postname}"]');
+<div class="shopVstupne_skala">
+  <div class="shopVstupne_skalaHodnota">0&thinsp;Kč</div>
+  <div class="shopVstupne_skalaDelic"></div>
+  <div class="shopVstupne_skalaHodnota">60&thinsp;Kč</div>
+  <div class="shopVstupne_skalaDelic"></div>
+  <div class="shopVstupne_skalaHodnota">250&thinsp;Kč</div>
+  <div class="shopVstupne_skalaDelic"></div>
+  <div class="shopVstupne_skalaHodnota">600&thinsp;Kč</div>
+  <div class="shopVstupne_skalaDelic"></div>
+  <div class="shopVstupne_skalaHodnota">1000&thinsp;Kč</div>
+</div>
 
-      slider.sGlide(nastaveniGlide);
+<div class="shopVstupne_kostkaLegenda">
+  průměrný příspěvek z roku 2019
+</div>
 
-      function displayResult(o){
-        var castka = ptov(o.percent);
-        var aktualni = '';
-        if(castka < nastaveni.setMin) {
-          slider.sGlide('startAt', vtop(nastaveni.setMin));
-          displayResult({percent:  vtop(nastaveni.setMin)});
-          return;
-        }
-        castkaInput.val(castka);
-        predmety.forEach(function(e){
-          if(!e.od) e.od = 0;
-          if(!e.do) e.do = Infinity;
-          if(e.od <= castka && castka <= e.do) aktualni += '<li>'+e.vec+'</li>';
-        });
-        if(aktualni != posledni) {
-          posledni = aktualni;
-          $('#odmena').html(aktualni);
-        }
-        if(o.percent >= 100) {
-          $('#percentage').html(
-            'Vlastní výběr: '+
-            '<input type="number" value="'+castka+'">'+
-            '&thinsp;Kč'
-          );
-          $('#percentage input').change(customChange);
-        } else {
-          $('#percentage').html(castka+'&thinsp;Kč');
-        }
-      }
-
-      function customChange() {
-        var castka = $(this).val();
-        if(vtop(castka) < 100) {
-          var pct = vtop(castka);
-          slider.sGlide('startAt', pct);
-          setTimeout(function(){ //lol, timeout nějak automagicky předejde bugu, který by jinak zablokoval odeslání formu
-            displayResult({percent: pct});
-          }, 0);
-        } else {
-          castkaInput.val(castka);
-        }
-      }
-
-      // value to percent
-      function vtop(v) {
-        v = v / nastaveni.max; //normalizace
-        var out = Math.pow(v, nastaveni.gamma);
-        return out * 100;
-      }
-
-      // percent to value
-      function ptov(p) {
-        p = p / 100; //normalizace
-        var out = Math.pow(p, 1 / nastaveni.gamma);
-        return Math.round(out * nastaveni.max);
-      }
-
-    })();
-  </script>
+<script>
+  shopVstupne(
+    document.querySelector('.shopVstupne_stav'),
+    document.querySelector('.shopVstupne_range'),
+    {min},
+    {smajliky}
+  )
+</script>
 
 <!-- end:vstupne -->

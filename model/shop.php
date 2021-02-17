@@ -323,13 +323,20 @@ class Shop
   function vstupneHtml() {
     $t = new XTemplate(__DIR__.'/shop-vstupne.xtpl');
     $t->assign([
-      'jsSlider'  =>  URL_WEBU.'/soubory/jquery.sglide.2.1.2.min.js',
-      'knoflik'   =>  URL_WEBU.'/soubory/styl/knob.png',
+      'jsSlider'  =>  URL_WEBU.'/soubory/blackarrow/shop/shop-vstupne.js',
       'stav'      =>  $this->u->gcPrihlasen() ?
         $this->vstupne['sum_cena_nakupni'] + $this->vstupnePozde['sum_cena_nakupni'] :
         60, // výchozí hodnota
       'postname'  =>  $this->klicV,
       'min'       =>  $this->vstupneJeVcas ? 0 : $this->vstupne['sum_cena_nakupni'],
+      'smajliky'  =>  json_encode([
+        [1000, URL_WEBU.'/soubory/blackarrow/shop/vstupne-smajliky/6.png'],
+        [ 750, URL_WEBU.'/soubory/blackarrow/shop/vstupne-smajliky/5.png'],
+        [ 500, URL_WEBU.'/soubory/blackarrow/shop/vstupne-smajliky/4.png'],
+        [ 250, URL_WEBU.'/soubory/blackarrow/shop/vstupne-smajliky/3.png'],
+        [   1, URL_WEBU.'/soubory/blackarrow/shop/vstupne-smajliky/2.png'],
+        [   0, URL_WEBU.'/soubory/blackarrow/shop/vstupne-smajliky/1.png'],
+      ]),
     ]);
     $t->parse('vstupne');
     return $t->text('vstupne');
