@@ -117,15 +117,21 @@
   </div>
   </div>
 
-  <!--------------------------------------------------------------------------->
+<!----------------------------------------------------------------------------->
 
+<div class="prihlaska_sekce prihlaska_sekce-zapojit">
   <div class="pomoc">{pomoc}</div><!-- TODO -->
+</div>
 
-  <input type="submit" name="wut" value="{ulozitNeboPrihlasit}">
+<!----------------------------------------------------------------------------->
+
+<div class="prihlaska_sekce">
+  <input type="submit" class="formular_primarni" value="{ulozitNeboPrihlasit}">
   <!-- begin:odhlasit -->
-  <input type="submit" name="odhlasit" value="Odhlásit se z GameConu"
+  <input type="submit" name="odhlasit" class="formular_negativni" value="Odhlásit se z GameConu"
     onclick="return confirm('Odhlášení z GameConu zruší všechny tvé registrace na aktivity a nákupy předmětů. Kliknutím na OK se odhlásíš.')">
   <!-- end:odhlasit -->
+</div>
 
 </form>
 

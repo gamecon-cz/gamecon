@@ -1,6 +1,6 @@
 <!-- begin:pomoc -->
 
-<input type="checkbox" name="{postname}[chci]" id="chci" {vChci}>
+<input type="checkbox" class="formular_checkbox-mega" name="{postname}[chci]" id="chci" {vChci}>
 <label for="chci" class="hinted i">Chci se zapojit
   <span class="hint">Za to, že je GameCon tak skvělý, jak je, vděčíme nejen vypravěčům a organizátorům, ale i lidem, kteří pomáhají vybudovat jeho zázemí (příprava prostor, pomoc na infopultu apod.). Sháníme ochotné lidi z řad účastníků, kteří by nám pomohli. Více se dozvíš na <a href="http://gamecon.cz/chci-se-zapojit" target="_blank">gamecon.cz/chci-se-zapojit</a></span>
 </label>

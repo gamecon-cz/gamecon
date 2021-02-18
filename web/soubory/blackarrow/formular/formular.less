@@ -154,7 +154,16 @@ input[type=checkbox] {
     margin: 0 7px -4px 0;
     border-radius: 2px;
     &:checked {
-        background: #10111A url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAJCAYAAADkZNYtAAAABHNCSVQICAgIfAhkiAAAAHtJREFUGFdjZCAA/v//bwBU0g/EgYz41EIV7geqEQDiRpyK0RQuZGRkTGBEsYaR8QPIJmwKQeIgxQeAtD0QXwBiRyBWAGKY1WATYU4FKQa5B6RBH6oBpBgkhqIQbDLUWmQNICEMhXDFaBouIFuNHFoooQFyElAh2JPYAABKUjKUlMUaPQAAAABJRU5ErkJggg==) no-repeat 4px 5px;
+        background: #10111A url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10.698' height='8.288' viewBox='0 0 10.698 8.288'%3E%3Cpath id='Path_2669' data-name='Path 2669' d='M7283.8,702.841l3.117,3.117,6.167-6.167' transform='translate(-7283.093 -699.085)' fill='none' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E%0A") no-repeat 4px 5px;
+    }
+}
+
+.formular_checkbox-mega[type=checkbox] {
+    width: 30px;
+    height: 30px;
+    &:checked {
+        background-size: 18px auto;
+        background-position: 6px 9px;
     }
 }
 
@@ -233,6 +242,7 @@ input[type=checkbox] {
     border: none;
     line-height: 50px;
     padding: 0 30px;
+    min-width: 200px;
 }
 
 .formular_primarni:hover {
@@ -263,4 +273,15 @@ input[type=checkbox] {
 .formular_sekundarni:hover {
     color: #445;
     border-color: #aaa;
+}
+
+.formular_negativni {
+    .formular_primarni();
+    background-color: transparent;
+    color: #E22630;
+    letter-spacing: 0.1em;
+    line-height: 20px; // aby se aktivovalo jen najetím na text, ne celou výšku
+    padding: 0;
+    margin: 15px 30px;
+    &:hover { color: #BE0F18 }
 }
