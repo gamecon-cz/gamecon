@@ -1,29 +1,26 @@
 <!-- begin:pomoc -->
 
-<input type="checkbox" class="formular_checkbox-mega" name="{postname}[chci]" id="chci" {vChci}>
-<label for="chci" class="hinted i">Chci se zapojit
-  <span class="hint">Za to, že je GameCon tak skvělý, jak je, vděčíme nejen vypravěčům a organizátorům, ale i lidem, kteří pomáhají vybudovat jeho zázemí (příprava prostor, pomoc na infopultu apod.). Sháníme ochotné lidi z řad účastníků, kteří by nám pomohli. Více se dozvíš na <a href="http://gamecon.cz/chci-se-zapojit" target="_blank">gamecon.cz/chci-se-zapojit</a></span>
-</label>
-<div id="pomoc" style="display:{displayVice}">
-  &ensp;jako:<br>
+<input
+  type="checkbox"
+  class="formular_checkbox-mega shopPomoc_checkbox"
+  name="{postname}[chci]"
+  id="chci"
+  {vChci}
+>
+<span class="shopPomoc_obalTextu">
 
-  <!-- begin:typ -->
-  <input type="radio" name="{postname}[typ]" id="{id}" value="{id}" {checked}><label for="{id}" class="hinted">{nazev}<span class="hint">{popis}</span></label>&ensp;
-  <!-- end:typ -->
+  <label for="chci" class="shopPomoc_label">Chci se zapojit</label>
 
-  <textarea name="{postname}[detail]" placeholder="Zde můžeš napsat více o tom, jak by ses chtěl{a} zapojit. Hlaste se prosím o výpomoc jen u věcí, na které zatím nejste s nikým domluveni." style="margin-top: 0.3em">{vDetail}</textarea>
+  <div class="shopPomoc_text">Za to, že je GameCon tak skvělý, jak je, vděčíme nejen vypravěčům a organizátorům, ale i lidem, kteří pomáhají vybudovat jeho zázemí (příprava prostor, pomoc na infopultu apod.). Sháníme ochotné lidi z řad účastníků, kteří by nám pomohli. Více se dozvíš na <a href="http://gamecon.cz/chci-se-zapojit" target="_blank">gamecon.cz/chci-se-zapojit</a></div>
 
-</div>
-<script>
-  $('[name="{postname}[chci]"]').change(function(){
-    if($(this).is(':checked')) {
-      $('#pomoc').show();
-      $('#pomoc [type=radio]').attr('required', 'true');
-    } else {
-      $('#pomoc').hide();
-      $('#pomoc [type=radio]').removeAttr('required');
-    }
-  });
-</script>
+  <div class="shopPomoc_vyber">
+    <!-- begin:typ -->
+    <input type="radio" name="{postname}[typ]" id="{id}" value="{id}" {checked}><label for="{id}" class="tooltip" style="display: inline-block">{nazev}<span class="tooltip_obsah">{popis}</span></label>&ensp;
+    <!-- end:typ -->
+
+    <textarea name="{postname}[detail]" placeholder="Zde můžeš napsat více o tom, jak by ses chtěl{a} zapojit. Hlas se prosím o výpomoc jen u věcí, na které zatím nejsi s nikým domluven{a}." style="margin-top: 1.4em; width: 100%; box-sizing: border-box; height: 6em">{vDetail}</textarea>
+  </div>
+
+</span>
 
 <!-- end:pomoc -->

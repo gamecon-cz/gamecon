@@ -1,0 +1,33 @@
+.shopPomoc_obalTextu {
+    font-size: 14px;
+    line-height: 20/14;
+}
+
+.shopPomoc_checkbox {
+    cursor: pointer;
+}
+
+.shopPomoc_label {
+    font-weight: bold;
+    font-size: 18px;
+    display: inline-block;
+    position: relative;
+    top: -4px;
+    left: 2px;
+    cursor: pointer;
+}
+
+.shopPomoc_text {
+    margin: 4px 0 10px 44px;
+}
+
+.shopPomoc_vyber {
+    overflow: hidden;
+    margin: 0 0 0 44px;
+    max-height: 0;
+    transition: max-height 1s;
+}
+
+.shopPomoc_checkbox:checked + .shopPomoc_obalTextu .shopPomoc_vyber {
+    max-height: 150px;
+}
