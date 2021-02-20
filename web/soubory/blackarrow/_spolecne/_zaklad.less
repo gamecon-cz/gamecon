@@ -70,7 +70,7 @@ a {
 }
 
 .tooltip_obsah {
-    display: none;
+    display: block;
     color: #10111A;
     background-color: #fff;
     text-align: left;
@@ -82,6 +82,11 @@ a {
     font-size: 14px;
     line-height: 1.5;
     box-shadow: 0 3px 20px rgba(0, 0, 0, 0.16);
+
+    visibility: hidden;
+    opacity: 0;
+    margin-top: 5px;
+    transition: opacity 0.3s, margin-top 0.3s, visibility 1s;
 }
 
 .tooltip_obsah::before {
@@ -98,5 +103,7 @@ a {
 }
 
 .tooltip:hover > .tooltip_obsah {
-    display: block;
+    visibility: visible;
+    opacity: 1;
+    margin-top: 0;
 }
