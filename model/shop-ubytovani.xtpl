@@ -4,7 +4,9 @@
 <p>Objednávání ubytování online bylo zastaveno, změny jsou možné na místě.</p>
 <!-- end:konec -->
 
-<div style="width:9em; float:left; overflow: hidden;">
+<div class="shopUbytovani_tabulka">
+
+<div class="shopUbytovani_prvniSloupec">
   <div class="shop_den shopUbytovani_den">&nbsp;</div>
   <!-- begin:typ -->
 
@@ -45,6 +47,8 @@
 <!-- end:den -->
 
 <div style="clear: both"></div>
+
+</div>
 
 <div class="shopUbytovani_spolubydlici">
   Na pokoji chci být s:

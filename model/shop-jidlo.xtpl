@@ -6,7 +6,7 @@
   <tr>
     <td></td>
     <!-- begin:den -->
-    <td class="shop_den">{den}</td>
+    <td><div class="shop_den">{den}</div></td>
     <!-- end:den -->
   </tr>
   <!-- begin:druh -->

@@ -37,6 +37,10 @@
     max-width: 1100px;
     margin: 80px auto;
     position: relative; // kvůli pozicování infopruhu
+    @media (max-width: 600px) {
+        padding-right: 0;
+        margin: 60px 15px;
+    }
 }
 
 .prihlaska_sekce-zapojit {
@@ -77,6 +81,9 @@
     width: 320px;
     position: absolute; // ne float kvůli kolizím s clear: both v formulářích
     right: 0;
+    @media (max-width: 600px) {
+        display: none;
+    }
 }
 
 .prihlaska_info {

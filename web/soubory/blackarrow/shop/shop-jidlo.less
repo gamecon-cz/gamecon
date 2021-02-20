@@ -2,10 +2,18 @@
     border-spacing: 24px   8px;
     margin:         -8px -24px;
     td { padding: 0; }
+    @media (max-width: 600px) {
+        border-spacing:  8px;
+        margin:         -8px;
+        margin-top: 80px;
+    }
 }
 
 .shopJidlo_popis {
     margin-right: 70px;
+    @media (max-width: 600px) {
+        margin-right: 0;
+    }
 }
 
 .shopJidlo_checkbox[type=checkbox] {
@@ -31,5 +39,9 @@
 
     &:disabled {
         cursor: not-allowed;
+    }
+
+    @media (max-width: 600px) {
+        width: 50px;
     }
 }

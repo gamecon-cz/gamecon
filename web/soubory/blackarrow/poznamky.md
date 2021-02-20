@@ -145,6 +145,7 @@
         - infa možno skrýt (nikdo asi nebude na mobilu primárně přihlášku používat)
     - [ ] (minor) tlačítko (+/-) pro js přidávání/ubírání triček za letu
     - [ ] (minor) doplňování jména u spolubydlících
+    - [ ] (minor) odstranit gaTrack proměnnou a související věci
 
 - [ ] aktivity
     - [ ] po přepsání možno odstranit scroll sneak z webu úplně
