@@ -4,6 +4,10 @@
     background: url('../blackarrow/prihlaska/hlavicka.svg') no-repeat 0 100% ~'/' 100% auto;
     margin: 0 @okraje;
     overflow: hidden;
+    @media (max-width: 600px) {
+        margin: 0 0 -30px;
+        padding: 0 15px;
+    }
 }
 
 .prihlaska_hlavicka {
@@ -12,6 +16,9 @@
     margin: auto;
     line-height: 1.5;
     padding-bottom: 80px;
+    @media (max-width: 600px) {
+        padding-bottom: 40px;
+    }
 }
 
 .prihlaska_hlavicka h1 {
