@@ -2,9 +2,10 @@
     width: 100%;
     -webkit-appearance: none;
     height: 8px;
-    background-color: #737373;
+    background-color: transparent;
 
     display: block;
+    position: relative; // aby bylo nahoře kvůli fake posuvníku
     margin: 35px 0 20px;
 }
 
@@ -65,6 +66,14 @@
 
 .shopVstupne_kostkaObal {
     position: relative; // kvůli relativní pozici na šířku
+}
+
+.shopVstupne_kostkaPosuv {
+    position: absolute;
+    height: 8px;
+    width: 100%;
+    top: 35px;
+    background-color: #737373;
 }
 
 .shopVstupne_kostka {

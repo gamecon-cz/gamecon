@@ -1,4 +1,4 @@
-function shopVstupne(input, range, minimum, smajliky) {
+function shopVstupne(input, range, posuvnik, minimum, smajliky) {
     const gamma = 0.5
     const rangeMinimum = prevedNaPomer(minimum)
 
@@ -32,7 +32,7 @@ function shopVstupne(input, range, minimum, smajliky) {
 
     function prekresli() {
         let procento = Math.round(range.value * 100)
-        range.style.background = 'linear-gradient(to right, #E22630, #E22630 '+procento+'%, #737373 '+procento+'%)'
+        posuvnik.style.background = 'linear-gradient(to right, #E22630, #E22630 '+procento+'%, #737373 '+procento+'%)'
 
         input.style.backgroundImage = smajlik(input.value)
     }

@@ -9,6 +9,7 @@
 </div>
 
 <div class="shopVstupne_kostkaObal">
+  <div class="shopVstupne_kostkaPosuv"></div>
   <div class="shopVstupne_kostka"></div>
 </div>
 
@@ -34,6 +35,7 @@
   shopVstupne(
     document.querySelector('.shopVstupne_stav'),
     document.querySelector('.shopVstupne_range'),
+    document.querySelector('.shopVstupne_kostkaPosuv'),
     {min},
     {smajliky}
   )
