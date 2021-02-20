@@ -1,14 +1,18 @@
 <!-- begin:prihlaska -->
 
-<h1>Přihláška na GameCon</h1>
+<div class="prihlaska_hlavickaObal">
+<div class="prihlaska_hlavicka">
+  <h1>Přihláška na GameCon</h1>
 
-<!-- begin:prihlasen -->
-<p>Jsi přihlášen{a} na GameCon {rok}. Níž si můžeš upravit svou přihlášku, tj. objednané ubytování a předměty až téměř do začátku GameConu.</p>
-<!-- end:prihlasen -->
+  <!-- begin:prihlasen -->
+  <p>Jsi přihlášen{a} na GameCon {rok}. Níž si můžeš upravit svou přihlášku, tj. objednané ubytování a předměty až téměř do začátku GameConu.</p>
+  <!-- end:prihlasen -->
 
-<!-- begin:neprihlasen -->
-<p>Vyplněním údajů se přihlásíš na GameCon {rok}. Můžeš si vybrat předměty a ubytování s GameCon tématikou, které budeš chtít. Výber jde i později změnit.</p>
-<!-- end:neprihlasen -->
+  <!-- begin:neprihlasen -->
+  <p>Vyplněním údajů se přihlásíš na GameCon {rok}. Můžeš si vybrat předměty a ubytování s GameCon tématikou, které budeš chtít. Výber jde i později změnit.</p>
+  <!-- end:neprihlasen -->
+</div>
+</div>
 
 <form method="post" class="prihlaska">
 

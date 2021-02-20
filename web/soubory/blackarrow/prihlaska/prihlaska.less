@@ -1,5 +1,33 @@
+@okraje: 1.5%;
+
+.prihlaska_hlavickaObal {
+    background: url('../blackarrow/prihlaska/hlavicka.svg') no-repeat 0 100% ~'/' 100% auto;
+    margin: 0 @okraje;
+    overflow: hidden;
+}
+
+.prihlaska_hlavicka {
+    position: relative;
+    max-width: 1100px;
+    margin: auto;
+    line-height: 1.5;
+    padding-bottom: 80px;
+}
+
+.prihlaska_hlavicka h1 {
+    font-size: 80rel;
+    margin: 55-100px 0 22rel -100px;
+    padding: 100px 0 0 100px;
+    background: url('../blackarrow/prihlaska/flek.png') no-repeat 60px 50px;
+    line-height: normal;
+}
+
+.prihlaska_hlavicka p {
+    max-width: 700px;
+}
+
 .prihlaska h2 {
-    font-size: 40px;
+    font-size: 52rel;
     margin: 0 0 40px;
 }
 
@@ -16,7 +44,7 @@
 }
 
 .prihlaska_sekceObal {
-    margin: 0 16px;
+    margin: 0 @okraje;
     background-color: #10111A;
     color: #fff;
     padding: 1px 0; // kvůli zachycení marginů sekce uvnitř
