@@ -18,7 +18,7 @@
 }
 
 .shopPomoc_text {
-    margin: 4px 0 10px 44px;
+    margin: 4px 0 0 44px;
 }
 
 .shopPomoc_vyber {
@@ -29,5 +29,61 @@
 }
 
 .shopPomoc_checkbox:checked + .shopPomoc_obalTextu .shopPomoc_vyber {
-    max-height: 150px;
+    max-height: 500px;
+}
+
+.shopPomoc_typy {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 24px 0;
+}
+
+.shopPomoc_radio {
+    display: none;
+}
+
+.shopPomoc_vyberNazev {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    line-height: normal;
+
+    padding: 14px 16px;
+    border: solid 1px #FDC689;
+
+    margin: 0 12px 16px 0;
+    cursor: pointer;
+    display: block;
+
+    &:hover {
+        border-color: #E22630;
+    }
+}
+
+.shopPomoc_radio:checked + .shopPomoc_vyberNazev {
+    background-color: #E22630;
+    border-color: #E22630;
+    color: #fff;
+}
+
+.shopPomoc_vyberPopis {
+    display: none;
+    order: 9999;
+    background-color: #FDC689;
+    padding: 24px;
+    letter-spacing: 0.03em;
+    & > b {
+        display: block;
+        margin-bottom: 8px;
+    }
+}
+
+.shopPomoc_radio:checked + * + .shopPomoc_vyberPopis {
+    display: block;
+}
+
+.shopPomoc_textarea {
+    height: 100px;
+    margin-top: 12px;
 }

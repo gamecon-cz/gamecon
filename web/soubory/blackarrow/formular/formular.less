@@ -144,6 +144,14 @@
     background-color: #F6F1EA;
 }
 
+// generický formulář - textarea
+.formular_textarea {
+    .formular_input();
+    resize: none;
+    &:placeholder-shown { background-color: #F6F1EA }
+    &:focus { border-color: #10111A }
+}
+
 // generický formulář - checkbox
 
 input[type=checkbox] {
