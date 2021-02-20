@@ -137,11 +137,12 @@
         - [x] nové pozadí
         - [x] pozadí na fixní výšku
     - [ ] (minor) zkusit udělat inputy non-required (problém s css podbarvením)
+    - [ ] (minor) overflow registrace na mobilu kvůli tooltipům (vpravo i dole)
 
 - [ ] přihláška
     - [ ] integrace do adminu (styly)
     - [ ] projet TODOs
-    - [ ] responziva
+    - [x] responziva
         - infa možno skrýt (nikdo asi nebude na mobilu primárně přihlášku používat)
     - [ ] (minor) tlačítko (+/-) pro js přidávání/ubírání triček za letu
     - [ ] (minor) doplňování jména u spolubydlících

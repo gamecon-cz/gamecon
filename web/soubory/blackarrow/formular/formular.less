@@ -229,7 +229,7 @@ input[type=checkbox] {
 
 // generický formulář - submity
 
-.formular_primarni, .formular_sekundarni {
+.formular_primarni, .formular_sekundarni, .formular_negativni {
     font-weight: bold;
     font-size: 12px;
     text-transform: uppercase;
@@ -239,7 +239,7 @@ input[type=checkbox] {
     cursor: pointer;
 
     @media (max-width: 600px) {
-        margin: 0 0 16px 0 !important;
+        margin: 0 0 16px 0;
         width: 100%;
     }
 }
@@ -276,6 +276,7 @@ input[type=checkbox] {
     background-color: transparent;
     line-height: 48px;
     padding: 0 19px;
+    @media (max-width: 600px) { margin-left: 0; }
 }
 
 .formular_sekundarni:hover {
@@ -284,12 +285,13 @@ input[type=checkbox] {
 }
 
 .formular_negativni {
-    .formular_primarni();
     background-color: transparent;
     color: #E22630;
     letter-spacing: 0.1em;
     line-height: 20px; // aby se aktivovalo jen najetím na text, ne celou výšku
     padding: 0;
     margin: 15px 30px;
+    border: none;
     &:hover { color: #BE0F18 }
+    @media (max-width: 600px) { margin: 30px 0; }
 }
