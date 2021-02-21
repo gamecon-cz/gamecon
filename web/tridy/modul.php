@@ -121,13 +121,16 @@ class Modul {
   function spust() {
     extract($this->params); // TODO možná omezit explicitně parametry, které se smí extractnout, ať to není black magic
     $t = $this->sablona();
+
     ob_start();
-    require $this->src;
-    if($t) {
+    $vysledek = require $this->src;
+    $earlyReturn = ($vysledek === null); // při dokončení skriptu je výsledek 1
+    if($t && !$earlyReturn) {
       $t->parse($this->nazev());
       $t->out($this->nazev());
     }
     $this->vystup = ob_get_clean();
+
     return $this;
   }
 

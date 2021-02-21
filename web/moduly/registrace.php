@@ -45,6 +45,7 @@ $zpracujUpravu = function () use ($u) {
 
 $this->blackarrowStyl(true);
 $this->bezPaticky(true);
+$this->info()->nazev('Registrace');
 
 $chyby = null;
 try {

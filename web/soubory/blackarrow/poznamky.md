@@ -23,7 +23,7 @@
 - [ ] titulka
     - [x] proporciální hlavička
     - [ ] texty na hover linií
-    - [ ] novinka
+    - [ ] novinka / infopruh
     - [ ] fotky linií
     - [ ] animace
     - [ ] (minor) ne/zobrazit CTA "přihlásit se" dle situace

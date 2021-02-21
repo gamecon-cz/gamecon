@@ -1,6 +1,7 @@
 <?php
 
 $this->blackarrowStyl(true);
+$this->info()->nazev('Program');
 
 $dny = [];
 for ($den = new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen()) {

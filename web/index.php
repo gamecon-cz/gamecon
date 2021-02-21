@@ -92,6 +92,7 @@ if($m->bezStranky()) {
     'menu'  => $menu,
     'obsah' => $m->vystup(),
     'base'  => URL_WEBU.'/',
+    'info'  => $m->info()->html(),
   ]);
   $t->parseEach($m->cssUrls(), 'url', 'index.extraCss');
   $t->parseEach($m->jsUrls(), 'url', 'index.extraJs');

@@ -2,6 +2,7 @@
 
 $this->blackarrowStyl(true);
 $this->bezPaticky(true);
+$this->info()->nazev('Přihlášení');
 
 $chyba = '';
 
