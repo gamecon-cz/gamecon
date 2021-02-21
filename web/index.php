@@ -88,6 +88,7 @@ if($m->bezStranky()) {
   $t = new XTemplate('sablony/blackarrow/index.xtpl');
   $t->assign([
     'css'   => perfectcache('soubory/blackarrow/*/*.less'),
+    'fonty' => file_get_contents('soubory/blackarrow/_spolecne/fonty-include.css'),
     'chyba' => Chyba::vyzvedniHtml(),
     'menu'  => $menu,
     'obsah' => $m->vystup(),
@@ -132,6 +133,7 @@ if($m->bezStranky()) {
     'a'         => $u ? $u->koncA() : '',
     'datum'     => date('j.', strtotime(GC_BEZI_OD)) . '–' . date('j. n. Y', strtotime(GC_BEZI_DO)),
     'menu'      => $menu,
+    'fonty'     => file_get_contents('soubory/blackarrow/_spolecne/fonty-include.css'),
   ]);
   // tisk věcí a zdar
   if($u && $u->maPravo(P_ADMIN_UVOD))               $t->parse('index.prihlasen.admin');

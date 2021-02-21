@@ -1,0 +1,30 @@
+/**
+ * Includovaný soubor s fonty pro okamžité načítání.
+ */
+
+@font-face {
+    font-family: 'Gilroy';
+    src:
+        url('soubory/blackarrow/_spolecne/fonty/Gilroy-Medium.woff2') format('woff2'),
+        url('soubory/blackarrow/_spolecne/fonty/Gilroy-Medium.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'Gilroy';
+    font-weight: bold;
+    src:
+        url('soubory/blackarrow/_spolecne/fonty/Gilroy-Bold.woff2') format('woff2'),
+        url('soubory/blackarrow/_spolecne/fonty/Gilroy-Bold.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'Gilroy';
+    font-weight: 800;
+    src:
+        url('soubory/blackarrow/_spolecne/fonty/Gilroy-Extrabold.woff2') format('woff2'),
+        url('soubory/blackarrow/_spolecne/fonty/Gilroy-Extrabold.woff') format('woff');
+}
+
+body {
+    font-family: Gilroy, sans-serif;
+}
