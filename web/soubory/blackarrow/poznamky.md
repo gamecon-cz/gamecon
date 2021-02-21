@@ -114,6 +114,7 @@
     - zejména dropdowny, input
     - taky ale výchozí velikost písma, vzdálenost písmen, řádkování
     - čím později, tím větší riziko fuckupu velikostí / marginů někde
+    - [ ] favicon
     - [ ] (minor) chyba / hláška moc velká na mobilu
 
 - [ ] přihlášení, registrace
@@ -140,14 +141,15 @@
     - [ ] (minor) zkusit udělat inputy non-required (problém s css podbarvením)
     - [ ] (minor) overflow registrace na mobilu kvůli tooltipům (vpravo i dole)
 
-- [ ] přihláška
-    - [ ] integrace do adminu (styly)
-    - [ ] projet TODOs
+- [x] přihláška
+    - [x] integrace do adminu (styly)
+    - [x] projet TODOs
     - [x] responziva
         - infa možno skrýt (nikdo asi nebude na mobilu primárně přihlášku používat)
     - [ ] (minor) tlačítko (+/-) pro js přidávání/ubírání triček za letu
     - [ ] (minor) doplňování jména u spolubydlících
     - [ ] (minor) odstranit gaTrack proměnnou a související věci
+    - [ ] (minor) lepší integrace stylů do adminu
 
 - [ ] aktivity
     - [ ] po přepsání možno odstranit scroll sneak z webu úplně
