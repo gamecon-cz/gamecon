@@ -216,4 +216,6 @@ $select = function ($nazev, $klic, $moznosti) use ($formData, $chyby) {
         <!-- TODO spíš šedé tlačítko přihlásit na GC a tooltip "přihlašování na GameCon bude spuštěno 20.5. a " -->
     <?php } ?>
 
+    <!-- workaround: rezervace místa pro tooltip souhlasu -->
+    <div style="height: 30px"></div>
 </form>

@@ -67,6 +67,8 @@ input, textarea, select {
     opacity: 0;
     margin-top: 5px;
     transition: opacity 0.3s, margin-top 0.3s, visibility 1s;
+
+    @media (max-width: 600px) { display: none; } // prevence přetékání na mobilu
 }
 
 .tooltip_obsah::before {
@@ -86,4 +88,5 @@ input, textarea, select {
     visibility: visible;
     opacity: 1;
     margin-top: 0;
+    @media (max-width: 600px) { display: block; }
 }
