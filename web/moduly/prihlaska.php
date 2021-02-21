@@ -5,13 +5,11 @@ $this->bezPaticky(true);
 
 /**
  * Pomocná funkce pro náhled předmětu pro aktuální ročník
- * TODO spíš vyhodit? - možná ručně přidat ?v k souboru
  */
 function nahledPredmetu($soubor) {
   $cesta = 'soubory/obsah/materialy/' . ROK . '/' . $soubor;
   try {
     $nahled = Nahled::zSouboru($cesta)->kvalita(98)->url();
-    $nahled .= '.jpg'; // další .jpg na konec kvůli lightbox bugu
   } catch(Exception $e) {
     // pokud soubor neexistuje, nepoužít cache ale vypsat do html přímo cestu
     // při zkoumání html je pak přímo vidět, kam je potřeba nahrát soubor
@@ -35,34 +33,27 @@ if(!$u) exit(header('Location: '.URL_WEBU.'/registrace'));
 $shop = new Shop($u);
 $pomoc = new Pomoc($u);
 
-if(!empty($_POST)) {
-  // odhlášení z GameConu
-  if(post('odhlasit')) {
-    $u->gcOdhlas();
-    oznameni(hlaska('odhlaseniZGc',$u));
-  }
-  // přihlašování nebo editace
+if(post('odhlasit')) {
+  $u->gcOdhlas();
+  oznameni(hlaska('odhlaseniZGc', $u));
+}
+
+if(post('prihlasitNeboUpravit')) {
   $prihlasovani = false;
-  if(!$u->gcPrihlasen())
-    $prihlasovani=$u->gcPrihlas();
+  if(!$u->gcPrihlasen()) {
+    $prihlasovani = true;
+    $u->gcPrihlas();
+  }
   $shop->zpracujPredmety();
   $shop->zpracujUbytovani();
   $shop->zpracujJidlo();
   $shop->zpracujVstupne();
   $pomoc->zpracuj();
   if($prihlasovani) {
-    $_SESSION['ga_tracking_prihlaska'] = true; //hack pro zobrazení js kódu úspěšné google analytics konverze
-    oznameni(hlaska('prihlaseniNaGc',$u));
+    oznameni(hlaska('prihlaseniNaGc', $u));
   } else {
     oznameni(hlaska('aktualizacePrihlasky'));
   }
-}
-
-// hack pro zobrazení js kódu úspěšné google analytics konverze
-$gaTrack = '';
-if(isset($_SESSION['ga_tracking_prihlaska'])) {
-  //$gaTrack = "<script>_gaq.push(['_trackEvent', 'gamecon', 'prihlaseni']);</script>"; // GA tracking není funkční
-  unset($_SESSION['ga_tracking_prihlaska']);
 }
 
 // informace o slevách (jídlo nevypisovat, protože tabulka správně vypisuje cenu po slevě)
@@ -102,7 +93,6 @@ foreach($nahledy as $nahled) {
 
 $t->assign([
   'a'         =>  $u->koncA(),
-  'gaTrack'   =>  $gaTrack,
   'jidlo'     =>  $shop->jidloHtml(),
   'predmety'  =>  $shop->predmetyHtml(),
   'rok'       =>  ROK,

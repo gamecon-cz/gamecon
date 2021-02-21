@@ -37,7 +37,7 @@
 
   <div class="prihlaska_nahledy">
     <!-- begin: nahled -->
-    <a href="{obrazek}" class="prihlaska_nahled TODO lightbox" title="{nazev}">
+    <a href="{obrazek}" class="prihlaska_nahled" title="{nazev}">
       <img src="{miniatura}">
     </a>
     <!-- end: nahled -->
@@ -124,22 +124,20 @@
 <!----------------------------------------------------------------------------->
 
 <div class="prihlaska_sekce prihlaska_sekce-zapojit">
-  <div class="pomoc">{pomoc}</div><!-- TODO -->
+  {pomoc}
 </div>
 
 <!----------------------------------------------------------------------------->
 
 <div class="prihlaska_sekce">
-  <input type="submit" class="formular_primarni" value="{ulozitNeboPrihlasit}">
+  <input type="submit" class="formular_primarni" name="prihlasitNeboUpravit" value="{ulozitNeboPrihlasit}">
   <!-- begin:odhlasit -->
-  <input type="submit" name="odhlasit" class="formular_negativni" value="Odhlásit se z GameConu"
+  <input type="submit" class="formular_negativni" name="odhlasit" value="Odhlásit se z GameConu"
     onclick="return confirm('Odhlášení z GameConu zruší všechny tvé registrace na aktivity a nákupy předmětů. Kliknutím na OK se odhlásíš.')">
   <!-- end:odhlasit -->
 </div>
 
 </form>
-
-{gaTrack}
 
 <link rel="stylesheet" href="soubory/blackarrow/_spolecne/baguetteBox.min.css">
 <script src="soubory/blackarrow/_spolecne/baguetteBox.min.js"></script>

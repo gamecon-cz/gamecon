@@ -243,14 +243,12 @@ class Uzivatel {
     return $this->maPravo(ID_PRAVO_PRIHLASEN);
   }
 
-  /** Příhlásí uživatele na GC. True pokud je (nebo už byl) přihlášen. */
+  /** Příhlásí uživatele na GC */
   function gcPrihlas()
   {
-    if($this->gcPrihlasen())
-      return true;
-    else if($this->dejZidli(Z_PRIHLASEN))
-      return true;
-    return false;
+    if ($this->gcPrihlasen()) return;
+
+    $this->dejZidli(Z_PRIHLASEN);
   }
 
   /** Prošel uživatel infopultem, dostal materiály a je nebo byl přítomen na aktuálím

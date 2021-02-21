@@ -54,6 +54,5 @@
   Na pokoji chci být s:
   <input type="text" class="formular_input" name="{postnameSpolubydlici}" value="{spolubydlici}" placeholder="jména oddělená čárkou, nebo nech prázdné">
 </div>
-<!-- TODO doplňování jmen spolubydlících -->
 
 <!-- end:ubytovani -->

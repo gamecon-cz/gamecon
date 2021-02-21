@@ -114,6 +114,7 @@
     - zejména dropdowny, input
     - taky ale výchozí velikost písma, vzdálenost písmen, řádkování
     - čím později, tím větší riziko fuckupu velikostí / marginů někde
+    - [ ] (minor) chyba / hláška moc velká na mobilu
 
 - [ ] přihlášení, registrace
     - [x] csrf (zkusit, možná jde nějak headrem omezit)
