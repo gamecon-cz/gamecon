@@ -29,18 +29,19 @@ if($uPracovni) {
 $chyba = chyba::vyzvedniHtml();
 
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="cs" lang="cs">
+<!DOCTYPE html>
+<html lang="cs" dir="ltr">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <script src="files/jquery-2.1.0.min.js"></script>
-    <script src="files/jquery-ui-1.10.3.custom.min.js"></script>
+    <script src="files/jquery-3.4.1.min.js"></script>
+    <script src="files/jquery-ui-v1.12.  <?=$chyba?>
+1.min.js"></script>
     <script src="files/program-ajax.js?version=6bd8244fd9a9874ea2703cdea497877b"></script>
     <base href="<?=URL_ADMIN?>/">
     <?php $program->css(); ?>
     <style>
       body {
-        font-family: tahoma, sans;
+        font-family: tahoma, sans, serif;
         font-size: 11px;
         text-align: center;
         background-color: #f0f0f0;
@@ -49,15 +50,19 @@ $chyba = chyba::vyzvedniHtml();
       .program-odkaz {
         color: #fff;
       }
+      .program h2:first-child {
+        margin-top: 0;
+      }
     </style>
-    <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-1.10.3.custom.min.css">
+    <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-v1.12.1.min.css">
   </head>
   <body>
 
   <div style="
     text-align: left;
     font-size: 16px;
-    position: fixed;
+    position: -webkit-sticky;
+    position: sticky;
     top: 0; left: 0;
     width: 350px;
     padding: 10px;
@@ -77,9 +82,10 @@ $chyba = chyba::vyzvedniHtml();
     <a href="program-osobni" class="program-odkaz">Filtrovaný program</a>
   </div>
 
-  <?=$chyba?>
-
-  <?php $program->tisk(); ?>
+  <div class="program">
+    <?=$chyba?>
+    <?php $program->tisk(); ?>
+  </div>
 
   <?php profilInfo(); ?>
 
