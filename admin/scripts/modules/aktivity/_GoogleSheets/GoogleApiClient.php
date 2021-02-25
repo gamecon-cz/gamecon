@@ -146,7 +146,7 @@ class GoogleApiClient
     $tokens = $this->getNativeClient()->fetchAccessTokenWithAuthCode($authCode);
     // Check to see if there was an error.
     if (array_key_exists('error', $tokens)) {
-      throw new GoogleApiClientInvalidAuthorization("Invalid authorization by code '{$authCode}': " . implode(', ', $tokens));
+      throw new GoogleApiClientInvalidAuthorization("Invalid authorization by code '{$authCode}': " . var_export($tokens, true));
     }
     $this->getNativeClient()->setAccessToken($tokens);
     $this->googleApiTokenStorage->setTokensFor($this->getNativeClient()->getAccessToken(), $this->userId);

@@ -31,7 +31,7 @@ class AktivitaSqlSloupce
   public const TEAM_NAZEV = 'team_nazev'; // varchar(255) null,
   public const ZAMCEL = 'zamcel'; // int null comment 'případně kdo zamčel aktivitu pro svůj team',
   public const ZAMCEL_CAS = 'zamcel_cas'; // datetime null comment 'případně kdy zamčel aktivitu',
-  public const POPIS = 'popis'; // int not null,
+  public const POPIS = 'popis'; // int not null (ID from texty.id in fact),
   public const POPIS_KRATKY = 'popis_kratky'; // varchar(255) not null,
   public const VYBAVENI = 'vybaveni'; // text not null,
 
