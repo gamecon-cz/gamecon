@@ -216,19 +216,19 @@ SQL
     );
   }
 
-  public function checkRequiredValuesForState(array $sqlMappedValues, array $tagIds, array $potentialImageUrls): ImportStepResult {
+  public function checkRequiredValuesForState(array $sqlMappedValues, ?string $longAnnotation, array $tagIds, array $potentialImageUrls): ImportStepResult {
     $stateId = $sqlMappedValues[AktivitaSqlSloupce::STAV];
     if ($stateId === null) {
       return ImportStepResult::success(null);
     }
     $state = \Stav::zId($stateId);
     if ($state->jePublikovana()) {
-      $requiredFieldsForPublishingResult = $this->checkRequiredFieldsForPublishing($sqlMappedValues, $tagIds, $potentialImageUrls);
+      $requiredFieldsForPublishingResult = $this->checkRequiredFieldsForPublishing($sqlMappedValues, $longAnnotation, $tagIds, $potentialImageUrls);
       if ($requiredFieldsForPublishingResult->isError()) {
         return $requiredFieldsForPublishingResult;
       }
     } elseif ($state->jePripravenaKAktivaci()) {
-      $requiredFieldsForReadyForActivationResult = $this->checkRequiredFieldsForReadyToActivation($sqlMappedValues, $tagIds, $potentialImageUrls);
+      $requiredFieldsForReadyForActivationResult = $this->checkRequiredFieldsForReadyToActivation($sqlMappedValues, $longAnnotation, $tagIds, $potentialImageUrls);
       if ($requiredFieldsForReadyForActivationResult->isError()) {
         return $requiredFieldsForReadyForActivationResult;
       }
@@ -246,8 +246,9 @@ SQL
     );
   }
 
-  private function checkRequiredFieldsForReadyToActivation(array $sqlMappedValues, array $tagIds, array $potentialImageUrls): ImportStepResult {
-    $sqlMappedValues = $this->extendValuesByVirtualColumns($sqlMappedValues, $tagIds, $potentialImageUrls);
+  // for "připravená"
+  private function checkRequiredFieldsForReadyToActivation(array $sqlMappedValues, ?string $longAnnotation, array $tagIds, array $potentialImageUrls): ImportStepResult {
+    $sqlMappedValues = $this->extendValuesByVirtualColumns($sqlMappedValues, $longAnnotation, $tagIds, $potentialImageUrls);
 
     $requiredNonEmptyFields = [
       AktivitaSqlSloupce::NAZEV_AKCE,
@@ -285,14 +286,15 @@ SQL
     return ImportStepResult::success(null);
   }
 
-  private function extendValuesByVirtualColumns(array $sqlMappedValues, array $tagIds, array $potentialImageUrls): array {
+  private function extendValuesByVirtualColumns(array $sqlMappedValues, ?string $longAnnotation, array $tagIds, array $potentialImageUrls): array {
     $sqlMappedValues[AktivitaSqlSloupce::VIRTUAL_IMAGE] = implode(',', array_filter($potentialImageUrls));
     $sqlMappedValues[AktivitaSqlSloupce::VIRTUAL_TAGS] = implode(',', array_filter($tagIds));
+    $sqlMappedValues[AktivitaSqlSloupce::POPIS] = $longAnnotation; // popis is a texts.id in fact, but we will use it as final text content here
     return $sqlMappedValues;
   }
 
-  private function checkRequiredFieldsForPublishing(array $sqlMappedValues, array $tagIds, array $potentialImageUrls): ImportStepResult {
-    $sqlMappedValues = $this->extendValuesByVirtualColumns($sqlMappedValues, $tagIds, $potentialImageUrls);
+  private function checkRequiredFieldsForPublishing(array $sqlMappedValues, ?string $longAnnotation, array $tagIds, array $potentialImageUrls): ImportStepResult {
+    $sqlMappedValues = $this->extendValuesByVirtualColumns($sqlMappedValues, $longAnnotation, $tagIds, $potentialImageUrls);
 
     $requiredNonEmptyFields = [
       AktivitaSqlSloupce::NAZEV_AKCE,
@@ -325,14 +327,11 @@ SQL
         $missingFields[] = $requiredFieldAcceptingZero;
       }
     }
-    if ($missingFields) {
-      $missingFieldsAsKeys = array_fill_keys($missingFields, true);
-      $missingNames = array_intersect_key(self::getFieldsToNames(), $missingFieldsAsKeys);
-      return array_map(static function(string $name) {
-        return mb_strtolower($name, 'UTF-8');
-      }, $missingNames);
+    if (!$missingFields) {
+      return [];
     }
-    return [];
+    $missingFieldsAsKeys = array_fill_keys($missingFields, true);
+    return array_intersect_key(self::getFieldsToNames(), $missingFieldsAsKeys);
   }
 
   private static function getFieldsToNames(): array {

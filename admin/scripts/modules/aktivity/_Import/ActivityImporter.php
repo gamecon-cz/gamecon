@@ -50,7 +50,7 @@ class ActivityImporter
     array $potentialImageUrls,
     ?\Aktivita $originalActivity
   ): ImportStepResult {
-    $checkBeforeSaveResult = $this->checkBeforeSave($sqlMappedValues, $tagIds, $storytellersIds, $singleProgramLine, $potentialImageUrls, $originalActivity);
+    $checkBeforeSaveResult = $this->checkBeforeSave($sqlMappedValues, $longAnnotation, $tagIds, $storytellersIds, $singleProgramLine, $potentialImageUrls, $originalActivity);
     if ($checkBeforeSaveResult->isError()) {
       return ImportStepResult::error($checkBeforeSaveResult->getError());
     }
@@ -109,7 +109,7 @@ class ActivityImporter
     );
   }
 
-  private function checkBeforeSave(array $sqlMappedValues, array $tagIds, array $storytellersIds, \Typ $singleProgramLine, array $potentialImageUrls, ?\Aktivita $originalActivity): ImportStepResult {
+  private function checkBeforeSave(array $sqlMappedValues, ?string $longAnnotation, array $tagIds, array $storytellersIds, \Typ $singleProgramLine, array $potentialImageUrls, ?\Aktivita $originalActivity): ImportStepResult {
     $checkResults = [];
 
     $timeResult = $this->importValuesChecker->checkTime($sqlMappedValues, $originalActivity);
@@ -144,7 +144,7 @@ class ActivityImporter
     $checkResults[] = $stateUsabilityResult;
     unset($stateUsabilityResult);
 
-    $requiredValuesForStateResult = $this->importValuesChecker->checkRequiredValuesForState($sqlMappedValues, $tagIds, $potentialImageUrls);
+    $requiredValuesForStateResult = $this->importValuesChecker->checkRequiredValuesForState($sqlMappedValues, $longAnnotation, $tagIds, $potentialImageUrls);
     if ($requiredValuesForStateResult->isError()) {
       return ImportStepResult::error($requiredValuesForStateResult->getError());
     }

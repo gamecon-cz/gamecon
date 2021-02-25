@@ -980,7 +980,7 @@ SQL
       return dbMarkdown($this->a['popis']);
     }
     $oldId = $this->a['popis'];
-    $id = dbTextHash(func_get_arg(0));
+    $id = dbTextHash($popis);
     if ($this->a['patri_pod']) {
       dbUpdate('akce_seznam', ['popis' => $id], ['patri_pod' => $this->a['patri_pod']]);
     } else {
