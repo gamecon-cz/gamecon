@@ -14,14 +14,16 @@ function zachovejScroll(onclickPrvky, obnovovanyPrvek) {
         }
 
         let left = storagePop('left')
-        if (left) {
+        if (left && prvek) {
             prvek.scrollLeft = left
         }
     }
 
     function scrollUloz(prvek) {
         storagePush('top', window.scrollY)
-        storagePush('left', prvek.scrollLeft)
+        if (prvek) {
+            storagePush('left', prvek.scrollLeft)
+        }
     }
 
     function storagePush(klic, hodnota) {

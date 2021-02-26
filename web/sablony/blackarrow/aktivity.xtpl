@@ -1,0 +1,38 @@
+<!-- begin: aktivity -->
+
+<!-- begin: stranka -->
+<div>
+    <a href="{stranka.url}">{stranka.nadpis}</a><br><br>
+</div>
+<!-- end: stranka -->
+
+<div class="aktivity_aktivity">
+    <!-- begin: aktivita -->
+    <div class="aktivity_aktivita">
+        <img class="aktivity_obrazek" src="{obrazek}">
+        <h2 class="aktivity_nazev">{aktivita.nazev}</h2>
+        <div class="aktivity_vypravec"><b>Vypravěč:</b> {organizatori}</div>
+        <div class="aktivity_stitky">
+            <!-- begin: stitek -->
+            <div class="aktivity_stitek">{stitek}</div>
+            <!-- end: stitek -->
+        </div>
+
+        <div class="aktivity_popis">{aktivita.kratkyPopis}</div>
+
+        <!-- begin: termin -->
+        <div class="aktivity_termin">
+            <b>{aktivita.denCas}</b>&ensp;
+            {obsazenost}&ensp;
+            {prihlasit}
+        </div>
+        <!-- end: termin -->
+    </div>
+    <!-- end: aktivita -->
+</div>
+
+<script>
+zachovejScroll(document.querySelectorAll('.aktivity_aktivity form > a'), null)
+</script>
+
+<!-- end: aktivity -->

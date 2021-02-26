@@ -1674,6 +1674,8 @@ class Aktivita {
       $wheres[] = dbQv($filtr['od']).' <= a.zacatek';
     if(!empty($filtr['do']))
       $wheres[] = 'a.zacatek <= '.dbQv($filtr['do']);
+    if(!empty($filtr['bezDalsichKol']))
+      $wheres[] = 'NOT (a.typ IN ('.Typ::DRD.','.Typ::LKD.') AND cena = 0)';
     $where = implode(' AND ', $wheres);
 
     // sestavení řazení

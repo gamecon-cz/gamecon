@@ -45,6 +45,11 @@ class Typ extends DbObject {
     return (bool) $this->r['mail_neucast'];
   }
 
+  /** Pole stránek patřících k linii */
+  function stranky() {
+    return Stranka::zUrlPrefixu($this->url());
+  }
+
   function url(): string {
     return $this->r['url_typu_mn'];
   }

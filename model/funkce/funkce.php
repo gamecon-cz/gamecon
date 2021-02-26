@@ -495,14 +495,25 @@ function potrebujePotvrzeni(DateTimeImmutable $datumNarozeni): bool {
 function serazenePodle($pole, $kriterium) {
   if (is_string($kriterium)) {
     usort($pole, function ($a, $b) use ($kriterium) {
-      return $a->$kriterium() - $b->$kriterium();
+      return $a->$kriterium() <=> $b->$kriterium();
     });
   } else {
     usort($pole, function ($a, $b) use ($kriterium) {
-      return $kriterium($a) - $kriterium($b);
+      return $kriterium($a) <=> $kriterium($b);
     });
   }
   return $pole;
+}
+
+function seskupenePodle($pole, $funkce) {
+  $out = [];
+
+  foreach ($pole as $prvek) {
+    $klic = $funkce($prvek);
+    $out[$klic][] = $prvek;
+  }
+
+  return $out;
 }
 
 function vekNaZacatkuLetosnihoGameconu(DateTimeImmutable $datumNarozeni): int {
