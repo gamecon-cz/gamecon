@@ -109,6 +109,7 @@
         - [x] 1 zarovnat $$
         - [x] 1 barva nadpisu černá
         - [ ] (minor) 1 změna pozadí záhlaví
+        - [ ] v adminu překrytí výběru týmu
 
 - [ ] společné prvky
     - zejména dropdowny, input
@@ -154,6 +155,12 @@
 - [ ] aktivity
     - [ ] po přepsání možno odstranit scroll sneak z webu úplně
     - ...
+    - [ ] ajax na výběr týmu
+    - [ ] ikona a náhled _více_
+        - pomocí checkboxu a label for (i na křížku)
+    - [ ] zbytek stylu (záhlaví, stránky)
+    - [ ] responziva
+    - [ ] speciální styl dračáku (2 sloupce?)
 
 - [ ] projet TODOs
 - [ ] (future) zrušit povinnost přezdívek

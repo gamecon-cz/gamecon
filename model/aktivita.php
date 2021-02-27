@@ -1530,6 +1530,9 @@ class Aktivita {
       'postname'    =>  self::TEAMKLIC,
       'prihlasenyUzivatelId' => $u->id(),
       'aktivitaId'  =>  $this->id(),
+      'cssUrlAutocomplete' => URL_WEBU . '/soubory/blackarrow/_spolecne/auto-complete.css',
+      'jsUrlAutocomplete'  => URL_WEBU . '/soubory/blackarrow/_spolecne/auto-complete.min.js',
+      'jsUrl'              => URL_WEBU . '/soubory/blackarrow/tym-formular/tym-formular.js',
     ]);
 
     // výběr instancí, pokud to aktivita vyžaduje

@@ -34,11 +34,30 @@ foreach ($skupiny as $skupina) {
     $skupina = serazenePodle($skupina, 'zacatek');
 
     foreach ($skupina as $aktivita) {
+        $vyberTymu = $aktivita->vyberTeamu($u);
+        if ($vyberTymu) {
+            $t->assign('vyberTymu', $vyberTymu);
+            $t->parse('aktivity.aktivita.termin.vyberTymu');
+        }
+
+        $tym = $aktivita->tym();
+        if ($tym && in_array($aktivita->typId(), [Typ::DRD, Typ::LKD])) {
+            $t->assign('tym', $tym);
+            $t->parse('aktivity.aktivita.termin.tym');
+        }
+
+        $vypravec = current($aktivita->organizatori());
+        if ($vypravec && $aktivita->typId() == Typ::DRD) {
+            $t->assign('vypravec', $vypravec->jmenoNick());
+            $t->parse('aktivity.aktivita.termin.vypravec');
+        }
+
         $t->assign([
             'aktivita'   => $aktivita,
             'obsazenost' => $aktivita->obsazenost() ? '('.trim($aktivita->obsazenost()).')' : '',
             'prihlasit'  => $aktivita->prihlasovatko($u),
         ]);
+
         $t->parse('aktivity.aktivita.termin');
     }
 
