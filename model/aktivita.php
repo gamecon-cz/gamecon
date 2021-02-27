@@ -1223,14 +1223,12 @@ class Aktivita {
         'zamcel'      =>  null,
         'zamcel_cas'  =>  null,
         'team_nazev'  =>  $nazevTymu ?: null,
+        'kapacita'    =>  $pocetMist ?: dbNoChange(),
       ], [
         'id_akce'     =>  $this->id(),
       ]);
 
-      // tým je nyní přihlášen - dodatečné změny na už přihlášeném týmu
       $this->refresh();
-      $this->tym()->kapacita($pocetMist);
-      $this->a['kapacita'] = $pocetMist; // TODO workaround pro aktualizaci dat
     } catch(Exception $e) {
       dbRollback();
       if($chybnyClen)
