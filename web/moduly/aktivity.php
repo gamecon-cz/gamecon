@@ -76,10 +76,14 @@ foreach ($skupiny as $skupina) {
 }
 
 
-// záhlaví
+// záhlaví a informace
 
 $this->info()->nazev(mb_ucfirst($typ->nazevDlouhy()));
 $this->info()->obrazek(null);
+$t->assign([
+    'popisLinie' => $typ->oTypu(),
+    'ikonaLinie' => 'soubory/systemove/linie-ikony/' . $typ->id() . '.png',
+]);
 
 
 // podstránky linie

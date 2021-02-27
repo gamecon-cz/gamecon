@@ -1,11 +1,19 @@
 <!-- begin: aktivity -->
 
-<!-- begin: stranka -->
-<div>
-    <a href="{stranka.url}">{stranka.nadpis}</a><br><br>
+<div class="aktivity_hlavicka">
+    <div class="aktivity_ikonaLinie">
+        <img src="{ikonaLinie}">
+    </div>
+    {popisLinie}
 </div>
-<!-- end: stranka -->
 
+<div class="aktivity_stranky">
+    <!-- begin: stranka -->
+    <a href="{stranka.url}" class="aktivity_stranka">{stranka.nadpis}</a>
+    <!-- end: stranka -->
+</div>
+
+<div class="aktivity_aktivityObal">
 <div class="aktivity_aktivity">
     <!-- begin: aktivita -->
     <div class="aktivity_aktivita">
@@ -45,6 +53,7 @@
         <!-- end: termin -->
     </div>
     <!-- end: aktivita -->
+</div>
 </div>
 
 <script>

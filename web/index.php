@@ -122,7 +122,6 @@ if($m->bezStranky()) {
     ),
     'js'        => perfectcache(
       'soubory/jquery-2.1.1.min.js',
-      'soubory/scroll-sneak.js',
       'soubory/aplikace.js',
       'soubory/jquery-ui.min.js',
       'soubory/easybox.distrib.min.js' // nějaká debiláž, musí být poslední

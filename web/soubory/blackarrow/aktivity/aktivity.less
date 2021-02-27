@@ -1,18 +1,106 @@
-@sirka: 370px;
-@vyskaObrazku: (@sirka - 4px) * 9/16;
+// hlavička
+
+.aktivity_hlavicka {
+    background: url('../blackarrow/aktivity/hlavicka.svg') no-repeat 0 100% ~'/' 100% auto;
+    margin: 0 1.5% 32px;
+    padding: 55px 34vw 4vw 36px;
+    font-size: 16px;
+    line-height: 26/16;
+
+    @media (min-width: 1500px) {
+        padding-left: 117px;
+    }
+
+    h1 {
+        font-size: 80rel;
+        margin: 0 0 33px 0;
+    }
+
+    p {
+        margin: 0 0 26px 0;
+        max-width: 950px;
+    }
+}
+
+.aktivity_ikonaLinie {
+    position: absolute;
+    margin: 0 0 0 70vw;
+    background: url('../blackarrow/aktivity/flek.png');
+    width: 209px;
+    height: 206px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    img { display: block; }
+}
+
+
+// stránky
+
+.aktivity_stranky {
+    width: 1600px;
+    max-width: 90%;
+    margin: auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    column-gap: 2%;
+    row-gap: 0.83vw;
+}
+
+.aktivity_stranka {
+    display: block;
+    font-size: 18px;
+    font-weight: bold;
+    text-decoration: none;
+    line-height: 54px;
+    height: 54px;
+    background-color: #10111A;
+    color: #fff;
+    padding: 0 24px;
+    position: relative; // kvůli šipce
+}
+
+.aktivity_stranka::after {
+    content: '';
+    display: block;
+    position: absolute;
+    right: 27px;
+    top: 22px;
+    width:  8px;
+    height: 8px;
+    border-bottom: solid 2px #CE232D;
+    border-right:  solid 2px #CE232D;
+    transform: rotate(-45deg);
+    transition: right 0.3s;
+}
+
+.aktivity_stranka:hover::after {
+    right: 15px;
+}
+
+
+// aktivity
+
+.aktivity_aktivityObal {
+    background: url('../blackarrow/aktivity/vlny.svg') no-repeat 96vw 60px;
+}
 
 .aktivity_aktivity {
     column-count: 3;
-    column-gap: 30px;
-    margin: 100px auto;
-    max-width: @sirka * 3 + 30px * 2;
+    column-gap: 2%;
+    margin: auto;
+    width: 1600px;
+    max-width: 90%; // na toto je navázaná výška obrázků
+    padding: 40px;
+    background: url('../blackarrow/aktivity/smouha.jpg') no-repeat 100% 0;
 }
 
 .aktivity_aktivita {
     display: inline-block; // aby se nezalamovaly do víc sloupců
     box-sizing: border-box;
-    width: @sirka;
-    padding: @vyskaObrazku+17px 26px 22px 26px;
+    width: 100%;
+    padding: 0 26px 22px 26px;
 
     margin-bottom: 38px;
     border: solid 2px #10111A;
@@ -23,10 +111,10 @@
 
 .aktivity_obrazek {
     display: block;
-    position: absolute;
-    margin: -(@vyskaObrazku+17px) 0 0 -26px;
-    width: @sirka - 4px;
-    height: @vyskaObrazku;
+    margin: 0 -26px 17px;
+    width: ~'calc(100% + 52px)';
+    height: 512px * 9/16;
+    @media (max-width: 1600px) { height: 16.125vw }
 }
 
 .aktivity_nazev {

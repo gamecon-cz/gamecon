@@ -154,13 +154,13 @@
 
 - [ ] aktivity
     - [x] po přepsání možno odstranit scroll sneak z webu úplně
-    - ...
-    - [ ] ajax na výběr týmu
+    - [x] ajax na výběr týmu
     - [ ] ikona a náhled _více_
         - pomocí checkboxu a label for (i na křížku)
     - [ ] zbytek stylu (záhlaví, stránky)
     - [ ] responziva
     - [ ] speciální styl dračáku (2 sloupce?)
+    - [ ] (minor) styl výběru týmu
 
 - [ ] projet TODOs
 - [ ] (future) zrušit povinnost přezdívek
