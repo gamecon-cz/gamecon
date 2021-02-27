@@ -153,7 +153,7 @@
     - [ ] (minor) lepší integrace stylů do adminu
 
 - [ ] aktivity
-    - [ ] po přepsání možno odstranit scroll sneak z webu úplně
+    - [x] po přepsání možno odstranit scroll sneak z webu úplně
     - ...
     - [ ] ajax na výběr týmu
     - [ ] ikona a náhled _více_

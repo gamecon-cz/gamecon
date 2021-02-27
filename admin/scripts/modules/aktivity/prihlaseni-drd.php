@@ -60,5 +60,6 @@ foreach(Aktivita::zFiltru(['typ' => Typ::DRD, 'rok' => ROK]) as $a) {
   $t->parse('drd.druzina');
 }
 
+$t->assign('zachovejScroll', URL_WEBU . '/soubory/blackarrow/_spolecne/zachovej-scroll.js');
 $t->parse('drd');
 $t->out('drd');
