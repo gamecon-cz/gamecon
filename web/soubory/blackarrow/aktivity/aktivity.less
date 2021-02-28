@@ -190,8 +190,107 @@
     margin-bottom: 21px;
 }
 
+.aktivity_vice {
+    font-weight: bold;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
 .aktivity_termin {
     padding-left: 21px;
     background: url('../blackarrow/aktivity/kalendar.png') no-repeat 0 3px;
     margin-bottom: 3px;
+}
+
+
+// náhled
+
+.aktivity_nahledCheckbox {
+    display: none;
+}
+
+.aktivity_nahledObal {
+    display: none;
+    background-color: #000c;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 100vw;
+    z-index: 50;
+
+    // display: flex; se nastaví u aktivního prvku
+    justify-content: center;
+    align-items: center;
+}
+
+.aktivity_nahled {
+    background-color: #fff;
+    width: 764px;
+    max-height: 80vh;
+    box-shadow: 0px 3px 25px #000;
+    box-sizing: border-box;
+    padding: 15px;
+    display: flex;
+    position: relative; // kvůli křížku
+
+    font-size: 13px;
+    line-height: 22/13;
+
+    @media (max-width: 600px) {
+        display: block;
+        max-height: 100vh;
+        overflow: scroll;
+    }
+
+    @media (min-width: 1500px) {
+        max-height: 60vh;
+    }
+}
+
+.aktivity_nahledCheckbox:checked + .aktivity_nahledObal {
+    display: flex;
+}
+
+.aktivity_nahledZavrit {
+    display: block;
+    position: absolute;
+    top: 12px;
+    right: 24px;
+    line-height: 1.0;
+    font-size: 26px;
+    cursor: pointer;
+    color: #555;
+}
+
+.aktivity_nahledTextPole {
+    background-color: #F6F1EA;
+    padding: 22px 36px 1px 24px;
+    overflow: scroll;
+
+    h2 {
+        font-size: 32px;
+        margin: 0 0 14px 0;
+        line-height: normal;
+    }
+}
+
+.aktivity_stitek-nahled {
+    background-color: #F9D6B0;
+}
+
+.aktivity_nahledInfoPole {
+    width: 260px;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    padding: 21px 24px;
+
+    h3 {
+        margin: 28px 0 0 0;
+        font-weight: normal;
+        color: #aaa;
+        font-size: inherit;
+    }
+
+    h3:first-child { margin: 0 }
 }

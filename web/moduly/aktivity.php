@@ -58,6 +58,7 @@ foreach ($skupiny as $skupina) {
             'prihlasit'  => $aktivita->prihlasovatko($u),
         ]);
 
+        $t->parse('aktivity.nahled.termin');
         $t->parse('aktivity.aktivita.termin');
     }
 
@@ -69,10 +70,14 @@ foreach ($skupiny as $skupina) {
         'aktivita'     => $aktivita,
         'obrazek'      => $aktivita->obrazek()->pasuj(512), // TODO kvalita?
         'organizatori' => $organizatori,
+        'organizatoriNahled' => strtr($organizatori, [', ' => '<br>']),
+        'kapacita'     => $aktivita->kapacita() ?: 'neomezeně',
     ]);
 
     $t->parseEach($aktivita->tagy(), 'stitek', 'aktivity.aktivita.stitek');
+    $t->parseEach($aktivita->tagy(), 'stitek', 'aktivity.nahled.stitek');
     $t->parse('aktivity.aktivita');
+    $t->parse('aktivity.nahled');
 }
 
 

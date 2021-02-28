@@ -155,7 +155,7 @@
 - [ ] aktivity
     - [x] po přepsání možno odstranit scroll sneak z webu úplně
     - [x] ajax na výběr týmu
-    - [ ] ikona a náhled _více_
+    - [x] ikona a náhled _více_
         - pomocí checkboxu a label for (i na křížku)
     - [x] zbytek stylu (záhlaví, stránky)
     - [x] responziva

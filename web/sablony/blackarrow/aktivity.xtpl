@@ -30,7 +30,10 @@
             <!-- end: stitek -->
         </div>
 
-        <div class="aktivity_popis">{aktivita.kratkyPopis}</div>
+        <div class="aktivity_popis">
+            {aktivita.kratkyPopis}
+            <label class="aktivity_vice" for="aktivity_nahledId{aktivita.id}">zobrazit více</label>
+        </div>
 
         <!-- begin: termin -->
         <div class="aktivity_termin">
@@ -63,5 +66,43 @@
 <script>
 zachovejScroll(document.querySelectorAll('.aktivity_aktivity form > a'), null)
 </script>
+
+<!-- begin: nahled -->
+<input type="checkbox" class="aktivity_nahledCheckbox" id="aktivity_nahledId{aktivita.id}">
+<div class="aktivity_nahledObal">
+<div class="aktivity_nahled">
+    <label class="aktivity_nahledZavrit" for="aktivity_nahledId{aktivita.id}">✕</label>
+
+    <div class="aktivity_nahledTextPole">
+        <h2>{aktivita.nazev}</h2>
+        <div class="aktivity_stitky">
+            <!-- begin: stitek -->
+            <div class="aktivity_stitek aktivity_stitek-nahled">{stitek}</div>
+            <!-- end: stitek -->
+        </div>
+        <p><b>{aktivita.kratkyPopis}</b></p>
+        {aktivita.popis}
+    </div>
+
+    <div class="aktivity_nahledInfoPole">
+        <h3>Vypravěč:</h3>
+        {organizatoriNahled}
+
+        <h3>Informace:</h3>
+        <div class="programNahled_obsazenost">{kapacita}</div>
+        <div class="programNahled_cas">{aktivita.delka}&thinsp;h</div>
+        <div class="programNahled_cena">{aktivita.cena}</div>
+
+        <h3>Termíny:</h3>
+        <!-- begin: termin -->
+        <div class="aktivity_termin">
+            <b>{aktivita.denCas}</b>&ensp;
+            {obsazenost}&ensp;
+        </div>
+        <!-- end: termin -->
+    </div>
+</div>
+</div>
+<!-- end: nahled -->
 
 <!-- end: aktivity -->
