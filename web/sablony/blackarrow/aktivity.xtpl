@@ -50,11 +50,16 @@
             <!-- end: tym -->
 
             <!-- begin: vyberTymu -->
-            <div class="aktivity_vyberTymu">
+            <div>
                 <b>Výběr týmu:</b> Aktivita je týmová a jako první přihlášený máš právo sestavit si tým (družinu). Vyplň ID spoluhráčů, s kterými chceš hrát (můžeš použít i přezdívku nebo jméno, zobrazí se napovídací políčko). Po potvrzení budou automaticky přihlášeni a informováni mailem. Políčka co necháš prázdná se otevřou pro přihlášení komukoli, ta která odebereš se znepřístupní. Na vyplnění máš čas tři dny, pak tě aktivita sama odhlásí.<br>
                 {vyberTymu}
             </div>
             <!-- end: vyberTymu -->
+
+            <!-- begin: vypisTymu -->
+            <div>{vypisTymu}</div>
+            <!-- end: vypisTymu -->
+
             <br>
         </div>
         <!-- end: termin -->

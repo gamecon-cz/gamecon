@@ -46,6 +46,12 @@ foreach ($skupiny as $skupina) {
             $t->parse('aktivity.aktivita.termin.tym');
         }
 
+        $vypisTymu = $tym && $u && $aktivita->prihlasen($u) ? $tym->vypis() : null;
+        if ($vypisTymu && !$vyberTymu) {
+            $t->assign('vypisTymu', $vypisTymu);
+            $t->parse('aktivity.aktivita.termin.vypisTymu');
+        }
+
         $vypravec = current($aktivita->organizatori());
         if ($vypravec && $aktivita->typId() == Typ::DRD) {
             $t->assign('vypravec', $vypravec->jmenoNick());

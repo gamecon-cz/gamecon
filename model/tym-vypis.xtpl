@@ -6,20 +6,20 @@
 +{mist}
 
   <!-- begin:odebrat -->
-  <form method="post" style="display:none">
+  <form method="post" style="display: inline">
     <input type="hidden" name="{post}[id]" value="{id}">
     <input type="hidden" name="{post}[odebrat]" value="true">
+    &emsp;
+    <a href="#" onclick="this.parentNode.submit(); return false">odebrat místo</a>
   </form>
-  &emsp;
-  <a href="#" onclick="$(this).prev().submit();return false">odebrat místo</a>
   <!-- end:odebrat -->
   <!-- begin:pridat -->
-  <form method="post" style="display:none">
+  <form method="post" style="display: inline">
     <input type="hidden" name="{post}[id]" value="{id}">
     <input type="hidden" name="{post}[pridat]" value="true">
+    &emsp;
+    <a href="#" onclick="this.parentNode.submit(); return false">přidat místo</a>
   </form>
-  &emsp;
-  <a href="#" onclick="$(this).prev().submit();return false">přidat místo</a>
   <!-- end:pridat -->
 
 <!-- end:vypis -->
