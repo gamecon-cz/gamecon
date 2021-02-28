@@ -1,30 +1,51 @@
 // hlavička
 
-.aktivity_hlavicka {
-    background: url('../blackarrow/aktivity/hlavicka.svg') no-repeat 0 100% ~'/' 100% auto;
-    margin: 0 1.5% 32px;
-    padding: 55px 34vw 4vw 36px;
+.aktivity_hlavickaObal {
+    background: url('../blackarrow/aktivity/hlavicka.svg') no-repeat 1.5vw 100% ~'/' 97% auto;
+    margin-bottom: 32px;
     font-size: 16px;
     line-height: 26/16;
 
-    @media (min-width: 1500px) {
-        padding-left: 117px;
+    @media (max-width: 600px) {
+        background:
+            url('../blackarrow/aktivity/hlavicka.svg') no-repeat 0 100% ~'/' 100% auto,
+            linear-gradient(to bottom, #f6f1ea 50%, #fff 50%);
+        overflow: hidden;
     }
+}
+
+.aktivity_hlavicka {
+    padding: 55px 0 4vw 0;
+    width: 1600px;
+    max-width: 90%;
+    margin: auto;
+    position: relative;
 
     h1 {
         font-size: 80rel;
         margin: 0 0 33px 0;
+        line-height: normal;
     }
 
     p {
         margin: 0 0 26px 0;
-        max-width: 950px;
+        max-width: 60%;
     }
+
+    @media (max-width: 600px) {
+        padding: 20px 0 4vw;
+        p { max-width: 100%; }
+    }
+}
+
+.aktivity_popisLinie {
+    position: relative;
+    z-index: 1; // kvůli ikoně pod textem (nejen) na mobilu
 }
 
 .aktivity_ikonaLinie {
     position: absolute;
-    margin: 0 0 0 70vw;
+    margin: 0 0 0 75%;
     background: url('../blackarrow/aktivity/flek.png');
     width: 209px;
     height: 206px;
@@ -33,6 +54,12 @@
     justify-content: center;
     align-items: center;
     img { display: block; }
+
+    @media (max-width: 600px) {
+        transform-origin: 0 0;
+        transform: scale(0.75);
+        margin: -20px 0 0 66%;
+    }
 }
 
 
@@ -46,6 +73,10 @@
     grid-template-columns: repeat(3, 1fr);
     column-gap: 2%;
     row-gap: 0.83vw;
+    @media (max-width: 600px) {
+        max-width: 97%;
+        grid-template-columns: 1fr;
+    }
 }
 
 .aktivity_stranka {
@@ -94,6 +125,12 @@
     max-width: 90%; // na toto je navázaná výška obrázků
     padding: 40px;
     background: url('../blackarrow/aktivity/smouha.jpg') no-repeat 100% 0;
+    @media (max-width: 600px) {
+        column-count: 1;
+        box-sizing: border-box;
+        max-width: 100%;
+        padding: 40px 1.5%;
+    }
 }
 
 .aktivity_aktivita {
@@ -115,6 +152,7 @@
     width: ~'calc(100% + 52px)';
     height: 512px * 9/16;
     @media (max-width: 1600px) { height: 16.125vw }
+    @media (max-width: 600px) { height: 97vw * 9/16 }
 }
 
 .aktivity_nazev {

@@ -1,10 +1,14 @@
 <!-- begin: aktivity -->
 
+<div class="aktivity_hlavickaObal">
 <div class="aktivity_hlavicka">
     <div class="aktivity_ikonaLinie">
         <img src="{ikonaLinie}">
     </div>
-    {popisLinie}
+    <div class="aktivity_popisLinie">
+        {popisLinie}
+    </div>
+</div>
 </div>
 
 <div class="aktivity_stranky">

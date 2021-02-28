@@ -157,8 +157,8 @@
     - [x] ajax na výběr týmu
     - [ ] ikona a náhled _více_
         - pomocí checkboxu a label for (i na křížku)
-    - [ ] zbytek stylu (záhlaví, stránky)
-    - [ ] responziva
+    - [x] zbytek stylu (záhlaví, stránky)
+    - [x] responziva
     - [ ] speciální styl dračáku (2 sloupce?)
     - [ ] (minor) styl výběru týmu
 
