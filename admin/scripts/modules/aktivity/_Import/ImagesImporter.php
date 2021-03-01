@@ -73,7 +73,7 @@ class ImagesImporter
       } else {
         $downloadingImagesErrorsPerActivity[$activityId] = [];
         foreach ($potentialImageUrls as $potentialImageUrl) {
-          $downloadingImagesErrorsPerActivity[$activityId][$potentialImageUrl] = $downloadingImagesErrors[$potentialImageUrl];
+          $downloadingImagesErrorsPerActivity[$activityId][$potentialImageUrl] = $downloadingImagesErrors[$potentialImageUrl] ?? 'neznámá chyba';
         }
       }
     }
