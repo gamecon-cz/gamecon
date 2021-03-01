@@ -247,7 +247,12 @@ SQL
   }
 
   // for "připravená"
-  private function checkRequiredFieldsForReadyToActivation(array $sqlMappedValues, ?string $longAnnotation, array $tagIds, array $potentialImageUrls): ImportStepResult {
+  private function checkRequiredFieldsForReadyToActivation(
+    array $sqlMappedValues,
+    ?string $longAnnotation,
+    array $tagIds,
+    array $potentialImageUrls
+  ): ImportStepResult {
     $sqlMappedValues = $this->extendValuesByVirtualColumns($sqlMappedValues, $longAnnotation, $tagIds, $potentialImageUrls);
 
     $requiredNonEmptyFields = [
