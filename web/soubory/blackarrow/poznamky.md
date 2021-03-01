@@ -159,7 +159,9 @@
         - pomocí checkboxu a label for (i na křížku)
     - [x] zbytek stylu (záhlaví, stránky)
     - [x] responziva
-    - [ ] speciální styl dračáku (2 sloupce?)
+    - [x] speciální styl dračáku (2 sloupce?)
+    - [ ] dodělávky
+        - ...?
     - [ ] (minor) styl výběru týmu
 
 - [ ] projet TODOs

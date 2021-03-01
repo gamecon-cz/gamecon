@@ -94,6 +94,7 @@ $this->info()->obrazek(null);
 $t->assign([
     'popisLinie' => $typ->oTypu(),
     'ikonaLinie' => 'soubory/systemove/linie-ikony/' . $typ->id() . '.png',
+    'specTridy'  => $typ->id() == Typ::DRD ? 'aktivity_aktivity-drd' : null,
 ]);
 
 

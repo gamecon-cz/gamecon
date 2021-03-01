@@ -133,6 +133,10 @@
     }
 }
 
+.aktivity_aktivity-drd {
+    column-count: 1;
+}
+
 .aktivity_aktivita {
     display: inline-block; // aby se nezalamovaly do víc sloupců
     box-sizing: border-box;
@@ -153,6 +157,11 @@
     height: 512px * 9/16;
     @media (max-width: 1600px) { height: 16.125vw }
     @media (max-width: 600px) { height: 97vw * 9/16 }
+}
+
+.aktivity_aktivity-drd .aktivity_obrazek {
+    visibility: hidden; // zjednodušení, aby zůstalo odsazení od vrchu
+    height: 20px;
 }
 
 .aktivity_nazev {
@@ -194,6 +203,11 @@
     font-weight: bold;
     text-decoration: underline;
     cursor: pointer;
+}
+
+.aktivity_aktivity-drd .aktivity_terminy {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 }
 
 .aktivity_termin {
