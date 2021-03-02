@@ -148,6 +148,7 @@
 
     font-size: 13px;
     line-height: 22/13;
+    @media (min-width: 1500px) { font-size: 16px }
 }
 
 .aktivity_obrazek {
@@ -191,6 +192,7 @@
     padding: 6px 12px 5px;
     margin: 0 8px 8px 0;
     letter-spacing: 0.03em;
+    @media (min-width: 1500px) { font-size: 12px }
 }
 
 .aktivity_popis {
@@ -260,6 +262,7 @@
     @media (min-width: 1500px) {
         max-height: 60vh;
         width: 950px;
+        font-size: 16px;
     }
 }
 
@@ -310,7 +313,8 @@
     h3:first-child { margin: 0 }
 }
 
-.aktivity_nahledKapacita {
+.aktivity_nahledInfo {
     // override kapacity z programu
     margin: 10px 0 !important;
+    font-size: inherit !important;
 }

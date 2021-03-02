@@ -96,9 +96,9 @@ zachovejScroll(document.querySelectorAll('.aktivity_aktivity form > a'), null)
         {organizatoriNahled}
 
         <h3>Informace:</h3>
-        <div class="programNahled_obsazenost aktivity_nahledKapacita">{kapacita}</div>
-        <div class="programNahled_cas">{aktivita.delka}&thinsp;h</div>
-        <div class="programNahled_cena">{aktivita.cena}</div>
+        <div class="programNahled_obsazenost aktivity_nahledInfo">{kapacita}</div>
+        <div class="programNahled_cas aktivity_nahledInfo">{aktivita.delka}&thinsp;h</div>
+        <div class="programNahled_cena aktivity_nahledInfo">{aktivita.cena}</div>
 
         <h3>Termíny:</h3>
         <!-- begin: termin -->
