@@ -18,7 +18,7 @@
         - podle ne/přihlášenosti, případně spuštění regu
     - [ ] hover na mobilu
         - na některých mobilech možná nejde "kliknout" na rozbalovací části menu, otestovat, ověřit
-    - [ ] (minor) na fullHD snížit počet sloupců (grid?)
+    - [x] (minor) na fullHD snížit počet sloupců (grid?)
 
 - [ ] titulka
     - [x] proporciální hlavička

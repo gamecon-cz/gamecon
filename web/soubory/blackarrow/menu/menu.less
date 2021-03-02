@@ -90,20 +90,26 @@
 // levá část - submenu
 
 .menu_kategorie:hover .menu_polozky {
-    display: block;
+    display: grid;
 }
 
 .menu_polozky {
     position: absolute;
     display: none;
+
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    column-gap: 40px;
+    row-gap: 30px;
+
     background-color: #10111A;
     left: 0;
     width: 100%;
-    padding: 40px 0 15px 220px;
+    padding: 40px 220px;
     box-sizing: border-box;
     z-index: 20; // aby překrylo jméno na mobilu
     @media (max-width: 600px) {
-        padding: 20px 0;
+        padding: 20px;
+        row-gap: 10px;
     }
 }
 
@@ -113,15 +119,9 @@
     font-weight: bold;
     font-size: 16px;
     display: block;
-    float: left;
-    width: 240px;
     padding: 0 0 11px 0;
-    margin: 0 40px 30px 0; // pozor že kvůli floatu se marginy nekolabují
     border-bottom: solid 1px #515151;
     position: relative; // kvůli šipce vpravo
-    @media (max-width: 600px) {
-        padding: 0 20px;
-    }
     &::first-letter { text-transform: uppercase; }
 }
 
