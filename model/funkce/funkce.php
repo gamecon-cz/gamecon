@@ -318,7 +318,7 @@ if (!function_exists('array_key_first')) {
  */
 function hromadneStazeni(array $urls, int $timeout = 60, string $dirToSaveTo = null): array {
   $urls = array_map('trim', $urls);
-  $urls = array_filter($urls, static function (string $url) {
+  $urls = array_filter($urls, static function(string $url) {
     return $url !== '';
   });
   $result = [
@@ -468,4 +468,19 @@ function sanitizeUrlForCurl(string $url): string {
   }
 
   return $sanitizedUrl;
+}
+
+function removeDiacritics(string $value) {
+  $withoutDiacritics = '';
+  $specialsReplaced = \str_replace(
+    ['̱', '̤', '̩', 'Ə', 'ə', 'ʿ', 'ʾ', 'ʼ',],
+    ['', '', '', 'E', 'e', "'", "'", "'",],
+    $value
+  );
+  \preg_match_all('~(?<words>\w*)(?<nonWords>\W*)~u', $specialsReplaced, $matches);
+  foreach ($matches['words'] as $index => $word) {
+    $wordWithoutDiacritics = \transliterator_transliterate('Any-Latin; Latin-ASCII', $word);
+    $withoutDiacritics .= $wordWithoutDiacritics . $matches['nonWords'][$index];
+  }
+  return $withoutDiacritics;
 }
