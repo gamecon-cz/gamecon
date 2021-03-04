@@ -178,7 +178,12 @@ class Obrazek
     $o = false;
     $typ = @exif_imagetype($url);
     if ($typ === false) {
-      throw new ObrazekException("Obrázek se nepodařilo načíst ze zdroje '$soubor'");
+      $errorMessage = "Typ obrázku se nepodařilo zjistit ze zdroje '$url'";
+      if ($url === $soubor) {
+        $errorMessage .= sprintf(", velikost zdrojového souboru je %d bajtů", filesize($url));
+      }
+      $errorMessage .= ", detail '%s'" . error_get_last()['message'];
+      throw new ObrazekException($errorMessage);
     }
     if($typ === IMAGETYPE_JPEG) $o = @imagecreatefromjpeg($url);
     if($typ === IMAGETYPE_PNG)  $o = @imagecreatefrompng($url);
