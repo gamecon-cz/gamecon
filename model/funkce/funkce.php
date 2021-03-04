@@ -349,7 +349,7 @@ function hromadneStazeni(array $urls, int $timeout = 60, string $dirToSaveTo = n
   foreach ($sanitizedUrls as $originalUrl => $sanitizedUrl) {
     $path = parse_url($sanitizedUrl, PHP_URL_PATH);
     $basename = basename($path);
-    $file = $dirToSaveTo . '/' . $basename;
+    $file = $dirToSaveTo . '/' . uniqid('image', true) . $basename;
     $curlHandle = curl_init($sanitizedUrl);
     if (!$curlHandle) {
       $result['errors'][$originalUrl] = sprintf("Nelze otevřít CURL handle pro URL '%s'", $sanitizedUrl);
