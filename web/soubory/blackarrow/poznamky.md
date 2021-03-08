@@ -163,6 +163,10 @@
     - [ ] dodělávky
         - ...?
     - [ ] (minor) styl výběru týmu
+    - [ ] (minor) stránka vypravěče
+
+- [ ] obsahové stránky
+    - [ ] projet vše (linky z menu, stránky v liniích)
 
 - [ ] projet TODOs
 - [ ] (future) zrušit povinnost přezdívek

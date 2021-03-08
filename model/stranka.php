@@ -46,7 +46,7 @@ class Stranka extends DbObject {
   }
 
   public static function zUrlPrefixu(string $url): array {
-    return self::zWhere('url_prefix = $1', [$url]);
+    return self::zWhere('url_stranky LIKE $1', [$url . '/%']);
   }
 
   static function zVsech() {

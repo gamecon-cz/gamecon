@@ -140,6 +140,8 @@ class Modul {
       return $this->vystup;
     elseif($this->bezOkraju)
       return $this->vystup . '<style>.hlavni { max-width: 100%; }</style>';
+    elseif($this->blackarrowStyl)
+      return '<div>' . $this->vystup . '</div>';
     else
       return '<div class="blok stranka"><div class="obal">' . $this->vystup . '</div></div>';
   }
