@@ -161,14 +161,17 @@
     - [x] responziva
     - [x] speciální styl dračáku (2 sloupce?)
     - [ ] dodělávky
-        - ...?
+        - [ ] font 15 aktivity
+        - [ ] fullhd link na podstránku 72 výška
     - [ ] (minor) styl výběru týmu
     - [ ] (minor) stránka vypravěče
 
-- [ ] obsahové stránky
+- [x] obsahové stránky
     - [x] dummy novinky a blog?
-    - [ ] projet vše (linky z menu, stránky v liniích)
-    - [ ] (minor) automatické odkazy "zpět do sekce"
+    - [x] automatické odkazy "zpět do sekce"
+    - [x] dodělávky
+        - [x] novinky linku nahoru, blog bez linek
+        - [x] obrázky odstranit z blogu
 
 - [ ] projet TODOs
 - [ ] (future) zrušit povinnost přezdívek

@@ -13,7 +13,6 @@
 
 <!-- begin:post -->
 <h2>{blog.nazev}</h2>
-<p><img src="{blog.obrazek}" loading="lazy"></p>
 <i>{blog.autor}, {blog.vydat.formatBlog}</i><br>
 <p>{blog.nahled} <a href="blog/{blog.url}">…více</a></p>
 <!-- end:post -->

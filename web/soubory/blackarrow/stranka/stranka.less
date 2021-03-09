@@ -16,12 +16,16 @@
 
     h2 {
         font-size: 32px;
-        margin: 54px 0 31px;
+        margin: 40px 0 20px;
+    }
+
+    h2 + h3 {
+        margin-top: 24px;
     }
 
     h3 {
         font-size: 24px;
-        margin: 31px 0 21px;
+        margin: 31px 0 16px;
     }
 
     img {
@@ -34,5 +38,33 @@
 
     ol {
         padding-left: 18px;
+    }
+}
+
+.stranka_zpet {
+    position: absolute;
+    display: block;
+    margin-top: -28px;
+    font-size: 14px;
+    padding-left: 11px;
+    color: inherit;
+    text-decoration: none;
+
+    &::after {
+        content: '';
+        display: block;
+        position: absolute;
+        left: 0;
+        top: 7px;
+        width:  8px;
+        height: 8px;
+        border-bottom: solid 1px #999;
+        border-right:  solid 1px #999;
+        transform: rotate(135deg);
+        transition: left 0.3s;
+    }
+
+    &:hover::after {
+        left: -5px;
     }
 }
