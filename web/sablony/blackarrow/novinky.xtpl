@@ -1,0 +1,24 @@
+<!-- begin:novinky -->
+<div class="stranka">
+
+    <a href="rss" style="float: right">rss</a>
+
+    <h1>Novinky</h1>
+
+    <!-- begin:novinka -->
+    <div style="border-bottom: solid 1px #eee; padding-bottom: 35px">
+      <h2>
+        <span style="float: right; color: #888">{datum}</span>
+        {blogn}{novinka.nazev}
+      </h2>
+      {text}
+    </div>
+    <!-- end:novinka -->
+
+    <p style="text-align: center">
+      <!-- begin:novejsi --> <a href="{url}">novější</a> &emsp;&emsp; <!-- end:novejsi -->
+      <!-- begin:starsi --> <a href="{url}">starší</a> <!-- end:starsi -->
+    </p>
+
+</div>
+<!-- end:novinky -->

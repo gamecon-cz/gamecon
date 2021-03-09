@@ -166,7 +166,9 @@
     - [ ] (minor) stránka vypravěče
 
 - [ ] obsahové stránky
+    - [x] dummy novinky a blog?
     - [ ] projet vše (linky z menu, stránky v liniích)
+    - [ ] (minor) automatické odkazy "zpět do sekce"
 
 - [ ] projet TODOs
 - [ ] (future) zrušit povinnost přezdívek
@@ -183,6 +185,7 @@ Minor
 Migrace
 
 - [ ] překopírovat obrázky + texty linií, sponzory a partnery
+- [ ] projít texty stránek (v menu informace + podstránky linií) a upravit
 
 Future
 

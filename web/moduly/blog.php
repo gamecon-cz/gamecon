@@ -1,5 +1,7 @@
 <?php
 
+$this->blackarrowStyl(true);
+
 $this->info()->nazev('Blog');
 
 if($url->cast(1)) {
