@@ -90,6 +90,10 @@
     color: #fff;
     padding: 0 24px;
     position: relative; // kvůli šipce
+    @media (min-width: 1500px) {
+        line-height: 72px;
+        height: 72px;
+    }
 }
 
 .aktivity_stranka::after {
@@ -104,6 +108,7 @@
     border-right:  solid 2px #CE232D;
     transform: rotate(-45deg);
     transition: right 0.3s;
+    @media (min-width: 1500px) { top: 32px }
 }
 
 .aktivity_stranka:hover::after {
@@ -148,7 +153,7 @@
 
     font-size: 13px;
     line-height: 22/13;
-    @media (min-width: 1500px) { font-size: 16px }
+    @media (min-width: 1500px) { font-size: 15px }
 }
 
 .aktivity_obrazek {
@@ -210,11 +215,12 @@
 .aktivity_aktivity-drd .aktivity_terminy {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-row-gap: 10px;
 }
 
 .aktivity_termin {
     padding-left: 21px;
-    background: url('../blackarrow/aktivity/kalendar.png') no-repeat 0 3px;
+    background: url('../blackarrow/aktivity/kalendar.png') no-repeat 0 5px;
     margin-bottom: 3px;
 }
 
@@ -262,7 +268,7 @@
     @media (min-width: 1500px) {
         max-height: 60vh;
         width: 950px;
-        font-size: 16px;
+        font-size: 15px;
     }
 }
 

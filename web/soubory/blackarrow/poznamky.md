@@ -42,6 +42,8 @@
     - [ ] srovnat, jaké prvky chybí proti stávající titulce / indexu
         - (viz stará šablona a zakomentovaný kód v titulka.php)
     - [ ] (minor) prozkoumat / vyhodit old_titulka.xtpl
+    - [ ] dodělávky
+        - [ ] animování prvků od spodu
 
 - [ ] program
     - [x] scrollery
@@ -152,7 +154,7 @@
     - [ ] (minor) odstranit gaTrack proměnnou a související věci
     - [ ] (minor) lepší integrace stylů do adminu
 
-- [ ] aktivity
+- [x] aktivity
     - [x] po přepsání možno odstranit scroll sneak z webu úplně
     - [x] ajax na výběr týmu
     - [x] ikona a náhled _více_
@@ -160,9 +162,9 @@
     - [x] zbytek stylu (záhlaví, stránky)
     - [x] responziva
     - [x] speciální styl dračáku (2 sloupce?)
-    - [ ] dodělávky
-        - [ ] font 15 aktivity
-        - [ ] fullhd link na podstránku 72 výška
+    - [x] dodělávky
+        - [x] font 15 aktivity
+        - [x] fullhd link na podstránku 72 výška
     - [ ] (minor) styl výběru týmu
     - [ ] (minor) stránka vypravěče
 
