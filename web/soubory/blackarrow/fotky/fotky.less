@@ -19,18 +19,18 @@
 [data-aos="fotky"] {
     opacity: 0;
     transition-property: transform, opacity;
-    transform: perspective(2500px) rotateY(-100deg);
+    transform: translate3d(0, 100px, 0);
     backface-visibility: hidden;
 
     &.aos-animate {
         opacity: 1;
-        transform: perspective(2500px) rotateY(0);
+        transform: translate3d(0, 0, 0);
     }
 
     @media (max-width: 1300px) {
-        transform: scale(0.65) perspective(2500px) rotateY(-100deg);
+        transform: scale(0.65) translate3d(0, 100px, 0);
         &.aos-animate {
-            transform: scale(0.65) perspective(2500px) rotateY(0);
+            transform: scale(0.65) translate3d(0, 0, 0);
         }
     }
 }

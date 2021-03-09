@@ -43,7 +43,8 @@
         - (viz stará šablona a zakomentovaný kód v titulka.php)
     - [ ] (minor) prozkoumat / vyhodit old_titulka.xtpl
     - [ ] dodělávky
-        - [ ] animování prvků od spodu
+        - [x] animování prvků od spodu
+        - [ ] responzivní úpravy mobil (martin dodá)
 
 - [ ] program
     - [x] scrollery
@@ -112,6 +113,7 @@
         - [x] 1 barva nadpisu černá
         - [ ] (minor) 1 změna pozadí záhlaví
         - [ ] v adminu překrytí výběru týmu
+        - [ ] změnit barvy (martin dodá)
 
 - [ ] společné prvky
     - zejména dropdowny, input

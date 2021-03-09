@@ -93,7 +93,7 @@
     <h2 class="zazijes_nadpis">Co na GameConu zažiješ?</h2>
     <div class="zazijes_karty">
         <!-- begin: linie -->
-        <a href="{url}" class="zazijes_karta" style="background-image: url({obrazek})" data-aos="flip-left" data-aos-offset="{aosOffset}">
+        <a href="{url}" class="zazijes_karta" style="background-image: url({obrazek})" data-aos="fade-up" data-aos-offset="{aosOffset}">
             <div class="zazijes_prekryv">
                 <div class="zazijes_ikona">
                     <div class="zazijes_ikonavnitrni" style="background-image: url({ikona})"></div>
