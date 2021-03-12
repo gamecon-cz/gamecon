@@ -19,13 +19,14 @@
     - [ ] hover na mobilu
         - na některých mobilech možná nejde "kliknout" na rozbalovací části menu, otestovat, ověřit
     - [x] (minor) na fullHD snížit počet sloupců (grid?)
+    - [ ] logo (martin dodá)
 
 - [ ] titulka
     - [x] proporciální hlavička
     - [ ] texty na hover linií
-    - [ ] novinka / infopruh
-    - [ ] fotky linií
-    - [ ] animace
+    - [ ] (future) novinka / infopruh
+    - [ ] (minor) fotky linií
+    - [x] animace
     - [ ] (minor) ne/zobrazit CTA "přihlásit se" dle situace
         - jestli je uživatel přihlášen na web, jestli GC reg ne/běží, ...
     - [x] dodělat responzivy, kde nejsou
@@ -36,8 +37,7 @@
         - [x] hovery na liniích
         - [x] texty na hovery na liniích + ikony
         - [x] uživatelské menu
-        - ...
-    - [ ] načítat reálná data
+    - [x] načítat reálná data
     - [ ] skákání při načtení (asi výška menu a fonty)
     - [ ] srovnat, jaké prvky chybí proti stávající titulce / indexu
         - (viz stará šablona a zakomentovaný kód v titulka.php)
@@ -176,6 +176,7 @@
     - [x] dodělávky
         - [x] novinky linku nahoru, blog bez linek
         - [x] obrázky odstranit z blogu
+    - [ ] fixnout JS v stránkách
 
 - [ ] projet TODOs
 - [ ] (future) zrušit povinnost přezdívek
