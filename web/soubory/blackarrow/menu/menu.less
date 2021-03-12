@@ -90,12 +90,13 @@
 // levá část - submenu
 
 .menu_kategorie:hover .menu_polozky {
-    display: grid;
+    visibility: visible;
 }
 
 .menu_polozky {
     position: absolute;
-    display: none;
+    display: grid;
+    visibility: hidden; // neměnit none - grid kvůli kompatibilitě mobilních prohlížečů
 
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     column-gap: 40px;

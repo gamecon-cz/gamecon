@@ -1,5 +1,6 @@
 <!-- begin: menu -->
-<div class="menu">
+<!-- prázdný onclick je fix hoveru pro iphone -->
+<div class="menu" onclick="">
     <div class="menu_obal">
         <div class="menu_obal2">
             <a href="." class="menu_nazev">GameCon</a>
