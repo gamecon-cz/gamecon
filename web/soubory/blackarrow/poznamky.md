@@ -113,7 +113,7 @@
         - [x] 1 barva nadpisu černá
         - [ ] (minor) 1 změna pozadí záhlaví
         - [ ] v adminu překrytí výběru týmu
-        - [ ] změnit barvy (martin dodá)
+        - [x] změnit barvy
 
 - [ ] společné prvky
     - zejména dropdowny, input

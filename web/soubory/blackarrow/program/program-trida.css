@@ -228,7 +228,7 @@ table.program {
 }
 
 /* legenda */
-.program .plno { background-color: #EBEBEB }
-.program .prihlasen { background-color: #B7E4B6 }
-.program .nahradnik { background-color: #FEE2C4; }
-.program .organizator { background-color: #DCE3F1; }
+.program .plno { background-color: #EBEBEB; opacity: 0.5; }
+.program .prihlasen { background-color: #B7E4B6; opacity: 1; }
+.program .nahradnik { background-color: #FDC689; opacity: 1; }
+.program .organizator { background-color: #DDDCF1; opacity: 1; }
