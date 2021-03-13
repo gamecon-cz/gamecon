@@ -42,9 +42,10 @@
     - [ ] srovnat, jaké prvky chybí proti stávající titulce / indexu
         - (viz stará šablona a zakomentovaný kód v titulka.php)
     - [ ] (minor) prozkoumat / vyhodit old_titulka.xtpl
-    - [ ] dodělávky
+    - [x] dodělávky
         - [x] animování prvků od spodu
-        - [ ] responzivní úpravy mobil (martin dodá)
+        - [x] responzivní úpravy mobil (martin dodá)
+    - [ ] (minor) v popisboxu odkazy (např. "karetní hry") a text celkově
 
 - [ ] program
     - [x] scrollery

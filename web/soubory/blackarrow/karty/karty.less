@@ -19,6 +19,10 @@
     box-shadow: 20rel 20rel 0 #F6F1EA;
     position: relative; // kvůli vnořeným prvkům
     background-color: #fff;
+    @media (max-width: 600px) {
+        height: 340px;
+        margin: 20px;
+    }
 }
 
 .karty_karta > img {
@@ -34,6 +38,7 @@
     font-size: 42rel;
     color: #E22630;
     width: 250rel;
+    @media (max-width: 600px) { width: 80% }
 }
 
 .karty_text {
@@ -43,4 +48,8 @@
     width: 260rel;
     font-size: 16px;
     letter-spacing: 0.035em;
+    @media (max-width: 600px) {
+        width: 80%;
+        top: 239px;
+    }
 }

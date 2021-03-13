@@ -52,7 +52,15 @@
 </div>
 
 <div class="popisbox">
-    <div class="popisbox_obsah" data-aos="zoom-out"><a href="">Deskové</a> a <a href="">karetní hry</a>, <a href="">RPG</a> a <a href="">Larpy</a>, <a href="">akční hry</a>, <a href="">wargaming</a>, mistrovství světa v <a href="">Dračím doupěti</a>, pohybové <a href="">workshopy</a>, koncert a párty. Skvělí účastníci a žážitky, na které se budete těšit zase za rok, to je Gamecon.</div>
+    <div class="popisbox_obsah" data-aos="fade-up">
+        <a href="deskoherna">Deskové</a> a <a href="deskoherna">karetní hry</a>, <a href="rpg">RPG</a> a <a href="larpy">Larpy</a>, <a href="bonusy">akční hry</a>, <a href="wargaming">wargaming</a>, mistrovství světa v <a href="drd">Dračím doupěti</a>, pohybové <a href="bonusy">workshopy</a>, koncert a párty. Skvělí účastníci a žážitky, na které se budete těšit zase za rok, to je Gamecon.
+    </div>
+    <script>
+        document.querySelectorAll('.popisbox_obsah a').forEach(e => {
+            const t = e.innerText
+            e.innerHTML = '<span class="popisbox_overlay">'+t+'</span>'+t
+        })
+    </script>
 </div>
 
 <div class="cisla">
