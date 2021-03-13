@@ -19,7 +19,7 @@
     - [ ] hover na mobilu
         - na některých mobilech možná nejde "kliknout" na rozbalovací části menu, otestovat, ověřit
     - [x] (minor) na fullHD snížit počet sloupců (grid?)
-    - [ ] logo (martin dodá)
+    - [x] logo (martin dodá)
 
 - [ ] titulka
     - [x] proporciální hlavička
