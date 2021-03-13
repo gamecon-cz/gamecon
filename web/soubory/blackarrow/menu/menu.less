@@ -85,6 +85,8 @@
     border-bottom: solid 1px #fff;
     border-right:  solid 1px #fff;
     transform: rotate(45deg);
+    // použití borderů místo unicode znaku způsobuje problikávání před načtením
+    // fontu, ale unicode znak se špatně renederuje v chromu (různé délky nožky)
 }
 
 // levá část - submenu

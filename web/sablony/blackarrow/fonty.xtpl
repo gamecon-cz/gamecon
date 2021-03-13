@@ -1,7 +1,9 @@
-/**
- * Includovaný soubor s fonty pro okamžité načítání.
- */
-
+<!-- includovaný soubor s fonty pro okamžité načítání -->
+<!-- crossorigin je nutný, viz mdn -->
+<link rel="preload" href="soubory/blackarrow/_spolecne/fonty/Gilroy-Medium.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="soubory/blackarrow/_spolecne/fonty/Gilroy-Bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="soubory/blackarrow/_spolecne/fonty/Gilroy-Extrabold.woff2" as="font" type="font/woff2" crossorigin>
+<style>
 @font-face {
     font-family: 'Gilroy';
     src:
@@ -28,3 +30,4 @@
 body {
     font-family: Gilroy, sans-serif;
 }
+</style>

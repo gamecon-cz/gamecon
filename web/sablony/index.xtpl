@@ -7,7 +7,7 @@
   <base href="{base}">
   <link rel="shortcut icon" href="soubory/styl/favicon.ico">
   <link rel="stylesheet" type="text/css" href="{css}" media="screen,projection">
-  <style>{fonty}</style>
+  {FILE "sablony/blackarrow/fonty.xtpl"}<!-- backport fontů do starých stránek -->
   <script src="{js}"></script>
   {jsVyjimkovac}
   {info}
