@@ -119,7 +119,7 @@
     - zejména dropdowny, input
     - taky ale výchozí velikost písma, vzdálenost písmen, řádkování
     - čím později, tím větší riziko fuckupu velikostí / marginů někde
-    - [ ] favicon
+    - [x] favicon
     - [ ] (minor) chyba / hláška moc velká na mobilu
 
 - [ ] přihlášení, registrace
