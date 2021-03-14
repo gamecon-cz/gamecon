@@ -48,7 +48,7 @@
     - [ ] (minor) v popisboxu odkazy (např. "karetní hry") a text celkově
     - [ ] nastavit texty linií (dodá barča)
 
-- [ ] program
+- [x] program
     - [x] scrollery
     - [x] dny
     - [x] pamatování horizontálního scrollu
@@ -99,7 +99,7 @@
     - [ ] (minor) v adminu použít $program->zpracujPost()
         - v admin/scripts/zvlastni/program-uzivatele.php (a možná dalších) použít výš zmíněnou metodu
         - do metody přesunout logiku s parametry přihlašovátka (už jsou jednou nastaveny jako parametry pro program, vyčíst z toho)
-    - [ ] dodělávky
+    - [x] dodělávky
         - https://docs.google.com/document/d/1T28GpTWB_wtOXr1RD3jKY73ULswPKo4y5nu_EAp7-8g/edit#
         - [x] 4 responzivní záhlaví
         - [ ] (minor) 3 pozadí časů - nejde kvůli border-spacingu
@@ -114,7 +114,7 @@
         - [x] 1 zarovnat $$
         - [x] 1 barva nadpisu černá
         - [ ] (minor) 1 změna pozadí záhlaví
-        - [ ] v adminu překrytí výběru týmu
+        - [x] v adminu překrytí výběru týmu
         - [x] změnit barvy
 
 - [ ] společné prvky

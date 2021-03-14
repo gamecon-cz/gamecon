@@ -1,6 +1,8 @@
 <!-- begin: formular -->
 <b>Na vyplnění ti zbývá:</b> {zbyva}
-<form method="post">
+
+<!-- styl formuláře je kvůli viditelnosti v programu v adminu -->
+<form method="post" style="position: relative; z-index: 1; background-color: inherit;">
   <!-- begin: nazevVolitelny -->
   <b>Název týmu</b> (nepovinný):<br>
   <input type="text" name="{postname}Nazev" maxlength="255"><br>
