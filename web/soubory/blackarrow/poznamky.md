@@ -23,7 +23,7 @@
 
 - [ ] titulka
     - [x] proporciální hlavička
-    - [ ] texty na hover linií
+    - [x] texty na hover linií
     - [ ] (future) novinka / infopruh
     - [ ] (minor) fotky linií
     - [x] animace
@@ -46,6 +46,7 @@
         - [x] animování prvků od spodu
         - [x] responzivní úpravy mobil (martin dodá)
     - [ ] (minor) v popisboxu odkazy (např. "karetní hry") a text celkově
+    - [ ] nastavit texty linií (dodá barča)
 
 - [ ] program
     - [x] scrollery
@@ -193,7 +194,8 @@ Minor
 
 Migrace
 
-- [ ] překopírovat obrázky + texty linií, sponzory a partnery
+- [ ] překopírovat obrázky linií, sponzory a partnery
+- [ ] překopírovat akce_typy.popis_kratky
 - [ ] projít texty stránek (v menu informace + podstránky linií) a upravit
 
 Future

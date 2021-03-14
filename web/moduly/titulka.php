@@ -18,6 +18,7 @@ foreach ($typy as $i => $typ) {
     'obrazek'   => 'soubory/systemove/linie/' . $typ->id() . '.jpg',
     'ikona'     => 'soubory/systemove/linie-ikony/' . $typ->id() . '.png',
     'aosOffset' => $offsety[$i % 3],
+    'popis'     => $typ->popisKratky(),
   ]);
   $t->parse('titulka.linie');
 }

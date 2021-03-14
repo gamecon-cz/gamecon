@@ -37,6 +37,10 @@ class Typ extends DbObject {
     return $s ? $s->html() : null;
   }
 
+  function popisKratky() {
+    return $this->r['popis_kratky'];
+  }
+
   function poradi() {
     return $this->r['poradi'];
   }

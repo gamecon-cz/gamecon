@@ -110,7 +110,7 @@
             <div class="zazijes_nadpiskarty">
                 <div class="zazijes_cislo">{cislo}</div>
                 <div class="zazijes_nazevlinie">{nazev}</div>
-                <div class="zazijes_detail">Lorem ipsum dolor sit amet, consectetur elit aenean ac vulputate tellus congue.</div>
+                <div class="zazijes_detail">{popis}</div>
             </div>
         </a>
         <!-- end: linie -->
