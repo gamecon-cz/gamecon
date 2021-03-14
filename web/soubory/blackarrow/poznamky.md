@@ -1,31 +1,19 @@
-- [x] zkusit vm jednotky
-    - řádek obsahující vm se přepíše na vw a dogeneruje pod něj mediaselector s minimem
-    - dořešit nastavení minimální šířky
-    - poladit taky podle martinových ne/protestů na mobilní chování _zazijes_
-    - možná raději "rel" (pixel relative) vůči 1920 a ten min width vkládat jako agument
-- [ ] relativní cesty v .less souborech
-- [x] doplnit do sponzorů partnery
-- [ ] v modulu prihlaseni.php registrace na GC
-    - mít tam vysvětleno, jestli registrace na GC běží a pochopitelný link
-    - případně řešit jinak (původně link "přihláška" na titulce)
-    - [ ] flow přihlašování -> registrace -> zadám existujícího a správné údaje -> (chyba / nic se nestane)
-- [ ] TODO odstranit nebo přesunout tyto poznámky
-
-- [ ] menu
-    - [ ] menu uživatele
-    - [ ] indikace zbyktu financí (?) a přihlášenosti na GC
+- [x] menu
+    - [x] menu uživatele
+    - [ ] (minor) indikace zbyktu financí (?) a přihlášenosti na GC
     - [ ] (minor) v menu položka "přihláška na GC"
         - podle ne/přihlášenosti, případně spuštění regu
-    - [ ] hover na mobilu
-        - na některých mobilech možná nejde "kliknout" na rozbalovací části menu, otestovat, ověřit
+    - [x] hover na mobilu
+        - na některých mobilech možná nejde "kliknout" na rozbalovací části menu, otestovat, ověřit - iphone, vyřešeno onclick=""
+        - [ ] (minor) toggle hover lépe
     - [x] (minor) na fullHD snížit počet sloupců (grid?)
     - [x] logo (martin dodá)
 
 - [ ] titulka
     - [x] proporciální hlavička
     - [x] texty na hover linií
-    - [ ] (future) novinka / infopruh
-    - [ ] (minor) fotky linií
+    - [ ] (minor) infopruh (novinka)
+    - [ ] (minor) změnit fotky linií
     - [x] animace
     - [ ] (minor) ne/zobrazit CTA "přihlásit se" dle situace
         - jestli je uživatel přihlášen na web, jestli GC reg ne/běží, ...
@@ -38,15 +26,18 @@
         - [x] texty na hovery na liniích + ikony
         - [x] uživatelské menu
     - [x] načítat reálná data
-    - [ ] skákání při načtení (asi výška menu a fonty)
-    - [ ] srovnat, jaké prvky chybí proti stávající titulce / indexu
+    - [x] doplnit do sponzorů partnery
+    - [x] skákání při načtení (asi výška menu a fonty)
+        - vyřešeno preloadingem fontů
+    - [x] srovnat, jaké prvky chybí proti stávající titulce / indexu
         - (viz stará šablona a zakomentovaný kód v titulka.php)
     - [ ] (minor) prozkoumat / vyhodit old_titulka.xtpl
     - [x] dodělávky
         - [x] animování prvků od spodu
         - [x] responzivní úpravy mobil (martin dodá)
-    - [ ] (minor) v popisboxu odkazy (např. "karetní hry") a text celkově
     - [ ] nastavit texty linií (dodá barča)
+    - [ ] (minor) v popisboxu odkazy (např. "karetní hry") a text celkově
+    - [ ] (minor) ne/zobrazení prgramu, link "letos připravujeme"
 
 - [x] program
     - [x] scrollery
@@ -123,6 +114,15 @@
     - čím později, tím větší riziko fuckupu velikostí / marginů někde
     - [x] favicon
     - [ ] (minor) chyba / hláška moc velká na mobilu
+    - [ ] (minor) relativní cesty v .less souborech
+    - [x] zkusit vm jednotky
+        - řádek obsahující vm se přepíše na vw a dogeneruje pod něj mediaselector s minimem
+        - dořešit nastavení minimální šířky
+        - poladit taky podle martinových ne/protestů na mobilní chování _zazijes_
+        - možná raději "rel" (pixel relative) vůči 1920 a ten min width vkládat jako agument
+    - [ ] (minor) TODO odstranit nebo přesunout tyto poznámky
+    - [ ] projet TODOs
+    - [ ] (minor) smazat staré nepoužívané šablony
 
 - [ ] přihlášení, registrace
     - [x] csrf (zkusit, možná jde nějak headrem omezit)
@@ -147,6 +147,11 @@
         - [x] pozadí na fixní výšku
     - [ ] (minor) zkusit udělat inputy non-required (problém s css podbarvením)
     - [ ] (minor) overflow registrace na mobilu kvůli tooltipům (vpravo i dole)
+    - [ ] flow registrace a přihláška na GC
+        - mít tam vysvětleno, jestli registrace na GC běží a pochopitelný link
+        - případně řešit jinak (původně link "přihláška" na titulce)
+        - [ ] flow přihlašování -> registrace -> zadám existujícího a správné údaje -> (chyba / nic se nestane)
+        - [ ] podívat se, odkud jdou linky na "prihlaska" (mj. menu)
 
 - [x] přihláška
     - [x] integrace do adminu (styly)
@@ -172,20 +177,17 @@
     - [ ] (minor) styl výběru týmu
     - [ ] (minor) stránka vypravěče
 
-- [x] obsahové stránky
+- [ ] obsahové stránky
     - [x] dummy novinky a blog?
     - [x] automatické odkazy "zpět do sekce"
     - [x] dodělávky
         - [x] novinky linku nahoru, blog bez linek
         - [x] obrázky odstranit z blogu
     - [ ] fixnout JS v stránkách
-
-- [ ] projet TODOs
-- [ ] (future) zrušit povinnost přezdívek
+    - [ ] aktualizovat texty stránek (barča a filip)
 
 Minor
 
-- [ ] favicon
 - [ ] htaccess a cacheování resourců (nějaká funkce na modify parametr)
 - [ ] projet TODOs again
 - [ ] lazy loading
