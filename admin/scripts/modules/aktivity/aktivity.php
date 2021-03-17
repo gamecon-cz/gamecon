@@ -98,7 +98,7 @@ foreach($aktivity as $a)
     'organizatori' => $a->orgJmena(),
     // TODO fixnout s lepším ORM
     'typ'       => $typy[$r['typ']],
-    'mistnost'  => $mistnosti[$r['lokace']],
+    'mistnost'  => $mistnosti[$r['lokace']] ?? '',
   ]);
   if($r['patri_pod']) $tpl->parse('aktivity.aktivita.instSymbol');
   if($r['stav']==0) $tpl->parse('aktivity.aktivita.tlacitka.publikovat');
