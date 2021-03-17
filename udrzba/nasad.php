@@ -21,7 +21,7 @@ chdir(__DIR__ . '/../');
 exec('git rev-parse --abbrev-ref HEAD', $out);
 $vetev = $out[0];
 if (!($vetev === 'master' || strpos($vetev, 'redesign') === 0)) {
-  echo "notice: you're not on automatically deployed branch, deplyoment skipped\n";
+  echo "notice: you're not on automatically deployed branch, deployment skipped\n";
   exit(0);
 }
 exec('git status', $out);
