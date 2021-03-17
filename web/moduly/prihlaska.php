@@ -24,8 +24,15 @@ if(GC_BEZI || $u && $u->gcPritomen()) {
   return;
 }
 
-if(!REG_GC) {
-  echo hlaska('prihlaseniVypnuto');
+if(pred(REG_GC_OD)) {
+  $t->assign('zacatek', (new DateTimeCz(REG_GC_OD))->format('j. n. \v\e H:i'));
+  $t->parse('prihlaskaPred');
+  return;
+}
+
+if(po(REG_GC_DO)) {
+  $t->assign('rok', ROK + 1);
+  $t->parse('prihlaskaPo');
   return;
 }
 

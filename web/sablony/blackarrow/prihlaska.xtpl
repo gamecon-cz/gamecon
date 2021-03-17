@@ -146,3 +146,23 @@
 </script>
 
 <!-- end:prihlaska -->
+
+<!-- begin: prihlaskaPred -->
+<div class="prihlaska_hlavickaObal">
+<div class="prihlaska_hlavicka">
+  <h1>Přihláška na GameCon</h1>
+
+  <p>Přihlašování na GameCon bude spuštěno {zacatek}.</p>
+</div>
+</div>
+<!-- end: prihlaskaPred -->
+
+<!-- begin: prihlaskaPo -->
+<div class="prihlaska_hlavickaObal">
+<div class="prihlaska_hlavicka">
+  <h1>Přihláška na GameCon</h1>
+
+  <p>GameCon už proběhl, těšíme se na viděnou v roce {rok}.</p>
+</div>
+</div>
+<!-- end: prihlaskaPo -->

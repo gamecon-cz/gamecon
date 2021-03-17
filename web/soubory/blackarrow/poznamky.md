@@ -152,6 +152,13 @@
         - případně řešit jinak (původně link "přihláška" na titulce)
         - [ ] flow přihlašování -> registrace -> zadám existujícího a správné údaje -> (chyba / nic se nestane)
         - [ ] podívat se, odkud jdou linky na "prihlaska" (mj. menu)
+        - možná vždy směřovat login/registrace -> přihláška
+            - s výjimkami např. pokud už jsem přihlášen na GC
+            - ale přihlašování je tak vzácné, že možná stačí prostě fixní flow
+        - [x] chování přihlášky
+        - [ ] chování registrace
+        - [ ] chování loginu
+        - [ ] chování titulky a menu
 
 - [x] přihláška
     - [x] integrace do adminu (styly)
