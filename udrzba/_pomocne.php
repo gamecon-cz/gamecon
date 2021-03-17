@@ -1,6 +1,6 @@
 <?php
 
-function nasad($nastaveni) {
+function nasad(array $nastaveni) {
 
   $deployment = realpath(__DIR__ . '/../vendor/dg/ftp-deployment/deployment');
   $zdrojovaSlozka = realpath($nastaveni['zdrojovaSlozka']);
@@ -44,7 +44,7 @@ function nasad($nastaveni) {
   ';
 
   // kontroly
-  if(!is_file($zdrojovaSlozka . '/nastaveni/' . $nastaveni['souborNastaveni'])) {
+  if (!is_file($zdrojovaSlozka . '/nastaveni/' . $nastaveni['souborNastaveni'])) {
     throw new Exception('Nenalezen soubor s nastaveními pro vzdálený server.');
   }
 
@@ -64,21 +64,21 @@ function nasad($nastaveni) {
     'curl',
     '--data', 'migraceHeslo=' . $nastaveni['hesloMigrace'],
     '--silent', // skrýt progressbar
-    $nastaveni['urlMigrace']
+    $nastaveni['urlMigrace'],
   ]);
 
   msg('nasazení dokončeno');
 }
 
 function msg($msg) {
-    echo date('H:i:s') . ' ' . $msg . "\n";
+  echo date('H:i:s') . ' ' . $msg . "\n";
 }
 
 function call_check($params) {
-    $command = escapeshellcmd($params[0]);
-    $args    = array_map('escapeshellarg', array_slice($params, 1));
-    $args    = implode(' ', $args);
+  $command = escapeshellcmd($params[0]);
+  $args = array_map('escapeshellarg', array_slice($params, 1));
+  $args = implode(' ', $args);
 
-    passthru($command . ' ' . $args, $exitStatus);
-    if ($exitStatus !== 0) throw new Exception('Příkaz skončil chybou.');
+  passthru($command . ' ' . $args, $exitStatus);
+  if ($exitStatus !== 0) throw new Exception('Příkaz skončil chybou.');
 }

@@ -20,12 +20,12 @@ chdir(__DIR__ . '/../');
 // testování větve před pushem a čistoty repa, aby se na FTP nedostalo smetí
 exec('git rev-parse --abbrev-ref HEAD', $out);
 $vetev = $out[0];
-if(!($vetev === 'master' || strpos($vetev, 'redesign') === 0)) {
+if (!($vetev === 'master' || strpos($vetev, 'redesign') === 0)) {
   echo "notice: you're not on automatically deployed branch, deplyoment skipped\n";
   exit(0);
 }
 exec('git status', $out);
-if(!preg_match('/^nothing to commit, working (tree|directory) clean$/', end($out))) {
+if (!preg_match('/^nothing to commit, working (tree|directory) clean$/', end($out))) {
   echo "error: working directory is not clean\n";
   exit(1);
 }
@@ -37,27 +37,27 @@ call_check(['php', __DIR__ . '/testuj.php']);
 call_check(['php', __DIR__ . '/sestav.php']);
 
 // nasazení
-if($vetev == 'master') {
+if ($vetev === 'master') {
   nasad([
-    'zdrojovaSlozka'  =>  __DIR__ . '/..',
-    'ciloveFtp'       =>  $nastaveni['ostra']['ftp'],
-    'urlMigrace'      =>  $nastaveni['ostra']['urlMigrace'],
-    'hesloMigrace'    =>  $nastaveni['ostra']['hesloMigrace'],
-    'souborNastaveni' =>  'nastaveni-produkce.php',
+    'zdrojovaSlozka' => __DIR__ . '/..',
+    'ciloveFtp' => $nastaveni['ostra']['ftp'],
+    'urlMigrace' => $nastaveni['ostra']['urlMigrace'],
+    'hesloMigrace' => $nastaveni['ostra']['hesloMigrace'],
+    'souborNastaveni' => 'nastaveni-produkce.php',
   ]);
   nasad([
-    'zdrojovaSlozka'  =>  __DIR__ . '/..',
-    'ciloveFtp'       =>  $nastaveni['beta']['ftp'],
-    'urlMigrace'      =>  $nastaveni['beta']['urlMigrace'],
-    'hesloMigrace'    =>  $nastaveni['beta']['hesloMigrace'],
-    'souborNastaveni' =>  'nastaveni-beta.php',
+    'zdrojovaSlozka' => __DIR__ . '/..',
+    'ciloveFtp' => $nastaveni['beta']['ftp'],
+    'urlMigrace' => $nastaveni['beta']['urlMigrace'],
+    'hesloMigrace' => $nastaveni['beta']['hesloMigrace'],
+    'souborNastaveni' => 'nastaveni-beta.php',
   ]);
 } else {
   nasad([
-    'zdrojovaSlozka'  =>  __DIR__ . '/..',
-    'ciloveFtp'       =>  $nastaveni['redesign']['ftp'],
-    'urlMigrace'      =>  $nastaveni['redesign']['urlMigrace'],
-    'hesloMigrace'    =>  $nastaveni['redesign']['hesloMigrace'],
-    'souborNastaveni' =>  'nastaveni-redesign.php',
+    'zdrojovaSlozka' => __DIR__ . '/..',
+    'ciloveFtp' => $nastaveni['redesign']['ftp'],
+    'urlMigrace' => $nastaveni['redesign']['urlMigrace'],
+    'hesloMigrace' => $nastaveni['redesign']['hesloMigrace'],
+    'souborNastaveni' => 'nastaveni-redesign.php',
   ]);
 }
