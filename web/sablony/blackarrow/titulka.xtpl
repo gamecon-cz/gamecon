@@ -156,7 +156,13 @@
 
     function nastavCasFix() {
         const casGc = {gcZacatekTimestamp}; // středník kvůli šabloně
-        nastavCas(casGc - Math.floor(Date.now() / 1000), dnu, hodin, minut, sekund)
+        nastavCas(
+            casGc - Math.floor(Date.now() / 1000),
+            document.getElementById('dnu'),
+            document.getElementById('hodin'),
+            document.getElementById('minut'),
+            document.getElementById('sekund')
+        )
     }
 
     nastavCasFix()
