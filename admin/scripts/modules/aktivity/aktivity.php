@@ -64,7 +64,7 @@ while($r = mysqli_fetch_assoc($o)) {
 }
 foreach($varianty as $k => $v) {
   $tpl->assign('val',$k);
-  $tpl->assign('nazev',ucfirst($v['popis']));
+  $tpl->assign('nazev_akce',ucfirst($v['popis']));
   $tpl->assign('sel',$filtr==$k?'selected="selected"':'');
   $tpl->parse('aktivity.filtrMoznost');
 }
