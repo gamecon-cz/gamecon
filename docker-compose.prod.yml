@@ -1,0 +1,19 @@
+version: "3"
+services:
+  gamecon:
+    build: .
+    restart: always
+    volumes:
+      - .:/var/www/html/gamecon:delegated
+    networks:
+      - default
+
+  sql.gamecon:
+    image: mariadb:10.1
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    expose:
+      - 3306
+    networks:
+      - default
