@@ -125,7 +125,7 @@ CREATE TABLE IF NOT EXISTS sjednocene_tagy_62 (
     id_kategorie_tagu INT UNSIGNED NOT NULL,
     nazev VARCHAR(128) PRIMARY KEY,
     poznamka TEXT NOT NULL DEFAULT '',
-    FOREIGN KEY FK_kategorie_tagu(id_kategorie_tagu) REFERENCES kategorie_sjednocenych_tagu_62(id) ON UPDATE CASCADE ON DELETE RESTRICT
+    FOREIGN KEY FK_kategorie_sjednocenych_tagu_62(id_kategorie_tagu) REFERENCES kategorie_sjednocenych_tagu_62(id) ON UPDATE CASCADE ON DELETE RESTRICT
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
 ALTER TABLE sjednocene_tagy_62 AUTO_INCREMENT={$tagsAutoIncrementStart};
 INSERT /* intentionally not IGNORE to detect invalid input data, see bellow */ INTO sjednocene_tagy_62(id, id_kategorie_tagu, nazev, poznamka)
