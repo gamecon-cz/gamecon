@@ -20,7 +20,9 @@ function nahledPredmetu($soubor) {
 }
 
 if(GC_BEZI || $u && $u->gcPritomen()) {
-  echo hlaska('prihlaseniJenInfo');
+  // zpřístupnit varianty mimo registraci i pro nepřihlášeného uživatele kvůli
+  // příchodům z titulky, menu a podobně
+  $t->parse('prihlaskaGcBezi');
   return;
 }
 
@@ -36,7 +38,9 @@ if(po(REG_GC_DO)) {
   return;
 }
 
-if(!$u) exit(header('Location: '.URL_WEBU.'/registrace'));
+if(!$u) {
+  back(URL_WEBU.'/registrace');
+}
 
 $shop = new Shop($u);
 $pomoc = new Pomoc($u);

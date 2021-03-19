@@ -4,8 +4,6 @@ $this->blackarrowStyl(true);
 $this->bezPaticky(true);
 $this->info()->nazev('Přihlášení');
 
-$chyba = '';
-
 if(post('odhlasit')) {
   if($u) $u->odhlas();
   back();
@@ -24,8 +22,6 @@ if(post('prihlasit')) {
 }
 
 ?>
-
-<?=$chyba?>
 
 <form method="post" class="formular formular_stranka formular_stranka-login">
   <div class="formular_strankaNadpis">Přihlášení</div>

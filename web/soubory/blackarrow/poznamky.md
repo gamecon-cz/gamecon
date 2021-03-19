@@ -157,8 +157,10 @@
             - ale přihlašování je tak vzácné, že možná stačí prostě fixní flow
         - [x] chování přihlášky
         - [ ] chování registrace
+            - pozor na flow GC běží: titulka -> přihláška (-> registrace?)
         - [ ] chování loginu
-        - [ ] chování titulky a menu
+            - možnost je taky zůstat tam kde jsem (a vypsat např. jméno)
+        - [x] chování titulky a menu
 
 - [x] přihláška
     - [x] integrace do adminu (styly)

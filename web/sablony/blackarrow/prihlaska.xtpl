@@ -16,6 +16,8 @@
 
 <form method="post" class="prihlaska">
 
+<!----------------------------------------------------------------------------->
+
 <div class="prihlaska_sekce">
   <h2>Předměty</h2>
 
@@ -137,6 +139,8 @@
   <!-- end:odhlasit -->
 </div>
 
+<!----------------------------------------------------------------------------->
+
 </form>
 
 <link rel="stylesheet" href="soubory/blackarrow/_spolecne/baguetteBox.min.css">
@@ -166,3 +170,13 @@
 </div>
 </div>
 <!-- end: prihlaskaPo -->
+
+<!-- begin: prihlaskaGcBezi -->
+<div class="prihlaska_hlavickaObal">
+<div class="prihlaska_hlavicka">
+  <h1>Přihláška na GameCon</h1>
+
+  <p>Registrace přes internet jsou ukončeny, <strong>registrovat se můžeš přímo na místě na infopultu</strong>. Upravit si program a vybrat aktivity můžeš tamtéž.</p>
+</div>
+</div>
+<!-- end: prihlaskaGcBezi -->
