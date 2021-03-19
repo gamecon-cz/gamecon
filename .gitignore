@@ -30,5 +30,7 @@
 /web/soubory/systemove/fotky/*
 !/web/soubory/systemove/fotky/.keep
 
+/nasad.log
+
 /docker-compose.override.yml
 /docker-compose.yml
