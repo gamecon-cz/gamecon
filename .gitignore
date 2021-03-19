@@ -5,6 +5,7 @@
 /cache/public/*
 !/cache/public/.htaccess
 
+/nastaveni/google_api_client_secret.json
 /nastaveni/nastaveni-beta.php
 /nastaveni/nastaveni-ftpdeploy.php
 /nastaveni/nastaveni-local.php
@@ -26,3 +27,8 @@
 !/web/soubory/systemove
 /web/soubory/systemove/*/*
 !/web/soubory/systemove/*/.keep
+
+/nasad.log
+
+/docker-compose.override.yml
+/docker-compose.yml

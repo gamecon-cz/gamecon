@@ -25,7 +25,7 @@ if(!($vetev === 'master' || $vetev === 'blackarrow')) {
   exit(0);
 }
 exec('git status', $out);
-if(!preg_match('/^nothing to commit, working (tree|directory) clean$/', end($out))) {
+if (!preg_match('/^nothing to commit, working (tree|directory) clean$/', end($out))) {
   echo "error: working directory is not clean\n";
   exit(1);
 }
@@ -37,22 +37,20 @@ call_check(['php', __DIR__ . '/testuj.php']);
 call_check(['php', __DIR__ . '/sestav.php']);
 
 // nasazení
-if($vetev == 'master') {
+if ($vetev === 'master') {
   nasad([
-    'zdrojovaSlozka'  =>  __DIR__ . '/..',
-    'ciloveFtp'       =>  $nastaveni['ostra']['ftp'],
-    'urlMigrace'      =>  $nastaveni['ostra']['urlMigrace'],
-    'hesloMigrace'    =>  $nastaveni['ostra']['hesloMigrace'],
-    'log'             =>  $nastaveni['ostra']['log'],
-    'souborNastaveni' =>  'nastaveni-produkce.php',
+    'zdrojovaSlozka' => __DIR__ . '/..',
+    'ciloveFtp' => $nastaveni['ostra']['ftp'],
+    'urlMigrace' => $nastaveni['ostra']['urlMigrace'],
+    'hesloMigrace' => $nastaveni['ostra']['hesloMigrace'],
+    'souborNastaveni' => 'nastaveni-produkce.php',
   ]);
   nasad([
-    'zdrojovaSlozka'  =>  __DIR__ . '/..',
-    'ciloveFtp'       =>  $nastaveni['beta']['ftp'],
-    'urlMigrace'      =>  $nastaveni['beta']['urlMigrace'],
-    'hesloMigrace'    =>  $nastaveni['beta']['hesloMigrace'],
-    'log'             =>  $nastaveni['beta']['log'],
-    'souborNastaveni' =>  'nastaveni-beta.php',
+    'zdrojovaSlozka' => __DIR__ . '/..',
+    'ciloveFtp' => $nastaveni['beta']['ftp'],
+    'urlMigrace' => $nastaveni['beta']['urlMigrace'],
+    'hesloMigrace' => $nastaveni['beta']['hesloMigrace'],
+    'souborNastaveni' => 'nastaveni-beta.php',
   ]);
 } elseif($vetev == 'blackarrow') {
   nasad([

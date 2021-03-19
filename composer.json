@@ -1,4 +1,7 @@
 {
+  "name": "gamecon-cz/gamecon",
+  "type": "project",
+  "description": "Počítačem řízené zázemí pro Největší festival nepočítačových her",
   "repositories": [
     {
       "type": "vcs",
@@ -18,11 +21,12 @@
     }
   ],
   "require": {
-    "php": ">=7.1",
+    "php": ">=7.3",
     "ext-json": "*",
     "ext-intl": "*",
     "ext-mysqli": "*",
     "ext-mbstring": "*",
+    "ext-pdo": "*",
     "michelf/php-markdown": "~1.4",
     "dg/mysql-dump": "^1.4",
     "tracy/tracy": "~2.4",
@@ -30,12 +34,21 @@
     "roderik/pwgen-php": "^0.1.7",
     "godric/db-backup": "dev-master",
     "defuse/php-encryption": "^2.1",
-    "godric/db-test": "dev-master",
     "godric/db-migrations": "dev-master",
     "setasign/tfpdf": "^1.25",
     "wikimedia/less.php": "^3.0"
   },
   "require-dev": {
-    "dg/ftp-deployment": "~2.7"
+    "dg/ftp-deployment": "~2.7",
+    "phpunit/phpunit": "^9.5",
+    "roave/security-advisories": "dev-master"
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Gamecon\\Tests\\": "tests"
+    }
+  },
+  "config": {
+    "sort-packages": true
   }
 }

@@ -57,7 +57,8 @@ $chyba = Chyba::vyzvedniHtml();
   <div style="
     text-align: left;
     font-size: 16px;
-    position: fixed;
+    position: -webkit-sticky;
+    position: sticky;
     top: 0; left: 0;
     width: 350px;
     padding: 10px;
@@ -78,9 +79,10 @@ $chyba = Chyba::vyzvedniHtml();
     <a href="program-osobni" class="program-odkaz">Filtrovaný program</a>
   </div>
 
-  <?=$chyba?>
-
-  <?php $program->tisk(); ?>
+  <div class="program">
+    <?=$chyba?>
+    <?php $program->tisk(); ?>
+  </div>
 
   <script>
   (() => {

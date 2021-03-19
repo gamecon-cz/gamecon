@@ -1,9 +1,13 @@
 <?php
 
+namespace Gamecon\Tests\Aktivity;
+
+use Gamecon\Tests\Db\DbTest;
+
 /**
  * Testy pokrývající metody na přihlášení a registraci.
  */
-class UzivatelPrihlaseniARegistraceTest extends GcDbTest {
+class UzivatelPrihlaseniARegistraceTest extends DbTest {
     private static $uzivatelTab = [
         'jmeno_uzivatele'      => 'a',
         'prijmeni_uzivatele'   => 'b',
@@ -20,11 +24,11 @@ class UzivatelPrihlaseniARegistraceTest extends GcDbTest {
         'heslo_kontrola'       => 'a',
     ];
 
-    static function setUpBeforeClass() {
+    public static function setUpBeforeClass(): void {
         parent::setUpBeforeClass();
 
         // "oběť" pro testy kolizí
-        Uzivatel::registruj(array_merge(self::$uzivatelTab, [
+        \Uzivatel::registruj(array_merge(self::$uzivatelTab, [
             'login_uzivatele'  => 'login@obeti.cz',
             'email1_uzivatele' => 'email@obeti.cz',
         ]));
@@ -35,11 +39,11 @@ class UzivatelPrihlaseniARegistraceTest extends GcDbTest {
     }
 
     function testRegistrujAPrihlas() {
-        Uzivatel::registruj($this->uzivatel());
+        \Uzivatel::registruj($this->uzivatel());
 
-        $this->assertNotNull(Uzivatel::prihlas('a', 'a'), 'přihlášení loginem');
-        $this->assertNotNull(Uzivatel::prihlas('a@b.c', 'a'), 'přihlášení heslem');
-        $this->assertNull(Uzivatel::prihlas('a', 'b'), 'nepřihlášení špatnými údaji');
+        $this->assertNotNull(\Uzivatel::prihlas('a', 'a'), 'přihlášení loginem');
+        $this->assertNotNull(\Uzivatel::prihlas('a@b.c', 'a'), 'přihlášení heslem');
+        $this->assertNull(\Uzivatel::prihlas('a', 'b'), 'nepřihlášení špatnými údaji');
     }
 
     function providerRegistrujDuplicity() {
@@ -57,27 +61,28 @@ class UzivatelPrihlaseniARegistraceTest extends GcDbTest {
     function testRegistrujDuplicity($login, $email, $klicChyby, $chyba) {
         $e = null;
         try {
-            Uzivatel::registruj($this->uzivatel([
+            \Uzivatel::registruj($this->uzivatel([
                 'login_uzivatele'  => $login,
                 'email1_uzivatele' => $email,
             ]));
-        } catch (Exception $e) {}
+        } catch (\Exception $e) {}
 
-        $this->assertInstanceOf(Chyby::class, $e);
-        $this->assertRegExp($chyba, $e->klic($klicChyby));
+        $this->assertInstanceOf(\Chyby::class, $e);
+        $this->assertMatchesRegularExpression($chyba, $e->klic($klicChyby));
     }
 
-    /**
-     * @expectedException Exception
-     * @expectedExceptionMessageRegExp / nepovolené /
-     */
     function testNelzeZadatId() {
-        Uzivatel::registruj($this->uzivatel(['id_uzivatele' => 5]));
+        try {
+            \Uzivatel::registruj($this->uzivatel(['id_uzivatele' => 5]));
+            self::fail();
+        } catch (\Exception $e) {
+            $this->assertMatchesRegularExpression('/ nepovolené /', $e);
+        }
     }
 
     function testUprav() {
-        $id = Uzivatel::registruj($this->uzivatel());
-        $u = Uzivatel::zId($id);
+        $id = \Uzivatel::registruj($this->uzivatel());
+        $u = \Uzivatel::zId($id);
 
         $this->assertEquals('a b', $u->jmeno());
 
@@ -85,20 +90,20 @@ class UzivatelPrihlaseniARegistraceTest extends GcDbTest {
 
         $this->assertEquals('jiné b', $u->jmeno());
 
-        $u = Uzivatel::zId($id);
+        $u = \Uzivatel::zId($id);
         $this->assertEquals('jiné b', $u->jmeno());
     }
 
     function testUpravNic() {
-        $id = Uzivatel::registruj($this->uzivatel());
-        $uData1 = Uzivatel::zId($id)->rawDb();
+        $id = \Uzivatel::registruj($this->uzivatel());
+        $uData1 = \Uzivatel::zId($id)->rawDb();
 
-        Uzivatel::zId($id)->uprav([]);
-        $uData2 = Uzivatel::zId($id)->rawDb();
+        \Uzivatel::zId($id)->uprav([]);
+        $uData2 = \Uzivatel::zId($id)->rawDb();
 
         $nemenitHeslo = ['heslo' => null, 'heslo_kontrola' => null];
-        Uzivatel::zId($id)->uprav($this->uzivatel($nemenitHeslo));
-        $uData3 = Uzivatel::zId($id)->rawDb();
+        \Uzivatel::zId($id)->uprav($this->uzivatel($nemenitHeslo));
+        $uData3 = \Uzivatel::zId($id)->rawDb();
 
         $this->assertSame($uData1, $uData2, 'prázdná úprava data nezměnila');
         $this->assertSame($uData1, $uData3, 'úprava stejnými daty data nezměnila');

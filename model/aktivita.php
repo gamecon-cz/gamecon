@@ -222,47 +222,16 @@ class Aktivita {
     $xtpl->assign('obrKlicUrl', self::OBRKLIC.'Url');
     $xtpl->assign('aEditTag', self::TAGYKLIC);
     $xtpl->assign('limitPopisKratky', self::LIMIT_POPIS_KRATKY);
+    $vybraneTagy= [];
     if($a) {
       $xtpl->assign($a->a);
       $xtpl->assign('popis', dbText($aktivita['popis']));
       $xtpl->assign('urlObrazku', $a->obrazek());
       $xtpl->assign('vybaveni', $a->vybaveni());
-      // načtení tagů
       $vybraneTagy = $a->tagy();
-      $vsechnyTagy = $editorTagu->getTagy();
-      $pocetVsechTagu = count($vsechnyTagy);
-      $nazevPredchoziKategorie = null;
-      foreach ($vsechnyTagy as $indexTagu => $mappedTag) {
-        $encodedTag = [];
-        foreach ($mappedTag as $tagKey => $tagValue) {
-          $encodedTag[$tagKey] = htmlspecialchars($tagValue);
-        }
-        $jeNovaKategorie = $nazevPredchoziKategorie !== $encodedTag['nazev_kategorie'];
-        $xtpl->assign('id_tagu', $encodedTag['id']);
-        $xtpl->assign('nazev_tagu', $encodedTag['nazev']);
-        $xtpl->assign('tag_selected', in_array($encodedTag['nazev'], $vybraneTagy, true) ? 'selected' : '');
-        $xtpl->assign(
-          'previous_optgroup_tag_end',
-          $jeNovaKategorie
-            ? '</optgroup>'
-            : ''
-        );
-        $xtpl->assign(
-          'optgroup_tag_start',
-          $jeNovaKategorie
-            ? '<optgroup label="' . mb_ucfirst($encodedTag['nazev_kategorie']) . '">'
-            : ''
-        );
-        $xtpl->assign(
-          'last_optgroup_tag_end',
-          $indexTagu + 1 === $pocetVsechTagu
-            ? '</optgroup>'
-            : ''
-        );
-        $xtpl->parse('upravy.tabulka.tag');
-        $nazevPredchoziKategorie = $encodedTag['nazev_kategorie'];
-      }
     }
+    // načtení tagů
+    self::nactiTagy($vybraneTagy, $editorTagu, $xtpl);
 
     // načtení lokací
     if(!$omezeni || !empty($omezeni['lokace'])) {
@@ -355,6 +324,42 @@ class Aktivita {
     if(empty($omezeni)) $xtpl->parse('upravy.tabulka'); // TODO ne pokud je bez omezení, ale pokud je omezeno všechno. Pokud jen něco, doprogramovat selektivní omezení pro prvky tabulky i u IFů nahoře a vložit do šablony
     $xtpl->parse('upravy');
     return $xtpl->text('upravy');
+  }
+
+  private static function nactiTagy(array $vybraneTagy, EditorTagu $editorTagu, XTemplate $xtpl) {
+    $vsechnyTagy = $editorTagu->getTagy();
+    $pocetVsechTagu = count($vsechnyTagy);
+    $nazevPredchoziKategorie = null;
+    foreach ($vsechnyTagy as $indexTagu => $mappedTag) {
+      $encodedTag = [];
+      foreach ($mappedTag as $tagKey => $tagValue) {
+        $encodedTag[$tagKey] = htmlspecialchars($tagValue);
+      }
+      $jeNovaKategorie = $nazevPredchoziKategorie !== $encodedTag['nazev_kategorie'];
+      $xtpl->assign('id_tagu', $encodedTag['id']);
+      $xtpl->assign('nazev_tagu', $encodedTag['nazev']);
+      $xtpl->assign('tag_selected', in_array($encodedTag['nazev'], $vybraneTagy, true) ? 'selected' : '');
+      $xtpl->assign(
+        'previous_optgroup_tag_end',
+        $jeNovaKategorie
+          ? '</optgroup>'
+          : ''
+      );
+      $xtpl->assign(
+        'optgroup_tag_start',
+        $jeNovaKategorie
+          ? '<optgroup label="' . mb_ucfirst($encodedTag['nazev_kategorie']) . '">'
+          : ''
+      );
+      $xtpl->assign(
+        'last_optgroup_tag_end',
+        $indexTagu + 1 === $pocetVsechTagu
+          ? '</optgroup>'
+          : ''
+      );
+      $xtpl->parse('upravy.tabulka.tag');
+      $nazevPredchoziKategorie = $encodedTag['nazev_kategorie'];
+    }
   }
 
   /**

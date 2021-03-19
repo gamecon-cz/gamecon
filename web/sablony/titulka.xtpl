@@ -42,14 +42,14 @@
   <div class="blok">
     <!-- begin:pripravujeme -->
     <a class="upoutavka" href="pripravujeme">
-      <img src="soubory/styl-rocnikovy/2018/pripravujeme.jpg">
+      <img src="soubory/styl-rocnikovy/pripravujeme.jpg">
       <div class="horni"><div>Letos připravujeme…</div></div>
       <div class="dolni"><div>Aktivity</div></div>
     </a>
     <!-- end:pripravujeme -->
     <!-- begin:program -->
     <a class="upoutavka" href="program">
-      <img src="soubory/styl-rocnikovy/2018/program.jpg">
+      <img src="soubory/styl-rocnikovy/program.jpg">
       <div class="horni"><div>Program</div></div>
       <div class="dolni"><div>Aktivity</div></div>
     </a>
@@ -60,14 +60,14 @@
   <div class="blok">
     <!-- begin:info -->
     <a class="upoutavka" href="o-gameconu">
-      <img src="soubory/styl-rocnikovy/2018/co-je-gc.jpg">
+      <img src="soubory/styl-rocnikovy/co-je-gc.jpg">
       <div class="horni"><div>Co je GameCon?</div></div>
       <div class="dolni"><div>GameCon</div></div>
     </a>
     <!-- end:info -->
     <!-- begin:neprihlasen -->
     <a class="upoutavka" href="prihlaska">
-      <img src="soubory/styl-rocnikovy/2018/prihlaska.jpg">
+      <img src="soubory/styl-rocnikovy/prihlaska.jpg">
       <div class="horni" style="background-color: rgba(255,0,0,0.5);"><div>
         <img src="soubory/styl/error.png" style="margin-bottom: -3px">&ensp;
         Neprihlášen{a} na GameCon
@@ -77,7 +77,7 @@
     <!-- end:neprihlasen -->
     <!-- begin:prihlasen -->
     <a class="upoutavka" href="prihlaska">
-      <img src="soubory/styl-rocnikovy/2018/prihlaska-prihlasen.jpg">
+      <img src="soubory/styl-rocnikovy/prihlaska-prihlasen.jpg">
       <div class="horni"><div>
         <img src="soubory/styl/ok.png" style="margin-bottom: -3px">&ensp;
         Přihlášen{a} na GameCon

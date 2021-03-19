@@ -25,9 +25,15 @@ class VyjimkovacChyba {
       'url'     => 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'],
       'zdroj'   => @$_SERVER['HTTP_REFERER'] ?: null,
     ];
-    if(class_exists('Uzivatel') && $u = Uzivatel::zSession()) {
-      $r['uzivatel'] = $u->id();
+
+    try {
+      if ($u = Uzivatel::zSession()) {
+        $r['uzivatel'] = $u->id();
+      }
+    } catch (\Throwable $throwable) {
+      // nothing to do with that here...
     }
+
     return $r;
   }
 

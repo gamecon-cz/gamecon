@@ -37,7 +37,7 @@ class Vyjimkovac {
     });
 
     // typicky notice, warningy a stricty
-    set_error_handler(function($typ, $msg, $file, $line, $context) {
+    set_error_handler(function($typ, $msg, $file, $line) {
       // omezení typu na pouze aktuálně reportované
       // (nutné kvůli operátoru @ použitého typicky v parse_ metodách šablon,
       // který by jinak tento handler odchytával)

@@ -56,12 +56,6 @@ function get($name)
   else return null;
 }
 
-/** if current call is AJAX */
-function is_ajax()
-{
-  return ( !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest' );
-}
-
 /**
  * Options parsing, returns assoc. array with options.
  * if option in $default has key and value, then it's default,
@@ -115,9 +109,9 @@ function preg_quote_wildcard($re) {
  */
 function randHex($chars)
 {
-  if(!($chars<=32 && $chars>=0)) 
+  if(!($chars<=32 && $chars>=0))
     throw new Exception('maximum characters is 32 so far.');
-  return substr(md5(mt_rand()),0,$chars); 
+  return substr(md5(mt_rand()),0,$chars);
 }
 
 /**
@@ -157,7 +151,7 @@ function str_ends_with($str, $ending) {
 
 /**
  * Returns part of string after rightmost occurence of delimiter
- */ 
+ */
 function strrafter($string, $delimiter)
 {
   $pos = strrpos($string, $delimiter);
@@ -166,17 +160,17 @@ function strrafter($string, $delimiter)
 
 /**
  * Returns part of string after rightmost occurence of delimiter
- */ 
+ */
 function strrbefore($string, $delimiter)
 {
   $pos = strrpos($string, $delimiter);
   return substr($string, 0, $pos);
-}  
+}
 
 
 /**
  * Switches rows and columns
- */ 
+ */
 function tabArrayR($ai)
 {
   $ao=[];
@@ -190,7 +184,7 @@ function tabArrayR($ai)
 
 /**
  * Returns HTML formatted table from array
- */ 
+ */
 function tabHtml($tab)
 {
   $tabOut="<table>\n";
@@ -203,7 +197,7 @@ function tabHtml($tab)
 
 /**
  * Returns HTML formatted table from db answer
- */ 
+ */
 function tabMysql($a)
 {
   $tabOut="<table>\n";
@@ -219,7 +213,7 @@ function tabMysql($a)
 
 /**
  * Returns table array from mysql answer
- */ 
+ */
 function tabMysqlArray($a)
 {
   $r=mysqli_fetch_assoc($a);
