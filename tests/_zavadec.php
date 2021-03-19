@@ -18,7 +18,6 @@ define('REG_AKTIVIT_DO', '2038-01-01 00:00:00');
 define('MAILY_DO_SOUBORU', '/dev/null'); // TODO přidat speciální nastavení pro CI
 
 require_once __DIR__ . '/../nastaveni/zavadec-zaklad.php';
-require __DIR__ . '/../model/funkce/web-funkce.php';
 
 // příprava databáze
 dbConnect(false);

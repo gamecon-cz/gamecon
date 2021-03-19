@@ -20,6 +20,7 @@ require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/../model/funkce/fw-general.php';
 require __DIR__ . '/../model/funkce/fw-database.php';
 require __DIR__ . '/../model/funkce/funkce.php';
+require __DIR__ . '/../model/funkce/web-funkce.php';
 
 // načtení konfiguračních konstant
 
