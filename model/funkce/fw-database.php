@@ -339,7 +339,7 @@ function dbQa($array) {
  * Quotes input values for DB. Nulls are passed as real NULLs, other values as
  * strings. Quotes $val as value
  */
-function dbQv($val) {
+function dbQv($val): string {
   if(is_array($val))
     return implode(',', array_map(function($val){ return dbQv($val); }, $val));
   elseif($val === null)
