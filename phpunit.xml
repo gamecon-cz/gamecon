@@ -1,7 +1,0 @@
-<phpunit bootstrap="testy/_zavadec.php" colors="true">
-  <testsuites>
-    <testsuite name="Všechny testy">
-      <directory>testy</directory>
-    </testsuite>
-  </testsuites>
-</phpunit>
