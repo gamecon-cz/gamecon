@@ -16,7 +16,7 @@ if(post('prihlasit')) {
     $u = Uzivatel::prihlas(post('login'), post('heslo'));
 
   if($u)
-    back(post('navrat'));
+    back(URL_WEBU.'/prihlaska');
   else
     Chyba::nastav(hlaska('chybaPrihlaseni'));
 }
@@ -42,7 +42,6 @@ if(post('prihlasit')) {
     Trvale přihlásit
   </label>
 
-  <input type="hidden" name="navrat" value="<?=post('navrat') ?? $_SERVER['HTTP_REFERER'] ?? ''?>">
   <input type="hidden" name="prihlasit" value="true">
 
   <input type="submit" value="Přihlásit se" class="formular_primarni formular_primarni-sipka">

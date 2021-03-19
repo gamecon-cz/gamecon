@@ -158,7 +158,7 @@
         - [x] chování přihlášky
         - [ ] chování registrace
             - pozor na flow GC běží: titulka -> přihláška (-> registrace?)
-        - [ ] chování loginu
+        - [x] chování loginu
             - možnost je taky zůstat tam kde jsem (a vypsat např. jméno)
         - [x] chování titulky a menu
 
