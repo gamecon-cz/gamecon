@@ -126,7 +126,7 @@
 </div>
 
 <div class="odpocet">
-    <h2>Do GameConu zbývá</h2>
+    <h2>{odpocetNadpis}</h2>
     <div class="odpocet_cas">
         <span id="dnu">0</span>
         <b>D</b>
@@ -137,38 +137,41 @@
         <span id="sekund">0</span>
         <b>S</b>
     </div>
+    <!-- begin: odpocetPrihlasit -->
     <a href="prihlaska" class="odpocet_prihlasit">Přihlásit se</a>
+    <!-- end: odpocetPrihlasit -->
+
+    <script>
+    (function() {
+        function nastavCas(cas, d, h, m, s) {
+            let zbytek = Math.max(0, cas);
+            ;[s.innerHTML, zbytek] = modrem(zbytek, 60)
+            ;[m.innerHTML, zbytek] = modrem(zbytek, 60)
+            ;[h.innerHTML, zbytek] = modrem(zbytek, 24)
+            d.innerHTML = zbytek
+        }
+
+        function modrem(val, div) {
+            const rem = val % div
+            return [rem.toString().padStart(2, '0'), (val - rem) / div]
+        }
+
+        function nastavCasFix() {
+            const casGc = {odpocetTimestamp}; // středník kvůli šabloně
+            nastavCas(
+                casGc - Math.floor(Date.now() / 1000),
+                document.getElementById('dnu'),
+                document.getElementById('hodin'),
+                document.getElementById('minut'),
+                document.getElementById('sekund')
+            )
+        }
+
+        nastavCasFix()
+        setInterval(nastavCasFix, 1000)
+    })()
+    </script>
 </div>
-<script>
-(function() {
-    function nastavCas(cas, d, h, m, s) {
-        let zbytek = Math.max(0, cas);
-        ;[s.innerHTML, zbytek] = modrem(zbytek, 60)
-        ;[m.innerHTML, zbytek] = modrem(zbytek, 60)
-        ;[h.innerHTML, zbytek] = modrem(zbytek, 24)
-        d.innerHTML = zbytek
-    }
-
-    function modrem(val, div) {
-        const rem = val % div
-        return [rem.toString().padStart(2, '0'), (val - rem) / div]
-    }
-
-    function nastavCasFix() {
-        const casGc = {gcZacatekTimestamp}; // středník kvůli šabloně
-        nastavCas(
-            casGc - Math.floor(Date.now() / 1000),
-            document.getElementById('dnu'),
-            document.getElementById('hodin'),
-            document.getElementById('minut'),
-            document.getElementById('sekund')
-        )
-    }
-
-    nastavCasFix()
-    setInterval(nastavCasFix, 1000)
-})()
-</script>
 
 <div class="sponzori">
     <h2>Děkujeme našim partnerům!</h2>

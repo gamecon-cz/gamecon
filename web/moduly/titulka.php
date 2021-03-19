@@ -37,6 +37,17 @@ foreach ($obrazky as $obrazek) {
   $t->parse('titulka.sponzor');
 }
 
-$t->assign([
-  'gcZacatekTimestamp' => strtotime(GC_BEZI_OD),
-]);
+// odpočet
+if (pred(REG_GC_OD)) {
+  $zacatek = (new DateTimeCz(REG_GC_OD))->format('j. n. \v\e H:i');
+  $t->assign([
+    'odpocetTimestamp' => strtotime(REG_GC_OD),
+    'odpocetNadpis'    => "Přihlašování začne $zacatek",
+  ]);
+} else {
+  $t->assign([
+    'odpocetTimestamp' => strtotime(GC_BEZI_OD),
+    'odpocetNadpis'    => 'Do GameConu zbývá',
+  ]);
+  $t->parse('titulka.odpocetPrihlasit');
+}
