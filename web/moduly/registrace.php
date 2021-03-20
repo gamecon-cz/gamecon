@@ -61,6 +61,8 @@ if ($chyby && $chyby->globalniChyba()) {
     Chyba::nastav($chyby->globalniChyba());
 }
 
+$zacatekPrihlasovani = (new DateTimeCz(REG_GC_OD))->format('j.&#160;n. \v\e H:i');
+
 
 
 /**
@@ -138,6 +140,13 @@ $select = function ($nazev, $klic, $moznosti) use ($formData, $chyby) {
         <div class="formular_prihlasit formular_duleziteInfo">
             Již mám účet <a href="prihlaseni">přihlásit se</a>
         </div>
+
+        <?php if (!REG_GC) { ?>
+            <div class="formular_infobox">
+                <b>Přihlašování na GameCon se spustí <?=$zacatekPrihlasovani?></b>
+                Můžeš si předem vytvořit účet a přihlašování ti připomeneme e-mailem.
+            </div>
+        <?php } ?>
     <?php } ?>
 
     <h2 class="formular_sekceNadpis">Osobní</h2>
@@ -212,8 +221,13 @@ $select = function ($nazev, $klic, $moznosti) use ($formData, $chyby) {
         <input type="submit" value="Jen vytvořit účet" class="formular_sekundarni">
     <?php } else { ?>
         <input type="hidden" name="registrovat" value="true">
-        <input type="submit" value="Vytvořit účet" class="formular_primarni">
-        <!-- TODO spíš šedé tlačítko přihlásit na GC a tooltip "přihlašování na GameCon bude spuštěno 20.5. a " -->
+        <span class="tooltip">
+            <input type="submit" name="aPrihlasit" value="Přihlásit na GameCon" class="formular_primarni" disabled>
+            <div class="tooltip_obsah">
+                Přihlašování na GameCon se spustí <?=$zacatekPrihlasovani?>. Můžeš si předem vytvořit účet a přihlašování ti připomeneme e-mailem.
+            </div>
+        </span>
+        <input type="submit" value="Jen vytvořit účet" class="formular_sekundarni">
     <?php } ?>
 
     <!-- workaround: rezervace místa pro tooltip souhlasu -->

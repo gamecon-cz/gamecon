@@ -261,6 +261,11 @@ input[type=checkbox] {
     background-color: #30323E;
 }
 
+.formular_primarni:disabled {
+    background-color: #c6c6c6;
+    cursor: not-allowed;
+}
+
 .formular_primarni-sipka {
     min-width: 240px;
     text-align: left;
@@ -298,4 +303,21 @@ input[type=checkbox] {
     border: none;
     &:hover { color: #BE0F18 }
     @media (max-width: 600px) { margin: 30px 0; }
+}
+
+// generický formulář - infobox
+
+.formular_infobox {
+    font-size: 13px;
+    background-color: #FDC689;
+    padding: 24px;
+    letter-spacing: 0.03em;
+    max-width: 2 * 260px + 16px;
+    box-sizing: border-box;
+    margin: 30px 0;
+    & > b {
+        font-size: 14px;
+        display: block;
+        margin-bottom: 10px;
+    }
 }

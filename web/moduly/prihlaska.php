@@ -26,6 +26,12 @@ if(GC_BEZI || $u && $u->gcPritomen()) {
   return;
 }
 
+if(!$u) {
+  // Mimo období kdy GC běží: Situaci uživateli vždy dostatečně vysvětlí
+  // registrační stránka. A umožní mu aspoň vytvořit si účet.
+  back(URL_WEBU.'/registrace');
+}
+
 if(pred(REG_GC_OD)) {
   $t->assign('zacatek', (new DateTimeCz(REG_GC_OD))->format('j. n. \v\e H:i'));
   $t->parse('prihlaskaPred');
@@ -36,10 +42,6 @@ if(po(REG_GC_DO)) {
   $t->assign('rok', ROK + 1);
   $t->parse('prihlaskaPo');
   return;
-}
-
-if(!$u) {
-  back(URL_WEBU.'/registrace');
 }
 
 $shop = new Shop($u);

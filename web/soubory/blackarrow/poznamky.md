@@ -147,16 +147,16 @@
         - [x] pozadí na fixní výšku
     - [ ] (minor) zkusit udělat inputy non-required (problém s css podbarvením)
     - [ ] (minor) overflow registrace na mobilu kvůli tooltipům (vpravo i dole)
-    - [ ] flow registrace a přihláška na GC
+    - [x] flow registrace a přihláška na GC
         - mít tam vysvětleno, jestli registrace na GC běží a pochopitelný link
         - případně řešit jinak (původně link "přihláška" na titulce)
-        - [ ] flow přihlašování -> registrace -> zadám existujícího a správné údaje -> (chyba / nic se nestane)
-        - [ ] podívat se, odkud jdou linky na "prihlaska" (mj. menu)
-        - možná vždy směřovat login/registrace -> přihláška
+        - [x] flow přihlašování -> registrace -> zadám existujícího a správné údaje -> (chyba / nic se nestane)
+        - [x] podívat se, odkud jdou linky na "prihlaska" (mj. menu)
+        - [x] možná vždy směřovat login/registrace -> přihláška
             - s výjimkami např. pokud už jsem přihlášen na GC
             - ale přihlašování je tak vzácné, že možná stačí prostě fixní flow
         - [x] chování přihlášky
-        - [ ] chování registrace
+        - [x] chování registrace
             - pozor na flow GC běží: titulka -> přihláška (-> registrace?)
         - [x] chování loginu
             - možnost je taky zůstat tam kde jsem (a vypsat např. jméno)
