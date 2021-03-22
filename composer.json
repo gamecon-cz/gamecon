@@ -13,10 +13,6 @@
     },
     {
       "type": "vcs",
-      "url": "https://github.com/godric-cz/db-test"
-    },
-    {
-      "type": "vcs",
       "url": "https://github.com/godric-cz/db-migrations"
     }
   ],
@@ -31,7 +27,7 @@
     "dg/mysql-dump": "^1.4",
     "tracy/tracy": "~2.4",
     "godric/xtemplate": "dev-master",
-    "roderik/pwgen-php": "^0.1.7",
+    "roderik/pwgen-php": "^0.1.8",
     "godric/db-backup": "dev-master",
     "defuse/php-encryption": "^2.1",
     "godric/db-migrations": "dev-master",
@@ -39,8 +35,8 @@
     "wikimedia/less.php": "^3.0"
   },
   "require-dev": {
-    "dg/ftp-deployment": "~2.7",
-    "phpunit/phpunit": "^9.5",
+    "dg/ftp-deployment": "~3.3",
+    "phpunit/phpunit": "~9.5",
     "roave/security-advisories": "dev-master"
   },
   "autoload-dev": {

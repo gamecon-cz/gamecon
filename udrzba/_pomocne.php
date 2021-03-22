@@ -2,15 +2,27 @@
 
 function nasad(array $nastaveni) {
 
-  $deployment = realpath(__DIR__ . '/../vendor/dg/ftp-deployment/deployment');
+  $deployment = __DIR__ . '/ftp-deployment.php';
   $zdrojovaSlozka = realpath($nastaveni['zdrojovaSlozka']);
 
-  $nastaveniDeploymentu = '
-    log     = ' . ($nastaveni['log'] ?? 'nasad.log') . '
-    remote  = ' . $nastaveni['ciloveFtp'] . '
-    local   = ' . $zdrojovaSlozka . '
-    ignore  = "
+  // some files are always required by Composer autoloader, even if not needed, so we have to copy them to server, even if they are for dev (tests) only
+  $alwaysAutoloadedRelative = getFilesAlwaysRequiredByAutoloader();
+  $nutneKvuliComposerAutoRequire = implode(
+    "      \n",
+    array_map(static function(string $file) {
+      return "!$file";
+    }, $alwaysAutoloadedRelative)
+  );
+
+  $logFile = $nastaveni['log'] ?? 'nasad.log';
+
+  $nastaveniDeploymentu = "
+    log     = {$logFile}
+    remote  = {$nastaveni['ciloveFtp']}
+    local   = {$zdrojovaSlozka}
+    ignore  = '
       /_*
+      /.*
 
       /cache/private/*
       !/cache/private/.htaccess
@@ -21,13 +33,13 @@ function nasad(array $nastaveni) {
       /dokumentace
 
       /nastaveni/*
-      !/nastaveni/' . $nastaveni['souborNastaveni'] . '
+      !/nastaveni/{$nastaveni['souborNastaveni']}
       !/nastaveni/nastaveni.php
       !/nastaveni/nastaveni-vychozi.php
       !/nastaveni/zavadec.php
       !/nastaveni/zavadec-zaklad.php
 
-      /testy
+      /tests
       /udrzba
       /node_modules
 
@@ -37,10 +49,24 @@ function nasad(array $nastaveni) {
       !/web/soubory/*.js
       !/web/soubory/*.html
       !/web/soubory/systemove/*/.keep
-    "
+
+      /vendor/phpunit
+      /vendor/sebastian
+      /vendor/phpdocumentor
+      /vendor/webmozart
+      /vendor/myclabs/deep-copy
+      /vendor/nikic/php-parser
+      /vendor/phpspec/prophecy
+      /vendor/phar-io/manifest
+      /vendor/phar-io/version
+      /vendor/dg/ftp-deployment
+      {$nutneKvuliComposerAutoRequire}
+
+      /nasad.log
+    '
     preprocess = no
     allowDelete = yes
-  ';
+  ";
 
   // kontroly
   if (!is_file($zdrojovaSlozka . '/nastaveni/' . $nastaveni['souborNastaveni'])) {
@@ -69,6 +95,21 @@ function nasad(array $nastaveni) {
   msg('nasazení dokončeno');
 }
 
+function getFilesAlwaysRequiredByAutoloader(): array {
+  if (!file_exists(__DIR__ . '/../vendor/composer/autoload_files.php')) {
+    return [];
+  }
+  $alwaysAutoloadedAbsolute = require __DIR__ . '/../vendor/composer/autoload_files.php';
+
+  return array_map(
+    static function(string $absolutePath) {
+      // create path relative to project root
+      $vendorPosition = strpos($absolutePath, '/vendor/');
+      return substr($absolutePath, $vendorPosition);
+    },
+    $alwaysAutoloadedAbsolute);
+}
+
 function msg($msg) {
   echo date('H:i:s') . ' ' . $msg . "\n";
 }
@@ -77,7 +118,10 @@ function call_check($params) {
   $command = escapeshellcmd($params[0]);
   $args = array_map('escapeshellarg', array_slice($params, 1));
   $args = implode(' ', $args);
+  $commandWithArgs = $command . ' ' . $args;
 
-  passthru($command . ' ' . $args, $exitStatus);
-  if ($exitStatus !== 0) throw new Exception('Příkaz skončil chybou.');
+  passthru($commandWithArgs, $exitStatus);
+  if ($exitStatus !== 0) {
+    throw new Exception("Chyba příkazu '$commandWithArgs'", $exitStatus);
+  }
 }
