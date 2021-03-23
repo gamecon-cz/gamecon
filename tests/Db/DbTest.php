@@ -4,7 +4,10 @@ namespace Gamecon\Tests\Db;
 
 class DbTest extends \PHPUnit\Framework\TestCase
 {
+    /** @var DbWrapper */
     private static $connection;
+    /** @var string[] */
+    protected static $initQueries = [];
     protected static $initData;
 
     static function setConnection(DbWrapper $connection)
@@ -20,6 +23,10 @@ class DbTest extends \PHPUnit\Framework\TestCase
     static function setUpBeforeClass(): void
     {
         self::$connection->begin();
+
+        foreach (static::$initQueries as $initQuery) {
+            self::$connection->query($initQuery);
+        }
 
         if (isset(static::$initData)) {
             $dataset = new Dataset;

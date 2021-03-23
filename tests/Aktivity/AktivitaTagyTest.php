@@ -10,7 +10,15 @@ class AktivitaTagyTest extends DbTest
   protected static $initData = '
     # akce_seznam
     id_akce, patri_pod
-    1,       0
+    1,       null
+
+    # akce_instance
+    id_instance, id_hlavni_akce
+    10,          1
+    20,          1
+
+    # akce_seznam
+    id_akce, patri_pod
     2,       10
     3,       10
     4,       20
@@ -57,7 +65,7 @@ class AktivitaTagyTest extends DbTest
   {
     $a = \Aktivita::zId($idAktivity);
     $a->nastavTagy($tagy);
-    $b = $a->instanciuj();
+    $b = $a->instancuj();
     self::assertEquals(
       self::getSortedCopy($tagy),
       self::getSortedCopy($b->tagy()),

@@ -3,13 +3,13 @@
 
 $this->q(<<<SQL
 CREATE TABLE akce_instance(
-    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    id_instance INTEGER PRIMARY KEY AUTO_INCREMENT,
     id_hlavni_akce INTEGER NOT NULL,
     CONSTRAINT FOREIGN KEY FK_akce_instance_to_akce_seznam(id_hlavni_akce) REFERENCES akce_seznam(id_akce)
         ON UPDATE CASCADE ON DELETE CASCADE
 );
 
-INSERT INTO akce_instance(id, id_hlavni_akce)
+INSERT INTO akce_instance(id_instance, id_hlavni_akce)
 SELECT patri_pod, MIN(id_akce)
 FROM akce_seznam
 WHERE patri_pod > 0
@@ -23,7 +23,7 @@ SET patri_pod = NULL
 WHERE patri_pod = 0;
 
 ALTER TABLE akce_seznam
-ADD CONSTRAINT FOREIGN KEY FK_akce_seznam_to_akce_instance(patri_pod) REFERENCES akce_instance(id)
+ADD CONSTRAINT FOREIGN KEY FK_akce_seznam_to_akce_instance(patri_pod) REFERENCES akce_instance(id_instance)
         ON UPDATE CASCADE ON DELETE RESTRICT;
 
 ALTER TABLE akce_lokace
@@ -33,11 +33,11 @@ ALTER TABLE akce_seznam
 MODIFY COLUMN stav INTEGER NOT NULL;
 
 CREATE TABLE akce_stav(
-    id INTEGER UNIQUE KEY AUTO_INCREMENT,
+    id_stav INTEGER UNIQUE KEY AUTO_INCREMENT,
     nazev VARCHAR(128) PRIMARY KEY
 );
 SET SQL_MODE = 'NO_AUTO_VALUE_ON_ZERO'; -- jinak to místo nuly vloží novou autoincrement hodnotu
-INSERT INTO akce_stav(id, nazev)
+INSERT INTO akce_stav(id_stav, nazev)
 VALUES
 (0, 'nová'),
 (1, 'aktivovaná'),
@@ -48,11 +48,11 @@ VALUES
 SET SQL_MODE = '';
 
 ALTER TABLE akce_seznam
-ADD CONSTRAINT FOREIGN KEY FK_akce_seznam_to_akce_stav(stav) REFERENCES akce_stav(id)
+ADD CONSTRAINT FOREIGN KEY FK_akce_seznam_to_akce_stav(stav) REFERENCES akce_stav(id_stav)
     ON UPDATE CASCADE ON DELETE RESTRICT;
 
 CREATE TABLE mutex(
-    id INTEGER UNSIGNED NOT NULL UNIQUE AUTO_INCREMENT,
+    id_mutex INTEGER UNSIGNED NOT NULL UNIQUE AUTO_INCREMENT,
     akce VARCHAR(128) NOT NULL PRIMARY KEY,
     klic VARCHAR(128) NOT NULL UNIQUE,
     zamknul INTEGER NULL,
