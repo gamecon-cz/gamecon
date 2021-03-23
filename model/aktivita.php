@@ -560,7 +560,7 @@ class Aktivita
     if (!$this->a['patri_pod']) {
       return $this->id();
     }
-    $idHlavniAkce = dbOneCol('SELECT id_hlavni_akce FROM akce_instance WHERE id = ' . $this->a['patri_pod']);
+    $idHlavniAkce = dbOneCol('SELECT id_hlavni_akce FROM akce_instance WHERE id_instance = ' . $this->a['patri_pod']);
     if ($idHlavniAkce) {
       return (int)$idHlavniAkce;
     }
@@ -950,7 +950,7 @@ class Aktivita
     }
     $hlavniAktivitaId = dbOneCol(<<<SQL
 SELECT akce_instance.id_hlavni_akce FROM akce_instance
-WHERE akce_instance.id = $1
+WHERE akce_instance.id_instance = $1
 SQL
       , [$patriPodInstanciId]
     );
@@ -1485,7 +1485,7 @@ SQL
       $idInstance = $this->patriPod();
       $idNoveMaterskeAktivity = null;
       if ($idInstance) {
-        $materskaProInstanciId = dbOneCol('SELECT id FROM akce_instance WHERE id_hlavni_akce = $1', [$this->id()]);
+        $materskaProInstanciId = dbOneCol('SELECT id_instance FROM akce_instance WHERE id_hlavni_akce = $1', [$this->id()]);
         if ($materskaProInstanciId && (int)$materskaProInstanciId !== (int)$idInstance) {
           throw new \RuntimeException(sprintf('Aktivita s ID %d tvrdí, že patří pod instanci %d, ale patří pod %d', $this->id(), $idInstance, $materskaProInstanciId));
         }
@@ -1502,9 +1502,9 @@ SQL
         // nezbyde žádná, nebo jen jediná instance, zrušit instanci
         if ($zbyde <= 1) {
           dbQuery('UPDATE akce_seznam SET patri_pod = NULL WHERE patri_pod = ' . $idInstance);
-          dbQuery('DELETE FROM akce_instance WHERE id = ' . $idInstance);
+          dbQuery('DELETE FROM akce_instance WHERE id_instance = ' . $idInstance);
         } else if ($idNoveMaterskeAktivity) {
-          dbQuery('UPDATE akce_instance SET id_hlavni_akce = $1 WHERE id = $2', [$idNoveMaterskeAktivity, $idInstance]);
+          dbQuery('UPDATE akce_instance SET id_hlavni_akce = $1 WHERE id_instance = $2', [$idNoveMaterskeAktivity, $idInstance]);
         }
       }
 

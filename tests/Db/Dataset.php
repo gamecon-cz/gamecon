@@ -44,7 +44,7 @@ class Dataset
      */
     private function replaceValues(string $value): ?string
     {
-        if ($this->replaceNull && $value === 'NULL') {
+        if ($this->replaceNull && strtoupper($value) === 'NULL') {
             return null;
         }
 
