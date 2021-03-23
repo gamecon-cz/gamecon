@@ -9,8 +9,7 @@ ini_set('display_errors', false); // nezobrazovat chyby (lze přetížít, třeb
  * konstanty, logování atd.
  */
 
-require __DIR__ . '/zavadec-zaklad.php';
-require __DIR__ . '/../model/funkce/web-funkce.php';
+require_once __DIR__ . '/zavadec-zaklad.php';
 
 // nastavení cache složky pro třídy, které ji potřebují
 pripravCache(SPEC . '/xtpl');

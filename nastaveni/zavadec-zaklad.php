@@ -14,13 +14,13 @@ spl_autoload_register(function ($trida) {
 });
 
 // autoloader Composeru
-require __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 // starý model s pomocí funkcí
-require __DIR__ . '/../model/funkce/fw-general.php';
-require __DIR__ . '/../model/funkce/fw-database.php';
-require __DIR__ . '/../model/funkce/funkce.php';
-require __DIR__ . '/../model/funkce/web-funkce.php';
+require_once __DIR__ . '/../model/funkce/fw-general.php';
+require_once __DIR__ . '/../model/funkce/fw-database.php';
+require_once __DIR__ . '/../model/funkce/funkce.php';
+require_once __DIR__ . '/../model/funkce/web-funkce.php';
 
 // načtení konfiguračních konstant
 
@@ -43,11 +43,11 @@ if (PHP_SAPI == 'cli' || in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '
   exit(1);
 }
 
-require __DIR__ . '/nastaveni.php';
+require_once __DIR__ . '/nastaveni.php';
 
 // výchozí hodnoty konstant
 // (nezobrazovat chyby, pokud už konstanta byla nastavena dřív)
 $puvodniErrorReporting = error_reporting();
 error_reporting($puvodniErrorReporting ^ E_NOTICE);
-require __DIR__ . '/nastaveni-vychozi.php';
+require_once __DIR__ . '/nastaveni-vychozi.php';
 error_reporting($puvodniErrorReporting);
