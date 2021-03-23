@@ -35,3 +35,7 @@ dbQuery(sprintf('USE `%s`', DB_NAME));
 dbConnect(); // nutno inicalizovat spojení
 
 DbTest::setConnection(new DbWrapper());
+
+register_shutdown_function(static function() {
+  dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', DB_NAME));
+});
