@@ -4,115 +4,115 @@ namespace Gamecon\Admin\Modules\Aktivity\Import;
 
 class ImportStepResult
 {
-  /**
-   * @var mixed
-   */
-  private $success;
-  /**
-   * @var string[]
-   */
-  private $warnings;
-  /**
-   * @var string[]
-   */
-  private $errorLikeWarnings;
-  /**
-   * @var string
-   */
-  private $error;
-  /**
-   * @var string|null
-   */
-  private $lastActivityDescription;
+    /**
+     * @var mixed
+     */
+    private $success;
+    /**
+     * @var string[]
+     */
+    private $warnings;
+    /**
+     * @var string[]
+     */
+    private $errorLikeWarnings;
+    /**
+     * @var string
+     */
+    private $error;
+    /**
+     * @var string|null
+     */
+    private $lastActivityDescription;
 
-  public static function error(string $error): ImportStepResult {
-    return new static(false, [], [], $error);
-  }
-
-  public static function success($success): ImportStepResult {
-    return new static($success, [], [], '');
-  }
-
-  public static function successWithWarnings($success, array $warnings, array $errorLikeWarnings = []): ImportStepResult {
-    return new static($success, $warnings, $errorLikeWarnings, '');
-  }
-
-  public static function successWithErrorLikeWarnings($success, array $errorLikeWarnings): ImportStepResult {
-    return new static($success, [], $errorLikeWarnings, '');
-  }
-
-  /**
-   * @param array | ImportStepResult[] $importStepsResults
-   * @return array
-   */
-  public static function collectWarningsFromSteps(array $importStepsResults): array {
-    $warnings = [];
-    $errorLikeWarnings = [];
-    foreach ($importStepsResults as $importStepResult) {
-      foreach ($importStepResult->getWarnings() as $warning) {
-        $warnings[] = $warning;
-      }
-      foreach ($importStepResult->getErrorLikeWarnings() as $errorLikeWarning) {
-        $errorLikeWarnings[] = $errorLikeWarning;
-      }
+    public static function error(string $error): ImportStepResult {
+        return new static(false, [], [], $error);
     }
-    return [
-      'warnings' => $warnings,
-      'errorLikeWarnings' => $errorLikeWarnings,
-    ];
-  }
 
-  private function __construct($success, array $warnings, array $errorLikeWarnings, string $error) {
-    $this->success = $success;
-    $this->warnings = $warnings;
-    $this->errorLikeWarnings = $errorLikeWarnings;
-    $this->error = $error;
-  }
+    public static function success($success): ImportStepResult {
+        return new static($success, [], [], '');
+    }
 
-  public function setLastActivityDescription(string $lastActivityDescription): ImportStepResult {
-    $this->lastActivityDescription = $lastActivityDescription;
-    return $this;
-  }
+    public static function successWithWarnings($success, array $warnings, array $errorLikeWarnings = []): ImportStepResult {
+        return new static($success, $warnings, $errorLikeWarnings, '');
+    }
 
-  public function getLastActivityDescription(): ?string {
-    return $this->lastActivityDescription;
-  }
+    public static function successWithErrorLikeWarnings($success, array $errorLikeWarnings): ImportStepResult {
+        return new static($success, [], $errorLikeWarnings, '');
+    }
 
-  public function isSuccess(): bool {
-    return $this->success !== false;
-  }
+    /**
+     * @param array|ImportStepResult[] $importStepsResults
+     * @return array
+     */
+    public static function collectWarningsFromSteps(array $importStepsResults): array {
+        $warnings = [];
+        $errorLikeWarnings = [];
+        foreach ($importStepsResults as $importStepResult) {
+            foreach ($importStepResult->getWarnings() as $warning) {
+                $warnings[] = $warning;
+            }
+            foreach ($importStepResult->getErrorLikeWarnings() as $errorLikeWarning) {
+                $errorLikeWarnings[] = $errorLikeWarning;
+            }
+        }
+        return [
+            'warnings' => $warnings,
+            'errorLikeWarnings' => $errorLikeWarnings,
+        ];
+    }
 
-  public function isError(): bool {
-    return $this->error !== '';
-  }
+    private function __construct($success, array $warnings, array $errorLikeWarnings, string $error) {
+        $this->success = $success;
+        $this->warnings = $warnings;
+        $this->errorLikeWarnings = $errorLikeWarnings;
+        $this->error = $error;
+    }
 
-  public function hasWarnings(): bool {
-    return count($this->warnings) > 0;
-  }
+    public function setLastActivityDescription(string $lastActivityDescription): ImportStepResult {
+        $this->lastActivityDescription = $lastActivityDescription;
+        return $this;
+    }
 
-  public function hasErrorLikeWarnings(): bool {
-    return count($this->errorLikeWarnings) > 0;
-  }
+    public function getLastActivityDescription(): ?string {
+        return $this->lastActivityDescription;
+    }
 
-  public function getSuccess() {
-    return $this->success;
-  }
+    public function isSuccess(): bool {
+        return $this->success !== false;
+    }
 
-  /**
-   * @return string[]
-   */
-  public function getWarnings(): array {
-    return $this->warnings;
-  }
+    public function isError(): bool {
+        return $this->error !== '';
+    }
 
-  /**
-   * @return string[]
-   */
-  public function getErrorLikeWarnings(): array {
-    return $this->errorLikeWarnings;
-  }
+    public function hasWarnings(): bool {
+        return count($this->warnings) > 0;
+    }
 
-  public function getError(): string {
-    return $this->error;
-  }
+    public function hasErrorLikeWarnings(): bool {
+        return count($this->errorLikeWarnings) > 0;
+    }
+
+    public function getSuccess() {
+        return $this->success;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getWarnings(): array {
+        return $this->warnings;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getErrorLikeWarnings(): array {
+        return $this->errorLikeWarnings;
+    }
+
+    public function getError(): string {
+        return $this->error;
+    }
 }
