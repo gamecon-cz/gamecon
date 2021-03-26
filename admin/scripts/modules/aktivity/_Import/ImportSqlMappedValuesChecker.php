@@ -384,7 +384,7 @@ SQL,
         if (count($locationOccupyingActivityIds) === 0) {
             return ImportStepResult::success($locationId);
         }
-        return ImportStepResult::successWithErrorLikeWarnings(
+        return ImportStepResult::successWithWarnings(
             $locationId,
             [
                 sprintf(
