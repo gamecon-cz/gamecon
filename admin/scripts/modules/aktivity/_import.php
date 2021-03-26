@@ -94,7 +94,7 @@ foreach ($usedSpreadSheetIds as $usedSpreadSheetId) {
   $pouzitoKdy = $activitiesImportLogger->getImportedAt($usedSpreadSheetId, $ted->getTimezone());
   $sheetsPouzityKdy[$usedSpreadSheetId] = $pouzitoKdy;
 }
-uasort($sheetsPouzityKdy, static function (\DateTimeInterface $jedenSheetPouzitKdy, \DateTimeInterface $druhySheetPouzitKdy) {
+uasort($sheetsPouzityKdy, static function (?\DateTimeInterface $jedenSheetPouzitKdy, ?\DateTimeInterface $druhySheetPouzitKdy) {
   return $druhySheetPouzitKdy <=> $jedenSheetPouzitKdy;
 });
 foreach ($sheetsPouzityKdy as $usedSpreadSheetId => $sheetPouzitKdy) {
@@ -106,8 +106,8 @@ foreach ($sheetsPouzityKdy as $usedSpreadSheetId => $sheetPouzitKdy) {
   $template->assign('upravenoKdy', $spreadsheet->getModifiedAt()->relativni());
   $template->assign('vytvorenoKdyPresne', $spreadsheet->getCreatedAt()->formatCasStandard());
   $template->assign('upravenoKdyPresne', $spreadsheet->getModifiedAt()->formatCasStandard());
-  $template->assign('pouzitoKdy', $sheetPouzitKdy->relativni());
-  $template->assign('pouzitoKdyPresne', $sheetPouzitKdy->formatCasStandard());
+  $template->assign('pouzitoKdy', $sheetPouzitKdy ? $sheetPouzitKdy->relativni() : '');
+  $template->assign('pouzitoKdyPresne', $sheetPouzitKdy ? $sheetPouzitKdy->formatCasStandard() : '');
   $template->parse('import.spreadsheets.used.spreadsheet');
 }
 $template->parse('import.spreadsheets.used');
