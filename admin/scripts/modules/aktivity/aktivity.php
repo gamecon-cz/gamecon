@@ -61,7 +61,7 @@ if (defined('TESTING') && TESTING && !empty($filtr['typ']) && post('smazatVsechn
 
 $tpl = new XTemplate('aktivity.xtpl');
 
-$currentRequestUrl = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$currentRequestUrl = rtrim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
 $exportImportUrl = $currentRequestUrl . '/export-import';
 $tpl->assign('urlProExport', $exportImportUrl);
 $tpl->assign('urlProImport', $exportImportUrl);

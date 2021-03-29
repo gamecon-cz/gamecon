@@ -22,60 +22,59 @@ use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleApiTokenStorage;
 use Gamecon\Vyjimkovac\Logovac;
 
 if ($_GET['zpet'] ?? '' === 'aktivity') {
-  back(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) . '/..');
+    back(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) . '/..');
 }
 
 /** @type \Uzivatel $u */
 $currentUserId = $u->id();
-$googleApiCredentials = new GoogleApiCredentials(GOOGLE_API_CREDENTIALS);
+$googleApiCredentials = GoogleApiCredentials::createFromGlobals();
 $googleApiClient = new GoogleApiClient(
-  $googleApiCredentials,
-  new GoogleApiTokenStorage($googleApiCredentials->getClientId()),
-  $currentUserId
+    $googleApiCredentials,
+    new GoogleApiTokenStorage($googleApiCredentials->getClientId()),
+    $currentUserId
 );
 
 if (!empty($_GET['flush-authorization'])) {
-  $googleApiClient->flushAllAuthorizations();
+    $googleApiClient->flushAllAuthorizations();
 }
 
 if (isset($_GET['code'])) {
-  $googleApiClient->authorizeByCode($_GET['code']);
-  oznameni('Spárování s Google bylo úspěšné', false);
-  // redirect to remove code from URL and avoid repeated but invalid re-authorization by the same code
-  back(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
+    $googleApiClient->authorizeByCode($_GET['code']);
+    oznameni('Spárování s Google bylo úspěšné', false);
+    // redirect to remove code from URL and avoid repeated but invalid re-authorization by the same code
+    back(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
 }
 
 $template = new \XTemplate(__DIR__ . '/export-import.xtpl');
 
-$urlNaAktivity = $_SERVER['REQUEST_URI'] . '/..';
+$urlNaAktivity = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) . '/..';
 $template->assign('urlNaAktivity', $urlNaAktivity);
 
 try {
 
-  $googleDriveService = new GoogleDriveService($googleApiClient);
-  /** @noinspection PhpUnusedLocalVariableInspection */
-  $googleSheetsService = new GoogleSheetsService($googleApiClient, $googleDriveService);
+    $googleDriveService = new GoogleDriveService($googleApiClient);
+    /** @noinspection PhpUnusedLocalVariableInspection */
+    $googleSheetsService = new GoogleSheetsService($googleApiClient, $googleDriveService);
 
-  ob_start();
-  // AUTHORIZATION
-  if (!$googleApiClient->isAuthorized()) {
-    $template->assign('authorizationUrl', $googleApiClient->getAuthorizationUrl());
-    $template->parse('autorizace');
-    $template->out('autorizace');
-  } else {
-    // IMPORT
-    require __DIR__ . '/_import.php';
-  }
-  $importOutput = ob_get_clean();
+    ob_start();
+    // AUTHORIZATION
+    if (!$googleApiClient->isAuthorized()) {
+        $template->assign('authorizationUrl', $googleApiClient->getAuthorizationUrl());
+        $template->parse('autorizace');
+        $template->out('autorizace');
+    } else {
+        require __DIR__ . '/_import.php';
+    }
+    $importOutput = ob_get_clean();
 
-  // EXPORT
-  require __DIR__ . '/_export.php';
 
-  echo $importOutput;
+    require __DIR__ . '/_export.php';
+
+    echo $importOutput;
 
 } catch (GoogleConnectionException | \Google_Service_Exception $connectionException) {
-  /** @var Logovac $vyjimkovac */
-  $vyjimkovac->zaloguj($connectionException);
-  chyba('Google Sheets API je dočasně nedostupné. Zkus to za chvíli znovu.');
-  exit;
+    /** @var Logovac $vyjimkovac */
+    $vyjimkovac->zaloguj($connectionException);
+    chyba('Google Sheets API je dočasně nedostupné. Zkus to za chvíli znovu.');
+    exit;
 }

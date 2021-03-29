@@ -2,11 +2,20 @@
 
 namespace Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models;
 
+use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\UnauthorizedGoogleApiClient;
+
 class GoogleApiCredentials
 {
-    /**
-     * @var array
-     */
+    public static function createFromGlobals(): self {
+        if (!defined('GOOGLE_API_CREDENTIALS') || !GOOGLE_API_CREDENTIALS || !is_array(GOOGLE_API_CREDENTIALS)) {
+            throw new UnauthorizedGoogleApiClient(
+                "Missing google API credentials. Expected them as an array in globally accessed constant 'GOOGLE_API_CREDENTIALS'"
+            );
+        }
+        return new static(GOOGLE_API_CREDENTIALS);
+    }
+
+    /** @var array */
     private $values;
 
     public function __construct(array $values) {

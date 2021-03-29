@@ -1,0 +1,36 @@
+<!-- begin:exportImportHint -->
+<div class="hinted" style="display: inline-block">
+  <div class="hint" style="min-width: 250px">
+    <h4>Exportuj → Uprav → Importuj</h4>
+    <div class="tip">Importem můžeš nejenom nahrát nové, ale hlavně upravovat existující aktivity.</div>
+    <h3>Sloupce</h3>
+    <div>
+      <strong>{sloupecIdAktivity}</strong> Pokud je prázdné (nebo nula), tak bude aktivita nahrána coby nová
+      <div class="tip">
+        (tip: vyexportuj starou aktivitu, smaž u ní ID a zas ji naimportuj - bude jako nová!)
+      </div>
+    </div>
+    <div>
+      <strong>{sloupecNazevAktivity}</strong> Povinný pro hlavní aktivitu, nechtěný pro instanci.
+      Vynech název a aktivita se nahraje jako instance k aktivitě s vyplněným názvem nebo URL, která je někde
+      na řádku nad ní. Můžeš mít aktivit bez názvu kolik chceš za sebou, ze všech budou instance aktivity nad
+      nimi, která má název nebo URL.
+    </div>
+    <div>
+      <strong>{sloupecUrlAktivity}</strong> Povinné pro hlavní aktivitu, nechtěné pro instanci
+      <div class="tip">(tip: nech URL prázdnou, vytvoří se z názvu sama)</div>
+    </div>
+    <div>
+      <div>
+        <strong>{sloupecTagy}</strong>
+        <span class="tip">(tip: tagy můžeš zadávat jak přes jejich ID, tak i názvem, který je velmi benevolentní - zvládne najít tag nehledě na diakritiku, mezery a další "kudrlinky")</span>
+      </div>
+    </div>
+    <div>
+      <strong>{sloupecVypraveci}</strong>
+      <span class="tip">(tip: můžeš použít ID vypravěče, email, přezdívku, nebo občanské jméno)</span>
+    </div>
+  </div>
+  💡
+</div>
+<!-- end:exportImportHint -->
