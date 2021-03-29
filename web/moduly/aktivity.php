@@ -72,9 +72,11 @@ foreach ($skupiny as $skupina) {
         return $organizator->jmenoNick();
     }, $aktivita->organizatori()));
 
+    $obrazek = $aktivita->obrazek();
+
     $t->assign([
         'aktivita'     => $aktivita,
-        'obrazek'      => $aktivita->obrazek()->pasuj(512), // TODO kvalita?
+        'obrazek'      => $obrazek ? $obrazek->pasuj(512) : null, // TODO kvalita?
         'organizatori' => $organizatori,
         'organizatoriNahled' => strtr($organizatori, [', ' => '<br>']),
         'kapacita'     => $aktivita->kapacita() ?: 'neomezeně',

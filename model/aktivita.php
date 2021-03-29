@@ -616,7 +616,6 @@ class Aktivita {
    */
   function obrazek()
   {
-    $url=URL_WEBU.'/soubory/systemove/aktivity/'.$this->a['url_akce'].'.jpg';
     $soub = WWW.'/soubory/systemove/aktivity/'.$this->a['url_akce'].'.jpg';
     if(func_num_args() == 0) {
       try {
