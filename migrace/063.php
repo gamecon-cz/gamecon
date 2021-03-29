@@ -56,7 +56,7 @@ CREATE TABLE mutex(
     akce VARCHAR(128) NOT NULL PRIMARY KEY,
     klic VARCHAR(128) NOT NULL UNIQUE,
     zamknul INTEGER NULL,
-    od DATETIME NOT NULL DEFAULT NOW(),
+    od DATETIME NOT NULL,
     do DATETIME NULL,
     FOREIGN KEY FK_mutex_to_uzivatele_hodnoty(zamknul) REFERENCES uzivatele_hodnoty(id_uzivatele)
         ON UPDATE CASCADE ON DELETE SET NULL
