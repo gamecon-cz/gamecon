@@ -12,6 +12,9 @@ $urlNaAktivity = $_SERVER['REQUEST_URI'] . '/..';
 $urlNaEditaciAktivity = $urlNaAktivity . '/upravy?aktivitaId=';
 $baseUrl = (($_SERVER['HTTPS'] ?? 'off') === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
 
+$importFormatHint = include __DIR__ . '/_export-import-hint.php';
+$template->assign('importFormatHint', $importFormatHint);
+
 if (!empty($_POST['googleSheetId'])) {
   $googleSheetId = $_POST['googleSheetId'];
   if ($activitiesImportLogger->wasImported($googleSheetId)) {

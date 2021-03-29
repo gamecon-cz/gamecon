@@ -173,3 +173,7 @@ button .ajax-loader {
 .editor-tagu input, .editor-tagu input[type=text], .editor-tagu select , .editor-tagu textarea {
   padding: 5px;
 }
+
+.tip {
+  font-style: italic;
+}

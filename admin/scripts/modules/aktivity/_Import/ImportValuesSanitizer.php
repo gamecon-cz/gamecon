@@ -530,24 +530,12 @@ HTML;
         $tagsString = $activityValues[ExportAktivitSloupce::TAGY] ?? '';
         $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
         if ($tagsString === '' && $sourceActivity) {
-            $tagIds = [];
-            $invalidTagsValues = [];
-            foreach ($sourceActivity->tagy() as $tagValue) {
-                $tag = $this->importObjectsContainer->getTagFromValue($tagValue);
-                if (!$tag) {
-                    $invalidTagsValues[] = $tagValue;
-                } else {
-                    $tagIds[] = $tag->id();
-                }
-            }
-            if ($invalidTagsValues) {
-                trigger_error(
-                    E_USER_WARNING,
-                    sprintf('There are some strange tags coming from activity %s, which are unknown %s', $sourceActivity->id(), implode(',', $invalidTagsValues))
-                );
-            }
-            return ImportStepResult::success($tagIds);
+            return $this->getValidatedTagIdsFromActivity($sourceActivity);
         }
+        return $this->getValidatedTagsFromString($tagsString);
+    }
+
+    private function getValidatedTagsFromString(string $tagsString): ImportStepResult {
         $tagIds = [];
         $invalidTagsValues = [];
         $tagsValues = $this->parseArrayFromString($tagsString);
@@ -573,6 +561,26 @@ HTML;
                         )
                     )
                 )
+            );
+        }
+        return ImportStepResult::success($tagIds);
+    }
+
+    private function getValidatedTagIdsFromActivity(\Aktivita $sourceActivity): ImportStepResult {
+        $tagIds = [];
+        $invalidTagsValues = [];
+        foreach ($sourceActivity->tagy() as $tagValue) {
+            $tag = $this->importObjectsContainer->getTagFromValue($tagValue);
+            if (!$tag) {
+                $invalidTagsValues[] = $tagValue;
+            } else {
+                $tagIds[] = $tag->id();
+            }
+        }
+        if ($invalidTagsValues) {
+            trigger_error(
+                E_USER_WARNING,
+                sprintf('There are some strange tags coming from activity %s, which are unknown %s', $sourceActivity->id(), implode(',', $invalidTagsValues))
             );
         }
         return ImportStepResult::success($tagIds);
