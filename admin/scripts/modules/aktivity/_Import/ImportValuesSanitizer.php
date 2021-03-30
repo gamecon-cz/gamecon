@@ -391,7 +391,16 @@ class ImportValuesSanitizer
     private function getValidatedMinimalTeamCapacity(bool $forTeam, array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
         $minimalTeamCapacityValue = $activityValues[ExportAktivitSloupce::MINIMALNI_KAPACITA_TYMU] ?? null;
         $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
-        return $this->getValidatedTeamCapacity($forTeam, $minimalTeamCapacityValue, 'minimální', $sourceActivity ? $sourceActivity->tymMinKapacita() : null, $originalActivity, $parentActivity);
+        return $this->getValidatedTeamCapacity(
+            $forTeam,
+            $minimalTeamCapacityValue,
+            'minimální',
+            $sourceActivity
+                ? $sourceActivity->tymMinKapacita()
+                : null,
+            $originalActivity,
+            $parentActivity
+        );
     }
 
     private function getValidatedTeamCapacity(bool $forTeam, ?string $teamCapacityValue, string $capacityName, ?int $capacityOfSourceActivity, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
@@ -657,12 +666,14 @@ HTML;
         }
         switch (substr((string)$value, 0, 1)) {
             case '0' :
-            case 'n' :
-            case 'f' :
+            case 'n' : // ne, no
+            case 'f' : // false
                 return false;
             case '1' :
-            case 'a' :
-            case 'y' :
+            case 'a' : // ano
+            case 'j' : // jo
+            case 'y' : // yes
+            case 't' : // true
                 return true;
             default :
                 return null;
