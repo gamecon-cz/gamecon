@@ -103,16 +103,10 @@ class ActivitiesImportResult
         }
     }
 
-    /**
-     * @return int
-     */
     public function getImportedCount(): int {
         return $this->importedCount;
     }
 
-    /**
-     * @return string|null
-     */
     public function getProcessedFilename(): ?string {
         return $this->processedFilename;
     }
@@ -134,10 +128,17 @@ class ActivitiesImportResult
     /**
      * @return string[]
      */
-    public function getErrorMessages(): array {
+    public function getErrorLikeAndWarningMessages(): array {
         return array_merge(
-            $this->errorMessages,
-            $this->errorLikeWarningMessages
+            $this->errorLikeWarningMessages,
+            $this->warningMessages
         );
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getErrorMessages(): array {
+        return $this->errorMessages;
     }
 }

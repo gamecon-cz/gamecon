@@ -40,7 +40,7 @@ if (!empty($_POST['googleSheetId'])) {
   $naimportovanoPocet = $vysledekImportuAktivit->getImportedCount();
   $nazevImportovanehoSouboru = $vysledekImportuAktivit->getProcessedFilename();
   $successMessages = $vysledekImportuAktivit->getSuccessMessages();
-  $warningMessages = $vysledekImportuAktivit->getWarningMessages();
+  $warningMessages = $vysledekImportuAktivit->getErrorLikeAndWarningMessages();
   $errorMessages = $vysledekImportuAktivit->getErrorMessages();
 
   $zprava = sprintf("Bylo naimportováno %d aktivit z Google sheet '%s'", $naimportovanoPocet, $nazevImportovanehoSouboru);
