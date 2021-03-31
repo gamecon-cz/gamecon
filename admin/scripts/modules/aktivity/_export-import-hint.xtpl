@@ -1,34 +1,43 @@
 <!-- begin:exportImportHint -->
 <div class="hinted" style="display: inline-block">
-  <div class="hint" style="min-width: 250px">
-    <h4>Exportuj → Uprav → Importuj</h4>
-    <div class="tip">Importem můžeš nejenom nahrát nové, ale hlavně upravovat existující aktivity.</div>
-    <h3>Sloupce</h3>
+  <div class="hint" style="min-width: 20vw; width: max-content">
+    <h3>Export a import</h3>
     <div>
-      <strong>{sloupecIdAktivity}</strong> Pokud je prázdné (nebo nula), tak bude aktivita nahrána coby nová
-      <div class="tip">
-        (tip: vyexportuj starou aktivitu, smaž u ní ID a zas ji naimportuj - bude jako nová!)
-      </div>
-    </div>
-    <div>
-      <strong>{sloupecNazevAktivity}</strong> Povinný pro hlavní aktivitu, nechtěný pro instanci.
-      Vynech název a aktivita se nahraje jako instance k aktivitě s vyplněným názvem nebo URL, která je někde
-      na řádku nad ní. Můžeš mít aktivit bez názvu kolik chceš za sebou, ze všech budou instance aktivity nad
-      nimi, která má název nebo URL.
-    </div>
-    <div>
-      <strong>{sloupecUrlAktivity}</strong> Povinné pro hlavní aktivitu, nechtěné pro instanci
-      <div class="tip">(tip: nech URL prázdnou, vytvoří se z názvu sama)</div>
-    </div>
-    <div>
-      <div>
-        <strong>{sloupecTagy}</strong>
-        <span class="tip">(tip: tagy můžeš zadávat jak přes jejich ID, tak i názvem, který je velmi benevolentní - zvládne najít tag nehledě na diakritiku, mezery a další "kudrlinky")</span>
-      </div>
-    </div>
-    <div>
-      <strong>{sloupecVypraveci}</strong>
-      <span class="tip">(tip: můžeš použít ID vypravěče, email, přezdívku, nebo občanské jméno)</span>
+      <p>Udělej si export všech ročníků, které potřebuješ (napravo nahoře) a vykopíruj si aktivity, které chceš
+        recyklovat.</p>
+
+      <p>Udělej si nový export. Přejmenuj si ho. Vlož / vepiš do něj letošní aktivity:</p>
+
+      <h4>Nová aktivita:</h4>
+      <ul>
+        <li>nesmí mít ID (při recylaci starých aktivit musíš ID smazat)</li>
+        <li>musí mít jméno, pokud to není nová instance</li>
+      </ul>
+
+      <h4>Instance:</h4>
+      <ul>
+        <li>musí mít stejné URL jako mateřská aktivita</li>
+      </ul>
+
+      <h4>Editace:</h4>
+      <ul>
+        <li>ponech v exportu původní ID aktivity. Vše, co na řádku přepíšeš, se novým importem změní.</li>
+      </ul>
+
+      <h4>Po importu:</h4>
+      <ul>
+        <li>červená: rozbilo se Ti to, daná aktivita se nenahrála</li>
+        <li>oranžová: něco je špatně, chybí nebo vyžaduje pozornost. Přečti si detail a oprav/zkontroluj</li>
+      </ul>
+
+      <h4>Tipy:</h4>
+      <ul>
+        <li>pokud nevyplníš URL, vytvoří se z názvu sama (nefunguje u instance)</li>
+        <li>vypravěče lze zadat jako ID, jméno, nick nebo e-mail</li>
+        <li>štítky lze psát bez ohledu na kapitálky, mezery a diakritiku</li>
+        <li>stavy lze psát jen prvními 3 písmeny (PUB-likovaná)</li>
+        <li>jednou použitý import nelze recyklovat - udělej si export a začni znovu</li>
+      </ul>
     </div>
   </div>
   💡
