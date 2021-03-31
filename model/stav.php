@@ -32,7 +32,7 @@ class Stav extends DbObject
   }
 
   protected static $tabulka = 'akce_stav';
-  protected static $pk = 'id';
+  protected static $pk = 'id_stav';
 
   function __toString() {
     return $this->nazev();
