@@ -78,14 +78,14 @@ class ActivityImporter
         if ($originalActivity) {
             return ImportStepResult::successWithWarnings(
                 [
-                    'message' => 'Upravena existující aktivita.',
+                    'message' => sprintf('Upravena existující %s.', $importedActivity->jeHlavni() ? 'hlavní aktivita' : 'instance'),
                     'importedActivity' => $importedActivity,
                 ],
                 $warnings,
                 $errorLikeWarnings
             );
         }
-        if ($importedActivity->patriPod()) {
+        if ($importedActivity->jeInstance()) {
             return ImportStepResult::successWithWarnings(
                 [
                     'message' => sprintf(
@@ -101,7 +101,7 @@ class ActivityImporter
         }
         return ImportStepResult::successWithWarnings(
             [
-                'message' => 'Nahrána jako nová aktivita.',
+                'message' => sprintf('Nahrána jako nová %s.', $importedActivity->jeHlavni() ? 'hlavní aktivita' : 'instance'),
                 'importedActivity' => $importedActivity,
             ],
             $warnings,
