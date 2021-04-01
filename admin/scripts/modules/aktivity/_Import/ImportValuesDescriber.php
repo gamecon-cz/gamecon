@@ -61,7 +61,7 @@ class ImportValuesDescriber
             $nazev = (string)$nazev;
         }
         if ($nazev && $id) {
-            return $this->createLinkToActivity($id, sprintf("'%s' (%d)", $nazev, $id));
+            return $this->createLinkToActivity($id, $nazev);
         }
         if (!$url && $originalActivity) {
             $url = $originalActivity->urlId();
@@ -85,8 +85,9 @@ class ImportValuesDescriber
     }
 
     private function createLinkToActivity(int $id, string $name): string {
+        $nameWithId = sprintf("'%s' (%d)", $name, $id);
         return <<<HTML
-<a target="_blank" href="{$this->editActivityUrlSkeleton}{$id}">{$name}</a>
+<a target="_blank" href="{$this->editActivityUrlSkeleton}{$id}">{$nameWithId}</a>
 HTML
             ;
     }
