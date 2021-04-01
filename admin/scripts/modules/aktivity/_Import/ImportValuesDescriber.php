@@ -25,7 +25,7 @@ class ImportValuesDescriber
     }
 
     private function getLinkToActivity(\Aktivita $activity): string {
-        return $this->createLinkToActivity($activity->id(), $this->describeActivityByInputValues([], $activity));
+        return $this->createLinkToActivity($activity->id(), $activity->nazev());
     }
 
     public function describeActivityByInputValues(array $activityValues, ?\Aktivita $originalActivity): string {
@@ -56,9 +56,6 @@ class ImportValuesDescriber
         }
         if (!$nazev && $originalActivity) {
             $nazev = $originalActivity->nazev();
-        }
-        if ($id) {
-            $id = (int)$id;
         }
         if ($nazev) {
             $nazev = (string)$nazev;
