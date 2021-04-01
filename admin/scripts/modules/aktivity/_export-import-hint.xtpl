@@ -26,7 +26,7 @@
 
       <h4>Po importu:</h4>
       <ul>
-        <li>červená: rozbilo se Ti to, daná aktivita se nenahrála</li>
+        <li>červená: rozbilo se ti to, daná aktivita se nenahrála</li>
         <li>oranžová: něco je špatně, chybí nebo vyžaduje pozornost. Přečti si detail a oprav/zkontroluj</li>
       </ul>
 
@@ -34,6 +34,7 @@
       <ul>
         <li>vypravěče naklikej do adminu předem, jinak je import vynechá</li>
         <li>vypravěče lze zadat jako ID, jméno, nick nebo e-mail</li>
+        <li>přehled vypravěčů, štítků a místností najdeš v exportu na dalších kartách</li>
         <li>pokud nevyplníš URL, vytvoří se z názvu sama (nefunguje u instance)</li>
         <li>štítky lze psát bez ohledu na kapitálky, mezery a diakritiku</li>
         <li>stavy stačí psát jen prvními třemi písmeny (PUB-likovaná)</li>
