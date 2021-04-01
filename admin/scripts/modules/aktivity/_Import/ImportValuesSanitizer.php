@@ -471,7 +471,7 @@ class ImportValuesSanitizer
     }
 
     private function getValidatedStorytellersIds(array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
-        $storytellersString = $activityValues[ExportAktivitSloupce::VYPRAVECI] ?? '';
+        $storytellersString = $activityValues[ExportAktivitSloupce::ORGANIZATORI] ?? '';
         if (!$storytellersString) {
             $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
             return ImportStepResult::success($sourceActivity
@@ -480,13 +480,13 @@ class ImportValuesSanitizer
             );
         }
         $storytellersIds = [];
-        $invalidStorytellersValues = [];
+        $unknownUsers = [];
         $notStorytellers = [];
         $storytellersValues = $this->parseArrayFromString($storytellersString);
         foreach ($storytellersValues as $storytellerValue) {
             $user = $this->importObjectsContainer->getUserFromValue($storytellerValue);
             if (!$user) {
-                $invalidStorytellersValues[] = $storytellerValue;
+                $unknownUsers[] = $storytellerValue;
             } elseif (!$user->jePoradatelAktivit()) {
                 $notStorytellers[] = $user;
             } else {
@@ -494,12 +494,12 @@ class ImportValuesSanitizer
             }
         }
         $errorLikeWarnings = [];
-        if ($invalidStorytellersValues) {
+        if ($unknownUsers) {
             $errorLikeWarnings[] = sprintf(
                 'Neznámí uživatelé %s. Jsou vynecháni.',
                 implode(',', array_map(static function (string $invalidStorytellerValue) {
                     return "'$invalidStorytellerValue'";
-                }, $invalidStorytellersValues))
+                }, $unknownUsers))
             );
         }
         if ($notStorytellers) {
@@ -508,7 +508,7 @@ class ImportValuesSanitizer
             }, $notStorytellers));
             $notStorytellersHtml = htmlentities($notStorytellersString);
             $errorLikeWarnings[] = <<<HTML
-        'Uživatelé nejsou <a href="{$this->storytellersPermissionsUrl}" target="_blank">vypravěči ani organizátoři</a>: {$notStorytellersHtml}. Jsou vynecháni.
+        'Uživatelé nejsou <a href="{$this->storytellersPermissionsUrl}" target="_blank">pořadatelé ani organizátoři</a>: {$notStorytellersHtml}. Jsou vynecháni.
 HTML;
         }
         return ImportStepResult::successWithErrorLikeWarnings($storytellersIds, $errorLikeWarnings);
@@ -521,7 +521,10 @@ HTML;
     private function parseArrayFromString(string $string): array {
         $semicolonOnly = str_replace(',', ';', $string);
         $exploded = explode(';', $semicolonOnly);
-        return array_map('trim', $exploded);
+        $trimmed = array_map('trim', $exploded);
+        return array_filter($trimmed, static function (string $value) {
+            return $value !== '';
+        });
     }
 
     private function getValidatedLongAnnotation(array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
