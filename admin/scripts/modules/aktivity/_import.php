@@ -8,7 +8,7 @@ use Gamecon\Zidle;
 
 $activitiesImportLogger = new ActivitiesImportLogger();
 $ted = new \DateTimeImmutable();
-$urlNaAktivity = $_SERVER['REQUEST_URI'] . '/..';
+$urlNaAktivity = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) . '/..';
 $urlNaEditaciAktivity = $urlNaAktivity . '/upravy?aktivitaId=';
 $baseUrl = (($_SERVER['HTTPS'] ?? 'off') === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
 
