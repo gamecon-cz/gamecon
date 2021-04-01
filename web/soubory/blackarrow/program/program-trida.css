@@ -110,7 +110,7 @@ table.program {
 }
 
 .program td > div {
-    background-color: #F6F1EA;
+    background-color: #F0EAE1;
 }
 
 .program td > .program_nazevLinie {
@@ -119,7 +119,7 @@ table.program {
 
 .program td:not([rowspan]) > div {
     height: 72px;
-    padding: 15px;
+    padding: 12px 15px;
     box-sizing: border-box;
     /* nechat přetékat kvůli týmovému formuláři v adminu */
 
@@ -137,7 +137,7 @@ table.program {
     color: inherit;
     font-size: 14px;
     display: block;
-    min-height: 28px;
+    min-height: 31px;
     max-height: 35px;
     margin-bottom: 2px;
     overflow: hidden;
@@ -227,8 +227,10 @@ table.program {
     background: url('muz.svg');
 }
 
-/* legenda */
-.program .plno { background-color: #EBEBEB; opacity: 0.5; }
+/* legenda (pozor na css priority) */
+.program .vDalsiVlne { background-color: #FFAEAE; }
+.program .vBudoucnu { background-color: #FFD2CE; }
+.program .plno { background-color: #F5F5F5; opacity: 0.5; }
 .program .prihlasen { background-color: #B7E4B6; opacity: 1; }
 .program .nahradnik { background-color: #FDC689; opacity: 1; }
 .program .organizator { background-color: #DDDCF1; opacity: 1; }

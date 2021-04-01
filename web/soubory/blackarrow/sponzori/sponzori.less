@@ -1,6 +1,5 @@
 .sponzori {
     padding: 168rel 286/19.2vw 0;
-    background: url('../blackarrow/sponzori/poklad.jpg') no-repeat 1131/19.2vw 108/19.2vw;
     @media (max-width: 600px) {
         padding: 35vw 10vw 6vw;
     }
@@ -34,4 +33,9 @@
     vertical-align: middle;
     max-width: 100%;
     filter: saturate(0) brightness(0.85) contrast(1.5) opacity(0.5);
+    transition: filter 0.2s;
+}
+
+.sponzori_logo > a:hover > img {
+    filter: none;
 }
