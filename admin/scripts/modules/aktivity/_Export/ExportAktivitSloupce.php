@@ -15,7 +15,7 @@ class ExportAktivitSloupce
     public const ZACATEK = 'Začátek'; // zacatek
     public const KONEC = 'Konec'; // konec
     public const MISTNOST = 'Místnost'; // lokace
-    public const VYPRAVECI = 'Vypravěči';
+    public const ORGANIZATORI = 'Organizátoři';
     public const KAPACITA_UNISEX = 'Kapacita unisex'; // kapacita
     public const KAPACITA_MUZI = 'Kapacita muži'; // kapacita_m
     public const KAPACITA_ZENY = 'Kapacita ženy'; // kapacita_f
@@ -41,7 +41,7 @@ class ExportAktivitSloupce
             self::ZACATEK,
             self::KONEC,
             self::MISTNOST,
-            self::VYPRAVECI,
+            self::ORGANIZATORI,
             self::KAPACITA_UNISEX,
             self::KAPACITA_MUZI,
             self::KAPACITA_ZENY,
