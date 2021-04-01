@@ -4,6 +4,7 @@ namespace Gamecon\Admin\Modules\Aktivity\Import;
 
 class ActivitiesImportResult
 {
+    private const GUID_FOR_NO_ACTIVITY = '';
     /**
      * @var int
      */
@@ -14,19 +15,19 @@ class ActivitiesImportResult
     private $processedFilename;
 
     /**
-     * @var string[]
+     * @var string[][]
      */
     private $successMessages = [];
     /**
-     * @var string[]
+     * @var string[][]
      */
     private $warningMessages = [];
     /**
-     * @var string[]
+     * @var string[][]
      */
     private $errorLikeWarningMessages = [];
     /**
-     * @var string[]
+     * @var string[][]
      */
     private $errorMessages = [];
 
@@ -47,16 +48,12 @@ class ActivitiesImportResult
     }
 
     public function addErrorMessage(string $errorMessage, ?string $activityGuid): ActivitiesImportResult {
-        $this->errorMessages[] = $activityGuid !== null
-            ? "{$activityGuid}: {$errorMessage}"
-            : $errorMessage;
+        $this->errorMessages[$activityGuid ?? self::GUID_FOR_NO_ACTIVITY][] = $errorMessage;
         return $this;
     }
 
     public function addWarningMessage(string $warningMessage, ?string $activityGuid): ActivitiesImportResult {
-        $this->warningMessages[] = $activityGuid !== null
-            ? "{$activityGuid}: {$warningMessage}"
-            : $warningMessage;
+        $this->warningMessages[$activityGuid ?? self::GUID_FOR_NO_ACTIVITY][] = $warningMessage;
         return $this;
     }
 
@@ -75,32 +72,30 @@ class ActivitiesImportResult
     }
 
     public function addErrorLikeWarningMessage(string $errorLikeWarningMessage, ?string $activityGuid): ActivitiesImportResult {
-        $this->errorLikeWarningMessages[] = $activityGuid !== null
-            ? "{$activityGuid}: {$errorLikeWarningMessage}"
-            : $errorLikeWarningMessage;
+        $this->errorLikeWarningMessages[$activityGuid ?? self::GUID_FOR_NO_ACTIVITY][] = $errorLikeWarningMessage;
         return $this;
     }
 
     public function addSuccessMessage(string $successMessage, ?string $activityGuid): ActivitiesImportResult {
-        $this->successMessages[] = $activityGuid !== null
-            ? "{$activityGuid}: {$successMessage}"
-            : $successMessage;
+        $this->successMessages[$activityGuid ?? self::GUID_FOR_NO_ACTIVITY][] = $successMessage;
         return $this;
     }
 
-    public function solveActivityDescription(string $activityGuid, string $activityFinalDescription) {
-        foreach ($this->errorMessages as $index => $errorMessage) {
-            $this->errorMessages[$index] = str_replace($activityGuid, $activityFinalDescription, $errorMessage);
+    public function solveActivityDescription(string $activityGuidToSolve, string $activityFinalDescription) {
+        $this->errorMessages = $this->addActivityDescription($this->errorMessages, $activityGuidToSolve, $activityFinalDescription);
+        $this->errorLikeWarningMessages = $this->addActivityDescription($this->errorLikeWarningMessages, $activityGuidToSolve, $activityFinalDescription);
+        $this->warningMessages = $this->addActivityDescription($this->warningMessages, $activityGuidToSolve, $activityFinalDescription);
+        $this->successMessages = $this->addActivityDescription($this->successMessages, $activityGuidToSolve, $activityFinalDescription);
+    }
+
+    private function addActivityDescription(array $messagesByGuid, string $activityGuidToSolve, string $activityFinalDescription): array {
+        if (!isset($messagesByGuid[$activityGuidToSolve])) {
+            return $messagesByGuid;
         }
-        foreach ($this->errorLikeWarningMessages as $index => $errorLikeWarningMessage) {
-            $this->errorLikeWarningMessages[$index] = str_replace($activityGuid, $activityFinalDescription, $errorLikeWarningMessage);
+        foreach ($messagesByGuid[$activityGuidToSolve] as &$message) {
+            $message = "$activityFinalDescription $message";
         }
-        foreach ($this->warningMessages as $index => $warningMessage) {
-            $this->warningMessages[$index] = str_replace($activityGuid, $activityFinalDescription, $warningMessage);
-        }
-        foreach ($this->successMessages as $index => $successMessage) {
-            $this->successMessages[$index] = str_replace($activityGuid, $activityFinalDescription, $successMessage);
-        }
+        return $messagesByGuid;
     }
 
     public function getImportedCount(): int {
@@ -115,32 +110,52 @@ class ActivitiesImportResult
      * @return string[]
      */
     public function getSuccessMessages(): array {
-        return $this->successMessages;
+        return $this->getFlattenedByOneLevel($this->successMessages);
     }
 
     /**
      * @return string[]
      */
     public function getWarningMessages(): array {
-        return $this->warningMessages;
+        return $this->getFlattenedByOneLevel($this->warningMessages);
     }
 
     /**
+     * Without messages about errored activities
      * @return string[]
      */
-    public function getErrorLikeAndWarningMessages(): array {
-        return array_merge(
-            array_map(static function (string $message) {
-                return '❗ ' . $message;
-            }, $this->errorLikeWarningMessages),
+    public function getErrorLikeAndWarningMessagesExceptErrored(): array {
+        $errorLikeAndWarnings = array_merge_recursive(
+            $this->errorLikeWarningMessages,
             $this->warningMessages
         );
+        $exceptGuidsAsKeys = $this->errorMessages;
+        unset($exceptGuidsAsKeys[self::GUID_FOR_NO_ACTIVITY]);
+        $filtered = array_diff_key(
+            $errorLikeAndWarnings,
+            $exceptGuidsAsKeys
+        );
+        return $this->getFlattenedByOneLevel($filtered);
     }
 
     /**
      * @return string[]
      */
     public function getErrorMessages(): array {
-        return $this->errorMessages;
+        return $this->getFlattenedByOneLevel($this->errorMessages);
+    }
+
+    /**
+     * @param string[][] $array
+     * @return string[]
+     */
+    private function getFlattenedByOneLevel(array $array): array {
+        $flattened = [];
+        foreach ($array as $subArray) {
+            foreach ($subArray as $value) {
+                $flattened[] = $value;
+            }
+        }
+        return $flattened;
     }
 }
