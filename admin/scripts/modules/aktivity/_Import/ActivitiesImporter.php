@@ -132,7 +132,7 @@ class ActivitiesImporter
             unset($singleProgramLineResult);
 
             if (!$this->getExclusiveLock($singleProgramLine->nazev())) {
-                $result->addWarningMessage(
+                $result->addErrorLikeWarningMessage(
                     sprintf(
                         "Právě probíhá jiný import aktivit z programové linie '%s'. Import byl <strong>přerušen</strong>. Zkus to za chvíli znovu.",
                         mb_ucfirst($singleProgramLine->nazev())
