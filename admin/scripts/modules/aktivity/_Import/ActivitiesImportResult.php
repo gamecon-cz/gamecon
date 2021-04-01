@@ -130,7 +130,9 @@ class ActivitiesImportResult
      */
     public function getErrorLikeAndWarningMessages(): array {
         return array_merge(
-            $this->errorLikeWarningMessages,
+            array_map(static function (string $message) {
+                return '❗ ' . $message;
+            }, $this->errorLikeWarningMessages),
             $this->warningMessages
         );
     }
