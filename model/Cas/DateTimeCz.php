@@ -148,8 +148,10 @@ class DateTimeCz extends \DateTime
     $rozdil = time() - $this->getTimestamp();
     if ($rozdil < 0)
       return 'v budoucnosti';
+    if ($rozdil < 2)
+      return "před okamžikem";
     if ($rozdil < 60)
-      return "před $rozdil vteřinami";
+      return "před $rozdil sekundami";
     if ($rozdil < 60 * 60)
       return 'před ' . round($rozdil / 60) . ' minutami';
     $dny = $this->rozdilDne(new static('now', $this->getTimezone()));
