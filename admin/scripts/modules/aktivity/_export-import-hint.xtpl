@@ -36,7 +36,7 @@
         <li>vypravěče lze zadat jako ID, jméno, nick nebo e-mail</li>
         <li>pokud nevyplníš URL, vytvoří se z názvu sama (nefunguje u instance)</li>
         <li>štítky lze psát bez ohledu na kapitálky, mezery a diakritiku</li>
-        <li>stavy lze psát jen prvními 3 písmeny (PUB-likovaná)</li>
+        <li>stavy stačí psát jen prvními třemi písmeny (PUB-likovaná)</li>
         <li>jednou použitý import nelze recyklovat - udělej si export a začni znovu</li>
       </ul>
     </div>
