@@ -88,12 +88,18 @@ class ActivitiesImportResult
         $this->successMessages = $this->addActivityDescription($this->successMessages, $activityGuidToSolve, $activityFinalDescription);
     }
 
-    private function addActivityDescription(array $messagesByGuid, string $activityGuidToSolve, string $activityFinalDescription): array {
-        if (!isset($messagesByGuid[$activityGuidToSolve])) {
+    private function addActivityDescription(array $messagesByGuid, string $guidToSolve, string $activityFinalDescription): array {
+        if (!isset($messagesByGuid[$guidToSolve])) {
             return $messagesByGuid;
         }
-        foreach ($messagesByGuid[$activityGuidToSolve] as &$message) {
-            $message = "$activityFinalDescription $message";
+        if (isset($messagesByGuid[$activityFinalDescription])) {
+            trigger_error("Aktivity s popisem '$activityFinalDescription' už záznam mají.", E_USER_WARNING);
+            foreach ($messagesByGuid[$guidToSolve] as &$message) {
+                $message = "$activityFinalDescription $message"; // fallback
+            }
+        } else {
+            $messagesByGuid[$activityFinalDescription] = $messagesByGuid[$guidToSolve];
+            unset($messagesByGuid[$guidToSolve]); // messages by final description in fact
         }
         return $messagesByGuid;
     }
@@ -107,22 +113,22 @@ class ActivitiesImportResult
     }
 
     /**
-     * @return string[]
+     * @return string[][] Like [['Aktivita 123' => ['něco', 'něco jiného']]]
      */
     public function getSuccessMessages(): array {
-        return $this->getFlattenedByOneLevel($this->successMessages);
+        return $this->successMessages;
     }
 
     /**
-     * @return string[]
+     * @return string[][] Like [['Aktivita 123' => ['něco', 'něco jiného']]]
      */
     public function getWarningMessages(): array {
-        return $this->getFlattenedByOneLevel($this->warningMessages);
+        return $this->warningMessages;
     }
 
     /**
      * Without messages about errored activities
-     * @return string[]
+     * @return string[][] Like [['Aktivita 123' => ['něco', 'něco jiného']]]
      */
     public function getErrorLikeAndWarningMessagesExceptErrored(): array {
         $errorLikeAndWarnings = array_merge_recursive(
@@ -131,31 +137,16 @@ class ActivitiesImportResult
         );
         $exceptGuidsAsKeys = $this->errorMessages;
         unset($exceptGuidsAsKeys[self::GUID_FOR_NO_ACTIVITY]);
-        $filtered = array_diff_key(
+        return array_diff_key(
             $errorLikeAndWarnings,
             $exceptGuidsAsKeys
         );
-        return $this->getFlattenedByOneLevel($filtered);
     }
 
     /**
-     * @return string[]
+     * @return string[][] Like [['Aktivita 123' => ['něco', 'něco jiného']]]
      */
     public function getErrorMessages(): array {
-        return $this->getFlattenedByOneLevel($this->errorMessages);
-    }
-
-    /**
-     * @param string[][] $array
-     * @return string[]
-     */
-    private function getFlattenedByOneLevel(array $array): array {
-        $flattened = [];
-        foreach ($array as $subArray) {
-            foreach ($subArray as $value) {
-                $flattened[] = $value;
-            }
-        }
-        return $flattened;
+        return $this->errorMessages;
     }
 }

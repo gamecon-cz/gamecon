@@ -53,9 +53,12 @@
 <!-- begin:errors -->
 <div class="error fullwidth">
   <ul>
-    <!-- begin:error -->
-    <li>{error}</li>
-    <!-- end:error -->
+    <!-- begin:nadpis -->
+    <li class="list-header">{nadpis}</li>
+    <!-- end:nadpis -->
+    <!-- begin:message -->
+    <li>{message}</li>
+    <!-- end:message -->
   </ul>
 </div>
 <!-- end:errors -->
@@ -63,9 +66,12 @@
 <!-- begin:warnings -->
 <div class="warning fullwidth">
   <ul>
-    <!-- begin:warning -->
-    <li>{warning}</li>
-    <!-- end:warning -->
+    <!-- begin:nadpis -->
+    <li class="list-header">{nadpis}</li>
+    <!-- end:nadpis -->
+    <!-- begin:message -->
+    <li>{message}</li>
+    <!-- end:message -->
   </ul>
 </div>
 <!-- end:warnings -->
@@ -73,9 +79,12 @@
 <!-- begin:successes -->
 <div class="success fullwidth">
   <ul>
-    <!-- begin:success -->
-    <li>{success}</li>
-    <!-- end:success -->
+    <!-- begin:nadpis -->
+    <li class="list-header">{nadpis}</li>
+    <!-- end:nadpis -->
+    <!-- begin:message -->
+    <li>{message}</li>
+    <!-- end:message -->
   </ul>
 </div>
 <!-- end:successes -->
@@ -117,7 +126,7 @@
   <!-- end:unused -->
   <!-- begin:used -->
   <table class="zvyraznovana" style="width: 100%; margin-top: 1em">
-    <caption><h4>Použité exporty</h4></caption>
+    <caption><h4 class="in-list">Použité exporty</h4></caption>
     <thead>
     <tr>
       <th>Název exportu</th>
