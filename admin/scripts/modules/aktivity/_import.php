@@ -37,43 +37,7 @@ if (!empty($_POST['googleSheetId'])) {
         $activitiesImportLogger
     );
     $vysledekImportuAktivit = $activitiesImporter->importActivities($googleSheetId);
-    $naimportovanoPocet = $vysledekImportuAktivit->getImportedCount();
-    $nazevImportovanehoSouboru = $vysledekImportuAktivit->getProcessedFilename();
-    $errorMessages = $vysledekImportuAktivit->getErrorMessages();
-    $warningMessages = $vysledekImportuAktivit->getErrorLikeAndWarningMessagesExceptErrored();
-    $successMessages = $vysledekImportuAktivit->getSuccessMessages();
-
-    $zprava = sprintf("Bylo naimportováno %d aktivit z Google sheet '%s'", $naimportovanoPocet, $nazevImportovanehoSouboru);
-    if ($naimportovanoPocet > 0) {
-        oznameni($zprava, false);
-    } else {
-        chyba($zprava, false);
-    }
-    $oznameni = \Chyba::vyzvedniHtml();
-    $template->assign('oznameni', $oznameni);
-    $template->parse('import.oznameni');
-
-    if ($errorMessages) {
-        foreach ($errorMessages as $errorMessage) {
-            $template->assign('error', $errorMessage);
-            $template->parse('import.errors.error');
-        }
-        $template->parse('import.errors');
-    }
-    if ($warningMessages) {
-        foreach ($warningMessages as $warningMessage) {
-            $template->assign('warning', $warningMessage);
-            $template->parse('import.warnings.warning');
-        }
-        $template->parse('import.warnings');
-    }
-    if ($successMessages) {
-        foreach ($successMessages as $successMessage) {
-            $template->assign('success', $successMessage);
-            $template->parse('import.successes.success');
-        }
-        $template->parse('import.successes');
-    }
+    include __DIR__ . '/_import-oznameni.php';
 }
 
 $spreadsheets = $googleSheetsService->getAllSpreadsheets();

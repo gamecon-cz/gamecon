@@ -226,7 +226,7 @@ HTML
             $result->addErrorLikeWarnings($savingImagesResult, null);
         }
         if ($result->getImportedCount() > 0) {
-            $this->activitiesImportLogger->logUsedSpreadsheet($this->userId, $spreadsheetId, new \DateTimeImmutable());
+//            $this->activitiesImportLogger->logUsedSpreadsheet($this->userId, $spreadsheetId, new \DateTimeImmutable());
         }
         $this->releaseExclusiveLock();
         return $result;
