@@ -232,7 +232,6 @@ HTML
         return $result;
     }
 
-
     private function getProcessedFileName(string $spreadsheetId): ImportStepResult {
         try {
             $filename = $this->googleDriveService->getFileName($spreadsheetId);
@@ -259,7 +258,14 @@ HTML
     }
 
     private function releaseExclusiveLock() {
+        if (!$this->hasMutexForProgramLine()) {
+            return;
+        }
         $this->getMutexForProgramLine()->odemkni($this->getMutexKey());
+    }
+
+    private function hasMutexForProgramLine() {
+        return $this->mutexForProgramLine && $this->mutexForProgramLine->zamceno();
     }
 
     private function getMutexForProgramLine(): Mutex {
