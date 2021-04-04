@@ -3,6 +3,7 @@
 namespace Gamecon\Admin\Modules\Aktivity\Import;
 
 use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
+use Gamecon\Admin\Modules\Aktivity\Import\Exceptions\ActivitiesImportException;
 
 class ImportRequirementsGuardian
 {
@@ -16,6 +17,11 @@ class ImportRequirementsGuardian
         $this->importObjectsContainer = $importObjectsContainer;
     }
 
+    /**
+     * @param string[][] $activitiesValues
+     * @param string $processedFileName
+     * @return ImportStepResult
+     */
     public function guardSingleProgramLineOnly(array $activitiesValues, string $processedFileName): ImportStepResult {
         $programLines = [];
         foreach ($activitiesValues as $row) {
@@ -26,9 +32,15 @@ class ImportRequirementsGuardian
                 $programLine = $this->importObjectsContainer->getProgramLineFromValue((string)$programLineValue);
             }
             if (!$programLine && !empty($row[ExportAktivitSloupce::ID_AKTIVITY])) {
-                $activity = ImportModelsFetcher::fetchActivity($row[ExportAktivitSloupce::ID_AKTIVITY]);
-                if ($activity && $activity->typ()) {
-                    $programLine = $activity->typ();
+                try {
+                    $activity = ImportModelsFetcher::fetchActivity((int)$row[ExportAktivitSloupce::ID_AKTIVITY]);
+                    if ($activity && $activity->typ()) {
+                        $programLine = $activity->typ();
+                    }
+                } catch (ActivitiesImportException $activitiesImportException) {
+                    /** invalid activity ID - not a responsibility of this method
+                     * @see \Gamecon\Admin\Modules\Aktivity\Import\ImportValuesSanitizer::sanitizeValues
+                     */
                 }
             }
             if ($programLine && !array_key_exists($programLine->id(), $programLines)) {
@@ -36,16 +48,19 @@ class ImportRequirementsGuardian
             }
         }
         if (count($programLines) > 1) {
-            return ImportStepResult::error(sprintf(
-                'Importovat lze pouze jednu programovou linii. Importní soubor %s jich má %d: %s.',
-                $processedFileName,
-                count($programLines),
-                implode(
-                    ',',
-                    self::wrapByQuotes(array_map(static function (\Typ $typ) {
-                        return $typ->nazev();
-                    }, $programLines))
-                )));
+            return ImportStepResult::error(
+                sprintf(
+                    'Importovat lze pouze jednu programovou linii. Importní soubor %s jich má %d: %s.',
+                    $processedFileName,
+                    count($programLines),
+                    implode(
+                        ',',
+                        self::wrapByQuotes(array_map(static function (\Typ $typ) {
+                            return $typ->nazev();
+                        }, $programLines))
+                    )
+                )
+            );
         }
         if (count($programLines) === 0) {
             return ImportStepResult::error('V importovaném souboru chybí programová linie, nebo alespoň existující aktivita s nastavenou programovou linií.');
