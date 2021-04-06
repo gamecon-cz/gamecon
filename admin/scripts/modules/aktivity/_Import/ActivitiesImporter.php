@@ -148,8 +148,7 @@ class ActivitiesImporter
 
                 $validatedValuesResult = $this->importValuesSanitizer->sanitizeValues($singleProgramLine, $activityValues);
                 if ($validatedValuesResult->isError()) {
-                    $errorMessage = $this->getErrorMessageWithSkippedActivityNote($validatedValuesResult);
-                    $result->addErrorMessage($errorMessage, $activityGuid);
+                    $result->addErrorMessage($validatedValuesResult->getError(), $activityGuid);
                     $activityFinalDescription = $validatedValuesResult->getLastActivityDescription()
                         ?? $this->importValuesDescriber->describeActivityByInputValues($activityValues, null);
                     $result->solveActivityDescription($activityGuid, $activityFinalDescription);
@@ -184,8 +183,7 @@ class ActivitiesImporter
                 $result->addWarnings($importActivityResult, $activityGuid);
                 $result->addErrorLikeWarnings($importActivityResult, $activityGuid);
                 if ($importActivityResult->isError()) {
-                    $errorMessage = $this->getErrorMessageWithSkippedActivityNote($importActivityResult);
-                    $result->addErrorMessage($errorMessage, $activityGuid);
+                    $result->addErrorMessage($importActivityResult->getError(), $activityGuid);
                     $activityFinalDescription = $this->importValuesDescriber->describeActivityBySqlMappedValues($sqlMappedValues, $originalActivity);
                     $result->solveActivityDescription($activityGuid, $activityFinalDescription);
                     continue;
@@ -226,7 +224,7 @@ HTML
             $result->addErrorLikeWarnings($savingImagesResult, null);
         }
         if ($result->getImportedCount() > 0) {
-// TODO            $this->activitiesImportLogger->logUsedSpreadsheet($this->userId, $spreadsheetId, new \DateTimeImmutable());
+            $this->activitiesImportLogger->logUsedSpreadsheet($this->userId, $spreadsheetId, new \DateTimeImmutable());
         }
         $this->releaseExclusiveLock();
         return $result;
@@ -287,13 +285,6 @@ HTML
             throw new ActivitiesImportException('Mutex key is empty');
         }
         return $this->mutexKey;
-    }
-
-    private function getErrorMessageWithSkippedActivityNote(ImportStepResult $resultOfImportStep): string {
-        if (!$resultOfImportStep->isError()) {
-            throw new \LogicException('Result of import step should be an error, got ' . $this->getResultTypeName($resultOfImportStep));
-        }
-        return sprintf('%s Aktivita byla <strong>přeskočena</strong>.', $resultOfImportStep->getError());
     }
 
     private function getResultTypeName(ImportStepResult $resultOfImportStep): string {

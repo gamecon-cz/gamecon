@@ -37,14 +37,22 @@ class ImportValuesSanitizer
     }
 
     public function sanitizeValues(\Typ $singleProgramLine, array $inputValues): ImportStepResult {
-        $stepsResults = [];
-
         $originalActivityResult = $this->getValidatedOriginalActivity($inputValues);
         if ($originalActivityResult->isError()) {
+            $inputValuesForDescription = $inputValues;
+            unset($inputValuesForDescription[ExportAktivitSloupce::ID_AKTIVITY]);
             return ImportStepResult::error($originalActivityResult->getError())
-                ->setLastActivityDescription($this->importValuesDescriber->describeActivityByInputValues($inputValues, null));
+                ->setLastActivityDescription(
+                    $this->importValuesDescriber->describeActivityByInputValues(
+                        $inputValuesForDescription,
+                        null
+                    )
+                );
         }
-        /** @var \Aktivita | null $originalActivity */
+
+        $stepsResults = [];
+
+        /** @var \Aktivita|null $originalActivity */
         $originalActivity = $originalActivityResult->getSuccess();
         $stepsResults[] = $originalActivityResult;
         unset($originalActivityResult);
@@ -309,11 +317,7 @@ class ImportValuesSanitizer
     }
 
     private function getValidatedOriginalActivity(array $activityValues): ImportStepResult {
-        $originalActivityIdResult = $this->getActivityId($activityValues);
-        if ($originalActivityIdResult->isError()) {
-            return ImportStepResult::error($originalActivityIdResult->getError());
-        }
-        $originalActivityId = $originalActivityIdResult->getSuccess();
+        $originalActivityId = $this->getActivityIdFromValues($activityValues);
         if (!$originalActivityId) {
             return ImportStepResult::success(null);
         }
@@ -321,14 +325,15 @@ class ImportValuesSanitizer
         if ($originalActivity) {
             return ImportStepResult::success($originalActivity);
         }
-        return ImportStepResult::error(sprintf('Aktivita s ID %d neexistuje. Nelze ji proto importem upravit.', $originalActivityId));
+        return ImportStepResult::error(
+            sprintf('Aktivita s ID %d neexistuje. Nelze ji proto importem upravit.', $originalActivityId)
+        );
     }
 
-    private function getActivityId(array $activityValues): ImportStepResult {
-        if (!empty($activityValues[ExportAktivitSloupce::ID_AKTIVITY])) {
-            return ImportStepResult::success((int)$activityValues[ExportAktivitSloupce::ID_AKTIVITY]);
-        }
-        return ImportStepResult::success(null);
+    private function getActivityIdFromValues(array $activityValues): ?int {
+        return !empty($activityValues[ExportAktivitSloupce::ID_AKTIVITY])
+            ? (int)$activityValues[ExportAktivitSloupce::ID_AKTIVITY]
+            : null;
     }
 
     private function getPotentialImageUrls(array $activityValues, string $activityUrl): ImportStepResult {

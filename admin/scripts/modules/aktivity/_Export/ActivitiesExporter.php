@@ -53,7 +53,7 @@ class ActivitiesExporter
         $spreadSheet = $this->createSheetForActivities($spreadsheetTitle, $activitySheetTitle);
 
         $activityData = $this->getActivityData($aktivity);
-        $this->saveActivityData($activityData, $spreadSheet); // TODO export states
+        $this->saveActivityData($activityData, $spreadSheet);
 
         $allTagsData = $this->getAllTagsData();
         $this->saveTagsData($allTagsData, $spreadSheet);

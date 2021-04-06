@@ -1,12 +1,7 @@
 <?php
-/** @var \Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImportResult $vysledekImportuAktivit */
-
-return (static function (\Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImportResult $vysledekImportuAktivit): string {
+return static function (\Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImportResult $vysledekImportuAktivit): string {
     $naimportovanoPocet = $vysledekImportuAktivit->getImportedCount();
     $nazevImportovanehoSouboru = $vysledekImportuAktivit->getProcessedFilename();
-    $errorMessages = $vysledekImportuAktivit->getErrorMessages();
-    $warningMessages = $vysledekImportuAktivit->getErrorLikeAndWarningMessagesExceptErrored();
-    $successMessages = $vysledekImportuAktivit->getSuccessMessages();
 
     $zprava = sprintf("Bylo naimportováno %d aktivit z Google sheet '%s'", $naimportovanoPocet, $nazevImportovanehoSouboru);
     if ($naimportovanoPocet > 0) {
@@ -40,18 +35,21 @@ return (static function (\Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImport
         $template->parse($mainBlockName);
     };
 
+    $errorMessages = $vysledekImportuAktivit->getErrorMessages();
     if ($errorMessages) {
         $parseImportResultMessages($errorMessages, 'oznameni.errors', 'error', $template);
     }
 
+    $warningMessages = $vysledekImportuAktivit->getErrorLikeAndWarningMessagesExceptErrored();
     if ($warningMessages) {
         $parseImportResultMessages($warningMessages, 'oznameni.warnings', 'warning', $template);
     }
 
+    $successMessages = $vysledekImportuAktivit->getSuccessMessagesExceptFor($warningMessages);
     if ($successMessages) {
         $parseImportResultMessages($successMessages, 'oznameni.successes', 'success', $template);
     }
 
     $template->parse('oznameni');
     return $template->text('oznameni');
-})($vysledekImportuAktivit);
+};
