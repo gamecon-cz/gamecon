@@ -120,6 +120,15 @@ class ActivitiesImportResult
     }
 
     /**
+     * @param array $exclude Activity IDs to exclude as a key
+     * @return string[][] Like [['Aktivita 123' => ['něco', 'něco jiného']]]
+     */
+    public function getSuccessMessagesExceptFor(array $exclude): array {
+        unset($exclude[self::GUID_FOR_NO_ACTIVITY]);
+        return array_diff_key($this->successMessages, $exclude);
+    }
+
+    /**
      * @return string[][] Like [['Aktivita 123' => ['něco', 'něco jiného']]]
      */
     public function getWarningMessages(): array {

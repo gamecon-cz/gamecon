@@ -85,7 +85,7 @@ class ImportValuesDescriber
     }
 
     private function createLinkToActivity(int $id, string $name): string {
-        $nameWithId = sprintf("'%s' (%d)", $name, $id);
+        $nameWithId = sprintf("'%s' (ID %d)", $name, $id);
         return <<<HTML
 <a target="_blank" href="{$this->editActivityUrlSkeleton}{$id}">{$nameWithId}</a>
 HTML
