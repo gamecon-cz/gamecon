@@ -37,7 +37,9 @@ if (!empty($_POST['googleSheetId'])) {
         $activitiesImportLogger
     );
     $vysledekImportuAktivit = $activitiesImporter->importActivities($googleSheetId);
-    include __DIR__ . '/_import-oznameni.php';
+    $importOznameni = include __DIR__ . '/_import-oznameni.php';
+    $template->assign('importOznameni', $importOznameni);
+    $template->parse('import.oznameni');
 }
 
 $spreadsheets = $googleSheetsService->getAllSpreadsheets();

@@ -1,0 +1,55 @@
+<!-- begin:oznameni -->
+
+<!-- begin:flashMessage -->
+{flashMessage}
+<!-- end:flashMessage -->
+
+<!-- begin:errors -->
+<div class="error fullwidth">
+  <h3 class="text-center">Přeskočené</h3>
+  <ul>
+    <!-- begin:error -->
+    <!-- begin:nadpis -->
+    <li class="list-header">{nadpis}</li>
+    <!-- end:nadpis -->
+    <!-- begin:message -->
+    <li>{message}</li>
+    <!-- end:message -->
+    <!-- end:error -->
+  </ul>
+</div>
+<!-- end:errors -->
+
+<!-- begin:warnings -->
+<div class="warning fullwidth">
+  <h3 class="text-center">Nahrané, ale...</h3>
+  <ul>
+    <!-- begin:warning -->
+    <!-- begin:nadpis -->
+    <li class="list-header">{nadpis}</li>
+    <!-- end:nadpis -->
+    <!-- begin:message -->
+    <li>{message}</li>
+    <!-- end:message -->
+    <!-- end:warning -->
+  </ul>
+</div>
+<!-- end:warnings -->
+
+<!-- begin:successes -->
+<div class="success fullwidth">
+  <h3 class="text-center">Nahrané</h3>
+  <ul>
+    <!-- begin:success -->
+    <!-- begin:nadpis -->
+    <li class="list-header">{nadpis}</li>
+    <!-- end:nadpis -->
+    <!-- begin:message -->
+    <li>{message}</li>
+    <!-- end:message -->
+    <!-- end:success -->
+  </ul>
+</div>
+<!-- end:successes -->
+
+<!-- end:oznameni -->
