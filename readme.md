@@ -68,6 +68,8 @@ Gamecon lze puštět i v Dockeru, viz [docker_readme.md](docker_readme.md).
   - Vytvořím si novou větev `git checkout -b nejaky-nazev`
   - Do dané větve nacommituji změny jak je v gitu zvykem přes `git add soubor` a `git commit -m "upraven překlep v adminu"` např.
   - Danou větev pushnu na github `git push`
-  - Otevřu si https://github.com/gamecon-cz/gamecon a vytvořím pullrequest (většinou se mi tam rovnou nabídne možnost), počkám na schválení nebo review.
+  - Otevřu si https://github.com/gamecon-cz/gamecon a vytvořím pullrequest (většinou se mi tam rovnou nabídne možnost)
+  - V žádosti nastavím někoho na pozici reviewer (většinou se ale zakládá karta v Trellu, nastaví se na "in progress", sledování komentářů a mention na někoho z IT správců)
+  - Počkám na schválení nebo review.
   - Pokud se objeví v review připomínky, opravím je přímo v daném commitu pomocí `git commit --amend` a pomoci `git push --force` přepíšu commit na githubu (stávající pullrequest se sám aktualizuje).
 - Jakmile je vše vyřešeno a schváleno, vrátím se do větve master pomocí `git checkout master` a pomocí `git pull` si v ní stáhnu nejnovější změny. Do produkce nasadí změny Godric při schválení PR.
