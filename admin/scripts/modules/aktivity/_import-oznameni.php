@@ -18,37 +18,34 @@ $oznameni = \Chyba::vyzvedniHtml();
 $template->assign('oznameni', $oznameni);
 $template->parse('import.oznameni');
 
-$parseImportResultMessages = static function (array $messages, string $mainBlockName, XTemplate $template) {
-    $parseMessage = static function (string $message, string $mainBlockName) use ($template) {
-        $template->assign('message', $message);
-        $template->parse("$mainBlockName.message");
-    };
+$parseImportResultMessages = static function (array $messages, string $mainBlockName, string $itemBlockName, XTemplate $template) {
+    $mainItemBlockName = "$mainBlockName.$itemBlockName";
     foreach ($messages as $activityDescription => $singleActivityMessages) {
         if (count($singleActivityMessages) > 1) {
             if ($activityDescription) {
                 $template->assign('nadpis', $activityDescription);
-                $template->parse("$mainBlockName.nadpis");
+                $template->parse("$mainItemBlockName.nadpis");
             }
-            foreach ($singleActivityMessages as $message) {
-                $parseMessage($message, $mainBlockName);
-            }
+            $template->parseEach($singleActivityMessages, 'message', "$mainItemBlockName.message");
         } else {
             $message = reset($singleActivityMessages);
             $message = $activityDescription . ': ' . $message;
-            $parseMessage($message, $mainBlockName);
+            $template->assign('message', $message);
+            $template->parse("$mainItemBlockName.message");
         }
+        $template->parse($mainItemBlockName);
     }
     $template->parse($mainBlockName);
 };
 
 if ($errorMessages) {
-    $parseImportResultMessages($errorMessages, 'import.errors', $template);
+    $parseImportResultMessages($errorMessages, 'import.errors', 'error', $template);
 }
 
 if ($warningMessages) {
-    $parseImportResultMessages($warningMessages, 'import.warnings', $template);
+    $parseImportResultMessages($warningMessages, 'import.warnings', 'warning', $template);
 }
 
 if ($successMessages) {
-    $parseImportResultMessages($successMessages, 'import.successes', $template);
+    $parseImportResultMessages($successMessages, 'import.successes', 'success', $template);
 }
