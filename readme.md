@@ -30,7 +30,7 @@ Návod je určený pro Windows, v Linuxu by mělo stačit nainstalovat všechno 
   - SSH klíč si spárovat s githubem – vpravo nahoře vaše ikona > settings > SSH and GPG keys > new SSH key. Do políčka Key vložíte, co jste vykopírovali z git gui. Title je jedno, to slouží jen jako popis pro vás, kdybyste klíčů měli víc.
 - Vytvořit databázi
   - Nejdřív je potřeba sehnat si od někoho zálohu DB (opět IT tým)
-  - Nastavit heslo, třeba "root" pro uživatele root pro MySQL (Adminer (níže) nedovoluje přihlašování bez hesla)
+  - Nastavit heslo, třeba "root", pro uživatele root pro MySQL (Adminer (níže) nedovoluje přihlašování bez hesla)
     - Spustit MySQL konzoli (WAMP ikona v trayi - levý klik > mysql > konzole)
     - Příhlásit se jako root / (bez hesla)
     - Spustit příkaz `ALTER USER 'root'@'localhost' IDENTIFIED BY 'root';`
