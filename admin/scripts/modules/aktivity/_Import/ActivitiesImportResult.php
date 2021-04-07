@@ -92,15 +92,15 @@ class ActivitiesImportResult
         if (!isset($messagesByGuid[$guidToSolve])) {
             return $messagesByGuid;
         }
-        if (isset($messagesByGuid[$activityFinalDescription])) {
-            trigger_error("Aktivity s popisem '$activityFinalDescription' už záznam mají.", E_USER_WARNING);
-            foreach ($messagesByGuid[$guidToSolve] as &$message) {
-                $message = "$activityFinalDescription $message"; // fallback
-            }
-        } else {
-            $messagesByGuid[$activityFinalDescription] = $messagesByGuid[$guidToSolve];
-            unset($messagesByGuid[$guidToSolve]); // messages by final description in fact
+        $uniqueActivityFinalDescription = $activityFinalDescription;
+        $attempt = 1;
+        // happens on activities without known ID, but with same name and URL
+        while (isset($messagesByGuid[$uniqueActivityFinalDescription])) {
+            $attempt++;
+            $uniqueActivityFinalDescription = $activityFinalDescription . '~' . $attempt;
         }
+        $messagesByGuid[$uniqueActivityFinalDescription] = $messagesByGuid[$guidToSolve];
+        unset($messagesByGuid[$guidToSolve]); // messages by final description in fact
         return $messagesByGuid;
     }
 

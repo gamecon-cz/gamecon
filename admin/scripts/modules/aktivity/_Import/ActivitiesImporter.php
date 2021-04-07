@@ -235,7 +235,7 @@ HTML
             $filename = $this->googleDriveService->getFileName($spreadsheetId);
         } catch (GoogleConnectionException | \Google_Service_Exception $connectionException) {
             $this->logovac->zaloguj($connectionException);
-            return ImportStepResult::error('Google Sheets API je dočasně nedostupné. Import byl <strong>přerušen</strong>. Zkus to za chvíli znovu.');
+            return ImportStepResult::error('Google Sheets API je dočasně nedostupné. Zkus to za chvíli znovu.');
         }
         if ($filename === null) {
             return ImportStepResult::error(sprintf("Žádný soubor nebyl na Google API nalezen pod ID '$spreadsheetId'."));
