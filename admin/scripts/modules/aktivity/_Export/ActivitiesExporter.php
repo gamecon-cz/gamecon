@@ -217,7 +217,7 @@ class ActivitiesExporter
     private function createSheetForActivities(string $sheetTitle, string $activitySheetTitle): \Google_Service_Sheets_Spreadsheet {
         $newSpreadsheet = $this->googleSheetsService->createNewSpreadsheet(
             $sheetTitle,
-            [mb_ucfirst($activitySheetTitle), 'Tagy', 'Organizátoři', 'Místnosti', 'Stavy']
+            [mb_ucfirst($activitySheetTitle), 'Tagy', 'Vypravěči', 'Místnosti', 'Stavy']
         );
         $sheets = $newSpreadsheet->getSheets();
         foreach ($sheets as $sheet) {

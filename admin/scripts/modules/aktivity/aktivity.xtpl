@@ -102,7 +102,7 @@
       <a href="aktivity?sort=zacatek DESC">▼</a>
     </th>
     <th style="width:190px">
-      Organizátor
+      Vypravěč
       <a href="aktivity?sort=organizatori ASC">▲</a>
       <a href="aktivity?sort=organizatori DESC">▼</a>
     </th>

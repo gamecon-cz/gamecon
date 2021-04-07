@@ -477,7 +477,7 @@ class ImportValuesSanitizer
     }
 
     private function getValidatedStorytellersIds(array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
-        $storytellersString = $activityValues[ExportAktivitSloupce::ORGANIZATORI] ?? '';
+        $storytellersString = $activityValues[ExportAktivitSloupce::VYPRAVECI] ?? '';
         if (!$storytellersString) {
             $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
             return ImportStepResult::success($sourceActivity
@@ -514,7 +514,7 @@ class ImportValuesSanitizer
             }, $notStorytellers));
             $notStorytellersHtml = htmlentities($notStorytellersString);
             $errorLikeWarnings[] = <<<HTML
-        'Uživatelé nejsou <a href="{$this->storytellersPermissionsUrl}" target="_blank">pořadatelé ani organizátoři</a>: {$notStorytellersHtml}. Jsou vynecháni.
+        'Uživatelé nejsou <a href="{$this->storytellersPermissionsUrl}" target="_blank">vypravěči</a>: {$notStorytellersHtml}. Jsou vynecháni.
 HTML;
         }
         return ImportStepResult::successWithErrorLikeWarnings($storytellersIds, $errorLikeWarnings);
