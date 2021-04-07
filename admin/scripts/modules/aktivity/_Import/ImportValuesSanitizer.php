@@ -40,6 +40,7 @@ class ImportValuesSanitizer
         $originalActivityResult = $this->getValidatedOriginalActivity($inputValues);
         if ($originalActivityResult->isError()) {
             $inputValuesForDescription = $inputValues;
+            // original activity does not exists, so we do not want a link to it (which is created from ID, so we remove it)
             unset($inputValuesForDescription[ExportAktivitSloupce::ID_AKTIVITY]);
             return ImportStepResult::error($originalActivityResult->getError())
                 ->setLastActivityDescription(
