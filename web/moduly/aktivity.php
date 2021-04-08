@@ -19,7 +19,8 @@ $aktivity = Aktivita::zFiltru([
     'rok'           => ROK,
     'jenViditelne'  => true,
     'bezDalsichKol' => true,
-    'typ'           => $typ->id(),
+    'typ'           => $typ ? $typ->id() : null,
+    'organizator'   => $org ? $org->id() : null,
 ]);
 
 $skupiny = seskupenePodle($aktivity, function ($aktivita) {
@@ -69,7 +70,12 @@ foreach ($skupiny as $skupina) {
     }
 
     $organizatori = implode(', ', array_map(function ($organizator) {
-        return $organizator->jmenoNick();
+        $url = $organizator->url();
+        if ($url) {
+            return '<a href="' . $url . '">' . $organizator->jmenoNick() . '</a>';
+        } else {
+            return $organizator->jmenoNick();
+        }
     }, $aktivita->organizatori()));
 
     $obrazek = $aktivita->obrazek();
@@ -91,16 +97,24 @@ foreach ($skupiny as $skupina) {
 
 // záhlaví a informace
 
-$this->info()->nazev(mb_ucfirst($typ->nazevDlouhy()));
 $this->info()->obrazek(null);
-$t->assign([
-    'popisLinie' => $typ->oTypu(),
-    'ikonaLinie' => 'soubory/systemove/linie-ikony/' . $typ->id() . '.png',
-    'specTridy'  => $typ->id() == Typ::DRD ? 'aktivity_aktivity-drd' : null,
-]);
 
+if ($org) {
+    $t->assign([
+        'jmeno' => $org->jmenoNick(),
+        'popis' => $org->oSobe() ?: '<p><em>popisek od vypravěče nemáme</em></p>',
+        'fotka' => $org->fotkaAuto()->kvalita(85)->pokryjOrez(180, 180),
+    ]);
+    $t->parse('aktivity.hlavickaVypravec');
+} else {
+    $this->info()->nazev(mb_ucfirst($typ->nazevDlouhy()));
+    $t->assign([
+        'popisLinie' => $typ->oTypu(),
+        'ikonaLinie' => 'soubory/systemove/linie-ikony/' . $typ->id() . '.png',
+        'specTridy'  => $typ->id() == Typ::DRD ? 'aktivity_aktivity-drd' : null,
+    ]);
 
-// podstránky linie
-
-$stranky = serazenePodle($typ->stranky(), 'poradi');
-$t->parseEach($stranky, 'stranka', 'aktivity.stranka');
+    // podstránky linie
+    $stranky = serazenePodle($typ->stranky(), 'poradi');
+    $t->parseEach($stranky, 'stranka', 'aktivity.stranka');
+}

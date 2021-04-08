@@ -8,6 +8,17 @@
     <div class="aktivity_popisLinie">
         {popisLinie}
     </div>
+    <!-- begin: hlavickaVypravec -->
+    <div class="aktivity_hlavickaVypravec">
+        <div class="aktivity_hlavickaVypravecFotka">
+            <img src="{fotka}">
+        </div>
+        <div class="aktivity_hlavickaVypravecText">
+            <h1>{jmeno}</h1>
+            <div>{popis}</div>
+        </div>
+    </div>
+    <!-- end: hlavickaVypravec -->
 </div>
 </div>
 

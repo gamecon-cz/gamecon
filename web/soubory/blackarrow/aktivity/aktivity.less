@@ -38,6 +38,20 @@
     }
 }
 
+.aktivity_hlavickaVypravec {
+    display: flex;
+}
+
+.aktivity_hlavickaVypravecFotka {
+    @media (max-width: 600px) { display: none; }
+}
+
+.aktivity_hlavickaVypravecText {
+    margin-top: -9px; // aby bylo zarovnané s hranou fotky
+    margin-left: 30px;
+    @media (max-width: 600px) { margin: 0; }
+}
+
 .aktivity_popisLinie {
     position: relative;
     z-index: 1; // kvůli ikoně pod textem (nejen) na mobilu
@@ -181,6 +195,10 @@
 
 .aktivity_vypravec {
     margin-bottom: 12px;
+    & > a {
+        text-decoration: none;
+        color: inherit;
+    }
 }
 
 .aktivity_stitky {

@@ -899,7 +899,7 @@ class Uzivatel {
     if(!$this->u['jmeno_uzivatele'])
       return null; // nevracet url, asi vypravěčská skupina nebo podobně
     elseif(!Url::povolena($url))
-      return 'aktivity?vypravec=' . $this->id();
+      return null;
     else
       return $url;
   }
