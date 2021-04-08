@@ -100,6 +100,7 @@ foreach ($skupiny as $skupina) {
 $this->info()->obrazek(null);
 
 if ($org) {
+    $this->info()->nazev($org->jmenoNick());
     $t->assign([
         'jmeno' => $org->jmenoNick(),
         'popis' => $org->oSobe() ?: '<p><em>popisek od vypravěče nemáme</em></p>',
