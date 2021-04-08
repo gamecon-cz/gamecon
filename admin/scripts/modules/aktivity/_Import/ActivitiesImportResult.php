@@ -158,4 +158,13 @@ class ActivitiesImportResult
     public function getErrorMessages(): array {
         return $this->errorMessages;
     }
+
+    public function importWasCanceled(): bool {
+        foreach ($this->getErrorMessages() as $activityGuid => $singleActivityErrorMessages) {
+            if ($activityGuid !== self::GUID_FOR_NO_ACTIVITY) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

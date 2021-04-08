@@ -6,7 +6,12 @@
 
 <!-- begin:errors -->
 <div class="error fullwidth">
+  <!-- begin:stoppedHeader -->
+  <h3 class="text-center">Import přerušen</h3>
+  <!-- end:stoppedHeader -->
+  <!-- begin:skippedHeader -->
   <h3 class="text-center">Přeskočené</h3>
+  <!-- end:skippedHeader -->
   <ul>
     <!-- begin:error -->
     <!-- begin:nadpis -->

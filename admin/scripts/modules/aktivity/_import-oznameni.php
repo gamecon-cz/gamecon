@@ -26,7 +26,9 @@ return static function (\Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImportR
                 $template->parseEach($singleActivityMessages, 'message', "$mainItemBlockName.message");
             } else {
                 $message = reset($singleActivityMessages);
-                $message = $activityDescription . ': ' . $message;
+                if ($activityDescription) {
+                    $message = $activityDescription . ': ' . $message;
+                }
                 $template->assign('message', $message);
                 $template->parse("$mainItemBlockName.message");
             }
@@ -35,6 +37,11 @@ return static function (\Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImportR
         $template->parse($mainBlockName);
     };
 
+    if ($vysledekImportuAktivit->importWasCanceled()) {
+        $template->parse('oznameni.errors.stoppedHeader');
+    } else {
+        $template->parse('oznameni.errors.skippedHeader');
+    }
     $errorMessages = $vysledekImportuAktivit->getErrorMessages();
     if ($errorMessages) {
         $parseImportResultMessages($errorMessages, 'oznameni.errors', 'error', $template);

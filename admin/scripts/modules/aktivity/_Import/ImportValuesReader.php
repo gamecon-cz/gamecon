@@ -32,7 +32,7 @@ class ImportValuesReader
             $rawValues = $this->googleSheetsService->getSpreadsheetValues($spreadsheetId);
         } catch (GoogleApiException | \Google_Service_Exception $exception) {
             $this->logovac->zaloguj($exception);
-            return ImportStepResult::error('Google Sheets API je dočasně nedostupné. Import byl <strong>přerušen</strong>. Zkus to za chvíli znovu.');
+            return ImportStepResult::error('Google Sheets API je dočasně nedostupné. Zkus to za chvíli znovu.');
         }
         $cleansedValuesResult = $this->cleanseValues($rawValues);
         if ($cleansedValuesResult->isError()) {

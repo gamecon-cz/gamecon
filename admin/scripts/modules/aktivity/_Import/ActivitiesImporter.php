@@ -107,7 +107,7 @@ class ActivitiesImporter
         try {
             $processedFileNameResult = $this->getProcessedFileName($spreadsheetId);
             if ($processedFileNameResult->isError()) {
-                $result->addErrorMessage(sprintf('%s Import byl <strong>přerušen</strong>.', $processedFileNameResult->getError()), null);
+                $result->addErrorMessage($processedFileNameResult->getError(), null);
                 return $result;
             }
             $processedFileName = $processedFileNameResult->getSuccess();
@@ -116,7 +116,7 @@ class ActivitiesImporter
 
             $activitiesValuesResult = $this->importValuesReader->getIndexedValues($spreadsheetId);
             if ($activitiesValuesResult->isError()) {
-                $result->addErrorMessage(sprintf('%s Import byl <strong>přerušen</strong>.', $activitiesValuesResult->getError()), null);
+                $result->addErrorMessage($activitiesValuesResult->getError(), null);
                 return $result;
             }
             $activitiesValues = $activitiesValuesResult->getSuccess();
@@ -124,7 +124,7 @@ class ActivitiesImporter
 
             $singleProgramLineResult = $this->importRequirementsGuardian->guardSingleProgramLineOnly($activitiesValues, $processedFileName);
             if ($singleProgramLineResult->isError()) {
-                $result->addErrorMessage(sprintf('%s Import byl <strong>přerušen</strong>.', $singleProgramLineResult->getError()), null);
+                $result->addErrorMessage($singleProgramLineResult->getError(), null);
                 return $result;
             }
             /** @var \Typ $singleProgramLine */
@@ -134,7 +134,7 @@ class ActivitiesImporter
             if (!$this->getExclusiveLock($singleProgramLine->nazev())) {
                 $result->addErrorLikeWarningMessage(
                     sprintf(
-                        "Právě probíhá jiný import aktivit z programové linie '%s'. Import byl <strong>přerušen</strong>. Zkus to za chvíli znovu.",
+                        "Právě probíhá jiný import aktivit z programové linie '%s'. Zkus to za chvíli znovu.",
                         mb_ucfirst($singleProgramLine->nazev())
                     ),
                     null
@@ -208,7 +208,7 @@ class ActivitiesImporter
             }
         } catch (\Exception $exception) {
             $result->addErrorMessage(<<<HTML
-Něco se <a href="{$this->errorsListUrl}" target="_blank">nepovedlo</a>. Import byl <strong>přerušen</strong>. Zkus to za chvíli znovu.
+Něco se <a href="{$this->errorsListUrl}" target="_blank">nepovedlo</a>. Zkus to za chvíli znovu.
 HTML
                 , null
             );
@@ -224,7 +224,7 @@ HTML
             $result->addErrorLikeWarnings($savingImagesResult, null);
         }
         if ($result->getImportedCount() > 0) {
-            $this->activitiesImportLogger->logUsedSpreadsheet($this->userId, $spreadsheetId, new \DateTimeImmutable());
+//            $this->activitiesImportLogger->logUsedSpreadsheet($this->userId, $spreadsheetId, new \DateTimeImmutable());
         }
         $this->releaseExclusiveLock();
         return $result;
