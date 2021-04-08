@@ -10,7 +10,7 @@ use Gamecon\Cas\DateTimeCz;
 class ActivitiesExporter
 {
 
-    private const EXPORT_DIR = '/admin.gamecon.cz/aktivity';
+    private const EXPORT_DIR = '/%user%.admin.gamecon.cz/aktivity';
     private const EXPORT_DIR_TAG = 'root-export-dir';
 
     /**
@@ -22,23 +22,23 @@ class ActivitiesExporter
      */
     private $googleSheetsService;
     /**
-     * @var int
+     * @var \Uzivatel
      */
-    private $userId;
+    private $uzivatel;
     /**
      * @var string
      */
     private $baseUrl;
 
     public function __construct(
-        int $userId,
+        \Uzivatel $uzivatel,
         GoogleDriveService $googleDriveService,
         GoogleSheetsService $googleSheetsService,
         string $baseUrl
     ) {
         $this->googleDriveService = $googleDriveService;
         $this->googleSheetsService = $googleSheetsService;
-        $this->userId = $userId;
+        $this->uzivatel = $uzivatel;
         $this->baseUrl = rtrim($baseUrl, '/');
     }
 
@@ -256,7 +256,7 @@ class ActivitiesExporter
     }
 
     private function getExportDirId(): string {
-        $wrappedRootExportDir = $this->googleDriveService->getLocalDirsReferencesByUserIdAndTag($this->userId, self::EXPORT_DIR_TAG);
+        $wrappedRootExportDir = $this->googleDriveService->getLocalDirsReferencesByUserIdAndTag($this->uzivatel->id(), self::EXPORT_DIR_TAG);
         if ($wrappedRootExportDir) {
             $rootExportDir = reset($wrappedRootExportDir);
             $rootExportDirId = $rootExportDir->getGoogleDirId();
@@ -270,15 +270,24 @@ class ActivitiesExporter
     }
 
     private function createOrReuseDirForGameconExport(): \Google_Service_Drive_DriveFile {
-        $exportDirName = self::EXPORT_DIR;
+        $exportDirName = $this->getExportDirName();
         $existingDirs = $this->googleDriveService->getDirsByName($exportDirName);
         $existingDir = reset($existingDirs);
         if ($existingDir) {
-            $this->googleDriveService->saveDirReferenceLocally($existingDir, $this->userId, self::EXPORT_DIR_TAG);
+            $this->googleDriveService->saveDirReferenceLocally($existingDir, $this->uzivatel->id(), self::EXPORT_DIR_TAG);
             return $existingDir;
         }
         $createdDir = $this->googleDriveService->createDir($exportDirName);
-        $this->googleDriveService->saveDirReferenceLocally($createdDir, $this->userId, self::EXPORT_DIR_TAG);
+        $this->googleDriveService->saveDirReferenceLocally($createdDir, $this->uzivatel->id(), self::EXPORT_DIR_TAG);
         return $createdDir;
+    }
+
+    private function getExportDirName(): string {
+        return str_replace('%user%', $this->getUserForDir(), self::EXPORT_DIR);
+    }
+
+    private function getUserForDir(): string {
+        $userName = $this->uzivatel->nick() ?: $this->uzivatel->jmeno();
+        return preg_replace('~[^a-zA-Z]+~', '_', odstranDiakritiku($userName));
     }
 }
