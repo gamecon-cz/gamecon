@@ -142,6 +142,7 @@ class ActivitiesImporter
                 return $result;
             }
 
+            // dbBegin();// TODO
             $potentialImageUrlsPerActivity = [];
             foreach ($activitiesValues as $activityValues) {
                 $activityGuid = uniqid('importActivity', true);
@@ -190,7 +191,7 @@ class ActivitiesImporter
                 }
                 /** @var \Aktivita $importedActivity */
                 ['message' => $successMessage, 'importedActivity' => $importedActivity] = $importActivityResult->getSuccess();
-                if ($importActivityResult->hasErrorLikeWarnings()) {
+                if ($importActivityResult->hasErrorLikeWarnings() || $importActivityResult->hasWarnings()) {
                     $result->addWarningMessage($successMessage . ' Import ale nebyl bez problémů, viz výše.', $activityGuid);
                 } else {
                     $result->addSuccessMessage($successMessage, $activityGuid);
@@ -206,7 +207,9 @@ class ActivitiesImporter
                 $activityFinalDescription = $this->importValuesDescriber->describeActivity($importedActivity);
                 $result->solveActivityDescription($activityGuid, $activityFinalDescription);
             }
+//            dbRollback();// TODO
         } catch (\Exception $exception) {
+            //         dbRollback();// TODO
             $result->addErrorMessage(<<<HTML
 Něco se <a href="{$this->errorsListUrl}" target="_blank">nepovedlo</a>. Zkus to za chvíli znovu.
 HTML
@@ -224,9 +227,10 @@ HTML
             $result->addErrorLikeWarnings($savingImagesResult, null);
         }
         if ($result->getImportedCount() > 0) {
-//            $this->activitiesImportLogger->logUsedSpreadsheet($this->userId, $spreadsheetId, new \DateTimeImmutable());
+            $this->activitiesImportLogger->logUsedSpreadsheet($this->userId, $spreadsheetId, new \DateTimeImmutable());
         }
         $this->releaseExclusiveLock();
+
         return $result;
     }
 
@@ -286,19 +290,4 @@ HTML
         }
         return $this->mutexKey;
     }
-
-    private function getResultTypeName(ImportStepResult $resultOfImportStep): string {
-        $nameParts = [];
-        if ($resultOfImportStep->isError()) {
-            $nameParts[] = 'error';
-        }
-        if ($resultOfImportStep->isSuccess()) {
-            $nameParts[] = 'success';
-        }
-        if ($resultOfImportStep->hasWarnings()) {
-            $nameParts[] = 'warnings';
-        }
-        return implode(',', $nameParts);
-    }
-
 }
