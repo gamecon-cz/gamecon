@@ -97,7 +97,7 @@ class ActivitiesImporter
         $this->imagesImporter = new ImagesImporter($baseUrl, $importValuesDescriber);
         $this->importValuesSanitizer = new ImportValuesSanitizer($importValuesDescriber, $importObjectsContainer, $currentYear, $storytellersPermissionsUrl);
         $this->importRequirementsGuardian = new ImportRequirementsGuardian($importObjectsContainer);
-        $this->activityImporter = new ActivityImporter($importValuesDescriber, $importAccessibilityChecker, $now, $currentYear, $logovac);
+        $this->activityImporter = new ActivityImporter($importValuesDescriber, $importAccessibilityChecker, $currentYear, $logovac);
         $this->errorsListUrl = $errorsListUrl;
         $this->activitiesImportLogger = $activitiesImportLogger;
     }
@@ -142,7 +142,7 @@ class ActivitiesImporter
                 return $result;
             }
 
-            // dbBegin();// TODO
+//             dbBegin();// TODO
             $potentialImageUrlsPerActivity = [];
             foreach ($activitiesValues as $activityValues) {
                 $activityGuid = uniqid('importActivity', true);
@@ -207,9 +207,7 @@ class ActivitiesImporter
                 $activityFinalDescription = $this->importValuesDescriber->describeActivity($importedActivity);
                 $result->solveActivityDescription($activityGuid, $activityFinalDescription);
             }
-//            dbRollback();// TODO
         } catch (\Exception $exception) {
-            //         dbRollback();// TODO
             $result->addErrorMessage(<<<HTML
 Něco se <a href="{$this->errorsListUrl}" target="_blank">nepovedlo</a>. Zkus to za chvíli znovu.
 HTML
@@ -232,6 +230,10 @@ HTML
         $this->releaseExclusiveLock();
 
         return $result;
+    }
+
+    public function __destruct() {
+//        dbRollback();// TODO
     }
 
     private function getProcessedFileName(string $spreadsheetId): ImportStepResult {

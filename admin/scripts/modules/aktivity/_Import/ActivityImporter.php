@@ -15,10 +15,6 @@ class ActivityImporter
      */
     private $importValuesChecker;
     /**
-     * @var \DateTimeInterface
-     */
-    private $now;
-    /**
      * @var int
      */
     private $currentYear;
@@ -30,13 +26,11 @@ class ActivityImporter
     public function __construct(
         ImportValuesDescriber $importValuesDescriber,
         ImportSqlMappedValuesChecker $importValuesChecker,
-        \DateTimeInterface $now,
         int $currentYear,
         Logovac $logovac
     ) {
         $this->importValuesDescriber = $importValuesDescriber;
         $this->importValuesChecker = $importValuesChecker;
-        $this->now = $now;
         $this->currentYear = $currentYear;
         $this->logovac = $logovac;
     }
@@ -89,7 +83,7 @@ class ActivityImporter
             return ImportStepResult::successWithWarnings(
                 [
                     'message' => sprintf(
-                        'Nahrána jako nová, %d. <strong>instance</strong> k hlavní aktivitě %s.',
+                        'Nahrána jako nová, %d. instance k hlavní aktivitě %s.',
                         $importedActivity->pocetInstanci(),
                         $this->importValuesDescriber->describeActivity($importedActivity->patriPodAktivitu())
                     ),
