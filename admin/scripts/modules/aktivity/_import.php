@@ -7,7 +7,7 @@ use Gamecon\Vyjimkovac\Logovac;
 use Gamecon\Zidle;
 
 $activitiesImportLogger = new ActivitiesImportLogger();
-$ted = new \DateTimeImmutable();
+$now = new \DateTimeImmutable();
 $urlNaAktivity = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) . '/..';
 $urlNaEditaciAktivity = $urlNaAktivity . '/upravy?aktivitaId=';
 $baseUrl = (($_SERVER['HTTPS'] ?? 'off') === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
@@ -28,7 +28,7 @@ if (!empty($_POST['googleSheetId'])) {
         $googleSheetsService,
         ROK,
         $urlNaEditaciAktivity,
-        $ted,
+        $now,
         $baseUrl . '/admin/prava/' . Zidle::VYPRAVEC,
         $vyjimkovac,
         $baseUrl,
@@ -60,7 +60,7 @@ $template->parse('import.spreadsheets.unused');
 
 $sheetsPouzityKdy = [];
 foreach ($usedSpreadSheetIds as $usedSpreadSheetId) {
-    $pouzitoKdy = $activitiesImportLogger->getImportedAt($usedSpreadSheetId, $ted->getTimezone());
+    $pouzitoKdy = $activitiesImportLogger->getImportedAt($usedSpreadSheetId, $now->getTimezone());
     $sheetsPouzityKdy[$usedSpreadSheetId] = $pouzitoKdy;
 }
 uasort($sheetsPouzityKdy, static function (?\DateTimeInterface $jedenSheetPouzitKdy, ?\DateTimeInterface $druhySheetPouzitKdy) {
