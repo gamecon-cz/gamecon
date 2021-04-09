@@ -42,7 +42,7 @@ class Cenik {
       $this->slevaPlacky = 15;
     if($u->maPravo(P_DVE_TRICKA_ZDARMA))
       $this->jakychkoliTricekZdarma = 2;
-    if($u->maPravo(P_TRICKO_ZA_SLEVU_MODRE) && $sleva >= 660) {
+    if($u->maPravo(P_TRICKO_ZA_SLEVU_MODRE) && $sleva >= MODRE_TRICKO_ZDARMA_OD) {
       $this->modrychTricekZdarma = 1;
       $this->textySlevExtra[] = 'modré tričko zdarma';
     }
