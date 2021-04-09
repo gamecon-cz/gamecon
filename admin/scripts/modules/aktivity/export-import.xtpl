@@ -23,7 +23,7 @@
 
     <!-- begin:zadneAktivity -->
     <div class="error no-image" style="margin: 0">
-      Vybraný typ nemá žádné aktivity, není co exportovat.
+      Vybraná linie nemá žádné aktivity, není co exportovat.
     </div>
     <!-- end:zadneAktivity -->
   </div>
