@@ -2,6 +2,13 @@
 
 use Gamecon\Admin\Modules\Aktivity\Export\ActivitiesExporter;
 
+/** @var DateTimeInterface $now */
+/** @var Uzivatel $u */
+/** @var XTemplate $template */
+/** @var \Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleApiClient $googleApiClient */
+/** @var \Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService $googleDriveService */
+/** @var \Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService $googleSheetsService */
+
 require_once __DIR__ . '/_filtr-moznosti.php';
 
 $filtrMoznosti = FiltrMoznosti::vytvorZGlobals(FiltrMoznosti::FILTROVAT_PODLE_ROKU);

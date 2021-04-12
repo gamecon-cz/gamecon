@@ -42,6 +42,7 @@ class GoogleApiClient
     /**
      * @return bool
      * @throws GoogleApiException
+     * @throws \Google_Service_Exception
      */
     public function isAuthorized(): bool {
         try {
@@ -60,6 +61,7 @@ class GoogleApiClient
     /**
      * @return \Google_Client
      * @throws GoogleApiException
+     * @throws \Google_Service_Exception
      */
     private function getNativeClient(): \Google_Client {
         if (!$this->nativeClient) {
@@ -71,6 +73,7 @@ class GoogleApiClient
     /**
      * @return \Google_Client
      * @throws GoogleApiException
+     * @throws \Google_Service_Exception
      */
     private function createNativeClient(): \Google_Client {
         try {
