@@ -95,6 +95,7 @@ class ImportObjectsContainer
             return $this->importUserCache->getUserById($userInt);
         }
         return $this->importUserCache->getUserByEmail($userValue)
+            ?? $this->importUserCache->getUserByNameWithNick($userValue)
             ?? $this->importUserCache->getUserByName($userValue)
             ?? $this->importUserCache->getUserByNick($userValue);
     }
