@@ -73,7 +73,6 @@ class ActivitiesImporter
         int $userId,
         GoogleDriveService $googleDriveService,
         GoogleSheetsService $googleSheetsService,
-        int $currentYear,
         string $editActivityUrlSkeleton,
         \DateTimeInterface $now,
         string $storytellersPermissionsUrl,
@@ -87,6 +86,8 @@ class ActivitiesImporter
         $this->googleDriveService = $googleDriveService;
         $this->logovac = $logovac;
         $this->mutexPattern = $mutexPattern;
+
+        $currentYear = (int)$now->format('Y');
 
         $importValuesDescriber = new ImportValuesDescriber($editActivityUrlSkeleton);
         $importObjectsContainer = new ImportObjectsContainer(new ImportUsersCache());

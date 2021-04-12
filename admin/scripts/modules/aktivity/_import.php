@@ -6,6 +6,11 @@ use Gamecon\Mutex\Mutex;
 use Gamecon\Vyjimkovac\Logovac;
 use Gamecon\Zidle;
 
+/** @var XTemplate $template */
+/** @var \Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService $googleDriveService */
+/** @var \Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService $googleSheetsService */
+/** @var int $currentUserId */
+
 $activitiesImportLogger = new ActivitiesImportLogger();
 $now = new \DateTimeImmutable();
 $urlNaAktivity = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) . '/..';
@@ -26,7 +31,6 @@ if (!empty($_POST['googleSheetId'])) {
         $currentUserId,
         $googleDriveService,
         $googleSheetsService,
-        ROK,
         $urlNaEditaciAktivity,
         $now,
         $baseUrl . '/admin/prava/' . Zidle::VYPRAVEC,
