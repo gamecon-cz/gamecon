@@ -53,7 +53,7 @@
 
 <div class="popisbox">
     <div class="popisbox_obsah" data-aos="fade-up">
-        <a href="deskoherna">Deskové</a> a <a href="deskoherna">karetní hry</a>, <a href="rpg">RPG</a> a <a href="larpy">Larpy</a>, <a href="bonusy">akční hry</a>, <a href="wargaming">wargaming</a>, mistrovství světa v <a href="drd">Dračím doupěti</a>, pohybové <a href="bonusy">workshopy</a>, koncert a párty. Skvělí účastníci a žážitky, na které se budete těšit zase za rok, to je Gamecon.
+        <a href="deskoherna">Deskové</a> hry, <a href="rpg">RPG</a> a <a href="larpy">Larpy</a>, <a href="bonusy">akční hry</a>, <a href="wargaming">wargaming</a>, Mistrovství v <a href="drd">Dračím doupěti</a>, pohybové <a href="bonusy">workshopy</a>, koncert a párty. To všechno a mnohem víc je festival nepočítačových her GameCon.
     </div>
     <script>
         document.querySelectorAll('.popisbox_obsah a').forEach(e => {
@@ -66,13 +66,13 @@
 <div class="cisla">
     <div class="cisla_polozka" data-aos="fade-up" data-aos-delay="200">
         <img src="soubory/blackarrow/cisla/1.jpg" style="margin: -30px 0 0 87px">
-        <div class="cisla_cislo">820+</div>
+        <div class="cisla_cislo">800+</div>
         <div class="cisla_text">spokojených účastníků</div>
     </div>
     <div class="cisla_polozka" data-aos="fade-up">
         <img src="soubory/blackarrow/cisla/2.jpg" style="margin: -13px 0 0 73px">
         <div class="cisla_cislo">200+</div>
-        <div class="cisla_text">rozdílných aktivit</div>
+        <div class="cisla_text">různých aktivit</div>
     </div>
     <div class="cisla_polozka" data-aos="fade-up" data-aos-delay="100">
         <img src="soubory/blackarrow/cisla/3.jpg" style="margin: -23px 0 0 30px">
