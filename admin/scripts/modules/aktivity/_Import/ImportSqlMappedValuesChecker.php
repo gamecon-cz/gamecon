@@ -439,13 +439,10 @@ SQL
         foreach ($conflictingStorytellers as $conflictingStorytellerId => $implodedActivityIds) {
             $anotherActivityIds = explode(',', $implodedActivityIds);
             $errorLikeWarnings[] = sprintf(
-                'Vypravěč %s je v čase od %s do %s na %s %s. K aktivitě nebyl přiřazen.',
+                'Vypravěč %s je v čase od %s do %s na aktivitě %s. K aktivitě nebyl přiřazen.',
                 $this->importValuesDescriber->describeUserById((int)$conflictingStorytellerId),
                 $zacatek->formatCasStandard(),
                 $konec->formatCasStandard(),
-                count($anotherActivityIds) === 1
-                    ? 'aktivitě'
-                    : 'aktivitách',
                 implode(' a ', array_map(function ($anotherActivityId) {
                     return $this->importValuesDescriber->describeActivityById((int)$anotherActivityId);
                 }, $anotherActivityIds))
