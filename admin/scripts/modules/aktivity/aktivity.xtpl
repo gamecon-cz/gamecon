@@ -83,7 +83,13 @@
   <!-- begin:smazatTyp -->
 <div>
   <form method="post">
-    <button type="submit" name="smazatVsechnyTypu" value="1">Smazat všechny aktivity '{nazev_typu}' (celkem {pocet})</button>
+    <button type="submit" name="smazatVsechnyTypu" value="1">
+      Smazat všechny aktivity '{nazev_typu}' (celkem {pocet})
+    </button>
+    <span class="hinted">
+      🤔
+      <span class="hint">Lze pouze na testu</span>
+    </span>
   </form>
 </div>
 <!-- end:smazatTyp -->
