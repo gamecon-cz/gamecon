@@ -102,8 +102,6 @@ class ImportValuesSanitizer
     private function getSanitizedValues(array $inputValues, \Typ $singleProgramLine, ?\Aktivita $originalActivity): ImportStepResult {
         $sanitizedValues = $this->getInitialSanitizedValues($originalActivity);
 
-        $tagIds = null;
-        $storytellersIds = null;
         $stepsResults = [];
 
         $programLineIdResult = $this->getValidatedProgramLineId($inputValues, $singleProgramLine);
@@ -417,7 +415,7 @@ class ImportValuesSanitizer
                     $capacityName,
                     $capacityOfSourceActivity,
                     $originalActivity === $parentActivity
-                        ? ', převzatou z hlavní aktivity.'
+                        ? ', převzatou z "mateřské" aktivity.'
                         : '.'
                 ));
             }
@@ -597,8 +595,8 @@ HTML;
         }
         if ($invalidTagsValues) {
             trigger_error(
-                E_USER_WARNING,
-                sprintf('There are some strange tags coming from activity %s, which are unknown %s', $sourceActivity->id(), implode(',', $invalidTagsValues))
+                sprintf('There are some strange tags coming from activity %s, which are unknown %s', $sourceActivity->id(), implode(',', $invalidTagsValues)),
+                E_USER_WARNING
             );
         }
         return ImportStepResult::success($tagIds);
