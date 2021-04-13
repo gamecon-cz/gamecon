@@ -369,14 +369,14 @@ SQL
 SELECT id_akce
 FROM akce_seznam
 WHERE akce_seznam.lokace = $1
-AND akce_seznam.zacatek >= $2
-AND akce_seznam.konec <= $3
+AND akce_seznam.zacatek <= $2 -- existujici zacala na konci nebo pred koncem novem
+AND akce_seznam.konec >= $3 -- existujici skoncila na zacatku nebo po zacatku nove
 AND IF ($4 IS NULL, TRUE, akce_seznam.id_akce != $4)
 SQL,
             [
                 $locationId,
-                $zacatek->format(DateTimeCz::FORMAT_DB),
-                $konec->format(DateTimeCz::FORMAT_DB),
+                $konec->formatDb(),
+                $zacatek->formatDb(),
                 $originalActivity ? $originalActivity->id() : null,
             ]
         );
@@ -418,18 +418,18 @@ SQL,
         /** @var DateTimeCz $konec */
         ['start' => $zacatek, 'end' => $konec] = $rangeDates;
         $occupiedStorytellers = dbArrayCol(<<<SQL
-SELECT akce_organizatori.id_uzivatele, GROUP_CONCAT(akce_organizatori.id_akce SEPARATOR ',') AS activity_ids
+SELECT akce_organizatori.id_uzivatele, GROUP_CONCAT(DISTINCT akce_organizatori.id_akce SEPARATOR ',') AS activity_ids
 FROM akce_organizatori
 JOIN akce_seznam ON akce_organizatori.id_akce = akce_seznam.id_akce
-WHERE akce_seznam.zacatek >= $1
-AND akce_seznam.konec <= $2
+WHERE akce_seznam.zacatek <= $1 -- existujici zacala na konci nebo pred koncem novem
+AND akce_seznam.konec >= $2 -- existujici skoncila na zacatku nebo po zacatku nove
 AND CASE
     WHEN $3 IS NULL THEN TRUE
     ELSE akce_seznam.id_akce != $3
     END
 GROUP BY akce_organizatori.id_uzivatele
 SQL
-            , [$zacatek->format(DateTimeCz::FORMAT_DB), $konec->format(DateTimeCz::FORMAT_DB), $originalActivity ? $originalActivity->id() : null]
+            , [$konec->formatDb(), $zacatek->formatDb(), $originalActivity ? $originalActivity->id() : null]
         );
         $conflictingStorytellers = array_intersect_key($occupiedStorytellers, array_fill_keys($storytellersIds, true));
         if (!$conflictingStorytellers) {
@@ -439,7 +439,7 @@ SQL
         foreach ($conflictingStorytellers as $conflictingStorytellerId => $implodedActivityIds) {
             $anotherActivityIds = explode(',', $implodedActivityIds);
             $errorLikeWarnings[] = sprintf(
-                'Vypravěč %s je v čase od %s do %s na aktivitě %s. K aktivitě nebyl přiřazen.',
+                'Vypravěč %s je někdy v čase od %s do %s na jiné aktivitě %s. K současné aktivitě nebyl přiřazen.',
                 $this->importValuesDescriber->describeUserById((int)$conflictingStorytellerId),
                 $zacatek->formatCasStandard(),
                 $konec->formatCasStandard(),
