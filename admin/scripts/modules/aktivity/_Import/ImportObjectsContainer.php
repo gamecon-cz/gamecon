@@ -44,17 +44,24 @@ class ImportObjectsContainer
     }
 
     private function getProgramLineByName(string $name): ?\Typ {
-        return $this->getProgramLinesCache()['keyFromName'][ImportKeyUnifier::toUnifiedKey($name, [])] ?? null;
+        return $this->getProgramLinesCache()['keyFromName'][ImportKeyUnifier::toUnifiedKey($name, [])]
+            ?? $this->getProgramLinesCache()['keyFromSingleName'][ImportKeyUnifier::toUnifiedKey($name, [])]
+            ?? $this->getProgramLinesCache()['keyFromUrl'][ImportKeyUnifier::toUnifiedKey($name, [])]
+            ?? null;
     }
 
     private function getProgramLinesCache(): array {
         if (!$this->programLinesCache) {
-            $this->programLinesCache = ['id' => [], 'keyFromName' => []];
+            $this->programLinesCache = ['id' => [], 'keyFromName' => [], 'keyFromSingleName' => [], 'keyFromUrl' => []];
             $programLines = \Typ::zVsech();
             foreach ($programLines as $programLine) {
                 $this->programLinesCache['id'][$programLine->id()] = $programLine;
                 $keyFromName = ImportKeyUnifier::toUnifiedKey($programLine->nazev(), array_keys($this->programLinesCache['keyFromName']));
                 $this->programLinesCache['keyFromName'][$keyFromName] = $programLine;
+                $keyFromSingleName = ImportKeyUnifier::toUnifiedKey($programLine->nazevJednotnehoCisla(), array_keys($this->programLinesCache['keyFromSingleName']));
+                $this->programLinesCache['keyFromSingleName'][$keyFromSingleName] = $programLine;
+                $keyFromUrl = ImportKeyUnifier::toUnifiedKey($programLine->url(), array_keys($this->programLinesCache['keyFromUrl']));
+                $this->programLinesCache['keyFromUrl'][$keyFromUrl] = $programLine;
             }
         }
         return $this->programLinesCache;

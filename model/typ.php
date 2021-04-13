@@ -48,6 +48,10 @@ class Typ extends DbObject
     return $this->r['typ_1pmn'];
   }
 
+  function nazevJednotnehoCisla() {
+    return $this->r['typ_1p'];
+  }
+
   public function __toString() {
     return (string)$this->nazev();
   }
