@@ -24,12 +24,17 @@ class ImportRequirementsGuardian
      */
     public function guardSingleProgramLineOnly(array $activitiesValues, string $processedFileName): ImportStepResult {
         $programLines = [];
+        $unknownProgramLines = [];
         foreach ($activitiesValues as $row) {
             $programLine = null;
             $programLineId = null;
             $programLineValue = $row[ExportAktivitSloupce::PROGRAMOVA_LINIE] ?? null;
             if ($programLineValue) {
-                $programLine = $this->importObjectsContainer->getProgramLineFromValue((string)$programLineValue);
+                $programLine = $this->importObjectsContainer->getProgramLineFromValue($programLineValue);
+                if (!$programLine) {
+                    $unknownProgramLines[] = $programLineValue;
+                    continue;
+                }
             }
             if (!$programLine && !empty($row[ExportAktivitSloupce::ID_AKTIVITY])) {
                 try {
@@ -63,7 +68,14 @@ class ImportRequirementsGuardian
             );
         }
         if (count($programLines) === 0) {
-            return ImportStepResult::error('V importovaném souboru chybí programová linie, nebo alespoň existující aktivita s nastavenou programovou linií.');
+            return count($unknownProgramLines) > 0
+                ? ImportStepResult::error(
+                    sprintf(
+                        'V importovaném souboru jsou neznámé programové linie %s',
+                        implode(',', self::wrapByQuotes(array_unique($unknownProgramLines)))
+                    )
+                )
+                : ImportStepResult::error('V importovaném souboru chybí programová linie, nebo alespoň existující aktivita s nastavenou programovou linií.');
         }
         return ImportStepResult::success(reset($programLines));
     }
