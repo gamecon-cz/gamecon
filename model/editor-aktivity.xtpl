@@ -82,32 +82,32 @@ $(function(){
   </tr>
   <tr>
     <th>
-      <span class="hinted">Organizátor<div class="hint">
-      Více organizátorů se zvolí postupným vybíráním a ukládáním – vždy se objeví nové volné políčko.<br> Zrušit více organizátorů se dá vybráním "nikdo" u více políček.</div></span>¹
+      <span class="hinted">Vypravěč<div class="hint">
+      Více vypravěčů se zvolí postupným vybíráním a ukládáním – vždy se objeví nové volné políčko.<br> Zrušit více vypravěčů se dá vybráním "nikdo" u více políček.</div></span>¹
     </th>
     <td>
-      <!-- begin:orgBox -->
-      <select name="{fields}[organizatori][]" multiple="multiple" id="vyberOrganizatoru">
-        <!-- begin:organizator --><option {organisatorSelected} value="{organizatorId}">{organizatorJmeno}</option><!-- end:organizator -->
+      <!-- begin:vypraveci -->
+      <select name="{fields}[organizatori][]" multiple="multiple" id="vyberVypravecu">
+        <!-- begin:vypravec --><option {vypravecSelected} value="{vypravecId}">{vypravecJmeno}</option><!-- end:vypravec -->
       </select>
       <script type="text/javascript">
-        const $organisatorsMultiselect = $('#vyberOrganizatoru');
+        const $vypraveciMultiselect = $('#vyberVypravecu');
         document.addEventListener('DOMContentLoaded', function () {
           const clientWidthForEditorAktivity = document.getElementById('editorAktivity').clientWidth;
-          let organisatorsMultiselectColumns = parseInt(clientWidthForEditorAktivity / 110);
-          if (organisatorsMultiselectColumns < 1) {
-            organisatorsMultiselectColumns = 1;
+          let vypraveciMultiselectColumns = parseInt(clientWidthForEditorAktivity / 110);
+          if (vypraveciMultiselectColumns < 1) {
+            vypraveciMultiselectColumns = 1;
           }
-          $organisatorsMultiselect.multiselect('settings', {columns: organisatorsMultiselectColumns});
+          $vypraveciMultiselect.multiselect('settings', {columns: vypraveciMultiselectColumns});
         });
 
-        $organisatorsMultiselect.multiselect({
+        $vypraveciMultiselect.multiselect({
           columns: 3,
           search: true,
           texts: {
-            'placeholder': 'Zadej jméno organizátora',
-            'search': 'Hledej jméno organizátora',
-            'selectedOptions': ' vybraných organizátorů',
+            'placeholder': 'Zadej jméno vypravěče',
+            'search': 'Hledej jméno vypravěče',
+            'selectedOptions': ' vybraných vypravěčů',
             'selectAll': 'Vyber vše (klikni znovu pro "Zruš vše")',
             'unselectAll': 'Zruš vše (klikni znovu pro "Vyber vše")'
           },
@@ -115,7 +115,7 @@ $(function(){
           selectAll: true
         });
       </script>
-      <!-- end:orgBox -->
+      <!-- end:vypraveci -->
     </td>
   </tr>
   <tr>

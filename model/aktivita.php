@@ -302,15 +302,15 @@ class Aktivita
             $aktOrg[] = 0; // poslední pole má selected 0 (žádný org)
             foreach ($vsichniOrg as $id => $org) {
                 if (in_array($id, $aktOrg, false)) {
-                    $xtpl->assign('organisatorSelected', 'selected');
+                    $xtpl->assign('vypravecSelected', 'selected');
                 } else {
-                    $xtpl->assign('organisatorSelected', '');
+                    $xtpl->assign('vypravecSelected', '');
                 }
-                $xtpl->assign('organizatorId', $id);
-                $xtpl->assign('organizatorJmeno', $org);
-                $xtpl->parse('upravy.tabulka.orgBox.organizator');
+                $xtpl->assign('vypravecId', $id);
+                $xtpl->assign('vypravecJmeno', $org);
+                $xtpl->parse('upravy.tabulka.vypraveci.vypravec');
             }
-            $xtpl->parse('upravy.tabulka.orgBox');
+            $xtpl->parse('upravy.tabulka.vypraveci');
         }
 
         // načtení typů
