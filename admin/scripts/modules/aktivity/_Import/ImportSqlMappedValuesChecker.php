@@ -353,7 +353,8 @@ SQL
         ?int $locationId,
         ?string $zacatekString,
         ?string $konecString,
-        ?\Aktivita $originalActivity
+        ?\Aktivita $originalActivity,
+        \Typ $programLine
     ): ImportStepResult {
         if ($locationId === null) {
             return ImportStepResult::success(null);
@@ -361,6 +362,9 @@ SQL
         $rangeDates = $this->createRangeDates($zacatekString, $konecString);
         if (!$rangeDates) {
             return ImportStepResult::success(true);
+        }
+        if ($programLine->id() === $programLine::TECHNICKA) { // technical activities do not care about location
+            return ImportStepResult::success($locationId);
         }
         /** @var DateTimeCz $zacatek */
         /** @var DateTimeCz $konec */

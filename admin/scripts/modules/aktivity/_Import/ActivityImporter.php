@@ -163,7 +163,8 @@ class ActivityImporter
             $sqlMappedValues[AktivitaSqlSloupce::LOKACE],
             $sqlMappedValues[AktivitaSqlSloupce::ZACATEK],
             $sqlMappedValues[AktivitaSqlSloupce::KONEC],
-            $originalActivity
+            $originalActivity,
+            $singleProgramLine
         );
         if ($locationAccessibilityResult->isError()) {
             return ImportStepResult::error($locationAccessibilityResult->getError());
