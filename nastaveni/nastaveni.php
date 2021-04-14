@@ -91,7 +91,7 @@ unset($pre);
 //@define('FIO_TOKEN', '');                  // tajné - musí nastavit lokální soubor definic
 
 // OSTATNÍ FINANČNÍ NASTAVENÍ
-@define('MODRE_TRICKO_ZDARMA_OD', '780');    // hodnota slevy od které má subjekt nárok na modré tričko
+@define('MODRE_TRICKO_ZDARMA_OD', 780);    // hodnota slevy od které má subjekt nárok na modré tričko
 
 
 /////////////////////////
