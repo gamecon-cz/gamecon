@@ -239,6 +239,9 @@ $pocetDni = substr_count($dny, ',');
           name: 'Přihlášení 2019',
           data: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,222,288,313,335,347,369,392,448,460,470,481,486,493,498,504,509,510,514,516,523,528,533,539,544,546,550,555,561,577,587,595,598,599,602,609,613,615,618,619,621,624,628,630,641,648,650,653,662,669,673,674,679,681,689,694,699,703,709,718,726,732,740,745,754,766,783,798,829,830],
         },{
+          name: 'Přihlášení 2020',
+          data: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        },{
           name: 'Přihlášení',
           data: <?=$prihlaseni?>,
         }
@@ -288,15 +291,15 @@ $pocetDni = substr_count($dny, ',');
 <div class="dlouhodobeStaty">
 
 <table>
-  <tr><th></th>                       <th>2009</th>   <th>2010</th>   <th>2011</th>   <th>2012</th>   <th>2013</th>   <th>2014</th>   <th>2015</th>   <th>2016</th>   <th>2017</th>   <th>2018</th>   <th>2019</th>   </tr>
-  <tr><td>Registrovaní</td>           <td>339</td>    <td>377</td>    <td>383</td>    <td>357</td>    <td>433</td>    <td>520</td>    <td>595</td>    <td>689</td>    <td>837</td>    <td>821</td>    <td>830</td>      </tr>
-  <tr><td>Dorazilo</td>               <td>68?</td>    <td>350</td>    <td>339</td>    <td>319</td>    <td>389</td>    <td>470</td>    <td>536</td>    <td>605</td>    <td>769</td>    <td>739</td>    <td>754</td>      </tr>
-  <tr><td>&emsp;z toho studenti</td>  <td></td>       <td></td>       <td></td>       <td></td>       <td>149</td>    <td>172</td>    <td>148</td>    <td>175</td>    <td>153</td>    <td></td>       <td></td>      </tr>
-  <tr><td>&emsp;z toho ostatní</td>   <td></td>       <td></td>       <td></td>       <td></td>       <td>152</td>    <td> </td>      <td>388</td>    <td>430</td>    <td>616</td>    <td></td>       <td></td>      </tr>
-  <tr><td>Podpůrný tým</td>           <td>43</td>     <td>45</td>     <td>71</td>     <td>74</td>     <td>88</td>     <td>109</td>    <td>111</td>    <td>133</td>    <td>186</td>    <td>176</td>    <td>185</td>      </tr>
-  <tr><td>&emsp;organizátoři</td>     <td>6</td>      <td>8</td>      <td>13</td>     <td>17</td>     <td>17</td>     <td>22</td>     <td>24</td>     <td>28</td>     <td>38</td>     <td>38</td>     <td>38</td>      </tr>
-  <tr><td>&emsp;zázemí</td>           <td>7</td>      <td>7</td>      <td>6</td>      <td>10</td>     <td>8</td>      <td>1</td>      <td>3</td>      <td>1</td>      <td>8</td>      <td></td>       <td></td>      </tr>
-  <tr><td>&emsp;vypravěči</td>        <td>30</td>     <td>30</td>     <td>52</td>     <td>47</td>     <td>63</td>     <td>86</td>     <td>95</td>     <td>122</td>    <td>168</td>    <td>138</td>    <td>147</td>      </tr>
+  <tr><th></th>                       <th>2009</th>   <th>2010</th>   <th>2011</th>   <th>2012</th>   <th>2013</th>   <th>2014</th>   <th>2015</th>   <th>2016</th>   <th>2017</th>   <th>2018</th>   <th>2019</th> <th>2020</th>  </tr>
+  <tr><td>Registrovaní</td>           <td>339</td>    <td>377</td>    <td>383</td>    <td>357</td>    <td>433</td>    <td>520</td>    <td>595</td>    <td>689</td>    <td>837</td>    <td>821</td>    <td>830</td>  <td></td>      </tr>
+  <tr><td>Dorazilo</td>               <td>68?</td>    <td>350</td>    <td>339</td>    <td>319</td>    <td>389</td>    <td>470</td>    <td>536</td>    <td>605</td>    <td>769</td>    <td>739</td>    <td>754</td>  <td></td>      </tr>
+  <tr><td>&emsp;z toho studenti</td>  <td></td>       <td></td>       <td></td>       <td></td>       <td>149</td>    <td>172</td>    <td>148</td>    <td>175</td>    <td>153</td>    <td></td>       <td></td>     <td></td>      </tr>
+  <tr><td>&emsp;z toho ostatní</td>   <td></td>       <td></td>       <td></td>       <td></td>       <td>152</td>    <td> </td>      <td>388</td>    <td>430</td>    <td>616</td>    <td></td>       <td></td>     <td></td>      </tr>
+  <tr><td>Podpůrný tým</td>           <td>43</td>     <td>45</td>     <td>71</td>     <td>74</td>     <td>88</td>     <td>109</td>    <td>111</td>    <td>133</td>    <td>186</td>    <td>176</td>    <td>185</td>  <td></td>      </tr>
+  <tr><td>&emsp;organizátoři</td>     <td>6</td>      <td>8</td>      <td>13</td>     <td>17</td>     <td>17</td>     <td>22</td>     <td>24</td>     <td>28</td>     <td>38</td>     <td>38</td>     <td>38</td>   <td></td>      </tr>
+  <tr><td>&emsp;zázemí</td>           <td>7</td>      <td>7</td>      <td>6</td>      <td>10</td>     <td>8</td>      <td>1</td>      <td>3</td>      <td>1</td>      <td>8</td>      <td></td>       <td></td>     <td></td>      </tr>
+  <tr><td>&emsp;vypravěči</td>        <td>30</td>     <td>30</td>     <td>52</td>     <td>47</td>     <td>63</td>     <td>86</td>     <td>95</td>     <td>122</td>    <td>168</td>    <td>138</td>    <td>147</td>  <td></td>      </tr>
 </table>
 <a href="#" onclick="return!$(this).next().toggle()">dotaz</a>
 <pre style="display:none">
