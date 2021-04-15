@@ -56,7 +56,7 @@ $pre=-(ROK-2000)*100; //předpona pro židle a práva vázaná na aktuální rok
 @define('P_KRYTI_AKCI',5);       //může být na víc aktivitách naráz (org skupiny typicky)
 @define('P_PLNY_SERVIS',7);      //uživatele kompletně platí a zajišťuje GC
 @define('P_ZMENA_HISTORIE', 8);
-@define('P_TRICKO_ZA_SLEVU_MODRE', 1012);  // modré tričko zdarma při slevě 660
+@define('P_TRICKO_ZA_SLEVU_MODRE', 1012);  // modré tričko zdarma při slevě, jejíž hodnota je níže určená konstantou MODRE_TRICKO_ZDARMA_OD
 @define('P_DVE_TRICKA_ZDARMA', 1020);      // dvě jakákoli trička zdarma
 @define('P_TRICKO_MODRA_BARVA', 1021);     // může objednávat modrá trička
 @define('P_TRICKO_CERVENA_BARVA', 1022);   // může objednávat červená trička
@@ -89,6 +89,9 @@ unset($pre);
 @define('IBAN', 'CZ2820100000002800035147'); // mezinárodní číslo účtu
 @define('BIC_SWIFT', 'FIOBCZPPXXX');         // mezinárodní ID (něco jako mezinárodní VS)
 //@define('FIO_TOKEN', '');                  // tajné - musí nastavit lokální soubor definic
+
+// OSTATNÍ FINANČNÍ NASTAVENÍ
+@define('MODRE_TRICKO_ZDARMA_OD', 780);    // hodnota slevy od které má subjekt nárok na modré tričko
 
 
 /////////////////////////
