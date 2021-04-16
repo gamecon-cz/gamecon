@@ -13,14 +13,14 @@
 
 .karty_karta {
     width: 415rel;
-    height: 557rel;
+    min-height: 557rel;
     margin: 58rel 70rel;
     border: solid 2px #10111A;
     box-shadow: 20rel 20rel 0 #F6F1EA;
     position: relative; // kvůli vnořeným prvkům
     background-color: #fff;
     @media (max-width: 600px) {
-        height: 340px;
+        min-height: 340px;
         margin: 20px;
     }
 }
@@ -42,15 +42,13 @@
 }
 
 .karty_text {
-    position: absolute;
-    top: 425rel;
-    left: 42rel;
+    margin: 425rel 0 50rel 42rel;
     width: 260rel;
     font-size: 16px;
     letter-spacing: 0.035em;
     line-height: 1.4;
     @media (max-width: 600px) {
         width: 80%;
-        top: 239px;
+        margin-top: 239px;
     }
 }
