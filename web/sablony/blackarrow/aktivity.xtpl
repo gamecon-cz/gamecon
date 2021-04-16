@@ -5,7 +5,7 @@
     <div class="aktivity_ikonaLinie">
         <img src="{ikonaLinie}">
     </div>
-    <div class="aktivity_popisLinie">
+    <div class="aktivity_popisLinie stranka_format">
         {popisLinie}
     </div>
     <!-- begin: hlavickaVypravec -->
@@ -13,7 +13,7 @@
         <div class="aktivity_hlavickaVypravecFotka">
             <img src="{fotka}">
         </div>
-        <div class="aktivity_hlavickaVypravecText">
+        <div class="aktivity_hlavickaVypravecText stranka_format">
             <h1>{jmeno}</h1>
             <div>{popis}</div>
         </div>

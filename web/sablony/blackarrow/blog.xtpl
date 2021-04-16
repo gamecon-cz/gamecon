@@ -1,5 +1,5 @@
 <!-- begin:blog -->
-<div class="stranka">
+<div class="stranka stranka_format">
 
 <!-- begin:post -->
 <h1>{blog.nazev}</h1>
