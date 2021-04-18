@@ -363,7 +363,8 @@ SQL
         if (!$rangeDates) {
             return ImportStepResult::success(true);
         }
-        if ($programLine->id() === $programLine::TECHNICKA) { // technical activities do not care about location
+        if (in_array($programLine->id(), [$programLine::TECHNICKA, $programLine::WARGAMING], true)) {
+            // some activities do not care about location
             return ImportStepResult::success($locationId);
         }
         /** @var DateTimeCz $zacatek */
