@@ -1,0 +1,126 @@
+<!-- begin: aktivity -->
+
+<div class="aktivity_hlavickaObal">
+<div class="aktivity_hlavicka">
+    <div class="aktivity_ikonaLinie">
+        <img src="{ikonaLinie}">
+    </div>
+    <div class="aktivity_popisLinie stranka_format">
+        {popisLinie}
+    </div>
+    <!-- begin: hlavickaVypravec -->
+    <div class="aktivity_hlavickaVypravec">
+        <div class="aktivity_hlavickaVypravecFotka">
+            <img src="{fotka}">
+        </div>
+        <div class="aktivity_hlavickaVypravecText stranka_format">
+            <h1>{jmeno}</h1>
+            <div>{popis}</div>
+        </div>
+    </div>
+    <!-- end: hlavickaVypravec -->
+</div>
+</div>
+
+<div class="aktivity_stranky">
+    <!-- begin: stranka -->
+    <a href="{stranka.url}" class="aktivity_stranka">{stranka.nadpis}</a>
+    <!-- end: stranka -->
+</div>
+
+<div class="aktivity_aktivityObal">
+<div class="aktivity_aktivity {specTridy}">
+    <!-- begin: aktivita -->
+    <div class="aktivity_aktivita">
+        <img class="aktivity_obrazek" src="{obrazek}">
+        <h2 class="aktivity_nazev">{aktivita.nazev}</h2>
+        <div class="aktivity_vypravec"><b>Vypravěč:</b> {organizatori}</div>
+        <div class="aktivity_stitky">
+            <!-- begin: stitek -->
+            <div class="aktivity_stitek">{stitek}</div>
+            <!-- end: stitek -->
+        </div>
+
+        <div class="aktivity_popis">
+            {aktivita.kratkyPopis}
+            <label class="aktivity_vice" for="aktivity_nahledId{aktivita.id}">zobrazit více</label>
+        </div>
+
+        <div class="aktivity_terminy">
+            <!-- begin: termin -->
+            <div class="aktivity_termin">
+                <b>{aktivita.denCas}</b>&ensp;
+                {obsazenost}&ensp;
+                {prihlasit}
+
+                <!-- begin: vypravec -->
+                <div><b>Vypravěč:</b> {vypravec}</div>
+                <!-- end: vypravec -->
+
+                <!-- begin: tym -->
+                <div><b>Družina:</b> č.{tym.cislo} {tym.nazev}</div>
+                <!-- end: tym -->
+
+                <!-- begin: vyberTymu -->
+                <div>
+                    <b>Výběr týmu:</b> Aktivita je týmová a jako první přihlášený máš právo sestavit si tým (družinu). Vyplň ID spoluhráčů, s kterými chceš hrát (můžeš použít i přezdívku nebo jméno, zobrazí se napovídací políčko). Po potvrzení budou automaticky přihlášeni a informováni mailem. Políčka co necháš prázdná se otevřou pro přihlášení komukoli, ta která odebereš se znepřístupní. Na vyplnění máš čas tři dny, pak tě aktivita sama odhlásí.<br>
+                    {vyberTymu}
+                </div>
+                <!-- end: vyberTymu -->
+
+                <!-- begin: vypisTymu -->
+                <div>{vypisTymu}</div>
+                <!-- end: vypisTymu -->
+
+                <br>
+            </div>
+            <!-- end: termin -->
+        </div>
+    </div>
+    <!-- end: aktivita -->
+</div>
+</div>
+
+<script>
+zachovejScroll(document.querySelectorAll('.aktivity_aktivity form > a'), null)
+</script>
+
+<!-- begin: nahled -->
+<input type="checkbox" class="aktivity_nahledCheckbox" id="aktivity_nahledId{aktivita.id}">
+<div class="aktivity_nahledObal">
+<div class="aktivity_nahled">
+    <label class="aktivity_nahledZavrit" for="aktivity_nahledId{aktivita.id}">✕</label>
+
+    <div class="aktivity_nahledTextPole">
+        <h2>{aktivita.nazev}</h2>
+        <div class="aktivity_stitky">
+            <!-- begin: stitek -->
+            <div class="aktivity_stitek aktivity_stitek-nahled">{stitek}</div>
+            <!-- end: stitek -->
+        </div>
+        <p><b>{aktivita.kratkyPopis}</b></p>
+        {aktivita.popis}
+    </div>
+
+    <div class="aktivity_nahledInfoPole">
+        <h3>Vypravěč:</h3>
+        {organizatoriNahled}
+
+        <h3>Informace:</h3>
+        <div class="programNahled_obsazenost aktivity_nahledInfo">{kapacita}</div>
+        <div class="programNahled_cas aktivity_nahledInfo">{aktivita.delka}&thinsp;h</div>
+        <div class="programNahled_cena aktivity_nahledInfo">{aktivita.cena}</div>
+
+        <h3>Termíny:</h3>
+        <!-- begin: termin -->
+        <div class="aktivity_termin">
+            <b>{aktivita.denCas}</b>&ensp;
+            {obsazenost}&ensp;
+        </div>
+        <!-- end: termin -->
+    </div>
+</div>
+</div>
+<!-- end: nahled -->
+
+<!-- end: aktivity -->

@@ -1,5 +1,7 @@
 <?php
 
+$this->blackarrowStyl(true);
+
 $start = (int)get('start') ?: 0;
 $stranka = 20;
 

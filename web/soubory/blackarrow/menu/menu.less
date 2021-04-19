@@ -1,0 +1,214 @@
+.menu {
+    min-height: 70px; // fix přetékání na malém monitoru
+    background-color: #E22630;
+    color: #fff;
+    top: 0;
+    z-index: 20;
+    position: relative; // kvůli z-indexu na mobilu
+    @media (min-width: 600px) {
+        position: sticky;
+    }
+}
+
+.menu_obal {
+    max-width: 1920px;
+    margin: 0 auto;
+}
+
+.menu_obal2 {
+    margin: 0 146px;
+    @media (max-width: 600px) {
+        margin: 0;
+    }
+}
+
+.menu_obal2::after { // fix přetékání na malém monitoru
+    content: '';
+    display: block;
+    clear: both;
+}
+
+// levá část
+
+.menu_nazev {
+    display: block;
+    height: 50px;
+    width: 130px;
+    font-size: 10px;
+    color: transparent; // text je v logu, proto skrýt
+    float: left;
+    margin-right: 100px;
+    @media (max-width: 600px) {
+        margin-left: 20px;
+    }
+    background: url('../blackarrow/menu/logo.svg') no-repeat 0 20px;
+}
+
+.menu_menu {
+    float: left;
+}
+
+.menu_odkaz, .menu_nazevkategorie {
+    color: inherit;
+    line-height: 70px;
+    text-decoration: none;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 1px;
+    padding: 0 30px;
+    font-weight: bold;
+    @media (max-width: 600px) {
+        line-height: 50px;
+        padding: 0 20px;
+    }
+}
+
+.menu_odkaz:hover, .menu_kategorie:hover {
+    background-color: #10111A;
+}
+
+.menu_kategorie, .menu_odkaz {
+    display: block;
+    float: left;
+}
+
+.menu_nazevkategorie {
+    cursor: default;
+}
+
+.menu_nazevkategorie::after {
+    content: '';
+    display: inline-block;
+    width:  6px;
+    height: 6px;
+    margin: -100px -10px 2px 10px;
+    border-bottom: solid 1px #fff;
+    border-right:  solid 1px #fff;
+    transform: rotate(45deg);
+    // použití borderů místo unicode znaku způsobuje problikávání před načtením
+    // fontu, ale unicode znak se špatně renederuje v chromu (různé délky nožky)
+}
+
+// levá část - submenu
+
+.menu_kategorie:hover .menu_polozky {
+    visibility: visible;
+}
+
+.menu_polozky {
+    position: absolute;
+    display: grid;
+    visibility: hidden; // neměnit none - grid kvůli kompatibilitě mobilních prohlížečů
+
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    column-gap: 40px;
+    row-gap: 30px;
+
+    background-color: #10111A;
+    left: 0;
+    width: 100%;
+    padding: 40px 220px;
+    box-sizing: border-box;
+    z-index: 20; // aby překrylo jméno na mobilu
+    @media (max-width: 600px) {
+        padding: 20px;
+        row-gap: 10px;
+    }
+}
+
+.menu_polozka {
+    color: inherit;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 16px;
+    display: block;
+    padding: 0 0 11px 0;
+    border-bottom: solid 1px #515151;
+    position: relative; // kvůli šipce vpravo
+    &::first-letter { text-transform: uppercase; }
+}
+
+.menu_polozka::after {
+    content: '';
+    display: block;
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    width:  8px;
+    height: 8px;
+    border-bottom: solid 2px #CE232D;
+    border-right:  solid 2px #CE232D;
+    transform: rotate(-45deg);
+    transition: right 0.3s;
+}
+
+.menu_polozka:hover::after {
+    right: 0;
+}
+
+// pravá část
+
+.menu_uzivatel {
+    float: right;
+    position: relative;
+    line-height: 70px;
+    padding: 0 30px;
+    @media (max-width: 600px) {
+        margin: -100px 0 0 0;
+    }
+}
+
+.menu_uzivatel:hover {
+    background-color: #10111A;
+}
+
+.menu_prihlasit {
+    color: inherit;
+    text-decoration: none;
+    line-height: 70px;
+    display: block;
+    padding: 0 30px;
+    margin: 0 -30px;
+}
+
+.menu_jmeno {
+    cursor: default;
+}
+
+.menu_jmeno::after {
+    content: '';
+    display: inline-block;
+    width:  6px;
+    height: 6px;
+    margin: -100px 0 3px 10px;
+    border-bottom: solid 1px #fff;
+    border-right:  solid 1px #fff;
+    transform: rotate(45deg);
+}
+
+.menu_uzivatelpolozky {
+    display: none;
+    position: absolute;
+    left: 0;
+    background-color: #10111A;
+    width: 220px;
+    line-height: 1.0;
+    font-weight: bold;
+    font-size: 18px;
+    padding: 17px 0 20px 0;
+    @media (max-width: 600px) {
+        left: initial;
+        right: 0;
+    }
+}
+
+.menu_uzivatelpolozky > a {
+    color: inherit;
+    text-decoration: none;
+    display: block;
+    margin: 19px 0 19px 39px;
+}
+
+.menu_uzivatel:hover .menu_uzivatelpolozky {
+    display: initial;
+}

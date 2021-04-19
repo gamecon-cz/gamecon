@@ -36,6 +36,15 @@ class Stranka extends DbObject {
     return $this->r['poradi'];
   }
 
+  /** Vrátí typ aktivit (linii) pokud stránka patří pod nějakou linii */
+  function typ() {
+    if (preg_match('@^([^/]+)/@', $this->r['url_stranky'], $m)) {
+      return Typ::zUrl($m[1]);
+    }
+
+    return null;
+  }
+
   function url() {
     return $this->r['url_stranky'];
   }
@@ -46,7 +55,7 @@ class Stranka extends DbObject {
   }
 
   public static function zUrlPrefixu(string $url): array {
-    return self::zWhere('url_prefix = $1', [$url]);
+    return self::zWhere('url_stranky LIKE $1', [$url . '/%']);
   }
 
   static function zVsech() {

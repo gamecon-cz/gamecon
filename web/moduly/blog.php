@@ -1,10 +1,12 @@
 <?php
 
+$this->blackarrowStyl(true);
+
 $this->info()->nazev('Blog');
 
 if($url->cast(1)) {
   $blog = Novinka::zUrl($url->cast(1), Novinka::BLOG);
-  if(!$blog) throw new UrlNotFoundException();
+  if(!$blog) throw new Nenalezeno();
   $t->assign('blog', $blog);
   $t->parse('blog.post');
   $this->info()

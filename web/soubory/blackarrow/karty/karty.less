@@ -1,0 +1,54 @@
+.karty {
+    background:
+        url('../blackarrow/karty/smouha.jpg') no-repeat 1230/19.2vw 30/19.2vw,
+        url('../blackarrow/karty/krizky.svg') no-repeat 1793/19.2vw 125/19.2vw;
+    @media (max-width: 1000px) { // kdy skočí na tři sloupce
+        background-position: 0 0, 100% 50%;
+    }
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 0 0 70rel 0;
+}
+
+.karty_karta {
+    width: 415rel;
+    min-height: 557rel;
+    margin: 58rel 70rel;
+    border: solid 2px #10111A;
+    box-shadow: 20rel 20rel 0 #F6F1EA;
+    position: relative; // kvůli vnořeným prvkům
+    background-color: #fff;
+    @media (max-width: 600px) {
+        min-height: 340px;
+        margin: 20px;
+    }
+}
+
+.karty_karta > img {
+    position: absolute;
+    margin: 64rel 0 0 42rel;
+    display: block;
+    height: 120rel;
+}
+
+.karty_karta > h2 {
+    position: absolute;
+    margin: 224rel 0 0 42rel;
+    font-size: 42rel;
+    color: #E22630;
+    width: 250rel;
+    @media (max-width: 600px) { width: 80% }
+}
+
+.karty_text {
+    margin: 425rel 0 50rel 42rel;
+    width: 260rel;
+    font-size: 16px;
+    letter-spacing: 0.035em;
+    line-height: 1.4;
+    @media (max-width: 600px) {
+        width: 80%;
+        margin-top: 239px;
+    }
+}

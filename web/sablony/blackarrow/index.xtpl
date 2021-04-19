@@ -1,0 +1,39 @@
+<!-- begin: index -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="{base}">
+    {FILE "sablony/blackarrow/fonty.xtpl"}
+    <link rel="stylesheet" href="{css}">
+    <!-- begin: extraCss --><link rel="stylesheet" href="{url}"><!-- end: extraCss -->
+    <!-- begin: extraJs --><script src="{url}"></script><!-- end: extraJs -->
+    {info}
+    <link rel="icon" href="soubory/blackarrow/_spolecne/favicon.png">
+</head>
+<body>
+
+    {menu}
+
+    {chyba}
+
+    {obsah}
+
+    <!-- begin: paticka -->
+    <div class="paticka">
+        <div class="paticka_info">
+            <a href="mailto:info@gamecon.cz">info@gamecon.cz</a>
+            <div class="paticka_copy">© 2021 Gamecon, Created by Gamecon</div>
+        </div>
+        <div class="paticka_odkazy">
+            <a href="o-gameconu">o GameConu</a>
+            <a href="kontakty">organizátoři</a>
+            <a href="kontakty">kontakt</a>
+            <a href="https://www.facebook.com/groups/gamecon" target="_blank" class="paticka_facebook">Facebook</a>
+        </div>
+    </div>
+    <!-- end: paticka -->
+
+</body>
+</html>
+<!-- end: index -->

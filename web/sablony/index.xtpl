@@ -7,6 +7,7 @@
   <base href="{base}">
   <link rel="shortcut icon" href="soubory/styl/favicon.ico">
   <link rel="stylesheet" type="text/css" href="{css}" media="screen,projection">
+  {FILE "sablony/blackarrow/fonty.xtpl"}<!-- backport fontů do starých stránek -->
   <script src="{js}"></script>
   {jsVyjimkovac}
   {info}
@@ -30,7 +31,8 @@
 
   {chyba}
 
-  <div class="hlavicka">
+  <div class="hlavicka" style="display: none">
+    <!-- TODO smazat hlavičku po plném zprovoznění nového menu -->
     <a class="logo" href="">
       <img src="soubory/styl/logo.png" alt="GameCon"><br>
       <span class="claim">Největší festival nepočítačových her</span>
@@ -75,8 +77,6 @@
   </div>
 
   {menu}
-
-  <hr class="stin">
 
   <div class="hlavni"><!-- hlavní obsah -->
     <div class="obsah">

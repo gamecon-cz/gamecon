@@ -1,0 +1,344 @@
+// hlavička
+
+.aktivity_hlavickaObal {
+    background: url('../blackarrow/aktivity/hlavicka.svg') no-repeat 1.5vw 100% ~'/' 97% auto;
+    margin-bottom: 32px;
+    font-size: 16px;
+    line-height: 26/16;
+
+    @media (max-width: 600px) {
+        background:
+            url('../blackarrow/aktivity/hlavicka.svg') no-repeat 0 100% ~'/' 100% auto,
+            linear-gradient(to bottom, #f6f1ea 50%, #fff 50%);
+        overflow: hidden;
+    }
+}
+
+.aktivity_hlavicka {
+    padding: 1px 0 4vw 0;
+    width: 1600px;
+    max-width: 90%;
+    margin: auto;
+    position: relative;
+}
+
+.aktivity_hlavickaVypravec {
+    display: flex;
+}
+
+.aktivity_hlavickaVypravecFotka {
+    width: 180px;
+    margin-top: 55px;
+    @media (max-width: 600px) { display: none; }
+}
+
+.aktivity_hlavickaVypravecText {
+    margin-top: -9px; // aby bylo zarovnané s hranou fotky
+    margin-left: 30px;
+    max-width: 55%;
+    @media (max-width: 600px) {
+        margin: 0;
+        max-width: none;
+        &.stranka_format h1 { margin-top: 30px; }
+    }
+}
+
+.aktivity_popisLinie {
+    position: relative;
+    z-index: 1; // kvůli ikoně pod textem (nejen) na mobilu
+    max-width: 60%;
+    &.stranka_format h1 {
+        font-size: 80rel;
+        margin-right: -200px; // kvůli delším nadpisům při fullHD
+    }
+    @media (max-width: 600px) {
+        max-width: none;
+        &.stranka_format h1 { margin-right: 0; margin-top: 30px; }
+    }
+}
+
+.aktivity_ikonaLinie {
+    position: absolute;
+    margin: 54px 0 0 75%;
+    background: url('../blackarrow/aktivity/flek.png');
+    width: 209px;
+    height: 206px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    img { display: block; }
+
+    @media (max-width: 600px) {
+        transform-origin: 0 0;
+        transform: scale(0.75);
+        margin: -10px 0 0 66%;
+    }
+}
+
+
+// stránky
+
+.aktivity_stranky {
+    width: 1600px;
+    max-width: 90%;
+    margin: auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    column-gap: 2%;
+    row-gap: 0.83vw;
+    @media (max-width: 600px) {
+        max-width: 97%;
+        grid-template-columns: 1fr;
+    }
+}
+
+.aktivity_stranka {
+    display: block;
+    font-size: 18px;
+    font-weight: bold;
+    text-decoration: none;
+    line-height: 54px;
+    height: 54px;
+    background-color: #10111A;
+    color: #fff;
+    padding: 0 24px;
+    position: relative; // kvůli šipce
+    @media (min-width: 1500px) {
+        line-height: 72px;
+        height: 72px;
+    }
+}
+
+.aktivity_stranka::after {
+    content: '';
+    display: block;
+    position: absolute;
+    right: 27px;
+    top: 22px;
+    width:  8px;
+    height: 8px;
+    border-bottom: solid 2px #CE232D;
+    border-right:  solid 2px #CE232D;
+    transform: rotate(-45deg);
+    transition: right 0.3s;
+    @media (min-width: 1500px) { top: 32px }
+}
+
+.aktivity_stranka:hover::after {
+    right: 15px;
+}
+
+
+// aktivity
+
+.aktivity_aktivityObal {
+    background: url('../blackarrow/aktivity/vlny.svg') no-repeat 96vw 60px;
+}
+
+.aktivity_aktivity {
+    column-count: 3;
+    column-gap: 2%;
+    margin: auto;
+    width: 1600px;
+    max-width: 90%; // na toto je navázaná výška obrázků
+    padding: 40px;
+    background: url('../blackarrow/aktivity/smouha.jpg') no-repeat 100% 0;
+    @media (max-width: 600px) {
+        column-count: 1;
+        box-sizing: border-box;
+        max-width: 100%;
+        padding: 40px 1.5%;
+    }
+}
+
+.aktivity_aktivity-drd {
+    column-count: 1;
+}
+
+.aktivity_aktivita {
+    display: inline-block; // aby se nezalamovaly do víc sloupců
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0 26px 22px 26px;
+
+    margin-bottom: 38px;
+    border: solid 2px #10111A;
+
+    font-size: 13px;
+    line-height: 22/13;
+    @media (min-width: 1500px) { font-size: 15px }
+}
+
+.aktivity_obrazek {
+    display: block;
+    margin: 0 -26px 17px;
+    width: ~'calc(100% + 52px)';
+    height: 512px * 9/16;
+    @media (max-width: 1600px) { height: 16.125vw }
+    @media (max-width: 600px) { height: 97vw * 9/16 }
+}
+
+.aktivity_aktivity-drd .aktivity_obrazek {
+    visibility: hidden; // zjednodušení, aby zůstalo odsazení od vrchu
+    height: 20px;
+}
+
+.aktivity_nazev {
+    margin: 0 0 15px 0;
+    font-size: 32px;
+    font-weight: bold;
+    line-height: 1.25;
+    max-height: 1.25 * 32px * 2;
+    overflow: hidden;
+}
+
+.aktivity_vypravec {
+    margin-bottom: 12px;
+    & > a {
+        text-decoration: none;
+        color: inherit;
+    }
+}
+
+.aktivity_stitky {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    margin-right: -8px;
+}
+
+.aktivity_stitek {
+    background-color: #F6F1EA;
+    font-weight: bold;
+    font-size: 11px;
+    padding: 6px 12px 5px;
+    margin: 0 8px 8px 0;
+    letter-spacing: 0.03em;
+    @media (min-width: 1500px) { font-size: 12px }
+}
+
+.aktivity_popis {
+    padding-bottom: 24px;
+    border-bottom: solid 2px #efefef;
+    margin-bottom: 21px;
+}
+
+.aktivity_vice {
+    font-weight: bold;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.aktivity_aktivity-drd .aktivity_terminy {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-row-gap: 10px;
+}
+
+.aktivity_termin {
+    padding-left: 21px;
+    background: url('../blackarrow/aktivity/kalendar.png') no-repeat 0 5px;
+    margin-bottom: 3px;
+}
+
+
+// náhled
+
+.aktivity_nahledCheckbox {
+    display: none;
+}
+
+.aktivity_nahledObal {
+    display: none;
+    background-color: #000c;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 100vw;
+    z-index: 50;
+
+    // display: flex; se nastaví u aktivního prvku
+    justify-content: center;
+    align-items: center;
+}
+
+.aktivity_nahled {
+    background-color: #fff;
+    width: 764px;
+    max-height: 80vh;
+    box-shadow: 0px 3px 25px #000;
+    box-sizing: border-box;
+    padding: 15px;
+    display: flex;
+    position: relative; // kvůli křížku
+
+    font-size: 13px;
+    line-height: 22/13;
+
+    @media (max-width: 600px) {
+        display: block;
+        max-height: 100vh;
+        overflow: scroll;
+    }
+
+    @media (min-width: 1500px) {
+        max-height: 60vh;
+        width: 950px;
+        font-size: 15px;
+    }
+}
+
+.aktivity_nahledCheckbox:checked + .aktivity_nahledObal {
+    display: flex;
+}
+
+.aktivity_nahledZavrit {
+    display: block;
+    position: absolute;
+    top: 12px;
+    right: 24px;
+    line-height: 1.0;
+    font-size: 26px;
+    cursor: pointer;
+    color: #555;
+}
+
+.aktivity_nahledTextPole {
+    background-color: #F6F1EA;
+    padding: 22px 36px 1px 24px;
+    overflow-y: scroll;
+
+    h2 {
+        font-size: 32px;
+        margin: 0 0 14px 0;
+        line-height: normal;
+    }
+}
+
+.aktivity_stitek-nahled {
+    background-color: #F9D6B0;
+}
+
+.aktivity_nahledInfoPole {
+    width: 260px;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    padding: 21px 24px;
+
+    h3 {
+        margin: 28px 0 0 0;
+        font-weight: normal;
+        color: #aaa;
+        font-size: inherit;
+    }
+
+    h3:first-child { margin: 0 }
+}
+
+.aktivity_nahledInfo {
+    // override kapacity z programu
+    margin: 10px 0 !important;
+    font-size: inherit !important;
+}

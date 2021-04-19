@@ -14,7 +14,11 @@ class Modul {
   protected $bezMenu = false;
   protected $bezStranky = false;
   protected $bezOkraju = false;
+  protected $bezPaticky = false;
+  protected $blackarrowStyl = false;
   protected $info;
+  protected $cssUrls = [];
+  protected $jsUrls = [];
 
   const VYCHOZI = 'titulka';
 
@@ -47,9 +51,31 @@ class Modul {
     return $this->bezStranky;
   }
 
+  function bezPaticky($val = null) {
+    if(isset($val)) $this->bezPaticky = $val;
+    return $this->bezPaticky;
+  }
+
+  /**
+   * Jestli je modul v novém vizuálním stylu (codename blackarrow).
+   * TODO po zmigrování všech modulů je možné toto postupně odstranit.
+   */
+  function blackarrowStyl($val = null) {
+    if (isset($val)) $this->blackarrowStyl = $val;
+    return $this->blackarrowStyl;
+  }
+
+  function cssUrls() {
+    return $this->cssUrls;
+  }
+
   function info(Info $val = null): ?Info {
     if(isset($val)) $this->info = $val;
     return $this->info;
+  }
+
+  function jsUrls() {
+    return $this->jsUrls;
   }
 
   /** Název modulu (odpovídá části názvu souboru) */
@@ -63,10 +89,24 @@ class Modul {
     else return @$this->params[$nazev];
   }
 
+  function pridejCssUrl($url) {
+    $this->cssUrls[] = $url;
+  }
+
+  function pridejJsSoubor($cestaNaWebu) {
+    $verze = substr(filemtime(WWW . '/' . $cestaNaWebu), -6);
+    $url = URL_WEBU . '/' . $cestaNaWebu . '?v=' . $verze;
+    $this->jsUrls[] = $url;
+  }
+
   /** Vrátí výchozí šablonu pro tento modul (pokud existuje) */
   protected function sablona() {
     $soubor = 'sablony/'.$this->nazev().'.xtpl';
-    if(is_file($soubor)) {
+    $blackarrowSoubor = 'sablony/blackarrow/'.$this->nazev().'.xtpl';
+
+    if (is_file($blackarrowSoubor)) {
+      return new XTemplate($blackarrowSoubor);
+    } else if (is_file($soubor)) {
       return new XTemplate($soubor);
     } else {
       return null;
@@ -81,13 +121,16 @@ class Modul {
   function spust() {
     extract($this->params); // TODO možná omezit explicitně parametry, které se smí extractnout, ať to není black magic
     $t = $this->sablona();
+
     ob_start();
-    require $this->src;
-    if($t) {
+    $vysledek = require $this->src;
+    $earlyReturn = ($vysledek === null); // při dokončení skriptu je výsledek 1
+    if($t && !$earlyReturn) {
       $t->parse($this->nazev());
       $t->out($this->nazev());
     }
     $this->vystup = ob_get_clean();
+
     return $this;
   }
 
@@ -97,6 +140,8 @@ class Modul {
       return $this->vystup;
     elseif($this->bezOkraju)
       return $this->vystup . '<style>.hlavni { max-width: 100%; }</style>';
+    elseif($this->blackarrowStyl)
+      return '<div>' . $this->vystup . '</div>';
     else
       return '<div class="blok stranka"><div class="obal">' . $this->vystup . '</div></div>';
   }

@@ -541,7 +541,7 @@ class Aktivita {
   }
 
   /** Vrací celkovou kapacitu aktivity */
-  protected function kapacita()
+  function kapacita()
   {
     return $this->a['kapacita'] + $this->a['kapacita_m'] + $this->a['kapacita_f'];
   }
@@ -616,7 +616,6 @@ class Aktivita {
    */
   function obrazek()
   {
-    $url=URL_WEBU.'/soubory/systemove/aktivity/'.$this->a['url_akce'].'.jpg';
     $soub = WWW.'/soubory/systemove/aktivity/'.$this->a['url_akce'].'.jpg';
     if(func_num_args() == 0) {
       try {
@@ -648,18 +647,18 @@ class Aktivita {
     if(!$kc)
       return '';
     if(!$this->prihlasovatelna() && !$this->probehnuta()) //u proběhnutých aktivit se zobrazí čísla. Možno měnit.
-      return " <span class=\"neprihlasovatelna\">($c/$kc)</span>";
+      return " <span class=\"neprihlasovatelna\">$c/$kc</span>";
     switch($this->volno())
     {
       case 'u':
       case 'x':
-        return " ($c/$kc)";
+        return " $c/$kc";
       case 'f':
-        return ' <span class="f">('.$f.'/'.$kf.')</span>'.
-          ' <span class="m">('.$m.'/'.($km+$ku).')</span>';
+        return ' <span class="f">'.$f.'/'.$kf.'</span>'.
+          ' <span class="m">'.$m.'/'.($km+$ku).'</span>';
       case 'm':
-        return ' <span class="f">('.$f.'/'.($kf+$ku).')</span>'.
-          ' <span class="m">('.$m.'/'.$km.')</span>';
+        return ' <span class="f">'.$f.'/'.($kf+$ku).'</span>'.
+          ' <span class="m">'.$m.'/'.$km.'</span>';
     }
   }
 
@@ -846,10 +845,10 @@ class Aktivita {
     // tisk formu
     $out = '';
     if($this->a['team_max'] > $this->a['kapacita']) {
-      $out .= ' <form method="post" style="display:inline"><input type="hidden" name="'.self::PN_PLUSMINUSP.'" value="'.$this->id().'"><a href="#" onclick="$(this).closest(\'form\').submit(); return false">▲</a></form>';
+      $out .= ' <form method="post" style="display:inline"><input type="hidden" name="'.self::PN_PLUSMINUSP.'" value="'.$this->id().'"><a href="#" onclick="this.parentNode.submit(); return false">▲</a></form>';
     }
     if($this->a['team_min'] < $this->a['kapacita'] && $this->prihlaseno() < $this->a['kapacita']) {
-      $out .= ' <form method="post" style="display:inline"><input type="hidden" name="'.self::PN_PLUSMINUSM.'" value="'.$this->id().'"><a href="#" onclick="$(this).closest(\'form\').submit(); return false">▼</a></form>';
+      $out .= ' <form method="post" style="display:inline"><input type="hidden" name="'.self::PN_PLUSMINUSM.'" value="'.$this->id().'"><a href="#" onclick="this.parentNode.submit(); return false">▼</a></form>';
     }
     return $out;
   }
@@ -1082,7 +1081,7 @@ class Aktivita {
           $out .=
             '<form method="post" style="display:inline">'.
             '<input type="hidden" name="odhlasit" value="'.$this->id().'">'.
-            '<a href="#" onclick="$(this).parent().submit(); return false">odhlásit</a>'.
+            '<a href="#" onclick="this.parentNode.submit(); return false">odhlásit</a>'.
             '</form>';
         if($stav == 1) $out .= '<em>účast</em>';
         if($stav == 2) $out .= '<em>jako náhradník</em>';
@@ -1098,7 +1097,7 @@ class Aktivita {
           $out =
             '<form method="post" style="display:inline">'.
             '<input type="hidden" name="prihlasit" value="'.$this->id().'">'.
-            '<a href="#" onclick="$(this).parent().submit(); return false">přihlásit</a>'.
+            '<a href="#" onclick="this.parentNode.submit(); return false">přihlásit</a>'.
             '</form>';
         elseif($volno == 'f')
           $out = 'pouze ženská místa';
@@ -1109,13 +1108,13 @@ class Aktivita {
             $out =
               '<form method="post" style="display:inline">' .
               '<input type="hidden" name="odhlasNahradnika" value="' . $this->id() . '">' .
-              '<a href="#" onclick="$(this).parent().submit(); return false">zrušit sledování</a>' .
+              '<a href="#" onclick="this.parentNode.submit(); return false">zrušit sledování</a>' .
               '</form>';
           } else {
             $out =
               '<form method="post" style="display:inline">' .
               '<input type="hidden" name="prihlasNahradnika" value="' . $this->id() . '">' .
-              '<a href="#" onclick="$(this).parent().submit(); return false">sledovat</a>' .
+              '<a href="#" onclick="this.parentNode.submit(); return false">sledovat</a>' .
               '</form>';
           }
         }
@@ -1228,14 +1227,12 @@ class Aktivita {
         'zamcel'      =>  null,
         'zamcel_cas'  =>  null,
         'team_nazev'  =>  $nazevTymu ?: null,
+        'kapacita'    =>  $pocetMist ?: dbNoChange(),
       ], [
         'id_akce'     =>  $this->id(),
       ]);
 
-      // tým je nyní přihlášen - dodatečné změny na už přihlášeném týmu
       $this->refresh();
-      $this->tym()->kapacita($pocetMist);
-      $this->a['kapacita'] = $pocetMist; // TODO workaround pro aktualizaci dat
     } catch(Exception $e) {
       dbRollback();
       if($chybnyClen)
@@ -1537,6 +1534,9 @@ class Aktivita {
       'postname'    =>  self::TEAMKLIC,
       'prihlasenyUzivatelId' => $u->id(),
       'aktivitaId'  =>  $this->id(),
+      'cssUrlAutocomplete' => URL_WEBU . '/soubory/blackarrow/_spolecne/auto-complete.css',
+      'jsUrlAutocomplete'  => URL_WEBU . '/soubory/blackarrow/_spolecne/auto-complete.min.js',
+      'jsUrl'              => URL_WEBU . '/soubory/blackarrow/tym-formular/tym-formular.js',
     ]);
 
     // výběr instancí, pokud to aktivita vyžaduje
@@ -1679,6 +1679,8 @@ class Aktivita {
       $wheres[] = dbQv($filtr['od']).' <= a.zacatek';
     if(!empty($filtr['do']))
       $wheres[] = 'a.zacatek <= '.dbQv($filtr['do']);
+    if(!empty($filtr['bezDalsichKol']))
+      $wheres[] = 'NOT (a.typ IN ('.Typ::DRD.','.Typ::LKD.') AND cena = 0)';
     $where = implode(' AND ', $wheres);
 
     // sestavení řazení

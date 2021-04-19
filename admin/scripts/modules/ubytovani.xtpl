@@ -3,6 +3,12 @@
 
 <!-- TODO upo na výběr uživatele -->
 
+<style>
+  .shopUbytovani_prvniSloupec, .shopUbytovani_sloupec { float: left; width: 65px; }
+  .shopUbytovani_radek { height: 40px; }
+  .tooltip_obsah { display: none; }
+</style>
+
 
 <div class="aBox">
   <h3>Ubytování uživatele</h3>

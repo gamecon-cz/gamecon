@@ -28,7 +28,6 @@
     "ext-mbstring": "*",
     "ext-pdo": "*",
     "michelf/php-markdown": "~1.4",
-    "oyejorge/less.php": "~1.7",
     "dg/mysql-dump": "^1.4",
     "tracy/tracy": "~2.4",
     "godric/xtemplate": "dev-master",
@@ -36,7 +35,8 @@
     "godric/db-backup": "dev-master",
     "defuse/php-encryption": "^2.1",
     "godric/db-migrations": "dev-master",
-    "setasign/tfpdf": "^1.25"
+    "setasign/tfpdf": "^1.25",
+    "wikimedia/less.php": "^3.0"
   },
   "require-dev": {
     "dg/ftp-deployment": "~2.7",

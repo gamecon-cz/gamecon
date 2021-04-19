@@ -1,0 +1,79 @@
+.shopPredmety_predmety,
+.shopPredmety_tricko {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    column-gap: 52px;
+    row-gap: 24px;
+}
+
+.shopPredmety_tricka {
+    display: grid;
+    row-gap: 24px;
+}
+
+.shopPredmety_predmety {
+    padding-bottom: 32px;
+    border-bottom: solid 2px #eff3ef;
+    margin-bottom: 32px;
+}
+
+.shopPredmety_predmet {
+    display: flex;
+}
+
+.shopPredmety_trickoSelect {
+    margin: 0;
+}
+
+// plusminus
+.shopPredmety_plusminus {
+    display: flex;
+    margin-left: auto;
+}
+
+.shopPredmety_plus,
+.shopPredmety_minus,
+.shopPredmety_kusu {
+    display: block;
+    border: solid 1px #DBDBDB;
+    height: 40px;
+    width: 40px;
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 43px;
+    text-align: center;
+    text-decoration: none;
+}
+
+.shopPredmety_plus,
+.shopPredmety_minus {
+    font-size: 32px;
+    color: #DBDBDB;
+    font-weight: normal;
+}
+
+.shopPredmety_plus:hover,
+.shopPredmety_minus:hover {
+    color: #bbb;
+}
+
+.shopPredmety_plus {
+    line-height: 48px;
+    border-left: 0;
+    border-radius: 0 4px 4px 0;
+}
+
+.shopPredmety_minus {
+    line-height: 45px;
+    border-right: 0;
+    border-radius: 4px 0 0 4px;
+}
+
+.shopPredmety_minus-neaktivni,
+.shopPredmety_minus-neaktivni:hover,
+.shopPredmety_plus-neaktivni,
+.shopPredmety_plus-neaktivni:hover {
+    color: #DBDBDB;
+    opacity: 0.5;
+    cursor: default;
+}

@@ -33,15 +33,18 @@ class Pomoc {
       '{ka}'  =>  $this->u->koncA() ? 'ka' : '',
       '{ík}'  =>  $this->u->koncA() ? 'ice' : 'ík',
     ];
+    $vybranyTyp = $this->r['pomoc_typ'] ?: self::$typy[0][0];
+
     foreach(self::$typy as $typ) {
       $t->assign([
         'id'      =>  $typ[0],
         'nazev'   =>  mb_ucfirst(strtr($typ[1], $koncovky)),
         'popis'   =>  strtr($typ[2], $koncovky),
-        'checked' =>  $this->r['pomoc_typ'] == $typ[0] ? 'checked' : '',
+        'checked' =>  $vybranyTyp == $typ[0] ? 'checked' : '',
       ]);
       $t->parse('pomoc.typ');
     }
+
     $t->parse('pomoc');
     return $t->text('pomoc');
   }

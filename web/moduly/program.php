@@ -1,76 +1,101 @@
 <?php
 
-$this->bezOkraju(true);
+$this->blackarrowStyl(true);
+$this->info()->nazev('Program');
 
-/** @type Uzivatel|null $u */
-if($u) Aktivita::prihlasovatkoZpracuj($u);
+$dny = [];
+for ($den = new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen()) {
+    $dny[slugify($den->format('l'))] = clone $den;
+}
 
-$program = new Program($u, ['osobni' => $this->param('osobni')]);
-$a = $u ? $u->koncA() : '';
+$nastaveni = [];
+$alternativniUrl = null;
+if ($url->cast(1) == 'muj') {
+    if (!$u) throw new Neprihlasen();
+    $nastaveni['osobni'] = true;
+} else if (isset($dny[$url->cast(1)])) {
+    $nastaveni['den'] = $dny[$url->cast(1)]->format('z');
+} else if (!$url->cast(1)) {
+    $nastaveni['den'] = reset($dny)->format('z');
+    $alternativniUrl = 'program/' . slugify(reset($dny)->format('l'));
+} else {
+    throw new Nenalezeno();
+}
 
-// hack na staticko-dynamické zobrazení legendy
-$legendaStranka = Stranka::zUrl('program-legenda');
-$legenda = $legendaStranka ? $legendaStranka->html() : '';
-$legenda = str_replace('{a}', $u ? $u->koncA() : '', $legenda);
-$legenda = str_replace('{n}', $u && $u->pohlavi() == 'f' ? 'ice' : 'ík', $legenda);
-if(!$u || !$u->maPravo(P_ORG_AKCI)) $legenda = preg_replace('@.*organizuji.*@', '', $legenda);
+$program = new Program($u, $nastaveni);
+$program->zpracujPost();
+
+$this->pridejCssUrl($program->cssUrl());
+$this->pridejJsSoubor('soubory/blackarrow/program-nahled/program-nahled.js');
+$this->pridejJsSoubor('soubory/blackarrow/program-posuv/program-posuv.js');
+$this->pridejJsSoubor('soubory/blackarrow/_spolecne/zachovej-scroll.js');
+
+// pomocná funkce pro zobrazení aktivního odkazu
+$aktivni = function ($urlOdkazu) use ($url, $alternativniUrl) {
+    $tridy = 'program_den';
+
+    if ($urlOdkazu == $url->cela() || $urlOdkazu == $alternativniUrl) {
+        $tridy .= ' program_den-aktivni';
+    }
+
+    return 'href="'.$urlOdkazu.'" class="'.$tridy.'"';
+};
+
+$zobrazitMujProgramOdkaz = isset($u);
 
 ?>
 
-<?php $program->css(); ?>
-
 <style>
-.legenda hr { display: inline-block; border: none; margin: 0 0 -3px; margin-left: 1em; width: 16px; height: 16px; border-radius: 4px;  }
-table.program { box-shadow: 0 0 3px #444; }
-.muj-program {
-  float: right;
-  display: block;
-  text-transform: uppercase;
-  padding: 6px 20px;
-  border: solid 1px #444;
-  background-color: #d13f3f;
-  color: #fff;
-  font-weight: bold;
-  margin: -8px 0px 0px 16px;
-  font-size: 14px;
-  border-radius: 6px;
-}
+    /* na stránce programu nedělat sticky menu, aby bylo maximum místa pro progam */
+    .menu {
+        position: relative; /* relative, aby fungoval z-index */
+    }
 </style>
 
-<?php require __DIR__ . '/../soubory/program-nahled.html'; ?>
+<!-- relativní obal kvůli náhledu -->
+<div style="position: relative">
 
-<div class="programNahled_obalProgramu">
+    <?php require __DIR__ . '/../soubory/blackarrow/program-nahled/program-nahled.html'; ?>
 
-  <?php if(!$this->param('osobni')) { ?>
-    <div id="programSkryvaniLinii_ovladani" class="programSkryvaniLinii_ovladani">
-      <span class="programSkryvaniLinii_popisek">Filtrovat linie: </span>
+    <div class="program_hlavicka">
+        <?php if ($u) { ?>
+            <a href="program-k-tisku" class="program_tisk" target="_blank">Můj program v PDF</a>
+        <?php } ?>
+        <h1>Program <?=ROK?></h1>
+        <div class="program_dny">
+            <?php foreach ($dny as $denSlug => $den) { ?>
+                <a <?=$aktivni('program/'.$denSlug)?>><?=$den->format('l d.n.')?></a>
+            <?php } ?>
+            <?php if ($zobrazitMujProgramOdkaz) { ?>
+                <a <?=$aktivni('program/muj')?>>můj program</a>
+            <?php } ?>
+        </div>
     </div>
-  <?php } ?>
 
-  <a class="muj-program" id="programNahled_externiPrepinac" href="#"></a>
-  <?php if($u) { ?>
-    <a class="muj-program" target="_blank" href="programKTisku">k tisku</a>
-    <?php if($this->param('osobni')) { ?>
-      <a class="muj-program" href="program">celkový program</a>
-    <?php } else { ?>
-      <a class="muj-program" href="muj-program">můj program</a>
-    <?php } ?>
-  <?php } ?>
-
-  <?=$legenda?>
-
-  <?php $program->tisk(); ?>
+    <div class="programNahled_obalProgramu">
+        <div class="programPosuv_obal2">
+            <div class="programPosuv_obal">
+                <?php $program->tisk(); ?>
+            </div>
+        </div>
+    </div>
 
 </div>
 
-<script>
-programSkryvaniLinii($('table.program'), $('#programSkryvaniLinii_ovladani'));
-programNahled($('.programNahled_obalNahledu'), $('.programNahled_obalProgramu'), $('.programNahled_odkaz'), $('#programNahled_externiPrepinac'));
+<div style="height: 70px"></div>
 
-$(function(){
-  var sneaky = new ScrollSneak(location.hostname);
-  $('table.program a').each(function(){
-    $(this).click(sneaky.sneak);
-  });
-});
+<script>
+programNahled(
+    document.querySelector('.programNahled_obalNahledu'),
+    document.querySelector('.programNahled_obalProgramu'),
+    document.querySelectorAll('.programNahled_odkaz'),
+    document.querySelectorAll('.program form > a')
+)
+
+zachovejScroll(
+    document.querySelectorAll('.program form > a'),
+    document.querySelector('.programPosuv_obal')
+)
+
+programPosuv(document.querySelector('.programPosuv_obal2'))
 </script>

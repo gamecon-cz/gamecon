@@ -189,6 +189,43 @@ function mezi($od, $do) {
 
 
 /**
+ * Zamezení csrf pro POST požadavky podle referreru.
+ *
+ * OWASP compliance: https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#identifying-source-origin-via-originreferer-header
+ */
+function omezCsrf() {
+  $referrerHost = parse_url($_SERVER['HTTP_REFERER'] ?? null, PHP_URL_HOST);
+
+  if(
+    $_SERVER['REQUEST_METHOD'] == 'POST' &&
+    $referrerHost != $_SERVER['HTTP_HOST']
+  ) {
+    // výjimka, aby došlo k zalogování
+    throw new Exception('Referrer POST požadavku neodpovídá doméně.');
+  }
+}
+
+
+/**
+ * Předá oznámení volajícímu skritpu, vyvolá reload
+ * @param back bool má se reloadovat?
+ */
+function oznameni($zprava, $back = true) {
+  Chyba::nastav($zprava, Chyba::OZNAMENI);
+  if($back) back();
+}
+
+
+/**
+ * Předá oznámení volajícímu skritpu a přesměruje na $cil
+ */
+function oznameniPresmeruj($zprava, $cil) {
+  Chyba::nastav($zprava, Chyba::OZNAMENI);
+  back($cil);
+}
+
+
+/**
  * Kompiluje a minifikuje soubory předané v argumentech a vrací url s časovou
  * značkou (jako url proměnnou)
  * V složce soubory/perfectcache nutno (např. htaccessem) povolit cacheování
@@ -197,8 +234,8 @@ function mezi($od, $do) {
  * @todo nějaký hash počtu / názvu souborů? (když se přidá nový soubor se starým
  *  timestampem, nic se nestane)
  */
-function perfectcache($args) {
-  $args = func_get_args();
+function perfectcache(/* variadic */) {
+  $args = perfectcacheExpandujArgumenty(func_get_args());
   $lastf = end($args);
   $typ = substr($lastf, -3) == '.js' ? 'js' : 'css';
   $last = 0;
@@ -220,13 +257,34 @@ function perfectcache($args) {
     } else {
       $parser = new Less_Parser(['compress' => true]);
       foreach($args as $a) if($a) {
-        if(substr($a, -4) != '.ttf') $parser->parseFile($a, URL_WEBU.'/soubory/styl/');
-        else $parser->ModifyVars([ perfectcacheFontNazev($a) => 'url("'.perfectcacheFont($a).'")' ]); // prozatím u fontu stačí věřit, že modifikace odpovídá modifikaci stylu
+        if(substr($a, -4) != '.ttf') {
+          $tmpSouborStylu = tempnam(sys_get_temp_dir(), 'perfectcacheCss');
+          $css = file_get_contents($a);
+          $css = pefrectcacheProcessRel($css, 1920, 1200);
+          file_put_contents($tmpSouborStylu, $css);
+          $parser->parseFile($tmpSouborStylu, URL_WEBU.'/soubory/styl/');
+          unlink($tmpSouborStylu);
+        } else {
+          // prozatím u fontu stačí věřit, že modifikace odpovídá modifikaci stylu
+          $parser->ModifyVars([ perfectcacheFontNazev($a) => 'url("'.perfectcacheFont($a).'")' ]);
+        }
       }
       file_put_contents($minf, $parser->getCss());
     }
   }
   return $minu.'?v='.$last;
+}
+
+function perfectcacheExpandujArgumenty($argumenty) {
+  $out = [];
+  foreach ($argumenty as $argument) {
+    if (str_contains($argument, '*')) {
+      $out = array_merge($out, glob($argument));
+    } else {
+      $out[] = $argument;
+    }
+  }
+  return $out;
 }
 
 function perfectcacheFont($font) {
@@ -238,6 +296,45 @@ function perfectcacheFontNazev($font) {
   return 'font'.preg_replace('@.*/([^/]+)\.ttf$@', '$1', $font);
 }
 
+/**
+ * Přeformátuje speciální jednotku `rel` (pixel relative) v css řetězci na
+ * kombinaci vw (odpovídající $originalWidth) s relativním zmenšením až na
+ * $minWidth, kde se zmenšování zastaví (pomocí media queries).
+ */
+function pefrectcacheProcessRel($css, $originalWidth, $minWidth) {
+  $toVw = function ($line) use ($originalWidth) {
+    return preg_replace_callback(
+      '/(\d+)rel/',
+      function ($m) use ($originalWidth) {
+        return round($m[1] / ($originalWidth / 100), 3) . 'vw';
+      },
+      $line
+    );
+  };
+
+  $toPx = function ($line) use ($originalWidth, $minWidth) {
+    $new = preg_replace_callback(
+      '/(\d+)rel/',
+      function ($m) use ($minWidth, $originalWidth) {
+        return round($m[1] * ($minWidth / $originalWidth), 0) . 'px';
+      },
+      $line
+    );
+
+    return
+    "    @media (max-width: " . $minWidth . "px) {\n" .
+    "        " . $new . "\n" .
+    "    }";
+  };
+
+  return preg_replace_callback(
+    '/^.*\drel.*$/m',
+    function ($m) use ($toVw, $toPx) {
+      return $toVw($m[0]) . "\n" . $toPx($m[0]);
+    },
+    $css,
+  );
+}
 
 function po($cas) {
   return strtotime($cas) < time();
@@ -273,6 +370,30 @@ function scrc32($data) {
 function potrebujePotvrzeni(DateTimeImmutable $datumNarozeni): bool {
     // cilene bez hodin, minut a sekund
     return vekNaZacatkuLetosnihoGameconu($datumNarozeni) < 15;
+}
+
+function serazenePodle($pole, $kriterium) {
+  if (is_string($kriterium)) {
+    usort($pole, function ($a, $b) use ($kriterium) {
+      return $a->$kriterium() <=> $b->$kriterium();
+    });
+  } else {
+    usort($pole, function ($a, $b) use ($kriterium) {
+      return $kriterium($a) <=> $kriterium($b);
+    });
+  }
+  return $pole;
+}
+
+function seskupenePodle($pole, $funkce) {
+  $out = [];
+
+  foreach ($pole as $prvek) {
+    $klic = $funkce($prvek);
+    $out[$klic][] = $prvek;
+  }
+
+  return $out;
 }
 
 function vekNaZacatkuLetosnihoGameconu(DateTimeImmutable $datumNarozeni): int {

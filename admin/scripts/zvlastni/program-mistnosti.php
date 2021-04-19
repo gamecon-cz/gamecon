@@ -1,6 +1,6 @@
 <?php
 
-$p = new Program(null, [
+$program = new Program(null, [
   'technicke' =>  true,
   'skupiny'   =>  'mistnosti',
   'prazdne'   =>  true,
@@ -9,13 +9,19 @@ $p = new Program(null, [
 ?>
 <!DOCTYPE html>
 <html>
-  <head>
-    <style>
-      body { font-family: sans-serif; font-size: 12px; }
-    </style>
-    <?php $p->css(); ?>
-  </head>
-  <body>
-    <?php $p->tisk(); ?>
-  </body>
+<head>
+  <link rel="stylesheet" href="<?=$program->cssUrl()?>">
+  <style>
+    body {
+      font-family: tahoma, sans-serif;
+      font-size: 11px;
+      line-height: 1.2;
+    }
+  </style>
+</head>
+<body>
+
+  <?php $program->tisk(); ?>
+
+</body>
 </html>

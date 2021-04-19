@@ -187,6 +187,13 @@ function dbLastQ() {
 }
 
 /**
+ * If this is used as value in update then column value will be not changed.
+ */
+function dbNoChange() {
+  return new DbNoChange;
+}
+
+/**
  * Returns current time in databse compatible datetime format
  * @todo what about changing to 'now' (because of transactions and stuff)
  */
@@ -379,10 +386,15 @@ function dbRollback() {
  */
 function dbUpdate($table, $vals, $where) {
   global $dbspojeni, $dbLastQ;
+
+  if ($vals === []) return;
+
   dbConnect();
   $q='UPDATE '.dbQi($table)." SET \n";
-  foreach($vals as $key=>$val)
+  foreach($vals as $key=>$val) {
+    if($val instanceof DbNoChange) continue;
     $q.=( dbQi($key).'='.dbQv($val).",\n" );
+  }
   $q=substr($q,0,-2)."\n"; //odstranění čárky na konci
   // where klauzule
   $q .= 'WHERE 1';
@@ -415,7 +427,7 @@ class DbDuplicateEntryException extends DbException {
 
   function __construct() {
     parent::__construct();
-    preg_match("@Duplicate entry '([^']+)' for key '([^']+)'@", $this->message, $m);
+    preg_match("@Duplicate entry '([^']*)' for key '([^']+)'@", $this->message, $m);
     $this->key = $m[2];
   }
 
@@ -424,3 +436,5 @@ class DbDuplicateEntryException extends DbException {
   }
 
 }
+
+class DbNoChange {}

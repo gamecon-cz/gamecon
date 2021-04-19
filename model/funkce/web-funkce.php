@@ -77,15 +77,6 @@ function chyba($zprava) {
   back();
 }
 
-/**
- * Předá oznámení volajícímu skritpu, vyvolá reload
- * @param back bool má se reloadovat?
- */
-function oznameni($zprava, $back = true) {
-  Chyba::nastav($zprava, Chyba::OZNAMENI);
-  if($back) back();
-}
-
 
 /** Tisk informace profileru. */
 function profilInfo()

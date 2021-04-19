@@ -1,4 +1,5 @@
 <?php
+
 // This is a fix of a 058.php where renamed category (styl Desk => styl Deskovky) in tags, but not in categories itself causes invalid pairing
 
 /** @var \Godric\DbMigrations\Migration $this */

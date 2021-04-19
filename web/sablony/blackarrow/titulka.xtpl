@@ -1,0 +1,195 @@
+<!-- begin: titulka -->
+
+<style>
+/* hack kvůli nutné relativní výšce hlavičky */
+@media (min-width: 600px) {
+    .menu {
+        position: fixed;
+        width: 100%;
+    }
+}
+</style>
+
+<link rel="stylesheet" href="soubory/blackarrow/_spolecne/aos.css">
+
+<div class="gchlavicka">
+    <img
+        class="img1"
+        src="soubory/blackarrow/gchlavicka/obr_1.jpg"
+        data-aos="fade-right"
+    >
+    <img
+        class="img2"
+        src="soubory/blackarrow/gchlavicka/obr_2.jpg"
+        data-aos="fade-left"
+    >
+    <div class="p p1" data-aos="zoom-out" data-aos-delay="200" data-aos-offset="0">GA</div>
+    <div class="p p2" data-aos="zoom-out" data-aos-delay="250" data-aos-offset="0">ME</div>
+    <div class="p p3" data-aos="zoom-out" data-aos-delay="550" data-aos-offset="0">C</div>
+    <div class="p p4" data-aos="zoom-out" data-aos-delay="600" data-aos-offset="0">ON</div>
+    <div class="gchlavicka_claim" data-aos="zoom-out">Nejvetší festival nepočítačových her</div>
+    <div class="gchlavicka_datum">19. 7. &ndash; 21. 7.</div>
+    <div class="gchlavicka_misto" data-aos="zoom-out">P A R D U B I C E</div>
+    <a class="gchlavicka_video" href="https://www.youtube.com/watch?v=-SBu7WGPkO4" target="_blank" data-aos="zoom-out" data-aos-offset="-200">přehrát video</a>
+</div>
+
+<div class="karty">
+    <div class="karty_karta" data-aos="fade-right">
+        <img src="soubory/blackarrow/karty/1.jpg">
+        <h2>Akce pro všechny</h2>
+        <div class="karty_text">Na Gameconu si najde každý fanoušek aktivní zábavy a nepočítačových her to svoje, bez ohledu na věk.</div>
+    </div>
+    <div class="karty_karta" data-aos="fade-right" data-aos-delay="200">
+        <img src="soubory/blackarrow/karty/2.jpg">
+        <h2>Festival aktivní zábavy</h2>
+        <div class="karty_text">Na GameConu najdeš všechno od celodenně otevřené deskoherny, přes rolové hry až po koncert.</div>
+    </div>
+    <div class="karty_karta" data-aos="fade-right" data-aos-delay="400">
+        <img src="soubory/blackarrow/karty/3.jpg">
+        <h2>Žádné vstupné</h2>
+        <div class="karty_text">Registrace na GameCon je zdarma. Platíš jen za služby a aktivity, které si sám vybereš a objednáš.</div>
+    </div>
+</div>
+
+<div class="popisbox">
+    <div class="popisbox_obsah" data-aos="fade-up">
+        <a href="deskoherna">Deskové</a> hry, <a href="rpg">RPG</a> a <a href="larpy">Larpy</a>, <a href="bonusy">akční hry</a>, <a href="wargaming">wargaming</a>, Mistrovství v <a href="drd">Dračím doupěti</a>, pohybové <a href="bonusy">workshopy</a>, koncert a párty. To všechno a mnohem víc je festival nepočítačových her GameCon.
+    </div>
+    <script>
+        document.querySelectorAll('.popisbox_obsah a').forEach(e => {
+            const t = e.innerText
+            e.innerHTML = '<span class="popisbox_overlay">'+t+'</span>'+t
+        })
+    </script>
+</div>
+
+<div class="cisla">
+    <div class="cisla_polozka" data-aos="fade-up" data-aos-delay="200">
+        <img src="soubory/blackarrow/cisla/1.jpg" style="margin: -30px 0 0 87px">
+        <div class="cisla_cislo">800+</div>
+        <div class="cisla_text">spokojených účastníků</div>
+    </div>
+    <div class="cisla_polozka" data-aos="fade-up">
+        <img src="soubory/blackarrow/cisla/2.jpg" style="margin: -13px 0 0 73px">
+        <div class="cisla_cislo">200+</div>
+        <div class="cisla_text">různých aktivit</div>
+    </div>
+    <div class="cisla_polozka" data-aos="fade-up" data-aos-delay="100">
+        <img src="soubory/blackarrow/cisla/3.jpg" style="margin: -23px 0 0 30px">
+        <div class="cisla_cislo">4</div>
+        <div class="cisla_text">dny zábavy</div>
+    </div>
+    <div class="cisla_polozka" data-aos="fade-up" data-aos-delay="50">
+        <img src="soubory/blackarrow/cisla/4.jpg" style="margin: -13px 0 0 30px">
+        <div class="cisla_cislo">2</div>
+        <div class="cisla_text">super párty</div>
+    </div>
+</div>
+
+<div class="fotky">
+    <img src="soubory/blackarrow/fotky/1.jpg" data-aos="fotky" data-aos-offset="200" style="top: 12.344vw; left:       0vw">
+    <img src="soubory/blackarrow/fotky/2.jpg" data-aos="fotky" data-aos-offset="200" style="top:  6.042vw; left:  22.083vw">
+    <img src="soubory/blackarrow/fotky/3.jpg" data-aos="fotky" data-aos-offset="200" style="top: 28.177vw; left:  25.990vw">
+    <img src="soubory/blackarrow/fotky/4.jpg" data-aos="fotky" data-aos-offset="200" style="top: 15.417vw; left:  46.667vw">
+    <img src="soubory/blackarrow/fotky/5.jpg" data-aos="fotky" data-aos-offset="200" style="top: 37.188vw; left:  65.521vw">
+    <img src="soubory/blackarrow/fotky/6.jpg" data-aos="fotky" data-aos-offset="200" style="top:  2.969vw; right:      0vw; transform-origin: top right">
+</div>
+
+<div class="zazijes">
+    <div class="zazijes_vrsek"></div>
+    <div class="zazijes_spodek"></div>
+    <h2 class="zazijes_nadpis">Co na GameConu zažiješ?</h2>
+    <div class="zazijes_karty">
+        <!-- begin: linie -->
+        <a href="{url}" class="zazijes_karta" style="background-image: url({obrazek})" data-aos="fade-up" data-aos-offset="{aosOffset}">
+            <div class="zazijes_prekryv">
+                <div class="zazijes_ikona">
+                    <div class="zazijes_ikonavnitrni" style="background-image: url({ikona})"></div>
+                </div>
+            </div>
+            <div class="zazijes_nadpiskarty">
+                <div class="zazijes_cislo">{cislo}</div>
+                <div class="zazijes_nazevlinie">{nazev}</div>
+                <div class="zazijes_detail">{popis}</div>
+            </div>
+        </a>
+        <!-- end: linie -->
+    </div>
+    <script>
+        (() => {
+            // přepsat offset kvůli zobrazení na menších rozlišeních
+            if (window.screen.width < 1000) {
+                document.querySelectorAll('.zazijes_karta').forEach(e => e.setAttribute('data-aos-offset', '100'))
+            }
+        })()
+    </script>
+</div>
+
+<div class="odpocet">
+    <h2>{odpocetNadpis}</h2>
+    <div class="odpocet_cas">
+        <span id="dnu">0</span>
+        <b>D</b>
+        <span id="hodin">0</span>
+        <b>H</b>
+        <span id="minut">0</span>
+        <b>M</b>
+        <span id="sekund">0</span>
+        <b>S</b>
+    </div>
+    <!-- begin: odpocetPrihlasit -->
+    <a href="prihlaska" class="odpocet_prihlasit">Přihlásit se</a>
+    <!-- end: odpocetPrihlasit -->
+
+    <script>
+    (function() {
+        function nastavCas(cas, d, h, m, s) {
+            let zbytek = Math.max(0, cas);
+            ;[s.innerHTML, zbytek] = modrem(zbytek, 60)
+            ;[m.innerHTML, zbytek] = modrem(zbytek, 60)
+            ;[h.innerHTML, zbytek] = modrem(zbytek, 24)
+            d.innerHTML = zbytek
+        }
+
+        function modrem(val, div) {
+            const rem = val % div
+            return [rem.toString().padStart(2, '0'), (val - rem) / div]
+        }
+
+        function nastavCasFix() {
+            const casGc = {odpocetTimestamp}; // středník kvůli šabloně
+            nastavCas(
+                casGc - Math.floor(Date.now() / 1000),
+                document.getElementById('dnu'),
+                document.getElementById('hodin'),
+                document.getElementById('minut'),
+                document.getElementById('sekund')
+            )
+        }
+
+        nastavCasFix()
+        setInterval(nastavCasFix, 1000)
+    })()
+    </script>
+</div>
+
+<div class="sponzori">
+    <h2>Děkujeme našim partnerům!</h2>
+    <div class="sponzori_loga">
+        <!-- begin: sponzor -->
+        <div class="sponzori_logo">
+            <a href="{url}" target="_blank"><img src="{src}"></a>
+        </div>
+        <!-- end:sponzor -->
+    </div>
+</div>
+
+<script src="soubory/blackarrow/_spolecne/aos.js"></script>
+<script>
+    AOS.init({
+        once: true,
+        disableMutationObserver: true,
+    });
+</script>
+
+<!-- end: titulka -->

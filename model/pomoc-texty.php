@@ -8,7 +8,7 @@ return [
     Máš nápad na super aktivitu, která se hodí na GameCon? Vypravěč je pojem pro všechny kteří na GameConu nějakou aktivitu pořádají a bez nichž by žádný festival nebyl :) Napiš nám svůj nápad níž a ozveme se ti.
   '],
   ['organizator', 'organizátor{ka}', '
-    Máš nápady, organizační talent a tah na branku? Do organizačního týmu nehledáme profíky, ale lidi, kteří mají chuť se učit nové věci, nebojí se práce, chtějí získat zkušenosti ve středně velké neziskovce a v neposlední řadě se chtějí podílet na tom, aby byl GameCon co nejlepší.<br><br>
+    Máš nápady, organizační talent a tah na branku? Do organizačního týmu nehledáme profíky, ale lidi, kteří mají chuť se učit nové věci, nebojí se práce, chtějí získat zkušenosti ve středně velké neziskovce a v neposlední řadě se chtějí podílet na tom, aby byl GameCon co nejlepší.<br>
     O tom jak GameCon děláme a koho hledáme se dozvíš v <a href="chci-se-zapojit#dobrovolnici">chci se zapojit</a>.
   '],
   ['partner', 'partner GameConu', '

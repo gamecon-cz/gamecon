@@ -25,6 +25,7 @@ class VyjimkovacChyba {
       'url'     => 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'],
       'zdroj'   => @$_SERVER['HTTP_REFERER'] ?: null,
     ];
+
     try {
       if ($u = Uzivatel::zSession()) {
         $r['uzivatel'] = $u->id();
@@ -32,6 +33,7 @@ class VyjimkovacChyba {
     } catch (\Throwable $throwable) {
       // nothing to do with that here...
     }
+
     return $r;
   }
 
@@ -107,7 +109,7 @@ class VyjimkovacChyba {
       'vyjimka'   => base64_encode($es),
     ]);
     if($e instanceof DbException) {
-      $r['data'] = trim($e->getTrace()[0]['args'][0]);
+      $r['data'] = trim($e->getTrace()[0]['args'][0] ?? null);
     }
     if($e instanceof JsException) {
       $r['url'] = @$_SERVER['HTTP_REFERER'] ?: null;

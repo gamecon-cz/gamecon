@@ -114,6 +114,22 @@ function randHex($chars)
   return substr(md5(mt_rand()),0,$chars);
 }
 
+/**
+ * Convert localized string to [a-z0-9\-] suitable for files and urls.
+ */
+function slugify($text)
+{
+  $from = iconv('UTF-8', 'CP1250', 'áéěíóúůýčďľňřšťž');
+  $to   =                          'aeeiouuycdlnrstz';
+
+  $text = mb_strtolower($text);
+  $text = iconv('UTF-8', 'CP1250', $text);
+  $text = strtr($text, $from, $to);
+  $text = preg_replace('/[^0-9a-z]+/', '-', $text);
+  $text = trim($text, '-');
+
+  return $text;
+}
 
 /**
  * Convert snake_case to camelCase
@@ -125,6 +141,13 @@ function snakeToCamel($str) {
   return $str;
 }
 
+function str_contains($str, $needle) {
+  return strpos($str, $needle) !== false;
+}
+
+function str_ends_with($str, $ending) {
+  return substr($str, -strlen($ending)) == $ending;
+}
 
 /**
  * Returns part of string after rightmost occurence of delimiter

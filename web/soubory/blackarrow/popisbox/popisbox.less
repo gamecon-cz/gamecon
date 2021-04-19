@@ -1,0 +1,52 @@
+.popisbox {
+    background:
+        url('../blackarrow/popisbox/vlnky.svg') no-repeat -140px 76%,
+        linear-gradient(to right, transparent, transparent 1.5%, #10111A 1.5%, #10111A 98.5%, transparent 98.5%, transparent),
+    ;
+    @media (max-width: 1000px) {
+        background-position: -330px 76%, 0 0;
+    }
+    font-size: 42rel;
+    line-height: 1.43;
+    font-weight: 800;
+    color: #A1A1A1;
+    overflow: hidden;
+}
+
+.popisbox::before {
+    content: '';
+    display: block;
+    position: absolute;
+    width: 15vw; // doplnění k 85vw aby nepřetékalo na mobilu
+    max-width: 105px; // fix bugu s posuvníkem a přetékáním pro ne-mobil
+    height: 105px;
+    background: url('../blackarrow/popisbox/bublina.svg') no-repeat;
+    margin-top: -50px;
+    left: 85vw;
+}
+
+.popisbox_obsah {
+    margin: 10% 22.7%;
+    @media (max-width: 600px) {
+        margin: 10% 10%;
+    }
+}
+
+.popisbox_obsah > a {
+    color: #fff;
+    text-decoration: none;
+}
+
+.popisbox_overlay {
+    position: absolute;
+    color: #e22630;
+    max-width: 0px;
+    overflow: hidden;
+    text-shadow: 0 0 5px #000; // text shadow, aby neprosvítala bílá na pozadí
+    white-space: nowrap; // aby se více slov při rozbalování nezalamovalo
+    transition: max-width 0.4s;
+}
+
+.popisbox_obsah > a:hover .popisbox_overlay {
+    max-width: 350rel;
+}

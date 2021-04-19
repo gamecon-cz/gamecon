@@ -1,53 +1,58 @@
 <!-- begin:ubytovani -->
 
-<!-- begin:konec -->Objednávání ubytování online bylo zastaveno, změny jsou možné na místě.<br><!-- end:konec -->
+<!-- begin:konec -->
+<p>Objednávání ubytování online bylo zastaveno, změny jsou možné na místě.</p>
+<!-- end:konec -->
 
-<div style="width:9em; float:left; overflow: hidden;">
-  <div>&nbsp;</div>
+<div class="shopUbytovani_tabulka">
+
+<div class="shopUbytovani_prvniSloupec">
+  <div class="shop_den shopUbytovani_den">&nbsp;</div>
   <!-- begin:typ -->
-    <!-- begin:normal -->
-    <div style="height:{vyska}">{typ}</div>
-    <!-- end:normal -->
-    <!-- begin:hinted -->
-    <div style="height:{vyska}"><span class="hinted i">{typ} <span class="hint">{hint}</span></span></div>
-    <!-- end:hinted -->
-  <!-- end:typ -->
-  <div>Žádné</div>
-</div>
 
-<div style="width:5em; float:left">
-  <div>&nbsp;</div>
-  <!-- begin:cena -->
-  <div style="text-align:right;height:{vyska};line-height:{vyska}">{cena}&thinsp;Kč&emsp;</div>
-  <!-- end:cena -->
+    <!-- begin:normal -->
+    <div class="shop_popis shopUbytovani_radek">
+      {typ}
+      <div class="shop_popisCena">{cena}&thinsp;Kč</div>
+    </div>
+    <!-- end:normal -->
+
+    <!-- begin:hinted -->
+    <div class="shop_popis shopUbytovani_radek tooltip">
+      {typ} <span class="shopUbytovani_i"></span>
+      <div class="shop_popisCena">{cena}&thinsp;Kč</div>
+      <div class="tooltip_obsah">{hint}</div>
+    </div>
+    <!-- end:hinted -->
+
+  <!-- end:typ -->
+  <div class="shopUbytovani_zadne">
+    <div class="shop_popis">Žádné</div>
+  </div>
 </div>
 
 <!-- begin:den -->
-<div style="width:4.7em; float:left">
-  <div>{den}</div>
+<div class="shopUbytovani_sloupec">
+  <div class="shop_den shopUbytovani_den">{den}</div>
   <!-- begin:typ -->
-  <div style="height:{vyska};line-height:{vyska}">
-    <input style="margin:0" type="radio" name="{postnameDen}" value="{idPredmetu}" {sel} {lock}>
-    <span style="font-size:80%;position:relative;top:-2px">{obsazeno}/{kapacita}</span>
+  <div class="shopUbytovani_radek">
+    <input type="radio" class="shopUbytovani_radio" name="{postnameDen}" value="{idPredmetu}" {sel} {lock}>
+    <div class="shopUbytovani_kapacita">{obsazeno}/{kapacita}</div>
   </div>
   <!-- end:typ -->
-  <div><input style="margin:0" type="radio" name="{postnameDen}" value="" {sel} {lock}></div>
+  <div class="shopUbytovani_zadne">
+    <input type="radio" class="shopUbytovani_radio" name="{postnameDen}" value="" {sel} {lock}>
+  </div>
 </div>
 <!-- end:den -->
 
-<div style="clear:both; margin-bottom:-5px"></div>
+<div style="clear: both"></div>
 
-<p>
-  Na pokoji chci být s:<br>
-  <input type="text" name="{postnameSpolubydlici}" value="{spolubydlici}" style="min-width:20em" placeholder="jména oddělená čárkou, nebo nech prázdné">
-</p>
+</div>
 
-<script>{viceScript}</script>
-<script>doplnovatVice($('[name="{postnameSpolubydlici}"]'), {uzivatele});</script>
-
-<!-- begin:infoVypravec --><p><i>Jako vypravěč{ka} máš na ubytování (i aktivity) slevu ve výši cca jeden nocleh+jídlo za dvě uspořádané aktivity. Její přesnou výšku najdeš {poDokonceni} v svém finančním přehledu.</i></p><!-- end:infoVypravec -->
-
-<!-- begin:infoOrg --><p><i>Jako organizátor{ka} máš veškeré ubytování také zdarma.</i></p><!-- end:infoOrg -->
-
+<div class="shopUbytovani_spolubydlici">
+  Na pokoji chci být s:
+  <input type="text" class="formular_input" name="{postnameSpolubydlici}" value="{spolubydlici}" placeholder="jména oddělená čárkou, nebo nech prázdné">
+</div>
 
 <!-- end:ubytovani -->

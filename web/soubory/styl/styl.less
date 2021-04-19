@@ -13,58 +13,6 @@ hr { border: none; border-top: solid 1px #eee; }
 body { margin: 0; font: 14px Open Sans, sans-serif; overflow-y: scroll; line-height: 150%;
   background-image: url('../styl-rocnikovy/pozadi.jpg'); background-color: #c8866c; background-attachment: fixed; background-position: center; background-size: cover; }
 
-.hlavicka { text-align: center; position: relative; line-height: 1.3em; color: #ffffff;
-  background-image: url('../styl-rocnikovy/hlavicka.jpg'); background-color: #fbc589; background-size: auto 100%; }
-.hlavicka a { color: #d6283e; }
-.hlavicka .claim { display: none; color: #d6283e; text-transform: uppercase; font-weight: bold; font-size: 0.9em; opacity: 0.8; }
-.hlavicka .linfo a { display: none; }
-.hlavicka .linfo b { font-size: 1em; line-height: 1.4em; }
-.hlavicka .logo { margin-top: 10px; display: inline-block; max-width: 80%; }
-.hlavicka .logo:hover { text-decoration: none; }
-.hlavicka .logo img { width: 100%; }
-.hlavicka .ifb { background-image: data-uri('ikonky.png'); display: block; float: left; height: 35px; width: 35px; margin: 0 6px; }
-.hlavicka .neprihlasen > form { position: absolute; .blok; z-index: 10; padding: 10px; text-align: left; margin: 0; }
-.hlavicka .prihlasen { overflow: hidden; text-align: right; min-width: 250px; display:inline-block;}
-.hlavicka .avatar { float: right; }
-.hlavicka .prihlasen > div { margin: 4px 110px 0 0; }
-
-hr.stin { border: none; background-image: data-uri('gradient2.png'); height: 4px; margin: 0 0 -4px 0; }
-
-.menu { text-align: center; color: #ffffff; position: relative; z-index: 1;
-  background-image: url('../styl-rocnikovy/hlavicka.jpg'); background-color: #fbc589; background-position: center top; }
-.menu > ul { margin: 0 auto; padding: 0; max-width: @sirka; }
-.menu > ul > li { display: inline-block; margin: 0; position: relative; padding: 0; width: 100%; cursor: default; }
-.menu > ul > li > span { display: inline-block; text-transform: uppercase; font-size: 130%; padding: 0.6em 1em 0.3em 1em; border-bottom: solid 0.3em rgba(0,0,0,0); }
-.menu li.aktivni > span { border-bottom-color: #823; }
-.menu .sub { position: absolute; width: 100%; z-index: 10; display: none; padding-top: 10px; }
-.menu .mlist { text-align: left;  margin: 0 10px; box-shadow: 0 0 3px #444; color: #000; }
-.menu li:hover .sub { display: block; }
-@media @stredni {
-  .menu .sub { padding-top: 0; }
-}
-@media @siroke {
-  .hlavicka { width: 100%; height: 100px; }
-  .hlavicka .claim { display: block; }
-  .hlavicka .linfo { position: absolute; top: 30px; left: 10px; text-align: left; width: 250px; }
-  .hlavicka .linfo a { display: block; margin-top: 0.5em; }
-  .hlavicka .linfo b { display: block; font-size: 1.3em; }
-  .hlavicka .prihlasovani { position: absolute; top: 0; right: 0; }
-  .hlavicka .vlajka {width: 48px; height: 32px; display: inline-block !important; margin-left: 4px; background-image: data-uri('eng_flag.jpg');}
-  .hlavicka .neprihlasen { text-align: right; margin-top: 30px; margin-right: 14px; display:inline-block; }
-  .hlavicka .neprihlasen > form { margin: 0 10px 0 -50px; }
-  .hlavicka .avatar { height: 100px; }
-  .menu > ul > li { width: 33.33334%; }
-  .menu li:first-child .mlist { margin: 0 20px 0 0; }
-  .menu li:last-child .mlist { margin: 0 0 0 20px; }
-  .menu .sub { margin-top: -10px; padding-top: 0; } // u mobilů posun menu nahoru způsobuje nechtěné kliknutí na první položku
-}
-
-@media (min-width: 1100px) {
-  .hlavicka .linfo { width: auto; white-space: nowrap; }
-  .hlavicka .linfo a { margin-top: 0; }
-  .hlavicka .linfo b { display: inline; font-size: 1.5em; line-height: 1.7em; }
-}
-
 .hlavni { max-width: @sirka; margin: 0 auto 40px auto; position: relative; }
 .obsah { position: relative; }
 

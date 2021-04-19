@@ -1,0 +1,91 @@
+.shopUbytovani_tabulka {
+    @media (max-width: 600px) {
+        min-width: 330px;
+        margin-top: 100px;
+    }
+}
+
+.shopUbytovani_radek {
+    height: 65px;
+}
+
+.shopUbytovani_zadne {
+    padding-top: 24px;
+    border-top: solid 2px #eff3ef;
+    margin-top: 8px;
+}
+
+.shopUbytovani_den {
+    margin-bottom: 13px;
+    @media (max-width: 600px) {
+        padding-top: 14px !important;
+        padding-left: 15px;
+    }
+}
+
+.shopUbytovani_prvniSloupec {
+    width: 9em;
+    float: left;
+    overflow: hidden;
+    @media (max-width: 600px) {
+        width: 100px;
+    }
+}
+
+.shopUbytovani_sloupec {
+    float: left;
+    width: 114px;
+    text-align: center;
+    @media (max-width: 600px) {
+        width: 45px;
+    }
+}
+
+.shopUbytovani_radio {
+    appearance: none;
+    width: 28px;
+    height: 28px;
+    margin: 0;
+    background: url('../blackarrow/shop/radio.svg') no-repeat;
+    cursor: pointer;
+
+    &:checked {
+        background-image: url('../blackarrow/shop/radio-checked.svg');
+    }
+
+    &:disabled {
+        background-image: url('../blackarrow/shop/radio-disabled.svg');
+        cursor: not-allowed;
+    }
+
+    &:hover {
+        opacity: 0.8;
+    }
+}
+
+.shopUbytovani_kapacita {
+    font-size: 13px;
+}
+
+.shopUbytovani_i {
+    display: inline-block;
+    height: 20px;
+    width: 20px;
+    margin: 0 0 -4px 3px;
+    background-image: url('../blackarrow/shop/i-svetle.svg');
+}
+
+.shopUbytovani_spolubydlici {
+    font-weight: bold;
+    font-size: 18px;
+    display: flex;
+    max-width: initial;
+    align-items: center;
+    margin-top: 75px;
+    input { width: 514px; margin: 0 0 0 auto; }
+
+    @media (max-width: 600px) {
+        margin-top: 40px;
+        flex-wrap: wrap;
+    }
+}

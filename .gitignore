@@ -12,6 +12,7 @@
 /nastaveni/nastaveni-nasazovani.php
 /nastaveni/nastaveni-produkce.php
 /nastaveni/nastaveni-redesign.php
+/nastaveni/nastaveni-blackarrow.php
 
 /node_modules
 
@@ -19,16 +20,13 @@
 
 /admin/*.sql.gz
 
-/web/soubory/
+/web/soubory/*
+!/web/soubory/blackarrow
 !/web/soubory/styl
 !/web/soubory/*.js
 !/web/soubory/systemove
-/web/soubory/systemove/aktivity/*
-!/web/soubory/systemove/aktivity/.keep
-/web/soubory/systemove/avatary/*
-!/web/soubory/systemove/avatary/default.png
-/web/soubory/systemove/fotky/*
-!/web/soubory/systemove/fotky/.keep
+/web/soubory/systemove/*/*
+!/web/soubory/systemove/*/.keep
 
 /nasad.log
 

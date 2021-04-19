@@ -1,0 +1,87 @@
+.programPosuv_obal2 {
+    position: relative;
+}
+
+.programPosuv_obal {
+    overflow-y: hidden;
+    scrollbar-width: none;
+    position: relative;
+}
+
+.programPosuv_posuv {
+    position: absolute;
+    top: 30px;
+    height: ~'calc(100% - 30px)';
+    @media (max-width: 800px) {
+        top: 26px;
+        height: ~'calc(100% - 26px)';
+    }
+}
+
+.programPosuv_lposuv {
+    left: 132px;
+    @media (max-width: 1500px) {
+        left: 40px;
+    }
+}
+
+.programPosuv_rposuv {
+    right: 0;
+}
+
+.programPosuv_posuv > div {
+    position: sticky;
+    top: 0;
+    left: 0;
+    width: 40px;
+    height: 100vh;
+    max-height: 100%;
+    background-color: rgba(238, 177, 180, 0.75);
+    cursor: pointer;
+    @media (max-width: 1300px) {
+        width: 30px;
+    }
+    @media (max-width: 800px) {
+        top: ~'calc(50% - 40px)';
+        height: 80px;
+        border-radius: 20px 0 0 20px;
+        background-color: #E22630;
+        opacity: 0.33;
+    }
+    &:hover {
+        background-color: #E22630;
+    }
+}
+
+.programPosuv_lposuv > div {
+    @media (max-width: 800px) {
+        border-radius: 0 20px 20px 0;
+    }
+}
+
+.programPosuv_posuv > div::before {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 48%;
+    left: 6px;
+    width: 15px;
+    height: 15px;
+    border-bottom: solid 4px #fff;
+    border-right:  solid 4px #fff;
+    transform: rotate(-45deg);
+    @media (max-width: 1300px) {
+        left: 1px;
+    }
+    @media (max-width: 800px) {
+        top: 32px;
+    }
+}
+
+.programPosuv_lposuv > div::before {
+    left: 14px;
+    transform: rotate(135deg);
+    @media (max-width: 1300px) {
+        left: 10px;
+    }
+}

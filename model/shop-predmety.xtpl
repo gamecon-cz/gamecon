@@ -1,0 +1,93 @@
+<!-- begin: predmety -->
+
+<!-- begin: predmetyPozastaveny -->
+<p>Možnost nákupu předmětů už skončila.</p>
+<!-- end: predmetyPozastaveny -->
+
+<div class="shopPredmety_predmety">
+    <!-- begin: predmet -->
+    <div class="shopPredmety_predmet">
+        <div class="shop_popis">
+            {nazev}
+            <div class="shop_popisCena">{cena}</div>
+        </div>
+
+        <!-- begin: fixniPocet -->
+        <div class="shopPredmety_plusminus">
+            <div class="shopPredmety_minus shopPredmety_minus-neaktivni">-</div>
+            <div class="shopPredmety_kusu">{kusu_uzivatele}</div>
+            <div class="shopPredmety_plus shopPredmety_plus-neaktivni">+</div>
+            <input type="hidden" name="{postName}" value="{kusu_uzivatele}">
+        </div>
+        <!-- end: fixniPocet -->
+
+        <!-- begin: nakup -->
+        <div class="shopPredmety_plusminus">
+            <a href="#" class="shopPredmety_minus shopPredmety_minus-povoleno">-</a>
+            <div class="shopPredmety_kusu">?</div>
+            <a href="#" class="shopPredmety_plus shopPredmety_plus-povoleno">+</a>
+            <input type="hidden" name="{postName}" value="{kusu_uzivatele}">
+        </div>
+        <!-- end: nakup -->
+    </div>
+    <!-- end: predmet -->
+</div>
+
+<!-- begin: trickaPozastavena -->
+<p>Možnost nákupu triček už skončila.</p>
+<!-- end: trickaPozastavena -->
+
+<div class="shopPredmety_tricka">
+    <!-- begin: tricko -->
+    <div class="shopPredmety_tricko">
+        <div class="shop_popis">
+            Tričko GameCon {rok}
+            <div class="shop_popisCena">{cena}</div>
+        </div>
+        <select name="{postName}" class="formular_select shopPredmety_trickoSelect">
+            <!-- begin: moznost -->
+            <option value="{id_predmetu}" {selected}>{nazev}</option>
+            <!-- end: moznost -->
+        </select>
+    </div>
+    <!-- end: tricko -->
+</div>
+
+<script>
+shopPlusminus(
+    document.querySelectorAll('.shopPredmety_minus-povoleno'),
+    document.querySelectorAll('.shopPredmety_plus-povoleno')
+)
+
+function shopPlusminus(minusy, plusy) {
+    minusy.forEach((e) => clickZmena(e, -1))
+
+    plusy.forEach((e) => clickZmena(e, +1))
+
+    minusy.forEach((e) => prekresli(e.parentNode))
+
+    function clickZmena(e, delta) {
+        let p = e.parentNode
+        e.onclick = () => {
+            let pocet = Number(p.querySelector('input').value)
+            p.querySelector('input').value = Math.max(pocet + delta, 0)
+            prekresli(p)
+            return false
+        }
+    }
+
+    function prekresli(p) {
+        let pocet = Number(p.querySelector('input').value)
+        let minus = p.querySelector('.shopPredmety_minus')
+
+        p.querySelector('.shopPredmety_kusu').innerHTML = pocet
+
+        if (pocet <= 0) {
+            minus.classList.add('shopPredmety_minus-neaktivni')
+        } else {
+            minus.classList.remove('shopPredmety_minus-neaktivni')
+        }
+    }
+}
+</script>
+<!-- end: predmety -->

@@ -28,14 +28,9 @@
   <br>
 <!-- end:druzina -->
 
-<script src="files/scroll-sneak.js"></script>
+<script src="{zachovejScroll}"></script>
 <script>
-$(function(){
-  var sneaky = new ScrollSneak(location.hostname);
-  $('[name^=vypadli]').each(function(){
-    $(this).click(sneaky.sneak);
-  });
-});
+zachovejScroll(document.querySelectorAll('[name^=vypadli]'))
 </script>
 
 <!-- end:drd -->

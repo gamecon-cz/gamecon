@@ -24,12 +24,9 @@ class ShopUbytovani {
   function html() {
     $t = new XTemplate(__DIR__.'/shop-ubytovani.xtpl');
     $t->assign([
-      'poDokonceni'   =>  $this->u->gcPrihlasen() ? '' : 'po dokončení registrace',
       'spolubydlici'  =>  dbOneCol('SELECT ubytovan_s FROM uzivatele_hodnoty WHERE id_uzivatele='.$this->u->id()),
       'postnameSpolubydlici'  =>  $this->pnPokoj,
-      'ka'            =>  $ka = $this->u->pohlavi() == 'f' ? 'ka' : '',
       'uzivatele'     =>  $this->mozniUzivatele(),
-      'viceScript'    =>  file_get_contents(WWW.'/soubory/doplnovani-vice.js'),
     ]);
     $this->htmlDny($t);
     // sloupce popisků
@@ -38,20 +35,14 @@ class ShopUbytovani {
         'typ'   =>  $typ,
         'hint'  =>  $predmet['popis'],
         'cena'  =>  round($predmet['cena_aktualni']),
-        'vyska' =>  $this->vyska($typ),
       ]);
       $t->parse($predmet['popis'] ? 'ubytovani.typ.hinted' : 'ubytovani.typ.normal');
       $t->parse('ubytovani.typ');
-      $t->parse('ubytovani.cena');
     }
 
     // specifická info podle uživatele a stavu nabídky
     if(reset($this->typy)['stav'] == 3)
       $t->parse('ubytovani.konec');
-    if($this->u->maPravo(P_UBYTOVANI_ZDARMA))
-      $t->parse('ubytovani.infoOrg');
-    elseif($this->u->maPravo(P_ORG_AKCI) && !$this->u->maPravo(P_NEMA_SLEVU_AKTIVITY))
-      $t->parse('ubytovani.infoVypravec');
 
     $t->parse('ubytovani');
     return $t->text('ubytovani');
@@ -75,7 +66,6 @@ class ShopUbytovani {
           'lock'        =>  !$sel && ( !$this->existujeUbytovani($den,$typ) || $this->plno($den,$typ) ) ? 'disabled' : '',
           'obsazeno'    =>  $this->obsazenoMist($den, $typ),
           'kapacita'    =>  $this->kapacita($den, $typ),
-          'vyska'       =>  $this->vyska($typ),
         ])->parse('ubytovani.den.typ');
       }
       $t->assign([
@@ -163,19 +153,6 @@ class ShopUbytovani {
     $kapacitaVycerpana = $predmet['kusu_vyrobeno'] <= $predmet['kusu_prodano'];
 
     return $kapacitaVycerpana && !$melObjednanoDrive;
-  }
-
-  /**
-   * Podle zadaného textu vypočítá počet řádků
-   *
-   * @param type $text
-   * @return string
-   */
-  private function vyska($text) {
-    $radku = ceil(mb_strlen($text) / self::$maxLen);
-    $vyska = 1.4 * $radku;
-    $vyska = $vyska . 'em';
-    return $vyska;
   }
 
   /**

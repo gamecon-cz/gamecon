@@ -37,12 +37,21 @@ class Typ extends DbObject {
     return $s ? $s->html() : null;
   }
 
+  function popisKratky() {
+    return $this->r['popis_kratky'];
+  }
+
   function poradi() {
     return $this->r['poradi'];
   }
 
   function posilatMailyNedorazivsim() {
     return (bool) $this->r['mail_neucast'];
+  }
+
+  /** Pole stránek patřících k linii */
+  function stranky() {
+    return Stranka::zUrlPrefixu($this->url());
   }
 
   function url(): string {

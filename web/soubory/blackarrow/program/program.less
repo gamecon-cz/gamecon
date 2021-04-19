@@ -1,0 +1,75 @@
+.program_hlavicka {
+    background: url('../blackarrow/program/hlavicka.jpg') no-repeat;
+    background-size: 100% auto;
+    padding: 0 140rel;
+    overflow: hidden;
+    margin-bottom: 50rel;
+    @media (max-width: 800px) {
+        padding: 0 20px;
+    }
+}
+
+.program_hlavicka > h1 {
+    color: #10111A;
+    font-size: 80rel;
+    margin: 58/19.2vw 0;
+    @media (max-width: 800px) {
+        font-size: 32px;
+        margin: 20px 0;
+    }
+}
+
+.program_dny {
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: -10px; // pro mobil
+}
+
+.program_den {
+    text-transform: uppercase;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.15em;
+    text-decoration: none;
+    color: inherit;
+
+    display: block;
+    width: 156px;
+    margin-right: 16px;
+    height: 48px;
+    line-height: 48px;
+    text-align: center;
+    background: #fff;
+    border: solid 1px #FDC689;
+    @media (max-width: 800px) {
+        margin: 0 10px 10px 0;
+        width: 130px;
+        flex-grow: 1;
+    }
+}
+
+.program_den:hover {
+    border-color: #E22630;
+}
+
+.program_den-aktivni {
+    color: #fff;
+    background-color: #E22630;
+    border-color: #E22630;
+}
+
+.program_tisk {
+    background: url('../blackarrow/program/sponka.svg') no-repeat;
+    font-weight: bold;
+    font-size: 14px;
+    line-height: 25px;
+    padding-left: 30px;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+
+    float: right;
+    margin-top: 100rel; // podobně jak nadpis
+
+    &:hover { text-decoration: underline; }
+}

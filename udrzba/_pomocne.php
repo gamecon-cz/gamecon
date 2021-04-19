@@ -6,7 +6,7 @@ function nasad(array $nastaveni) {
   $zdrojovaSlozka = realpath($nastaveni['zdrojovaSlozka']);
 
   $nastaveniDeploymentu = '
-    log     = nasad.log
+    log     = ' . ($nastaveni['log'] ?? 'nasad.log') . '
     remote  = ' . $nastaveni['ciloveFtp'] . '
     local   = ' . $zdrojovaSlozka . '
     ignore  = "
@@ -32,12 +32,11 @@ function nasad(array $nastaveni) {
       /node_modules
 
       /web/soubory/*
+      !/web/soubory/blackarrow
       !/web/soubory/styl
       !/web/soubory/*.js
       !/web/soubory/*.html
-      !/web/soubory/systemove/aktivity/.keep
-      !/web/soubory/systemove/avatary/.keep
-      !/web/soubory/systemove/fotky/.keep
+      !/web/soubory/systemove/*/.keep
     "
     preprocess = no
     allowDelete = yes
@@ -50,7 +49,7 @@ function nasad(array $nastaveni) {
 
   // nahrání souborů
   msg('synchronizuji soubory na vzdáleném ftp');
-  $souborNastaveniDeploymentu = 'tmp-' . mt_rand();
+  $souborNastaveniDeploymentu = tempnam(sys_get_temp_dir(), 'gamecon-ftpdeploy-');
   file_put_contents($souborNastaveniDeploymentu, $nastaveniDeploymentu);
   try {
     call_check(['php', $deployment, $souborNastaveniDeploymentu]);

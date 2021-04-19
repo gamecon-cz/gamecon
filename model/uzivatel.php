@@ -243,14 +243,12 @@ class Uzivatel {
     return $this->maPravo(ID_PRAVO_PRIHLASEN);
   }
 
-  /** Příhlásí uživatele na GC. True pokud je (nebo už byl) přihlášen. */
+  /** Příhlásí uživatele na GC */
   function gcPrihlas()
   {
-    if($this->gcPrihlasen())
-      return true;
-    else if($this->dejZidli(Z_PRIHLASEN))
-      return true;
-    return false;
+    if ($this->gcPrihlasen()) return;
+
+    $this->dejZidli(Z_PRIHLASEN);
   }
 
   /** Prošel uživatel infopultem, dostal materiály a je nebo byl přítomen na aktuálím
@@ -487,7 +485,12 @@ class Uzivatel {
    */
   public function otoc()
   {
-    if(!$this->klic) Throw new Exception('Neznámý klíč uživatele v session');
+    if (PHP_SAPI == 'cli') {
+      $this->u = self::zId($this->id())->u;
+      return;
+    }
+
+    if(!$this->klic) throw new Exception('Neznámý klíč uživatele v session');
     $id=$this->id();
     $klic=$this->klic;
     //máme obnovit starou proměnnou pro id uživatele (otáčíme aktuálně přihlášeného uživatele)?
@@ -537,6 +540,10 @@ class Uzivatel {
    * @return mixed objekt s uživatelem nebo null
    */
   public static function prihlas($login, $heslo, $klic = 'uzivatel') {
+    if(!$login || !$heslo) {
+      return null;
+    }
+
     $u = dbOneLineS('
       SELECT * FROM uzivatele_hodnoty
       WHERE login_uzivatele = $0 OR email1_uzivatele = $0
@@ -558,7 +565,7 @@ class Uzivatel {
     // přihlášení uživatele
     // TODO refactorovat do jedné fce volané z dílčích prihlas* metod
     $id = $u['id_uzivatele'];
-    if(!session_id()) session_start();
+    if(!session_id() && PHP_SAPI != 'cli') session_start();
     $_SESSION[$klic] = $u;
     $_SESSION[$klic]['id_uzivatele'] = (int)$u['id_uzivatele'];
     // načtení uživatelských práv
@@ -645,20 +652,150 @@ class Uzivatel {
   }
 
   /**
-   * Zaregistruje uživatele podle asoc.pole $tab, které by mělo odpovídat stru-
-   * ktuře tabulky uzivatele_hodnoty.
-   * @return id nově vytvořeného uživatele
-   * @todo (jen) pokud bude potřeba další parametry typu "automaticky aktivovat
-   * a neposílat aktivační mail" a podobné válce.
+   * Zaregistruje uživatele podle asoc.pole $tab, které by mělo odpovídat
+   * struktuře tabulky uzivatele_hodnoty.
+   *
+   * Extra položky: heslo a heslo_kontrola (metoda si je sama převede na hash).
+   *
+   * @return int id nově vytvořeného uživatele
    */
-  static function registruj($tab)
-  {
-    if(!isset($tab['login_uzivatele']) || !isset($tab['email1_uzivatele']))
-      throw new Exception('špatný formát $tab (je to pole?)');
-    $tab['random']=$rand=randHex(20);
-    dbInsert('uzivatele_hodnoty',array_merge($tab,['registrovan'=>date("Y-m-d H:i:s")]));
-    $uid=dbInsertId();
-    return $uid;
+  static function registruj($tab) {
+    return self::registrujUprav($tab);
+  }
+
+  /**
+   * Zregistruje nového uživatele nebo upraví stávajícího $u, pokud je zadán.
+   */
+  private static function registrujUprav($tab, $u = null) {
+    $dbTab = $tab;
+    $chyby = [];
+    $preskocitChybejiciPole = (bool) $u;
+
+    // opravy
+    $dbTab = array_map(function ($e) {
+      return preg_replace('/\s+/', ' ', trim($e));
+    }, $dbTab);
+
+    if (isset($dbTab['email1_uzivatele'])) {
+      $dbTab['email1_uzivatele'] = mb_strtolower($dbTab['email1_uzivatele']);
+    }
+
+    // TODO fallback prázdná přezdívka -> mail?
+
+    // validátory
+    $validaceLoginu = function ($login) use ($u) {
+      if (empty($login)) return 'vyber si prosím přezdívku';
+
+      $u2 = Uzivatel::zNicku($login) ?? Uzivatel::zMailu($login);
+      if ($u2 && !$u) {
+        return 'přezdívka už je zabraná. Pokud je tvoje, přihlaš se nebo si resetuj heslo';
+      }
+      if ($u2 && $u && $u2->id() != $u->id()) {
+        return 'přezdívka už je zabraná. Vyber si prosím jinou';
+      }
+    };
+
+    $validaceMailu = function ($mail) use ($u) {
+      if (!preg_match('/^[a-z0-9_\-\.]+@[a-z0-9_\-\.]+\.[a-z]+$/', $mail)) {
+        return 'zadej prosím platný e-mail';
+      }
+
+      $u2 = Uzivatel::zNicku($mail) ?? Uzivatel::zMailu($mail);
+      if ($u2 && !$u) {
+        return 'e-mail už máš zaregistrovaný. Přihlaš se nebo si resetuj heslo';
+      }
+      if ($u2 && $u && $u2->id() != $u->id()) {
+        return 'e-mail už je zabraný. Pokud je tvůj, resetuj si heslo';
+      }
+    };
+
+    $validaceHesla = function ($heslo) use ($dbTab) {
+      if (empty($heslo)) return 'vyplň prosím heslo';
+
+      if (
+        $heslo != ($dbTab['heslo'] ?? null) ||
+        $heslo != ($dbTab['heslo_kontrola'] ?? null)
+      ) {
+        return 'hesla se neshodují';
+      }
+    };
+
+    $validace = [
+      'jmeno_uzivatele'      => ['.+', 'jméno nesmí být prázdné'],
+      'prijmeni_uzivatele'   => ['.+', 'příjmení nesmí být prázdné'],
+      'login_uzivatele'      => $validaceLoginu,
+      'email1_uzivatele'     => $validaceMailu,
+      'pohlavi'              => ['^(m|f)$', 'vyber prosím pohlaví'],
+      'ulice_a_cp_uzivatele' => ['.+ [\d\/a-z]+$', 'vyplň prosím ulici, např. Česká 27'],
+      'mesto_uzivatele'      => ['.+', 'vyplň prosím město'],
+      'psc_uzivatele'        => ['^[\d ]+$', 'vyplň prosím PSČ, např. 602 00'],
+      'stat_uzivatele'       => ['^(1|2|-1)$', 'vyber prosím stát'],
+      'telefon_uzivatele'    => ['^[\d \+]+$', 'vyplň prosím telefon, např. +420 789 123 456'],
+      'datum_narozeni'       => ['\d+', 'vyber prosím datum narození'], // TODO
+      'heslo'                => $validaceHesla,
+      'heslo_kontrola'       => $validaceHesla,
+    ];
+
+    // provedení validací
+    $navic = array_diff(array_keys($dbTab), array_keys($validace));
+    if ($navic) {
+      throw new Exception('Data obsahují nepovolené hodnoty');
+    }
+
+    foreach ($validace as $klic => $validator) {
+      $hodnota = $dbTab[$klic] ?? null;
+
+      if ($hodnota === null && $preskocitChybejiciPole) {
+        continue;
+      }
+
+      if (is_array($validator)) {
+        $regex = $validator[0];
+        $popisChyby = $validator[1];
+        if (!preg_match("/$regex/", $hodnota)) {
+          $chyby[$klic] = $popisChyby;
+        }
+      } else {
+        $chyba = $validator($hodnota);
+        if ($chyba) {
+          $chyby[$klic] = $chyba;
+        }
+      }
+    }
+
+    if ($chyby) {
+      $ch = Chyby::zPole($chyby);
+      $ch->globalniChyba($u ?
+        'Úprava se nepodařila, oprav prosím zvýrazněné položky.' :
+        'Registrace se nepodařila. Oprav prosím zvýrazněné položky.'
+      );
+      throw $ch;
+    }
+
+    // doplnění dopočítaných polí
+    if (isset($dbTab['heslo'])) {
+      $dbTab['heslo_md5'] = password_hash($dbTab['heslo'], PASSWORD_DEFAULT);
+    }
+
+    if (!$u) {
+      $dbTab['random'] = randHex(20);
+      $dbTab['registrovan'] = (new DateTimeCz)->formatDb();
+    }
+
+    // odstranění polí, co nebudou v DB
+    unset($dbTab['heslo']);
+    unset($dbTab['heslo_kontrola']);
+
+    // uložení
+    if ($u) {
+      dbUpdate('uzivatele_hodnoty', $dbTab, ['id_uzivatele' => $u->id()]);
+      $u->otoc();
+      return $u->id();
+    } else {
+      dbInsert('uzivatele_hodnoty', $dbTab);
+      $id = dbInsertId();
+      return $id;
+    }
   }
 
   /**
@@ -742,6 +879,19 @@ class Uzivatel {
   }
 
   /**
+   * Upraví hodnoty uživatele podle asoc.pole $tab, které by mělo odpovídat
+   * struktuře tabulky uzivatele_hodnoty.
+   *
+   * Položky, které nebudou zadány, se nebudou měnit.
+   *
+   * Extra položky: heslo a heslo_kontrola (metoda si je sama převede na hash).
+   */
+  function uprav($tab) {
+    $tab = array_filter($tab);
+    return self::registrujUprav($tab, $this);
+  }
+
+  /**
    * @return Vrátí url cestu k stránce uživatele (bez domény).
    */
   function url() {
@@ -749,7 +899,7 @@ class Uzivatel {
     if(!$this->u['jmeno_uzivatele'])
       return null; // nevracet url, asi vypravěčská skupina nebo podobně
     elseif(!Url::povolena($url))
-      return 'aktivity?vypravec=' . $this->id();
+      return null;
     else
       return $url;
   }
@@ -876,11 +1026,13 @@ class Uzivatel {
    * Vrátí uživatele dle zadaného mailu.
    */
   static function zMailu($mail) {
+    if (!$mail) return null;
     $uzivatel = Uzivatel::zWhere('WHERE email1_uzivatele = $1', [$mail]);
     return isset($uzivatel[0]) ? $uzivatel[0] : null;
   }
 
   static function zNicku($nick) {
+    if (!$nick) return null;
     $uzivatel = Uzivatel::zWhere('WHERE login_uzivatele = $1', [$nick]);
     return isset($uzivatel[0]) ? $uzivatel[0] : null;
   }

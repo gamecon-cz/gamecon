@@ -1,0 +1,133 @@
+.zazijes {
+    background:
+        url('../blackarrow/zazijes/pozadi_1.jpg') no-repeat,
+        url('../blackarrow/zazijes/pozadi_3.jpg') no-repeat bottom 5.208vw left 0,
+        url('../blackarrow/zazijes/pozadi_2.jpg');
+    background-size: contain;
+    overflow: hidden;
+    margin: 0 auto;
+    padding-bottom: 5.208vw;
+}
+
+.zazijes_nadpis {
+    color: #E22630;
+    font-size: 80/19.2vw;
+    font-weight: bold;
+    margin: 6.25vw 0 5.208vw 7.604vw;
+    @media (max-width: 600px) {
+        font-size: 32/3.2vw;
+    }
+}
+
+.zazijes_karty {
+    margin: 0 0 4.167vw 7.604vw;
+    @media (max-width: 600px) {
+        margin: 0 5vw;
+    }
+}
+
+.zazijes_karty::after {
+    content: '';
+    display: block;
+    clear: both;
+}
+
+.zazijes_karta {
+    display: block;
+    width: 514rel;
+    height: 619rel;
+    position: relative;
+    float: left;
+    margin: 0 40rel 146rel 0;
+    background-size: cover;
+    background-color: #888;
+    @media (min-width: 1200px) {
+        &:nth-child(3n+2) { top: 8.646vw; }
+        &:nth-child(3n+3) { top: 3.177vw; }
+    }
+    @media (max-width: 600px) {
+        margin-bottom: 20/3.2vw;
+        height: 143/3.2vw;
+    }
+
+    text-decoration: none;
+    color: #fff;
+}
+
+.zazijes_karta::before {
+    content: '';
+    display: block;
+    position: absolute;
+    background-image: linear-gradient(rgba(0,0,0,0.0), rgba(0,0,0,1.0));
+    opacity: 0.5;
+    width: 100%;
+    height: 180rel;
+    bottom: 0;
+}
+
+.zazijes_prekryv {
+    position: absolute;
+    background: rgba(32, 35, 50, 0.8);
+    height: 100%;
+    width: 100%;
+    opacity: 0;
+    transition: opacity 0.33s;
+}
+
+.zazijes_karta:hover .zazijes_prekryv {
+    opacity: 1;
+}
+
+.zazijes_ikona {
+    position: absolute;
+    height: 150/19.2vw;
+    margin-top: -75/19.2vw;
+    width: 150/19.2vw;
+    margin-left: -75/19.2vw;
+    top: 40%;
+    left: 50%;
+    background: url('../blackarrow/zazijes/flek.png') center ~'/' contain no-repeat;
+}
+
+.zazijes_ikonavnitrni {
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    height: 60%;
+    margin: 20% 15%;
+}
+
+.zazijes_nadpiskarty {
+    position: absolute;
+    left: 30rel;
+    bottom: 10rel;
+}
+
+.zazijes_nazevlinie {
+    font-size: 54rel;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.zazijes_cislo {
+    font-size: 14rel;
+    letter-spacing: 0.1em;
+    color: #F6F1EA;
+}
+
+.zazijes_detail {
+    font-size: 16px;
+    margin: 8rel 0 12rel 0;
+    width: 450rel;
+    line-height: 1.75;
+    max-height: 0; // max height, protože height: auto nejde animovat
+    opacity: 0;
+    transition: max-height 0.7s, opacity 0.6s;
+    display: flex;
+    flex-direction: column-reverse; // aby zůstávalo písmo dole
+}
+
+.zazijes_karta:hover .zazijes_detail {
+    max-height: 112px;
+    opacity: 1;
+}

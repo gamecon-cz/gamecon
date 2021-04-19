@@ -2,7 +2,7 @@
 
 /**
  * Datum a čas s českými názvy dnů a měsíců + další vychytávky
- */ 
+ */
 
 class DateTimeCz extends DateTime
 {
@@ -54,7 +54,7 @@ class DateTimeCz extends DateTime
 
   /**
    * Vrací běžně používaný formát data - tvar d.m.yyyy
-   * 
+   *
    * @return string
    */
   function formatDatumStandard() {

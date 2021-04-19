@@ -20,8 +20,8 @@ chdir(__DIR__ . '/../');
 // testování větve před pushem a čistoty repa, aby se na FTP nedostalo smetí
 exec('git rev-parse --abbrev-ref HEAD', $out);
 $vetev = $out[0];
-if (!($vetev === 'master' || strpos($vetev, 'redesign') === 0)) {
-  echo "notice: you're not on automatically deployed branch, deployment skipped\n";
+if(!($vetev === 'master' || $vetev === 'blackarrow')) {
+  echo "notice: you're not on automatically deployed branch, deplyoment skipped\n";
   exit(0);
 }
 exec('git status', $out);
@@ -52,12 +52,16 @@ if ($vetev === 'master') {
     'hesloMigrace' => $nastaveni['beta']['hesloMigrace'],
     'souborNastaveni' => 'nastaveni-beta.php',
   ]);
-} else {
+} elseif($vetev == 'blackarrow') {
   nasad([
-    'zdrojovaSlozka' => __DIR__ . '/..',
-    'ciloveFtp' => $nastaveni['redesign']['ftp'],
-    'urlMigrace' => $nastaveni['redesign']['urlMigrace'],
-    'hesloMigrace' => $nastaveni['redesign']['hesloMigrace'],
-    'souborNastaveni' => 'nastaveni-redesign.php',
+    'zdrojovaSlozka'  =>  __DIR__ . '/..',
+    'ciloveFtp'       =>  $nastaveni['blackarrow']['ftp'],
+    'urlMigrace'      =>  $nastaveni['blackarrow']['urlMigrace'],
+    'hesloMigrace'    =>  $nastaveni['blackarrow']['hesloMigrace'],
+    'log'             =>  $nastaveni['blackarrow']['log'],
+    'souborNastaveni' =>  'nastaveni-blackarrow.php',
   ]);
+} else {
+  echo "error: unknown branch\n";
+  exit(1);
 }
