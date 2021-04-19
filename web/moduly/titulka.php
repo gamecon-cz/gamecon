@@ -51,3 +51,9 @@ if (pred(REG_GC_OD)) {
   ]);
   $t->parse('titulka.odpocetPrihlasit');
 }
+
+// ostatní
+$t->assign([
+  'gcOd' => (new DateTimeCz(GC_BEZI_OD))->format('j. n.'),
+  'gcDo' => (new DateTimeCz(GC_BEZI_DO))->format('j. n.'),
+]);
