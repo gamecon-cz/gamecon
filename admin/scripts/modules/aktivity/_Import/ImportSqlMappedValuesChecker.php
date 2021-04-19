@@ -363,10 +363,7 @@ SQL
         if (!$rangeDates) {
             return ImportStepResult::success(true);
         }
-        if (in_array($programLine->id(), [$programLine::TECHNICKA, $programLine::WARGAMING], true)) {
-            // some activities do not care about location
-            return ImportStepResult::success($locationId);
-        }
+        $programLineCaresAboutOccupiedActivity = !in_array($programLine->id(), [$programLine::TECHNICKA, $programLine::WARGAMING], true);
         /** @var DateTimeCz $zacatek */
         /** @var DateTimeCz $konec */
         ['start' => $zacatek, 'end' => $konec] = $rangeDates;
@@ -377,38 +374,47 @@ WHERE akce_seznam.lokace = $1
 AND akce_seznam.zacatek <= $2 -- existujici zacala na konci nebo pred koncem novem
 AND akce_seznam.konec >= $3 -- existujici skoncila na zacatku nebo po zacatku nove
 AND IF ($4 IS NULL, TRUE, akce_seznam.id_akce != $4)
+AND IF ($5 IS NULL, TRUE, akce_seznam.typ != $5)
 SQL,
             [
                 $locationId,
                 $konec->formatDb(),
                 $zacatek->formatDb(),
-                $originalActivity ? $originalActivity->id() : null,
+                $originalActivity
+                    ? $originalActivity->id()
+                    : null,
+                $programLineCaresAboutOccupiedActivity
+                    ? null
+                    : $programLine->id() // some activities do not care about shared location
             ]
         );
         if (count($locationOccupyingActivityIds) === 0) {
             return ImportStepResult::success($locationId);
         }
+        $activitiesDescription = count($locationOccupyingActivityIds) > 1
+            ? 'jinými aktivitami'
+            : 'jinou aktivitou';
+        $activitiesDescription .= implode(
+            ' a ',
+            array_map(
+                function ($locationOccupyingActivityIds) {
+                    return $this->importValuesDescriber->describeActivityById((int)$locationOccupyingActivityIds);
+                },
+                $locationOccupyingActivityIds
+            )
+        );
+        $activitiesDescription .= $programLineCaresAboutOccupiedActivity
+            ? ''
+            : " jiného typu než '{$programLine->nazev()}'";
         return ImportStepResult::successWithWarnings(
             $locationId,
             [
                 sprintf(
-                    'Místnost %s je někdy mezi %s a %s již zabraná %s %s. Nyní tak byla přidána už %d. aktivita do této místnosti.',
+                    'Místnost %s je někdy mezi %s a %s již zabraná %s. Nyní tak byla přidána další aktivita do této místnosti.',
                     $this->importValuesDescriber->describeLocationById($locationId),
                     $zacatek->formatCasNaMinutyStandard(),
                     $konec->formatCasNaMinutyStandard(),
-                    count($locationOccupyingActivityIds) > 1
-                        ? 'jinými aktivitami'
-                        : 'jinou aktivitou',
-                    implode(
-                        ' a ',
-                        array_map(
-                            function ($locationOccupyingActivityIds) {
-                                return $this->importValuesDescriber->describeActivityById((int)$locationOccupyingActivityIds);
-                            },
-                            $locationOccupyingActivityIds
-                        )
-                    ),
-                    count($locationOccupyingActivityIds) + 1
+                    $activitiesDescription,
                 ),
             ]
         );
