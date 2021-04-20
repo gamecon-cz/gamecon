@@ -394,7 +394,7 @@ SQL,
         $activitiesDescription = count($locationOccupyingActivityIds) > 1
             ? 'jinými aktivitami'
             : 'jinou aktivitou';
-        $activitiesDescription .= implode(
+        $activitiesDescription .= ' ' . implode(
             ' a ',
             array_map(
                 function ($locationOccupyingActivityIds) {
