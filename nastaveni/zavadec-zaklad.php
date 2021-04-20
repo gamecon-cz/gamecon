@@ -34,7 +34,7 @@ if (PHP_SAPI == 'cli' || in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '
   require __DIR__ . '/nastaveni-local-default.php'; // výchozí lokální nastavení
 } elseif (substr($_SERVER['SERVER_NAME'], -15) == 'beta.gamecon.cz') {
   require __DIR__ . '/nastaveni-beta.php';
-} elseif (str_ends_with($host, 'blackarrow.gamecon.cz')) {
+} elseif (str_ends_with_gc($host, 'blackarrow.gamecon.cz')) {
   require __DIR__ . '/nastaveni-blackarrow.php';
 } elseif ($_SERVER['SERVER_NAME'] == 'admin.gamecon.cz' || $_SERVER['SERVER_NAME'] == 'gamecon.cz') {
   require __DIR__ . '/nastaveni-produkce.php';
@@ -44,6 +44,8 @@ if (PHP_SAPI == 'cli' || in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '
 }
 
 require __DIR__ . '/nastaveni.php';
+
+require __DIR__ . '/nastaveni-doctrine.php';
 
 // výchozí hodnoty konstant
 // (nezobrazovat chyby, pokud už konstanta byla nastavena dřív)

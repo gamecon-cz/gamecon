@@ -37,7 +37,7 @@
     "godric/db-migrations": "dev-master",
     "setasign/tfpdf": "^1.25",
     "wikimedia/less.php": "^3.0",
-    "doctrine/orm": "*"
+    "doctrine/orm": "^2.8.4"
   },
   "require-dev": {
     "dg/ftp-deployment": "~2.7",

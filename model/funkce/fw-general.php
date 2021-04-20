@@ -141,11 +141,11 @@ function snakeToCamel($str) {
   return $str;
 }
 
-function str_contains($str, $needle) {
+function str_contains_gc($str, $needle) {
   return strpos($str, $needle) !== false;
 }
 
-function str_ends_with($str, $ending) {
+function str_ends_with_gc($str, $ending) {
   return substr($str, -strlen($ending)) == $ending;
 }
 

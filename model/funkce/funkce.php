@@ -278,7 +278,7 @@ function perfectcache(/* variadic */) {
 function perfectcacheExpandujArgumenty($argumenty) {
   $out = [];
   foreach ($argumenty as $argument) {
-    if (str_contains($argument, '*')) {
+    if (str_contains_gc($argument, '*')) {
       $out = array_merge($out, glob($argument));
     } else {
       $out[] = $argument;
