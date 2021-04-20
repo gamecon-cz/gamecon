@@ -205,26 +205,6 @@ function omezCsrf() {
   }
 }
 
-
-/**
- * Předá oznámení volajícímu skritpu, vyvolá reload
- * @param back bool má se reloadovat?
- */
-function oznameni($zprava, $back = true) {
-  Chyba::nastav($zprava, Chyba::OZNAMENI);
-  if($back) back();
-}
-
-
-/**
- * Předá oznámení volajícímu skritpu a přesměruje na $cil
- */
-function oznameniPresmeruj($zprava, $cil) {
-  Chyba::nastav($zprava, Chyba::OZNAMENI);
-  back($cil);
-}
-
-
 /**
  * Kompiluje a minifikuje soubory předané v argumentech a vrací url s časovou
  * značkou (jako url proměnnou)

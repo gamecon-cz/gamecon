@@ -90,6 +90,13 @@ function oznameni($zprava, $back = true) {
   }
 }
 
+/**
+ * Předá oznámení volajícímu skritpu a přesměruje na $cil
+ */
+function oznameniPresmeruj($zprava, $cil) {
+    Chyba::nastav($zprava, Chyba::OZNAMENI);
+    back($cil);
+}
 
 /** Tisk informace profileru. */
 function profilInfo()
