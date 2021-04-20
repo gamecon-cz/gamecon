@@ -132,7 +132,7 @@ class ActivitiesExporter
                 $aktivita->bezSlevy() // Bez slev
                     ? 'ano'
                     : 'ne',
-                (string)$aktivita->vybaveni(), // Vybavení
+                (string)$aktivita->vybaveni(), // Příprava místnosti
                 $aktivita->stav()->nazev(), // Stav
                 $aktivita->maObrazek()
                     ? $aktivita->urlObrazku($this->baseUrl)

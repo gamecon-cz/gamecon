@@ -381,7 +381,7 @@ class ImportValuesSanitizer
     }
 
     private function getValidatedEquipment(array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
-        $equipmentValue = $activityValues[ExportAktivitSloupce::VYBAVENI] ?? null;
+        $equipmentValue = $activityValues[ExportAktivitSloupce::PRIPRAVA_MISTNOSTI] ?? null;
         if ((string)$equipmentValue === '') {
             $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
             return ImportStepResult::success($sourceActivity

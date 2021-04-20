@@ -201,7 +201,7 @@ $(function(){
     </td>
   </tr>
   <tr>
-    <th>Vybavení</th>
+    <th>Příprava místnosti</th>
     <td>
       <textarea rows="1" class="full" type="text" name="{fields}[vybaveni]">{vybaveni}</textarea>
     </td>

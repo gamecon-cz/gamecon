@@ -24,7 +24,7 @@ class ExportAktivitSloupce
     public const MAXIMALNI_KAPACITA_TYMU = 'Maximální kapacita týmu'; // team_max
     public const CENA = 'Cena'; // cena
     public const BEZ_SLEV = 'Bez slev'; // bez_slevy
-    public const VYBAVENI = 'Vybavení'; // vybaveni
+    public const PRIPRAVA_MISTNOSTI = 'Příprava místnosti'; // vybaveni
     public const STAV = 'Stav'; // stav
     public const OBRAZEK = 'Obrázek'; // /soubory/systemove/aktivity/{URL}.jpg';
 
@@ -50,7 +50,7 @@ class ExportAktivitSloupce
             self::MAXIMALNI_KAPACITA_TYMU,
             self::CENA,
             self::BEZ_SLEV,
-            self::VYBAVENI,
+            self::PRIPRAVA_MISTNOSTI,
             self::STAV,
             self::OBRAZEK,
         ];
