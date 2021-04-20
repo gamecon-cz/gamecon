@@ -36,7 +36,8 @@
     "defuse/php-encryption": "^2.1",
     "godric/db-migrations": "dev-master",
     "setasign/tfpdf": "^1.25",
-    "wikimedia/less.php": "^3.0"
+    "wikimedia/less.php": "^3.0",
+    "doctrine/orm": "*"
   },
   "require-dev": {
     "dg/ftp-deployment": "~2.7",
