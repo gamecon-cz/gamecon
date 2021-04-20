@@ -47,14 +47,13 @@
     "defuse/php-encryption": "^2.1",
     "godric/db-migrations": "dev-master",
     "setasign/tfpdf": "^1.25",
-    "wikimedia/less.php": "^3.0"
-    "setasign/tfpdf": "^1.25",
+    "wikimedia/less.php": "^3.0",
     "google/apiclient": "^2.4"
   },
   "require-dev": {
     "dg/ftp-deployment": "~2.7",
     "phpunit/phpunit": "^9.5",
-    "roave/security-advisories": "dev-master"
+    "roave/security-advisories": "dev-latest"
   },
   "autoload-dev": {
     "psr-4": {
