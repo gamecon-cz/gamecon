@@ -17,7 +17,10 @@
 
 .menu_obal2 {
     margin: 0 146px;
-    @media (max-width: 600px) {
+    @media (max-width: 1200px) {
+        margin: 0 20px;
+    }
+    @media (max-width: 900px) {
         margin: 0;
     }
 }
@@ -38,8 +41,11 @@
     color: transparent; // text je v logu, proto skrýt
     float: left;
     margin-right: 100px;
-    @media (max-width: 600px) {
+    @media (max-width: 990px) {
         margin-left: 20px;
+    }
+    @media (max-width: 500px) {
+        margin-right: -50px;
     }
     background: url('../blackarrow/menu/logo.svg') no-repeat 0 20px;
 }
@@ -57,7 +63,7 @@
     letter-spacing: 1px;
     padding: 0 30px;
     font-weight: bold;
-    @media (max-width: 600px) {
+    @media (max-width: 990px) {
         line-height: 50px;
         padding: 0 20px;
     }
@@ -110,7 +116,7 @@
     padding: 40px 220px;
     box-sizing: border-box;
     z-index: 20; // aby překrylo jméno na mobilu
-    @media (max-width: 600px) {
+    @media (max-width: 990px) {
         padding: 20px;
         row-gap: 10px;
     }
@@ -153,9 +159,7 @@
     position: relative;
     line-height: 70px;
     padding: 0 30px;
-    @media (max-width: 600px) {
-        margin: -100px 0 0 0;
-    }
+    z-index: 1; // kvůli překrytí šipek menu aktivit na mobilu
 }
 
 .menu_uzivatel:hover {
@@ -196,7 +200,7 @@
     font-weight: bold;
     font-size: 18px;
     padding: 17px 0 20px 0;
-    @media (max-width: 600px) {
+    @media (max-width: 990px) {
         left: initial;
         right: 0;
     }

@@ -8,6 +8,12 @@
     padding: 60px 60px 120px; // dolní padding kvůli tooltipu na os. údaje
     padding-left: ~'calc(' @levyOkraj ~'+ 60px)';
     position: relative; // kvůli nadpisu
+    @media (max-aspect-ratio: 1.5) {
+        background: none;
+        padding-left: 120px;
+        .formular_strankaNadpis { display: none; }
+        .fromular_strankaPodtitul { display: none; }
+    }
     @media (max-width: 600px) {
         padding: 20px;
         background: none;
@@ -72,7 +78,7 @@
     width: 200px;
     margin: 30px 0 0 336px;
     text-align: right;
-    @media (max-width: 600px) {
+    @media (max-width: 800px) {
         right: 20px;
     }
 }
