@@ -10,7 +10,7 @@ $typ = $stranka->typ();
 
 ?>
 
-<div class="stranka stranka_format">
+<div class="stranka">
     <?php if ($typ) { ?>
         <a class="stranka_zpet" href="<?=$typ->url()?>">zpět na <?=$typ->nazev()?></a>
     <?php } ?>

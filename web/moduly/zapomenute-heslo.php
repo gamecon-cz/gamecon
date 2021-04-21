@@ -1,5 +1,7 @@
 <?php
 
+$this->blackarrowStyl(true);
+
 function obnovHesloUzivateli($uzivatel) {
   if(!$uzivatel) chyba('Chyba: Zadané uživatelské jméno nebo email neexistují.');
 
@@ -35,6 +37,8 @@ if(post('mail')) {
 
 ?>
 
+<div class="stranka">
+
 <h1>Zapomenuté heslo</h1>
 
 <p>Pokud jste zapomněli své heslo, můžete si nechat vygenerovat nové a zaslat si ho na email, který je pro váš účet aktivní. Po úspěšném přihlášení doporučujeme heslo změnit.</p>
@@ -52,3 +56,5 @@ if(post('mail')) {
   <input type="text" name="mail">
   <input type="submit" value="odeslat">
 </form>
+
+</div>

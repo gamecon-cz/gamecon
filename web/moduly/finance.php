@@ -1,5 +1,7 @@
 <?php
 
+$this->blackarrowStyl(true);
+
 if(!$u) { //jen přihlášení
   echo hlaska('jenPrihlaseni');
   return;
@@ -29,7 +31,7 @@ if(!$zaplaceno) {
 
 ?>
 
-
+<div class="stranka">
 
 <h1>Přehled financí</h1>
 <p>V následujícím přehledu vidíš seznam všech položek, které sis na GameConu objednal<?=$a?>, s výslednými cenami po započítání všech slev. Pokud je tvůj celkový stav financí záporný, pokyny k <b>zaplacení</b> najdeš <a href="finance#placeni">úplně dole</a>.</p>
@@ -40,12 +42,12 @@ if(!$zaplaceno) {
 .tabVeci table td { border-bottom: solid 1px #ddd; padding-right: 5px; }
 .tabVeci table td:last-child { width: 20px; } 
 </style>
-<div style="float:left;width:250px;margin-bottom:24px"  class="tabVeci">
+<div style="float:left;width:250px;margin-bottom:24px; margin-right: 50px" class="tabVeci">
 <h2>Objednané věci</h2>
 <?=$veci?>
 </div>
 
-<div style="float:right;width:250px">
+<div style="float:left; width:250px">
   <h2>Slevy</h2>
   <?php if($slevyA) { ?>
     <strong>Použité slevy na aktivity</strong>
@@ -119,3 +121,5 @@ if(!$zaplaceno) {
     <strong>Poznámka pro příjemce:</strong> /VS/<?=$uid?> <i>(vč. lomítek)</i><br>
   <?php } ?>
 <?php } ?>
+
+</div>
