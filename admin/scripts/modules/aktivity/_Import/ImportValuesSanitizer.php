@@ -819,7 +819,7 @@ HTML;
                 )]
             );
         }
-        return $this->createDateTimeFromRangeBorder($activityValues[ExportAktivitSloupce::DEN], $activityValues[ExportAktivitSloupce::ZACATEK]);
+        return $this->createDateTimeFromRangeBorder($activityValues[ExportAktivitSloupce::DEN], $activityValues[ExportAktivitSloupce::ZACATEK], 'začátek');
     }
 
     private function getValidatedEnd(array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
@@ -844,20 +844,21 @@ HTML;
                 )]
             );
         }
-        return $this->createDateTimeFromRangeBorder($activityValues[ExportAktivitSloupce::DEN], $activityValues[ExportAktivitSloupce::KONEC]);
+        return $this->createDateTimeFromRangeBorder($activityValues[ExportAktivitSloupce::DEN], $activityValues[ExportAktivitSloupce::KONEC], 'konec');
     }
 
-    private function createDateTimeFromRangeBorder(string $dayName, string $hoursAndMinutes): ImportStepResult {
+    private function createDateTimeFromRangeBorder(string $dayName, string $hoursAndMinutes, string $timeName): ImportStepResult {
         try {
             $date = DateTimeGamecon::denKolemZacatkuGameconuProRok($dayName, $this->currentYear);
         } catch (\Exception $exception) {
             return ImportStepResult::successWithErrorLikeWarnings(
                 null,
                 [sprintf(
-                    "Nepodařilo se vytvořit datum ze dne '%s' a času '%s'. Chybný formát datumu. Detail: %s. Čas aktivity je vynechán.",
+                    "Nepodařilo se vytvořit datum ze dne '%s' a času '%s'. Chybný formát datumu (%s). %s aktivity je vynechán.",
                     $dayName,
                     $hoursAndMinutes,
-                    $exception->getMessage()
+                    $exception->getMessage(),
+                    mb_ucfirst($timeName)
                 )]
             );
         }
