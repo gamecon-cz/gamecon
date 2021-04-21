@@ -1,5 +1,8 @@
 <?php
 
+use \Gamecon\Cas\DateTimeCz;
+/** @var XTemplate $t */
+
 $this->blackarrowStyl(true);
 $this->info()
   ->titulek('GameCon – největší festival nepočítačových her')

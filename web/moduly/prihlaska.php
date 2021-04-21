@@ -1,5 +1,9 @@
 <?php
 
+use \Gamecon\Cas\DateTimeCz;
+/** @var XTemplate $t */
+/** @var Uzivatel $u */
+
 $this->blackarrowStyl(true);
 $this->bezPaticky(true);
 $this->info()->nazev('Přihláška');
@@ -19,7 +23,7 @@ function nahledPredmetu($soubor) {
   return $nahled;
 }
 
-if(GC_BEZI || $u && $u->gcPritomen()) {
+if(GC_BEZI || ($u && $u->gcPritomen())) {
   // zpřístupnit varianty mimo registraci i pro nepřihlášeného uživatele kvůli
   // příchodům z titulky, menu a podobně
   $t->parse('prihlaskaGcBezi');

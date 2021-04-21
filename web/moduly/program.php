@@ -1,5 +1,10 @@
 <?php
 
+use \Gamecon\Cas\DateTimeCz;
+/** @var XTemplate $t */
+/** @var Uzivatel $u */
+/** @var url $url */
+
 $this->blackarrowStyl(true);
 $this->info()->nazev('Program');
 
@@ -10,7 +15,7 @@ for ($den = new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen())
 
 $nastaveni = [];
 $alternativniUrl = null;
-if ($url->cast(1) == 'muj') {
+if ($url->cast(1) === 'muj') {
     if (!$u) throw new Neprihlasen();
     $nastaveni['osobni'] = true;
 } else if (isset($dny[$url->cast(1)])) {
