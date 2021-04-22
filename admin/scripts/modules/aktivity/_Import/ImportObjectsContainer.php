@@ -149,7 +149,20 @@ class ImportObjectsContainer
     }
 
     private function getProgramLocationByName(string $name): ?\Lokace {
-        return $this->getProgramLocationsCache()['keyFromName'][ImportKeyUnifier::toUnifiedKey($name, [], ImportKeyUnifier::UNIFY_UP_TO_NUMBERS_AND_LETTERS)] ?? null;
+        $unifiedKey = ImportKeyUnifier::toUnifiedKey($name, [], ImportKeyUnifier::UNIFY_UP_TO_NUMBERS_AND_LETTERS);
+        $programLocation = $this->getProgramLocationsCache()['keyFromName'][$unifiedKey] ?? null;
+        if ($programLocation) {
+            return $programLocation;
+        }
+        $keysFromFullNames = array_keys($this->getProgramLocationsCache()['keyFromName']);
+        $matchingKeysFromFullNames = array_filter($keysFromFullNames, static function (string $keyFromFullName) use ($unifiedKey) {
+            return strpos($keyFromFullName, $unifiedKey) === 0; // given location name is a beginning of a location full name
+        });
+        if (count($matchingKeysFromFullNames) === 1) { // given name was a beginning of a single location name
+            $unifiedKeyFromFullName = reset($matchingKeysFromFullNames);
+            return $this->getProgramLocationsCache()['keyFromName'][$unifiedKeyFromFullName];
+        }
+        return null; // no or too many locations matched given name part
     }
 
     private function getProgramLocationsCache(): array {
