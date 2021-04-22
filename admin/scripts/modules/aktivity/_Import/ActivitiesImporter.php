@@ -149,18 +149,14 @@ class ActivitiesImporter
                 $activityGuid = uniqid('importActivity', true);
 
                 $validatedValuesResult = $this->importValuesSanitizer->sanitizeValues($singleProgramLine, $activityValues);
+                $result->addWarnings($validatedValuesResult, $activityGuid);
+                $result->addErrorLikeWarnings($validatedValuesResult, $activityGuid);
                 if ($validatedValuesResult->isError()) {
                     $result->addErrorMessage($validatedValuesResult->getError(), $activityGuid);
                     $activityFinalDescription = $validatedValuesResult->getLastActivityDescription()
                         ?? $this->importValuesDescriber->describeActivityByInputValues($activityValues, null);
                     $result->solveActivityDescription($activityGuid, $activityFinalDescription);
                     continue;
-                }
-                if ($validatedValuesResult->hasWarnings()) {
-                    $result->addWarnings($validatedValuesResult, $activityGuid);
-                }
-                if ($validatedValuesResult->hasErrorLikeWarnings()) {
-                    $result->addErrorLikeWarnings($validatedValuesResult, $activityGuid);
                 }
                 $validatedValues = $validatedValuesResult->getSuccess();
                 unset($validatedValuesResult);
@@ -192,7 +188,7 @@ class ActivitiesImporter
                 }
                 /** @var \Aktivita $importedActivity */
                 ['message' => $successMessage, 'importedActivity' => $importedActivity] = $importActivityResult->getSuccess();
-                if ($importActivityResult->hasErrorLikeWarnings() || $importActivityResult->hasWarnings()) {
+                if ($result->wasProblemWith($activityGuid)) {
                     $result->addWarningMessage($successMessage . ' Import ale nebyl bez problémů, viz výše.', $activityGuid);
                 } else {
                     $result->addSuccessMessage($successMessage, $activityGuid);

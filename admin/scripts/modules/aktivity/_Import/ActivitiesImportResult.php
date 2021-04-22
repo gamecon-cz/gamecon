@@ -159,12 +159,18 @@ class ActivitiesImportResult
         return $this->errorMessages;
     }
 
-    public function importWasCanceled(): bool {
+    public function wasImportCanceled(): bool {
         foreach ($this->getErrorMessages() as $activityGuid => $singleActivityErrorMessages) {
             if ($activityGuid !== self::GUID_FOR_NO_ACTIVITY) {
                 return false;
             }
         }
         return true;
+    }
+
+    public function wasProblemWith(string $activityGuid): bool {
+        return !empty($this->errorMessages[$activityGuid])
+            || !empty($this->errorLikeWarningMessages[$activityGuid])
+            || !empty($this->warningMessages[$activityGuid]);
     }
 }

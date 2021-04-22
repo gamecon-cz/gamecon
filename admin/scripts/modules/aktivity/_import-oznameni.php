@@ -37,7 +37,7 @@ return static function (\Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImportR
         $template->parse($mainBlockName);
     };
 
-    if ($vysledekImportuAktivit->importWasCanceled()) {
+    if ($vysledekImportuAktivit->wasImportCanceled()) {
         $template->parse('oznameni.errors.stoppedHeader');
     } else {
         $template->parse('oznameni.errors.skippedHeader');
