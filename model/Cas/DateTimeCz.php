@@ -42,35 +42,38 @@ class DateTimeCz extends \DateTime
     'December' => 'prosince',
   ];
 
+  protected static $dnyVTydnuBezDiakritiky = [
+    1 => 'pondeli',
+    2 => 'utery',
+    3 => 'streda',
+    4 => 'ctvrtek',
+    5 => 'patek',
+    6 => 'sobota',
+    7 => 'nedele',
+  ];
+
   public static function createFromFormat($format, $time, \DateTimeZone $timezone = null) {
     $dateTime = parent::createFromFormat($format, $time, $timezone);
     return new static($dateTime->format(DATE_ATOM));
   }
 
   public static function poradiDne(string $den): int {
-    $denBezDiakritiky = odstranDiakritiku($den);
-    $prvniDvePismena = substr($denBezDiakritiky, 0, 2);
-    switch ($prvniDvePismena) {
-      case 'po' :
-        return 1;
-      case 'ut' :
-        return 2;
-      case 'st' :
-        return 3;
-      case 'ct' :
-        return 4;
-      case 'pa' :
-        return 5;
-      case 'so' :
-        return 6;
-      case 'ne' :
-        return 7;
-      default :
-        throw new \RuntimeException("Unknown czech day name '$den'");
+    $hledanyDenMalymiPismeny = mb_strtolower($den);
+    $hledadnyDenBezDiakritiky = odstranDiakritiku($hledanyDenMalymiPismeny);
+    $poradiDnuZacinajicichStejne = [];
+    foreach (self::$dnyVTydnuBezDiakritiky as $poradiDneVTydnu => $denVTydnuBezDiakritiky) {
+        if (strpos($denVTydnuBezDiakritiky, $hledadnyDenBezDiakritiky) === 0) {
+            $poradiDnuZacinajicichStejne[] = $poradiDneVTydnu;
+        }
     }
+    if (count($poradiDnuZacinajicichStejne) === 1) {
+        return reset($poradiDnuZacinajicichStejne);
+    }
+    throw new \RuntimeException("Unknown czech day name '$den'");
   }
 
   /**
+   * @param string|\DateInterval $interval
    * Obalovací fce, umožňuje vložit přímo řetězec pro konstruktor DateIntervalu
    */
   function add($interval) {
