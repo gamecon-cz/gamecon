@@ -94,15 +94,16 @@ class Chyba extends Exception
     return <<<HTML
 <div class="chybaBlok" id="{$chybaBlokId}">
 {$zpravy}
-  <div class="chybaBlok_zavrit">✕</div>
+  <div class="chybaBlok_zavrit admin_zavrit">❌</div>
   <script>
   (() => {
+    const chyba = document.currentScript.parentNode
     const hlasky = $('.hlaska')
     let pocetHlasek = hlasky.length
     const oHlaskuMin = function() {
       pocetHlasek--
       if (pocetHlasek <= 0) {
-        $('{$chybaBlokId}').remove()
+        chyba.remove()
       }
     }
     hlasky.each(function() {
@@ -111,7 +112,6 @@ class Chyba extends Exception
         oHlaskuMin()
       });
     });
-    let chyba = document.currentScript.parentNode
     chyba.querySelector(".chybaBlok_zavrit").onclick = () => chyba.remove()
   })()
   </script>
