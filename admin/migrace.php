@@ -18,7 +18,7 @@ ini_set('html_errors',      false); // chyby zobrazovat jako plaintext
 // spustit migrace
 pripravCache(SPEC . '/db-backup');
 (new Godric\DbMigrations\DbMigrations([
-  'connection'          =>  new mysqli(DBM_SERV, DBM_USER, DBM_PASS, DBM_NAME),
+  'connection'          =>  new mysqli(DBM_SERV, DBM_USER, DBM_PASS, DBM_NAME, defined('DBM_PORT') ? DBM_PORT : null),
   'migrationsDirectory' =>  __DIR__ . '/../migrace',
   'backupsDirectory'    =>  SPEC . '/db-backup',
   'checkInitialMigrationChanges' => false,
