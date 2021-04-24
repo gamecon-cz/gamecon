@@ -29,6 +29,7 @@
 !/web/soubory/systemove/*/.keep
 
 /nasad.log
+/.htdeployment
 
 /docker-compose.override.yml
 /docker-compose.yml
