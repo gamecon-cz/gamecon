@@ -77,6 +77,7 @@ class Chyba extends Exception
   private static function vytvorHtmlZpravu(array $zpravyPodleTypu): string {
     $zpravy = '';
     $chybaBlokId = uniqid('chybaBlokId', true);
+    $delkaTextu = 0;
     foreach ($zpravyPodleTypu as $typ => $zpravyJednohoTypu) {
       switch ($typ) {
         case 'oznameni':
@@ -88,32 +89,30 @@ class Chyba extends Exception
       $zpravyJednohoTypuHtml = '';
       foreach ($zpravyJednohoTypu as $zprava) {
         $zpravyJednohoTypuHtml .= sprintf('<div class="hlaska %s">%s</div>', $tridaPodleTypu, htmlentities($zprava));
+        $delkaTextu += strlen(strip_tags($zprava));
       }
       $zpravy .= sprintf('<div>%s</div>', $zpravyJednohoTypuHtml);
     }
+    $zobrazeniSekund = ceil($delkaTextu / 50) + 4.0;
+    $mizeniSekund = 2.0;
+
     return <<<HTML
 <div class="chybaBlok" id="{$chybaBlokId}">
-{$zpravy}
+  {$zpravy}
   <div class="chybaBlok_zavrit admin_zavrit">❌</div>
   <script>
-  (() => {
-    const chyba = document.currentScript.parentNode
-    const hlasky = $('.hlaska')
-    let pocetHlasek = hlasky.length
-    const oHlaskuMin = function() {
-      pocetHlasek--
-      if (pocetHlasek <= 0) {
-        chyba.remove()
-      }
-    }
-    hlasky.each(function() {
-      const length = $(this).html().length;
-      $(this).delay(2000 + length * 30).fadeOut(1500, function() {
-        oHlaskuMin()
-      });
-    });
-    chyba.querySelector(".chybaBlok_zavrit").onclick = () => chyba.remove()
-  })()
+    // warning! this is both for web (without jQuery) as well a for admin (without LESS)
+    (() => {
+      let chyba = document.currentScript.parentNode
+      setTimeout(() => {
+            chyba.style.transition = "opacity "+{$mizeniSekund}+"s"
+            chyba.style.opacity = 0.0
+            setTimeout(() => chyba.remove(), ({$mizeniSekund} * 1000))
+        },
+        ({$zobrazeniSekund} * 1000)
+      )
+      chyba.querySelector(".chybaBlok_zavrit").onclick = () => chyba.remove()
+    })()
   </script>
   </div>
 HTML
