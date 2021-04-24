@@ -6,12 +6,14 @@ ini_set('display_errors', true); // zobrazovat chyby při lokálním vývoji (po
 @define('DB_PASS', '');
 @define('DB_NAME', 'gamecon');
 @define('DB_SERV', '127.0.0.1');
+//@define('DB_PORT', '3306');
 
 // uživatel s přístupem k změnám struktury
-@define('DBM_USER', 'root');
-@define('DBM_PASS', '');
-@define('DBM_NAME', 'gamecon');
-@define('DBM_SERV', 'localhost');
+@define('DBM_USER', DB_USER);
+@define('DBM_PASS', DB_PASS);
+@define('DBM_NAME', DB_NAME);
+@define('DBM_SERV', DB_SERV);
+//@define('DBM_PORT', DB_PORT);
 
 @define('URL_WEBU',  '/gamecon/web'); // absolutní url uživatelského webu
 @define('URL_ADMIN', '/gamecon/admin'); // absolutní url adminu

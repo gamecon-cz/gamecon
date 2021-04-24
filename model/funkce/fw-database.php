@@ -73,6 +73,7 @@ function dbConnect($selectDb = true) {
     $dbname     = DB_NAME;
     $dbuser     = DB_USER;
     $dbpass     = DB_PASS;
+    $dbPort     = defined('DB_PORT') ? DB_PORT : null;
     $spojeni    = null;
     $dbLastQ    = '';   //vztahuje se pouze na dotaz v aktualnim skriptu
     $dbNumQ     = 0;    //počet dotazů do databáze
@@ -80,7 +81,7 @@ function dbConnect($selectDb = true) {
 
     // připojení
     $start = microtime(true);
-    $spojeni = @mysqli_connect('p:' . $dbhost, $dbuser, $dbpass, $selectDb ? $dbname : ''); // persistent connection
+    $spojeni = @mysqli_connect('p:' . $dbhost, $dbuser, $dbpass, $selectDb ? $dbname : '', $dbPort); // persistent connection
     if(!$spojeni)
       throw new Exception('Failed to connect to the database, error: "' . mysqli_connect_error() . '".');
     if(!$spojeni->set_charset('utf8'))
