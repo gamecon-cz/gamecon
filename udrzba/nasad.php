@@ -53,7 +53,7 @@ if ($vetev === 'master') {
     'hesloMigrace' => $nastaveni['beta']['hesloMigrace'],
     'souborNastaveni' => 'nastaveni-beta.php',
   ]);
-} elseif ($vetev == 'blackarrow') {
+} elseif ($vetev === 'blackarrow') {
   nasad([
     'zdrojovaSlozka' => __DIR__ . '/..',
     'ciloveFtp' => $nastaveni['blackarrow']['ftp'],

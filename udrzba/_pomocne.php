@@ -22,7 +22,9 @@ function nasad(array $nastaveni) {
     local   = {$zdrojovaSlozka}
     ignore  = '
       /_*
-      /.*
+      /.git
+      /.github
+      /.idea
 
       /cache/private/*
       !/cache/private/.htaccess
