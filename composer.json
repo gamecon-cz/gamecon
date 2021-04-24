@@ -37,7 +37,7 @@
   "require-dev": {
     "dg/ftp-deployment": "~3.3",
     "phpunit/phpunit": "~9.5",
-    "roave/security-advisories": "dev-master"
+    "roave/security-advisories": "dev-latest"
   },
   "autoload-dev": {
     "psr-4": {
