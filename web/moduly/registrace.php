@@ -11,10 +11,8 @@
  * právě sem.
  */
 
+use \Gamecon\Cas\DateTimeCz;
 
-/**
- *
- */
 $zpracujRegistraci = function () use ($u) {
     if (!post('registrovat')) return;
     if ($u) throw Chyby::jedna('Jiný uživatel v tomto prohlížeči už je přihlášený.');
