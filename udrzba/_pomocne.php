@@ -61,7 +61,6 @@ function nasad(array $nastaveni) {
       /vendor/phpspec/prophecy
       /vendor/phar-io/manifest
       /vendor/phar-io/version
-      /vendor/dg/ftp-deployment
       {$nutneKvuliComposerAutoRequire}
 
       /nasad.log
