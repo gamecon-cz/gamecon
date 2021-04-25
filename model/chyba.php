@@ -93,7 +93,7 @@ class Chyba extends Exception
       }
       $zpravy .= sprintf('<div>%s</div>', $zpravyJednohoTypuHtml);
     }
-    $zobrazeniSekund = ceil($delkaTextu / 50) + 4.0;
+    $zobrazeniSekund = ceil($delkaTextu / 20) + 4.0;
     $mizeniSekund = 2.0;
 
     return <<<HTML

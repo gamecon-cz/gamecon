@@ -14,6 +14,7 @@
 namespace Gamecon\Admin\Modules\Aktivity;
 
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleConnectionException;
+use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\MissingGoogleApiCredentials;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleApiClient;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
@@ -25,9 +26,15 @@ if ($_GET['zpet'] ?? '' === 'aktivity') {
     back(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) . '/..');
 }
 
+try {
+    $googleApiCredentials = GoogleApiCredentials::createFromGlobals();
+} catch (MissingGoogleApiCredentials $missingGoogleApiCredentials) {
+    chyba('V nastavení chybí přístupy pro Google Sheets API. Kontaktujte Gamecon IT 💻.');
+    exit;
+}
+
 /** @type \Uzivatel $u */
 $currentUserId = $u->id();
-$googleApiCredentials = GoogleApiCredentials::createFromGlobals();
 $googleApiClient = new GoogleApiClient(
     $googleApiCredentials,
     new GoogleApiTokenStorage($googleApiCredentials->getClientId()),
@@ -66,7 +73,6 @@ try {
         require __DIR__ . '/_import.php';
     }
     $importOutput = ob_get_clean();
-
 
     require __DIR__ . '/_export.php';
 
