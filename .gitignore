@@ -6,6 +6,7 @@
 !/cache/public/.htaccess
 
 /nastaveni/google_api_client_secret.json
+/nastaveni/google_api_client_secret_produkce.json
 /nastaveni/nastaveni-beta.php
 /nastaveni/nastaveni-ftpdeploy.php
 /nastaveni/nastaveni-local.php
