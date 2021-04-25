@@ -36,6 +36,8 @@ function nasad(array $nastaveni) {
 
       /nastaveni/*
       !/nastaveni/{$nastaveni['souborNastaveni']}
+      !/nastaveni/db-migrace.php
+      !/nastaveni/initial-fatal-error-handler.php
       !/nastaveni/nastaveni.php
       !/nastaveni/nastaveni-vychozi.php
       !/nastaveni/zavadec.php
