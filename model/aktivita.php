@@ -744,11 +744,8 @@ class Aktivita
     }
 
     public function urlObrazku(string $baseUrl = null): string {
-        $urlObrazku = rtrim(URL_WEBU, '/') . '/soubory/systemove/aktivity/' . $this->a['url_akce'] . '.jpg';
-        if ($baseUrl === null) {
-            return $urlObrazku;
-        }
-        return $baseUrl . '/' . ltrim($urlObrazku, '/');
+        $baseUrl = rtrim($baseUrl ?? URL_WEBU, '/');
+        return $baseUrl . '/soubory/systemove/aktivity/' . $this->a['url_akce'] . '.jpg';
     }
 
     /** (Správný) alias pro obsazenostHtml() */
@@ -1008,25 +1005,25 @@ SQL
         );
     }
 
-  /**
-   * Vrátí form(y) s vybírátky plus a mínus pro změny počtů míst teamových akt.
-   * @todo parametry typu komplexnost výpisu a že nemůže měnit kdokoli aktivut
-   * ale jen ten kdo je na ni přihlášený (vs. orgové v adminu)
-   */
-  protected function plusminus(Uzivatel $u = null, $parametry = 0) {
-    // kontroly
-    if (!$this->a['teamova'] || $this->a['stav'] != Stav::AKTIVOVANA) return '';
-    if ($parametry & self::PLUSMINUS && (!$u || !$this->prihlasen($u))) return '';
-    // tisk formu
-    $out = '';
-    if($this->a['team_max'] > $this->a['kapacita']) {
-      $out .= ' <form method="post" style="display:inline"><input type="hidden" name="'.self::PN_PLUSMINUSP.'" value="'.$this->id().'"><a href="#" onclick="this.parentNode.submit(); return false">▲</a></form>';
+    /**
+     * Vrátí form(y) s vybírátky plus a mínus pro změny počtů míst teamových akt.
+     * @todo parametry typu komplexnost výpisu a že nemůže měnit kdokoli aktivut
+     * ale jen ten kdo je na ni přihlášený (vs. orgové v adminu)
+     */
+    protected function plusminus(Uzivatel $u = null, $parametry = 0) {
+        // kontroly
+        if (!$this->a['teamova'] || $this->a['stav'] != Stav::AKTIVOVANA) return '';
+        if ($parametry & self::PLUSMINUS && (!$u || !$this->prihlasen($u))) return '';
+        // tisk formu
+        $out = '';
+        if ($this->a['team_max'] > $this->a['kapacita']) {
+            $out .= ' <form method="post" style="display:inline"><input type="hidden" name="' . self::PN_PLUSMINUSP . '" value="' . $this->id() . '"><a href="#" onclick="this.parentNode.submit(); return false">▲</a></form>';
+        }
+        if ($this->a['team_min'] < $this->a['kapacita'] && $this->prihlaseno() < $this->a['kapacita']) {
+            $out .= ' <form method="post" style="display:inline"><input type="hidden" name="' . self::PN_PLUSMINUSM . '" value="' . $this->id() . '"><a href="#" onclick="this.parentNode.submit(); return false">▼</a></form>';
+        }
+        return $out;
     }
-    if($this->a['team_min'] < $this->a['kapacita'] && $this->prihlaseno() < $this->a['kapacita']) {
-      $out .= ' <form method="post" style="display:inline"><input type="hidden" name="'.self::PN_PLUSMINUSM.'" value="'.$this->id().'"><a href="#" onclick="this.parentNode.submit(); return false">▼</a></form>';
-    }
-    return $out;
-  }
 
     /** Zpracuje formy na měnění počtu míst team. aktivit */
     protected static function plusminusZpracuj(Uzivatel $u = null, $parametry = 0) {
@@ -1235,64 +1232,64 @@ SQL
         return !$this->tymova() && !$this->a['dite'];
     }
 
-  /**
-   * Vrátí html kód pro přihlášení / odhlášení / informaci o zaplněnosti pro
-   * daného uživatele. Pokud není zadán, vrací prázdný řetězec.
-   * @todo v rodině instancí maximálně jedno přihlášení?
-   * @todo konstanty pro jména POST proměnných? viz prihlasovatkoZpracuj
-   */
-  function prihlasovatko(Uzivatel $u = null, $parametry = 0) {
-    $out = '';
-    if ($u && $u->gcPrihlasen() && $this->prihlasovatelna($parametry)) {
-      if (($stav = $this->prihlasenStav($u)) > -1) {
-        if ($stav == 0 || $parametry & self::ZPETNE)
-          $out .=
-            '<form method="post" style="display:inline">'.
-            '<input type="hidden" name="odhlasit" value="'.$this->id().'">'.
-            '<a href="#" onclick="this.parentNode.submit(); return false">odhlásit</a>'.
-            '</form>';
-        if ($stav == 1) $out .= '<em>účast</em>';
-        if ($stav == 2) $out .= '<em>jako náhradník</em>';
-        if ($stav == 3) $out .= '<em>neúčast</em>';
-        if ($stav == 4) $out .= '<em>pozdní odhlášení</em>';
-      } elseif ($u->organizuje($this)) {
+    /**
+     * Vrátí html kód pro přihlášení / odhlášení / informaci o zaplněnosti pro
+     * daného uživatele. Pokud není zadán, vrací prázdný řetězec.
+     * @todo v rodině instancí maximálně jedno přihlášení?
+     * @todo konstanty pro jména POST proměnných? viz prihlasovatkoZpracuj
+     */
+    function prihlasovatko(Uzivatel $u = null, $parametry = 0) {
         $out = '';
-      } elseif ($this->a['zamcel']) {
-        $out = '&#128274;'; //zámek
-      } else {
-        $volno = $this->volno();
-        if ($volno == 'u' || $volno == $u->pohlavi())
-          $out =
-            '<form method="post" style="display:inline">'.
-            '<input type="hidden" name="prihlasit" value="'.$this->id().'">'.
-            '<a href="#" onclick="this.parentNode.submit(); return false">přihlásit</a>'.
-            '</form>';
-        elseif ($volno == 'f')
-          $out = 'pouze ženská místa';
-        elseif ($volno == 'm')
-          $out = 'pouze mužská místa';
-        elseif ($this->prihlasovatelnaNahradnikum()) {
-          if ($u->prihlasenJakoNahradnikNa($this)) {
-            $out =
-              '<form method="post" style="display:inline">' .
-              '<input type="hidden" name="odhlasNahradnika" value="' . $this->id() . '">' .
-              '<a href="#" onclick="this.parentNode.submit(); return false">zrušit sledování</a>' .
-              '</form>';
-          } else {
-            $out =
-              '<form method="post" style="display:inline">' .
-              '<input type="hidden" name="prihlasNahradnika" value="' . $this->id() . '">' .
-              '<a href="#" onclick="this.parentNode.submit(); return false">sledovat</a>' .
-              '</form>';
-          }
+        if ($u && $u->gcPrihlasen() && $this->prihlasovatelna($parametry)) {
+            if (($stav = $this->prihlasenStav($u)) > -1) {
+                if ($stav == 0 || $parametry & self::ZPETNE)
+                    $out .=
+                        '<form method="post" style="display:inline">' .
+                        '<input type="hidden" name="odhlasit" value="' . $this->id() . '">' .
+                        '<a href="#" onclick="this.parentNode.submit(); return false">odhlásit</a>' .
+                        '</form>';
+                if ($stav == 1) $out .= '<em>účast</em>';
+                if ($stav == 2) $out .= '<em>jako náhradník</em>';
+                if ($stav == 3) $out .= '<em>neúčast</em>';
+                if ($stav == 4) $out .= '<em>pozdní odhlášení</em>';
+            } elseif ($u->organizuje($this)) {
+                $out = '';
+            } elseif ($this->a['zamcel']) {
+                $out = '&#128274;'; //zámek
+            } else {
+                $volno = $this->volno();
+                if ($volno == 'u' || $volno == $u->pohlavi())
+                    $out =
+                        '<form method="post" style="display:inline">' .
+                        '<input type="hidden" name="prihlasit" value="' . $this->id() . '">' .
+                        '<a href="#" onclick="this.parentNode.submit(); return false">přihlásit</a>' .
+                        '</form>';
+                elseif ($volno == 'f')
+                    $out = 'pouze ženská místa';
+                elseif ($volno == 'm')
+                    $out = 'pouze mužská místa';
+                elseif ($this->prihlasovatelnaNahradnikum()) {
+                    if ($u->prihlasenJakoNahradnikNa($this)) {
+                        $out =
+                            '<form method="post" style="display:inline">' .
+                            '<input type="hidden" name="odhlasNahradnika" value="' . $this->id() . '">' .
+                            '<a href="#" onclick="this.parentNode.submit(); return false">zrušit sledování</a>' .
+                            '</form>';
+                    } else {
+                        $out =
+                            '<form method="post" style="display:inline">' .
+                            '<input type="hidden" name="prihlasNahradnika" value="' . $this->id() . '">' .
+                            '<a href="#" onclick="this.parentNode.submit(); return false">sledovat</a>' .
+                            '</form>';
+                    }
+                }
+            }
         }
-      }
+        if ($parametry & self::PLUSMINUS_KAZDY) {
+            $out .= '&emsp;' . $this->plusminus($u);
+        }
+        return $out;
     }
-    if ($parametry & self::PLUSMINUS_KAZDY) {
-      $out .= '&emsp;' . $this->plusminus($u);
-    }
-    return $out;
-  }
 
     /** Zpracuje post data z přihlašovátka. Pokud došlo ke změně, vyvolá reload */
     static function prihlasovatkoZpracuj(Uzivatel $u = null, $parametry = 0) {
@@ -1388,25 +1385,25 @@ SQL
                 }
             }
 
-      // doplňující úpravy aktivity
-      dbUpdate('akce_seznam', [
-        'zamcel'      =>  null,
-        'zamcel_cas'  =>  null,
-        'team_nazev'  =>  $nazevTymu ?: null,
-        'kapacita'    =>  $pocetMist ?: dbNoChange(),
-      ], [
-        'id_akce' => $this->id(),
-      ]);
+            // doplňující úpravy aktivity
+            dbUpdate('akce_seznam', [
+                'zamcel' => null,
+                'zamcel_cas' => null,
+                'team_nazev' => $nazevTymu ?: null,
+                'kapacita' => $pocetMist ?: dbNoChange(),
+            ], [
+                'id_akce' => $this->id(),
+            ]);
 
-      $this->refresh();
-    } catch(Exception $e) {
-      dbRollback();
-      if ($chybnyClen)
-        throw new Chyba(hlaska('chybaClenaTymu', $chybnyClen->jmenoNick(), $chybnyClen->id(), $e->getMessage()));
-      else
-        throw $e;
-    }
-    dbCommit();
+            $this->refresh();
+        } catch (Exception $e) {
+            dbRollback();
+            if ($chybnyClen)
+                throw new Chyba(hlaska('chybaClenaTymu', $chybnyClen->jmenoNick(), $chybnyClen->id(), $e->getMessage()));
+            else
+                throw $e;
+        }
+        dbCommit();
 
         // maily přihlášeným
         $mail = new GcMail(hlaskaMail('prihlaseniTeamMail',
@@ -1762,17 +1759,17 @@ SQL
 
         $t = new XTemplate(__DIR__ . '/tym-formular.xtpl');
 
-    // obecné proměnné šablony
-    $zbyva = strtotime($this->a['zamcel_cas']) + self::HAJENI * 60 * 60 - time();
-    $t->assign([
-      'zbyva' => floor($zbyva / 3600) . ' hodin ' . floor($zbyva % 3600 / 60) . ' minut',
-      'postname' => self::TEAMKLIC,
-      'prihlasenyUzivatelId' => $u->id(),
-      'aktivitaId'  =>  $this->id(),
-      'cssUrlAutocomplete' => URL_WEBU . '/soubory/blackarrow/_spolecne/auto-complete.css',
-      'jsUrlAutocomplete'  => URL_WEBU . '/soubory/blackarrow/_spolecne/auto-complete.min.js',
-      'jsUrl'              => URL_WEBU . '/soubory/blackarrow/tym-formular/tym-formular.js',
-    ]);
+        // obecné proměnné šablony
+        $zbyva = strtotime($this->a['zamcel_cas']) + self::HAJENI * 60 * 60 - time();
+        $t->assign([
+            'zbyva' => floor($zbyva / 3600) . ' hodin ' . floor($zbyva % 3600 / 60) . ' minut',
+            'postname' => self::TEAMKLIC,
+            'prihlasenyUzivatelId' => $u->id(),
+            'aktivitaId' => $this->id(),
+            'cssUrlAutocomplete' => URL_WEBU . '/soubory/blackarrow/_spolecne/auto-complete.css',
+            'jsUrlAutocomplete' => URL_WEBU . '/soubory/blackarrow/_spolecne/auto-complete.min.js',
+            'jsUrl' => URL_WEBU . '/soubory/blackarrow/tym-formular/tym-formular.js',
+        ]);
 
         // výběr instancí, pokud to aktivita vyžaduje
         if ($this->a['dite']) {
@@ -1891,34 +1888,34 @@ SQL
         // TODO invalidate $this
     }
 
-  /**
-   * Vrátí pole aktivit s zadaným filtrem a řazením. Filtr funguje jako asoc.
-   * pole s filtrovanými hodnotami, řazení jako pole s pořadím dle priorit.
-   * Podporované volby filtru: (vše id nebo boolean)
-   *  rok, typ, organizator, jenViditelne
-   * @return Aktivita[]
-   * @todo explicitní filtr i pro řazení (např. pole jako mapa veřejný řadící
-   *  parametr => sloupec
-   * @todo filtr dle orga
-   */
-  static function zFiltru($filtr, array $razeni = []): array {
-    // sestavení filtrů
-    $wheres = [];
-    if (!empty($filtr['rok']))
-      $wheres[] = 'a.rok = ' . (int)$filtr['rok'];
-    if (!empty($filtr['typ']))
-      $wheres[] = 'a.typ = ' . (int)$filtr['typ'];
-    if (!empty($filtr['organizator']))
-      $wheres[] = 'a.id_akce IN (SELECT id_akce FROM akce_organizatori WHERE id_uzivatele = ' . (int)$filtr['organizator'] . ')';
-    if (!empty($filtr['jenViditelne']))
-      $wheres[] = 'a.stav IN(1,2,4,5) AND NOT (a.typ = 10 AND a.stav = 2)';
-    if(!empty($filtr['od']))
-      $wheres[] = dbQv($filtr['od']).' <= a.zacatek';
-    if(!empty($filtr['do']))
-      $wheres[] = 'a.zacatek <= '.dbQv($filtr['do']);
-    if(!empty($filtr['bezDalsichKol']))
-      $wheres[] = 'NOT (a.typ IN ('.Typ::DRD.','.Typ::LKD.') AND cena = 0)';
-    $where = implode(' AND ', $wheres);
+    /**
+     * Vrátí pole aktivit s zadaným filtrem a řazením. Filtr funguje jako asoc.
+     * pole s filtrovanými hodnotami, řazení jako pole s pořadím dle priorit.
+     * Podporované volby filtru: (vše id nebo boolean)
+     *  rok, typ, organizator, jenViditelne
+     * @return Aktivita[]
+     * @todo explicitní filtr i pro řazení (např. pole jako mapa veřejný řadící
+     *  parametr => sloupec
+     * @todo filtr dle orga
+     */
+    static function zFiltru($filtr, array $razeni = []): array {
+        // sestavení filtrů
+        $wheres = [];
+        if (!empty($filtr['rok']))
+            $wheres[] = 'a.rok = ' . (int)$filtr['rok'];
+        if (!empty($filtr['typ']))
+            $wheres[] = 'a.typ = ' . (int)$filtr['typ'];
+        if (!empty($filtr['organizator']))
+            $wheres[] = 'a.id_akce IN (SELECT id_akce FROM akce_organizatori WHERE id_uzivatele = ' . (int)$filtr['organizator'] . ')';
+        if (!empty($filtr['jenViditelne']))
+            $wheres[] = 'a.stav IN(1,2,4,5) AND NOT (a.typ = 10 AND a.stav = 2)';
+        if (!empty($filtr['od']))
+            $wheres[] = dbQv($filtr['od']) . ' <= a.zacatek';
+        if (!empty($filtr['do']))
+            $wheres[] = 'a.zacatek <= ' . dbQv($filtr['do']);
+        if (!empty($filtr['bezDalsichKol']))
+            $wheres[] = 'NOT (a.typ IN (' . Typ::DRD . ',' . Typ::LKD . ') AND cena = 0)';
+        $where = implode(' AND ', $wheres);
 
         // sestavení řazení
         $order = null;
