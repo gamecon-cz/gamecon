@@ -205,12 +205,9 @@ class Aktivita
     }
 
     /**
-     * Vrátí html kód editoru, je možné parametrizovat, co se pomocí něj dá
-     * měnit (todo)
+     * Vrátí html kód editoru, je možné parametrizovat, co se pomocí něj dá měnit
      */
-    protected static function editorParam(EditorTagu $editorTagu, Aktivita $a = null, $omezeni = []) {
-        $aktivita = $a ? $a->a : null; // databázový řádek
-
+    protected static function editorParam(EditorTagu $editorTagu, Aktivita $aktivita = null, $omezeni = []) {
         // inicializace šablony
         $xtpl = new XTemplate(__DIR__ . '/editor-aktivity.xtpl');
         $xtpl->assign('fields', self::POSTKLIC); // název proměnné (pole) v kterém se mají posílat věci z formuláře
@@ -219,116 +216,143 @@ class Aktivita
         $xtpl->assign('obrKlicUrl', self::OBRKLIC . 'Url');
         $xtpl->assign('aEditTag', self::TAGYKLIC);
         $xtpl->assign('limitPopisKratky', self::LIMIT_POPIS_KRATKY);
-        $vybraneTagy = [];
-        if ($a) {
-            $xtpl->assign($a->a);
-            $xtpl->assign('popis', dbText($aktivita['popis']));
-            $xtpl->assign('urlObrazku', $a->obrazek());
-            $xtpl->assign('vybaveni', $a->vybaveni());
-            $vybraneTagy = $a->tagy();
+
+        if ($aktivita) {
+            $aktivitaData = $aktivita->a; // databázový řádek
+            $xtpl->assign($aktivitaData);
+            $xtpl->assign('popis', dbText($aktivitaData['popis']));
+            $xtpl->assign('urlObrazku', $aktivita->obrazek());
+            $xtpl->assign('vybaveni', $aktivita->vybaveni());
         }
-        // načtení tagů
+
+        $vybraneTagy = $aktivita ? $aktivita->tagy() : [];
         self::nactiTagy($vybraneTagy, $editorTagu, $xtpl);
 
         // načtení lokací
         if (!$omezeni || !empty($omezeni['lokace'])) {
-            $q = dbQuery('SELECT id_lokace, nazev FROM akce_lokace ORDER BY poradi');
-            $xtpl->assign(['id_lokace' => null, 'nazev' => '(žádná)']);
-            $xtpl->parse('upravy.tabulka.lokace');
-            while ($r = mysqli_fetch_assoc($q)) {
-                $xtpl->assign('sel', $a && $aktivita['lokace'] == $r['id_lokace'] ? 'selected' : '');
-                $xtpl->assign($r);
-                $xtpl->parse('upravy.tabulka.lokace');
-            }
+            self::parseUpravyTabulkaLokace($aktivita, $xtpl);
         }
 
         // editace dnů + časů
         if (!$omezeni || !empty($omezeni['zacatek'])) {
             // načtení dnů
-            $xtpl->assign('sel', $a && !$a->zacatek() ? 'selected' : '');
-            $xtpl->assign('den', 0);
-            $xtpl->assign('denSlovy', '?');
-            $xtpl->parse('upravy.tabulka.den');
-            for ($den = new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen()) {
-                $xtpl->assign('sel', $a && $den->stejnyDen($a->zacatek()) ? 'selected' : '');
-                $xtpl->assign('den', $den->format('Y-m-d'));
-                $xtpl->assign('denSlovy', $den->format('l'));
-                $xtpl->parse('upravy.tabulka.den');
-            }
+            self::parseUpravyTabulkaDen($aktivita, $xtpl);
             // načtení časů
-            $aZacatek = $a && $a->zacatek()
-                ? (int)$a->zacatek()->format('G')
-                : null;
-            $aKonec = $a && $a->konec()
-                ? (int)$a->konec()->sub(new DateInterval('PT1H'))->format('G')
-                : null;
-            $hodinyZacatku = range(PROGRAM_ZACATEK, PROGRAM_KONEC - 1, 1);
-            array_unshift($hodinyZacatku, null);
-            foreach ($hodinyZacatku as $hodinaZacatku) {
-                $xtpl->assign('sel', $aZacatek === $hodinaZacatku ? 'selected' : '');
-                $xtpl->assign('zacatek', $hodinaZacatku);
-                $xtpl->assign('zacatekSlovy', $hodinaZacatku !== null ? ($hodinaZacatku . ':00') : '?');
-                $xtpl->parse('upravy.tabulka.zacatek');
-                $xtpl->assign('sel', $aKonec === $hodinaZacatku ? 'selected' : '');
-                $xtpl->assign('konec', ($hodinaZacatku !== null ? $hodinaZacatku + 1 : null));
-                $xtpl->assign('konecSlovy', $hodinaZacatku !== null ? (($hodinaZacatku + 1) . ':00') : '?');
-                $xtpl->parse('upravy.tabulka.konec');
-            }
+            self::parseUpravyTabulkaZacatekAKonec($aktivita, $xtpl);
         }
 
         // načtení organizátorů
         if (!$omezeni || !empty($omezeni['organizator'])) {
-            $q = dbQuery('
-        SELECT u.id_uzivatele, u.login_uzivatele, u.jmeno_uzivatele, u.prijmeni_uzivatele
-        FROM uzivatele_hodnoty u
-        LEFT JOIN r_uzivatele_zidle z USING(id_uzivatele)
-        LEFT JOIN r_prava_zidle p USING(id_zidle)
-        WHERE p.id_prava = ' . \Gamecon\Pravo::PORADANI_AKTIVIT . '
-        GROUP BY u.login_uzivatele
-        ORDER BY u.login_uzivatele
-      ');
-            $vsichniOrg = [];
-            while ($r = mysqli_fetch_assoc($q)) {
-                $vsichniOrg[$r['id_uzivatele']] = Uzivatel::jmenoNickZjisti($r);
-            }
-            $aktOrg = $a
-                ? array_map(
-                    function ($e) {
-                        return (int)$e->id();
-                    },
-                    $a->organizatori()
-                )
-                : [];
-            $aktOrg[] = 0; // poslední pole má selected 0 (žádný org)
-            foreach ($vsichniOrg as $id => $org) {
-                if (in_array($id, $aktOrg, false)) {
-                    $xtpl->assign('vypravecSelected', 'selected');
-                } else {
-                    $xtpl->assign('vypravecSelected', '');
-                }
-                $xtpl->assign('vypravecId', $id);
-                $xtpl->assign('vypravecJmeno', $org);
-                $xtpl->parse('upravy.tabulka.vypraveci.vypravec');
-            }
-            $xtpl->parse('upravy.tabulka.vypraveci');
+            self::parseUpravyTabulkaVypraveci($aktivita, $xtpl);
         }
 
         // načtení typů
         if (!$omezeni || !empty($omezeni['typ'])) {
-            $xtpl->assign(['sel' => '', 'id_typu' => 0, 'typ_1p' => '(bez typu – organizační)']);
-            $xtpl->parse('upravy.tabulka.typ');
-            $q = dbQuery('SELECT * FROM akce_typy');
-            while ($r = mysqli_fetch_assoc($q)) {
-                $xtpl->assign('sel', $a && $r['id_typu'] == $aktivita['typ'] ? 'selected' : '');
-                $xtpl->assign($r);
-                $xtpl->parse('upravy.tabulka.typ');
-            }
+            self::parseUpravyTabulkaTypy($aktivita, $xtpl);
         }
 
         // výstup
-        if (empty($omezeni)) $xtpl->parse('upravy.tabulka'); // TODO ne pokud je bez omezení, ale pokud je omezeno všechno. Pokud jen něco, doprogramovat selektivní omezení pro prvky tabulky i u IFů nahoře a vložit do šablony
+        if (!$omezeni) {
+            $xtpl->parse('upravy.tabulka');
+        }
         $xtpl->parse('upravy');
         return $xtpl->text('upravy');
+    }
+
+    private static function parseUpravyTabulkaLokace(?Aktivita $aktivita, XTemplate $xtpl) {
+        $aktivitaData = $aktivita ? $aktivita->a : null; // databázový řádek
+        $q = dbQuery('SELECT id_lokace, nazev FROM akce_lokace ORDER BY poradi');
+        $xtpl->assign(['id_lokace' => null, 'nazev' => '(žádná)', 'selected' => '']);
+        $xtpl->parse('upravy.tabulka.lokace');
+        while ($lokaceData = mysqli_fetch_assoc($q)) {
+            $xtpl->assign('selected', $aktivita && $aktivitaData['lokace'] == $lokaceData['id_lokace'] ? 'selected' : '');
+            $xtpl->assign($lokaceData);
+            $xtpl->parse('upravy.tabulka.lokace');
+        }
+    }
+
+    private static function parseUpravyTabulkaDen(?Aktivita $aktivita, XTemplate $xtpl) {
+        $xtpl->assign([
+            'selected' => $aktivita && !$aktivita->zacatek() ? 'selected' : '',
+            'den' => 0,
+            'denSlovy' => '?',
+        ]);
+        $xtpl->parse('upravy.tabulka.den');
+        for ($den = new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen()) {
+            $xtpl->assign([
+                'selected' => $aktivita && $den->stejnyDen($aktivita->zacatek()) ? 'selected' : '',
+                'den' => $den->format('Y-m-d'),
+                'denSlovy' => $den->format('l'),
+            ]);
+            $xtpl->parse('upravy.tabulka.den');
+        }
+    }
+
+    private static function parseUpravyTabulkaZacatekAKonec(?Aktivita $aktivita, XTemplate $xtpl) {
+        $aZacatek = $aktivita && $aktivita->zacatek()
+            ? (int)$aktivita->zacatek()->format('G')
+            : null;
+        $aKonec = $aktivita && $aktivita->konec()
+            ? (int)$aktivita->konec()->sub(new DateInterval('PT1H'))->format('G')
+            : null;
+        $hodinyZacatku = range(PROGRAM_ZACATEK, PROGRAM_KONEC - 1, 1);
+        array_unshift($hodinyZacatku, null);
+        foreach ($hodinyZacatku as $hodinaZacatku) {
+            $xtpl->assign('selected', $aZacatek === $hodinaZacatku ? 'selected' : '');
+            $xtpl->assign('zacatek', $hodinaZacatku);
+            $xtpl->assign('zacatekSlovy', $hodinaZacatku !== null ? ($hodinaZacatku . ':00') : '?');
+            $xtpl->parse('upravy.tabulka.zacatek');
+
+            $xtpl->assign('selected', $aKonec === $hodinaZacatku ? 'selected' : '');
+            $xtpl->assign('konec', ($hodinaZacatku !== null ? $hodinaZacatku + 1 : null));
+            $xtpl->assign('konecSlovy', $hodinaZacatku !== null ? (($hodinaZacatku + 1) . ':00') : '?');
+            $xtpl->parse('upravy.tabulka.konec');
+        }
+    }
+
+    private static function parseUpravyTabulkaVypraveci(?\Aktivita $aktivita, \XTemplate $xtpl) {
+        $q = dbQuery('
+                SELECT u.id_uzivatele, u.login_uzivatele, u.jmeno_uzivatele, u.prijmeni_uzivatele
+                FROM uzivatele_hodnoty u
+                LEFT JOIN r_uzivatele_zidle z USING(id_uzivatele)
+                LEFT JOIN r_prava_zidle p USING(id_zidle)
+                WHERE p.id_prava = ' . \Gamecon\Pravo::PORADANI_AKTIVIT . '
+                GROUP BY u.login_uzivatele
+                ORDER BY u.login_uzivatele
+            ');
+        $vsichniOrg = [];
+        while ($uzivatelData = mysqli_fetch_assoc($q)) {
+            $vsichniOrg[$uzivatelData['id_uzivatele']] = Uzivatel::jmenoNickZjisti($uzivatelData);
+        }
+        $aktOrg = $aktivita
+            ? array_map(static function (Uzivatel $e) {
+                return (int)$e->id();
+            }, $aktivita->organizatori())
+            : [];
+        $aktOrg[] = 0; // poslední pole má selected 0 (žádný org)
+        foreach ($vsichniOrg as $id => $org) {
+            if (in_array($id, $aktOrg, false)) {
+                $xtpl->assign('vypravecSelected', 'selected');
+            } else {
+                $xtpl->assign('vypravecSelected', '');
+            }
+            $xtpl->assign('vypravecId', $id);
+            $xtpl->assign('vypravecJmeno', $org);
+            $xtpl->parse('upravy.tabulka.vypraveci.vypravec');
+        }
+        $xtpl->parse('upravy.tabulka.vypraveci');
+    }
+
+    private static function parseUpravyTabulkaTypy(?Aktivita $aktivita, XTemplate $xtpl) {
+        $aktivitaData = $aktivita ? $aktivita->a : null; // databázový řádek
+        $xtpl->assign(['selected' => '', 'id_typu' => 0, 'typ_1p' => '(bez typu – organizační)']);
+        $xtpl->parse('upravy.tabulka.typ');
+        $q = dbQuery('SELECT id_typu, typ_1p FROM akce_typy');
+        while ($akceTypData = mysqli_fetch_assoc($q)) {
+            $xtpl->assign('selected', $aktivita && $akceTypData['id_typu'] == $aktivitaData['typ'] ? 'selected' : '');
+            $xtpl->assign($akceTypData);
+            $xtpl->parse('upravy.tabulka.typ');
+        }
     }
 
     private static function nactiTagy(array $vybraneTagy, EditorTagu $editorTagu, XTemplate $xtpl) {
