@@ -45,10 +45,6 @@ class ActivitiesImporter
      */
     private $importValuesReader;
     /**
-     * @var ImagesImporter
-     */
-    private $imagesImporter;
-    /**
      * @var ImportValuesSanitizer
      */
     private $importValuesSanitizer;
@@ -94,10 +90,10 @@ class ActivitiesImporter
 
         $this->importValuesDescriber = $importValuesDescriber;
         $this->importValuesReader = new ImportValuesReader($googleSheetsService, $logovac);
-        $this->imagesImporter = new ImagesImporter($importValuesDescriber);
         $this->importValuesSanitizer = new ImportValuesSanitizer($importValuesDescriber, $importObjectsContainer, $currentYear, $storytellersPermissionsUrl);
         $this->importRequirementsGuardian = new ImportRequirementsGuardian($importObjectsContainer);
-        $this->activityImporter = new ActivityImporter($importValuesDescriber, $importAccessibilityChecker, $currentYear, $logovac);
+        $imagesImporter = new ImagesImporter($importValuesDescriber, $this->logovac);
+        $this->activityImporter = new ActivityImporter($importValuesDescriber, $importAccessibilityChecker, $imagesImporter, $currentYear, $logovac);
         $this->errorsListUrl = $errorsListUrl;
         $this->activitiesImportLogger = $activitiesImportLogger;
     }
@@ -132,7 +128,7 @@ class ActivitiesImporter
             unset($singleProgramLineResult);
 
             if (!$this->getExclusiveLock($singleProgramLine->nazev())) {
-                $result->addErrorLikeWarningMessage(
+                $result->addErrorMessage(
                     sprintf(
                         "Právě probíhá jiný import aktivit z programové linie '%s'. Zkus to za chvíli znovu.",
                         mb_ucfirst($singleProgramLine->nazev())
@@ -145,7 +141,6 @@ class ActivitiesImporter
             if (defined('IMPOR_AKTIVIT_JENOM_JAKO') && IMPOR_AKTIVIT_JENOM_JAKO) {
                 dbBegin();
             }
-            $potentialImageUrlsPerActivity = [];
             foreach ($activitiesValues as $activityValues) {
                 $activityGuid = uniqid('importActivity', true);
 
@@ -196,10 +191,6 @@ class ActivitiesImporter
                 }
                 unset($importActivityResult);
 
-                if (count($potentialImageUrls) > 0) {
-                    $potentialImageUrlsPerActivity[$importedActivity->id()] = $potentialImageUrls;
-                }
-
                 $result->incrementImportedCount();
 
                 $activityFinalDescription = $this->importValuesDescriber->describeActivity($importedActivity);
@@ -214,13 +205,6 @@ HTML
             $this->logovac->zaloguj($exception);
             $this->releaseExclusiveLock();
             return $result;
-        }
-        $savingImagesResult = $this->imagesImporter->saveImages($potentialImageUrlsPerActivity);
-        if ($savingImagesResult->hasWarnings()) {
-            $result->addWarnings($savingImagesResult, null);
-        }
-        if ($savingImagesResult->hasErrorLikeWarnings()) {
-            $result->addErrorLikeWarnings($savingImagesResult, null);
         }
         if ((!defined('POVOLEN_OPAKOVANY_IMPORT_AKTIVIT_ZE_STEJNEHO_SOUBORU')
                 || !POVOLEN_OPAKOVANY_IMPORT_AKTIVIT_ZE_STEJNEHO_SOUBORU)

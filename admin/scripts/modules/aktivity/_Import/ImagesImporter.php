@@ -2,91 +2,79 @@
 
 namespace Gamecon\Admin\Modules\Aktivity\Import;
 
+use Gamecon\Vyjimkovac\Logovac;
+
 class ImagesImporter
 {
 
     /** @var ImportValuesDescriber */
     private $importValuesDescriber;
+    /** @var Logovac */
+    private $logovac;
 
-    public function __construct(ImportValuesDescriber $importValuesDescriber) {
+    public function __construct(ImportValuesDescriber $importValuesDescriber, Logovac $logovac) {
         $this->importValuesDescriber = $importValuesDescriber;
+        $this->logovac = $logovac;
     }
 
-    public function saveImages(array $potentialImageUrlsPerActivity): ImportStepResult {
-        if (count($potentialImageUrlsPerActivity) === 0) {
+    public function addImage(array $potentialImageUrls, \Aktivita $activity): ImportStepResult {
+        $fetchImageResult = $this->fetchImage($potentialImageUrls, $activity);
+        if ($fetchImageResult->isError()) {
+            return ImportStepResult::successWithErrorLikeWarnings(null, [$fetchImageResult->getError()]);
+        }
+        $fetchedImage = $fetchImageResult->getSuccess();
+        if (!$fetchedImage) {
             return ImportStepResult::success(null);
         }
-        $errorLikeWarnings = [];
-        $imageUrls = [];
-        /** @var \Aktivita[] $imageUrlsToActivity */
-        $imageUrlsToActivity = [];
-        /** @var \Aktivita[] $activities */
-        $activities = [];
-        $activityIds = array_keys($potentialImageUrlsPerActivity);
-        foreach (\Aktivita::zIds($activityIds) as $activity) {
-            $activities[$activity->id()] = $activity;
+        try {
+            $activity->obrazek($fetchedImage);
+            return ImportStepResult::success(true);
+        } catch (\Throwable $throwable) {
+            $this->logovac->zaloguj($throwable);
+            return ImportStepResult::successWithErrorLikeWarnings(
+                null,
+                [
+                    sprintf(
+                        'Obrázek k aktivitě %s se nepodařilo uložit: %s.',
+                        $this->importValuesDescriber->describeActivity($activity),
+                        $throwable->getMessage()
+                    ),
+                ]
+            );
         }
-        foreach ($potentialImageUrlsPerActivity as $activityId => $potentialImageUrls) {
-            $activity = $activities[$activityId];
-            foreach ($potentialImageUrls as $potentialImageUrl) {
-                // Image URL is same as current, therefore came from an export and there is no change from it
-                if ($potentialImageUrl === $activity->urlObrazku()) {
-                    continue 2;
-                }
-                $imageUrls[] = $potentialImageUrl;
-                $imageUrlsToActivity[$potentialImageUrl] = $activity;
-            }
-        }
-        $imageUrls = array_unique($imageUrls);
-        ['files' => $downloadedImages, 'errors' => $downloadingImagesErrors] = hromadneStazeni($imageUrls, 10);
+    }
 
-        $successfulActivityIds = [];
-        foreach ($downloadedImages as $imageUrl => $downloadedImage) {
-            $activity = $imageUrlsToActivity[$imageUrl];
-            $successfulActivityIds[] = $activity->id();
+    private function fetchImage(array $potentialImageUrls, \Aktivita $aktivita): ImportStepResult {
+        $potentialImageUrls = array_unique($potentialImageUrls);
+        $newImages = array_filter($potentialImageUrls, static function (string $potentialImageUrl) use ($aktivita) {
+            return $potentialImageUrl !== $aktivita->urlObrazku();
+        });
+        if (!$newImages) {
+            return ImportStepResult::success(null);
+        }
+        ['files' => $downloadedImages, 'errors' => $imagesDownloadErrors] = hromadneStazeni($potentialImageUrls, 10);
+        if ($downloadedImages) {
+            $imagePath = reset($downloadedImages);
             try {
-                $obrazek = \Obrazek::zSouboru($downloadedImage);
-                $activity->obrazek($obrazek);
+                return ImportStepResult::success(\Obrazek::zSouboru($imagePath));
             } catch (\ObrazekException $obrazekException) {
-                $errorLikeWarnings[] = sprintf(
-                    '%s: Nepodařilo se uložit obrázek %s k z důvodu: %s',
-                    $this->importValuesDescriber->describeActivity($activity),
-                    $imageUrl,
-                    $obrazekException->getMessage()
-                );
-                continue;
+                return ImportStepResult::error($obrazekException->getMessage());
             }
         }
-        $downloadingImagesErrorsPerActivity = [];
-        foreach ($potentialImageUrlsPerActivity as $activityId => $potentialImageUrls) {
-            if (in_array($activityId, $successfulActivityIds, true)) {
-                foreach ($potentialImageUrls as $potentialImageUrl) {
-                    unset($downloadingImagesErrors[$potentialImageUrl]); // failures of other images are useless
-                }
-            } else {
-                $downloadingImagesErrorsPerActivity[$activityId] = [];
-                foreach ($potentialImageUrls as $potentialImageUrl) {
-                    $downloadingImagesErrorsPerActivity[$activityId][$potentialImageUrl] = $downloadingImagesErrors[$potentialImageUrl] ?? 'neznámá chyba';
-                }
-            }
+        if ($imagesDownloadErrors) {
+            return ImportStepResult::error(
+                sprintf(
+                    "Neporadřilo se stáhnout obrázek k aktivitě %s. Detail: %s",
+                    $this->importValuesDescriber->describeActivity($aktivita),
+                    var_export($imagesDownloadErrors, true)
+                )
+            );
         }
-        if (count($downloadingImagesErrorsPerActivity) > 0) {
-            foreach ($downloadingImagesErrorsPerActivity as $activityId => $downloadingImagesErrorsOfActivity) {
-                $errorLikeWarnings[$activityId] = sprintf(
-                    '%s: Nepodařilo se stáhnout %s: <ol>%s</ol>',
-                    $this->importValuesDescriber->describeActivityById($activityId),
-                    count($downloadingImagesErrorsOfActivity) > 1
-                        ? 'ani jeden z možných obrázků'
-                        : 'obrázek',
-                    implode(
-                        "\n",
-                        array_map(static function (string $downloadingImageError) {
-                            return "<li>$downloadingImageError</li>";
-                        }, $downloadingImagesErrorsOfActivity)
-                    )
-                );
-            }
-        }
-        return ImportStepResult::successWithErrorLikeWarnings(true, $errorLikeWarnings);
+        return ImportStepResult::error(
+            sprintf(
+                "Neporadřilo se stáhnout obrázek k aktivitě %s. Důvod neznámý.",
+                $this->importValuesDescriber->describeActivity($aktivita),
+            )
+        );
     }
 }

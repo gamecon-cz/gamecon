@@ -15,6 +15,10 @@ class ActivityImporter
      */
     private $importValuesChecker;
     /**
+     * @var ImagesImporter
+     */
+    private $imagesImporter;
+    /**
      * @var int
      */
     private $currentYear;
@@ -26,11 +30,13 @@ class ActivityImporter
     public function __construct(
         ImportValuesDescriber $importValuesDescriber,
         ImportSqlMappedValuesChecker $importValuesChecker,
+        ImagesImporter $imagesImporter,
         int $currentYear,
         Logovac $logovac
     ) {
         $this->importValuesDescriber = $importValuesDescriber;
         $this->importValuesChecker = $importValuesChecker;
+        $this->imagesImporter = $imagesImporter;
         $this->currentYear = $currentYear;
         $this->logovac = $logovac;
     }
@@ -57,6 +63,7 @@ class ActivityImporter
             $longAnnotation,
             $availableStorytellerIds,
             $tagIds,
+            $potentialImageUrls,
             $singleProgramLine
         );
         $importedActivity = $savedActivityResult->getSuccess();
@@ -203,6 +210,7 @@ class ActivityImporter
         ?string $longAnnotation,
         array $storytellersIds,
         array $tagIds,
+        array $potentialImageUrls,
         \Typ $singleProgramLine
     ): ImportStepResult {
         try {
@@ -215,10 +223,17 @@ class ActivityImporter
                 }
             }
             $savedActivity = \Aktivita::uloz($sqlMappedValues, $longAnnotation, $storytellersIds, $tagIds);
-            return ImportStepResult::success($savedActivity);
+            $addImageResult = $this->imagesImporter->addImage($potentialImageUrls, $savedActivity);
+            return ImportStepResult::successWithWarnings($savedActivity, $addImageResult->getWarnings(), $addImageResult->getErrorLikeWarnings());
         } catch (\Exception $exception) {
             $this->logovac->zaloguj($exception);
-            return ImportStepResult::error(sprintf('Aktivitu se nepodařilo uložit: %s.', $exception->getMessage()));
+            return ImportStepResult::error(
+                sprintf(
+                    'Aktivitu %s se nepodařilo uložit: %s.',
+                    $this->importValuesDescriber->describeActivityBySqlMappedValues($sqlMappedValues, null),
+                    $exception->getMessage()
+                )
+            );
         }
     }
 

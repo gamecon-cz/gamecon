@@ -192,8 +192,9 @@ class Obrazek
     if($o === false) {
       throw new ObrazekException(
         sprintf(
-          "Nepodporavný formát obrázku '%d'. Podporované jsou pouze JPEG (%d), PNG (%d) a GIF (%d)",
+          "Nepodporavný formát obrázku '%d' zjištěný z URL '%s'. Podporované jsou pouze JPEG (%d), PNG (%d) a GIF (%d)",
           $typ,
+          $url,
           IMAGETYPE_JPEG,
           IMAGETYPE_PNG,
           IMAGETYPE_GIF

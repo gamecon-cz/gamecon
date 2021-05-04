@@ -340,6 +340,9 @@ class ImportValuesSanitizer
         if (!$imageUrl) {
             return ImportStepResult::success([]);
         }
+        if (!filter_var($imageUrl, FILTER_VALIDATE_URL)) {
+            return ImportStepResult::successWithWarnings([], [sprintf("Rozbité URL obrázku '%s'.", $imageUrl)]);
+        }
         if (preg_match('~[.](jpg|png|gif)$~i', $imageUrl)) {
             return ImportStepResult::success([$imageUrl]);
         }
