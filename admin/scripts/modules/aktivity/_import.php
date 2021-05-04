@@ -15,7 +15,6 @@ $activitiesImportLogger = new ActivitiesImportLogger();
 $now = new \DateTimeImmutable();
 $urlNaAktivity = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) . '/..';
 $urlNaEditaciAktivity = $urlNaAktivity . '/upravy?aktivitaId=';
-$baseUrl = (($_SERVER['HTTPS'] ?? 'off') === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
 
 $importFormatHint = include __DIR__ . '/_export-import-hint.php';
 $template->assign('importFormatHint', $importFormatHint);
@@ -33,11 +32,10 @@ if (!empty($_POST['googleSheetId'])) {
         $googleSheetsService,
         $urlNaEditaciAktivity,
         $now,
-        $baseUrl . '/admin/prava/' . Zidle::VYPRAVEC,
+        URL_ADMIN . '/prava/' . Zidle::VYPRAVEC,
         $vyjimkovac,
-        $baseUrl,
         Mutex::proAktivity(),
-        $baseUrl . '/admin/web/chyby',
+        URL_ADMIN . '/web/chyby',
         $activitiesImportLogger
     );
     $vysledekImportuAktivit = $activitiesImporter->importActivities($googleSheetId);

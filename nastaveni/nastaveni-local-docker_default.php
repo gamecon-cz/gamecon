@@ -13,9 +13,10 @@ define('DBM_PASS', 'root');
 define('DBM_NAME', 'gamecon');
 define('DBM_SERV', 'sql.gamecon');
 
-define('URL_WEBU',  '/web'); // absolutní url uživatelského webu
-define('URL_ADMIN', '/admin'); // absolutní url adminu
-define('URL_CACHE', '/cache/public'); // url sdílených cachí
+$baseUrl = (($_SERVER['HTTPS'] ?? 'off') === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
+@define('URL_WEBU', $baseUrl . '/web'); // absolutní url uživatelského webu
+@define('URL_ADMIN', $baseUrl . '/admin'); // absolutní url adminu
+@define('URL_CACHE', $baseUrl . '/cache/public'); // url sdílených cachí
 
 define('ANALYTICS', false);
 define('MIGRACE_HESLO', '');

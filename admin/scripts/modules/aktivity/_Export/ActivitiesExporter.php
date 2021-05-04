@@ -25,21 +25,15 @@ class ActivitiesExporter
      * @var \Uzivatel
      */
     private $uzivatel;
-    /**
-     * @var string
-     */
-    private $baseUrl;
 
     public function __construct(
         \Uzivatel $uzivatel,
         GoogleDriveService $googleDriveService,
-        GoogleSheetsService $googleSheetsService,
-        string $baseUrl
+        GoogleSheetsService $googleSheetsService
     ) {
         $this->googleDriveService = $googleDriveService;
         $this->googleSheetsService = $googleSheetsService;
         $this->uzivatel = $uzivatel;
-        $this->baseUrl = rtrim($baseUrl, '/');
     }
 
     /**
@@ -135,7 +129,7 @@ class ActivitiesExporter
                 (string)$aktivita->vybaveni(), // Příprava místnosti
                 $aktivita->stav()->nazev(), // Stav
                 $aktivita->maObrazek()
-                    ? $aktivita->urlObrazku($this->baseUrl)
+                    ? $aktivita->urlObrazku()
                     : '', // Obrázek
             ];
         }

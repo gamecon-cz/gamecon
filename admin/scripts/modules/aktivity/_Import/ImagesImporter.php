@@ -5,17 +5,10 @@ namespace Gamecon\Admin\Modules\Aktivity\Import;
 class ImagesImporter
 {
 
-    /**
-     * @var string
-     */
-    private $baseUrl;
-    /**
-     * @var ImportValuesDescriber
-     */
+    /** @var ImportValuesDescriber */
     private $importValuesDescriber;
 
-    public function __construct(string $baseUrl, ImportValuesDescriber $importValuesDescriber) {
-        $this->baseUrl = $baseUrl;
+    public function __construct(ImportValuesDescriber $importValuesDescriber) {
         $this->importValuesDescriber = $importValuesDescriber;
     }
 
@@ -37,7 +30,7 @@ class ImagesImporter
             $activity = $activities[$activityId];
             foreach ($potentialImageUrls as $potentialImageUrl) {
                 // Image URL is same as current, therefore came from an export and there is no change from it
-                if ($potentialImageUrl === $activity->urlObrazku($this->baseUrl)) {
+                if ($potentialImageUrl === $activity->urlObrazku()) {
                     continue 2;
                 }
                 $imageUrls[] = $potentialImageUrl;

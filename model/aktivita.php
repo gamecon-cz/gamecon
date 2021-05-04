@@ -743,9 +743,8 @@ class Aktivita
         return file_exists($this->cestaObrazku());
     }
 
-    public function urlObrazku(string $baseUrl = null): string {
-        $baseUrl = rtrim($baseUrl ?? URL_WEBU, '/');
-        return $baseUrl . '/soubory/systemove/aktivity/' . $this->a['url_akce'] . '.jpg';
+    public function urlObrazku(): string {
+        return rtrim(URL_WEBU, '/') . '/soubory/systemove/aktivity/' . $this->a['url_akce'] . '.jpg';
     }
 
     /** (Správný) alias pro obsazenostHtml() */

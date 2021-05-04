@@ -77,7 +77,6 @@ class ActivitiesImporter
         \DateTimeInterface $now,
         string $storytellersPermissionsUrl,
         Logovac $logovac,
-        string $baseUrl,
         Mutex $mutexPattern,
         string $errorsListUrl,
         ActivitiesImportLogger $activitiesImportLogger
@@ -95,7 +94,7 @@ class ActivitiesImporter
 
         $this->importValuesDescriber = $importValuesDescriber;
         $this->importValuesReader = new ImportValuesReader($googleSheetsService, $logovac);
-        $this->imagesImporter = new ImagesImporter($baseUrl, $importValuesDescriber);
+        $this->imagesImporter = new ImagesImporter($importValuesDescriber);
         $this->importValuesSanitizer = new ImportValuesSanitizer($importValuesDescriber, $importObjectsContainer, $currentYear, $storytellersPermissionsUrl);
         $this->importRequirementsGuardian = new ImportRequirementsGuardian($importObjectsContainer);
         $this->activityImporter = new ActivityImporter($importValuesDescriber, $importAccessibilityChecker, $currentYear, $logovac);
