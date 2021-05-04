@@ -26,6 +26,7 @@ ini_set('display_errors', true); // zobrazovat chyby při lokálním vývoji (po
 
 @define('GOOGLE_API_CREDENTIALS', []);
 @define('POVOLEN_OPAKOVANY_IMPORT_AKTIVIT_ZE_STEJNEHO_SOUBORU', true);
+@define('IMPOR_AKTIVIT_JENOM_JAKO', false);
 
 // nepovinné konstanty
 @define('CRON_KEY', '123');

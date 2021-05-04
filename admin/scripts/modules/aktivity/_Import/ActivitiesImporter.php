@@ -142,7 +142,9 @@ class ActivitiesImporter
                 return $result;
             }
 
-//             dbBegin();// TODO
+            if (defined('IMPOR_AKTIVIT_JENOM_JAKO') && IMPOR_AKTIVIT_JENOM_JAKO) {
+                dbBegin();
+            }
             $potentialImageUrlsPerActivity = [];
             foreach ($activitiesValues as $activityValues) {
                 $activityGuid = uniqid('importActivity', true);
@@ -232,7 +234,9 @@ HTML
     }
 
     public function __destruct() {
-//        dbRollback();// TODO
+        if (defined('IMPOR_AKTIVIT_JENOM_JAKO') && IMPOR_AKTIVIT_JENOM_JAKO) {
+            dbRollback();
+        }
     }
 
     private function getProcessedFileName(string $spreadsheetId): ImportStepResult {

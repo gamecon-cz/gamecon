@@ -25,6 +25,7 @@ define('SECRET_CRYPTO_KEY', 'def0000066cba9ae32fdda839a143276cc0646b3880920c9387
 
 @define('GOOGLE_API_CREDENTIALS', []);
 @define('POVOLEN_OPAKOVANY_IMPORT_AKTIVIT_ZE_STEJNEHO_SOUBORU', true);
+@define('IMPOR_AKTIVIT_JENOM_JAKO', false);
 
 // nepovinné konstanty
 define('CRON_KEY', '123');
