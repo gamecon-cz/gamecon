@@ -176,6 +176,7 @@ class Obrazek
   static function zUrl($url, $soubor = null): Obrazek
   {
     $o = false;
+    error_clear_last();
     $typ = @exif_imagetype($url);
     if ($typ === false) {
       $errorMessage = "Typ obrázku se nepodařilo zjistit ze zdroje '$url'";
