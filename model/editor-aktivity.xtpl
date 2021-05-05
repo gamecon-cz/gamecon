@@ -146,8 +146,7 @@ $(function(){
     <th>Typ</th>
     <td>
       <select name="{fields}[typ]">
-        <!-- begin:typ --><option {selected} value="
-        d_typu}">{typ_1p}</option><!-- end:typ -->
+        <!-- begin:typ --><option {selected} value="{id_typu}">{typ_1p}</option><!-- end:typ -->
       </select>
       &emsp;
       <input style="float:right" type="checkbox" name="{fields}[teamova]" value="1">
