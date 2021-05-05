@@ -1245,7 +1245,7 @@ SQL
      * @todo zrefaktorovat nactiUzivatele na toto
      */
     protected static function zWhere($where, $param = null, $extra = null) {
-        $o = dbQueryS('
+        $o = dbQuery('
       SELECT
         u.*,
         GROUP_CONCAT(DISTINCT p.id_prava) as prava
