@@ -2533,4 +2533,20 @@ SQL
         }
         return static::zId($idHlavniAktivity);
     }
+
+    /**
+     * @param Aktivita[] $aktivity
+     * @return Aktivita[]
+     */
+    public static function seradPodleTypuCiNazvu(array $aktivity): array {
+        usort($aktivity, static function (\Aktivita $a, \Aktivita $b) {
+            $c = $a->typId() - $b->typId(); // seřazní podle typu aktivity
+            if ($c != 0) {
+                return $c;
+            }
+
+            return strcmp($a->nazev(), $b->nazev()); // seřazení podle názvu aktivity
+        });
+        return $aktivity;
+    }
 }
