@@ -666,7 +666,7 @@ class Aktivita
     }
 
     /** Vrací celkovou kapacitu aktivity */
-    protected function kapacita() {
+    public function kapacita() {
         return $this->a['kapacita'] + $this->a['kapacita_m'] + $this->a['kapacita_f'];
     }
 

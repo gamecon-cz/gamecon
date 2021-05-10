@@ -1,5 +1,7 @@
 <?php
 
+/** @var XTemplate $t */
+
 $this->blackarrowStyl(true);
 $this->pridejJsSoubor('soubory/blackarrow/_spolecne/zachovej-scroll.js');
 
@@ -34,6 +36,7 @@ $skupiny = serazenePodle($skupiny, function ($skupina) {
 foreach ($skupiny as $skupina) {
     $skupina = serazenePodle($skupina, 'zacatek');
 
+    /** @var Aktivita $aktivita */
     foreach ($skupina as $aktivita) {
         $vyberTymu = $aktivita->vyberTeamu($u);
         if ($vyberTymu) {
