@@ -94,11 +94,12 @@ if ($u->maPravo(P_UBYTOVANI_ZDARMA)) {
 
 // náhledy
 $nahledy = [
-  ['tricko.jpg',   'tricko_m.jpg',   'Tričko'],
-  ['kostka.jpg',   'kostka_m.jpg',   'Kostka'],
-  ['placka.jpg',   'placka_m.jpg',   'Placka'],
+  ['Triko.png',   'Triiko_detail.png',   'Tričko'],
+  ['Kostka.png',   'Kostka_detail.png',   'Kostka'],
+  ['Fate.png', 'Fate_detail.png', 'Fate kostka'],  
+  ['Placka.png',   'Placka_detail.png',   'Placka'],
   ['nicknack.jpg', 'nicknack_m.jpg', 'Nicknack'],
-  ['batoh.jpg',    'batoh_m.jpg',    'Batoh'],
+  ['Ponozky.png',    'Ponozky_detail.png',    'Ponožky'],
 ];
 foreach($nahledy as $nahled) {
   $t->assign([
