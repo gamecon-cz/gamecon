@@ -287,8 +287,9 @@ class Shop
 
       foreach ($this->tricka as $tricko) {
         $koupene = ($tricko['id_predmetu'] == $pid);
+        $nabizet = $tricko['nabizet'];
 
-        if ($zamceno && !$koupene) {
+        if (($zamceno || !$nabizet) && !$koupene) {
           continue;
         }
 
