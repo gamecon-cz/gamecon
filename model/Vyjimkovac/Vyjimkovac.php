@@ -31,7 +31,7 @@ class Vyjimkovac implements Logovac {
     // fatal errory
     register_shutdown_function(function() {
       $error = error_get_last();
-      if($error["type"] != E_ERROR) return;
+      if(!$error || $error["type"] != E_ERROR) return;
 
       $eException = new \ErrorException($error['message'], 0, $error['type'], $error['file'], $error['line']);
       $eFixed = \Tracy\Helpers::fixStack($eException);

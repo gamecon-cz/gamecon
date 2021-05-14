@@ -9,18 +9,24 @@
       <div class="position">{tituly}</div>
     </div>
     <div class="aboutButton">
-      <a href="#" onclick="$(this).closest('.pj').next().next().animate({height: 'toggle'}); return false;">O sobě píše</a>
+      <a href="#" onclick="ukaz(oSobe_{pj.id}); return false">O sobě píše</a>
     </div>
     <div class="aboutButton">
-      <a href="#" onclick="$(this).closest('.pj').next().next().next().animate({height: 'toggle'}); return false;">Herní profil</a>
+      <a href="#" onclick="ukaz(profil_{pj.id}); return false">Herní profil</a>
     </div>
   </div>
 </div>
 
 <div style="clear: both"></div>
 
-<div class="oSobe" style="display: none">{pj.oSobe}</div>
-<div class="profil" style="display: none">{pj.drdProfil}</div>
+<div class="oSobe" id="oSobe_{pj.id}" style="display: none">{pj.oSobe}</div>
+<div class="profil" id="profil_{pj.id}" style="display: none">{pj.drdProfil}</div>
 <!-- end: pj -->
+
+<script>
+function ukaz(e) {
+  e.style.display = e.style.display == 'none' ? 'block' : 'none'
+}
+</script>
 
 <!-- end: drdPj -->
