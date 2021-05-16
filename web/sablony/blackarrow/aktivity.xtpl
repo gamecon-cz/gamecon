@@ -88,6 +88,7 @@ zachovejScroll(document.querySelectorAll('.aktivity_aktivity form > a'), null)
 <!-- begin: nahled -->
 <input type="checkbox" class="aktivity_nahledCheckbox" id="aktivity_nahledId{aktivita.id}">
 <div class="aktivity_nahledObal">
+<label class="aktivity_nahledPozadiZavrit" for="aktivity_nahledId{aktivita.id}"></label>
 <div class="aktivity_nahled">
     <label class="aktivity_nahledZavrit" for="aktivity_nahledId{aktivita.id}">✕</label>
 
