@@ -358,9 +358,17 @@ function serazenePodle($pole, $kriterium) {
       return $a->$kriterium() <=> $b->$kriterium();
     });
   } else {
-    usort($pole, function ($a, $b) use ($kriterium) {
-      return $kriterium($a) <=> $kriterium($b);
-    });
+    $prvek = $pole ? $kriterium(current($pole)) : null;
+    if ($prvek && is_string($prvek) && !is_numeric($prvek)) {
+      $razeni = new Collator('cs');
+      usort($pole, function ($a, $b) use ($kriterium, $razeni) {
+        return $razeni->compare($kriterium($a), $kriterium($b));
+      });
+    } else {
+      usort($pole, function ($a, $b) use ($kriterium) {
+        return $kriterium($a) <=> $kriterium($b);
+      });
+    }
   }
   return $pole;
 }
