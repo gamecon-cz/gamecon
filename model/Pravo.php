@@ -27,7 +27,7 @@ class Pravo extends \DbObject
   public const JIDLO_SE_SLEVOU = 1004; // Může si objednávat jídlo se slevou
   public const JIDLO_ZDARMA = 1005; //,Může si objednávat jídlo zdarma
   public const UBYTOVANI_ZDARMA = 1008; //,Má zdarma ubytování po celou dobu
-  public const MODRE_TRICKO = 1012; // za dosaženou slevu 660,""
+  public const MODRE_TRICKO = 1012; // za dosaženou slevu XY,""
   public const STREDECNI_NOC = 1015; // zdarma,""
   public const NERUSIT_AUTOMATICKY_OBJEDNAVKY = 1016; // uživateli se při nezaplacení včas nebudou automaticky rušit objednávky
   public const NEDELNI_NOC_ZDARMA = 1018;
