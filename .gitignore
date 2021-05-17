@@ -1,5 +1,8 @@
 /_*
 
+/.idea/
+/.phpunit.result.cache
+
 /cache/private/*
 !/cache/private/.htaccess
 /cache/public/*
