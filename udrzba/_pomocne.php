@@ -25,6 +25,7 @@ function nasad(array $nastaveni) {
       /.git
       /.github
       /.idea
+      /.phpunit.result.cache
 
       /cache/private/*
       !/cache/private/.htaccess
