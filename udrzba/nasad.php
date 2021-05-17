@@ -34,9 +34,6 @@ if (!preg_match('/^nothing to commit, working (tree|directory) clean$/', end($ou
 // spuštění testů
 call_check(['php', __DIR__ . '/testuj.php']);
 
-// sestavení souborů
-call_check(['php', __DIR__ . '/sestav.php']);
-
 // nasazení
 if ($vetev === 'master') {
   nasad([
