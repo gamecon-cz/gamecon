@@ -109,8 +109,11 @@ else
   }
 
   // operátor - info & odhlašování
-  $xtpl->assign('a', $u->koncA());
+  $xtpl->assign('a', $u->koncovkaDlePohlavi());
   $xtpl->assign('operator', $u->jmenoNick());
+  if ($u->isSuperAdmin()) {
+      $xtpl->parse('all.operator.prepnutiUzivatele');
+  }
   $xtpl->parse('all.operator');
   // výběr uživatele
   if($u->maPravo(100)) // panel úvod - fixme magická konstanta

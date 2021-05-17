@@ -31,3 +31,8 @@ if (post('zrusitUzivateleProPraci')) {
   Uzivatel::odhlasKlic('uzivatel_pracovni');
   back();
 }
+
+if (post('prihlasitSeJakoUzivatel') && $u->isSuperAdmin()) {
+    $u = Uzivatel::prihlasId(post('id'));
+    back();
+}
