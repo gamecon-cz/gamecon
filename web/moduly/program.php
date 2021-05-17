@@ -1,6 +1,8 @@
 <?php
 
 use \Gamecon\Cas\DateTimeCz;
+
+/** @var Modul $this */
 /** @var XTemplate $t */
 /** @var Uzivatel $u */
 /** @var url $url */
@@ -16,7 +18,9 @@ for ($den = new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen())
 $nastaveni = [];
 $alternativniUrl = null;
 if ($url->cast(1) === 'muj') {
-    if (!$u) throw new Neprihlasen();
+    if (!$u) {
+        throw new Neprihlasen();
+    }
     $nastaveni['osobni'] = true;
 } else if (isset($dny[$url->cast(1)])) {
     $nastaveni['den'] = $dny[$url->cast(1)]->format('z');
@@ -37,13 +41,13 @@ $this->pridejJsSoubor('soubory/blackarrow/_spolecne/zachovej-scroll.js');
 
 // pomocná funkce pro zobrazení aktivního odkazu
 $aktivni = function ($urlOdkazu) use ($url, $alternativniUrl) {
-    $tridy = 'program_den';
+    $cssTridy = 'program_den';
 
     if ($urlOdkazu == $url->cela() || $urlOdkazu == $alternativniUrl) {
-        $tridy .= ' program_den-aktivni';
+        $cssTridy .= ' program_den-aktivni';
     }
 
-    return 'href="'.$urlOdkazu.'" class="'.$tridy.'"';
+    return 'href="' . $urlOdkazu . '" class="' . $cssTridy . '"';
 };
 
 $zobrazitMujProgramOdkaz = isset($u);
@@ -66,13 +70,13 @@ $zobrazitMujProgramOdkaz = isset($u);
         <?php if ($u) { ?>
             <a href="program-k-tisku" class="program_tisk" target="_blank">Můj program v PDF</a>
         <?php } ?>
-        <h1>Program <?=ROK?></h1>
+        <h1>Program <?= ROK ?></h1>
         <div class="program_dny">
             <?php foreach ($dny as $denSlug => $den) { ?>
-                <a <?=$aktivni('program/'.$denSlug)?>><?=$den->format('l d.n.')?></a>
+                <a <?= $aktivni('program/' . $denSlug) ?>><?= $den->format('l d.n.') ?></a>
             <?php } ?>
             <?php if ($zobrazitMujProgramOdkaz) { ?>
-                <a <?=$aktivni('program/muj')?>>můj program</a>
+                <a <?= $aktivni('program/muj') ?>>můj program</a>
             <?php } ?>
         </div>
     </div>
@@ -89,18 +93,18 @@ $zobrazitMujProgramOdkaz = isset($u);
 
 <div style="height: 70px"></div>
 
-<script>
-programNahled(
-    document.querySelector('.programNahled_obalNahledu'),
-    document.querySelector('.programNahled_obalProgramu'),
-    document.querySelectorAll('.programNahled_odkaz'),
-    document.querySelectorAll('.program form > a')
-)
+<script type="text/javascript">
+    programNahled(
+        document.querySelector('.programNahled_obalNahledu'),
+        document.querySelector('.programNahled_obalProgramu'),
+        document.querySelectorAll('.programNahled_odkaz'),
+        document.querySelectorAll('.program form > a'),
+    )
 
-zachovejScroll(
-    document.querySelectorAll('.program form > a'),
-    document.querySelector('.programPosuv_obal')
-)
+    zachovejScroll(
+        document.querySelectorAll('.program form > a'),
+        document.querySelector('.programPosuv_obal'),
+    )
 
-programPosuv(document.querySelector('.programPosuv_obal2'))
+    programPosuv(document.querySelector('.programPosuv_obal2'))
 </script>

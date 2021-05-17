@@ -68,7 +68,7 @@ class Program {
     $pdf->AddPage();
     $pdf->AddFont('DejaVu','','DejaVuSansCondensed.ttf',true);
     $pdf->SetFont('DejaVu','',20);
-    $pdf->Cell(0,10,"Můj program (" . $this->u->jmeno() . ")",0,1,'L');
+    $pdf->Cell(0, 10, "Můj program (" . $this->u->nickNeboKrestniJmeno() . ")", 0, 1, 'L');
     $pdf->SetFillColor(202,204,206);
     $pdf->SetFont('DejaVu','',12);
 
