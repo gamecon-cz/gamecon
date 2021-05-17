@@ -8,96 +8,96 @@
 class Chyba extends Exception
 {
 
-  const CHYBA = 1;
-  const OZNAMENI = 2;
-  const COOKIE_ZIVOTNOST = 3;
+    const CHYBA = 1;
+    const OZNAMENI = 2;
+    const COOKIE_ZIVOTNOST = 3;
 
-  /**
-   * Vyvolá reload na volající stránku, která si chybu může vyzvednout pomocí
-   * Chyba::vyzvedni()
-   */
-  public function zpet() {
-    self::setCookie('CHYBY_CLASS', $this->getMessage(), time() + self::COOKIE_ZIVOTNOST);
-    back();
-  }
-
-  static function nastav($zprava, $typ=null) {
-    $postname = $typ == self::OZNAMENI ? 'CHYBY_CLASS_OZNAMENI' : 'CHYBY_CLASS';
-    self::setCookie($postname, $zprava, time() + self::COOKIE_ZIVOTNOST);
-  }
-
-  private static function setCookie(string $postname, $zprava, int $ttl) {
-    setcookie($postname, $zprava, $ttl);
-    $_COOKIE[$postname] = $zprava;
-  }
-
-  /**
-   * Vrátí text poslední chyby
-   */
-  public static function vyzvedni() {
-    if (isset($_COOKIE['CHYBY_CLASS']) && $ch = $_COOKIE['CHYBY_CLASS']) {
-      self::setCookie('CHYBY_CLASS', '', 0);
-      return $ch;
-    } else {
-      return '';
+    /**
+     * Vyvolá reload na volající stránku, která si chybu může vyzvednout pomocí
+     * Chyba::vyzvedni()
+     */
+    public function zpet() {
+        self::setCookie('CHYBY_CLASS', $this->getMessage(), time() + self::COOKIE_ZIVOTNOST);
+        back();
     }
-  }
 
-  /**
-   * Vrátí text posledního oznámení
-   */
-  private static function vyzvedniOznameni() {
-    if (isset($_COOKIE['CHYBY_CLASS_OZNAMENI']) && $ch = $_COOKIE['CHYBY_CLASS_OZNAMENI']) {
-      self::setCookie('CHYBY_CLASS_OZNAMENI', '', 0);
-      return $ch;
-    } else {
-      return '';
+    static function nastav($zprava, $typ = null) {
+        $postname = $typ == self::OZNAMENI ? 'CHYBY_CLASS_OZNAMENI' : 'CHYBY_CLASS';
+        self::setCookie($postname, $zprava, time() + self::COOKIE_ZIVOTNOST);
     }
-  }
 
-  /**
-   * Vrací html zformátovaný boxík s chybou
-   */
-  public static function vyzvedniHtml(): string {
-    $zpravyPodleTypu = [];
-    $error = Chyba::vyzvedni();
-    if ($error) {
-      $zpravyPodleTypu['error'] = [$error];
+    private static function setCookie(string $postname, $zprava, int $ttl) {
+        setcookie($postname, $zprava, $ttl);
+        $_COOKIE[$postname] = $zprava;
     }
-    $oznameni = Chyba::vyzvedniOznameni();
-    if ($oznameni) {
-      $zpravyPodleTypu['oznameni'] = [$oznameni];
-    }
-    if (!$zpravyPodleTypu) {
-      return '';
-    }
-    return self::vytvorHtmlZpravu($zpravyPodleTypu);
-  }
 
-  private static function vytvorHtmlZpravu(array $zpravyPodleTypu): string {
-    $zpravy = '';
-    $chybaBlokId = uniqid('chybaBlokId', true);
-    $delkaTextu = 0;
-    foreach ($zpravyPodleTypu as $typ => $zpravyJednohoTypu) {
-      switch ($typ) {
-        case 'oznameni':
-          $tridaPodleTypu = 'oznameni';
-          break;
-        default :
-          $tridaPodleTypu = 'errorHlaska';
-      }
-      $zpravyJednohoTypuHtml = '';
-      foreach ($zpravyJednohoTypu as $zprava) {
-        $zpravyJednohoTypuHtml .= sprintf('<div class="hlaska %s">%s</div>', $tridaPodleTypu, htmlentities($zprava));
-        $delkaTextu += strlen(strip_tags($zprava));
-      }
-      $zpravy .= sprintf('<div>%s</div>', $zpravyJednohoTypuHtml);
+    /**
+     * Vrátí text poslední chyby
+     */
+    public static function vyzvedni() {
+        if (isset($_COOKIE['CHYBY_CLASS']) && $ch = $_COOKIE['CHYBY_CLASS']) {
+            self::setCookie('CHYBY_CLASS', '', 0);
+            return $ch;
+        }
+        return '';
     }
-    $zobrazeniSekund = ceil($delkaTextu / 20) + 4.0;
-    $mizeniSekund = 2.0;
 
-    return <<<HTML
-<div class="chybaBlok" id="{$chybaBlokId}">
+    /**
+     * Vrátí text posledního oznámení
+     */
+    private static function vyzvedniOznameni() {
+        if (isset($_COOKIE['CHYBY_CLASS_OZNAMENI']) && $ch = $_COOKIE['CHYBY_CLASS_OZNAMENI']) {
+            self::setCookie('CHYBY_CLASS_OZNAMENI', '', 0);
+            return $ch;
+        }
+        return '';
+    }
+
+    /**
+     * Vrací html zformátovaný boxík s chybou
+     */
+    public static function vyzvedniHtml(): string {
+        $zpravyPodleTypu = [];
+        $error = Chyba::vyzvedni();
+        if ($error) {
+            $zpravyPodleTypu['error'] = [$error];
+        }
+        $oznameni = Chyba::vyzvedniOznameni();
+        if ($oznameni) {
+            $zpravyPodleTypu['oznameni'] = [$oznameni];
+        }
+        if (!$zpravyPodleTypu) {
+            return '';
+        }
+        return self::vytvorHtmlZpravu($zpravyPodleTypu);
+    }
+
+    private static function vytvorHtmlZpravu(array $zpravyPodleTypu): string {
+        $zpravy = '';
+        $chybaBlokId = uniqid('chybaBlokId', true);
+        $delkaTextu = 0;
+        $tridaPodleHlavnihoTypu = 'oznameni';
+        foreach ($zpravyPodleTypu as $typ => $zpravyJednohoTypu) {
+            switch ($typ) {
+                case 'oznameni':
+                    $tridaPodleTypu = 'oznameni';
+                    break;
+                default :
+                    $tridaPodleTypu = 'errorHlaska';
+                    $tridaPodleHlavnihoTypu = 'errorHlaska';
+            }
+            $zpravyJednohoTypuHtml = '';
+            foreach ($zpravyJednohoTypu as $zprava) {
+                $zpravyJednohoTypuHtml .= sprintf('<div class="hlaska %s">%s</div>', $tridaPodleTypu, htmlentities($zprava));
+                $delkaTextu += strlen(strip_tags($zprava));
+            }
+            $zpravy .= sprintf('<div>%s</div>', $zpravyJednohoTypuHtml);
+        }
+        $zobrazeniSekund = ceil($delkaTextu / 20) + 4.0;
+        $mizeniSekund = 2.0;
+
+        return <<<HTML
+<div class="chybaBlok chybaBlok-{$tridaPodleHlavnihoTypu}" id="{$chybaBlokId}">
   {$zpravy}
   <div class="chybaBlok_zavrit admin_zavrit">❌</div>
   <script>
@@ -116,7 +116,7 @@ class Chyba extends Exception
   </script>
   </div>
 HTML
-      ;
-  }
+            ;
+    }
 
 }
