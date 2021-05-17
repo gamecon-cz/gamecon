@@ -353,6 +353,14 @@ SQL
             : '';
     }
 
+    public function nickNeboKrestniJmeno(): string {
+        return $this->nick() ?: $this->krestniJmeno() ?: $this->jmeno();
+    }
+
+    public function krestniJmeno(): string {
+        return trim($this->u['jmeno_uzivatele'] ?: '');
+    }
+
     /**
      * Určuje jméno a nick uživatele z pole odpovídajícího strukturou databázovému
      * řádku z tabulky uzivatel_hodnoty. Pokud vyžadovaná pole chybí, zjistí
