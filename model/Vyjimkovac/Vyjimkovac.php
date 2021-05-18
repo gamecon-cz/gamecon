@@ -80,12 +80,35 @@ class Vyjimkovac implements Logovac {
     ob_start();
     ?><script>
       window.onerror = function(msg, url, line) {
+          const newXHR = new XMLHttpRequest();
+
+          newXHR.open('POST', '<?=$url?>');
+
+          newXHR.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+          const data = {
+              msg: msg,
+              url: url,
+              line: line
+          };
+
+          let encoded = "";
+          for (const key in data) {
+              if (encoded !== "") {
+                  encoded += "&";
+              }
+              encoded += key + "=" + encodeURIComponent(data[key]);
+          }
+
+          newXHR.send(encoded);
+      }
+      /*window.onerror = function(msg, url, line) {
         $.post('<?=$url?>', {
           msg: msg,
           url: url,
           line: line
         });
-      };
+      };*/
     </script><?php
     return ob_get_clean();
   }
