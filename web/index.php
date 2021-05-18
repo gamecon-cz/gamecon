@@ -88,6 +88,7 @@ if($m->bezStranky()) {
   $t = new XTemplate('sablony/blackarrow/index.xtpl');
   $t->assign([
     'css'   => perfectcache('soubory/blackarrow/*/*.less'),
+    'jsVyjimkovac'  => \Gamecon\Vyjimkovac\Vyjimkovac::js(URL_WEBU.'/ajax-vyjimkovac'),
     'chyba' => Chyba::vyzvedniHtml(),
     'menu'  => $menu,
     'obsah' => $m->vystup(),
