@@ -114,9 +114,9 @@ class Cenik {
     // aplikace možných slev
     if($typ == Shop::PREDMET) {
       // hack podle názvu
-      if($r['nazev'] == 'Kostka' && $this->slevaKostky) {
+      if(mb_stripos($r['nazev'], 'Kostka') !== false && $this->slevaKostky) {
         ['cena' => $cena, 'sleva' => $this->slevaKostky] = self::aplikujSlevu($cena, $this->slevaKostky);
-      } elseif($r['nazev'] == 'Placka' && $this->slevaPlacky) {
+      } elseif(mb_stripos($r['nazev'], 'Placka') !== false && $this->slevaPlacky) {
         ['cena' => $cena, 'sleva' => $this->slevaPlacky] = self::aplikujSlevu($cena, $this->slevaPlacky);
       }
     } elseif($typ == Shop::TRICKO && mb_stripos($r['nazev'], 'modré') !== false && $this->modrychTricekZdarma > 0) {
