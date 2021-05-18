@@ -36,12 +36,12 @@
   <div class="shop_den shopUbytovani_den">{den}</div>
   <!-- begin:typ -->
   <div class="shopUbytovani_radek">
-    <input type="radio" class="shopUbytovani_radio" name="{postnameDen}" value="{idPredmetu}" {sel} {lock}>
+    <input type="radio" class="shopUbytovani_radio" name="{postnameDen}" value="{idPredmetu}" data-kapacita="{kapacita}" {sel} {lock}>
     <div class="shopUbytovani_kapacita">{obsazeno}/{kapacita}</div>
   </div>
   <!-- end:typ -->
   <div class="shopUbytovani_zadne">
-    <input type="radio" class="shopUbytovani_radio" name="{postnameDen}" value="" {sel} {lock}>
+    <input type="radio" class="shopUbytovani_radio" name="{postnameDen}" value="" data-kapacita="0" {sel} {lock}>
   </div>
 </div>
 <!-- end:den -->
@@ -54,5 +54,35 @@
   Na pokoji chci být s:
   <input type="text" class="formular_input" name="{postnameSpolubydlici}" value="{spolubydlici}" placeholder="jména oddělená čárkou, nebo nech prázdné">
 </div>
+
+<script type="text/javascript">
+  const shopUbytovaniRadios = document.querySelectorAll('input[type=radio][class=shopUbytovani_radio]');
+  const shopUbitovaniNames = []
+  shopUbytovaniRadios.forEach(function(shopUbytovaniRadio) {
+    if (!shopUbitovaniNames.includes(shopUbytovaniRadio.name)) {
+      shopUbitovaniNames.push(shopUbytovaniRadio.name)
+    }
+  })
+
+  function onShopUbytovaniChange() {
+    const vybranaKapacita = this.dataset.kapacita
+    const vybranaKapacitaInt = Number.parseInt(this.dataset.kapacita)
+    if (vybranaKapacitaInt === 0) {
+      return
+    }
+    const vybraneName = this.name
+    const ostatniNames = shopUbitovaniNames.filter(name => name !== vybraneName)
+    ostatniNames.forEach(function (ostatniName) {
+      const ostatniVybraneUbytovani = document.querySelector('input[type=radio][class=shopUbytovani_radio][name="'+ostatniName+'"]:checked');
+      if (ostatniVybraneUbytovani && Number.parseInt(ostatniVybraneUbytovani.dataset.kapacita) === 0) {
+        return // v tomto dni je vybrano Zadne ubytovani, to nechceme menit
+      }
+      const ostatniStejneUbytovani = document.querySelector('input[type=radio][class=shopUbytovani_radio][name="'+ostatniName+'"][data-kapacita="'+vybranaKapacita+'"]');
+      ostatniStejneUbytovani.checked = true
+    })
+  }
+
+  shopUbytovaniRadios.forEach(shopUbytovaniRadio => shopUbytovaniRadio.addEventListener('change', onShopUbytovaniChange))
+</script>
 
 <!-- end:ubytovani -->
