@@ -93,7 +93,7 @@ class ShopUbytovani {
       $q .= '('.$this->u->id().','.(int)$predmet.','.ROK.',(SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu='.(int)$predmet.'),NOW()),'."\n";
       if($this->presKapacitu($predmet)) {
         dbQuery($deleteQuery);
-        throw new Chyba('Vybrali jste ubytování, které přesáhlo kapacitu, vaše ubytování bylo smazáno.');
+        throw new Chyba('Vybrané ubytování je už bohužel zabrané. Vyber si prosím jiné.');
       }
     }
     $q = substr($q,0,-2);
