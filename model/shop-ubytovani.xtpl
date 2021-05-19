@@ -90,11 +90,12 @@
     })
   }
 
-  const initialOnChange = new Event('change');
+/*  const initialOnChange = new Event('change');
   shopUbytovaniRadios.forEach(function(shopUbytovaniRadio) {
     shopUbytovaniRadio.addEventListener('change', onShopUbytovaniChange)
     shopUbytovaniRadio.dispatchEvent(initialOnChange) // zafixovani uvodnich hodnot, jako kdyby je rucne vybral uzivatel, viz kapacitaZvolenaUzivatelem
-  })
+  })*/
+  // TODO dočasně zrušeno kvůli potížím
 </script>
 
 <!-- end:ubytovani -->
