@@ -39,6 +39,11 @@ $this->pridejJsSoubor('soubory/blackarrow/program-nahled/program-nahled.js');
 $this->pridejJsSoubor('soubory/blackarrow/program-posuv/program-posuv.js');
 $this->pridejJsSoubor('soubory/blackarrow/_spolecne/zachovej-scroll.js');
 
+$legenda = Stranka::zUrl('program-legenda')->html();
+$legenda = str_replace('{a}', $u ? $u->koncA() : '', $legenda);
+$legenda = str_replace('{n}', $u && $u->pohlavi() == 'f' ? 'ice' : 'ík', $legenda);
+if (!isset($u) || !$u || !$u->maPravo(P_ORG_AKCI)) $legenda = preg_replace('@.*organizuji.*@', '', $legenda);
+
 // pomocná funkce pro zobrazení aktivního odkazu
 $aktivni = function ($urlOdkazu) use ($url, $alternativniUrl) {
     $cssTridy = 'program_den';
@@ -80,6 +85,8 @@ $zobrazitMujProgramOdkaz = isset($u);
             <?php } ?>
         </div>
     </div>
+
+    <div class="program_legenda"><?= $legenda ?></div>
 
     <div class="programNahled_obalProgramu">
         <div class="programPosuv_obal2">
