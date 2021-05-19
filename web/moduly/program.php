@@ -86,7 +86,7 @@ $zobrazitMujProgramOdkaz = isset($u);
         </div>
     </div>
 
-    <div class="program_legenda"><?= $legenda ?></div>
+<!--    <div class="program_legenda">--><?//= $legenda ?><!--</div>-->
 
     <div class="programNahled_obalProgramu">
         <div class="programPosuv_obal2">
