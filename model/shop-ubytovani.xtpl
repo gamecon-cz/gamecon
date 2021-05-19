@@ -90,8 +90,10 @@
     })
   }
 
+  const initialOnChange = new Event('change');
   shopUbytovaniRadios.forEach(function(shopUbytovaniRadio) {
     shopUbytovaniRadio.addEventListener('change', onShopUbytovaniChange)
+    shopUbytovaniRadio.dispatchEvent(initialOnChange) // zafixovani uvodnich hodnot, jako kdyby je rucne vybral uzivatel, viz kapacitaZvolenaUzivatelem
   })
 </script>
 
