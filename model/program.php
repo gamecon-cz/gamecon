@@ -8,6 +8,7 @@ use \Gamecon\Cas\DateTimeCz;
 class Program
 {
 
+    /** @var Uzivatel|null */
     private $u = null; // aktuální uživatel v objektu
     private $posledniVydana = null;
     private $dbPosledni = null;

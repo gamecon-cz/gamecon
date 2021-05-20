@@ -1,12 +1,13 @@
 <?php
 
 /** @var XTemplate $t */
+/** @var Uzivatel $u */
+/** @var Uzivatel|null $org */
 
 $this->blackarrowStyl(true);
 $this->pridejJsSoubor('soubory/blackarrow/_spolecne/zachovej-scroll.js');
 
 $typ = $this->param('typ');
-
 
 // zpracování POST požadavků
 
@@ -14,15 +15,14 @@ Aktivita::prihlasovatkoZpracuj($u);
 Aktivita::vyberTeamuZpracuj($u);
 Tym::vypisZpracuj($u);
 
-
 // aktivity
 
 $aktivity = Aktivita::zFiltru([
-    'rok'           => ROK,
-    'jenViditelne'  => true,
+    'rok' => ROK,
+    'jenViditelne' => true,
     'bezDalsichKol' => true,
-    'typ'           => $typ ? $typ->id() : null,
-    'organizator'   => $org ? $org->id() : null,
+    'typ' => $typ ? $typ->id() : null,
+    'organizator' => $org ? $org->id() : null,
 ]);
 
 $skupiny = seskupenePodle($aktivity, function ($aktivita) {
@@ -63,9 +63,9 @@ foreach ($skupiny as $skupina) {
         }
 
         $t->assign([
-            'aktivita'   => $aktivita,
-            'obsazenost' => $aktivita->obsazenost() ? '('.trim($aktivita->obsazenost()).')' : '',
-            'prihlasit'  => $aktivita->prihlasovatko($u),
+            'aktivita' => $aktivita,
+            'obsazenost' => $aktivita->obsazenost() ? '(' . trim($aktivita->obsazenost()) . ')' : '',
+            'prihlasit' => $aktivita->prihlasovatko($u),
         ]);
 
         $t->parse('aktivity.nahled.termin');
@@ -84,11 +84,11 @@ foreach ($skupiny as $skupina) {
     $obrazek = $aktivita->obrazek();
 
     $t->assign([
-        'aktivita'     => $aktivita,
-        'obrazek'      => $obrazek ? $obrazek->pasuj(512) : null, // TODO kvalita?
+        'aktivita' => $aktivita,
+        'obrazek' => $obrazek ? $obrazek->pasuj(512) : null, // TODO kvalita?
         'organizatori' => $organizatori,
         'organizatoriNahled' => strtr($organizatori, [', ' => '<br>']),
-        'kapacita'     => $aktivita->kapacita() ?: 'neomezeně',
+        'kapacita' => $aktivita->kapacita() ?: 'neomezeně',
     ]);
 
     $t->parseEach($aktivita->tagy(), 'stitek', 'aktivity.aktivita.stitek');
@@ -96,7 +96,6 @@ foreach ($skupiny as $skupina) {
     $t->parse('aktivity.aktivita');
     $t->parse('aktivity.nahled');
 }
-
 
 // záhlaví a informace
 
@@ -116,7 +115,7 @@ if ($org) {
     $t->assign([
         'popisLinie' => $typ->oTypu(),
         'ikonaLinie' => 'soubory/systemove/linie-ikony/' . $typ->id() . '.png',
-        'specTridy'  => $typ->id() == Typ::DRD ? 'aktivity_aktivity-drd' : null,
+        'specTridy' => $typ->id() == Typ::DRD ? 'aktivity_aktivity-drd' : null,
     ]);
 
     // podstránky linie
