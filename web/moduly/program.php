@@ -73,7 +73,7 @@ $zobrazitMujProgramOdkaz = isset($u);
 
     <div class="program_hlavicka">
         <?php if ($u) { ?>
-            <a href="program-k-tisku" class="program_tisk" target="_blank">Můj program v PDF</a>
+<!-- zatim nefunguje            <a href="program-k-tisku" class="program_tisk" target="_blank">Můj program v PDF</a>-->
         <?php } ?>
         <h1>Program <?= ROK ?></h1>
         <div class="program_dny">
