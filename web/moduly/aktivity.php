@@ -103,6 +103,7 @@ foreach ($skupiny as $skupina) {
 $this->info()->obrazek(null);
 
 if ($org) {
+    /** @var Uzivatel $org */
     $this->info()->nazev($org->jmenoNick());
     $t->assign([
         'jmeno' => $org->jmenoNick(),

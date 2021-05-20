@@ -223,28 +223,33 @@ SQL
     /**
      * @return Finance finance daného uživatele
      */
-    public function finance() {
+    public function finance(): Finance {
         //pokud chceme finance poprvé, spočteme je a uložíme
-        if (!$this->finance)
+        if (!$this->finance) {
             $this->finance = new Finance($this, $this->u['zustatek']);
+        }
         return $this->finance;
     }
 
     /** Vrátí objekt Náhled s fotkou uživatele nebo null */
-    public function fotka() {
+    public function fotka(): ?Nahled {
         $soubor = WWW . '/soubory/systemove/fotky/' . $this->id() . '.jpg';
-        if (is_file($soubor))
+        if (is_file($soubor)) {
             return Nahled::zSouboru($soubor);
-        else
-            return null;
+        }
+        return null;
     }
 
     /** Vrátí objekt Náhled s fotkou uživatele nebo výchozí fotku */
-    public function fotkaAuto() {
+    public function fotkaAuto(): ?Nahled {
         $f = $this->fotka();
-        if ($f) return $f;
-        elseif ($this->pohlavi() == 'f') return Nahled::zSouboru(WWW . '/soubory/styl/fotka-holka.jpg');
-        else                              return Nahled::zSouboru(WWW . '/soubory/styl/fotka-kluk.jpg');
+        if ($f) {
+            return $f;
+        }
+        if ($this->pohlavi() === 'f') {
+            return Nahled::zSouboru(WWW . '/soubory/styl/fotka-holka.jpg');
+        }
+        return Nahled::zSouboru(WWW . '/soubory/styl/fotka-kluk.jpg');
     }
 
     /**
