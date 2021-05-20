@@ -96,12 +96,13 @@
     })
   }
 
-  shopUbytovaniRadios.forEach(function(shopUbytovaniRadio) {
+  /*shopUbytovaniRadios.forEach(function(shopUbytovaniRadio) {
     shopUbytovaniRadio.addEventListener('change', onShopUbytovaniChange)
     if (shopUbytovaniRadio.checked) {
       zapamatujKapacituJakoRucneZvolenou(shopUbytovaniRadio)
     }
-  })
+  })*/
+  // TODO docasne vyrazeno, nez to zkontrolujeme na bete
 </script>
 
 <!-- end:ubytovani -->
