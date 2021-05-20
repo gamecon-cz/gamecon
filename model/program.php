@@ -149,6 +149,7 @@ class Program
         }
 
         Aktivita::prihlasovatkoZpracuj($this->u);
+        Aktivita::vyberTeamuZpracuj($this->u);
     }
 
     ////////////////////
