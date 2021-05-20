@@ -20,7 +20,7 @@ class Program
         'plusMinus' => false, // jestli jsou v programu '+' a '-' pro změnu kapacity team. aktivit
         'osobni' => false, // jestli se zobrazuje osobní program (jinak se zobrazuje full)
         'tableClass' => 'program', //todo edit
-        'teamVyber' => false, // jestli se u teamové aktivity zobrazí full výběr teamu přímo v programu
+        'teamVyber' => true, // jestli se u teamové aktivity zobrazí full výběr teamu přímo v programu
         'technicke' => false, // jestli jdou vidět i skryté technické aktivity
         'skupiny' => 'linie', // seskupování programu - po místnostech nebo po liniích
         'prazdne' => false, // zobrazovat prázdné skupiny?
