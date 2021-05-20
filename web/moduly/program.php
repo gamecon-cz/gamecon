@@ -39,6 +39,9 @@ $this->pridejJsSoubor('soubory/blackarrow/program-nahled/program-nahled.js');
 $this->pridejJsSoubor('soubory/blackarrow/program-posuv/program-posuv.js');
 $this->pridejJsSoubor('soubory/blackarrow/_spolecne/zachovej-scroll.js');
 
+$zacatekPrvniVlnyOd = \Gamecon\Cas\DateTimeGamecon::zacatekPrvniVlnyOd();
+$zacatekPrvniVlnyZaSekund = $zacatekPrvniVlnyOd->getTimestamp() - time();
+
 $legenda = Stranka::zUrl('program-legenda')->html();
 $legenda = str_replace('{a}', $u ? $u->koncA() : '', $legenda);
 $legenda = str_replace('{n}', $u && $u->pohlavi() == 'f' ? 'ice' : 'ík', $legenda);
@@ -73,7 +76,7 @@ $zobrazitMujProgramOdkaz = isset($u);
 
     <div class="program_hlavicka">
         <?php if ($u) { ?>
-<!-- zatim nefunguje            <a href="program-k-tisku" class="program_tisk" target="_blank">Můj program v PDF</a>-->
+            <!-- zatim nefunguje            <a href="program-k-tisku" class="program_tisk" target="_blank">Můj program v PDF</a>-->
         <?php } ?>
         <h1>Program <?= ROK ?></h1>
         <div class="program_dny">
@@ -114,4 +117,10 @@ $zobrazitMujProgramOdkaz = isset($u);
     )
 
     programPosuv(document.querySelector('.programPosuv_obal2'))
+
+    <?php if ($zacatekPrvniVlnyZaSekund > 0) { ?>
+    setTimeout(function () {
+        location.reload()
+    }, <?= $zacatekPrvniVlnyZaSekund * 1000 ?>)
+    <?php } ?>
 </script>

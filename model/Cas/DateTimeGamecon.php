@@ -46,4 +46,8 @@ class DateTimeGamecon extends DateTimeCz
   public static function zacatekLetosnihoGameconu(): DateTimeGamecon {
     return static::zacatekGameconu(GC_BEZI_OD);
   }
+
+    public static function zacatekPrvniVlnyOd(): DateTimeGamecon {
+        return static::zacatekGameconu(REG_AKTIVIT_OD);
+    }
 }
