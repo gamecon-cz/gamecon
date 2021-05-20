@@ -6,9 +6,9 @@
 
 <div class="shopUbytovani_tabulka">
 
-<div class="shopUbytovani_prvniSloupec">
-  <div class="shop_den shopUbytovani_den">&nbsp;</div>
-  <!-- begin:typ -->
+  <div class="shopUbytovani_prvniSloupec">
+    <div class="shop_den shopUbytovani_den">&nbsp;</div>
+    <!-- begin:typ -->
 
     <!-- begin:normal -->
     <div class="shop_popis shopUbytovani_radek">
@@ -25,49 +25,52 @@
     </div>
     <!-- end:hinted -->
 
-  <!-- end:typ -->
-  <div class="shopUbytovani_zadne">
-    <div class="shop_popis">Žádné</div>
+    <!-- end:typ -->
+    <div class="shopUbytovani_zadne">
+      <div class="shop_popis">Žádné</div>
+    </div>
   </div>
-</div>
 
-<!-- begin:den -->
-<div class="shopUbytovani_sloupec">
-  <div class="shop_den shopUbytovani_den">{den}</div>
-  <!-- begin:typ -->
-  <div class="shopUbytovani_radek">
-    <input type="radio" class="shopUbytovani_radio" name="{postnameDen}" value="{idPredmetu}" data-kapacita="{kapacita}" {checked} {disabled}>
-    <div class="shopUbytovani_kapacita">{obsazeno}/{kapacita}</div>
+  <!-- begin:den -->
+  <div class="shopUbytovani_sloupec">
+    <div class="shop_den shopUbytovani_den">{den}</div>
+    <!-- begin:typ -->
+    <div class="shopUbytovani_radek">
+      <input type="radio" class="shopUbytovani_radio" name="{postnameDen}" value="{idPredmetu}"
+             data-kapacita="{kapacita}" {checked} {disabled}>
+      <div class="shopUbytovani_kapacita">{obsazeno}/{kapacita}</div>
+    </div>
+    <!-- end:typ -->
+    <div class="shopUbytovani_zadne">
+      <input type="radio" class="shopUbytovani_radio" name="{postnameDen}" value="" data-kapacita="0" {checked}
+             {disabled}>
+    </div>
   </div>
-  <!-- end:typ -->
-  <div class="shopUbytovani_zadne">
-    <input type="radio" class="shopUbytovani_radio" name="{postnameDen}" value="" data-kapacita="0" {checked} {disabled}>
-  </div>
-</div>
-<!-- end:den -->
+  <!-- end:den -->
 
-<div style="clear: both"></div>
+  <div style="clear: both"></div>
 
 </div>
 
 <div class="shopUbytovani_spolubydlici">
   Na pokoji chci být s:
-  <input type="text" class="formular_input" name="{postnameSpolubydlici}" value="{spolubydlici}" placeholder="jména oddělená čárkou, nebo nech prázdné">
+  <input type="text" class="formular_input" name="{postnameSpolubydlici}" value="{spolubydlici}"
+         placeholder="jména oddělená čárkou, nebo nech prázdné">
 </div>
 
 <script type="text/javascript">
-  const shopUbytovaniRadios = document.querySelectorAll('input[type=radio][class=shopUbytovani_radio]');
+  const shopUbytovaniRadios = document.querySelectorAll('input[type=radio][class=shopUbytovani_radio]')
   const shopUbitovaniNames = []
-  shopUbytovaniRadios.forEach(function(shopUbytovaniRadio) {
+  shopUbytovaniRadios.forEach(function (shopUbytovaniRadio) {
     if (!shopUbitovaniNames.includes(shopUbytovaniRadio.name)) {
       shopUbitovaniNames.push(shopUbytovaniRadio.name)
     }
   })
 
   function zapamatujKapacituJakoRucneZvolenou(radioInput) {
-    const zvolenaKapacita = radioInput.dataset.kapacita;
-    const radiaJednohoDne = document.querySelectorAll('input[type=radio][class=shopUbytovani_radio][name="'+radioInput.name+'"]');
-    radiaJednohoDne.forEach(radioJednohoDne => radioJednohoDne.dataset.kapacitaZvolenaUzivatelem = zvolenaKapacita);
+    const zvolenaKapacita = radioInput.dataset.kapacita
+    const radiaJednohoDne = document.querySelectorAll('input[type=radio][class=shopUbytovani_radio][name="' + radioInput.name + '"]')
+    radiaJednohoDne.forEach(radioJednohoDne => radioJednohoDne.dataset.kapacitaZvolenaUzivatelem = zvolenaKapacita)
   }
 
   function onShopUbytovaniChange() {
@@ -80,29 +83,28 @@
     const zvoleneName = this.name
     const ostatniNames = shopUbitovaniNames.filter(name => name !== zvoleneName)
     ostatniNames.forEach(function (ostatniName) {
-      const ostatniZvoleneUbytovani = document.querySelector('input[type=radio][class=shopUbytovani_radio][name="'+ostatniName+'"]:checked');
+      const ostatniZvoleneUbytovani = document.querySelector('input[type=radio][class=shopUbytovani_radio][name="' + ostatniName + '"]:checked')
       if (ostatniZvoleneUbytovani
           && ostatniZvoleneUbytovani.dataset.kapacitaZvolenaUzivatelem !== undefined
           && Number.parseInt(ostatniZvoleneUbytovani.dataset.kapacitaZvolenaUzivatelem) === 0
       ) {
         return // v tomto dni je uzivatelem rucne vybrano Zadne ubytovani, to nechceme menit
       }
-      const ostatniStejneUbytovani = document.querySelector('input[type=radio][class=shopUbytovani_radio][name="'+ostatniName+'"][data-kapacita="'+zvolenaKapacita+'"]');
+      const ostatniStejneUbytovani = document.querySelector('input[type=radio][class=shopUbytovani_radio][name="' + ostatniName + '"][data-kapacita="' + zvolenaKapacita + '"]')
       if (!ostatniStejneUbytovani.disabled) {
         ostatniStejneUbytovani.checked = true
       } else {
-        document.querySelector('input[type=radio][class=shopUbytovani_radio][name="'+ostatniName+'"][data-kapacita="0"]').checked = true // v tomto dni je cilova kapacita jiz vycerpana, vybereme proto Zadne ubytovani (kapacita 0)
+        document.querySelector('input[type=radio][class=shopUbytovani_radio][name="' + ostatniName + '"][data-kapacita="0"]').checked = true // v tomto dni je cilova kapacita jiz vycerpana, vybereme proto Zadne ubytovani (kapacita 0)
       }
     })
   }
 
-  /*shopUbytovaniRadios.forEach(function(shopUbytovaniRadio) {
+  shopUbytovaniRadios.forEach(function (shopUbytovaniRadio) {
     shopUbytovaniRadio.addEventListener('change', onShopUbytovaniChange)
     if (shopUbytovaniRadio.checked) {
       zapamatujKapacituJakoRucneZvolenou(shopUbytovaniRadio)
     }
-  })*/
-  // TODO docasne vyrazeno, nez to zkontrolujeme na bete
+  })
 </script>
 
 <!-- end:ubytovani -->
