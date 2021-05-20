@@ -2,21 +2,21 @@
 
 function nasad(array $nastaveni) {
 
-  $deployment = __DIR__ . '/ftp-deployment.php';
-  $zdrojovaSlozka = realpath($nastaveni['zdrojovaSlozka']);
+    $deployment = __DIR__ . '/ftp-deployment.php';
+    $zdrojovaSlozka = realpath($nastaveni['zdrojovaSlozka']);
 
-  // some files are always required by Composer autoloader, even if not needed, so we have to copy them to server, even if they are for dev (tests) only
-  $alwaysAutoloadedRelative = getFilesAlwaysRequiredByAutoloader();
-  $nutneKvuliComposerAutoRequire = implode(
-    "      \n",
-    array_map(static function(string $file) {
-      return "!$file";
-    }, $alwaysAutoloadedRelative)
-  );
+    // some files are always required by Composer autoloader, even if not needed, so we have to copy them to server, even if they are for dev (tests) only
+    $alwaysAutoloadedRelative = getFilesAlwaysRequiredByAutoloader();
+    $nutneKvuliComposerAutoRequire = implode(
+        "      \n",
+        array_map(static function (string $file) {
+            return "!$file";
+        }, $alwaysAutoloadedRelative)
+    );
 
-  $logFile = $nastaveni['log'] ?? 'nasad.log';
+    $logFile = $nastaveni['log'] ?? 'nasad.log';
 
-  $nastaveniDeploymentu = "
+    $nastaveniDeploymentu = "
     log     = {$logFile}
     remote  = {$nastaveni['ciloveFtp']}
     local   = {$zdrojovaSlozka}
@@ -74,60 +74,73 @@ function nasad(array $nastaveni) {
     allowDelete = yes
   ";
 
-  // kontroly
-  if (!is_file($zdrojovaSlozka . '/nastaveni/' . $nastaveni['souborNastaveni'])) {
-    throw new Exception('Nenalezen soubor s nastaveními pro vzdálený server.');
-  }
+    if (!empty($nastaveni['vetev'])) {
+        nadpis("NASAZUJI '{$nastaveni['vetev']}'");
+    }
 
-  // nahrání souborů
-  msg('synchronizuji soubory na vzdáleném ftp');
-  $souborNastaveniDeploymentu = tempnam(sys_get_temp_dir(), 'gamecon-ftpdeploy-');
-  file_put_contents($souborNastaveniDeploymentu, $nastaveniDeploymentu);
-  try {
-    call_check(['php', $deployment, $souborNastaveniDeploymentu]);
-  } finally {
-    unlink($souborNastaveniDeploymentu);
-  }
+    // kontroly
+    if (!is_file($zdrojovaSlozka . '/nastaveni/' . $nastaveni['souborNastaveni'])) {
+        throw new Exception('Nenalezen soubor s nastaveními pro vzdálený server.');
+    }
 
-  // migrace DB
-  msg('spouštím migrace na vzdálené databázi');
-  call_check([
-    'curl',
-    '--data', 'migraceHeslo=' . $nastaveni['hesloMigrace'],
-    '--silent', // skrýt progressbar
-    $nastaveni['urlMigrace'],
-  ]);
+    // nahrání souborů
+    msg('synchronizuji soubory na vzdáleném ftp');
+    $souborNastaveniDeploymentu = tempnam(sys_get_temp_dir(), 'gamecon-ftpdeploy-');
+    file_put_contents($souborNastaveniDeploymentu, $nastaveniDeploymentu);
+    try {
+        call_check(['php', $deployment, $souborNastaveniDeploymentu]);
+    } finally {
+        unlink($souborNastaveniDeploymentu);
+    }
 
-  msg('nasazení dokončeno');
+    // migrace DB
+    msg('spouštím migrace na vzdálené databázi');
+    call_check([
+        'curl',
+        '--data', 'migraceHeslo=' . $nastaveni['hesloMigrace'],
+        '--silent', // skrýt progressbar
+        $nastaveni['urlMigrace'],
+    ]);
+
+    msg('nasazení dokončeno');
 }
 
 function getFilesAlwaysRequiredByAutoloader(): array {
-  if (!file_exists(__DIR__ . '/../vendor/composer/autoload_files.php')) {
-    return [];
-  }
-  $alwaysAutoloadedAbsolute = require __DIR__ . '/../vendor/composer/autoload_files.php';
+    if (!file_exists(__DIR__ . '/../vendor/composer/autoload_files.php')) {
+        return [];
+    }
+    $alwaysAutoloadedAbsolute = require __DIR__ . '/../vendor/composer/autoload_files.php';
 
-  return array_map(
-    static function(string $absolutePath) {
-      // create path relative to project root
-      $vendorPosition = strpos($absolutePath, '/vendor/');
-      return substr($absolutePath, $vendorPosition);
-    },
-    $alwaysAutoloadedAbsolute);
+    return array_map(
+        static function (string $absolutePath) {
+            // create path relative to project root
+            $vendorPosition = strpos($absolutePath, '/vendor/');
+            return substr($absolutePath, $vendorPosition);
+        },
+        $alwaysAutoloadedAbsolute);
 }
 
 function msg($msg) {
-  echo date('H:i:s') . ' ' . $msg . "\n";
+    echo date('H:i:s') . ' ' . $msg . "\n";
+}
+
+function nadpis(string $msg) {
+    $length = mb_strlen($msg);
+    $okraj = str_repeat('=', $length);
+    $eol = PHP_EOL;
+    echo "  $okraj  $eol";
+    echo "‖ $msg ‖$eol";
+    echo "  $okraj  $eol";
 }
 
 function call_check($params) {
-  $command = escapeshellcmd($params[0]);
-  $args = array_map('escapeshellarg', array_slice($params, 1));
-  $args = implode(' ', $args);
-  $commandWithArgs = $command . ' ' . $args;
+    $command = escapeshellcmd($params[0]);
+    $args = array_map('escapeshellarg', array_slice($params, 1));
+    $args = implode(' ', $args);
+    $commandWithArgs = $command . ' ' . $args;
 
-  passthru($commandWithArgs, $exitStatus);
-  if ($exitStatus !== 0) {
-    throw new Exception("Chyba příkazu '$commandWithArgs'", $exitStatus);
-  }
+    passthru($commandWithArgs, $exitStatus);
+    if ($exitStatus !== 0) {
+        throw new Exception("Chyba příkazu '$commandWithArgs'", $exitStatus);
+    }
 }

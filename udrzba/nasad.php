@@ -37,6 +37,7 @@ call_check(['php', __DIR__ . '/testuj.php']);
 // nasazení
 if ($vetev === 'master') {
     nasad([
+        'vetev' => $vetev,
         'zdrojovaSlozka' => __DIR__ . '/..',
         'ciloveFtp' => $nastaveni['ostra']['ftp'],
         'urlMigrace' => $nastaveni['ostra']['urlMigrace'],
@@ -45,6 +46,7 @@ if ($vetev === 'master') {
     ]);
 } elseif ($vetev === 'beta') {
     nasad([
+        'vetev' => $vetev,
         'zdrojovaSlozka' => __DIR__ . '/..',
         'ciloveFtp' => $nastaveni['beta']['ftp'],
         'urlMigrace' => $nastaveni['beta']['urlMigrace'],
@@ -53,6 +55,7 @@ if ($vetev === 'master') {
     ]);
 } elseif ($vetev === 'blackarrow') {
     nasad([
+        'vetev' => $vetev,
         'zdrojovaSlozka' => __DIR__ . '/..',
         'ciloveFtp' => $nastaveni['blackarrow']['ftp'],
         'urlMigrace' => $nastaveni['blackarrow']['urlMigrace'],
