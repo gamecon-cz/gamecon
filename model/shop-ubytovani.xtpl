@@ -36,12 +36,12 @@
   <div class="shop_den shopUbytovani_den">{den}</div>
   <!-- begin:typ -->
   <div class="shopUbytovani_radek">
-    <input type="radio" class="shopUbytovani_radio" name="{postnameDen}" value="{idPredmetu}" data-kapacita="{kapacita}" {sel} {lock}>
+    <input type="radio" class="shopUbytovani_radio" name="{postnameDen}" value="{idPredmetu}" data-kapacita="{kapacita}" {checked} {disabled}>
     <div class="shopUbytovani_kapacita">{obsazeno}/{kapacita}</div>
   </div>
   <!-- end:typ -->
   <div class="shopUbytovani_zadne">
-    <input type="radio" class="shopUbytovani_radio" name="{postnameDen}" value="" data-kapacita="0" {sel} {lock}>
+    <input type="radio" class="shopUbytovani_radio" name="{postnameDen}" value="" data-kapacita="0" {checked} {disabled}>
   </div>
 </div>
 <!-- end:den -->
@@ -64,10 +64,16 @@
     }
   })
 
+  function zapamatujKapacituJakoRucneZvolenou(radioInput) {
+    const zvolenaKapacita = radioInput.dataset.kapacita;
+    const radiaJednohoDne = document.querySelectorAll('input[type=radio][class=shopUbytovani_radio][name="'+radioInput.name+'"]');
+    radiaJednohoDne.forEach(radioJednohoDne => radioJednohoDne.dataset.kapacitaZvolenaUzivatelem = zvolenaKapacita);
+  }
+
   function onShopUbytovaniChange() {
+    zapamatujKapacituJakoRucneZvolenou(this)
     const zvolenaKapacita = this.dataset.kapacita
-    this.dataset.kapacitaZvolenaUzivatelem = this.dataset.kapacita
-    const zvolenaKapacitaInt = Number.parseInt(this.dataset.kapacita)
+    const zvolenaKapacitaInt = Number.parseInt(zvolenaKapacita)
     if (zvolenaKapacitaInt === 0) {
       return
     }
@@ -90,12 +96,12 @@
     })
   }
 
-/*  const initialOnChange = new Event('change');
   shopUbytovaniRadios.forEach(function(shopUbytovaniRadio) {
     shopUbytovaniRadio.addEventListener('change', onShopUbytovaniChange)
-    shopUbytovaniRadio.dispatchEvent(initialOnChange) // zafixovani uvodnich hodnot, jako kdyby je rucne vybral uzivatel, viz kapacitaZvolenaUzivatelem
-  })*/
-  // TODO dočasně zrušeno kvůli potížím
+    if (shopUbytovaniRadio.checked) {
+      zapamatujKapacituJakoRucneZvolenou(shopUbytovaniRadio)
+    }
+  })
 </script>
 
 <!-- end:ubytovani -->
