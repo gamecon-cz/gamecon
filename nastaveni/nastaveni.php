@@ -23,7 +23,7 @@ error_reporting($puvodni ^ E_NOTICE);
 @define('REG_GC_DO', GC_BEZI_DO);              // ukončení možnosti registrace na GameCon
 @define('REG_AKTIVIT_OD', ROK . '-05-20 20:21:00');   // spuštění možnosti registrace na aktivity, pokud jsou aktivované 1. vlna
 @define('REG_AKTIVIT_DO', GC_BEZI_DO);              // ukončení možnosti registrace na aktivity
-@define('PROGRAM_OD', ROK . '-07-15');            // první den programu
+@define('PROGRAM_OD', ROK . '-07-14');            // první den programu
 @define('PROGRAM_DO', GC_BEZI_DO);              // poslední den programu
 @define('PROGRAM_VIDITELNY', po(REG_GC_OD));           // jestli jsou viditelné linky na program
 @define('CENY_VIDITELNE', PROGRAM_VIDITELNY && pred(GC_BEZI_DO)); // jestli jsou viditelné ceny aktivit
