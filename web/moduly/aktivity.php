@@ -57,7 +57,7 @@ foreach ($skupiny as $skupina) {
         }
 
         $vypravec = current($aktivita->organizatori());
-        if ($vypravec && $aktivita->typId() == Typ::DRD) {
+        if ($vypravec && ($aktivita->typId() == Typ::DRD || $aktivita->patriPod() > 0)) {
             $t->assign('vypravec', $vypravec->jmenoNick());
             $t->parse('aktivity.aktivita.termin.vypravec');
         }
