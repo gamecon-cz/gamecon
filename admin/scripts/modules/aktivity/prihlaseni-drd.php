@@ -23,8 +23,7 @@ $semifinale = [];
 $finale = [];
 foreach (Aktivita::zFiltru(['typ' => Typ::DRD, 'rok' => ROK]) as $a) {
     if ($a->cenaZaklad() == 0) {
-        assert(stripos($a->nazev(), 'finále')); // (semi)finále nebo finále musí být v názvu
-        continue; // hack na určení finále a semifinále
+        continue;
     }
     if (!$finale) { // načtení finále a semifinále
         foreach ($a->deti() as $dite) {
@@ -37,8 +36,12 @@ foreach (Aktivita::zFiltru(['typ' => Typ::DRD, 'rok' => ROK]) as $a) {
 
     // přeskočení aktivit, kde zatím není družina
     $prihlaseni = $a->prihlaseni();
-    if (!$prihlaseni) continue; // prázdná aktivita
-    if (!$a->tym()) continue; // družina se teprv sestavuje
+    if (!$prihlaseni) {
+        continue; // prázdná aktivita
+    }
+    if (!$a->tym()) {
+        continue; // družina se teprv sestavuje
+    }
 
     // tisk konkrétní družiny / aktivity
     $t->assign('a', $a);
@@ -56,9 +59,15 @@ foreach (Aktivita::zFiltru(['typ' => Typ::DRD, 'rok' => ROK]) as $a) {
     } elseif (!$a->zamcena()) {
         $t->parse('drd.druzina.nezamceno');
     } else {
-        if ($semifinale[0]->prihlasen($uc)) $t->assign('sfid', $semifinale[0]->id());
-        if ($semifinale[1]->prihlasen($uc)) $t->assign('sfid', $semifinale[1]->id());
-        if ($finale[0]->prihlasen($uc)) $t->assign('fid', $finale[0]->id());
+        if ($semifinale[0]->prihlasen($uc)) {
+            $t->assign('sfid', $semifinale[0]->id());
+        }
+        if ($semifinale[1]->prihlasen($uc)) {
+            $t->assign('sfid', $semifinale[1]->id());
+        }
+        if ($finale[0]->prihlasen($uc)) {
+            $t->assign('fid', $finale[0]->id());
+        }
         $t->parse('drd.druzina.vyber');
     }
     $t->parse('drd.druzina');
