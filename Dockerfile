@@ -1,8 +1,5 @@
 FROM php:7.3-apache
 
-ARG USER_ID=1000
-ARG GROUP_ID=1000
-
 # Install other missed extensions
 RUN apt-get update && apt-get install -y \
       zlib1g-dev \
@@ -51,13 +48,7 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 RUN echo 'alias ll="ls -al"' >> ~/.bashrc \
     && mkdir -p /var/log
 
-# re-build www-data user with same user ID and group ID as a current host user (you)
-RUN if getent passwd www-data ; then userdel -f www-data; fi \
-    && if getent group www-data ; then groupdel www-data; fi \
-    && groupadd --gid ${GROUP_ID} www-data \
-    && useradd www-data --no-log-init --gid ${USER_ID} --groups www-data --home-dir /home/www-data --shell /bin/bash \
-    && mkdir -p /var/www \
-    && chown -R www-data:www-data /var/www \
+RUN usermod --home /home/www-data --shell /bin/bash www-data \
     && mkdir -p /home/www-data \
     && chown -R www-data:www-data /home/www-data
 
@@ -87,4 +78,4 @@ ENV ENV=local
 
 WORKDIR $APACHE_DOCUMENT_ROOT
 
-ENTRYPOINT /.docker/gamecon-run.sh
+CMD bash /.docker/gamecon-run.sh $(pwd)
