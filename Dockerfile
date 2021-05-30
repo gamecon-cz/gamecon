@@ -25,7 +25,7 @@ RUN apt-get update && apt-get install -y \
       wget \
     && apt-get clean; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
-RUN docker-php-ext-install mysqli pdo_mysql intl exif
+RUN docker-php-ext-install mysqli pdo_mysql intl exif bcmath
 
 # images support, like imagecreatefromjpeg()
 RUN docker-php-ext-configure gd \
