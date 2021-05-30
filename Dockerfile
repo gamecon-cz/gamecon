@@ -25,12 +25,15 @@ RUN apt-get update && apt-get install -y \
       wget \
     && apt-get clean; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
-RUN docker-php-ext-install gd mysqli pdo_mysql intl exif
+RUN docker-php-ext-install mysqli pdo_mysql intl exif
 
 # images support, like imagecreatefromjpeg()
 RUN docker-php-ext-configure gd \
       --with-freetype-dir=/usr/include/ \
       --with-jpeg-dir=/usr/include/
+
+RUN docker-php-ext-install gd \
+    && php -r 'exit(function_exists("imagecreatefromjpeg") ? 0 : 1);'
 
 RUN a2enmod rewrite expires && \
 	# avoid warning on start
