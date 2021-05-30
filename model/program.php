@@ -36,7 +36,7 @@ class Program
     /**
      * Konstruktor bere uživatele a specifikaci, jestli je to osobní program
      */
-    function __construct(Uzivatel $u = null, $nastaveni = null) {
+    public function __construct(Uzivatel $u = null, $nastaveni = null) {
         if ($u instanceof Uzivatel) {
             $this->u = $u;
             $this->uid = $this->u->id();
@@ -304,9 +304,15 @@ class Program
 
         if ($aktivitaObjekt->typId() != Typ::DRD || $this->nastaveni['drdPrihlas']) { // hack na nezobrazování přihlašovátek pro DrD
             $parametry = 0;
-            if ($this->nastaveni['plusMinus']) $parametry |= Aktivita::PLUSMINUS_KAZDY;
-            if ($this->nastaveni['zpetne']) $parametry |= Aktivita::ZPETNE;
-            if ($this->nastaveni['technicke']) $parametry |= Aktivita::TECHNICKE;
+            if ($this->nastaveni['plusMinus']) {
+                $parametry |= Aktivita::PLUSMINUS_KAZDY;
+            }
+            if ($this->nastaveni['zpetne']) {
+                $parametry |= Aktivita::ZPETNE;
+            }
+            if ($this->nastaveni['technicke']) {
+                $parametry |= Aktivita::TECHNICKE;
+            }
             echo ' ' . $aktivitaObjekt->prihlasovatko($this->u, $parametry);
         }
 

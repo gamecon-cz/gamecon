@@ -9,7 +9,10 @@
 
 use \Gamecon\Cas\DateTimeCz;
 
-$zidle = @$req[1];
+/** @var Uzivatel $uPracovni */
+/** @var Uzivatel $u */
+
+$zidle = $req[1] ?? null;
 
 function zaloguj($zprava) {
     $cas = (new DateTimeCz())->formatDb();
@@ -29,7 +32,7 @@ if ($z = get('sesad')) {
 }
 
 if ($p = get('odeberPravo')) {
-    dbQueryS('DELETE FROM r_prava_zidle WHERE id_prava = $1 AND id_zidle = $2', [$p, $zidle]);
+    dbQuery('DELETE FROM r_prava_zidle WHERE id_prava = $1 AND id_zidle = $2', [$p, $zidle]);
     zaloguj('Uživatel ' . $u->jmenoNick() . " odebral židli $zidle právo $p");
     back();
 }
@@ -51,13 +54,13 @@ $t = new XTemplate('prava.xtpl');
 
 if (!$zidle) {
     // výpis seznamu židlí
-    $o = dbQueryS('
-    SELECT z.*, uz.id_zidle IS NOT NULL as sedi
+    $o = dbQuery(
+        'SELECT z.*, uz.id_zidle IS NOT NULL as sedi
     FROM r_zidle_soupis z
     LEFT JOIN r_uzivatele_zidle uz ON(uz.id_zidle = z.id_zidle AND uz.id_uzivatele = $1)
     GROUP BY z.id_zidle
-    ORDER BY z.id_zidle
-    ', [$uPracovni ? $uPracovni->id() : null]
+    ORDER BY z.id_zidle',
+        [$uPracovni ? $uPracovni->id() : null]
     );
     while ($r = mysqli_fetch_assoc($o)) {
         $r['sedi'] = $r['sedi'] ? '<span style="color:#0d0;font-weight:bold">&bull;</span>' : '';
@@ -74,13 +77,13 @@ if (!$zidle) {
     $t->out('prava');
 } else {
     // výpis detailu židle
-    $o = dbQueryS('
-    SELECT r_zidle_soupis.*, r_prava_soupis.*
+    $o = dbQuery(
+        'SELECT r_zidle_soupis.*, r_prava_soupis.*
     FROM r_zidle_soupis
     LEFT JOIN r_prava_zidle USING(id_zidle)
     LEFT JOIN r_prava_soupis USING(id_prava)
-    WHERE r_zidle_soupis.id_zidle = $1
-    ', [$zidle]
+    WHERE r_zidle_soupis.id_zidle = $1',
+        [$zidle]
     );
     while (($r = mysqli_fetch_assoc($o)) && $r['id_prava']) {
         $r['jmeno_prava'] = nahradPlaceholderZaKonstantu($r['jmeno_prava']);
@@ -89,13 +92,13 @@ if (!$zidle) {
     }
     $t->assign('id_zidle', $zidle); // bugfix pro židle s 0 právy
     // nabídka židlí
-    $o = dbQueryS('
-    SELECT p.*
+    $o = dbQuery(
+        'SELECT p.*
     FROM r_prava_soupis p
     LEFT JOIN r_prava_zidle pz ON(pz.id_prava = p.id_prava AND pz.id_zidle = $1)
     WHERE p.id_prava > 0 AND pz.id_prava IS NULL
-    ORDER BY p.jmeno_prava
-    ', [$zidle]
+    ORDER BY p.jmeno_prava',
+        [$zidle]
     );
     while ($r = mysqli_fetch_assoc($o)) {
         $t->assign($r);
@@ -109,10 +112,11 @@ if (!$zidle) {
         $t->parse('zidle.uzivatel');
     }
     // posazování
-    if ($uPracovni && !$uPracovni->maZidli($zidle))
+    if ($uPracovni && !$uPracovni->maZidli($zidle)) {
         $t->parse('zidle.posad');
-    elseif ($uPracovni)
+    } elseif ($uPracovni) {
         $t->parse('zidle.sesad');
+    }
     $t->parse('zidle');
     $t->out('zidle');
 }

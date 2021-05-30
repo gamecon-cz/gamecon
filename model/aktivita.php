@@ -1109,17 +1109,23 @@ SQL
      */
     function prihlas(Uzivatel $u, $ignorovat = 0) {
         // kontroly
-        if ($this->prihlasen($u))
+        if ($this->prihlasen($u)) {
             return;
-        if (!$u->maVolno($this->zacatek(), $this->konec()))
+        }
+        if (!$u->maVolno($this->zacatek(), $this->konec())) {
             throw new Chyba(hlaska('kolizeAktivit'));
-        if (!$u->gcPrihlasen())
+        }
+        if (!$u->gcPrihlasen()) {
             throw new Exception('Nemáš aktivní přihlášku na GameCon.');
-        if ($this->volno() != 'u' && $this->volno() != $u->pohlavi())
+        }
+        if ($this->volno() !== 'u' && $this->volno() !== $u->pohlavi()) {
             throw new Chyba(hlaska('plno'));
+        }
         foreach ($this->deti() as $dite) { // nemůže se přihlásit na aktivitu, pokud už je přihášen na jinou aktivitu s stejnými potomky
             foreach ($dite->rodice() as $rodic) {
-                if ($rodic->prihlasen($u)) throw new Chyba(hlaska('maxJednou'));
+                if ($rodic->prihlasen($u)) {
+                    throw new Chyba(hlaska('maxJednou'));
+                }
             }
         }
         if ($this->a['team_kapacita'] !== null) {
@@ -1136,20 +1142,26 @@ SQL
         }
 
         // potlačitelné kontroly
-        if ($this->a['zamcel'] && !($ignorovat & self::ZAMEK)) throw new Chyba(hlaska('zamcena'));
+        if ($this->a['zamcel'] && !($ignorovat & self::ZAMEK)) {
+            throw new Chyba(hlaska('zamcena'));
+        }
         if (!$this->prihlasovatelna($ignorovat)) {
             // hack na ignorování stavu
             $puvodniStav = $this->a['stav'];
-            if ($ignorovat & self::STAV) $this->a['stav'] = Stav::AKTIVOVANA; // nastavíme stav jako by bylo vše ok
+            if ($ignorovat & self::STAV) {
+                $this->a['stav'] = Stav::AKTIVOVANA; // nastavíme stav jako by bylo vše ok
+            }
             $prihlasovatelna = $this->prihlasovatelna($ignorovat);
             $this->a['stav'] = $puvodniStav;
-            if (!$prihlasovatelna) throw new Exception('Aktivita není otevřena pro přihlašování.');
+            if (!$prihlasovatelna) {
+                throw new Exception('Aktivita není otevřena pro přihlašování.');
+            }
         }
 
         // přihlášení na navázané aktivity (jen pokud není teamleader)
         if ($this->a['dite'] && $this->prihlaseno() > 0) {
             $deti = $this->deti();
-            if (count($deti) == 1) {
+            if (count($deti) === 1) {
                 current($deti)->prihlas($u, self::STAV);
             } else {
                 // vybrání jednoho uživatele, který už na navázané aktivity přihlášen je
@@ -1163,7 +1175,9 @@ SQL
                         break;
                     }
                 }
-                if (!$uspech) throw new Exception('Nepodařilo se určit výběr dalšího kola.');
+                if (!$uspech) {
+                    throw new Exception('Nepodařilo se určit výběr dalšího kola.');
+                }
             }
         }
 
@@ -1173,13 +1187,17 @@ SQL
         // přihlášení na samu aktivitu (uložení věcí do DB)
         $aid = $this->id();
         $uid = $u->id();
-        if ($this->a['teamova'] && $this->prihlaseno() == 0 && $this->prihlasovatelna())
+        if ($this->a['teamova'] && $this->prihlaseno() === 0 && $this->prihlasovatelna()) {
             dbUpdate('akce_seznam', ['zamcel' => $uid, 'zamcel_cas' => dbNow()], ['id_akce' => $aid]);
+        }
         dbQuery("INSERT INTO akce_prihlaseni SET id_uzivatele=$uid, id_akce=$aid");
         dbQuery("INSERT INTO akce_prihlaseni_log SET id_uzivatele=$uid, id_akce=$aid, typ='prihlaseni'");
-        if (ODHLASENI_POKUTA_KONTROLA) //pokud by náhodou měl záznam za pokutu a přihlásil se teď, tak smazat
-            dbQueryS('DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0
-        AND id_akce=$1 AND id_stavu_prihlaseni=4', [$uid, $aid]);
+        if (ODHLASENI_POKUTA_KONTROLA) { //pokud by náhodou měl záznam za pokutu a přihlásil se teď, tak smazat
+            dbQuery(
+                'DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0 AND id_akce=$1 AND id_stavu_prihlaseni=4',
+                [$uid, $aid]
+            );
+        }
         $this->refresh();
     }
 
@@ -1195,17 +1213,18 @@ SQL
      * @see ucastnici
      */
     private function prihlaseniRaw() {
-        if (!array_key_exists('prihlaseni', $this->a))
+        if (!array_key_exists('prihlaseni', $this->a)) {
             throw new Exception ('Nenačteny počty přihlášených do aktivity.');
+        }
         return $this->a['prihlaseni'];
     }
 
     /** Počet přihlášených */
-    protected function prihlaseno() {
-        if ($p = $this->prihlaseniRaw())
+    protected function prihlaseno(): int {
+        if ($p = $this->prihlaseniRaw()) {
             return substr_count($p, ',') - 1;
-        else
-            return 0;
+        }
+        return 0;
     }
 
     protected function prihlasenoMuzu() {
@@ -1226,9 +1245,8 @@ SQL
         $pos = strpos($prihlaseni, $usymbol);
         if ($pos !== false) {
             return (int)substr($prihlaseni, $pos + strlen($usymbol), 1);
-        } else {
-            return -1;
         }
+        return -1;
     }
 
     /** Zdali chceme, aby se na aktivitu bylo možné běžně přihlašovat */
@@ -1265,33 +1283,42 @@ SQL
         $out = '';
         if ($u && $u->gcPrihlasen() && $this->prihlasovatelna($parametry)) {
             if (($stav = $this->prihlasenStav($u)) > -1) {
-                if ($stav == 0 || $parametry & self::ZPETNE)
+                if ($stav == 0 || $parametry & self::ZPETNE) {
                     $out .=
                         '<form method="post" style="display:inline">' .
                         '<input type="hidden" name="odhlasit" value="' . $this->id() . '">' .
                         '<a href="#" onclick="this.parentNode.submit(); return false">odhlásit</a>' .
                         '</form>';
-                if ($stav == 1) $out .= '<em>účast</em>';
-                if ($stav == 2) $out .= '<em>jako náhradník</em>';
-                if ($stav == 3) $out .= '<em>neúčast</em>';
-                if ($stav == 4) $out .= '<em>pozdní odhlášení</em>';
+                }
+                if ($stav == 1) {
+                    $out .= '<em>účast</em>';
+                }
+                if ($stav == 2) {
+                    $out .= '<em>jako náhradník</em>';
+                }
+                if ($stav == 3) {
+                    $out .= '<em>neúčast</em>';
+                }
+                if ($stav == 4) {
+                    $out .= '<em>pozdní odhlášení</em>';
+                }
             } elseif ($u->organizuje($this)) {
                 $out = '';
             } elseif ($this->a['zamcel']) {
                 $out = '&#128274;'; //zámek
             } else {
                 $volno = $this->volno();
-                if ($volno == 'u' || $volno == $u->pohlavi())
+                if ($volno === 'u' || $volno == $u->pohlavi()) {
                     $out =
                         '<form method="post" style="display:inline">' .
                         '<input type="hidden" name="prihlasit" value="' . $this->id() . '">' .
                         '<a href="#" onclick="this.parentNode.submit(); return false">přihlásit</a>' .
                         '</form>';
-                elseif ($volno == 'f')
+                } elseif ($volno === 'f') {
                     $out = 'pouze ženská místa';
-                elseif ($volno == 'm')
+                } elseif ($volno === 'm') {
                     $out = 'pouze mužská místa';
-                elseif ($this->prihlasovatelnaNahradnikum()) {
+                } elseif ($this->prihlasovatelnaNahradnikum()) {
                     if ($u->prihlasenJakoNahradnikNa($this)) {
                         $out =
                             '<form method="post" style="display:inline">' .
