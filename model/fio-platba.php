@@ -20,7 +20,7 @@ class FioPlatba
     protected static function cached($url) {
         $adresar = SPEC . '/fio';
         $soubor = $adresar . '/' . md5($url) . '.json';
-        if (!mkdir($adresar) && !is_dir($adresar)) {
+        if (!is_dir($adresar) && (!mkdir($adresar, 0777, true) || !is_dir($adresar))) {
             throw new \RuntimeException(sprintf('Directory "%s" was not created', $adresar));
         }
         if (@filemtime($soubor) < time() - 60) {
@@ -50,7 +50,15 @@ class FioPlatba
 
     /** Variabilní symbol */
     public function vs() {
-        return $this->data['VS'] ?? '';
+        $vs = $this->data['VS'] ?? '';
+        return $vs ?: $this->nactiVsZTextu($this->zprava());
+    }
+
+    protected function nactiVsZTextu(string $text): string {
+        if (!preg_match('~/vs/(?<vs>\d+)~i', $text, $matches)) {
+            return '';
+        }
+        return $matches['vs'];
     }
 
     /** Zpráva pro příjemce */
@@ -58,15 +66,23 @@ class FioPlatba
         return $this->data['Zpráva pro příjemce'] ?? '';
     }
 
-    /** Vrátí platby za posledních $dni dní */
-    public static function zPoslednichDni($dni) {
+    /**
+     * Vrátí platby za posledních X dní
+     * @return FioPlatba[]
+     */
+    public static function zPoslednichDni(int $pocetDniZpet) {
         return self::zRozmezi(
-            (new DateTime())->sub(new DateInterval('P' . $dni . 'D')),
+            (new DateTime())->sub(new DateInterval('P' . $pocetDniZpet . 'D')),
             new DateTime()
         );
     }
 
-    protected static function zRozmezi(DateTime $od, DateTime $do) {
+    /**
+     * @param DateTimeInterface $od
+     * @param DateTimeInterface $do
+     * @return FioPlatba[]
+     */
+    protected static function zRozmezi(DateTimeInterface $od, DateTimeInterface $do): array {
         $od = $od->format('Y-m-d');
         $do = $do->format('Y-m-d');
         $token = FIO_TOKEN;
@@ -74,14 +90,23 @@ class FioPlatba
         return self::zUrl($url);
     }
 
-    /** Vrátí platby načtené z jsonu na dané url */
-    protected static function zUrl($url) {
-        $platby = json_decode(self::cached($url))->accountStatement->transactionList;
-        $platby = $platby ? $platby->transaction : [];
+    /**
+     * Vrátí platby načtené z jsonu na dané url
+     * @return FioPlatba[]
+     */
+    protected static function zUrl($url): array {
+        $raw = self::cached($url);
+        if (!$raw) {
+            return [];
+        }
+        $decoded = json_decode($raw, false, 512, JSON_THROW_ON_ERROR);
+        if (!$decoded) {
+            return [];
+        }
+        $platby = $decoded->accountStatement->transactionList->transaction ?? [];
         $fioPlatby = [];
         foreach ($platby as $platba) {
             $fioPlatby[] = self::zPlatby($platba);
-            //$o[id]?
         }
         return $fioPlatby;
     }
