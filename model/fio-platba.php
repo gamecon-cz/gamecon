@@ -16,28 +16,6 @@ class FioPlatba
         $this->data = $data;
     }
 
-    /** Cacheuje a zpracovává surovou rest odpověď (kvůli limitu 30s na straně FIO) */
-    protected static function cached($url) {
-        $adresar = SPEC . '/fio';
-        $soubor = $adresar . '/' . md5($url) . '.json';
-        if (!is_dir($adresar) && (!mkdir($adresar, 0777, true) || !is_dir($adresar))) {
-            throw new \RuntimeException(sprintf('Directory "%s" was not created', $adresar));
-        }
-        if (@filemtime($soubor) < time() - 60) {
-            $pokus = 0;
-            do {
-                $pokus++;
-                $odpoved = @file_get_contents($url); // v prvních pokusech chyby maskovat
-            } while ($odpoved === false && $pokus < 5); // opakovat načtení až 5x
-            if ($odpoved === false) {
-                $odpoved = file_get_contents($url); // v záverečném pokusu chybu reportovat
-            }
-
-            file_put_contents($soubor, $odpoved);
-        }
-        return preg_replace('@"value":([\d\.]+),@', '"value":"$1",', file_get_contents($soubor)); // konverze čísel na stringy kvůli velkým ID
-    }
-
     /** Objem platby (kladný pro příchozí, záporný pro odchozí) */
     public function castka() {
         return $this->data['Objem'];
@@ -72,8 +50,8 @@ class FioPlatba
      */
     public static function zPoslednichDni(int $pocetDniZpet) {
         return self::zRozmezi(
-            (new DateTime())->sub(new DateInterval('P' . $pocetDniZpet . 'D')),
-            new DateTime()
+            new DateTimeImmutable("-{$pocetDniZpet} days"),
+            new DateTimeImmutable()
         );
     }
 
@@ -83,10 +61,10 @@ class FioPlatba
      * @return FioPlatba[]
      */
     protected static function zRozmezi(DateTimeInterface $od, DateTimeInterface $do): array {
-        $od = $od->format('Y-m-d');
-        $do = $do->format('Y-m-d');
+        $odString = $od->format('Y-m-d');
+        $doString = $do->format('Y-m-d');
         $token = FIO_TOKEN;
-        $url = "https://www.fio.cz/ib_api/rest/periods/$token/$od/$do/transactions.json";
+        $url = "https://www.fio.cz/ib_api/rest/periods/$token/$odString/$doString/transactions.json";
         return self::zUrl($url);
     }
 
@@ -109,6 +87,30 @@ class FioPlatba
             $fioPlatby[] = self::zPlatby($platba);
         }
         return $fioPlatby;
+    }
+
+    /** Cacheuje a zpracovává surovou rest odpověď (kvůli limitu 30s na straně FIO) */
+    protected static function cached($url) {
+        $adresar = SPEC . '/fio';
+        $soubor = $adresar . '/' . md5($url) . '.json';
+        if (!is_dir($adresar) && (!mkdir($adresar, 0777, true) || !is_dir($adresar))) {
+            throw new \RuntimeException(sprintf('Directory "%s" was not created', $adresar));
+        }
+        if (@filemtime($soubor) < (time() - 60)) {
+            self::fetch($url, $soubor);
+        }
+        // konverze čísel na stringy kvůli IDs většími než PHP_MAX_INT
+        return preg_replace('@"value":([\d.]+),@', '"value":"$1",', file_get_contents($soubor));
+    }
+
+    protected static function fetch(string $url, string $soubor) {
+        for ($odpoved = false, $pokus = 1; $odpoved === false && $pokus < 5; $pokus++, usleep(100)) {
+            $odpoved = @file_get_contents($url); // v prvních pokusech chyby maskovat
+        }
+        if ($odpoved === false) {
+            $odpoved = file_get_contents($url); // v záverečném pokusu chybu reportovat
+        }
+        file_put_contents($soubor, $odpoved);
     }
 
     /** Vrátí platbu načtenou z předaného elementu z jsonového pole ...->transaction */
