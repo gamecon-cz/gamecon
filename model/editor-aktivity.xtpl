@@ -206,6 +206,37 @@ $(function(){
       <textarea rows="1" class="full" type="text" name="{fields}[vybaveni]">{vybaveni}</textarea>
     </td>
   </tr>
+  <tr>
+    <th><label for="deti" class="hinted">Děti<span class="hint">Ctrl pro výcenásobný výběr. Ctrl + klinutí na vybranou položku pro zrušení.</span></label></th>
+    <td>
+      <select id="deti" name="{fields}[dite][]" multiple>
+        <!-- begin:deti --><option {selected} value="{id_ditete}">{nazev_ditete}</option><!-- end:deti -->
+      </select>
+    </td>
+  </tr>
+  <script type="text/javascript">
+    const $detiMultiselect = $('#deti');
+    document.addEventListener('DOMContentLoaded', function () {
+      const clientWidthForEditorAktivity = document.getElementById('editorAktivity').clientWidth;
+      let detiMultiselectColumns = parseInt(clientWidthForEditorAktivity / 110);
+      if (detiMultiselectColumns < 1) {
+        detiMultiselectColumns = 1;
+      }
+      $detiMultiselect.multiselect('settings', {columns: detiMultiselectColumns});
+    });
+
+    $detiMultiselect.multiselect({
+      columns: 2,
+      search: true,
+      texts: {
+        'placeholder': 'Zadej dítě',
+        'search': 'Hledej dítě',
+        'selectedOptions': ' vybraných dětí',
+      },
+      maxPlaceholderOpts: 3,
+      selectAll: false
+    });
+  </script>
 </table>
 <!-- end:tabulka -->
 
