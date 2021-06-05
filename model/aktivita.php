@@ -233,6 +233,10 @@ class Aktivita
             self::parseUpravyTabulkaLokace($aktivita, $xtpl);
         }
 
+        if (!$omezeni || !empty($omezeni['deti'])) {
+            self::parseUpravyTabulkaDeti($aktivita, $xtpl);
+        }
+
         // editace dnů + časů
         if (!$omezeni || !empty($omezeni['zacatek'])) {
             // načtení dnů
@@ -268,6 +272,35 @@ class Aktivita
             $xtpl->assign('selected', $aktivita && $aktivitaData['lokace'] == $lokaceData['id_lokace'] ? 'selected' : '');
             $xtpl->assign($lokaceData);
             $xtpl->parse('upravy.tabulka.lokace');
+        }
+    }
+
+    private static function parseUpravyTabulkaDeti(?Aktivita $aktivita, XTemplate $xtpl) {
+        $aktivitaData = $aktivita ? $aktivita->a : null; // databázový řádek
+        $q = dbQuery(
+            "SELECT id_akce FROM akce_seznam WHERE id_akce != $1 AND rok = $2 ORDER BY nazev_akce",
+            [$aktivita ? $aktivita->id() : null, ROK]
+        );
+        $detiIds = $aktivitaData ? explode(',', $aktivitaData['dite']) : [];
+        while ($mozneDiteData = mysqli_fetch_assoc($q)) {
+            $xtpl->assign(
+                'selected',
+                $aktivitaData && in_array($mozneDiteData['id_akce'], $detiIds, false) ? 'selected' : ''
+            );
+            $mozneDite = Aktivita::zId($mozneDiteData['id_akce']);
+            $xtpl->assign('id_ditete', $mozneDiteData['id_akce']);
+            $xtpl->assign(
+                'nazev_ditete',
+                sprintf(
+                    '%d - %s, %s %s-%s',
+                    $mozneDiteData['id_akce'],
+                    $mozneDite->nazev(),
+                    $mozneDite->zacatek() ? $mozneDite->zacatek()->format('l') : '',
+                    $mozneDite->zacatek() ? $mozneDite->zacatek()->format('G') : '',
+                    $mozneDite->konec() ? $mozneDite->konec()->format('G') : '',
+                )
+            );
+            $xtpl->parse('upravy.tabulka.deti');
         }
     }
 
@@ -434,6 +467,15 @@ class Aktivita
         unset($a['organizatori']);
         $popis = $a['popis'];
         unset($a['popis']);
+
+        $a['dite'] = !empty($a['dite'])
+            ? implode(
+                ',',
+                array_map(static function ($diteId) {
+                    return (int)$diteId;
+                }, $a['dite'])
+            )
+            : null;
 
         if (!empty($a['teamova']) && isset($a['team_min'], $a['team_max']) && $a['team_min'] > $a['team_max']) {
             chyba(

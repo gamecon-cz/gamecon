@@ -53,4 +53,4 @@ $tpl->assign('editorTaguData', EditorTagu::EDITOR_TAGU_DATA);
 $tpl->parse('tagy');
 $tpl->out('tagy');
 
-echo $editorTagu->getTagEditor();
+echo $editorTagu->getEditorTaguHtml();
