@@ -151,7 +151,10 @@ class Aktivita
 
     /** Vrátí potomky této aktivity (=navázané aktivity, další kola, ...) */
     public function deti(): array {
-        return self::zIds($this->detiIds());
+        if ($this->a['dite']) {
+            return self::zIds($this->a['dite']);
+        }
+        return [];
     }
 
     public function maDite(int $idDitete): bool {
