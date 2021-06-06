@@ -7,11 +7,11 @@
  * pravo: 103
  */
 
-if(post('prezenceAktivity')) {
-  $aktivita = Aktivita::zId(post('prezenceAktivity'));
-  $dorazili = Uzivatel::zIds(array_keys(post('dorazil') ?: []));
-  $aktivita->ulozPrezenci($dorazili);
-  back();
+if (post('prezenceAktivity')) {
+    $aktivita = Aktivita::zId(post('prezenceAktivity'));
+    $dorazili = Uzivatel::zIds(array_keys(post('dorazil') ?: []));
+    $aktivita->ulozPrezenci($dorazili);
+    back();
 }
 
 $t = new XTemplate('prezence.xtpl');
@@ -22,24 +22,24 @@ $t->assign('casy', _casy($zacatek, true));
 
 $aktivity = $zacatek ? Aktivita::zRozmezi($zacatek, $zacatek) : [];
 
-if($zacatek && count($aktivity) == 0) $t->parse('prezence.zadnaAktivita');
-if(!$zacatek) $t->parse('prezence.nevybrano');
+if ($zacatek && count($aktivity) == 0) $t->parse('prezence.zadnaAktivita');
+if (!$zacatek) $t->parse('prezence.nevybrano');
 
-foreach($aktivity as $aktivita) {
-  $vyplnena = $aktivita->vyplnenaPrezence();
-  $zamcena = $aktivita->zamcena();
-  $t->assign('a', $aktivita);
-  foreach($aktivita->prihlaseni() as $prihlasenyUzivatel) {
-    $t->assign('u', $prihlasenyUzivatel);
-    if(!$vyplnena && $zamcena) $t->parse('prezence.aktivita.form.ucastnik.checkbox');
-    $t->parse('prezence.aktivita.form.ucastnik.' . ($prihlasenyUzivatel->gcPritomen() ? 'pritomen' : 'nepritomen'));
-    $t->parse('prezence.aktivita.form.ucastnik');
-  }
-  if($vyplnena) $t->parse('prezence.aktivita.vyplnena');
-  if(!$vyplnena && $zamcena) $t->parse('prezence.aktivita.form.submit');
-  if(!$zamcena) $t->parse('prezence.aktivita.nezamknuta');
-  $t->parse('prezence.aktivita.form');
-  $t->parse('prezence.aktivita');
+foreach ($aktivity as $aktivita) {
+    $vyplnena = $aktivita->vyplnenaPrezence();
+    $zamcena = $aktivita->zamcena();
+    $t->assign('a', $aktivita);
+    foreach ($aktivita->prihlaseni() as $prihlasenyUzivatel) {
+        $t->assign('u', $prihlasenyUzivatel);
+        if (!$vyplnena && $zamcena) $t->parse('prezence.aktivita.form.ucastnik.checkbox');
+        $t->parse('prezence.aktivita.form.ucastnik.' . ($prihlasenyUzivatel->gcPritomen() ? 'pritomen' : 'nepritomen'));
+        $t->parse('prezence.aktivita.form.ucastnik');
+    }
+    if ($vyplnena) $t->parse('prezence.aktivita.vyplnena');
+    if (!$vyplnena && $zamcena) $t->parse('prezence.aktivita.form.submit');
+    if (!$zamcena) $t->parse('prezence.aktivita.nezamknuta');
+    $t->parse('prezence.aktivita.form');
+    $t->parse('prezence.aktivita');
 }
 
 $t->parse('prezence');
