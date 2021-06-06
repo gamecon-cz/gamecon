@@ -72,7 +72,7 @@ class Aktivita
     /**
      * Aktivuje (zpřístupní pro přihlašování) aktivitu
      */
-    function aktivuj() {
+    public function aktivuj() {
         if (!$this->zacatek()) throw new Chyba('Aktivita nemá nastavený čas');
         dbQuery('UPDATE akce_seznam SET stav = $1 WHERE id_akce = $2', [Stav::AKTIVOVANA, $this->id()]);
         // TODO invalidate $this
@@ -89,7 +89,7 @@ class Aktivita
      * Cena aktivity čitelná člověkem, poplatná aktuálnímu okamžiku. V případě
      * uvedení uživatele vrací pro něj specifickou cenu.
      */
-    function cena(Uzivatel $u = null) {
+    public function cena(Uzivatel $u = null) {
         if ($this->a['typ'] == 10)
             return null;
         else if (!($this->cenaZaklad() > 0))
@@ -103,7 +103,7 @@ class Aktivita
     }
 
     /** Základní cena aktivity */
-    function cenaZaklad() {
+    public function cenaZaklad() {
         return $this->a['cena'];
     }
 
@@ -112,7 +112,7 @@ class Aktivita
      *  samo polem, v kterém jsou jednotlivé aktivity (varianty) z kterých se dá
      *  v daném kole vybírat.
      */
-    function dalsiKola() {
+    public function dalsiKola() {
         $dalsiKola = [];
         $dalsiKolo = [$this];
         while ($dalsiKolo = current($dalsiKolo)->deti()) {
@@ -122,7 +122,7 @@ class Aktivita
     }
 
     /** Délka aktivity v hodinách (float) */
-    function delka() {
+    public function delka() {
         if ($zacatek = $this->zacatek())
             return ($this->konec()->getTimestamp() - $zacatek->getTimestamp()) / 3600;
         else
@@ -132,7 +132,7 @@ class Aktivita
     /**
      * @return string datum ve stylu Pátek 14-18
      */
-    function denCas() {
+    public function denCas() {
         if ($this->zacatek() && $this->konec()) {
             return $this->zacatek()->format('l G') . '–' . $this->konec()->format('G');
         }
@@ -140,7 +140,7 @@ class Aktivita
     }
 
     /** Vrátí potomky této aktivity (=navázané aktivity, další kola, ...) */
-    function deti(): array {
+    public function deti(): array {
         if ($this->a['dite']) {
             return self::zIds($this->a['dite']);
         }
@@ -148,7 +148,7 @@ class Aktivita
     }
 
     /** Počet hodin do začátku aktivity (float) */
-    function doZacatku() {
+    public function doZacatku() {
         return ($this->zacatek()->getTimestamp() - time()) / 3600;
     }
 
@@ -537,7 +537,7 @@ class Aktivita
         return $aktivita;
     }
 
-    function id(): int {
+    public function id(): int {
         return (int)$this->a['id_akce'];
     }
 
@@ -603,7 +603,7 @@ class Aktivita
      * Vytvoří novou instanci aktivity
      * @return self nově vytvořená instance
      */
-    function instancuj() {
+    public function instancuj() {
         $akt = dbOneLine('SELECT * FROM akce_seznam WHERE id_akce=' . $this->id());
         //odstraníme id, url a popisek, abychom je nepoužívali/neduplikovali při vkládání
         //stav se vloží implicitní hodnota v DB
@@ -675,7 +675,7 @@ class Aktivita
     }
 
     /** Vrátí DateTime objekt konce aktivity */
-    function konec(): ?DateTimeCz {
+    public function konec(): ?DateTimeCz {
         if ($this->a['konec'] && is_string($this->a['konec'])) {
             $this->a['konec'] = new DateTimeCz($this->a['konec']);
         }
@@ -685,12 +685,12 @@ class Aktivita
     /**
      * @return string krátký popis aktivity (plaintext)
      */
-    function kratkyPopis() {
+    public function kratkyPopis() {
         return $this->a['popis_kratky'];
     }
 
     /** Vrátí lokaci (ndef. formát, ale musí podporovat __toString) */
-    function lokace(): ?Lokace {
+    public function lokace(): ?Lokace {
         if (is_numeric($this->lokace)) {
             $this->prednactiN1([
                 'atribut' => 'lokace',
@@ -700,7 +700,7 @@ class Aktivita
         return $this->lokace ?: null;
     }
 
-    function lokaceId(): ?int {
+    public function lokaceId(): ?int {
         return $this->a['lokace'] !== null
             ? (int)$this->a['lokace']
             : null;
@@ -709,7 +709,7 @@ class Aktivita
     /**
      * Vrátí pole uživatelů, kteří jsou náhradníky na aktivitě .
      */
-    function nahradnici() {
+    public function nahradnici() {
         if (!isset($this->nahradnici)) {
             return Uzivatel::zIds(dbOneCol('
         SELECT GROUP_CONCAT(aps.id_uzivatele)
@@ -722,14 +722,14 @@ class Aktivita
         }
     }
 
-    function nazev() {
+    public function nazev() {
         return $this->a['nazev_akce'];
     }
 
     /**
      * Aktivita negeneruje slevu organizátorovi
      */
-    function nedavaSlevu(): bool {
+    public function nedavaSlevu(): bool {
         return (bool)$this->a['nedava_slevu'];
     }
 
@@ -738,14 +738,14 @@ class Aktivita
      * byl jenom z DB načten.
      * @return bool false - načtený z databáze, true - nový, vložený do databáze
      */
-    function nova() {
+    public function nova() {
         return $this->nova;
     }
 
     /**
      * Vrací absolutní adresu k obrázku aktivity. Ošetřeno cacheování.
      */
-    function obrazek(Obrazek $obrazek = null): ?Nahled {
+    public function obrazek(Obrazek $obrazek = null): ?Nahled {
         $soub = $this->cestaObrazku();
         if (!$obrazek) {
             try {
@@ -772,12 +772,12 @@ class Aktivita
     }
 
     /** (Správný) alias pro obsazenostHtml() */
-    function obsazenost() {
+    public function obsazenost() {
         return $this->obsazenostHtml();
     }
 
     /** Vrátí html kód s políčky určujícímí obsazenost */
-    function obsazenostHtml() {
+    public function obsazenostHtml() {
         $m = $this->prihlasenoMuzu(); // počty
         $f = $this->prihlasenoZen();
         $c = $m + $f;
@@ -822,7 +822,7 @@ class Aktivita
      * @todo kontroly? (např. jestli je aktivní přihlašování?) (administrativní
      *  odhlašování z DrD počítá s možnosti odhlásit např. od semifinále dál)
      */
-    function odhlas(Uzivatel $u, $params = 0) {
+    public function odhlas(Uzivatel $u, $params = 0) {
         foreach ($this->deti() as $dite) { // odhlášení z potomků
             $dite->odhlas($u); // spoléhá na odolnost proti odhlašování z aktivit kde uživatel není
         }
@@ -848,7 +848,7 @@ class Aktivita
     /**
      * Odhlásí uživatele z náhradníků (watchlistu)
      */
-    function odhlasNahradnika(Uzivatel $u) {
+    public function odhlasNahradnika(Uzivatel $u) {
         // Ignorovat pokud není přihlášen jako náhradník
         if (!$u->prihlasenJakoNahradnikNa($this)) return;
         // Uložení odhlášení do DB
@@ -880,7 +880,7 @@ class Aktivita
     }
 
     /** Vráti aktivitu ze stavu připravená do stavu publikovaná */
-    function odpriprav() {
+    public function odpriprav() {
         if ($this->idStavu() === Stav::PUBLIKOVANA) {
             return;
         }
@@ -896,7 +896,7 @@ class Aktivita
      * @return Uzivatel[]
      * @todo dělat diff a ne delete/insert
      */
-    function organizatori(array $ids = null) {
+    public function organizatori(array $ids = null) {
         if ($ids !== null) {
             dbQuery('DELETE FROM akce_organizatori WHERE id_akce = ' . $this->id());
         }
@@ -931,7 +931,7 @@ class Aktivita
      * Vrátí pole uživatelů, kteří jsou organizátory jakékoli ze skupiny instancí
      * aktivity. Pokud nemá instance, vrátí organizátory aktivity jak jsou.
      */
-    function organizatoriSkupiny() {
+    public function organizatoriSkupiny() {
         if ($this->a['patri_pod']) {
             return Uzivatel::zIds(dbOneCol('
         SELECT GROUP_CONCAT(ao.id_uzivatele)
@@ -946,7 +946,7 @@ class Aktivita
     /**
      * @return string[]|ArrayIterator Vrátí iterátor jmen organizátorů v lidsky čitelné podobě.
      */
-    function orgJmena() {
+    public function orgJmena() {
         $jmena = new ArrayIteratorTos;
         foreach ($this->organizatori() as $o) {
             $jmena[] = $o->jmenoNick();
@@ -957,7 +957,7 @@ class Aktivita
     /**
      * @return string[]|ArrayIterator Vrátí iterátor loginů organizátorů
      */
-    function orgLoginy() {
+    public function orgLoginy() {
         $loginy = new ArrayIteratorTos;
         foreach ($this->organizatori() as $o) {
             $loginy[] = $o->login();
@@ -966,7 +966,7 @@ class Aktivita
     }
 
     /** Alias */
-    function otoc() {
+    public function otoc() {
         $this->refresh();
     }
 
@@ -994,7 +994,7 @@ SQL
     }
 
     /** Skupina (id) aktivit. Spíše hack, raději refaktorovat */
-    function patriPod(): ?int {
+    public function patriPod(): ?int {
         return $this->a['patri_pod']
             ? (int)$this->a['patri_pod']
             : null;
@@ -1003,7 +1003,7 @@ SQL
     /**
      * Vrátí formátovaný (html) popisek aktivity
      */
-    function popis(string $popis = null) {
+    public function popis(string $popis = null) {
         if ($popis === null) {
             return dbMarkdown($this->a['popis']);
         }
@@ -1107,7 +1107,7 @@ SQL
      * Přihlásí uživatele na aktivitu
      * @todo koncepčnější ignorování stavu
      */
-    function prihlas(Uzivatel $u, $ignorovat = 0) {
+    public function prihlas(Uzivatel $u, $ignorovat = 0) {
         // kontroly
         if ($this->prihlasen($u)) {
             return;
@@ -1202,7 +1202,7 @@ SQL
     }
 
     /** Jestli je uživatel  přihlášen na tuto aktivitu */
-    function prihlasen(Uzivatel $u) {
+    public function prihlasen(Uzivatel $u) {
         return strpos($this->prihlaseniRaw(), ',' . $u->id() . $u->pohlavi()) !== false;
     }
 
@@ -1250,7 +1250,7 @@ SQL
     }
 
     /** Zdali chceme, aby se na aktivitu bylo možné běžně přihlašovat */
-    function prihlasovatelna($parametry = 0) {
+    public function prihlasovatelna($parametry = 0) {
         $zpetne = $parametry & self::ZPETNE;
         $technicke = $parametry & self::TECHNICKE;
         // stav 4 je rezervovaný pro viditelné nepřihlašovatelné aktivity
@@ -1269,7 +1269,7 @@ SQL
     /**
      * @return bool jestli je na aktivitu povoleno přihlašování náhradníků
      */
-    function prihlasovatelnaNahradnikum() {
+    public function prihlasovatelnaNahradnikum() {
         return !$this->tymova() && !$this->a['dite'];
     }
 
@@ -1279,7 +1279,7 @@ SQL
      * @todo v rodině instancí maximálně jedno přihlášení?
      * @todo konstanty pro jména POST proměnných? viz prihlasovatkoZpracuj
      */
-    function prihlasovatko(Uzivatel $u = null, $parametry = 0) {
+    public function prihlasovatko(Uzivatel $u = null, $parametry = 0) {
         $out = '';
         if ($u && $u->gcPrihlasen() && $this->prihlasovatelna($parametry)) {
             if (($stav = $this->prihlasenStav($u)) > -1) {
@@ -1370,7 +1370,7 @@ SQL
      * aktivity, které s novou aktivitou kolidují
      * @param $uids pole s ID uživatelů
      */
-    function prihlasPrepisHromadne($uids) {
+    public function prihlasPrepisHromadne($uids) {
         $pKolize = dbOneCol('
       SELECT GROUP_CONCAT(id_akce)
       FROM akce_seznam
@@ -1384,7 +1384,7 @@ SQL
     /**
      * Přihlásí uživatele jako náhradníka (watchlist)
      */
-    function prihlasNahradnika(Uzivatel $u) {
+    public function prihlasNahradnika(Uzivatel $u) {
         // Aktivita musí mít přihlašování náhradníků povoleno
         if (!$this->prihlasovatelnaNahradnikum()) throw new Exception('Na aktivitu se nelze přihlašovat jako náhradník.');
         // Uživatel nesmí být přihlášen na aktivitu nebo jako náhradník
@@ -1408,7 +1408,7 @@ SQL
      * @param int $pocetMist požadovaný počet míst v týmu
      * @param self[] $dalsiKola - pořadí musí odpovídat návaznosti kol
      */
-    function prihlasTym($uzivatele, $nazevTymu = null, $pocetMist = null, $dalsiKola = []) {
+    public function prihlasTym($uzivatele, $nazevTymu = null, $pocetMist = null, $dalsiKola = []) {
         if (!$this->tymova()) throw new Exception('Nelze přihlásit tým na netýmovou aktivitu.');
         if (!$this->a['zamcel']) throw new Exception('Pro přihlášení týmu musí být aktivita zamčená.');
         if (!$this->jsouDalsiKola($dalsiKola)) throw new Exception('Nepovolený výběr dalších kol.');
@@ -1478,13 +1478,13 @@ SQL
     }
 
     /** Nastaví aktivitu jako "připravena pro aktivaci" */
-    function priprav() {
+    public function priprav() {
         $this->zmenStav(Stav::PRIPRAVENA);
     }
 
     /** Zdali už aktivita začla a proběhla (rozhodný okamžik je vyjetí seznamů
      *  přihlášených na infopultu) */
-    function probehnuta(): bool {
+    public function probehnuta(): bool {
         return $this->a['stav'] == Stav::PROBEHNUTA;
     }
 
@@ -1512,25 +1512,25 @@ SQL
     /**
      * Vrací surový databázový řádek, nepoužívat (pouze pro debug a zpětnou kompatibilitu, postupně odstranit).
      */
-    function rawDb(): array {
+    public function rawDb(): array {
         return $this->a;
     }
 
     /** Aktualizuje stav aktivity podle databáze */
-    function refresh() {
+    public function refresh() {
         $aktualni = self::zId($this->id());
         $this->a = $aktualni->a;
     }
 
     /** Vrátí aktivity, u kterých je tato aktivita jako jedno z dětí */
-    function rodice() {
+    public function rodice() {
         return self::zWhere('WHERE a.dite rlike "(^|,)' . $this->id() . '(,|$)"');
     }
 
     /**
      * Smaže aktivitu z DB
      */
-    function smaz() {
+    public function smaz() {
         dbBegin();
         try {
             foreach ($this->prihlaseni() as $u) {
@@ -1588,14 +1588,14 @@ SQL
      * Vrátí iterátor tagů
      * @return string[]
      */
-    function tagy(): array {
+    public function tagy(): array {
         if ($this->a['tagy']) {
             return explode(',', $this->a['tagy']);
         }
         return [];
     }
 
-    function nastavTagy(array $tagy) {
+    public function nastavTagy(array $tagy) {
         // nastavit tagy aktivitám
         $idInstanci = $this->idInstanci();
         $idInstanciSql = dbQa($idInstanci);
@@ -1615,7 +1615,7 @@ SQL
         $this->otoc();
     }
 
-    function nastavTagyPodleId(array $idTagu) {
+    public function nastavTagyPodleId(array $idTagu) {
         // nastavit tagy aktivitám
         foreach ($this->instance() as $aktivita) {
             dbQuery('DELETE FROM akce_sjednocene_tagy WHERE id_akce = $1', [$aktivita->id()]);
@@ -1630,20 +1630,20 @@ SQL
         $this->otoc();
     }
 
-    function tym() {
+    public function tym() {
         if ($this->tymova() && $this->prihlaseno() > 0 && !$this->a['zamcel']) {
             return new Tym($this, $this->a);
         }
         return null;
     }
 
-    function tymMaxKapacita(): ?int {
+    public function tymMaxKapacita(): ?int {
         return (string)$this->a['team_max'] !== ''
             ? (int)$this->a['team_max']
             : null;
     }
 
-    function tymMinKapacita(): ?int {
+    public function tymMinKapacita(): ?int {
         return (string)$this->a['team_min'] !== ''
             ? (int)$this->a['team_min']
             : null;
@@ -1652,24 +1652,23 @@ SQL
     /**
      * Je aktivita týmová?
      */
-    function tymova(): bool {
+    public function tymova(): bool {
         return (bool)$this->a['teamova'];
     }
 
     /**
      * @return DateTimeCz|null jestli a do kdy je týmová aktivita zamčená
      */
-    function tymZamcenyDo() {
+    public function tymZamcenyDo(): ?DateTimeInterface {
         if ($this->a['zamcel_cas']) {
             $dt = new DateTimeCz($this->a['zamcel_cas']);
             $dt->add('PT' . self::HAJENI . 'H');
             return $dt;
-        } else {
-            return null;
         }
+        return null;
     }
 
-    function typ(): Typ {
+    public function typ(): Typ {
         if (is_numeric($this->typ)) {
             $this->prednactiN1([
                 'atribut' => 'typ',
@@ -1679,7 +1678,7 @@ SQL
         return $this->typ;
     }
 
-    function typId(): ?int {
+    public function typId(): ?int {
         return (string)$this->a['typ'] !== ''
             ? (int)$this->a['typ']
             : null;
@@ -1689,7 +1688,7 @@ SQL
      * Vrátí pole s přihlášenými účastníky
      * @return Uzivatel[]
      */
-    function prihlaseni(): array {
+    public function prihlaseni(): array {
         $u = substr($this->prihlaseniRaw(), 1, -1);
         $u = preg_replace('@(m|f)\d+@', '', $u);
         return Uzivatel::zIds($u);
@@ -1699,7 +1698,7 @@ SQL
      * Uloží údaje o prezenci u této aktivity
      * @param $dorazili uživatelé, kteří se nakonec aktivity zúčastnili
      */
-    function ulozPrezenci($dorazili) {
+    public function ulozPrezenci($dorazili) {
         $prezence = new AktivitaPrezence($this);
         $prezence->uloz($dorazili);
     }
@@ -1707,7 +1706,7 @@ SQL
     /**
      * @return string absolutní url k anotaci aktivity na webu
      */
-    function url() {
+    public function url() {
         static $typy;
         if (!$typy) {
             $o = dbQuery('SELECT id_typu, url_typu_mn FROM akce_typy');
@@ -1721,35 +1720,39 @@ SQL
     /**
      * @return string část url identifikující aktivitu (unikátní v dané linii)
      */
-    function urlId() {
+    public function urlId() {
         return $this->a['url_akce'];
     }
 
     /** Vrátí, jestli aktivita bude aktivována v budoucnu, později než v další vlně */
-    function vBudoucnu(): bool {
+    public function vBudoucnu(): bool {
         return $this->a['stav'] == Stav::PUBLIKOVANA;
     }
 
     /** Vrátí, jestli aktivita bude aktivována v další vlně */
-    function vDalsiVlne() {
+    public function vDalsiVlne() {
         return $this->a['stav'] == Stav::PRIPRAVENA || !REG_AKTIVIT && $this->a['stav'] == Stav::AKTIVOVANA;
     }
 
     /** Vrátí typ volných míst na aktivitě */
-    function volno() {
+    public function volno() {
         $m = $this->prihlasenoMuzu();
         $f = $this->prihlasenoZen();
         $ku = $this->a['kapacita'];
         $km = $this->a['kapacita_m'];
         $kf = $this->a['kapacita_f'];
-        if (($ku + $km + $kf) <= 0)
+        if (($ku + $km + $kf) <= 0) {
             return 'u'; //aktivita bez omezení
-        if ($m + $f >= $ku + $km + $kf)
+        }
+        if ($m + $f >= $ku + $km + $kf) {
             return 'x'; //beznadějně plno
-        if ($m >= $ku + $km)
+        }
+        if ($m >= $ku + $km) {
             return 'f'; //muži zabrali všechna univerzální i mužská místa
-        if ($f >= $ku + $kf)
+        }
+        if ($f >= $ku + $kf) {
             return 'm'; //LIKE WTF? (opak předchozího)
+        }
         //else
         return 'u'; //je volno a žádné pohlaví nevyžralo limit míst
     }
@@ -1767,19 +1770,19 @@ SQL
     }
 
     /** Jestli volno pro daného uživatele (nebo aspoň pro někoho, pokud null) */
-    function volnoPro(Uzivatel $u = null) {
+    public function volnoPro(Uzivatel $u = null) {
         $v = $this->volno();
-        if ($u)
-            return $v == 'u' || $v == $u->pohlavi();
-        else
-            return $v != 'x';
+        if ($u) {
+            return $v === 'u' || $v == $u->pohlavi();
+        }
+        return $v !== 'x';
     }
 
     /**
      * Jestli má uživatel aktivitu vidět (případně jestli má být vidět veřejně,
      * pokud $u == null).
      */
-    function viditelnaPro(Uzivatel $u = null) {
+    public function viditelnaPro(Uzivatel $u = null) {
         return (
             in_array($this->a['stav'], [Stav::AKTIVOVANA, Stav::PROBEHNUTA, Stav::PUBLIKOVANA, Stav::PRIPRAVENA]) // podle stavu je aktivita viditelná
             && !($this->a['typ'] == Typ::TECHNICKA && $this->a['stav'] == Stav::PROBEHNUTA) || // ale skrýt technické proběhnuté
@@ -1791,7 +1794,7 @@ SQL
     /**
      * @return text s informací o extra vybavení pro tuto aktivitu
      */
-    function vybaveni() {
+    public function vybaveni() {
         if ($this->a['patri_pod'])
             return dbOneCol('SELECT MAX(vybaveni) FROM akce_seznam WHERE patri_pod = $1',
                 [$this->a['patri_pod']]);
@@ -1804,7 +1807,7 @@ SQL
      * vrací nějakou false ekvivalentní hodnotu.
      * @todo ideálně převést na nějaké statické metody týmu nebo samostatnou třídu
      */
-    function vyberTeamu(Uzivatel $u = null) {
+    public function vyberTeamu(Uzivatel $u = null) {
         if (!$u || $this->a['zamcel'] != $u->id() || !$this->prihlasovatelna()) return null;
 
         $t = new XTemplate(__DIR__ . '/tym-formular.xtpl');
@@ -1912,7 +1915,7 @@ SQL
      * Má aktivita vyplněnou prezenci?
      * (aktivity s 0 lidmi jsou považovány za nevyplněné vždycky)
      */
-    function vyplnenaPrezence() {
+    public function vyplnenaPrezence() {
         return 0 < dbOneCol('SELECT MAX(id_stavu_prihlaseni) FROM akce_prihlaseni WHERE id_akce = ' . $this->id());
     }
 
@@ -1920,7 +1923,7 @@ SQL
      * Vrátí DateTime objekt začátku aktivity
      * @return DateTimeCz|null
      */
-    function zacatek(): ?DateTimeCz {
+    public function zacatek(): ?DateTimeCz {
         if ($this->a['zacatek'] && is_string($this->a['zacatek'])) {
             $this->a['zacatek'] = new DateTimeCz($this->a['zacatek']);
         }
@@ -1928,14 +1931,16 @@ SQL
     }
 
     /** Je aktivita už proběhlá resp. už uzavřená pro změny? */
-    function zamcena(): bool {
+    public function zamcena(): bool {
         return $this->a['stav'] == Stav::PROBEHNUTA;
     }
 
     /** Zamče aktivitu pro další změny (k použití před jejím začátkem) */
-    function zamci() {
+    public function zamci() {
         dbQuery('UPDATE akce_seznam SET stav = 2 WHERE id_akce = ' . $this->id());
-        // TODO invalidate $this
+        $this->a['stav'] = Stav::PROBEHNUTA;
+        $this->stav = Stav::PROBEHNUTA;
+        /** @see Aktivita::stav kde se změní číslo na instanci Stav */
     }
 
     /**
