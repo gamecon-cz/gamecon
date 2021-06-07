@@ -1,0 +1,35 @@
+<!-- begin:problem -->
+<div>
+  <!-- begin:neznama -->
+  <h2>Neznámá aktivita</h2>
+  <div class="warning">
+    Aktivita s ID '{id}' neexistuje.
+  </div>
+  <!-- end:neznama -->
+
+  <!-- begin:historicka -->
+  <h2>Stará aktivita</h2>
+  <div class="warning">
+    Aktivita <strong>{aktivita.nazev}</strong> není letošní. Byla pro {rok}
+  </div>
+  <!-- end:historicka -->
+
+  <!-- begin:probehla -->
+  <h2>Proběhlá aktivita</h2>
+  <div class="warning">
+    Aktivita <strong>{aktivita.nazev}</strong> už proběhla. Skončila před {konecPred}.
+  </div>
+  <!-- end:probehla -->
+
+  <!-- begin:cizi -->
+  <h2>Cizí aktivita</h2>
+  <div class="warning">
+    Aktivita <strong>{aktivita.nazev}</strong> není Tvá.
+  </div>
+  <!-- end:cizi -->
+
+  <form method="get" action="{urlNaMojeAktivity}">
+    <input type="submit" value="↶ Zpět na Moje aktivity">
+  </form>
+</div>
+<!-- end:problem -->

@@ -13,6 +13,11 @@ use \Gamecon\Cas\DateTimeCz;
  * @var Uzivatel $u
  */
 
+if (get('id')) {
+    require __DIR__ . '/_moje-aktivita.php';
+    return;
+}
+
 $aktivity = Aktivita::zFiltru([
 // TODO revert    'organizator' => $u->id(),
     'rok' => ROK,
