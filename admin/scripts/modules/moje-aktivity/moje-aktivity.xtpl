@@ -4,7 +4,7 @@
 function tgl(id)
 {
   el=document.getElementById(id).style;
-  el.display=(el.display == 'block')?'none':'block';
+  el.display=(el.display === 'block')?'none':'block';
   return false;
 }
 </script>
