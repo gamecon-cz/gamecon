@@ -2,7 +2,7 @@
 
 /** @var XTemplate $t */
 /** @var Uzivatel $u */
-/** @var Uzivatel|null $org */
+/** @var Uzivatel|null|void $org */
 
 $this->blackarrowStyl(true);
 $this->pridejJsSoubor('soubory/blackarrow/_spolecne/zachovej-scroll.js');
@@ -22,7 +22,7 @@ $aktivity = Aktivita::zFiltru([
     'jenViditelne' => true,
     'bezDalsichKol' => true,
     'typ' => $typ ? $typ->id() : null,
-    'organizator' => $org ? $org->id() : null,
+    'organizator' => !empty($org) ? $org->id() : null,
 ]);
 
 $skupiny = seskupenePodle($aktivity, function ($aktivita) {
@@ -101,7 +101,7 @@ foreach ($skupiny as $skupina) {
 
 $this->info()->obrazek(null);
 
-if ($org) {
+if (!empty($org)) {
     /** @var Uzivatel $org */
     $this->info()->nazev($org->jmenoNick());
     $t->assign([
@@ -110,7 +110,7 @@ if ($org) {
         'fotka' => $org->fotkaAuto()->kvalita(85)->pokryjOrez(180, 180),
     ]);
     $t->parse('aktivity.hlavickaVypravec');
-} else {
+} elseif($typ) {
     $this->info()->nazev(mb_ucfirst($typ->nazevDlouhy()));
     $t->assign([
         'popisLinie' => $typ->oTypu(),
