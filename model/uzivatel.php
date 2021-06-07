@@ -1493,7 +1493,7 @@ SQL,
 
     public function uvodniAdminUrl(string $zakladniAdminUrl): string {
         if ($this->maPravo(\Gamecon\Pravo::ADMINISTRACE_PANEL_MOJE_AKTIVITY)) {
-            return $zakladniAdminUrl . '/' . basename(__DIR__ . '/../admin/scripts/modules/muj-prehled.php', '.php');
+            return $zakladniAdminUrl . '/' . basename(__DIR__ . '/../admin/scripts/modules/moje-aktivity/moje-aktivity.php', '.php');
         }
         return $zakladniAdminUrl;
     }
