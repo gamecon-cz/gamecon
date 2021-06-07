@@ -13,6 +13,8 @@ class Aktivita
 
     use Prednacitani;
 
+    private static $cache = [];
+
     private
         $a,         // databázový řádek s aktivitou
         $kolekce,   // nadřízená kolekce, v rámci které byla aktivita načtena
@@ -141,10 +143,26 @@ class Aktivita
 
     /** Vrátí potomky této aktivity (=navázané aktivity, další kola, ...) */
     function deti(): array {
-        if ($this->a['dite']) {
-            return self::zIds($this->a['dite']);
+        return self::zIds($this->detiIds());
+    }
+
+    public function maDite(int $idDitete): bool {
+        return in_array($idDitete, $this->detiIds(), true);
+    }
+
+    /**
+     * @return int[]
+     */
+    public function detiIds(): array {
+        if (!$this->a['dite']) {
+            return [];
         }
-        return [];
+        return array_map(
+            static function ($idDitete) {
+                return (int)$idDitete;
+            },
+            array_map('trim', explode(',', $this->a['dite']))
+        );
     }
 
     /** Počet hodin do začátku aktivity (float) */
@@ -237,6 +255,10 @@ class Aktivita
             self::parseUpravyTabulkaDeti($aktivita, $xtpl);
         }
 
+        if (!$omezeni || !empty($omezeni['rodice'])) {
+            self::parseUpravyTabulkaRodice($aktivita, $xtpl);
+        }
+
         // editace dnů + časů
         if (!$omezeni || !empty($omezeni['zacatek'])) {
             // načtení dnů
@@ -276,23 +298,23 @@ class Aktivita
     }
 
     private static function parseUpravyTabulkaDeti(?Aktivita $aktivita, XTemplate $xtpl) {
-        $aktivitaData = $aktivita ? $aktivita->a : null; // databázový řádek
         $q = dbQuery(
             "SELECT id_akce FROM akce_seznam WHERE id_akce != $1 AND rok = $2 ORDER BY nazev_akce",
             [$aktivita ? $aktivita->id() : null, ROK]
         );
-        $detiIds = $aktivitaData ? explode(',', $aktivitaData['dite']) : [];
+        $detiIds = $aktivita ? $aktivita->detiIds() : [];
         while ($mozneDiteData = mysqli_fetch_assoc($q)) {
+            $mozneDiteId = $mozneDiteData['id_akce'];
             $xtpl->assign(
                 'selected',
-                $aktivitaData && in_array($mozneDiteData['id_akce'], $detiIds, false) ? 'selected' : ''
+                in_array($mozneDiteId, $detiIds, false) ? 'selected' : ''
             );
-            $mozneDite = Aktivita::zId($mozneDiteData['id_akce']);
-            $xtpl->assign('id_ditete', $mozneDiteData['id_akce']);
+            $mozneDite = Aktivita::zId($mozneDiteId, true);
+            $xtpl->assign('id_ditete', $mozneDiteId);
             $xtpl->assign(
                 'nazev_ditete',
                 sprintf(
-                    '%d - %s, %s %s-%s',
+                    '%d - %s - %s %s-%s',
                     $mozneDiteData['id_akce'],
                     $mozneDite->nazev(),
                     $mozneDite->zacatek() ? $mozneDite->zacatek()->format('l') : '',
@@ -300,7 +322,44 @@ class Aktivita
                     $mozneDite->konec() ? $mozneDite->konec()->format('G') : '',
                 )
             );
-            $xtpl->parse('upravy.tabulka.deti');
+            $xtpl->parse('upravy.tabulka.dite');
+        }
+    }
+
+    private static function parseUpravyTabulkaRodice(?Aktivita $aktivita, XTemplate $xtpl) {
+        $aktivitaData = $aktivita ? $aktivita->a : null; // databázový řádek
+        $detiIds = $aktivitaData ? explode(',', $aktivitaData['dite']) : [];
+        $nemohouBytRodiceIds = array_map(static function ($idDitete) {
+            return (int)$idDitete;
+        }, $detiIds);
+        if ($aktivita) {
+            $nemohouBytRodiceIds[] = $aktivita->id();
+        }
+        $nemohouBytRodiceSql = $nemohouBytRodiceIds ?: null;
+        $q = dbQuery(
+            "SELECT id_akce FROM akce_seznam WHERE id_akce NOT IN ($1) AND rok = $2 ORDER BY nazev_akce",
+            [$nemohouBytRodiceSql, ROK]
+        );
+        while ($moznyRodicData = mysqli_fetch_assoc($q)) {
+            $moznyRodicId = $moznyRodicData['id_akce'];
+            $moznyRodic = Aktivita::zId($moznyRodicId, true);
+            $xtpl->assign(
+                'selected',
+                $aktivita && $moznyRodic->maDite($aktivita->id()) ? 'selected' : ''
+            );
+            $xtpl->assign('id_rodice', $moznyRodicId);
+            $xtpl->assign(
+                'nazev_rodice',
+                sprintf(
+                    '%d - %s - %s %s-%s',
+                    $moznyRodicId,
+                    $moznyRodic->nazev(),
+                    $moznyRodic->zacatek() ? $moznyRodic->zacatek()->format('l') : '',
+                    $moznyRodic->zacatek() ? $moznyRodic->zacatek()->format('G') : '',
+                    $moznyRodic->konec() ? $moznyRodic->konec()->format('G') : '',
+                )
+            );
+            $xtpl->parse('upravy.tabulka.rodic');
         }
     }
 
@@ -477,6 +536,14 @@ class Aktivita
             )
             : null;
 
+        $rodiceIds = [];
+        if (!empty($a['rodic'])) {
+            $rodiceIds = array_map(static function ($rodicId) {
+                return (int)$rodicId;
+            }, $a['rodic']);
+            unset($a['rodic']);
+        }
+
         if (!empty($a['teamova']) && isset($a['team_min'], $a['team_max']) && $a['team_min'] > $a['team_max']) {
             chyba(
                 sprintf(
@@ -501,6 +568,16 @@ class Aktivita
         $obrazekUrl = post(self::OBRKLIC . 'Url');
 
         $aktivita = self::uloz($a, $popis, $organizatori, $tagIds, $obrazekSoubor, $obrazekUrl);
+
+        if ($rodiceIds) {
+            foreach ($rodiceIds as $rodicId) {
+                $rodic = self::zId($rodicId);
+                if ($rodic) {
+                    $rodic->pridejDite($aktivita->id());
+                }
+            }
+        }
+
         oznameni('Aktivita byla uložena', false);
         return $aktivita;
     }
@@ -759,13 +836,12 @@ class Aktivita
         LEFT JOIN akce_prihlaseni_spec aps ON aps.id_akce = a.id_akce
         WHERE aps.id_akce = ' . $this->id() . ' AND aps.id_stavu_prihlaseni = ' . self::NAHRADNIK
             ));
-        } else {
-            return $this->nahradnici;
         }
+        return $this->nahradnici;
     }
 
-    function nazev() {
-        return $this->a['nazev_akce'];
+    function nazev(): string {
+        return (string)$this->a['nazev_akce'];
     }
 
     /**
@@ -1980,6 +2056,15 @@ SQL
         // TODO invalidate $this
     }
 
+    public function pridejDite(int $idDitete) {
+        $detiIds = $this->detiIds();
+        $detiIds[] = $idDitete;
+        $detiIds = array_unique($detiIds);
+        $detiString = implode(',', $detiIds);
+        $this->a['dite'] = $detiString;
+        dbQuery('UPDATE akce_seznam SET dite = $1 WHERE id_akce = ' . $this->id(), [$detiString]);
+    }
+
     /**
      * Vrátí pole aktivit s zadaným filtrem a řazením. Filtr funguje jako asoc.
      * pole s filtrovanými hodnotami, řazení jako pole s pořadím dle priorit.
@@ -2069,12 +2154,25 @@ SQL
      * Pokusí se vyčíst aktivitu z dodaného ID.
      * @return self|null
      */
-    static function zId($id): ?Aktivita {
-        if ((int)$id) {
-            $aktivita = current(self::zWhere('WHERE a.id_akce=' . (int)$id));
-            return $aktivita ?: null;
+    static function zId($id, bool $pouzijCache = false): ?Aktivita {
+        $id = (int)$id;
+        if (!$id) {
+            return null;
         }
-        return null;
+        if ($pouzijCache) {
+            $aktivita = self::$cache[$id] ?? null;
+            if ($aktivita) {
+                return $aktivita;
+            }
+        }
+        $aktivita = current(self::zWhere('WHERE a.id_akce=' . $id));
+        if (!$aktivita) {
+            return null;
+        }
+        if ($pouzijCache) {
+            self::$cache[$id] = $aktivita;
+        }
+        return $aktivita;
     }
 
     /**

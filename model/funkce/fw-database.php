@@ -340,9 +340,13 @@ function dbQueryS($q,$pole=null)
   {
     $delta = strpos($q, '$0')===false ? -1 : 0; // povolení číslování $1, $2, $3...
     return dbQuery(
-      preg_replace_callback('~\$([0-9]+)~', function($m)use($pole,$delta){
-        return dbQv($pole[ $m[1] + $delta ]);
-      },$q)
+      preg_replace_callback(
+      '~\$([0-9]+)~',
+        static function(array $matches)use($pole,$delta){
+          return dbQv($pole[ $matches[1] + $delta ]);
+        },
+        $q
+      )
     );
   }
   else
