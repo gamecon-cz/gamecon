@@ -1,0 +1,55 @@
+<!-- begin:mojeAktivita -->
+<style>
+  .obal {
+    min-width: unset;
+  }
+
+  .sloupL {
+    display: none;
+  }
+
+  .sloupR {
+    position: inherit;
+    margin: 0;
+    padding: 0;
+  }
+
+  #submenu {
+    display: none;
+  }
+
+  .main {
+    margin: 0;
+    padding: 1em 2em;
+  }
+  #ucast {
+    max-width: 100%;
+  }
+</style>
+<h3>{nazevAktivity} {obsazenost}</h3>
+<div>
+  {cas}
+</div>
+
+<!-- begin:ucast -->
+<table class="vypis" id="ucast">
+  <tr>
+    <th>Jméno</th>
+    <th>E-mail</th>
+    <th>Telefon</th>
+    <th>Věk</th>
+    <th>Přihlášen od</th>
+  </tr>
+  <!-- begin:ucastnik -->
+  <tr>
+    <td>{jmeno}</td>
+    <td>{mail}</td>
+    <td>{telefon}</td>
+    <td>{vek}</td>
+    <td style="text-align:right">{casPrihlaseni}</td>
+  </tr>
+  <!-- end:ucastnik -->
+</table>
+<!-- end:ucast -->
+
+<!-- end:mojeAktivita -->
