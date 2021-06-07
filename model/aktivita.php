@@ -327,18 +327,9 @@ class Aktivita
     }
 
     private static function parseUpravyTabulkaRodice(?Aktivita $aktivita, XTemplate $xtpl) {
-        $aktivitaData = $aktivita ? $aktivita->a : null; // databázový řádek
-        $detiIds = $aktivitaData ? explode(',', $aktivitaData['dite']) : [];
-        $nemohouBytRodiceIds = array_map(static function ($idDitete) {
-            return (int)$idDitete;
-        }, $detiIds);
-        if ($aktivita) {
-            $nemohouBytRodiceIds[] = $aktivita->id();
-        }
-        $nemohouBytRodiceSql = $nemohouBytRodiceIds ?: null;
         $q = dbQuery(
-            "SELECT id_akce FROM akce_seznam WHERE id_akce NOT IN ($1) AND rok = $2 ORDER BY nazev_akce",
-            [$nemohouBytRodiceSql, ROK]
+            "SELECT id_akce FROM akce_seznam WHERE id_akce != $1 AND rok = $2 ORDER BY nazev_akce",
+            [$aktivita ? $aktivita->id() : null, ROK]
         );
         while ($moznyRodicData = mysqli_fetch_assoc($q)) {
             $moznyRodicId = $moznyRodicData['id_akce'];
