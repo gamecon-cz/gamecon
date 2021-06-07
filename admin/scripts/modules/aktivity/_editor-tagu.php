@@ -10,7 +10,7 @@ class EditorTagu
   private const NAZEV_TAGU_KLIC = 'aEditNazevTagu';       // název proměnné, v které je název tagu
   private const POZNAMKA_TAGU_KLIC = 'aEditPoznamkaTagu';       // název proměnné, v které je poznámka k tagu
 
-  public function getTagEditor() {
+  public function getEditorTaguHtml() {
     $editorTaguSablona = new XTemplate(__DIR__ . '/_editor-tagu.xtpl');
 
     $vsechnyKategorieTagu = $this->getAllCategories();
