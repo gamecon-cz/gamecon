@@ -311,19 +311,20 @@ class Aktivita
             );
             $mozneDite = Aktivita::zId($mozneDiteId, true);
             $xtpl->assign('id_ditete', $mozneDiteId);
-            $xtpl->assign(
-                'nazev_ditete',
-                sprintf(
-                    '%d - %s - %s %s-%s',
-                    $mozneDiteData['id_akce'],
-                    $mozneDite->nazev(),
-                    $mozneDite->zacatek() ? $mozneDite->zacatek()->format('l') : '',
-                    $mozneDite->zacatek() ? $mozneDite->zacatek()->format('G') : '',
-                    $mozneDite->konec() ? $mozneDite->konec()->format('G') : '',
-                )
-            );
+            $xtpl->assign('nazev_ditete', self::dejRozsirenyNazevAktivity($mozneDite));
             $xtpl->parse('upravy.tabulka.dite');
         }
+    }
+
+    private static function dejRozsirenyNazevAktivity(Aktivita $aktivita): string {
+        return sprintf(
+            '%d - %s - %s %s-%s',
+            $aktivita->id(),
+            $aktivita->nazev(),
+            $aktivita->zacatek() ? $aktivita->zacatek()->format('l') : '',
+            $aktivita->zacatek() ? $aktivita->zacatek()->format('G') : '',
+            $aktivita->konec() ? $aktivita->konec()->format('G') : '',
+        );
     }
 
     private static function parseUpravyTabulkaRodice(?Aktivita $aktivita, XTemplate $xtpl) {
@@ -339,17 +340,7 @@ class Aktivita
                 $aktivita && $moznyRodic->maDite($aktivita->id()) ? 'selected' : ''
             );
             $xtpl->assign('id_rodice', $moznyRodicId);
-            $xtpl->assign(
-                'nazev_rodice',
-                sprintf(
-                    '%d - %s - %s %s-%s',
-                    $moznyRodicId,
-                    $moznyRodic->nazev(),
-                    $moznyRodic->zacatek() ? $moznyRodic->zacatek()->format('l') : '',
-                    $moznyRodic->zacatek() ? $moznyRodic->zacatek()->format('G') : '',
-                    $moznyRodic->konec() ? $moznyRodic->konec()->format('G') : '',
-                )
-            );
+            $xtpl->assign('nazev_rodice', self::dejRozsirenyNazevAktivity($moznyRodic));
             $xtpl->parse('upravy.tabulka.rodic');
         }
     }
@@ -486,7 +477,7 @@ class Aktivita
 
     /**
      * Zpracuje data odeslaná formulářem s vloženým editorem
-     * @return vrací null pokud se nic nestalo nebo aktualizovaný objekt Aktivita,
+     * vrací null pokud se nic nestalo nebo aktualizovaný objekt Aktivita,
      *   pokud k nějaké aktualizaci došlo.
      */
     static function editorZpracuj(): ?Aktivita {
@@ -561,11 +552,24 @@ class Aktivita
         $aktivita = self::uloz($a, $popis, $organizatori, $tagIds, $obrazekSoubor, $obrazekUrl);
 
         if ($rodiceIds) {
+            $detiIds = $aktivita->detiIds();
+            $rodicIDite = [];
             foreach ($rodiceIds as $rodicId) {
                 $rodic = self::zId($rodicId);
                 if ($rodic) {
-                    $rodic->pridejDite($aktivita->id());
+                    if (in_array($rodicId, $detiIds, false)) {
+                        $rodicIDite[] = $rodic;
+                    } else {
+                        $rodic->pridejDite($aktivita->id());
+                    }
                 }
+            }
+            if ($rodicIDite) {
+                chyba(
+                    'Aktivita nemůže být "dítě" a zároveň "rodič" jedné a té samé aktivitě. Tyto nebyly nastaveny jako rodiče: '
+                    . implode(', ', array_map([__CLASS__, 'dejRozsirenyNazevAktivity'], $rodicIDite)),
+                    false
+                );
             }
         }
 
@@ -2049,6 +2053,9 @@ SQL
 
     public function pridejDite(int $idDitete) {
         $detiIds = $this->detiIds();
+        if (in_array($idDitete, $detiIds, true)) {
+            return;
+        }
         $detiIds[] = $idDitete;
         $detiIds = array_unique($detiIds);
         $detiString = implode(',', $detiIds);
