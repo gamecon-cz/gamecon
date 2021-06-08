@@ -60,7 +60,7 @@ USER www-data
 RUN mkdir -p /home/www-data/bin \
     && curl -sS https://getcomposer.org/installer | php -- --install-dir=/home/www-data/bin --filename=composer \
     && chmod +x /home/www-data/bin/composer \
-  	&& echo 'export PATH="/home/www-data/bin:$PATH"' >> ~/.profile
+  	&& echo 'export PATH="/home/www-data/bin:$PATH"' >> /home/www-data/.bashrc
 
 RUN echo 'alias ll="ls -al"' >> /home/www-data/.bashrc
 
