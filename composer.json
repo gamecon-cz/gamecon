@@ -57,6 +57,11 @@
       "Gamecon\\Tests\\": "tests"
     }
   },
+  "scripts": {
+    "post-update-cmd": "@clear-templates-cache",
+    "post-install-cmd": "@clear-templates-cache",
+    "clear-templates-cache": "php -r 'array_map(\"unlink\", glob(\"cache/private/xtpl/*.php\"));'"
+  },
   "config": {
     "sort-packages": true
   }
