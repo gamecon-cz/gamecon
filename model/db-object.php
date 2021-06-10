@@ -35,7 +35,9 @@ abstract class DbObject
     $f = new DbFormGc(static::$tabulka);
     if ($id) {
       $s = self::zId($id);
-      $f->loadRow($s->r);
+      if ($s) {
+          $f->loadRow($s->r);
+      }
     }
     return $f;
   }
