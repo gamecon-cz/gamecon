@@ -1,6 +1,11 @@
 <!-- begin:editaceStranek -->
 
 <h1>Stránky</h1>
+
+<div style="margin: 1em 0">
+  <a href="web/editace-stranek?akce=nova" class="tlacitko" style="font-size: larger">Přidat stránku</a>
+</div>
+
 <table class="vypis">
   <tr>
     <th>URL</th>

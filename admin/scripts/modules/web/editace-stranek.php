@@ -1,17 +1,16 @@
 <?php
 
-/** 
+/**
  * nazev: Editace stránek
  * pravo: 105
  */
 
-
-if(get('id')) {
-  // režim editace
-  $f = Stranka::form(get('id'));
-  $f->processPost();
-  echo $f->full();
-  return;
+if (get('id') || get('akce') === 'nova') {
+    // režim editace
+    $f = Stranka::form(get('id'));
+    $f->processPost();
+    echo $f->full();
+    return;
 }
 
 $t = new XTemplate('editace-stranek.xtpl');
