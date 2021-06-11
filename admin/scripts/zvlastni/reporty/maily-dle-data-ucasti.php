@@ -1,6 +1,6 @@
 <?php
 
-require_once('sdilene-hlavicky.php');
+require_once __DIR__ . '/sdilene-hlavicky.php';
 
 //nastavení startu pro filtr v SQL dotazu - čím vyšší číslo, tím déle účastník nebyl na GC
 $start = (int) get('start');

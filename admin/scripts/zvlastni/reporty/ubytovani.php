@@ -1,5 +1,5 @@
 <?php
-require_once('sdilene-hlavicky.php');
+require_once __DIR__ . '/sdilene-hlavicky.php';
 
 $o = dbQuery('
   SELECT u.id_uzivatele, login_uzivatele, jmeno_uzivatele, prijmeni_uzivatele, mesto_uzivatele, ulice_a_cp_uzivatele, op as cislo_op,

@@ -5,10 +5,10 @@
  * Měl by být prováděn synchronně s překlopením proměnné "rok" v nastavení a
  * překlopením webu. Není jak zjistit, jestli byl nebo nebyl proveden, a zároveň
  * je potřeba ho provést jen jednou - je dobré udělat záznam někde (ideálně
- * na více místech), že se tak stalo.   
- */  
+ * na více místech), že se tak stalo.
+ */
 
-require_once('sdilene-hlavicky.php');
+require_once __DIR__ . '/sdilene-hlavicky.php';
 
 $o=dbQuery('
   SELECT u.*

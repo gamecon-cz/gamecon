@@ -1,6 +1,6 @@
 <?php
 
-require_once('sdilene-hlavicky.php');
+require_once __DIR__ . '/sdilene-hlavicky.php';
 
 // záměrně jsou zahrnutí i uživatelé co nechtějí maily
 $o = '

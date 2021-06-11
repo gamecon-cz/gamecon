@@ -1,6 +1,6 @@
 <?php
 
-require_once('sdilene-hlavicky.php');
+require_once __DIR__ . '/sdilene-hlavicky.php';
 
 // Záměrně jsou zahrnutí i uživatelé co nechtějí maily – pokud už se
 // přihlásili, musíme mít možnost je informovat o daném GC.

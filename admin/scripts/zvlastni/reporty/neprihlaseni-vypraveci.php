@@ -1,5 +1,5 @@
 <?php
-require_once('sdilene-hlavicky.php');
+require_once __DIR__ . '/sdilene-hlavicky.php';
 
 $sledovaneZidle = dbOneArray('SELECT id_zidle FROM r_prava_zidle WHERE id_prava = $0', [P_REPORT_NEUBYTOVANI]);
 if(empty($sledovaneZidle))
