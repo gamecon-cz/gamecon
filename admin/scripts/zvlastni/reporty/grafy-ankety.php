@@ -1,6 +1,6 @@
 <?php
 
-require_once('sdilene-hlavicky.php');
+require_once __DIR__ . '/sdilene-hlavicky.php';
 
 $hodnoty='';
 $graf='';
@@ -81,14 +81,14 @@ if(post('hodnoty'))
     </script>
   </head>
   <body>
-    
+
     <p>Zkopírujte do boxu sloupce z aknekty</p>
 
     <form method="post">
       <textarea style="width:600px;height:400px" name="hodnoty"><?php echo post('hodnoty') ?></textarea>
       <br /><input type="submit" value="Načíst">
     </form>
-    
+
     <div id="chart_div" style="height:800px;margin-left:-200px"></div>
   </body>
 </html>

@@ -1,6 +1,6 @@
 <?php
 
-require_once('sdilene-hlavicky.php');
+require_once __DIR__ . '/sdilene-hlavicky.php';
 
 $o = '
   SELECT u.email1_uzivatele

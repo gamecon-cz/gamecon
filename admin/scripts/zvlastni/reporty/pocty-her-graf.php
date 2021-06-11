@@ -2,9 +2,9 @@
 
 /**
  * Počty her a jednotlivých druhý her pro jednotlivé účastníky
- */ 
+ */
 
-require_once('sdilene-hlavicky.php');
+require_once __DIR__ . '/sdilene-hlavicky.php';
 
 $o=dbQuery('
   SELECT
@@ -43,12 +43,12 @@ while($r=mysqli_fetch_assoc($o))
       $nPocty[]=$pocty[$i]/$pocet;
   }
   $divz=array_sum($nPocty)*$typu/($typu-1); //výsledná míra diverzifikace 0.0 - 1.0
-  
+
   $ro=$pocty;
   array_push($ro,' ');
   array_push($ro,$divz);
   //fputcsv($out,$ro,$CSV_SEP);
-  
+
   $raditPodle[]=$divz;
   $raditCo[]=['id_uzivatele'=>$r['id_uzivatele'],'diverzifikace'=>$divz];
 }
@@ -83,7 +83,7 @@ foreach($vysledky as $dvz=>$vysledek)
     '</div>';
   $i++;
 }
-    
+
 //fclose($out);
 
 ?>

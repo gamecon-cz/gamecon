@@ -1,6 +1,6 @@
 <?php
 
-require_once('sdilene-hlavicky.php');
+require_once __DIR__ . '/sdilene-hlavicky.php';
 
 $delay = 500;
 $predmet = 'Jaký byl Gamecon 2015?';

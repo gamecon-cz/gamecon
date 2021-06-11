@@ -1,5 +1,5 @@
 <?php
-require_once('sdilene-hlavicky.php');
+require_once __DIR__ . '/sdilene-hlavicky.php';
 
 // hack proklikávací form na stránku slučování
 $form =  <<<'EOT'

@@ -1,6 +1,6 @@
 <?php
 
-require_once('sdilene-hlavicky.php');
+require_once __DIR__ . '/sdilene-hlavicky.php';
 
 //$MULTI_CHECK=3; //počet duplicitních sloupců vyhrazených pro otázky s checboxy //zatím neimplementováno
 
@@ -74,8 +74,8 @@ while(1)
       if(!$r) //aktuální řádek už je neplatný, vyskočíme z vnějšího while
         break 2;
     }
-    $uzivatel=$r['id_uzivatele'];  
-    
+    $uzivatel=$r['id_uzivatele'];
+
     if($idOtazky<$r['id_otazky'])
     { //aktuální otázka není zodpovězena => dáváme prázdné pole a iterujeme dál
       $odpovedi[]='';
@@ -84,12 +84,12 @@ while(1)
     else
     { //aktuální otázka je zodpovězena
       if($r['id_otazky']==$idOtazky && $r['id_uzivatele']==$uzivatel)
-      { 
+      {
         //PŮVODNĚ: přidáváme sloupce, dokud je to stejná otázka a stejný uživatel (to je pokud se použije místo if while, není komplet implementováno)
         //NYNÍ: potenciálně buggy. Mělo by to fungovat tak, že do $otazkyId se dají multiodpovědi víckrát.
         $odpovedi[]= $r['odpoved']=='#Y#'?$r['text']:$r['odpoved'];
         $r=mysqli_fetch_assoc($o);
-        //TODO: rozbije se to, pokud člověk vyplní víc než limit u checkboxů (pořešit situaci $idOtazky>$r['id_otazky'] asi) 
+        //TODO: rozbije se to, pokud člověk vyplní víc než limit u checkboxů (pořešit situaci $idOtazky>$r['id_otazky'] asi)
       }
     }
   }
