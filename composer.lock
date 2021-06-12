@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b7afc6746ab1dd191df5bdcc9c432e18",
+    "content-hash": "c737a3a83a3fd23dcdbee28301f1ef92",
     "packages": [
         {
             "name": "defuse/php-encryption",
@@ -199,37 +199,6 @@
                 "issues": "https://github.com/godric-cz/db-backup/issues"
             },
             "time": "2018-09-19T20:51:29+00:00"
-        },
-        {
-            "name": "godric/db-migrations",
-            "version": "dev-master",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/godric-cz/db-migrations.git",
-                "reference": "261ab14bce070769f9a201640c0db591d511e372"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/godric-cz/db-migrations/zipball/261ab14bce070769f9a201640c0db591d511e372",
-                "reference": "261ab14bce070769f9a201640c0db591d511e372",
-                "shasum": ""
-            },
-            "require": {
-                "dg/mysql-dump": "^1.4"
-            },
-            "default-branch": true,
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Godric\\DbMigrations\\": "src/"
-                }
-            },
-            "description": "Database migration tool with automagic and possibly without commandline.",
-            "support": {
-                "source": "https://github.com/godric-cz/db-migrations/tree/master",
-                "issues": "https://github.com/godric-cz/db-migrations/issues"
-            },
-            "time": "2018-09-04T12:38:38+00:00"
         },
         {
             "name": "godric/xtemplate",
@@ -4128,7 +4097,6 @@
     "minimum-stability": "stable",
     "stability-flags": {
         "godric/db-backup": 20,
-        "godric/db-migrations": 20,
         "godric/xtemplate": 20,
         "roave/security-advisories": 20
     },
