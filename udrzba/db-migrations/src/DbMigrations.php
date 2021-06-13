@@ -25,13 +25,46 @@ class DbMigrations
         if ($this->conf->webGui) {
             $this->webGui = new WebGui;
         }
+    }
 
-        $this->loadMigrations();
+    private function handleNormalMigrations() {
+        foreach ($this->getUnappliedMigrations() as $migration) {
+            $this->apply($migration);
+        }
+    }
+
+    private function getUnappliedMigrations() {
+        return array_filter($this->getMigrations(), function ($migration) {
+            $lastId = $this->datastore->get(LAST_APPLIED_MIGRATION_ID) ?? PHP_INT_MIN; // TODO optimize this, it fires one query per each get
+            return $migration->getId() > $lastId;
+        });
+    }
+
+    /**
+     * @return Migration[]
+     */
+    private function getMigrations(): array {
+        if (!is_array($this->migrations)) {
+            $migrations = [];
+            foreach (glob($this->conf->migrationsDirectory . '/*') as $fileName) {
+                // 069.php as well as 2021-07-12.php as well as 2021-07-12_01.php
+                if (!preg_match('~(\d{3}|\d+-\d+-\d+(?:_\d+)?)[.]php$~', $fileName, $matches)) {
+                    continue;
+                }
+
+                $migrations[$fileName] = new Migration($fileName, $matches[1], $this->db);
+            }
+
+            ksort($migrations);
+
+            $this->migrations = array_values($migrations);
+        }
+        return $this->migrations;
     }
 
     private function apply(Migration $migration) {
         if ($this->webGui) {
-            $this->webGui->confirm($migration);
+            $this->webGui->confirm();
         }
 
         echo "Applying migration {$migration->getId()}.\n";
@@ -51,90 +84,6 @@ class DbMigrations
         $this->db->query('COMMIT');
     }
 
-    private function getInitialMigration() {
-        return reset($this->migrations);
-    }
-
-    private function getLatestMigration() {
-        return end($this->migrations);
-    }
-
-    private function getUnappliedMigrations() {
-        return array_filter($this->migrations, function ($migration) {
-            $lastId = $this->datastore->get(LAST_APPLIED_MIGRATION_ID) ?? PHP_INT_MIN; // TODO optimize this, it fires one query per each get
-            return $migration->getId() > $lastId;
-        });
-    }
-
-    private function handleInitialMigrationChanges() {
-        // checking of initial migration changes disabled
-        if (!$this->conf->checkInitialMigrationChanges) {
-            return;
-        }
-
-        $migration = $this->getInitialMigration();
-
-        // no change in initial migration
-        if ($migration->getHash() === $this->datastore->get(INITIAL_MIGRATION_HASH)) {
-            return;
-        }
-
-        // initial migration changed
-        if ($this->conf->rewriteDatabaseOnInitialMigrationChange) {
-            // handle all changes
-            $this->backups->clearDatabase();
-            $this->apply($migration);
-            $this->datastore->set(INITIAL_MIGRATION_HASH, $migration->getHash());
-        } else {
-            // just report error
-            throw new \Exception('Initial migration has changed.');
-        }
-    }
-
-    private function handleLatestMigrationChanges() {
-        // checking of lastest migration changes disabled
-        if (!$this->conf->checkLastMigrationChanges) {
-            return;
-        }
-
-        $migration = $this->getLatestMigration();
-
-        // latest migration not yet applied
-        if ($migration->getId() !== $this->datastore->get(LAST_APPLIED_MIGRATION_ID)) {
-            throw new \Exception('Latest migration is not applied yet.');
-        }
-
-        // no change in latest migration
-        if ($migration->getHash() === $this->datastore->get(LATEST_MIGRATION_HASH)) {
-            return;
-        }
-
-        // latest migration changed
-        // TODO just report error, maybe add optional rollback in the future
-        throw new \Exception('Latest migration has changed.');
-    }
-
-    private function handleNormalMigrations() {
-        foreach ($this->getUnappliedMigrations() as $migration) {
-            $this->apply($migration);
-        }
-    }
-
-    private function loadMigrations() {
-        $migrations = [];
-        foreach (glob($this->conf->migrationsDirectory . '/*') as $f) {
-            if (!preg_match($this->conf->migrationFilePattern, $f, $m)) {
-                continue;
-            }
-
-            $migrations[$f] = new Migration($f, $m[1], $this->db);
-        }
-
-        ksort($migrations);
-
-        $this->migrations = array_values($migrations);
-    }
-
     function run() {
         $driver = new \mysqli_driver();
         $oldReportMode = $driver->report_mode;
@@ -143,9 +92,7 @@ class DbMigrations
             $this->webGui->configureEnviroment();
         }
 
-        $this->handleInitialMigrationChanges();
         $this->handleNormalMigrations();
-        $this->handleLatestMigrationChanges();
 
         if ($this->webGui) {
             $this->webGui->cleanupEnviroment();

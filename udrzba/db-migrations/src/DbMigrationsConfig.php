@@ -44,39 +44,12 @@ class DbMigrationsConfig
     public $backupsDirectory = null;
 
     /**
-     * Check, if initial migration file contents changed since it was
-     * applied to the database.
-     *
-     * If it did, further action is specified below.
-     */
-    public $checkInitialMigrationChanges = true;
-
-    /**
-     * Check, if last (latest) migrtaion file contents changed since it was
-     * applied to the database.
-     *
-     * If it did, error is reported and execution stops.
-     */
-    public $checkLastMigrationChanges = true;
-
-    /**
-     * If enabled, when initial migration file changes, whole database is
-     * dropped, recreated and all migrations applied.
-     *
-     * Useful for test enviroments.
-     */
-    public $rewriteDatabaseOnInitialMigrationChange = false;
-
-    /**
      * If enabled, db migrations will show confirmation html form in case
      * there are any unapplied migrations.
      *
      * Until confirmed, no migrations are applied. Ends script execution.
      */
     public $webGui = false;
-
-    // 069.php as well as 2021-07-12.php as well as 2021-07-12_01.php
-    public $migrationFilePattern = '~(\d{3}|\d+-\d+-\d+(?:_\d+)?)[.]php$~';
 
     /**
      * Reads params from associative array and loads them to class
