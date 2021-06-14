@@ -30,8 +30,13 @@ dbQuery(sprintf('USE `%s`', DB_NAME));
     'connection' => dbConnect(), // předpokládá se, že spojení pro testy má administrativní práva
     'migrationsDirectory' => __DIR__ . '/../migrace',
     'doBackups' => false,
-    'rewriteDatabaseOnInitialMigrationChange' => true,
-])))->run();
+])))->run(); // migrations v1
+
+(new DbMigrations(new DbMigrationsConfig([
+    'connection' => dbConnect(), // předpokládá se, že spojení pro testy má administrativní práva
+    'migrationsDirectory' => __DIR__ . '/../migrace',
+    'doBackups' => false,
+])))->run();// migrations v2
 
 dbConnect(); // nutno inicalizovat spojení
 

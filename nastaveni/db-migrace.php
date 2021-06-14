@@ -14,7 +14,6 @@ if (AUTOMATICKA_TVORBA_DB) {
         'connection' => dbConnect(), // musí mít admin práva
         'migrationsDirectory' => __DIR__ . '/../migrace',
         'doBackups' => false,
-        'checkInitialMigrationChanges' => false,
         'webGui' => true,
     ])
 ))->run();

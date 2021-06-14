@@ -6,12 +6,12 @@ class Migration
 {
 
     private $db;
-    private $id;
+    private $code;
     private $path;
 
-    public function __construct(string $path, string $id, \mysqli $db) {
+    public function __construct(string $path, string $code, \mysqli $db) {
         $this->path = $path;
-        $this->id = $id;
+        $this->code = $code;
         $this->db = $db;
     }
 
@@ -28,7 +28,11 @@ class Migration
     }
 
     public function getId() {
-        return $this->id;
+        return $this->getCode();
+    }
+
+    public function getCode() {
+        return $this->code;
     }
 
     public function q($query) {

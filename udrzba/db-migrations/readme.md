@@ -7,7 +7,7 @@
 
 ## Configuration
 
-Make sure your database connection has admin rights. If you're using backups, make sure backups directory is not accessible by webserver. Disabling `checkInitialMigrationChanges` is useful for interaction with tests (see below). If you start with empty database or don't test at all, it may be ommited.
+Make sure your database connection has admin rights. If you're using backups, make sure backups directory is not accessible by webserver.
 
 For development:
 
@@ -18,7 +18,6 @@ For development:
     'migrationsDirectory' =>  __DIR__ . '/migrations',
     'doBackups'           =>  false,
     'webGui'              =>  true,
-    'checkInitialMigrationChanges' => false,
 ]))->run();
 ```
 
@@ -32,7 +31,6 @@ if ($_POST['secret'] !== 'my_secret') die(); // protect acces on production
     'connection'          =>  new mysqli('localhost', 'user', 'password', 'database'),
     'migrationsDirectory' =>  __DIR__ . '/migrations',
     'backupsDirectory'    =>  __DIR__ . '/../db-backup',
-    'checkInitialMigrationChanges' => false,
 ]))->run();
 ```
 
