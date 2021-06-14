@@ -2,6 +2,16 @@
 
 <h2>Univerzální reporty</h2>
 
+<style>
+  #bfgr {
+    margin: 1em 0;
+    display: inline-block;
+  }
+  #bfgr .hint::after {
+    content: " 🧙";
+  }
+</style>
+
 <table class="zvyraznovana">
   <tr>
     <th colspan="2">Report</th>
