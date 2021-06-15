@@ -4,6 +4,7 @@ namespace Gamecon\Tests;
 
 use Gamecon\Tests\Db\DbTest;
 use Gamecon\Tests\Db\DbWrapper;
+use Godric\DbMigrations\DbMigrationsConfig;
 use Godric\DbMigrations\DbMigrations;
 
 define('DB_NAME', uniqid('gamecon_test_', true)); // TODO přetížit údaje pro připojení nějak inteligentněji
@@ -25,17 +26,22 @@ dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', DB_NAME));
 dbQuery(sprintf('CREATE DATABASE IF NOT EXISTS `%s` COLLATE "utf8_czech_ci"', DB_NAME));
 dbQuery(sprintf('USE `%s`', DB_NAME));
 
-(new DbMigrations([
-  'connection' => dbConnect(), // předpokládá se, že spojení pro testy má administrativní práva
-  'migrationsDirectory' => 'migrace',
-  'doBackups' => false,
-  'rewriteDatabaseOnInitialMigrationChange' => true,
-]))->run();
+(new DbMigrations(new DbMigrationsConfig([
+    'connection' => dbConnect(), // předpokládá se, že spojení pro testy má administrativní práva
+    'migrationsDirectory' => __DIR__ . '/../migrace',
+    'doBackups' => false,
+])))->run(); // migrations v1
+
+(new DbMigrations(new DbMigrationsConfig([
+    'connection' => dbConnect(), // předpokládá se, že spojení pro testy má administrativní práva
+    'migrationsDirectory' => __DIR__ . '/../migrace',
+    'doBackups' => false,
+])))->run();// migrations v2
 
 dbConnect(); // nutno inicalizovat spojení
 
 DbTest::setConnection(new DbWrapper());
 
-register_shutdown_function(static function() {
-  dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', DB_NAME));
+register_shutdown_function(static function () {
+    dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', DB_NAME));
 });

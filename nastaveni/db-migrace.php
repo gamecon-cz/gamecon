@@ -9,10 +9,11 @@ if (AUTOMATICKA_TVORBA_DB) {
     dbQuery(sprintf('USE `%s`', DB_NAME));
 }
 
-(new Godric\DbMigrations\DbMigrations([
-    'connection'          =>  dbConnect(), // musí mít admin práva
-    'migrationsDirectory' =>  __DIR__ . '/../migrace',
-    'doBackups'           =>  false,
-    'checkInitialMigrationChanges' => false,
-    'webGui'              =>  true,
-]))->run();
+(new Godric\DbMigrations\DbMigrations(
+    new \Godric\DbMigrations\DbMigrationsConfig([
+        'connection' => dbConnect(), // musí mít admin práva
+        'migrationsDirectory' => __DIR__ . '/../migrace',
+        'doBackups' => false,
+        'webGui' => true,
+    ])
+))->run();
