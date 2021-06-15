@@ -94,15 +94,21 @@ function nasad(array $nastaveni) {
     }
 
     // migrace DB
+    runMigrationsOnRemote($nastaveni['urlMigrace'], $nastaveni['hesloMigrace']);
+    // twice to run migrations v1 followed by v2
+    runMigrationsOnRemote($nastaveni['urlMigrace'], $nastaveni['hesloMigrace']);
+
+    msg('nasazení dokončeno');
+}
+
+function runMigrationsOnRemote(string $urlMigrace, string $hesloMigrace) {
     msg('spouštím migrace na vzdálené databázi');
     call_check([
         'curl',
-        '--data', 'migraceHeslo=' . $nastaveni['hesloMigrace'],
+        '--data', 'migraceHeslo=' . $hesloMigrace,
         '--silent', // skrýt progressbar
-        $nastaveni['urlMigrace'],
+        $urlMigrace,
     ]);
-
-    msg('nasazení dokončeno');
 }
 
 function getFilesAlwaysRequiredByAutoloader(): array {
