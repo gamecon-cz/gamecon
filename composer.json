@@ -54,7 +54,7 @@
   "autoload-dev": {
     "psr-4": {
       "Gamecon\\Tests\\": "tests",
-      "Godric\\DbMigrations\\": "udrzba/db-migrations/src"
+      "Godric\\DbMigrations\\": "migrace/pomocne/db-migrations/src"
     }
   },
   "scripts": {
