@@ -26,6 +26,7 @@
   },
   "require": {
     "php": ">=7.3",
+    "ext-bcmath": "*",
     "ext-curl": "*",
     "ext-exif": "*",
     "ext-gd": "*",
