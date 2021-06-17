@@ -7,7 +7,8 @@ use Gamecon\Tests\Db\DbWrapper;
 use Godric\DbMigrations\DbMigrationsConfig;
 use Godric\DbMigrations\DbMigrations;
 
-define('DB_NAME', uniqid('gamecon_test_', true)); // TODO přetížit údaje pro připojení nějak inteligentněji
+define('DB_NAME', uniqid('gamecon_test_', true));
+define('SPEC', sys_get_temp_dir());
 
 // konfigurace
 // TODO dokud není konfigurace vyřešena jinak, než přes konstanty, musíme testovat jen jeden vydefinovaný stav, tj. "reg na aktivity i GC běží"

@@ -22,7 +22,7 @@ class FioPlatba
     }
 
     /** Vrací ID jako string (64bitů int) */
-    public function id() {
+    public function id(): string {
         return $this->data['ID pohybu'];
     }
 

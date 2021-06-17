@@ -16,10 +16,11 @@ class FioPlatbaTest extends TestCase
             mkdir($adresar, 0777, true);
         }
         self::assertDirectoryExists($adresar);
-        $od = (new \DateTimeImmutable('-1 day'));
-        $odString = $od->format('Y-m-d');
-        $doString = date('Y-m-d');
-        $url = "https://www.fio.cz/ib_api/rest/periods/" . FIO_TOKEN . "/$odString/$doString/transactions.json";
+
+        $pocetDniZpet = 1;
+        $od = (new \DateTimeImmutable("-{$pocetDniZpet} days"))->format('Y-m-d');
+        $do = date('Y-m-d');
+        $url = "https://www.fio.cz/ib_api/rest/periods/" . FIO_TOKEN . "/$od/$do/transactions.json";
         $soubor = $adresar . '/' . md5($url) . '.json';
         $jsonData = json_encode([
             'accountStatement' => [
@@ -46,11 +47,43 @@ class FioPlatbaTest extends TestCase
                 ],
             ],
         ], JSON_FORCE_OBJECT | JSON_THROW_ON_ERROR);
+        /** will be used as a less-than-minute-old "cache", @see \FioPlatba::cached */
         file_put_contents($soubor, $jsonData);
 
-        $platby = FioPlatba::zPoslednichDni(1);
+        $platby = FioPlatba::zPoslednichDni($pocetDniZpet);
         self::assertSame('444555666', $platby[0]->vs());
         self::assertSame('111222', $platby[1]->vs());
         self::assertSame('9999', $platby[2]->vs());
+    }
+
+    /**
+     * @test
+     */
+    public function Muzeme_nacist_variabilni_symbol_ze_skutecne_odpovedi() {
+        $adresar = SPEC . '/fio';
+        if (!is_dir($adresar)) {
+            mkdir($adresar, 0777, true);
+        }
+        self::assertDirectoryExists($adresar);
+
+        $pocetDniZpet = 7;
+        $od = (new \DateTimeImmutable("-{$pocetDniZpet} days"))->format('Y-m-d');
+        $do = date('Y-m-d');
+        $url = "https://www.fio.cz/ib_api/rest/periods/" . FIO_TOKEN . "/$od/$do/transactions.json";
+        $soubor = $adresar . '/' . md5($url) . '.json';
+        /** will be used as a less-than-minute-old "cache", @see \FioPlatba::cached */
+        self::assertTrue(
+            copy(__DIR__ . '/data/2021-06-10_to_2021-06-17_anonymised.json', $soubor),
+            'Can not copy test file to destination'
+        );
+
+        $platby = FioPlatba::zPoslednichDni($pocetDniZpet);
+        $platbySVsVeZprave = array_filter($platby, static function (FioPlatba $platba) {
+            return $platba->zprava() && preg_match('~^/VS/\d+$~', $platba->zprava()) === 1;
+        });
+        self::assertCount(2, $platbySVsVeZprave);
+        foreach ($platbySVsVeZprave as $platbaSVsVeZprave) {
+            self::assertSame($platbaSVsVeZprave->zprava(), "/VS/{$platbaSVsVeZprave->vs()}");
+        }
     }
 }
