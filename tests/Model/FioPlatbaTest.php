@@ -43,6 +43,12 @@ class FioPlatbaTest extends TestCase
                             ['name' => 'VS', 'value' => ''],
                             ['name' => 'Zpráva pro příjemce', 'value' => '/vs/9999/Variabilní symbol malými písmeny'],
                         ],
+                        [
+                            ['name' => 'Objem', 'value' => 10.09],
+                            ['name' => 'ID pohybu', 'value' => '9223372036854775804'],
+                            ['name' => 'VS', 'value' => ''],
+                            ['name' => 'Zpráva pro příjemce', 'value' => '/DO2021-06-21/SP/VS/9999'],
+                        ],
                     ],
                 ],
             ],

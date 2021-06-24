@@ -31,7 +31,7 @@ class Platby
     }
 
     private static function jePlatbaNova(string $idFioPlatby): bool {
-        return !dbOneCol('SELECT 1 FROM platby WHERE fio_id = $1', $idFioPlatby);
+        return !dbOneCol('SELECT 1 FROM platby WHERE fio_id = $1', [$idFioPlatby]);
     }
 
 }
