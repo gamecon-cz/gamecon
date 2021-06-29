@@ -9,8 +9,9 @@ class FioPlatbaTest extends TestCase
 {
     /**
      * @test
+     * @dataProvider provideTransactions
      */
-    public function Muzeme_nacist_variabilni_symbol_ze_zpravy() {
+    public function Muzeme_nacist_variabilni_symbol_ze_zpravy(array $transaction, string $expectedVs) {
         $adresar = SPEC . '/fio';
         if (!is_dir($adresar)) {
             mkdir($adresar, 0777, true);
@@ -25,31 +26,7 @@ class FioPlatbaTest extends TestCase
         $jsonData = json_encode([
             'accountStatement' => [
                 'transactionList' => [
-                    'transaction' => [
-                        [
-                            ['name' => 'Objem', 'value' => 123.456],
-                            ['name' => 'ID pohybu', 'value' => '9223372036854775807'],
-                            ['name' => 'VS', 'value' => '444555666'],
-                            ['name' => 'Zpráva pro příjemce', 'value' => 'VS přímo'],
-                        ],
-                        [
-                            ['name' => 'Objem', 'value' => 10.09],
-                            ['name' => 'ID pohybu', 'value' => '9223372036854775806'],
-                            ['name' => 'Zpráva pro příjemce', 'value' => '/VS/111222/Variabilní symbol velkými písmeny'],
-                        ],
-                        [
-                            ['name' => 'Objem', 'value' => 10.09],
-                            ['name' => 'ID pohybu', 'value' => '9223372036854775805'],
-                            ['name' => 'VS', 'value' => ''],
-                            ['name' => 'Zpráva pro příjemce', 'value' => '/vs/9999/Variabilní symbol malými písmeny'],
-                        ],
-                        [
-                            ['name' => 'Objem', 'value' => 10.09],
-                            ['name' => 'ID pohybu', 'value' => '9223372036854775804'],
-                            ['name' => 'VS', 'value' => ''],
-                            ['name' => 'Zpráva pro příjemce', 'value' => '/DO2021-06-21/SP/VS/9999'],
-                        ],
-                    ],
+                    'transaction' => [$transaction],
                 ],
             ],
         ], JSON_FORCE_OBJECT | JSON_THROW_ON_ERROR);
@@ -57,9 +34,56 @@ class FioPlatbaTest extends TestCase
         file_put_contents($soubor, $jsonData);
 
         $platby = FioPlatba::zPoslednichDni($pocetDniZpet);
-        self::assertSame('444555666', $platby[0]->vs());
-        self::assertSame('111222', $platby[1]->vs());
-        self::assertSame('9999', $platby[2]->vs());
+        self::assertSame($expectedVs, $platby[0]->vs());
+    }
+
+    public function provideTransactions(): array {
+        return [
+            'VS directly' => [
+                [
+                    ['name' => 'Objem', 'value' => 123.456],
+                    ['name' => 'ID pohybu', 'value' => '9223372036854775807'],
+                    ['name' => 'VS', 'value' => '444555666'],
+                    ['name' => 'Zpráva pro příjemce', 'value' => 'VS přímo'],
+                ],
+                '444555666',
+            ],
+            'VS uppercase' => [
+                [
+                    ['name' => 'Objem', 'value' => 10.09],
+                    ['name' => 'ID pohybu', 'value' => '9223372036854775806'],
+                    ['name' => 'Zpráva pro příjemce', 'value' => '/VS/111222/Variabilní symbol velkými písmeny'],
+                ],
+                '111222',
+            ],
+            'VS lowercase' => [
+                [
+                    ['name' => 'Objem', 'value' => 10.09],
+                    ['name' => 'ID pohybu', 'value' => '9223372036854775805'],
+                    ['name' => 'VS', 'value' => ''],
+                    ['name' => 'Zpráva pro příjemce', 'value' => '/vs/9999/Variabilní symbol malými písmeny'],
+                ],
+                '9999',
+            ],
+            'VS not first' => [
+                [
+                    ['name' => 'Objem', 'value' => 10.09],
+                    ['name' => 'ID pohybu', 'value' => '9223372036854775804'],
+                    ['name' => 'VS', 'value' => ''],
+                    ['name' => 'Zpráva pro příjemce', 'value' => '/DO2021-06-21/SP/VS/123465'],
+                ],
+                '123465',
+            ],
+            'VS first but without leading slash' => [
+                [
+                    ['name' => 'Objem', 'value' => 10.09],
+                    ['name' => 'ID pohybu', 'value' => '9223372036854775803'],
+                    ['name' => 'VS', 'value' => ''],
+                    ['name' => 'Zpráva pro příjemce', 'value' => 'vs/887799/Variabilní symbol bez lomítka na začátku'],
+                ],
+                '887799',
+            ],
+        ];
     }
 
     /**
