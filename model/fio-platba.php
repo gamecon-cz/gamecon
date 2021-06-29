@@ -33,7 +33,7 @@ class FioPlatba
     }
 
     protected function nactiVsZTextu(string $text): string {
-        if (!preg_match('~/vs/(?<vs>\d+)~i', $text, $matches)) {
+        if (!preg_match('~(^|/)vs/(?<vs>\d+)~i', $text, $matches)) {
             return '';
         }
         return $matches['vs'];
