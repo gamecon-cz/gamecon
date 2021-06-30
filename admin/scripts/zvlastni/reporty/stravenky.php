@@ -12,7 +12,7 @@ if(!isset($_GET['ciste'])) {
     FROM uzivatele_hodnoty u
     JOIN r_uzivatele_zidle z ON(z.id_uzivatele = u.id_uzivatele AND z.id_zidle = '.Z_PRIHLASEN.')
     JOIN shop_nakupy n ON(n.id_uzivatele = u.id_uzivatele AND n.rok = '.ROK.')
-    JOIN shop_predmety p ON(p.id_predmetu = n.id_predmetu AND p.typ = '.Shop::JIDLO.')
+    JOIN shop_predmety p ON(p.id_predmetu = n.id_predmetu AND p.typ = '.Shop::TYP_JIDLO.')
     ORDER BY u.id_uzivatele, p.ubytovani_den DESC, p.nazev DESC
   ');
 
@@ -30,7 +30,7 @@ if(!isset($_GET['ciste'])) {
 
 } else {
 
-  $o = dbQuery('SELECT nazev FROM shop_predmety WHERE model_rok = '.ROK.' AND typ = '.Shop::JIDLO);
+  $o = dbQuery('SELECT nazev FROM shop_predmety WHERE model_rok = '.ROK.' AND typ = '.Shop::TYP_JIDLO);
   while($r = mysqli_fetch_assoc($o)) $jidla[] = $r['nazev'];
 
   for($i = 0; $i < 24; $i++) {

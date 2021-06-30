@@ -33,7 +33,7 @@ $r = Report::zSql('
     ) akt ON (akt.id_uzivatele = z.id_uzivatele)
   LEFT JOIN (
       SELECT id_uzivatele FROM shop_nakupy sn
-      JOIN shop_predmety sp ON (sp.id_predmetu = sn.id_predmetu AND sp.typ = '.Shop::UBYTOVANI.')
+      JOIN shop_predmety sp ON (sp.id_predmetu = sn.id_predmetu AND sp.typ = '.Shop::TYP_UBYTOVANI.')
       WHERE sn.rok = '.ROK.'
       GROUP BY sn.id_uzivatele
     ) ub ON (ub.id_uzivatele = z.id_uzivatele)

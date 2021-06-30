@@ -6,10 +6,10 @@ SELECT u.id_uzivatele, u.login_uzivatele, u.jmeno_uzivatele, u.prijmeni_uzivatel
 FROM uzivatele_hodnoty u
 LEFT JOIN shop_nakupy n ON (n.id_uzivatele = u.id_uzivatele)
 LEFT JOIN shop_predmety p ON (p.id_predmetu = n.id_predmetu)
-WHERE (n.rok = $1) AND (p.typ = 3)
+WHERE (n.rok = $1) AND (p.typ = $2)
 GROUP BY u.id_uzivatele, u.login_uzivatele, u.jmeno_uzivatele, u.prijmeni_uzivatele
 SQL
-  , [ROK]
+  , [ROK, Shop::TYP_TRICKO]
 );
 
 $report->tFormat(get('format'));

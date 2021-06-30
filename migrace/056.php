@@ -1,7 +1,7 @@
 <?php
 /** @var \Godric\DbMigrations\Migration $this */
 
-$typProplaceniBonusu = Shop::PROPLACENI_BONUSU;
+$typProplaceniBonusu = 7;
 $this->q(<<<SQL
 ALTER TABLE `shop_predmety`
 CHANGE `typ` `typ` TINYINT NOT NULL COMMENT '1-předmět, 2-ubytování, 3-tričko, 4-jídlo, 5-vstupné, 6-parcon, 7-vyplaceni' AFTER `kusu_vyrobeno`;
