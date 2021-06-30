@@ -2,7 +2,7 @@
 
 <h1>Hromadné rušení objednávek</h1>
 
-<p>Ve výpisu se nebjeví lidé, kteří mají právo "nerušit automaticky objednávky".</p>
+<p>Ve výpisu se neobjeví lidé, kteří mají právo "nerušit automaticky objednávky".</p>
 
 <form method="post">
   <table>
