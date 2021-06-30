@@ -1,0 +1,60 @@
+<!-- begin: hromadneOdhlasovani -->
+
+<h1>Hromadné odhlašování účastníků</h1>
+
+<p>Nelze hromadně odhlásit účastníky, kteří jsou již přítomni na Gameconu.</p>
+
+<form method="post">
+  <table style="width: 100%">
+    <thead>
+    <tr>
+      <th><label for="idckaUcastniku">ID účastníků (oddělená čárkou, mezerou nebo středníkem;)</label></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+      <td>
+        <textarea id="idckaUcastniku" name="ids" required="required"
+                  style="box-sizing: border-box; width: 100%">
+          {ids}
+        </textarea>
+      </td>
+    <tr>
+      <td>
+        <input type="submit" name="pripravit" value="Připravit k hromadnému odhlášení">
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</form>
+
+<!-- begin: vypis -->
+<br>
+<form method="post"
+      onsubmit="return confirm('Trvale odhlásit uživatele z GameConu a smazat všechny jejich aktivity a nakoupené věci?')">
+  <table>
+    <thead>
+    <tr>
+      <th>ID</th>
+      <th>Jméno</th>
+      <th>Zůstatek</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- begin: uzivatel -->
+    <tr>
+      <td>{id}</td>
+      <td>
+        {jmenoNick}
+        <input type="hidden" name="id[]" value="{id}">
+      </td>
+      <td>{stavUctu}</td>
+    </tr>
+    <!-- end: uzivatel -->
+    </tbody>
+  </table>
+  <input type="submit" name="odhlasit" value="Hromadně odhlásit">
+</form>
+<!-- end: vypis -->
+
+<!-- end: hromadneOdhlasovani -->

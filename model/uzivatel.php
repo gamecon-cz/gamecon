@@ -264,9 +264,15 @@ SQL
      * @todo Při odhlášení z GC pokud jsou zakázané rušení nákupů může být též
      * problém (k zrušení dojde)
      */
-    public function gcOdhlas() {
-        if ($this->gcPritomen()) throw new Exception('Už jsi prošel infopultem, odhlášení není možné.');
-        if (!$this->gcPrihlasen()) throw new Exception('Nejsi přihlášen na GameCon.');
+    public function gcOdhlas(): bool {
+        if (!$this->gcPrihlasen()) {
+            return false;
+        }
+        if ($this->gcPritomen()) {
+            throw new \Gamecon\Exceptions\CanNotKickOutUserFromGamecon(
+                'Už jsi prošel infopultem, odhlášení není možné.'
+            );
+        }
         // smazání přihlášení na aktivity, na které je jen přihlášen (ne je už hrál, jako náhradník apod.)
         dbQuery('DELETE p.* FROM akce_prihlaseni p JOIN akce_seznam a
       WHERE a.rok=' . ROK . ' AND p.id_stavu_prihlaseni=0 AND p.id_uzivatele=' . $this->id());
@@ -282,6 +288,7 @@ SQL
                 ->text(hlaskaMail('odhlasilPlatil', $this->jmenoNick(), $this->id(), ROK))
                 ->odeslat();
         }
+        return true;
     }
 
     /** „Odjede“ uživatele z GC */
@@ -522,24 +529,29 @@ SQL
      */
     static function odhlas($back = false) {
         self::odhlasProTed();
-        if (isset($_COOKIE['gcTrvalePrihlaseni']))
+        if (isset($_COOKIE['gcTrvalePrihlaseni'])) {
             setcookie('gcTrvalePrihlaseni', '', 0, '/');
-        if ($back) back();
+        }
+        if ($back) {
+            back();
+        }
     }
 
     /**
      * Odhlásí aktuálně přihlášeného uživatele
      */
     static function odhlasProTed() {
-        if (!session_id())
+        if (!session_id()) {
             session_start();
+        }
         session_destroy();
     }
 
     /** Odpojí od session uživatele na indexu $klic */
     static function odhlasKlic($klic) {
-        if (!session_id())
+        if (!session_id()) {
             session_start();
+        }
         unset($_SESSION[$klic]);
     }
 
@@ -575,23 +587,28 @@ SQL
      * Otočí (znovunačte, přihlásí a odhlásí, ...) uživatele
      */
     public function otoc() {
-        if (PHP_SAPI == 'cli') {
+        if (PHP_SAPI === 'cli') {
             $this->u = self::zId($this->id())->u;
             return;
         }
 
-        if (!$this->klic) throw new Exception('Neznámý klíč uživatele v session');
+        if (!$this->klic) {
+            throw new Exception('Neznámý klíč uživatele v session');
+        }
         $id = $this->id();
         $klic = $this->klic;
         //máme obnovit starou proměnnou pro id uživatele (otáčíme aktuálně přihlášeného uživatele)?
         $sesObnovit = (isset($_SESSION['id_uzivatele']) && $_SESSION['id_uzivatele'] == $this->id());
-        if ($klic == 'uzivatel') //pokud je klíč default, zničíme celou session
+        if ($klic === 'uzivatel') {//pokud je klíč default, zničíme celou session
             self::odhlasProTed(); // ponech případnou cookie pro trvalé přihášení
-        else //pokud je speciální, pouze přemažeme položku v session
+        } else { //pokud je speciální, pouze přemažeme položku v session
             self::odhlasKlic($klic);
+        }
         $u = Uzivatel::prihlasId($id, $klic);
         $this->u = $u->u;
-        if ($sesObnovit) $_SESSION['id_uzivatele'] = $this->id();
+        if ($sesObnovit) {
+            $_SESSION['id_uzivatele'] = $this->id();
+        }
     }
 
     /**
@@ -1161,7 +1178,8 @@ SQL
             $u = new Uzivatel($_SESSION[$klic]);
             $u->klic = $klic;
             return $u;
-        } elseif (isset($_COOKIE['gcTrvalePrihlaseni']) && $klic == 'uzivatel') {
+        }
+        if (isset($_COOKIE['gcTrvalePrihlaseni']) && $klic === 'uzivatel') {
             $id = dbOneLineS('
         SELECT id_uzivatele
         FROM uzivatele_hodnoty
@@ -1169,7 +1187,9 @@ SQL
                 [$_COOKIE['gcTrvalePrihlaseni']]);
             $id = $id ? $id['id_uzivatele'] : null;
             //die(dbLastQ());
-            if (!$id) return null;
+            if (!$id) {
+                return null;
+            }
             //změna tokenu do budoucna proti hádání
             dbQuery('
         UPDATE uzivatele_hodnoty
@@ -1177,9 +1197,8 @@ SQL
         WHERE id_uzivatele=' . $id);
             setcookie('gcTrvalePrihlaseni', $rand, time() + 3600 * 24 * 365, '/');
             return Uzivatel::prihlasId($id, $klic);
-        } else {
-            return null;
         }
+        return null;
     }
 
     /**
