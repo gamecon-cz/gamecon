@@ -3,26 +3,24 @@
 class ShopUbytovani
 {
 
-    private
-        $dny,     // asoc. 2D pole [den][typ] => předmět
-        $typy,    // asoc. pole [typ] => předmět sloužící jako vzor daného typu
-        $pnDny = 'shopUbytovaniDny',
-        $pnPokoj = 'shopUbytovaniPokoj',
-        $u;
+    private $dny;     // asoc. 2D pole [den][typ] => předmět
+    private $typy;    // asoc. pole [typ] => předmět sloužící jako vzor daného typu
+    private $pnDny = 'shopUbytovaniDny';
+    private $pnPokoj = 'shopUbytovaniPokoj';
+    private $u;
 
-    private static
-        $maxLen = 15;
-
-    function __construct($predmety, $uzivatel) {
+    public function __construct(array $predmety, Uzivatel $uzivatel) {
         $this->u = $uzivatel;
         foreach ($predmety as $p) {
             $nazev = Shop::bezDne($p['nazev']);
-            if (!isset($this->typy[$nazev])) $this->typy[$nazev] = $p;
+            if (!isset($this->typy[$nazev])) {
+                $this->typy[$nazev] = $p;
+            }
             $this->dny[$p['ubytovani_den']][$nazev] = $p;
         }
     }
 
-    function html() {
+    public function html() {
         $t = new XTemplate(__DIR__ . '/shop-ubytovani.xtpl');
         $t->assign([
             'spolubydlici' => dbOneCol('SELECT ubytovan_s FROM uzivatele_hodnoty WHERE id_uzivatele=' . $this->u->id()),
@@ -42,8 +40,9 @@ class ShopUbytovani
         }
 
         // specifická info podle uživatele a stavu nabídky
-        if (reset($this->typy)['stav'] == 3)
+        if (reset($this->typy)['stav'] == 3) {
             $t->parse('ubytovani.konec');
+        }
 
         $t->parse('ubytovani');
         return $t->text('ubytovani');
@@ -77,8 +76,10 @@ class ShopUbytovani
         }
     }
 
-    function zpracuj() {
-        if (!isset($_POST[$this->pnDny])) return false;
+    public function zpracuj() {
+        if (!isset($_POST[$this->pnDny])) {
+            return false;
+        }
 
         // smazat veškeré stávající ubytování uživatele
         $deleteQuery = '
@@ -172,7 +173,9 @@ class ShopUbytovani
 
     /** Vrátí počet volných míst */
     private function zbyvaMist($den, $typ) {
-        if (!isset($this->dny[$den][$typ])) return 0;
+        if (!isset($this->dny[$den][$typ])) {
+            return 0;
+        }
         $ub = $this->dny[$den][$typ];
         return max(0, $ub['kusu_vyrobeno'] - $ub['kusu_prodano']);
     }
@@ -183,13 +186,34 @@ class ShopUbytovani
      */
     protected function mozniUzivatele() {
         $a = [];
-        $o = dbQuery('
-      SELECT CONCAT(jmeno_uzivatele," ",prijmeni_uzivatele," (",login_uzivatele,")")
+        $o = dbQuery("
+      SELECT CONCAT(jmeno_uzivatele,' ',prijmeni_uzivatele,' (',login_uzivatele,')')
       FROM uzivatele_hodnoty
-      WHERE jmeno_uzivatele != "" AND prijmeni_uzivatele != "" AND id_uzivatele != $1
-    ', [$this->u->id()]);
-        while ($u = mysqli_fetch_row($o)) $a[] = $u[0];
+      WHERE jmeno_uzivatele != '' AND prijmeni_uzivatele != '' AND id_uzivatele != $1
+    ", [$this->u->id()]);
+        while ($u = mysqli_fetch_row($o)) {
+            $a[] = $u[0];
+        }
         return json_encode($a);
     }
 
+    public function kratkyPopis(string $oddelovacDalsihoRadku = '<br>'): string {
+        $dnyPoTypech = [];
+        foreach ($this->dny as $cisloDne => $typy) { // typy _v daný den_
+            $typVzor = reset($typy);
+            foreach ($this->typy as $typ => $rozsah) {
+                if ($this->ubytovan($cisloDne, $typ)) {
+                    $poziceZaPosledniMezerou = strrpos($typVzor['nazev'], ' ') + 1;
+                    $nazevDne = mb_strtolower(substr($typVzor['nazev'], $poziceZaPosledniMezerou));
+                    $zkratkaDne = mb_substr($nazevDne, 0, 2);
+                    $dnyPoTypech[$typ][] = $zkratkaDne;
+                }
+            }
+        }
+        $typySeDny = [];
+        foreach ($dnyPoTypech as $typ => $dny) {
+            $typySeDny[] = "$typ: " . implode(',', $dny);
+        }
+        return implode($oddelovacDalsihoRadku, $typySeDny);
+    }
 }

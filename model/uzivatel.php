@@ -39,25 +39,23 @@ SQL
         return static::zIds($ids);
     }
 
-    protected
-        $aktivityJakoNahradnik, // pole s klíči id aktvit, kde je jako náhradník
-        $u = [],
-        $klic = '',
-        $idZidli,         // pole s klíči id židlí uživatele
-        $finance,
-        $idPrav;
+    protected $aktivityJakoNahradnik; // pole s klíči id aktvit, kde je jako náhradník
+    protected $u = [];
+    protected $klic = '';
+    protected $idZidli;         // pole s klíči id židlí uživatele
+    protected $finance;
+    protected $idPrav;
+    protected $shop;
 
-    const
-        FAKE = 0x01,  // modifikátor "fake uživatel"
-        SYSTEM = 1;   // id uživatele reprezentujícího systém (např. "operaci provedl systém")
+    public const FAKE = 0x01;  // modifikátor "fake uživatel"
+    public const SYSTEM = 1;   // id uživatele reprezentujícího systém (např. "operaci provedl systém")
 
     /** Vytvoří uživatele z různých možných vstupů */
     public function __construct($uzivatel) {
-        if (is_array($uzivatel) && array_keys_exist([
-                'id_uzivatele', 'login_uzivatele', 'pohlavi',
-            ], $uzivatel)) { //asi čteme vstup z databáze
+        if (is_array($uzivatel)
+            && array_keys_exist(['id_uzivatele', 'login_uzivatele', 'pohlavi',], $uzivatel)
+        ) { //asi čteme vstup z databáze
             $this->u = $uzivatel;
-            return;
         } /* //zvážit, možná neimplementovat
     if((int)$uzivatel!=0)
     {
@@ -1288,6 +1286,13 @@ SQL
 
     public function isSuperAdmin(): bool {
         return in_array($this->id(), SUPERADMINI, false);
+    }
+
+    public function dejShop(): Shop {
+        if ($this->shop === null) {
+            $this->shop = new Shop($this);
+        }
+        return $this->shop;
     }
 
 }

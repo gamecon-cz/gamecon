@@ -520,11 +520,15 @@ SQL
       throw new RuntimeException(sprintf('Chybi virtualni "predmet" pro prevod bonusu na penize s typem %d', self::PROPLACENI_BONUSU));
     }
     dbQuery(<<<SQL
-INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni, datum) 
+INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni, datum)
     VALUES ($1, $2, $3, $4, NOW())
 SQL
     , [$this->u->id(), $idPredmetuPrevodBonsuNaPenize, ROK, $nevyuzityBonusZaAktivity]
   );
     return $nevyuzityBonusZaAktivity;
   }
+
+    public function dejPopisUbytovani(): string {
+        return $this->ubytovani->kratkyPopis();
+    }
 }
