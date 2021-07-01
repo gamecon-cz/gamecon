@@ -13,7 +13,7 @@ $shop = $uPracovni ? new Shop($uPracovni, $nastaveni) : null;
 
 
 if(post('pokojeImport')) {
-  $f = fopen($_FILES['pokojeSoubor']['tmp_name'], 'r');
+  $f = fopen($_FILES['pokojeSoubor']['tmp_name'], 'rb');
   if(!$f) throw new Exception('Soubor se nepodařilo načíst');
 
   $hlavicka = array_flip(fgetcsv($f, 512, ";"));

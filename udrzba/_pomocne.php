@@ -55,7 +55,7 @@ function nasad(array $nastaveni) {
       !/web/soubory/styl
       !/web/soubory/*.js
       !/web/soubory/*.html
-      !/web/soubory/systemove/*/.keep
+      !/web/soubory/systemove/*/.gitkeep
 
       /vendor/phpunit
       /vendor/sebastian
