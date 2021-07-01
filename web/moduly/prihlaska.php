@@ -66,6 +66,7 @@ if(post('prihlasitNeboUpravit')) {
   $shop->zpracujUbytovani();
   $shop->zpracujJidlo();
   $shop->zpracujVstupne();
+  $u->zpracujPotvrzeniProtiCovidu();
   $pomoc->zpracuj();
   if($prihlasovani) {
     oznameni(hlaska('prihlaseniNaGc', $u));
@@ -96,7 +97,7 @@ if ($u->maPravo(P_UBYTOVANI_ZDARMA)) {
 $nahledy = [
   ['Triko.png',   'Triiko_detail.png',   'Tričko'],
   ['Kostka.png',   'Kostka_detail.png',   'Kostka'],
-  ['Fate.png', 'Fate_detail.png', 'Fate kostka'],  
+  ['Fate.png', 'Fate_detail.png', 'Fate kostka'],
   ['Placka.png',   'Placka_detail.png',   'Placka'],
   ['nicknack.jpg', 'nicknack_m.jpg', 'Nicknack'],
   ['Ponozky.png',    'Ponozky_detail.png',    'Ponožky'],
@@ -116,6 +117,7 @@ $t->assign([
   'predmety'  =>  $shop->predmetyHtml(),
   'rok'       =>  ROK,
   'ubytovani' =>  $shop->ubytovaniHtml(),
+  'covidFreePotvrzeni' =>  $shop->covidFreePotrvzeniHtml((int)date('Y')),
   'ulozitNeboPrihlasit' =>  $u->gcPrihlasen() ? 'Uložit změny' : 'Přihlásit na GameCon',
   'vstupne'   =>  $shop->vstupneHtml(),
   'pomoc'     =>  $pomoc->html(),

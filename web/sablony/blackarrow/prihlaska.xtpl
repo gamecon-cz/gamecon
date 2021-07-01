@@ -14,7 +14,7 @@
 </div>
 </div>
 
-<form method="post" class="prihlaska">
+<form method="post" class="prihlaska" enctype="multipart/form-data">
 
 <!----------------------------------------------------------------------------->
 
@@ -96,6 +96,25 @@
   </div>
 
   {ubytovani}
+</div>
+
+<!----------------------------------------------------------------------------->
+
+<!----------------------------------------------------------------------------->
+
+<div class="prihlaska_sekce">
+  <h2>Covid-19</h2>
+
+  <div class="prihlaska_infoPruh">
+    <div class="prihlaska_info">
+      <h3>Nutné potvrzení</h3>
+      <div class="prihlaska_info prihlaska_info-ikona">
+        Nejpozději na infopultu, před vstupem na samotný Gamecon, nám musíš ukuzat platné jedno ze tří potvrzení.
+      </div>
+    </div>
+  </div>
+
+  {covidFreePotvrzeni}
 </div>
 
 <!----------------------------------------------------------------------------->

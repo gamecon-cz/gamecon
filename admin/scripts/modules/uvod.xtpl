@@ -99,17 +99,34 @@ Přihlásit na GameCon {rok}:
     <tr>
       <td><span class="hinted">Poznámka:<span class="hint">K úpravě klikněte na pole Poznámka v Osobních údajích</span></span>
       </td>
-      <td style="cursor:pointer" onclick="alert('K úpravě klikněte na pole Poznámka v Osobních údajích')">{poznamka}
+      <td style="cursor:pointer" onclick="$('#editace_udaju_uzivatele_trigger').click(); $('#udaj_poznamka').focus();">
+        {poznamka}
       </td>
     </tr>
     <tr>
       <td><span class="hinted">Potvrzení:<span
           class="hint">K úpravě klikněte na pole Potvrzení v Osobních údajích</span></span></td>
-      <td style="cursor:pointer" onclick="alert('K úpravě klikněte na pole Potvrzení v Osobních údajích')">
+      <td style="cursor:pointer" onclick="$('#editace_udaju_uzivatele_trigger').click(); $('#udaj_potvrzeni_zakonneho_zastupce').focus();">
         <!-- begin:chybiPotvrzeni -->
         <img src="files/design/error-s.png" style="margin-bottom:-2px">
         požádej o doplnění
         <!-- end:chybiPotvrzeni -->
+      </td>
+    </tr>
+    <tr>
+      <td><span class="hinted">Covid-19:<span
+          class="hint">K úpravě klikněte na pole Covid-19 v Osobních údajích</span></span></td>
+      <td style="cursor:pointer" onclick="$('#editace_udaju_uzivatele_trigger').click(); $('#udaj_potvrzeni_proti_covid19_overeno_kdy').focus();">
+        <!-- begin:chybiPotvrzeniProtiCovid -->
+        <img src="files/design/error-s.png" style="margin-bottom:-2px">
+        požádej o doplnění
+        <!-- end:chybiPotvrzeniProtiCovid -->
+        <!-- begin:potvrzeniProtiCovid -->
+        <a href="{urlNaPotvrzeniProtiCovid}" target="_blank">Potvrzení ({datumNahraniPotvrzeniProtiCovid})</a>
+        <!-- end:potvrzeniProtiCovid -->
+        <!-- begin:overenoPotvrzeniProtiCovid -->
+        ověřeno
+        <!-- end:overenoPotvrzeniProtiCovid -->
       </td>
     </tr>
   </table>
@@ -187,7 +204,8 @@ Přihlásit na GameCon {rok}:
           <!-- end:nazevBezPopisku -->
         </td>
         <td style="padding:0">
-          <div onclick="$('.udaje .label').hide(); $('.udaje .input').show().find('input, textarea').first().focus()"
+          <div id="editace_udaju_uzivatele_trigger"
+               onclick="$('.udaje .label').hide(); $('.udaje .input').show().find('input, textarea').first().focus()"
                style="width: 100%; cursor: pointer;" class="label">
             {zobrazenaHodnota} &nbsp;
             <!-- begin:chybi -->
@@ -199,12 +217,12 @@ Přihlásit na GameCon {rok}:
           <table class="cista input" style="width:100%;display:none;">
             <tr>
               <!-- begin:input -->
-              <td><input type="text" name="udaj[{sloupec}]" value="{vstupniHodnota}" style="margin-left: -3px;"></td>
+              <td><input type="text" name="udaj[{sloupec}]" value="{vstupniHodnota}" style="margin-left: -3px;" id="udaj_{sloupec}"></td>
               <td><input type="submit" name="zmenitUdaj" value="uložit"></td>
               <!-- end:input -->
               <!-- begin:checkbox -->
-              <td><input type="checkbox" name="udaj[{sloupec}]" value="{vstupniHodnota}" {checked}
-                         style="margin-left: -3px;"></td>
+              <td><input type="checkbox" name="udaj[{sloupec}]" value="{vstupniHodnota}" {checked} {disabled}
+                         style="margin-left: -3px;" id="udaj_{sloupec}"></td>
               <td><input type="submit" name="zmenitUdaj" value="uložit"></td>
               <!-- end:checkbox -->
               <!-- begin:select -->
@@ -219,7 +237,7 @@ Přihlásit na GameCon {rok}:
               <!-- end:select -->
               <!-- begin:text -->
               <td colspan="2">
-                <textarea name="udaj[{sloupec}]" style="margin-left: -3px; margin-top: -1px">{vstupniHodnota}</textarea>
+                <textarea id="udaj_{sloupec}" name="udaj[{sloupec}]" style="margin-left: -3px; margin-top: -1px">{vstupniHodnota}</textarea>
               </td>
               <td><input type="submit" name="zmenitUdaj" value="uložit"></td>
               <!-- end:text -->

@@ -1301,6 +1301,105 @@ SQL
         return $this->shop;
     }
 
+    public function maPotvrzeniProtiCoviduProRok(int $rok): bool {
+        $potvrzeniProtiCovid19PridanoKdy = $this->potvrzeniProtiCovid19PridanoKdy();
+        return $potvrzeniProtiCovid19PridanoKdy
+            && $potvrzeniProtiCovid19PridanoKdy->format('Y') === (string)$rok;
+    }
+
+    public function maOverenePotvrzeniProtiCoviduProRok(int $rok): bool {
+        if (!$this->maPotvrzeniProtiCoviduProRok($rok)) {
+            return false;
+        }
+        $potvrzeniProtiCovid19OverenoKdy = $this->potvrzeniProtiCovid19OverenoKdy();
+        return $potvrzeniProtiCovid19OverenoKdy
+            && $potvrzeniProtiCovid19OverenoKdy->format('Y') === (string)$rok;
+    }
+
+    public function covidFreePotvrzeniHtml(int $rok): string {
+        $ok = '';
+        if ($this->maPotvrzeniProtiCoviduProRok($rok)) {
+            $ok = '<span style="padding: 0.5em;">✅</span>';
+        }
+        return <<<HTML
+<div>
+  <div>
+    Z nařízení vlády ČR po tobě musíme vyžadovat, aby ses prokázal elektronickým či písemným potvrzením, že jsi:
+    <ul>
+      <li>negativní POC antigenní test ne starší 72 hodin nebo negativní nebo PCR test ne starší 7 dní</li>
+      <li>nebo 3 týdny od první dávky očkování proti COVID-19</li>
+      <li>nebo do 180 dní od prodělání onemocnění COVID-19 (stačí v SMSce)</li>
+    </ul>
+  </div>
+  <label>
+    Tvé potvrzení o očkování proti Covid-19, nebo o prodělaném Covid-19, nebo o negativním testu na Covid-19 <span style="font-size: smaller">(jen obrázek nebo PDF, do 8 MB)</span>:
+    <div style="border: 1px solid black; cursor: pointer;">
+      $ok
+      <input type="file" class="formular_input" name="potvrzeniProtiCovidu" style="display: inline; width: auto; border: none; margin: 0; cursor: pointer">
+    </div>
+  </label>
+</div>
+HTML;
+    }
+
+    public function zpracujPotvrzeniProtiCovidu() {
+        if (!isset($_FILES['potvrzeniProtiCovidu'])) {
+            return;
+        }
+        $f = fopen($_FILES['potvrzeniProtiCovidu']['tmp_name'], 'rb');
+        if (!$f) {
+            throw new Chyba("Soubor '{$_FILES['potvrzeniProtiCovidu']['name']}' se nepodařilo načíst");
+        }
+        $imagick = new Imagick();
+        $imagick->setResolution(120, 120);
+
+        $imageRead = false;
+        try {
+            $imageRead = $imagick->readImageFile($f);
+        } catch (\Throwable $throwable) {
+            trigger_error($throwable->getMessage(), E_USER_WARNING);
+        }
+        if (!$imageRead) {
+            throw new Chyba("Soubor '{$_FILES['potvrzeniProtiCovidu']['name']}' se nepodařilo přečíst. Je to obrázek nebo PDF?");
+        }
+
+        try {
+            $imagick->mergeImageLayers(Imagick::LAYERMETHOD_FLATTEN);
+            $imagick->setImageCompressionQuality(100);
+        } catch (\Throwable $throwable) {
+            trigger_error($throwable->getMessage(), E_USER_WARNING);
+        }
+        $imagick->writeImage(WWW . '/soubory/systemove/potvrzeni/covid-19-' . $this->id() . '.png');
+
+        $ted = new DateTimeImmutable();
+        dbUpdate('uzivatele_hodnoty', [
+            'potvrzeni_proti_covid19_pridano_kdy' => $ted,
+        ], [
+            'id_uzivatele' => $this->id(),
+        ]);
+        $this->u['potvrzeni_proti_covid19_pridano_kdy'] = $ted->format('Y-m-d H:i:s');
+        if ($this->klic) {
+            $_SESSION[$this->klic]['potvrzeni_proti_covid19_pridano_kdy'] = $this->u['potvrzeni_proti_covid19_pridano_kdy'];
+        }
+    }
+
+    public function urlNaPotvrzeniProtiCovid(): string {
+        return URL_WEBU . '/soubory/systemove/potvrzeni/covid-19-' . $this->id() . '.png';
+    }
+
+    public function potvrzeniProtiCovid19PridanoKdy(): ?\DateTimeInterface {
+        $potvrzeniProtiCovid19PridanoKdy = $this->u['potvrzeni_proti_covid19_pridano_kdy'] ?? null;
+        return $potvrzeniProtiCovid19PridanoKdy
+            ? new DateTimeImmutable($potvrzeniProtiCovid19PridanoKdy)
+            : null;
+    }
+
+    public function potvrzeniProtiCovid19OverenoKdy(): ?\DateTimeInterface {
+        $potvrzeniProtiCovid19OverenoKdy = $this->u['potvrzeni_proti_covid19_overeno_kdy'] ?? null;
+        return $potvrzeniProtiCovid19OverenoKdy
+            ? new DateTimeImmutable($potvrzeniProtiCovid19OverenoKdy)
+            : null;
+    }
 }
 
 class DuplicitniEmailException extends Exception

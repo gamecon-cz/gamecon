@@ -95,6 +95,10 @@ if (post('zmenitUdaj')) {
         // datum potvrzeni je odskrnute (prohlizec nezaskrtly chceckbox neposle), musime ho smazat
         $udaje['potvrzeni_zakonneho_zastupce'] = null;
     }
+    if (empty($udaje['potvrzeni_proti_covid19_overeno_kdy'])) {
+        // datum potvrzeni je odskrnute (prohlizec nezaskrtly chceckbox neposle), musime ho smazat
+        $udaje['potvrzeni_proti_covid19_overeno_kdy'] = null;
+    }
     try {
         dbUpdate('uzivatele_hodnoty', $udaje, ['id_uzivatele' => $uPracovni->id()]);
     } catch (DbDuplicateEntryException $e) {
@@ -151,11 +155,28 @@ if ($uPracovni && $uPracovni->gcPrihlasen()) {
     }
     $r = dbOneLine('SELECT datum_narozeni, potvrzeni_zakonneho_zastupce FROM uzivatele_hodnoty WHERE id_uzivatele = ' . $uPracovni->id());
     $datumNarozeni = new DateTimeImmutable($r['datum_narozeni']);
-    $potvrzeniOd = $r['potvrzeni_zakonneho_zastupce'] ? new DateTimeImmutable($r['potvrzeni_zakonneho_zastupce']) : null;
-    $potrebujePotvrzeni = potrebujePotvrzeni($datumNarozeni);
-    $mameLetosniPotvrzeni = $potvrzeniOd && $potvrzeniOd->format('y') === date('y');
-    if ($potrebujePotvrzeni && !$mameLetosniPotvrzeni) {
+    $potvrzeniOd = $r['potvrzeni_zakonneho_zastupce']
+        ? new DateTimeImmutable($r['potvrzeni_zakonneho_zastupce'])
+        : null;
+    $potrebujePotvrzeniKvuliVeku = potrebujePotvrzeni($datumNarozeni);
+    $mameLetosniPotvrzeniKvuliVeku = $potvrzeniOd && $potvrzeniOd->format('y') === date('y');
+    if ($potrebujePotvrzeniKvuliVeku && !$mameLetosniPotvrzeniKvuliVeku) {
         $x->parse('uvod.uzivatel.chybiPotvrzeni');
+    }
+    $mameLetosniPotvrzeniProtiCovidu = $up->maPotvrzeniProtiCoviduProRok((int)date('Y'));
+    $mameOverenePotvrzeniProtiCoviduProRok = $up->maOverenePotvrzeniProtiCoviduProRok((int)date('Y'));
+    if (!$mameLetosniPotvrzeniProtiCovidu) {
+        $x->parse('uvod.uzivatel.chybiPotvrzeniProtiCovid');
+    } else {
+        $x->assign('urlNaPotvrzeniProtiCovid', $up->urlNaPotvrzeniProtiCovid());
+        $x->assign(
+            'datumNahraniPotvrzeniProtiCovid',
+            (new DateTimeCz($up->potvrzeniProtiCovid19PridanoKdy()->format(DATE_ATOM)))->relativni()
+        );
+        $x->parse('uvod.uzivatel.potvrzeniProtiCovid');
+        if ($mameOverenePotvrzeniProtiCoviduProRok) {
+            $x->parse('uvod.uzivatel.overenoPotvrzeniProtiCovid');
+        }
     }
     if (GC_BEZI) {
         $zpravyProPotvrzeniZruseniPrace = [];
@@ -165,7 +186,7 @@ if ($uPracovni && $uPracovni->gcPrihlasen()) {
         if ($up->finance()->stav() < 0) {
             $zpravyProPotvrzeniZruseniPrace[] = 'má záporný zůstatek';
         }
-        if ($potrebujePotvrzeni && !$mameLetosniPotvrzeni) {
+        if ($potrebujePotvrzeniKvuliVeku && !$mameLetosniPotvrzeniKvuliVeku) {
             $zpravyProPotvrzeniZruseniPrace[] = 'nemá potvrzení od rodičů';
         }
         foreach ($zpravyProPotvrzeniZruseniPrace as $zpravaProPotvrzeniZruseniPrace) {
@@ -226,16 +247,19 @@ if ($uPracovni) {
         'poznamka' => 'Poznámka',
         // 'op'                    =>          'Číslo OP',
         'potvrzeni_zakonneho_zastupce' => 'Potvrzení',
+        'potvrzeni_proti_covid19_overeno_kdy' => 'Covid-19',
     ];
     $r = dbOneLine('SELECT ' . implode(',', array_keys($udaje)) . ' FROM uzivatele_hodnoty WHERE id_uzivatele = ' . $uPracovni->id());
     $datumNarozeni = new DateTimeImmutable($r['datum_narozeni']);
-    $potvrzeniOd = $r['potvrzeni_zakonneho_zastupce'] ? new DateTimeImmutable($r['potvrzeni_zakonneho_zastupce']) : null;
-    $potrebujePotvrzeni = potrebujePotvrzeni($datumNarozeni);
-    $potrebujePotvrzeniZprava = '';
-    $mameLetosniPotvrzeni = $potvrzeniOd && $potvrzeniOd->format('y') === date('y');
+    $potvrzeniOd = $r['potvrzeni_zakonneho_zastupce']
+        ? new DateTimeImmutable($r['potvrzeni_zakonneho_zastupce'])
+        : null;
+    $potrebujePotvrzeniKvuliVeku = potrebujePotvrzeni($datumNarozeni);
+    $potrebujePotvrzeniKvuliVekuZprava = '';
+    $mameLetosniPotvrzeniKvuliVeku = $potvrzeniOd && $potvrzeniOd->format('y') === date('y');
     foreach ($udaje as $sloupec => $nazev) {
         $hodnota = $r[$sloupec];
-        if ($sloupec == 'op') {
+        if ($sloupec === 'op') {
             $hodnota = $uPracovni->cisloOp(); // desifruj cislo obcanskeho prukazu
         }
         $zobrazenaHodnota = $hodnota;
@@ -251,10 +275,16 @@ if ($uPracovni) {
                 'Zda máme letošní potvrzení od rodiče nebo zákonného zástupce, že účastník může na Gamecon, i když mu na začátku Gameconu (%s) ještě nebude patnáct.',
                 DateTimeGamecon::zacatekLetosnihoGameconu()->formatDatumStandard()
             );
-            $vstupniHodnota = $potrebujePotvrzeni && !$mameLetosniPotvrzeni
-                ? date('Y-m-d') // zmeni se na dnesni datum pouze pokud je zaskrtly checkbox
+            $vstupniHodnota = $potrebujePotvrzeniKvuliVeku && !$mameLetosniPotvrzeniKvuliVeku
+                ? date('Y-m-d') // ulozi se dnesni datum pouze pokud je zaskrtly checkbox
                 : $hodnota; // nepotrebujeme nove potvrzeni, nechavame puvodni hodnotu
-            $zobrazenaHodnota = $mameLetosniPotvrzeni ? 'máme' : '';
+            $zobrazenaHodnota = $mameLetosniPotvrzeniKvuliVeku ? 'máme' : '';
+        } else if ($sloupec === 'potvrzeni_proti_covid19_overeno_kdy') {
+            $popisek = 'Zda máme letošní potvrzení o očkování, prodělané nemoci nebo negativních testech na Covid-19.';
+            $vstupniHodnota = !$mameOverenePotvrzeniProtiCoviduProRok
+                ? date('Y-m-d') // ulozi se dnesni datum pouze pokud je zaskrtly checkbox
+                : $hodnota; // nepotrebujeme nove overeni, nechavame puvodni hodnotu
+            $zobrazenaHodnota = $mameOverenePotvrzeniProtiCoviduProRok ? 'oveřeno' : '';
         } else if ($sloupec === 'datum_narozeni') {
             $popisek = sprintf('Věk na začátku Gameconu %d let', vekNaZacatkuLetosnihoGameconu($datumNarozeni));
         }
@@ -287,8 +317,21 @@ if ($uPracovni) {
             $x->parse('uvod.udaje.udaj.text');
         } else if ($sloupec === 'potvrzeni_zakonneho_zastupce') {
             $x->assign([
-                'checked' => $mameLetosniPotvrzeni
-                    ? 'checked' // letosni potvrzeni mame
+                'checked' => $mameLetosniPotvrzeniKvuliVeku
+                    ? 'checked'
+                    : '',
+            ]);
+            $x->assign([
+                'disabled' => !$potrebujePotvrzeniKvuliVeku
+                    ? 'disabled'
+                    : '',
+            ]);
+            $x->parse('uvod.udaje.udaj.checkbox');
+        } else if ($sloupec === 'potvrzeni_proti_covid19_overeno_kdy') {
+            $x->assign(['disabled' => '']);
+            $x->assign([
+                'checked' => $mameOverenePotvrzeniProtiCoviduProRok
+                    ? 'checked'
                     : '',
             ]);
             $x->parse('uvod.udaje.udaj.checkbox');
@@ -296,14 +339,18 @@ if ($uPracovni) {
             $x->parse('uvod.udaje.udaj.input');
         }
         if ($sloupec === 'potvrzeni_zakonneho_zastupce') {
-            if ($potrebujePotvrzeni) {
-                $potrebujePotvrzeniZprava = sprintf(
+            if ($potrebujePotvrzeniKvuliVeku) {
+                $potrebujePotvrzeniKvuliVekuZprava = sprintf(
                     'Uživalel potřebuje letošní potvrzení od rodiče nebo zákonného zástupce, že může na Gamecon, i když mu na začátku Gameconu (%s) ještě nebude patnáct. Přesto uložit?',
                     DateTimeGamecon::zacatekLetosnihoGameconu()->formatDatumStandard()
                 );
-                if (!$mameLetosniPotvrzeni) {
+                if (!$mameLetosniPotvrzeniKvuliVeku) {
                     $x->parse('uvod.udaje.udaj.chybi');
                 }
+            }
+        } else if ($sloupec === 'potvrzeni_proti_covid19_overeno_kdy') {
+            if (!$mameLetosniPotvrzeniProtiCovidu) {
+                $x->parse('uvod.udaje.udaj.chybi');
             }
         } else if ($sloupec !== 'poznamka') {
             if ($hodnota == '') {
@@ -313,8 +360,8 @@ if ($uPracovni) {
         $x->parse('uvod.udaje.udaj');
     }
     $x->assign([
-        'potrebujePotvrzeni' => $potrebujePotvrzeni ? '1' : '0',
-        'potrebujePotvrzeniZprava' => $potrebujePotvrzeniZprava,
+        'potrebujePotvrzeni' => $potrebujePotvrzeniKvuliVeku ? '1' : '0',
+        'potrebujePotvrzeniZprava' => $potrebujePotvrzeniKvuliVekuZprava,
     ]);
     $x->parse('uvod.udaje');
 }

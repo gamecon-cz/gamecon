@@ -1,7 +1,7 @@
 FROM php:7.3-apache
 
 # Install other missed extensions
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
       zlib1g-dev \
       libaio-dev \
       libxml2-dev \
@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
       libyaml-0-2 libyaml-dev \
       libfreetype6-dev libjpeg62-turbo-dev \
       libgd-dev \
+      libmagickwand-dev \
       mysql-common
 
 # Install tools
@@ -41,7 +42,8 @@ RUN a2enmod rewrite expires && \
 
 # XDebug - to start it use docker compose
 RUN pecl channel-update pecl.php.net \
-    && yes | pecl install xdebug
+    && yes | pecl install xdebug imagick \
+    && docker-php-ext-enable imagick
 
 # Fix debconf warnings upon build
 ARG DEBIAN_FRONTEND=noninteractive
