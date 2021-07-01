@@ -110,11 +110,13 @@ if ($uPracovni && $uPracovni->gcPrihlasen()) {
     $up = $uPracovni;
     $x->assign('ok', $ok = '<img src="files/design/ok-s.png" style="margin-bottom:-2px">');
     $x->assign('err', $err = '<img src="files/design/error-s.png" style="margin-bottom:-2px">');
-    $a = $up->koncA();
+    $a = $up->koncovkaDlePohlavi();
     $pokoj = Pokoj::zUzivatele($up);
-    $spolubydlici = $pokoj ? $pokoj->ubytovani() : [];
+    $spolubydlici = $pokoj
+        ? $pokoj->ubytovani()
+        : [];
     $x->assign([
-        'a' => $up->koncA(),
+        'a' => $up->koncovkaDlePohlavi(),
         'stav' => ($up->finance()->stav() < 0 ? $err : $ok) . ' ' . $up->finance()->stavHr(),
         'prehled' => $up->finance()->prehledHtml(),
         'slevyAktivity' => ($akt = $up->finance()->slevyAktivity()) ?
@@ -125,25 +127,36 @@ if ($uPracovni && $uPracovni->gcPrihlasen()) {
             '(žádné)',
         'id' => $up->id(),
         'pokoj' => $pokoj ? $pokoj->cislo() : '(nepřidělen)',
-        'spolubydlici' => array_uprint($spolubydlici, function ($e) {
+        'spolubydlici' => array_uprint($spolubydlici, static function (Uzivatel $e) {
             return "<li> {$e->jmenoNick()} ({$e->id()}) {$e->telefon()} </li>";
         }),
-        'aa' => $u->koncA(),
+        'ubytovani' => $up->dejShop()->dejPopisUbytovani(),
+        'aa' => $u->koncovkaDlePohlavi(),
         'org' => $u->jmenoNick(),
         'poznamka' => $up->poznamkaHtml(),
         'up' => $up,
     ]);
-    if ($up->finance()->stav() < 0 && !$up->gcPritomen()) $x->parse('uvod.uzivatel.nepritomen.upoMaterialy');
-    if (!$up->gcPritomen()) $x->parse('uvod.uzivatel.nepritomen');
-    elseif (!$up->gcOdjel()) $x->parse('uvod.uzivatel.pritomen');
-    else                      $x->parse('uvod.uzivatel.odjel');
-    if (!$up->gcPritomen()) $x->parse('uvod.uzivatel.gcOdhlas');
+    if ($up->finance()->stav() < 0 && !$up->gcPritomen()) {
+        $x->parse('uvod.uzivatel.nepritomen.upoMaterialy');
+    }
+    if (!$up->gcPritomen()) {
+        $x->parse('uvod.uzivatel.nepritomen');
+    } elseif (!$up->gcOdjel()) {
+        $x->parse('uvod.uzivatel.pritomen');
+    } else {
+        $x->parse('uvod.uzivatel.odjel');
+    }
+    if (!$up->gcPritomen()) {
+        $x->parse('uvod.uzivatel.gcOdhlas');
+    }
     $r = dbOneLine('SELECT datum_narozeni, potvrzeni_zakonneho_zastupce FROM uzivatele_hodnoty WHERE id_uzivatele = ' . $uPracovni->id());
     $datumNarozeni = new DateTimeImmutable($r['datum_narozeni']);
     $potvrzeniOd = $r['potvrzeni_zakonneho_zastupce'] ? new DateTimeImmutable($r['potvrzeni_zakonneho_zastupce']) : null;
     $potrebujePotvrzeni = potrebujePotvrzeni($datumNarozeni);
     $mameLetosniPotvrzeni = $potvrzeniOd && $potvrzeniOd->format('y') === date('y');
-    if ($potrebujePotvrzeni && !$mameLetosniPotvrzeni) $x->parse('uvod.uzivatel.chybiPotvrzeni');
+    if ($potrebujePotvrzeni && !$mameLetosniPotvrzeni) {
+        $x->parse('uvod.uzivatel.chybiPotvrzeni');
+    }
     if (GC_BEZI) {
         $zpravyProPotvrzeniZruseniPrace = [];
         if (!$up->gcPritomen()) {

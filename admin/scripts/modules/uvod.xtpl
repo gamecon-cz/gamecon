@@ -3,16 +3,17 @@
 <h1>Úvod</h1>
 
 <!-- begin:neUzivatel -->
-  <div class="warning">Vyberte uživatele (pole vlevo)</div>
+<div class="warning">Vyberte uživatele (pole vlevo)</div>
 <!-- end:neUzivatel -->
 <!-- begin:neprihlasen -->
-  <div class="error">Uživatel{ka} není přihlášen{a} na GameCon.</div>
-  <!-- begin: prihlasit -->
-  Přihlásit na GameCon {rok}: <form class="radkovy" method="post"><input type="submit" name="gcPrihlas" value="Přihlásit"></form><br><br>
-  <!-- end: prihlasit -->
-  <!-- begin: nelze -->
-  <div class="error">Registrace na GameCon není spuštěna.</div>
-  <!-- end: nelze -->
+<div class="error">Uživatel{ka} není přihlášen{a} na GameCon.</div>
+<!-- begin: prihlasit -->
+Přihlásit na GameCon {rok}:
+<form class="radkovy" method="post"><input type="submit" name="gcPrihlas" value="Přihlásit"></form><br><br>
+<!-- end: prihlasit -->
+<!-- begin: nelze -->
+<div class="error">Registrace na GameCon není spuštěna.</div>
+<!-- end: nelze -->
 <!-- end:neprihlasen -->
 
 
@@ -20,12 +21,20 @@
 <div class="aBox grid">
   <h3>Přehled</h3>
   <table>
-  <tr><td style="width: 60px">Stav účtu: </td><td> {stav}</td></tr>
-  <tr><td>Status:</td><td>{up.statusHtml}</td></tr>
-  <tr><td>Dorazil:</td><td> 
-    <!-- begin:pritomen -->
-      {ok} je na GC
-      <form method="post" style="float: right">
+    <tr>
+      <td style="width: 60px">Stav účtu:</td>
+      <td> {stav}</td>
+    </tr>
+    <tr>
+      <td>Status:</td>
+      <td>{up.statusHtml}</td>
+    </tr>
+    <tr>
+      <td>Dorazil:</td>
+      <td>
+        <!-- begin:pritomen -->
+        {ok} je na GC
+        <form method="post" style="float: right">
         <span class="hinted">
           <input type="submit" name="gcOdjed" value="Odjel{a} z GC">
           <span class="hint">
@@ -36,11 +45,11 @@
             </ul>
           </span>
         </span>
-      </form>
-    <!-- end:pritomen -->
-    <!-- begin:nepritomen -->
-      {err} není na GC
-      <form method="post" style="float: right">
+        </form>
+        <!-- end:pritomen -->
+        <!-- begin:nepritomen -->
+        {err} není na GC
+        <form method="post" style="float: right">
         <span class="hinted">
           <input type="submit" name="datMaterialy" value="Dát materiály">
           <span class="hint">
@@ -53,33 +62,58 @@
             </ul>
           </span>
         </span>
-      </form>
-      <!-- begin:upoMaterialy -->
-      <script>
-        $('form').last().on('submit', function(){
-          return confirm('Uživatel má záporný stav financí, přesto dát materiály?');
-        });
-      </script>
-      <!-- end:upoMaterialy -->
-    <!-- end:nepritomen -->
-    <!-- begin:odjel -->
-      {ok} byl{a} na GC a už odjel{a}
-    <!-- end:odjel -->
-  </td></tr>
-  <tr><td>ID uživ.:</td><td> {id}</td></tr>
-  <tr><td>Pokoj:</td><td> {pokoj}</td></tr>
-  <tr><td>Na pokoji:</td><td><ul>{spolubydlici}</ul></td></tr>
-  <tr><td><span class="hinted">Poznámka:<span class="hint">K úpravě klikněte na pole Poznámka v Osobních údajích</span></span></td><td style="cursor:pointer" onclick="alert('K úpravě klikněte na pole Poznámka v Osobních údajích')">{poznamka}</td></tr>
-  <tr>
-    <td><span class="hinted">Potvrzení:<span class="hint">K úpravě klikněte na pole Potvrzení v Osobních údajích</span></span></td>
-    <td style="cursor:pointer" onclick="alert('K úpravě klikněte na pole Potvrzení v Osobních údajích')">
+        </form>
+        <!-- begin:upoMaterialy -->
+        <script>
+          $('form').last().on('submit', function () {
+            return confirm('Uživatel má záporný stav financí, přesto dát materiály?')
+          })
+        </script>
+        <!-- end:upoMaterialy -->
+        <!-- end:nepritomen -->
+        <!-- begin:odjel -->
+        {ok} byl{a} na GC a už odjel{a}
+        <!-- end:odjel -->
+      </td>
+    </tr>
+    <tr>
+      <td>ID uživ.:</td>
+      <td> {id}</td>
+    </tr>
+    <tr>
+      <td>Pokoj:</td>
+      <td> {pokoj}</td>
+    </tr>
+    <tr>
+      <td>Na pokoji:</td>
+      <td>
+        <ul>{spolubydlici}</ul>
+      </td>
+    </tr>
+    <tr>
+      <td>Ubytování:</td>
+      <td>
+        {ubytovani}
+      </td>
+    </tr>
+    <tr>
+      <td><span class="hinted">Poznámka:<span class="hint">K úpravě klikněte na pole Poznámka v Osobních údajích</span></span>
+      </td>
+      <td style="cursor:pointer" onclick="alert('K úpravě klikněte na pole Poznámka v Osobních údajích')">{poznamka}
+      </td>
+    </tr>
+    <tr>
+      <td><span class="hinted">Potvrzení:<span
+          class="hint">K úpravě klikněte na pole Potvrzení v Osobních údajích</span></span></td>
+      <td style="cursor:pointer" onclick="alert('K úpravě klikněte na pole Potvrzení v Osobních údajích')">
         <!-- begin:chybiPotvrzeni -->
-            <img src="files/design/error-s.png" style="margin-bottom:-2px">
-            požádej o doplnění
+        <img src="files/design/error-s.png" style="margin-bottom:-2px">
+        požádej o doplnění
         <!-- end:chybiPotvrzeni -->
-    </td>
-  </tr>
-  </table><br>
+      </td>
+    </tr>
+  </table>
+  <br>
 
   <a href="program-uzivatele">Program účastníka</a> | <a href="program-osobni">Filtrovaný program</a><br><br>
 
@@ -87,10 +121,12 @@
   <form method="post">
     <table>
       <tr>
-        <td>Částka:</td>    <td><input type="text" name="platba" style="text-align:right;width:40px">&thinsp;Kč</td>
+        <td>Částka:</td>
+        <td><input type="text" name="platba" style="text-align:right;width:40px">&thinsp;Kč</td>
       </tr>
       <tr>
-        <td>Poznámka:</td>  <td><input type="text" name="poznamka"></td>
+        <td>Poznámka:</td>
+        <td><input type="text" name="poznamka"></td>
       </tr>
       <tr>
         <td>Připsal{aa}:</td>
@@ -104,10 +140,12 @@
   <form method="post" style="float:right;margin-top:-22px">
     <input type="submit" name="gcOdhlas" value="Odhlásit z GC">
     <script>
-    $('[name="gcOdhlas"]').closest('form').submit(function(){ return confirm('Trvale odhlásit uživatele z GameConu a smazat všechny jeho aktivity a nakoupené věci?') });
+      $('[name="gcOdhlas"]').closest('form').submit(function () {
+        return confirm('Trvale odhlásit uživatele z GameConu a smazat všechny jeho aktivity a nakoupené věci?')
+      })
     </script>
   </form>
-  <!-- end:gcOdhlas --> 
+  <!-- end:gcOdhlas -->
 </div>
 <!-- end:uzivatel -->
 
@@ -127,7 +165,7 @@
 <div class="aBox grid">
   <h3 class="prehled">Objednávky a platby</h3>
   {prehled}
-  <script>$('.prehled').siblings('table').css('width','100%');</script>
+  <script>$('.prehled').siblings('table').css('width', '100%')</script>
 </div>
 <!-- end:objednavky -->
 
@@ -140,13 +178,13 @@
     <table>
       <!-- begin:udaj -->
       <tr>
-        <td style="width:80px" >
-					<!-- begin:nazevSPopiskem -->
-						<span class="hinted">{nazev}:<span class="hint">{popisek}</span></span>
-					<!-- end:nazevSPopiskem -->
-					<!-- begin:nazevBezPopisku -->
-						{nazev}:
-					<!-- end:nazevBezPopisku -->
+        <td style="width:80px">
+          <!-- begin:nazevSPopiskem -->
+          <span class="hinted">{nazev}:<span class="hint">{popisek}</span></span>
+          <!-- end:nazevSPopiskem -->
+          <!-- begin:nazevBezPopisku -->
+          {nazev}:
+          <!-- end:nazevBezPopisku -->
         </td>
         <td style="padding:0">
           <div onclick="$('.udaje .label').hide(); $('.udaje .input').show().find('input, textarea').first().focus()"
@@ -158,52 +196,55 @@
             <!-- end:chybi -->
           </div>
 
-            <table class="cista input" style="width:100%;display:none;">
-              <tr>
-                <!-- begin:input -->
-                <td><input type="text" name="udaj[{sloupec}]" value="{vstupniHodnota}" style="margin-left: -3px;"></td>
-                <td><input type="submit" name="zmenitUdaj" value="uložit"></td>
-                <!-- end:input -->
-                <!-- begin:checkbox -->
-                <td><input type="checkbox" name="udaj[{sloupec}]" value="{vstupniHodnota}" {checked} style="margin-left: -3px;"></td>
-                <td><input type="submit" name="zmenitUdaj" value="uložit"></td>
-                <!-- end:checkbox -->
-                <!-- begin:select -->
-                <td>
-                    <select name="udaj[{sloupec}]" style="margin-left: -3px; width: 15.3em"">
-                        <!-- begin:option -->
-                        <option value="{optionValue}" {optionSelected}>{optionText}</option>
-                        <!-- end:option -->
-                    </select>
-                </td>
-                <td><input type="submit" name="zmenitUdaj" value="uložit"></td>
-                <!-- end:select -->
-                <!-- begin:text -->
-                <td colspan="2">
-                  <textarea name="udaj[{sloupec}]" style="margin-left: -3px; margin-top: -1px">{vstupniHodnota}</textarea>
-                </td>
-                <td><input type="submit" name="zmenitUdaj" value="uložit"></td>
-                <!-- end:text -->
-              </tr>
-            </table>
+          <table class="cista input" style="width:100%;display:none;">
+            <tr>
+              <!-- begin:input -->
+              <td><input type="text" name="udaj[{sloupec}]" value="{vstupniHodnota}" style="margin-left: -3px;"></td>
+              <td><input type="submit" name="zmenitUdaj" value="uložit"></td>
+              <!-- end:input -->
+              <!-- begin:checkbox -->
+              <td><input type="checkbox" name="udaj[{sloupec}]" value="{vstupniHodnota}" {checked}
+                         style="margin-left: -3px;"></td>
+              <td><input type="submit" name="zmenitUdaj" value="uložit"></td>
+              <!-- end:checkbox -->
+              <!-- begin:select -->
+              <td>
+                <select name="udaj[{sloupec}]" style="margin-left: -3px; width: 15.3em"">
+                <!-- begin:option -->
+                <option value="{optionValue}" {optionSelected}>{optionText}</option>
+                <!-- end:option -->
+                </select>
+              </td>
+              <td><input type="submit" name="zmenitUdaj" value="uložit"></td>
+              <!-- end:select -->
+              <!-- begin:text -->
+              <td colspan="2">
+                <textarea name="udaj[{sloupec}]" style="margin-left: -3px; margin-top: -1px">{vstupniHodnota}</textarea>
+              </td>
+              <td><input type="submit" name="zmenitUdaj" value="uložit"></td>
+              <!-- end:text -->
+            </tr>
+          </table>
         </td>
       </tr>
       <!-- end:udaj -->
     </table>
-      <script>
-        let potebujePotvrzeni = Boolean({potrebujePotvrzeni});
-        const osobniUdajeForm = $('#osobni_udaje');
-        const potvrzeniZakonnehoZastupce = osobniUdajeForm.find('input[name="udaj[potvrzeni_zakonneho_zastupce]"]');
-        osobniUdajeForm.submit(function(){
-          if (potebujePotvrzeni && !potvrzeniZakonnehoZastupce.prop('checked')) {
-            return confirm('{potrebujePotvrzeniZprava}');
-          }
-        });
-      </script>
+    <script>
+      let potebujePotvrzeni = Boolean({potrebujePotvrzeni})
+      const osobniUdajeForm = $('#osobni_udaje')
+      const potvrzeniZakonnehoZastupce = osobniUdajeForm.find('input[name="udaj[potvrzeni_zakonneho_zastupce]"]')
+      osobniUdajeForm.submit(function () {
+        if (potebujePotvrzeni && !potvrzeniZakonnehoZastupce.prop('checked')) {
+          return confirm('{potrebujePotvrzeniZprava}')
+        }
+      })
+    </script>
   </form>
   <script src="files/jquery.autosize-1.18.13.js"></script>
   <script>
-    $('textarea').last().focus(function(){ $(this).css('width', '98%').autosize() });
+    $('textarea').last().focus(function () {
+      $(this).css('width', '98%').autosize()
+    })
   </script>
 </div>
 <!-- end:udaje -->
@@ -213,31 +254,38 @@
   <h3>Prodej předmětů</h3>
   Zbývající počty předmětů jsou uvedeny v závorce<br>
   <form method="post">
-  <table>
-    <tr><td>ID&nbsp;uživatele:</td><td>
-      <input type="text" name="prodej[id_uzivatele]" value="{id}">
-      </td></tr>
-    <tr><td>Předmět:</td><td> 
-      <select name="prodej[id_predmetu]">
-      {predmety}
-      </select>
-      </td></tr>
-    <tr><td colspan="2"> 
-      <input type="submit" name="prodej[odeslano]" value="Prodat"> 
-      </td></tr>
-  </table>
+    <table>
+      <tr>
+        <td>ID&nbsp;uživatele:</td>
+        <td>
+          <input type="text" name="prodej[id_uzivatele]" value="{id}">
+        </td>
+      </tr>
+      <tr>
+        <td>Předmět:</td>
+        <td>
+          <select name="prodej[id_predmetu]">
+            {predmety}
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2">
+          <input type="submit" name="prodej[odeslano]" value="Prodat">
+        </td>
+      </tr>
+    </table>
   </form>
   <script>
-    if("{id}")  $('[name="prodej[id_uzivatele]"]').attr('disabled',true);
-    $('form').last().on('submit', function(){
-      if($(this).find('[name="prodej[id_predmetu]"]').val()==0)
-      {
-        alert('vyber předmět');
-        return false;
+    if ("{id}") $('[name="prodej[id_uzivatele]"]').attr('disabled', true)
+    $('form').last().on('submit', function () {
+      if ($(this).find('[name="prodej[id_predmetu]"]').val() == 0) {
+        alert('vyber předmět')
+        return false
       }
-      if($(this).find('[name="prodej[id_uzivatele]"]').val()=='')
-        return confirm('Prodat tento předmět anonymně bez uvedení uživatele?');
-    });
+      if ($(this).find('[name="prodej[id_uzivatele]"]').val() == '')
+        return confirm('Prodat tento předmět anonymně bez uvedení uživatele?')
+    })
   </script>
 </div>
 
@@ -246,40 +294,56 @@
   <h3>Rychloregistrace</h3>
   Všechny položky povinné<br>
   <form method="post">
-  <table>
-    <tr><td>Jméno&nbsp;a&nbsp;příjm.:</td><td>
-      <table class="cista"><tr>
-        <td style="padding-right: 5px"><input type="text" name="rychloreg[jmeno_uzivatele]"></td>
-        <td><input type="text" name="rychloreg[prijmeni_uzivatele]"></td>
-      </tr></table>
-      </td></tr>
-    <tr><td>E-mail:</td><td> <input type="text" name="rychloreg[email1_uzivatele]"> </td></tr>
-    <tr><td>Pohlaví:</td><td>
-      <label><input type="radio" name="rychloreg[pohlavi]" value="m">muž</label> &emsp;
-      <label><input type="radio" name="rychloreg[pohlavi]" value="f">žena</label>
-      </td></tr>
-    <tr><td colspan="2"><label>
-      Informovat e-mailem o registraci <input type="checkbox" name="informovat" checked>
-    </label></td></tr>
-    <tr><td colspan="2"><label>
-      Neposílat novinky e-mailem <input type="checkbox" name="rychloreg[nechce_maily]" unchecked>
-    </label></td></tr>
-    <tr><td colspan="2">
-      <input type="submit" value="Jen registrovat">
-      <!-- begin: rychloregPrihlasitNaGc -->
-      <input type="submit" name="vcetnePrihlaseni" value="Reg. a přihlásit na GC">
-      <!-- end: rychloregPrihlasitNaGc -->
-      </td></tr>
-  </table>
+    <table>
+      <tr>
+        <td>Jméno&nbsp;a&nbsp;příjm.:</td>
+        <td>
+          <table class="cista">
+            <tr>
+              <td style="padding-right: 5px"><input type="text" name="rychloreg[jmeno_uzivatele]"></td>
+              <td><input type="text" name="rychloreg[prijmeni_uzivatele]"></td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td>E-mail:</td>
+        <td><input type="text" name="rychloreg[email1_uzivatele]"></td>
+      </tr>
+      <tr>
+        <td>Pohlaví:</td>
+        <td>
+          <label><input type="radio" name="rychloreg[pohlavi]" value="m">muž</label> &emsp;
+          <label><input type="radio" name="rychloreg[pohlavi]" value="f">žena</label>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2"><label>
+          Informovat e-mailem o registraci <input type="checkbox" name="informovat" checked>
+        </label></td>
+      </tr>
+      <tr>
+        <td colspan="2"><label>
+          Neposílat novinky e-mailem <input type="checkbox" name="rychloreg[nechce_maily]" unchecked>
+        </label></td>
+      </tr>
+      <tr>
+        <td colspan="2">
+          <input type="submit" value="Jen registrovat">
+          <!-- begin: rychloregPrihlasitNaGc -->
+          <input type="submit" name="vcetnePrihlaseni" value="Reg. a přihlásit na GC">
+          <!-- end: rychloregPrihlasitNaGc -->
+        </td>
+      </tr>
+    </table>
   </form>
   <script>
-    $('form').last().on('submit', function(){
-      if($(this).find('[name="rychloreg[email1_uzivatele]"]').val()=='' || $(this).find('[name="rychloreg[pohlavi]"]:checked').length==0)
-      {
-        alert('všechny položky jsou povinné');
-        return false;
+    $('form').last().on('submit', function () {
+      if ($(this).find('[name="rychloreg[email1_uzivatele]"]').val() == '' || $(this).find('[name="rychloreg[pohlavi]"]:checked').length == 0) {
+        alert('všechny položky jsou povinné')
+        return false
       }
-    });
+    })
   </script>
 </div>
 
@@ -290,50 +354,54 @@
 </div>
 <div style="clear:both"></div>
 <script>
-var $boxy = $('.aBox');
-var previousColCount = 0;
-function sloupce() {
-  var $sloupce = $('.sloupce');
-  var fullw = $sloupce.width();
-  var colw = $('.sloupce > .sloup').width();
-  var currentColCount = Math.floor(fullw / colw);
-  if (currentColCount == previousColCount) {
-    return; // sloupce se preskladaji jen pokud to ma smysl (pokud se jich nove vejde vic nebo min)
+  var $boxy = $('.aBox')
+  var previousColCount = 0
+
+  function sloupce() {
+    var $sloupce = $('.sloupce')
+    var fullw = $sloupce.width()
+    var colw = $('.sloupce > .sloup').width()
+    var currentColCount = Math.floor(fullw / colw)
+    if (currentColCount == previousColCount) {
+      return // sloupce se preskladaji jen pokud to ma smysl (pokud se jich nove vejde vic nebo min)
+    }
+    previousColCount = currentColCount
+    // vysypat boxy mimo, pokud tam jsou
+    $boxy.insertAfter($sloupce)
+    // vytvořit adekvátní počet sloupců
+    var i = $('.sloupce > .sloup').length
+    while (i * colw < fullw - colw) {
+      $sloupce.append($('.sloupce > .sloup').last().clone())
+      i++
+    }
+    while (i * colw > fullw && i > 1) {
+      $('.sloupce > .sloup').last().remove()
+      i--
+    }
+    // nasypat boxy dovnitř podle pořadí, první výš
+    $boxy.each(function () {
+      var $min
+      $sloupce.find('.sloup').each(function () {
+        if (!$min || $(this).height() < $min.height()) {
+          $min = $(this)
+        }
+      })
+      $min.append($(this))
+    })
   }
-  previousColCount = currentColCount;
-  // vysypat boxy mimo, pokud tam jsou
-  $boxy.insertAfter($sloupce);
-  // vytvořit adekvátní počet sloupců
-  var i = $('.sloupce > .sloup').length;
-  while(i * colw < fullw - colw) {
-    $sloupce.append( $('.sloupce > .sloup').last().clone() );
-    i++;
-  }
-  while(i * colw > fullw && i > 1) {
-    $('.sloupce > .sloup').last().remove();
-    i--;
-  }
-  // nasypat boxy dovnitř podle pořadí, první výš
-  $boxy.each(function(){
-    var $min;
-    $sloupce.find('.sloup').each(function(){
-      if(!$min || $(this).height() < $min.height()) {
-        $min = $(this);
-      }
-    });
-    $min.append($(this));
-  });
-};
-sloupce();
-$(window).on('resize', function() { sloupce(); });
+
+  sloupce()
+  $(window).on('resize', function () {
+    sloupce()
+  })
 </script>
 
 
 <!-- begin:potvrditZruseniPrace -->
 <script>
-$('#zrusit').submit(function(){
-  return confirm('{zpravaProPotvrzeniZruseniPrace}');
-});
+  $('#zrusit').submit(function () {
+    return confirm('{zpravaProPotvrzeniZruseniPrace}')
+  })
 </script>
 <!-- end:potvrdZruseniPrace -->
 
