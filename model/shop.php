@@ -320,6 +320,10 @@ class Shop
     return $this->ubytovani->html();
   }
 
+  function covidFreePotrvzeniHtml(int $rok): string {
+    return $this->u->covidFreePotvrzeniHtml($rok);
+  }
+
   /** Vrátí html formuláře se vstupným */
   function vstupneHtml() {
     $t = new XTemplate(__DIR__.'/shop-vstupne.xtpl');
