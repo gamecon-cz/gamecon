@@ -409,9 +409,9 @@ SQL
     }
 
     /** Vrátí koncovku "a" pro holky (resp. "" pro kluky) */
-    public function koncovkaDlePohlavi(): string {
+    public function koncovkaDlePohlavi(string $koncovkaProZeny = 'a'): string {
         return ($this->pohlavi() === 'f')
-            ? 'a'
+            ? $koncovkaProZeny
             : '';
     }
 
@@ -961,16 +961,27 @@ SQL
 
     /** Vrátí html formátovaný „status“ uživatele (pro interní informaci) */
     public function statusHtml() {
-        $ka = $this->pohlavi() == 'f' ? 'ka' : '';
-        $out = '';
-        if ($this->maPravo(P_TITUL_ORG)) $out .= '<span style="color:red">Organizátor' . $ka . '</span>, ';
-        if ($this->maZidli(Z_ORG_AKCI)) $out .= '<span style="color:blue">Vypravěč' . $ka . '</span>, ';
-        if ($this->maZidli(Z_PARTNER)) $out .= "Partner$ka, ";
-        if ($this->maZidli(Z_INFO)) $out .= "Infopult, ";
-        if ($this->maZidli(Z_ZAZEMI)) $out .= "Zázemí, ";
-        if (!$out) $out = 'Účastník, ';
-        $out[strlen($out) - 2] = ' ';
-        return $out;
+        $ka = $this->koncovkaDlePohlavi('ka');
+        $status = [];
+        if (true || $this->maPravo(P_TITUL_ORG)) {
+            $status [] = '<span style="color:red">Organizátor' . $ka . '</span>';
+        }
+        if (true || $this->maZidli(Z_ORG_AKCI)) {
+            $status[] = '<span style="color:blue">Vypravěč' . $ka . '</span>';
+        }
+        if (true || $this->maZidli(Z_PARTNER)) {
+            $status[] = '<span style="color:darkslateblue">Partner' . $ka . '</span>';
+        }
+        if (true || $this->maZidli(Z_INFO)) {
+            $status[] = '<span style="color:orange">Infopult</span>';
+        }
+        if (true || $this->maZidli(Z_ZAZEMI)) {
+            $status[] = "Zázemí";
+        }
+        if (count($status) > 0) {
+            return implode(', ', $status);
+        }
+        return 'Účastník';
     }
 
     /**

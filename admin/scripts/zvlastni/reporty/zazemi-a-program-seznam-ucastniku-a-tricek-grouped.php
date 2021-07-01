@@ -1,15 +1,46 @@
 <?php
 require_once __DIR__ . '/sdilene-hlavicky.php';
 
+$typTricko = Shop::TRICKO;
+$typPredmet = Shop::PREDMET;
+$typJidlo = Shop::JIDLO;
+$rok = ROK;
+$idZidliSOrganizatorySql = implode(',', \Gamecon\Zidle::dejIdZidliSOrganizatory());
+
+$poddotazKoupenehoPredmetu = static function (string $klicoveSlovo, int $idTypuPredmetu, int $rok) {
+    return <<<SQL
+(SELECT GROUP_CONCAT(pocet_a_nazev SEPARATOR ', ')
+    FROM (SELECT CONCAT_WS('× ', COUNT(*), shop_predmety.nazev) AS pocet_a_nazev, shop_nakupy.id_uzivatele
+        FROM shop_nakupy
+            JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
+            WHERE shop_predmety.id_predmetu = shop_nakupy.id_predmetu
+                AND shop_predmety.typ = {$idTypuPredmetu}
+                AND shop_nakupy.rok = {$rok}
+                AND IF ('{$klicoveSlovo}' = '', TRUE, shop_predmety.nazev LIKE '%{$klicoveSlovo}%')
+                AND shop_nakupy.rok = {$rok}
+            GROUP BY shop_nakupy.id_uzivatele, shop_predmety.nazev) AS pocet_a_druh
+    WHERE pocet_a_druh.id_uzivatele = uzivatele_hodnoty.id_uzivatele
+)
+SQL;
+};
+
 $report = Report::zSql(<<<SQL
-SELECT u.id_uzivatele, u.login_uzivatele, u.jmeno_uzivatele, u.prijmeni_uzivatele, GROUP_CONCAT(p.nazev SEPARATOR ',')
-FROM uzivatele_hodnoty u
-LEFT JOIN shop_nakupy n ON (n.id_uzivatele = u.id_uzivatele)
-LEFT JOIN shop_predmety p ON (p.id_predmetu = n.id_predmetu)
-WHERE (n.rok = $1) AND (p.typ = 3)
-GROUP BY u.id_uzivatele, u.login_uzivatele, u.jmeno_uzivatele, u.prijmeni_uzivatele
+SELECT uzivatele_hodnoty.id_uzivatele,
+       uzivatele_hodnoty.login_uzivatele,
+       uzivatele_hodnoty.jmeno_uzivatele,
+       uzivatele_hodnoty.prijmeni_uzivatele,
+       IF (COUNT(r_uzivatele_zidle.id_zidle) > 0, 'org', '') AS role,
+       {$poddotazKoupenehoPredmetu('', $typTricko, $rok)} AS tricka,
+       {$poddotazKoupenehoPredmetu('kostka', $typPredmet, $rok)} AS kostky,
+       {$poddotazKoupenehoPredmetu('placka', $typPredmet, $rok)} AS placky,
+       {$poddotazKoupenehoPredmetu('nicknack', $typPredmet, $rok)} AS nicknacky,
+       {$poddotazKoupenehoPredmetu('blok', $typPredmet, $rok)} AS bloky,
+       {$poddotazKoupenehoPredmetu('ponožky', $typPredmet, $rok)} AS ponozky,
+       IF ({$poddotazKoupenehoPredmetu('', $typJidlo, $rok)} IS NULL, '', 'stravenky') AS stravenky
+FROM uzivatele_hodnoty
+LEFT JOIN r_uzivatele_zidle ON uzivatele_hodnoty.id_uzivatele = r_uzivatele_zidle.id_uzivatele AND r_uzivatele_zidle.id_zidle IN ($idZidliSOrganizatorySql)
+GROUP BY uzivatele_hodnoty.id_uzivatele
 SQL
-  , [ROK]
 );
 
 $report->tFormat(get('format'));
