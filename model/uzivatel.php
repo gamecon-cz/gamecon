@@ -1365,11 +1365,16 @@ HTML;
         }
         $imagick->writeImage(WWW . '/soubory/systemove/potvrzeni/covid-19-' . $this->id() . '.png');
 
+        $ted = new DateTimeImmutable();
         dbUpdate('uzivatele_hodnoty', [
-            'potvrzeni_proti_covid19_pridano_kdy' => new DateTimeImmutable(),
+            'potvrzeni_proti_covid19_pridano_kdy' => $ted,
         ], [
             'id_uzivatele' => $this->id(),
         ]);
+        $this->u['potvrzeni_proti_covid19_pridano_kdy'] = $ted->format('Y-m-d H:i:s');
+        if ($this->klic) {
+            $_SESSION[$this->klic]['potvrzeni_proti_covid19_pridano_kdy'] = $this->u['potvrzeni_proti_covid19_pridano_kdy'];
+        }
     }
 
     public function urlNaPotvrzeniProtiCovid(): string {
