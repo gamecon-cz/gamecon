@@ -43,7 +43,8 @@ RUN a2enmod rewrite expires && \
 # XDebug - to start it use docker compose
 RUN pecl channel-update pecl.php.net \
     && yes | pecl install xdebug imagick \
-    && docker-php-ext-enable imagick
+    && docker-php-ext-enable imagick \
+    && sed 's/<policy domain="coder" rights="none" pattern="PDF" \/>/<policy domain="coder" rights="read" pattern="PDF" \/>/' --in-place /etc/ImageMagick*/policy.xml
 
 # Fix debconf warnings upon build
 ARG DEBIAN_FRONTEND=noninteractive
