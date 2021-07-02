@@ -199,18 +199,21 @@ if ($uPracovni && $uPracovni->gcPrihlasen()) {
     $x->parse('uvod.uzivatel');
     $x->parse('uvod.slevy');
     $x->parse('uvod.objednavky');
-} else if ($uPracovni && !$uPracovni->gcPrihlasen()) // kvůli zkratovému vyhodnocení a nevolání metody na non-object
-{
+} else if ($uPracovni && !$uPracovni->gcPrihlasen()) {// kvůli zkratovému vyhodnocení a nevolání metody na non-object
     $x->assign([
         'a' => $uPracovni->koncA(),
         'ka' => $uPracovni->koncA() ? 'ka' : '',
         'rok' => ROK,
     ]);
-    if (REG_GC) $x->parse('uvod.neprihlasen.prihlasit');
-    else        $x->parse('uvod.neprihlasen.nelze');
+    if (REG_GC) {
+        $x->parse('uvod.neprihlasen.prihlasit');
+    } else {
+        $x->parse('uvod.neprihlasen.nelze');
+    }
     $x->parse('uvod.neprihlasen');
-} else
+} else {
     $x->parse('uvod.neUzivatel');
+}
 
 // načtení předmětů a form s rychloprodejem předmětů, fixme
 $o = dbQuery('
@@ -257,6 +260,8 @@ if ($uPracovni) {
     $potrebujePotvrzeniKvuliVeku = potrebujePotvrzeni($datumNarozeni);
     $potrebujePotvrzeniKvuliVekuZprava = '';
     $mameLetosniPotvrzeniKvuliVeku = $potvrzeniOd && $potvrzeniOd->format('y') === date('y');
+    $mameLetosniPotvrzeniProtiCovidu = $uPracovni->maPotvrzeniProtiCoviduProRok((int)date('Y'));
+    $mameOverenePotvrzeniProtiCoviduProRok = $uPracovni->maOverenePotvrzeniProtiCoviduProRok((int)date('Y'));
     foreach ($udaje as $sloupec => $nazev) {
         $hodnota = $r[$sloupec];
         if ($sloupec === 'op') {
