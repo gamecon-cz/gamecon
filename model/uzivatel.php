@@ -1343,10 +1343,10 @@ HTML;
     }
 
     public function zpracujPotvrzeniProtiCovidu() {
-        if (!isset($_FILES['potvrzeniProtiCovidu'])) {
+        if (!isset($_FILES['potvrzeniProtiCovidu']) || empty($_FILES['potvrzeniProtiCovidu']['tmp_name'])) {
             return;
         }
-        $f = fopen($_FILES['potvrzeniProtiCovidu']['tmp_name'], 'rb');
+        $f = @fopen($_FILES['potvrzeniProtiCovidu']['tmp_name'], 'rb');
         if (!$f) {
             throw new Chyba("Soubor '{$_FILES['potvrzeniProtiCovidu']['name']}' se nepodařilo načíst");
         }
