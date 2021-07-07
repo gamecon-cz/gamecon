@@ -33,14 +33,14 @@ if(!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny']))
   $xtpl->out('all');
   profilInfo();
 }
-elseif(is_file('./scripts/zvlastni/'.$stranka.'.php'))
+elseif(is_file(__DIR__ . '/scripts/zvlastni/'.$stranka.'.php'))
 {
-  chdir('./scripts/zvlastni/');
-  require($stranka.'.php');
+  chdir(__DIR__ . '/scripts/zvlastni/');
+  require $stranka.'.php';
 }
-elseif(is_file('./scripts/zvlastni/'.$stranka.'/'.$podstranka.'.php'))
+elseif(is_file(__DIR__ . '/scripts/zvlastni/'.$stranka.'/'.$podstranka.'.php'))
 {
-  chdir('./scripts/zvlastni/'.$stranka);
+  chdir(__DIR__ . '/scripts/zvlastni/'.$stranka);
   require($podstranka.'.php');
 }
 else
@@ -51,7 +51,7 @@ else
 
   // načtení submenu
   $submenu = [];
-  if(isset($menu[$stranka]['submenu']) && $menu[$stranka]['submenu'])
+  if(!empty($menu[$stranka]['submenu']))
   {
     $submenuObject = new AdminMenu('./scripts/modules/'.$stranka.'/');
     $submenu = $submenuObject->pole();
