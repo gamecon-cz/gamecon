@@ -163,10 +163,13 @@ if ($uPracovni && $uPracovni->gcPrihlasen()) {
     if ($potrebujePotvrzeniKvuliVeku && !$mameLetosniPotvrzeniKvuliVeku) {
         $x->parse('uvod.uzivatel.chybiPotvrzeni');
     }
-    $mameLetosniPotvrzeniProtiCovidu = $up->maPotvrzeniProtiCoviduProRok((int)date('Y'));
+    $mameNahranyLetosniDokladProtiCovidu = $up->maNahranyDokladProtiCoviduProRok((int)date('Y'));
     $mameOverenePotvrzeniProtiCoviduProRok = $up->maOverenePotvrzeniProtiCoviduProRok((int)date('Y'));
-    if (!$mameLetosniPotvrzeniProtiCovidu) {
+    if (!$mameNahranyLetosniDokladProtiCovidu && !$mameOverenePotvrzeniProtiCoviduProRok /* muze byt overeno rucne bez nahraneho dokladu */) {
         $x->parse('uvod.uzivatel.chybiPotvrzeniProtiCovid');
+    } elseif (!$mameNahranyLetosniDokladProtiCovidu) { // potvrzeno rucne na infopultu, bez nahraneho dokladu
+        $x->parse('uvod.uzivatel.overenoPotvrzeniProtiCovidIkona');
+        $x->parse('uvod.uzivatel.overenoPredlozenePotvrzeniProtiCovid');
     } else {
         $x->assign('urlNaPotvrzeniProtiCovid', $up->urlNaPotvrzeniProtiCovidu());
         $x->assign(
@@ -175,7 +178,7 @@ if ($uPracovni && $uPracovni->gcPrihlasen()) {
         );
         $x->parse('uvod.uzivatel.potvrzeniProtiCovid');
         if ($mameOverenePotvrzeniProtiCoviduProRok) {
-            $x->parse('uvod.uzivatel.overenoPotvrzeniProtiCovid');
+            $x->parse('uvod.uzivatel.overenoPotvrzeniProtiCovidIkona');
         } else {
             $x->parse('uvod.uzivatel.overitPotvrzeniProtiCovid');
         }
@@ -203,8 +206,8 @@ if ($uPracovni && $uPracovni->gcPrihlasen()) {
     $x->parse('uvod.objednavky');
 } else if ($uPracovni && !$uPracovni->gcPrihlasen()) {// kvůli zkratovému vyhodnocení a nevolání metody na non-object
     $x->assign([
-        'a' => $uPracovni->koncA(),
-        'ka' => $uPracovni->koncA() ? 'ka' : '',
+        'a' => $uPracovni->koncovkaDlePohlavi(),
+        'ka' => $uPracovni->koncovkaDlePohlavi() ? 'ka' : '',
         'rok' => ROK,
     ]);
     if (REG_GC) {
@@ -262,7 +265,7 @@ if ($uPracovni) {
     $potrebujePotvrzeniKvuliVeku = potrebujePotvrzeni($datumNarozeni);
     $potrebujePotvrzeniKvuliVekuZprava = '';
     $mameLetosniPotvrzeniKvuliVeku = $potvrzeniOd && $potvrzeniOd->format('y') === date('y');
-    $mameLetosniPotvrzeniProtiCovidu = $uPracovni->maPotvrzeniProtiCoviduProRok((int)date('Y'));
+    $mameNahranyLetosniDokladProtiCovidu = $uPracovni->maNahranyDokladProtiCoviduProRok((int)date('Y'));
     $mameOverenePotvrzeniProtiCoviduProRok = $uPracovni->maOverenePotvrzeniProtiCoviduProRok((int)date('Y'));
     foreach ($udaje as $sloupec => $nazev) {
         $hodnota = $r[$sloupec];
@@ -356,7 +359,7 @@ if ($uPracovni) {
                 }
             }
         } else if ($sloupec === 'potvrzeni_proti_covid19_overeno_kdy') {
-            if (!$mameLetosniPotvrzeniProtiCovidu) {
+            if (!$mameNahranyLetosniDokladProtiCovidu && !$mameOverenePotvrzeniProtiCoviduProRok) {
                 $x->parse('uvod.udaje.udaj.chybi');
             }
         } else if ($sloupec !== 'poznamka') {
