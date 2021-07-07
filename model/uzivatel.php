@@ -1301,14 +1301,14 @@ SQL
         return $this->shop;
     }
 
-    public function maPotvrzeniProtiCoviduProRok(int $rok): bool {
+    public function maNahranyDokladProtiCoviduProRok(int $rok): bool {
         $potvrzeniProtiCovid19PridanoKdy = $this->potvrzeniProtiCoviduPridanoKdy();
         return $potvrzeniProtiCovid19PridanoKdy
             && $potvrzeniProtiCovid19PridanoKdy->format('Y') === (string)$rok;
     }
 
-    public function maOverenePotvrzeniProtiCoviduProRok(int $rok): bool {
-        if (!$this->maPotvrzeniProtiCoviduProRok($rok)) {
+    public function maOverenePotvrzeniProtiCoviduProRok(int $rok, bool $musiMitNahranyDokument = false): bool {
+        if ($musiMitNahranyDokument && !$this->maNahranyDokladProtiCoviduProRok($rok)) {
             return false;
         }
         $potvrzeniProtiCovid19OverenoKdy = $this->potvrzeniProtiCoviduOverenoKdy();
@@ -1318,7 +1318,7 @@ SQL
 
     public function covidFreePotvrzeniHtml(int $rok): string {
         $ok = '';
-        if ($this->maPotvrzeniProtiCoviduProRok($rok)) {
+        if ($this->maNahranyDokladProtiCoviduProRok($rok)) {
             $ok = '<span style="padding: 0.5em;">✅</span>';
         }
         return <<<HTML
