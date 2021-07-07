@@ -30,7 +30,7 @@
 !/web/soubory/*.js
 !/web/soubory/systemove
 /web/soubory/systemove/*/*
-!/web/soubory/systemove/*/.keep
+!/web/soubory/systemove/*/.gitkeep
 
 /nasad.log
 /.htdeployment

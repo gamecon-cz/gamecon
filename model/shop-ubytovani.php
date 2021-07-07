@@ -7,6 +7,7 @@ class ShopUbytovani
     private $typy;    // asoc. pole [typ] => předmět sloužící jako vzor daného typu
     private $pnDny = 'shopUbytovaniDny';
     private $pnPokoj = 'shopUbytovaniPokoj';
+    private $pnCovidFreePotvrzeni = 'shopCovidFreePotvrzeni';
     private $u;
 
     public function __construct(array $predmety, Uzivatel $uzivatel) {
