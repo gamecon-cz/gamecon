@@ -1326,7 +1326,7 @@ SQL
   <div>
     Z nařízení vlády ČR po tobě musíme vyžadovat elektronické nebo písemné potvrzení, že jsi:
     <ul>
-      <li>negativní POC antigenní test ne starší 72 hodin nebo negativní nebo PCR test ne starší 7 dní</li>
+      <li>po negativním POC antigenním testu ne starším než 72 hodin nebo po negativním PCR testu ne starším než 7 dní</li>
       <li>nebo 3 týdny od první dávky očkování proti COVID-19</li>
       <li>nebo do 180 dní od prodělání onemocnění COVID-19 (stačí v SMSce, kterou ukážeš při vstupu na infopultu)</li>
     </ul>
