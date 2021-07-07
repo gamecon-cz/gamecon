@@ -113,7 +113,7 @@ CREATE TABLE IF NOT EXISTS kategorie_sjednocenych_tagu_62(
     id_hlavni_kategorie INT UNSIGNED,
     poradi INT UNSIGNED NOT NULL,
     FOREIGN KEY (id_hlavni_kategorie) REFERENCES kategorie_sjednocenych_tagu_62(id) /* itself (parent row) */ ON UPDATE CASCADE ON DELETE RESTRICT
-) DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
 INSERT INTO kategorie_sjednocenych_tagu_62(nazev, id_hlavni_kategorie, poradi)
 VALUES {$mainCategoriesSql};
 INSERT INTO kategorie_sjednocenych_tagu_62(nazev, id_hlavni_kategorie, poradi)
@@ -127,7 +127,7 @@ CREATE TABLE IF NOT EXISTS sjednocene_tagy_62 (
     nazev VARCHAR(128) PRIMARY KEY,
     poznamka TEXT NOT NULL DEFAULT '',
     FOREIGN KEY FK_kategorie_sjednocenych_tagu_62(id_kategorie_tagu) REFERENCES kategorie_sjednocenych_tagu_62(id) ON UPDATE CASCADE ON DELETE RESTRICT
-) DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
 ALTER TABLE sjednocene_tagy_62 AUTO_INCREMENT={$tagsAutoIncrementStart};
 INSERT /* intentionally not IGNORE to detect invalid input data, see bellow */ INTO sjednocene_tagy_62(id, id_kategorie_tagu, nazev, poznamka)
 SELECT sjednocene_tagy_temp.id, kategorie_sjednocenych_tagu_62.id, sjednocene_tagy_temp.opraveny_nazev, GROUP_CONCAT(DISTINCT sjednocene_tagy_temp.poznamka SEPARATOR '; ')
