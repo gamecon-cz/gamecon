@@ -20,7 +20,7 @@ function zaloguj($zprava) {
 }
 
 if ($z = get('posad')) {
-    $uPracovni->dejZidli($z);
+    $uPracovni->dejZidli($z, $u->id());
     zaloguj('Uživatel ' . $u->jmenoNick() . " posadil na židli $z uživatele " . $uPracovni->jmenoNick());
     back();
 }
@@ -55,9 +55,9 @@ $t = new XTemplate('prava.xtpl');
 if (!$zidle) {
     // výpis seznamu židlí
     $o = dbQuery(
-        'SELECT z.*, uz.id_zidle IS NOT NULL as sedi
+        'SELECT z.*, uz.id_zidle IS NOT NULL AS sedi, uz.posadil, uz.posazen
     FROM r_zidle_soupis z
-    LEFT JOIN r_uzivatele_zidle uz ON(uz.id_zidle = z.id_zidle AND uz.id_uzivatele = $1)
+    LEFT JOIN r_uzivatele_zidle uz ON uz.id_zidle = z.id_zidle AND uz.id_uzivatele = $1
     GROUP BY z.id_zidle
     ORDER BY z.id_zidle',
         [$uPracovni ? $uPracovni->id() : null]
@@ -68,8 +68,19 @@ if (!$zidle) {
         if ($r['id_zidle'] < 0 && floor(-$r['id_zidle'] / 100) == ROK - 2000) { //dočasná, letos
             $t->parse('prava.zidleDocasna');
         } elseif ($r['id_zidle'] > 0) { //trvalá
-            if ($uPracovni && $r['sedi']) $t->parse('prava.zidle.sesad');
-            elseif ($uPracovni && !$r['sedi']) $t->parse('prava.zidle.posad');
+            if ($uPracovni && $r['sedi']) {
+                if ($r['posadil']) {
+                    $posazenKym = Uzivatel::zId($r['posadil']);
+                    if ($posazenKym) {
+                        $t->assign('posazenKym', $posazenKym->jmenoNick());
+                        $t->assign('posazenKdy', DateTimeCz::createFromMysql($r['posazen'])->relativni());
+                        $t->parse('prava.zidle.sesad.posazenKym');
+                    }
+                }
+                $t->parse('prava.zidle.sesad');
+            } elseif ($uPracovni && !$r['sedi']) {
+                $t->parse('prava.zidle.posad');
+            }
             $t->parse('prava.zidle');
         }
     }

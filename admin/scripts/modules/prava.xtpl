@@ -2,7 +2,13 @@
 
 Trvalé židle:
 <table class="zvyraznovana">
-  <tr><th>&emsp;</th><th>Jméno židle</th><th>Popis židle</th><th></th><th></th></tr>
+  <tr>
+    <th>&emsp;</th>
+    <th>Jméno židle</th>
+    <th>Popis židle</th>
+    <th></th>
+    <th></th>
+  </tr>
   <!-- begin:zidle -->
   <tr>
     <td>{sedi}</td>
@@ -10,7 +16,11 @@ Trvalé židle:
     <td>{popis_zidle}</td>
     <td>
       <!-- begin:posad --><a href="prava?posad={id_zidle}">posaď</a><!-- end:posad -->
-      <!-- begin:sesad --><a href="prava?sesad={id_zidle}">sesaď</a><!-- end:sesad -->
+      <!-- begin:sesad -->
+      <a href="prava?sesad={id_zidle}">
+        <span class="hinted">sesaď<!-- begin:posazenKym --><span class="hint">Posadil(a) {posazenKym} {posazenKdy}</span><!-- end:posazenKym --></span>
+      </a>
+      <!-- end:sesad -->
     </td>
     <td><a href="prava/{id_zidle}">detail</a></td>
   </tr>
@@ -19,25 +29,36 @@ Trvalé židle:
 
 Dočasné židle (pro aktuální rok):
 <table class="zvyraznovana">
-  <tr><th>&emsp;</th><th>Jméno židle</th><th>Popis židle</th><th></th></tr>
+  <tr>
+    <th>&emsp;</th>
+    <th>Jméno židle</th>
+    <th>Popis židle</th>
+    <th></th>
+  </tr>
   <!-- begin:zidleDocasna -->
   <tr>
     <td>{sedi}</td>
-    <td>{jmeno_zidle}</td><td>{popis_zidle}</td><td>
-    <a href="prava/{id_zidle}">detail</a>
-  </td></tr>
+    <td>{jmeno_zidle}</td>
+    <td>{popis_zidle}</td>
+    <td>
+      <a href="prava/{id_zidle}">detail</a>
+    </td>
+  </tr>
   <!-- end:zidleDocasna -->
 </table><br><br>
 
 <!-- end:prava -->
 
 
-
 <!-- begin:zidle -->
 
 Práva židle <strong>{jmeno_zidle}</strong> ({popis_zidle}):
 <table class="zvyraznovana">
-  <tr><th>Název práva</th><th>Popis práva</th><th style="min-width: 100px"></th></tr>
+  <tr>
+    <th>Název práva</th>
+    <th>Popis práva</th>
+    <th style="min-width: 100px"></th>
+  </tr>
   <!-- begin:pravo -->
   <tr>
     <td>{jmeno_prava}</td>
@@ -57,7 +78,12 @@ Práva židle <strong>{jmeno_zidle}</strong> ({popis_zidle}):
 
 Seznam uživatelů na této židli:
 <table class="zvyraznovana">
-  <tr><th>ID</th><th>Přezdívka</th><th>Jméno a příjmení</th><th></th></tr>
+  <tr>
+    <th>ID</th>
+    <th>Přezdívka</th>
+    <th>Jméno a příjmení</th>
+    <th></th>
+  </tr>
   <!-- begin:uzivatel -->
   <tr>
     <td>{id}</td>
