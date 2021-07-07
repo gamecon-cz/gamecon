@@ -176,6 +176,8 @@ if ($uPracovni && $uPracovni->gcPrihlasen()) {
         $x->parse('uvod.uzivatel.potvrzeniProtiCovid');
         if ($mameOverenePotvrzeniProtiCoviduProRok) {
             $x->parse('uvod.uzivatel.overenoPotvrzeniProtiCovid');
+        } else {
+            $x->parse('uvod.uzivatel.overitPotvrzeniProtiCovid');
         }
     }
     if (GC_BEZI) {
