@@ -9,6 +9,6 @@ CREATE TABLE akce_import(
     cas DATETIME NOT NULL,
     KEY google_sheet_id(google_sheet_id),
     FOREIGN KEY FK_akce_import_to_uzivatele_hodnoty(id_uzivatele) REFERENCES uzivatele_hodnoty(id_uzivatele) ON UPDATE CASCADE ON DELETE NO ACTION
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
 SQL
 );
