@@ -1312,34 +1312,34 @@ SQL
         return $this->shop;
     }
 
-    public function maPotvrzeniProtiCoviduProRok(int $rok): bool {
-        $potvrzeniProtiCovid19PridanoKdy = $this->potvrzeniProtiCovid19PridanoKdy();
+    public function maNahranyDokladProtiCoviduProRok(int $rok): bool {
+        $potvrzeniProtiCovid19PridanoKdy = $this->potvrzeniProtiCoviduPridanoKdy();
         return $potvrzeniProtiCovid19PridanoKdy
             && $potvrzeniProtiCovid19PridanoKdy->format('Y') === (string)$rok;
     }
 
-    public function maOverenePotvrzeniProtiCoviduProRok(int $rok): bool {
-        if (!$this->maPotvrzeniProtiCoviduProRok($rok)) {
+    public function maOverenePotvrzeniProtiCoviduProRok(int $rok, bool $musiMitNahranyDokument = false): bool {
+        if ($musiMitNahranyDokument && !$this->maNahranyDokladProtiCoviduProRok($rok)) {
             return false;
         }
-        $potvrzeniProtiCovid19OverenoKdy = $this->potvrzeniProtiCovid19OverenoKdy();
+        $potvrzeniProtiCovid19OverenoKdy = $this->potvrzeniProtiCoviduOverenoKdy();
         return $potvrzeniProtiCovid19OverenoKdy
             && $potvrzeniProtiCovid19OverenoKdy->format('Y') === (string)$rok;
     }
 
     public function covidFreePotvrzeniHtml(int $rok): string {
         $ok = '';
-        if ($this->maPotvrzeniProtiCoviduProRok($rok)) {
+        if ($this->maNahranyDokladProtiCoviduProRok($rok)) {
             $ok = '<span style="padding: 0.5em;">✅</span>';
         }
         return <<<HTML
 <div>
   <div>
-    Z nařízení vlády ČR po tobě musíme vyžadovat, aby ses prokázal elektronickým či písemným potvrzením, že jsi:
+    Z nařízení vlády ČR po tobě musíme vyžadovat elektronické nebo písemné potvrzení, že jsi:
     <ul>
       <li>negativní POC antigenní test ne starší 72 hodin nebo negativní nebo PCR test ne starší 7 dní</li>
       <li>nebo 3 týdny od první dávky očkování proti COVID-19</li>
-      <li>nebo do 180 dní od prodělání onemocnění COVID-19 (stačí v SMSce)</li>
+      <li>nebo do 180 dní od prodělání onemocnění COVID-19 (stačí v SMSce, kterou ukážeš při vstupu na infopultu)</li>
     </ul>
   </div>
   <label>
@@ -1394,18 +1394,23 @@ HTML;
         }
     }
 
-    public function urlNaPotvrzeniProtiCovid(): string {
-        return URL_WEBU . '/soubory/systemove/potvrzeni/covid-19-' . $this->id() . '.png';
+    public function urlNaPotvrzeniProtiCovidu(): string {
+        // admin/scripts/zvlastni/uvod/potvrzeni-proti-covidu.php
+        return URL_ADMIN . '/uvod/potvrzeni-proti-covidu?id=' . $this->id();
     }
 
-    public function potvrzeniProtiCovid19PridanoKdy(): ?\DateTimeInterface {
+    public function cestaKSouboruSPotvrzenimProtiCovidu(): string {
+        return WWW . '/soubory/systemove/potvrzeni/covid-19-' . $this->id() . '.png';
+    }
+
+    public function potvrzeniProtiCoviduPridanoKdy(): ?\DateTimeInterface {
         $potvrzeniProtiCovid19PridanoKdy = $this->u['potvrzeni_proti_covid19_pridano_kdy'] ?? null;
         return $potvrzeniProtiCovid19PridanoKdy
             ? new DateTimeImmutable($potvrzeniProtiCovid19PridanoKdy)
             : null;
     }
 
-    public function potvrzeniProtiCovid19OverenoKdy(): ?\DateTimeInterface {
+    public function potvrzeniProtiCoviduOverenoKdy(): ?\DateTimeInterface {
         $potvrzeniProtiCovid19OverenoKdy = $this->u['potvrzeni_proti_covid19_overeno_kdy'] ?? null;
         return $potvrzeniProtiCovid19OverenoKdy
             ? new DateTimeImmutable($potvrzeniProtiCovid19OverenoKdy)

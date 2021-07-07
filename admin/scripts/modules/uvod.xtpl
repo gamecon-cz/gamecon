@@ -121,12 +121,18 @@ Přihlásit na GameCon {rok}:
         <img src="files/design/error-s.png" style="margin-bottom:-2px">
         požádej o doplnění
         <!-- end:chybiPotvrzeniProtiCovid -->
+        <!-- begin:overenoPotvrzeniProtiCovidIkona -->
+        <img src="files/design/ok-s.png" style="margin-bottom:-2px">️
+        <!-- end:overenoPotvrzeniProtiCovidIkona -->
+        <!-- begin:overenoPredlozenePotvrzeniProtiCovid -->
+        ověřeno bez nahrání dokladu
+        <!-- end:overenoPredlozenePotvrzeniProtiCovid -->
+        <!-- begin:overitPotvrzeniProtiCovid -->
+        <img src="files/design/warning.png" style="width: 1em; margin-bottom: -2px">️
+        <!-- end:overitPotvrzeniProtiCovid -->
         <!-- begin:potvrzeniProtiCovid -->
-        <a href="{urlNaPotvrzeniProtiCovid}" target="_blank">Potvrzení ({datumNahraniPotvrzeniProtiCovid})</a>
+        <a href="{urlNaPotvrzeniProtiCovid}" target="_blank">Covid doklad {datumNahraniPotvrzeniProtiCovid}</a>
         <!-- end:potvrzeniProtiCovid -->
-        <!-- begin:overenoPotvrzeniProtiCovid -->
-        ověřeno
-        <!-- end:overenoPotvrzeniProtiCovid -->
       </td>
     </tr>
   </table>
