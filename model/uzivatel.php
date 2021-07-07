@@ -183,8 +183,10 @@ SQL
     /**
      * Přidá uživateli židli (posadí uživatele na židli)
      */
-    public function dejZidli(int $idZidle) {
-        if ($this->maZidli($idZidle)) return;
+    public function dejZidli(int $idZidle, int $posadil = null) {
+        if ($this->maZidli($idZidle)) {
+            return;
+        }
 
         $novaPrava = dbOneArray('SELECT id_prava FROM r_prava_zidle WHERE id_zidle = $0', [$idZidle]);
 
@@ -195,13 +197,17 @@ SQL
         foreach ($novaPrava as $pravo) {
             if (!$this->maPravo($pravo)) {
                 $this->u['prava'][] = (int)$pravo;
-                if ($this->klic)
-                    $_SESSION[$this->klic]['prava'][] = (int)$pravo;
             }
         }
+        if ($this->klic) {
+            $_SESSION[$this->klic]['prava'] = $this->u['prava'];
+        }
 
-        dbQuery('INSERT IGNORE INTO r_uzivatele_zidle(id_uzivatele,id_zidle)
-      VALUES (' . $this->id() . ',' . $idZidle . ')');
+        dbQuery(
+            "INSERT IGNORE INTO r_uzivatele_zidle(id_uzivatele, id_zidle, posadil)
+            VALUES ($1, $2, $3)",
+            [$this->id(), $idZidle, $posadil]
+        );
     }
 
     /** Vrátí profil uživatele pro DrD */
