@@ -1302,7 +1302,7 @@ SQL
     }
 
     public function maPotvrzeniProtiCoviduProRok(int $rok): bool {
-        $potvrzeniProtiCovid19PridanoKdy = $this->potvrzeniProtiCovid19PridanoKdy();
+        $potvrzeniProtiCovid19PridanoKdy = $this->potvrzeniProtiCoviduPridanoKdy();
         return $potvrzeniProtiCovid19PridanoKdy
             && $potvrzeniProtiCovid19PridanoKdy->format('Y') === (string)$rok;
     }
@@ -1311,7 +1311,7 @@ SQL
         if (!$this->maPotvrzeniProtiCoviduProRok($rok)) {
             return false;
         }
-        $potvrzeniProtiCovid19OverenoKdy = $this->potvrzeniProtiCovid19OverenoKdy();
+        $potvrzeniProtiCovid19OverenoKdy = $this->potvrzeniProtiCoviduOverenoKdy();
         return $potvrzeniProtiCovid19OverenoKdy
             && $potvrzeniProtiCovid19OverenoKdy->format('Y') === (string)$rok;
     }
@@ -1383,18 +1383,23 @@ HTML;
         }
     }
 
-    public function urlNaPotvrzeniProtiCovid(): string {
-        return URL_WEBU . '/soubory/systemove/potvrzeni/covid-19-' . $this->id() . '.png';
+    public function urlNaPotvrzeniProtiCovidu(): string {
+        // admin/scripts/zvlastni/uvod/potvrzeni-proti-covidu.php
+        return URL_ADMIN . '/uvod/potvrzeni-proti-covidu?id=' . $this->id();
     }
 
-    public function potvrzeniProtiCovid19PridanoKdy(): ?\DateTimeInterface {
+    public function cestaKSouboruSPotvrzenimProtiCovidu(): string {
+        return WWW . '/soubory/systemove/potvrzeni/covid-19-' . $this->id() . '.png';
+    }
+
+    public function potvrzeniProtiCoviduPridanoKdy(): ?\DateTimeInterface {
         $potvrzeniProtiCovid19PridanoKdy = $this->u['potvrzeni_proti_covid19_pridano_kdy'] ?? null;
         return $potvrzeniProtiCovid19PridanoKdy
             ? new DateTimeImmutable($potvrzeniProtiCovid19PridanoKdy)
             : null;
     }
 
-    public function potvrzeniProtiCovid19OverenoKdy(): ?\DateTimeInterface {
+    public function potvrzeniProtiCoviduOverenoKdy(): ?\DateTimeInterface {
         $potvrzeniProtiCovid19OverenoKdy = $this->u['potvrzeni_proti_covid19_overeno_kdy'] ?? null;
         return $potvrzeniProtiCovid19OverenoKdy
             ? new DateTimeImmutable($potvrzeniProtiCovid19OverenoKdy)

@@ -29,6 +29,7 @@
     "ext-bcmath": "*",
     "ext-curl": "*",
     "ext-exif": "*",
+    "ext-fileinfo": "*",
     "ext-gd": "*",
     "ext-imagick": "*",
     "ext-intl": "*",

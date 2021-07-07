@@ -39,11 +39,11 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
     $xtpl->parse('all');
     $xtpl->out('all');
     profilInfo();
-} elseif (is_file('./scripts/zvlastni/' . $stranka . '.php')) {
-    chdir('./scripts/zvlastni/');
+} elseif (is_file(__DIR__ . '/scripts/zvlastni/' . $stranka . '.php')) {
+    chdir(__DIR__ . '/scripts/zvlastni/');
     require($stranka . '.php');
-} elseif (is_file('./scripts/zvlastni/' . $stranka . '/' . $podstranka . '.php')) {
-    chdir('./scripts/zvlastni/' . $stranka);
+} elseif (is_file(__DIR__ . '/scripts/zvlastni/' . $stranka . '/' . $podstranka . '.php')) {
+    chdir(__DIR__ . '/scripts/zvlastni/' . $stranka);
     require($podstranka . '.php');
 } else {
     // načtení menu
