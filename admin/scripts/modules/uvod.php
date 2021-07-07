@@ -168,10 +168,10 @@ if ($uPracovni && $uPracovni->gcPrihlasen()) {
     if (!$mameLetosniPotvrzeniProtiCovidu) {
         $x->parse('uvod.uzivatel.chybiPotvrzeniProtiCovid');
     } else {
-        $x->assign('urlNaPotvrzeniProtiCovid', $up->urlNaPotvrzeniProtiCovid());
+        $x->assign('urlNaPotvrzeniProtiCovid', $up->urlNaPotvrzeniProtiCovidu());
         $x->assign(
             'datumNahraniPotvrzeniProtiCovid',
-            (new DateTimeCz($up->potvrzeniProtiCovid19PridanoKdy()->format(DATE_ATOM)))->relativni()
+            (new DateTimeCz($up->potvrzeniProtiCoviduPridanoKdy()->format(DATE_ATOM)))->relativni()
         );
         $x->parse('uvod.uzivatel.potvrzeniProtiCovid');
         if ($mameOverenePotvrzeniProtiCoviduProRok) {
