@@ -1400,6 +1400,13 @@ HTML;
             ? new DateTimeImmutable($potvrzeniProtiCovid19OverenoKdy)
             : null;
     }
+
+    public function uvodniAdminUrl(string $zakladniAdminUrl): string {
+        if ($this->maPravo(\Gamecon\Pravo::ADMINISTRACE_PANEL_MOJE_AKTIVITY)) {
+            return $zakladniAdminUrl . '/' . basename(__DIR__ . '/../admin/scripts/modules/muj-prehled.php', '.php');
+        }
+        return $zakladniAdminUrl;
+    }
 }
 
 class DuplicitniEmailException extends Exception
