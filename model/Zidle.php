@@ -2,14 +2,18 @@
 
 namespace Gamecon;
 
+/**
+ * @method static Zidle zId($id)
+ */
 class Zidle extends \DbObject
 {
     protected static $tabulka = 'r_zidle_soupis';
+    protected static $pk = 'id_zidle';
 
     /**
      * Konstanty jsou kopie SQL tabulky `r_zidle_soupis`
      */
-    public const ORGANIZATOR = 2; // (zdarma) Člen organizačního týmu GC
+    public const ORGANIZATOR = 2; // Organizátor (zdarma), Člen organizačního týmu GC
     public const VYPRAVEC = 6; // Organizátor aktivit na GC
     public const ZAZEMI = 7; // Členové zázemí GC (kuchařky, …)
     public const INFOPULT = 8; // Operátor infopultu
@@ -40,8 +44,12 @@ class Zidle extends \DbObject
         $idZidli = array_map(static function ($idZidle) {
             return (int)$idZidle;
         }, $zidle);
-        $maZidle = array_intersect($idZidli, self::dejIdZidliSOrganizatory());
+        $maZidle = array_intersect($idZidli, [self::ORGANIZATOR, self::ORGANIZATOR_S_BONUSY_1, self::ORGANIZATOR_S_BONUSY_2]);
         return count($maZidle) > 0;
+    }
+
+    public function jmenoZidle(): ?string {
+        return $this->r['jmeno_zidle'] ?? null;
     }
 
     /**

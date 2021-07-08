@@ -316,6 +316,24 @@ function dbFetchAll(string $query, array $params = []): array {
     return $resultAsArray;
 }
 
+function dbFetchColumn(string $query, array $params = []): array {
+    $result = dbQuery($query, $params);
+    $columnValues = [];
+    while ($row = mysqli_fetch_array($result)) {
+        $columnValues[] = reset($row);
+    }
+    return $columnValues;
+}
+
+function dbFetchPairs(string $query, array $params = []): array {
+    $result = dbQuery($query, $params);
+    $pairs = [];
+    while ($row = mysqli_fetch_array($result)) {
+        $pairs[$row[0]] = $row[1];
+    }
+    return $pairs;
+}
+
 /**
  * Executes arbitrary query on database
  * strings $1, $2, ... are replaced with values from $param
