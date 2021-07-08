@@ -9,20 +9,20 @@ CREATE TABLE IF NOT EXISTS reporty(
     format_csv TINYINT(1) DEFAULT 1,
     format_html TINYINT(1) DEFAULT 1,
     viditelny TINYINT(1) DEFAULT 1
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
 
 INSERT INTO reporty(skript, nazev, format_csv, format_html)
 VALUES
-('aktivity',                                                      'Historie přihlášení na aktivity', 1, 1),                               
-('pocty-her',                                                     'Účastníci a počty jejich aktivit', 1, 0),                             
-('pocty-her-graf',                                                'Graf rozložení rozmanitosti her', 0, 1),                               
-('rozesilani-ankety',                                             'Rozesílání ankety s tokenem', 0, 1),                                   
-('parovani-ankety',                                               'Párování ankety a údajů uživatelů', 0, 1),                             
-('grafy-ankety',                                                  'Grafy k anketě', 0, 1),                                                
-('update-zustatku',                                               'UPDATE příkaz zůstatků pro letošní GC', 0, 1),                         
-('neprihlaseni-vypraveci',                                        'Nepřihlášení a neubytovaní vypravěči', 0, 1),                          
-('duplicity',                                                     'Duplicitní uživatelé', 0, 1),                                          
-('stravenky',                                                     'Stravenky uživatelů', 0, 1),                                           
+('aktivity',                                                      'Historie přihlášení na aktivity', 1, 1),
+('pocty-her',                                                     'Účastníci a počty jejich aktivit', 1, 0),
+('pocty-her-graf',                                                'Graf rozložení rozmanitosti her', 0, 1),
+('rozesilani-ankety',                                             'Rozesílání ankety s tokenem', 0, 1),
+('parovani-ankety',                                               'Párování ankety a údajů uživatelů', 0, 1),
+('grafy-ankety',                                                  'Grafy k anketě', 0, 1),
+('update-zustatku',                                               'UPDATE příkaz zůstatků pro letošní GC', 0, 1),
+('neprihlaseni-vypraveci',                                        'Nepřihlášení a neubytovaní vypravěči', 0, 1),
+('duplicity',                                                     'Duplicitní uživatelé', 0, 1),
+('stravenky',                                                     'Stravenky uživatelů', 0, 1),
 ('stravenky?ciste',                                               'Stravenky (bianco)', 1, 1),
 /*
   Dva nouzové reporty z roku 2015 už nejsou potřeba, nebudeme je převádět a necháme je zmizet
@@ -32,8 +32,8 @@ VALUES
 ('maily-prihlaseni',                                              'Maily – přihlášení na GC (vč. unsubscribed)', 1, 1),
 ('maily-neprihlaseni',                                            'Maily – nepřihlášení na GC', 1, 1),
 ('maily-vypraveci',                                               'Maily – vypravěči (vč. unsubscribed)', 1, 1),
-('maily-dle-data-ucasti?start=0',                                 'Maily - nedávní účastníci (prvních 2000)', 1, 0),                     
-('maily-dle-data-ucasti?start=2000',                              'Maily - dávní účastníci (dalších 2000)', 1, 0),                       
+('maily-dle-data-ucasti?start=0',                                 'Maily - nedávní účastníci (prvních 2000)', 1, 0),
+('maily-dle-data-ucasti?start=2000',                              'Maily - dávní účastníci (dalších 2000)', 1, 0),
 ('finance-lide-v-databazi-a-zustatky',                            'Finance: Lidé v databázi + zůstatky', 1, 1),
 ('finance-aktivity-negenerujici-slevu',                           'Finance: Aktivity negenerující slevu', 1, 1),
 ('finance-prijmy-a-vydaje-infopultaka',                           'Finance: Příjmy a výdaje infopulťáka', 1, 1),
@@ -62,6 +62,6 @@ CREATE TABLE IF NOT EXISTS reporty_log_pouziti
     KEY report_uzivatel (id_reportu, id_uzivatele),
     FOREIGN KEY id_reportu (id_reportu) REFERENCES reporty(id) ON UPDATE CASCADE ON DELETE NO ACTION,
     FOREIGN KEY id_uzivatele (id_uzivatele) REFERENCES uzivatele_hodnoty(id_uzivatele) ON UPDATE CASCADE ON DELETE NO ACTION
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
 SQL
 );

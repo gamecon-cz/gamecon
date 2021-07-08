@@ -258,7 +258,7 @@ CREATE TABLE IF NOT EXISTS kategorie_sjednocenych_tagu(
     id_hlavni_kategorie INT UNSIGNED,
     poradi INT UNSIGNED NOT NULL,
     FOREIGN KEY (id_hlavni_kategorie) REFERENCES kategorie_sjednocenych_tagu(id) ON UPDATE CASCADE ON DELETE RESTRICT
-) DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
 INSERT INTO kategorie_sjednocenych_tagu(nazev, id_hlavni_kategorie, poradi)
 VALUES {$mainCategoriesSql};
 INSERT INTO kategorie_sjednocenych_tagu(nazev, id_hlavni_kategorie, poradi)
@@ -269,7 +269,7 @@ CREATE TABLE IF NOT EXISTS sjednocene_tagy (
     nazev VARCHAR(128) PRIMARY KEY,
     poznamka TEXT NOT NULL DEFAULT '',
     FOREIGN KEY FK_kategorie_tagu(id_kategorie_tagu) REFERENCES kategorie_sjednocenych_tagu(id)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
 ALTER TABLE sjednocene_tagy AUTO_INCREMENT={$tagsAutoIncrementStart};
 INSERT /* intentionally not IGNORE to detect invalid input data, see bellow */ INTO sjednocene_tagy(id, id_kategorie_tagu, nazev, poznamka)
 SELECT sjednocene_tagy_temp.id, kategorie_sjednocenych_tagu.id, sjednocene_tagy_temp.opraveny_nazev, GROUP_CONCAT(DISTINCT sjednocene_tagy_temp.poznamka SEPARATOR '; ')
@@ -278,7 +278,7 @@ JOIN kategorie_sjednocenych_tagu ON kategorie_sjednocenych_tagu.nazev = sjednoce
 WHERE sjednocene_tagy_temp.opraveny_nazev != '-' -- strange records convinced for deletion
 GROUP BY sjednocene_tagy_temp.opraveny_nazev, kategorie_sjednocenych_tagu.id; -- intentionally grouped also by kategorie_sjednocenych_tagu.id to get fatal in case of duplicated opraveny_nazev but different kategorie_sjednocenych_tagu.id => logic error in source data
 CREATE TABLE IF NOT EXISTS akce_sjednocene_tagy LIKE akce_tagy;
-INSERT IGNORE INTO akce_sjednocene_tagy(id_akce, id_tagu) 
+INSERT IGNORE INTO akce_sjednocene_tagy(id_akce, id_tagu)
 SELECT akce_tagy.id_akce, sjednocene_tagy.id
 FROM akce_tagy
 INNER JOIN sjednocene_tagy_temp ON sjednocene_tagy_temp.id = akce_tagy.id_tagu
