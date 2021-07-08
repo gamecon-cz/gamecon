@@ -83,7 +83,7 @@ class Finance
      * @param \Uzivatel $u uživatel, pro kterého se finance sestavují
      * @param float $zustatek zůstatek na účtu z minulých GC
      */
-    function __construct(\Uzivatel $u, float $zustatek) {
+    public function __construct(\Uzivatel $u, float $zustatek) {
         $this->u                           = $u;
         $this->zustatekZPredchozichRocniku = $zustatek;
 
@@ -123,17 +123,17 @@ class Finance
     }
 
     /** Cena za uživatelovy aktivity */
-    function cenaAktivity() {
+    public function cenaAktivity() {
         return $this->cenaAktivity;
     }
 
     /** Cena za objednané předměty */
-    function cenaPredmety() {
+    public function cenaPredmety() {
         return $this->cenaPredmety;
     }
 
     /** Cena za objednané ubytování */
-    function cenaUbytovani() {
+    public function cenaUbytovani() {
         return $this->cenaUbytovani;
     }
 
@@ -196,12 +196,17 @@ class Finance
         $this->log("<b>$nazev</b>", "<b>$castka</b>", $kategorie, $idPolozky);
     }
 
+    /** Vrátí sumu plateb (připsaných peněz) */
+    public function platby() {
+        return $this->platby;
+    }
+
     /**
      * Vrátí / nastaví datum posledního provedení platby
      *
      * @return string|null datum poslední platby
      */
-    function datumPosledniPlatby() {
+    public function datumPosledniPlatby() {
         if (!isset($this->datumPosledniPlatby)) {
             $uid                       = $this->u->id();
             $this->datumPosledniPlatby = dbOneCol("
@@ -219,7 +224,7 @@ class Finance
      * @param boolean $vcetneCeny
      * @param boolean $vcetneMazani
      */
-    function prehledHtml(array $jenKategorieIds = null, bool $vcetneCeny = true, bool $vcetneMazani = false) {
+    public function prehledHtml(array $jenKategorieIds = null, bool $vcetneCeny = true, bool $vcetneMazani = false) {
         $out     = '<table class="objednavky">';
         $prehled = $this->serazenyPrehled();
         if ($jenKategorieIds) {
@@ -293,7 +298,7 @@ class Finance
      * @param string|int|null $idFioPlatby
      * @throws \DbDuplicateEntryException
      */
-    function pripis($castka, \Uzivatel $provedl, $poznamka = null, $idFioPlatby = null) {
+    public function pripis($castka, \Uzivatel $provedl, $poznamka = null, $idFioPlatby = null) {
         dbInsert(
             'platby',
             [
@@ -313,7 +318,7 @@ class Finance
      * @param string|null $poznamka
      * @param \Uzivatel $provedl
      */
-    function pripisSlevu($sleva, $poznamka, \Uzivatel $provedl) {
+    public function pripisSlevu($sleva, $poznamka, \Uzivatel $provedl) {
         dbQuery(
             'INSERT INTO slevy(id_uzivatele, castka, rok, provedl, poznamka) VALUES ($1, $2, $3, $4, $5)',
             [$this->u->id(), $sleva, ROK, $provedl->id(), $poznamka ?: null]
@@ -321,17 +326,17 @@ class Finance
     }
 
     /** Vrátí aktuální stav na účtu uživatele pro tento rok */
-    function stav() {
+    public function stav() {
         return $this->stav;
     }
 
     /** Vrátí výši obecné slevy připsané uživateli pro tento rok. */
-    function slevaObecna() {
+    public function slevaObecna() {
         return $this->slevaObecna;
     }
 
     /** Vrátí člověkem čitelný stav účtu */
-    function stavHr(bool $vHtmlFormatu = true) {
+    public function stavHr(bool $vHtmlFormatu = true) {
         $mezera = $vHtmlFormatu
             ? '&thinsp;' // thin space
             : ' ';
@@ -342,8 +347,12 @@ class Finance
      * Vrací součinitel ceny aktivit jako float číslo. Např. 0.0 pro aktivity
      * zdarma a 1.0 pro aktivity za plnou cenu.
      */
-    function slevaAktivity() {
+    public function slevaAktivity() {
         return $this->soucinitelAktivit(); //todo když není přihlášen na GameCon, možná raději řešit zobrazení ceny defaultně (protože neznáme jeho studentství etc.). Viz také třída Aktivita
+    }
+
+    public function slevaZaAktivityVProcentech() {
+        return 100 - ($this->soucinitelAktivit() * 100);
     }
 
     /**
@@ -381,7 +390,7 @@ class Finance
     /**
      * Výše vypravěčské slevy (celková)
      */
-    function bonusZaVedeniAktivit(): float {
+    public function bonusZaVedeniAktivit(): float {
         return $this->bonusZaVedeniAktivit;
     }
 
@@ -395,14 +404,14 @@ class Finance
     /**
      * Výše použitého bonusu za vypravěčství (vyčerpané vypravěčské slevy)
      */
-    function vyuzityBonusZaAktivity(): float {
+    public function vyuzityBonusZaAktivity(): float {
         return $this->vyuzityBonusZaVedenAktivit;
     }
 
     /**
      * @todo přesunout do ceníku (viz nutnost počítání součinitele aktivit)
      */
-    function slevyAktivity() {
+    public function slevyAktivity() {
         //return $this->cenik->slevyObecne();
         return $this->slevyA;
     }
@@ -410,7 +419,7 @@ class Finance
     /**
      * Viz ceník
      */
-    function slevyVse() {
+    public function slevyVse() {
         return $this->cenik->slevySpecialni();
     }
 
@@ -443,11 +452,11 @@ class Finance
         return $this->scnA;
     }
 
-    function vstupne() {
+    public function vstupne() {
         return $this->cenaVstupne;
     }
 
-    function vstupnePozde() {
+    public function vstupnePozde() {
         return $this->cenaVstupnePozde;
     }
 
@@ -684,7 +693,7 @@ SQL
     /**
      * @return int zůstatek na účtu z minulých GC
      */
-    function zustatekZPredchozichRocniku(): float {
+    public function zustatekZPredchozichRocniku(): float {
         return $this->zustatekZPredchozichRocniku;
     }
 
