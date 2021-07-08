@@ -22,13 +22,16 @@ abstract class DbObject
         $this->r = $r;
     }
 
-    /** 
+    /**
      * Vrací dbrow pokud je hodnota přítomna nastaví na ni dbrow.
      * Pro nastavení hodnoty na null je potřeba předat DB_NULL
      */
     protected function getSetR($name, $val = null) {
-        if ($val != null)
-            $this->r[$name] = $val == DB_NULL ? null : $val;
+        if ($val != null) {
+            $this->r[$name] = $val == DB_NULL
+                ? null
+                : $val;
+        }
         return $this->r[$name];
     }
 

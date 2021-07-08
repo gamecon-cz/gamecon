@@ -4,14 +4,18 @@ namespace Gamecon;
 
 use http\Exception\RuntimeException;
 
+/**
+ * @method static Zidle zId($id)
+ */
 class Zidle extends \DbObject
 {
     protected static $tabulka = 'r_zidle_soupis';
+    protected static $pk = 'id_zidle';
 
     /**
      * Konstanty jsou kopie SQL tabulky `r_zidle_soupis`
      */
-    public const ORGANIZATOR = 2; // (zdarma) Člen organizačního týmu GC
+    public const ORGANIZATOR = 2; // Organizátor (zdarma), Člen organizačního týmu GC
     public const VYPRAVEC = 6; // Organizátor aktivit na GC
     public const ZAZEMI = 7; // Členové zázemí GC (kuchařky, …)
     public const INFOPULT = 8; // Operátor infopultu
@@ -93,6 +97,10 @@ class Zidle extends \DbObject
      */
     public static function obsahujiPartnera(array $idsZidli): bool {
         return in_array(self::PARTNER, $idsZidli, false);
+    }
+
+    public function jmenoZidle(): ?string {
+        return $this->r['jmeno_zidle'] ?? null;
     }
 
     /**
