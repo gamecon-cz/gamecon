@@ -33,18 +33,21 @@ class Cenik
     /**
      * Konstruktor
      * @param Uzivatel $u pro kterého uživatele se cena počítá
-     * @param int $sleva celková sleva získaná za pořádané aktivity
+     * @param float $sleva celková sleva získaná za pořádané aktivity
      */
-    function __construct(Uzivatel $u, $sleva) {
+    public function __construct(Uzivatel $u, $sleva) {
         $this->u = $u;
 
-        if ($u->maPravo(P_KOSTKA_ZDARMA))
+        if ($u->maPravo(P_KOSTKA_ZDARMA)) {
             $this->slevaKostky = 25;
-        if ($u->maPravo(P_PLACKA_ZDARMA))
+        }
+        if ($u->maPravo(P_PLACKA_ZDARMA)) {
             $this->slevaPlacky = 25;
-        if ($u->maPravo(P_DVE_TRICKA_ZDARMA))
+        }
+        if ($u->maPravo(P_DVE_TRICKA_ZDARMA)) {
             $this->jakychkoliTricekZdarma = 2;
-        if ($u->maPravo(P_TRICKO_ZA_SLEVU_MODRE) && $sleva >= MODRE_TRICKO_ZDARMA_OD) {
+        }
+        if ($sleva >= MODRE_TRICKO_ZDARMA_OD && $u->maPravo(P_TRICKO_ZA_SLEVU_MODRE)) {
             $this->modrychTricekZdarma = 1;
             $this->textySlevExtra[]    = 'modré tričko zdarma';
         }
@@ -53,7 +56,7 @@ class Cenik
     /**
      * Sníží $cena o částku $sleva až do nuly. Změnu odečte i z $sleva.
      */
-    static function aplikujSlevu(&$cena, &$sleva): array {
+    public static function aplikujSlevu(&$cena, &$sleva): array {
         if ($sleva <= 0) { // nedělat nic
             return ['cena' => $cena, 'sleva' => $sleva];
         }
@@ -72,7 +75,7 @@ class Cenik
      * aktivity)
      * @todo možnost (zvážit) použití objektu Sleva, který by se uměl aplikovat
      */
-    function slevyObecne() {
+    public function slevyObecne() {
         return ['nic'];
     }
 
@@ -81,7 +84,7 @@ class Cenik
      * vypravěčských, věci se slevami nebo zdarma apod.)
      * @todo vypravěčská sleva s číslem apod. (migrovat z financí)
      */
-    function slevySpecialni() {
+    public function slevySpecialni() {
         $u     = $this->u;
         $slevy = [];
 
@@ -107,11 +110,19 @@ class Cenik
     /**
      * @return float cena věci v e-shopu pro daného uživatele
      */
-    function shop($r): float {
-        if (isset($r['cena_aktualni'])) $cena = $r['cena_aktualni'];
-        if (isset($r['cena_nakupni'])) $cena = $r['cena_nakupni'];
-        if (!isset($cena)) throw new Exception('Nelze načíst cenu předmětu');
-        if (!($typ = $r['typ'])) throw new Exception('Nenačten typ předmetu');
+    public function shop($r): float {
+        if (isset($r['cena_aktualni'])) {
+            $cena = $r['cena_aktualni'];
+        }
+        if (isset($r['cena_nakupni'])) {
+            $cena = $r['cena_nakupni'];
+        }
+        if (!isset($cena)) {
+            throw new Exception('Nelze načíst cenu předmětu');
+        }
+        if (!($typ = $r['typ'])) {
+            throw new Exception('Nenačten typ předmetu');
+        }
 
         // aplikace možných slev
         if ($typ == Shop::PREDMET) {
