@@ -1324,15 +1324,15 @@ SQL
         return <<<HTML
 <div>
   <div>
-    Z nařízení vlády ČR po tobě musíme vyžadovat elektronické nebo písemné potvrzení, že jsi:
+    Na základě opatření ministerstva zdravotnictví a vlády ČR po tobě musíme vyžadovat, aby jsi prokázal (elektronickým či písemným potvrzením), že nemáš nemoc COVID-19. Splnění této podmínky je třeba doložit:
     <ul>
-      <li>po negativním POC antigenním testu ne starším než 72 hodin nebo po negativním PCR testu ne starším než 7 dní</li>
-      <li>nebo 3 týdny od první dávky očkování proti COVID-19</li>
-      <li>nebo do 180 dní od prodělání onemocnění COVID-19 (stačí v SMSce, kterou ukážeš při vstupu na infopultu)</li>
+      <li>oficiálním (tj. provedeným oficiálním licencovaným odběrovým místem/laboratoří) POC antigenním nebo PCR testem s negativním výsledkem, který nebude v okamžiku registrace na Infopultu starší než (i) 72 hodin v případě POC antigenního testu, nebo (ii) 7 dní v případě PCR testu</li>
+      <li>certifikátem o provedeném očkování, u kterého v okamžiku registrace na Infopultu uplynulo již 14 dní od (i) aplikace druhé očkovací dávky (u dvoudávkového schématu) nebo od (ii) aplikace očkovací dávky (u jednodávkového schématu)</li>
+      <li>oficiálním dokladem o tom, že jsi prodělal laboratorně potvrzené onemocnění COVID-19, přičemž od prvního pozitivního testu v okamžiku registrace na Infopultu neuplynulo 180 dní (stačí v SMSce)</li>
     </ul>
   </div>
   <label>
-    Tvé potvrzení o očkování proti Covid-19, nebo o prodělaném Covid-19, nebo o negativním testu na Covid-19 <span style="font-size: smaller">(jen obrázek nebo PDF, do 8 MB)</span>:
+    Tvé potvrzení o splnění některé z podmínek prosím nahraj zde <span style="font-size: smaller">(jen obrázek nebo PDF, do 8 MB)</span>:
     <div style="border: 1px solid black; cursor: pointer;">
       $ok
       <input type="file" class="formular_input" name="potvrzeniProtiCovidu" style="display: inline; width: auto; border: none; margin: 0; cursor: pointer">
