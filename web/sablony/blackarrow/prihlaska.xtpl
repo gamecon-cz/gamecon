@@ -20,6 +20,23 @@
   </div>
 </div>
 
+<style>
+  @keyframes blinker {
+    50% {
+      opacity: 0;
+    }
+  }
+</style>
+
+<div style="text-align: center">
+  <h2 style="animation: blinker 1s linear infinite;">
+    Cálen zí bite!
+  </h2>
+  <div>
+    <img src="data:{qrPlatbaMimeType};base64, {qrPlatbaBase64}" alt="qrPlatba">
+  </div>
+</div>
+
 <form method="post" class="prihlaska" enctype="multipart/form-data">
 
   <!----------------------------------------------------------------------------->
