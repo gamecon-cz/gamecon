@@ -67,16 +67,13 @@ ORDER BY FIELD(SUBSTRING(TRIM(shop_predmety.nazev), 1, POSITION(' ' IN TRIM(shop
 SQL, [Shop::JIDLO, ROK]
 );
 
-$ponozkyPanskeLetosniNazev = 'Ponožky (vel. 42-45)';
-$ponozkyPanskeObecnyNazev = 'Ponožky pánské';
-$ponozkyDamskeLetosniNazev = 'Ponožky (vel. 38-39)';
-$ponozkyDamskeObecnyNazev = 'Ponožky dámské';
 $letosniOstatniPredmety = dbFetchPairs(<<<SQL
-SELECT shop_predmety.id_predmetu, CASE TRIM(shop_predmety.nazev) WHEN '{$ponozkyDamskeLetosniNazev}' THEN '{$ponozkyDamskeObecnyNazev}' WHEN '{$ponozkyPanskeLetosniNazev}' THEN '{$ponozkyPanskeObecnyNazev}' ELSE TRIM(shop_predmety.nazev) END
+SELECT shop_predmety.id_predmetu, TRIM(shop_predmety.nazev)
 FROM shop_predmety
 WHERE shop_predmety.typ = $1
 AND stav > 0
-AND TRIM(nazev) IN ('GameCon blok', 'Nicknack', '{$ponozkyDamskeLetosniNazev}', '{$ponozkyPanskeLetosniNazev}')
+AND (TRIM(nazev) IN ('GameCon blok', 'Nicknack') OR nazev LIKE '%ponožky%' COLLATE utf8_czech_ci)
+ORDER BY TRIM(shop_predmety.nazev)
 SQL, [Shop::PREDMET, ROK]
 );
 
@@ -87,7 +84,7 @@ $hlavicka = [
     'Ubytovací informace' => array_merge(['Chci bydlet s', 'První noc', 'Poslední noc (počátek)', 'Typ', 'Dorazil na GC'], $ucastPodleRoku),
     'Celkové náklady' => ['Celkem dní', 'Cena / den', 'Ubytování', 'Předměty a strava'],
     'Ostatní platby' => ['Aktivity', 'Bonus za vedení aktivit', 'Využitý bonus za vedení aktivit', 'Proplacený bonus za vedení aktivit', 'dobrovolné vstupné', 'dobrovolné vstupné (pozdě)', 'stav', 'suma slev', 'zůstatek z minula', 'připsané platby', 'první blok', 'poslední blok', 'dobrovolník pozice', 'dobrovolník info', 'Dárky a zlevněné nákupy', 'Objednávky', 'Poznámka'],
-    'Eshop' => array_merge(['sleva', 'placka zdarma', 'placka GC placená', 'kostka zdarma'], $letosniKostky, $letosniJidla, ['tričko zdarma', 'tílko zdarma', 'tričko se slevou', 'tílko se slevou', 'účastnické tričko placené', 'účastnické tílko placené', 'GameCon blok', 'Nicknack', $ponozkyPanskeObecnyNazev, $ponozkyDamskeObecnyNazev]),
+    'Eshop' => array_merge(['sleva', 'placka zdarma', 'placka GC placená', 'kostka zdarma'], $letosniKostky, $letosniJidla, ['tričko zdarma', 'tílko zdarma', 'tričko se slevou', 'tílko se slevou', 'účastnické tričko placené', 'účastnické tílko placené'], $letosniOstatniPredmety),
 ];
 
 $sqlNaPocetJednohoPredmetu = static function (int $idPredmetu): string {
@@ -172,6 +169,7 @@ foreach ($hlavicka as $hlavni => $vedlejsiHlavicka) {
 
 $letosniKostkyKlice = array_fill_keys($letosniKostky, null);
 $letosniJidlaKlice = array_fill_keys($letosniJidla, null);
+$letosniOstatniPredmetyKlice = array_fill_keys($letosniOstatniPredmety, null);
 
 while ($r = mysqli_fetch_assoc($o)) {
     $un = new Uzivatel($r);
@@ -189,7 +187,7 @@ while ($r = mysqli_fetch_assoc($o)) {
     }
     $letosniKostkyPocty = array_intersect_key($r, $letosniKostkyKlice);
     $letosniJidlaPocty = array_intersect_key($r, $letosniJidlaKlice);
-    $letosniOstatniPredmetyPocty = array_intersect_key($r, $letosniOstatniPredmety);
+    $letosniOstatniPredmetyPocty = array_intersect_key($r, $letosniOstatniPredmetyKlice);
     $obsah[] = array_merge(
         [
             $r['id_uzivatele'],
@@ -259,11 +257,8 @@ while ($r = mysqli_fetch_assoc($o)) {
             '?', // TODO tílko se slevou
             '?', // TODO účastnické tričko placené
             '?', // TODO účastnické tílko placené
-            $r['GameCon blok'],
-            $r['Nicknack'],
-            $r[$ponozkyPanskeObecnyNazev],
-            $r[$ponozkyDamskeObecnyNazev],
-        ]
+        ],
+        $letosniOstatniPredmetyPocty,
     );
 }
 
