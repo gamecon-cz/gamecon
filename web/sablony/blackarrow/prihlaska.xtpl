@@ -7,6 +7,9 @@
     <!-- begin:prihlasen -->
     <p>Jsi přihlášen{a} na GameCon {rok}. Níž si můžeš upravit svou přihlášku, tj. objednané ubytování a předměty až
       téměř do začátku GameConu.</p>
+
+    <p>Objednávku je potřeba uhradit do 30.6. Svůj přehled financí a údaje k platbě najdeš v <a href="finance">Přehledu
+      financí</a>.</p>
     <!-- end:prihlasen -->
 
     <!-- begin:neprihlasen -->
@@ -61,6 +64,7 @@
         <ul>
           <li>Jídlo je možné objednat nebo zrušit do 11.7.</li>
           <li>Na výběr je z 3–5 jídel, která jsou vždy stejná na oběd i večeři a jedno vegetariánské jídlo.</li>
+          <li><a href="jidelnicek">Jídelníček</a></li>
         </ul>
       </div>
     </div>
@@ -75,7 +79,7 @@
 
     <div class="prihlaska_infoPruh">
       <div class="prihlaska_info">
-        <img class="prihlaska_infoSymbol" src="soubory/blackarrow/prihlaska/mapa.png" style="top: -33px; right: -15px">
+        <img alt="Ikona s mapou" class="prihlaska_infoSymbol" src="soubory/blackarrow/prihlaska/mapa.png" style="top: -33px; right: -15px">
         <h3>Informace k ubytování</h3>
         <ul>
           <li>Ubytování je možné objednat nebo zrušit do 11.7.</li>
@@ -89,8 +93,9 @@
 
       <!-- begin: ubytovaniInfoVypravec -->
       <div class="prihlaska_info prihlaska_info-ikona">
-        <p>Jako vypravěč{ka} máš na ubytování (i aktivity) slevu ve výši cca jeden nocleh+jídlo za dvě uspořádané
-          aktivity. Její přesnou výšku najdeš po dokončení registrace ve svém finančním přehledu.</p>
+        Jako vypravěč{ka} máš nárok na bonus odvíjející se od množství vyprávěných aktivit, který se dá uplatnit na
+        ubytování, jídlo nebo aktivity. Přesnou výšku bonusu najdeš po dokončení registrace ve svém <a href="finance">finančním
+        přehledu</a>.</p>
       </div>
       <!-- end: ubytovaniInfoVypravec -->
 
