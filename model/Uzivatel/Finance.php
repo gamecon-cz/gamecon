@@ -7,6 +7,9 @@ use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Shop\Shop;
 use Gamecon\Shop\TypPredmetu;
+use Endroid\QrCode\Writer\Result\ResultInterface;
+use Rikudou\CzQrPayment\QrPayment;
+use Rikudou\CzQrPayment\Options\QrPaymentOptions;
 
 /**
  * Třída zodpovídající za spočítání finanční bilance uživatele na GC.
@@ -679,5 +682,47 @@ SQL
             $this->kategorieNeplatice = KategorieNeplatice::vytvorProNadchazejiciVlnuZGlobals($this->u);
         }
         return $this->kategorieNeplatice;
+    }
+
+    /**
+     * @param string $cisloUctu
+     * @param float $variabilniSymbol
+     * @param float $castka Bude zaokrouhlena na dve desetinna mista!
+     */
+    public function dejQrProPlatbu(
+        string $cisloUctu,
+        int $variabilniSymbol,
+        float $castka,
+        string $kodMeny,
+        \DateTimeInterface $datumSplatnosti = null
+    ): QrPayment {
+        [$cisloUctuBezBanky, $kodBanky] = explode('/', $cisloUctu);
+        $qrPayment = QrPayment::fromAccountAndBankCode($cisloUctuBezBanky, $kodBanky);
+        $qrPayment->setOptions([
+            QrPaymentOptions::VARIABLE_SYMBOL => $variabilniSymbol,
+            QrPaymentOptions::AMOUNT => round($castka, 2),
+            QrPaymentOptions::CURRENCY => $kodMeny,
+            QrPaymentOptions::DUE_DATE => ($datumSplatnosti ?? new DateTimeImmutable("+14 days")),
+        ]);
+        return $qrPayment;
+    }
+
+    /**
+     * @param string $cisloUctu
+     * @param int $variabilniSymbol
+     * @param float $castka Bude zaokrouhlena na dve desetinna mista!
+     * @param string $kodMeny ISO 4217
+     * @return ResultInterface A ted uz na tom jenom zavolej getString() a mas obrazek
+     */
+    public function dejObrazekProQrPlatbu(
+        string $cisloUctu,
+        int $variabilniSymbol,
+        float $castka,
+        string $kodMeny,
+        \DateTimeInterface $datumSplatnosti = null
+    ): ResultInterface {
+        $qrCode = $this->dejQrProPlatbu($cisloUctu, $variabilniSymbol, $castka, $kodMeny, $datumSplatnosti)->getQrImage();
+
+        return (new \Endroid\QrCode\Writer\PngWriter())->write($qrCode);
     }
 }
