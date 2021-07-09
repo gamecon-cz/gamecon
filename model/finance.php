@@ -95,10 +95,10 @@ class Finance
 
         $this->logb('Celková cena', $cena, self::CELKOVA);
 
-        $this->stav =
+        $this->stav = round(
             -$cena
             + $this->platby
-            + $this->zustatekZPredchozichRocniku;
+            + $this->zustatekZPredchozichRocniku, 2);
 
         $this->logb('Aktivity', $this->cenaAktivity, self::AKTIVITA);
         $this->logb('Ubytování', $this->cenaUbytovani, self::UBYTOVANI);
@@ -430,6 +430,7 @@ class Finance
             $this->platby += $r['cena'];
             $this->log($r['nazev'], $r['cena'], self::PLATBA);
         }
+        $this->platby = round($this->platby, 2);
     }
 
     /**
