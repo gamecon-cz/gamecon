@@ -24,15 +24,15 @@ class Pomoc
         $t = new XTemplate(__DIR__ . '/pomoc.xtpl');
         $t->assign([
             'postname' => $this->pn,
-            'a' => $this->u->koncA(),
+            'a' => $this->u->koncovkaDlePohlavi(),
             'displayVice' => $this->r['pomoc_typ'] ? 'block' : 'none',
             'vChci' => $this->r['pomoc_typ'] ? 'checked' : '',
             'vDetail' => $this->r['pomoc_vice'],
         ]);
         $koncovky = [
-            '{a}' => $this->u->koncA(),
-            '{ka}' => $this->u->koncA() ? 'ka' : '',
-            '{ík}' => $this->u->koncA() ? 'ice' : 'ík',
+            '{a}' => $this->u->koncovkaDlePohlavi(),
+            '{ka}' => $this->u->koncovkaDlePohlavi() ? 'ka' : '',
+            '{ík}' => $this->u->koncovkaDlePohlavi() ? 'ice' : 'ík',
         ];
         $vybranyTyp = $this->r['pomoc_typ'] ?: self::$typy[0][0];
 
