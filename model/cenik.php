@@ -8,13 +8,12 @@ use Gamecon\Shop\Shop;
 class Cenik
 {
 
-    private
-        $u,
-        $slevaKostky = 0,
-        $slevaPlacky = 0,
-        $jakychkoliTricekZdarma = 0,
-        $modrychTricekZdarma = 0,
-        $textySlevExtra = [];
+    private $u;
+    private $slevaKostky = 0;
+    private $slevaPlacky = 0;
+    private $jakychkoliTricekZdarma = 0;
+    private $modrychTricekZdarma = 0;
+    private $textySlevExtra = [];
 
     /**
      * Zobrazitelné texty k právům (jen statické). Nestatické texty nutno řešit
@@ -92,13 +91,17 @@ class Cenik
         foreach (self::$textySlev as $pravo => $text) {
             // přeskočení práv, která mohou být přebita + normalizace textu
             if (is_array($text)) {
-                foreach ($text as $i => $pravoPrebiji) {
-                    if ($i && $u->maPravo($pravoPrebiji)) continue 2;
+                $zahrnuteVPravu = $text[1];
+                if ($u->maPravo($zahrnuteVPravu)) {
+                    // pokud má návštěník například právo na "jídlo zdarma", tak je zbytečné právo na "jídlo zdarma ve středu"
+                    continue;
                 }
                 $text = $text[0];
             }
             // přidání infotextu o slevě
-            if ($u->maPravo($pravo)) $slevy[] = $text;
+            if ($u->maPravo($pravo)) {
+                $slevy[] = $text;
+            }
         }
 
         // přidání extra slev vypočítaných za chodu
@@ -108,9 +111,10 @@ class Cenik
     }
 
     /**
+     * @param array $r
      * @return float cena věci v e-shopu pro daného uživatele
      */
-    public function shop($r): float {
+    public function shop(array $r): float {
         if (isset($r['cena_aktualni'])) {
             $cena = $r['cena_aktualni'];
         }
