@@ -1,8 +1,9 @@
 <?php
 // takzvaný BFGR (Big f*king Gandalf report)
 
-use \Gamecon\Cas\DateTimeCz;
-use \Gamecon\Zidle;
+use Gamecon\Cas\DateTimeCz;
+use Gamecon\Zidle;
+use Gamecon\Shop\Shop;
 
 require __DIR__ . '/sdilene-hlavicky.php';
 
@@ -67,16 +68,13 @@ ORDER BY FIELD(SUBSTRING(TRIM(shop_predmety.nazev), 1, POSITION(' ' IN TRIM(shop
 SQL, [Shop::JIDLO, ROK]
 );
 
-$ponozkyPanskeLetosniNazev = 'Ponožky (vel. 42-45)';
-$ponozkyPanskeObecnyNazev = 'Ponožky pánské';
-$ponozkyDamskeLetosniNazev = 'Ponožky (vel. 38-39)';
-$ponozkyDamskeObecnyNazev = 'Ponožky dámské';
 $letosniOstatniPredmety = dbFetchPairs(<<<SQL
-SELECT shop_predmety.id_predmetu, CASE TRIM(shop_predmety.nazev) WHEN '{$ponozkyDamskeLetosniNazev}' THEN '{$ponozkyDamskeObecnyNazev}' WHEN '{$ponozkyPanskeLetosniNazev}' THEN '{$ponozkyPanskeObecnyNazev}' ELSE TRIM(shop_predmety.nazev) END
+SELECT shop_predmety.id_predmetu, TRIM(shop_predmety.nazev)
 FROM shop_predmety
 WHERE shop_predmety.typ = $1
 AND stav > 0
-AND TRIM(nazev) IN ('GameCon blok', 'Nicknack', '{$ponozkyDamskeLetosniNazev}', '{$ponozkyPanskeLetosniNazev}')
+AND (TRIM(nazev) IN ('GameCon blok', 'Nicknack') OR nazev LIKE '%ponožky%' COLLATE utf8_czech_ci)
+ORDER BY TRIM(shop_predmety.nazev)
 SQL, [Shop::PREDMET, ROK]
 );
 
@@ -87,14 +85,14 @@ $hlavicka = array_merge(
     ['Ubytovací informace' => array_merge(['Chci bydlet s', 'První noc', 'Poslední noc (počátek)', 'Typ', 'Dorazil na GC'], $ucastPodleRoku)],
     ['Celkové náklady' => ['Celkem dní', 'Cena / den', 'Ubytování', 'Předměty a strava']],
     ['Ostatní platby' => ['Aktivity', 'Bonus za vedení aktivit', 'Využitý bonus za vedení aktivit', 'Proplacený bonus za vedení aktivit', 'dobrovolné vstupné', 'dobrovolné vstupné (pozdě)', 'stav', 'suma slev', 'zůstatek z minula', 'připsané platby', 'první blok', 'poslední blok', 'dobrovolník pozice', 'dobrovolník info', 'Dárky a zlevněné nákupy', 'Objednávky', 'Poznámka']],
-    ['Eshop' => array_merge(['sleva', 'placka zdarma', 'placka GC placená', 'kostka zdarma'], $letosniKostky, $letosniJidla, ['tričko zdarma', 'tílko zdarma', 'tričko se slevou', 'tílko se slevou', 'účastnické tričko placené', 'účastnické tílko placené', 'GameCon blok', 'Nicknack', $ponozkyPanskeObecnyNazev, $ponozkyDamskeObecnyNazev])],
+    ['Eshop' => array_merge(['sleva', 'placka zdarma', 'placka GC placená', 'kostka zdarma'], $letosniKostky, $letosniJidla, ['tričko zdarma', 'tílko zdarma', 'tričko se slevou', 'tílko se slevou', 'účastnické tričko placené', 'účastnické tílko placené'], $letosniOstatniPredmety)],
 );
 
 $sqlNaPocetJednohoPredmetu = static function (int $idPredmetu): string {
     $rok = ROK;
     return <<<SQL
  COALESCE((SELECT COUNT(shop_predmety.id_predmetu) FROM shop_nakupy
-     JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok={$rok} AND shop_nakupy.id_uzivatele=r_uzivatele_zidle.id_uzivatele AND shop_predmety.id_predmetu = {$idPredmetu} GROUP BY shop_predmety.id_predmetu), 0)
+     JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok={$rok} AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.id_predmetu = {$idPredmetu} GROUP BY shop_predmety.id_predmetu), 0)
 SQL;
 };
 $sqlSPoctemKostek = (static function () use ($letosniKostky, $sqlNaPocetJednohoPredmetu): string {
@@ -160,7 +158,7 @@ WHERE prihlasen.id_uzivatele IS NOT NULL -- left join, takže může být NULL v
     OR EXISTS(SELECT * FROM platby WHERE platby.id_uzivatele = uzivatele_hodnoty.id_uzivatele AND platby.rok = $rok)
 SQL,
     [0 => \Gamecon\Zidle::PRIHLASEN_NA_LETOSNI_GC, 1 => \Gamecon\Zidle::PRITOMEN_NA_LETOSNIM_GC, 2 => \Gamecon\Zidle::ODJEL_Z_LETOSNIHO_GC]
-););
+);
 if (mysqli_num_rows($o) === 0) {
     exit('V tabulce nejsou žádná data.');
 }
@@ -179,6 +177,7 @@ foreach ($hlavicka as $hlavni => $vedlejsiHlavicka) {
 
 $letosniKostkyKlice = array_fill_keys($letosniKostky, null);
 $letosniJidlaKlice = array_fill_keys($letosniJidla, null);
+$letosniOstatniPredmetyKlice = array_fill_keys($letosniOstatniPredmety, null);
 
 while ($r = mysqli_fetch_assoc($o)) {
     $un = new Uzivatel($r);
@@ -196,7 +195,7 @@ while ($r = mysqli_fetch_assoc($o)) {
     }
     $letosniKostkyPocty = array_intersect_key($r, $letosniKostkyKlice);
     $letosniJidlaPocty = array_intersect_key($r, $letosniJidlaKlice);
-    $letosniOstatniPredmetyPocty = array_intersect_key($r, $letosniOstatniPredmety);
+    $letosniOstatniPredmetyPocty = array_intersect_key($r, $letosniOstatniPredmetyKlice);
     $obsah[] = array_merge(
         [
             $r['id_uzivatele'], // 'ID'
@@ -267,11 +266,8 @@ while ($r = mysqli_fetch_assoc($o)) {
             '?', // TODO tílko se slevou
             '?', // TODO účastnické tričko placené
             '?', // TODO účastnické tílko placené
-            $r['GameCon blok'],
-            $r['Nicknack'],
-            $r[$ponozkyPanskeObecnyNazev],
-            $r[$ponozkyDamskeObecnyNazev],
-        ]
+        ],
+        $letosniOstatniPredmetyPocty,
     );
 }
 
