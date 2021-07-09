@@ -41,7 +41,7 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
     profilInfo();
 } elseif (is_file(__DIR__ . '/scripts/zvlastni/' . $stranka . '.php')) {
     chdir(__DIR__ . '/scripts/zvlastni/');
-    require $stranka . '.php';
+    require($stranka . '.php');
 } elseif (is_file(__DIR__ . '/scripts/zvlastni/' . $stranka . '/' . $podstranka . '.php')) {
     chdir(__DIR__ . '/scripts/zvlastni/' . $stranka);
     require($podstranka . '.php');
