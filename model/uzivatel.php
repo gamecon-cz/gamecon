@@ -1324,11 +1324,11 @@ SQL
         return <<<HTML
 <div>
   <div>
-    Na základě opatření ministerstva zdravotnictví a vlády ČR po tobě musíme vyžadovat, aby jsi prokázal (elektronickým či písemným potvrzením), že nemáš nemoc COVID-19. Splnění této podmínky je třeba doložit:
+    Na základě opatření ministerstva zdravotnictví a vlády ČR po tobě musíme vyžadovat, aby jsi prokázal/a (elektronickým či písemným potvrzením), že nemáš nemoc COVID-19. Splnění této podmínky je třeba doložit:
     <ul>
       <li>oficiálním (tj. provedeným oficiálním licencovaným odběrovým místem/laboratoří) POC antigenním nebo PCR testem s negativním výsledkem, který nebude v okamžiku registrace na Infopultu starší než (i) 72 hodin v případě POC antigenního testu, nebo (ii) 7 dní v případě PCR testu</li>
       <li>certifikátem o provedeném očkování, u kterého v okamžiku registrace na Infopultu uplynulo již 14 dní od (i) aplikace druhé očkovací dávky (u dvoudávkového schématu) nebo od (ii) aplikace očkovací dávky (u jednodávkového schématu)</li>
-      <li>oficiálním dokladem o tom, že jsi prodělal laboratorně potvrzené onemocnění COVID-19, přičemž od prvního pozitivního testu v okamžiku registrace na Infopultu neuplynulo 180 dní (stačí v SMSce)</li>
+      <li>oficiálním dokladem o tom, že jsi prodělal/a laboratorně potvrzené onemocnění COVID-19, přičemž od prvního pozitivního testu v okamžiku registrace na Infopultu neuplynulo 180 dní (stačí v SMSce)</li>
     </ul>
   </div>
   <label>
