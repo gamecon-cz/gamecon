@@ -49,8 +49,6 @@ RUN pecl channel-update pecl.php.net \
 # Fix debconf warnings upon build
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin/ --filename=composer
-
 RUN echo 'alias ll="ls -al"' >> ~/.bashrc \
     && mkdir -p /var/log
 
@@ -60,9 +58,12 @@ RUN usermod --home /home/www-data --shell /bin/bash www-data \
 
 USER www-data
 
+ENV COMPOSER_INSTAL_DIR=/home/www-data/bin
+ENV COMPOSER_BIN_NAME=composer
+ENV COMPOSER_BIN=$COMPOSER_INSTAL_DIR/$COMPOSER_BIN_NAME
 RUN mkdir -p /home/www-data/bin \
-    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/home/www-data/bin --filename=composer \
-    && chmod +x /home/www-data/bin/composer \
+    && curl -sS https://getcomposer.org/installer | php -- --install-dir=$COMPOSER_INSTAL_DIR --filename=$COMPOSER_BIN_NAME \
+    && chmod +x $COMPOSER_BIN \
   	&& echo 'export PATH="/home/www-data/bin:$PATH"' >> /home/www-data/.bashrc
 
 RUN echo 'alias ll="ls -al"' >> /home/www-data/.bashrc
