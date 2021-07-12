@@ -171,11 +171,11 @@ class DateTimeCz extends \DateTime
     /**
      * Vrátí „včera“, „předevčírem“, „pozítří“ apod. (místo dnes vrací emptystring)
      */
-    function rozdilDne(\DateTime $od) {
-        $od = clone $od; // nutné znulování času pro funkční porovnání počtu dní
-        $od->setTime(0, 0);
+    function rozdilDne(\DateTimeInterface $od) {
+        $od = clone $od;
+        $od = $od->setTime(0, 0); // nutné znulování času pro funkční porovnání počtu dní
         $do = clone $this;
-        $do->setTime(0, 0);
+        $do = $do->setTime(0, 0);
         $diff = (int)$od->diff($do)->format('%r%a');
         switch ($diff) {
             case -2:

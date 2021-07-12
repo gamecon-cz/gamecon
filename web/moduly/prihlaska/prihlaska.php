@@ -13,7 +13,7 @@ $this->info()->nazev('Přihláška');
  * Pomocná funkce pro náhled předmětu pro aktuální ročník
  */
 function nahledPredmetu($soubor) {
-    $cesta = 'soubory/obsah/materialy/' . ROK . '/' . $soubor;
+    $cesta = WWW . '/soubory/obsah/materialy/' . ROK . '/' . $soubor;
     try {
         $nahled = Nahled::zSouboru($cesta)->kvalita(98)->url();
     } catch (Exception $e) {

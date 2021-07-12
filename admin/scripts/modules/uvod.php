@@ -171,7 +171,7 @@ if ($uPracovni && $uPracovni->gcPrihlasen()) {
         $x->parse('uvod.uzivatel.overenoPotvrzeniProtiCovidIkona');
         $x->parse('uvod.uzivatel.overenoPredlozenePotvrzeniProtiCovid');
     } else {
-        $x->assign('urlNaPotvrzeniProtiCovid', $up->urlNaPotvrzeniProtiCovidu());
+        $x->assign('urlNaPotvrzeniProtiCovid', $up->urlNaPotvrzeniProtiCoviduProAdmin());
         $x->assign(
             'datumNahraniPotvrzeniProtiCovid',
             (new DateTimeCz($up->potvrzeniProtiCoviduPridanoKdy()->format(DATE_ATOM)))->relativni()
