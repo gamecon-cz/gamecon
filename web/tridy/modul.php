@@ -156,7 +156,7 @@ class Modul
             $url = $urlObjekt->cast(0);
             $podstranka = $urlObjekt->cast(1);
         }
-        if (!$urlObjekt) {
+        if (!$url) {
             $url = self::VYCHOZI;
         }
         return self::zNazvu($url, $podstranka);
