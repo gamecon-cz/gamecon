@@ -1329,6 +1329,7 @@ SQL
 
     public function covidFreePotvrzeniHtml(int $rok): string {
         $x = new XTemplate(__DIR__ . '/uzivatel-covid-potvrzeni.xtpl');
+        $x->assign('a', $this->koncovkaDlePohlavi());
         if ($this->maNahranyDokladProtiCoviduProRok($rok)) {
             if ($this->maOverenePotvrzeniProtiCoviduProRok($rok, true)) {
                 $x->assign(
