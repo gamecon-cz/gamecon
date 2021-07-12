@@ -963,19 +963,19 @@ SQL
     public function statusHtml() {
         $ka = $this->koncovkaDlePohlavi('ka');
         $status = [];
-        if (true || $this->maPravo(P_TITUL_ORG)) {
+        if ($this->maPravo(P_TITUL_ORG)) {
             $status [] = '<span style="color:red">Organizátor' . $ka . '</span>';
         }
-        if (true || $this->maZidli(Z_ORG_AKCI)) {
+        if ($this->maZidli(Z_ORG_AKCI)) {
             $status[] = '<span style="color:blue">Vypravěč' . $ka . '</span>';
         }
-        if (true || $this->maZidli(Z_PARTNER)) {
+        if ($this->maZidli(Z_PARTNER)) {
             $status[] = '<span style="color:darkslateblue">Partner' . $ka . '</span>';
         }
-        if (true || $this->maZidli(Z_INFO)) {
+        if ($this->maZidli(Z_INFO)) {
             $status[] = '<span style="color:orange">Infopult</span>';
         }
-        if (true || $this->maZidli(Z_ZAZEMI)) {
+        if ($this->maZidli(Z_ZAZEMI)) {
             $status[] = "Zázemí";
         }
         if (count($status) > 0) {
@@ -1361,9 +1361,9 @@ SQL
         return $x->text('covid');
     }
 
-    public function zpracujPotvrzeniProtiCovidu() {
+    public function zpracujPotvrzeniProtiCovidu(): bool {
         if (!isset($_FILES['potvrzeniProtiCovidu']) || empty($_FILES['potvrzeniProtiCovidu']['tmp_name'])) {
-            return;
+            return false;
         }
         $f = @fopen($_FILES['potvrzeniProtiCovidu']['tmp_name'], 'rb');
         if (!$f) {
@@ -1392,6 +1392,8 @@ SQL
 
         $ted = new DateTimeImmutable();
         $this->ulozPotvrzeniProtiCoviduPridanyKdy($ted);
+
+        return true;
     }
 
     private function ulozPotvrzeniProtiCoviduPridanyKdy(?\DateTimeInterface $kdy) {

@@ -19,23 +19,6 @@
   </div>
 </div>
 
-<style>
-  @keyframes blinker {
-    50% {
-      opacity: 0;
-    }
-  }
-</style>
-
-<div style="text-align: center">
-  <h2 style="animation: blinker 1s linear infinite;">
-    Cálen zí bite!
-  </h2>
-  <div>
-    <img src="data:{qrPlatbaMimeType};base64, {qrPlatbaBase64}" alt="qrPlatba">
-  </div>
-</div>
-
 <form method="post" class="prihlaska" enctype="multipart/form-data">
 
   <!----------------------------------------------------------------------------->
@@ -130,21 +113,7 @@
 
   <!----------------------------------------------------------------------------->
 
-  <div class="prihlaska_sekce">
-    <h2>Covid-19</h2>
-
-    <div class="prihlaska_infoPruh">
-      <div class="prihlaska_info">
-        <h3>Nutné potvrzení</h3>
-        <div class="prihlaska_info prihlaska_info-ikona">
-          Nejpozději na Infopultu, před vstupem na samotný GameCon, nám musíš prokázat splnění podmínek účasti, a to
-          jedním ze tří možných typů potvrzení.
-        </div>
-      </div>
-    </div>
-
-    {covidFreePotvrzeni}
-  </div>
+  {covidSekce}
 
   <!----------------------------------------------------------------------------->
 
@@ -230,4 +199,18 @@
       Upravit si program a vybrat aktivity můžeš tamtéž.</p>
   </div>
 </div>
+
+<!-- begin: covidSekce -->
+<form method="post" class="prihlaska" enctype="multipart/form-data">
+  <!-- begin: doklad -->
+  {covidSekce}
+  <!-- end: doklad -->
+  <!-- begin: submit -->
+  <div class="prihlaska_sekce">
+    <input type="submit" class="formular_primarni" name="pridatPotvrzeniProtiCovidu" value="Nahrát potvrzení">
+  </div>
+  <!-- end: submit -->
+</form>
+<!-- end: covidSekce -->
+
 <!-- end: prihlaskaGcBezi -->
