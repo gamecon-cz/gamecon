@@ -9,6 +9,13 @@ $this->blackarrowStyl(true);
 $this->bezPaticky(true);
 $this->info()->nazev('Přihláška');
 
+$covidSekce = static function (Shop $shop): string {
+    $covidTemplate = new XTemplate(__DIR__ . '/covid-sekce.xtpl');
+    $covidTemplate->assign('covidFreePotvrzeni', $shop->covidFreePotrvzeniHtml((int)date('Y')));
+    $covidTemplate->parse('covid');
+    return $covidTemplate->text('covid');
+};
+
 /**
  * Pomocná funkce pro náhled předmětu pro aktuální ročník
  */
@@ -24,9 +31,26 @@ function nahledPredmetu($soubor) {
     return $nahled;
 }
 
+if (post('pridatPotvrzeniProtiCovidu')) {
+    if (!$u->zpracujPotvrzeniProtiCovidu()) {
+        chyba('Nejdříve vlož potvrzení.');
+    } else {
+        oznameni('Potvrzení bylo uloženo.');
+    }
+}
+
 if (GC_BEZI || ($u && $u->gcPritomen())) {
     // zpřístupnit varianty mimo registraci i pro nepřihlášeného uživatele kvůli
     // příchodům z titulky, menu a podobně
+    if ($u) {
+        $t->assign('covidSekce', $covidSekce(new Shop($u)));
+        $t->parse('prihlaskaGcBezi.covidSekce.doklad');
+        $letosniRok = (int)date('Y');
+        if (!$u->maNahranyDokladProtiCoviduProRok($letosniRok) && !$u->maOverenePotvrzeniProtiCoviduProRok($letosniRok)) {
+            $t->parse('prihlaskaGcBezi.covidSekce.submit');
+        }
+        $t->parse('prihlaskaGcBezi.covidSekce');
+    }
     $t->parse('prihlaskaGcBezi');
     return;
 }
@@ -113,12 +137,12 @@ foreach ($nahledy as $nahled) {
 }
 
 $t->assign([
-    'a' => $u->koncA(),
+    'a' => $u->koncovkaDlePohlavi(),
     'jidlo' => $shop->jidloHtml(),
     'predmety' => $shop->predmetyHtml(),
     'rok' => ROK,
     'ubytovani' => $shop->ubytovaniHtml(),
-    'covidFreePotvrzeni' => $shop->covidFreePotrvzeniHtml((int)date('Y')),
+    'covidSekce' => $covidSekce($shop),
     'ulozitNeboPrihlasit' => $u->gcPrihlasen()
         ? 'Uložit změny'
         : 'Přihlásit na GameCon',

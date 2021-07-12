@@ -1361,9 +1361,9 @@ SQL
         return $x->text('covid');
     }
 
-    public function zpracujPotvrzeniProtiCovidu() {
+    public function zpracujPotvrzeniProtiCovidu(): bool {
         if (!isset($_FILES['potvrzeniProtiCovidu']) || empty($_FILES['potvrzeniProtiCovidu']['tmp_name'])) {
-            return;
+            return false;
         }
         $f = @fopen($_FILES['potvrzeniProtiCovidu']['tmp_name'], 'rb');
         if (!$f) {
@@ -1392,6 +1392,8 @@ SQL
 
         $ted = new DateTimeImmutable();
         $this->ulozPotvrzeniProtiCoviduPridanyKdy($ted);
+
+        return true;
     }
 
     private function ulozPotvrzeniProtiCoviduPridanyKdy(?\DateTimeInterface $kdy) {

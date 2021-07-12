@@ -16,7 +16,7 @@ error_reporting($puvodni ^ E_NOTICE);
 // Základní nastavení //
 ////////////////////////
 
-@define('ROK', 2021);                    // aktuální rok -- při změně roku viz http://bit.ly/2l5olnb
+@define('ROK', 2021);                    // aktuální rok -- při změně roku viz Překlápění ročníku na Gamecon Gdrive https://docs.google.com/document/d/1H_PM70WjNpQ1Xz65OYfr1BeSTdLrNQSkScMIZEtxWEc/edit
 @define('GC_BEZI_OD', ROK . '-07-15 07:00:00');   // začátek GameConu (přepnutí stránek do režimu "úpravy na jen na infopultu")
 @define('GC_BEZI_DO', ROK . '-07-18 21:00:00');   // konec GameCou (přepnutí stránek do režimu "gc skončil, úpravy nemožné")
 @define('REG_GC_OD', ROK . '-05-13 20:21:00');   // spuštění možnosti registrace na GameCon
