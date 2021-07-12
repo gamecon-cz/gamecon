@@ -1317,29 +1317,36 @@ SQL
     }
 
     public function covidFreePotvrzeniHtml(int $rok): string {
-        $ok = '';
+        $x = new XTemplate(__DIR__ . '/uzivatel-covid-potvrzeni.xtpl');
         if ($this->maNahranyDokladProtiCoviduProRok($rok)) {
-            $ok = '<span style="padding: 0.5em;">✅</span>';
+            if ($this->maOverenePotvrzeniProtiCoviduProRok($rok, true)) {
+                $x->assign(
+                    'datumOvereniPotvrzeniProtiCovid',
+                    (new DateTimeCz($this->potvrzeniProtiCoviduOverenoKdy()->format(DATE_ATOM)))->rozdilDne(new DateTimeImmutable())
+                );
+                $x->parse('covid.nahrano.overeno');
+            } else {
+                $x->assign('urlNaSmazaniPotvrzeni', $this->urlNaSmazaniPotrvrzeniVlastnikem());
+                $x->parse('covid.nahrano.smazat');
+            }
+            $x->assign('urlNaPotvrzeniProtiCoviduProVlastnika', $this->urlNaPotvrzeniProtiCoviduProVlastnika());
+            $x->assign(
+                'datumNahraniPotvrzeniProtiCovid',
+                (new DateTimeCz($this->potvrzeniProtiCoviduPridanoKdy()->format(DATE_ATOM)))->relativni()
+            );
+            $x->parse('covid.nahrano');
+        } else {
+            if ($this->maOverenePotvrzeniProtiCoviduProRok($rok, true)) {
+                $x->assign(
+                    'datumOvereniPotvrzeniProtiCovid',
+                    (new DateTimeCz($this->potvrzeniProtiCoviduOverenoKdy()->format(DATE_ATOM)))->relativni()
+                );
+                $x->parse('covid.overenoBezDokladu');
+            }
+            $x->parse('covid.nahrat');
         }
-        return <<<HTML
-<div>
-  <div>
-    Na základě opatření ministerstva zdravotnictví a vlády ČR po tobě musíme vyžadovat, aby jsi prokázal/a (elektronickým či písemným potvrzením), že nemáš nemoc COVID-19. Splnění této podmínky je třeba doložit:
-    <ul>
-      <li>oficiálním (tj. provedeným oficiálním licencovaným odběrovým místem/laboratoří) POC antigenním nebo PCR testem s negativním výsledkem, který nebude v okamžiku registrace na Infopultu starší než (i) 72 hodin v případě POC antigenního testu, nebo (ii) 7 dní v případě PCR testu</li>
-      <li>certifikátem o provedeném očkování, u kterého v okamžiku registrace na Infopultu uplynulo již 14 dní od (i) aplikace druhé očkovací dávky (u dvoudávkového schématu) nebo od (ii) aplikace očkovací dávky (u jednodávkového schématu)</li>
-      <li>oficiálním dokladem o tom, že jsi prodělal/a laboratorně potvrzené onemocnění COVID-19, přičemž od prvního pozitivního testu v okamžiku registrace na Infopultu neuplynulo 180 dní (stačí v SMSce)</li>
-    </ul>
-  </div>
-  <label>
-    Tvé potvrzení o splnění některé z podmínek prosím nahraj zde <span style="font-size: smaller">(jen obrázek nebo PDF, do 8 MB)</span>:
-    <div style="border: 1px solid black; cursor: pointer;">
-      $ok
-      <input type="file" class="formular_input" name="potvrzeniProtiCovidu" style="display: inline; width: auto; border: none; margin: 0; cursor: pointer">
-    </div>
-  </label>
-</div>
-HTML;
+        $x->parse('covid');
+        return $x->text('covid');
     }
 
     public function zpracujPotvrzeniProtiCovidu() {
@@ -1372,24 +1379,58 @@ HTML;
         $imagick->writeImage(WWW . '/soubory/systemove/potvrzeni/covid-19-' . $this->id() . '.png');
 
         $ted = new DateTimeImmutable();
+        $this->ulozPotvrzeniProtiCoviduPridanyKdy($ted);
+    }
+
+    private function ulozPotvrzeniProtiCoviduPridanyKdy(?\DateTimeInterface $kdy) {
         dbUpdate('uzivatele_hodnoty', [
-            'potvrzeni_proti_covid19_pridano_kdy' => $ted,
+            'potvrzeni_proti_covid19_pridano_kdy' => $kdy,
         ], [
             'id_uzivatele' => $this->id(),
         ]);
-        $this->u['potvrzeni_proti_covid19_pridano_kdy'] = $ted->format('Y-m-d H:i:s');
+        $this->u['potvrzeni_proti_covid19_pridano_kdy'] = $kdy ? $kdy->format('Y-m-d H:i:s') : null;
         if ($this->klic) {
             $_SESSION[$this->klic]['potvrzeni_proti_covid19_pridano_kdy'] = $this->u['potvrzeni_proti_covid19_pridano_kdy'];
         }
     }
 
-    public function urlNaPotvrzeniProtiCovidu(): string {
+    private function ulozPotvrzeniProtiCoviduOverenoKdy(?\DateTimeInterface $kdy) {
+        dbUpdate('uzivatele_hodnoty', [
+            'potvrzeni_proti_covid19_overeno_kdy' => $kdy,
+        ], [
+            'id_uzivatele' => $this->id(),
+        ]);
+        $this->u['potvrzeni_proti_covid19_overeno_kdy'] = $kdy ? $kdy->format('Y-m-d H:i:s') : null;
+        if ($this->klic) {
+            $_SESSION[$this->klic]['potvrzeni_proti_covid19_overeno_kdy'] = $this->u['potvrzeni_proti_covid19_pridano_kdy'];
+        }
+    }
+
+    public function urlNaPotvrzeniProtiCoviduProAdmin(): string {
         // admin/scripts/zvlastni/uvod/potvrzeni-proti-covidu.php
         return URL_ADMIN . '/uvod/potvrzeni-proti-covidu?id=' . $this->id();
     }
 
+    public function urlNaPotvrzeniProtiCoviduProVlastnika(): string {
+        // admin/scripts/zvlastni/uvod/potvrzeni-proti-covidu.php
+        return URL_WEBU . '/prihlaska/potvrzeni-proti-covidu?id=' . $this->id();
+    }
+
+    public function urlNaSmazaniPotrvrzeniVlastnikem(): string {
+        // admin/scripts/zvlastni/uvod/potvrzeni-proti-covidu.php
+        return URL_WEBU . '/prihlaska/potvrzeni-proti-covidu?id=' . $this->id() . '&smazat=1';
+    }
+
     public function cestaKSouboruSPotvrzenimProtiCovidu(): string {
         return WWW . '/soubory/systemove/potvrzeni/covid-19-' . $this->id() . '.png';
+    }
+
+    public function smazPotvrzeniProtiCovidu() {
+        if (is_file($this->cestaKSouboruSPotvrzenimProtiCovidu())) {
+            unlink($this->cestaKSouboruSPotvrzenimProtiCovidu());
+        }
+        $this->ulozPotvrzeniProtiCoviduPridanyKdy(null);
+        $this->ulozPotvrzeniProtiCoviduOverenoKdy(null);
     }
 
     public function potvrzeniProtiCoviduPridanoKdy(): ?\DateTimeInterface {

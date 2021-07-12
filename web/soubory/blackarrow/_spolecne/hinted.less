@@ -1,0 +1,47 @@
+.hinted {
+  border-bottom: dotted 1px;
+  cursor: pointer;
+  margin-bottom: -1px;
+  display: inline-block;
+}
+
+.hinted .hint {
+  display: none;
+}
+
+.hinted:hover .hint {
+  @sh: 8px;
+  line-height: 130%;
+  font-size: 14px;
+  font-weight: normal;
+  color: #fff;
+  z-index: 10;
+  border-radius: 4px;
+  display: block;
+  position: absolute;
+  max-width: 20em;
+  padding: 0.8em;
+  background-color: rgba(0, 0, 0, 0.8);
+  margin-top: @sh;
+  margin-left: -5px;
+  text-shadow: 0 0 2px #000;
+
+  &:before {
+    content: " ";
+    display: block;
+    border: solid @sh transparent;
+    border-bottom-color: rgba(0, 0, 0, 0.8);
+    position: absolute;
+    top: -2*@sh;
+    left: 15px;
+  }
+
+  a:before {
+    content: " ";
+    position: absolute;
+    top: -@sh;
+    left: 0;
+    height: @sh;
+    width: 100%;
+  }
+}

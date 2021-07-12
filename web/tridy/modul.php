@@ -81,7 +81,7 @@ class Modul
 
     /** Název modulu (odpovídá části názvu souboru) */
     protected function nazev() {
-        return preg_replace('@moduly/(.*)\.php@', '$1', $this->src);
+        return basename($this->src, '.php');
     }
 
     /** Setter/getter pro parametr (proměnnou) předanou dovnitř modulu */
@@ -148,20 +148,45 @@ class Modul
     }
 
     /** Načte modul odpovídající dané Url (pokud není zadaná, použije aktuální) */
-    static function zUrl(Url $url = null) {
-        if (!$url) $url = Url::zAktualni()->cast(0);
-        if (!$url) $url = self::VYCHOZI;
-        return self::zNazvu($url);
+    static function zUrl(Url $urlObjekt = null) {
+        $url = null;
+        $podstranka = null;
+        if (!$urlObjekt) {
+            $urlObjekt = Url::zAktualni();
+            $url = $urlObjekt->cast(0);
+            $podstranka = $urlObjekt->cast(1);
+        }
+        if (!$urlObjekt) {
+            $url = self::VYCHOZI;
+        }
+        return self::zNazvu($url, $podstranka);
     }
 
     /** Načte modul podle daného názvu */
-    static function zNazvu($nazev) {
-        $soubor = 'moduly/' . $nazev . '.php';
-        if (is_file($soubor)) {
-            return new self($soubor);
-        } else {
-            return null;
+    static function zNazvu(?string $nazev, string $podstranka = null): ?self {
+        if ($nazev) {
+            if ($podstranka) {
+                $soubor = "moduly/{$nazev}/{$podstranka}.php";
+                if (is_file($soubor)) {
+                    return new self($soubor);
+                }
+                $soubor = "moduly/{$nazev}/bez-stranky/{$podstranka}.php";
+                if (is_file($soubor)) {
+                    $modul = new self($soubor);
+                    $modul->bezStranky(true);
+                    return $modul;
+                }
+            }
+            $soubor = "moduly/{$nazev}.php";
+            if (is_file($soubor)) {
+                return new self($soubor);
+            }
+            $soubor = "moduly/{$nazev}/{$nazev}.php";
+            if (is_file($soubor)) {
+                return new self($soubor);
+            }
         }
+        return null;
     }
 
 }
