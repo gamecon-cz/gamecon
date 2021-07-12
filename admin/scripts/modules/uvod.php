@@ -11,6 +11,8 @@
 use \Gamecon\Cas\DateTimeCz;
 use \Gamecon\Cas\DateTimeGamecon;
 
+/** @var Uzivatel|null|void $uPracovni */
+
 if (!empty($_POST['datMaterialy']) && $uPracovni && $uPracovni->gcPrihlasen()) {
     $uPracovni->dejZidli(Z_PRITOMEN);
     back();
@@ -85,7 +87,7 @@ if (post('poznamkaNastav')) {
     back();
 }
 
-if (post('zmenitUdaj')) {
+if (post('zmenitUdaj') && $uPracovni) {
     $udaje = post('udaj');
     if ($udaje['op'] ?? null) {
         $uPracovni->cisloOp($udaje['op']);
