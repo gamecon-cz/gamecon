@@ -20,13 +20,15 @@
   </div>
   <div style="border: 1px solid black">
     <!-- begin:nahrano -->
-    <a href="{urlNaPotvrzeniProtiCoviduProVlastnika}" style="padding: 1em; display: inline-block">Tvé Covid potvrzení
+    <span style="display: block; padding: 1em">
+      <a href="{urlNaPotvrzeniProtiCoviduProVlastnika}">Tvé Covid potvrzení
       <span style="font-size: smaller">(nahráno
       {datumNahraniPotvrzeniProtiCovid})</span></a>
-    <!-- begin:smazat -->
-    <a href="{urlNaSmazaniPotvrzeni}" onclick="return confirm('Opravdu chceš odstranit nahrané potvrzení?')"><span
-        class="hinted">❌<span class="hint">Chceš-li nahrát jiné potvrzení, smaž současné.</span></span></a>
-    <!-- end:smazat -->
+      <!-- begin:smazat -->
+      <a href="{urlNaSmazaniPotvrzeni}" onclick="return confirm('Opravdu chceš odstranit nahrané potvrzení?') && !smazCovidPotvrzeni(this.href)"><span
+          class="hinted">❌<span class="hint">Chceš-li nahrát jiné potvrzení, smaž současné.</span></span></a>
+      <!-- end:smazat -->
+    </span>
     <!-- begin:overeno -->
     <span class="hinted" style="padding: 0.5em;">
         ✅
@@ -39,7 +41,7 @@
       <span
           style="margin: 0.5em; display: inline-block">Tvé potvrzení o splnění některé z podmínek prosím nahraj zde <span
           style="font-size: smaller">(jen obrázek nebo PDF, do 8 MB)</span>:</span>
-      <input type="file" class="formular_input" name="potvrzeniProtiCovidu"
+      <input type="file" class="formular_input" name="potvrzeniProtiCovidu" id="potvrzeniProtiCovidu"
              style="display: inline; width: auto; border: none; margin: 0; cursor: pointer">
     </label>
     <!-- end:nahrat -->
