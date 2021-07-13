@@ -50,6 +50,14 @@ for ($i = 2009; $i <= $maxRok; $i++) {
     $ucastPodleRoku[$i] = 'účast ' . $i;
 }
 
+$letosniPlacky = dbFetchPairs(<<<SQL
+SELECT shop_predmety.id_predmetu, CONCAT_WS(' ', TRIM(shop_predmety.nazev), model_rok)
+FROM shop_predmety
+WHERE nazev LIKE '%placka%' COLLATE utf8_czech_ci
+AND stav > 0
+SQL, [ROK]
+);
+
 $letosniKostky = dbFetchPairs(<<<SQL
 SELECT shop_predmety.id_predmetu, CONCAT_WS(' ', TRIM(shop_predmety.nazev), model_rok)
 FROM shop_predmety
@@ -68,6 +76,22 @@ ORDER BY FIELD(SUBSTRING(TRIM(shop_predmety.nazev), 1, POSITION(' ' IN TRIM(shop
 SQL, [Shop::JIDLO, ROK]
 );
 
+$letosniTricka = dbFetchPairs(<<<SQL
+SELECT shop_predmety.id_predmetu, CONCAT_WS(' ', TRIM(shop_predmety.nazev), model_rok)
+FROM shop_predmety
+WHERE nazev LIKE '%tričko%' COLLATE utf8_czech_ci
+AND stav > 0
+SQL
+);
+
+$letosniTilka = dbFetchPairs(<<<SQL
+SELECT shop_predmety.id_predmetu, CONCAT_WS(' ', TRIM(shop_predmety.nazev), model_rok)
+FROM shop_predmety
+WHERE nazev LIKE '%tílko%' COLLATE utf8_czech_ci
+AND stav > 0
+SQL
+);
+
 $letosniOstatniPredmety = dbFetchPairs(<<<SQL
 SELECT shop_predmety.id_predmetu, TRIM(shop_predmety.nazev)
 FROM shop_predmety
@@ -75,7 +99,7 @@ WHERE shop_predmety.typ = $1
 AND stav > 0
 AND (TRIM(nazev) IN ('GameCon blok', 'Nicknack') OR nazev LIKE '%ponožky%' COLLATE utf8_czech_ci)
 ORDER BY TRIM(shop_predmety.nazev)
-SQL, [Shop::PREDMET, ROK]
+SQL, [Shop::PREDMET]
 );
 
 $hlavicka = array_merge(
@@ -95,6 +119,13 @@ $sqlNaPocetJednohoPredmetu = static function (int $idPredmetu): string {
      JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok={$rok} AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.id_predmetu = {$idPredmetu} GROUP BY shop_predmety.id_predmetu), 0)
 SQL;
 };
+$sqlSPoctemPlacek = (static function () use ($letosniPlacky, $sqlNaPocetJednohoPredmetu): string {
+    $sqlCasti = [];
+    foreach ($letosniPlacky as $idPlacky => $nazevPlacky) {
+        $sqlCasti[] = "({$sqlNaPocetJednohoPredmetu((int)$idPlacky)}) AS `$nazevPlacky`";
+    }
+    return implode(',', $sqlCasti);
+})();
 $sqlSPoctemKostek = (static function () use ($letosniKostky, $sqlNaPocetJednohoPredmetu): string {
     $sqlCasti = [];
     foreach ($letosniKostky as $idKostky => $nazevKostky) {
@@ -106,6 +137,20 @@ $sqlSPoctemJidel = (static function () use ($letosniJidla, $sqlNaPocetJednohoPre
     $sqlCasti = [];
     foreach ($letosniJidla as $idJidla => $nazevJidla) {
         $sqlCasti[] = "({$sqlNaPocetJednohoPredmetu((int)$idJidla)}) AS `$nazevJidla`";
+    }
+    return implode(',', $sqlCasti);
+})();
+$sqlSPoctemTricek = (static function () use ($letosniTricka, $sqlNaPocetJednohoPredmetu): string {
+    $sqlCasti = [];
+    foreach ($letosniTricka as $idTricka => $nazevTricka) {
+        $sqlCasti[] = "({$sqlNaPocetJednohoPredmetu((int)$idTricka)}) AS `$nazevTricka`";
+    }
+    return implode(',', $sqlCasti);
+})();
+$sqlSPoctemTilek = (static function () use ($letosniTilka, $sqlNaPocetJednohoPredmetu): string {
+    $sqlCasti = [];
+    foreach ($letosniTilka as $idTilka => $nazevTilka) {
+        $sqlCasti[] = "({$sqlNaPocetJednohoPredmetu((int)$idTilka)}) AS `$nazevTilka`";
     }
     return implode(',', $sqlCasti);
 })();
@@ -127,8 +172,11 @@ SELECT
     ( SELECT MIN(shop_predmety.ubytovani_den) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=$rok AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.typ=2 ) AS den_prvni,
     ( SELECT MAX(shop_predmety.ubytovani_den) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=$rok AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.typ=2 ) AS den_posledni,
     ( SELECT GROUP_CONCAT(shop_predmety.nazev SEPARATOR ', ') FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=$rok AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.typ=2 ) AS ubytovani_typ,
+    $sqlSPoctemPlacek,
     $sqlSPoctemKostek,
     $sqlSPoctemJidel,
+    $sqlSPoctemTricek,
+    $sqlSPoctemTilek,
     $sqlSPoctemOstatnichPredmetu,
     ( SELECT GROUP_CONCAT(r_prava_soupis.jmeno_prava SEPARATOR ', ')
       FROM r_uzivatele_zidle
@@ -175,8 +223,11 @@ foreach ($hlavicka as $hlavni => $vedlejsiHlavicka) {
     }
 }
 
+$letosniPlackyKlice = array_fill_keys($letosniPlacky, null);
 $letosniKostkyKlice = array_fill_keys($letosniKostky, null);
 $letosniJidlaKlice = array_fill_keys($letosniJidla, null);
+$letosniTrickaKlice = array_fill_keys($letosniTricka, null);
+$letosniTilkaKlice = array_fill_keys($letosniTilka, null);
 $letosniOstatniPredmetyKlice = array_fill_keys($letosniOstatniPredmety, null);
 
 while ($r = mysqli_fetch_assoc($o)) {
@@ -193,9 +244,46 @@ while ($r = mysqli_fetch_assoc($o)) {
         $stat = $un->stat();
     } catch (Exception $e) {
     }
+    $letosniPlackyPocty = array_intersect_key($r, $letosniPlackyKlice);
+    $pocetLetosnichPlacek = (int)array_sum($letosniPlackyPocty);
+    $pocetLetosnichPlacekZdarma = min($pocetLetosnichPlacek, $finance->maximalniPocetPlacekZdarma());
+    $pocetLetosnichPlacekPlacenych = $pocetLetosnichPlacek - $pocetLetosnichPlacekZdarma;
+
     $letosniKostkyPocty = array_intersect_key($r, $letosniKostkyKlice);
+    $pocetLetosnichKostek = (int)array_sum($letosniKostkyPocty);
+    $pocetLetosnichKostekZdarma = min($pocetLetosnichKostek, $finance->maximalniPocetKostekZdarma());
+
+    $letosniTrickaPocty = array_intersect_key($r, $letosniTrickaKlice);
+    $pocetLetosnichTricek = (int)array_sum($letosniTrickaPocty);
+    $letosniModraTrickaPocty = array_filter($letosniTrickaPocty, static function (string $nazevTricka) {
+        return mb_stripos($nazevTricka, 'modré');
+    }, ARRAY_FILTER_USE_KEY);
+    $pocetLetosnichModrychTricek = (int)array_sum($letosniModraTrickaPocty);
+    // tech co jsou zdarma jen kvuli specialnimu pravu na modre tricko zdarma
+    $pocetLetosnichModrychTricekZdarma = min($pocetLetosnichModrychTricek, $finance->maximalniPocetModrychTricekZdarma());
+    // mohou to byt i modra tricka, ale bez tech, co byly zdarma kvuli specialnimu pravu na modre tricko
+    $pocetLetosnichTricekBezModrychZdarma = (int)array_sum($letosniTrickaPocty) - $pocetLetosnichModrychTricekZdarma;
+    $pocetLetosnichTricekZdarma = min($pocetLetosnichTricekBezModrychZdarma, $finance->maximalniPocetLibovolnychTricekZdarma()) + $pocetLetosnichModrychTricekZdarma;
+    $pocetLetosnichTricekPlacenych = $pocetLetosnichTricek - $pocetLetosnichTricekZdarma;
+
+    // POZOR, tady predpokladame, ze kdo si kupuje tilka, nekupuje si tricka - pokud jo, tak maximalniPocet...() nebude sedet
+    $letosniTilkaPocty = array_intersect_key($r, $letosniTilkaKlice);
+    $pocetLetosnichTilek = (int)array_sum($letosniTilkaPocty);
+    $letosniModraTilkaPocty = array_filter($letosniTilkaPocty, static function (string $nazevTilka) {
+        return mb_stripos($nazevTilka, 'modré');
+    }, ARRAY_FILTER_USE_KEY);
+    $pocetLetosnichModrychTilek = (int)array_sum($letosniModraTilkaPocty);
+    // tech co jsou zdarma jen kvuli specialnimu pravu na modre tricko zdarma
+    $pocetLetosnichModrychTilekZdarma = min($pocetLetosnichModrychTilek, $finance->maximalniPocetModrychTricekZdarma());
+    // mohou to byt i modra tricka, ale bez tech, co byly zdarma kvuli specialnimu pravu na modre tricko
+    $pocetLetosnichTilekBezModrychZdarma = (int)array_sum($letosniTilkaPocty) - $pocetLetosnichModrychTilekZdarma;
+    $pocetLetosnichTilekZdarma = min($pocetLetosnichTilekBezModrychZdarma, $finance->maximalniPocetLibovolnychTricekZdarma()) + $pocetLetosnichModrychTilekZdarma;
+    $pocetLetosnichTilekPlacenych = $pocetLetosnichTilek - $pocetLetosnichTilekZdarma;
+
     $letosniJidlaPocty = array_intersect_key($r, $letosniJidlaKlice);
+
     $letosniOstatniPredmetyPocty = array_intersect_key($r, $letosniOstatniPredmetyKlice);
+
     $obsah[] = array_merge(
         [
             $r['id_uzivatele'], // 'ID'
@@ -252,20 +340,20 @@ while ($r = mysqli_fetch_assoc($o)) {
             strip_tags($r['poznamka'] ?? ''),
         ],
         [
-            $finance->slevaZaAktivityVProcentech(),
-            '?', // TODO placka zdarma
-            '?', // TODO placka GC placená
-            '?', // TODO kostka zdarma
+            $finance->slevaZaAktivityVProcentech(), // sleva
+            $pocetLetosnichPlacekZdarma, // placka zdarma
+            $pocetLetosnichPlacekPlacenych, // placka GC placená
+            $pocetLetosnichKostekZdarma, // kostka zdarma
         ],
         $letosniKostkyPocty,
         $letosniJidlaPocty,
         [
-            '?', // TODO tričko zdarma
-            '?', // TODO tílko zdarma
+            $pocetLetosnichTricekZdarma, // tričko zdarma
+            $pocetLetosnichTilekZdarma, // tílko zdarma
             '?', // TODO tričko se slevou
             '?', // TODO tílko se slevou
-            '?', // TODO účastnické tričko placené
-            '?', // TODO účastnické tílko placené
+            $pocetLetosnichTricekPlacenych, // účastnické tričko placené
+            $pocetLetosnichTilekPlacenych, // účastnické tílko placené
         ],
         $letosniOstatniPredmetyPocty,
     );
