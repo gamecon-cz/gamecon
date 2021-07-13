@@ -10,6 +10,7 @@ function pripravSeNaNahravaniPotvrzeniProtiCovidu() {
 }
 
 function nahrajCovidPotvrzeni(event) {
+  pracujiNaZmeneCovidPotvrzeni()
   const xhr = new XMLHttpRequest()
 
   xhr.open("POST", window.location.href, true)
@@ -21,21 +22,7 @@ function nahrajCovidPotvrzeni(event) {
       if (xhr.readyState === XMLHttpRequest.DONE) {
         const status = xhr.status
         if (status === 0 || (status >= 200 && status < 400)) {
-          const responseText = xhr.responseText
-          if (responseText) {
-            const responseJson = JSON.parse(responseText)
-            if (responseJson.covidSekce) {
-              const covidSekceElement = document.getElementById('covidSekce')
-              if (covidSekceElement) {
-                covidSekceElement.outerHTML = responseJson.covidSekce
-                pripravSeNaNahravaniPotvrzeniProtiCovidu()
-                const pridatPotvrzeniProtiCoviduInputy = document.getElementsByName('pridatPotvrzeniProtiCovidu')
-                pridatPotvrzeniProtiCoviduInputy.forEach(function (pridatPotvrzeniProtiCoviduInput) {
-                  pridatPotvrzeniProtiCoviduInput.style.display = 'none'
-                })
-              }
-            }
-          }
+          aktualizujCovidSekci(xhr.responseText, false)
         } else {
           // nekdy jindy
         }
@@ -51,7 +38,33 @@ function nahrajCovidPotvrzeni(event) {
   xhr.send(formData)
 }
 
+function pracujiNaZmeneCovidPotvrzeni() {
+  const placeholderyProIndikatorZmenyCovidPotrvzeni = document.getElementsByClassName('placeholderProIndikatorZmenyCovidPotrvzeni')
+  Array.from(placeholderyProIndikatorZmenyCovidPotrvzeni).forEach((placeholder) => placeholder.outerHTML = '<img src="soubory/blackarrow/prihlaska/ajax-loader.gif" alt="Loading" style="vertical-align: middle">')
+}
+
+function aktualizujCovidSekci(responseText, zobrazTlacitko) {
+  if (!responseText) {
+    return
+  }
+  const responseJson = JSON.parse(responseText)
+  if (!responseJson.covidSekce) {
+    return
+  }
+  const covidSekceElement = document.getElementById('covidSekce')
+  if (!covidSekceElement) {
+    return
+  }
+  covidSekceElement.outerHTML = responseJson.covidSekce
+  pripravSeNaNahravaniPotvrzeniProtiCovidu()
+  const pridatPotvrzeniProtiCoviduInputy = document.getElementsByName('pridatPotvrzeniProtiCovidu')
+  pridatPotvrzeniProtiCoviduInputy.forEach(function (pridatPotvrzeniProtiCoviduInput) {
+    pridatPotvrzeniProtiCoviduInput.style.display = zobrazTlacitko ? 'inherit' : 'none'
+  })
+}
+
 function smazCovidPotvrzeni(url) {
+  pracujiNaZmeneCovidPotvrzeni()
   const xhr = new XMLHttpRequest()
 
   xhr.open("GET", url + '&ajax=1', true)
@@ -62,21 +75,7 @@ function smazCovidPotvrzeni(url) {
       if (xhr.readyState === XMLHttpRequest.DONE) {
         const status = xhr.status
         if (status === 0 || (status >= 200 && status < 400)) {
-          const responseText = xhr.responseText
-          if (responseText) {
-            const responseJson = JSON.parse(responseText)
-            if (responseJson.covidSekce) {
-              const covidSekceElement = document.getElementById('covidSekce')
-              if (covidSekceElement) {
-                covidSekceElement.outerHTML = responseJson.covidSekce
-                pripravSeNaNahravaniPotvrzeniProtiCovidu()
-                const pridatPotvrzeniProtiCoviduInputy = document.getElementsByName('pridatPotvrzeniProtiCovidu')
-                pridatPotvrzeniProtiCoviduInputy.forEach(function (pridatPotvrzeniProtiCoviduInput) {
-                  pridatPotvrzeniProtiCoviduInput.style.display = 'inherit'
-                })
-              }
-            }
-          }
+          aktualizujCovidSekci(xhr.responseText, true)
         } else {
           // nekdy jindy
         }
