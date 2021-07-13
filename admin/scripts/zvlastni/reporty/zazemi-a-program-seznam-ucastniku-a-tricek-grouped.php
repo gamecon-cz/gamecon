@@ -5,7 +5,7 @@ $typTricko = Shop::TRICKO;
 $typPredmet = Shop::PREDMET;
 $typJidlo = Shop::JIDLO;
 $rok = ROK;
-$idZidliSOrganizatorySql = implode(',', \Gamecon\Zidle::dejIdZidliSOrganizatory());
+$idckaZidliSOrganizatorySql = implode(',', \Gamecon\Zidle::dejIdckaZidliSOrganizatory());
 
 $poddotazKoupenehoPredmetu = static function (string $klicoveSlovo, int $idTypuPredmetu, int $rok) {
     return <<<SQL
@@ -38,7 +38,7 @@ SELECT uzivatele_hodnoty.id_uzivatele,
        {$poddotazKoupenehoPredmetu('ponožky', $typPredmet, $rok)} AS ponozky,
        IF ({$poddotazKoupenehoPredmetu('', $typJidlo, $rok)} IS NULL, '', 'stravenky') AS stravenky
 FROM uzivatele_hodnoty
-LEFT JOIN r_uzivatele_zidle ON uzivatele_hodnoty.id_uzivatele = r_uzivatele_zidle.id_uzivatele AND r_uzivatele_zidle.id_zidle IN ($idZidliSOrganizatorySql)
+LEFT JOIN r_uzivatele_zidle ON uzivatele_hodnoty.id_uzivatele = r_uzivatele_zidle.id_uzivatele AND r_uzivatele_zidle.id_zidle IN ($idckaZidliSOrganizatorySql)
 GROUP BY uzivatele_hodnoty.id_uzivatele
 SQL
 );
