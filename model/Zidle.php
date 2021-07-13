@@ -106,7 +106,7 @@ class Zidle extends \DbObject
     /**
      * @return int[]
      */
-    public static function dejIdZidliSOrganizatory(): array {
+    public static function dejIdckaZidliSOrganizatory(): array {
         return [self::ORGANIZATOR, self::ORGANIZATOR_S_BONUSY_1, self::ORGANIZATOR_S_BONUSY_2];
     }
 
