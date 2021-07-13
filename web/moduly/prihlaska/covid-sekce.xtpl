@@ -1,6 +1,6 @@
 <!-- begin:covid -->
 
-<div class="prihlaska_sekce">
+<div class="prihlaska_sekce" id="covidSekce">
   <h2>Covid-19</h2>
 
   <div class="prihlaska_infoPruh">
@@ -12,7 +12,7 @@
       </div>
     </div>
   </div>
-
+  <!-- \Uzivatel::covidFreePotvrzeniHtml model/uzivatel-covid-potvrzeni.xtpl -->
   {covidFreePotvrzeni}
 </div>
 

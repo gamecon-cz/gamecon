@@ -1,7 +1,11 @@
 <?php
 /**
+ * @var Modul $this
  * @var Uzivatel|void $u
  */
+
+$this->bezStranky(true);
+
 if (empty($u)) {
     header('HTTP/1.1 403 Forbidden');
     echo 'Forbidden 🚫';
@@ -24,6 +28,11 @@ if ($idUzivatele !== $u->id()) {
 
 if (get('smazat')) {
     $u->smazPotvrzeniProtiCovidu();
+    if (is_ajax()) {
+        $covidSekceFunkce = require __DIR__ . '/covid-sekce-funkce.php';
+        echo json_encode(['covidSekce' => $covidSekceFunkce($u->dejShop())]);
+        exit();
+    }
     oznameni('Tvé potvrzení ke Covidu bylo smazáno.');
     back();
 }

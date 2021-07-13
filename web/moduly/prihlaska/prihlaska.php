@@ -5,16 +5,12 @@ use \Gamecon\Cas\DateTimeCz;
 /** @var XTemplate $t */
 /** @var Uzivatel $u */
 
+$this->pridejJsSoubor('soubory/blackarrow/prihlaska/prihlaska.js');
 $this->blackarrowStyl(true);
 $this->bezPaticky(true);
 $this->info()->nazev('Přihláška');
 
-$covidSekce = static function (Shop $shop): string {
-    $covidTemplate = new XTemplate(__DIR__ . '/covid-sekce.xtpl');
-    $covidTemplate->assign('covidFreePotvrzeni', $shop->covidFreePotrvzeniHtml((int)date('Y')));
-    $covidTemplate->parse('covid');
-    return $covidTemplate->text('covid');
-};
+$covidSekceFunkce = require __DIR__ . '/covid-sekce-funkce.php';
 
 /**
  * Pomocná funkce pro náhled předmětu pro aktuální ročník
@@ -33,8 +29,16 @@ function nahledPredmetu($soubor) {
 
 if (post('pridatPotvrzeniProtiCovidu')) {
     if (!$u->zpracujPotvrzeniProtiCovidu()) {
+        if (is_ajax()) {
+            echo json_encode(['chyba' => 'Potvrzení se nezdařilo nahrát.']);
+            exit;
+        }
         chyba('Nejdříve vlož potvrzení.');
     } else {
+        if (is_ajax()) {
+            echo json_encode(['covidSekce' => $covidSekceFunkce($u->dejShop())]);
+            exit;
+        }
         oznameni('Potvrzení bylo uloženo.');
     }
 }
@@ -43,7 +47,7 @@ if (GC_BEZI || ($u && $u->gcPritomen())) {
     // zpřístupnit varianty mimo registraci i pro nepřihlášeného uživatele kvůli
     // příchodům z titulky, menu a podobně
     if ($u) {
-        $t->assign('covidSekce', $covidSekce(new Shop($u)));
+        $t->assign('covidSekce', $covidSekceFunkce(new Shop($u)));
         $t->parse('prihlaskaGcBezi.covidSekce.doklad');
         $letosniRok = (int)date('Y');
         if (!$u->maNahranyDokladProtiCoviduProRok($letosniRok) && !$u->maOverenePotvrzeniProtiCoviduProRok($letosniRok)) {
@@ -142,7 +146,7 @@ $t->assign([
     'predmety' => $shop->predmetyHtml(),
     'rok' => ROK,
     'ubytovani' => $shop->ubytovaniHtml(),
-    'covidSekce' => $covidSekce($shop),
+    'covidSekce' => $covidSekceFunkce($shop),
     'ulozitNeboPrihlasit' => $u->gcPrihlasen()
         ? 'Uložit změny'
         : 'Přihlásit na GameCon',
