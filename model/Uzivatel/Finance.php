@@ -26,12 +26,12 @@ class Finance
     private
         $stav = 0,  // celkový výsledný stav uživatele na účtu
         $deltaPozde = 0,      // o kolik se zvýší platba při zaplacení pozdě
-        $scnA,              // součinitel ceny aktivit
+        $soucinitelCenyAKtivit,              // součinitel ceny aktivit
         $logovat = true,    // ukládat seznam předmětů?
         $cenik,             // instance ceníku
         // tabulky s přehledy
         $prehled = [],   // tabulka s detaily o platbách
-        $slevyA = [],    // pole s textovými popisy slev uživatele na aktivity
+        $slevyNaAktivity = [],    // pole s textovými popisy slev uživatele na aktivity
         $slevyO = [],    // pole s textovými popisy obecných slev
         $proplacenyBonusZaVedeniAktivit = 0, // "sleva" za aktivity, nebo-li bonus vypravěče, nebo-li odměna za vedení hry, převedená na peníze
         // součásti výsledné ceny
@@ -413,7 +413,31 @@ class Finance
      */
     public function slevyAktivity() {
         //return $this->cenik->slevyObecne();
-        return $this->slevyA;
+        return $this->slevyNaAktivity;
+    }
+
+    public function maximalniPocetPlacekZdarma(): int {
+        return $this->u->maPravo(P_PLACKA_ZDARMA)
+            ? 1
+            : 0;
+    }
+
+    public function maximalniPocetKostekZdarma(): int {
+        return $this->u->maPravo(P_KOSTKA_ZDARMA)
+            ? 1
+            : 0;
+    }
+
+    public function maximalniPocetLibovolnychTricekZdarma(): int {
+        return $this->u->maPravo(P_DVE_TRICKA_ZDARMA)
+            ? 2
+            : 0;
+    }
+
+    public function maximalniPocetModrychTricekZdarma(): int {
+        return $this->u->maPravo(P_TRICKO_ZA_SLEVU_MODRE) && $this->bonusZaVedeniAktivit() >= MODRE_TRICKO_ZDARMA_OD
+            ? 1
+            : 0;
     }
 
     /**
@@ -428,18 +452,18 @@ class Finance
      * aktivitám. Vrátí hodnotu.
      */
     private function soucinitelAktivit() {
-        if (!isset($this->scnA)) {
+        if (!isset($this->soucinitelCenyAKtivit)) {
             // pomocné proměnné
             $sleva = 0; // v procentech
             // výpočet pravidel
             if ($this->u->maPravo(P_AKTIVITY_ZDARMA)) {
                 // sleva 100%
-                $sleva          += 100;
-                $this->slevyA[] = 'sleva 100%';
+                $sleva                   += 100;
+                $this->slevyNaAktivity[] = 'sleva 100%';
             } elseif ($this->u->maPravo(P_AKTIVITY_SLEVA)) {
                 // sleva 40%
-                $sleva          += 40;
-                $this->slevyA[] = 'sleva 40%';
+                $sleva                   += 40;
+                $this->slevyNaAktivity[] = 'sleva 40%';
             }
             if ($sleva > self::$maxSlevaAktivit) {
                 // omezení výše slevy na maximální hodnotu
@@ -447,9 +471,9 @@ class Finance
             }
             $slevaAktivity = (100 - $sleva) / 100;
             // výsledek
-            $this->scnA = $slevaAktivity;
+            $this->soucinitelCenyAKtivit = $slevaAktivity;
         }
-        return $this->scnA;
+        return $this->soucinitelCenyAKtivit;
     }
 
     public function vstupne() {
