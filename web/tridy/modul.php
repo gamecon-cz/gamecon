@@ -170,12 +170,6 @@ class Modul
                 if (is_file($soubor)) {
                     return new self($soubor);
                 }
-                $soubor = "moduly/{$nazev}/bez-stranky/{$podstranka}.php";
-                if (is_file($soubor)) {
-                    $modul = new self($soubor);
-                    $modul->bezStranky(true);
-                    return $modul;
-                }
             }
             $soubor = "moduly/{$nazev}.php";
             if (is_file($soubor)) {
