@@ -440,6 +440,14 @@ class Finance
             : 0;
     }
 
+    public function muzeObjednavatModreTrickoSeSlevou(): bool {
+        return $this->u->maPravo(P_TRICKO_MODRA_BARVA);
+    }
+
+    public function muzeObjednavatCerveneTrickoSeSlevou(): bool {
+        return $this->u->maPravo(P_TRICKO_CERVENA_BARVA);
+    }
+
     /**
      * Viz ceník
      */
