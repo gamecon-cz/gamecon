@@ -476,7 +476,7 @@ SQL,
         return array_filter($povinneUdaje, $validator, ARRAY_FILTER_USE_KEY);
     }
 
-    public function maPravo($pravo) {
+    public function maPravo($pravo): bool {
         return in_array($pravo, $this->prava());
     }
 
