@@ -420,7 +420,7 @@ SQL
         return $this->u['email1_uzivatele'];
     }
 
-    public function maPravo($pravo) {
+    public function maPravo($pravo): bool {
         if (!isset($this->u['prava'])) {
             $this->nactiPrava();
         }
