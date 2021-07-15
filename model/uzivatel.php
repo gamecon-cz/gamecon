@@ -303,7 +303,9 @@ SQL
 
     /** Opustil uživatel GC? */
     public function gcOdjel() {
-        if (!$this->gcPritomen()) return false; // ani nedorazil, nemohl odjet
+        if (!$this->gcPritomen()) {
+            return false; // ani nedorazil, nemohl odjet
+        }
         return $this->maZidli(Z_ODJEL);
     }
 
