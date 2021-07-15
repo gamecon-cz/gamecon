@@ -16,7 +16,7 @@
   .radek > div {
     float: left;
     width: 16mm;
-    height: 32mm;
+    height: 16mm;
     padding: 2mm;
     border-left: solid 0.3mm;
     overflow: hidden;
@@ -40,17 +40,13 @@
 
 </style>
 
-<h1 style="color: red">Tisknout na šířku!</h1>
-
 <!-- begin:uzivatel -->
 <div class="radek">
-  <div>{login_uzivatele} ({id_uzivatele})</div>
   <!-- begin:jidlo -->
   <div class="jidlo">
     <img src="../files/design/logo.png">
     <div>
       {nazev}
-      <br><br>{login_uzivatele} ({id_uzivatele})
     </div>
   </div>
   <!-- end:jidlo -->
