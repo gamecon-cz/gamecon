@@ -124,7 +124,7 @@ class Program
     /**
      * Přímý tisk programu na výstup
      */
-    function tisk() {
+    public function tisk() {
         $this->init();
 
         $aktivita = $this->dalsiAktivita();
@@ -262,9 +262,9 @@ class Program
     /**
      * Vytisknutí konkrétní aktivity (formátování atd...)
      */
-    private function tiskAktivity(array $a) {
+    private function tiskAktivity(array $aktivitaRaw) {
         /** @var Aktivita $aktivitaObjekt */
-        $aktivitaObjekt = $a['obj'];
+        $aktivitaObjekt = $aktivitaRaw['obj'];
 
         // určení css tříd
         $classes = [];
@@ -289,7 +289,7 @@ class Program
         $classes = $classes ? ' class="' . implode(' ', $classes) . '"' : '';
 
         // název a url aktivity
-        echo '<td colspan="' . $a['del'] . '"><div' . $classes . '>';
+        echo '<td colspan="' . $aktivitaRaw['del'] . '"><div' . $classes . '>';
         echo '<a href="' . $aktivitaObjekt->url() . '" target="_blank" class="programNahled_odkaz" data-program-nahled-id="' . $aktivitaObjekt->id() . '">' . $aktivitaObjekt->nazev() . '</a>';
 
         // doplňkové informace (druhý řádek)
@@ -297,7 +297,7 @@ class Program
             echo ' (' . $aktivitaObjekt->orgJmena() . ') ';
         }
 
-        if ($a['del'] > 1) {
+        if ($aktivitaRaw['del'] > 1) {
             $obsazenost = $aktivitaObjekt->obsazenost();
             if ($obsazenost) {
                 echo '<span class="program_obsazenost">' . $obsazenost . '</span>';
@@ -327,9 +327,11 @@ class Program
             echo $aktivitaObjekt->vyberTeamu($this->u);
         }
 
-        $lokace = $aktivitaObjekt->lokace();
-        if ($lokace) {
-            echo '<div class="program_lokace">' . $lokace . '</div>';
+        if ($this->u && ($this->u->maZidli(Z_INFO) || $this->u->maPravo(P_TITUL_ORG))) {
+            $lokace = $aktivitaObjekt->lokace();
+            if ($lokace) {
+                echo '<div class="program_lokace">' . $lokace . '</div>';
+            }
         }
 
         echo '</div></td>';
@@ -338,7 +340,7 @@ class Program
     /**
      * Vytiskne tabulku programu
      */
-    function tiskTabulky(&$aktivita, $denId = null) {
+    private function tiskTabulky(?array &$aktivitaRaw, $denId = null) {
         echo '<table class="' . $this->nastaveni['tableClass'] . '">';
 
         // tisk hlavičkového řádku s čísly
@@ -348,7 +350,7 @@ class Program
         }
         echo '</tr>';
 
-        $this->tiskObsahuTabulky($aktivita, $denId);
+        $this->tiskObsahuTabulky($aktivitaRaw, $denId);
 
         echo '</table>';
     }
@@ -356,26 +358,26 @@ class Program
     /**
      * Vytiskne obsah (vnitřní řádky) tabulky
      */
-    function tiskObsahuTabulky(&$aktivita, $denId = null) {
+    private function tiskObsahuTabulky(?array &$aktivitaRaw, $denId = null) {
         $aktivit = 0;
         foreach ($this->skupiny as $typ => $typNazev) {
             // pokud v skupině není aktivita a nemají se zobrazit prázdné skupiny, přeskočit
-            if (!$this->nastaveni['prazdne'] && (!$aktivita || $aktivita['grp'] != $typ)) {
+            if (!$this->nastaveni['prazdne'] && (!$aktivitaRaw || $aktivitaRaw['grp'] != $typ)) {
                 continue;
             }
 
             ob_start(); // výstup bufferujeme, pro případ že bude na víc řádků
             $radku = 0;
-            while ($aktivita && $typ == $aktivita['grp']) {
-                if ($denId && $aktivita['den'] != $denId) {
+            while ($aktivitaRaw && $typ == $aktivitaRaw['grp']) {
+                if ($denId && $aktivitaRaw['den'] != $denId) {
                     break;
                 }
 
                 for ($cas = PROGRAM_ZACATEK; $cas < PROGRAM_KONEC; $cas++) {
-                    if ($aktivita && $typ == $aktivita['grp'] && $cas == $aktivita['zac']) {
-                        $cas += $aktivita['del'] - 1; // na konci cyklu jeste bude ++
-                        $this->tiskAktivity($aktivita);
-                        $aktivita = $this->dalsiAktivita();
+                    if ($aktivitaRaw && $typ == $aktivitaRaw['grp'] && $cas == $aktivitaRaw['zac']) {
+                        $cas += $aktivitaRaw['del'] - 1; // na konci cyklu jeste bude ++
+                        $this->tiskAktivity($aktivitaRaw);
+                        $aktivitaRaw = $this->dalsiAktivita();
                         $aktivit++;
                     } else {
                         echo '<td></td>';

@@ -1,27 +1,28 @@
 <?php
 
 $program = new Program(null, [
-  'technicke' =>  true,
-  'skupiny'   =>  'mistnosti',
-  'prazdne'   =>  true,
+    'technicke' => true,
+    'skupiny' => 'mistnosti',
+    'prazdne' => true,
 ]);
 
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="cs">
 <head>
-  <link rel="stylesheet" href="<?=$program->cssUrl()?>">
-  <style>
-    body {
-      font-family: tahoma, sans-serif;
-      font-size: 11px;
-      line-height: 1.2;
-    }
-  </style>
+    <title>Program</title>
+    <link rel="stylesheet" href="<?= $program->cssUrl() ?>">
+    <style>
+        body {
+            font-family: tahoma, sans-serif;
+            font-size: 11px;
+            line-height: 1.2;
+        }
+    </style>
 </head>
 <body>
 
-  <?php $program->tisk(); ?>
+<?php $program->tisk(); ?>
 
 </body>
 </html>
