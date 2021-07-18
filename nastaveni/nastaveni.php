@@ -37,27 +37,28 @@ error_reporting($puvodni ^ E_NOTICE);
 
 error_reporting($puvodni); // zrušení maskování notice
 unset($puvodni);
-$pre = -(ROK - 2000) * 100; //předpona pro židle a práva vázaná na aktuální rok
+$pre = -(ROK - 2000) * 100;             //předpona pro židle a práva vázaná na aktuální rok
 // židle - nepoužívat pro vyjádření atributů (slev, možnosti se přihlašovat, …)
-@define('Z_PRIHLASEN', $pre - 1);  //přihlášen na GameCon
-@define('Z_PRITOMEN', $pre - 2);  //prošel infopultem a je na GameConu
-@define('Z_ODJEL', $pre - 3);  //prošel infopultem na odchodu a odjel z GC
+@define('Z_PRIHLASEN', $pre - 1);       //přihlášen na GameCon
+@define('Z_PRITOMEN', $pre - 2);        //prošel infopultem a je na GameConu
+@define('Z_ODJEL', $pre - 3);           //prošel infopultem na odchodu a odjel z GC
 // TODO byl přihlášen na GC a už není (kvůli počítání financí apod.)
-@define('Z_ORG_AKCI', 6);         //vypravěč (org akcí)
-@define('Z_ORG_SKUPINA', 9);      //organizátorská skupina (Albi, Černobor, …)
-@define('Z_PARTNER', 13);         //partner
-@define('Z_INFO', 8);             //operátor/ka infopultu
-@define('Z_ZAZEMI', 7);           //člen/ka zázemí
-@define('Z_DOBROVOLNIK_S', 17);  //dobrovolník senior
+@define('Z_ORG_AKCI', 6);               // vypravěč (org akcí)
+@define('Z_ORG_SKUPINA', 9);            //organizátorská skupina (Albi, Černobor, …)
+@define('Z_PARTNER', 13);               //partner
+@define('Z_INFO', 8);                   //operátor/ka infopultu
+@define('Z_ZAZEMI', 7);                 //člen/ka zázemí
+@define('Z_DOBROVOLNIK_S', 17);         //dobrovolník senior
+
 // práva - konkrétní práva identifikující nějak vlastnost uživatele
-@define('P_ORG_AKCI', 4);         //může organizovat aktivity
-@define('P_KRYTI_AKCI', 5);       //může být na víc aktivitách naráz (org skupiny typicky)
-@define('P_PLNY_SERVIS', 7);      //uživatele kompletně platí a zajišťuje GC
-@define('P_ZMENA_HISTORIE', 8);
-@define('P_TRICKO_ZA_SLEVU_MODRE', 1012);  // modré tričko zdarma při slevě, jejíž hodnota je níže určená konstantou MODRE_TRICKO_ZDARMA_OD
-@define('P_DVE_TRICKA_ZDARMA', 1020);      // dvě jakákoli trička zdarma
-@define('P_TRICKO_MODRA_BARVA', 1021);     // může objednávat modrá trička
-@define('P_TRICKO_CERVENA_BARVA', 1022);   // může objednávat červená trička
+@define('P_ORG_AKCI', 4);                   //může organizovat aktivity
+@define('P_KRYTI_AKCI', 5);                 //může být na víc aktivitách naráz (org skupiny typicky)
+@define('P_PLNY_SERVIS', 7);                //uživatele kompletně platí a zajišťuje GC
+@define('P_ZMENA_HISTORIE', 8);             // jestli smí měnit přihlášení zpětně
+@define('P_TRICKO_ZA_SLEVU_MODRE', 1012);   // modré tričko zdarma při slevě, jejíž hodnota je níže určená konstantou MODRE_TRICKO_ZDARMA_OD
+@define('P_DVE_TRICKA_ZDARMA', 1020);       // dvě jakákoli trička zdarma
+@define('P_TRICKO_MODRA_BARVA', 1021);      // může objednávat modrá trička
+@define('P_TRICKO_CERVENA_BARVA', 1022);    // může objednávat červená trička
 @define('P_PLACKA_ZDARMA', 1002);
 @define('P_KOSTKA_ZDARMA', 1003);
 @define('P_JIDLO_SLEVA', 1004);   //může si kupovat jídlo se slevou

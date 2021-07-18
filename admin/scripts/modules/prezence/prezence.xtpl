@@ -5,72 +5,82 @@
 
 <div class="prezence">
 
-<div>{casy}</div>
+  <div>{casy}</div>
 
-<!-- begin:aktivita -->
-<div class="blokAktivita" data-id="{a.id}">
+  <!-- begin:aktivita -->
+  <div class="blokAktivita" data-id="{a.id}">
 
-  <!-- begin:form -->
-  <form class="formAktivita">
-    <h2>{nadpis}</h2>
-    <!-- <input type="hidden" name="kapacita_celkova" value="{}" /> --><!-- TODO kapacita -->
-    <input type="hidden" name="prezenceAktivity" value="{a.id}" />
-    <table class="ucastnici zvyraznovana">
-      <tr>
-        <th>
+    <!-- begin:form -->
+    <form class="formAktivita">
+      <h2>{nadpis}</h2>
+      <!-- <input type="hidden" name="kapacita_celkova" value="{}" /> --><!-- TODO kapacita -->
+      <input type="hidden" name="prezenceAktivity" value="{a.id}"/>
+      <table class="ucastnici zvyraznovana">
+        <tr>
+          <th>
           <span class="hinted">?
             <span class="hint">Jestli je uživatel přítomen v tomto okamžiku na GC (prošel infopultem)</span>
           </span>
-        </th>
-        <th>ID</th>
-        <th>Jméno</th>
-        <th>Telefon</th>
-        <th>
-          <span class="hinted">?<span class="hint">Dorazil účastník na aktivitu?</span></span>
-        </th>
-      </tr>
-      <!-- begin:ucastnik -->
-      <tr>
-        <td>
-          <!-- begin:pritomen --><img src="files/design/ok-s.png" style="margin-bottom:-1px"><!-- end:pritomen -->
-          <!-- begin:nepritomen --><img src="files/design/error-s.png" style="margin-bottom:-1px"><!-- end:nepritomen -->
-        </td>
-        <td>{u.id}</td>
-        <td>{u.jmenoNick}</td>
-        <td>{u.telefon}</td>
-        <td><!-- begin:checkbox --><input type="checkbox" name="dorazil[{u.id}]"><!-- end:checkbox --></td>
-      </tr>
-      <!-- end:ucastnik -->
-      <!-- begin:submit -->
-      <tr>
-        <td colspan="5"><input type="text" class="omnibox"></td>
-      </tr>
-      <tr  style="background-color: transparent ">
-        <td colspan="5"><input type="submit" value="uložit"></td>
-      </tr>
-      <!-- end:submit -->
-    </table>
-  </form>
-  <!-- end:form -->
+          </th>
+          <th>ID</th>
+          <th>Jméno</th>
+          <th>Telefon</th>
+          <th>
+            <span class="hinted">?<span class="hint">Dorazil účastník na aktivitu?</span></span>
+          </th>
+        </tr>
+        <!-- begin:ucastnik -->
+        <tr>
+          <td>
+            <!-- begin:pritomen --><img src="files/design/ok-s.png" style="margin-bottom:-1px"><!-- end:pritomen -->
+            <!-- begin:nepritomen --><img src="files/design/error-s.png" style="margin-bottom:-1px">
+            <!-- end:nepritomen -->
+          </td>
+          <td>{u.id}</td>
+          <td>{u.jmenoNick}</td>
+          <td>{u.telefon}</td>
+          <td><!-- begin:checkbox --><input type="checkbox" name="dorazil[{u.id}]"><!-- end:checkbox --></td>
+        </tr>
+        <!-- end:ucastnik -->
+        <!-- begin:submit -->
+        <tr>
+          <td colspan="5">
+            <input type="text" class="omnibox">
+          </td>
+        </tr>
+        <!-- begin:pozorVyplena -->
+        <tr>
+          <td colspan="100%" style="padding: 0">
+            <div class="error" style="padding-right: 1em">Pozor, aktivita už je vyplněná! Ovlivní to jejich finance.</div>
+          </td>
+        </tr>
+        <!-- end:pozorVyplena -->
+        <tr style="background-color: transparent">
+          <td colspan="5"><input type="submit" value="uložit"></td>
+        </tr>
+        <!-- end:submit -->
+      </table>
+    </form>
+    <!-- end:form -->
 
-  <!-- begin:vyplnena -->
-  <div class="success">Uloženo OK s účastí {a.obsazenostHtml}</div>
-  <!-- end:vyplnena -->
+    <!-- begin:vyplnena -->
+    <div class="success">Uloženo OK s účastí {a.obsazenostHtml}</div>
+    <!-- end:vyplnena -->
 
-  <!-- begin:nezamknuta -->
-  <div class="error">Pozor, aktivita není zamknutá pro online registraci a nemá vytištěnou prezenci!</div>
-  <!-- end:nezamknuta -->
+    <!-- begin:pozorNezamknuta -->
+    <div class="error">Pozor, aktivita není zamknutá pro online registraci a nemá vytištěnou prezenci!</div>
+    <!-- end:pozorNezamknuta -->
 
-</div>
-<!-- end:aktivita -->
+  </div>
+  <!-- end:aktivita -->
 
-<!-- begin:zadnaAktivita -->
-<p>Žádné aktivity (které se mají evidovat) nezačínají v zadaný čas.</p>
-<!-- end:zadnaAktivita -->
+  <!-- begin:zadnaAktivita -->
+  <p>Žádné aktivity (které se mají evidovat) nezačínají v zadaný čas.</p>
+  <!-- end:zadnaAktivita -->
 
-<!-- begin:nevybrano -->
-<p>Není vybrán blok, který se má zobrazit. Vyberte vpravo nahoře.</p>
-<!-- end:nevybrano -->
+  <!-- begin:nevybrano -->
+  <p>Není vybrán blok, který se má zobrazit. Vyberte vpravo nahoře.</p>
+  <!-- end:nevybrano -->
 
 </div>
 
