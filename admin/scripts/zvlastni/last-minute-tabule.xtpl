@@ -1,7 +1,8 @@
 <!-- begin:tabule -->
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="cs" lang="cs">
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="cs">
   <head>
+    <title>Nejbližší aktivity</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     {programCss}
     <style>
@@ -25,10 +26,10 @@
     <meta http-equiv="refresh" content="30">
   </head>
   <body>
-  
+
   <a href="?zoom={lupaPlus}" class="lupa plus" style="top:0;left:0"></a>
   <a href="?zoom={lupaMinus}" class="lupa minus" style="top:48px;left:0"></a>
-  
+
   <div>
     <!-- begin:blok -->
     <table class="program">
@@ -37,18 +38,18 @@
       </tr>
       <!-- begin:aktivita -->
       <tr>
-        <td>{nazev} {obsazenost}</td>
+        <td>{nazev} {obsazenost} <small>{zacatek}</small></td>
       </tr>
       <!-- end:aktivita -->
       <!-- begin:nic -->
       <tr>
         <td>(žádná)</td>
       </tr>
-      <!-- end:nic -->    
+      <!-- end:nic -->
     </table>
     <!-- end:blok -->
-  </div>  
-  
+  </div>
+
   </body>
 </html>
 <!-- end:tabule -->
