@@ -106,7 +106,8 @@ Přihlásit na GameCon {rok}:
     <tr>
       <td><span class="hinted">Potvrzení:<span
           class="hint">K úpravě klikněte na pole Potvrzení v Osobních údajích</span></span></td>
-      <td style="cursor:pointer" onclick="$('#editace_udaju_uzivatele_trigger').click(); $('#udaj_potvrzeni_zakonneho_zastupce').focus();">
+      <td style="cursor:pointer"
+          onclick="$('#editace_udaju_uzivatele_trigger').click(); $('#udaj_potvrzeni_zakonneho_zastupce').focus();">
         <!-- begin:chybiPotvrzeni -->
         <img src="files/design/error-s.png" style="margin-bottom:-2px">
         požádej o doplnění
@@ -116,7 +117,8 @@ Přihlásit na GameCon {rok}:
     <tr>
       <td><span class="hinted">Covid-19:<span
           class="hint">K úpravě klikněte na pole Covid-19 v Osobních údajích</span></span></td>
-      <td style="cursor:pointer" onclick="$('#editace_udaju_uzivatele_trigger').click(); $('#udaj_potvrzeni_proti_covid19_overeno_kdy').focus();">
+      <td style="cursor:pointer"
+          onclick="$('#editace_udaju_uzivatele_trigger').click(); $('#udaj_potvrzeni_proti_covid19_overeno_kdy').focus();">
         <!-- begin:chybiPotvrzeniProtiCovid -->
         <img src="files/design/error-s.png" style="margin-bottom:-2px">
         požádej o doplnění
@@ -223,7 +225,8 @@ Přihlásit na GameCon {rok}:
           <table class="cista input" style="width:100%;display:none;">
             <tr>
               <!-- begin:input -->
-              <td><input type="text" name="udaj[{sloupec}]" value="{vstupniHodnota}" style="margin-left: -3px;" id="udaj_{sloupec}"></td>
+              <td><input type="text" name="udaj[{sloupec}]" value="{vstupniHodnota}" style="margin-left: -3px;"
+                         id="udaj_{sloupec}"></td>
               <td><input type="submit" name="zmenitUdaj" value="uložit"></td>
               <!-- end:input -->
               <!-- begin:checkbox -->
@@ -282,13 +285,20 @@ Přihlásit na GameCon {rok}:
       <tr>
         <td>ID&nbsp;uživatele:</td>
         <td>
-          <input type="text" name="prodej[id_uzivatele]" value="{id}">
+          <input type="text" name="prodej[id_uzivatele]" value="{id}" required>
         </td>
       </tr>
       <tr>
-        <td>Předmět:</td>
+        <td style="white-space: nowrap">
+          <label for="predmet">Předmět:</label>
+          <span class="hinted">
+            <input name="prodej[kusu]" style="border: none; margin: 0; padding: 0" type="number" step="1" value="1" size="2"
+                   min="1" max="99" required>
+            <span class="hint">Počet kusů</span>
+          </span>
+        </td>
         <td>
-          <select name="prodej[id_predmetu]">
+          <select name="prodej[id_predmetu]" id="predmet" required>
             {predmety}
           </select>
         </td>
@@ -313,7 +323,7 @@ Přihlásit na GameCon {rok}:
   </script>
 </div>
 
-
+<!-- begin:rychloregistrace -->
 <div class="aBox grid">
   <h3>Rychloregistrace</h3>
   Všechny položky povinné<br>
@@ -354,9 +364,9 @@ Přihlásit na GameCon {rok}:
       <tr>
         <td colspan="2">
           <input type="submit" value="Jen registrovat">
-          <!-- begin: rychloregPrihlasitNaGc -->
+          <!-- begin: prihlasitNaGc -->
           <input type="submit" name="vcetnePrihlaseni" value="Reg. a přihlásit na GC">
-          <!-- end: rychloregPrihlasitNaGc -->
+          <!-- end: prihlasitNaGc -->
         </td>
       </tr>
     </table>
@@ -370,7 +380,7 @@ Přihlásit na GameCon {rok}:
     })
   </script>
 </div>
-
+<!-- end:rychloregistrace -->
 
 <!-- sloupcový design -->
 <div class="sloupce">
