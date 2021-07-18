@@ -134,10 +134,6 @@ li.list-header { list-style-type: none; position: relative; left: -1em }
 /* stránkově specifické */
 .prezence .blokAktivita { border:solid 1px #898c95; margin: 0 0 10px 0; }
 .prezence .ucastnici input[type="checkbox"] { margin: -2px; }
-.prezence .ucastnici th:nth-child(1) { width: 15px; }
-.prezence .ucastnici th:nth-child(2) { width: 40px; }
-.prezence .ucastnici th:nth-child(3) { width: 180px; }
-.prezence .ucastnici th:nth-child(4) { width: 110px; }
 .prezence .ucastnici input[type="text"] { padding: 0; margin: -2px; font: inherit; width: 367px; }
 .prezence .blokAktivita .error, .prezence .blokAktivita .success { margin: 0; }
 .prezence .formAktivita { margin: 4px 10px 4px 6px; }

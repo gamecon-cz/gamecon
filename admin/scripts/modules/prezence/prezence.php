@@ -7,6 +7,10 @@
  * pravo: 103
  */
 
+/**
+ * @var Uzivatel $u
+ */
+
 if (post('prezenceAktivity')) {
     $aktivita = Aktivita::zId(post('prezenceAktivity'));
     $dorazili = Uzivatel::zIds(array_keys(post('dorazil') ?: []));
@@ -47,11 +51,14 @@ foreach ($aktivity as $aktivita) {
     if ($vyplnena) {
         $t->parse('prezence.aktivita.vyplnena');
     }
-    if (!$vyplnena && $zamcena) {
+    if ($zamcena && (!$vyplnena || $u->maPravo(P_ZMENA_HISTORIE))) {
+        if ($vyplnena && $u->maPravo(P_ZMENA_HISTORIE)) {
+            $t->parse('prezence.aktivita.form.submit.pozorVyplena');
+        }
         $t->parse('prezence.aktivita.form.submit');
     }
     if (!$zamcena) {
-        $t->parse('prezence.aktivita.nezamknuta');
+        $t->parse('prezence.aktivita.pozorNezamknuta');
     }
     $t->assign('nadpis', implode(' – ', array_filter([$aktivita->nazev(), $aktivita->orgJmena(), $aktivita->lokace()])));
     $t->parse('prezence.aktivita.form');
