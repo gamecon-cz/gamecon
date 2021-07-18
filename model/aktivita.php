@@ -1850,19 +1850,23 @@ SQL
 
     /** Vrátí typ volných míst na aktivitě */
     function volno() {
-        $m = $this->prihlasenoMuzu();
-        $f = $this->prihlasenoZen();
-        $ku = $this->a['kapacita'];
-        $km = $this->a['kapacita_m'];
-        $kf = $this->a['kapacita_f'];
-        if (($ku + $km + $kf) <= 0)
+        $prihlasenoMuzu = $this->prihlasenoMuzu();
+        $prihlasenoZen = $this->prihlasenoZen();
+        $unisexKapacita = $this->a['kapacita'];
+        $kapacitaMuzu = $this->a['kapacita_m'];
+        $kapacitaZen = $this->a['kapacita_f'];
+        if (($unisexKapacita + $kapacitaMuzu + $kapacitaZen) <= 0) {
             return 'u'; //aktivita bez omezení
-        if ($m + $f >= $ku + $km + $kf)
+        }
+        if ($prihlasenoMuzu + $prihlasenoZen >= $unisexKapacita + $kapacitaMuzu + $kapacitaZen) {
             return 'x'; //beznadějně plno
-        if ($m >= $ku + $km)
+        }
+        if ($prihlasenoMuzu >= $unisexKapacita + $kapacitaMuzu) {
             return 'f'; //muži zabrali všechna univerzální i mužská místa
-        if ($f >= $ku + $kf)
+        }
+        if ($prihlasenoZen >= $unisexKapacita + $kapacitaZen) {
             return 'm'; //LIKE WTF? (opak předchozího)
+        }
         //else
         return 'u'; //je volno a žádné pohlaví nevyžralo limit míst
     }
@@ -1882,10 +1886,10 @@ SQL
     /** Jestli volno pro daného uživatele (nebo aspoň pro někoho, pokud null) */
     function volnoPro(Uzivatel $u = null) {
         $v = $this->volno();
-        if ($u)
-            return $v == 'u' || $v == $u->pohlavi();
-        else
-            return $v != 'x';
+        if ($u) {
+            return $v === 'u' || $v == $u->pohlavi();
+        }
+        return $v !== 'x';
     }
 
     /**
@@ -2227,9 +2231,13 @@ SQL
             ],
             $razeni
         );
-        if ($flags & self::JEN_VOLNE)
-            foreach ($aktivity as $i => $a)
-                if ($a->volno() == 'x') unset($aktivity[$i]);
+        if ($flags & self::JEN_VOLNE) {
+            foreach ($aktivity as $i => $a) {
+                if ($a->volno() === 'x') {
+                    unset($aktivity[$i]);
+                }
+            }
+        }
         return $aktivity;
     }
 
