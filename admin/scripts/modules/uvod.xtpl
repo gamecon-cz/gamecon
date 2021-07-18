@@ -294,7 +294,7 @@ Přihlásit na GameCon {rok}:
           <span class="hinted">
             <input name="prodej[kusu]" style="border: none; margin: 0; padding: 0" type="number" step="1" value="1" size="2"
                    min="1" max="99" required>
-            <span class="hint">Počet kusů</span>
+            <span class="hint" style="white-space: nowrap; width: auto">Počet kusů</span>
           </span>
         </td>
         <td>
