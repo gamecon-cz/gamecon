@@ -290,7 +290,7 @@ class Program
 
         // název a url aktivity
         echo '<td colspan="' . $aktivitaRaw['del'] . '"><div' . $classes . '>';
-        echo '<a href="' . $aktivitaObjekt->url() . '" target="_blank" class="programNahled_odkaz" data-program-nahled-id="' . $aktivitaObjekt->id() . '">' . $aktivitaObjekt->nazev() . '</a>';
+        echo '<a href="' . $aktivitaObjekt->url() . '" target="_blank" class="programNahled_odkaz" data-program-nahled-id="' . $aktivitaObjekt->id() . '" title="' . $aktivitaObjekt->nazev() . '">' . $aktivitaObjekt->nazev() . '</a>';
 
         // doplňkové informace (druhý řádek)
         if ($this->nastaveni['drdPj'] && $aktivitaObjekt->typId() == Typ::DRD && $aktivitaObjekt->prihlasovatelna()) {

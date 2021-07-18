@@ -63,12 +63,29 @@ if (!empty($_POST['telefon']) && $uPracovni) {
 if (!empty($_POST['prodej'])) {
     $prodej = $_POST['prodej'];
     unset($prodej['odeslano']);
-    if ($uPracovni)
+    if ($uPracovni) {
         $prodej['id_uzivatele'] = $uPracovni->id();
-    if (!$prodej['id_uzivatele'])
+    }
+    if (!$prodej['id_uzivatele']) {
         $prodej['id_uzivatele'] = 0;
-    dbQuery('INSERT INTO shop_nakupy(id_uzivatele,id_predmetu,rok,cena_nakupni,datum)
+    }
+    for ($kusu = $prodej['kusu'] ?? 1, $pocet = 1; $pocet <= $kusu; $pocet++) {
+        dbQuery('INSERT INTO shop_nakupy(id_uzivatele,id_predmetu,rok,cena_nakupni,datum)
     VALUES (' . $prodej['id_uzivatele'] . ',' . $prodej['id_predmetu'] . ',' . ROK . ',(SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu=' . $prodej['id_predmetu'] . '),NOW())');
+    }
+    $idPredmetu = (int)$prodej['id_predmetu'];
+    $nazevPredmetu = dbOneCol(<<<SQL
+        SELECT nazev FROM shop_predmety
+        WHERE id_predmetu = $idPredmetu
+        SQL
+    );
+    $yu = '';
+    if ($kusu >=5) {
+        $yu = 'ů';
+    } elseif ($kusu > 1) {
+        $yu = 'y';
+    }
+    oznameni("Prodáno $kusu kus$yu $nazevPredmetu");
     back();
 }
 
@@ -379,7 +396,12 @@ if ($uPracovni) {
 }
 
 // rychloregistrace
-if (REG_GC) $x->parse('uvod.rychloregPrihlasitNaGc');
+if (!$uPracovni) { // nechceme zobrazovat rychloregistraci (zakladani uctu), kdyz mame vybraneho uzivatele pro praci
+    $x->parse('uvod.rychloregistrace');
+    if (REG_GC) {
+        $x->parse('uvod.rychloregistrace.prihlasitNaGc');
+    }
+}
 
 $x->parse('uvod');
 $x->out('uvod');
