@@ -137,7 +137,7 @@ table.program {
     color: inherit;
     font-size: 14px;
     display: block;
-    min-height: 31px;
+    min-height: 2em;
     max-height: 35px;
     margin-bottom: 2px;
     overflow: hidden;
@@ -225,6 +225,18 @@ table.program {
     height: 13px;
     margin: 0 0 0 -19px;
     background: url('muz.svg');
+}
+
+.program_lokace {
+  background-color: inherit;
+  font-style: italic;
+  font-size: smaller;
+  position: relative;
+  left: -4px;
+  height: 1em;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 /* legenda (pozor na css priority) */

@@ -299,7 +299,9 @@ class Program
 
         if ($a['del'] > 1) {
             $obsazenost = $aktivitaObjekt->obsazenost();
-            if ($obsazenost) echo '<span class="program_obsazenost">' . $obsazenost . '</span>';
+            if ($obsazenost) {
+                echo '<span class="program_obsazenost">' . $obsazenost . '</span>';
+            }
         }
 
         if ($aktivitaObjekt->typId() != Typ::DRD || $this->nastaveni['drdPrihlas']) { // hack na nezobrazování přihlašovátek pro DrD
@@ -323,6 +325,11 @@ class Program
         // případný formulář pro výběr týmu
         if ($this->nastaveni['teamVyber']) {
             echo $aktivitaObjekt->vyberTeamu($this->u);
+        }
+
+        $lokace = $aktivitaObjekt->lokace();
+        if ($lokace) {
+            echo '<div class="program_lokace">' . $lokace . '</div>';
         }
 
         echo '</div></td>';
