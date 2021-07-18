@@ -7,34 +7,35 @@
 class Lokace extends DbObject
 {
 
-  protected static $tabulka = 'akce_lokace';
-  protected static $pk = 'id_lokace';
+    protected static $tabulka = 'akce_lokace';
+    protected static $pk = 'id_lokace';
 
-  function __toString() {
-    return $this->r['nazev'] . ', ' . $this->r['dvere'];
-  }
+    public function __toString() {
+        $casti = array_filter([$this->r['nazev'], $this->r['dvere']]);
+        return implode(', ', $casti);
+    }
 
-  function nazev() {
-    return $this->r['nazev'];
-  }
+    public function nazev() {
+        return $this->r['nazev'];
+    }
 
-  function dvere() {
-    return $this->r['dvere'];
-  }
+    public function dvere() {
+        return $this->r['dvere'];
+    }
 
-  function poznamka() {
-    return $this->r['poznamka'];
-  }
+    public function poznamka() {
+        return $this->r['poznamka'];
+    }
 
-  function poradi(): int {
-    return (int)$this->r['poradi'];
-  }
+    public function poradi(): int {
+        return (int)$this->r['poradi'];
+    }
 
-  function rok(): int {
-    return (int)$this->r['rok'];
-  }
+    public function rok(): int {
+        return (int)$this->r['rok'];
+    }
 
-  public function id(): int {
-    return (int)parent::id();
-  }
+    public function id(): int {
+        return (int)parent::id();
+    }
 }
