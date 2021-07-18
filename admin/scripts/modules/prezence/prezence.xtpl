@@ -12,7 +12,7 @@
 
   <!-- begin:form -->
   <form class="formAktivita">
-    <h2>{a.nazev} – {a.orgJmena} – {a.lokace}</h2>
+    <h2>{nadpis}</h2>
     <!-- <input type="hidden" name="kapacita_celkova" value="{}" /> --><!-- TODO kapacita -->
     <input type="hidden" name="prezenceAktivity" value="{a.id}" />
     <table class="ucastnici zvyraznovana">

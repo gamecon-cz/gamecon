@@ -53,6 +53,7 @@ foreach ($aktivity as $aktivita) {
     if (!$zamcena) {
         $t->parse('prezence.aktivita.nezamknuta');
     }
+    $t->assign('nadpis', implode(' – ', array_filter([$aktivita->nazev(), $aktivita->orgJmena(), $aktivita->lokace()])));
     $t->parse('prezence.aktivita.form');
     $t->parse('prezence.aktivita');
 }
