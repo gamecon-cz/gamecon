@@ -1810,9 +1810,9 @@ SQL
 
     /**
      * Uloží údaje o prezenci u této aktivity
-     * @param $dorazili uživatelé, kteří se nakonec aktivity zúčastnili
+     * @param Uzivatel[] $dorazili uživatelé, kteří se nakonec aktivity zúčastnili
      */
-    function ulozPrezenci($dorazili) {
+    function ulozPrezenci(array $dorazili) {
         $prezence = new AktivitaPrezence($this);
         $prezence->uloz($dorazili);
     }
