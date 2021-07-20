@@ -44,6 +44,8 @@ foreach ($aktivity as $aktivita) {
         $t->assign('u', $prihlasenyUzivatel);
         if (!$vyplnena && $zamcena) {
             $t->parse('prezence.aktivita.form.ucastnik.checkbox');
+        } else {
+            $t->parse('prezence.aktivita.form.ucastnik.skryty');
         }
         $t->parse('prezence.aktivita.form.ucastnik.' . ($prihlasenyUzivatel->gcPritomen() ? 'pritomen' : 'nepritomen'));
         $t->parse('prezence.aktivita.form.ucastnik');

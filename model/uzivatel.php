@@ -1093,7 +1093,9 @@ SQL
             'mail' => false,
             'min' => 3, // minimum znaků
         ]);
-        if (strlen($dotaz) < $opt['min']) return [];
+        if (strlen($dotaz) < $opt['min']) {
+            return [];
+        }
         $q = dbQv($dotaz);
         $l = dbQv($dotaz . '%'); // pro LIKE dotazy
         return self::zWhere("
