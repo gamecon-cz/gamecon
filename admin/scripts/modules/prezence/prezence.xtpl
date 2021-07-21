@@ -17,11 +17,7 @@
       <input type="hidden" name="prezenceAktivity" value="{a.id}"/>
       <table class="ucastnici zvyraznovana">
         <tr>
-          <th>
-          <span class="hinted">?
-            <span class="hint">Jestli je uživatel přítomen v tomto okamžiku na GC (prošel infopultem)</span>
-          </span>
-          </th>
+          <th style="text-align: center">?</th>
           <th>ID</th>
           <th>Jméno</th>
           <th>Telefon</th>
@@ -32,9 +28,28 @@
         <!-- begin:ucastnik -->
         <tr>
           <td>
-            <!-- begin:pritomen --><img src="files/design/ok-s.png" style="margin-bottom:-1px"><!-- end:pritomen -->
-            <!-- begin:nepritomen --><img src="files/design/error-s.png" style="margin-bottom:-1px">
+            <!-- begin:pritomen -->
+            <span class="hinted">
+              <img src="files/design/ok-s.png" style="margin-bottom:-1px">
+              <span class="hint"><strong>Je přítomen</strong> v tomto okamžiku na GC (prošel infopultem).</span>
+            </span>
+            <!-- end:pritomen -->
+            <!-- begin:nepritomen -->
+            <span class="hinted">
+              <img src="files/design/error-s.png" style="margin-bottom:-1px">
+              <span class="hint"><strong>Není přítomen</strong> v tomto okamžiku na GC (neprošel infopultem).</span>
+            </span>
             <!-- end:nepritomen -->
+            &thinsp;
+            <span class="hinted">
+              <!-- begin:dluh -->
+              <span style="color: red; font-weight: bold">$</span>
+              <!-- end:dluh -->
+              <!-- begin:prebytek -->
+              <span style="color: green; font-weight: bold">$</span>
+              <!-- end:prebytek -->
+              <span class="hint">Zůstatek <strong>{u.finance.stavHr}</strong></span>
+            </span>
           </td>
           <td>{u.id}</td>
           <td>{u.jmenoNick}</td>
@@ -48,13 +63,17 @@
         <!-- begin:submit -->
         <tr>
           <td colspan="5">
-            <input type="text" class="omnibox" data-omnibox='{"dataVOdpovedi":["jmenoNick", "telefon"]}'>
+            <input type="text" class="omnibox"
+                   data-omnibox='{"labelSlozenZ": ["id", "jmenoNick", "mail", "zustatek"], "dataVOdpovedi":["jmenoNick", "telefon"]}'>
           </td>
         </tr>
         <!-- begin:pozorVyplena -->
         <tr>
           <td colspan="100%" style="padding: 0">
-            <div class="error" style="padding-right: 1em">Pozor, aktivita už je vyplněná!</div>
+            <div class="error" style="padding-right: 1em">
+              <span class="hinted">Pozor, aktivita už je vyplněná!<span
+                  class="hint">Přídání účastníka zvýší jeho dluh. Zkontroluj jeho finance.</span></span>
+            </div>
           </td>
         </tr>
         <!-- end:pozorVyplena -->
