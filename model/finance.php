@@ -251,8 +251,11 @@ class Finance
     }
 
     /** Vrátí člověkem čitelný stav účtu */
-    function stavHr() {
-        return $this->stav() . '&thinsp;Kč';
+    function stavHr(bool $vHtmlFormatu = true) {
+        $mezera = $vHtmlFormatu
+            ? '&thinsp;' // thin space
+            : ' ';
+        return $this->stav() . $mezera . 'Kč';
     }
 
     /**
