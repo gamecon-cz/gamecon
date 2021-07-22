@@ -262,8 +262,8 @@ while ($r = mysqli_fetch_assoc($o)) {
     // tech co jsou zdarma jen kvuli specialnimu pravu na modre tricko zdarma
     $pocetLetosnichModrychTricekZdarma = min($pocetLetosnichModrychTricek, $finance->maximalniPocetModrychTricekZdarma());
     // mohou to byt i modra tricka, ale bez tech, co byly zdarma kvuli specialnimu pravu na modre tricko
-    $pocetLetosnichTricekBezModrychZdarma = (int)array_sum($letosniTrickaPocty) - $pocetLetosnichModrychTricekZdarma;
-    $pocetLetosnichTricekZdarma = min($pocetLetosnichTricekBezModrychZdarma, $finance->maximalniPocetLibovolnychTricekZdarma()) + $pocetLetosnichModrychTricekZdarma;
+    $pocetLetosnichTricekAleBezModrychZdarma = (int)array_sum($letosniTrickaPocty) - $pocetLetosnichModrychTricekZdarma;
+    $pocetLetosnichTricekZdarma = min($pocetLetosnichTricekAleBezModrychZdarma, $finance->maximalniPocetLibovolnychTricekZdarma()) + $pocetLetosnichModrychTricekZdarma;
     $pocetLetosnichModrychTricekSeSlevou = $finance->muzeObjednavatModreTrickoSeSlevou()
         ? $pocetLetosnichModrychTricek - $pocetLetosnichModrychTricekZdarma
         : 0;
@@ -277,7 +277,7 @@ while ($r = mysqli_fetch_assoc($o)) {
     $pocetLetosnichTricekSeSlevou = $pocetLetosnichModrychTricekSeSlevou + $pocetLetosnichCervenychTricekSeSlevou;
     $pocetLetosnichTricekPlacenych = $pocetLetosnichTricek - $pocetLetosnichTricekZdarma - $pocetLetosnichModrychTricekSeSlevou;
 
-    // POZOR, tady predpokladame, ze kdo si kupuje tilka, nekupuje si tricka - pokud jo, tak maximalniPocet...() tu pouzivame blbe, protoze zdojnasobujeme maximum
+    // POZOR, tady predpokladame, ze kdo si kupuje tilka, nekupuje si tricka - pokud jo, tak maximalniPocetLibovolnychTricekZdarma() tu pouzivame blbe, protoze zdojnasobujeme maximum
     $letosniTilkaPocty = array_intersect_key($r, $letosniTilkaKlice);
     $pocetLetosnichTilek = (int)array_sum($letosniTilkaPocty);
     $letosniModraTilkaPocty = array_filter($letosniTilkaPocty, static function (string $nazevTilka) {
