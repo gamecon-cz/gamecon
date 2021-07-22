@@ -19,7 +19,7 @@ Návod je určený pro Windows, v Linuxu by mělo stačit nainstalovat všechno 
   - PHP > PHP settings > upload_max_filesize > vybrat 8M – navýšit limit post souboru
   - Apache > Apache modules > zaškrtnout expires_module – zapnout mod_expires
   - MySQL > MySQL settings > sql-mode > none – hlavně kvůli povolení negroupnutých sloupců při GROUP BY a doplňování nulových hodnot i do sloupců, co nemají default
-  - MySQL > my.ini - asi na padesátém řádku nastavit `default-storage-engine=InnoDB` (jinak neprobíhá na některých strojích migrace databáze korektně)
+  - MySQL > my.ini - najít a nastavit `default-storage-engine=InnoDB` (pokud nic takového v my.ini nemáš, tak to dej na samostatný řádek hned pod `[mysqld]`). Nastavuje se proto, že na některých strojích neprobíhá migrace korektně, protože bez InnoDB nejde provázat tabulky cizími klíči.
 - Nainstalovat [Composer](https://getcomposer.org/download/)
   - Při instalaci zvolit php7 (nabídne se to předinstalované wampem)
 - Nainstalovat [Git](https://git-scm.com/downloads)
