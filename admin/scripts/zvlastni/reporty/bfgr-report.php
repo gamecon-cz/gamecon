@@ -275,7 +275,7 @@ while ($r = mysqli_fetch_assoc($o)) {
         ? $pocetLetosnichCervenychTricek
         : 0;
     $pocetLetosnichTricekSeSlevou = $pocetLetosnichModrychTricekSeSlevou + $pocetLetosnichCervenychTricekSeSlevou;
-    $pocetLetosnichTricekPlacenych = $pocetLetosnichTricek - $pocetLetosnichTricekZdarma - $pocetLetosnichModrychTricekSeSlevou;
+    $pocetLetosnichTricekPlacenych = $pocetLetosnichTricek - $pocetLetosnichTricekZdarma - $pocetLetosnichTricekSeSlevou;
 
     // POZOR, tady predpokladame, ze kdo si kupuje tilka, nekupuje si tricka - pokud jo, tak maximalniPocetLibovolnychTricekZdarma() tu pouzivame blbe, protoze zdojnasobujeme maximum
     $letosniTilkaPocty = array_intersect_key($r, $letosniTilkaKlice);
@@ -300,7 +300,7 @@ while ($r = mysqli_fetch_assoc($o)) {
         ? $pocetLetosnichCervenychTilek
         : 0;
     $pocetLetosnichTilekSeSlevou = $pocetLetosnichModrychTilekSeSlevou + $pocetLetosnichCervenychTilekSeSlevou;
-    $pocetLetosnichTilekPlacenych = $pocetLetosnichTilek - $pocetLetosnichTilekZdarma;
+    $pocetLetosnichTilekPlacenych = $pocetLetosnichTilek - $pocetLetosnichTilekZdarma - $pocetLetosnichTilekSeSlevou;
 
     $letosniJidlaPocty = array_intersect_key($r, $letosniJidlaKlice);
 
