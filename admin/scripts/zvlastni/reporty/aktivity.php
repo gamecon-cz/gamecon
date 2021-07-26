@@ -26,8 +26,12 @@ $o = dbQuery(<<<SQL
       a.cena,
       FORMAT(TIMESTAMPDIFF(SECOND, a.zacatek, a.konec) / 3600, 1) as delka_v_hodinach
     FROM akce_seznam a
-    LEFT JOIN akce_prihlaseni p ON (a.id_akce=p.id_akce)
-    LEFT JOIN akce_typy t ON (a.typ=t.id_typu)
+    LEFT JOIN (
+        SELECT id_akce, id_uzivatele, id_stavu_prihlaseni FROM akce_prihlaseni
+        UNION ALL
+        SELECT id_akce, id_uzivatele, id_stavu_prihlaseni FROM akce_prihlaseni_spec
+    ) AS p ON a.id_akce=p.id_akce
+    LEFT JOIN akce_typy t ON a.typ=t.id_typu
     GROUP BY a.id_akce
     ) AS aktivity
   ORDER BY typ, nazev_akce, zacatek
@@ -46,26 +50,28 @@ SQL
 
 $p = [];
 while ($r = mysqli_fetch_assoc($o)) {
-  $a = Aktivita::zId($r['id_akce']);
-  $r['suma_priznanych_bonusu_vypravecum'] = $a
-    ? Finance::bonusZaAktivitu($a) * count($a->organizatori())
-    : 0;
-  $r['priznany_bonus_jednomu_vypraveci'] = $a
-    ? Finance::bonusZaAktivitu($a)
-    : 0;
-  $r['vypraveci_jmena'] = '';
-  $r['vypraveci_ids'] = '';
-  if ($a) {
-    $vypraveciJmena = [];
-    $vypraveciIds = [];
-    foreach ($a->organizatori() as $vypravec) {
-      $vypraveciJmena[] = $vypravec->jmenoNick();
-      $vypraveciIds[] = $vypravec->id();
+    $a = Aktivita::zId($r['id_akce']);
+    $bonusZaAktivitu = Finance::bonusZaAktivitu($a);
+    $organizatoriSBonusemZaAktivitu = Finance::nechOrganizatorySBonusemZaVedeniAktivit($a->organizatori());
+    $r['suma_priznanych_bonusu_vypravecum'] = $a
+        ? $bonusZaAktivitu * count($organizatoriSBonusemZaAktivitu)
+        : 0;
+    $r['priznany_bonus_jednomu_vypraveci'] = $a
+        ? $bonusZaAktivitu
+        : 0;
+    $r['vypraveci_jmena'] = '';
+    $r['vypraveci_ids'] = '';
+    if ($a) {
+        $vypraveciJmena = [];
+        $vypraveciIds = [];
+        foreach ($a->organizatori() as $vypravec) {
+            $vypraveciJmena[] = $vypravec->jmenoNick();
+            $vypraveciIds[] = $vypravec->id();
+        }
+        $r['vypraveci_jmena'] = implode(', ', $vypraveciJmena);
+        $r['vypraveci_ids'] = implode(', ', $vypraveciIds);
     }
-    $r['vypraveci_jmena'] = implode(', ', $vypraveciJmena);
-    $r['vypraveci_ids'] = implode(', ', $vypraveciIds);
-  }
-  $p[] = $r;
+    $p[] = $r;
 }
 
 $report = Report::zPole($p);
