@@ -295,6 +295,16 @@ class Finance
     }
 
     /**
+     * @param array|Uzivatel[] $organizatori
+     * @return array|Uzivatel[]
+     */
+    public static function nechOrganizatorySBonusemZaVedeniAktivit(array $organizatori): array {
+        return array_filter($organizatori, static function (Uzivatel $organizator) {
+            return $organizator->maPravo(P_ORG_AKCI) && !$organizator->maPravo(P_NEMA_SLEVU_AKTIVITY);
+        });
+    }
+
+    /**
      * Výše vypravěčské slevy (celková)
      */
     function bonusZaVedeniAktivit(): float {
