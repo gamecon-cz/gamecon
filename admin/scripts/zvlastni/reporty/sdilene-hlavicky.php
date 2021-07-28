@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * @var Uzivatel $u
+ * @var string $podstranka
+ */
 if (!$u->maPravo(104)) {
   die('Nemáš právo 104 nutné k zobrazení reportů.');
 }

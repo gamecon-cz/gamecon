@@ -11,14 +11,20 @@
 use \Gamecon\Cas\DateTimeCz;
 use \Gamecon\Cas\DateTimeGamecon;
 
-/** @var Uzivatel|null|void $uPracovni */
+/**
+ * @var Uzivatel|null|void $u
+ * @var Uzivatel|null|void $uPracovni
+ */
 
 if (!empty($_POST['datMaterialy']) && $uPracovni && $uPracovni->gcPrihlasen()) {
     $uPracovni->dejZidli(Z_PRITOMEN);
     back();
 }
 
-if (post('platba') && $uPracovni && $uPracovni->gcPrihlasen()) {
+if (post('platba') && $uPracovni) {
+    if (!$uPracovni->gcPrihlasen()) {
+        varovani('Platba připsána uživateli, který není přihlášen na Gamecon', false);
+    }
     $uPracovni->finance()->pripis(post('platba'), $u, post('poznamka'));
     back();
 }
@@ -80,7 +86,7 @@ if (!empty($_POST['prodej'])) {
         SQL
     );
     $yu = '';
-    if ($kusu >=5) {
+    if ($kusu >= 5) {
         $yu = 'ů';
     } elseif ($kusu > 1) {
         $yu = 'y';
@@ -129,7 +135,20 @@ if (post('zmenitUdaj') && $uPracovni) {
 }
 
 $x = new XTemplate('uvod.xtpl');
-if ($uPracovni && $uPracovni->gcPrihlasen()) {
+if ($uPracovni) {
+    if (!$uPracovni->gcPrihlasen()) {
+        $x->assign([
+            'a' => $uPracovni->koncovkaDlePohlavi(),
+            'ka' => $uPracovni->koncovkaDlePohlavi() ? 'ka' : '',
+            'rok' => ROK,
+        ]);
+        if (REG_GC) {
+            $x->parse('uvod.neprihlasen.prihlasit');
+        } else {
+            $x->parse('uvod.neprihlasen.nelze');
+        }
+        $x->parse('uvod.neprihlasen');
+    }
     $up = $uPracovni;
     $x->assign('ok', $ok = '<img src="files/design/ok-s.png" style="margin-bottom:-2px">');
     $x->assign('err', $err = '<img src="files/design/error-s.png" style="margin-bottom:-2px">');
@@ -162,14 +181,16 @@ if ($uPracovni && $uPracovni->gcPrihlasen()) {
     if ($up->finance()->stav() < 0 && !$up->gcPritomen()) {
         $x->parse('uvod.uzivatel.nepritomen.upoMaterialy');
     }
-    if (!$up->gcPritomen()) {
+    if (!$up->gcPrihlasen()) {
+        $x->parse('uvod.uzivatel.neprihlasen');
+    } elseif (!$up->gcPritomen()) {
         $x->parse('uvod.uzivatel.nepritomen');
     } elseif (!$up->gcOdjel()) {
         $x->parse('uvod.uzivatel.pritomen');
     } else {
         $x->parse('uvod.uzivatel.odjel');
     }
-    if (!$up->gcPritomen()) {
+    if ($up->gcPrihlasen() && !$up->gcPritomen()) {
         $x->parse('uvod.uzivatel.gcOdhlas');
     }
     $r = dbOneLine('SELECT datum_narozeni, potvrzeni_zakonneho_zastupce FROM uzivatele_hodnoty WHERE id_uzivatele = ' . $uPracovni->id());
@@ -223,18 +244,6 @@ if ($uPracovni && $uPracovni->gcPrihlasen()) {
     $x->parse('uvod.uzivatel');
     $x->parse('uvod.slevy');
     $x->parse('uvod.objednavky');
-} else if ($uPracovni && !$uPracovni->gcPrihlasen()) {// kvůli zkratovému vyhodnocení a nevolání metody na non-object
-    $x->assign([
-        'a' => $uPracovni->koncovkaDlePohlavi(),
-        'ka' => $uPracovni->koncovkaDlePohlavi() ? 'ka' : '',
-        'rok' => ROK,
-    ]);
-    if (REG_GC) {
-        $x->parse('uvod.neprihlasen.prihlasit');
-    } else {
-        $x->parse('uvod.neprihlasen.nelze');
-    }
-    $x->parse('uvod.neprihlasen');
 } else {
     $x->parse('uvod.neUzivatel');
 }

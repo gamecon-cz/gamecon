@@ -32,6 +32,9 @@ Přihlásit na GameCon {rok}:
     <tr>
       <td>Dorazil:</td>
       <td>
+        <!-- begin:neprihlasen -->
+        {err} nepříhlášen na GC
+        <!-- end:neprihlasen -->
         <!-- begin:pritomen -->
         {ok} je na GC
         <form method="post" style="float: right">
