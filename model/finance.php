@@ -74,8 +74,6 @@ class Finance
 
         $this->cenik = new Cenik($u, $this->bonusZaVedeniAktivit); // musí být načteno, i pokud není přihlášen na GC
 
-        if (!$u->gcPrihlasen()) return;
-
         $this->zapoctiAktivity();
         $this->zapoctiShop();
         $this->zapoctiPlatby();

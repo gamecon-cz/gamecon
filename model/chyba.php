@@ -8,22 +8,29 @@
 class Chyba extends Exception
 {
 
-    const CHYBA = 1;
-    const OZNAMENI = 2;
-    const COOKIE_ZIVOTNOST = 3;
+    public const CHYBA = 1;
+    public const VAROVANI = 2;
+    public const OZNAMENI = 3;
+
+    private const COOKIE_ZIVOTNOST_SEKUND = 3;
 
     /**
      * Vyvolá reload na volající stránku, která si chybu může vyzvednout pomocí
      * Chyba::vyzvedni()
      */
     public function zpet() {
-        self::setCookie('CHYBY_CLASS', $this->getMessage(), time() + self::COOKIE_ZIVOTNOST);
+        self::setCookie('CHYBY_CLASS', $this->getMessage(), time() + self::COOKIE_ZIVOTNOST_SEKUND);
         back();
     }
 
     static function nastav($zprava, $typ = null) {
-        $postname = $typ == self::OZNAMENI ? 'CHYBY_CLASS_OZNAMENI' : 'CHYBY_CLASS';
-        self::setCookie($postname, $zprava, time() + self::COOKIE_ZIVOTNOST);
+        $postname = 'CHYBY_CLASS';
+        if ($typ == self::VAROVANI) {
+            $postname = 'CHYBY_CLASS_VAROVANI';
+        } elseif ($typ == self::OZNAMENI) {
+            $postname = 'CHYBY_CLASS_OZNAMENI';
+        }
+        self::setCookie($postname, $zprava, time() + self::COOKIE_ZIVOTNOST_SEKUND);
     }
 
     private static function setCookie(string $postname, $zprava, int $ttl) {
@@ -34,10 +41,10 @@ class Chyba extends Exception
     /**
      * Vrátí text poslední chyby
      */
-    public static function vyzvedni() {
-        if (isset($_COOKIE['CHYBY_CLASS']) && $ch = $_COOKIE['CHYBY_CLASS']) {
+    public static function vyzvedniChybu() {
+        if (isset($_COOKIE['CHYBY_CLASS']) && $chyba = $_COOKIE['CHYBY_CLASS']) {
             self::setCookie('CHYBY_CLASS', '', 0);
-            return $ch;
+            return $chyba;
         }
         return '';
     }
@@ -46,9 +53,20 @@ class Chyba extends Exception
      * Vrátí text posledního oznámení
      */
     private static function vyzvedniOznameni() {
-        if (isset($_COOKIE['CHYBY_CLASS_OZNAMENI']) && $ch = $_COOKIE['CHYBY_CLASS_OZNAMENI']) {
+        if (isset($_COOKIE['CHYBY_CLASS_OZNAMENI']) && $oznameni = $_COOKIE['CHYBY_CLASS_OZNAMENI']) {
             self::setCookie('CHYBY_CLASS_OZNAMENI', '', 0);
-            return $ch;
+            return $oznameni;
+        }
+        return '';
+    }
+
+    /**
+     * Vrátí text posledního oznámení
+     */
+    private static function vyzvedniVarovani() {
+        if (isset($_COOKIE['CHYBY_CLASS_VAROVANI']) && $varovani = $_COOKIE['CHYBY_CLASS_VAROVANI']) {
+            self::setCookie('CHYBY_CLASS_VAROVANI', '', 0);
+            return $varovani;
         }
         return '';
     }
@@ -58,9 +76,13 @@ class Chyba extends Exception
      */
     public static function vyzvedniHtml(): string {
         $zpravyPodleTypu = [];
-        $error = Chyba::vyzvedni();
+        $error = Chyba::vyzvedniChybu();
         if ($error) {
             $zpravyPodleTypu['error'] = [$error];
+        }
+        $varovani = Chyba::vyzvedniVarovani();
+        if ($varovani) {
+            $zpravyPodleTypu['varovani'] = [$varovani];
         }
         $oznameni = Chyba::vyzvedniOznameni();
         if ($oznameni) {
@@ -81,6 +103,9 @@ class Chyba extends Exception
             switch ($typ) {
                 case 'oznameni':
                     $tridaPodleTypu = 'oznameni';
+                    break;
+                case 'varovani':
+                    $tridaPodleTypu = 'varovani';
                     break;
                 default :
                     $tridaPodleTypu = 'errorHlaska';

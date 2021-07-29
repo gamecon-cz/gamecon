@@ -72,6 +72,16 @@ function chyba($zprava, $back = true) {
 }
 
 /**
+ * Předá chybu volajícímu skriptu, vyvolá reload
+ */
+function varovani(string $zprava, bool $back = true) {
+    Chyba::nastav($zprava, Chyba::VAROVANI);
+    if ($back) {
+        back();
+    }
+}
+
+/**
  * Předá oznámení volajícímu skritpu, vyvolá reload
  * @param back bool má se reloadovat?
  */
