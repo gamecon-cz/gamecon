@@ -3,47 +3,44 @@
 require_once __DIR__ . '/sdilene-hlavicky.php';
 
 $o = dbQuery(<<<SQL
-  SELECT * FROM
-    (SELECT
-      a.id_akce,
-      a.nazev_akce,
-      a.bez_slevy,
-      a.teamova,
-      count(p.id_uzivatele) as prihlaseno_celkem,
-      count(if(p.id_stavu_prihlaseni IN ($1, $2), 1, null)) as dorazilo_celkem,
-      count(if(p.id_stavu_prihlaseni = $2, 1, null)) as dorazilo_nahradniku,
-      count(if(p.id_stavu_prihlaseni = $3, 1, null)) as nedorazilo,
-      count(if(p.id_stavu_prihlaseni = $4, 1, null)) as pozde_zrusilo,
-      count(if(p.id_stavu_prihlaseni = $5, 1, null)) as sledujicich,
-      a.kapacita+a.kapacita_m+a.kapacita_f as celkova_kapacita,
-      a.kapacita as univerzalni_kapacita,
-      a.kapacita_f as kapacita_zen,
-      a.kapacita_m as kapacita_muzu,
-      a.rok,
-      a.zacatek,
-      t.typ_1p as typ,
-      if(a.typ = $6, 1, 0) as technicka,
-      a.cena,
-      FORMAT(TIMESTAMPDIFF(SECOND, a.zacatek, a.konec) / 3600, 1) as delka_v_hodinach
-    FROM akce_seznam a
-    LEFT JOIN (
-        SELECT id_akce, id_uzivatele, id_stavu_prihlaseni FROM akce_prihlaseni
-        UNION ALL
-        SELECT id_akce, id_uzivatele, id_stavu_prihlaseni FROM akce_prihlaseni_spec
-    ) AS p ON a.id_akce=p.id_akce
-    LEFT JOIN akce_typy t ON a.typ=t.id_typu
-    GROUP BY a.id_akce
-    ) AS aktivity
-  ORDER BY typ, nazev_akce, zacatek
+SELECT * FROM
+(
+    SELECT
+        akce_seznam.id_akce,
+        akce_seznam.nazev_akce,
+        akce_seznam.bez_slevy,
+        akce_seznam.teamova,
+        COUNT(dorazili.id_uzivatele) AS prihlaseno_celkem, -- NEVIM co Petr chce
+        COUNT(IF(dorazili.id_stavu_prihlaseni IN ($1, $2), 1, NULL)) AS dorazilo_celkem,
+        COUNT(IF(dorazili.id_stavu_prihlaseni = $2, 1, NULL)) AS dorazilo_nahradniku,
+        COUNT(IF(nepritomni.id_stavu_prihlaseni = $3, 1, NULL)) AS nedorazilo,
+        COUNT(IF(nepritomni.id_stavu_prihlaseni = $4, 1, NULL)) AS pozde_zrusilo,
+        COUNT(IF(nepritomni.id_stavu_prihlaseni = $5, 1, NULL)) AS sledujicich, -- NEVIM co Petr chce
+        akce_seznam.kapacita+akce_seznam.kapacita_m+akce_seznam.kapacita_f AS celkova_kapacita,
+        akce_seznam.kapacita AS univerzalni_kapacita,
+        akce_seznam.kapacita_f AS kapacita_zen,
+        akce_seznam.kapacita_m AS kapacita_muzu,
+        akce_seznam.rok,
+        akce_seznam.zacatek,
+        akce_typy.typ_1p AS typ,
+        IF(akce_seznam.typ = $6, 1, 0) AS technicka,
+        akce_seznam.cena,
+        FORMAT(TIMESTAMPDIFF(SECOND, akce_seznam.zacatek, akce_seznam.konec) / 3600, 1) AS delka_v_hodinach
+    FROM akce_seznam
+    LEFT JOIN akce_prihlaseni AS dorazili ON akce_seznam.id_akce=dorazili.id_akce
+    LEFT JOIN akce_prihlaseni_spec AS nepritomni ON akce_seznam.id_akce=nepritomni.id_akce
+    LEFT JOIN akce_typy ON akce_seznam.typ=akce_typy.id_typu
+    GROUP BY akce_seznam.id_akce
+) AS aktivity
+ORDER BY typ, nazev_akce, zacatek
 SQL
   ,
   [
     Aktivita::PRIHLASEN_A_DORAZIL,
     Aktivita::DORAZIL_JAKO_NAHRADNIK,
-    Aktivita::DORAZIL_JAKO_NAHRADNIK,
     Aktivita::PRIHLASEN_ALE_NEDORAZIL,
     Aktivita::POZDE_ZRUSIL,
-    Aktivita::SLEDUJICI, // ve skutecnosti tohle znamena "sledujici"
+    Aktivita::SLEDUJICI,
     Typ::TECHNICKA,
   ]
 );
