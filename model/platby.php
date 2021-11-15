@@ -3,7 +3,7 @@
 class Platby
 {
 
-    public const DNI_ZPET = 7; // kolik dní zpět se mají načítat platby při kontrole nově došlých plateb
+    public const DNI_ZPET = 14; // kolik dní zpět se mají načítat platby při kontrole nově došlých plateb
 
     /**
      * Načte a uloží nové platby z FIO, vrátí zaúčtované platby
