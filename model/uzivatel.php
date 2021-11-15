@@ -278,8 +278,10 @@ SQL
             );
         }
         // smazání přihlášení na aktivity, na které je jen přihlášen (ne je už hrál, jako náhradník apod.)
-        dbQuery('DELETE p.* FROM akce_prihlaseni p JOIN akce_seznam a
-      WHERE a.rok=' . ROK . ' AND p.id_stavu_prihlaseni=0 AND p.id_uzivatele=' . $this->id());
+        dbQuery(
+            'DELETE p.* FROM akce_prihlaseni p JOIN akce_seznam a
+            WHERE a.rok=' . ROK . ' AND p.id_stavu_prihlaseni=' . Aktivita::PRIHLASEN . ' AND p.id_uzivatele=' . $this->id()
+        );
         // zrušení nákupů
         dbQuery('DELETE FROM shop_nakupy WHERE rok=' . ROK . ' AND id_uzivatele=' . $this->id());
         // finální odebrání židle "registrován na GC"
@@ -701,8 +703,9 @@ SQL
         $u = dbOneLineS('SELECT * FROM uzivatele_hodnoty WHERE id_uzivatele=$0',
             [$id]);
         if ($u) {
-            if (!session_id())
+            if (!session_id()) {
                 session_start();
+            }
             $_SESSION[$klic] = $u;
             $_SESSION[$klic]['id_uzivatele'] = (int)$u['id_uzivatele'];
             //načtení uživatelských práv
@@ -710,14 +713,15 @@ SQL
         LEFT JOIN r_prava_zidle pz USING(id_zidle)
         WHERE uz.id_uzivatele=' . $id);
             $prava = []; //inicializace nutná, aby nepadala výjimka pro uživatele bez práv
-            while ($r = mysqli_fetch_assoc($p))
+            while ($r = mysqli_fetch_assoc($p)) {
                 $prava[] = (int)$r['id_prava'];
+            }
             $_SESSION[$klic]['prava'] = $prava;
             $u = new Uzivatel($_SESSION[$klic]);
             $u->klic = $klic;
             return $u;
-        } else
-            return null;
+        }
+        return null;
     }
 
     /** Alias prihlas() pro trvalé přihlášení */
@@ -1053,8 +1057,10 @@ SQL
 
     //getters, setters
 
-    public function id() {
-        return isset($this->u['id_uzivatele']) ? $this->u['id_uzivatele'] : null;
+    public function id(): ?int {
+        return isset($this->u['id_uzivatele'])
+            ? (int)$this->u['id_uzivatele']
+            : null;
     }
 
     /**
