@@ -10,10 +10,10 @@ FROM akce_prihlaseni_spec aps
 JOIN akce_seznam a ON a.id_akce=aps.id_akce
 JOIN akce_typy at ON at.id_typu=a.typ
 JOIN uzivatele_hodnoty uh ON uh.id_uzivatele=aps.id_uzivatele
-WHERE aps.id_stavu_prihlaseni = 5 AND a.rok = $1
+WHERE aps.id_stavu_prihlaseni = $0 AND a.rok = $1
 GROUP BY aps.id_akce
 ORDER BY COUNT(aps.id_uzivatele) DESC
 SQL
-  , [ROK]
+  , [Aktivita::NAHRADNIK, ROK]
 );
 $report->tFormat(get('format'));
