@@ -18,28 +18,33 @@ if (get('id')) {
     return;
 }
 
-$aktivity = Aktivita::zFiltru([
-// TODO revert    'organizator' => $u->id(),
+$testovani = defined('TESTING') && TESTING && isset($_GET['test']);
+
+$organizovaneAktivity = Aktivita::zFiltru([
+    'organizator' => $testovani
+        ? null
+        : $u->id(),
     'rok' => ROK,
 ]);
 
 $t = new XTemplate(basename(__DIR__ . '/moje-aktivity.xtpl'));
 
-if (empty($aktivity)) {
+if (empty($organizovaneAktivity)) {
     $t->parse('prehled.zadnaAktivita');
 }
-foreach ($aktivity as $a) {
-// TODO revert    $ucastnici = $a->prihlaseni();
-    $ucastnici = Uzivatel::zHledani('kru');
+foreach ($organizovaneAktivity as $organizovanaAktivita) {
+    $ucastnici = $testovani
+        ? Uzivatel::zHledani('kru')
+        : $organizovanaAktivita->prihlaseni();
     $o = dbQuery(
-        'SELECT id_uzivatele, MAX(cas) as cas FROM akce_prihlaseni_log WHERE id_akce = $1 GROUP BY id_uzivatele',
-        [$a->id()]
+        'SELECT id_uzivatele, MAX(cas) AS cas FROM akce_prihlaseni_log WHERE id_akce = $1 GROUP BY id_uzivatele',
+        [$organizovanaAktivita->id()]
     );
     while ($r = mysqli_fetch_assoc($o)) {
         $casyPrihlaseni[$r['id_uzivatele']] = new DateTimeCz($r['cas']);
     }
     foreach ($ucastnici as $ucastnik) {
-        $vek = $ucastnik->vekKDatu($a->zacatek() /* TODO REVERT -> */ ?? new DateTimeCz() /* <- TODO REVERT */);
+        $vek = $ucastnik->vekKDatu($organizovanaAktivita->zacatek() ?? ($testovani ? new DateTimeCz() : null));
         if ($vek === null) {
             $vek = '?';
         } elseif ($vek >= 18) {
@@ -50,7 +55,9 @@ foreach ($aktivity as $a) {
             'mail' => $ucastnik->mail(),
             'vek' => $vek,
             'telefon' => $ucastnik->telefon(),
-            'casPrihlaseni' => isset($casyPrihlaseni[$ucastnik->id()]) ? $casyPrihlaseni[$ucastnik->id()]->format('j.n. H:i') : '<i>???</i>',
+            'casPrihlaseni' => isset($casyPrihlaseni[$ucastnik->id()])
+                ? $casyPrihlaseni[$ucastnik->id()]->format('j.n. H:i')
+                : '<i>???</i>',
         ]);
         $t->parse('prehled.aktivita.ucast.ucastnik');
     }
@@ -58,13 +65,19 @@ foreach ($aktivity as $a) {
         $t->parse('prehled.aktivita.ucast');
     }
     $t->assign([
-        'nazevAktivity' => $a->nazev(),
-        'obsazenost' => $a->obsazenostHtml(),
-        'cas' => $a->denCas(),
-        'maily' => implode(';', array_map(function ($u) {
-            return $u->mail();
-        }, $ucastnici)),
-        'id' => $a->id(),
+        'nazevAktivity' => $organizovanaAktivita->nazev(),
+        'obsazenost' => $organizovanaAktivita->obsazenostHtml(),
+        'cas' => $organizovanaAktivita->denCas(),
+        'maily' => implode(
+            ';',
+            array_map(
+                static function ($u) {
+                    return $u->mail();
+                },
+                $ucastnici
+            )
+        ),
+        'id' => $organizovanaAktivita->id(),
     ]);
     $t->parse('prehled.aktivita');
 }
