@@ -24,7 +24,7 @@
     <div class="paticka">
         <div class="paticka_info">
             <a href="mailto:info@gamecon.cz">info@gamecon.cz</a>
-            <div class="paticka_copy">© 2021 GameCon, Created by GameCon z.s.</div>
+            <div class="paticka_copy">© {letosniRok} GameCon, Created by GameCon z.s.</div>
         </div>
         <div class="paticka_odkazy">
             <a href="kontakty">kontakt</a>
