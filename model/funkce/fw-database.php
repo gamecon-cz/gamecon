@@ -127,11 +127,10 @@ function dbExecTime() {
  * Returns instance of concrete DbException based on error message
  */
 function dbGetExceptionType() {
-    $keys = [
-        1062 => 'DbDuplicateEntryException',
-    ];
-    if (isset($keys[mysqli_errno($GLOBALS['spojeni'])])) return $keys[mysqli_errno($GLOBALS['spojeni'])];
-    else return 'DbException';
+    if (mysqli_errno($GLOBALS['spojeni']) === 1062) {
+        return DbDuplicateEntryException::class;
+    }
+    return DbException::class;
 }
 
 /**
