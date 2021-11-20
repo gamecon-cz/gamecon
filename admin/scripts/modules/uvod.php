@@ -25,7 +25,18 @@ if (post('platba') && $uPracovni) {
     if (!$uPracovni->gcPrihlasen()) {
         varovani('Platba připsána uživateli, který není přihlášen na Gamecon', false);
     }
-    $uPracovni->finance()->pripis(post('platba'), $u, post('poznamka'));
+    try {
+        $uPracovni->finance()->pripis(post('platba'), $u, post('poznamka'), post('idPohybu'));
+    } catch (DbDuplicateEntryException $dbDuplicateEntryException) {
+        if (FioPlatba::existujePodleFioId(post('idPohybu'))) {
+            chyba(sprintf('Tato platba s Fio ID %d již existuje', post('idPohybu')), false);
+        } else {
+            chyba(
+                sprintf("Platbu se nepodařilo uložit. Duplicitní záznam: '%s'", $dbDuplicateEntryException->getMessage()),
+                false
+            );
+        }
+    }
     back();
 }
 
@@ -36,7 +47,9 @@ if (!empty($_POST['gcPrihlas']) && $uPracovni && !$uPracovni->gcPrihlasen()) {
 
 if (!empty($_POST['rychloreg'])) {
     $tab = $_POST['rychloreg'];
-    if (empty($tab['login_uzivatele'])) $tab['login_uzivatele'] = $tab['email1_uzivatele'];
+    if (empty($tab['login_uzivatele'])) {
+        $tab['login_uzivatele'] = $tab['email1_uzivatele'];
+    }
     $tab['nechce_maily'] = isset($tab['nechce_maily']) ? dbNow() : null;
     try {
         $nid = Uzivatel::rychloreg($tab, [

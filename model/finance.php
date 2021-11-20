@@ -217,11 +217,20 @@ class Finance
      * @param float $castka
      * @param Uzivatel $provedl
      * @param string|null $poznamka
+     * @param string|int|null $idFioPlatby
+     * @throws DbDuplicateEntryException
      */
-    function pripis($castka, Uzivatel $provedl, $poznamka = null) {
-        dbQuery(
-            'INSERT INTO platby(id_uzivatele, castka, rok, provedl, poznamka) VALUES ($1, $2, $3, $4, $5)',
-            [$this->u->id(), $castka, ROK, $provedl->id(), $poznamka ?: null]
+    function pripis($castka, Uzivatel $provedl, $poznamka = null, $idFioPlatby = null) {
+        dbInsert(
+            'platby',
+            [
+                'id_uzivatele' => $this->u->id(),
+                'fio_id' => $idFioPlatby ?: null,
+                'castka' => $castka,
+                'rok' => ROK,
+                'provedl' => $provedl->id(),
+                'poznamka' => $poznamka ?: null,
+            ]
         );
     }
 

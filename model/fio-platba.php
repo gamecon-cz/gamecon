@@ -124,4 +124,12 @@ class FioPlatba
         return new static($pole);
     }
 
+    public static function existujePodleFioId($idFioPlatby): bool {
+        return (bool)dbOneCol(<<<SQL
+SELECT 1 FROM platby WHERE fio_id = $1
+SQL,
+            [$idFioPlatby]
+        );
+    }
+
 }
