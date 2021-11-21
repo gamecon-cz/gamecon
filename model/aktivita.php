@@ -1394,7 +1394,7 @@ SQL
      * Vrátí stav přihlášení uživatele na aktivitu. Pokud není přihlášen, vrací
      * hodnotu -1.
      */
-    private function prihlasenStav(Uzivatel $u) {
+    private function prihlasenStav(Uzivatel $u): int {
         $prihlaseni = $this->prihlaseniRaw();
         $usymbol = ',' . $u->id() . $u->pohlavi();
         $pos = strpos($prihlaseni, $usymbol);
@@ -1402,6 +1402,12 @@ SQL
             return (int)substr($prihlaseni, $pos + strlen($usymbol), 1);
         }
         return -1;
+    }
+
+    public function dorazilIJakoNahradnik(Uzivatel $uzivatel): bool {
+        $stav = $this->prihlasenStav($uzivatel);
+
+        return in_array($stav, [self::DORAZIL, self::DORAZIL_NAHRADNIK]);
     }
 
     /** Zdali chceme, aby se na aktivitu bylo možné běžně přihlašovat */
@@ -1913,6 +1919,21 @@ SQL
     public function ulozPrezenci(array $dorazili) {
         $prezence = new AktivitaPrezence($this);
         $prezence->uloz($dorazili);
+    }
+
+    public function ulozPrezenciDorazivsiho(Uzivatel $dorazil) {
+        $prezence = new AktivitaPrezence($this);
+        $prezence->ulozDorazivsiho($dorazil);
+    }
+
+    public function zrusDorazeni(Uzivatel $dorazil) {
+        $prezence = new AktivitaPrezence($this);
+        $prezence->zrusDorazeni($dorazil);
+    }
+
+    public function ulozPrezenciNedorazivsiho(Uzivatel $dorazil) {
+        $prezence = new AktivitaPrezence($this);
+        $prezence->ulozNedorazivsiho($dorazil);
     }
 
     /**
