@@ -15,9 +15,11 @@ const initializeOmnibox = function ($) {
     for (const [key, value] of Object.entries(parameters)) {
       data[key] = value
     }
+    const omniboxUrl = input.dataset.omniboxUrl || 'ajax-omnibox'
+    const method = input.dataset.omniboxMethod || 'get'
     let responseData
-    $.get({
-      url: 'ajax-omnibox',
+    $[method]({
+      url: omniboxUrl,
       data: data,
       success: function (omniboxResponseData) {
         responseData = omniboxResponseData
