@@ -56,11 +56,12 @@ foreach ($aktivity as $aktivita) {
     }
     if ($zamcena && (!$vyplnena || $u->maPravo(\Gamecon\Pravo::ZMENA_HISTORIE_AKTIVIT))) {
         if ($vyplnena && $u->maPravo(\Gamecon\Pravo::ZMENA_HISTORIE_AKTIVIT)) {
-            $t->parse('prezence.aktivita.form.submit.pozorVyplena');
+            $t->parse('prezence.aktivita.form.submit.pozorVyplnena');
         }
         $t->parse('prezence.aktivita.form.submit');
     }
     if (!$zamcena) {
+        $t->parse('prezence.aktivita.onlinePrezence');
         $t->parse('prezence.aktivita.pozorNezamknuta');
     }
     $t->assign('nadpis', implode(' – ', array_filter([$aktivita->nazev(), $aktivita->orgJmena(), $aktivita->lokace()])));
