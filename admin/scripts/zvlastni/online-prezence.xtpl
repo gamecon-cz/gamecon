@@ -1,0 +1,160 @@
+<!-- begin:onlinePrezence -->
+
+<!DOCTYPE html>
+<html lang="cs">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Online prezence - {nadpis}</title>
+
+  <link rel="stylesheet" href="files/bootstrap.5.1.css"/>
+  <link rel="stylesheet" href="files/font-awesome-5-15-4/all.min.css"/>
+  <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-v1.12.1.min.css"/>
+  <link rel="stylesheet" href="files/design/hint.css?version=4ec833e6ceb39920a5c5f3fb79a1c16d"/>
+  <link rel="stylesheet" href="files/design/zvyraznena-tabulka.css?version=1adaf17a04a97a92082bd531141ec69e"/>
+
+  <script type="text/javascript" src="files/jquery-3.4.1.min.js"></script>
+  {jsVyjimkovac}
+  <script type="text/javascript" src="files/jquery-ui-v1.12.1.min.js"></script>
+  <script type="text/javascript" src="files/jquery.hotkeys-0.8.0.js"></script>
+
+  <script type="text/javascript" src="files/omnibox.js?version=e5cd9171d8ae5178823bdcf81f68b43d"></script>
+  <script type="text/javascript" src="files/online-prezence.js?version=eaa8f611d5b7ad3e59c866efd003e495"></script>
+
+</head>
+
+<body style="padding: 1em">
+
+<script type="text/javascript">
+  function uzavritAktivitu(idAktivity, skrytElement, zobrazitElement) {
+    $.post(
+      location.href,
+      {akce: 'uzavrit', id: idAktivity, ajax: true},
+    ).done(function (data) {
+      skrytElement.style.display = 'none'
+      zobrazitElement.style.display = 'initial'
+    })
+  }
+
+  function zmenitUcastnika(idUzivatele, idAktivity, checkboxNode) {
+    checkboxNode.disabled = true
+    dorazil = checkboxNode.checked
+    $.post(
+      location.href,
+      {akce: 'zmenitUcastnika', idAktivity: idAktivity, idUzivatele: idUzivatele, dorazil: dorazil ? 1 : 0, ajax: 1},
+    ).done(function (data) {
+      checkboxNode.disabled = false
+      if (data && typeof data.prihlasen == 'boolean') {
+        checkboxNode.checked = data.prihlasen
+      }
+    })
+  }
+</script>
+
+<style>
+    .ui-helper-hidden-accessible {
+        display: none
+    }
+</style>
+
+<main class="main">
+
+  <div class="container">
+    <!-- begin:nevybrano -->
+    <p>Není vybrán blok, který se má zobrazit. Vyberte vpravo nahoře.</p>
+    <!-- end:nevybrano -->
+
+    <!-- begin:zadnaAktivita -->
+    <div>
+      Žádné aktivity (které se mají evidovat) nezačínají v zadaný čas.
+      <form method="get" action="?zpet=1">
+        <input type="submit" value="↶ Zpět">
+      </form>
+    </div>
+    <!-- end:zadnaAktivita -->
+
+    <div class="online-prezence">
+
+      <div class="row">
+        <p class="col-sm" id="kontrolniUpozorneni" style="font-style: italic">
+          Před uzavřením prosím zkontroluj, že u aktivity není uvedený žádný problém.
+          Pokud někteří účastníci neprošli infopultem, zkus jim zavolat a přivolat je k infopultu.
+          Pokud se nedovoláš nebo zjistíš, že na GC nedojdou, odhlaš je z aktivity.
+        </p>
+      </div>
+
+      <script type="text/javascript">
+        const kontrolniUpozorneni = document.getElementById('kontrolniUpozorneni')
+      </script>
+
+      <!-- begin:aktivita -->
+      <div data-id="{a.id}">
+
+        <h2 id="{nadpis}">{nadpis} <a href="#{nadpis}" style="color: darkgray; opacity: 0.6">#</a></h2>
+
+        <div style="padding: 0.5em 0">
+          <span style="display: none" id="uzavrena-{a.id}"><em>🔒 Uzavřena pro online přihlašování 🔒</em></span>
+          <input type="button"
+                 onclick="confirm(kontrolniUpozorneni) && uzavritAktivitu('{a.id}', this, document.getElementById('uzavrena-{a.id}'))"
+                 value="🔒 Uzavřít pro přihlašování">
+        </div>
+
+        <!-- begin:form -->
+        <form class="formAktivita">
+          <!-- <input type="hidden" name="kapacita_celkova" value="{}" /> --><!-- TODO kapacita -->
+          <input type="hidden" name="prezenceAktivity" value="{a.id}"/>
+          <table class="zvyraznovana" style="width: 100%" id="ucastniciAktivity">
+            <tr class="col-md col-sm-6 no-gutters">
+              <th style="text-align: center">?</th>
+              <th>Jméno</th>
+              <th>Telefon</th>
+              <th>
+                <span class="hinted"><i class="fas fa-list"></i><span class="hint">Dorazil účastník na aktivitu?</span></span>
+              </th>
+            </tr>
+            <!-- begin:ucastnik -->
+            <!-- viz online-prezence-ucastnik.xtpl -->
+            {ucastnikHtml}
+            <!-- end:ucastnik -->
+          </table>
+
+          <!-- begin:submit -->
+          <div class="row" style="margin: 1em 0">
+            <input type="text" class="omnibox col-md-4"
+                   placeholder="Přidej účastníka..."
+                   data-omnibox='{"labelSlozenZ": ["id", "jmenoNick", "mail", "zustatek", "gcPritomen"]}'
+                   data-omnibox-url="{omniboxUrl}?omnibox=1&ajax=1&id-aktivity={a.id}"
+            >
+            <span class="col-md-4 omnibox-nic-nenalezeno" style="display: none"><em>Nic...</em> 🤷</span>
+          </div>
+          <!-- begin:pozorVyplnena -->
+          <div class="error" style="padding-right: 1em">
+            <span class="hinted">
+              Pozor, aktivita už je vyplněná!
+              <span class="hint">Přídání účastníka zvýší jeho dluh. Zkontroluj jeho finance.</span>
+            </span>
+          </div>
+          <!-- end:pozorVyplnena -->
+          <div class="row">
+            <button type="submit" class="col-xl-1 col-sm-2 btn btn-success"><i class="fas fa-save"></i> Uložit</button>
+            <span class="col-xl-10 col-sm-8"></span>
+            <a href="{prezenceUrl}" class="col-xl-1 col-sm-2 btn btn-danger">↶ Zpět</a>
+          </div>
+          <!-- end:submit -->
+        </form>
+        <!-- end:form -->
+
+      </div>
+    </div>
+    <!-- end:aktivita -->
+
+  </div>
+
+</main>
+
+</body>
+</html>
+
+<!-- end:onlinePrezence -->
