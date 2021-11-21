@@ -67,7 +67,7 @@
                    data-omnibox='{"labelSlozenZ": ["id", "jmenoNick", "mail", "zustatek"], "dataVOdpovedi":["jmenoNick", "telefon"]}'>
           </td>
         </tr>
-        <!-- begin:pozorVyplena -->
+        <!-- begin:pozorVyplnena -->
         <tr>
           <td colspan="100%" style="padding: 0">
             <div class="error" style="padding-right: 1em">
@@ -76,7 +76,7 @@
             </div>
           </td>
         </tr>
-        <!-- end:pozorVyplena -->
+        <!-- end:pozorVyplnena -->
         <tr style="background-color: transparent">
           <td colspan="5"><input type="submit" value="uložit"></td>
         </tr>
@@ -89,8 +89,13 @@
     <div class="success">Uloženo OK s účastí {a.obsazenostHtml}</div>
     <!-- end:vyplnena -->
 
+    <!-- begin:onlinePrezence -->
+    <a href="online-prezence?ids={ids}" type="button" id="otevritOnlinePrezenci" style="padding: 0.3em" class="ui-button">
+      🔒 Zamknout pro online registraci a vyplnit prezenci ✅</a>
+    <!-- end:onlinePrezence -->
+
     <!-- begin:pozorNezamknuta -->
-    <div class="error">Pozor, aktivita není zamknutá pro online registraci a nemá vytištěnou prezenci!</div>
+    <div class="error">Pozor, aktivita není zamknutá pro online registraci a nemá uzavřenou prezenci!</div>
     <!-- end:pozorNezamknuta -->
 
   </div>

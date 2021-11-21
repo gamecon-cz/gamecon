@@ -1123,9 +1123,11 @@ SQL
      * Na základě řetězce $dotaz zkusí najít všechny uživatele, kteří odpovídají
      * jménem, nickem, apod.
      */
-    static function zHledani($dotaz, $opt = []) {
+    static function zHledani($dotaz, $opt = [], int $limit = 20) {
         $opt = opt($opt, [
             'mail' => false,
+            'jenPritomniNaGc' => false,
+            'kromeIdUzivatelu' => [],
             'min' => 3, // minimum znaků
         ]);
         if (strlen($dotaz) < $opt['min']) {
@@ -1133,14 +1135,24 @@ SQL
         }
         $q = dbQv($dotaz);
         $l = dbQv($dotaz . '%'); // pro LIKE dotazy
+        $kromeIdUzivateluSql = $opt['kromeIdUzivatelu']
+            ? implode(',', array_map(static function ($idUzivatele) {
+                return (int)$idUzivatele;
+            }, $opt['kromeIdUzivatelu']))
+            : '0';
+
         return self::zWhere("
-      WHERE u.id_uzivatele = $q
+      WHERE u.id_uzivatele NOT IN ($kromeIdUzivateluSql)
+      " . ($opt['jenPritomniNaGc'] ? " AND p.id_prava = " . ID_PRAVO_PRITOMEN : "") . "
+      AND (
+          u.id_uzivatele = $q
           OR login_uzivatele LIKE $l
           OR jmeno_uzivatele LIKE $l
           OR prijmeni_uzivatele LIKE $l
           " . ($opt['mail'] ? " OR email1_uzivatele LIKE $l " : "") . "
           OR CONCAT(jmeno_uzivatele,' ',prijmeni_uzivatele) LIKE $l
-    ", null, 'LIMIT 20');
+      )
+    ", null, 'LIMIT ' . $limit);
     }
 
     /**

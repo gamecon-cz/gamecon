@@ -17,61 +17,76 @@ class AktivitaPrezence
      * @param Uzivatel[] $dorazili uživatelé, kteří se nakonec aktivity zúčastnili
      */
     public function uloz(array $dorazili) {
-        $prihlaseni = [];  // přihlášení kteří dorazili
-        $nahradnici = [];  // náhradníci
-        $nedorazili = [];  // přihlášení kteří nedorazili
         $doraziliIds = []; // id všech co dorazili (kvůli kontrole přítomnosti)
 
         // TODO kontrola, jestli prezence smí být uložena (např. jestli už nebyla uložena dřív)
 
-        // určení skupin kdo dorazil a kdo ne
-        foreach ($dorazili as $u) {
-            if ($this->aktivita->prihlasen($u)) {
-                $prihlaseni[] = $u;
-            } else {
-                $nahradnici[] = $u;
-            }
-            $doraziliIds[$u->id()] = true;
+        foreach ($dorazili as $dorazil) {
+            $this->ulozDorazivsiho($dorazil);
+            $doraziliIds[$dorazil->id()] = true;
         }
-        foreach ($this->aktivita->prihlaseni() as $u) {
-            if (isset($doraziliIds[$u->id()])) {
-                continue;
+        foreach ($this->aktivita->prihlaseni() as $uzivatel) {
+            if (!isset($doraziliIds[$uzivatel->id()])) {
+                $this->ulozNedorazivsiho($uzivatel);
             }
-            $nedorazili[] = $u;
         }
+    }
 
-        // úprava stavu přihlášení podle toho do jaké skupiny spadá
-        foreach ($prihlaseni as $u) {
+    public function ulozDorazivsiho(Uzivatel $dorazil) {
+        // TODO kontrola, jestli prezence smí být uložena (např. jestli už nebyla uložena dřív)
+
+        if ($this->aktivita->prihlasen($dorazil)) {
             dbInsertUpdate('akce_prihlaseni', [
-                'id_uzivatele' => $u->id(),
+                'id_uzivatele' => $dorazil->id(),
                 'id_akce' => $this->aktivita->id(),
                 'id_stavu_prihlaseni' => Aktivita::PRIHLASEN_A_DORAZIL,
             ]);
-        }
-
-        foreach ($nahradnici as $u) {
-            $this->aktivita->odhlasZNahradnickychSlotu($u);
+        } else {
+            $this->aktivita->odhlasZNahradnickychSlotu($dorazil);
             dbInsert('akce_prihlaseni', [
-                'id_uzivatele' => $u->id(),
+                'id_uzivatele' => $dorazil->id(),
                 'id_akce' => $this->aktivita->id(),
                 'id_stavu_prihlaseni' => Aktivita::DORAZIL_JAKO_NAHRADNIK,
             ]);
-            $this->log($u, 'prihlaseni_nahradnik');
+            $this->log($dorazil, 'prihlaseni_nahradnik');
         }
+    }
 
-        foreach ($nedorazili as $u) {
-            dbDelete('akce_prihlaseni', [
-                'id_uzivatele' => $u->id(),
+    public function zrusDorazeni(Uzivatel $dorazil) {
+        // TODO kontrola, jestli prezence smí být uložena (např. jestli už nebyla uložena dřív)
+
+        // TODO nahradnik asi bude detekovany jako "prihlasen"
+        if ($this->aktivita->prihlasen($dorazil)) {
+            dbInsertUpdate('akce_prihlaseni', [
+                'id_uzivatele' => $dorazil->id(),
                 'id_akce' => $this->aktivita->id(),
+                'id_stavu_prihlaseni' => Aktivita::PRIHLASEN,
             ]);
-            dbInsert('akce_prihlaseni_spec', [
-                'id_uzivatele' => $u->id(),
+        } else {
+            $this->aktivita->odhlasZNahradnickychSlotu($dorazil);
+            dbInsert('akce_prihlaseni', [
+                'id_uzivatele' => $dorazil->id(),
                 'id_akce' => $this->aktivita->id(),
-                'id_stavu_prihlaseni' => Aktivita::PRIHLASEN_ALE_NEDORAZIL,
+                'id_stavu_prihlaseni' => Aktivita::PRIHLASEN,
             ]);
-            $this->log($u, 'nedostaveni_se');
-            $this->posliMailNedorazivsimu($u);
+            $this->log($dorazil, 'zruseni_prihlaseni_nahradnik');
         }
+    }
+
+    public function ulozNedorazivsiho(Uzivatel $nedorazil) {
+        // TODO kontrola, jestli prezence smí být uložena (např. jestli už nebyla uložena dřív)
+
+        dbDelete('akce_prihlaseni', [
+            'id_uzivatele' => $nedorazil->id(),
+            'id_akce' => $this->aktivita->id(),
+        ]);
+        dbInsert('akce_prihlaseni_spec', [
+            'id_uzivatele' => $nedorazil->id(),
+            'id_akce' => $this->aktivita->id(),
+            'id_stavu_prihlaseni' => Aktivita::PRIHLASEN_ALE_NEDORAZIL,
+        ]);
+        $this->log($nedorazil, 'nedostaveni_se');
+        $this->posliMailNedorazivsimu($nedorazil);
     }
 
     /////////////
