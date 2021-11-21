@@ -1,0 +1,25 @@
+<!-- begin:ucastnik -->
+<tr class="col-md col-sm-6 no-gutters">
+  <td>
+    <!-- begin:pritomen -->
+    <span class="hinted">
+                  <img src="files/design/ok-s.png" style="margin-bottom:-1px; width: 1em">
+                  <span class="hint"><strong>Je přítomen</strong> v tomto okamžiku na GC (prošel infopultem).</span>
+                </span>
+    <!-- end:pritomen -->
+    <!-- begin:nepritomen -->
+    <span class="hinted">
+                  <img src="files/design/error-s.png" style="margin-bottom:-1px; width: 1em">
+                <span class="hint"><strong>Není přítomen</strong> v tomto okamžiku na GC (neprošel infopultem).</span>
+            </span>
+    <!-- end:nepritomen -->
+  </td>
+  <td>{u.jmenoNick}</td>
+  <td><a href="tel:{u.telefon}"><i class="fas fa-phone"></i> {u.telefon}</a></td>
+  <td>
+    <!-- begin:checkbox -->
+    <input type="checkbox" onchange="zmenitUcastnika('{u.id}', '{a.id}', this)" style="cursor: pointer" name="dorazil[]" value="{u.id}" {checked}>
+    <!-- end:checkbox -->
+  </td>
+</tr>
+<!-- end:ucastnik -->

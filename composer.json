@@ -48,6 +48,7 @@
     "setasign/tfpdf": "^1.25",
     "symfony/polyfill-php80": "^1.22",
     "tracy/tracy": "~2.4",
+    "twbs/bootstrap": "^5.1.3",
     "wikimedia/less.php": "^3.0"
   },
   "require-dev": {
@@ -69,8 +70,13 @@
   },
   "scripts": {
     "pre-autoload-dump": "Google\\Task\\Composer::cleanup",
-    "post-update-cmd": "@clear-templates-cache",
-    "post-install-cmd": "@clear-templates-cache",
+    "post-update-cmd": "@after-change",
+    "post-install-cmd": "@after-change",
+    "after-change": [
+      "@copy-bootstrap",
+      "@clear-templates-cache"
+    ],
+    "copy-bootstrap": "php -r 'copy(\"./vendor/twbs/bootstrap/dist/css/bootstrap.css\", \"./admin/files/bootstrap.5.1.css\");'",
     "clear-templates-cache": "php -r 'array_map(\"unlink\", glob(\"cache/private/xtpl/*.php\"));'"
   },
   "config": {
