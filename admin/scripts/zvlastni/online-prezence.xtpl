@@ -22,7 +22,11 @@
 
   <script type="text/javascript" src="files/omnibox.js?version=e5cd9171d8ae5178823bdcf81f68b43d"></script>
   <script type="text/javascript" src="files/online-prezence.js?version=eaa8f611d5b7ad3e59c866efd003e495"></script>
-
+  <style>
+      .ui-helper-hidden-accessible {
+          display: none
+      }
+  </style>
 </head>
 
 <body style="padding: 1em">
@@ -30,12 +34,6 @@
 <script type="text/javascript">
 
 </script>
-
-<style>
-    .ui-helper-hidden-accessible {
-        display: none
-    }
-</style>
 
 <main class="main">
 
@@ -82,10 +80,12 @@
               Spustit a zamknout 🔒
             </button>
             <script>
-              const uzavrenaElement = document.getElementById('uzavrena-{a.id}')
-              if (uzavrenaElement.dataset.uzavrena) {
-                const otevrenaElement = document.getElementById('otevrena-{a.id}')
-                prohoditZobrazeni(otevrenaElement, uzavrenaElement)
+              { // local scope
+                const uzavrenaElement = document.getElementById('uzavrena-{a.id}')
+                if (uzavrenaElement.dataset.uzavrena) {
+                  const otevrenaElement = document.getElementById('otevrena-{a.id}')
+                  prohoditZobrazeni(otevrenaElement, uzavrenaElement)
+                }
               }
             </script>
           </span>
@@ -129,11 +129,10 @@
         <!-- end:form -->
 
       </div>
+      <!-- end:aktivita -->
+
     </div>
-    <!-- end:aktivita -->
-
   </div>
-
 </main>
 
 </body>
