@@ -55,22 +55,20 @@ class AktivitaPrezence
     public function zrusDorazeni(Uzivatel $dorazil) {
         // TODO kontrola, jestli prezence smí být uložena (např. jestli už nebyla uložena dřív)
 
-        // TODO nahradnik asi bude detekovany jako "prihlasen"
-        if ($this->aktivita->prihlasen($dorazil)) {
-            dbInsertUpdate('akce_prihlaseni', [
+        if ($this->aktivita->dorazilJakoNahradnik($dorazil)) {
+            $this->aktivita->prihlasNahradnika($dorazil);
+            dbDelete('akce_prihlaseni', [
                 'id_uzivatele' => $dorazil->id(),
                 'id_akce' => $this->aktivita->id(),
-                'id_stavu_prihlaseni' => Aktivita::PRIHLASEN,
-            ]);
-        } else {
-            $this->aktivita->odhlasZNahradnickychSlotu($dorazil);
-            dbInsert('akce_prihlaseni', [
-                'id_uzivatele' => $dorazil->id(),
-                'id_akce' => $this->aktivita->id(),
-                'id_stavu_prihlaseni' => Aktivita::PRIHLASEN,
             ]);
             $this->log($dorazil, 'zruseni_prihlaseni_nahradnik');
+        } elseif ($this->aktivita->dorazilJakoPredemPrihlaseny($dorazil)) {
+            dbUpdate('akce_prihlaseni',
+                ['id_stavu_prihlaseni' => Aktivita::PRIHLASEN], // vratime ho zpet jako "jen prihlaseneho"
+                ['id_uzivatele' => $dorazil->id(), 'id_akce' => $this->aktivita->id()]
+            );
         }
+        // else neni co menit
     }
 
     public function ulozNedorazivsiho(Uzivatel $nedorazil) {
