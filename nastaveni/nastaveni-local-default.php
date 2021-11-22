@@ -15,9 +15,10 @@ ini_set('display_errors', true); // zobrazovat chyby při lokálním vývoji (po
 @define('DBM_SERV', DB_SERV);
 //@define('DBM_PORT', DB_PORT);
 
-@define('URL_WEBU',  '/gamecon/web'); // absolutní url uživatelského webu
-@define('URL_ADMIN', '/gamecon/admin'); // absolutní url adminu
-@define('URL_CACHE', '/gamecon/cache/public'); // url sdílených cachí
+$baseUrl = (($_SERVER['HTTPS'] ?? 'off') === 'on' ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? '/gamecon');
+@define('URL_WEBU', $baseUrl . '/web'); // absolutní url uživatelského webu
+@define('URL_ADMIN', $baseUrl . '/admin'); // absolutní url adminu
+@define('URL_CACHE', $baseUrl . '/cache/public'); // url sdílených cachí
 
 @define('ANALYTICS', false);
 @define('MIGRACE_HESLO', '');
