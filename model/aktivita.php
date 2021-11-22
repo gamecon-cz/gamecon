@@ -1404,10 +1404,22 @@ SQL
         return -1;
     }
 
-    public function dorazilIJakoNahradnik(Uzivatel $uzivatel): bool {
+    public function dorazilJakoCokoliv(Uzivatel $uzivatel): bool {
         $stav = $this->prihlasenStav($uzivatel);
 
         return in_array($stav, [self::DORAZIL, self::DORAZIL_NAHRADNIK]);
+    }
+
+    public function dorazilJakoNahradnik(Uzivatel $uzivatel): bool {
+        $stav = $this->prihlasenStav($uzivatel);
+
+        return $stav === self::DORAZIL_NAHRADNIK;
+    }
+
+    public function dorazilJakoPredemPrihlaseny(Uzivatel $uzivatel): bool {
+        $stav = $this->prihlasenStav($uzivatel);
+
+        return $stav === self::DORAZIL;
     }
 
     /** Zdali chceme, aby se na aktivitu bylo možné běžně přihlašovat */
@@ -1865,7 +1877,7 @@ SQL
     }
 
     /**
-     * Vrátí pole s přihlášenými účastníky
+     * Vrátí pole s přihlášenými účastníky, včetně náhradníků
      * @return Uzivatel[]
      */
     public function prihlaseni(): array {
@@ -1883,7 +1895,7 @@ SQL
         $prezence->uloz($dorazili);
     }
 
-    public function ulozPrezenciDorazivsiho(Uzivatel $dorazil) {
+    public function ulozZeDorazil(Uzivatel $dorazil) {
         $prezence = new AktivitaPrezence($this);
         $prezence->ulozDorazivsiho($dorazil);
     }
