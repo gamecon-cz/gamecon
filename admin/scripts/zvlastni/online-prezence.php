@@ -11,15 +11,19 @@ $ucastnikTemplate = new XTemplate(basename(__DIR__ . '/online-prezence-ucastnik.
 $sestavHmlUcastnikaAktivity = function (
     Uzivatel $prihlasenyUzivatel,
     Aktivita $aktivita,
-    bool     $naAktivite
+    bool     $dorazil
 ) use ($ucastnikTemplate): string {
     $ucastnikTemplate->assign('u', $prihlasenyUzivatel);
     $ucastnikTemplate->assign('a', $aktivita);
 
-    $ucastnikTemplate->assign('checked', $naAktivite ? 'checked' : '');
+    $ucastnikTemplate->assign('checked', $dorazil ? 'checked' : '');
+    $ucastnikTemplate->assign('disabled', $aktivita->zamcena() ? 'disabled' : '');
     $ucastnikTemplate->parse('ucastnik.checkbox');
 
     $ucastnikTemplate->parse('ucastnik.' . ($prihlasenyUzivatel->gcPritomen() ? 'pritomen' : 'nepritomen'));
+    if ($prihlasenyUzivatel->telefon()) {
+        $ucastnikTemplate->parse('ucastnik.telefon');
+    }
     $ucastnikTemplate->parse('ucastnik');
     return $ucastnikTemplate->text('ucastnik');
 };
@@ -35,8 +39,12 @@ if (post('ajax') || get('ajax')) {
             ], JSON_THROW_ON_ERROR);
             exit;
         }
+        $aktivita->ulozPrezenci($aktivita->prihlaseni());
+        $aktivita->zamci();
+        $aktivita->refresh();
+
         header('Content-Type: application/json');
-        echo json_encode([], JSON_THROW_ON_ERROR);  // TODO da se vubec aktivita zavrit?
+        echo json_encode(['zamcena' => $aktivita->zamcena()], JSON_THROW_ON_ERROR);
         exit;
     }
 
@@ -53,14 +61,15 @@ if (post('ajax') || get('ajax')) {
             exit;
         }
         if ($dorazil) {
-            $aktivita->ulozPrezenciDorazivsiho($ucastnik);
+            $aktivita->ulozZeDorazil($ucastnik);
         } else {
             $aktivita->zrusDorazeni($ucastnik);
         }
+        /** Abychom mměli nová data pro @see \Aktivita::dorazilJakoCokoliv */
         $aktivita->refresh();
 
         header('Content-Type: application/json');
-        echo json_encode(['prihlasen' => $aktivita->dorazilIJakoNahradnik($ucastnik)], JSON_THROW_ON_ERROR);
+        echo json_encode(['prihlasen' => $aktivita->dorazilJakoCokoliv($ucastnik)], JSON_THROW_ON_ERROR);
         exit;
     }
 
@@ -79,7 +88,7 @@ if (post('ajax') || get('ajax')) {
 
     if (get('omnibox')) {
         $idAktivityProOmnibox = get('id-aktivity');
-        $aktivita = Aktivita::zId($idAktivityProOmnibox); // TODO remove already added users
+        $aktivita = Aktivita::zId($idAktivityProOmnibox);
         if (!$aktivita) {
             header("HTTP/1.1 400 Bad Request");
             header('Content-Type: application/json');
@@ -102,7 +111,12 @@ if (post('ajax') || get('ajax')) {
         );
         foreach ($omniboxData as &$prihlasenyUzivatelOmnibox) {
             $prihlasenyUzivatel = Uzivatel::zId($prihlasenyUzivatelOmnibox['value']);
-            $ucastnikHtml = $sestavHmlUcastnikaAktivity($prihlasenyUzivatel, $aktivita, true);
+
+            $ucastnikHtml = $sestavHmlUcastnikaAktivity(
+                $prihlasenyUzivatel,
+                $aktivita,
+                true /* jenom zobrazeni - skuteečné uložení, že dorazil, řešíme a po vybrání uživatele z omniboxu */
+            );
             $prihlasenyUzivatelOmnibox['html'] = $ucastnikHtml;
         }
         unset($prihlasenyUzivatelOmnibox);
@@ -142,22 +156,22 @@ $t->assign('prezenceUrl', basename(__DIR__ . '/../modules/prezence/prezence.php'
 $ucastnikTemplate = new XTemplate(basename(__DIR__ . '/online-prezence-ucastnik.xtpl'));
 
 foreach ($aktivity as $aktivita) {
+    $t->assign('a', $aktivita);
+    $t->assign('uzavrena', $aktivita->zamcena());
+
+
     $vyplnena = $aktivita->vyplnenaPrezence();
     $zamcena = $aktivita->zamcena();
-    $t->assign('a', $aktivita);
 
     foreach ($aktivita->prihlaseni() as $prihlasenyUzivatel) {
-        $ucastnikHtml = $sestavHmlUcastnikaAktivity($prihlasenyUzivatel, $aktivita, false);
+        $ucastnikHtml = $sestavHmlUcastnikaAktivity($prihlasenyUzivatel, $aktivita, $aktivita->dorazilJakoCokoliv($prihlasenyUzivatel));
         $t->assign('ucastnikHtml', $ucastnikHtml);
         $t->parse('onlinePrezence.aktivita.form.ucastnik');
     }
-    if ($zamcena && (!$vyplnena || $u->maPravo(\Gamecon\Pravo::ZMENA_HISTORIE_AKTIVIT))) {
-        if ($vyplnena && $u->maPravo(\Gamecon\Pravo::ZMENA_HISTORIE_AKTIVIT)) {
-            $t->parse('onlinePrezence.aktivita.form.submit.pozorVyplnena');
-        }
-    }
 
-    $t->parse('onlinePrezence.aktivita.form.submit');
+    if (!$zamcena) {
+        $t->parse('onlinePrezence.aktivita.form.pridatUcastnika');
+    }
 
     $t->assign('nadpis', implode(' – ', array_filter([$aktivita->nazev(), $aktivita->orgJmena(), $aktivita->lokace()])));
     $t->parse('onlinePrezence.aktivita.form');

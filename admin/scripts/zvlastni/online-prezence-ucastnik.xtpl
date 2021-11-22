@@ -15,10 +15,14 @@
     <!-- end:nepritomen -->
   </td>
   <td>{u.jmenoNick}</td>
-  <td><a href="tel:{u.telefon}"><i class="fas fa-phone"></i> {u.telefon}</a></td>
+  <td>
+    <!-- begin:telefon -->
+    <a href="tel:{u.telefon}"><i class="fas fa-phone"></i> {u.telefon}</a>
+    <!-- end:telefon -->
+  </td>
   <td>
     <!-- begin:checkbox -->
-    <input type="checkbox" onchange="zmenitUcastnika('{u.id}', '{a.id}', this)" style="cursor: pointer" name="dorazil[]" value="{u.id}" {checked}>
+    <input type="checkbox" onchange="zmenitUcastnika('{u.id}', '{a.id}', this)" style="cursor: pointer" name="dorazil[]" value="{u.id}" {checked} {disabled}>
     <!-- end:checkbox -->
   </td>
 </tr>
