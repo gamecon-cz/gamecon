@@ -22,9 +22,9 @@ if (post('vypadliSemifinale') || post('vypadliFinale')) {
 
     foreach ($a->prihlaseni() as $uc) {
         $mail->text("Ahoj " . $uc->nick() . ",\n
-            bohužel, tvoje družina " . $druzina . " nepostoupila do dalšího kola. Herní bloky, původně 
+            bohužel, tvoje družina " . $druzina . " nepostoupila do dalšího kola. Herní bloky, původně
             rezervované pro turnaj MDrD, jsou nyní volné a můžeš se tak přihlásit na jinou aktivitu.\n
-            Díky a s pozdravem,\n 
+            Díky a s pozdravem,\n
             tým MDrD");
         $mail->adresat($uc->mail());
         $mail->odeslat();
