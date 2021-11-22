@@ -28,29 +28,7 @@
 <body style="padding: 1em">
 
 <script type="text/javascript">
-  function uzavritAktivitu(idAktivity, skrytElement, zobrazitElement) {
-    $.post(
-      location.href,
-      {akce: 'uzavrit', id: idAktivity, ajax: true},
-    ).done(function (data) {
-      skrytElement.style.display = 'none'
-      zobrazitElement.style.display = 'initial'
-    })
-  }
 
-  function zmenitUcastnika(idUzivatele, idAktivity, checkboxNode) {
-    checkboxNode.disabled = true
-    dorazil = checkboxNode.checked
-    $.post(
-      location.href,
-      {akce: 'zmenitUcastnika', idAktivity: idAktivity, idUzivatele: idUzivatele, dorazil: dorazil ? 1 : 0, ajax: 1},
-    ).done(function (data) {
-      checkboxNode.disabled = false
-      if (data && typeof data.prihlasen == 'boolean') {
-        checkboxNode.checked = data.prihlasen
-      }
-    })
-  }
 </script>
 
 <style>
@@ -86,7 +64,7 @@
       </div>
 
       <script type="text/javascript">
-        const kontrolniUpozorneni = document.getElementById('kontrolniUpozorneni')
+        const kontrolniUpozorneni = document.getElementById('kontrolniUpozorneni').innerText
       </script>
 
       <!-- begin:aktivita -->
@@ -94,11 +72,27 @@
 
         <h2 id="{nadpis}">{nadpis} <a href="#{nadpis}" style="color: darkgray; opacity: 0.6">#</a></h2>
 
-        <div style="padding: 0.5em 0">
-          <span style="display: none" id="uzavrena-{a.id}"><em>🔒 Uzavřena pro online přihlašování 🔒</em></span>
-          <input type="button"
-                 onclick="confirm(kontrolniUpozorneni) && uzavritAktivitu('{a.id}', this, document.getElementById('uzavrena-{a.id}'))"
-                 value="🔒 Uzavřít pro přihlašování">
+        <div style="padding: 0.5em 0" class="row">
+          <span class="col-xl-3 col-md-6 col-sm-12">
+            <span style="display: none" id="uzavrena-{a.id}" data-uzavrena="{uzavrena}">
+              <em>🔒 Uzavřena pro online přihlašování 🔒</em>
+            </span>
+            <button class="btn btn-outline-danger" style="width: 100%" id="otevrena-{a.id}"
+                    onclick="confirm(kontrolniUpozorneni) && uzavritAktivitu('{a.id}', this, document.getElementById('uzavrena-{a.id}'))">
+              Spustit a zamknout 🔒
+            </button>
+            <script>
+              const uzavrenaElement = document.getElementById('uzavrena-{a.id}')
+              if (uzavrenaElement.dataset.uzavrena) {
+                const otevrenaElement = document.getElementById('otevrena-{a.id}')
+                prohoditZobrazeni(otevrenaElement, uzavrenaElement)
+              }
+            </script>
+          </span>
+          <span class="col"></span>
+          <span class="col-xl-2 col-md-4 col-sm-12">
+            <a style="width: 100%" href="{prezenceUrl}" class="btn btn-warning">↶ Zpět na <em>Moje aktivity</em></a>
+          </span>
         </div>
 
         <!-- begin:form -->
@@ -120,7 +114,7 @@
             <!-- end:ucastnik -->
           </table>
 
-          <!-- begin:submit -->
+          <!-- begin:pridatUcastnika -->
           <div class="row" style="margin: 1em 0">
             <input type="text" class="omnibox col-md-4"
                    placeholder="Přidej účastníka..."
@@ -129,20 +123,8 @@
             >
             <span class="col-md-4 omnibox-nic-nenalezeno" style="display: none"><em>Nic...</em> 🤷</span>
           </div>
-          <!-- begin:pozorVyplnena -->
-          <div class="error" style="padding-right: 1em">
-            <span class="hinted">
-              Pozor, aktivita už je vyplněná!
-              <span class="hint">Přídání účastníka zvýší jeho dluh. Zkontroluj jeho finance.</span>
-            </span>
-          </div>
-          <!-- end:pozorVyplnena -->
-          <div class="row">
-            <button type="submit" class="col-xl-1 col-sm-2 btn btn-success"><i class="fas fa-save"></i> Uložit</button>
-            <span class="col-xl-10 col-sm-8"></span>
-            <a href="{prezenceUrl}" class="col-xl-1 col-sm-2 btn btn-danger">↶ Zpět</a>
-          </div>
-          <!-- end:submit -->
+          <!-- end:pridatUcastnika -->
+
         </form>
         <!-- end:form -->
 
