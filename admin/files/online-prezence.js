@@ -8,6 +8,8 @@
         const novyUcastnik = $(ui.item.html)
 
         ucastniciAktivityNode.append(novyUcastnik)
+        // trigger change pro potvrzení vybraného nového účastníka, viz JS funkce 'zmenitUcastnika'
+        novyUcastnik.find('input').trigger('change')
 
         // vyrušení default výběru do boxu
         event.preventDefault()
@@ -52,3 +54,32 @@
     intializePrezenceOmnibox()
   })
 })(jQuery)
+
+
+function uzavritAktivitu(idAktivity, skrytElement, zobrazitElement) {
+  $.post(
+    location.href,
+    {akce: 'uzavrit', id: idAktivity, ajax: true},
+  ).done(function (data) {
+    prohoditZobrazeni(skrytElement, zobrazitElement)
+  })
+}
+
+function prohoditZobrazeni(skrytElement, zobrazitElement) {
+  skrytElement.style.display = 'none'
+  zobrazitElement.style.display = 'initial'
+}
+
+function zmenitUcastnika(idUzivatele, idAktivity, checkboxNode) {
+  checkboxNode.disabled = true
+  dorazil = checkboxNode.checked
+  $.post(
+    location.href,
+    {akce: 'zmenitUcastnika', idAktivity: idAktivity, idUzivatele: idUzivatele, dorazil: dorazil ? 1 : 0, ajax: 1},
+  ).done(function (data) {
+    checkboxNode.disabled = false
+    if (data && typeof data.prihlasen == 'boolean') {
+      checkboxNode.checked = data.prihlasen
+    }
+  })
+}
