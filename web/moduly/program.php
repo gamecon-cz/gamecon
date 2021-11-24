@@ -42,8 +42,10 @@ $this->pridejJsSoubor('soubory/blackarrow/_spolecne/zachovej-scroll.js');
 $zacatekPrvniVlnyOd = \Gamecon\Cas\DateTimeGamecon::zacatekPrvniVlnyOd();
 $zacatekPrvniVlnyZaSekund = $zacatekPrvniVlnyOd->getTimestamp() - time();
 
-$legendaText = Stranka::zUrl('program-legenda-text')->html();
-$jeOrganizator = isset($u) && $u && $u->maPravo(P_ORG_AKCI);
+$legenda = Stranka::zUrl('program-legenda')->html();
+$legenda = str_replace('{a}', $u ? $u->koncA() : '', $legenda);
+$legenda = str_replace('{n}', $u && $u->pohlavi() == 'f' ? 'ice' : 'ík', $legenda);
+if (!isset($u) || !$u || !$u->maPravo(P_ORG_AKCI)) $legenda = preg_replace('@.*organizuji.*@', '', $legenda);
 
 // pomocná funkce pro zobrazení aktivního odkazu
 $aktivni = function ($urlOdkazu) use ($url, $alternativniUrl) {
@@ -87,23 +89,7 @@ $zobrazitMujProgramOdkaz = isset($u);
         </div>
     </div>
 
-    <div class="program_legenda">
-
-        <div class="informaceSpustime"><?= $legendaText ?></div>
-
-        <div class="program_legenda_inner">
-            <span class="program_legenda_typ">Otevřené</span>
-            <span class="program_legenda_typ vDalsiVlne">V další vlně</span>
-            <span class="program_legenda_typ vBudoucnu">Připravujeme</span>
-            <span class="program_legenda_typ nahradnik">Sleduji</span>
-            <span class="program_legenda_typ prihlasen">Přihlášen<?= $u ? $u->koncovkaDlePohlavi() : '' ?></span>
-            <span class="program_legenda_typ plno">Plno</span>
-            <?php if ($jeOrganizator) { ?>
-                <span class="program_legenda_typ organizator">organizuji</span>
-            <?php } ?>
-        </div>
-    </div>
-
+    <div class="program_legenda"><?= $legenda ?></div>
 
     <div class="programNahled_obalProgramu">
         <div class="programPosuv_obal2">
