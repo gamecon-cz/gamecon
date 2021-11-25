@@ -1,6 +1,6 @@
 version: "3"
 services:
-  gamecon:
+  web:
     build: .
     restart: "no"
     volumes:
@@ -16,7 +16,7 @@ services:
       - 80:80
 
   sql.gamecon:
-    image: mariadb:10.1
+    image: mysql:5.5
     restart: "no"
     environment:
       - MYSQL_ROOT_PASSWORD=root
