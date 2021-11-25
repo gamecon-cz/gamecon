@@ -12,13 +12,15 @@ if (post('vypadliSemifinale') || post('vypadliFinale')) {
     $a = Aktivita::zId(post('zakladni'));
     $aVypadli = post('vypadliSemifinale') ? Aktivita::zId(post('semifinale')) : Aktivita::zId(post('finale'));
 
+    foreach ($a->prihlaseni() as $uc) {
+        $aVypadli->odhlas($uc, Aktivita::BEZ_POKUT);
+    }
+
     $mail = new GcMail();
     $mail->predmet('Gamecon: umístění družiny v MDrD');
     $druzina = $a->tym()->nazev();
 
     foreach ($a->prihlaseni() as $uc) {
-        $aVypadli->odhlas($uc, Aktivita::BEZ_POKUT);
-
         $mail->text("Ahoj " . $uc->nick() . ",\n
             bohužel, tvoje družina " . $druzina . " nepostoupila do dalšího kola. Herní bloky, původně 
             rezervované pro turnaj MDrD, jsou nyní volné a můžeš se tak přihlásit na jinou aktivitu.\n
