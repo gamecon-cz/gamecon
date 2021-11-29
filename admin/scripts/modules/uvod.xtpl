@@ -156,6 +156,7 @@ Přihlásit na GameCon {rok}:
         <td>Poznámka:</td>
         <td><input type="text" name="poznamka"></td>
       </tr>
+      <!-- begin:idFioPohybu -->
       <tr>
         <td>
           <span class="hinted">ID Fio pohybu
@@ -164,6 +165,7 @@ Přihlásit na GameCon {rok}:
         </td>
         <td><input type="text" name="idPohybu" autocomplete="off"></td>
       </tr>
+      <!-- end:idFioPohybu -->
       <tr>
         <td>Připsal{aa}:</td>
         <td><input type="text" value="{org}" disabled></td>

@@ -28,7 +28,7 @@ if (post('platba') && $uPracovni) {
     try {
         $uPracovni->finance()->pripis(post('platba'), $u, post('poznamka'), post('idPohybu'));
     } catch (DbDuplicateEntryException $dbDuplicateEntryException) {
-        if (FioPlatba::existujePodleFioId(post('idPohybu'))) {
+        if (post('idPohybu') && FioPlatba::existujePodleFioId(post('idPohybu'))) {
             chyba(sprintf('Tato platba s Fio ID %d již existuje', post('idPohybu')), false);
         } else {
             chyba(
@@ -254,6 +254,11 @@ if ($uPracovni) {
             $x->parse('uvod.potvrditZruseniPrace');
         }
     }
+
+    if ($u && $u->isSuperAdmin()) {
+        $x->parse('uvod.uzivatel.idFioPohybu');
+    }
+
     $x->parse('uvod.uzivatel');
     $x->parse('uvod.slevy');
     $x->parse('uvod.objednavky');
