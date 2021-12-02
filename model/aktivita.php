@@ -988,7 +988,7 @@ class Aktivita
             dbQuery("UPDATE akce_seznam SET kapacita=team_max WHERE id_akce=$idAktivity");
         }
         // Poslání mailu lidem na watchlistu
-        if ($this->volno() == "x" && !($params & self::NEPOSILAT_MAILY)) { // Před odhlášením byla aktivita plná
+        if ($this->volno() === "x" && !($params & self::NEPOSILAT_MAILY)) { // Před odhlášením byla aktivita plná
             $this->poslatMailNahradnikum();
         }
         $this->refresh();
