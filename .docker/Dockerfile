@@ -1,7 +1,7 @@
 # UPDATE
-# docker pull php:7.3-apache && docker build --no-cache --tag jaroslavtyc/gamecon-7.3:latest .docker && docker push jaroslavtyc/gamecon-7.3:latest
+# docker pull php:7.3-apache && docker build --no-cache --tag jaroslavtyc/gamecon-7.3:latest . && docker push jaroslavtyc/gamecon-7.3:latest
 # REBUILD (simply without --no-cache)
-# docker pull php:7.3-apache && docker build --tag jaroslavtyc/gamecon-7.3:latest .docker && docker push jaroslavtyc/gamecon-7.3:latest
+# docker pull php:7.3-apache && docker build --tag jaroslavtyc/gamecon-7.3:latest . && docker push jaroslavtyc/gamecon-7.3:latest
 
 FROM php:7.3-apache AS gamecon-server-step1
 
@@ -74,7 +74,7 @@ RUN mkdir -p /home/www-data/bin \
     && chmod +x /home/www-data/bin/composer \
   	&& echo 'export PATH="/home/www-data/bin:$PATH"' >> /home/www-data/.bashrc
 
-RUN echo 'alias ll="ls -al"' >> /home/www-data/.bashrc
+COPY ./.bash_aliases /home/www-data/.bash_aliases
 
 USER root
 
