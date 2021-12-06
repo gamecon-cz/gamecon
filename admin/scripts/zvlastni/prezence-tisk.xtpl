@@ -1,8 +1,8 @@
 <!-- begin:aktivity -->
 <!DOCTYPE html>
-<html>
+<html lang="cs">
 <head>
-
+  <title>Prezence</title>
   <style>
   body { width: 140mm; font-size: 4.3mm; }
   table { border-collapse: collapse; }
@@ -38,9 +38,9 @@
   <table>
     <tr>
       <th colspan="4" class="hlavicka">
-        <div class="typ">{a.typ.nazev}</div>
-        <div class="nazev">{a.nazev}</div>
-        <span class="info">{a.orgJmena} – {a.denCas} – {a.lokace}</span>
+        <div class="typ">{aktivita.typ.nazev}</div>
+        <div class="nazev">{aktivita.nazev}</div>
+        <span class="info">{aktivita.orgJmena} – {aktivita.denCas} – {aktivita.lokace}</span>
       </th>
     </tr>
     <tr>
