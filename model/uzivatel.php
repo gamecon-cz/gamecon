@@ -1008,23 +1008,25 @@ SQL
     }
 
     /**
-     * @return Vrátí url cestu k stránce uživatele (bez domény).
+     * Vrátí url cestu k stránce uživatele (bez domény).
      */
-    public function url() {
+    public function url(): ?string {
         $url = mb_strtolower($this->u['login_uzivatele']);
-        if (!$this->u['jmeno_uzivatele'])
+        if (!$this->u['jmeno_uzivatele']) {
             return null; // nevracet url, asi vypravěčská skupina nebo podobně
-        elseif (!Url::povolena($url))
+        }
+        if (!Url::povolena($url)) {
             return null;
-        else
-            return $url;
+        }
+        return $url;
     }
 
-    public function vek() {
-        if ($this->u['datum_narozeni'] == '0000-00-00' || $this->u['datum_narozeni'] == '1970-01-01') return null;
+    public function vek(): ?int {
+        if ($this->u['datum_narozeni'] == '0000-00-00' || $this->u['datum_narozeni'] == '1970-01-01') {
+            return null;
+        }
         $narozeni = new DateTime($this->u['datum_narozeni']);
-        $vek = $narozeni->diff(new DateTime(DEN_PRVNI_DATE));
-        return $vek->y;
+        return $narozeni->diff(new DateTime(DEN_PRVNI_DATE))->y;
     }
 
     /**
@@ -1033,7 +1035,7 @@ SQL
      * @param DateTimeCz $datum
      * @return ?int
      */
-    public function vekKDatu(DateTimeCz $datum) {
+    public function vekKDatu(DateTimeCz $datum): ?int {
         if ($this->u['datum_narozeni'] == '0000-00-00') {
             return null;
         }
@@ -1065,16 +1067,9 @@ SQL
         return $this->u['login_uzivatele'];
     }
 
-    /** ISO 3166-1 alpha-2 */
+    /** Vrátí kód státu ve formátu ISO 3166-1 alpha-2 https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2 */
     public function stat() {
-        if ($this->u['stat_uzivatele'] == 1)
-            return 'CZ';
-        elseif ($this->u['stat_uzivatele'] == 2)
-            return 'SK';
-        elseif ($this->u['stat_uzivatele'] == -1)
-            return null;
-        else
-            throw new Exception('Neznámé id státu v databázi.');
+        return \Gamecon\Stat::dejKodStatuPodleId((int)$this->u['stat_uzivatele']);
     }
 
     /**
