@@ -436,8 +436,9 @@ SQL
     public function maVolno(DateTimeInterface $od, DateTimeInterface $do, Aktivita $ignorovanaAktivita = null) {
         // právo na překrytí aktivit dává volno vždy automaticky
         // TODO zkontrolovat, jestli vlastníci práva dřív měli někdy paralelně i účast nebo jen organizovali a pokud jen organizovali, vyhodit test odsud a vložit do kontroly kdy se ukládá aktivita
-        if ($this->maPravo(\Gamecon\Pravo::PREKRYVANI_AKTIVIT))
+        if ($this->maPravo(\Gamecon\Pravo::PREKRYVANI_AKTIVIT)) {
             return true;
+        }
 
         $ignorovanaAktivitaId = $ignorovanaAktivita ? $ignorovanaAktivita->id() : 0;
 
@@ -741,7 +742,7 @@ SQL
         SELECT id_akce
         FROM akce_prihlaseni_spec
         WHERE id_uzivatele = $0 AND id_stavu_prihlaseni = $1
-      ", [$this->id(), Aktivita::NAHRADNIK]);
+      ", [$this->id(), Aktivita::SLEDUJICI]);
         }
         return isset($this->aktivityJakoNahradnik[$a->id()]);
     }

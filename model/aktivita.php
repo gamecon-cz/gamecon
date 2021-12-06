@@ -36,13 +36,13 @@ class Aktivita
         PN_PLUSMINUSM = 'cAktivitaPlusminusm',  // název post proměnné pro úpravy typu mínus
         HAJENI = 72,      // počet hodin po kterýc aktivita automatick vykopává nesestavený tým
         LIMIT_POPIS_KRATKY = 180,  // max počet znaků v krátkém popisku
-        // stavy přihlášení
+        // stavy přihlášení, viz tabulka akce_prihlaseni_stavy
         PRIHLASEN = 0,
-        DORAZIL = 1,
-        DORAZIL_NAHRADNIK = 2,
-        NEDORAZIL = 3,
+        PRIHLASEN_A_DORAZIL = 1,
+        DORAZIL_JAKO_NAHRADNIK = 2,
+        PRIHLASEN_ALE_NEDORAZIL = 3,
         POZDE_ZRUSIL = 4,
-        NAHRADNIK = 5,
+        SLEDUJICI = 5,
         //ignore a parametry kolem přihlašovátka
         BEZ_POKUT = 0b00010000,   // odhlášení bez pokut
         NEPOSILAT_MAILY = 0b10000000,   // odhlášení bez mailů náhradníkům
@@ -829,7 +829,7 @@ class Aktivita
         SELECT GROUP_CONCAT(aps.id_uzivatele)
         FROM akce_seznam a
         LEFT JOIN akce_prihlaseni_spec aps ON aps.id_akce = a.id_akce
-        WHERE aps.id_akce = ' . $this->id() . ' AND aps.id_stavu_prihlaseni = ' . self::NAHRADNIK
+        WHERE aps.id_akce = ' . $this->id() . ' AND aps.id_stavu_prihlaseni = ' . self::SLEDUJICI
             ));
         }
         return $this->nahradnici;
@@ -965,7 +965,7 @@ class Aktivita
         // Ignorovat pokud není přihlášen jako náhradník
         if (!$u->prihlasenJakoNahradnikNa($this)) return;
         // Uložení odhlášení do DB
-        dbQuery("DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0 AND id_akce=$1 AND id_stavu_prihlaseni=$2", [$u->id(), $this->id(), self::NAHRADNIK]);
+        dbQuery("DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0 AND id_akce=$1 AND id_stavu_prihlaseni=$2", [$u->id(), $this->id(), self::SLEDUJICI]);
         dbQuery("INSERT INTO akce_prihlaseni_log SET id_uzivatele=$0, id_akce=$1, typ='odhlaseni_watchlist'", [$u->id(), $this->id()]);
         $this->refresh();
     }
@@ -984,7 +984,7 @@ class Aktivita
         p.id_uzivatele = $0 AND
         NOT (a.konec <= $1 OR $2 <= a.zacatek) -- aktivita 'a' se kryje s aktuální aktivitou
     ", [
-            $u->id(), $this->a['zacatek'], $this->a['konec'], self::NAHRADNIK,
+            $u->id(), $this->a['zacatek'], $this->a['konec'], self::SLEDUJICI,
         ]));
         foreach ($konfliktniAktivity as $aktivita) {
             $aktivita->odhlasNahradnika($u);
@@ -1206,7 +1206,7 @@ SQL
       FROM akce_prihlaseni_spec a
       JOIN uzivatele_hodnoty u ON u.id_uzivatele = a.id_uzivatele
       WHERE a.id_akce = $0 AND a.id_stavu_prihlaseni = $1
-    ", [$this->id(), self::NAHRADNIK]);
+    ", [$this->id(), self::SLEDUJICI]);
         foreach ($emaily as $email) {
             $mail = new GcMail();
             $mail->predmet('Gamecon: Volné místo na aktivitě ' . $this->nazev());
@@ -1508,7 +1508,7 @@ SQL
         if (!$u->gcPrihlasen()) throw new Exception('Nemáš aktivní přihlášku na GameCon.');
 
         // Uložení přihlášení do DB
-        dbQuery("INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=$2", [$u->id(), $this->id(), self::NAHRADNIK]);
+        dbQuery("INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=$2", [$u->id(), $this->id(), self::SLEDUJICI]);
         dbQuery("INSERT INTO akce_prihlaseni_log SET id_uzivatele=$0, id_akce=$1, typ='prihlaseni_watchlist'", [$u->id(), $this->id()]);
         $this->refresh();
     }
@@ -1675,7 +1675,7 @@ SQL
                 }
             }
 
-            dbQuery('DELETE FROM akce_prihlaseni_spec WHERE id_akce = $1 AND id_stavu_prihlaseni = $2', [$this->id(), self::NAHRADNIK]);
+            dbQuery('DELETE FROM akce_prihlaseni_spec WHERE id_akce = $1 AND id_stavu_prihlaseni = $2', [$this->id(), self::SLEDUJICI]);
             dbQuery('DELETE FROM akce_organizatori WHERE id_akce = $1', [$this->id()]);
             dbQuery('DELETE FROM akce_seznam WHERE id_akce = $1', [$this->id()]); // posledni kvuli SQL cizim klicum a cascade
 

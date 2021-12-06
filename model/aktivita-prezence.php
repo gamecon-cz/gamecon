@@ -45,7 +45,7 @@ class AktivitaPrezence
             dbInsertUpdate('akce_prihlaseni', [
                 'id_uzivatele' => $u->id(),
                 'id_akce' => $this->aktivita->id(),
-                'id_stavu_prihlaseni' => Aktivita::DORAZIL,
+                'id_stavu_prihlaseni' => Aktivita::PRIHLASEN_A_DORAZIL,
             ]);
         }
 
@@ -54,7 +54,7 @@ class AktivitaPrezence
             dbInsert('akce_prihlaseni', [
                 'id_uzivatele' => $u->id(),
                 'id_akce' => $this->aktivita->id(),
-                'id_stavu_prihlaseni' => Aktivita::DORAZIL_NAHRADNIK,
+                'id_stavu_prihlaseni' => Aktivita::DORAZIL_JAKO_NAHRADNIK,
             ]);
             $this->log($u, 'prihlaseni_nahradnik');
         }
@@ -67,7 +67,7 @@ class AktivitaPrezence
             dbInsert('akce_prihlaseni_spec', [
                 'id_uzivatele' => $u->id(),
                 'id_akce' => $this->aktivita->id(),
-                'id_stavu_prihlaseni' => Aktivita::NEDORAZIL,
+                'id_stavu_prihlaseni' => Aktivita::PRIHLASEN_ALE_NEDORAZIL,
             ]);
             $this->log($u, 'nedostaveni_se');
             $this->posliMailNedorazivsimu($u);

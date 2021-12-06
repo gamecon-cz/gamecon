@@ -34,12 +34,12 @@ $o = dbQuery(<<<SQL
 SQL
   ,
   [
-    Aktivita::DORAZIL,
-    Aktivita::DORAZIL_NAHRADNIK,
-    Aktivita::DORAZIL_NAHRADNIK,
-    Aktivita::NEDORAZIL,
+    Aktivita::PRIHLASEN_A_DORAZIL,
+    Aktivita::DORAZIL_JAKO_NAHRADNIK,
+    Aktivita::DORAZIL_JAKO_NAHRADNIK,
+    Aktivita::PRIHLASEN_ALE_NEDORAZIL,
     Aktivita::POZDE_ZRUSIL,
-    Aktivita::NAHRADNIK, // ve skutecnosti tohle znamena "sledujici"
+    Aktivita::SLEDUJICI, // ve skutecnosti tohle znamena "sledujici"
     Typ::TECHNICKA,
   ]
 );

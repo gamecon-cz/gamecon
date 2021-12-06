@@ -380,7 +380,7 @@ class Finance
         $rok = ROK;
         $uid = $this->u->id();
         $technicka = Typ::TECHNICKA;
-        $nedorazil = Aktivita::NEDORAZIL;
+        $nedorazil = Aktivita::PRIHLASEN_ALE_NEDORAZIL;
         $pozdeZrusil = Aktivita::POZDE_ZRUSIL;
 
         $o = dbQuery("
@@ -414,7 +414,7 @@ class Finance
             $poznamka = '';
             if ($r['id_stavu_prihlaseni'] == 3) $poznamka = " <i>(nedorazil$a)</i>";
             if ($r['id_stavu_prihlaseni'] == 4) $poznamka = " <i>(odhlášen$a pozdě)</i>";
-            if ($r['id_stavu_prihlaseni'] == Aktivita::NAHRADNIK) continue;
+            if ($r['id_stavu_prihlaseni'] == Aktivita::SLEDUJICI) continue;
             $this->log($r['nazev'] . $poznamka, $r['cena'] < 0 ? 0 : $r['cena'], self::AKTIVITA);
         }
     }
