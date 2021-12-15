@@ -22,14 +22,15 @@ SELECT * FROM
         akce_seznam.bez_slevy,
         akce_seznam.teamova,
         (
-            COUNT(IF(dorazili.id_stavu_prihlaseni IN ({$prihlasen}, {$prihlasenADorazil}), 1, NULL)) +
-            COUNT(IF(nepritomni.id_stavu_prihlaseni IN ({$prihlasenAleNedorazil}, {$pozdeZrusil}), 1, NULL))
+            COUNT(IF(akce_prihlaseni_vse.id_stavu_prihlaseni IN ({$prihlasen}, {$prihlasenADorazil}), 1, NULL)) +
+            COUNT(IF(akce_prihlaseni_vse.id_stavu_prihlaseni IN ({$prihlasenAleNedorazil}, {$pozdeZrusil}), 1, NULL))
         ) AS prihlaseno_predem,
-        COUNT(IF(dorazili.id_stavu_prihlaseni IN ({$prihlasenADorazil}, {$dorazilJakoNahradnik}), 1, NULL)) AS dorazilo_celkem,
-        COUNT(IF(dorazili.id_stavu_prihlaseni = {$dorazilJakoNahradnik}, 1, NULL)) AS dorazilo_nahradniku,
-        COUNT(IF(nepritomni.id_stavu_prihlaseni = {$prihlasenAleNedorazil}, 1, NULL)) AS nedorazilo,
-        COUNT(IF(nepritomni.id_stavu_prihlaseni = {$pozdeZrusil}, 1, NULL)) AS pozde_zrusilo,
-        COUNT(IF(nepritomni.id_stavu_prihlaseni = {$sledujici}, 1, NULL)) AS zustalo_sledujicich,
+        COUNT(IF(akce_prihlaseni_vse.id_stavu_prihlaseni IN ({$prihlasenADorazil}), 1, NULL)) AS dorazilo_predem_prihlasenych,
+        COUNT(IF(akce_prihlaseni_vse.id_stavu_prihlaseni = {$dorazilJakoNahradnik}, 1, NULL)) AS dorazilo_nahradniku,
+        COUNT(IF(akce_prihlaseni_vse.id_stavu_prihlaseni IN ({$prihlasenADorazil}, {$dorazilJakoNahradnik}), 1, NULL)) AS dorazilo_celkem,
+        COUNT(IF(akce_prihlaseni_vse.id_stavu_prihlaseni = {$prihlasenAleNedorazil}, 1, NULL)) AS nedorazilo_predem_prihlasenych,
+        COUNT(IF(akce_prihlaseni_vse.id_stavu_prihlaseni = {$pozdeZrusil}, 1, NULL)) AS pozde_zrusilo,
+        COUNT(IF(akce_prihlaseni_vse.id_stavu_prihlaseni = {$sledujici}, 1, NULL)) AS zustalo_sledujicich,
         akce_seznam.kapacita+akce_seznam.kapacita_m+akce_seznam.kapacita_f AS celkova_kapacita,
         akce_seznam.kapacita AS univerzalni_kapacita,
         akce_seznam.kapacita_f AS kapacita_zen,
@@ -41,8 +42,8 @@ SELECT * FROM
         akce_seznam.cena,
         FORMAT(TIMESTAMPDIFF(SECOND, akce_seznam.zacatek, akce_seznam.konec) / 3600, 1) AS delka_v_hodinach
     FROM akce_seznam
-    LEFT JOIN akce_prihlaseni AS dorazili ON akce_seznam.id_akce=dorazili.id_akce
-    LEFT JOIN akce_prihlaseni_spec AS nepritomni ON akce_seznam.id_akce=nepritomni.id_akce
+    LEFT JOIN (SELECT * FROM akce_prihlaseni UNION ALL SELECT * FROM akce_prihlaseni_spec) AS akce_prihlaseni_vse
+        ON akce_seznam.id_akce = akce_prihlaseni_vse.id_akce
     LEFT JOIN akce_typy ON akce_seznam.typ=akce_typy.id_typu
     GROUP BY akce_seznam.id_akce
 ) AS aktivity
