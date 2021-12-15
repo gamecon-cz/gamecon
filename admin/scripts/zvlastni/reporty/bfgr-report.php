@@ -58,11 +58,20 @@ AND stav > 0
 SQL, [ROK]
 );
 
+$poradiKostek = [
+    'kostka zdarma',
+    'Kostka Cthulhu 2021',
+    'Fate kostka 2021',
+    'Kostka 2018',
+    'Kostka 2012',
+];
+$poradiKostekSql = implode(',', $poradiKostek);
 $letosniKostky = dbFetchPairs(<<<SQL
 SELECT shop_predmety.id_predmetu, CONCAT_WS(' ', TRIM(shop_predmety.nazev), model_rok)
 FROM shop_predmety
 WHERE nazev LIKE '%kostka%' COLLATE utf8_czech_ci
 AND stav > 0
+ORDER BY FIND_IN_SET(CONCAT_WS(' ', TRIM(shop_predmety.nazev), model_rok), '{$poradiKostekSql}')
 SQL, [ROK]
 );
 
@@ -102,15 +111,32 @@ ORDER BY TRIM(shop_predmety.nazev)
 SQL, [Shop::PREDMET]
 );
 
-$hlavicka = array_merge(
-    ['Účastník' => ['ID', 'Příjmení', 'Jméno', 'Přezdívka', 'Mail', 'Židle', 'Práva', 'Datum registrace', 'Prošel infopultem', 'Odjel kdy']],
-    ['Datum narození' => ['Den', 'Měsíc', 'Rok']],
-    ['Bydliště' => ['Stát', 'Město', 'Ulice', 'PSČ', 'Škola']],
-    ['Ubytovací informace' => array_merge(['Chci bydlet s', 'První noc', 'Poslední noc (počátek)', 'Typ', 'Dorazil na GC'], $ucastPodleRoku)],
-    ['Celkové náklady' => ['Celkem dní', 'Cena / den', 'Ubytování', 'Předměty a strava']],
-    ['Ostatní platby' => ['Aktivity', 'Bonus za vedení aktivit', 'Využitý bonus za vedení aktivit', 'Proplacený bonus za vedení aktivit', 'dobrovolné vstupné', 'dobrovolné vstupné (pozdě)', 'stav', 'suma slev', 'zůstatek z minula', 'připsané platby', 'první blok', 'poslední blok', 'dobrovolník pozice', 'dobrovolník info', 'Dárky a zlevněné nákupy', 'Objednávky', 'Poznámka']],
-    ['Eshop' => array_merge(['sleva', 'placka zdarma', 'placka GC placená', 'kostka zdarma'], $letosniKostky, $letosniJidla, ['tričko zdarma', 'tílko zdarma', 'tričko se slevou', 'tílko se slevou', 'účastnické tričko placené', 'účastnické tílko placené'], $letosniOstatniPredmety)],
+$letosniCovidTesty = dbFetchPairs(<<<SQL
+SELECT shop_predmety.id_predmetu, TRIM(shop_predmety.nazev)
+FROM shop_predmety
+WHERE shop_predmety.typ = $1
+AND stav > 0
+AND TRIM(nazev) LIKE '%COVID%' COLLATE utf8_czech_ci
+ORDER BY TRIM(shop_predmety.nazev)
+SQL, [Shop::PREDMET]
 );
+
+$hlavicka = [
+    'Účastník' => ['ID', 'Příjmení', 'Jméno', 'Přezdívka', 'Mail', 'Pozice', 'Židle', 'Práva', 'Datum registrace', 'Prošel infopultem', 'Odjel kdy'],
+    'Datum narození' => ['Den', 'Měsíc', 'Rok'],
+    'Bydliště' => ['Stát', 'Město', 'Ulice', 'PSČ', 'Škola'],
+    'Ubytovací informace' => array_merge(['Chci bydlet s', 'První noc', 'Poslední noc (počátek)', 'Typ', 'Dorazil na GC'], $ucastPodleRoku),
+    'Celkové náklady' => ['Celkem dní', 'Cena / den', 'Ubytování', 'Předměty a strava'],
+    'Ostatní platby' => ['Aktivity', 'Bonus za vedení aktivit', 'Využitý bonus za vedení aktivit', 'Proplacený bonus za vedení aktivit', 'dobrovolné vstupné', 'dobrovolné vstupné (pozdě)', 'stav', 'suma slev', 'zůstatek z minula', 'připsané platby', 'první blok', 'poslední blok', 'dobrovolník pozice', 'dobrovolník info', 'Dárky a zlevněné nákupy', 'Objednávky', 'Poznámka'],
+    'Eshop' => array_merge(
+        ['sleva', 'placka zdarma', 'placka GC placená', 'kostka zdarma'],
+        $letosniKostky,
+        $letosniJidla,
+        ['tričko zdarma', 'tílko zdarma', 'tričko se slevou', 'tílko se slevou', 'účastnické tričko placené', 'účastnické tílko placené'],
+        $letosniOstatniPredmety,
+        ['COVID test'], // "dát pls až nakonec", tak pravil Gandalf
+    ),
+];
 
 $sqlNaPocetJednohoPredmetu = static function (int $idPredmetu): string {
     $rok = ROK;
@@ -161,6 +187,13 @@ $sqlSPoctemOstatnichPredmetu = (static function () use ($letosniOstatniPredmety,
     }
     return implode(',', $sqlCasti);
 })();
+$sqlSPoctemCovidTestu = (static function () use ($letosniCovidTesty, $sqlNaPocetJednohoPredmetu): string {
+    $sqlCasti = [];
+    foreach ($letosniCovidTesty as $idCovidTestu => $nazevCovidTestu) {
+        $sqlCasti[] = "({$sqlNaPocetJednohoPredmetu((int)$idCovidTestu)}) AS `$nazevCovidTestu`";
+    }
+    return implode(',', $sqlCasti);
+})();
 
 $rok = ROK;
 $o = dbQuery(<<<SQL
@@ -178,6 +211,7 @@ SELECT
     $sqlSPoctemTricek,
     $sqlSPoctemTilek,
     $sqlSPoctemOstatnichPredmetu,
+    $sqlSPoctemCovidTestu,
     ( SELECT GROUP_CONCAT(r_prava_soupis.jmeno_prava SEPARATOR ', ')
       FROM r_uzivatele_zidle
       JOIN r_prava_zidle ON r_uzivatele_zidle.id_zidle=r_prava_zidle.id_zidle
@@ -229,6 +263,7 @@ $letosniJidlaKlice = array_fill_keys($letosniJidla, null);
 $letosniTrickaKlice = array_fill_keys($letosniTricka, null);
 $letosniTilkaKlice = array_fill_keys($letosniTilka, null);
 $letosniOstatniPredmetyKlice = array_fill_keys($letosniOstatniPredmety, null);
+$letosniCovidTestyKlice = array_fill_keys($letosniCovidTesty, null);
 
 while ($r = mysqli_fetch_assoc($o)) {
     $un = new Uzivatel($r);
@@ -306,6 +341,8 @@ while ($r = mysqli_fetch_assoc($o)) {
 
     $letosniOstatniPredmetyPocty = array_intersect_key($r, $letosniOstatniPredmetyKlice);
 
+    $letosniCovidTestyPocty = array_intersect_key($r, $letosniCovidTestyKlice);
+
     $obsah[] = array_merge(
         [
             $r['id_uzivatele'], // 'ID'
@@ -378,6 +415,7 @@ while ($r = mysqli_fetch_assoc($o)) {
             $pocetLetosnichTilekPlacenych, // účastnické tílko placené
         ],
         $letosniOstatniPredmetyPocty,
+        $letosniCovidTestyPocty,
     );
 }
 
