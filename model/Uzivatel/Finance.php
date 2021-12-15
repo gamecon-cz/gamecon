@@ -428,7 +428,12 @@ class Finance
             : 0;
     }
 
-    public function maximalniPocetLibovolnychTricekZdarma(): int {
+    /**
+     * Modré tričko zdarma je ještě navíc k tomuto. Takže totální maximální počet triček zdarma je
+     * @see maximalniPocetLibovolnychTricekZdarmaBezModrychZdarma
+     * + @see maximalniPocetModrychTricekZdarma
+     */
+    public function maximalniPocetLibovolnychTricekZdarmaBezModrychZdarma(): int {
         return $this->u->maPravo(P_DVE_TRICKA_ZDARMA)
             ? 2
             : 0;
