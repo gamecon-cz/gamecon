@@ -298,7 +298,7 @@ while ($r = mysqli_fetch_assoc($o)) {
     $pocetLetosnichModrychTricekZdarma = min($pocetLetosnichModrychTricek, $finance->maximalniPocetModrychTricekZdarma());
     // mohou to byt i modra tricka, ale bez tech, co byly zdarma kvuli specialnimu pravu na modre tricko
     $pocetLetosnichTricekAleBezModrychZdarma = (int)array_sum($letosniTrickaPocty) - $pocetLetosnichModrychTricekZdarma;
-    $pocetLetosnichTricekZdarmaBezModrychZdarma = min($pocetLetosnichTricekAleBezModrychZdarma, $finance->maximalniPocetLibovolnychTricekZdarma());
+    $pocetLetosnichTricekZdarmaBezModrychZdarma = min($pocetLetosnichTricekAleBezModrychZdarma, $finance->maximalniPocetLibovolnychTricekZdarmaBezModrychZdarma());
     $pocetLetosnichTricekZdarma = $pocetLetosnichTricekZdarmaBezModrychZdarma + $pocetLetosnichModrychTricekZdarma;
     $pocetLetosnichModrychTricekSeSlevou = $finance->muzeObjednavatModreTrickoSeSlevou()
         ? $pocetLetosnichModrychTricek - $pocetLetosnichModrychTricekZdarma
@@ -324,7 +324,7 @@ while ($r = mysqli_fetch_assoc($o)) {
     $pocetLetosnichModrychTilekZdarma = min($pocetLetosnichModrychTilek, $finance->maximalniPocetModrychTricekZdarma());
     // mohou to byt i modra tricka, ale bez tech, co byly zdarma kvuli specialnimu pravu na modre tricko
     $pocetLetosnichTilekBezModrychZdarma = (int)array_sum($letosniTilkaPocty) - $pocetLetosnichModrychTilekZdarma;
-    $pocetLetosnichTilekZdarmaBezModrychZdarma = min($pocetLetosnichTilekBezModrychZdarma, $finance->maximalniPocetLibovolnychTricekZdarma());
+    $pocetLetosnichTilekZdarmaBezModrychZdarma = min($pocetLetosnichTilekBezModrychZdarma, $finance->maximalniPocetLibovolnychTricekZdarmaBezModrychZdarma());
     $pocetLetosnichTilekZdarma = $pocetLetosnichTilekZdarmaBezModrychZdarma + $pocetLetosnichModrychTilekZdarma;
     $pocetLetosnichModrychTilekSeSlevou = $finance->muzeObjednavatModreTrickoSeSlevou()
         ? $pocetLetosnichModrychTilek - $pocetLetosnichModrychTilekZdarma
