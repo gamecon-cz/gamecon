@@ -842,10 +842,18 @@ class Aktivita
     }
 
     /**
-     * Aktivita negeneruje slevu organizátorovi
+     * Aktivita negeneruje slevu ("bonus") organizátorovi
+     * @deprecated Použij nedavaBonus
      */
     public function nedavaSlevu(): bool {
         return (bool)$this->a['nedava_slevu'];
+    }
+
+    /**
+     * @return bool Zda vypravěč za vedení této aktivity nedostane od Gameconu finanční bonus.
+     */
+    public function nedavaBonus() {
+        return $this->nedavaSlevu();
     }
 
     /**

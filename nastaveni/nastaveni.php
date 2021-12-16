@@ -109,7 +109,7 @@ $pre = -(ROK - 2000) * 100; //předpona pro židle a práva vázaná na aktuáln
 @define('P_REPORT_NEUBYTOVANI', 1025); // v reportu neubytovaných se vypisuje
 @define('P_TITUL_ORG', 1026); // v různých výpisech se označuje jako organizátor
 @define('P_UNIKATNI_ZIDLE', 1027); // uživatel může mít jen jednu židli s tímto právem
-@define('P_NEMA_SLEVU_AKTIVITY', 1028);// nedostává slevu za odvedené a tech. aktivity
+@define('P_NEMA_BONUS_ZA_AKTIVITY', 1028);// nedostává slevu za odvedené a tech. aktivity
 unset($pre);
 
 ////////////////////////

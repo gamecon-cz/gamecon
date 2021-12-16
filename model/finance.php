@@ -279,7 +279,7 @@ class Finance
      * @return int
      */
     static function bonusZaAktivitu(Aktivita $a): int {
-        if ($a->nedavaSlevu()) {
+        if ($a->nedavaBonus()) {
             return 0;
         }
         $delka = $a->delka();
@@ -300,7 +300,9 @@ class Finance
      */
     public static function nechOrganizatorySBonusemZaVedeniAktivit(array $organizatori): array {
         return array_filter($organizatori, static function (Uzivatel $organizator) {
-            return $organizator->maPravo(P_ORG_AKCI) && !$organizator->maPravo(P_NEMA_SLEVU_AKTIVITY);
+            return $organizator->maPravo(P_ORG_AKCI)
+                && !$organizator->maPravo(P_NEMA_BONUS_ZA_AKTIVITY)
+                && !$organizator->jeToFakeUcet();
         });
     }
 
@@ -416,7 +418,7 @@ class Finance
             if ($r['cena'] >= 0) {
                 $this->cenaAktivity += $r['cena'];
             } else {
-                if (!$this->u->maPravo(P_NEMA_SLEVU_AKTIVITY)) {
+                if (!$this->u->maPravo(P_NEMA_BONUS_ZA_AKTIVITY)) {
                     $this->bonusZaVedeniAktivit -= $r['cena'];
                 }
             }
@@ -532,7 +534,7 @@ class Finance
      */
     private function zapoctiVedeniAktivit() {
         if (!$this->u->maPravo(P_ORG_AKCI)) return;
-        if ($this->u->maPravo(P_NEMA_SLEVU_AKTIVITY)) return;
+        if ($this->u->maPravo(P_NEMA_BONUS_ZA_AKTIVITY)) return;
         foreach (Aktivita::zOrganizatora($this->u) as $a) {
             $this->bonusZaVedeniAktivit += self::bonusZaAktivitu($a);
         }
