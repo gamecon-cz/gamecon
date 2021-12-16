@@ -19,7 +19,7 @@ class AktivitaSqlSloupce
     public const KAPACITA_M = 'kapacita_m'; // int not null,
     public const CENA = 'cena'; // int not null,
     public const BEZ_SLEVY = 'bez_slevy'; // tinyint(1) not null comment 'na aktivitu se neuplatňují slevy',
-    public const NEDAVA_SLEVU = 'nedava_slevu'; // tinyint(1) not null comment 'aktivita negeneruje organizátorovi slevu',
+    public const NEDAVA_SLEVU = 'nedava_slevu'; // tinyint(1) not null comment 'aktivita negeneruje organizátorovi bonus ("slevu")',
     public const TYP = 'typ'; // int not null,
     public const DITE = 'dite'; // varchar(64) null comment 'potomci oddělení čárkou',
     public const ROK = 'rok'; // int not null,

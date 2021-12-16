@@ -431,6 +431,10 @@ SQL
         return in_array($pravo, $this->u['prava']);
     }
 
+    public function jeToFakeUcet(): bool {
+        return trim($this->u['jmeno_uzivatele'] . $this->u['prijmeni_uzivatele']) === '';
+    }
+
     /**
      * @return bool jestli se uživatel v daném čase neúčastní / neorganizuje
      *  žádnou aktivitu (případně s výjimkou $ignorovanaAktivita)
