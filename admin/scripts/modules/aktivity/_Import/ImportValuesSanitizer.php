@@ -494,7 +494,7 @@ class ImportValuesSanitizer
             $user = $this->importObjectsContainer->getUserFromValue($storytellerValue);
             if (!$user) {
                 $unknownUsers[] = $storytellerValue;
-            } elseif (!$user->jePoradatelAktivit()) {
+            } elseif (!$user->maPravoNaPoradaniAktivit()) {
                 $notStorytellers[] = $user;
             } else {
                 $storytellersIds[] = $user->id();
