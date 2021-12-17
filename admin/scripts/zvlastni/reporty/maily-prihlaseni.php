@@ -7,7 +7,7 @@ require_once __DIR__ . '/sdilene-hlavicky.php';
 $o = '
   SELECT u.email1_uzivatele
   FROM uzivatele_hodnoty u
-  JOIN r_uzivatele_zidle uz ON uz.id_uzivatele = u.id_uzivatele AND uz.id_zidle = ' . Z_PRIHLASEN . '
+  JOIN r_uzivatele_zidle uz ON uz.id_uzivatele = u.id_uzivatele AND uz.id_zidle = ' . ZIDLE_PRIHLASEN . '
   WHERE u.email1_uzivatele LIKE "%@%"
   ORDER BY u.email1_uzivatele
 ';

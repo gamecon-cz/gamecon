@@ -285,7 +285,7 @@ SQL
         // zrušení nákupů
         dbQuery('DELETE FROM shop_nakupy WHERE rok=' . ROK . ' AND id_uzivatele=' . $this->id());
         // finální odebrání židle "registrován na GC"
-        $this->vemZidli(Z_PRIHLASEN);
+        $this->vemZidli(ZIDLE_PRIHLASEN);
         // odeslání upozornění, pokud u nás má peníze
         if (mysqli_num_rows(dbQuery('SELECT 1 FROM platby WHERE rok=' . ROK . ' AND id_uzivatele=' . $this->id())) > 0) {
             (new GcMail)
@@ -300,7 +300,7 @@ SQL
     /** „Odjede“ uživatele z GC */
     public function gcOdjed() {
         if (!$this->gcPritomen()) throw new Exception('Uživatel není přítomen na GC');
-        $this->dejZidli(Z_ODJEL);
+        $this->dejZidli(ZIDLE_ODJEL);
     }
 
     /** Opustil uživatel GC? */
@@ -308,7 +308,7 @@ SQL
         if (!$this->gcPritomen()) {
             return false; // ani nedorazil, nemohl odjet
         }
-        return $this->maZidli(Z_ODJEL);
+        return $this->maZidli(ZIDLE_ODJEL);
     }
 
     /** Je uživatel přihlášen na aktuální GC? */
@@ -320,7 +320,7 @@ SQL
     public function gcPrihlas() {
         if ($this->gcPrihlasen()) return;
 
-        $this->dejZidli(Z_PRIHLASEN);
+        $this->dejZidli(ZIDLE_PRIHLASEN);
     }
 
     /** Prošel uživatel infopultem, dostal materiály a je nebo byl přítomen na aktuálím
@@ -429,10 +429,6 @@ SQL
             $this->nactiPrava();
         }
         return in_array($pravo, $this->u['prava']);
-    }
-
-    public function jeToFakeUcet(): bool {
-        return trim($this->u['jmeno_uzivatele'] . $this->u['prijmeni_uzivatele']) === '';
     }
 
     /**
@@ -977,16 +973,16 @@ SQL
         if ($this->maPravo(P_TITUL_ORG)) {
             $status [] = '<span style="color:red">Organizátor' . $ka . '</span>';
         }
-        if ($this->maZidli(Z_ORG_AKCI)) {
+        if ($this->maZidli(ZIDLE_ORG_AKCI)) {
             $status[] = '<span style="color:blue">Vypravěč' . $ka . '</span>';
         }
-        if ($this->maZidli(Z_PARTNER)) {
+        if ($this->jePartner()) {
             $status[] = '<span style="color:darkslateblue">Partner' . $ka . '</span>';
         }
-        if ($this->maZidli(Z_INFO)) {
+        if ($this->maZidli(ZIDLE_INFO)) {
             $status[] = '<span style="color:orange">Infopult</span>';
         }
-        if ($this->maZidli(Z_ZAZEMI)) {
+        if ($this->maZidli(ZIDLE_ZAZEMI)) {
             $status[] = "Zázemí";
         }
         if (count($status) > 0) {
@@ -1180,7 +1176,7 @@ SQL
       WHERE u.id_uzivatele IN(
         SELECT id_uzivatele
         FROM r_uzivatele_zidle
-        WHERE id_zidle = ' . Z_PRIHLASEN . '
+        WHERE id_zidle = ' . ZIDLE_PRIHLASEN . '
       )
     ');
     }

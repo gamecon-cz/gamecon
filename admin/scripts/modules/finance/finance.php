@@ -45,7 +45,7 @@ JOIN r_uzivatele_zidle
     ON r_uzivatele_zidle.id_uzivatele = uzivatele_hodnoty.id_uzivatele AND r_uzivatele_zidle.id_zidle IN($1, $2)
 GROUP BY uzivatele_hodnoty.id_uzivatele
 SQL
-        , [Z_ORG_AKCI, Z_PRIHLASEN] // při změně změn hint v šabloně finance.xtpl
+        , [ZIDLE_ORG_AKCI, ZIDLE_PRIHLASEN] // při změně změn hint v šabloně finance.xtpl
     );
     $numberFormatter = NumberFormatter::create('cs', NumberFormatter::PATTERN_DECIMAL);
     $organizatorAkciData = [];
@@ -72,7 +72,7 @@ SQL
 $x = new XTemplate('finance.xtpl');
 if (isset($_GET['minimum'])) {
     $min = (int)$_GET['minimum'];
-    $o = dbQuery("SELECT u.* FROM uzivatele_hodnoty u JOIN r_uzivatele_zidle z ON(z.id_uzivatele=u.id_uzivatele AND z.id_zidle=" . Z_PRIHLASEN . ")");
+    $o = dbQuery("SELECT u.* FROM uzivatele_hodnoty u JOIN r_uzivatele_zidle z ON(z.id_uzivatele=u.id_uzivatele AND z.id_zidle=" . ZIDLE_PRIHLASEN . ")");
     $ids = '';
     while ($r = mysqli_fetch_assoc($o)) {
         $un = new Uzivatel($r);

@@ -58,8 +58,8 @@ $o = dbQuery(
   FROM r_uzivatele_zidle
   JOIN uzivatele_hodnoty ON(r_uzivatele_zidle.id_uzivatele=uzivatele_hodnoty.id_uzivatele)
   LEFT JOIN r_uzivatele_zidle pritomen ON(pritomen.id_zidle = $1 AND pritomen.id_uzivatele = uzivatele_hodnoty.id_uzivatele)
-  WHERE r_uzivatele_zidle.id_zidle=' . Z_PRIHLASEN,
-    [Z_PRITOMEN]
+  WHERE r_uzivatele_zidle.id_zidle=' . ZIDLE_PRIHLASEN,
+    [ZIDLE_PRITOMEN]
 );
 if (mysqli_num_rows($o) === 0) {
     exit('V tabulce nejsou žádná data.');

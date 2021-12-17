@@ -17,7 +17,7 @@ abstract class UzivatelDbTest extends DbTest
     $uid = dbInsertId();
     dbInsert('r_uzivatele_zidle', [
       'id_uzivatele' => $uid,
-      'id_zidle' => Z_PRIHLASEN,
+      'id_zidle' => ZIDLE_PRIHLASEN,
     ]);
     return \Uzivatel::zId($uid);
   }

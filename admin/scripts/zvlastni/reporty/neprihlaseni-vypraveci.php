@@ -22,7 +22,7 @@ $r = Report::zSql('
     IF(akt.id_uzivatele, "", "ne") as "vede aktivity"
   FROM r_uzivatele_zidle z
   JOIN r_zidle_soupis zs USING (id_zidle)
-  LEFT JOIN r_uzivatele_zidle zp ON (z.id_uzivatele = zp.id_uzivatele AND zp.id_zidle = '.Z_PRIHLASEN.')
+  LEFT JOIN r_uzivatele_zidle zp ON (z.id_uzivatele = zp.id_uzivatele AND zp.id_zidle = '.ZIDLE_PRIHLASEN.')
   JOIN uzivatele_hodnoty u ON (u.id_uzivatele = z.id_uzivatele)
   LEFT JOIN (
       SELECT id_uzivatele, GROUP_CONCAT(DISTINCT at.typ_1pmn SEPARATOR ", ") as sekce
@@ -40,7 +40,7 @@ $r = Report::zSql('
   WHERE z.id_zidle IN ('.$sledovaneZidleSql.') AND (
       zp.id_zidle IS NULL OR
       ub.id_uzivatele IS NULL OR
-      akt.id_uzivatele IS NULL AND z.id_zidle = '.Z_ORG_AKCI.'
+      akt.id_uzivatele IS NULL AND z.id_zidle = '.ZIDLE_ORG_AKCI.'
     )
   GROUP BY u.id_uzivatele
   ORDER BY sekce, jmeno_zidle, prijmeni_uzivatele, jmeno_uzivatele
