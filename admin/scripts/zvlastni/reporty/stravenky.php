@@ -8,7 +8,7 @@ $o = dbQuery('
       u.id_uzivatele, u.login_uzivatele,
       p.nazev
     FROM uzivatele_hodnoty u
-    JOIN r_uzivatele_zidle z ON(z.id_uzivatele = u.id_uzivatele AND z.id_zidle = ' . Z_PRIHLASEN . ')
+    JOIN r_uzivatele_zidle z ON(z.id_uzivatele = u.id_uzivatele AND z.id_zidle = ' . ZIDLE_PRIHLASEN . ')
     JOIN shop_nakupy n ON(n.id_uzivatele = u.id_uzivatele AND n.rok = ' . ROK . ')
     JOIN shop_predmety p ON(p.id_predmetu = n.id_predmetu AND p.typ = ' . Shop::JIDLO . ')
     ORDER BY u.id_uzivatele, p.ubytovani_den DESC, p.nazev DESC

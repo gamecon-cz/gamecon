@@ -73,16 +73,16 @@ error_reporting($puvodni); // zrušení maskování notice
 unset($puvodni);
 $pre = -(ROK - 2000) * 100; //předpona pro židle a práva vázaná na aktuální rok
 // židle - nepoužívat pro vyjádření atributů (slev, možnosti se přihlašovat, …)
-@define('Z_PRIHLASEN', $pre - 1); //přihlášen na GameCon
-@define('Z_PRITOMEN', $pre - 2); //prošel infopultem a je na GameConu
-@define('Z_ODJEL', $pre - 3); //prošel infopultem na odchodu a odjel z GC
+@define('ZIDLE_PRIHLASEN', $pre - 1);       //přihlášen na GameCon
+@define('ZIDLE_PRITOMEN', $pre - 2);        //prošel infopultem a je na GameConu
+@define('ZIDLE_ODJEL', $pre - 3);           //prošel infopultem na odchodu a odjel z GC
 // TODO byl přihlášen na GC a už není (kvůli počítání financí apod.)
-@define('Z_ORG_AKCI', 6); // vypravěč (org akcí)
-@define('Z_ORG_SKUPINA', 9); //organizátorská skupina (Albi, Černobor, …)
-@define('Z_PARTNER', 13); //partner
-@define('Z_INFO', 8); //operátor/ka infopultu
-@define('Z_ZAZEMI', 7); //člen/ka zázemí
-@define('Z_DOBROVOLNIK_S', 17); //dobrovolník senior
+@define('ZIDLE_ORG_AKCI', 6);               // vypravěč (org akcí)
+@define('ZIDLE_ORG_SKUPINA', 9);            //organizátorská skupina (Albi, Černobor, …)
+@define('ZIDLE_PARTNER', 13);               //partner
+@define('ZIDLE_INFO', 8);                   //operátor/ka infopultu
+@define('ZIDLE_ZAZEMI', 7);                 //člen/ka zázemí
+@define('ZIDLE_DOBROVOLNIK_S', 17);         //dobrovolník senior
 
 // práva - konkrétní práva identifikující nějak vlastnost uživatele
 @define('P_ORG_AKCI', 4); //může organizovat aktivity
@@ -201,9 +201,9 @@ Organizační tým GameConu',
 @define('REG_AKTIVIT', mezi(REG_AKTIVIT_OD, REG_AKTIVIT_DO));
 @define('GC_BEZI', mezi(GC_BEZI_OD, GC_BEZI_DO)); // jestli gamecon aktivně běží (zakázání online registrací ubytování aj.) - do budoucna se vyvarovat a používat speciální konstanty per vlastnost
 
-@define('ARCHIV_OD', 2009); //rok, od kterého se vedou (nabízejí) archivy (aktivit atp.)
-@define('ID_PRAVO_PRIHLASEN', Z_PRIHLASEN); // fixme zůstává kvůli uložení práva v session
-@define('ID_PRAVO_PRITOMEN', Z_PRITOMEN); // fixme zůstává kvůli uložení práva v session
+@define('ARCHIV_OD', 2009);           //rok, od kterého se vedou (nabízejí) archivy (aktivit atp.)
+@define('ID_PRAVO_PRIHLASEN', ZIDLE_PRIHLASEN); // fixme zůstává kvůli uložení práva v session
+@define('ID_PRAVO_PRITOMEN', ZIDLE_PRITOMEN);  // fixme zůstává kvůli uložení práva v session
 
 @define('ODHLASENI_POKUTA_KONTROLA', po(ROK . '-07-18 00:00:01')); // jestli se má kontrolovat pozdní odhlášní z aktivit
 @define('ODHLASENI_POKUTA1_H', 24); // kolik hodin před aktivitou se začne uplatňovat pokuta 1

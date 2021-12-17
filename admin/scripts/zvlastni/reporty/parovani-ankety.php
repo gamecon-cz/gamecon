@@ -11,7 +11,7 @@ if(post('znacky'))
   $o=dbQuery('
     SELECT u.*
     FROM uzivatele_hodnoty u
-    JOIN r_uzivatele_zidle z ON(z.id_uzivatele = u.id_uzivatele AND z.id_zidle='.Z_PRIHLASEN.')
+    JOIN r_uzivatele_zidle z ON(z.id_uzivatele = u.id_uzivatele AND z.id_zidle='.ZIDLE_PRIHLASEN.')
   ');
   $i=0;
   $uzivatele=[];

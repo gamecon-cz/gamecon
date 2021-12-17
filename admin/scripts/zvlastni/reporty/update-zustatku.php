@@ -14,7 +14,7 @@ $uzivateleQuery = dbQuery('
   SELECT u.*
   FROM r_uzivatele_zidle z
   JOIN uzivatele_hodnoty u USING(id_uzivatele)
-  WHERE z.id_zidle=' . Z_PRIHLASEN);
+  WHERE z.id_zidle=' . ZIDLE_PRIHLASEN);
 $poradi = 0;
 $sqlNaPrepocetZustatku = [];
 while ($uzivatelData = mysqli_fetch_assoc($uzivateleQuery)) {

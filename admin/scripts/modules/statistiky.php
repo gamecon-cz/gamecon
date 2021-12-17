@@ -11,8 +11,8 @@ use \Gamecon\Cas\DateTimeCz;
 
 // tabulka účasti
 $sledovaneZidle = array_merge(
-    [Z_PRIHLASEN, Z_PRITOMEN],
-    dbOneArray('SELECT id_zidle FROM r_prava_zidle WHERE id_prava = $0', [P_STATISTIKY_UCAST])
+  [ZIDLE_PRIHLASEN, ZIDLE_PRITOMEN],
+  dbOneArray('SELECT id_zidle FROM r_prava_zidle WHERE id_prava = $0', [P_STATISTIKY_UCAST])
 );
 
 $ucast = tabMysql(dbQuery('
@@ -29,8 +29,8 @@ $ucast = tabMysql(dbQuery('
   GROUP BY z.id_zidle, z.jmeno_zidle
   ORDER BY SUBSTR(z.jmeno_zidle, 1, 10), z.id_zidle
 ', [
-    $sledovaneZidle,
-    Z_PRIHLASEN,
+  $sledovaneZidle,
+  ZIDLE_PRIHLASEN,
 ]));
 
 // tabulky nákupů
@@ -74,7 +74,7 @@ UNION ALL
     WHERE n.rok=" . ROK . "
     GROUP BY n.id_uzivatele
   ) nn ON(nn.id_uzivatele=z.id_uzivatele)
-  WHERE id_zidle=" . Z_PRIHLASEN . " AND ISNULL(nn.id_uzivatele)
+  WHERE id_zidle=" . ZIDLE_PRIHLASEN . " AND ISNULL(nn.id_uzivatele)
 "));
 
 $jidlo = tabMysql(dbQuery('
@@ -103,7 +103,7 @@ $pohlavi = tabMysqlR(dbQuery("
     ROUND(SUM(IF(u.pohlavi='f',1,0))/COUNT(1),2) as Poměr
   FROM r_uzivatele_zidle uz
   JOIN uzivatele_hodnoty u ON(uz.id_uzivatele=u.id_uzivatele)
-  WHERE uz.id_zidle = " . Z_PRIHLASEN . "
+  WHERE uz.id_zidle = " . ZIDLE_PRIHLASEN . "
 "));
 
 $zbyva = new DateTime(DEN_PRVNI_DATE);
@@ -117,7 +117,7 @@ $q = 'SELECT
     COUNT(IF(YEAR(u.registrovan)=' . ROK . ',1,NULL)) as novy
   FROM r_uzivatele_zidle z
   JOIN uzivatele_hodnoty u USING(id_uzivatele)
-  WHERE z.id_zidle=' . Z_PRIHLASEN . '
+  WHERE z.id_zidle=' . ZIDLE_PRIHLASEN . '
   GROUP BY DATE(posazen)';
 $o = dbQuery($q);
 $zacatek = new DateTime(ROK . '-04-29'); // zde ladit, dokud se grafy nezarovnají na poslední den
