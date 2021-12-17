@@ -44,7 +44,6 @@ SQL
     protected $klic = '';
     protected $idZidli;         // pole s klíči id židlí uživatele
     protected $finance;
-    protected $idPrav;
     protected $shop;
 
     public const FAKE = 0x01;  // modifikátor "fake uživatel"
@@ -64,25 +63,6 @@ SQL
         else {
             throw new Exception('Špatný vstup konstruktoru uživatele');
         }
-    }
-
-    public function jePoradatelAktivit(): bool {
-        return \Gamecon\Pravo::obsahujePravoPoradatAktivity($this->dejIdPrav());
-    }
-
-    private function dejIdPrav(): array {
-        if ($this->idPrav === null) {
-            $this->idPrav = dbOneArray(<<<SQL
-SELECT r_prava_zidle.id_prava
-FROM r_uzivatele_zidle
-JOIN r_prava_zidle ON r_uzivatele_zidle.id_zidle = r_prava_zidle.id_zidle
-WHERE r_uzivatele_zidle.id_uzivatele = $1
-SQL
-                ,
-                [$this->id()]
-            );
-        }
-        return $this->idPrav;
     }
 
     public function jeVypravec(): bool {
@@ -429,6 +409,22 @@ SQL
             $this->nactiPrava();
         }
         return in_array($pravo, $this->u['prava']);
+    }
+
+    public function nemaPravoNaBonusZaVedeniAktivit(): bool {
+        return $this->maPravo(P_NEMA_BONUS_ZA_AKTIVITY);
+    }
+
+    public function maPravoNaBonusZaVedeniAktivit(): bool {
+        return !$this->nemaPravoNaBonusZaVedeniAktivit();
+    }
+
+    public function maPravoNaPoradaniAktivit(): bool {
+        return $this->maPravo(\Gamecon\Pravo::PORADANI_AKTIVIT);
+    }
+
+    public function jePartner(): bool {
+        return $this->maZidli(\Gamecon\Zidle::PARTNER);
     }
 
     /**

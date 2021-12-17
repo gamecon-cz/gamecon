@@ -300,9 +300,8 @@ class Finance
      */
     public static function nechOrganizatorySBonusemZaVedeniAktivit(array $organizatori): array {
         return array_filter($organizatori, static function (Uzivatel $organizator) {
-            return $organizator->maPravo(P_ORG_AKCI)
-                && !$organizator->maPravo(P_NEMA_BONUS_ZA_AKTIVITY)
-                && !$organizator->jeToFakeUcet();
+            return $organizator->maPravoNaPoradaniAktivit()
+                && $organizator->maPravoNaBonusZaVedeniAktivit();
         });
     }
 
@@ -533,8 +532,12 @@ class Finance
      * Započítá do mezisoučtů slevy za organizované aktivity
      */
     private function zapoctiVedeniAktivit() {
-        if (!$this->u->maPravo(P_ORG_AKCI)) return;
-        if ($this->u->maPravo(P_NEMA_BONUS_ZA_AKTIVITY)) return;
+        if (!$this->u->maPravoNaPoradaniAktivit()) {
+            return;
+        }
+        if ($this->u->nemaPravoNaBonusZaVedeniAktivit()) {
+            return;
+        }
         foreach (Aktivita::zOrganizatora($this->u) as $a) {
             $this->bonusZaVedeniAktivit += self::bonusZaAktivitu($a);
         }
