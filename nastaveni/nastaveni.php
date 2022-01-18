@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Cas\DateTimeGamecon;
+
 /**
  * Sada globálních proměnných a konstant sloužící jako konfigurace.
  *
@@ -16,20 +18,31 @@ error_reporting($puvodni ^ E_NOTICE);
 // Základní nastavení //
 ////////////////////////
 
-@define('ROK', 2021);                    // aktuální rok -- při změně roku viz Překlápění ročníku na Gamecon Gdrive https://docs.google.com/document/d/1H_PM70WjNpQ1Xz65OYfr1BeSTdLrNQSkScMIZEtxWEc/edit
-@define('GC_BEZI_OD', ROK . '-07-15 07:00:00');   // začátek GameConu (přepnutí stránek do režimu "úpravy na jen na infopultu")
-@define('GC_BEZI_DO', ROK . '-07-18 21:00:00');   // konec GameCou (přepnutí stránek do režimu "gc skončil, úpravy nemožné")
-@define('REG_GC_OD', ROK . '-05-13 20:21:00');   // spuštění možnosti registrace na GameCon
+@define('ROK', 2022);                    // aktuální rok -- při změně roku viz Překlápění ročníku na Gamecon Gdrive https://docs.google.com/document/d/1H_PM70WjNpQ1Xz65OYfr1BeSTdLrNQSkScMIZEtxWEc/edit
+
+// 2022-07-14 07:00:00 čtvrtek ve třetím týdnu v červenci
+@define('GC_BEZI_OD', DateTimeGamecon::zacatekGameconu(ROK)->formatDb());   // začátek GameConu (přepnutí stránek do režimu "úpravy na jen na infopultu")
+// 2022-07-17 21:00:00
+@define('GC_BEZI_DO', DateTimeGamecon::konecGameconu(ROK)->formatDb());   // konec GameCou (přepnutí stránek do režimu "gc skončil, úpravy nemožné")
+
+// 2022-05-12 20:22:00
+@define('REG_GC_OD', DateTimeGamecon::zacatekRegistraciNavstevniku(ROK)->formatDb());   // spuštění možnosti registrace na GameCon
 @define('REG_GC_DO', GC_BEZI_DO);              // ukončení možnosti registrace na GameCon
-@define('REG_AKTIVIT_OD', ROK . '-05-20 20:21:00');   // spuštění možnosti registrace na aktivity, pokud jsou aktivované 1. vlna
+
+// 2022-05-19 20:22:00
+@define('REG_AKTIVIT_OD', DateTimeGamecon::zacatekPrvniVlnyOd(ROK)->formatDb());   // spuštění možnosti registrace na aktivity, pokud jsou aktivované 1. vlna
 @define('REG_AKTIVIT_DO', GC_BEZI_DO);              // ukončení možnosti registrace na aktivity
-@define('PROGRAM_OD', ROK . '-07-14');            // první den programu
+
+// 2022-07-13 00:00:00
+@define('PROGRAM_OD', DateTimeGamecon::zacatekProgramu(ROK)->formatDatumDb());            // první den programu
 @define('PROGRAM_DO', GC_BEZI_DO);              // poslední den programu
 @define('PROGRAM_VIDITELNY', po(REG_GC_OD));           // jestli jsou viditelné linky na program
 @define('CENY_VIDITELNE', PROGRAM_VIDITELNY && pred(GC_BEZI_DO)); // jestli jsou viditelné ceny aktivit
 @define('FINANCE_VIDITELNE', po(REG_GC_OD));           // jestli jsou public viditelné finance
-@define('HROMADNE_ODHLASOVANI', ROK . '-06-30 23:59:00');   // datum hromadného odhlašování neplatičů
-@define('HROMADNE_ODHLASOVANI_2', ROK . '-07-11 23:59:00');   // datum druhého hromadného odhlašování neplatičů
+// 2022-06-30 23:59:00
+@define('HROMADNE_ODHLASOVANI', DateTimeGamecon::prvniHromadneOdhlasovaniOd(ROK)->formatDb());   // datum hromadného odhlašování neplatičů
+// 2022-07-17 23:59:00
+@define('HROMADNE_ODHLASOVANI_2', DateTimeGamecon::druheHromadneOdhlasovaniOd(ROK)->formatDb());   // datum druhého hromadného odhlašování neplatičů
 
 ///////////////////
 // Židle a práva //

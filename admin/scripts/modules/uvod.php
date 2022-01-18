@@ -329,7 +329,7 @@ if ($uPracovni) {
         if ($sloupec === 'potvrzeni_zakonneho_zastupce') {
             $popisek = sprintf(
                 'Zda máme letošní potvrzení od rodiče nebo zákonného zástupce, že účastník může na Gamecon, i když mu na začátku Gameconu (%s) ještě nebude patnáct.',
-                DateTimeGamecon::zacatekLetosnihoGameconu()->formatDatumStandard()
+                DateTimeGamecon::zacatekGameconu()->formatDatumStandard()
             );
             $vstupniHodnota = $potrebujePotvrzeniKvuliVeku && !$mameLetosniPotvrzeniKvuliVeku
                 ? date('Y-m-d') // ulozi se dnesni datum pouze pokud je zaskrtly checkbox
@@ -398,7 +398,7 @@ if ($uPracovni) {
             if ($potrebujePotvrzeniKvuliVeku) {
                 $potrebujePotvrzeniKvuliVekuZprava = sprintf(
                     'Uživalel potřebuje letošní potvrzení od rodiče nebo zákonného zástupce, že může na Gamecon, i když mu na začátku Gameconu (%s) ještě nebude patnáct. Přesto uložit?',
-                    DateTimeGamecon::zacatekLetosnihoGameconu()->formatDatumStandard()
+                    DateTimeGamecon::zacatekGameconu()->formatDatumStandard()
                 );
                 if (!$mameLetosniPotvrzeniKvuliVeku) {
                     $x->parse('uvod.udaje.udaj.chybi');

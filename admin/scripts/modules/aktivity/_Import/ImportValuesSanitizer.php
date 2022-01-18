@@ -852,7 +852,7 @@ HTML;
 
     private function createDateTimeFromRangeBorder(string $dayName, string $hoursAndMinutes, string $timeName): ImportStepResult {
         try {
-            $date = DateTimeGamecon::denKolemZacatkuGameconuProRok($dayName, $this->currentYear);
+            $date = DateTimeGamecon::denKolemZacatkuGameconu($dayName, $this->currentYear);
         } catch (\Exception $exception) {
             return ImportStepResult::successWithErrorLikeWarnings(
                 null,

@@ -16,6 +16,7 @@ class DateTimeCz extends \DateTime
     public const NEDELE = 'neděle';
 
     public const FORMAT_DB = 'Y-m-d H:i:s';
+    public const FORMAT_DATUM_DB = 'Y-m-d';
 
     protected static $dny = [
         'Monday' => 'pondělí',
@@ -94,6 +95,11 @@ class DateTimeCz extends \DateTime
 
     /** Vrací formát kompatibilní s mysql */
     function formatDb() {
+        return parent::format(self::FORMAT_DB);
+    }
+
+    /** Vrací formát kompatibilní s mysql */
+    function formatDatumDb() {
         return parent::format(self::FORMAT_DB);
     }
 

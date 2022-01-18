@@ -372,7 +372,7 @@ function seskupenePodle($pole, $funkce) {
 
 function vekNaZacatkuLetosnihoGameconu(DateTimeImmutable $datumNarozeni): int {
     // cilene bez hodin, minut a sekund
-    return vek($datumNarozeni->setTime(0, 0, 0), DateTimeGamecon::zacatekLetosnihoGameconu()->setTime(0, 0, 0));
+    return vek($datumNarozeni->setTime(0, 0, 0), DateTimeGamecon::zacatekGameconu()->setTime(0, 0, 0));
 }
 
 function vek(DateTimeInterface $datumNarozeni, ?DateTimeInterface $kDatu): int {
