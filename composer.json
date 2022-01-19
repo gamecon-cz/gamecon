@@ -60,7 +60,14 @@
       "Godric\\DbMigrations\\": "migrace/pomocne/db-migrations/src"
     }
   },
+  "extra": {
+    "google/apiclient-services": [
+      "Drive",
+      "Sheets"
+    ]
+  },
   "scripts": {
+    "pre-autoload-dump": "Google\\Task\\Composer::cleanup",
     "post-update-cmd": "@clear-templates-cache",
     "post-install-cmd": "@clear-templates-cache",
     "clear-templates-cache": "php -r 'array_map(\"unlink\", glob(\"cache/private/xtpl/*.php\"));'"
