@@ -56,13 +56,13 @@ $ubytovani = tabMysql(dbQuery('
   GROUP BY n.id_predmetu
 '));
 
-$ubytovaniKratce = tabMysql(dbQuery(<<<'SQL'
+$ubytovaniKratce = tabMysql(dbQuery("
   SELECT
     SUBSTR(p.nazev,11) Den,
     COUNT(n.id_predmetu) Počet
   FROM shop_nakupy n
   JOIN shop_predmety p ON(n.id_predmetu=p.id_predmetu)
-  WHERE n.rok='.ROK.' AND (p.typ=2)
+  WHERE n.rok=".ROK." AND (p.typ=2)
   GROUP BY p.ubytovani_den
 UNION ALL
   SELECT 'neubytovaní' as Den, COUNT(*) as Počet
@@ -71,12 +71,11 @@ UNION ALL
     SELECT n.id_uzivatele
     FROM shop_nakupy n
     JOIN shop_predmety p ON(n.id_predmetu=p.id_predmetu AND p.typ=2)
-    WHERE n.rok='.ROK.'
+    WHERE n.rok=".ROK."
     GROUP BY n.id_uzivatele
   ) nn ON(nn.id_uzivatele=z.id_uzivatele)
-  WHERE id_zidle='.Z_PRIHLASEN.' AND ISNULL(nn.id_uzivatele)
-SQL
-));
+  WHERE id_zidle=".Z_PRIHLASEN." AND ISNULL(nn.id_uzivatele)
+"));
 
 $jidlo = tabMysql(dbQuery('
   SELECT
