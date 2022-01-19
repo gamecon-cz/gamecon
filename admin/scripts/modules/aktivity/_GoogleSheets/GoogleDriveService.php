@@ -177,9 +177,6 @@ SQL
         string $dirId
     ): void {
         $file = $this->getFile($fileToMoveId);
-        if (!$file) {
-            throw new GoogleSheetsException("No file to move has been found by id $fileToMoveId");
-        }
         $this->getNativeDrive()->files->update($fileToMoveId, new \Google_Service_Drive_DriveFile(), ['removeParents' => $file->getParents(), 'addParents' => $dirId]);
     }
 
@@ -192,11 +189,7 @@ SQL
 
     public function getFileName(string $id): ?string {
         try {
-            $file = $this->getNativeDrive()->files->get($id);
-            if (!$file) {
-                return null;
-            }
-            return $file->getName();
+            return $this->getFile($id)->getName();
         } catch (\Google_Service_Exception $exception) {
             if ($exception->getCode() === 404) {
                 return null;

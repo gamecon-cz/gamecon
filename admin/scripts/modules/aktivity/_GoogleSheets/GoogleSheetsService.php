@@ -91,9 +91,8 @@ class GoogleSheetsService
     }
 
     private function getWholeSheetRange(string $spreadsheetId, int $wantedSheetNumber): string {
-        $spreadsheet = $this->getSpreadsheet($spreadsheetId);
         /** @var \Google_Service_Sheets_Sheet[] $sheets */
-        $sheets = $spreadsheet->getSheets();
+        $sheets = $this->getSpreadsheet($spreadsheetId)->getSheets();
         $currentSheetNumber = 1;
         foreach ($sheets as $sheet) {
             if ($currentSheetNumber === $wantedSheetNumber) {
