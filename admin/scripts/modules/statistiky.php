@@ -511,8 +511,8 @@ $prihlaseniJson = json_encode($prihlaseniProJs);
             <?= tabMysqlR(dbQuery("
       SELECT
         n.rok as '',
-        sum(p.nazev = 'Placka' and n.rok = model_rok) as 'Prodané placky',
-        sum(p.nazev = 'Kostka' and n.rok = model_rok) as 'Prodané kostky',
+        sum(p.nazev LIKE 'Placka%' and n.rok = model_rok) as 'Prodané placky',
+        sum(p.nazev LIKE 'Kostka%' and n.rok = model_rok) as 'Prodané kostky',
         sum(p.nazev like 'Tričko%' and n.rok = model_rok) as 'Prodaná trička'
       FROM shop_nakupy n
       JOIN shop_predmety p ON n.id_predmetu = p.id_predmetu
