@@ -62,7 +62,7 @@ $ubytovaniKratce = tabMysql(dbQuery("
     COUNT(n.id_predmetu) Počet
   FROM shop_nakupy n
   JOIN shop_predmety p ON(n.id_predmetu=p.id_predmetu)
-  WHERE n.rok=".ROK." AND (p.typ=2)
+  WHERE n.rok=" . ROK . " AND (p.typ=2)
   GROUP BY p.ubytovani_den
 UNION ALL
   SELECT 'neubytovaní' as Den, COUNT(*) as Počet
@@ -71,10 +71,10 @@ UNION ALL
     SELECT n.id_uzivatele
     FROM shop_nakupy n
     JOIN shop_predmety p ON(n.id_predmetu=p.id_predmetu AND p.typ=2)
-    WHERE n.rok=".ROK."
+    WHERE n.rok=" . ROK . "
     GROUP BY n.id_uzivatele
   ) nn ON(nn.id_uzivatele=z.id_uzivatele)
-  WHERE id_zidle=".Z_PRIHLASEN." AND ISNULL(nn.id_uzivatele)
+  WHERE id_zidle=" . Z_PRIHLASEN . " AND ISNULL(nn.id_uzivatele)
 "));
 
 $jidlo = tabMysql(dbQuery('
@@ -164,6 +164,9 @@ $prihlaseniData = require __DIR__ . '/_statistiky_prihlaseni_minulych_let.php';
 $prihlaseniData[ROK] = $prihlaseniLetos;
 $prihlaseniProJs = [];
 foreach ($prihlaseniData as $rok => $data) {
+    if ((int)$rok === 2020){
+        continue;
+    }
     if (in_array($rok, $vybraneRoky, false)) {
         $prihlaseniProJs[] = ['name' => "Přihlášení $rok", 'data' => $data];
     }
@@ -251,12 +254,17 @@ $prihlaseniJson = json_encode($prihlaseniProJs);
         <legend style="padding: 0 0 0.5em; font-style: italic">
             Roky v grafu
         </legend>
-        <?php foreach ($prihlaseniData as $rok => $data) { ?>
+        <?php foreach ($prihlaseniData as $rok => $data) {
+            ?>
             <span style="min-width: 4em; display: inline-block">
                     <label style="padding-right: 0.3em; cursor: pointer">
                         <input type="checkbox" name="rok[]" value="<?= $rok ?>" style="padding-right: 0.2em"
                                onchange="$('#vyberRokuGrafu').submit()"
+                               <?php if ((int)$rok === 2020) { ?>disabled<?php } ?>
                                <?php if (in_array($rok, $vybraneRoky, false)) { ?>checked<?php } ?>>
+                        <?php if ((int)$rok === 2020) { ?>
+                            <span title="Call of Covid">👾</span>
+                        <?php } ?>
                         <?= $rok ?>
                     </label>
             </span>
@@ -279,6 +287,11 @@ $prihlaseniJson = json_encode($prihlaseniProJs);
     .dlouhodobeStatistiky th:first-child {
         width: 110px;
     }
+
+    .dlouhodobeStatistiky th:nth-child(12), .dlouhodobeStatistiky td:nth-child(12) /* 2019 */
+    {
+        border-right: dotted grey;
+    }
 </style>
 <div class="dlouhodobeStatistiky">
     <table>
@@ -295,7 +308,6 @@ $prihlaseniJson = json_encode($prihlaseniProJs);
             <th>2017</th>
             <th>2018</th>
             <th>2019</th>
-            <th>2020</th>
             <th>2021</th>
         </tr>
         <tr>
@@ -312,7 +324,6 @@ $prihlaseniJson = json_encode($prihlaseniProJs);
             <td>821</td>
             <td>830</td>
             <td></td>
-            <td></td>
         </tr>
         <tr>
             <td>Dorazilo</td>
@@ -328,7 +339,6 @@ $prihlaseniJson = json_encode($prihlaseniProJs);
             <td>739</td>
             <td>754</td>
             <td></td>
-            <td></td>
         </tr>
         <tr>
             <td>&emsp;z toho studenti</td>
@@ -341,7 +351,6 @@ $prihlaseniJson = json_encode($prihlaseniProJs);
             <td>148</td>
             <td>175</td>
             <td>153</td>
-            <td></td>
             <td></td>
             <td></td>
             <td></td>
@@ -360,7 +369,6 @@ $prihlaseniJson = json_encode($prihlaseniProJs);
             <td></td>
             <td></td>
             <td></td>
-            <td></td>
         </tr>
         <tr>
             <td>Podpůrný tým</td>
@@ -375,7 +383,6 @@ $prihlaseniJson = json_encode($prihlaseniProJs);
             <td>186</td>
             <td>176</td>
             <td>185</td>
-            <td></td>
             <td></td>
         </tr>
         <tr>
@@ -392,7 +399,6 @@ $prihlaseniJson = json_encode($prihlaseniProJs);
             <td>38</td>
             <td>38</td>
             <td></td>
-            <td></td>
         </tr>
         <tr>
             <td>&emsp;zázemí</td>
@@ -405,7 +411,6 @@ $prihlaseniJson = json_encode($prihlaseniProJs);
             <td>3</td>
             <td>1</td>
             <td>8</td>
-            <td></td>
             <td></td>
             <td></td>
             <td></td>
@@ -423,7 +428,6 @@ $prihlaseniJson = json_encode($prihlaseniProJs);
             <td>168</td>
             <td>138</td>
             <td>147</td>
-            <td></td>
             <td></td>
         </tr>
     </table>
@@ -455,73 +459,30 @@ $prihlaseniJson = json_encode($prihlaseniProJs);
   order by id_zidle desc
 ")) ?><br>
 
-    <div>
-        <style>
-            #doplnekProdeje tr > :first-child {
-                display: none;
-            }
-        </style>
-        <div style="float:left">
-            <table>
-                <tr>
-                    <th></th>
-                    <th>2009</th>
-                    <th>2010</th>
-                    <th>2011</th>
-                    <th>2012</th>
-                    <th>2013</th>
-                </tr>
-                <tr>
-                    <td>Prodané placky</td>
-                    <td>43</td>
-                    <td>45</td>
-                    <td>206</td>
-                    <td>224</td>
-                    <td>207</td>
-                </tr>
-                <!-- <tr><td>&emsp;před začátkem</td>    <td></td>       <td></td>       <td>135</td>    <td>150</td>    <td>110</td>  </tr> -->
-                <!-- <tr><td>&emsp;na místě</td>         <td></td>       <td></td>       <td></td>       <td></td>       <td>9</td>    </tr> -->
-                <!-- <tr><td>&emsp;zdarma</td>           <td>43</td>     <td>45</td>     <td>71</td>     <td>74</td>     <td>88</td>   </tr> -->
-                <tr>
-                    <td>Prodané kostky</td>
-                    <td>43</td>
-                    <td>45</td>
-                    <td>247</td>
-                    <td>154</td>
-                    <td>192</td>
-                </tr>
-                <!-- <tr><td>&emsp;před začátkem</td>    <td></td>       <td></td>       <td>176</td>    <td>80</td>     <td>104</td>  </tr> -->
-                <!-- <tr><td>&emsp;na místě</td>         <td></td>       <td></td>       <td></td>       <td></td>       <td></td>     </tr> -->
-                <!-- <tr><td>&emsp;zdarma</td>           <td>43</td>     <td>45</td>     <td>71</td>     <td>74</td>     <td>88</td>   </tr> -->
-                <tr>
-                    <td>Prodaná trička</td>
-                    <td>6</td>
-                    <td>8</td>
-                    <td>104</td>
-                    <td>121</td>
-                    <td>139</td>
-                </tr>
-                <!-- <tr><td>&emsp;zdarma</td>           <td>6</td>      <td>8</td>      <td>13</td>     <td>17</td>     <td>19</td>   </tr> -->
-                <!-- <tr><td>&emsp;za 50%</td>           <td></td>       <td></td>       <td>34</td>     <td>40</td>     <td>35</td>   </tr> -->
-                <!-- <tr><td>&emsp;plná cena</td>        <td></td>       <td></td>       <td>57</td>     <td>64</td>     <td>85</td>   </tr> -->
-            </table>
-        </div>
-        <div style="float:left" id="doplnekProdeje">
-            <?= tabMysqlR(dbQuery("
-      SELECT
-        n.rok as '',
-        sum(p.nazev LIKE 'Placka%' and n.rok = model_rok) as 'Prodané placky',
-        sum(p.nazev LIKE 'Kostka%' and n.rok = model_rok) as 'Prodané kostky',
-        sum(p.nazev like 'Tričko%' and n.rok = model_rok) as 'Prodaná trička'
-      FROM shop_nakupy n
-      JOIN shop_predmety p ON n.id_predmetu = p.id_predmetu
-      WHERE n.rok >= 2014 -- starší data z DB nesedí, jsou vložena fixně
-      GROUP BY n.rok
-      ORDER BY n.rok
-    ")) ?>
-        </div>
-        <div style="clear:both"></div>
-    </div>
+    <?= tabMysqlR(dbQuery(<<<SQL
+SELECT 2009 AS '', 43 AS 'Prodané placky', 43 AS 'Prodané kostky', 6 AS 'Prodaná trička'
+UNION ALL
+SELECT 2010 AS '', 45 AS 'Prodané placky', 45 AS 'Prodané kostky', 8 AS 'Prodaná trička'
+UNION ALL
+SELECT 2011 AS '', 206 AS 'Prodané placky', 247 AS 'Prodané kostky', 104 AS 'Prodaná trička'
+UNION ALL
+SELECT 2012 AS '', 224 AS 'Prodané placky', 154 AS 'Prodané kostky', 121 AS 'Prodaná trička'
+UNION ALL
+SELECT 2013 AS '', 207 AS 'Prodané placky', 192 AS 'Prodané kostky', 139 AS 'Prodaná trička'
+UNION ALL
+SELECT
+    n.rok as '',
+    sum(p.nazev LIKE 'Placka%' and n.rok = model_rok) as 'Prodané placky',
+    sum(p.nazev LIKE 'Kostka%' and n.rok = model_rok) as 'Prodané kostky',
+    sum(p.nazev like 'Tričko%' and n.rok = model_rok) as 'Prodaná trička'
+FROM shop_nakupy n
+JOIN shop_predmety p ON n.id_predmetu = p.id_predmetu
+WHERE n.rok >= 2014 /* starší data z DB nesedí, jsou vložena fixně */
+    AND n.rok != 2020 /* Call of covid */
+GROUP BY n.rok
+ORDER BY ''
+SQL
+    )) ?>
     <br>
 
     <?= tabMysqlR(dbQuery("
