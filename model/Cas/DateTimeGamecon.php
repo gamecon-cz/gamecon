@@ -9,10 +9,20 @@ class DateTimeGamecon extends DateTimeCz
             return self::zDbFormatu(GC_BEZI_OD);
         }
         $zacatekCervence = new static($rok . '-07-01 00:00:00');
-        $zacatekTretihoTydneVCervenci = self::dejZacatekXTydne(3, $zacatekCervence);
-        $ctvrtekVeTretimTydnuVCervenci = self::dejDatumDneVTydnuOdData(static::CTVRTEK, $zacatekTretihoTydneVCervenci);
+        $dejZacatekPredposlednihoTydneVCervenci = self::dejZacatekPredposlednihoTydne($zacatekCervence);
+        $ctvrtekVPredposlednimTydnuVCervenci = self::dejDatumDneVTydnuOdData(
+            static::CTVRTEK,
+            $dejZacatekPredposlednihoTydneVCervenci
+        );
 
-        return $ctvrtekVeTretimTydnuVCervenci->setTime(7, 0, 0);
+        return $ctvrtekVPredposlednimTydnuVCervenci->setTime(7, 0, 0);
+    }
+
+    protected static function dejZacatekPredposlednihoTydne(DateTimeGamecon $datum): DateTimeGamecon {
+        $posledniDenString = (clone $datum)->format('Y-m-t 00:00:00'); // t je maximum dni v mesici
+        $posledniDen = DateTimeGamecon::createFromFormat('Y-m-d H:i:s', $posledniDenString);
+        $predposledniTyden = $posledniDen->modify("-1 week");
+        return self::dejDatumDneVTydnuDoData(self::PONDELI, $predposledniTyden);
     }
 
     public static function konecGameconu(int $rok = ROK): DateTimeGamecon {
@@ -42,7 +52,7 @@ class DateTimeGamecon extends DateTimeCz
     }
 
     protected static function dejDatumDneVTydnuDoData(string $cilovyDenVTydnuDoData, DateTimeGamecon $doData): DateTimeGamecon {
-        $poradiDneVTydnuDoData = $doData->format('N');
+        $poradiDneVTydnuDoData = (int)$doData->format('N');
         $poradiCilovehoDneVTydnu = static::poradiDne($cilovyDenVTydnuDoData);
         $rozdilDni = $poradiCilovehoDneVTydnu - $poradiDneVTydnuDoData;
         // záporné rozdíly posouvají vzad
