@@ -18,31 +18,52 @@ error_reporting($puvodni ^ E_NOTICE);
 // Základní nastavení //
 ////////////////////////
 
-@define('ROK', 2022);                    // aktuální rok -- při změně roku viz Překlápění ročníku na Gamecon Gdrive https://docs.google.com/document/d/1H_PM70WjNpQ1Xz65OYfr1BeSTdLrNQSkScMIZEtxWEc/edit
+@define('ROK', 2022); // aktuální rok -- při změně roku viz Překlápění ročníku na Gamecon Gdrive https://docs.google.com/document/d/1H_PM70WjNpQ1Xz65OYfr1BeSTdLrNQSkScMIZEtxWEc/edit
 
+/**
+ * https://trello.com/c/EgjfpfLZ/898-p%C5%99evod-ro%C4%8Dn%C3%ADku-na-2022#comment-61e83d40a3670882293b65c8
+ * Registrace: 12. května (čtvrtek)
+ * 1 vlna 19. května (čtvrtek)
+ * 2 vlna 9. června (čtvrtek)
+ * platby do: 30. června (čtvrtek)
+ * 3 vlna + odhlašování: 1. července (pátek)
+ * 2 odhlašování: 17. července (neděle)
+ * GameCon: 21.-24. července
+ * Rozhodný čas pro všechno relevantní: 20h:22m
+ */
+
+/////////////////////
+// SAMOTNÝ GAMECON //
+/////////////////////
 // 2022-07-14 07:00:00 čtvrtek ve třetím týdnu v červenci
-@define('GC_BEZI_OD', DateTimeGamecon::zacatekGameconu(ROK)->formatDb());   // začátek GameConu (přepnutí stránek do režimu "úpravy na jen na infopultu")
+@define('GC_BEZI_OD', DateTimeGamecon::zacatekGameconu(ROK)->formatDb()); // začátek GameConu (přepnutí stránek do režimu "úpravy na jen na infopultu")
 // 2022-07-17 21:00:00
-@define('GC_BEZI_DO', DateTimeGamecon::konecGameconu(ROK)->formatDb());   // konec GameCou (přepnutí stránek do režimu "gc skončil, úpravy nemožné")
+@define('GC_BEZI_DO', DateTimeGamecon::konecGameconu(ROK)->formatDb()); // konec GameCou (přepnutí stránek do režimu "gc skončil, úpravy nemožné")
 
+///////////////////////////
+// REGISTRACE NA GAMECON //
+///////////////////////////
 // 2022-05-12 20:22:00
-@define('REG_GC_OD', DateTimeGamecon::zacatekRegistraciNavstevniku(ROK)->formatDb());   // spuštění možnosti registrace na GameCon
-@define('REG_GC_DO', GC_BEZI_DO);              // ukončení možnosti registrace na GameCon
+@define('REG_GC_OD', DateTimeGamecon::zacatekRegistraciNavstevniku(ROK)->formatDb()); // spuštění možnosti registrace na GameCon
+@define('REG_GC_DO', GC_BEZI_DO); // ukončení možnosti registrace na GameCon
 
+////////////////////////////////////////////////////////
+// REGISTRACE NA AKTIVITY (PRVNÍ, DRUHÁ A TŘETÍ VLNA) //
+////////////////////////////////////////////////////////
 // 2022-05-19 20:22:00
-@define('REG_AKTIVIT_OD', DateTimeGamecon::zacatekPrvniVlnyOd(ROK)->formatDb());   // spuštění možnosti registrace na aktivity, pokud jsou aktivované 1. vlna
-@define('REG_AKTIVIT_DO', GC_BEZI_DO);              // ukončení možnosti registrace na aktivity
+@define('REG_AKTIVIT_OD', DateTimeGamecon::zacatekPrvniVlnyOd(ROK)->formatDb()); // spuštění možnosti registrace na aktivity, pokud jsou aktivované 1. vlna
+@define('REG_AKTIVIT_DO', GC_BEZI_DO); // ukončení možnosti registrace na aktivity
+// 2022-06-30 23:59:00
+@define('HROMADNE_ODHLASOVANI' /* a začátek třetí vlny */, DateTimeGamecon::prvniHromadneOdhlasovaniOd(ROK)->formatDb()); // datum hromadného odhlašování neplatičů
+// 2022-07-17 23:59:00
+@define('HROMADNE_ODHLASOVANI_2', DateTimeGamecon::druheHromadneOdhlasovaniOd(ROK)->formatDb()); // datum druhého hromadného odhlašování neplatičů
 
 // 2022-07-13 00:00:00
-@define('PROGRAM_OD', DateTimeGamecon::zacatekProgramu(ROK)->formatDatumDb());            // první den programu
-@define('PROGRAM_DO', GC_BEZI_DO);              // poslední den programu
-@define('PROGRAM_VIDITELNY', po(REG_GC_OD));           // jestli jsou viditelné linky na program
+@define('PROGRAM_OD', DateTimeGamecon::zacatekProgramu(ROK)->formatDatumDb()); // první den programu
+@define('PROGRAM_DO', GC_BEZI_DO); // poslední den programu
+@define('PROGRAM_VIDITELNY', po(REG_GC_OD)); // jestli jsou viditelné linky na program
 @define('CENY_VIDITELNE', PROGRAM_VIDITELNY && pred(GC_BEZI_DO)); // jestli jsou viditelné ceny aktivit
-@define('FINANCE_VIDITELNE', po(REG_GC_OD));           // jestli jsou public viditelné finance
-// 2022-06-30 23:59:00
-@define('HROMADNE_ODHLASOVANI', DateTimeGamecon::prvniHromadneOdhlasovaniOd(ROK)->formatDb());   // datum hromadného odhlašování neplatičů
-// 2022-07-17 23:59:00
-@define('HROMADNE_ODHLASOVANI_2', DateTimeGamecon::druheHromadneOdhlasovaniOd(ROK)->formatDb());   // datum druhého hromadného odhlašování neplatičů
+@define('FINANCE_VIDITELNE', po(REG_GC_OD)); // jestli jsou public viditelné finance
 
 ///////////////////
 // Židle a práva //
@@ -50,59 +71,57 @@ error_reporting($puvodni ^ E_NOTICE);
 
 error_reporting($puvodni); // zrušení maskování notice
 unset($puvodni);
-$pre = -(ROK - 2000) * 100;             //předpona pro židle a práva vázaná na aktuální rok
+$pre = -(ROK - 2000) * 100; //předpona pro židle a práva vázaná na aktuální rok
 // židle - nepoužívat pro vyjádření atributů (slev, možnosti se přihlašovat, …)
-@define('Z_PRIHLASEN', $pre - 1);       //přihlášen na GameCon
-@define('Z_PRITOMEN', $pre - 2);        //prošel infopultem a je na GameConu
-@define('Z_ODJEL', $pre - 3);           //prošel infopultem na odchodu a odjel z GC
+@define('Z_PRIHLASEN', $pre - 1); //přihlášen na GameCon
+@define('Z_PRITOMEN', $pre - 2); //prošel infopultem a je na GameConu
+@define('Z_ODJEL', $pre - 3); //prošel infopultem na odchodu a odjel z GC
 // TODO byl přihlášen na GC a už není (kvůli počítání financí apod.)
-@define('Z_ORG_AKCI', 6);               // vypravěč (org akcí)
-@define('Z_ORG_SKUPINA', 9);            //organizátorská skupina (Albi, Černobor, …)
-@define('Z_PARTNER', 13);               //partner
-@define('Z_INFO', 8);                   //operátor/ka infopultu
-@define('Z_ZAZEMI', 7);                 //člen/ka zázemí
-@define('Z_DOBROVOLNIK_S', 17);         //dobrovolník senior
+@define('Z_ORG_AKCI', 6); // vypravěč (org akcí)
+@define('Z_ORG_SKUPINA', 9); //organizátorská skupina (Albi, Černobor, …)
+@define('Z_PARTNER', 13); //partner
+@define('Z_INFO', 8); //operátor/ka infopultu
+@define('Z_ZAZEMI', 7); //člen/ka zázemí
+@define('Z_DOBROVOLNIK_S', 17); //dobrovolník senior
 
 // práva - konkrétní práva identifikující nějak vlastnost uživatele
-@define('P_ORG_AKCI', 4);                   //může organizovat aktivity
-@define('P_KRYTI_AKCI', 5);                 //může být na víc aktivitách naráz (org skupiny typicky)
-@define('P_PLNY_SERVIS', 7);                //uživatele kompletně platí a zajišťuje GC
-@define('P_ZMENA_HISTORIE', 8);             // jestli smí měnit přihlášení zpětně
-@define('P_TRICKO_ZA_SLEVU_MODRE', 1012);   // modré tričko zdarma při slevě, jejíž hodnota je níže určená konstantou MODRE_TRICKO_ZDARMA_OD
-@define('P_DVE_TRICKA_ZDARMA', 1020);       // dvě jakákoli trička zdarma
-@define('P_TRICKO_MODRA_BARVA', 1021);      // může objednávat modrá trička
-@define('P_TRICKO_CERVENA_BARVA', 1022);    // může objednávat červená trička
+@define('P_ORG_AKCI', 4); //může organizovat aktivity
+@define('P_KRYTI_AKCI', 5); //může být na víc aktivitách naráz (org skupiny typicky)
+@define('P_PLNY_SERVIS', 7); //uživatele kompletně platí a zajišťuje GC
+@define('P_ZMENA_HISTORIE', 8); // jestli smí měnit přihlášení zpětně
+@define('P_TRICKO_ZA_SLEVU_MODRE', 1012); // modré tričko zdarma při slevě, jejíž hodnota je níže určená konstantou MODRE_TRICKO_ZDARMA_OD
+@define('P_DVE_TRICKA_ZDARMA', 1020); // dvě jakákoli trička zdarma
+@define('P_TRICKO_MODRA_BARVA', 1021); // může objednávat modrá trička
+@define('P_TRICKO_CERVENA_BARVA', 1022); // může objednávat červená trička
 @define('P_PLACKA_ZDARMA', 1002);
 @define('P_KOSTKA_ZDARMA', 1003);
-@define('P_JIDLO_SLEVA', 1004);   //může si kupovat jídlo se slevou
-@define('P_JIDLO_ZDARMA', 1005);  //může si objednávat jídlo a má ho zdarma
+@define('P_JIDLO_SLEVA', 1004); //může si kupovat jídlo se slevou
+@define('P_JIDLO_ZDARMA', 1005); //může si objednávat jídlo a má ho zdarma
 @define('P_UBYTOVANI_ZDARMA', 1008); //má _všechno_ ubytování zdarma
 @define('P_UBYTOVANI_STREDA_ZDARMA', 1015); // má středeční noc zdarma
 @define('P_UBYTOVANI_NEDELE_ZDARMA', 1018); // má nedělní noc zdarma
-@define('P_ADMIN_UVOD', 100);    //přístup na titulku adminu
+@define('P_ADMIN_UVOD', 100); //přístup na titulku adminu
 @define('P_ADMIN_MUJ_PREHLED', 109);
 @define('P_NERUSIT_OBJEDNAVKY', 1016); // nebudou mu automaticky rušeny objednávky
-@define('P_AKTIVITY_SLEVA', 1019);     // má 40% slevu na aktivity
-@define('P_AKTIVITY_ZDARMA', 1023);    // má 100% slevu na aktivity
-@define('P_STATISTIKY_UCAST', 1024);   // židle se vypisuje se v tabulce účasti v statistikách
+@define('P_AKTIVITY_SLEVA', 1019); // má 40% slevu na aktivity
+@define('P_AKTIVITY_ZDARMA', 1023); // má 100% slevu na aktivity
+@define('P_STATISTIKY_UCAST', 1024); // židle se vypisuje se v tabulce účasti v statistikách
 @define('P_REPORT_NEUBYTOVANI', 1025); // v reportu neubytovaných se vypisuje
-@define('P_TITUL_ORG', 1026);          // v různých výpisech se označuje jako organizátor
-@define('P_UNIKATNI_ZIDLE', 1027);     // uživatel může mít jen jednu židli s tímto právem
+@define('P_TITUL_ORG', 1026); // v různých výpisech se označuje jako organizátor
+@define('P_UNIKATNI_ZIDLE', 1027); // uživatel může mít jen jednu židli s tímto právem
 @define('P_NEMA_SLEVU_AKTIVITY', 1028);// nedostává slevu za odvedené a tech. aktivity
-unset($pre);
-
-////////////////////////
+unset($pre); ////////////////////////
 // Finanční nastavení //
 ////////////////////////
 
-@define('KURZ_EURO', 24);                    // kurz kč:euro
-@define('UCET_CZ', '2800035147/2010');       // číslo účtu pro platby v CZK - v statických stránkách není
+@define('KURZ_EURO', 24); // kurz kč:euro
+@define('UCET_CZ', '2800035147/2010'); // číslo účtu pro platby v CZK - v statických stránkách není
 @define('IBAN', 'CZ2820100000002800035147'); // mezinárodní číslo účtu
-@define('BIC_SWIFT', 'FIOBCZPPXXX');         // mezinárodní ID (něco jako mezinárodní VS)
-//@define('FIO_TOKEN', '');                  // tajné - musí nastavit lokální soubor definic
+@define('BIC_SWIFT', 'FIOBCZPPXXX'); // mezinárodní ID (něco jako mezinárodní VS)
+//@define('FIO_TOKEN', ''); // tajné - musí nastavit lokální soubor definic
 
 // OSTATNÍ FINANČNÍ NASTAVENÍ
-@define('MODRE_TRICKO_ZDARMA_OD', 780);    // hodnota slevy od které má subjekt nárok na modré tričko
+@define('MODRE_TRICKO_ZDARMA_OD', 780); // hodnota slevy od které má subjekt nárok na modré tričko
 
 /////////////////////////
 // Řetězcové konstanty //
@@ -169,9 +188,7 @@ Vypravěč ani další účastníci na Tebe nemusí čekat a zjišťovat, jestli
 
 Děkujeme za spolupráci,
 Organizační tým GameConu',
-];
-
-//////////////////////////////////////////////
+]; //////////////////////////////////////////////
 // Staré hodnoty a aliasy pro kompatibilitu //
 //////////////////////////////////////////////
 
@@ -180,16 +197,16 @@ Organizační tým GameConu',
 @define('REG_AKTIVIT', mezi(REG_AKTIVIT_OD, REG_AKTIVIT_DO));
 @define('GC_BEZI', mezi(GC_BEZI_OD, GC_BEZI_DO)); // jestli gamecon aktivně běží (zakázání online registrací ubytování aj.) - do budoucna se vyvarovat a používat speciální konstanty per vlastnost
 
-@define('ARCHIV_OD', 2009);           //rok, od kterého se vedou (nabízejí) archivy (aktivit atp.)
+@define('ARCHIV_OD', 2009); //rok, od kterého se vedou (nabízejí) archivy (aktivit atp.)
 @define('ID_PRAVO_PRIHLASEN', Z_PRIHLASEN); // fixme zůstává kvůli uložení práva v session
-@define('ID_PRAVO_PRITOMEN', Z_PRITOMEN);  // fixme zůstává kvůli uložení práva v session
+@define('ID_PRAVO_PRITOMEN', Z_PRITOMEN); // fixme zůstává kvůli uložení práva v session
 
 @define('ODHLASENI_POKUTA_KONTROLA', po(ROK . '-07-18 00:00:01')); // jestli se má kontrolovat pozdní odhlášní z aktivit
 @define('ODHLASENI_POKUTA1_H', 24); // kolik hodin před aktivitou se začne uplatňovat pokuta 1
 
 @define('DEN_PRVNI_DATE', date('Y-m-d', strtotime(PROGRAM_OD))); // první den v programu ve formátu YYYY-MM-DD
-@define('DEN_PRVNI_UBYTOVANI', DEN_PRVNI_DATE);                  // datum, kterému odpovídá ubytovani_den (tabulka shop_predmety) v hodnotě 0
-@define('PROGRAM_ZACATEK', 8);   // první hodina programu
-@define('PROGRAM_KONEC', 24);    // konec programu (tuto hodinu už se nehraje)
+@define('DEN_PRVNI_UBYTOVANI', DEN_PRVNI_DATE); // datum, kterému odpovídá ubytovani_den (tabulka shop_predmety) v hodnotě 0
+@define('PROGRAM_ZACATEK', 8); // první hodina programu
+@define('PROGRAM_KONEC', 24); // konec programu (tuto hodinu už se nehraje)
 
 define('SUPERADMINI', [1682, 4032]);
