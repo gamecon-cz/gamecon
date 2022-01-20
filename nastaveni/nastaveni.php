@@ -110,7 +110,9 @@ $pre = -(ROK - 2000) * 100; //předpona pro židle a práva vázaná na aktuáln
 @define('P_TITUL_ORG', 1026); // v různých výpisech se označuje jako organizátor
 @define('P_UNIKATNI_ZIDLE', 1027); // uživatel může mít jen jednu židli s tímto právem
 @define('P_NEMA_SLEVU_AKTIVITY', 1028);// nedostává slevu za odvedené a tech. aktivity
-unset($pre); ////////////////////////
+unset($pre);
+
+////////////////////////
 // Finanční nastavení //
 ////////////////////////
 
@@ -188,7 +190,9 @@ Vypravěč ani další účastníci na Tebe nemusí čekat a zjišťovat, jestli
 
 Děkujeme za spolupráci,
 Organizační tým GameConu',
-]; //////////////////////////////////////////////
+];
+
+//////////////////////////////////////////////
 // Staré hodnoty a aliasy pro kompatibilitu //
 //////////////////////////////////////////////
 
