@@ -60,9 +60,6 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin/ --filename=composer
 
-RUN echo 'alias ll="ls -al"' >> ~/.bashrc \
-    && mkdir -p /var/log
-
 RUN usermod --home /home/www-data --shell /bin/bash www-data \
     && mkdir -p /home/www-data \
     && chown -R www-data:www-data /home/www-data
@@ -72,14 +69,14 @@ USER www-data
 RUN mkdir -p /home/www-data/bin \
     && curl -sS https://getcomposer.org/installer | php -- --install-dir=/home/www-data/bin --filename=composer \
     && chmod +x /home/www-data/bin/composer \
-  	&& echo 'export PATH="/home/www-data/bin:$PATH"' >> /home/www-data/.bashrc
+  	&& echo 'export PATH="/home/www-data/bin:$PATH"' >> /home/www-data/.bashrc \
+    && echo 'if [ -f ~/.bash_aliases ]; then . ~/.bash_aliases; fi' >> /home/www-data/.bashrc
 
 COPY ./.bash_aliases /home/www-data/.bash_aliases
 
 USER root
 
-RUN echo 'alias ll="ls -al"' >> /root/.bashrc \
-    && mkdir -p /var/log/php && chown -R www-data /var/log/php && chmod +w /var/log/php
+RUN mkdir -p /var/log/php && chown -R www-data /var/log/php && chmod +w /var/log/php
 
 FROM gamecon-php-step3 AS gamecon-project-step-final
 
