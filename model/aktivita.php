@@ -1432,19 +1432,19 @@ SQL
     public function dorazilJakoCokoliv(Uzivatel $uzivatel): bool {
         $stav = $this->prihlasenStav($uzivatel);
 
-        return in_array($stav, [self::DORAZIL, self::DORAZIL_NAHRADNIK]);
+        return in_array($stav, [self::PRIHLASEN_A_DORAZIL, self::DORAZIL_JAKO_NAHRADNIK]);
     }
 
     public function dorazilJakoNahradnik(Uzivatel $uzivatel): bool {
         $stav = $this->prihlasenStav($uzivatel);
 
-        return $stav === self::DORAZIL_NAHRADNIK;
+        return $stav === self::DORAZIL_JAKO_NAHRADNIK;
     }
 
     public function dorazilJakoPredemPrihlaseny(Uzivatel $uzivatel): bool {
         $stav = $this->prihlasenStav($uzivatel);
 
-        return $stav === self::DORAZIL;
+        return $stav === self::DORAZIL_JAKO_NAHRADNIK;
     }
 
     /** Zdali chceme, aby se na aktivitu bylo možné běžně přihlašovat */
@@ -1453,19 +1453,18 @@ SQL
         $zpetne = $parametry & self::ZPETNE;
         $technicke = $parametry & self::TECHNICKE;
         // stav 4 je rezervovaný pro viditelné nepřihlašovatelné aktivity
-        return (
+        return
             (REG_AKTIVIT
                 || ($dopredne && pred(REG_AKTIVIT_OD))
                 || ($zpetne && po(REG_GC_DO))
-            ) &&
-            (
-                $this->a['stav'] == Stav::AKTIVOVANA ||
-                ($technicke && $this->a['stav'] == Stav::NOVA && $this->a['typ'] == \Gamecon\Aktivita\TypAktivity::TECHNICKA) ||
-                ($zpetne && $this->a['stav'] == Stav::PROBEHNUTA)
-            ) &&
-            $this->a['zacatek'] &&
-            $this->a['typ']
-        );
+            )
+            && (
+                $this->a['stav'] == Stav::AKTIVOVANA
+                || ($technicke && $this->a['stav'] == Stav::NOVA && $this->a['typ'] == \Gamecon\Aktivita\TypAktivity::TECHNICKA)
+                || ($zpetne && $this->a['stav'] == Stav::PROBEHNUTA)
+            )
+            && $this->a['zacatek']
+            && $this->a['typ'];
     }
 
     private function procNeniPrihlasovatelna($parametry): string {
@@ -1583,12 +1582,17 @@ SQL
 
     /** Zpracuje post data z přihlašovátka. Pokud došlo ke změně, vyvolá reload */
     public static function prihlasovatkoZpracuj(Uzivatel $u = null, $parametry = 0) {
+        if (!$u) {
+            back();
+        }
         if (post('prihlasit')) {
             self::zId(post('prihlasit'))->prihlas($u, $parametry);
             back();
         }
         if (post('odhlasit')) {
-            $bezPokut = ($parametry & self::ZPETNE) ? self::BEZ_POKUT : 0; // v případě zpětných změn bez pokut
+            $bezPokut = ($parametry & self::ZPETNE)
+                ? self::BEZ_POKUT // v případě zpětných změn bez pokut
+                : 0;
             self::zId(post('odhlasit'))->odhlas($u, $bezPokut);
             back();
         }
@@ -2070,8 +2074,9 @@ SQL
      */
     public function viditelnaPro(Uzivatel $u = null) {
         return (
-            (in_array($this->a['stav'], [Stav::AKTIVOVANA, Stav::PROBEHNUTA, Stav::PUBLIKOVANA, Stav::PRIPRAVENA]) // podle stavu je aktivita viditelná
-                && !($this->a['typ'] == \Gamecon\Aktivita\TypAktivity::TECHNICKA && $this->a['stav'] == Stav::PROBEHNUTA))// ale skrýt technické proběhnuté
+            (in_array($this->a['stav'], [Stav::AKTIVOVANA, Stav::PROBEHNUTA, Stav::PUBLIKOVANA, Stav::PRIPRAVENA], false) // podle stavu je aktivita viditelná
+                && !($this->a['typ'] == \Gamecon\Aktivita\TypAktivity::TECHNICKA && $this->a['stav'] == Stav::PROBEHNUTA) // ale skrýt technické proběhnuté
+            )
             || ($u && $this->prihlasen($u))
             || ($u && $u->organizuje($this))
         );
@@ -2082,10 +2087,7 @@ SQL
      */
     public function vybaveni() {
         if ($this->a['patri_pod']) {
-            return dbOneCol(
-                'SELECT MAX(vybaveni) FROM akce_seznam WHERE patri_pod = $1',
-                [$this->a['patri_pod']]
-            );
+            return dbOneCol('SELECT MAX(vybaveni) FROM akce_seznam WHERE patri_pod = $1', [$this->a['patri_pod']]);
         }
         return dbOneCol('SELECT vybaveni FROM akce_seznam WHERE id_akce = $1', [$this->id()]);
     }
@@ -2122,11 +2124,13 @@ SQL
             do {
                 $dalsi = [];
                 foreach (end($urovne) as $a) {
-                    if ($a->a['dite'])
+                    if ($a->a['dite']) {
                         $dalsi = array_merge($dalsi, explode(',', $a->a['dite']));
+                    }
                 }
-                if ($dalsi)
+                if ($dalsi) {
                     $urovne[] = self::zIds($dalsi);
+                }
             } while ($dalsi);
             unset($urovne[0]); // aktuální aktivitu už má přihlášenu - ignorovat
 
@@ -2149,14 +2153,18 @@ SQL
         // políčka pro výběr míst
         for ($i = 0; $i < $this->kapacita() - 1; $i++) {
             $t->assign('postnameMisto', self::TEAMKLIC . '[' . $i . ']');
-            if ($i >= $this->a['team_min'] - 1) // -1 za týmlídra
+            if ($i >= $this->a['team_min'] - 1) { // -1 za týmlídra
                 $t->parse('formular.misto.odebrat');
+            }
             $t->parse('formular.misto');
         }
 
         // název (povinný pro DrD)
-        if ($this->a['typ'] == \Gamecon\Aktivita\TypAktivity::DRD) $t->parse('formular.nazevPovinny');
-        else                              $t->parse('formular.nazevVolitelny');
+        if ($this->a['typ'] == \Gamecon\Aktivita\TypAktivity::DRD) {
+            $t->parse('formular.nazevPovinny');
+        } else {
+            $t->parse('formular.nazevVolitelny');
+        }
 
         // výpis celého formuláře
         $t->parse('formular');
