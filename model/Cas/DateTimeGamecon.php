@@ -9,13 +9,13 @@ class DateTimeGamecon extends DateTimeCz
             return self::zDbFormatu(GC_BEZI_OD);
         }
         $zacatekCervence = new static($rok . '-07-01 00:00:00');
-        $dejZacatekPredposlednihoTydneVCervenci = self::dejZacatekPredposlednihoTydne($zacatekCervence);
-        $ctvrtekVPredposlednimTydnuVCervenci = self::dejDatumDneVTydnuOdData(
-            static::CTVRTEK,
-            $dejZacatekPredposlednihoTydneVCervenci
-        );
-
-        return $ctvrtekVPredposlednimTydnuVCervenci->setTime(7, 0, 0);
+        $zacatekTretihoTydneVCervenci = self::dejZacatekXTydne(3, $zacatekCervence);
+        $ctvrtekVeTretimTydnuVCervenci = self::dejDatumDneVTydnuOdData(static::CTVRTEK, $zacatekTretihoTydneVCervenci);
+        if ($ctvrtekVeTretimTydnuVCervenci->format('d') >= 15) { // ve třetím týdnu pouze pokud začne v půlce měsíce či později
+            return $ctvrtekVeTretimTydnuVCervenci->setTime(7, 0, 0);
+        }
+        $ctvrtekVeCtvrtemTydnuVCervenci = $ctvrtekVeTretimTydnuVCervenci->modify('+1 week');
+        return $ctvrtekVeCtvrtemTydnuVCervenci->setTime(7, 0, 0);
     }
 
     protected static function dejZacatekPredposlednihoTydne(DateTimeGamecon $datum): DateTimeGamecon {
