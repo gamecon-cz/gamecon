@@ -40,7 +40,7 @@ $t->assign([
 ]);
 
 // TODO revert $ucastnici = $aktivita->prihlaseni();
-$ucastnici = Uzivatel::zHledani('kru');
+$ucastnici = Uzivatel::zHledani('kru'); // TODO REMOVE
 $o = dbQuery(
     'SELECT id_uzivatele, MAX(cas) as cas FROM akce_prihlaseni_log WHERE id_akce = $1 GROUP BY id_uzivatele',
     [$aktivita->id()]
