@@ -16,7 +16,7 @@ if (!$aktivita) {
     $sablonaKProblemu->assign('aktivita', $aktivita);
     $sablonaKProblemu->assign('rok', $aktivita->konec()->format('Y'));
     $sablonaKProblemu->parse('problem.historicka');
-} elseif ($aktivita->konec()->pred(new DateTime())) {
+} elseif ($aktivita->konec()->pred(new DateTime()) && (!TESTING || ROK == date('Y'))) {
     $problem = true;
     $sablonaKProblemu->assign('aktivita', $aktivita);
     $sablonaKProblemu->assign('konecPred', $aktivita->konec()->relativni());
