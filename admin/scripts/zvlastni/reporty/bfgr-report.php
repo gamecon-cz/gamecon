@@ -1,5 +1,5 @@
 <?php
-// takzvaný BFGR (Big f*king Gandalf report)
+// takzvaný BFGR (Big f**king Gandalf report)
 
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Zidle;
@@ -192,7 +192,7 @@ $sqlSPoctemCovidTestu = (static function () use ($letosniCovidTesty, $sqlNaPocet
     foreach ($letosniCovidTesty as $idCovidTestu => $nazevCovidTestu) {
         $sqlCasti[] = "({$sqlNaPocetJednohoPredmetu((int)$idCovidTestu)}) AS `$nazevCovidTestu`";
     }
-    return implode(',', $sqlCasti);
+    return implode(',', $sqlCasti) ?: 'NULL AS `COVID test`';
 })();
 
 $rok = ROK;
@@ -294,7 +294,7 @@ while ($r = mysqli_fetch_assoc($o)) {
         return mb_stripos($nazevTricka, 'modré');
     }, ARRAY_FILTER_USE_KEY);
     $pocetLetosnichModrychTricek = (int)array_sum($letosniModraTrickaPocty);
-    // tech co jsou zdarma jen kvuli specialnimu pravu na modre tricko zdarma
+    // těch co jsou zdarma jen kvůli speciálnímu právu na modré tričko zdarma
     $pocetLetosnichModrychTricekZdarma = min($pocetLetosnichModrychTricek, $finance->maximalniPocetModrychTricekZdarma());
     // mohou to byt i modra tricka, ale bez tech, co byly zdarma kvuli specialnimu pravu na modre tricko
     $pocetLetosnichTricekAleBezModrychZdarma = (int)array_sum($letosniTrickaPocty) - $pocetLetosnichModrychTricekZdarma;
@@ -308,22 +308,25 @@ while ($r = mysqli_fetch_assoc($o)) {
     }, ARRAY_FILTER_USE_KEY);
     $pocetLetosnichCervenychTricek = (int)array_sum($letosniCervenaTrickaPocty);
     $pocetLetosnichCervenychTricekSeSlevou = $finance->muzeObjednavatCerveneTrickoSeSlevou()
-        ? $pocetLetosnichCervenychTricek - $pocetLetosnichTricekZdarmaBezModrychZdarma
+        ? max(
+            $pocetLetosnichCervenychTricek - $pocetLetosnichTricekZdarmaBezModrychZdarma,
+            0 /* kdyby snad triček zdarma bez modrých zdarma bylo více než červených (účastnická, bez speciální barvy) */
+        )
         : 0;
     $pocetLetosnichTricekSeSlevou = $pocetLetosnichModrychTricekSeSlevou + $pocetLetosnichCervenychTricekSeSlevou;
     $pocetLetosnichTricekPlacenych = $pocetLetosnichTricek - $pocetLetosnichTricekZdarma - $pocetLetosnichTricekSeSlevou;
 
-    // POZOR, tady predpokladame, ze kdo si kupuje tilka, nekupuje si tricka - pokud jo, tak maximalniPocetLibovolnychTricekZdarma() tu pouzivame blbe, protoze zdojnasobujeme maximum
+    // POZOR, tady předpokládáme, že kdo si kupuje tílka, nekupuje si trička - pokud jo, tak maximalniPocetLibovolnychTricekZdarma() tu používáme blbě, protože zdojnásobujeme maximum
     $letosniTilkaPocty = array_intersect_key($r, $letosniTilkaKlice);
     $pocetLetosnichTilek = (int)array_sum($letosniTilkaPocty);
     $letosniModraTilkaPocty = array_filter($letosniTilkaPocty, static function (string $nazevTilka) {
         return mb_stripos($nazevTilka, 'modré');
     }, ARRAY_FILTER_USE_KEY);
     $pocetLetosnichModrychTilek = (int)array_sum($letosniModraTilkaPocty);
-    // tech co jsou zdarma jen kvuli specialnimu pravu na modre tricko zdarma
+    // těch co jsou zdarma jen kvůli speciálnímu právu na modré tričko zdarma
     $pocetLetosnichModrychTilekZdarma = min($pocetLetosnichModrychTilek, $finance->maximalniPocetModrychTricekZdarma());
-    // mohou to byt i modra tricka, ale bez tech, co byly zdarma kvuli specialnimu pravu na modre tricko
-    $pocetLetosnichTilekBezModrychZdarma = (int)array_sum($letosniTilkaPocty) - $pocetLetosnichModrychTilekZdarma;
+    // mohou to být i modrá trička, ale bez těch, co byly zdarma kvůli speciálnimu právu na modré tričko
+    $pocetLetosnichTilekBezModrychZdarma = $pocetLetosnichTilek - $pocetLetosnichModrychTilekZdarma;
     $pocetLetosnichTilekZdarmaBezModrychZdarma = min($pocetLetosnichTilekBezModrychZdarma, $finance->maximalniPocetLibovolnychTricekZdarmaBezModrychZdarma());
     $pocetLetosnichTilekZdarma = $pocetLetosnichTilekZdarmaBezModrychZdarma + $pocetLetosnichModrychTilekZdarma;
     $pocetLetosnichModrychTilekSeSlevou = $finance->muzeObjednavatModreTrickoSeSlevou()
@@ -334,7 +337,10 @@ while ($r = mysqli_fetch_assoc($o)) {
     }, ARRAY_FILTER_USE_KEY);
     $pocetLetosnichCervenychTilek = (int)array_sum($letosniCervenaTilkaPocty);
     $pocetLetosnichCervenychTilekSeSlevou = $finance->muzeObjednavatCerveneTrickoSeSlevou()
-        ? $pocetLetosnichCervenychTilek - $pocetLetosnichTilekZdarmaBezModrychZdarma
+        ? max(
+            $pocetLetosnichCervenychTilek - $pocetLetosnichTilekZdarmaBezModrychZdarma,
+            0 /* kdyby snad tílek zdarma bez modrých zdarma bylo více než červených (účastnická, bez speciální barvy) */
+        )
         : 0;
     $pocetLetosnichTilekSeSlevou = $pocetLetosnichModrychTilekSeSlevou + $pocetLetosnichCervenychTilekSeSlevou;
     $pocetLetosnichTilekPlacenych = $pocetLetosnichTilek - $pocetLetosnichTilekZdarma - $pocetLetosnichTilekSeSlevou;
