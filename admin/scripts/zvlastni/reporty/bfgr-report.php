@@ -141,8 +141,12 @@ $hlavicka = [
 $sqlNaPocetJednohoPredmetu = static function (int $idPredmetu): string {
     $rok = ROK;
     return <<<SQL
- COALESCE((SELECT COUNT(shop_predmety.id_predmetu) FROM shop_nakupy
-     JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok={$rok} AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.id_predmetu = {$idPredmetu} GROUP BY shop_predmety.id_predmetu), 0)
+COALESCE(
+    (SELECT COUNT(shop_predmety.id_predmetu)
+    FROM shop_nakupy
+    JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok={$rok} AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.id_predmetu = {$idPredmetu} GROUP BY shop_predmety.id_predmetu),
+    0
+)
 SQL;
 };
 $sqlSPoctemPlacek = (static function () use ($letosniPlacky, $sqlNaPocetJednohoPredmetu): string {
@@ -257,6 +261,25 @@ foreach ($hlavicka as $hlavni => $vedlejsiHlavicka) {
     }
 }
 
+$jenBarevne = static function (array $nazvyJakoKlice, string $barva): array {
+    return array_filter(
+        $nazvyJakoKlice,
+        static function (string $nazev) use ($barva) {
+            // třeba "Tričko červené pánské M 2021"
+            return mb_stripos($nazev, $barva) !== false;
+        },
+        ARRAY_FILTER_USE_KEY
+    );
+};
+
+$jenCervene = static function (array $nazvyJakoKlice) use ($jenBarevne): array {
+    return $jenBarevne($nazvyJakoKlice, 'červené'); // třeba ["Tričko červené pánské M 2021" => 2]
+};
+
+$jenModre = static function (array $nazvyJakoKlice) use ($jenBarevne): array {
+    return $jenBarevne($nazvyJakoKlice, 'modré'); // třeba ["Tričko modré pánské XXL 2021" => 1]
+};
+
 $letosniPlackyKlice = array_fill_keys($letosniPlacky, null);
 $letosniKostkyKlice = array_fill_keys($letosniKostky, null);
 $letosniJidlaKlice = array_fill_keys($letosniJidla, null);
@@ -267,7 +290,7 @@ $letosniCovidTestyKlice = array_fill_keys($letosniCovidTesty, null);
 
 while ($r = mysqli_fetch_assoc($o)) {
     $un = new Uzivatel($r);
-    $un->nactiPrava(); //sql subdotaz, zlo
+    $un->nactiPrava(); // sql subdotaz, zlo
     $finance = $un->finance();
     $cenik = new Cenik($un, $finance->bonusZaVedeniAktivit());
     $ucastiHistorie = [];
@@ -290,26 +313,22 @@ while ($r = mysqli_fetch_assoc($o)) {
 
     $letosniTrickaPocty = array_intersect_key($r, $letosniTrickaKlice);
     $pocetLetosnichTricek = (int)array_sum($letosniTrickaPocty);
-    $letosniModraTrickaPocty = array_filter($letosniTrickaPocty, static function (string $nazevTricka) {
-        return mb_stripos($nazevTricka, 'modré');
-    }, ARRAY_FILTER_USE_KEY);
+    $letosniModraTrickaPocty = $jenModre($letosniTrickaPocty);
     $pocetLetosnichModrychTricek = (int)array_sum($letosniModraTrickaPocty);
     // těch co jsou zdarma jen kvůli speciálnímu právu na modré tričko zdarma
     $pocetLetosnichModrychTricekZdarma = min($pocetLetosnichModrychTricek, $finance->maximalniPocetModrychTricekZdarma());
     // mohou to byt i modra tricka, ale bez tech, co byly zdarma kvuli specialnimu pravu na modre tricko
     $pocetLetosnichTricekAleBezModrychZdarma = (int)array_sum($letosniTrickaPocty) - $pocetLetosnichModrychTricekZdarma;
-    $pocetLetosnichTricekZdarmaBezModrychZdarma = min($pocetLetosnichTricekAleBezModrychZdarma, $finance->maximalniPocetLibovolnychTricekZdarmaBezModrychZdarma());
-    $pocetLetosnichTricekZdarma = $pocetLetosnichTricekZdarmaBezModrychZdarma + $pocetLetosnichModrychTricekZdarma;
+    $pocetLetosnichTricekZdarmaAleBezModrychZdarma = min($pocetLetosnichTricekAleBezModrychZdarma, $finance->maximalniPocetLibovolnychTricekZdarmaBezModrychZdarma());
+    $pocetLetosnichTricekZdarma = $pocetLetosnichTricekZdarmaAleBezModrychZdarma + $pocetLetosnichModrychTricekZdarma;
     $pocetLetosnichModrychTricekSeSlevou = $finance->muzeObjednavatModreTrickoSeSlevou()
         ? $pocetLetosnichModrychTricek - $pocetLetosnichModrychTricekZdarma
         : 0;
-    $letosniCervenaTrickaPocty = array_filter($letosniTrickaPocty, static function (string $nazevTricka) {
-        return mb_stripos($nazevTricka, 'červené');
-    }, ARRAY_FILTER_USE_KEY);
+    $letosniCervenaTrickaPocty = $jenCervene($letosniTrickaPocty);
     $pocetLetosnichCervenychTricek = (int)array_sum($letosniCervenaTrickaPocty);
     $pocetLetosnichCervenychTricekSeSlevou = $finance->muzeObjednavatCerveneTrickoSeSlevou()
         ? max(
-            $pocetLetosnichCervenychTricek - $pocetLetosnichTricekZdarmaBezModrychZdarma,
+            $pocetLetosnichCervenychTricek - $pocetLetosnichTricekZdarmaAleBezModrychZdarma,
             0 /* kdyby snad triček zdarma bez modrých zdarma bylo více než červených (účastnická, bez speciální barvy) */
         )
         : 0;
@@ -319,9 +338,7 @@ while ($r = mysqli_fetch_assoc($o)) {
     // POZOR, tady předpokládáme, že kdo si kupuje tílka, nekupuje si trička - pokud jo, tak maximalniPocetLibovolnychTricekZdarma() tu používáme blbě, protože zdojnásobujeme maximum
     $letosniTilkaPocty = array_intersect_key($r, $letosniTilkaKlice);
     $pocetLetosnichTilek = (int)array_sum($letosniTilkaPocty);
-    $letosniModraTilkaPocty = array_filter($letosniTilkaPocty, static function (string $nazevTilka) {
-        return mb_stripos($nazevTilka, 'modré');
-    }, ARRAY_FILTER_USE_KEY);
+    $letosniModraTilkaPocty = $jenModre($letosniTilkaPocty);
     $pocetLetosnichModrychTilek = (int)array_sum($letosniModraTilkaPocty);
     // těch co jsou zdarma jen kvůli speciálnímu právu na modré tričko zdarma
     $pocetLetosnichModrychTilekZdarma = min($pocetLetosnichModrychTilek, $finance->maximalniPocetModrychTricekZdarma());
@@ -332,9 +349,7 @@ while ($r = mysqli_fetch_assoc($o)) {
     $pocetLetosnichModrychTilekSeSlevou = $finance->muzeObjednavatModreTrickoSeSlevou()
         ? $pocetLetosnichModrychTilek - $pocetLetosnichModrychTilekZdarma
         : 0;
-    $letosniCervenaTilkaPocty = array_filter($letosniTilkaPocty, static function (string $nazevTilka) {
-        return mb_stripos($nazevTilka, 'červené');
-    }, ARRAY_FILTER_USE_KEY);
+    $letosniCervenaTilkaPocty = $jenCervene($letosniTilkaPocty);
     $pocetLetosnichCervenychTilek = (int)array_sum($letosniCervenaTilkaPocty);
     $pocetLetosnichCervenychTilekSeSlevou = $finance->muzeObjednavatCerveneTrickoSeSlevou()
         ? max(
