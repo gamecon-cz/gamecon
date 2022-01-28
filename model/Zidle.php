@@ -12,6 +12,9 @@ class Zidle extends \DbObject
     protected static $tabulka = 'r_zidle_soupis';
     protected static $pk = 'id_zidle';
 
+    public const PRIHLASEN = Z_PRIHLASEN;
+    public const PRITOMEN = Z_PRITOMEN;
+
     /**
      * Konstanty jsou kopie SQL tabulky `r_zidle_soupis`
      */
