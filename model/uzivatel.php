@@ -1327,8 +1327,8 @@ SQL,
     }
 
     /** Vrátí kód státu ve formátu ISO 3166-1 alpha-2 https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2 */
-    public function stat() {
-        return \Gamecon\Stat::dejKodStatuPodleId((int)$this->u['stat_uzivatele']);
+    public function stat(): ?string {
+        return \Gamecon\Stat::dejKodStatuPodleId($this->u['stat_uzivatele'] ? (int)$this->u['stat_uzivatele'] : null);
     }
 
     /**

@@ -13,7 +13,7 @@ class Stat
     public const JINY_ID = -1;
 
     /** Vrátí kód státu ve formátu ISO 3166-1 alpha-2 https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2 */
-    public static function dejKodStatuPodleId(int $idStatu): ?string {
+    public static function dejKodStatuPodleId(?int $idStatu): ?string {
         switch ($idStatu) {
             case self::CZ_ID :
                 return self::CZ;
