@@ -7,18 +7,20 @@ use Gamecon\Shop\Shop;
 
 require __DIR__ . '/sdilene-hlavicky.php';
 
-function ed($datum) { // excel datum
+require_once __DIR__ . '/_bfgr_pomocne.php';
+
+function excelDatum($datum) {
     if (!$datum) {
         return null;
     }
     return date('j.n.Y G:i', strtotime($datum));
 }
 
-function ec($cislo) { // excel číslo
+function excelCislo($cislo) {
     return str_replace('.', ',', $cislo);
 }
 
-function ut($typ) { // ubytování typ - z názvu předmětu odhadne typ
+function typUbytovani($typ) { // ubytování typ - z názvu předmětu odhadne typ
     return preg_replace('@ ?(pondělí|úterý|středa|čtvrtek|pátek|sobota|neděle) ?@iu', '', $typ);
 }
 
@@ -85,30 +87,15 @@ ORDER BY FIELD(SUBSTRING(TRIM(shop_predmety.nazev), 1, POSITION(' ' IN TRIM(shop
 SQL, [Shop::JIDLO, ROK]
 );
 
-$letosniTricka = dbFetchPairs(<<<SQL
-SELECT shop_predmety.id_predmetu, CONCAT_WS(' ', TRIM(shop_predmety.nazev), model_rok)
-FROM shop_predmety
-WHERE nazev LIKE '%tričko%' COLLATE utf8_czech_ci
-AND stav > 0
-SQL
-);
-
-$letosniTilka = dbFetchPairs(<<<SQL
-SELECT shop_predmety.id_predmetu, CONCAT_WS(' ', TRIM(shop_predmety.nazev), model_rok)
-FROM shop_predmety
-WHERE nazev LIKE '%tílko%' COLLATE utf8_czech_ci
-AND stav > 0
-SQL
-);
-
 $letosniOstatniPredmety = dbFetchPairs(<<<SQL
-SELECT shop_predmety.id_predmetu, TRIM(shop_predmety.nazev)
+SELECT shop_predmety.id_predmetu,
+       IF(model_rok != $1, CONCAT_WS(' ', TRIM(shop_predmety.nazev), model_rok), shop_predmety.nazev) AS nazev
 FROM shop_predmety
-WHERE shop_predmety.typ = $1
+WHERE shop_predmety.typ = $2
 AND stav > 0
 AND (TRIM(nazev) IN ('GameCon blok', 'Nicknack') OR nazev LIKE '%ponožky%' COLLATE utf8_czech_ci)
 ORDER BY TRIM(shop_predmety.nazev)
-SQL, [Shop::PREDMET]
+SQL, [ROK, Shop::PREDMET]
 );
 
 $letosniCovidTesty = dbFetchPairs(<<<SQL
@@ -138,67 +125,6 @@ $hlavicka = [
     ),
 ];
 
-$sqlNaPocetJednohoPredmetu = static function (int $idPredmetu): string {
-    $rok = ROK;
-    return <<<SQL
-COALESCE(
-    (SELECT COUNT(shop_predmety.id_predmetu)
-    FROM shop_nakupy
-    JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok={$rok} AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.id_predmetu = {$idPredmetu} GROUP BY shop_predmety.id_predmetu),
-    0
-)
-SQL;
-};
-$sqlSPoctemPlacek = (static function () use ($letosniPlacky, $sqlNaPocetJednohoPredmetu): string {
-    $sqlCasti = [];
-    foreach ($letosniPlacky as $idPlacky => $nazevPlacky) {
-        $sqlCasti[] = "({$sqlNaPocetJednohoPredmetu((int)$idPlacky)}) AS `$nazevPlacky`";
-    }
-    return implode(',', $sqlCasti);
-})();
-$sqlSPoctemKostek = (static function () use ($letosniKostky, $sqlNaPocetJednohoPredmetu): string {
-    $sqlCasti = [];
-    foreach ($letosniKostky as $idKostky => $nazevKostky) {
-        $sqlCasti[] = "({$sqlNaPocetJednohoPredmetu((int)$idKostky)}) AS `$nazevKostky`";
-    }
-    return implode(',', $sqlCasti);
-})();
-$sqlSPoctemJidel = (static function () use ($letosniJidla, $sqlNaPocetJednohoPredmetu): string {
-    $sqlCasti = [];
-    foreach ($letosniJidla as $idJidla => $nazevJidla) {
-        $sqlCasti[] = "({$sqlNaPocetJednohoPredmetu((int)$idJidla)}) AS `$nazevJidla`";
-    }
-    return implode(',', $sqlCasti);
-})();
-$sqlSPoctemTricek = (static function () use ($letosniTricka, $sqlNaPocetJednohoPredmetu): string {
-    $sqlCasti = [];
-    foreach ($letosniTricka as $idTricka => $nazevTricka) {
-        $sqlCasti[] = "({$sqlNaPocetJednohoPredmetu((int)$idTricka)}) AS `$nazevTricka`";
-    }
-    return implode(',', $sqlCasti);
-})();
-$sqlSPoctemTilek = (static function () use ($letosniTilka, $sqlNaPocetJednohoPredmetu): string {
-    $sqlCasti = [];
-    foreach ($letosniTilka as $idTilka => $nazevTilka) {
-        $sqlCasti[] = "({$sqlNaPocetJednohoPredmetu((int)$idTilka)}) AS `$nazevTilka`";
-    }
-    return implode(',', $sqlCasti);
-})();
-$sqlSPoctemOstatnichPredmetu = (static function () use ($letosniOstatniPredmety, $sqlNaPocetJednohoPredmetu): string {
-    $sqlCasti = [];
-    foreach ($letosniOstatniPredmety as $idPredmetu => $nazevPredmetu) {
-        $sqlCasti[] = "({$sqlNaPocetJednohoPredmetu((int)$idPredmetu)}) AS `$nazevPredmetu`";
-    }
-    return implode(',', $sqlCasti);
-})();
-$sqlSPoctemCovidTestu = (static function () use ($letosniCovidTesty, $sqlNaPocetJednohoPredmetu): string {
-    $sqlCasti = [];
-    foreach ($letosniCovidTesty as $idCovidTestu => $nazevCovidTestu) {
-        $sqlCasti[] = "({$sqlNaPocetJednohoPredmetu((int)$idCovidTestu)}) AS `$nazevCovidTestu`";
-    }
-    return implode(',', $sqlCasti) ?: 'NULL AS `COVID test`';
-})();
-
 $rok = ROK;
 $o = dbQuery(<<<SQL
 SELECT
@@ -206,16 +132,9 @@ SELECT
     prihlasen.posazen AS prihlasen_na_gc_kdy,
     pritomen.posazen as prosel_info_kdy,
     odjel.posazen as odjel_kdy,
-    ( SELECT MIN(shop_predmety.ubytovani_den) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=$rok AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.typ=2 ) AS den_prvni,
-    ( SELECT MAX(shop_predmety.ubytovani_den) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=$rok AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.typ=2 ) AS den_posledni,
-    ( SELECT GROUP_CONCAT(shop_predmety.nazev SEPARATOR ', ') FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=$rok AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.typ=2 ) AS ubytovani_typ,
-    $sqlSPoctemPlacek,
-    $sqlSPoctemKostek,
-    $sqlSPoctemJidel,
-    $sqlSPoctemTricek,
-    $sqlSPoctemTilek,
-    $sqlSPoctemOstatnichPredmetu,
-    $sqlSPoctemCovidTestu,
+    ( SELECT MIN(shop_predmety.ubytovani_den) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=" . ROK . " AND shop_nakupy.id_uzivatele=r_uzivatele_zidle.id_uzivatele AND shop_predmety.typ=2 ) AS den_prvni,
+    ( SELECT MAX(shop_predmety.ubytovani_den) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=" . ROK . " AND shop_nakupy.id_uzivatele=r_uzivatele_zidle.id_uzivatele AND shop_predmety.typ=2 ) AS den_posledni,
+    ( SELECT MAX(shop_predmety.nazev) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=" . ROK . " AND shop_nakupy.id_uzivatele=r_uzivatele_zidle.id_uzivatele AND shop_predmety.typ=2 ) AS ubytovani_typ,
     ( SELECT GROUP_CONCAT(r_prava_soupis.jmeno_prava SEPARATOR ', ')
       FROM r_uzivatele_zidle
       JOIN r_prava_zidle ON r_uzivatele_zidle.id_zidle=r_prava_zidle.id_zidle
@@ -261,110 +180,27 @@ foreach ($hlavicka as $hlavni => $vedlejsiHlavicka) {
     }
 }
 
-$jenBarevne = static function (array $nazvyJakoKlice, string $barva): array {
-    return array_filter(
-        $nazvyJakoKlice,
-        static function (string $nazev) use ($barva) {
-            // třeba "Tričko červené pánské M 2021"
-            return mb_stripos($nazev, $barva) !== false;
-        },
-        ARRAY_FILTER_USE_KEY
-    );
-};
-
-$jenCervene = static function (array $nazvyJakoKlice) use ($jenBarevne): array {
-    return $jenBarevne($nazvyJakoKlice, 'červené'); // třeba ["Tričko červené pánské M 2021" => 2]
-};
-
-$jenModre = static function (array $nazvyJakoKlice) use ($jenBarevne): array {
-    return $jenBarevne($nazvyJakoKlice, 'modré'); // třeba ["Tričko modré pánské XXL 2021" => 1]
-};
-
 $letosniPlackyKlice = array_fill_keys($letosniPlacky, null);
 $letosniKostkyKlice = array_fill_keys($letosniKostky, null);
 $letosniJidlaKlice = array_fill_keys($letosniJidla, null);
-$letosniTrickaKlice = array_fill_keys($letosniTricka, null);
-$letosniTilkaKlice = array_fill_keys($letosniTilka, null);
 $letosniOstatniPredmetyKlice = array_fill_keys($letosniOstatniPredmety, null);
 $letosniCovidTestyKlice = array_fill_keys($letosniCovidTesty, null);
 
 while ($r = mysqli_fetch_assoc($o)) {
-    $un = new Uzivatel($r);
-    $un->nactiPrava(); // sql subdotaz, zlo
-    $finance = $un->finance();
-    $cenik = new Cenik($un, $finance->bonusZaVedeniAktivit());
+    $navstevnik = new Uzivatel($r);
+    $navstevnik->nactiPrava(); // sql subdotaz, zlo
+    $finance = $navstevnik->finance();
     $ucastiHistorie = [];
     foreach ($ucastPodleRoku as $rok => $nul) {
-        $ucastiHistorie[] = $un->maPravo((int)('-' . substr($rok, 2) . '02')) ? 'ano' : 'ne';
+        $ucastiHistorie[] = $navstevnik->maPravo((int)('-' . substr($rok, 2) . '02')) ? 'ano' : 'ne';
     }
     $stat = '';
     try {
-        $stat = $un->stat();
+        $stat = $navstevnik->stat();
     } catch (Exception $e) {
     }
-    $letosniPlackyPocty = array_intersect_key($r, $letosniPlackyKlice);
-    $pocetLetosnichPlacek = (int)array_sum($letosniPlackyPocty);
-    $pocetLetosnichPlacekZdarma = min($pocetLetosnichPlacek, $finance->maximalniPocetPlacekZdarma());
-    $pocetLetosnichPlacekPlacenych = $pocetLetosnichPlacek - $pocetLetosnichPlacekZdarma;
-
-    $letosniKostkyPocty = array_intersect_key($r, $letosniKostkyKlice);
-    $pocetLetosnichKostek = (int)array_sum($letosniKostkyPocty);
-    $pocetLetosnichKostekZdarma = min($pocetLetosnichKostek, $finance->maximalniPocetKostekZdarma());
-
-    $letosniTrickaPocty = array_intersect_key($r, $letosniTrickaKlice);
-    $pocetLetosnichTricek = (int)array_sum($letosniTrickaPocty);
-    $letosniModraTrickaPocty = $jenModre($letosniTrickaPocty);
-    $pocetLetosnichModrychTricek = (int)array_sum($letosniModraTrickaPocty);
-    // těch co jsou zdarma jen kvůli speciálnímu právu na modré tričko zdarma
-    $pocetLetosnichModrychTricekZdarma = min($pocetLetosnichModrychTricek, $finance->maximalniPocetModrychTricekZdarma());
-    // mohou to byt i modra tricka, ale bez tech, co byly zdarma kvuli specialnimu pravu na modre tricko
-    $pocetLetosnichTricekAleBezModrychZdarma = (int)array_sum($letosniTrickaPocty) - $pocetLetosnichModrychTricekZdarma;
-    $pocetLetosnichTricekZdarmaAleBezModrychZdarma = min($pocetLetosnichTricekAleBezModrychZdarma, $finance->maximalniPocetLibovolnychTricekZdarmaBezModrychZdarma());
-    $pocetLetosnichTricekZdarma = $pocetLetosnichTricekZdarmaAleBezModrychZdarma + $pocetLetosnichModrychTricekZdarma;
-    $pocetLetosnichModrychTricekSeSlevou = $finance->muzeObjednavatModreTrickoSeSlevou()
-        ? $pocetLetosnichModrychTricek - $pocetLetosnichModrychTricekZdarma
-        : 0;
-    $letosniCervenaTrickaPocty = $jenCervene($letosniTrickaPocty);
-    $pocetLetosnichCervenychTricek = (int)array_sum($letosniCervenaTrickaPocty);
-    $pocetLetosnichCervenychTricekSeSlevou = $finance->muzeObjednavatCerveneTrickoSeSlevou()
-        ? max(
-            $pocetLetosnichCervenychTricek - $pocetLetosnichTricekZdarmaAleBezModrychZdarma,
-            0 /* kdyby snad triček zdarma bez modrých zdarma bylo více než červených (účastnická, bez speciální barvy) */
-        )
-        : 0;
-    $pocetLetosnichTricekSeSlevou = $pocetLetosnichModrychTricekSeSlevou + $pocetLetosnichCervenychTricekSeSlevou;
-    $pocetLetosnichTricekPlacenych = $pocetLetosnichTricek - $pocetLetosnichTricekZdarma - $pocetLetosnichTricekSeSlevou;
-
-    // POZOR, tady předpokládáme, že kdo si kupuje tílka, nekupuje si trička - pokud jo, tak maximalniPocetLibovolnychTricekZdarma() tu používáme blbě, protože zdojnásobujeme maximum
-    $letosniTilkaPocty = array_intersect_key($r, $letosniTilkaKlice);
-    $pocetLetosnichTilek = (int)array_sum($letosniTilkaPocty);
-    $letosniModraTilkaPocty = $jenModre($letosniTilkaPocty);
-    $pocetLetosnichModrychTilek = (int)array_sum($letosniModraTilkaPocty);
-    // těch co jsou zdarma jen kvůli speciálnímu právu na modré tričko zdarma
-    $pocetLetosnichModrychTilekZdarma = min($pocetLetosnichModrychTilek, $finance->maximalniPocetModrychTricekZdarma());
-    // mohou to být i modrá trička, ale bez těch, co byly zdarma kvůli speciálnimu právu na modré tričko
-    $pocetLetosnichTilekBezModrychZdarma = $pocetLetosnichTilek - $pocetLetosnichModrychTilekZdarma;
-    $pocetLetosnichTilekZdarmaBezModrychZdarma = min($pocetLetosnichTilekBezModrychZdarma, $finance->maximalniPocetLibovolnychTricekZdarmaBezModrychZdarma());
-    $pocetLetosnichTilekZdarma = $pocetLetosnichTilekZdarmaBezModrychZdarma + $pocetLetosnichModrychTilekZdarma;
-    $pocetLetosnichModrychTilekSeSlevou = $finance->muzeObjednavatModreTrickoSeSlevou()
-        ? $pocetLetosnichModrychTilek - $pocetLetosnichModrychTilekZdarma
-        : 0;
-    $letosniCervenaTilkaPocty = $jenCervene($letosniTilkaPocty);
-    $pocetLetosnichCervenychTilek = (int)array_sum($letosniCervenaTilkaPocty);
-    $pocetLetosnichCervenychTilekSeSlevou = $finance->muzeObjednavatCerveneTrickoSeSlevou()
-        ? max(
-            $pocetLetosnichCervenychTilek - $pocetLetosnichTilekZdarmaBezModrychZdarma,
-            0 /* kdyby snad tílek zdarma bez modrých zdarma bylo více než červených (účastnická, bez speciální barvy) */
-        )
-        : 0;
-    $pocetLetosnichTilekSeSlevou = $pocetLetosnichModrychTilekSeSlevou + $pocetLetosnichCervenychTilekSeSlevou;
-    $pocetLetosnichTilekPlacenych = $pocetLetosnichTilek - $pocetLetosnichTilekZdarma - $pocetLetosnichTilekSeSlevou;
-
-    $letosniJidlaPocty = array_intersect_key($r, $letosniJidlaKlice);
 
     $letosniOstatniPredmetyPocty = array_intersect_key($r, $letosniOstatniPredmetyKlice);
-
-    $letosniCovidTestyPocty = array_intersect_key($r, $letosniCovidTestyKlice);
 
     $obsah[] = array_merge(
         [
@@ -376,9 +212,9 @@ while ($r = mysqli_fetch_assoc($o)) {
             $r['zidleZDotazu'], // 'Židle'
             nahradNazvyKonstantZaHodnoty($r['pravaZDotazu'] ?? ''), // 'Práva'
             $dejNazevPozice(explode(',', $r['idPravZDotazu'])),
-            ed($r['prihlasen_na_gc_kdy']), // 'Datum registrace'
-            ed($r['prosel_info_kdy']), // 'Prošel infopultem
-            ed($r['odjel_kdy']), // 'Odjel kdy'
+            excelDatum($r['prihlasen_na_gc_kdy']), // 'Datum registrace'
+            excelDatum($r['prosel_info_kdy']), // 'Prošel infopultem
+            excelDatum($r['odjel_kdy']), // 'Odjel kdy'
             date('j', strtotime($r['datum_narozeni'])),
             date('n', strtotime($r['datum_narozeni'])),
             date('Y', strtotime($r['datum_narozeni'])),
@@ -392,8 +228,8 @@ while ($r = mysqli_fetch_assoc($o)) {
                 (new DateTimeCz(DEN_PRVNI_UBYTOVANI))->add(new \DateInterval("P$r[den_prvni]D"))->format('j.n.Y'),
             $r['den_posledni'] === null ? '-' :
                 (new DateTimeCz(DEN_PRVNI_UBYTOVANI))->add(new \DateInterval("P$r[den_posledni]D"))->format('j.n.Y'),
-            ut($r['ubytovani_typ']),
-            $un->gcPritomen() ? 'ano' : 'ne',
+            typUbytovani($r['ubytovani_typ']),
+            $navstevnik->gcPritomen() ? 'ano' : 'ne',
         ],
         $ucastiHistorie,
         [
@@ -409,12 +245,12 @@ while ($r = mysqli_fetch_assoc($o)) {
 
             $finance->vstupne(),
             $finance->vstupnePozde(),
-            ec($finance->stav()),
-            ec($finance->slevaObecna()),  // Suma slev
-            ec($r['zustatek']),
-            ec($finance->sumaPlateb()), // připsané platby
-            ed($un->prvniBlok()),
-            ed($un->posledniBlok()),
+            excelCislo($finance->stav()),
+            excelCislo($finance->slevaObecna()),  // Suma slev
+            excelCislo($r['zustatek']),
+            excelCislo($finance->sumaPlateb()), // připsané platby
+            excelDatum($navstevnik->prvniBlok()),
+            excelDatum($navstevnik->posledniBlok()),
             $r['pomoc_typ'], // dobrovolník pozice
             $r['pomoc_vice'], // dobrovolník info
             implode(", ", array_merge($finance->slevyVse(), $finance->slevyAktivity())), // Dárky a zlevněné nákupy
@@ -423,22 +259,23 @@ while ($r = mysqli_fetch_assoc($o)) {
         ],
         [
             $finance->slevaZaAktivityVProcentech(), // sleva
-            $pocetLetosnichPlacekZdarma, // placka zdarma
-            $pocetLetosnichPlacekPlacenych, // placka GC placená
-            $pocetLetosnichKostekZdarma, // kostka zdarma
+            dejPocetPlacekZdarma($navstevnik), // placka zdarma
+            dejPocetPlacekPlacenych($navstevnik), // placka GC placená
+            dejPocetKostekZdarma($navstevnik), // kostka zdarma
         ],
-        $letosniKostkyPocty,
-        $letosniJidlaPocty,
+        dejNazvyAPoctyKostek($navstevnik, $letosniKostky),
+        dejNazvyAPoctyJidel($navstevnik, $letosniJidla),
         [
-            $pocetLetosnichTricekZdarma, // tričko zdarma
-            $pocetLetosnichTilekZdarma, // tílko zdarma
-            $pocetLetosnichTricekSeSlevou, // tričko se slevou
-            $pocetLetosnichTilekSeSlevou, // tílko se slevou
-            $pocetLetosnichTricekPlacenych, // účastnické tričko placené
-            $pocetLetosnichTilekPlacenych, // účastnické tílko placené
+            dejPocetTricekZdarma($navstevnik), // tričko zdarma
+            dejPocetTilekZdarma($navstevnik), // tílko zdarma
+            dejPocetTricekSeSlevou($navstevnik), // tričko se slevou
+            dejPocetTilekSeSlevou($navstevnik), // tílko se slevou
+            dejPocetTricekPlacenych($navstevnik), // účastnické tričko placené
+            dejPocetTilekPlacenych($navstevnik), // účastnické tílko placené
         ],
-        $letosniOstatniPredmetyPocty,
-        $letosniCovidTestyPocty,
+        dejNazvyAPoctyOstatnichPredmetu($navstevnik, $letosniOstatniPredmety),
+//        $letosniOstatniPredmetyPocty,
+        dejNazvyAPoctyCovidTestu($navstevnik, $letosniCovidTesty),
     );
 }
 

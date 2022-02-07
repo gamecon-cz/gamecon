@@ -98,6 +98,10 @@ class DateTimeCz extends \DateTime
         throw new \RuntimeException("Unknown czech day name '$den'");
     }
 
+    public static function dejDnyVTydnu(): array {
+        return self::$dny;
+    }
+
     /**
      * @param \DateInterval $interval
      * Obalovací fce, umožňuje vložit přímo řetězec pro konstruktor DateIntervalu
