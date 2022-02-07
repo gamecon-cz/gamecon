@@ -31,6 +31,7 @@ class Finance
         $cenik,             // instance ceníku
         // tabulky s přehledy
         $prehled = [],   // tabulka s detaily o platbách
+        $strukturovanyPrehled = [],
         $slevyNaAktivity = [],    // pole s textovými popisy slev uživatele na aktivity
         $slevyO = [],    // pole s textovými popisy obecných slev
         $proplacenyBonusZaVedeniAktivit = 0, // "sleva" za aktivity, nebo-li bonus vypravěče, nebo-li odměna za vedení hry, převedená na peníze
@@ -166,6 +167,18 @@ class Finance
         return $a['castka'] - $b['castka'];
     }
 
+    private function logStrukturovane(string $nazev, int $pocet, ?float $castka, $typ) {
+        if (!$this->logovat) {
+            return;
+        }
+        $this->strukturovanyPrehled[] = [
+            'nazev' => trim($nazev),
+            'pocet' => $pocet,
+            'castka' => $castka,
+            'typ' => $typ,
+        ];
+    }
+
     /**
      * Zaloguje do seznamu nákupů položku (pokud je logování zapnuto)
      */
@@ -288,6 +301,10 @@ class Finance
         $prehled = $this->prehled;
         usort($prehled, [static::class, 'cmp']);
         return $prehled;
+    }
+
+    public function dejStrukturovanyPrehled(): array {
+        return $this->strukturovanyPrehled;
     }
 
     /**
@@ -623,15 +640,18 @@ SQL
                 $soucty[$r['id_predmetu']]['pocet'] = ($soucty[$r['id_predmetu']]['pocet'] ?? 0) + 1;
                 $soucty[$r['id_predmetu']]['suma']  = ($soucty[$r['id_predmetu']]['suma'] ?? 0) + $cena;
             } elseif ($r['typ'] == Shop::VSTUPNE) {
+                $this->logStrukturovane((string)$r['nazev'], 1, $cena, self::VSTUPNE);
                 $this->logb($r['nazev'], $cena, self::VSTUPNE);
             } elseif ($r['typ'] == Shop::PROPLACENI_BONUSU) {
                 $this->proplacenyBonusZaVedeniAktivit += $cena;
             } else {
+                $this->logStrukturovane((string)$r['nazev'], 1, $cena, $r['typ']);
                 $this->log($r['nazev'], $cena, $r['typ']);
             }
         }
 
         foreach ($soucty as $idPredmetu => $predmet) {
+            $this->logStrukturovane((string)$predmet['nazev'], (int)$predmet['pocet'], (float)$predmet['suma'], $predmet['typ']);
             // dvojmezera kvůli řazení
             $this->log($predmet['nazev'] . '  ' . $predmet['pocet'] . '×', $predmet['suma'], $predmet['typ'], $idPredmetu);
         }
