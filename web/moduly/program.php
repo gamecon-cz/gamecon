@@ -132,9 +132,14 @@ $zobrazitMujProgramOdkaz = isset($u);
 
     programPosuv(document.querySelector('.programPosuv_obal2'))
 
-    <?php if ($zacatekPrvniVlnyZaSekund > 0) { ?>
-    setTimeout(function () {
-        location.reload()
-    }, <?= $zacatekPrvniVlnyZaSekund * 1000 ?>)
-    <?php } ?>
+    <?php if ($zacatekPrvniVlnyZaSekund > 0) {
+    $zacatekPrvniVlnyZaMilisekund = $zacatekPrvniVlnyZaSekund * 1000;
+    if ($zacatekPrvniVlnyZaMilisekund > 0) { ?> /*kdyby to náhodou přeteklo za PHP_MAX_INT*/
+    if (<?= $zacatekPrvniVlnyZaMilisekund ?> < Number.MAX_SAFE_INTEGER) {
+        setTimeout(function () {
+            location.reload()
+        }, <?= $zacatekPrvniVlnyZaMilisekund ?>)
+    }
+    <?php }
+    } ?>
 </script>
