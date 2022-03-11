@@ -20,8 +20,10 @@ if (post('vypadliSemifinale') || post('vypadliFinale')) {
     $mail->predmet('Gamecon: umístění družiny v MDrD');
     $druzina = $a->tym()->nazev();
 
+    // E-maily účastníkům
     foreach ($a->prihlaseni() as $uc) {
-        $mail->text("Ahoj " . $uc->nick() . ",\n
+        $mail->text(
+            "Ahoj " . $uc->nick() . ",\n
             bohužel, tvoje družina " . $druzina . " nepostoupila do dalšího kola. Herní bloky, původně
             rezervované pro turnaj MDrD, jsou nyní volné a můžeš se tak přihlásit na jinou aktivitu.\n
             Díky a s pozdravem,\n
@@ -29,6 +31,18 @@ if (post('vypadliSemifinale') || post('vypadliFinale')) {
         $mail->adresat($uc->mail());
         $mail->odeslat();
     }
+
+    // E-mail PJovi
+    foreach (Uzivatel::zIds($a->getOrganizatoriIds()) as $pj) {
+        $mail->text(
+            "Ahoj, " . ",\n
+            družina " . $druzina . " bohužel nepostoupila do dalšího kola.\n
+            Díky a s pozdravem,\n
+            tým MDrD");
+        $mail->adresat($pj->mail());
+        $mail->odeslat();
+    }
+
     back();
 }
 
