@@ -140,7 +140,16 @@ if (post('zmenitUdaj') && $uPracovni) {
     try {
         dbUpdate('uzivatele_hodnoty', $udaje, ['id_uzivatele' => $uPracovni->id()]);
     } catch (DbDuplicateEntryException $e) {
-        chyba('Uživatel se stejnou přezdívkou již existuje.');
+        // kontrola jestli šlo o změnu přezdívky nebo e-mailu (není obsaženo v chybě)
+        if (dbOneLine("SELECT login_uzivatele FROM uzivatele_hodnoty WHERE id_uzivatele = $0",
+        [$uPracovni->id()])["login_uzivatele"] != $udaje['login_uzivatele']
+        ) {
+            chyba('Uživatel se stejnou přezdívkou již existuje.');
+        } else {
+            chyba('Uživatel se stejným e-mailem již existuje.');
+        }        
+    } catch (Exception $e) {
+        chyba('Došlo k neočekávané chybě. Odpověď databáze:' . $e->getMessage()) ;
     }
 
     $uPracovni->otoc();
