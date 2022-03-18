@@ -142,14 +142,8 @@ function dbInsert($table, $valArray) {
     $sloupce = '';
     $hodnoty = '';
     foreach ($valArray as $sloupec => $hodnota) {
-        if ($hodnota === NULL) {
-            $sloupce .= $sloupec . ',';
-            $hodnoty .= 'NULL,';
-        } else {
-            $sloupce .= $sloupec . ',';
-            $hodnota = addslashes($hodnota);
-            $hodnoty .= '"' . $hodnota . '",';
-        }
+        $sloupce .= dbQi($sloupec) . ',';
+        $hodnoty .= dbQv($hodnota) . ',';
     }
     $sloupce = substr($sloupce, 0, -1); //useknutí přebytečné čárky na konci
     $hodnoty = substr($hodnoty, 0, -1);
@@ -184,10 +178,7 @@ function dbInsertUpdate($table, $valArray) {
     $dupl = ' ON DUPLICATE KEY UPDATE ';
     $vals = '';
     foreach ($valArray as $key => $val) {
-        if ($val === NULL)
-            $vals .= $key . '=NULL, ';
-        else
-            $vals .= $key . '=' . dbQv($val) . ', ';
+        $vals .= $key . '=' . dbQv($val) . ', ';
     }
     $vals = substr($vals, 0, -2); //odstranění čárky na konci
     $q = $update . $vals . $dupl . $vals;
@@ -391,14 +382,14 @@ function dbQv($val): string {
     elseif ($val instanceof DateTimeInterface)
         return '"' . $val->format('Y-m-d H:i:s') . '"';
     else
-        return '"' . addslashes($val) . '"';
+        return '"' . mysqli_real_escape_string($GLOBALS['spojeni'], $val) . '"';
 }
 
 /**
  * Quotes $val as identifier
  */
 function dbQi($val) {
-    return '`' . addslashes($val) . '`';
+    return '`' . mysqli_real_escape_string($GLOBALS['spojeni'], $val) . '`';
 }
 
 /**
