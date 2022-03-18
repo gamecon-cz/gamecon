@@ -23,22 +23,30 @@ if (post('vypadliSemifinale') || post('vypadliFinale')) {
     // E-maily účastníkům
     foreach ($a->prihlaseni() as $uc) {
         $mail->text(
-            "Ahoj " . $uc->nick() . ",\n
-            bohužel, tvoje družina " . $druzina . " nepostoupila do dalšího kola. Herní bloky, původně
-            rezervované pro turnaj MDrD, jsou nyní volné a můžeš se tak přihlásit na jinou aktivitu.\n
-            Díky a s pozdravem,\n
-            tým MDrD");
+            <<<TEXT
+            "Ahoj " . $uc->nickNeboKrestniJmeno() . ",
+
+            bohužel, tvoje družina " . $druzina . " nepostoupila do dalšího kola. Herní bloky, původně rezervované pro turnaj MDrD, jsou nyní volné a můžeš se tak přihlásit na jinou aktivitu.
+
+            Díky a s pozdravem,
+            tým MDrD
+            TEXT
+        );
         $mail->adresat($uc->mail());
         $mail->odeslat();
     }
 
     // E-mail PJovi
-    foreach (Uzivatel::zIds($a->getOrganizatoriIds()) as $pj) {
+    foreach ($a->organizatori() as $pj) {
         $mail->text(
-            "Ahoj, " . ",\n
-            družina " . $druzina . " bohužel nepostoupila do dalšího kola.\n
-            Díky a s pozdravem,\n
-            tým MDrD");
+            <<<TEXT
+            Ahoj {$pj->jmenoNick()}, tvoje čtvrtfinálová družina {$druzina} nepostoupila do další fáze turnaje MDrD (vypadla v {$aVypadli->nazev()}).
+
+            Toto je informační mail, který obdrželi i hráči z družiny.
+
+            S pozdravem, tým MDrD.
+            TEXT
+        );
         $mail->adresat($pj->mail());
         $mail->odeslat();
     }
