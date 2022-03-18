@@ -26,9 +26,9 @@ if (post('vypadliSemifinale') || post('vypadliFinale')) {
     foreach ($a->prihlaseni() as $uc) {
         $mail->text(
             <<<TEXT
-            "Ahoj " . $uc->nickNeboKrestniJmeno() . ",
+            Ahoj {$uc->nickNeboKrestniJmeno()},
 
-            bohužel, tvoje družina " . $druzina . " nepostoupila do dalšího kola. Herní bloky, původně rezervované pro turnaj MDrD, jsou nyní volné a můžeš se tak přihlásit na jinou aktivitu.
+            bohužel, tvoje družina {$druzina} nepostoupila do dalšího kola. Herní bloky, původně rezervované pro turnaj MDrD, jsou nyní volné a můžeš se tak přihlásit na jinou aktivitu.
 
             Díky a s pozdravem,
             tým MDrD
