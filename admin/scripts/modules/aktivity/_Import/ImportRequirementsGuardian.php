@@ -4,6 +4,7 @@ namespace Gamecon\Admin\Modules\Aktivity\Import;
 
 use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
 use Gamecon\Admin\Modules\Aktivity\Import\Exceptions\ActivitiesImportException;
+use Gamecon\Aktivita\TypAktivity;
 
 class ImportRequirementsGuardian
 {
@@ -60,7 +61,7 @@ class ImportRequirementsGuardian
                     count($programLines),
                     implode(
                         ',',
-                        self::wrapByQuotes(array_map(static function (\Typ $typ) {
+                        self::wrapByQuotes(array_map(static function (TypAktivity $typ) {
                             return $typ->nazev();
                         }, $programLines))
                     )

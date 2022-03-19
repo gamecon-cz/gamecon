@@ -24,7 +24,7 @@ if (!$m && ($stranka = Stranka::zUrl())) {
     $m = Modul::zNazvu('stranka');
     $m->param('stranka', $stranka);
 }
-if (!$m && (($typ = Typ::zUrl()) || ($org = Uzivatel::zUrl()))) {
+if (!$m && (($typ = \Gamecon\Aktivita\TypAktivity::zUrl()) || ($org = Uzivatel::zUrl()))) {
     $m = Modul::zNazvu('aktivity');
     $m->param('typ', $typ ?: null);
     $m->param('org', !$typ ? $org : null);
@@ -62,7 +62,7 @@ $menu = '';
 if (!$m->bezStranky() && !$m->bezMenu()) {
     $t = new XTemplate('sablony/blackarrow/menu.xtpl');
 
-    $typy = serazenePodle(Typ::zViditelnych(), 'poradi');
+    $typy = serazenePodle(\Gamecon\Aktivita\TypAktivity::zViditelnych(), 'poradi');
     $t->parseEach($typy, 'typ', 'menu.typAktivit');
 
     // položky uživatelského menu

@@ -1397,7 +1397,7 @@ SQL
             (REG_AKTIVIT || ($zpetne && po(REG_GC_DO))) &&
             (
                 $this->a['stav'] == Stav::AKTIVOVANA ||
-                ($technicke && $this->a['stav'] == Stav::NOVA && $this->a['typ'] == Typ::TECHNICKA) ||
+                ($technicke && $this->a['stav'] == Stav::NOVA && $this->a['typ'] == \Gamecon\Aktivita\TypAktivity::TECHNICKA) ||
                 ($zpetne && $this->a['stav'] == Stav::PROBEHNUTA)
             ) &&
             $this->a['zacatek'] &&
@@ -1826,11 +1826,11 @@ SQL
         return null;
     }
 
-    public function typ(): Typ {
+    public function typ(): \Gamecon\Aktivita\TypAktivity {
         if (is_numeric($this->typ)) {
             $this->prednactiN1([
                 'atribut' => 'typ',
-                'cil' => Typ::class,
+                'cil' => \Gamecon\Aktivita\TypAktivity::class,
             ]);
         }
         return $this->typ;
@@ -1944,7 +1944,7 @@ SQL
     public function viditelnaPro(Uzivatel $u = null) {
         return (
             (in_array($this->a['stav'], [Stav::AKTIVOVANA, Stav::PROBEHNUTA, Stav::PUBLIKOVANA, Stav::PRIPRAVENA]) // podle stavu je aktivita viditelná
-                && !($this->a['typ'] == Typ::TECHNICKA && $this->a['stav'] == Stav::PROBEHNUTA))// ale skrýt technické proběhnuté
+                && !($this->a['typ'] == \Gamecon\Aktivita\TypAktivity::TECHNICKA && $this->a['stav'] == Stav::PROBEHNUTA))// ale skrýt technické proběhnuté
             || ($u && $this->prihlasen($u))
             || ($u && $u->organizuje($this))
         );
@@ -2028,7 +2028,7 @@ SQL
         }
 
         // název (povinný pro DrD)
-        if ($this->a['typ'] == Typ::DRD) $t->parse('formular.nazevPovinny');
+        if ($this->a['typ'] == \Gamecon\Aktivita\TypAktivity::DRD) $t->parse('formular.nazevPovinny');
         else                              $t->parse('formular.nazevVolitelny');
 
         // výpis celého formuláře
@@ -2150,7 +2150,7 @@ SQL
             $wheres[] = 'a.zacatek <= ' . dbQv($filtr['do']);
         }
         if (!empty($filtr['bezDalsichKol'])) {
-            $wheres[] = 'NOT (a.typ IN (' . Typ::DRD . ',' . Typ::LKD . ') AND cena = 0)';
+            $wheres[] = 'NOT (a.typ IN (' . \Gamecon\Aktivita\TypAktivity::DRD . ',' . \Gamecon\Aktivita\TypAktivity::LKD . ') AND cena = 0)';
         }
         $where = implode(' AND ', $wheres);
 

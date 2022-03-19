@@ -390,7 +390,7 @@ class Finance
         $scn = $this->soucinitelAktivit();
         $rok = ROK;
         $uid = $this->u->id();
-        $technicka = Typ::TECHNICKA;
+        $technicka = \Gamecon\Aktivita\TypAktivity::TECHNICKA;
         $nedorazil = Aktivita::PRIHLASEN_ALE_NEDORAZIL;
         $pozdeZrusil = Aktivita::POZDE_ZRUSIL;
 

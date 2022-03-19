@@ -3,6 +3,7 @@
 namespace Gamecon\Admin\Modules\Aktivity\Import;
 
 use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
+use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeGamecon;
 
 class ImportValuesSanitizer
@@ -36,7 +37,7 @@ class ImportValuesSanitizer
         $this->storytellersPermissionsUrl = $storytellersPermissionsUrl;
     }
 
-    public function sanitizeValues(\Typ $singleProgramLine, array $inputValues): ImportStepResult {
+    public function sanitizeValues(TypAktivity $singleProgramLine, array $inputValues): ImportStepResult {
         $originalActivityResult = $this->getValidatedOriginalActivity($inputValues);
         if ($originalActivityResult->isError()) {
             $inputValuesForDescription = $inputValues;
@@ -99,7 +100,7 @@ class ImportValuesSanitizer
         )->setLastActivityDescription($this->importValuesDescriber->describeActivityByInputValues($inputValues, $originalActivity));
     }
 
-    private function getSanitizedValues(array $inputValues, \Typ $singleProgramLine, ?\Aktivita $originalActivity): ImportStepResult {
+    private function getSanitizedValues(array $inputValues, TypAktivity $singleProgramLine, ?\Aktivita $originalActivity): ImportStepResult {
         $sanitizedValues = $this->getInitialSanitizedValues($originalActivity);
 
         $stepsResults = [];
@@ -928,7 +929,7 @@ HTML;
         return ImportStepResult::success($activityUrl);
     }
 
-    private function getValidatedParentActivity(string $url, \Typ $singleProgramLine): ImportStepResult {
+    private function getValidatedParentActivity(string $url, TypAktivity $singleProgramLine): ImportStepResult {
         return ImportStepResult::success(\Aktivita::moznaHlavniAktivitaPodleUrl($url, $this->currentYear, $singleProgramLine->id()));
     }
 
@@ -952,7 +953,7 @@ HTML;
         return $originalActivity ?: $parentActivity;
     }
 
-    private function getValidatedProgramLineId(array $activityValues, \Typ $singleProgramLine): ImportStepResult {
+    private function getValidatedProgramLineId(array $activityValues, TypAktivity $singleProgramLine): ImportStepResult {
         $programLineValue = $activityValues[ExportAktivitSloupce::PROGRAMOVA_LINIE] ?? null;
         if ((string)$programLineValue === '') {
             return ImportStepResult::success($singleProgramLine->id());

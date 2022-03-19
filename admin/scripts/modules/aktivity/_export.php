@@ -42,7 +42,7 @@ if (count($activityTypeIdsFromFilter) > 1) {
     }
     $template->assign('activityTypeId', $activityTypeIdFromFilter);
 
-    $typAktivity = \Typ::zId($activityTypeIdFromFilter);
+    $typAktivity = \Gamecon\Aktivita\TypAktivity::zId($activityTypeIdFromFilter);
     $template->assign('nazevTypu', mb_ucfirst($typAktivity->nazev()) . (($filtr['rok'] ?? ROK) != ROK ? (' ' . $filtr['rok']) : ''));
     $pocetAktivit = count($aktivity);
     $pocetAktivitSlovo = 'aktivit';
