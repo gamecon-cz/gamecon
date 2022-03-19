@@ -2,6 +2,7 @@
 
 namespace Gamecon\Admin\Modules\Aktivity\Import;
 
+use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Vyjimkovac\Logovac;
 
 class ActivityImporter
@@ -28,11 +29,11 @@ class ActivityImporter
     private $logovac;
 
     public function __construct(
-        ImportValuesDescriber $importValuesDescriber,
+        ImportValuesDescriber        $importValuesDescriber,
         ImportSqlMappedValuesChecker $importValuesChecker,
-        ImagesImporter $imagesImporter,
-        int $currentYear,
-        Logovac $logovac
+        ImagesImporter               $imagesImporter,
+        int                          $currentYear,
+        Logovac                      $logovac
     ) {
         $this->importValuesDescriber = $importValuesDescriber;
         $this->importValuesChecker = $importValuesChecker;
@@ -42,13 +43,13 @@ class ActivityImporter
     }
 
     public function importActivity(
-        array $sqlMappedValues,
-        ?string $longAnnotation,
-        array $storytellersIds,
-        array $tagIds,
-        \Typ $singleProgramLine,
-        array $potentialImageUrls,
-        ?\Aktivita $originalActivity
+        array       $sqlMappedValues,
+        ?string     $longAnnotation,
+        array       $storytellersIds,
+        array       $tagIds,
+        TypAktivity $singleProgramLine,
+        array       $potentialImageUrls,
+        ?\Aktivita  $originalActivity
     ): ImportStepResult {
         $checkBeforeSaveResult = $this->checkBeforeSave($sqlMappedValues, $longAnnotation, $tagIds, $storytellersIds, $singleProgramLine, $potentialImageUrls, $originalActivity);
         if ($checkBeforeSaveResult->isError()) {
@@ -110,7 +111,7 @@ class ActivityImporter
         );
     }
 
-    private function checkBeforeSave(array $sqlMappedValues, ?string $longAnnotation, array $tagIds, array $storytellersIds, \Typ $singleProgramLine, array $potentialImageUrls, ?\Aktivita $originalActivity): ImportStepResult {
+    private function checkBeforeSave(array $sqlMappedValues, ?string $longAnnotation, array $tagIds, array $storytellersIds, TypAktivity $singleProgramLine, array $potentialImageUrls, ?\Aktivita $originalActivity): ImportStepResult {
         $checkResults = [];
 
         $timeResult = $this->importValuesChecker->checkTime($sqlMappedValues, $originalActivity);
@@ -192,6 +193,7 @@ class ActivityImporter
 
         $nonTeamCapacityResult = $this->importValuesChecker->checkNonTeamCapacity(
             (bool)$sqlMappedValues[AktivitaSqlSloupce::TEAMOVA],
+            $sqlMappedValues[AktivitaSqlSloupce::TYP] === TypAktivity::TECHNICKA,
             $sqlMappedValues[AktivitaSqlSloupce::KAPACITA],
             $sqlMappedValues[AktivitaSqlSloupce::KAPACITA_M],
             $sqlMappedValues[AktivitaSqlSloupce::KAPACITA_F]
@@ -206,12 +208,12 @@ class ActivityImporter
     }
 
     private function saveActivity(
-        array $sqlMappedValues,
-        ?string $longAnnotation,
-        array $storytellersIds,
-        array $tagIds,
-        array $potentialImageUrls,
-        \Typ $singleProgramLine
+        array       $sqlMappedValues,
+        ?string     $longAnnotation,
+        array       $storytellersIds,
+        array       $tagIds,
+        array       $potentialImageUrls,
+        TypAktivity $singleProgramLine
     ): ImportStepResult {
         try {
             if (empty($sqlMappedValues[AktivitaSqlSloupce::ID_AKCE])) {
@@ -237,13 +239,12 @@ class ActivityImporter
         }
     }
 
-    private function findParentActivityId(string $url, \Typ $singleProgramLine): ?int {
+    private function findParentActivityId(string $url, TypAktivity $singleProgramLine): ?int {
         return \Aktivita::idMozneHlavniAktivityPodleUrl($url, $this->currentYear, $singleProgramLine->id());
     }
 
     private function createInstanceForParentActivity(int $parentActivityId): \Aktivita {
-        $parentActivity = ImportModelsFetcher::fetchActivity($parentActivityId);
-        return $parentActivity->instancuj();
+        return ImportModelsFetcher::fetchActivity($parentActivityId)->instancuj();
     }
 
 }

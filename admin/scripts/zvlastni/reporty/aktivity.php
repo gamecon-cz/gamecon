@@ -11,7 +11,7 @@ $prihlasenAleNedorazil = Aktivita::PRIHLASEN_ALE_NEDORAZIL;
 $pozdeZrusil = Aktivita::POZDE_ZRUSIL;
 $sledujici = Aktivita::SLEDUJICI;
 
-$technicka = Typ::TECHNICKA;
+$technicka = \Gamecon\Aktivita\TypAktivity::TECHNICKA;
 
 $o = dbQuery(<<<SQL
 SELECT * FROM

@@ -22,9 +22,9 @@ if (post('vypadliSemifinale') || post('vypadliFinale')) {
 
     foreach ($a->prihlaseni() as $uc) {
         $mail->text("Ahoj " . $uc->nick() . ",\n
-            bohužel, tvoje družina " . $druzina . " nepostoupila do dalšího kola. Herní bloky, původně 
+            bohužel, tvoje družina " . $druzina . " nepostoupila do dalšího kola. Herní bloky, původně
             rezervované pro turnaj MDrD, jsou nyní volné a můžeš se tak přihlásit na jinou aktivitu.\n
-            Díky a s pozdravem,\n 
+            Díky a s pozdravem,\n
             tým MDrD");
         $mail->adresat($uc->mail());
         $mail->odeslat();
@@ -36,7 +36,7 @@ $t = new XTemplate(__DIR__ . '/prihlaseni-drd.xtpl');
 
 $semifinale = [];
 $finale = [];
-foreach (Aktivita::zFiltru(['typ' => Typ::DRD, 'rok' => ROK]) as $a) {
+foreach (Aktivita::zFiltru(['typ' => \Gamecon\Aktivita\TypAktivity::DRD, 'rok' => ROK]) as $a) {
     if ($a->cenaZaklad() == 0) {
         continue;
     }
