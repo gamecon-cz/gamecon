@@ -14,6 +14,7 @@ use \Gamecon\Cas\DateTimeGamecon;
 /**
  * @var Uzivatel|null|void $u
  * @var Uzivatel|null|void $uPracovni
+ * @var \Gamecon\Vyjimkovac\Vyjimkovac $vyjimkovac
  */
 
 if (!empty($_POST['datMaterialy']) && $uPracovni && $uPracovni->gcPrihlasen()) {
@@ -140,9 +141,9 @@ if (post('zmenitUdaj') && $uPracovni) {
     try {
         dbUpdate('uzivatele_hodnoty', $udaje, ['id_uzivatele' => $uPracovni->id()]);
     } catch (DbDuplicateEntryException $e) {
-        if ($e->key === 'email1_uzivatele') {
+        if ($e->key() === 'email1_uzivatele') {
             chyba('Uživatel se stejným e-mailem již existuje.');
-        } else if ($e->key === 'login_uzivatele') {
+        } else if ($e->key() === 'login_uzivatele') {
             chyba('Uživatel se stejným e-mailem již existuje.');
         } else {
             chyba('Uživatel se stejným údajem již existuje.');

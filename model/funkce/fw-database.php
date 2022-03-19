@@ -451,13 +451,13 @@ class DbDuplicateEntryException extends DbException
 
     private $key;
 
-    function __construct() {
+    public function __construct() {
         parent::__construct();
         preg_match("@Duplicate entry '([^']*)' for key '([^']+)'@", $this->message, $m);
-        $this->key = $m[2];
+        $this->key = $m[2] ?? '';
     }
 
-    function key() {
+    public function key(): string {
         return $this->key;
     }
 
