@@ -2,15 +2,17 @@
 
 namespace Gamecon\Admin\Modules\Aktivity\Import;
 
+use Gamecon\Aktivita\TypAktivity;
+
 class ImportObjectsContainer
 {
 
     /**
-     * @var array|\Typ[][]
+     * @var array|TypAktivity[][]
      */
     private $programLinesCache;
     /**
-     * @var array|\Typ[][]
+     * @var array|TypAktivity[][]
      */
     private $programLocationsCache;
     /**
@@ -31,7 +33,7 @@ class ImportObjectsContainer
         $this->importUserCache = $importUserCache;
     }
 
-    public function getProgramLineFromValue(string $programLineValue): ?\Typ {
+    public function getProgramLineFromValue(string $programLineValue): ?TypAktivity {
         $programLineInt = (int)$programLineValue;
         if ($programLineInt > 0) {
             return $this->getProgramLineById($programLineInt);
@@ -39,11 +41,11 @@ class ImportObjectsContainer
         return $this->getProgramLineByName($programLineValue);
     }
 
-    private function getProgramLineById(int $id): ?\Typ {
+    private function getProgramLineById(int $id): ?TypAktivity {
         return $this->getProgramLinesCache()['id'][$id] ?? null;
     }
 
-    private function getProgramLineByName(string $name): ?\Typ {
+    private function getProgramLineByName(string $name): ?TypAktivity {
         return $this->getProgramLinesCache()['keyFromName'][ImportKeyUnifier::toUnifiedKey($name, [])]
             ?? $this->getProgramLinesCache()['keyFromSingleName'][ImportKeyUnifier::toUnifiedKey($name, [])]
             ?? $this->getProgramLinesCache()['keyFromUrl'][ImportKeyUnifier::toUnifiedKey($name, [])]
@@ -53,7 +55,7 @@ class ImportObjectsContainer
     private function getProgramLinesCache(): array {
         if (!$this->programLinesCache) {
             $this->programLinesCache = ['id' => [], 'keyFromName' => [], 'keyFromSingleName' => [], 'keyFromUrl' => []];
-            $programLines = \Typ::zVsech();
+            $programLines = TypAktivity::zVsech();
             foreach ($programLines as $programLine) {
                 $this->programLinesCache['id'][$programLine->id()] = $programLine;
                 $keyFromName = ImportKeyUnifier::toUnifiedKey($programLine->nazev(), array_keys($this->programLinesCache['keyFromName']));

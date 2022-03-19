@@ -6,6 +6,7 @@ use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleConnectionExcep
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
 use Gamecon\Admin\Modules\Aktivity\Import\Exceptions\ActivitiesImportException;
+use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Mutex\Mutex;
 use Gamecon\Vyjimkovac\Logovac;
 
@@ -123,7 +124,7 @@ class ActivitiesImporter
                 $result->addErrorMessage($singleProgramLineResult->getError(), null);
                 return $result;
             }
-            /** @var \Typ $singleProgramLine */
+            /** @var TypAktivity $singleProgramLine */
             $singleProgramLine = $singleProgramLineResult->getSuccess();
             unset($singleProgramLineResult);
 

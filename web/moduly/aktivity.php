@@ -45,7 +45,7 @@ foreach ($skupiny as $skupina) {
         }
 
         $tym = $aktivita->tym();
-        if ($tym && in_array($aktivita->typId(), [Typ::DRD, Typ::LKD])) {
+        if ($tym && in_array($aktivita->typId(), [\Gamecon\Aktivita\TypAktivity::DRD, \Gamecon\Aktivita\TypAktivity::LKD])) {
             $t->assign('tym', $tym);
             $t->parse('aktivity.aktivita.termin.tym');
         }
@@ -57,7 +57,7 @@ foreach ($skupiny as $skupina) {
         }
 
         $vypravec = current($aktivita->organizatori());
-        if ($vypravec && ($aktivita->typId() == Typ::DRD || $aktivita->patriPod() > 0)) {
+        if ($vypravec && ($aktivita->typId() == \Gamecon\Aktivita\TypAktivity::DRD || $aktivita->patriPod() > 0)) {
             $t->assign('vypravec', $vypravec->jmenoNick());
             $t->parse('aktivity.aktivita.termin.vypravec');
         }
@@ -110,12 +110,12 @@ if (!empty($org)) {
         'fotka' => $org->fotkaAuto()->kvalita(85)->pokryjOrez(180, 180),
     ]);
     $t->parse('aktivity.hlavickaVypravec');
-} elseif($typ) {
+} elseif ($typ) {
     $this->info()->nazev(mb_ucfirst($typ->nazevDlouhy()));
     $t->assign([
         'popisLinie' => $typ->oTypu(),
         'ikonaLinie' => 'soubory/systemove/linie-ikony/' . $typ->id() . '.png',
-        'specTridy' => $typ->id() == Typ::DRD ? 'aktivity_aktivity-drd' : null,
+        'specTridy' => $typ->id() == \Gamecon\Aktivita\TypAktivity::DRD ? 'aktivity_aktivity-drd' : null,
     ]);
 
     // podstránky linie

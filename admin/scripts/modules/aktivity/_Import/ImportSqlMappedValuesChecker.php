@@ -3,6 +3,7 @@
 namespace Gamecon\Admin\Modules\Aktivity\Import;
 
 use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
+use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeCz;
 
 class ImportSqlMappedValuesChecker
@@ -21,8 +22,8 @@ class ImportSqlMappedValuesChecker
     private $currentYear;
 
     public function __construct(
-        int $currentYear,
-        \DateTimeInterface $now,
+        int                   $currentYear,
+        \DateTimeInterface    $now,
         ImportValuesDescriber $importValuesDescriber
     ) {
         $this->importValuesDescriber = $importValuesDescriber;
@@ -105,7 +106,7 @@ class ImportSqlMappedValuesChecker
         return ImportStepResult::success(['start' => $startString, 'end' => $endString]);
     }
 
-    public function checkUrlUniqueness(array $sqlMappedValues, \Typ $singleProgramLine, ?\Aktivita $originalActivity): ImportStepResult {
+    public function checkUrlUniqueness(array $sqlMappedValues, TypAktivity $singleProgramLine, ?\Aktivita $originalActivity): ImportStepResult {
         $activityUrl = $sqlMappedValues[AktivitaSqlSloupce::URL_AKCE];
         $occupiedByActivities = dbFetchAll(<<<SQL
 SELECT id_akce, patri_pod
@@ -123,7 +124,7 @@ SQL
                 return ImportStepResult::error(sprintf(
                     "URL '%s'%s už je obsazena jinou existující aktivitou %s.",
                     $activityUrl,
-                    empty($activityValues[ExportAktivitSloupce::URL])
+                    $activityUrl === ''
                         ? ' (odhadnutá z názvu)'
                         : '',
                     $this->importValuesDescriber->describeActivityById((int)$occupiedByActivity['id_akce'])
@@ -133,7 +134,7 @@ SQL
         return ImportStepResult::success(null);
     }
 
-    private function canShareNameOrUrlWith($activityUrl, \Typ $singleProgramLine, array $urlOccupiedByActivity, ?\Aktivita $originalActivity): bool {
+    private function canShareNameOrUrlWith(string $activityUrl, TypAktivity $singleProgramLine, array $urlOccupiedByActivity, ?\Aktivita $originalActivity): bool {
         $occupiedByInstanceFamilyId = $urlOccupiedByActivity['patri_pod']
             ? (int)$urlOccupiedByActivity['patri_pod']
             : null;
@@ -144,16 +145,16 @@ SQL
         return $this->willBeNewInstanceOfActivity($activityUrl, $singleProgramLine, $occupiedByActivityId);
     }
 
-    private function willBeNewInstanceOfActivity(string $url, \Typ $singleProgramLine, int $parentActivityId): bool {
+    private function willBeNewInstanceOfActivity(string $url, TypAktivity $singleProgramLine, int $parentActivityId): bool {
         $possibleParentActivityId = \Aktivita::idMozneHlavniAktivityPodleUrl($url, $this->currentYear, $singleProgramLine->id());
         return $possibleParentActivityId === $parentActivityId;
     }
 
     private function isSameInstanceFamily(
-        string $activityUrl,
-        \Typ $singleProgramLine,
-        int $occupiedByInstanceFamilyId,
-        ?\Aktivita $originalActivity
+        string      $activityUrl,
+        TypAktivity $singleProgramLine,
+        int         $occupiedByInstanceFamilyId,
+        ?\Aktivita  $originalActivity
     ): bool {
         $instanceFamilyId = $originalActivity
             ? $originalActivity->patriPod()
@@ -165,7 +166,7 @@ SQL
         return \Aktivita::idExistujiciInstancePodleUrl($url, $this->currentYear, $programLineId);
     }
 
-    public function checkNameUniqueness(array $sqlMappedValues, \Typ $singleProgramLine, ?\Aktivita $originalActivity): ImportStepResult {
+    public function checkNameUniqueness(array $sqlMappedValues, TypAktivity $singleProgramLine, ?\Aktivita $originalActivity): ImportStepResult {
         $activityName = $sqlMappedValues[AktivitaSqlSloupce::NAZEV_AKCE];
         $nameOccupiedByActivities = dbFetchAll(<<<SQL
 SELECT id_akce, nazev_akce, patri_pod
@@ -247,10 +248,10 @@ SQL
 
     // for "připravená"
     private function checkRequiredFieldsForReadyToActivation(
-        array $sqlMappedValues,
+        array   $sqlMappedValues,
         ?string $longAnnotation,
-        array $tagIds,
-        array $potentialImageUrls
+        array   $tagIds,
+        array   $potentialImageUrls
     ): ImportStepResult {
         $sqlMappedValues = $this->extendValuesByVirtualColumns($sqlMappedValues, $longAnnotation, $tagIds, $potentialImageUrls);
 
@@ -350,11 +351,11 @@ SQL
     }
 
     public function checkLocationByAccessibility(
-        ?int $locationId,
-        ?string $zacatekString,
-        ?string $konecString,
-        ?\Aktivita $originalActivity,
-        \Typ $programLine
+        ?int        $locationId,
+        ?string     $zacatekString,
+        ?string     $konecString,
+        ?\Aktivita  $originalActivity,
+        TypAktivity $programLine
     ): ImportStepResult {
         if ($locationId === null) {
             return ImportStepResult::success(null);
@@ -395,14 +396,14 @@ SQL,
             ? 'jinými aktivitami'
             : 'jinou aktivitou';
         $activitiesDescription .= ' ' . implode(
-            ' a ',
-            array_map(
-                function ($locationOccupyingActivityIds) {
-                    return $this->importValuesDescriber->describeActivityById((int)$locationOccupyingActivityIds);
-                },
-                $locationOccupyingActivityIds
-            )
-        );
+                ' a ',
+                array_map(
+                    function ($locationOccupyingActivityIds) {
+                        return $this->importValuesDescriber->describeActivityById((int)$locationOccupyingActivityIds);
+                    },
+                    $locationOccupyingActivityIds
+                )
+            );
         $activitiesDescription .= $programLineCaresAboutOccupiedActivity
             ? ''
             : " jiného typu než '{$programLine->nazev()}'";
@@ -429,26 +430,38 @@ SQL,
         /** @var DateTimeCz $konec */
         ['start' => $zacatek, 'end' => $konec] = $rangeDates;
         $occupiedStorytellers = dbArrayCol(<<<SQL
-SELECT akce_organizatori.id_uzivatele, GROUP_CONCAT(DISTINCT akce_organizatori.id_akce SEPARATOR ',') AS activity_ids
+SELECT id_uzivatele, activity_ids
+FROM (
+SELECT akce_organizatori.id_uzivatele, GROUP_CONCAT(DISTINCT akce_organizatori.id_akce SEPARATOR ',') AS activity_ids, FIND_IN_SET($5, GROUP_CONCAT(DISTINCT id_zidle SEPARATOR ',')) AS user_is_group_in_fact
 FROM akce_organizatori
 JOIN akce_seznam ON akce_organizatori.id_akce = akce_seznam.id_akce
-WHERE akce_seznam.zacatek <= $1 -- existujici zacala na konci nebo pred koncem novem
-AND akce_seznam.konec >= $2 -- existujici skoncila na zacatku nebo po zacatku nove
+LEFT JOIN r_uzivatele_zidle on akce_organizatori.id_uzivatele = r_uzivatele_zidle.id_uzivatele
+WHERE
+    (
+        (akce_seznam.typ != $4 -- existujici neni technicka aktivita
+        AND akce_seznam.zacatek <= $1 -- a zacala na konci nebo pred koncem nove
+        AND akce_seznam.konec >= $2) -- a skoncila na zacatku nebo po zacatku nove
+    OR (akce_seznam.typ = $4 -- existujici je technicka aktivita
+        AND akce_seznam.zacatek < $1 -- a zacala pred koncem nove
+        AND akce_seznam.konec > $2) -- a skoncila po zacatku nove
+    )
 AND CASE
     WHEN $3 IS NULL THEN TRUE
     ELSE akce_seznam.id_akce != $3
     END
 GROUP BY akce_organizatori.id_uzivatele
+) AS with_groups_as_users
+WHERE NOT user_is_group_in_fact -- https://trello.com/c/bGIZcH9N/792-hromadn%C3%A9-vkl%C3%A1d%C3%A1n%C3%AD-do-adminu-v11
 SQL
-            , [$konec->formatDb(), $zacatek->formatDb(), $originalActivity ? $originalActivity->id() : null]
+            , [$konec->formatDb(), $zacatek->formatDb(), $originalActivity ? $originalActivity->id() : null, TypAktivity::TECHNICKA, ZIDLE_ORG_SKUPINA]
         );
         $conflictingStorytellers = array_intersect_key($occupiedStorytellers, array_fill_keys($storytellersIds, true));
         if (!$conflictingStorytellers) {
             return ImportStepResult::success($storytellersIds);
         }
         $errorLikeWarnings = [];
-        foreach ($conflictingStorytellers as $conflictingStorytellerId => $implodedActivityIds) {
-            $anotherActivityIds = explode(',', $implodedActivityIds);
+        foreach ($conflictingStorytellers as $conflictingStorytellerId => $implodedAnotherActivityIds) {
+            $anotherActivityIds = explode(',', $implodedAnotherActivityIds);
             $errorLikeWarnings[] = sprintf(
                 'Vypravěč %s je někdy v čase od %s do %s na jiné aktivitě %s. K současné aktivitě nebyl přiřazen.',
                 $this->importValuesDescriber->describeUserById((int)$conflictingStorytellerId),
@@ -499,8 +512,14 @@ SQL
         return ImportStepResult::success(null);
     }
 
-    public function checkNonTeamCapacity(bool $isTeamActivity, ?int $unisexCapacity, ?int $menCapacity, ?int $womenCapacity): ImportStepResult {
-        if ($isTeamActivity) {
+    public function checkNonTeamCapacity(
+        bool $isTeamActivity,
+        bool $isTechnicalActivity,
+        ?int $unisexCapacity,
+        ?int $menCapacity,
+        ?int $womenCapacity
+    ): ImportStepResult {
+        if ($isTeamActivity || $isTechnicalActivity) {
             return ImportStepResult::success(null);
         }
         if (($unisexCapacity ?: 0) + ($menCapacity ?: 0) + ($womenCapacity ?: 0) === 0) {

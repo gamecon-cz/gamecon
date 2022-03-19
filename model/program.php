@@ -190,7 +190,7 @@ class Program
             $this->grpf = 'typId';
 
             // řazení podle ID nutné proto, že v tomto pořadí je i seznam aktivit
-            $grp = serazenePodle(Typ::zVsech(), 'id');
+            $grp = serazenePodle(\Gamecon\Aktivita\TypAktivity::zVsech(), 'id');
             foreach ($grp as $t) {
                 $this->skupiny[$t->id()] = mb_ucfirst($t->nazev());
             }
@@ -293,7 +293,7 @@ class Program
         echo '<a href="' . $aktivitaObjekt->url() . '" target="_blank" class="programNahled_odkaz" data-program-nahled-id="' . $aktivitaObjekt->id() . '" title="' . $aktivitaObjekt->nazev() . '">' . $aktivitaObjekt->nazev() . '</a>';
 
         // doplňkové informace (druhý řádek)
-        if ($this->nastaveni['drdPj'] && $aktivitaObjekt->typId() == Typ::DRD && $aktivitaObjekt->prihlasovatelna()) {
+        if ($this->nastaveni['drdPj'] && $aktivitaObjekt->typId() == \Gamecon\Aktivita\TypAktivity::DRD && $aktivitaObjekt->prihlasovatelna()) {
             echo ' (' . $aktivitaObjekt->orgJmena() . ') ';
         }
 
@@ -304,7 +304,7 @@ class Program
             }
         }
 
-        if ($aktivitaObjekt->typId() != Typ::DRD || $this->nastaveni['drdPrihlas']) { // hack na nezobrazování přihlašovátek pro DrD
+        if ($aktivitaObjekt->typId() != \Gamecon\Aktivita\TypAktivity::DRD || $this->nastaveni['drdPrihlas']) { // hack na nezobrazování přihlašovátek pro DrD
             $parametry = 0;
             if ($this->nastaveni['plusMinus']) {
                 $parametry |= Aktivita::PLUSMINUS_KAZDY;
@@ -473,6 +473,7 @@ class Program
             $aktivita = $this->dalsiAktivita();
         }
 
+        $pocetKoliziDenCas = [];
         foreach ($this->aktivityUzivatele as $key => $value) {
             for ($cas = $value['zac']; $cas < $value['zac'] + $value['del']; $cas++) {
                 if (isset($pocetKoliziDenCas[$denId][($cas)])) {

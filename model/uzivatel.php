@@ -1260,6 +1260,23 @@ SQL
         );
     }
 
+    /**
+     * @param int $idZidle
+     * @return int[]
+     */
+    public static function idsZeZidle(int $idZidle): array {
+        $uzivateleIds = dbArrayCol(<<<SQL
+SELECT uzivatele_hodnoty.id_uzivatele
+FROM uzivatele_hodnoty
+JOIN r_uzivatele_zidle on uzivatele_hodnoty.id_uzivatele = r_uzivatele_zidle.id_uzivatele
+WHERE id_zidle = $1
+SQL,
+            $idZidle
+        );
+
+        return array_map('intval', $uzivateleIds);
+    }
+
     ///////////////////////////////// Protected //////////////////////////////////
 
     /**
