@@ -380,18 +380,19 @@ function dbQa(array $array): string {
  * strings. Quotes $val as value
  */
 function dbQv($val): string {
-    if (is_array($val))
-        return implode(',', array_map(function ($val) {
-            return dbQv($val);
-        }, $val));
-    elseif ($val === null)
+    if (is_array($val)) {
+        return implode(',', array_map('dbQv', $val));
+    }
+    if ($val === null) {
         return 'NULL';
-    elseif (is_int($val))
+    }
+    if (is_int($val)) {
         return $val;
-    elseif ($val instanceof DateTimeInterface)
+    }
+    if ($val instanceof DateTimeInterface) {
         return '"' . $val->format('Y-m-d H:i:s') . '"';
-    else
-        return '"' . addslashes($val) . '"';
+    }
+    return '"' . addslashes($val) . '"';
 }
 
 /**
