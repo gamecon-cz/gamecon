@@ -483,7 +483,7 @@ class ImportValuesSanitizer
         if (!$storytellersString) {
             $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
             return ImportStepResult::success($sourceActivity
-                ? $sourceActivity->getOrganizatoriIds()
+                ? $sourceActivity->dejOrganizatoriIds()
                 : []
             );
         }
