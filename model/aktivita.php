@@ -1059,7 +1059,7 @@ class Aktivita
     /**
      * @return array|int[]
      */
-    public function getOrganizatoriIds(): array {
+    public function dejOrganizatoriIds(): array {
         return dbOneArray('SELECT id_uzivatele FROM akce_organizatori WHERE id_akce = $1', [$this->id()]);
     }
 
