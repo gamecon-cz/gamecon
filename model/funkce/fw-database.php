@@ -382,14 +382,14 @@ function dbQv($val): string {
     elseif ($val instanceof DateTimeInterface)
         return '"' . $val->format('Y-m-d H:i:s') . '"';
     else
-        return '"' . mysqli_real_escape_string($GLOBALS['spojeni'], $val) . '"';
+        return '"' . mysqli_real_escape_string(dbConnect(), $val) . '"';
 }
 
 /**
  * Quotes $val as identifier
  */
 function dbQi($val) {
-    return '`' . mysqli_real_escape_string($GLOBALS['spojeni'], $val) . '`';
+    return '`' . mysqli_real_escape_string(dbConnect(), $val) . '`';
 }
 
 /**
