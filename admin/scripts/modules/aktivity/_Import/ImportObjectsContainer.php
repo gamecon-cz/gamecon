@@ -55,8 +55,7 @@ class ImportObjectsContainer
     private function getProgramLinesCache(): array {
         if (!$this->programLinesCache) {
             $this->programLinesCache = ['id' => [], 'keyFromName' => [], 'keyFromSingleName' => [], 'keyFromUrl' => []];
-            $programLines = TypAktivity::zVsech();
-            foreach ($programLines as $programLine) {
+            foreach (TypAktivity::zVsech() as $programLine) {
                 $this->programLinesCache['id'][$programLine->id()] = $programLine;
                 $keyFromName = ImportKeyUnifier::toUnifiedKey($programLine->nazev(), array_keys($this->programLinesCache['keyFromName']));
                 $this->programLinesCache['keyFromName'][$keyFromName] = $programLine;
@@ -88,11 +87,10 @@ class ImportObjectsContainer
     private function getStatesCache(): array {
         if (!$this->statesCache) {
             $this->statesCache = ['id' => [], 'keyFromName' => []];
-            $States = \Stav::zVsech();
-            foreach ($States as $State) {
-                $this->statesCache['id'][$State->id()] = $State;
-                $keyFromName = ImportKeyUnifier::toUnifiedKey(mb_substr($State->nazev(), 0, 3, 'UTF-8'), array_keys($this->statesCache['keyFromName']));
-                $this->statesCache['keyFromName'][$keyFromName] = $State;
+            foreach (\Stav::zVsech() as $stav) {
+                $this->statesCache['id'][$stav->id()] = $stav;
+                $keyFromName = ImportKeyUnifier::toUnifiedKey(mb_substr($stav->nazev(), 0, 3, 'UTF-8'), array_keys($this->statesCache['keyFromName']));
+                $this->statesCache['keyFromName'][$keyFromName] = $stav;
             }
         }
         return $this->statesCache;
@@ -128,8 +126,7 @@ class ImportObjectsContainer
     private function getTagsCache(): array {
         if (!$this->tagsCache) {
             $this->tagsCache = ['id' => [], 'keyFromName' => []];
-            $tags = \Tag::zVsech();
-            foreach ($tags as $tag) {
+            foreach (\Tag::zVsech() as $tag) {
                 $this->tagsCache['id'][$tag->id()] = $tag;
                 $keyFromName = ImportKeyUnifier::toUnifiedKey($tag->nazev(), array_keys($this->tagsCache['keyFromName']));
                 $this->tagsCache['keyFromName'][$keyFromName] = $tag;
@@ -170,11 +167,10 @@ class ImportObjectsContainer
     private function getProgramLocationsCache(): array {
         if (!$this->programLocationsCache) {
             $this->programLocationsCache = ['id' => [], 'keyFromName' => []];
-            $locations = \Lokace::zVsech();
-            foreach ($locations as $location) {
-                $this->programLocationsCache['id'][$location->id()] = $location;
-                $keyFromName = ImportKeyUnifier::toUnifiedKey($location->nazev(), array_keys($this->programLocationsCache['keyFromName']), ImportKeyUnifier::UNIFY_UP_TO_NUMBERS_AND_LETTERS);
-                $this->programLocationsCache['keyFromName'][$keyFromName] = $location;
+            foreach (\Lokace::zVsech() as $lokace) {
+                $this->programLocationsCache['id'][$lokace->id()] = $lokace;
+                $keyFromName = ImportKeyUnifier::toUnifiedKey($lokace->nazev(), array_keys($this->programLocationsCache['keyFromName']), ImportKeyUnifier::UNIFY_UP_TO_NUMBERS_AND_LETTERS);
+                $this->programLocationsCache['keyFromName'][$keyFromName] = $lokace;
             }
         }
         return $this->programLocationsCache;

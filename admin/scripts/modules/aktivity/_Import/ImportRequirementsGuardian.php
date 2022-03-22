@@ -40,7 +40,7 @@ class ImportRequirementsGuardian
             if (!$programLine && !empty($row[ExportAktivitSloupce::ID_AKTIVITY])) {
                 try {
                     $activity = ImportModelsFetcher::fetchActivity((int)$row[ExportAktivitSloupce::ID_AKTIVITY]);
-                    if ($activity && $activity->typ()) {
+                    if ($activity->typ()) {
                         $programLine = $activity->typ();
                     }
                 } catch (ActivitiesImportException $activitiesImportException) {
