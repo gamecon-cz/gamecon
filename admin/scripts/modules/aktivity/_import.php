@@ -13,6 +13,9 @@ use Gamecon\Zidle;
 
 $activitiesImportLogger = new ActivitiesImportLogger();
 $now = new \DateTimeImmutable();
+if (defined('TESTING') && TESTING && (int)$now->format('Y') !== (int)ROK) {
+    $now = DateTimeImmutable::createFromFormat(\Gamecon\Cas\DateTimeCz::FORMAT_DB, GC_BEZI_OD);
+}
 $urlNaAktivity = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) . '/..';
 $urlNaEditaciAktivity = $urlNaAktivity . '/upravy?aktivitaId=';
 
@@ -49,7 +52,7 @@ $spreadsheets = $googleSheetsService->getAllSpreadsheets();
 foreach ($unusedSpreadSheetIds as $unusedSpreadSheetId) {
     $spreadsheet = $spreadsheets[$unusedSpreadSheetId];
     unset($spreadsheets[$unusedSpreadSheetId]);
-    $template->assign('googleSheetIdEncoded', htmlentities($spreadsheet->getId()));
+    $template->assign('googleSheetIdEncoded', htmlentities($spreadsheet->getId(), ENT_QUOTES));
     $template->assign('nazev', $spreadsheet->getName());
     $template->assign('url', $spreadsheet->getUrl());
     $template->assign('vytvorenoKdy', $spreadsheet->getCreatedAt()->relativni());
@@ -70,7 +73,7 @@ uasort($sheetsPouzityKdy, static function (?\DateTimeInterface $jedenSheetPouzit
 });
 foreach ($sheetsPouzityKdy as $usedSpreadSheetId => $sheetPouzitKdy) {
     $spreadsheet = $spreadsheets[$usedSpreadSheetId];
-    $template->assign('googleSheetIdEncoded', htmlentities($spreadsheet->getId()));
+    $template->assign('googleSheetIdEncoded', htmlentities($spreadsheet->getId(), ENT_QUOTES));
     $template->assign('nazev', $spreadsheet->getName());
     $template->assign('url', $spreadsheet->getUrl());
     $template->assign('vytvorenoKdy', $spreadsheet->getCreatedAt()->relativni());

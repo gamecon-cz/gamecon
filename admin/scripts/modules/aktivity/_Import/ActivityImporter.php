@@ -16,7 +16,7 @@ class ActivityImporter
      */
     private $importValuesChecker;
     /**
-     * @var ImagesImporter
+     * @var ActivityImagesImporter
      */
     private $imagesImporter;
     /**
@@ -31,7 +31,7 @@ class ActivityImporter
     public function __construct(
         ImportValuesDescriber        $importValuesDescriber,
         ImportSqlMappedValuesChecker $importValuesChecker,
-        ImagesImporter               $imagesImporter,
+        ActivityImagesImporter       $imagesImporter,
         int                          $currentYear,
         Logovac                      $logovac
     ) {
@@ -51,7 +51,15 @@ class ActivityImporter
         array       $potentialImageUrls,
         ?\Aktivita  $originalActivity
     ): ImportStepResult {
-        $checkBeforeSaveResult = $this->checkBeforeSave($sqlMappedValues, $longAnnotation, $tagIds, $storytellersIds, $singleProgramLine, $potentialImageUrls, $originalActivity);
+        $checkBeforeSaveResult = $this->importValuesChecker->checkBeforeSave(
+            $sqlMappedValues,
+            $longAnnotation,
+            $tagIds,
+            $storytellersIds,
+            $singleProgramLine,
+            $potentialImageUrls,
+            $originalActivity
+        );
         if ($checkBeforeSaveResult->isError()) {
             return ImportStepResult::error($checkBeforeSaveResult->getError());
         }
@@ -111,102 +119,6 @@ class ActivityImporter
         );
     }
 
-    private function checkBeforeSave(array $sqlMappedValues, ?string $longAnnotation, array $tagIds, array $storytellersIds, TypAktivity $singleProgramLine, array $potentialImageUrls, ?\Aktivita $originalActivity): ImportStepResult {
-        $checkResults = [];
-
-        $timeResult = $this->importValuesChecker->checkTime($sqlMappedValues, $originalActivity);
-        if ($timeResult->isError()) {
-            return ImportStepResult::error($timeResult->getError());
-        }
-        ['start' => $start, 'end' => $end] = $timeResult->getSuccess();
-        $sqlMappedValues[AktivitaSqlSloupce::ZACATEK] = $start ?: null;
-        $sqlMappedValues[AktivitaSqlSloupce::KONEC] = $end ?: null;
-        $checkResults[] = $timeResult;
-        unset($timeResult);
-
-        $urlUniquenessResult = $this->importValuesChecker->checkUrlUniqueness($sqlMappedValues, $singleProgramLine, $originalActivity);
-        if ($urlUniquenessResult->isError()) {
-            return ImportStepResult::error($urlUniquenessResult->getError());
-        }
-        $checkResults[] = $urlUniquenessResult;
-        unset($urlUniquenessResult);
-
-        $nameUniqueness = $this->importValuesChecker->checkNameUniqueness($sqlMappedValues, $singleProgramLine, $originalActivity);
-        if ($nameUniqueness->isError()) {
-            return ImportStepResult::error($nameUniqueness->getError());
-        }
-        $checkResults[] = $nameUniqueness;
-        unset($nameUniqueness);
-
-        $stateUsabilityResult = $this->importValuesChecker->checkStateUsability($sqlMappedValues, $originalActivity);
-        if ($stateUsabilityResult->isError()) {
-            return ImportStepResult::error($stateUsabilityResult->getError());
-        }
-        $sqlMappedValues[AktivitaSqlSloupce::STAV] = $stateUsabilityResult->getSuccess();
-        $checkResults[] = $stateUsabilityResult;
-        unset($stateUsabilityResult);
-
-        $requiredValuesForStateResult = $this->importValuesChecker->checkRequiredValuesForState($sqlMappedValues, $longAnnotation, $tagIds, $potentialImageUrls);
-        if ($requiredValuesForStateResult->isError()) {
-            return ImportStepResult::error($requiredValuesForStateResult->getError());
-        }
-        $sqlMappedValues[AktivitaSqlSloupce::STAV] = $requiredValuesForStateResult->getSuccess();
-        $checkResults[] = $requiredValuesForStateResult;
-        unset($requiredValuesForStateResult);
-
-        $storytellersAccessibilityResult = $this->importValuesChecker->checkStorytellersAccessibility(
-            $storytellersIds,
-            $sqlMappedValues[AktivitaSqlSloupce::ZACATEK],
-            $sqlMappedValues[AktivitaSqlSloupce::KONEC],
-            $originalActivity
-        );
-        if ($storytellersAccessibilityResult->isError()) {
-            return ImportStepResult::error($storytellersAccessibilityResult->getError());
-        }
-        $availableStorytellerIds = $storytellersAccessibilityResult->getSuccess();
-        $checkResults[] = $storytellersAccessibilityResult;
-        unset($storytellersAccessibilityResult);
-
-        $locationAccessibilityResult = $this->importValuesChecker->checkLocationByAccessibility(
-            $sqlMappedValues[AktivitaSqlSloupce::LOKACE],
-            $sqlMappedValues[AktivitaSqlSloupce::ZACATEK],
-            $sqlMappedValues[AktivitaSqlSloupce::KONEC],
-            $originalActivity,
-            $singleProgramLine
-        );
-        if ($locationAccessibilityResult->isError()) {
-            return ImportStepResult::error($locationAccessibilityResult->getError());
-        }
-        $checkResults[] = $locationAccessibilityResult;
-        unset($locationAccessibilityResult);
-
-        $teamCapacityRangeResult = $this->importValuesChecker->checkTeamCapacityRange(
-            (bool)$sqlMappedValues[AktivitaSqlSloupce::TEAMOVA],
-            $sqlMappedValues[AktivitaSqlSloupce::TEAM_MIN],
-            $sqlMappedValues[AktivitaSqlSloupce::TEAM_MAX]
-        );
-        if ($teamCapacityRangeResult->isError()) {
-            return ImportStepResult::error($teamCapacityRangeResult->getError());
-        }
-        $checkResults[] = $teamCapacityRangeResult;
-        unset($teamCapacityRangeResult);
-
-        $nonTeamCapacityResult = $this->importValuesChecker->checkNonTeamCapacity(
-            (bool)$sqlMappedValues[AktivitaSqlSloupce::TEAMOVA],
-            $sqlMappedValues[AktivitaSqlSloupce::TYP] === TypAktivity::TECHNICKA,
-            $sqlMappedValues[AktivitaSqlSloupce::KAPACITA],
-            $sqlMappedValues[AktivitaSqlSloupce::KAPACITA_M],
-            $sqlMappedValues[AktivitaSqlSloupce::KAPACITA_F]
-        );
-        if ($nonTeamCapacityResult->isError()) {
-            return ImportStepResult::error($nonTeamCapacityResult->getError());
-        }
-        $checkResults[] = $nonTeamCapacityResult;
-        unset($teamCapacityRangeResult);
-
-        return ImportStepResult::success(['values' => $sqlMappedValues, 'availableStorytellerIds' => $availableStorytellerIds, 'checkResults' => $checkResults]);
-    }
-
     private function saveActivity(
         array       $sqlMappedValues,
         ?string     $longAnnotation,
@@ -216,12 +128,12 @@ class ActivityImporter
         TypAktivity $singleProgramLine
     ): ImportStepResult {
         try {
-            if (empty($sqlMappedValues[AktivitaSqlSloupce::ID_AKCE])) {
-                $newInstanceParentActivityId = $this->findParentActivityId($sqlMappedValues[AktivitaSqlSloupce::URL_AKCE], $singleProgramLine);
+            if (empty($sqlMappedValues[ActivitiesImportSqlColumn::ID_AKCE])) {
+                $newInstanceParentActivityId = $this->findParentActivityId($sqlMappedValues[ActivitiesImportSqlColumn::URL_AKCE], $singleProgramLine);
                 if ($newInstanceParentActivityId) {
                     $newInstance = $this->createInstanceForParentActivity($newInstanceParentActivityId);
-                    $sqlMappedValues[AktivitaSqlSloupce::ID_AKCE] = $newInstance->id();
-                    $sqlMappedValues[AktivitaSqlSloupce::PATRI_POD] = $newInstance->patriPod();
+                    $sqlMappedValues[ActivitiesImportSqlColumn::ID_AKCE] = $newInstance->id();
+                    $sqlMappedValues[ActivitiesImportSqlColumn::PATRI_POD] = $newInstance->patriPod();
                 }
             }
             $savedActivity = \Aktivita::uloz($sqlMappedValues, $longAnnotation, $storytellersIds, $tagIds);

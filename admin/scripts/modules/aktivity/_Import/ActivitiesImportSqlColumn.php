@@ -5,7 +5,7 @@ namespace Gamecon\Admin\Modules\Aktivity\Import;
 /**
  * SQL table akce_seznam
  */
-class AktivitaSqlSloupce
+class ActivitiesImportSqlColumn
 {
     public const ID_AKCE = 'id_akce'; // int auto_increment primary key
     public const PATRI_POD = 'patri_pod'; // int null,

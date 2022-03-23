@@ -67,15 +67,15 @@ class ActivitiesImporter
     private $activitiesImportLogger;
 
     public function __construct(
-        int $userId,
-        GoogleDriveService $googleDriveService,
-        GoogleSheetsService $googleSheetsService,
-        string $editActivityUrlSkeleton,
-        \DateTimeInterface $now,
-        string $storytellersPermissionsUrl,
-        Logovac $logovac,
-        Mutex $mutexPattern,
-        string $errorsListUrl,
+        int                    $userId,
+        GoogleDriveService     $googleDriveService,
+        GoogleSheetsService    $googleSheetsService,
+        string                 $editActivityUrlSkeleton,
+        \DateTimeInterface     $now,
+        string                 $storytellersPermissionsUrl,
+        Logovac                $logovac,
+        Mutex                  $mutexPattern,
+        string                 $errorsListUrl,
         ActivitiesImportLogger $activitiesImportLogger
     ) {
         $this->userId = $userId;
@@ -93,7 +93,7 @@ class ActivitiesImporter
         $this->importValuesReader = new ImportValuesReader($googleSheetsService, $logovac);
         $this->importValuesSanitizer = new ImportValuesSanitizer($importValuesDescriber, $importObjectsContainer, $currentYear, $storytellersPermissionsUrl);
         $this->importRequirementsGuardian = new ImportRequirementsGuardian($importObjectsContainer);
-        $imagesImporter = new ImagesImporter($importValuesDescriber, $this->logovac);
+        $imagesImporter = new ActivityImagesImporter($importValuesDescriber, $this->logovac);
         $this->activityImporter = new ActivityImporter($importValuesDescriber, $importAccessibilityChecker, $imagesImporter, $currentYear, $logovac);
         $this->errorsListUrl = $errorsListUrl;
         $this->activitiesImportLogger = $activitiesImportLogger;
@@ -119,20 +119,20 @@ class ActivitiesImporter
             $activitiesValues = $activitiesValuesResult->getSuccess();
             unset($activitiesValuesResult);
 
-            $singleProgramLineResult = $this->importRequirementsGuardian->guardSingleProgramLineOnly($activitiesValues, $processedFileName);
-            if ($singleProgramLineResult->isError()) {
-                $result->addErrorMessage($singleProgramLineResult->getError(), null);
+            $typAktivityResult = $this->importRequirementsGuardian->guardSingleProgramLineOnly($activitiesValues, $processedFileName);
+            if ($typAktivityResult->isError()) {
+                $result->addErrorMessage($typAktivityResult->getError(), null);
                 return $result;
             }
-            /** @var TypAktivity $singleProgramLine */
-            $singleProgramLine = $singleProgramLineResult->getSuccess();
-            unset($singleProgramLineResult);
+            /** @var TypAktivity $typAktivity */
+            $typAktivity = $typAktivityResult->getSuccess();
+            unset($typAktivityResult);
 
-            if (!$this->getExclusiveLock($singleProgramLine->nazev())) {
+            if (!$this->getExclusiveLock($typAktivity->nazev())) {
                 $result->addErrorMessage(
                     sprintf(
                         "Právě probíhá jiný import aktivit z programové linie '%s'. Zkus to za chvíli znovu.",
-                        mb_ucfirst($singleProgramLine->nazev())
+                        mb_ucfirst($typAktivity->nazev())
                     ),
                     null
                 );
@@ -145,7 +145,7 @@ class ActivitiesImporter
             foreach ($activitiesValues as $activityValues) {
                 $activityGuid = uniqid('importActivity', true);
 
-                $validatedValuesResult = $this->importValuesSanitizer->sanitizeValues($singleProgramLine, $activityValues);
+                $validatedValuesResult = $this->importValuesSanitizer->sanitizeValuesToImport($typAktivity, $activityValues);
                 $result->addWarnings($validatedValuesResult, $activityGuid);
                 $result->addErrorLikeWarnings($validatedValuesResult, $activityGuid);
                 if ($validatedValuesResult->isError()) {
@@ -171,7 +171,7 @@ class ActivitiesImporter
                     $longAnnotation,
                     $storytellersIds,
                     $tagIds,
-                    $singleProgramLine,
+                    $typAktivity,
                     $potentialImageUrls,
                     $originalActivity
                 );
@@ -227,7 +227,7 @@ HTML
     private function getProcessedFileName(string $spreadsheetId): ImportStepResult {
         try {
             $filename = $this->googleDriveService->getFileName($spreadsheetId);
-        } catch (GoogleConnectionException | \Google_Service_Exception $connectionException) {
+        } catch (GoogleConnectionException|\Google_Service_Exception $connectionException) {
             $this->logovac->zaloguj($connectionException);
             return ImportStepResult::error('Google Sheets API je dočasně nedostupné. Zkus to za chvíli znovu.');
         }

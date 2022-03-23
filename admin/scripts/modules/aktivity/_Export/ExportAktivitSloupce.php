@@ -22,6 +22,7 @@ class ExportAktivitSloupce
     public const JE_TYMOVA = 'Je týmová'; // teamova
     public const MINIMALNI_KAPACITA_TYMU = 'Minimální kapacita týmu'; // team_min
     public const MAXIMALNI_KAPACITA_TYMU = 'Maximální kapacita týmu'; // team_max
+    public const NASLEDUJICI_SEMIFINALE = 'Následující (semi)finále'; // dite
     public const CENA = 'Cena'; // cena
     public const BEZ_SLEV = 'Bez slev'; // bez_slevy
     public const PRIPRAVA_MISTNOSTI = 'Příprava místnosti'; // vybaveni
@@ -48,6 +49,7 @@ class ExportAktivitSloupce
             self::JE_TYMOVA,
             self::MINIMALNI_KAPACITA_TYMU,
             self::MAXIMALNI_KAPACITA_TYMU,
+            self::NASLEDUJICI_SEMIFINALE,
             self::CENA,
             self::BEZ_SLEV,
             self::PRIPRAVA_MISTNOSTI,

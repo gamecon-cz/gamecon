@@ -7,6 +7,8 @@ class ExportStavuAktivitSloupce
     public const NAZEV = 'Název';
 
     public static function vsechnySloupce(): array {
-        return [self::NAZEV];
+        return [
+            self::NAZEV,
+        ];
     }
 }

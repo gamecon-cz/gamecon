@@ -45,7 +45,7 @@ class ImportRequirementsGuardian
                     }
                 } catch (ActivitiesImportException $activitiesImportException) {
                     /** invalid activity ID - not a responsibility of this method
-                     * @see \Gamecon\Admin\Modules\Aktivity\Import\ImportValuesSanitizer::sanitizeValues
+                     * @see \Gamecon\Admin\Modules\Aktivity\Import\ImportValuesSanitizer::sanitizeValuesToImport
                      */
                 }
             }

@@ -31,7 +31,111 @@ class ImportSqlMappedValuesChecker
         $this->currentYear = $currentYear;
     }
 
-    public function checkTime(array $sqlMappedValues, ?\Aktivita $originalActivity): ImportStepResult {
+    public function checkBeforeSave(
+        array       $sqlMappedValues,
+        ?string     $longAnnotation,
+        array       $tagIds,
+        array       $storytellersIds,
+        TypAktivity $singleProgramLine,
+        array       $potentialImageUrls,
+        ?\Aktivita  $originalActivity
+    ): ImportStepResult {
+        $checkResults = [];
+
+        $timeResult = $this->checkTime($sqlMappedValues, $originalActivity);
+        if ($timeResult->isError()) {
+            return ImportStepResult::error($timeResult->getError());
+        }
+        ['start' => $start, 'end' => $end] = $timeResult->getSuccess();
+        $sqlMappedValues[ActivitiesImportSqlColumn::ZACATEK] = $start ?: null;
+        $sqlMappedValues[ActivitiesImportSqlColumn::KONEC] = $end ?: null;
+        $checkResults[] = $timeResult;
+        unset($timeResult);
+
+        $urlUniquenessResult = $this->checkUrlUniqueness($sqlMappedValues, $singleProgramLine, $originalActivity);
+        if ($urlUniquenessResult->isError()) {
+            return ImportStepResult::error($urlUniquenessResult->getError());
+        }
+        $checkResults[] = $urlUniquenessResult;
+        unset($urlUniquenessResult);
+
+        $nameUniqueness = $this->checkNameUniqueness($sqlMappedValues, $singleProgramLine, $originalActivity);
+        if ($nameUniqueness->isError()) {
+            return ImportStepResult::error($nameUniqueness->getError());
+        }
+        $checkResults[] = $nameUniqueness;
+        unset($nameUniqueness);
+
+        $stateUsabilityResult = $this->checkStateUsability($sqlMappedValues, $originalActivity);
+        if ($stateUsabilityResult->isError()) {
+            return ImportStepResult::error($stateUsabilityResult->getError());
+        }
+        $sqlMappedValues[ActivitiesImportSqlColumn::STAV] = $stateUsabilityResult->getSuccess();
+        $checkResults[] = $stateUsabilityResult;
+        unset($stateUsabilityResult);
+
+        $requiredValuesForStateResult = $this->checkRequiredValuesForState($sqlMappedValues, $longAnnotation, $tagIds, $potentialImageUrls);
+        if ($requiredValuesForStateResult->isError()) {
+            return ImportStepResult::error($requiredValuesForStateResult->getError());
+        }
+        $sqlMappedValues[ActivitiesImportSqlColumn::STAV] = $requiredValuesForStateResult->getSuccess();
+        $checkResults[] = $requiredValuesForStateResult;
+        unset($requiredValuesForStateResult);
+
+        $storytellersAccessibilityResult = $this->checkStorytellersAccessibility(
+            $storytellersIds,
+            $sqlMappedValues[ActivitiesImportSqlColumn::ZACATEK],
+            $sqlMappedValues[ActivitiesImportSqlColumn::KONEC],
+            $originalActivity
+        );
+        if ($storytellersAccessibilityResult->isError()) {
+            return ImportStepResult::error($storytellersAccessibilityResult->getError());
+        }
+        $availableStorytellerIds = $storytellersAccessibilityResult->getSuccess();
+        $checkResults[] = $storytellersAccessibilityResult;
+        unset($storytellersAccessibilityResult);
+
+        $locationAccessibilityResult = $this->checkLocationByAccessibility(
+            $sqlMappedValues[ActivitiesImportSqlColumn::LOKACE],
+            $sqlMappedValues[ActivitiesImportSqlColumn::ZACATEK],
+            $sqlMappedValues[ActivitiesImportSqlColumn::KONEC],
+            $originalActivity,
+            $singleProgramLine
+        );
+        if ($locationAccessibilityResult->isError()) {
+            return ImportStepResult::error($locationAccessibilityResult->getError());
+        }
+        $checkResults[] = $locationAccessibilityResult;
+        unset($locationAccessibilityResult);
+
+        $teamCapacityRangeResult = $this->checkTeamCapacityRange(
+            (bool)$sqlMappedValues[ActivitiesImportSqlColumn::TEAMOVA],
+            $sqlMappedValues[ActivitiesImportSqlColumn::TEAM_MIN],
+            $sqlMappedValues[ActivitiesImportSqlColumn::TEAM_MAX]
+        );
+        if ($teamCapacityRangeResult->isError()) {
+            return ImportStepResult::error($teamCapacityRangeResult->getError());
+        }
+        $checkResults[] = $teamCapacityRangeResult;
+        unset($teamCapacityRangeResult);
+
+        $nonTeamCapacityResult = $this->checkNonTeamCapacity(
+            (bool)$sqlMappedValues[ActivitiesImportSqlColumn::TEAMOVA],
+            $sqlMappedValues[ActivitiesImportSqlColumn::TYP] === TypAktivity::TECHNICKA,
+            $sqlMappedValues[ActivitiesImportSqlColumn::KAPACITA],
+            $sqlMappedValues[ActivitiesImportSqlColumn::KAPACITA_M],
+            $sqlMappedValues[ActivitiesImportSqlColumn::KAPACITA_F]
+        );
+        if ($nonTeamCapacityResult->isError()) {
+            return ImportStepResult::error($nonTeamCapacityResult->getError());
+        }
+        $checkResults[] = $nonTeamCapacityResult;
+        unset($nonTeamCapacityResult);
+
+        return ImportStepResult::success(['values' => $sqlMappedValues, 'availableStorytellerIds' => $availableStorytellerIds, 'checkResults' => $checkResults]);
+    }
+
+    private function checkTime(array $sqlMappedValues, ?\Aktivita $originalActivity): ImportStepResult {
         if ($originalActivity) {
             if ($originalActivity->zacatek() && $originalActivity->zacatek()->getTimestamp() <= $this->now->getTimestamp()) {
                 return ImportStepResult::error(sprintf(
@@ -48,8 +152,8 @@ class ImportSqlMappedValuesChecker
             }
         }
 
-        $startString = $sqlMappedValues[AktivitaSqlSloupce::ZACATEK];
-        $endString = $sqlMappedValues[AktivitaSqlSloupce::KONEC];
+        $startString = $sqlMappedValues[ActivitiesImportSqlColumn::ZACATEK];
+        $endString = $sqlMappedValues[ActivitiesImportSqlColumn::KONEC];
         if (!$startString && !$endString) {
             return ImportStepResult::success(['start' => null, 'end' => null]);
         }
@@ -106,8 +210,8 @@ class ImportSqlMappedValuesChecker
         return ImportStepResult::success(['start' => $startString, 'end' => $endString]);
     }
 
-    public function checkUrlUniqueness(array $sqlMappedValues, TypAktivity $singleProgramLine, ?\Aktivita $originalActivity): ImportStepResult {
-        $activityUrl = $sqlMappedValues[AktivitaSqlSloupce::URL_AKCE];
+    private function checkUrlUniqueness(array $sqlMappedValues, TypAktivity $singleProgramLine, ?\Aktivita $originalActivity): ImportStepResult {
+        $activityUrl = $sqlMappedValues[ActivitiesImportSqlColumn::URL_AKCE];
         $occupiedByActivities = dbFetchAll(<<<SQL
 SELECT id_akce, patri_pod
 FROM akce_seznam
@@ -134,7 +238,12 @@ SQL
         return ImportStepResult::success(null);
     }
 
-    private function canShareNameOrUrlWith(string $activityUrl, TypAktivity $singleProgramLine, array $urlOccupiedByActivity, ?\Aktivita $originalActivity): bool {
+    private function canShareNameOrUrlWith(
+        string      $activityUrl,
+        TypAktivity $singleProgramLine,
+        array       $urlOccupiedByActivity,
+        ?\Aktivita  $originalActivity
+    ): bool {
         $occupiedByInstanceFamilyId = $urlOccupiedByActivity['patri_pod']
             ? (int)$urlOccupiedByActivity['patri_pod']
             : null;
@@ -166,8 +275,8 @@ SQL
         return \Aktivita::idExistujiciInstancePodleUrl($url, $this->currentYear, $programLineId);
     }
 
-    public function checkNameUniqueness(array $sqlMappedValues, TypAktivity $singleProgramLine, ?\Aktivita $originalActivity): ImportStepResult {
-        $activityName = $sqlMappedValues[AktivitaSqlSloupce::NAZEV_AKCE];
+    private function checkNameUniqueness(array $sqlMappedValues, TypAktivity $singleProgramLine, ?\Aktivita $originalActivity): ImportStepResult {
+        $activityName = $sqlMappedValues[ActivitiesImportSqlColumn::NAZEV_AKCE];
         $nameOccupiedByActivities = dbFetchAll(<<<SQL
 SELECT id_akce, nazev_akce, patri_pod
 FROM akce_seznam
@@ -178,7 +287,7 @@ SQL
         if (!$nameOccupiedByActivities) {
             return ImportStepResult::success(null);
         }
-        $activityUrl = $sqlMappedValues[AktivitaSqlSloupce::URL_AKCE];
+        $activityUrl = $sqlMappedValues[ActivitiesImportSqlColumn::URL_AKCE];
         foreach ($nameOccupiedByActivities as $occupiedByActivity) {
             if (!$this->canShareNameOrUrlWith($activityUrl, $singleProgramLine, $occupiedByActivity, $originalActivity)) {
                 return ImportStepResult::error(sprintf(
@@ -191,14 +300,14 @@ SQL
         return ImportStepResult::success(null);
     }
 
-    public function checkStateUsability(array $sqlMappedValues, ?\Aktivita $originalActivity): ImportStepResult {
+    private function checkStateUsability(array $sqlMappedValues, ?\Aktivita $originalActivity): ImportStepResult {
         if ($originalActivity && !$originalActivity->bezpecneEditovatelna()) {
             return ImportStepResult::error(sprintf(
                 "Aktivitu %s už nelze editovat importem, protože je ve stavu '%s'.",
                 $this->importValuesDescriber->describeActivity($originalActivity), $originalActivity->stav()->nazev()
             ));
         }
-        $stateId = $sqlMappedValues[AktivitaSqlSloupce::STAV];
+        $stateId = $sqlMappedValues[ActivitiesImportSqlColumn::STAV];
         if ($stateId === null) {
             return ImportStepResult::success(null);
         }
@@ -216,8 +325,8 @@ SQL
         );
     }
 
-    public function checkRequiredValuesForState(array $sqlMappedValues, ?string $longAnnotation, array $tagIds, array $potentialImageUrls): ImportStepResult {
-        $stateId = $sqlMappedValues[AktivitaSqlSloupce::STAV];
+    private function checkRequiredValuesForState(array $sqlMappedValues, ?string $longAnnotation, array $tagIds, array $potentialImageUrls): ImportStepResult {
+        $stateId = $sqlMappedValues[ActivitiesImportSqlColumn::STAV];
         if ($stateId === null) {
             return ImportStepResult::success(null);
         }
@@ -256,45 +365,45 @@ SQL
         $sqlMappedValues = $this->extendValuesByVirtualColumns($sqlMappedValues, $longAnnotation, $tagIds, $potentialImageUrls);
 
         $requiredNonEmptyFields = [
-            AktivitaSqlSloupce::NAZEV_AKCE,
-            AktivitaSqlSloupce::URL_AKCE,
-            AktivitaSqlSloupce::ZACATEK,
-            AktivitaSqlSloupce::KONEC,
-            AktivitaSqlSloupce::LOKACE,
-            AktivitaSqlSloupce::POPIS_KRATKY,
-            AktivitaSqlSloupce::POPIS,
-            AktivitaSqlSloupce::VYBAVENI,
-            AktivitaSqlSloupce::VIRTUAL_IMAGE,
-            AktivitaSqlSloupce::VIRTUAL_TAGS,
+            ActivitiesImportSqlColumn::NAZEV_AKCE,
+            ActivitiesImportSqlColumn::URL_AKCE,
+            ActivitiesImportSqlColumn::ZACATEK,
+            ActivitiesImportSqlColumn::KONEC,
+            ActivitiesImportSqlColumn::LOKACE,
+            ActivitiesImportSqlColumn::POPIS_KRATKY,
+            ActivitiesImportSqlColumn::POPIS,
+            ActivitiesImportSqlColumn::VYBAVENI,
+            ActivitiesImportSqlColumn::VIRTUAL_IMAGE,
+            ActivitiesImportSqlColumn::VIRTUAL_TAGS,
         ];
 
         $requiredFieldsAcceptingZero = [
-            AktivitaSqlSloupce::CENA,
-            AktivitaSqlSloupce::BEZ_SLEVY,
-            AktivitaSqlSloupce::NEDAVA_SLEVU,
-            AktivitaSqlSloupce::KAPACITA,
-            AktivitaSqlSloupce::KAPACITA_F,
-            AktivitaSqlSloupce::KAPACITA_M,
+            ActivitiesImportSqlColumn::CENA,
+            ActivitiesImportSqlColumn::BEZ_SLEVY,
+            ActivitiesImportSqlColumn::NEDAVA_SLEVU,
+            ActivitiesImportSqlColumn::KAPACITA,
+            ActivitiesImportSqlColumn::KAPACITA_F,
+            ActivitiesImportSqlColumn::KAPACITA_M,
         ];
-        if ($sqlMappedValues[AktivitaSqlSloupce::TEAMOVA]) {
-            $requiredFieldsAcceptingZero[] = AktivitaSqlSloupce::TEAM_MIN;
-            $requiredFieldsAcceptingZero[] = AktivitaSqlSloupce::TEAM_MAX;
+        if ($sqlMappedValues[ActivitiesImportSqlColumn::TEAMOVA]) {
+            $requiredFieldsAcceptingZero[] = ActivitiesImportSqlColumn::TEAM_MIN;
+            $requiredFieldsAcceptingZero[] = ActivitiesImportSqlColumn::TEAM_MAX;
         }
-        $missingNames = $this->getMissingRequiredFieldsForState($sqlMappedValues, $requiredNonEmptyFields, $requiredFieldsAcceptingZero);
+        $missingRequiredFields = $this->getMissingRequiredFieldsForState($sqlMappedValues, $requiredNonEmptyFields, $requiredFieldsAcceptingZero);
 
-        if ($missingNames) {
+        if ($missingRequiredFields) {
             return ImportStepResult::error(sprintf(
                 'Pro připravení k aktivaci musíš aktivitě vyplnit ještě %s.',
-                implode(', ', $missingNames)
+                implode(', ', $missingRequiredFields)
             ));
         }
         return ImportStepResult::success(null);
     }
 
     private function extendValuesByVirtualColumns(array $sqlMappedValues, ?string $longAnnotation, array $tagIds, array $potentialImageUrls): array {
-        $sqlMappedValues[AktivitaSqlSloupce::VIRTUAL_IMAGE] = implode(',', array_filter($potentialImageUrls));
-        $sqlMappedValues[AktivitaSqlSloupce::VIRTUAL_TAGS] = implode(',', array_filter($tagIds));
-        $sqlMappedValues[AktivitaSqlSloupce::POPIS] = $longAnnotation; // popis is a texts.id in fact, but we will use it as final text content here
+        $sqlMappedValues[ActivitiesImportSqlColumn::VIRTUAL_IMAGE] = implode(',', array_filter($potentialImageUrls));
+        $sqlMappedValues[ActivitiesImportSqlColumn::VIRTUAL_TAGS] = implode(',', array_filter($tagIds));
+        $sqlMappedValues[ActivitiesImportSqlColumn::POPIS] = $longAnnotation; // popis is a texts.id in fact, but we will use it as final text content here
         return $sqlMappedValues;
     }
 
@@ -302,12 +411,12 @@ SQL
         $sqlMappedValues = $this->extendValuesByVirtualColumns($sqlMappedValues, $longAnnotation, $tagIds, $potentialImageUrls);
 
         $requiredNonEmptyFields = [
-            AktivitaSqlSloupce::NAZEV_AKCE,
-            AktivitaSqlSloupce::URL_AKCE,
-            AktivitaSqlSloupce::POPIS_KRATKY,
-            AktivitaSqlSloupce::POPIS,
-            AktivitaSqlSloupce::VIRTUAL_IMAGE,
-            AktivitaSqlSloupce::VIRTUAL_TAGS,
+            ActivitiesImportSqlColumn::NAZEV_AKCE,
+            ActivitiesImportSqlColumn::URL_AKCE,
+            ActivitiesImportSqlColumn::POPIS_KRATKY,
+            ActivitiesImportSqlColumn::POPIS,
+            ActivitiesImportSqlColumn::VIRTUAL_IMAGE,
+            ActivitiesImportSqlColumn::VIRTUAL_TAGS,
         ];
 
         $missingNames = $this->getMissingRequiredFieldsForState($sqlMappedValues, $requiredNonEmptyFields, []);
@@ -341,16 +450,16 @@ SQL
 
     private static function getFieldsToNames(): array {
         return [
-            AktivitaSqlSloupce::NAZEV_AKCE => ExportAktivitSloupce::NAZEV,
-            AktivitaSqlSloupce::URL_AKCE => ExportAktivitSloupce::URL,
-            AktivitaSqlSloupce::POPIS_KRATKY => ExportAktivitSloupce::KRATKA_ANOTACE,
-            AktivitaSqlSloupce::POPIS => ExportAktivitSloupce::DLOUHA_ANOTACE,
-            AktivitaSqlSloupce::VIRTUAL_TAGS => ExportAktivitSloupce::TAGY,
-            AktivitaSqlSloupce::VIRTUAL_IMAGE => ExportAktivitSloupce::OBRAZEK,
+            ActivitiesImportSqlColumn::NAZEV_AKCE => ExportAktivitSloupce::NAZEV,
+            ActivitiesImportSqlColumn::URL_AKCE => ExportAktivitSloupce::URL,
+            ActivitiesImportSqlColumn::POPIS_KRATKY => ExportAktivitSloupce::KRATKA_ANOTACE,
+            ActivitiesImportSqlColumn::POPIS => ExportAktivitSloupce::DLOUHA_ANOTACE,
+            ActivitiesImportSqlColumn::VIRTUAL_TAGS => ExportAktivitSloupce::TAGY,
+            ActivitiesImportSqlColumn::VIRTUAL_IMAGE => ExportAktivitSloupce::OBRAZEK,
         ];
     }
 
-    public function checkLocationByAccessibility(
+    private function checkLocationByAccessibility(
         ?int        $locationId,
         ?string     $zacatekString,
         ?string     $konecString,
@@ -421,7 +530,7 @@ SQL,
         );
     }
 
-    public function checkStorytellersAccessibility(array $storytellersIds, ?string $zacatekString, ?string $konecString, ?\Aktivita $originalActivity): ImportStepResult {
+    private function checkStorytellersAccessibility(array $storytellersIds, ?string $zacatekString, ?string $konecString, ?\Aktivita $originalActivity): ImportStepResult {
         $rangeDates = $this->createRangeDates($zacatekString, $konecString);
         if (!$rangeDates) {
             return ImportStepResult::success($storytellersIds);
@@ -501,11 +610,15 @@ SQL
         return ['start' => $zacatek, 'end' => $konec];
     }
 
-    public function checkTeamCapacityRange(bool $isTeamActivity, ?int $minimalTeamCapacity, ?int $maximalTeamCapacity): ImportStepResult {
+    private function checkTeamCapacityRange(
+        bool $isTeamActivity,
+        ?int $minimalTeamCapacity,
+        ?int $maximalTeamCapacity
+    ): ImportStepResult {
         if (!$isTeamActivity) {
             return ImportStepResult::success(null);
         }
-        if ($minimalTeamCapacity > $maximalTeamCapacity) {
+        if ((int)$minimalTeamCapacity > (int)$maximalTeamCapacity) {
             return ImportStepResult::error(sprintf(
                 'Minimální týmová kapacita %d nemůže být větší než maximální %d.',
                 $minimalTeamCapacity,
@@ -515,7 +628,7 @@ SQL
         return ImportStepResult::success(null);
     }
 
-    public function checkNonTeamCapacity(
+    private function checkNonTeamCapacity(
         bool $isTeamActivity,
         bool $isTechnicalActivity,
         ?int $unisexCapacity,

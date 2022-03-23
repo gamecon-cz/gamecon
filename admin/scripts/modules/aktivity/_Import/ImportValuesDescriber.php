@@ -42,10 +42,10 @@ class ImportValuesDescriber
 
     public function describeActivityBySqlMappedValues(array $sqlMappedValues, ?\Aktivita $originalActivity): string {
         return $this->describeActivityByValues(
-            $sqlMappedValues[AktivitaSqlSloupce::ID_AKCE] ?? null,
-            $sqlMappedValues[AktivitaSqlSloupce::NAZEV_AKCE] ?? null,
-            $sqlMappedValues[AktivitaSqlSloupce::URL_AKCE] ?? null,
-            $sqlMappedValues[AktivitaSqlSloupce::POPIS_KRATKY] ?? null,
+            $sqlMappedValues[ActivitiesImportSqlColumn::ID_AKCE] ?? null,
+            $sqlMappedValues[ActivitiesImportSqlColumn::NAZEV_AKCE] ?? null,
+            $sqlMappedValues[ActivitiesImportSqlColumn::URL_AKCE] ?? null,
+            $sqlMappedValues[ActivitiesImportSqlColumn::POPIS_KRATKY] ?? null,
             $originalActivity
         );
     }

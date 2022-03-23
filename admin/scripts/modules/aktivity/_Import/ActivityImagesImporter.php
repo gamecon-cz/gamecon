@@ -4,7 +4,7 @@ namespace Gamecon\Admin\Modules\Aktivity\Import;
 
 use Gamecon\Vyjimkovac\Logovac;
 
-class ImagesImporter
+class ActivityImagesImporter
 {
 
     /** @var ImportValuesDescriber */
