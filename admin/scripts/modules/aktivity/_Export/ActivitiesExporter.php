@@ -27,8 +27,8 @@ class ActivitiesExporter
     private $uzivatel;
 
     public function __construct(
-        \Uzivatel $uzivatel,
-        GoogleDriveService $googleDriveService,
+        \Uzivatel           $uzivatel,
+        GoogleDriveService  $googleDriveService,
         GoogleSheetsService $googleSheetsService
     ) {
         $this->googleDriveService = $googleDriveService;
@@ -37,17 +37,17 @@ class ActivitiesExporter
     }
 
     /**
-     * @param array|\Aktivita[] $aktivity
+     * @param array|\Aktivita[] $activities
      * @param string $prefix
      * @return string Name of exported file
      */
-    public function exportActivities(array $aktivity, string $prefix): string {
-        $activitySheetTitle = $this->getActivitySheetTitle($aktivity);
+    public function exportActivities(array $activities, string $prefix): string {
+        $activitySheetTitle = $this->getActivitySheetTitle($activities);
         $spreadsheetTitle = $this->getSpreadsheetTitle($prefix, $activitySheetTitle);
         $spreadSheet = $this->createSheetForActivities($spreadsheetTitle, $activitySheetTitle);
 
-        $activityData = $this->getActivityData($aktivity);
-        $this->saveActivityData($activityData, $spreadSheet);
+        $activitiesData = $this->getActivitiesData($activities);
+        $this->saveActivitiesData($activitiesData, $spreadSheet);
 
         $allTagsData = $this->getAllTagsData();
         $this->saveTagsData($allTagsData, $spreadSheet);
@@ -69,77 +69,100 @@ class ActivitiesExporter
      * @param \Aktivita[] $aktivity
      * @return array
      */
-    private function getActivityData(array $aktivity): array {
-        $data[] = ExportAktivitSloupce::vsechnySloupce();
+    private function getActivitiesData(array $aktivity): array {
+        $headerRow = ExportAktivitSloupce::vsechnySloupce();
+        $data = [$headerRow];
+        $oneDayInSeconds = 86400;
         foreach ($aktivity as $aktivita) {
-            $zacatekDen = $aktivita->zacatek()
-                ? $aktivita->zacatek()->format('l')
+            $zacatek = $aktivita->zacatek();
+            $konec = $aktivita->konec();
+            $zacatekDen = $zacatek
+                ? $zacatek->format('l')
                 : '';
-            $konecDen = $aktivita->konec()
-                ? $aktivita->konec()->format('l')
+            $konecDen = $konec
+                ? $konec->format('l')
                 : '';
-            $zacatekCas = $aktivita->zacatek()
-                ? $aktivita->zacatek()->format('G:i')
+            $zacatekCas = $zacatek
+                ? $zacatek->format('G:i')
                 : '';
             $zacatekCas = preg_replace('~:00$~', '', $zacatekCas);
-            $konecCas = $aktivita->konec()
-                ? $aktivita->konec()->format('G:i')
+            $konecCas = $konec
+                ? $konec->format('G:i')
                 : '';
             $konecCas = preg_replace('~:00$~', '', $konecCas);
             $endAtSameDayAtMidnight = $konecCas === '0' // midnight
-                && $aktivita->zacatek()->modify('+1 day')->format('Ymd') === $aktivita->konec()->format('Ymd');
+                && $zacatek && $konec
+                && $zacatek->modify('+1 day')->format('Ymd') === $konec->format('Ymd');
             if ($endAtSameDayAtMidnight) {
                 $konecCas = '24'; // midnight
             }
             if ($aktivita->zacatek() && $aktivita->konec()) {
                 $trvaniAktivity = $aktivita->konec()->getTimestamp() - $aktivita->zacatek()->getTimestamp();
-                if ($trvaniAktivity > 60 * 60 * 24) {
+                if ($trvaniAktivity > $oneDayInSeconds) {
                     throw new ActivitiesExportException(
                         "Aktivita by neměla začínat a končit v jiný den, nanejvýše o půlnoci: začátek '$zacatekDen':'$zacatekCas', konec '$konecDen':'$konecCas' u aktivity {$aktivita->id()} ({$aktivita->nazev()})"
                     );
                 }
             }
-            $data[] = [
-                $aktivita->id(), // ID aktivity
-                $aktivita->typ()->nazev(), // Programová linie
-                $aktivita->nazev(), // Název
-                $aktivita->urlId(), // URL
-                $aktivita->kratkyPopis(), // Krátká anotace
-                implode('; ', $aktivita->tagy()), // Tagy
-                $aktivita->getPopisRaw(), // Dlouhá anotace
-                $zacatekDen, // Den
-                $zacatekCas, // Začátek
-                $konecCas, // Konec
-                $aktivita->lokace()
-                    ? $aktivita->lokace()->nazev()
+            $unsortedDataRow = [
+                ExportAktivitSloupce::ID_AKTIVITY => $aktivita->id(), // ID aktivity
+                ExportAktivitSloupce::PROGRAMOVA_LINIE => $aktivita->typ()->nazev(), // Programová linie
+                ExportAktivitSloupce::NAZEV => $aktivita->nazev(), // Název
+                ExportAktivitSloupce::URL => $aktivita->urlId(), // URL
+                ExportAktivitSloupce::KRATKA_ANOTACE => $aktivita->kratkyPopis(), // Krátká anotace
+                ExportAktivitSloupce::TAGY => implode('; ', $aktivita->tagy()), // Tagy
+                ExportAktivitSloupce::DLOUHA_ANOTACE => $aktivita->getPopisRaw(), // Dlouhá anotace
+                ExportAktivitSloupce::DEN => $zacatekDen, // Den
+                ExportAktivitSloupce::ZACATEK => $zacatekCas, // Začátek
+                ExportAktivitSloupce::KONEC => $konecCas, // Konec
+                ExportAktivitSloupce::MISTNOST => ($lokace = $aktivita->lokace())
+                    ? $lokace->nazev()
                     : '', // Místnost
-                implode('; ', $aktivita->orgLoginy()->getArrayCopy()), // Vypravěči
-                $aktivita->getKapacitaUnisex(), // Kapacita unisex
-                $aktivita->getKapacitaMuzu(), // Kapacita muži
-                $aktivita->getKapacitaZen(), // Kapacita ženy
-                $aktivita->tymova() // Je týmová
+                ExportAktivitSloupce::VYPRAVECI => implode('; ', $aktivita->orgLoginy()->getArrayCopy()), // Vypravěči
+                ExportAktivitSloupce::KAPACITA_UNISEX => $aktivita->getKapacitaUnisex(), // Kapacita unisex
+                ExportAktivitSloupce::KAPACITA_MUZI => $aktivita->getKapacitaMuzu(), // Kapacita muži
+                ExportAktivitSloupce::KAPACITA_ZENY => $aktivita->getKapacitaZen(), // Kapacita ženy
+                ExportAktivitSloupce::JE_TYMOVA => $aktivita->tymova() // Je týmová
                     ? 'ano'
                     : 'ne',
-                $aktivita->tymMinKapacita() ?? '', // Minimální kapacita týmu
-                $aktivita->tymMaxKapacita() ?? '', // Maximální kapacita týmu
-                (float)$aktivita->cenaZaklad(), // Cena
-                $aktivita->bezSlevy() // Bez slev
+                ExportAktivitSloupce::MINIMALNI_KAPACITA_TYMU => $aktivita->tymMinKapacita() ?? '', // Minimální kapacita týmu
+                ExportAktivitSloupce::MAXIMALNI_KAPACITA_TYMU => $aktivita->tymMaxKapacita() ?? '', // Maximální kapacita týmu
+                ExportAktivitSloupce::NASLEDUJICI_SEMIFINALE => implode(', ', array_map( // Následující (semi)finále
+                    static function (\Aktivita $aktivita) {
+                        // can not allow comma "," in a name as that is used on import as a values delimiter
+                        return $aktivita->id() . ' - ' . str_replace(',', ' ', $aktivita->nazev());
+                    },
+                    $aktivita->deti()
+                )),
+                ExportAktivitSloupce::CENA => (float)$aktivita->cenaZaklad(), // Cena
+                ExportAktivitSloupce::BEZ_SLEV => $aktivita->bezSlevy() // Bez slev
                     ? 'ano'
                     : 'ne',
-                (string)$aktivita->vybaveni(), // Příprava místnosti
-                $aktivita->stav()->nazev(), // Stav
-                $aktivita->maObrazek()
+                ExportAktivitSloupce::PRIPRAVA_MISTNOSTI => (string)$aktivita->vybaveni(), // Příprava místnosti
+                ExportAktivitSloupce::STAV => $aktivita->stav()->nazev(), // Stav
+                ExportAktivitSloupce::OBRAZEK => $aktivita->maObrazek()
                     ? $aktivita->urlObrazku()
                     : '', // Obrázek
             ];
+            $data[] = $this->sortActivitiesDataToMatchHeader($unsortedDataRow, $headerRow);
         }
         return $data;
     }
 
+    /**
+     * To allow source data in any order, just indexed by header for easier human readability @see getActivitiesData
+     */
+    private function sortActivitiesDataToMatchHeader(array $unsortedDataRow, array $headerRow): array {
+        $sortedActivityData = [];
+        foreach ($headerRow as $headerKey) {
+            $sortedActivityData[] = $unsortedDataRow[$headerKey];
+        }
+        return $sortedActivityData;
+    }
+
     private function getAllTagsData(): array {
         $data[] = ExportTaguSloupce::vsechnySloupce();
-        $tagy = \Tag::zVsech();
-        foreach ($tagy as $tag) {
+        foreach (\Tag::zVsech() as $tag) {
             $data[] = [
                 $tag->id(),
                 $tag->nazev(),
@@ -152,8 +175,7 @@ class ActivitiesExporter
 
     private function getAllStorytellersData(): array {
         $data[] = ExportVypravecuSloupce::vsechnySloupce();
-        $poradateleAktivit = \Uzivatel::poradateleAktivit();
-        foreach ($poradateleAktivit as $poradatelAktivit) {
+        foreach (\Uzivatel::poradateleAktivit() as $poradatelAktivit) {
             $data[] = [
                 $poradatelAktivit->id(),
                 $poradatelAktivit->mail(),
@@ -165,8 +187,7 @@ class ActivitiesExporter
 
     private function getAllRoomsData(): array {
         $data[] = ExportLokaciSloupce::vsechnySloupce();
-        $lokace = \Lokace::zVsech();
-        foreach ($lokace as $jednaLokace) {
+        foreach (\Lokace::zVsech() as $jednaLokace) {
             $data[] = [
                 $jednaLokace->id(),
                 $jednaLokace->nazev(),
@@ -179,8 +200,7 @@ class ActivitiesExporter
 
     private function getAllActivityStatesData(): array {
         $data[] = ExportStavuAktivitSloupce::vsechnySloupce();
-        $stavy = \Stav::zVsech();
-        foreach ($stavy as $stav) {
+        foreach (\Stav::zVsech() as $stav) {
             $data[] = [
                 $stav->nazev(),
             ];
@@ -188,8 +208,8 @@ class ActivitiesExporter
         return $data;
     }
 
-    private function saveActivityData(array $activityData, \Google_Service_Sheets_Spreadsheet $spreadsheet) {
-        $this->googleSheetsService->setValuesInSpreadsheet($activityData, $spreadsheet->getSpreadsheetId(), 1);
+    private function saveActivitiesData(array $activitiesData, \Google_Service_Sheets_Spreadsheet $spreadsheet) {
+        $this->googleSheetsService->setValuesInSpreadsheet($activitiesData, $spreadsheet->getSpreadsheetId(), 1);
     }
 
     private function saveTagsData(array $tagsData, \Google_Service_Sheets_Spreadsheet $spreadsheet) {
@@ -213,8 +233,7 @@ class ActivitiesExporter
             $sheetTitle,
             [mb_ucfirst($activitySheetTitle), 'Tagy', 'Vypravěči', 'Místnosti', 'Stavy']
         );
-        $sheets = $newSpreadsheet->getSheets();
-        foreach ($sheets as $sheet) {
+        foreach ($newSpreadsheet->getSheets() as $sheet) {
             $this->googleSheetsService->setFirstRowAsHeader($newSpreadsheet->getSpreadsheetId(), $sheet->getProperties()->getSheetId());
         }
         return $newSpreadsheet;

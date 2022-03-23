@@ -1,7 +1,7 @@
 <?php
 
 use \Gamecon\Cas\DateTimeCz;
-use Gamecon\Admin\Modules\Aktivity\Import\AktivitaSqlSloupce;
+use Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImportSqlColumn;
 
 require_once __DIR__ . '/../admin/scripts/modules/aktivity/_editor-tagu.php';
 
@@ -133,6 +133,10 @@ class Aktivita
         return 0.0;
     }
 
+    public function rok(): int {
+        return (int)$this->a['rok'];
+    }
+
     /**
      * @return string datum ve stylu Pátek 14-18
      */
@@ -160,11 +164,16 @@ class Aktivita
             return [];
         }
         return array_map(
-            static function ($idDitete) {
-                return (int)$idDitete;
-            },
+            'intval',
             array_map('trim', explode(',', $this->a['dite']))
         );
+    }
+
+    public function detiDbString(): ?string {
+        if (!$this->a['dite']) {
+            return null;
+        }
+        return $this->a['dite'];
     }
 
     /** Počet hodin do začátku aktivity (float) */
@@ -604,9 +613,9 @@ class Aktivita
             $doHlavni = ['url_akce', 'popis', 'vybaveni'];  // věci, které se mají změnit jen u hlavní (master) `instance
             $doAktualni = ['lokace', 'zacatek', 'konec'];       // věci, které se mají změnit jen u aktuální instance
             $aktivita = self::zId($data['id_akce']); // instance už musí existovat
-            if (array_key_exists(AktivitaSqlSloupce::STAV, $data)) {
-                $aktivita->zmenStav($data[AktivitaSqlSloupce::STAV]);
-                unset($data[AktivitaSqlSloupce::STAV]); // stav se může měnit jenom u jedné instance
+            if (array_key_exists(ActivitiesImportSqlColumn::STAV, $data)) {
+                $aktivita->zmenStav($data[ActivitiesImportSqlColumn::STAV]);
+                unset($data[ActivitiesImportSqlColumn::STAV]); // stav se může měnit jenom u jedné instance
             }
             // (zbytek se změní v obou)
             // určení hlavní aktivity
@@ -1661,7 +1670,7 @@ SQL
     }
 
     public function idStavu(): ?int {
-        $idStavu = $this->a[AktivitaSqlSloupce::STAV];
+        $idStavu = $this->a[ActivitiesImportSqlColumn::STAV];
         return $idStavu !== null
             ? (int)$idStavu
             : null;
@@ -2134,6 +2143,9 @@ SQL
         if (!empty($filtr['rok'])) {
             $wheres[] = 'a.rok = ' . (int)$filtr['rok'];
         }
+        if (!empty($filtr['nazev_akce'])) {
+            $wheres[] = 'TRIM(a.nazev_akce) = ' . dbQv(trim($filtr['nazev_akce']));
+        }
         if (!empty($filtr['typ'])) {
             $wheres[] = 'a.typ = ' . (int)$filtr['typ'];
         }
@@ -2141,7 +2153,7 @@ SQL
             $wheres[] = 'a.id_akce IN (SELECT id_akce FROM akce_organizatori WHERE id_uzivatele = ' . (int)$filtr['organizator'] . ')';
         }
         if (!empty($filtr['jenViditelne'])) {
-            $wheres[] = 'a.stav IN(1,2,4,5) AND NOT (a.typ = 10 AND a.stav = 2)';
+            $wheres[] = 'a.stav IN(' . implode(',', [Stav::AKTIVOVANA, Stav::PROBEHNUTA, Stav::PUBLIKOVANA, Stav::PRIPRAVENA]) . ') AND NOT (a.typ = ' . \Gamecon\Aktivita\TypAktivity::TECHNICKA . ' AND a.stav = ' . Stav::PROBEHNUTA . ')';
         }
         if (!empty($filtr['od'])) {
             $wheres[] = dbQv($filtr['od']) . ' <= a.zacatek';
@@ -2297,6 +2309,20 @@ SQL
             }
         }
         return $aktivity;
+    }
+
+    /**
+     * @param string $nazev
+     * @param int $rok
+     * @return Aktivita[]
+     */
+    public static function zNazvuARoku(string $nazev, int $rok): array {
+        return self::zFiltru(
+            [
+                'nazev_akce' => $nazev,
+                'rok' => $rok,
+            ],
+        );
     }
 
     /**
