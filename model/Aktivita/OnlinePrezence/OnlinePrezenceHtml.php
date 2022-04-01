@@ -2,8 +2,6 @@
 
 namespace Gamecon\Aktivita\OnlinePrezence;
 
-use Gamecon\Cas\DateTimeCz;
-
 class OnlinePrezenceHtml
 {
     /** @var \XTemplate */
@@ -11,17 +9,14 @@ class OnlinePrezenceHtml
     /** @var \XTemplate */
     private $onlinePrezenceUcastnikTemplate;
 
-    public function dejHtmlOnlinePrezence(array $aktivity, ?DateTimeCz $zacatek, string $urlZpet): string {
+    public function dejHtmlOnlinePrezence(array $aktivity, string $urlZpet): string {
         $template = $this->dejOnlinePrezenceTemplate();
 
-        if (!$zacatek) {
-            $template->parse('onlinePrezence.nevybrano');
-        } else if (count($aktivity) === 0) {
-            $template->assign('zacatek', $zacatek->formatCasNaMinutyStandard());
+        if (count($aktivity) === 0) {
             $template->parse('onlinePrezence.zadnaAktivita');
         } else {
             $template->assign('omniboxUrl', basename(__FILE__, '.php'));
-            $template->assign('prezenceUrl', $urlZpet);
+            $template->assign('urlZpet', $urlZpet);
             $this->sestavHtmlOnlinePrezence($template, $aktivity);
         }
 
