@@ -39,18 +39,24 @@
 
   <div class="container">
     <!-- begin:nevybrano -->
-    <p>Není vybrán blok, který se má zobrazit. Vyberte vpravo nahoře.</p>
+    <div>
+      Není vybrán blok, který se má zobrazit.
+      <form method="get" action="?zpet=1">
+        <input type="submit" value="↶ Zpět">
+      </form>
+    </div>
     <!-- end:nevybrano -->
 
     <!-- begin:zadnaAktivita -->
     <div>
-      Žádné aktivity (které se mají evidovat) nezačínají v zadaný čas.
+      Žádné aktivity (které se mají evidovat) nezačínají v zadaný čas {zacatek}.
       <form method="get" action="?zpet=1">
         <input type="submit" value="↶ Zpět">
       </form>
     </div>
     <!-- end:zadnaAktivita -->
 
+    <!-- begin:aktivity -->
     <div class="online-prezence">
 
       <div class="row">
@@ -132,6 +138,7 @@
       <!-- end:aktivita -->
 
     </div>
+    <!-- end:aktivity -->
   </div>
 </main>
 
