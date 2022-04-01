@@ -9,6 +9,7 @@
 
 /**
  * @var Uzivatel $u
+ * @var bool $testovani
  */
 
 $aktivita = Aktivita::zId(get('id'));
@@ -28,7 +29,7 @@ $dejVekVeZkratce = static function (?int $vek): string {
     return (string)$vek;
 };
 
-$t = new XTemplate('_moje-aktivita.xtpl');
+$t = new XTemplate(__DIR__ . '/_moje-aktivita.xtpl');
 
 $zacatekAktivity = $aktivita->zacatek();
 //$aktivita->zamci();
@@ -39,8 +40,10 @@ $t->assign([
     'cas' => $aktivita->denCas(),
 ]);
 
-// TODO revert $ucastnici = $aktivita->prihlaseni();
-$ucastnici = Uzivatel::zHledani('kru'); // TODO REMOVE
+$ucastnici = $testovani
+    ? Uzivatel::zHledani('kru')
+    : $aktivita->prihlaseni();
+
 $o = dbQuery(
     'SELECT id_uzivatele, MAX(cas) as cas FROM akce_prihlaseni_log WHERE id_akce = $1 GROUP BY id_uzivatele',
     [$aktivita->id()]
@@ -48,7 +51,7 @@ $o = dbQuery(
 while ($r = mysqli_fetch_assoc($o)) {
     $casyPrihlaseni[$r['id_uzivatele']] = new \Gamecon\Cas\DateTimeCz($r['cas']);
 }
-foreach ($ucastnici as $ucastnik) {
+$vypisUcastnika = static function (\Uzivatel $ucastnik) use ($zacatekAktivity, $dejVekVeZkratce, $casyPrihlaseni, $t) {
     $vekCislem = $ucastnik->vekKDatu($zacatekAktivity);
     $vek = $dejVekVeZkratce($vekCislem);
     $t->assign('u', $ucastnik);
@@ -60,21 +63,24 @@ foreach ($ucastnici as $ucastnik) {
         'casPrihlaseni' => isset($casyPrihlaseni[$ucastnik->id()]) ? $casyPrihlaseni[$ucastnik->id()]->format('j.n. H:i') : '<i>???</i>',
     ]);
     $t->parse('mojeAktivita.ucast.ucastnik');
+};
+
+foreach ($ucastnici as $ucastnik) {
+    $vypisUcastnika($ucastnik);
 }
+$t->parse('mojeAktivita.ucast');
 
 if ($aktivita->nahradnici()) {
 
-    $t->parse('mojeAktivita.hlavickaNahradnik');
+    $t->parse('mojeAktivita.ucast.hlavickaNahradnik');
 
     foreach ($aktivita->nahradnici() as $nahradnik) {
-        $vekCislem = $nahradnik->vekKDatu($zacatekAktivity);
-        $vek = $dejVekVeZkratce($vekCislem);
-        $t->assign('vek', $vek);
-        $t->assign('u', $nahradnik);
-        $t->parse('mojeAktivita.ucast.ucastnik');
+        $vypisUcastnika($nahradnik);
     }
+    $t->parse('mojeAktivita.ucast');
 }
 
-$t->parse('mojeAktivita.ucast');
+$t->assign('urlZpet', getBackUrl());
+
 $t->parse('mojeAktivita');
 $t->out('mojeAktivita');
