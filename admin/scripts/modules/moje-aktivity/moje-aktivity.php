@@ -29,7 +29,7 @@ $organizovaneAktivity = Aktivita::zFiltru([
 
 $t = new XTemplate(basename(__DIR__ . '/moje-aktivity.xtpl'));
 
-if (empty($organizovaneAktivity)) {
+if (!$organizovaneAktivity) {
     $t->parse('prehled.zadnaAktivita');
 }
 foreach ($organizovaneAktivity as $organizovanaAktivita) {
