@@ -2,8 +2,8 @@
 
 <script>
   function tgl(id) {
-    el = document.getElementById(id).style
-    el.display = (el.display === 'block') ? 'none' : 'block'
+    const element = document.getElementById(id).style
+    element.display = (element.display === 'block') ? 'none' : 'block'
     return false
   }
 </script>
@@ -43,11 +43,16 @@
   <!-- end:ucastnik -->
 </table>
 <!-- end:ucast -->
+<!-- begin:onlinePrezence -->
+<div>
+  <a href="{soucasnaUrl}?id={id}&test={testovani}" type="button" id="otevritOnlinePrezenci" style="padding: 0.3em"
+     class="ui-button">
+<!--   TODO 🔒 Zamknout pro online registraci a vyplnit prezenci ✅-->
+    Detail
+  </a>
+</div>
+<!-- end:onlinePrezence -->
 <!-- end:aktivita -->
-
-<!-- begin:onlinePrezence !-->
-{onlinePrezence}
-<!-- end:onlinePrezence !-->
 
 <!-- begin:zadnaAktivita --><p><em>(nevedeš žádné aktivity)</em></p><!-- end:zadnaAktivita -->
 

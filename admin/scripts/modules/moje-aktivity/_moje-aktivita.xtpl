@@ -1,30 +1,31 @@
 <!-- begin:mojeAktivita -->
 <style>
-  .obal {
-    min-width: unset;
-  }
+    .obal {
+        min-width: unset;
+    }
 
-  .sloupL {
-    display: none;
-  }
+    .sloupL {
+        display: none;
+    }
 
-  .sloupR {
-    position: inherit;
-    margin: 0;
-    padding: 0;
-  }
+    .sloupR {
+        position: inherit;
+        margin: 0;
+        padding: 0;
+    }
 
-  #submenu {
-    display: none;
-  }
+    #submenu {
+        display: none;
+    }
 
-  .main {
-    margin: 0;
-    padding: 1em 2em;
-  }
-  #ucast {
-    max-width: 100%;
-  }
+    .main {
+        margin: 0;
+        padding: 1em 2em;
+    }
+
+    #ucast {
+        max-width: 100%;
+    }
 </style>
 <h3>{nazevAktivity} {obsazenost}</h3>
 <div>
@@ -33,6 +34,11 @@
 
 <!-- begin:ucast -->
 <table class="vypis" id="ucast">
+  <!-- begin:hlavickaNahradnik -->
+  <tr>
+    <th colspan="100%" class="hlavicka"> Náhradníci</th>
+  </tr>
+  <!-- end:hlavickaNahradnik -->
   <tr>
     <th>Jméno</th>
     <th>E-mail</th>
@@ -51,5 +57,7 @@
   <!-- end:ucastnik -->
 </table>
 <!-- end:ucast -->
+
+<a class="ui-button" href="{urlZpet}" type="button">↶ Zpět</a>
 
 <!-- end:mojeAktivita -->

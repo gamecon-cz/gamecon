@@ -15,7 +15,9 @@ function array_keys_exist($keys, $search) {
 /** Flattens array in manner $pre.$element.$post for all elements, separated by $sep */
 function array_flat($pre, $array, $post = '', $sep = '') {
     $out = '';
-    foreach ($array as $e) $out .= $pre . $e . $post;
+    foreach ($array as $e) {
+        $out .= $pre . $e . $post;
+    }
     return $out;
 }
 
@@ -63,9 +65,13 @@ function back(string $to = null) {
     exit;
 }
 
+function getBackUrl(): string {
+    $refererParts = parse_url($_SERVER['HTTP_REFERER']);
+    return rtrim(implode('?', [$refererParts['path'], $refererParts['query']]), '?');
+}
+
 function get($name) {
-    if (isset($_GET[$name])) return $_GET[$name];
-    else return null;
+    return $_GET[$name] ?? null;
 }
 
 /**
@@ -78,36 +84,32 @@ function opt($actual, $default) {
     $opt = [];
     foreach ($default as $key => $val) {
         if (is_numeric($key)) {
-            if (array_key_exists($val, $actual))
+            if (array_key_exists($val, $actual)) {
                 $opt[$val] = $actual[$val];
-            else
+            } else {
                 throw new BadFunctionCallException('key "' . $val . '" in options missing');
+            }
         } else {
-            if (array_key_exists($key, $actual))
+            if (array_key_exists($key, $actual)) {
                 $opt[$key] = $actual[$key];
-            else
+            } else {
                 $opt[$key] = $val;
+            }
         }
     }
     return $opt;
 }
 
 function post($name, $field = null) {
-    if (!$field && isset($_POST[$name])) {
-        return $_POST[$name];
+    if ($field === null) {
+        return $_POST[$name] ?? null;
     }
-    if ($field && isset($_POST[$name][$field])) {
-        return $_POST[$name][$field];
-    }
-    return null;
+    return $_POST[$name][$field] ?? null;
 }
 
 /** Returns temporary filename for uploaded file or '' if none */
 function postFile($name) {
-    if (isset($_FILES[$name]['tmp_name'])) {
-        return $_FILES[$name]['tmp_name'];
-    }
-    return '';
+    return $_FILES[$name]['tmp_name'] ?? '';
 }
 
 /**
@@ -192,8 +194,9 @@ function tabHtml(array $tab, string $title = ''): string {
         $tabOut .= "<caption>$title</caption>";
     }
     $tabOut .= "  <tr>\n    <th>" . implode("</th>\n    <th>", $tab[0]) . "</th>\n  </tr>\n";
-    for ($i = 1; $i < count($tab); $i++)
+    for ($i = 1, $tabsCount = count($tab); $i < $tabsCount; $i++) {
         $tabOut .= "  <tr>\n    <td>" . implode("</td>\n    <td>", $tab[$i]) . "</td>\n  </tr>\n";
+    }
     $tabOut .= "</table>\n\n";
     return $tabOut;
 }
@@ -209,12 +212,14 @@ function tabMysql($a, string $title = ''): string {
     if ($title !== '') {
         $tabOut .= "<caption>$title</caption>";
     }
-    if (!$r = mysqli_fetch_assoc($a))
+    if (!$r = mysqli_fetch_assoc($a)) {
         return '';
+    }
     $tabOut .= "  <tr>\n    <th>" . implode("</th>\n    <th>", array_keys($r)) . "</th>\n  </tr>\n";
     $tabOut .= "  <tr>\n    <td>" . implode("</td>\n    <td>", $r) . "</td>\n  </tr>\n";
-    while ($r = mysqli_fetch_row($a))
+    while ($r = mysqli_fetch_row($a)) {
         $tabOut .= "  <tr>\n    <td>" . implode("</td>\n    <td>", $r) . "</td>\n  </tr>\n";
+    }
     $tabOut .= "</table>\n\n";
     return $tabOut;
 }
