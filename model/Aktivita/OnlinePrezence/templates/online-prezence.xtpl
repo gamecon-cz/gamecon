@@ -41,7 +41,7 @@
     <!-- begin:nevybrano -->
     <div>
       Není vybrán blok, který se má zobrazit.
-      <form method="get" action="?zpet=1">
+      <form method="get" action="{urlZpet}">
         <input type="submit" value="↶ Zpět">
       </form>
     </div>
@@ -50,7 +50,7 @@
     <!-- begin:zadnaAktivita -->
     <div>
       Žádné aktivity (které se mají evidovat) nezačínají v zadaný čas {zacatek}.
-      <form method="get" action="?zpet=1">
+      <form method="get" action="{urlZpet}">
         <input type="submit" value="↶ Zpět">
       </form>
     </div>
@@ -97,7 +97,7 @@
           </span>
           <span class="col"></span>
           <span class="col-xl-2 col-md-4 col-sm-12">
-            <a style="width: 100%" href="{prezenceUrl}" class="btn btn-warning">↶ Zpět na <em>Moje aktivity</em></a>
+            <a style="width: 100%" href="{urlZpet}" class="btn btn-warning">↶ Zpět</a>
           </span>
         </div>
 
