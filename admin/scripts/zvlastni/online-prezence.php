@@ -25,6 +25,5 @@ $aktivity = $zacatek
 
 echo $onlinePrezenceHtml->dejHtmlOnlinePrezence(
     $aktivity,
-    $zacatek,
-    basename(__DIR__ . '/../modules/prezence/prezence.php', '.php') // URL pro návrat je prostě "prezence", ale protože je přímo závislá na názvu toho souboru, tak ten název radši taháme takto, aby IDE při přejmenování souboru změnilo i tuhle cestu a tím tu URL
+    getBackUrl()
 );
