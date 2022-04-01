@@ -843,12 +843,14 @@ class Aktivita
      */
     public function nahradnici() {
         if (!isset($this->nahradnici)) {
-            return Uzivatel::zIds(dbOneCol('
-        SELECT GROUP_CONCAT(aps.id_uzivatele)
-        FROM akce_seznam a
-        LEFT JOIN akce_prihlaseni_spec aps ON aps.id_akce = a.id_akce
-        WHERE aps.id_akce = ' . $this->id() . ' AND aps.id_stavu_prihlaseni = ' . self::SLEDUJICI
-            ));
+            $this->nahradnici = Uzivatel::zIds(
+                dbOneCol('
+                    SELECT GROUP_CONCAT(aps.id_uzivatele)
+                    FROM akce_seznam a
+                    LEFT JOIN akce_prihlaseni_spec aps ON aps.id_akce = a.id_akce
+                    WHERE aps.id_akce = ' . $this->id() . ' AND aps.id_stavu_prihlaseni = ' . self::SLEDUJICI
+                )
+            );
         }
         return $this->nahradnici;
     }
@@ -1758,8 +1760,8 @@ SQL
 
     /** Aktualizuje stav aktivity podle databáze */
     public function refresh() {
-        $aktualni = self::zId($this->id());
-        $this->a = $aktualni->a;
+        $this->a = self::zId($this->id())->a;
+        $this->nahradnici = null;
     }
 
     /** Vrátí aktivity, u kterých je tato aktivita jako jedno z dětí */
@@ -2235,7 +2237,7 @@ SQL
      *  parametr => sloupec
      * @todo filtr dle orga
      */
-    public static function zFiltru($filtr, array $razeni = []): array {
+    public static function zFiltru($filtr, array $razeni = [], ?int $limit = null): array {
         // sestavení filtrů
         $wheres = [];
         if (!empty($filtr['rok'])) {
@@ -2287,10 +2289,12 @@ SQL
         }
 
         // select
-        $aktivity = (array)self::zWhere('WHERE ' . $where, null, $order); // přetypování nutné kvůli správné funkci unsetu
+        $aktivity = (array)self::zWhere('WHERE ' . $where, null, $order, $limit); // přetypování nutné kvůli správné funkci unsetu
         if (!empty($filtr['jenVolne'])) {
             foreach ($aktivity as $id => $a) {
-                if ($a->volno() === 'x') unset($aktivity[$id]);
+                if ($a->volno() === 'x') {
+                    unset($aktivity[$id]);
+                }
             }
         }
 
@@ -2447,37 +2451,43 @@ SQL
      * Vrátí iterátor s aktivitami podle zadané where klauzule. Alias tabulky
      * akce_seznam je 'a'.
      * @param string $where obsah where klauzule (bez úvodního klíč. slova WHERE)
-     * @param $args array volitelné pole argumentů pro dbQueryS()
-     * @param $order string volitelně celá klauzule ORDER BY včetně klíč. slova
+     * @param array|null $args volitelné pole argumentů pro dbQueryS()
+     * @param string $order volitelně celá klauzule ORDER BY včetně klíč. slova
      * @return Aktivita[]
      * @todo třída která obstará reálný iterátor, nejenom obalení pole (nevýhoda
      *  pole je nezměněná nutnost čekat, než se celá odpověď načte a přesype do
      *  paměti
      */
-    protected static function zWhere($where, $args = null, $order = null): array {
-        $o = dbQueryS("
-      SELECT t3.*,
-             (SELECT GROUP_CONCAT(sjednocene_tagy.nazev ORDER BY kst.poradi, sjednocene_tagy.nazev)
-FROM sjednocene_tagy
-         JOIN akce_sjednocene_tagy ON akce_sjednocene_tagy.id_tagu = sjednocene_tagy.id
-         JOIN kategorie_sjednocenych_tagu kst on sjednocene_tagy.id_kategorie_tagu = kst.id
-             WHERE akce_sjednocene_tagy.id_akce = t3.id_akce
-             ) AS tagy
-      FROM (
-        SELECT t2.*, CONCAT(',',GROUP_CONCAT(p.id_uzivatele,u.pohlavi,p.id_stavu_prihlaseni),',') AS prihlaseni,
-               IF(t2.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = t2.patri_pod), t2.url_akce) as url_temp
+    protected static function zWhere($where, $args = null, $order = null, ?string $limit = null): array {
+        $limitSql = $limit !== null
+            ? "LIMIT $limit"
+            : '';
+        $o = dbQueryS(<<<SQL
+SELECT t3.*,
+    (SELECT GROUP_CONCAT(sjednocene_tagy.nazev ORDER BY kst.poradi, sjednocene_tagy.nazev)
+        FROM sjednocene_tagy
+        JOIN akce_sjednocene_tagy ON akce_sjednocene_tagy.id_tagu = sjednocene_tagy.id
+        JOIN kategorie_sjednocenych_tagu kst ON sjednocene_tagy.id_kategorie_tagu = kst.id
+        WHERE akce_sjednocene_tagy.id_akce = t3.id_akce
+    ) AS tagy
+    FROM
+    (SELECT t2.*, CONCAT(',',GROUP_CONCAT(p.id_uzivatele,u.pohlavi,p.id_stavu_prihlaseni),',') AS prihlaseni,
+        IF(t2.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = t2.patri_pod), t2.url_akce) AS url_temp
         FROM (
-          SELECT a.*, al.poradi
-          FROM akce_seznam a
-          LEFT JOIN akce_lokace al ON (al.id_lokace = a.lokace)
-          $where
-        ) as t2
+            SELECT a.*, al.poradi
+            FROM akce_seznam a
+            LEFT JOIN akce_lokace al ON (al.id_lokace = a.lokace)
+            $where
+        ) AS t2
         LEFT JOIN akce_prihlaseni p ON (p.id_akce = t2.id_akce)
         LEFT JOIN uzivatele_hodnoty u ON (u.id_uzivatele = p.id_uzivatele)
         GROUP BY t2.id_akce
-      ) as t3
-      $order
-    ", $args);
+    ) AS t3
+    $order
+    $limitSql
+SQL,
+            $args
+        );
 
         $kolekce = []; // pomocný sdílený seznam aktivit pro přednačítání
 
