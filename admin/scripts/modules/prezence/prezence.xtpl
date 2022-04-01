@@ -90,7 +90,7 @@
     <!-- end:vyplnena -->
 
     <!-- begin:onlinePrezence -->
-    <a href="online-prezence?ids={ids}" type="button" id="otevritOnlinePrezenci" style="padding: 0.3em" class="ui-button">
+    <a href="online-prezence?cas={cas}" type="button" id="otevritOnlinePrezenci" style="padding: 0.3em" class="ui-button">
       🔒 Zamknout pro online registraci a vyplnit prezenci ✅</a>
     <!-- end:onlinePrezence -->
 

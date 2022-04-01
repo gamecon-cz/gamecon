@@ -1948,7 +1948,7 @@ SQL
         $prezence->ulozDorazivsiho($dorazil);
     }
 
-    public function zrusDorazeni(Uzivatel $dorazil) {
+    public function zrusZeDorazil(Uzivatel $dorazil) {
         $prezence = new AktivitaPrezence($this);
         $prezence->zrusDorazeni($dorazil);
     }

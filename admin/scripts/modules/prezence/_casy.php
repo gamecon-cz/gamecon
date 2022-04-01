@@ -4,7 +4,7 @@ use \Gamecon\Cas\DateTimeCz;
 
 /**
  * Vhackovaný code snippet na zobrazení vybírátka času
- * @param DateTimeCz $zacatekDt do tohoto se přiřadí vybraný čas začátku aktivit
+ * @param null|DateTimeCz $zacatekDt do tohoto se přiřadí vybraný čas začátku aktivit
  * @param bool $pred true jestli se má vybírat hodina před vybraným časem a false jestli vybraná hodina
  * @return string html kód vybírátka
  */
@@ -68,7 +68,9 @@ function _casy(&$zacatekDt, bool $pred = false) {
         $t->parse('casy.zadnyCas');
     }
 
-    $zacatekDt = $vybrany ? clone $vybrany : null;
+    $zacatekDt = $vybrany
+        ? clone $vybrany
+        : null;
 
     $t->parse('casy');
     return $t->text('casy');
