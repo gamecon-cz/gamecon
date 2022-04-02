@@ -9,15 +9,22 @@ class OnlinePrezenceHtml
     /** @var \XTemplate */
     private $onlinePrezenceUcastnikTemplate;
 
-    public function dejHtmlOnlinePrezence(array $aktivity, string $urlZpet): string {
+    public function dejHtmlOnlinePrezence(
+        array              $aktivity,
+        int                $editovatelnaXMinutPredZacatkem = 20,
+        \DateTimeInterface $now = null,
+        string             $urlZpet = null,
+        string             $ajaxUrl = null
+    ): string {
         $template = $this->dejOnlinePrezenceTemplate();
+
+        $template->assign('urlZpet', $urlZpet ?? getBackUrl());
 
         if (count($aktivity) === 0) {
             $template->parse('onlinePrezence.zadnaAktivita');
         } else {
-            $template->assign('omniboxUrl', basename(__FILE__, '.php'));
-            $template->assign('urlZpet', $urlZpet);
-            $this->sestavHtmlOnlinePrezence($template, $aktivity);
+            $template->assign('omniboxUrl', $ajaxUrl ?? getCurrentUrlPath());
+            $this->sestavHtmlOnlinePrezence($template, $aktivity, $editovatelnaXMinutPredZacatkem, $now);
         }
 
         $template->parse('onlinePrezence');
@@ -34,26 +41,47 @@ class OnlinePrezenceHtml
     /**
      * @param \XTemplate $template
      * @param array|\Aktivita[] $aktivity
+     * @param int $editovatelnaXMinutPredZacatkem
+     * @param \DateTimeInterface|null $now
      * @return void
      */
-    private function sestavHtmlOnlinePrezence(\XTemplate $template, array $aktivity) {
+    private function sestavHtmlOnlinePrezence(
+        \XTemplate          $template,
+        array               $aktivity,
+        int                 $editovatelnaXMinutPredZacatkem,
+        ?\DateTimeInterface $now
+    ) {
+        $now = $now ?? new \DateTimeImmutable();
+
         foreach ($aktivity as $aktivita) {
+            $editovatelnaOdTimestamp = self::dejEditovatelnaOdTimestamp($aktivita, $editovatelnaXMinutPredZacatkem, $now);
+            $editovatelnaHned = $editovatelnaOdTimestamp > 0;
             $zamcena = $aktivita->zamcena();
 
-            $template->assign('a', $aktivita);
+            // 🔒 Uzavřena pro online přihlašování 🔒
+            $template->assign('displayNoneCssClassUzavrena', $this->dejCssClassNeviditelnosti($zamcena));
+            // Spustit a zamkout 🔒
+            $template->assign('displayNoneCssClassUzavrit', $this->dejCssClassNeviditelnosti(!$zamcena && $editovatelnaHned));
             $template->assign('uzavrena', $zamcena);
+            // ⏳ Můžeš ji editovat za ⏳
+            $template->assign('editovatelnaOdTimestamp', $editovatelnaOdTimestamp);
+            $template->assign('displayNoneCssClassCeka', $this->dejCssClassNeviditelnosti(!$zamcena && !$editovatelnaHned));
 
             foreach ($aktivita->prihlaseni() as $prihlasenyUzivatel) {
                 $ucastnikHtml = $this->sestavHmlUcastnikaAktivity(
                     $prihlasenyUzivatel,
                     $aktivita,
-                    $aktivita->dorazilJakoCokoliv($prihlasenyUzivatel)
+                    $aktivita->dorazilJakoCokoliv($prihlasenyUzivatel),
+                    !$editovatelnaHned
                 );
                 $template->assign('ucastnikHtml', $ucastnikHtml);
                 $template->parse('onlinePrezence.aktivity.aktivita.form.ucastnik');
             }
 
             if (!$zamcena) {
+                $template->assign('disabledPridatUcastnika', $editovatelnaHned ? '' : 'disabled');
+                $template->assign('idAktivity', $aktivita->id());
+                $template->assign('editovatelnaOd', $editovatelnaOdTimestamp);
                 $template->parse('onlinePrezence.aktivity.aktivita.form.pridatUcastnika');
             }
 
@@ -65,18 +93,38 @@ class OnlinePrezenceHtml
         $template->parse('onlinePrezence.aktivity');
     }
 
+    private static function dejEditovatelnaOdTimestamp(\Aktivita $aktivita, int $editovatelnaXMinutPredZacatkem, ?\DateTimeInterface $now): int {
+        $now = $now ?? new \DateTimeImmutable();
+        $zacatek = $aktivita->zacatek();
+        $hnedEditovatelnaSeZaCatkemDo = $zacatek ?
+            (clone $zacatek)->modify("-{$editovatelnaXMinutPredZacatkem} minutes")
+            : null;
+        $editovatelnaHned = !$hnedEditovatelnaSeZaCatkemDo || $hnedEditovatelnaSeZaCatkemDo <= $now;
+        $editovatelnaOdTimestamp = $editovatelnaHned
+            ? 0 // aktivitu může editovat hned
+            // pokud například začíná v 12:10, ale editovatelné jsou etď jen ty co začínají nanejvýše do 12:00, tak musíme počkat 10 minut
+            : time() + ($hnedEditovatelnaSeZaCatkemDo->getTimestamp() - $now->getTimestamp());
+
+        return $editovatelnaOdTimestamp;
+    }
+
+    private function dejCssClassNeviditelnosti(bool $zobrazit) {
+        return $zobrazit ? '' : 'display-none';
+    }
+
     public function sestavHmlUcastnikaAktivity(
         \Uzivatel $ucastnik,
         \Aktivita $aktivita,
-        bool      $dorazil
+        bool      $dorazil,
+        bool      $zatimPouzeProCteni
     ): string {
         $ucastnikTemplate = $this->dejOnlinePrezenceUcastnikTemplate();
 
         $ucastnikTemplate->assign('u', $ucastnik);
         $ucastnikTemplate->assign('a', $aktivita);
 
-        $ucastnikTemplate->assign('checked', $dorazil ? 'checked' : '');
-        $ucastnikTemplate->assign('disabled', $aktivita->zamcena() ? 'disabled' : '');
+        $ucastnikTemplate->assign('checkedUcastnik', $dorazil ? 'checked' : '');
+        $ucastnikTemplate->assign('disabledUcastnik', $zatimPouzeProCteni || $aktivita->zamcena() ? 'disabled' : '');
         $ucastnikTemplate->parse('ucastnik.checkbox');
 
         $ucastnikTemplate->parse('ucastnik.' . ($ucastnik->gcPritomen() ? 'pritomen' : 'nepritomen'));

@@ -9,87 +9,78 @@
 
   <title>Online prezence - {nadpis}</title>
 
-  <link rel="stylesheet" href="files/bootstrap.5.1.css"/>
+  <link rel="stylesheet" href="files/bootstrap.5.1.3.css"/>
   <link rel="stylesheet" href="files/font-awesome-5-15-4/all.min.css"/>
   <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-v1.12.1.min.css"/>
   <link rel="stylesheet" href="files/design/hint.css?version=4ec833e6ceb39920a5c5f3fb79a1c16d"/>
   <link rel="stylesheet" href="files/design/zvyraznena-tabulka.css?version=1adaf17a04a97a92082bd531141ec69e"/>
+  <link rel="stylesheet" href="files/design/online-prezence.css?version=d5b1d6f87ce8de3e4e3ce560edcf86f5"/>
 
   <script type="text/javascript" src="files/jquery-3.4.1.min.js"></script>
   {jsVyjimkovac}
   <script type="text/javascript" src="files/jquery-ui-v1.12.1.min.js"></script>
   <script type="text/javascript" src="files/jquery.hotkeys-0.8.0.js"></script>
+  <script type="text/javascript" src="files/bootstrap.bundle.5.1.3.js"></script>
 
   <script type="text/javascript" src="files/omnibox.js?version=e5cd9171d8ae5178823bdcf81f68b43d"></script>
   <script type="text/javascript" src="files/online-prezence.js?version=eaa8f611d5b7ad3e59c866efd003e495"></script>
-  <style>
-      .ui-helper-hidden-accessible {
-          display: none
-      }
-  </style>
 </head>
 
-<body style="padding: 1em">
-
-<script type="text/javascript">
-
-</script>
+<body>
 
 <main class="main">
 
   <div class="container">
-    <!-- begin:nevybrano -->
-    <div>
-      Není vybrán blok, který se má zobrazit.
-      <form method="get" action="{urlZpet}">
-        <input type="submit" value="↶ Zpět">
-      </form>
-    </div>
-    <!-- end:nevybrano -->
 
     <!-- begin:zadnaAktivita -->
-    <div>
-      Žádné aktivity (které se mají evidovat) nezačínají v zadaný čas {zacatek}.
-      <form method="get" action="{urlZpet}">
-        <input type="submit" value="↶ Zpět">
-      </form>
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 99vh">
+      <div style="font-size: xx-large">
+        Žádné aktivity 😞
+        <div>
+          <a class="btn btn-warning" href="{urlZpet}" style="width: 100%">↶ Zpět</a>
+        </div>
+      </div>
     </div>
     <!-- end:zadnaAktivita -->
 
     <!-- begin:aktivity -->
-    <div class="online-prezence">
 
-      <div class="row">
-        <p class="col-sm" id="kontrolniUpozorneni" style="font-style: italic">
-          Před uzavřením prosím zkontroluj, že u aktivity není uvedený žádný problém.
-          Pokud někteří účastníci neprošli infopultem, zkus jim zavolat a přivolat je k infopultu.
-          Pokud se nedovoláš nebo zjistíš, že na GC nedojdou, odhlaš je z aktivity.
-        </p>
-      </div>
+    <script>
+      let posledneKliknutaAktivitaId
+    </script>
 
-      <script type="text/javascript">
-        const kontrolniUpozorneni = document.getElementById('kontrolniUpozorneni').innerText
-      </script>
+    <div class="online-prezence" id="online-prezence">
 
       <!-- begin:aktivita -->
-      <div data-id="{a.id}">
+      <div class="aktivita" id="aktivita-{idAktivity}" data-id="{idAktivity}">
 
         <h2 id="{nadpis}">{nadpis} <a href="#{nadpis}" style="color: darkgray; opacity: 0.6">#</a></h2>
 
         <div style="padding: 0.5em 0" class="row">
-          <span class="col-xl-3 col-md-6 col-sm-12">
-            <span style="display: none" id="uzavrena-{a.id}" data-uzavrena="{uzavrena}">
+          <span class="col-xl-3 col-md-6 col-sm-12 text-sm-center text-md-start align-self-center">
+            <span style="white-space: nowrap" class="text-ceka {displayNoneCssClassCeka}">
+              <em>⏳ Můžeš ji editovat za <span id="odpocet-{idAktivity}" class="odpocet"
+                                               data-editovatelna-od="{editovatelnaOdTimestamp}"></span> ⏳</em>
+            </span>
+            <span style="white-space: nowrap" id="uzavrena-{idAktivity}"
+                  class="text-uzavrena {displayNoneCssClassUzavrena}" data-uzavrena="{uzavrena}">
               <em>🔒 Uzavřena pro online přihlašování 🔒</em>
             </span>
-            <button class="btn btn-outline-danger" style="width: 100%" id="otevrena-{a.id}"
-                    onclick="confirm(kontrolniUpozorneni) && uzavritAktivitu('{a.id}', this, document.getElementById('uzavrena-{a.id}'))">
+            <button class="btn btn-outline-danger tlacitko-uzavrit-aktivitu {displayNoneCssClassUzavrit}"
+                    style="width: 100%"
+                    id="otevrena-{idAktivity}"
+                    type="button"
+                    data-bs-toggle="modal"
+                    data-bs-target="#exampleModal"
+                    onclick="posledneKliknutaAktivitaId={idAktivity}">
               Spustit a zamknout 🔒
             </button>
+
             <script>
               { // local scope
-                const uzavrenaElement = document.getElementById('uzavrena-{a.id}')
+                const uzavrenaElement = document.getElementById('uzavrena-{idAktivity}')
                 if (uzavrenaElement.dataset.uzavrena) {
-                  const otevrenaElement = document.getElementById('otevrena-{a.id}')
+                  const otevrenaElement = document.getElementById('otevrena-{idAktivity}')
                   prohoditZobrazeni(otevrenaElement, uzavrenaElement)
                 }
               }
@@ -104,7 +95,7 @@
         <!-- begin:form -->
         <form class="formAktivita">
           <!-- <input type="hidden" name="kapacita_celkova" value="{}" /> --><!-- TODO kapacita -->
-          <input type="hidden" name="prezenceAktivity" value="{a.id}"/>
+          <input type="hidden" name="prezenceAktivity" value="{idAktivity}"/>
           <table class="zvyraznovana" style="width: 100%" id="ucastniciAktivity">
             <tr class="col-md col-sm-6 no-gutters">
               <th style="text-align: center">?</th>
@@ -123,9 +114,10 @@
           <!-- begin:pridatUcastnika -->
           <div class="row" style="margin: 1em 0">
             <input type="text" class="omnibox col-md-4"
+                   {disabledPridatUcastnika}
                    placeholder="Přidej účastníka..."
                    data-omnibox='{"labelSlozenZ": ["id", "jmenoNick", "mail", "zustatek", "gcPritomen"]}'
-                   data-omnibox-url="{omniboxUrl}?omnibox=1&ajax=1&id-aktivity={a.id}"
+                   data-omnibox-url="{omniboxUrl}?omnibox=1&ajax=1&idAktivity={idAktivity}"
             >
             <span class="col-md-4 omnibox-nic-nenalezeno" style="display: none"><em>Nic...</em> 🤷</span>
           </div>
@@ -137,6 +129,34 @@
       </div>
       <!-- end:aktivita -->
 
+    </div>
+
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="opravduZavrit" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="opravduZavrit">Opravdu uzavřít aktivitu?</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            Před uzavřením prosím zkontroluj, že u aktivity není uvedený žádný problém.
+            Pokud někteří účastníci neprošli infopultem, zkus jim zavolat a přivolat je k infopultu.
+            Pokud se nedovoláš nebo zjistíš, že na GC nedojdou, odhlaš je z aktivity.
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Opravit prezenci</button>
+            <button type="button" class="btn btn-primary"
+                    onclick="uzavritAktivitu(
+                      posledneKliknutaAktivitaId,
+                      document.getElementById('otevrena-' + posledneKliknutaAktivitaId),
+                      document.getElementById('uzavrena-' + posledneKliknutaAktivitaId)
+                    )"
+                    data-bs-dismiss="modal">
+              Uzavřít aktivitu
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
     <!-- end:aktivity -->
   </div>
