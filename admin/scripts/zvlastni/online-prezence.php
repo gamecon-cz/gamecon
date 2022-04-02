@@ -23,7 +23,4 @@ $aktivity = $zacatek
     ? Aktivita::zRozmezi($zacatek, $zacatek)
     : [];
 
-echo $onlinePrezenceHtml->dejHtmlOnlinePrezence(
-    $aktivity,
-    getBackUrl()
-);
+echo $onlinePrezenceHtml->dejHtmlOnlinePrezence($aktivity);

@@ -6,10 +6,10 @@
  */
 
 require __DIR__ . '/../nastaveni/zavadec.php';
-/** @var \Gamecon\Vyjimkovac\Vyjimkovac $vyjimkovac */
 
 // TODO nutný hack před zmergeování zavaděče mezi redesignem a masterem
 // tato proměnná je nastavena zavaděčem a zde upravíme zobrazení výjimek
+/** @var \Gamecon\Vyjimkovac\Vyjimkovac $vyjimkovac */
 $vyjimkovac->zobrazeni(\Gamecon\Vyjimkovac\Vyjimkovac::PLAIN);
 
 //////////////////////////////// pomocné funkce ////////////////////////////////
@@ -35,12 +35,13 @@ if (!defined('CRON_KEY') || get('key') !== CRON_KEY)
 // otevřít log soubor pro zápis a přesměrovat do něj výstup
 $logdir = SPEC . '/logs';
 $logfile = 'cron-' . date('Y-m') . '.log';
-if (!is_dir($logdir))
-    mkdir($logdir);
-$logdescriptor = fopen($logdir . '/' . $logfile, 'ab');
-ob_start(function ($string) use ($logdescriptor) {
-    fwrite($logdescriptor, $string . "\n");
-    fclose($logdescriptor);
+if (!mkdir($logdir) && !is_dir($logdir)) {
+    throw new \RuntimeException(sprintf('Directory "%s" was not created', $logdir));
+}
+$logDescriptor = fopen($logdir . '/' . $logfile, 'ab');
+ob_start(static function ($string) use ($logDescriptor) {
+    fwrite($logDescriptor, $string . "\n");
+    fclose($logDescriptor);
 });
 
 // zapnout zobrazení chyb
@@ -58,14 +59,21 @@ if (defined('FIO_TOKEN') && FIO_TOKEN !== '') {
     foreach ($platby as $p) {
         logs('platba ' . $p->id() . ' (' . $p->castka() . 'Kč, VS: ' . $p->vs() . ($p->zprava() ? ', zpráva: ' . $p->zprava() : '') . ')');
     }
-    if (!$platby) logs('Žádné zaúčtovatelné platby.');
+    if (!$platby) {
+        logs('Žádné zaúčtovatelné platby.');
+    }
 } else {
     logs('FIO_TOKEN není definován, přeskakuji nové platby.');
 }
 
-logs('Odemykám zamčené aktivity.');
+logs('Odemykám zamčené aktivity...');
 $i = Aktivita::odemciHromadne();
-logs("Odemčeno $i aktivit.");
+logs("odemčeno $i aktivit.");
+
+logs('Zamykám už běžící, dosud nezamčené aktivity...');
+$idsZamcenmych = Aktivita::zamciUzBeziciOd(new DateTimeImmutable('-45 minutes'));
+$pocetZamcenych = count($idsZamcenmych);
+logs("zamčeno $pocetZamcenych aktivit.");
 
 if (date('G') >= 5) { // 5 hodin ráno či později
     $dnesniZalohaPattern = ZALOHA_DB_SLOZKA . '/export_' . date('Y-m-d_') . '[0-9][0-9][0-9][0-9][0-9][0-9].sql.gz';

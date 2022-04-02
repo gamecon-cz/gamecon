@@ -240,6 +240,8 @@ Organizační tým GameConu',
 @define('PROGRAM_ZACATEK', 8); // první hodina programu
 @define('PROGRAM_KONEC', 24); // konec programu (tuto hodinu už se nehraje)
 
+@define('MOJE_AKTIVITY_EDITOVATELNE_X_MINUT_PRED_JEJICH_ZACATKEM', 20);
+
 @define('PRODEJ_JIDLA_POZASTAVEN', false);
 
 define('SUPERADMINI', [1682 /* Štěpán "Bonjour" Štefaník */, 4032 /* Jaroslav "Kostřivec" Týc */, 1112 /* Lenka "Cemi" Zavadilová */]);

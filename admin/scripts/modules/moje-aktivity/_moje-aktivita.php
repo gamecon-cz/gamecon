@@ -19,68 +19,14 @@ if ($problem) {
     return;
 }
 
-$dejVekVeZkratce = static function (?int $vek): string {
-    if ($vek === null) {
-        return '?';
-    }
-    if ($vek >= 18) {
-        return '18+';
-    }
-    return (string)$vek;
-};
+global $BEZ_DEKORACE;
+$BEZ_DEKORACE = true; // pokud nedoslo k chybě, tak nechceme levé menu, ale pouze nový čistý layout pro prezenci, viz admin/index.php
 
-$t = new XTemplate(__DIR__ . '/_moje-aktivita.xtpl');
+$onlinePrezenceHtml = new \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml();
+$onlinePrezenceAjax = new \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax($onlinePrezenceHtml);
 
-$zacatekAktivity = $aktivita->zacatek();
-//$aktivita->zamci();
-$t->assign([
-    'a' => $aktivita,
-    'nazevAktivity' => $aktivita->nazev(),
-    'obsazenost' => $aktivita->obsazenostHtml(),
-    'cas' => $aktivita->denCas(),
-]);
-
-$ucastnici = $testovani
-    ? Uzivatel::zHledani('kru')
-    : $aktivita->prihlaseni();
-
-$o = dbQuery(
-    'SELECT id_uzivatele, MAX(cas) as cas FROM akce_prihlaseni_log WHERE id_akce = $1 GROUP BY id_uzivatele',
-    [$aktivita->id()]
-);
-while ($r = mysqli_fetch_assoc($o)) {
-    $casyPrihlaseni[$r['id_uzivatele']] = new \Gamecon\Cas\DateTimeCz($r['cas']);
-}
-$vypisUcastnika = static function (\Uzivatel $ucastnik) use ($zacatekAktivity, $dejVekVeZkratce, $casyPrihlaseni, $t) {
-    $vekCislem = $ucastnik->vekKDatu($zacatekAktivity);
-    $vek = $dejVekVeZkratce($vekCislem);
-    $t->assign('u', $ucastnik);
-    $t->assign([
-        'jmeno' => $ucastnik->jmenoNick(),
-        'mail' => $ucastnik->mail(),
-        'vek' => $vek,
-        'telefon' => $ucastnik->telefon(),
-        'casPrihlaseni' => isset($casyPrihlaseni[$ucastnik->id()]) ? $casyPrihlaseni[$ucastnik->id()]->format('j.n. H:i') : '<i>???</i>',
-    ]);
-    $t->parse('mojeAktivita.ucast.ucastnik');
-};
-
-foreach ($ucastnici as $ucastnik) {
-    $vypisUcastnika($ucastnik);
-}
-$t->parse('mojeAktivita.ucast');
-
-if ($aktivita->nahradnici()) {
-
-    $t->parse('mojeAktivita.ucast.hlavickaNahradnik');
-
-    foreach ($aktivita->nahradnici() as $nahradnik) {
-        $vypisUcastnika($nahradnik);
-    }
-    $t->parse('mojeAktivita.ucast');
+if ($onlinePrezenceAjax->odbavAjax()) {
+    return;
 }
 
-$t->assign('urlZpet', getBackUrl());
-
-$t->parse('mojeAktivita');
-$t->out('mojeAktivita');
+echo $onlinePrezenceHtml->dejHtmlOnlinePrezence([$aktivita]);
