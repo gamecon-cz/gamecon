@@ -1,7 +1,10 @@
 (function ($) {
   $(function () {
 
-    const intializePrezenceOmnibox = function () {
+    // OMNIBOX
+    intializePrezenceOmnibox()
+
+    function intializePrezenceOmnibox() {
       const omnibox = $('.online-prezence .omnibox')
       omnibox.on('autocompleteselect', function (event, ui) {
         const ucastniciAktivityNode = $('#ucastniciAktivity')
@@ -20,7 +23,7 @@
       })
 
       omnibox.on('autocompleteresponse', function (event, ui) {
-        if (!ui || ui.content.length === 0) {
+        if (!ui || ui.content === undefined || ui.content.length === 0) {
           $('.online-prezence .omnibox-nic-nenalezeno').show()
         } else {
           $('.online-prezence .omnibox-nic-nenalezeno').hide()
@@ -51,10 +54,69 @@
       })
     }
 
-    intializePrezenceOmnibox()
+    // ⏳ ČEKÁNÍ NA EDITACI ⏳
+
+    $('.aktivita').each(function () {
+      const $aktivitaNode = $(this)
+      $aktivitaNode.find('.text-ceka .odpocet').each(function () {
+        if ($(this).data('editovatelna-od') > 0) {
+          zablokovatAktivituProEditaciSOdpoctem($aktivitaNode.data('id'))
+        }
+      })
+    })
+
+    function zablokovatAktivituProEditaciSOdpoctem(idAktivity) {
+      const aktivitaNode = $(`#aktivita-${idAktivity}`)
+      aktivitaNode.find('input').prop('disabled', true)
+      aktivitaNode.find('.tlacitko-uzavrit-aktivitu').hide()
+      aktivitaNode.find('.text-ceka').show()
+      spustitOdpocet(aktivitaNode, idAktivity)
+    }
+
+    function spustitOdpocet(aktivitaNode, idAktivity) {
+      const odpocetNode = aktivitaNode.find(`#odpocet-${idAktivity}`)
+      const editovatelnaOdTimestamp = Number.parseInt(odpocetNode.data('editovatelna-od'))
+      const interval = 1000
+
+      const intervalId = setInterval(function () {
+        const sekundOdpoctu = spoctiKolikZbyvaSekundOdpoctu(editovatelnaOdTimestamp)
+        if (!obnovitOdpocet(odpocetNode, sekundOdpoctu)) {
+          clearInterval(intervalId)
+          odblokovatAktivituProEditaci(idAktivity)
+        }
+      }, interval)
+      obnovitOdpocet(odpocetNode, spoctiKolikZbyvaSekundOdpoctu(editovatelnaOdTimestamp)) // initial
+    }
+
+    function odblokovatAktivituProEditaci(idAktivity) {
+      const akivitaNode = $(`#aktivita-${idAktivity}`)
+      akivitaNode.find('input').prop('disabled', false)
+      akivitaNode.find('.text-ceka').hide()
+      akivitaNode.find('.tlacitko-uzavrit-aktivitu').show()
+    }
+
+    /**
+     * @param {object} odpocetNode
+     * @param {number} zbyvaSekund
+     * @return {boolean}
+     */
+    function obnovitOdpocet(odpocetNode, zbyvaSekund) {
+      if (zbyvaSekund <= 0) {
+        return false
+      }
+      odpocetNode.text(zbyvaSekund + ' s')
+      return true
+    }
+
+    /**
+     * @param {int} editovatelnaOdTimestamp
+     * @return {number}
+     */
+    function spoctiKolikZbyvaSekundOdpoctu(editovatelnaOdTimestamp) {
+      return Math.round(editovatelnaOdTimestamp - (new Date().getTime() / 1000))
+    }
   })
 })(jQuery)
-
 
 function uzavritAktivitu(idAktivity, skrytElement, zobrazitElement) {
   $.post(
