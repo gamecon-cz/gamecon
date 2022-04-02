@@ -39,9 +39,9 @@ class OnlinePrezenceAjax
 
         if (get('omnibox')) {
             $this->ajaxOmnibox(
-                get('id-aktivity'),
-                get('term') ?: '',
-                (array)(get('dataVOdpovedi') ?: []),
+                (int)get('idAktivity'),
+                (string)get('term') ?: '',
+                (array)get('dataVOdpovedi') ?: [],
                 get('labelSlozenZ')
             );
             return true;
@@ -85,7 +85,10 @@ class OnlinePrezenceAjax
         if ($dorazil) {
             $aktivita->ulozZeDorazil($ucastnik);
         } else {
-            $aktivita->zrusZeDorazil($ucastnik);
+            if (!$aktivita->zrusZeDorazil($ucastnik)) {
+                $this->echoErrorJson("Nepodařilo se zrušit účastníka {$ucastnik->jmenoNick()} z aktivity {$aktivita->nazev()}");
+                return;
+            }
         }
         /** Abychom mměli nová data pro @see \Aktivita::dorazilJakoCokoliv */
         $aktivita->refresh();
@@ -136,7 +139,8 @@ class OnlinePrezenceAjax
             $ucastnikHtml = $this->onlinePrezenceHtml->sestavHmlUcastnikaAktivity(
                 $prihlasenyUzivatel,
                 $aktivita,
-                true /* jenom zobrazeni - skutečné uložení, že dorazil, řešíme až po vybrání uživatele z omniboxu */
+                true /* jenom zobrazeni - skutečné uložení, že dorazil, řešíme až po vybrání uživatele z omniboxu */,
+                false
             );
             $prihlasenyUzivatelOmnibox['html'] = $ucastnikHtml;
         }

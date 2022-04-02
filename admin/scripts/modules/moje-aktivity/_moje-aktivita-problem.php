@@ -7,7 +7,7 @@
 
 $problem = false;
 
-$sablonaKProblemu = new XTemplate('_moje-aktivita-problem.xtpl');
+$sablonaKProblemu = new XTemplate(__DIR__ . '/_moje-aktivita-problem.xtpl');
 
 if (!$aktivita) {
     $problem = true;
@@ -30,7 +30,7 @@ if (!$aktivita) {
 }
 
 if ($problem) {
-    $sablonaKProblemu->assign('urlNaMojeAktivity', $_SERVER['HTTP_REFERER']);
+    $sablonaKProblemu->assign('urlNaMojeAktivity', getBackUrl());
     $sablonaKProblemu->parse('problem');
     $sablonaKProblemu->out('problem');
 }
