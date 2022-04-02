@@ -5,6 +5,8 @@
  *
  * nazev: Místnosti
  * pravo: 102
+ * submenu_group: 4
+ * submenu_order: 1
  */
 
 //var_dump($_POST);

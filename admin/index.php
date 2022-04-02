@@ -54,7 +54,7 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
     $submenu = [];
     $submenuObject = null;
     if (!empty($menu[$stranka]['submenu'])) {
-        $submenuObject = new AdminMenu('./scripts/modules/' . $stranka . '/');
+        $submenuObject = new AdminMenu('./scripts/modules/' . $stranka . '/', true);
         $submenu = $submenuObject->pole();
     }
 
@@ -137,6 +137,13 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
         if ($u->maPravo($polozka['pravo'])) {
             $xtpl->assign('url', $url == $stranka ? $url : $stranka . '/' . $url);
             $xtpl->assign('nazev', $polozka['nazev']);
+            if ($polozka['link_in_blank']) {
+                $xtpl->assign('add_attributes', 'target="_blank"');
+            } else {
+                $xtpl->assign('add_attributes', '');
+            }
+            $xtpl->assign('group', $polozka['group']);
+            $xtpl->assign('order', $polozka['order']);
             $xtpl->parse('all.submenu.polozka');
         }
     }

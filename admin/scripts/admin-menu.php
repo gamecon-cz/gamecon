@@ -11,7 +11,7 @@ class AdminMenu
 
   private $patickaSoubor;
   
-  function __construct($src)
+  function __construct($src, $isSubmenu = false)
   {
     if(substr($src,0,2)=='./') $src=substr($src,2);
     $d=opendir('./'.$src); 
@@ -27,6 +27,14 @@ class AdminMenu
         preg_match('@\* pravo: (.*)@',$fc,$m);
         $this->menu[$url]['pravo']=(int)$m[1];
         $this->menu[$url]['soubor']=$src.$file;
+        if ($isSubmenu) {
+          preg_match('@\* submenu_group: (.*)@',$fc,$m);
+          $this->menu[$url]['group']=(int)$m[1];
+          preg_match('@\* submenu_order: (.*)@',$fc,$m);
+          $this->menu[$url]['order']=(int)$m[1];
+          preg_match('@\* submenu_link_open_in_blank: (.*)@',$fc,$m);
+          $this->menu[$url]['link_in_blank']=(bool)$m[1];
+        }
       }
       elseif(strpos($file,'.')===false && strpos($file,'_')===false 
         && is_dir($src.$file))
@@ -39,6 +47,14 @@ class AdminMenu
         $this->menu[$url]['pravo']=(int)$m[1];
         $this->menu[$url]['soubor']=$src.$file.'/'.$file.'.php';
         $this->menu[$url]['submenu']=1;
+        if ($isSubmenu) {
+          preg_match('@\* submenu_group: (.*)@',$fc,$m);
+          $this->menu[$url]['group']=(int)$m[1];
+          preg_match('@\* submenu_order: (.*)@',$fc,$m);
+          $this->menu[$url]['order']=(int)$m[1];
+          preg_match('@\* submenu_link_open_in_blank: (.*)@',$fc,$m);
+          $this->menu[$url]['link_in_blank']=(bool)$m[1];
+        }
         /*while(($sf=readdir($sd))!==FALSE)
         { 
           if(strpos($sf,'.php'))

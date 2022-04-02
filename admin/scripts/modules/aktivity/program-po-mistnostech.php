@@ -1,0 +1,13 @@
+<?php
+/**
+ * Jen redirect na report s neprihlasenymi a neubytovanymi Vypraveci
+ *
+ * nazev: Program po místnostech
+ * pravo: 105
+ * submenu_group: 4
+ * submenu_group: 3
+ * submenu_link_open_in_blank: 1
+ */
+
+header('Location: /program-mistnosti', true, 301);
+exit();

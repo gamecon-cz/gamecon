@@ -7,6 +7,8 @@ use Gamecon\Vyjimkovac\Logovac;
  *
  * nazev: Nová aktivita
  * pravo: 102
+ * submenu_group: 1
+ * submenu_order: 1
  */
 
 if (Aktivita::editorTestJson()) {       // samo sebe volání ajaxu
