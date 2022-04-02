@@ -10,19 +10,22 @@
     <!-- begin:nepritomen -->
     <span class="hinted">
                   <img src="files/design/error-s.png" style="margin-bottom:-1px; width: 1em">
-                <span class="hint"><strong>Není přítomen</strong> v tomto okamžiku na GC (neprošel infopultem).</span>
+                <span class="hint">
+                  <strong>Není přítomen</strong> v tomto okamžiku na GC (neprošel infopultem).
+                </span>
             </span>
     <!-- end:nepritomen -->
   </td>
   <td>{u.jmenoNick}</td>
   <td>
     <!-- begin:telefon -->
-    <a href="tel:{u.telefon}"><i class="fas fa-phone"></i> {u.telefon}</a>
+    <a href="tel:{u.telefon}" class="text-nowrap"><i class="fas fa-phone"></i> {u.telefon}</a>
     <!-- end:telefon -->
   </td>
   <td>
     <!-- begin:checkbox -->
-    <input type="checkbox" onchange="zmenitUcastnika('{u.id}', '{a.id}', this)" style="cursor: pointer" name="dorazil[]" value="{u.id}" {checked} {disabled}>
+    <input type="checkbox" onchange="zmenitUcastnika('{u.id}', '{a.id}', this)" name="dorazil[]" value="{u.id}"
+           {checkedUcastnik} {disabledUcastnik}>
     <!-- end:checkbox -->
   </td>
 </tr>
