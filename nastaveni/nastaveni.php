@@ -217,7 +217,9 @@ Organizační tým GameConu',
 @define('PROGRAM_ZACATEK', 8); // první hodina programu
 @define('PROGRAM_KONEC', 24); // konec programu (tuto hodinu už se nehraje)
 
-define('SUPERADMINI', [1682, 4032]);
+@define('SUPERADMINI', [1682, 4032]);
+
+@define('MOJE_AKTIVITY_EDITOVATELNE_X_MINUT_PRED_JEJICH_ZACATKEM', 20);
 
 @define('ADRESAR_WEBU_S_OBRAZKY', __DIR__ . '/../web');
 
