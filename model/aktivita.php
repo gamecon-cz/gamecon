@@ -966,7 +966,7 @@ class Aktivita
      * Vrací počet odemčených teamů (=>uvolněných míst)
      */
     public static function odemciHromadne() {
-        $o = dbQuery('SELECT id_akce, zamcel FROM akce_seznam WHERE zamcel AND zamcel_cas < NOW() - interval ' . self::HAJENI . ' hour');
+        $o = dbQuery('SELECT id_akce, zamcel FROM akce_seznam WHERE zamcel AND zamcel_cas < NOW() - INTERVAL ' . self::HAJENI . ' HOUR');
         $i = 0;
         while (list($aid, $uid) = mysqli_fetch_row($o)) {
             Aktivita::zId($aid)->odhlas(Uzivatel::zId($uid));
@@ -1410,11 +1410,11 @@ SQL
         return 0;
     }
 
-    protected function prihlasenoMuzu() {
+    protected function prihlasenoMuzu(): int {
         return substr_count($this->prihlaseniRaw(), 'm');
     }
 
-    protected function prihlasenoZen() {
+    protected function prihlasenoZen(): int {
         return substr_count($this->prihlaseniRaw(), 'f');
     }
 
@@ -1447,7 +1447,7 @@ SQL
     public function dorazilJakoPredemPrihlaseny(Uzivatel $uzivatel): bool {
         $stav = $this->prihlasenStav($uzivatel);
 
-        return $stav === self::DORAZIL_JAKO_NAHRADNIK;
+        return $stav === self::PRIHLASEN_A_DORAZIL;
     }
 
     /** Zdali chceme, aby se na aktivitu bylo možné běžně přihlašovat */
@@ -1966,9 +1966,25 @@ SQL
      * @return Uzivatel[]
      */
     public function prihlaseni(): array {
-        $u = substr($this->prihlaseniRaw(), 1, -1);
-        $u = preg_replace('@(m|f)\d+@', '', $u);
-        return Uzivatel::zIds($u);
+        $prihlaseniZakodovano = array_filter(explode(',', $this->prihlaseniRaw()));
+        $ids = array_map(static function (string $prihlasenyZakodovano) {
+            // například '588m0'
+            preg_match(
+                '~(?<idUzivatele>\d+)(?<pohlavi>[mf])(?<idStavuPrihlaseni>\d+)~',
+                $prihlasenyZakodovano,
+                $matches
+            );
+            return (int)$matches['idUzivatele'];
+        }, $prihlaseniZakodovano);
+        $uzivatele = Uzivatel::zIds($ids);
+        usort($uzivatele, static function (\Uzivatel $nejakyUzivatel, \Uzivatel $jinyUzivatel) use ($ids) {
+            /**
+             * Chceme zachovat původní pořadí přihlášených. ids byly seřazeny, ale @see \Uzivatel::zIds
+             * nám to rozhodilo.
+             */
+            return array_search($nejakyUzivatel->id(), $ids, false) <=> array_search($jinyUzivatel->id(), $ids, false);
+        });
+        return $uzivatele;
     }
 
     /**
@@ -1985,9 +2001,8 @@ SQL
         $prezence->ulozDorazivsiho($dorazil);
     }
 
-    public function zrusZeDorazil(Uzivatel $dorazil) {
-        $prezence = new AktivitaPrezence($this);
-        $prezence->zrusDorazeni($dorazil);
+    public function zrusZeDorazil(Uzivatel $dorazil): bool {
+        return (new AktivitaPrezence($this))->zrusDorazeni($dorazil);
     }
 
     public function ulozPrezenciNedorazivsiho(Uzivatel $dorazil) {
@@ -2250,6 +2265,26 @@ SQL
         /** @see Aktivita::stav kde se změní číslo na instanci Stav */
     }
 
+    /**
+     * @param DateTimeInterface $beziciOd
+     * @return array|int[]
+     */
+    public static function zamciUzBeziciOd(\DateTimeInterface $beziciOd) {
+        $ids = dbOneArray(<<<SQL
+SELECT id_akce FROM akce_seznam
+WHERE (NOT zamcel OR zamcel IS NULL)
+  AND zacatek <= $1
+AND stav != $2
+SQL,
+            [$beziciOd->format(DateTimeCz::FORMAT_DB), Stav::PROBEHNUTA]
+        );
+        $ids = array_map('intval', $ids);
+        foreach ($ids as $id) {
+            Aktivita::zId($id, true)->zamci();
+        }
+        return $ids;
+    }
+
     public function pridejDite(int $idDitete) {
         $detiIds = $this->detiIds();
         if (in_array($idDitete, $detiIds, true)) {
@@ -2295,6 +2330,9 @@ SQL
         }
         if (!empty($filtr['do'])) {
             $wheres[] = 'a.zacatek <= ' . dbQv($filtr['do']);
+        }
+        if (!empty($filtr['stav'])) {
+            $wheres[] = 'a.stav IN (' . dbQv($filtr['stav']) . ')';
         }
         if (!empty($filtr['bezDalsichKol'])) {
             $wheres[] = 'NOT (a.typ IN (' . \Gamecon\Aktivita\TypAktivity::DRD . ',' . \Gamecon\Aktivita\TypAktivity::LKD . ') AND cena = 0)';
@@ -2506,8 +2544,8 @@ SELECT t3.*,
         WHERE akce_sjednocene_tagy.id_akce = t3.id_akce
     ) AS tagy
     FROM (
-        SELECT t2.*, CONCAT(',',GROUP_CONCAT(p.id_uzivatele,u.pohlavi,p.id_stavu_prihlaseni),',') AS prihlaseni,
-            IF(t2.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = t2.patri_pod), t2.url_akce) AS url_temp
+        SELECT t2.*, CONCAT(',',GROUP_CONCAT(p.id_uzivatele,u.pohlavi,p.id_stavu_prihlaseni ORDER BY akce_prihlaseni_log.cas ASC),',') AS prihlaseni,
+        IF(t2.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = t2.patri_pod), t2.url_akce) AS url_temp
         FROM (
             SELECT a.*, al.poradi, akce_typy.poradi AS poradi_typu
             FROM akce_seznam a
@@ -2516,6 +2554,7 @@ SELECT t3.*,
             $where
         ) AS t2
         LEFT JOIN akce_prihlaseni p ON (p.id_akce = t2.id_akce)
+        LEFT JOIN akce_prihlaseni_log ON akce_prihlaseni_log.id_akce = p.id_akce AND akce_prihlaseni_log.id_uzivatele = p.id_uzivatele
         LEFT JOIN uzivatele_hodnoty u ON (u.id_uzivatele = p.id_uzivatele)
         GROUP BY t2.id_akce
     ) AS t3
