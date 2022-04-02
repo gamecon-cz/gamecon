@@ -59,9 +59,24 @@ function back($to = null) {
     exit();
 }
 
-function getBackUrl(): string {
-    $refererParts = parse_url($_SERVER['HTTP_REFERER']);
-    return rtrim(implode('?', [$refererParts['path'], $refererParts['query']]), '?');
+function getBackUrl(string $defaultBackUrl = null): string {
+    $refererParts = parse_url($_SERVER['HTTP_REFERER'] ?? $defaultBackUrl ?? $_SERVER['REQUEST_URI']);
+    return rtrim(implode('?', [$refererParts['path'], $refererParts['query'] ?? '']), '?');
+}
+
+function getCurrentUrlPath(): string {
+    return (string)parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+}
+
+function getCurrentUrlWithQuery(array $queryPartsToReplace = []): string {
+    $path = getCurrentUrlPath();
+    $queryString = parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY);
+    parse_str($queryString, $query);
+    $newQuery = array_merge($query, $queryPartsToReplace);
+    if ($newQuery === []) {
+        return $path;
+    }
+    return $path . '?' . http_build_query($newQuery);
 }
 
 function get($name) {
@@ -78,11 +93,10 @@ function opt($actual, $default) {
     $opt = [];
     foreach ($default as $key => $val) {
         if (is_numeric($key)) {
-            if (array_key_exists($val, $actual)) {
-                $opt[$val] = $actual[$val];
-            } else {
+            if (!array_key_exists($val, $actual)) {
                 throw new BadFunctionCallException('key "' . $val . '" in options missing');
             }
+            $opt[$val] = $actual[$val];
         } else {
             if (array_key_exists($key, $actual)) {
                 $opt[$key] = $actual[$key];

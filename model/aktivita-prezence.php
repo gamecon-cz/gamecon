@@ -52,7 +52,7 @@ class AktivitaPrezence
         }
     }
 
-    public function zrusDorazeni(Uzivatel $dorazil) {
+    public function zrusDorazeni(Uzivatel $dorazil): bool {
         // TODO kontrola, jestli prezence smí být uložena (např. jestli už nebyla uložena dřív)
 
         if ($this->aktivita->dorazilJakoNahradnik($dorazil)) {
@@ -62,13 +62,17 @@ class AktivitaPrezence
                 'id_akce' => $this->aktivita->id(),
             ]);
             $this->log($dorazil, 'zruseni_prihlaseni_nahradnik');
-        } elseif ($this->aktivita->dorazilJakoPredemPrihlaseny($dorazil)) {
+            return true;
+        }
+        if ($this->aktivita->dorazilJakoPredemPrihlaseny($dorazil)) {
             dbUpdate('akce_prihlaseni',
                 ['id_stavu_prihlaseni' => Aktivita::PRIHLASEN], // vratime ho zpet jako "jen prihlaseneho"
                 ['id_uzivatele' => $dorazil->id(), 'id_akce' => $this->aktivita->id()]
             );
+            return true;
         }
         // else neni co menit
+        return false;
     }
 
     public function ulozNedorazivsiho(Uzivatel $nedorazil) {
