@@ -18,7 +18,7 @@ require __DIR__ . '/scripts/prihlaseni.php';
  */
 
 // xtemplate inicializace
-$xtpl = new XTemplate('./templates/main.xtpl');
+$xtpl = new XTemplate(__DIR__ . '/templates/main.xtpl');
 $xtpl->assign([
     'pageTitle' => 'GameCon – Administrace',
     'base' => URL_ADMIN . '/',
@@ -137,11 +137,16 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
         if ($u->maPravo($polozka['pravo'])) {
             $xtpl->assign('url', $url == $stranka ? $url : $stranka . '/' . $url);
             $xtpl->assign('nazev', $polozka['nazev']);
+            $addAttributes = [];
             if ($polozka['link_in_blank']) {
-                $xtpl->assign('add_attributes', 'target="_blank"');
-            } else {
-                $xtpl->assign('add_attributes', '');
+                $addAttributes[] = 'target="_blank"';
             }
+            $display = '';
+            if ($polozka['hidden']) {
+                $display = 'none';
+            }
+            $xtpl->assign('add_attributes', implode(' ', $addAttributes));
+            $xtpl->assign('display', $display);
             $xtpl->assign('group', $polozka['group']);
             $xtpl->assign('order', $polozka['order']);
             $xtpl->parse('all.submenu.polozka');

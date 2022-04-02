@@ -7,7 +7,8 @@
  * submenu_group: 4
  * submenu_group: 3
  * submenu_link_open_in_blank: 1
+ * hidden: 1
  */
 
-header('Location: /program-mistnosti', true, 301);
+header('Location: ' . URL_ADMIN . '/program-mistnosti', true, 301);
 exit();

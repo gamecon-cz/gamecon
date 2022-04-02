@@ -40,7 +40,8 @@
       <div class="main">
         <!-- begin:submenu -->
         <ul id="submenu">
-          <!-- begin:polozka --><li class="adm_submenu_item adm_submenu_item_ord_{order} adm_submenu_item_grp_{order}"><a href="{url}" {add_attributes}>{nazev}</a></li><!-- end:polozka -->
+          <!-- begin:polozka -->
+          <li class="adm_submenu_item adm_submenu_item_ord_{order} adm_submenu_item_grp_{order}" style="display:{display}"><a href="{url}" {add_attributes}>{nazev}</a></li><!-- end:polozka -->
         </ul>
         <!-- end:submenu -->
         <!-- begin: zakazano -->{FILE "templates/zakazano.xtpl"}<!-- end: zakazano -->
