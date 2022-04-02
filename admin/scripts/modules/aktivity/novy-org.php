@@ -5,8 +5,10 @@
 /**
  * Stránka pro přidávání organizátorských entit / skupin
  *
- * nazev: Nový fake účet
+ * nazev: Nová vypravěčská skupina
  * pravo: 102
+ * submenu_group: 2
+ * submenu_order: 1
  */
 
 if(post('vypravec')) {

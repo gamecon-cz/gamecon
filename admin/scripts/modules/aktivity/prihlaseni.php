@@ -5,6 +5,8 @@
  *
  * nazev: Seznam přihlášených
  * pravo: 102
+ * submenu_group: 3
+ * submenu_order: 1
  */
 
 use \Gamecon\Cas\DateTimeCz;
