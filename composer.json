@@ -34,7 +34,6 @@
     "ext-iconv": "*",
     "ext-imagick": "*",
     "ext-intl": "*",
-    "ext-iconv": "*",
     "ext-json": "*",
     "ext-mbstring": "*",
     "ext-mysqli": "*",
