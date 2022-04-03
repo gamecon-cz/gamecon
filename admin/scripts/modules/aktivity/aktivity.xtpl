@@ -1,9 +1,5 @@
 <!-- begin:aktivity -->
 
-<ul style="margin-top:-1em">
-  <li><a href="program-mistnosti" target="_blank">Program po místnostech</a></li>
-</ul>
-
 <!-- begin:exportImport -->
 <div>
   <form action="{urlProImport}" method="get" style="float: left">
@@ -17,8 +13,8 @@
 <!-- end:exportImport -->
 
 <!-- begin:aktivovatVse -->
-<form method="post" style="position:absolute;right:20px;top:60px">
-  <input type="submit" name="aktivovatVse" value="aktivovat hromadně"
+<form class="submenuAktivovatVse" method="post">
+  <input class="tlacitko tlacitko_isDanger" type="submit" name="aktivovatVse" value="aktivovat hromadně"
     onclick="return window.confirm('Toto aktivuje všechny aktivity označené jako „připravené“ ve všech kategoriích. Určitě?');" />
 </form>
 <!-- end:aktivovatVse -->

@@ -132,6 +132,18 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
         }
     }
 
+    // submenu setřídění dle group, pak order, pak nazev
+    uasort($submenu, function ($a, $b) {
+        $diff = $a['group'] - $b['group'];
+        if ($diff == 0) {
+            $diff = $a['order'] - $b['order'];
+            if ($diff == 0) {
+                return 0;
+            }
+        }
+        return $diff;
+    });
+
     // výstup submenu
     foreach ($submenu as $url => $polozka) {
         if ($u->maPravo($polozka['pravo'])) {
@@ -141,17 +153,23 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
             if ($polozka['link_in_blank']) {
                 $addAttributes[] = 'target="_blank"';
             }
-            $display = '';
-            if ($polozka['hidden']) {
-                $display = 'none';
+            if (($podstranka != '' && $podstranka == $url) || ($podstranka == '' && $stranka == $url)) {
+                $addAttributes[] = 'class="activeSubmenuLink"';
             }
             $xtpl->assign('add_attributes', implode(' ', $addAttributes));
-            $xtpl->assign('display', $display);
+
+            $itemBreak = '';
+            if ($polozka['order'] == 1 && $polozka['group'] > 1) {
+                $itemBreak = '</ul></li><li><ul class="adm_submenu_group">';
+            }
+            $xtpl->assign('break', $itemBreak);
+
             $xtpl->assign('group', $polozka['group']);
             $xtpl->assign('order', $polozka['order']);
             $xtpl->parse('all.submenu.polozka');
         }
     }
+    $xtpl->assign('stranka', $stranka);
     $xtpl->parse('all.submenu');
 
     // výstup

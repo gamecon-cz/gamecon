@@ -3,6 +3,7 @@
 /**
  * nazev: Slučování uživatelů
  * pravo: 108
+ * submenu_group: 5
  */
 
 $t = new XTemplate('slucovani.xtpl');

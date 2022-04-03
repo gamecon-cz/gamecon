@@ -8,9 +8,9 @@
   }
 </script>
 
-<div style="position:absolute;right:20px;top:100px">
+<div class="aktivityProgramovaLinie">
   <form method="post">
-    <table>
+    <table align="center">
       <tbody>
       <!-- begin:programoveLinie -->
       <tr>
@@ -33,7 +33,7 @@
           <!-- end:rok -->
         </select></td>
       </tr>
-      <!-- end:programoveLinie -->
+      <!-- end:roky -->
       </tbody>
     </table>
   </form>

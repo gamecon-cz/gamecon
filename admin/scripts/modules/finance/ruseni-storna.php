@@ -5,6 +5,7 @@
  *
  * nazev: Rušení storna
  * pravo: 108
+ * submenu_group: 5
  */
 
 // zpracování POST požadavků

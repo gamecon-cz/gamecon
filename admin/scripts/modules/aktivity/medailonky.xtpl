@@ -16,7 +16,7 @@
   <!-- begin:radek -->
   <tr>
     <td>{medailonek.id}</td>
-    <td><a href="web/medailonky?id={medailonek.id}" class="tlacitko">upravit</a></td>
+    <td><a href="aktivity/medailonky?id={medailonek.id}" class="tlacitko">upravit</a></td>
   </tr>
   <!-- end:radek -->
 </table>

@@ -6,7 +6,7 @@
  * nazev: Štítky
  * pravo: 102
  * submenu_group: 4
- * submenu_group: 2
+ * submenu_order: 2
  */
 
 require_once(__DIR__ . '/_editor-tagu.php');

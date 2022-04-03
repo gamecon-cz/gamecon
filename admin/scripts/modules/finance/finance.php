@@ -5,6 +5,7 @@
  *
  * nazev: Finance
  * pravo: 108
+ * submenu_group: 5
  */
 
 if (post('uzivatelProPripsaniSlevy')) {

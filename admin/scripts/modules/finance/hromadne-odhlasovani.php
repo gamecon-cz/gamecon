@@ -5,6 +5,7 @@
  *
  * nazev: Hromadné odhlášení účastníků
  * pravo: 108
+ * submenu_group: 5
  */
 
 /**

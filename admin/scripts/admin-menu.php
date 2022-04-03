@@ -68,13 +68,11 @@ class AdminMenu
 
     private function parseSubMenu(string $fc, string $url) {
         preg_match('@\* submenu_group: (.*)@', $fc, $m);
-        $this->menu[$url]['group'] = (int)($m[1] ?? 1);
+        $this->menu[$url]['group'] = (int)($m[1] ?? 0);
         preg_match('@\* submenu_order: (.*)@', $fc, $m);
-        $this->menu[$url]['order'] = (int)($m[1] ?? 1);
+        $this->menu[$url]['order'] = (int)($m[1] ?? 0);
         preg_match('@\* submenu_link_open_in_blank: (.*)@', $fc, $m);
         $this->menu[$url]['link_in_blank'] = (bool)($m[1] ?? false);
-        preg_match('@\* hidden: (.*)@', $fc, $m);
-        $this->menu[$url]['hidden'] = (bool)($m[1] ?? false);
     }
 
     /** Export menu do pole. Iterátory a věci (?) */

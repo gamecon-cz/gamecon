@@ -5,7 +5,7 @@
  * nazev: Neubytovaní vypravěči
  * pravo: 105
  * submenu_group: 2
- * submenu_group: 3
+ * submenu_order: 3
  */
 
 header('Location: /reporty/neprihlaseni-vypraveci?format=html', true, 301);
