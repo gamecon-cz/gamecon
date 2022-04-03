@@ -134,8 +134,8 @@ $zobrazitMujProgramOdkaz = isset($u);
 
     <?php if ($zacatekPrvniVlnyZaSekund > 0) {
     $zacatekPrvniVlnyZaMilisekund = $zacatekPrvniVlnyZaSekund * 1000;
-    if ($zacatekPrvniVlnyZaMilisekund > 0) { ?> /*kdyby to náhodou přeteklo za PHP_MAX_INT*/
-    if (<?= $zacatekPrvniVlnyZaMilisekund ?> < Number.MAX_SAFE_INTEGER) {
+    if ($zacatekPrvniVlnyZaMilisekund > 0) { ?> /*kdyby to náhodou přeteklo za 2^32 -1 */
+    if (<?= $zacatekPrvniVlnyZaMilisekund ?> <= 2147483647) {
         setTimeout(function () {
             location.reload()
         }, <?= $zacatekPrvniVlnyZaMilisekund ?>)
