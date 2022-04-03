@@ -27,6 +27,10 @@ class GoogleDriveService
         $this->googleApiClient = $googleApiClient;
     }
 
+    public function deleteFile(string $fileId) {
+        $this->getNativeDrive()->files->delete($fileId);
+    }
+
     /**
      * @param string $dirForGoogle
      * @param string|int $parentId

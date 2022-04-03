@@ -177,8 +177,12 @@ class Aktivita
     }
 
     /** Počet hodin do začátku aktivity (float) */
-    public function doZacatku() {
-        return ($this->zacatek()->getTimestamp() - time()) / 3600;
+    public function zbyvaHodinDoZacatku(): float {
+        $zacatek = $this->zacatek();
+        if (!$zacatek) {
+            return (float)PHP_INT_MAX;
+        }
+        return ($zacatek->getTimestamp() - time()) / 3600;
     }
 
     /**
@@ -970,7 +974,7 @@ class Aktivita
         $idUzivatele = $u->id();
         dbQuery("DELETE FROM akce_prihlaseni WHERE id_uzivatele=$idUzivatele AND id_akce=$idAktivity");
         dbQuery("INSERT INTO akce_prihlaseni_log SET id_uzivatele=$idUzivatele, id_akce=$idAktivity, typ='odhlaseni'");
-        if (ODHLASENI_POKUTA_KONTROLA && $this->doZacatku() < ODHLASENI_POKUTA1_H && !($params & self::BEZ_POKUT)) { // pokuta aktivní
+        if (ODHLASENI_POKUTA_KONTROLA && $this->zbyvaHodinDoZacatku() < ODHLASENI_POKUTA1_H && !($params & self::BEZ_POKUT)) { // pokuta aktivní
             $pozdeZrusil = self::POZDE_ZRUSIL;
             dbQuery("INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$idUzivatele, id_akce=$idAktivity, id_stavu_prihlaseni=$pozdeZrusil");
         }
