@@ -3,6 +3,7 @@
 namespace Gamecon\Admin\Modules\Aktivity\Export;
 
 use Gamecon\Admin\Modules\Aktivity\Export\Exceptions\ActivitiesExportException;
+use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleConnectionException;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
 use Gamecon\Cas\DateTimeCz;
@@ -46,23 +47,35 @@ class ActivitiesExporter
         $spreadsheetTitle = $this->getSpreadsheetTitle($prefix, $activitySheetTitle);
         $spreadSheet = $this->createSheetForActivities($spreadsheetTitle, $activitySheetTitle);
 
-        $activitiesData = $this->getActivitiesData($activities);
-        $this->saveActivitiesData($activitiesData, $spreadSheet);
+        try {
+            $activitiesData = $this->getActivitiesData($activities);
+            $this->saveActivitiesData($activitiesData, $spreadSheet);
 
-        $allTagsData = $this->getAllTagsData();
-        $this->saveTagsData($allTagsData, $spreadSheet);
+            $allTagsData = $this->getAllTagsData();
+            $this->saveTagsData($allTagsData, $spreadSheet);
 
-        $allStorytellersData = $this->getAllStorytellersData();
-        $this->saveStorytellersData($allStorytellersData, $spreadSheet);
+            $allStorytellersData = $this->getAllStorytellersData();
+            $this->saveStorytellersData($allStorytellersData, $spreadSheet);
 
-        $allRoomsData = $this->getAllRoomsData();
-        $this->saveRoomsData($allRoomsData, $spreadSheet);
+            $allRoomsData = $this->getAllRoomsData();
+            $this->saveRoomsData($allRoomsData, $spreadSheet);
 
-        $allActivityStatesData = $this->getAllActivityStatesData();
-        $this->saveActivityStatesData($allActivityStatesData, $spreadSheet);
+            $allActivityStatesData = $this->getAllActivityStatesData();
+            $this->saveActivityStatesData($allActivityStatesData, $spreadSheet);
 
-        $this->moveSpreadsheetToExportDir($spreadSheet);
+            $this->moveSpreadsheetToExportDir($spreadSheet);
+        } catch (GoogleConnectionException|\Google_Service_Exception $connectionException) {
+            try {
+                $this->deleteSheet($spreadSheet);
+            } catch (GoogleConnectionException|\Google_Service_Exception $deleteConnectionException) {
+            }
+            throw $connectionException;
+        }
         return $spreadsheetTitle;
+    }
+
+    private function deleteSheet(\Google_Service_Sheets_Spreadsheet $spreadsheet) {
+        $this->googleDriveService->deleteFile($spreadsheet->getSpreadsheetId());
     }
 
     /**

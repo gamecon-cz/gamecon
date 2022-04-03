@@ -22,7 +22,7 @@ use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleApiCredentials;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleApiTokenStorage;
 use Gamecon\Vyjimkovac\Logovac;
 
-if ($_GET['zpet'] ?? '' === 'aktivity') {
+if (($_GET['zpet'] ?? '') === 'aktivity') {
     back(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) . '/..');
 }
 
@@ -60,7 +60,6 @@ $template->assign('urlNaAktivity', $urlNaAktivity);
 try {
 
     $googleDriveService = new GoogleDriveService($googleApiClient);
-    /** @noinspection PhpUnusedLocalVariableInspection */
     $googleSheetsService = new GoogleSheetsService($googleApiClient, $googleDriveService);
 
     ob_start();
