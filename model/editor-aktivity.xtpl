@@ -208,43 +208,8 @@ $(function(){
   </tr>
   <tr>
     <th>
-      <label for="deti">
-        <span class="hinted">Děti<span class="hint">Vyber následující (semi)finále, která rozhodnou o vítězi této aktivity</span></span>
-      </label>
-    </th>
-    <td>
-      <select id="deti" name="{fields}[dite][]" multiple>
-        <!-- begin:dite --><option {selected} value="{id_ditete}">{nazev_ditete}</option><!-- end:dite -->
-      </select>
-      <script type="text/javascript">
-        const $detiMultiselect = $('#deti');
-        document.addEventListener('DOMContentLoaded', function () {
-          const clientWidthForEditorAktivity = document.getElementById('editorAktivity').clientWidth;
-          let detiMultiselectColumns = parseInt(clientWidthForEditorAktivity / 200);
-          if (detiMultiselectColumns < 1) {
-            detiMultiselectColumns = 1;
-          }
-          $detiMultiselect.multiselect('settings', {columns: detiMultiselectColumns});
-        });
-
-        $detiMultiselect.multiselect({
-          columns: 2,
-          search: true,
-          texts: {
-            'placeholder': 'Zadej dítě',
-            'search': 'Hledej dítě',
-            'selectedOptions': ' vybraných dětí',
-          },
-          maxPlaceholderOpts: 3,
-          selectAll: false
-        });
-      </script>
-    </td>
-  </tr>
-  <tr>
-    <th>
       <label for="rodice">
-        <span class="hinted">Rodiče<span class="hint">Vyber předchozí aktivity, které budou pokračovat tímto (semi)finále.</span></span>
+        <span class="hinted">Rodiče (předcházející)<span class="hint">Vyber předchozí aktivity, které budou pokračovat touto aktivitou, tímto (semi)finále.</span></span>
       </label>
     </th>
     <td>
@@ -269,6 +234,41 @@ $(function(){
             'placeholder': 'Zadej rodiče',
             'search': 'Hledej rodiče',
             'selectedOptions': ' vybraných rodičů',
+          },
+          maxPlaceholderOpts: 3,
+          selectAll: false
+        });
+      </script>
+    </td>
+  </tr>
+  <tr>
+    <th>
+      <label for="deti">
+        <span class="hinted">Děti (navazující)<span class="hint">Vyber následující (semi)finále, která rozhodnou o vítězi této aktivity, tohoto čtvrt/semi-finále</span></span>
+      </label>
+    </th>
+    <td>
+      <select id="deti" name="{fields}[dite][]" multiple>
+        <!-- begin:dite --><option {selected} value="{id_ditete}">{nazev_ditete}</option><!-- end:dite -->
+      </select>
+      <script type="text/javascript">
+        const $detiMultiselect = $('#deti');
+        document.addEventListener('DOMContentLoaded', function () {
+          const clientWidthForEditorAktivity = document.getElementById('editorAktivity').clientWidth;
+          let detiMultiselectColumns = parseInt(clientWidthForEditorAktivity / 200);
+          if (detiMultiselectColumns < 1) {
+            detiMultiselectColumns = 1;
+          }
+          $detiMultiselect.multiselect('settings', {columns: detiMultiselectColumns});
+        });
+
+        $detiMultiselect.multiselect({
+          columns: 2,
+          search: true,
+          texts: {
+            'placeholder': 'Zadej dítě',
+            'search': 'Hledej dítě',
+            'selectedOptions': ' vybraných dětí',
           },
           maxPlaceholderOpts: 3,
           selectAll: false
