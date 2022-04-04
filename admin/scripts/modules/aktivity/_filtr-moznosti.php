@@ -20,6 +20,7 @@ class FiltrMoznosti
      * @var bool
      */
     private $filtrovatPodleRoku;
+    private $posledniProExportPouzitelnyFiltrRoku;
 
     public static function vytvorZGlobals(bool $filtrovatPodleRoku): FiltrMoznosti {
         if (post('filtr')) {
@@ -32,7 +33,7 @@ class FiltrMoznosti
 
         //načtení aktivit a zpracování
         if (get('sort')) { //řazení
-            setcookie('akceRazeni', get('sort'), time() + 365 * 24 * 60 * 60);
+            setcookie('akceRazeni', get('sort'), (new \DateTimeImmutable('+1 year'))->getTimestamp());
             $_COOKIE['akceRazeni'] = get('sort');
         }
 
@@ -69,13 +70,13 @@ class FiltrMoznosti
 
         $posledniZobrazenyRok = null;
         if ($this->filtrovatPodleRoku) {
-            $poctyAktivitVLetech = dbArrayCol('SELECT rok, COUNT(*) AS pocet FROM akce_seznam WHERE ROK > 2000 GROUP BY rok ORDER BY rok DESC');
-            foreach ($poctyAktivitVLetech as $rok => $pocetAktivit) {
-                $posledniZobrazenyRok = max($posledniZobrazenyRok ?? 0, $rok);
-                $tplFiltrMoznosti->assign('rok', $rok);
-                $tplFiltrMoznosti->assign('nazevRoku', $rok == $this->letosniRok ? 'letos' : $rok);
-                $tplFiltrMoznosti->assign('pocetAktivit', $pocetAktivit);
-                $tplFiltrMoznosti->assign('selected', $this->filtrRoku == $rok
+            $pocetAktivitVLetech = $this->dejPoctyAktivitProTemplate();
+            $posledniZobrazenyRok = $this->vyberPosledniZobrazenyRok($pocetAktivitVLetech);
+            foreach ($pocetAktivitVLetech as $pocetAktivitVRoce) {
+                $tplFiltrMoznosti->assign('rok', $pocetAktivitVRoce['rok']);
+                $tplFiltrMoznosti->assign('nazevRoku', $pocetAktivitVRoce['nazevRoku']);
+                $tplFiltrMoznosti->assign('pocetAktivit', $pocetAktivitVRoce['pocetAktivit']);
+                $tplFiltrMoznosti->assign('selected', $this->filtrRoku == $pocetAktivitVRoce['rok']
                     ? 'selected="selected"'
                     : ''
                 );
@@ -84,10 +85,9 @@ class FiltrMoznosti
             $tplFiltrMoznosti->parse('filtr.roky');
         }
 
-        $proExportPouzitelnyFiltrRoku = $posledniZobrazenyRok ? min($posledniZobrazenyRok, $this->filtrRoku) : $this->filtrRoku;
+        $proExportPouzitelnyFiltrRoku = $this->dejProExportPouzitelnyFiltrRoku($posledniZobrazenyRok);
         $programoveLinie = $this->programoveLinie($proExportPouzitelnyFiltrRoku);
-        $varianty = $this->pocetAktivitProgramovychLinii($programoveLinie);
-        foreach ($varianty as $idTypu => $varianta) {
+        foreach ($this->pocetAktivitProgramovychLinii($programoveLinie) as $idTypu => $varianta) {
             $tplFiltrMoznosti->assign('idTypu', $idTypu);
             $tplFiltrMoznosti->assign(
                 'nazev_programove_linie',
@@ -103,6 +103,31 @@ class FiltrMoznosti
 
         $tplFiltrMoznosti->parse('filtr');
         return $tplFiltrMoznosti;
+    }
+
+    private function dejProExportPouzitelnyFiltrRoku(?int $posledniZobrazenyRok) {
+        $this->posledniProExportPouzitelnyFiltrRoku = $posledniZobrazenyRok
+            ? min($posledniZobrazenyRok, $this->filtrRoku)
+            : $this->filtrRoku;
+
+        return $this->posledniProExportPouzitelnyFiltrRoku;
+    }
+
+    private function vyberPosledniZobrazenyRok(array $pocetAktivitVLetech): ?int {
+        $roky = array_column($pocetAktivitVLetech, 'rok');
+        return $roky ? (int)max($roky) : null;
+    }
+
+    private function dejPoctyAktivitProTemplate(): array {
+        $posledniZobrazenyRok = null;
+        $poctyAktivitVLetechProTemplate = [];
+        $poctyAktivitVLetech = dbArrayCol('SELECT rok, COUNT(*) AS pocet FROM akce_seznam WHERE ROK > 2000 GROUP BY rok ORDER BY rok DESC');
+        foreach ($poctyAktivitVLetech as $rok => $pocetAktivit) {
+            $posledniZobrazenyRok = max($posledniZobrazenyRok ?? 0, $rok);
+            $nazevRoku = $rok == $this->letosniRok ? 'letos' : $rok;
+            $poctyAktivitVLetechProTemplate[] = ['rok' => $rok, 'nazevRoku' => $nazevRoku, 'pocetAktivit' => $pocetAktivit];
+        }
+        return $poctyAktivitVLetechProTemplate;
     }
 
     private function programoveLinie(int $rok): array {
@@ -127,23 +152,24 @@ SQL
     }
 
     private function pocetAktivitCelkem(array $typy): int {
-        return (int)array_sum(array_map(static function (array $typ) {
-            return $typ['pocet_aktivit'];
-        }, $typy));
+        return (int)array_sum(array_column($typy, 'pocet_aktivit'));
     }
 
-    public function dejFiltr(): array {
+    public function dejFiltr(bool $pouzitFiltrRokuProExport = false): array {
         $razeni = ['nazev_akce', 'zacatek'];
         if (!empty($_COOKIE['akceRazeni'])) {
             array_unshift($razeni, $_COOKIE['akceRazeni']);
         }
+        $filtrRoku = $pouzitFiltrRokuProExport
+            ? $this->posledniProExportPouzitelnyFiltrRoku
+            : $this->filtrRoku;
 
-        $programoveLinie = $this->programoveLinie($this->filtrRoku);
+        $programoveLinie = $this->programoveLinie($filtrRoku);
         $varianty = $this->pocetAktivitProgramovychLinii($programoveLinie);
         $filtr = empty($varianty[$this->adminAktivityFiltr]['db'])
             ? []
             : ['typ' => $varianty[$this->adminAktivityFiltr]['db']];
-        $filtr['rok'] = $this->filtrRoku;
+        $filtr['rok'] = $filtrRoku;
 
         return [$filtr, $razeni];
     }

@@ -15,7 +15,7 @@ $filtrMoznosti = FiltrMoznosti::vytvorZGlobals(FiltrMoznosti::FILTROVAT_PODLE_RO
 
 $filtrMoznosti->zobraz();
 
-[$filtr, $razeni] = $filtrMoznosti->dejFiltr();
+[$filtr, $razeni] = $filtrMoznosti->dejFiltr(true);
 $aktivity = \Aktivita::zFiltru($filtr, $razeni);
 
 $activityTypeIdsFromFilter = array_unique(
