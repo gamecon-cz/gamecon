@@ -1,5 +1,13 @@
 <!-- begin:filtr -->
 
+<script type="text/javascript">
+  function disableInputs() {
+    for (let input of document.getElementsByTagName('input')) {
+      input.disabled = true
+    }
+  }
+</script>
+
 <div style="position:absolute;right:20px;top:100px">
   <form method="post">
     <table>
@@ -7,7 +15,8 @@
       <!-- begin:programoveLinie -->
       <tr>
         <td><label for="programovaLinie">Programová linie:</label></td>
-        <td style="text-align: right"><select id="programovaLinie" name="filtr" onchange="this.form.submit()">
+        <td style="text-align: right"><select id="programovaLinie" name="filtr"
+                                              onchange="disableInputs(); this.form.submit()">
           <!-- begin:programovaLinie -->
           <option value="{idTypu}" {selected}>{nazev_programove_linie}</option>
           <!-- end:programovaLinie -->
@@ -18,7 +27,7 @@
       <!-- begin:roky -->
       <tr>
         <td><label for="rok">Rok:</label></td>
-        <td style="text-align: right"><select id="rok" name="filtrRoku" onchange="this.form.submit()">
+        <td style="text-align: right"><select id="rok" name="filtrRoku" onchange="disableInputs(); this.form.submit()">
           <!-- begin:rok -->
           <option value="{rok}" {selected}>{nazevRoku} (aktivit {pocetAktivit})</option>
           <!-- end:rok -->
