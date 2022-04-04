@@ -9,7 +9,7 @@ class ExportLokaciSloupce
     public const DVERE = 'Dveře';
     public const POZNAMKA = 'Poznámka';
 
-    public static function vsechnySloupce(): array {
+    public static function vsechnySloupceLokace(): array {
         return [
             self::ID_MISTNOSTI,
             self::NAZEV,

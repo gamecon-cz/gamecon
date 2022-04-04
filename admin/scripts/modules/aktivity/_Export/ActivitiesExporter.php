@@ -26,15 +26,45 @@ class ActivitiesExporter
      * @var \Uzivatel
      */
     private $uzivatel;
+    /**
+     * @var ExportAktivitSloupce
+     */
+    private $exportAktivitSloupce;
+    /**
+     * @var ExportTaguSloupce
+     */
+    private $exportTaguSloupce;
+    /**
+     * @var ExportStavuAktivitSloupce
+     */
+    private $exportStavuAktivitSloupce;
+    /**
+     * @var ExportLokaciSloupce
+     */
+    private $exportLokaciSloupce;
+    /**
+     * @var ExportVypravecuSloupce
+     */
+    private $exportVypravecuSloupce;
 
     public function __construct(
-        \Uzivatel           $uzivatel,
-        GoogleDriveService  $googleDriveService,
-        GoogleSheetsService $googleSheetsService
+        \Uzivatel                 $uzivatel,
+        GoogleDriveService        $googleDriveService,
+        GoogleSheetsService       $googleSheetsService,
+        ExportAktivitSloupce      $exportAktivitSloupce,
+        ExportTaguSloupce         $exportTaguSloupce,
+        ExportStavuAktivitSloupce $exportStavuAktivitSloupce,
+        ExportLokaciSloupce       $exportLokaciSloupce,
+        ExportVypravecuSloupce    $exportVypravecuSloupce
     ) {
         $this->googleDriveService = $googleDriveService;
         $this->googleSheetsService = $googleSheetsService;
         $this->uzivatel = $uzivatel;
+        $this->exportAktivitSloupce = $exportAktivitSloupce;
+        $this->exportTaguSloupce = $exportTaguSloupce;
+        $this->exportStavuAktivitSloupce = $exportStavuAktivitSloupce;
+        $this->exportLokaciSloupce = $exportLokaciSloupce;
+        $this->exportVypravecuSloupce = $exportVypravecuSloupce;
     }
 
     /**
@@ -83,7 +113,7 @@ class ActivitiesExporter
      * @return array
      */
     private function getActivitiesData(array $aktivity): array {
-        $headerRow = ExportAktivitSloupce::vsechnySloupce();
+        $headerRow = $this->exportAktivitSloupce::vsechnySloupceAktivity();
         $data = [$headerRow];
         $oneDayInSeconds = 86400;
         foreach ($aktivity as $aktivita) {
@@ -118,42 +148,42 @@ class ActivitiesExporter
                 }
             }
             $unsortedDataRow = [
-                ExportAktivitSloupce::ID_AKTIVITY => $aktivita->id(), // ID aktivity
-                ExportAktivitSloupce::PROGRAMOVA_LINIE => $aktivita->typ()->nazev(), // Programová linie
-                ExportAktivitSloupce::NAZEV => $aktivita->nazev(), // Název
-                ExportAktivitSloupce::URL => $aktivita->urlId(), // URL
-                ExportAktivitSloupce::KRATKA_ANOTACE => $aktivita->kratkyPopis(), // Krátká anotace
-                ExportAktivitSloupce::TAGY => implode('; ', $aktivita->tagy()), // Tagy
-                ExportAktivitSloupce::DLOUHA_ANOTACE => $aktivita->getPopisRaw(), // Dlouhá anotace
-                ExportAktivitSloupce::DEN => $zacatekDen, // Den
-                ExportAktivitSloupce::ZACATEK => $zacatekCas, // Začátek
-                ExportAktivitSloupce::KONEC => $konecCas, // Konec
-                ExportAktivitSloupce::MISTNOST => ($lokace = $aktivita->lokace())
+                $this->exportAktivitSloupce::ID_AKTIVITY => $aktivita->id(), // ID aktivity
+                $this->exportAktivitSloupce::PROGRAMOVA_LINIE => $aktivita->typ()->nazev(), // Programová linie
+                $this->exportAktivitSloupce::NAZEV => $aktivita->nazev(), // Název
+                $this->exportAktivitSloupce::URL => $aktivita->urlId(), // URL
+                $this->exportAktivitSloupce::KRATKA_ANOTACE => $aktivita->kratkyPopis(), // Krátká anotace
+                $this->exportAktivitSloupce::TAGY => implode('; ', $aktivita->tagy()), // Tagy
+                $this->exportAktivitSloupce::DLOUHA_ANOTACE => $aktivita->getPopisRaw(), // Dlouhá anotace
+                $this->exportAktivitSloupce::DEN => $zacatekDen, // Den
+                $this->exportAktivitSloupce::ZACATEK => $zacatekCas, // Začátek
+                $this->exportAktivitSloupce::KONEC => $konecCas, // Konec
+                $this->exportAktivitSloupce::MISTNOST => ($lokace = $aktivita->lokace())
                     ? $lokace->nazev()
                     : '', // Místnost
-                ExportAktivitSloupce::VYPRAVECI => implode('; ', $aktivita->orgLoginy()->getArrayCopy()), // Vypravěči
-                ExportAktivitSloupce::KAPACITA_UNISEX => $aktivita->getKapacitaUnisex(), // Kapacita unisex
-                ExportAktivitSloupce::KAPACITA_MUZI => $aktivita->getKapacitaMuzu(), // Kapacita muži
-                ExportAktivitSloupce::KAPACITA_ZENY => $aktivita->getKapacitaZen(), // Kapacita ženy
-                ExportAktivitSloupce::JE_TYMOVA => $aktivita->tymova() // Je týmová
+                $this->exportAktivitSloupce::VYPRAVECI => implode('; ', $aktivita->orgLoginy()->getArrayCopy()), // Vypravěči
+                $this->exportAktivitSloupce::KAPACITA_UNISEX => $aktivita->getKapacitaUnisex(), // Kapacita unisex
+                $this->exportAktivitSloupce::KAPACITA_MUZI => $aktivita->getKapacitaMuzu(), // Kapacita muži
+                $this->exportAktivitSloupce::KAPACITA_ZENY => $aktivita->getKapacitaZen(), // Kapacita ženy
+                $this->exportAktivitSloupce::JE_TYMOVA => $aktivita->tymova() // Je týmová
                     ? 'ano'
                     : 'ne',
-                ExportAktivitSloupce::MINIMALNI_KAPACITA_TYMU => $aktivita->tymMinKapacita() ?? '', // Minimální kapacita týmu
-                ExportAktivitSloupce::MAXIMALNI_KAPACITA_TYMU => $aktivita->tymMaxKapacita() ?? '', // Maximální kapacita týmu
-                ExportAktivitSloupce::NASLEDUJICI_SEMIFINALE => implode(', ', array_map( // Následující (semi)finále
+                $this->exportAktivitSloupce::MINIMALNI_KAPACITA_TYMU => $aktivita->tymMinKapacita() ?? '', // Minimální kapacita týmu
+                $this->exportAktivitSloupce::MAXIMALNI_KAPACITA_TYMU => $aktivita->tymMaxKapacita() ?? '', // Maximální kapacita týmu
+                $this->exportAktivitSloupce::NASLEDUJICI_SEMIFINALE => implode(', ', array_map( // Následující (semi)finále
                     static function (\Aktivita $aktivita) {
                         // can not allow comma "," in a name as that is used on import as a values delimiter
                         return $aktivita->id() . ' - ' . str_replace(',', ' ', $aktivita->nazev());
                     },
                     $aktivita->deti()
                 )),
-                ExportAktivitSloupce::CENA => (float)$aktivita->cenaZaklad(), // Cena
-                ExportAktivitSloupce::BEZ_SLEV => $aktivita->bezSlevy() // Bez slev
+                $this->exportAktivitSloupce::CENA => (float)$aktivita->cenaZaklad(), // Cena
+                $this->exportAktivitSloupce::BEZ_SLEV => $aktivita->bezSlevy() // Bez slev
                     ? 'ano'
                     : 'ne',
-                ExportAktivitSloupce::PRIPRAVA_MISTNOSTI => (string)$aktivita->vybaveni(), // Příprava místnosti
-                ExportAktivitSloupce::STAV => $aktivita->stav()->nazev(), // Stav
-                ExportAktivitSloupce::OBRAZEK => $aktivita->maObrazek()
+                $this->exportAktivitSloupce::PRIPRAVA_MISTNOSTI => (string)$aktivita->vybaveni(), // Příprava místnosti
+                $this->exportAktivitSloupce::STAV => $aktivita->stav()->nazev(), // Stav
+                $this->exportAktivitSloupce::OBRAZEK => $aktivita->maObrazek()
                     ? $aktivita->urlObrazku()
                     : '', // Obrázek
             ];
@@ -174,7 +204,7 @@ class ActivitiesExporter
     }
 
     private function getAllTagsData(): array {
-        $data[] = ExportTaguSloupce::vsechnySloupce();
+        $data[] = $this->exportTaguSloupce::vsechnySloupceTagu();
         foreach (\Tag::zVsech() as $tag) {
             $data[] = [
                 $tag->id(),
@@ -187,7 +217,7 @@ class ActivitiesExporter
     }
 
     private function getAllStorytellersData(): array {
-        $data[] = ExportVypravecuSloupce::vsechnySloupce();
+        $data[] = $this->exportVypravecuSloupce::vsechnySloupceVypravece();
         foreach (\Uzivatel::poradateleAktivit() as $poradatelAktivit) {
             $data[] = [
                 $poradatelAktivit->id(),
@@ -199,7 +229,7 @@ class ActivitiesExporter
     }
 
     private function getAllRoomsData(): array {
-        $data[] = ExportLokaciSloupce::vsechnySloupce();
+        $data[] = $this->exportLokaciSloupce::vsechnySloupceLokace();
         foreach (\Lokace::zVsech() as $jednaLokace) {
             $data[] = [
                 $jednaLokace->id(),
@@ -212,7 +242,7 @@ class ActivitiesExporter
     }
 
     private function getAllActivityStatesData(): array {
-        $data[] = ExportStavuAktivitSloupce::vsechnySloupce();
+        $data[] = $this->exportStavuAktivitSloupce::vsechnySloupceStavu();
         foreach (\Stav::zVsech() as $stav) {
             $data[] = [
                 $stav->nazev(),
