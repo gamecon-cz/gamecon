@@ -3,10 +3,9 @@
   <div class="hint" style="min-width: 20vw; width: max-content">
     <h3>Export a import</h3>
     <div>
-      <p>Udělej si export všech ročníků, které potřebuješ (napravo nahoře) a vykopíruj si aktivity, které chceš
-        recyklovat.</p>
-
-      <p>Udělej si nový export. Přejmenuj si ho. Vlož / vepiš do něj letošní aktivity:</p>
+      <p>Udělej si export ročníku, který budeš kopírovat (napravo nahoře). Přejmenuj si ho dle libosti. Nech v něm
+        aktivity (řádky), které chceš
+        recyklovat. Dále ho uprav podle toho, co od něj potřebuješ:</p>
 
       <h4>Nová aktivita:</h4>
       <ul>
@@ -19,7 +18,7 @@
         <li>musí mít stejné URL jako mateřská aktivita</li>
       </ul>
 
-      <h4>Editace:</h4>
+      <h4>Editace stávající:</h4>
       <ul>
         <li>ponech v exportu původní ID aktivity. Vše, co na řádku přepíšeš, se novým importem změní.</li>
       </ul>
@@ -27,15 +26,15 @@
       <h4>Po importu:</h4>
       <ul>
         <li>červená: rozbilo se ti to, daná aktivita se nenahrála</li>
-        <li>oranžová: něco je špatně, chybí nebo vyžaduje pozornost. Přečti si detail a oprav/zkontroluj</li>
+        <li>oranžová: něco je špatně, chybí nebo vyžaduje pozornost. Přečti si detail a zkontroluj, zda to vadí. Pokud ano, znovu si aktivity exportuj, uprav co potřebuješ v export a zas nahraj.</li>
       </ul>
 
       <h4>Tipy:</h4>
       <ul>
-        <li>vypravěče naklikej do adminu předem, jinak je import vynechá</li>
+        <li>vypravěče naklikej do adminu ještě před importem, jinak je import vynechá</li>
         <li>vypravěče lze zadat jako ID, jméno, nick nebo e-mail</li>
         <li>přehled vypravěčů, štítků a místností najdeš v exportu na dalších kartách</li>
-        <li>pokud nevyplníš URL, vytvoří se z názvu sama (nefunguje u instance)</li>
+        <li>URL není povinná, vytvoří se z názvu sama (nefunguje u instance)</li>
         <li>štítky lze psát bez ohledu na kapitálky, mezery a diakritiku</li>
         <li>stavy stačí psát jen prvními třemi písmeny (PUB-likovaná)</li>
         <li>jednou použitý import nelze recyklovat - udělej si export a začni znovu</li>
