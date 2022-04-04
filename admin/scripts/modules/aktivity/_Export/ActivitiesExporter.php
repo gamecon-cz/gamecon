@@ -187,9 +187,17 @@ class ActivitiesExporter
                     ? $aktivita->urlObrazku()
                     : '', // Obrázek
             ];
+            $this->sanitizeForGoogleApi($unsortedDataRow);
             $data[] = $this->sortActivitiesDataToMatchHeader($unsortedDataRow, $headerRow);
         }
         return $data;
+    }
+
+    private function sanitizeForGoogleApi(array &$row) {
+        foreach ($row as &$value) {
+            // especially null instead of empty string causes broken JSON on a Google side, if encoded on our side by PHP 7.3.33
+            $value = (string)$value;
+        }
     }
 
     /**
