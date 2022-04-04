@@ -8,7 +8,7 @@ class ExportVypravecuSloupce
     public const EMAIL = 'Email';
     public const PREZDIVKA = 'Přezdívka';
 
-    public static function vsechnySloupce(): array {
+    public static function vsechnySloupceVypravece(): array {
         return [
             self::ID_UZIVATELE,
             self::EMAIL,

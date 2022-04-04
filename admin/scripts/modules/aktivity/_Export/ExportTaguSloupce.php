@@ -9,7 +9,7 @@ class ExportTaguSloupce
     public const POZNAMKA = 'Poznámka';
     public const KATEGORIE_TAGU = 'Kategorie tagu';
 
-    public static function vsechnySloupce(): array {
+    public static function vsechnySloupceTagu(): array {
         return [
             self::ID_TAGU,
             self::NAZEV_TAGU,

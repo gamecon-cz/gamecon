@@ -90,7 +90,7 @@ class ImportValuesReader
 
     private function getCleansedHeader(array $values): ImportStepResult {
         $unifiedKnownColumns = [];
-        foreach (ExportAktivitSloupce::vsechnySloupce() as $knownColumn) {
+        foreach (ExportAktivitSloupce::vsechnySloupceAktivity() as $knownColumn) {
             /** @noinspection PhpUnhandledExceptionInspection */
             $keyFromColumn = ImportKeyUnifier::toUnifiedKey($knownColumn, $unifiedKnownColumns, ImportKeyUnifier::UNIFY_UP_TO_LETTERS);
             $unifiedKnownColumns[$keyFromColumn] = $knownColumn;

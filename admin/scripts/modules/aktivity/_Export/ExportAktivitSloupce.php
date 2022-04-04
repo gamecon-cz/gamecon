@@ -29,7 +29,7 @@ class ExportAktivitSloupce
     public const STAV = 'Stav'; // stav
     public const OBRAZEK = 'Obrázek'; // /soubory/systemove/aktivity/{URL}.jpg';
 
-    public static function vsechnySloupce(): array {
+    public static function vsechnySloupceAktivity(): array {
         return [
             self::ID_AKTIVITY,
             self::PROGRAMOVA_LINIE,
