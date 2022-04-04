@@ -2,11 +2,13 @@
 
 namespace Gamecon\Admin\Modules\Aktivity\Import;
 
+use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleConnectionException;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
 use Gamecon\Admin\Modules\Aktivity\Import\Exceptions\ActivitiesImportException;
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Cas\DateTimeCz;
 use Gamecon\Mutex\Mutex;
 use Gamecon\Vyjimkovac\Logovac;
 
@@ -65,6 +67,14 @@ class ActivitiesImporter
      * @var ActivitiesImportLogger
      */
     private $activitiesImportLogger;
+    /**
+     * @var ExportAktivitSloupce
+     */
+    private $exportAktivitSloupce;
+    /**
+     * @var DateTimeCz
+     */
+    private $dateTimeCz;
 
     public function __construct(
         int                    $userId,
@@ -76,7 +86,9 @@ class ActivitiesImporter
         Logovac                $logovac,
         Mutex                  $mutexPattern,
         string                 $errorsListUrl,
-        ActivitiesImportLogger $activitiesImportLogger
+        ActivitiesImportLogger $activitiesImportLogger,
+        ExportAktivitSloupce   $exportAktivitSloupce,
+        DateTimeCz             $dateTimeCz
     ) {
         $this->userId = $userId;
         $this->googleDriveService = $googleDriveService;
@@ -97,6 +109,8 @@ class ActivitiesImporter
         $this->activityImporter = new ActivityImporter($importValuesDescriber, $importAccessibilityChecker, $imagesImporter, $currentYear, $logovac);
         $this->errorsListUrl = $errorsListUrl;
         $this->activitiesImportLogger = $activitiesImportLogger;
+        $this->exportAktivitSloupce = $exportAktivitSloupce;
+        $this->dateTimeCz = $dateTimeCz;
     }
 
     public function importActivities(string $spreadsheetId): ActivitiesImportResult {
@@ -118,6 +132,8 @@ class ActivitiesImporter
             }
             $activitiesValues = $activitiesValuesResult->getSuccess();
             unset($activitiesValuesResult);
+
+            $activitiesValues = $this->sortActivitiesToHaveLatestFirst($activitiesValues);
 
             $typAktivityResult = $this->importRequirementsGuardian->guardSingleProgramLineOnly($activitiesValues, $processedFileName);
             if ($typAktivityResult->isError()) {
@@ -216,6 +232,40 @@ HTML
         $this->releaseExclusiveLock();
 
         return $result;
+    }
+
+    /**
+     * To import newest, "children" activities first and previous, "parent" later
+     * to support linking of parent-to-child-not-yet-in-system activities.
+     * @param array $activitiesValues
+     * @return array $activitiesValues
+     */
+    private function sortActivitiesToHaveLatestFirst(array $activitiesValues): array {
+        usort($activitiesValues, function (array $someActivityValues, array $anotherActivityValues) {
+            $someActivityTime = $this->getActivityTimeForSort($someActivityValues);
+            $anotherActivityTime = $this->getActivityTimeForSort($anotherActivityValues);
+            return $anotherActivityTime <=> $someActivityTime; // latest top, earlier bottom
+        });
+
+        return $activitiesValues;
+    }
+
+    private function getActivityTimeForSort(array $activityValues): int {
+        if (empty($activityValues[$this->exportAktivitSloupce::DEN])) {
+            return PHP_INT_MAX;
+        }
+        try {
+            $dayTimeForSort = $this->dateTimeCz::poradiDne($activityValues[$this->exportAktivitSloupce::DEN]) * 24;
+        } catch (\RuntimeException $runtimeException) {
+            return PHP_INT_MAX; // invalid date name
+        }
+        if (!empty($activityValues[$this->exportAktivitSloupce::ZACATEK])) {
+            return $dayTimeForSort + $activityValues[$this->exportAktivitSloupce::ZACATEK];
+        }
+        if (!empty($activityValues[$this->exportAktivitSloupce::KONEC])) {
+            return $dayTimeForSort + $activityValues[$this->exportAktivitSloupce::KONEC];
+        }
+        return $dayTimeForSort;
     }
 
     public function __destruct() {

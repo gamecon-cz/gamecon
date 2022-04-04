@@ -5,6 +5,7 @@ use Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImportLogger;
 use Gamecon\Mutex\Mutex;
 use Gamecon\Vyjimkovac\Logovac;
 use Gamecon\Zidle;
+use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
 
 /** @var XTemplate $template */
 /** @var \Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService $googleDriveService */
@@ -39,7 +40,9 @@ if (!empty($_POST['googleSheetId'])) {
         $vyjimkovac,
         Mutex::proAktivity(),
         URL_ADMIN . '/web/chyby',
-        $activitiesImportLogger
+        $activitiesImportLogger,
+        new ExportAktivitSloupce(),
+        new \Gamecon\Cas\DateTimeCz()
     );
     $vysledekImportuAktivit = $activitiesImporter->importActivities($googleSheetId);
     $importOznameni = include __DIR__ . '/_import-oznameni.php';
