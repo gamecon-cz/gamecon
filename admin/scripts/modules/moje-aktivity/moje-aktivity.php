@@ -59,7 +59,7 @@ if ($testovani) {
             $aReflection = (new ReflectionClass(Aktivita::class))->getProperty('a');
             $aReflection->setAccessible(true);
             $aValue = $aReflection->getValue($aktivita);
-            $aValue['zacatek'] = (clone $prvniZacatek)->modify('+' . random_int(0, 30) . ' seconds');
+            $aValue['zacatek'] = (clone $prvniZacatek)->modify('+' . random_int(0, 10) . ' seconds');
             $aReflection->setValue($aktivita, $aValue);
         });
     }
