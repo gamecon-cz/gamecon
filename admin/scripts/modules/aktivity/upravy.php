@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Vyjimkovac\Logovac;
+use Gamecon\Aktivita\Aktivita;
 
 /**
  * Stránka pro tvorbu a editaci aktivit. Brand new.

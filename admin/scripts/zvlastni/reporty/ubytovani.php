@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/sdilene-hlavicky.php';
+require __DIR__ . '/sdilene-hlavicky.php';
 
 $o = dbQuery('
   SELECT u.id_uzivatele, login_uzivatele, jmeno_uzivatele, prijmeni_uzivatele, mesto_uzivatele, ulice_a_cp_uzivatele, op as cislo_op,
@@ -31,4 +31,4 @@ while($r = mysqli_fetch_assoc($o)) {
 }
 
 $r = Report::zPole($vystup);
-get('format') == 'html' ? $r->tHtml() : $r->tCsv();
+get('format') === 'html' ? $r->tHtml() : $r->tCsv();

@@ -1,5 +1,8 @@
 <?php
 
+use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Aktivita\Aktivita;
+
 /**
  * Stránka pro přehled všech přihlášených na aktivitu DrD. DrD je starý modul a
  * přes všechnu snahu je na pozadí black magic!
@@ -60,7 +63,7 @@ $t = new XTemplate(__DIR__ . '/prihlaseni-drd.xtpl');
 
 $semifinale = [];
 $finale = [];
-foreach (Aktivita::zFiltru(['typ' => \Gamecon\Aktivita\TypAktivity::DRD, 'rok' => ROK]) as $a) {
+foreach (Aktivita::zFiltru(['typ' => TypAktivity::DRD, 'rok' => ROK]) as $a) {
     if ($a->cenaZaklad() == 0) {
         continue;
     }

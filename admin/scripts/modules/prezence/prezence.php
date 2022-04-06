@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Aktivita\Aktivita;
+
 /**
  * Vyklikávací tabulky s prezencí na aktivity
  *

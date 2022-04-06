@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Aktivita\Aktivita;
+
 /** @var XTemplate $t */
 
 // načíst aktivity DrD (všechna kola)

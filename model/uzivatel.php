@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Cas\DateTimeCz;
+use Gamecon\Aktivita\Aktivita;
 
 /**
  * Třída popisující uživatele a jeho vlastnosti
@@ -797,7 +798,9 @@ SQL
 
         // validátory
         $validaceLoginu = function ($login) use ($u) {
-            if (empty($login)) return 'vyber si prosím přezdívku';
+            if (empty($login)) {
+                return 'vyber si prosím přezdívku';
+            }
 
             $u2 = Uzivatel::zNicku($login) ?? Uzivatel::zMailu($login);
             if ($u2 && !$u) {
@@ -806,6 +809,7 @@ SQL
             if ($u2 && $u && $u2->id() != $u->id()) {
                 return 'přezdívka už je zabraná. Vyber si prosím jinou';
             }
+            return '';
         };
 
         $validaceMailu = function ($mail) use ($u) {
@@ -1206,9 +1210,8 @@ SQL
             $pole['mrtvy_mail'] = 1;
             dbInsert('uzivatele_hodnoty', $pole);
             return self::zId(dbInsertId());
-        } else {
-            throw new Exception('nepodporováno');
         }
+        throw new Exception('nepodporováno');
     }
 
     /**

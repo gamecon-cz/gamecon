@@ -1,57 +1,63 @@
 <?php
 
+use Gamecon\Aktivita\TypAktivity;
+
 class Stranka extends DbObject
 {
 
     protected static $tabulka = 'stranky';
     protected static $pk = 'id_stranky';
 
-    function html() {
+    public function html() {
         if (!isset($this->html)) {
             $html = markdownNoCache($this->r['obsah']);
             $html = preg_replace_callback('@(<p>)?\(widget:([a-z\-]+)\)(</p>)?@', function ($m) {
                 $w = Widget::zNazvu($m[2]);
-                if ($w) return $w->html();
-                else    return 'widget neexistuje';
+                if ($w) {
+                    return $w->html();
+                }
+                return 'widget neexistuje';
             }, $html);
             $this->html = $html;
         }
         return $this->html;
     }
 
-    function nadpis() {
+    public function nadpis() {
         $html = preg_quote_wildcard('<h1>~</h1>');
         $md = '^#\s*([^#].+)$';
         preg_match("@$html|$md@m", $this->r['obsah'], $m);
         return @($m[1] ?: $m[2]);
     }
 
-    function obrazek() {
+    public function obrazek() {
         $html = preg_quote_wildcard('<img src="~"~>');
         $md = preg_quote_wildcard('![~](~)');
         preg_match("@$html|$md@", $this->r['obsah'], $m);
         return @($m[1] ?: $m[4]);
     }
 
-    function poradi() {
+    public function poradi() {
         return $this->r['poradi'];
     }
 
     /** Vrátí typ aktivit (linii) pokud stránka patří pod nějakou linii */
-    function typ() {
+    public function typ() {
         if (preg_match('@^([^/]+)/@', $this->r['url_stranky'], $m)) {
-            return \Gamecon\Aktivita\TypAktivity::zUrl($m[1]);
+            return TypAktivity::zUrl($m[1]);
         }
 
         return null;
     }
 
-    function url() {
+    public function url() {
         return $this->r['url_stranky'];
     }
 
     static function zUrl($url = null): ?Stranka {
-        if (!$url) $url = Url::zAktualni()->cela();
+        if (!$url) {
+            $url = Url::zAktualni()->cela();
+        }
         return self::zWhereRadek('url_stranky = $1', [$url]);
     }
 
