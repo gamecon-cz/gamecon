@@ -2,6 +2,7 @@
 
 namespace Gamecon\Admin\Modules\Aktivity\Import;
 
+use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Vyjimkovac\Logovac;
 
@@ -49,7 +50,7 @@ class ActivityImporter
         array       $tagIds,
         TypAktivity $singleProgramLine,
         array       $potentialImageUrls,
-        ?\Aktivita  $originalActivity
+        ?Aktivita   $originalActivity
     ): ImportStepResult {
         $checkBeforeSaveResult = $this->importValuesChecker->checkBeforeSave(
             $sqlMappedValues,
@@ -66,7 +67,7 @@ class ActivityImporter
 
         ['values' => $sqlMappedValues, 'availableStorytellerIds' => $availableStorytellerIds, 'checkResults' => $checkResults] = $checkBeforeSaveResult->getSuccess();
 
-        /** @var  \Aktivita $importedActivity */
+        /** @var Aktivita $importedActivity */
         $savedActivityResult = $this->saveActivity(
             $sqlMappedValues,
             $longAnnotation,
@@ -136,7 +137,7 @@ class ActivityImporter
                     $sqlMappedValues[ActivitiesImportSqlColumn::PATRI_POD] = $newInstance->patriPod();
                 }
             }
-            $savedActivity = \Aktivita::uloz($sqlMappedValues, $longAnnotation, $storytellersIds, $tagIds);
+            $savedActivity = Aktivita::uloz($sqlMappedValues, $longAnnotation, $storytellersIds, $tagIds);
             $addImageResult = $this->imagesImporter->addImage($potentialImageUrls, $savedActivity);
             return ImportStepResult::successWithWarnings($savedActivity, $addImageResult->getWarnings(), $addImageResult->getErrorLikeWarnings());
         } catch (\Exception $exception) {
@@ -152,10 +153,10 @@ class ActivityImporter
     }
 
     private function findParentActivityId(string $url, TypAktivity $singleProgramLine): ?int {
-        return \Aktivita::idMozneHlavniAktivityPodleUrl($url, $this->currentYear, $singleProgramLine->id());
+        return Aktivita::idMozneHlavniAktivityPodleUrl($url, $this->currentYear, $singleProgramLine->id());
     }
 
-    private function createInstanceForParentActivity(int $parentActivityId): \Aktivita {
+    private function createInstanceForParentActivity(int $parentActivityId): Aktivita {
         return ImportModelsFetcher::fetchActivity($parentActivityId)->instancuj();
     }
 
