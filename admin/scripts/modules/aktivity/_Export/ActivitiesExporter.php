@@ -6,6 +6,7 @@ use Gamecon\Admin\Modules\Aktivity\Export\Exceptions\ActivitiesExportException;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleConnectionException;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
+use Gamecon\Aktivita\Aktivita;
 use Gamecon\Cas\DateTimeCz;
 
 class ActivitiesExporter
@@ -68,7 +69,7 @@ class ActivitiesExporter
     }
 
     /**
-     * @param array|\Aktivita[] $activities
+     * @param array|Aktivita[] $activities
      * @param string $prefix
      * @return string Name of exported file
      */
@@ -109,7 +110,7 @@ class ActivitiesExporter
     }
 
     /**
-     * @param \Aktivita[] $aktivity
+     * @param Aktivita[] $aktivity
      * @return array
      */
     private function getActivitiesData(array $aktivity): array {
@@ -171,7 +172,7 @@ class ActivitiesExporter
                 $this->exportAktivitSloupce::MINIMALNI_KAPACITA_TYMU => $aktivita->tymMinKapacita() ?? '', // Minimální kapacita týmu
                 $this->exportAktivitSloupce::MAXIMALNI_KAPACITA_TYMU => $aktivita->tymMaxKapacita() ?? '', // Maximální kapacita týmu
                 $this->exportAktivitSloupce::NASLEDUJICI_SEMIFINALE => implode(', ', array_map( // Následující (semi)finále
-                    static function (\Aktivita $aktivita) {
+                    static function (Aktivita $aktivita) {
                         // can not allow comma "," in a name as that is used on import as a values delimiter
                         return $aktivita->id() . ' - ' . str_replace(',', ' ', $aktivita->nazev());
                     },
@@ -307,7 +308,7 @@ class ActivitiesExporter
     private function getActivitiesUniqueTypeNames(array $aktivity): array {
         return array_unique(
             array_map(
-                static function (\Aktivita $aktivita) {
+                static function (Aktivita $aktivita) {
                     return $aktivita->typ()->nazev();
                 },
                 $aktivity

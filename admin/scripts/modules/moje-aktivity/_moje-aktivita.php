@@ -1,5 +1,9 @@
 <?php
 
+use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml;
+use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax;
+
 /**
  * Online formulář na zadávání příchozích a nedorazivších na aktivity
  *
@@ -22,8 +26,8 @@ if ($problem) {
 global $BEZ_DEKORACE;
 $BEZ_DEKORACE = true; // pokud nedoslo k chybě, tak nechceme levé menu, ale pouze nový čistý layout pro prezenci, viz admin/index.php
 
-$onlinePrezenceHtml = new \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml();
-$onlinePrezenceAjax = new \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax($onlinePrezenceHtml);
+$onlinePrezenceHtml = new OnlinePrezenceHtml();
+$onlinePrezenceAjax = new OnlinePrezenceAjax($onlinePrezenceHtml);
 
 if ($onlinePrezenceAjax->odbavAjax()) {
     return;

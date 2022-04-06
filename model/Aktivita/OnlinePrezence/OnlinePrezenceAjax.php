@@ -2,6 +2,8 @@
 
 namespace Gamecon\Aktivita\OnlinePrezence;
 
+use Gamecon\Aktivita\Aktivita;
+
 class OnlinePrezenceAjax
 {
 
@@ -52,7 +54,7 @@ class OnlinePrezenceAjax
     }
 
     private function ajaxUzavritAktivitu(int $idAktivity) {
-        $aktivita = \Aktivita::zId($idAktivity);
+        $aktivita = Aktivita::zId($idAktivity);
         if (!$aktivita) {
             $this->echoErrorJson('Chybné ID aktivity ' . $idAktivity);
             return;
@@ -76,7 +78,7 @@ class OnlinePrezenceAjax
 
     private function ajaxZmenitUcastnikaAktivity(int $idUzivatele, int $idAktivity, ?bool $dorazil) {
         $ucastnik = \Uzivatel::zId($idUzivatele);
-        $aktivita = \Aktivita::zId($idAktivity);
+        $aktivita = Aktivita::zId($idAktivity);
         if (!$ucastnik || !$aktivita || $dorazil === null) {
             header("HTTP/1.1 400 Bad Request");
             $this->echoJson(['errors' => ['Chybné ID účastníka nebo aktivity nebo chybejici priznak zda dorazil']]);
@@ -90,14 +92,14 @@ class OnlinePrezenceAjax
                 return;
             }
         }
-        /** Abychom mměli nová data pro @see \Aktivita::dorazilJakoCokoliv */
+        /** Abychom mměli nová data pro @see Aktivita::dorazilJakoCokoliv */
         $aktivita->refresh();
 
         $this->echoJson(['prihlasen' => $aktivita->dorazilJakoCokoliv($ucastnik)]);
     }
 
     private function ajaxUlozPrezenci(int $idAktivity, array $idDorazivsich) {
-        $aktivita = \Aktivita::zId($idAktivity);
+        $aktivita = Aktivita::zId($idAktivity);
         if (!$aktivita) {
             $this->echoErrorJson('Chybné ID aktivity' . $idAktivity);
             return;
@@ -114,7 +116,7 @@ class OnlinePrezenceAjax
         array  $dataVOdpovedi,
         ?array $labelSlozenZ
     ) {
-        $aktivita = \Aktivita::zId($idAktivity);
+        $aktivita = Aktivita::zId($idAktivity);
         if (!$aktivita) {
             $this->echoErrorJson('Chybné ID aktivity ' . $idAktivity);
             return;
