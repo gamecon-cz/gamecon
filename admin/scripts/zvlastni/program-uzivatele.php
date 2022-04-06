@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Aktivita\Aktivita;
+
 /** @var Uzivatel $u */
 /** @var Uzivatel|null $uPracovni */
 
@@ -32,17 +34,17 @@ $chyba = Chyba::vyzvedniHtml();
 
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="cs">
 <head>
+    <title>Program <?= htmlspecialchars($uPracovni->jmenoNick(), ENT_QUOTES | ENT_HTML5) ?></title>
     <!-- jquery kvůli týmovým formulářům -->
     <script src="files/jquery-3.4.1.min.js"></script>
-    <script src="files/jquery-ui-1.10.3.custom.min.js"></script>
-    <script src="files/jquery-migrate-3.1.0.js"></script>
+    <script src="files/jquery-ui-v1.12.1.min.js"></script>
     <base href="<?= URL_ADMIN ?>/">
     <link rel="stylesheet" href="<?= $program->cssUrl() ?>">
     <style>
         body {
-            font-family: tahoma, sans;
+            font-family: tahoma, sans, sans-serif;
             font-size: 11px;
             line-height: 1.2;
             background-color: #fff;
@@ -53,7 +55,7 @@ $chyba = Chyba::vyzvedniHtml();
             color: #fff;
         }
     </style>
-    <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-1.10.3.custom.min.css">
+    <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-v1.12.1.min.css">
 </head>
 <body>
 
