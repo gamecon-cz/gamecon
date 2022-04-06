@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Aktivita\Aktivita;
+
 /**
  * Skript který je hostingem automaticky spouštěn jednou za hodinu. Standardní
  * limit vykonání je 90 sekund jako jinde na webu.

@@ -3,11 +3,15 @@
  * Vyplnění prezence a uzavření aktivity online.
  */
 
+use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml;
+use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax;
+
 /** @var Uzivatel $u */
 /** @var Uzivatel|null $uPracovni */
 
-$onlinePrezenceHtml = new \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml();
-$onlinePrezenceAjax = new \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax($onlinePrezenceHtml);
+$onlinePrezenceHtml = new OnlinePrezenceHtml();
+$onlinePrezenceAjax = new OnlinePrezenceAjax($onlinePrezenceHtml);
 
 if ($onlinePrezenceAjax->odbavAjax()) {
     return;

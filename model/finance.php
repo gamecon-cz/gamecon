@@ -1,5 +1,8 @@
 <?php
 
+use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\TypAktivity;
+
 /**
  * Třída zodpovídající za spočítání finanční bilance uživatele na GC.
  */
@@ -390,7 +393,7 @@ class Finance
         $scn = $this->soucinitelAktivit();
         $rok = ROK;
         $uid = $this->u->id();
-        $technicka = \Gamecon\Aktivita\TypAktivity::TECHNICKA;
+        $technicka = TypAktivity::TECHNICKA;
         $nedorazil = Aktivita::PRIHLASEN_ALE_NEDORAZIL;
         $pozdeZrusil = Aktivita::POZDE_ZRUSIL;
 

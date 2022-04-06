@@ -1,5 +1,9 @@
 <?php
 
+use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml;
+use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax;
+
 /**
  * Úvodní karta organizátora s přehledem jeho aktivit
  *
@@ -35,8 +39,8 @@ $organizovaneAktivity = Aktivita::zFiltru(
 global $BEZ_DEKORACE;
 $BEZ_DEKORACE = true; // pokud nedoslo k chybě, tak nechceme levé menu, ale pouze nový čistý layout pro prezenci, viz admin/index.php
 
-$onlinePrezenceHtml = new \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml();
-$onlinePrezenceAjax = new \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax($onlinePrezenceHtml);
+$onlinePrezenceHtml = new OnlinePrezenceHtml();
+$onlinePrezenceAjax = new OnlinePrezenceAjax($onlinePrezenceHtml);
 
 if ($onlinePrezenceAjax->odbavAjax()) {
     return;
@@ -55,7 +59,7 @@ if ($testovani) {
     if ($prvniZacatek) {
         /** @var \Gamecon\Cas\DateTimeCz $prvniZacatek */
         $now = (clone $prvniZacatek)->modify('-' . (MOJE_AKTIVITY_EDITOVATELNE_X_MINUT_PRED_JEJICH_ZACATKEM * 60 + 10) . ' seconds');
-        array_walk($organizovaneAktivity, static function (\Aktivita $aktivita) use ($prvniZacatek) {
+        array_walk($organizovaneAktivity, static function (Aktivita $aktivita) use ($prvniZacatek) {
             $aReflection = (new ReflectionClass(Aktivita::class))->getProperty('a');
             $aReflection->setAccessible(true);
             $aValue = $aReflection->getValue($aktivita);

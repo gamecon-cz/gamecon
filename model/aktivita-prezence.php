@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Aktivita\Aktivita;
+
 /**
  * Prezenční listina aktivity.
  */
