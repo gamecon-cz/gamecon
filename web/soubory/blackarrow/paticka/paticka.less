@@ -41,18 +41,38 @@
 .paticka_odkazy > a {
     text-decoration: none;
     color: inherit;
-    margin-right: 38px;
+    padding-right: 15px;
+    margin-right: 13px;
     letter-spacing: 1px;
     opacity: 0.7;
     display: inline-block; // kvůli hraně u facebooku
     height: 28px;
     line-height: 28px;
 }
-
-.paticka_odkazy > a.paticka_facebook {
+.paticka_odkazy > a.paticka_ext {
     opacity: 1.0;
     border-left: solid 1px rgba(255, 255, 255, 0.7);
-    margin-left: -10px;
-    padding-left: 63px;
-    background: url('../blackarrow/paticka/facebook.svg') no-repeat 30px 3px;
+    display: inline-block;
+    color: rgba(255,255,255,0.7);
+    margin-left: -14px;
+    padding-left: 56px;
+}
+
+.paticka_odkazy > a:hover,
+.paticka_odkazy > a.paticka_ext:hover {
+    opacity: 1.0;
+    color: rgba(255,255,255,1.0);
+}
+
+.paticka_odkazy > a.paticka_facebook {
+    background: url('../blackarrow/paticka/facebook.svg') no-repeat 23px 3px;
+}
+.paticka_odkazy > a.paticka_discord {
+    background: url('../blackarrow/paticka/discord.svg') no-repeat 20px 3px;
+}
+.paticka_odkazy > a.paticka_youtube {
+    background: url('../blackarrow/paticka/youtube.svg') no-repeat 19px 3px;
+}
+.paticka_odkazy > a.paticka_instagram {
+    background: url('../blackarrow/paticka/instagram.svg') no-repeat 21px 3px;
 }
