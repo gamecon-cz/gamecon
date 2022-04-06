@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Aktivita\Aktivita;
+
 $this->bezStranky(true);
 
 if(($idAktivity = get('idAktivity'))) {

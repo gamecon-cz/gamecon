@@ -1,5 +1,8 @@
 <?php
 
+use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\TypAktivity;
+
 /** @var XTemplate $t */
 /** @var Uzivatel $u */
 /** @var Uzivatel|null|void $org */
@@ -45,7 +48,7 @@ foreach ($skupiny as $skupina) {
         }
 
         $tym = $aktivita->tym();
-        if ($tym && in_array($aktivita->typId(), [\Gamecon\Aktivita\TypAktivity::DRD, \Gamecon\Aktivita\TypAktivity::LKD])) {
+        if ($tym && in_array($aktivita->typId(), [TypAktivity::DRD, TypAktivity::LKD])) {
             $t->assign('tym', $tym);
             $t->parse('aktivity.aktivita.termin.tym');
         }
@@ -57,7 +60,7 @@ foreach ($skupiny as $skupina) {
         }
 
         $vypravec = current($aktivita->organizatori());
-        if ($vypravec && ($aktivita->typId() == \Gamecon\Aktivita\TypAktivity::DRD || $aktivita->patriPod() > 0)) {
+        if ($vypravec && ($aktivita->typId() == TypAktivity::DRD || $aktivita->patriPod() > 0)) {
             $t->assign('vypravec', $vypravec->jmenoNick());
             $t->parse('aktivity.aktivita.termin.vypravec');
         }
@@ -76,9 +79,8 @@ foreach ($skupiny as $skupina) {
         $url = $organizator->url();
         if ($url) {
             return '<a href="' . $url . '">' . $organizator->jmenoNick() . '</a>';
-        } else {
-            return $organizator->jmenoNick();
         }
+        return $organizator->jmenoNick();
     }, $aktivita->organizatori()));
 
     $obrazek = $aktivita->obrazek();
@@ -115,7 +117,7 @@ if (!empty($org)) {
     $t->assign([
         'popisLinie' => $typ->oTypu(),
         'ikonaLinie' => 'soubory/systemove/linie-ikony/' . $typ->id() . '.png',
-        'specTridy' => $typ->id() == \Gamecon\Aktivita\TypAktivity::DRD ? 'aktivity_aktivity-drd' : null,
+        'specTridy' => $typ->id() == TypAktivity::DRD ? 'aktivity_aktivity-drd' : null,
     ]);
 
     // podstránky linie
