@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Aktivita\Aktivita;
+
 $naStranku = 15;
 $prazdnychRadku = 4;
 $minNahradniku = 5;

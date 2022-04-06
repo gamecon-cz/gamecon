@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/sdilene-hlavicky.php';
+require __DIR__ . '/sdilene-hlavicky.php';
 
 $report = Report::zSql(<<<SQL
 SELECT id_uzivatele, login_uzivatele, jmeno_uzivatele, prijmeni_uzivatele, ulice_a_cp_uzivatele, mesto_uzivatele, stat_uzivatele, psc_uzivatele, telefon_uzivatele, datum_narozeni, funkce_uzivatele, email1_uzivatele, email2_uzivatele, jine_uzivatele, nechce_maily, mrtvy_mail, forum_razeni, zustatek, pohlavi, registrovan, ubytovan_s, skola, poznamka, pomoc_typ, pomoc_vice, op, potvrzeni_zakonneho_zastupce,

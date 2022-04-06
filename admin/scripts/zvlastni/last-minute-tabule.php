@@ -1,6 +1,7 @@
 <?php
 
 use \Gamecon\Cas\DateTimeCz;
+use Gamecon\Aktivita\Aktivita;
 
 $xtpl = new XTemplate(__DIR__ . '/last-minute-tabule.xtpl');
 
@@ -17,7 +18,7 @@ $zacatekPrvniAktivityBloku = null;
 $zitra = null;
 $aktivity = Aktivita::zRozmezi($od, $do, Aktivita::JEN_VOLNE | Aktivita::VEREJNE);
 usort($aktivity, static function (Aktivita $nejakaAktivita, Aktivita $dalsiAktivita) {
-    return $nejakaAktivita->zacatek() > $dalsiAktivita->zacatek();
+    return $nejakaAktivita->zacatek() <=> $dalsiAktivita->zacatek();
 });
 foreach ($aktivity as $a) {
     $zacatekPrvniAktivityBloku = $zacatekPrvniAktivityBloku ?: $a->zacatek()->format('G:i');

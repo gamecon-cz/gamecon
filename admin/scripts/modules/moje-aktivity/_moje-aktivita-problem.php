@@ -1,6 +1,6 @@
 <?php
 /**
- * @var Aktivita|null $aktivita
+ * @var \Gamecon\Aktivita\Aktivita|null $aktivita
  * @var Uzivatel $u
  * @var bool $testovani
  */
@@ -23,7 +23,7 @@ if (!$aktivita) {
     $sablonaKProblemu->assign('aktivita', $aktivita);
     $sablonaKProblemu->assign('konecPred', $aktivita->konec()->relativni());
     $sablonaKProblemu->parse('problem.probehla');
-} elseif (!in_array($u->id(), $aktivita->getOrganizatoriIds(), false) && !$testovani) {
+} elseif (!in_array($u->id(), $aktivita->dejOrganizatoriIds(), false) && !$testovani) {
     $problem = true;
     $sablonaKProblemu->assign('aktivita', $aktivita);
     $sablonaKProblemu->parse('problem.cizi');

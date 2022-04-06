@@ -1,6 +1,9 @@
 <?php
 
-require_once __DIR__ . '/sdilene-hlavicky.php';
+use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\TypAktivity;
+
+require __DIR__ . '/sdilene-hlavicky.php';
 
 // dorazili
 $prihlasen = Aktivita::PRIHLASEN; // tohle je k něčemu leda v případě, že nějaká aktivita ještě nebyla uzavřena - což by se mělo stávat jen před a během Gameconu (a možná u technických aktivit)
@@ -11,7 +14,7 @@ $prihlasenAleNedorazil = Aktivita::PRIHLASEN_ALE_NEDORAZIL;
 $pozdeZrusil = Aktivita::POZDE_ZRUSIL;
 $sledujici = Aktivita::SLEDUJICI;
 
-$technicka = \Gamecon\Aktivita\TypAktivity::TECHNICKA;
+$technicka = TypAktivity::TECHNICKA;
 
 $o = dbQuery(<<<SQL
 SELECT * FROM
