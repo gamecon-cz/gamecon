@@ -3,7 +3,7 @@
 
 use \Gamecon\Cas\DateTimeCz;
 
-require_once __DIR__ . '/sdilene-hlavicky.php';
+require __DIR__ . '/sdilene-hlavicky.php';
 
 function ed($datum) { // excel datum
     if (!$datum) {

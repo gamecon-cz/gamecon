@@ -1,5 +1,8 @@
 <?php
 
+use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\TypAktivity;
+
 /**
  * Stránka pro tvorbu a správu aktivit.
  *
@@ -74,7 +77,7 @@ if (defined('TESTING') && TESTING && !empty($filtr['typ'])) {
     $tpl->assign('pocet', count($aktivity));
     $idTypu = $filtr['typ'];
     $tpl->assign('id_typu', $idTypu);
-    $tpl->assign('nazev_typu', \Gamecon\Aktivita\TypAktivity::zId($idTypu)->nazev());
+    $tpl->assign('nazev_typu', TypAktivity::zId($idTypu)->nazev());
     $tpl->parse('aktivity.smazatTyp');
 }
 

@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Aktivita\Aktivita;
+
 /**
  * Nástroj na zrušení storna za to, když se účastník nedostavil na aktivitu.
  *

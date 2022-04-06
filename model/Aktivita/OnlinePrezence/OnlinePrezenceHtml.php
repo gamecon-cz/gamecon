@@ -2,6 +2,8 @@
 
 namespace Gamecon\Aktivita\OnlinePrezence;
 
+use Gamecon\Aktivita\Aktivita;
+
 class OnlinePrezenceHtml
 {
     /** @var \XTemplate */
@@ -40,7 +42,7 @@ class OnlinePrezenceHtml
 
     /**
      * @param \XTemplate $template
-     * @param array|\Aktivita[] $aktivity
+     * @param array|Aktivita[] $aktivity
      * @param int $editovatelnaXMinutPredZacatkem
      * @param \DateTimeInterface|null $now
      * @return void
@@ -93,7 +95,7 @@ class OnlinePrezenceHtml
         $template->parse('onlinePrezence.aktivity');
     }
 
-    private static function dejEditovatelnaOdTimestamp(\Aktivita $aktivita, int $editovatelnaXMinutPredZacatkem, ?\DateTimeInterface $now): int {
+    private static function dejEditovatelnaOdTimestamp(Aktivita $aktivita, int $editovatelnaXMinutPredZacatkem, ?\DateTimeInterface $now): int {
         $now = $now ?? new \DateTimeImmutable();
         $zacatek = $aktivita->zacatek();
         $hnedEditovatelnaSeZaCatkemDo = $zacatek ?
@@ -114,7 +116,7 @@ class OnlinePrezenceHtml
 
     public function sestavHmlUcastnikaAktivity(
         \Uzivatel $ucastnik,
-        \Aktivita $aktivita,
+        Aktivita $aktivita,
         bool      $dorazil,
         bool      $zatimPouzeProCteni
     ): string {

@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/sdilene-hlavicky.php';
+require __DIR__ . '/sdilene-hlavicky.php';
 
 //$MULTI_CHECK=3; //počet duplicitních sloupců vyhrazených pro otázky s checboxy //zatím neimplementováno
 
