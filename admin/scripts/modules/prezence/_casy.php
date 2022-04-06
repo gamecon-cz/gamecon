@@ -1,6 +1,7 @@
 <?php
 
 use \Gamecon\Cas\DateTimeCz;
+use Gamecon\Aktivita\Aktivita;
 
 /**
  * Vhackovaný code snippet na zobrazení vybírátka času

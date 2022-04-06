@@ -3,6 +3,7 @@
 namespace Gamecon\Uzivatel;
 
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Aktivita\Aktivita;
 use Gamecon\Shop\Shop;
 
 /**
@@ -271,15 +272,15 @@ class Finance
      * zdarma a 1.0 pro aktivity za plnou cenu.
      */
     function slevaAktivity() {
-        return $this->soucinitelAktivit(); //todo když není přihlášen na GameCon, možná raději řešit zobrazení ceny defaultně (protože neznáme jeho studentství etc.). Viz také třída \Aktivita
+        return $this->soucinitelAktivit(); //todo když není přihlášen na GameCon, možná raději řešit zobrazení ceny defaultně (protože neznáme jeho studentství etc.). Viz také třída Aktivita
     }
 
     /**
      * Vrátí výchozí vygenerovanou slevu za vedení dané aktivity
-     * @param \Aktivita @a
+     * @param Aktivita @a
      * @return int
      */
-    static function bonusZaAktivitu(\Aktivita $a): int {
+    static function bonusZaAktivitu(Aktivita $a): int {
         if ($a->nedavaBonus()) {
             return 0;
         }
@@ -392,8 +393,8 @@ class Finance
         $rok = ROK;
         $uid = $this->u->id();
         $technicka = TypAktivity::TECHNICKA;
-        $nedorazil = \Aktivita::PRIHLASEN_ALE_NEDORAZIL;
-        $pozdeZrusil = \Aktivita::POZDE_ZRUSIL;
+        $nedorazil = Aktivita::PRIHLASEN_ALE_NEDORAZIL;
+        $pozdeZrusil = Aktivita::POZDE_ZRUSIL;
 
         $o = dbQuery("
       SELECT
@@ -426,7 +427,7 @@ class Finance
             $poznamka = '';
             if ($r['id_stavu_prihlaseni'] == 3) $poznamka = " <i>(nedorazil$a)</i>";
             if ($r['id_stavu_prihlaseni'] == 4) $poznamka = " <i>(odhlášen$a pozdě)</i>";
-            if ($r['id_stavu_prihlaseni'] == \Aktivita::SLEDUJICI) continue;
+            if ($r['id_stavu_prihlaseni'] == Aktivita::SLEDUJICI) continue;
             $this->log($r['nazev'] . $poznamka, $r['cena'] < 0 ? 0 : $r['cena'], self::AKTIVITA);
         }
     }
@@ -538,7 +539,7 @@ SQL
         if ($this->u->nemaPravoNaBonusZaVedeniAktivit()) {
             return;
         }
-        foreach (\Aktivita::zOrganizatora($this->u) as $a) {
+        foreach (Aktivita::zOrganizatora($this->u) as $a) {
             $this->bonusZaVedeniAktivit += self::bonusZaAktivitu($a);
         }
     }

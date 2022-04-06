@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Aktivita\TypAktivity;
+
 class Menu
 {
 
@@ -18,7 +20,7 @@ class Menu
     ];
     protected $url;
 
-    function __construct(Uzivatel $u = null, Url $url = null) {
+    public function __construct(Uzivatel $u = null, Url $url = null) {
         // personalizace seznamu stránek
         $a = $u ? $u->koncA() : '';
         if (po(REG_GC_OD)) {
@@ -32,19 +34,25 @@ class Menu
     }
 
     /** Celý kód menu (html) */
-    function cele() {
+    public function cele() {
         $a = $this->url ? $this->url->cast(0) : null;
         $t = new XTemplate('sablony/menu.xtpl');
         $t->assign('menu', $this);
-        if (isset(self::$linie[$a])) $t->assign('aaktiv', 'aktivni');
-        if (isset($this->stranky[$a])) $t->assign('saktiv', 'aktivni');
-        if ($a == 'blog') $t->assign('baktiv', 'aktivni');
+        if (isset(self::$linie[$a])) {
+            $t->assign('aaktiv', 'aktivni');
+        }
+        if (isset($this->stranky[$a])) {
+            $t->assign('saktiv', 'aktivni');
+        }
+        if ($a === 'blog') {
+            $t->assign('baktiv', 'aktivni');
+        }
         $t->parse('menu');
         return $t->text('menu');
     }
 
     /** Seznam linií s prokliky (html) */
-    function linie() {
+    public function linie() {
         $linie = self::linieSeznam();
         // ne/zobrazení linku na program
         if (PROGRAM_VIDITELNY && !isset($linie['program'])) $linie = ['program' => 'Program'] + $linie;
@@ -58,9 +66,9 @@ class Menu
     }
 
     /** Asoc. pole url linie => název */
-    static function linieSeznam() {
-        if (!isset(self::$linie)) { // TODO cacheování
-            $typy = \Gamecon\Aktivita\TypAktivity::zViditelnych();
+    public static function linieSeznam() {
+        if (!isset(self::$linie)) {
+            $typy = TypAktivity::zViditelnych();
             usort($typy, function ($a, $b) {
                 return $a->poradi() - $b->poradi();
             });
@@ -72,7 +80,7 @@ class Menu
     }
 
     /** Seznam stránek s prokliky (html) */
-    function stranky() {
+    public function stranky() {
         $o = '';
         foreach ($this->stranky as $a => $l) {
             $o .= "<li><a href=\"$a\">$l</a></li>";
