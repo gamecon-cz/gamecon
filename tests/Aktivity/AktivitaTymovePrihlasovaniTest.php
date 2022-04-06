@@ -3,6 +3,7 @@
 namespace Gamecon\Tests\Aktivity;
 
 use Gamecon\Tests\Db\UzivatelDbTest;
+use Gamecon\Aktivita\Aktivita;
 
 class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
 {
@@ -28,10 +29,10 @@ class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
   {
     parent::setUp();
 
-    $this->ctvrtfinale = \Aktivita::zId(1);
-    $this->semifinaleA = \Aktivita::zId(2);
-    $this->semifinaleB = \Aktivita::zId(3);
-    $this->finale = \Aktivita::zId(4);
+    $this->ctvrtfinale = Aktivita::zId(1);
+    $this->semifinaleA = Aktivita::zId(2);
+    $this->semifinaleB = Aktivita::zId(3);
+    $this->finale = Aktivita::zId(4);
 
     $this->tymlidr = self::prihlasenyUzivatel();
     $this->clen1 = self::prihlasenyUzivatel();
@@ -172,7 +173,7 @@ class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
     $this->expectException(\Exception::class);
     $this->expectExceptionMessage('Nepovolený výběr dalších kol.');
     $this->ctvrtfinale->prihlasTym([], null, null, array_map(function ($id) {
-      return \Aktivita::zId($id);
+      return Aktivita::zId($id);
     }, $dalsiKolaIds));
   }
 

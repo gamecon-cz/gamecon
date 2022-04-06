@@ -1,6 +1,8 @@
 <?php
 
-use \Gamecon\Cas\DateTimeCz;
+use Gamecon\Cas\DateTimeCz;
+use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\TypAktivity;
 
 /**
  * Zrychlený výpis programu
@@ -174,7 +176,7 @@ class Program
      * program (iterátor aktivit)
      */
     private function init() {
-        if ($this->nastaveni['skupiny'] == 'mistnosti') {
+        if ($this->nastaveni['skupiny'] === 'mistnosti') {
             $this->program = new ArrayIterator(Aktivita::zProgramu('poradi'));
             $this->grpf = self::SKUPINY_PODLE_LOKACE_ID;
 
@@ -298,7 +300,7 @@ class Program
         echo '<a href="' . $aktivitaObjekt->url() . '" target="_blank" class="programNahled_odkaz" data-program-nahled-id="' . $aktivitaObjekt->id() . '" title="' . $aktivitaObjekt->nazev() . '">' . $aktivitaObjekt->nazev() . '</a>';
 
         // doplňkové informace (druhý řádek)
-        if ($this->nastaveni['drdPj'] && $aktivitaObjekt->typId() == \Gamecon\Aktivita\TypAktivity::DRD && $aktivitaObjekt->prihlasovatelna()) {
+        if ($this->nastaveni['drdPj'] && $aktivitaObjekt->typId() == TypAktivity::DRD && $aktivitaObjekt->prihlasovatelna()) {
             echo ' (' . $aktivitaObjekt->orgJmena() . ') ';
         }
 
@@ -309,7 +311,7 @@ class Program
             }
         }
 
-        if ($aktivitaObjekt->typId() != \Gamecon\Aktivita\TypAktivity::DRD || $this->nastaveni['drdPrihlas']) { // hack na nezobrazování přihlašovátek pro DrD
+        if ($aktivitaObjekt->typId() != TypAktivity::DRD || $this->nastaveni['drdPrihlas']) { // hack na nezobrazování přihlašovátek pro DrD
             $parametry = 0;
             if ($this->nastaveni['plusMinus']) {
                 $parametry |= Aktivita::PLUSMINUS_KAZDY;

@@ -1,5 +1,8 @@
 <?php
 
+use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\TypAktivity;
+
 require __DIR__ . '/sdilene-hlavicky.php';
 
 // dorazili
@@ -11,7 +14,7 @@ $prihlasenAleNedorazil = Aktivita::PRIHLASEN_ALE_NEDORAZIL;
 $pozdeZrusil = Aktivita::POZDE_ZRUSIL;
 $sledujici = Aktivita::SLEDUJICI;
 
-$technicka = \Gamecon\Aktivita\TypAktivity::TECHNICKA;
+$technicka = TypAktivity::TECHNICKA;
 
 $o = dbQuery(<<<SQL
 SELECT * FROM

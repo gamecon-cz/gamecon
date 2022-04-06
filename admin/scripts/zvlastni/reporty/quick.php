@@ -12,7 +12,6 @@ if ($r) {
     if ($quickReportFormat) {
       $BEZ_DEKORACE = true;
       $report->tFormat($quickReportFormat, $r['nazev']);
-      return;
     } else {
       $report->tHtml(Report::BEZ_STYLU);
     }

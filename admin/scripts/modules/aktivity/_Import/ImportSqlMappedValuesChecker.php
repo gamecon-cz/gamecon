@@ -3,6 +3,7 @@
 namespace Gamecon\Admin\Modules\Aktivity\Import;
 
 use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
+use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeCz;
 
@@ -38,7 +39,7 @@ class ImportSqlMappedValuesChecker
         array       $storytellersIds,
         TypAktivity $singleProgramLine,
         array       $potentialImageUrls,
-        ?\Aktivita  $originalActivity
+        ?Aktivita   $originalActivity
     ): ImportStepResult {
         $checkResults = [];
 
@@ -135,7 +136,7 @@ class ImportSqlMappedValuesChecker
         return ImportStepResult::success(['values' => $sqlMappedValues, 'availableStorytellerIds' => $availableStorytellerIds, 'checkResults' => $checkResults]);
     }
 
-    private function checkTime(array $sqlMappedValues, ?\Aktivita $originalActivity): ImportStepResult {
+    private function checkTime(array $sqlMappedValues, ?Aktivita $originalActivity): ImportStepResult {
         if ($originalActivity) {
             if ($originalActivity->zacatek() && $originalActivity->zacatek()->getTimestamp() <= $this->now->getTimestamp()) {
                 return ImportStepResult::error(sprintf(
@@ -210,7 +211,7 @@ class ImportSqlMappedValuesChecker
         return ImportStepResult::success(['start' => $startString, 'end' => $endString]);
     }
 
-    private function checkUrlUniqueness(array $sqlMappedValues, TypAktivity $singleProgramLine, ?\Aktivita $originalActivity): ImportStepResult {
+    private function checkUrlUniqueness(array $sqlMappedValues, TypAktivity $singleProgramLine, ?Aktivita $originalActivity): ImportStepResult {
         $activityUrl = $sqlMappedValues[ActivitiesImportSqlColumn::URL_AKCE];
         $occupiedByActivities = dbFetchAll(<<<SQL
 SELECT id_akce, patri_pod
@@ -242,7 +243,7 @@ SQL
         string      $activityUrl,
         TypAktivity $singleProgramLine,
         array       $urlOccupiedByActivity,
-        ?\Aktivita  $originalActivity
+        ?Aktivita  $originalActivity
     ): bool {
         $occupiedByInstanceFamilyId = $urlOccupiedByActivity['patri_pod']
             ? (int)$urlOccupiedByActivity['patri_pod']
@@ -255,7 +256,7 @@ SQL
     }
 
     private function willBeNewInstanceOfActivity(string $url, TypAktivity $singleProgramLine, int $parentActivityId): bool {
-        $possibleParentActivityId = \Aktivita::idMozneHlavniAktivityPodleUrl($url, $this->currentYear, $singleProgramLine->id());
+        $possibleParentActivityId = Aktivita::idMozneHlavniAktivityPodleUrl($url, $this->currentYear, $singleProgramLine->id());
         return $possibleParentActivityId === $parentActivityId;
     }
 
@@ -263,7 +264,7 @@ SQL
         string      $activityUrl,
         TypAktivity $singleProgramLine,
         int         $occupiedByInstanceFamilyId,
-        ?\Aktivita  $originalActivity
+        ?Aktivita  $originalActivity
     ): bool {
         $instanceFamilyId = $originalActivity
             ? $originalActivity->patriPod()
@@ -272,10 +273,10 @@ SQL
     }
 
     private function getInstanceFamilyIdByUrl(string $url, int $programLineId): ?int {
-        return \Aktivita::idExistujiciInstancePodleUrl($url, $this->currentYear, $programLineId);
+        return Aktivita::idExistujiciInstancePodleUrl($url, $this->currentYear, $programLineId);
     }
 
-    private function checkNameUniqueness(array $sqlMappedValues, TypAktivity $singleProgramLine, ?\Aktivita $originalActivity): ImportStepResult {
+    private function checkNameUniqueness(array $sqlMappedValues, TypAktivity $singleProgramLine, ?Aktivita $originalActivity): ImportStepResult {
         $activityName = $sqlMappedValues[ActivitiesImportSqlColumn::NAZEV_AKCE];
         $nameOccupiedByActivities = dbFetchAll(<<<SQL
 SELECT id_akce, nazev_akce, patri_pod
@@ -300,7 +301,7 @@ SQL
         return ImportStepResult::success(null);
     }
 
-    private function checkStateUsability(array $sqlMappedValues, ?\Aktivita $originalActivity): ImportStepResult {
+    private function checkStateUsability(array $sqlMappedValues, ?Aktivita $originalActivity): ImportStepResult {
         if ($originalActivity && !$originalActivity->bezpecneEditovatelna()) {
             return ImportStepResult::error(sprintf(
                 "Aktivitu %s už nelze editovat importem, protože je ve stavu '%s'.",
@@ -463,7 +464,7 @@ SQL
         ?int        $locationId,
         ?string     $zacatekString,
         ?string     $konecString,
-        ?\Aktivita  $originalActivity,
+        ?Aktivita  $originalActivity,
         TypAktivity $programLine
     ): ImportStepResult {
         if ($locationId === null) {
@@ -530,7 +531,7 @@ SQL,
         );
     }
 
-    private function checkStorytellersAccessibility(array $storytellersIds, ?string $zacatekString, ?string $konecString, ?\Aktivita $originalActivity): ImportStepResult {
+    private function checkStorytellersAccessibility(array $storytellersIds, ?string $zacatekString, ?string $konecString, ?Aktivita $originalActivity): ImportStepResult {
         $rangeDates = $this->createRangeDates($zacatekString, $konecString);
         if (!$rangeDates) {
             return ImportStepResult::success($storytellersIds);
