@@ -212,10 +212,12 @@ body {
   top: -2px;
   text-align: center;
 }
-.aktivityProgramovaLinie > table {
+.aktivityProgramovaLinie form table label {
   margin: 0 auto;
   text-align: center;
 }
+.aktivityProgramovaLinie label { display: inline-block; overflow-x: hidden;
+    text-overflow: ellipsis; }
 
 .aktivityPrihlaseni_seznam_menu {
   list-style-type: none;
