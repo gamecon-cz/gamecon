@@ -3,7 +3,7 @@
 /**
  * Stránka pro tvorbu a správu aktivit.
  *
- * nazev: Přehled aktivit
+ * nazev: Aktivity
  * pravo: 102
  * submenu_group: 1
  * submenu_order: 3
