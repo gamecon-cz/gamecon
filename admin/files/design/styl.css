@@ -120,12 +120,46 @@ body {
   border: 1px solid #7B936D;
   font-size: 100%;
   line-height: 100%;
+  position: relative;
 }
+
+#submenu .adm_submenu_item a[href='aktivity']::after {
+  content: 'Přehled aktivit';
+  display: block;
+  cursor: pointer;
+  color: #333;
+  left: 0;
+  top: 0px;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding-top: inherit;
+  padding-bottom: inherit;
+  padding-left: inherit;
+  padding-right: inherit;
+  text-align: center;
+}
+
+#submenu .adm_submenu_item a[href='aktivity']::before {
+  content: 'Přehled';
+  display: inline-block;
+  color: transparent;
+}
+
+
+#submenu .adm_submenu_item a[href='aktivity'], #submenu .adm_submenu_item a[href='aktivity']:hover {
+  color: transparent;
+}
+
+#submenu .adm_submenu_item a[href='aktivity']:hover::after {
+  color: #000;
+  text-decoration: underline;
+}
+
 #submenu .adm_submenu_item a.activeSubmenuLink {
   background: #FFF;
   border-color: hsl(98, 23%, 75%);
   text-decoration: underline;
-  font-size: 100%;
 }
 
 #submenu .adm_submenu_item a:hover {
@@ -182,6 +216,7 @@ body {
   font-size: 110%;
   text-decoration: none;
   width: 100%;
+  white-space: normal;
   padding: 6px 5px 6px;
   text-align: center;
   color: #fff;
