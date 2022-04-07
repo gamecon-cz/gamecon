@@ -6,6 +6,7 @@
  *
  * nazev: Hromadné rušení objednávek
  * pravo: 108
+ * submenu_group: 5
  */
 
 // nastavení výchozích hodnot

@@ -18,7 +18,7 @@ require __DIR__ . '/scripts/prihlaseni.php';
  */
 
 // xtemplate inicializace
-$xtpl = new XTemplate('./templates/main.xtpl');
+$xtpl = new XTemplate(__DIR__ . '/templates/main.xtpl');
 $xtpl->assign([
     'pageTitle' => 'GameCon – Administrace',
     'base' => URL_ADMIN . '/',
@@ -54,7 +54,7 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
     $submenu = [];
     $submenuObject = null;
     if (!empty($menu[$stranka]['submenu'])) {
-        $submenuObject = new AdminMenu('./scripts/modules/' . $stranka . '/');
+        $submenuObject = new AdminMenu('./scripts/modules/' . $stranka . '/', true);
         $submenu = $submenuObject->pole();
     }
 
@@ -132,14 +132,44 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
         }
     }
 
+    // submenu setřídění dle group, pak order, pak nazev
+    uasort($submenu, function ($a, $b) {
+        $diff = $a['group'] - $b['group'];
+        if ($diff == 0) {
+            $diff = $a['order'] - $b['order'];
+            if ($diff == 0) {
+                return 0;
+            }
+        }
+        return $diff;
+    });
+
     // výstup submenu
     foreach ($submenu as $url => $polozka) {
         if ($u->maPravo($polozka['pravo'])) {
             $xtpl->assign('url', $url == $stranka ? $url : $stranka . '/' . $url);
             $xtpl->assign('nazev', $polozka['nazev']);
+            $addAttributes = [];
+            if ($polozka['link_in_blank']) {
+                $addAttributes[] = 'target="_blank"';
+            }
+            if (($podstranka != '' && $podstranka == $url) || ($podstranka == '' && $stranka == $url)) {
+                $addAttributes[] = 'class="activeSubmenuLink"';
+            }
+            $xtpl->assign('add_attributes', implode(' ', $addAttributes));
+
+            $itemBreak = '';
+            if ($polozka['order'] == 1 && $polozka['group'] > 1) {
+                $itemBreak = '</ul></li><li><ul class="adm_submenu_group">';
+            }
+            $xtpl->assign('break', $itemBreak);
+
+            $xtpl->assign('group', $polozka['group']);
+            $xtpl->assign('order', $polozka['order']);
             $xtpl->parse('all.submenu.polozka');
         }
     }
+    $xtpl->assign('stranka', $stranka);
     $xtpl->parse('all.submenu');
 
     // výstup

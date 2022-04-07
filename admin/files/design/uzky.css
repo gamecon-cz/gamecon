@@ -42,3 +42,54 @@ body { font-size: 16px; }
 .paticka .protip { display: none; }
 
 .error, .success, .warning { padding-right: 16px; }
+
+#submenu li a {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#submenu .adm_submenu_item_ord_1::before,
+.main .submenuAktivovatVse::before {
+  display: none;
+  visibility: hidden;
+  overflow: hidden;
+}
+.main #submenu {
+  margin: 0 -4px 0 -4px;
+}
+
+.main #submenu:not(.submenu-selected-aktivity) {
+  width: auto;
+}
+.main #submenu.submenu-selected-aktivity {
+  padding-top: 5px;
+  width: 83%;
+}
+
+.main #submenu > li {
+  margin-right: 3px;
+  margin-left: 3px;
+}
+#submenu.submenu-selected-aktivity,
+.main #submenu .adm_submenu_group:not(:empty) {
+  padding-top: 0px;
+}
+.main #submenu .adm_submenu_item {
+  padding-bottom: 4px;
+}
+.main .submenuAktivovatVse {
+  right: 5px;
+  width: auto;
+  margin: -22px 0 0 0;
+  left: 82%;
+  white-space: normal;
+  font-size: 14px;
+}
+.main .submenuAktivovatVse input {
+  font-size: 100%;
+  white-space: normal;
+}
+
+.aktivityProgramovaLinie form table label {
+  font-size: 14px;
+}

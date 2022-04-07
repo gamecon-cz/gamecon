@@ -1,10 +1,10 @@
 <!-- begin:prihlaseni -->
 
-(
+<ul class="aktivityPrihlaseni_seznam_menu">
 <!-- begin:vyber -->
-  <a href="aktivity/prihlaseni?typ={id_typu}">{typ_1pmn}</a> |
+  <li><a href="aktivity/prihlaseni?typ={id_typu}">{typ_1pmn}</a></li>
 <!-- end:vyber -->
-)
+</ul>
 
 
 <script>

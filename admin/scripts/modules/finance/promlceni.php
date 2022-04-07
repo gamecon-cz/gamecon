@@ -3,6 +3,7 @@
 /**
  * nazev: Promlčení zůstatků
  * pravo: 108
+ * submenu_group: 5
  * TODO
  */
 

@@ -6,6 +6,8 @@
  *
  * nazev: Seznam na DrD
  * pravo: 102
+ * submenu_group: 3
+ * submenu_order: 2
  */
 
 if (post('vypadliSemifinale') || post('vypadliFinale')) {

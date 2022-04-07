@@ -1,0 +1,24 @@
+<!-- begin:medailonky -->
+
+<h1>Medailonky</h1>
+
+<form method="post">
+  Vytvořit nový medailonek pro uživatele ID <input type="text" name="noveId"> <input type="submit" value="vytvořit">
+</form>
+
+<p>Horní část medailonku je obecná. Dolní část medailonku je pro DrD.</p>
+
+<table class="vypis">
+  <tr>
+    <th>ID uživatele</th>
+    <th>Akce</th>
+  </tr>
+  <!-- begin:radek -->
+  <tr>
+    <td>{medailonek.id}</td>
+    <td><a href="aktivity/medailonky?id={medailonek.id}" class="tlacitko">upravit</a></td>
+  </tr>
+  <!-- end:radek -->
+</table>
+
+<!-- end:medailonky -->

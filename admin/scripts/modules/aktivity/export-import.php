@@ -4,6 +4,8 @@
  *
  * nazev: Export & Import
  * pravo: 102
+ * submenu_group: 1
+ * submenu_order: 2
  *
  * Google API credentials lze získat přes https://console.developers.google.com/
  * NEW PROJECT -> Gamecon ... -> Credentials -> CREATE CREDENTIALS -> OAuth client ID -> Application type = Web application; Name = gamecon.cz (třeba); Authorized Javascript origins = https://admin.gamecon.cz; Authorised redirect URIs = https://admin.gamecon.cz/aktivity/export-import -> Download; Library -> Google Drive API -> Enable; Library -> Google Sheets API -> Enable
