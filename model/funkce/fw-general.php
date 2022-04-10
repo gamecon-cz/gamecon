@@ -68,11 +68,11 @@ function getCurrentUrlPath(): string {
     return (string)parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 }
 
-function getCurrentUrlWithQuery(array $queryPartsToReplace = []): string {
+function getCurrentUrlWithQuery(array $queryPartsToAddOrReplace = []): string {
     $path = getCurrentUrlPath();
     $queryString = parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY);
     parse_str($queryString, $query);
-    $newQuery = array_merge($query, $queryPartsToReplace);
+    $newQuery = array_merge($query, $queryPartsToAddOrReplace);
     if ($newQuery === []) {
         return $path;
     }
