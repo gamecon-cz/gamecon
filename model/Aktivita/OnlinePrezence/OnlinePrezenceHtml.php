@@ -23,6 +23,10 @@ class OnlinePrezenceHtml
         $template->assign('urlZpet', $urlZpet ?? getBackUrl());
 
         if (count($aktivity) === 0) {
+            if (defined('TESTING') && TESTING) {
+                $template->assign('urlTest', getCurrentUrlWithQuery(['test' => 1]));
+                $template->parse('onlinePrezence.zadnaAktivita.odkazNaTest');
+            }
             $template->parse('onlinePrezence.zadnaAktivita');
         } else {
             $template->assign('omniboxUrl', $ajaxUrl ?? getCurrentUrlPath());
@@ -116,7 +120,7 @@ class OnlinePrezenceHtml
 
     public function sestavHmlUcastnikaAktivity(
         \Uzivatel $ucastnik,
-        Aktivita $aktivita,
+        Aktivita  $aktivita,
         bool      $dorazil,
         bool      $zatimPouzeProCteni
     ): string {
