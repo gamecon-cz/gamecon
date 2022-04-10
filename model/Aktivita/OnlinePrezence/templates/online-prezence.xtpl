@@ -39,6 +39,11 @@
         <div>
           <a class="btn btn-warning" href="{urlZpet}" style="width: 100%">↶ Zpět</a>
         </div>
+        <!-- begin:odkazNaTest -->
+        <div>
+          <a class="btn btn-dark" href="{urlTest}" style="width: 100%">🪄 Test</a>
+        </div>
+        <!-- end:odkazNaTest -->
       </div>
     </div>
     <!-- end:zadnaAktivita -->
