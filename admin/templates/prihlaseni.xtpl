@@ -3,7 +3,7 @@ Přihlášení<br><br>
 <table>
 <tr>
   <td>Jméno:</td>
-  <td><input type="text" name="loginNAdm"></td>
+  <td><input type="text" name="loginNAdm" autofocus></td>
 </tr>
 <tr>
   <td>Heslo:</td>
