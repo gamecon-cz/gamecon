@@ -17,10 +17,11 @@ require __DIR__ . '/scripts/prihlaseni.php';
  * @var Uzivatel|void|null $uPracovni
  */
 
+$pageTitle = 'GameCon – Administrace';
 // xtemplate inicializace
 $xtpl = new XTemplate(__DIR__ . '/templates/main.xtpl');
 $xtpl->assign([
-    'pageTitle' => 'GameCon – Administrace',
+    'pageTitle' => $pageTitle,
     'base' => URL_ADMIN . '/',
     'cssVersions' => new \Gamecon\Web\VerzeSouboru(__DIR__ . '/files/design', 'css'),
 ]);
@@ -155,6 +156,7 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
             }
             if (($podstranka != '' && $podstranka == $url) || ($podstranka == '' && $stranka == $url)) {
                 $addAttributes[] = 'class="activeSubmenuLink"';
+                $pageTitle = $pageTitle . ' | ' . $polozka['nazev'];
             }
             $xtpl->assign('add_attributes', implode(' ', $addAttributes));
 
@@ -177,6 +179,7 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
     $xtpl->parse('all.paticka');
     $xtpl->assign('chyba', chyba::vyzvedniHtml());
     $xtpl->assign('jsVyjimkovac', \Gamecon\Vyjimkovac\Vyjimkovac::js(URL_WEBU . '/ajax-vyjimkovac'));
+    $xtpl->assign('pageTitle', $pageTitle);
     $xtpl->parse('all');
     $xtpl->out('all');
     profilInfo();
