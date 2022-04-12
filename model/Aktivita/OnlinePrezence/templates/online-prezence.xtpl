@@ -101,7 +101,7 @@
         <form class="formAktivita">
           <!-- <input type="hidden" name="kapacita_celkova" value="{}" /> --><!-- TODO kapacita -->
           <input type="hidden" name="prezenceAktivity" value="{idAktivity}"/>
-          <table class="zvyraznovana" style="width: 100%" id="ucastniciAktivity">
+          <table class="zvyraznovana" style="width: 100%" id="ucastniciAktivity{idAktivity}">
             <tr class="col-md col-sm-6 no-gutters">
               <th style="text-align: center">?</th>
               <th>Jméno</th>
@@ -119,12 +119,15 @@
           <!-- begin:pridatUcastnika -->
           <div class="row" style="margin: 1em 0">
             <input type="text" class="omnibox col-md-4"
-                   {disabledPridatUcastnika}
                    placeholder="Přidej účastníka..."
+                   {disabledPridatUcastnika}
+                   data-id-aktivity="{idAktivity}"
+                   data-omnibox-min-length="3"
                    data-omnibox='{"labelSlozenZ": ["id", "jmenoNick", "mail", "zustatek", "gcPritomen"]}'
                    data-omnibox-url="{omniboxUrl}?omnibox=1&ajax=1&idAktivity={idAktivity}"
             >
-            <span class="col-md-4 omnibox-nic-nenalezeno" style="display: none"><em>Nic...</em> 🤷</span>
+            <span class="col-md-4" id="omniboxNicNenalezeno{idAktivity}" style="display: none"><em>Nic...</em> 🤷</span>
+            <span class="col-md-4" id="omniboxHledam{idAktivity}" style="display: none"><em>Hledám...</em> ⏳</span>
           </div>
           <!-- end:pridatUcastnika -->
 

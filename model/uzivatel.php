@@ -1192,12 +1192,15 @@ SQL,
      * Na základě řetězce $dotaz zkusí najít všechny uživatele, kteří odpovídají
      * jménem, nickem, apod.
      */
-    static function zHledani($dotaz, $opt = [], int $limit = 20) {
+    static function zHledani(string $dotaz, $opt = [], int $limit = 20, int $minimumZnaku = 3) {
+        if (mb_strlen($dotaz) < $minimumZnaku) {
+            return [];
+        }
         $opt = opt($opt, [
             'mail' => false,
             'jenPritomniNaGc' => false,
             'kromeIdUzivatelu' => [],
-            'min' => 3, // minimum znaků
+            'min' => $minimumZnaku,
         ]);
         if (strlen($dotaz) < $opt['min']) {
             return [];
