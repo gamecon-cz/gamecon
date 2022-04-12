@@ -59,6 +59,10 @@ class Aktivita
         JEN_VOLNE = 0b00000001,   // jen volné aktivity
         VEREJNE = 0b00000010;   // jen veřejně viditelné aktivity
 
+    public static function dejPrazdnou(): self {
+        return new static([], true);
+    }
+
     /**
      * Vytvoří aktivitu dle výstupu z databáze. Pokud výstup (např. položkou
      * "přihlášen") je vztažen vůči uživateli, je potřeba ho zadat teď jako $u,
@@ -66,8 +70,8 @@ class Aktivita
      * @param array $dbRow
      * @throws \Exception
      */
-    private function __construct(array $dbRow) {
-        if (!$dbRow) {
+    private function __construct(array $dbRow, bool $povolitPrazdnou = false) {
+        if (!$dbRow && !$povolitPrazdnou) {
             throw new \RuntimeException('Nelze vytvořiit aktivitu. Prázdný parametr jejího konstruktoru.');
         }
         $this->a = $dbRow;

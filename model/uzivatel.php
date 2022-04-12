@@ -920,7 +920,7 @@ SQL
 
     /**
      * Rychloregistruje uživatele s omezeným počtem údajů při registraci na místě.
-     * @return id nově vytvořeného uživatele (možno vytvořit objekt uživatele
+     * @return int id nově vytvořeného uživatele (možno vytvořit objekt uživatele
      *  později jen pokud má smysl - výkonnostní důvody)
      * @todo možno evidovat, že uživatel byl regnut na místě
      * @todo poslat mail s něčím jiným jak std hláškou
@@ -1097,12 +1097,15 @@ SQL
      * Na základě řetězce $dotaz zkusí najít všechny uživatele, kteří odpovídají
      * jménem, nickem, apod.
      */
-    static function zHledani($dotaz, $opt = [], int $limit = 20) {
+    static function zHledani(string $dotaz, $opt = [], int $limit = 20, int $minimumZnaku = 3) {
+        if (mb_strlen($dotaz) < $minimumZnaku) {
+            return [];
+        }
         $opt = opt($opt, [
             'mail' => false,
             'jenPritomniNaGc' => false,
             'kromeIdUzivatelu' => [],
-            'min' => 3, // minimum znaků
+            'min' => $minimumZnaku,
         ]);
         if (strlen($dotaz) < $opt['min']) {
             return [];
