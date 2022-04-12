@@ -609,7 +609,8 @@ function omnibox(
     array  $dataVOdpovedi = [],
     array  $labelSlozenZ = null,
     array  $kromeIdUzivatelu = [],
-    bool   $jenPritomniNaGc = false
+    bool   $jenPritomniNaGc = false,
+    int    $minimumZnaku = 3
 ): array {
 
     $uzivatele = Uzivatel::zHledani(
@@ -620,6 +621,7 @@ function omnibox(
             'kromeIdUzivatelu' => $kromeIdUzivatelu,
         ],
         20,
+        $minimumZnaku
     );
 
     $sestavData = static function (Uzivatel $uzivatel, array $dataVOdpovedi): array {

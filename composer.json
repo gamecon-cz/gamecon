@@ -41,6 +41,7 @@
     "ext-xmlreader": "*",
     "ext-zip": "*",
     "openspout/openspout": "^3.0",
+    "ext-sqlite3": "*",
     "defuse/php-encryption": "^2.1",
     "dg/mysql-dump": "^1.5",
     "godric/db-backup": "dev-master",
