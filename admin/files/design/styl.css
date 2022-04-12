@@ -330,7 +330,7 @@ li.list-header { list-style-type: none; position: relative; left: -1em }
 
 /* pro automaticky generované chybové hlášky */
 .chybaBlok { position: fixed; box-sizing: border-box;
-  width: 80%; left: 10%; top: 55px;
+  width: 80%; left: 10%; top: 25px;
   text-align: center; z-index: 99;
 }
 .chybaBlok .hlaska { padding: 28px; margin: 5px 0; box-shadow: 0 0 10px ; font-size: 20px; }
