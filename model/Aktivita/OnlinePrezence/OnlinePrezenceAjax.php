@@ -86,11 +86,9 @@ class OnlinePrezenceAjax
         }
         if ($dorazil) {
             $aktivita->ulozZeDorazil($ucastnik);
-        } else {
-            if (!$aktivita->zrusZeDorazil($ucastnik)) {
-                $this->echoErrorJson("Nepodařilo se zrušit účastníka {$ucastnik->jmenoNick()} z aktivity {$aktivita->nazev()}");
-                return;
-            }
+        } else if (!$aktivita->zrusZeDorazil($ucastnik)) {
+            $this->echoErrorJson("Nepodařilo se zrušit účastníka {$ucastnik->jmenoNick()} z aktivity {$aktivita->nazev()}");
+            return;
         }
         /** Abychom mměli nová data pro @see Aktivita::dorazilJakoCokoliv */
         $aktivita->refresh();
@@ -131,7 +129,8 @@ class OnlinePrezenceAjax
                     return (int)$prihlaseny->id();
                 }, $aktivita->prihlaseni()
             ),
-            true
+            true,
+            1 // znaky ovladame v JS pres minLength, v PHP uz to omezovat nechceme
         );
         foreach ($omniboxData as &$prihlasenyUzivatelOmnibox) {
             $prihlasenyUzivatel = \Uzivatel::zId($prihlasenyUzivatelOmnibox['value']);
