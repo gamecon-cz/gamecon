@@ -77,6 +77,7 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
         } else {
             chdir('./scripts/modules/');
             $soubor = $cwd . '/' . $menu[$stranka]['soubor'];
+            $pageTitle .= ' | ' . $menu[$stranka]['nazev'];
         }
         ob_start(); // výstup uložíme do bufferu
         require $soubor;
