@@ -71,6 +71,8 @@ class AdminMenu
         $this->menu[$url]['group'] = (int)($m[1] ?? 0);
         preg_match('@\* submenu_order: (.*)@', $fc, $m);
         $this->menu[$url]['order'] = (int)($m[1] ?? 0);
+        preg_match('@\* submenu_nazev: (.*)@', $fc, $m);
+        $this->menu[$url]['nazev'] = ($m[1] ?? $this->menu[$url]['nazev']);
         preg_match('@\* submenu_link_open_in_blank: (.*)@', $fc, $m);
         $this->menu[$url]['link_in_blank'] = (bool)($m[1] ?? false);
     }
