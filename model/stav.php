@@ -53,6 +53,10 @@ class Stav extends DbObject
     protected static $tabulka = 'akce_stav';
     protected static $pk = 'id_stav';
 
+    public static function dejPrazdny(): self {
+        return new static([]);
+    }
+
     function __toString() {
         return $this->nazev();
     }
