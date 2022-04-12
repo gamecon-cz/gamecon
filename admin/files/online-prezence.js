@@ -7,7 +7,8 @@
     function intializePrezenceOmnibox() {
       const omnibox = $('.online-prezence .omnibox')
       omnibox.on('autocompleteselect', function (event, ui) {
-        const ucastniciAktivityNode = $('#ucastniciAktivity')
+        const idAktivity = this.dataset.idAktivity
+        const ucastniciAktivityNode = $(`#ucastniciAktivity${idAktivity}`)
         const novyUcastnik = $(ui.item.html)
 
         ucastniciAktivityNode.append(novyUcastnik)
@@ -23,10 +24,22 @@
       })
 
       omnibox.on('autocompleteresponse', function (event, ui) {
+        const idAktivity = this.dataset.idAktivity
+        $(`#omniboxHledam${idAktivity}`).hide()
         if (!ui || ui.content === undefined || ui.content.length === 0) {
-          $('.online-prezence .omnibox-nic-nenalezeno').show()
+          $(`#omniboxNicNenalezeno${idAktivity}`).show()
         } else {
-          $('.online-prezence .omnibox-nic-nenalezeno').hide()
+          $(`#omniboxNicNenalezeno${idAktivity}`).hide()
+        }
+      })
+
+      omnibox.on('input', function (event) {
+        const idAktivity = this.dataset.idAktivity
+        $(`#omniboxNicNenalezeno${idAktivity}`).hide()
+        const minLength = this.dataset.omniboxMinLength
+        const length = this.value.length
+        if (minLength <= length) {
+          $(`#omniboxHledam${idAktivity}`).show()
         }
       })
 
