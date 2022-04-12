@@ -123,39 +123,6 @@ body {
   position: relative;
 }
 
-#submenu .adm_submenu_item a[href='aktivity']::after {
-  content: 'Přehled aktivit';
-  display: block;
-  cursor: pointer;
-  color: #333;
-  left: 0;
-  top: 0px;
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  padding-top: inherit;
-  padding-bottom: inherit;
-  padding-left: inherit;
-  padding-right: inherit;
-  text-align: center;
-}
-
-#submenu .adm_submenu_item a[href='aktivity']::before {
-  content: 'Přehled';
-  display: inline-block;
-  color: transparent;
-}
-
-
-#submenu .adm_submenu_item a[href='aktivity'], #submenu .adm_submenu_item a[href='aktivity']:hover {
-  color: transparent;
-}
-
-#submenu .adm_submenu_item a[href='aktivity']:hover::after {
-  color: #000;
-  text-decoration: underline;
-}
-
 #submenu .adm_submenu_item a.activeSubmenuLink {
   background: #FFF;
   border-color: hsl(98, 23%, 75%);

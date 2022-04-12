@@ -7,6 +7,7 @@
  * pravo: 102
  * submenu_group: 1
  * submenu_order: 3
+ * submenu_nazev: Přehled Aktivit
  */
 
 if (post('smazat')) {
