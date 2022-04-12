@@ -85,7 +85,7 @@ $pre = -(ROK - 2000) * 100; //předpona pro židle a práva vázaná na aktuáln
 @define('ZIDLE_DOBROVOLNIK_S', 17);         //dobrovolník senior
 
 // práva - konkrétní práva identifikující nějak vlastnost uživatele
-@define('P_ORG_AKCI', 4); //může organizovat aktivity
+@define('P_ORG_AKTIVIT', 4); //může organizovat aktivity
 @define('P_KRYTI_AKCI', 5); //může být na víc aktivitách naráz (org skupiny typicky)
 @define('P_PLNY_SERVIS', 7); //uživatele kompletně platí a zajišťuje GC
 @define('P_ZMENA_HISTORIE', 8); // jestli smí měnit přihlášení zpětně
