@@ -61,7 +61,7 @@ class OnlinePrezenceHtml
 
         foreach ($aktivity as $aktivita) {
             $editovatelnaOdTimestamp = self::dejEditovatelnaOdTimestamp($aktivita, $editovatelnaXMinutPredZacatkem, $now);
-            $editovatelnaHned = $editovatelnaOdTimestamp > 0;
+            $editovatelnaHned = !$editovatelnaOdTimestamp;
             $zamcena = $aktivita->zamcena();
 
             // 🔒 Uzavřena pro online přihlašování 🔒
