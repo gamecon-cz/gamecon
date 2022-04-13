@@ -161,6 +161,12 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
             }
             $xtpl->assign('add_attributes', implode(' ', $addAttributes));
 
+            $display = '';
+            if (!empty($polozka['hidden'])) {
+                $display = 'none';
+            }
+            $xtpl->assign('display', $display);
+
             $itemBreak = '';
             if ($polozka['order'] == 1 && $polozka['group'] > 1) {
                 $itemBreak = '</ul></li><li><ul class="adm_submenu_group">';
