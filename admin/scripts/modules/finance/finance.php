@@ -46,7 +46,7 @@ JOIN r_uzivatele_zidle
     ON r_uzivatele_zidle.id_uzivatele = uzivatele_hodnoty.id_uzivatele AND r_uzivatele_zidle.id_zidle IN($1, $2)
 GROUP BY uzivatele_hodnoty.id_uzivatele
 SQL
-        , [ZIDLE_ORG_AKCI, ZIDLE_PRIHLASEN] // při změně změn hint v šabloně finance.xtpl
+        , [ZIDLE_ORG_AKTIVIT, ZIDLE_PRIHLASEN] // při změně změn hint v šabloně finance.xtpl
     );
     $numberFormatter = NumberFormatter::create('cs', NumberFormatter::PATTERN_DECIMAL);
     $organizatorAkciData = [];

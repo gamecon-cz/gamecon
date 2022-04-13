@@ -969,7 +969,7 @@ SQL
         if ($this->maPravo(P_TITUL_ORG)) {
             $status [] = '<span style="color:red">Organizátor' . $ka . '</span>';
         }
-        if ($this->maZidli(ZIDLE_ORG_AKCI)) {
+        if ($this->maZidli(ZIDLE_ORG_AKTIVIT)) {
             $status[] = '<span style="color:blue">Vypravěč' . $ka . '</span>';
         }
         if ($this->jePartner()) {

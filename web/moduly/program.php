@@ -43,7 +43,7 @@ $zacatekPrvniVlnyOd = \Gamecon\Cas\DateTimeGamecon::zacatekPrvniVlnyOd();
 $zacatekPrvniVlnyZaSekund = $zacatekPrvniVlnyOd->getTimestamp() - time();
 
 $legendaText = Stranka::zUrl('program-legenda-text')->html();
-$jeOrganizator = isset($u) && $u && $u->maPravo(P_ORG_AKCI);
+$jeOrganizator = isset($u) && $u && $u->maPravo(P_ORG_AKTIVIT);
 
 // pomocná funkce pro zobrazení aktivního odkazu
 $aktivni = function ($urlOdkazu) use ($url, $alternativniUrl) {

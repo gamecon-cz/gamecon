@@ -74,10 +74,10 @@ unset($puvodni);
 $pre = -(ROK - 2000) * 100; //předpona pro židle a práva vázaná na aktuální rok
 // židle - nepoužívat pro vyjádření atributů (slev, možnosti se přihlašovat, …)
 @define('ZIDLE_PRIHLASEN', $pre - 1);       //přihlášen na GameCon
-@define('ZIDLE_PRITOMEN', $pre - 2);        //prošel infopultem a je na GameConu
+@define('ZIDLE_PRITOMEN', $pre - 2);        //prošel infopulteP_ORG_AKm a je na GameConu
 @define('ZIDLE_ODJEL', $pre - 3);           //prošel infopultem na odchodu a odjel z GC
 // TODO byl přihlášen na GC a už není (kvůli počítání financí apod.)
-@define('ZIDLE_ORG_AKCI', 6);               // vypravěč (org akcí)
+@define('ZIDLE_ORG_AKTIVIT', 6);               // vypravěč (org akcí)
 @define('ZIDLE_ORG_SKUPINA', 9);            //organizátorská skupina (Albi, Černobor, …)
 @define('ZIDLE_PARTNER', 13);               //partner
 @define('ZIDLE_INFO', 8);                   //operátor/ka infopultu
