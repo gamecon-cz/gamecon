@@ -154,8 +154,7 @@ class OnlinePrezenceHtml
             $ucastnikTemplate->parse('ucastnik.telefon');
         }
 
-        $prihlasenOd = $aktivita->prihlasenOd($ucastnik);
-        if ($prihlasenOd && $prihlasenOd >= $this->dejOdKdyJeToNaPosledniChvili()) {
+        if ($this->jeToNaPosledniChvili($ucastnik, $aktivita)) {
             $ucastnikTemplate->assign('minutNaPosledniChvili', $this->naPosledniChviliXMinutPredZacatkem);
             $ucastnikTemplate->parse('ucastnik.prihlasenNaPosledniChvili');
         }
@@ -164,8 +163,18 @@ class OnlinePrezenceHtml
         return $ucastnikTemplate->text('ucastnik');
     }
 
-    private function dejOdKdyJeToNaPosledniChvili(): \DateTimeInterface {
-        return new \DateTimeImmutable('-' . $this->naPosledniChviliXMinutPredZacatkem . ' minutes');
+    private function jeToNaPosledniChvili(\Uzivatel $ucastnik, Aktivita $aktivita): bool {
+        $prihlasenOd = $aktivita->prihlasenOd($ucastnik);
+        $odKdyJeToNaPosledniChvili = $this->odKdyJeToNaPosledniChvili($aktivita);
+        return $prihlasenOd && $odKdyJeToNaPosledniChvili && $prihlasenOd >= $odKdyJeToNaPosledniChvili;
+    }
+
+    private function odKdyJeToNaPosledniChvili(Aktivita $aktivita): ?\DateTimeInterface {
+        $zacatek = $aktivita->zacatek();
+        if (!$zacatek) {
+            return null;
+        }
+        return (clone $zacatek)->modify('-' . $this->naPosledniChviliXMinutPredZacatkem . ' minutes');
     }
 
     private function dejOnlinePrezenceUcastnikTemplate(): \XTemplate {
