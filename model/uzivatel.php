@@ -1511,9 +1511,14 @@ SQL,
 
     public function uvodniAdminUrl(string $zakladniAdminUrl): string {
         if ($this->maPravo(\Gamecon\Pravo::ADMINISTRACE_PANEL_MOJE_AKTIVITY)) {
-            return $zakladniAdminUrl . '/' . basename(__DIR__ . '/../admin/scripts/modules/moje-aktivity/moje-aktivity.php', '.php');
+            return $this->mojeAktivityAdminUrl($zakladniAdminUrl);
         }
         return $zakladniAdminUrl;
+    }
+
+    public function mojeAktivityAdminUrl(string $zakladniAdminUrl): string {
+        // vrátí "moje-aktivity" - máme to schválně přes cestu ke skriptu, protože jeho název udává výslednou URL a nechceme mít neplatnou URL, kdyby někdo ten skrip přejmenoval.
+        return $zakladniAdminUrl . '/' . basename(__DIR__ . '/../admin/scripts/modules/moje-aktivity/moje-aktivity.php', '.php');
     }
 }
 
