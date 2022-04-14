@@ -105,13 +105,14 @@
           <input type="hidden" name="prezenceAktivity" value="{idAktivity}"/>
           <table class="zvyraznovana" style="width: 100%" id="ucastniciAktivity{idAktivity}">
             <tr class="col-md col-sm-6 no-gutters">
-              <th style="text-align: center">?</th>
+              <th style="text-align: center"><i class="fas fa-check-circle"></i></th>
+              <th style="text-align: center"><i class="fas fa-running"></i></th>
               <th>Jméno</th>
               <th>Telefon</th>
-              <th>
+              <th style="text-align: center">
                 <span class="hinted" data-bs-toggle="tooltip" data-bs-placement="top"
                       title="Dorazil účastník na aktivitu?">
-                  <i class="fas fa-list"></i>
+                  <i class="fas fa-check-square"></i>
                 </span>
               </th>
             </tr>

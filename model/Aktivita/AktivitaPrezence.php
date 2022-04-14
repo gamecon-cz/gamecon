@@ -1,6 +1,6 @@
 <?php
 
-use Gamecon\Aktivita\Aktivita;
+namespace Gamecon\Aktivita;
 
 /**
  * Prezenční listina aktivity.
@@ -8,6 +8,16 @@ use Gamecon\Aktivita\Aktivita;
 class AktivitaPrezence
 {
 
+    const PRIHLASENI = 'prihlaseni';
+    const ODHLASENI = 'odhlaseni';
+    const NEDOSTAVENI_SE = 'nedostaveni_se';
+    const ODHLASENI_HROMADNE = 'odhlaseni_hromadne';
+    const DORAZIL_JAKO_NAHRADNIK = 'prihlaseni_nahradnik'; // TODO zmenit enum v databázi a hodnotu téhle konstanty, aby to odpovídalo tomu, co logujeme
+    const ZRUSENI_PRIHLASENI_NAHRADNIK = 'zruseni_prihlaseni_nahradnik';
+    const PRIHLASENI_SLEDUJICI = 'prihlaseni_watchlist'; // TODO zmenit enum v databázi a hodnotu téhle konstanty, aby to odpovídalo více používanému českému názvu
+    const ODHLASENI_SLEDUJICI = 'odhlaseni_watchlist'; // TODO zmenit enum v databázi a hodnotu téhle konstanty, aby to odpovídalo více používanému českému názvu
+
+    /** @var Aktivita */
     private $aktivita;
 
     public function __construct(Aktivita $aktivita) {
@@ -16,7 +26,7 @@ class AktivitaPrezence
 
     /**
      * Uloží prezenci do databáze.
-     * @param Uzivatel[] $dorazili uživatelé, kteří se nakonec aktivity zúčastnili
+     * @param \Uzivatel[] $dorazili uživatelé, kteří se nakonec aktivity zúčastnili
      */
     public function uloz(array $dorazili) {
         $doraziliIds = []; // id všech co dorazili (kvůli kontrole přítomnosti)
@@ -34,7 +44,7 @@ class AktivitaPrezence
         }
     }
 
-    public function ulozDorazivsiho(Uzivatel $dorazil) {
+    public function ulozDorazivsiho(\Uzivatel $dorazil) {
         // TODO kontrola, jestli prezence smí být uložena (např. jestli už nebyla uložena dřív)
 
         if ($this->aktivita->prihlasen($dorazil)) {
@@ -50,11 +60,11 @@ class AktivitaPrezence
                 'id_akce' => $this->aktivita->id(),
                 'id_stavu_prihlaseni' => Aktivita::DORAZIL_JAKO_NAHRADNIK,
             ]);
-            $this->log($dorazil, 'prihlaseni_nahradnik');
+            $this->zalogujZeDorazilJakoNahradnik($dorazil);
         }
     }
 
-    public function zrusDorazeni(Uzivatel $dorazil): bool {
+    public function zrusZeDorazil(\Uzivatel $dorazil): bool {
         // TODO kontrola, jestli prezence smí být uložena (např. jestli už nebyla uložena dřív)
 
         if ($this->aktivita->dorazilJakoNahradnik($dorazil)) {
@@ -66,7 +76,7 @@ class AktivitaPrezence
                 'id_uzivatele' => $dorazil->id(),
                 'id_akce' => $this->aktivita->id(),
             ]);
-            $this->log($dorazil, 'zruseni_prihlaseni_nahradnik');
+            $this->zalogujZeZrusilPrihlaseniJakoNahradik($dorazil);
             return true;
         }
         if ($this->aktivita->dorazilJakoPredemPrihlaseny($dorazil)) {
@@ -80,7 +90,50 @@ class AktivitaPrezence
         return false;
     }
 
-    public function ulozNedorazivsiho(Uzivatel $nedorazil) {
+    public function zalogujZeSePrihlasil(\Uzivatel $prihlaseny) {
+        $this->log($prihlaseny, self::PRIHLASENI);
+    }
+
+    private function log(\Uzivatel $u, $zprava) {
+        dbInsert('akce_prihlaseni_log', [
+            'id_uzivatele' => $u->id(),
+            'id_akce' => $this->aktivita->id(),
+            'typ' => $zprava,
+        ]);
+    }
+
+    public function zalogujZeSeOdhlasil(\Uzivatel $odhlaseny) {
+        $this->log($odhlaseny, self::ODHLASENI);
+    }
+
+    private function zalogujZeZeNedostavil(\Uzivatel $nedorazil) {
+        $this->log($nedorazil, self::NEDOSTAVENI_SE);
+    }
+
+    public function zalogujZeBylHromadneOdhlasen(\Uzivatel $hromadneOdhlasen) {
+        $this->log($hromadneOdhlasen, self::ODHLASENI_HROMADNE);
+    }
+
+    private function zalogujZeDorazilJakoNahradnik(\Uzivatel $dorazilNahradnik) {
+        $this->log($dorazilNahradnik, self::DORAZIL_JAKO_NAHRADNIK);
+    }
+
+    public function zalogujZeSePrihlasilJakoSledujici(\Uzivatel $prihlasenySledujici) {
+        $this->log($prihlasenySledujici, self::PRIHLASENI_SLEDUJICI);
+    }
+
+    public function zalogujZeZrusilPrihlaseniJakoNahradik(\Uzivatel $prihlasenySledujici) {
+        $this->log($prihlasenySledujici, self::ZRUSENI_PRIHLASENI_NAHRADNIK);
+    }
+
+    public function zalogujZeSeOdhlasilJakoSledujici(\Uzivatel $odhlasenySledujici) {
+        dbQuery(
+            "INSERT INTO akce_prihlaseni_log SET id_uzivatele=$1, id_akce=$2, typ=$3",
+            [$odhlasenySledujici->id(), $this->aktivita->id(), self::ODHLASENI_SLEDUJICI]
+        );
+    }
+
+    public function ulozNedorazivsiho(\Uzivatel $nedorazil) {
         // TODO kontrola, jestli prezence smí být uložena (např. jestli už nebyla uložena dřív)
 
         dbDelete('akce_prihlaseni', [
@@ -92,39 +145,43 @@ class AktivitaPrezence
             'id_akce' => $this->aktivita->id(),
             'id_stavu_prihlaseni' => Aktivita::PRIHLASEN_ALE_NEDORAZIL,
         ]);
-        $this->log($nedorazil, 'nedostaveni_se');
+        $this->zalogujZeZeNedostavil($nedorazil);
         $this->posliMailNedorazivsimu($nedorazil);
-    }
-
-    /////////////
-    // private //
-    /////////////
-
-    /**
-     * Zapíše do logu přihlášení kombinaci aktivita + uživatel + zpráva.
-     */
-    private function log(Uzivatel $u, $zprava) {
-        dbInsert('akce_prihlaseni_log', [
-            'id_uzivatele' => $u->id(),
-            'id_akce' => $this->aktivita->id(),
-            'typ' => $zprava,
-        ]);
     }
 
     /**
      * Pošle uživateli výchovný mail, že se nedostavil na aktivitu, a že by se
      * měl radši odhlašovat předem.
      */
-    private function posliMailNedorazivsimu(Uzivatel $u) {
+    private function posliMailNedorazivsimu(\Uzivatel $u) {
         if (!GC_BEZI || !$this->aktivita->typ()->posilatMailyNedorazivsim()) {
             return;
         }
 
-        (new GcMail)
+        (new \GcMail)
             ->adresat($u->mail())
             ->predmet('Nedostavení se na aktivitu')
             ->text(hlaskaMail('nedostaveniSeNaAktivituMail', $u))
             ->odeslat();
     }
 
+    public function prihlasenOd(\Uzivatel $uzivatel): ?\DateTimeImmutable {
+        $akceACasy = dbFetchAll(<<<SQL
+SELECT MAX(cas) AS kdy, typ
+FROM akce_prihlaseni_log
+WHERE id_akce = $1 AND id_uzivatele = $2
+GROUP BY typ
+ORDER BY kdy DESC
+SQL,
+            [$this->aktivita->id(), $uzivatel->id()]
+        );
+        if (!$akceACasy) {
+            return null;
+        }
+        $posledniAkce = reset($akceACasy);
+        if ($posledniAkce['typ'] !== self::PRIHLASENI) {
+            return null;
+        }
+        return new \DateTimeImmutable($posledniAkce['kdy']);
+    }
 }
