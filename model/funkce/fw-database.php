@@ -245,7 +245,8 @@ function dbNumRows($query): int {
     if ($query === true) {
         // result of mysqli_query INSERT / UPDATE / DELETE
         return $GLOBALS['dbAffectedRows'] ?? 0;
-    } elseif ($query instanceof mysqli_result) {
+    }
+    if ($query instanceof mysqli_result) {
         // result of mysqli_query SELECT
         return $query->num_rows ?? 0;
     }

@@ -11,7 +11,10 @@ use Gamecon\Vyjimkovac\Vyjimkovac;
 /** @var Uzivatel $u */
 /** @var Uzivatel|null $uPracovni */
 
-$onlinePrezenceHtml = new OnlinePrezenceHtml(Vyjimkovac::js(URL_WEBU));
+$onlinePrezenceHtml = new OnlinePrezenceHtml(
+    Vyjimkovac::js(URL_WEBU),
+    (int)MOJE_AKTIVITY_NA_POSLEDNI_CHVILI_X_MINUT_PRED_JEJICH_ZACATKEM
+);
 $onlinePrezenceAjax = new OnlinePrezenceAjax($onlinePrezenceHtml);
 
 if ($onlinePrezenceAjax->odbavAjax()) {
