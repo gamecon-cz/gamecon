@@ -21,6 +21,8 @@
   <script type="text/javascript" src="files/jquery-ui-v1.12.1.min.js"></script>
   <script type="text/javascript" src="files/jquery.hotkeys-0.8.0.js"></script>
   <script type="text/javascript" src="files/bootstrap.bundle.5.1.3.js"></script>
+  <script type="text/javascript"
+          src="files/bootstrap-tooltip-initialization.js?version=78b4a4d9674bf72e95f7756bc0ce92a9 "></script>
 
   <script type="text/javascript" src="files/omnibox.js?version=e5cd9171d8ae5178823bdcf81f68b43d"></script>
   <script type="text/javascript" src="files/online-prezence.js?version=eaa8f611d5b7ad3e59c866efd003e495"></script>
@@ -107,7 +109,10 @@
               <th>Jméno</th>
               <th>Telefon</th>
               <th>
-                <span class="hinted"><i class="fas fa-list"></i><span class="hint">Dorazil účastník na aktivitu?</span></span>
+                <span class="hinted" data-bs-toggle="tooltip" data-bs-placement="top"
+                      title="Dorazil účastník na aktivitu?">
+                  <i class="fas fa-list"></i>
+                </span>
               </th>
             </tr>
             <!-- begin:ucastnik -->
