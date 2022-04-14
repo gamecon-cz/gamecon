@@ -140,7 +140,7 @@ class OnlinePrezenceAjax
             $ucastnikHtml = $this->onlinePrezenceHtml->sestavHmlUcastnikaAktivity(
                 $prihlasenyUzivatel,
                 $aktivita,
-                true /* jenom zobrazeni - skutečné uložení, že dorazil, řešíme až po vybrání uživatele z omniboxu */,
+                true /* jenom zobrazeni - skutečné uložení, že dorazil, řešíme už po vybrání uživatele z omniboxu, což je ještě před vykreslením účastníka */,
                 false
             );
             $prihlasenyUzivatelOmnibox['html'] = $ucastnikHtml;
