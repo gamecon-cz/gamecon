@@ -71,7 +71,8 @@ if (!$m->bezStranky() && !$m->bezMenu()) {
     if ($u) {
         $t->assign([
             'u' => $u,
-            'adminUrl' => $u->uvodniAdminUrl(URL_ADMIN),
+            'uvodniAdminUrl' => $u->uvodniAdminUrl(URL_ADMIN),
+            'mojeAktivityAdminUrl' => $u->mojeAktivityAdminUrl(URL_ADMIN),
         ]);
 
         if ($u->maPravo(P_ADMIN_UVOD)) {
