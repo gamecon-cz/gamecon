@@ -97,7 +97,7 @@ if ($m->bezStranky()) {
     $t = new XTemplate('sablony/blackarrow/index.xtpl');
     $t->assign([
         'css' => perfectcache('soubory/blackarrow/*/*.less'),
-        'jsVyjimkovac' => \Gamecon\Vyjimkovac\Vyjimkovac::js(URL_WEBU . '/ajax-vyjimkovac'),
+        'jsVyjimkovac' => \Gamecon\Vyjimkovac\Vyjimkovac::js(URL_WEBU),
         'chyba' => Chyba::vyzvedniHtml(),
         'menu' => $menu,
         'obsah' => $m->vystup(),
@@ -136,7 +136,7 @@ if ($m->bezStranky()) {
             'soubory/jquery-ui.min.js',
             'soubory/easybox.distrib.min.js' // nějaká debiláž, musí být poslední
         ),
-        'jsVyjimkovac' => \Gamecon\Vyjimkovac\Vyjimkovac::js(URL_WEBU . '/ajax-vyjimkovac'),
+        'jsVyjimkovac' => \Gamecon\Vyjimkovac\Vyjimkovac::js(URL_WEBU),
         'chyba' => Chyba::vyzvedniHtml(),
         'info' => $m->info() ? $m->info()->html() : '',
         'a' => $u ? $u->koncA() : '',
