@@ -1,6 +1,6 @@
 <!-- begin:ucastnik -->
 <tr class="col-md col-sm-6 no-gutters">
-  <td>
+  <td style="text-align: center">
     <!-- begin:pritomen -->
     <span class="hinted" data-bs-toggle="tooltip" data-bs-html="true"
           title="<strong>Je přítomen</strong> v tomto okamžiku na GC (prošel infopultem).">
@@ -14,13 +14,21 @@
     </span>
     <!-- end:nepritomen -->
   </td>
+  <td style="text-align: center">
+    <!-- begin: prihlasenNaPosledniChvili -->
+    <span class="hinted" data-bs-toggle="tooltip"
+          title="Přihlásil se před méně než {minutNaPosledniChvili} minutami a měl by si pospíšit.">
+          ⏰
+    </span>
+    <!-- end: prihlasenNaPosledniChvili -->
+  </td>
   <td>{u.jmenoNick}</td>
   <td>
     <!-- begin:telefon -->
     <a href="tel:{u.telefon}" class="text-nowrap"><i class="fas fa-phone"></i> {u.telefon}</a>
     <!-- end:telefon -->
   </td>
-  <td>
+  <td style="text-align: center">
     <!-- begin:checkbox -->
     <input type="checkbox" onchange="zmenitUcastnika('{u.id}', '{a.id}', this)" name="dorazil[]" value="{u.id}"
            {checkedUcastnik} {disabledUcastnik}>
