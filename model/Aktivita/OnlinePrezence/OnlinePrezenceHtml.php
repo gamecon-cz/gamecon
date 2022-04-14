@@ -10,6 +10,13 @@ class OnlinePrezenceHtml
     private $onlinePrezenceTemplate;
     /** @var \XTemplate */
     private $onlinePrezenceUcastnikTemplate;
+    /** @var string */
+    private $jsVyjimkovac;
+
+    public function __construct(string $jsVyjimkovac) {
+
+        $this->jsVyjimkovac = $jsVyjimkovac;
+    }
 
     public function dejHtmlOnlinePrezence(
         array              $aktivity,
@@ -21,6 +28,7 @@ class OnlinePrezenceHtml
         $template = $this->dejOnlinePrezenceTemplate();
 
         $template->assign('urlZpet', $urlZpet ?? getBackUrl());
+        $template->assign('jsVyjimkovac', $this->jsVyjimkovac);
 
         if (count($aktivity) === 0) {
             if (defined('TESTING') && TESTING) {
