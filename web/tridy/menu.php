@@ -52,11 +52,14 @@ class Menu
     }
 
     /** Seznam linií s prokliky (html) */
-    public function linie() {
+    public function linie(): string {
         $linie = self::linieSeznam();
         // ne/zobrazení linku na program
-        if (PROGRAM_VIDITELNY && !isset($linie['program'])) $linie = ['program' => 'Program'] + $linie;
-        elseif (!isset($linie['pripravujeme'])) $linie = ['pripravujeme' => 'Letos připravujeme…'] + $linie;
+        if (PROGRAM_VIDITELNY && !isset($linie['program'])) {
+            $linie = ['program' => 'Program'] + $linie;
+        } elseif (!isset($linie['pripravujeme'])) {
+            $linie = ['pripravujeme' => 'Letos připravujeme…'] + $linie;
+        }
         // výstup
         $o = '';
         foreach ($linie as $a => $l) {
@@ -66,12 +69,13 @@ class Menu
     }
 
     /** Asoc. pole url linie => název */
-    public static function linieSeznam() {
+    public static function linieSeznam(): array {
         if (!isset(self::$linie)) {
             $typy = TypAktivity::zViditelnych();
-            usort($typy, function ($a, $b) {
+            usort($typy, static function ($a, $b) {
                 return $a->poradi() - $b->poradi();
             });
+            self::$linie = [];
             foreach ($typy as $typ) {
                 self::$linie[$typ->url()] = mb_ucfirst($typ->nazev());
             }
@@ -80,7 +84,7 @@ class Menu
     }
 
     /** Seznam stránek s prokliky (html) */
-    public function stranky() {
+    public function stranky(): string {
         $o = '';
         foreach ($this->stranky as $a => $l) {
             $o .= "<li><a href=\"$a\">$l</a></li>";
