@@ -12,10 +12,13 @@ class OnlinePrezenceHtml
     private $onlinePrezenceUcastnikTemplate;
     /** @var string */
     private $jsVyjimkovac;
+    /** @var int */
+    private $naPosledniChviliXMinutPredZacatkem;
 
-    public function __construct(string $jsVyjimkovac) {
+    public function __construct(string $jsVyjimkovac, int $naPosledniChviliXMinutPredZacatkem) {
 
         $this->jsVyjimkovac = $jsVyjimkovac;
+        $this->naPosledniChviliXMinutPredZacatkem = $naPosledniChviliXMinutPredZacatkem;
     }
 
     public function dejHtmlOnlinePrezence(
@@ -141,12 +144,28 @@ class OnlinePrezenceHtml
         $ucastnikTemplate->assign('disabledUcastnik', $zatimPouzeProCteni || $aktivita->zamcena() ? 'disabled' : '');
         $ucastnikTemplate->parse('ucastnik.checkbox');
 
-        $ucastnikTemplate->parse('ucastnik.' . ($ucastnik->gcPritomen() ? 'pritomen' : 'nepritomen'));
+        if ($ucastnik->gcPritomen()) {
+            $ucastnikTemplate->parse('ucastnik.pritomen');
+        } else {
+            $ucastnikTemplate->parse('ucastnik.nepritomen');
+        }
+
         if ($ucastnik->telefon()) {
             $ucastnikTemplate->parse('ucastnik.telefon');
         }
+
+        $prihlasenOd = $aktivita->prihlasenOd($ucastnik);
+        if ($prihlasenOd && $prihlasenOd >= $this->dejOdKdyJeToNaPosledniChvili()) {
+            $ucastnikTemplate->assign('minutNaPosledniChvili', $this->naPosledniChviliXMinutPredZacatkem);
+            $ucastnikTemplate->parse('ucastnik.prihlasenNaPosledniChvili');
+        }
+
         $ucastnikTemplate->parse('ucastnik');
         return $ucastnikTemplate->text('ucastnik');
+    }
+
+    private function dejOdKdyJeToNaPosledniChvili(): \DateTimeInterface {
+        return new \DateTimeImmutable('-' . $this->naPosledniChviliXMinutPredZacatkem . ' minutes');
     }
 
     private function dejOnlinePrezenceUcastnikTemplate(): \XTemplate {

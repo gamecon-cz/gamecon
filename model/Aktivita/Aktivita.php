@@ -28,6 +28,8 @@ class Aktivita
         $organizatori,
         $nahradnici,
         $typ;
+    /** @var null|AktivitaPrezence */
+    private $prezence;
 
     const
         AJAXKLIC = 'aEditFormTest',  // název post proměnné, ve které jdou data, pokud chceme ajaxově testovat jejich platnost a čekáme json odpověď
@@ -1002,7 +1004,7 @@ class Aktivita
         $idAktivity = $this->id();
         $idUzivatele = $u->id();
         dbQuery("DELETE FROM akce_prihlaseni WHERE id_uzivatele=$idUzivatele AND id_akce=$idAktivity");
-        dbQuery("INSERT INTO akce_prihlaseni_log SET id_uzivatele=$idUzivatele, id_akce=$idAktivity, typ='odhlaseni'");
+        $this->dejPrezenci()->zalogujZeSeOdhlasil($u);
         if (ODHLASENI_POKUTA_KONTROLA && $this->zbyvaHodinDoZacatku() < ODHLASENI_POKUTA1_H && !($params & self::BEZ_POKUT)) { // pokuta aktivní
             $pozdeZrusil = self::POZDE_ZRUSIL;
             dbQuery("INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$idUzivatele, id_akce=$idAktivity, id_stavu_prihlaseni=$pozdeZrusil");
@@ -1018,6 +1020,13 @@ class Aktivita
             $this->poslatMailNahradnikum();
         }
         $this->refresh();
+    }
+
+    public function dejPrezenci(): AktivitaPrezence {
+        if (!$this->prezence) {
+            $this->prezence = new AktivitaPrezence($this);
+        }
+        return $this->prezence;
     }
 
     /**
@@ -1375,7 +1384,7 @@ SQL
             'INSERT INTO akce_prihlaseni SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=$2',
             [$idUzivatele, $idAktivity, self::PRIHLASEN]
         );
-        dbQuery("INSERT INTO akce_prihlaseni_log SET id_uzivatele=$idUzivatele, id_akce=$idAktivity, typ='prihlaseni'");
+        $this->dejPrezenci()->zalogujZeSePrihlasil($u);
         if (ODHLASENI_POKUTA_KONTROLA) { //pokud by náhodou měl záznam za pokutu a přihlásil se teď, tak smazat
             dbQuery(
                 'DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0 AND id_akce=$1 AND id_stavu_prihlaseni=$2',
@@ -1397,6 +1406,10 @@ SQL
     /** Jestli je uživatel  přihlášen na tuto aktivitu */
     public function prihlasen(\Uzivatel $u) {
         return strpos($this->prihlaseniRaw(), ',' . $u->id() . $u->pohlavi()) !== false;
+    }
+
+    public function prihlasenOd(\Uzivatel $uzivatel): ?\DateTimeInterface {
+        return $this->dejPrezenci()->prihlasenOd($uzivatel);
     }
 
     /**
@@ -1672,7 +1685,7 @@ SQL
 
         // Uložení přihlášení do DB
         dbQuery("INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=$2", [$u->id(), $this->id(), self::SLEDUJICI]);
-        dbQuery("INSERT INTO akce_prihlaseni_log SET id_uzivatele=$0, id_akce=$1, typ='prihlaseni_watchlist'", [$u->id(), $this->id()]);
+        $this->dejPrezenci()->zalogujZeSePrihlasilJakoSledujici($u);
         $this->refresh();
     }
 
@@ -2004,22 +2017,19 @@ SQL
      * @param \Uzivatel[] $dorazili uživatelé, kteří se nakonec aktivity zúčastnili
      */
     public function ulozPrezenci(array $dorazili) {
-        $prezence = new \AktivitaPrezence($this);
-        $prezence->uloz($dorazili);
+        $this->dejPrezenci()->uloz($dorazili);
     }
 
     public function ulozZeDorazil(\Uzivatel $dorazil) {
-        $prezence = new \AktivitaPrezence($this);
-        $prezence->ulozDorazivsiho($dorazil);
+        $this->dejPrezenci()->ulozDorazivsiho($dorazil);
     }
 
     public function zrusZeDorazil(\Uzivatel $dorazil): bool {
-        return (new \AktivitaPrezence($this))->zrusDorazeni($dorazil);
+        return $this->dejPrezenci()->zrusZeDorazil($dorazil);
     }
 
     public function ulozPrezenciNedorazivsiho(\Uzivatel $dorazil) {
-        $prezence = new \AktivitaPrezence($this);
-        $prezence->ulozNedorazivsiho($dorazil);
+        $this->dejPrezenci()->ulozNedorazivsiho($dorazil);
     }
 
     /**
