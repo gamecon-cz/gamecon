@@ -4,6 +4,7 @@ use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml;
 use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax;
 use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceTestovaciAktivity;
+use Gamecon\Vyjimkovac\Vyjimkovac;
 
 /**
  * Úvodní karta organizátora s přehledem jeho aktivit
@@ -24,7 +25,7 @@ if (get('id')) {
 global $BEZ_DEKORACE;
 $BEZ_DEKORACE = true; // pokud nedoslo k chybě, tak nechceme levé menu, ale pouze nový čistý layout pro prezenci, viz admin/index.php
 
-$onlinePrezenceHtml = new OnlinePrezenceHtml();
+$onlinePrezenceHtml = new OnlinePrezenceHtml(Vyjimkovac::js(URL_WEBU));
 $onlinePrezenceAjax = new OnlinePrezenceAjax($onlinePrezenceHtml);
 
 if ($onlinePrezenceAjax->odbavAjax()) {
