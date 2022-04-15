@@ -331,7 +331,7 @@ class Shop
       'jsSlider'  =>  URL_WEBU.'/soubory/blackarrow/shop/shop-vstupne.js',
       'stav'      =>  $this->u->gcPrihlasen() ?
         $this->vstupne['sum_cena_nakupni'] + $this->vstupnePozde['sum_cena_nakupni'] :
-        60, // výchozí hodnota
+        0, // výchozí hodnota
       'postname'  =>  $this->klicV,
       'min'       =>  $this->vstupneJeVcas ? 0 : $this->vstupne['sum_cena_nakupni'],
       'smajliky'  =>  json_encode([
