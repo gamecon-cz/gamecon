@@ -139,16 +139,16 @@ class Shop
         );
         $fronta = &$this->tricka[];
         // hack pro výběr správného automaticky objednaného trička
-        if($smiCervene)                 $barva = 'červené';
-        elseif($smiModre)               $barva = 'modré';
-        else                            $barva = '.*';
-        if($this->u->pohlavi() == 'f')  $typTricka = 'tílko.*dámské S';
-        else                            $typTricka = 'tričko.*pánské L';
-        $r['auto'] = (
-          $r['nabizet'] &&
-          preg_match("@$barva@i", $r['nazev']) &&
-          preg_match("@$typTricka@i", $r['nazev'])
-        );
+        // if($smiCervene)                 $barva = 'červené';
+        // elseif($smiModre)               $barva = 'modré';
+        // else                            $barva = '.*';
+        // if($this->u->pohlavi() == 'f')  $typTricka = 'tílko.*dámské S';
+        // else                            $typTricka = 'tričko.*pánské L';
+        // $r['auto'] = (
+        //   $r['nabizet'] &&
+        //   preg_match("@$barva@i", $r['nazev']) &&
+        //   preg_match("@$typTricka@i", $r['nazev'])
+        // );
       } elseif($typ == self::VSTUPNE) {
         if(strpos($r['nazev'], 'pozdě') === false) {
           $this->vstupne = $r;
@@ -331,7 +331,7 @@ class Shop
       'jsSlider'  =>  URL_WEBU.'/soubory/blackarrow/shop/shop-vstupne.js',
       'stav'      =>  $this->u->gcPrihlasen() ?
         $this->vstupne['sum_cena_nakupni'] + $this->vstupnePozde['sum_cena_nakupni'] :
-        0, // výchozí hodnota
+        60, // výchozí hodnota
       'postname'  =>  $this->klicV,
       'min'       =>  $this->vstupneJeVcas ? 0 : $this->vstupne['sum_cena_nakupni'],
       'smajliky'  =>  json_encode([
