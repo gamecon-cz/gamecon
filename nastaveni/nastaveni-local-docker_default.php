@@ -29,7 +29,7 @@ define('SECRET_CRYPTO_KEY', 'def0000066cba9ae32fdda839a143276cc0646b3880920c9387
 
 // nepovinné konstanty
 define('CRON_KEY', '123');
-define('UNIVERZALNI_HESLO', ''); // obejití zadávání hesla pro vývojové prostředí
+define('UNIVERZALNI_HESLO', 'heslo123'); // obejití zadávání hesla pro vývojové prostředí
 define('FIO_TOKEN', '123456'); // přístup k api fio banky pro načítání plateb
 define('FTP_ZALOHA_DB', 'ftp://user:password@server/directory'); // FTP pro zálohy databáze
 define('MAILY_DO_SOUBORU', __DIR__ . '/../cache/private/maily.log');
