@@ -102,8 +102,9 @@ function oznameniPresmeruj($zprava, $cil) {
 
 /** Tisk informace profileru. */
 function profilInfo() {
-    if (!PROFILOVACI_LISTA)
-        return false; //v ostré verzi se neprofiluje
+    if (!PROFILOVACI_LISTA) {
+        return false; // v ostré verzi se neprofiluje
+    }
     $schema = 'data:image/png;base64,';
     $iDb = $schema . base64_encode(file_get_contents(__DIR__ . '/db.png'));
     $iHodiny = $schema . base64_encode(file_get_contents(__DIR__ . '/hodiny.png'));

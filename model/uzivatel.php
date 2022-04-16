@@ -532,8 +532,8 @@ SQL
     /** Odhlásí aktuálně přihlášeného uživatele, pokud není přihlášen, nic
      * @param bool $back rovnou otočit na referrer?
      */
-    static function odhlas($back = false) {
-        self::odhlasProTed();
+    public function odhlas($back = false) {
+        $this->odhlasProTed();
         if (isset($_COOKIE['gcTrvalePrihlaseni'])) {
             setcookie('gcTrvalePrihlaseni', '', 0, '/');
         }
@@ -545,7 +545,7 @@ SQL
     /**
      * Odhlásí aktuálně přihlášeného uživatele
      */
-    static function odhlasProTed() {
+    private function odhlasProTed() {
         if (!session_id()) {
             session_start();
         }
@@ -605,7 +605,7 @@ SQL
         //máme obnovit starou proměnnou pro id uživatele (otáčíme aktuálně přihlášeného uživatele)?
         $sesObnovit = (isset($_SESSION['id_uzivatele']) && $_SESSION['id_uzivatele'] == $this->id());
         if ($klic === 'uzivatel') {//pokud je klíč default, zničíme celou session
-            self::odhlasProTed(); // ponech případnou cookie pro trvalé přihášení
+            $this->odhlasProTed(); // ponech případnou cookie pro trvalé přihášení
         } else { //pokud je speciální, pouze přemažeme položku v session
             self::odhlasKlic($klic);
         }
@@ -647,8 +647,8 @@ SQL
     /**
      * Přihlásí uživatele s loginem $login k stránce
      * @param string $klic klíč do $_SESSION kde poneseme hodnoty uživatele
-     * @param $login login nebo primární e-mail uživatele
-     * @param $heslo heslo uživatele
+     * @param string $login login nebo primární e-mail uživatele
+     * @param string $heslo heslo uživatele
      * @return mixed objekt s uživatelem nebo null
      */
     public static function prihlas($login, $heslo, $klic = 'uzivatel') {
@@ -662,11 +662,15 @@ SQL
       ORDER BY email1_uzivatele = $0 DESC -- e-mail má prioritu
       LIMIT 1
     ', [$login]);
-        if (!$u) return null;
+        if (!$u) {
+            return null;
+        }
         // master password hack pro vývojovou větev
         $jeMaster = defined('UNIVERZALNI_HESLO') && $heslo == UNIVERZALNI_HESLO;
         // kontrola hesla
-        if (!(password_verify($heslo, $u['heslo_md5']) || md5($heslo) === $u['heslo_md5'] || $jeMaster)) return null;
+        if (!($jeMaster || password_verify($heslo, $u['heslo_md5']))) {
+            return null;
+        }
         // kontrola zastaralých algoritmů hesel a případná aktualizace hashe
         $jeMd5 = strlen($u['heslo_md5']) == 32 && preg_match('@^[0-9a-f]+$@', $u['heslo_md5']);
         if ((password_needs_rehash($u['heslo_md5'], PASSWORD_DEFAULT) || $jeMd5) && !$jeMaster) {
@@ -677,7 +681,9 @@ SQL
         // přihlášení uživatele
         // TODO refactorovat do jedné fce volané z dílčích prihlas* metod
         $id = $u['id_uzivatele'];
-        if (!session_id() && PHP_SAPI != 'cli') session_start();
+        if (!session_id() && PHP_SAPI !== 'cli') {
+            session_start();
+        }
         $_SESSION[$klic] = $u;
         $_SESSION[$klic]['id_uzivatele'] = (int)$u['id_uzivatele'];
         // načtení uživatelských práv
@@ -685,8 +691,9 @@ SQL
       LEFT JOIN r_prava_zidle pz USING(id_zidle)
       WHERE uz.id_uzivatele=' . $id);
         $prava = []; // inicializace nutná, aby nepadala výjimka pro uživatele bez práv
-        while ($r = mysqli_fetch_assoc($p))
+        while ($r = mysqli_fetch_assoc($p)) {
             $prava[] = (int)$r['id_prava'];
+        }
         $_SESSION[$klic]['prava'] = $prava;
         return new Uzivatel($_SESSION[$klic]);
     }

@@ -36,6 +36,8 @@ $podstranka = isset($req[1]) ? $req[1] : '';
 
 // zobrazení stránky
 if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
+    $chyba = chyba::vyzvedniChybu();
+    $xtpl->assign('chyba', $chyba ? '<div class="error">' . $chyba . '</div>' : '');
     $xtpl->parse('all.prihlaseni');
     $xtpl->parse('all');
     $xtpl->out('all');
