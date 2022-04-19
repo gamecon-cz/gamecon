@@ -1003,7 +1003,7 @@ class Aktivita
         }
         // Poslání mailu lidem na watchlistu
         if ($this->volno() === "x" && !($params & self::NEPOSILAT_MAILY)) { // Před odhlášením byla aktivita plná
-            $this->poslatMailNahradnikum();
+            $this->poslatMailSledujicim();
         }
         $this->refresh();
     }
@@ -1018,8 +1018,8 @@ class Aktivita
     /**
      * Odhlásí uživatele z náhradníků (watchlistu)
      */
-    public function odhlasNahradnika(\Uzivatel $u) {
-        if (!$u->prihlasenJakoNahradnikNa($this)) { // Ignorovat pokud není přihlášen jako náhradník
+    public function odhlasSledujiciho(\Uzivatel $u) {
+        if (!$u->prihlasenJakoSledujiciAktivity($this)) { // Ignorovat pokud není přihlášen jako sledující
             return;
         }
         // Uložení odhlášení do DB
@@ -1029,10 +1029,10 @@ class Aktivita
     }
 
     /**
-     * Odhlásí ze všech náhradnických slotů ve stejný čas jako aktivita po přihlášení na aktivitu.
-     * @return bool True pokud došlo k odhlášení nějakých náhradnických slotů
+     * Odhlásí ze všech sledování aktivit ve stejný čas jako aktivita po přihlášení na aktivitu.
+     * @return bool True pokud došlo k odhlášení nějakých sledování
      */
-    public function odhlasZNahradnickychSlotu(\Uzivatel $u): bool {
+    public function odhlasZeSledováníAktivitVeStejnemCase(\Uzivatel $u): bool {
         $konfliktniAktivity = self::zIds(dbOneArray("
       SELECT p.id_akce
       FROM akce_prihlaseni_spec p
@@ -1045,7 +1045,7 @@ class Aktivita
             $u->id(), $this->a['zacatek'], $this->a['konec'], self::SLEDUJICI,
         ]));
         foreach ($konfliktniAktivity as $aktivita) {
-            $aktivita->odhlasNahradnika($u);
+            $aktivita->odhlasSledujiciho($u);
         }
         return count($konfliktniAktivity) > 0;
     }
@@ -1258,9 +1258,9 @@ SQL
     }
 
     /**
-     * Pošle mail náhradníkům o volném místě na aktivitě.
+     * Pošle mail potenciálním náhradníkům o volném místě na aktivitě.
      */
-    private function poslatMailNahradnikum() {
+    private function poslatMailSledujicim() {
         $emaily = dbOneArray("
       SELECT u.email1_uzivatele
       FROM akce_prihlaseni_spec a
@@ -1355,7 +1355,7 @@ SQL
         }
 
         // odhlášení náhradnictví v kolidujících aktivitách
-        $this->odhlasZNahradnickychSlotu($u);
+        $this->odhlasZeSledováníAktivitVeStejnemCase($u);
 
         // přihlášení na samu aktivitu (uložení věcí do DB)
         $idAktivity = $this->id();
@@ -1380,6 +1380,17 @@ SQL
     /** Jestli je uživatel  přihlášen na tuto aktivitu */
     public function prihlasen(\Uzivatel $u) {
         return strpos($this->prihlaseniRaw(), ',' . $u->id() . $u->pohlavi()) !== false;
+    }
+
+    /**
+     * @return bool true, pokud je uživatel přihlášen jako sledující aktivity (ve watchlistu).
+     */
+    public function prihlasenJakoSledujici(\Uzivatel $uzivatel) {
+        return (bool)dbOneCol("
+        SELECT 1
+        FROM akce_prihlaseni_spec
+        WHERE id_akce=$1 AND id_uzivatele=$2 AND id_stavu_prihlaseni = $3
+      ", [$this->id(), $uzivatel->id(), Aktivita::SLEDUJICI]);
     }
 
     public function prihlasenOd(\Uzivatel $uzivatel): ?\DateTimeInterface {
@@ -1492,7 +1503,7 @@ SQL
     /**
      * @return bool jestli je na aktivitu povoleno přihlašování náhradníků
      */
-    public function prihlasovatelnaNahradnikum(): bool {
+    public function prihlasovatelnaProSledujici(): bool {
         return !$this->tymova() && !$this->a['dite'];
     }
 
@@ -1547,17 +1558,17 @@ SQL
                     $out = 'pouze ženská místa';
                 } elseif ($volno === 'm') {
                     $out = 'pouze mužská místa';
-                } elseif ($this->prihlasovatelnaNahradnikum()) {
-                    if ($u->prihlasenJakoNahradnikNa($this)) {
+                } elseif ($this->prihlasovatelnaProSledujici()) {
+                    if ($u->prihlasenJakoSledujiciAktivity($this)) {
                         $out =
                             '<form method="post" style="display:inline">' .
-                            '<input type="hidden" name="odhlasNahradnika" value="' . $this->id() . '">' .
+                            '<input type="hidden" name="odhlasSledujiciho" value="' . $this->id() . '">' .
                             '<a href="#" onclick="this.parentNode.submit(); return false">zrušit sledování</a>' .
                             '</form>';
                     } else {
                         $out =
                             '<form method="post" style="display:inline">' .
-                            '<input type="hidden" name="prihlasNahradnika" value="' . $this->id() . '">' .
+                            '<input type="hidden" name="prihlasSledujiciho" value="' . $this->id() . '">' .
                             '<a href="#" onclick="this.parentNode.submit(); return false">sledovat</a>' .
                             '</form>';
                     }
@@ -1592,12 +1603,12 @@ SQL
             self::zId(post('odhlasit'))->odhlas($u, $bezPokut);
             back();
         }
-        if (post('prihlasNahradnika')) {
-            self::zId(post('prihlasNahradnika'))->prihlasNahradnika($u);
+        if (post('prihlasSledujiciho')) {
+            self::zId(post('prihlasSledujiciho'))->prihlasSledujiciho($u);
             back();
         }
-        if (post('odhlasNahradnika')) {
-            self::zId(post('odhlasNahradnika'))->odhlasNahradnika($u);
+        if (post('odhlasSledujiciho')) {
+            self::zId(post('odhlasSledujiciho'))->odhlasSledujiciho($u);
             back();
         }
         if ($parametry & self::PLUSMINUS_KAZDY) {
@@ -1633,15 +1644,15 @@ SQL
     }
 
     /**
-     * Přihlásí uživatele jako náhradníka (watchlist)
+     * Přihlásí uživatele jako sledujícího (watchlist)
      */
-    public function prihlasNahradnika(\Uzivatel $u) {
+    public function prihlasSledujiciho(\Uzivatel $u) {
         // Aktivita musí mít přihlašování náhradníků povoleno
-        if (!$this->prihlasovatelnaNahradnikum()) {
-            throw new \LogicException('Na aktivitu se nelze přihlašovat jako náhradník.');
+        if (!$this->prihlasovatelnaProSledujici()) {
+            throw new \LogicException('Na aktivitu se nelze přihlašovat jako sledující.');
         }
         // Uživatel nesmí být přihlášen na aktivitu nebo jako náhradník
-        if ($this->prihlasen($u) || $u->prihlasenJakoNahradnikNa($this)) {
+        if ($this->prihlasen($u) || $this->prihlasenJakoSledujici($u)) {
             return;
         }
         // Uživatel nesmí mít ve stejný slot jinou přihlášenou aktivitu
