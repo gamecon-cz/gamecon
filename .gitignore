@@ -1,6 +1,7 @@
 /_*
 
 /.idea/
+/.vscode/
 /.phpunit.result.cache
 
 /cache/private/*
