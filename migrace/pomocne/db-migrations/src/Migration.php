@@ -35,6 +35,11 @@ class Migration
         return $this->code;
     }
 
+    /**
+     * @param $query
+     * @return false|\mysqli_result
+     * @throws \Exception
+     */
     public function q($query) {
         $this->db->multi_query($query);
 
