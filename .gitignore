@@ -8,16 +8,6 @@
 /cache/public/*
 !/cache/public/.htaccess
 
-/nastaveni/google_api_client_secret*.json
-/nastaveni/nastaveni-beta.php
-/nastaveni/nastaveni-ftpdeploy.php
-/nastaveni/nastaveni-local.php
-/nastaveni/nastaveni-nasazovani.php
-/nastaveni/nastaveni-produkce.php
-/nastaveni/nastaveni-redesign.php
-/nastaveni/nastaveni-blackarrow.php
-/nastaveni/google-api-client-secret.json
-
 /node_modules
 
 /vendor
