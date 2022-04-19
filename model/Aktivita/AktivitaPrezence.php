@@ -54,7 +54,7 @@ class AktivitaPrezence
                 'id_stavu_prihlaseni' => Aktivita::PRIHLASEN_A_DORAZIL,
             ]);
         } else {
-            $this->aktivita->odhlasZNahradnickychSlotu($dorazil);
+            $this->aktivita->odhlasZeSledováníAktivitVeStejnemCase($dorazil);
             dbInsert('akce_prihlaseni', [
                 'id_uzivatele' => $dorazil->id(),
                 'id_akce' => $this->aktivita->id(),
@@ -68,9 +68,10 @@ class AktivitaPrezence
         // TODO kontrola, jestli prezence smí být uložena (např. jestli už nebyla uložena dřív)
 
         if ($this->aktivita->dorazilJakoNahradnik($dorazil)) {
-            /* Návštěvník přidaný k aktivitě přes online prezenci se přidá jako náhradník a obratem potvrdí jeho přítomnost - přestože to aktivita sama vlastně nedovoluje. Když ho z aktivity zas ruší, tak ho ale nemůžeme zařadit do fronty jako náhradníka, protože to aktivita vlastně nedovoluje (a my to popravdě ani nechceme, když ho odškrtli při samotné online prezenci) */
-            if ($this->aktivita->prihlasovatelnaNahradnikum()) {
-                $this->aktivita->prihlasNahradnika($dorazil);
+            /* Návštěvník přidaný k aktivitě přes online prezenci se přidá jako náhradník a obratem potvrdí jeho přítomnost - přestože to aktivita sama vlastně nedovoluje. Když ho z aktivity zas ruší, tak ho ale nemůžeme zařadit do fronty jako náhradníka, protože to aktivita vlastně nedovoluje (a my to popravdě ani nechceme, když ho odškrtli při samotné online prezenci).
+            PS: vlastně nechceme účastníka, kterého přidal vypravěč, "vracet" do stavu sledujícího, ale zatím to nechceme řešit. */
+            if ($this->aktivita->prihlasovatelnaProSledujici()) {
+                $this->aktivita->prihlasSledujiciho($dorazil);
             }
             dbDelete('akce_prihlaseni', [
                 'id_uzivatele' => $dorazil->id(),
