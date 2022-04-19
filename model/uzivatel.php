@@ -40,7 +40,7 @@ SQL
         return static::zIds($ids);
     }
 
-    protected $aktivityJakoNahradnik; // pole s klíči id aktvit, kde je jako náhradník
+    protected $aktivityJakoSledujici; // pole s klíči id aktvit, kde je jako sledující
     protected $u = [];
     protected $klic = '';
     protected $idZidli;         // pole s klíči id židlí uživatele
@@ -740,17 +740,17 @@ SQL
     }
 
     /**
-     * @return bool true, pokud je uživatel přihlášen jako náhradník na aktivitu (ve watchlistu).
+     * @return bool true, pokud je uživatel přihlášen jako sledující aktivity (ve watchlistu).
      */
-    public function prihlasenJakoNahradnikNa(Aktivita $a) {
-        if (!isset($this->aktivityJakoNahradnik)) {
-            $this->aktivityJakoNahradnik = dbOneIndex("
+    public function prihlasenJakoSledujiciAktivity(Aktivita $a) {
+        if (!isset($this->aktivityJakoSledujici)) {
+            $this->aktivityJakoSledujici = dbOneIndex("
         SELECT id_akce
         FROM akce_prihlaseni_spec
         WHERE id_uzivatele = $0 AND id_stavu_prihlaseni = $1
       ", [$this->id(), Aktivita::SLEDUJICI]);
         }
-        return isset($this->aktivityJakoNahradnik[$a->id()]);
+        return isset($this->aktivityJakoSledujici[$a->id()]);
     }
 
     /**
