@@ -29,8 +29,8 @@ foreach ($typy as $i => $typ) {
 
 // sponzoři a partneři
 $obrazky = array_merge(
-    glob('soubory/systemove/sponzori/*'),
-    glob('soubory/systemove/partneri/*'),
+    glob(ADRESAR_WEBU_S_OBRAZKY . '/soubory/systemove/sponzori/*'),
+    glob(ADRESAR_WEBU_S_OBRAZKY . '/soubory/systemove/partneri/*'),
 );
 foreach ($obrazky as $obrazek) {
     $info = pathinfo($obrazek);
