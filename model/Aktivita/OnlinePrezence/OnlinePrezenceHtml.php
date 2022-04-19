@@ -103,6 +103,7 @@ class OnlinePrezenceHtml
             }
 
             $template->assign('nadpis', implode(' – ', array_filter([$aktivita->nazev(), $aktivita->orgJmena(), $aktivita->lokace()])));
+            $template->assign('minutNaPosledniChvili', $this->naPosledniChviliXMinutPredZacatkem);
             $template->parse('onlinePrezence.aktivity.aktivita.form');
 
             $template->parse('onlinePrezence.aktivity.aktivita');
