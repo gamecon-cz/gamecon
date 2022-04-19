@@ -21,7 +21,7 @@ chdir(__DIR__ . '/../');
 // testování větve před pushem a čistoty repa, aby se na FTP nedostalo smetí
 exec('git rev-parse --abbrev-ref HEAD', $out);
 $vetev = $out[0];
-if (!in_array($vetev, ['master', 'beta', 'blackarrow'], true)) {
+if (!in_array($vetev, ['master', 'beta', 'blackarrow', 'jakublounek'], true)) {
     echo "You're not on automatically deployed branch, deployment skipped\n";
     exit(0);
 }
@@ -42,7 +42,7 @@ if ($vetev === 'master') {
         'ciloveFtp' => $nastaveni['ostra']['ftp'],
         'urlMigrace' => $nastaveni['ostra']['urlMigrace'],
         'hesloMigrace' => $nastaveni['ostra']['hesloMigrace'],
-        'souborNastaveni' => 'nastaveni-produkce.php',
+        'souborNastaveni' => basename(__DIR__ . '/../nastaveni/nastaveni-produkce.php'),
     ]);
 } elseif ($vetev === 'beta') {
     nasad([
@@ -51,7 +51,7 @@ if ($vetev === 'master') {
         'ciloveFtp' => $nastaveni['beta']['ftp'],
         'urlMigrace' => $nastaveni['beta']['urlMigrace'],
         'hesloMigrace' => $nastaveni['beta']['hesloMigrace'],
-        'souborNastaveni' => 'nastaveni-beta.php',
+        'souborNastaveni' => basename(__DIR__ . '/../nastaveni/nastaveni-beta.php'),
     ]);
 } elseif ($vetev === 'blackarrow') {
     nasad([
@@ -61,7 +61,17 @@ if ($vetev === 'master') {
         'urlMigrace' => $nastaveni['blackarrow']['urlMigrace'],
         'hesloMigrace' => $nastaveni['blackarrow']['hesloMigrace'],
         'log' => $nastaveni['blackarrow']['log'],
-        'souborNastaveni' => 'nastaveni-blackarrow.php',
+        'souborNastaveni' => basename(__DIR__ . '/../nastaveni/nastaveni-blackarrow.php'),
+    ]);
+} elseif ($vetev === 'jakublounek') {
+    nasad([
+        'vetev' => $vetev,
+        'zdrojovaSlozka' => __DIR__ . '/..',
+        'ciloveFtp' => $nastaveni['jakublounek']['ftp'],
+        'urlMigrace' => $nastaveni['jakublounek']['urlMigrace'],
+        'hesloMigrace' => $nastaveni['jakublounek']['hesloMigrace'],
+        'log' => $nastaveni['jakublounek']['log'],
+        'souborNastaveni' => basename(__DIR__ . '/../nastaveni/nastaveni-jakublounek.php'),
     ]);
 } else {
     echo "error: unexpected branch '$vetev'\n";
