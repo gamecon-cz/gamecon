@@ -105,8 +105,17 @@
           <input type="hidden" name="prezenceAktivity" value="{idAktivity}"/>
           <table class="zvyraznovana" style="width: 100%" id="ucastniciAktivity{idAktivity}">
             <tr class="col-md col-sm-6 no-gutters">
-              <th style="text-align: center"><i class="fas fa-check-circle"></i></th>
-              <th style="text-align: center"><i class="fas fa-running"></i></th>
+              <th style="text-align: center">
+                <span class="hinted" data-bs-toggle="tooltip" data-bs-placement="top" title="Je vůbec na Gameconu?">
+                  <i class="fas fa-check-circle"></i>
+                </span>
+              </th>
+              <th style="text-align: center">
+                <span class="hinted" data-bs-toggle="tooltip" data-bs-placement="top"
+                      title="Přihlásil se před chvílí (do {minutNaPosledniChvili} minut před začátkem aktivity) a je nejspíš na cestě">
+                  <i class="fas fa-running"></i>
+                </span>
+              </th>
               <th>Jméno</th>
               <th>Telefon</th>
               <th style="text-align: center">
