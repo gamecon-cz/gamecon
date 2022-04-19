@@ -80,8 +80,7 @@ class OnlinePrezenceAjax
         $ucastnik = \Uzivatel::zId($idUzivatele);
         $aktivita = Aktivita::zId($idAktivity);
         if (!$ucastnik || !$aktivita || $dorazil === null) {
-            header("HTTP/1.1 400 Bad Request");
-            $this->echoJson(['errors' => ['Chybné ID účastníka nebo aktivity nebo chybejici priznak zda dorazil']]);
+            $this->echoErrorJson('Chybné ID účastníka nebo aktivity nebo chybejici priznak zda dorazil');
             return;
         }
         if ($dorazil) {
