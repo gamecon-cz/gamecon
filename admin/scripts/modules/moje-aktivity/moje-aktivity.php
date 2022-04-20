@@ -31,7 +31,7 @@ $onlinePrezenceHtml = new OnlinePrezenceHtml(
 );
 $onlinePrezenceAjax = new OnlinePrezenceAjax($onlinePrezenceHtml);
 
-if ($onlinePrezenceAjax->odbavAjax()) {
+if ($onlinePrezenceAjax->odbavAjax($u)) {
     return;
 }
 
@@ -58,6 +58,7 @@ if ($testovani) {
 }
 
 echo $onlinePrezenceHtml->dejHtmlOnlinePrezence(
+    $u,
     $organizovaneAktivity,
     (int)MOJE_AKTIVITY_EDITOVATELNE_X_MINUT_PRED_JEJICH_ZACATKEM,
     $now,
