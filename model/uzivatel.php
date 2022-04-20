@@ -439,6 +439,10 @@ SQL
         return $this->maPravo(\Gamecon\Pravo::PORADANI_AKTIVIT);
     }
 
+    public function maPravoNaZmenuHistorieAktivit(): bool {
+        return $this->maPravo(\Gamecon\Pravo::ZMENA_HISTORIE_AKTIVIT);
+    }
+
     public function jePartner(): bool {
         return $this->maZidli(\Gamecon\Zidle::PARTNER);
     }

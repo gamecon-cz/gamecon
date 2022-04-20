@@ -39,7 +39,7 @@ if (!$zacatek) {
 }
 
 foreach ($aktivity as $aktivita) {
-    $vyplnena = $aktivita->vyplnenaPrezence();
+    $vyplnena = $aktivita->nekdoUzDorazil();
     $zamcena = $aktivita->zamcena();
     $t->assign('a', $aktivita);
     foreach ($aktivita->prihlaseni() as $prihlasenyUzivatel) {
