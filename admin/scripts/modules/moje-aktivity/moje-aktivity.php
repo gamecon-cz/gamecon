@@ -46,9 +46,18 @@ if ($testovani) {
     );
     $organizovaneAktivity = $onlinePrezenceTestovaciAktivity->dejTestovaciAktivity();
     $onlinePrezenceTestovaciAktivity->upravZacatkyAktivitNaParSekundPredEditovatelnosti($organizovaneAktivity, $now, 20);
+    $onlinePrezenceTestovaciAktivity->upravKonceAktivitNa($organizovaneAktivity, (clone $now)->modify('+1 hour'));
     if (count($organizovaneAktivity) > 2) {
+        $prvniDveAktivity = array_slice($organizovaneAktivity, 0, 2);
         // aby první dvě aktivity začínaly teď a neměli proto odpočet
-        $onlinePrezenceTestovaciAktivity->upravZacatkyPrvnichAktivitNa($organizovaneAktivity, 2, $now);
+        $onlinePrezenceTestovaciAktivity->upravZacatkyAktivitNa($prvniDveAktivity, $now);
+        // aby už skončily a zobrazilo se tak u nich varování
+        $onlinePrezenceTestovaciAktivity->upravKonceAktivitNa($prvniDveAktivity, $now);
+    }
+    if (count($organizovaneAktivity) > 3) {
+        // aby jedna aktivita po chvíli skončila a zobrazila tak varování
+        $aktivitaSRychlymKoncem = $organizovaneAktivity[2];
+        $onlinePrezenceTestovaciAktivity->upravKonceAktivitNaSekundyPoOdemceni($aktivitaSRychlymKoncem, 5);
     }
 } else {
     $organizovaneAktivity = Aktivita::zFiltru(
