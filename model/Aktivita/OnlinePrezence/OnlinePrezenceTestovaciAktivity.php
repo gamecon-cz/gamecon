@@ -55,33 +55,24 @@ class OnlinePrezenceTestovaciAktivity
     public function upravZacatkyAktivitNaParSekundPredEditovatelnosti(
         array              $aktivity,
         \DateTimeInterface $now,
-        int $rozptylSekund = 10
+        int                $rozptylSekund = 10
     ) {
-        array_walk($aktivity, static function (Aktivita $aktivita) use ($now, $rozptylSekund) {
-            $aReflection = (new \ReflectionClass(Aktivita::class))->getProperty('a');
-            $aReflection->setAccessible(true);
-            $aValue = $aReflection->getValue($aktivita);
+        array_walk($aktivity, function (Aktivita $aktivita) use ($now, $rozptylSekund) {
             $sekundyPredZacatkemKdyUzJeEditovatelna = MOJE_AKTIVITY_EDITOVATELNE_X_MINUT_PRED_JEJICH_ZACATKEM * 60;
             $sekundyKousekPredTimNezJeEditovatelna = $sekundyPredZacatkemKdyUzJeEditovatelna + random_int(0, $rozptylSekund);
-            /** @var \DateTimeInterface $zacatek */
-            $zacatek = (clone $now)
-                ->modify("+ $sekundyKousekPredTimNezJeEditovatelna seconds");
-            $aValue['zacatek'] = $zacatek->format(\DateTimeInterface::ATOM);
-            $aReflection->setValue($aktivita, $aValue);
+            $this->upravZacatkyAktivitNa([$aktivita], (clone $now)->modify("+ $sekundyKousekPredTimNezJeEditovatelna seconds"));
         });
     }
 
     /**
-     * @param Aktivita[] $aktivity
+     * @param Aktivita[] $aktivityKeZmene
      * @param \DateTimeInterface $novyZacatekAktivit
      * @throws \ReflectionException
      */
-    public function upravZacatkyPrvnichAktivitNa(
-        array              $aktivity,
-        int                $pocetAktivitKuUprave,
+    public function upravZacatkyAktivitNa(
+        array              $aktivityKeZmene,
         \DateTimeInterface $novyZacatekAktivit
     ) {
-        $aktivityKeZmene = array_slice($aktivity, 0, $pocetAktivitKuUprave);
         array_walk($aktivityKeZmene, static function (Aktivita $aktivita) use ($novyZacatekAktivit) {
             $aReflection = (new \ReflectionClass(Aktivita::class))->getProperty('a');
             $aReflection->setAccessible(true);
@@ -90,5 +81,34 @@ class OnlinePrezenceTestovaciAktivity
             $aValue['zacatek'] = $novyZacatekAktivit->format(\DateTimeInterface::ATOM);
             $aReflection->setValue($aktivita, $aValue);
         });
+    }
+
+    /**
+     * @param Aktivita[] $aktivityKeZmene
+     * @param \DateTimeInterface $novyKonecAktivit
+     * @throws \ReflectionException
+     */
+    public function upravKonceAktivitNa(
+        array              $aktivityKeZmene,
+        \DateTimeInterface $novyKonecAktivit
+    ) {
+        array_walk($aktivityKeZmene, static function (Aktivita $aktivita) use ($novyKonecAktivit) {
+            $aReflection = (new \ReflectionClass(Aktivita::class))->getProperty('a');
+            $aReflection->setAccessible(true);
+            $aValue = $aReflection->getValue($aktivita);
+            /** @var \DateTimeInterface $zacatek */
+            $aValue['konec'] = $novyKonecAktivit->format(\DateTimeInterface::ATOM);
+            $aReflection->setValue($aktivita, $aValue);
+        });
+    }
+
+    public function upravKonceAktivitNaSekundyPoOdemceni(Aktivita $aktivita, int $sekundPoOdemceni) {
+        $this->upravKonceAktivitNa(
+            [$aktivita],
+            (clone $aktivita->zacatek())
+                ->modify('-' . MOJE_AKTIVITY_EDITOVATELNE_X_MINUT_PRED_JEJICH_ZACATKEM . ' minutes')
+                ->modify("+$sekundPoOdemceni seconds")
+        );
+
     }
 }
