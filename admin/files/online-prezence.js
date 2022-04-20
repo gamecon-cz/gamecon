@@ -137,7 +137,21 @@ function uzavritAktivitu(idAktivity, skrytElement, zobrazitElement) {
     {akce: 'uzavrit', id: idAktivity, ajax: true},
   ).done(function (data) {
     prohoditZobrazeni(skrytElement, zobrazitElement)
+    if (data.maPravoNaZmenuHistorieAktivit) {
+      zobrazitVarovaniZeAktivitaUzJeVyplena(idAktivity)
+    } else {
+      zablokovatInputyAktivity(idAktivity)
+    }
   })
+}
+
+function zablokovatInputyAktivity(idAktivity) {
+  const aktivitaNode = $(`#aktivita-${idAktivity}`)
+  aktivitaNode.find('input').prop('disabled', true)
+}
+
+function zobrazitVarovaniZeAktivitaUzJeVyplena(idAktivity) {
+  $(`#pozor-vyplnena-${idAktivity}`).show()
 }
 
 function prohoditZobrazeni(skrytElement, zobrazitElement) {
