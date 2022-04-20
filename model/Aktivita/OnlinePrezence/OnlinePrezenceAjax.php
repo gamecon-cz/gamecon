@@ -16,12 +16,15 @@ class OnlinePrezenceAjax
         $this->onlinePrezenceHtml = $onlinePrezenceHtml;
     }
 
-    public function odbavAjax() {
+    public function odbavAjax(\Uzivatel $editujici) {
         if (!post('ajax') && !get('ajax')) {
             return false;
         }
         if (post('akce') === 'uzavrit') {
-            $this->ajaxUzavritAktivitu((int)post('id'));
+            $this->ajaxUzavritAktivitu(
+                (int)post('id'),
+                ['maPravoNaZmenuHistorieAktivit' => $editujici->maPravoNaZmenuHistorieAktivit()]
+            );
             return true;
         }
 
@@ -53,7 +56,7 @@ class OnlinePrezenceAjax
         return true;
     }
 
-    private function ajaxUzavritAktivitu(int $idAktivity) {
+    private function ajaxUzavritAktivitu(int $idAktivity, array $dataPriUspechu) {
         $aktivita = Aktivita::zId($idAktivity);
         if (!$aktivita) {
             $this->echoErrorJson('Chybné ID aktivity ' . $idAktivity);
@@ -63,7 +66,12 @@ class OnlinePrezenceAjax
         $aktivita->zamci();
         $aktivita->refresh();
 
-        $this->echoJson(['zamcena' => $aktivita->zamcena()]);
+        $this->echoJson(
+            array_merge(
+                ['zamcena' => $aktivita->zamcena()],
+                $dataPriUspechu
+            )
+        );
     }
 
     private function echoErrorJson(string $error): void {

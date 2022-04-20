@@ -17,7 +17,7 @@ $onlinePrezenceHtml = new OnlinePrezenceHtml(
 );
 $onlinePrezenceAjax = new OnlinePrezenceAjax($onlinePrezenceHtml);
 
-if ($onlinePrezenceAjax->odbavAjax()) {
+if ($onlinePrezenceAjax->odbavAjax($u)) {
     return;
 }
 
@@ -31,4 +31,4 @@ $aktivity = $zacatek
     ? Aktivita::zRozmezi($zacatek, $zacatek)
     : [];
 
-echo $onlinePrezenceHtml->dejHtmlOnlinePrezence($aktivity);
+echo $onlinePrezenceHtml->dejHtmlOnlinePrezence($u, $aktivity);
