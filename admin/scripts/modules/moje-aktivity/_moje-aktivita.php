@@ -33,8 +33,8 @@ $onlinePrezenceHtml = new OnlinePrezenceHtml(
 );
 $onlinePrezenceAjax = new OnlinePrezenceAjax($onlinePrezenceHtml);
 
-if ($onlinePrezenceAjax->odbavAjax()) {
+if ($onlinePrezenceAjax->odbavAjax($u)) {
     return;
 }
 
-echo $onlinePrezenceHtml->dejHtmlOnlinePrezence([$aktivita]);
+echo $onlinePrezenceHtml->dejHtmlOnlinePrezence($u, [$aktivita]);
