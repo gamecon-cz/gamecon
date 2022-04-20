@@ -84,10 +84,13 @@ class OnlinePrezenceHtml
             $template->assign('displayNoneCssClassUzavrena', $this->dejCssClassNeviditelnosti($zamcena));
             // Spustit a zamkout 🔒
             $template->assign('displayNoneCssClassUzavrit', $this->dejCssClassNeviditelnosti(!$zamcena && $editovatelnaHned));
-            $template->assign('uzavrena', $zamcena);
             // ⏳ Můžeš ji editovat za ⏳
             $template->assign('editovatelnaOdTimestamp', $editovatelnaOdTimestamp);
             $template->assign('displayNoneCssClassCeka', $this->dejCssClassNeviditelnosti(!$zamcena && !$editovatelnaHned));
+
+            $konec = $aktivita->konec();
+            $template->assign('konecAktivityVTimestamp', $konec ? $konec->getTimestamp() : null);
+            $template->assign('displayNoneCssClassAktivitaSkoncila', $this->dejCssClassNeviditelnosti($konec && $konec <= $now));
 
             foreach ($aktivita->prihlaseni() as $prihlasenyUzivatel) {
                 $ucastnikHtml = $this->sestavHmlUcastnikaAktivity(
@@ -109,7 +112,6 @@ class OnlinePrezenceHtml
             $muzePridatUcastnika = $editovatelnaHned && (!$zamcena || $nikdoZatimNedorazil || $maPravoNaZmenuHistorie);
             $template->assign('disabledPridatUcastnika', $muzePridatUcastnika ? '' : 'disabled');
             $template->assign('idAktivity', $aktivita->id());
-            $template->assign('editovatelnaOd', $editovatelnaOdTimestamp);
             $template->parse('onlinePrezence.aktivity.aktivita.form.pridatUcastnika');
 
             $template->assign('nadpis', implode(' – ', array_filter([$aktivita->nazev(), $aktivita->orgJmena(), $aktivita->lokace()])));
@@ -121,11 +123,10 @@ class OnlinePrezenceHtml
         $template->parse('onlinePrezence.aktivity');
     }
 
-    private static function dejEditovatelnaOdTimestamp(Aktivita $aktivita, int $editovatelnaXMinutPredZacatkem, ?\DateTimeInterface $now): int {
-        $now = $now ?? new \DateTimeImmutable();
+    private static function dejEditovatelnaOdTimestamp(Aktivita $aktivita, int $editovatelnaXMinutPredZacatkem, \DateTimeInterface $now): int {
         $zacatek = $aktivita->zacatek();
-        $hnedEditovatelnaSeZaCatkemDo = $zacatek ?
-            (clone $zacatek)->modify("-{$editovatelnaXMinutPredZacatkem} minutes")
+        $hnedEditovatelnaSeZaCatkemDo = $zacatek
+            ? (clone $zacatek)->modify("-{$editovatelnaXMinutPredZacatkem} minutes")
             : null;
         $editovatelnaHned = !$hnedEditovatelnaSeZaCatkemDo || $hnedEditovatelnaSeZaCatkemDo <= $now;
         $editovatelnaOdTimestamp = $editovatelnaHned
