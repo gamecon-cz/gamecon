@@ -69,8 +69,7 @@
               <em>⏳ Můžeš ji editovat za <span id="odpocet-{idAktivity}" class="odpocet"
                                                data-editovatelna-od="{editovatelnaOdTimestamp}"></span> ⏳</em>
             </span>
-            <span style="white-space: nowrap" id="uzavrena-{idAktivity}"
-                  class="text-uzavrena {displayNoneCssClassUzavrena}" data-uzavrena="{uzavrena}">
+            <span style="white-space: nowrap" id="uzavrena-{idAktivity}" class="{displayNoneCssClassUzavrena}">
               <em>🔒 Uzavřena pro online přihlašování 🔒</em>
             </span>
             <button class="btn btn-outline-danger tlacitko-uzavrit-aktivitu {displayNoneCssClassUzavrit}"
@@ -93,7 +92,17 @@
               }
             </script>
           </span>
-          <span class="col"></span>
+
+          <span class="col-xl col-md col-sm text-sm-center text-md-start align-self-center">
+            <span style="white-space: nowrap; padding: 5px"
+                  id="skoncila-{idAktivity}"
+                  class="alert-info text-skoncila {displayNoneCssClassAktivitaSkoncila} skryt-pokud-aktivitu-nelze-editovat-{idAktivity}"
+                  data-konec-aktivity-v="{konecAktivityVTimestamp}">
+              ✋ <em>Aktivita už skončila, úpravy si dobře rozmysli</em> <span
+                style="transform: scale(-1, 1); display: inline-block">✋</span>
+            </span>
+          </span>
+
           <span class="col-xl-2 col-md-4 col-sm-12">
             <a style="width: 100%" href="{urlZpet}" class="btn btn-warning">↶ Zpět</a>
           </span>
