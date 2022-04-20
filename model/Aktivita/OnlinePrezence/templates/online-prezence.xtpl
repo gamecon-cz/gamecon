@@ -143,6 +143,13 @@
             >
             <span class="col-md-4" id="omniboxNicNenalezeno{idAktivity}" style="display: none"><em>Nic...</em> 🤷</span>
             <span class="col-md-4" id="omniboxHledam{idAktivity}" style="display: none"><em>Hledám...</em> ⏳</span>
+            <span class="col-md-4 {displayNoneCssClassPozorVyplnena}" id="pozor-vyplnena-{idAktivity}"
+                  style="white-space: nowrap">
+                  <span class="hinted" data-bs-toggle="tooltip" data-bs-placement="top"
+                        title="Přídání účastníka zvýší jeho dluh. Zkontroluj jeho finance.">
+                    <em style="vertical-align: sub">⚠️Pozor, aktivita už je vyplněná! ⚠️</em>
+                  </span>
+            </span>
           </div>
           <!-- end:pridatUcastnika -->
 

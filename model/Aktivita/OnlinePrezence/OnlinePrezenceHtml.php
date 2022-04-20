@@ -3,6 +3,7 @@
 namespace Gamecon\Aktivita\OnlinePrezence;
 
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Pravo;
 
 class OnlinePrezenceHtml
 {
@@ -22,6 +23,7 @@ class OnlinePrezenceHtml
     }
 
     public function dejHtmlOnlinePrezence(
+        \Uzivatel          $editujici,
         array              $aktivity,
         int                $editovatelnaXMinutPredZacatkem = 20,
         \DateTimeInterface $now = null,
@@ -41,7 +43,7 @@ class OnlinePrezenceHtml
             $template->parse('onlinePrezence.zadnaAktivita');
         } else {
             $template->assign('omniboxUrl', $ajaxUrl ?? getCurrentUrlPath());
-            $this->sestavHtmlOnlinePrezence($template, $aktivity, $editovatelnaXMinutPredZacatkem, $now);
+            $this->sestavHtmlOnlinePrezence($template, $editujici, $aktivity, $editovatelnaXMinutPredZacatkem, $now);
         }
 
         $template->parse('onlinePrezence');
@@ -64,6 +66,7 @@ class OnlinePrezenceHtml
      */
     private function sestavHtmlOnlinePrezence(
         \XTemplate          $template,
+        \Uzivatel           $editujici,
         array               $aktivity,
         int                 $editovatelnaXMinutPredZacatkem,
         ?\DateTimeInterface $now
@@ -72,6 +75,8 @@ class OnlinePrezenceHtml
 
         foreach ($aktivity as $aktivita) {
             $editovatelnaOdTimestamp = self::dejEditovatelnaOdTimestamp($aktivita, $editovatelnaXMinutPredZacatkem, $now);
+            $nekdoUzDorazil = $aktivita->nekdoUzDorazil();
+            $nikdoZatimNedorazil = !$nekdoUzDorazil;
             $editovatelnaHned = !$editovatelnaOdTimestamp;
             $zamcena = $aktivita->zamcena();
 
@@ -95,12 +100,17 @@ class OnlinePrezenceHtml
                 $template->parse('onlinePrezence.aktivity.aktivita.form.ucastnik');
             }
 
-            if (!$zamcena) {
-                $template->assign('disabledPridatUcastnika', $editovatelnaHned ? '' : 'disabled');
-                $template->assign('idAktivity', $aktivita->id());
-                $template->assign('editovatelnaOd', $editovatelnaOdTimestamp);
-                $template->parse('onlinePrezence.aktivity.aktivita.form.pridatUcastnika');
-            }
+            $maPravoNaZmenuHistorie = $editujici->maPravo(Pravo::ZMENA_HISTORIE_AKTIVIT);
+            // ⚠️Pozor, aktivita už je vyplněná! ⚠
+            $template->assign(
+                'displayNoneCssClassPozorVyplnena',
+                $this->dejCssClassNeviditelnosti($zamcena && $nekdoUzDorazil && $maPravoNaZmenuHistorie)
+            );
+            $muzePridatUcastnika = $editovatelnaHned && (!$zamcena || $nikdoZatimNedorazil || $maPravoNaZmenuHistorie);
+            $template->assign('disabledPridatUcastnika', $muzePridatUcastnika ? '' : 'disabled');
+            $template->assign('idAktivity', $aktivita->id());
+            $template->assign('editovatelnaOd', $editovatelnaOdTimestamp);
+            $template->parse('onlinePrezence.aktivity.aktivita.form.pridatUcastnika');
 
             $template->assign('nadpis', implode(' – ', array_filter([$aktivita->nazev(), $aktivita->orgJmena(), $aktivita->lokace()])));
             $template->assign('minutNaPosledniChvili', $this->naPosledniChviliXMinutPredZacatkem);
