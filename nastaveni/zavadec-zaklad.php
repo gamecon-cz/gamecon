@@ -63,7 +63,9 @@ if (defined('URL_WEBU') && URL_WEBU) {
     session_set_cookie_params([
         'lifetime' => 0,
         'path' => '/',
-        'domain' => ".$domain",
+        'domain' => $domain !== 'localhost'
+            ? ".$domain"
+            : $domain, // Chrome-based browsers consider .localhost cookie domain as invalid (as localhost can not have subdomains)
         'secure' => $secure,
         'httponly' => true,
         'samesite' => 'lax',
