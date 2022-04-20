@@ -25,6 +25,7 @@ function nasad(array $nastaveni) {
       /.git
       /.github
       /.idea
+      /.vscode
       /.phpunit.result.cache
 
       /cache/private/*
