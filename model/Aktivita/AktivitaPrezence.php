@@ -19,6 +19,8 @@ class AktivitaPrezence
 
     /** @var Aktivita */
     private $aktivita;
+    /** @var void|\Uzivatel[] */
+    private $seznamSledujicich;
 
     public function __construct(Aktivita $aktivita) {
         $this->aktivita = $aktivita;
@@ -184,5 +186,23 @@ SQL,
             return null;
         }
         return new \DateTimeImmutable($posledniAkce['kdy']);
+    }
+
+    /**
+     * Vrátí pole uživatelů, kteří jsou sledujícími na aktivitě
+     * @return \Uzivatel[]
+     */
+    public function seznamSledujicich(): array {
+        if (!isset($this->seznamSledujicich)) {
+            $this->seznamSledujicich = \Uzivatel::zIds(
+                dbOneCol('
+                    SELECT GROUP_CONCAT(aps.id_uzivatele)
+                    FROM akce_seznam a
+                    LEFT JOIN akce_prihlaseni_spec aps ON aps.id_akce = a.id_akce
+                    WHERE aps.id_akce = ' . $this->id() . ' AND aps.id_stavu_prihlaseni = ' . self::SLEDUJICI
+                )
+            );
+        }
+        return $this->seznamSledujicich;
     }
 }
