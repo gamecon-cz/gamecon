@@ -25,7 +25,7 @@ class Aktivita
         $stav,
         $nova,      // jestli jde o nově uloženou aktivitu nebo načtenou z DB
         $organizatori,
-        $nahradnici,
+        $sledujici,
         $typ;
     /** @var null|AktivitaPrezence */
     private $prezence;
@@ -851,20 +851,11 @@ class Aktivita
     }
 
     /**
-     * Vrátí pole uživatelů, kteří jsou náhradníky na aktivitě .
+     * Vrátí pole uživatelů, kteří jsou sledujícími na aktivitě .
+     * @return \Uzivatel[]
      */
-    public function nahradnici() {
-        if (!isset($this->nahradnici)) {
-            $this->nahradnici = \Uzivatel::zIds(
-                dbOneCol('
-                    SELECT GROUP_CONCAT(aps.id_uzivatele)
-                    FROM akce_seznam a
-                    LEFT JOIN akce_prihlaseni_spec aps ON aps.id_akce = a.id_akce
-                    WHERE aps.id_akce = ' . $this->id() . ' AND aps.id_stavu_prihlaseni = ' . self::SLEDUJICI
-                )
-            );
-        }
-        return $this->nahradnici;
+    public function seznamSledujicich(): array {
+        return $this->dejPrezenci()->seznamSledujicich();
     }
 
     public function nazev(): string {
@@ -1795,7 +1786,7 @@ SQL
     /** Aktualizuje stav aktivity podle databáze */
     public function refresh() {
         $this->a = self::zId($this->id())->a;
-        $this->nahradnici = null;
+        $this->prezence = null;
     }
 
     /** Vrátí aktivity, u kterých je tato aktivita jako jedno z dětí */
@@ -2230,10 +2221,14 @@ SQL
     }
 
     /**
+     * Pozor! Toto neplatí pro online prezenci, kde se ručně přidaní účastníci rovnou označují jako "Dorazil náhradník" a proto
+     * se ihned do tabulky akce_prihlaseni přidá záznam se stavem DORAZIL_JAKO_NAHRADNIK
+     * Pro online prezenci to znamená jen "někdo už dorazil".
+     *
      * Má aktivita vyplněnou prezenci?
      * (aktivity s 0 lidmi jsou považovány za nevyplněné vždycky)
      */
-    public function vyplnenaPrezence() {
+    public function nekdoUzDorazil() {
         return self::PRIHLASEN < dbOneCol('SELECT MAX(id_stavu_prihlaseni) FROM akce_prihlaseni WHERE id_akce = ' . $this->id());
     }
 
