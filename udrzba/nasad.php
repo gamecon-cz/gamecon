@@ -21,7 +21,7 @@ chdir(__DIR__ . '/../');
 // testování větve před pushem a čistoty repa, aby se na FTP nedostalo smetí
 exec('git rev-parse --abbrev-ref HEAD', $out);
 $vetev = $out[0];
-if (!in_array($vetev, ['master', 'beta', 'blackarrow', 'jakublounek'], true)) {
+if (!in_array($vetev, ['master', 'beta', 'blackarrow', 'jakublounek', 'misahojna'], true)) {
     echo "You're not on automatically deployed branch, deployment skipped\n";
     exit(0);
 }
@@ -72,6 +72,16 @@ if ($vetev === 'master') {
         'hesloMigrace' => $nastaveni['jakublounek']['hesloMigrace'],
         'log' => $nastaveni['jakublounek']['log'],
         'souborNastaveni' => basename(__DIR__ . '/../nastaveni/nastaveni-jakublounek.php'),
+    ]);
+} elseif ($vetev === 'misahojna') {
+    nasad([
+        'vetev' => $vetev,
+        'zdrojovaSlozka' => __DIR__ . '/..',
+        'ciloveFtp' => $nastaveni['misahojna']['ftp'],
+        'urlMigrace' => $nastaveni['misahojna']['urlMigrace'],
+        'hesloMigrace' => $nastaveni['misahojna']['hesloMigrace'],
+        'log' => $nastaveni['misahojna']['log'],
+        'souborNastaveni' => basename(__DIR__ . '/../nastaveni/nastaveni-misahojna.php'),
     ]);
 } else {
     echo "error: unexpected branch '$vetev'\n";
