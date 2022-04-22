@@ -64,11 +64,15 @@ class OnlinePrezenceAjax
         }
         $aktivita->ulozPrezenci($aktivita->prihlaseni());
         $aktivita->zamci();
+        $aktivita->uzavri();
         $aktivita->refresh();
 
         $this->echoJson(
             array_merge(
-                ['zamcena' => $aktivita->zamcena()],
+                [
+                    'zamcena' => $aktivita->zamcena(),
+                    'uzavrena' => $aktivita->uzavrena(),
+                ],
                 $dataPriUspechu
             )
         );
