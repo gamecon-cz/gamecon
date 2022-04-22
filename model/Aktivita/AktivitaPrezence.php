@@ -196,13 +196,22 @@ SQL,
         if (!isset($this->seznamSledujicich)) {
             $this->seznamSledujicich = \Uzivatel::zIds(
                 dbOneCol('
-                    SELECT GROUP_CONCAT(aps.id_uzivatele)
+                    SELECT GROUP_CONCAT(akce_prihlaseni_spec.id_uzivatele)
                     FROM akce_seznam a
-                    LEFT JOIN akce_prihlaseni_spec aps ON aps.id_akce = a.id_akce
-                    WHERE aps.id_akce = ' . $this->id() . ' AND aps.id_stavu_prihlaseni = ' . self::SLEDUJICI
+                    LEFT JOIN akce_prihlaseni_spec ON akce_prihlaseni_spec.id_akce = a.id_akce
+                    WHERE akce_prihlaseni_spec.id_akce = ' . $this->aktivita->id() . '
+                    AND akce_prihlaseni_spec.id_stavu_prihlaseni = ' . $this->aktivita::SLEDUJICI
                 )
             );
         }
         return $this->seznamSledujicich;
+    }
+
+    /**
+     * Je alespoń jeden účastník označen jako že dorazil, dorazil jako náhradník, nebo byl přihlášen ale nedorazil?
+     * @return bool
+     */
+    public function jePrezenceUzavrena(): bool {
+        return $this->aktivita->uzavrena();
     }
 }
