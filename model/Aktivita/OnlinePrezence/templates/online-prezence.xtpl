@@ -77,7 +77,7 @@
                     id="otevrena-{idAktivity}"
                     type="button"
                     data-bs-toggle="modal"
-                    data-bs-target="#exampleModal"
+                    data-bs-target="#modalOpravduZavrit"
                     onclick="posledneKliknutaAktivitaId={idAktivity}">
               Spustit a zamknout 🔒
             </button>
@@ -170,7 +170,7 @@
 
     </div>
 
-    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="opravduZavrit" aria-hidden="true">
+    <div class="modal fade" id="modalOpravduZavrit" tabindex="-1" aria-labelledby="opravduZavrit" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">

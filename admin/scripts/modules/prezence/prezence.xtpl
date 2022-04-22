@@ -6,6 +6,22 @@
 <div class="prezence">
 
   <div>{casy}</div>
+  <div style="margin-bottom: 1em">
+    <!-- begin:filtrAktivit -->
+    <form id="filtr-aktivit">
+      <label style="cursor:pointer">
+        Jen zamčené, ale dosud neuzavřené
+        <input type="checkbox" name="uzamcene_neuzavrene" value="1"
+               {checked}
+               onchange="document.getElementById('filtr-aktivit').submit()"
+               style="cursor:pointer;">
+        <!-- begin:ostatniFiltry -->
+        <input type="hidden" name="{name}" value="{value}">
+        <!-- end:ostatniFiltry -->
+      </label>
+    </form>
+    <!-- end:filtrAktivit -->
+  </div>
 
   <!-- begin:aktivita -->
   <div class="blokAktivita" data-id="{a.id}">
@@ -90,7 +106,8 @@
     <!-- end:vyplnena -->
 
     <!-- begin:onlinePrezence -->
-    <a href="online-prezence?cas={cas}" type="button" id="otevritOnlinePrezenci" style="padding: 0.3em" class="ui-button">
+    <a href="online-prezence?cas={cas}" type="button" id="otevritOnlinePrezenci" style="padding: 0.3em"
+       class="ui-button">
       🔒 Zamknout pro online registraci a vyplnit prezenci ✅</a>
     <!-- end:onlinePrezence -->
 
