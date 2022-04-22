@@ -61,7 +61,9 @@ class Aktivita
         DOPREDNE = 0b100000000,   // možnost přihlásit před otevřením registrací na aktivity
         // parametry kolem továrních metod
         JEN_VOLNE = 0b00000001,   // jen volné aktivity
-        VEREJNE = 0b00000010;   // jen veřejně viditelné aktivity
+        VEREJNE = 0b00000010,   // jen veřejně viditelné aktivity
+        ZAMCENE = 0b00000100,
+        NEUZAVRENE = 0b00001000;
 
     public static function dejPrazdnou(): self {
         return new static([], true);
@@ -1457,6 +1459,15 @@ SQL
         return -1;
     }
 
+    /**
+     * @return int[]
+     */
+    public function dejStavyVsechPrihlasenych(): array {
+        $prihlaseni = trim($this->prihlaseniRaw(), ',');
+        preg_match('~\d+[mw](?<stav>\d+)(,$)~', $prihlaseni, $matches);
+        return array_map('intval', $matches['stav'] ?? []);
+    }
+
     public function dorazilJakoCokoliv(\Uzivatel $uzivatel): bool {
         $stav = $this->prihlasenStav($uzivatel);
 
@@ -2285,12 +2296,25 @@ SQL
         return $this->a['stav'] == \Stav::PROBEHNUTA;
     }
 
+    /** Je aktivita už proběhlá resp. už uzavřená pro změny? */
+    public function uzavrena(): bool {
+        return (bool)$this->a['uzavrena'];
+    }
+
     /** Zamče aktivitu pro další změny (k použití před jejím začátkem) */
     public function zamci() {
         dbQuery('UPDATE akce_seznam SET stav = $1 WHERE id_akce = ' . $this->id(), [\Stav::PROBEHNUTA]);
         $this->a['stav'] = \Stav::PROBEHNUTA;
         $this->stav = \Stav::PROBEHNUTA;
         /** @see Aktivita::stav kde se změní číslo na instanci \Stav */
+    }
+
+    /** Označí aktivitu jako uzavřenou, s vyplněnou prezencí */
+    public function uzavri() {
+        if (!$this->stav()->jeProbehnuta()) {
+            throw new \LogicException("Aktivita {$this->id()} ještě není proběhnutá, nelze ji proto zavřít");
+        }
+        dbQuery('UPDATE akce_seznam SET uzavrena = 1 WHERE id_akce = ' . $this->id());
     }
 
     /**
@@ -2353,6 +2377,12 @@ SQL,
         if (!empty($filtr['jenViditelne'])) {
             $wheres[] = 'a.stav IN(' . implode(',', [\Stav::AKTIVOVANA, \Stav::PROBEHNUTA, \Stav::PUBLIKOVANA, \Stav::PRIPRAVENA]) . ') AND NOT (a.typ = ' . \Gamecon\Aktivita\TypAktivity::TECHNICKA . ' AND a.stav = ' . \Stav::PROBEHNUTA . ')';
         }
+        if (!empty($filtr['jenZamcene'])) {
+            $wheres[] = 'a.stav = ' . \Stav::PROBEHNUTA;
+        }
+        if (!empty($filtr['jenNeuzavrene'])) {
+            $wheres[] = 'NOT a.uzavrena';
+        }
         if (!empty($filtr['od'])) {
             $wheres[] = dbQv($filtr['od']) . ' <= a.zacatek';
         }
@@ -2390,7 +2420,7 @@ SQL,
         }
 
         // select
-        $aktivity = (array)self::zWhere('WHERE ' . $where, null, $order, $limit); // přetypování nutné kvůli správné funkci unsetu
+        $aktivity = self::zWhere('WHERE ' . $where, null, $order, $limit); // přetypování nutné kvůli správné funkci unsetu
         if (!empty($filtr['jenVolne'])) {
             foreach ($aktivity as $id => $a) {
                 if ($a->volno() === 'x') {
@@ -2499,6 +2529,8 @@ SQL,
         $aktivity = self::zFiltru(
             [
                 'jenViditelne' => (bool)($flags & self::VEREJNE),
+                'jenZamcene' => (bool)($flags & self::ZAMCENE),
+                'jenNeuzavrene' => (bool)($flags & self::NEUZAVRENE),
                 'od' => $od->formatDb(),
                 'do' => $do->formatDb(),
             ],
@@ -2577,7 +2609,7 @@ SELECT t3.*,
         FROM (
             SELECT a.*, al.poradi, akce_typy.poradi AS poradi_typu
             FROM akce_seznam a
-            LEFT JOIN akce_lokace al ON (al.id_lokace = a.lokace)
+            LEFT JOIN akce_lokace al ON al.id_lokace = a.lokace
             LEFT JOIN akce_typy ON a.typ = akce_typy.id_typu
             $where
         ) AS t2
