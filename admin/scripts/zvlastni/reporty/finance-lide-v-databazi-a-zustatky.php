@@ -9,6 +9,8 @@ SELECT
   mesto_uzivatele,
   ulice_a_cp_uzivatele,
   psc_uzivatele,
+  email1_uzivatele,
+  telefon_uzivatele,
   zustatek,
   ucast.roky AS účast,
   pohyb.datum AS "poslední kladný pohyb na účtu"
