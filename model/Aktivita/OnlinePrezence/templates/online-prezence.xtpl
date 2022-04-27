@@ -26,6 +26,8 @@
 
   <script type="text/javascript" src="files/omnibox.js?version=e5cd9171d8ae5178823bdcf81f68b43d"></script>
   <script type="text/javascript" src="files/online-prezence.js?version=eaa8f611d5b7ad3e59c866efd003e495"></script>
+  <script type="text/javascript"
+          src="files/online-prezence-posledni-zname-zmeny-prihlaseni.js?version=f7994774d87ad2b8286164c776afd0d0"></script>
 </head>
 
 <body>
@@ -56,7 +58,7 @@
       let posledneKliknutaAktivitaId
     </script>
 
-    <div class="online-prezence" id="online-prezence">
+    <div class="online-prezence" id="online-prezence" data-url-posledni-zmeny-prihlaseni="{urlPosledniZmenyPrihlaseni}">
 
       <!-- begin:aktivita -->
       <div class="aktivita" id="aktivita-{idAktivity}" data-id="{idAktivity}">
@@ -148,7 +150,7 @@
                    data-id-aktivity="{idAktivity}"
                    data-omnibox-min-length="3"
                    data-omnibox='{"labelSlozenZ": ["id", "jmenoNick", "mail", "zustatek", "gcPritomen"]}'
-                   data-omnibox-url="{omniboxUrl}?omnibox=1&ajax=1&idAktivity={idAktivity}"
+                   data-omnibox-url="{omniboxUrl}"
             >
             <span class="col-md-4" id="omniboxNicNenalezeno{idAktivity}" style="display: none"><em>Nic...</em> 🤷</span>
             <span class="col-md-4" id="omniboxHledam{idAktivity}" style="display: none"><em>Hledám...</em> ⏳</span>
