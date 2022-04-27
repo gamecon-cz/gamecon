@@ -1,5 +1,7 @@
 <!-- begin:ucastnik -->
-<tr class="col-md col-sm-6 no-gutters">
+<tr class="col-md col-sm-6 no-gutters ucastnik" data-id="{u.id}"
+    data-cas-zmeny-prihlaseni="{casPosledniZmenyPrihlaseni}"
+    data-stav-prihlaseni="{stavPrihlaseni}">
   <td style="text-align: center">
     <!-- begin:pritomen -->
     <span class="hinted" data-bs-toggle="tooltip" data-bs-html="true"
