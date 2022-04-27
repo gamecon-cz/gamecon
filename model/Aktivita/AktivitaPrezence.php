@@ -2,20 +2,22 @@
 
 namespace Gamecon\Aktivita;
 
+use Gamecon\Cas\DateTimeCz;
+
 /**
  * Prezenční listina aktivity.
  */
 class AktivitaPrezence
 {
 
-    const PRIHLASENI = 'prihlaseni';
-    const ODHLASENI = 'odhlaseni';
-    const NEDOSTAVENI_SE = 'nedostaveni_se';
-    const ODHLASENI_HROMADNE = 'odhlaseni_hromadne';
-    const DORAZIL_JAKO_NAHRADNIK = 'prihlaseni_nahradnik'; // TODO zmenit enum v databázi a hodnotu téhle konstanty, aby to odpovídalo tomu, co logujeme
-    const ZRUSENI_PRIHLASENI_NAHRADNIK = 'zruseni_prihlaseni_nahradnik';
-    const PRIHLASENI_SLEDUJICI = 'prihlaseni_watchlist'; // TODO zmenit enum v databázi a hodnotu téhle konstanty, aby to odpovídalo více používanému českému názvu
-    const ODHLASENI_SLEDUJICI = 'odhlaseni_watchlist'; // TODO zmenit enum v databázi a hodnotu téhle konstanty, aby to odpovídalo více používanému českému názvu
+    public const PRIHLASENI = AktivitaPrezenceTyp::PRIHLASENI;
+    public const ODHLASENI = AktivitaPrezenceTyp::ODHLASENI;
+    public const NEDOSTAVENI_SE = AktivitaPrezenceTyp::NEDOSTAVENI_SE;
+    public const ODHLASENI_HROMADNE = AktivitaPrezenceTyp::ODHLASENI_HROMADNE;
+    public const DORAZIL_JAKO_NAHRADNIK = AktivitaPrezenceTyp::DORAZIL_JAKO_NAHRADNIK;
+    public const ZRUSENI_PRIHLASENI_NAHRADNIK = AktivitaPrezenceTyp::ZRUSENI_PRIHLASENI_NAHRADNIK;
+    public const PRIHLASENI_SLEDUJICI = AktivitaPrezenceTyp::PRIHLASENI_SLEDUJICI;
+    public const ODHLASENI_SLEDUJICI = AktivitaPrezenceTyp::ODHLASENI_SLEDUJICI;
 
     /** @var Aktivita */
     private $aktivita;
@@ -169,23 +171,45 @@ class AktivitaPrezence
     }
 
     public function prihlasenOd(\Uzivatel $uzivatel): ?\DateTimeImmutable {
-        $akceACasy = dbFetchAll(<<<SQL
-SELECT MAX(cas) AS kdy, typ
-FROM akce_prihlaseni_log
-WHERE id_akce = $1 AND id_uzivatele = $2
-GROUP BY typ
-ORDER BY kdy DESC
+        $posledniAkce = $this->posledniTypPrihlaseniACasZmeny($uzivatel);
+        if ($posledniAkce['typ'] !== AktivitaPrezenceTyp::PRIHLASENI) {
+            return null;
+        }
+        return new \DateTimeImmutable($posledniAkce['cas']);
+    }
+
+    /**
+     * @param \Uzivatel $uzivatel
+     * @return string[]|null[]
+     * @throws \Exception
+     */
+    public function posledniTypPrihlaseniACasZmeny(\Uzivatel $uzivatel): array {
+        $kdyATyp = dbOneLine(<<<SQL
+SELECT nejnovejsi.kdy, akce_prihlaseni_log.typ
+FROM (
+    SELECT MAX(cas) AS kdy, id_akce, id_uzivatele
+    FROM akce_prihlaseni_log
+    WHERE id_akce = $1 AND id_uzivatele = $2
+    GROUP BY id_akce, id_uzivatele
+) AS nejnovejsi
+INNER JOIN akce_prihlaseni_log
+    ON nejnovejsi.id_uzivatele = akce_prihlaseni_log.id_uzivatele
+    AND nejnovejsi.id_akce = akce_prihlaseni_log.id_akce
+    AND nejnovejsi.kdy = akce_prihlaseni_log.cas
+GROUP BY akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_uzivatele
 SQL,
             [$this->aktivita->id(), $uzivatel->id()]
         );
-        if (!$akceACasy) {
-            return null;
+        if (!$kdyATyp) {
+            return [
+                'typ' => null,
+                'cas' => null,
+            ];
         }
-        $posledniAkce = reset($akceACasy);
-        if ($posledniAkce['typ'] !== self::PRIHLASENI) {
-            return null;
-        }
-        return new \DateTimeImmutable($posledniAkce['kdy']);
+        return [
+            'typ' => $kdyATyp['typ'],
+            'cas' => (new \DateTimeImmutable($kdyATyp['kdy']))->format(DATE_ATOM),
+        ];
     }
 
     /**
@@ -213,5 +237,97 @@ SQL,
      */
     public function jePrezenceUzavrena(): bool {
         return $this->aktivita->uzavrena();
+    }
+
+    /**
+     * @param PosledniZmenyStavuPrihlaseni $posledniZnameZmenyStavuPrihlaseni
+     * @return PosledniZmenyStavuPrihlaseni
+     */
+    public static function dejPosledniZmeny(PosledniZmenyStavuPrihlaseni $posledniZnameZmenyStavuPrihlaseni): PosledniZmenyStavuPrihlaseni {
+        $index = 0;
+        $where = 'akce_prihlaseni_log.id_akce = $' . $index;
+        $sqlQueryParametry = [$index => $posledniZnameZmenyStavuPrihlaseni->getIdAktivity()];
+
+        $novejsiNezZnameZmenyStavuSql = [];
+        foreach ($posledniZnameZmenyStavuPrihlaseni->zmenyStavuPrihlaseni() as $zmenaStavuPrihlaseni) {
+            $identifikatoryAktivitySql = [];
+
+            $casZmenyStavu = $zmenaStavuPrihlaseni->casZmeny();
+            if ($casZmenyStavu) {
+                $index++;
+                $novejsiNeboJinySql = 'akce_prihlaseni_log.cas > $' . $index; // novejsi
+                $sqlQueryParametry[$index] = $casZmenyStavu->format(DateTimeCz::FORMAT_DB);
+
+                $index++;
+                $jinyVeStejnyCasSql = 'akce_prihlaseni_log.cas = $' . $index; // nebo ve stejny cas...
+                $sqlQueryParametry[$index] = $casZmenyStavu->format(DateTimeCz::FORMAT_DB);
+
+                $jinyTypNeboUcastnikSql = [];
+                $index++;
+                // ...ale odlisny stav (abychom nereagovali na tu samou zmenu vicekrat)...
+                $jinyTypNeboUcastnikSql[] = 'akce_prihlaseni_log.typ != $' . $index;
+                $sqlQueryParametry[$index] = $zmenaStavuPrihlaseni->stavPrihlaseni();
+                $index++;
+                // ...nebo je to jiny ucastnik
+                $jinyTypNeboUcastnikSql[] = 'akce_prihlaseni_log.id_uzivatele != $' . $index;
+                $sqlQueryParametry[$index] = $zmenaStavuPrihlaseni->idUzivatele();
+
+                $jinyVeStejnyCasSql .= ' AND (' . implode(' OR ', $jinyTypNeboUcastnikSql) . ')';
+
+                $novejsiNeboJinySql .= ' OR (' . $jinyVeStejnyCasSql . ')';
+
+                $identifikatoryAktivitySql[] = $novejsiNeboJinySql;
+            }
+
+            $novejsiNezZnameZmenyStavuSql[] = '(' . implode(' AND ', $identifikatoryAktivitySql) . ')';
+        }
+        if ($novejsiNezZnameZmenyStavuSql) {
+            $where .= ' AND (' . implode(' OR ', $novejsiNezZnameZmenyStavuSql) . ')';
+        }
+        /* For example:
+        SELECT akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_uzivatele, akce_prihlaseni_log.typ, akce_prihlaseni_log.cas
+        FROM (SELECT akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_uzivatele, MAX(akce_prihlaseni_log.cas) AS kdy
+            FROM akce_prihlaseni_log
+            WHERE akce_prihlaseni_log.id_akce = 4057
+            AND (
+                (akce_prihlaseni_log.cas > '2022-04-26 11:48:54'
+                OR (akce_prihlaseni_log.cas = '2022-04-26 11:48:54'
+                    AND (akce_prihlaseni_log.typ != 'prihlaseni_nahradnik' OR akce_prihlaseni_log.id_uzivatele != 517))
+            ))
+        GROUP BY id_akce, id_uzivatele) AS nejnovejsi
+        INNER JOIN akce_prihlaseni_log
+            ON nejnovejsi.id_akce = akce_prihlaseni_log.id_akce
+            AND nejnovejsi.id_uzivatele = akce_prihlaseni_log.id_uzivatele
+            AND nejnovejsi.kdy = akce_prihlaseni_log.cas
+        GROUP BY akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_uzivatele;
+         */
+
+        $zmeny = dbFetchAll(<<<SQL
+SELECT akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_uzivatele, akce_prihlaseni_log.typ, akce_prihlaseni_log.cas
+FROM (
+    SELECT akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_uzivatele, MAX(akce_prihlaseni_log.cas) AS kdy
+    FROM akce_prihlaseni_log
+    WHERE $where
+    GROUP BY id_akce, id_uzivatele
+) AS nejnovejsi
+INNER JOIN akce_prihlaseni_log
+    ON nejnovejsi.id_akce = akce_prihlaseni_log.id_akce
+    AND nejnovejsi.id_uzivatele = akce_prihlaseni_log.id_uzivatele
+    AND nejnovejsi.kdy = akce_prihlaseni_log.cas
+GROUP BY akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_uzivatele
+SQL
+            , $sqlQueryParametry
+        );
+
+        $nejnovejsiZmenyStavuPrihlaseni = new PosledniZmenyStavuPrihlaseni($posledniZnameZmenyStavuPrihlaseni->getIdAktivity());
+        foreach ($zmeny as $zmena) {
+            $zmenaStavuPrihlaseni = new ZmenaStavuPrihlaseni(
+                (int)$zmena['id_uzivatele'],
+                new \DateTimeImmutable($zmena['cas']),
+                $zmena['typ']
+            );
+            $nejnovejsiZmenyStavuPrihlaseni->addPosledniZmenaStavuPrihlaseni($zmenaStavuPrihlaseni);
+        }
+        return $nejnovejsiZmenyStavuPrihlaseni;
     }
 }
