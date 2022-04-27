@@ -3,9 +3,17 @@
 namespace Gamecon\Aktivita\OnlinePrezence;
 
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\AktivitaPrezence;
+use Gamecon\Aktivita\PosledniZmenyStavuPrihlaseni;
+use Gamecon\Aktivita\ZmenaStavuPrihlaseni;
 
 class OnlinePrezenceAjax
 {
+    public const POSLEDNI_ZMENY = 'posledni-zmeny';
+
+    public static function urlPosledniZmenyPrihlaseni(): string {
+        return getCurrentUrlWithQuery(['ajax' => 1, 'akce' => self::POSLEDNI_ZMENY]);
+    }
 
     /**
      * @var OnlinePrezenceHtml
@@ -20,6 +28,12 @@ class OnlinePrezenceAjax
         if (!post('ajax') && !get('ajax')) {
             return false;
         }
+
+        if (get('akce') === self::POSLEDNI_ZMENY) {
+            $this->ajaxDejPosledniZmeny(post('zname_zmeny_prihlaseni'));
+            return true;
+        }
+
         if (post('akce') === 'uzavrit') {
             $this->ajaxUzavritAktivitu(
                 (int)post('id'),
@@ -54,6 +68,36 @@ class OnlinePrezenceAjax
 
         $this->echoErrorJson('Neznámý AJAX požadavek');
         return true;
+    }
+
+    /**
+     * @param scalar[][]|scalar[][][] $posledniZnameZmenyPrihlaseniNaAktivity
+     * @return void
+     */
+    private function ajaxDejPosledniZmeny(array $posledniZnameZmenyPrihlaseniNaAktivity) {
+        $zmenyProJson = [];
+        foreach ($posledniZnameZmenyPrihlaseniNaAktivity as $posledniZnameZmenyPrihlaseniNaAktivitu) {
+            /** struktura dat viz admin/files/online-prezence-posledni-zname-zmeny-prihlaseni.js */
+            $posledniZnameZmenyStavuPrihlaseni = new PosledniZmenyStavuPrihlaseni((int)$posledniZnameZmenyPrihlaseniNaAktivitu['id_aktivity']);
+            foreach ($posledniZnameZmenyPrihlaseniNaAktivitu['ucastnici'] ?? [] as $posledniZnamaZmenaPrihlaseni) {
+                $zmenaStavuPrihlaseni = new ZmenaStavuPrihlaseni(
+                    (int)$posledniZnamaZmenaPrihlaseni['id_uzivatele'],
+                    new \DateTimeImmutable($posledniZnamaZmenaPrihlaseni['cas_zmeny_prihlaseni']),
+                    $posledniZnamaZmenaPrihlaseni['stav_prihlaseni'],
+                );
+                $posledniZnameZmenyStavuPrihlaseni->addPosledniZmenaStavuPrihlaseni($zmenaStavuPrihlaseni);
+            }
+            $nejnovejsiZmenyStavuPrihlaseni = AktivitaPrezence::dejPosledniZmeny($posledniZnameZmenyStavuPrihlaseni);
+            foreach ($nejnovejsiZmenyStavuPrihlaseni->zmenyStavuPrihlaseni() as $zmenaStavuPrihlaseni) {
+                $zmenyProJson[] = [
+                    'id_aktivity' => $nejnovejsiZmenyStavuPrihlaseni->getIdAktivity(),
+                    'id_uzivatele' => $zmenaStavuPrihlaseni->idUzivatele(),
+                    'cas_zmeny' => $zmenaStavuPrihlaseni->casZmeny()->format(DATE_ATOM),
+                    'stav_prihlaseni' => $zmenaStavuPrihlaseni->stavPrihlaseni(),
+                ];
+            }
+        }
+        $this->echoJson(['zmeny' => $zmenyProJson]);
     }
 
     private function ajaxUzavritAktivitu(int $idAktivity, array $dataPriUspechu) {

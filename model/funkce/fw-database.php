@@ -274,7 +274,7 @@ function dbOneIndex($q, $p = null) {
 
 /**
  * Intended for selecting single lines from whatever. If no line found, returns
- * false, otherwise returns asociative array with one line. If multiple lines
+ * false, otherwise returns associative array with one line. If multiple lines
  * found, causes crash.
  */
 function dbOneLine($q, $p = null) {
