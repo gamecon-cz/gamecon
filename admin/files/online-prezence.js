@@ -152,6 +152,7 @@
       return new Date().getTime() / 1000
     }
 
+    // ✋ AKTIVITA UŽ SKONČILA, ÚPRAVY SI DOBŘE ROZMYSLI ✋
     $aktivity.each(function () {
       const $aktivitaNode = $(this)
       $aktivitaNode.find('.text-skoncila').each(function () {
@@ -193,40 +194,14 @@
   })
 })(jQuery)
 
-function uzavritAktivitu(idAktivity, skrytElement, zobrazitElement) {
-  $.post(location.href, {akce: 'uzavrit', id: idAktivity, ajax: true}).done(function (data) {
-    prohoditZobrazeni(skrytElement, zobrazitElement)
-    if (data.maPravoNaZmenuHistorieAktivit) {
-      zobrazitVarovaniZeAktivitaUzJeVyplena(idAktivity)
-    } else {
-      zablokovatEditaciAktivity(idAktivity)
-    }
-  })
-}
-
-function zablokovatEditaciAktivity(idAktivity) {
-  zablokovatInputyAktivity(idAktivity)
-  $(`.skryt-pokud-aktivitu-nelze-editovat-${idAktivity}`).hide()
-}
-
-function zablokovatInputyAktivity(idAktivity) {
-  const aktivitaNode = $(`#aktivita-${idAktivity}`)
-  aktivitaNode.find('input').prop('disabled', true)
-}
-
-function zobrazitVarovaniZeAktivitaUzJeVyplena(idAktivity) {
-  $(`#pozor-vyplnena-${idAktivity}`).show()
-}
-
-function prohoditZobrazeni(skrytElement, zobrazitElement) {
-  skrytElement.style.display = 'none'
-  zobrazitElement.style.display = 'initial'
-}
-
 function zmenitUcastnika(idUzivatele, idAktivity, checkboxNode) {
   checkboxNode.disabled = true
   dorazil = checkboxNode.checked
   $.post(location.href, {
+    /**
+     * @see \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax::odbavAjax
+     * @see \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax::ajaxZmenitUcastnikaAktivity
+     */
     akce: 'zmenitUcastnika', idAktivity: idAktivity, idUzivatele: idUzivatele, dorazil: dorazil ? 1 : 0, ajax: 1,
   }).done(function (data) {
     checkboxNode.disabled = false
@@ -234,4 +209,70 @@ function zmenitUcastnika(idUzivatele, idAktivity, checkboxNode) {
       checkboxNode.checked = data.prihlasen
     }
   })
+}
+
+const akceAktivity = new class AkceAktivity {
+
+  /**
+   * @public
+   * @param {number} idAktivity
+   * @param {HTMLElement} skrytElement
+   * @param {HTMLElement} zobrazitElement
+   */
+  uzavritAktivitu(idAktivity, skrytElement, zobrazitElement) {
+    const that = this
+    $.post(location.href, {akce: 'uzavrit', id: idAktivity, ajax: true}).done(function (data) {
+      that.prohoditZobrazeni(skrytElement, zobrazitElement)
+      if (data.maPravoNaZmenuHistorieAktivit) {
+        that.zobrazitVarovaniZeAktivitaUzJeVyplena(idAktivity)
+      } else {
+        that.zablokovatEditaciAktivity(idAktivity)
+      }
+    })
+  }
+
+  /**
+   * @private
+   * @param idAktivity
+   */
+  zablokovatEditaciAktivity(idAktivity) {
+    this.zablokovatInputyAktivity(idAktivity)
+    $(`.skryt-pokud-aktivitu-nelze-editovat-${idAktivity}`).hide()
+  }
+
+  /**
+   * @private
+   * @param idAktivity
+   */
+  zablokovatInputyAktivity(idAktivity) {
+    const aktivitaNode = $(`#aktivita-${idAktivity}`)
+    aktivitaNode.find('input').prop('disabled', true)
+  }
+
+  /**
+   * @private
+   * @param idAktivity
+   */
+  zobrazitVarovaniZeAktivitaUzJeVyplena(idAktivity) {
+    $(`#pozor-vyplnena-${idAktivity}`).show()
+  }
+
+  /**
+   * @private
+   * @param {HTMLElement} skrytElement
+   * @param {HTMLElement} zobrazitElement
+   */
+  prohoditZobrazeni(skrytElement, zobrazitElement) {
+    skrytElement.style.display = 'none'
+    zobrazitElement.style.display = 'initial'
+  }
+}
+
+/**
+ * @param {number} idAktivity
+ * @param {HTMLElement} skrytElement
+ * @param {HTMLElement} zobrazitElement
+ */
+function uzavritAktivitu(idAktivity, skrytElement, zobrazitElement) {
+  akceAktivity.uzavritAktivitu(idAktivity, skrytElement, zobrazitElement)
 }
