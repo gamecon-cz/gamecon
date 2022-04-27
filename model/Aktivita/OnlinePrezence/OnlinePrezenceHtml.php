@@ -9,12 +9,12 @@ class OnlinePrezenceHtml
 {
     /** @var \XTemplate */
     private $onlinePrezenceTemplate;
-    /** @var \XTemplate */
-    private $onlinePrezenceUcastnikTemplate;
     /** @var string */
     private $jsVyjimkovac;
     /** @var int */
     private $naPosledniChviliXMinutPredZacatkem;
+    /** @var null|OnlinePrezenceUcastnikHtml */
+    private $onlinePrezenceUcastnikHtml;
 
     public function __construct(string $jsVyjimkovac, int $naPosledniChviliXMinutPredZacatkem) {
 
@@ -27,8 +27,7 @@ class OnlinePrezenceHtml
         array              $aktivity,
         int                $editovatelnaXMinutPredZacatkem = 20,
         \DateTimeInterface $now = null,
-        string             $urlZpet = null,
-        string             $ajaxUrl = null
+        string             $urlZpet = null
     ): string {
         $template = $this->dejOnlinePrezenceTemplate();
 
@@ -42,7 +41,6 @@ class OnlinePrezenceHtml
             }
             $template->parse('onlinePrezence.zadnaAktivita');
         } else {
-            $template->assign('omniboxUrl', $ajaxUrl ?? getCurrentUrlPath());
             $this->sestavHtmlOnlinePrezence($template, $editujici, $aktivity, $editovatelnaXMinutPredZacatkem, $now);
         }
 
@@ -80,6 +78,8 @@ class OnlinePrezenceHtml
             $editovatelnaHned = !$editovatelnaOdTimestamp;
             $zamcena = $aktivita->zamcena();
 
+            $template->assign('omniboxUrl', getCurrentUrlWithQuery(['ajax' => 1, 'omnibox' => 1, 'idAktivity' => $aktivita->id()]));
+
             // 🔒 Uzavřena pro online přihlašování 🔒
             $template->assign('displayNoneCssClassUzavrena', $this->dejCssClassNeviditelnosti($zamcena));
             // Spustit a zamkout 🔒
@@ -93,7 +93,7 @@ class OnlinePrezenceHtml
             $template->assign('displayNoneCssClassAktivitaSkoncila', $this->dejCssClassNeviditelnosti($konec && $konec <= $now));
 
             foreach ($aktivita->prihlaseni() as $prihlasenyUzivatel) {
-                $ucastnikHtml = $this->sestavHmlUcastnikaAktivity(
+                $ucastnikHtml = $this->dejOnlinePrezenceUcastnikHtml()->sestavHmlUcastnikaAktivity(
                     $prihlasenyUzivatel,
                     $aktivita,
                     $aktivita->dorazilJakoCokoliv($prihlasenyUzivatel),
@@ -120,6 +120,11 @@ class OnlinePrezenceHtml
 
             $template->parse('onlinePrezence.aktivity.aktivita');
         }
+        $template->assign(
+            'urlPosledniZmenyPrihlaseni',
+            OnlinePrezenceAjax::urlPosledniZmenyPrihlaseni(),
+        );
+
         $template->parse('onlinePrezence.aktivity');
     }
 
@@ -141,58 +146,20 @@ class OnlinePrezenceHtml
         return $zobrazit ? '' : 'display-none';
     }
 
+    private function dejOnlinePrezenceUcastnikHtml(): OnlinePrezenceUcastnikHtml {
+        if (!$this->onlinePrezenceUcastnikHtml) {
+            $this->onlinePrezenceUcastnikHtml = new OnlinePrezenceUcastnikHtml($this->naPosledniChviliXMinutPredZacatkem);
+        }
+        return $this->onlinePrezenceUcastnikHtml;
+    }
+
     public function sestavHmlUcastnikaAktivity(
         \Uzivatel $ucastnik,
         Aktivita  $aktivita,
         bool      $dorazil,
         bool      $zatimPouzeProCteni
     ): string {
-        $ucastnikTemplate = $this->dejOnlinePrezenceUcastnikTemplate();
-
-        $ucastnikTemplate->assign('u', $ucastnik);
-        $ucastnikTemplate->assign('a', $aktivita);
-
-        $ucastnikTemplate->assign('checkedUcastnik', $dorazil ? 'checked' : '');
-        $ucastnikTemplate->assign('disabledUcastnik', $zatimPouzeProCteni || $aktivita->zamcena() ? 'disabled' : '');
-        $ucastnikTemplate->parse('ucastnik.checkbox');
-
-        if ($ucastnik->gcPritomen()) {
-            $ucastnikTemplate->parse('ucastnik.pritomen');
-        } else {
-            $ucastnikTemplate->parse('ucastnik.nepritomen');
-        }
-
-        if ($ucastnik->telefon()) {
-            $ucastnikTemplate->parse('ucastnik.telefon');
-        }
-
-        if ($this->jeToNaPosledniChvili($ucastnik, $aktivita)) {
-            $ucastnikTemplate->assign('minutNaPosledniChvili', $this->naPosledniChviliXMinutPredZacatkem);
-            $ucastnikTemplate->parse('ucastnik.prihlasenNaPosledniChvili');
-        }
-
-        $ucastnikTemplate->parse('ucastnik');
-        return $ucastnikTemplate->text('ucastnik');
-    }
-
-    private function jeToNaPosledniChvili(\Uzivatel $ucastnik, Aktivita $aktivita): bool {
-        $prihlasenOd = $aktivita->prihlasenOd($ucastnik);
-        $odKdyJeToNaPosledniChvili = $this->odKdyJeToNaPosledniChvili($aktivita);
-        return $prihlasenOd && $odKdyJeToNaPosledniChvili && $prihlasenOd >= $odKdyJeToNaPosledniChvili;
-    }
-
-    private function odKdyJeToNaPosledniChvili(Aktivita $aktivita): ?\DateTimeInterface {
-        $zacatek = $aktivita->zacatek();
-        if (!$zacatek) {
-            return null;
-        }
-        return (clone $zacatek)->modify('-' . $this->naPosledniChviliXMinutPredZacatkem . ' minutes');
-    }
-
-    private function dejOnlinePrezenceUcastnikTemplate(): \XTemplate {
-        if ($this->onlinePrezenceUcastnikTemplate === null) {
-            $this->onlinePrezenceUcastnikTemplate = new \XTemplate(__DIR__ . '/templates/online-prezence-ucastnik.xtpl');
-        }
-        return $this->onlinePrezenceUcastnikTemplate;
+        return $this->dejOnlinePrezenceUcastnikHtml()
+            ->sestavHmlUcastnikaAktivity($ucastnik, $aktivita, $dorazil, $zatimPouzeProCteni);
     }
 }
