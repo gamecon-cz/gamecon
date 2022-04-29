@@ -7,6 +7,7 @@ class ZmenaStavuPrihlaseni
     private const UCASTNIK_SE_PRIHLASIL = 'ucastnik_se_prihlasil';
     private const UCASTNIK_SE_ODHLASIL = 'ucastnik_se_odhlasil';
     private const UCASTNIK_DORAZIL = 'ucastnik_dorazil';
+    private const UCASTNIK_NEDORAZIL = 'ucastnik_nedorazil';
     private const SLEDUJICI_SE_PRIHLASIL = 'sledujici_se_prihlasil';
     private const SLEDUJICI_SE_ODHLASIL = 'sledujici_se_odhlasil';
     private const NAHRADNIK_DORAZIL = 'nahradnik_dorazil';
@@ -32,6 +33,8 @@ class ZmenaStavuPrihlaseni
                 return AktivitaPrezenceTyp::DORAZIL;
             case self::UCASTNIK_SE_ODHLASIL :
                 return AktivitaPrezenceTyp::ODHLASENI;
+            case self::UCASTNIK_NEDORAZIL :
+                return AktivitaPrezenceTyp::NEDOSTAVENI_SE;
             case self::SLEDUJICI_SE_PRIHLASIL :
                 return AktivitaPrezenceTyp::PRIHLASENI_SLEDUJICI;
             case self::SLEDUJICI_SE_ODHLASIL :
@@ -39,7 +42,7 @@ class ZmenaStavuPrihlaseni
             case self::NAHRADNIK_DORAZIL :
                 return AktivitaPrezenceTyp::DORAZIL_JAKO_NAHRADNIK;
             case self::NAHRADNIK_NEDORAZIL :
-                return AktivitaPrezenceTyp::ZRUSENI_PRIHLASENI_NAHRADNIK;
+                return AktivitaPrezenceTyp::NAHRADNIK_NEDORAZIL;
             default:
                 throw new \RuntimeException('Neznámý stav přihlášení pro JS ' . var_export($stavPrihlaseniJs, true));
         }
@@ -94,22 +97,24 @@ class ZmenaStavuPrihlaseni
         switch ($this->stavPrihlaseni()) {
             // ÚČASTNÍK
             case AktivitaPrezenceTyp::PRIHLASENI :
-                return 'ucastnik_se_prihlasil';
+                return self::UCASTNIK_SE_PRIHLASIL;
             case AktivitaPrezenceTyp::ODHLASENI :
             case AktivitaPrezenceTyp::ODHLASENI_HROMADNE :
-                return 'ucastnik_se_odhlasil';
+                return self::UCASTNIK_SE_ODHLASIL;
             case AktivitaPrezenceTyp::NEDOSTAVENI_SE :
-                return 'ucastnik_dorazil';
+                return self::UCASTNIK_NEDORAZIL;
+            case AktivitaPrezenceTyp::DORAZIL :
+                return self::UCASTNIK_DORAZIL;
             // SLEDUJÍCÍ
             case AktivitaPrezenceTyp::PRIHLASENI_SLEDUJICI :
-                return 'sledujici_se_prihlasil';
+                return self::SLEDUJICI_SE_PRIHLASIL;
             case AktivitaPrezenceTyp::ODHLASENI_SLEDUJICI :
-                return 'sledujici_se_odhlasil';
+                return self::SLEDUJICI_SE_ODHLASIL;
             // NÁHRADNÍK
             case AktivitaPrezenceTyp::DORAZIL_JAKO_NAHRADNIK :
-                return 'nahradnik_dorazil';
-            case AktivitaPrezenceTyp::ZRUSENI_PRIHLASENI_NAHRADNIK :
-                return 'nahradnik_nedorazil'; // nebo spíš odešel, popřípadě to byl omyl ve vyplňování prezence
+                return self::NAHRADNIK_DORAZIL;
+            case AktivitaPrezenceTyp::NAHRADNIK_NEDORAZIL :
+                return self::NAHRADNIK_NEDORAZIL; // nebo spíš odešel, popřípadě to byl omyl ve vyplňování prezence
             default :
                 return null; // nějaký pro JS nezajímavý stav
         }
