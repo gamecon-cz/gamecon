@@ -93,7 +93,7 @@ class OnlinePrezenceAjax
             foreach (end($zmenyStavuPrihlaseniPole) ?: [] as $posledniZmenaStavuPrihlaseni) {
                 $posledniZnameZmenyStavuPrihlaseni->addPosledniZmenaStavuPrihlaseni($posledniZmenaStavuPrihlaseni);
             }
-            $nejnovejsiZmenyStavuPrihlaseni = AktivitaPrezence::dejPosledniPlatneZmeny($posledniZnameZmenyStavuPrihlaseni);
+            $nejnovejsiZmenyStavuPrihlaseni = AktivitaPrezence::dejPosledniZmeny($posledniZnameZmenyStavuPrihlaseni);
             foreach ($nejnovejsiZmenyStavuPrihlaseni->zmenyStavuPrihlaseni() as $zmenaStavuPrihlaseni) {
                 $ucastnikJesteNebylZobrazen = !in_array($zmenaStavuPrihlaseni->idUzivatele(), $ucastniciIds, false);
                 if ($ucastnikJesteNebylZobrazen && !$zmenaStavuPrihlaseni->dorazilNejak()) {
@@ -103,7 +103,7 @@ class OnlinePrezenceAjax
                 $zmenyProJson[] = [
                     'id_aktivity' => $nejnovejsiZmenyStavuPrihlaseni->getIdAktivity(),
                     'id_uzivatele' => $zmenaStavuPrihlaseni->idUzivatele(),
-                    'cas_zmeny' => $zmenaStavuPrihlaseni->casZmeny()->format(DATE_ATOM),
+                    'cas_zmeny' => $zmenaStavuPrihlaseni->casZmenyProJs(),
                     'stav_prihlaseni' => $zmenaStavuPrihlaseni->stavPrihlaseniProJs(),
                     'html_ucastnika' => $ucastnikJesteNebylZobrazen
                         ? $this->onlinePrezenceHtml->sestavHmlUcastnikaAktivity(
@@ -124,7 +124,7 @@ class OnlinePrezenceAjax
 
         $posledniCasZmenyStavuPrihlaseni = new \DateTimeImmutable($posledniZnamaZmenaPrihlaseni['cas_posledni_zmeny_prihlaseni']);
 
-        return new ZmenaStavuPrihlaseni(
+        return ZmenaStavuPrihlaseni::vytvorZDatJavscriptu(
             (int)$posledniZnamaZmenaPrihlaseni['id_uzivatele'],
             $posledniCasZmenyStavuPrihlaseni,
             $posledniZnamaZmenaPrihlaseni['stav_prihlaseni'],
@@ -188,12 +188,12 @@ class OnlinePrezenceAjax
         /** Abychom mměli nová data pro @see Aktivita::dorazilJakoCokoliv */
         $aktivita->refresh();
 
-        ['cas' => $casPosledniZmenyPrihlaseni, 'typ' => $stavPrihlaseni] = $aktivita->dejPrezenci()->posledniTypPrihlaseniACasZmeny($ucastnik);
+        $posledniZmenaStavuPrihlaseni = $aktivita->dejPrezenci()->posledniZmenaStavuPrihlaseni($ucastnik);
 
         $this->echoJson([
             'prihlasen' => $aktivita->dorazilJakoCokoliv($ucastnik),
-            'casPosledniZmenyPrihlaseni' => $casPosledniZmenyPrihlaseni,
-            'stavPrihlaseni' => $stavPrihlaseni,
+            'casPosledniZmenyPrihlaseni' => $posledniZmenaStavuPrihlaseni->casZmenyProJs(),
+            'stavPrihlaseni' => $posledniZmenaStavuPrihlaseni->stavPrihlaseniProJs(),
         ]);
     }
 
