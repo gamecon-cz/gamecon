@@ -233,10 +233,8 @@ SQL
      * při počítání zůstatků a různých jiných administrativních úkolech to toho
      * uživatele může přeskakovat či ignorovat, atd…). Jmenovité problémy:
      * - platby (pokud ho vynecháme při přepočtu zůstatku, přijde o love)
-     * @todo Možná vyhodit výjimku, pokud už prošel infem, místo pouhého neudělání
-     * nic?
-     * @todo Při odhlášení z GC pokud jsou zakázané rušení nákupů může být též
-     * problém (k zrušení dojde)
+     * @todo Možná vyhodit výjimku, pokud už prošel infem, místo pouhého neudělání nic?
+     * @todo Při odhlášení z GC pokud jsou zakázané rušení nákupů může být též problém (k zrušení dojde)
      */
     public function gcOdhlas(): bool {
         if (!$this->gcPrihlasen()) {
@@ -247,11 +245,9 @@ SQL
                 'Už jsi prošel infopultem, odhlášení není možné.'
             );
         }
-        // smazání přihlášení na aktivity, na které je jen přihlášen (ne je už hrál, jako náhradník apod.)
-        dbQuery(
-            'DELETE p.* FROM akce_prihlaseni p JOIN akce_seznam a
-            WHERE a.rok=' . ROK . ' AND p.id_stavu_prihlaseni=' . Aktivita::PRIHLASEN . ' AND p.id_uzivatele=' . $this->id()
-        );
+        foreach ($this->prihlaseneLetosniAktivity() as $aktivita) {
+            $aktivita->odhlas($this, $aktivita::NEPOSILAT_MAILY /* nechceme posílat maily sledujícím, že se uvolnilo místo */);
+        }
         // zrušení nákupů
         dbQuery('DELETE FROM shop_nakupy WHERE rok=' . ROK . ' AND id_uzivatele=' . $this->id());
         // finální odebrání židle "registrován na GC"
@@ -267,9 +263,28 @@ SQL
         return true;
     }
 
+    /**
+     * @return Aktivita[]
+     */
+    public function prihlaseneLetosniAktivity(): array {
+        $ids = dbFetchAll(<<<SQL
+SELECT akce_prihlaseni.id_akce
+FROM akce_prihlaseni
+JOIN akce_seznam on akce_prihlaseni.id_akce = akce_seznam.id_akce
+WHERE akce_prihlaseni.id_uzivatele = $1
+AND akce_prihlaseni.id_stavu_prihlaseni = $2
+AND akce_seznam.rok = $3
+SQL,
+            [$this->id(), Aktivita::PRIHLASEN, ROK]
+        );
+        return Aktivita::zIds($ids);
+    }
+
     /** „Odjede“ uživatele z GC */
     public function gcOdjed() {
-        if (!$this->gcPritomen()) throw new Exception('Uživatel není přítomen na GC');
+        if (!$this->gcPritomen()) {
+            throw new Exception('Uživatel není přítomen na GC');
+        }
         $this->dejZidli(ZIDLE_ODJEL);
     }
 
