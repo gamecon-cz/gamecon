@@ -30,7 +30,7 @@ class OnlinePrezenceAjax
         }
 
         if (get('akce') === self::POSLEDNI_ZMENY) {
-            $this->ajaxDejPosledniZmeny(post('zname_zmeny_prihlaseni'));
+            $this->ajaxDejPosledniPlatneZmeny(post('zname_zmeny_prihlaseni'));
             return true;
         }
 
@@ -71,33 +71,72 @@ class OnlinePrezenceAjax
     }
 
     /**
-     * @param scalar[][]|scalar[][][] $posledniZnameZmenyPrihlaseniNaAktivity
+     * @param scalar[][]|scalar[][][] $posledniZnameZmenyPrihlaseni
      * @return void
      */
-    private function ajaxDejPosledniZmeny(array $posledniZnameZmenyPrihlaseniNaAktivity) {
+    private function ajaxDejPosledniPlatneZmeny(array $posledniZnameZmenyPrihlaseni) {
         $zmenyProJson = [];
-        foreach ($posledniZnameZmenyPrihlaseniNaAktivity as $posledniZnameZmenyPrihlaseniNaAktivitu) {
+        foreach ($posledniZnameZmenyPrihlaseni as $posledniZnameZmenyPrihlaseniNaAktivitu) {
+            $ucastniciIds = [];
+            $idAktivity = (int)$posledniZnameZmenyPrihlaseniNaAktivitu['id_aktivity'];
             /** struktura dat viz admin/files/online-prezence-posledni-zname-zmeny-prihlaseni.js */
             $posledniZnameZmenyStavuPrihlaseni = new PosledniZmenyStavuPrihlaseni((int)$posledniZnameZmenyPrihlaseniNaAktivitu['id_aktivity']);
+            $zmenyStavuPrihlaseniPole = [];
             foreach ($posledniZnameZmenyPrihlaseniNaAktivitu['ucastnici'] ?? [] as $posledniZnamaZmenaPrihlaseni) {
-                $zmenaStavuPrihlaseni = new ZmenaStavuPrihlaseni(
-                    (int)$posledniZnamaZmenaPrihlaseni['id_uzivatele'],
-                    new \DateTimeImmutable($posledniZnamaZmenaPrihlaseni['cas_zmeny_prihlaseni']),
-                    $posledniZnamaZmenaPrihlaseni['stav_prihlaseni'],
-                );
-                $posledniZnameZmenyStavuPrihlaseni->addPosledniZmenaStavuPrihlaseni($zmenaStavuPrihlaseni);
+                $posledniCasZmenyStavuPrihlaseni = new \DateTimeImmutable($posledniZnamaZmenaPrihlaseni['cas_posledni_zmeny_prihlaseni']);
+                $zmenaStavuPrihlaseni = $this->vytvorZmenuStavuPrihlaseni($posledniZnamaZmenaPrihlaseni);
+                $ucastniciIds[] = $zmenaStavuPrihlaseni->idUzivatele();
+                $zmenyStavuPrihlaseniPole[$posledniCasZmenyStavuPrihlaseni->getTimestamp()][] = $zmenaStavuPrihlaseni;
             }
-            $nejnovejsiZmenyStavuPrihlaseni = AktivitaPrezence::dejPosledniZmeny($posledniZnameZmenyStavuPrihlaseni);
+            ksort($zmenyStavuPrihlaseniPole, SORT_NUMERIC);
+            // chceme hledat jen od nejnovějších změn stavu přihlášení dále
+            foreach (end($zmenyStavuPrihlaseniPole) ?: [] as $posledniZmenaStavuPrihlaseni) {
+                $posledniZnameZmenyStavuPrihlaseni->addPosledniZmenaStavuPrihlaseni($posledniZmenaStavuPrihlaseni);
+            }
+            $nejnovejsiZmenyStavuPrihlaseni = AktivitaPrezence::dejPosledniPlatneZmeny($posledniZnameZmenyStavuPrihlaseni);
             foreach ($nejnovejsiZmenyStavuPrihlaseni->zmenyStavuPrihlaseni() as $zmenaStavuPrihlaseni) {
+                $ucastnikJesteNebylZobrazen = !in_array($zmenaStavuPrihlaseni->idUzivatele(), $ucastniciIds, false);
+                if ($ucastnikJesteNebylZobrazen && !$zmenaStavuPrihlaseni->dorazilNejak()) {
+                    // nezajímá nás změna, že někdo nedorazil, když ho frontend dosud ani nezobrazoval
+                    continue;
+                }
                 $zmenyProJson[] = [
                     'id_aktivity' => $nejnovejsiZmenyStavuPrihlaseni->getIdAktivity(),
                     'id_uzivatele' => $zmenaStavuPrihlaseni->idUzivatele(),
                     'cas_zmeny' => $zmenaStavuPrihlaseni->casZmeny()->format(DATE_ATOM),
-                    'stav_prihlaseni' => $zmenaStavuPrihlaseni->stavPrihlaseni(),
+                    'stav_prihlaseni' => $zmenaStavuPrihlaseni->stavPrihlaseniProJs(),
+                    'html_ucastnika' => $ucastnikJesteNebylZobrazen
+                        ? $this->onlinePrezenceHtml->sestavHmlUcastnikaAktivity(
+                            \Uzivatel::zId($zmenaStavuPrihlaseni->idUzivatele()),
+                            Aktivita::zId($idAktivity),
+                            $zmenaStavuPrihlaseni->dorazilNejak(),
+                            false
+                        )
+                        : '', // pokud JS zná ID učastníka této aktivity, tak už má jeho HTML a nepotřebuje ho
                 ];
             }
         }
         $this->echoJson(['zmeny' => $zmenyProJson]);
+    }
+
+    private function vytvorZmenuStavuPrihlaseni(array $posledniZnamaZmenaPrihlaseni): ZmenaStavuPrihlaseni {
+        $this->ohlidejData(['id_uzivatele', 'cas_posledni_zmeny_prihlaseni', 'stav_prihlaseni'], $posledniZnamaZmenaPrihlaseni);
+
+        $posledniCasZmenyStavuPrihlaseni = new \DateTimeImmutable($posledniZnamaZmenaPrihlaseni['cas_posledni_zmeny_prihlaseni']);
+
+        return new ZmenaStavuPrihlaseni(
+            (int)$posledniZnamaZmenaPrihlaseni['id_uzivatele'],
+            $posledniCasZmenyStavuPrihlaseni,
+            $posledniZnamaZmenaPrihlaseni['stav_prihlaseni'],
+        );
+    }
+
+    private function ohlidejData(array $kliceVyzadovanychHodnot, array $dataKeKontrole) {
+        foreach ($kliceVyzadovanychHodnot as $klic) {
+            if (empty($dataKeKontrole[$klic])) {
+                throw new \RuntimeException("Chybí '$klic' v datech " . var_export($dataKeKontrole, true));
+            }
+        }
     }
 
     private function ajaxUzavritAktivitu(int $idAktivity, array $dataPriUspechu) {
@@ -139,16 +178,23 @@ class OnlinePrezenceAjax
             $this->echoErrorJson('Chybné ID účastníka nebo aktivity nebo chybejici priznak zda dorazil');
             return;
         }
+
         if ($dorazil) {
             $aktivita->ulozZeDorazil($ucastnik);
-        } else if (!$aktivita->zrusZeDorazil($ucastnik)) {
-            $this->echoErrorJson("Nepodařilo se zrušit účastníka {$ucastnik->jmenoNick()} z aktivity {$aktivita->nazev()}");
-            return;
+        } else {
+            $aktivita->zrusZeDorazil($ucastnik);
         }
+
         /** Abychom mměli nová data pro @see Aktivita::dorazilJakoCokoliv */
         $aktivita->refresh();
 
-        $this->echoJson(['prihlasen' => $aktivita->dorazilJakoCokoliv($ucastnik)]);
+        ['cas' => $casPosledniZmenyPrihlaseni, 'typ' => $stavPrihlaseni] = $aktivita->dejPrezenci()->posledniTypPrihlaseniACasZmeny($ucastnik);
+
+        $this->echoJson([
+            'prihlasen' => $aktivita->dorazilJakoCokoliv($ucastnik),
+            'casPosledniZmenyPrihlaseni' => $casPosledniZmenyPrihlaseni,
+            'stavPrihlaseni' => $stavPrihlaseni,
+        ]);
     }
 
     private function ajaxUlozPrezenci(int $idAktivity, array $idDorazivsich) {
