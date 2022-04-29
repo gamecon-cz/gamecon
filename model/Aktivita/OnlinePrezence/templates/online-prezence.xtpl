@@ -97,7 +97,7 @@
 
           <span class="col-xl col-md col-sm text-sm-center text-md-start align-self-center">
             <span
-                style="white-space: nowrap; padding: 5px; display: inline-block; margin: 0.3em 0; width: 100%; text-align: center;"
+                style="white-space: nowrap; padding: 5px; display: inline-block; margin: 2px 0; width: 100%; text-align: center;"
                 id="skoncila-{idAktivity}"
                 class="alert-info text-skoncila {displayNoneCssClassAktivitaSkoncila} skryt-pokud-aktivitu-nelze-editovat-{idAktivity}"
                 data-konec-aktivity-v="{konecAktivityVTimestamp}">

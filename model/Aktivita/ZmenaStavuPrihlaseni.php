@@ -4,12 +4,53 @@ namespace Gamecon\Aktivita;
 
 class ZmenaStavuPrihlaseni
 {
+    private const UCASTNIK_SE_PRIHLASIL = 'ucastnik_se_prihlasil';
+    private const UCASTNIK_SE_ODHLASIL = 'ucastnik_se_odhlasil';
+    private const UCASTNIK_DORAZIL = 'ucastnik_dorazil';
+    private const SLEDUJICI_SE_PRIHLASIL = 'sledujici_se_prihlasil';
+    private const SLEDUJICI_SE_ODHLASIL = 'sledujici_se_odhlasil';
+    private const NAHRADNIK_DORAZIL = 'nahradnik_dorazil';
+    private const NAHRADNIK_NEDORAZIL = 'nahradnik_nedorazil';
+
+    public static function vytvorZDatDatabaze(int $idUzivatele, ?\DateTimeImmutable $casZmeny, ?string $stavPrihlaseni): self {
+        return new static($idUzivatele, $casZmeny, $stavPrihlaseni);
+    }
+
+    public static function vytvorZDatJavscriptu(int $idUzivatele, ?\DateTimeImmutable $casZmeny, string $stavPrihlaseniJs): self {
+        return static::vytvorZDatDatabaze(
+            $idUzivatele,
+            $casZmeny,
+            self::stavPrihlaseniZJsDoDatabazoveho($stavPrihlaseniJs)
+        );
+    }
+
+    private static function stavPrihlaseniZJsDoDatabazoveho(string $stavPrihlaseniJs): string {
+        switch ($stavPrihlaseniJs) {
+            case self::UCASTNIK_SE_PRIHLASIL :
+                return AktivitaPrezenceTyp::PRIHLASENI;
+            case self::UCASTNIK_DORAZIL :
+                return AktivitaPrezenceTyp::DORAZIL;
+            case self::UCASTNIK_SE_ODHLASIL :
+                return AktivitaPrezenceTyp::ODHLASENI;
+            case self::SLEDUJICI_SE_PRIHLASIL :
+                return AktivitaPrezenceTyp::PRIHLASENI_SLEDUJICI;
+            case self::SLEDUJICI_SE_ODHLASIL :
+                return AktivitaPrezenceTyp::ODHLASENI_SLEDUJICI;
+            case self::NAHRADNIK_DORAZIL :
+                return AktivitaPrezenceTyp::DORAZIL_JAKO_NAHRADNIK;
+            case self::NAHRADNIK_NEDORAZIL :
+                return AktivitaPrezenceTyp::ZRUSENI_PRIHLASENI_NAHRADNIK;
+            default:
+                throw new \RuntimeException('Neznámý stav přihlášení pro JS ' . var_export($stavPrihlaseniJs, true));
+        }
+    }
+
     /**
      * @var int
      */
     private $idUzivatele;
     /**
-     * @var \DateTimeInterface
+     * @var ?\DateTimeImmutable
      */
     private $casZmeny;
     /**
@@ -17,8 +58,8 @@ class ZmenaStavuPrihlaseni
      */
     private $stavPrihlaseni;
 
-    public function __construct(int $idUzivatele, \DateTimeInterface $casZmeny, string $stavPrihlaseni) {
-        if (!AktivitaPrezenceTyp::jeZnamy($stavPrihlaseni)) {
+    public function __construct(int $idUzivatele, ?\DateTimeImmutable $casZmeny, ?string $stavPrihlaseni) {
+        if ($stavPrihlaseni && !AktivitaPrezenceTyp::jeZnamy($stavPrihlaseni)) {
             throw new \LogicException('Neznamy stav prihlaseni ' . var_export($stavPrihlaseni, true));
         }
         $this->idUzivatele = $idUzivatele;
@@ -30,12 +71,18 @@ class ZmenaStavuPrihlaseni
         return $this->idUzivatele;
     }
 
-    public function casZmeny(): \DateTimeInterface {
+    public function casZmeny(): ?\DateTimeImmutable {
         return $this->casZmeny;
     }
 
-    public function stavPrihlaseni(): string {
+    public function stavPrihlaseni(): ?string {
         return $this->stavPrihlaseni;
+    }
+
+    public function casZmenyProJs(): ?string {
+        return $this->casZmeny
+            ? $this->casZmeny->format(DATE_ATOM)
+            : null;
     }
 
     /**
@@ -69,6 +116,6 @@ class ZmenaStavuPrihlaseni
     }
 
     public function dorazilNejak(): bool {
-        return AktivitaPrezenceTyp::dorazilNejak($this->stavPrihlaseni());
+        return $this->stavPrihlaseni() !== null && AktivitaPrezenceTyp::dorazilNejak($this->stavPrihlaseni());
     }
 }
