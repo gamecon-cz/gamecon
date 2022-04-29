@@ -21,19 +21,6 @@ class PosledniZmenyStavuPrihlaseni
     }
 
     public function addPosledniZmenaStavuPrihlaseni(ZmenaStavuPrihlaseni $zmenaStavuPrihlaseni) {
-        $predchoziZmenyStavuPrihlaseni = $this->zmenyStavuPrihlaseni();
-        if ($predchoziZmenyStavuPrihlaseni) {
-            $casPosledniZmenyStavuPrihlaseni = reset($predchoziZmenyStavuPrihlaseni)->casZmeny();
-            if ($casPosledniZmenyStavuPrihlaseni <> $zmenaStavuPrihlaseni->casZmeny()) {
-                throw new \LogicException(
-                    sprintf(
-                        'Predchozi zmeny stavu prihlaseni jsou k casu %s, nove pridavana zmena je ale s casem %s. Vsechny posledni zmeny by meli byt ze stejne chvile.',
-                        $casPosledniZmenyStavuPrihlaseni->format(DATE_ATOM),
-                        $zmenaStavuPrihlaseni->casZmeny()->format(DATE_ATOM)
-                    )
-                );
-            }
-        }
         $this->zmenyStavuPrihlaseni[] = $zmenaStavuPrihlaseni;
     }
 

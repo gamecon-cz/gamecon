@@ -21,6 +21,15 @@
   background-color: #f0f0f0;
 }
 
+/*Pokud je v tabulce tbody, tak to změní pořadí dalších tagů*/
+.main table tbody tr:nth-child(odd) {
+  background-color: inherit;
+}
+
+.main table tbody tr:nth-child(even) {
+  background-color: #f0f0f0;
+}
+
 .main table.zvyraznovana {
   cursor: default;
 }

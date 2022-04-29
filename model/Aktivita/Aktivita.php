@@ -997,7 +997,7 @@ class Aktivita
         $idUzivatele = $u->id();
         dbQuery("DELETE FROM akce_prihlaseni WHERE id_uzivatele=$idUzivatele AND id_akce=$idAktivity");
         $this->dejPrezenci()->zalogujZeSeOdhlasil($u);
-        if (ODHLASENI_POKUTA_KONTROLA && $this->zbyvaHodinDoZacatku() < ODHLASENI_POKUTA1_H && !($params & self::BEZ_POKUT)) { // pokuta aktivní
+        if (ODHLASENI_POKUTA_KONTROLA && !($params & self::BEZ_POKUT) && $this->zbyvaHodinDoZacatku() < ODHLASENI_POKUTA1_H) { // pokuta aktivní
             $pozdeZrusil = self::POZDE_ZRUSIL;
             dbQuery("INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$idUzivatele, id_akce=$idAktivity, id_stavu_prihlaseni=$pozdeZrusil");
         }
@@ -2036,6 +2036,10 @@ SQL
         $this->dejPrezenci()->ulozDorazivsiho($dorazil);
     }
 
+    /**
+     * @param \Uzivatel $dorazil
+     * @return bool false pokud byl uživatel už zrušen a nic se tedy nezměnilo
+     */
     public function zrusZeDorazil(\Uzivatel $dorazil): bool {
         return $this->dejPrezenci()->zrusZeDorazil($dorazil);
     }

@@ -96,10 +96,11 @@
           </span>
 
           <span class="col-xl col-md col-sm text-sm-center text-md-start align-self-center">
-            <span style="white-space: nowrap; padding: 5px"
-                  id="skoncila-{idAktivity}"
-                  class="alert-info text-skoncila {displayNoneCssClassAktivitaSkoncila} skryt-pokud-aktivitu-nelze-editovat-{idAktivity}"
-                  data-konec-aktivity-v="{konecAktivityVTimestamp}">
+            <span
+                style="white-space: nowrap; padding: 5px; display: inline-block; margin: 0.3em 0; width: 100%; text-align: center;"
+                id="skoncila-{idAktivity}"
+                class="alert-info text-skoncila {displayNoneCssClassAktivitaSkoncila} skryt-pokud-aktivitu-nelze-editovat-{idAktivity}"
+                data-konec-aktivity-v="{konecAktivityVTimestamp}">
               ✋ <em>Aktivita už skončila, úpravy si dobře rozmysli</em> <span
                 style="transform: scale(-1, 1); display: inline-block">✋</span>
             </span>
@@ -114,7 +115,8 @@
         <form class="formAktivita">
           <!-- <input type="hidden" name="kapacita_celkova" value="{}" /> --><!-- TODO kapacita -->
           <input type="hidden" name="prezenceAktivity" value="{idAktivity}"/>
-          <table class="zvyraznovana" style="width: 100%" id="ucastniciAktivity{idAktivity}">
+          <table class="zvyraznovana ucastnici" style="width: 100%" id="ucastniciAktivity{idAktivity}">
+            <thead>
             <tr class="col-md col-sm-6 no-gutters">
               <th style="text-align: center">
                 <span class="hinted" data-bs-toggle="tooltip" data-bs-placement="top" title="Je vůbec na Gameconu?">
@@ -136,10 +138,13 @@
                 </span>
               </th>
             </tr>
+            </thead>
+            <tbody class="ucastnici-seznam">
             <!-- begin:ucastnik -->
             <!-- viz online-prezence-ucastnik.xtpl -->
             {ucastnikHtml}
             <!-- end:ucastnik -->
+            </tbody>
           </table>
 
           <!-- begin:pridatUcastnika -->

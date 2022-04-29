@@ -17,6 +17,8 @@ use Gamecon\Vyjimkovac\Vyjimkovac;
  * @var Uzivatel $u
  */
 
+$testovani = defined('TESTING') && TESTING && !empty($_GET['test']);
+
 if (get('id')) {
     require __DIR__ . '/_moje-aktivita.php';
     return;
@@ -36,8 +38,6 @@ if ($onlinePrezenceAjax->odbavAjax($u)) {
 }
 
 $now = new DateTimeImmutable();
-
-$testovani = defined('TESTING') && TESTING && !empty($_GET['test']);
 
 if ($testovani) {
     $onlinePrezenceTestovaciAktivity = new OnlinePrezenceTestovaciAktivity(
