@@ -14,9 +14,7 @@
  */
 $dejUzivatelekOdhlaseni = static function (array $idUzivatelu): ?array {
     $idUzivatelu = array_unique(
-        array_map(static function ($id) {
-            return (int)$id;
-        }, $idUzivatelu)
+        array_map('intval', $idUzivatelu)
     );
     $neznamaId = [];
     $uzivatele = array_map(static function ($id) use (&$neznamaId) {
