@@ -38,10 +38,10 @@
         {
           zmeny: [
             {
-              "id_aktivity": 4057,
-              "id_uzivatele": 4495,
-              "cas_zmeny": "2022-04-27T16:57:38+02:00",
-              "stav_prihlaseni": "prihlaseni_nahradnik"
+              id_aktivity: 4057,
+              id_uzivatele: 4495,
+              cas_zmeny: "2022-04-27T16:57:38+02:00",
+              stav_prihlaseni: "prihlaseni_nahradnik"
             }
           ]
         }
@@ -126,6 +126,7 @@
     }
 
     /**
+     * TODO tohle je to samé co v online-prezence.js zmenitUcastnika, asi by to chtělo přes nějaký CustomEvent a řešit to jedním kódem
      * @param {HTMLElement} ucastnikNode
      * @param {Zmena} zmena
      */
@@ -169,6 +170,7 @@
       if (dorazil === dorazilInput.checked) {
         return false // nebylo co menit
       }
+      naChviliZablokuj(dorazilInput)
       dorazilInput.checked = dorazil
       upozorniNaZmenu(
         ucastnikNode,
@@ -177,6 +179,16 @@
           : 'orange',
       )
       return true
+    }
+
+    /**
+     * @param {HTMLElement} inputNode
+     */
+    function naChviliZablokuj(inputNode) {
+      inputNode.disabled = true
+      setTimeout(function () {
+        inputNode.disabled = false
+      }, 1200)
     }
 
     /**
@@ -198,18 +210,19 @@
     }
 
     function blikni(node, color) {
-      zmenBarvuNa(node, color)
+      zmenBarvuNa(node, color, 0.1)
 
       const intervalTransparentId = setTimeout(function () {
-        zmenBarvuNa(node, 'transparent')
+        zmenBarvuNa(node, 'transparent', 0.05)
         clearTimeout(intervalTransparentId)
       }, 100)
     }
 
-    function zmenBarvuNa(node, color) {
+    function zmenBarvuNa(node, color, seconds) {
       node.style.backgroundColor = color
-      node.style.transition = 'background 0.1s linear'
-      node.style.webkitTransition = 'background 0.1s linear'
+      const transition = `background ${seconds}s linear`
+      node.style.transition = transition
+      node.style.webkitTransition = transition
     }
   })
 
