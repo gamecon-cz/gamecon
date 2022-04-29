@@ -1031,7 +1031,7 @@ class Aktivita
         }
         // Uložení odhlášení do DB
         dbQuery("DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0 AND id_akce=$1 AND id_stavu_prihlaseni=$2", [$u->id(), $this->id(), self::SLEDUJICI]);
-        dbQuery("INSERT INTO akce_prihlaseni_log SET id_uzivatele=$0, id_akce=$1, typ='odhlaseni_watchlist'", [$u->id(), $this->id()]);
+        $this->dejPrezenci()->zalogujZeSeOdhlasilJakoSledujici($u);
         $this->refresh();
     }
 
@@ -1646,33 +1646,6 @@ SQL
         if ($parametry & self::PLUSMINUS_KAZDY) {
             self::plusminusZpracuj($u, $parametry);
         }
-    }
-
-    /**
-     * Dávkově přihlásí uživatele na tuto aktivitu a (bez postihu) odhlásí
-     * aktivity, které s novou aktivitou kolidují
-     * @param array|int[] $idsUzivatelu pole s ID uživatelů
-     */
-    public function prihlasPrepisHromadne($idsUzivatelu) {
-        $pKolize = dbOneCol('
-          SELECT GROUP_CONCAT(id_akce)
-          FROM akce_seznam
-          WHERE rok=' . ROK . '
-          AND NOT ( ' . $this->a['konec'] . ' <= zacatek OR konec <= ' . $this->a['zacatek'] . ' )
-        ');
-        dbQuery("DELETE FROM akce_prihlaseni WHERE id_akce IN($pKolize) AND id_uzivatele IN(" . implode(',', $idsUzivatelu) . ')');
-        dbQuery(
-            'INSERT INTO akce_prihlaseni(id_akce,id_stavu_prihlaseni,id_uzivatele)
-            VALUES ' . implode(
-                ',',
-                array_map(
-                    function ($idUzivatele) {
-                        return '(' . $this->id() . ',' . self::PRIHLASEN . ',' . $idUzivatele . ')';
-                    },
-                    $idsUzivatelu
-                )
-            )
-        );
     }
 
     /**
