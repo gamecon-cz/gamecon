@@ -120,8 +120,18 @@
      * @param {Zmena} zmena
      */
     function zmenStavPrihlaseni(ucastnikNode, zmena) {
+      zapisMetadataPrezence(ucastnikNode, zmena)
       const dorazil = dorazilPodleStavu(zmena.stavPrihlaseni)
       zmenZaskrtnutiZdaDorazil(ucastnikNode, dorazil)
+    }
+
+    /**
+     * @param {HTMLElement} ucastnikNode
+     * @param {Zmena} zmena
+     */
+    function zapisMetadataPrezence(ucastnikNode, zmena) {
+      ucastnikNode.dataset.casPosledniZmenyPrihlaseni = zmena.casZmeny
+      ucastnikNode.dataset.stavPrihlaseni = zmena.stavPrihlaseni
     }
 
     /**
@@ -217,7 +227,7 @@ class Zmena {
         new Zmena(
           dataZmeny.id_aktivity,
           dataZmeny.id_uzivatele,
-          new Date(dataZmeny.cas_zmeny),
+          dataZmeny.cas_zmeny,
           dataZmeny.stav_prihlaseni,
           dataZmeny.html_ucastnika,
         ),
@@ -230,7 +240,7 @@ class Zmena {
   _idAktivity
   /** @private @var {number} */
   _idUzivatele
-  /** @private @var {Date} */
+  /** @private @var {string} */
   _casZmeny
   /** @private @var {string} */
   _stavPrihlaseni
@@ -240,7 +250,7 @@ class Zmena {
   /**
    * @param {number} idAktivity
    * @param {number} idUzivatele
-   * @param {Date} casZmeny
+   * @param {string} casZmeny
    * @param {string} stavPrihlaseni
    * @param {string} htmlUcastnika
    */
@@ -260,7 +270,6 @@ class Zmena {
     return this._idUzivatele
   }
 
-  // TODO pouzit cas zmeny pro upravu dotazu
   get casZmeny() {
     return this._casZmeny
   }

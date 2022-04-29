@@ -3,6 +3,7 @@
 namespace Gamecon\Aktivita\OnlinePrezence;
 
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\ZmenaStavuPrihlaseni;
 
 class OnlinePrezenceUcastnikHtml
 {
@@ -45,9 +46,9 @@ class OnlinePrezenceUcastnikHtml
             $ucastnikTemplate->parse('ucastnik.prihlasenNaPosledniChvili');
         }
 
-        ['cas' => $casPosledniZmenyPrihlaseni, 'typ' => $stavPrihlaseni] = $aktivita->dejPrezenci()->posledniTypPrihlaseniACasZmeny($ucastnik);
-        $ucastnikTemplate->assign('casPosledniZmenyPrihlaseni', $casPosledniZmenyPrihlaseni);
-        $ucastnikTemplate->assign('stavPrihlaseni', $stavPrihlaseni);
+        $zmenaStavuPrihlaseni = $aktivita->dejPrezenci()->posledniZmenaStavuPrihlaseni($ucastnik);
+        $ucastnikTemplate->assign('casPosledniZmenyPrihlaseni', $zmenaStavuPrihlaseni->casZmenyProJs());
+        $ucastnikTemplate->assign('stavPrihlaseni', $zmenaStavuPrihlaseni->stavPrihlaseniProJs());
 
         $ucastnikTemplate->parse('ucastnik');
         return $ucastnikTemplate->text('ucastnik');
