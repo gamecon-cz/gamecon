@@ -60,27 +60,28 @@ class AktivitaPrezence
         }
     }
 
-    public function zrusZeDorazil(\Uzivatel $dorazil): bool {
+    public function zrusZeDorazil(\Uzivatel $nedorazil): bool {
         // TODO kontrola, jestli prezence smí být uložena (např. jestli už nebyla uložena dřív)
 
-        if ($this->aktivita->dorazilJakoNahradnik($dorazil)) {
+        if ($this->aktivita->dorazilJakoNahradnik($nedorazil)) {
             /* Návštěvník přidaný k aktivitě přes online prezenci se přidá jako náhradník a obratem potvrdí jeho přítomnost - přestože to aktivita sama vlastně nedovoluje. Když ho z aktivity zas ruší, tak ho ale nemůžeme zařadit do fronty jako náhradníka, protože to aktivita vlastně nedovoluje (a my to popravdě ani nechceme, když ho odškrtli při samotné online prezenci).
             PS: vlastně nechceme účastníka, kterého přidal vypravěč, "vracet" do stavu sledujícího, ale zatím to nechceme řešit. */
             if ($this->aktivita->prihlasovatelnaProSledujici()) {
-                $this->aktivita->prihlasSledujiciho($dorazil);
+                $this->aktivita->prihlasSledujiciho($nedorazil);
             }
             dbDelete('akce_prihlaseni', [
-                'id_uzivatele' => $dorazil->id(),
+                'id_uzivatele' => $nedorazil->id(),
                 'id_akce' => $this->aktivita->id(),
             ]);
-            $this->zalogujZeZrusilPrihlaseniJakoNahradik($dorazil);
+            $this->zalogujZeZrusilPrihlaseniJakoNahradik($nedorazil);
             return true;
         }
-        if ($this->aktivita->dorazilJakoPredemPrihlaseny($dorazil)) {
+        if ($this->aktivita->dorazilJakoPredemPrihlaseny($nedorazil)) {
             dbUpdate('akce_prihlaseni',
                 ['id_stavu_prihlaseni' => Aktivita::PRIHLASEN], // vratime ho zpet jako "jen prihlaseneho"
-                ['id_uzivatele' => $dorazil->id(), 'id_akce' => $this->aktivita->id()]
+                ['id_uzivatele' => $nedorazil->id(), 'id_akce' => $this->aktivita->id()]
             );
+            $this->zalogujZeSePrihlasil($nedorazil);
             return true;
         }
         // else není co měnit, už je všude zrušený
@@ -124,7 +125,7 @@ class AktivitaPrezence
     }
 
     public function zalogujZeZrusilPrihlaseniJakoNahradik(\Uzivatel $prihlasenySledujici) {
-        $this->log($prihlasenySledujici, AktivitaPrezenceTyp::ZRUSENI_PRIHLASENI_NAHRADNIK);
+        $this->log($prihlasenySledujici, AktivitaPrezenceTyp::NAHRADNIK_NEDORAZIL);
     }
 
     public function zalogujZeSeOdhlasilJakoSledujici(\Uzivatel $odhlasenySledujici) {
@@ -232,9 +233,9 @@ SQL,
      * @return PosledniZmenyStavuPrihlaseni
      */
     public static function dejPosledniZmeny(PosledniZmenyStavuPrihlaseni $posledniZnameZmenyStavuPrihlaseni): PosledniZmenyStavuPrihlaseni {
-        $index = 0;
-        $where = 'akce_prihlaseni_log.id_akce = $' . $index;
-        $sqlQueryParametry = [$index => $posledniZnameZmenyStavuPrihlaseni->getIdAktivity()];
+        $indexParametru = 0;
+        $where = 'akce_prihlaseni_log.id_akce = $' . $indexParametru;
+        $sqlQueryParametry = [$indexParametru => $posledniZnameZmenyStavuPrihlaseni->getIdAktivity()];
 
         $novejsiNezZnameZmenyStavuSql = [];
         foreach ($posledniZnameZmenyStavuPrihlaseni->zmenyStavuPrihlaseni() as $zmenaStavuPrihlaseni) {
@@ -242,23 +243,23 @@ SQL,
 
             $casZmenyStavu = $zmenaStavuPrihlaseni->casZmeny();
             if ($casZmenyStavu) {
-                $index++;
-                $novejsiNeboJinySql = 'akce_prihlaseni_log.cas > $' . $index; // novejsi
-                $sqlQueryParametry[$index] = $casZmenyStavu->format(DateTimeCz::FORMAT_DB);
+                $indexParametru++;
+                $novejsiNeboJinySql = 'akce_prihlaseni_log.cas > $' . $indexParametru; // novejsi
+                $sqlQueryParametry[$indexParametru] = $casZmenyStavu->format(DateTimeCz::FORMAT_DB);
 
-                $index++;
-                $jinyVeStejnyCasSql = 'akce_prihlaseni_log.cas = $' . $index; // nebo ve stejny cas...
-                $sqlQueryParametry[$index] = $casZmenyStavu->format(DateTimeCz::FORMAT_DB);
+                $indexParametru++;
+                $jinyVeStejnyCasSql = 'akce_prihlaseni_log.cas = $' . $indexParametru; // nebo ve stejny cas...
+                $sqlQueryParametry[$indexParametru] = $casZmenyStavu->format(DateTimeCz::FORMAT_DB);
 
                 $jinyTypNeboUcastnikSql = [];
-                $index++;
+                $indexParametru++;
                 // ...ale odlisny stav (abychom nereagovali na tu samou zmenu vicekrat)...
-                $jinyTypNeboUcastnikSql[] = 'akce_prihlaseni_log.typ != $' . $index;
-                $sqlQueryParametry[$index] = $zmenaStavuPrihlaseni->stavPrihlaseni();
-                $index++;
+                $jinyTypNeboUcastnikSql[] = 'akce_prihlaseni_log.typ != $' . $indexParametru;
+                $sqlQueryParametry[$indexParametru] = $zmenaStavuPrihlaseni->stavPrihlaseni();
+                $indexParametru++;
                 // ...nebo je to jiny ucastnik
-                $jinyTypNeboUcastnikSql[] = 'akce_prihlaseni_log.id_uzivatele != $' . $index;
-                $sqlQueryParametry[$index] = $zmenaStavuPrihlaseni->idUzivatele();
+                $jinyTypNeboUcastnikSql[] = 'akce_prihlaseni_log.id_uzivatele != $' . $indexParametru;
+                $sqlQueryParametry[$indexParametru] = $zmenaStavuPrihlaseni->idUzivatele();
 
                 $jinyVeStejnyCasSql .= ' AND (' . implode(' OR ', $jinyTypNeboUcastnikSql) . ')';
 
@@ -274,8 +275,9 @@ SQL,
         }
         /* For example:
         SELECT akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_uzivatele, akce_prihlaseni_log.typ, akce_prihlaseni_log.cas
-        FROM (SELECT akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_uzivatele, MAX(akce_prihlaseni_log.cas) AS kdy
+        FROM (SELECT akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_uzivatele, MAX(akce_prihlaseni_log.id_log) AS posledni_id
             FROM akce_prihlaseni_log
+            LEFT JOIN akce_prihlaseni on akce_prihlaseni_log.id_akce = akce_prihlaseni.id_akce
             WHERE akce_prihlaseni_log.id_akce = 4057
             AND (
                 (akce_prihlaseni_log.cas > '2022-04-26 11:48:54'
@@ -286,7 +288,7 @@ SQL,
         INNER JOIN akce_prihlaseni_log
             ON nejnovejsi.id_akce = akce_prihlaseni_log.id_akce
             AND nejnovejsi.id_uzivatele = akce_prihlaseni_log.id_uzivatele
-            AND nejnovejsi.kdy = akce_prihlaseni_log.cas
+            AND nejnovejsi.posledni_id = akce_prihlaseni_log.id_log
         GROUP BY akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_uzivatele;
          */
 
@@ -295,6 +297,7 @@ SELECT akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_uzivatele, akce_prihl
 FROM (
     SELECT akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_uzivatele, MAX(akce_prihlaseni_log.id_log) AS posledni_id
     FROM akce_prihlaseni_log
+    LEFT JOIN akce_prihlaseni on akce_prihlaseni_log.id_akce = akce_prihlaseni.id_akce
     WHERE $where
     GROUP BY id_akce, id_uzivatele
 ) AS nejnovejsi
