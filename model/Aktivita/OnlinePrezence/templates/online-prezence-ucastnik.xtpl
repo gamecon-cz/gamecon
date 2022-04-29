@@ -1,6 +1,7 @@
 <!-- begin:ucastnik -->
-<tr class="col-md col-sm-6 no-gutters ucastnik" data-id="{u.id}"
-    data-cas-zmeny-prihlaseni="{casPosledniZmenyPrihlaseni}"
+<tr id="ucastnik-{u.id}-na-aktivite-{a.id}" class="col-md col-sm-6 no-gutters ucastnik"
+    data-id="{u.id}"
+    data-cas-posledni-zmeny-prihlaseni="{casPosledniZmenyPrihlaseni}"
     data-stav-prihlaseni="{stavPrihlaseni}">
   <td style="text-align: center">
     <!-- begin:pritomen -->
@@ -32,7 +33,7 @@
   </td>
   <td style="text-align: center">
     <!-- begin:checkbox -->
-    <input type="checkbox" onchange="zmenitUcastnika('{u.id}', '{a.id}', this)" name="dorazil[]" value="{u.id}"
+    <input type="checkbox" class="dorazil" onchange="zmenitUcastnika('{u.id}', '{a.id}', this)" name="dorazil[]" value="{u.id}"
            {checkedUcastnik} {disabledUcastnik}>
     <!-- end:checkbox -->
   </td>
