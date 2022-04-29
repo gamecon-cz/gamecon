@@ -8,12 +8,23 @@
       const omnibox = $('.online-prezence .omnibox')
       omnibox.on('autocompleteselect', function (event, ui) {
         const idAktivity = this.dataset.idAktivity
+        const idUcastnika = ui.item.value
         const ucastniciAktivityNode = $(`#ucastniciAktivity${idAktivity}`)
         const novyUcastnik = $(ui.item.html)
 
-        ucastniciAktivityNode.append(novyUcastnik)
-        // trigger change pro potvrzení vybraného nového účastníka, viz JS funkce 'zmenitUcastnika'
-        novyUcastnik.find('input').trigger('change')
+        zmenitUcastnika(
+          idUcastnika,
+          idAktivity,
+          novyUcastnik.find('input')[0],
+          function () {
+            /**
+             * Teprve až backend potvrdí uložení vybraného účastníka a JS přidá čas poslední změny a stav přihlášení,
+             * tak můžeme přidat řádek s tímto účastníkem.
+             * Data z řádku totiž potřebujeme pro kontrolu změn v online-prezence-posledni-zname-zmeny-prihlaseni.js
+             */
+            ucastniciAktivityNode.append(novyUcastnik)
+          },
+        )
 
         // vyrušení default výběru do boxu
         event.preventDefault()
@@ -194,7 +205,13 @@
   })
 })(jQuery)
 
-function zmenitUcastnika(idUzivatele, idAktivity, checkboxNode) {
+/**
+ * @param {number} idUzivatele
+ * @param {number} idAktivity
+ * @param {HTMLElement} checkboxNode
+ * @param {function|undefined} callbackOnSuccess
+ */
+function zmenitUcastnika(idUzivatele, idAktivity, checkboxNode, callbackOnSuccess) {
   checkboxNode.disabled = true
   dorazil = checkboxNode.checked
   $.post(location.href, {
@@ -203,10 +220,18 @@ function zmenitUcastnika(idUzivatele, idAktivity, checkboxNode) {
      * @see \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax::ajaxZmenitUcastnikaAktivity
      */
     akce: 'zmenitUcastnika', idAktivity: idAktivity, idUzivatele: idUzivatele, dorazil: dorazil ? 1 : 0, ajax: 1,
-  }).done(function (data) {
+  }).done(/** @param {void|{prihlasen: boolean}} data */function (data) {
     checkboxNode.disabled = false
     if (data && typeof data.prihlasen == 'boolean') {
       checkboxNode.checked = data.prihlasen
+
+      const ucastnikNode = $(checkboxNode).parents('.ucastnik')[0]
+      ucastnikNode.dataset.casPosledniZmenyPrihlaseni = data.casPosledniZmenyPrihlaseni
+      ucastnikNode.dataset.stavPrihlaseni = data.stavPrihlaseni
+
+      if (callbackOnSuccess) {
+        callbackOnSuccess()
+      }
     }
   })
 }

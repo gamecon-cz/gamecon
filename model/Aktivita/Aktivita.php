@@ -49,14 +49,15 @@ class Aktivita
         POZDE_ZRUSIL = 4,
         SLEDUJICI = 5,
         //ignore a parametry kolem přihlašovátka
-        BEZ_POKUT = 0b00010000,   // odhlášení bez pokut
-        NEPOSILAT_MAILY = 0b10000000,   // odhlášení bez mailů náhradníkům
-        PLUSMINUS = 0b00000001,   // plus/mínus zkratky pro měnění míst v team. aktivitě
-        PLUSMINUS_KAZDY = 0b00000010,   // plus/mínus zkratky pro každého
-        STAV = 0b00000100,   // ignorování stavu
-        TECHNICKE = 0b01000000,   // přihlašovat i skryté technické aktivity
-        ZAMEK = 0b00001000,   // ignorování zamčení
-        ZPETNE = 0b00100000,   // možnost zpětně měnit přihlášení
+        PLUSMINUS = 0b000000001,   // plus/mínus zkratky pro měnění míst v team. aktivitě
+        PLUSMINUS_KAZDY = 0b000000010,   // plus/mínus zkratky pro každého
+        STAV = 0b000000100,   // ignorování stavu
+        ZAMEK = 0b000001000,   // ignorování zamčení
+        BEZ_POKUT = 0b000010000,   // odhlášení bez pokut
+        ZPETNE = 0b000100000,   // možnost zpětně měnit přihlášení
+        TECHNICKE = 0b001000000,   // přihlašovat i skryté technické aktivity
+        NEPOSILAT_MAILY = 0b010000000,   // odhlášení bez mailů náhradníkům
+        HROMADNE_ODHLASENI = 0b100000000, // k odhlášení došlo hromadnou autmatickou akcí
         // parametry kolem továrních metod
         JEN_VOLNE = 0b00000001,   // jen volné aktivity
         VEREJNE = 0b00000010,   // jen veřejně viditelné aktivity
@@ -983,8 +984,12 @@ class Aktivita
         $idAktivity = $this->id();
         $idUzivatele = $u->id();
         dbQuery("DELETE FROM akce_prihlaseni WHERE id_uzivatele=$idUzivatele AND id_akce=$idAktivity");
-        $this->dejPrezenci()->zalogujZeSeOdhlasil($u);
-        if (ODHLASENI_POKUTA_KONTROLA && $this->zbyvaHodinDoZacatku() < ODHLASENI_POKUTA1_H && !($params & self::BEZ_POKUT)) { // pokuta aktivní
+        if ($params & self::HROMADNE_ODHLASENI) {
+            $this->dejPrezenci()->zalogujZeBylHromadneOdhlasen($u);
+        } else {
+            $this->dejPrezenci()->zalogujZeSeOdhlasil($u);
+        }
+        if (ODHLASENI_POKUTA_KONTROLA && !($params & self::BEZ_POKUT) && $this->zbyvaHodinDoZacatku() < ODHLASENI_POKUTA1_H) { // pokuta aktivní
             $pozdeZrusil = self::POZDE_ZRUSIL;
             dbQuery("INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$idUzivatele, id_akce=$idAktivity, id_stavu_prihlaseni=$pozdeZrusil");
         }
@@ -2000,6 +2005,10 @@ SQL
         $this->dejPrezenci()->ulozDorazivsiho($dorazil);
     }
 
+    /**
+     * @param \Uzivatel $dorazil
+     * @return bool false pokud byl uživatel už zrušen a nic se tedy nezměnilo
+     */
     public function zrusZeDorazil(\Uzivatel $dorazil): bool {
         return $this->dejPrezenci()->zrusZeDorazil($dorazil);
     }
