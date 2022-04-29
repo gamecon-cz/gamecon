@@ -10,15 +10,6 @@ use Gamecon\Cas\DateTimeCz;
 class AktivitaPrezence
 {
 
-    public const PRIHLASENI = AktivitaPrezenceTyp::PRIHLASENI;
-    public const ODHLASENI = AktivitaPrezenceTyp::ODHLASENI;
-    public const NEDOSTAVENI_SE = AktivitaPrezenceTyp::NEDOSTAVENI_SE;
-    public const ODHLASENI_HROMADNE = AktivitaPrezenceTyp::ODHLASENI_HROMADNE;
-    public const DORAZIL_JAKO_NAHRADNIK = AktivitaPrezenceTyp::DORAZIL_JAKO_NAHRADNIK;
-    public const ZRUSENI_PRIHLASENI_NAHRADNIK = AktivitaPrezenceTyp::ZRUSENI_PRIHLASENI_NAHRADNIK;
-    public const PRIHLASENI_SLEDUJICI = AktivitaPrezenceTyp::PRIHLASENI_SLEDUJICI;
-    public const ODHLASENI_SLEDUJICI = AktivitaPrezenceTyp::ODHLASENI_SLEDUJICI;
-
     /** @var Aktivita */
     private $aktivita;
     /** @var void|\Uzivatel[] */
@@ -57,6 +48,7 @@ class AktivitaPrezence
                 'id_akce' => $this->aktivita->id(),
                 'id_stavu_prihlaseni' => Aktivita::PRIHLASEN_A_DORAZIL,
             ]);
+            $this->zalogujZeDorazil($dorazil);
         } else {
             $this->aktivita->odhlasZeSledováníAktivitVeStejnemCase($dorazil);
             dbInsert('akce_prihlaseni', [
@@ -91,12 +83,12 @@ class AktivitaPrezence
             );
             return true;
         }
-        // else neni co menit
+        // else není co měnit, už je všude zrušený
         return false;
     }
 
     public function zalogujZeSePrihlasil(\Uzivatel $prihlaseny) {
-        $this->log($prihlaseny, self::PRIHLASENI);
+        $this->log($prihlaseny, AktivitaPrezenceTyp::PRIHLASENI);
     }
 
     private function log(\Uzivatel $u, $zprava) {
@@ -108,33 +100,37 @@ class AktivitaPrezence
     }
 
     public function zalogujZeSeOdhlasil(\Uzivatel $odhlaseny) {
-        $this->log($odhlaseny, self::ODHLASENI);
+        $this->log($odhlaseny, AktivitaPrezenceTyp::ODHLASENI);
     }
 
     private function zalogujZeZeNedostavil(\Uzivatel $nedorazil) {
-        $this->log($nedorazil, self::NEDOSTAVENI_SE);
+        $this->log($nedorazil, AktivitaPrezenceTyp::NEDOSTAVENI_SE);
     }
 
     public function zalogujZeBylHromadneOdhlasen(\Uzivatel $hromadneOdhlasen) {
-        $this->log($hromadneOdhlasen, self::ODHLASENI_HROMADNE);
+        $this->log($hromadneOdhlasen, AktivitaPrezenceTyp::ODHLASENI_HROMADNE);
+    }
+
+    public function zalogujZeDorazil(\Uzivatel $dorazil) {
+        $this->log($dorazil, AktivitaPrezenceTyp::DORAZIL);
     }
 
     private function zalogujZeDorazilJakoNahradnik(\Uzivatel $dorazilNahradnik) {
-        $this->log($dorazilNahradnik, self::DORAZIL_JAKO_NAHRADNIK);
+        $this->log($dorazilNahradnik, AktivitaPrezenceTyp::DORAZIL_JAKO_NAHRADNIK);
     }
 
     public function zalogujZeSePrihlasilJakoSledujici(\Uzivatel $prihlasenySledujici) {
-        $this->log($prihlasenySledujici, self::PRIHLASENI_SLEDUJICI);
+        $this->log($prihlasenySledujici, AktivitaPrezenceTyp::PRIHLASENI_SLEDUJICI);
     }
 
     public function zalogujZeZrusilPrihlaseniJakoNahradik(\Uzivatel $prihlasenySledujici) {
-        $this->log($prihlasenySledujici, self::ZRUSENI_PRIHLASENI_NAHRADNIK);
+        $this->log($prihlasenySledujici, AktivitaPrezenceTyp::ZRUSENI_PRIHLASENI_NAHRADNIK);
     }
 
     public function zalogujZeSeOdhlasilJakoSledujici(\Uzivatel $odhlasenySledujici) {
         dbQuery(
             "INSERT INTO akce_prihlaseni_log SET id_uzivatele=$1, id_akce=$2, typ=$3",
-            [$odhlasenySledujici->id(), $this->aktivita->id(), self::ODHLASENI_SLEDUJICI]
+            [$odhlasenySledujici->id(), $this->aktivita->id(), AktivitaPrezenceTyp::ODHLASENI_SLEDUJICI]
         );
     }
 
@@ -243,7 +239,7 @@ SQL,
      * @param PosledniZmenyStavuPrihlaseni $posledniZnameZmenyStavuPrihlaseni
      * @return PosledniZmenyStavuPrihlaseni
      */
-    public static function dejPosledniZmeny(PosledniZmenyStavuPrihlaseni $posledniZnameZmenyStavuPrihlaseni): PosledniZmenyStavuPrihlaseni {
+    public static function dejPosledniPlatneZmeny(PosledniZmenyStavuPrihlaseni $posledniZnameZmenyStavuPrihlaseni): PosledniZmenyStavuPrihlaseni {
         $index = 0;
         $where = 'akce_prihlaseni_log.id_akce = $' . $index;
         $sqlQueryParametry = [$index => $posledniZnameZmenyStavuPrihlaseni->getIdAktivity()];
@@ -288,6 +284,8 @@ SQL,
         SELECT akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_uzivatele, akce_prihlaseni_log.typ, akce_prihlaseni_log.cas
         FROM (SELECT akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_uzivatele, MAX(akce_prihlaseni_log.cas) AS kdy
             FROM akce_prihlaseni_log
+            INNER JOIN akce_prihlaseni -- abychom dostali jen změny, které stále platí
+                ON akce_prihlaseni_log.id_akce = akce_prihlaseni.id_akce
             WHERE akce_prihlaseni_log.id_akce = 4057
             AND (
                 (akce_prihlaseni_log.cas > '2022-04-26 11:48:54'
@@ -307,6 +305,8 @@ SELECT akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_uzivatele, akce_prihl
 FROM (
     SELECT akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_uzivatele, MAX(akce_prihlaseni_log.cas) AS kdy
     FROM akce_prihlaseni_log
+    INNER JOIN akce_prihlaseni -- abychom dostali jen změny, které stále platí
+        ON akce_prihlaseni_log.id_akce = akce_prihlaseni.id_akce
     WHERE $where
     GROUP BY id_akce, id_uzivatele
 ) AS nejnovejsi
