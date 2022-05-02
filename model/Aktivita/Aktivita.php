@@ -5,6 +5,7 @@ namespace Gamecon\Aktivita;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImportSqlColumn;
 use Gamecon\PrednacitaniTrait;
+use Symfony\Component\Filesystem\Filesystem;
 
 require_once __DIR__ . '/../../admin/scripts/modules/aktivity/_editor-tagu.php';
 
@@ -1008,7 +1009,7 @@ class Aktivita
 
     public function dejPrezenci(): AktivitaPrezence {
         if (!$this->prezence) {
-            $this->prezence = new AktivitaPrezence($this);
+            $this->prezence = new AktivitaPrezence($this, new Filesystem());
         }
         return $this->prezence;
     }
@@ -1936,26 +1937,10 @@ SQL
         $this->dejPrezenci()->uloz($dorazili);
     }
 
-    public function ulozZeDorazil(\Uzivatel $dorazil) {
-        $this->dejPrezenci()->ulozDorazivsiho($dorazil);
-    }
-
-    /**
-     * @param \Uzivatel $dorazil
-     * @return bool false pokud byl uživatel už zrušen a nic se tedy nezměnilo
-     */
-    public function zrusZeDorazil(\Uzivatel $dorazil): bool {
-        return $this->dejPrezenci()->zrusZeDorazil($dorazil);
-    }
-
-    public function ulozPrezenciNedorazivsiho(\Uzivatel $dorazil) {
-        $this->dejPrezenci()->ulozNedorazivsiho($dorazil);
-    }
-
     /**
      * @return string absolutní url k anotaci aktivity na webu
      */
-    public function url() {
+    public function url(): string {
         static $typy;
         if (!$typy) {
             $o = dbQuery('SELECT id_typu, url_typu_mn FROM akce_typy');
