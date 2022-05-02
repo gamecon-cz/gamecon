@@ -226,7 +226,7 @@ function zmenitUcastnika(idUzivatele, idAktivity, checkboxNode, callbackOnSucces
       checkboxNode.checked = data.prihlasen
 
       // TODO tohle je to samé co v online-prezence-posledni-zname-zmeny-prihlaseni.js zapisMetadataPrezence, asi by to chtělo přes nějaký CustomEvent a řešit to jedním kódem
-      const ucastnikNode = $(checkboxNode).parents('.ucadejAdresareProRazitkaPoslednichZmenProOrganizatorystnik')[0]
+      const ucastnikNode = $(checkboxNode).parents('.ucastnik')[0]
       ucastnikNode.dataset.casPosledniZmenyPrihlaseni = data.cas_posledni_zmeny_prihlaseni
       ucastnikNode.dataset.stavPrihlaseni = data.stav_prihlaseni
 
