@@ -17,7 +17,9 @@ use Gamecon\Vyjimkovac\Vyjimkovac;
  * @var Uzivatel $u
  */
 
-$testovani = defined('TESTING') && TESTING && !empty($_GET['test']);
+$muzemeTestovat = defined('TESTING') && TESTING
+    && defined('TEST_MAZAT_VSECHNA_RAZITKA_POSLEDNICH_ZMEN') && TEST_MAZAT_VSECHNA_RAZITKA_POSLEDNICH_ZMEN;
+$testovani = $muzemeTestovat && !empty($_GET['test']);
 
 if (get('id')) {
     require __DIR__ . '/_moje-aktivita.php';
@@ -29,9 +31,10 @@ $BEZ_DEKORACE = true; // pokud nedoslo k chybě, tak nechceme levé menu, ale po
 
 $onlinePrezenceHtml = new OnlinePrezenceHtml(
     Vyjimkovac::js(URL_WEBU),
-    (int)MOJE_AKTIVITY_NA_POSLEDNI_CHVILI_X_MINUT_PRED_JEJICH_ZACATKEM
+    (int)MOJE_AKTIVITY_NA_POSLEDNI_CHVILI_X_MINUT_PRED_JEJICH_ZACATKEM,
+    $muzemeTestovat
 );
-$onlinePrezenceAjax = new OnlinePrezenceAjax($onlinePrezenceHtml);
+$onlinePrezenceAjax = new OnlinePrezenceAjax($onlinePrezenceHtml, new \Symfony\Component\Filesystem\Filesystem());
 
 if ($onlinePrezenceAjax->odbavAjax($u)) {
     return;
