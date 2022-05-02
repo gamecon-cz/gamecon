@@ -374,20 +374,16 @@ SQL,
      * @param Aktivita $aktivita
      * @return string[]
      */
-    public static function dejAdresareProRazitkaPoslednichZmenProOrganizatory(Aktivita $aktivita): array {
+    private static function dejAdresareProRazitkaPoslednichZmenProOrganizatory(Aktivita $aktivita): array {
         $adresare = [];
         foreach ($aktivita->organizatori() as $vypravec) {
-            $adresare[] = self::dejAdresarProRazitkoPosledniZmeny($vypravec, $aktivita);
+            $adresare[] = self::dejAdresarProRazitkoPosledniZmeny($vypravec);
         }
         return array_unique($adresare);
     }
 
-    public static function dejAdresarProRazitkoPosledniZmeny(\Uzivatel $vypravec, Aktivita $aktivita): string {
-        return self::dejAdresarProRazitkaPosledniZmeny($aktivita) . '/vypravec-' . $vypravec->id();
-    }
-
-    private static function dejAdresarProRazitkaPosledniZmeny(Aktivita $aktivita): string {
-        return self::dejAdresarProRazitkaPoslednichZmen() . '/aktivita-' . $aktivita->id();
+    public static function dejAdresarProRazitkoPosledniZmeny(\Uzivatel $vypravec): string {
+        return self::dejAdresarProRazitkaPoslednichZmen() . '/vypravec-' . $vypravec->id();
     }
 
     private static function dejAdresarProRazitkaPoslednichZmen(): string {
