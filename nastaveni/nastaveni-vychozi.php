@@ -7,9 +7,10 @@
  * Použité hodnoty by měly být bezpečné pro produkci.
  */
 
-@define('WWW',   __DIR__ . '/../web');
+@define('WWW', __DIR__ . '/../web');
 @define('ADMIN', __DIR__ . '/../admin');
-@define('SPEC',  __DIR__ . '/../cache/private');
+@define('ADMIN_STAMPS', rtrim(ADMIN, '/') . '/stamps');
+@define('SPEC', __DIR__ . '/../cache/private');
 @define('CACHE', __DIR__ . '/../cache/public');
 
 @define('AUTOMATICKE_MIGRACE', false);
