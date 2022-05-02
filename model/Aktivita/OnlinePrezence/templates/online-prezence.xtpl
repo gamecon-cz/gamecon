@@ -62,7 +62,7 @@
          id="online-prezence"
          data-url-razitka-posledni-zmeny="{urlRazitkaPosledniZmeny}"
          data-razitko-posledni-zmeny="{razitkoPosledniZmeny}"
-         data-url-posledni-zmeny-prihlaseni="{urlPosledniZmenyPrihlaseni}"
+         data-url-akce-posledni-zmeny="{urlAkcePosledniZmeny}"
     >
 
       <!-- begin:aktivita -->
