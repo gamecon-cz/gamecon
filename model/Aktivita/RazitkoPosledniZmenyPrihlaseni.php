@@ -102,14 +102,6 @@ class RazitkoPosledniZmenyPrihlaseni
 
     private function dejObsah(?ZmenaStavuPrihlaseni $posledniZmena): array {
         return [
-            'id_aktivity' => $this->dejAktivituSPosledniZmenou($posledniZmena)->id(),
-            'id_vypravece' => $this->vypravec->id(),
-            'stav_prihlaseni' => $posledniZmena !== null
-                ? $posledniZmena->stavPrihlaseniProJs()
-                : null,
-            'cas_zmeny' => $posledniZmena !== null
-                ? $posledniZmena->casZmenyProJs()
-                : null,
             self::RAZITKO_POSLEDNI_ZMENY => $this->dejRazitkoPosledniZmeny($posledniZmena),
         ];
     }
