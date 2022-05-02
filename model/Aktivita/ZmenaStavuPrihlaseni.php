@@ -13,13 +13,14 @@ class ZmenaStavuPrihlaseni
     private const NAHRADNIK_DORAZIL = 'nahradnik_dorazil';
     private const NAHRADNIK_NEDORAZIL = 'nahradnik_nedorazil';
 
-    public static function vytvorZDatDatabaze(int $idUzivatele, ?\DateTimeImmutable $casZmeny, ?string $stavPrihlaseni): self {
-        return new static($idUzivatele, $casZmeny, $stavPrihlaseni);
+    public static function vytvorZDatDatabaze(int $idUzivatele, ?int $idAktivity, ?\DateTimeImmutable $casZmeny, ?string $stavPrihlaseni): self {
+        return new static($idUzivatele, $idAktivity, $casZmeny, $stavPrihlaseni);
     }
 
-    public static function vytvorZDatJavscriptu(int $idUzivatele, ?\DateTimeImmutable $casZmeny, string $stavPrihlaseniJs): self {
+    public static function vytvorZDatJavscriptu(int $idUzivatele, ?int $idAktivity, ?\DateTimeImmutable $casZmeny, string $stavPrihlaseniJs): self {
         return static::vytvorZDatDatabaze(
             $idUzivatele,
+            $idAktivity,
             $casZmeny,
             self::stavPrihlaseniZJsDoDatabazoveho($stavPrihlaseniJs)
         );
@@ -53,25 +54,34 @@ class ZmenaStavuPrihlaseni
      */
     private $idUzivatele;
     /**
+     * @var int|null
+     */
+    private $idAktivity;
+    /**
      * @var ?\DateTimeImmutable
      */
     private $casZmeny;
     /**
-     * @var string
+     * @var null|string
      */
     private $stavPrihlaseni;
 
-    public function __construct(int $idUzivatele, ?\DateTimeImmutable $casZmeny, ?string $stavPrihlaseni) {
+    public function __construct(int $idUzivatele, ?int $idAktivity, ?\DateTimeImmutable $casZmeny, ?string $stavPrihlaseni) {
         if ($stavPrihlaseni && !AktivitaPrezenceTyp::jeZnamy($stavPrihlaseni)) {
             throw new \LogicException('Neznamy stav prihlaseni ' . var_export($stavPrihlaseni, true));
         }
         $this->idUzivatele = $idUzivatele;
+        $this->idAktivity = $idAktivity;
         $this->casZmeny = $casZmeny;
         $this->stavPrihlaseni = $stavPrihlaseni;
     }
 
     public function idUzivatele(): int {
         return $this->idUzivatele;
+    }
+
+    public function idAktivity(): ?int {
+        return $this->idAktivity;
     }
 
     public function casZmeny(): ?\DateTimeImmutable {

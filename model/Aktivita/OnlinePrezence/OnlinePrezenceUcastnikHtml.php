@@ -46,7 +46,7 @@ class OnlinePrezenceUcastnikHtml
             $ucastnikTemplate->parse('ucastnik.prihlasenNaPosledniChvili');
         }
 
-        $zmenaStavuPrihlaseni = $aktivita->dejPrezenci()->posledniZmenaStavuPrihlaseni($ucastnik);
+        $zmenaStavuPrihlaseni = $aktivita->dejPrezenci()->dejPosledniZmenaStavuPrihlaseni($ucastnik);
         $ucastnikTemplate->assign('casPosledniZmenyPrihlaseni', $zmenaStavuPrihlaseni->casZmenyProJs());
         $ucastnikTemplate->assign('stavPrihlaseni', $zmenaStavuPrihlaseni->stavPrihlaseniProJs());
 

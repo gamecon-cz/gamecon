@@ -1,12 +1,50 @@
 (function ($) {
   document.addEventListener('DOMContentLoaded', function () {
-    const urlPosledniZmenyPrihlaseni = document.getElementById('online-prezence').dataset.urlPosledniZmenyPrihlaseni
 
     const $onlinePrezence = $('#online-prezence')
+
+    let razitkoPosledniZmeny = $onlinePrezence.data('razitko-posledni-zmeny')
+
+    /**
+     * @return {string}
+     */
+    function dejUrlRazitkaPosledniZmeny() {
+      return $onlinePrezence.data('url-razitka-posledni-zmeny')
+    }
+
+    let jePozastavenaKontrolaZmen = false
+    setInterval(function () {
+      if (jePozastavenaKontrolaZmen) {
+        return
+      }
+
+      const request = new XMLHttpRequest()
+
+      request.addEventListener('loadstart', function () {
+        jePozastavenaKontrolaZmen = true
+      })
+
+      request.addEventListener('load', function (event) {
+        if (this.status === 404) {
+          nahratZmenyPrihlaseni()
+        } else if (this.status === 200 && this.responseText) {
+          const json = JSON.parse(this.responseText.trim())
+          if (json.razitko_posledni_zmeny !== razitkoPosledniZmeny) {
+            nahratZmenyPrihlaseni()
+          }
+        }
+        jePozastavenaKontrolaZmen = false
+      })
+
+      request.open('GET', dejUrlRazitkaPosledniZmeny()) // asynchronous
+      request.send()
+    }, 1000) // kazdou sekundu knrtolujeme, zda razitko posledni zmeny je patne (zda soubor s nim existuje) - kdyz soubor zmizi, tak se prilaseni na jedne z aktivit zmenilo a my chceme sathnout zmeny
+
+    const urlPosledniZmenyPrihlaseni = document.getElementById('online-prezence').dataset.urlPosledniZmenyPrihlaseni
+
     const $aktivity = $onlinePrezence.find('.aktivita')
 
-    setInterval(function () {
-
+    function nahratZmenyPrihlaseni() {
       const postData = []
 
       $aktivity.each(function (indexAktivity, aktivita) {
@@ -33,7 +71,7 @@
          * @see \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax::ajaxDejPosledniZmeny
          */
         'zname_zmeny_prihlaseni': postData,
-      }).done(/** @param {{zmeny: []}} data */function (data) {
+      }).done(/** @param {{razitko_posledni_zmeny: string, zmeny: []}} data */function (data) {
         /* napriklad
         {
           zmeny: [
@@ -53,8 +91,10 @@
             zapisZmenuPrihlaseni(zmena)
           })
         }
+        $onlinePrezence.data('razitko-posledni-zmeny', data.razitko_posledni_zmeny)
+        razitkoPosledniZmeny = data.razitko_posledni_zmeny
       })
-    }, 10000)
+    }
 
     /**
      * @param {Zmena} zmena
