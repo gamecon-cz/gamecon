@@ -58,10 +58,17 @@
       let posledneKliknutaAktivitaId
     </script>
 
-    <div class="online-prezence" id="online-prezence" data-url-posledni-zmeny-prihlaseni="{urlPosledniZmenyPrihlaseni}">
+    <div class="online-prezence"
+         id="online-prezence"
+         data-url-razitka-posledni-zmeny="{urlRazitkaPosledniZmeny}"
+         data-razitko-posledni-zmeny="{razitkoPosledniZmeny}"
+         data-url-posledni-zmeny-prihlaseni="{urlPosledniZmenyPrihlaseni}"
+    >
 
       <!-- begin:aktivita -->
-      <div class="aktivita" id="aktivita-{idAktivity}" data-id="{idAktivity}">
+      <div class="aktivita"
+           id="aktivita-{idAktivity}"
+           data-id="{idAktivity}">
 
         <h2 id="{nadpis}">{nadpis} <a href="#{nadpis}" style="color: darkgray; opacity: 0.6">#</a></h2>
 
