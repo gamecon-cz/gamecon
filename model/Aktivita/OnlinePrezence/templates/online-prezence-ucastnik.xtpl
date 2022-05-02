@@ -34,7 +34,7 @@
   <td style="text-align: center">
     <!-- begin:checkbox -->
     <input type="checkbox" class="dorazil" onchange="zmenitUcastnika('{u.id}', '{a.id}', this)" name="dorazil[]" value="{u.id}"
-           {checkedUcastnik} {disabledUcastnik}>
+           {checkedUcastnik} {disabledUcastnik} data-initial-checked="{checkedUcastnik}">
     <!-- end:checkbox -->
   </td>
 </tr>
