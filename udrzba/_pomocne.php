@@ -30,6 +30,7 @@ function nasad(array $nastaveni) {
 
       /backup/*
       /cache/private/*
+      /admin/stamps/*
       !/cache/private/.htaccess
       /cache/public/*
       !/cache/public/.htaccess
