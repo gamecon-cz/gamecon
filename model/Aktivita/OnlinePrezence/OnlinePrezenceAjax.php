@@ -226,8 +226,8 @@ class OnlinePrezenceAjax
 
         $this->echoJson([
             'prihlasen' => $aktivita->dorazilJakoCokoliv($ucastnik),
-            'casPosledniZmenyPrihlaseni' => $posledniZmenaStavuPrihlaseni->casZmenyProJs(),
-            'stavPrihlaseni' => $posledniZmenaStavuPrihlaseni->stavPrihlaseniProJs(),
+            'cas_posledni_zmeny_prihlaseni' => $posledniZmenaStavuPrihlaseni->casZmenyProJs(),
+            'stav_prihlaseni' => $posledniZmenaStavuPrihlaseni->stavPrihlaseniProJs(),
         ]);
     }
 

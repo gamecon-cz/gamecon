@@ -220,15 +220,15 @@ function zmenitUcastnika(idUzivatele, idAktivity, checkboxNode, callbackOnSucces
      * @see \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax::ajaxZmenitUcastnikaAktivity
      */
     akce: 'zmenitUcastnika', idAktivity: idAktivity, idUzivatele: idUzivatele, dorazil: dorazil ? 1 : 0, ajax: 1,
-  }).done(/** @param {void|{prihlasen: boolean}} data */function (data) {
+  }).done(/** @param {void|{prihlasen: boolean, cas_posledni_zmeny_prihlaseni: string, stav_prihlaseni: string}} data */function (data) {
     checkboxNode.disabled = false
     if (data && typeof data.prihlasen == 'boolean') {
       checkboxNode.checked = data.prihlasen
 
       // TODO tohle je to samé co v online-prezence-posledni-zname-zmeny-prihlaseni.js zapisMetadataPrezence, asi by to chtělo přes nějaký CustomEvent a řešit to jedním kódem
-      const ucastnikNode = $(checkboxNode).parents('.ucastnik')[0]
-      ucastnikNode.dataset.casPosledniZmenyPrihlaseni = data.casPosledniZmenyPrihlaseni
-      ucastnikNode.dataset.stavPrihlaseni = data.stavPrihlaseni
+      const ucastnikNode = $(checkboxNode).parents('.ucadejAdresareProRazitkaPoslednichZmenProOrganizatorystnik')[0]
+      ucastnikNode.dataset.casPosledniZmenyPrihlaseni = data.cas_posledni_zmeny_prihlaseni
+      ucastnikNode.dataset.stavPrihlaseni = data.stav_prihlaseni
 
       if (callbackOnSuccess) {
         callbackOnSuccess()
