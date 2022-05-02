@@ -3,6 +3,7 @@
 namespace Gamecon\Aktivita;
 
 use Gamecon\Cas\DateTimeCz;
+use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * Prezenční listina aktivity.
@@ -14,9 +15,15 @@ class AktivitaPrezence
     private $aktivita;
     /** @var void|\Uzivatel[] */
     private $seznamSledujicich;
+    /** @var Filesystem */
+    private $filesystem;
 
-    public function __construct(Aktivita $aktivita) {
+    public function __construct(
+        Aktivita   $aktivita,
+        Filesystem $filesystem
+    ) {
         $this->aktivita = $aktivita;
+        $this->filesystem = $filesystem;
     }
 
     /**
@@ -29,7 +36,7 @@ class AktivitaPrezence
         // TODO kontrola, jestli prezence smí být uložena (např. jestli už nebyla uložena dřív)
 
         foreach ($dorazili as $dorazil) {
-            $this->ulozDorazivsiho($dorazil);
+            $this->ulozZeDorazil($dorazil);
             $doraziliIds[$dorazil->id()] = true;
         }
         foreach ($this->aktivita->prihlaseni() as $uzivatel) {
@@ -39,7 +46,7 @@ class AktivitaPrezence
         }
     }
 
-    public function ulozDorazivsiho(\Uzivatel $dorazil) {
+    public function ulozZeDorazil(\Uzivatel $dorazil) {
         // TODO kontrola, jestli prezence smí být uložena (např. jestli už nebyla uložena dřív)
 
         if ($this->aktivita->prihlasen($dorazil)) {
@@ -60,20 +67,24 @@ class AktivitaPrezence
         }
     }
 
+    /**
+     * @param \Uzivatel $dorazil
+     * @return bool false pokud byl uživatel už zrušen a nic se tedy nezměnilo
+     */
     public function zrusZeDorazil(\Uzivatel $nedorazil): bool {
         // TODO kontrola, jestli prezence smí být uložena (např. jestli už nebyla uložena dřív)
 
         if ($this->aktivita->dorazilJakoNahradnik($nedorazil)) {
-            /* Návštěvník přidaný k aktivitě přes online prezenci se přidá jako náhradník a obratem potvrdí jeho přítomnost - přestože to aktivita sama vlastně nedovoluje. Když ho z aktivity zas ruší, tak ho ale nemůžeme zařadit do fronty jako náhradníka, protože to aktivita vlastně nedovoluje (a my to popravdě ani nechceme, když ho odškrtli při samotné online prezenci).
-            PS: vlastně nechceme účastníka, kterého přidal vypravěč, "vracet" do stavu sledujícího, ale zatím to nechceme řešit. */
-            if ($this->aktivita->prihlasovatelnaProSledujici()) {
-                $this->aktivita->prihlasSledujiciho($nedorazil);
-            }
             dbDelete('akce_prihlaseni', [
                 'id_uzivatele' => $nedorazil->id(),
                 'id_akce' => $this->aktivita->id(),
             ]);
             $this->zalogujZeZrusilPrihlaseniJakoNahradik($nedorazil);
+            /* Návštěvník přidaný k aktivitě přes online prezenci se přidá jako náhradník a obratem potvrdí jeho přítomnost - přestože to aktivita sama vlastně nedovoluje. Když ho z aktivity zas ruší, tak ho ale nemůžeme zařadit do fronty jako náhradníka, protože to aktivita vlastně nedovoluje (a my to popravdě ani nechceme, když ho odškrtli při samotné online prezenci).
+            PS: vlastně nechceme účastníka, kterého přidal vypravěč, "vracet" do stavu sledujícího, ale zatím to nechceme řešit. */
+            if ($this->aktivita->prihlasovatelnaProSledujici()) {
+                $this->aktivita->prihlasSledujiciho($nedorazil);
+            }
             return true;
         }
         if ($this->aktivita->dorazilJakoPredemPrihlaseny($nedorazil)) {
@@ -98,6 +109,23 @@ class AktivitaPrezence
             'id_akce' => $this->aktivita->id(),
             'typ' => $zprava,
         ]);
+        $this->smazRazitkaPoslednichZmen();
+    }
+
+    private function smazRazitkaPoslednichZmen() {
+        if (defined('TESTING') && TESTING
+            && defined('TEST_MAZAT_VSECHNA_RAZITKA_POSLEDNICH_ZMEN') && TEST_MAZAT_VSECHNA_RAZITKA_POSLEDNICH_ZMEN
+        ) {
+            /**
+             * Při testování online prezence se vypisují i aktivity, které organizátor ve skutečnosti neorganizuje.
+             * Proto musíme mazat všechna razítka, protože smazat je jen těm, kteří ji opravdu ogranizují, nestačí - neorganizujícímu testerovi by se nenačetly změny.
+             */
+            $this->filesystem->remove(self::dejAdresarProRazitkaPoslednichZmen());
+            return;
+        }
+        foreach (self::dejAdresareProRazitkaPoslednichZmenProOrganizatory($this->aktivita) as $adresar) {
+            $this->filesystem->remove($adresar);
+        }
     }
 
     public function zalogujZeSeOdhlasil(\Uzivatel $odhlaseny) {
@@ -129,10 +157,7 @@ class AktivitaPrezence
     }
 
     public function zalogujZeSeOdhlasilJakoSledujici(\Uzivatel $odhlasenySledujici) {
-        dbQuery(
-            "INSERT INTO akce_prihlaseni_log SET id_uzivatele=$1, id_akce=$2, typ=$3",
-            [$odhlasenySledujici->id(), $this->aktivita->id(), AktivitaPrezenceTyp::ODHLASENI_SLEDUJICI]
-        );
+        $this->log($odhlasenySledujici, AktivitaPrezenceTyp::ODHLASENI_SLEDUJICI);
     }
 
     public function ulozNedorazivsiho(\Uzivatel $nedorazil) {
@@ -168,37 +193,15 @@ class AktivitaPrezence
     }
 
     public function prihlasenOd(\Uzivatel $uzivatel): ?\DateTimeImmutable {
-        $posledniZmenaStavuPrihlaseni = $this->posledniZmenaStavuPrihlaseni($uzivatel);
+        $posledniZmenaStavuPrihlaseni = $this->dejPosledniZmenaStavuPrihlaseni($uzivatel);
         if ($posledniZmenaStavuPrihlaseni->stavPrihlaseni() !== AktivitaPrezenceTyp::PRIHLASENI) {
             return null;
         }
         return $posledniZmenaStavuPrihlaseni->casZmeny();
     }
 
-    public function posledniZmenaStavuPrihlaseni(\Uzivatel $ucastnik): ZmenaStavuPrihlaseni {
-        $kdyATyp = dbOneLine(<<<SQL
-SELECT nejnovejsi.kdy, akce_prihlaseni_log.typ
-FROM (
-    SELECT MAX(cas) AS kdy, id_akce, id_uzivatele
-    FROM akce_prihlaseni_log
-    WHERE id_akce = $1 AND id_uzivatele = $2
-    GROUP BY id_akce, id_uzivatele
-) AS nejnovejsi
-INNER JOIN akce_prihlaseni_log
-    ON nejnovejsi.id_uzivatele = akce_prihlaseni_log.id_uzivatele
-    AND nejnovejsi.id_akce = akce_prihlaseni_log.id_akce
-    AND nejnovejsi.kdy = akce_prihlaseni_log.cas
-GROUP BY akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_uzivatele
-SQL,
-            [$this->aktivita->id(), $ucastnik->id()]
-        );
-        return new ZmenaStavuPrihlaseni(
-            $ucastnik->id(),
-            $kdyATyp
-                ? new \DateTimeImmutable($kdyATyp['kdy'])
-                : null,
-            $kdyATyp['typ']
-        );
+    public function dejPosledniZmenaStavuPrihlaseni(\Uzivatel $ucastnik): ZmenaStavuPrihlaseni {
+        return self::dejPosledniZmenaStavuPrihlaseniAktivit($ucastnik, [$this->aktivita]);
     }
 
     /**
@@ -314,6 +317,7 @@ SQL
         foreach ($zmeny as $zmena) {
             $zmenaStavuPrihlaseni = ZmenaStavuPrihlaseni::vytvorZDatDatabaze(
                 (int)$zmena['id_uzivatele'],
+                (int)$zmena['id_akce'],
                 new \DateTimeImmutable($zmena['cas']),
                 $zmena['typ']
             );
@@ -321,4 +325,73 @@ SQL
         }
         return $nejnovejsiZmenyStavuPrihlaseni;
     }
+
+    /**
+     * @param \Uzivatel|null $ucastnik
+     * @param Aktivita[] $aktivity
+     * @return ZmenaStavuPrihlaseni
+     * @throws \Exception
+     */
+    public static function dejPosledniZmenaStavuPrihlaseniAktivit(?\Uzivatel $ucastnik, array $aktivity): ?ZmenaStavuPrihlaseni {
+        $posledniZmena = dbOneLine(<<<SQL
+SELECT nejnovejsi.id_uzivatele, nejnovejsi.kdy, nejnovejsi.id_akce, akce_prihlaseni_log.typ
+FROM (
+    SELECT MAX(cas) AS kdy, id_akce, id_uzivatele
+    FROM akce_prihlaseni_log
+    WHERE id_akce IN ($1) AND IF($2 IS NULL, TRUE, id_uzivatele = $2)
+    GROUP BY id_akce, id_uzivatele
+    HAVING kdy = (SELECT MAX(cas) AS kdy FROM akce_prihlaseni_log WHERE id_akce IN ($1) AND IF($2 IS NULL, TRUE, id_uzivatele = $2))
+    LIMIT 1
+) AS nejnovejsi
+INNER JOIN akce_prihlaseni_log
+    ON nejnovejsi.id_uzivatele = akce_prihlaseni_log.id_uzivatele
+    AND nejnovejsi.id_akce = akce_prihlaseni_log.id_akce
+    AND nejnovejsi.kdy = akce_prihlaseni_log.cas
+GROUP BY akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_uzivatele
+SQL,
+            [
+                array_map(static function (Aktivita $aktivita) {
+                    return $aktivita->id();
+                }, $aktivity),
+                $ucastnik ? $ucastnik->id() : null,
+            ]
+        );
+        $idUzivatelePosledniZmeny = $posledniZmena['id_uzivatele'] ?? ($ucastnik ? $ucastnik->id() : null);
+        if (!$idUzivatelePosledniZmeny) {
+            return null;
+        }
+        return new ZmenaStavuPrihlaseni(
+            $idUzivatelePosledniZmeny,
+            $posledniZmena['id_akce'] ?? null,
+            $posledniZmena
+                ? new \DateTimeImmutable($posledniZmena['kdy'])
+                : null,
+            $posledniZmena['typ'] ?? null
+        );
+    }
+
+    /**
+     * @param Aktivita $aktivita
+     * @return string[]
+     */
+    public static function dejAdresareProRazitkaPoslednichZmenProOrganizatory(Aktivita $aktivita): array {
+        $adresare = [];
+        foreach ($aktivita->organizatori() as $vypravec) {
+            $adresare[] = self::dejAdresarProRazitkoPosledniZmeny($vypravec, $aktivita);
+        }
+        return array_unique($adresare);
+    }
+
+    public static function dejAdresarProRazitkoPosledniZmeny(\Uzivatel $vypravec, Aktivita $aktivita): string {
+        return self::dejAdresarProRazitkaPosledniZmeny($aktivita) . '/vypravec-' . $vypravec->id();
+    }
+
+    private static function dejAdresarProRazitkaPosledniZmeny(Aktivita $aktivita): string {
+        return self::dejAdresarProRazitkaPoslednichZmen() . '/aktivita-' . $aktivita->id();
+    }
+
+    private static function dejAdresarProRazitkaPoslednichZmen(): string {
+        return ADMIN_STAMPS . '/zmeny';
+    }
+
 }

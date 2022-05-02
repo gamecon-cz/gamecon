@@ -16,7 +16,7 @@ use Gamecon\Aktivita\Aktivita;
 if (post('prezenceAktivity')) {
     $aktivita = Aktivita::zId(post('prezenceAktivity'));
     $dorazili = Uzivatel::zIds(array_keys(post('dorazil') ?: []));
-    $aktivita->ulozPrezenci($dorazili);
+    $aktivita->dejPrezenci()->uloz($dorazili);
     back();
 }
 
