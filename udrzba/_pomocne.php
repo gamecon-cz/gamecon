@@ -29,6 +29,7 @@ function nasad(array $nastaveni) {
       /.phpunit.result.cache
 
       /cache/private/*
+      /admin/stamps/*
       !/cache/private/.htaccess
       /cache/public/*
       !/cache/public/.htaccess
