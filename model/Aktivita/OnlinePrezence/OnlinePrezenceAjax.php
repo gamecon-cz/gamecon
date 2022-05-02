@@ -14,7 +14,7 @@ class OnlinePrezenceAjax
     public const AJAX = 'ajax';
     public const POSLEDNI_ZMENY = 'posledni-zmeny';
 
-    public static function dejUrlPosledniZmenyPrihlaseni(): string {
+    public static function dejUrlAkcePosledniZmeny(): string {
         return getCurrentUrlWithQuery([self::AJAX => 1, 'akce' => self::POSLEDNI_ZMENY]);
     }
 
@@ -41,7 +41,7 @@ class OnlinePrezenceAjax
         }
 
         if (get('akce') === self::POSLEDNI_ZMENY) {
-            $this->ajaxDejPosledniPlatneZmeny(post('zname_zmeny_prihlaseni'), $vypravec);
+            $this->ajaxDejPosledniZmeny(post('zname_zmeny_prihlaseni'), $vypravec);
             return true;
         }
 
@@ -90,7 +90,7 @@ class OnlinePrezenceAjax
      * @param \Uzivatel $vypravec
      * @return void
      */
-    private function ajaxDejPosledniPlatneZmeny(array $puvodniPosledniZnameZmenyPrihlaseni, \Uzivatel $vypravec) {
+    private function ajaxDejPosledniZmeny(array $puvodniPosledniZnameZmenyPrihlaseni, \Uzivatel $vypravec) {
         $zmenyProJson = [];
         $aktivity = [];
         foreach ($puvodniPosledniZnameZmenyPrihlaseni as $puvodniPosledniZnameZmenyPrihlaseniNaAktivitu) {
@@ -138,7 +138,10 @@ class OnlinePrezenceAjax
         $razitkoPosledniZmeny = new RazitkoPosledniZmenyPrihlaseni($vypravec, $aktivity, $this->filesystem);
         $this->echoJson([
             'zmeny' => $zmenyProJson,
-            // konstanta, abychom všude používali stejný klíč pro JS
+            /**
+             * konstanta, abychom všude používali stejné klíče pro JS
+             * viz online-prezence-posledni-zname-zmeny-prihlaseni.js nahratZmenyPrihlaseni()
+             */
             RazitkoPosledniZmenyPrihlaseni::RAZITKO_POSLEDNI_ZMENY => $razitkoPosledniZmeny->dejPotvrzeneRazitkoPosledniZmeny(),
         ]);
     }
