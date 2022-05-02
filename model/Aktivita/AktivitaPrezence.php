@@ -109,23 +109,7 @@ class AktivitaPrezence
             'id_akce' => $this->aktivita->id(),
             'typ' => $zprava,
         ]);
-        $this->smazRazitkaPoslednichZmen();
-    }
-
-    private function smazRazitkaPoslednichZmen() {
-        if (defined('TESTING') && TESTING
-            && defined('TEST_MAZAT_VSECHNA_RAZITKA_POSLEDNICH_ZMEN') && TEST_MAZAT_VSECHNA_RAZITKA_POSLEDNICH_ZMEN
-        ) {
-            /**
-             * Při testování online prezence se vypisují i aktivity, které organizátor ve skutečnosti neorganizuje.
-             * Proto musíme mazat všechna razítka, protože smazat je jen těm, kteří ji opravdu ogranizují, nestačí - neorganizujícímu testerovi by se nenačetly změny.
-             */
-            $this->filesystem->remove(self::dejAdresarProRazitkaPoslednichZmen());
-            return;
-        }
-        foreach (self::dejAdresareProRazitkaPoslednichZmenProOrganizatory($this->aktivita) as $adresar) {
-            $this->filesystem->remove($adresar);
-        }
+        RazitkoPosledniZmenyPrihlaseni::smazRazitkaPoslednichZmen($this->aktivita, $this->filesystem);
     }
 
     public function zalogujZeSeOdhlasil(\Uzivatel $odhlaseny) {
@@ -368,26 +352,6 @@ SQL,
                 : null,
             $posledniZmena['typ'] ?? null
         );
-    }
-
-    /**
-     * @param Aktivita $aktivita
-     * @return string[]
-     */
-    private static function dejAdresareProRazitkaPoslednichZmenProOrganizatory(Aktivita $aktivita): array {
-        $adresare = [];
-        foreach ($aktivita->organizatori() as $vypravec) {
-            $adresare[] = self::dejAdresarProRazitkoPosledniZmeny($vypravec);
-        }
-        return array_unique($adresare);
-    }
-
-    public static function dejAdresarProRazitkoPosledniZmeny(\Uzivatel $vypravec): string {
-        return self::dejAdresarProRazitkaPoslednichZmen() . '/vypravec-' . $vypravec->id();
-    }
-
-    private static function dejAdresarProRazitkaPoslednichZmen(): string {
-        return ADMIN_STAMPS . '/zmeny';
     }
 
 }
