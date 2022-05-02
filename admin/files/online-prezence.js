@@ -1,6 +1,17 @@
 (function ($) {
   $(function () {
 
+    /*
+    Ve Firefoxu je zvláštní chyba, kdy pokud se checkbox změní na checked pomocí JS, poté se stránka přenačte, backend stránku
+    pošle bez checked (což obvykle znamená "nezaškrtnuto"), tak Firefox ponechá zaškrtnutí z předchozí akce JS.
+    Toto je workaround.
+     */
+    $('input.dorazil[type=checkbox]').each(function (index, checkbox) {
+      if (!checkbox.dataset.initialChecked) {
+        checkbox.checked = false
+      }
+    })
+
     // OMNIBOX
     intializePrezenceOmnibox()
 
