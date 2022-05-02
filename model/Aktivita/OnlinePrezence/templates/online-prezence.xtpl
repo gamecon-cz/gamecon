@@ -108,7 +108,7 @@
                 id="skoncila-{idAktivity}"
                 class="alert-info text-skoncila {displayNoneCssClassAktivitaSkoncila} skryt-pokud-aktivitu-nelze-editovat-{idAktivity}"
                 data-konec-aktivity-v="{konecAktivityVTimestamp}">
-              ✋ <em>Aktivita už skončila, úpravy si dobře rozmysli</em> <span
+              ✋ <em>Aktivita už skončila, pozor na úpravy</em> <span
                 style="transform: scale(-1, 1); display: inline-block">✋</span>
             </span>
           </span>
