@@ -3,7 +3,10 @@
 namespace Gamecon\Aktivita\OnlinePrezence;
 
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\AktivitaPrezence;
+use Gamecon\Aktivita\RazitkoPosledniZmenyPrihlaseni;
 use Gamecon\Pravo;
+use Symfony\Component\Filesystem\Filesystem;
 
 class OnlinePrezenceHtml
 {
@@ -15,11 +18,13 @@ class OnlinePrezenceHtml
     private $naPosledniChviliXMinutPredZacatkem;
     /** @var null|OnlinePrezenceUcastnikHtml */
     private $onlinePrezenceUcastnikHtml;
+    /** @var bool */
+    private $muzemeTestovat;
 
-    public function __construct(string $jsVyjimkovac, int $naPosledniChviliXMinutPredZacatkem) {
-
+    public function __construct(string $jsVyjimkovac, int $naPosledniChviliXMinutPredZacatkem, bool $muzemeTestovat = false) {
         $this->jsVyjimkovac = $jsVyjimkovac;
         $this->naPosledniChviliXMinutPredZacatkem = $naPosledniChviliXMinutPredZacatkem;
+        $this->muzemeTestovat = $muzemeTestovat;
     }
 
     public function dejHtmlOnlinePrezence(
@@ -35,7 +40,7 @@ class OnlinePrezenceHtml
         $template->assign('jsVyjimkovac', $this->jsVyjimkovac);
 
         if (count($aktivity) === 0) {
-            if (defined('TESTING') && TESTING) {
+            if ($this->muzemeTestovat) {
                 $template->assign('urlTest', getCurrentUrlWithQuery(['test' => 1]));
                 $template->parse('onlinePrezence.zadnaAktivita.odkazNaTest');
             }
@@ -57,21 +62,22 @@ class OnlinePrezenceHtml
 
     /**
      * @param \XTemplate $template
-     * @param array|Aktivita[] $aktivity
+     * @param array|Aktivita[] $organizovaneAktivity
      * @param int $editovatelnaXMinutPredZacatkem
      * @param \DateTimeInterface|null $now
      * @return void
      */
     private function sestavHtmlOnlinePrezence(
         \XTemplate          $template,
-        \Uzivatel           $editujici,
-        array               $aktivity,
+        \Uzivatel           $vypravec,
+        array               $organizovaneAktivity,
         int                 $editovatelnaXMinutPredZacatkem,
         ?\DateTimeInterface $now
     ) {
         $now = $now ?? new \DateTimeImmutable();
+        $filesystem = new Filesystem();
 
-        foreach ($aktivity as $aktivita) {
+        foreach ($organizovaneAktivity as $aktivita) {
             $editovatelnaOdTimestamp = self::dejEditovatelnaOdTimestamp($aktivita, $editovatelnaXMinutPredZacatkem, $now);
             $nekdoUzDorazil = $aktivita->nekdoUzDorazil();
             $nikdoZatimNedorazil = !$nekdoUzDorazil;
@@ -103,7 +109,7 @@ class OnlinePrezenceHtml
                 $template->parse('onlinePrezence.aktivity.aktivita.form.ucastnik');
             }
 
-            $maPravoNaZmenuHistorie = $editujici->maPravo(Pravo::ZMENA_HISTORIE_AKTIVIT);
+            $maPravoNaZmenuHistorie = $vypravec->maPravo(Pravo::ZMENA_HISTORIE_AKTIVIT);
             // ⚠️Pozor, aktivita už je vyplněná! ⚠
             $template->assign(
                 'displayNoneCssClassPozorVyplnena',
@@ -120,9 +126,18 @@ class OnlinePrezenceHtml
 
             $template->parse('onlinePrezence.aktivity.aktivita');
         }
+        $razitkoPosledniZmeny = new RazitkoPosledniZmenyPrihlaseni($vypravec, $organizovaneAktivity, $filesystem);
+        $template->assign(
+            'razitkoPosledniZmeny',
+            $razitkoPosledniZmeny->dejPotvrzeneRazitkoPosledniZmeny()
+        );
+        $template->assign(
+            'urlRazitkaPosledniZmeny',
+            $razitkoPosledniZmeny->dejUrlRazitkaPosledniZmeny()
+        );
         $template->assign(
             'urlPosledniZmenyPrihlaseni',
-            OnlinePrezenceAjax::urlPosledniZmenyPrihlaseni(),
+            OnlinePrezenceAjax::dejUrlPosledniZmenyPrihlaseni(),
         );
 
         $template->parse('onlinePrezence.aktivity');
