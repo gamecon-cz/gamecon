@@ -32,7 +32,7 @@
         jePozastavenaKontrolaZmen = true
       })
 
-      request.addEventListener('load', function (event) {
+      request.addEventListener('load', function () {
         if (this.status === 404) {
           nahratZmenyPrihlaseni()
         } else if (this.status === 200 && this.responseText) {
@@ -46,7 +46,7 @@
 
       request.open('GET', dejUrlRazitkaPosledniZmeny()) // asynchronous
       request.send()
-    }, 1000) // kazdou sekundu kontrolujeme, zda razitko posledni zmeny je patne (zda soubor s nim existuje) - kdyz soubor zmizi, tak se prilaseni na jedne z aktivit zmenilo a my chceme sathnout zmeny
+    }, 2000) // každé dvě sekundy kontrolujeme, zda razitko posledni zmeny je patne (zda soubor s nim existuje) - kdyz soubor zmizi, tak se prilaseni na jedne z aktivit zmenilo a my chceme sathnout zmeny
 
     const urlAkcePosledniZmeny = onlinePrezence.dataset.urlAkcePosledniZmeny
 
