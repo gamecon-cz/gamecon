@@ -136,8 +136,8 @@ class OnlinePrezenceHtml
             $razitkoPosledniZmeny->dejUrlRazitkaPosledniZmeny()
         );
         $template->assign(
-            'urlPosledniZmenyPrihlaseni',
-            OnlinePrezenceAjax::dejUrlPosledniZmenyPrihlaseni(),
+            'urlAkcePosledniZmeny',
+            OnlinePrezenceAjax::dejUrlAkcePosledniZmeny(),
         );
 
         $template->parse('onlinePrezence.aktivity');

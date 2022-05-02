@@ -1,15 +1,23 @@
 (function ($) {
   document.addEventListener('DOMContentLoaded', function () {
 
-    const $onlinePrezence = $('#online-prezence')
-
-    let razitkoPosledniZmeny = $onlinePrezence.data('razitko-posledni-zmeny')
+    const onlinePrezence = document.getElementById('online-prezence')
 
     /**
      * @return {string}
      */
     function dejUrlRazitkaPosledniZmeny() {
-      return $onlinePrezence.data('url-razitka-posledni-zmeny')
+      const url = new URL(onlinePrezence.dataset.urlRazitkaPosledniZmeny)
+      // přidáme proměnlivé query, abychom obešli cache a dostali vždy aktuální soubor (nebo 404)
+      url.searchParams.set('version', Date.now().toString())
+      return url.href
+    }
+
+    /**
+     * @return {string}
+     */
+    function dejRazitkoPosledniZmeny() {
+      return onlinePrezence.dataset.razitkoPosledniZmeny
     }
 
     let jePozastavenaKontrolaZmen = false
@@ -29,7 +37,7 @@
           nahratZmenyPrihlaseni()
         } else if (this.status === 200 && this.responseText) {
           const json = JSON.parse(this.responseText.trim())
-          if (json.razitko_posledni_zmeny !== razitkoPosledniZmeny) {
+          if (json.razitko_posledni_zmeny !== dejRazitkoPosledniZmeny()) {
             nahratZmenyPrihlaseni()
           }
         }
@@ -38,11 +46,11 @@
 
       request.open('GET', dejUrlRazitkaPosledniZmeny()) // asynchronous
       request.send()
-    }, 1000) // kazdou sekundu knrtolujeme, zda razitko posledni zmeny je patne (zda soubor s nim existuje) - kdyz soubor zmizi, tak se prilaseni na jedne z aktivit zmenilo a my chceme sathnout zmeny
+    }, 1000) // kazdou sekundu kontrolujeme, zda razitko posledni zmeny je patne (zda soubor s nim existuje) - kdyz soubor zmizi, tak se prilaseni na jedne z aktivit zmenilo a my chceme sathnout zmeny
 
-    const urlPosledniZmenyPrihlaseni = document.getElementById('online-prezence').dataset.urlPosledniZmenyPrihlaseni
+    const urlAkcePosledniZmeny = onlinePrezence.dataset.urlAkcePosledniZmeny
 
-    const $aktivity = $onlinePrezence.find('.aktivita')
+    const $aktivity = $(onlinePrezence).find('.aktivita')
 
     function nahratZmenyPrihlaseni() {
       const postData = []
@@ -65,7 +73,7 @@
         })
       })
 
-      $.post(urlPosledniZmenyPrihlaseni, {
+      $.post(urlAkcePosledniZmeny, {
         /**
          * @see \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax::odbavAjax
          * @see \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax::ajaxDejPosledniZmeny
@@ -81,7 +89,8 @@
               cas_zmeny: "2022-04-27T16:57:38+02:00",
               stav_prihlaseni: "prihlaseni_nahradnik"
             }
-          ]
+          ],
+          razitko_posledni_zmeny: "269b794fa2c0bf1e81d0c60709ddb5d6"
         }
         */
         console.log(data)
@@ -91,8 +100,7 @@
             zapisZmenuPrihlaseni(zmena)
           })
         }
-        $onlinePrezence.data('razitko-posledni-zmeny', data.razitko_posledni_zmeny)
-        razitkoPosledniZmeny = data.razitko_posledni_zmeny
+        onlinePrezence.dataset.razitkoPosledniZmeny = data.razitko_posledni_zmeny
       })
     }
 

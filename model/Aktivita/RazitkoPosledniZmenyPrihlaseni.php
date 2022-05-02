@@ -7,6 +7,43 @@ use Symfony\Component\Filesystem\Filesystem;
 class RazitkoPosledniZmenyPrihlaseni
 {
     public const RAZITKO_POSLEDNI_ZMENY = 'razitko_posledni_zmeny';
+
+    public static function smazRazitkaPoslednichZmen(Aktivita $aktivita, Filesystem $filesystem) {
+        if (defined('TESTING') && TESTING
+            && defined('TEST_MAZAT_VSECHNA_RAZITKA_POSLEDNICH_ZMEN') && TEST_MAZAT_VSECHNA_RAZITKA_POSLEDNICH_ZMEN
+        ) {
+            /**
+             * Při testování online prezence se vypisují i aktivity, které organizátor ve skutečnosti neorganizuje.
+             * Proto musíme mazat všechna razítka, protože smazat je jen těm, kteří ji opravdu ogranizují, nestačí - neorganizujícímu testerovi by se nenačetly změny.
+             */
+            $filesystem->remove(self::dejAdresarProRazitkaPoslednichZmen());
+            return;
+        }
+        foreach (self::dejAdresareProRazitkaPoslednichZmenProOrganizatory($aktivita) as $adresar) {
+            $filesystem->remove($adresar);
+        }
+    }
+
+    /**
+     * @param Aktivita $aktivita
+     * @return string[]
+     */
+    private static function dejAdresareProRazitkaPoslednichZmenProOrganizatory(Aktivita $aktivita): array {
+        $adresare = [];
+        foreach ($aktivita->organizatori() as $vypravec) {
+            $adresare[] = self::dejAdresarProRazitkoPosledniZmeny($vypravec);
+        }
+        return array_unique($adresare);
+    }
+
+    private static function dejAdresarProRazitkoPosledniZmeny(\Uzivatel $vypravec): string {
+        return self::dejAdresarProRazitkaPoslednichZmen() . '/vypravec-' . $vypravec->id();
+    }
+
+    private static function dejAdresarProRazitkaPoslednichZmen(): string {
+        return ADMIN_STAMPS . '/zmeny';
+    }
+
     /**
      * @var \Uzivatel
      */
@@ -53,7 +90,7 @@ class RazitkoPosledniZmenyPrihlaseni
         return reset($aktivitaSPosledniZmenouVPoli);
     }
 
-    private function dejPosledniZmenu(): ?ZmenaStavuPrihlaseni {
+    public function dejPosledniZmenu(): ?ZmenaStavuPrihlaseni {
         if (!$this->posledniZmena) {
             $this->posledniZmena = AktivitaPrezence::dejPosledniZmenaStavuPrihlaseniAktivit(
                 null, // bereme každého účastníka
@@ -63,9 +100,7 @@ class RazitkoPosledniZmenyPrihlaseni
         return $this->posledniZmena;
     }
 
-    private function dejObsah(): array {
-        $posledniZmena = $this->dejPosledniZmenu();
-
+    private function dejObsah(?ZmenaStavuPrihlaseni $posledniZmena): array {
         return [
             'id_aktivity' => $this->dejAktivituSPosledniZmenou($posledniZmena)->id(),
             'id_vypravece' => $this->vypravec->id(),
@@ -85,29 +120,31 @@ class RazitkoPosledniZmenyPrihlaseni
             : md5(($zmenaStavuPrihlaseni->stavPrihlaseniProJs() ?? '') . ($zmenaStavuPrihlaseni->casZmenyProJs() ?? ''));
     }
 
-    private function dejCestuKSouboruRazitka(): string {
-        $adresarProRazitkoPosledniZmeny = AktivitaPrezence::dejAdresarProRazitkoPosledniZmeny($this->vypravec);
-
-        return $adresarProRazitkoPosledniZmeny . "/posledni-zmena-prihlaseni-{$this->dejRazitkoPosledniZmeny($this->dejPosledniZmenu())}.json";
-    }
-
     public function dejUrlRazitkaPosledniZmeny(): string {
         $relativniCestaRazitka = str_replace(ADMIN, '', $this->dejCestuKSouboruRazitka());
         return rtrim(URL_ADMIN, '/') . '/' . ltrim($relativniCestaRazitka, '/');
     }
 
-    public function dejPotvrzeneRazitkoPosledniZmeny(): string {
-        return $this->zapis();
+    private function dejCestuKSouboruRazitka(): string {
+        $adresarProRazitkoPosledniZmeny = self::dejAdresarProRazitkoPosledniZmeny($this->vypravec);
+
+        return $adresarProRazitkoPosledniZmeny . "/posledni-zmena-prihlaseni.json";
     }
 
-    private function zapis(): string {
-        $obsah = $this->dejObsah();
+    public function dejPotvrzeneRazitkoPosledniZmeny(): string {
+        $posledniZmena = $this->dejPosledniZmenu();
+        $obsah = $this->dejObsah($posledniZmena);
         $obsahJson = json_encode($obsah, JSON_THROW_ON_ERROR);
         $souborRazitka = $this->dejCestuKSouboruRazitka();
 
-        if (is_readable($souborRazitka) && file_get_contents($souborRazitka) === $obsahJson) {
-            return $obsah[self::RAZITKO_POSLEDNI_ZMENY]; // neni co menit
+        if (!is_readable($souborRazitka) || file_get_contents($souborRazitka) !== $obsahJson) {
+            $this->zapis($obsahJson, $souborRazitka);
         }
+
+        return $obsah[self::RAZITKO_POSLEDNI_ZMENY];
+    }
+
+    private function zapis(string $obsahJson, string $souborRazitka): bool {
 
         $this->filesystem->mkdir(dirname($souborRazitka));
 
@@ -115,6 +152,6 @@ class RazitkoPosledniZmenyPrihlaseni
         if ($zapsano === false) {
             throw new \RuntimeException('Nelze zapsat do souboru ' . $souborRazitka);
         }
-        return $obsah[self::RAZITKO_POSLEDNI_ZMENY];
+        return (bool)$zapsano;
     }
 }
