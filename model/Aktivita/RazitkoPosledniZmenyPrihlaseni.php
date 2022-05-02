@@ -86,10 +86,7 @@ class RazitkoPosledniZmenyPrihlaseni
     }
 
     private function dejCestuKSouboruRazitka(): string {
-        $posledniZmena = $this->dejPosledniZmenu();
-        $aktivitaSPosledniZmenou = $this->dejAktivituSPosledniZmenou($posledniZmena);
-
-        $adresarProRazitkoPosledniZmeny = AktivitaPrezence::dejAdresarProRazitkoPosledniZmeny($this->vypravec, $aktivitaSPosledniZmenou);
+        $adresarProRazitkoPosledniZmeny = AktivitaPrezence::dejAdresarProRazitkoPosledniZmeny($this->vypravec);
 
         return $adresarProRazitkoPosledniZmeny . '/posledni-zmena-prihlaseni.json';
     }
