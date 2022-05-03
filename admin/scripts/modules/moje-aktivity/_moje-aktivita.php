@@ -14,7 +14,7 @@ use Gamecon\Vyjimkovac\Vyjimkovac;
 
 /**
  * @var Uzivatel $u
- * @var bool $testovani
+ * @var bool $testujeme
  */
 
 $aktivita = Aktivita::zId(get('id'));
