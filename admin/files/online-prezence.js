@@ -12,6 +12,24 @@
       }
     })
 
+    /**
+     * @param {HTMLElement} ucastnikNode
+     * @param {{casPosledniZmenyPrihlaseni: string, stavPrihlaseni: string}} metadataPrezence
+     */
+    function zapisMetadataPrezence(ucastnikNode, metadataPrezence) {
+      ucastnikNode.dataset.casPosledniZmenyPrihlaseni = metadataPrezence.casPosledniZmenyPrihlaseni
+      ucastnikNode.dataset.stavPrihlaseni = metadataPrezence.stavPrihlaseni
+    }
+
+    // ZMENA METADAT PREZENCE UCASTNIKA
+    $('.ucastnik').each(function (index, ucastnikNode) {
+      ucastnikNode.addEventListener(
+        'zmenaMetadatPrezence',
+        function (/** @param {{detail: {casPosledniZmenyPrihlaseni: string, stavPrihlaseni: string}}} event */event) {
+          zapisMetadataPrezence(ucastnikNode, event.detail)
+        })
+    })
+
     // OMNIBOX
     intializePrezenceOmnibox()
 
@@ -236,10 +254,18 @@ function zmenitUcastnika(idUzivatele, idAktivity, checkboxNode, callbackOnSucces
     if (data && typeof data.prihlasen == 'boolean') {
       checkboxNode.checked = data.prihlasen
 
-      // TODO tohle je to samé co v online-prezence-posledni-zname-zmeny-prihlaseni.js zapisMetadataPrezence, asi by to chtělo přes nějaký CustomEvent a řešit to jedním kódem
+      const zmenaMetadatPrezence = new CustomEvent(
+        'zmenaMetadatPrezence',
+        {
+          detail: {
+            casPosledniZmenyPrihlaseni: data.cas_posledni_zmeny_prihlaseni,
+            stavPrihlaseni: data.stav_prihlaseni,
+          },
+        },
+      )
       const ucastnikNode = $(checkboxNode).parents('.ucastnik')[0]
-      ucastnikNode.dataset.casPosledniZmenyPrihlaseni = data.cas_posledni_zmeny_prihlaseni
-      ucastnikNode.dataset.stavPrihlaseni = data.stav_prihlaseni
+      // bude zpracovano v zapisMetadataPrezence()
+      ucastnikNode.dispatchEvent(zmenaMetadatPrezence)
 
       if (callbackOnSuccess) {
         callbackOnSuccess()
