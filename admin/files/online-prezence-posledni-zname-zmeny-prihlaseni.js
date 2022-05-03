@@ -168,19 +168,27 @@
      * @param {Zmena} zmena
      */
     function zmenStavPrihlaseni(ucastnikNode, zmena) {
-      zapisMetadataPrezence(ucastnikNode, zmena)
+      vypustEventSNovymiMetadatyPrezence(ucastnikNode, zmena)
       const dorazil = dorazilPodleStavu(zmena.stavPrihlaseni)
       zmenZaskrtnutiZdaDorazil(ucastnikNode, dorazil)
     }
 
     /**
-     * TODO tohle je to samé co v online-prezence.js zmenitUcastnika, asi by to chtělo přes nějaký CustomEvent a řešit to jedním kódem
+     * Bude zpracováno v event listeneru v online-prezence.js přes zapisMetadataPrezence()
      * @param {HTMLElement} ucastnikNode
      * @param {Zmena} zmena
      */
-    function zapisMetadataPrezence(ucastnikNode, zmena) {
-      ucastnikNode.dataset.casPosledniZmenyPrihlaseni = zmena.casZmeny
-      ucastnikNode.dataset.stavPrihlaseni = zmena.stavPrihlaseni
+    function vypustEventSNovymiMetadatyPrezence(ucastnikNode, zmena) {
+      const zmenaMetadatPrezence = new CustomEvent(
+        'zmenaMetadatPrezence',
+        {
+          detail: {
+            casPosledniZmenyPrihlaseni: zmena.casZmeny,
+            stavPrihlaseni: zmena.stavPrihlaseni,
+          },
+        },
+      )
+      ucastnikNode.dispatchEvent(zmenaMetadatPrezence)
     }
 
     /**
