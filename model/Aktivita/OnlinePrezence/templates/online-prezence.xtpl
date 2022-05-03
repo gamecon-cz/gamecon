@@ -28,6 +28,7 @@
   <script type="text/javascript" src="files/online-prezence.js?version=d7457c71ea1c8bebed30d1dc3c7cd344"></script>
   <script type="text/javascript"
           src="files/online-prezence-posledni-zname-zmeny-prihlaseni.js?version=95b71ebbe5a7831594d2474641e102f3"></script>
+  <script type="text/javascript" src="files/online-prezence-navod.js?version=95b71ebbe5a7831594d2474641e102f3"></script>
 </head>
 
 <body>
@@ -64,6 +65,27 @@
          data-razitko-posledni-zmeny="{razitkoPosledniZmeny}"
          data-url-akce-posledni-zmeny="{urlAkcePosledniZmeny}"
     >
+
+      <div class="row">
+        <div class="col-1">
+          <button id="tlacitkoJakNaOnlinePrezenci" class="btn btn-light" type="button" data-bs-toggle="collapse"
+                  data-bs-target="#jakNaOnlinePrezenci"
+                  aria-expanded="true" aria-controls="jakNaOnlinePrezenci">
+            📖
+          </button>
+        </div>
+        <div class="col">
+          <div class="collapse" id="jakNaOnlinePrezenci">
+            <div class="card card-body">
+              Náhodná rada: bez internetu to nepůjde.
+            </div>
+            <script type="text/javascript">
+              zobrazNavodPodlePosledniVolby(document.getElementById('jakNaOnlinePrezenci'))
+            </script>
+            <hr>
+          </div>
+        </div>
+      </div>
 
       <!-- begin:aktivita -->
       <div class="aktivita"
