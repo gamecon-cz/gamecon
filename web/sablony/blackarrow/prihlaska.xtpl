@@ -113,7 +113,7 @@
 
   <!----------------------------------------------------------------------------->
 
-  {covidSekce}
+  <!-- covidSekce (zakomentovaná) -->
 
   <!----------------------------------------------------------------------------->
 
@@ -201,16 +201,16 @@
 </div>
 
 <!-- begin: covidSekce -->
-<form method="post" class="prihlaska" enctype="multipart/form-data">
+<!-- <form method="post" class="prihlaska" enctype="multipart/form-data"> -->
   <!-- begin: doklad -->
-  {covidSekce}
+  <!-- {covidSekce} -->
   <!-- end: doklad -->
   <!-- begin: submit -->
-  <div class="prihlaska_sekce">
-    <input type="submit" class="formular_primarni" name="pridatPotvrzeniProtiCovidu" value="Nahrát potvrzení">
-  </div>
+  <!-- <div class="prihlaska_sekce"> -->
+    <!-- <input type="submit" class="formular_primarni" name="pridatPotvrzeniProtiCovidu" value="Nahrát potvrzení"> -->
+  <!-- </div> -->
   <!-- end: submit -->
-</form>
+<!-- </form> -->
 <!-- end: covidSekce -->
 
 <!-- end: prihlaskaGcBezi -->
