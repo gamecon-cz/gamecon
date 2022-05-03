@@ -2,7 +2,7 @@
 /**
  * @var \Gamecon\Aktivita\Aktivita|null $aktivita
  * @var Uzivatel $u
- * @var bool $testovani
+ * @var bool $testujeme
  */
 
 $problem = false;
@@ -18,12 +18,12 @@ if (!$aktivita) {
     $sablonaKProblemu->assign('aktivita', $aktivita);
     $sablonaKProblemu->assign('rok', $aktivita->konec()->format('Y'));
     $sablonaKProblemu->parse('problem.historicka');
-} elseif ($aktivita->konec()->pred(new DateTime()) && !$testovani) {
+} elseif ($aktivita->konec()->pred(new DateTime()) && !$testujeme) {
     $problem = true;
     $sablonaKProblemu->assign('aktivita', $aktivita);
     $sablonaKProblemu->assign('konecPred', $aktivita->konec()->relativni());
     $sablonaKProblemu->parse('problem.probehla');
-} elseif (!in_array($u->id(), $aktivita->dejOrganizatoriIds(), false) && !$testovani) {
+} elseif (!in_array($u->id(), $aktivita->dejOrganizatoriIds(), false) && !$testujeme) {
     $problem = true;
     $sablonaKProblemu->assign('aktivita', $aktivita);
     $sablonaKProblemu->parse('problem.cizi');
