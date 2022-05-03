@@ -12,6 +12,7 @@
       }
     })
 
+    // ZMENA METADAT PREZENCE UCASTNIKA
     /**
      * @param {HTMLElement} ucastnikNode
      * @param {{casPosledniZmenyPrihlaseni: string, stavPrihlaseni: string}} metadataPrezence
@@ -21,13 +22,29 @@
       ucastnikNode.dataset.stavPrihlaseni = metadataPrezence.stavPrihlaseni
     }
 
-    // ZMENA METADAT PREZENCE UCASTNIKA
     $('.ucastnik').each(function (index, ucastnikNode) {
       ucastnikNode.addEventListener(
         'zmenaMetadatPrezence',
         function (/** @param {{detail: {casPosledniZmenyPrihlaseni: string, stavPrihlaseni: string}}} event */event) {
           zapisMetadataPrezence(ucastnikNode, event.detail)
         })
+    })
+
+    // ZOBRAZENI ERRORS
+    Array.from(document.getElementsByClassName('aktivita')).forEach(function (aktivita) {
+      aktivita.addEventListener('ajaxErrors', function (/** @param {{detail: {errors: string[]}}} event */event) {
+        if (event.detail.errors) {
+          const errorTemplate = aktivita.getElementsByClassName('error-template')[0]
+          event.detail.errors.forEach(function (errorText) {
+            /** @var {HTMLElement} */
+            const errorNode = errorTemplate.cloneNode(true)
+            const errorTextNode = errorNode.getElementsByClassName('error-text')[0]
+            errorTextNode.innerHTML = errorText
+            errorTemplate.parentElement.appendChild(errorNode)
+            errorNode.classList.remove('display-none')
+          })
+        }
+      })
     })
 
     // OMNIBOX
@@ -270,6 +287,11 @@ function zmenitUcastnika(idUzivatele, idAktivity, checkboxNode, callbackOnSucces
       if (callbackOnSuccess) {
         callbackOnSuccess()
       }
+    }
+  }).fail(function (response) {
+    if (response.status === 400 && response.responseJSON && response.responseJSON.errors) {
+      const errorsEvent = new CustomEvent('ajaxErrors', {detail: {errors: response.responseJSON.errors}})
+      document.getElementById(`aktivita-${idAktivity}`).dispatchEvent(errorsEvent)
     }
   })
 }
