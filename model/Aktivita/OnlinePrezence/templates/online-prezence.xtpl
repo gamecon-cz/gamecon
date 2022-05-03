@@ -37,6 +37,22 @@
 
   <div class="container">
 
+    <!-- begin:test -->
+    <div class="row" style="margin-top: 3px">
+      <div class="col"></div>
+      <!-- begin:odkazNaTest -->
+      <div class="col-2">
+        <a class="btn btn-dark" href="{urlTest}" style="width: 100%">🪄 Testovat</a>
+      </div>
+      <!-- end:odkazNaTest -->
+      <!-- begin:odkazBezTestu -->
+      <div class="col-2">
+        <a class="btn btn-danger" href="{urlBezTestu}" style="width: 100%">🥵 Do reality</a>
+      </div>
+      <!-- end:odkazBezTestu -->
+    </div>
+    <!-- end:zadnaAktivita -->
+
     <!-- begin:zadnaAktivita -->
     <div class="d-flex justify-content-center align-items-center" style="min-height: 99vh">
       <div style="font-size: xx-large">
@@ -44,11 +60,6 @@
         <div>
           <a class="btn btn-warning" href="{urlZpet}" style="width: 100%">↶ Zpět</a>
         </div>
-        <!-- begin:odkazNaTest -->
-        <div>
-          <a class="btn btn-dark" href="{urlTest}" style="width: 100%">🪄 Test</a>
-        </div>
-        <!-- end:odkazNaTest -->
       </div>
     </div>
     <!-- end:zadnaAktivita -->
