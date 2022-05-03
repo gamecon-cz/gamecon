@@ -72,6 +72,13 @@
 
         <h2 id="{nadpis}">{nadpis} <a href="#{nadpis}" style="color: darkgray; opacity: 0.6">#</a></h2>
 
+        <div class="errors">
+          <div class="alert alert-warning alert-dismissible fade show display-none error-template" role="alert">
+            <div class="error-text"></div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        </div>
+
         <div style="padding: 0.5em 0" class="row">
           <span class="col-xl-3 col-md-6 col-sm-12 text-sm-center text-md-start align-self-center">
             <span style="white-space: nowrap" class="text-ceka {displayNoneCssClassCeka}">
