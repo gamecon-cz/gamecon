@@ -20,11 +20,19 @@ class OnlinePrezenceHtml
     private $onlinePrezenceUcastnikHtml;
     /** @var bool */
     private $muzemeTestovat;
+    /** @var bool */
+    private $testujeme;
 
-    public function __construct(string $jsVyjimkovac, int $naPosledniChviliXMinutPredZacatkem, bool $muzemeTestovat = false) {
+    public function __construct(
+        string $jsVyjimkovac,
+        int    $naPosledniChviliXMinutPredZacatkem,
+        bool   $muzemeTestovat = false,
+        bool   $testujeme = false
+    ) {
         $this->jsVyjimkovac = $jsVyjimkovac;
         $this->naPosledniChviliXMinutPredZacatkem = $naPosledniChviliXMinutPredZacatkem;
         $this->muzemeTestovat = $muzemeTestovat;
+        $this->testujeme = $muzemeTestovat && $testujeme;
     }
 
     public function dejHtmlOnlinePrezence(
@@ -36,14 +44,21 @@ class OnlinePrezenceHtml
     ): string {
         $template = $this->dejOnlinePrezenceTemplate();
 
+        if ($this->muzemeTestovat) {
+            if ($this->testujeme) {
+                $template->assign('urlBezTestu', getCurrentUrlWithQuery(['test' => 0]));
+                $template->parse('onlinePrezence.test.odkazBezTestu');
+            } else {
+                $template->assign('urlTest', getCurrentUrlWithQuery(['test' => 1]));
+                $template->parse('onlinePrezence.test.odkazNaTest');
+            }
+            $template->parse('onlinePrezence.test');
+        }
+
         $template->assign('urlZpet', $urlZpet ?? getBackUrl());
         $template->assign('jsVyjimkovac', $this->jsVyjimkovac);
 
         if (count($aktivity) === 0) {
-            if ($this->muzemeTestovat) {
-                $template->assign('urlTest', getCurrentUrlWithQuery(['test' => 1]));
-                $template->parse('onlinePrezence.zadnaAktivita.odkazNaTest');
-            }
             $template->parse('onlinePrezence.zadnaAktivita');
         } else {
             $this->sestavHtmlOnlinePrezence($template, $editujici, $aktivity, $editovatelnaXMinutPredZacatkem, $now);
