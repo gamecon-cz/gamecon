@@ -93,7 +93,6 @@
           razitko_posledni_zmeny: "269b794fa2c0bf1e81d0c60709ddb5d6"
         }
         */
-        console.log(data)
         if (data.zmeny) {
           const zmeny = Zmena.vytvorZmenyZOdpovedi(data.zmeny)
           zmeny.forEach(function (zmena) {
