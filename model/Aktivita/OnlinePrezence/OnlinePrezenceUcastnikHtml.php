@@ -20,7 +20,7 @@ class OnlinePrezenceUcastnikHtml
         \Uzivatel $ucastnik,
         Aktivita  $aktivita,
         bool      $dorazil,
-        bool      $zatimPouzeProCteni
+        bool      $muzeMenitUcastniky
     ): string {
         $ucastnikTemplate = $this->dejOnlinePrezenceUcastnikTemplate();
 
@@ -28,7 +28,7 @@ class OnlinePrezenceUcastnikHtml
         $ucastnikTemplate->assign('a', $aktivita);
 
         $ucastnikTemplate->assign('checkedUcastnik', $dorazil ? 'checked' : '');
-        $ucastnikTemplate->assign('disabledUcastnik', $zatimPouzeProCteni || $aktivita->zamcena() ? 'disabled' : '');
+        $ucastnikTemplate->assign('disabledUcastnik', $muzeMenitUcastniky ? '' : 'disabled');
         $ucastnikTemplate->parse('ucastnik.checkbox');
 
         if ($ucastnik->gcPritomen()) {
