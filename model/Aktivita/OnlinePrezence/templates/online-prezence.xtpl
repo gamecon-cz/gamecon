@@ -58,7 +58,7 @@
       <div style="font-size: xx-large">
         Žádné aktivity 😞
         <div>
-          <a class="btn btn-warning" href="{urlZpet}" style="width: 100%">↶ Zpět</a>
+          <a class="btn btn-warning" href="{urlZpet}" style="width: 100%">↶ {textZpet}</a>
         </div>
       </div>
     </div>
@@ -154,7 +154,7 @@
           </span>
 
           <span class="col-xl-2 col-md-4 col-sm-12">
-            <a style="width: 100%" href="{urlZpet}" class="btn btn-warning">↶ Zpět</a>
+            <a style="width: 100%" href="{urlZpet}" class="btn btn-warning">↶ {textZpet}</a>
           </span>
         </div>
 
