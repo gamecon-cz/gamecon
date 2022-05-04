@@ -39,8 +39,7 @@ class OnlinePrezenceHtml
         \Uzivatel          $editujici,
         array              $aktivity,
         int                $editovatelnaXMinutPredZacatkem = 20,
-        \DateTimeInterface $now = null,
-        string             $urlZpet = null
+        \DateTimeInterface $now = null
     ): string {
         $template = $this->dejOnlinePrezenceTemplate();
 
@@ -55,7 +54,9 @@ class OnlinePrezenceHtml
             $template->parse('onlinePrezence.test');
         }
 
-        $template->assign('urlZpet', $urlZpet ?? getBackUrl());
+        ['url' => $urlZpet, 'nazev' => $textZpet] = $editujici->mimoMojeAktivityUvodniAdminUrl(URL_ADMIN, URL_WEBU);
+        $template->assign('urlZpet', $urlZpet);
+        $template->assign('textZpet', $textZpet);
         $template->assign('jsVyjimkovac', $this->jsVyjimkovac);
 
         if (count($aktivity) === 0) {
