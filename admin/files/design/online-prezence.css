@@ -24,3 +24,8 @@ input:not([disabled])[type=checkbox] {
   -webkit-transition: background 0.1s linear;
   -moz-transition: background 0.1s linear;
 }
+
+.flipped-icon {
+  transform: scale(-1, 1);
+  display: inline-block;
+}
