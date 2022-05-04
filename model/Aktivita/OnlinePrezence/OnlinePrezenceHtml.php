@@ -99,6 +99,8 @@ class OnlinePrezenceHtml
             $nikdoZatimNedorazil = !$nekdoUzDorazil;
             $editovatelnaHned = !$editovatelnaOdTimestamp;
             $zamcena = $aktivita->zamcena();
+            $maPravoNaZmenuHistorie = $vypravec->maPravo(Pravo::ZMENA_HISTORIE_AKTIVIT);
+            $muzeMenitUcastniky = $editovatelnaHned && (!$zamcena || $nikdoZatimNedorazil || $maPravoNaZmenuHistorie);
 
             $template->assign('omniboxUrl', getCurrentUrlWithQuery(['ajax' => 1, 'omnibox' => 1, 'idAktivity' => $aktivita->id()]));
 
@@ -110,29 +112,31 @@ class OnlinePrezenceHtml
             $template->assign('editovatelnaOdTimestamp', $editovatelnaOdTimestamp);
             $template->assign('displayNoneCssClassCeka', $this->dejCssClassNeviditelnosti(!$zamcena && !$editovatelnaHned));
 
-            $konec = $aktivita->konec();
-            $template->assign('konecAktivityVTimestamp', $konec ? $konec->getTimestamp() : null);
-            $template->assign('displayNoneCssClassAktivitaSkoncila', $this->dejCssClassNeviditelnosti($konec && $konec <= $now));
+            if ($muzeMenitUcastniky) { // nechceme zobrazovat varovbání tomu, kdo beztak nemůže nic upravovat
+                $konec = $aktivita->konec();
+                $template->assign('konecAktivityVTimestamp', $konec ? $konec->getTimestamp() : null);
+                $template->assign('displayNoneCssClassAktivitaSkoncila', $this->dejCssClassNeviditelnosti($konec && $konec <= $now));
+                // ✋ AKTIVITA UŽ SKONČILA, POZOR NA ÚPRAVY ✋
+                $template->parse('onlinePrezence.aktivity.aktivita.pozorNaKonecAktivity');
+            }
 
             foreach ($aktivita->prihlaseni() as $prihlasenyUzivatel) {
                 $ucastnikHtml = $this->dejOnlinePrezenceUcastnikHtml()->sestavHmlUcastnikaAktivity(
                     $prihlasenyUzivatel,
                     $aktivita,
                     $aktivita->dorazilJakoCokoliv($prihlasenyUzivatel),
-                    !$editovatelnaHned
+                    $muzeMenitUcastniky
                 );
                 $template->assign('ucastnikHtml', $ucastnikHtml);
                 $template->parse('onlinePrezence.aktivity.aktivita.form.ucastnik');
             }
 
-            $maPravoNaZmenuHistorie = $vypravec->maPravo(Pravo::ZMENA_HISTORIE_AKTIVIT);
             // ⚠️Pozor, aktivita už je vyplněná! ⚠
             $template->assign(
                 'displayNoneCssClassPozorVyplnena',
                 $this->dejCssClassNeviditelnosti($zamcena && $nekdoUzDorazil && $maPravoNaZmenuHistorie)
             );
-            $muzePridatUcastnika = $editovatelnaHned && (!$zamcena || $nikdoZatimNedorazil || $maPravoNaZmenuHistorie);
-            $template->assign('disabledPridatUcastnika', $muzePridatUcastnika ? '' : 'disabled');
+            $template->assign('disabledPridatUcastnika', $muzeMenitUcastniky ? '' : 'disabled');
             $template->assign('idAktivity', $aktivita->id());
             $template->parse('onlinePrezence.aktivity.aktivita.form.pridatUcastnika');
 
