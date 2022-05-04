@@ -1637,6 +1637,23 @@ SQL,
         return $zakladniAdminUrl;
     }
 
+    /**
+     * Může vrátit i URL na web mimo admin, pokud jediná admin stránka, na kterou má uživatel právo, je nechtěná moje-aktivity.
+     * @param string $zakladniAdminUrl
+     * @param string $zakladniWebUrl
+     * @return string[] nazev => název, url => URL
+     */
+    public function mimoMojeAktivityUvodniAdminUrl(string $zakladniAdminUrl, string $zakladniWebUrl): array {
+        // URL máme schválně přes cestu ke skriptu, protože jeho název udává výslednou URL a nechceme mít neplatnou URL, kdyby někdo ten skrip přejmenoval.
+        if ($this->maPravo(P_ADMIN_UVOD)) {
+            /** 'uvod' viz například @link http://admin.beta.gamecon.cz/moje-aktivity/uvod */
+            $adminUvodUrl = basename(__DIR__ . '/../admin/scripts/modules/uvod.php', '.php');
+            return ['url' => $zakladniAdminUrl . '/' . $adminUvodUrl, 'nazev' => 'do Adminu'];
+        }
+        $webProgramUrl = basename(__DIR__ . '/../web/moduly/program.php', '.php');
+        return ['url' => $zakladniWebUrl . '/' . $webProgramUrl, 'nazev' => 'na Program'];
+    }
+
     public function mojeAktivityAdminUrl(string $zakladniAdminUrl): string {
         // vrátí "moje-aktivity" - máme to schválně přes cestu ke skriptu, protože jeho název udává výslednou URL a nechceme mít neplatnou URL, kdyby někdo ten skrip přejmenoval.
         return $zakladniAdminUrl . '/' . basename(__DIR__ . '/../admin/scripts/modules/moje-aktivity/moje-aktivity.php', '.php');

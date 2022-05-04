@@ -75,5 +75,4 @@ echo $onlinePrezenceHtml->dejHtmlOnlinePrezence(
     $organizovaneAktivity,
     (int)MOJE_AKTIVITY_EDITOVATELNE_X_MINUT_PRED_JEJICH_ZACATKEM,
     $now,
-    getCurrentUrlPath() . '/..'
 );
