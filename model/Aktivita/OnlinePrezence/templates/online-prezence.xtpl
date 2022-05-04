@@ -40,16 +40,14 @@
     <!-- begin:test -->
     <div class="row" style="margin-top: 3px">
       <div class="col"></div>
-      <!-- begin:odkazNaTest -->
-      <div class="col-2">
+      <div class="col-sm col-md-3 col-xl-2">
+        <!-- begin:odkazNaTest -->
         <a class="btn btn-dark" href="{urlTest}" style="width: 100%">🪄 Testovat</a>
-      </div>
-      <!-- end:odkazNaTest -->
-      <!-- begin:odkazBezTestu -->
-      <div class="col-2">
+        <!-- end:odkazNaTest -->
+        <!-- begin:odkazBezTestu -->
         <a class="btn btn-danger" href="{urlBezTestu}" style="width: 100%">🥵 Do reality</a>
+        <!-- end:odkazBezTestu -->
       </div>
-      <!-- end:odkazBezTestu -->
     </div>
     <!-- end:zadnaAktivita -->
 
@@ -113,12 +111,13 @@
         </div>
 
         <div style="padding: 0.5em 0" class="row">
-          <span class="col-xl-3 col-md-6 col-sm-12 text-sm-center text-md-start align-self-center">
-            <span style="white-space: nowrap" class="text-ceka {displayNoneCssClassCeka}">
+          <span class="col-xl-3 col-md-6 col-sm-12 text-sm-center text-md-start align-self-center"
+                style="white-space: nowrap; text-align: center">
+            <span class="text-ceka {displayNoneCssClassCeka}">
               <em>⏳ Můžeš ji editovat za <span id="odpocet-{idAktivity}" class="odpocet"
                                                data-editovatelna-od="{editovatelnaOdTimestamp}"></span> ⏳</em>
             </span>
-            <span style="white-space: nowrap" id="uzavrena-{idAktivity}" class="{displayNoneCssClassUzavrena}">
+            <span id="uzavrena-{idAktivity}" class="{displayNoneCssClassUzavrena}">
               <em>🔒 Uzavřena pro online přihlašování 🔒</em>
             </span>
             <button class="btn btn-outline-danger tlacitko-uzavrit-aktivitu {displayNoneCssClassUzavrit}"
@@ -136,6 +135,7 @@
                 const uzavrenaElement = document.getElementById('uzavrena-{idAktivity}')
                 if (uzavrenaElement.dataset.uzavrena) {
                   const otevrenaElement = document.getElementById('otevrena-{idAktivity}')
+                  // viz online-prezence.js prohoditZobrazeni
                   prohoditZobrazeni(otevrenaElement, uzavrenaElement)
                 }
               }
@@ -143,14 +143,15 @@
           </span>
 
           <span class="col-xl col-md col-sm text-sm-center text-md-start align-self-center">
+            <!-- begin:pozorNaKonecAktivity -->
             <span
                 style="white-space: nowrap; padding: 5px; display: inline-block; margin: 2px 0; width: 100%; text-align: center;"
                 id="skoncila-{idAktivity}"
                 class="alert-info text-skoncila {displayNoneCssClassAktivitaSkoncila} skryt-pokud-aktivitu-nelze-editovat-{idAktivity}"
                 data-konec-aktivity-v="{konecAktivityVTimestamp}">
-              ✋ <em>Aktivita už skončila, pozor na úpravy</em> <span
-                style="transform: scale(-1, 1); display: inline-block">✋</span>
+              ✋ <em>Aktivita už skončila, pozor na úpravy</em> <span class="flipped-icon">✋</span>
             </span>
+            <!-- end:pozorNaKonecAktivity -->
           </span>
 
           <span class="col-xl-2 col-md-4 col-sm-12">
