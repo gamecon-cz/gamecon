@@ -23,11 +23,9 @@
     }
 
     $('.ucastnik').each(function (index, ucastnikNode) {
-      ucastnikNode.addEventListener(
-        'zmenaMetadatPrezence',
-        function (/** @param {{detail: {casPosledniZmenyPrihlaseni: string, stavPrihlaseni: string}}} event */event) {
-          zapisMetadataPrezence(ucastnikNode, event.detail)
-        })
+      ucastnikNode.addEventListener('zmenaMetadatPrezence', function (/** @param {{detail: {casPosledniZmenyPrihlaseni: string, stavPrihlaseni: string}}} event */event) {
+        zapisMetadataPrezence(ucastnikNode, event.detail)
+      })
     })
 
     // ZOBRAZENI ERRORS
@@ -58,19 +56,14 @@
         const ucastniciAktivityNode = $(`#ucastniciAktivity${idAktivity}`)
         const novyUcastnik = $(ui.item.html)
 
-        zmenitUcastnika(
-          idUcastnika,
-          idAktivity,
-          novyUcastnik.find('input')[0],
-          function () {
-            /**
-             * Teprve až backend potvrdí uložení vybraného účastníka a JS přidá čas poslední změny a stav přihlášení,
-             * tak můžeme přidat řádek s tímto účastníkem.
-             * Data z řádku totiž potřebujeme pro kontrolu změn v online-prezence-posledni-zname-zmeny-prihlaseni.js
-             */
-            ucastniciAktivityNode.append(novyUcastnik)
-          },
-        )
+        zmenitUcastnika(idUcastnika, idAktivity, novyUcastnik.find('input')[0], function () {
+          /**
+           * Teprve až backend potvrdí uložení vybraného účastníka a JS přidá čas poslední změny a stav přihlášení,
+           * tak můžeme přidat řádek s tímto účastníkem.
+           * Data z řádku totiž potřebujeme pro kontrolu změn v online-prezence-posledni-zname-zmeny-prihlaseni.js
+           */
+          ucastniciAktivityNode.append(novyUcastnik)
+        })
 
         // vyrušení default výběru do boxu
         event.preventDefault()
@@ -190,8 +183,38 @@
         return false
       }
 
-      odpocetNode.text(zbyvaSekund + ' s')
+      odpocetNode.text(sekundyNaLidskyCas(zbyvaSekund))
       return true
+    }
+
+    /**
+     * @param {number} sekundy
+     * @return {string}
+     */
+    function sekundyNaLidskyCas(sekundy) {
+      const sekundVeDni = 3600 * 24
+      const zbyvaDni = Math.floor(sekundy / sekundVeDni)
+      const sekundyBezDni = sekundy - (zbyvaDni * sekundVeDni)
+      const zbyvaHodin = Math.floor(sekundyBezDni / 3600)
+      const sekundyBezDniAHodin = sekundyBezDni - (zbyvaHodin * 3600)
+      const zbyvaMinut = Math.floor(sekundyBezDniAHodin / 60)
+      const zbyvaSekund = sekundyBezDniAHodin - (zbyvaMinut * 60)
+
+      let lidskyCas = ''
+      if (zbyvaDni) {
+        lidskyCas += `${zbyvaDni} d`
+      }
+      if (zbyvaDni || zbyvaHodin) {
+        lidskyCas += `${zbyvaHodin} h`
+      }
+      if (zbyvaDni || zbyvaHodin || zbyvaMinut) {
+        lidskyCas += ` ${zbyvaMinut} m`
+      }
+      if (zbyvaDni || zbyvaHodin || zbyvaMinut || zbyvaSekund) {
+        lidskyCas += ` ${zbyvaSekund} s`
+      }
+
+      return lidskyCas
     }
 
     /**
@@ -209,10 +232,13 @@
       return new Date().getTime() / 1000
     }
 
-    // ✋ AKTIVITA UŽ SKONČILA, ÚPRAVY SI DOBŘE ROZMYSLI ✋
+    // ✋ AKTIVITA UŽ SKONČILA, POZOR NA ÚPRAVY ✋
     $aktivity.each(function () {
       const $aktivitaNode = $(this)
       $aktivitaNode.find('.text-skoncila').each(function () {
+        if (this.classList.contains('display-none')) {
+          return // etxt
+        }
         const $textSkoncilaNode = $(this)
         hlidatUpozorneniNaSkoncenouAktivitu($textSkoncilaNode)
       })
@@ -271,15 +297,11 @@ function zmenitUcastnika(idUzivatele, idAktivity, checkboxNode, callbackOnSucces
     if (data && typeof data.prihlasen == 'boolean') {
       checkboxNode.checked = data.prihlasen
 
-      const zmenaMetadatPrezence = new CustomEvent(
-        'zmenaMetadatPrezence',
-        {
-          detail: {
-            casPosledniZmenyPrihlaseni: data.cas_posledni_zmeny_prihlaseni,
-            stavPrihlaseni: data.stav_prihlaseni,
-          },
+      const zmenaMetadatPrezence = new CustomEvent('zmenaMetadatPrezence', {
+        detail: {
+          casPosledniZmenyPrihlaseni: data.cas_posledni_zmeny_prihlaseni, stavPrihlaseni: data.stav_prihlaseni,
         },
-      )
+      })
       const ucastnikNode = $(checkboxNode).parents('.ucastnik')[0]
       // bude zpracovano v zapisMetadataPrezence()
       ucastnikNode.dispatchEvent(zmenaMetadatPrezence)
@@ -343,7 +365,6 @@ const akceAktivity = new class AkceAktivity {
   }
 
   /**
-   * @private
    * @param {HTMLElement} skrytElement
    * @param {HTMLElement} zobrazitElement
    */
@@ -360,4 +381,12 @@ const akceAktivity = new class AkceAktivity {
  */
 function uzavritAktivitu(idAktivity, skrytElement, zobrazitElement) {
   akceAktivity.uzavritAktivitu(idAktivity, skrytElement, zobrazitElement)
+}
+
+/**
+ * @param {HTMLElement} skrytElement
+ * @param {HTMLElement} zobrazitElement
+ */
+function prohoditZobrazeni(skrytElement, zobrazitElement) {
+  akceAktivity.prohoditZobrazeni(skrytElement, zobrazitElement)
 }
