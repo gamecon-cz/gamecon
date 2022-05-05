@@ -3,7 +3,7 @@
   <div {aktivni}>
     <img class="horni roh" src="files/design/roh-horni.png">
     <img class="dolni roh" src="files/design/roh-dolni.png">
-    <a href="{url}"><img src="files/design/{url}.png" />{nazev}</a>
+    <a href="{url}"><img src="files/design/{url}.png"/>{nazev}</a>
   </div>
   <!-- end:menuPolozka -->
 </div>

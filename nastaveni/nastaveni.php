@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 /**
  * Sada globálních proměnných a konstant sloužící jako konfigurace.
@@ -59,7 +60,7 @@ error_reporting($puvodni ^ E_NOTICE);
 @define('HROMADNE_ODHLASOVANI_2', DateTimeGamecon::druheHromadneOdhlasovaniOd(ROK)->formatDb()); // datum druhého hromadného odhlašování neplatičů
 
 // 2022-07-13 00:00:00
-@define('PROGRAM_OD', DateTimeGamecon::zacatekProgramu(ROK)->formatDatumDb()); // první den programu
+@define('PROGRAM_OD', DateTimeGamecon::zacatekProgramu(ROK)->formatDb()); // první den programu
 @define('PROGRAM_DO', GC_BEZI_DO); // poslední den programu
 @define('PROGRAM_VIDITELNY', po(REG_GC_OD)); // jestli jsou viditelné linky na program
 @define('CENY_VIDITELNE', PROGRAM_VIDITELNY && pred(GC_BEZI_DO)); // jestli jsou viditelné ceny aktivit
@@ -116,7 +117,6 @@ unset($pre);
 // Finanční nastavení //
 ////////////////////////
 
-@define('KURZ_EURO', 24); // kurz kč:euro
 @define('UCET_CZ', '2800035147/2010'); // číslo účtu pro platby v CZK - v statických stránkách není
 @define('IBAN', 'CZ2820100000002800035147'); // mezinárodní číslo účtu
 @define('BIC_SWIFT', 'FIOBCZPPXXX'); // mezinárodní ID (něco jako mezinárodní VS)
@@ -216,3 +216,15 @@ Organizační tým GameConu',
 define('SUPERADMINI', [1682, 4032]);
 
 @define('ADRESAR_WEBU_S_OBRAZKY', __DIR__ . '/../web');
+
+$nastaveni = new SystemoveNastaveni();
+$nastaveni->zaznamyDoKonstant();
+
+/**
+ * Tato nastavení jsou definovaná v SQL tabulce systemove_nastaveni
+ * @see \Gamecon\SystemoveNastaveni\SystemoveNastaveni::zaznamyDoKonstant
+ * a zde se definují jen na oko, aby je IDE znalo
+ */
+if (!defined('KURZ_EURO')) {
+    define('KURZ_EURO', 24);
+}

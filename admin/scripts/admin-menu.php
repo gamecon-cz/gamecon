@@ -7,37 +7,47 @@
 
 class AdminMenu
 {
-    var $menu = [];
 
+    /** @var string */
+    private $src;
+    /** @var bool */
+    private $isSubmenu;
+    private $menu;
     private $patickaSoubor;
 
-    function __construct($src, $isSubmenu = false) {
-        if (substr($src, 0, 2) == './') $src = substr($src, 2);
-        $d = opendir('./' . $src);
+    function __construct(string $src, bool $isSubmenu = false) {
+        $this->src = $src;
+        $this->isSubmenu = $isSubmenu;
+    }
+
+    private function sestavMenu() {
+        $this->menu = [];
+        if (substr($this->src, 0, 2) == './') $this->src = substr($this->src, 2);
+        $d = opendir(__DIR__ . '/../' . $this->src);
         while (($file = readdir($d)) !== FALSE) {
-            //echo($file.' '.is_dir($src.$file).'<br />');
+            //echo($file.' '.is_dir($this->src.$file).'<br />');
             if (strpos($file, '.php') && substr($file, 0, 1) != '_') { //načtení souboru, vyhledání proměnných v hlavičkách
                 $url = substr($file, 0, -4);
-                $fc = (string)file_get_contents('./' . $src . $file, false, null, 0, 2048);
+                $fc = (string)file_get_contents(__DIR__ . '/../' . $this->src . $file, false, null, 0, 2048);
                 preg_match('@\* nazev: (.*)@', $fc, $m);
                 $this->menu[$url]['nazev'] = $m[1];
-                preg_match('@\* pravo: (.*)@', $fc, $m);
+                preg_match('@\* pravo: (\d*)@', $fc, $m);
                 $this->menu[$url]['pravo'] = (int)$m[1];
-                $this->menu[$url]['soubor'] = $src . $file;
-                if ($isSubmenu) {
+                $this->menu[$url]['soubor'] = $this->src . $file;
+                if ($this->isSubmenu) {
                     $this->parseSubMenu($fc, $url);
                 }
             } elseif (strpos($file, '.') === false && strpos($file, '_') === false
-                && is_dir($src . $file)) {
+                && is_dir($this->src . $file)) {
                 $url = $file;
-                $fc = (string)file_get_contents($src . $file . '/' . $file . '.php', false, null, 0, 2048);
+                $fc = (string)file_get_contents($this->src . $file . '/' . $file . '.php', false, null, 0, 2048);
                 preg_match('@\* nazev: (.*)@', $fc, $m);
                 $this->menu[$url]['nazev'] = $m[1];
                 preg_match('@\* pravo: (.*)@', $fc, $m);
                 $this->menu[$url]['pravo'] = (int)$m[1];
-                $this->menu[$url]['soubor'] = $src . $file . '/' . $file . '.php';
+                $this->menu[$url]['soubor'] = $this->src . $file . '/' . $file . '.php';
                 $this->menu[$url]['submenu'] = 1;
-                if ($isSubmenu) {
+                if ($this->isSubmenu) {
                     $this->parseSubMenu($fc, $url);
                 }
                 /*while(($sf=readdir($sd))!==FALSE)
@@ -45,7 +55,7 @@ class AdminMenu
                   if(strpos($sf,'.php'))
                   { //načtení souboru, vyhledání proměnných v hlavičkách
                     $url=substr($sf,0,-4);
-                    $fc=file_get_contents($src.$file.$sf,false,null,-1,2048);
+                    $fc=file_get_contents($this->src.$file.$sf,false,null,-1,2048);
                     preg_match('@\* nazev: (.*)@',$fc,$m);
                     $this->menu[$url]['nazev']=$m[1];
                     preg_match('@\* pravo: (.*)@',$fc,$m);
@@ -53,7 +63,7 @@ class AdminMenu
                   }
                 }*/
             } else if ($file === '_paticka.php') {
-                $this->patickaSoubor = $src . $file;
+                $this->patickaSoubor = $this->src . $file;
             }
         }
         closedir($d);
@@ -78,11 +88,17 @@ class AdminMenu
     }
 
     /** Export menu do pole. Iterátory a věci (?) */
-    function pole() {
+    public function pole() {
+        if (!isset($this->menu)) {
+            $this->sestavMenu();
+        }
         return $this->menu;
     }
 
     public function getPatickaSoubor(): ?string {
+        if (!isset($this->patickaSoubor)) {
+            $this->sestavMenu();
+        }
         return $this->patickaSoubor;
     }
 }
