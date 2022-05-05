@@ -1,0 +1,40 @@
+<!-- begin:nastaveni -->
+
+<h1>Nastavení</h1>
+
+<table class="zvyraznovana nastaveni" id="nastaveni" style="width: 100%" data-ajax-klic="{ajaxKlic}">
+  <thead>
+  <tr>
+    <th>Název</th>
+    <th>Hodnota</th>
+    <th>Poslední změna</th>
+    <th>Naposledy změnil</th>
+  </tr>
+  </thead>
+  <tbody>
+  <!-- begin:zaznam -->
+  <tr>
+    <td class="technicke nazev hinted">
+      <label for="hodnota-{klic}">{nazev}</label>
+      <div class="hint">
+        <strong>{klic}</strong>
+        <div>
+          {popis}
+        </div>
+      </div>
+    </td>
+    <td class="technicke">
+      <form style="position:relative;">
+        <input name="{postKlic}[{klic}]" class="hodnota-nastaveni" id="hodnota-{klic}" value="{hodnota}"
+               type="{inputType}">
+      </form>
+    </td>
+    <td id="posledni-zmena-{klic}">{posledniZmena}</td>
+    <td id="zmenil-{klic}">{zmenil}</td>
+  </tr>
+  <!-- end:zaznam --></tbody>
+</table>
+
+<script type="text/javascript" src="files/systemove-nastaveni.js"></script>
+
+<!-- end:nastaveni -->

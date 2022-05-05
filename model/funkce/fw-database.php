@@ -225,13 +225,13 @@ function dbNumQ() {
 /**
  * @return number of rows affected / returned by query
  */
-function dbNumRows($query) {
+function dbNumRows($query): int {
     if ($query === true) {
         // result of mysqli_query INSERT / UPDATE / DELETE
-        return $GLOBALS['spojeni']->affected_rows;
+        return $GLOBALS['spojeni']->affected_rows ?? 0;
     } elseif ($query instanceof mysqli_result) {
         // result of mysqli_query SELECT
-        return $query->num_rows;
+        return $query->num_rows ?? 0;
     } else {
         throw new Exception('query failed or returned unexpected type');
     }

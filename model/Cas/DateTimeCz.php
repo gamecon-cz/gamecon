@@ -100,7 +100,7 @@ class DateTimeCz extends \DateTime
 
     /** Vrací formát kompatibilní s mysql */
     function formatDatumDb() {
-        return parent::format(self::FORMAT_DB);
+        return parent::format(self::FORMAT_DATUM_DB);
     }
 
     /**
@@ -157,21 +157,28 @@ class DateTimeCz extends \DateTime
     }
 
     /** Vrací relativní formát času vůči současnému okamžiku */
-    function relativni() {
+    function relativni(): string {
         $rozdil = time() - $this->getTimestamp();
-        if ($rozdil < 0)
+        if ($rozdil < 0) {
             return 'v budoucnosti';
-        if ($rozdil < 2)
+        }
+        if ($rozdil < 2) {
             return "před okamžikem";
-        if ($rozdil < 60)
+        }
+        if ($rozdil < 60) {
             return "před $rozdil sekundami";
-        if ($rozdil < 60 * 60)
+        }
+        if (round($rozdil / 60) === 1.0) {
+            return 'před minutou';
+        }
+        if ($rozdil < 60 * 60) {
             return 'před ' . round($rozdil / 60) . ' minutami';
+        }
         $dny = $this->rozdilDne(new static('now', $this->getTimezone()));
-        if (!$dny) // dnes
+        if (!$dny) { // dnes
             return $this->format('G:i');
-        else
-            return $dny;
+        }
+        return $dny;
     }
 
     /**

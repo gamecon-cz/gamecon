@@ -1,62 +1,222 @@
-html {  }
+html {
+}
+
 body {
-  font-family: tahoma, sans-serif; font-size: 12px;
+  font-family: tahoma, sans-serif;
+  font-size: 12px;
   background-color: #3b3b3b;
   /* rollback pozadí - renderování dlouhé stránky už je příliš pomalé */
   /*
   background-image: url('bg-glob-1.png');
   background-attachment: fixed;
   */
-  overflow-y: scroll; margin: 0; padding: 0; text-align: center;
+  overflow-y: scroll;
+  margin: 0;
+  padding: 0;
+  text-align: center;
 }
 
 
-.obal   { display: inline-block; min-width: 700px; max-width: 1200px; width: 100%; text-align: justify; }
-.sloupL { position: fixed; width: 180px; text-align: left; }
-.sloupR { position: relative; margin-left: 180px; z-index: 10; padding: 8px 0; }
-.sloupL > .prvniBlok { min-height: 42px; }
+.obal {
+  display: inline-block;
+  min-width: 700px;
+  max-width: 1200px;
+  width: 100%;
+  text-align: justify;
+}
 
-.operator, .uzivatel { background-color: #bbb; border-radius: 8px; padding: 8px; margin: 8px; margin-left: 0; }
+.sloupL {
+  position: fixed;
+  width: 180px;
+  text-align: left;
+}
 
-.operator {  }
+.sloupR {
+  position: relative;
+  margin-left: 180px;
+  z-index: 10;
+  padding: 8px 0;
+}
 
-.uzivatel { background-color: #fff; min-height: 90px; }
-.uzivatel .tip { color: #aaa; margin: 4px 8px 0 8px; font-size: 0.8em; }
-.uzivatel .avatar { display: block; max-width: 60px; max-height: 60px; margin: 0 8px 8px 0; }
-.uzivatel h3 { margin: 0 0 3px 0; font-size: 1.2em; line-height: 0.9em; }
-.uzivatel .omnibox { width: 100%; box-sizing: border-box; -moz-box-sizing: border-box; }
-.uzivatel .status { font-weight: bold; }
-.uzivatel .levy { float: left; width: 60px; }
-.uzivatel .pravy { float: right; width: 90px; }
+.sloupL > .prvniBlok {
+  min-height: 42px;
+}
 
-.mobmenu { display: none; }
+.operator, .uzivatel {
+  background-color: #bbb;
+  border-radius: 8px;
+  padding: 8px;
+  margin: 8px;
+  margin-left: 0;
+}
+
+.operator {
+}
+
+.uzivatel {
+  background-color: #fff;
+  min-height: 90px;
+}
+
+.uzivatel .tip {
+  color: #aaa;
+  margin: 4px 8px 0 8px;
+  font-size: 0.8em;
+}
+
+.uzivatel .avatar {
+  display: block;
+  max-width: 60px;
+  max-height: 60px;
+  margin: 0 8px 8px 0;
+}
+
+.uzivatel h3 {
+  margin: 0 0 3px 0;
+  font-size: 1.2em;
+  line-height: 0.9em;
+}
+
+.uzivatel .omnibox {
+  width: 100%;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+}
+
+.uzivatel .status {
+  font-weight: bold;
+}
+
+.uzivatel .levy {
+  float: left;
+  width: 60px;
+}
+
+.uzivatel .pravy {
+  float: right;
+  width: 90px;
+}
+
+.mobmenu {
+  display: none;
+}
 
 
 /* hlavička */
 
-.menu {  }
-.menu > div { background-color: #bbb; border-radius: 8px 0 0 8px; margin: 0 0 4px 0; position: relative;
-  background: linear-gradient(to right, #bbb 0%, #bbb 96%, #888 100%); height: 26px; }
-.menu > div.active { background: none; background-color: #fff; }
-.menu .roh { position: absolute; display: none; z-index: 10; height: 8px; }
-.menu .active .roh { display: block; }
-.menu .horni.roh { bottom: 100%; right: 0; }
-.menu .dolni.roh { top: 100%; right: 0; }
-.menu a { display: block; width: 100%; text-decoration: none; color: #000; opacity: 0.7; padding: 4px; }
-.menu a img { margin-right: 4px; }
-.menu .active a { opacity: 1.0; }
-.menu :hover a { opacity: 1.0; }
-.menu a:focus { outline: none; opacity: 1.0; color: #f00; }
+.menu {
+  font-size: 16px
+}
 
-.main { padding: 20px; background-color: #fff; border-radius: 8px; min-height: 480px; position: relative; z-index: 10; }
+.menu > div {
+  border-radius: 8px 0 0 8px;
+  margin: 0 0 4px 0;
+  position: relative;
+  background: linear-gradient(to right, #bbb 0%, #bbb 96%, #888 100%);
+  height: 26px;
+}
 
-.paticka { margin-top: -8px; }
-.paticka .nabidka { margin-top: 8px; padding: 8px 16px; }
-.paticka .nabidka, .paticka .nabidka a, .paticka .protip { color: #666; text-decoration: none; text-shadow: 0px 0px 5px #000; }
-.paticka .nabidka a:hover { color: #ddd; text-shadow: none; }
-.paticka .protip { float: right; text-align: right; width: 60%; }
-.paticka .obsah { border-radius: 0 0 8px 8px; padding: 8px; padding-top: 24px; display: none;
-  background-color: #bbb; background: linear-gradient(to bottom, #888 8px, #bbb 16px); margin-bottom: -8px; }
+.menu > div:hover {
+  background: linear-gradient(to right, #bbb 0%, #bbb 96%, #ffffff 100%);
+}
+
+.menu > div.active {
+  background: none;
+  background-color: #fff;
+}
+
+.menu .roh {
+  position: absolute;
+  display: none;
+  z-index: 10;
+  height: 8px;
+}
+
+.menu .active .roh {
+  display: block;
+}
+
+.menu .horni.roh {
+  bottom: 100%;
+  right: 0;
+}
+
+.menu .dolni.roh {
+  top: 100%;
+  right: 0;
+}
+
+.menu a {
+  display: block;
+  width: 100%;
+  text-decoration: none;
+  color: #000;
+  opacity: 0.7;
+  padding: 4px;
+}
+
+.menu a img {
+  margin-right: 4px;
+}
+
+.menu .active a {
+  opacity: 1.0;
+}
+
+.menu :hover a {
+  opacity: 1.0;
+}
+
+.menu a:focus {
+  outline: none;
+  opacity: 1.0;
+  color: #f00;
+}
+
+.main {
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  min-height: 480px;
+  position: relative;
+  z-index: 10;
+}
+
+.paticka {
+  margin-top: -8px;
+}
+
+.paticka .nabidka {
+  margin-top: 8px;
+  padding: 8px 16px;
+}
+
+.paticka .nabidka, .paticka .nabidka a, .paticka .protip {
+  color: #666;
+  text-decoration: none;
+  text-shadow: 0px 0px 5px #000;
+}
+
+.paticka .nabidka a:hover {
+  color: #ddd;
+  text-shadow: none;
+}
+
+.paticka .protip {
+  float: right;
+  text-align: right;
+  width: 60%;
+}
+
+.paticka .obsah {
+  border-radius: 0 0 8px 8px;
+  padding: 8px;
+  padding-top: 24px;
+  display: none;
+  background-color: #bbb;
+  background: linear-gradient(to bottom, #888 8px, #bbb 16px);
+  margin-bottom: -8px;
+}
 
 #submenu {
   padding: 0;
@@ -68,11 +228,19 @@ body {
   justify-content: space-between;
   height: auto;
 }
-#submenu.submenu-selected-finance { width: 100%; }
-#submenu.submenu-selected-aktivity { padding: 15px 0 10px; }
+
+#submenu.submenu-selected-finance {
+  width: 100%;
+}
+
+#submenu.submenu-selected-aktivity {
+  padding: 15px 0 10px;
+}
 
 #submenu ul, #submenu li {
-  padding: 0; margin: 0; display: block;
+  padding: 0;
+  margin: 0;
+  display: block;
 }
 
 #submenu a {
@@ -85,6 +253,7 @@ body {
   margin: 0 20px 0 0;
   padding: 0;
 }
+
 #submenu > li:first-child:last-child {
   width: 100%;
 }
@@ -98,6 +267,7 @@ body {
   align-content: flex-start;
   align-items: stretch;
 }
+
 #submenu > li:first-child:last-child .adm_submenu_group > li {
   flex: 1 1 10%;
   max-width: 250px;
@@ -140,7 +310,9 @@ body {
   padding-bottom: 10px;
 }
 
-#submenu .adm_submenu_item_grp_5 { margin-right: 5px; }
+#submenu .adm_submenu_item_grp_5 {
+  margin-right: 5px;
+}
 
 .adm_submenu_item_ord_1::before,
 .submenuAktivovatVse::before {
@@ -157,10 +329,22 @@ body {
   opacity: 0.6;
   overflow: visible;
 }
-.adm_submenu_item_ord_1.adm_submenu_item_grp_1::before { content: 'Zadávání'; }
-.adm_submenu_item_ord_1.adm_submenu_item_grp_2::before { content: 'Vypravěči'; }
-.adm_submenu_item_ord_1.adm_submenu_item_grp_3::before { content: 'Účast'; }
-.adm_submenu_item_ord_1.adm_submenu_item_grp_4::before { content: 'Administrace'; }
+
+.adm_submenu_item_ord_1.adm_submenu_item_grp_1::before {
+  content: 'Zadávání';
+}
+
+.adm_submenu_item_ord_1.adm_submenu_item_grp_2::before {
+  content: 'Vypravěči';
+}
+
+.adm_submenu_item_ord_1.adm_submenu_item_grp_3::before {
+  content: 'Účast';
+}
+
+.adm_submenu_item_ord_1.adm_submenu_item_grp_4::before {
+  content: 'Administrace';
+}
 
 .submenuAktivovatVse {
   position: absolute;
@@ -172,6 +356,7 @@ body {
   margin: 0;
   text-align: right;
 }
+
 .submenuAktivovatVse::before {
   content: 'Nešmatlat';
 }
@@ -193,6 +378,7 @@ body {
   line-height: 100%;
   cursor: pointer;
 }
+
 .submenuAktivovatVse input[type=submit]:hover {
   border-color: #833214;
   background: red;
@@ -200,11 +386,11 @@ body {
 }
 
 .aktivityProgramovaLinie {
- position: relative;
- overflow: visible;
- left: 0;
- width: 100%;
- height: 0;
+  position: relative;
+  overflow: visible;
+  left: 0;
+  width: 100%;
+  height: 0;
 }
 
 .aktivityProgramovaLinie > form {
@@ -214,12 +400,17 @@ body {
   top: -2px;
   text-align: center;
 }
+
 .aktivityProgramovaLinie form table label {
   margin: 0 auto;
   text-align: center;
 }
-.aktivityProgramovaLinie label { display: inline-block; overflow-x: hidden;
-    text-overflow: ellipsis; }
+
+.aktivityProgramovaLinie label {
+  display: inline-block;
+  overflow-x: hidden;
+  text-overflow: ellipsis;
+}
 
 .aktivityPrihlaseni_seznam_menu {
   list-style-type: none;
@@ -228,15 +419,18 @@ body {
   text-align: left;
   line-height: 100%;
 }
+
 .aktivityPrihlaseni_seznam_menu li {
   display: inline-block;
   padding: 0 10px 0 0;
   margin: 0 0 5px 5px;
   border-right: 1px solid #aaa;
 }
+
 .aktivityPrihlaseni_seznam_menu li:last-of-type {
   border-right: none;
 }
+
 .aktivityPrihlaseni_seznam_menu li a {
   display: inline-block;
   padding: 6px 8px 7px;
@@ -244,99 +438,382 @@ body {
 }
 
 /* Obecný styl prvků */
-hr { border: none; border-top: solid 1px #ddd; margin: 1.5em 0; }
+hr {
+  border: none;
+  border-top: solid 1px #ddd;
+  margin: 1.5em 0;
+}
 
 /* Formuláře */
-input, textarea, select, .tlacitko, .adm_submenu_item a { border: solid 1px #999; padding: 2px; border-radius: 2px; margin: 0; font: inherit; background-color: #fff; color: inherit; }
-input[disabled], textarea[disabled], select[disabled] { background-color: lightgray; cursor: not-allowed }
-input::-moz-focus-inner { border: 0; padding: 0; /* margin-top:-2px; margin-bottom: -2px; */ /* FF fix */ }
-input[type="submit"], input[type="button"], .tlacitko, .adm_submenu_item a { background: lightgray linear-gradient(to top, #d8d8d8 0%, #fafafa 100%); padding: 2px 8px; }
-.tlacitko.tlacitko_isDanger { background: red linear-gradient(to top, #880000 0%, #ff8888 100%); padding: 2px 8px; }
-input[type="submit"]:hover, input[type="button"]:hover, .tlacitko:hover, .adm_submenu_item a { border-color: #666; cursor: pointer; }
-input[type="text"], input[type="password"], select {  }
-textarea { font: inherit; }
-a.tlacitko { color: inherit; text-decoration: none; }
-input[type="submit"]:disabled { background-color: lightgray; color: gray; cursor: not-allowed }
+input, textarea, select, .tlacitko, .adm_submenu_item a {
+  border: solid 1px #999;
+  padding: 2px;
+  border-radius: 2px;
+  margin: 0;
+  font: inherit;
+  background-color: #fff;
+  color: inherit;
+}
+
+input[disabled], textarea[disabled], select[disabled] {
+  background-color: lightgray;
+  cursor: not-allowed
+}
+
+input::-moz-focus-inner {
+  border: 0;
+  padding: 0; /* margin-top:-2px; margin-bottom: -2px; */ /* FF fix */
+}
+
+input[type="submit"], input[type="button"], .tlacitko, .adm_submenu_item a {
+  background: lightgray linear-gradient(to top, #d8d8d8 0%, #fafafa 100%);
+  padding: 2px 8px;
+}
+
+.tlacitko.tlacitko_isDanger {
+  background: red linear-gradient(to top, #880000 0%, #ff8888 100%);
+  padding: 2px 8px;
+}
+
+input[type="submit"]:hover, input[type="button"]:hover, .tlacitko:hover, .adm_submenu_item a {
+  border-color: #666;
+  cursor: pointer;
+}
+
+input[type="text"], input[type="password"], select {
+}
+
+textarea {
+  font: inherit;
+}
+
+a.tlacitko {
+  color: inherit;
+  text-decoration: none;
+}
+
+input[type="submit"]:disabled {
+  background-color: lightgray;
+  color: gray;
+  cursor: not-allowed
+}
 
 /* Tabulky */
-.main table { border-collapse: collapse; }
-.main table th { background: linear-gradient(to bottom, #fafdff 0%, #fdffff 50%, #f7f9fa 50%, #f2f1f3 100%);
-  background-color: #f2f1f3; border: solid 1px #eee; padding: 3px; font-family: verdana; font-weight: normal; }
-.main table td { padding: 2px 5px; text-align: left; }
-.main table tr:nth-child(odd) { background-color: #f0f0f0; }
-.main table.zvyraznovana { cursor: default; }
-.main table.zvyraznovana tr:hover td { background-color: #c6e6f8; }
-.main table td img { margin:-4px 0; border:0; padding:0; }
+.main table {
+  border-collapse: collapse;
+}
 
-table form, form.radkovy { margin:0; padding:0; display: inline; }
-table form input[type="submit"], table form input[type="button"], .tlacitko { padding: 0 5px; font-size: 11px; line-height: 10px; font-family: inherit; height: 14px; position: relative; top: -1px; }
-td > a.tlacitko { height: 12px; display: inline-block; top: -1px; line-height: 12px; }
+.main table th {
+  background: linear-gradient(to bottom, #fafdff 0%, #fdffff 50%, #f7f9fa 50%, #f2f1f3 100%);
+  background-color: #f2f1f3;
+  border: solid 1px #eee;
+  padding: 3px;
+  font-family: verdana;
+  font-weight: normal;
+}
 
-table.cista > tbody > tr { background-color: transparent; vertical-align: top; padding:0; }
-table.cista > tbody > tr > td { border: solid 0px; padding: 0; }
-table.cista > tbody > tr > td:first-child { padding: 0; }
+.main table td {
+  padding: 2px 5px;
+  text-align: left;
+}
+
+.main table tr:nth-child(odd) {
+  background-color: #f0f0f0;
+}
+
+.main table.zvyraznovana {
+  cursor: default;
+}
+
+.main table.zvyraznovana tr:hover td {
+  background-color: #c6e6f8;
+}
+
+.main table td img {
+  margin: -4px 0;
+  border: 0;
+  padding: 0;
+}
+
+table form, form.radkovy {
+  margin: 0;
+  padding: 0;
+  display: inline;
+}
+
+table form input[type="submit"], table form input[type="button"], .tlacitko {
+  padding: 0 5px;
+  font-size: 11px;
+  line-height: 10px;
+  font-family: inherit;
+  height: 14px;
+  position: relative;
+  top: -1px;
+}
+
+td > a.tlacitko {
+  height: 12px;
+  display: inline-block;
+  top: -1px;
+  line-height: 12px;
+}
+
+table.cista > tbody > tr {
+  background-color: transparent;
+  vertical-align: top;
+  padding: 0;
+}
+
+table.cista > tbody > tr > td {
+  border: solid 0px;
+  padding: 0;
+}
+
+table.cista > tbody > tr > td:first-child {
+  padding: 0;
+}
 
 /* obalovací boxy */
-.aBox, .cista .aBox, .cista .aBox:first-child { border: solid 1px #ddd; margin: 20px 0; padding: 5px; padding-top: 10px; }
-.aBox h3:first-child { margin-top: -20px; background-color: #fff; position: absolute; padding: 0 5px; }
-.aBox ul { margin: 0 0 5px 0; padding-left: 22px; }
-.cista .aBox, .cista .aBox:first-child { min-width: 200px; }
-.aBox.grid { float: left; width: 300px; margin: 0 10px 10px 0; }
-.aBox.grid > table, .aBox.grid > form > table { width: 100%; }
-.aBox.grid input[type="text"], .aBox.grid select { width: 100%; box-sizing: border-box; }
+.aBox, .cista .aBox, .cista .aBox:first-child {
+  border: solid 1px #ddd;
+  margin: 20px 0;
+  padding: 5px;
+  padding-top: 10px;
+}
+
+.aBox h3:first-child {
+  margin-top: -20px;
+  background-color: #fff;
+  position: absolute;
+  padding: 0 5px;
+}
+
+.aBox ul {
+  margin: 0 0 5px 0;
+  padding-left: 22px;
+}
+
+.cista .aBox, .cista .aBox:first-child {
+  min-width: 200px;
+}
+
+.aBox.grid {
+  float: left;
+  width: 300px;
+  margin: 0 10px 10px 0;
+}
+
+.aBox.grid > table, .aBox.grid > form > table {
+  width: 100%;
+}
+
+.aBox.grid input[type="text"], .aBox.grid select {
+  width: 100%;
+  box-sizing: border-box;
+}
 
 /* tabulky v stylu vyplňovací form */
-form table th { background-repeat: repeat-x; }
-form table input[type="text"], form table input[type="password"], form table select, form table textarea {
-  margin-top: 2px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
-form table input[type="text"]:first-child, form table select:first-child, form table textarea:first-child {
-  margin-top: 0; }
-form table .full { width: 99%; }
-form table .obrazekNahled { background-image:url('sachy.png'); padding: 5px; text-align: center; }
-form table .obrazekNahled img { margin:-1px 0 -2px 0; }
-form table .orez { line-height: 60px; text-align: center; }
-form table .orez input { position: relative; top: -8px; }
-form table .orez img { width: 50px; }
-.dbForm input[type="text"] { min-width: 200px; }
+form table th {
+  background-repeat: repeat-x;
+}
 
-.hinted { cursor: default; color: inherit; text-decoration: inherit; border-bottom: dotted 1px; position: relative; }
-.hinted:hover .hint { display: block; }
-a > .hinted { cursor: inherit }
-.hint { position: absolute; display: none; width: 200px; left: 0; top: 16px;
-  background-color: rgba(51,51,51,0.9); /background-color: #333;
-  border: solid 0px #000; padding: 3px; z-index: 10; font-size: 11px;
-  color: #fff; text-align: left; padding: 10px; white-space: normal }
+form table input[type="text"], form table input[type="password"], form table select, form table textarea {
+  margin-top: 2px;
+  margin-bottom: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+form table input[type="text"]:first-child, form table select:first-child, form table textarea:first-child {
+  margin-top: 0;
+}
+
+form table .full {
+  width: 99%;
+}
+
+form table .obrazekNahled {
+  background-image: url('sachy.png');
+  padding: 5px;
+  text-align: center;
+}
+
+form table .obrazekNahled img {
+  margin: -1px 0 -2px 0;
+}
+
+form table .orez {
+  line-height: 60px;
+  text-align: center;
+}
+
+form table .orez input {
+  position: relative;
+  top: -8px;
+}
+
+form table .orez img {
+  width: 50px;
+}
+
+.dbForm input[type="text"] {
+  min-width: 200px;
+}
+
+.hinted {
+  cursor: default;
+  color: inherit;
+  text-decoration: inherit;
+  border-bottom: dotted 1px;
+  position: relative;
+}
+
+.hinted:hover .hint {
+  display: block;
+}
+
+a > .hinted {
+  cursor: inherit
+}
+
+.hint {
+  position: absolute;
+  display: none;
+  max-width: 200px;
+  width: max-content;
+  left: 0;
+  top: 16px;
+  background-color: rgba(51, 51, 51, 0.9);
+/ background-color: #333;
+  border: solid 0px #000;
+  padding: 3px;
+  z-index: 10;
+  font-size: 11px;
+  color: #fff;
+  text-align: left;
+  padding: 10px;
+  white-space: normal
+}
+
 .error, .success, .warning {
-  font-style:italic; padding: 8px 200px 8px 40px; margin: 16px 0;
-  background-position: 16px 50%; background-repeat: no-repeat; }
-.error { color:#f22; background-image: url('error.png'); background-color: #ffeaea; }
-.success { color:#252; background-image: url('ok.png'); background-color: #ddf4dd; }
-.warning { color:#770; background-image: url('warning.png'); background-color: #ffa; }
-.error.inline, .warning.inline, .success.inline { padding: 0 8px 0 24px;background-position: 0; }
-.error.fullwidth, .warning.fullwidth, .success.fullwidth { padding-right: 1em; margin: 0; }
-.error.no-image, .warning.no-image, .success.no-image { background-image: none; padding-left: 1em }
-li.list-header { list-style-type: none; position: relative; left: -1em }
+  font-style: italic;
+  padding: 8px 200px 8px 40px;
+  margin: 16px 0;
+  background-position: 16px 50%;
+  background-repeat: no-repeat;
+}
+
+.error {
+  color: #f22;
+  background-image: url('error.png');
+  background-color: #ffeaea;
+}
+
+.success {
+  color: #252;
+  background-image: url('ok.png');
+  background-color: #ddf4dd;
+}
+
+.warning {
+  color: #770;
+  background-image: url('warning.png');
+  background-color: #ffa;
+}
+
+.error.inline, .warning.inline, .success.inline {
+  padding: 0 8px 0 24px;
+  background-position: 0;
+}
+
+.error.fullwidth, .warning.fullwidth, .success.fullwidth {
+  padding-right: 1em;
+  margin: 0;
+}
+
+.error.no-image, .warning.no-image, .success.no-image {
+  background-image: none;
+  padding-left: 1em
+}
+
+li.list-header {
+  list-style-type: none;
+  position: relative;
+  left: -1em
+}
 
 /* stránkově specifické */
-.prezence .blokAktivita { border:solid 1px #898c95; margin: 0 0 10px 0; }
-.prezence .ucastnici input[type="checkbox"] { margin: -2px; }
-.prezence .ucastnici input[type="text"] { padding: 0; margin: -2px; font: inherit; min-width: 367px; width: 100% }
-.prezence .blokAktivita .error, .prezence .blokAktivita .success { margin: 0; }
-.prezence .formAktivita { margin: 4px 10px 4px 6px; }
-.prezence .formAktivita h2 { margin: 0 0 4px 1px; font-size: 120%;  }
-.prezence .formAktivita input[type="submit"] { padding: 1px 15px; }
+.prezence .blokAktivita {
+  border: solid 1px #898c95;
+  margin: 0 0 10px 0;
+}
 
-.aktivity td input { padding: 0; width: 32px; }
+.prezence .ucastnici input[type="checkbox"] {
+  margin: -2px;
+}
+
+.prezence .ucastnici input[type="text"] {
+  padding: 0;
+  margin: -2px;
+  font: inherit;
+  min-width: 367px;
+  width: 100%
+}
+
+.prezence .blokAktivita .error, .prezence .blokAktivita .success {
+  margin: 0;
+}
+
+.prezence .formAktivita {
+  margin: 4px 10px 4px 6px;
+}
+
+.prezence .formAktivita h2 {
+  margin: 0 0 4px 1px;
+  font-size: 120%;
+}
+
+.prezence .formAktivita input[type="submit"] {
+  padding: 1px 15px;
+}
+
+.aktivity td input {
+  padding: 0;
+  width: 32px;
+}
 
 /* pro automaticky generované chybové hlášky */
-.chybaBlok { position: fixed; box-sizing: border-box;
-  width: 80%; left: 10%; top: 25px;
-  text-align: center; z-index: 99;
+.chybaBlok {
+  position: fixed;
+  box-sizing: border-box;
+  width: 80%;
+  left: 10%;
+  top: 25px;
+  text-align: center;
+  z-index: 99;
 }
-.chybaBlok .hlaska { padding: 28px; margin: 5px 0; box-shadow: 0 0 10px ; font-size: 20px; }
-.chybaBlok .errorHlaska { background-color: rgba(255, 191, 191, 0.85); color:#a00; }
-.chybaBlok .varovani { background-color: rgba(245, 228, 150, 0.75); color: #f67f00; }
-.chybaBlok .oznameni { background-color: rgba(212, 241, 212, 0.75); color:#252; }
+
+.chybaBlok .hlaska {
+  padding: 28px;
+  margin: 5px 0;
+  box-shadow: 0 0 10px;
+  font-size: 20px;
+}
+
+.chybaBlok .errorHlaska {
+  background-color: rgba(255, 191, 191, 0.85);
+  color: #a00;
+}
+
+.chybaBlok .varovani {
+  background-color: rgba(245, 228, 150, 0.75);
+  color: #f67f00;
+}
+
+.chybaBlok .oznameni {
+  background-color: rgba(212, 241, 212, 0.75);
+  color: #252;
+}
 
 .chybaBlok .admin_zavrit {
   position: absolute;
@@ -347,7 +824,9 @@ li.list-header { list-style-type: none; position: relative; left: -1em }
   color: #515151;
 }
 
-.text-center { text-align: center; }
+.text-center {
+  text-align: center;
+}
 
 .editor-tagu input[type='text'], .editor-tagu textarea {
   min-width: 30em;
@@ -366,10 +845,14 @@ button .ajax-loader {
   vertical-align: middle;
 }
 
-.editor-tagu input, .editor-tagu input[type=text], .editor-tagu select , .editor-tagu textarea {
+.editor-tagu input, .editor-tagu input[type=text], .editor-tagu select, .editor-tagu textarea {
   padding: 5px;
 }
 
 .tip {
   font-style: italic;
+}
+
+.technicke {
+  font-family: "Droid Sans Mono", monospace;
 }
