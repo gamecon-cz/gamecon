@@ -82,10 +82,13 @@ function dbConnect($selectDb = true) {
         // připojení
         $start = microtime(true);
         $spojeni = @mysqli_connect('p:' . $dbhost, $dbuser, $dbpass, $selectDb ? $dbname : '', $dbPort); // persistent connection
-        if (!$spojeni)
-            throw new Exception('Failed to connect to the database, error: "' . mysqli_connect_error() . '".');
-        if (!$spojeni->set_charset('utf8'))
+        if (!$spojeni) {
+            $spojeni = null; // aby bylo možné zachytit exception a zkusit spojení znovu
+            throw new ConnectionException('Failed to connect to the database, error: "' . mysqli_connect_error() . '".');
+        }
+        if (!$spojeni->set_charset('utf8')) {
             throw new Exception('Failed to set charset to db connection.');
+        }
         $end = microtime(true);
         $GLOBALS['dbExecTime'] += $end - $start;
         dbQuery('SET SESSION group_concat_max_len = 65536');
@@ -297,6 +300,12 @@ function dbOneLineS($q, $array = null) {
     return mysqli_fetch_assoc($r);
 }
 
+/**
+ * @param string $query
+ * @param array $params
+ * @return array
+ * @throws DbException
+ */
 function dbFetchAll(string $query, array $params = []): array {
     $result = dbQuery($query, $params);
     $resultAsArray = [];
@@ -424,6 +433,11 @@ function dbUpdate($table, $vals, $where) {
         throw new $type();
     };
     return $r;
+}
+
+class ConnectionException extends RuntimeException
+{
+
 }
 
 /**

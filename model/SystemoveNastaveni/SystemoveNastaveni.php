@@ -8,20 +8,23 @@ class SystemoveNastaveni
 {
 
     public function zaznamyDoKonstant() {
-        $existujeTabulka = dbOneCol(<<<SQL
-SHOW TABLES LIKE 'systemove_nastaveni'
-SQL
-        );
-        if (!$existujeTabulka) {
-            return; // dosud neproběhla SQL migrace
-        }
-        $zaznamy = dbFetchAll(<<<SQL
+        try {
+            $zaznamy = dbFetchAll(<<<SQL
 SELECT systemove_nastaveni.klic,
        systemove_nastaveni.hodnota,
        systemove_nastaveni.datovy_typ
 FROM systemove_nastaveni
 SQL
-        );
+            );
+        } catch (\ConnectionException $connectionException) {
+            // testy nebo úplně prázdný Gamecon na začátku nemají ještě databázi
+            return;
+        } catch (\DbException $dbException) {
+            if ($dbException->getCode() === 1146 /* table does not exist */) {
+                return; // tabulka musí vzniknout SQL migrací
+            }
+            throw $dbException;
+        }
         foreach ($zaznamy as $zaznam) {
             $nazevKonstanty = trim(strtoupper($zaznam['klic']));
             if (!defined($nazevKonstanty)) {
