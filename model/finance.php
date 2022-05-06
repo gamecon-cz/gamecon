@@ -612,10 +612,10 @@ class Finance
      * @param float $castka Bude zaokrouhlena na dve desetinna mista!
      */
     public function dejQrProPlatbu(
-        string $cisloUctu,
-        int $variabilniSymbol,
-        float $castka,
-        string $kodMeny,
+        string             $cisloUctu,
+        int                $variabilniSymbol,
+        float              $castka,
+        string             $kodMeny,
         \DateTimeInterface $datumSplatnosti = null
     ): QrPayment {
         [$cisloUctuBezBanky, $kodBanky] = explode('/', $cisloUctu);
@@ -637,14 +637,15 @@ class Finance
      * @return ResultInterface A ted uz na tom jenom zavolej getString() a mas obrazek
      */
     public function dejObrazekProQrPlatbu(
-        string $cisloUctu,
-        int $variabilniSymbol,
-        float $castka,
-        string $kodMeny,
+        string             $cisloUctu,
+        int                $variabilniSymbol,
+        float              $castka,
+        string             $kodMeny,
         \DateTimeInterface $datumSplatnosti = null
     ): ResultInterface {
-        $qrCode = $this->dejQrProPlatbu($cisloUctu, $variabilniSymbol, $castka, $kodMeny, $datumSplatnosti)->getQrImage();
+        /** @var ResultInterface $qrCode */
+        $qrCode = $this->dejQrProPlatbu($cisloUctu, $variabilniSymbol, $castka, $kodMeny, $datumSplatnosti)->getQrCode()->getRawObject();
 
-        return (new \Endroid\QrCode\Writer\PngWriter())->write($qrCode);
+        return $qrCode;
     }
 }
