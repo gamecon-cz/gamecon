@@ -54,7 +54,7 @@
     <!-- begin:zadnaAktivita -->
     <div class="d-flex justify-content-center align-items-center" style="min-height: 99vh">
       <div style="font-size: xx-large">
-        Žádné aktivity 😞
+        Nevedeš žádné aktivity 😞
         <div>
           <a class="btn btn-warning" href="{urlZpet}" style="width: 100%">↶ {textZpet}</a>
         </div>
