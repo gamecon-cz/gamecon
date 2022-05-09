@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5a93737d4d481e9512578baba26c5a21",
+    "content-hash": "e60bcf4cb5d8d0f8d310e5a9f34bc7b4",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -1789,6 +1789,74 @@
                 "source": "https://github.com/RikudouSage/QrPaymentQrCodeProvider/tree/v1.1.1"
             },
             "time": "2021-09-27T23:12:37+00:00"
+        },
+        {
+            "name": "rikudou/skqrpayment",
+            "version": "v4.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/RikudouSage/QrPaymentSK.git",
+                "reference": "98178000a79d534d860fdb0f7a87e7fd03f59b95"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/RikudouSage/QrPaymentSK/zipball/98178000a79d534d860fdb0f7a87e7fd03f59b95",
+                "reference": "98178000a79d534d860fdb0f7a87e7fd03f59b95",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.3 || ^8.0",
+                "rikudou/iban": "^1.0",
+                "rikudou/qr-payment-interface": "^1.0",
+                "rikudou/qr-payment-qr-code-provider": "^1.0"
+            },
+            "require-dev": {
+                "endroid/qr-code": "^3.9",
+                "friendsofphp/php-cs-fixer": "^2.16",
+                "phpstan/phpstan": "^0.12.32",
+                "phpunit/phpunit": "^8.5"
+            },
+            "suggest": {
+                "endroid/qr-code": "For getting QR code image",
+                "rikudou/pay-by-square-decoder": "If you want to decode Pay By Square encoded data"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "rikudou\\SkQrPayment\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Dominik Chrástecký",
+                    "email": "dominik@chrastecky.cz"
+                }
+            ],
+            "description": "QR payment library for Slovak accounts",
+            "homepage": "https://github.com/RikudouSage/QrPaymentSK",
+            "keywords": [
+                "payment",
+                "qr"
+            ],
+            "support": {
+                "issues": "https://github.com/RikudouSage/QrPaymentSK/issues",
+                "source": "https://github.com/RikudouSage/QrPaymentSK/tree/v4.2.0"
+            },
+            "funding": [
+                {
+                    "url": "https://ko-fi.com/dominik_ch",
+                    "type": "ko_fi"
+                },
+                {
+                    "url": "https://liberapay.com/dominik_ch",
+                    "type": "liberapay"
+                }
+            ],
+            "time": "2022-03-24T12:12:30+00:00"
         },
         {
             "name": "roderik/pwgen-php",
@@ -4862,6 +4930,7 @@
         "ext-exif": "*",
         "ext-fileinfo": "*",
         "ext-gd": "*",
+        "ext-iconv": "*",
         "ext-imagick": "*",
         "ext-intl": "*",
         "ext-json": "*",
