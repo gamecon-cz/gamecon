@@ -9,9 +9,9 @@ if (!$u) { //jen přihlášení
     echo hlaska('jenPrihlaseni');
     return;
 }
-if (!$u->gcPrihlasen() || !FINANCE_VIDITELNE) {
+/* TODO revert if (!$u->gcPrihlasen() || !FINANCE_VIDITELNE) {
     return; // přehled vidí jen přihlášení na GC (a jen po začátku letošních registrací)
-}
+}*/
 
 $fin = $u->finance();
 $veci = $u->finance()->prehledHtml();
@@ -103,7 +103,7 @@ if (!$zaplaceno) {
         <?php } ?>
 
         <?php if (pred(HROMADNE_ODHLASOVANI)) { ?>
-            <?php if ($u->stat() == 'CZ') { ?>
+            <?php if ($u->stat() === \Gamecon\Stat::CZ) { ?>
                 <p>GameCon je nutné zaplatit převodem <strong>do <?= $limit ?></strong>. Platíš celkem
                     <strong><?= $castka ?></strong>, variabilní symbol je tvoje ID <strong><?= $uid ?></strong>.</p>
             <?php } else { ?>
@@ -121,7 +121,7 @@ if (!$zaplaceno) {
                 </li>
             </ul>
         <?php } elseif (pred(HROMADNE_ODHLASOVANI_2)) { ?>
-            <?php if ($u->stat() == 'CZ') { ?>
+            <?php if ($u->stat() === \Gamecon\Stat::CZ) { ?>
                 <p>GameCon je nutné zaplatit převodem <strong>do <?= $limit2 ?></strong>. Platíš celkem
                     <strong><?= $castka ?></strong>, variabilní symbol je tvoje ID <strong><?= $uid ?></strong>.</p>
             <?php } else { ?>

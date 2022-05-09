@@ -2,18 +2,19 @@
 
 namespace Gamecon\Finance;
 
+use Endroid\QrCode\Builder\Builder;
+use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelMedium;
 use Endroid\QrCode\Writer\Result\ResultInterface;
 use Rikudou\CzQrPayment\Options\QrPaymentOptions as CzQrPaymentOptions;
 use Rikudou\CzQrPayment\QrPayment as CzQrPayment;
 use Rikudou\Iban\Iban\CzechIbanAdapter;
 use Rikudou\Iban\Iban\IBAN;
 use Rikudou\Iban\Iban\IbanInterface;
-use rikudou\SkQrPayment\Payment\QrPaymentOptions as SkQrPaymentOptions;
-use rikudou\SkQrPayment\QrPayment as SkQrPayment;
+use rikudou\SkQrPayment\Iban\IbanBicPair;
+use SepaQr\Data;
 
 class QrPlatba
 {
-
     /**
      * SEPA platba
      * Jednotná oblast pro platby v eurech v rámci EU
@@ -21,22 +22,23 @@ class QrPlatba
      *
      * @param string $iban IBAN
      * @param float $variabilniSymbol
-     * @param float $castka Bude zaokrouhlena na dve desetinna mista!
+     * @param float $castkaCzk Bude zaokrouhlena na dve desetinna mista!
      * @return static
      */
-    public static function dejQrProMezinarodniPlatbu(
-        string             $iban,
-        int                $variabilniSymbol,
-        float              $castka,
-        string             $kodMeny,
-        \DateTimeInterface $datumSplatnosti = null
+    public static function dejQrProSepaPlatbu(
+        float  $castkaCzk,
+        int    $variabilniSymbol,
+        float  $kurzCzkNaEur = KURZ_EURO,
+        string $iban = IBAN,
+        string $bic = BIC_SWIFT,
+        string $jmenoPrijemcePlatby = NAZEV_SPOLECNOSTI_GAMECON
     ): self {
         return new static(
-            new IBAN($iban),
+            new IbanBicPair($iban, $bic),
             $variabilniSymbol,
-            $castka,
-            $kodMeny,
-            $datumSplatnosti
+            $castkaCzk / $kurzCzkNaEur,
+            'EUR',
+            $jmenoPrijemcePlatby,
         );
     }
 
@@ -47,19 +49,20 @@ class QrPlatba
      * @return static
      */
     public static function dejQrProTuzemskouPlatbu(
-        string             $cisloUctu,
-        int                $variabilniSymbol,
         float              $castka,
-        string             $kodMeny,
+        int                $variabilniSymbol,
+        string             $cisloUctu = UCET_CZ,
+        string             $jmenoPrijemcePlatby = NAZEV_SPOLECNOSTI_GAMECON,
         \DateTimeInterface $datumSplatnosti = null
     ): self {
-        [$cisloUctuBezBanky, $kodBanky] = explode('/', $cisloUctu);
+        [$cisloUctuBezBanky, $kodBanky] = array_map('trim', explode('/', $cisloUctu));
 
         return new static(
             new CzechIbanAdapter($cisloUctuBezBanky, $kodBanky),
             $variabilniSymbol,
             $castka,
-            $kodMeny,
+            'CZK',
+            $jmenoPrijemcePlatby,
             $datumSplatnosti
         );
     }
@@ -85,66 +88,90 @@ class QrPlatba
      */
     private $datumSplatnosti;
     /**
-     * @var CzQrPayment|SkQrPayment|null
+     * @var ResultInterface|null
      */
-    private $qrPayment;
+    private $qrImage;
+    /**
+     * @var string
+     */
+    private $jmenoPrijemcePlatby;
 
     /**
      * @param IbanInterface $iban
      * @param int $variabilniSymbol
      * @param float $castka bude zaokrouhlena na dvě desetinná místa
      * @param string $kodMeny ISO 4217
-     * @param \DateTimeInterface|null $datumSplatnosti
+     * @param \DateTimeInterface|null $datumSplatnosti Pouze pro tuzemské platby, SEPA platby jsou vždy splatné do jednoho dne
      */
     private function __construct(
         IbanInterface      $iban,
         int                $variabilniSymbol,
         float              $castka,
         string             $kodMeny,
+        string             $jmenoPrijemcePlatby,
         \DateTimeInterface $datumSplatnosti = null
     ) {
         $this->iban = $iban;
         $this->variabilniSymbol = $variabilniSymbol;
         $this->castka = round($castka, 2);
         $this->kodMeny = $kodMeny;
-        $this->datumSplatnosti = $datumSplatnosti ?? new \DateTimeImmutable("+14 days");
+        $this->jmenoPrijemcePlatby = $jmenoPrijemcePlatby;
+        $this->datumSplatnosti = $datumSplatnosti ?? new \DateTimeImmutable(); // dnes
     }
 
     /**
      * @return ResultInterface A ted uz na tom jenom zavolej getDataUri() a mas base64 obrazek
      */
     public function dejQrObrazek(): ResultInterface {
-        /** @var ResultInterface $rawObject */
-        $rawObject = $this->getQrPayment()->getQrCode()->getRawObject();
+        if (!$this->qrImage) {
+            $this->qrImage = $this->getQrPayment();
+        }
+        return $this->qrImage;
+    }
 
-        return $rawObject;
+    private function getQrPayment(): ResultInterface {
+        return $this->kodMeny === 'CZK'
+            ? $this->createCzechQrPayment()
+            : $this->createSepaPayment();
+    }
+
+    private function createCzechQrPayment(): ResultInterface {
+        $qrPayment = new CzQrPayment($this->iban);
+        $qrPayment->setOptions([
+            CzQrPaymentOptions::VARIABLE_SYMBOL => $this->variabilniSymbol,
+            CzQrPaymentOptions::AMOUNT => $this->castka,
+            CzQrPaymentOptions::CURRENCY => $this->kodMeny,
+            CzQrPaymentOptions::DUE_DATE => $this->datumSplatnosti,
+            CzQrPaymentOptions::PAYEE_NAME => $this->jmenoPrijemcePlatby,
+        ]);
+        /** @var ResultInterface $qrImage */
+        $qrImage = $qrPayment->getQrCode()->getRawObject();
+        return $qrImage;
     }
 
     /**
-     * @return CzQrPayment|SkQrPayment
+     * Formát je hezky popsán na
+     * https://en.wikipedia.org/wiki/EPC_QR_code
      */
-    private function getQrPayment() {
-        if (!$this->qrPayment) {
-            if ($this->kodMeny === 'CZK') {
-                $qrPayment = new CzQrPayment($this->iban);
-                $qrPayment->setOptions([
-                    CzQrPaymentOptions::VARIABLE_SYMBOL => $this->variabilniSymbol,
-                    CzQrPaymentOptions::AMOUNT => $this->castka,
-                    CzQrPaymentOptions::CURRENCY => $this->kodMeny,
-                    CzQrPaymentOptions::DUE_DATE => $this->datumSplatnosti,
-                ]);
-            } else {
-                $qrPayment = new SkQrPayment($this->iban);
-                $qrPayment->setOptions([
-                    SkQrPaymentOptions::VARIABLE_SYMBOL => $this->variabilniSymbol,
-                    SkQrPaymentOptions::AMOUNT => $this->castka,
-                    SkQrPaymentOptions::CURRENCY => $this->kodMeny,
-                    SkQrPaymentOptions::DUE_DATE => $this->datumSplatnosti,
-                ]);
-            }
-            $this->qrPayment = $qrPayment;
-        }
-        return $this->qrPayment;
+    private function createSepaPayment(): ResultInterface {
+        $sepaQrData = Data::create()
+            ->setName($this->jmenoPrijemcePlatby)
+            ->setIban($this->iban->asString())
+            ->setBic($this->iban instanceof IbanBicPair
+                ? $this->iban->getBic()
+                : null
+            )
+            ->setAmount($this->castka > 0
+                ? $this->castka
+                : 0.1/** nejmenší povolená částka, @see \SepaQr\Data::setAmount */
+            )
+            ->setCurrency($this->kodMeny)
+            ->setRemittanceText('/VS/' . $this->variabilniSymbol);
+
+        return Builder::create()
+            ->errorCorrectionLevel(new ErrorCorrectionLevelMedium())
+            ->data($sepaQrData->__toString())
+            ->build();
     }
 
 }

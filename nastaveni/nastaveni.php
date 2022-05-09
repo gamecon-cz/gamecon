@@ -221,6 +221,8 @@ define('SUPERADMINI', [1682, 4032]);
 
 @define('ADRESAR_WEBU_S_OBRAZKY', __DIR__ . '/../web');
 
+@define('NAZEV_SPOLECNOSTI_GAMECON', 'GameCon z.s.');
+
 $nastaveni = new SystemoveNastaveni();
 $nastaveni->zaznamyDoKonstant();
 
