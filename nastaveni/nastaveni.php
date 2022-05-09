@@ -219,12 +219,3 @@ define('SUPERADMINI', [1682, 4032]);
 
 $nastaveni = new SystemoveNastaveni();
 $nastaveni->zaznamyDoKonstant();
-
-/**
- * Tato nastavení jsou definovaná v SQL tabulce systemove_nastaveni
- * @see \Gamecon\SystemoveNastaveni\SystemoveNastaveni::zaznamyDoKonstant
- * a zde se definují jen na oko, aby je IDE znalo
- */
-if (!defined('KURZ_EURO')) {
-    define('KURZ_EURO', 24);
-}
