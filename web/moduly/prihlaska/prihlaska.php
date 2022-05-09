@@ -172,7 +172,8 @@ foreach ($nahledy as $nahled) {
     $t->parse('prihlaska.nahled');
 }
 
-$qrObrazekProPlatbu = $u->finance()->dejObrazekProQrPlatbu(UCET_CZ, $u->id(), 0.1, 'CZK');
+$qrObrazekProPlatbu = $u->finance()->dejQrKodProPlatbu();
+
 $t->assign([
     'a'                               => $u->koncovkaDlePohlavi(),
     'jidlo'                           => $shop->jidloHtml(),
