@@ -686,134 +686,29 @@ SQL
         return $this->kategorieNeplatice;
     }
 
-    public function dejQrKodProPlatbu(\DateTimeInterface $datumSplatnosti = null) {
+    public function dejQrKodProPlatbu(\DateTimeInterface $datumSplatnosti = null): ResultInterface {
         $castka = $this->stav() >= 0
             ? 0.0 // nulová, respektive dobrovolná platba
             : -$this->stav();
         $datumSplatnosti = $datumSplatnosti ?? new DateTimeImmutable(); // datum splatnosti "dnes"
 
-        if ($this->u->stat() === \Gamecon\Stat::CZ) {
-            return $this->dejObrazekProQrTuzemskouPlatbu(
+        $qrPlatba = $this->u->stat() === \Gamecon\Stat::CZ
+            ? \Gamecon\Finance\QrPlatba::dejQrProTuzemskouPlatbu(
                 UCET_CZ,
                 $this->u->id(),
                 $castka,
                 'CZK',
                 $datumSplatnosti
+            )
+            : \Gamecon\Finance\QrPlatba::dejQrProMezinarodniPlatbu(
+                IBAN,
+                $this->u->id(),
+                $castka,
+                'EUR',
+                $datumSplatnosti
             );
-        }
-        return $this->dejObrazekProQrMezinarodniPlatbu(
-            IBAN,
-            $this->u->id(),
-            $castka,
-            'EUR', // SEPA platba
-            $datumSplatnosti
-        );
+
+        return $qrPlatba->dejQrObrazek();
     }
 
-    /**
-     * @param string $cisloUctu
-     * @param float $variabilniSymbol
-     * @param float $castka Bude zaokrouhlena na dve desetinna mista!
-     */
-    private function dejQrProTuzemskouPlatbu(
-        string             $cisloUctu,
-        int                $variabilniSymbol,
-        float              $castka,
-        string             $kodMeny,
-        \DateTimeInterface $datumSplatnosti = null
-    ): QrPayment {
-        [$cisloUctuBezBanky, $kodBanky] = explode('/', $cisloUctu);
-        return $this->dejQrProPlatbu(
-            new CzechIbanAdapter($cisloUctuBezBanky, $kodBanky),
-            $variabilniSymbol,
-            $castka,
-            $kodMeny,
-            $datumSplatnosti
-        );
-    }
-
-    /**
-     * @param string $iban
-     * @param float $variabilniSymbol
-     * @param float $castka Bude zaokrouhlena na dve desetinna mista!
-     */
-    private function dejQrProMezinarodniPlatbu(
-        string             $iban,
-        int                $variabilniSymbol,
-        float              $castka,
-        string             $kodMeny,
-        \DateTimeInterface $datumSplatnosti = null
-    ): QrPayment {
-        return $this->dejQrProPlatbu(
-            new \Rikudou\Iban\Iban\IBAN($iban),
-            $variabilniSymbol,
-            $castka,
-            $kodMeny,
-            $datumSplatnosti
-        );
-    }
-
-    /**
-     * @param IbanInterface $iban
-     * @param float $variabilniSymbol
-     * @param float $castka Bude zaokrouhlena na dve desetinna mista!
-     * @param string $kodMeny
-     * @return QrPayment
-     */
-    private function dejQrProPlatbu(
-        IbanInterface      $iban,
-        int                $variabilniSymbol,
-        float              $castka,
-        string             $kodMeny,
-        \DateTimeInterface $datumSplatnosti = null
-    ): QrPayment {
-        $qrPayment = new QrPayment($iban);
-        $qrPayment->setOptions([
-            QrPaymentOptions::VARIABLE_SYMBOL => $variabilniSymbol,
-            QrPaymentOptions::AMOUNT => round($castka, 2),
-            QrPaymentOptions::CURRENCY => $kodMeny,
-            QrPaymentOptions::DUE_DATE => ($datumSplatnosti ?? new DateTimeImmutable("+14 days")),
-        ]);
-        return $qrPayment;
-    }
-
-    /**
-     * @param string $cisloUctu
-     * @param int $variabilniSymbol
-     * @param float $castka Bude zaokrouhlena na dve desetinna mista!
-     * @param string $kodMeny ISO 4217
-     * @return ResultInterface A ted uz na tom jenom zavolej getString() a mas obrazek
-     */
-    private function dejObrazekProQrTuzemskouPlatbu(
-        string             $cisloUctu,
-        int                $variabilniSymbol,
-        float              $castka,
-        string             $kodMeny,
-        \DateTimeInterface $datumSplatnosti = null
-    ): ResultInterface {
-        /** @var ResultInterface $qrCode */
-        $qrCode = $this->dejQrProTuzemskouPlatbu($cisloUctu, $variabilniSymbol, $castka, $kodMeny, $datumSplatnosti)->getQrCode()->getRawObject();
-
-        return $qrCode;
-    }
-
-    /**
-     * @param string $iban
-     * @param int $variabilniSymbol
-     * @param float $castka Bude zaokrouhlena na dve desetinna mista!
-     * @param string $kodMeny ISO 4217
-     * @return ResultInterface A ted uz na tom jenom zavolej getString() a mas obrazek
-     */
-    private function dejObrazekProQrMezinarodniPlatbu(
-        string             $iban,
-        int                $variabilniSymbol,
-        float              $castka,
-        string             $kodMeny,
-        \DateTimeInterface $datumSplatnosti = null
-    ): ResultInterface {
-        /** @var ResultInterface $qrCode */
-        $qrCode = $this->dejQrProMezinarodniPlatbu($iban, $variabilniSymbol, $castka, $kodMeny, $datumSplatnosti)->getQrCode()->getRawObject();
-
-        return $qrCode;
-    }
 }
