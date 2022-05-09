@@ -10,7 +10,6 @@ use Rikudou\CzQrPayment\QrPayment as CzQrPayment;
 use Rikudou\Iban\Iban\CzechIbanAdapter;
 use Rikudou\Iban\Iban\IBAN;
 use Rikudou\Iban\Iban\IbanInterface;
-use rikudou\SkQrPayment\Iban\IbanBicPair;
 use SepaQr\Data;
 
 class QrPlatba
@@ -34,7 +33,8 @@ class QrPlatba
         string $jmenoPrijemcePlatby = NAZEV_SPOLECNOSTI_GAMECON
     ): self {
         return new static(
-            new IbanBicPair($iban, $bic),
+            new IBAN($iban),
+            $bic,
             $variabilniSymbol,
             $castkaCzk / $kurzCzkNaEur,
             'EUR',
@@ -59,6 +59,7 @@ class QrPlatba
 
         return new static(
             new CzechIbanAdapter($cisloUctuBezBanky, $kodBanky),
+            '', // BIC není potřeba
             $variabilniSymbol,
             $castka,
             'CZK',
@@ -71,6 +72,10 @@ class QrPlatba
      * @var IbanInterface
      */
     private $iban;
+    /**
+     * @var string
+     */
+    private $bic;
     /**
      * @var int
      */
@@ -105,6 +110,7 @@ class QrPlatba
      */
     private function __construct(
         IbanInterface      $iban,
+        string             $bic,
         int                $variabilniSymbol,
         float              $castka,
         string             $kodMeny,
@@ -112,6 +118,7 @@ class QrPlatba
         \DateTimeInterface $datumSplatnosti = null
     ) {
         $this->iban = $iban;
+        $this->bic = $bic;
         $this->variabilniSymbol = $variabilniSymbol;
         $this->castka = round($castka, 2);
         $this->kodMeny = $kodMeny;
@@ -157,10 +164,7 @@ class QrPlatba
         $sepaQrData = Data::create()
             ->setName($this->jmenoPrijemcePlatby)
             ->setIban($this->iban->asString())
-            ->setBic($this->iban instanceof IbanBicPair
-                ? $this->iban->getBic()
-                : null
-            )
+            ->setBic($this->bic)
             ->setAmount($this->castka > 0
                 ? $this->castka
                 : 0.1/** nejmenší povolená částka, @see \SepaQr\Data::setAmount */
