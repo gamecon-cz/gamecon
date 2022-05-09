@@ -8,7 +8,9 @@ if(!$u) { //jen přihlášení
   echo hlaska('jenPrihlaseni');
   return;
 }
-if (!$u->gcPrihlasen() || !FINANCE_VIDITELNE) return; //přehled vidí jen přihlášení na gc
+if (!$u->gcPrihlasen() || !FINANCE_VIDITELNE) {
+    return; // přehled vidí jen přihlášení na GC (a jen po začátku letošních registrací)
+}
 
 $fin = $u->finance();
 $veci = $u->finance()->prehledHtml();
@@ -66,19 +68,29 @@ if (!$zaplaceno) {
     <div style="clear:both"></div>
 
     <?php if (!$zaplaceno) { ?>
-        <p>
         <?php if ($u->stat() == \Gamecon\Stat::CZ) { ?>
             <h2 id="placeni">Platba</h2>
-            <strong>Číslo účtu:</strong> <?= UCET_CZ ?><br>
-            <strong>Variabilní symbol:</strong> <?= $uid ?><br>
+            <div style="float: left">
+                <strong>Číslo účtu:</strong> <?= UCET_CZ ?><br>
+                <strong>Variabilní symbol:</strong> <?= $uid ?><br>
+                <strong>Částka k zaplacení:</strong> <?= $castka ?>
+            </div>
+            <div style="float: right">
+                <img src="<?= $u->finance()->dejQrKodProPlatbu()->getDataUri() ?>" alt="qrPlatba">
+            </div>
         <?php } else { ?>
             <h2 id="placeni">Platba (SEPA)</h2>
-            <strong>IBAN:</strong> <?= IBAN ?><br>
-            <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
-            <strong>Poznámka pro příjemce:</strong> /VS/<?= $uid ?> <i>(vč. lomítek)</i><br>
+            <div style="float: left">
+                <strong>IBAN:</strong> <?= IBAN ?><br>
+                <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
+                <strong>Poznámka pro příjemce:</strong> /VS/<?= $uid ?> <i>(vč. lomítek)</i><br>
+                <strong>Částka k zaplacení:</strong> <?= $castka ?>
+            </div>
+            <div style="float: right">
+                <img src="<?= $u->finance()->dejQrKodProPlatbu()->getDataUri() ?>" alt="qrPlatba">
+            </div>
+            <div style="clear: both"
         <?php } ?>
-        <strong>Částka k zaplacení:</strong> <?= $castka ?>
-        </p>
 
         <?php if (pred(HROMADNE_ODHLASOVANI)) { ?>
             <?php if ($u->stat() == 'CZ') { ?>
@@ -130,22 +142,34 @@ if (!$zaplaceno) {
             </ul>
         <?php } ?>
     <?php } else { ?>
+    <div>
         <?php if ($u->stat() == \Gamecon\Stat::CZ) { ?>
             <h2 id="placeni">Platba</h2>
             <p>Všechny tvoje pohledávky jsou <strong style="color:green">v pořádku zaplaceny</strong>, není potřeba nic
                 platit. Pokud si ale chceš dokupovat aktivity na místě se slevou nebo bez nutnosti používat hotovost,
                 můžeš si samozřejmě kdykoli převést peníze do zásoby na:</p>
-            <strong>Číslo účtu:</strong> <?= UCET_CZ ?><br>
-            <strong>Variabilní symbol:</strong> <?= $uid ?><br>
+            <div style="float: left">
+                <strong>Číslo účtu:</strong> <?= UCET_CZ ?><br>
+                <strong>Variabilní symbol:</strong> <?= $uid ?><br>
+            </div>
+            <div style="float: right">
+                <img src="<?= $u->finance()->dejQrKodProPlatbu()->getDataUri() ?>" alt="qrPlatba">
+            </div>
         <?php } else { ?>
             <h2 id="placeni">Platba (SEPA)</h2>
             <p>Všechny tvoje pohledávky jsou <strong style="color:green">v pořádku zaplaceny</strong>, není potřeba nic
                 platit. Pokud si ale chceš dokupovat aktivity na místě se slevou nebo bez nutnosti používat hotovost,
                 můžeš si samozřejmě kdykoli převést peníze do zásoby na:</p>
-            <strong>IBAN:</strong> <?= IBAN ?><br>
-            <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
-            <strong>Poznámka pro příjemce:</strong> /VS/<?= $uid ?> <i>(vč. lomítek)</i><br>
+            <div style="float: left">
+                <strong>IBAN:</strong> <?= IBAN ?><br>
+                <strong>BIC/SWIFT:</strong> <?= BIC_SWIFT ?><br>
+                <strong>Poznámka pro příjemce:</strong> /VS/<?= $uid ?> <i>(vč. lomítek)</i><br>
+            </div>
+            <div style="float: right">
+                <img src="<?= $u->finance()->dejQrKodProPlatbu()->getDataUri() ?>" alt="qrPlatba">
+            </div>
         <?php } ?>
-    <?php } ?>
+        <div style="clear: both"></div>
+        <?php } ?>
 
-</div>
+    </div>
