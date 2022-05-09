@@ -192,6 +192,12 @@ Děkujeme za spolupráci,
 Organizační tým GameConu',
 ];
 
+/////////////////////////
+// Nastavení přihlášek //
+/////////////////////////
+@define('AUTOMATICKY_VYBER_TRICKA', false);
+@define('VYCHOZI_DOBROVOLNE_VSTUPNE', 0);
+
 //////////////////////////////////////////////
 // Staré hodnoty a aliasy pro kompatibilitu //
 //////////////////////////////////////////////

@@ -138,17 +138,19 @@ class Shop
           $r['stav'] == 2 && mb_stripos($r['nazev'], 'červené') !== false && $smiCervene
         );
         $fronta = &$this->tricka[];
-        // hack pro výběr správného automaticky objednaného trička
-        // if($smiCervene)                 $barva = 'červené';
-        // elseif($smiModre)               $barva = 'modré';
-        // else                            $barva = '.*';
-        // if($this->u->pohlavi() == 'f')  $typTricka = 'tílko.*dámské S';
-        // else                            $typTricka = 'tričko.*pánské L';
-        // $r['auto'] = (
-        //   $r['nabizet'] &&
-        //   preg_match("@$barva@i", $r['nazev']) &&
-        //   preg_match("@$typTricka@i", $r['nazev'])
-        // );
+        if(AUTOMATICKY_VYBER_TRICKA) {
+          // hack pro výběr správného automaticky objednaného trička
+          if($smiCervene)                 $barva = 'červené';
+          elseif($smiModre)               $barva = 'modré';
+          else                            $barva = '.*';
+          if($this->u->pohlavi() == 'f')  $typTricka = 'tílko.*dámské S';
+          else                            $typTricka = 'tričko.*pánské L';
+          $r['auto'] = (
+            $r['nabizet'] &&
+            preg_match("@$barva@i", $r['nazev']) &&
+            preg_match("@$typTricka@i", $r['nazev'])
+          );
+        }
       } elseif($typ == self::VSTUPNE) {
         if(strpos($r['nazev'], 'pozdě') === false) {
           $this->vstupne = $r;
@@ -329,9 +331,7 @@ class Shop
     $t = new XTemplate(__DIR__.'/shop-vstupne.xtpl');
     $t->assign([
       'jsSlider'  =>  URL_WEBU.'/soubory/blackarrow/shop/shop-vstupne.js',
-      'stav'      =>  $this->u->gcPrihlasen() ?
-        $this->vstupne['sum_cena_nakupni'] + $this->vstupnePozde['sum_cena_nakupni'] :
-        0, // výchozí hodnota
+      'stav'      =>  VYCHOZI_DOBROVOLNE_VSTUPNE,
       'postname'  =>  $this->klicV,
       'min'       =>  $this->vstupneJeVcas ? 0 : $this->vstupne['sum_cena_nakupni'],
       'smajliky'  =>  json_encode([
