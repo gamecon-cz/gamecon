@@ -686,26 +686,19 @@ SQL
         return $this->kategorieNeplatice;
     }
 
-    public function dejQrKodProPlatbu(\DateTimeInterface $datumSplatnosti = null): ResultInterface {
-        $castka = $this->stav() >= 0
-            ? 0.0 // nulová, respektive dobrovolná platba
+    public function dejQrKodProPlatbu(): ResultInterface {
+        $castkaCzk = $this->stav() >= 0
+            ? 0.1 // nulová, respektive dobrovolná platba
             : -$this->stav();
-        $datumSplatnosti = $datumSplatnosti ?? new DateTimeImmutable(); // datum splatnosti "dnes"
 
         $qrPlatba = $this->u->stat() === \Gamecon\Stat::CZ
             ? \Gamecon\Finance\QrPlatba::dejQrProTuzemskouPlatbu(
-                UCET_CZ,
-                $this->u->id(),
-                $castka,
-                'CZK',
-                $datumSplatnosti
+                $castkaCzk,
+                $this->u->id()
             )
-            : \Gamecon\Finance\QrPlatba::dejQrProMezinarodniPlatbu(
-                IBAN,
-                $this->u->id(),
-                $castka,
-                'EUR',
-                $datumSplatnosti
+            : \Gamecon\Finance\QrPlatba::dejQrProSepaPlatbu(
+                $castkaCzk, // SEPA platba je vždy v Eur se splatností do druhého dne
+                $this->u->id()
             );
 
         return $qrPlatba->dejQrObrazek();

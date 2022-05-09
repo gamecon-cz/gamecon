@@ -34,10 +34,10 @@
     "google/apiclient": "^2.4",
     "michelf/php-markdown": "~1.4",
     "rikudou/czqrpayment": "^5.0",
-    "rikudou/skqrpayment": "^4.2",
     "roderik/pwgen-php": "^0.1.8",
     "setasign/tfpdf": "^1.25",
     "symfony/filesystem": "^5.4",
+    "smhg/sepa-qr-data": "^1.2",
     "symfony/polyfill-php80": "^1.22",
     "tracy/tracy": "~2.4",
     "wikimedia/less.php": "^3.0"
