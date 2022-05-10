@@ -331,7 +331,9 @@ class Shop
     $t = new XTemplate(__DIR__.'/shop-vstupne.xtpl');
     $t->assign([
       'jsSlider'  =>  URL_WEBU.'/soubory/blackarrow/shop/shop-vstupne.js',
-      'stav'      =>  VYCHOZI_DOBROVOLNE_VSTUPNE,
+      'stav'      =>  $this->u->gcPrihlasen()
+        ? $this->vstupne['sum_cena_nakupni'] + $this->vstupnePozde['sum_cena_nakupni']
+        : VYCHOZI_DOBROVOLNE_VSTUPNE, // výchozí hodnota
       'postname'  =>  $this->klicV,
       'min'       =>  $this->vstupneJeVcas ? 0 : $this->vstupne['sum_cena_nakupni'],
       'smajliky'  =>  json_encode([
