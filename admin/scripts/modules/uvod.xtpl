@@ -117,29 +117,31 @@ Přihlásit na GameCon {rok}:
         <!-- end:chybiPotvrzeni -->
       </td>
     </tr>
+    <!-- begin:covidSekce -->
     <tr>
       <td><span class="hinted">Covid-19:<span
           class="hint">K úpravě klikněte na pole Covid-19 v Osobních údajích</span></span></td>
       <td style="cursor:pointer"
           onclick="$('#editace_udaju_uzivatele_trigger').click(); $('#udaj_potvrzeni_proti_covid19_overeno_kdy').focus();">
         <!-- begin:chybiPotvrzeniProtiCovid -->
-        <img src="files/design/error-s.png" style="margin-bottom:-2px">
+        <img alt="Chybí potrzení proti covidu" src="files/design/error-s.png" style="margin-bottom:-2px">
         požádej o doplnění
         <!-- end:chybiPotvrzeniProtiCovid -->
         <!-- begin:overenoPotvrzeniProtiCovidIkona -->
-        <img src="files/design/ok-s.png" style="margin-bottom:-2px">️
+        <img alt="V pořádku" src="files/design/ok-s.png" style="margin-bottom:-2px">️
         <!-- end:overenoPotvrzeniProtiCovidIkona -->
         <!-- begin:overenoPredlozenePotvrzeniProtiCovid -->
         ověřeno bez nahrání dokladu
         <!-- end:overenoPredlozenePotvrzeniProtiCovid -->
         <!-- begin:overitPotvrzeniProtiCovid -->
-        <img src="files/design/warning.png" style="width: 1em; margin-bottom: -2px">️
+        <img alt="Nutno ověřit potvrzení proti covidu" src="files/design/warning.png" style="width: 1em; margin-bottom: -2px">️
         <!-- end:overitPotvrzeniProtiCovid -->
         <!-- begin:potvrzeniProtiCovid -->
         <a href="{urlNaPotvrzeniProtiCovid}" target="_blank">Covid doklad {datumNahraniPotvrzeniProtiCovid}</a>
         <!-- end:potvrzeniProtiCovid -->
       </td>
     </tr>
+    <!-- end:covidSekce -->
   </table>
   <br>
 
@@ -305,7 +307,8 @@ Přihlásit na GameCon {rok}:
         <td style="white-space: nowrap">
           <label for="predmet">Předmět:</label>
           <span class="hinted">
-            <input name="prodej[kusu]" style="border: none; margin: 0; padding: 0" type="number" step="1" value="1" size="2" min="1" max="99" required>
+            <input name="prodej[kusu]" style="border: none; margin: 0; padding: 0" type="number" step="1" value="1"
+                   size="2" min="1" max="99" required>
             <span class="hint" style="white-space: nowrap; width: auto">Počet kusů</span>
           </span>
         </td>

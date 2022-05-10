@@ -197,6 +197,7 @@ Organizační tým GameConu',
 /////////////////////////
 @define('AUTOMATICKY_VYBER_TRICKA', false);
 @define('VYCHOZI_DOBROVOLNE_VSTUPNE', 0);
+@define('VYZADOVANO_COVID_POTVRZENI', false);
 
 //////////////////////////////////////////////
 // Staré hodnoty a aliasy pro kompatibilitu //
