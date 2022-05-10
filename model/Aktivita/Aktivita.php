@@ -261,7 +261,7 @@ class Aktivita
      */
     protected static function editorParam(\EditorTagu $editorTagu, Aktivita $aktivita = null, $omezeni = []) {
         // inicializace šablony
-        $xtpl = new \XTemplate(__DIR__ . '/editor-aktivity.xtpl');
+        $xtpl = new \XTemplate(__DIR__ . '/templates/editor-aktivity.xtpl');
         $xtpl->assign('fields', self::POSTKLIC); // název proměnné (pole) v kterém se mají posílat věci z formuláře
         $xtpl->assign('ajaxKlic', self::AJAXKLIC);
         $xtpl->assign('obrKlic', self::OBRKLIC);
@@ -2085,7 +2085,7 @@ SQL
             return null;
         }
 
-        $t = new \XTemplate(__DIR__ . '/tym-formular.xtpl');
+        $t = new \XTemplate(__DIR__ . '/templates/tym-formular.xtpl');
 
         // obecné proměnné šablony
         $zbyva = strtotime($this->a['zamcel_cas']) + self::HAJENI * 60 * 60 - time();
