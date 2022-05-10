@@ -90,7 +90,8 @@ SQL,
         return dbFetchAll($this->dejSqlNaZaVsechnyZaznamyNastaveni());
     }
 
-    private function dejSqlNaZaVsechnyZaznamyNastaveni(): string {
+    private function dejSqlNaZaVsechnyZaznamyNastaveni(array $whereArray = ['1']): string {
+        $where = implode(' AND ', $whereArray);
         return <<<SQL
 SELECT systemove_nastaveni.klic,
        systemove_nastaveni.hodnota,
@@ -98,7 +99,8 @@ SELECT systemove_nastaveni.klic,
        systemove_nastaveni.nazev,
        systemove_nastaveni.popis,
        COALESCE(naposledy, systemove_nastaveni.zmena_kdy) AS kdy,
-       posledni_s_uzivatelem.id_uzivatele
+       posledni_s_uzivatelem.id_uzivatele,
+       systemove_nastaveni.skupina
 FROM systemove_nastaveni
 LEFT JOIN (
     SELECT posledni_log.naposledy, systemove_nastaveni_log.id_nastaveni, systemove_nastaveni_log.id_uzivatele
@@ -110,6 +112,8 @@ LEFT JOIN (
         AND naposledy = systemove_nastaveni_log.kdy
     GROUP BY systemove_nastaveni_log.id_nastaveni, systemove_nastaveni_log.id_uzivatele
 ) AS posledni_s_uzivatelem ON systemove_nastaveni.id_nastaveni = posledni_s_uzivatelem.id_nastaveni
+WHERE {$where}
+ORDER BY systemove_nastaveni.poradi
 SQL;
     }
 
@@ -117,11 +121,9 @@ SQL;
         if (!$klice) {
             return [];
         }
-        return dbFetchAll(<<<SQL
-{$this->dejSqlNaZaVsechnyZaznamyNastaveni()}
-WHERE systemove_nastaveni.klic IN ($1)
-SQL
-            , [$klice]
+        return dbFetchAll(
+            $this->dejSqlNaZaVsechnyZaznamyNastaveni(['systemove_nastaveni.klic IN ($1)']),
+            [$klice]
         );
     }
 }

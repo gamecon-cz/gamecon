@@ -37,13 +37,13 @@ class Finance
     private static
         $maxSlevaAktivit = 100, // v procentech
         $bonusZaVedeniAktivity = [ // ve formátu max. délka => sleva
-        1 => 65,
-        2 => 130,
-        5 => 260,
-        7 => 390,
-        9 => 520,
-        11 => 650,
-        13 => 870,
+        1 => BONUS_ZA_1H_AKTIVITU,
+        2 => BONUS_ZA_2H_AKTIVITU,
+        5 => BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU,
+        7 => BONUS_ZA_6H_AZ_7H_AKTIVITU,
+        9 => BONUS_ZA_8H_AZ_9H_AKTIVITU,
+        11 => BONUS_ZA_10H_AZ_11H_AKTIVITU,
+        13 => BONUS_ZA_12H_AZ_13H_AKTIVITU,
     ];
 
     const

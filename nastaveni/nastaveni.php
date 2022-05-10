@@ -122,9 +122,6 @@ unset($pre);
 @define('BIC_SWIFT', 'FIOBCZPPXXX'); // mezinárodní ID (něco jako mezinárodní VS)
 //@define('FIO_TOKEN', ''); // tajné - musí nastavit lokální soubor definic
 
-// OSTATNÍ FINANČNÍ NASTAVENÍ
-@define('MODRE_TRICKO_ZDARMA_OD', 780); // hodnota slevy od které má subjekt nárok na modré tričko
-
 /////////////////////////
 // Řetězcové konstanty //
 /////////////////////////
@@ -227,11 +224,6 @@ define('SUPERADMINI', [1682, 4032]);
 $nastaveni = new SystemoveNastaveni();
 $nastaveni->zaznamyDoKonstant();
 
-/**
- * Tato nastavení jsou definovaná v SQL tabulce systemove_nastaveni
- * @see \Gamecon\SystemoveNastaveni\SystemoveNastaveni::zaznamyDoKonstant
- * a zde se definují jen na oko, aby je IDE znalo
- */
-if (!defined('KURZ_EURO')) {
-    define('KURZ_EURO', 24);
-}
+// OSTATNÍ FINANČNÍ NASTAVENÍ
+/** Pozor, musí být až za @see \Gamecon\SystemoveNastaveni\SystemoveNastaveni::zaznamyDoKonstant */
+@define('MODRE_TRICKO_ZDARMA_OD', 3 * BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU); // hodnota slevy od které má subjekt nárok na modré tričko
