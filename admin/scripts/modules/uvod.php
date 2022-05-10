@@ -226,25 +226,28 @@ if ($uPracovni) {
     if ($potrebujePotvrzeniKvuliVeku && !$mameLetosniPotvrzeniKvuliVeku) {
         $x->parse('uvod.uzivatel.chybiPotvrzeni');
     }
-    $mameNahranyLetosniDokladProtiCovidu = $up->maNahranyDokladProtiCoviduProRok((int)date('Y'));
-    $mameOverenePotvrzeniProtiCoviduProRok = $up->maOverenePotvrzeniProtiCoviduProRok((int)date('Y'));
-    if (!$mameNahranyLetosniDokladProtiCovidu && !$mameOverenePotvrzeniProtiCoviduProRok /* muze byt overeno rucne bez nahraneho dokladu */) {
-        $x->parse('uvod.uzivatel.chybiPotvrzeniProtiCovid');
-    } elseif (!$mameNahranyLetosniDokladProtiCovidu) { // potvrzeno rucne na infopultu, bez nahraneho dokladu
-        $x->parse('uvod.uzivatel.overenoPotvrzeniProtiCovidIkona');
-        $x->parse('uvod.uzivatel.overenoPredlozenePotvrzeniProtiCovid');
-    } else {
-        $x->assign('urlNaPotvrzeniProtiCovid', $up->urlNaPotvrzeniProtiCoviduProAdmin());
-        $x->assign(
-            'datumNahraniPotvrzeniProtiCovid',
-            (new DateTimeCz($up->potvrzeniProtiCoviduPridanoKdy()->format(DATE_ATOM)))->relativni()
-        );
-        $x->parse('uvod.uzivatel.potvrzeniProtiCovid');
-        if ($mameOverenePotvrzeniProtiCoviduProRok) {
-            $x->parse('uvod.uzivatel.overenoPotvrzeniProtiCovidIkona');
+    if (VYZADOVANO_COVID_POTVRZENI) {
+        $mameNahranyLetosniDokladProtiCovidu = $up->maNahranyDokladProtiCoviduProRok((int)date('Y'));
+        $mameOverenePotvrzeniProtiCoviduProRok = $up->maOverenePotvrzeniProtiCoviduProRok((int)date('Y'));
+        if (!$mameNahranyLetosniDokladProtiCovidu && !$mameOverenePotvrzeniProtiCoviduProRok /* muze byt overeno rucne bez nahraneho dokladu */) {
+            $x->parse('uvod.uzivatel.covidSekce.chybiPotvrzeniProtiCovid');
+        } elseif (!$mameNahranyLetosniDokladProtiCovidu) { // potvrzeno rucne na infopultu, bez nahraneho dokladu
+            $x->parse('uvod.uzivatel.covidSekce.overenoPotvrzeniProtiCovidIkona');
+            $x->parse('uvod.uzivatel.covidSekce.overenoPredlozenePotvrzeniProtiCovid');
         } else {
-            $x->parse('uvod.uzivatel.overitPotvrzeniProtiCovid');
+            $x->assign('urlNaPotvrzeniProtiCovid', $up->urlNaPotvrzeniProtiCoviduProAdmin());
+            $x->assign(
+                'datumNahraniPotvrzeniProtiCovid',
+                (new DateTimeCz($up->potvrzeniProtiCoviduPridanoKdy()->format(DATE_ATOM)))->relativni()
+            );
+            $x->parse('uvod.uzivatel.covidSekce.potvrzeniProtiCovid');
+            if ($mameOverenePotvrzeniProtiCoviduProRok) {
+                $x->parse('uvod.uzivatel.covidSekce.overenoPotvrzeniProtiCovidIkona');
+            } else {
+                $x->parse('uvod.uzivatel.covidSekce.overitPotvrzeniProtiCovid');
+            }
         }
+        $x->parse('uvod.uzivatel.covidSekce');
     }
     if (GC_BEZI) {
         $zpravyProPotvrzeniZruseniPrace = [];
@@ -311,8 +314,10 @@ if ($uPracovni) {
         'poznamka' => 'Poznámka',
         // 'op'                    =>          'Číslo OP',
         'potvrzeni_zakonneho_zastupce' => 'Potvrzení',
-        'potvrzeni_proti_covid19_overeno_kdy' => 'Covid-19',
     ];
+    if (VYZADOVANO_COVID_POTVRZENI) {
+        $udaje['potvrzeni_proti_covid19_overeno_kdy'] = 'Covid-19';
+    }
     $r = dbOneLine('SELECT ' . implode(',', array_keys($udaje)) . ' FROM uzivatele_hodnoty WHERE id_uzivatele = ' . $uPracovni->id());
     $datumNarozeni = new DateTimeImmutable($r['datum_narozeni']);
     $potvrzeniOd = $r['potvrzeni_zakonneho_zastupce']

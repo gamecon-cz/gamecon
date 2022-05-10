@@ -46,7 +46,7 @@ if (post('pridatPotvrzeniProtiCovidu')) {
 if (GC_BEZI || ($u && $u->gcPritomen())) {
     // zpřístupnit varianty mimo registraci i pro nepřihlášeného uživatele kvůli
     // příchodům z titulky, menu a podobně
-    if ($u) {
+    if (VYZADOVANO_COVID_POTVRZENI && $u) {
         $t->assign('covidSekce', $covidSekceFunkce(new Shop($u)));
         $t->parse('prihlaskaGcBezi.covidSekce.doklad');
         $letosniRok = (int)date('Y');
@@ -146,7 +146,7 @@ $t->assign([
     'predmety' => $shop->predmetyHtml(),
     'rok' => ROK,
     'ubytovani' => $shop->ubytovaniHtml(),
-    'covidSekce' => $covidSekceFunkce($shop),
+    'covidSekce' => VYZADOVANO_COVID_POTVRZENI ? $covidSekceFunkce($shop) : '',
     'ulozitNeboPrihlasit' => $u->gcPrihlasen()
         ? 'Uložit změny'
         : 'Přihlásit na GameCon',
