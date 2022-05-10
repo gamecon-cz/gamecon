@@ -914,29 +914,29 @@ class Aktivita
 
     /** Vrátí html kód s políčky určujícímí obsazenost */
     public function obsazenostHtml() {
-        $m = $this->prihlasenoMuzu(); // počty
-        $f = $this->prihlasenoZen();
-        $c = $m + $f;
-        $km = $this->a['kapacita_m']; // kapacity
-        $kf = $this->a['kapacita_f'];
-        $ku = $this->a['kapacita'];
-        $kc = $ku + $km + $kf;
-        if (!$kc) {
+        $prihlasenoMuzu = $this->prihlasenoMuzu(); // počty
+        $prihlasenoZen = $this->prihlasenoZen();
+        $prihlasenoCelkem = $prihlasenoMuzu + $prihlasenoZen;
+        $kapacitaMuzi = $this->a['kapacita_m']; // kapacity
+        $kapacitaZeny = $this->a['kapacita_f'];
+        $kapacitaUniverzalni = $this->a['kapacita'];
+        $kapacitaCelkova = $kapacitaUniverzalni + $kapacitaMuzi + $kapacitaZeny;
+        if (!$kapacitaCelkova) {
             return '';
         }
         if (!$this->prihlasovatelna() && !$this->probehnuta()) { //u proběhnutých aktivit se zobrazí čísla. Možno měnit.
-            return " <span class=\"neprihlasovatelna\">($c/$kc)</span>";
+            return " <span class=\"neprihlasovatelna\">($prihlasenoCelkem/$kapacitaCelkova)</span>";
         }
         switch ($this->volno()) {
             case 'u':
             case 'x':
-                return " ($c/$kc)";
+                return " ($prihlasenoCelkem/$kapacitaCelkova)";
             case 'f':
-                return ' <span class="f">(' . $f . '/' . $kf . ')</span>' .
-                    ' <span class="m">(' . $m . '/' . ($km + $ku) . ')</span>';
+                return ' <span class="f">(' . $prihlasenoZen . '/' . $kapacitaZeny . ')</span>' .
+                    ' <span class="m">(' . $prihlasenoMuzu . '/' . ($kapacitaMuzi + $kapacitaUniverzalni) . ')</span>';
             case 'm':
-                return ' <span class="f">(' . $f . '/' . ($kf + $ku) . ')</span>' .
-                    ' <span class="m">(' . $m . '/' . $km . ')</span>';
+                return ' <span class="f">(' . $prihlasenoZen . '/' . ($kapacitaZeny + $kapacitaUniverzalni) . ')</span>' .
+                    ' <span class="m">(' . $prihlasenoMuzu . '/' . $kapacitaMuzi . ')</span>';
             default :
                 return '';
         }
