@@ -929,9 +929,9 @@ class Aktivita
         $prihlasenoMuzu = $this->prihlasenoMuzu(); // počty
         $prihlasenoZen = $this->prihlasenoZen();
         $prihlasenoCelkem = $prihlasenoMuzu + $prihlasenoZen;
-        $kapacitaMuzi = $this->a['kapacita_m']; // kapacity
-        $kapacitaZeny = $this->a['kapacita_f'];
-        $kapacitaUniverzalni = $this->a['kapacita'];
+        $kapacitaMuzi = (int)$this->a['kapacita_m']; // kapacity
+        $kapacitaZeny = (int)$this->a['kapacita_f'];
+        $kapacitaUniverzalni = (int)$this->a['kapacita'];
         $kapacitaCelkova = $kapacitaUniverzalni + $kapacitaMuzi + $kapacitaZeny;
         if (!$kapacitaCelkova) {
             return '';
@@ -2479,9 +2479,7 @@ SQL,
      * @param array|null $args volitelné pole argumentů pro dbQueryS()
      * @param string $order volitelně celá klauzule ORDER BY včetně klíč. slova
      * @return Aktivita[]
-     * @todo třída která obstará reálný iterátor, nejenom obalení pole (nevýhoda
-     *  pole je nezměněná nutnost čekat, než se celá odpověď načte a přesype do
-     *  paměti
+     * @todo třída která obstará reálný iterátor, nejenom obalení pole (nevýhoda pole je nezměněná nutnost čekat, než se celá odpověď načte a přesype do paměti)
      */
     protected static function zWhere($where, $args = null, $order = null, ?string $limit = null): array {
         $limitSql = $limit !== null
@@ -2497,7 +2495,7 @@ SELECT t3.*,
     ) AS tagy
     FROM
     (SELECT t2.*,
-            CONCAT(',',GROUP_CONCAT(p.id_uzivatele,u.pohlavi,p.id_stavu_prihlaseni ORDER BY akce_prihlaseni_log.cas ASC),',') AS prihlaseni,
+            CONCAT(',',GROUP_CONCAT(p.id_uzivatele,u.pohlavi,p.id_stavu_prihlaseni ORDER BY posledni_zmeny.cas_posledni_zmeny ASC),',') AS prihlaseni,
             IF(t2.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = t2.patri_pod), t2.url_akce) AS url_temp
         FROM (
             SELECT a.*, al.poradi
@@ -2506,7 +2504,8 @@ SELECT t3.*,
             $where
         ) AS t2
         LEFT JOIN akce_prihlaseni p ON (p.id_akce = t2.id_akce)
-        LEFT JOIN akce_prihlaseni_log ON akce_prihlaseni_log.id_akce = p.id_akce AND akce_prihlaseni_log.id_uzivatele = p.id_uzivatele
+        LEFT JOIN (SELECT MAX(cas) AS cas_posledni_zmeny, id_uzivatele, id_akce FROM akce_prihlaseni_log GROUP BY id_uzivatele, id_akce) AS posledni_zmeny
+            ON posledni_zmeny.id_akce = p.id_akce AND posledni_zmeny.id_uzivatele = p.id_uzivatele
         LEFT JOIN uzivatele_hodnoty u ON (u.id_uzivatele = p.id_uzivatele)
         GROUP BY t2.id_akce
     ) AS t3
