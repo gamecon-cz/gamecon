@@ -140,6 +140,8 @@ foreach ($nahledy as $nahled) {
     $t->parse('prihlaska.nahled');
 }
 
+$qrObrazekProPlatbu = $u->finance()->dejQrKodProPlatbu();
+
 $t->assign([
     'a' => $u->koncovkaDlePohlavi(),
     'jidlo' => $shop->jidloHtml(),
@@ -147,6 +149,8 @@ $t->assign([
     'rok' => ROK,
     'ubytovani' => $shop->ubytovaniHtml(),
     'covidSekce' => VYZADOVANO_COVID_POTVRZENI ? $covidSekceFunkce($shop) : '',
+    'qrPlatbaMimeType' => $qrObrazekProPlatbu->getMimeType(),
+    'qrPlatbaBase64' => base64_encode($qrObrazekProPlatbu->getString()),
     'ulozitNeboPrihlasit' => $u->gcPrihlasen()
         ? 'Uložit změny'
         : 'Přihlásit na GameCon',

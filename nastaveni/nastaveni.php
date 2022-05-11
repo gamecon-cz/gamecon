@@ -224,6 +224,8 @@ Organizační tým GameConu',
 
 @define('ADRESAR_WEBU_S_OBRAZKY', __DIR__ . '/../web');
 
+@define('NAZEV_SPOLECNOSTI_GAMECON', 'GameCon z.s.');
+
 $nastaveni = new SystemoveNastaveni();
 $nastaveni->zaznamyDoKonstant();
 

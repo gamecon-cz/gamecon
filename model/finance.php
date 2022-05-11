@@ -1,5 +1,7 @@
 <?php
 
+use \Endroid\QrCode\Writer\Result\ResultInterface;
+
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\TypAktivity;
 
@@ -604,4 +606,23 @@ class Finance
     function zustatekZPredchozichRocniku(): float {
         return $this->zustatekZPredchozichRocniku;
     }
+
+    public function dejQrKodProPlatbu(): ResultInterface {
+        $castkaCzk = $this->stav() >= 0
+            ? 0.1 // nulová, respektive dobrovolná platba
+            : -$this->stav();
+
+        $qrPlatba = $this->u->stat() === \Gamecon\Stat::CZ
+            ? \Gamecon\Finance\QrPlatba::dejQrProTuzemskouPlatbu(
+                $castkaCzk,
+                $this->u->id()
+            )
+            : \Gamecon\Finance\QrPlatba::dejQrProSepaPlatbu(
+                $castkaCzk, // SEPA platba je vždy v Eur se splatností do druhého dne
+                $this->u->id()
+            );
+
+        return $qrPlatba->dejQrObrazek();
+    }
+
 }
