@@ -45,7 +45,12 @@ class SystemoveNastaveniAjax
                 $this->systemoveNastaveni->ulozZmenuHodnoty($zmena[self::HODNOTA_KLIC], $klic, $this->editujici);
             }
             if (array_key_exists(self::AKTIVNI_KLIC, $zmena)) {
-                $this->systemoveNastaveni->ulozZmenuPlatnosti((bool)$zmena[self::AKTIVNI_KLIC], $klic, $this->editujici);
+                $this->systemoveNastaveni->ulozZmenuPlatnosti(
+                // filter_var z "true" udělá true a z "false" udělá false
+                    filter_var($zmena[self::AKTIVNI_KLIC], FILTER_VALIDATE_BOOLEAN),
+                    $klic,
+                    $this->editujici
+                );
             }
         }
 
