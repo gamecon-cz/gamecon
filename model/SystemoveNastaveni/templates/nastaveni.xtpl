@@ -5,15 +5,21 @@
 <table class="zvyraznovana nastaveni" id="nastaveni" style="width: 100%" data-ajax-klic="{ajaxKlic}">
   <thead>
   <tr>
+    <th class="hinted">
+      Použít
+      <span class="hint">
+        Pokud existuje výchozí hodnota, můžeš ruční nastavení vyřadit a tím to přenechat systému
+      </span>
+    </th>
     <th>Název</th>
     <th>Hodnota</th>
     <th>Poslední změna</th>
-    <th>Naposledy změnil</th>
   </tr>
   </thead>
   <tbody>
   <!-- begin:zaznam -->
   <tr>
+    <td><input type="checkbox" name="{postKlic}[{klic}][{aktivniKlic}]" {checked} {disabled}></td>
     <td class="technicke nazev hinted">
       <label for="hodnota-{klic}">{nazev}</label>
       <div class="hint">
@@ -21,16 +27,21 @@
         <div id="popis-{klic}">
           {popis}
         </div>
+        <hr>
+        <i>výchozí hodnota: <strong>{vychozi_hodnota}</strong></i>
       </div>
     </td>
     <td class="technicke">
       <form style="position:relative;">
-        <input name="{postKlic}[{klic}]" class="hodnota-nastaveni" id="hodnota-{klic}" value="{hodnota}"
-               type="{inputType}">
+        <input name="{postKlic}[{klic}][{hodnotaKlic}]" class="hodnota-nastaveni" id="hodnota-{klic}"
+               value="{inputValue}"
+               type="{inputType}" data-vychozi-hodnota="{vychozi_hodnota}">
       </form>
     </td>
-    <td id="posledni-zmena-{klic}">{posledniZmena}</td>
-    <td id="zmenil-{klic}">{zmenil}</td>
+    <td class="hinted">
+      <span id="posledni-zmena-{klic}">{posledniZmena}</span>
+      <span id="zmenil-{klic}" class="hint">{zmenil}</span>
+    </td>
   </tr>
   <!-- end:zaznam --></tbody>
 </table>

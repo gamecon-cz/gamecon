@@ -15,11 +15,30 @@ mb_internal_encoding('UTF-8');
 $puvodni = error_reporting(); // vymaskování notice, aby bylo možné "přetížit" konstanty dříve includnutými
 error_reporting($puvodni ^ E_NOTICE);
 
+if (!defined('ROK')) define('ROK', 2022); // aktuální rok -- při změně roku viz Překlápění ročníku na Gamecon Gdrive https://docs.google.com/document/d/1H_PM70WjNpQ1Xz65OYfr1BeSTdLrNQSkScMIZEtxWEc/edit
+
+////////////////////////
+// Nastavení ovládatelné z adminu //
+////////////////////////
+
+$nastaveni = new SystemoveNastaveni(ROK);
+$nastaveni->zaznamyDoKonstant();
+
+if (defined('BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU')) { // není ještě načtena před SQL migracemi
+    // OSTATNÍ FINANČNÍ NASTAVENÍ
+    @define('MODRE_TRICKO_ZDARMA_OD', 3 * BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU); // hodnota slevy od které má subjekt nárok na modré tričko
+
+    @define('BONUS_ZA_1H_AKTIVITU', SystemoveNastaveni::spocitejBonusVypravece('BONUS_ZA_1H_AKTIVITU'));
+    @define('BONUS_ZA_2H_AKTIVITU', SystemoveNastaveni::spocitejBonusVypravece('BONUS_ZA_2H_AKTIVITU'));
+    @define('BONUS_ZA_6H_AZ_7H_AKTIVITU', SystemoveNastaveni::spocitejBonusVypravece('BONUS_ZA_6H_AZ_7H_AKTIVITU'));
+    @define('BONUS_ZA_8H_AZ_9H_AKTIVITU', SystemoveNastaveni::spocitejBonusVypravece('BONUS_ZA_8H_AZ_9H_AKTIVITU'));
+    @define('BONUS_ZA_10H_AZ_11H_AKTIVITU', SystemoveNastaveni::spocitejBonusVypravece('BONUS_ZA_10H_AZ_11H_AKTIVITU'));
+    @define('BONUS_ZA_12H_AZ_13H_AKTIVITU', SystemoveNastaveni::spocitejBonusVypravece('BONUS_ZA_12H_AZ_13H_AKTIVITU'));
+}
+
 ////////////////////////
 // Základní nastavení //
 ////////////////////////
-
-@define('ROK', 2022); // aktuální rok -- při změně roku viz Překlápění ročníku na Gamecon Gdrive https://docs.google.com/document/d/1H_PM70WjNpQ1Xz65OYfr1BeSTdLrNQSkScMIZEtxWEc/edit
 
 /**
  * https://trello.com/c/EgjfpfLZ/898-p%C5%99evod-ro%C4%8Dn%C3%ADku-na-2022#comment-61e83d40a3670882293b65c8
@@ -37,16 +56,16 @@ error_reporting($puvodni ^ E_NOTICE);
 // SAMOTNÝ GAMECON //
 /////////////////////
 // 2022-07-14 07:00:00 čtvrtek ve třetím týdnu v červenci
-@define('GC_BEZI_OD', DateTimeGamecon::zacatekGameconu(ROK)->formatDb()); // začátek GameConu (přepnutí stránek do režimu "úpravy na jen na infopultu")
+if (!defined('GC_BEZI_OD')) define('GC_BEZI_OD', $nastaveni->dejVychoziHodnotu('GC_BEZI_OD')); // začátek GameConu (přepnutí stránek do režimu "úpravy na jen na infopultu")
 // 2022-07-17 21:00:00
-@define('GC_BEZI_DO', DateTimeGamecon::konecGameconu(ROK)->formatDb()); // konec GameCou (přepnutí stránek do režimu "gc skončil, úpravy nemožné")
+if (!defined('GC_BEZI_DO')) define('GC_BEZI_DO', $nastaveni->dejVychoziHodnotu('GC_BEZI_DO')); // konec GameCou (přepnutí stránek do režimu "gc skončil, úpravy nemožné")
 
 ///////////////////////////
 // REGISTRACE NA GAMECON //
 ///////////////////////////
 // 2022-05-12 20:22:00
-@define('REG_GC_OD', DateTimeGamecon::zacatekRegistraciNavstevniku(ROK)->formatDb()); // spuštění možnosti registrace na GameCon
-@define('REG_GC_DO', GC_BEZI_DO); // ukončení možnosti registrace na GameCon
+if (!defined('REG_GC_OD')) define('REG_GC_OD', DateTimeGamecon::zacatekRegistraciNavstevniku(ROK)->formatDb()); // spuštění možnosti registrace na GameCon
+if (!defined('REG_GC_DO')) define('REG_GC_DO', GC_BEZI_DO); // ukončení možnosti registrace na GameCon
 
 ////////////////////////////////////////////////////////
 // REGISTRACE NA AKTIVITY (PRVNÍ, DRUHÁ A TŘETÍ VLNA) //
@@ -220,18 +239,3 @@ Organizační tým GameConu',
 define('SUPERADMINI', [1682, 4032]);
 
 @define('ADRESAR_WEBU_S_OBRAZKY', __DIR__ . '/../web');
-
-$nastaveni = new SystemoveNastaveni();
-$nastaveni->zaznamyDoKonstant();
-
-if (defined('BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU')) { // není ještě načtena před SQL migracemi
-    // OSTATNÍ FINANČNÍ NASTAVENÍ
-    @define('MODRE_TRICKO_ZDARMA_OD', 3 * BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU); // hodnota slevy od které má subjekt nárok na modré tričko
-
-    @define('BONUS_ZA_1H_AKTIVITU', SystemoveNastaveni::spocitejBonusVypravece('BONUS_ZA_1H_AKTIVITU'));
-    @define('BONUS_ZA_2H_AKTIVITU', SystemoveNastaveni::spocitejBonusVypravece('BONUS_ZA_2H_AKTIVITU'));
-    @define('BONUS_ZA_6H_AZ_7H_AKTIVITU', SystemoveNastaveni::spocitejBonusVypravece('BONUS_ZA_6H_AZ_7H_AKTIVITU'));
-    @define('BONUS_ZA_8H_AZ_9H_AKTIVITU', SystemoveNastaveni::spocitejBonusVypravece('BONUS_ZA_8H_AZ_9H_AKTIVITU'));
-    @define('BONUS_ZA_10H_AZ_11H_AKTIVITU', SystemoveNastaveni::spocitejBonusVypravece('BONUS_ZA_10H_AZ_11H_AKTIVITU'));
-    @define('BONUS_ZA_12H_AZ_13H_AKTIVITU', SystemoveNastaveni::spocitejBonusVypravece('BONUS_ZA_12H_AZ_13H_AKTIVITU'));
-}

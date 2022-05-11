@@ -13,7 +13,7 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveniHtml;
  * @var Uzivatel $u
  */
 
-$nastaveni = new SystemoveNastaveni();
+$nastaveni = new SystemoveNastaveni(ROK);
 $nastaveniHtml = new SystemoveNastaveniHtml($nastaveni);
 $nastaveniAjax = new SystemoveNastaveniAjax($nastaveni, $nastaveniHtml, $u);
 

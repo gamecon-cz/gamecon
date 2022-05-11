@@ -6,6 +6,29 @@ document.addEventListener('DOMContentLoaded', function () {
     nastaveni.nastavPosledniUlozenouHodnotu(inputNode)
     nastaveni.odesilejPriZmnene(inputNode)
   })
+
+  $('.hodnota-nastaveni[type=date]').each(function (index, element) {
+    element.type = 'text'
+    $(element).datepicker({
+      dateFormat: element.type === 'd. m. yy',
+      onSelect: function () {
+        const changeEvent = new Event('change')
+        element.dispatchEvent(changeEvent)
+      },
+    })
+  })
+
+  $('.hodnota-nastaveni[type=datetime-local]').each(function (index, element) {
+    element.type = 'text'
+    $(element).datetimepicker({
+      dateFormat: 'd. m. yy',
+      timeFormat: 'HH:mm:ss',
+      onSelect: function () {
+        const changeEvent = new Event('change')
+        element.dispatchEvent(changeEvent)
+      },
+    })
+  })
 })
 
 class SystemoveNastaveni {
@@ -60,6 +83,9 @@ class SystemoveNastaveni {
    * @param {function} callableOnFailure
    */
   ulozNastaveni(inputNode, callableOnStart, callableOnSuccess, callableOnFailure) {
+    if (this.jeHodnotaBezeZmeny(inputNode)) {
+      return // tahle změna už byla zpracována
+    }
     callableOnStart()
 
     const nastaveni = this
