@@ -6,6 +6,9 @@ class SystemoveNastaveniAjax
 {
     public const AJAX_KLIC = 'ajax';
     public const POST_KLIC = 'nastaveni';
+    public const AKTIVNI_KLIC = 'aktivni';
+    public const HODNOTA_KLIC = 'hodnota';
+
     /**
      * @var \Uzivatel
      */
@@ -37,7 +40,14 @@ class SystemoveNastaveniAjax
         if (!$zmeny) {
             return false;
         }
-        $this->systemoveNastaveni->ulozZmeny($zmeny, $this->editujici);
+        foreach ($zmeny as $klic => $zmena) {
+            if (array_key_exists(self::HODNOTA_KLIC, $zmena)) {
+                $this->systemoveNastaveni->ulozZmenuHodnoty($zmena[self::HODNOTA_KLIC], $klic, $this->editujici);
+            }
+            if (array_key_exists(self::AKTIVNI_KLIC, $zmena)) {
+                $this->systemoveNastaveni->ulozZmenuPlatnosti((bool)$zmena[self::AKTIVNI_KLIC], $klic, $this->editujici);
+            }
+        }
 
         $soucasneStavy = $this->systemoveNastaveniHtml->dejZaznamyNastaveniProHtml(array_keys($zmeny));
         $soucasnyStav = reset($soucasneStavy);
