@@ -49,6 +49,6 @@
   <!-- end:zaznam --></tbody>
 </table>
 
-<script type="text/javascript" src="files/systemove-nastaveni.js"></script>
+<script type="text/javascript" src="files/systemove-nastaveni.js?version={systemoveNastavenJsVerze}"></script>
 
 <!-- end:nastaveni -->
