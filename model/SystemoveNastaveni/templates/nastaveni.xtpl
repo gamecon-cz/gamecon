@@ -18,7 +18,7 @@
       <label for="hodnota-{klic}">{nazev}</label>
       <div class="hint">
         <strong>{klic}</strong>
-        <div>
+        <div id="popis-{klic}">
           {popis}
         </div>
       </div>
