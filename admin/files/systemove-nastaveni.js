@@ -139,10 +139,13 @@ class SystemoveNastaveni {
    */
   zobrazZmeny(novaData) {
     const posledniZmenaElement = document.getElementById(`posledni-zmena-${novaData.klic}`)
-    posledniZmenaElement.innerText = novaData.posledniZmena
+    posledniZmenaElement.innerHTML = novaData.posledniZmena
 
     const zmenilElement = document.getElementById(`zmenil-${novaData.klic}`)
-    zmenilElement.innerText = novaData.zmenil
+    zmenilElement.innerHTML = novaData.zmenil
+
+    const popisElement = document.getElementById(`popis-${novaData.klic}`)
+    popisElement.innerHTML = novaData.popis
   }
 
   /**

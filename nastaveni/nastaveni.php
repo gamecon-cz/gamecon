@@ -224,6 +224,14 @@ define('SUPERADMINI', [1682, 4032]);
 $nastaveni = new SystemoveNastaveni();
 $nastaveni->zaznamyDoKonstant();
 
-// OSTATNÍ FINANČNÍ NASTAVENÍ
-/** Pozor, musí být až za @see \Gamecon\SystemoveNastaveni\SystemoveNastaveni::zaznamyDoKonstant */
-@define('MODRE_TRICKO_ZDARMA_OD', 3 * BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU); // hodnota slevy od které má subjekt nárok na modré tričko
+if (defined('BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU')) { // není ještě načtena před SQL migracemi
+    // OSTATNÍ FINANČNÍ NASTAVENÍ
+    @define('MODRE_TRICKO_ZDARMA_OD', 3 * BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU); // hodnota slevy od které má subjekt nárok na modré tričko
+
+    @define('BONUS_ZA_1H_AKTIVITU', SystemoveNastaveni::spocitejBonusVypravece('BONUS_ZA_1H_AKTIVITU'));
+    @define('BONUS_ZA_2H_AKTIVITU', SystemoveNastaveni::spocitejBonusVypravece('BONUS_ZA_2H_AKTIVITU'));
+    @define('BONUS_ZA_6H_AZ_7H_AKTIVITU', SystemoveNastaveni::spocitejBonusVypravece('BONUS_ZA_6H_AZ_7H_AKTIVITU'));
+    @define('BONUS_ZA_8H_AZ_9H_AKTIVITU', SystemoveNastaveni::spocitejBonusVypravece('BONUS_ZA_8H_AZ_9H_AKTIVITU'));
+    @define('BONUS_ZA_10H_AZ_11H_AKTIVITU', SystemoveNastaveni::spocitejBonusVypravece('BONUS_ZA_10H_AZ_11H_AKTIVITU'));
+    @define('BONUS_ZA_12H_AZ_13H_AKTIVITU', SystemoveNastaveni::spocitejBonusVypravece('BONUS_ZA_12H_AZ_13H_AKTIVITU'));
+}
