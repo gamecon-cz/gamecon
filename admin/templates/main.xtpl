@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="files/design/styl.css?version={cssVersions.styl}" />
   <link rel="stylesheet" href="files/design/uzky.css?version={cssVersions.uzky}" media="(max-width: 550px)">
   <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-v1.12.1.min.css" />
+  <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-timepicker-addon-1.6.3.min.css" />
   <link rel="stylesheet" href="files/design/jquery-multiselect/jquery.multiselect-2.4.16.css" />
   <link rel="stylesheet" href="files/design/jquery-multiselect/jquery.multiselect.gamecon.css?version=7726af9be4b35c7389767c3225d93d9a" />
   <link rel="stylesheet" href="files/design/jquery-modal/jquery.modal-0.9.1.min.css" />
@@ -16,6 +17,7 @@
   <script type="text/javascript" src="files/jquery-3.4.1.min.js"></script>
   {jsVyjimkovac}
   <script type="text/javascript" src="files/jquery-ui-v1.12.1.min.js"></script>
+  <script type="text/javascript" src="files/jquery-ui-timepicker-addon-1.6.3.min.js"></script>
   <script type="text/javascript" src="files/jquery.hotkeys-0.8.0.js"></script>
   <script type="text/javascript" src="files/jquery.serializeobject.js?version=756c72ca3178bfe417882afe5b460406"></script>
   <script type="text/javascript" src="files/jquery.cookie-v1.4.1.js"></script>

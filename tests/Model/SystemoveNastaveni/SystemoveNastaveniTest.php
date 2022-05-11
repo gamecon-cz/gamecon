@@ -21,7 +21,7 @@ class SystemoveNastaveniTest extends DbTest
         self::assertSame('24', $zaznamKurzuEuro['hodnota']);
         self::assertNull($zaznamKurzuEuro['id_uzivatele']);
 
-        $nastaveni->ulozZmeny(['KURZ_EURO' => 123], \Uzivatel::zId(48));
+        $nastaveni->ulozZmenu(['KURZ_EURO' => 123], \Uzivatel::zId(48));
 
         $zaznamKurzuEuroPoZmene = $nastaveni->dejZaznamyNastaveniPodleKlicu(['KURZ_EURO'])[0];
         self::assertSame('123', $zaznamKurzuEuroPoZmene['hodnota']);

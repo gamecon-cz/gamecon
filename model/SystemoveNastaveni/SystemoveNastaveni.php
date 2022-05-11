@@ -3,16 +3,27 @@
 namespace Gamecon\SystemoveNastaveni;
 
 use Gamecon\Cas\DateTimeCz;
+use Gamecon\Cas\DateTimeGamecon;
 
 class SystemoveNastaveni
 {
+
+    /**
+     * @var int
+     */
+    private $rok;
+
+    public function __construct(int $rok) {
+        $this->rok = $rok;
+    }
 
     public function zaznamyDoKonstant() {
         try {
             $zaznamy = dbFetchAll(<<<SQL
 SELECT systemove_nastaveni.klic,
        systemove_nastaveni.hodnota,
-       systemove_nastaveni.datovy_typ
+       systemove_nastaveni.datovy_typ,
+       systemove_nastaveni.aktivni
 FROM systemove_nastaveni
 SQL
             );
@@ -20,13 +31,16 @@ SQL
             // testy nebo úplně prázdný Gamecon na začátku nemají ještě databázi
             return;
         } catch (\DbException $dbException) {
-            if ($dbException->getCode() === 1146 /* table does not exist */) {
-                return; // tabulka musí vzniknout SQL migrací
+            if (in_array($dbException->getCode(), [1146 /* table does not exist */, 1054 /* new column does not exist */])) {
+                return; // tabulka či sloupec musí vzniknout SQL migrací
             }
             throw $dbException;
         }
         foreach ($zaznamy as $zaznam) {
             $nazevKonstanty = trim(strtoupper($zaznam['klic']));
+            if (!$zaznam['aktivni']) {
+                $zaznam['hodnota'] = $this->dejVychoziHodnotu($nazevKonstanty);
+            }
             if (!defined($nazevKonstanty)) {
                 $hodnota = $this->zkonvertujHodnotuNaTyp($zaznam['hodnota'], $zaznam['datovy_typ']);
                 define($nazevKonstanty, $hodnota);
@@ -55,40 +69,76 @@ SQL
         }
     }
 
-    public function ulozZmeny(array $zmeny, \Uzivatel $editujici): int {
-        $whenThenArray = [];
-        $parametry = [];
-        $klice = [];
-        $indexParametru = 0;
-        foreach ($zmeny as $klic => $hodnota) {
-            $whenThenArray[] = 'WHEN $' . ($indexParametru++) . ' THEN $' . ($indexParametru++);
-            $parametry[] = $klic; // WHEN
-            $parametry[] = $hodnota; // THEN
-            $klice[] = $klic;
-        }
-        $whenThen = implode(' ', $whenThenArray);
-        $parametry[] = $klice; // bude prevedeno na hodnoty,oddelene,carkou
+    public function ulozZmenuHodnoty($hodnota, string $klic, \Uzivatel $editujici): int {
         $updateQuery = dbQuery(<<<SQL
 UPDATE systemove_nastaveni
-SET hodnota = (CASE klic $whenThen END)
-WHERE klic IN ($$indexParametru)
+SET hodnota = $1
+WHERE klic = $2
 SQL,
-            $parametry
+            [$this->formatujHodnotuProDb($hodnota, $klic), $klic]
         );
         dbQuery(<<<SQL
 INSERT INTO systemove_nastaveni_log(id_uzivatele, id_nastaveni, hodnota)
 SELECT $1, id_nastaveni, hodnota
 FROM systemove_nastaveni
-WHERE klic IN ($2)
+WHERE klic = $2
 SQL,
-            [$editujici->id(), $klice]
+            [$editujici->id(), $klic]
         );
         return dbNumRows($updateQuery);
     }
 
+    public function ulozZmenuPlatnosti(bool $aktivni, string $klic, \Uzivatel $editujici): int {
+        $updateQuery = dbQuery(<<<SQL
+UPDATE systemove_nastaveni
+SET aktivni = $1
+WHERE klic = $2
+SQL,
+            [$aktivni, $klic]
+        );
+        dbQuery(<<<SQL
+INSERT INTO systemove_nastaveni_log(id_uzivatele, id_nastaveni, hodnota)
+SELECT $1, id_nastaveni, hodnota
+FROM systemove_nastaveni
+WHERE klic = $2
+SQL,
+            [$editujici->id(), $klic]
+        );
+        return dbNumRows($updateQuery);
+    }
+
+    private function formatujHodnotuProDb($hodnota, string $klic) {
+        switch ($this->dejDatovyTyp($klic)) {
+            case 'date' :
+                return $hodnota
+                    ? DateTimeCz::createFromFormat('j. n. Y', $hodnota)->formatDatumDb()
+                    : $hodnota;
+            case 'datetime' :
+                return $hodnota
+                    ? DateTimeCz::createFromFormat('j. n. Y H:i:s', $hodnota)->formatDb()
+                    : $hodnota;
+            default :
+                return $hodnota;
+        }
+    }
+
+    private function dejDatovyTyp(string $klic): ?string {
+        static $datoveTypy;
+        if ($datoveTypy === null) {
+            $datoveTypy = dbArrayCol(<<<SQL
+SELECT klic, datovy_typ
+FROM systemove_nastaveni
+SQL
+            );
+        }
+        return $datoveTypy[$klic] ?? null;
+    }
+
     public function dejVsechnyZaznamyNastaveni(): array {
         return $this->vlozOstatniBonusyVypravecuDoPopisu(
-            dbFetchAll($this->dejSqlNaZaVsechnyZaznamyNastaveni())
+            $this->pridejVychoziHodnoty(
+                dbFetchAll($this->dejSqlNaZaVsechnyZaznamyNastaveni())
+)
         );
     }
 
@@ -143,11 +193,34 @@ SQL;
             return [];
         }
         return $this->vlozOstatniBonusyVypravecuDoPopisu(
-            dbFetchAll(
-                $this->dejSqlNaZaVsechnyZaznamyNastaveni(['systemove_nastaveni.klic IN ($1)']),
-                [$klice]
+            $this->pridejVychoziHodnoty(
+                dbFetchAll(
+                    $this->dejSqlNaZaVsechnyZaznamyNastaveni(['systemove_nastaveni.klic IN ($1)']),
+                    [$klice]
+                )
             )
         );
+    }
+
+    private function pridejVychoziHodnoty(array $zaznamy): array {
+        return array_map(
+            function (array &$zaznam) {
+                $zaznam['vychozi_hodnota'] = $this->dejVychoziHodnotu($zaznam['klic']);
+                return $zaznam;
+            },
+            $zaznamy
+        );
+    }
+
+    public function dejVychoziHodnotu(string $klic) {
+        switch ($klic) {
+            case 'GC_BEZI_OD' :
+                return DateTimeGamecon::zacatekGameconu($this->rok)->formatDb();
+            case 'GC_BEZI_DO' :
+                return DateTimeGamecon::konecGameconu($this->rok)->formatDb();
+            default :
+                return '';
+        }
     }
 
     /**
