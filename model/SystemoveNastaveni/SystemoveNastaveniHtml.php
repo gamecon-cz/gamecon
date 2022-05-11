@@ -80,10 +80,23 @@ class SystemoveNastaveniHtml
                 $zaznam['posledniZmena'] = (new \Gamecon\Cas\DateTimeCz($zaznam['kdy']))->relativni();
                 $zaznam['zmenil'] = '<strong>' . ($zaznam['id_uzivatele']
                         ? \Uzivatel::zId($zaznam['id_uzivatele'])->jmenoNick()
-                        : '<i>systém</i>'
+                        : '<i>SQL migrace</i>'
                     ) . '</strong><br>' . (new \Gamecon\Cas\DateTimeCz($zaznam['kdy']))->formatCasStandard();;
                 $zaznam['inputType'] = $this->dejHtmlInputType($zaznam['datovy_typ']);
                 $zaznam['inputValue'] = $this->dejHtmlInputValue($zaznam['hodnota'], $zaznam['datovy_typ']);
+                $zaznam['vychoziHodnotaValue'] = $this->dejHtmlInputValue($zaznam['vychozi_hodnota'], $zaznam['datovy_typ']);
+                $zaznam['checked'] = $zaznam['aktivni']
+                    ? 'checked'
+                    : '';
+                $zaznam['disabled'] = $zaznam['vychozi_hodnota'] === ''
+                    ? 'disabled'
+                    : '';
+                $zaznam['vychoziHodnotaDisplayClass'] = $zaznam['aktivni']
+                    ? 'display-none'
+                    : '';
+                $zaznam['hodnotaDisplayClass'] = !$zaznam['aktivni']
+                    ? 'display-none'
+                    : '';
             }
         );
         return $hodnotyNastaveni;

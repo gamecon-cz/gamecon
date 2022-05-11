@@ -19,23 +19,26 @@
   <tbody>
   <!-- begin:zaznam -->
   <tr>
-    <td><input type="checkbox" name="{postKlic}[{klic}][{aktivniKlic}]" {checked} {disabled}></td>
-    <td class="technicke nazev hinted">
+    <td style="width: 5%"><label><input class="aktivace-nastaveni" type="checkbox" name="{postKlic}[{klic}][{aktivniKlic}]"
+                      value="1" {checked} {disabled}>&nbsp;</label></td>
+    <td class="technicke nazev hinted" style="width: 45%">
       <label for="hodnota-{klic}">{nazev}</label>
       <div class="hint">
         <strong>{klic}</strong>
         <div id="popis-{klic}">
           {popis}
         </div>
-        <hr>
-        <i>výchozí hodnota: <strong>{vychozi_hodnota}</strong></i>
       </div>
     </td>
-    <td class="technicke">
+    <td class="technicke" style="width: 25%">
       <form style="position:relative;">
-        <input name="{postKlic}[{klic}][{hodnotaKlic}]" class="hodnota-nastaveni" id="hodnota-{klic}"
-               value="{inputValue}"
-               type="{inputType}" data-vychozi-hodnota="{vychozi_hodnota}">
+        <input name="{postKlic}[{klic}][{hodnotaKlic}]" class="hodnota-nastaveni {hodnotaDisplayClass}" id="hodnota-{klic}"
+               value="{inputValue}" type="{inputType}">
+        <span class="hinted">
+          <input id="vychozi-hodnota-{klic}" value="{vychoziHodnotaValue}" type="{inputType}"
+                 class="vychozi-hodnota-nastaveni {vychoziHodnotaDisplayClass}" disabled>
+          <span class="hint">Bude použita tato výchozí hodnota</span>
+        </span>
       </form>
     </td>
     <td class="hinted">
