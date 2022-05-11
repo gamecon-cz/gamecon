@@ -24,6 +24,8 @@ class SystemoveNastaveniHtml
         $template->assign('aktivniKlic', SystemoveNastaveniAjax::AKTIVNI_KLIC);
         $template->assign('hodnotaKlic', SystemoveNastaveniAjax::HODNOTA_KLIC);
 
+        $template->assign('systemoveNastavenJsVerze', md5_file(__DIR__ . '/../../admin/files/systemove-nastaveni.js'));
+
         $zaznamyNastaveniProHtml = $this->dejZaznamyNastaveniProHtml();
 
         foreach ($zaznamyNastaveniProHtml as $zaznam) {
