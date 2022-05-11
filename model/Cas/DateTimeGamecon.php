@@ -5,7 +5,7 @@ namespace Gamecon\Cas;
 class DateTimeGamecon extends DateTimeCz
 {
     public static function zacatekGameconu(int $rok = ROK): DateTimeGamecon {
-        if ($rok === (int)ROK && defined(GC_BEZI_OD)) {
+        if ($rok === (int)ROK && defined('GC_BEZI_OD')) {
             return self::zDbFormatu(GC_BEZI_OD);
         }
         $zacatekCervence = new static($rok . '-07-01 00:00:00');
@@ -26,7 +26,7 @@ class DateTimeGamecon extends DateTimeCz
     }
 
     public static function konecGameconu(int $rok = ROK): DateTimeGamecon {
-        if ($rok === (int)ROK && defined(GC_BEZI_DO)) {
+        if ($rok === (int)ROK && defined('GC_BEZI_DO')) {
             return static::zDbFormatu(GC_BEZI_DO);
         }
         $zacatekGameconu = self::zacatekGameconu($rok);
@@ -101,7 +101,7 @@ class DateTimeGamecon extends DateTimeCz
     }
 
     public static function zacatekRegistraciNavstevniku(int $rok = ROK): DateTimeGamecon {
-        if ($rok === (int)ROK && defined(REG_GC_OD)) {
+        if ($rok === (int)ROK && defined('REG_GC_OD')) {
             return static::zDbFormatu(REG_GC_OD);
         }
         $zacatekKvetna = new static($rok . '-05-01 00:00:00');
@@ -113,7 +113,7 @@ class DateTimeGamecon extends DateTimeCz
     }
 
     public static function zacatekPrvniVlnyOd(int $rok = ROK): DateTimeGamecon {
-        if ($rok === (int)ROK && defined(REG_AKTIVIT_OD)) {
+        if ($rok === (int)ROK && defined('REG_AKTIVIT_OD')) {
             return static::zDbFormatu(REG_AKTIVIT_OD);
         }
         $zacatekRegistraciNavstevniku = self::zacatekRegistraciNavstevniku($rok);
@@ -122,7 +122,7 @@ class DateTimeGamecon extends DateTimeCz
     }
 
     public static function prvniHromadneOdhlasovaniOd(int $rok = ROK): DateTimeGamecon {
-        if ($rok === (int)ROK && defined(HROMADNE_ODHLASOVANI)) {
+        if ($rok === (int)ROK && defined('HROMADNE_ODHLASOVANI')) {
             return static::zDbFormatu(HROMADNE_ODHLASOVANI);
         }
         // konec června
@@ -130,7 +130,7 @@ class DateTimeGamecon extends DateTimeCz
     }
 
     public static function druheHromadneOdhlasovaniOd(int $rok = ROK): DateTimeGamecon {
-        if ($rok === (int)ROK && defined(HROMADNE_ODHLASOVANI_2)) {
+        if ($rok === (int)ROK && defined('HROMADNE_ODHLASOVANI_2')) {
             return static::zDbFormatu(HROMADNE_ODHLASOVANI_2);
         }
         $zacatekGameconu = self::zacatekGameconu($rok);
