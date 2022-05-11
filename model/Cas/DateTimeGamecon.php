@@ -8,6 +8,10 @@ class DateTimeGamecon extends DateTimeCz
         if ($rok === (int)ROK && defined('GC_BEZI_OD')) {
             return self::zDbFormatu(GC_BEZI_OD);
         }
+        return self::spocitejZacatekGameconu($rok);
+    }
+
+    public static function spocitejZacatekGameconu(int $rok): DateTimeGamecon {
         $zacatekCervence = new static($rok . '-07-01 00:00:00');
         $zacatekTretihoTydneVCervenci = self::dejZacatekXTydne(3, $zacatekCervence);
         $ctvrtekVeTretimTydnuVCervenci = self::dejDatumDneVTydnuOdData(static::CTVRTEK, $zacatekTretihoTydneVCervenci);
@@ -29,7 +33,11 @@ class DateTimeGamecon extends DateTimeCz
         if ($rok === (int)ROK && defined('GC_BEZI_DO')) {
             return static::zDbFormatu(GC_BEZI_DO);
         }
-        $zacatekGameconu = self::zacatekGameconu($rok);
+        return self::spocitejKonecGameconu($rok);
+    }
+
+    public static function spocitejKonecGameconu(int $rok): DateTimeGamecon {
+        $zacatekGameconu = self::spocitejZacatekGameconu($rok);
         $prvniNedelePoZacatkuGameconu = self::dejDatumDneVTydnuOdData(static::NEDELE, $zacatekGameconu);
 
         return $prvniNedelePoZacatkuGameconu->setTime(21, 0, 0);

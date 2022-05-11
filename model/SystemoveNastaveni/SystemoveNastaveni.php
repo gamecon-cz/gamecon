@@ -38,11 +38,11 @@ SQL
         }
         foreach ($zaznamy as $zaznam) {
             $nazevKonstanty = trim(strtoupper($zaznam['klic']));
-            if (!$zaznam['aktivni']) {
-                $zaznam['hodnota'] = $this->dejVychoziHodnotu($nazevKonstanty);
-            }
             if (!defined($nazevKonstanty)) {
-                $hodnota = $this->zkonvertujHodnotuNaTyp($zaznam['hodnota'], $zaznam['datovy_typ']);
+                $hodnota = $zaznam['aktivni']
+                    ? $zaznam['hodnota']
+                    : $this->dejVychoziHodnotu($nazevKonstanty);
+                $hodnota = $this->zkonvertujHodnotuNaTyp($hodnota, $zaznam['datovy_typ']);
                 define($nazevKonstanty, $hodnota);
             }
         }
@@ -59,9 +59,9 @@ SQL
             case 'number' :
             case 'float' :
                 return (float)$hodnota;
-            case 'date' :
+            case 'date' : // když to změníš, rozbiješ JS systemove-nastaveni.js
                 return (new DateTimeCz($hodnota))->formatDatumDb();
-            case 'datetime' :
+            case 'datetime' : // když to změníš, rozbiješ JS systemove-nastaveni.js
                 return (new DateTimeCz($hodnota))->formatDb();
             case 'string' :
             default :
@@ -97,8 +97,8 @@ SQL,
             [$aktivni, $klic]
         );
         dbQuery(<<<SQL
-INSERT INTO systemove_nastaveni_log(id_uzivatele, id_nastaveni, hodnota)
-SELECT $1, id_nastaveni, hodnota
+INSERT INTO systemove_nastaveni_log(id_uzivatele, id_nastaveni, aktivni)
+SELECT $1, id_nastaveni, aktivni
 FROM systemove_nastaveni
 WHERE klic = $2
 SQL,
@@ -138,7 +138,7 @@ SQL
         return $this->vlozOstatniBonusyVypravecuDoPopisu(
             $this->pridejVychoziHodnoty(
                 dbFetchAll($this->dejSqlNaZaVsechnyZaznamyNastaveni())
-)
+            )
         );
     }
 
@@ -149,7 +149,7 @@ SQL
             }
             $bonusZaStandardni3hAz5hAktivitu = (int)$zaznam['hodnota'];
             $popis = &$zaznam['popis'];
-            $popis .= '<hr>vypočtené bonusy:<br>'
+            $popis .= '<hr><i>vypočtené bonusy</i>:<br>'
                 . 'BONUS_ZA_1H_AKTIVITU = ' . self::spocitejBonusVypravece('BONUS_ZA_1H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
                 . 'BONUS_ZA_2H_AKTIVITU = ' . self::spocitejBonusVypravece('BONUS_ZA_2H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
                 . '•••<br>'
@@ -167,6 +167,7 @@ SQL
 SELECT systemove_nastaveni.klic,
        systemove_nastaveni.hodnota,
        systemove_nastaveni.datovy_typ,
+       systemove_nastaveni.aktivni,
        systemove_nastaveni.nazev,
        systemove_nastaveni.popis,
        COALESCE(naposledy, systemove_nastaveni.zmena_kdy) AS kdy,
@@ -206,6 +207,11 @@ SQL;
         return array_map(
             function (array &$zaznam) {
                 $zaznam['vychozi_hodnota'] = $this->dejVychoziHodnotu($zaznam['klic']);
+                $zaznam['popis'] .= '<hr><i>výchozí hodnota</i>: ' . (
+                    $zaznam['vychozi_hodnota'] !== ''
+                        ? htmlspecialchars($zaznam['vychozi_hodnota'])
+                        : '<i>' . htmlspecialchars('>>>není<<<') . '</i>'
+                    );
                 return $zaznam;
             },
             $zaznamy
@@ -215,9 +221,9 @@ SQL;
     public function dejVychoziHodnotu(string $klic) {
         switch ($klic) {
             case 'GC_BEZI_OD' :
-                return DateTimeGamecon::zacatekGameconu($this->rok)->formatDb();
+                return DateTimeGamecon::spocitejZacatekGameconu($this->rok)->formatDb();
             case 'GC_BEZI_DO' :
-                return DateTimeGamecon::konecGameconu($this->rok)->formatDb();
+                return DateTimeGamecon::spocitejKonecGameconu($this->rok)->formatDb();
             default :
                 return '';
         }
@@ -234,19 +240,23 @@ SQL;
     ): int {
         switch ($klic) {
             case 'BONUS_ZA_1H_AKTIVITU' :
-                return (int)($bonusZaStandardni3hAz5hAktivitu / 4);
+                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu / 4);
             case 'BONUS_ZA_2H_AKTIVITU' :
-                return (int)($bonusZaStandardni3hAz5hAktivitu / 2);
+                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu / 2);
             case 'BONUS_ZA_6H_AZ_7H_AKTIVITU' :
-                return (int)($bonusZaStandardni3hAz5hAktivitu * 1.5);
+                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 1.5);
             case 'BONUS_ZA_8H_AZ_9H_AKTIVITU' :
-                return (int)($bonusZaStandardni3hAz5hAktivitu * 2);
+                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 2);
             case 'BONUS_ZA_10H_AZ_11H_AKTIVITU' :
-                return (int)($bonusZaStandardni3hAz5hAktivitu * 2.5);
+                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 2.5);
             case 'BONUS_ZA_12H_AZ_13H_AKTIVITU' :
-                return (int)($bonusZaStandardni3hAz5hAktivitu * 3);
+                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 3);
             default :
                 throw new \LogicException("Neznámý klíč bonusu vypravěče '$klic'");
         }
+    }
+
+    private static function zakrouhli(float $cislo): int {
+        return (int)round($cislo, 0);
     }
 }
