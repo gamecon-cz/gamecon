@@ -136,7 +136,7 @@ class DateTimeGamecon extends DateTimeCz
         $zacatekGameconu = self::zacatekGameconu($rok);
         $nedelePredZacatkemGameconu = self::dejDatumDneVTydnuDoData(self::NEDELE, $zacatekGameconu);
         // konec června
-        return $nedelePredZacatkemGameconu->setTime(23, 59, 00);
+        return $nedelePredZacatkemGameconu->setTime(23, 59, 00)->modify('- 1 week');
     }
 
 }

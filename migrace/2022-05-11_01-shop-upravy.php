@@ -21,3 +21,8 @@ $this->q(<<<SQL
 UPDATE `shop_predmety` SET `stav`= 0 WHERE `model_rok`= 2021 AND `id_predmetu` NOT IN (645, 646)
 SQL
 );
+
+$this->q(<<<SQL
+UPDATE `shop_predmety` SET `kusu_vyrobeno`= 6 WHERE `id_predmetu` IN (730, 731, 732, 733, 734)
+SQL
+);
