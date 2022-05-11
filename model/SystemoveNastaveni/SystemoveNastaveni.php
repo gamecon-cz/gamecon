@@ -161,7 +161,7 @@ SQL;
     ): int {
         switch ($klic) {
             case 'BONUS_ZA_1H_AKTIVITU' :
-                return (int)($bonusZaStandardni3hAz5hAktivitu / 3);
+                return (int)($bonusZaStandardni3hAz5hAktivitu / 4);
             case 'BONUS_ZA_2H_AKTIVITU' :
                 return (int)($bonusZaStandardni3hAz5hAktivitu / 2);
             case 'BONUS_ZA_6H_AZ_7H_AKTIVITU' :
