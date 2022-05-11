@@ -37,9 +37,9 @@ class Cenik {
     $this->u = $u;
 
     if($u->maPravo(P_KOSTKA_ZDARMA))
-      $this->slevaKostky = 20;
+      $this->slevaKostky = 25;
     if($u->maPravo(P_PLACKA_ZDARMA))
-      $this->slevaPlacky = 20;
+      $this->slevaPlacky = 25;
     if($u->maPravo(P_DVE_TRICKA_ZDARMA))
       $this->jakychkoliTricekZdarma = 2;
     if($u->maPravo(P_TRICKO_ZA_SLEVU_MODRE) && $sleva >= MODRE_TRICKO_ZDARMA_OD) {
