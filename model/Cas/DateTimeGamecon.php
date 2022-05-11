@@ -71,7 +71,7 @@ class DateTimeGamecon extends DateTimeCz
         return (clone $odData)->modify("+ $rozdilDni days");
     }
 
-    protected static function korekceDatumu(DateTimeGamecon $datum): DateTimeGamecon {
+    protected static function naTestuDriv(DateTimeGamecon $datum): DateTimeGamecon {
         if (defined('TESTING') && TESTING) {
             return $datum->modify('- 1 week');
         } else {
@@ -109,7 +109,7 @@ class DateTimeGamecon extends DateTimeCz
         $ctvrtekVeTretimTydnuVKvetnu = self::dejDatumDneVTydnuOdData(static::CTVRTEK, $zacatekTretihoTydneVKvetnu);
         [$hodina, $minuta] = str_split((string)$rok, 2); // ciselna hricka, rok 2022 = hodina 20 a minuta 22
 
-        return static::korekceDatumu($ctvrtekVeTretimTydnuVKvetnu->setTime((int)$hodina, (int)$minuta, 0));
+        return static::naTestuDriv($ctvrtekVeTretimTydnuVKvetnu->setTime((int)$hodina, (int)$minuta, 0));
     }
 
     public static function zacatekPrvniVlnyOd(int $rok = ROK): DateTimeGamecon {
@@ -118,7 +118,7 @@ class DateTimeGamecon extends DateTimeCz
         }
         $zacatekRegistraciNavstevniku = self::zacatekRegistraciNavstevniku($rok);
 
-        return static::korekceDatumu($zacatekRegistraciNavstevniku->modify('+ 1 week'));
+        return static::naTestuDriv($zacatekRegistraciNavstevniku->modify('+ 1 week'));
     }
 
     public static function prvniHromadneOdhlasovaniOd(int $rok = ROK): DateTimeGamecon {
