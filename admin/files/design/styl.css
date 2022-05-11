@@ -475,7 +475,7 @@ input[type="submit"], input[type="button"], .tlacitko, .adm_submenu_item a {
   padding: 2px 8px;
 }
 
-input[type="checkbox"], input[type="submit"]:hover, input[type="button"]:hover, .tlacitko:hover, .adm_submenu_item a {
+input[type="checkbox"]:hover:not([disabled]), input[type="submit"]:hover:not([disabled]), input[type="button"]:hover:not([disabled]), .tlacitko:hover, .adm_submenu_item a {
   border-color: #666;
   cursor: pointer;
 }
