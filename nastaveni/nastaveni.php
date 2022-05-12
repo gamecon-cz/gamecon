@@ -55,9 +55,9 @@ if (defined('BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU')) { // není ještě načten
 /////////////////////
 // SAMOTNÝ GAMECON //
 /////////////////////
-// 2022-07-14 07:00:00 čtvrtek ve třetím týdnu v červenci
+// 2022-07-21 07:00:00 čtvrtek ve třetím týdnu v červenci
 if (!defined('GC_BEZI_OD')) define('GC_BEZI_OD', $nastaveni->dejVychoziHodnotu('GC_BEZI_OD')); // začátek GameConu (přepnutí stránek do režimu "úpravy na jen na infopultu")
-// 2022-07-17 21:00:00
+// 2022-07-24 21:00:00
 if (!defined('GC_BEZI_DO')) define('GC_BEZI_DO', $nastaveni->dejVychoziHodnotu('GC_BEZI_DO')); // konec GameCou (přepnutí stránek do režimu "gc skončil, úpravy nemožné")
 
 ///////////////////////////
