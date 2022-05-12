@@ -27,15 +27,42 @@ class SystemoveNastaveniHtml
         $template->assign('systemoveNastavenJsVerze', md5_file(__DIR__ . '/../../admin/files/systemove-nastaveni.js'));
 
         $zaznamyNastaveniProHtml = $this->dejZaznamyNastaveniProHtml();
+        $zaznamyPodleSkupin = $this->seskupPodleSkupin($zaznamyNastaveniProHtml);
 
-        foreach ($zaznamyNastaveniProHtml as $zaznam) {
-            foreach ($zaznam as $klic => $hodnota) {
-                $template->assign($klic, $hodnota);
-            }
-            $template->parse('nastaveni.zaznam');
+        foreach ($zaznamyPodleSkupin as $skupina => $zaznamyJedneSkupiny) {
+            $this->vypisSkupinu($skupina, $zaznamyJedneSkupiny, $template);
         }
 
         $template->parse('nastaveni');
+    }
+
+    private function seskupPodleSkupin(array $zaznamy): array {
+        $zaznamyPodleSkupin = [];
+        foreach ($zaznamy as $zaznam) {
+            $zaznamyPodleSkupin[$zaznam['skupina']][] = $zaznam;
+        }
+        foreach ($zaznamyPodleSkupin as &$zaznamyJedneSkupiny) {
+            usort(
+                $zaznamyJedneSkupiny,
+                static function (array $nejakyZaznam, array $jinyZaznam) {
+                    return $nejakyZaznam['poradi'] <=> $jinyZaznam['poradi'];
+                }
+            );
+        }
+        return $zaznamyPodleSkupin;
+    }
+
+    private function vypisSkupinu(string $skupina, array $zaznamy, \XTemplate $template) {
+        $template->assign('nazevSkupiny', mb_ucfirst($skupina));
+        $template->parse('nastaveni.skupina.nazev');
+
+        foreach ($zaznamy as $zaznam) {
+            foreach ($zaznam as $klic => $hodnota) {
+                $template->assign($klic, $hodnota);
+            }
+            $template->parse('nastaveni.skupina.zaznam');
+        }
+        $template->parse('nastaveni.skupina');
     }
 
     private function dejHtmlInputType(string $datovyTyp) {
