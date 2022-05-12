@@ -65,21 +65,15 @@ logs("Odemčeno $i aktivit.");
 
 
 if(date('G') == 5) { // 5 hodin ráno
-  logs('Zálohuji databázi na FTP.');
+  logs('Zálohuji databázi.');
 
-  if(!defined('FTP_ZALOHA_DB'))
-    throw new Exception('Není definována konstanta s adresou serveru pro zálohování.');
+  if(!defined('ZALOHA_DB_SLOZKA'))
+    throw new Exception('Není definována konstanta s adresářem pro zálohování.');
 
-  $backup = new Godric\DbBackup\DbBackup([
-    'sourceDb'  =>  [
-      'server'    =>  DB_SERV,
-      'user'      =>  DB_USER,
-      'password'  =>  DB_PASS,
-      'database'  =>  DB_NAME,
-    ],
-    'targetFtp' =>  FTP_ZALOHA_DB,
-  ]);
-  $backup->run();
+  $db = dbConnect();
+  $dump = new MySQLDump($db);
+  $time = date('Y-m-d_His');
+  $dump->save(ZALOHA_DB_SLOZKA . "/export_$time.sql.gz");
 
   logs('Záloha dokončena.');
 }
