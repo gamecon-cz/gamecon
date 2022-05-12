@@ -475,7 +475,7 @@ input[type="submit"], input[type="button"], .tlacitko, .adm_submenu_item a {
   padding: 2px 8px;
 }
 
-input[type="submit"]:hover, input[type="button"]:hover, .tlacitko:hover, .adm_submenu_item a {
+input[type="checkbox"]:hover:not([disabled]), input[type="submit"]:hover:not([disabled]), input[type="button"]:hover:not([disabled]), .tlacitko:hover, .adm_submenu_item a {
   border-color: #666;
   cursor: pointer;
 }
@@ -679,7 +679,7 @@ a > .hinted {
 .hint {
   position: absolute;
   display: none;
-  max-width: 200px;
+  max-width: 250px;
   width: max-content;
   left: 0;
   top: 16px;
@@ -855,4 +855,8 @@ button .ajax-loader {
 
 .technicke {
   font-family: "Droid Sans Mono", monospace;
+}
+
+.display-none {
+  display: none;
 }

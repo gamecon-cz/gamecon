@@ -14,14 +14,14 @@ class SystemoveNastaveniTest extends DbTest
   ';
 
     public function testZmenyKurzuEura() {
-        $nastaveni = new SystemoveNastaveni();
+        $nastaveni = new SystemoveNastaveni(ROK);
 
         $zaznamKurzuEuro = $nastaveni->dejZaznamyNastaveniPodleKlicu(['KURZ_EURO'])[0];
         /** viz migrace 2022-05-05_03-kurz-euro-do-systemoveho-nastaveni.php */
         self::assertSame('24', $zaznamKurzuEuro['hodnota']);
         self::assertNull($zaznamKurzuEuro['id_uzivatele']);
 
-        $nastaveni->ulozZmeny(['KURZ_EURO' => 123], \Uzivatel::zId(48));
+        $nastaveni->ulozZmenuHodnoty(123, 'KURZ_EURO', \Uzivatel::zId(48));
 
         $zaznamKurzuEuroPoZmene = $nastaveni->dejZaznamyNastaveniPodleKlicu(['KURZ_EURO'])[0];
         self::assertSame('123', $zaznamKurzuEuroPoZmene['hodnota']);

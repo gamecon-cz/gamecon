@@ -3,8 +3,41 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const inputNodes = document.getElementsByClassName('hodnota-nastaveni')
   Array.from(inputNodes).forEach(/** @param {HTMLElement} inputNode */function (inputNode) {
-    nastaveni.nastavPosledniUlozenouHodnotu(inputNode)
-    nastaveni.odesilejPriZmnene(inputNode)
+    nastaveni.odesilejPriZmnene(inputNode, ['keyup', 'change'])
+  })
+
+  const checkboxNodes = document.getElementsByClassName('aktivace-nastaveni')
+  Array.from(checkboxNodes).forEach(/** @param {HTMLElement} checkboxNode */function (checkboxNode) {
+    nastaveni.odesilejPriZmnene(checkboxNode, ['click'])
+  })
+
+  $('.hodnota-nastaveni[type=date]').each(function (index, element) {
+    element.type = 'text'
+    $(element).datepicker({
+      dateFormat: 'd. m. yy',
+      onSelect: function () {
+        const changeEvent = new Event('change')
+        element.dispatchEvent(changeEvent)
+      },
+    })
+  })
+  $('.vychozi-hodnota-nastaveni[type=date]').each(function (index, element) {
+    element.type = 'text' // jen kvůli formátu
+  })
+
+  $('.hodnota-nastaveni[type=datetime-local]').each(function (index, element) {
+    element.type = 'text'
+    $(element).datetimepicker({
+      dateFormat: 'd. m. yy',
+      timeFormat: 'HH:mm:ss',
+      onSelect: function () {
+        const changeEvent = new Event('change')
+        element.dispatchEvent(changeEvent)
+      },
+    })
+  })
+  $('.vychozi-hodnota-nastaveni[type=datetime-local]').each(function (index, element) {
+    element.type = 'text' // jen kvůli formátu
   })
 })
 
@@ -26,40 +59,51 @@ class SystemoveNastaveni {
   }
 
   /**
-   * @param {HTMLElement} inputNode
+   * @param {HTMLInputElement} inputNode
    */
   nastavPosledniUlozenouHodnotu(inputNode) {
-    inputNode.dataset.lastSavedValue = inputNode.value
+    if (inputNode.type === 'checkbox') {
+      inputNode.dataset.lastSavedValue = inputNode.checked.toString()
+    } else {
+      inputNode.dataset.lastSavedValue = inputNode.value
+    }
   }
 
   /**
-   * @param {HTMLElement} inputNode
+   * @param {HTMLInputElement} inputNode
+   * @param {string[]} eventsNames
    */
-  odesilejPriZmnene(inputNode) {
+  odesilejPriZmnene(inputNode, eventsNames) {
+    this.nastavPosledniUlozenouHodnotu(inputNode)
     const nastaveni = this
+
     const ulozNastaveni = function () {
       inputNode = this // protože funkce bude volána v kontextu eventu na inputNode
       nastaveni.ulozNastaveni(
         inputNode,
         () => nastaveni.zrusPredchoziPotvrzeniUlozeni(inputNode),
         function (ulozenaData) {
-          nastaveni.zobrazZmeny(ulozenaData)
+          nastaveni.zobrazZmeny(ulozenaData, inputNode)
           nastaveni.oznamUlozeni(inputNode)
         },
         () => nastaveni.oznamChybu(inputNode),
       )
     }
-    inputNode.addEventListener('keyup', ulozNastaveni)
-    inputNode.addEventListener('change', ulozNastaveni)
+    eventsNames.forEach(function (eventName) {
+      inputNode.addEventListener(eventName, ulozNastaveni)
+    })
   }
 
   /**
-   * @param {HTMLElement} inputNode
+   * @param {HTMLInputElement} inputNode
    * @param {function} callableOnStart
    * @param {function} callableOnSuccess
    * @param {function} callableOnFailure
    */
   ulozNastaveni(inputNode, callableOnStart, callableOnSuccess, callableOnFailure) {
+    if (this.jeHodnotaBezeZmeny(inputNode)) {
+      return // tahle změna už byla zpracována
+    }
     callableOnStart()
 
     const nastaveni = this
@@ -78,7 +122,7 @@ class SystemoveNastaveni {
   }
 
   /**
-   * @param {HTMLElement} inputNode
+   * @param {HTMLInputElement} inputNode
    * @param {function} callableOnSuccess
    * @param {function} callableOnFailure
    */
@@ -98,16 +142,24 @@ class SystemoveNastaveni {
     })
 
     const formData = new FormData
-    formData.set(inputNode.name, inputNode.value)
+    formData.set(
+      inputNode.name,
+      inputNode.type === 'checkbox'
+        ? inputNode.checked
+        : inputNode.value,
+    )
     request.open('POST', this._postUrl)
     request.send(formData)
   }
 
   /**
-   * @param {HTMLElement} inputNode
+   * @param {HTMLInputElement} inputNode
    * @return {boolean}
    */
   jeHodnotaBezeZmeny(inputNode) {
+    if (inputNode.type === 'checkbox') {
+      return inputNode.dataset.lastSavedValue === inputNode.checked.toString()
+    }
     return inputNode.dataset.lastSavedValue === inputNode.value
   }
 
@@ -127,6 +179,7 @@ class SystemoveNastaveni {
    * 		"klic": string,
    * 		"hodnota": string,
    * 		"datovy_typ": string,
+   * 		"aktivni": string,
    * 		"nazev": string,
    * 		"popis": string,
    * 		"kdy": string,
@@ -136,8 +189,9 @@ class SystemoveNastaveni {
    * 		"inputType": string
    * 	}
    * } novaData
+   * @param {HTMLInputElement} inputNode
    */
-  zobrazZmeny(novaData) {
+  zobrazZmeny(novaData, inputNode) {
     const posledniZmenaElement = document.getElementById(`posledni-zmena-${novaData.klic}`)
     posledniZmenaElement.innerHTML = novaData.posledniZmena
 
@@ -146,6 +200,28 @@ class SystemoveNastaveni {
 
     const popisElement = document.getElementById(`popis-${novaData.klic}`)
     popisElement.innerHTML = novaData.popis
+
+    if (inputNode.type === 'checkbox') {
+      this.zobrazHodnotuPodleAktivity(Boolean(Number(novaData.aktivni)), novaData.klic)
+    }
+  }
+
+  /**
+   * @param {boolean} aktivni
+   * @param {string} klic
+   */
+  zobrazHodnotuPodleAktivity(aktivni, klic) {
+    if (aktivni) {
+      const vychoziHodnotaNode = document.getElementById(`vychozi-hodnota-${klic}`)
+      vychoziHodnotaNode.style.display = 'none'
+      const hodnotaNode = document.getElementById(`hodnota-${klic}`)
+      hodnotaNode.style.display = 'inherit'
+    } else {
+      const vychoziHodnotaNode = document.getElementById(`vychozi-hodnota-${klic}`)
+      vychoziHodnotaNode.style.display = 'inherit'
+      const hodnotaNode = document.getElementById(`hodnota-${klic}`)
+      hodnotaNode.style.display = 'none'
+    }
   }
 
   /**
