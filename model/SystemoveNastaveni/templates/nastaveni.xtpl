@@ -1,9 +1,15 @@
 <!-- begin:nastaveni -->
 
-<h1>Nastavení</h1>
-
 <table class="zvyraznovana nastaveni" id="nastaveni" style="width: 100%" data-ajax-klic="{ajaxKlic}">
+  <caption><h1>Nastavení</h1></caption>
+  <!-- begin:skupina -->
+  <tbody>
+  <!-- begin:nazev -->
+  </tbody>
   <thead>
+  <tr>
+    <th colspan="100%"><h2>{nazevSkupiny}</h2></th>
+  </tr>
   <tr>
     <th class="hinted">
       Použít
@@ -17,10 +23,16 @@
   </tr>
   </thead>
   <tbody>
+  <!-- end:nazev -->
   <!-- begin:zaznam -->
   <tr>
-    <td style="width: 5%"><label><input class="aktivace-nastaveni" type="checkbox" name="{postKlic}[{klic}][{aktivniKlic}]"
-                      value="1" {checked} {disabled}>&nbsp;</label></td>
+    <td style="width: 5%">
+      <label>
+        <input class="aktivace-nastaveni" type="checkbox" name="{postKlic}[{klic}][{aktivniKlic}]" value="1" {checked}
+               {disabled}>
+        &nbsp;
+      </label>
+    </td>
     <td class="technicke nazev hinted" style="width: 45%">
       <label for="hodnota-{klic}">{nazev}</label>
       <div class="hint">
@@ -32,7 +44,8 @@
     </td>
     <td class="technicke" style="width: 25%">
       <form style="position:relative;">
-        <input name="{postKlic}[{klic}][{hodnotaKlic}]" class="hodnota-nastaveni {hodnotaDisplayClass}" id="hodnota-{klic}"
+        <input name="{postKlic}[{klic}][{hodnotaKlic}]" class="hodnota-nastaveni {hodnotaDisplayClass}"
+               id="hodnota-{klic}"
                value="{inputValue}" type="{inputType}">
         <span class="hinted">
           <input id="vychozi-hodnota-{klic}" value="{vychoziHodnotaValue}" type="{inputType}"
@@ -46,7 +59,9 @@
       <span id="zmenil-{klic}" class="hint">{zmenil}</span>
     </td>
   </tr>
-  <!-- end:zaznam --></tbody>
+  <!-- end:zaznam -->
+  </tbody>
+  <!-- end:skupina -->
 </table>
 
 <script type="text/javascript" src="files/systemove-nastaveni.js?version={systemoveNastavenJsVerze}"></script>

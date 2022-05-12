@@ -64,7 +64,7 @@ if (!defined('GC_BEZI_DO')) define('GC_BEZI_DO', $nastaveni->dejVychoziHodnotu('
 // REGISTRACE NA GAMECON //
 ///////////////////////////
 // 2022-05-12 20:22:00
-if (!defined('REG_GC_OD')) define('REG_GC_OD', DateTimeGamecon::zacatekRegistraciNavstevniku(ROK)->formatDb()); // spuštění možnosti registrace na GameCon
+if (!defined('REG_GC_OD')) define('REG_GC_OD', DateTimeGamecon::zacatekRegistraciUcastniku(ROK)->formatDb()); // spuštění možnosti registrace na GameCon
 if (!defined('REG_GC_DO')) define('REG_GC_DO', GC_BEZI_DO); // ukončení možnosti registrace na GameCon
 
 ////////////////////////////////////////////////////////

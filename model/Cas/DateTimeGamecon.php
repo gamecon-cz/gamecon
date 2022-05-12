@@ -108,17 +108,17 @@ class DateTimeGamecon extends DateTimeCz
         return $zacatekTechnickychAktivit->setTime(0, 0, 0);
     }
 
-    public static function zacatekRegistraciNavstevniku(int $rok = ROK, bool $naTestuOTydenDriv = true): DateTimeGamecon {
-        $zacatekRegistraciNavstevniku = $rok === (int)ROK && defined('REG_GC_OD')
+    public static function zacatekRegistraciUcastniku(int $rok = ROK, bool $naTestuOTydenDriv = true): DateTimeGamecon {
+        $zacatekRegistraciUcastniku = $rok === (int)ROK && defined('REG_GC_OD')
             ? static::zDbFormatu(REG_GC_OD)
-            : static::spocitejZacatekRegistraciNavstevniku($rok);
+            : static::spocitejZacatekRegistraciUcastniku($rok);
         if ($naTestuOTydenDriv) {
-            return static::naTestuOTydenDriv($zacatekRegistraciNavstevniku);
+            return static::naTestuOTydenDriv($zacatekRegistraciUcastniku);
         }
-        return $zacatekRegistraciNavstevniku;
+        return $zacatekRegistraciUcastniku;
     }
 
-    public static function spocitejZacatekRegistraciNavstevniku(int $rok): DateTimeGamecon {
+    public static function spocitejZacatekRegistraciUcastniku(int $rok): DateTimeGamecon {
         $zacatekKvetna = new static($rok . '-05-01 00:00:00');
         $zacatekTretihoTydneVKvetnu = self::dejZacatekXTydne(3, $zacatekKvetna);
         $ctvrtekVeTretimTydnuVKvetnu = self::dejDatumDneVTydnuOdData(static::CTVRTEK, $zacatekTretihoTydneVKvetnu);
@@ -140,7 +140,7 @@ class DateTimeGamecon extends DateTimeCz
     }
 
     public static function spoctejZacatekPrvniVlnyOd(int $rok): DateTimeGamecon {
-        return self::spocitejZacatekRegistraciNavstevniku($rok)->modify('+1 week');
+        return self::spocitejZacatekRegistraciUcastniku($rok)->modify('+1 week');
     }
 
     public static function prvniHromadneOdhlasovaniOd(int $rok = ROK): DateTimeGamecon {
