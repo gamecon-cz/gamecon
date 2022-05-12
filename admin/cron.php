@@ -47,14 +47,17 @@ ini_set('html_errors',      false); // chyby zobrazovat jako plaintext
 
 logs('Začínám provádět cron script.');
 
-
-logs('Zpracovávám nové platby přes Fio API.');
-$platby = Platby::nactiNove();
-foreach($platby as $p) {
-  logs('platba ' . $p->id() . ' (' . $p->castka() . 'Kč, VS: ' . $p->vs() . ($p->zprava() ? ', zpráva: ' . $p->zprava() : '') . ')');
+if (defined('FIO_TOKEN') && FIO_TOKEN !== '') {
+  logs('Zpracovávám nové platby přes Fio API.');
+  $platby = Platby::nactiNove();
+  foreach($platby as $p) {
+    logs('platba ' . $p->id() . ' (' . $p->castka() . 'Kč, VS: ' . $p->vs() . ($p->zprava() ? ', zpráva: ' . $p->zprava() : '') . ')');
+  }
+  if(!$platby) logs('Žádné zaúčtovatelné platby.');
 }
-if(!$platby) logs('Žádné zaúčtovatelné platby.');
-
+else {
+  logs('FIO_TOKEN není definován, přeskakuji nové platby.');
+}
 
 logs('Odemykám zamčené aktivity.');
 $i = Aktivita::odemciHromadne();
