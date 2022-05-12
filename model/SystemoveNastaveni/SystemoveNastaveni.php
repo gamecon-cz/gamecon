@@ -172,7 +172,8 @@ SELECT systemove_nastaveni.klic,
        systemove_nastaveni.popis,
        COALESCE(naposledy, systemove_nastaveni.zmena_kdy) AS kdy,
        posledni_s_uzivatelem.id_uzivatele,
-       systemove_nastaveni.skupina
+       systemove_nastaveni.skupina,
+       systemove_nastaveni.poradi
 FROM systemove_nastaveni
 LEFT JOIN (
     SELECT posledni_log.naposledy, systemove_nastaveni_log.id_nastaveni, systemove_nastaveni_log.id_uzivatele
@@ -224,6 +225,14 @@ SQL;
                 return DateTimeGamecon::spocitejZacatekGameconu($this->rok)->formatDb();
             case 'GC_BEZI_DO' :
                 return DateTimeGamecon::spocitejKonecGameconu($this->rok)->formatDb();
+            case 'REG_GC_OD' :
+                return DateTimeGamecon::spocitejZacatekRegistraciUcastniku($this->rok)->formatDb();
+            case 'REG_AKTIVIT_OD' :
+                return DateTimeGamecon::spoctejZacatekPrvniVlnyOd($this->rok)->formatDb();
+            case 'HROMADNE_ODHLASOVANI' :
+                return DateTimeGamecon::spocitejPrvniHromadneOdhlasovaniOd($this->rok)->formatDb();
+            case 'HROMADNE_ODHLASOVANI_2' :
+                return DateTimeGamecon::spocitejDruheHromadneOdhlasovaniOd($this->rok)->formatDb();
             default :
                 return '';
         }
