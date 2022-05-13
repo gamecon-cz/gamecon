@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
     nastaveni.odesilejPriZmnene(checkboxNode, ['click'])
   })
 
-  $('.hodnota-nastaveni[type=date]').each(function (index, element) {
+  $('.hodnota-nastaveni[data-tag-input-type=date]').each(function (index, element) {
     element.type = 'text'
     $(element).datepicker({
       dateFormat: 'd. m. yy',
@@ -21,11 +21,8 @@ document.addEventListener('DOMContentLoaded', function () {
       },
     })
   })
-  $('.vychozi-hodnota-nastaveni[type=date]').each(function (index, element) {
-    element.type = 'text' // jen kvůli formátu
-  })
 
-  $('.hodnota-nastaveni[type=datetime-local]').each(function (index, element) {
+  $('.hodnota-nastaveni[data-tag-input-type=datetime-local]').each(function (index, element) {
     element.type = 'text'
     $(element).datetimepicker({
       dateFormat: 'd. m. yy',
@@ -35,9 +32,6 @@ document.addEventListener('DOMContentLoaded', function () {
         element.dispatchEvent(changeEvent)
       },
     })
-  })
-  $('.vychozi-hodnota-nastaveni[type=datetime-local]').each(function (index, element) {
-    element.type = 'text' // jen kvůli formátu
   })
 })
 
@@ -247,7 +241,7 @@ class SystemoveNastaveni {
     const parent = element.parentNode
     /** https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template */
     const vysledek = document.createElement('template')
-    vysledek.innerHTML = '<span class="vysledek hinted" style="position: absolute">' + text + '<span class="hint">' + hint + '</span></span>'
+    vysledek.innerHTML = '<span class="vysledek hinted" style="position: absolute; margin-left: 2px">' + text + '<span class="hint">' + hint + '</span></span>'
     parent.appendChild(vysledek.content)
   }
 }
