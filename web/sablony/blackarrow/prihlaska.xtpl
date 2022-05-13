@@ -191,13 +191,18 @@
 </div>
 <!-- end: prihlaskaPo -->
 
-<!-- begin: prihlaskaGcBezi -->
+<!-- begin: prihlaskaUzavrena -->
 <div class="prihlaska_hlavickaObal">
   <div class="prihlaska_hlavicka">
     <h1>Přihláška na GameCon</h1>
 
+    <!-- begin: gcBezi -->
     <p>Registrace přes internet jsou ukončeny, <strong>registrovat se můžeš přímo na místě na infopultu</strong>.
       Upravit si program a vybrat aktivity můžeš tamtéž.</p>
+    <!-- end: gcBezi -->
+    <!-- begin: proselInfopultem -->
+    <p>Vítej na Gameconu! <strong>Dodatečně si upravit program a vybrat aktivity můžeš na infopultu</strong>.</p>
+    <!-- end: proselInfopultem -->
   </div>
 </div>
 
@@ -214,4 +219,4 @@
 </form>
 <!-- end: covidSekce -->
 
-<!-- end: prihlaskaGcBezi -->
+<!-- end: prihlaskaUzavrena -->
