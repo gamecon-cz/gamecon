@@ -2542,7 +2542,7 @@ SELECT t3.*,
             $where
         ) AS t2
         LEFT JOIN akce_prihlaseni p ON (p.id_akce = t2.id_akce)
-        LEFT JOIN (SELECT MAX(cas) AS cas_posledni_zmeny, id_uzivatele, id_akce FROM akce_prihlaseni_log GROUP BY id_uzivatele, id_akce) AS posledni_zmeny
+        LEFT JOIN (SELECT MAX(kdy) AS cas_posledni_zmeny, id_uzivatele, id_akce FROM akce_prihlaseni_log GROUP BY id_uzivatele, id_akce) AS posledni_zmeny
             ON posledni_zmeny.id_akce = p.id_akce AND posledni_zmeny.id_uzivatele = p.id_uzivatele
         LEFT JOIN uzivatele_hodnoty u ON (u.id_uzivatele = p.id_uzivatele)
         GROUP BY t2.id_akce

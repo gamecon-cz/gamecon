@@ -13,65 +13,34 @@ class ZmenaStavuPrihlaseni
     private const NAHRADNIK_DORAZIL = 'nahradnik_dorazil';
     private const NAHRADNIK_NEDORAZIL = 'nahradnik_nedorazil';
 
-    public static function vytvorZDatDatabaze(int $idUzivatele, ?int $idAktivity, ?\DateTimeImmutable $casZmeny, ?string $stavPrihlaseni): self {
-        return new static($idUzivatele, $idAktivity, $casZmeny, $stavPrihlaseni);
+    public static function vytvorZDatDatabaze(
+        int                $idUzivatele,
+        int                $idAktivity,
+        int                $idLogu,
+        \DateTimeImmutable $casZmeny,
+        string             $stavPrihlaseni
+    ): self {
+        return new static($idUzivatele, $idAktivity, $idLogu, $casZmeny, $stavPrihlaseni);
     }
 
-    public static function vytvorZDatJavscriptu(int $idUzivatele, ?int $idAktivity, ?\DateTimeImmutable $casZmeny, string $stavPrihlaseniJs): self {
-        return static::vytvorZDatDatabaze(
-            $idUzivatele,
-            $idAktivity,
-            $casZmeny,
-            self::stavPrihlaseniZJsDoDatabazoveho($stavPrihlaseniJs)
-        );
-    }
-
-    private static function stavPrihlaseniZJsDoDatabazoveho(string $stavPrihlaseniJs): string {
-        switch ($stavPrihlaseniJs) {
-            case self::UCASTNIK_SE_PRIHLASIL :
-                return AktivitaPrezenceTyp::PRIHLASENI;
-            case self::UCASTNIK_DORAZIL :
-                return AktivitaPrezenceTyp::DORAZIL;
-            case self::UCASTNIK_SE_ODHLASIL :
-                return AktivitaPrezenceTyp::ODHLASENI;
-            case self::UCASTNIK_NEDORAZIL :
-                return AktivitaPrezenceTyp::NEDOSTAVENI_SE;
-            case self::SLEDUJICI_SE_PRIHLASIL :
-                return AktivitaPrezenceTyp::PRIHLASENI_SLEDUJICI;
-            case self::SLEDUJICI_SE_ODHLASIL :
-                return AktivitaPrezenceTyp::ODHLASENI_SLEDUJICI;
-            case self::NAHRADNIK_DORAZIL :
-                return AktivitaPrezenceTyp::DORAZIL_JAKO_NAHRADNIK;
-            case self::NAHRADNIK_NEDORAZIL :
-                return AktivitaPrezenceTyp::NAHRADNIK_NEDORAZIL;
-            default:
-                throw new \RuntimeException('Neznámý stav přihlášení pro JS ' . var_export($stavPrihlaseniJs, true));
-        }
-    }
-
-    /**
-     * @var int
-     */
+    /** @var int */
     private $idUzivatele;
-    /**
-     * @var int|null
-     */
+    /** @var int */
     private $idAktivity;
-    /**
-     * @var ?\DateTimeImmutable
-     */
+    /** @var int */
+    private $idLogu;
+    /** @var \DateTimeImmutable */
     private $casZmeny;
-    /**
-     * @var null|string
-     */
+    /** @var string */
     private $stavPrihlaseni;
 
-    public function __construct(int $idUzivatele, ?int $idAktivity, ?\DateTimeImmutable $casZmeny, ?string $stavPrihlaseni) {
+    public function __construct(int $idUzivatele, int $idAktivity, int $idLogu, \DateTimeImmutable $casZmeny, string $stavPrihlaseni) {
         if ($stavPrihlaseni && !AktivitaPrezenceTyp::jeZnamy($stavPrihlaseni)) {
             throw new \LogicException('Neznamy stav prihlaseni ' . var_export($stavPrihlaseni, true));
         }
         $this->idUzivatele = $idUzivatele;
         $this->idAktivity = $idAktivity;
+        $this->idLogu = $idLogu;
         $this->casZmeny = $casZmeny;
         $this->stavPrihlaseni = $stavPrihlaseni;
     }
@@ -80,22 +49,24 @@ class ZmenaStavuPrihlaseni
         return $this->idUzivatele;
     }
 
-    public function idAktivity(): ?int {
+    public function idAktivity(): int {
         return $this->idAktivity;
     }
 
-    public function casZmeny(): ?\DateTimeImmutable {
+    public function idLogu(): int {
+        return $this->idLogu;
+    }
+
+    public function casZmeny(): \DateTimeImmutable {
         return $this->casZmeny;
     }
 
-    public function stavPrihlaseni(): ?string {
+    public function stavPrihlaseni(): string {
         return $this->stavPrihlaseni;
     }
 
-    public function casZmenyProJs(): ?string {
-        return $this->casZmeny
-            ? $this->casZmeny->format(DATE_ATOM)
-            : null;
+    public function casZmenyProJs(): string {
+        return $this->casZmeny()->format(DATE_ATOM);
     }
 
     /**

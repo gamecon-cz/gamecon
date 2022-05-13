@@ -9,23 +9,19 @@
     function dejUrlRazitkaPosledniZmeny() {
       const url = new URL(onlinePrezence.dataset.urlRazitkaPosledniZmeny)
       // přidáme proměnlivé query, abychom obešli cache a dostali vždy aktuální soubor (nebo 404)
-      url.searchParams.set('version', Date.now().toString())
+      url.searchParams.set('version', new Date().getTime().toString())
       return url.href
     }
 
     /**
      * @return {string}
      */
-    function dejRazitkoPosledniZmeny() {
+    function dejZnameRazitkoPosledniZmeny() {
       return onlinePrezence.dataset.razitkoPosledniZmeny
     }
 
     let jePozastavenaKontrolaZmen = false
     setInterval(function () {
-      if (jePozastavenaKontrolaZmen) {
-        return
-      }
-
       const request = new XMLHttpRequest()
 
       request.addEventListener('loadstart', function () {
@@ -33,43 +29,44 @@
       })
 
       request.addEventListener('load', function () {
+        console.log('load')
         if (this.status === 404) {
           nahratZmenyPrihlaseni()
         } else if (this.status === 200 && this.responseText) {
           const json = JSON.parse(this.responseText.trim())
-          if (json.razitko_posledni_zmeny !== dejRazitkoPosledniZmeny()) {
+          if (json.razitko_posledni_zmeny !== dejZnameRazitkoPosledniZmeny()) {
             nahratZmenyPrihlaseni()
           }
         }
+      })
+
+      request.addEventListener('loadend', function () {
         jePozastavenaKontrolaZmen = false
       })
 
       request.open('GET', dejUrlRazitkaPosledniZmeny()) // asynchronous
+      if (jePozastavenaKontrolaZmen) {
+        return
+      }
       request.send()
-    }, 2000) // každé dvě sekundy kontrolujeme, zda razitko posledni zmeny je patne (zda soubor s nim existuje) - kdyz soubor zmizi, tak se prilaseni na jedne z aktivit zmenilo a my chceme sathnout zmeny
+    }, 3000) // každé tři sekundy kontrolujeme, zda razitko posledni zmeny je patne (zda soubor s nim existuje) - kdyz soubor zmizi, tak se prilaseni na jedne z aktivit zmenilo a my chceme sathnout zmeny
 
     const urlAkcePosledniZmeny = onlinePrezence.dataset.urlAkcePosledniZmeny
+    const idsPoslednichLoguUcastnikuAjaxKlic = onlinePrezence.dataset.idsPoslednichLoguUcastnikuAjaxKlic
 
     const $aktivity = $(onlinePrezence).find('.aktivita')
 
     function nahratZmenyPrihlaseni() {
-      const postData = []
+      const idsPoslednichLoguUcastniku = []
+      /* kvůli testování (viz admin/scripts/modules/moje-aktivity/moje-aktivity.php $testujeme) nelze použít \Uzivatel::organizovaneAktivity protože používáme i aktivity, které tester nemusí organizovat */
+      const idsAktivit = []
 
       $aktivity.each(function (indexAktivity, aktivita) {
+        idsAktivit.push(aktivita.dataset.id)
+
         const $ucastnici = $(aktivita).find('.ucastnik')
-
-        const posledniZnamePrihlaseniUcastniku = []
         $ucastnici.each(function (indexUcastnka, ucastnik) {
-          posledniZnamePrihlaseniUcastniku.push({
-            'id_uzivatele': ucastnik.dataset.id,
-            'cas_posledni_zmeny_prihlaseni': ucastnik.dataset.casPosledniZmenyPrihlaseni,
-            'stav_prihlaseni': ucastnik.dataset.stavPrihlaseni,
-          })
-        })
-
-        postData.push({
-          'id_aktivity': aktivita.dataset.id,
-          'ucastnici': posledniZnamePrihlaseniUcastniku,
+          idsPoslednichLoguUcastniku.push(Number(ucastnik.dataset.idPoslednihoLogu))
         })
       })
 
@@ -78,21 +75,15 @@
          * @see \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax::odbavAjax
          * @see \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax::ajaxDejPosledniZmeny
          */
-        'zname_zmeny_prihlaseni': postData,
+        /*
+         Musíme použít nejstarší ID logu.
+         Nemůžeme použít nejnovější ID logu, protože při zmeně jednoho přihlášení přes online prezenci
+         o chvililinku později, než někdo jiný změnil jiné přihlášení, tak bychom použili ID posledního logu z naší,
+         poslední změny a tím bychom přeskočili nedávnou změnu od jinud.
+         */
+        [idsPoslednichLoguUcastnikuAjaxKlic]: idsPoslednichLoguUcastniku,
+        ids_aktivit: idsAktivit,
       }).done(/** @param {{razitko_posledni_zmeny: string, zmeny: []}} data */function (data) {
-        /* napriklad
-        {
-          zmeny: [
-            {
-              id_aktivity: 4057,
-              id_uzivatele: 4495,
-              cas_zmeny: "2022-04-27T16:57:38+02:00",
-              stav_prihlaseni: "prihlaseni_nahradnik"
-            }
-          ],
-          razitko_posledni_zmeny: "269b794fa2c0bf1e81d0c60709ddb5d6"
-        }
-        */
         if (data.zmeny) {
           const zmeny = Zmena.vytvorZmenyZOdpovedi(data.zmeny)
           zmeny.forEach(function (zmena) {
@@ -111,7 +102,7 @@
       if (!ucastnikNode) {
         pridejNovehoUcastnika(zmena)
       } else {
-        zmenStavPrihlaseni(ucastnikNode, zmena)
+        zmenPrihlaseni(ucastnikNode, zmena)
       }
     }
 
@@ -119,7 +110,7 @@
      * @param {Zmena} zmena
      */
     function pridejNovehoUcastnika(zmena) {
-      if (!dorazilPodleStavu(zmena.stavPrihlaseni)) {
+      if (!chceHratPodleStavu(zmena.stavPrihlaseni)) {
         return // nemá smysl přidávat odstranění
       }
       const htmlUcastnika = zmena.htmlUcastnika.trim()
@@ -132,7 +123,26 @@
 
       const nodeNovehoUcastnika = dejNodeUcastniku(dejNodeAktivity(zmena.idAktivity)).appendChild(template.content.firstChild)
 
+      vypustEventONovemUcastnikovi(zmena)
+
       upozorniNaZmenu(nodeNovehoUcastnika, 'lime')
+    }
+
+    /**
+     * Bude zpracováno v event listeneru v online-prezence.js přes hlidejNovehoUcastnika()
+     * @param {Zmena} zmena
+     */
+    function vypustEventONovemUcastnikovi(zmena) {
+      const novyUcastnik = new CustomEvent(
+        'novyUcastnik',
+        {
+          detail: {
+            idAktivity: zmena.idAktivity,
+            idUzivatele: zmena.idUzivatele,
+          },
+        },
+      )
+      document.getElementById(`aktivita-${zmena.idAktivity}`).dispatchEvent(novyUcastnik)
     }
 
     /**
@@ -166,10 +176,21 @@
      * @param {HTMLElement} ucastnikNode
      * @param {Zmena} zmena
      */
-    function zmenStavPrihlaseni(ucastnikNode, zmena) {
+    function zmenPrihlaseni(ucastnikNode, zmena) {
+      if (!jeZmenaNova(ucastnikNode, zmena)) {
+        return
+      }
       vypustEventSNovymiMetadatyPrezence(ucastnikNode, zmena)
-      const dorazil = dorazilPodleStavu(zmena.stavPrihlaseni)
-      zmenZaskrtnutiZdaDorazil(ucastnikNode, dorazil)
+    }
+
+    /**
+     * @param {HTMLElement} ucastnikNode
+     * @param {Zmena} zmena
+     * @return {boolean}
+     */
+    function jeZmenaNova(ucastnikNode, zmena) {
+      return !ucastnikNode.dataset.idPoslednihoLogu
+        || Number(ucastnikNode.dataset.idPoslednihoLogu) < zmena.idPoslednihoLogu
     }
 
     /**
@@ -184,6 +205,11 @@
           detail: {
             casPosledniZmenyPrihlaseni: zmena.casZmeny,
             stavPrihlaseni: zmena.stavPrihlaseni,
+            idPoslednihoLogu: zmena.idPoslednihoLogu,
+            callback: function () {
+              const dorazil = dorazilPodleStavu(zmena.stavPrihlaseni)
+              zmenZaskrtnutiZdaDorazil(ucastnikNode, dorazil)
+            },
           },
         },
       )
@@ -195,17 +221,25 @@
      * @return {boolean}
      */
     function dorazilPodleStavu(stavPrihlaseni) {
+      return stavPrihlaseni !== 'sledujici_se_prihlasil' // je zatím jen sledující, ještě nedorazil
+        && chceHratPodleStavu(stavPrihlaseni)
+    }
+
+    /**
+     * @param {string} stavPrihlaseni
+     * @return {boolean}
+     */
+    function chceHratPodleStavu(stavPrihlaseni) {
       /** viz \Gamecon\Aktivita\ZmenaStavuPrihlaseni::stavPrihlaseniProJs */
       switch (stavPrihlaseni) {
         // řádek s účastníkem už máme a teď jsme dostali informaci, že se pouze přihlásil, není proto přítomen (nemá být zaškrtnutý)
         case 'ucastnik_se_prihlasil' :
         // řádek s účastníkem už máme a teď jsme dostali informaci, že se odhlásil - nechceme řádek smazat, co kdyby to byla chyba a uživatel tam přeci jen fyzicky byl, tak ho jen označíme jako nepřítomen (nezaškrtnutý)
         case 'ucastnik_se_odhlasil' :
-        // poslední jeho stav je, že je přihlášen jako sledující, tedy není přítomen
-        case 'sledujici_se_prihlasil' :
         case 'sledujici_se_odhlasil' :
         case 'nahradnik_nedorazil' :
           return false
+        case 'sledujici_se_prihlasil' : // sice není přítomen, ale v online prezenci nového sledujícího chceme vidět
         case 'ucastnik_dorazil' :
         case 'nahradnik_dorazil' :
           return true
@@ -225,7 +259,6 @@
       if (dorazil === dorazilInput.checked) {
         return false // nebylo co menit
       }
-      naChviliZablokuj(dorazilInput)
       dorazilInput.checked = dorazil
       upozorniNaZmenu(
         ucastnikNode,
@@ -237,13 +270,29 @@
     }
 
     /**
-     * @param {HTMLElement} inputNode
+     * @param {HTMLElement} node
      */
-    function naChviliZablokuj(inputNode) {
-      inputNode.disabled = true
-      setTimeout(function () {
-        inputNode.disabled = false
-      }, 1200)
+    function zablokujInputy(node) {
+      zmenZamekInputum(node, true)
+    }
+
+    /**
+     * @private
+     * @param {HTMLElement} node
+     * @param {boolean} disabled
+     */
+    function zmenZamekInputum(node, disabled) {
+      const inputs = node.getElementsByTagName('input')
+      Array.from(inputs).forEach(function (input) {
+        input.disabled = disabled
+      })
+    }
+
+    /**
+     * @param {HTMLElement} node
+     */
+    function odblokujInputy(node) {
+      zmenZamekInputum(node, false)
     }
 
     /**
@@ -251,12 +300,15 @@
      * @param {string} color
      */
     function upozorniNaZmenu(node, color) {
+      zablokujInputy(node)
+
       blikni(node, color)
 
       let pocetDalsichBliknuti = 2
       const intervalBarvyId = setInterval(function () {
         if (pocetDalsichBliknuti <= 0) {
           clearInterval(intervalBarvyId)
+          odblokujInputy(node)
           return
         }
         blikni(node, color)
@@ -285,7 +337,7 @@
 
 class Zmena {
   /**
-   * @param {{id_aktivity: number, id_uzivatele: number, cas_zmeny: string, stav_prihlaseni: string, html_ucastnika: string}[]} dataZmen
+   * @param {{id_aktivity: number, id_uzivatele: number, id_logu: number, cas_zmeny: string, stav_prihlaseni: string, html_ucastnika: string}[]} dataZmen
    * @return Zmena[]
    */
   static vytvorZmenyZOdpovedi(dataZmen) {
@@ -295,6 +347,7 @@ class Zmena {
         new Zmena(
           dataZmeny.id_aktivity,
           dataZmeny.id_uzivatele,
+          dataZmeny.id_logu,
           dataZmeny.cas_zmeny,
           dataZmeny.stav_prihlaseni,
           dataZmeny.html_ucastnika,
@@ -308,6 +361,8 @@ class Zmena {
   _idAktivity
   /** @private @var {number} */
   _idUzivatele
+  /** @private @var {number} */
+  _idPoslednihoLogu
   /** @private @var {string} */
   _casZmeny
   /** @private @var {string} */
@@ -318,13 +373,15 @@ class Zmena {
   /**
    * @param {number} idAktivity
    * @param {number} idUzivatele
+   * @param {number} idPoslednihoLogu
    * @param {string} casZmeny
    * @param {string} stavPrihlaseni
    * @param {string} htmlUcastnika
    */
-  constructor(idAktivity, idUzivatele, casZmeny, stavPrihlaseni, htmlUcastnika) {
+  constructor(idAktivity, idUzivatele, idPoslednihoLogu, casZmeny, stavPrihlaseni, htmlUcastnika) {
     this._idAktivity = idAktivity
     this._idUzivatele = idUzivatele
+    this._idPoslednihoLogu = idPoslednihoLogu
     this._casZmeny = casZmeny
     this._stavPrihlaseni = stavPrihlaseni
     this._htmlUcastnika = htmlUcastnika
@@ -336,6 +393,10 @@ class Zmena {
 
   get idUzivatele() {
     return this._idUzivatele
+  }
+
+  get idPoslednihoLogu() {
+    return this._idPoslednihoLogu
   }
 
   get casZmeny() {
