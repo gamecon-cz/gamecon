@@ -245,7 +245,7 @@ SQL
                 'Už jsi prošel infopultem, odhlášení není možné.'
             );
         }
-        foreach ($this->prihlaseneLetosniAktivity() as $aktivita) {
+        foreach ($this->prihlaseneAktivity() as $aktivita) {
             $aktivita->odhlas($this, $aktivita::NEPOSILAT_MAILY /* nechceme posílat maily sledujícím, že se uvolnilo místo */);
         }
         // zrušení nákupů
@@ -264,9 +264,21 @@ SQL
     }
 
     /**
+     * @param int $rok
      * @return Aktivita[]
      */
-    public function prihlaseneLetosniAktivity(): array {
+    public function organizovaneAktivity(int $rok = ROK): array {
+        return Aktivita::zFiltru(
+            ['rok' => $rok, 'organizator' => $this->id()],
+            ['zacatek']
+        );
+    }
+
+    /**
+     * @param int $rok
+     * @return Aktivita[]
+     */
+    public function prihlaseneAktivity(int $rok = ROK): array {
         $ids = dbFetchAll(<<<SQL
 SELECT akce_prihlaseni.id_akce
 FROM akce_prihlaseni
@@ -275,7 +287,7 @@ WHERE akce_prihlaseni.id_uzivatele = $1
 AND akce_prihlaseni.id_stavu_prihlaseni = $2
 AND akce_seznam.rok = $3
 SQL,
-            [$this->id(), Aktivita::PRIHLASEN, ROK]
+            [$this->id(), Aktivita::PRIHLASEN, $rok]
         );
         return Aktivita::zIds($ids);
     }
@@ -648,9 +660,9 @@ SQL,
         if (isset($poznamka)) {
             dbQueryS('UPDATE uzivatele_hodnoty SET poznamka = $1 WHERE id_uzivatele = $2', [$poznamka, $this->id()]);
             $this->otoc();
-        } else {
-            return $this->u['poznamka'];
+            return $poznamka;
         }
+        return $this->u['poznamka'];
     }
 
     /** Vrátí formátovanou (html) poznámku uživatele **/
@@ -836,7 +848,7 @@ SQL,
         };
 
         $validaceMailu = function ($mail) use ($u) {
-            if (!preg_match('/^[a-z0-9_\-\.]+@[a-z0-9_\-\.]+\.[a-z]+$/', $mail)) {
+            if (!preg_match('/^[a-z0-9_\-.]+@[a-z0-9_\-.]+\.[a-z]+$/', $mail)) {
                 return 'zadej prosím platný e-mail';
             }
 

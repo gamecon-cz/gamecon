@@ -46,9 +46,10 @@ class OnlinePrezenceUcastnikHtml
             $ucastnikTemplate->parse('ucastnik.prihlasenNaPosledniChvili');
         }
 
-        $zmenaStavuPrihlaseni = $aktivita->dejPrezenci()->dejPosledniZmenaStavuPrihlaseni($ucastnik);
-        $ucastnikTemplate->assign('casPosledniZmenyPrihlaseni', $zmenaStavuPrihlaseni->casZmenyProJs());
-        $ucastnikTemplate->assign('stavPrihlaseni', $zmenaStavuPrihlaseni->stavPrihlaseniProJs());
+        $zmenaStavuPrihlaseni = $aktivita->dejPrezenci()->posledniZmenaStavuPrihlaseni($ucastnik);
+        $ucastnikTemplate->assign('casPosledniZmenyPrihlaseni', $zmenaStavuPrihlaseni ? $zmenaStavuPrihlaseni->casZmenyProJs() : '');
+        $ucastnikTemplate->assign('stavPrihlaseni', $zmenaStavuPrihlaseni ? $zmenaStavuPrihlaseni->stavPrihlaseniProJs() : '');
+        $ucastnikTemplate->assign('idPoslednihoLogu', $zmenaStavuPrihlaseni ? $zmenaStavuPrihlaseni->idLogu() : 0);
 
         $ucastnikTemplate->parse('ucastnik');
         return $ucastnikTemplate->text('ucastnik');
