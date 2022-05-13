@@ -6,6 +6,11 @@ use Gamecon\Aktivita\Aktivita;
 
 class OnlinePrezenceTestovaciAktivity
 {
+
+    public static function vytvor(): self {
+        return new static(Aktivita::dejPrazdnou(), \Stav::dejPrazdny());
+    }
+
     /**
      * @var Aktivita
      */
@@ -16,7 +21,6 @@ class OnlinePrezenceTestovaciAktivity
     private $obecnyStav;
 
     public function __construct(Aktivita $obecnaAktivita, \Stav $obecnyStav) {
-
         $this->obecnaAktivita = $obecnaAktivita;
         $this->obecnyStav = $obecnyStav;
     }
