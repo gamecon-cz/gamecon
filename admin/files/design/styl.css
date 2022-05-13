@@ -661,11 +661,11 @@ form table .orez img {
 }
 
 .hinted {
-  cursor: default;
   color: inherit;
   text-decoration: inherit;
   border-bottom: dotted 1px;
   position: relative;
+  cursor: help;
 }
 
 .hinted:hover .hint {
