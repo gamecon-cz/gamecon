@@ -45,14 +45,19 @@ if (GC_BEZI || ($u && $u->gcPritomen())) {
     // příchodům z titulky, menu a podobně
     if (VYZADOVANO_COVID_POTVRZENI && $u) {
         $t->assign('covidSekce', $covidSekceFunkce(new Shop($u)));
-        $t->parse('prihlaskaGcBezi.covidSekce.doklad');
+        $t->parse('prihlaskaUzavrena.covidSekce.doklad');
         $letosniRok = (int)date('Y');
         if (!$u->maNahranyDokladProtiCoviduProRok($letosniRok) && !$u->maOverenePotvrzeniProtiCoviduProRok($letosniRok)) {
-            $t->parse('prihlaskaGcBezi.covidSekce.submit');
+            $t->parse('prihlaskaUzavrena.covidSekce.submit');
         }
-        $t->parse('prihlaskaGcBezi.covidSekce');
+        $t->parse('prihlaskaUzavrena.covidSekce');
     }
-    $t->parse('prihlaskaGcBezi');
+    if (GC_BEZI) {
+        $t->parse('prihlaskaUzavrena.gcBezi');
+    } else {
+        $t->parse('prihlaskaUzavrena.proselInfopultem');
+    }
+    $t->parse('prihlaskaUzavrena');
     return;
 }
 

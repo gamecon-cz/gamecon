@@ -11,6 +11,8 @@
  * submenu_order: 1
  */
 
+/** @var Uzivatel $u */
+
 if(post('vypravec')) {
   $un = null;
   try {
@@ -19,7 +21,7 @@ if(post('vypravec')) {
     echo '<p style="color:red">Zadaný login nelze vytvořit. Možná je už zabraný.</p>';
   }
   if($un) {
-    $un->dejZidli(ZIDLE_ORG_SKUPINA);
+    $un->dejZidli(ZIDLE_ORG_SKUPINA, $u->id());
     echo '<p style="color:green">Uživatel '.$un->jmenoNick().' ('.$un->id().') vytvořen a přidán do seznamu vypravěčů</p>';
   }
 }
