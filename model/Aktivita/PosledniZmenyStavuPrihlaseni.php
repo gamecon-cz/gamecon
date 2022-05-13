@@ -5,27 +5,12 @@ namespace Gamecon\Aktivita;
 class PosledniZmenyStavuPrihlaseni
 {
     /**
-     * @var int
-     */
-    private $idAktivity;
-    /**
      * @var ZmenaStavuPrihlaseni[]
      */
     private $zmenyStavuPrihlaseni = [];
 
-    /**
-     * @param int $idAktivity
-     */
-    public function __construct(int $idAktivity) {
-        $this->idAktivity = $idAktivity;
-    }
-
     public function addPosledniZmenaStavuPrihlaseni(ZmenaStavuPrihlaseni $zmenaStavuPrihlaseni) {
         $this->zmenyStavuPrihlaseni[] = $zmenaStavuPrihlaseni;
-    }
-
-    public function getIdAktivity(): int {
-        return $this->idAktivity;
     }
 
     /**
@@ -33,6 +18,17 @@ class PosledniZmenyStavuPrihlaseni
      */
     public function zmenyStavuPrihlaseni(): array {
         return $this->zmenyStavuPrihlaseni;
+    }
+
+    public function posledniZmenaStavuPrihlaseni(): ?ZmenaStavuPrihlaseni {
+        $zmeny = $this->zmenyStavuPrihlaseni();
+        if (!$zmeny) {
+            return null;
+        }
+        usort($zmeny, static function (ZmenaStavuPrihlaseni $nejakaZmena, ZmenaStavuPrihlaseni $jinaZmena) {
+            return $nejakaZmena->idLogu() <=> $jinaZmena->idLogu();
+        });
+        return end($zmeny);
     }
 
 }
