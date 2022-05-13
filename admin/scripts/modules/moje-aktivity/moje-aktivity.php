@@ -44,10 +44,7 @@ if ($onlinePrezenceAjax->odbavAjax($u)) {
 $now = new DateTimeImmutable();
 
 if ($testujeme) {
-    $onlinePrezenceTestovaciAktivity = new OnlinePrezenceTestovaciAktivity(
-        Gamecon\Aktivita\Aktivita::dejPrazdnou(),
-        Stav::dejPrazdny()
-    );
+    $onlinePrezenceTestovaciAktivity = OnlinePrezenceTestovaciAktivity::vytvor();
     $organizovaneAktivity = $onlinePrezenceTestovaciAktivity->dejTestovaciAktivity();
     $onlinePrezenceTestovaciAktivity->upravZacatkyAktivitNaParSekundPredEditovatelnosti($organizovaneAktivity, $now, 20);
     $onlinePrezenceTestovaciAktivity->upravKonceAktivitNa($organizovaneAktivity, (clone $now)->modify('+1 hour'));
@@ -64,10 +61,7 @@ if ($testujeme) {
         $onlinePrezenceTestovaciAktivity->upravKonceAktivitNaSekundyPoOdemceni($aktivitaSRychlymKoncem, 5);
     }
 } else {
-    $organizovaneAktivity = Aktivita::zFiltru(
-        ['rok' => ROK, 'organizator' => $u->id()],
-        ['zacatek']
-    );
+    $organizovaneAktivity = $u->organizovaneAktivity();
 }
 
 echo $onlinePrezenceHtml->dejHtmlOnlinePrezence(
