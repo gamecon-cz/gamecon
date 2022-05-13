@@ -18,7 +18,7 @@ use \Gamecon\Cas\DateTimeGamecon;
  */
 
 if (!empty($_POST['datMaterialy']) && $uPracovni && $uPracovni->gcPrihlasen()) {
-    $uPracovni->dejZidli(ZIDLE_PRITOMEN);
+    $uPracovni->dejZidli(ZIDLE_PRITOMEN, $u->id());
     back();
 }
 

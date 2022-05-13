@@ -199,27 +199,32 @@
 </div>
 <!-- end: prihlaskaPo -->
 
-<!-- begin: prihlaskaGcBezi -->
+<!-- begin: prihlaskaUzavrena -->
 <div class="prihlaska_hlavickaObal">
   <div class="prihlaska_hlavicka">
     <h1>Přihláška na GameCon</h1>
 
+    <!-- begin: gcBezi -->
     <p>Registrace přes internet jsou ukončeny, <strong>registrovat se můžeš přímo na místě na infopultu</strong>.
       Upravit si program a vybrat aktivity můžeš tamtéž.</p>
+    <!-- end: gcBezi -->
+    <!-- begin: proselInfopultem -->
+    <p>Vítej na Gameconu! <strong>Dodatečně si upravit program a vybrat aktivity můžeš na infopultu</strong>.</p>
+    <!-- end: proselInfopultem -->
   </div>
 </div>
 
 <!-- begin: covidSekce -->
- <form method="post" class="prihlaska" enctype="multipart/form-data">
-<!-- begin: doklad -->
- {covidSekce}
-<!-- end: doklad -->
-<!-- begin: submit -->
- <div class="prihlaska_sekce">
- <input type="submit" class="formular_primarni" name="pridatPotvrzeniProtiCovidu" value="Nahrát potvrzení">
- </div>
-<!-- end: submit -->
- </form>
+<form method="post" class="prihlaska" enctype="multipart/form-data">
+  <!-- begin: doklad -->
+  {covidSekce}
+  <!-- end: doklad -->
+  <!-- begin: submit -->
+  <div class="prihlaska_sekce">
+    <input type="submit" class="formular_primarni" name="pridatPotvrzeniProtiCovidu" value="Nahrát potvrzení">
+  </div>
+  <!-- end: submit -->
+</form>
 <!-- end: covidSekce -->
 
-<!-- end: prihlaskaGcBezi -->
+<!-- end: prihlaskaUzavrena -->
