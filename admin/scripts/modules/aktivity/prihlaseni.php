@@ -11,18 +11,18 @@
 
 use \Gamecon\Cas\DateTimeCz;
 
-$xtpl2=new XTemplate('prihlaseni.xtpl');
+$xtpl2 = new XTemplate('prihlaseni.xtpl');
 
 $o = dbQuery('SELECT id_typu, typ_1pmn FROM akce_typy ORDER BY poradi, typ_1pmn');
-while($r = mysqli_fetch_assoc($o)) {
-  $xtpl2->assign($r);
-  $xtpl2->parse('prihlaseni.vyber');
+while ($r = mysqli_fetch_assoc($o)) {
+    $xtpl2->assign($r);
+    $xtpl2->parse('prihlaseni.vyber');
 }
 
-if(!get('typ')) {
-  $xtpl2->parse('prihlaseni');
-  $xtpl2->out('prihlaseni');
-  return;
+if (!get('typ')) {
+    $xtpl2->parse('prihlaseni');
+    $xtpl2->out('prihlaseni');
+    return;
 }
 
 $odpoved = dbQuery('
@@ -31,7 +31,7 @@ $odpoved = dbQuery('
     u.prijmeni_uzivatele as prijmeni, u.email1_uzivatele as mail, u.telefon_uzivatele as telefon,
     GROUP_CONCAT(org.login_uzivatele) AS orgove,
     CONCAT(l.nazev,", ",l.dvere) as mistnost,
-    MAX(log.cas) datum_prihlaseni
+    MAX(log.kdy) datum_prihlaseni
   FROM akce_seznam a
   LEFT JOIN akce_prihlaseni p ON (a.id_akce=p.id_akce)
   LEFT JOIN uzivatele_hodnoty u ON (p.id_uzivatele=u.id_uzivatele)
@@ -46,47 +46,46 @@ $odpoved = dbQuery('
   ORDER BY a.zacatek, a.nazev_akce, a.id_akce, p.id_uzivatele
 ', [ROK, get('typ')]);
 
-$totoPrihlaseni=mysqli_fetch_assoc($odpoved);
-$dalsiPrihlaseni=mysqli_fetch_assoc($odpoved);
-$obsazenost=0;
-$odd=0;
-$maily=[];
-while($totoPrihlaseni) {
-  $xtpl2->assign($totoPrihlaseni);
-  if($totoPrihlaseni['id_uzivatele']) {
-    $hrac = Uzivatel::zId($totoPrihlaseni['id_uzivatele']);
-    $datum = new DateTimeCz($totoPrihlaseni['zacatek']);
-    $vek = $hrac->vekKDatu($datum);
-    if($vek === null) $vek = "Nevyplnil";
-    elseif($vek >= 18) $vek = "18+";
+$totoPrihlaseni = mysqli_fetch_assoc($odpoved);
+$dalsiPrihlaseni = mysqli_fetch_assoc($odpoved);
+$obsazenost = 0;
+$odd = 0;
+$maily = [];
+while ($totoPrihlaseni) {
+    $xtpl2->assign($totoPrihlaseni);
+    if ($totoPrihlaseni['id_uzivatele']) {
+        $hrac = Uzivatel::zId($totoPrihlaseni['id_uzivatele']);
+        $datum = new DateTimeCz($totoPrihlaseni['zacatek']);
+        $vek = $hrac->vekKDatu($datum);
+        if ($vek === null) $vek = "Nevyplnil";
+        elseif ($vek >= 18) $vek = "18+";
 
-    if($totoPrihlaseni['datum_prihlaseni'] != null)
-    {
-      $prihlasen = new DateTimeCz($totoPrihlaseni['datum_prihlaseni']);
-      $xtpl2->assign('datum_prihlaseni', $prihlasen->format('j.n. H:i'));
+        if ($totoPrihlaseni['datum_prihlaseni'] != null) {
+            $prihlasen = new DateTimeCz($totoPrihlaseni['datum_prihlaseni']);
+            $xtpl2->assign('datum_prihlaseni', $prihlasen->format('j.n. H:i'));
+        }
+        $xtpl2->assign('vek', $vek);
+        $xtpl2->assign('odd', $odd ? $odd = '' : $odd = 'odd');
+        $xtpl2->parse('prihlaseni.aktivita.lide.clovek');
+        $maily[] = $totoPrihlaseni['mail'];
+        $obsazenost++;
     }
-    $xtpl2->assign('vek', $vek);
-    $xtpl2->assign('odd', $odd?$odd='':$odd='odd');
-    $xtpl2->parse('prihlaseni.aktivita.lide.clovek');
-    $maily[]=$totoPrihlaseni['mail'];
-    $obsazenost++;
-  }
-  if($totoPrihlaseni['id']!=$dalsiPrihlaseni['id']) {
-    $xtpl2->assign('maily',implode('; ',$maily));
-    $xtpl2->assign('cas',datum2($totoPrihlaseni));
-    $xtpl2->assign('orgove', $totoPrihlaseni['orgove']);
-    $xtpl2->assign('obsazenost',$obsazenost.
-      ($totoPrihlaseni['kapacita']?'/'.$totoPrihlaseni['kapacita']:''));
-    $xtpl2->assign('druzina', $totoPrihlaseni['team_nazev'] ? ($totoPrihlaseni['team_nazev'].' - ') : '');
-    if($obsazenost)
-      $xtpl2->parse('prihlaseni.aktivita.lide');
-    $xtpl2->parse('prihlaseni.aktivita');
-    $obsazenost=0;
-    $odd=0;
-    $maily=[];
-  }
-  $totoPrihlaseni=$dalsiPrihlaseni;
-  $dalsiPrihlaseni=mysqli_fetch_assoc($odpoved);
+    if ($totoPrihlaseni['id'] != $dalsiPrihlaseni['id']) {
+        $xtpl2->assign('maily', implode('; ', $maily));
+        $xtpl2->assign('cas', datum2($totoPrihlaseni));
+        $xtpl2->assign('orgove', $totoPrihlaseni['orgove']);
+        $xtpl2->assign('obsazenost', $obsazenost .
+            ($totoPrihlaseni['kapacita'] ? '/' . $totoPrihlaseni['kapacita'] : ''));
+        $xtpl2->assign('druzina', $totoPrihlaseni['team_nazev'] ? ($totoPrihlaseni['team_nazev'] . ' - ') : '');
+        if ($obsazenost)
+            $xtpl2->parse('prihlaseni.aktivita.lide');
+        $xtpl2->parse('prihlaseni.aktivita');
+        $obsazenost = 0;
+        $odd = 0;
+        $maily = [];
+    }
+    $totoPrihlaseni = $dalsiPrihlaseni;
+    $dalsiPrihlaseni = mysqli_fetch_assoc($odpoved);
 }
 
 $xtpl2->parse('prihlaseni');
