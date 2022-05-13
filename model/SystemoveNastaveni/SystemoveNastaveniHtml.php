@@ -74,13 +74,32 @@ class SystemoveNastaveniHtml
             case 'int' :
             case 'number' :
                 return 'number';
+            case 'date' : /* date a datetime vyžadují v Chrome nehezký formát, který nechceme
+ https://stackoverflow.com/questions/30798906/the-specified-value-does-not-conform-to-the-required-format-yyyy-mm-dd-
+    Navíc jediný benefit z date a datetime-local je nativní datepicker prohlížeče,
+    který nechceme aradši použijeme jQuery plugin...
+    Takže z toho prostě uděláme text input a nazdar */
+            case 'datetime' :
+            case 'string' :
+            default :
+                return 'text';
+        }
+    }
+
+    private function dejHtmlTagInputType(string $datovyTyp) {
+        switch (strtolower(trim($datovyTyp))) {
             case 'date' :
                 return 'date';
             case 'datetime' :
                 return 'datetime-local';
+            case 'boolean' :
+            case 'bool' :
+            case 'integer' :
+            case 'int' :
+            case 'number' :
             case 'string' :
             default :
-                return 'text';
+                return self::dejHtmlInputType($datovyTyp);
         }
     }
 
@@ -112,6 +131,7 @@ class SystemoveNastaveniHtml
                         : '<i>SQL migrace</i>'
                     ) . '</strong><br>' . (new \Gamecon\Cas\DateTimeCz($zaznam['kdy']))->formatCasStandard();;
                 $zaznam['inputType'] = $this->dejHtmlInputType($zaznam['datovy_typ']);
+                $zaznam['tagInputType'] = $this->dejHtmlTagInputType($zaznam['datovy_typ']);
                 $zaznam['inputValue'] = $this->dejHtmlInputValue($zaznam['hodnota'], $zaznam['datovy_typ']);
                 $zaznam['vychoziHodnotaValue'] = $this->dejHtmlInputValue($zaznam['vychozi_hodnota'], $zaznam['datovy_typ']);
                 $zaznam['checked'] = $zaznam['aktivni']
