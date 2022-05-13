@@ -13,20 +13,72 @@
     })
 
     // ZMENA METADAT PREZENCE UCASTNIKA
+
+    const $aktivity = $('.aktivita')
+
     /**
-     * @param {HTMLElement} ucastnikNode
-     * @param {{casPosledniZmenyPrihlaseni: string, stavPrihlaseni: string}} metadataPrezence
+     * @param {number} idUzivatele
+     * @param {number} idAktivity
      */
-    function zapisMetadataPrezence(ucastnikNode, metadataPrezence) {
-      ucastnikNode.dataset.casPosledniZmenyPrihlaseni = metadataPrezence.casPosledniZmenyPrihlaseni
-      ucastnikNode.dataset.stavPrihlaseni = metadataPrezence.stavPrihlaseni
+    function hlidejNovehoUcastnika(idUzivatele, idAktivity) {
+      hlidejZmenyMetadatUcastnika(document.getElementById(`ucastnik-${idUzivatele}-na-aktivite-${idAktivity}`))
+      aktivujTooltip(idUzivatele, idAktivity)
     }
 
-    $('.ucastnik').each(function (index, ucastnikNode) {
-      ucastnikNode.addEventListener('zmenaMetadatPrezence', function (/** @param {{detail: {casPosledniZmenyPrihlaseni: string, stavPrihlaseni: string}}} event */event) {
-        zapisMetadataPrezence(ucastnikNode, event.detail)
+    /**
+     * @param {number} idUzivatele
+     * @param {number} idAktivity
+     */
+    function aktivujTooltip(idUzivatele, idAktivity) {
+      const tooltipTriggerList = [].slice.call(document.querySelectorAll(`#ucastnik-${idUzivatele}-na-aktivite-${idAktivity} [data-bs-toggle="tooltip"]`))
+      tooltipTriggerList.map(function (tooltipTriggerEl) {
+        new bootstrap.Tooltip(tooltipTriggerEl)
       })
+    }
+
+    $aktivity.each(function (index, aktivitaNode) {
+      aktivitaNode.addEventListener(
+        'novyUcastnik',
+        function (/** @param {{detail: {idAktivity: number, idUzivatele: number}}} event */event) {
+          hlidejNovehoUcastnika(event.detail.idUzivatele, event.detail.idAktivity)
+        },
+      )
     })
+
+    $('.ucastnik').each(function (index, ucastnikNode) {
+      hlidejZmenyMetadatUcastnika(ucastnikNode)
+    })
+
+    /**
+     * @param {HTMLElement} ucastnikNode
+     */
+    function hlidejZmenyMetadatUcastnika(ucastnikNode) {
+      ucastnikNode.addEventListener(
+        'zmenaMetadatPrezence',
+        function (/** @param {{detail: {casPosledniZmenyPrihlaseni: string, stavPrihlaseni: string, idPoslednihoLogu: number}}} event */event) {
+          zapisMetadataPrezence(ucastnikNode, event.detail)
+        },
+      )
+    }
+
+    /**
+     * @param {HTMLElement} ucastnikNode
+     * @param {{casPosledniZmenyPrihlaseni: string, stavPrihlaseni: string, idPoslednihoLogu: number, callback: function|undefined}} metadataPrezence
+     */
+    function zapisMetadataPrezence(ucastnikNode, metadataPrezence) {
+      if (ucastnikNode.dataset.idPoslednihoLogu
+        && Number(ucastnikNode.dataset.idPoslednihoLogu) >= metadataPrezence.idPoslednihoLogu
+      ) {
+        return // změna je stejná nebo dokonce starší, než už známe
+      }
+      ucastnikNode.dataset.casPosledniZmenyPrihlaseni = metadataPrezence.casPosledniZmenyPrihlaseni
+      ucastnikNode.dataset.stavPrihlaseni = metadataPrezence.stavPrihlaseni
+      ucastnikNode.dataset.idPoslednihoLogu = metadataPrezence.idPoslednihoLogu.toString()
+
+      if (typeof metadataPrezence.callback === 'function') {
+        metadataPrezence.callback()
+      }
+    }
 
     // ZOBRAZENI ERRORS
     Array.from(document.getElementsByClassName('aktivita')).forEach(function (aktivita) {
@@ -45,25 +97,50 @@
       })
     })
 
+    /**
+     * Bude zpracováno v event listeneru přes hlidejNovehoUcastnika()
+     * @param {number} idUzivatele
+     * @param {number} idAktivity
+     */
+    function vypustEventONovemUcastnikovi(idUzivatele, idAktivity) {
+      const novyUcastnik = new CustomEvent(
+        'novyUcastnik',
+        {
+          detail: {
+            idAktivity: idAktivity,
+            idUzivatele: idUzivatele,
+          },
+        },
+      )
+      document.getElementById(`aktivita-${idAktivity}`).dispatchEvent(novyUcastnik)
+    }
+
+
     // OMNIBOX
     intializePrezenceOmnibox()
 
     function intializePrezenceOmnibox() {
       const omnibox = $('.online-prezence .omnibox')
       omnibox.on('autocompleteselect', function (event, ui) {
-        const idAktivity = this.dataset.idAktivity
-        const idUcastnika = ui.item.value
+        const idAktivity = Number(this.dataset.idAktivity)
+        const idUzivatele = Number(ui.item.value)
         const ucastniciAktivityNode = $(`#ucastniciAktivity${idAktivity}`)
         const novyUcastnik = $(ui.item.html)
 
-        zmenitUcastnika(idUcastnika, idAktivity, novyUcastnik.find('input')[0], function () {
-          /**
-           * Teprve až backend potvrdí uložení vybraného účastníka a JS přidá čas poslední změny a stav přihlášení,
-           * tak můžeme přidat řádek s tímto účastníkem.
-           * Data z řádku totiž potřebujeme pro kontrolu změn v online-prezence-posledni-zname-zmeny-prihlaseni.js
-           */
-          ucastniciAktivityNode.append(novyUcastnik)
-        })
+        zmenitUcastnika(
+          idUzivatele,
+          idAktivity,
+          novyUcastnik.find('input')[0],
+          function () {
+            /**
+             * Teprve až backend potvrdí uložení vybraného účastníka a JS přidá čas poslední změny a stav přihlášení,
+             * tak můžeme přidat řádek s tímto účastníkem.
+             * Data z řádku totiž potřebujeme pro kontrolu změn v online-prezence-posledni-zname-zmeny-prihlaseni.js
+             */
+            ucastniciAktivityNode.append(novyUcastnik)
+            vypustEventONovemUcastnikovi(idUzivatele, idAktivity)
+          },
+        )
 
         // vyrušení default výběru do boxu
         event.preventDefault()
@@ -112,8 +189,6 @@
         return false
       })
     }
-
-    const $aktivity = $('.aktivita')
 
     // ⏳ ČEKÁNÍ NA EDITACI ⏳
 
@@ -292,14 +367,16 @@ function zmenitUcastnika(idUzivatele, idAktivity, checkboxNode, callbackOnSucces
      * @see \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax::ajaxZmenitUcastnikaAktivity
      */
     akce: 'zmenitUcastnika', idAktivity: idAktivity, idUzivatele: idUzivatele, dorazil: dorazil ? 1 : 0, ajax: 1,
-  }).done(/** @param {void|{prihlasen: boolean, cas_posledni_zmeny_prihlaseni: string, stav_prihlaseni: string}} data */function (data) {
+  }).done(/** @param {void|{prihlasen: boolean, cas_posledni_zmeny_prihlaseni: string, stav_prihlaseni: string, id_logu: string}} data */function (data) {
     checkboxNode.disabled = false
     if (data && typeof data.prihlasen == 'boolean') {
       checkboxNode.checked = data.prihlasen
 
       const zmenaMetadatPrezence = new CustomEvent('zmenaMetadatPrezence', {
         detail: {
-          casPosledniZmenyPrihlaseni: data.cas_posledni_zmeny_prihlaseni, stavPrihlaseni: data.stav_prihlaseni,
+          casPosledniZmenyPrihlaseni: data.cas_posledni_zmeny_prihlaseni,
+          stavPrihlaseni: data.stav_prihlaseni,
+          idPoslednihoLogu: data.id_logu,
         },
       })
       const ucastnikNode = $(checkboxNode).parents('.ucastnik')[0]
@@ -328,7 +405,11 @@ const akceAktivity = new class AkceAktivity {
    */
   uzavritAktivitu(idAktivity, skrytElement, zobrazitElement) {
     const that = this
-    $.post(location.href, {akce: 'uzavrit', id: idAktivity, ajax: true}).done(function (data) {
+    $.post(location.href, {
+      akce: 'uzavrit',
+      id: idAktivity,
+      ajax: true,
+    }).done(function (/** @param {{maPravoNaZmenuHistorieAktivit: boolean}} data */data) {
       that.prohoditZobrazeni(skrytElement, zobrazitElement)
       if (data.maPravoNaZmenuHistorieAktivit) {
         that.zobrazitVarovaniZeAktivitaUzJeVyplena(idAktivity)

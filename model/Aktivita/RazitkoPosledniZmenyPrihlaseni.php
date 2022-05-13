@@ -6,21 +6,32 @@ use Symfony\Component\Filesystem\Filesystem;
 
 class RazitkoPosledniZmenyPrihlaseni
 {
-    public const RAZITKO_POSLEDNI_ZMENY = 'razitko_posledni_zmeny';
-
     public static function smazRazitkaPoslednichZmen(Aktivita $aktivita, Filesystem $filesystem) {
         if (defined('TESTING') && TESTING
             && defined('TEST_MAZAT_VSECHNA_RAZITKA_POSLEDNICH_ZMEN') && TEST_MAZAT_VSECHNA_RAZITKA_POSLEDNICH_ZMEN
         ) {
             /**
              * Při testování online prezence se vypisují i aktivity, které organizátor ve skutečnosti neorganizuje.
-             * Proto musíme mazat všechna razítka, protože smazat je jen těm, kteří ji opravdu ogranizují, nestačí - neorganizujícímu testerovi by se nenačetly změny.
+             * Proto musíme mazat všechna razítka.
+             * Kdybychom je smazali jen těm, kteří aktivity opravdu ogranizují, tak by se neorganizujícímu testerovi nenačetly změny.
              */
-            $filesystem->remove(self::dejAdresarProRazitkaPoslednichZmen());
+            self::smazRazitkaPoslednichZmenVAdresari(self::dejAdresarProRazitkaPoslednichZmen(), $filesystem);
             return;
         }
         foreach (self::dejAdresareProRazitkaPoslednichZmenProOrganizatory($aktivita) as $adresar) {
-            $filesystem->remove($adresar);
+            self::smazRazitkaPoslednichZmenVAdresari($adresar, $filesystem);
+        }
+    }
+
+    private static function smazRazitkaPoslednichZmenVAdresari(string $dir, Filesystem $filesystem) {
+        $jsonFiles = glob($dir . '/**/*.json');
+        if (!$jsonFiles) {
+            return;
+        }
+        foreach ($jsonFiles as $jsonFile) {
+            $json = json_decode(file_get_contents($jsonFile), true);
+            $emptyValuesJson = array_fill_keys(array_keys($json), '');
+            $filesystem->dumpFile($jsonFile, json_encode($emptyValuesJson));
         }
     }
 
@@ -44,6 +55,10 @@ class RazitkoPosledniZmenyPrihlaseni
         return ADMIN_STAMPS . '/zmeny';
     }
 
+    public static function dejRazitko(PosledniZmenyStavuPrihlaseni $posledniZmenyStavuPrihlaseni): string {
+        return self::spocitejRazitko($posledniZmenyStavuPrihlaseni->posledniZmenaStavuPrihlaseni());
+    }
+
     /**
      * @var \Uzivatel
      */
@@ -60,55 +75,38 @@ class RazitkoPosledniZmenyPrihlaseni
      * @var ZmenaStavuPrihlaseni|null
      */
     private $posledniZmena;
+    /**
+     * @var string
+     */
+    private $jsonKlicProRazitko;
 
     /**
      * @param \Uzivatel $vypravec
-     * @param Aktivita[] $organizovaneAktivity
+     * @param Aktivita[] $posledniZmena
      * @param Filesystem $filesystem
+     * @param string $jsonKlicProRazitko
      */
     public function __construct(
-        \Uzivatel  $vypravec,
-        array      $organizovaneAktivity,
-        Filesystem $filesystem
+        \Uzivatel             $vypravec,
+        ?ZmenaStavuPrihlaseni $posledniZmena,
+        Filesystem            $filesystem,
+        string                $jsonKlicProRazitko
     ) {
         $this->vypravec = $vypravec;
-        $this->organizovaneAktivity = $organizovaneAktivity;
+        $this->posledniZmena = $posledniZmena;
         $this->filesystem = $filesystem;
+        $this->jsonKlicProRazitko = $jsonKlicProRazitko;
     }
 
-    private function dejAktivituSPosledniZmenou(?ZmenaStavuPrihlaseni $posledniZmena): Aktivita {
-        if ($posledniZmena === null) {
-            // Žádná poslední změna přihlášení? Tak bereme jakoukoli aktivitu.
-            return reset($this->organizovaneAktivity);
-        }
-        $aktivitaSPosledniZmenouVPoli = array_filter(
-            $this->organizovaneAktivity,
-            static function (Aktivita $aktivita) use ($posledniZmena) {
-                return $aktivita->id() === $posledniZmena->idAktivity();
-            }
-        );
-        return reset($aktivitaSPosledniZmenouVPoli);
-    }
-
-    public function dejPosledniZmenu(): ?ZmenaStavuPrihlaseni {
-        if (!$this->posledniZmena) {
-            $this->posledniZmena = AktivitaPrezence::dejPosledniZmenaStavuPrihlaseniAktivit(
-                null, // bereme každého účastníka
-                $this->organizovaneAktivity
-            );
-        }
-        return $this->posledniZmena;
-    }
-
-    private function dejObsah(?ZmenaStavuPrihlaseni $posledniZmena): array {
+    private function sestavObsah(string $razitko): array {
         return [
-            self::RAZITKO_POSLEDNI_ZMENY => $this->dejRazitkoPosledniZmeny($posledniZmena),
+            $this->jsonKlicProRazitko => $razitko,
         ];
     }
 
-    private function dejRazitkoPosledniZmeny(?ZmenaStavuPrihlaseni $zmenaStavuPrihlaseni): string {
+    private static function spocitejRazitko(?ZmenaStavuPrihlaseni $zmenaStavuPrihlaseni): string {
         return $zmenaStavuPrihlaseni === null
-            ? ''
+            ? md5('') // aspoň něco ve smyslu "razítko je platné"
             : md5(($zmenaStavuPrihlaseni->stavPrihlaseniProJs() ?? '') . ($zmenaStavuPrihlaseni->casZmenyProJs() ?? ''));
     }
 
@@ -124,26 +122,24 @@ class RazitkoPosledniZmenyPrihlaseni
     }
 
     public function dejPotvrzeneRazitkoPosledniZmeny(): string {
-        $posledniZmena = $this->dejPosledniZmenu();
-        $obsah = $this->dejObsah($posledniZmena);
+        $razitko = static::spocitejRazitko($this->posledniZmena);
+        $obsah = $this->sestavObsah($razitko);
+        $this->zapisObsah($obsah);
+
+        return $razitko;
+    }
+
+    private function zapisObsah(array $obsah) {
         $obsahJson = json_encode($obsah, JSON_THROW_ON_ERROR);
         $souborRazitka = $this->dejCestuKSouboruRazitka();
 
         if (!is_readable($souborRazitka) || file_get_contents($souborRazitka) !== $obsahJson) {
-            $this->zapis($obsahJson, $souborRazitka);
+            $this->zapisDoSouboru($obsahJson, $souborRazitka);
         }
-
-        return $obsah[self::RAZITKO_POSLEDNI_ZMENY];
     }
 
-    private function zapis(string $obsahJson, string $souborRazitka): bool {
-
-        $this->filesystem->mkdir(dirname($souborRazitka));
-
-        $zapsano = file_put_contents($souborRazitka, $obsahJson);
-        if ($zapsano === false) {
-            throw new \RuntimeException('Nelze zapsat do souboru ' . $souborRazitka);
-        }
-        return (bool)$zapsano;
+    private function zapisDoSouboru(string $data, string $soubor) {
+        $this->filesystem->mkdir(dirname($soubor));
+        $this->filesystem->dumpFile($soubor, $data);
     }
 }
