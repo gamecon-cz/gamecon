@@ -2,7 +2,8 @@
 <tr id="ucastnik-{u.id}-na-aktivite-{a.id}" class="col-md col-sm-6 no-gutters ucastnik"
     data-id="{u.id}"
     data-cas-posledni-zmeny-prihlaseni="{casPosledniZmenyPrihlaseni}"
-    data-stav-prihlaseni="{stavPrihlaseni}">
+    data-stav-prihlaseni="{stavPrihlaseni}"
+    data-id-posledniho-logu="{idPoslednihoLogu}">
   <td style="text-align: center">
     <!-- begin:pritomen -->
     <span class="hinted" data-bs-toggle="tooltip" data-bs-html="true"

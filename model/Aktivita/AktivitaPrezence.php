@@ -1,8 +1,7 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Gamecon\Aktivita;
 
-use Gamecon\Cas\DateTimeCz;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
@@ -103,7 +102,7 @@ class AktivitaPrezence
         $this->log($prihlaseny, AktivitaPrezenceTyp::PRIHLASENI);
     }
 
-    private function log(\Uzivatel $u, $zprava) {
+    private function log(\Uzivatel $u, string $zprava) {
         dbInsert('akce_prihlaseni_log', [
             'id_uzivatele' => $u->id(),
             'id_akce' => $this->aktivita->id(),
@@ -177,15 +176,15 @@ class AktivitaPrezence
     }
 
     public function prihlasenOd(\Uzivatel $uzivatel): ?\DateTimeImmutable {
-        $posledniZmenaStavuPrihlaseni = $this->dejPosledniZmenaStavuPrihlaseni($uzivatel);
-        if ($posledniZmenaStavuPrihlaseni->stavPrihlaseni() !== AktivitaPrezenceTyp::PRIHLASENI) {
+        $posledniZmenaStavuPrihlaseni = $this->posledniZmenaStavuPrihlaseni($uzivatel);
+        if (!$posledniZmenaStavuPrihlaseni || $posledniZmenaStavuPrihlaseni->stavPrihlaseni() !== AktivitaPrezenceTyp::PRIHLASENI) {
             return null;
         }
         return $posledniZmenaStavuPrihlaseni->casZmeny();
     }
 
-    public function dejPosledniZmenaStavuPrihlaseni(\Uzivatel $ucastnik): ZmenaStavuPrihlaseni {
-        return self::dejPosledniZmenaStavuPrihlaseniAktivit($ucastnik, [$this->aktivita]);
+    public function posledniZmenaStavuPrihlaseni(\Uzivatel $ucastnik): ?ZmenaStavuPrihlaseni {
+        return self::posledniZmenaStavuPrihlaseniAktivit($ucastnik, [$this->aktivita]);
     }
 
     /**
@@ -199,8 +198,9 @@ class AktivitaPrezence
                     SELECT GROUP_CONCAT(akce_prihlaseni_spec.id_uzivatele)
                     FROM akce_seznam a
                     LEFT JOIN akce_prihlaseni_spec ON akce_prihlaseni_spec.id_akce = a.id_akce
-                    WHERE akce_prihlaseni_spec.id_akce = ' . $this->aktivita->id() . '
-                    AND akce_prihlaseni_spec.id_stavu_prihlaseni = ' . $this->aktivita::SLEDUJICI
+                    WHERE akce_prihlaseni_spec.id_akce = $1
+                    AND akce_prihlaseni_spec.id_stavu_prihlaseni = $2',
+                    [$this->aktivita->id(), $this->aktivita::SLEDUJICI]
                 )
             );
         }
@@ -216,93 +216,18 @@ class AktivitaPrezence
     }
 
     /**
-     * @param PosledniZmenyStavuPrihlaseni $posledniZnameZmenyStavuPrihlaseni
+     * @param int[] $idsPoslednichLoguUcastniku
+     * @param int[] $idsAktivit
      * @return PosledniZmenyStavuPrihlaseni
      */
-    public static function dejPosledniZmeny(PosledniZmenyStavuPrihlaseni $posledniZnameZmenyStavuPrihlaseni): PosledniZmenyStavuPrihlaseni {
-        $indexParametru = 0;
-        $where = 'akce_prihlaseni_log.id_akce = $' . $indexParametru;
-        $sqlQueryParametry = [$indexParametru => $posledniZnameZmenyStavuPrihlaseni->getIdAktivity()];
-
-        $novejsiNezZnameZmenyStavuSql = [];
-        foreach ($posledniZnameZmenyStavuPrihlaseni->zmenyStavuPrihlaseni() as $zmenaStavuPrihlaseni) {
-            $identifikatoryAktivitySql = [];
-
-            $casZmenyStavu = $zmenaStavuPrihlaseni->casZmeny();
-            if ($casZmenyStavu) {
-                $indexParametru++;
-                $novejsiNeboJinySql = 'akce_prihlaseni_log.cas > $' . $indexParametru; // novejsi
-                $sqlQueryParametry[$indexParametru] = $casZmenyStavu->format(DateTimeCz::FORMAT_DB);
-
-                $indexParametru++;
-                $jinyVeStejnyCasSql = 'akce_prihlaseni_log.cas = $' . $indexParametru; // nebo ve stejny cas...
-                $sqlQueryParametry[$indexParametru] = $casZmenyStavu->format(DateTimeCz::FORMAT_DB);
-
-                $jinyTypNeboUcastnikSql = [];
-                $indexParametru++;
-                // ...ale odlisny stav (abychom nereagovali na tu samou zmenu vicekrat)...
-                $jinyTypNeboUcastnikSql[] = 'akce_prihlaseni_log.typ != $' . $indexParametru;
-                $sqlQueryParametry[$indexParametru] = $zmenaStavuPrihlaseni->stavPrihlaseni();
-                $indexParametru++;
-                // ...nebo je to jiny ucastnik
-                $jinyTypNeboUcastnikSql[] = 'akce_prihlaseni_log.id_uzivatele != $' . $indexParametru;
-                $sqlQueryParametry[$indexParametru] = $zmenaStavuPrihlaseni->idUzivatele();
-
-                $jinyVeStejnyCasSql .= ' AND (' . implode(' OR ', $jinyTypNeboUcastnikSql) . ')';
-
-                $novejsiNeboJinySql .= ' OR (' . $jinyVeStejnyCasSql . ')';
-
-                $identifikatoryAktivitySql[] = $novejsiNeboJinySql;
-            }
-
-            $novejsiNezZnameZmenyStavuSql[] = '(' . implode(' AND ', $identifikatoryAktivitySql) . ')';
-        }
-        if ($novejsiNezZnameZmenyStavuSql) {
-            $where .= ' AND (' . implode(' OR ', $novejsiNezZnameZmenyStavuSql) . ')';
-        }
-        /* For example:
-        SELECT akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_uzivatele, akce_prihlaseni_log.typ, akce_prihlaseni_log.cas
-        FROM (SELECT akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_uzivatele, MAX(akce_prihlaseni_log.id_log) AS posledni_id
-            FROM akce_prihlaseni_log
-            LEFT JOIN akce_prihlaseni on akce_prihlaseni_log.id_akce = akce_prihlaseni.id_akce
-            WHERE akce_prihlaseni_log.id_akce = 4057
-            AND (
-                (akce_prihlaseni_log.cas > '2022-04-26 11:48:54'
-                OR (akce_prihlaseni_log.cas = '2022-04-26 11:48:54'
-                    AND (akce_prihlaseni_log.typ != 'prihlaseni_nahradnik' OR akce_prihlaseni_log.id_uzivatele != 517))
-            ))
-        GROUP BY id_akce, id_uzivatele) AS nejnovejsi
-        INNER JOIN akce_prihlaseni_log
-            ON nejnovejsi.id_akce = akce_prihlaseni_log.id_akce
-            AND nejnovejsi.id_uzivatele = akce_prihlaseni_log.id_uzivatele
-            AND nejnovejsi.posledni_id = akce_prihlaseni_log.id_log
-        GROUP BY akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_uzivatele;
-         */
-
-        $zmeny = dbFetchAll(<<<SQL
-SELECT akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_uzivatele, akce_prihlaseni_log.typ, akce_prihlaseni_log.cas
-FROM (
-    SELECT akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_uzivatele, MAX(akce_prihlaseni_log.id_log) AS posledni_id
-    FROM akce_prihlaseni_log
-    LEFT JOIN akce_prihlaseni on akce_prihlaseni_log.id_akce = akce_prihlaseni.id_akce
-    WHERE $where
-    GROUP BY id_akce, id_uzivatele
-) AS nejnovejsi
-INNER JOIN akce_prihlaseni_log
-    ON nejnovejsi.id_akce = akce_prihlaseni_log.id_akce
-    AND nejnovejsi.id_uzivatele = akce_prihlaseni_log.id_uzivatele
-    AND nejnovejsi.posledni_id = akce_prihlaseni_log.id_log
-GROUP BY akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_uzivatele
-SQL
-            , $sqlQueryParametry
-        );
-
-        $nejnovejsiZmenyStavuPrihlaseni = new PosledniZmenyStavuPrihlaseni($posledniZnameZmenyStavuPrihlaseni->getIdAktivity());
-        foreach ($zmeny as $zmena) {
+    public static function dejPosledniZmeny(array $idsPoslednichLoguUcastniku, array $idsAktivit): PosledniZmenyStavuPrihlaseni {
+        $nejnovejsiZmenyStavuPrihlaseni = new PosledniZmenyStavuPrihlaseni();
+        foreach (self::dejDataPoslednichZmen($idsPoslednichLoguUcastniku, $idsAktivit) as $zmena) {
             $zmenaStavuPrihlaseni = ZmenaStavuPrihlaseni::vytvorZDatDatabaze(
                 (int)$zmena['id_uzivatele'],
                 (int)$zmena['id_akce'],
-                new \DateTimeImmutable($zmena['cas']),
+                (int)$zmena['id_log'],
+                new \DateTimeImmutable($zmena['kdy']),
                 $zmena['typ']
             );
             $nejnovejsiZmenyStavuPrihlaseni->addPosledniZmenaStavuPrihlaseni($zmenaStavuPrihlaseni);
@@ -311,27 +236,70 @@ SQL
     }
 
     /**
+     * @param int[] $idsPoslednichLoguUcastniku
+     * @param array $idsAktivit
+     * @return array
+     * @throws \DbException
+     */
+    private static function dejDataPoslednichZmen(array $idsPoslednichLoguUcastniku, array $idsAktivit): array {
+        if (!$idsAktivit) {
+            return [];
+        }
+        $indexParametru = 0;
+        $whereArray = [];
+
+        $whereArray[] = 'akce_prihlaseni_log.id_log > $' . $indexParametru;
+        $sqlQueryParametry[] = min($idsPoslednichLoguUcastniku);
+
+        $whereArray[] = 'akce_prihlaseni_log.id_log NOT IN ($' . ++$indexParametru . ')';
+        $sqlQueryParametry[] = $idsPoslednichLoguUcastniku;
+
+        $whereArray[] = 'akce_prihlaseni_log.id_akce IN ($' . ++$indexParametru . ')';
+        $sqlQueryParametry[] = $idsAktivit;
+
+        $where = implode(' AND ', $whereArray);
+
+        return dbFetchAll(<<<SQL
+SELECT akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_uzivatele, akce_prihlaseni_log.typ, akce_prihlaseni_log.kdy, akce_prihlaseni_log.id_log
+FROM (
+    SELECT akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_uzivatele, MAX(akce_prihlaseni_log.id_log) AS id_posledniho_logu
+    FROM akce_prihlaseni_log
+    WHERE {$where}
+    GROUP BY id_akce, id_uzivatele
+) AS nejnovejsi
+INNER JOIN akce_prihlaseni_log
+    ON nejnovejsi.id_akce = akce_prihlaseni_log.id_akce
+        AND nejnovejsi.id_uzivatele = akce_prihlaseni_log.id_uzivatele
+        AND nejnovejsi.id_posledniho_logu = akce_prihlaseni_log.id_log
+GROUP BY akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_uzivatele
+SQL
+            , $sqlQueryParametry
+        );
+    }
+
+    /**
      * @param \Uzivatel|null $ucastnik
      * @param Aktivita[] $aktivity
-     * @return ZmenaStavuPrihlaseni
+     * @return null|ZmenaStavuPrihlaseni
      * @throws \Exception
      */
-    public static function dejPosledniZmenaStavuPrihlaseniAktivit(?\Uzivatel $ucastnik, array $aktivity): ?ZmenaStavuPrihlaseni {
+    public static function posledniZmenaStavuPrihlaseniAktivit(?\Uzivatel $ucastnik, array $aktivity): ?ZmenaStavuPrihlaseni {
+        if (!$aktivity) {
+            return null;
+        }
         $posledniZmena = dbOneLine(<<<SQL
-SELECT nejnovejsi.id_uzivatele, nejnovejsi.kdy, nejnovejsi.id_akce, akce_prihlaseni_log.typ
+SELECT akce_prihlaseni_log.id_uzivatele, akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_log, akce_prihlaseni_log.typ, akce_prihlaseni_log.kdy
 FROM (
-    SELECT MAX(cas) AS kdy, id_akce, id_uzivatele
+    SELECT id_akce, id_uzivatele, MAX(id_log) AS id_posledniho_logu
     FROM akce_prihlaseni_log
     WHERE id_akce IN ($1) AND IF($2 IS NULL, TRUE, id_uzivatele = $2)
     GROUP BY id_akce, id_uzivatele
-    HAVING kdy = (SELECT MAX(cas) AS kdy FROM akce_prihlaseni_log WHERE id_akce IN ($1) AND IF($2 IS NULL, TRUE, id_uzivatele = $2))
     LIMIT 1
 ) AS nejnovejsi
 INNER JOIN akce_prihlaseni_log
     ON nejnovejsi.id_uzivatele = akce_prihlaseni_log.id_uzivatele
     AND nejnovejsi.id_akce = akce_prihlaseni_log.id_akce
-    AND nejnovejsi.kdy = akce_prihlaseni_log.cas
-GROUP BY akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_uzivatele
+    AND nejnovejsi.id_posledniho_logu = akce_prihlaseni_log.id_log
 SQL,
             [
                 array_map(static function (Aktivita $aktivita) {
@@ -340,17 +308,15 @@ SQL,
                 $ucastnik ? $ucastnik->id() : null,
             ]
         );
-        $idUzivatelePosledniZmeny = $posledniZmena['id_uzivatele'] ?? ($ucastnik ? $ucastnik->id() : null);
-        if (!$idUzivatelePosledniZmeny) {
+        if (!$posledniZmena['id_uzivatele']) {
             return null;
         }
         return new ZmenaStavuPrihlaseni(
-            $idUzivatelePosledniZmeny,
-            $posledniZmena['id_akce'] ?? null,
-            $posledniZmena
-                ? new \DateTimeImmutable($posledniZmena['kdy'])
-                : null,
-            $posledniZmena['typ'] ?? null
+            (int)$posledniZmena['id_uzivatele'],
+            (int)$posledniZmena['id_akce'],
+            (int)$posledniZmena['id_log'],
+            new \DateTimeImmutable($posledniZmena['kdy']),
+            $posledniZmena['typ']
         );
     }
 
