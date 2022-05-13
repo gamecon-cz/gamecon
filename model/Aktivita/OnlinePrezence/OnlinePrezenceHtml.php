@@ -146,19 +146,19 @@ class OnlinePrezenceHtml
 
             $template->parse('onlinePrezence.aktivity.aktivita');
         }
-        $razitkoPosledniZmeny = new RazitkoPosledniZmenyPrihlaseni($vypravec, $organizovaneAktivity, $filesystem);
-        $template->assign(
-            'razitkoPosledniZmeny',
-            $razitkoPosledniZmeny->dejPotvrzeneRazitkoPosledniZmeny()
+        $razitkoPosledniZmeny = new RazitkoPosledniZmenyPrihlaseni(
+            $vypravec,
+            AktivitaPrezence::posledniZmenaStavuPrihlaseniAktivit(
+                null, // bereme každého účastníka
+                $organizovaneAktivity
+            ),
+            $filesystem,
+            OnlinePrezenceAjax::RAZITKO_POSLEDNI_ZMENY
         );
-        $template->assign(
-            'urlRazitkaPosledniZmeny',
-            $razitkoPosledniZmeny->dejUrlRazitkaPosledniZmeny()
-        );
-        $template->assign(
-            'urlAkcePosledniZmeny',
-            OnlinePrezenceAjax::dejUrlAkcePosledniZmeny(),
-        );
+        $template->assign('razitkoPosledniZmeny', $razitkoPosledniZmeny->dejPotvrzeneRazitkoPosledniZmeny());
+        $template->assign('urlRazitkaPosledniZmeny', $razitkoPosledniZmeny->dejUrlRazitkaPosledniZmeny());
+        $template->assign('urlAkcePosledniZmeny', OnlinePrezenceAjax::dejUrlAkcePosledniZmeny());
+        $template->assign('idsPoslednichLoguUcastnikuAjaxKlic', OnlinePrezenceAjax::IDS_POSLEDNICH_LOGU_UCASTNIKU_AJAX_KLIC);
 
         $template->parse('onlinePrezence.aktivity');
     }

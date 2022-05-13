@@ -1,5 +1,4 @@
 <!-- begin:onlinePrezence -->
-
 <!DOCTYPE html>
 <html lang="cs">
 
@@ -8,6 +7,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <title>Online prezence - {nadpis}</title>
+
+  <base href="{base}">
+
+  <link rel="shortcut icon" href="files/favicon.ico"/>
 
   <link rel="stylesheet" href="files/bootstrap.5.1.3.css"/>
   <link rel="stylesheet" href="files/font-awesome-5-15-4/all.min.css"/>
@@ -73,6 +76,7 @@
          data-url-razitka-posledni-zmeny="{urlRazitkaPosledniZmeny}"
          data-razitko-posledni-zmeny="{razitkoPosledniZmeny}"
          data-url-akce-posledni-zmeny="{urlAkcePosledniZmeny}"
+         data-ids-poslednich-logu-ucastniku-ajax-klic="{idsPoslednichLoguUcastnikuAjaxKlic}"
     >
 
       <div class="row">
@@ -205,7 +209,9 @@
                    data-omnibox='{"labelSlozenZ": ["id", "jmenoNick", "mail", "zustatek", "gcPritomen"]}'
                    data-omnibox-url="{omniboxUrl}"
             >
-            <span class="col-md-4" id="omniboxNicNenalezeno{idAktivity}" style="display: none"><em>Nic...</em> 🤷</span>
+            <span class="col-md-4" id="omniboxNicNenalezeno{idAktivity}" style="display: none">
+              <em>Nic...</em> 🤷
+            </span>
             <span class="col-md-4" id="omniboxHledam{idAktivity}" style="display: none"><em>Hledám...</em> ⏳</span>
             <span class="col-md-4 {displayNoneCssClassPozorVyplnena}" id="pozor-vyplnena-{idAktivity}"
                   style="white-space: nowrap">
