@@ -12,19 +12,16 @@ $this->info()->nazev('Přihláška');
 
 $covidSekceFunkce = require __DIR__ . '/covid-sekce-funkce.php';
 
+function cestaKObrazkuPredmetu(string $soubor): string {
+    return WWW . '/soubory/obsah/materialy/' . ROK . '/' . $soubor;
+}
+
 /**
+ * @throws \RuntimeException
  * Pomocná funkce pro náhled předmětu pro aktuální ročník
  */
-function nahledPredmetu($soubor) {
-    $cesta = WWW . '/soubory/obsah/materialy/' . ROK . '/' . $soubor;
-    try {
-        $nahled = Nahled::zSouboru($cesta)->kvalita(98)->url();
-    } catch (Exception $e) {
-        // pokud soubor neexistuje, nepoužít cache ale vypsat do html přímo cestu
-        // při zkoumání html je pak přímo vidět, kam je potřeba nahrát soubor
-        $nahled = $cesta;
-    }
-    return $nahled;
+function nahledPredmetu(string $cestaKObrazku) {
+    return Nahled::zSouboru($cestaKObrazku)->kvalita(98)->url();
 }
 
 if (post('pridatPotvrzeniProtiCovidu')) {
@@ -124,18 +121,39 @@ if ($u->maPravo(P_UBYTOVANI_ZDARMA)) {
 
 // náhledy
 $nahledy = [
-    ['Triko.png', 'Triiko_detail.png', 'Tričko'],
-    ['Kostka.png', 'Kostka_detail.png', 'Kostka'],
-    ['Fate.png', 'Fate_detail.png', 'Fate kostka'],
-    ['Placka.png', 'Placka_detail.png', 'Placka'],
-    ['nicknack.jpg', 'nicknack_m.jpg', 'Nicknack'],
-    ['Ponozky.png', 'Ponozky_detail.png', 'Ponožky'],
+    ['obrazek' => 'Triko.png', 'miniatura' => 'Triiko_detail.png', 'nazev' => 'Tričko'],
+    ['obrazek' => 'Kostka.png', 'miniatura' => 'Kostka_detail.png', 'nazev' => 'Kostka'],
+    ['obrazek' => 'Fate.png', 'miniatura' => 'Fate_detail.png', 'nazev' => 'Fate kostka'],
+    ['obrazek' => 'Placka.png', 'miniatura' => 'Placka_detail.png', 'nazev' => 'Placka'],
+    ['obrazek' => 'nicknack.jpg', 'miniatura' => 'nicknack_m.jpg', 'nazev' => 'Nicknack'],
+    ['obrazek' => 'Ponozky.png', 'miniatura' => 'Ponozky_detail.png', 'nazev' => 'Ponožky'],
 ];
 foreach ($nahledy as $nahled) {
+    $cestaKObrazku = cestaKObrazkuPredmetu($nahled['obrazek']);
+    $chybiObrazek = false;
+    try {
+        $obrazek = nahledPredmetu($cestaKObrazku);
+    } catch (\RuntimeException $runtimeException) {
+        $obrazek = $cestaKObrazku;
+        $chybiObrazek = true;
+    }
+
+    $cestaKMiniature = cestaKObrazkuPredmetu($nahled['miniatura']);
+    $chybiMiniatura = false;
+    try {
+        $miniatura = nahledPredmetu($cestaKMiniature);
+    } catch (\RuntimeException $runtimeException) {
+        $miniatura = $cestaKObrazku;
+        $chybiMiniatura = true;
+    }
+
     $t->assign([
-        'obrazek' => nahledPredmetu($nahled[0]),
-        'miniatura' => nahledPredmetu($nahled[1]),
-        'nazev' => $nahled[2],
+        'obrazek' => $obrazek,
+        'miniatura' => $miniatura,
+        'nazev' => $nahled['nazev'],
+        'display' => ($chybiObrazek || $chybiMiniatura) && (!$u || !$u->maPravo(\Gamecon\Pravo::ADMINISTRACE_PANEL_UVOD))
+            ? 'none'
+            : 'inherit',
     ]);
     $t->parse('prihlaska.nahled');
 }

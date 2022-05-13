@@ -45,7 +45,7 @@
 
     <div class="prihlaska_nahledy">
       <!-- begin: nahled -->
-      <a href="{obrazek}" class="prihlaska_nahled" title="{nazev}">
+      <a href="{obrazek}" class="prihlaska_nahled" title="{nazev}" style="display: {display}">
         <img src="{miniatura}">
       </a>
       <!-- end: nahled -->
@@ -202,16 +202,16 @@
 </div>
 
 <!-- begin: covidSekce -->
- <form method="post" class="prihlaska" enctype="multipart/form-data">
-<!-- begin: doklad -->
- {covidSekce}
-<!-- end: doklad -->
-<!-- begin: submit -->
- <div class="prihlaska_sekce">
- <input type="submit" class="formular_primarni" name="pridatPotvrzeniProtiCovidu" value="Nahrát potvrzení">
- </div>
-<!-- end: submit -->
- </form>
+<form method="post" class="prihlaska" enctype="multipart/form-data">
+  <!-- begin: doklad -->
+  {covidSekce}
+  <!-- end: doklad -->
+  <!-- begin: submit -->
+  <div class="prihlaska_sekce">
+    <input type="submit" class="formular_primarni" name="pridatPotvrzeniProtiCovidu" value="Nahrát potvrzení">
+  </div>
+  <!-- end: submit -->
+</form>
 <!-- end: covidSekce -->
 
 <!-- end: prihlaskaGcBezi -->
