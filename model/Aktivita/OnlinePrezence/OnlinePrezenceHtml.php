@@ -59,6 +59,8 @@ class OnlinePrezenceHtml
         $template->assign('textZpet', $textZpet);
         $template->assign('jsVyjimkovac', $this->jsVyjimkovac);
 
+        $this->pridejLokalniAssety($template);
+
         if (count($aktivity) === 0) {
             $template->parse('onlinePrezence.zadnaAktivita');
         } else {
@@ -67,6 +69,33 @@ class OnlinePrezenceHtml
 
         $template->parse('onlinePrezence');
         return $template->text('onlinePrezence');
+    }
+
+    private function pridejLokalniAssety(\XTemplate $template) {
+        static $localAssets = [
+            'stylesheets' => [
+                __DIR__ . '/../../../admin/files/design/hint.css',
+                __DIR__ . '/../../../admin/files/design/zvyraznena-tabulka.css',
+                __DIR__ . '/../../../admin/files/design/online-prezence.css',
+            ],
+            'javascripts' => [
+                __DIR__ . '/../../../admin/files/bootstrap-tooltip-initialization.js',
+                __DIR__ . '/../../../admin/files/omnibox.js',
+                __DIR__ . '/../../../admin/files/online-prezence.js',
+                __DIR__ . '/../../../admin/files/online-prezence-posledni-zname-zmeny-prihlaseni.js',
+                __DIR__ . '/../../../admin/files/online-prezence-navod.js',
+            ],
+        ];
+        foreach ($localAssets['stylesheets'] as $stylesheet) {
+            $template->assign('url', str_replace(__DIR__ . '/../../../admin/', '', $stylesheet));
+            $template->assign('version', md5_file($stylesheet));
+            $template->parse('onlinePrezence.stylesheet');
+        }
+        foreach ($localAssets['javascripts'] as $javascript) {
+            $template->assign('url', str_replace(__DIR__ . '/../../../admin/', '', $javascript));
+            $template->assign('version', md5_file($javascript));
+            $template->parse('onlinePrezence.javascript');
+        }
     }
 
     private function dejOnlinePrezenceTemplate(): \XTemplate {
