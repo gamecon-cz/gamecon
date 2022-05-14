@@ -121,7 +121,7 @@ if ($u->maPravo(P_UBYTOVANI_ZDARMA)) {
 
 // náhledy
 $nahledy = [
-    ['obrazek' => 'Triko.png', 'miniatura' => 'Triiko_detail.png', 'nazev' => 'Tričko'],
+    ['obrazek' => 'Triko.jpg', 'miniatura' => 'Triko_detail.jpg', 'nazev' => 'Tričko'],
     ['obrazek' => 'Tilko.jpg', 'miniatura' => 'Tilko_detail.jpg', 'nazev' => 'Tílko'],
     ['obrazek' => 'Kostka_Duna_2022.png', 'miniatura' => 'Kostka_Duna_2022_detail.png', 'nazev' => ROK === 2022 ? 'Kostka' : 'Kostka Duna'],
     ['obrazek' => 'Kostka_Cthulhu_2021.png', 'miniatura' => 'Kostka_Cthulhu_2021_detail.png', 'nazev' => 'Kostka Cthulhu'],
