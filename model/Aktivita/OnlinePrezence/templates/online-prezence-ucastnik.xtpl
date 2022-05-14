@@ -21,7 +21,7 @@
   <td style="text-align: center">
     <!-- begin: prihlasenNaPosledniChvili -->
     <span class="hinted" data-bs-toggle="tooltip"
-          title="Přihlásil se před méně než {minutNaPosledniChvili} minutami a měl by si pospíšit.">
+          title="Přihlásil se před méně než {minutNaPosledniChvili} minutami před začátkem aktivity a měl by si pospíšit.">
           ⏰
     </span>
     <!-- end: prihlasenNaPosledniChvili -->
