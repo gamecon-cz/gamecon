@@ -11,7 +11,7 @@ class Migration
 
     public function __construct(string $path, string $code, \mysqli $db) {
         $this->path = $path;
-        $this->code = $code;
+        $this->code = removeDiacritics($code);
         $this->db = $db;
     }
 

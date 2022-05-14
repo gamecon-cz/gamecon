@@ -91,9 +91,10 @@ LEFT JOIN migrations ON migrations.migration_code = known_migration_codes_tmp.mi
 WHERE migrations.migration_id IS NULL"
         );
 
+        $wrappedUnappliedMigrationCodes = $query->fetch_all();
+
         $this->db->query("DROP TEMPORARY TABLE known_migration_codes_tmp");
 
-        $wrappedUnappliedMigrationCodes = $query->fetch_all();
         $unappliedMigrationCodes = array_column($wrappedUnappliedMigrationCodes, 0);
 
         return array_filter(
