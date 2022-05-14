@@ -220,8 +220,7 @@
      * @return {boolean}
      */
     function dorazilPodleStavu(stavPrihlaseni) {
-      return stavPrihlaseni !== 'sledujici_se_prihlasil' // je zatím jen sledující, ještě nedorazil
-        && chceHratPodleStavu(stavPrihlaseni)
+      return ['ucastnik_dorazil', 'nahradnik_dorazil'].includes(stavPrihlaseni)
     }
 
     /**
@@ -231,14 +230,12 @@
     function chceHratPodleStavu(stavPrihlaseni) {
       /** viz \Gamecon\Aktivita\ZmenaStavuPrihlaseni::stavPrihlaseniProJs */
       switch (stavPrihlaseni) {
-        // řádek s účastníkem už máme a teď jsme dostali informaci, že se pouze přihlásil, není proto přítomen (nemá být zaškrtnutý)
-        case 'ucastnik_se_prihlasil' :
-        // řádek s účastníkem už máme a teď jsme dostali informaci, že se odhlásil - nechceme řádek smazat, co kdyby to byla chyba a uživatel tam přeci jen fyzicky byl, tak ho jen označíme jako nepřítomen (nezaškrtnutý)
         case 'ucastnik_se_odhlasil' :
         case 'sledujici_se_odhlasil' :
         case 'nahradnik_nedorazil' :
           return false
-        case 'sledujici_se_prihlasil' : // sice není přítomen, ale v online prezenci nového sledujícího chceme vidět
+        case 'sledujici_se_prihlasil' :
+        case 'ucastnik_se_prihlasil' :
         case 'ucastnik_dorazil' :
         case 'nahradnik_dorazil' :
           return true
