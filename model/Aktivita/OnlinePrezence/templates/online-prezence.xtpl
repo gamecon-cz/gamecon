@@ -15,23 +15,18 @@
   <link rel="stylesheet" href="files/bootstrap.5.1.3.css"/>
   <link rel="stylesheet" href="files/font-awesome-5-15-4/all.min.css"/>
   <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-v1.12.1.min.css"/>
-  <link rel="stylesheet" href="files/design/hint.css?version=4ec833e6ceb39920a5c5f3fb79a1c16d"/>
-  <link rel="stylesheet" href="files/design/zvyraznena-tabulka.css?version=1adaf17a04a97a92082bd531141ec69e"/>
-  <link rel="stylesheet" href="files/design/online-prezence.css?version=d5b1d6f87ce8de3e4e3ce560edcf86f5"/>
+  <!-- begin:stylesheet -->
+  <link rel="stylesheet" href="{url}?version={version}"/>
+  <!-- end:stylesheet -->
 
   <script type="text/javascript" src="files/jquery-3.4.1.min.js"></script>
   {jsVyjimkovac}
   <script type="text/javascript" src="files/jquery-ui-v1.12.1.min.js"></script>
   <script type="text/javascript" src="files/jquery.hotkeys-0.8.0.js"></script>
   <script type="text/javascript" src="files/bootstrap.bundle.5.1.3.js"></script>
-  <script type="text/javascript"
-          src="files/bootstrap-tooltip-initialization.js?version=78b4a4d9674bf72e95f7756bc0ce92a9 "></script>
-
-  <script type="text/javascript" src="files/omnibox.js?version=e5cd9171d8ae5178823bdcf81f68b43d"></script>
-  <script type="text/javascript" src="files/online-prezence.js?version=d7457c71ea1c8bebed30d1dc3c7cd344"></script>
-  <script type="text/javascript"
-          src="files/online-prezence-posledni-zname-zmeny-prihlaseni.js?version=95b71ebbe5a7831594d2474641e102f3"></script>
-  <script type="text/javascript" src="files/online-prezence-navod.js?version=95b71ebbe5a7831594d2474641e102f3"></script>
+  <!-- begin:javascript -->
+  <script type="text/javascript" src="{url}?version={version}"></script>
+  <!-- end:javascript -->
 </head>
 
 <body>
@@ -43,12 +38,12 @@
     <!-- begin:test -->
     <div class="row" style="margin-top: 3px">
       <div class="col"></div>
-      <div class="col-sm col-md-3 col-xl-2">
+      <div class="col-sm col-md-3 col-xl-2" style="position: relative">
         <!-- begin:odkazNaTest -->
-        <a class="btn btn-dark" href="{urlTest}" style="width: 100%">🪄 Testovat</a>
+        <a class="btn btn-dark tlacitko-testu" href="{urlTest}">🪄 Testovat</a>
         <!-- end:odkazNaTest -->
         <!-- begin:odkazBezTestu -->
-        <a class="btn btn-danger" href="{urlBezTestu}" style="width: 100%">🥵 Do reality</a>
+        <a class="btn btn-danger tlacitko-testu" href="{urlBezTestu}">🥵 Do reality</a>
         <!-- end:odkazBezTestu -->
       </div>
     </div>
@@ -80,7 +75,7 @@
     >
 
       <div class="row">
-        <div class="col-1">
+        <div class="col-auto">
           <button id="tlacitkoJakNaOnlinePrezenci" class="btn btn-light" type="button" data-bs-toggle="collapse"
                   data-bs-target="#jakNaOnlinePrezenci"
                   aria-expanded="true" aria-controls="jakNaOnlinePrezenci">
@@ -90,12 +85,25 @@
         <div class="col">
           <div class="collapse" id="jakNaOnlinePrezenci">
             <div class="card card-body">
-              Náhodná rada: bez internetu to nepůjde.
+              <ul>
+                <li>15 minut předem buď u maskota své sekce.</li>
+                <li>Pokud nemáš mobil, půjč si od Spojky tablet.</li>
+                <li>Najdi / svolej si přihlášené hráče. Nepřítomným zkus zavolat.</li>
+                <li>Přihlášeným před < 10 minutami ⏰ dej chvíli na doběhnutí.</li>
+                <li>Volná místa nabídni náhradníkům 👥 Sledující 👀 můžeš oslovit první.
+                </li>
+                <li>Náhradníky přidej na prezenčku.</li>
+                <li>Prezenčku uzavři. Případné další hráče můžeš přidávat nejedéle 1h po konci aktivity.</li>
+                <li>Po hře dej místnost do původního stavu, vybavení nech bedňákům na místě!</li>
+              </ul>
+
+              <p>Změny (místa atp.), problémy a dotazy prosím vyřeš s MODem
+                (<a href="tel:735 531 899"><i class="fas fa-phone"></i> 735 531 899</a>) a/nebo šéfem své sekce.
+                (Ne s infopultem!)</p>
             </div>
             <script type="text/javascript">
               zobrazNavodPodlePosledniVolby(document.getElementById('jakNaOnlinePrezenci'))
             </script>
-            <hr>
           </div>
         </div>
       </div>
@@ -176,8 +184,10 @@
                 </span>
               </th>
               <th style="text-align: center">
-                <span class="hinted" data-bs-toggle="tooltip" data-bs-placement="top"
-                      title="Přihlásil se před chvílí (do {minutNaPosledniChvili} minut před začátkem aktivity) a je nejspíš na cestě">
+                <span class="hinted" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true"
+                      title="Přihlásil se před chvílí
+                      <div>(do {minutNaPosledniChvili} minut před začátkem aktivity)</div>
+                      a je nejspíš na cestě">
                   <i class="fas fa-running"></i>
                 </span>
               </th>
