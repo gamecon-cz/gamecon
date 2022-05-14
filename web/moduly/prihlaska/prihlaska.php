@@ -122,15 +122,15 @@ if ($u->maPravo(P_UBYTOVANI_ZDARMA)) {
 // náhledy
 $nahledy = [
     ['obrazek' => 'Triko.png', 'miniatura' => 'Triiko_detail.png', 'nazev' => 'Tričko'],
-    ['obrazek' => 'Tilko.png', 'miniatura' => 'Tilko_detail.png', 'nazev' => 'Tílko'],
+    ['obrazek' => 'Tilko.jpg', 'miniatura' => 'Tilko_detail.jpg', 'nazev' => 'Tílko'],
     ['obrazek' => 'Kostka_Duna_2022.png', 'miniatura' => 'Kostka_Duna_2022_detail.png', 'nazev' => ROK === 2022 ? 'Kostka' : 'Kostka Duna'],
     ['obrazek' => 'Kostka_Cthulhu_2021.png', 'miniatura' => 'Kostka_Cthulhu_2021_detail.png', 'nazev' => 'Kostka Cthulhu'],
     ['obrazek' => 'Kostka_Fate_2019.png', 'miniatura' => 'Kostka_Fate_2019_detail.png', 'nazev' => 'Fate kostka'],
     ['obrazek' => 'Placka.png', 'miniatura' => 'Placka_detail.png', 'nazev' => 'Placka'],
     ['obrazek' => 'nicknack.jpg', 'miniatura' => 'nicknack_m.jpg', 'nazev' => 'Nicknack'],
     ['obrazek' => 'Ponozky.png', 'miniatura' => 'Ponozky_detail.png', 'nazev' => 'Ponožky'],
-    ['obrazek' => 'Taska.png', 'miniatura' => 'Taska_detail.png', 'nazev' => 'Taška'],
-    ['obrazek' => 'Blok.png', 'miniatura' => 'Blok_detail.png', 'nazev' => 'Taška'],
+    ['obrazek' => 'Taska.jpg', 'miniatura' => 'Taska_detail.jpg', 'nazev' => 'Taška'],
+    ['obrazek' => 'Blok.jpg', 'miniatura' => 'Blok_detail.jpg', 'nazev' => 'Taška'],
 ];
 foreach ($nahledy as $nahled) {
     $cestaKObrazku = cestaKObrazkuPredmetu($nahled['obrazek']);
