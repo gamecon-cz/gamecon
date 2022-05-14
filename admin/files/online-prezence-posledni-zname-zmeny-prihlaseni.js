@@ -29,7 +29,6 @@
       })
 
       request.addEventListener('load', function () {
-        console.log('load')
         if (this.status === 404) {
           nahratZmenyPrihlaseni()
         } else if (this.status === 200 && this.responseText) {
