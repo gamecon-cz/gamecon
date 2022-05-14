@@ -53,7 +53,7 @@
 
     <div class="prihlaska_nahledy">
       <!-- begin: nahled -->
-      <a href="{obrazek}" class="prihlaska_nahled" title="{nazev}">
+      <a href="{obrazek}" class="prihlaska_nahled" title="{nazev}" style="display: {display}">
         <img src="{miniatura}">
       </a>
       <!-- end: nahled -->
