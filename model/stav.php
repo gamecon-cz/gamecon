@@ -31,6 +31,25 @@ class Stav extends DbObject
         ];
     }
 
+    public static function dejNazev(int $stav): string {
+        switch ($stav) {
+            case self::NOVA :
+                return 'nová';
+            case self::AKTIVOVANA :
+                return 'aktivovaná';
+            case self::PROBEHNUTA :
+                return 'proběhnutá';
+            case self::SYSTEMOVA :
+                return 'systémová';
+            case self::PUBLIKOVANA :
+                return 'publikovaná';
+            case self::PRIPRAVENA :
+                return 'připravená';
+            default :
+                throw new LogicException('Neznámý stav aktivity: ' . $stav);
+        }
+    }
+
     protected static $tabulka = 'akce_stav';
     protected static $pk = 'id_stav';
 

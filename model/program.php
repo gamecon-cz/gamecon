@@ -318,6 +318,8 @@ class Program
                 $parametry |= Aktivita::TECHNICKE;
             }
             echo ' ' . $aktivitaObjekt->prihlasovatko($this->u, $parametry);
+        } elseif (defined('TESTING') && TESTING) {
+            echo $aktivitaObjekt::formatujDuvodProTesting('DrD nemá povolené přihlašování');
         }
 
         if ($this->nastaveni['osobni']) {

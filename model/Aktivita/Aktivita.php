@@ -1482,6 +1482,32 @@ SQL
             && $this->a['typ'];
     }
 
+    private function procNeniPrihlasovatelna($parametry): string {
+        $zpetne = $parametry & self::ZPETNE;
+        $technicke = $parametry & self::TECHNICKE;
+
+        if (!(REG_AKTIVIT || ($zpetne && po(REG_GC_DO)))) {
+            return sprintf('Není spuštěna registrace aktivit (začne %s a končí %s)', REG_AKTIVIT_OD, REG_AKTIVIT_DO);
+        }
+        if (!(
+            $this->a['stav'] == \Stav::AKTIVOVANA
+            || ($technicke && $this->a['stav'] == \Stav::NOVA && $this->a['typ'] == \Gamecon\Aktivita\TypAktivity::TECHNICKA)
+            || ($zpetne && $this->a['stav'] == \Stav::PROBEHNUTA)
+        )) {
+            return sprintf(
+                'Aktivita není ve stavu použitelném pro přihlašování, ale %d (%s), technické %s, zpětně %s',
+                $this->a['stav'], \Stav::dejNazev((int)$this->a['stav']), $technicke ? 'ANO' : 'NE', $zpetne ? 'ANO' : 'NE'
+            );
+        }
+        if (!$this->a['zacatek']) {
+            return 'Aktivitě chybí čas začátku';
+        }
+        if (!$this->a['typ']) {
+            return 'Aktivitě chybí typ';
+        }
+        return '';
+    }
+
     /**
      * @return bool jestli je na aktivitu povoleno přihlašování náhradníků
      */
@@ -1497,7 +1523,13 @@ SQL
      */
     public function prihlasovatko(\Uzivatel $u = null, $parametry = 0) {
         $out = '';
-        if ($u && $u->gcPrihlasen() && $this->prihlasovatelna($parametry)) {
+        if (!$u) {
+            $out = self::formatujDuvodProTesting('Nejsi přihlášený/ná');
+        } elseif (!$u->gcPrihlasen()) {
+            $out = self::formatujDuvodProTesting('Nejsi přihlášený/ná na letoční GC');
+        } elseif (!$this->prihlasovatelna($parametry)) {
+            $out = self::formatujDuvodProTesting($this->procNeniPrihlasovatelna($parametry));
+        } else {
             if (($stav = $this->prihlasenStav($u)) > -1) {
                 if ($stav == 0 || $parametry & self::ZPETNE) {
                     $out .=
@@ -1519,9 +1551,9 @@ SQL
                     $out .= '<em>pozdní odhlášení</em>';
                 }
             } elseif ($u->organizuje($this)) {
-                $out = '';
+                $out = self::formatujDuvodProTesting('Tuto aktivitu organizuješ');
             } elseif ($this->a['zamcel']) {
-                $out = '&#128274;'; //zámek
+                $out = '&#128274;' /* zámek */ . self::formatujDuvodProTesting('Aktivita už je zamknutá');
             } else {
                 $volno = $this->volno();
                 if ($volno === 'u' || $volno == $u->pohlavi()) {
@@ -1557,6 +1589,12 @@ SQL
         return $out;
     }
 
+    public static function formatujDuvodProTesting(string $duvod): string {
+        return defined('TESTING') && TESTING
+            ? '<span class="hinted">🙋<span class="hint"><em>(toto se ukazuje pouze na testu)</em><br>' . $duvod . ' </span></span>'
+            : '';
+    }
+
     /** Zpracuje post data z přihlašovátka. Pokud došlo ke změně, vyvolá reload */
     public static function prihlasovatkoZpracuj(\Uzivatel $u = null, $parametry = 0) {
         if (!$u) {
@@ -1587,7 +1625,9 @@ SQL
     }
 
     /**
-     * Přihlásí uživatele jako sledujícího (watchlist)
+     * Dávkově přihlásí uživatele na tuto aktivitu a (bez postihu) odhlásí
+     * aktivity, které s novou aktivitou kolidují
+     * @param $idsUzivatelu array pole s ID uživatelů
      */
     public function prihlasSledujiciho(\Uzivatel $u) {
         // Aktivita musí mít přihlašování náhradníků povoleno
@@ -2476,8 +2516,8 @@ SQL,
      * Vrátí iterátor s aktivitami podle zadané where klauzule. Alias tabulky
      * akce_seznam je 'a'.
      * @param string $where obsah where klauzule (bez úvodního klíč. slova WHERE)
-     * @param array|null $args volitelné pole argumentů pro dbQueryS()
-     * @param string $order volitelně celá klauzule ORDER BY včetně klíč. slova
+     * @param $args array volitelné pole argumentů pro dbQueryS()
+     * @param $order string volitelně celá klauzule ORDER BY včetně klíč. slova
      * @return Aktivita[]
      * @todo třída která obstará reálný iterátor, nejenom obalení pole (nevýhoda pole je nezměněná nutnost čekat, než se celá odpověď načte a přesype do paměti)
      */
