@@ -82,8 +82,8 @@
             📖
           </button>
         </div>
-        <div class="col">
-          <div class="collapse" id="jakNaOnlinePrezenci">
+        <div class="col-sm-12 col-lg">
+          <div class="collapse" id="jakNaOnlinePrezenci" style="margin: 5px 0">
             <div class="card card-body">
               <ul>
                 <li>15 minut předem buď u maskota své sekce.</li>
