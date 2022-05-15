@@ -32,7 +32,13 @@ input:not([disabled])[type=checkbox] {
 
 .tlacitko-testu {
   width: 100%;
-  position: absolute;
-  right: 0;
   z-index: 1;
+}
+
+.font-sized {
+  height: 1.3em;
+}
+
+.hinted:hover {
+  cursor: help;
 }
