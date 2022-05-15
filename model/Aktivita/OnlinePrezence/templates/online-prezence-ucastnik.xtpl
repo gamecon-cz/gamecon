@@ -25,6 +25,18 @@
           ⏰
     </span>
     <!-- end: prihlasenNaPosledniChvili -->
+    <!-- begin:jeToSledujici -->
+    <span class="bg-dark ui-corner-all hinted" data-bs-toggle="tooltip"
+          title="Náhradník">
+      <img alt="Náhradník" class="font-sized" src="../../../../admin/files/design/substitution-icon.jpg">
+    </span>
+    <!-- end:jeToSledujici -->
+    <!-- begin:jeToSledujici -->
+    <span class="bg-dark ui-corner-all hinted" data-bs-toggle="tooltip"
+          title="Je to sledující. Pokud sháníš náhradníka, tenhle bude mít zájem.">
+      👀
+    </span>
+    <!-- end:jeToSledujici -->
   </td>
   <td>{u.jmenoNick}</td>
   <td>
@@ -34,7 +46,8 @@
   </td>
   <td style="text-align: center">
     <!-- begin:checkbox -->
-    <input type="checkbox" class="dorazil" onchange="zmenitUcastnika('{u.id}', '{a.id}', this)" name="dorazil[]" value="{u.id}"
+    <input type="checkbox" class="dorazil" onchange="zmenitUcastnika('{u.id}', '{a.id}', this)" name="dorazil[]"
+           value="{u.id}"
            {checkedUcastnik} {disabledUcastnik} data-initial-checked="{checkedUcastnik}">
     <!-- end:checkbox -->
   </td>
