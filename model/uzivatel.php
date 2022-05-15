@@ -1160,7 +1160,7 @@ SQL,
         }
         $opt = opt($opt, [
             'mail' => false,
-            'jenPritomniNaGc' => false,
+            'jenPrihlaseniAPritomniNaGc' => false,
             'kromeIdUzivatelu' => [],
             'min' => $minimumZnaku,
         ]);
@@ -1177,7 +1177,7 @@ SQL,
 
         return self::zWhere("
       WHERE u.id_uzivatele NOT IN ($kromeIdUzivateluSql)
-      " . ($opt['jenPritomniNaGc'] ? " AND p.id_prava = " . ID_PRAVO_PRITOMEN : "") . "
+      " . ($opt['jenPrihlaseniAPritomniNaGc'] ? " AND p.id_prava IN (" . ID_PRAVO_PRIHLASEN . ',' . ID_PRAVO_PRITOMEN . ')' : "") . "
       AND (
           u.id_uzivatele = $q
           OR login_uzivatele LIKE $l

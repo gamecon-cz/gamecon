@@ -249,7 +249,7 @@ class OnlinePrezenceAjax
                     return (int)$prihlaseny->id();
                 }, $aktivita->prihlaseni()
             ),
-            false,
+            true,
             1 // znaky ovladame v JS pres minLength, v PHP uz to omezovat nechceme
         );
         foreach ($omniboxData as &$prihlasenyUzivatelOmnibox) {
