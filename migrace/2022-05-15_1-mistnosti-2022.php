@@ -49,7 +49,6 @@ VALUES
 (37,'EPIC 7 - klubovna 2p','Budova C, dveře č. 203','Velká klubovna na C',39,0),
 (38,'EPIC 8 - prosklená 2p','Budova C, dveře č. 210','Prosklená klubovna',40,0),
 (82,'EPIC 9 - klubovna 3p','Budova C, dveře č. 303','Velká klubovna na C',41,0),
-(100,'EPIC X','rezervní EPIC','rezerva',42,0),
 (39,'Larp 1 - 1L pokoj 3p.','Budova C, dveře č. 308','Pokoj 1L',43,0),
 (40,'Larp 2 - dvojpokoj 3p.','Budova C, dveře č. 310+311','Dvojmístnost',44,0),
 (41,'Larp 3 - bunkr B','Budova C, suterén, bunkr B','Dveře vzadu vlevo',45,0),
@@ -94,23 +93,24 @@ VALUES
 (76,'Záz 3 - sklad IT','Budova C, přízemí, dveře 30','Pokoj 3L',84,0),
 (77,'Záz 4 - snídárna','Budova B, dveře č. 27','Snídárna na B',85,0),
 (78,'Záz 5 - ostatní','','',86,0),
-(83,'KDD S-vstup','','',87,0),
-(84,'KDD DH-vstup','','',88,0),
-(85,'KDD DH-bar','','',89,0),
-(86,'KDD L1','','',90,0),
-(87,'KDD L2','','',91,0),
-(88,'KDD L3','','',92,0),
-(89,'KDD L4','','',93,0),
-(90,'KDD L5','','',94,0),
-(91,'KDD P1','','',95,0),
-(92,'KDD P2','','',96,0),
-(93,'KDD P3','','',97,0),
-(94,'KDD P4','','',98,0),
-(95,'KDD vstup pod.','','',99,0),
-(96,'SM 1','','',100,0),
-(97,'SM 2','','',101,0),
-(98,'SM 3','','',102,0),
-(99,'SM 4','','',103,0);
+(null,'KDD S-vstup','','',87,0),
+(null,'KDD DH-vstup','','',88,0),
+(null,'KDD DH-bar','','',89,0),
+(null,'KDD L1','','',90,0),
+(null,'KDD L2','','',91,0),
+(null,'KDD L3','','',92,0),
+(null,'KDD L4','','',93,0),
+(null,'KDD L5','','',94,0),
+(null,'KDD P1','','',95,0),
+(null,'KDD P2','','',96,0),
+(null,'KDD P3','','',97,0),
+(null,'KDD P4','','',98,0),
+(null,'KDD vstup pod.','','',99,0),
+(null,'SM 1','','',100,0),
+(null,'SM 2','','',101,0),
+(null,'SM 3','','',102,0),
+(null,'SM 4','','',103,0),
+(null,'EPIC X','rezervní EPIC','rezerva',42,0);
 
 UPDATE akce_lokace
 JOIN akce_lokace_tmp on akce_lokace.id_lokace = akce_lokace_tmp.id_lokace
@@ -119,6 +119,12 @@ SET akce_lokace.nazev = akce_lokace_tmp.nazev,
   akce_lokace.rok = akce_lokace_tmp.rok,
   akce_lokace.dvere = akce_lokace_tmp.dvere,
   akce_lokace.poznamka = akce_lokace_tmp.poznamka;
+
+INSERT INTO akce_lokace (nazev, dvere, poznamka, poradi, rok)
+SELECT akce_lokace_tmp.nazev, akce_lokace_tmp.dvere, akce_lokace_tmp.poznamka, akce_lokace_tmp.poradi, akce_lokace_tmp.rok
+FROM akce_lokace_tmp
+LEFT JOIN akce_lokace ON akce_lokace_tmp.id_lokace = akce_lokace.id_lokace
+WHERE akce_lokace.id_lokace IS NULL;
 
 DROP TEMPORARY TABLE akce_lokace_tmp;
 SQL
