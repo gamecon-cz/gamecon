@@ -605,19 +605,19 @@ function nahradPlaceholderZaKonstantu(?string $value): ?string {
 
 function omnibox(
     string $term,
-    bool   $hledatIVMailech = true,
+    bool   $hledatTakeVMailech = true,
     array  $dataVOdpovedi = [],
     array  $labelSlozenZ = null,
     array  $kromeIdUzivatelu = [],
-    bool   $jenPritomniNaGc = false,
+    bool   $jenPrihlaseniAPritomniNaGc = false,
     int    $minimumZnaku = 3
 ): array {
 
     $uzivatele = Uzivatel::zHledani(
         $term,
         [
-            'mail' => $hledatIVMailech,
-            'jenPritomniNaGc' => $jenPritomniNaGc,
+            'mail' => $hledatTakeVMailech,
+            'jenPrihlaseniAPritomniNaGc' => $jenPrihlaseniAPritomniNaGc,
             'kromeIdUzivatelu' => $kromeIdUzivatelu,
         ],
         20,
