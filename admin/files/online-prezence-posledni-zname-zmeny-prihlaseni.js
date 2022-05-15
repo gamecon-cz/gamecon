@@ -312,15 +312,40 @@
       }, 500)
     }
 
+    /**
+     * @param {HTMLElement} node
+     * @param {string} color
+     */
     function blikni(node, color) {
+      vyradZmenuBarvyPriHover(node)
       zmenBarvuNa(node, color, 0.1)
 
       const intervalTransparentId = setTimeout(function () {
         zmenBarvuNa(node, 'transparent', 0.05)
+        vratZmenuBarvyPriHover(node)
         clearTimeout(intervalTransparentId)
       }, 100)
     }
 
+    /**
+     * @param {HTMLElement} node
+     */
+    function vyradZmenuBarvyPriHover(node) {
+      node.classList.add('no-hover')
+    }
+
+    /**
+     * @param {HTMLElement} node
+     */
+    function vratZmenuBarvyPriHover(node) {
+      node.classList.remove('no-hover')
+    }
+
+    /**
+     * @param {HTMLElement} node
+     * @param {string} color
+     * @param {number} seconds
+     */
     function zmenBarvuNa(node, color, seconds) {
       node.style.backgroundColor = color
       const transition = `background ${seconds}s linear`

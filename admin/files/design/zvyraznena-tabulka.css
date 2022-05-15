@@ -38,6 +38,10 @@
   background-color: #c6e6f8;
 }
 
+.main table.zvyraznovana tr.no-hover:hover td {
+  background-color: inherit;
+}
+
 .main table td img {
   margin: -4px 0;
   border: 0;
