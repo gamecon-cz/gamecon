@@ -103,11 +103,11 @@ class Program
                                 $start = $cas;
                                 $konec = $cas + $akt['del'];
 
-                                if ($this->u->prihlasenJakoSledujiciAktivity($akt['obj']) ||
+                                if ($this->u->prihlasenJakoSledujici($akt['obj']) ||
                                     $akt['obj']->prihlasen($this->u) || $this->u->organizuje($akt['obj'])) {
 
                                     $pdf->Cell(30, 10, $start . ":00 - " . $konec . ":00", 1);
-                                    if ($this->u->prihlasenJakoSledujiciAktivity($akt['obj'])) {
+                                    if ($this->u->prihlasenJakoSledujici($akt['obj'])) {
                                         $pdf->Cell(100, 10, "(n) " . $akt['obj']->nazev(), 1);
                                     } else if ($akt['obj']->prihlasen($this->u)) {
                                         $pdf->Cell(100, 10, $akt['obj']->nazev(), 1);
@@ -281,7 +281,7 @@ class Program
         if ($this->u && $this->u->organizuje($aktivitaObjekt)) {
             $classes[] = 'organizator';
         }
-        if ($this->u && $this->u->prihlasenJakoSledujiciAktivity($aktivitaObjekt)) {
+        if ($this->u && $this->u->prihlasenJakoSledujici($aktivitaObjekt)) {
             $classes[] = 'sledujici';
         }
         if ($aktivitaObjekt->vDalsiVlne()) {
@@ -460,7 +460,7 @@ class Program
         if ($this->nastaveni['osobni']) {
             if (
                 !$a['obj']->prihlasen($this->u) &&
-                !$this->u->prihlasenJakoSledujiciAktivity($a['obj']) &&
+                !$this->u->prihlasenJakoSledujici($a['obj']) &&
                 !$this->u->organizuje($a['obj'])
             ) {
                 return $this->nactiDalsiAktivitu($iterator);
