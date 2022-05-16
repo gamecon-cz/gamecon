@@ -6,13 +6,13 @@
     data-id-posledniho-logu="{idPoslednihoLogu}">
   <td style="text-align: center">
     <!-- begin:pritomen -->
-    <span class="hinted" data-bs-toggle="tooltip" data-bs-html="true"
+    <span data-bs-toggle="tooltip" data-bs-html="true"
           title="<strong>Je přítomen</strong> v tomto okamžiku na GC (prošel infopultem).">
           <img src="files/design/ok-s.png" style="margin-bottom:-1px; width: 1em" alt="OK">
     </span>
     <!-- end:pritomen -->
     <!-- begin:nepritomen -->
-    <span class="hinted" data-bs-toggle="tooltip" data-bs-html="true"
+    <span data-bs-toggle="tooltip" data-bs-html="true"
           title="<strong>Není přítomen</strong> v tomto okamžiku na GC (neprošel infopultem).">
           <img src="files/design/error-s.png" style="margin-bottom:-1px; width: 1em" alt="Not OK">
     </span>
@@ -20,20 +20,26 @@
   </td>
   <td style="text-align: center">
     <!-- begin: prihlasenNaPosledniChvili -->
-    <span class="hinted" data-bs-toggle="tooltip"
+    <span class="na-posledni-chvili" id="ucastnik-{u.id}-na-posledni-chvili-na-aktivitu-{a.id}"
+          data-bs-toggle="tooltip"
           title="Přihlásil se před méně než {minutNaPosledniChvili} minutami před začátkem aktivity a měl by si pospíšit.">
           ⏰
     </span>
     <!-- end: prihlasenNaPosledniChvili -->
-    <!-- begin:jeToSledujici -->
-    <span class="bg-dark ui-corner-all hinted" data-bs-toggle="tooltip"
+    <!-- begin:jeToNahradnik -->
+    <span class="nahradnik {cssTridaDisplayNahradnik}"
+          id="ucastik-{u.id}-je-nahradnik-na-aktivite-{a.id}"
+          data-bs-toggle="tooltip"
           title="Náhradník">
-      <img alt="Náhradník" class="font-sized" src="../../../../admin/files/design/substitution-icon.jpg">
+      <img alt="Náhradník" class="font-sized" src="files/design/substitution-icon.png">
     </span>
-    <!-- end:jeToSledujici -->
+    <!-- end:jeToNahradnik -->
     <!-- begin:jeToSledujici -->
-    <span class="bg-dark ui-corner-all hinted" data-bs-toggle="tooltip"
-          title="Je to sledující. Pokud sháníš náhradníka, tenhle bude mít zájem.">
+    <span class="bg-dark ui-corner-all sledujici {cssTridaDisplaySledujici}"
+          id="ucastik-{u.id}-je-sledujici-aktivity-{a.id}"
+          data-bs-toggle="tooltip"
+          title="Je to sledující. Pokud sháníš náhradníka, tenhle bude mít zájem."
+    >
       👀
     </span>
     <!-- end:jeToSledujici -->

@@ -824,7 +824,7 @@ SQL,
     /**
      * @return bool true, pokud je uživatel přihlášen jako sledující aktivity (ve watchlistu).
      */
-    public function prihlasenJakoSledujiciAktivity(Aktivita $a) {
+    public function prihlasenJakoSledujici(Aktivita $a) {
         if (!isset($this->aktivityJakoSledujici)) {
             $this->aktivityJakoSledujici = dbOneIndex("
         SELECT id_akce
@@ -833,6 +833,10 @@ SQL,
       ", [$this->id(), Aktivita::SLEDUJICI]);
         }
         return isset($this->aktivityJakoSledujici[$a->id()]);
+    }
+
+    public function prihlasenJakoNahradnik(Aktivita $aktivita) {
+        return $aktivita->dorazilJakoNahradnik($this);
     }
 
     /**
