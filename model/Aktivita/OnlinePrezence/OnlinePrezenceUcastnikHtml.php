@@ -46,6 +46,12 @@ class OnlinePrezenceUcastnikHtml
             $ucastnikTemplate->parse('ucastnik.prihlasenNaPosledniChvili');
         }
 
+        if ($ucastnik->prihlasenJakoNahradnik($aktivita)) {
+            $ucastnikTemplate->parse('ucastnik.jeToNahradnik');
+        } elseif ($ucastnik->prihlasenJakoSledujici($aktivita)) {
+            $ucastnikTemplate->parse('ucastnik.jeToSledujici');
+        }
+
         $zmenaStavuPrihlaseni = $aktivita->dejPrezenci()->posledniZmenaStavuPrihlaseni($ucastnik);
         $ucastnikTemplate->assign('casPosledniZmenyPrihlaseni', $zmenaStavuPrihlaseni ? $zmenaStavuPrihlaseni->casZmenyProJs() : '');
         $ucastnikTemplate->assign('stavPrihlaseni', $zmenaStavuPrihlaseni ? $zmenaStavuPrihlaseni->stavPrihlaseniProJs() : '');
