@@ -91,7 +91,7 @@
                 <li>Najdi / svolej si přihlášené hráče. Nepřítomným zkus zavolat.</li>
                 <li>Přihlášeným před < 10 minutami ⏰ dej chvíli na doběhnutí.</li>
                 <li>Volná místa nabídni náhradníkům <img alt="Náhradník" class="font-sized"
-                                                         src="../../../../admin/files/design/substitution-icon.jpg">
+                                                         src="files/design/substitution-icon.png">.
                   Sledující <span class="bg-dark ui-corner-all">👀</span> můžeš oslovit první.
                 </li>
                 <li>Náhradníky přidej na prezenčku.</li>
@@ -192,10 +192,13 @@
                         <div>(do {minutNaPosledniChvili} minut před začátkem aktivity)</div>
                         a je nejspíš na cestě</div>
                         <hr>
-                        <div><img alt='Náhradník' class='font-sized' src='files/design/substitution.jpg'> Náhradník</div>
+                        <div>
+                          <img alt='Náhradník' class='font-sized' src='files/design/substitution-icon.png'>
+                          Náhradník
+                        </div>
                         <hr>
                         <div>👀 Sledující. Pokud sháníš náhradníka, tenhle bude mít zájem.</div>
-">
+                ">
                  <i class="fas fa-user-tie"></i>
                 </span>
               </th>

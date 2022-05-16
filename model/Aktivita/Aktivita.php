@@ -1018,7 +1018,7 @@ class Aktivita
      * Odhlásí uživatele z náhradníků (watchlistu)
      */
     public function odhlasSledujiciho(\Uzivatel $u) {
-        if (!$u->prihlasenJakoSledujiciAktivity($this)) { // Ignorovat pokud není přihlášen jako sledující
+        if (!$u->prihlasenJakoSledujici($this)) { // Ignorovat pokud není přihlášen jako sledující
             return;
         }
         // Uložení odhlášení do DB
@@ -1031,7 +1031,7 @@ class Aktivita
      * Odhlásí ze všech sledování aktivit ve stejný čas jako aktivita po přihlášení na aktivitu.
      * @return bool True pokud došlo k odhlášení nějakých sledování
      */
-    public function odhlasZeSledováníAktivitVeStejnemCase(\Uzivatel $u): bool {
+    public function odhlasZeSledovaniAktivitVeStejnemCase(\Uzivatel $u): bool {
         $konfliktniAktivity = self::zIds(dbOneArray("
       SELECT p.id_akce
       FROM akce_prihlaseni_spec p
@@ -1354,7 +1354,7 @@ SQL
         }
 
         // odhlášení náhradnictví v kolidujících aktivitách
-        $this->odhlasZeSledováníAktivitVeStejnemCase($u);
+        $this->odhlasZeSledovaniAktivitVeStejnemCase($u);
 
         // přihlášení na samu aktivitu (uložení věcí do DB)
         $idAktivity = $this->id();
@@ -1567,7 +1567,7 @@ SQL
                 } elseif ($volno === 'm') {
                     $out = 'pouze mužská místa';
                 } elseif ($this->prihlasovatelnaProSledujici()) {
-                    if ($u->prihlasenJakoSledujiciAktivity($this)) {
+                    if ($u->prihlasenJakoSledujici($this)) {
                         $out =
                             '<form method="post" style="display:inline">' .
                             '<input type="hidden" name="odhlasSledujiciho" value="' . $this->id() . '">' .
@@ -1625,9 +1625,7 @@ SQL
     }
 
     /**
-     * Dávkově přihlásí uživatele na tuto aktivitu a (bez postihu) odhlásí
-     * aktivity, které s novou aktivitou kolidují
-     * @param $idsUzivatelu array pole s ID uživatelů
+     * Přihlásí uživatele jako sledujícího (watchlist)
      */
     public function prihlasSledujiciho(\Uzivatel $u) {
         // Aktivita musí mít přihlašování náhradníků povoleno
@@ -2516,8 +2514,8 @@ SQL,
      * Vrátí iterátor s aktivitami podle zadané where klauzule. Alias tabulky
      * akce_seznam je 'a'.
      * @param string $where obsah where klauzule (bez úvodního klíč. slova WHERE)
-     * @param $args array volitelné pole argumentů pro dbQueryS()
-     * @param $order string volitelně celá klauzule ORDER BY včetně klíč. slova
+     * @param array|null $args volitelné pole argumentů pro dbQueryS()
+     * @param string $order volitelně celá klauzule ORDER BY včetně klíč. slova
      * @return Aktivita[]
      * @todo třída která obstará reálný iterátor, nejenom obalení pole (nevýhoda pole je nezměněná nutnost čekat, než se celá odpověď načte a přesype do paměti)
      */
