@@ -1027,7 +1027,7 @@ class Aktivita
      * Odhlásí uživatele z náhradníků (watchlistu)
      */
     public function odhlasSledujiciho(\Uzivatel $u) {
-        if (!$u->prihlasenJakoSledujiciAktivity($this)) { // Ignorovat pokud není přihlášen jako sledující
+        if (!$u->prihlasenJakoSledujici($this)) { // Ignorovat pokud není přihlášen jako sledující
             return;
         }
         // Uložení odhlášení do DB
@@ -1040,7 +1040,7 @@ class Aktivita
      * Odhlásí ze všech sledování aktivit ve stejný čas jako aktivita po přihlášení na aktivitu.
      * @return bool True pokud došlo k odhlášení nějakých sledování
      */
-    public function odhlasZeSledováníAktivitVeStejnemCase(\Uzivatel $u): bool {
+    public function odhlasZeSledovaniAktivitVeStejnemCase(\Uzivatel $u): bool {
         $konfliktniAktivity = self::zIds(dbOneArray("
       SELECT p.id_akce
       FROM akce_prihlaseni_spec p
@@ -1363,7 +1363,7 @@ SQL
         }
 
         // odhlášení náhradnictví v kolidujících aktivitách
-        $this->odhlasZeSledováníAktivitVeStejnemCase($u);
+        $this->odhlasZeSledovaniAktivitVeStejnemCase($u);
 
         // přihlášení na samu aktivitu (uložení věcí do DB)
         $idAktivity = $this->id();
@@ -1592,7 +1592,7 @@ SQL
                 } elseif ($volno === 'm') {
                     $out = 'pouze mužská místa';
                 } elseif ($this->prihlasovatelnaProSledujici()) {
-                    if ($u->prihlasenJakoSledujiciAktivity($this)) {
+                    if ($u->prihlasenJakoSledujici($this)) {
                         $out =
                             '<form method="post" style="display:inline">' .
                             '<input type="hidden" name="odhlasSledujiciho" value="' . $this->id() . '">' .
