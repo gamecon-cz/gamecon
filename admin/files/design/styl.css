@@ -386,19 +386,11 @@ body {
 }
 
 .aktivityProgramovaLinie {
-  position: relative;
-  overflow: visible;
-  left: 0;
-  width: 100%;
-  height: 0;
+  float: right;
 }
 
-.aktivityProgramovaLinie > form {
-  position: absolute;
-  left: 100px;
-  right: 100px;
-  top: -2px;
-  text-align: center;
+.aktivityProgramovaLinie + div {
+  clear: both;
 }
 
 .aktivityProgramovaLinie form table label {

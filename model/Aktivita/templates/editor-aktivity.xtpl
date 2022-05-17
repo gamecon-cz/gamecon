@@ -119,7 +119,15 @@ $(function(){
     </td>
   </tr>
   <tr>
-    <th><span class="hinted">Kapacita<div class="hint">Univerzálně použitelná místa / místa vyhrazená pro holky / místa vyhrazená pro kluky<br /><br />Kapacita 0/0/0 znamená bez omezení</div></span></th>
+    <th>
+      <span class="hinted">
+        Kapacita
+        <span class="hint">Univerzálně použitelná místa / místa vyhrazená pro holky / místa vyhrazená pro kluky<br />
+          <br />
+          Kapacita 0/0/0 znamená bez omezení
+        </span>
+      </span>
+    </th>
     <td>
       <div id="kapacitaStd">
         <input type="text" style="width:25px" name="{fields}[kapacita]" value="{kapacita}"> /
