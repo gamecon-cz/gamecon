@@ -70,15 +70,7 @@ VALUES
 (60,'Desk 2 - hlavní, pódium','KD, 1. patro, pódium v sále','',68,0),
 (61,'Desk 3 - malá','KD, 1. patro, prosklený sál','Prosklený sál na konci chodby',69,0),
 (62,'WarG 3 - 2. malá','KD, 1. patro, druhá vpravo','',57,0),
-<<<<<<< HEAD
-(63,'zrušeno','','','',0),
-=======
-<<<<<<< Updated upstream
-(63,'zrušeno 2','','','',0),
-=======
 (63,'zrušeno 1','','','',0),
->>>>>>> Stashed changes
->>>>>>> @{-1}
 (64,'Prog 1 - Zahrada KD','Atrium za KD, vchod kolem infopultu','',71,0),
 (65,'Prog 4 - Kino','','',74,0),
 (66,'WarG 4 - Předsálí UP','KD, 1. patro, předsálí','',58,0),
@@ -91,15 +83,7 @@ VALUES
 (73,'Prog 10 - mimo GC','','',80,0),
 (74,'Záz 1 - infopult','KD, přízemí u šaten','',82,0),
 (75,'Záz 2 - štáb','Budova C, přízemí, dveře 28','',83,0),
-<<<<<<< HEAD
-(76,'zrušeno','','','',0),
-=======
-<<<<<<< Updated upstream
-(76,'zrušeno 1','','','',0),
-=======
 (76,'zrušeno 2','','','',0),
->>>>>>> Stashed changes
->>>>>>> @{-1}
 (77,'Záz 4 - snídárna','Budova B, dveře č. 27','Snídárna na B',85,0),
 (78,'Záz 5 - ostatní','','',86,0),
 (79,'Prog 11 - Staňkova','','',81,0),
@@ -131,13 +115,10 @@ VALUES
 (null,'Larp 5 - DDM knihovna','','',47,0);
 
 UPDATE akce_lokace
-<<<<<<< HEAD
-=======
 JOIN akce_lokace_tmp on akce_lokace.nazev = akce_lokace_tmp.nazev
 SET akce_lokace.nazev = UUID();
 
 UPDATE akce_lokace
->>>>>>> @{-1}
 JOIN akce_lokace_tmp on akce_lokace.id_lokace = akce_lokace_tmp.id_lokace
 SET akce_lokace.nazev = akce_lokace_tmp.nazev,
   akce_lokace.poradi = akce_lokace_tmp.poradi,
