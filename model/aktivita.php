@@ -44,14 +44,15 @@ class Aktivita
         POZDE_ZRUSIL = 4,
         SLEDUJICI = 5,
         //ignore a parametry kolem přihlašovátka
-        BEZ_POKUT = 0b00010000,   // odhlášení bez pokut
-        NEPOSILAT_MAILY = 0b10000000,   // odhlášení bez mailů náhradníkům
-        PLUSMINUS = 0b00000001,   // plus/mínus zkratky pro měnění míst v team. aktivitě
-        PLUSMINUS_KAZDY = 0b00000010,   // plus/mínus zkratky pro každého
-        STAV = 0b00000100,   // ignorování stavu
-        TECHNICKE = 0b01000000,   // přihlašovat i skryté technické aktivity
-        ZAMEK = 0b00001000,   // ignorování zamčení
-        ZPETNE = 0b00100000,   // možnost zpětně měnit přihlášení
+        PLUSMINUS = 0b000000001,   // plus/mínus zkratky pro měnění míst v team. aktivitě
+        PLUSMINUS_KAZDY = 0b000000010,   // plus/mínus zkratky pro každého
+        STAV = 0b000000100,   // ignorování stavu
+        ZAMEK = 0b000001000,   // ignorování zamčení
+        BEZ_POKUT = 0b000010000,   // odhlášení bez pokut
+        ZPETNE = 0b000100000,   // možnost zpětně měnit přihlášení
+        TECHNICKE = 0b001000000,   // přihlašovat i skryté technické aktivity
+        NEPOSILAT_MAILY = 0b010000000,   // odhlášení bez mailů náhradníkům
+        DOPREDNE = 0b100000000,   // možnost přihlásit před otevřením registrací na aktivity
         // parametry kolem továrních metod
         JEN_VOLNE = 0b00000001,   // jen volné aktivity
         VEREJNE = 0b00000010;   // jen veřejně viditelné aktivity
@@ -1427,11 +1428,15 @@ SQL
 
     /** Zdali chceme, aby se na aktivitu bylo možné běžně přihlašovat */
     public function prihlasovatelna($parametry = 0) {
+        $dopredne = $parametry & self::DOPREDNE;
         $zpetne = $parametry & self::ZPETNE;
         $technicke = $parametry & self::TECHNICKE;
         // stav 4 je rezervovaný pro viditelné nepřihlašovatelné aktivity
         return (
-            (REG_AKTIVIT || ($zpetne && po(REG_GC_DO))) &&
+            (REG_AKTIVIT
+                || ($dopredne && pred(REG_GC_DO))
+                || ($zpetne && po(REG_GC_DO))
+            ) &&
             (
                 $this->a['stav'] == Stav::AKTIVOVANA ||
                 ($technicke && $this->a['stav'] == Stav::NOVA && $this->a['typ'] == \Gamecon\Aktivita\TypAktivity::TECHNICKA) ||
