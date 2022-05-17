@@ -16,13 +16,72 @@
 
     const $aktivity = $('.aktivita')
 
+    $aktivity.each(function (index, aktivitaNode) {
+      aktivitaNode.addEventListener('novyUcastnik', function (/** @param {{detail: {idAktivity: number, idUzivatele: number}}} event */event) {
+        hlidejNovehoUcastnika(event.detail.idUzivatele, event.detail.idAktivity)
+      })
+    })
+
+    $('.ucastnik').each(function (index, ucastnikNode) {
+      hlidejZmenyMetadatUcastnika(ucastnikNode)
+      aktivujTooltip(ucastnikNode.dataset.id, ucastnikNode.dataset.idAktivity)
+    })
+
     /**
-     * @param {number} idUzivatele
-     * @param {number} idAktivity
+     * @param {number|string} idUzivatele
+     * @param {number|string} idAktivity
      */
     function hlidejNovehoUcastnika(idUzivatele, idAktivity) {
-      hlidejZmenyMetadatUcastnika(document.getElementById(`ucastnik-${idUzivatele}-na-aktivite-${idAktivity}`))
+      hlidejZmenyMetadatUcastnika(dejNodeUcastnika(idUzivatele, idAktivity))
       aktivujTooltip(idUzivatele, idAktivity)
+    }
+
+    /**
+     * @param {number|string} idUzivatele
+     * @param {number|string} idAktivity
+     * @return {HTMLElement}
+     */
+    function dejNodeUcastnika(idUzivatele, idAktivity) {
+      return document.getElementById(`ucastnik-${idUzivatele}-na-aktivite-${idAktivity}`)
+    }
+
+    /**
+     * @param {HTMLElement} ucastnikNode
+     * @param {string} stavPrihlaseni
+     */
+    function zobrazTypUcastnika(ucastnikNode, stavPrihlaseni) {
+      const idUzivatele = ucastnikNode.dataset.id
+      const idAktivity = ucastnikNode.dataset.idAktivity
+      const jeNahradnik = document.getElementById(`ucastik-${idUzivatele}-je-nahradnik-na-aktivite-${idAktivity}`)
+      const jeSledujici = document.getElementById(`ucastik-${idUzivatele}-je-sledujici-aktivity-${idAktivity}`)
+      switch (stavPrihlaseni) {
+        case 'sledujici_se_prihlasil' :
+          skryt(jeNahradnik)
+          zobrazit(jeSledujici)
+          break
+        case 'nahradnik_dorazil' :
+        case 'nahradnik_nedorazil' :
+          skryt(jeSledujici)
+          zobrazit(jeNahradnik)
+          break
+        default :
+          skryt(jeNahradnik)
+          skryt(jeSledujici)
+      }
+    }
+
+    /**
+     * @param {HTMLElement} node
+     */
+    function skryt(node) {
+      node.classList.add('display-none')
+    }
+
+    /**
+     * @param {HTMLElement} node
+     */
+    function zobrazit(node) {
+      node.classList.remove('display-none')
     }
 
     /**
@@ -36,29 +95,14 @@
       })
     }
 
-    $aktivity.each(function (index, aktivitaNode) {
-      aktivitaNode.addEventListener(
-        'novyUcastnik',
-        function (/** @param {{detail: {idAktivity: number, idUzivatele: number}}} event */event) {
-          hlidejNovehoUcastnika(event.detail.idUzivatele, event.detail.idAktivity)
-        },
-      )
-    })
-
-    $('.ucastnik').each(function (index, ucastnikNode) {
-      hlidejZmenyMetadatUcastnika(ucastnikNode)
-    })
-
     /**
      * @param {HTMLElement} ucastnikNode
      */
     function hlidejZmenyMetadatUcastnika(ucastnikNode) {
-      ucastnikNode.addEventListener(
-        'zmenaMetadatPrezence',
-        function (/** @param {{detail: {casPosledniZmenyPrihlaseni: string, stavPrihlaseni: string, idPoslednihoLogu: number}}} event */event) {
-          zapisMetadataPrezence(ucastnikNode, event.detail)
-        },
-      )
+      ucastnikNode.addEventListener('zmenaMetadatPrezence', function (/** @param {{detail: {casPosledniZmenyPrihlaseni: string, stavPrihlaseni: string, idPoslednihoLogu: number}}} event */event) {
+        zapisMetadataPrezence(ucastnikNode, event.detail)
+        zobrazTypUcastnika(ucastnikNode, event.detail.stavPrihlaseni)
+      })
     }
 
     /**
@@ -66,9 +110,7 @@
      * @param {{casPosledniZmenyPrihlaseni: string, stavPrihlaseni: string, idPoslednihoLogu: number, callback: function|undefined}} metadataPrezence
      */
     function zapisMetadataPrezence(ucastnikNode, metadataPrezence) {
-      if (ucastnikNode.dataset.idPoslednihoLogu
-        && Number(ucastnikNode.dataset.idPoslednihoLogu) >= metadataPrezence.idPoslednihoLogu
-      ) {
+      if (ucastnikNode.dataset.idPoslednihoLogu && Number(ucastnikNode.dataset.idPoslednihoLogu) >= metadataPrezence.idPoslednihoLogu) {
         return // změna je stejná nebo dokonce starší, než už známe
       }
       ucastnikNode.dataset.casPosledniZmenyPrihlaseni = metadataPrezence.casPosledniZmenyPrihlaseni
@@ -103,15 +145,11 @@
      * @param {number} idAktivity
      */
     function vypustEventONovemUcastnikovi(idUzivatele, idAktivity) {
-      const novyUcastnik = new CustomEvent(
-        'novyUcastnik',
-        {
-          detail: {
-            idAktivity: idAktivity,
-            idUzivatele: idUzivatele,
-          },
+      const novyUcastnik = new CustomEvent('novyUcastnik', {
+        detail: {
+          idAktivity: idAktivity, idUzivatele: idUzivatele,
         },
-      )
+      })
       document.getElementById(`aktivita-${idAktivity}`).dispatchEvent(novyUcastnik)
     }
 
@@ -127,20 +165,15 @@
         const ucastniciAktivityNode = $(`#ucastniciAktivity${idAktivity}`)
         const novyUcastnik = $(ui.item.html)
 
-        zmenitUcastnika(
-          idUzivatele,
-          idAktivity,
-          novyUcastnik.find('input')[0],
-          function () {
-            /**
-             * Teprve až backend potvrdí uložení vybraného účastníka a JS přidá čas poslední změny a stav přihlášení,
-             * tak můžeme přidat řádek s tímto účastníkem.
-             * Data z řádku totiž potřebujeme pro kontrolu změn v online-prezence-posledni-zname-zmeny-prihlaseni.js
-             */
-            ucastniciAktivityNode.append(novyUcastnik)
-            vypustEventONovemUcastnikovi(idUzivatele, idAktivity)
-          },
-        )
+        zmenitPritomnostUcastnika(idUzivatele, idAktivity, novyUcastnik.find('input')[0], function () {
+          /**
+           * Teprve až backend potvrdí uložení vybraného účastníka a JS přidá čas poslední změny a stav přihlášení,
+           * tak můžeme přidat řádek s tímto účastníkem.
+           * Data z řádku totiž potřebujeme pro kontrolu změn v online-prezence-posledni-zname-zmeny-prihlaseni.js
+           */
+          ucastniciAktivityNode.append(novyUcastnik)
+          vypustEventONovemUcastnikovi(idUzivatele, idAktivity)
+        })
 
         // vyrušení default výběru do boxu
         event.preventDefault()
@@ -358,15 +391,19 @@
  * @param {HTMLElement} checkboxNode
  * @param {function|undefined} callbackOnSuccess
  */
-function zmenitUcastnika(idUzivatele, idAktivity, checkboxNode, callbackOnSuccess) {
+function zmenitPritomnostUcastnika(idUzivatele, idAktivity, checkboxNode, callbackOnSuccess) {
   checkboxNode.disabled = true
   dorazil = checkboxNode.checked
   $.post(location.href, {
     /**
      * @see \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax::odbavAjax
-     * @see \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax::ajaxZmenitUcastnikaAktivity
+     * @see \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax::ajaxZmenitPritomnostUcastnika
      */
-    akce: 'zmenitUcastnika', idAktivity: idAktivity, idUzivatele: idUzivatele, dorazil: dorazil ? 1 : 0, ajax: 1,
+    akce: 'zmenitPritomnostUcastnika',
+    idAktivity: idAktivity,
+    idUzivatele: idUzivatele,
+    dorazil: dorazil ? 1 : 0,
+    ajax: 1,
   }).done(/** @param {void|{prihlasen: boolean, cas_posledni_zmeny_prihlaseni: string, stav_prihlaseni: string, id_logu: string}} data */function (data) {
     checkboxNode.disabled = false
     if (data && typeof data.prihlasen == 'boolean') {
@@ -406,9 +443,7 @@ const akceAktivity = new class AkceAktivity {
   uzavritAktivitu(idAktivity, skrytElement, zobrazitElement) {
     const that = this
     $.post(location.href, {
-      akce: 'uzavrit',
-      id: idAktivity,
-      ajax: true,
+      akce: 'uzavrit', id: idAktivity, ajax: true,
     }).done(function (/** @param {{maPravoNaZmenuHistorieAktivit: boolean}} data */data) {
       that.prohoditZobrazeni(skrytElement, zobrazitElement)
       if (data.maPravoNaZmenuHistorieAktivit) {

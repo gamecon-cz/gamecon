@@ -6,6 +6,7 @@ use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\AktivitaPrezence;
 use Gamecon\Aktivita\PosledniZmenyStavuPrihlaseni;
 use Gamecon\Aktivita\RazitkoPosledniZmenyPrihlaseni;
+use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\ZmenaStavuPrihlaseni;
 use Symfony\Component\Filesystem\Filesystem;
 use function PHPUnit\Framework\returnArgument;
@@ -76,12 +77,12 @@ class OnlinePrezenceAjax
             return true;
         }
 
-        if (post('akce') === 'zmenitUcastnika') {
+        if (post('akce') === 'zmenitPritomnostUcastnika') {
             $zdaDorazil = post('dorazil');
             if ($zdaDorazil !== null) {
                 $zdaDorazil = (bool)$zdaDorazil;
             }
-            $this->ajaxZmenitUcastnikaAktivity(
+            $this->ajaxZmenitPritomnostUcastnika(
                 (int)post('idUzivatele'),
                 (int)post('idAktivity'),
                 $zdaDorazil,
@@ -127,11 +128,11 @@ class OnlinePrezenceAjax
                 self::ID_UZIVATELE => $zmenaStavuPrihlaseni->idUzivatele(),
                 self::ID_LOGU => $zmenaStavuPrihlaseni->idLogu(),
                 self::CAS_ZMENY => $zmenaStavuPrihlaseni->casZmenyProJs(),
-                self::STAV_PRIHLASENI => $zmenaStavuPrihlaseni->stavPrihlaseniProJs(),
+                self::STAV_PRIHLASENI => $zmenaStavuPrihlaseni->typPrezenceProJs(),
                 self::HTML_UCASTNIKA => $this->onlinePrezenceHtml->sestavHmlUcastnikaAktivity(
                     \Uzivatel::zId($zmenaStavuPrihlaseni->idUzivatele()),
                     $aktivita,
-                    $zmenaStavuPrihlaseni->dorazilNejak(),
+                    $zmenaStavuPrihlaseni->stavPrihlaseni(),
                     false
                 ),
             ];
@@ -180,7 +181,7 @@ class OnlinePrezenceAjax
         echo json_encode($data, JSON_THROW_ON_ERROR);
     }
 
-    private function ajaxZmenitUcastnikaAktivity(int $idUzivatele, int $idAktivity, ?bool $dorazil) {
+    private function ajaxZmenitPritomnostUcastnika(int $idUzivatele, int $idAktivity, ?bool $dorazil) {
         $ucastnik = \Uzivatel::zId($idUzivatele);
         if (!$ucastnik) {
             $this->echoErrorJson('Chybné ID účastníka');
@@ -211,7 +212,7 @@ class OnlinePrezenceAjax
         $this->echoJson([
             self::PRIHLASEN => $aktivita->dorazilJakoCokoliv($ucastnik),
             self::CAS_POSLEDNI_ZMENY_PRIHLASENI => $posledniZmenaStavuPrihlaseni->casZmenyProJs(),
-            self::STAV_PRIHLASENI => $posledniZmenaStavuPrihlaseni->stavPrihlaseniProJs(),
+            self::STAV_PRIHLASENI => $posledniZmenaStavuPrihlaseni->typPrezenceProJs(),
             self::ID_LOGU => $posledniZmenaStavuPrihlaseni->idLogu(),
         ]);
     }
@@ -260,7 +261,9 @@ class OnlinePrezenceAjax
             $ucastnikHtml = $this->onlinePrezenceHtml->sestavHmlUcastnikaAktivity(
                 $prihlasenyUzivatel,
                 $aktivita,
-                true /* jenom zobrazeni - skutečné uložení, že dorazil, řešíme už po vybrání uživatele z omniboxu, což je ještě před vykreslením účastníka */,
+                /* jenom zobrazeni - skutečné uložení, že dorazil, řešíme už po vybrání uživatele z omniboxu,
+                   což je ještě před vykreslením účastníka */
+                StavPrihlaseni::DORAZIL_JAKO_NAHRADNIK,
                 false
             );
             $prihlasenyUzivatelOmnibox['html'] = $ucastnikHtml;
