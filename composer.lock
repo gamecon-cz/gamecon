@@ -309,16 +309,16 @@
         },
         {
             "name": "google/apiclient-services",
-            "version": "v0.248.0",
+            "version": "v0.249.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/googleapis/google-api-php-client-services.git",
-                "reference": "5967583706b1b09c49d04e3c1c3c05e459b0767e"
+                "reference": "95df14183356e45291e1c686cea57850281101db"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/googleapis/google-api-php-client-services/zipball/5967583706b1b09c49d04e3c1c3c05e459b0767e",
-                "reference": "5967583706b1b09c49d04e3c1c3c05e459b0767e",
+                "url": "https://api.github.com/repos/googleapis/google-api-php-client-services/zipball/95df14183356e45291e1c686cea57850281101db",
+                "reference": "95df14183356e45291e1c686cea57850281101db",
                 "shasum": ""
             },
             "require": {
@@ -347,9 +347,9 @@
             ],
             "support": {
                 "issues": "https://github.com/googleapis/google-api-php-client-services/issues",
-                "source": "https://github.com/googleapis/google-api-php-client-services/tree/v0.248.0"
+                "source": "https://github.com/googleapis/google-api-php-client-services/tree/v0.249.0"
             },
-            "time": "2022-05-09T01:06:12+00:00"
+            "time": "2022-05-16T01:10:12+00:00"
         },
         {
             "name": "google/auth",
@@ -2836,12 +2836,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "2ed308386e65cafaadd54723f5b57775374c2ae8"
+                "reference": "c491d086242983f784b8af91cbb9de43d3374971"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/2ed308386e65cafaadd54723f5b57775374c2ae8",
-                "reference": "2ed308386e65cafaadd54723f5b57775374c2ae8",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/c491d086242983f784b8af91cbb9de43d3374971",
+                "reference": "c491d086242983f784b8af91cbb9de43d3374971",
                 "shasum": ""
             },
             "conflict": {
@@ -2874,6 +2874,7 @@
                 "bolt/core": "<=4.2",
                 "bottelet/flarepoint": "<2.2.1",
                 "brightlocal/phpwhois": "<=4.2.5",
+                "brotkrueml/codehighlight": "<2.7",
                 "buddypress/buddypress": "<7.2.1",
                 "bugsnag/bugsnag-laravel": ">=2,<2.0.2",
                 "bytefury/crater": "<6.0.2",
@@ -3318,7 +3319,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-05-11T11:06:18+00:00"
+            "time": "2022-05-16T08:10:11+00:00"
         },
         {
             "name": "sebastian/cli-parser",
