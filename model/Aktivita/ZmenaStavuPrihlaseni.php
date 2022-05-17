@@ -4,23 +4,23 @@ namespace Gamecon\Aktivita;
 
 class ZmenaStavuPrihlaseni
 {
-    private const UCASTNIK_SE_PRIHLASIL = 'ucastnik_se_prihlasil';
-    private const UCASTNIK_SE_ODHLASIL = 'ucastnik_se_odhlasil';
-    private const UCASTNIK_DORAZIL = 'ucastnik_dorazil';
-    private const UCASTNIK_NEDORAZIL = 'ucastnik_nedorazil';
-    private const SLEDUJICI_SE_PRIHLASIL = 'sledujici_se_prihlasil';
-    private const SLEDUJICI_SE_ODHLASIL = 'sledujici_se_odhlasil';
-    private const NAHRADNIK_DORAZIL = 'nahradnik_dorazil';
-    private const NAHRADNIK_NEDORAZIL = 'nahradnik_nedorazil';
+    private const UCASTNIK_SE_PRIHLASIL_JS = 'ucastnik_se_prihlasil';
+    private const UCASTNIK_SE_ODHLASIL_JS = 'ucastnik_se_odhlasil';
+    private const UCASTNIK_DORAZIL_JS = 'ucastnik_dorazil';
+    private const UCASTNIK_NEDORAZIL_JS = 'ucastnik_nedorazil';
+    private const SLEDUJICI_SE_PRIHLASIL_JS = 'sledujici_se_prihlasil';
+    private const SLEDUJICI_SE_ODHLASIL_JS = 'sledujici_se_odhlasil';
+    private const NAHRADNIK_DORAZIL_JS = 'nahradnik_dorazil';
+    private const NAHRADNIK_NEDORAZIL_JS = 'nahradnik_nedorazil';
 
     public static function vytvorZDatDatabaze(
         int                $idUzivatele,
         int                $idAktivity,
         int                $idLogu,
         \DateTimeImmutable $casZmeny,
-        string             $stavPrihlaseni
+        string             $typPrezence/** @see AktivitaPrezenceTyp */
     ): self {
-        return new static($idUzivatele, $idAktivity, $idLogu, $casZmeny, $stavPrihlaseni);
+        return new static($idUzivatele, $idAktivity, $idLogu, $casZmeny, $typPrezence);
     }
 
     /** @var int */
@@ -32,17 +32,17 @@ class ZmenaStavuPrihlaseni
     /** @var \DateTimeImmutable */
     private $casZmeny;
     /** @var string */
-    private $stavPrihlaseni;
+    private $typPrezence;
 
-    public function __construct(int $idUzivatele, int $idAktivity, int $idLogu, \DateTimeImmutable $casZmeny, string $stavPrihlaseni) {
-        if ($stavPrihlaseni && !AktivitaPrezenceTyp::jeZnamy($stavPrihlaseni)) {
-            throw new \LogicException('Neznamy stav prihlaseni ' . var_export($stavPrihlaseni, true));
+    public function __construct(int $idUzivatele, int $idAktivity, int $idLogu, \DateTimeImmutable $casZmeny, string $typPrezence) {
+        if ($typPrezence && !AktivitaPrezenceTyp::jeZnamy($typPrezence)) {
+            throw new \LogicException('Neznamy stav prihlaseni ' . var_export($typPrezence, true));
         }
         $this->idUzivatele = $idUzivatele;
         $this->idAktivity = $idAktivity;
         $this->idLogu = $idLogu;
         $this->casZmeny = $casZmeny;
-        $this->stavPrihlaseni = $stavPrihlaseni;
+        $this->typPrezence = $typPrezence;
     }
 
     public function idUzivatele(): int {
@@ -61,8 +61,30 @@ class ZmenaStavuPrihlaseni
         return $this->casZmeny;
     }
 
-    public function stavPrihlaseni(): string {
-        return $this->stavPrihlaseni;
+    public function typPrezence(): string {
+        return $this->typPrezence;
+    }
+
+    public function stavPrihlaseni(): int {
+        switch ($this->typPrezence()) {
+            case AktivitaPrezenceTyp::PRIHLASENI :
+                return StavPrihlaseni::PRIHLASEN;
+            case AktivitaPrezenceTyp::DORAZIL :
+                return StavPrihlaseni::PRIHLASEN_A_DORAZIL;
+            case AktivitaPrezenceTyp::NEDOSTAVENI_SE :
+                return StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL;
+            case AktivitaPrezenceTyp::DORAZIL_JAKO_NAHRADNIK :
+                return StavPrihlaseni::DORAZIL_JAKO_NAHRADNIK;
+            case AktivitaPrezenceTyp::PRIHLASENI_SLEDUJICI :
+                return StavPrihlaseni::SLEDUJICI;
+            case AktivitaPrezenceTyp::ODHLASENI :
+            case AktivitaPrezenceTyp::ODHLASENI_HROMADNE :
+            case AktivitaPrezenceTyp::NAHRADNIK_NEDORAZIL :
+            case AktivitaPrezenceTyp::ODHLASENI_SLEDUJICI :
+                return -1; // pro tyto stavy nemáme ekvivalent
+            default :
+                throw new \RuntimeException('Neznámý typ prezence ' . $this->typPrezence());
+        }
     }
 
     public function casZmenyProJs(): string {
@@ -74,34 +96,30 @@ class ZmenaStavuPrihlaseni
      * Změna hodnoty konstanty v PHP tak neohrozí funkčnost JavaScriptové logiky.
      * @return null|string
      */
-    public function stavPrihlaseniProJs(): ?string {
-        switch ($this->stavPrihlaseni()) {
+    public function typPrezenceProJs(): ?string {
+        switch ($this->typPrezence()) {
             // ÚČASTNÍK
             case AktivitaPrezenceTyp::PRIHLASENI :
-                return self::UCASTNIK_SE_PRIHLASIL;
+                return self::UCASTNIK_SE_PRIHLASIL_JS;
             case AktivitaPrezenceTyp::ODHLASENI :
             case AktivitaPrezenceTyp::ODHLASENI_HROMADNE :
-                return self::UCASTNIK_SE_ODHLASIL;
+                return self::UCASTNIK_SE_ODHLASIL_JS;
             case AktivitaPrezenceTyp::NEDOSTAVENI_SE :
-                return self::UCASTNIK_NEDORAZIL;
+                return self::UCASTNIK_NEDORAZIL_JS;
             case AktivitaPrezenceTyp::DORAZIL :
-                return self::UCASTNIK_DORAZIL;
+                return self::UCASTNIK_DORAZIL_JS;
             // SLEDUJÍCÍ
             case AktivitaPrezenceTyp::PRIHLASENI_SLEDUJICI :
-                return self::SLEDUJICI_SE_PRIHLASIL;
+                return self::SLEDUJICI_SE_PRIHLASIL_JS;
             case AktivitaPrezenceTyp::ODHLASENI_SLEDUJICI :
-                return self::SLEDUJICI_SE_ODHLASIL;
+                return self::SLEDUJICI_SE_ODHLASIL_JS;
             // NÁHRADNÍK
             case AktivitaPrezenceTyp::DORAZIL_JAKO_NAHRADNIK :
-                return self::NAHRADNIK_DORAZIL;
+                return self::NAHRADNIK_DORAZIL_JS;
             case AktivitaPrezenceTyp::NAHRADNIK_NEDORAZIL :
-                return self::NAHRADNIK_NEDORAZIL; // nebo spíš odešel, popřípadě to byl omyl ve vyplňování prezence
+                return self::NAHRADNIK_NEDORAZIL_JS; // nebo spíš odešel, popřípadě to byl omyl ve vyplňování prezence
             default :
                 return null; // nějaký pro JS nezajímavý stav
         }
-    }
-
-    public function dorazilNejak(): bool {
-        return $this->stavPrihlaseni() !== null && AktivitaPrezenceTyp::dorazilNejak($this->stavPrihlaseni());
     }
 }
