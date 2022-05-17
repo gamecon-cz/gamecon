@@ -150,10 +150,10 @@ class DateTimeCz extends \DateTime
 
     /** Jestli je tento okamžik před okamžikem $d2 */
     function pred($d2) {
-        if ($d2 instanceof \DateTime)
+        if ($d2 instanceof \DateTime) {
             return $this->getTimestamp() < $d2->getTimestamp();
-        else
-            return $this->getTimestamp() < strtotime($d2);
+        }
+        return $this->getTimestamp() < strtotime($d2);
     }
 
     /**
