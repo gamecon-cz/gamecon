@@ -465,6 +465,7 @@ const akceAktivity = new class AkceAktivity {
   uzavritAktivitu(idAktivity, skrytElement, zobrazitElement) {
     const that = this
     $.post(location.href, {
+      /** viz \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax::ajaxUzavritAktivitu */
       akce: 'uzavrit', id: idAktivity, ajax: true,
     }).done(function (/** @param {{maPravoNaZmenuHistorieAktivit: boolean}} data */data) {
       that.prohoditZobrazeni(skrytElement, zobrazitElement)
