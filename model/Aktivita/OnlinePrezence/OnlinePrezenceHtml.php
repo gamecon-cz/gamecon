@@ -37,7 +37,7 @@ class OnlinePrezenceHtml
 
     public function dejHtmlOnlinePrezence(
         \Uzivatel          $editujici,
-        array              $aktivity,
+        array              $organizovaneAktivity,
         int                $editovatelnaXMinutPredZacatkem = 20,
         \DateTimeInterface $now = null
     ): string {
@@ -61,10 +61,10 @@ class OnlinePrezenceHtml
 
         $this->pridejLokalniAssety($template);
 
-        if (count($aktivity) === 0) {
+        if (count($organizovaneAktivity) === 0) {
             $template->parse('onlinePrezence.zadnaAktivita');
         } else {
-            $this->sestavHtmlOnlinePrezence($template, $editujici, $aktivity, $editovatelnaXMinutPredZacatkem, $now);
+            $this->sestavHtmlOnlinePrezence($template, $editujici, $organizovaneAktivity, $editovatelnaXMinutPredZacatkem, $now);
         }
 
         $template->parse('onlinePrezence');
@@ -79,7 +79,6 @@ class OnlinePrezenceHtml
                 __DIR__ . '/../../../admin/files/design/online-prezence.css',
             ],
             'javascripts' => [
-                __DIR__ . '/../../../admin/files/bootstrap-tooltip-initialization.js',
                 __DIR__ . '/../../../admin/files/omnibox.js',
                 __DIR__ . '/../../../admin/files/online-prezence.js',
                 __DIR__ . '/../../../admin/files/online-prezence-posledni-zname-zmeny-prihlaseni.js',
@@ -149,11 +148,11 @@ class OnlinePrezenceHtml
                 $template->parse('onlinePrezence.aktivity.aktivita.pozorNaKonecAktivity');
             }
 
-            foreach ($aktivita->prihlaseni() as $prihlasenyUzivatel) {
+            foreach ($this->seradDleStavuPrihlaseni($aktivita->prihlaseni(), $aktivita) as $prihlasenyUzivatel) {
                 $ucastnikHtml = $this->dejOnlinePrezenceUcastnikHtml()->sestavHmlUcastnikaAktivity(
                     $prihlasenyUzivatel,
                     $aktivita,
-                    $aktivita->dorazilJakoCokoliv($prihlasenyUzivatel),
+                    $aktivita->stavPrihlaseni($prihlasenyUzivatel),
                     $muzeMenitUcastniky
                 );
                 $template->assign('ucastnikHtml', $ucastnikHtml);
@@ -170,6 +169,7 @@ class OnlinePrezenceHtml
             $template->parse('onlinePrezence.aktivity.aktivita.form.pridatUcastnika');
 
             $template->assign('nadpis', implode(' – ', array_filter([$aktivita->nazev(), $aktivita->orgJmena(), $aktivita->lokace()])));
+            $template->assign('zacatek', $aktivita->zacatek() ? $aktivita->zacatek()->format('l H:i') : '-nevíme-');
             $template->assign('minutNaPosledniChvili', $this->naPosledniChviliXMinutPredZacatkem);
             $template->parse('onlinePrezence.aktivity.aktivita.form');
 
@@ -190,6 +190,18 @@ class OnlinePrezenceHtml
         $template->assign('idsPoslednichLoguUcastnikuAjaxKlic', OnlinePrezenceAjax::IDS_POSLEDNICH_LOGU_UCASTNIKU_AJAX_KLIC);
 
         $template->parse('onlinePrezence.aktivity');
+    }
+
+    /**
+     * @param \Uzivatel[] $prihlaseni
+     * @return void
+     */
+    private function seradDleStavuPrihlaseni(array $prihlaseni, Aktivita $aktivita) {
+        usort($prihlaseni, function (\Uzivatel $nejakyPrihlaseny, $jinyPrihlaseny) use ($aktivita) {
+            // běžní účastníci první, náhradníci druzí, sledující poslední
+            return -($aktivita->stavPrihlaseni($nejakyPrihlaseny) <=> $aktivita->stavPrihlaseni($jinyPrihlaseny));
+        });
+        return $prihlaseni;
     }
 
     private static function dejEditovatelnaOdTimestamp(Aktivita $aktivita, int $editovatelnaXMinutPredZacatkem, \DateTimeInterface $now): int {
@@ -220,10 +232,10 @@ class OnlinePrezenceHtml
     public function sestavHmlUcastnikaAktivity(
         \Uzivatel $ucastnik,
         Aktivita  $aktivita,
-        bool      $dorazil,
+        int       $stavPrihlaseni,
         bool      $zatimPouzeProCteni
     ): string {
         return $this->dejOnlinePrezenceUcastnikHtml()
-            ->sestavHmlUcastnikaAktivity($ucastnik, $aktivita, $dorazil, $zatimPouzeProCteni);
+            ->sestavHmlUcastnikaAktivity($ucastnik, $aktivita, $stavPrihlaseni, $zatimPouzeProCteni);
     }
 }

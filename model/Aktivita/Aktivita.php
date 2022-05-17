@@ -43,12 +43,12 @@ class Aktivita
         HAJENI = 72,      // počet hodin po kterýc aktivita automatick vykopává nesestavený tým
         LIMIT_POPIS_KRATKY = 180,  // max počet znaků v krátkém popisku
         // stavy přihlášení, viz tabulka akce_prihlaseni_stavy
-        PRIHLASEN = 0,
-        PRIHLASEN_A_DORAZIL = 1,
-        DORAZIL_JAKO_NAHRADNIK = 2,
-        PRIHLASEN_ALE_NEDORAZIL = 3,
-        POZDE_ZRUSIL = 4,
-        SLEDUJICI = 5,
+        PRIHLASEN = StavPrihlaseni::PRIHLASEN,
+        PRIHLASEN_A_DORAZIL = StavPrihlaseni::PRIHLASEN_A_DORAZIL,
+        DORAZIL_JAKO_NAHRADNIK = StavPrihlaseni::DORAZIL_JAKO_NAHRADNIK,
+        PRIHLASEN_ALE_NEDORAZIL = StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL,
+        POZDE_ZRUSIL = StavPrihlaseni::POZDE_ZRUSIL,
+        SLEDUJICI = StavPrihlaseni::SLEDUJICI,
         //ignore a parametry kolem přihlašovátka
         PLUSMINUS = 0b000000001,   // plus/mínus zkratky pro měnění míst v team. aktivitě
         PLUSMINUS_KAZDY = 0b000000010,   // plus/mínus zkratky pro každého
@@ -1426,10 +1426,11 @@ SQL
     }
 
     /**
+     * @see \Gamecon\Aktivita\StavPrihlaseni
      * Vrátí stav přihlášení uživatele na aktivitu. Pokud není přihlášen, vrací
      * hodnotu -1.
      */
-    private function prihlasenStav(\Uzivatel $u): int {
+    public function stavPrihlaseni(\Uzivatel $u): int {
         $prihlaseni = $this->prihlaseniRaw();
         $usymbol = ',' . $u->id() . $u->pohlavi();
         $pos = strpos($prihlaseni, $usymbol);
@@ -1449,19 +1450,19 @@ SQL
     }
 
     public function dorazilJakoCokoliv(\Uzivatel $uzivatel): bool {
-        $stav = $this->prihlasenStav($uzivatel);
+        $stav = $this->stavPrihlaseni($uzivatel);
 
         return in_array($stav, [self::PRIHLASEN_A_DORAZIL, self::DORAZIL_JAKO_NAHRADNIK]);
     }
 
     public function dorazilJakoNahradnik(\Uzivatel $uzivatel): bool {
-        $stav = $this->prihlasenStav($uzivatel);
+        $stav = $this->stavPrihlaseni($uzivatel);
 
         return $stav === self::DORAZIL_JAKO_NAHRADNIK;
     }
 
     public function dorazilJakoPredemPrihlaseny(\Uzivatel $uzivatel): bool {
-        $stav = $this->prihlasenStav($uzivatel);
+        $stav = $this->stavPrihlaseni($uzivatel);
 
         return $stav === self::PRIHLASEN_A_DORAZIL;
     }
@@ -1530,7 +1531,7 @@ SQL
         } elseif (!$this->prihlasovatelna($parametry)) {
             $out = self::formatujDuvodProTesting($this->procNeniPrihlasovatelna($parametry));
         } else {
-            if (($stav = $this->prihlasenStav($u)) > -1) {
+            if (($stav = $this->stavPrihlaseni($u)) > -1) {
                 if ($stav == 0 || $parametry & self::ZPETNE) {
                     $out .=
                         '<form method="post" style="display:inline">' .
