@@ -27,11 +27,11 @@ class Aktivita
 
     const
         AJAXKLIC = 'aEditFormTest',  // název post proměnné, ve které jdou data, pokud chceme ajaxově testovat jejich platnost a čekáme json odpověď
-        KOLA = 'aTeamFormKolo',      // název post proměnné s výběrem kol pro team
         OBRKLIC = 'aEditObrazek',    // název proměnné, v které bude případně obrázek
         TAGYKLIC = 'aEditTag',       // název proměnné, v které jdou tagy
         POSTKLIC = 'aEditForm',      // název proměnné (ve výsledku pole), v které bude editační formulář aktivity předávat data
         TEAMKLIC = 'aTeamForm',      // název post proměnné s formulářem pro výběr teamu
+        TEAMKLIC_KOLA = 'aTeamFormKolo',      // název post proměnné s výběrem kol pro team
         PN_PLUSMINUSP = 'cAktivitaPlusminusp',  // název post proměnné pro úpravy typu plus
         PN_PLUSMINUSM = 'cAktivitaPlusminusm',  // název post proměnné pro úpravy typu mínus
         HAJENI = 72,      // počet hodin po kterýc aktivita automatick vykopává nesestavený tým
@@ -1431,7 +1431,7 @@ SQL
             || ($zpetne && $this->a['stav'] == \Stav::PROBEHNUTA)
         )) {
             return sprintf(
-                'Aktivita není ve stavu použitelném pro přihlašování, ale %d (%s), technické %s, zpětně %s',
+                'Aktivita není ve stavu použitelném pro přihlašování. Je ve stavu %d (%s), technické %s, zpětně %s',
                 $this->a['stav'], \Stav::dejNazev((int)$this->a['stav']), $technicke ? 'ANO' : 'NE', $zpetne ? 'ANO' : 'NE'
             );
         }
@@ -1618,9 +1618,15 @@ SQL
      * @param self[] $dalsiKola - pořadí musí odpovídat návaznosti kol
      */
     public function prihlasTym($uzivatele, $nazevTymu = null, $pocetMist = null, $dalsiKola = []) {
-        if (!$this->tymova()) throw new Exception('Nelze přihlásit tým na netýmovou aktivitu.');
-        if (!$this->a['zamcel']) throw new Exception('Pro přihlášení týmu musí být aktivita zamčená.');
-        if (!$this->jsouDalsiKola($dalsiKola)) throw new Exception('Nepovolený výběr dalších kol.');
+        if (!$this->tymova()) {
+            throw new Exception('Nelze přihlásit tým na netýmovou aktivitu.');
+        }
+        if (!$this->a['zamcel']) {
+            throw new Exception('Pro přihlášení týmu musí být aktivita zamčená.');
+        }
+        if (!$this->jsouDalsiKola($dalsiKola)) {
+            throw new Exception('Nepovolený výběr dalších kol.');
+        }
 
         $lidr = Uzivatel::zId($this->a['zamcel']);
         $chybnyClen = null; // nastavíme v případě, že u daného člena týmu nastala při přihlášení chyba
@@ -1657,17 +1663,15 @@ SQL
             $this->refresh();
         } catch (Exception $e) {
             dbRollback();
-            if ($chybnyClen)
+            if ($chybnyClen) {
                 throw new Chyba(hlaska('chybaClenaTymu', $chybnyClen->jmenoNick(), $chybnyClen->id(), $e->getMessage()));
-            else
-                throw $e;
+            }
+            throw $e;
         }
         dbCommit();
 
         // maily přihlášeným
-        $mail = new GcMail(hlaskaMail('prihlaseniTeamMail',
-            $lidr, $lidr->jmenoNick(), $this->nazev(), $this->denCas()
-        ));
+        $mail = new GcMail(hlaskaMail('prihlaseniTeamMail', $lidr, $lidr->jmenoNick(), $this->nazev(), $this->denCas()));
         $mail->predmet('Přihláška na ' . $this->nazev());
         foreach ($uzivatele as $clen) {
             $mail->adresat($clen->mail());
@@ -2056,7 +2060,7 @@ SQL
 
             // vybírací formy dle "kol"
             foreach ($urovne as $i => $uroven) {
-                $t->assign('postnameKolo', self::KOLA . '[' . $i . ']');
+                $t->assign('postnameKolo', self::TEAMKLIC_KOLA . '[' . $i . ']');
                 foreach ($uroven as $varianta) {
                     $t->assign([
                         'koloId' => $varianta->id(),
@@ -2092,26 +2096,32 @@ SQL
      * Ukončuje skript.
      */
     public static function vyberTeamuZpracuj(Uzivatel $leader = null) {
-        if (!$leader || !post(self::TEAMKLIC)) return;
+        if (!$leader || !post(self::TEAMKLIC . 'Aktivita')) {
+            return;
+        }
 
         $a = Aktivita::zId(post(self::TEAMKLIC . 'Aktivita'));
-        if ($leader->id() != $a->a['zamcel']) throw new Exception('Nejsi teamleader.');
+        if ($leader->id() != $a->a['zamcel']) {
+            throw new Exception('Nejsi teamleader.');
+        }
 
         // načtení zvolených parametrů z formuláře (spoluhráči, kola, ...)
-        $up = post(self::TEAMKLIC);
+        $up = post(self::TEAMKLIC) ?? [];
         $zamceno = 0;
         foreach ($up as $i => $uid) {
-            if ($uid == -1 || !$uid)
+            if ($uid == -1 || !$uid) {
                 unset($up[$i]);
-            if ($uid == -1)
+            }
+            if ($uid == -1) {
                 $zamceno++;
+            }
         }
         $clenove = Uzivatel::zIds($up);
         $novaKapacita = $a->kapacita() - $zamceno;
         $nazev = post(self::TEAMKLIC . 'Nazev');
         $dalsiKola = array_values(array_map(function ($id) { // array_map kvůli nutnosti zachovat pořadí
             return self::zId($id);
-        }, post(self::KOLA) ?: []));
+        }, post(self::TEAMKLIC_KOLA) ?: []));
 
         // přihlášení týmu
         try {
