@@ -40,6 +40,8 @@ class OnlinePrezenceTestovaciAktivity
                 $this->obecnyStav::AKTIVOVANA,
                 $this->obecnyStav::PUBLIKOVANA,
             ],
+            'od' => '2000-01-01', // hlavně prostě aby měly vyplěný začátek a konec
+            'do' => '3000-01-01'
         ];
 
         $organizovaneAktivity = $this->obecnaAktivita::zFiltru(

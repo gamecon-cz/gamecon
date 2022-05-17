@@ -1285,25 +1285,53 @@ SQL
 
     /**
      * Přihlásí uživatele na aktivitu
-     * @todo koncepčnější ignorování stavu
      */
     public function prihlas(\Uzivatel $u, $ignorovat = 0) {
+        $this->zkontrolujZdaSeMuzePrihlasit($u, $ignorovat);
+
+        // odhlášení náhradnictví v kolidujících aktivitách
+        $this->odhlasZeSledovaniAktivitVeStejnemCase($u);
+
+        // přihlášení na samu aktivitu (uložení věcí do DB)
+        $idAktivity = $this->id();
+        $idUzivatele = $u->id();
+        if ($this->a['teamova']
+            && $this->prihlaseno() === 0
+            && $this->prihlasovatelna() /* kvuli řetězovým teamovým aktivitám schválně bez ignore parametru */
+        ) {
+            $this->zamknout($u);
+        }
+        dbQuery(
+            'INSERT INTO akce_prihlaseni SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=$2',
+            [$idUzivatele, $idAktivity, self::PRIHLASEN]
+        );
+        $this->dejPrezenci()->zalogujZeSePrihlasil($u);
+        if (ODHLASENI_POKUTA_KONTROLA) { //pokud by náhodou měl záznam za pokutu a přihlásil se teď, tak smazat
+            dbQuery(
+                'DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0 AND id_akce=$1 AND id_stavu_prihlaseni=$2',
+                [$idUzivatele, $idAktivity, self::POZDE_ZRUSIL]
+            );
+        }
+        $this->refresh();
+    }
+
+    public function zkontrolujZdaSeMuzePrihlasit(\Uzivatel $uzivatel, $ignorovat = 0) {
         // kontroly
-        if ($this->prihlasen($u)) {
+        if ($this->prihlasen($uzivatel)) {
             return;
         }
-        if (!$u->maVolno($this->zacatek(), $this->konec())) {
+        if (!$uzivatel->maVolno($this->zacatek(), $this->konec())) {
             throw new \Chyba(hlaska('kolizeAktivit'));
         }
-        if (!$u->gcPrihlasen()) {
+        if (!$uzivatel->gcPrihlasen()) {
             throw new \Chyba('Nemáš aktivní přihlášku na GameCon.');
         }
-        if ($this->volno() !== 'u' && $this->volno() !== $u->pohlavi()) {
+        if ($this->volno() !== 'u' && $this->volno() !== $uzivatel->pohlavi()) {
             throw new \Chyba(hlaska('plno'));
         }
         foreach ($this->deti() as $dite) { // nemůže se přihlásit na aktivitu, pokud už je přihášen na jinou aktivitu s stejnými potomky
             foreach ($dite->rodice() as $rodic) {
-                if ($rodic->prihlasen($u)) {
+                if ($rodic->prihlasen($uzivatel)) {
                     throw new \Chyba(hlaska('maxJednou'));
                 }
             }
@@ -1311,7 +1339,7 @@ SQL
         if ($this->a['team_kapacita'] !== null) {
             $jeNovyTym = false; // jestli se uživatel přihlašuje jako první z nového/dalšího týmu
             foreach ($this->rodice() as $rodic) {
-                if ($rodic->prihlasen($u) && $rodic->prihlaseno() == 1) {
+                if ($rodic->prihlasen($uzivatel) && $rodic->prihlaseno() == 1) {
                     $jeNovyTym = true;
                     break;
                 }
@@ -1342,7 +1370,7 @@ SQL
         if ($this->a['dite'] && $this->prihlaseno() > 0) {
             $deti = $this->deti();
             if (count($deti) === 1) {
-                current($deti)->prihlas($u, self::STAV);
+                current($deti)->prihlas($uzivatel, self::STAV);
             } else {
                 // vybrání jednoho uživatele, který už na navázané aktivity přihlášen je
                 $vzor = \Uzivatel::zId(substr(explode(',', $this->prihlaseniRaw())[1], 0, -2));
@@ -1350,7 +1378,7 @@ SQL
                 foreach ($deti as $dite) {
                     // přihlášení na navázané aktivity podle vzoru vybraného uživatele
                     if ($dite->prihlasen($vzor)) {
-                        $dite->prihlas($u, self::STAV);
+                        $dite->prihlas($uzivatel, self::STAV);
                         $uspech = true;
                         break;
                     }
@@ -1360,31 +1388,6 @@ SQL
                 }
             }
         }
-
-        // odhlášení náhradnictví v kolidujících aktivitách
-        $this->odhlasZeSledovaniAktivitVeStejnemCase($u);
-
-        // přihlášení na samu aktivitu (uložení věcí do DB)
-        $idAktivity = $this->id();
-        $idUzivatele = $u->id();
-        if ($this->a['teamova']
-            && $this->prihlaseno() === 0
-            && $this->prihlasovatelna() /* kvuli řetězovým teamovým aktivitám schválně bez ignore parametru */
-        ) {
-            $this->zamknout($u);
-        }
-        dbQuery(
-            'INSERT INTO akce_prihlaseni SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=$2',
-            [$idUzivatele, $idAktivity, self::PRIHLASEN]
-        );
-        $this->dejPrezenci()->zalogujZeSePrihlasil($u);
-        if (ODHLASENI_POKUTA_KONTROLA) { //pokud by náhodou měl záznam za pokutu a přihlásil se teď, tak smazat
-            dbQuery(
-                'DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0 AND id_akce=$1 AND id_stavu_prihlaseni=$2',
-                [$idUzivatele, $idAktivity, self::POZDE_ZRUSIL]
-            );
-        }
-        $this->refresh();
     }
 
     public function zamknout(\Uzivatel $zamykajici) {
