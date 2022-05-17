@@ -16,6 +16,8 @@ class AktivitaPrezence
     private $seznamSledujicich;
     /** @var Filesystem */
     private $filesystem;
+    /** @var ZmenaStavuPrihlaseni[]|null[] */
+    private $posledniZmenaStavuPrihlaseni = [];
 
     public function __construct(
         Aktivita   $aktivita,
@@ -109,6 +111,7 @@ class AktivitaPrezence
             'typ' => $zprava,
         ]);
         RazitkoPosledniZmenyPrihlaseni::smazRazitkaPoslednichZmen($this->aktivita, $this->filesystem);
+        unset($this->posledniZmenaStavuPrihlaseni[$u->id()]);
     }
 
     public function zalogujZeSeOdhlasil(\Uzivatel $odhlaseny) {
@@ -184,7 +187,10 @@ class AktivitaPrezence
     }
 
     public function posledniZmenaStavuPrihlaseni(\Uzivatel $ucastnik): ?ZmenaStavuPrihlaseni {
-        return self::posledniZmenaStavuPrihlaseniAktivit($ucastnik, [$this->aktivita]);
+        if (!array_key_exists($ucastnik->id(), $this->posledniZmenaStavuPrihlaseni)) {
+            $this->posledniZmenaStavuPrihlaseni[$ucastnik->id()] = self::posledniZmenaStavuPrihlaseniAktivit($ucastnik, [$this->aktivita]);
+        }
+        return $this->posledniZmenaStavuPrihlaseni[$ucastnik->id()];
     }
 
     /**
