@@ -1,6 +1,7 @@
 <!-- begin:ucastnik -->
 <tr id="ucastnik-{u.id}-na-aktivite-{a.id}" class="col-md col-sm-6 no-gutters ucastnik"
     data-id="{u.id}"
+    data-id-aktivity="{a.id}"
     data-cas-posledni-zmeny-prihlaseni="{casPosledniZmenyPrihlaseni}"
     data-stav-prihlaseni="{stavPrihlaseni}"
     data-id-posledniho-logu="{idPoslednihoLogu}">
@@ -26,15 +27,12 @@
           ⏰
     </span>
     <!-- end: prihlasenNaPosledniChvili -->
-    <!-- begin:jeToNahradnik -->
     <span class="nahradnik {cssTridaDisplayNahradnik}"
           id="ucastik-{u.id}-je-nahradnik-na-aktivite-{a.id}"
           data-bs-toggle="tooltip"
           title="Náhradník">
       <img alt="Náhradník" class="font-sized" src="files/design/substitution-icon.png">
     </span>
-    <!-- end:jeToNahradnik -->
-    <!-- begin:jeToSledujici -->
     <span class="bg-dark ui-corner-all sledujici {cssTridaDisplaySledujici}"
           id="ucastik-{u.id}-je-sledujici-aktivity-{a.id}"
           data-bs-toggle="tooltip"
@@ -42,7 +40,6 @@
     >
       👀
     </span>
-    <!-- end:jeToSledujici -->
   </td>
   <td>{u.jmenoNick}</td>
   <td>
@@ -52,7 +49,8 @@
   </td>
   <td style="text-align: center">
     <!-- begin:checkbox -->
-    <input type="checkbox" class="dorazil" onchange="zmenitUcastnika('{u.id}', '{a.id}', this)" name="dorazil[]"
+    <input type="checkbox" class="dorazil" onchange="zmenitPritomnostUcastnika('{u.id}', '{a.id}', this)"
+           name="dorazil[]"
            value="{u.id}"
            {checkedUcastnik} {disabledUcastnik} data-initial-checked="{checkedUcastnik}">
     <!-- end:checkbox -->

@@ -79,7 +79,6 @@ class OnlinePrezenceHtml
                 __DIR__ . '/../../../admin/files/design/online-prezence.css',
             ],
             'javascripts' => [
-                __DIR__ . '/../../../admin/files/bootstrap-tooltip-initialization.js',
                 __DIR__ . '/../../../admin/files/omnibox.js',
                 __DIR__ . '/../../../admin/files/online-prezence.js',
                 __DIR__ . '/../../../admin/files/online-prezence-posledni-zname-zmeny-prihlaseni.js',
@@ -153,7 +152,7 @@ class OnlinePrezenceHtml
                 $ucastnikHtml = $this->dejOnlinePrezenceUcastnikHtml()->sestavHmlUcastnikaAktivity(
                     $prihlasenyUzivatel,
                     $aktivita,
-                    $aktivita->dorazilJakoCokoliv($prihlasenyUzivatel),
+                    $aktivita->stavPrihlaseni($prihlasenyUzivatel),
                     $muzeMenitUcastniky
                 );
                 $template->assign('ucastnikHtml', $ucastnikHtml);
@@ -220,10 +219,10 @@ class OnlinePrezenceHtml
     public function sestavHmlUcastnikaAktivity(
         \Uzivatel $ucastnik,
         Aktivita  $aktivita,
-        bool      $dorazil,
+        int       $stavPrihlaseni,
         bool      $zatimPouzeProCteni
     ): string {
         return $this->dejOnlinePrezenceUcastnikHtml()
-            ->sestavHmlUcastnikaAktivity($ucastnik, $aktivita, $dorazil, $zatimPouzeProCteni);
+            ->sestavHmlUcastnikaAktivity($ucastnik, $aktivita, $stavPrihlaseni, $zatimPouzeProCteni);
     }
 }
