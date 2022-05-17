@@ -115,7 +115,13 @@
            id="aktivita-{idAktivity}"
            data-id="{idAktivity}">
 
-        <h2 id="{nadpis}">{nadpis} <a href="#{nadpis}" style="color: darkgray; opacity: 0.6">#</a></h2>
+        <h2 id="{nadpis}">
+          <span class="hinted">
+            {nadpis}
+            <span class="hint">Začíná v {zacatek}</span>
+          </span>
+          <a href="#{nadpis}" style="color: darkgray; opacity: 0.6">#</a>
+        </h2>
 
         <div class="errors">
           <div class="alert alert-warning alert-dismissible fade show display-none error-template" role="alert">

@@ -1446,6 +1446,7 @@ SQL
     }
 
     /**
+     * @see \Gamecon\Aktivita\StavPrihlaseni
      * Vrátí stav přihlášení uživatele na aktivitu. Pokud není přihlášen, vrací
      * hodnotu -1.
      */
