@@ -143,14 +143,19 @@ WHERE migrations.migration_id IS NULL"
 
         // apply migration
         $this->db->query('BEGIN');
-        $migration->apply();
-        if ($this->getVersion() === 1) {
-            $this->datastore->set(LAST_APPLIED_MIGRATION_ID, $migration->getId());
-            $this->datastore->set(LATEST_MIGRATION_HASH, $migration->getHash());
-        } else {
-            $this->db->query("INSERT INTO migrations(migration_code, applied_at) VALUES ('{$migration->getId()}', NOW())");
+        try {
+            $migration->apply();
+            if ($this->getVersion() === 1) {
+                $this->datastore->set(LAST_APPLIED_MIGRATION_ID, $migration->getId());
+                $this->datastore->set(LATEST_MIGRATION_HASH, $migration->getHash());
+            } else {
+                $this->db->query("INSERT INTO migrations(migration_code, applied_at) VALUES ('{$migration->getId()}', NOW())");
+            }
+            $this->db->query('COMMIT');
+        } catch (\Throwable $throwable) {
+            $this->db->query('ROLLBACK');
+            throw $throwable;
         }
-        $this->db->query('COMMIT');
     }
 
     function run() {
