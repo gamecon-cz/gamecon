@@ -177,7 +177,7 @@ class AktivitaPrezence
 
     public function prihlasenOd(\Uzivatel $uzivatel): ?\DateTimeImmutable {
         $posledniZmenaStavuPrihlaseni = $this->posledniZmenaStavuPrihlaseni($uzivatel);
-        if (!$posledniZmenaStavuPrihlaseni || $posledniZmenaStavuPrihlaseni->stavPrihlaseni() !== AktivitaPrezenceTyp::PRIHLASENI) {
+        if (!$posledniZmenaStavuPrihlaseni || $posledniZmenaStavuPrihlaseni->typPrezence() !== AktivitaPrezenceTyp::PRIHLASENI) {
             return null;
         }
         return $posledniZmenaStavuPrihlaseni->casZmeny();
@@ -248,11 +248,13 @@ class AktivitaPrezence
         $indexParametru = 0;
         $whereArray = [];
 
-        $whereArray[] = 'akce_prihlaseni_log.id_log > $' . $indexParametru;
-        $sqlQueryParametry[] = min($idsPoslednichLoguUcastniku);
+        if ($idsPoslednichLoguUcastniku) {
+            $whereArray[] = 'akce_prihlaseni_log.id_log > $' . $indexParametru;
+            $sqlQueryParametry[] = min($idsPoslednichLoguUcastniku);
 
-        $whereArray[] = 'akce_prihlaseni_log.id_log NOT IN ($' . ++$indexParametru . ')';
-        $sqlQueryParametry[] = $idsPoslednichLoguUcastniku;
+            $whereArray[] = 'akce_prihlaseni_log.id_log NOT IN ($' . ++$indexParametru . ')';
+            $sqlQueryParametry[] = $idsPoslednichLoguUcastniku;
+        }
 
         $whereArray[] = 'akce_prihlaseni_log.id_akce IN ($' . ++$indexParametru . ')';
         $sqlQueryParametry[] = $idsAktivit;
