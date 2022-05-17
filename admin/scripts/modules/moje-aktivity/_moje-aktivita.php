@@ -31,7 +31,11 @@ $onlinePrezenceHtml = new OnlinePrezenceHtml(
     Vyjimkovac::js(URL_WEBU),
     (int)MOJE_AKTIVITY_NA_POSLEDNI_CHVILI_X_MINUT_PRED_JEJICH_ZACATKEM
 );
-$onlinePrezenceAjax = new OnlinePrezenceAjax($onlinePrezenceHtml, new \Symfony\Component\Filesystem\Filesystem());
+$onlinePrezenceAjax = new OnlinePrezenceAjax(
+    $onlinePrezenceHtml,
+    new \Symfony\Component\Filesystem\Filesystem(),
+    false
+);
 
 if ($onlinePrezenceAjax->odbavAjax($u)) {
     return;
