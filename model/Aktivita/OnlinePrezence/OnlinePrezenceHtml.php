@@ -194,12 +194,18 @@ class OnlinePrezenceHtml
 
     /**
      * @param \Uzivatel[] $prihlaseni
-     * @return void
+     * @return \Uzivatel[]
      */
-    private function seradDleStavuPrihlaseni(array $prihlaseni, Aktivita $aktivita) {
+    private function seradDleStavuPrihlaseni(array $prihlaseni, Aktivita $aktivita): array {
         usort($prihlaseni, function (\Uzivatel $nejakyPrihlaseny, $jinyPrihlaseny) use ($aktivita) {
             // běžní účastníci první, náhradníci druzí, sledující poslední
-            return -($aktivita->stavPrihlaseni($nejakyPrihlaseny) <=> $aktivita->stavPrihlaseni($jinyPrihlaseny));
+            $porovnaniStavuPrihlaseni = $aktivita->stavPrihlaseni($nejakyPrihlaseny) <=> $aktivita->stavPrihlaseni($jinyPrihlaseny);
+            if ($porovnaniStavuPrihlaseni !== 0) {
+                return $porovnaniStavuPrihlaseni;
+            }
+            $prezence = $aktivita->dejPrezenci();
+            // později přidaný / změněný nakonec
+            return $prezence->posledniZmenaStavuPrihlaseni($nejakyPrihlaseny)->idLogu() <=> $prezence->posledniZmenaStavuPrihlaseni($jinyPrihlaseny)->idLogu();
         });
         return $prihlaseni;
     }
