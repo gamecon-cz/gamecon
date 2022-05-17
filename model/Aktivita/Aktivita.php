@@ -2001,6 +2001,16 @@ SQL
     }
 
     /**
+     * @return \Uzivatel[]
+     */
+    public function dorazili(): array {
+        return array_filter($this->prihlaseni(), function (\Uzivatel $prihlaseny) {
+            $stavPrihlaseni = $this->stavPrihlaseni($prihlaseny);
+            return StavPrihlaseni::dorazil($stavPrihlaseni);
+        });
+    }
+
+    /**
      * Uloží údaje o prezenci u této aktivity
      * @param \Uzivatel[] $dorazili uživatelé, kteří se nakonec aktivity zúčastnili
      */
