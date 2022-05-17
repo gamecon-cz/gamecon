@@ -835,7 +835,7 @@ SQL,
         return isset($this->aktivityJakoSledujici[$a->id()]);
     }
 
-    public function prihlasenJakoNahradnik(Aktivita $aktivita) {
+    public function dorazilJakoNahradnik(Aktivita $aktivita) {
         return $aktivita->dorazilJakoNahradnik($this);
     }
 

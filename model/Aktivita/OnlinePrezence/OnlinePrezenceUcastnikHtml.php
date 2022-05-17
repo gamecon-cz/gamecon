@@ -3,6 +3,7 @@
 namespace Gamecon\Aktivita\OnlinePrezence;
 
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\ZmenaStavuPrihlaseni;
 
 class OnlinePrezenceUcastnikHtml
@@ -19,7 +20,7 @@ class OnlinePrezenceUcastnikHtml
     public function sestavHmlUcastnikaAktivity(
         \Uzivatel $ucastnik,
         Aktivita  $aktivita,
-        bool      $dorazil,
+        int       $stavPrihlaseni,
         bool      $muzeMenitUcastniky
     ): string {
         $ucastnikTemplate = $this->dejOnlinePrezenceUcastnikTemplate();
@@ -27,7 +28,7 @@ class OnlinePrezenceUcastnikHtml
         $ucastnikTemplate->assign('u', $ucastnik);
         $ucastnikTemplate->assign('a', $aktivita);
 
-        $ucastnikTemplate->assign('checkedUcastnik', $dorazil ? 'checked' : '');
+        $ucastnikTemplate->assign('checkedUcastnik', StavPrihlaseni::dorazil($stavPrihlaseni) ? 'checked' : '');
         $ucastnikTemplate->assign('disabledUcastnik', $muzeMenitUcastniky ? '' : 'disabled');
         $ucastnikTemplate->parse('ucastnik.checkbox');
 
@@ -46,15 +47,12 @@ class OnlinePrezenceUcastnikHtml
             $ucastnikTemplate->parse('ucastnik.prihlasenNaPosledniChvili');
         }
 
-        if ($ucastnik->prihlasenJakoNahradnik($aktivita)) {
-            $ucastnikTemplate->parse('ucastnik.jeToNahradnik');
-        } elseif ($ucastnik->prihlasenJakoSledujici($aktivita)) {
-            $ucastnikTemplate->parse('ucastnik.jeToSledujici');
-        }
+        $ucastnikTemplate->assign('cssTridaDisplayNahradnik', StavPrihlaseni::dorazilJakoNahradnik($stavPrihlaseni) ? '' : 'display-none');
+        $ucastnikTemplate->assign('cssTridaDisplaySledujici', StavPrihlaseni::prihlasenJakoSledujici($stavPrihlaseni) ? '' : 'display-none');
 
         $zmenaStavuPrihlaseni = $aktivita->dejPrezenci()->posledniZmenaStavuPrihlaseni($ucastnik);
         $ucastnikTemplate->assign('casPosledniZmenyPrihlaseni', $zmenaStavuPrihlaseni ? $zmenaStavuPrihlaseni->casZmenyProJs() : '');
-        $ucastnikTemplate->assign('stavPrihlaseni', $zmenaStavuPrihlaseni ? $zmenaStavuPrihlaseni->stavPrihlaseniProJs() : '');
+        $ucastnikTemplate->assign('stavPrihlaseni', $zmenaStavuPrihlaseni ? $zmenaStavuPrihlaseni->typPrezenceProJs() : '');
         $ucastnikTemplate->assign('idPoslednihoLogu', $zmenaStavuPrihlaseni ? $zmenaStavuPrihlaseni->idLogu() : 0);
 
         $ucastnikTemplate->parse('ucastnik');
