@@ -39,6 +39,6 @@ input:not([disabled])[type=checkbox] {
   height: 1.3em;
 }
 
-.hinted:hover {
+.hinted:hover, [data-bs-toggle="tooltip"] {
   cursor: help;
 }
