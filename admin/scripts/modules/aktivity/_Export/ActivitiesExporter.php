@@ -162,20 +162,24 @@ class ActivitiesExporter
                     ? $lokace->nazev()
                     : '', // Místnost
                 $this->exportAktivitSloupce::VYPRAVECI => implode('; ', $aktivita->orgLoginy()->getArrayCopy()), // Vypravěči
-                $this->exportAktivitSloupce::KAPACITA_UNISEX => $aktivita->tymova()
-                    ? ''
-                    : $aktivita->getKapacitaUnisex(), // Kapacita unisex
-                $this->exportAktivitSloupce::KAPACITA_MUZI => $aktivita->tymova()
-                    ? ''
-                    : $aktivita->getKapacitaMuzu(), // Kapacita muži
-                $this->exportAktivitSloupce::KAPACITA_ZENY => $aktivita->tymova()
-                    ? ''
-                    : $aktivita->getKapacitaZen(), // Kapacita ženy
+                $this->exportAktivitSloupce::KAPACITA_UNISEX => !$aktivita->tymova()
+                    ? $aktivita->getKapacitaUnisex() // Kapacita unisex
+                    : '',
+                $this->exportAktivitSloupce::KAPACITA_MUZI => !$aktivita->tymova()
+                    ? $aktivita->getKapacitaMuzu() // Kapacita muži
+                    : '',
+                $this->exportAktivitSloupce::KAPACITA_ZENY => !$aktivita->tymova()
+                    ? $aktivita->getKapacitaZen() // Kapacita ženy
+                    : '',
                 $this->exportAktivitSloupce::JE_TYMOVA => $aktivita->tymova() // Je týmová
                     ? 'ano'
                     : 'ne',
-                $this->exportAktivitSloupce::MINIMALNI_KAPACITA_TYMU => $aktivita->tymMinKapacita() ?? '', // Minimální kapacita týmu
-                $this->exportAktivitSloupce::MAXIMALNI_KAPACITA_TYMU => $aktivita->tymMaxKapacita() ?? '', // Maximální kapacita týmu
+                $this->exportAktivitSloupce::MINIMALNI_KAPACITA_TYMU => $aktivita->tymova()
+                    ? $aktivita->tymMinKapacita() ?? '' // Minimální kapacita týmu
+                    : '',
+                $this->exportAktivitSloupce::MAXIMALNI_KAPACITA_TYMU => $aktivita->tymova()
+                    ? $aktivita->tymMaxKapacita() ?? '' // Maximální kapacita týmu
+                    : '',
                 $this->exportAktivitSloupce::NASLEDUJICI_SEMIFINALE => implode(', ', array_map( // Následující (semi)finále
                     static function (\Aktivita $aktivita) {
                         // can not allow comma "," in a name as that is used on import as a values delimiter
