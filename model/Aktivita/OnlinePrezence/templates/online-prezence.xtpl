@@ -194,16 +194,18 @@
               <th style="text-align: center">
                 <span class="hinted" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true"
                       title="
+                      <div class='text-start'>
                         <div>⏰ Přihlásil se před chvílí
                         <div>(do {minutNaPosledniChvili} minut před začátkem aktivity)</div>
                         a je nejspíš na cestě</div>
                         <hr>
                         <div>
-                          <img alt='Náhradník' class='font-sized' src='files/design/substitution-icon.png'>
+                          <img alt='Náhradník' class='font-sized bg-light ui-corner-all' src='files/design/substitution-icon.png'>
                           Náhradník
                         </div>
                         <hr>
                         <div>👀 Sledující. Pokud sháníš náhradníka, tenhle bude mít zájem.</div>
+                      </div>
                 ">
                  <i class="fas fa-user-tie"></i>
                 </span>
