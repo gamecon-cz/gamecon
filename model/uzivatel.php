@@ -298,7 +298,9 @@ SQL
 
     /** Příhlásí uživatele na GC */
     public function gcPrihlas() {
-        if ($this->gcPrihlasen()) return;
+        if ($this->gcPrihlasen()) {
+            return;
+        }
 
         $this->dejZidli(ZIDLE_PRIHLASEN);
     }
@@ -1150,10 +1152,12 @@ SQL
         return isset($uzivatel[0]) ? $uzivatel[0] : null;
     }
 
-    static function zNicku($nick) {
-        if (!$nick) return null;
-        $uzivatel = Uzivatel::zWhere('WHERE login_uzivatele = $1', [$nick]);
-        return isset($uzivatel[0]) ? $uzivatel[0] : null;
+    static function zNicku(string $nick): ?Uzivatel {
+        if (!$nick) {
+            return null;
+        }
+        $uzivatelWrapped = Uzivatel::zWhere('WHERE login_uzivatele = $1', [$nick]);
+        return reset($uzivatelWrapped) ?: null;
     }
 
     /**

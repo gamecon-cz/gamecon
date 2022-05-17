@@ -79,7 +79,7 @@ class Aktivita
             throw new Chyba('Aktivita nemá nastavený čas');
         }
         dbQuery('UPDATE akce_seznam SET stav = $1 WHERE id_akce = $2', [Stav::AKTIVOVANA, $this->id()]);
-        // TODO invalidate $this
+        $this->refresh();
     }
 
     /**
@@ -783,18 +783,24 @@ class Aktivita
      * @return bool jestli zadané aktivity jsou platným výběrem dalších kol
      *  stávající aktivity
      */
-    protected function jsouDalsiKola($aktivity) {
+    protected function jsouDalsiKola(array $aktivity) {
         $dalsiKola = $this->dalsiKola();
 
-        if (count($aktivity) != count($dalsiKola)) return false;
+        if (count($aktivity) !== count($dalsiKola)) {
+            return false;
+        }
 
         foreach ($this->dalsiKola() as $i => $varianty) {
             $idsVariant = [];
-            foreach ($varianty as $varianta) $idsVariant[] = $varianta->id();
+            foreach ($varianty as $varianta) {
+                $idsVariant[] = $varianta->id();
+            }
 
             $idVybraneVarianty = $aktivity[$i]->id();
 
-            if (!in_array($idVybraneVarianty, $idsVariant)) return false;
+            if (!in_array($idVybraneVarianty, $idsVariant)) {
+                return false;
+            }
         }
 
         return true;
@@ -1271,7 +1277,7 @@ SQL
             throw new Chyba(hlaska('kolizeAktivit'));
         }
         if (!$u->gcPrihlasen()) {
-            throw new Exception('Nemáš aktivní přihlášku na GameCon.');
+            throw new Chyba('Nemáš aktivní přihlášku na GameCon.');
         }
         if ($this->volno() !== 'u' && $this->volno() !== $u->pohlavi()) {
             throw new Chyba(hlaska('plno'));
@@ -1342,8 +1348,11 @@ SQL
         // přihlášení na samu aktivitu (uložení věcí do DB)
         $idAktivity = $this->id();
         $idUzivatele = $u->id();
-        if ($this->a['teamova'] && $this->prihlaseno() === 0 && $this->prihlasovatelna()) {
-            dbUpdate('akce_seznam', ['zamcel' => $idUzivatele, 'zamcel_cas' => dbNow()], ['id_akce' => $idAktivity]);
+        if ($this->a['teamova']
+            && $this->prihlaseno() === 0
+            && $this->prihlasovatelna() /* kvuli řetězovým teamovým aktivitám schválně bez ignore parametru */
+        ) {
+            $this->zamknout($u);
         }
         dbQuery(
             'INSERT INTO akce_prihlaseni SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=$2',
@@ -1357,6 +1366,15 @@ SQL
             );
         }
         $this->refresh();
+    }
+
+    public function zamknout(Uzivatel $zamykajici) {
+        dbUpdate(
+            'akce_seznam',
+            ['zamcel' => $zamykajici->id(), 'zamcel_cas' => dbNow()],
+            ['id_akce' => $this->id()]
+        );
+        $this->a['zamcel'] = (string)$zamykajici->id();
     }
 
     /** Jestli je uživatel  přihlášen na tuto aktivitu */
@@ -1606,7 +1624,7 @@ SQL
         }
         // Uživatel musí být přihlášen na GameCon
         if (!$u->gcPrihlasen()) {
-            throw new Exception('Nemáš aktivní přihlášku na GameCon.');
+            throw new Chyba('Nemáš aktivní přihlášku na GameCon.');
         }
 
         // Uložení přihlášení do DB
