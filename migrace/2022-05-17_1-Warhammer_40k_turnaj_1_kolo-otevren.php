@@ -1,4 +1,6 @@
 <?php
+use \Gamecon\Aktivita\Aktivita;
+
 $warhammer40kTurnaj2022Wrapped = Aktivita::zNazvuARoku('Warhammer 40k turnaj - 1.kolo', ROK);
 
 if (!$warhammer40kTurnaj2022Wrapped) {
