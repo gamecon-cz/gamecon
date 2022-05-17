@@ -18,6 +18,10 @@ input:not([disabled])[type=checkbox] {
   display: none;
 }
 
+.ucastnici th:first-child, .ucastnici th:nth-child(2) {
+  width: 100px;
+}
+
 .ucastnik {
   background-color: white;
   transition: background 0.1s linear;
@@ -43,6 +47,6 @@ input:not([disabled])[type=checkbox] {
   cursor: help;
 }
 
-[data-stav-prihlaseni="sledujici_se_prihlasil"] {
+[data-stav-prihlaseni="sledujici_se_prihlasil"], [data-stav-prihlaseni="nahradnik_nedorazil"] {
   color: grey;
 }
