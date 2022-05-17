@@ -1434,7 +1434,7 @@ SQL
         // stav 4 je rezervovaný pro viditelné nepřihlašovatelné aktivity
         return (
             (REG_AKTIVIT
-                || ($dopredne && pred(REG_GC_DO))
+                || ($dopredne && pred(REG_AKTIVIT_OD))
                 || ($zpetne && po(REG_GC_DO))
             ) &&
             (
@@ -1645,8 +1645,15 @@ SQL
      * @param string $nazevTymu
      * @param int $pocetMist požadovaný počet míst v týmu
      * @param self[] $dalsiKola - pořadí musí odpovídat návaznosti kol
+     * @param int $ignorovat
      */
-    public function prihlasTym($uzivatele, $nazevTymu = null, $pocetMist = null, $dalsiKola = []) {
+    public function prihlasTym(
+        $uzivatele,
+        $nazevTymu = null,
+        $pocetMist = null,
+        $dalsiKola = [],
+        $ignorovat = 0
+    ) {
         if (!$this->tymova()) {
             throw new Exception('Nelze přihlásit tým na netýmovou aktivitu.');
         }
@@ -1666,7 +1673,7 @@ SQL
             // nutno jít od konce, jinak vazby na potomky můžou vyvolat chyby kvůli
             // duplicitním pokusům o přihlášení
             foreach (array_reverse($dalsiKola) as $kolo) {
-                $kolo->prihlas($lidr, self::STAV);
+                $kolo->prihlas($lidr, self::STAV | $ignorovat);
             }
 
             // přihlášení členů týmu
