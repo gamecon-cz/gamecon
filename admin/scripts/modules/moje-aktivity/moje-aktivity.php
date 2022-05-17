@@ -35,7 +35,11 @@ $onlinePrezenceHtml = new OnlinePrezenceHtml(
     $muzemeTestovat,
     $testujeme
 );
-$onlinePrezenceAjax = new OnlinePrezenceAjax($onlinePrezenceHtml, new \Symfony\Component\Filesystem\Filesystem());
+$onlinePrezenceAjax = new OnlinePrezenceAjax(
+    $onlinePrezenceHtml,
+    new \Symfony\Component\Filesystem\Filesystem(),
+    $testujeme
+);
 
 if ($onlinePrezenceAjax->odbavAjax($u)) {
     return;
