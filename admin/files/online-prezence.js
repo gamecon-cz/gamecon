@@ -20,11 +20,14 @@
       aktivitaNode.addEventListener('novyUcastnik', function (/** @param {{detail: {idAktivity: number, idUzivatele: number}}} event */event) {
         hlidejNovehoUcastnika(event.detail.idUzivatele, event.detail.idAktivity)
       })
+      Array.from(aktivitaNode.querySelectorAll('[data-bs-toggle="tooltip"]')).forEach(function (tooltip) {
+        new bootstrap.Tooltip(tooltip)
+      })
     })
 
     $('.ucastnik').each(function (index, ucastnikNode) {
       hlidejZmenyMetadatUcastnika(ucastnikNode)
-      aktivujTooltip(ucastnikNode.dataset.id, ucastnikNode.dataset.idAktivity)
+      aktivujTooltipUcastnika(ucastnikNode.dataset.id, ucastnikNode.dataset.idAktivity)
     })
 
     /**
@@ -33,7 +36,7 @@
      */
     function hlidejNovehoUcastnika(idUzivatele, idAktivity) {
       hlidejZmenyMetadatUcastnika(dejNodeUcastnika(idUzivatele, idAktivity))
-      aktivujTooltip(idUzivatele, idAktivity)
+      aktivujTooltipUcastnika(idUzivatele, idAktivity)
     }
 
     /**
@@ -88,8 +91,8 @@
      * @param {number} idUzivatele
      * @param {number} idAktivity
      */
-    function aktivujTooltip(idUzivatele, idAktivity) {
-      const tooltipTriggerList = [].slice.call(document.querySelectorAll(`#ucastnik-${idUzivatele}-na-aktivite-${idAktivity} [data-bs-toggle="tooltip"]`))
+    function aktivujTooltipUcastnika(idUzivatele, idAktivity) {
+      const tooltipTriggerList = Array.from(document.querySelectorAll(`#ucastnik-${idUzivatele}-na-aktivite-${idAktivity} [data-bs-toggle="tooltip"]`))
       tooltipTriggerList.map(function (tooltipTriggerEl) {
         new bootstrap.Tooltip(tooltipTriggerEl)
       })
