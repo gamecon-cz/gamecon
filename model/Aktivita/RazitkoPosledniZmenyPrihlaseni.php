@@ -107,7 +107,7 @@ class RazitkoPosledniZmenyPrihlaseni
     private static function spocitejRazitko(?ZmenaStavuPrihlaseni $zmenaStavuPrihlaseni): string {
         return $zmenaStavuPrihlaseni === null
             ? md5('') // aspoň něco ve smyslu "razítko je platné"
-            : md5(($zmenaStavuPrihlaseni->stavPrihlaseniProJs() ?? '') . ($zmenaStavuPrihlaseni->casZmenyProJs() ?? ''));
+            : md5(($zmenaStavuPrihlaseni->typPrezenceProJs() ?? '') . ($zmenaStavuPrihlaseni->casZmenyProJs() ?? ''));
     }
 
     public function dejUrlRazitkaPosledniZmeny(): string {
