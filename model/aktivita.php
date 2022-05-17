@@ -593,19 +593,25 @@ class Aktivita
     }
 
     public static function uloz(array $data, ?string $markdownPopis, array $organizatoriIds, array $tagIds, string $obrazekSoubor = null, string $obrazekUrl = null): Aktivita {
-        $data['kapacita'] = !empty($data['kapacita']) ? $data['kapacita'] : 0;
-        $data['kapacita_f'] = !empty($data['kapacita_f']) ? $data['kapacita_f'] : 0;
-        $data['kapacita_m'] = !empty($data['kapacita_m']) ? $data['kapacita_m'] : 0;
         $data['bez_slevy'] = (int)!empty($data['bez_slevy']); //checkbox pro "bez_slevy"
-        $data['teamova'] = (int)!empty($data['teamova']);   //checkbox pro "teamova"
-        $data['team_min'] = $data['teamova'] ? (int)$data['team_min'] : null;
-        $data['team_max'] = $data['teamova'] ? (int)$data['team_max'] : null;
+
+        $teamova = !empty($data['teamova']);
+        $data['teamova'] = (int)$teamova;   //checkbox pro "teamova"
+        $data['team_min'] = $teamova ? (int)$data['team_min'] : null;
+        $data['team_max'] = $teamova ? (int)$data['team_max'] : null;
+
+        if ($teamova) {
+            $data['kapacita'] = $data['team_max'] ?? 0;
+            $data['kapacita_f'] = 0;
+            $data['kapacita_m'] = 0;
+        } else {
+            $data['kapacita'] = !empty($data['kapacita']) ? (int)$data['kapacita'] : 0;
+            $data['kapacita_f'] = !empty($data['kapacita_f']) ? (int)$data['kapacita_f'] : 0;
+            $data['kapacita_m'] = !empty($data['kapacita_m']) ? (int)$data['kapacita_m'] : 0;
+        }
+
         $data['patri_pod'] = !empty($data['patri_pod']) ? $data['patri_pod'] : null;
         $data['lokace'] = !empty($data['lokace']) ? $data['lokace'] : null;
-        // u teamových aktivit se kapacita ignoruje - později se nechá jak je nebo přepíše minimem, pokud jde o novou aktivitu
-        if ($data['teamova']) {
-            unset($data['kapacita'], $data['kapacita_f'], $data['kapacita_m']);
-        }
 
         // uložení změn do akce_seznam
         if (empty($data['patri_pod']) && !empty($data['id_akce'])) {
