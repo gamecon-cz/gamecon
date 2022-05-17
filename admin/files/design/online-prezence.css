@@ -42,3 +42,7 @@ input:not([disabled])[type=checkbox] {
 .hinted:hover, [data-bs-toggle="tooltip"] {
   cursor: help;
 }
+
+[data-stav-prihlaseni="sledujici_se_prihlasil"] {
+  color: grey;
+}
