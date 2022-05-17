@@ -1388,7 +1388,7 @@ SQL
         $this->refresh();
     }
 
-    public function zamknout(Uzivatel $zamykajici) {
+    public function zamknout(\Uzivatel $zamykajici) {
         dbUpdate(
             'akce_seznam',
             ['zamcel' => $zamykajici->id(), 'zamcel_cas' => dbNow()],
