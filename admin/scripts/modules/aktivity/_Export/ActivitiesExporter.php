@@ -162,9 +162,15 @@ class ActivitiesExporter
                     ? $lokace->nazev()
                     : '', // Místnost
                 $this->exportAktivitSloupce::VYPRAVECI => implode('; ', $aktivita->orgLoginy()->getArrayCopy()), // Vypravěči
-                $this->exportAktivitSloupce::KAPACITA_UNISEX => $aktivita->getKapacitaUnisex(), // Kapacita unisex
-                $this->exportAktivitSloupce::KAPACITA_MUZI => $aktivita->getKapacitaMuzu(), // Kapacita muži
-                $this->exportAktivitSloupce::KAPACITA_ZENY => $aktivita->getKapacitaZen(), // Kapacita ženy
+                $this->exportAktivitSloupce::KAPACITA_UNISEX => $aktivita->tymova()
+                    ? ''
+                    : $aktivita->getKapacitaUnisex(), // Kapacita unisex
+                $this->exportAktivitSloupce::KAPACITA_MUZI => $aktivita->tymova()
+                    ? ''
+                    : $aktivita->getKapacitaMuzu(), // Kapacita muži
+                $this->exportAktivitSloupce::KAPACITA_ZENY => $aktivita->tymova()
+                    ? ''
+                    : $aktivita->getKapacitaZen(), // Kapacita ženy
                 $this->exportAktivitSloupce::JE_TYMOVA => $aktivita->tymova() // Je týmová
                     ? 'ano'
                     : 'ne',
