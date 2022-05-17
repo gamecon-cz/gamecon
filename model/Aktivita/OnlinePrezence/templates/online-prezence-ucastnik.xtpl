@@ -33,7 +33,7 @@
           title="Náhradník">
       <img alt="Náhradník" class="font-sized" src="files/design/substitution-icon.png">
     </span>
-    <span class="bg-dark ui-corner-all sledujici {cssTridaDisplaySledujici}"
+    <span class="sledujici {cssTridaDisplaySledujici} bg-dark ui-corner-all"
           id="ucastik-{u.id}-je-sledujici-aktivity-{a.id}"
           data-bs-toggle="tooltip"
           title="Je to sledující. Pokud sháníš náhradníka, tenhle bude mít zájem."
