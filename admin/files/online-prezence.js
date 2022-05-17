@@ -55,17 +55,36 @@
     function zobrazTypUcastnika(ucastnikNode, stavPrihlaseni) {
       const idUzivatele = ucastnikNode.dataset.id
       const idAktivity = ucastnikNode.dataset.idAktivity
+      const naPosledniChvili = ucastnikNode.querySelector('.na-posledni-chvili')
       const jeNahradnik = document.getElementById(`ucastik-${idUzivatele}-je-nahradnik-na-aktivite-${idAktivity}`)
       const jeSledujici = document.getElementById(`ucastik-${idUzivatele}-je-sledujici-aktivity-${idAktivity}`)
       switch (stavPrihlaseni) {
         case 'sledujici_se_prihlasil' :
+        /*
+        Když je náhradník přidán z online prezence, tak při opětovném odkškrtnutí je vlastně smazán, tedy není z něj náhradník.
+        Ale prezence ho neodstraní, kdyby to snad byl překlik aby šel zas hned vrátit, proto ho označíme za náhradníka.
+         */
+        case 'nahradnik_nedorazil' :
           skryt(jeNahradnik)
           zobrazit(jeSledujici)
           break
         case 'nahradnik_dorazil' :
-        case 'nahradnik_nedorazil' :
           skryt(jeSledujici)
           zobrazit(jeNahradnik)
+          break
+        case 'ucastnik_dorazil' :
+          skryt(jeSledujici)
+          skryt(jeNahradnik)
+          if (naPosledniChvili) {
+            skryt(naPosledniChvili)
+          }
+          break
+        case 'ucastnik_se_prihlasil' :
+          skryt(jeSledujici)
+          skryt(jeNahradnik)
+          if (naPosledniChvili) {
+            zobrazit(naPosledniChvili)
+          }
           break
         default :
           skryt(jeNahradnik)
