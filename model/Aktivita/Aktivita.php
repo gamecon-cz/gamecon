@@ -1287,26 +1287,30 @@ SQL
     /**
      * Přihlásí uživatele na aktivitu
      */
-    public function prihlas(\Uzivatel $u, $ignorovat = 0) {
-        $this->zkontrolujZdaSeMuzePrihlasit($u, $ignorovat);
+    public function prihlas(\Uzivatel $uzivatel, $ignorovat = 0) {
+        if ($this->prihlasen($uzivatel)) {
+            return;
+        }
+
+        $this->zkontrolujZdaSeMuzePrihlasit($uzivatel, $ignorovat);
 
         // odhlášení náhradnictví v kolidujících aktivitách
-        $this->odhlasZeSledovaniAktivitVeStejnemCase($u);
+        $this->odhlasZeSledovaniAktivitVeStejnemCase($uzivatel);
 
         // přihlášení na samu aktivitu (uložení věcí do DB)
         $idAktivity = $this->id();
-        $idUzivatele = $u->id();
+        $idUzivatele = $uzivatel->id();
         if ($this->a['teamova']
             && $this->prihlaseno() === 0
             && $this->prihlasovatelna() /* kvuli řetězovým teamovým aktivitám schválně bez ignore parametru */
         ) {
-            $this->zamknout($u);
+            $this->zamknout($uzivatel);
         }
         dbQuery(
             'INSERT INTO akce_prihlaseni SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=$2',
             [$idUzivatele, $idAktivity, self::PRIHLASEN]
         );
-        $this->dejPrezenci()->zalogujZeSePrihlasil($u);
+        $this->dejPrezenci()->zalogujZeSePrihlasil($uzivatel);
         if (ODHLASENI_POKUTA_KONTROLA) { //pokud by náhodou měl záznam za pokutu a přihlásil se teď, tak smazat
             dbQuery(
                 'DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0 AND id_akce=$1 AND id_stavu_prihlaseni=$2',
@@ -1659,7 +1663,7 @@ SQL
     public function prihlasSledujiciho(\Uzivatel $u) {
         // Aktivita musí mít přihlašování náhradníků povoleno
         if (!$this->prihlasovatelnaProSledujici()) {
-            throw new \LogicException('Na aktivitu se nelze přihlašovat jako sledující.');
+            throw new \Chyba('Na aktivitu se nelze přihlašovat jako sledující.');
         }
         // Uživatel nesmí být přihlášen na aktivitu nebo jako náhradník
         if ($this->prihlasen($u) || $this->prihlasenJakoSledujici($u)) {
