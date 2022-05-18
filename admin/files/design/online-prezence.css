@@ -47,6 +47,18 @@ input:not([disabled])[type=checkbox] {
   cursor: help;
 }
 
+input[data-bs-toggle="tooltip"] {
+  cursor: inherit;
+}
+
 [data-stav-prihlaseni="sledujici_se_prihlasil"], [data-stav-prihlaseni="nahradnik_nedorazil"] {
   color: grey;
+}
+
+.styl-pro-dorazil-checkbox {
+  display: block;
+}
+
+label[for]:hover {
+  cursor: pointer;
 }
