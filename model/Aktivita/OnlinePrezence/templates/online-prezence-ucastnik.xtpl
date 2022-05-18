@@ -56,10 +56,14 @@
   </td>
   <td style="text-align: center">
     <!-- begin:checkbox -->
-    <input type="checkbox" class="dorazil" onchange="zmenitPritomnostUcastnika('{u.id}', '{a.id}', this)"
-           name="dorazil[]"
-           value="{u.id}"
-           {checkedUcastnik} {disabledUcastnik} data-initial-checked="{checkedUcastnik}">
+    <label for="ucastnik-{u.id}-dorazil" class="styl-pro-dorazil-checkbox">
+      <input type="checkbox" class="dorazil"
+             name="dorazil[]"
+             value="{u.id}"
+             id="ucastnik-{u.id}-dorazil"
+             {checkedUcastnik} {disabledUcastnik} data-initial-checked="{checkedUcastnik}"
+             onchange="zmenitPritomnostUcastnika('{u.id}', '{a.id}', this)">
+    </label>
     <!-- end:checkbox -->
   </td>
 </tr>

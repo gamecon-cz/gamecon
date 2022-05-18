@@ -81,9 +81,11 @@ class OnlinePrezenceHtml
             ],
             'javascripts' => [
                 __DIR__ . '/../../../admin/files/omnibox.js',
-                __DIR__ . '/../../../admin/files/online-prezence.js',
-                __DIR__ . '/../../../admin/files/online-prezence-posledni-zname-zmeny-prihlaseni.js',
-                __DIR__ . '/../../../admin/files/online-prezence-navod.js',
+                __DIR__ . '/../../../admin/files/online-prezence/heat-colors.js',
+                __DIR__ . '/../../../admin/files/online-prezence/tooltip.js',
+                __DIR__ . '/../../../admin/files/online-prezence/online-prezence.js',
+                __DIR__ . '/../../../admin/files/online-prezence/online-prezence-posledni-zname-zmeny-prihlaseni.js',
+                __DIR__ . '/../../../admin/files/online-prezence/online-prezence-navod.js',
             ],
         ];
         foreach ($localAssets['stylesheets'] as $stylesheet) {
@@ -173,6 +175,8 @@ class OnlinePrezenceHtml
             $template->assign('zacatek', $aktivita->zacatek() ? $aktivita->zacatek()->format('l H:i') : '-nevíme-');
             $template->assign('minutNaPosledniChvili', $this->naPosledniChviliXMinutPredZacatkem);
             $template->parse('onlinePrezence.aktivity.aktivita.form');
+
+            $template->assign('kapacita', (int)$aktivita->kapacita());
 
             $template->parse('onlinePrezence.aktivity.aktivita');
         }
