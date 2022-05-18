@@ -123,7 +123,10 @@
       <!-- begin:aktivita -->
       <div class="aktivita"
            id="aktivita-{idAktivity}"
-           data-id="{idAktivity}">
+           data-id="{idAktivity}"
+           data-kapacita="{kapacita}"
+      >
+        <!--TODO kapacity pohlaví-->
 
         <h2 id="{nadpis}">
           <span data-bs-toggle="tooltip" data-bs-placement="top" title="Začátek: {zacatek}">
@@ -190,7 +193,6 @@
 
         <!-- begin:form -->
         <form class="formAktivita">
-          <!-- <input type="hidden" name="kapacita_celkova" value="{}" /> --><!-- TODO kapacita -->
           <input type="hidden" name="prezenceAktivity" value="{idAktivity}"/>
           <table class="zvyraznovana ucastnici" style="width: 100%" id="ucastniciAktivity{idAktivity}">
             <thead>
@@ -246,6 +248,8 @@
                    data-omnibox-min-length="3"
                    data-omnibox='{"labelSlozenZ": ["id", "jmenoNick", "mail", "zustatek", "gcPritomen"]}'
                    data-omnibox-url="{omniboxUrl}"
+                   data-bs-toggle="tooltip"
+                   title="Kapacita {kapacita}"
             >
             <span class="col-md-4" id="omniboxNicNenalezeno{idAktivity}" style="display: none">
               <em>Nic...</em> 🤷
@@ -265,6 +269,9 @@
         <!-- end:form -->
 
       </div>
+      <script type="text/javascript">
+        upravUkazateleZaplnenostiAktivity(document.getElementById(`aktivita-{idAktivity}`))
+      </script>
       <!-- end:aktivita -->
 
     </div>

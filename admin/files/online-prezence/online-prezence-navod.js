@@ -44,21 +44,14 @@ function zobrazNavodPodlePosledniVolby(buttonNode, collapseNode) {
  * @param {boolean} skryty
  */
 function zvyrazniTlacitkoPokudJeNavodSkryty(buttonNode, skryty) {
+  let title
   if (skryty) {
     buttonNode.classList.add('border', 'border-warning')
-    const navodElement = buttonNode.parentElement
-    navodElement.title = 'Zobazit návod'
-    const staryTooltipOnElement = bootstrap.Tooltip.getOrCreateInstance(navodElement)
-    staryTooltipOnElement.hide()
-    staryTooltipOnElement.dispose()
-    bootstrap.Tooltip.getOrCreateInstance(navodElement).update()
+    title = 'Zobazit návod'
   } else {
     buttonNode.classList.remove('border', 'border-warning')
-    const navodElement = buttonNode.parentElement
-    navodElement.title = 'Skrýt návod'
-    const staryTooltipOnElement = bootstrap.Tooltip.getOrCreateInstance(navodElement)
-    staryTooltipOnElement.hide()
-    staryTooltipOnElement.dispose()
-    bootstrap.Tooltip.getOrCreateInstance(navodElement).update()
+    title = 'Skrýt návod'
   }
+  const navodElement = buttonNode.parentElement
+  zmenTooltip(title, navodElement)
 }
