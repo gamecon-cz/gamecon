@@ -132,15 +132,7 @@ class DateTimeGamecon extends DateTimeCz
             ? static::zDbFormatu(REG_AKTIVIT_OD)
             : self::spoctejZacatekPrvniVlnyOd($rok);
 
-        if ($naTestuOTydenDriv) {
-            static::naTestuOTydenDriv($zacatekPrvniVlnyOd);
-        }
-
-        return $zacatekPrvniVlnyOd;
-    }
-
-    public static function spoctejZacatekPrvniVlnyOd(int $rok): DateTimeGamecon {
-        return self::spocitejZacatekRegistraciUcastniku($rok)->modify('+1 week');
+        return $zacatekRegistraciNavstevniku->modify('+ 1 week');
     }
 
     public static function prvniHromadneOdhlasovaniOd(int $rok = ROK): DateTimeGamecon {

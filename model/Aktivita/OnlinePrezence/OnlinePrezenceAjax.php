@@ -46,13 +46,19 @@ class OnlinePrezenceAjax
      * @var Filesystem
      */
     private $filesystem;
+    /**
+     * @var bool
+     */
+    private $testujeme;
 
     public function __construct(
         OnlinePrezenceHtml $onlinePrezenceHtml,
-        Filesystem         $filesystem
+        Filesystem         $filesystem,
+        bool               $testujeme
     ) {
         $this->onlinePrezenceHtml = $onlinePrezenceHtml;
         $this->filesystem = $filesystem;
+        $this->testujeme = $testujeme;
     }
 
     public function odbavAjax(\Uzivatel $vypravec) {
@@ -195,6 +201,18 @@ class OnlinePrezenceAjax
 
         if ($dorazil === null) {
             $this->echoErrorJson('Chybějící příznak zda dorazil');
+            return;
+        }
+
+        try {
+            $aktivita->zkontrolujZdaSeMuzePrihlasit(
+                $ucastnik,
+                $this->testujeme
+                    ? Aktivita::DOPREDNE | Aktivita::ZPETNE | Aktivita::STAV
+                    : 0
+            );
+        } catch (\Chyba $chyba) {
+            $this->echoErrorJson($chyba->getMessage());
             return;
         }
 
