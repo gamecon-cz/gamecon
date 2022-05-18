@@ -76,14 +76,21 @@
 
       <div class="row">
         <div class="col-auto">
-          <button id="tlacitkoJakNaOnlinePrezenci" class="btn btn-light" type="button" data-bs-toggle="collapse"
-                  data-bs-target="#jakNaOnlinePrezenci"
-                  aria-expanded="true" aria-controls="jakNaOnlinePrezenci">
-            📖
-          </button>
+          <span data-bs-toggle="tooltip" data-bs-placement="top" title="Ovládání návodu">
+            <button id="tlacitkoJakNaOnlinePrezenci"
+                    class="btn btn-light"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#jakNaOnlinePrezenci"
+                    aria-expanded="true"
+                    aria-controls="jakNaOnlinePrezenci">
+                📖
+              </button>
+            </span>
         </div>
         <div class="col-sm-12 col-lg">
-          <div class="collapse" id="jakNaOnlinePrezenci" style="margin: 5px 0">
+          <div class="collapse" id="jakNaOnlinePrezenci" data-trigger-button-id="tlacitkoJakNaOnlinePrezenci"
+               style="margin: 5px 0">
             <div class="card card-body">
               <ul>
                 <li>15 minut předem buď u maskota své sekce.</li>
@@ -104,7 +111,10 @@
                 (Ne s infopultem!)</p>
             </div>
             <script type="text/javascript">
-              zobrazNavodPodlePosledniVolby(document.getElementById('jakNaOnlinePrezenci'))
+              zobrazNavodPodlePosledniVolby(
+                document.getElementById('tlacitkoJakNaOnlinePrezenci'),
+                document.getElementById('jakNaOnlinePrezenci'),
+              )
             </script>
           </div>
         </div>
@@ -116,9 +126,8 @@
            data-id="{idAktivity}">
 
         <h2 id="{nadpis}">
-          <span class="hinted">
+          <span data-bs-toggle="tooltip" data-bs-placement="top" title="Začátek: {zacatek}">
             {nadpis}
-            <span class="hint">Začíná v {zacatek}</span>
           </span>
           <a href="#{nadpis}" style="color: darkgray; opacity: 0.6">#</a>
         </h2>
