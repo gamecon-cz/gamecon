@@ -12,6 +12,10 @@
       }
     })
 
+    Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]')).forEach(function (tooltipElement) {
+      bootstrap.Tooltip.getOrCreateInstance(tooltipElement).update()
+    })
+
     // ZMENA METADAT PREZENCE UCASTNIKA
 
     const $aktivity = $('.aktivita')
@@ -19,9 +23,6 @@
     $aktivity.each(function (index, aktivitaNode) {
       aktivitaNode.addEventListener('novyUcastnik', function (/** @param {{detail: {idAktivity: number, idUzivatele: number}}} event */event) {
         hlidejNovehoUcastnika(event.detail.idUzivatele, event.detail.idAktivity)
-      })
-      Array.from(aktivitaNode.querySelectorAll('[data-bs-toggle="tooltip"]')).forEach(function (tooltip) {
-        new bootstrap.Tooltip(tooltip)
       })
     })
 
@@ -56,25 +57,29 @@
       const idUzivatele = ucastnikNode.dataset.id
       const idAktivity = ucastnikNode.dataset.idAktivity
       const naPosledniChvili = ucastnikNode.querySelector('.na-posledni-chvili')
-      const jeNahradnik = document.getElementById(`ucastik-${idUzivatele}-je-nahradnik-na-aktivite-${idAktivity}`)
-      const jeSledujici = document.getElementById(`ucastik-${idUzivatele}-je-sledujici-aktivity-${idAktivity}`)
+      const jeNahradnik = document.getElementById(`ucastnik-${idUzivatele}-je-nahradnik-na-aktivite-${idAktivity}`)
+      const jeSledujici = document.getElementById(`ucastnik-${idUzivatele}-je-sledujici-aktivity-${idAktivity}`)
+      const jePryc = document.getElementById(`ucastnik-${idUzivatele}-je-spici-na-aktivite-${idAktivity}`)
       switch (stavPrihlaseni) {
         case 'sledujici_se_prihlasil' :
         /*
         Když je náhradník přidán z online prezence, tak při opětovném odkškrtnutí je vlastně smazán, tedy není z něj náhradník.
-        Ale prezence ho neodstraní, kdyby to snad byl překlik aby šel zas hned vrátit, proto ho označíme za náhradníka.
+        Ale prezence ho neodstraní, kdyby to snad byl překlik aby šel zas hned vrátit, proto ho ponecháme jako "spícího".
          */
         case 'nahradnik_nedorazil' :
           skryt(jeNahradnik)
-          zobrazit(jeSledujici)
+          skryt(jeSledujici)
+          zobrazit(jePryc)
           break
         case 'nahradnik_dorazil' :
           skryt(jeSledujici)
+          skryt(jePryc)
           zobrazit(jeNahradnik)
           break
         case 'ucastnik_dorazil' :
           skryt(jeSledujici)
           skryt(jeNahradnik)
+          skryt(jePryc)
           if (naPosledniChvili) {
             skryt(naPosledniChvili)
           }
@@ -82,6 +87,7 @@
         case 'ucastnik_se_prihlasil' :
           skryt(jeSledujici)
           skryt(jeNahradnik)
+          skryt(jePryc)
           if (naPosledniChvili) {
             zobrazit(naPosledniChvili)
           }
@@ -89,6 +95,7 @@
         default :
           skryt(jeNahradnik)
           skryt(jeSledujici)
+          skryt(jePryc)
       }
     }
 
@@ -112,8 +119,8 @@
      */
     function aktivujTooltipUcastnika(idUzivatele, idAktivity) {
       const tooltipTriggerList = Array.from(document.querySelectorAll(`#ucastnik-${idUzivatele}-na-aktivite-${idAktivity} [data-bs-toggle="tooltip"]`))
-      tooltipTriggerList.map(function (tooltipTriggerEl) {
-        new bootstrap.Tooltip(tooltipTriggerEl)
+      tooltipTriggerList.map(function (tooltipTriggerElement) {
+        bootstrap.Tooltip.getOrCreateInstance(tooltipTriggerElement).update()
       })
     }
 
