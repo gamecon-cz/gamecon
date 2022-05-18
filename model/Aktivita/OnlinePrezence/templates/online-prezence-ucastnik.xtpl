@@ -28,17 +28,24 @@
     </span>
     <!-- end: prihlasenNaPosledniChvili -->
     <span class="nahradnik {cssTridaDisplayNahradnik}"
-          id="ucastik-{u.id}-je-nahradnik-na-aktivite-{a.id}"
+          id="ucastnik-{u.id}-je-nahradnik-na-aktivite-{a.id}"
           data-bs-toggle="tooltip"
           title="Náhradník">
       <img alt="Náhradník" class="font-sized" src="files/design/substitution-icon.png">
     </span>
     <span class="sledujici {cssTridaDisplaySledujici} bg-dark ui-corner-all"
-          id="ucastik-{u.id}-je-sledujici-aktivity-{a.id}"
+          id="ucastnik-{u.id}-je-sledujici-aktivity-{a.id}"
           data-bs-toggle="tooltip"
           title="Je to sledující. Pokud sháníš náhradníka, tenhle bude mít zájem."
     >
       👀
+    </span>
+    <span class="spici {cssTridaDisplaySledujici}"
+          id="ucastnik-{u.id}-je-spici-na-aktivite-{a.id}"
+          data-bs-toggle="tooltip"
+          title="Byl náhradníkem, přidaným přes online prezenci. Teď není nic, ale ještě ho neskryjeme, kdyby snad jeho odkšrtnutí byl omyl."
+    >
+      💤
     </span>
   </td>
   <td>{u.jmenoNick}</td>
