@@ -1287,10 +1287,6 @@ SQL
      * Přihlásí uživatele na aktivitu
      */
     public function prihlas(\Uzivatel $u, $ignorovat = 0) {
-        if ($this->prihlasen($uzivatel)) {
-            return;
-        }
-
         $this->zkontrolujZdaSeMuzePrihlasit($u, $ignorovat);
 
         // odhlášení náhradnictví v kolidujících aktivitách
