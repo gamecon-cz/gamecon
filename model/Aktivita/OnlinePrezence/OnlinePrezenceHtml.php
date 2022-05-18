@@ -5,6 +5,7 @@ namespace Gamecon\Aktivita\OnlinePrezence;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\AktivitaPrezence;
 use Gamecon\Aktivita\RazitkoPosledniZmenyPrihlaseni;
+use Gamecon\Cas\DateTimeCz;
 use Gamecon\Pravo;
 use Symfony\Component\Filesystem\Filesystem;
 
