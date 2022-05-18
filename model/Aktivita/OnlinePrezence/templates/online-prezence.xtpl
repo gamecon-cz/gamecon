@@ -104,7 +104,10 @@
                 (Ne s infopultem!)</p>
             </div>
             <script type="text/javascript">
-              zobrazNavodPodlePosledniVolby(document.getElementById('jakNaOnlinePrezenci'))
+              zobrazNavodPodlePosledniVolby(
+                document.getElementById('tlacitkoJakNaOnlinePrezenci'),
+                document.getElementById('jakNaOnlinePrezenci'),
+              )
             </script>
           </div>
         </div>

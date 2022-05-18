@@ -11,9 +11,10 @@ document.addEventListener('DOMContentLoaded', function () {
 })
 
 /**
+ * @param {HTMLElement} buttonNode
  * @param {HTMLElement} collapseNode
  */
-function zobrazNavodPodlePosledniVolby(collapseNode) {
+function zobrazNavodPodlePosledniVolby(buttonNode, collapseNode) {
   let collapseState
   const collapseCookieState = document.cookie.split('; ')
     .find(row => row.startsWith(`collapse-${collapseNode.id}`))
@@ -21,8 +22,12 @@ function zobrazNavodPodlePosledniVolby(collapseNode) {
     collapseState = collapseCookieState.split('=')[1]
   }
   if (collapseState === 'hidden') {
+    buttonNode.classList.add('collapsed')
+    buttonNode.setAttribute('aria-expanded', 'false')
     collapseNode.classList.remove('show')
   } else {
+    buttonNode.classList.remove('collapsed')
+    buttonNode.setAttribute('aria-expanded', 'true')
     collapseNode.classList.add('show')
   }
 }
