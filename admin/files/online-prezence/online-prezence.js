@@ -147,23 +147,6 @@
       }
     }
 
-    // ZOBRAZENI ERRORS
-    Array.from(document.getElementsByClassName('aktivita')).forEach(function (aktivita) {
-      aktivita.addEventListener('ajaxErrors', function (/** @param {{detail: {errors: string[]}}} event */event) {
-        if (event.detail.errors) {
-          const errorTemplate = aktivita.getElementsByClassName('error-template')[0]
-          event.detail.errors.forEach(function (errorText) {
-            /** @var {HTMLElement} */
-            const errorNode = errorTemplate.cloneNode(true)
-            const errorTextNode = errorNode.getElementsByClassName('error-text')[0]
-            errorTextNode.innerHTML = errorText
-            errorTemplate.parentElement.appendChild(errorNode)
-            errorNode.classList.remove('display-none')
-          })
-        }
-      })
-    })
-
     /**
      * Bude zpracováno v event listeneru přes hlidejNovehoUcastnika()
      * @param {number} idUzivatele
@@ -190,15 +173,21 @@
         const ucastniciAktivityNode = $(`#ucastniciAktivity${idAktivity}`)
         const novyUcastnik = $(ui.item.html)
 
-        zmenitPritomnostUcastnika(idUzivatele, idAktivity, novyUcastnik.find('input')[0], function () {
-          /**
-           * Teprve až backend potvrdí uložení vybraného účastníka a JS přidá čas poslední změny a stav přihlášení,
-           * tak můžeme přidat řádek s tímto účastníkem.
-           * Data z řádku totiž potřebujeme pro kontrolu změn v online-prezence-posledni-zname-zmeny-prihlaseni.js
-           */
-          ucastniciAktivityNode.append(novyUcastnik)
-          vypustEventONovemUcastnikovi(idUzivatele, idAktivity)
-        })
+        zmenitPritomnostUcastnika(
+          idUzivatele,
+          idAktivity,
+          novyUcastnik.find('input')[0],
+          this, // kde vznikl požadavek a kde ukázat případné errory
+          function () {
+            /**
+             * Teprve až backend potvrdí uložení vybraného účastníka a JS přidá čas poslední změny a stav přihlášení,
+             * tak můžeme přidat řádek s tímto účastníkem.
+             * Data z řádku totiž potřebujeme pro kontrolu změn v online-prezence-posledni-zname-zmeny-prihlaseni.js
+             */
+            ucastniciAktivityNode.append(novyUcastnik)
+            vypustEventONovemUcastnikovi(idUzivatele, idAktivity)
+          },
+        )
 
         // vyrušení default výběru do boxu
         event.preventDefault()
@@ -474,9 +463,16 @@ const akceAktivity = new class AkceAktivity {
  * @param {number} idUzivatele
  * @param {number} idAktivity
  * @param {HTMLElement} checkboxNode
+ * @param {HTMLElement|undefined} triggeringNode
  * @param {function|undefined} callbackOnSuccess
  */
-function zmenitPritomnostUcastnika(idUzivatele, idAktivity, checkboxNode, callbackOnSuccess) {
+function zmenitPritomnostUcastnika(
+  idUzivatele,
+  idAktivity,
+  checkboxNode,
+  triggeringNode,
+  callbackOnSuccess,
+) {
   checkboxNode.disabled = true
   dorazil = checkboxNode.checked
   $.post(location.href, {
@@ -510,8 +506,17 @@ function zmenitPritomnostUcastnika(idUzivatele, idAktivity, checkboxNode, callba
       }
     }
   }).fail(function (response) {
+    checkboxNode.checked = !checkboxNode.checked // vrátit zpět
+    checkboxNode.disabled = false
+
     if (response.status === 400 && response.responseJSON && response.responseJSON.errors) {
-      const errorsEvent = new CustomEvent('ajaxErrors', {detail: {errors: response.responseJSON.errors}})
+      triggeringNode = triggeringNode || checkboxNode
+      const errorsEvent = new CustomEvent('ajaxErrors', {
+        detail: {
+          errors: response.responseJSON.errors,
+          triggeringNode: triggeringNode,
+        },
+      })
       dejNodeAktivity(idAktivity).dispatchEvent(errorsEvent)
     }
   })

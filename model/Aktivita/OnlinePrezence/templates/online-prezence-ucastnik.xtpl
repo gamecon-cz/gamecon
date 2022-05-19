@@ -56,7 +56,7 @@
   </td>
   <td style="text-align: center; padding: 0">
     <!-- begin:checkbox -->
-    <label class="styl-pro-dorazil-checkbox"
+    <label class="styl-pro-dorazil-checkbox error-tooltip"
            data-bs-placement="left"
            data-bs-html="true"
     >
