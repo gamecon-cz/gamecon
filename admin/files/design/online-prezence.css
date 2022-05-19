@@ -62,3 +62,11 @@ input[data-bs-toggle="tooltip"] {
 label:hover {
   cursor: pointer;
 }
+
+.plno {
+  color: #ff4d00;
+}
+
+.volno {
+  color: inherit;
+}

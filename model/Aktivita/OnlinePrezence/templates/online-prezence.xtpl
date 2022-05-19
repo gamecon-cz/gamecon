@@ -250,6 +250,7 @@
                    data-omnibox='{"labelSlozenZ": ["id", "jmenoNick", "mail", "zustatek", "gcPritomen"]}'
                    data-omnibox-url="{omniboxUrl}"
                    data-bs-toggle="tooltip"
+                   data-bs-html="true"
                    title="Kapacita {kapacita}"
             >
             <span class="col-md-4" id="omniboxNicNenalezeno{idAktivity}" style="display: none">
