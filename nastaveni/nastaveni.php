@@ -229,8 +229,8 @@ Organizační tým GameConu',
 @define('GC_BEZI', mezi(GC_BEZI_OD, GC_BEZI_DO)); // jestli gamecon aktivně běží (zakázání online registrací ubytování aj.) - do budoucna se vyvarovat a používat speciální konstanty per vlastnost
 
 @define('ARCHIV_OD', 2009);           //rok, od kterého se vedou (nabízejí) archivy (aktivit atp.)
-@define('ID_PRAVO_PRIHLASEN', ZIDLE_PRIHLASEN); // fixme zůstává kvůli uložení práva v session
-@define('ID_PRAVO_PRITOMEN', ZIDLE_PRITOMEN);  // fixme zůstává kvůli uložení práva v session
+@define('ID_PRAVO_PRIHLASEN', ZIDLE_PRIHLASEN);
+@define('ID_PRAVO_PRITOMEN', ZIDLE_PRITOMEN);
 
 @define('ODHLASENI_POKUTA_KONTROLA', po(ROK . '-07-18 00:00:01')); // jestli se má kontrolovat pozdní odhlášní z aktivit
 @define('ODHLASENI_POKUTA1_H', 24); // kolik hodin před aktivitou se začne uplatňovat pokuta 1
