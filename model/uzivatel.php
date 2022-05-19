@@ -245,7 +245,7 @@ SQL
                 'Už jsi prošel infopultem, odhlášení není možné.'
             );
         }
-        foreach ($this->prihlaseneAktivity() as $aktivita) {
+        foreach ($this->aktivityRyzePrihlasene() as $aktivita) {
             $aktivita->odhlas($this, $aktivita::NEPOSILAT_MAILY /* nechceme posílat maily sledujícím, že se uvolnilo místo */);
         }
         // zrušení nákupů
@@ -278,7 +278,7 @@ SQL
      * @param int $rok
      * @return Aktivita[]
      */
-    public function prihlaseneAktivity(int $rok = ROK): array {
+    public function aktivityRyzePrihlasene(int $rok = ROK): array {
         $ids = dbOneArray(<<<SQL
 SELECT akce_prihlaseni.id_akce
 FROM akce_prihlaseni
@@ -288,6 +288,23 @@ AND akce_prihlaseni.id_stavu_prihlaseni = $2
 AND akce_seznam.rok = $3
 SQL,
             [$this->id(), Aktivita::PRIHLASEN, $rok]
+        );
+        return Aktivita::zIds($ids);
+    }
+
+    /**
+     * @param int $rok
+     * @return Aktivita[]
+     */
+    public function zapsaneAktivity(int $rok = ROK): array {
+        $ids = dbOneArray(<<<SQL
+SELECT akce_prihlaseni.id_akce
+FROM akce_prihlaseni
+JOIN akce_seznam on akce_prihlaseni.id_akce = akce_seznam.id_akce
+WHERE akce_prihlaseni.id_uzivatele = $1
+AND akce_seznam.rok = $2
+SQL,
+            [$this->id(), $rok]
         );
         return Aktivita::zIds($ids);
     }
@@ -461,7 +478,7 @@ SQL,
             return true;
         }
 
-        if ($this->maCasovouKolizi($this->prihlaseneAktivity(), $od, $do, $ignorovanaAktivita, $jenFyzicky)) {
+        if ($this->maCasovouKolizi($this->zapsaneAktivity(), $od, $do, $ignorovanaAktivita, $jenFyzicky)) {
             return false;
         }
 
@@ -494,8 +511,8 @@ SQL,
             if (!$konec) {
                 continue;
             }
-            /* koliduje, pokud začíná na konci nebo před ním a zároveň končí se začátkem nebo po něm */
-            if ($zacatek <= $do && $konec >= $od) {
+            /* koliduje, pokud začíná před koncem jiné aktivity a končí po začátku jiné aktivity */
+            if ($zacatek < $do && $konec > $od) {
                 return $jenFyzicky
                     ? $aktivita->dorazilJakoCokoliv($this) // někde už je v daný čas přítomen
                     : true; // nekde už je na daný čas přihlášen
