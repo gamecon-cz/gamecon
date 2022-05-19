@@ -57,7 +57,9 @@
   <td style="text-align: center; padding: 0">
     <!-- begin:checkbox -->
     <label class="styl-pro-dorazil-checkbox"
-           data-bs-placement="left">
+           data-bs-placement="left"
+           data-bs-html="true"
+    >
       <input type="checkbox" class="dorazil"
              name="dorazil[]"
              value="{u.id}"
