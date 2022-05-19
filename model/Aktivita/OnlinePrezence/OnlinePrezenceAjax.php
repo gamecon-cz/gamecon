@@ -16,7 +16,7 @@ class OnlinePrezenceAjax
     public const AJAX = 'ajax';
     public const POSLEDNI_ZMENY = 'posledni-zmeny';
 
-    public const IDS_POSLEDNICH_LOGU_UCASTNIKU_AJAX_KLIC = 'ids_poslednich_logu_ucastniku_ajax_klic';
+    public const POSLEDNI_LOGY_UCASTNIKU_AJAX_KLIC = 'posledni_logy_ucastniku_ajax_klic';
     public const IDS_AKTIVIT = 'ids_aktivit';
     public const ID_AKTIVITY = 'id_aktivity';
     public const ID_UZIVATELE = 'id_uzivatele';
@@ -68,8 +68,7 @@ class OnlinePrezenceAjax
 
         if (get('akce') === self::POSLEDNI_ZMENY) {
             $this->ajaxDejPosledniZmeny(
-                (array)post(self::IDS_POSLEDNICH_LOGU_UCASTNIKU_AJAX_KLIC),
-                array_map('intval', (array)post(self::IDS_AKTIVIT)),
+                (array)post(self::POSLEDNI_LOGY_UCASTNIKU_AJAX_KLIC),
                 $vypravec
             );
             return true;
@@ -116,17 +115,13 @@ class OnlinePrezenceAjax
     }
 
     /**
-     * @param int[] $idsPoslednichLoguUcastniku
-     * @param int[] $idsAktivit
+     * @param string[][][] $idsPoslednichLoguUcastniku
      * @param \Uzivatel $vypravec
      * @return void
      */
-    private function ajaxDejPosledniZmeny(array $idsPoslednichLoguUcastniku, array $idsAktivit, \Uzivatel $vypravec) {
+    private function ajaxDejPosledniZmeny(array $idsPoslednichLoguUcastniku, \Uzivatel $vypravec) {
         $zmenyProJson = [];
-        $nejnovejsiZmenyStavuPrihlaseni = AktivitaPrezence::dejPosledniZmeny(
-            array_map('intval', $idsPoslednichLoguUcastniku),
-            $idsAktivit
-        );
+        $nejnovejsiZmenyStavuPrihlaseni = AktivitaPrezence::dejPosledniZmeny($idsPoslednichLoguUcastniku);
         foreach ($nejnovejsiZmenyStavuPrihlaseni->zmenyStavuPrihlaseni() as $zmenaStavuPrihlaseni) {
             $aktivita = Aktivita::zId($zmenaStavuPrihlaseni->idAktivity());
             $zmenyProJson[] = [

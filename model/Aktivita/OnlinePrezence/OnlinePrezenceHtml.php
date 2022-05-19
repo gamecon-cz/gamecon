@@ -192,7 +192,7 @@ class OnlinePrezenceHtml
         $template->assign('razitkoPosledniZmeny', $razitkoPosledniZmeny->dejPotvrzeneRazitkoPosledniZmeny());
         $template->assign('urlRazitkaPosledniZmeny', $razitkoPosledniZmeny->dejUrlRazitkaPosledniZmeny());
         $template->assign('urlAkcePosledniZmeny', OnlinePrezenceAjax::dejUrlAkcePosledniZmeny());
-        $template->assign('idsPoslednichLoguUcastnikuAjaxKlic', OnlinePrezenceAjax::IDS_POSLEDNICH_LOGU_UCASTNIKU_AJAX_KLIC);
+        $template->assign('posledniLogyUcastnikuAjaxKlic', OnlinePrezenceAjax::POSLEDNI_LOGY_UCASTNIKU_AJAX_KLIC);
 
         $template->parse('onlinePrezence.aktivity');
     }
