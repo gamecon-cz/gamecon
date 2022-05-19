@@ -51,22 +51,24 @@
     }, 3000) // každé tři sekundy kontrolujeme, zda razitko posledni zmeny je patne (zda soubor s nim existuje) - kdyz soubor zmizi, tak se prilaseni na jedne z aktivit zmenilo a my chceme sathnout zmeny
 
     const urlAkcePosledniZmeny = onlinePrezence.dataset.urlAkcePosledniZmeny
-    const idsPoslednichLoguUcastnikuAjaxKlic = onlinePrezence.dataset.idsPoslednichLoguUcastnikuAjaxKlic
+    const posledniLogyUcastnikuAjaxKlic = onlinePrezence.dataset.posledniLogyUcastnikuAjaxKlic
 
     const $aktivity = $(onlinePrezence).find('.aktivita')
 
     function nahratZmenyPrihlaseni() {
-      const idsPoslednichLoguUcastniku = []
-      /* kvůli testování (viz admin/scripts/modules/moje-aktivity/moje-aktivity.php $testujeme) nelze použít \Uzivatel::organizovaneAktivity protože používáme i aktivity, které tester nemusí organizovat */
-      const idsAktivit = []
+      /* kvůli testování (viz admin/scripts/modules/moje-aktivity/moje-aktivity.php $testujeme) nelze použít \Uzivatel::organizovaneAktivity protože používáme i aktivity, které tester nemusí organizovat, proto jejich seznam posíláme z frontendu */
+      const aktivityUcastniciPosledniZnameLogy = {}
 
       $aktivity.each(function (indexAktivity, aktivita) {
-        idsAktivit.push(aktivita.dataset.id)
+        const aktivitaUcastniciPosledniZnameLogy = []
 
         const $ucastnici = $(aktivita).find('.ucastnik')
         $ucastnici.each(function (indexUcastnka, ucastnik) {
-          idsPoslednichLoguUcastniku.push(Number(ucastnik.dataset.idPoslednihoLogu))
+          const ucastnikPosledniZnamyLog = {idUzivatele: ucastnik.dataset.id, idPoslednihoLogu: ucastnik.dataset.idPoslednihoLogu}
+          aktivitaUcastniciPosledniZnameLogy.push(ucastnikPosledniZnamyLog)
         })
+
+        aktivityUcastniciPosledniZnameLogy[aktivita.dataset.id] = aktivitaUcastniciPosledniZnameLogy
       })
 
       $.post(urlAkcePosledniZmeny, {
@@ -80,8 +82,7 @@
          o chvililinku později, než někdo jiný změnil jiné přihlášení, tak bychom použili ID posledního logu z naší,
          poslední změny a tím bychom přeskočili nedávnou změnu od jinud.
          */
-        [idsPoslednichLoguUcastnikuAjaxKlic]: idsPoslednichLoguUcastniku,
-        ids_aktivit: idsAktivit,
+        [posledniLogyUcastnikuAjaxKlic]: aktivityUcastniciPosledniZnameLogy,
       }).done(/** @param {{razitko_posledni_zmeny: string, zmeny: []}} data */function (data) {
         if (data.zmeny) {
           const zmeny = Zmena.vytvorZmenyZOdpovedi(data.zmeny)
