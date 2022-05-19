@@ -59,6 +59,6 @@ input[data-bs-toggle="tooltip"] {
   display: block;
 }
 
-label[for]:hover {
+label:hover {
   cursor: pointer;
 }

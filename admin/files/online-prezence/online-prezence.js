@@ -555,18 +555,16 @@ function dejNodeAktivity(idAktivity) {
  * @param {HTMLElement} aktivitaNode
  */
 function upravUkazateleZaplnenostiAktivity(aktivitaNode) {
-  let posledniBarva = false
-  let pocetPritomnych = 0
   const kapacita = Number.parseInt(aktivitaNode.dataset.kapacita)
+  const zaskrtnuteCheckboxy = aktivitaNode.querySelectorAll('.styl-pro-dorazil-checkbox > input[type=checkbox]:checked')
+  const pocetPritomnych = zaskrtnuteCheckboxy.length
+  const barvaZaplnenosti = tempToColor(pocetPritomnych, 1, kapacita + 1 /* poslední barva je fialová, my chceme po plnou aktivitu předposlední, červenou */, 'half')
+  const {r, g, b} = barvaZaplnenosti
+  const intenzitaBarvy = 0.1
   // zaškrtnuté checkboxy dostanou barvu od zelené po fialovou, jak se bued blížit vyčerpání kapacity
-  Array.from(aktivitaNode.querySelectorAll('.styl-pro-dorazil-checkbox > input[type=checkbox]:checked')).forEach(function (checkbox, index) {
-    const temperature = index + 1
-    const intenzitaBarvy = Math.max(temperature / kapacita - 0.3, 0.1)
-    posledniBarva = tempToColor(temperature, 1, kapacita, 'half')
-    const {r, g, b} = posledniBarva
+  Array.from(zaskrtnuteCheckboxy).forEach(function (checkbox, index) {
     const stylNode = checkbox.parentElement
     stylNode.style.backgroundColor = `rgb(${r},${g},${b},${intenzitaBarvy})`
-    pocetPritomnych++
   })
   // nezaškrtnutým checkboxům zresetujeme barvy
   Array.from(aktivitaNode.querySelectorAll('.styl-pro-dorazil-checkbox > input[type=checkbox]:not(:checked)')).forEach(function (checkbox) {
@@ -574,27 +572,15 @@ function upravUkazateleZaplnenostiAktivity(aktivitaNode) {
     stylNode.style.backgroundColor = 'inherit'
   })
   // tooltip se zbývající kapacitou
-  let tooltipText
-  if (posledniBarva !== false) {
-    tooltipText = `Volných pozic ${kapacita - pocetPritomnych}, kapacita ${pocetPritomnych}/${kapacita}`
-  } else {
-    tooltipText = `Volných pozic ${kapacita}, kapacita 0/${kapacita}`
-  }
-  Array.from(aktivitaNode.querySelectorAll('.styl-pro-dorazil-checkbox > input[type=checkbox]')).forEach(function (checkbox) {
-    const stylNode = checkbox.parentElement
-    zmenTooltip(tooltipText, stylNode)
+  const tooltipText = (pocetPritomnych < kapacita
+      ? `Volno ${kapacita - pocetPritomnych}`
+      : 'Plno'
+  ) + ` (kapacita ${pocetPritomnych}/${kapacita})`
+  Array.from(aktivitaNode.querySelectorAll('.styl-pro-dorazil-checkbox')).forEach(function (stylProCheckboxNode) {
+    zmenTooltip(tooltipText, stylProCheckboxNode)
   })
   Array.from(aktivitaNode.getElementsByClassName('omnibox')).forEach(function (omniboxElement) {
-    if (posledniBarva !== false) {
-      omniboxElement.style.borderStyle = 'solid'
-      omniboxElement.style.borderWidth = '2px'
-      const {r, g, b} = posledniBarva
-      omniboxElement.style.borderColor = `rgb(${r},${g},${b})`
-    } else {
-      omniboxElement.style.borderStyle = 'revert'
-      omniboxElement.style.borderWidth = null
-      omniboxElement.style.borderColor = null
-    }
     zmenTooltip(tooltipText, omniboxElement)
+    omniboxElement.placeholder = `${omniboxElement.dataset.vychoziPlaceholder} ${tooltipText.toLowerCase()}`
   })
 }
