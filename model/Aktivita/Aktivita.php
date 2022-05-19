@@ -1292,7 +1292,7 @@ SQL
             return;
         }
 
-        $this->zkontrolujZdaSeMuzePrihlasit($uzivatel, $ignorovat);
+        $this->zkontrolujZdaSeMuzeUcastnit($uzivatel, $ignorovat);
 
         // odhlášení náhradnictví v kolidujících aktivitách
         $this->odhlasZeSledovaniAktivitVeStejnemCase($uzivatel);
@@ -1320,7 +1320,7 @@ SQL
         $this->refresh();
     }
 
-    public function zkontrolujZdaSeMuzePrihlasit(\Uzivatel $uzivatel, $ignorovat = 0, bool $hlaskyVeTretiOsobe = false) {
+    public function zkontrolujZdaSeMuzeUcastnit(\Uzivatel $uzivatel, $ignorovat = 0, bool $hlaskyVeTretiOsobe = false) {
         // kontroly
         if (!$uzivatel->maVolno($this->zacatek(), $this->konec())) {
             throw new \Chyba(hlaska($hlaskyVeTretiOsobe ? 'maKoliziAktivit' : 'masKoliziAktivit'));
@@ -1328,7 +1328,7 @@ SQL
         if (!$uzivatel->gcPrihlasen()) {
             throw new \Chyba(hlaska($hlaskyVeTretiOsobe ? 'neniPrihlasenNaGc' : 'nejsiPrihlasenNaGc'));
         }
-        if ($this->volno() !== 'u' && $this->volno() !== $uzivatel->pohlavi()/* && !(self::LIMIT & $ignorovat) TODO REVERT*/) {
+        if ($this->volno() !== 'u' && $this->volno() !== $uzivatel->pohlavi() && !(self::LIMIT & $ignorovat)) {
             throw new \Chyba(hlaska('plno'));
         }
         foreach ($this->deti() as $dite) { // nemůže se přihlásit na aktivitu, pokud už je přihášen na jinou aktivitu s stejnými potomky
