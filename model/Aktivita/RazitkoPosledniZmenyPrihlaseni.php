@@ -64,10 +64,6 @@ class RazitkoPosledniZmenyPrihlaseni
      */
     private $vypravec;
     /**
-     * @var Aktivita[]
-     */
-    private $organizovaneAktivity;
-    /**
      * @var Filesystem
      */
     private $filesystem;
@@ -103,7 +99,15 @@ class RazitkoPosledniZmenyPrihlaseni
             $this->jsonKlicProRazitko => $razitko,
         ];
         if (defined('TESTING') && TESTING) {
-            $obsah['idLogu'] = $this->posledniZmena ? $this->posledniZmena->idLogu() : null;
+            $obsah['debug'] = $this->posledniZmena
+                ? [
+                    'idUzivatele' => $this->posledniZmena->idUzivatele(),
+                    'idAktivity' => $this->posledniZmena->idAktivity(),
+                    'idLogu' => $this->posledniZmena->idLogu(),
+                    'casZmeny' => $this->posledniZmena->casZmeny()->format(DATE_ATOM),
+                    'typPrezence' => $this->posledniZmena->typPrezence(),
+                ]
+                : null;
         }
         return $obsah;
     }
