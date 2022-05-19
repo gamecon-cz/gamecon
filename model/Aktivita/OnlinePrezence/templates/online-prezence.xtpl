@@ -136,8 +136,12 @@
         </h2>
 
         <div class="errors">
-          <div class="alert alert-warning alert-dismissible fade show display-none error-template" role="alert">
-            <div class="error-text"></div>
+          <div class="alert alert-warning alert-dismissible fade show display-none warning-template" role="alert">
+            <div class="message"></div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+          <div class="alert alert-danger alert-dismissible fade show display-none error-template" role="alert">
+            <div class="message"></div>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
           </div>
         </div>
