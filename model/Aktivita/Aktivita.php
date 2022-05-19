@@ -60,7 +60,7 @@ class Aktivita
         TECHNICKE = 0b0001000000,   // přihlašovat i skryté technické aktivity
         NEPOSILAT_MAILY_SLEDUJICIM = 0b0010000000,   // odhlášení bez mailů náhradníkům
         DOPREDNE = 0b0100000000,   // možnost přihlásit před otevřením registrací na aktivity
-        LIMIT = 0b1000000000,
+        IGNOROVAT_LIMIT = 0b1000000000,
         // parametry kolem továrních metod
         JEN_VOLNE = 0b00000001,   // jen volné aktivity
         VEREJNE = 0b00000010,   // jen veřejně viditelné aktivity
@@ -1293,7 +1293,7 @@ SQL
             return;
         }
 
-        $this->zkontrolujZdaSeMuzeUcastnit($uzivatel, $ignorovat);
+        $this->zkontrolujZdaSeMuzePrihlasit($uzivatel, $ignorovat);
 
         // odhlášení náhradnictví v kolidujících aktivitách
         $this->odhlasZeSledovaniAktivitVeStejnemCase($uzivatel);
@@ -1321,15 +1321,20 @@ SQL
         $this->refresh();
     }
 
-    public function zkontrolujZdaSeMuzeUcastnit(\Uzivatel $uzivatel, $ignorovat = 0, bool $hlaskyVeTretiOsobe = false) {
+    public function zkontrolujZdaSeMuzePrihlasit(
+        \Uzivatel $uzivatel,
+                  $parametry = 0,
+        bool      $jenFyzicky = false,
+        bool      $hlaskyVeTretiOsobe = false
+    ) {
         // kontroly
-        if (!$uzivatel->maVolno($this->zacatek(), $this->konec())) {
+        if (!$uzivatel->maVolno($this->zacatek(), $this->konec(), null, $jenFyzicky)) {
             throw new \Chyba(hlaska($hlaskyVeTretiOsobe ? 'maKoliziAktivit' : 'masKoliziAktivit'));
         }
         if (!$uzivatel->gcPrihlasen()) {
             throw new \Chyba(hlaska($hlaskyVeTretiOsobe ? 'neniPrihlasenNaGc' : 'nejsiPrihlasenNaGc'));
         }
-        if ($this->volno() !== 'u' && $this->volno() !== $uzivatel->pohlavi() && !(self::LIMIT & $ignorovat)) {
+        if ($this->volno() !== 'u' && $this->volno() !== $uzivatel->pohlavi() && !(self::IGNOROVAT_LIMIT & $parametry)) {
             throw new \Chyba(hlaska('plno'));
         }
         foreach ($this->deti() as $dite) { // nemůže se přihlásit na aktivitu, pokud už je přihášen na jinou aktivitu s stejnými potomky
@@ -1353,16 +1358,16 @@ SQL
         }
 
         // potlačitelné kontroly
-        if ($this->a['zamcel'] && !($ignorovat & self::ZAMEK)) {
+        if ($this->a['zamcel'] && !($parametry & self::ZAMEK)) {
             throw new \Chyba(hlaska('zamcena'));
         }
-        if (!$this->prihlasovatelna($ignorovat)) {
+        if (!$this->prihlasovatelna($parametry)) {
             // hack na ignorování stavu
             $puvodniStav = $this->a['stav'];
-            if ($ignorovat & self::STAV) {
+            if ($parametry & self::STAV) {
                 $this->a['stav'] = \Stav::AKTIVOVANA; // nastavíme stav jako by bylo vše ok
             }
-            $prihlasovatelna = $this->prihlasovatelna($ignorovat);
+            $prihlasovatelna = $this->prihlasovatelna($parametry);
             $this->a['stav'] = $puvodniStav;
             if (!$prihlasovatelna) {
                 throw new \Exception('Aktivita není otevřena pro přihlašování.');
