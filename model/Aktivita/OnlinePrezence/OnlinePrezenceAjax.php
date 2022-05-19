@@ -199,20 +199,20 @@ class OnlinePrezenceAjax
             return;
         }
 
-        try {
-            $ignorovat = Aktivita::LIMIT;
-            $aktivita->zkontrolujZdaSeMuzePrihlasit(
-                $ucastnik,
-                $this->testujeme
-                    ? $ignorovat | Aktivita::DOPREDNE | Aktivita::ZPETNE | Aktivita::STAV
-                    : $ignorovat
-            );
-        } catch (\Chyba $chyba) {
-            $this->echoErrorJson($chyba->getMessage());
-            return;
-        }
-
         if ($dorazil) {
+            try {
+                $ignorovat = Aktivita::LIMIT;
+                $aktivita->zkontrolujZdaSeMuzePrihlasit(
+                    $ucastnik,
+                    $this->testujeme
+                        ? $ignorovat | Aktivita::DOPREDNE | Aktivita::ZPETNE | Aktivita::STAV
+                        : $ignorovat,
+                    true
+                );
+            } catch (\Chyba $chyba) {
+                $this->echoErrorJson($chyba->getMessage());
+                return;
+            }
             $aktivita->dejPrezenci()->ulozZeDorazil($ucastnik);
         } else {
             $aktivita->dejPrezenci()->zrusZeDorazil($ucastnik);
