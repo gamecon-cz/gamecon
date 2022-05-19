@@ -70,3 +70,7 @@ label:hover {
 .volno {
   color: inherit;
 }
+
+.text-na-celou-sirku {
+  font-size: calc(100% + 1vw + 1vh);
+}
