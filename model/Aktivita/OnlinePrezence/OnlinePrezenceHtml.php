@@ -81,11 +81,12 @@ class OnlinePrezenceHtml
             ],
             'javascripts' => [
                 __DIR__ . '/../../../admin/files/omnibox.js',
-                __DIR__ . '/../../../admin/files/online-prezence/heat-colors.js',
-                __DIR__ . '/../../../admin/files/online-prezence/tooltip.js',
+                __DIR__ . '/../../../admin/files/online-prezence/online-prezence-heat-colors.js',
+                __DIR__ . '/../../../admin/files/online-prezence/online-prezence-tooltip.js',
                 __DIR__ . '/../../../admin/files/online-prezence/online-prezence.js',
                 __DIR__ . '/../../../admin/files/online-prezence/online-prezence-posledni-zname-zmeny-prihlaseni.js',
                 __DIR__ . '/../../../admin/files/online-prezence/online-prezence-navod.js',
+                __DIR__ . '/../../../admin/files/online-prezence/online-prezence-errors.js',
             ],
         ];
         foreach ($localAssets['stylesheets'] as $stylesheet) {
