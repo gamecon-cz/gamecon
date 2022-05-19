@@ -470,22 +470,22 @@ SQL,
      * @param DateTimeInterface $od
      * @param DateTimeInterface $do
      * @param Aktivita|null $ignorovanaAktivita
-     * @param bool $fyzicky
+     * @param bool $jenPritomen
      * @return bool jestli se uživatel v daném čase neúčastní / neorganizuje
      *  žádnou aktivitu (případně s výjimkou $ignorovanaAktivita)
      */
-    public function maVolno(DateTimeInterface $od, DateTimeInterface $do, Aktivita $ignorovanaAktivita = null, bool $jenFyzicky = false) {
+    public function maVolno(DateTimeInterface $od, DateTimeInterface $do, Aktivita $ignorovanaAktivita = null, bool $jenPritomen = false) {
         // právo na překrytí aktivit dává volno vždy automaticky
         // TODO zkontrolovat, jestli vlastníci práva dřív měli někdy paralelně i účast nebo jen organizovali a pokud jen organizovali, vyhodit test odsud a vložit do kontroly kdy se ukládá aktivita
         if ($this->maPravo(\Gamecon\Pravo::PREKRYVANI_AKTIVIT)) {
             return true;
         }
 
-        if ($this->maCasovouKolizi($this->zapsaneAktivity(), $od, $do, $ignorovanaAktivita, $jenFyzicky)) {
+        if ($this->maCasovouKolizi($this->zapsaneAktivity(), $od, $do, $ignorovanaAktivita, $jenPritomen)) {
             return false;
         }
 
-        if ($this->maCasovouKolizi($this->organizovaneAktivity(), $od, $do, $ignorovanaAktivita, $jenFyzicky)) {
+        if ($this->maCasovouKolizi($this->organizovaneAktivity(), $od, $do, $ignorovanaAktivita, $jenPritomen)) {
             return false;
         }
 
@@ -497,10 +497,10 @@ SQL,
      * @param DateTimeInterface $od
      * @param DateTimeInterface $do
      * @param Aktivita|null $ignorovanaAktivita
-     * @param bool $jenFyzicky
+     * @param bool $jenPritomen
      * @return bool
      */
-    private function maCasovouKolizi(array $aktivity, DateTimeInterface $od, DateTimeInterface $do, ?Aktivita $ignorovanaAktivita, bool $jenFyzicky): bool {
+    private function maCasovouKolizi(array $aktivity, DateTimeInterface $od, DateTimeInterface $do, ?Aktivita $ignorovanaAktivita, bool $jenPritomen): bool {
         $ignorovanaAktivitaId = $ignorovanaAktivita ? $ignorovanaAktivita->id() : 0;
         foreach ($aktivity as $aktivita) {
             if ($ignorovanaAktivitaId === $aktivita->id()) {
@@ -516,7 +516,7 @@ SQL,
             }
             /* koliduje, pokud začíná před koncem jiné aktivity a končí po začátku jiné aktivity */
             if ($zacatek < $do && $konec > $od) {
-                return $jenFyzicky
+                return $jenPritomen
                     ? $aktivita->dorazilJakoCokoliv($this) // někde už je v daný čas přítomen
                     : true; // nekde už je na daný čas přihlášen
             }
