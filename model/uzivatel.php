@@ -1102,10 +1102,18 @@ SQL,
 
     /**
      * Vrátí telefon uživatele v blíže neurčeném formátu
-     * @todo specifikovat formát čísla
      */
-    public function telefon() {
-        return $this->u['telefon_uzivatele'];
+    public function telefon(): string {
+        $telefon = trim((string)$this->u['telefon_uzivatele']);
+        if ($telefon === '') {
+            return '';
+        }
+        // zahodíme českou předvolbu a mezery
+        $telefon = preg_replace('~(^[+]?420|\s)~', '', $telefon);
+
+        return strlen($telefon) === 9
+            ? chunk_split($telefon, 3, ' ') // na každé třetí místo vložíme mezeru
+            : $telefon;
     }
 
     /**
