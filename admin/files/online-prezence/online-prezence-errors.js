@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
           if (errorTooltipNode) {
             const errorHtml = `<div class="text-warning" role="alert">${errorText}</div>`
             zmenTooltip(errorHtml, errorTooltipNode) // zobrazíme error jako tooltip
-            zobrazTooltip(errorTooltipNode, 2 /* na tolik sekund pokud nemá hover */)
+            zobrazTooltip(errorTooltipNode, 4 /* na tolik sekund pokud nemá hover */)
           } else {
             const errorNode = errorTemplate.cloneNode(true)
             const errorTextNode = errorNode.getElementsByClassName('error-text')[0]
