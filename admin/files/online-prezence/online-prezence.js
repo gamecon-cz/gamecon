@@ -574,15 +574,15 @@ function upravUkazateleZaplnenostiAktivity(aktivitaNode) {
     stylNode.style.backgroundColor = 'inherit'
   })
   // tooltip se zbývající kapacitou
-  let tooltip
+  let tooltipText
   if (posledniBarva !== false) {
-    tooltip = `Volných pozic ${kapacita - pocetPritomnych}, kapacita ${pocetPritomnych}/${kapacita}`
+    tooltipText = `Volných pozic ${kapacita - pocetPritomnych}, kapacita ${pocetPritomnych}/${kapacita}`
   } else {
-    tooltip = `Volných pozic ${kapacita}, kapacita 0/${kapacita}`
+    tooltipText = `Volných pozic ${kapacita}, kapacita 0/${kapacita}`
   }
   Array.from(aktivitaNode.querySelectorAll('.styl-pro-dorazil-checkbox > input[type=checkbox]')).forEach(function (checkbox) {
     const stylNode = checkbox.parentElement
-    zmenTooltip(tooltip, stylNode)
+    zmenTooltip(tooltipText, stylNode)
   })
   Array.from(aktivitaNode.getElementsByClassName('omnibox')).forEach(function (omniboxElement) {
     if (posledniBarva !== false) {
@@ -595,6 +595,6 @@ function upravUkazateleZaplnenostiAktivity(aktivitaNode) {
       omniboxElement.style.borderWidth = null
       omniboxElement.style.borderColor = null
     }
-    zmenTooltip(tooltip, omniboxElement)
+    zmenTooltip(tooltipText, omniboxElement)
   })
 }
