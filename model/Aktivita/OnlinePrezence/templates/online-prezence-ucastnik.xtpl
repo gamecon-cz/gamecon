@@ -56,13 +56,15 @@
   </td>
   <td style="text-align: center">
     <!-- begin:checkbox -->
-    <label for="ucastnik-{u.id}-dorazil" class="styl-pro-dorazil-checkbox">
+    <label for="ucastnik-{u.id}-dorazil" class="styl-pro-dorazil-checkbox"
+           data-bs-placement="left">
       <input type="checkbox" class="dorazil"
              name="dorazil[]"
              value="{u.id}"
              id="ucastnik-{u.id}-dorazil"
              {checkedUcastnik} {disabledUcastnik} data-initial-checked="{checkedUcastnik}"
-             onchange="zmenitPritomnostUcastnika('{u.id}', '{a.id}', this)">
+             onchange="zmenitPritomnostUcastnika('{u.id}', '{a.id}', this)"
+      >
     </label>
     <!-- end:checkbox -->
   </td>
