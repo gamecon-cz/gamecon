@@ -243,6 +243,7 @@
           <div class="row" style="margin: 1em 0">
             <input type="text" class="omnibox col-md-4"
                    placeholder="Přidej účastníka..."
+                   data-vychozi-placeholder="Přidej účastníka..."
                    {disabledPridatUcastnika}
                    data-id-aktivity="{idAktivity}"
                    data-omnibox-min-length="3"
