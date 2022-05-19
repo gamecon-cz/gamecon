@@ -205,11 +205,12 @@ class OnlinePrezenceAjax
         }
 
         try {
+            $ignorovat = Aktivita::LIMIT;
             $aktivita->zkontrolujZdaSeMuzePrihlasit(
                 $ucastnik,
                 $this->testujeme
-                    ? Aktivita::DOPREDNE | Aktivita::ZPETNE | Aktivita::STAV
-                    : 0
+                    ? $ignorovat | Aktivita::DOPREDNE | Aktivita::ZPETNE | Aktivita::STAV
+                    : $ignorovat
             );
         } catch (\Chyba $chyba) {
             $this->echoErrorJson($chyba->getMessage());
