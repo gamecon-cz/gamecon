@@ -51,15 +51,16 @@ class Aktivita
         POZDE_ZRUSIL = StavPrihlaseni::POZDE_ZRUSIL,
         SLEDUJICI = StavPrihlaseni::SLEDUJICI,
         //ignore a parametry kolem přihlašovátka
-        PLUSMINUS = 0b000000001,   // plus/mínus zkratky pro měnění míst v team. aktivitě
-        PLUSMINUS_KAZDY = 0b000000010,   // plus/mínus zkratky pro každého
-        STAV = 0b000000100,   // ignorování stavu
-        ZAMEK = 0b000001000,   // ignorování zamčení
-        BEZ_POKUT = 0b000010000,   // odhlášení bez pokut
-        ZPETNE = 0b000100000,   // možnost zpětně měnit přihlášení
-        TECHNICKE = 0b001000000,   // přihlašovat i skryté technické aktivity
-        NEPOSILAT_MAILY = 0b010000000,   // odhlášení bez mailů náhradníkům
-        DOPREDNE = 0b100000000,   // možnost přihlásit před otevřením registrací na aktivity
+        PLUSMINUS = 0b0000000001,   // plus/mínus zkratky pro měnění míst v team. aktivitě
+        PLUSMINUS_KAZDY = 0b0000000010,   // plus/mínus zkratky pro každého
+        STAV = 0b0000000100,   // ignorování stavu
+        ZAMEK = 0b0000001000,   // ignorování zamčení
+        BEZ_POKUT = 0b0000010000,   // odhlášení bez pokut
+        ZPETNE = 0b0000100000,   // možnost zpětně měnit přihlášení
+        TECHNICKE = 0b0001000000,   // přihlašovat i skryté technické aktivity
+        NEPOSILAT_MAILY = 0b0010000000,   // odhlášení bez mailů náhradníkům
+        DOPREDNE = 0b0100000000,   // možnost přihlásit před otevřením registrací na aktivity
+        LIMIT = 0b1000000000,
         // parametry kolem továrních metod
         JEN_VOLNE = 0b00000001,   // jen volné aktivity
         VEREJNE = 0b00000010,   // jen veřejně viditelné aktivity
@@ -1331,7 +1332,7 @@ SQL
         if (!$uzivatel->gcPrihlasen()) {
             throw new \Chyba('Nemáš aktivní přihlášku na GameCon.');
         }
-        if ($this->volno() !== 'u' && $this->volno() !== $uzivatel->pohlavi()) {
+        if ($this->volno() !== 'u' && $this->volno() !== $uzivatel->pohlavi() && !(self::LIMIT & $ignorovat)) {
             throw new \Chyba(hlaska('plno'));
         }
         foreach ($this->deti() as $dite) { // nemůže se přihlásit na aktivitu, pokud už je přihášen na jinou aktivitu s stejnými potomky
