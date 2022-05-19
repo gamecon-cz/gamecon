@@ -54,7 +54,7 @@
     <a href="tel:{u.telefon}" class="text-nowrap"><i class="fas fa-phone"></i> {u.telefon}</a>
     <!-- end:telefon -->
   </td>
-  <td style="text-align: center">
+  <td style="text-align: center; padding: 0">
     <!-- begin:checkbox -->
     <label for="ucastnik-{u.id}-dorazil" class="styl-pro-dorazil-checkbox"
            data-bs-placement="left">
