@@ -1323,11 +1323,17 @@ SQL
     public function zkontrolujZdaSeMuzePrihlasit(
         \Uzivatel $uzivatel,
                   $parametry = 0,
-        bool      $jenFyzicky = false,
+        bool      $jenPritomen = false,
         bool      $hlaskyVeTretiOsobe = false
     ) {
-        // kontroly
-        if (!$uzivatel->maVolno($this->zacatek(), $this->konec(), null, $jenFyzicky)) {
+        if ($jenPritomen) {
+            if ($this->dorazilJakoCokoliv($uzivatel)) {
+                return;
+            }
+        } elseif ($this->prihlasen($uzivatel)) {
+            return;
+        }
+        if (!$uzivatel->maVolno($this->zacatek(), $this->konec(), null, $jenPritomen)) {
             throw new \Chyba(hlaska($hlaskyVeTretiOsobe ? 'maKoliziAktivit' : 'masKoliziAktivit'));
         }
         if (!$uzivatel->gcPrihlasen()) {
