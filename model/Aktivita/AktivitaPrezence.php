@@ -34,8 +34,6 @@ class AktivitaPrezence
     public function uloz(array $dorazili) {
         $doraziliIds = []; // id všech co dorazili (kvůli kontrole přítomnosti)
 
-        // TODO kontrola, jestli prezence smí být uložena (např. jestli už nebyla uložena dřív)
-
         foreach ($dorazili as $dorazil) {
             $this->ulozZeDorazil($dorazil);
             $doraziliIds[$dorazil->id()] = true;
@@ -48,8 +46,9 @@ class AktivitaPrezence
     }
 
     public function ulozZeDorazil(\Uzivatel $dorazil) {
-        // TODO kontrola, jestli prezence smí být uložena (např. jestli už nebyla uložena dřív)
-
+        if($this->aktivita->dorazilJakoCokoliv($dorazil)) {
+            return; // už máme hotovo
+        }
         if ($this->aktivita->prihlasen($dorazil)) {
             dbInsertUpdate('akce_prihlaseni', [
                 'id_uzivatele' => $dorazil->id(),
