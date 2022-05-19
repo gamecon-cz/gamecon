@@ -1320,24 +1320,21 @@ SQL
         $this->refresh();
     }
 
-    public function zkontrolujZdaSeMuzePrihlasit(\Uzivatel $uzivatel, $ignorovat = 0) {
+    public function zkontrolujZdaSeMuzePrihlasit(\Uzivatel $uzivatel, $ignorovat = 0, bool $hlaskyVeTretiOsobe = false) {
         // kontroly
-        if ($this->prihlasen($uzivatel)) {
-            return;
-        }
         if (!$uzivatel->maVolno($this->zacatek(), $this->konec())) {
-            throw new \Chyba(hlaska('kolizeAktivit'));
+            throw new \Chyba(hlaska($hlaskyVeTretiOsobe ? 'maKoliziAktivit' : 'masKoliziAktivit'));
         }
         if (!$uzivatel->gcPrihlasen()) {
-            throw new \Chyba('Nemáš aktivní přihlášku na GameCon.');
+            throw new \Chyba(hlaska($hlaskyVeTretiOsobe ? 'neniPrihlasenNaGc' : 'nejsiPrihlasenNaGc'));
         }
-        if ($this->volno() !== 'u' && $this->volno() !== $uzivatel->pohlavi() && !(self::LIMIT & $ignorovat)) {
+        if ($this->volno() !== 'u' && $this->volno() !== $uzivatel->pohlavi()/* && !(self::LIMIT & $ignorovat) TODO REVERT*/) {
             throw new \Chyba(hlaska('plno'));
         }
         foreach ($this->deti() as $dite) { // nemůže se přihlásit na aktivitu, pokud už je přihášen na jinou aktivitu s stejnými potomky
             foreach ($dite->rodice() as $rodic) {
                 if ($rodic->prihlasen($uzivatel)) {
-                    throw new \Chyba(hlaska('maxJednou'));
+                    throw new \Chyba(hlaska($hlaskyVeTretiOsobe ? 'uzJePrihlasen' : 'uzJsiPrihlasen'));
                 }
             }
         }
@@ -1671,11 +1668,11 @@ SQL
         }
         // Uživatel nesmí mít ve stejný slot jinou přihlášenou aktivitu
         if (!$u->maVolno($this->zacatek(), $this->konec())) {
-            throw new \Chyba(hlaska('kolizeAktivit'));
+            throw new \Chyba(hlaska('masKoliziAktivit'));
         }
         // Uživatel musí být přihlášen na GameCon
         if (!$u->gcPrihlasen()) {
-            throw new \Chyba('Nemáš aktivní přihlášku na GameCon.');
+            throw new \Chyba(hlaska('nejsiPrihlasenNaGc'));
         }
 
         // Uložení přihlášení do DB
