@@ -290,7 +290,7 @@ SQL
      * @return Aktivita[]
      */
     public function prihlaseneAktivity(int $rok = ROK): array {
-        $ids = dbFetchAll(<<<SQL
+        $ids = dbOneArray(<<<SQL
 SELECT akce_prihlaseni.id_akce
 FROM akce_prihlaseni
 JOIN akce_seznam on akce_prihlaseni.id_akce = akce_seznam.id_akce
@@ -462,40 +462,61 @@ SQL,
     }
 
     /**
+     * @param DateTimeInterface $od
+     * @param DateTimeInterface $do
+     * @param Aktivita|null $ignorovanaAktivita
+     * @param bool $fyzicky
      * @return bool jestli se uživatel v daném čase neúčastní / neorganizuje
      *  žádnou aktivitu (případně s výjimkou $ignorovanaAktivita)
      */
-    public function maVolno(DateTimeInterface $od, DateTimeInterface $do, Aktivita $ignorovanaAktivita = null) {
+    public function maVolno(DateTimeInterface $od, DateTimeInterface $do, Aktivita $ignorovanaAktivita = null, bool $jenFyzicky = false) {
         // právo na překrytí aktivit dává volno vždy automaticky
         // TODO zkontrolovat, jestli vlastníci práva dřív měli někdy paralelně i účast nebo jen organizovali a pokud jen organizovali, vyhodit test odsud a vložit do kontroly kdy se ukládá aktivita
         if ($this->maPravo(\Gamecon\Pravo::PREKRYVANI_AKTIVIT)) {
             return true;
         }
 
+        if ($this->maCasovouKolizi($this->prihlaseneAktivity(), $od, $do, $ignorovanaAktivita, $jenFyzicky)) {
+            return false;
+        }
+
+        if ($this->maCasovouKolizi($this->organizovaneAktivity(), $od, $do, $ignorovanaAktivita, $jenFyzicky)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param Aktivita[] $aktivity
+     * @param DateTimeInterface $od
+     * @param DateTimeInterface $do
+     * @param Aktivita|null $ignorovanaAktivita
+     * @param bool $jenFyzicky
+     * @return bool
+     */
+    private function maCasovouKolizi(array $aktivity, DateTimeInterface $od, DateTimeInterface $do, ?Aktivita $ignorovanaAktivita, bool $jenFyzicky): bool {
         $ignorovanaAktivitaId = $ignorovanaAktivita ? $ignorovanaAktivita->id() : 0;
-
-        // TODO převést dotaz na lazy loading aktivit uživatele a kontrolu lokálně bez použití databáze (viz $this->organizuje())
-        $o = dbQuery('
-      SELECT a.id_akce
-      FROM (
-        SELECT a.id_akce, a.zacatek, a.konec
-        FROM akce_prihlaseni p
-        JOIN akce_seznam a ON a.id_akce = p.id_akce
-        WHERE p.id_uzivatele = $0 AND a.rok = $4
-        UNION
-        SELECT a.id_akce, a.zacatek, a.konec
-        FROM akce_seznam a
-        JOIN akce_organizatori ao ON ao.id_akce = a.id_akce
-        WHERE ao.id_uzivatele = $0 AND a.rok = $4
-      ) a
-      WHERE
-        NOT (zacatek >= $2 OR konec <= $1) AND -- zacne az pak nebo skonci pred
-        id_akce != $3
-    ', [
-            $this->id(), $od, $do, $ignorovanaAktivitaId, ROK,
-        ]);
-
-        return dbNumRows($o) == 0;
+        foreach ($aktivity as $aktivita) {
+            if ($ignorovanaAktivitaId === $aktivita->id()) {
+                continue;
+            }
+            $zacatek = $aktivita->zacatek();
+            if (!$zacatek) {
+                continue;
+            }
+            $konec = $aktivita->konec();
+            if (!$konec) {
+                continue;
+            }
+            /* koliduje, pokud začíná na konci nebo před ním a zároveň končí se začátkem nebo po něm */
+            if ($zacatek <= $do && $konec >= $od) {
+                return $jenFyzicky
+                    ? $aktivita->dorazilJakoCokoliv($this) // někde už je v daný čas přítomen
+                    : true; // nekde už je na daný čas přihlášen
+            }
+        }
+        return false;
     }
 
     /**
@@ -608,10 +629,11 @@ SQL,
     public function organizuje(Aktivita $a) {
         if (!isset($this->organizovaneAktivityIds)) {
             $this->organizovaneAktivityIds = dbOneIndex('
-        SELECT a.id_akce
-        FROM akce_organizatori ao
-        JOIN akce_seznam a ON a.id_akce = ao.id_akce AND a.rok = $2
-        WHERE ao.id_uzivatele = $1
+        SELECT akce_seznam.id_akce
+        FROM akce_organizatori
+        JOIN akce_seznam
+            ON akce_seznam.id_akce = akce_organizatori.id_akce AND akce_seznam.rok = $2
+        WHERE akce_organizatori.id_uzivatele = $1
       ', [$this->id(), ROK]);
         }
         return isset($this->organizovaneAktivityIds[$a->id()]);
