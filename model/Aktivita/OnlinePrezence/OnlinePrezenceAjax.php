@@ -202,7 +202,7 @@ class OnlinePrezenceAjax
         if ($dorazil) {
             try {
                 $ignorovat = Aktivita::LIMIT;
-                $aktivita->zkontrolujZdaSeMuzePrihlasit(
+                $aktivita->zkontrolujZdaSeMuzeUcastnit(
                     $ucastnik,
                     $this->testujeme
                         ? $ignorovat | Aktivita::DOPREDNE | Aktivita::ZPETNE | Aktivita::STAV
