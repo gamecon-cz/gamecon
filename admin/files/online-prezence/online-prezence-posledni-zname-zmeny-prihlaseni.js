@@ -3,6 +3,10 @@
 
     const onlinePrezence = document.getElementById('online-prezence')
 
+    if (!onlinePrezence) {
+      return // Nevedeš žádné aktivity 😞
+    }
+
     /**
      * @return {string}
      */
