@@ -509,16 +509,19 @@ function zmenitPritomnostUcastnika(
     checkboxNode.checked = !checkboxNode.checked // vrátit zpět
     checkboxNode.disabled = false
 
-    if (response.status === 400 && response.responseJSON && response.responseJSON.errors) {
-      triggeringNode = triggeringNode || checkboxNode
-      const errorsEvent = new CustomEvent('ajaxErrors', {
-        detail: {
-          errors: response.responseJSON.errors,
-          triggeringNode: triggeringNode,
-        },
-      })
-      dejNodeAktivity(idAktivity).dispatchEvent(errorsEvent)
+    const detail = {
+      triggeringNode: triggeringNode || checkboxNode,
     }
+
+    if (response.status === 400 && response.responseJSON && response.responseJSON.errors) {
+      detail.warnings = response.responseJSON.errors
+    } else {
+      detail.errors = ['Něco se pokazilo 😢']
+    }
+
+    triggeringNode = triggeringNode || checkboxNode
+    const errorsEvent = new CustomEvent('ajaxErrors', {detail: detail})
+    dejNodeAktivity(idAktivity).dispatchEvent(errorsEvent)
   })
 }
 
