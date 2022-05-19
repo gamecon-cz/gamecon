@@ -42,7 +42,9 @@ class UzivatelMaVolnoTest extends UzivatelDbTest
             self::$uzivatel->maVolno(
                 new \DateTime('2000-01-01 ' . $od),
                 new \DateTime('2000-01-01 ' . $do),
-                Aktivita::zId($aktivitaId)
+                $aktivitaId
+                    ? Aktivita::zId($aktivitaId)
+                    : null
             )
         );
     }
