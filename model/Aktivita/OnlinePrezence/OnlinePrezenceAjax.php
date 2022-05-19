@@ -201,13 +201,14 @@ class OnlinePrezenceAjax
 
         if ($dorazil) {
             try {
-                $ignorovat = Aktivita::LIMIT;
+                $ignorovat = Aktivita::IGNOROVAT_LIMIT;
                 $aktivita->zkontrolujZdaSeMuzePrihlasit(
                     $ucastnik,
                     $this->testujeme
                         ? $ignorovat | Aktivita::DOPREDNE | Aktivita::ZPETNE | Aktivita::STAV
                         : $ignorovat,
-                    true
+                    true,
+                    true,
                 );
             } catch (\Chyba $chyba) {
                 $this->echoErrorJson($chyba->getMessage());
