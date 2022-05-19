@@ -222,13 +222,12 @@ class AktivitaPrezence
     }
 
     /**
-     * @param int[] $idsPoslednichLoguUcastniku
-     * @param int[] $idsAktivit
+     * @param string[][][] $idsPoslednichLoguUcastniku
      * @return PosledniZmenyStavuPrihlaseni
      */
-    public static function dejPosledniZmeny(array $idsPoslednichLoguUcastniku, array $idsAktivit): PosledniZmenyStavuPrihlaseni {
+    public static function dejPosledniZmeny(array $idsPoslednichLoguUcastniku): PosledniZmenyStavuPrihlaseni {
         $nejnovejsiZmenyStavuPrihlaseni = new PosledniZmenyStavuPrihlaseni();
-        foreach (self::dejDataPoslednichZmen($idsPoslednichLoguUcastniku, $idsAktivit) as $zmena) {
+        foreach (self::dejDataPoslednichZmen($idsPoslednichLoguUcastniku) as $zmena) {
             $zmenaStavuPrihlaseni = ZmenaStavuPrihlaseni::vytvorZDatDatabaze(
                 (int)$zmena['id_uzivatele'],
                 (int)$zmena['id_akce'],
@@ -242,30 +241,38 @@ class AktivitaPrezence
     }
 
     /**
-     * @param int[] $idsPoslednichLoguUcastniku
-     * @param array $idsAktivit
+     * @param string[][][] $idsPoslednichLoguUcastniku Například {"4387":[{"idUzivatele":"102","idPoslednihoLogu":"66329"}],"4389":[{"idUzivatele":"295","idPoslednihoLogu":"66382"},{"idUzivatele":"73","idPoslednihoLogu":"66385"}]}
+     * Formát viz online-prezence-posledni-zname-zmeny-prihlaseni.js
      * @return array
      * @throws \DbException
      */
-    private static function dejDataPoslednichZmen(array $idsPoslednichLoguUcastniku, array $idsAktivit): array {
-        if (!$idsAktivit) {
+    private static function dejDataPoslednichZmen(array $idsPoslednichLoguUcastniku): array {
+        if (!$idsPoslednichLoguUcastniku) {
             return [];
         }
-        $indexParametru = 0;
-        $whereArray = [];
 
-        if ($idsPoslednichLoguUcastniku) {
-            $whereArray[] = 'akce_prihlaseni_log.id_log > $' . $indexParametru;
-            $sqlQueryParametry[] = min($idsPoslednichLoguUcastniku);
+        $whereOrArray = [];
+        $sqlQueryParametry = [];
+        $indexSqlParametru = 0;
+        foreach ($idsPoslednichLoguUcastniku as $idAktivity => $uzivateleALogy) {
+            $idAktivity = (int)$idAktivity;
+            $idZnamychUcastnikuAktivity = [];
+            $idPoslednihZnamychLogu = [];
+            foreach ($uzivateleALogy as ['idUzivatele' => $idUzivatele, 'idPoslednihoLogu' => $idPoslednihoZnamehoLogu]) {
+                $idUzivatele = (int)$idUzivatele;
+                $idPoslednihoZnamehoLogu = (int)$idPoslednihoZnamehoLogu;
 
-            $whereArray[] = 'akce_prihlaseni_log.id_log NOT IN ($' . ++$indexParametru . ')';
-            $sqlQueryParametry[] = $idsPoslednichLoguUcastniku;
+                $whereOrArray[] = "id_akce = $idAktivity AND id_uzivatele = $idUzivatele AND id_log > $idPoslednihoZnamehoLogu";
+
+                $idZnamychUcastnikuAktivity[] = $idUzivatele;
+                $idPoslednihZnamychLogu[] = $idPoslednihoZnamehoLogu;
+            }
+            $idNejstarsihoPoslednihoZnamehoLogu = max(array_merge($idPoslednihZnamychLogu, [0]/* pro případ že aktivita byla prázdná */));
+            $whereOrArray[] = "id_akce = {$idAktivity} AND id_uzivatele NOT IN ($$indexSqlParametru) AND id_log > $idNejstarsihoPoslednihoZnamehoLogu";
+            $sqlQueryParametry[$indexSqlParametru] = $idZnamychUcastnikuAktivity;
+            $indexSqlParametru++;
         }
-
-        $whereArray[] = 'akce_prihlaseni_log.id_akce IN ($' . ++$indexParametru . ')';
-        $sqlQueryParametry[] = $idsAktivit;
-
-        $where = implode(' AND ', $whereArray);
+        $where = implode(' OR ', $whereOrArray);
 
         return dbFetchAll(<<<SQL
 SELECT akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_uzivatele, akce_prihlaseni_log.typ, akce_prihlaseni_log.kdy, akce_prihlaseni_log.id_log
