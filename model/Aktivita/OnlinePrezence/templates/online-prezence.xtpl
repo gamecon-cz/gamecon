@@ -242,7 +242,7 @@
           <!-- begin:pridatUcastnika -->
           <div class="row" style="margin: 1em 0">
             <input type="text"
-                   class="omnibox error-tooltip col-md-4"
+                   class="omnibox error-tooltip col-xl-4 col-lg-5 col-md-7"
                    placeholder="Přidej účastníka..."
                    data-vychozi-placeholder="Přidej účastníka..."
                    {disabledPridatUcastnika}
