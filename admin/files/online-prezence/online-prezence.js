@@ -38,15 +38,7 @@
     function hlidejNovehoUcastnika(idUzivatele, idAktivity) {
       hlidejZmenyMetadatUcastnika(dejNodeUcastnika(idUzivatele, idAktivity))
       aktivujTooltipUcastnika(idUzivatele, idAktivity)
-    }
-
-    /**
-     * @param {number|string} idUzivatele
-     * @param {number|string} idAktivity
-     * @return {HTMLElement}
-     */
-    function dejNodeUcastnika(idUzivatele, idAktivity) {
-      return document.getElementById(`ucastnik-${idUzivatele}-na-aktivite-${idAktivity}`)
+      upravUkazateleZaplnenostiAktivity(dejNodeAktivity(idAktivity))
     }
 
     /**
@@ -128,10 +120,14 @@
      * @param {HTMLElement} ucastnikNode
      */
     function hlidejZmenyMetadatUcastnika(ucastnikNode) {
-      ucastnikNode.addEventListener('zmenaMetadatPrezence', function (/** @param {{detail: {casPosledniZmenyPrihlaseni: string, stavPrihlaseni: string, idPoslednihoLogu: number}}} event */event) {
-        zapisMetadataPrezence(ucastnikNode, event.detail)
-        zobrazTypUcastnika(ucastnikNode, event.detail.stavPrihlaseni)
-      })
+      ucastnikNode.addEventListener(
+        'zmenaMetadatPrezence',
+        function (/** @param {{detail: {casPosledniZmenyPrihlaseni: string, stavPrihlaseni: string, idPoslednihoLogu: number}}} event */event) {
+          zapisMetadataPrezence(ucastnikNode, event.detail)
+          zobrazTypUcastnika(ucastnikNode, event.detail.stavPrihlaseni)
+          upravUkazateleZaplnenostiAktivity(dejNodeAktivity(ucastnikNode.dataset.idAktivity))
+        },
+      )
     }
 
     /**
@@ -179,7 +175,7 @@
           idAktivity: idAktivity, idUzivatele: idUzivatele,
         },
       })
-      document.getElementById(`aktivita-${idAktivity}`).dispatchEvent(novyUcastnik)
+      dejNodeAktivity(idAktivity).dispatchEvent(novyUcastnik)
     }
 
 
@@ -302,10 +298,10 @@
     }
 
     function odblokovatAktivituProEditaci(idAktivity) {
-      const akivitaNode = $(`#aktivita-${idAktivity}`)
-      akivitaNode.find('input').prop('disabled', false)
-      akivitaNode.find('.text-ceka').hide()
-      akivitaNode.find('.tlacitko-uzavrit-aktivitu').show()
+      const $aktivitaNode = $(`#aktivita-${idAktivity}`)
+      $aktivitaNode.find('input').prop('disabled', false)
+      $aktivitaNode.find('.text-ceka').hide()
+      $aktivitaNode.find('.tlacitko-uzavrit-aktivitu').show()
     }
 
     /**
@@ -414,53 +410,6 @@
   })
 })(jQuery)
 
-/**
- * @param {number} idUzivatele
- * @param {number} idAktivity
- * @param {HTMLElement} checkboxNode
- * @param {function|undefined} callbackOnSuccess
- */
-function zmenitPritomnostUcastnika(idUzivatele, idAktivity, checkboxNode, callbackOnSuccess) {
-  checkboxNode.disabled = true
-  dorazil = checkboxNode.checked
-  $.post(location.href, {
-    /**
-     * @see \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax::odbavAjax
-     * @see \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax::ajaxZmenitPritomnostUcastnika
-     */
-    akce: 'zmenitPritomnostUcastnika',
-    idAktivity: idAktivity,
-    idUzivatele: idUzivatele,
-    dorazil: dorazil ? 1 : 0,
-    ajax: 1,
-  }).done(/** @param {void|{prihlasen: boolean, cas_posledni_zmeny_prihlaseni: string, stav_prihlaseni: string, id_logu: string}} data */function (data) {
-    checkboxNode.disabled = false
-    if (data && typeof data.prihlasen == 'boolean') {
-      checkboxNode.checked = data.prihlasen
-
-      const zmenaMetadatPrezence = new CustomEvent('zmenaMetadatPrezence', {
-        detail: {
-          casPosledniZmenyPrihlaseni: data.cas_posledni_zmeny_prihlaseni,
-          stavPrihlaseni: data.stav_prihlaseni,
-          idPoslednihoLogu: data.id_logu,
-        },
-      })
-      const ucastnikNode = $(checkboxNode).parents('.ucastnik')[0]
-      // bude zpracovano v zapisMetadataPrezence()
-      ucastnikNode.dispatchEvent(zmenaMetadatPrezence)
-
-      if (callbackOnSuccess) {
-        callbackOnSuccess()
-      }
-    }
-  }).fail(function (response) {
-    if (response.status === 400 && response.responseJSON && response.responseJSON.errors) {
-      const errorsEvent = new CustomEvent('ajaxErrors', {detail: {errors: response.responseJSON.errors}})
-      document.getElementById(`aktivita-${idAktivity}`).dispatchEvent(errorsEvent)
-    }
-  })
-}
-
 const akceAktivity = new class AkceAktivity {
 
   /**
@@ -520,6 +469,54 @@ const akceAktivity = new class AkceAktivity {
   }
 }
 
+
+/**
+ * @param {number} idUzivatele
+ * @param {number} idAktivity
+ * @param {HTMLElement} checkboxNode
+ * @param {function|undefined} callbackOnSuccess
+ */
+function zmenitPritomnostUcastnika(idUzivatele, idAktivity, checkboxNode, callbackOnSuccess) {
+  checkboxNode.disabled = true
+  dorazil = checkboxNode.checked
+  $.post(location.href, {
+    /**
+     * @see \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax::odbavAjax
+     * @see \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax::ajaxZmenitPritomnostUcastnika
+     */
+    akce: 'zmenitPritomnostUcastnika',
+    idAktivity: idAktivity,
+    idUzivatele: idUzivatele,
+    dorazil: dorazil ? 1 : 0,
+    ajax: 1,
+  }).done(/** @param {void|{prihlasen: boolean, cas_posledni_zmeny_prihlaseni: string, stav_prihlaseni: string, id_logu: string}} data */function (data) {
+    checkboxNode.disabled = false
+    if (data && typeof data.prihlasen == 'boolean') {
+      checkboxNode.checked = data.prihlasen
+
+      const zmenaMetadatPrezence = new CustomEvent('zmenaMetadatPrezence', {
+        detail: {
+          casPosledniZmenyPrihlaseni: data.cas_posledni_zmeny_prihlaseni,
+          stavPrihlaseni: data.stav_prihlaseni,
+          idPoslednihoLogu: data.id_logu,
+        },
+      })
+      const ucastnikNode = $(checkboxNode).parents('.ucastnik')[0]
+      // bude zpracovano v zapisMetadataPrezence()
+      ucastnikNode.dispatchEvent(zmenaMetadatPrezence)
+
+      if (callbackOnSuccess) {
+        callbackOnSuccess()
+      }
+    }
+  }).fail(function (response) {
+    if (response.status === 400 && response.responseJSON && response.responseJSON.errors) {
+      const errorsEvent = new CustomEvent('ajaxErrors', {detail: {errors: response.responseJSON.errors}})
+      dejNodeAktivity(idAktivity).dispatchEvent(errorsEvent)
+    }
+  })
+}
+
 /**
  * @param {number} idAktivity
  * @param {HTMLElement} skrytElement
@@ -535,4 +532,69 @@ function uzavritAktivitu(idAktivity, skrytElement, zobrazitElement) {
  */
 function prohoditZobrazeni(skrytElement, zobrazitElement) {
   akceAktivity.prohoditZobrazeni(skrytElement, zobrazitElement)
+}
+
+/**
+ * @param {number|string} idUzivatele
+ * @param {number|string} idAktivity
+ * @return {HTMLElement}
+ */
+function dejNodeUcastnika(idUzivatele, idAktivity) {
+  return document.getElementById(`ucastnik-${idUzivatele}-na-aktivite-${idAktivity}`)
+}
+
+/**
+ * @param {number|string} idAktivity
+ * @return {HTMLElement}
+ */
+function dejNodeAktivity(idAktivity) {
+  return document.getElementById(`aktivita-${idAktivity}`)
+}
+
+/**
+ * @param {HTMLElement} aktivitaNode
+ */
+function upravUkazateleZaplnenostiAktivity(aktivitaNode) {
+  let posledniBarva = false
+  let pocetPritomnych = 0
+  const kapacita = Number.parseInt(aktivitaNode.dataset.kapacita)
+  // zaškrtnuté checkboxy dostanou barvu od zelené po fialovou, jak se bued blížit vyčerpání kapacity
+  Array.from(aktivitaNode.querySelectorAll('.styl-pro-dorazil-checkbox > input[type=checkbox]:checked')).forEach(function (checkbox, index) {
+    const temperature = index + 1
+    const intenzitaBarvy = Math.max(temperature / kapacita - 0.3, 0.1)
+    posledniBarva = tempToColor(temperature, 1, kapacita, 'half')
+    const {r, g, b} = posledniBarva
+    const stylNode = checkbox.parentElement
+    stylNode.style.backgroundColor = `rgb(${r},${g},${b},${intenzitaBarvy})`
+    pocetPritomnych++
+  })
+  // nezaškrtnutým checkboxům zresetujeme barvy
+  Array.from(aktivitaNode.querySelectorAll('.styl-pro-dorazil-checkbox > input[type=checkbox]:not(:checked)')).forEach(function (checkbox) {
+    const stylNode = checkbox.parentElement
+    stylNode.style.backgroundColor = 'inherit'
+  })
+  // tooltip se zbývající kapacitou
+  let tooltipText
+  if (posledniBarva !== false) {
+    tooltipText = `Volných pozic ${kapacita - pocetPritomnych}, kapacita ${pocetPritomnych}/${kapacita}`
+  } else {
+    tooltipText = `Volných pozic ${kapacita}, kapacita 0/${kapacita}`
+  }
+  Array.from(aktivitaNode.querySelectorAll('.styl-pro-dorazil-checkbox > input[type=checkbox]')).forEach(function (checkbox) {
+    const stylNode = checkbox.parentElement
+    zmenTooltip(tooltipText, stylNode)
+  })
+  Array.from(aktivitaNode.getElementsByClassName('omnibox')).forEach(function (omniboxElement) {
+    if (posledniBarva !== false) {
+      omniboxElement.style.borderStyle = 'solid'
+      omniboxElement.style.borderWidth = '2px'
+      const {r, g, b} = posledniBarva
+      omniboxElement.style.borderColor = `rgb(${r},${g},${b})`
+    } else {
+      omniboxElement.style.borderStyle = 'revert'
+      omniboxElement.style.borderWidth = null
+      omniboxElement.style.borderColor = null
+    }
+    zmenTooltip(tooltipText, omniboxElement)
+  })
 }

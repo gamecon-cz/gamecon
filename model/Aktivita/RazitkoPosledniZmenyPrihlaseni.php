@@ -99,9 +99,13 @@ class RazitkoPosledniZmenyPrihlaseni
     }
 
     private function sestavObsah(string $razitko): array {
-        return [
+        $obsah = [
             $this->jsonKlicProRazitko => $razitko,
         ];
+        if (defined('TESTING') && TESTING) {
+            $obsah['idLogu'] = $this->posledniZmena ? $this->posledniZmena->idLogu() : null;
+        }
+        return $obsah;
     }
 
     private static function spocitejRazitko(?ZmenaStavuPrihlaseni $zmenaStavuPrihlaseni): string {
