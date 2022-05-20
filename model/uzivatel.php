@@ -49,18 +49,10 @@ SQL
     public const FAKE = 0x01;  // modifikátor "fake uživatel"
     public const SYSTEM = 1;   // id uživatele reprezentujícího systém (např. "operaci provedl systém")
 
-    /** Vytvoří uživatele z různých možných vstupů */
     public function __construct($uzivatel) {
-        if (is_array($uzivatel)
-            && array_keys_exist(['id_uzivatele', 'login_uzivatele', 'pohlavi',], $uzivatel)
-        ) { //asi čteme vstup z databáze
+        if (is_array($uzivatel) && array_keys_exist(['id_uzivatele', 'login_uzivatele', 'pohlavi'], $uzivatel)) {
             $this->u = $uzivatel;
-        } /* //zvážit, možná neimplementovat
-    if((int)$uzivatel!=0)
-    {
-    }
-    */
-        else {
+        } else {
             throw new Exception('Špatný vstup konstruktoru uživatele');
         }
     }
@@ -1203,9 +1195,16 @@ SQL
             session_start();
         }
         if (isset($_SESSION[$klic])) {
-            $u = new Uzivatel($_SESSION[$klic]);
-            $u->klic = $klic;
-            return $u;
+            $u = null;
+            if (is_array($_SESSION[$klic]) && array_keys_exist(['id_uzivatele', 'login_uzivatele', 'pohlavi'], $_SESSION[$klic])) {
+                $u = new Uzivatel($_SESSION[$klic]);
+            } elseif (!empty($_SESSION[$klic]['id_uzivatele'])) {
+                $u = Uzivatel::zId($_SESSION[$klic]['id_uzivatele']);
+            }
+            if ($u) {
+                $u->klic = $klic;
+                return $u;
+            }
         }
         if (isset($_COOKIE['gcTrvalePrihlaseni']) && $klic === 'uzivatel') {
             $id = dbOneLineS('
