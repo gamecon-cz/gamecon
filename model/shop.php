@@ -84,19 +84,23 @@ class Shop
         }
 
         // vybrat všechny předměty pro tento rok + předměty v nabídce + předměty, které si koupil
-        $o = dbQuery('
+        $o = dbQuery(<<<SQL
+SELECT *
+FROM (
       SELECT
-        p.*,
-        IF(p.model_rok = $1, nazev, CONCAT(nazev," (",popis,")")) as nazev,
+        p.id_predmetu, p.model_rok, p.cena_aktualni, p.stav, p.auto, p.nabizet_do, p.kusu_vyrobeno, p.typ, p.ubytovani_den, p.popis,
+        IF(p.model_rok = $1, nazev, CONCAT(nazev, ' (', popis, ')')) AS nazev,
         COUNT(IF(n.rok = $1, 1, NULL)) kusu_prodano,
         COUNT(IF(n.id_uzivatele = $2 AND n.rok = $1, 1, NULL)) kusu_uzivatele,
-        SUM(  IF(n.id_uzivatele = $2 AND n.rok = $1, cena_nakupni, 0)) sum_cena_nakupni
+        SUM(IF(n.id_uzivatele = $2 AND n.rok = $1, cena_nakupni, 0)) sum_cena_nakupni
       FROM shop_predmety p
       LEFT JOIN shop_nakupy n USING(id_predmetu)
-      WHERE stav > 0 OR n.rok = $1
+      WHERE stav > $0 OR n.rok = $1
       GROUP BY id_predmetu
-      ORDER BY typ, ubytovani_den, nazev, model_rok DESC
-    ', [ROK, $this->u->id()]);
+) AS seskupeno
+ORDER BY typ, ubytovani_den, nazev, model_rok DESC
+SQL
+            , [self::MIMO, ROK, $this->u->id()]);
 
         //inicializace
         $this->jidlo['dny'] = [];
@@ -108,17 +112,30 @@ class Shop
                 continue; // není určeno k přímému prodeji
             }
             unset($fronta); // $fronta reference na frontu kam vložit předmět (nelze dát =null, přepsalo by předchozí vrch fronty)
-            if ($r['nabizet_do'] && strtotime($r['nabizet_do']) < time()) $r['stav'] = 3;
-            $r['nabizet'] = $r['stav'] == 1; // v základu nabízet vše v stavu 1
+            if ($r['nabizet_do'] && strtotime($r['nabizet_do']) < time()) {
+                $r['stav'] = self::POZASTAVENY;
+            }
+            $r['nabizet'] = $r['stav'] == self::VEREJNY; // v základu nabízet vše v stavu 1
             // rozlišení kam ukládat a jestli nabízet podle typu
             if ($typ == self::PREDMET) {
                 $fronta = &$this->predmety[];
             } elseif ($typ == self::JIDLO) {
-                $r['nabizet'] = $r['nabizet'] ||
-                    $r['stav'] == 3 && $this->nastaveni['jidloBezZamku'];
                 $den = $r['ubytovani_den'];
                 $druh = self::bezDne($r['nazev']);
-                if ($r['kusu_uzivatele'] > 0) $this->jidlo['jidloObednano'][$r['id_predmetu']] = true;
+                if (!empty($this->jidlo['jidla'][$den][$druh]['kusu_uzivatele'])) {
+                    /*
+                     * Speciální případ, kdy existuje více verzí stejného jídla ve stejném roce.
+                     * Například v roce 2022 jsme prodávali teplé jídlo nejdříve za 100 korun, pak ale dodavatel zjistil,
+                     * že ceny surovin jdou nahrodu tak prudce, že musí zdražit na 120.-
+                     * Ceny jsme zvýšili až potom, co si někteří účastníci stihli objednat jídlo za nižší cenu.
+                     * V takovém případě chceme účastníkovi zobrazovat tu instanci jídla, kterou si už objednal (za nižší cenu).
+                     */
+                    continue;
+                }
+                $r['nabizet'] = $r['nabizet'] || ($r['stav'] == self::POZASTAVENY && $this->nastaveni['jidloBezZamku']);
+                if ($r['kusu_uzivatele'] > 0) {
+                    $this->jidlo['jidloObednano'][$r['id_predmetu']] = true;
+                }
                 if ($r['kusu_uzivatele'] || $r['nabizet']) {
                     //zobrazení jen dnů / druhů, které mají smysl
                     $this->jidlo['dny'][$den] = true;
@@ -126,25 +143,31 @@ class Shop
                 }
                 $fronta = &$this->jidlo['jidla'][$den][$druh];
             } elseif ($typ == self::UBYTOVANI) {
-                $r['nabizet'] = $r['nabizet'] ||
-                    $r['stav'] == 3 && $this->nastaveni['ubytovaniBezZamku'];
+                $r['nabizet'] = $r['nabizet'] || ($r['stav'] == self::POZASTAVENY && $this->nastaveni['ubytovaniBezZamku']);
                 $fronta = &$this->ubytovani[];
             } elseif ($typ == self::TRICKO) {
                 $smiModre = $this->u->maPravo(P_TRICKO_MODRA_BARVA);
                 $smiCervene = $this->u->maPravo(P_TRICKO_CERVENA_BARVA);
                 $r['nabizet'] = (
-                    $r['nabizet'] ||
-                    $r['stav'] == 2 && mb_stripos($r['nazev'], 'modré') !== false && $smiModre ||
-                    $r['stav'] == 2 && mb_stripos($r['nazev'], 'červené') !== false && $smiCervene
+                    $r['nabizet']
+                    || ($r['stav'] == self::PODPULTOVY && mb_stripos($r['nazev'], 'modré') !== false && $smiModre)
+                    || ($r['stav'] == self::PODPULTOVY && mb_stripos($r['nazev'], 'červené') !== false && $smiCervene)
                 );
                 $fronta = &$this->tricka[];
                 if (AUTOMATICKY_VYBER_TRICKA) {
                     // hack pro výběr správného automaticky objednaného trička
-                    if ($smiCervene) $barva = 'červené';
-                    elseif ($smiModre) $barva = 'modré';
-                    else                            $barva = '.*';
-                    if ($this->u->pohlavi() == 'f') $typTricka = 'tílko.*dámské S';
-                    else                            $typTricka = 'tričko.*pánské L';
+                    if ($smiCervene) {
+                        $barva = 'červené';
+                    } elseif ($smiModre) {
+                        $barva = 'modré';
+                    } else {
+                        $barva = '.*';
+                    }
+                    if ($this->u->pohlavi() == 'f') {
+                        $typTricka = 'tílko.*dámské S';
+                    } else {
+                        $typTricka = 'tričko.*pánské L';
+                    }
                     $r['auto'] = (
                         $r['nabizet'] &&
                         preg_match("@$barva@i", $r['nazev']) &&
@@ -154,7 +177,7 @@ class Shop
             } elseif ($typ == self::VSTUPNE) {
                 if (strpos($r['nazev'], 'pozdě') === false) {
                     $this->vstupne = $r;
-                    $this->vstupneJeVcas = $r['stav'] == 2;
+                    $this->vstupneJeVcas = $r['stav'] == self::PODPULTOVY;
                 } else {
                     $this->vstupnePozde = $r;
                 }
@@ -193,28 +216,32 @@ class Shop
         $jidla = $this->jidlo['jidla'];
         // vykreslení
         $t = new XTemplate(__DIR__ . '/shop-jidlo.xtpl');
-        foreach ($druhy as $druh => $i) {
-            foreach ($dny as $den => $i) {
-                $jidlo = @$jidla[$den][$druh];
-                if ($jidlo && ($jidlo['nabizet'] || $jidlo['kusu_uzivatele'])) {
-                    $t->assign('selected', $jidlo['kusu_uzivatele'] > 0 ? 'checked' : '');
-                    $t->assign('pnName', self::PN_JIDLO . '[' . $jidlo['id_predmetu'] . ']');
-                    $t->parse($jidlo['stav'] == 3 && !$this->nastaveni['jidloBezZamku'] ? 'jidlo.druh.den.locked' : 'jidlo.druh.den.checkbox');
+        if (!defined('PRODEJ_JIDLA_POZASTAVEN') || !PRODEJ_JIDLA_POZASTAVEN) {
+            foreach ($druhy as $druh => $i) {
+                foreach ($dny as $den => $i) {
+                    $jidlo = @$jidla[$den][$druh];
+                    if ($jidlo && ($jidlo['nabizet'] || $jidlo['kusu_uzivatele'])) {
+                        $t->assign('selected', $jidlo['kusu_uzivatele'] > 0 ? 'checked' : '');
+                        $t->assign('pnName', self::PN_JIDLO . '[' . $jidlo['id_predmetu'] . ']');
+                        $t->parse($jidlo['stav'] == 3 && !$this->nastaveni['jidloBezZamku'] ? 'jidlo.druh.den.locked' : 'jidlo.druh.den.checkbox');
+                    }
+                    $t->parse('jidlo.druh.den');
                 }
-                $t->parse('jidlo.druh.den');
+                $t->assign('druh', $druh);
+                $t->assign('cena', $this->cenik->shop($jidlo) . '&thinsp;Kč');
+                $t->parse('jidlo.druh');
             }
-            $t->assign('druh', $druh);
-            $t->assign('cena', $this->cenik->shop($jidlo) . '&thinsp;Kč');
-            $t->parse('jidlo.druh');
-        }
-        // hlavička
-        foreach ($dny as $den => $i) {
-            $t->assign('den', mb_ucfirst(self::denNazev($den)));
-            $t->parse('jidlo.den');
-        }
-        // info o pozastaveni
-        if (!$dny || $jidlo['stav'] == 3) {
-            $t->parse('jidlo.pozastaveno');
+            // hlavička
+            foreach ($dny as $den => $i) {
+                $t->assign('den', mb_ucfirst(self::denNazev($den)));
+                $t->parse('jidlo.den');
+            }
+            // info o pozastaveni
+            if (!$dny || $jidlo['stav'] == 3) {
+                $t->parse('jidlo.pozastaveno');
+            }
+        } else {
+            $t->parse('jidlo.potize');
         }
         $t->assign('pnJidloZmen', self::PN_JIDLO_ZMEN);
         $t->parse('jidlo');
