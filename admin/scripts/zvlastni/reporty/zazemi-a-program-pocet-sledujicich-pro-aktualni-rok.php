@@ -1,7 +1,5 @@
 <?php
 
-use Gamecon\Aktivita\Aktivita;
-
 require __DIR__ . '/sdilene-hlavicky.php';
 
 $report = Report::zSql(<<<SQL
@@ -17,6 +15,6 @@ WHERE aps.id_stavu_prihlaseni = $0 AND a.rok = $1
 GROUP BY aps.id_akce
 ORDER BY COUNT(aps.id_uzivatele) DESC
 SQL
-    , [Aktivita::SLEDUJICI, ROK]
+    , [\Gamecon\Aktivita\Aktivita::SLEDUJICI, ROK]
 );
 $report->tFormat(get('format'));
