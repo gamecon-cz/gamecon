@@ -14,6 +14,6 @@ WHERE aps.id_stavu_prihlaseni = $0 AND a.rok = $1
 GROUP BY aps.id_akce
 ORDER BY COUNT(aps.id_uzivatele) DESC
 SQL
-  , [Aktivita::NAHRADNIK, ROK]
+  , [Aktivita::SLEDUJICI, ROK]
 );
 $report->tFormat(get('format'));
