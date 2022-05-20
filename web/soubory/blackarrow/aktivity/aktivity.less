@@ -214,9 +214,16 @@
     line-height: 1.25;
     max-height: 1.25 * 32px * 2;
     overflow: hidden;
-    a {
-        color: inherit;
+
+    .aktivity_kotva {
         text-decoration: none;
+        color: gray;
+        opacity: 0.6;
+        font-size: smaller;
+
+        &::before {
+            content: '\00a0'; // nelze použít HTML zápis &nbsp;
+        }
     }
 }
 
