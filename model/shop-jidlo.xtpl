@@ -1,6 +1,7 @@
 <!-- begin:jidlo -->
 <!-- begin:potize -->
-<p>Objednat nebo změnit objednávky jídla dočasně není možné. Zkus to prosím později.</p>
+<p>Objednávky jídla jsou dočasně pozastavené z důvodu vyjednávání o ceně s dodavatelem. O obnovení prodeje budeme
+  informovat na sociálních sítích, za komplikace se omlouváme.</p>
 <!-- end:potize -->
 <!-- begin:pozastaveno -->
 <p>Objednat nebo změnit objednávky jídla již není možné.</p>
@@ -9,7 +10,9 @@
   <tr>
     <td></td>
     <!-- begin:den -->
-    <td><div class="shop_den">{den}</div></td>
+    <td>
+      <div class="shop_den">{den}</div>
+    </td>
     <!-- end:den -->
   </tr>
   <!-- begin:druh -->
