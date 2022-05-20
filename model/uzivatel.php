@@ -50,18 +50,10 @@ SQL
     public const FAKE = 0x01;  // modifikátor "fake uživatel"
     public const SYSTEM = 1;   // id uživatele reprezentujícího systém (např. "operaci provedl systém")
 
-    /** Vytvoří uživatele z různých možných vstupů */
     public function __construct($uzivatel) {
-        if (is_array($uzivatel)
-            && array_keys_exist(['id_uzivatele', 'login_uzivatele', 'pohlavi',], $uzivatel)
-        ) { //asi čteme vstup z databáze
+        if (is_array($uzivatel) && array_keys_exist(['id_uzivatele', 'login_uzivatele', 'pohlavi'], $uzivatel)) {
             $this->u = $uzivatel;
-        } /* //zvážit, možná neimplementovat
-    if((int)$uzivatel!=0)
-    {
-    }
-    */
-        else {
+        } else {
             throw new Exception('Špatný vstup konstruktoru uživatele');
         }
     }
