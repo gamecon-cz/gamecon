@@ -2446,26 +2446,27 @@ SQL
      */
     protected static function zWhere($where, $args = null, $order = null): array {
         $o = dbQueryS("
-      SELECT t3.*,
-             (SELECT GROUP_CONCAT(sjednocene_tagy.nazev ORDER BY kst.poradi, sjednocene_tagy.nazev)
-FROM sjednocene_tagy
-         JOIN akce_sjednocene_tagy ON akce_sjednocene_tagy.id_tagu = sjednocene_tagy.id
-         JOIN kategorie_sjednocenych_tagu kst on sjednocene_tagy.id_kategorie_tagu = kst.id
-             WHERE akce_sjednocene_tagy.id_akce = t3.id_akce
-             ) AS tagy
-      FROM (
-        SELECT t2.*, CONCAT(',',GROUP_CONCAT(p.id_uzivatele,u.pohlavi,p.id_stavu_prihlaseni),',') AS prihlaseni,
-               IF(t2.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = t2.patri_pod), t2.url_akce) as url_temp
+        SELECT t3.*,
+            (SELECT GROUP_CONCAT(sjednocene_tagy.nazev ORDER BY kst.poradi, sjednocene_tagy.nazev)
+                FROM sjednocene_tagy
+                JOIN akce_sjednocene_tagy ON akce_sjednocene_tagy.id_tagu = sjednocene_tagy.id
+                JOIN kategorie_sjednocenych_tagu kst ON sjednocene_tagy.id_kategorie_tagu = kst.id
+                WHERE akce_sjednocene_tagy.id_akce = t3.id_akce
+            ) AS tagy
         FROM (
-          SELECT a.*, al.poradi
-          FROM akce_seznam a
-          LEFT JOIN akce_lokace al ON (al.id_lokace = a.lokace)
-          $where
-        ) as t2
-        LEFT JOIN akce_prihlaseni p ON (p.id_akce = t2.id_akce)
-        LEFT JOIN uzivatele_hodnoty u ON (u.id_uzivatele = p.id_uzivatele)
-        GROUP BY t2.id_akce
-      ) as t3
+            SELECT t2.*, CONCAT(',',GROUP_CONCAT(p.id_uzivatele,u.pohlavi,p.id_stavu_prihlaseni),',') AS prihlaseni,
+                   IF(t2.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = t2.patri_pod), t2.url_akce) AS url_temp
+            FROM (
+                SELECT a.*, al.poradi, IF(akce_typy.poradi > 0, akce_typy.poradi, 1000 + ABS(akce_typy.poradi)) AS poradi_typu
+                FROM akce_seznam a
+                LEFT JOIN akce_lokace al ON (al.id_lokace = a.lokace)
+                LEFT JOIN akce_typy ON a.typ = akce_typy.id_typu
+                $where
+            ) AS t2
+            LEFT JOIN akce_prihlaseni p ON (p.id_akce = t2.id_akce)
+            LEFT JOIN uzivatele_hodnoty u ON (u.id_uzivatele = p.id_uzivatele)
+            GROUP BY t2.id_akce
+      ) AS t3
       $order
     ", $args);
 

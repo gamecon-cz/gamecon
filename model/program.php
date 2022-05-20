@@ -33,6 +33,11 @@ class Program
     private $aktivityUzivatele = []; // aktivity uživatele
     private $maxPocetAktivit = []; // maximální počet souběžných aktivit v daném dni
 
+    private const SKUPINY_PODLE_LOKACE_ID = 'lokaceId';
+    private const SKUPINY_PODLE_DEN = 'den';
+    private const SKUPINY_PODLE_TYP_ID = 'typId';
+    private const SKUPINY_PODLE_TYP_PORADI = 'typPoradi';
+
     /**
      * Konstruktor bere uživatele a specifikaci, jestli je to osobní program
      */
@@ -171,7 +176,7 @@ class Program
     private function init() {
         if ($this->nastaveni['skupiny'] == 'mistnosti') {
             $this->program = new ArrayIterator(Aktivita::zProgramu('poradi'));
-            $this->grpf = 'lokaceId';
+            $this->grpf = self::SKUPINY_PODLE_LOKACE_ID;
 
             $this->skupiny['0'] = 'Ostatní';
             $grp = serazenePodle(Lokace::zVsech(), 'poradi');
@@ -180,17 +185,17 @@ class Program
             }
         } else if ($this->nastaveni['osobni']) {
             $this->program = new ArrayIterator(Aktivita::zProgramu('zacatek'));
-            $this->grpf = 'den';
+            $this->grpf = self::SKUPINY_PODLE_DEN;
 
             foreach ($this->dny() as $den) {
                 $this->skupiny[$den->format('z')] = mb_ucfirst($den->format('l'));
             }
         } else {
-            $this->program = new ArrayIterator(Aktivita::zProgramu('typ'));
-            $this->grpf = 'typId';
+            $this->program = new ArrayIterator(Aktivita::zProgramu('poradi_typu'));
+            $this->grpf = self::SKUPINY_PODLE_TYP_PORADI;
 
             // řazení podle ID nutné proto, že v tomto pořadí je i seznam aktivit
-            $grp = serazenePodle(\Gamecon\Aktivita\TypAktivity::zVsech(), 'id');
+            $grp = serazenePodle(\Gamecon\Aktivita\TypAktivity::zVsech(), 'poradi');
             foreach ($grp as $t) {
                 $this->skupiny[$t->id()] = mb_ucfirst($t->nazev());
             }
@@ -362,21 +367,21 @@ class Program
      */
     private function tiskObsahuTabulky(?array &$aktivitaRaw, $denId = null) {
         $aktivit = 0;
-        foreach ($this->skupiny as $typ => $typNazev) {
+        foreach ($this->skupiny as $typId => $typNazev) {
             // pokud v skupině není aktivita a nemají se zobrazit prázdné skupiny, přeskočit
-            if (!$this->nastaveni['prazdne'] && (!$aktivitaRaw || $aktivitaRaw['grp'] != $typ)) {
+            if (!$this->nastaveni['prazdne'] && (!$aktivitaRaw || $aktivitaRaw['grp'] != $typId)) {
                 continue;
             }
 
             ob_start(); // výstup bufferujeme, pro případ že bude na víc řádků
             $radku = 0;
-            while ($aktivitaRaw && $typ == $aktivitaRaw['grp']) {
+            while ($aktivitaRaw && $typId == $aktivitaRaw['grp']) {
                 if ($denId && $aktivitaRaw['den'] != $denId) {
                     break;
                 }
 
                 for ($cas = PROGRAM_ZACATEK; $cas < PROGRAM_KONEC; $cas++) {
-                    if ($aktivitaRaw && $typ == $aktivitaRaw['grp'] && $cas == $aktivitaRaw['zac']) {
+                    if ($aktivitaRaw && $typId == $aktivitaRaw['grp'] && $cas == $aktivitaRaw['zac']) {
                         $cas += $aktivitaRaw['del'] - 1; // na konci cyklu jeste bude ++
                         $this->tiskAktivity($aktivitaRaw);
                         $aktivitaRaw = $this->dalsiAktivita();
@@ -409,15 +414,30 @@ class Program
      * (s cacheovanými hodnotami) pro program.
      */
     private function nactiAktivitu($iterator) {
-        if (!$iterator->valid()) return null;
+        if (!$iterator->valid()) {
+            return null;
+        }
+        /** @var Aktivita $a */
         $a = $iterator->current();
         $zac = (int)$a->zacatek()->format('G');
         $kon = (int)$a->konec()->format('G');
-        if ($kon == 0) $kon = 24;
-        if ($this->grpf == 'typId') $grp = $a->typId();
-        elseif ($this->grpf == 'lokaceId') $grp = $a->lokaceId();
-        elseif ($this->grpf == 'den') $grp = $a->zacatek()->format('z');
-        else                                throw new Exception('nepodporovaný typ shlukování aktivit');
+        if ($kon == 0) {
+            $kon = 24;
+        }
+        switch ($this->grpf) {
+            case self::SKUPINY_PODLE_TYP_ID :
+            case self::SKUPINY_PODLE_TYP_PORADI :
+                $grp = $a->typId();
+                break;
+            case self::SKUPINY_PODLE_LOKACE_ID :
+                $grp = $a->lokaceId();
+                break;
+            case self::SKUPINY_PODLE_DEN :
+                $grp = $a->zacatek()->format('z');
+                break;
+            default :
+                throw new Exception('nepodporovaný typ shlukování aktivit ' . $this->grpf);
+        }
 
         $a = [
             'grp' => $grp,
