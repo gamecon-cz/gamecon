@@ -1,5 +1,6 @@
 <?php
 
+/** @var Url $url */
 /** @var XTemplate $t */
 /** @var Uzivatel $u */
 /** @var Uzivatel|null|void $org */
@@ -85,6 +86,9 @@ foreach ($skupiny as $skupina) {
 
     $t->assign([
         'aktivita' => $aktivita,
+        'htmlId' => $aktivita->urlId(),
+        // nelze použít prosté #htmlId, protože to rozbije base href a odkazuje to pak o úroveň výš
+        'kotva' => URL_WEBU . '/' . $url->cela() . '#' . $aktivita->urlId(),
         'obrazek' => $obrazek ? $obrazek->pasuj(512) : null, // TODO kvalita?
         'organizatori' => $organizatori,
         'organizatoriNahled' => strtr($organizatori, [', ' => '<br>']),

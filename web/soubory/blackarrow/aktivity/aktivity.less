@@ -7,9 +7,8 @@
     line-height: 26/16;
 
     @media (max-width: 600px) {
-        background:
-            url('../blackarrow/aktivity/hlavicka.svg') no-repeat 0 100% ~'/' 100% auto,
-            linear-gradient(to bottom, #f6f1ea 50%, #fff 50%);
+        background: url('../blackarrow/aktivity/hlavicka.svg') no-repeat 0 100% ~'/' 100% auto,
+        linear-gradient(to bottom, #f6f1ea 50%, #fff 50%);
         overflow: hidden;
     }
 }
@@ -29,7 +28,9 @@
 .aktivity_hlavickaVypravecFotka {
     width: 180px;
     margin-top: 55px;
-    @media (max-width: 600px) { display: none; }
+    @media (max-width: 600px) {
+        display: none;
+    }
 }
 
 .aktivity_hlavickaVypravecText {
@@ -39,7 +40,9 @@
     @media (max-width: 600px) {
         margin: 0;
         max-width: none;
-        &.stranka_format h1 { margin-top: 30px; }
+        &.stranka_format h1 {
+            margin-top: 30px;
+        }
     }
 }
 
@@ -47,13 +50,18 @@
     position: relative;
     z-index: 1; // kvůli ikoně pod textem (nejen) na mobilu
     max-width: 60%;
+
     &.stranka_format h1 {
-        font-size: 80rel;
+        font-size: 80 rel;
         margin-right: -200px; // kvůli delším nadpisům při fullHD
     }
+
     @media (max-width: 600px) {
         max-width: none;
-        &.stranka_format h1 { margin-right: 0; margin-top: 30px; }
+        &.stranka_format h1 {
+            margin-right: 0;
+            margin-top: 30px;
+        }
     }
 }
 
@@ -67,7 +75,10 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    img { display: block; }
+
+    img {
+        display: block;
+    }
 
     @media (max-width: 600px) {
         transform-origin: 0 0;
@@ -116,13 +127,15 @@
     position: absolute;
     right: 27px;
     top: 22px;
-    width:  8px;
+    width: 8px;
     height: 8px;
     border-bottom: solid 2px #CE232D;
-    border-right:  solid 2px #CE232D;
+    border-right: solid 2px #CE232D;
     transform: rotate(-45deg);
     transition: right 0.3s;
-    @media (min-width: 1500px) { top: 32px }
+    @media (min-width: 1500px) {
+        top: 32px
+    }
 }
 
 .aktivity_stranka:hover::after {
@@ -167,7 +180,9 @@
 
     font-size: 13px;
     line-height: 22/13;
-    @media (min-width: 1500px) { font-size: 15px }
+    @media (min-width: 1500px) {
+        font-size: 15px
+    }
 }
 
 .aktivity_obrazek {
@@ -175,8 +190,12 @@
     margin: 0 -26px 17px;
     width: ~'calc(100% + 52px)';
     height: 512px * 9/16;
-    @media (max-width: 1600px) { height: 16.125vw }
-    @media (max-width: 600px) { height: 97vw * 9/16 }
+    @media (max-width: 1600px) {
+        height: 16.125vw
+    }
+    @media (max-width: 600px) {
+        height: 97vw * 9/16
+    }
 }
 
 .aktivity_aktivity-drd .aktivity_obrazek {
@@ -187,14 +206,32 @@
 .aktivity_nazev {
     margin: 0 0 15px 0;
     font-size: 32px;
+    @media (max-width: 1000px) {
+        font-size: calc(150% + 1vw + 1vh);
+    }
+    @media (max-width: 600px) {
+        // z čeho to jsou procenta viz .aktivity_aktivita font-size
+        font-size: calc(220% + 1vw + 1vh)
+    }
     font-weight: bold;
     line-height: 1.25;
-    max-height: 1.25 * 32px * 2;
-    overflow: hidden;
+    overflow: scroll;
+
+    .aktivity_kotva {
+        text-decoration: none;
+        color: gray;
+        opacity: 0.6;
+        font-size: smaller;
+
+        &::before {
+            content: '\00a0'; // nelze použít HTML zápis &nbsp;
+        }
+    }
 }
 
 .aktivity_vypravec {
     margin-bottom: 12px;
+
     & > a {
         text-decoration: none;
         color: inherit;
@@ -215,7 +252,9 @@
     padding: 6px 12px 5px;
     margin: 0 8px 8px 0;
     letter-spacing: 0.03em;
-    @media (min-width: 1500px) { font-size: 12px }
+    @media (min-width: 1500px) {
+        font-size: 12px
+    }
 }
 
 .aktivity_popis {
@@ -341,7 +380,9 @@
         font-size: inherit;
     }
 
-    h3:first-child { margin: 0 }
+    h3:first-child {
+        margin: 0
+    }
 }
 
 .aktivity_nahledInfo {

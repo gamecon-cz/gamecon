@@ -31,9 +31,11 @@
 <div class="aktivity_aktivityObal">
 <div class="aktivity_aktivity {specTridy}">
     <!-- begin: aktivita -->
-    <div class="aktivity_aktivita">
+    <div class="aktivity_aktivita" id="{htmlId}">
         <img class="aktivity_obrazek" src="{obrazek}">
-        <h2 class="aktivity_nazev">{aktivita.nazev}</h2>
+        <h2 class="aktivity_nazev">
+          {aktivita.nazev}<a href="{kotva}" class="aktivity_kotva">#</a>
+        </h2>
         <div class="aktivity_vypravec"><b>Vypravěč:</b> {organizatori}</div>
         <div class="aktivity_stitky">
             <!-- begin: stitek -->
