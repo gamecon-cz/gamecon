@@ -2408,7 +2408,7 @@ SQL,
         }
 
         // select
-        $aktivity = self::zWhere('WHERE ' . $where, null, $order, $limit); // přetypování nutné kvůli správné funkci unsetu
+        $aktivity = self::zWhere('WHERE ' . $where, null, $order, $limit);
         if (!empty($filtr['jenVolne'])) {
             foreach ($aktivity as $id => $a) {
                 if ($a->volno() === 'x') {
@@ -2577,7 +2577,7 @@ SQL,
      * @return Aktivita[]
      * @todo třída která obstará reálný iterátor, nejenom obalení pole (nevýhoda pole je nezměněná nutnost čekat, než se celá odpověď načte a přesype do paměti)
      */
-    protected static function zWhere($where, $args = null, $order = null, ?string $limit = null): array {
+    protected static function zWhere($where, $args = null, $order = null, ?int $limit = null): array {
         $limitSql = $limit !== null
             ? "LIMIT $limit"
             : '';
