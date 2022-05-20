@@ -289,22 +289,6 @@ function dbOneLine($q, $p = null) {
 }
 
 /**
- * Single line selector with substitution
- * @see dbQueryS
- * @deprecated in favour of dbOneLine
- */
-function dbOneLineS($q, $array = null) {
-    $r = dbQueryS($q, $array);
-    if (mysqli_num_rows($r) > 1) {
-        throw new RuntimeException('Multiple lines matched on query ' . $q);
-    }
-    if (mysqli_num_rows($r) < 1) {
-        return FALSE;
-    }
-    return mysqli_fetch_assoc($r);
-}
-
-/**
  * @param string $query
  * @param array $params
  * @return array
@@ -344,7 +328,6 @@ function dbQuery($q, $param = null) {
 /**
  * Dotaz s nahrazováním jmen proměnných, pokud je nastaveno pole, tak jen z
  * pole ve forme $0 $1 atd resp $index
- * @deprecated in favour of dbQuery
  */
 function dbQueryS($q, array $pole = null) {
     if (!$pole) {

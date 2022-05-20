@@ -239,7 +239,7 @@ class Aktivita
         }
 
         // kontrola duplicit url
-        if (dbOneLineS('SELECT 1 FROM akce_seznam
+        if (dbOneLine('SELECT 1 FROM akce_seznam
       WHERE url_akce = $1 AND ( patri_pod IS NULL OR patri_pod != $2 ) AND id_akce != $3 AND rok = $4',
             [$a['url_akce'], $a['patri_pod'], $a['id_akce'], ROK])
         ) {

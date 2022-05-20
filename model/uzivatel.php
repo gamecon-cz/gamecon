@@ -180,9 +180,6 @@ SQL
                 $this->u['prava'][] = (int)$pravo;
             }
         }
-        if ($this->klic) {
-            $_SESSION[$this->klic]['prava'] = $this->u['prava'];
-        }
 
         dbQuery(
             "INSERT IGNORE INTO r_uzivatele_zidle(id_uzivatele, id_zidle, posadil)
@@ -675,16 +672,16 @@ SQL,
         }
         $id = $this->id();
         $klic = $this->klic;
-        //máme obnovit starou proměnnou pro id uživatele (otáčíme aktuálně přihlášeného uživatele)?
-        $sesObnovit = (isset($_SESSION['id_uzivatele']) && $_SESSION['id_uzivatele'] == $this->id());
-        if ($klic === 'uzivatel') {//pokud je klíč default, zničíme celou session
+        // máme obnovit starou proměnnou pro id uživatele (otáčíme aktuálně přihlášeného uživatele)?
+        $sesssionObnovit = (isset($_SESSION['id_uzivatele']) && $_SESSION['id_uzivatele'] == $this->id());
+        if ($klic === 'uzivatel') { // pokud je klíč default, zničíme celou session
             $this->odhlasProTed(); // ponech případnou cookie pro trvalé přihášení
-        } else { //pokud je speciální, pouze přemažeme položku v session
+        } else { // pokud je speciální, pouze přemažeme položku v session
             self::odhlasKlic($klic);
         }
         $u = Uzivatel::prihlasId($id, $klic);
         $this->u = $u->u;
-        if ($sesObnovit) {
+        if ($sesssionObnovit) {
             $_SESSION['id_uzivatele'] = $this->id();
         }
     }
@@ -729,75 +726,80 @@ SQL,
             return null;
         }
 
-        $u = dbOneLineS('
-      SELECT * FROM uzivatele_hodnoty
-      WHERE login_uzivatele = $0 OR email1_uzivatele = $0
-      ORDER BY email1_uzivatele = $0 DESC -- e-mail má prioritu
-      LIMIT 1
-    ', [$login]);
-        if (!$u) {
+        $uzivatelData = dbOneLine(
+            'SELECT * FROM uzivatele_hodnoty
+            WHERE login_uzivatele = $0 OR email1_uzivatele = $0
+            ORDER BY email1_uzivatele = $0 DESC -- e-mail má prioritu
+            LIMIT 1',
+            [$login]
+        );
+        if (!$uzivatelData) {
             return null;
         }
         // master password hack pro vývojovou větev
         $jeMaster = defined('UNIVERZALNI_HESLO') && $heslo == UNIVERZALNI_HESLO;
         // kontrola hesla
-        if (!($jeMaster || password_verify($heslo, $u['heslo_md5']))) {
+        if (!($jeMaster || password_verify($heslo, $uzivatelData['heslo_md5']))) {
             return null;
         }
         // kontrola zastaralých algoritmů hesel a případná aktualizace hashe
-        $jeMd5 = strlen($u['heslo_md5']) == 32 && preg_match('@^[0-9a-f]+$@', $u['heslo_md5']);
-        if ((password_needs_rehash($u['heslo_md5'], PASSWORD_DEFAULT) || $jeMd5) && !$jeMaster) {
+        $jeMd5 = strlen($uzivatelData['heslo_md5']) == 32 && preg_match('@^[0-9a-f]+$@', $uzivatelData['heslo_md5']);
+        if ((password_needs_rehash($uzivatelData['heslo_md5'], PASSWORD_DEFAULT) || $jeMd5) && !$jeMaster) {
             $novyHash = password_hash($heslo, PASSWORD_DEFAULT);
-            $u['heslo_md5'] = $novyHash;
-            dbQuery('UPDATE uzivatele_hodnoty SET heslo_md5 = $0 WHERE id_uzivatele = $1', [$novyHash, $u['id_uzivatele']]);
+            $uzivatelData['heslo_md5'] = $novyHash;
+            dbQuery('UPDATE uzivatele_hodnoty SET heslo_md5 = $0 WHERE id_uzivatele = $1', [$novyHash, $uzivatelData['id_uzivatele']]);
         }
         // přihlášení uživatele
         // TODO refactorovat do jedné fce volané z dílčích prihlas* metod
-        $id = $u['id_uzivatele'];
+        $idUzivatele = (int)$uzivatelData['id_uzivatele'];
         if (!session_id() && PHP_SAPI !== 'cli') {
             session_start();
         }
-        $_SESSION[$klic] = $u;
-        $_SESSION[$klic]['id_uzivatele'] = (int)$u['id_uzivatele'];
+        $uzivatelData['id_uzivatele'] = $idUzivatele;
+        $_SESSION[$klic]['id_uzivatele'] = $idUzivatele;
         // načtení uživatelských práv
-        $p = dbQuery('SELECT id_prava FROM r_uzivatele_zidle uz
-      LEFT JOIN r_prava_zidle pz USING(id_zidle)
-      WHERE uz.id_uzivatele=' . $id);
+        $p = dbQuery(
+            'SELECT id_prava
+                FROM r_uzivatele_zidle uz
+                    LEFT JOIN r_prava_zidle pz USING(id_zidle)
+                WHERE uz.id_uzivatele=' . $idUzivatele
+        );
         $prava = []; // inicializace nutná, aby nepadala výjimka pro uživatele bez práv
         while ($r = mysqli_fetch_assoc($p)) {
             $prava[] = (int)$r['id_prava'];
         }
-        $_SESSION[$klic]['prava'] = $prava;
-        return new Uzivatel($_SESSION[$klic]);
+        $uzivatelData['prava'] = $prava;
+
+        return new Uzivatel($uzivatelData);
     }
 
     /**
      * Vytvoří v session na indexu $klic dalšího uživatele pro práci
      * @return null|Uzivatel nebo null
      */
-    public static function prihlasId($id, $klic = 'uzivatel'): ?Uzivatel {
-        $u = dbOneLineS('SELECT * FROM uzivatele_hodnoty WHERE id_uzivatele=$0',
-            [$id]);
-        if ($u) {
-            if (!session_id()) {
-                session_start();
-            }
-            $_SESSION[$klic] = $u;
-            $_SESSION[$klic]['id_uzivatele'] = (int)$u['id_uzivatele'];
-            //načtení uživatelských práv
-            $p = dbQuery('SELECT id_prava FROM r_uzivatele_zidle uz
-        LEFT JOIN r_prava_zidle pz USING(id_zidle)
-        WHERE uz.id_uzivatele=' . $id);
-            $prava = []; //inicializace nutná, aby nepadala výjimka pro uživatele bez práv
-            while ($r = mysqli_fetch_assoc($p)) {
-                $prava[] = (int)$r['id_prava'];
-            }
-            $_SESSION[$klic]['prava'] = $prava;
-            $u = new Uzivatel($_SESSION[$klic]);
-            $u->klic = $klic;
-            return $u;
+    public static function prihlasId($idUzivatele, $klic = 'uzivatel'): ?Uzivatel {
+        $idUzivatele = (int)$idUzivatele;
+        $uzivatelData = dbOneLine('SELECT * FROM uzivatele_hodnoty WHERE id_uzivatele=$0', [$idUzivatele]);
+        if (!$uzivatelData) {
+            return null;
         }
-        return null;
+        if (!session_id()) {
+            session_start();
+        }
+        $_SESSION[$klic]['id_uzivatele'] = $idUzivatele;
+        //načtení uživatelských práv
+        $p = dbQuery(
+            'SELECT id_prava FROM r_uzivatele_zidle uz LEFT JOIN r_prava_zidle pz USING(id_zidle) WHERE uz.id_uzivatele=' . $idUzivatele
+        );
+        $prava = []; //inicializace nutná, aby nepadala výjimka pro uživatele bez práv
+        while ($r = mysqli_fetch_assoc($p)) {
+            $prava[] = (int)$r['id_prava'];
+        }
+        $uzivatelData['prava'] = $prava;
+        $uzivatelData = new Uzivatel($uzivatelData);
+        $uzivatelData->klic = $klic;
+
+        return $uzivatelData;
     }
 
     /** Alias prihlas() pro trvalé přihlášení */
@@ -805,10 +807,12 @@ SQL,
         $u = Uzivatel::prihlas($login, $heslo, $klic);
         $rand = randHex(20);
         if ($u) {
-            dbQuery('
-        UPDATE uzivatele_hodnoty
-        SET random=$0
-        WHERE id_uzivatele=' . $u->id(), [$rand]);
+            dbQuery(
+                'UPDATE uzivatele_hodnoty
+                SET random=$0
+                WHERE id_uzivatele=' . $u->id(),
+                [$rand]
+            );
             setcookie('gcTrvalePrihlaseni', $rand, time() + 3600 * 24 * 365, '/');
         }
         return $u;
@@ -836,13 +840,12 @@ SQL,
      * Vrátí timestamp prvního bloku kdy uživatel má aktivitu
      */
     public function prvniBlok() {
-        $cas = dbOneCol('
-      SELECT MIN(a.zacatek)
-      FROM akce_seznam a
-      JOIN akce_prihlaseni p USING(id_akce)
-      WHERE p.id_uzivatele = ' . $this->id() . ' AND a.rok = ' . ROK . '
-    ');
-        return $cas;
+        return dbOneCol(
+            'SELECT MIN(a.zacatek)
+                FROM akce_seznam a
+                    JOIN akce_prihlaseni p USING(id_akce)
+                WHERE p.id_uzivatele = ' . $this->id() . ' AND a.rok = ' . ROK
+        );
     }
 
     /**
@@ -1304,25 +1307,26 @@ SQL,
             session_start();
         }
         if (isset($_SESSION[$klic])) {
-            $u = new Uzivatel($_SESSION[$klic]);
+            $u = Uzivatel::zId($_SESSION[$klic]['id_uzivatele']);
             $u->klic = $klic;
             return $u;
         }
         if (isset($_COOKIE['gcTrvalePrihlaseni']) && $klic === 'uzivatel') {
-            $id = dbOneCol("
-        SELECT id_uzivatele
-        FROM uzivatele_hodnoty
-        WHERE random!='' AND random=$0",
-                [$_COOKIE['gcTrvalePrihlaseni']]);
+            $id = dbOneCol(
+                "SELECT id_uzivatele FROM uzivatele_hodnoty WHERE random!='' AND random=$0",
+                [$_COOKIE['gcTrvalePrihlaseni']]
+            );
             if (!$id) {
                 return null;
             }
             $rand = randHex(20);
             //změna tokenu do budoucna proti hádání
-            dbQuery("
-        UPDATE uzivatele_hodnoty
-        SET random=$0
-        WHERE id_uzivatele=$id", [$rand]);
+            dbQuery(
+                "UPDATE uzivatele_hodnoty
+                SET random=$0
+                WHERE id_uzivatele=$id",
+                [$rand]
+            );
             setcookie('gcTrvalePrihlaseni', $rand, time() + 3600 * 24 * 365, '/');
             return Uzivatel::prihlasId($id, $klic);
         }
@@ -1394,13 +1398,16 @@ SQL,
      * Aktualizuje práva uživatele z databáze (protože se provedla nějaká změna)
      */
     protected function aktualizujPrava() {
-        $p = dbQuery('SELECT id_prava FROM r_uzivatele_zidle uz
-      LEFT JOIN r_prava_zidle pz USING(id_zidle)
-      WHERE uz.id_uzivatele=' . $this->id());
-        $prava = []; //inicializace nutná, aby nepadala výjimka pro uživatele bez práv
-        while ($r = mysqli_fetch_assoc($p))
+        $p = dbQuery(
+            'SELECT id_prava
+                FROM r_uzivatele_zidle uz
+                    LEFT JOIN r_prava_zidle pz USING(id_zidle)
+                WHERE uz.id_uzivatele=' . $this->id()
+        );
+        $prava = []; // inicializace nutná, aby nepadala výjimka pro uživatele bez práv
+        while ($r = mysqli_fetch_assoc($p)) {
             $prava[] = (int)$r['id_prava'];
-        $_SESSION[$this->klic]['prava'] = $prava;
+        }
         $this->u['prava'] = $prava;
     }
 
@@ -1532,10 +1539,7 @@ SQL,
         ], [
             'id_uzivatele' => $this->id(),
         ]);
-        $this->u['potvrzeni_proti_covid19_pridano_kdy'] = $kdy ? $kdy->format('Y-m-d H:i:s') : null;
-        if ($this->klic) {
-            $_SESSION[$this->klic]['potvrzeni_proti_covid19_pridano_kdy'] = $this->u['potvrzeni_proti_covid19_pridano_kdy'];
-        }
+        $this->u['potvrzeni_proti_covid19_pridano_kdy'] = $kdy ? $kdy->format(DateTimeCz::FORMAT_DB) : null;
     }
 
     private function ulozPotvrzeniProtiCoviduOverenoKdy(?\DateTimeInterface $kdy) {
@@ -1544,10 +1548,7 @@ SQL,
         ], [
             'id_uzivatele' => $this->id(),
         ]);
-        $this->u['potvrzeni_proti_covid19_overeno_kdy'] = $kdy ? $kdy->format('Y-m-d H:i:s') : null;
-        if ($this->klic) {
-            $_SESSION[$this->klic]['potvrzeni_proti_covid19_overeno_kdy'] = $this->u['potvrzeni_proti_covid19_pridano_kdy'];
-        }
+        $this->u['potvrzeni_proti_covid19_overeno_kdy'] = $kdy ? $kdy->format(DateTimeCz::FORMAT_DB) : null;
     }
 
     public function urlNaPotvrzeniProtiCoviduProAdmin(): string {
