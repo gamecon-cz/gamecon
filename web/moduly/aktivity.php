@@ -21,15 +21,13 @@ Tym::vypisZpracuj($u);
 
 // aktivity
 
-// TODO REVERT
-$aktivity = Aktivita::zNazvuARoku('Všechny prezidentovy zombie', ROK);
-/*$aktivity = Aktivita::zFiltru([
+$aktivity = Aktivita::zFiltru([
     'rok' => ROK,
     'jenViditelne' => true,
     'bezDalsichKol' => true,
     'typ' => $typ ? $typ->id() : null,
     'organizator' => !empty($org) ? $org->id() : null,
-]);*/
+]);
 
 $skupiny = seskupenePodle($aktivity, function ($aktivita) {
     return $aktivita->patriPod() ?: -$aktivita->id();
