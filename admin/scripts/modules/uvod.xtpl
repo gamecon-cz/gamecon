@@ -134,7 +134,8 @@ Přihlásit na GameCon {rok}:
         ověřeno bez nahrání dokladu
         <!-- end:overenoPredlozenePotvrzeniProtiCovid -->
         <!-- begin:overitPotvrzeniProtiCovid -->
-        <img alt="Nutno ověřit potvrzení proti covidu" src="files/design/warning.png" style="width: 1em; margin-bottom: -2px">️
+        <img alt="Nutno ověřit potvrzení proti covidu" src="files/design/warning.png"
+             style="width: 1em; margin-bottom: -2px">️
         <!-- end:overitPotvrzeniProtiCovid -->
         <!-- begin:potvrzeniProtiCovid -->
         <a href="{urlNaPotvrzeniProtiCovid}" target="_blank">Covid doklad {datumNahraniPotvrzeniProtiCovid}</a>
@@ -142,6 +143,10 @@ Přihlásit na GameCon {rok}:
       </td>
     </tr>
     <!-- end:covidSekce -->
+    <tr>
+      <td>Balíček?</td>
+      <td>{balicek}</td>
+    </tr>
   </table>
   <br>
 
@@ -342,7 +347,7 @@ Přihlásit na GameCon {rok}:
 <div class="aBox grid">
   <h3>Rychloregistrace</h3>
   Všechny položky povinné<br>
-  <form method="post">
+  <form method="post" id="uvodForm">
     <table>
       <tr>
         <td>Jméno&nbsp;a&nbsp;příjm.:</td>
@@ -373,7 +378,7 @@ Přihlásit na GameCon {rok}:
       </tr>
       <tr>
         <td colspan="2"><label>
-          Neposílat novinky e-mailem <input type="checkbox" name="rychloreg[nechce_maily]" unchecked>
+          Neposílat novinky e-mailem <input type="checkbox" name="rychloreg[nechce_maily]">
         </label></td>
       </tr>
       <tr>
@@ -386,14 +391,6 @@ Přihlásit na GameCon {rok}:
       </tr>
     </table>
   </form>
-  <script>
-    $('form').last().on('submit', function () {
-      if ($(this).find('[name="rychloreg[email1_uzivatele]"]').val() == '' || $(this).find('[name="rychloreg[pohlavi]"]:checked').length == 0) {
-        alert('všechny položky jsou povinné')
-        return false
-      }
-    })
-  </script>
 </div>
 <!-- end:rychloregistrace -->
 
@@ -402,49 +399,8 @@ Přihlásit na GameCon {rok}:
   <div class="sloup" style="width:100%;max-width:325px;float:left"></div>
 </div>
 <div style="clear:both"></div>
-<script>
-  var $boxy = $('.aBox')
-  var previousColCount = 0
 
-  function sloupce() {
-    var $sloupce = $('.sloupce')
-    var fullw = $sloupce.width()
-    var colw = $('.sloupce > .sloup').width()
-    var currentColCount = Math.floor(fullw / colw)
-    if (currentColCount == previousColCount) {
-      return // sloupce se preskladaji jen pokud to ma smysl (pokud se jich nove vejde vic nebo min)
-    }
-    previousColCount = currentColCount
-    // vysypat boxy mimo, pokud tam jsou
-    $boxy.insertAfter($sloupce)
-    // vytvořit adekvátní počet sloupců
-    var i = $('.sloupce > .sloup').length
-    while (i * colw < fullw - colw) {
-      $sloupce.append($('.sloupce > .sloup').last().clone())
-      i++
-    }
-    while (i * colw > fullw && i > 1) {
-      $('.sloupce > .sloup').last().remove()
-      i--
-    }
-    // nasypat boxy dovnitř podle pořadí, první výš
-    $boxy.each(function () {
-      var $min
-      $sloupce.find('.sloup').each(function () {
-        if (!$min || $(this).height() < $min.height()) {
-          $min = $(this)
-        }
-      })
-      $min.append($(this))
-    })
-  }
-
-  sloupce()
-  $(window).on('resize', function () {
-    sloupce()
-  })
-</script>
-
+<script type="text/javascript">{uvodJs}</script>
 
 <!-- begin:potvrditZruseniPrace -->
 <script>
@@ -453,6 +409,5 @@ Přihlásit na GameCon {rok}:
   })
 </script>
 <!-- end:potvrdZruseniPrace -->
-
 
 <!-- end:uvod -->

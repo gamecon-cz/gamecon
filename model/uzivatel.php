@@ -706,6 +706,21 @@ SQL,
         return markdown($this->u['poznamka']);
     }
 
+    public function balicekHtml() {
+        if (!$this->gcPrihlasen()) {
+            return '';
+        }
+        $koupilNejakyPredmet = $this->dejShop()->koupilNejakyPredmet();
+        if (!$koupilNejakyPredmet) {
+            return $this->dejShop()->objednalNejakeJidlo()
+                ? 'jen stravenky'
+                : '';
+        }
+        return $this->u['infopult_poznamka'] === 'velký balíček ' . ROK
+            ? 'velký balíček'
+            : 'balíček';
+    }
+
     /**
      * Přihlásí uživatele s loginem $login k stránce
      * @param string $klic klíč do $_SESSION kde poneseme hodnoty uživatele
