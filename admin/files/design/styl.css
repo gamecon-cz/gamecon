@@ -828,7 +828,7 @@ li.list-header {
   padding: 8px 8px 8px 40px;
 }
 
-button {
+button, input[type=file] {
   cursor: pointer;
 }
 

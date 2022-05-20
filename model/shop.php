@@ -225,6 +225,24 @@ class Shop
         return $t->text('jidlo');
     }
 
+    public function koupilNejakyPredmet(): bool {
+        foreach ($this->predmety as $predmet) {
+            if ($predmet['kusu_uzivatele'] > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function objednalNejakeJidlo(): bool {
+        foreach ($this->jidlo['jidloObednano'] as $nejakyTypJidlaJeObjednany) {
+            if ($nejakyTypJidlaJeObjednany) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Vrátí html kód formuláře s předměty a tričky (bez form značek kvůli
      * integraci více věcí naráz).
