@@ -199,6 +199,7 @@ if ($uPracovni) {
         'aa' => $u->koncovkaDlePohlavi(),
         'org' => $u->jmenoNick(),
         'poznamka' => $up->poznamkaHtml(),
+        'balicek' => $up->balicekHtml(),
         'up' => $up,
     ]);
     if ($up->finance()->stav() < 0 && !$up->gcPritomen()) {
@@ -445,5 +446,10 @@ if (!$uPracovni) { // nechceme zobrazovat rychloregistraci (zakladani uctu), kdy
     }
 }
 
+// vkládáme do HTML aby se operace s DOMem provedly ještě před vykreslením a obsah neposkakoval
+$x->assign('uvodJs', file_get_contents(__DIR__ . '/../../files/uvod.js'));
+
 $x->parse('uvod');
 $x->out('uvod');
+
+require __DIR__ . '/_uvod-import-balicku.php';
