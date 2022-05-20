@@ -83,7 +83,7 @@ function varovani(string $zprava, bool $back = true) {
 
 /**
  * Předá oznámení volajícímu skritpu, vyvolá reload
- * @param back bool má se reloadovat?
+ * @param bool $back má se reloadovat?
  */
 function oznameni($zprava, $back = true) {
     Chyba::nastav($zprava, Chyba::OZNAMENI);
