@@ -196,7 +196,7 @@ class Program
             $this->program = new ArrayIterator(Aktivita::zProgramu('poradi_typu'));
             $this->grpf = self::SKUPINY_PODLE_TYP_PORADI;
 
-            // řazení podle ID nutné proto, že v tomto pořadí je i seznam aktivit
+            // řazení podle poradi typu je nutné proto, že v tomto pořadí je i seznam aktivit
             $grp = serazenePodle(TypAktivity::zVsech(), 'poradi');
             foreach ($grp as $t) {
                 $this->skupiny[$t->id()] = mb_ucfirst($t->nazev());
