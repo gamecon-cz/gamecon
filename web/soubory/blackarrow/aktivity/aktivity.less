@@ -206,14 +206,16 @@
 .aktivity_nazev {
     margin: 0 0 15px 0;
     font-size: 32px;
+    @media (max-width: 1000px) {
+        font-size: calc(150% + 1vw + 1vh);
+    }
     @media (max-width: 600px) {
         // z čeho to jsou procenta viz .aktivity_aktivita font-size
         font-size: calc(220% + 1vw + 1vh)
     }
     font-weight: bold;
     line-height: 1.25;
-    max-height: 1.25 * 32px * 2;
-    overflow: hidden;
+    overflow: scroll;
 
     .aktivity_kotva {
         text-decoration: none;

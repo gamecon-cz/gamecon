@@ -88,9 +88,9 @@ foreach ($skupiny as $skupina) {
 
     $t->assign([
         'aktivita' => $aktivita,
-        'htmlId' => slugify($aktivita->nazev() . '-' . $aktivita->id()),
+        'htmlId' => $aktivita->urlId(),
         // nelze použít prosté #htmlId, protože to rozbije base href a odkazuje to pak o úroveň výš
-        'kotva' => URL_WEBU . '/' . $url->cela() . '#' . slugify($aktivita->nazev() . '-' . $aktivita->id()),
+        'kotva' => URL_WEBU . '/' . $url->cela() . '#' . $aktivita->urlId(),
         'obrazek' => $obrazek ? $obrazek->pasuj(512) : null, // TODO kvalita?
         'organizatori' => $organizatori,
         'organizatoriNahled' => strtr($organizatori, [', ' => '<br>']),
