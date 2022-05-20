@@ -1230,7 +1230,7 @@ SQL
     }
 
     /** Zpracuje formy na měnění počtu míst team. aktivit */
-    protected static function plusminusZpracuj(\Uzivatel $u = null, $parametry = 0) {
+    protected static function plusminusZpracuj() {
         if (post(self::PN_PLUSMINUSP)) {
             dbQueryS('UPDATE akce_seznam SET kapacita = kapacita + 1 WHERE id_akce = $1', [post(self::PN_PLUSMINUSP)]);
             back();
@@ -1638,30 +1638,29 @@ SQL
 
     /** Zpracuje post data z přihlašovátka. Pokud došlo ke změně, vyvolá reload */
     public static function prihlasovatkoZpracuj(\Uzivatel $u = null, $parametry = 0) {
-        if (!$u) {
-            back();
-        }
-        if (post('prihlasit')) {
-            self::zId(post('prihlasit'))->prihlas($u, $parametry);
-            back();
-        }
-        if (post('odhlasit')) {
-            $bezPokut = ($parametry & self::ZPETNE)
-                ? self::BEZ_POKUT // v případě zpětných změn bez pokut
-                : 0;
-            self::zId(post('odhlasit'))->odhlas($u, $bezPokut);
-            back();
-        }
-        if (post('prihlasSledujiciho')) {
-            self::zId(post('prihlasSledujiciho'))->prihlasSledujiciho($u);
-            back();
-        }
-        if (post('odhlasSledujiciho')) {
-            self::zId(post('odhlasSledujiciho'))->odhlasSledujiciho($u);
-            back();
+        if ($u) {
+            if (post('prihlasit')) {
+                self::zId(post('prihlasit'))->prihlas($u, $parametry);
+                back();
+            }
+            if (post('odhlasit')) {
+                $bezPokut = ($parametry & self::ZPETNE)
+                    ? self::BEZ_POKUT // v případě zpětných změn bez pokut
+                    : 0;
+                self::zId(post('odhlasit'))->odhlas($u, $bezPokut);
+                back();
+            }
+            if (post('prihlasSledujiciho')) {
+                self::zId(post('prihlasSledujiciho'))->prihlasSledujiciho($u);
+                back();
+            }
+            if (post('odhlasSledujiciho')) {
+                self::zId(post('odhlasSledujiciho'))->odhlasSledujiciho($u);
+                back();
+            }
         }
         if ($parametry & self::PLUSMINUS_KAZDY) {
-            self::plusminusZpracuj($u, $parametry);
+            self::plusminusZpracuj();
         }
     }
 
@@ -2408,7 +2407,7 @@ SQL,
         }
 
         // select
-        $aktivity = self::zWhere('WHERE ' . $where, null, $order, $limit); // přetypování nutné kvůli správné funkci unsetu
+        $aktivity = self::zWhere('WHERE ' . $where, null, $order, $limit);
         if (!empty($filtr['jenVolne'])) {
             foreach ($aktivity as $id => $a) {
                 if ($a->volno() === 'x') {
@@ -2577,7 +2576,7 @@ SQL,
      * @return Aktivita[]
      * @todo třída která obstará reálný iterátor, nejenom obalení pole (nevýhoda pole je nezměněná nutnost čekat, než se celá odpověď načte a přesype do paměti)
      */
-    protected static function zWhere($where, $args = null, $order = null, ?string $limit = null): array {
+    protected static function zWhere($where, $args = null, $order = null, ?int $limit = null): array {
         $limitSql = $limit !== null
             ? "LIMIT $limit"
             : '';
