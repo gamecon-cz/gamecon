@@ -447,7 +447,7 @@ input, textarea, select, .tlacitko, .adm_submenu_item a {
   color: inherit;
 }
 
-input, select, label, button {
+input, select, label, button, input[type=file] {
   cursor: pointer;
 }
 

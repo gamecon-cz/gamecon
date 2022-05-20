@@ -4,10 +4,11 @@
  * @return bool true if all exist false otherwise
  */
 function array_keys_exist($keys, $search) {
-    //if(is_array($search) && is_array($keys))
-    foreach ($keys as $key)
-        if (!array_key_exists($key, $search))
+    foreach ($keys as $key) {
+        if (!array_key_exists($key, $search)) {
             return false;
+        }
+    }
     return true;
 }
 
