@@ -33,7 +33,9 @@
     <!-- begin: aktivita -->
     <div class="aktivity_aktivita">
         <img class="aktivity_obrazek" src="{obrazek}">
-        <h2 class="aktivity_nazev">{aktivita.nazev}</h2>
+        <h2 class="aktivity_nazev" id="{htmlId}">
+          {aktivita.nazev}<a href="{kotva}" class="aktivity_kotva">#</a>
+        </h2>
         <div class="aktivity_vypravec"><b>Vypravěč:</b> {organizatori}</div>
         <div class="aktivity_stitky">
             <!-- begin: stitek -->
