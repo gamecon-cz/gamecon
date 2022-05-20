@@ -3,6 +3,7 @@
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\TypAktivity;
 
+/** @var Url $url */
 /** @var XTemplate $t */
 /** @var Uzivatel $u */
 /** @var Uzivatel|null|void $org */
@@ -20,13 +21,15 @@ Tym::vypisZpracuj($u);
 
 // aktivity
 
-$aktivity = Aktivita::zFiltru([
+// TODO REVERT
+$aktivity = Aktivita::zNazvuARoku('Všechny prezidentovy zombie', ROK);
+/*$aktivity = Aktivita::zFiltru([
     'rok' => ROK,
     'jenViditelne' => true,
     'bezDalsichKol' => true,
     'typ' => $typ ? $typ->id() : null,
     'organizator' => !empty($org) ? $org->id() : null,
-]);
+]);*/
 
 $skupiny = seskupenePodle($aktivity, function ($aktivita) {
     return $aktivita->patriPod() ?: -$aktivita->id();
@@ -87,6 +90,9 @@ foreach ($skupiny as $skupina) {
 
     $t->assign([
         'aktivita' => $aktivita,
+        'htmlId' => slugify($aktivita->nazev() . '-' . $aktivita->id()),
+        // nelze použít prosté #htmlId, protože to rozbije base href a odkazuje to pak o úroveň výš
+        'kotva' => URL_WEBU . '/' . $url->cela() . '#' . slugify($aktivita->nazev() . '-' . $aktivita->id()),
         'obrazek' => $obrazek ? $obrazek->pasuj(512) : null, // TODO kvalita?
         'organizatori' => $organizatori,
         'organizatoriNahled' => strtr($organizatori, [', ' => '<br>']),
