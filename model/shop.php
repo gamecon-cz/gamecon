@@ -193,28 +193,32 @@ class Shop
         $jidla = $this->jidlo['jidla'];
         // vykreslení
         $t = new XTemplate(__DIR__ . '/shop-jidlo.xtpl');
-        foreach ($druhy as $druh => $i) {
-            foreach ($dny as $den => $i) {
-                $jidlo = @$jidla[$den][$druh];
-                if ($jidlo && ($jidlo['nabizet'] || $jidlo['kusu_uzivatele'])) {
-                    $t->assign('selected', $jidlo['kusu_uzivatele'] > 0 ? 'checked' : '');
-                    $t->assign('pnName', self::PN_JIDLO . '[' . $jidlo['id_predmetu'] . ']');
-                    $t->parse($jidlo['stav'] == 3 && !$this->nastaveni['jidloBezZamku'] ? 'jidlo.druh.den.locked' : 'jidlo.druh.den.checkbox');
+        if (!defined('PRODEJ_JIDLA_POZASTAVEN') || !PRODEJ_JIDLA_POZASTAVEN) {
+            foreach ($druhy as $druh => $i) {
+                foreach ($dny as $den => $i) {
+                    $jidlo = @$jidla[$den][$druh];
+                    if ($jidlo && ($jidlo['nabizet'] || $jidlo['kusu_uzivatele'])) {
+                        $t->assign('selected', $jidlo['kusu_uzivatele'] > 0 ? 'checked' : '');
+                        $t->assign('pnName', self::PN_JIDLO . '[' . $jidlo['id_predmetu'] . ']');
+                        $t->parse($jidlo['stav'] == 3 && !$this->nastaveni['jidloBezZamku'] ? 'jidlo.druh.den.locked' : 'jidlo.druh.den.checkbox');
+                    }
+                    $t->parse('jidlo.druh.den');
                 }
-                $t->parse('jidlo.druh.den');
+                $t->assign('druh', $druh);
+                $t->assign('cena', $this->cenik->shop($jidlo) . '&thinsp;Kč');
+                $t->parse('jidlo.druh');
             }
-            $t->assign('druh', $druh);
-            $t->assign('cena', $this->cenik->shop($jidlo) . '&thinsp;Kč');
-            $t->parse('jidlo.druh');
-        }
-        // hlavička
-        foreach ($dny as $den => $i) {
-            $t->assign('den', mb_ucfirst(self::denNazev($den)));
-            $t->parse('jidlo.den');
-        }
-        // info o pozastaveni
-        if (!$dny || $jidlo['stav'] == 3) {
-            $t->parse('jidlo.pozastaveno');
+            // hlavička
+            foreach ($dny as $den => $i) {
+                $t->assign('den', mb_ucfirst(self::denNazev($den)));
+                $t->parse('jidlo.den');
+            }
+            // info o pozastaveni
+            if (!$dny || $jidlo['stav'] == 3) {
+                $t->parse('jidlo.pozastaveno');
+            }
+        } else {
+            $t->parse('jidlo.potize');
         }
         $t->assign('pnJidloZmen', self::PN_JIDLO_ZMEN);
         $t->parse('jidlo');
