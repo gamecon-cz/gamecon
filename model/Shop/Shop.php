@@ -335,7 +335,7 @@ SQL
     }
 
     public function objednalNejakeJidlo(): bool {
-        foreach ($this->jidlo['jidloObednano'] as $nejakyTypJidlaJeObjednany) {
+        foreach ($this->jidlo['jidloObednano'] ?? [] as $nejakyTypJidlaJeObjednany) {
             if ($nejakyTypJidlaJeObjednany) {
                 return true;
             }
