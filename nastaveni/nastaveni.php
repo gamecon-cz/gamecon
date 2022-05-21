@@ -240,4 +240,4 @@ define('SUPERADMINI', [1682, 4032]);
 
 @define('ADRESAR_WEBU_S_OBRAZKY', __DIR__ . '/../web');
 
-@define('PRODEJ_JIDLA_POZASTAVEN', true);
+@define('PRODEJ_JIDLA_POZASTAVEN', false);
