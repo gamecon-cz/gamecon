@@ -235,7 +235,7 @@ class Shop
     }
 
     public function objednalNejakeJidlo(): bool {
-        foreach ($this->jidlo['jidloObednano'] as $nejakyTypJidlaJeObjednany) {
+        foreach ($this->jidlo['jidloObednano'] ?? [] as $nejakyTypJidlaJeObjednany) {
             if ($nejakyTypJidlaJeObjednany) {
                 return true;
             }
@@ -438,8 +438,7 @@ class Shop
             foreach ($odstranit as $idPredmetu)
                 dbQuery('DELETE FROM shop_nakupy WHERE id_uzivatele=' . $this->u->id() . ' AND id_predmetu=' . $idPredmetu . ' AND rok=' . ROK . ' LIMIT 1');
             // přidání předmětů, které doposud objednané nemá
-            $q = 'INSERT INTO shop_nakupy(id_uzivatele,id_predmetu,rok,cena_nakupni,datum) VALUES ';
-            $q .= $pridat;
+            $q = 'INSERT INTO shop_nakupy(id_uzivatele,id_predmetu,rok,cena_nakupni,datum) VALUES ' . $pridat;
             if (substr($q, -1) != ' ') //hack testující, jestli se přidala nějaká část
                 dbQuery(substr($q, 0, -1)); //odstranění nadbytečné čárky z poslední přidávané části a spuštění dotazu
         }
