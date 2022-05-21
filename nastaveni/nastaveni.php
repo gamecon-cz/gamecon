@@ -249,4 +249,4 @@ Organizační tým GameConu',
 
 @define('NAZEV_SPOLECNOSTI_GAMECON', 'GameCon z.s.');
 
-@define('PRODEJ_JIDLA_POZASTAVEN', true);
+@define('PRODEJ_JIDLA_POZASTAVEN', false);

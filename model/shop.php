@@ -98,7 +98,7 @@ FROM (
       WHERE stav > $0 OR n.rok = $1
       GROUP BY id_predmetu
 ) AS seskupeno
-ORDER BY typ, ubytovani_den, nazev, model_rok DESC
+ORDER BY typ, ubytovani_den, nazev, model_rok DESC, id_predmetu ASC
 SQL
             , [self::MIMO, ROK, $this->u->id()]);
 
@@ -130,6 +130,7 @@ SQL
                      * Ceny jsme zvýšili až potom, co si někteří účastníci stihli objednat jídlo za nižší cenu.
                      * V takovém případě chceme účastníkovi zobrazovat tu instanci jídla, kterou si už objednal (za nižší cenu).
                      */
+                    $this->jidlo['jidla'][$den][$druh]['stav'] = $r['stav']; // chceme povolit změnu jídla, pokud nová verze (za novou cenu) je prodejná
                     continue;
                 }
                 $r['nabizet'] = $r['nabizet'] || ($r['stav'] == self::POZASTAVENY && $this->nastaveni['jidloBezZamku']);
@@ -217,13 +218,16 @@ SQL
         // vykreslení
         $t = new XTemplate(__DIR__ . '/shop-jidlo.xtpl');
         if (!defined('PRODEJ_JIDLA_POZASTAVEN') || !PRODEJ_JIDLA_POZASTAVEN) {
-            foreach ($druhy as $druh => $i) {
-                foreach ($dny as $den => $i) {
-                    $jidlo = @$jidla[$den][$druh];
+            foreach (array_keys($druhy) as $druh) {
+                foreach (array_keys($dny) as $den) {
+                    $jidlo = $jidla[$den][$druh] ?? null;
                     if ($jidlo && ($jidlo['nabizet'] || $jidlo['kusu_uzivatele'])) {
                         $t->assign('selected', $jidlo['kusu_uzivatele'] > 0 ? 'checked' : '');
                         $t->assign('pnName', self::PN_JIDLO . '[' . $jidlo['id_predmetu'] . ']');
-                        $t->parse($jidlo['stav'] == 3 && !$this->nastaveni['jidloBezZamku'] ? 'jidlo.druh.den.locked' : 'jidlo.druh.den.checkbox');
+                        $t->parse($jidlo['stav'] == self::POZASTAVENY && !$this->nastaveni['jidloBezZamku']
+                            ? 'jidlo.druh.den.locked'
+                            : 'jidlo.druh.den.checkbox'
+                        );
                     }
                     $t->parse('jidlo.druh.den');
                 }
@@ -232,12 +236,12 @@ SQL
                 $t->parse('jidlo.druh');
             }
             // hlavička
-            foreach ($dny as $den => $i) {
+            foreach (array_keys($dny) as $den) {
                 $t->assign('den', mb_ucfirst(self::denNazev($den)));
                 $t->parse('jidlo.den');
             }
             // info o pozastaveni
-            if (!$dny || $jidlo['stav'] == 3) {
+            if (!$dny || $jidlo['stav'] == self::POZASTAVENY) {
                 $t->parse('jidlo.pozastaveno');
             }
         } else {
