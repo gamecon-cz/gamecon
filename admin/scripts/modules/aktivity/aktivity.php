@@ -15,27 +15,41 @@ use Gamecon\Aktivita\TypAktivity;
 
 if (post('smazat')) {
     $a = Aktivita::zId(post('aktivitaId'));
-    $a->smaz();
+    if ($a) {
+        $a->smaz();
+    }
     back();
 }
 
 if (post('publikovat')) {
-    Aktivita::zId(post('aktivitaId'))->publikuj();
+    $a = Aktivita::zId(post('aktivitaId'));
+    if ($a) {
+        $a->publikuj();
+    }
     back();
 }
 
 if (post('pripravit')) {
-    Aktivita::zId(post('aktivitaId'))->priprav();
+    $a = Aktivita::zId(post('aktivitaId'));
+    if ($a) {
+        $a->priprav();
+    }
     back();
 }
 
 if (post('odpripravit')) {
-    Aktivita::zId(post('aktivitaId'))->odpriprav();
+    $a = Aktivita::zId(post('aktivitaId'));
+    if ($a) {
+        $a->odpriprav();
+    }
     back();
 }
 
 if (post('aktivovat')) {
-    Aktivita::zId(post('aktivitaId'))->aktivuj();
+    $a = Aktivita::zId(post('aktivitaId'));
+    if ($a) {
+        $a->aktivuj();
+    }
     back();
 }
 
@@ -45,7 +59,10 @@ if (post('aktivovatVse')) {
 }
 
 if (post('instance')) {
-    Aktivita::zId(post('aktivitaId'))->instancuj();
+    $a = Aktivita::zId(post('aktivitaId'));
+    if ($a) {
+        $a->instancuj();
+    }
     back();
 }
 

@@ -182,14 +182,14 @@ function mezi($od, $do) {
  * OWASP compliance: https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#identifying-source-origin-via-originreferer-header
  */
 function omezCsrf() {
+    if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+        return;
+    }
     $referrerHost = parse_url($_SERVER['HTTP_REFERER'] ?? null, PHP_URL_HOST);
 
-    if (
-        $_SERVER['REQUEST_METHOD'] == 'POST' &&
-        $referrerHost != $_SERVER['HTTP_HOST']
-    ) {
+    if ($referrerHost !== $_SERVER['HTTP_HOST']) {
         // výjimka, aby došlo k zalogování
-        throw new Exception('Referrer POST požadavku neodpovídá doméně.');
+        throw new Exception("Referrer POST '$referrerHost' požadavku neodpovídá doméně '{$_SERVER['HTTP_HOST']}'");
     }
 }
 
