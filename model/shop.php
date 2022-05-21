@@ -497,8 +497,10 @@ SQL
 
     /** Zpracuje formulář s jídlem */
     function zpracujJidlo() {
-        if (!isset($_POST[self::PN_JIDLO_ZMEN])) return;
-        $ma = array_keys(@$this->jidlo['jidloObednano'] ?: []);
+        if (!isset($_POST[self::PN_JIDLO_ZMEN])) {
+            return;
+        }
+        $ma = array_keys($this->jidlo['jidloObednano'] ?? []);
         $chce = array_keys(post(self::PN_JIDLO) ?: []);
         $this->zmenObjednavku($ma, $chce);
     }
