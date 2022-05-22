@@ -2590,7 +2590,20 @@ SQL,
             ) AS tagy
         FROM (
             SELECT t2.*,
-                   CONCAT(',',GROUP_CONCAT(p.id_uzivatele,u.pohlavi,p.id_stavu_prihlaseni ORDER BY posledni_zmeny.cas_posledni_zmeny ASC),',') AS prihlaseni,
+                   CONCAT(
+                        ',',
+                        GROUP_CONCAT(
+                            p.id_uzivatele,
+                            u.pohlavi,
+                            p.id_stavu_prihlaseni ORDER BY (
+                                SELECT MAX(kdy)
+                                FROM akce_prihlaseni_log
+                                WHERE akce_prihlaseni_log.id_akce = p.id_akce AND id_uzivatele = p.id_uzivatele
+                                GROUP BY akce_prihlaseni_log.id_uzivatele, akce_prihlaseni_log.id_akce
+                            ) ASC
+                        ),
+                    ','
+                   ) AS prihlaseni,
                    IF(t2.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = t2.patri_pod), t2.url_akce) AS url_temp
             FROM (
                 SELECT a.*, al.poradi, IF(akce_typy.poradi > 0, akce_typy.poradi, 1000 + ABS(akce_typy.poradi)) AS poradi_typu
@@ -2600,8 +2613,6 @@ SQL,
                 $where
             ) AS t2
             LEFT JOIN akce_prihlaseni p ON (p.id_akce = t2.id_akce)
-            LEFT JOIN (SELECT MAX(kdy) AS cas_posledni_zmeny, id_uzivatele, id_akce FROM akce_prihlaseni_log GROUP BY id_uzivatele, id_akce) AS posledni_zmeny
-                 ON posledni_zmeny.id_akce = p.id_akce AND posledni_zmeny.id_uzivatele = p.id_uzivatele
             LEFT JOIN uzivatele_hodnoty u ON (u.id_uzivatele = p.id_uzivatele)
             GROUP BY t2.id_akce
       ) AS t3
