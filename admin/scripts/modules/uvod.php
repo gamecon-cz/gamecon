@@ -63,10 +63,10 @@ if (!empty($_POST['rychloreg'])) {
     }
     if ($nid) {
         if ($uPracovni) {
-            Uzivatel::odhlasKlic('uzivatel_pracovni');
+            Uzivatel::odhlasKlic(Uzivatel::UZIVATEL_PRACOVNI);
         }
         $_SESSION["id_uzivatele"] = $nid;
-        $uPracovni = Uzivatel::prihlasId($nid, 'uzivatel_pracovni');
+        $uPracovni = Uzivatel::prihlasId($nid, Uzivatel::UZIVATEL_PRACOVNI);
         if (!empty($_POST['vcetnePrihlaseni'])) {
             $uPracovni->gcPrihlas();
         }
@@ -269,7 +269,7 @@ if ($uPracovni) {
         }
     }
 
-    if ($u && $u->isSuperAdmin()) {
+    if ($u && $u->jeSuperAdmin()) {
         $x->parse('uvod.uzivatel.idFioPohybu');
     }
 

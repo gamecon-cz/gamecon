@@ -268,4 +268,17 @@ SQL;
     private static function zakrouhli(float $cislo): int {
         return (int)round($cislo, 0);
     }
+
+    public static function zacatekNejblizsiVlnyOdhlasovani(\DateTimeInterface $kDatu = null): ?\DateTimeImmutable {
+        $kDatu = $kDatu ?? new \DateTimeImmutable();
+        $prvniHromadneOdhlasovani = new \DateTimeImmutable(HROMADNE_ODHLASOVANI);
+        if ($prvniHromadneOdhlasovani > $kDatu) { // teprve bude
+            return $prvniHromadneOdhlasovani;
+        }
+        $druheHromadneOdhlasovani = new \DateTimeImmutable(HROMADNE_ODHLASOVANI_2);
+        if ($druheHromadneOdhlasovani > $kDatu) { // teprve bude
+            return $druheHromadneOdhlasovani;
+        }
+        return null;
+    }
 }

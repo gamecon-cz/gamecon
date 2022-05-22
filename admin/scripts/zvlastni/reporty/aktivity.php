@@ -57,8 +57,8 @@ SQL
 $p = [];
 while ($r = mysqli_fetch_assoc($o)) {
     $a = Aktivita::zId($r['id_akce']);
-    $bonusZaAktivitu = Finance::bonusZaAktivitu($a);
-    $organizatoriSBonusemZaAktivitu = Finance::nechOrganizatorySBonusemZaVedeniAktivit($a->organizatori());
+    $bonusZaAktivitu = \Gamecon\Uzivatel\Finance::bonusZaAktivitu($a);
+    $organizatoriSBonusemZaAktivitu = \Gamecon\Uzivatel\Finance::nechOrganizatorySBonusemZaVedeniAktivit($a->organizatori());
     $r['suma_priznanych_bonusu_vypravecum'] = $a
         ? $bonusZaAktivitu * count($organizatoriSBonusemZaAktivitu)
         : 0;

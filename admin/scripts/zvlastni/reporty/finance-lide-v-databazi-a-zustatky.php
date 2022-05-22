@@ -4,14 +4,14 @@ require __DIR__ . '/sdilene-hlavicky.php';
 $report = Report::zSql(<<<SQL
 SELECT
   uzivatele_hodnoty.id_uzivatele,
-  jmeno_uzivatele,
-  prijmeni_uzivatele,
-  mesto_uzivatele,
-  ulice_a_cp_uzivatele,
-  psc_uzivatele,
-  email1_uzivatele,
-  telefon_uzivatele,
-  zustatek,
+  uzivatele_hodnoty.jmeno_uzivatele,
+  uzivatele_hodnoty.prijmeni_uzivatele,
+  uzivatele_hodnoty.mesto_uzivatele,
+  uzivatele_hodnoty.ulice_a_cp_uzivatele,
+  uzivatele_hodnoty.psc_uzivatele,
+  uzivatele_hodnoty.email1_uzivatele,
+  uzivatele_hodnoty.telefon_uzivatele,
+  uzivatele_hodnoty.zustatek,
   ucast.roky AS účast,
   pohyb.datum AS "poslední kladný pohyb na účtu"
 FROM uzivatele_hodnoty

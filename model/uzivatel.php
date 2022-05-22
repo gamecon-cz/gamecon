@@ -12,6 +12,9 @@ use Gamecon\Aktivita\Aktivita;
 class Uzivatel
 {
 
+    public const UZIVATEL_PRACOVNI = 'uzivatel_pracovni';
+    public const UZIVATEL = 'uzivatel';
+
     /**
      * @return Uzivatel[]
      */
@@ -46,6 +49,8 @@ SQL
     protected $idZidli;         // pole s klíči id židlí uživatele
     protected $finance;
     protected $shop;
+
+    private $kdySeRegistrovalNaLetosniGc;
 
     public const FAKE = 0x01;  // modifikátor "fake uživatel"
     public const SYSTEM = 1;   // id uživatele reprezentujícího systém (např. "operaci provedl systém")
@@ -195,12 +200,12 @@ SQL
     }
 
     /**
-     * @return Finance finance daného uživatele
+     * @return \Gamecon\Uzivatel\Finance finance daného uživatele
      */
-    public function finance(): Finance {
+    public function finance(): \Gamecon\Uzivatel\Finance {
         //pokud chceme finance poprvé, spočteme je a uložíme
         if (!$this->finance) {
-            $this->finance = new Finance($this, $this->u['zustatek']);
+            $this->finance = new \Gamecon\Uzivatel\Finance($this, $this->u['zustatek']);
         }
         return $this->finance;
     }
@@ -447,6 +452,14 @@ SQL,
         return in_array($pravo, $this->u['prava']);
     }
 
+    /**
+     * Což taky znamená "Právo na placení až na místě"
+     * @return bool
+     */
+    public function maPravoNerusitObjednavky(): bool {
+        return $this->maPravo(P_NERUSIT_OBJEDNAVKY);
+    }
+
     public function nemaPravoNaBonusZaVedeniAktivit(): bool {
         return $this->maPravo(P_NEMA_BONUS_ZA_AKTIVITY);
     }
@@ -666,7 +679,7 @@ SQL,
         $klic = $this->klic;
         // máme obnovit starou proměnnou pro id uživatele (otáčíme aktuálně přihlášeného uživatele)?
         $sesssionObnovit = (isset($_SESSION['id_uzivatele']) && $_SESSION['id_uzivatele'] == $this->id());
-        if ($klic === 'uzivatel') { // pokud je klíč default, zničíme celou session
+        if ($klic === self::UZIVATEL) { // pokud je klíč default, zničíme celou session
             $this->odhlasProTed(); // ponech případnou cookie pro trvalé přihášení
         } else { // pokud je speciální, pouze přemažeme položku v session
             self::odhlasKlic($klic);
@@ -728,7 +741,7 @@ SQL,
      * @param string $heslo heslo uživatele
      * @return mixed objekt s uživatelem nebo null
      */
-    public static function prihlas($login, $heslo, $klic = 'uzivatel') {
+    public static function prihlas($login, $heslo, $klic = self::UZIVATEL) {
         if (!$login || !$heslo) {
             return null;
         }
@@ -784,7 +797,7 @@ SQL,
      * Vytvoří v session na indexu $klic dalšího uživatele pro práci
      * @return null|Uzivatel nebo null
      */
-    public static function prihlasId($idUzivatele, $klic = 'uzivatel'): ?Uzivatel {
+    public static function prihlasId($idUzivatele, $klic = self::UZIVATEL): ?Uzivatel {
         $idUzivatele = (int)$idUzivatele;
         $uzivatelData = dbOneLine('SELECT * FROM uzivatele_hodnoty WHERE id_uzivatele=$0', [$idUzivatele]);
         if (!$uzivatelData) {
@@ -810,7 +823,7 @@ SQL,
     }
 
     /** Alias prihlas() pro trvalé přihlášení */
-    public static function prihlasTrvale($login, $heslo, $klic = 'uzivatel') {
+    public static function prihlasTrvale($login, $heslo, $klic = self::UZIVATEL) {
         $u = Uzivatel::prihlas($login, $heslo, $klic);
         $rand = randHex(20);
         if ($u) {
@@ -1288,8 +1301,9 @@ SQL,
 
     /**
      * Vrátí pole uživatelů přihlášených na letošní GC
+     * @return Uzivatel[]
      */
-    static function zPrihlasenych() {
+    public static function zPrihlasenych() {
         return self::zWhere('
       WHERE u.id_uzivatele IN(
         SELECT id_uzivatele
@@ -1306,7 +1320,7 @@ SQL,
      * @return Uzivatel|null objekt uživatele nebo null
      * @todo nenačítat znovu jednou načteného, cacheovat
      */
-    public static function zSession($klic = 'uzivatel') {
+    public static function zSession($klic = self::UZIVATEL) {
         if (!session_id()) {
             if (headers_sent($file, $line)) {
                 throw new \RuntimeException("Headers have been already sent in file '$file' on line $line, can not start session");
@@ -1318,7 +1332,7 @@ SQL,
             $u->klic = $klic;
             return $u;
         }
-        if (isset($_COOKIE['gcTrvalePrihlaseni']) && $klic === 'uzivatel') {
+        if (isset($_COOKIE['gcTrvalePrihlaseni']) && $klic === self::UZIVATEL) {
             $id = dbOneCol(
                 "SELECT id_uzivatele FROM uzivatele_hodnoty WHERE random!='' AND random=$0",
                 [$_COOKIE['gcTrvalePrihlaseni']]
@@ -1445,7 +1459,10 @@ SQL,
         return $uzivatele;
     }
 
-    public function isSuperAdmin(): bool {
+    public function jeSuperAdmin(): bool {
+        if (!defined('SUPERADMINI') || !is_array(SUPERADMINI)) {
+            return false;
+        }
         return in_array($this->id(), SUPERADMINI, false);
     }
 
@@ -1604,6 +1621,23 @@ SQL,
             return $this->mojeAktivityAdminUrl($zakladniAdminUrl);
         }
         return $zakladniAdminUrl;
+    }
+
+    public function kdySePrihlasilNaLetosniGc(): ?DateTimeImmutable {
+        if (!$this->gcPrihlasen()) {
+            return null;
+        }
+        if (!$this->kdySeRegistrovalNaLetosniGc) {
+            $hodnota = dbOneCol(<<<SQL
+SELECT posazen FROM r_uzivatele_zidle WHERE id_uzivatele = $0 AND id_zidle = $1
+SQL,
+                [$this->id(), ID_PRAVO_PRIHLASEN]
+            );
+            $this->kdySeRegistrovalNaLetosniGc = $hodnota
+                ? new DateTimeImmutable($hodnota)
+                : null;
+        }
+        return $this->kdySeRegistrovalNaLetosniGc;
     }
 
     /**

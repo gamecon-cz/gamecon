@@ -1,9 +1,10 @@
 <?php
 
-use \Endroid\QrCode\Writer\Result\ResultInterface;
+namespace Gamecon\Uzivatel;
 
-use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\TypAktivity;
+use \Endroid\QrCode\Writer\Result\ResultInterface;
+use Gamecon\Aktivita\Aktivita;
 
 /**
  * Třída zodpovídající za spočítání finanční bilance uživatele na GC.
@@ -11,8 +12,9 @@ use Gamecon\Aktivita\TypAktivity;
 class Finance
 {
 
+    /** @var \Uzivatel */
+    private $u; // uživatel, jehož finance se počítají
     private
-        $u,       // uživatel, jehož finance se počítají
         $stav = 0,  // celkový výsledný stav uživatele na účtu
         $deltaPozde = 0,      // o kolik se zvýší platba při zaplacení pozdě
         $scnA,              // součinitel ceny aktivit
@@ -36,8 +38,10 @@ class Finance
         $zbyvajiciObecnaSleva = 0.0,
         $vyuzitaSlevaObecna = 0.0,
         $zustatekZPredchozichRocniku = 0,    // zůstatek z minula
-        $platby = 0.0,  // platby připsané na účet
-        $posledniPlatba;        // datum poslední připsané platby
+        $sumyPlatebVRocich = [],  // platby připsané na účet v jednotlivých letech (zatím jen letos, protože máme obskurnost jménem "Uzavření ročníku")
+        $datumPosledniPlatby;        // datum poslední připsané platby
+
+    private $kategorieNeplatice;
 
     private static
         $maxSlevaAktivit = 100, // v procentech
@@ -67,21 +71,20 @@ class Finance
         VYSLEDNY = 17;
 
     /**
-     * @param Uzivatel $u uživatel, pro kterého se finance sestavují
+     * @param \Uzivatel $u uživatel, pro kterého se finance sestavují
      * @param float $zustatek zůstatek na účtu z minulých GC
      */
-    function __construct(Uzivatel $u, float $zustatek) {
+    function __construct(\Uzivatel $u, float $zustatek) {
         $this->u = $u;
         $this->zustatekZPredchozichRocniku = $zustatek;
 
         $this->zapoctiVedeniAktivit();
         $this->zapoctiSlevy();
 
-        $this->cenik = new Cenik($u, $this->bonusZaVedeniAktivit); // musí být načteno, i pokud není přihlášen na GC
+        $this->cenik = new \Cenik($u, $this->bonusZaVedeniAktivit); // musí být načteno, i pokud není přihlášen na GC
 
         $this->zapoctiAktivity();
         $this->zapoctiShop();
-        $this->zapoctiPlatby();
         $this->zapoctiZustatekZPredchozichRocniku();
 
         $cena =
@@ -100,13 +103,13 @@ class Finance
 
         $this->stav = round(
             -$cena
-            + $this->platby
+            + $this->dejSumuPlateb()
             + $this->zustatekZPredchozichRocniku, 2);
 
         $this->logb('Aktivity', $this->cenaAktivity, self::AKTIVITA);
         $this->logb('Ubytování', $this->cenaUbytovani, self::UBYTOVANI);
         $this->logb('Předměty a strava', $this->cenaPredmety, self::PREDMETY_STRAVA);
-        $this->logb('Připsané platby', $this->platby + $this->zustatekZPredchozichRocniku, self::PLATBY_NADPIS);
+        $this->logb('Připsané platby', $this->dejSumuPlateb() + $this->zustatekZPredchozichRocniku, self::PLATBY_NADPIS);
         $this->logb('Stav financí', $this->stav(), self::VYSLEDNY);
     }
 
@@ -168,26 +171,21 @@ class Finance
         $this->log("<b>$nazev</b>", "<b>$castka</b>", $kategorie);
     }
 
-    /** Vrátí sumu plateb (připsaných peněz) */
-    function platby() {
-        return $this->platby;
-    }
-
     /**
      * Vrátí / nastaví datum posledního provedení platby
      *
-     * @return string datum poslední platby
+     * @return string|null datum poslední platby
      */
-    function posledniPlatba() {
-        if (!isset($this->posledniPlatba)) {
+    function datumPosledniPlatby() {
+        if (!isset($this->datumPosledniPlatby)) {
             $uid = $this->u->id();
-            $this->posledniPlatba = dbOneCol("
+            $this->datumPosledniPlatby = dbOneCol("
         SELECT max(provedeno) as datum
         FROM platby
         WHERE castka > 0 AND id_uzivatele = $1", [$uid]
             );
         }
-        return $this->posledniPlatba;
+        return $this->datumPosledniPlatby;
     }
 
     /**
@@ -220,12 +218,12 @@ class Finance
     /**
      * Připíše aktuálnímu uživateli platbu ve výši $castka.
      * @param float $castka
-     * @param Uzivatel $provedl
+     * @param \Uzivatel $provedl
      * @param string|null $poznamka
      * @param string|int|null $idFioPlatby
-     * @throws DbDuplicateEntryException
+     * @throws \DbDuplicateEntryException
      */
-    function pripis($castka, Uzivatel $provedl, $poznamka = null, $idFioPlatby = null) {
+    function pripis($castka, \Uzivatel $provedl, $poznamka = null, $idFioPlatby = null) {
         dbInsert(
             'platby',
             [
@@ -243,9 +241,9 @@ class Finance
      * Připíše aktuálnímu uživateli $u slevu ve výši $sleva
      * @param float $sleva
      * @param string|null $poznamka
-     * @param Uzivatel $provedl
+     * @param \Uzivatel $provedl
      */
-    function pripisSlevu($sleva, $poznamka, Uzivatel $provedl) {
+    function pripisSlevu($sleva, $poznamka, \Uzivatel $provedl) {
         dbQuery(
             'INSERT INTO slevy(id_uzivatele, castka, rok, provedl, poznamka) VALUES ($1, $2, $3, $4, $5)',
             [$this->u->id(), $sleva, ROK, $provedl->id(), $poznamka ?: null]
@@ -300,11 +298,11 @@ class Finance
     }
 
     /**
-     * @param array|Uzivatel[] $organizatori
-     * @return array|Uzivatel[]
+     * @param array|\Uzivatel[] $organizatori
+     * @return array|\Uzivatel[]
      */
     public static function nechOrganizatorySBonusemZaVedeniAktivit(array $organizatori): array {
-        return array_filter($organizatori, static function (Uzivatel $organizator) {
+        return array_filter($organizatori, static function (\Uzivatel $organizator) {
             return $organizator->maPravoNaPoradaniAktivit()
                 && $organizator->maPravoNaBonusZaVedeniAktivit();
         });
@@ -435,28 +433,27 @@ class Finance
         }
     }
 
-    /**
-     * Započítá do mezisoučtů platby na účet
-     * @todo odstranit zbytečnosti
-     */
-    private function zapoctiPlatby() {
-        $rok = ROK;
-        $uid = $this->u->id();
-        $o = dbQuery("
-      SELECT
-        IF(provedl=1,
-          CONCAT(DATE_FORMAT(provedeno,'%e.%c.'),' Platba na účet'),
-          CONCAT(DATE_FORMAT(provedeno,'%e.%c.'),' ',IFNULL(poznamka,'(bez poznámky)'))
-          ) as nazev,
-        castka as cena
-      FROM platby
-      WHERE id_uzivatele = $uid AND rok = $rok
-    ");
-        while ($r = mysqli_fetch_assoc($o)) {
-            $this->platby += $r['cena'];
-            $this->log($r['nazev'], $r['cena'], self::PLATBA);
+    public function dejSumuPlateb(int $rok = ROK): float {
+        if (!isset($this->sumyPlatebVRocich[$rok])) {
+            $result = dbQuery(<<<SQL
+SELECT
+    IF(provedl=1,
+      CONCAT(DATE_FORMAT(provedeno,'%e.%c.'),' Platba na účet'),
+      CONCAT(DATE_FORMAT(provedeno,'%e.%c.'),' ',IFNULL(poznamka,'(bez poznámky)'))
+      ) as nazev,
+    castka as cena
+FROM platby
+WHERE id_uzivatele = $1 AND rok = $2
+SQL
+                , [$this->u->id(), $rok]);
+            $sumaPlateb = 0.0;
+            while ($row = mysqli_fetch_assoc($result)) {
+                $sumaPlateb += (float)$row['cena'];
+                $this->log($row['nazev'], $row['cena'], self::PLATBA);
+            }
+            $this->sumyPlatebVRocich[$rok] = round($sumaPlateb, 2);
         }
-        $this->platby = round($this->platby, 2);
+        return $this->sumyPlatebVRocich[$rok];
     }
 
     /**
@@ -475,9 +472,9 @@ class Finance
         foreach ($o as $r) {
             $cena = $this->cenik->shop($r);
             // započtení ceny
-            if ($r['typ'] == Shop::UBYTOVANI) {
+            if ($r['typ'] == \Shop::UBYTOVANI) {
                 $this->cenaUbytovani += $cena;
-            } elseif ($r['typ'] == Shop::VSTUPNE) {
+            } elseif ($r['typ'] == \Shop::VSTUPNE) {
                 if (strpos($r['nazev'], 'pozdě') === false) {
                     $this->cenaVstupne = $cena;
                 } else {
@@ -491,14 +488,14 @@ class Finance
                 $r['nazev'] = $r['nazev'] . ' ' . $r['model_rok'];
             }
             // logování do výpisu
-            if ($r['typ'] == Shop::PREDMET) {
+            if ($r['typ'] == \Shop::PREDMET) {
                 $soucty[$r['id_predmetu']]['nazev'] = $r['nazev'];
                 $soucty[$r['id_predmetu']]['typ'] = $r['typ'];
                 @$soucty[$r['id_predmetu']]['pocet']++;
                 @$soucty[$r['id_predmetu']]['suma'] += $cena;
-            } elseif ($r['typ'] == Shop::VSTUPNE) {
+            } elseif ($r['typ'] == \Shop::VSTUPNE) {
                 $this->logb($r['nazev'], $cena, self::VSTUPNE);
-            } elseif ($r['typ'] == Shop::PROPLACENI_BONUSU) {
+            } elseif ($r['typ'] == \Shop::PROPLACENI_BONUSU) {
                 $this->proplacenyBonusZaVedeniAktivit += $cena;
             } else {
                 $this->log($r['nazev'], $cena, $r['typ']);
@@ -557,7 +554,7 @@ class Finance
 
     private function aplikujBonusZaVedeniAktivit(float $cena): float {
         $bonusZaVedeniAktivit = $this->bonusZaVedeniAktivit;
-        ['cena' => $cena, 'sleva' => $this->nevyuzityBonusZaVedeniAktivit] = Cenik::aplikujSlevu($cena, $bonusZaVedeniAktivit);
+        ['cena' => $cena, 'sleva' => $this->nevyuzityBonusZaVedeniAktivit] = \Cenik::aplikujSlevu($cena, $bonusZaVedeniAktivit);
         $this->vyuzityBonusZaVedenAktivit = $this->bonusZaVedeniAktivit - $this->nevyuzityBonusZaVedeniAktivit;
         if ($this->bonusZaVedeniAktivit) {
             $this->log(
@@ -582,7 +579,7 @@ class Finance
 
     private function aplikujSlevy(float $cena) {
         $slevaObecna = $this->slevaObecna;
-        ['cena' => $cena, 'sleva' => $this->zbyvajiciObecnaSleva] = Cenik::aplikujSlevu($cena, $slevaObecna);
+        ['cena' => $cena, 'sleva' => $this->zbyvajiciObecnaSleva] = \Cenik::aplikujSlevu($cena, $slevaObecna);
         $this->vyuzitaSlevaObecna = $this->slevaObecna - $this->zbyvajiciObecnaSleva;
         if ($this->slevaObecna) {
             $this->log(
@@ -625,4 +622,11 @@ class Finance
         return $qrPlatba->dejQrObrazek();
     }
 
+
+    public function kategorieNeplatice(): KategorieNeplatice {
+        if (!$this->kategorieNeplatice) {
+            $this->kategorieNeplatice = KategorieNeplatice::vytvorProNadchazejiciVlnuZGlobals($this->u);
+        }
+        return $this->kategorieNeplatice;
+    }
 }

@@ -183,7 +183,7 @@ SQL
                     $this->vstupnePozde = $r;
                 }
             } else {
-                throw new Exception('Objevil se nepodporovaný typ předmětu s č.' . $r['typ']);
+                throw new Exception('Objevil se nepodporovaný typ předmětu s č.' . var_export($r['typ'], true));
             }
             // vybrané předměty nastavit jako automaticky objednané
             if ($r['nabizet'] && $r['auto'] && $this->prvniNakup()) {
@@ -241,8 +241,8 @@ SQL
                 $t->parse('jidlo.den');
             }
             // info o pozastaveni
-            if (!$dny || $jidlo['stav'] == self::POZASTAVENY) {
-                $t->parse('jidlo.pozastaveno');
+            if (!$dny || $this->jsouVsechnaJidlaPozastavena((array)$jidla)) {
+                $t->parse('jidlo.objednavkyZmrazeny');
             }
         } else {
             $t->parse('jidlo.potize');
@@ -250,6 +250,17 @@ SQL
         $t->assign('pnJidloZmen', self::PN_JIDLO_ZMEN);
         $t->parse('jidlo');
         return $t->text('jidlo');
+    }
+
+    private function jsouVsechnaJidlaPozastavena(array $jidla): bool {
+        foreach ($jidla as $jidlaVJednomDni) {
+            foreach ($jidlaVJednomDni as $jidlo) {
+                if ($jidlo['stav'] != self::POZASTAVENY) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     public function koupilNejakyPredmet(): bool {

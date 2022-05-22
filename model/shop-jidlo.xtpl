@@ -3,9 +3,9 @@
 <p>Objednávky jídla jsou dočasně pozastavené z důvodu vyjednávání o ceně s dodavatelem. O obnovení prodeje budeme
   informovat na sociálních sítích, za komplikace se omlouváme.</p>
 <!-- end:potize -->
-<!-- begin:pozastaveno -->
+<!-- begin:objednavkyZmrazeny -->
 <p>Objednat nebo změnit objednávky jídla již není možné.</p>
-<!-- end:pozastaveno -->
+<!-- end:objednavkyZmrazeny -->
 <table class="shopJidlo_tabulka">
   <tr>
     <td></td>
