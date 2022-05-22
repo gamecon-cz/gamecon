@@ -108,8 +108,8 @@
     </tr>
     <tr>
       <td>Poslední Platba</td>
-      <td>{ua.finance.posledniPlatba}</td>
-      <td>{ub.finance.posledniPlatba}</td>
+      <td>{ua.finance.datumPosledniPlatby}</td>
+      <td>{ub.finance.datumPosledniPlatby}</td>
     </tr>
     <!-- TODO později
     <tr>
