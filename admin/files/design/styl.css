@@ -852,3 +852,7 @@ button .ajax-loader {
 .display-none {
   display: none;
 }
+
+label {
+  cursor: pointer;
+}
