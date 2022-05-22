@@ -49,6 +49,8 @@ SQL
     protected $finance;
     protected $shop;
 
+    private $kdySeRegistrovalNaLetosniGc;
+
     public const FAKE = 0x01;  // modifikátor "fake uživatel"
     public const SYSTEM = 1;   // id uživatele reprezentujícího systém (např. "operaci provedl systém")
 
@@ -200,12 +202,12 @@ SQL
     }
 
     /**
-     * @return Finance finance daného uživatele
+     * @return \Gamecon\Uzivatel\Finance finance daného uživatele
      */
-    public function finance(): Finance {
+    public function finance(): \Gamecon\Uzivatel\Finance {
         //pokud chceme finance poprvé, spočteme je a uložíme
         if (!$this->finance) {
-            $this->finance = new Finance($this, $this->u['zustatek']);
+            $this->finance = new \Gamecon\Uzivatel\Finance($this, $this->u['zustatek']);
         }
         return $this->finance;
     }
@@ -406,6 +408,10 @@ SQL
             $this->nactiPrava();
         }
         return in_array($pravo, $this->u['prava']);
+    }
+
+    public function maPravoPlatitAzNaMiste(): bool {
+        return $this->maPravo(P_NERUSIT_OBJEDNAVKY);
     }
 
     public function nemaPravoNaBonusZaVedeniAktivit(): bool {
@@ -1501,6 +1507,23 @@ SQL,
             return $zakladniAdminUrl . '/' . basename(__DIR__ . '/../admin/scripts/modules/muj-prehled.php', '.php');
         }
         return $zakladniAdminUrl;
+    }
+
+    public function kdySePrihlasilNaLetosniGc(): ?DateTimeImmutable {
+        if (!$this->gcPrihlasen()) {
+            return null;
+        }
+        if (!$this->kdySeRegistrovalNaLetosniGc) {
+            $hodnota = dbOneCol(<<<SQL
+SELECT posazen FROM r_uzivatele_zidle WHERE id_uzivatele = $0 AND id_zidle = $1
+SQL,
+                [$this->id(), ID_PRAVO_PRIHLASEN]
+            );
+            $this->kdySeRegistrovalNaLetosniGc = $hodnota
+                ? new DateTimeImmutable($hodnota)
+                : null;
+        }
+        return $this->kdySeRegistrovalNaLetosniGc;
     }
 }
 
