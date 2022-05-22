@@ -17,6 +17,9 @@ class DateTimeCz extends \DateTime
 
     public const FORMAT_DB = 'Y-m-d H:i:s';
     public const FORMAT_DATUM_DB = 'Y-m-d';
+    public const FORMAT_DATUM_STANDARD = 'j. n. Y';
+    public const FORMAT_DATUM_A_CAS_STANDARD = 'j. n. Y H:i:s';
+    public const FORMAT_CAS_NA_MINUTY_STANDARD = 'j. n. Y H:i';
     public const FORMAT_CAS_SOUBOR = 'Y-m-d_H-i-s';
 
     protected static $dny = [
@@ -110,7 +113,7 @@ class DateTimeCz extends \DateTime
      * @return string
      */
     function formatDatumStandard() {
-        return parent::format('j. n. Y');
+        return parent::format(self::FORMAT_DATUM_STANDARD);
     }
 
     /**
@@ -119,7 +122,7 @@ class DateTimeCz extends \DateTime
      * @return string
      */
     function formatCasNaMinutyStandard() {
-        return parent::format('j. n. Y H:i');
+        return parent::format(self::FORMAT_CAS_NA_MINUTY_STANDARD);
     }
 
     /**
@@ -128,7 +131,7 @@ class DateTimeCz extends \DateTime
      * @return string
      */
     function formatCasStandard() {
-        return parent::format('j. n. Y H:i:s');
+        return parent::format(self::FORMAT_DATUM_A_CAS_STANDARD);
     }
 
     public function formatCasSoubor(): string {

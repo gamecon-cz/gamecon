@@ -418,7 +418,11 @@ SQL
         return in_array($pravo, $this->prava());
     }
 
-    public function maPravoPlatitAzNaMiste(): bool {
+    /**
+     * Což taky znamená "Právo na placení až na místě"
+     * @return bool
+     */
+    public function maPravoNerusitObjednavky(): bool {
         return $this->maPravo(P_NERUSIT_OBJEDNAVKY);
     }
 
@@ -1268,8 +1272,9 @@ SQL,
 
     /**
      * Vrátí pole uživatelů přihlášených na letošní GC
+     * @return Uzivatel[]
      */
-    static function zPrihlasenych() {
+    public static function zPrihlasenych() {
         return self::zWhere('
       WHERE u.id_uzivatele IN(
         SELECT id_uzivatele
