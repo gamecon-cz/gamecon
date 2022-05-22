@@ -93,22 +93,25 @@ class KategorieNeplatice
         ) {
             return null;
         }
+        $stavFinanci = $this->finance->stav();
         if ($this->maPravoPlatitAzNaMiste) {
-            return self::MA_PRAVO_PLATIT_AZ_NA_MISTE;
+            return $stavFinanci < 0
+                ? self::MA_PRAVO_PLATIT_AZ_NA_MISTE
+                : null;
         }
-        $stavPlatebZaRok = $this->finance->dejSumuPlateb($this->rok);
+        $sumaPlateb = $this->finance->sumaPlateb($this->rok);
         if (!$this->prihlasilSeParDniPredVlnouOdhlasovani()) {
-            if ($stavPlatebZaRok <= 0.0) {
+            if ($sumaPlateb <= 0.0) {
                 return self::LETOS_NEZAPLATIL_VUBEC_NIC;
             }
-            if ($stavPlatebZaRok < $this->castkaPoslalDost) {
-                return $this->finance->stav() /* ještě zápornější než velký dluh */ <= $this->castkaVelkyDluh
+            if ($sumaPlateb < $this->castkaPoslalDost) {
+                return $stavFinanci /* ještě zápornější než velký dluh */ <= $this->castkaVelkyDluh
                     // poslal málo na to, abychom mu ignorovali dluh a ještě k tomu má dluh velký
                     ? self::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH
                     : self::LETOS_POSLAL_MALO_A_MA_MALY_DLUH;
             }
         }
-        if ($stavPlatebZaRok >= $this->castkaPoslalDost) {
+        if ($sumaPlateb >= $this->castkaPoslalDost) {
             return self::LETOS_POSLAL_DOST_A_JE_TAK_CHRANENY;
         }
         return $this->prihlasilSeParDniPredVlnouOdhlasovani()
