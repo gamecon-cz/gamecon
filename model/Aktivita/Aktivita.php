@@ -2590,7 +2590,20 @@ SELECT t3.*,
     ) AS tagy
     FROM
     (SELECT t2.*,
-            CONCAT(',',GROUP_CONCAT(p.id_uzivatele,u.pohlavi,p.id_stavu_prihlaseni ORDER BY posledni_zmeny.cas_posledni_zmeny ASC),',') AS prihlaseni,
+           CONCAT(
+                ',',
+                GROUP_CONCAT(
+                    p.id_uzivatele,
+                    u.pohlavi,
+                    p.id_stavu_prihlaseni ORDER BY (
+                        SELECT MAX(kdy)
+                        FROM akce_prihlaseni_log
+                        WHERE akce_prihlaseni_log.id_akce = p.id_akce AND id_uzivatele = p.id_uzivatele
+                        GROUP BY akce_prihlaseni_log.id_uzivatele, akce_prihlaseni_log.id_akce
+                    ) ASC
+                ),
+            ','
+           ) AS prihlaseni,
             IF(t2.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = t2.patri_pod), t2.url_akce) AS url_temp
         FROM (
             SELECT a.*, al.poradi
