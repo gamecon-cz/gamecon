@@ -25,7 +25,7 @@ if (!defined('ROK')) define('ROK', 2022); // aktuální rok -- při změně roku
 $nastaveni = new SystemoveNastaveni(ROK);
 $nastaveni->zaznamyDoKonstant();
 
-if (defined('BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU')) { // není ještě načtena před SQL migracemi
+if (defined('BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU')) { // nemusí být ještě načtena před SQL migracemi
     // OSTATNÍ FINANČNÍ NASTAVENÍ
     @define('MODRE_TRICKO_ZDARMA_OD', 3 * BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU); // hodnota slevy od které má subjekt nárok na modré tričko
 

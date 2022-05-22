@@ -32,6 +32,11 @@ if (post('vybratUzivateleProPraci')) {
     back();
 }
 
+if (get('pracovni_uzivatel')) {
+    $u = Uzivatel::prihlasId(get('pracovni_uzivatel'), Uzivatel::UZIVATEL_PRACOVNI);
+    back(URL_ADMIN . '/uvod');
+}
+
 $uPracovni = Uzivatel::zSession(Uzivatel::UZIVATEL_PRACOVNI);
 if (post('zrusitUzivateleProPraci')) {
     Uzivatel::odhlasKlic(Uzivatel::UZIVATEL_PRACOVNI);
