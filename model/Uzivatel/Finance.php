@@ -36,7 +36,7 @@ class Finance
         $zbyvajiciObecnaSleva = 0.0,
         $vyuzitaSlevaObecna = 0.0,
         $zustatekZPredchozichRocniku = 0,    // zůstatek z minula
-        $platby = 0.0,  // platby připsané na účet
+        $sumyPlatebVRocich = [],  // platby připsané na účet v jednotlivých letech (zatím jen letos, protože máme obskurnost jménem "Uzavření ročníku")
         $datumPosledniPlatby;        // datum poslední připsané platby
 
     private $kategorieNeplatice;
@@ -83,7 +83,6 @@ class Finance
 
         $this->zapoctiAktivity();
         $this->zapoctiShop();
-        $this->zapoctiPlatby();
         $this->zapoctiZustatekZPredchozichRocniku();
 
         $cena =
@@ -102,13 +101,13 @@ class Finance
 
         $this->stav = round(
             -$cena
-            + $this->platby
+            + $this->dejSumuPlateb()
             + $this->zustatekZPredchozichRocniku, 2);
 
         $this->logb('Aktivity', $this->cenaAktivity, self::AKTIVITA);
         $this->logb('Ubytování', $this->cenaUbytovani, self::UBYTOVANI);
         $this->logb('Předměty a strava', $this->cenaPredmety, self::PREDMETY_STRAVA);
-        $this->logb('Připsané platby', $this->platby + $this->zustatekZPredchozichRocniku, self::PLATBY_NADPIS);
+        $this->logb('Připsané platby', $this->dejSumuPlateb() + $this->zustatekZPredchozichRocniku, self::PLATBY_NADPIS);
         $this->logb('Stav financí', $this->stav(), self::VYSLEDNY);
     }
 
@@ -168,11 +167,6 @@ class Finance
      */
     private function logb($nazev, $castka, $kategorie = null) {
         $this->log("<b>$nazev</b>", "<b>$castka</b>", $kategorie);
-    }
-
-    /** Vrátí sumu plateb (připsaných peněz) */
-    function platby() {
-        return $this->platby;
     }
 
     /**
@@ -437,28 +431,27 @@ class Finance
         }
     }
 
-    /**
-     * Započítá do mezisoučtů platby na účet
-     * @todo odstranit zbytečnosti
-     */
-    private function zapoctiPlatby() {
-        $rok = ROK;
-        $uid = $this->u->id();
-        $o = dbQuery("
-      SELECT
-        IF(provedl=1,
-          CONCAT(DATE_FORMAT(provedeno,'%e.%c.'),' Platba na účet'),
-          CONCAT(DATE_FORMAT(provedeno,'%e.%c.'),' ',IFNULL(poznamka,'(bez poznámky)'))
-          ) as nazev,
-        castka as cena
-      FROM platby
-      WHERE id_uzivatele = $uid AND rok = $rok
-    ");
-        while ($r = mysqli_fetch_assoc($o)) {
-            $this->platby += $r['cena'];
-            $this->log($r['nazev'], $r['cena'], self::PLATBA);
+    public function dejSumuPlateb(int $rok = ROK): float {
+        if (!isset($this->sumyPlatebVRocich[$rok])) {
+            $result = dbQuery(<<<SQL
+SELECT
+    IF(provedl=1,
+      CONCAT(DATE_FORMAT(provedeno,'%e.%c.'),' Platba na účet'),
+      CONCAT(DATE_FORMAT(provedeno,'%e.%c.'),' ',IFNULL(poznamka,'(bez poznámky)'))
+      ) as nazev,
+    castka as cena
+FROM platby
+WHERE id_uzivatele = $1 AND rok = $2
+SQL
+                , [$this->u->id(), $rok]);
+            $sumaPlateb = 0.0;
+            while ($row = mysqli_fetch_assoc($result)) {
+                $sumaPlateb += (float)$row['cena'];
+                $this->log($row['nazev'], $row['cena'], self::PLATBA);
+            }
+            $this->sumyPlatebVRocich[$rok] = round($sumaPlateb, 2);
         }
-        $this->platby = round($this->platby, 2);
+        return $this->sumyPlatebVRocich[$rok];
     }
 
     /**
@@ -609,7 +602,7 @@ class Finance
         return $this->zustatekZPredchozichRocniku;
     }
 
-    public function dejKategoriiNeplatice(): KategorieNeplatice {
+    public function kategorieNeplatice(): KategorieNeplatice {
         if (!$this->kategorieNeplatice) {
             $this->kategorieNeplatice = KategorieNeplatice::vytvorProNadchazejiciVlnuZGlobals($this->u);
         }
