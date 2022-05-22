@@ -132,7 +132,7 @@ while ($r = mysqli_fetch_assoc($o)) {
             ec($f->stav()),
             ec($f->slevaObecna()),  // Suma slev
             ec($r['zustatek']),
-            ec($f->platby()), // připsané platby
+            ec($f->dejSumuPlateb()), // připsané platby
             ed($un->prvniBlok()),
             ed($un->posledniBlok()),
             $r['pomoc_typ'], // dobrovolník pozice
