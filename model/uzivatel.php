@@ -910,7 +910,7 @@ SQL
 
     /**
      * Rychloregistruje uživatele s omezeným počtem údajů při registraci na místě.
-     * @return id nově vytvořeného uživatele (možno vytvořit objekt uživatele
+     * @return int id nově vytvořeného uživatele (možno vytvořit objekt uživatele
      *  později jen pokud má smysl - výkonnostní důvody)
      * @todo možno evidovat, že uživatel byl regnut na místě
      * @todo poslat mail s něčím jiným jak std hláškou
@@ -1491,7 +1491,7 @@ SQL,
     }
 
     public function uvodniAdminUrl(string $zakladniAdminUrl): string {
-        if ($this->maPravo(\Gamecon\Pravo::ADMINISTRACE_PANEL_MOJE_AKTIVITY)) {
+        if ($this->maPravo(\Gamecon\Pravo::ADMINISTRACE_MOJE_AKTIVITY)) {
             return $zakladniAdminUrl . '/' . basename(__DIR__ . '/../admin/scripts/modules/muj-prehled.php', '.php');
         }
         return $zakladniAdminUrl;

@@ -2,6 +2,7 @@
 
 require __DIR__ . '/../nastaveni/zavadec.php';
 
+/** získáme @var array|string[] $protipy */
 require_once __DIR__ . '/scripts/konstanty.php'; // lokální konstanty pro admin
 require_once __DIR__ . '/scripts/admin-menu.php'; // třída administračního menu
 
@@ -117,7 +118,7 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
     }
     $xtpl->parse('all.operator');
     // výběr uživatele
-    if ($u->maPravo(\Gamecon\Pravo::ADMINISTRACE_PANEL_UVOD)) // panel úvod
+    if ($u->maPravo(\Gamecon\Pravo::ADMINISTRACE_UVOD)) // panel úvod
     {
         if ($uPracovni) {
             $xtpl->assign('uPracovni', $uPracovni);
