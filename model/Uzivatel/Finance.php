@@ -103,13 +103,13 @@ class Finance
 
         $this->stav = round(
             -$cena
-            + $this->dejSumuPlateb()
+            + $this->sumaPlateb()
             + $this->zustatekZPredchozichRocniku, 2);
 
         $this->logb('Aktivity', $this->cenaAktivity, self::AKTIVITA);
         $this->logb('Ubytování', $this->cenaUbytovani, self::UBYTOVANI);
         $this->logb('Předměty a strava', $this->cenaPredmety, self::PREDMETY_STRAVA);
-        $this->logb('Připsané platby', $this->dejSumuPlateb() + $this->zustatekZPredchozichRocniku, self::PLATBY_NADPIS);
+        $this->logb('Připsané platby', $this->sumaPlateb() + $this->zustatekZPredchozichRocniku, self::PLATBY_NADPIS);
         $this->logb('Stav financí', $this->stav(), self::VYSLEDNY);
     }
 
@@ -433,7 +433,7 @@ class Finance
         }
     }
 
-    public function dejSumuPlateb(int $rok = ROK): float {
+    public function sumaPlateb(int $rok = ROK): float {
         if (!isset($this->sumyPlatebVRocich[$rok])) {
             $result = dbQuery(<<<SQL
 SELECT
