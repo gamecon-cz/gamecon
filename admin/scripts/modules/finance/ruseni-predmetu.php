@@ -23,7 +23,9 @@ $uzivatele = [];
 if (post('vypsat') || post('rusit')) {
     foreach (Uzivatel::zPrihlasenych() as $un) {
         if ($un->finance()->stav() < $zustatek) {
-            if ($un->maPravo(P_NERUSIT_OBJEDNAVKY)) continue;
+            if ($un->maPravoNerusitObjednavky()) {
+                continue;
+            }
             $uzivatele[] = $un;
         }
     }

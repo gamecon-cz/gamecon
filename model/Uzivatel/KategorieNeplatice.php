@@ -2,7 +2,6 @@
 
 namespace Gamecon\Uzivatel;
 
-use Gamecon\Pravo;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 /**
@@ -11,13 +10,13 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 class KategorieNeplatice
 {
 
-    public const V_PORADKU = 0;
     public const LETOS_NEZAPLATIL_VUBEC_NIC = 1;
     public const LETOS_POSLAL_MALO_A_MA_VELKY_DLUH = 2;
     public const LETOS_POSLAL_MALO_A_MA_MALY_DLUH = 3;
     public const LETOS_POSLAL_DOST_A_JE_TAK_CHRANENY = 4;
     public const LETOS_SE_REGISTROVAL_PAR_DNU_PRED_ODHLASOVACI_VLNOU = 5;
     public const MA_PRAVO_PLATIT_AZ_NA_MISTE = 6; // orgové a tak
+
     /**
      * @var \DateTimeInterface|null
      */
@@ -41,13 +40,12 @@ class KategorieNeplatice
         return new self(
             $uzivatel->finance(),
             $uzivatel->kdySePrihlasilNaLetosniGc(),
-            $uzivatel->maPravoPlatitAzNaMiste(),
+            $uzivatel->maPravoNerusitObjednavky(),
             SystemoveNastaveni::zacatekNejblizsiVlnyOdhlasovani(),
             ROK,
             NEPLATIC_CASTKA_VELKY_DLUH,
             NEPLATIC_CASTKA_POSLAL_DOST,
-            NEPLATIC_POCET_DNU_PRED_VLNOU_KDY_JE_CHRANEN,
-            Pravo::NERUSIT_AUTOMATICKY_OBJEDNAVKY
+            NEPLATIC_POCET_DNU_PRED_VLNOU_KDY_JE_CHRANEN
         );
     }
 
@@ -64,10 +62,6 @@ class KategorieNeplatice
      */
     private $pocetDnuPredVlnouKdyJeJesteChrane;
     /**
-     * @var int
-     */
-    private $idPravaZeMuzePlatitAzNaMiste;
-    /**
      * @var \DateTimeInterface|null
      */
     private $kdySePrihlasilNaLetosniGc;
@@ -80,13 +74,11 @@ class KategorieNeplatice
         int                 $rok,
         float               $castkaVelkyDluh,
         float               $castkaPoslalDost,
-        int                 $pocetDnuPredVlnouKdyJeJesteChrane,
-        int                 $idPravaZeMuzePlatitAzNaMiste
+        int                 $pocetDnuPredVlnouKdyJeJesteChrane
     ) {
         $this->castkaVelkyDluh = -abs($castkaVelkyDluh);
         $this->castkaPoslalDost = $castkaPoslalDost;
         $this->pocetDnuPredVlnouKdyJeJesteChrane = $pocetDnuPredVlnouKdyJeJesteChrane;
-        $this->idPravaZeMuzePlatitAzNaMiste = $idPravaZeMuzePlatitAzNaMiste;
         $this->kdySePrihlasilNaLetosniGc = $kdySePrihlasilNaLetosniGc;
         $this->zacatekVlnyOdhlasovani = $zacatekVlnyOdhlasovani;
         $this->finance = $finance;
@@ -94,17 +86,17 @@ class KategorieNeplatice
         $this->maPravoPlatitAzNaMiste = $maPravoPlatitAzNaMiste;
     }
 
-    public function dejCiselnouKategoriiNeplatice(): int {
+    public function dejCiselnouKategoriiNeplatice(): ?int {
         if (!$this->kdySePrihlasilNaLetosniGc || !$this->zacatekVlnyOdhlasovani
             // zjišťovat neplatiče už nejde, platby mohly už přoijít až po začátku hromadného odhlašování
             || $this->zacatekVlnyOdhlasovani < $this->kdySePrihlasilNaLetosniGc
         ) {
-            return self::V_PORADKU;
+            return null;
         }
         if ($this->maPravoPlatitAzNaMiste) {
             return self::MA_PRAVO_PLATIT_AZ_NA_MISTE;
         }
-        $stavPlatebZaRok = $this->finance->stavPlatebZaRok($this->rok);
+        $stavPlatebZaRok = $this->finance->dejSumuPlateb($this->rok);
         if (!$this->prihlasilSeParDniPredVlnouOdhlasovani()) {
             if ($stavPlatebZaRok <= 0.0) {
                 return self::LETOS_NEZAPLATIL_VUBEC_NIC;
@@ -121,11 +113,18 @@ class KategorieNeplatice
         }
         return $this->prihlasilSeParDniPredVlnouOdhlasovani()
             ? self::LETOS_SE_REGISTROVAL_PAR_DNU_PRED_ODHLASOVACI_VLNOU
-            : self::V_PORADKU;
+            : null;
     }
 
     private function prihlasilSeParDniPredVlnouOdhlasovani(): bool {
-        /** pozor, @see \DateTimeInterface::diff vrací vždy absolutní hodnotu */
-        return $this->zacatekVlnyOdhlasovani->diff($this->kdySePrihlasilNaLetosniGc) <= $this->pocetDnuPredVlnouKdyJeJesteChrane;
+        /** pozor, @see \DateInterval::$days vrací vždy absolutní hodnotu */
+        return $this->zacatekVlnyOdhlasovani->diff($this->kdySePrihlasilNaLetosniGc)->days <= $this->pocetDnuPredVlnouKdyJeJesteChrane;
+    }
+
+    /**
+     * @return \DateTimeInterface|null
+     */
+    public function zacatekVlnyOdhlasovani(): ?\DateTimeInterface {
+        return $this->zacatekVlnyOdhlasovani;
     }
 }
