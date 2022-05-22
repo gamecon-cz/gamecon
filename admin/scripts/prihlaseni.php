@@ -28,16 +28,17 @@ if (post('odhlasNAdm')) {
 // Výběr uživatele pro práci
 $uPracovni = null;
 if (post('vybratUzivateleProPraci')) {
-    $u = Uzivatel::prihlasId(post('id'), 'uzivatel_pracovni');
-    back();
-}
-$uPracovni = Uzivatel::zSession('uzivatel_pracovni');
-if (post('zrusitUzivateleProPraci')) {
-    Uzivatel::odhlasKlic('uzivatel_pracovni');
+    $u = Uzivatel::prihlasId(post('id'), Uzivatel::UZIVATEL_PRACOVNI);
     back();
 }
 
-if (post('prihlasitSeJakoUzivatel') && $u->isSuperAdmin()) {
+$uPracovni = Uzivatel::zSession(Uzivatel::UZIVATEL_PRACOVNI);
+if (post('zrusitUzivateleProPraci')) {
+    Uzivatel::odhlasKlic(Uzivatel::UZIVATEL_PRACOVNI);
+    back();
+}
+
+if (post('prihlasitSeJakoUzivatel') && $u->jeSuperAdmin()) {
     $u = Uzivatel::prihlasId(post('id'));
     back();
 }

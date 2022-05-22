@@ -3,14 +3,16 @@
   <!-- begin:omnibox -->
   <form method="post">
     <input type="hidden" name="vybratUzivateleProPraci" value="1">
-    <input id="omnibox" class="omnibox autosubmit" type="text" name="id">
+    <input id="omniboxUzivateleProPraci" class="omnibox autosubmit" type="text" name="id">
+    <div class="tip">
+      <label for="omniboxUzivateleProPraci" style="display: inline-block">↑ vyberte uživatele: napište pár písmen přezdívky, jména, příjmení nebo ID (alt+U)</label>
+    </div>
   </form>
-  <div class="tip">↑ vyberte uživatele: napište pár písmen přezdívky, jména, příjmení nebo ID (alt+U)</div>
   <!-- end:omnibox -->
   <!-- begin:vybrany -->
   <div class="levy">
     <img class="avatar" src="{uPracovni.avatar}">
-    <form method="post" id="zrusit">
+    <form method="post" id="zrusitUzivateleProPraci">
       <input type="hidden" name="zrusitUzivateleProPraci" value="1">
       <input type="submit" value="z̲rušit">
       <!-- todo záporný zůstatek -->

@@ -110,7 +110,7 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
     // operátor - info & odhlašování
     $xtpl->assign('a', $u->koncovkaDlePohlavi());
     $xtpl->assign('operator', $u->jmenoNick());
-    if ($u->isSuperAdmin()) {
+    if ($u->jeSuperAdmin()) {
         $xtpl->parse('all.operator.prepnutiUzivatele');
     }
     $xtpl->parse('all.operator');
