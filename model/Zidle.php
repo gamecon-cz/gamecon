@@ -23,8 +23,11 @@ class Zidle extends \DbObject
     public const SPRAVCE_FINANCI_GC = 20; // Organizátor, který může nakládat s financemi GC
     public const ORGANIZATOR_S_BONUSY_1 = 21;
     public const ORGANIZATOR_S_BONUSY_2 = 22;
-    public const PRITOMEN = ZIDLE_PRITOMEN;
-    public const PRIHLASEN = ZIDLE_PRIHLASEN;
+    public const NEODHLASOVAT = 23;
+
+    public const PRIHLASEN_NA_LETOSNI_GC = ZIDLE_PRIHLASEN;
+    public const PRITOMEN_NA_LETOSNIM_GC = ZIDLE_PRITOMEN;
+    public const ODJEL_Z_LETOSNIHO_GC = ZIDLE_ODJEL;
 
     /**
      * @param int[] $zidle

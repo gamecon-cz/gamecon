@@ -1617,7 +1617,7 @@ SQL,
     }
 
     public function uvodniAdminUrl(string $zakladniAdminUrl): string {
-        if ($this->maPravo(\Gamecon\Pravo::ADMINISTRACE_PANEL_MOJE_AKTIVITY)) {
+        if ($this->maPravo(\Gamecon\Pravo::ADMINISTRACE_MOJE_AKTIVITY)) {
             return $this->mojeAktivityAdminUrl($zakladniAdminUrl);
         }
         return $zakladniAdminUrl;
