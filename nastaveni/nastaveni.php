@@ -2,6 +2,7 @@
 
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Pravo;
 
 /**
  * Sada globálních proměnných a konstant sloužící jako konfigurace.
@@ -96,6 +97,8 @@ $pre = -(ROK - 2000) * 100; //předpona pro židle a práva vázaná na aktuáln
 @define('ZIDLE_PRIHLASEN', $pre - 1);       //přihlášen na GameCon
 @define('ZIDLE_PRITOMEN', $pre - 2);        //prošel infopulteP_ORG_AKm a je na GameConu
 @define('ZIDLE_ODJEL', $pre - 3);           //prošel infopultem na odchodu a odjel z GC
+unset($pre);
+
 // TODO byl přihlášen na GC a už není (kvůli počítání financí apod.)
 @define('ZIDLE_ORG_AKTIVIT', 6);               // vypravěč (org akcí)
 @define('ZIDLE_ORG_SKUPINA', 9);            //organizátorská skupina (Albi, Černobor, …)
@@ -109,28 +112,29 @@ $pre = -(ROK - 2000) * 100; //předpona pro židle a práva vázaná na aktuáln
 @define('P_KRYTI_AKCI', 5); //může být na víc aktivitách naráz (org skupiny typicky)
 @define('P_PLNY_SERVIS', 7); //uživatele kompletně platí a zajišťuje GC
 @define('P_ZMENA_HISTORIE', 8); // jestli smí měnit přihlášení zpětně
-@define('P_TRICKO_ZA_SLEVU_MODRE', 1012); // modré tričko zdarma při slevě, jejíž hodnota je níže určená konstantou MODRE_TRICKO_ZDARMA_OD
-@define('P_DVE_TRICKA_ZDARMA', 1020); // dvě jakákoli trička zdarma
-@define('P_TRICKO_MODRA_BARVA', 1021); // může objednávat modrá trička
-@define('P_TRICKO_CERVENA_BARVA', 1022); // může objednávat červená trička
-@define('P_PLACKA_ZDARMA', 1002);
-@define('P_KOSTKA_ZDARMA', 1003);
-@define('P_JIDLO_SLEVA', 1004); //může si kupovat jídlo se slevou
-@define('P_JIDLO_ZDARMA', 1005); //může si objednávat jídlo a má ho zdarma
-@define('P_UBYTOVANI_ZDARMA', 1008); //má _všechno_ ubytování zdarma
-@define('P_UBYTOVANI_STREDA_ZDARMA', 1015); // má středeční noc zdarma
-@define('P_UBYTOVANI_NEDELE_ZDARMA', 1018); // má nedělní noc zdarma
-@define('P_ADMIN_UVOD', 100); //přístup na titulku adminu
-@define('P_ADMIN_MUJ_PREHLED', 109);
-@define('P_NERUSIT_OBJEDNAVKY', 1016); // nebudou mu automaticky rušeny objednávky
-@define('P_AKTIVITY_SLEVA', 1019); // má 40% slevu na aktivity
-@define('P_AKTIVITY_ZDARMA', 1023); // má 100% slevu na aktivity
-@define('P_STATISTIKY_UCAST', 1024); // židle se vypisuje se v tabulce účasti v statistikách
-@define('P_REPORT_NEUBYTOVANI', 1025); // v reportu neubytovaných se vypisuje
-@define('P_TITUL_ORG', 1026); // v různých výpisech se označuje jako organizátor
-@define('P_UNIKATNI_ZIDLE', 1027); // uživatel může mít jen jednu židli s tímto právem
-@define('P_NEMA_BONUS_ZA_AKTIVITY', 1028);// nedostává slevu za odvedené a tech. aktivity
-unset($pre);
+
+@define('P_ADMIN_UVOD', Pravo::ADMINISTRACE_UVOD); // přístup na titulku adminu
+@define('P_ADMIN_MUJ_PREHLED', Pravo::ADMINISTRACE_MOJE_AKTIVITY);
+
+@define('P_TRICKO_ZA_SLEVU_MODRE', Pravo::MODRE_TRICKO_ZDARMA); // modré tričko zdarma při slevě, jejíž hodnota je níže určená konstantou MODRE_TRICKO_ZDARMA_OD
+@define('P_DVE_TRICKA_ZDARMA', Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA); // dvě jakákoli trička zdarma
+@define('P_TRICKO_MODRA_BARVA', Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA); // může objednávat modrá trička
+@define('P_TRICKO_CERVENA_BARVA', Pravo::MUZE_OBJEDNAVAT_CERVENA_TRICKA); // může objednávat červená trička
+@define('P_PLACKA_ZDARMA', Pravo::PLACKA_ZDARMA);
+@define('P_KOSTKA_ZDARMA', Pravo::KOSTKA_ZDARMA);
+@define('P_JIDLO_SLEVA', Pravo::JIDLO_SE_SLEVOU); // může si kupovat jídlo se slevou
+@define('P_JIDLO_ZDARMA', Pravo::JIDLO_ZDARMA); //může si objednávat jídlo a má ho zdarma
+@define('P_UBYTOVANI_ZDARMA', Pravo::UBYTOVANI_ZDARMA); // má _všechno_ ubytování zdarma
+@define('P_UBYTOVANI_STREDA_ZDARMA', Pravo::STREDECNI_NOC_ZDARMA); // má středeční noc zdarma
+@define('P_UBYTOVANI_NEDELE_ZDARMA', Pravo::NEDELNI_NOC_ZDARMA); // má nedělní noc zdarma
+@define('P_NERUSIT_OBJEDNAVKY', Pravo::NERUSIT_AUTOMATICKY_OBJEDNAVKY); // nebudou mu automaticky rušeny objednávky
+@define('P_AKTIVITY_SLEVA', Pravo::CASTECNA_SLEVA_NA_AKTIVITY); // má 40% slevu na aktivity
+@define('P_AKTIVITY_ZDARMA', Pravo::AKTIVITY_ZDARMA); // má 100% slevu na aktivity
+@define('P_STATISTIKY_UCAST', Pravo::ZOBRAZOVAT_VE_STATISTIKAK_V_TABULCE_UCASTI); // židle se vypisuje se v tabulce účasti v statistikách
+@define('P_REPORT_NEUBYTOVANI', Pravo::VYPISOVAT_V_REPORTU_NEUBYTOVANYCH); // v reportu neubytovaných se vypisuje
+@define('P_TITUL_ORG', Pravo::TITUL_ORGANIZATOR); // v různých výpisech se označuje jako organizátor
+@define('P_UNIKATNI_ZIDLE', Pravo::UNIKATNI_ZIDLE); // uživatel může mít jen jednu židli s tímto právem
+@define('P_NEMA_BONUS_ZA_AKTIVITY', Pravo::BEZ_SLEVY_ZA_VEDENI_AKTIVIT); // nedostává slevu za odvedené a tech. aktivity
 
 ////////////////////////
 // Finanční nastavení //
