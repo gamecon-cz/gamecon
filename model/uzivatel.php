@@ -14,6 +14,9 @@ class Uzivatel
     public const POSAZEN = 'posazen';
     public const SESAZEN = 'sesazen';
 
+    public const UZIVATEL_PRACOVNI = 'uzivatel_pracovni';
+    public const UZIVATEL = 'uzivatel';
+
     /**
      * @return Uzivatel[]
      */
@@ -617,7 +620,7 @@ SQL
         $klic = $this->klic;
         // máme obnovit starou proměnnou pro id uživatele (otáčíme aktuálně přihlášeného uživatele)?
         $sesssionObnovit = (isset($_SESSION['id_uzivatele']) && $_SESSION['id_uzivatele'] == $this->id());
-        if ($klic === 'uzivatel') { // pokud je klíč default, zničíme celou session
+        if ($klic === self::UZIVATEL) { // pokud je klíč default, zničíme celou session
             $this->odhlasProTed(); // ponech případnou cookie pro trvalé přihášení
         } else { // pokud je speciální, pouze přemažeme položku v session
             self::odhlasKlic($klic);
@@ -687,7 +690,7 @@ SQL
      * @param string $heslo heslo uživatele
      * @return mixed objekt s uživatelem nebo null
      */
-    public static function prihlas($login, $heslo, $klic = 'uzivatel') {
+    public static function prihlas($login, $heslo, $klic = self::UZIVATEL) {
         if (!$login || !$heslo) {
             return null;
         }
@@ -743,7 +746,7 @@ SQL
      * Vytvoří v session na indexu $klic dalšího uživatele pro práci
      * @return null|Uzivatel nebo null
      */
-    public static function prihlasId($idUzivatele, $klic = 'uzivatel'): ?Uzivatel {
+    public static function prihlasId($idUzivatele, $klic = self::UZIVATEL): ?Uzivatel {
         $idUzivatele = (int)$idUzivatele;
         $uzivatelData = dbOneLine('SELECT * FROM uzivatele_hodnoty WHERE id_uzivatele=$0', [$idUzivatele]);
         if (!$uzivatelData) {
@@ -769,7 +772,7 @@ SQL
     }
 
     /** Alias prihlas() pro trvalé přihlášení */
-    public static function prihlasTrvale($login, $heslo, $klic = 'uzivatel') {
+    public static function prihlasTrvale($login, $heslo, $klic = self::UZIVATEL) {
         $u = Uzivatel::prihlas($login, $heslo, $klic);
         $rand = randHex(20);
         if ($u) {
@@ -1277,7 +1280,7 @@ SQL,
      * @return Uzivatel|null objekt uživatele nebo null
      * @todo nenačítat znovu jednou načteného, cacheovat
      */
-    public static function zSession($klic = 'uzivatel') {
+    public static function zSession($klic = self::UZIVATEL) {
         if (!session_id()) {
             if (headers_sent($file, $line)) {
                 throw new \RuntimeException("Headers have been already sent in file '$file' on line $line, can not start session");
@@ -1294,7 +1297,7 @@ SQL,
                 return $u;
             }
         }
-        if (isset($_COOKIE['gcTrvalePrihlaseni']) && $klic === 'uzivatel') {
+        if (isset($_COOKIE['gcTrvalePrihlaseni']) && $klic === self::UZIVATEL) {
             $id = dbOneCol(
                 "SELECT id_uzivatele FROM uzivatele_hodnoty WHERE random!='' AND random=$0",
                 [$_COOKIE['gcTrvalePrihlaseni']]
@@ -1430,7 +1433,10 @@ SQL,
         return $uzivatele;
     }
 
-    public function isSuperAdmin(): bool {
+    public function jeSuperAdmin(): bool {
+        if (!defined('SUPERADMINI') || !is_array(SUPERADMINI)) {
+            return false;
+        }
         return in_array($this->id(), SUPERADMINI, false);
     }
 

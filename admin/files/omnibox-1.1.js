@@ -1,5 +1,5 @@
 const initializeOmnibox = function ($) {
-  const $vyberUzivatele = $('.omnibox')
+  const $omnibox = $('.omnibox')
   /**
    * @param {{term: string}} request
    * @param {function} response
@@ -7,7 +7,7 @@ const initializeOmnibox = function ($) {
    */
   getSourceUrl = function (request, response) {
     const data = {term: request.term}
-    const input = $vyberUzivatele.filter(function (index, input) {
+    const input = $omnibox.filter(function (index, input) {
       return input.value === request.term
     })[0]
     const encodedParameters = input.dataset.omnibox || '{}'
@@ -28,7 +28,7 @@ const initializeOmnibox = function ($) {
     response(responseData)
   }
   // Našeptávátko pro omnibox
-  $vyberUzivatele.autocomplete({
+  $omnibox.autocomplete({
     source: getSourceUrl,
     minLength: 2,
     autoFocus: true, // automatický výběr první hodnoty, aby uživatel mohl zmáčknout rovnou enter
@@ -38,19 +38,20 @@ const initializeOmnibox = function ($) {
     select: function (event, ui) {
       // automatické odeslání, pokud je nastaveno
       $this = $(this)
-      if ($this.hasClass('autosubmit') && $this.parent().is('form')) {
+      if ($this.hasClass('autosubmit')) {
+        const $form = $this.closest('form')
         $this.val(ui.item.value) // nutno nastavit před submitem
-        $this.parent().submit()
+        $form.submit()
       }
     },
   })
 
   // Klávesové zkratky
   $(document).on('keydown', null, 'alt+u', function () {
-    $('#omnibox').focus()
+    $('#omniboxUzivateleProPraci').focus()
     return false
   }).on('keydown', null, 'alt+z', function () {
-    $('#zrusit').submit()
+    $('#zrusitUzivateleProPraci').submit()
     return false
   })
 };
