@@ -32,7 +32,7 @@ const initializeOmnibox = function ($) {
   // Našeptávátko pro omnibox
   $omnibox.autocomplete({
     source: getSourceUrl,
-    minLength: $vyberUzivatele.data('omnibox-min-length') ?? 2,
+    minLength: $omnibox.data('omnibox-min-length') ?? 2,
     autoFocus: true, // automatický výběr první hodnoty, aby uživatel mohl zmáčknout rovnou enter
     focus: function (event, ui) {
       event.preventDefault() // neměnit text inputu při výběru
