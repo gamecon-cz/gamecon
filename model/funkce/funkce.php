@@ -187,9 +187,11 @@ function omezCsrf() {
     }
     $referrerHost = parse_url($_SERVER['HTTP_REFERER'] ?? null, PHP_URL_HOST);
 
-    if ($referrerHost !== $_SERVER['HTTP_HOST']) {
+    if ($referrerHost !== $_SERVER['HTTP_HOST'] && $referrerHost !== parse_url(URL_ADMIN, PHP_URL_HOST)) {
         // výjimka, aby došlo k zalogování
-        throw new Exception("Referrer POST '$referrerHost' požadavku neodpovídá doméně '{$_SERVER['HTTP_HOST']}'");
+        throw new Exception(
+            "Referrer POST '$referrerHost' požadavku neodpovídá doméně '{$_SERVER['HTTP_HOST']}' ani '" . PHP_URL_HOST . "'"
+        );
     }
 }
 
