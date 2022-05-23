@@ -75,7 +75,9 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
         $cwd = getcwd(); // uložíme si aktuální working directory pro pozdější návrat
         if ($submenu) {
             chdir('./scripts/modules/' . $stranka . '/');
-            $soubor = $podstranka ? $cwd . '/' . $submenu[$podstranka]['soubor'] : $cwd . '/' . $submenu[$stranka]['soubor'];
+            $soubor = $podstranka && $podstrankaExistuje
+                ? $cwd . '/' . $submenu[$podstranka]['soubor']
+                : $cwd . '/' . $submenu[$stranka]['soubor'];
         } else {
             chdir('./scripts/modules/');
             $soubor = $cwd . '/' . $menu[$stranka]['soubor'];
