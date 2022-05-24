@@ -88,16 +88,14 @@ class KategorieNeplatice
 
     public function dejCiselnouKategoriiNeplatice(): ?int {
         if (!$this->kdySePrihlasilNaLetosniGc || !$this->zacatekVlnyOdhlasovani
-            // zjišťovat neplatiče už nejde, platby mohly už přoijít až po začátku hromadného odhlašování
+            // zjišťovat neplatiče už nejde, některé platby mohly přijít až po začátku hromadného odhlašování (leda bychom filtrovali jednotlivé platby, ale tou dobou už to stejně nepotřebujeme)
             || $this->zacatekVlnyOdhlasovani < $this->kdySePrihlasilNaLetosniGc
         ) {
             return null;
         }
         $stavFinanci = $this->finance->stav();
         if ($this->maPravoPlatitAzNaMiste) {
-            return $stavFinanci < 0
-                ? self::MA_PRAVO_PLATIT_AZ_NA_MISTE
-                : null;
+            return self::MA_PRAVO_PLATIT_AZ_NA_MISTE;
         }
         $sumaPlateb = $this->finance->sumaPlateb($this->rok);
         if (!$this->prihlasilSeParDniPredVlnouOdhlasovani()) {
