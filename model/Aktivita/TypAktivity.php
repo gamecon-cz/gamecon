@@ -98,7 +98,7 @@ class TypAktivity extends \DbObject
     }
 
     public static function zViditelnych() {
-        return self::zWhere('poradi > 0');
+        return self::zWhere('zobrazit_v_menu = 1');
     }
 
 }
