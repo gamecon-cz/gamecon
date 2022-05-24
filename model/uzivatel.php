@@ -1200,9 +1200,7 @@ SQL
         }
         if (isset($_SESSION[$klic])) {
             $u = null;
-            if (is_array($_SESSION[$klic]) && array_keys_exist(['id_uzivatele', 'login_uzivatele', 'pohlavi'], $_SESSION[$klic])) {
-                $u = new Uzivatel($_SESSION[$klic]);
-            } elseif (!empty($_SESSION[$klic]['id_uzivatele'])) {
+            if (!empty($_SESSION[$klic]['id_uzivatele'])) {
                 $u = Uzivatel::zId($_SESSION[$klic]['id_uzivatele']);
             }
             if ($u) {
