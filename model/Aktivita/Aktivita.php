@@ -2605,7 +2605,7 @@ SQL,
                    ) AS prihlaseni,
                    IF(t2.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = t2.patri_pod), t2.url_akce) AS url_temp
             FROM (
-                SELECT a.*, al.poradi, IF(akce_typy.poradi > 0, akce_typy.poradi, 1000 + ABS(akce_typy.poradi)) AS poradi_typu
+                SELECT a.*, al.poradi, akce_typy.poradi AS poradi_typu
                 FROM akce_seznam a
                 LEFT JOIN akce_lokace al ON al.id_lokace = a.lokace
                 LEFT JOIN akce_typy ON a.typ = akce_typy.id_typu
