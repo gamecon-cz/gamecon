@@ -17,12 +17,13 @@ if (Aktivita::editorTestJson()) {       // samo sebe volání ajaxu
 
 /** @var Logovac $vyjimkovac */
 try {
-    if ($a = Aktivita::editorZpracuj())  // úspěšné uložení změn ve formuláři
+    if ($a = Aktivita::editorZpracuj()) {  // úspěšné uložení změn ve formuláři
         if ($a->nova()) {
             back('aktivity/upravy?aktivitaId=' . $a->id());
         } else {
             back();
         }
+    }
 } catch (ObrazekException $e) {
     $vyjimkovac->zaloguj($e);
     if (get('aktivitaId')) {
