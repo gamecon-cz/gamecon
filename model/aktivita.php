@@ -438,7 +438,7 @@ class Aktivita
         $aktivitaData = $aktivita ? $aktivita->a : null; // databázový řádek
         $xtpl->assign(['selected' => '', 'id_typu' => 0, 'typ_1p' => '(bez typu – organizační)']);
         $xtpl->parse('upravy.tabulka.typ');
-        $q = dbQuery('SELECT id_typu, typ_1p FROM akce_typy');
+        $q = dbQuery('SELECT id_typu, typ_1p FROM akce_typy ORDER BY poradi');
         while ($akceTypData = mysqli_fetch_assoc($q)) {
             $xtpl->assign('selected', $aktivita && $akceTypData['id_typu'] == $aktivitaData['typ'] ? 'selected' : '');
             $xtpl->assign($akceTypData);
