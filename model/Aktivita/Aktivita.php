@@ -2501,8 +2501,8 @@ SQL,
      */
     public static function zProgramu($order) {
         return self::zWhere(
-            'WHERE a.rok = $1 AND a.zacatek AND ( a.stav IN(1,2,3,4,5) OR a.typ = 10 )',
-            [ROK],
+            'WHERE a.rok = $0 AND a.zacatek AND ( a.stav IN($1) OR a.typ = 10 )',
+            [ROK, [\Stav::AKTIVOVANA, \Stav::PROBEHNUTA, \Stav::SYSTEMOVA, \Stav::PUBLIKOVANA, \Stav::PRIPRAVENA], TypAktivity::TECHNICKA],
             'ORDER BY DAY(zacatek), ' . dbQi($order) . ', HOUR(zacatek), nazev_akce'
         );
     }
