@@ -1328,9 +1328,14 @@ SQL,
             session_start();
         }
         if (isset($_SESSION[$klic])) {
-            $u = Uzivatel::zId($_SESSION[$klic]['id_uzivatele']);
-            $u->klic = $klic;
-            return $u;
+            $u = null;
+            if (!empty($_SESSION[$klic]['id_uzivatele'])) {
+                $u = Uzivatel::zId($_SESSION[$klic]['id_uzivatele']);
+            }
+            if ($u) {
+                $u->klic = $klic;
+                return $u;
+            }
         }
         if (isset($_COOKIE['gcTrvalePrihlaseni']) && $klic === self::UZIVATEL) {
             $id = dbOneCol(

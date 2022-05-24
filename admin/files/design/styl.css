@@ -447,6 +447,10 @@ input, textarea, select, .tlacitko, .adm_submenu_item a {
   color: inherit;
 }
 
+input, select {
+  cursor: pointer;
+}
+
 input[disabled], textarea[disabled], select[disabled] {
   background-color: lightgray;
   cursor: not-allowed

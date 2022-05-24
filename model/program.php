@@ -197,7 +197,7 @@ class Program
             $this->grpf = self::SKUPINY_PODLE_TYP_PORADI;
 
             // řazení podle poradi typu je nutné proto, že v tomto pořadí je i seznam aktivit
-            $grp = serazenePodle(TypAktivity::zVsech(), 'poradi');
+            $grp = serazenePodle(\Gamecon\Aktivita\TypAktivity::zVsech(), 'poradi');
             foreach ($grp as $t) {
                 $this->skupiny[$t->id()] = mb_ucfirst($t->nazev());
             }

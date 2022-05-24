@@ -5,7 +5,6 @@ namespace Gamecon\Aktivita;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImportSqlColumn;
 use Gamecon\PrednacitaniTrait;
-use Symfony\Component\Filesystem\Filesystem;
 
 require_once __DIR__ . '/../../admin/scripts/modules/aktivity/_editor-tagu.php';
 
@@ -456,7 +455,7 @@ class Aktivita
         $aktivitaData = $aktivita ? $aktivita->a : null; // databázový řádek
         $xtpl->assign(['selected' => '', 'id_typu' => 0, 'typ_1p' => '(bez typu – organizační)']);
         $xtpl->parse('upravy.tabulka.typ');
-        $q = dbQuery('SELECT id_typu, typ_1p FROM akce_typy ORDER BY poradi');
+        $q = dbQuery('SELECT id_typu, typ_1p FROM akce_typy WHERE aktivni = 1 ORDER BY poradi');
         while ($akceTypData = mysqli_fetch_assoc($q)) {
             $xtpl->assign('selected', $aktivita && $akceTypData['id_typu'] == $aktivitaData['typ'] ? 'selected' : '');
             $xtpl->assign($akceTypData);
