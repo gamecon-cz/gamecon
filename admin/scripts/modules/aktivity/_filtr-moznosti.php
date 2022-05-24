@@ -132,11 +132,15 @@ class FiltrMoznosti
 
     private function programoveLinie(int $rok): array {
         return dbFetchAll(<<<SQL
-SELECT akce_typy.id_typu, akce_typy.typ_1pmn AS nazev_typu, COUNT(*) AS pocet_aktivit
-FROM akce_seznam
-JOIN akce_typy ON akce_seznam.typ = akce_typy.id_typu
-WHERE akce_seznam.rok = $1
-GROUP BY akce_typy.id_typu
+SELECT *
+FROM (
+    SELECT akce_typy.id_typu, akce_typy.typ_1pmn AS nazev_typu, COUNT(*) AS pocet_aktivit, akce_typy.poradi AS poradi_typu
+    FROM akce_seznam
+    JOIN akce_typy ON akce_seznam.typ = akce_typy.id_typu
+    WHERE akce_seznam.rok = $1
+    GROUP BY akce_typy.id_typu
+) AS seskupeno
+ORDER BY poradi_typu
 SQL
             , [$rok]
         );
