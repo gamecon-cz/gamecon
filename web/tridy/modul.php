@@ -86,8 +86,10 @@ class Modul
 
     /** Setter/getter pro parametr (proměnnou) předanou dovnitř modulu */
     function param($nazev) {
-        if (func_num_args() == 2) $this->params[$nazev] = func_get_arg(1);
-        else return @$this->params[$nazev];
+        if (func_num_args() == 2) {
+            $this->params[$nazev] = func_get_arg(1);
+        }
+        return $this->params[$nazev] ?? null;
     }
 
     function pridejCssUrl($url) {
@@ -95,7 +97,7 @@ class Modul
     }
 
     function pridejJsSoubor($cestaNaWebu) {
-        $verze = substr(filemtime(WWW . '/' . $cestaNaWebu), -6);
+        $verze = md5_file(WWW . '/' . $cestaNaWebu);
         $url = URL_WEBU . '/' . $cestaNaWebu . '?v=' . $verze;
         $this->jsUrls[] = $url;
     }
