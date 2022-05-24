@@ -244,12 +244,12 @@ class Program
      */
     private function dalsiAktivita() {
         if (!$this->dbPosledni) {
-            $this->dbPosledni = $this->nactiAktivitu($this->program);
+            $this->dbPosledni = $this->nactiDalsiAktivitu($this->program);
         }
 
         while ($this->koliduje($this->posledniVydana, $this->dbPosledni)) {
             $this->aktFronta[] = $this->dbPosledni;
-            $this->dbPosledni = $this->nactiAktivitu($this->program);
+            $this->dbPosledni = $this->nactiDalsiAktivitu($this->program);
         }
 
         if ($this->stejnaSkupina($this->dbPosledni, $this->posledniVydana) || !$this->aktFronta) {
@@ -413,7 +413,7 @@ class Program
      * Načte jednu aktivitu (objekt) z iterátoru a vrátí vnitřní reprezentaci
      * (s cacheovanými hodnotami) pro program.
      */
-    private function nactiAktivitu($iterator) {
+    private function nactiDalsiAktivitu($iterator) {
         if (!$iterator->valid()) {
             return null;
         }
@@ -451,7 +451,7 @@ class Program
 
         // u programu dne přeskočit aktivity, které nejsou daný den
         if ($this->nastaveni['den'] && $this->nastaveni['den'] != $a['den']) {
-            return $this->nactiAktivitu($iterator);
+            return $this->nactiDalsiAktivitu($iterator);
         }
 
         // u osobního programu přeskočit aktivity, kde není přihlášen
@@ -461,7 +461,7 @@ class Program
                 !$this->u->prihlasenJakoNahradnikNa($a['obj']) &&
                 !$this->u->organizuje($a['obj'])
             ) {
-                return $this->nactiAktivitu($iterator);
+                return $this->nactiDalsiAktivitu($iterator);
             }
         }
 
@@ -472,7 +472,7 @@ class Program
         ) {
             return $a;
         } else {
-            return $this->nactiAktivitu($iterator);
+            return $this->nactiDalsiAktivitu($iterator);
         }
     }
 
