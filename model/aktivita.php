@@ -438,7 +438,7 @@ class Aktivita
         $aktivitaData = $aktivita ? $aktivita->a : null; // databázový řádek
         $xtpl->assign(['selected' => '', 'id_typu' => 0, 'typ_1p' => '(bez typu – organizační)']);
         $xtpl->parse('upravy.tabulka.typ');
-        $q = dbQuery('SELECT id_typu, typ_1p FROM akce_typy ORDER BY poradi');
+        $q = dbQuery('SELECT id_typu, typ_1p FROM akce_typy WHERE aktivni = 1 ORDER BY poradi');
         while ($akceTypData = mysqli_fetch_assoc($q)) {
             $xtpl->assign('selected', $aktivita && $akceTypData['id_typu'] == $aktivitaData['typ'] ? 'selected' : '');
             $xtpl->assign($akceTypData);
@@ -2458,7 +2458,7 @@ SQL
             SELECT t2.*, CONCAT(',',GROUP_CONCAT(p.id_uzivatele,u.pohlavi,p.id_stavu_prihlaseni),',') AS prihlaseni,
                    IF(t2.patri_pod, (SELECT MAX(url_akce) FROM akce_seznam WHERE patri_pod = t2.patri_pod), t2.url_akce) AS url_temp
             FROM (
-                SELECT a.*, al.poradi, IF(akce_typy.poradi > 0, akce_typy.poradi, 1000 + ABS(akce_typy.poradi)) AS poradi_typu
+                SELECT a.*, al.poradi, akce_typy.poradi AS poradi_typu
                 FROM akce_seznam a
                 LEFT JOIN akce_lokace al ON (al.id_lokace = a.lokace)
                 LEFT JOIN akce_typy ON a.typ = akce_typy.id_typu
