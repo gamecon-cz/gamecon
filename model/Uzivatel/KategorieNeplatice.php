@@ -93,28 +93,28 @@ class KategorieNeplatice
         ) {
             return null;
         }
-        $stavFinanci = $this->finance->stav();
+
         if ($this->maPravoPlatitAzNaMiste) {
             return self::MA_PRAVO_PLATIT_AZ_NA_MISTE;
         }
+
         $sumaPlateb = $this->finance->sumaPlateb($this->rok);
-        if (!$this->prihlasilSeParDniPredVlnouOdhlasovani()) {
-            if ($sumaPlateb <= 0.0) {
-                return self::LETOS_NEZAPLATIL_VUBEC_NIC;
-            }
-            if ($sumaPlateb < $this->castkaPoslalDost) {
-                return $stavFinanci /* ještě zápornější než velký dluh */ <= $this->castkaVelkyDluh
-                    // poslal málo na to, abychom mu ignorovali dluh a ještě k tomu má dluh velký
-                    ? self::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH
-                    : self::LETOS_POSLAL_MALO_A_MA_MALY_DLUH;
-            }
-        }
         if ($sumaPlateb >= $this->castkaPoslalDost) {
             return self::LETOS_POSLAL_DOST_A_JE_TAK_CHRANENY;
         }
-        return $this->prihlasilSeParDniPredVlnouOdhlasovani()
-            ? self::LETOS_SE_REGISTROVAL_PAR_DNU_PRED_ODHLASOVACI_VLNOU
-            : null;
+
+        if ($this->prihlasilSeParDniPredVlnouOdhlasovani()) {
+            return self::LETOS_SE_REGISTROVAL_PAR_DNU_PRED_ODHLASOVACI_VLNOU;
+        }
+
+        if ($sumaPlateb <= 0.0) {
+            return self::LETOS_NEZAPLATIL_VUBEC_NIC;
+        }
+
+        return $this->finance->stav() /* ještě zápornější než velký dluh */ <= $this->castkaVelkyDluh
+            // poslal málo na to, abychom mu ignorovali dluh a ještě k tomu má dluh velký
+            ? self::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH
+            : self::LETOS_POSLAL_MALO_A_MA_MALY_DLUH;
     }
 
     private function prihlasilSeParDniPredVlnouOdhlasovani(): bool {
