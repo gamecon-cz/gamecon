@@ -9,6 +9,6 @@ SQL
 
 $this->q(<<<SQL
 UPDATE akce_typy
-SET zobrazit_v_menu = 0 WHERE id_typu < 1
+SET zobrazit_v_menu = 0 WHERE poradi < 1
 SQL
 );
