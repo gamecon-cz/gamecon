@@ -13,7 +13,7 @@ use \Gamecon\Cas\DateTimeCz;
 
 $xtpl2=new XTemplate('prihlaseni.xtpl');
 
-$o = dbQuery('SELECT id_typu, typ_1pmn FROM akce_typy ORDER BY typ_1pmn ASC');
+$o = dbQuery('SELECT id_typu, typ_1pmn FROM akce_typy ORDER BY poradi, typ_1pmn');
 while($r = mysqli_fetch_assoc($o)) {
   $xtpl2->assign($r);
   $xtpl2->parse('prihlaseni.vyber');
