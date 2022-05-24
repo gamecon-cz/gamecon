@@ -13,7 +13,15 @@ foreach (Uzivatel::zPrihlasenych() as $letosniUcastnik) {
     $ucastnikData = [];
 
     $ucastnikData['id_uzivatele'] = $letosniUcastnik->id();
-    $ucastnikData['jmeno'] = $letosniUcastnik->jmenoNick();
+    $urlUzivatele = URL_ADMIN . '/uvod?pracovni_uzivatel=' . $letosniUcastnik->id();
+
+    if ($formatReportu === 'html') {
+        $ucastnikData['jmeno'] = "<a target='_blank' href='$urlUzivatele'><em>{$letosniUcastnik->jmenoNick()}</em> v adminu</a>";
+    } else {
+        $ucastnikData['jmeno'] = $letosniUcastnik->jmenoNick();
+        $ucastnikData['uzivatel_v_adminu'] = $urlUzivatele;
+    }
+
     $ucastnikData['email'] = $formatReportu === 'html' && $letosniUcastnik->mail()
         ? "<a href='mailto:{$letosniUcastnik->mail()}'>{$letosniUcastnik->mail()}</a>"
         : $letosniUcastnik->mail();
@@ -22,24 +30,21 @@ foreach (Uzivatel::zPrihlasenych() as $letosniUcastnik) {
         : $letosniUcastnik->telefon();
 
     $finance = $letosniUcastnik->finance();
+    $kategorieNeplatice = $finance->kategorieNeplatice();
+    $ucastnikData['kategorie_neplatice'] = $kategorieNeplatice->dejCiselnouKategoriiNeplatice();
+
     $ucastnikData['aktualni_zustatek'] = $finance->stav();
     $ucastnikData['datum_posledni_platby'] = $finance->datumPosledniPlatby()
         ? (new \Gamecon\Cas\DateTimeCz($finance->datumPosledniPlatby()))->formatCasStandard()
         : '';
 
-    $kategorieNeplatice = $finance->kategorieNeplatice();
-    $ucastnikData['kategorie_neplatice'] = $kategorieNeplatice->dejCiselnouKategoriiNeplatice();
-    $ucastnikData['hromadne_odhlaseni'] = $kategorieNeplatice->zacatekVlnyOdhlasovani()
-        ? $kategorieNeplatice->zacatekVlnyOdhlasovani()->format(DateTimeCz::FORMAT_DATUM_A_CAS_STANDARD)
-        : '';
-
     $ucastnikData['prihlaseni_na_letosni_gc'] = $letosniUcastnik->kdySePrihlasilNaLetosniGc()
         ? $letosniUcastnik->kdySePrihlasilNaLetosniGc()->format(DateTimeCz::FORMAT_DATUM_A_CAS_STANDARD)
         : '';
-    $urlUzivatele = URL_ADMIN . '/uvod?pracovni_uzivatel=' . $letosniUcastnik->id();
-    $ucastnikData['uzivatel_v_adminu'] = $formatReportu === 'html'
-        ? "<a target='_blank' href='$urlUzivatele'><em>{$letosniUcastnik->jmenoNick()}</em> v adminu</a>"
-        : $urlUzivatele;
+
+    $ucastnikData['hromadne_odhlaseni'] = $kategorieNeplatice->zacatekVlnyOdhlasovani()
+        ? $kategorieNeplatice->zacatekVlnyOdhlasovani()->format(DateTimeCz::FORMAT_DATUM_A_CAS_STANDARD)
+        : '';
 
     $data[] = $ucastnikData;
 }
