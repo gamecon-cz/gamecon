@@ -16,7 +16,7 @@ foreach (Uzivatel::zPrihlasenych() as $letosniUcastnik) {
     $urlUzivatele = URL_ADMIN . '/uvod?pracovni_uzivatel=' . $letosniUcastnik->id();
 
     if ($formatReportu === 'html') {
-        $ucastnikData['jmeno'] = "<a target='_blank' href='$urlUzivatele'><em>{$letosniUcastnik->jmenoNick()}</em> v adminu</a>";
+        $ucastnikData['jmeno'] = "<a target='_blank' href='$urlUzivatele'>{$letosniUcastnik->jmenoNick()}</a>";
     } else {
         $ucastnikData['jmeno'] = $letosniUcastnik->jmenoNick();
         $ucastnikData['uzivatel_v_adminu'] = $urlUzivatele;
