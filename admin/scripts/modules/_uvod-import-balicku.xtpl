@@ -4,25 +4,19 @@
   <h3>Importér balíčků</h3>
   <p>Uloží, zda má účastník velký balíček.</p>
   <p>Jako zdrojový soubor slouží
-    <a href="{baseUrl}/reporty/report-infopult-ucastnici-balicky?format=csv">report <em>Infopult: Balíčky účastníků</em> ve
-      formátu CSV</a>.</p>
+    <a href="{baseUrl}/reporty/report-infopult-ucastnici-balicky?format=xlsx">report <em>Infopult: Balíčky
+      účastníků</em> ve
+      formátu XLSX</a>.</p>
   <p>Do sloupce <span style="font-family: 'Droid Sans Mono', monospace; font-weight: bolder">balicek</span> napiš
     <strong>velký
       balíček</strong>, pokud ho má účastník dostat. Pokud ne, nech tam cokoliv jiného.
     <br>
     <span style="font-size: smaller">
       (systém ví, zda má účastník balíček, stravenky a tak, takže to nerozbiješ)
-    </span></p>
-  <p>(Pozor, excel při zmáčknutí ctrl+s soubor zmrší a při opětovném otevření už ho sám nepřečte. Místo toho je potřeba
-    ručně dát „uložit jako“ a z nabídky typů vybrat „CSV oddělený středníkem“)</p>
+    </span>
+  </p>
   <form method="post" enctype="multipart/form-data">
     <input type="file" name="souborSBalicky">
-    <label>Formát CSV
-      <select name="formatSouboruSBalicky">
-        <option value=";">"oddělené";"středníkem"</option>
-        <option value=",">"oddělené","čárkou"</option>
-      </select>
-    </label>
     <input type="submit" name="importBalicku" value="Nahrát">
   </form>
 </div>
