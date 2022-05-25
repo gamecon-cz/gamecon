@@ -42,42 +42,78 @@ $reader = ReaderEntityFactory::createXLSXReader();
 
 $reader->open($_FILES['souborSBalicky']['tmp_name']);
 
+$reader->getSheetIterator()->rewind();
 /** @var \Box\Spout\Reader\SheetInterface $sheet */
-foreach ($reader->getSheetIterator() as $sheet) {
-    $rowIterator = $sheet->getRowIterator();
-    $rowIterator->rewind();
-    /** @var \Box\Spout\Common\Entity\Row|null $hlavicka */
-    $row = $rowIterator->current();
-    $hlavicka = array_flip($row->toArray());
-    if (!array_keys_exist(['id_uzivatele', 'balicek'], $hlavicka)) {
-        throw new Chyba('Chybný formát souboru - musí mít sloupce id_uzivatele a balicek');
-    }
+$sheet = $reader->getSheetIterator()->current();
 
-    $indexIdUzivatele = $hlavicka['id_uzivatele'];
-    $indexBalicek = $hlavicka['balicek'];
+$rowIterator = $sheet->getRowIterator();
+$rowIterator->rewind();
+/** @var \Box\Spout\Common\Entity\Row|null $hlavicka */
+$row = $rowIterator->current();
+$hlavicka = array_flip($row->toArray());
+if (!array_keys_exist(['id_uzivatele', 'balicek'], $hlavicka)) {
+    throw new Chyba('Chybný formát souboru - musí mít sloupce id_uzivatele a balicek');
+}
+
+$indexIdUzivatele = $hlavicka['id_uzivatele'];
+$indexBalicek = $hlavicka['balicek'];
+
+$rowIterator->next();
+
+$radky = [];
+/** @var \Box\Spout\Common\Entity\Row|null $row */
+while ($rowIterator->valid()) {
+    $radek = $rowIterator->current()->toArray();
+
+    if ($radek) {
+        $idUzivatele = (int)($radek[$indexIdUzivatele] ?? null);
+        $radky[$idUzivatele] = $radek;
+    }
 
     $rowIterator->next();
-    /** @var \Box\Spout\Common\Entity\Row|null $row */
-    while ($rowIterator->valid()) {
-        $radek = $rowIterator->current()->toArray();
+}
 
-        if ($radek) {
-            $idUzivatele = (int)($radek[$indexIdUzivatele] ?? null);
-            if ($idUzivatele) {
-                $mysqliResult = dbQuery(<<<SQL
-UPDATE uzivatele_hodnoty
--- pouze pokud má účastník letos nějaký nákup, tak může mít velký balíček
-SET infopult_poznamka = IF ({$maNejakyNakupSql(ROK)}, $0, '')
-WHERE id_uzivatele = $1
-SQL,
-                    [$dejPoznamkuOVelkemBalicku((string)$radek[$indexBalicek], ROK), $radek[$indexIdUzivatele]]
-                );
-                $zapsanoZmen += dbNumRows($mysqliResult);
-            }
-        }
+if ($radky) {
 
-        $rowIterator->next();
+    $temporaryTable = uniqid('import_balicku_tmp_', true);
+    dbQuery(<<<SQL
+CREATE TEMPORARY TABLE `$temporaryTable`
+(id_uzivatele INT UNSIGNED NOT NULL PRIMARY KEY, infopult_poznamka VARCHAR(128) DEFAULT NULL)
+SQL
+    );
+
+    $queryParams = [];
+    $sqlValuesArray = [];
+    $paramIndex = 0;
+    foreach ($radky as $idUzivatele => $radek) {
+        $queryParams[] = $idUzivatele;
+        $queryParams[] = $dejPoznamkuOVelkemBalicku((string)$radek[$indexBalicek], ROK);
+        $sqlValuesArray[] = '($' . $paramIndex++ . ',$' . $paramIndex++ . ')';
     }
+
+    $sqlValues = implode(",\n", $sqlValuesArray);
+
+    dbQuery(<<<SQL
+INSERT INTO `$temporaryTable` (id_uzivatele, infopult_poznamka)
+    VALUES
+$sqlValues
+SQL,
+        $queryParams
+    );
+
+    $mysqliResult = dbQuery(<<<SQL
+UPDATE uzivatele_hodnoty
+JOIN `$temporaryTable` ON uzivatele_hodnoty.id_uzivatele = `$temporaryTable`.id_uzivatele
+-- pouze pokud má účastník letos nějaký nákup, tak může mít velký balíček
+SET uzivatele_hodnoty.infopult_poznamka = IF ({$maNejakyNakupSql(ROK)}, `$temporaryTable`.infopult_poznamka, '')
+SQL
+    );
+    $zapsanoZmen += dbNumRows($mysqliResult);
+
+    dbQuery(<<<SQL
+DROP TEMPORARY TABLE `$temporaryTable`
+SQL
+    );
 }
 
 $reader->close();
