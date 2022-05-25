@@ -1,9 +1,10 @@
 <?php
 
+use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
+
 /**
  * Třída pro vytvoření a vypsání reportu
  */
-
 class Report
 {
     private $sql;                   // text dotazu, z kterého se report generuje
@@ -16,9 +17,35 @@ class Report
     public const BEZ_STYLU = 1;
 
     /**
+     * Vytiskne report jako XLSX
+     */
+    public function tXlsx() {
+        $writer = WriterEntityFactory::createXLSXWriter();
+
+        // část url za posledním lomítkem
+        $posledniCastUrl = substr($_SERVER['REQUEST_URI'], strrpos($_SERVER['REQUEST_URI'], '/') + 1);
+        $zacatekQuery = strpos($posledniCastUrl, '?');
+        $posledniPath = $zacatekQuery
+            ? substr($posledniCastUrl, 0, $zacatekQuery)
+            : $posledniCastUrl;
+        $fileName = $posledniPath . '.xlsx';
+        $writer->openToBrowser($fileName); // stream data directly to the browser
+
+        $rowFromValues = WriterEntityFactory::createRowFromArray($this->hlavicky());
+        $writer->addRow($rowFromValues);
+
+        while ($radek = $this->radek()) {
+            $rowFromValues = WriterEntityFactory::createRowFromArray($radek);
+            $writer->addRow($rowFromValues);
+        }
+
+        $writer->close();
+    }
+
+    /**
      * Vytiskne report jako CSV
      */
-    function tCsv() {
+    public function tCsv() {
         $jmeno = substr($_SERVER['REQUEST_URI'], strrpos($_SERVER['REQUEST_URI'], '/') + 1); // část url za posledním lomítkem
         header('Content-type: application/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename="' . $jmeno . '.csv"');
@@ -42,9 +69,11 @@ class Report
      * Vytiskne report v zadaném formátu. Pokud není zadán, použije výchozí csv.
      * @throws Exception pokud formát není podporován
      */
-    function tFormat(?string $format = null) {
+    public function tFormat(?string $format = null) {
         $format = trim((string)$format);
-        if (!$format || $format === 'csv') {
+        if (!$format || $format === 'xlsx') {
+            $this->tXlsx();
+        } elseif ($format === 'csv') {
             $this->tCsv();
         } elseif ($format === 'html') {
             $this->tHtml();
@@ -56,7 +85,7 @@ class Report
     /**
      * Vytiskne report jako HTML tabulku
      */
-    function tHtml($param = 0) {
+    public function tHtml($param = 0) {
         if (!($param & self::BEZ_STYLU)) {
             echo <<<HTML
 <style>
@@ -116,8 +145,6 @@ HTML;
      * Konstruktor
      */
     protected function __construct() {
-        $o = null;
-        $hlavicky = null;
     }
 
     private function hlavicky() {
