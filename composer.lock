@@ -658,16 +658,16 @@
         },
         {
             "name": "guzzlehttp/guzzle",
-            "version": "7.4.2",
+            "version": "7.4.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/guzzle.git",
-                "reference": "ac1ec1cd9b5624694c3a40be801d94137afb12b4"
+                "reference": "74a8602c6faec9ef74b7a9391ac82c5e65b1cdab"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/guzzle/zipball/ac1ec1cd9b5624694c3a40be801d94137afb12b4",
-                "reference": "ac1ec1cd9b5624694c3a40be801d94137afb12b4",
+                "url": "https://api.github.com/repos/guzzle/guzzle/zipball/74a8602c6faec9ef74b7a9391ac82c5e65b1cdab",
+                "reference": "74a8602c6faec9ef74b7a9391ac82c5e65b1cdab",
                 "shasum": ""
             },
             "require": {
@@ -762,7 +762,7 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/guzzle/issues",
-                "source": "https://github.com/guzzle/guzzle/tree/7.4.2"
+                "source": "https://github.com/guzzle/guzzle/tree/7.4.3"
             },
             "funding": [
                 {
@@ -778,7 +778,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-03-20T14:16:28+00:00"
+            "time": "2022-05-25T13:24:33+00:00"
         },
         {
             "name": "guzzlehttp/promises",
@@ -3565,12 +3565,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "09c351f048fb405d8b8e73af45dce4e0197cc050"
+                "reference": "676a50c0c2b1bd909e4573d1bbbfaf0c8c3af13a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/09c351f048fb405d8b8e73af45dce4e0197cc050",
-                "reference": "09c351f048fb405d8b8e73af45dce4e0197cc050",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/676a50c0c2b1bd909e4573d1bbbfaf0c8c3af13a",
+                "reference": "676a50c0c2b1bd909e4573d1bbbfaf0c8c3af13a",
                 "shasum": ""
             },
             "conflict": {
@@ -3707,7 +3707,7 @@
                 "gree/jose": "<=2.2",
                 "gregwar/rst": "<1.0.3",
                 "grumpydictator/firefly-iii": "<5.6.5",
-                "guzzlehttp/guzzle": ">=4-rc.2,<4.2.4|>=5,<5.3.1|>=6,<6.2.1",
+                "guzzlehttp/guzzle": ">=4-rc.2,<6.5.6|>=7,<7.4.3",
                 "guzzlehttp/psr7": "<1.8.4|>=2,<2.1.1",
                 "helloxz/imgurl": "<=2.31",
                 "hillelcoren/invoice-ninja": "<5.3.35",
@@ -4050,7 +4050,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-05-24T23:04:28+00:00"
+            "time": "2022-05-25T14:05:36+00:00"
         },
         {
             "name": "sebastian/cli-parser",
