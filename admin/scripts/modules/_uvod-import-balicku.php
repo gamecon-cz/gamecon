@@ -18,14 +18,7 @@ if (!is_readable($_FILES['souborSBalicky']['tmp_name'])) {
 }
 
 $dejPoznamkuOVelkemBalicku = static function (string $balicek, int $rok): string {
-    $balicek = trim($balicek);
-    if ($balicek === '') {
-        return '';
-    }
-    $bezBilychZnaku = preg_replace('~\s~', '', $balicek);
-    $bezDiakritiky = removeDiacritics($bezBilychZnaku);
-
-    return str_starts_with($bezDiakritiky, 'velky')
+    return str_contains($balicek, 'v')
         ? "velký balíček $rok"
         : '';
 };
@@ -60,21 +53,75 @@ $indexBalicek = $hlavicka['balicek'];
 
 $rowIterator->next();
 
-$radky = [];
+$idUzivatelu = [];
+$chyby = [];
+$varovani = [];
+$balickyProSql = [];
+$poradiRadku = 1;
 /** @var \Box\Spout\Common\Entity\Row|null $row */
 while ($rowIterator->valid()) {
     $radek = $rowIterator->current()->toArray();
+    $poradiRadku++;
+    $rowIterator->next();
 
     if ($radek) {
         $idUzivatele = (int)($radek[$indexIdUzivatele] ?? null);
-        $radky[$idUzivatele] = $radek;
-    }
+        if (!$idUzivatele) {
+            $chyby[] = sprintf(
+                'Na řádku %d chybí ID uživatele očekávaný v %d. sloupci',
+                $poradiRadku,
+                $indexIdUzivatele + 1,
+            );
+            continue;
+        }
 
-    $rowIterator->next();
+        $balicek = trim((string)($radek[$indexBalicek] ?? ''));
+        $balicekProSql = $dejPoznamkuOVelkemBalicku($balicek, ROK);
+        if ($balicekProSql === ''
+            && !in_array(
+                strtolower(removeDiacritics($balicek)),
+                ['', 'balicek'/** exportovaný název bez diakritiky, viz report-infopult-ucastnici-balicky.php */])
+        ) {
+            $chyby[] = sprintf(
+                "Na řádku %d je neznámý zápis balíčku '%s' - očekáváme nic, 'balíček' nebo 'velký balíček'",
+                $poradiRadku,
+                $balicek
+            );
+            continue;
+        }
+        $balickyProSql[$idUzivatele] = $balicekProSql;
+
+        $uzivatel = Uzivatel::zId($idUzivatele);
+        if (!$uzivatel) {
+            $chyby[] = sprintf(
+                'Uživatel s ID %d z řádku %d nexistuje',
+                $idUzivatele,
+                $poradiRadku,
+            );
+            continue;
+        }
+        if (!$uzivatel->gcPrihlasen()) {
+            $varovani[] = sprintf(
+                'Uživatel %s z řádku %d není na letošním Gameconu a byl přeskočen',
+                $uzivatel->jmenoNick(),
+                $poradiRadku,
+            );
+            continue;
+        }
+        $idUzivatelu[] = $idUzivatele;
+    }
+}
+$reader->close();
+
+if ($chyby) {
+    throw new Chyba('Chybička se vloudila: ' . implode("; ", $chyby));
 }
 
-if ($radky) {
+if ($varovani) {
+    varovani('Drobnosti: ' . implode(',', $varovani), false);
+}
 
+if ($idUzivatelu) {
     $temporaryTable = uniqid('import_balicku_tmp_', true);
     dbQuery(<<<SQL
 CREATE TEMPORARY TABLE `$temporaryTable`
@@ -85,9 +132,9 @@ SQL
     $queryParams = [];
     $sqlValuesArray = [];
     $paramIndex = 0;
-    foreach ($radky as $idUzivatele => $radek) {
+    foreach ($idUzivatelu as $idUzivatele) {
         $queryParams[] = $idUzivatele;
-        $queryParams[] = $dejPoznamkuOVelkemBalicku((string)$radek[$indexBalicek], ROK);
+        $queryParams[] = $balickyProSql[$idUzivatele];
         $sqlValuesArray[] = '($' . $paramIndex++ . ',$' . $paramIndex++ . ')';
     }
 
@@ -115,7 +162,5 @@ DROP TEMPORARY TABLE `$temporaryTable`
 SQL
     );
 }
-
-$reader->close();
 
 oznameni("Import dokončen. " . ($zapsanoZmen > 0 ? "Změněno $zapsanoZmen záznamů." : 'Beze změny.'));
