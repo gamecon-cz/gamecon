@@ -38,7 +38,7 @@ EXISTS(SELECT 1 FROM shop_nakupy
 SQL;
 };
 
-$prihlasenNaLetosniGc = (int)\Gamecon\Zidle::PRIHLASEN;
+$prihlasenNaLetosniGc = (int)\Gamecon\Zidle::PRIHLASEN_NA_LETOSNI_GC;
 
 $report = Report::zSql(<<<SQL
 SELECT  uzivatele_hodnoty.id_uzivatele,
