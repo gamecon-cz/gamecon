@@ -63,7 +63,7 @@ foreach ($reader->getSheetIterator() as $sheet) {
 
         if ($radek) {
             $idUzivatele = (int)($radek[$indexIdUzivatele] ?? null);
-            if ($idUzivatele) {
+/*            if ($idUzivatele) {
                 $mysqliResult = dbQuery(<<<SQL
 UPDATE uzivatele_hodnoty
 -- pouze pokud má účastník letos nějaký nákup, tak může mít velký balíček
@@ -73,7 +73,7 @@ SQL,
                     [$dejPoznamkuOVelkemBalicku((string)$radek[$indexBalicek], ROK), $radek[$indexIdUzivatele]]
                 );
                 $zapsanoZmen += dbNumRows($mysqliResult);
-            }
+            }*/
         }
 
         $rowIterator->next();
