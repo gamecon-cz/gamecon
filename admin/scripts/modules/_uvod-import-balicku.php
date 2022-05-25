@@ -53,7 +53,6 @@ $indexBalicek = $hlavicka['balicek'];
 
 $rowIterator->next();
 
-$idUzivatelu = [];
 $chyby = [];
 $varovani = [];
 $balickyProSql = [];
@@ -68,9 +67,27 @@ while ($rowIterator->valid()) {
         $idUzivatele = (int)($radek[$indexIdUzivatele] ?? null);
         if (!$idUzivatele) {
             $chyby[] = sprintf(
-                'Na řádku %d chybí ID uživatele očekávaný v %d. sloupci',
+                'Na řádku %d chybí ID účastníka očekávaný v %d. sloupci',
                 $poradiRadku,
                 $indexIdUzivatele + 1,
+            );
+            continue;
+        }
+
+        $uzivatel = Uzivatel::zId($idUzivatele);
+        if (!$uzivatel) {
+            $chyby[] = sprintf(
+                'Účastník s ID %d z řádku %d nexistuje',
+                $idUzivatele,
+                $poradiRadku,
+            );
+            continue;
+        }
+        if (!$uzivatel->gcPrihlasen()) {
+            $varovani[] = sprintf(
+                'Účastník %s z řádku %d není na letošním Gameconu a byl přeskočen',
+                $uzivatel->jmenoNick(),
+                $poradiRadku,
             );
             continue;
         }
@@ -83,32 +100,22 @@ while ($rowIterator->valid()) {
                 ['', 'balicek'/** exportovaný název bez diakritiky, viz report-infopult-ucastnici-balicky.php */])
         ) {
             $chyby[] = sprintf(
-                "Na řádku %d je neznámý zápis balíčku '%s' - očekáváme nic, 'balíček' nebo 'velký balíček'",
+                "U účastníka %s z řádku %d je neznámý zápis balíčku '%s' - očekáváme nic, 'balíček' nebo 'velký balíček'",
+                $uzivatel->jmenoNick(),
                 $poradiRadku,
-                $balicek
+                $balicek,
             );
             continue;
         }
-        $balickyProSql[$idUzivatele] = $balicekProSql;
-
-        $uzivatel = Uzivatel::zId($idUzivatele);
-        if (!$uzivatel) {
-            $chyby[] = sprintf(
-                'Uživatel s ID %d z řádku %d nexistuje',
-                $idUzivatele,
-                $poradiRadku,
-            );
-            continue;
-        }
-        if (!$uzivatel->gcPrihlasen()) {
+        if ($balicekProSql && !$uzivatel->dejShop()->koupilNejakyPredmet()) {
             $varovani[] = sprintf(
-                'Uživatel %s z řádku %d není na letošním Gameconu a byl přeskočen',
+                "Účastník %s z řádku %d si nic neobjednal a nemůže proto mít velký balíček",
                 $uzivatel->jmenoNick(),
                 $poradiRadku,
             );
             continue;
         }
-        $idUzivatelu[] = $idUzivatele;
+        $balickyProSql[$idUzivatele] = $balicekProSql;
     }
 }
 $reader->close();
@@ -121,7 +128,7 @@ if ($varovani) {
     varovani('Drobnosti: ' . implode(',', $varovani), false);
 }
 
-if ($idUzivatelu) {
+if ($balickyProSql) {
     $temporaryTable = uniqid('import_balicku_tmp_', true);
     dbQuery(<<<SQL
 CREATE TEMPORARY TABLE `$temporaryTable`
@@ -132,9 +139,9 @@ SQL
     $queryParams = [];
     $sqlValuesArray = [];
     $paramIndex = 0;
-    foreach ($idUzivatelu as $idUzivatele) {
+    foreach ($balickyProSql as $idUzivatele => $balicekProSql) {
         $queryParams[] = $idUzivatele;
-        $queryParams[] = $balickyProSql[$idUzivatele];
+        $queryParams[] = $balicekProSql;
         $sqlValuesArray[] = '($' . $paramIndex++ . ',$' . $paramIndex++ . ')';
     }
 
