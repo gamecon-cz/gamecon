@@ -17,6 +17,7 @@ class DateTimeCz extends \DateTime
 
     public const FORMAT_DB = 'Y-m-d H:i:s';
     public const FORMAT_DATUM_DB = 'Y-m-d';
+    public const FORMAT_CAS_SOUBOR = 'Y-m-d_H-i-s';
 
     protected static $dny = [
         'Monday' => 'pondělí',
@@ -128,6 +129,10 @@ class DateTimeCz extends \DateTime
      */
     function formatCasStandard() {
         return parent::format('j. n. Y H:i:s');
+    }
+
+    public function formatCasSoubor(): string {
+        return parent::format(self::FORMAT_CAS_SOUBOR);
     }
 
     /** Vrací blogový/dopisový formát */

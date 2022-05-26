@@ -4,7 +4,7 @@
  * Počty her a jednotlivých druhý her pro jednotlivé účastníky
  */
 
-require_once __DIR__ . '/sdilene-hlavicky.php';
+require __DIR__ . '/sdilene-hlavicky.php';
 
 $o=dbQuery('
   SELECT
