@@ -9,7 +9,7 @@ $warhammer40kTurnaj2022 = reset($warhammer40kTurnaj2022Wrapped);
 unset($warhammer40kTurnaj2022Wrapped);
 
 $uzivatelGamecon = Uzivatel::zNicku('Gamecon');
-$uzivatelGamecon->gcPrihlas();
+$uzivatelGamecon->gcPrihlas($uzivatelGamecon);
 
 $puvodniStav = $warhammer40kTurnaj2022->stav();
 $warhammer40kTurnaj2022->aktivuj();
