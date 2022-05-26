@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/sdilene-hlavicky.php';
+require __DIR__ . '/sdilene-hlavicky.php';
 
 $report = Report::zSql(<<<SQL
 SELECT a.nazev_akce,at.typ_1p,

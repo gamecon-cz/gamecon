@@ -8,7 +8,7 @@
  * na více místech), že se tak stalo.
  */
 
-require_once __DIR__ . '/sdilene-hlavicky.php';
+require __DIR__ . '/sdilene-hlavicky.php';
 
 $sqlNaPrepocetZustatku = [];
 foreach (Uzivatel::vsichni() as $uzivatel) {
