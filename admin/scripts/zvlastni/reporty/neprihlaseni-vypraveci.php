@@ -5,8 +5,9 @@ use Gamecon\Shop\Shop;
 require __DIR__ . '/sdilene-hlavicky.php';
 
 $sledovaneZidle = dbOneArray('SELECT id_zidle FROM r_prava_zidle WHERE id_prava = $0', [P_REPORT_NEUBYTOVANI]);
-if (empty($sledovaneZidle))
+if (empty($sledovaneZidle)) {
     die('Žádná židle nemá nastaveno právo, aby se vypisovala v tomto reportu.');
+}
 
 $sledovaneZidleSql = implode(',', $sledovaneZidle);
 
