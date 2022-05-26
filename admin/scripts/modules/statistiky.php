@@ -7,42 +7,44 @@
  * pravo: 107
  */
 
-use \Gamecon\Cas\DateTimeCz;
+use Gamecon\Cas\DateTimeCz;
+use Gamecon\Zidle;
+use Gamecon\Pravo;
 
 // tabulka účasti
 $sledovaneZidle = array_merge(
-  [ZIDLE_PRIHLASEN, ZIDLE_PRITOMEN],
-  dbOneArray('SELECT id_zidle FROM r_prava_zidle WHERE id_prava = $0', [P_STATISTIKY_UCAST])
+    [Zidle::PRIHLASEN_NA_LETOSNI_GC, Zidle::PRITOMEN_NA_LETOSNIM_GC],
+    dbOneArray('SELECT id_zidle FROM r_prava_zidle WHERE id_prava = $0', [Pravo::ZOBRAZOVAT_VE_STATISTIKACH_V_TABULCE_UCASTI])
 );
 
 $ucast = tabMysql(dbQuery('
   SELECT
     jmeno_zidle as " ",
-    COUNT(uz.id_uzivatele) as Celkem,
+    COUNT(uzivatele_zidle.id_uzivatele) as Celkem,
     COUNT(z_prihlasen.id_zidle) as Přihlášen
-  FROM r_zidle_soupis z
-  LEFT JOIN r_uzivatele_zidle uz ON z.id_zidle = uz.id_zidle
-  LEFT JOIN r_uzivatele_zidle z_prihlasen ON
+  FROM r_zidle_soupis AS zidle
+  LEFT JOIN r_uzivatele_zidle AS uzivatele_zidle ON zidle.id_zidle = uzivatele_zidle.id_zidle
+  LEFT JOIN r_uzivatele_zidle AS z_prihlasen ON
     z_prihlasen.id_zidle = $1 AND
-    z_prihlasen.id_uzivatele = uz.id_uzivatele
-  WHERE z.id_zidle IN ($0)
-  GROUP BY z.id_zidle, z.jmeno_zidle
-  ORDER BY SUBSTR(z.jmeno_zidle, 1, 10), z.id_zidle
+    z_prihlasen.id_uzivatele = uzivatele_zidle.id_uzivatele
+  WHERE zidle.id_zidle IN ($0)
+  GROUP BY zidle.id_zidle, zidle.jmeno_zidle
+  ORDER BY SUBSTR(zidle.jmeno_zidle, 1, 10), zidle.id_zidle
 ', [
-  $sledovaneZidle,
-  ZIDLE_PRIHLASEN,
+    $sledovaneZidle,
+    Zidle::PRIHLASEN_NA_LETOSNI_GC,
 ]));
 
 // tabulky nákupů
 $predmety = tabMysql(dbQuery('
   SELECT
-    p.nazev Název,
-    p.model_rok Model,
-    COUNT(n.id_predmetu) Počet
-  FROM shop_nakupy n
-  JOIN shop_predmety p ON(n.id_predmetu=p.id_predmetu)
-  WHERE n.rok=' . ROK . ' AND (p.typ=1 OR p.typ=3)
-  GROUP BY n.id_predmetu
+    shop_predmety.nazev Název,
+    shop_predmety.model_rok Model,
+    COUNT(shop_nakupy.id_predmetu) Počet
+  FROM shop_nakupy
+  JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
+  WHERE shop_nakupy.rok=' . ROK . ' AND (shop_predmety.typ=1 OR shop_predmety.typ=3)
+  GROUP BY shop_nakupy.id_predmetu
   -- ORDER BY p.typ, Počet DESC
 '));
 
@@ -111,22 +113,25 @@ $zbyva = $zbyva->diff(new DateTime());
 $zbyva = $zbyva->format('%a dní') . ' (' . round($zbyva->format('%a') / 7, 1) . ' týdnů)';
 
 // graf účasti
-$q = 'SELECT
-    DATE(z.posazen) as den,
-    COUNT(1) as prihlasen,
-    COUNT(IF(YEAR(u.registrovan)=' . ROK . ',1,NULL)) as novy
-  FROM r_uzivatele_zidle z
+$ucastResult = dbQuery(<<<SQL
+SELECT
+    DATE(log.kdy) as den,
+    SUM(CASE log.zmena WHEN $2 THEN 1 WHEN $3 THEN -1 ELSE 0 END) as prihlasen,
+    COUNT(IF(YEAR(u.registrovan)=$0,1,NULL)) as novy
+  FROM r_uzivatele_zidle_log AS log
   JOIN uzivatele_hodnoty u USING(id_uzivatele)
-  WHERE z.id_zidle=' . ZIDLE_PRIHLASEN . '
-  GROUP BY DATE(posazen)';
-$o = dbQuery($q);
+  WHERE log.id_zidle=$1
+  GROUP BY DATE(log.kdy)
+SQL,
+    [ROK, Zidle::PRIHLASEN_NA_LETOSNI_GC, Uzivatel::POSAZEN, Uzivatel::SESAZEN]
+);
 $zacatek = new DateTime(ROK . '-04-29'); // zde ladit, dokud se grafy nezarovnají na poslední den
 $pocet = 0;
 do {
-    $pocet += $r['prihlasen'] ?? 0; // první prázdný ignorovat, další brát "o kolo zpět"
-    $r = mysqli_fetch_assoc($o);
-    $den = new DateTimeCz($r['den']);
-} while ($den->pred($zacatek) && $r['den']); // kontrola dne proti zacyklení
+    $pocet += $row['prihlasen'] ?? 0; // první prázdný ignorovat, další brát "o kolo zpět"
+    $row = mysqli_fetch_assoc($ucastResult);
+    $den = new DateTimeCz($row['den']);
+} while ($den->pred($zacatek) && $row['den']); // kontrola dne proti zacyklení
 // dny před GC
 $dny = '';
 $prihlaseniLetos = [];
@@ -138,8 +143,8 @@ for (
     $den <= $konec;
     $den->add(new DateInterval('P1D'))
 ) {
-    $denDb = new DateTime($r['den']);
-    if ($r === FALSE) { // z DB už vše vyčteno
+    $denDb = new DateTime($row['den']);
+    if ($row === false) { // z DB už vše vyčteno
         if ($den < $vceraTouhleDobou) { // dnešek nezobrazujeme pokud přibylo 0, včerejšek a dříve už ano
             $prihlaseniLetos[] = $pocet;
         } else {
@@ -148,9 +153,9 @@ for (
     } else if ($den->getTimestamp() < $denDb->getTimestamp()) {
         $prihlaseniLetos[] = $pocet;
     } else if ($den->getTimestamp() == $denDb->getTimestamp()) {
-        $pocet += $r['prihlasen'];
+        $pocet += $row['prihlasen'];
         $prihlaseniLetos[] = $pocet;
-        $r = mysqli_fetch_assoc($o);
+        $row = mysqli_fetch_assoc($ucastResult);
     } else {
         $prihlaseniLetos[] = null;
     }
@@ -164,8 +169,8 @@ $prihlaseniData = require __DIR__ . '/_statistiky_prihlaseni_minulych_let.php';
 $prihlaseniData[ROK] = $prihlaseniLetos;
 $prihlaseniProJs = [];
 foreach ($prihlaseniData as $rok => $data) {
-    if ((int)$rok === 2020){
-        continue;
+    if ((int)$rok === 2020) {
+        continue; // Call of Covid
     }
     if (in_array($rok, $vybraneRoky, false)) {
         $prihlaseniProJs[] = ['name' => "Přihlášení $rok", 'data' => $data];
@@ -254,7 +259,7 @@ $prihlaseniJson = json_encode($prihlaseniProJs);
         <legend style="padding: 0 0 0.5em; font-style: italic">
             Roky v grafu
         </legend>
-        <?php foreach ($prihlaseniData as $rok => $data) {
+        <?php foreach (array_keys($prihlaseniData) as $rok) {
             ?>
             <span style="min-width: 4em; display: inline-block">
                     <label style="padding-right: 0.3em; cursor: pointer">

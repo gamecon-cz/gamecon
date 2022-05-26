@@ -20,13 +20,13 @@ function zaloguj($zprava) {
 }
 
 if ($z = get('posad')) {
-    $uPracovni->dejZidli($z, $u->id());
+    $uPracovni->dejZidli($z, $u);
     zaloguj('Uživatel ' . $u->jmenoNick() . " posadil na židli $z uživatele " . $uPracovni->jmenoNick());
     back();
 }
 
 if ($z = get('sesad')) {
-    $uPracovni->vemZidli($z);
+    $uPracovni->vemZidli((int)$z, $u);
     zaloguj('Uživatel ' . $u->jmenoNick() . " sesadil ze židle $z uživatele " . $uPracovni->jmenoNick());
     back();
 }
@@ -45,7 +45,7 @@ if ($p = get('dejPravo')) {
 
 if ($uid = get('sesadUzivatele')) {
     $u2 = Uzivatel::zId($uid);
-    $u2->vemZidli($zidle);
+    $u2->vemZidli((int)$zidle, $u);
     zaloguj('Uživatel ' . $u->jmenoNick() . " sesadil ze židle $zidle uživatele " . $u2->jmenoNick());
     back();
 }
