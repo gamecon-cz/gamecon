@@ -18,6 +18,7 @@ class TypAktivity extends \DbObject
     protected static $pk = 'id_typu';
     protected static $sloupecNazev = 'typ_1pmn';
 
+    public const SYSTEMOVE = 0;
     public const TURNAJ_V_DESKOVKACH = 1;
     public const LARP = 2;
     public const PREDNASKA = 3;

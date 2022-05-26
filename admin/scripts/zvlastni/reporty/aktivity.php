@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/sdilene-hlavicky.php';
+require __DIR__ . '/sdilene-hlavicky.php';
 
 // dorazili
 $prihlasen = Aktivita::PRIHLASEN; // tohle je k něčemu leda v případě, že nějaká aktivita ještě nebyla uzavřena - což by se mělo stávat jen před a během Gameconu (a možná u technických aktivit)
@@ -77,6 +77,4 @@ while ($r = mysqli_fetch_assoc($o)) {
     $p[] = $r;
 }
 
-$report = Report::zPole($p);
-$format = get('format') === 'html' ? 'tHtml' : 'tCsv';
-$report->$format();
+Report::zPole($p)->tFormat(get('format'));
