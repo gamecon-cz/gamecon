@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/sdilene-hlavicky.php';
+require __DIR__ . '/sdilene-hlavicky.php';
 
 $typTricko = Shop::TRICKO;
 $typPredmet = Shop::PREDMET;

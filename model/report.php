@@ -19,16 +19,10 @@ class Report
     /**
      * Vytiskne report jako XLSX
      */
-    public function tXlsx() {
+    public function tXlsx(string $nazevReportu = null) {
         $writer = WriterEntityFactory::createXLSXWriter();
 
-        // část url za posledním lomítkem
-        $posledniCastUrl = substr($_SERVER['REQUEST_URI'], strrpos($_SERVER['REQUEST_URI'], '/') + 1);
-        $zacatekQuery = strpos($posledniCastUrl, '?');
-        $posledniPath = $zacatekQuery
-            ? substr($posledniCastUrl, 0, $zacatekQuery)
-            : $posledniCastUrl;
-        $fileName = $posledniPath . '.xlsx';
+        $fileName = $this->nazevSouboru('xlsx', $nazevReportu);
         $writer->openToBrowser($fileName); // stream data directly to the browser
 
         $rowFromValues = WriterEntityFactory::createRowFromArray($this->hlavicky());
@@ -42,13 +36,29 @@ class Report
         $writer->close();
     }
 
+    private function nazevSouboru(string $pripona, ?string $nazevReportu): string {
+        $nazevReportu = $nazevReportu !== null
+            ? preg_replace('~[^[:alnum:]_-]~', '_', removeDiacritics(trim($nazevReportu)))
+            : $this->nazevReportuZRequestu();
+        return $nazevReportu . '_' . (new \Gamecon\Cas\DateTimeCz())->formatCasSoubor() . '.' . $pripona;
+    }
+
+    private function nazevReportuZRequestu(): string {
+        // část url za posledním lomítkem
+        $posledniCastUrl = substr($_SERVER['REQUEST_URI'], strrpos($_SERVER['REQUEST_URI'], '/') + 1);
+        $poziceZacatkuQuery = strpos($posledniCastUrl, '?');
+        return $poziceZacatkuQuery !== false
+            ? substr($posledniCastUrl, 0, $poziceZacatkuQuery)
+            : $posledniCastUrl;
+    }
+
     /**
      * Vytiskne report jako CSV
      */
-    public function tCsv() {
-        $jmeno = substr($_SERVER['REQUEST_URI'], strrpos($_SERVER['REQUEST_URI'], '/') + 1); // část url za posledním lomítkem
+    public function tCsv(string $nazevReportu = null) {
+        $fileName = $this->nazevSouboru('csv', $nazevReportu);
         header('Content-type: application/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename="' . $jmeno . '.csv"');
+        header('Content-Disposition: attachment; filename="' . $fileName . '"');
         echo(chr(0xEF) . chr(0xBB) . chr(0xBF)); //BOM bajty pro nastavení UTF-8 ve výsledném souboru
         $out = fopen('php://output', 'wb'); //získáme filedescriptor výstupu stránky pro použití v fputcsv
         $this->zapisCsvRadek($out, $this->hlavicky());
@@ -69,16 +79,16 @@ class Report
      * Vytiskne report v zadaném formátu. Pokud není zadán, použije výchozí csv.
      * @throws Exception pokud formát není podporován
      */
-    public function tFormat(?string $format = null) {
+    public function tFormat(string $format = null, string $nazev = null) {
         $format = trim((string)$format);
         if (!$format || $format === 'xlsx') {
-            $this->tXlsx();
+            $this->tXlsx($nazev);
         } elseif ($format === 'csv') {
-            $this->tCsv();
+            $this->tCsv($nazev);
         } elseif ($format === 'html') {
             $this->tHtml();
         } else {
-            throw new Exception(sprintf("Formát '%s' není podporován", $format));
+            throw new Chyba(sprintf("Formát '%s' není podporován", $format));
         }
     }
 

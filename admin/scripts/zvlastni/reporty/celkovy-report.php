@@ -144,8 +144,4 @@ while ($r = mysqli_fetch_assoc($o)) {
     );
 }
 
-$report = Report::zPoli($hlavniHlavicka, $obsah);
-$format = get('format') === 'html'
-    ? 'tHtml'
-    : 'tCsv';
-$report->$format();
+Report::zPoli($hlavniHlavicka, $obsah)->tFormat(get('format'));

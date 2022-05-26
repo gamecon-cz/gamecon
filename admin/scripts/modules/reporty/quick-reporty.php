@@ -43,7 +43,7 @@ if ($saveResult) {
   if ($saveResult !== true) {
     $newReportId = $saveResult;
     dbQuery(<<<SQL
-  INSERT INTO reporty (skript, nazev, format_csv, format_html, viditelny)
+  INSERT INTO reporty (skript, nazev, format_xlsx, format_html, viditelny)
   VALUES (CONCAT('quick-', $1), (SELECT reporty_quick.nazev FROM reporty_quick WHERE reporty_quick.id = $1), 1, 1, 0)
 SQL
       , [$newReportId]

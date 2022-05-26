@@ -1,5 +1,4 @@
 <?php
-
 require __DIR__ . '/sdilene-hlavicky.php';
 
 $report = Report::zSql(<<<SQL

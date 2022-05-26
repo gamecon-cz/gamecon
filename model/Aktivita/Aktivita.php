@@ -6,6 +6,7 @@ use Gamecon\Cas\DateTimeCz;
 use Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImportSqlColumn;
 use Gamecon\PrednacitaniTrait;
 use Symfony\Component\Filesystem\Filesystem;
+use \Gamecon\Aktivita\TypAktivity;
 
 require_once __DIR__ . '/../../admin/scripts/modules/aktivity/_editor-tagu.php';
 

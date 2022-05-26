@@ -80,6 +80,4 @@ while ($r = mysqli_fetch_assoc($o)) {
     $p[] = $r;
 }
 
-$report = Report::zPole($p);
-$format = get('format') === 'html' ? 'tHtml' : 'tCsv';
-$report->$format();
+Report::zPole($p)->tFormat(get('format'));
