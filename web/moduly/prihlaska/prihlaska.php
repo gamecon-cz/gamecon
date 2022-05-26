@@ -83,7 +83,7 @@ $shop = new Shop($u);
 $pomoc = new Pomoc($u);
 
 if (post('odhlasit')) {
-    $u->gcOdhlas();
+    $u->gcOdhlas($u);
     oznameni(hlaska('odhlaseniZGc', $u));
 }
 
@@ -91,7 +91,7 @@ if (post('prihlasitNeboUpravit')) {
     $prihlasovani = false;
     if (!$u->gcPrihlasen()) {
         $prihlasovani = true;
-        $u->gcPrihlas();
+        $u->gcPrihlas($u);
     }
     $shop->zpracujPredmety();
     $shop->zpracujUbytovani();

@@ -231,9 +231,8 @@ function dbNumQ() {
 function dbNumRows($query): int {
     if ($query === true) {
         // result of mysqli_query INSERT / UPDATE / DELETE
-        return $GLOBALS['spojeni']->affected_rows;
-    }
-    if ($query instanceof mysqli_result) {
+        return $GLOBALS['dbAffectedRows'] ?? 0;
+    } elseif ($query instanceof mysqli_result) {
         // result of mysqli_query SELECT
         return $query->num_rows ?? 0;
     }
@@ -312,10 +311,12 @@ function dbQuery($q, $param = null) {
     if ($param) {
         return dbQueryS($q, $param);
     }
-    dbConnect();
+    $mysqli = dbConnect();
     $GLOBALS['dbLastQ'] = $q;
     $start = microtime(true);
-    $r = mysqli_query($GLOBALS['spojeni'], $q);
+    $r = mysqli_query($mysqli, $q);
+    // raději si to hned odložíme, protože opakovaný dotaz na mysqli->affected_rows vede k tomu, že první dotaz vrátí správnou hodnotu, ale druhý už -1 ("disk se automaticky zničí po přečtení za pět, čtyři, tři...")
+    $GLOBALS['dbAffectedRows'] = mysqli_affected_rows($mysqli);
     $end = microtime(true);
     if (!$r) {
         throw new DbException();

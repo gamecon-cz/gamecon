@@ -11,6 +11,8 @@ use Gamecon\Aktivita\Aktivita;
  */
 class Uzivatel
 {
+    public const POSAZEN = 'posazen';
+    public const SESAZEN = 'sesazen';
 
     public const UZIVATEL_PRACOVNI = 'uzivatel_pracovni';
     public const UZIVATEL = 'uzivatel';
@@ -161,7 +163,7 @@ SQL
     /**
      * Přidá uživateli židli (posadí uživatele na židli)
      */
-    public function dejZidli(int $idZidle, int $posadil = null) {
+    public function dejZidli(int $idZidle, Uzivatel $posadil) {
         if ($this->maZidli($idZidle)) {
             return;
         }
@@ -172,17 +174,16 @@ SQL
             throw new Chyba('Uživatel už má jinou unikátní židli.');
         }
 
-        foreach ($novaPrava as $pravo) {
-            if (!$this->maPravo($pravo)) {
-                $this->u['prava'][] = (int)$pravo;
-            }
-        }
-
-        dbQuery(
+        $result = dbQuery(
             "INSERT IGNORE INTO r_uzivatele_zidle(id_uzivatele, id_zidle, posadil)
             VALUES ($1, $2, $3)",
-            [$this->id(), $idZidle, $posadil]
+            [$this->id(), $idZidle, $posadil->id()]
         );
+        if (dbNumRows($result) > 0) {
+            $this->zalogujZmenuZidle($idZidle, $posadil->id(), self::POSAZEN);
+        }
+
+        $this->aktualizujPrava();
     }
 
     /** Vrátí profil uživatele pro DrD */
@@ -241,7 +242,7 @@ SQL
      * @todo Možná vyhodit výjimku, pokud už prošel infem, místo pouhého neudělání nic?
      * @todo Při odhlášení z GC pokud jsou zakázané rušení nákupů může být též problém (k zrušení dojde)
      */
-    public function gcOdhlas(): bool {
+    public function gcOdhlas(Uzivatel $editor): bool {
         if (!$this->gcPrihlasen()) {
             return false;
         }
@@ -256,9 +257,9 @@ SQL
         // zrušení nákupů
         dbQuery('DELETE FROM shop_nakupy WHERE rok=' . ROK . ' AND id_uzivatele=' . $this->id());
         // finální odebrání židle "registrován na GC"
-        $this->vemZidli(ZIDLE_PRIHLASEN);
+        $this->vemZidli(\Gamecon\Zidle::PRIHLASEN_NA_LETOSNI_GC, $editor);
         // odeslání upozornění, pokud u nás má peníze
-        if (mysqli_num_rows(dbQuery('SELECT 1 FROM platby WHERE rok=' . ROK . ' AND id_uzivatele=' . $this->id())) > 0) {
+        if (dbQuery('SELECT 1 FROM platby WHERE rok=' . ROK . ' AND id_uzivatele=' . $this->id() . ' LIMIT 1')->num_rows > 0) {
             (new GcMail)
                 ->adresat('info@gamecon.cz')
                 ->predmet('Uživatel ' . $this->jmenoNick() . ' se odhlásil ale platil')
@@ -315,11 +316,11 @@ SQL,
     }
 
     /** „Odjede“ uživatele z GC */
-    public function gcOdjed() {
+    public function gcOdjed(Uzivatel $editor) {
         if (!$this->gcPritomen()) {
-            throw new Exception('Uživatel není přítomen na GC');
+            throw new \Chyba('Uživatel není přítomen na GC');
         }
-        $this->dejZidli(ZIDLE_ODJEL);
+        $this->dejZidli(\Gamecon\Zidle::ODJEL_Z_LETOSNIHO_GC, $editor);
     }
 
     /** Opustil uživatel GC? */
@@ -336,12 +337,12 @@ SQL,
     }
 
     /** Příhlásí uživatele na GC */
-    public function gcPrihlas() {
+    public function gcPrihlas(Uzivatel $editor) {
         if ($this->gcPrihlasen()) {
             return;
         }
 
-        $this->dejZidli(ZIDLE_PRIHLASEN);
+        $this->dejZidli(\Gamecon\Zidle::PRIHLASEN_NA_LETOSNI_GC, $editor);
     }
 
     /** Prošel uživatel infopultem, dostal materiály a je nebo byl přítomen na aktuálím
@@ -1165,9 +1166,21 @@ SQL,
     /**
      * Odstraní uživatele z židle a aktualizuje jeho práva.
      */
-    public function vemZidli($zidle) {
-        dbQuery('DELETE FROM r_uzivatele_zidle WHERE id_uzivatele=' . $this->id() . ' AND id_zidle=' . (int)$zidle);
+    public function vemZidli(int $idZidle, Uzivatel $editor) {
+        $result = dbQuery('DELETE FROM r_uzivatele_zidle WHERE id_uzivatele=' . $this->id() . ' AND id_zidle=' . $idZidle);
+        if (dbNumRows($result) > 0) {
+            $this->zalogujZmenuZidle($idZidle, $editor->id(), self::SESAZEN);
+        }
         $this->aktualizujPrava();
+    }
+
+    private function zalogujZmenuZidle(int $idZidle, int $idEditora, string $zmena) {
+        dbQuery(<<<SQL
+INSERT INTO r_uzivatele_zidle_log(id_uzivatele, id_zidle, id_zmenil, zmena, kdy)
+VALUES ($0, $1, $2, $3, NOW())
+SQL,
+            [$this->id(), $idZidle, $idEditora, $zmena]
+        );
     }
 
     //getters, setters

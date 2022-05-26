@@ -9,6 +9,10 @@
  */
 
 /**
+ * @var Uzivatel $u
+ */
+
+/**
  * @param array $idUzivatelu
  * @return Uzivatel[]|null
  */
@@ -95,9 +99,9 @@ if (post('odhlasit')) {
     $idUzivatelu = post('id');
     $uzivatele = $dejUzivatelekOdhlaseni($idUzivatelu);
 
-    array_walk($uzivatele, static function (Uzivatel $uzivatel) use (&$potize) {
+    array_walk($uzivatele, static function (Uzivatel $uzivatel) use (&$potize, $u) {
         try {
-            $uzivatel->gcOdhlas();
+            $uzivatel->gcOdhlas($u);
         } catch (\Gamecon\Exceptions\CanNotKickOutUserFromGamecon $canNotKickOutUserFromGamecon) {
             $potize[] = sprintf(
                 "Nelze ohlásit účastníka %s s ID %d: '%s'",
