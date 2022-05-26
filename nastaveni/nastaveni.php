@@ -130,7 +130,7 @@ unset($pre);
 @define('P_NERUSIT_OBJEDNAVKY', Pravo::NERUSIT_AUTOMATICKY_OBJEDNAVKY); // nebudou mu automaticky rušeny objednávky
 @define('P_AKTIVITY_SLEVA', Pravo::CASTECNA_SLEVA_NA_AKTIVITY); // má 40% slevu na aktivity
 @define('P_AKTIVITY_ZDARMA', Pravo::AKTIVITY_ZDARMA); // má 100% slevu na aktivity
-@define('P_STATISTIKY_UCAST', Pravo::ZOBRAZOVAT_VE_STATISTIKAK_V_TABULCE_UCASTI); // židle se vypisuje se v tabulce účasti v statistikách
+@define('P_STATISTIKY_UCAST', Pravo::ZOBRAZOVAT_VE_STATISTIKACH_V_TABULCE_UCASTI); // židle se vypisuje se v tabulce účasti v statistikách
 @define('P_REPORT_NEUBYTOVANI', Pravo::VYPISOVAT_V_REPORTU_NEUBYTOVANYCH); // v reportu neubytovaných se vypisuje
 @define('P_TITUL_ORG', Pravo::TITUL_ORGANIZATOR); // v různých výpisech se označuje jako organizátor
 @define('P_UNIKATNI_ZIDLE', Pravo::UNIKATNI_ZIDLE); // uživatel může mít jen jednu židli s tímto právem

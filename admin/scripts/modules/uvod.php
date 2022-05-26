@@ -18,7 +18,7 @@ use \Gamecon\Cas\DateTimeGamecon;
  */
 
 if (!empty($_POST['datMaterialy']) && $uPracovni && $uPracovni->gcPrihlasen()) {
-    $uPracovni->dejZidli(ZIDLE_PRITOMEN, $u->id());
+    $uPracovni->dejZidli(ZIDLE_PRITOMEN, $u);
     back();
 }
 
@@ -42,7 +42,7 @@ if (post('platba') && $uPracovni) {
 }
 
 if (!empty($_POST['gcPrihlas']) && $uPracovni && !$uPracovni->gcPrihlasen()) {
-    $uPracovni->gcPrihlas();
+    $uPracovni->gcPrihlas($u);
     back();
 }
 
@@ -68,7 +68,7 @@ if (!empty($_POST['rychloreg'])) {
         $_SESSION["id_uzivatele"] = $nid;
         $uPracovni = Uzivatel::prihlasId($nid, 'uzivatel_pracovni');
         if (!empty($_POST['vcetnePrihlaseni'])) {
-            $uPracovni->gcPrihlas();
+            $uPracovni->gcPrihlas($u);
         }
         back();
     }
@@ -110,12 +110,12 @@ if (!empty($_POST['prodej'])) {
 }
 
 if (!empty($_POST['gcOdhlas']) && $uPracovni && !$uPracovni->gcPritomen()) {
-    $uPracovni->gcOdhlas();
+    $uPracovni->gcOdhlas($u);
     back();
 }
 
 if (post('gcOdjed')) {
-    $uPracovni->gcOdjed();
+    $uPracovni->gcOdjed($u);
     back();
 }
 

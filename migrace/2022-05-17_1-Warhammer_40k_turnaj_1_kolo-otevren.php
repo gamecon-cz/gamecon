@@ -9,7 +9,7 @@ $warhammer40kTurnaj2022 = reset($warhammer40kTurnaj2022Wrapped);
 unset($warhammer40kTurnaj2022Wrapped);
 
 $uzivatelGamecon = Uzivatel::zNicku('Gamecon');
-$uzivatelGamecon->gcPrihlas();
+$uzivatelGamecon->gcPrihlas($uzivatelGamecon);
 
 function flatten(array $mutliDimensionalArray) {
     $flattened = [];
