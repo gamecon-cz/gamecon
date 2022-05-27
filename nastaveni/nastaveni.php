@@ -92,12 +92,11 @@ if (!defined('REG_GC_DO')) define('REG_GC_DO', GC_BEZI_DO); // ukončení možno
 
 error_reporting($puvodni); // zrušení maskování notice
 unset($puvodni);
-$pre = -(ROK - 2000) * 100; //předpona pro židle a práva vázaná na aktuální rok
+
 // židle - nepoužívat pro vyjádření atributů (slev, možnosti se přihlašovat, …)
-@define('ZIDLE_PRIHLASEN', $pre - 1);       //přihlášen na GameCon
-@define('ZIDLE_PRITOMEN', $pre - 2);        //prošel infopulteP_ORG_AKm a je na GameConu
-@define('ZIDLE_ODJEL', $pre - 3);           //prošel infopultem na odchodu a odjel z GC
-unset($pre);
+@define('ZIDLE_PRIHLASEN', \Gamecon\Zidle::prihlasenNaGcRoku(ROK)); // přihlášen na GameCon
+@define('ZIDLE_PRITOMEN', Gamecon\Zidle::pritomenNaGcRoku(ROK));    // prošel infopulteP_ORG_AKm a je na GameConu
+@define('ZIDLE_ODJEL', Gamecon\Zidle::odjelZGcRoku(ROK));           // prošel infopultem na odchodu a odjel z GC
 
 // TODO byl přihlášen na GC a už není (kvůli počítání financí apod.)
 @define('ZIDLE_ORG_AKTIVIT', \Gamecon\Zidle::VYPRAVEC);               // vypravěč (org akcí)

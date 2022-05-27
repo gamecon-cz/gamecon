@@ -38,6 +38,7 @@
     "ext-mbstring": "*",
     "ext-mysqli": "*",
     "ext-pdo": "*",
+    "ext-zip": "*",
     "defuse/php-encryption": "^2.1",
     "dg/mysql-dump": "^1.5",
     "godric/db-backup": "dev-master",
