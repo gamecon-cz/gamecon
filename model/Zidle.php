@@ -31,6 +31,37 @@ class Zidle extends \DbObject
     public const ODJEL_Z_LETOSNIHO_GC = ZIDLE_ODJEL;
 
     /**
+     * Přihlásil se, neboli registroval, na GameCon
+     * @param int $rok
+     * @return int
+     */
+    public static function prihlasenNaGcRoku(int $rok): int {
+        return self::preProRok($rok) - 1;
+    }
+
+    /**
+     * Prošel infopultem a byl na GameConu
+     * @param int $rok
+     * @return int
+     */
+    public static function pritomenNaGcRoku(int $rok): int {
+        return self::preProRok($rok) - 2;
+    }
+
+    /**
+     * Prošel infopultem na odchodu a odjel z GameConu
+     * @param int $rok
+     * @return int
+     */
+    public static function odjelZGcRoku(int $rok): int {
+        return self::preProRok($rok) - 3;
+    }
+
+    private static function preProRok(int $rok): int {
+        return -($rok - 2000) * 100; // předpona pro židle a práva vázaná na daný rok
+    }
+
+    /**
      * @param int[] $zidle
      * @return bool
      */

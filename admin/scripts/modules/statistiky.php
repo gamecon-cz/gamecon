@@ -7,7 +7,7 @@
  * pravo: 107
  */
 
-use Gamecon\Cas\DateTimeCz;
+use Gamecon\Statistiky\Statistiky;
 use Gamecon\Zidle;
 use Gamecon\Pravo;
 
@@ -112,70 +112,45 @@ $zbyva = new DateTime(DEN_PRVNI_DATE);
 $zbyva = $zbyva->diff(new DateTime());
 $zbyva = $zbyva->format('%a dní') . ' (' . round($zbyva->format('%a') / 7, 1) . ' týdnů)';
 
-// graf účasti
-$ucastResult = dbQuery(<<<SQL
-SELECT
-    DATE(log.kdy) as den,
-    SUM(CASE log.zmena WHEN $2 THEN 1 WHEN $3 THEN -1 ELSE 0 END) as prihlasen,
-    COUNT(IF(YEAR(u.registrovan)=$0,1,NULL)) as novy
-  FROM r_uzivatele_zidle_log AS log
-  JOIN uzivatele_hodnoty u USING(id_uzivatele)
-  WHERE log.id_zidle=$1
-  GROUP BY DATE(log.kdy)
-SQL,
-    [ROK, Zidle::PRIHLASEN_NA_LETOSNI_GC, Uzivatel::POSAZEN, Uzivatel::SESAZEN]
-);
-$zacatek = new DateTime(ROK . '-04-29'); // zde ladit, dokud se grafy nezarovnají na poslední den
-$pocet = 0;
-do {
-    $pocet += $row['prihlasen'] ?? 0; // první prázdný ignorovat, další brát "o kolo zpět"
-    $row = mysqli_fetch_assoc($ucastResult);
-    $den = new DateTimeCz($row['den']);
-} while ($den->pred($zacatek) && $row['den']); // kontrola dne proti zacyklení
-// dny před GC
-$dny = '';
-$prihlaseniLetos = [];
-$konec = new DateTime(GC_BEZI_DO);
-
-$vceraTouhleDobou = new \DateTimeImmutable();
-for (
-    $den = $zacatek;
-    $den <= $konec;
-    $den->add(new DateInterval('P1D'))
-) {
-    $denDb = new DateTime($row['den']);
-    if ($row === false) { // z DB už vše vyčteno
-        if ($den < $vceraTouhleDobou) { // dnešek nezobrazujeme pokud přibylo 0, včerejšek a dříve už ano
-            $prihlaseniLetos[] = $pocet;
-        } else {
-            $prihlaseniLetos[] = null;
-        }
-    } else if ($den->getTimestamp() < $denDb->getTimestamp()) {
-        $prihlaseniLetos[] = $pocet;
-    } else if ($den->getTimestamp() == $denDb->getTimestamp()) {
-        $pocet += $row['prihlasen'];
-        $prihlaseniLetos[] = $pocet;
-        $row = mysqli_fetch_assoc($ucastResult);
-    } else {
-        $prihlaseniLetos[] = null;
-    }
-    $dny .= '\'' . $den->format('j.n.') . '\',';
-}
-$dny = '[' . substr($dny, 0, -1) . ']';
-$pocetDni = substr_count($dny, ',');
-
 $vybraneRoky = $_GET['rok'] ?? range(ROK - 3, ROK);
-$prihlaseniData = require __DIR__ . '/_statistiky_prihlaseni_minulych_let.php';
-$prihlaseniData[ROK] = $prihlaseniLetos;
+
+$prihlaseniData = (new Statistiky($vybraneRoky))->data();
+
+$pocetDni = 0;
+$nazvyDnu = [];
+$konceGc = [];
 $prihlaseniProJs = [];
-foreach ($prihlaseniData as $rok => $data) {
+foreach ($prihlaseniData as $rok => $dataJednohoRoku) {
     if ((int)$rok === 2020) {
         continue; // Call of Covid
     }
     if (in_array($rok, $vybraneRoky, false)) {
-        $prihlaseniProJs[] = ['name' => "Přihlášení $rok", 'data' => $data];
+        array_unshift($dataJednohoRoku, 0, 0, 0); // aby graf začínal pěkne na nule
+        $dataJednohoRoku[] = end($dataJednohoRoku); // zopakujeme posledni den, opět aby byl hezčí graf
+        $prihlaseniProJs[] = ['name' => "Přihlášení $rok", 'data' => $dataJednohoRoku];
+        $dnyJednohoRoku = array_keys($dataJednohoRoku);
+        $nazvyDnuJednohoRoku = array_map(
+            static function (int $indexDne) {
+                $poradiDne = $indexDne - 1; // protože máme posun kvůli nastrkaným nulám pro hezký graf
+                return $poradiDne === 1
+                    ? 'začátek registrací' // graf krokuje po dvou, takže jak nultá tak první pozice musí být stejně pojmenovaná
+                    : "den $poradiDne";
+            },
+            $dnyJednohoRoku
+        );
+        $nazvyDnu = array_unique(array_merge($nazvyDnu, $nazvyDnuJednohoRoku));
+        $posledniDenGcRoku = end($nazvyDnuJednohoRoku);
+        $konceGc[$rok] = $posledniDenGcRoku;
     }
 }
+foreach ($konceGc as $rok => $nazevDneKonceGc) {
+    if ($rok === ROK && pred(GC_BEZI_DO)) {
+        continue; // letošní GC ještě neskončil, nechceme ukazovat poslední známé hodnoty s názvem "konec GC"
+    }
+    $indexDneKonceJednohoGc = array_search($nazevDneKonceGc, $nazvyDnu);
+    $nazvyDnu[$indexDneKonceJednohoGc] = "konec GC $rok";
+}
+$pocetDni = count($nazvyDnu);
 $prihlaseniJson = json_encode($prihlaseniProJs);
 ?>
 
@@ -198,7 +173,7 @@ $prihlaseniJson = json_encode($prihlaseniProJs);
             legend: {enabled: false},
             credits: {enabled: false},
             xAxis: {
-                categories: <?=$dny?>,
+                categories: <?= json_encode($nazvyDnu) ?>,
                 labels: {
                     rotation: -90,
                     style: {fontSize: '8px'},
@@ -206,7 +181,7 @@ $prihlaseniJson = json_encode($prihlaseniProJs);
                 plotLines: [{
                     color: '#cccccc',
                     width: 1,
-                    value: <?=$pocetDni?> - 3.5,
+                    value: <?= $pocetDni ?> - 3.5,
                 }],
             },
             yAxis: {
