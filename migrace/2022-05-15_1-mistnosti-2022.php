@@ -3,6 +3,8 @@
 /** @var \Godric\DbMigrations\Migration $this */
 
 $this->q(<<<SQL
+DROP TEMPORARY TABLE IF EXISTS akce_lokace_tmp;
+
 CREATE TEMPORARY TABLE akce_lokace_tmp
 LIKE akce_lokace;
 

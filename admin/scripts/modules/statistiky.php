@@ -113,6 +113,7 @@ $zbyva = $zbyva->diff(new DateTime());
 $zbyva = $zbyva->format('%a dní') . ' (' . round($zbyva->format('%a') / 7, 1) . ' týdnů)';
 
 $vybraneRoky = $_GET['rok'] ?? range(ROK - 3, ROK);
+$mozneRoky = range(2012, ROK);
 
 $prihlaseniData = (new Statistiky($vybraneRoky))->data();
 
@@ -234,18 +235,18 @@ $prihlaseniJson = json_encode($prihlaseniProJs);
         <legend style="padding: 0 0 0.5em; font-style: italic">
             Roky v grafu
         </legend>
-        <?php foreach (array_keys($prihlaseniData) as $rok) {
+        <?php foreach ($mozneRoky as $moznyRok) {
             ?>
             <span style="min-width: 4em; display: inline-block">
                     <label style="padding-right: 0.3em; cursor: pointer">
-                        <input type="checkbox" name="rok[]" value="<?= $rok ?>" style="padding-right: 0.2em"
+                        <input type="checkbox" name="rok[]" value="<?= $moznyRok ?>" style="padding-right: 0.2em"
                                onchange="$('#vyberRokuGrafu').submit()"
-                               <?php if ((int)$rok === 2020) { ?>disabled<?php } ?>
-                               <?php if (in_array($rok, $vybraneRoky, false)) { ?>checked<?php } ?>>
-                        <?php if ((int)$rok === 2020) { ?>
+                               <?php if ((int)$moznyRok === 2020) { ?>disabled<?php } ?>
+                               <?php if (in_array($moznyRok, $vybraneRoky, false)) { ?>checked<?php } ?>>
+                        <?php if ((int)$moznyRok === 2020) { ?>
                             <span title="Call of Covid">👾</span>
                         <?php } ?>
-                        <?= $rok ?>
+                        <?= $moznyRok ?>
                     </label>
             </span>
         <?php } ?>
