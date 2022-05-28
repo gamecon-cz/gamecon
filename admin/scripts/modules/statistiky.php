@@ -166,6 +166,18 @@ $prihlaseniJson = json_encode($prihlaseniProJs);
 </style>
 <script>
     $(function () {
+        const colors = [
+            '#2fd8b9',
+            '#2f7ed8',
+            '#8bbc21',
+            '#910000',
+            '#1aadce',
+            '#492970',
+            '#f28f43',
+            '#77a1e5',
+            '#c42525',
+            '#a6c96a',
+        ]
         $('#vyvojRegu').highcharts({
             chart: {
                 type: 'line',
@@ -198,17 +210,20 @@ $prihlaseniJson = json_encode($prihlaseniProJs);
                 },
             },
             series: <?= $prihlaseniJson ?>,
-            colors: [
-                '#2f7ed8',
-                '#8bbc21',
-                '#910000',
-                '#1aadce',
-                '#492970',
-                '#f28f43',
-                '#77a1e5',
-                '#c42525',
-                '#a6c96a',
-            ],
+            colors: colors,
+        })
+        Array.from(document.querySelectorAll('input[name="rok[]"][checked]:not(:disabled)')).forEach(function (rokInput, index) {
+            // pokud by snad barev bylo méně než grafů, tak se začnou opakovat od začátku - proto ten výpočet restartu indexu, když už pro současný barvu nemáme
+            rokInput.parentElement.style.backgroundColor = colors[index] || colors[index - colors.length - 1]
+        })
+        const rokInputs = Array.from(document.querySelectorAll('input[name="rok[]"]:not(:disabled)'))
+        rokInputs.forEach(function (rokInput, index) {
+            rokInput.addEventListener('change', function () {
+                document.getElementById('vyberRokuGrafu').submit()
+                rokInputs.forEach(function (rokInput) {
+                    rokInput.disabled = true
+                })
+            })
         })
     })
 </script>
@@ -236,15 +251,19 @@ $prihlaseniJson = json_encode($prihlaseniProJs);
             Roky v grafu
         </legend>
         <?php foreach ($mozneRoky as $moznyRok) {
+            $callOfCovid = (int)$moznyRok === 2020;
             ?>
             <span style="min-width: 4em; display: inline-block">
-                    <label style="padding-right: 0.3em; cursor: pointer">
+                    <label class="<?php if ($callOfCovid) { ?>hinted<?php } ?>"
+                           style="border-bottom: none; padding-right: 0.3em; cursor: <?php if ($callOfCovid) { ?>not-allowed<?php } else { ?>pointer<? } ?>">
                         <input type="checkbox" name="rok[]" value="<?= $moznyRok ?>" style="padding-right: 0.2em"
-                               onchange="$('#vyberRokuGrafu').submit()"
                                <?php if ((int)$moznyRok === 2020) { ?>disabled<?php } ?>
                                <?php if (in_array($moznyRok, $vybraneRoky, false)) { ?>checked<?php } ?>>
                         <?php if ((int)$moznyRok === 2020) { ?>
-                            <span title="Call of Covid">👾</span>
+                            <span>
+                                👾
+                                <span class="hint">Call of Covid</span>
+                            </span>
                         <?php } ?>
                         <?= $moznyRok ?>
                     </label>
