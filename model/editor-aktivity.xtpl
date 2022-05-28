@@ -307,7 +307,7 @@
 </table>
 <!-- end:tabulka -->
 
-<div class="hinted" style="float:left">
+<div class="hinted" style="float:left; border-bottom: none">
   <span class="hint" style="top: unset; bottom: -40px">Šířka minimálně 320 px, poměr 16:9</span>
   <table>
     <tr>
@@ -318,12 +318,12 @@
     </tr>
     <tr>
       <th>
-        <label for="soubor" class="display-block">Nahrát soubor</label>
+        <label for="soubor" class="hinted display-block">Nahrát soubor</label>
       </th>
       <td><input id="soubor" type="file" name="{obrKlic}"></td>
     </tr>
     <tr>
-      <th><label for="nahratObrazekZUrl">Nahrát z URL</label></th>
+      <th><label class="hinted" for="nahratObrazekZUrl">Nahrát z URL</label></th>
       <td><input id="nahratObrazekZUrl" class="full" type="text" name="{obrKlicUrl}"></td>
     </tr>
   </table>
