@@ -188,8 +188,11 @@ function tabHtml($tab) {
 /**
  * Returns HTML formatted table from db answer
  */
-function tabMysql($a) {
+function tabMysql($a, string $title = '') {
     $tabOut = "<table>\n";
+    if ($title !== '') {
+        $tabOut .= "<caption>$title</caption>";
+    }
     if (!$r = mysqli_fetch_assoc($a))
         return '';
     $tabOut .= "  <tr>\n    <th>" . implode("</th>\n    <th>", array_keys($r)) . "</th>\n  </tr>\n";
