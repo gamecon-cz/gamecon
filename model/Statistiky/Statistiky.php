@@ -144,13 +144,21 @@ SQL, [
 
     public function tabulkaUbytovaniHtml(): string {
         return tabMysql(dbQuery(<<<SQL
+SELECT Název, Počet FROM (
   SELECT
-    p.nazev Název,
-    COUNT(n.id_predmetu) Počet
-  FROM shop_nakupy n
-  JOIN shop_predmety p ON(n.id_predmetu=p.id_predmetu)
-  WHERE n.rok=$0 AND (p.typ=$1)
-  GROUP BY n.id_predmetu
+    predmety.nazev Název,
+    COUNT(nakupy.id_predmetu) Počet,
+    FIND_IN_SET(
+        SUBSTR(predmety.nazev,1,6),
+        'Jednol,Dvojlů,Trojlů,Spacák'
+    ) AS ubytovani_sort_nazev,
+    predmety.ubytovani_den
+  FROM shop_nakupy AS nakupy
+  JOIN shop_predmety AS predmety ON nakupy.id_predmetu=predmety.id_predmetu
+  WHERE nakupy.rok=$0 AND predmety.typ=$1
+  GROUP BY nakupy.id_predmetu
+) AS seskupeno
+ORDER BY ubytovani_sort_nazev, ubytovani_den
 SQL, [
             $this->letosniRok,
             \Shop::UBYTOVANI,
@@ -160,24 +168,30 @@ SQL, [
     public function tabulkaUbytovaniKratce(): string {
 
         return tabMysql(dbQuery(<<<SQL
-  SELECT
-    SUBSTR(p.nazev,11) Den,
-    COUNT(n.id_predmetu) Počet
-  FROM shop_nakupy n
-  JOIN shop_predmety p ON(n.id_predmetu=p.id_predmetu)
-  WHERE n.rok=$0 AND p.typ=$1
-  GROUP BY p.ubytovani_den
+SELECT Den, Počet FROM (
+SELECT
+    SUBSTR(predmety.nazev,11) Den,
+    COUNT(nakupy.id_predmetu) Počet,
+    predmety.ubytovani_den
+  FROM shop_nakupy AS nakupy
+  JOIN shop_predmety AS predmety ON nakupy.id_predmetu=predmety.id_predmetu
+  WHERE nakupy.rok=$0 AND predmety.typ=$1
+  GROUP BY predmety.ubytovani_den
 UNION ALL
-  SELECT 'neubytovaní' as Den, COUNT(*) as Počet
-  FROM r_uzivatele_zidle z
+  SELECT 'neubytovaní' as Den,
+         COUNT(*) as Počet,
+         'zzz' AS ubytovani_den
+  FROM r_uzivatele_zidle AS uzivatele_zidle
   LEFT JOIN(
-    SELECT n.id_uzivatele
-    FROM shop_nakupy n
-    JOIN shop_predmety p ON n.id_predmetu=p.id_predmetu AND p.typ=$1
-    WHERE n.rok=$0
-    GROUP BY n.id_uzivatele
-  ) nn ON(nn.id_uzivatele=z.id_uzivatele)
+    SELECT nakupy.id_uzivatele
+    FROM shop_nakupy AS nakupy
+    JOIN shop_predmety AS predmety ON nakupy.id_predmetu=predmety.id_predmetu AND predmety.typ=$1
+    WHERE nakupy.rok=$0
+    GROUP BY nakupy.id_uzivatele
+  ) nn ON nn.id_uzivatele=uzivatele_zidle.id_uzivatele
   WHERE id_zidle=$2 AND ISNULL(nn.id_uzivatele)
+ORDER BY ubytovani_den
+) AS serazeno
 SQL, [
             $this->letosniRok,
             \Shop::UBYTOVANI,
@@ -188,12 +202,14 @@ SQL, [
     public function tabulkaJidlaHtml(): string {
 
         return tabMysql(dbQuery(<<<SQL
-SELECT Název,Počet,Sleva FROM (
+SELECT Název,Cena,Počet,Slev FROM (
   SELECT
     TRIM(predmety.nazev) Název,
+    predmety.cena_aktualni AS Cena, -- například v roce 2022 jsme část jídla prodali za menší cenu a část za větší - mohlo by se to stát u čehokoliv
     COUNT(nakupy.id_predmetu) Počet,
-    COUNT(slevy.id_uzivatele) as Sleva,
-    predmety.ubytovani_den
+    COUNT(slevy.id_uzivatele) as Slev, -- počet slev
+    predmety.ubytovani_den,
+    nakupy.id_predmetu
   FROM shop_nakupy AS nakupy
   JOIN shop_predmety AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
   LEFT JOIN (
@@ -205,7 +221,7 @@ SELECT Název,Počet,Sleva FROM (
   WHERE nakupy.rok = $1 AND predmety.typ = $2
   GROUP BY nakupy.id_predmetu
 ) AS seskupeno
-ORDER BY ubytovani_den, Název
+ORDER BY ubytovani_den, Název, id_predmetu
 SQL,
             [[Pravo::JIDLO_ZDARMA, Pravo::JIDLO_SE_SLEVOU], $this->letosniRok, \Shop::JIDLO]
         ), 'Jídlo');
