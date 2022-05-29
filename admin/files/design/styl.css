@@ -504,8 +504,18 @@ input[type="submit"]:disabled {
   background-color: #f2f1f3;
   border: solid 1px #eee;
   padding: 3px;
-  font-family: verdana;
+  font-family: verdana, serif;
   font-weight: normal;
+}
+
+.main table caption {
+  background: linear-gradient(to top, #fafdff 0%, #fdffff 50%, #f7f9fa 50%, #f2f1f3 100%);
+  background-color: rgba(0, 0, 0, 0);
+  background-color: #f2f1f3;
+  border: none;
+  padding: 3px;
+  font-family: verdana, serif;
+  font-weight: bolder;
 }
 
 .main table td {

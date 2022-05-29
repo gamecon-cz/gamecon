@@ -46,7 +46,7 @@ $predmety = tabMysql(dbQuery('
   WHERE shop_nakupy.rok=' . ROK . ' AND (shop_predmety.typ=1 OR shop_predmety.typ=3)
   GROUP BY shop_nakupy.id_predmetu
   -- ORDER BY p.typ, Počet DESC
-'));
+'), 'Předměty');
 
 $ubytovani = tabMysql(dbQuery('
   SELECT
@@ -56,7 +56,7 @@ $ubytovani = tabMysql(dbQuery('
   JOIN shop_predmety p ON(n.id_predmetu=p.id_predmetu)
   WHERE n.rok=' . ROK . ' AND (p.typ=2)
   GROUP BY n.id_predmetu
-'));
+'), 'Ubytování dny a místa');
 
 $ubytovaniKratce = tabMysql(dbQuery("
   SELECT
@@ -77,25 +77,30 @@ UNION ALL
     GROUP BY n.id_uzivatele
   ) nn ON(nn.id_uzivatele=z.id_uzivatele)
   WHERE id_zidle=" . ZIDLE_PRIHLASEN . " AND ISNULL(nn.id_uzivatele)
-"));
+"), 'Ubytování dny');
 
-$jidlo = tabMysql(dbQuery('
+$jidlo = tabMysql(dbQuery(<<<SQL
+SELECT Název,Počet,Sleva FROM (
   SELECT
-    TRIM(p.nazev) Název,
-    COUNT(n.id_predmetu) Počet,
-    COUNT(slevy.id_uzivatele) as Sleva
-  FROM shop_nakupy n
-  JOIN shop_predmety p ON n.id_predmetu = p.id_predmetu
+    TRIM(predmety.nazev) Název,
+    COUNT(nakupy.id_predmetu) Počet,
+    COUNT(slevy.id_uzivatele) as Sleva,
+    predmety.ubytovani_den
+  FROM shop_nakupy AS nakupy
+  JOIN shop_predmety AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
   LEFT JOIN (
     SELECT uz.id_uzivatele -- id uživatelů s právy uvedenými níž
     FROM r_uzivatele_zidle uz
-    JOIN r_prava_zidle pz ON pz.id_zidle = uz.id_zidle AND pz.id_prava IN(' . P_JIDLO_ZDARMA . ', ' . P_JIDLO_SLEVA . ')
+    JOIN r_prava_zidle pz ON pz.id_zidle = uz.id_zidle AND pz.id_prava IN($0)
     GROUP BY uz.id_uzivatele
-  ) slevy ON slevy.id_uzivatele = n.id_uzivatele
-  WHERE n.rok = ' . ROK . ' AND p.typ = 4
-  GROUP BY n.id_predmetu
-  ORDER BY p.ubytovani_den, p.nazev
-'));
+  ) AS slevy ON slevy.id_uzivatele = nakupy.id_uzivatele
+  WHERE nakupy.rok = $1 AND predmety.typ = $2
+  GROUP BY nakupy.id_predmetu
+) AS seskupeno
+ORDER BY ubytovani_den, Název
+SQL,
+    [[P_JIDLO_ZDARMA, P_JIDLO_SLEVA], ROK, Shop::JIDLO]
+), 'Jídlo');
 
 $pohlavi = tabMysqlR(dbQuery("
   SELECT
@@ -131,7 +136,6 @@ foreach ($prihlaseniData as $rok => $dataJednohoRoku) {
     }
     if (in_array($rok, $vybraneRoky, false)) {
         array_unshift($dataJednohoRoku, 0); // aby graf začínal pěkne na nule
-//        $dataJednohoRoku[] = end($dataJednohoRoku); // zopakujeme posledni den, opět aby byl hezčí graf
         $prihlaseniProJs[] = [
             'name' => "Přihlášení $rok",
             'data' => array_values($dataJednohoRoku) // JS knihovna vyžaduje číselné indexování
@@ -141,14 +145,14 @@ foreach ($prihlaseniData as $rok => $dataJednohoRoku) {
         $zacatekGcRoku = \Gamecon\Cas\DateTimeGamecon::spocitejZacatekGameconu($rok)->formatDatumDb();
         $konecGcRoku = \Gamecon\Cas\DateTimeGamecon::spocitejKonecGameconu($rok)->formatDatumDb();
         foreach ($dnyJednohoRoku as $indexDne => $denJednohoRoku) {
-            // index 0 je vynucená nula přes array_unshift, index 1 jsou všechny dny před registrací, index 2 je otevření registrací
-            if ($indexDne <= 1) {
+            // index 0 je vynucená nula přes array_unshift
+            if ($indexDne === 0) {
                 $nazvyDnuJednohoRoku[] = 'před registracemi';
-            } elseif ($indexDne === 2) {
-                $nazvyDnuJednohoRoku[] = 'začátek registrací'; // první den registrací
+            } elseif ($indexDne === 1) {
+                $nazvyDnuJednohoRoku[] = 'začátek registrací';
             } else {
                 $denRegistraci = $indexDne - 1;
-                $nazvyDnuJednohoRoku[] = "den $denRegistraci.";
+                $nazvyDnuJednohoRoku[] = "den $denRegistraci";
             }
             if ($zacatekGcRoku === $denJednohoRoku) {
                 // naposledy vytvořený název jednoho dne je zároveň i dnem začátku GC
