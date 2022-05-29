@@ -96,9 +96,20 @@ class Modul
         $this->cssUrls[] = $url;
     }
 
-    function pridejJsSoubor($cestaNaWebu) {
+    /** 
+     * Přidá k js souboru kořenovou cestu webu a verzi
+     * 
+     * @param string $cestaNaWebu cesta ve tvaru soubory/blackarrow/... .js
+     * @return string
+     */
+    function zabalJsSoubor($cestaNaWebu) {
         $verze = md5_file(WWW . '/' . $cestaNaWebu);
         $url = URL_WEBU . '/' . $cestaNaWebu . '?v=' . $verze;
+        return $url;
+    }
+
+    function pridejJsSoubor($cestaNaWebu) {
+        $url = $this->zabalJsSoubor($cestaNaWebu);
         $this->jsUrls[] = $url;
     }
 

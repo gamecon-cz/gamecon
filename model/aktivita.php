@@ -100,17 +100,24 @@ class Aktivita
             return null;
         } else if (!($this->cenaZaklad() > 0)) {
             return 'zdarma';
-        } else if ($this->a['bez_slevy']) {
-            return round($this->cenaZaklad()) . '&thinsp;Kč';
-        } else if ($u && $u->gcPrihlasen()) {
-            return round($this->cenaZaklad() * $u->finance()->slevaAktivity()) . '&thinsp;Kč';
-        }
-        return round($this->cenaZaklad()) . '&thinsp;Kč';
+        } else 
+            return round($this->cenaZaklad() * $this->slevaNasobic($u)) . '&thinsp;Kč';
     }
 
     /** Základní cena aktivity */
     public function cenaZaklad() {
         return $this->a['cena'];
+    }
+
+    /** Slevová hodnota kterou se násobí cena pro konkrétního uživatele. Zohledňuje bez_slevy */
+    public function slevaNasobic(Uzivatel $u = null) {
+        return (
+            !$this->a['bez_slevy'] 
+            && ($u && $u->gcPrihlasen())
+        ) 
+            ? $u->finance()->slevaAktivity() 
+            : 1
+            ;
     }
 
     /**
@@ -954,6 +961,25 @@ class Aktivita
             default :
                 return '';
         }
+    }
+
+    /**
+     * objekt obsahující informace o obsazenosti a kapacitě aktivity
+     */
+    public function obsazenostObj() {
+        $m = $this->prihlasenoMuzu(); // počty
+        $f = $this->prihlasenoZen();
+        $km = intval($this->a['kapacita_m']); // kapacity
+        $kf = intval($this->a['kapacita_f']);
+        $ku = intval($this->a['kapacita']);
+
+        return [
+            'm' => $m,
+            'f' => $f,
+            'km' => $km,
+            'kf' => $kf,
+            'ku' => $ku,
+        ];
     }
 
     /**
