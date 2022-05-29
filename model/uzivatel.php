@@ -360,17 +360,16 @@ SQL
      * samy, aby nemusely zbytečně načítat celého uživatele. Pokud je to
      * výkonnostně ok, raději se tomu vyhnout a uživatele načíst.
      */
-    static function jmenoNickZjisti($r) {
-        if ($r['jmeno_uzivatele'] && $r['prijmeni_uzivatele']) {
+    static function jmenoNickZjisti(array $r) {
+        if (!empty($r['jmeno_uzivatele']) && !empty($r['prijmeni_uzivatele'])) {
             $celeJmeno = $r['jmeno_uzivatele'] . ' ' . $r['prijmeni_uzivatele'];
             $jeMail = strpos($r['login_uzivatele'], '@') !== false;
-            if ($celeJmeno == $r['login_uzivatele'] || $jeMail)
+            if ($celeJmeno == $r['login_uzivatele'] || $jeMail) {
                 return $celeJmeno;
-            else
-                return $r['jmeno_uzivatele'] . ' „' . $r['login_uzivatele'] . '“ ' . $r['prijmeni_uzivatele'];
-        } else {
-            return $r['login_uzivatele'];
+            }
+            return $r['jmeno_uzivatele'] . ' „' . $r['login_uzivatele'] . '“ ' . $r['prijmeni_uzivatele'];
         }
+        return $r['login_uzivatele'];
     }
 
     /**
@@ -780,7 +779,7 @@ SQL
     /**
      * Zregistruje nového uživatele nebo upraví stávajícího $u, pokud je zadán.
      */
-    private static function registrujUprav($tab, $u = null) {
+    private static function registrujUprav($tab, Uzivatel $u = null) {
         $dbTab = $tab;
         $chyby = [];
         $preskocitChybejiciPole = (bool)$u;
@@ -905,11 +904,13 @@ SQL
             dbUpdate('uzivatele_hodnoty', $dbTab, ['id_uzivatele' => $u->id()]);
             $u->otoc();
             $idUzivatele = $u->id();
+            $urlUzivatele = self::vytvorUrl($u->u);
         } else {
             dbInsert('uzivatele_hodnoty', $dbTab);
             $idUzivatele = dbInsertId();
+            $dbTab['id_uzivatele'] = $idUzivatele;
+            $urlUzivatele = self::vytvorUrl($dbTab);
         }
-        $urlUzivatele = self::vytvorUrl($dbTab);
         if ($urlUzivatele !== null) {
             dbInsertUpdate('uzivatele_url', ['id_uzivatele' => $idUzivatele, 'url' => $urlUzivatele]);
         }
