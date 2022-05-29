@@ -5,7 +5,7 @@ namespace Gamecon\Shop;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Chyba;
 use Uzivatel;
-use XTemplate;
+use Gamecon\XTemplate\XTemplate;
 
 class ShopUbytovani
 {
@@ -57,7 +57,7 @@ SQL,
         }
 
         $zapsanoZmen = 0;
-        $dny = range($prvniNoc, $posledniNoc);
+        $dny         = range($prvniNoc, $posledniNoc);
         foreach ($dny as $den) {
             $mysqliResult = dbQuery(<<<SQL
 INSERT INTO ubytovani(id_uzivatele, den, pokoj, rok)
@@ -66,7 +66,7 @@ INSERT INTO ubytovani(id_uzivatele, den, pokoj, rok)
 SQL,
                 [$ucastnik->id(), $den, $pokoj, ROK]
             );
-            $zapsanoZmen += dbNumRows($mysqliResult);
+            $zapsanoZmen  += dbNumRows($mysqliResult);
         }
         $mysqliResult = dbQuery(<<<SQL
 DELETE FROM ubytovani
@@ -74,7 +74,7 @@ WHERE id_uzivatele = $0 AND den NOT IN ($1) AND rok = $2
 SQL,
             [$ucastnik->id(), $dny, ROK]
         );
-        $zapsanoZmen += dbNumRows($mysqliResult);
+        $zapsanoZmen  += dbNumRows($mysqliResult);
 
         return $zapsanoZmen;
     }
@@ -120,7 +120,7 @@ SQL,
         }
 
         $nemelObjednanoDrive = (int)$predmet['kusu_uzivatele'] <= 0;
-        $kapacitaVycerpana = $predmet['kusu_vyrobeno'] <= $predmet['kusu_prodano'];
+        $kapacitaVycerpana   = $predmet['kusu_vyrobeno'] <= $predmet['kusu_prodano'];
 
         return $kapacitaVycerpana && $nemelObjednanoDrive;
     }
@@ -138,13 +138,13 @@ SQL,
         int      $rok = ROK
     ): int {
         // vložit jeho zaklikané věci - note: není zabezpečeno
-        $sqlValuesArray = [];
+        $sqlValuesArray          = [];
         $idsPredmetuUbytovaniInt = [];
         foreach ($idsPredmetuUbytovani as $idPredmetuUbytovani) {
             if (!$idPredmetuUbytovani) {
                 continue;
             }
-            $idPredmetuUbytovani = (int)$idPredmetuUbytovani;
+            $idPredmetuUbytovani       = (int)$idPredmetuUbytovani;
             $idsPredmetuUbytovaniInt[] = $idPredmetuUbytovani;
             if ($hlidatKapacituUbytovani && self::ubytovaniPresKapacitu($idPredmetuUbytovani, $ucastnik->dejShop()->ubytovani()->mozneDny())) {
                 throw new Chyba('Vybrané ubytování je už bohužel zabrané. Vyber si prosím jiné.');
@@ -161,7 +161,7 @@ SQL;
 
         $pocetZmen = 0;
         $sqlValues = implode(",\n", $sqlValuesArray);
-        $tmpTable = uniqid('shop_nakupy_tmp', true);
+        $tmpTable  = uniqid('shop_nakupy_tmp', true);
         dbQuery(<<<SQL
 CREATE TEMPORARY TABLE `$tmpTable`
 (
@@ -191,7 +191,7 @@ WHERE shop_nakupy.id_uzivatele = {$ucastnik->id()}
 SQL,
             [$idsPredmetuUbytovaniInt, TypPredmetu::UBYTOVANI]
         );
-        $pocetZmen += dbNumRows($mysqliResult);
+        $pocetZmen    += dbNumRows($mysqliResult);
 
         // smažeme připravené hodnoty, které už máme
         dbQuery(<<<SQL
@@ -213,7 +213,7 @@ SELECT tmp.id_uzivatele, tmp.id_predmetu, tmp.rok, tmp.cena_nakupni, tmp.datum
 FROM `$tmpTable` AS tmp
 SQL,
         );
-        $pocetZmen += dbNumRows($mysqliResult);
+        $pocetZmen    += dbNumRows($mysqliResult);
         dbQuery(<<<SQL
 DROP TEMPORARY TABLE IF EXISTS `$tmpTable`
 SQL
@@ -262,15 +262,15 @@ SQL
     public function html(bool $muzeEditovatUkoncenyProdej = false) {
         $t = new XTemplate(__DIR__ . '/templates/shop-ubytovani.xtpl');
         $t->assign([
-            'spolubydlici' => dbOneCol('SELECT ubytovan_s FROM uzivatele_hodnoty WHERE id_uzivatele=' . $this->uzivatel->id()),
+            'spolubydlici'         => dbOneCol('SELECT ubytovan_s FROM uzivatele_hodnoty WHERE id_uzivatele=' . $this->uzivatel->id()),
             'postnameSpolubydlici' => $this->pnPokoj,
-            'uzivatele' => $this->mozniUzivatele(),
+            'uzivatele'            => $this->mozniUzivatele(),
         ]);
         $this->htmlDny($t, $muzeEditovatUkoncenyProdej);
         // sloupce popisků
         foreach ($this->mozneTypy as $typ => $predmet) {
             $t->assign([
-                'typ' => $typ,
+                'typ'  => $typ,
                 'hint' => $predmet['popis'],
                 'cena' => round($predmet['cena_aktualni']),
             ]);
@@ -298,29 +298,29 @@ SQL
             $ubytovanVeDni = false;
             foreach ($this->mozneTypy as $typ => $rozsah) {
                 $ubytovanVeDniATypu = false;
-                $checked = '';
+                $checked            = '';
                 if ($this->ubytovan($den, $typ)) {
                     $ubytovanVeDniATypu = true;
-                    $checked = 'checked';
+                    $checked            = 'checked';
                 }
                 $ubytovanVeDni = $ubytovanVeDni || $ubytovanVeDniATypu;
                 $t->assign([
                     'idPredmetu' => isset($this->mozneDny[$den][$typ]) ? $this->mozneDny[$den][$typ]['id_predmetu'] : null,
-                    'checked' => $checked,
-                    'disabled' => !$checked // GUI neumí checked disabled, tak nesmíme dát disabled, když je chcecked
+                    'checked'    => $checked,
+                    'disabled'   => !$checked // GUI neumí checked disabled, tak nesmíme dát disabled, když je chcecked
                     && ($prodejUbytovaniUkoncen
                         || (!$ubytovanVeDniATypu && (!$this->existujeUbytovani($den, $typ) || $this->plno($den, $typ)))
                     )
                         ? 'disabled'
                         : '',
-                    'obsazeno' => $this->obsazenoMist($den, $typ),
-                    'kapacita' => $this->kapacita($den, $typ),
+                    'obsazeno'   => $this->obsazenoMist($den, $typ),
+                    'kapacita'   => $this->kapacita($den, $typ),
                 ])->parse('ubytovani.den.typ');
             }
             // data pro názvy dnů a pro "Žádné" ubytování
             $t->assign([
-                'den' => mb_ucfirst(substr($typVzor['nazev'], strrpos($typVzor['nazev'], ' ') + 1)),
-                'checked' => $ubytovanVeDni ? '' : 'checked', // checked = "Žádné" ubytování
+                'den'      => mb_ucfirst(substr($typVzor['nazev'], strrpos($typVzor['nazev'], ' ') + 1)),
+                'checked'  => $ubytovanVeDni ? '' : 'checked', // checked = "Žádné" ubytování
                 'disabled' => $prodejUbytovaniUkoncen || ($ubytovanVeDni && $typVzor['stav'] == Shop::POZASTAVENY && !$typVzor['nabizet'])
                     ? 'disabled'
                     : '',
@@ -451,9 +451,9 @@ SQL
             foreach ($this->mozneTypy as $typ => $rozsah) {
                 if ($this->ubytovan($cisloDne, $typ)) {
                     $poziceZaPosledniMezerou = strrpos($typVzor['nazev'], ' ') + 1;
-                    $nazevDne = mb_strtolower(substr($typVzor['nazev'], $poziceZaPosledniMezerou));
-                    $zkratkaDne = mb_substr($nazevDne, 0, 2);
-                    $dnyPoTypech[$typ][] = $zkratkaDne;
+                    $nazevDne                = mb_strtolower(substr($typVzor['nazev'], $poziceZaPosledniMezerou));
+                    $zkratkaDne              = mb_substr($nazevDne, 0, 2);
+                    $dnyPoTypech[$typ][]     = $zkratkaDne;
                 }
             }
         }

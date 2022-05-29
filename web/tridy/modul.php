@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\XTemplate\XTemplate;
 
 /**
  * Modul stránek (controller). Objektové zapouzdření pro soubory ze složky

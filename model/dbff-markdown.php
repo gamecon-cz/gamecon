@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\XTemplate\XTemplate;
+
 class DbffMarkdown extends DbFormField
 {
 

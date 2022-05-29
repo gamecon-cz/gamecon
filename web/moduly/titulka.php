@@ -4,7 +4,7 @@ use Gamecon\Cas\DateTimeCz;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeGamecon;
 
-/** @var XTemplate $t */
+/** @var \Gamecon\XTemplate\XTemplate $t */
 
 $this->blackarrowStyl(true);
 $this->info()

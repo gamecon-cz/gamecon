@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\XTemplate\XTemplate;
+
 /**
  * nazev: Promlčení zůstatků
  * pravo: 108

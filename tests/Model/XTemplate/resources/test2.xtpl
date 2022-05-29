@@ -1,0 +1,21 @@
+<!-- begin: page -->
+
+  <!-- begin: head -->
+    page contains {num} people
+  <!-- end: head -->
+
+  <table border="1">
+    <tr>
+      <th>First name</th>
+      <th>Surname</th>
+    </tr>
+    <!-- begin: person -->
+    <tr>
+      <td>{name}</td>
+      <td>{surname}</td>
+    </tr>
+    <!-- end: person -->
+  </table>
+
+<!-- end: page -->
+

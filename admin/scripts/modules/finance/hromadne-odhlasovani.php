@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\XTemplate\XTemplate;
+
 /**
  * Nástroj na hromadné odhlašování účastníků (obvykle neplatičů)
  *

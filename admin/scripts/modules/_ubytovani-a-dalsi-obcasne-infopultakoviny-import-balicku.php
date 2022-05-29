@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\XTemplate\XTemplate;
+
 if (!post('importBalicku')) {
     $importTemplate = new XTemplate(__DIR__ . '/_ubytovani-a-dalsi-obcasne-infopultakoviny-import-balicku.xtpl');
     $importTemplate->assign('baseUrl', URL_ADMIN);

@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\XTemplate\XTemplate;
+
 /**
  * GUI Element starající se o zobrazení / uložení uživatelova přání pomoct
  */

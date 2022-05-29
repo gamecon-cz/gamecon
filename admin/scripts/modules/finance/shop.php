@@ -3,6 +3,7 @@
 use Gamecon\Shop\Shop;
 use Gamecon\Shop\Predmet;
 use Gamecon\Shop\TypPredmetu;
+use Gamecon\XTemplate\XTemplate;
 
 /**
  * nazev: Shop

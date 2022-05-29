@@ -9,6 +9,7 @@ use Gamecon\Exceptions\ChybaKolizeAktivit;
 use Gamecon\PrednacitaniTrait;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Component\Filesystem\Filesystem;
+use Gamecon\XTemplate\XTemplate;
 
 require_once __DIR__ . '/../../admin/scripts/modules/aktivity/_editor-tagu.php';
 
@@ -500,7 +501,7 @@ SQL
         }
     }
 
-    private static function parseUpravyTabulkaVypraveci(?Aktivita $aktivita, \XTemplate $xtpl) {
+    private static function parseUpravyTabulkaVypraveci(?Aktivita $aktivita, XTemplate $xtpl) {
         $q          = dbQuery('
                 SELECT u.id_uzivatele, u.login_uzivatele, u.jmeno_uzivatele, u.prijmeni_uzivatele
                 FROM uzivatele_hodnoty u
