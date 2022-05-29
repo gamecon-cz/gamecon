@@ -99,18 +99,18 @@ unset($puvodni);
 @define('ZIDLE_ODJEL', Gamecon\Zidle::odjelZGcRoku(ROK));           // prošel infopultem na odchodu a odjel z GC
 
 // TODO byl přihlášen na GC a už není (kvůli počítání financí apod.)
-@define('ZIDLE_ORG_AKTIVIT', 6);               // vypravěč (org akcí)
-@define('ZIDLE_ORG_SKUPINA', 9);            //organizátorská skupina (Albi, Černobor, …)
-@define('ZIDLE_PARTNER', 13);               //partner
-@define('ZIDLE_INFO', 8);                   //operátor/ka infopultu
-@define('ZIDLE_ZAZEMI', 7);                 //člen/ka zázemí
-@define('ZIDLE_DOBROVOLNIK_S', 17);         //dobrovolník senior
+@define('ZIDLE_ORG_AKTIVIT', \Gamecon\Zidle::VYPRAVEC);               // vypravěč (org akcí)
+@define('ZIDLE_ORG_SKUPINA', \Gamecon\Zidle::VYPRAVECSKA_SKUPINA);            //organizátorská skupina (Albi, Černobor, …)
+@define('ZIDLE_PARTNER', \Gamecon\Zidle::PARTNER);               //partner
+@define('ZIDLE_INFO', \Gamecon\Zidle::INFOPULT);                   //operátor/ka infopultu
+@define('ZIDLE_ZAZEMI', \Gamecon\Zidle::ZAZEMI);                 //člen/ka zázemí
+@define('ZIDLE_DOBROVOLNIK_S', \Gamecon\Zidle::DOBROVOLNIK_SENIOR);         //dobrovolník senior
 
 // práva - konkrétní práva identifikující nějak vlastnost uživatele
-@define('P_ORG_AKTIVIT', 4); //může organizovat aktivity
-@define('P_KRYTI_AKCI', 5); //může být na víc aktivitách naráz (org skupiny typicky)
-@define('P_PLNY_SERVIS', 7); //uživatele kompletně platí a zajišťuje GC
-@define('P_ZMENA_HISTORIE', 8); // jestli smí měnit přihlášení zpětně
+@define('P_ORG_AKTIVIT', Pravo::PORADANI_AKTIVIT); //může organizovat aktivity
+@define('P_KRYTI_AKCI', Pravo::PREKRYVANI_AKTIVIT); //může být na víc aktivitách naráz (org skupiny typicky)
+@define('P_PLNY_SERVIS', Pravo::PLNY_SERVIS); // uživatele kompletně platí a zajišťuje GC
+@define('P_ZMENA_HISTORIE', Pravo::ZMENA_HISTORIE_AKTIVIT); // jestli smí měnit přihlášení zpětně
 
 @define('P_ADMIN_UVOD', Pravo::ADMINISTRACE_UVOD); // přístup na titulku adminu
 @define('P_ADMIN_MUJ_PREHLED', Pravo::ADMINISTRACE_MOJE_AKTIVITY);

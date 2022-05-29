@@ -24,6 +24,7 @@ class Zidle extends \DbObject
     public const ORGANIZATOR_S_BONUSY_1 = 21;
     public const ORGANIZATOR_S_BONUSY_2 = 22;
     public const NEODHLASOVAT = 23;
+    public const HERMAN = 24;
 
     public const PRIHLASEN_NA_LETOSNI_GC = ZIDLE_PRIHLASEN;
     public const PRITOMEN_NA_LETOSNIM_GC = ZIDLE_PRITOMEN;
