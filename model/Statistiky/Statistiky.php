@@ -4,6 +4,7 @@ namespace Gamecon\Statistiky;
 
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Pravo;
 use Gamecon\Zidle;
 
 class Statistiky
@@ -12,27 +13,32 @@ class Statistiky
      * @var int[]
      */
     private $roky;
+    /**
+     * @var int
+     */
+    private $letosniRok;
 
     /**
      * @param int[]|string[] $roky
      */
-    public function __construct(array $roky) {
+    public function __construct(array $roky, int $letosniRok) {
         $this->roky = $roky;
+        $this->letosniRok = $letosniRok;
     }
 
     /**
      * @param \DateTimeInterface $doChvile
      * @return array
      */
-    public function data(\DateTimeImmutable $doChvile): array {
+    public function dataProGrafUcasti(\DateTimeImmutable $doChvile): array {
         $data = [];
         foreach ($this->roky as $rok) {
-            $data[$rok] = $this->dataZaRok((int)$rok, $doChvile);
+            $data[$rok] = $this->dataProGrafUcastiZaRok((int)$rok, $doChvile);
         }
         return $data;
     }
 
-    private function dataZaRok(int $rok, \DateTimeImmutable $doChvile): array {
+    private function dataProGrafUcastiZaRok(int $rok, \DateTimeImmutable $doChvile): array {
         $zacatek = min(DateTimeGamecon::spocitejZacatekRegistraciUcastniku($rok), $doChvile);
         $konec = min(DateTimeGamecon::spocitejKonecGameconu($rok), $doChvile);
 
@@ -90,5 +96,134 @@ SQL,
         ksort($prihlasenychPoDnech); // data potřebujeme od nejstaršího dne
 
         return $prihlasenychPoDnech;
+    }
+
+    public function tabulkaUcastiHtml(): string {
+        $sledovaneZidle = array_merge(
+            [Zidle::prihlasenNaGcRoku($this->letosniRok), Zidle::pritomenNaGcRoku($this->letosniRok)],
+            dbOneArray(
+                'SELECT id_zidle FROM r_prava_zidle WHERE id_prava = $0',
+                [Pravo::ZOBRAZOVAT_VE_STATISTIKACH_V_TABULCE_UCASTI]
+            )
+        );
+
+        return tabMysql(dbQuery(<<<SQL
+  SELECT
+    jmeno_zidle as " ",
+    COUNT(uzivatele_zidle.id_uzivatele) as Celkem,
+    COUNT(z_prihlasen.id_zidle) as Přihlášen
+  FROM r_zidle_soupis AS zidle
+  LEFT JOIN r_uzivatele_zidle AS uzivatele_zidle ON zidle.id_zidle = uzivatele_zidle.id_zidle
+  LEFT JOIN r_uzivatele_zidle AS z_prihlasen ON
+    z_prihlasen.id_zidle = $0 AND
+    z_prihlasen.id_uzivatele = uzivatele_zidle.id_uzivatele
+  WHERE zidle.id_zidle IN ($1)
+  GROUP BY zidle.id_zidle, zidle.jmeno_zidle
+  ORDER BY SUBSTR(zidle.jmeno_zidle, 1, 10), zidle.id_zidle
+SQL, [
+            Zidle::prihlasenNaGcRoku($this->letosniRok),
+            $sledovaneZidle,
+        ]), 'Účast');
+    }
+
+    public function tabulkaPredmetuHtml(): string {
+        return tabMysql(dbQuery(<<<SQL
+  SELECT
+    shop_predmety.nazev Název,
+    shop_predmety.model_rok Model,
+    COUNT(shop_nakupy.id_predmetu) Počet
+  FROM shop_nakupy
+  JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
+  WHERE shop_nakupy.rok=$0 AND shop_predmety.typ IN ($1)
+  GROUP BY shop_nakupy.id_predmetu
+SQL, [
+            $this->letosniRok,
+            [\Shop::PREDMET, \Shop::TRICKO],
+        ]), 'Předměty');
+    }
+
+    public function tabulkaUbytovaniHtml(): string {
+        return tabMysql(dbQuery(<<<SQL
+  SELECT
+    p.nazev Název,
+    COUNT(n.id_predmetu) Počet
+  FROM shop_nakupy n
+  JOIN shop_predmety p ON(n.id_predmetu=p.id_predmetu)
+  WHERE n.rok=$0 AND (p.typ=$1)
+  GROUP BY n.id_predmetu
+SQL, [
+            $this->letosniRok,
+            \Shop::UBYTOVANI,
+        ]), 'Ubytování dny a místa');
+    }
+
+    public function tabulkaUbytovaniKratce(): string {
+
+        return tabMysql(dbQuery(<<<SQL
+  SELECT
+    SUBSTR(p.nazev,11) Den,
+    COUNT(n.id_predmetu) Počet
+  FROM shop_nakupy n
+  JOIN shop_predmety p ON(n.id_predmetu=p.id_predmetu)
+  WHERE n.rok=$0 AND p.typ=$1
+  GROUP BY p.ubytovani_den
+UNION ALL
+  SELECT 'neubytovaní' as Den, COUNT(*) as Počet
+  FROM r_uzivatele_zidle z
+  LEFT JOIN(
+    SELECT n.id_uzivatele
+    FROM shop_nakupy n
+    JOIN shop_predmety p ON n.id_predmetu=p.id_predmetu AND p.typ=$1
+    WHERE n.rok=$0
+    GROUP BY n.id_uzivatele
+  ) nn ON(nn.id_uzivatele=z.id_uzivatele)
+  WHERE id_zidle=$2 AND ISNULL(nn.id_uzivatele)
+SQL, [
+            $this->letosniRok,
+            \Shop::UBYTOVANI,
+            Zidle::prihlasenNaGcRoku($this->letosniRok),
+        ]), 'Ubytování dny');
+    }
+
+    public function tabulkaJidlaHtml(): string {
+
+        return tabMysql(dbQuery(<<<SQL
+SELECT Název,Počet,Sleva FROM (
+  SELECT
+    TRIM(predmety.nazev) Název,
+    COUNT(nakupy.id_predmetu) Počet,
+    COUNT(slevy.id_uzivatele) as Sleva,
+    predmety.ubytovani_den
+  FROM shop_nakupy AS nakupy
+  JOIN shop_predmety AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
+  LEFT JOIN (
+    SELECT uz.id_uzivatele -- id uživatelů s právy uvedenými níž
+    FROM r_uzivatele_zidle uz
+    JOIN r_prava_zidle pz ON pz.id_zidle = uz.id_zidle AND pz.id_prava IN($0)
+    GROUP BY uz.id_uzivatele
+  ) AS slevy ON slevy.id_uzivatele = nakupy.id_uzivatele
+  WHERE nakupy.rok = $1 AND predmety.typ = $2
+  GROUP BY nakupy.id_predmetu
+) AS seskupeno
+ORDER BY ubytovani_den, Název
+SQL,
+            [[Pravo::JIDLO_ZDARMA, Pravo::JIDLO_SE_SLEVOU], $this->letosniRok, \Shop::JIDLO]
+        ), 'Jídlo');
+    }
+
+    public function tabulkaZastoupeniPohlaviHtml(): string {
+        return tabMysqlR(dbQuery(<<<SQL
+  SELECT
+    'Počet' as ' ', -- formátování
+    SUM(IF(uzivatele.pohlavi='m',1,0)) as Muži,
+    SUM(IF(uzivatele.pohlavi='f',1,0)) as Ženy,
+    ROUND(SUM(IF(uzivatele.pohlavi='f',1,0))/COUNT(1),2) as Poměr
+  FROM r_uzivatele_zidle AS uzivatele_zidle
+  JOIN uzivatele_hodnoty AS uzivatele ON uzivatele_zidle.id_uzivatele=uzivatele.id_uzivatele
+  WHERE uzivatele_zidle.id_zidle = $0
+SQL, [
+            Zidle::prihlasenNaGcRoku($this->letosniRok),
+        ]), 'Pohlaví');
+
     }
 }
