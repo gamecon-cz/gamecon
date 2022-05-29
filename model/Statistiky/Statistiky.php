@@ -202,12 +202,12 @@ SQL, [
     public function tabulkaJidlaHtml(): string {
 
         return tabMysql(dbQuery(<<<SQL
-SELECT Název,Cena,Počet,Sleva FROM (
+SELECT Název,Cena,Počet,Slev FROM (
   SELECT
     TRIM(predmety.nazev) Název,
     predmety.cena_aktualni AS Cena, -- například v roce 2022 jsme část jídla prodali za menší cenu a část za větší - mohlo by se to stát u čehokoliv
     COUNT(nakupy.id_predmetu) Počet,
-    COUNT(slevy.id_uzivatele) as Sleva,
+    COUNT(slevy.id_uzivatele) as Slev, -- počet slev
     predmety.ubytovani_den,
     nakupy.id_predmetu
   FROM shop_nakupy AS nakupy
