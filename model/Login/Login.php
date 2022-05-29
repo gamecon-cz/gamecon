@@ -2,6 +2,8 @@
 
 namespace Gamecon\Login;
 
+use Gamecon\XTemplate\XTemplate;
+
 class Login
 {
     public function dejHtmlLogin(): string {
@@ -18,8 +20,8 @@ class Login
         return $loginTemplate->text('login');
     }
 
-    private function dejLoginTemplate(): \XTemplate {
-        $loginTemplate = new \XTemplate(__DIR__ . '/templates/login.xtpl');
+    private function dejLoginTemplate(): XTemplate {
+        $loginTemplate = new XTemplate(__DIR__ . '/templates/login.xtpl');
 
         $loginTemplate->assign([
             'pageTitle' => 'GameCon – Administrace',
@@ -31,7 +33,7 @@ class Login
         return $loginTemplate;
     }
 
-    private function pridejLokalniAssety(\XTemplate $template) {
+    private function pridejLokalniAssety(XTemplate $template) {
         static $localAssets = [
             'stylesheets' => [
                 __DIR__ . '/../../admin/files/login/login.css',

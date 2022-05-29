@@ -2,6 +2,7 @@
 
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Shop\ShopUbytovani;
+use Gamecon\XTemplate\XTemplate;
 
 if (!post('pokojeImport')) {
     $importTemplate = new XTemplate(__DIR__ . '/_ubytovani-a-dalsi-obcasne-infopultakoviny-import-ubytovani.xtpl');

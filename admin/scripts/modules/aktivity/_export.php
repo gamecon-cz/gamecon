@@ -11,7 +11,7 @@ use Gamecon\Aktivita\TypAktivity;
 
 /** @var DateTimeInterface $now */
 /** @var Uzivatel $u */
-/** @var XTemplate $template */
+/** @var \Gamecon\XTemplate\XTemplate $template */
 /** @var \Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleApiClient $googleApiClient */
 /** @var \Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService $googleDriveService */
 /** @var \Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService $googleSheetsService */

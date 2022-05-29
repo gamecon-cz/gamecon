@@ -7,6 +7,7 @@
  * submenu_order: 2
  */
 
+use Gamecon\XTemplate\XTemplate;
 
 if(get('id') !== null) {
   $f = Medailonek::form(get('id'));

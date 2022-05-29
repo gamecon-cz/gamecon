@@ -9,7 +9,8 @@
  * submenu_order: 1
  */
 
-use \Gamecon\Cas\DateTimeCz;
+use Gamecon\Cas\DateTimeCz;
+use Gamecon\XTemplate\XTemplate;
 
 $xtpl2 = new XTemplate(__DIR__ . '/prihlaseni.xtpl');
 

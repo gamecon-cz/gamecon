@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\XTemplate\XTemplate;
 
 $naStranku = 15;
 $prazdnychRadku = 4;

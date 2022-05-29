@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\XTemplate\XTemplate;
+
 class DbForm
 {
 
@@ -41,7 +43,6 @@ class DbForm
      */
     protected function fields(): array {
         if (!isset($this->fields)) {
-            $this->fields = [];
             $this->fieldsInit();
         }
         return $this->fields;
@@ -49,6 +50,7 @@ class DbForm
 
     /** Responsibility obvious */
     protected function fieldsInit() {
+        $this->fields = [];
         foreach (dbDescribe($this->table()) as $d) {
             $f = $this->fieldFromDescription($d);
             $this->fields[$f->name()] = $f;

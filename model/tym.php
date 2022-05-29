@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\XTemplate\XTemplate;
 
 /**
  * Abstrakce týmu na aktivitě

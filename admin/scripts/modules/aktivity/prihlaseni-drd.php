@@ -1,5 +1,6 @@
 <?php
 
+use Gamecon\XTemplate\XTemplate;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Logger\LogUdalosti;

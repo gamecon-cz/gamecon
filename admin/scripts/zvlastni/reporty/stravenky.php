@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Shop\Shop;
+use Gamecon\XTemplate\XTemplate;
 
 require __DIR__ . '/sdilene-hlavicky.php';
 

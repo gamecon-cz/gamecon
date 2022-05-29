@@ -3,7 +3,7 @@
 use \Gamecon\Cas\DateTimeCz;
 
 /** @var Modul $this */
-/** @var XTemplate $t */
+/** @var \Gamecon\XTemplate\XTemplate $t */
 /** @var Uzivatel $u */
 /** @var url $url */
 

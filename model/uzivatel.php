@@ -7,6 +7,7 @@ use Gamecon\Aktivita\Aktivita;
 use Gamecon\Pravo;
 use Gamecon\Zidle;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\XTemplate\XTemplate;
 
 /**
  * Třída popisující uživatele a jeho vlastnosti

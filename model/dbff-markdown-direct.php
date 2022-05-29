@@ -1,26 +1,29 @@
 <?php
 
-class DbffMarkdownDirect extends DbFormField {
+use Gamecon\XTemplate\XTemplate;
 
-  function display() {
-    return self::CUSTOM;
-  }
+class DbffMarkdownDirect extends DbFormField
+{
 
-  function html() {
-    $t = new XTemplate(__DIR__.'/dbff-markdown.xtpl');
-    $t->assign([
-      //'pnOldId' => $this->postName('oldVal'),
-      //'oldId'   => $this->value(),
-      'pnText'  => $this->postName(),
-      'text'    => htmlspecialchars($this->value()),
-      'mdText'  => markdownNoCache($this->value()),
-    ]);
-    $t->parse('md');
-    return $t->text('md');
-  }
+    function display() {
+        return self::CUSTOM;
+    }
 
-  function loadPost() {
-    $this->value($this->postValue());
-  }
+    function html() {
+        $t = new XTemplate(__DIR__ . '/dbff-markdown.xtpl');
+        $t->assign([
+            //'pnOldId' => $this->postName('oldVal'),
+            //'oldId'   => $this->value(),
+            'pnText' => $this->postName(),
+            'text' => htmlspecialchars($this->value()),
+            'mdText' => markdownNoCache($this->value()),
+        ]);
+        $t->parse('md');
+        return $t->text('md');
+    }
+
+    function loadPost() {
+        $this->value($this->postValue());
+    }
 
 }

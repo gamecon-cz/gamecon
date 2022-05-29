@@ -1,4 +1,7 @@
 <?php
+
+use Gamecon\XTemplate\XTemplate;
+
 /**
  * @var \Gamecon\Aktivita\Aktivita|null $aktivita
  * @var Uzivatel $u

@@ -1,5 +1,6 @@
 <?php
 
+use Gamecon\XTemplate\XTemplate;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\TypAktivity;
 

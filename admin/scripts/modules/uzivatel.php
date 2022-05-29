@@ -8,6 +8,7 @@
  */
 
 use Gamecon\Shop\Shop;
+use Gamecon\XTemplate\XTemplate;
 
 /**
  * @var Uzivatel|null|void $u

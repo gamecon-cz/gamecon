@@ -1,4 +1,5 @@
 <?php
+use Gamecon\XTemplate\XTemplate;
 
 class EditorTagu
 {

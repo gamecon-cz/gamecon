@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Shop\Shop;
+use Gamecon\XTemplate\XTemplate;
 
 $covidSekce = static function (Shop $shop): string {
     $covidTemplate = new XTemplate(__DIR__ . '/covid-sekce.xtpl');
