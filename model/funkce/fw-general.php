@@ -195,9 +195,12 @@ function tabHtml(array $tab, string $title = ''): string {
 }
 
 /**
+ * @param mysqli_result $a
+ * @param string $title
+ * @return string
  * Returns HTML formatted table from db answer
  */
-function tabMysql($a, string $title = '') {
+function tabMysql($a, string $title = ''): string {
     $tabOut = "<table>\n";
     if ($title !== '') {
         $tabOut .= "<caption>$title</caption>";
