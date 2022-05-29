@@ -11,7 +11,8 @@ class Pravo extends \DbObject
      */
     public const PORADANI_AKTIVIT = 4; // Uživatel může pořádat aktivity (je v nabídce pořadatelů aktivit a má v administraci nabídku „moje aktivity“)
     public const PREKRYVANI_AKTIVIT = 5; // Smí mít zaregistrovaných víc aktivit v jeden čas
-    public const ZMENA_HISTORIE_AKTIVIT = P_ZMENA_HISTORIE; // může přihlašovat a odhlašovat lidi z aktivit, které už proběhly
+    public const PLNY_SERVIS = 7; // Uživatele kompletně platí a zajišťuje GC
+    public const ZMENA_HISTORIE_AKTIVIT = 8; // Může přihlašovat a odhlašovat lidi z aktivit, které už proběhly
 
     public const ADMINISTRACE_UVOD = 100;
     public const ADMINISTRACE_UBYTOVANI = 101;
