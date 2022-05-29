@@ -3,6 +3,8 @@
 /** @var \Godric\DbMigrations\Migration $this */
 
 $this->q(<<<SQL
+DROP TEMPORARY TABLE IF EXISTS akce_lokace_tmp;
+
 CREATE TEMPORARY TABLE akce_lokace_tmp
 LIKE akce_lokace;
 
@@ -111,6 +113,10 @@ VALUES
 (null,'SM 3','','',102,0),
 (null,'SM 4','','',103,0),
 (null,'EPIC X','rezervní EPIC','rezerva',42,0);
+
+UPDATE akce_lokace
+JOIN akce_lokace_tmp on akce_lokace.nazev = akce_lokace_tmp.nazev
+SET akce_lokace.nazev = UUID();
 
 UPDATE akce_lokace
 JOIN akce_lokace_tmp on akce_lokace.id_lokace = akce_lokace_tmp.id_lokace

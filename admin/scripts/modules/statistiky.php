@@ -7,7 +7,7 @@
  * pravo: 107
  */
 
-use Gamecon\Cas\DateTimeCz;
+use Gamecon\Statistiky\Statistiky;
 use Gamecon\Zidle;
 use Gamecon\Pravo;
 
@@ -112,71 +112,82 @@ $zbyva = new DateTime(DEN_PRVNI_DATE);
 $zbyva = $zbyva->diff(new DateTime());
 $zbyva = $zbyva->format('%a dní') . ' (' . round($zbyva->format('%a') / 7, 1) . ' týdnů)';
 
-// graf účasti
-$ucastResult = dbQuery(<<<SQL
-SELECT
-    DATE(log.kdy) as den,
-    SUM(CASE log.zmena WHEN $2 THEN 1 WHEN $3 THEN -1 ELSE 0 END) as prihlasen,
-    COUNT(IF(YEAR(u.registrovan)=$0,1,NULL)) as novy
-  FROM r_uzivatele_zidle_log AS log
-  JOIN uzivatele_hodnoty u USING(id_uzivatele)
-  WHERE log.id_zidle=$1
-  GROUP BY DATE(log.kdy)
-SQL,
-    [ROK, Zidle::PRIHLASEN_NA_LETOSNI_GC, Uzivatel::POSAZEN, Uzivatel::SESAZEN]
+$vybraneRoky = array_diff(
+    $_GET['rok'] ?? range(ROK - 3, ROK),
+    [2020] // abychom netrápili databázi hleáním dat pro rok Call of Covid
 );
-$zacatek = new DateTime(ROK . '-04-29'); // zde ladit, dokud se grafy nezarovnají na poslední den
-$pocet = 0;
-do {
-    $pocet += $row['prihlasen'] ?? 0; // první prázdný ignorovat, další brát "o kolo zpět"
-    $row = mysqli_fetch_assoc($ucastResult);
-    $den = new DateTimeCz($row['den']);
-} while ($den->pred($zacatek) && $row['den']); // kontrola dne proti zacyklení
-// dny před GC
-$dny = '';
-$prihlaseniLetos = [];
-$konec = new DateTime(GC_BEZI_DO);
+$mozneRoky = range(2012, ROK);
 
-$vceraTouhleDobou = new \DateTimeImmutable();
-for (
-    $den = $zacatek;
-    $den <= $konec;
-    $den->add(new DateInterval('P1D'))
-) {
-    $denDb = new DateTime($row['den']);
-    if ($row === false) { // z DB už vše vyčteno
-        if ($den < $vceraTouhleDobou) { // dnešek nezobrazujeme pokud přibylo 0, včerejšek a dříve už ano
-            $prihlaseniLetos[] = $pocet;
-        } else {
-            $prihlaseniLetos[] = null;
-        }
-    } else if ($den->getTimestamp() < $denDb->getTimestamp()) {
-        $prihlaseniLetos[] = $pocet;
-    } else if ($den->getTimestamp() == $denDb->getTimestamp()) {
-        $pocet += $row['prihlasen'];
-        $prihlaseniLetos[] = $pocet;
-        $row = mysqli_fetch_assoc($ucastResult);
-    } else {
-        $prihlaseniLetos[] = null;
-    }
-    $dny .= '\'' . $den->format('j.n.') . '\',';
-}
-$dny = '[' . substr($dny, 0, -1) . ']';
-$pocetDni = substr_count($dny, ',');
+$prihlaseniData = (new Statistiky($vybraneRoky))->data(new DateTimeImmutable());
 
-$vybraneRoky = $_GET['rok'] ?? range(ROK - 3, ROK);
-$prihlaseniData = require __DIR__ . '/_statistiky_prihlaseni_minulych_let.php';
-$prihlaseniData[ROK] = $prihlaseniLetos;
+$pocetDni = 0;
+$nazvyDnu = [];
+$zacatkyGc = [];
+$konceGc = [];
 $prihlaseniProJs = [];
-foreach ($prihlaseniData as $rok => $data) {
+foreach ($prihlaseniData as $rok => $dataJednohoRoku) {
     if ((int)$rok === 2020) {
         continue; // Call of Covid
     }
     if (in_array($rok, $vybraneRoky, false)) {
-        $prihlaseniProJs[] = ['name' => "Přihlášení $rok", 'data' => $data];
+        array_unshift($dataJednohoRoku, 0); // aby graf začínal pěkne na nule
+//        $dataJednohoRoku[] = end($dataJednohoRoku); // zopakujeme posledni den, opět aby byl hezčí graf
+        $prihlaseniProJs[] = [
+            'name' => "Přihlášení $rok",
+            'data' => array_values($dataJednohoRoku) // JS knihovna vyžaduje číselné indexování
+        ];
+        $dnyJednohoRoku = array_keys($dataJednohoRoku);
+        $nazvyDnuJednohoRoku = [];
+        $zacatekGcRoku = \Gamecon\Cas\DateTimeGamecon::spocitejZacatekGameconu($rok)->formatDatumDb();
+        $konecGcRoku = \Gamecon\Cas\DateTimeGamecon::spocitejKonecGameconu($rok)->formatDatumDb();
+        foreach ($dnyJednohoRoku as $indexDne => $denJednohoRoku) {
+            // index 0 je vynucená nula přes array_unshift, index 1 jsou všechny dny před registrací, index 2 je otevření registrací
+            if ($indexDne <= 1) {
+                $nazvyDnuJednohoRoku[] = 'před registracemi';
+            } elseif ($indexDne === 2) {
+                $nazvyDnuJednohoRoku[] = 'začátek registrací'; // první den registrací
+            } else {
+                $denRegistraci = $indexDne - 1;
+                $nazvyDnuJednohoRoku[] = "den $denRegistraci.";
+            }
+            if ($zacatekGcRoku === $denJednohoRoku) {
+                // naposledy vytvořený název jednoho dne je zároveň i dnem začátku GC
+                $prvniDenGcRoku = end($nazvyDnuJednohoRoku);
+                $zacatkyGc[$rok] = $prvniDenGcRoku;
+            }
+            if ($konecGcRoku === $denJednohoRoku) {
+                // naposledy vytvořený název jednoho dne je zároveň i dnem konce GC
+                $posledniDenGcRoku = end($nazvyDnuJednohoRoku);
+                $konceGc[$rok] = $posledniDenGcRoku;
+            }
+        }
+        $nazvyDnu = array_unique(array_merge($nazvyDnu, $nazvyDnuJednohoRoku));
     }
 }
-$prihlaseniJson = json_encode($prihlaseniProJs);
+$indexyDnuZacatkuGc = [];
+foreach ($zacatkyGc as $rok => $nazevDneZacatkuGc) {
+    if ($rok === ROK && pred(GC_BEZI_OD)) {
+        continue; // letošní GC ještě nezačal, nechceme ukazovat poslední známé hodnoty s názvem "začátek GC"
+    }
+    // nejdřív posbíráme indexy z výsledných názvů dnů, měnit je musíme až později, abychom nepodřízli větev názvům dnů s koncem GC
+    $indexDneZacatkuJednohoGc = array_search($nazevDneZacatkuGc, $nazvyDnu);
+    $indexyDnuZacatkuGc[$indexDneZacatkuJednohoGc][] = $rok;
+}
+$indexyDnuKoncuGc = [];
+foreach ($konceGc as $rok => $nazevDneKonceGc) {
+    if ($rok === ROK && pred(GC_BEZI_DO)) {
+        continue; // letošní GC ještě neskončil, nechceme ukazovat poslední známé hodnoty s názvem "konec GC"
+    }
+    $indexDneKonceJednohoGc = array_search($nazevDneKonceGc, $nazvyDnu);
+    $indexyDnuKoncuGc[$indexDneKonceJednohoGc][] = $rok;
+}
+foreach ($indexyDnuZacatkuGc as $indexDneZacatku => $rokyZacinajiciGcStejnyDen) {
+    $nazvyDnu[$indexDneZacatku] = $nazvyDnu[$indexDneZacatku] . ", začátek GC " . implode(', ', $rokyZacinajiciGcStejnyDen);
+}
+foreach ($indexyDnuKoncuGc as $indexDneKonce => $rokyKonciciGcStejnyDen) {
+    $nazvyDnu[$indexDneKonce] = $nazvyDnu[$indexDneKonce] . ", konec GC " . implode(', ', $rokyKonciciGcStejnyDen);
+}
+$pocetDni = count($nazvyDnu);
 ?>
 
 <style>
@@ -190,6 +201,18 @@ $prihlaseniJson = json_encode($prihlaseniProJs);
 </style>
 <script>
     $(function () {
+        const colors = [
+            '#2fd8b9',
+            '#2f7ed8',
+            '#8bbc21',
+            '#910000',
+            '#1aadce',
+            '#492970',
+            '#f28f43',
+            '#77a1e5',
+            '#c42525',
+            '#a6c96a',
+        ]
         $('#vyvojRegu').highcharts({
             chart: {
                 type: 'line',
@@ -198,7 +221,7 @@ $prihlaseniJson = json_encode($prihlaseniProJs);
             legend: {enabled: false},
             credits: {enabled: false},
             xAxis: {
-                categories: <?=$dny?>,
+                categories: <?= json_encode($nazvyDnu) ?>,
                 labels: {
                     rotation: -90,
                     style: {fontSize: '8px'},
@@ -206,7 +229,7 @@ $prihlaseniJson = json_encode($prihlaseniProJs);
                 plotLines: [{
                     color: '#cccccc',
                     width: 1,
-                    value: <?=$pocetDni?> - 3.5,
+                    value: <?= $pocetDni ?> - 3.5,
                 }],
             },
             yAxis: {
@@ -221,18 +244,23 @@ $prihlaseniJson = json_encode($prihlaseniProJs);
                     animation: false,
                 },
             },
-            series: <?= $prihlaseniJson ?>,
-            colors: [
-                '#2f7ed8',
-                '#8bbc21',
-                '#910000',
-                '#1aadce',
-                '#492970',
-                '#f28f43',
-                '#77a1e5',
-                '#c42525',
-                '#a6c96a',
-            ],
+            series: <?= json_encode($prihlaseniProJs) ?>,
+            colors: colors,
+        })
+
+        Array.from(document.querySelectorAll('input[name="rok[]"][checked]:not(:disabled)')).forEach(function (rokInput, index) {
+            // pokud by snad barev bylo méně než grafů, tak se začnou opakovat od začátku - proto ten výpočet restartu indexu, když už pro současný barvu nemáme
+            rokInput.parentElement.style.backgroundColor = colors[index] || colors[index - colors.length - 1]
+        })
+
+        const rokInputs = Array.from(document.querySelectorAll('input[name="rok[]"]:not(:disabled)'))
+        rokInputs.forEach(function (rokInput, index) {
+            rokInput.addEventListener('change', function () {
+                document.getElementById('vyberRokuGrafu').submit()
+                rokInputs.forEach(function (rokInput) {
+                    rokInput.disabled = true
+                })
+            })
         })
     })
 </script>
@@ -240,37 +268,44 @@ $prihlaseniJson = json_encode($prihlaseniProJs);
 
 <h2>Aktuální statistiky</h2>
 
-<div style="float:left; max-width: 25%">
-    <?= $ucast ?><br>
-    <?= $pohlavi ?><br>
-    Do gameconu zbývá <?= $zbyva ?><br><br>
-    <span class="hinted">Vysvětlivky ke grafu
-        <span class="hint">
-            Data z předchozích let jsou převedena tak, aby počet dní do GameConu na loňské křivce odpovídal počtu dní do GameConu na letošní křivce.<br>
-            Svislá čára představuje začátek GameConu. Počet platí pro dané datum v 23:59.
-        </span>
-    </span>
+<div>
+    <p>
+        Do gameconu zbývá <?= $zbyva ?>
+    </p>
+    <div style="float: left"><?= $ucast ?></div>
+    <div style="float: left; margin-left: 1em"><?= $pohlavi ?></div>
+    <div style="clear: both"></div>
 </div>
-<div style="float:left;margin-left:20px;width:650px;height:300px" id="vyvojRegu"></div>
-<div style="clear:both"></div><br>
+
+<p id="vyvojRegu"></p>
 
 <div>
     <form action="" style="padding: 0.5em 0" id="vyberRokuGrafu">
         <legend style="padding: 0 0 0.5em; font-style: italic">
             Roky v grafu
         </legend>
-        <?php foreach (array_keys($prihlaseniData) as $rok) {
+        <span class="hinted" style="float: right">Vysvětlivky ke grafu
+            <span class="hint">
+                Data z předchozích let jsou převedena tak, aby počet dní do GameConu na loňské křivce odpovídal počtu dní do GameConu na letošní křivce.<br>
+                Svislá čára představuje začátek GameConu. Počet platí pro dané datum v 23:59.
+            </span>
+        </span>
+        <?php foreach ($mozneRoky as $moznyRok) {
+            $callOfCovid = (int)$moznyRok === 2020;
             ?>
             <span style="min-width: 4em; display: inline-block">
-                    <label style="padding-right: 0.3em; cursor: pointer">
-                        <input type="checkbox" name="rok[]" value="<?= $rok ?>" style="padding-right: 0.2em"
-                               onchange="$('#vyberRokuGrafu').submit()"
-                               <?php if ((int)$rok === 2020) { ?>disabled<?php } ?>
-                               <?php if (in_array($rok, $vybraneRoky, false)) { ?>checked<?php } ?>>
-                        <?php if ((int)$rok === 2020) { ?>
-                            <span title="Call of Covid">👾</span>
+                    <label class="<?php if ($callOfCovid) { ?>hinted<?php } ?>"
+                           style="border-bottom: none; padding-right: 0.3em; cursor: <?php if ($callOfCovid) { ?>not-allowed<?php } else { ?>pointer<? } ?>">
+                        <input type="checkbox" name="rok[]" value="<?= $moznyRok ?>" style="padding-right: 0.2em"
+                               <?php if ((int)$moznyRok === 2020) { ?>disabled<?php } ?>
+                               <?php if (in_array($moznyRok, $vybraneRoky, false)) { ?>checked<?php } ?>>
+                        <?php if ((int)$moznyRok === 2020) { ?>
+                            <span>
+                                👾
+                                <span class="hint">Call of Covid</span>
+                            </span>
                         <?php } ?>
-                        <?= $rok ?>
+                        <?= $moznyRok ?>
                     </label>
             </span>
         <?php } ?>
