@@ -76,7 +76,7 @@ foreach ($skupiny as $skupina) {
         $t->parse('aktivity.aktivita.termin');
     }
 
-    $organizatori = implode(', ', array_map(function ($organizator) {
+    $organizatori = implode(', ', array_map(static function (Uzivatel $organizator) {
         $url = $organizator->url();
         if ($url) {
             return '<a href="' . $url . '">' . $organizator->jmenoNick() . '</a>';
