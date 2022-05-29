@@ -29,7 +29,7 @@ $xtpl->assign([
 
 // nastavení stránky, prázdná url => přesměrování na úvod
 if (!get('req')) {
-    back('uvod');
+    back(URL_ADMIN . '/uvod');
 }
 $req = explode('/', get('req'));
 $stranka = $req[0];
