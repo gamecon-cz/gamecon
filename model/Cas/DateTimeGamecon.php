@@ -92,14 +92,6 @@ class DateTimeGamecon extends DateTimeCz
         return (clone $odData)->modify("+ $rozdilDni days");
     }
 
-    protected static function naTestuOTydenDriv(DateTimeGamecon $datum): DateTimeGamecon {
-        if (defined('TESTING') && TESTING) {
-            return $datum->modify('-1 week');
-        } else {
-            return $datum;
-        }
-    }
-
     public static function denKolemZacatkuGameconu(string $den, int $rok = ROK): DateTimeGamecon {
         $zacatekGameconu = static::zacatekGameconu($rok);
         if ($den === static::CTVRTEK) {
@@ -121,17 +113,18 @@ class DateTimeGamecon extends DateTimeCz
         return $zacatekTechnickychAktivit->setTime(0, 0, 0);
     }
 
-    public static function zacatekRegistraciUcastniku(int $rok = ROK, bool $naTestuOTydenDriv = true): DateTimeGamecon {
+    public static function zacatekRegistraciUcastniku(int $rok = ROK): DateTimeGamecon {
         $zacatekRegistraciUcastniku = $rok === (int)ROK && defined('REG_GC_OD')
             ? static::zDbFormatu(REG_GC_OD)
             : static::spocitejZacatekRegistraciUcastniku($rok);
-        if ($naTestuOTydenDriv) {
-            return static::naTestuOTydenDriv($zacatekRegistraciUcastniku);
-        }
         return $zacatekRegistraciUcastniku;
     }
 
     public static function spocitejZacatekRegistraciUcastniku(int $rok): DateTimeGamecon {
+        if ($rok === 2016) {
+            // aneb ať žijí výjimky
+            return DateTimeGamecon::createFromMysql('2016-05-03 20:16:00');
+        }
         $zacatekKvetna = new static($rok . '-05-01 00:00:00');
         $zacatekTretihoTydneVKvetnu = self::dejZacatekXTydne(3, $zacatekKvetna);
         $ctvrtekVeTretimTydnuVKvetnu = self::dejDatumDneVTydnuOdData(static::CTVRTEK, $zacatekTretihoTydneVKvetnu);
@@ -140,14 +133,10 @@ class DateTimeGamecon extends DateTimeCz
         return $ctvrtekVeTretimTydnuVKvetnu->setTime((int)$hodina, (int)$minuta, 0);
     }
 
-    public static function zacatekPrvniVlnyOd(int $rok = ROK, bool $naTestuOTydenDriv = true): DateTimeGamecon {
+    public static function zacatekPrvniVlnyOd(int $rok = ROK): DateTimeGamecon {
         $zacatekPrvniVlnyOd = $rok === (int)ROK && defined('REG_AKTIVIT_OD')
             ? static::zDbFormatu(REG_AKTIVIT_OD)
             : self::spoctejZacatekPrvniVlnyOd($rok);
-
-        if ($naTestuOTydenDriv) {
-            static::naTestuOTydenDriv($zacatekPrvniVlnyOd);
-        }
 
         return $zacatekPrvniVlnyOd;
     }

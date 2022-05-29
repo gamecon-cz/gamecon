@@ -54,7 +54,7 @@ class DateTimeCz extends \DateTime
         7 => 'nedele',
     ];
 
-    public static function createFromMysql(string $dateTime, \DateTimeZone $timeZone = null): self {
+    public static function createFromMysql(string $dateTime, \DateTimeZone $timeZone = null) {
         return static::createFromFormat('Y-m-d H:i:s', $dateTime, $timeZone);
     }
 
