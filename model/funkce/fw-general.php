@@ -167,21 +167,26 @@ function strrbefore($string, $delimiter) {
 /**
  * Switches rows and columns
  */
-function tabArrayR($ai) {
+function tabArrayR(array $ai): array {
     $ao = [];
     $ih = count($ai);
     $iw = count($ai[0]);
-    for ($ic = 0; $ic < $iw; $ic++)
-        for ($ir = 0; $ir < $ih; $ir++)
+    for ($ic = 0; $ic < $iw; $ic++) {
+        for ($ir = 0; $ir < $ih; $ir++) {
             $ao[$ic][$ir] = $ai[$ir][$ic];
+        }
+    }
     return $ao;
 }
 
 /**
  * Returns HTML formatted table from array
  */
-function tabHtml($tab) {
+function tabHtml(array $tab, string $title = ''): string {
     $tabOut = "<table>\n";
+    if ($title !== '') {
+        $tabOut .= "<caption>$title</caption>";
+    }
     $tabOut .= "  <tr>\n    <th>" . implode("</th>\n    <th>", $tab[0]) . "</th>\n  </tr>\n";
     for ($i = 1; $i < count($tab); $i++)
         $tabOut .= "  <tr>\n    <td>" . implode("</td>\n    <td>", $tab[$i]) . "</td>\n  </tr>\n";
@@ -208,20 +213,22 @@ function tabMysql($a, string $title = '') {
 }
 
 /**
+ * @param mysqli_result $a
  * Returns table array from mysql answer
  */
-function tabMysqlArray($a) {
+function tabMysqlArray($a): array {
     $r = mysqli_fetch_assoc($a);
     $oa[] = array_keys($r);
     $oa[] = array_values($r);
-    while ($r = mysqli_fetch_row($a))
+    while ($r = mysqli_fetch_row($a)) {
         $oa[] = $r;
+    }
     return $oa;
 }
 
 /**
  * Returns HTML formatted table from db answer, mirrored
  */
-function tabMysqlR($a) {
-    return tabHtml(tabArrayR(tabMysqlArray($a)));
+function tabMysqlR($a, string $title = ''): string {
+    return tabHtml(tabArrayR(tabMysqlArray($a)), $title);
 }
