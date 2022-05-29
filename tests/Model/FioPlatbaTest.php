@@ -3,6 +3,7 @@
 namespace Gamecon\Tests;
 
 use FioPlatba;
+use Gamecon\Cas\DateTimeGamecon;
 use PHPUnit\Framework\TestCase;
 
 class FioPlatbaTest extends TestCase
@@ -90,6 +91,22 @@ class FioPlatbaTest extends TestCase
      * @test
      */
     public function Muzeme_nacist_variabilni_symbol_ze_skutecne_odpovedi() {
+        $platbyMajiciVsVeZprave = array_filter(
+            $this->dejAnonymizovanePlatby(),
+            static function (FioPlatba $platba) {
+                return $platba->zprava() && preg_match('~^/VS/\d+$~', $platba->zprava()) === 1;
+            }
+        );
+        self::assertCount(2, $platbyMajiciVsVeZprave);
+        foreach ($platbyMajiciVsVeZprave as $platbaMajiciVsVeZprave) {
+            self::assertSame($platbaMajiciVsVeZprave->zprava(), "/VS/{$platbaMajiciVsVeZprave->vs()}");
+        }
+    }
+
+    /**
+     * @return array|FioPlatba[]
+     */
+    private function dejAnonymizovanePlatby(): array {
         $adresar = SPEC . '/fio';
         if (!is_dir($adresar)) {
             mkdir($adresar, 0777, true);
@@ -107,13 +124,19 @@ class FioPlatbaTest extends TestCase
             'Can not copy test file to destination'
         );
 
-        $platby = FioPlatba::zPoslednichDni($pocetDniZpet);
-        $platbySVsVeZprave = array_filter($platby, static function (FioPlatba $platba) {
-            return $platba->zprava() && preg_match('~^/VS/\d+$~', $platba->zprava()) === 1;
-        });
-        self::assertCount(2, $platbySVsVeZprave);
-        foreach ($platbySVsVeZprave as $platbaSVsVeZprave) {
-            self::assertSame($platbaSVsVeZprave->zprava(), "/VS/{$platbaSVsVeZprave->vs()}");
+        return FioPlatba::zPoslednichDni($pocetDniZpet);
+    }
+
+    /**
+     * @test
+     */
+    public function Muzeme_nacist_datum_transakce() {
+        $konecGc2021 = DateTimeGamecon::spocitejKonecGameconu(2021);
+        $platby = $this->dejAnonymizovanePlatby();
+        foreach ($platby as $platba) {
+            $datum = $platba->datum();
+            self::assertInstanceOf(\DateTimeImmutable::class, $datum);
+            self::assertLessThan($konecGc2021, $datum);
         }
     }
 }
