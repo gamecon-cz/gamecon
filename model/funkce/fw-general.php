@@ -52,9 +52,11 @@ function back(string $to = null) {
         && (str_contains($_SERVER['HTTP_REFERER'], URL_WEBU) || str_contains($_SERVER['HTTP_REFERER'], URL_ADMIN))
     ) {
         header('Location: ' . $_SERVER['HTTP_REFERER'], true, 303);
-    } elseif ($_SERVER['REQUEST_METHOD'] != 'GET'
-        && (str_contains($_SERVER['REQUEST_URI'], URL_WEBU) || str_contains($_SERVER['REQUEST_URI'], URL_ADMIN))
+    } elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_SERVER['REDIRECT_URL'])
+        && $_SERVER['REDIRECT_URL'] !== ($_SERVER['REQUEST_URI'] ?? '')
     ) {
+        header('Location: ' . $_SERVER['REDIRECT_URL'], true, 303);
+    } elseif ($_SERVER['REQUEST_METHOD'] !== 'GET') {
         header('Location: ' . $_SERVER['REQUEST_URI'], true, 303);
     } else {
         header('Location: ' . URL_WEBU, true, 303);
