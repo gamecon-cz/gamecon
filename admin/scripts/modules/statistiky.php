@@ -8,110 +8,6 @@
  */
 
 use Gamecon\Statistiky\Statistiky;
-use Gamecon\Zidle;
-use Gamecon\Pravo;
-
-// tabulka účasti
-$sledovaneZidle = array_merge(
-    [Zidle::PRIHLASEN_NA_LETOSNI_GC, Zidle::PRITOMEN_NA_LETOSNIM_GC],
-    dbOneArray('SELECT id_zidle FROM r_prava_zidle WHERE id_prava = $0', [Pravo::ZOBRAZOVAT_VE_STATISTIKACH_V_TABULCE_UCASTI])
-);
-
-$ucast = tabMysql(dbQuery('
-  SELECT
-    jmeno_zidle as " ",
-    COUNT(uzivatele_zidle.id_uzivatele) as Celkem,
-    COUNT(z_prihlasen.id_zidle) as Přihlášen
-  FROM r_zidle_soupis AS zidle
-  LEFT JOIN r_uzivatele_zidle AS uzivatele_zidle ON zidle.id_zidle = uzivatele_zidle.id_zidle
-  LEFT JOIN r_uzivatele_zidle AS z_prihlasen ON
-    z_prihlasen.id_zidle = $1 AND
-    z_prihlasen.id_uzivatele = uzivatele_zidle.id_uzivatele
-  WHERE zidle.id_zidle IN ($0)
-  GROUP BY zidle.id_zidle, zidle.jmeno_zidle
-  ORDER BY SUBSTR(zidle.jmeno_zidle, 1, 10), zidle.id_zidle
-', [
-    $sledovaneZidle,
-    Zidle::PRIHLASEN_NA_LETOSNI_GC,
-]));
-
-// tabulky nákupů
-$predmety = tabMysql(dbQuery('
-  SELECT
-    shop_predmety.nazev Název,
-    shop_predmety.model_rok Model,
-    COUNT(shop_nakupy.id_predmetu) Počet
-  FROM shop_nakupy
-  JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
-  WHERE shop_nakupy.rok=' . ROK . ' AND (shop_predmety.typ=1 OR shop_predmety.typ=3)
-  GROUP BY shop_nakupy.id_predmetu
-  -- ORDER BY p.typ, Počet DESC
-'), 'Předměty');
-
-$ubytovani = tabMysql(dbQuery('
-  SELECT
-    p.nazev Název,
-    COUNT(n.id_predmetu) Počet
-  FROM shop_nakupy n
-  JOIN shop_predmety p ON(n.id_predmetu=p.id_predmetu)
-  WHERE n.rok=' . ROK . ' AND (p.typ=2)
-  GROUP BY n.id_predmetu
-'), 'Ubytování dny a místa');
-
-$ubytovaniKratce = tabMysql(dbQuery("
-  SELECT
-    SUBSTR(p.nazev,11) Den,
-    COUNT(n.id_predmetu) Počet
-  FROM shop_nakupy n
-  JOIN shop_predmety p ON(n.id_predmetu=p.id_predmetu)
-  WHERE n.rok=" . ROK . " AND (p.typ=2)
-  GROUP BY p.ubytovani_den
-UNION ALL
-  SELECT 'neubytovaní' as Den, COUNT(*) as Počet
-  FROM r_uzivatele_zidle z
-  LEFT JOIN(
-    SELECT n.id_uzivatele
-    FROM shop_nakupy n
-    JOIN shop_predmety p ON(n.id_predmetu=p.id_predmetu AND p.typ=2)
-    WHERE n.rok=" . ROK . "
-    GROUP BY n.id_uzivatele
-  ) nn ON(nn.id_uzivatele=z.id_uzivatele)
-  WHERE id_zidle=" . ZIDLE_PRIHLASEN . " AND ISNULL(nn.id_uzivatele)
-"), 'Ubytování dny');
-
-$jidlo = tabMysql(dbQuery(<<<SQL
-SELECT Název,Počet,Sleva FROM (
-  SELECT
-    TRIM(predmety.nazev) Název,
-    COUNT(nakupy.id_predmetu) Počet,
-    COUNT(slevy.id_uzivatele) as Sleva,
-    predmety.ubytovani_den
-  FROM shop_nakupy AS nakupy
-  JOIN shop_predmety AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
-  LEFT JOIN (
-    SELECT uz.id_uzivatele -- id uživatelů s právy uvedenými níž
-    FROM r_uzivatele_zidle uz
-    JOIN r_prava_zidle pz ON pz.id_zidle = uz.id_zidle AND pz.id_prava IN($0)
-    GROUP BY uz.id_uzivatele
-  ) AS slevy ON slevy.id_uzivatele = nakupy.id_uzivatele
-  WHERE nakupy.rok = $1 AND predmety.typ = $2
-  GROUP BY nakupy.id_predmetu
-) AS seskupeno
-ORDER BY ubytovani_den, Název
-SQL,
-    [[P_JIDLO_ZDARMA, P_JIDLO_SLEVA], ROK, Shop::JIDLO]
-), 'Jídlo');
-
-$pohlavi = tabMysqlR(dbQuery("
-  SELECT
-    'Počet' as ' ', -- formátování
-    SUM(IF(u.pohlavi='m',1,0)) as Muži,
-    SUM(IF(u.pohlavi='f',1,0)) as Ženy,
-    ROUND(SUM(IF(u.pohlavi='f',1,0))/COUNT(1),2) as Poměr
-  FROM r_uzivatele_zidle uz
-  JOIN uzivatele_hodnoty u ON(uz.id_uzivatele=u.id_uzivatele)
-  WHERE uz.id_zidle = " . ZIDLE_PRIHLASEN . "
-"));
 
 $zbyva = new DateTime(DEN_PRVNI_DATE);
 $zbyva = $zbyva->diff(new DateTime());
@@ -121,9 +17,18 @@ $vybraneRoky = array_diff(
     $_GET['rok'] ?? range(ROK - 3, ROK),
     [2020] // abychom netrápili databázi hleáním dat pro rok Call of Covid
 );
-$mozneRoky = range(2012, ROK);
+$mozneRoky = range(2009, ROK);
 
-$prihlaseniData = (new Statistiky($vybraneRoky))->data(new DateTimeImmutable());
+$statistiky = new Statistiky($vybraneRoky, ROK);
+
+$ucast = $statistiky->tabulkaUcastiHtml();
+$predmety = $statistiky->tabulkaPredmetuHtml();
+$ubytovani = $statistiky->tabulkaUbytovaniHtml();
+$ubytovaniKratce = $statistiky->tabulkaUbytovaniKratce();
+$jidlo = $statistiky->tabulkaJidlaHtml();
+$pohlavi = $statistiky->tabulkaZastoupeniPohlaviHtml();
+
+$prihlaseniData = $statistiky->dataProGrafUcasti(new DateTimeImmutable());
 
 $pocetDni = 0;
 $nazvyDnu = [];
