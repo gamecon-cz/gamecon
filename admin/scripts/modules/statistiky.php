@@ -131,7 +131,6 @@ foreach ($prihlaseniData as $rok => $dataJednohoRoku) {
     }
     if (in_array($rok, $vybraneRoky, false)) {
         array_unshift($dataJednohoRoku, 0); // aby graf začínal pěkne na nule
-//        $dataJednohoRoku[] = end($dataJednohoRoku); // zopakujeme posledni den, opět aby byl hezčí graf
         $prihlaseniProJs[] = [
             'name' => "Přihlášení $rok",
             'data' => array_values($dataJednohoRoku) // JS knihovna vyžaduje číselné indexování
@@ -141,14 +140,14 @@ foreach ($prihlaseniData as $rok => $dataJednohoRoku) {
         $zacatekGcRoku = \Gamecon\Cas\DateTimeGamecon::spocitejZacatekGameconu($rok)->formatDatumDb();
         $konecGcRoku = \Gamecon\Cas\DateTimeGamecon::spocitejKonecGameconu($rok)->formatDatumDb();
         foreach ($dnyJednohoRoku as $indexDne => $denJednohoRoku) {
-            // index 0 je vynucená nula přes array_unshift, index 1 jsou všechny dny před registrací, index 2 je otevření registrací
-            if ($indexDne <= 1) {
+            // index 0 je vynucená nula přes array_unshift
+            if ($indexDne === 0) {
                 $nazvyDnuJednohoRoku[] = 'před registracemi';
-            } elseif ($indexDne === 2) {
-                $nazvyDnuJednohoRoku[] = 'začátek registrací'; // první den registrací
+            } elseif ($indexDne === 1) {
+                $nazvyDnuJednohoRoku[] = 'začátek registrací';
             } else {
                 $denRegistraci = $indexDne - 1;
-                $nazvyDnuJednohoRoku[] = "den $denRegistraci.";
+                $nazvyDnuJednohoRoku[] = "den $denRegistraci";
             }
             if ($zacatekGcRoku === $denJednohoRoku) {
                 // naposledy vytvořený název jednoho dne je zároveň i dnem začátku GC
