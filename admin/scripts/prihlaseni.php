@@ -34,7 +34,7 @@ if (post('vybratUzivateleProPraci')) {
 
 if (get('pracovni_uzivatel')) {
     $u = Uzivatel::prihlasId(get('pracovni_uzivatel'), Uzivatel::UZIVATEL_PRACOVNI);
-    back(URL_ADMIN . '/uvod');
+    back();
 }
 
 $uPracovni = Uzivatel::zSession(Uzivatel::UZIVATEL_PRACOVNI);
