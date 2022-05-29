@@ -17,6 +17,7 @@ services:
 
   sql.gamecon:
     image: mysql:5.5
+    container_name: sql.gamecon
     restart: "no"
     environment:
       - MYSQL_ROOT_PASSWORD=root
@@ -25,3 +26,16 @@ services:
       - ~/.cache/gamecon/mysql:/var/lib/mysql
     ports:
       - 13306:3306
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    links:
+      - sql.gamecon
+    environment:
+      PMA_HOST: sql.gamecon
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 8M
+      PMA_ARBITRARY: 1
+    restart: always
+    ports:
+      - 8081:80
