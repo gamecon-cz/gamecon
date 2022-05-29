@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\XTemplate\XTemplate;
+
 /**
  * Rychlé finanční transakce (obsolete) (starý kód)
  *

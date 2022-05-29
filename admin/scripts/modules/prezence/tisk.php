@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\XTemplate\XTemplate;
 
 /**
  * Přehled aktivit, které se mají tisknout, a link, který je vytiskne

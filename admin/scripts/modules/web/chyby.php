@@ -5,7 +5,8 @@
  * pravo: 105
  */
 
-use \Gamecon\Cas\DateTimeCz;
+use Gamecon\Cas\DateTimeCz;
+use Gamecon\XTemplate\XTemplate;
 
 $db = new EPDO('sqlite:' . SPEC . '/chyby.sqlite');
 $ignorovane = json_decode($_COOKIE['ignorovaneChyby'] ?? '[]');

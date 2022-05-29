@@ -4,7 +4,7 @@ use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\TypAktivity;
 
 /** @var Url $url */
-/** @var XTemplate $t */
+/** @var \Gamecon\XTemplate\XTemplate $t */
 /** @var Uzivatel $u */
 /** @var Uzivatel|null|void $org */
 

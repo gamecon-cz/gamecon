@@ -2,6 +2,7 @@
 
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\XTemplate\XTemplate;
 
 /**
  * Stránka pro tvorbu a správu aktivit.

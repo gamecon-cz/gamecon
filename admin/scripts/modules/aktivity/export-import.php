@@ -23,6 +23,7 @@ use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleApiCredentials;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Models\GoogleApiTokenStorage;
 use Gamecon\Vyjimkovac\Logovac;
+use Gamecon\XTemplate\XTemplate;
 
 if (($_GET['zpet'] ?? '') === 'aktivity') {
     back(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) . '/..');
@@ -54,7 +55,7 @@ if (isset($_GET['code'])) {
     back(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
 }
 
-$template = new \XTemplate(__DIR__ . '/export-import.xtpl');
+$template = new XTemplate(__DIR__ . '/export-import.xtpl');
 
 $urlNaAktivity = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) . '/..';
 $template->assign('urlNaAktivity', $urlNaAktivity);

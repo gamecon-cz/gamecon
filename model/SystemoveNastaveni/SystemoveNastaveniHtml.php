@@ -3,6 +3,7 @@
 namespace Gamecon\SystemoveNastaveni;
 
 use Gamecon\Cas\DateTimeCz;
+use Gamecon\XTemplate\XTemplate;
 
 class SystemoveNastaveniHtml
 {
@@ -17,7 +18,7 @@ class SystemoveNastaveniHtml
 
     public function zobrazHtml() {
 
-        $template = new \XTemplate(__DIR__ . '/templates/nastaveni.xtpl');
+        $template = new XTemplate(__DIR__ . '/templates/nastaveni.xtpl');
 
         $template->assign('ajaxKlic', SystemoveNastaveniAjax::AJAX_KLIC);
         $template->assign('postKlic', SystemoveNastaveniAjax::POST_KLIC);
@@ -52,7 +53,7 @@ class SystemoveNastaveniHtml
         return $zaznamyPodleSkupin;
     }
 
-    private function vypisSkupinu(string $skupina, array $zaznamy, \XTemplate $template) {
+    private function vypisSkupinu(string $skupina, array $zaznamy, XTemplate $template) {
         $template->assign('nazevSkupiny', mb_ucfirst($skupina));
         $template->parse('nastaveni.skupina.nazev');
 

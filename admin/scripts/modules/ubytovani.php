@@ -7,6 +7,8 @@
  * pravo: 101
  */
 
+use Gamecon\XTemplate\XTemplate;
+
 /**
  * @var Uzivatel|null|void $uPracovni
  */

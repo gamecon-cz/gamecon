@@ -5,13 +5,13 @@ namespace Gamecon\Aktivita\OnlinePrezence;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\AktivitaPrezence;
 use Gamecon\Aktivita\RazitkoPosledniZmenyPrihlaseni;
-use Gamecon\Cas\DateTimeCz;
 use Gamecon\Pravo;
 use Symfony\Component\Filesystem\Filesystem;
+use Gamecon\XTemplate\XTemplate;
 
 class OnlinePrezenceHtml
 {
-    /** @var \XTemplate */
+    /** @var XTemplate */
     private $onlinePrezenceTemplate;
     /** @var string */
     private $jsVyjimkovac;
@@ -72,7 +72,7 @@ class OnlinePrezenceHtml
         return $template->text('onlinePrezence');
     }
 
-    private function pridejLokalniAssety(\XTemplate $template) {
+    private function pridejLokalniAssety(XTemplate $template) {
         static $localAssets = [
             'stylesheets' => [
                 __DIR__ . '/../../../admin/files/design/hint.css',
@@ -101,22 +101,22 @@ class OnlinePrezenceHtml
         }
     }
 
-    private function dejOnlinePrezenceTemplate(): \XTemplate {
+    private function dejOnlinePrezenceTemplate(): XTemplate {
         if ($this->onlinePrezenceTemplate === null) {
-            $this->onlinePrezenceTemplate = new \XTemplate(__DIR__ . '/templates/online-prezence.xtpl');
+            $this->onlinePrezenceTemplate = new XTemplate(__DIR__ . '/templates/online-prezence.xtpl');
         }
         return $this->onlinePrezenceTemplate;
     }
 
     /**
-     * @param \XTemplate $template
+     * @param XTemplate $template
      * @param array|Aktivita[] $organizovaneAktivity
      * @param int $editovatelnaXMinutPredZacatkem
      * @param \DateTimeInterface|null $now
      * @return void
      */
     private function sestavHtmlOnlinePrezence(
-        \XTemplate          $template,
+        XTemplate           $template,
         \Uzivatel           $vypravec,
         array               $organizovaneAktivity,
         int                 $editovatelnaXMinutPredZacatkem,

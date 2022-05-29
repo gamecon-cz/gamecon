@@ -1,6 +1,7 @@
 <?php
+use Gamecon\XTemplate\XTemplate;
 
-/** 
+/**
  * Úpravy novinek na webu
  *
  * nazev: Web

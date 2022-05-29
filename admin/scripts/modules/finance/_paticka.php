@@ -1,4 +1,6 @@
 <?php
+use Gamecon\XTemplate\XTemplate;
+
 $x = new XTemplate('_paticka.xtpl');
 $x->assign(['kurzEura' => KURZ_EURO]);
 // skutečná cesta ke skriptu, aby při jeho případném přejmenování vědělo IDE i o tomto odkazu (název souboru = URL)

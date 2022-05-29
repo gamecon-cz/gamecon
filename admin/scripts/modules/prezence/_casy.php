@@ -2,6 +2,7 @@
 
 use \Gamecon\Cas\DateTimeCz;
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\XTemplate\XTemplate;
 
 /**
  * Vhackovaný code snippet na zobrazení vybírátka času

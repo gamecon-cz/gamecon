@@ -5,10 +5,11 @@ namespace Gamecon\Aktivita\OnlinePrezence;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\ZmenaStavuPrihlaseni;
+use Gamecon\XTemplate\XTemplate;
 
 class OnlinePrezenceUcastnikHtml
 {
-    /** @var \XTemplate */
+    /** @var XTemplate */
     private $onlinePrezenceUcastnikTemplate;
     /** @var int */
     private $naPosledniChviliXMinutPredZacatkem;
@@ -73,9 +74,9 @@ class OnlinePrezenceUcastnikHtml
         return (clone $zacatek)->modify('-' . $this->naPosledniChviliXMinutPredZacatkem . ' minutes');
     }
 
-    private function dejOnlinePrezenceUcastnikTemplate(): \XTemplate {
+    private function dejOnlinePrezenceUcastnikTemplate(): XTemplate {
         if ($this->onlinePrezenceUcastnikTemplate === null) {
-            $this->onlinePrezenceUcastnikTemplate = new \XTemplate(__DIR__ . '/templates/online-prezence-ucastnik.xtpl');
+            $this->onlinePrezenceUcastnikTemplate = new XTemplate(__DIR__ . '/templates/online-prezence-ucastnik.xtpl');
         }
         return $this->onlinePrezenceUcastnikTemplate;
     }

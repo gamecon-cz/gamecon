@@ -8,8 +8,9 @@
  * pravo: 100
  */
 
-use \Gamecon\Cas\DateTimeCz;
-use \Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Cas\DateTimeCz;
+use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\XTemplate\XTemplate;
 
 /**
  * @var Uzivatel|null|void $u

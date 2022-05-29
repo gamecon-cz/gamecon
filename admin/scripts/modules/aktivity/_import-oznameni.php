@@ -1,4 +1,7 @@
 <?php
+
+use Gamecon\XTemplate\XTemplate;
+
 return static function (\Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImportResult $vysledekImportuAktivit): string {
     $naimportovanoPocet = $vysledekImportuAktivit->getImportedCount();
     $nazevImportovanehoSouboru = $vysledekImportuAktivit->getProcessedFilename();
@@ -11,7 +14,7 @@ return static function (\Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImportR
     }
     $flashMessage = \Chyba::vyzvedniHtml();
 
-    $template = new \XTemplate(__DIR__ . '/_import-oznameni.xtpl');
+    $template = new XTemplate(__DIR__ . '/_import-oznameni.xtpl');
     $template->assign('flashMessage', $flashMessage);
     $template->parse('oznameni.flashMessage');
 

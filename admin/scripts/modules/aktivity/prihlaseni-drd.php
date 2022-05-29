@@ -2,6 +2,7 @@
 
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\XTemplate\XTemplate;
 
 /**
  * Stránka pro přehled všech přihlášených na aktivitu DrD. DrD je starý modul a

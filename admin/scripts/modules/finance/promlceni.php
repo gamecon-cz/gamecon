@@ -1,4 +1,5 @@
 <?php
+use Gamecon\XTemplate\XTemplate;
 
 /**
  * nazev: Promlčení zůstatků
@@ -58,7 +59,7 @@ if(post('pripravit')) {
   if(!is_numeric(post('castka')))
     chyba('Zadejte hraniční částku jako celé číslo větší nebo rovno 0');
 
-  if(post('castka') < 0) 
+  if(post('castka') < 0)
     chyba('Částka musí být větší nebo rovna 0');
 
   if(!is_numeric(post('pocetLet')) || post('pocetLet') <= 0)

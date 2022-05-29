@@ -1,10 +1,11 @@
 <?php
 
+use Gamecon\XTemplate\XTemplate;
+
 /**
  * Modul stránek (controller). Objektové zapouzdření pro soubory ze složky
  * "moduly" v rootu stránek.
  */
-
 class Modul
 {
 

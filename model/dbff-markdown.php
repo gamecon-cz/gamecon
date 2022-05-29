@@ -1,38 +1,41 @@
 <?php
 
-class DbffMarkdown extends DbFormField {
+use Gamecon\XTemplate\XTemplate;
 
-  private $oldVal;
-  private $text;
+class DbffMarkdown extends DbFormField
+{
 
-  function display() {
-    return self::CUSTOM;
-  }
+    private $oldVal;
+    private $text;
 
-  function html() {
-    $t = new XTemplate(__DIR__.'/dbff-markdown.xtpl');
-    $t->assign([
-      'pnOldId' => $this->postName('oldVal'),
-      'oldId'   => $this->value(),
-      'pnText'  => $this->postName('text'),
-      'text'    => htmlspecialchars(dbText($this->value())),
-      'mdText'  => dbMarkdown($this->value()),
-    ]);
-    $t->parse('md');
-    return $t->text('md');
-  }
+    function display() {
+        return self::CUSTOM;
+    }
 
-  function loadPost() {
-    $this->oldVal = $this->postValue('oldVal');
-    $this->text = $this->postValue('text');
-  }
+    function html() {
+        $t = new XTemplate(__DIR__ . '/dbff-markdown.xtpl');
+        $t->assign([
+            'pnOldId' => $this->postName('oldVal'),
+            'oldId' => $this->value(),
+            'pnText' => $this->postName('text'),
+            'text' => htmlspecialchars(dbText($this->value())),
+            'mdText' => dbMarkdown($this->value()),
+        ]);
+        $t->parse('md');
+        return $t->text('md');
+    }
 
-  function preInsert() {
-    $this->value(dbTextHash($this->text));
-  }
+    function loadPost() {
+        $this->oldVal = $this->postValue('oldVal');
+        $this->text = $this->postValue('text');
+    }
 
-  function postInsert() {
-    $this->value(dbTextClean($this->oldVal));
-  }
+    function preInsert() {
+        $this->value(dbTextHash($this->text));
+    }
+
+    function postInsert() {
+        $this->value(dbTextClean($this->oldVal));
+    }
 
 }

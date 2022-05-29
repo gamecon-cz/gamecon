@@ -1,4 +1,5 @@
 <?php
+use Gamecon\XTemplate\XTemplate;
 
 /**
  * Nástroj na automatické rušení předmětů daného typu uživatelům s zůstatkem

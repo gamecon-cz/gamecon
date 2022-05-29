@@ -1,6 +1,7 @@
 <?php
 
 use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
+use Gamecon\XTemplate\XTemplate;
 
 if (!post('importBalicku')) {
 

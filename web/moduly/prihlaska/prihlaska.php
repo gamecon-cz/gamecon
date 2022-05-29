@@ -2,7 +2,7 @@
 
 use \Gamecon\Cas\DateTimeCz;
 
-/** @var XTemplate $t */
+/** @var \Gamecon\XTemplate\XTemplate $t */
 /** @var Uzivatel $u */
 
 $this->pridejJsSoubor('soubory/blackarrow/prihlaska/prihlaska.js');

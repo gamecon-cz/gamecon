@@ -1,9 +1,10 @@
 <?php
 
+use Gamecon\XTemplate\XTemplate;
+
 /**
  * Třída starající se o e-shop, nákupy, formy a související
  */
-
 class Shop
 {
     // TYPY PŘEDMĚTŮ

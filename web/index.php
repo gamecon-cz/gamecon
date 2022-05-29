@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\XTemplate\XTemplate;
 
 require __DIR__ . '/../nastaveni/zavadec.php';
 require __DIR__ . '/tridy/modul.php';

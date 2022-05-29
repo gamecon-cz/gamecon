@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\XTemplate\XTemplate;
 
 class Menu
 {
