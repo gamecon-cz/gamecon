@@ -3,6 +3,9 @@
 
 Web a informační systém festivalu nepočítačových her [GameCon](https://gamecon.cz).
 
+TODO: návod na práci s ui BUILDING Vývoj atd.
+TODO: Vytvořit zálohy node_modules pro případ nekompatabilní změny balíčku a smazání staré verze
+
 ## Návod na rozjetí
 
 Návod je určený pro Windows, v Linuxu by mělo stačit nainstalovat všechno z balíčků a nastavit podle návodu.

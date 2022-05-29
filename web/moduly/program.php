@@ -44,6 +44,8 @@ $this->pridejJsSoubor('soubory/blackarrow/program-nahled/program-nahled.js');
 $this->pridejJsSoubor('soubory/blackarrow/program-posuv/program-posuv.js');
 $this->pridejJsSoubor('soubory/blackarrow/_spolecne/zachovej-scroll.js');
 
+$this->pridejCssUrl('soubory/ui/style.css');
+
 $zacatekPrvniVlnyOd = \Gamecon\Cas\DateTimeGamecon::zacatekPrvniVlnyOd();
 $zacatekPrvniVlnyZaSekund = $zacatekPrvniVlnyOd->getTimestamp() - time();
 
@@ -109,6 +111,7 @@ $zobrazitMujProgramOdkaz = isset($u);
         </div>
     </div>
 
+    <div id="preact-program">Loading...</div>
 
     <div class="programNahled_obalProgramu">
         <div class="programPosuv_obal2">
@@ -148,3 +151,5 @@ $zobrazitMujProgramOdkaz = isset($u);
     <?php }
     } ?>
 </script>
+
+<script type="module" src="<?= $this->zabalJsSoubor('soubory/ui/bundle.js') ?>"></script>

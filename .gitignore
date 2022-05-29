@@ -20,6 +20,7 @@
 !/web/soubory/styl
 !/web/soubory/*.js
 !/web/soubory/systemove
+!/web/soubory/ui
 /web/soubory/systemove/*/*
 !/web/soubory/systemove/*/.gitkeep
 !/web/soubory/systemove/*/.htaccess
