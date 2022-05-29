@@ -43,19 +43,24 @@ function reload() {
 
 /**
  * Ends current script execution and reloads page to http referrer.
- * @param string $to alternative location to go to instead of referrer
+ * @param string|null $to alternative location to go to instead of referrer
  */
-function back($to = null) {
-    if ($to)
+function back(string $to = null) {
+    if ($to) {
         header('Location: ' . $to, true, 303);
-    elseif (isset($_SERVER['HTTP_REFERER']))
+    } elseif (isset($_SERVER['HTTP_REFERER'])
+        && (str_contains($_SERVER['HTTP_REFERER'], URL_WEBU) || str_contains($_SERVER['HTTP_REFERER'], URL_ADMIN))
+    ) {
         header('Location: ' . $_SERVER['HTTP_REFERER'], true, 303);
-    elseif ($_SERVER['REQUEST_METHOD'] != 'GET')
+    } elseif ($_SERVER['REQUEST_METHOD'] != 'GET'
+        && (str_contains($_SERVER['REQUEST_URI'], URL_WEBU) || str_contains($_SERVER['REQUEST_URI'], URL_ADMIN))
+    ) {
         header('Location: ' . $_SERVER['REQUEST_URI'], true, 303);
-    else
-        header('Location: /', true, 303);
+    } else {
+        header('Location: ' . URL_WEBU, true, 303);
+    }
 
-    exit();
+    exit;
 }
 
 function getBackUrl(string $defaultBackUrl = null): string {
