@@ -25,7 +25,7 @@ class Platby
                 'fio_id' => $fioPlatba->id(),
                 'castka' => $fioPlatba->castka(),
                 'rok' => ROK,
-                'provedeno' => $fioPlatba->datum(),
+                'pripsano' => $fioPlatba->datum(),
                 'provedl' => Uzivatel::SYSTEM,
                 'poznamka' => strlen($fioPlatba->zprava()) > 4
                     ? $fioPlatba->zprava()
