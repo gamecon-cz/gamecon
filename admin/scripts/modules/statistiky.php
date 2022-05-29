@@ -17,7 +17,7 @@ $sledovaneZidle = array_merge(
     dbOneArray('SELECT id_zidle FROM r_prava_zidle WHERE id_prava = $0', [Pravo::ZOBRAZOVAT_VE_STATISTIKACH_V_TABULCE_UCASTI])
 );
 
-$ucast = tabMysql(dbQuery('
+$ucast = tabMysql(dbQuery(<<<SQL
   SELECT
     jmeno_zidle as " ",
     COUNT(uzivatele_zidle.id_uzivatele) as Celkem,
@@ -30,41 +30,46 @@ $ucast = tabMysql(dbQuery('
   WHERE zidle.id_zidle IN ($0)
   GROUP BY zidle.id_zidle, zidle.jmeno_zidle
   ORDER BY SUBSTR(zidle.jmeno_zidle, 1, 10), zidle.id_zidle
-', [
+SQL, [
     $sledovaneZidle,
     Zidle::PRIHLASEN_NA_LETOSNI_GC,
-]));
+]), 'Účast');
 
 // tabulky nákupů
-$predmety = tabMysql(dbQuery('
+$predmety = tabMysql(dbQuery(<<<SQL
   SELECT
     shop_predmety.nazev Název,
     shop_predmety.model_rok Model,
     COUNT(shop_nakupy.id_predmetu) Počet
   FROM shop_nakupy
   JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
-  WHERE shop_nakupy.rok=' . ROK . ' AND (shop_predmety.typ=1 OR shop_predmety.typ=3)
+  WHERE shop_nakupy.rok=$0 AND shop_predmety.typ IN ($1)
   GROUP BY shop_nakupy.id_predmetu
-  -- ORDER BY p.typ, Počet DESC
-'), 'Předměty');
+SQL, [
+    ROK,
+    [Shop::PREDMET, Shop::TRICKO],
+]), 'Předměty');
 
-$ubytovani = tabMysql(dbQuery('
+$ubytovani = tabMysql(dbQuery(<<<SQL
   SELECT
     p.nazev Název,
     COUNT(n.id_predmetu) Počet
   FROM shop_nakupy n
   JOIN shop_predmety p ON(n.id_predmetu=p.id_predmetu)
-  WHERE n.rok=' . ROK . ' AND (p.typ=2)
+  WHERE n.rok=$0 AND (p.typ=$1)
   GROUP BY n.id_predmetu
-'), 'Ubytování dny a místa');
+SQL, [
+    ROK,
+    Shop::UBYTOVANI,
+]), 'Ubytování dny a místa');
 
-$ubytovaniKratce = tabMysql(dbQuery("
+$ubytovaniKratce = tabMysql(dbQuery(<<<SQL
   SELECT
     SUBSTR(p.nazev,11) Den,
     COUNT(n.id_predmetu) Počet
   FROM shop_nakupy n
   JOIN shop_predmety p ON(n.id_predmetu=p.id_predmetu)
-  WHERE n.rok=" . ROK . " AND (p.typ=2)
+  WHERE n.rok=$0 AND p.typ=$1
   GROUP BY p.ubytovani_den
 UNION ALL
   SELECT 'neubytovaní' as Den, COUNT(*) as Počet
@@ -72,12 +77,16 @@ UNION ALL
   LEFT JOIN(
     SELECT n.id_uzivatele
     FROM shop_nakupy n
-    JOIN shop_predmety p ON(n.id_predmetu=p.id_predmetu AND p.typ=2)
-    WHERE n.rok=" . ROK . "
+    JOIN shop_predmety p ON n.id_predmetu=p.id_predmetu AND p.typ=$1
+    WHERE n.rok=$0
     GROUP BY n.id_uzivatele
   ) nn ON(nn.id_uzivatele=z.id_uzivatele)
-  WHERE id_zidle=" . ZIDLE_PRIHLASEN . " AND ISNULL(nn.id_uzivatele)
-"), 'Ubytování dny');
+  WHERE id_zidle=$2 AND ISNULL(nn.id_uzivatele)
+SQL, [
+    ROK,
+    Shop::UBYTOVANI,
+    Zidle::PRIHLASEN_NA_LETOSNI_GC,
+]), 'Ubytování dny');
 
 $jidlo = tabMysql(dbQuery(<<<SQL
 SELECT Název,Počet,Sleva FROM (
@@ -102,16 +111,18 @@ SQL,
     [[P_JIDLO_ZDARMA, P_JIDLO_SLEVA], ROK, Shop::JIDLO]
 ), 'Jídlo');
 
-$pohlavi = tabMysqlR(dbQuery("
+$pohlavi = tabMysqlR(dbQuery(<<<SQL
   SELECT
     'Počet' as ' ', -- formátování
-    SUM(IF(u.pohlavi='m',1,0)) as Muži,
-    SUM(IF(u.pohlavi='f',1,0)) as Ženy,
-    ROUND(SUM(IF(u.pohlavi='f',1,0))/COUNT(1),2) as Poměr
-  FROM r_uzivatele_zidle uz
-  JOIN uzivatele_hodnoty u ON(uz.id_uzivatele=u.id_uzivatele)
-  WHERE uz.id_zidle = " . ZIDLE_PRIHLASEN . "
-"));
+    SUM(IF(uzivatele.pohlavi='m',1,0)) as Muži,
+    SUM(IF(uzivatele.pohlavi='f',1,0)) as Ženy,
+    ROUND(SUM(IF(uzivatele.pohlavi='f',1,0))/COUNT(1),2) as Poměr
+  FROM r_uzivatele_zidle AS uzivatele_zidle
+  JOIN uzivatele_hodnoty AS uzivatele ON uzivatele_zidle.id_uzivatele=uzivatele.id_uzivatele
+  WHERE uzivatele_zidle.id_zidle = $0
+SQL, [
+    Zidle::PRIHLASEN_NA_LETOSNI_GC,
+]), 'Pohlaví');
 
 $zbyva = new DateTime(DEN_PRVNI_DATE);
 $zbyva = $zbyva->diff(new DateTime());
