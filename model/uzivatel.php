@@ -904,12 +904,17 @@ SQL
         if ($u) {
             dbUpdate('uzivatele_hodnoty', $dbTab, ['id_uzivatele' => $u->id()]);
             $u->otoc();
-            return $u->id();
+            $idUzivatele = $u->id();
         } else {
             dbInsert('uzivatele_hodnoty', $dbTab);
-            $id = dbInsertId();
-            return $id;
+            $idUzivatele = dbInsertId();
         }
+        $urlUzivatele = self::vytvorUrl($dbTab);
+        if ($urlUzivatele !== null) {
+            dbInsertUpdate('uzivatele_url', ['id_uzivatele' => $idUzivatele, 'url' => $urlUzivatele]);
+        }
+
+        return $idUzivatele;
     }
 
     /**
@@ -920,8 +925,9 @@ SQL
      * @todo poslat mail s něčím jiným jak std hláškou
      */
     static function rychloreg($tab, $opt = []) {
-        if (!isset($tab['login_uzivatele']) || !isset($tab['email1_uzivatele']))
+        if (!isset($tab['login_uzivatele']) || !isset($tab['email1_uzivatele'])) {
             throw new Exception('špatný formát $tab (je to pole?)');
+        }
         $opt = opt($opt, [
             'informovat' => true,
         ]);
@@ -931,8 +937,12 @@ SQL
         try {
             dbInsert('uzivatele_hodnoty', $tab);
         } catch (DbDuplicateEntryException $e) {
-            if ($e->key() == 'email1_uzivatele') throw new DuplicitniEmailException;
-            if ($e->key() == 'login_uzivatele') throw new DuplicitniLoginException;
+            if ($e->key() == 'email1_uzivatele') {
+                throw new DuplicitniEmailException;
+            }
+            if ($e->key() == 'login_uzivatele') {
+                throw new DuplicitniLoginException;
+            }
             throw $e;
         }
         $uid = dbInsertId();
@@ -943,8 +953,9 @@ SQL
             $mail = new GcMail(hlaskaMail('rychloregMail', $u, $tab['email1_uzivatele'], $rand));
             $mail->adresat($tab['email1_uzivatele']);
             $mail->predmet('Registrace na GameCon.cz');
-            if (!$mail->odeslat())
+            if (!$mail->odeslat()) {
                 throw new Exception('Chyba: Email s novým heslem NEBYL odeslán, uživatel má pravděpodobně nastavený neplatný email');
+            }
         }
         return $uid;
     }
@@ -1023,14 +1034,24 @@ SQL
      * Vrátí url cestu k stránce uživatele (bez domény).
      */
     public function url(): ?string {
-        $url = mb_strtolower($this->u['login_uzivatele']);
         if (!$this->u['jmeno_uzivatele']) {
             return null; // nevracet url, asi vypravěčská skupina nebo podobně
         }
-        if (!Url::povolena($url)) {
-            return null;
+        if (!empty($this->u['url'])) {
+            return $this->u['url'];
         }
-        return $url;
+        return self::vytvorUrl($this->u);
+    }
+
+    private static function vytvorUrl(array $uzivatelData): ?string {
+        $jmenoNick = self::jmenoNickZjisti($uzivatelData);
+        $url = slugify($jmenoNick);
+        if (!empty($uzivatelData['id_uzivatele'])) {
+            $url .= '-' . $uzivatelData['id_uzivatele'];
+        }
+        return Url::povolena($url)
+            ? $url
+            : null;
     }
 
     public function vek(): ?int {
@@ -1239,11 +1260,12 @@ SQL
     /**
      * Vrátí uživatele s loginem odpovídajícím dané url
      */
-    static function zUrl() {
+    static function zUrl(): ?Uzivatel {
         $url = Url::zAktualni()->cela();
-        $u = self::nactiUzivatele('WHERE u.login_uzivatele = ' . dbQv($url));
-        if (count($u) !== 1) return null;
-        return $u[0];
+        $u = self::nactiUzivatele('WHERE uzivatele_url.url = ' . dbQv($url));
+        return count($u) !== 1
+            ? null
+            : $u[0];
     }
 
     /**
@@ -1255,6 +1277,7 @@ SQL
         $o = dbQuery('
       SELECT
         u.*,
+        (SELECT url FROM uzivatele_url WHERE uzivatele_url.id_uzivatele = u.id_uzivatele ORDER BY id_url_uzivatele DESC LIMIT 1) AS url,
         GROUP_CONCAT(DISTINCT p.id_prava) as prava
       FROM uzivatele_hodnoty u
       LEFT JOIN r_uzivatele_zidle z ON(z.id_uzivatele = u.id_uzivatele)
@@ -1323,6 +1346,7 @@ SQL,
     protected static function nactiUzivatele(string $where): array {
         $o = dbQuery('SELECT
         u.*,
+        (SELECT url FROM uzivatele_url WHERE uzivatele_url.id_uzivatele = u.id_uzivatele ORDER BY id_url_uzivatele DESC LIMIT 1) AS url,
         -- u.login_uzivatele,
         -- z.id_zidle,
         -- p.id_prava,
@@ -1330,6 +1354,7 @@ SQL,
       FROM uzivatele_hodnoty u
       LEFT JOIN r_uzivatele_zidle z ON(z.id_uzivatele=u.id_uzivatele)
       LEFT JOIN r_prava_zidle p ON(p.id_zidle=z.id_zidle)
+      LEFT JOIN uzivatele_url ON u.id_uzivatele = uzivatele_url.id_uzivatele
       ' . $where . '
       GROUP BY u.id_uzivatele');
         $uzivatele = [];
