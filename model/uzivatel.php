@@ -971,20 +971,26 @@ SQL
     public function statusHtml() {
         $ka = $this->koncovkaDlePohlavi('ka');
         $status = [];
-        if ($this->maPravo(P_TITUL_ORG)) {
+        if ($this->maPravo(\Gamecon\Pravo::TITUL_ORGANIZATOR)) {
             $status [] = '<span style="color:red">Organizátor' . $ka . '</span>';
         }
-        if ($this->maZidli(ZIDLE_ORG_AKTIVIT)) {
+        if ($this->maZidli(\Gamecon\Zidle::VYPRAVEC)) {
             $status[] = '<span style="color:blue">Vypravěč' . $ka . '</span>';
         }
         if ($this->jePartner()) {
             $status[] = '<span style="color:darkslateblue">Partner' . $ka . '</span>';
         }
-        if ($this->maZidli(ZIDLE_INFO)) {
+        if ($this->maZidli(\Gamecon\Zidle::INFOPULT)) {
             $status[] = '<span style="color:orange">Infopult</span>';
+        }
+        if ($this->maZidli(\Gamecon\Zidle::HERMAN)) {
+            $status[] = '<span style="color:orange">Herman</span>';
         }
         if ($this->maZidli(ZIDLE_ZAZEMI)) {
             $status[] = "Zázemí";
+        }
+        if ($this->maZidli(\Gamecon\Zidle::DOBROVOLNIK_SENIOR)) {
+            $status[] = "Dobrovolník senior";
         }
         if (count($status) > 0) {
             return implode(', ', $status);
