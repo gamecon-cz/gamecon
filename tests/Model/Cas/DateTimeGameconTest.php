@@ -20,6 +20,18 @@ class DateTimeGameconTest extends TestCase
             DateTimeGamecon::spocitejZacatekGameconu(2022),
             'Očekáván jiný spočítaný začátek Gameconu pro rok 2022'
         );
+
+        self::assertEquals(
+            DateTimeGamecon::createFromFormat('Y-m-d H:i:s', '2021-07-15 07:00:00'),
+            DateTimeGamecon::spocitejZacatekGameconu(2021),
+            'Očekáván jiný spočítaný začátek Gameconu pro rok 2021'
+        );
+
+        self::assertEquals(
+            DateTimeGamecon::createFromFormat('Y-m-d H:i:s', '2016-07-21 07:00:00'),
+            DateTimeGamecon::spocitejZacatekGameconu(2016),
+            'Očekáván jiný spočítaný začátek Gameconu pro rok 2016'
+        );
     }
 
     public function testKonecGameconu() {
@@ -33,6 +45,18 @@ class DateTimeGameconTest extends TestCase
             DateTimeGamecon::createFromFormat('Y-m-d H:i:s', '2022-07-24 21:00:00'),
             DateTimeGamecon::spocitejKonecGameconu(2022),
             'Očekáván jiný spočítaný konec Gameconu pro rok 2022'
+        );
+
+        self::assertEquals(
+            DateTimeGamecon::createFromFormat('Y-m-d H:i:s', '2021-07-18 21:00:00'),
+            DateTimeGamecon::spocitejKonecGameconu(2021),
+            'Očekáván jiný spočítaný konec Gameconu pro rok 2021'
+        );
+
+        self::assertEquals(
+            DateTimeGamecon::createFromFormat('Y-m-d H:i:s', '2016-07-24 21:00:00'),
+            DateTimeGamecon::spocitejKonecGameconu(2016),
+            'Očekáván jiný spočítaný konec Gameconu pro rok 2016'
         );
     }
 
@@ -62,7 +86,7 @@ class DateTimeGameconTest extends TestCase
     public function testZacatekRegistraciUcastniku() {
         self::assertEquals(
             DateTimeGamecon::createFromMysql(REG_GC_OD),
-            DateTimeGamecon::zacatekRegistraciUcastniku(ROK, false),
+            DateTimeGamecon::zacatekRegistraciUcastniku(ROK),
             'Očekáván jiný začátek registrací, viz konstanta REG_GC_OD: ' . REG_GC_OD
         );
 
@@ -71,19 +95,35 @@ class DateTimeGameconTest extends TestCase
             DateTimeGamecon::spocitejZacatekRegistraciUcastniku(2022),
             'Očekáván jiný spočítaný začátek registrací pro rok 2022'
         );
+
+        self::assertEquals(DateTimeGamecon::createFromFormat('Y-m-d H:i:s', '2021-05-13 20:21:00'),
+            DateTimeGamecon::spocitejZacatekRegistraciUcastniku(2021),
+            'Očekáván jiný spočítaný začátek registrací pro rok 2021'
+        );
+
+        self::assertEquals(DateTimeGamecon::createFromFormat('Y-m-d H:i:s', '2016-05-03 20:16:00'),
+            DateTimeGamecon::spocitejZacatekRegistraciUcastniku(2016),
+            'Očekáván jiný spočítaný začátek registrací pro rok 2016'
+        );
     }
 
     public function testZacatekPrvniVlnyOd() {
         self::assertEquals(
             DateTimeGamecon::createFromMysql(REG_AKTIVIT_OD),
-            DateTimeGamecon::zacatekPrvniVlnyOd(ROK, false),
-            'Očekáván jiný začátek první vlny, viz konstanta REG_AKTIVIT_OD: ' . REG_AKTIVIT_OD
+            DateTimeGamecon::zacatekPrvniVlnyOd(ROK),
+            'Očekáván jiný začátek první vlny pro letošek, viz konstanta REG_AKTIVIT_OD: ' . REG_AKTIVIT_OD
         );
 
         self::assertEquals(
             DateTimeGamecon::createFromFormat('Y-m-d H:i:s', '2022-05-19 20:22:00'),
             DateTimeGamecon::spoctejZacatekPrvniVlnyOd(2022),
             'Očekáván jiný začátek první vlny pro rok 2022'
+        );
+
+        self::assertEquals(
+            DateTimeGamecon::createFromFormat('Y-m-d H:i:s', '2016-05-10 20:16:00'),
+            DateTimeGamecon::spoctejZacatekPrvniVlnyOd(2016),
+            'Očekáván jiný začátek první vlny pro rok 2016'
         );
     }
 
