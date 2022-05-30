@@ -59,10 +59,10 @@ if (post('pripravit')) {
     $uzivatel2 = Uzivatel::zId($idUzivatele2);
 
     if (!$uzivatel1 || !$uzivatel2) {
-        if ($idUzivatele2) {
+        if ($uzivatel2) {
             chyba("První ID $idUzivatele1 neexistuje");
         }
-        if ($idUzivatele1) {
+        if ($uzivatel1) {
             chyba("Druhé ID $idUzivatele2 neexistuje");
         }
         chyba("Ani první ID $idUzivatele1, ani druhé ID $idUzivatele2 neexistuje");
