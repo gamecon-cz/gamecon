@@ -1552,7 +1552,7 @@ SQL,
         $uzivatele = [];
         while ($r = mysqli_fetch_assoc($o)) {
             $u = new static($r);
-            $u->u['prava'] = explode(',', $u->u['prava']);
+            $u->u['prava'] = explode(',', $u->u['prava'] ?? '');
             $uzivatele[] = $u;
         }
         return $uzivatele;
@@ -1624,7 +1624,7 @@ SQL,
         $uzivatele = [];
         while ($r = mysqli_fetch_assoc($o)) {
             $u = new self($r);
-            $u->u['prava'] = explode(',', $u->u['prava']);
+            $u->u['prava'] = explode(',', $u->u['prava'] ?? '');
             $uzivatele[] = $u;
         }
         return $uzivatele;

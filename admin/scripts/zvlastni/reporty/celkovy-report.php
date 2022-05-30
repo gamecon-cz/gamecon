@@ -117,9 +117,9 @@ while ($r = mysqli_fetch_assoc($o)) {
             $r['skola'],
             $r['ubytovan_s'],
             $r['den_prvni'] === null ? '-' :
-                (new DateTimeCz(DEN_PRVNI_UBYTOVANI))->add("P$r[den_prvni]D")->format('j.n.Y'),
+                (new DateTimeCz(DEN_PRVNI_UBYTOVANI))->add(new \DateInterval("P$r[den_prvni]D"))->format('j.n.Y'),
             $r['den_posledni'] === null ? '-' :
-                (new DateTimeCz(DEN_PRVNI_UBYTOVANI))->add("P$r[den_posledni]D")->format('j.n.Y'),
+                (new DateTimeCz(DEN_PRVNI_UBYTOVANI))->add(new \DateInterval("P$r[den_posledni]D"))->format('j.n.Y'),
             ut($r['ubytovani_typ']),
             $un->gcPritomen() ? 'ano' : 'ne',
         ],
