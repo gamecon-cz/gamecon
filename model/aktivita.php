@@ -208,8 +208,8 @@ class Aktivita
 
         // kontrola dostupnosti organizátorů v daný čas
         if (!empty($a['den']) && !empty($a['zacatek']) && !empty($a['konec'])) {
-            $zacatek = (new DateTimeCz($a['den']))->add('PT' . $a['zacatek'] . 'H');
-            $konec = (new DateTimeCz($a['den']))->add('PT' . $a['konec'] . 'H');
+            $zacatek = (new DateTimeCz($a['den']))->add(new \DateInterval('PT' . $a['zacatek'] . 'H'));
+            $konec = (new DateTimeCz($a['den']))->add(new \DateInterval('PT' . $a['konec'] . 'H'));
             $ignorovatAktivitu = isset($a['id_akce']) ? self::zId($a['id_akce']) : null;
             foreach ($a['organizatori'] ?? [] as $orgId) {
                 $org = Uzivatel::zId($orgId);
@@ -516,8 +516,8 @@ class Aktivita
             $a['zacatek'] = null;
             $a['konec'] = null;
         } else {
-            $a['zacatek'] = (new DateTimeCz($a['den']))->add(new DateInterval('PT' . $a['zacatek'] . 'H'))->formatDb();
-            $a['konec'] = (new DateTimeCz($a['den']))->add(new DateInterval('PT' . $a['konec'] . 'H'))->formatDb();
+            $a['zacatek'] = (new DateTimeCz($a['den']))->add(new \DateInterval('PT' . $a['zacatek'] . 'H'))->formatDb();
+            $a['konec'] = (new DateTimeCz($a['den']))->add(new \DateInterval('PT' . $a['konec'] . 'H'))->formatDb();
         }
         unset($a['den']);
         // extra položky kvůli sep. tabulkám
@@ -1390,11 +1390,11 @@ SQL
      * uživatelů, písmena pohlaví a čísla z pohlavím stav přihlášení.
      * @see ucastnici
      */
-    private function prihlaseniRaw() {
+    private function prihlaseniRaw(): string {
         if (!array_key_exists('prihlaseni', $this->a)) {
             throw new Exception ('Nenačteny počty přihlášených do aktivity.');
         }
-        return $this->a['prihlaseni'];
+        return (string)$this->a['prihlaseni'];
     }
 
     /** Počet přihlášených */
@@ -1912,7 +1912,7 @@ SQL
     public function tymZamcenyDo(): ?DateTimeInterface {
         if ($this->a['zamcel_cas']) {
             $dt = new DateTimeCz($this->a['zamcel_cas']);
-            $dt->add('PT' . self::HAJENI . 'H');
+            $dt->add(new \DateInterval('PT' . self::HAJENI . 'H'));
             return $dt;
         }
         return null;

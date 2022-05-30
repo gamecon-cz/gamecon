@@ -138,7 +138,7 @@ for (
     $den <= $konec;
     $den->add(new DateInterval('P1D'))
 ) {
-    $denDb = new DateTime($r['den']);
+    $denDb = new DateTime($r['den'] ?? 'now');
     if ($r === FALSE) { // z DB už vše vyčteno
         if ($den < $vceraTouhleDobou) { // dnešek nezobrazujeme pokud přibylo 0, včerejšek a dříve už ano
             $prihlaseniLetos[] = $pocet;

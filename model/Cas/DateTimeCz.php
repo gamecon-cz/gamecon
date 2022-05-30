@@ -57,7 +57,7 @@ class DateTimeCz extends \DateTime
         return static::createFromFormat('Y-m-d H:i:s', $dateTime, $timeZone);
     }
 
-    public static function createFromFormat($format, $time, \DateTimeZone $timezone = null) {
+    public static function createFromFormat($format, $time, $timezone = null): \DateTime|false {
         $dateTime = parent::createFromFormat($format, $time, $timezone);
         return new static($dateTime->format(DATE_ATOM));
     }
@@ -78,10 +78,10 @@ class DateTimeCz extends \DateTime
     }
 
     /**
-     * @param string|\DateInterval $interval
+     * @param \DateInterval $interval
      * Obalovací fce, umožňuje vložit přímo řetězec pro konstruktor DateIntervalu
      */
-    function add($interval) {
+    public function add(\DateInterval $interval): \DateTime {
         if ($interval instanceof \DateInterval) {
             return parent::add($interval);
         }
@@ -89,17 +89,17 @@ class DateTimeCz extends \DateTime
     }
 
     /** Formát data s upravenými dny česky */
-    function format($f) {
+    public function format($f): string {
         return strtr(parent::format($f), static::$dny);
     }
 
     /** Vrací formát kompatibilní s mysql */
-    function formatDb() {
+    public function formatDb() {
         return parent::format(self::FORMAT_DB);
     }
 
     /** Vrací formát kompatibilní s mysql */
-    function formatDatumDb() {
+    public function formatDatumDb() {
         return parent::format(self::FORMAT_DATUM_DB);
     }
 
@@ -108,7 +108,7 @@ class DateTimeCz extends \DateTime
      *
      * @return string
      */
-    function formatDatumStandard() {
+    public function formatDatumStandard() {
         return parent::format('j. n. Y');
     }
 
@@ -117,7 +117,7 @@ class DateTimeCz extends \DateTime
      *
      * @return string
      */
-    function formatCasNaMinutyStandard() {
+    public function formatCasNaMinutyStandard() {
         return parent::format('j. n. Y H:i');
     }
 
@@ -126,22 +126,22 @@ class DateTimeCz extends \DateTime
      *
      * @return string
      */
-    function formatCasStandard() {
+    public function formatCasStandard() {
         return parent::format('j. n. Y H:i:s');
     }
 
     /** Vrací blogový/dopisový formát */
-    function formatBlog() {
+    public function formatBlog() {
         return strtr(parent::format('j. F Y'), static::$mesice);
     }
 
     /** Zvýší časový údaj o jeden den. Upravuje objekt. */
-    function plusDen() {
+    public function plusDen() {
         $this->add(new \DateInterval('P1D'));
     }
 
     /** Jestli je tento okamžik před okamžikem $d2 */
-    function pred($d2) {
+    public function pred($d2) {
         if ($d2 instanceof \DateTime)
             return $this->getTimestamp() < $d2->getTimestamp();
         else
@@ -149,7 +149,7 @@ class DateTimeCz extends \DateTime
     }
 
     /** Jestli je tento okamžik po okamžiku $d2 */
-    function po($d2) {
+    public function po($d2) {
         if ($d2 instanceof \DateTime)
             return $this->getTimestamp() > $d2->getTimestamp();
         else
@@ -157,7 +157,7 @@ class DateTimeCz extends \DateTime
     }
 
     /** Vrací relativní formát času vůči současnému okamžiku */
-    function relativni(): string {
+    public function relativni(): string {
         $rozdil = time() - $this->getTimestamp();
         if ($rozdil < 0) {
             return 'v budoucnosti';
@@ -184,7 +184,7 @@ class DateTimeCz extends \DateTime
     /**
      * Vrátí „včera“, „předevčírem“, „pozítří“ apod. (místo dnes vrací emptystring)
      */
-    function rozdilDne(\DateTimeInterface $od) {
+    public function rozdilDne(\DateTimeInterface $od) {
         $od = clone $od;
         $od = $od->setTime(0, 0); // nutné znulování času pro funkční porovnání počtu dní
         $do = clone $this;
@@ -213,7 +213,7 @@ class DateTimeCz extends \DateTime
     }
 
     /** Jestli tento den je stejný s $d2 v formátu \DateTime nebo string s časem */
-    function stejnyDen($d2): bool {
+    public function stejnyDen($d2): bool {
         if (!($d2 instanceof \DateTime)) {
             $d2 = new static($d2, $this->getTimezone());
         }
@@ -221,7 +221,7 @@ class DateTimeCz extends \DateTime
     }
 
     /** Zaokrouhlí nahoru na nejbližší vyšší jednotku */
-    function zaokrouhlitNaHodinyNahoru(): DateTimeCz {
+    public function zaokrouhlitNaHodinyNahoru(): DateTimeCz {
         if ($this->format('is') === '0000') { // neni co zaokrouhlovat
             return $this->modify($this->format('Y-m-d H:00:00'));
         }
