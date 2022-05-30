@@ -82,6 +82,11 @@ SELECT systemove_nastaveni.klic,
 FROM systemove_nastaveni
 SQL
             );
+        } catch (\mysqli_sql_exception $exception) {
+            if ($exception->getCode() === 1049) { // Unknown database
+                return;
+            }
+            throw $exception;
         } catch (\ConnectionException $connectionException) {
             // testy nebo úplně prázdný Gamecon na začátku nemají ještě databázi
             return;
@@ -284,7 +289,7 @@ SQL;
 
     private function pridejVychoziHodnoty(array $zaznamy): array {
         return array_map(
-            function (array &$zaznam) {
+            function (array $zaznam) {
                 $zaznam['vychozi_hodnota'] = $this->dejVychoziHodnotu($zaznam['klic']);
                 $zaznam['popis']           .= '<hr><i>výchozí hodnota</i>: ' . (
                     $zaznam['vychozi_hodnota'] !== ''
