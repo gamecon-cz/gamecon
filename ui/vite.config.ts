@@ -15,9 +15,18 @@ export default defineConfig({
       fileName: () => "bundle.js",
       formats: ["es"]
     },
-    minify: false,
+    minify: true,
     rollupOptions: {
       // external: ["preact"]
-    }
-  }
+    },
+    sourcemap: true,
+  },
+  server: {
+    proxy: {
+      '/api': {
+        target: `http://localhost:80/web/`,
+      },
+    },
+    host: true,
+  },
 })

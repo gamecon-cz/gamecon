@@ -112,15 +112,6 @@ $zobrazitMujProgramOdkaz = isset($u);
     </div>
 
     <div id="preact-program">Loading...</div>
-
-    <div class="programNahled_obalProgramu">
-        <div class="programPosuv_obal2">
-            <div class="programPosuv_obal">
-                <?php $program->tisk(); ?>
-            </div>
-        </div>
-    </div>
-
 </div>
 
 <div style="height: 70px"></div>

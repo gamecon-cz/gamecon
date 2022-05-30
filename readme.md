@@ -3,7 +3,10 @@
 
 Web a informační systém festivalu nepočítačových her [GameCon](https://gamecon.cz).
 
+TODO: linter
+TODO: revidovat názvosloví
 TODO: návod na práci s ui BUILDING Vývoj atd.
+TODO: pro api používat normalizovaný čas třeba unix timestamp
 TODO: Vytvořit zálohy node_modules pro případ nekompatabilní změny balíčku a smazání staré verze
 
 ## Návod na rozjetí

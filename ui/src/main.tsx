@@ -1,6 +1,6 @@
-import { render } from 'preact'
-import { App } from './app'
 import './index.less'
+import { renderPages } from "./pages"
 
 console.log("Preact starting ...")
-render(<App />, document.getElementById('preact-program')!)
+
+renderPages();
