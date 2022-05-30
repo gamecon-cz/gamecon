@@ -3,7 +3,7 @@
 
 $this->q(<<<SQL
 INSERT INTO r_zidle_soupis(id_zidle, jmeno_zidle, popis_zidle) VALUES
-(24, 'Herman', 'Služebník ve jménu Gameconu');
+(24, 'Herman', 'Živoucí návod deskových her sloužící ve jménu Gameconu');
 
 INSERT INTO r_prava_zidle(id_zidle, id_prava)
     SELECT 24, r_prava_zidle.id_prava
