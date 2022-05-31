@@ -77,11 +77,10 @@ foreach ($skupiny as $skupina) {
     }
 
     $organizatori = implode(', ', array_map(static function (Uzivatel $organizator) {
-        $url = $organizator->url();
-        if ($url) {
-            return '<a href="' . $url . '">' . $organizator->jmenoNick() . '</a>';
-        }
-        return $organizator->jmenoNick();
+        $url = $organizator->url(true);
+        return $url === null // asi vypravěčská skupina nebo podobně
+            ? $organizator->jmenoNick()
+            : '<a href="' . $url . '">' . $organizator->jmenoNick() . '</a>';
     }, $aktivita->organizatori()));
 
     $obrazek = $aktivita->obrazek();
