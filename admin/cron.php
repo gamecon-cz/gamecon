@@ -23,24 +23,31 @@ function logs($s) {
     echo date('Y-m-d H:i:s ') . $s . "\n";
 }
 
+if (defined('TESTING') && TESTING && !defined('MAILY_DO_SOUBORU')) {
+    define('MAILY_DO_SOUBORU', true);
+}
+
 /////////////////////////////////// příprava ///////////////////////////////////
 
 // otestovat, že je skript volán s heslem a sprvánou url
 if (HTTPS_ONLY) httpsOnly();
-if (!defined('CRON_KEY') || get('key') !== CRON_KEY)
+if (!defined('CRON_KEY') || get('key') !== CRON_KEY) {
     die('špatný klíč');
-
-// otevřít log soubor pro zápis a přesměrovat do něj výstup
-$logdir = SPEC . '/logs';
-$logfile = 'cron-' . date('Y-m') . '.log';
-if (!is_dir($logdir) && !@mkdir($logdir) && !is_dir($logdir)) {
-    throw new \RuntimeException(sprintf('Directory "%s" was not created', $logdir));
 }
-$logDescriptor = fopen($logdir . '/' . $logfile, 'ab');
-ob_start(static function ($string) use ($logDescriptor) {
-    fwrite($logDescriptor, $string . "\n");
-    fclose($logDescriptor);
-});
+
+if (!defined('TESTING') || !TESTING) {
+// otevřít log soubor pro zápis a přesměrovat do něj výstup
+    $logdir = SPEC . '/logs';
+    $logfile = 'cron-' . date('Y-m') . '.log';
+    if (!is_dir($logdir) && !@mkdir($logdir) && !is_dir($logdir)) {
+        throw new \RuntimeException(sprintf('Directory "%s" was not created', $logdir));
+    }
+    $logDescriptor = fopen($logdir . '/' . $logfile, 'ab');
+    ob_start(static function ($string) use ($logDescriptor) {
+        fwrite($logDescriptor, $string . "\n");
+        fclose($logDescriptor);
+    });
+}
 
 // zapnout zobrazení chyb
 ini_set('display_errors', true); // zobrazovat chyby obecně
