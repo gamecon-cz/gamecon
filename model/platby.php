@@ -10,8 +10,25 @@ class Platby
      * @return FioPlatba[]
      */
     static function nactiNove(): array {
+        return self::zpracujPlatby(FioPlatba::zPoslednichDni(self::DNI_ZPET));
+    }
+
+    /**
+     * @param DateTimeInterface $od
+     * @param DateTimeInterface $do
+     * @return FioPlatba[]
+     */
+    public static function nactiZRozmezi(DateTimeInterface $od, DateTimeInterface $do) {
+        return self::zpracujPlatby(FioPlatba::zRozmezi($od, $do));
+    }
+
+    /**
+     * @param FioPlatba[] $fioPlatby
+     * @return FioPlatba[] Zpracované,nepřeskočené FIO platby
+     */
+    private static function zpracujPlatby(array $fioPlatby): array {
         $vysledek = [];
-        foreach (FioPlatba::zPoslednichDni(self::DNI_ZPET) as $fioPlatba) {
+        foreach ($fioPlatby as $fioPlatba) {
             if (!is_numeric($fioPlatba->vs()) || self::platbuUzMame($fioPlatba->id())) {
                 continue;
             }
@@ -19,7 +36,6 @@ class Platby
             if (!$u) {
                 continue;
             }
-            // TODO umožnit nebo zakázat záporné platby (vs. není přihlášen na GC vs. automatický odečet vrácením na účet)
             dbInsert('platby', [
                 'id_uzivatele' => $u->id(),
                 'fio_id' => $fioPlatba->id(),
