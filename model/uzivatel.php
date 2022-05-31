@@ -1046,10 +1046,8 @@ SQL
 
     private static function vytvorUrl(array $uzivatelData): ?string {
         $jmenoNick = self::jmenoNickZjisti($uzivatelData);
-        $url = slugify($jmenoNick);
-        if (!empty($uzivatelData['id_uzivatele'])) {
-            $url .= '-' . $uzivatelData['id_uzivatele'];
-        }
+        $url = $uzivatelData['id_uzivatele'] . '-' . slugify($jmenoNick);
+
         return Url::povolena($url)
             ? $url
             : null;
@@ -1263,7 +1261,11 @@ SQL
      */
     static function zUrl(): ?Uzivatel {
         $url = Url::zAktualni()->cela();
-        $u = self::nactiUzivatele('WHERE uzivatele_url.url = ' . dbQv($url));
+        $idUzivatele = (int)$url;
+        if ($idUzivatele) {
+            return self::zId($idUzivatele);
+        }
+        $u = self::nactiUzivatele("WHERE uzivatele_url.url = " . dbQv($url));
         return count($u) !== 1
             ? null
             : $u[0];
