@@ -1034,19 +1034,21 @@ SQL
     /**
      * Vrátí url cestu k stránce uživatele (bez domény).
      */
-    public function url(): ?string {
+    public function url(bool $vcetneId = false): ?string {
         if (!$this->u['jmeno_uzivatele']) {
             return null; // nevracet url, asi vypravěčská skupina nebo podobně
         }
         if (!empty($this->u['url'])) {
-            return $this->u['url'];
+            return $vcetneId
+                ? $vcetneId . '-' . $this->u['url']
+                : $this->u['url'];
         }
         return self::vytvorUrl($this->u);
     }
 
     private static function vytvorUrl(array $uzivatelData): ?string {
         $jmenoNick = self::jmenoNickZjisti($uzivatelData);
-        $url = $uzivatelData['id_uzivatele'] . '-' . slugify($jmenoNick);
+        $url = slugify($jmenoNick);
 
         return Url::povolena($url)
             ? $url
@@ -1260,12 +1262,13 @@ SQL
      * Vrátí uživatele s loginem odpovídajícím dané url
      */
     static function zUrl(): ?Uzivatel {
-        $url = Url::zAktualni()->cela();
-        $idUzivatele = (int)$url;
+        $aktualniUrl = Url::zAktualni()->cela();
+        $idUzivatele = (int)$aktualniUrl;
         if ($idUzivatele) {
             return self::zId($idUzivatele);
         }
-        $u = self::nactiUzivatele("WHERE uzivatele_url.url = " . dbQv($url));
+        $urlUzivatele = preg_replace('~^[^[:alnum:]]*\d*-?~', '', $aktualniUrl);
+        $u = self::nactiUzivatele("WHERE uzivatele_url.url = " . dbQv($urlUzivatele));
         return count($u) !== 1
             ? null
             : $u[0];
