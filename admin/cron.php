@@ -33,7 +33,7 @@ if (!defined('CRON_KEY') || get('key') !== CRON_KEY)
 // otevřít log soubor pro zápis a přesměrovat do něj výstup
 $logdir = SPEC . '/logs';
 $logfile = 'cron-' . date('Y-m') . '.log';
-if (!mkdir($logdir) && !is_dir($logdir)) {
+if (!is_dir($logdir) && !@mkdir($logdir) && !is_dir($logdir)) {
     throw new \RuntimeException(sprintf('Directory "%s" was not created', $logdir));
 }
 $logDescriptor = fopen($logdir . '/' . $logfile, 'ab');
@@ -52,15 +52,14 @@ ini_set('html_errors', false); // chyby zobrazovat jako plaintext
 logs('Začínám provádět cron script.');
 
 if (defined('FIO_TOKEN') && FIO_TOKEN !== '') {
-  logs('Zpracovávám nové platby přes Fio API.');
-  $platby = Platby::nactiNove();
-  foreach($platby as $p) {
-    logs('platba ' . $p->id() . ' (' . $p->castka() . 'Kč, VS: ' . $p->vs() . ($p->zprava() ? ', zpráva: ' . $p->zprava() : '') . ')');
-  }
-  if(!$platby) logs('Žádné zaúčtovatelné platby.');
-}
-else {
-  logs('FIO_TOKEN není definován, přeskakuji nové platby.');
+    logs('Zpracovávám nové platby přes Fio API.');
+    $platby = Platby::nactiNove();
+    foreach ($platby as $p) {
+        logs('platba ' . $p->id() . ' (' . $p->castka() . 'Kč, VS: ' . $p->vs() . ($p->zprava() ? ', zpráva: ' . $p->zprava() : '') . ')');
+    }
+    if (!$platby) logs('Žádné zaúčtovatelné platby.');
+} else {
+    logs('FIO_TOKEN není definován, přeskakuji nové platby.');
 }
 
 logs('Odemykám zamčené aktivity.');
