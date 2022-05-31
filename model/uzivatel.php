@@ -1155,7 +1155,7 @@ SQL,
         }
         if (!empty($this->u['url'])) {
             return $vcetneId
-                ? $vcetneId . '-' . $this->u['url']
+                ? $this->id() . '-' . $this->u['url']
                 : $this->u['url'];
         }
         return self::vytvorUrl($this->u);
