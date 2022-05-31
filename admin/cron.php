@@ -63,7 +63,7 @@ logs('Začínám provádět cron script.');
 
 if (defined('FIO_TOKEN') && FIO_TOKEN !== '') {
     logs('Zpracovávám nové platby přes Fio API.');
-    $platby = Platby::nactiZRozmezi(new DateTimeImmutable('2019-06-20'), new DateTimeImmutable('2019-07-01'));
+    $platby = Platby::nactiZRozmezi(new DateTimeImmutable('2019-05-20'), new DateTimeImmutable('2019-08-01'));
     foreach ($platby as $p) {
         logs('platba ' . $p->id() . ' (' . $p->castka() . 'Kč, VS: ' . $p->vs() . ($p->zprava() ? ', zpráva: ' . $p->zprava() : '') . '), '. $p->datum()->format(\Gamecon\Cas\DateTimeCz::FORMAT_DATUM_A_CAS_STANDARD));
     }
