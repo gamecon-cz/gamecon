@@ -22,7 +22,7 @@ class FioPlatba
      * @param DateTimeInterface $do
      * @return FioPlatba[]
      */
-    private static function zRozmezi(DateTimeInterface $od, DateTimeInterface $do): array {
+    public static function zRozmezi(DateTimeInterface $od, DateTimeInterface $do): array {
         $odString = $od->format('Y-m-d');
         $doString = $do->format('Y-m-d');
         $token = FIO_TOKEN;
