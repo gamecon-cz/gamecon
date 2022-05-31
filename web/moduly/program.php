@@ -41,7 +41,6 @@ $program->zpracujPost();
 
 $this->pridejCssUrl($program->cssUrl());
 $this->pridejJsSoubor('soubory/blackarrow/program-nahled/program-nahled.js');
-$this->pridejJsSoubor('soubory/blackarrow/program-posuv/program-posuv.js');
 $this->pridejJsSoubor('soubory/blackarrow/_spolecne/zachovej-scroll.js');
 
 $this->pridejCssUrl('soubory/ui/style.css');
@@ -51,17 +50,6 @@ $zacatekPrvniVlnyZaSekund = $zacatekPrvniVlnyOd->getTimestamp() - time();
 
 $legendaText = Stranka::zUrl('program-legenda-text')->html();
 $jeOrganizator = isset($u) && $u && $u->maPravo(P_ORG_AKTIVIT);
-
-// pomocná funkce pro zobrazení aktivního odkazu
-$aktivni = function ($urlOdkazu) use ($url, $alternativniUrl) {
-    $cssTridy = 'program_den';
-
-    if ($urlOdkazu == $url->cela() || $urlOdkazu == $alternativniUrl) {
-        $cssTridy .= ' program_den-aktivni';
-    }
-
-    return 'href="' . $urlOdkazu . '" class="' . $cssTridy . '"';
-};
 
 $zobrazitMujProgramOdkaz = isset($u);
 
@@ -74,45 +62,9 @@ $zobrazitMujProgramOdkaz = isset($u);
     }
 </style>
 
-<!-- relativní obal kvůli náhledu -->
-<div style="position: relative">
 
-    <?php require __DIR__ . '/../soubory/blackarrow/program-nahled/program-nahled.html'; ?>
+<div id="preact-program">Loading...</div>
 
-    <div class="program_hlavicka">
-        <?php if ($u) { ?>
-            <!-- zatim nefunguje            <a href="program-k-tisku" class="program_tisk" target="_blank">Můj program v PDF</a>-->
-        <?php } ?>
-        <h1>Program <?= ROK ?></h1>
-        <div class="program_dny">
-            <?php foreach ($dny as $denSlug => $den) { ?>
-                <a <?= $aktivni('program/' . $denSlug) ?>><?= $den->format('l d.n.') ?></a>
-            <?php } ?>
-            <?php if ($zobrazitMujProgramOdkaz) { ?>
-                <a <?= $aktivni('program/muj') ?>>můj program</a>
-            <?php } ?>
-        </div>
-    </div>
-
-    <div class="program_legenda">
-
-        <div class="informaceSpustime"><?= $legendaText ?></div>
-
-        <div class="program_legenda_inner">
-            <span class="program_legenda_typ">Otevřené</span>
-            <span class="program_legenda_typ vDalsiVlne">V další vlně</span>
-            <span class="program_legenda_typ vBudoucnu">Připravujeme</span>
-            <span class="program_legenda_typ nahradnik">Sleduji</span>
-            <span class="program_legenda_typ prihlasen">Přihlášen<?= $u ? $u->koncovkaDlePohlavi() : '' ?></span>
-            <span class="program_legenda_typ plno">Plno</span>
-            <?php if ($jeOrganizator) { ?>
-                <span class="program_legenda_typ organizator">organizuji</span>
-            <?php } ?>
-        </div>
-    </div>
-
-    <div id="preact-program">Loading...</div>
-</div>
 
 <div style="height: 70px"></div>
 
@@ -124,12 +76,13 @@ $zobrazitMujProgramOdkaz = isset($u);
         document.querySelectorAll('.program form > a'),
     )
 
+    // TODO:
+    /* 
     zachovejScroll(
         document.querySelectorAll('.program form > a'),
         document.querySelector('.programPosuv_obal'),
-    )
-
-    programPosuv(document.querySelector('.programPosuv_obal2'))
+        )
+    */
 
     <?php if ($zacatekPrvniVlnyZaSekund > 0) {
     $zacatekPrvniVlnyZaMilisekund = $zacatekPrvniVlnyZaSekund * 1000;

@@ -1,4 +1,13 @@
 
+export const DNY = [
+  'pondělí',
+  'úterý',
+  'středa',
+  'čtvrtek',
+  'pátek',
+  'sobota',
+  'neděle',
+]
 
 export const doplňHáčkyDoDne = (den: string) => {
   if (den === 'pondeli') return 'pondělí';

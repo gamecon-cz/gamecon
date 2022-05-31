@@ -13,12 +13,9 @@ export default defineConfig({
       entry: path.resolve(__dirname, 'src/main.tsx'),
       name: "script",
       fileName: () => "bundle.js",
-      formats: ["es"]
+      formats: ["iife"]
     },
     minify: true,
-    rollupOptions: {
-      // external: ["preact"]
-    },
     sourcemap: true,
   },
   server: {

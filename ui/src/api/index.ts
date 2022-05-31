@@ -1,3 +1,4 @@
+export * from "./fakeApi";
 
 export type ActivityStatus =
   | "vDalsiVlne"
