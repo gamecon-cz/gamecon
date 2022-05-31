@@ -21,6 +21,9 @@ $vyjimkovac->zobrazeni(\Gamecon\Vyjimkovac\Vyjimkovac::PLAIN);
  */
 function logs($s) {
     echo date('Y-m-d H:i:s ') . $s . "\n";
+    if (defined('TESTING') || TESTING) {
+        echo '<br>';
+    }
 }
 
 if (defined('TESTING') && TESTING && !defined('MAILY_DO_SOUBORU')) {
@@ -62,7 +65,7 @@ if (defined('FIO_TOKEN') && FIO_TOKEN !== '') {
     logs('Zpracovávám nové platby přes Fio API.');
     $platby = Platby::nactiZRozmezi(new DateTimeImmutable('2019-06-20'), new DateTimeImmutable('2019-07-01'));
     foreach ($platby as $p) {
-        logs('platba ' . $p->id() . ' (' . $p->castka() . 'Kč, VS: ' . $p->vs() . ($p->zprava() ? ', zpráva: ' . $p->zprava() : '') . ')');
+        logs('platba ' . $p->id() . ' (' . $p->castka() . 'Kč, VS: ' . $p->vs() . ($p->zprava() ? ', zpráva: ' . $p->zprava() : '') . '), '. $p->datum()->format(\Gamecon\Cas\DateTimeCz::FORMAT_DATUM_A_CAS_STANDARD));
     }
     if (!$platby) logs('Žádné zaúčtovatelné platby.');
 } else {
