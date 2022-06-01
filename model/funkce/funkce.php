@@ -189,7 +189,7 @@ function omezCsrf() {
 
     if ($referrerHost !== $_SERVER['SERVER_NAME']) {
         // výjimka, aby došlo k zalogování
-        throw new Exception("Referrer POST '$referrerHost' požadavku neodpovídá doméně '{$_SERVER['HTTP_HOST']}'");
+        throw new Exception("Referrer POST '$referrerHost' požadavku neodpovídá doméně '{$_SERVER['SERVER_NAME']}'");
     }
 }
 
