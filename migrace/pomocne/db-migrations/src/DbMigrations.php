@@ -14,8 +14,8 @@ class DbMigrations
     private $datastore;
     private $db;
     private $migrations;
-    private $webGui = null;
     private $version;
+    private $webGui = null;
 
     public function __construct(DbMigrationsConfig $conf) {
         $this->conf = $conf;
@@ -23,6 +23,7 @@ class DbMigrations
         $this->db = $this->conf->connection;
         $this->datastore = new Datastore($this->db, $this->conf->tableName);
         $this->backups = new Backups($this->db, $this->conf->backupsDirectory);
+        $this->version = $this->conf->version ?? null;
         if ($this->conf->webGui) {
             $this->webGui = new WebGui;
         }
