@@ -11,9 +11,11 @@ class DbMigrations
 
     private $backups;
     private $conf;
+    /** @var \mysqli */
     private $db;
     private $migrations;
     private $webGui = null;
+    private $hasTableMigrations = null;
 
     public function __construct(DbMigrationsConfig $conf) {
         $this->conf = $conf;
@@ -39,6 +41,11 @@ class DbMigrations
         if (!$migrations) {
             return [];
         }
+
+        if (!$this->hasTableMigrations()) {
+            return $migrations;
+        }
+
         $migrationCodes = array_map(static function (Migration $migration) {
             return $migration->getId();
         }, $migrations);
@@ -75,6 +82,14 @@ WHERE migrations.migration_id IS NULL"
                 return in_array($migration->getId(), $unappliedMigrationCodes, false);
             }
         );
+    }
+
+    private function hasTableMigrations(): bool {
+        if ($this->hasTableMigrations === true) {
+            return true;
+        }
+        $this->hasTableMigrations = count($this->db->query("SHOW TABLES LIKE 'migrations'")->fetch_all()) > 0;
+        return $this->hasTableMigrations;
     }
 
     /**
@@ -117,7 +132,12 @@ WHERE migrations.migration_id IS NULL"
         $this->db->query('BEGIN');
         try {
             $migration->apply();
-            $this->db->query("INSERT INTO migrations(migration_code, applied_at) VALUES ('{$migration->getId()}', NOW())");
+            if ($this->hasTableMigrations()) {
+                $this->db->query(<<<SQL
+INSERT IGNORE INTO migrations(migration_code, applied_at) VALUES ('{$migration->getId()}', NOW())
+SQL
+                );
+            }
             $this->db->query('COMMIT');
         } catch (\Throwable $throwable) {
             $this->db->query('ROLLBACK');
