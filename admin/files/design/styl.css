@@ -628,13 +628,13 @@ form table .full {
   width: 99%;
 }
 
-form table .obrazekNahled {
+form table .obrazek_nahled {
   background-image: url('sachy.png');
   padding: 5px;
   text-align: center;
 }
 
-form table .obrazekNahled img {
+form table .obrazek_nahled img {
   margin: -1px 0 -2px 0;
 }
 
