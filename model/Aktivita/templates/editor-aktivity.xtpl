@@ -311,10 +311,8 @@
   <span class="hint" style="top: unset; bottom: -40px">Šířka minimálně 320 px, poměr 16:9</span>
   <table>
     <tr>
-      <th>
-        Obrázek
-      </th>
-      <td class="obrazekNahled"><img alt="Náhled obrázku" src="{urlObrazku}"></td>
+      <th><span class="hinted">Obrázek</span></th>
+      <td class="obrazek_nahled"><img alt="Náhled obrázku" src="{urlObrazku}"></td>
     </tr>
     <tr>
       <th>
