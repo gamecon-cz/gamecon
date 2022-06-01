@@ -92,3 +92,5 @@ $t->assign('ubytovaniReport', basename(__DIR__ . '/../zvlastni/reporty/ubytovani
 
 $t->parse('ubytovani');
 $t->out('ubytovani');
+
+require __DIR__ . '/_ubytovani-a-dalsi-obcasne-infopultakoviny-import-balicku.php';

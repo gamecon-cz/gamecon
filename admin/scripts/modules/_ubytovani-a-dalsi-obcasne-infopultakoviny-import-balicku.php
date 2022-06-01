@@ -4,7 +4,7 @@ use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
 
 if (!post('importBalicku')) {
 
-    $importTemplate = new XTemplate(__DIR__ . '/_uvod-import-balicku.xtpl');
+    $importTemplate = new XTemplate(__DIR__ . '/_ubytovani-a-dalsi-obcasne-infopultakoviny-import-balicku.xtpl');
     $importTemplate->assign('baseUrl', URL_ADMIN);
 
     $importTemplate->parse('import');
