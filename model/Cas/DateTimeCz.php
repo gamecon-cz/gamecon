@@ -138,10 +138,6 @@ class DateTimeCz extends \DateTime
         return parent::format(self::FORMAT_CAS_SOUBOR);
     }
 
-    public function formatCasSoubor(): string {
-        return parent::format(self::FORMAT_CAS_SOUBOR);
-    }
-
     /** Vrací blogový/dopisový formát */
     function formatBlog() {
         return strtr(parent::format('j. F Y'), static::$mesice);

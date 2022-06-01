@@ -451,5 +451,3 @@ $x->assign('uvodJs', file_get_contents(__DIR__ . '/../../files/uvod.js'));
 
 $x->parse('uvod');
 $x->out('uvod');
-
-require __DIR__ . '/_uvod-import-balicku.php';
