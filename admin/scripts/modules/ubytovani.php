@@ -88,3 +88,5 @@ if (!$uPracovni) {
 
 $t->parse('ubytovani');
 $t->out('ubytovani');
+
+require __DIR__ . '/_ubytovani-a-dalsi-obcasne-infopultakoviny-import-balicku.php';
