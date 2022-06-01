@@ -52,15 +52,6 @@ class DbMigrationsConfig
     public $webGui = false;
 
     /**
-     * Version of DB migrations
-     * 1. numeric name only
-     * 2. Date-time with description as a name
-     *
-     * @var null|int
-     */
-    public $version = null;
-
-    /**
      * Reads params from associative array and loads them to class
      * attributes.
      */
