@@ -6,6 +6,7 @@ use \Gamecon\Aktivita\TypAktivity;
  * Počty her a jednotlivých druhý her pro jednotlivé účastníky
  */
 
+/** @var string $NAZEV_SKRIPTU */
 require __DIR__ . '/sdilene-hlavicky.php';
 
 $rok = ROK;
