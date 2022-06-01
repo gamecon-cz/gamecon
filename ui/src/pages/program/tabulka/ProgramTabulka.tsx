@@ -1,7 +1,8 @@
 import { FunctionComponent } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
-import { Aktivita, fetchAktivity, ROK } from "../../../api";
+import { Aktivita, fetchAktivity } from "../../../api";
 import { Timetable } from "../../../components/Timetable";
+import { ROK } from "../../../env";
 import { distinct } from "../../../utils";
 import { ProgramPosuv } from "./ProgramPosuv";
 import { TabulkaBuňka } from "./TabulkaBuňka";
@@ -18,9 +19,9 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = () => {
     })();
   }, []);
 
-  // TODO: předávání parametrů funkce pře zásobník (...spread operátor), fuj 
-  const minTime = Math.min(...aktivity.map(x=>x.cas.od))
-  const _maxTime = Math.max(...aktivity.map(x=>x.cas.do))
+  // TODO: předávání parametrů funkce pře zásobník (...spread operátor), fuj
+  const minTime = Math.min(...aktivity.map((x) => x.cas.od));
+  const _maxTime = Math.max(...aktivity.map((x) => x.cas.do));
 
   const tabulka = (
     <Timetable
@@ -33,7 +34,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = () => {
         },
       }))}
       groups={distinct(aktivity.map((x) => x.linie))}
-      timeRange={{ from: minTime , to: 24 }}
+      timeRange={{ from: minTime, to: 24 }}
     />
   );
 
@@ -46,7 +47,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = () => {
           <div class="programPosuv_obal" ref={obalRef}>
             {tabulka}
           </div>
-            <ProgramPosuv {...{ obalRef }} />
+          <ProgramPosuv {...{ obalRef }} />
         </div>
       </div>
     </>

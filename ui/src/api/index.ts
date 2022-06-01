@@ -1,3 +1,5 @@
+import { BASE_PATH_API } from "../env";
+
 export * from "./fakeApi";
 
 export type ActivityStatus =
@@ -51,8 +53,6 @@ export type Aktivita = {
 // TODO: dotahovat zvlášť aktivity a metadata k nim (současně posílá moc velký soubor)
 
 export const fetchAktivity = async (rok: number): Promise<Aktivita[]> => {
-  // TODO: url podle host adresy
-  const url = `api/aktivityProgram?${rok ? `rok=${rok}` : ""}`;
-  console.log(`api/aktivityProgram?${rok ? `rok=${rok}` : ""}`);
+  const url = `${BASE_PATH_API}aktivityProgram?${rok ? `rok=${rok}` : ""}`;
   return fetch(url, { method: "POST" }).then(x => x.json());
 }

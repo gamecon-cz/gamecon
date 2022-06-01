@@ -1,4 +1,5 @@
 import { render } from 'preact'
+import Router, { Route } from "preact-router";
 import { Program } from './app'
 
 export const renderProgram = () =>{
@@ -6,6 +7,10 @@ export const renderProgram = () =>{
   
   if (programRoot) {
     programRoot.innerHTML = "";
-    render(<Program />, programRoot)
+    render(
+    <Router>
+      <Route component={Program} default />
+    </Router>
+    , programRoot)
   }
 }

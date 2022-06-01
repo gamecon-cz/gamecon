@@ -17,22 +17,6 @@ for ($den = new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen())
 $nastaveni = [];
 $alternativniUrl = null;
 $title = 'Program';
-if ($url->cast(1) === 'muj') {
-    if (!$u) {
-        throw new Neprihlasen();
-    }
-    $nastaveni['osobni'] = true;
-    $title = 'Můj program';
-} else if (isset($dny[$url->cast(1)])) {
-    $nastaveni['den'] = $dny[$url->cast(1)]->format('z');
-    $title = 'Program ' . $dny[$url->cast(1)]->format('l');
-} else if (!$url->cast(1)) {
-    $nastaveni['den'] = reset($dny)->format('z');
-    $alternativniUrl = 'program/' . slugify(reset($dny)->format('l'));
-    $title = 'Program ' . reset($dny)->format('l');
-} else {
-    throw new Nenalezeno();
-}
 
 $this->info()->nazev($title);
 
@@ -96,4 +80,10 @@ $zobrazitMujProgramOdkaz = isset($u);
     } ?>
 </script>
 
+<script>
+    // Konstanty předáváné do Preactu (env.ts)
+    window.BASE_PATH_API = "/web/api/";
+    window.BASE_PATH_PAGE = "/web/program/";
+    window.ROK = <?= ROK ?>
+</script>
 <script type="module" src="<?= $this->zabalJsSoubor('soubory/ui/bundle.js') ?>"></script>

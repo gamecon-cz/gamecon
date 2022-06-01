@@ -1,12 +1,15 @@
+import { useRouter } from "preact-router";
+import { BASE_PATH_PAGE } from "../env";
 
+/** Dny v týdnu bez diakritiky. Začíná pondeli. Pro háčky použít funkci doplňHáčkyDoDne */
 export const DNY = [
-  'pondělí',
-  'úterý',
-  'středa',
-  'čtvrtek',
-  'pátek',
+  'pondeli',
+  'utery',
+  'streda',
+  'ctvrtek',
+  'patek',
   'sobota',
-  'neděle',
+  'nedele',
 ]
 
 export const doplňHáčkyDoDne = (den: string) => {
@@ -20,3 +23,22 @@ export const doplňHáčkyDoDne = (den: string) => {
   console.warn(`nepodařilo se oháčkovat den ${den}`);
   return den;
 }
+
+export const usePath = () => {
+  // komponenta musí být v kontextu Router aby fungovalo
+  const [route, setRoute] = useRouter();
+
+  const url = route.url;
+
+  // přidám k url poslední / pokud by tam nebylo
+  if ((url+"/").substring(0, BASE_PATH_PAGE.length) !== BASE_PATH_PAGE)
+    throw new Error(`invalid base path BASE_PATH_PAGE= ${BASE_PATH_PAGE} current path= ${url}`);
+
+  let resUlr = url.substring(BASE_PATH_PAGE.length);
+
+  return [resUlr, (path: string, replace = false) => {
+    const url = BASE_PATH_PAGE + path;
+    setRoute(url, replace);
+  }] as const;
+}
+

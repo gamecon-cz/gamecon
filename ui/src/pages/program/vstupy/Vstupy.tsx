@@ -1,17 +1,21 @@
-import {
-  AKTIVNÍ_MOŽNOST_PROGRAM,
-  PŘIHLÁŠEN,
-  ROK,
-  UKÁZKOVÉ_DNY,
-} from "../../../api";
-import { DNY } from "../../../utils";
+import { FunctionComponent } from "preact";
+import { useEffect } from "preact/hooks";
+import { PŘIHLÁŠEN, UKÁZKOVÉ_DNY } from "../../../api";
+import { ROK } from "../../../env";
+import { DNY, doplňHáčkyDoDne } from "../../../utils";
+
+const formátujDenVTýdnu = (datum: number) => {
+  // vrací den v týdnu začínající nedělí
+  //  proto potřebujeme den o jedno posunout zpět
+  const obj = new Date(datum);
+  const denVTýdnu = (obj.getDay() + 6) % 7;
+  const denText = DNY[denVTýdnu];
+  return denText;
+};
 
 const formátujDatum = (datum: number) => {
   const obj = new Date(datum);
-  // vrací den v týdnu začínající nedělí
-  //  proto potřebujeme den o jedno posunout zpět
-  const denVTýdnu = (obj.getDay() + 6) % 7;
-  const denText = DNY[denVTýdnu];
+  const denText = doplňHáčkyDoDne(formátujDenVTýdnu(datum));
   const den = obj.getDate();
   // Měsíce jsou oproti dnům idexované od 0. fakt se mě neptejte proč
   const měsíc = obj.getMonth() + 1;
@@ -19,30 +23,52 @@ const formátujDatum = (datum: number) => {
   return `${denText} ${den}.${měsíc}`;
 };
 
-export const ProgramUživatelskéVstupy = () => {
+type ProgramUživatelskéVstupyProps = {
+  aktivníMožnost: string;
+  setAktivníMožnost: (path: string, replace?: boolean) => void;
+};
+
+export const ProgramUživatelskéVstupy: FunctionComponent<
+  ProgramUživatelskéVstupyProps
+> = (props) => {
+  const { aktivníMožnost, setAktivníMožnost } = props;
+
   const rok = ROK;
   const dny = UKÁZKOVÉ_DNY;
   const přihlášen = PŘIHLÁŠEN;
-  const aktivníMožnost = AKTIVNÍ_MOŽNOST_PROGRAM;
 
-  const možnosti = dny
-    .map((den) => formátujDatum(den))
-    .concat(...(přihlášen ? ["můj program"] : []));
+  const možnosti: {
+    popis: string;
+    hodnota: string;
+  }[] = dny
+    .map((datum) => ({
+      popis: formátujDatum(datum),
+      hodnota: formátujDenVTýdnu(datum),
+    }))
+    .concat(
+      ...(přihlášen ? [{ popis: "můj program", hodnota: "muj_program" }] : [])
+    );
+
+  useEffect(() => {
+    if (možnosti.some(({ hodnota: value }) => value === aktivníMožnost)) return;
+    setAktivníMožnost(možnosti[0].hodnota, true);
+  }, [aktivníMožnost]);
 
   return (
     <>
       <div class="program_hlavicka">
         <h1>Program {rok}</h1>
         <div class="program_dny">
-          {možnosti.map((x) => {
+          {možnosti.map(({ popis, hodnota }) => {
             return (
               <button
                 class={
                   "program_den" +
-                  (x === aktivníMožnost ? " program_den-aktivni" : "")
+                  (hodnota === aktivníMožnost ? " program_den-aktivni" : "")
                 }
+                onClick={() => setAktivníMožnost(hodnota)}
               >
-                {x}
+                {popis}
               </button>
             );
           })}

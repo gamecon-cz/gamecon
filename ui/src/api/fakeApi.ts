@@ -9,8 +9,6 @@ export const UKÁZKOVÉ_DNY = range(5)
   .map((x) => Date.now() - x * ČAS_DEN)
   .reverse();
 
-export const ROK = 2022;
-
 export const PŘIHLÁŠEN = true;
 
 export const AKTIVNÍ_MOŽNOST_PROGRAM = "můj program";
