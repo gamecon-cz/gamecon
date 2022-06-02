@@ -15,7 +15,8 @@ class DbMigrations
     private $db;
     private $migrations;
     private $webGui = null;
-    private $hasTableMigrations = null;
+    private $hasTableMigrationsV2 = null;
+    private $hasTableMigrationsV1 = null;
 
     public function __construct(DbMigrationsConfig $conf) {
         $this->conf = $conf;
@@ -43,6 +44,9 @@ class DbMigrations
         }
 
         if (!$this->hasTableMigrationsForV2()) {
+            if (!$this->hasTableMigrationsForV1()) {
+                return $migrations;
+            }
             $migrationsV1 = $this->getMigrationsV1($migrations);
             $unappliedMigrationsV1 = $this->getUnappliedMigrationsV1($migrationsV1);
             $migrationsV2 = $this->getMigrationsV2($migrations);
@@ -131,11 +135,19 @@ SQL
     }
 
     private function hasTableMigrationsForV2(): bool {
-        if ($this->hasTableMigrations === true) {
+        if ($this->hasTableMigrationsV2 === true) {
             return true;
         }
-        $this->hasTableMigrations = count($this->db->query("SHOW TABLES LIKE 'migrations'")->fetch_all()) > 0;
-        return $this->hasTableMigrations;
+        $this->hasTableMigrationsV2 = count($this->db->query("SHOW TABLES LIKE 'migrations'")->fetch_all()) > 0;
+        return $this->hasTableMigrationsV2;
+    }
+
+    private function hasTableMigrationsForV1(): bool {
+        if ($this->hasTableMigrationsV1 === true) {
+            return true;
+        }
+        $this->hasTableMigrationsV1 = count($this->db->query("SHOW TABLES LIKE 'db_migrations'")->fetch_all()) > 0;
+        return $this->hasTableMigrationsV1;
     }
 
     /**
