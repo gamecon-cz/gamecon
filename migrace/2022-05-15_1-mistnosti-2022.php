@@ -113,6 +113,10 @@ VALUES
 (null,'EPIC X','rezervní EPIC','rezerva',42,0);
 
 UPDATE akce_lokace
+JOIN akce_lokace_tmp on akce_lokace.nazev = akce_lokace_tmp.nazev
+SET akce_lokace.nazev = UUID();
+
+UPDATE akce_lokace
 JOIN akce_lokace_tmp on akce_lokace.id_lokace = akce_lokace_tmp.id_lokace
 SET akce_lokace.nazev = akce_lokace_tmp.nazev,
   akce_lokace.poradi = akce_lokace_tmp.poradi,

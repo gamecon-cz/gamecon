@@ -19,20 +19,28 @@ class Migration
         require $this->path;
     }
 
-    public function getHash() {
+    public function getHash(): string {
         $hash = sha1_file($this->path);
         if ($hash === false) {
-            throw new \Exception('Failed to read file.');
+            throw new \RuntimeException('Can not read DB migration file ' . $this->path);
         }
         return $hash;
     }
 
-    public function getId() {
-        return $this->getCode();
+    public function getId(): ?int {
+        return $this->getVersion() === 1
+            ? (int)$this->getCode()
+            : null;
     }
 
-    public function getCode() {
+    public function getCode(): string {
         return $this->code;
+    }
+
+    public function getVersion(): int {
+        return is_numeric($this->code)
+            ? 1
+            : 2;
     }
 
     /**
