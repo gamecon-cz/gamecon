@@ -7,6 +7,6 @@ UPDATE systemove_nastaveni
 SET skupina = CASE skupina
                   WHEN 'cas' THEN 'Časy'
                   WHEN 'finance' THEN 'Finance'
-                  ELSE skupina END
+                  ELSE CONVERT(skupina USING utf8) END
 SQL
 );
