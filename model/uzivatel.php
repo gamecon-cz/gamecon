@@ -395,10 +395,7 @@ SQL
     }
 
     public function maPravo($pravo) {
-        if (!isset($this->u['prava'])) {
-            $this->nactiPrava();
-        }
-        return in_array($pravo, $this->u['prava']);
+        return in_array($pravo, $this->prava());
     }
 
     public function nemaPravoNaBonusZaVedeniAktivit(): bool {
@@ -512,6 +509,13 @@ SQL
                 $prava[] = (int)$r['id_prava'];
             $this->u['prava'] = $prava;
         }
+    }
+
+    public function prava(): array {
+        if (!isset($this->u['prava'])) {
+            $this->nactiPrava();
+        }
+        return $this->u['prava'];
     }
 
     /** Vrátí přezdívku (nickname) uživatele */
