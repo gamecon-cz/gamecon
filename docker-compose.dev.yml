@@ -17,7 +17,7 @@ services:
       - "80:80"
 
   sql.gamecon:
-    image: mysql:5.5
+    image: mysql:5.6
     restart: "no"
     environment:
       - MYSQL_ROOT_PASSWORD=root
