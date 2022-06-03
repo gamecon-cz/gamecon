@@ -21,10 +21,6 @@ chdir(__DIR__ . '/../');
 // testování větve před pushem a čistoty repa, aby se na FTP nedostalo smetí
 exec('git rev-parse --abbrev-ref HEAD', $out);
 $vetev = $out[0];
-if (!in_array($vetev, ['master', 'beta', 'blackarrow', 'jakublounek', 'misahojna'], true)) {
-    echo "You're not on automatically deployed branch, deployment skipped\n";
-    exit(0);
-}
 exec('git status', $out);
 if (!preg_match('/^nothing to commit, working (tree|directory) clean$/', end($out))) {
     echo "error: working directory is not clean\n";
