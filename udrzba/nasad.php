@@ -83,6 +83,16 @@ if ($vetev === 'master') {
         'log' => $nastaveni['misahojna']['log'],
         'souborNastaveni' => basename(__DIR__ . '/../nastaveni/nastaveni-misahojna.php'),
     ]);
+} elseif ($vetev === 'sciator') {
+    nasad([
+        'vetev' => $vetev,
+        'zdrojovaSlozka' => __DIR__ . '/..',
+        'ciloveFtp' => $nastaveni['sciator']['ftp'],
+        'urlMigrace' => $nastaveni['sciator']['urlMigrace'],
+        'hesloMigrace' => $nastaveni['sciator']['hesloMigrace'],
+        'log' => $nastaveni['sciator']['log'],
+        'souborNastaveni' => basename(__DIR__ . '/../nastaveni/nastaveni-sciator.php'),
+    ]);
 } else {
     echo "error: unexpected branch '$vetev'\n";
     exit(1);
