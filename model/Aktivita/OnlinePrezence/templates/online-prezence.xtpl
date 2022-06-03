@@ -211,9 +211,11 @@
                 <span class="hinted" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true"
                       title="
                       <div class='text-start'>
-                        <div>⏰ Přihlásil se před chvílí
+                        <h5 class='text-center'>Legenda</h4>
+                        <hr>
+                        <div>⏰ Přihlásil se před chvílí.
                         <div>(do {minutNaPosledniChvili} minut před začátkem aktivity)</div>
-                        a je nejspíš na cestě</div>
+                        a je nejspíš na cestě.</div>
                         <hr>
                         <div>
                           <img alt='Náhradník' class='font-sized bg-light ui-corner-all' src='files/design/substitution-icon.png'>
