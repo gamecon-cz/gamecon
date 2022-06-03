@@ -40,6 +40,8 @@ if (PHP_SAPI === 'cli' || in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', 
     require __DIR__ . '/nastaveni-jakublounek.php';
 } elseif (str_ends_with($host, 'misahojna.gamecon.cz')) {
     require __DIR__ . '/nastaveni-misahojna.php';
+} elseif (str_ends_with($host, 'sciator.gamecon.cz')) {
+    require __DIR__ . '/nastaveni-sciator.php';
 } elseif ($_SERVER['SERVER_NAME'] === 'admin.gamecon.cz' || $_SERVER['SERVER_NAME'] === 'gamecon.cz') {
     require __DIR__ . '/nastaveni-produkce.php';
 } else {
