@@ -239,6 +239,6 @@ Organizační tým GameConu',
 define('SUPERADMINI', [1682, 4032]);
 
 @define('ADRESAR_WEBU_S_OBRAZKY', __DIR__ . '/../web');
-@define('ZALOHA_DB_SLOZKA', __DIR__ . '../backup/db'); // cesta pro zálohy databáze
+@define('ZALOHA_DB_SLOZKA', __DIR__ . '/../backup/db'); // cesta pro zálohy databáze
 
 @define('PRODEJ_JIDLA_POZASTAVEN', true);
