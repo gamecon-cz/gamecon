@@ -46,7 +46,6 @@ const ObsazenostComp = (props: ObsazenostProps) => {
   return <></>;
 };
 
-
 type TabulkaBuňkaProps = {
   aktivita: Aktivita;
 };
@@ -59,21 +58,22 @@ export const TabulkaBuňka = (props: TabulkaBuňkaProps) => {
   );
 
   const cenaVyslednaString =
-    aktivita.slevaNasobic === 0 || aktivita.cenaZaklad <= 0
-      ? "zdarma"
-      : `${
-          (aktivita.slevaNasobic ?? 1) !== 1 ? "*" : ""
-        } ${cenaVysledna}&thinsp;Kč`;
+    aktivita.slevaNasobic === 0 || aktivita.cenaZaklad <= 0 ? (
+      <>zdarma</>
+    ) : (
+      <>
+        {(aktivita.slevaNasobic ?? 1) !== 1 ? "*" : ""}
+        {cenaVysledna}&thinsp;Kč
+      </>
+    );
 
-  return <div>
-    <div class="title">
-      {aktivita.nazev.substring(0, 20)}
-    </div>
+  return (
+    <div>
+      <div class="title">{aktivita.nazev.substring(0, 20)}</div>
       <div class="obsazenost">
         <ObsazenostComp obsazenost={aktivita.obsazenost} />
       </div>
-      <div class="cena">
-        {cenaVyslednaString}
-      </div>
-  </div>
+      <div class="cena">{cenaVyslednaString}</div>
+    </div>
+  );
 };

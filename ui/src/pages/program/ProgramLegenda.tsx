@@ -1,13 +1,20 @@
-import { LEGENDA_TEXT, ORGANIZATOR, KONCOVKA_DLE_POHLAVÍ } from "../../api";
+import { ORGANIZATOR, KONCOVKA_DLE_POHLAVÍ } from "../../api";
+import { GAMECON_KONSTANTY } from "../../env";
 
 export const ProgramLegenda = () => {
-  const legendaText = LEGENDA_TEXT;
+  const legendaText = GAMECON_KONSTANTY.LEGENDA;
   const organizator = ORGANIZATOR;
   const koncovkaDlePohlaví = KONCOVKA_DLE_POHLAVÍ;
 
   return (
     <div class="program_legenda">
-      <div class="informaceSpustime">{legendaText}</div>
+      <div
+        class="informaceSpustime"
+        // TODO dangerously znamená dangerously. Vykreslovat text a né html!
+        dangerouslySetInnerHTML={{
+          __html: legendaText,
+        }}
+      ></div>
       <div class="program_legenda_inner">
         <span class="program_legenda_typ">Otevřené</span>
         <span class="program_legenda_typ vDalsiVlne">V další vlně</span>

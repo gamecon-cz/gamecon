@@ -1,4 +1,4 @@
-import { BASE_PATH_API } from "../env";
+import { GAMECON_KONSTANTY } from "../env";
 
 export * from "./fakeApi";
 
@@ -53,6 +53,6 @@ export type Aktivita = {
 // TODO: dotahovat zvlášť aktivity a metadata k nim (současně posílá moc velký soubor)
 
 export const fetchAktivity = async (rok: number): Promise<Aktivita[]> => {
-  const url = `${BASE_PATH_API}aktivityProgram?${rok ? `rok=${rok}` : ""}`;
+  const url = `${GAMECON_KONSTANTY.BASE_PATH_API}aktivityProgram?${rok ? `rok=${rok}` : ""}`;
   return fetch(url, { method: "POST" }).then(x => x.json());
 }

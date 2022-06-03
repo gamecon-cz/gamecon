@@ -2,7 +2,7 @@ import { FunctionComponent } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { Aktivita, fetchAktivity } from "../../../api";
 import { Timetable } from "../../../components/Timetable";
-import { ROK } from "../../../env";
+import { GAMECON_KONSTANTY } from "../../../env";
 import { distinct } from "../../../utils";
 import { ProgramPosuv } from "./ProgramPosuv";
 import { TabulkaBuňka } from "./TabulkaBuňka";
@@ -14,7 +14,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = () => {
 
   useEffect(() => {
     (async () => {
-      const aktivity = await fetchAktivity(ROK);
+      const aktivity = await fetchAktivity(GAMECON_KONSTANTY.ROK);
       setAktivity(aktivity);
     })();
   }, []);

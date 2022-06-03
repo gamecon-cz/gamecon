@@ -1,7 +1,7 @@
 import { FunctionComponent } from "preact";
 import { useEffect } from "preact/hooks";
-import { PŘIHLÁŠEN, UKÁZKOVÉ_DNY } from "../../../api";
-import { ROK } from "../../../env";
+import { PŘIHLÁŠEN } from "../../../api";
+import { GAMECON_KONSTANTY } from "../../../env";
 import { DNY, doplňHáčkyDoDne } from "../../../utils";
 
 const formátujDenVTýdnu = (datum: number) => {
@@ -33,8 +33,8 @@ export const ProgramUživatelskéVstupy: FunctionComponent<
 > = (props) => {
   const { aktivníMožnost, setAktivníMožnost } = props;
 
-  const rok = ROK;
-  const dny = UKÁZKOVÉ_DNY;
+  const rok = GAMECON_KONSTANTY.ROK;
+  const dny = GAMECON_KONSTANTY.PROGRAM_DNY;
   const přihlášen = PŘIHLÁŠEN;
 
   const možnosti: {

@@ -82,8 +82,13 @@ $zobrazitMujProgramOdkaz = isset($u);
 
 <script>
     // Konstanty předáváné do Preactu (env.ts)
-    window.BASE_PATH_API = "/web/api/";
-    window.BASE_PATH_PAGE = "/web/program/";
-    window.ROK = <?= ROK ?>
+    window.GAMECON_KONSTANTY = {
+        BASE_PATH_API: "/web/api/",
+        BASE_PATH_PAGE: "/web/program/",
+        ROK: <?= ROK ?>,
+        PROGRAM_OD: <?= (new DateTime(PROGRAM_OD))->getTimestamp() * 1000 ?>,
+        PROGRAM_DO: <?= (new DateTime(PROGRAM_DO))->getTimestamp() * 1000 ?>,
+        LEGENDA: `<?= substr($legendaText,0,-1) ?>`,
+    }
 </script>
 <script type="module" src="<?= $this->zabalJsSoubor('soubory/ui/bundle.js') ?>"></script>

@@ -1,5 +1,5 @@
 import { useRouter } from "preact-router";
-import { BASE_PATH_PAGE } from "../env";
+import { GAMECON_KONSTANTY } from "../env";
 
 /** Dny v týdnu bez diakritiky. Začíná pondeli. Pro háčky použít funkci doplňHáčkyDoDne */
 export const DNY = [
@@ -23,6 +23,8 @@ export const doplňHáčkyDoDne = (den: string) => {
   console.warn(`nepodařilo se oháčkovat den ${den}`);
   return den;
 }
+
+const {BASE_PATH_PAGE} = GAMECON_KONSTANTY;
 
 export const usePath = () => {
   // komponenta musí být v kontextu Router aby fungovalo
