@@ -6,9 +6,9 @@ jobs:
       fail-fast: false
       matrix:
         # musí odpovídat verzím na wedosu
-        php: ['7.3', '8.1'] # musí odpovídat verzi na wedosu
+        php: ['8.1'] # musí odpovídat verzi na wedosu
         include:
-          - mysql: 5.5 # musí odpovídat verzi na wedosu
+          - mysql: 5.6 # musí odpovídat verzi na wedosu
 
     name: Run tests job
     runs-on: ubuntu-latest
