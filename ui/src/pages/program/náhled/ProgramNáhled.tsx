@@ -4,6 +4,7 @@ import { Aktivita } from "../../../api";
 
 type ProgramNáhledProps = { aktivita: Aktivita };
 
+// TODO: obsazenost
 export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) => {
   const { aktivita } = props;
 
@@ -14,7 +15,7 @@ export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) =>
   }, [aktivita]);
 
   return (
-    <div class="programNahled_obalNahledu programNahled_obalNahledu-maData">
+    <div class="programNahled_obalNahledu programNahled_obalNahledu-maData programNahled_obalNahledu-viditelny">
       <div class="programNahled_nahled">
         <div class="programNahled_placeholder"></div>
 
@@ -37,7 +38,7 @@ export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) =>
           </div>
           <div class="programNahled_paticka">
             <img class="programNahled_obrazek" src={aktivita.obrazek} />
-            <div class="programNahled_obsazenost">{aktivita.obsazenost}</div>
+            <div class="programNahled_obsazenost"></div>
             <div class="programNahled_cas">{aktivita.casText}</div>
             <div class="programNahled_cena">{aktivita.cenaZaklad}</div>
           </div>

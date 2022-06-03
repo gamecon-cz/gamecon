@@ -1,5 +1,7 @@
+import { useContext } from "preact/hooks";
 import { Aktivita, Obsazenost } from "../../../api";
 import { obsazenostZVolnoTyp } from "../../../utils/tranformace";
+import { ProgramURLState } from "../routing";
 
 type ObsazenostProps = { obsazenost: Obsazenost };
 
@@ -52,6 +54,7 @@ type TabulkaBuňkaProps = {
 
 export const TabulkaBuňka = (props: TabulkaBuňkaProps) => {
   const { aktivita } = props;
+  const { setUrlState, urlState } = useContext(ProgramURLState);
 
   const cenaVysledna = Math.round(
     aktivita.cenaZaklad * (aktivita.slevaNasobic ?? 1)
@@ -67,9 +70,38 @@ export const TabulkaBuňka = (props: TabulkaBuňkaProps) => {
       </>
     );
 
+  const classes: string[] = [];
+  if (aktivita.prihlaseno) {
+    classes.push("prihlasen");
+  }
+  if (aktivita.vedu) {
+    classes.push("organizator");
+  }
+  if (aktivita.nahradnik) {
+    classes.push("nahradnik");
+  }
+  if (aktivita.vdalsiVlne) {
+    classes.push("vDalsiVlne");
+  }
+  // TODO:
+  // if (aktivita.) {
+  //    classes.push("plno");
+  // }
+  if (aktivita.vBudoucnu) {
+    classes.push("vBudoucnu");
+  }
+
   return (
-    <div>
-      <div class="title">{aktivita.nazev.substring(0, 20)}</div>
+    <div class={classes.join(" ")}>
+      <a
+        class="title"
+        title={aktivita.nazev}
+        onClick={() =>
+          setUrlState({ ...urlState, aktivitaNáhledId: aktivita.id })
+        }
+      >
+        {aktivita.nazev.substring(0, 20)}
+      </a>
       <div class="obsazenost">
         <ObsazenostComp obsazenost={aktivita.obsazenost} />
       </div>

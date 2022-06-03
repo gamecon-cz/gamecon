@@ -1,29 +1,20 @@
 import { FunctionComponent } from "preact";
-import { useEffect } from "preact/hooks";
-import { PŘIHLÁŠEN } from "../../../api";
+import { useContext } from "preact/hooks";
 import { GAMECON_KONSTANTY } from "../../../env";
 import {
-  DNY_NÁZVY,
-  doplňHáčkyDoDne,
   formátujDatum,
-  formátujDenVTýdnu,
 } from "../../../utils";
 import {
   porovnejTabulkaVýběr,
-  ProgramTabulkaVýběr,
   ProgramURLState,
 } from "../routing";
 
-type ProgramUživatelskéVstupyProps = {
-  urlState: ProgramURLState;
-  setUrlState: (urlState: ProgramURLState) => void;
-  možnosti: ProgramTabulkaVýběr[];
-};
+type ProgramUživatelskéVstupyProps = {};
 
 export const ProgramUživatelskéVstupy: FunctionComponent<
   ProgramUživatelskéVstupyProps
 > = (props) => {
-  const { urlState, setUrlState, možnosti } = props;
+  const { možnosti, setUrlState, urlState } = useContext(ProgramURLState);
 
   const rok = GAMECON_KONSTANTY.ROK;
 

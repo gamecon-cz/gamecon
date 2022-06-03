@@ -35,6 +35,7 @@ foreach ($aktivity as &$a) {
   }, $a->tagy());
 
   $aktivitaRes = [
+    'id'        =>  $a->id(),
     'nazev'     =>  $a->nazev(),
     'kratkyPopis' => $a->kratkyPopis(),
     'popis'     =>  $a->popis(),

@@ -19,6 +19,7 @@ export type Obsazenost = {
 }
 
 export type Aktivita = {
+  id: number,
   nazev: string,
   kratkyPopis: string,
   popis: string,

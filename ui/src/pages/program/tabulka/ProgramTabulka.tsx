@@ -1,31 +1,21 @@
 import { FunctionComponent } from "preact";
-import { useEffect, useRef, useState } from "preact/hooks";
-import { Aktivita, fetchAktivity } from "../../../api";
+import { useContext, useRef } from "preact/hooks";
+import { Aktivita } from "../../../api";
 import { Timetable } from "../../../components/Timetable";
-import { GAMECON_KONSTANTY } from "../../../env";
 import { distinct } from "../../../utils";
-import { ProgramTabulkaVýběr, ProgramURLState } from "../routing";
+import { ProgramURLState } from "../routing";
 import { ProgramPosuv } from "./ProgramPosuv";
 import { TabulkaBuňka } from "./TabulkaBuňka";
 
 type ProgramTabulkaProps = {
-  urlState: ProgramURLState;
-  setUrlState: (urlState: ProgramURLState) => void;
-  možnosti: ProgramTabulkaVýběr[];
+  aktivity: Aktivita[];
 };
 
 export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
   props
 ) => {
-  const { urlState } = props;
-  const [aktivity, setAktivity] = useState<Aktivita[]>([]);
-
-  useEffect(() => {
-    (async () => {
-      const aktivity = await fetchAktivity(GAMECON_KONSTANTY.ROK);
-      setAktivity(aktivity);
-    })();
-  }, []);
+  const { aktivity } = props;
+  const { urlState } = useContext(ProgramURLState);
 
   const tabulka = (
     <Timetable
