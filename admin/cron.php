@@ -67,15 +67,15 @@ logs("Odemčeno $i aktivit.");
 if(date('G') == 5) { // 5 hodin ráno
   logs('Zálohuji databázi.');
 
-  if(!defined('ZALOHA_DB_SLOZKA'))
-    throw new Exception('Není definována konstanta s adresářem pro zálohování.');
-
-  $db = dbConnect();
-  $dump = new MySQLDump($db);
-  $time = date('Y-m-d_His');
-  $dump->save(ZALOHA_DB_SLOZKA . "/export_$time.sql.gz");
-
-  logs('Záloha dokončena.');
+  if(!defined('ZALOHA_DB_SLOZKA') || !ZALOHA_DB_SLOZKA) {
+      logs('Není definována konstanta s adresářem pro zálohování.');
+  } else {
+      $db = dbConnect();
+      $dump = new MySQLDump($db);
+      $time = date('Y-m-d_His');
+      $dump->save(ZALOHA_DB_SLOZKA . "/export_$time.sql.gz");
+      logs('Záloha databáze dokončena.');
+  }
 }
 
 
