@@ -31,7 +31,6 @@ define('SECRET_CRYPTO_KEY', 'def0000066cba9ae32fdda839a143276cc0646b3880920c9387
 define('CRON_KEY', '123');
 define('UNIVERZALNI_HESLO', 'heslo123'); // obejití zadávání hesla pro vývojové prostředí
 define('FIO_TOKEN', '123456'); // přístup k api fio banky pro načítání plateb
-define('ZALOHA_DB_SLOZKA', __DIR__ . '/../cache/private'); // cesta pro zálohy databáze
 define('MAILY_DO_SOUBORU', __DIR__ . '/../cache/private/maily.log');
 define('AUTOMATICKE_MIGRACE', true);
 define('PROFILOVACI_LISTA', true);
