@@ -33,7 +33,6 @@ $baseUrl = (($_SERVER['HTTPS'] ?? 'off') === 'on' ? 'https' : 'http') . '://' . 
 @define('CRON_KEY', '123');
 @define('UNIVERZALNI_HESLO', ''); // obejití zadávání hesla pro vývojové prostředí
 @define('FIO_TOKEN', '123456'); // přístup k api fio banky pro načítání plateb
-@define('ZALOHA_DB_SLOZKA', __DIR__ . '/../cache/private'); // cesta pro zálohy databáze
 @define('MAILY_DO_SOUBORU', __DIR__ . '/../cache/private/maily.log');
 @define('AUTOMATICKE_MIGRACE', true);
 @define('AUTOMATICKA_TVORBA_DB', true);
