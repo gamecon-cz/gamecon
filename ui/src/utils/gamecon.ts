@@ -1,8 +1,5 @@
-import { useRouter } from "preact-router";
-import { GAMECON_KONSTANTY } from "../env";
-
 /** Dny v týdnu bez diakritiky. Začíná pondeli. Pro háčky použít funkci doplňHáčkyDoDne */
-export const DNY = [
+export const DNY_NÁZVY = [
   'pondeli',
   'utery',
   'streda',
@@ -24,23 +21,22 @@ export const doplňHáčkyDoDne = (den: string) => {
   return den;
 }
 
-const {BASE_PATH_PAGE} = GAMECON_KONSTANTY;
+/** den v týdnu bez háčků */
+export const formátujDenVTýdnu = (datum: Date) => {
+  // vrací den v týdnu začínající nedělí
+  //  proto potřebujeme den o jedno posunout zpět
+  const denVTýdnu = (datum.getDay() + 6) % 7;
+  const denText = DNY_NÁZVY[denVTýdnu];
+  return denText;
+};
 
-export const usePath = () => {
-  // komponenta musí být v kontextu Router aby fungovalo
-  const [route, setRoute] = useRouter();
+/** datum ve tvaru "denVTýdnuNázev denVMesíci.měsíc" */
+export const formátujDatum = (datum: Date) => {
+  const denText = doplňHáčkyDoDne(formátujDenVTýdnu(datum));
+  const den = datum.getDate();
+  // Měsíce jsou oproti dnům idexované od 0. fakt se mě neptejte proč
+  const měsíc = datum.getMonth() + 1;
 
-  const url = route.url;
-
-  // přidám k url poslední / pokud by tam nebylo
-  if ((url+"/").substring(0, BASE_PATH_PAGE.length) !== BASE_PATH_PAGE)
-    throw new Error(`invalid base path BASE_PATH_PAGE= ${BASE_PATH_PAGE} current path= ${url}`);
-
-  let resUlr = url.substring(BASE_PATH_PAGE.length);
-
-  return [resUlr, (path: string, replace = false) => {
-    const url = BASE_PATH_PAGE + path;
-    setRoute(url, replace);
-  }] as const;
-}
+  return `${denText} ${den}.${měsíc}`;
+};
 

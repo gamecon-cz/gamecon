@@ -28,7 +28,6 @@ export type Aktivita = {
   cenaZaklad: number,
   casText: string,
   cas: {
-    den: string,
     od: number,
     do: number,
   },

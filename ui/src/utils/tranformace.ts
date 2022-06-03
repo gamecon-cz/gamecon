@@ -29,7 +29,7 @@ export const getFiltredActivities = (activity: Aktivita[], linie: string[], tagy
       : activity
   )
     .filter(x => containsSame([x.linie], linie))
-    .filter(x => x.cas.den === denVyber)
+    // .filter(x => x.cas.den === denVyber)
 }
 
 export const obsazenostZVolnoTyp = (obsazenost: Obsazenost) => {

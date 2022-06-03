@@ -106,15 +106,31 @@ const getTableStructure = (
   return table;
 };
 
+const getRangeFromTimetableProp = (props: TimetableProps): TimeRange => {
+  const { cells, timeRange } = props;
+
+  if (timeRange && timeRange !== "auto") return timeRange;
+
+  // TODO: předávání parametrů funkce pře zásobník (...spread operátor), fuj
+  const minTimeHours = Math.min(...cells.map((x) => x.time.from));
+  const maxTimeHours = Math.max(...cells.map((x) => x.time.to));
+
+  return { from: minTimeHours, to: maxTimeHours };
+};
 
 export type TimetableProps = {
   cells: Cell[];
   groups: string[];
-  timeRange: TimeRange;
+  timeRange?: TimeRange | "auto";
 };
 
+// TODO: quickfix, přerenderuje pokaždé všechny buňky, bylo by potřeba nějak udělat ID pro každou událost asi
+let key = 0;
+
 export const Timetable = (props: TimetableProps) => {
-  const { cells, groups, timeRange } = props;
+  const { cells, groups } = props;
+  const timeRange = getRangeFromTimetableProp(props);
+
   const rowsStructure = getTableStructure(cells, groups, timeRange);
 
   const rows = rowsStructure.map((r, i) => (
@@ -129,11 +145,11 @@ export const Timetable = (props: TimetableProps) => {
           )
         ) : // Left header
         i ? (
-          <td rowSpan={c?.span || 1}>
+          <td key={key++} rowSpan={c?.span || 1}>
             <div class="program_nazevLinie">{c.content}</div>
           </td>
         ) : (
-          <th rowSpan={c?.span || 1}>
+          <th key={key++} rowSpan={c?.span || 1}>
             <div class="program_nazevLinie">{c.content}</div>
           </th>
         )

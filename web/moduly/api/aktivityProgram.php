@@ -46,11 +46,10 @@ foreach ($aktivity as &$a) {
     'slevaNasobic' => $a->slevaNasobic($u),
     'casText'   =>  $a->zacatek() ? $a->zacatek()->format('G') . ':00&ndash;' . $a->konec()->format('G') . ':00' : "",
     'obsazenost' =>  $a->obsazenostObj(),
-    'linie'     =>  $a->typ()->nazev(),
-    'cas'       =>  $a->zacatek() ? [
-      'den'       => $a->zacatek()->format("l"),
-      'od'        => intval($a->zacatek()->format("H"), 10),
-      'do'        => intval($a->konec()->format("H"), 10),
+    'linie'      =>  $a->typ()->nazev(),
+    'cas'        =>  $a->zacatek() ? [
+      'od'         => $a->zacatek()->getTimestamp() * 1000,
+      'do'         => $a->konec()->getTimestamp() * 1000,
     ] : null,
   ];
 

@@ -4,12 +4,20 @@ import { Aktivita, fetchAktivity } from "../../../api";
 import { Timetable } from "../../../components/Timetable";
 import { GAMECON_KONSTANTY } from "../../../env";
 import { distinct } from "../../../utils";
+import { ProgramTabulkaVýběr, ProgramURLState } from "../routing";
 import { ProgramPosuv } from "./ProgramPosuv";
 import { TabulkaBuňka } from "./TabulkaBuňka";
 
-type ProgramTabulkaProps = {};
+type ProgramTabulkaProps = {
+  urlState: ProgramURLState;
+  setUrlState: (urlState: ProgramURLState) => void;
+  možnosti: ProgramTabulkaVýběr[];
+};
 
-export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = () => {
+export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
+  props
+) => {
+  const { urlState } = props;
   const [aktivity, setAktivity] = useState<Aktivita[]>([]);
 
   useEffect(() => {
@@ -19,22 +27,24 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = () => {
     })();
   }, []);
 
-  // TODO: předávání parametrů funkce pře zásobník (...spread operátor), fuj
-  const minTime = Math.min(...aktivity.map((x) => x.cas.od));
-  const _maxTime = Math.max(...aktivity.map((x) => x.cas.do));
-
   const tabulka = (
     <Timetable
-      cells={aktivity.map((x) => ({
-        element: <TabulkaBuňka aktivita={x} />,
-        group: x.linie,
-        time: {
-          from: x.cas.od,
-          to: x.cas.do,
-        },
-      }))}
+      cells={aktivity
+        .filter((x) =>
+          urlState.výběr.typ === "můj"
+            ? true
+            : new Date(x.cas.od).getDay() === urlState.výběr.datum.getDay()
+        )
+        .map((x) => ({
+          element: <TabulkaBuňka aktivita={x} />,
+          group: x.linie,
+          time: {
+            from: new Date(x.cas.od).getHours(),
+            to: new Date(x.cas.do).getHours(),
+          },
+        }))}
       groups={distinct(aktivity.map((x) => x.linie))}
-      timeRange={{ from: minTime, to: 24 }}
+      timeRange={"auto"}
     />
   );
 
