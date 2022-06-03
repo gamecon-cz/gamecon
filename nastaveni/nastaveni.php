@@ -234,7 +234,7 @@ Organizační tým GameConu',
 define('SUPERADMINI', [1682 /* Štěpán "Bonjour" Štefaník */, 4032 /* Jaroslav "Kostřivec" Týc */, 1112 /* Lenka "Cemi" Zavadilová */]);
 
 @define('ADRESAR_WEBU_S_OBRAZKY', __DIR__ . '/../web');
-@define('ZALOHA_DB_SLOZKA', __DIR__ . '../backup/db'); // cesta pro zálohy databáze
+@define('ZALOHA_DB_SLOZKA', __DIR__ . '/../backup/db'); // cesta pro zálohy databáze
 
 @define('NAZEV_SPOLECNOSTI_GAMECON', 'GameCon z.s.');
 
