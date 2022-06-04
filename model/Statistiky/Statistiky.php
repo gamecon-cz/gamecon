@@ -9,6 +9,9 @@ use Gamecon\Zidle;
 
 class Statistiky
 {
+    public const ZAROVNANI_K_ZACATKU_REGISTRACI = 'zacatekRegistaci';
+    public const ZAROVNANI_KE_KONCI_GC = 'konecGc';
+
     /**
      * @var int[]
      */
@@ -39,8 +42,10 @@ class Statistiky
     }
 
     private function dataProGrafUcastiZaRok(int $rok, \DateTimeImmutable $doChvile): array {
-        $zacatek = min(DateTimeGamecon::spocitejZacatekRegistraciUcastniku($rok), $doChvile);
-        $konec = min(DateTimeGamecon::spocitejKonecGameconu($rok), $doChvile);
+        /** @var \DateTimeImmutable|DateTimeGamecon $zacatekRegistraci */
+        $zacatekRegistraci = min(DateTimeGamecon::spocitejZacatekRegistraciUcastniku($rok), $doChvile);
+        /** @var \DateTimeImmutable|DateTimeGamecon $konecGc */
+        $konecGc = min(DateTimeGamecon::spocitejKonecGameconu($rok), $doChvile);
 
         $ucastResult = dbQuery(<<<SQL
 SELECT
@@ -49,7 +54,6 @@ SELECT
   FROM r_uzivatele_zidle_log AS log
   JOIN uzivatele_hodnoty u USING(id_uzivatele)
   WHERE log.id_zidle = $0 AND log.kdy < $3
-  GROUP BY DATE(log.kdy)
 UNION ALL
 SELECT
     DATE(log.kdy) AS den,
@@ -65,7 +69,6 @@ SELECT
   FROM r_uzivatele_zidle_log AS log
   JOIN uzivatele_hodnoty u USING(id_uzivatele)
   WHERE log.id_zidle = $0 AND log.kdy > $4
-  GROUP BY DATE(log.kdy)
 
 ORDER BY den
 SQL,
@@ -73,8 +76,8 @@ SQL,
                 Zidle::prihlasenNaGcRoku($rok),
                 \Uzivatel::POSAZEN,
                 \Uzivatel::SESAZEN,
-                $zacatek,
-                $konec,
+                $zacatekRegistraci,
+                $konecGc,
             ]
         );
         $prihlasenychCelkem = 0;
@@ -83,10 +86,18 @@ SQL,
             $prihlasenychCelkem += $row['prihlasenych'];
             $prihlasenychPoDnech[$row['den']] = $prihlasenychCelkem;
         }
+        if ($rok < 2013) { // před rokem 2013 jsou datumy přihlášení 0000-00-00, respektive neznámé
+            // netučíme, kdy se přihlásili, tak je hodíme na poslední den GC
+            $prihlasenychPoDnech = [
+                (clone $zacatekRegistraci)->modify('-1 day')->format(DateTimeCz::FORMAT_DATUM_DB) => 0,
+                $konecGc->format(DateTimeCz::FORMAT_DATUM_DB) => $prihlasenychCelkem,
+                (clone $konecGc)->modify('+1 day')->format(DateTimeCz::FORMAT_DATUM_DB) => $prihlasenychCelkem,
+            ];
+        }
 
-        $den = $zacatek;
+        $den = clone $zacatekRegistraci;
         $prihlasenychDenPredtim = reset($prihlasenychPoDnech);
-        while ($den < $konec) {
+        while ($den < $konecGc) {
             $denString = $den->formatDatumDb();
             // vyplníme případné mezery ve dnech, kdy se nikdo nový nepřihlásil
             $prihlasenychPoDnech[$denString] = $prihlasenychPoDnech[$denString] ?? $prihlasenychDenPredtim;
@@ -240,6 +251,74 @@ SQL,
 SQL, [
             Zidle::prihlasenNaGcRoku($this->letosniRok),
         ]), 'Pohlaví');
+    }
 
+    public function pripravDataProGraf(array $prihlaseniData, array $vybraneRoky, string $zarovnaniGrafu): array {
+        $nazvyDnu = [];
+        $zacatkyRegistaci = [];
+        $zacatkyGc = [];
+        $konceGc = [];
+        $prihlaseniProJs = [];
+
+        $dataChtenychRoku = [];
+        $delkaNejdelsihoGrafu = 0;
+        foreach ($prihlaseniData as $rok => $dataJednohoRoku) {
+            if ((int)$rok === 2020) {
+                continue; // Call of Covid
+            }
+            if (!in_array($rok, $vybraneRoky, false)) {
+                continue;
+            }
+            $dataChtenychRoku[$rok] = $dataJednohoRoku;
+            $delkaNejdelsihoGrafu = max($delkaNejdelsihoGrafu, count($dataJednohoRoku));
+        }
+
+        foreach ($dataChtenychRoku as $rok => $dataJednohoRoku) {
+            if ($zarovnaniGrafu === self::ZAROVNANI_KE_KONCI_GC) {
+                $delkaGrafuJednohoRoku = count($dataJednohoRoku);
+                $zarovnaniNulamiZleva = array_fill(0, $delkaNejdelsihoGrafu - $delkaGrafuJednohoRoku, 0);
+                array_unshift($dataJednohoRoku, ...$zarovnaniNulamiZleva); // aby každý graf měl délku jako nejdelší rok
+            }
+            array_unshift($dataJednohoRoku, 0); // aby každý graf včetně nejdelšího vždy začínal pěkne na nule
+            $prihlaseniProJs[] = [
+                'name' => "Přihlášených $rok",
+                'data' => array_values($dataJednohoRoku) // JS knihovna vyžaduje číselné indexování
+            ];
+            $dnyJednohoRoku = array_keys($dataJednohoRoku);
+            $nazvyDnuJednohoRoku = [];
+            $zacatekRegistraciJednohoRoku = \Gamecon\Cas\DateTimeGamecon::spocitejZacatekRegistraciUcastniku($rok)->formatDatumDb();
+            $zacatekGcJednohoRoku = \Gamecon\Cas\DateTimeGamecon::spocitejZacatekGameconu($rok)->formatDatumDb();
+            $konecGcJednohoRoku = \Gamecon\Cas\DateTimeGamecon::spocitejKonecGameconu($rok)->formatDatumDb();
+            foreach ($dnyJednohoRoku as $indexDne => $denJednohoRoku) {
+                // včetně indexu 0, což je vynucená nula přes array_unshift
+                $denRegistraci = $indexDne - 1;
+                if ($indexDne === 0) {
+                    $nazvyDnuJednohoRoku[] = 'před prvním přihlášeným';
+                } elseif ($indexDne === 1) {
+                    $nazvyDnuJednohoRoku[] = 'před registracemi';
+                } else {
+                    $nazvyDnuJednohoRoku[] = "den $denRegistraci";
+                }
+                if ($zacatekRegistraciJednohoRoku === $denJednohoRoku) {
+                    $prvniDenRegistraciJednohoRoku = end($nazvyDnuJednohoRoku);
+                    $zacatkyRegistaci[$rok] = $prvniDenRegistraciJednohoRoku;
+                } elseif ($zacatekGcJednohoRoku === $denJednohoRoku) {
+                    $prvniDenGcRoku = end($nazvyDnuJednohoRoku);
+                    $zacatkyGc[$rok] = $prvniDenGcRoku;
+                } elseif ($konecGcJednohoRoku === $denJednohoRoku) {
+                    $posledniDenGcRoku = end($nazvyDnuJednohoRoku);
+                    $konceGc[$rok] = $posledniDenGcRoku;
+                }
+            }
+            $nazvyDnu = array_unique(array_merge($nazvyDnu, $nazvyDnuJednohoRoku));
+        }
+
+        return [
+            'nazvyDnu' => $nazvyDnu,
+            'zacatkyRegistaci' => $zacatkyRegistaci,
+            'zacatkyGc' => $zacatkyGc,
+            'konceGc' => $konceGc,
+            'prihlaseniProJs' => $prihlaseniProJs,
+        ];
     }
 }
