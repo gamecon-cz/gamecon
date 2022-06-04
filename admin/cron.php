@@ -72,6 +72,16 @@ if (date('G') == 5) { // 5 hodin ráno
         && !is_dir(ZALOHA_DB_SLOZKA)
     ) {
         $chybaZalohovaniDb = "Nelze vytvořit adresář pro zálohování '" . ZALOHA_DB_SLOZKA . "': " . implode("\n", (array)error_get_last());
+    } else {
+        try {
+            $dump = new MySQLDump(dbConnect());
+            $time = date('Y-m-d_His');
+            $dump->save(ZALOHA_DB_SLOZKA . "/export_$time.sql.gz");
+            logs('záloha databáze dokončena.');
+        } catch (\Throwable $throwable) {
+            $chybaZalohovaniDb = 'Uložení zálohy na disk selhalo';
+            logs('Error při ukládání zálohy DB: ' . $throwable->getMessage() . '; ' . $throwable->getTraceAsString());
+        }
     }
     if ($chybaZalohovaniDb) {
         logs($chybaZalohovaniDb);
@@ -81,10 +91,6 @@ if (date('G') == 5) { // 5 hodin ráno
             ->text($chybaZalohovaniDb)
             ->odeslat();
     }
-    $dump = new MySQLDump(dbConnect());
-    $time = date('Y-m-d_His');
-    $dump->save(ZALOHA_DB_SLOZKA . "/export_$time.sql.gz");
-    logs('záloha databáze dokončena.');
 }
 
 logs('Cron dokončen.');
