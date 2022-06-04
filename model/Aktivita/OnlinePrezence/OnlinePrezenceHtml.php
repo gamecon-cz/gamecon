@@ -80,7 +80,7 @@ class OnlinePrezenceHtml
                 __DIR__ . '/../../../admin/files/design/online-prezence.css',
             ],
             'javascripts' => [
-                __DIR__ . '/../../../admin/files/omnibox.js',
+                __DIR__ . '/../../../admin/files/omnibox-1.1.1.js',
                 __DIR__ . '/../../../admin/files/online-prezence/online-prezence-heat-colors.js',
                 __DIR__ . '/../../../admin/files/online-prezence/online-prezence-tooltip.js',
                 __DIR__ . '/../../../admin/files/online-prezence/online-prezence.js',
