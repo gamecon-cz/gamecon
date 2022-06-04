@@ -14,7 +14,7 @@ $zbyva = $zbyva->diff(new DateTime());
 $zbyva = $zbyva->format('%a dní') . ' (' . round($zbyva->format('%a') / 7, 1) . ' týdnů)';
 
 $vybraneRoky = array_diff(
-    $_GET['rok'] ?? range(ROK - 3, ROK),
+    get('rok') ?? range(ROK - 3, ROK),
     [2020] // abychom netrápili databázi hleáním dat pro rok Call of Covid
 );
 $mozneRoky = range(2009, ROK);
@@ -30,55 +30,30 @@ $pohlavi = $statistiky->tabulkaZastoupeniPohlaviHtml();
 
 $prihlaseniData = $statistiky->dataProGrafUcasti(new DateTimeImmutable());
 
-$pocetDni = 0;
-$nazvyDnu = [];
-$zacatkyGc = [];
-$konceGc = [];
-$prihlaseniProJs = [];
-foreach ($prihlaseniData as $rok => $dataJednohoRoku) {
-    if ((int)$rok === 2020) {
-        continue; // Call of Covid
+$zarovnaniGrafu = get('zarovnaniGrafu') ?? Statistiky::ZAROVNANI_KE_KONCI_GC;
+[
+    'nazvyDnu' => $nazvyDnu,
+    'zacatkyRegistaci' => $zacatkyRegistaci,
+    'zacatkyGc' => $zacatkyGc,
+    'konceGc' => $konceGc,
+    'prihlaseniProJs' => $prihlaseniProJs,
+] = $statistiky->pripravDataProGraf($prihlaseniData, $vybraneRoky, $zarovnaniGrafu);
+
+$indexyDnuZacatkuRegistraci = [];
+foreach ($zacatkyRegistaci as $rok => $nazevDneZacatkuRegistrace) {
+    if ($rok === ROK && pred(REG_GC_OD)) {
+        continue; // registace na letošní GC ještě nezačala
     }
-    if (in_array($rok, $vybraneRoky, false)) {
-        array_unshift($dataJednohoRoku, 0); // aby graf začínal pěkne na nule
-        $prihlaseniProJs[] = [
-            'name' => "Přihlášení $rok",
-            'data' => array_values($dataJednohoRoku) // JS knihovna vyžaduje číselné indexování
-        ];
-        $dnyJednohoRoku = array_keys($dataJednohoRoku);
-        $nazvyDnuJednohoRoku = [];
-        $zacatekGcRoku = \Gamecon\Cas\DateTimeGamecon::spocitejZacatekGameconu($rok)->formatDatumDb();
-        $konecGcRoku = \Gamecon\Cas\DateTimeGamecon::spocitejKonecGameconu($rok)->formatDatumDb();
-        foreach ($dnyJednohoRoku as $indexDne => $denJednohoRoku) {
-            // index 0 je vynucená nula přes array_unshift
-            if ($indexDne === 0) {
-                $nazvyDnuJednohoRoku[] = 'před registracemi';
-            } elseif ($indexDne === 1) {
-                $nazvyDnuJednohoRoku[] = 'začátek registrací';
-            } else {
-                $denRegistraci = $indexDne - 1;
-                $nazvyDnuJednohoRoku[] = "den $denRegistraci";
-            }
-            if ($zacatekGcRoku === $denJednohoRoku) {
-                // naposledy vytvořený název jednoho dne je zároveň i dnem začátku GC
-                $prvniDenGcRoku = end($nazvyDnuJednohoRoku);
-                $zacatkyGc[$rok] = $prvniDenGcRoku;
-            }
-            if ($konecGcRoku === $denJednohoRoku) {
-                // naposledy vytvořený název jednoho dne je zároveň i dnem konce GC
-                $posledniDenGcRoku = end($nazvyDnuJednohoRoku);
-                $konceGc[$rok] = $posledniDenGcRoku;
-            }
-        }
-        $nazvyDnu = array_unique(array_merge($nazvyDnu, $nazvyDnuJednohoRoku));
-    }
+    // nejdřív posbíráme indexy z výsledných názvů dnů, měnit je musíme až později, abychom nepodřízli větev ostatním názvům dnů
+    $indexDneZacatkuRegistraciJednohoGc = array_search($nazevDneZacatkuRegistrace, $nazvyDnu);
+    $indexyDnuZacatkuRegistraci[$indexDneZacatkuRegistraciJednohoGc][] = $rok;
 }
 $indexyDnuZacatkuGc = [];
 foreach ($zacatkyGc as $rok => $nazevDneZacatkuGc) {
     if ($rok === ROK && pred(GC_BEZI_OD)) {
         continue; // letošní GC ještě nezačal, nechceme ukazovat poslední známé hodnoty s názvem "začátek GC"
     }
-    // nejdřív posbíráme indexy z výsledných názvů dnů, měnit je musíme až později, abychom nepodřízli větev názvům dnů s koncem GC
+    // nejdřív posbíráme indexy z výsledných názvů dnů, měnit je musíme až později, abychom nepodřízli větev ostatním názvům dnů
     $indexDneZacatkuJednohoGc = array_search($nazevDneZacatkuGc, $nazvyDnu);
     $indexyDnuZacatkuGc[$indexDneZacatkuJednohoGc][] = $rok;
 }
@@ -90,11 +65,14 @@ foreach ($konceGc as $rok => $nazevDneKonceGc) {
     $indexDneKonceJednohoGc = array_search($nazevDneKonceGc, $nazvyDnu);
     $indexyDnuKoncuGc[$indexDneKonceJednohoGc][] = $rok;
 }
-foreach ($indexyDnuZacatkuGc as $indexDneZacatku => $rokyZacinajiciGcStejnyDen) {
-    $nazvyDnu[$indexDneZacatku] = $nazvyDnu[$indexDneZacatku] . ", začátek GC " . implode(', ', $rokyZacinajiciGcStejnyDen);
+foreach ($indexyDnuZacatkuRegistraci as $indexDneZacatkuRegistraci => $rokyZacinajiciRegistraceStejnyDen) {
+    $nazvyDnu[$indexDneZacatkuRegistraci] = $nazvyDnu[$indexDneZacatkuRegistraci] . ", spuštění registrací " . implode(', ', $rokyZacinajiciRegistraceStejnyDen);
 }
-foreach ($indexyDnuKoncuGc as $indexDneKonce => $rokyKonciciGcStejnyDen) {
-    $nazvyDnu[$indexDneKonce] = $nazvyDnu[$indexDneKonce] . ", konec GC " . implode(', ', $rokyKonciciGcStejnyDen);
+foreach ($indexyDnuZacatkuGc as $indexDneZacatkuGc => $rokyZacinajiciGcStejnyDen) {
+    $nazvyDnu[$indexDneZacatkuGc] = $nazvyDnu[$indexDneZacatkuGc] . ", začátek GC " . implode(', ', $rokyZacinajiciGcStejnyDen);
+}
+foreach ($indexyDnuKoncuGc as $indexDneKonceGc => $rokyKonciciGcStejnyDen) {
+    $nazvyDnu[$indexDneKonceGc] = $nazvyDnu[$indexDneKonceGc] . ", konec GC " . implode(', ', $rokyKonciciGcStejnyDen);
 }
 $pocetDni = count($nazvyDnu);
 ?>
@@ -162,12 +140,12 @@ $pocetDni = count($nazvyDnu);
             rokInput.parentElement.style.backgroundColor = colors[index] || colors[index - colors.length - 1]
         })
 
-        const rokInputs = Array.from(document.querySelectorAll('input[name="rok[]"]:not(:disabled)'))
-        rokInputs.forEach(function (rokInput, index) {
-            rokInput.addEventListener('change', function () {
-                document.getElementById('vyberRokuGrafu').submit()
-                rokInputs.forEach(function (rokInput) {
-                    rokInput.disabled = true
+        const grafInputs = Array.from(document.querySelectorAll('input[name="rok[]"]:not(:disabled), input[name="zarovnaniGrafu"]:not(:disabled)'))
+        grafInputs.forEach(function (grafInput) {
+            grafInput.addEventListener('change', function () {
+                document.getElementById('vyberGrafuStatistik').submit()
+                grafInputs.forEach(function (grafInput) {
+                    grafInput.disabled = true
                 })
             })
         })
@@ -189,26 +167,38 @@ $pocetDni = count($nazvyDnu);
 <p id="vyvojRegu"></p>
 
 <div>
-    <form action="" style="padding: 0.5em 0" id="vyberRokuGrafu">
-        <legend style="padding: 0 0 0.5em; font-style: italic">
-            Roky v grafu
-        </legend>
-        <span class="hinted" style="float: right">Vysvětlivky ke grafu
-            <span class="hint">
-                Data z předchozích let jsou převedena tak, aby počet dní do GameConu na loňské křivce odpovídal počtu dní do GameConu na letošní křivce.<br>
-                Svislá čára představuje začátek GameConu. Počet platí pro dané datum v 23:59.
-            </span>
-        </span>
-        <?php foreach ($mozneRoky as $moznyRok) {
-            $callOfCovid = (int)$moznyRok === 2020;
-            ?>
-            <span style="min-width: 4em; display: inline-block">
+    <form action="" style="padding: 0.5em 0" id="vyberGrafuStatistik">
+        <fieldset>
+            <legend style="padding: 0 0 0.5em; font-style: italic">
+                Zarovnání grafu
+            </legend>
+            <label style="margin-left: 1em">
+                <input type="radio" name="zarovnaniGrafu" value="<?= Statistiky::ZAROVNANI_K_ZACATKU_REGISTRACI ?>"
+                       <?php if ($zarovnaniGrafu === Statistiky::ZAROVNANI_K_ZACATKU_REGISTRACI) { ?>checked<?php } ?>>
+                Začátek registrací na GC
+            </label>
+            <label>
+                <input type="radio" name="zarovnaniGrafu" value="<?= Statistiky::ZAROVNANI_KE_KONCI_GC ?>"
+                       <?php if ($zarovnaniGrafu === Statistiky::ZAROVNANI_KE_KONCI_GC) { ?>checked<?php } ?>>
+                Konec GC
+            </label>
+        </fieldset>
+
+
+        <fieldset style="margin-top: 1em">
+            <legend style="padding: 0 0 0.5em; font-style: italic">
+                Roky v grafu <span style="font-size: smaller">(počty platí k půlnoci toho dne)</span>
+            </legend>
+            <?php foreach ($mozneRoky as $moznyRok) {
+                $callOfCovid = (int)$moznyRok === 2020;
+                ?>
+                <span style="min-width: 4em; display: inline-block">
                     <label class="<?php if ($callOfCovid) { ?>hinted<?php } ?>"
                            style="border-bottom: none; padding-right: 0.3em; cursor: <?php if ($callOfCovid) { ?>not-allowed<?php } else { ?>pointer<? } ?>">
                         <input type="checkbox" name="rok[]" value="<?= $moznyRok ?>" style="padding-right: 0.2em"
-                               <?php if ((int)$moznyRok === 2020) { ?>disabled<?php } ?>
+                               <?php if ($callOfCovid) { ?>disabled<?php } ?>
                                <?php if (in_array($moznyRok, $vybraneRoky, false)) { ?>checked<?php } ?>>
-                        <?php if ((int)$moznyRok === 2020) { ?>
+                        <?php if ($callOfCovid) { ?>
                             <span>
                                 👾
                                 <span class="hint">Call of Covid</span>
@@ -217,7 +207,8 @@ $pocetDni = count($nazvyDnu);
                         <?= $moznyRok ?>
                     </label>
             </span>
-        <?php } ?>
+            <?php } ?>
+        </fieldset>
     </form>
 </div>
 
