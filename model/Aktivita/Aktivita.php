@@ -6,7 +6,7 @@ use Gamecon\Cas\DateTimeCz;
 use Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImportSqlColumn;
 use Gamecon\PrednacitaniTrait;
 use Symfony\Component\Filesystem\Filesystem;
-use \Gamecon\Aktivita\TypAktivity;
+use Gamecon\Aktivita\TypAktivity;
 
 require_once __DIR__ . '/../../admin/scripts/modules/aktivity/_editor-tagu.php';
 
@@ -2502,7 +2502,7 @@ SQL,
      */
     public static function zProgramu($order) {
         return self::zWhere(
-            'WHERE a.rok = $0 AND a.zacatek AND ( a.stav IN($1) OR a.typ = 10 )',
+            'WHERE a.rok = $0 AND a.zacatek AND ( a.stav IN($1) OR a.typ = $2)',
             [ROK, [\Stav::AKTIVOVANA, \Stav::PROBEHNUTA, \Stav::SYSTEMOVA, \Stav::PUBLIKOVANA, \Stav::PRIPRAVENA], TypAktivity::TECHNICKA],
             'ORDER BY DAY(zacatek), ' . dbQi($order) . ', HOUR(zacatek), nazev_akce'
         );
