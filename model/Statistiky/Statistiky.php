@@ -241,10 +241,10 @@ SQL,
     public function tabulkaZastoupeniPohlaviHtml(): string {
         return tabMysqlR(dbQuery(<<<SQL
   SELECT
-    'Počet' as ' ', -- formátování
-    SUM(IF(uzivatele.pohlavi='m',1,0)) as Muži,
-    SUM(IF(uzivatele.pohlavi='f',1,0)) as Ženy,
-    ROUND(SUM(IF(uzivatele.pohlavi='f',1,0))/COUNT(1),2) as Poměr
+    'Počet' AS ' ', -- formátování
+    COALESCE(SUM(IF(uzivatele.pohlavi='m',1,0)), 0) as Muži,
+    COALESCE(SUM(IF(uzivatele.pohlavi='f',1,0)), 0) as Ženy,
+    COALESCE(ROUND(SUM(IF(uzivatele.pohlavi='f',1,0))/COUNT(1),2), 0) as Poměr
   FROM r_uzivatele_zidle AS uzivatele_zidle
   JOIN uzivatele_hodnoty AS uzivatele ON uzivatele_zidle.id_uzivatele=uzivatele.id_uzivatele
   WHERE uzivatele_zidle.id_zidle = $0
@@ -310,6 +310,8 @@ SQL, [
                     $konceGc[$rok] = $posledniDenGcRoku;
                 }
             }
+            array_pop($nazvyDnuJednohoRoku);
+            $nazvyDnuJednohoRoku[] = 'po GC'; // všechny dny po GC smrsknute do jediného, posledního sloupce v grafu
             $nazvyDnu = array_unique(array_merge($nazvyDnu, $nazvyDnuJednohoRoku));
         }
 
@@ -320,5 +322,203 @@ SQL, [
             'konceGc' => $konceGc,
             'prihlaseniProJs' => $prihlaseniProJs,
         ];
+    }
+
+    public function tabulkaHistorieRegistrovaniVsDoraziliHtml(): string {
+        return tabMysqlR(dbQuery(<<<SQL
+SELECT
+    rok AS ' ', -- formátování
+    Registrovaných,
+    Dorazilo,
+    studenti AS ` z toho studenti`,
+    IF (studenti = '', '', Dorazilo - studenti) AS ` z toho ostatní`,
+    `Podpůrný tým`,
+    organizátoři AS ` organizátoři`,
+    zázemí AS ` zázemí`,
+    vypravěči AS ` vypravěči`
+FROM (
+    SELECT
+        rok,
+        SUM(IF(registrace, 1, 0)) AS Registrovaných,
+        SUM(IF(dorazeni, 1, 0)) AS Dorazilo,
+        CASE rok
+            WHEN 2013 THEN 149
+            WHEN 2014 THEN 172
+            WHEN 2015 THEN 148
+            WHEN 2016 THEN 175
+            WHEN 2017 THEN 153
+            ELSE '' END
+        AS studenti,
+        CASE rok
+            WHEN 2009 THEN 43
+            WHEN 2010 THEN 45
+            WHEN 2011 THEN 71
+            WHEN 2012 THEN 74
+            WHEN 2013 THEN 88
+            WHEN 2014 THEN 109
+            WHEN 2015 THEN 111
+            WHEN 2016 THEN 133
+            WHEN 2017 THEN 186
+            WHEN 2018 THEN 176
+            WHEN 2019 THEN 185
+            WHEN 2021 THEN 198
+            ELSE SUM(IF(dorazeni AND EXISTS(SELECT * FROM r_uzivatele_zidle WHERE r_uzivatele_zidle.id_uzivatele = podle_roku.id_uzivatele AND r_uzivatele_zidle.id_zidle IN ($0, $1, $2)), 1 , 0)) END
+        AS `Podpůrný tým`,
+        CASE rok
+            WHEN 2009 THEN 6
+            WHEN 2010 THEN 8
+            WHEN 2011 THEN 13
+            WHEN 2012 THEN 17
+            WHEN 2013 THEN 17
+            WHEN 2014 THEN 22
+            WHEN 2015 THEN 24
+            WHEN 2016 THEN 28
+            WHEN 2017 THEN 38
+            WHEN 2018 THEN 38
+            WHEN 2019 THEN 38
+            WHEN 2021 THEN 37
+            ELSE SUM(IF(dorazeni AND EXISTS(SELECT * FROM r_uzivatele_zidle WHERE r_uzivatele_zidle.id_uzivatele = podle_roku.id_uzivatele AND r_uzivatele_zidle.id_zidle = $0), 1 , 0)) END
+        AS organizátoři,
+        CASE rok
+            WHEN 2009 THEN 7
+            WHEN 2010 THEN 7
+            WHEN 2011 THEN 6
+            WHEN 2012 THEN 10
+            WHEN 2013 THEN 8
+            WHEN 2014 THEN 1
+            WHEN 2015 THEN 3
+            WHEN 2016 THEN 1
+            WHEN 2017 THEN 8
+            WHEN 2018 THEN ''
+            WHEN 2019 THEN ''
+            WHEN 2021 THEN 15
+            ELSE SUM(IF(dorazeni AND EXISTS(SELECT * FROM r_uzivatele_zidle WHERE r_uzivatele_zidle.id_uzivatele = podle_roku.id_uzivatele AND r_uzivatele_zidle.id_zidle = $1), 1 , 0)) END
+        AS zázemí,
+        CASE rok
+            WHEN 2009 THEN 30
+            WHEN 2010 THEN 30
+            WHEN 2011 THEN 52
+            WHEN 2012 THEN 47
+            WHEN 2013 THEN 63
+            WHEN 2014 THEN 86
+            WHEN 2015 THEN 95
+            WHEN 2016 THEN 122
+            WHEN 2017 THEN 168
+            WHEN 2018 THEN 138
+            WHEN 2019 THEN 147
+            WHEN 2021 THEN 146
+            ELSE SUM(IF(dorazeni AND EXISTS(SELECT * FROM r_uzivatele_zidle WHERE r_uzivatele_zidle.id_uzivatele = podle_roku.id_uzivatele AND r_uzivatele_zidle.id_zidle = $2), 1 , 0)) END
+        AS vypravěči
+    FROM (
+        SELECT
+            2000 - (uzivatele_zidle.id_zidle DIV 100) AS rok,
+            uzivatele_zidle.id_zidle,
+            id_zidle % 100 = -1 AS registrace,
+            id_zidle % 100 = -2 AS dorazeni,
+            uzivatele_zidle.id_uzivatele
+            FROM r_uzivatele_zidle AS uzivatele_zidle
+            WHERE uzivatele_zidle.id_zidle < 0
+    ) AS podle_roku
+    GROUP BY rok
+) AS pocty
+SQL, [
+            Zidle::ORGANIZATOR,
+            Zidle::ZAZEMI,
+            Zidle::VYPRAVEC,
+        ]), 'Registrovaní vs Dorazili');
+    }
+
+    public function tabulkaLidiNaGcCelkemHtml(): string {
+        return tabMysqlR(dbQuery(<<<SQL
+SELECT
+    rok AS ' ', -- formátování
+    Dorazilo AS `Dorazilo na GC celkem`,
+    muzu AS ` z toho muži`,
+    zen AS ` z toho ženy`,
+    CONCAT(CAST(zen / muzu * 100 AS UNSIGNED), ' %') ` podíl žen`
+FROM (
+    SELECT
+        rok,
+        COUNT(*) AS Dorazilo,
+        SUM(IF(pohlavi = 'm', 1, 0)) AS muzu,
+        SUM(IF(pohlavi= 'f', 1, 0)) AS zen
+    FROM (
+        SELECT
+            2000 - (uzivatele_zidle.id_zidle DIV 100) AS rok,
+            uzivatele_hodnoty.pohlavi
+            FROM r_uzivatele_zidle AS uzivatele_zidle
+            JOIN uzivatele_hodnoty ON uzivatele_zidle.id_uzivatele = uzivatele_hodnoty.id_uzivatele
+            WHERE uzivatele_zidle.id_zidle % 100 = -2
+    ) AS podle_roku
+    GROUP BY rok
+) AS pohlavi
+SQL
+        ), 'Lidé na GC celkem');
+    }
+
+    public function tabulkaHistorieProdanychPredmetuHtml(): string {
+        return tabMysqlR(dbQuery(<<<SQL
+SELECT 2009 AS '', 43 AS 'Prodané placky', 43 AS 'Prodané kostky', 6 AS 'Prodaná trička'
+UNION ALL
+SELECT 2010 AS '', 45 AS 'Prodané placky', 45 AS 'Prodané kostky', 8 AS 'Prodaná trička'
+UNION ALL
+SELECT 2011 AS '', 206 AS 'Prodané placky', 247 AS 'Prodané kostky', 104 AS 'Prodaná trička'
+UNION ALL
+SELECT 2012 AS '', 224 AS 'Prodané placky', 154 AS 'Prodané kostky', 121 AS 'Prodaná trička'
+UNION ALL
+SELECT 2013 AS '', 207 AS 'Prodané placky', 192 AS 'Prodané kostky', 139 AS 'Prodaná trička'
+UNION ALL
+SELECT
+    shop_nakupy.rok AS '',
+    SUM(shop_predmety.nazev LIKE 'Placka%' AND shop_nakupy.rok = shop_predmety.model_rok) AS 'Prodané placky',
+    SUM(shop_predmety.nazev LIKE 'Kostka%' AND shop_nakupy.rok = shop_predmety.model_rok) AS 'Prodané kostky',
+    SUM(shop_predmety.nazev like 'Tričko%' AND shop_nakupy.rok = shop_predmety.model_rok) AS 'Prodaná trička'
+FROM shop_nakupy
+JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
+WHERE shop_nakupy.rok >= 2014 /* starší data z DB nesedí, jsou vložena fixně */
+    AND shop_nakupy.rok != 2020 /* Call of covid */
+GROUP BY shop_nakupy.rok
+ORDER BY ''
+SQL
+        ),
+            'Prodané předměty');
+    }
+
+    public function tabulkaHistorieUbytovaniHtml(): string {
+        return tabMysqlR(dbQuery(<<<SQL
+SELECT
+    shop_nakupy.rok AS '',
+    SUM(nazev LIKE '%lůžák%') AS 'Postel',
+    SUM(nazev LIKE '%lůžák%' AND ubytovani_den=0) AS '&emsp;středa',
+    SUM(nazev LIKE '%lůžák%' AND ubytovani_den=1) AS '&emsp;čtvrtek',
+    SUM(nazev LIKE '%lůžák%' AND ubytovani_den=2) AS '&emsp;pátek',
+    SUM(nazev LIKE '%lůžák%' AND ubytovani_den=3) AS '&emsp;sobota',
+    SUM(nazev LIKE '%lůžák%' AND ubytovani_den=4) AS '&emsp;neděle',
+    SUM(nazev LIKE 'spacák%') AS 'Spacák',
+    SUM(nazev LIKE 'spacák%' AND ubytovani_den=0) AS '&emsp;středa ',
+    SUM(nazev LIKE 'spacák%' AND ubytovani_den=1) AS '&emsp;čtvrtek ',
+    SUM(nazev LIKE 'spacák%' AND ubytovani_den=2) AS '&emsp;pátek ',
+    SUM(nazev LIKE 'spacák%' AND ubytovani_den=3) AS '&emsp;sobota ',
+    SUM(nazev LIKE 'spacák%' AND ubytovani_den=4) AS '&emsp;neděle ',
+    SUM(nazev LIKE 'penzion%') AS 'Penzion',
+    SUM(nazev LIKE 'penzion%' AND ubytovani_den=0) AS '&emsp;středa  ',
+    SUM(nazev LIKE 'penzion%' AND ubytovani_den=1) AS '&emsp;čtvrtek  ',
+    SUM(nazev LIKE 'penzion%' AND ubytovani_den=2) AS '&emsp;pátek  ',
+    SUM(nazev LIKE 'penzion%' AND ubytovani_den=3) AS '&emsp;sobota  ',
+    SUM(nazev LIKE 'penzion%' AND ubytovani_den=4) AS '&emsp;neděle  ',
+    SUM(nazev LIKE 'chata%') AS 'Kemp',
+    SUM(nazev LIKE 'chata%' AND ubytovani_den=0) AS '&emsp;středa   ',
+    SUM(nazev LIKE 'chata%' AND ubytovani_den=1) AS '&emsp;čtvrtek   ',
+    SUM(nazev LIKE 'chata%' AND ubytovani_den=2) AS '&emsp;pátek   ',
+    SUM(nazev LIKE 'chata%' AND ubytovani_den=3) AS '&emsp;sobota   ',
+    SUM(nazev LIKE 'chata%' AND ubytovani_den=4) AS '&emsp;neděle   '
+FROM shop_nakupy
+JOIN shop_predmety USING (id_predmetu)
+WHERE shop_predmety.typ = $0
+GROUP BY shop_nakupy.rok
+ORDER BY shop_nakupy.rok
+SQL,
+            [\Shop::UBYTOVANI]
+        ), 'Ubytování');
     }
 }
