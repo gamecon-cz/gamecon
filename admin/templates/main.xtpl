@@ -24,7 +24,6 @@
   <script type="text/javascript" src="files/aplikace.js?version=f4a8464b38ba6a06a94a8c1bc881bebc"></script>
   <script type="text/javascript" src="files/omnibox.js?version=e5cd9171d8ae5178823bdcf81f68b43d"></script>
   <script type="text/javascript" src="files/jquery.multiselect-2.4.16.js"></script>
-  <script type="text/javascript" src="files/jquery.multiselect-2.4.16.js"></script>
   <script type="text/javascript" src="files/jquery.modal-0.9.1.min.js"></script>
 </head>
 <body>

@@ -83,28 +83,37 @@ class DateTimeGameconTest extends TestCase
         );
     }
 
-    public function testZacatekRegistraciUcastniku() {
+    public function testZacatekLetosnichRegistraciUcastniku() {
         self::assertEquals(
             DateTimeGamecon::createFromMysql(REG_GC_OD),
             DateTimeGamecon::zacatekRegistraciUcastniku(ROK),
             'Očekáván jiný začátek registrací, viz konstanta REG_GC_OD: ' . REG_GC_OD
         );
+    }
 
+    /**
+     * @dataProvider provideZacatkyRegistraciUcastniku
+     */
+    public function testZacatekRegistraciUcastniku(int $rok, string $ocekavanyZacatekRegistraci) {
         self::assertEquals(
-            DateTimeGamecon::createFromFormat('Y-m-d H:i:s', '2022-05-12 20:22:00'),
-            DateTimeGamecon::spocitejZacatekRegistraciUcastniku(2022),
-            'Očekáván jiný spočítaný začátek registrací pro rok 2022'
+            DateTimeGamecon::createFromFormat('Y-m-d H:i:s', $ocekavanyZacatekRegistraci),
+            DateTimeGamecon::spocitejZacatekRegistraciUcastniku($rok),
+            'Očekáván jiný spočítaný začátek registrací pro rok ' . $rok
         );
+    }
 
-        self::assertEquals(DateTimeGamecon::createFromFormat('Y-m-d H:i:s', '2021-05-13 20:21:00'),
-            DateTimeGamecon::spocitejZacatekRegistraciUcastniku(2021),
-            'Očekáván jiný spočítaný začátek registrací pro rok 2021'
-        );
-
-        self::assertEquals(DateTimeGamecon::createFromFormat('Y-m-d H:i:s', '2016-05-03 20:16:00'),
-            DateTimeGamecon::spocitejZacatekRegistraciUcastniku(2016),
-            'Očekáván jiný spočítaný začátek registrací pro rok 2016'
-        );
+    public function provideZacatkyRegistraciUcastniku(): array {
+        return [
+            [2022, '2022-05-12 20:22:00'],
+            [2021, '2021-05-13 20:21:00'],
+            [2019, '2019-05-14 20:19:00'],
+            [2018, '2018-05-15 20:18:00'],
+            [2017, '2017-05-02 20:17:00'],
+            [2016, '2016-05-03 20:16:00'],
+            [2015, '2015-04-28 20:15:00'],
+            [2014, '2014-05-01 20:00:00'],
+            [2013, '2013-05-02 00:00:00'],
+        ];
     }
 
     public function testZacatekPrvniVlnyOd() {

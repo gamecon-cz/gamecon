@@ -108,16 +108,42 @@ class DateTimeGamecon extends DateTimeCz
     }
 
     public static function spocitejZacatekRegistraciUcastniku(int $rok): DateTimeGamecon {
-        if ($rok === 2016) {
-            // aneb ať žijí výjimky
-            return DateTimeGamecon::createFromMysql('2016-05-03 20:16:00');
+        if ($rok === 2013) {
+            // čtvrtek
+            return DateTimeGamecon::createFromMysql('2013-05-02 00:00:00');
+        }
+        if ($rok === 2014) {
+            // čtvrtek
+            return DateTimeGamecon::createFromMysql('2014-05-01 20:00:00');
+        }
+        if ($rok === 2015) {
+            // úterý
+            return DateTimeGamecon::createFromMysql('2015-04-28 20:15:00');
         }
         $zacatekKvetna = new static($rok . '-05-01 00:00:00');
-        $zacatekTretihoTydneVKvetnu = self::dejZacatekXTydne(3, $zacatekKvetna);
-        $ctvrtekVeTretimTydnuVKvetnu = self::dejDatumDneVTydnuOdData(static::CTVRTEK, $zacatekTretihoTydneVKvetnu);
+        switch ($rok) {
+            case 2016 :
+                $poradiTydne = 2;
+                $denVTydnu = static::UTERY;
+                break;
+            case 2017 :
+                $poradiTydne = 1;
+                $denVTydnu = static::UTERY;
+                break;
+            case 2018 :
+            case 2019 :
+                $poradiTydne = 3;
+                $denVTydnu = static::UTERY;
+                break;
+            default : // 2020+
+                $poradiTydne = 3;
+                $denVTydnu = static::CTVRTEK;
+        }
+        $zacatekXTydneVKvetnu = self::dejZacatekXTydne($poradiTydne, $zacatekKvetna);
+        $denVTydnuVKvetnu = self::dejDatumDneVTydnuOdData($denVTydnu, $zacatekXTydneVKvetnu);
         [$hodina, $minuta] = str_split((string)$rok, 2); // ciselna hricka, rok 2022 = hodina 20 a minuta 22
 
-        return $ctvrtekVeTretimTydnuVKvetnu->setTime((int)$hodina, (int)$minuta, 0);
+        return $denVTydnuVKvetnu->setTime((int)$hodina, (int)$minuta, 0);
     }
 
     public static function zacatekPrvniVlnyOd(int $rok = ROK): DateTimeGamecon {
