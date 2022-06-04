@@ -1249,7 +1249,7 @@ SQL
         $id = $this->id();
         $idRegex = '(^|,)' . $this->id() . '(,|$)'; // reg. výraz odpovídající id aktivity v seznamu odděleném čárkami
         return dbOneCol('
-      SELECT COUNT(1)
+      SELECT COUNT(*)
       FROM (
         -- vybereme aktivity základního kola, z kterých se dá dostat do této aktivity (viz WHERE)
         SELECT a.id_akce
@@ -1376,7 +1376,7 @@ SQL
             $prihlasovatelna = $this->prihlasovatelna($parametry);
             $this->a['stav'] = $puvodniStav;
             if (!$prihlasovatelna) {
-                throw new \Exception('Aktivita není otevřena pro přihlašování.');
+                throw new \Chyba('Aktivita není otevřena pro přihlašování.');
             }
         }
 
@@ -2502,8 +2502,8 @@ SQL,
      */
     public static function zProgramu($order) {
         return self::zWhere(
-            'WHERE a.rok = $0 AND a.zacatek AND ( a.stav IN($1) OR a.typ = 10 )',
-            [ROK, [Stav::AKTIVOVANA, Stav::PROBEHNUTA, Stav::SYSTEMOVA, Stav::PUBLIKOVANA, Stav::PRIPRAVENA], TypAktivity::TECHNICKA],
+            'WHERE a.rok = $0 AND a.zacatek AND ( a.stav IN($1) OR a.typ = $2)',
+            [ROK, [\Stav::AKTIVOVANA, \Stav::PROBEHNUTA, \Stav::SYSTEMOVA, \Stav::PUBLIKOVANA, \Stav::PRIPRAVENA], TypAktivity::TECHNICKA],
             'ORDER BY DAY(zacatek), ' . dbQi($order) . ', HOUR(zacatek), nazev_akce'
         );
     }
