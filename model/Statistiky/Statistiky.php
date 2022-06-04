@@ -362,7 +362,12 @@ FROM (
             WHEN 2018 THEN 176
             WHEN 2019 THEN 185
             WHEN 2021 THEN 198
-            ELSE SUM(IF(dorazeni AND EXISTS(SELECT * FROM r_uzivatele_zidle WHERE r_uzivatele_zidle.id_uzivatele = podle_roku.id_uzivatele AND r_uzivatele_zidle.id_zidle IN ($0, $1, $2)), 1 , 0)) END
+            WHEN {$this->letosniRok} THEN SUM(IF(dorazeni AND EXISTS(SELECT * FROM r_uzivatele_zidle WHERE r_uzivatele_zidle.id_uzivatele = podle_roku.id_uzivatele AND r_uzivatele_zidle.id_zidle IN ($0, $1, $2)), 1 , 0))
+            ELSE SUM(IF(dorazeni AND EXISTS(
+                SELECT * FROM r_uzivatele_zidle_log AS posazen
+                    LEFT JOIN r_uzivatele_zidle_log AS sesazen ON sesazen.id_zidle = posazen.id_zidle AND sesazen.id_uzivatele =posazen.id_uzivatele AND sesazen.kdy > posazen.kdy AND sesazen.zmena = $4
+                WHERE posazen.zmena = $3 AND sesazen.id_uzivatele IS NULL /* neexistuje novější záznam */ AND posazen.id_uzivatele = podle_roku.id_uzivatele AND posazen.id_zidle IN ($0, $1, $2)
+                ), 1 , 0)) END
         AS `Podpůrný tým`,
         CASE rok
             WHEN 2009 THEN 6
@@ -377,7 +382,12 @@ FROM (
             WHEN 2018 THEN 38
             WHEN 2019 THEN 38
             WHEN 2021 THEN 37
-            ELSE SUM(IF(dorazeni AND EXISTS(SELECT * FROM r_uzivatele_zidle WHERE r_uzivatele_zidle.id_uzivatele = podle_roku.id_uzivatele AND r_uzivatele_zidle.id_zidle = $0), 1 , 0)) END
+            WHEN {$this->letosniRok} THEN SUM(IF(dorazeni AND EXISTS(SELECT * FROM r_uzivatele_zidle WHERE r_uzivatele_zidle.id_uzivatele = podle_roku.id_uzivatele AND r_uzivatele_zidle.id_zidle = $0), 1 , 0))
+            ELSE SUM(IF(dorazeni AND EXISTS(
+                SELECT * FROM r_uzivatele_zidle_log AS posazen
+                    LEFT JOIN r_uzivatele_zidle_log AS sesazen ON sesazen.id_zidle = posazen.id_zidle AND sesazen.id_uzivatele =posazen.id_uzivatele AND sesazen.kdy > posazen.kdy AND sesazen.zmena = $4
+                WHERE posazen.zmena = $3 AND sesazen.id_uzivatele IS NULL /* neexistuje novější záznam */ AND posazen.id_uzivatele = podle_roku.id_uzivatele AND posazen.id_zidle = $0
+            ), 1 , 0)) END
         AS organizátoři,
         CASE rok
             WHEN 2009 THEN 7
@@ -392,7 +402,12 @@ FROM (
             WHEN 2018 THEN ''
             WHEN 2019 THEN ''
             WHEN 2021 THEN 15
-            ELSE SUM(IF(dorazeni AND EXISTS(SELECT * FROM r_uzivatele_zidle WHERE r_uzivatele_zidle.id_uzivatele = podle_roku.id_uzivatele AND r_uzivatele_zidle.id_zidle = $1), 1 , 0)) END
+            WHEN {$this->letosniRok} THEN SUM(IF(dorazeni AND EXISTS(SELECT * FROM r_uzivatele_zidle WHERE r_uzivatele_zidle.id_uzivatele = podle_roku.id_uzivatele AND r_uzivatele_zidle.id_zidle = $1), 1 , 0))
+            ELSE SUM(IF(dorazeni AND EXISTS(
+                SELECT * FROM r_uzivatele_zidle_log AS posazen
+                    LEFT JOIN r_uzivatele_zidle_log AS sesazen ON sesazen.id_zidle = posazen.id_zidle AND sesazen.id_uzivatele =posazen.id_uzivatele AND sesazen.kdy > posazen.kdy AND sesazen.zmena = $4
+                WHERE posazen.zmena = $3 AND sesazen.id_uzivatele IS NULL /* neexistuje novější záznam */ AND posazen.id_uzivatele = podle_roku.id_uzivatele AND posazen.id_zidle = $1
+            ), 1 , 0)) END
         AS zázemí,
         CASE rok
             WHEN 2009 THEN 30
@@ -407,7 +422,12 @@ FROM (
             WHEN 2018 THEN 138
             WHEN 2019 THEN 147
             WHEN 2021 THEN 146
-            ELSE SUM(IF(dorazeni AND EXISTS(SELECT * FROM r_uzivatele_zidle WHERE r_uzivatele_zidle.id_uzivatele = podle_roku.id_uzivatele AND r_uzivatele_zidle.id_zidle = $2), 1 , 0)) END
+            WHEN {$this->letosniRok} THEN SUM(IF(dorazeni AND EXISTS(SELECT * FROM r_uzivatele_zidle WHERE r_uzivatele_zidle.id_uzivatele = podle_roku.id_uzivatele AND r_uzivatele_zidle.id_zidle = $2), 1 , 0))
+            ELSE SUM(IF(dorazeni AND EXISTS(
+                SELECT * FROM r_uzivatele_zidle_log AS posazen
+                    LEFT JOIN r_uzivatele_zidle_log AS sesazen ON sesazen.id_zidle = posazen.id_zidle AND sesazen.id_uzivatele =posazen.id_uzivatele AND sesazen.kdy > posazen.kdy AND sesazen.zmena = $4
+                WHERE posazen.zmena = $3 AND sesazen.id_uzivatele IS NULL /* neexistuje novější záznam */ AND posazen.id_uzivatele = podle_roku.id_uzivatele AND posazen.id_zidle = $2
+            ), 1 , 0)) END
         AS vypravěči
     FROM (
         SELECT
@@ -425,6 +445,8 @@ SQL, [
             Zidle::ORGANIZATOR,
             Zidle::ZAZEMI,
             Zidle::VYPRAVEC,
+            \Uzivatel::POSAZEN,
+            \Uzivatel::SESAZEN,
         ]), 'Registrovaní vs Dorazili');
     }
 
