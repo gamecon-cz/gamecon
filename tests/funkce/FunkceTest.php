@@ -25,4 +25,27 @@ class FunkceTest extends TestCase
         define($nahodnaKonstanta, 'To je ale náhodička!');
         self::assertSame('Jsem s konstantou To je ale náhodička!', nahradPlaceholderZaKonstantu($sKonstantou));
     }
+
+    /**
+     * @test
+     * @dataProvider provideVicerozmernePole
+     * @param $data
+     * @param array $ocekavanyVysledek
+     */
+    public function Muzu_ziskat_jednorozmerne_pole_z_vicerozmerneho($data, array $ocekavanyVysledek) {
+        self::assertSame($ocekavanyVysledek, flatten($data));
+    }
+
+    public function provideVicerozmernePole(): array {
+        return [
+            'prázdné pole' => [[], []],
+            'prázdný ArrayIterator object' => [new \ArrayIterator(), []],
+            'jednorozměrné pole' => [$jenorozmernePole = ['něco', 1, null], $jenorozmernePole],
+            'jednorozměrný ArrayIterator object' => [new \ArrayIterator($jenorozmernePole), $jenorozmernePole],
+            'vícerozměrné pole' => [
+                ['něco', 1, null, ['dále' => [1, $datum = new \DateTime()], 'ještě dále' => [false]]],
+                ['něco', 1, null, 1, $datum, false],
+            ],
+        ];
+    }
 }
