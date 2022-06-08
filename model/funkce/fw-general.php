@@ -218,3 +218,15 @@ function tabMysqlArray($a) {
 function tabMysqlR($a) {
     return tabHtml(tabArrayR(tabMysqlArray($a)));
 }
+
+/**
+ * @param array|Iterator $mutliDimensionalArray
+ * @return array
+ */
+function flatten($mutliDimensionalArray): array {
+    $flattened = [];
+    array_walk_recursive($mutliDimensionalArray, function ($array) use (&$flattened) {
+        $flattened[] = $array;
+    });
+    return $flattened;
+}
