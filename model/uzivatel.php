@@ -446,10 +446,7 @@ SQL,
     }
 
     public function maPravo($pravo) {
-        if (!isset($this->u['prava'])) {
-            $this->nactiPrava();
-        }
-        return in_array($pravo, $this->u['prava']);
+        return in_array($pravo, $this->prava());
     }
 
     /**
@@ -596,6 +593,13 @@ SQL,
                 $prava[] = (int)$r['id_prava'];
             $this->u['prava'] = $prava;
         }
+    }
+
+    public function prava(): array {
+        if (!isset($this->u['prava'])) {
+            $this->nactiPrava();
+        }
+        return $this->u['prava'];
     }
 
     /** Vrátí přezdívku (nickname) uživatele */
@@ -1678,23 +1682,6 @@ SQL,
         return $zakladniAdminUrl;
     }
 
-    public function kdySePrihlasilNaLetosniGc(): ?DateTimeImmutable {
-        if (!$this->gcPrihlasen()) {
-            return null;
-        }
-        if (!$this->kdySeRegistrovalNaLetosniGc) {
-            $hodnota = dbOneCol(<<<SQL
-SELECT posazen FROM r_uzivatele_zidle WHERE id_uzivatele = $0 AND id_zidle = $1
-SQL,
-                [$this->id(), ID_PRAVO_PRIHLASEN]
-            );
-            $this->kdySeRegistrovalNaLetosniGc = $hodnota
-                ? new DateTimeImmutable($hodnota)
-                : null;
-        }
-        return $this->kdySeRegistrovalNaLetosniGc;
-    }
-
     /**
      * Může vrátit i URL na web mimo admin, pokud jediná admin stránka, na kterou má uživatel právo, je nechtěná moje-aktivity.
      * @param string $zakladniAdminUrl
@@ -1715,6 +1702,23 @@ SQL,
     public function mojeAktivityAdminUrl(string $zakladniAdminUrl): string {
         // vrátí "moje-aktivity" - máme to schválně přes cestu ke skriptu, protože jeho název udává výslednou URL a nechceme mít neplatnou URL, kdyby někdo ten skrip přejmenoval.
         return $zakladniAdminUrl . '/' . basename(__DIR__ . '/../admin/scripts/modules/moje-aktivity/moje-aktivity.php', '.php');
+    }
+
+    public function kdySePrihlasilNaLetosniGc(): ?DateTimeImmutable {
+        if (!$this->gcPrihlasen()) {
+            return null;
+        }
+        if (!$this->kdySeRegistrovalNaLetosniGc) {
+            $hodnota = dbOneCol(<<<SQL
+SELECT posazen FROM r_uzivatele_zidle WHERE id_uzivatele = $0 AND id_zidle = $1
+SQL,
+                [$this->id(), ID_PRAVO_PRIHLASEN]
+            );
+            $this->kdySeRegistrovalNaLetosniGc = $hodnota
+                ? new DateTimeImmutable($hodnota)
+                : null;
+        }
+        return $this->kdySeRegistrovalNaLetosniGc;
     }
 }
 

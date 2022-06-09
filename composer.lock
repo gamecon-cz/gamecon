@@ -4,183 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "69ddf25c9cb8b6ad2ff541654dfb1a4c",
+    "content-hash": "f792ceab553efe17558286256b23d751",
     "packages": [
-        {
-            "name": "bacon/bacon-qr-code",
-            "version": "2.0.7",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/Bacon/BaconQrCode.git",
-                "reference": "d70c840f68657ce49094b8d91f9ee0cc07fbf66c"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/Bacon/BaconQrCode/zipball/d70c840f68657ce49094b8d91f9ee0cc07fbf66c",
-                "reference": "d70c840f68657ce49094b8d91f9ee0cc07fbf66c",
-                "shasum": ""
-            },
-            "require": {
-                "dasprid/enum": "^1.0.3",
-                "ext-iconv": "*",
-                "php": "^7.1 || ^8.0"
-            },
-            "require-dev": {
-                "phly/keep-a-changelog": "^2.1",
-                "phpunit/phpunit": "^7 | ^8 | ^9",
-                "spatie/phpunit-snapshot-assertions": "^4.2.9",
-                "squizlabs/php_codesniffer": "^3.4"
-            },
-            "suggest": {
-                "ext-imagick": "to generate QR code images"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "BaconQrCode\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "BSD-2-Clause"
-            ],
-            "authors": [
-                {
-                    "name": "Ben Scholzen 'DASPRiD'",
-                    "email": "mail@dasprids.de",
-                    "homepage": "https://dasprids.de/",
-                    "role": "Developer"
-                }
-            ],
-            "description": "BaconQrCode is a QR code generator for PHP.",
-            "homepage": "https://github.com/Bacon/BaconQrCode",
-            "support": {
-                "issues": "https://github.com/Bacon/BaconQrCode/issues",
-                "source": "https://github.com/Bacon/BaconQrCode/tree/2.0.7"
-            },
-            "time": "2022-03-14T02:02:36+00:00"
-        },
-        {
-            "name": "box/spout",
-            "version": "v3.3.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/box/spout.git",
-                "reference": "9bdb027d312b732515b884a341c0ad70372c6295"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/box/spout/zipball/9bdb027d312b732515b884a341c0ad70372c6295",
-                "reference": "9bdb027d312b732515b884a341c0ad70372c6295",
-                "shasum": ""
-            },
-            "require": {
-                "ext-dom": "*",
-                "ext-xmlreader": "*",
-                "ext-zip": "*",
-                "php": ">=7.2.0"
-            },
-            "require-dev": {
-                "friendsofphp/php-cs-fixer": "^2",
-                "phpunit/phpunit": "^8"
-            },
-            "suggest": {
-                "ext-iconv": "To handle non UTF-8 CSV files (if \"php-intl\" is not already installed or is too limited)",
-                "ext-intl": "To handle non UTF-8 CSV files (if \"iconv\" is not already installed)"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "3.1.x-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Box\\Spout\\": "src/Spout"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "Apache-2.0"
-            ],
-            "authors": [
-                {
-                    "name": "Adrien Loison",
-                    "email": "adrien@box.com"
-                }
-            ],
-            "description": "PHP Library to read and write spreadsheet files (CSV, XLSX and ODS), in a fast and scalable way",
-            "homepage": "https://www.github.com/box/spout",
-            "keywords": [
-                "OOXML",
-                "csv",
-                "excel",
-                "memory",
-                "odf",
-                "ods",
-                "office",
-                "open",
-                "php",
-                "read",
-                "scale",
-                "spreadsheet",
-                "stream",
-                "write",
-                "xlsx"
-            ],
-            "support": {
-                "issues": "https://github.com/box/spout/issues",
-                "source": "https://github.com/box/spout/tree/v3.3.0"
-            },
-            "time": "2021-05-14T21:18:09+00:00"
-        },
-        {
-            "name": "dasprid/enum",
-            "version": "1.0.3",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/DASPRiD/Enum.git",
-                "reference": "5abf82f213618696dda8e3bf6f64dd042d8542b2"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/DASPRiD/Enum/zipball/5abf82f213618696dda8e3bf6f64dd042d8542b2",
-                "reference": "5abf82f213618696dda8e3bf6f64dd042d8542b2",
-                "shasum": ""
-            },
-            "require-dev": {
-                "phpunit/phpunit": "^7 | ^8 | ^9",
-                "squizlabs/php_codesniffer": "^3.4"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "DASPRiD\\Enum\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "BSD-2-Clause"
-            ],
-            "authors": [
-                {
-                    "name": "Ben Scholzen 'DASPRiD'",
-                    "email": "mail@dasprids.de",
-                    "homepage": "https://dasprids.de/",
-                    "role": "Developer"
-                }
-            ],
-            "description": "PHP 7.1 enum implementation",
-            "keywords": [
-                "enum",
-                "map"
-            ],
-            "support": {
-                "issues": "https://github.com/DASPRiD/Enum/issues",
-                "source": "https://github.com/DASPRiD/Enum/tree/1.0.3"
-            },
-            "time": "2020-10-02T16:03:48+00:00"
-        },
         {
             "name": "defuse/php-encryption",
             "version": "v2.3.1",
@@ -289,78 +114,6 @@
                 "source": "https://github.com/dg/MySQL-dump/tree/master"
             },
             "time": "2019-09-10T21:36:25+00:00"
-        },
-        {
-            "name": "endroid/qr-code",
-            "version": "4.3.5",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/endroid/qr-code.git",
-                "reference": "5630e192948b466d418608ecce697465d20260af"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/endroid/qr-code/zipball/5630e192948b466d418608ecce697465d20260af",
-                "reference": "5630e192948b466d418608ecce697465d20260af",
-                "shasum": ""
-            },
-            "require": {
-                "bacon/bacon-qr-code": "^2.0",
-                "php": "^7.3||^8.0"
-            },
-            "require-dev": {
-                "endroid/quality": "dev-master",
-                "ext-gd": "*",
-                "khanamiryan/qrcode-detector-decoder": "^1.0.4",
-                "setasign/fpdf": "^1.8.2"
-            },
-            "suggest": {
-                "ext-gd": "Enables you to write PNG images",
-                "khanamiryan/qrcode-detector-decoder": "Enables you to use the image validator",
-                "roave/security-advisories": "Makes sure package versions with known security issues are not installed",
-                "setasign/fpdf": "Enables you to use the PDF writer"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "4.x-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Endroid\\QrCode\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Jeroen van den Enden",
-                    "email": "info@endroid.nl"
-                }
-            ],
-            "description": "Endroid QR Code",
-            "homepage": "https://github.com/endroid/qr-code",
-            "keywords": [
-                "code",
-                "endroid",
-                "php",
-                "qr",
-                "qrcode"
-            ],
-            "support": {
-                "issues": "https://github.com/endroid/qr-code/issues",
-                "source": "https://github.com/endroid/qr-code/tree/4.3.5"
-            },
-            "funding": [
-                {
-                    "url": "https://github.com/endroid",
-                    "type": "github"
-                }
-            ],
-            "time": "2021-09-17T07:50:43+00:00"
         },
         {
             "name": "firebase/php-jwt",
@@ -865,16 +618,16 @@
         },
         {
             "name": "guzzlehttp/psr7",
-            "version": "2.2.1",
+            "version": "2.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/psr7.git",
-                "reference": "c94a94f120803a18554c1805ef2e539f8285f9a2"
+                "reference": "83260bb50b8fc753c72d14dc1621a2dac31877ee"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/psr7/zipball/c94a94f120803a18554c1805ef2e539f8285f9a2",
-                "reference": "c94a94f120803a18554c1805ef2e539f8285f9a2",
+                "url": "https://api.github.com/repos/guzzle/psr7/zipball/83260bb50b8fc753c72d14dc1621a2dac31877ee",
+                "reference": "83260bb50b8fc753c72d14dc1621a2dac31877ee",
                 "shasum": ""
             },
             "require": {
@@ -898,7 +651,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "2.2-dev"
+                    "dev-master": "2.3-dev"
                 }
             },
             "autoload": {
@@ -960,7 +713,7 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/psr7/issues",
-                "source": "https://github.com/guzzle/psr7/tree/2.2.1"
+                "source": "https://github.com/guzzle/psr7/tree/2.3.0"
             },
             "funding": [
                 {
@@ -976,7 +729,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-03-20T21:55:58+00:00"
+            "time": "2022-06-09T08:26:02+00:00"
         },
         {
             "name": "michelf/php-markdown",
@@ -1033,16 +786,16 @@
         },
         {
             "name": "monolog/monolog",
-            "version": "2.6.0",
+            "version": "2.7.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Seldaek/monolog.git",
-                "reference": "247918972acd74356b0a91dfaa5adcaec069b6c0"
+                "reference": "5579edf28aee1190a798bfa5be8bc16c563bd524"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/247918972acd74356b0a91dfaa5adcaec069b6c0",
-                "reference": "247918972acd74356b0a91dfaa5adcaec069b6c0",
+                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/5579edf28aee1190a798bfa5be8bc16c563bd524",
+                "reference": "5579edf28aee1190a798bfa5be8bc16c563bd524",
                 "shasum": ""
             },
             "require": {
@@ -1121,7 +874,7 @@
             ],
             "support": {
                 "issues": "https://github.com/Seldaek/monolog/issues",
-                "source": "https://github.com/Seldaek/monolog/tree/2.6.0"
+                "source": "https://github.com/Seldaek/monolog/tree/2.7.0"
             },
             "funding": [
                 {
@@ -1133,7 +886,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-05-10T09:36:00+00:00"
+            "time": "2022-06-09T08:59:12+00:00"
         },
         {
             "name": "paragonie/constant_time_encoding",
@@ -1665,215 +1418,6 @@
             "time": "2019-03-08T08:55:37+00:00"
         },
         {
-            "name": "rikudou/czqrpayment",
-            "version": "v5.3.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/RikudouSage/QrPaymentCZ.git",
-                "reference": "9f22c88d73924707a94a51e52febe053125903f2"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/RikudouSage/QrPaymentCZ/zipball/9f22c88d73924707a94a51e52febe053125903f2",
-                "reference": "9f22c88d73924707a94a51e52febe053125903f2",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^7.3 | ^8.0",
-                "rikudou/iban": "^1.1.1",
-                "rikudou/qr-payment-interface": "^1.0",
-                "rikudou/qr-payment-qr-code-provider": "^1.0"
-            },
-            "require-dev": {
-                "endroid/qr-code": "^3.2",
-                "friendsofphp/php-cs-fixer": "^2.18",
-                "php-coveralls/php-coveralls": "^2.1",
-                "phpstan/phpstan": "^0.12.82",
-                "phpunit/phpunit": "^9.5"
-            },
-            "suggest": {
-                "endroid/qr-code": "For getting the qr code image"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Rikudou\\CzQrPayment\\": "src/",
-                    "rikudou\\CzQrPayment\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Dominik Chrástecký",
-                    "email": "dominik@chrastecky.cz"
-                }
-            ],
-            "description": "QR payment library for Czech accounts",
-            "homepage": "https://github.com/RikudouSage/QrPaymentCZ",
-            "keywords": [
-                "payment",
-                "qr"
-            ],
-            "support": {
-                "issues": "https://github.com/RikudouSage/QrPaymentCZ/issues",
-                "source": "https://github.com/RikudouSage/QrPaymentCZ/tree/v5.3.0"
-            },
-            "time": "2022-01-21T09:54:07+00:00"
-        },
-        {
-            "name": "rikudou/iban",
-            "version": "v1.2.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/RikudouSage/IBAN.git",
-                "reference": "769509f60a7b2a881545c8498fac64f6d35f4d87"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/RikudouSage/IBAN/zipball/769509f60a7b2a881545c8498fac64f6d35f4d87",
-                "reference": "769509f60a7b2a881545c8498fac64f6d35f4d87",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^7.3 | ^8.0"
-            },
-            "require-dev": {
-                "friendsofphp/php-cs-fixer": "^2.14",
-                "php-coveralls/php-coveralls": "^2.1",
-                "phpstan/phpstan": "^0.12.63",
-                "phpunit/phpunit": "^9"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Rikudou\\Iban\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "WTFPL"
-            ],
-            "authors": [
-                {
-                    "name": "Dominik Chrástecký",
-                    "email": "dominik@chrastecky.cz"
-                }
-            ],
-            "description": "Library for working with IBANs",
-            "homepage": "https://github.com/RikudouSage/IBAN",
-            "keywords": [
-                "IBAN"
-            ],
-            "support": {
-                "issues": "https://github.com/RikudouSage/IBAN/issues",
-                "source": "https://github.com/RikudouSage/IBAN/tree/v1.2.0"
-            },
-            "funding": [
-                {
-                    "url": "https://ko-fi.com/dominik_ch",
-                    "type": "ko_fi"
-                },
-                {
-                    "url": "https://liberapay.com/dominik_ch",
-                    "type": "liberapay"
-                }
-            ],
-            "time": "2022-04-08T11:22:13+00:00"
-        },
-        {
-            "name": "rikudou/qr-payment-interface",
-            "version": "v1.1.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/RikudouSage/QrPaymentInterface.git",
-                "reference": "752f7a6bf1190c7d65ead90b5989f61927436c89"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/RikudouSage/QrPaymentInterface/zipball/752f7a6bf1190c7d65ead90b5989f61927436c89",
-                "reference": "752f7a6bf1190c7d65ead90b5989f61927436c89",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=7.1",
-                "rikudou/iban": "^1.0"
-            },
-            "require-dev": {
-                "friendsofphp/php-cs-fixer": "^2.16"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Rikudou\\QrPayment\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Dominik Chrástecký",
-                    "email": "dominik@chrastecky.cz"
-                }
-            ],
-            "description": "Common interface for my qr payment libraries",
-            "keywords": [
-                "payment",
-                "qr"
-            ],
-            "support": {
-                "issues": "https://github.com/RikudouSage/QrPaymentInterface/issues",
-                "source": "https://github.com/RikudouSage/QrPaymentInterface/tree/v1.1.0"
-            },
-            "time": "2021-04-27T20:05:08+00:00"
-        },
-        {
-            "name": "rikudou/qr-payment-qr-code-provider",
-            "version": "v1.1.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/RikudouSage/QrPaymentQrCodeProvider.git",
-                "reference": "06e77aca04f3e6bb41da57eb9e880d7ec664cb90"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/RikudouSage/QrPaymentQrCodeProvider/zipball/06e77aca04f3e6bb41da57eb9e880d7ec664cb90",
-                "reference": "06e77aca04f3e6bb41da57eb9e880d7ec664cb90",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=7.3",
-                "rikudou/qr-payment-interface": "^1.0"
-            },
-            "require-dev": {
-                "bacon/bacon-qr-code": "^2.0",
-                "chillerlan/php-qrcode": "^4.3",
-                "endroid/qr-code": "^4.3",
-                "friendsofphp/php-cs-fixer": "^3.1",
-                "phpstan/phpstan": "^0.12.99"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Rikudou\\QrPaymentQrCodeProvider\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "description": "QR code provider for QR payment libraries",
-            "support": {
-                "issues": "https://github.com/RikudouSage/QrPaymentQrCodeProvider/issues",
-                "source": "https://github.com/RikudouSage/QrPaymentQrCodeProvider/tree/v1.1.1"
-            },
-            "time": "2021-09-27T23:12:37+00:00"
-        },
-        {
             "name": "roderik/pwgen-php",
             "version": "0.1.8",
             "source": {
@@ -1977,50 +1521,6 @@
                 "source": "https://github.com/Setasign/tFPDF/tree/master"
             },
             "time": "2020-08-31T07:28:46+00:00"
-        },
-        {
-            "name": "smhg/sepa-qr-data",
-            "version": "v1.2.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/smhg/sepa-qr-data-php.git",
-                "reference": "837d98eae6fdcf61aaffddb5d9c61b535ee7ce1a"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/smhg/sepa-qr-data-php/zipball/837d98eae6fdcf61aaffddb5d9c61b535ee7ce1a",
-                "reference": "837d98eae6fdcf61aaffddb5d9c61b535ee7ce1a",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^7.1||^8"
-            },
-            "require-dev": {
-                "phpmd/phpmd": "^2.8",
-                "phpunit/phpunit": "^7||^9"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "SepaQr\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "smhg",
-                    "email": "sam.hauglustaine@gmail.com"
-                }
-            ],
-            "description": "Generate QR code data for SEPA payments",
-            "support": {
-                "issues": "https://github.com/smhg/sepa-qr-data-php/issues",
-                "source": "https://github.com/smhg/sepa-qr-data-php/tree/v1.2.0"
-            },
-            "time": "2022-02-15T15:55:30+00:00"
         },
         {
             "name": "symfony/deprecation-contracts",
@@ -3564,12 +3064,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "961eba35293ca2e5b37bc281a63836243b35058a"
+                "reference": "eb3f283cd897fee03bd8c3557e03b5928fcbda34"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/961eba35293ca2e5b37bc281a63836243b35058a",
-                "reference": "961eba35293ca2e5b37bc281a63836243b35058a",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/eb3f283cd897fee03bd8c3557e03b5928fcbda34",
+                "reference": "eb3f283cd897fee03bd8c3557e03b5928fcbda34",
                 "shasum": ""
             },
             "conflict": {
@@ -3746,7 +3246,7 @@
                 "laminas/laminas-http": "<2.14.2",
                 "laravel/fortify": "<1.11.1",
                 "laravel/framework": "<6.20.42|>=7,<7.30.6|>=8,<8.75",
-                "laravel/laravel": "<=5.8.38",
+                "laravel/laravel": "<=9.1.8",
                 "laravel/socialite": ">=1,<1.0.99|>=2,<2.0.10",
                 "latte/latte": "<2.10.8",
                 "lavalite/cms": "<=5.8",
@@ -3788,6 +3288,7 @@
                 "nette/application": ">=2,<2.0.19|>=2.1,<2.1.13|>=2.2,<2.2.10|>=2.3,<2.3.14|>=2.4,<2.4.16|>=3,<3.0.6",
                 "nette/nette": ">=2,<2.0.19|>=2.1,<2.1.13",
                 "nilsteampassnet/teampass": "<=2.1.27.36",
+                "noumo/easyii": "<=0.9",
                 "nukeviet/nukeviet": "<4.3.4",
                 "nystudio107/craft-seomatic": "<3.4.12",
                 "nzo/url-encryptor-bundle": ">=4,<4.3.2|>=5,<5.0.1",
@@ -4054,7 +3555,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-06-07T22:04:20+00:00"
+            "time": "2022-06-08T23:04:00+00:00"
         },
         {
             "name": "sebastian/cli-parser",
@@ -5152,9 +4653,7 @@
         "ext-mbstring": "*",
         "ext-mysqli": "*",
         "ext-pdo": "*",
-        "ext-sqlite3": "*",
-        "ext-xmlreader": "*",
-        "ext-zip": "*"
+        "ext-sqlite3": "*"
     },
     "platform-dev": [],
     "plugin-api-version": "2.2.0"

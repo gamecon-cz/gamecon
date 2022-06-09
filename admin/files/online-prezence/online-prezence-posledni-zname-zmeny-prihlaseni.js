@@ -305,7 +305,7 @@
 
       blikni(node, color)
 
-      let pocetDalsichBliknuti = 2
+      let pocetDalsichBliknuti = 4
       const intervalBarvyId = setInterval(function () {
         if (pocetDalsichBliknuti <= 0) {
           clearInterval(intervalBarvyId)
@@ -314,7 +314,7 @@
         }
         blikni(node, color)
         pocetDalsichBliknuti--
-      }, 500)
+      }, 600)
     }
 
     /**
@@ -323,13 +323,13 @@
      */
     function blikni(node, color) {
       vyradZmenuBarvyPriHover(node)
-      zmenBarvuNa(node, color, 0.1)
+      zmenBarvuNa(node, color, 0.2)
 
       const intervalTransparentId = setTimeout(function () {
-        zmenBarvuNa(node, 'transparent', 0.05)
+        zmenBarvuNa(node, 'transparent', 0.1)
         vratZmenuBarvyPriHover(node)
         clearTimeout(intervalTransparentId)
-      }, 100)
+      }, 300)
     }
 
     /**
