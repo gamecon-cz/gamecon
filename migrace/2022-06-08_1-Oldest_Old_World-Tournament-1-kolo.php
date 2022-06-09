@@ -1,4 +1,7 @@
 <?php
+
+use Gamecon\Aktivita\Aktivita;
+
 $oldestOldWorldTournament2022Wrapped = Aktivita::zNazvuARoku('Oldest Old World Tournament - WFB 6.5 edition - 1. kolo', ROK);
 
 if (!$oldestOldWorldTournament2022Wrapped) {
