@@ -29,7 +29,7 @@ $BEZ_DEKORACE = true; // pokud nedoslo k chybě, tak nechceme levé menu, ale po
 
 $onlinePrezenceHtml = new OnlinePrezenceHtml(
     Vyjimkovac::js(URL_WEBU),
-    (int)MOJE_AKTIVITY_NA_POSLEDNI_CHVILI_X_MINUT_PRED_JEJICH_ZACATKEM
+    (int)MOJE_AKTIVITY_PRIHLASENI_NA_POSLEDNI_CHVILI_X_MINUT_PRED_JEJICH_ZACATKEM
 );
 $onlinePrezenceAjax = new OnlinePrezenceAjax(
     $onlinePrezenceHtml,
