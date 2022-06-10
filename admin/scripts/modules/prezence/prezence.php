@@ -78,7 +78,7 @@ foreach ($aktivity as $aktivita) {
     if (!$zamcena) {
         /** @var \Gamecon\Cas\DateTimeCz|null $zacatek */
         $t->assign('cas', $zacatek ? $zacatek->formatDb() : null);
-        $t->parse('prezence.aktivita.onlinePrezence');
+        $t->parse('prezence.aktivita.form.onlinePrezence');
         $t->parse('prezence.aktivita.pozorNezamknuta');
     }
     $t->assign(
