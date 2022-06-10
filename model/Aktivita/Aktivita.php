@@ -1378,7 +1378,7 @@ SQL
             $prihlasovatelna = $this->prihlasovatelna($parametry);
             $this->a['stav'] = $puvodniStav;
             if (!$prihlasovatelna) {
-                throw new \Exception('Aktivita není otevřena pro přihlašování.');
+                throw new \Chyba('Aktivita není otevřena pro přihlašování.');
             }
         }
 
