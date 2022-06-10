@@ -1,0 +1,77 @@
+
+[zadání](https://docs.google.com/document/d/1be-iH5z5Xb_a5mG69Yv_1AzJe82kuwXym_iCpz838jQ
+)
+
+- [ ] Infopult
+  - [ ] Přejmenovat úvod na infopult
+  - [ ] Tlačítka
+    - [ ] tlačítko Přihlásit na GC
+    - [ ] tlačítko Přijel na GC
+      - [ ] *(optional)* Kontrola povinných polí
+    - [ ] tlačítko Vydat balíček
+    - [ ] tlačítko Odhlásit z GC/Odjel z GC
+
+    - [ ] *(optional)* Reversovatelné akce z židle "finance"
+    - [ ] Řešení komunikace aktuálního stavu a stavů tlačítek s uživatelem *(klikatelné, kliknuté, nekliklatelné)*
+  - [ ] /Infopult default pro “Infopult” židli
+  - [ ] Karta přehled
+    - [ ] úpravy pole
+      - [ ] Stav účtu červeně záporná hodnota
+      - [ ] Poznámka - bude editovatelné
+      - [ ] Covid test - manuálním ověření odkliknutím
+      - [ ] Potvrzení
+        - [ ] přejmenovat na Souhlas rodičů
+        - [ ] skrýt pro 15+ návštěvníky
+        - [ ] manuální odkliknutí
+    - [ ] odebrat pole
+      - Status
+      - ID uživatele
+      - Dorazil (přesune se nahoru mezi tlačítka)
+      - Pokoj (přesunout do nového přehledu ubytování viz dále)
+      - Na pokoji (přesunout do nového přehledu ubytování viz dále)
+      - Ubytování (přesunout do nového přehledu ubytování viz dále)
+    - [ ] Nové pole
+      - [ ] Kontakt = telefonní číslo
+        - [ ] formát s mezerami "000 000 000"
+      - [ ] Chybí osobní údaje (pokud) - domplnit -> proklik na uživatel
+    - [ ] pořadí polí 
+      - Stav účtu
+      - Poznámka
+      - Souhlas rodičů
+      - Chybí osobní údaje
+      - Covid-19
+      - Kontakt
+    - [ ] zvýraznění políček které vyžadují pozornost
+    - [ ] Vytvořit tlačítka Program a Program účastníka
+      - [ ] místo odkazů Program účastníka a Filtrovaný program udělat tlačítka (klidně vizuálně podobná těm čtyřem nahoře), cílem je, aby to bylo na první pohled viditelnější
+      - [ ] přejmenovat “Program účastníka” na “Program”
+      - [ ] přejmenovat “Filtrovaný program” na “Program účastníka”
+      - [ ] přejmenovat i po rozkliknutí daného odkazu nahoře vlevo na stránce /program-osobni a /program-uzivatele, pokud se to nepřejmenuje automaticky
+  - [ ] karta ubytování
+    - [ ] Pŕesunout pole
+      - [ ] Pokoj
+      - [ ] Na pokoji
+      - [ ] Ubytování
+    - [ ]
+    - [ ] rozmístění
+  - [ ] karta objednávky předmětů
+    - [ ] Přehled objednaných předmětů
+      - **Návrh řešení:**
+        - Aktuální přehled “Objednávky a platby”, který se zobrazuje na záložce “Úvod” se celý tak jako je včetně objednávek předmětů, přesune na novou záložku “Uživatel” viz níže.
+        - Na záložce “Úvod” by z něj měl zůstat jen přehled objednaných předmětů a jejich počet. 
+        - Tj. z přehledu vyřadit: aktivity, strava, ubytování, dobrovolné vstupné, platby.
+        - Nezobrazovat ceny, ale pouze počet.
+        - Tj. zobrazit: kostky, trička, placky, veškerý další merch
+  - [ ] Prodej předmětů
+    - *Zatím jen tlačítko po dodělání ostatních změn udělat podle zadání*
+
+- [ ] Finance
+**DOPLNIT ZBYTEK PODLE ZADÁNÍ**
+
+
+![](./doc-image/Infopult-stranka.png)
+
+
+
+- [ ] smazat doc-image
+- [ ] smazat tohle TODO
