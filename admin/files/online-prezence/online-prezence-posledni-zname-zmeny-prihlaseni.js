@@ -236,6 +236,7 @@
       /** viz \Gamecon\Aktivita\ZmenaStavuPrihlaseni::stavPrihlaseniProJs */
       switch (stavPrihlaseni) {
         case 'ucastnik_se_odhlasil' :
+        case 'ucastnik_nedorazil' :
         case 'sledujici_se_odhlasil' :
         case 'nahradnik_nedorazil' :
           return false
