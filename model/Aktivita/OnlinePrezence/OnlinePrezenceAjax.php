@@ -124,6 +124,15 @@ class OnlinePrezenceAjax
         $nejnovejsiZmenyStavuPrihlaseni = AktivitaPrezence::dejPosledniZmeny($idsPoslednichLoguUcastniku);
         foreach ($nejnovejsiZmenyStavuPrihlaseni->zmenyStavuPrihlaseni() as $zmenaStavuPrihlaseni) {
             $aktivita = Aktivita::zId($zmenaStavuPrihlaseni->idAktivity());
+            if (!$aktivita) { // Stává se na betě, když se natvrdo odebírají aktivity
+                if (!defined('TESTING') || !TESTING) {
+                    trigger_error(
+                        "Nelze načíst aktivitu s ID {$zmenaStavuPrihlaseni->idAktivity()}: " . var_export($zmenaStavuPrihlaseni, true),
+                        E_USER_WARNING
+                    );
+                }
+                continue;
+            }
             $zmenyProJson[] = [
                 self::ID_AKTIVITY => $zmenaStavuPrihlaseni->idAktivity(),
                 self::ID_UZIVATELE => $zmenaStavuPrihlaseni->idUzivatele(),
