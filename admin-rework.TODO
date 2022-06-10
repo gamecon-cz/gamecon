@@ -2,6 +2,14 @@
 [zadání](https://docs.google.com/document/d/1be-iH5z5Xb_a5mG69Yv_1AzJe82kuwXym_iCpz838jQ
 )
 
+# Infopult
+
+
+
+![](./doc-image/Infopult-stranka.png)
+
+
+
 - [ ] Infopult
   - [ ] Přejmenovat úvod na infopult
   - [ ] Tlačítka
@@ -65,13 +73,60 @@
   - [ ] Prodej předmětů
     - *Zatím jen tlačítko po dodělání ostatních změn udělat podle zadání*
 
+# Finance
+
 - [ ] Finance
-**DOPLNIT ZBYTEK PODLE ZADÁNÍ**
+  - [ ] Přesunout Importér ubytování ze záložky /ubytování do záložky /finance
+
+# Uživatel
 
 
-![](./doc-image/Infopult-stranka.png)
+
+![](./doc-image/uzivatel-stranka-1.png)
+![](./doc-image/uzivatel-stranka-2.png)
 
 
+
+- [ ] Uživatel
+  - [ ] Přejmenovat ubytování na uživatel
+  - [ ] /uzivatel default pro org.. židli
+  - [ ] Přesun karty z úvod do uživatel
+    - [ ] Osobní údaje
+      - [ ] smazat Poznámka, Potvrzení, Covid-19
+    - [ ] Slevy
+    - [ ] Objednávky a platby
+  - [ ] Přidat tlačítka Program a Program účastníka (podle infopult)
+  - [ ] Jídlo uživatele + Ubytování
+    - [ ] NEZOBRAZOVAT doprovodný text o tom, že ubytování kromě neděle může zrušit jen šéf Infa
+  - [ ] Prodej předmětů (stejně jako infopult)
+
+
+
+
+
+# Prodej předmětů
+
+
+
+![](./doc-image/prodej-modal-1.png)
+![](./doc-image/prodej-modal-2.png)
+
+
+
+- [ ] Prodej předmětů
+  - [ ] modal s tlačítky
+    - zobrazit/skrýt modal s Tlačítky
+    - [ ] proklik zkrze více menu
+  - [ ] Druhá obrazovka se seznamen přidaných položek
+    - [ ] storno
+    - [ ] potvrdit
+    - [ ] změna počtu předmětů
+    - [ ] odebrání předmětů
+  - [ ] Uložení rozložení obchodu do db
+  - [ ] Možnost Editace organizátorem co na co proklikává
+  - [ ] Doladit rozhraní (hover zvýraznění, zašednutí prodaných, přidat confirmace kde by měli být, když kliknu - na předmětu kterej má 1 tak naběhne 0 a spadne dolů zašedlej kdybych náhodou překlepl)
+
+Nebude součástí tohoto PR: Možnost rušení objednávek
 
 - [ ] smazat doc-image
 - [ ] smazat tohle TODO
