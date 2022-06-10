@@ -7,9 +7,15 @@ use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml;
 use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax;
 use Gamecon\Vyjimkovac\Vyjimkovac;
+use Gamecon\Pravo;
 
 /** @var Uzivatel $u */
 /** @var Uzivatel|null $uPracovni */
+
+if (!$u || !$u->maPravo(Pravo::ADMINISTRACE_PREZENCE)) {
+    back(URL_WEBU);
+    exit;
+}
 
 $onlinePrezenceHtml = new OnlinePrezenceHtml(
     Vyjimkovac::js(URL_WEBU),
