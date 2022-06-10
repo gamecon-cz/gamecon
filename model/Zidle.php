@@ -26,9 +26,9 @@ class Zidle extends \DbObject
     public const NEODHLASOVAT = 23;
     public const HERMAN = 24;
 
-    public const PRIHLASEN_NA_LETOSNI_GC = (int)ZIDLE_PRIHLASEN;
-    public const PRITOMEN_NA_LETOSNIM_GC = (int)ZIDLE_PRITOMEN;
-    public const ODJEL_Z_LETOSNIHO_GC = (int)ZIDLE_ODJEL;
+    public const PRIHLASEN_NA_LETOSNI_GC = ZIDLE_PRIHLASEN;
+    public const PRITOMEN_NA_LETOSNIM_GC = ZIDLE_PRITOMEN;
+    public const ODJEL_Z_LETOSNIHO_GC = ZIDLE_ODJEL;
 
     /**
      * Přihlásil se, neboli registroval, na GameCon
