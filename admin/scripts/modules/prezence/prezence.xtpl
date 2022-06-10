@@ -97,6 +97,14 @@
           <td colspan="5"><input type="submit" value="uložit"></td>
         </tr>
         <!-- end:submit -->
+        <!-- begin:onlinePrezence -->
+        <tr>
+          <td colspan="100%" style="padding: 0">
+            <a href="online-prezence?cas={cas}" type="button" id="otevritOnlinePrezenci" style="display: block; margin: 0"
+               class="ui-button">Vyplnit prezenci ✅</a>
+          </td>
+        </tr>
+        <!-- end:onlinePrezence -->
       </table>
     </form>
     <!-- end:form -->
@@ -104,12 +112,6 @@
     <!-- begin:vyplnena -->
     <div class="success">Uloženo OK s účastí {a.obsazenostHtml}</div>
     <!-- end:vyplnena -->
-
-    <!-- begin:onlinePrezence -->
-    <a href="online-prezence?cas={cas}" type="button" id="otevritOnlinePrezenci" style="padding: 0.3em"
-       class="ui-button">
-      🔒 Zamknout pro online registraci a vyplnit prezenci ✅</a>
-    <!-- end:onlinePrezence -->
 
     <!-- begin:pozorNezamknuta -->
     <div class="error">Pozor, aktivita není zamknutá pro online registraci a nemá uzavřenou prezenci!</div>
