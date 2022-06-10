@@ -32,7 +32,7 @@ const initializeOmnibox = function ($) {
   // Našeptávátko pro omnibox
   $omnibox.autocomplete({
     source: getSourceUrl,
-    minLength: $vyberUzivatele.data('omnibox-min-length') ?? 2,
+    minLength: $omnibox.data('omnibox-min-length') ?? 2,
     autoFocus: true, // automatický výběr první hodnoty, aby uživatel mohl zmáčknout rovnou enter
     focus: function (event, ui) {
       event.preventDefault() // neměnit text inputu při výběru
@@ -40,20 +40,19 @@ const initializeOmnibox = function ($) {
     select: function (event, ui) {
       // automatické odeslání, pokud je nastaveno
       $this = $(this)
-      if ($this.hasClass('autosubmit')) {
-        const $form = $this.closest('form')
+      if ($this.hasClass('autosubmit') && $this.parent().is('form')) {
         $this.val(ui.item.value) // nutno nastavit před submitem
-        $form.submit()
+        $this.parent().submit()
       }
     },
   })
 
   // Klávesové zkratky
   $(document).on('keydown', null, 'alt+u', function () {
-    $('#omniboxUzivateleProPraci').focus()
+    $('#omnibox').focus()
     return false
   }).on('keydown', null, 'alt+z', function () {
-    $('#zrusitUzivateleProPraci').submit()
+    $('#zrusit').submit()
     return false
   })
 };
