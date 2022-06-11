@@ -12,6 +12,7 @@ class Stav extends DbObject
     public const SYSTEMOVA = 3; // deprecated
     public const PUBLIKOVANA = 4; // viditelná, nepřihlašovatelá
     public const PRIPRAVENA = 5;
+    public const UZAVRENA = 6;
 
     public static function jeZnamy(int $stav): bool {
         return in_array($stav, self::vsechnyStavy(), true);

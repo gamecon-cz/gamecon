@@ -5,6 +5,7 @@ namespace Gamecon\Aktivita;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImportSqlColumn;
 use Gamecon\PrednacitaniTrait;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Component\Filesystem\Filesystem;
 
 require_once __DIR__ . '/../../admin/scripts/modules/aktivity/_editor-tagu.php';
@@ -27,6 +28,7 @@ class Aktivita
         $nova,      // jestli jde o nově uloženou aktivitu nebo načtenou z DB
         $organizatori,
         $sledujici,
+        $uzavrenaOd,
         $typ;
     /** @var null|AktivitaPrezence */
     private $prezence;
@@ -53,7 +55,7 @@ class Aktivita
         PLUSMINUS = 0b00000000001,   // plus/mínus zkratky pro měnění míst v team. aktivitě
         PLUSMINUS_KAZDY = 0b00000000010,   // plus/mínus zkratky pro každého
         STAV = 0b00000000100,   // ignorování stavu
-        ZAMEK = 0b00000001000,   // ignorování zamčení
+        ZAMEK = 0b00000001000,   // ignorování zamčení pro tým
         BEZ_POKUT = 0b00000010000,   // odhlášení bez pokut
         ZPETNE = 0b00000100000,   // možnost zpětně měnit přihlášení
         TECHNICKE = 0b00001000000,   // přihlašovat i skryté technické aktivity
@@ -1106,7 +1108,10 @@ class Aktivita
      * @return array|int[]
      */
     public function dejOrganizatoriIds(): array {
-        return dbOneArray('SELECT id_uzivatele FROM akce_organizatori WHERE id_akce = $1', [$this->id()]);
+        return array_map(
+            'intval',
+            dbOneArray('SELECT id_uzivatele FROM akce_organizatori WHERE id_akce = $1', [$this->id()])
+        );
     }
 
     /**
@@ -1293,7 +1298,7 @@ SQL
             return;
         }
 
-        $this->zkontrolujZdaSeMuzePrihlasit($uzivatel, $ignorovat);
+        $this->zkontrolujZdaSeMuzePrihlasit($uzivatel, $uzivatel, $ignorovat);
 
         // odhlášení náhradnictví v kolidujících aktivitách
         $this->odhlasZeSledovaniAktivitVeStejnemCase($uzivatel);
@@ -1323,6 +1328,7 @@ SQL
 
     public function zkontrolujZdaSeMuzePrihlasit(
         \Uzivatel $uzivatel,
+        \Uzivatel $prihlasujici,
                   $parametry = 0,
         bool      $jenPritomen = false,
         bool      $hlaskyVeTretiOsobe = false
@@ -1367,16 +1373,19 @@ SQL
 
         // potlačitelné kontroly
         if ($this->a['zamcel'] && !($parametry & self::ZAMEK)) {
-            throw new \Chyba(hlaska('zamcena'));
+            throw new \Chyba(hlaska('zamcena')); // zamčena pro tým, nikoli zamčena / uzavřena
         }
-        if (!$this->prihlasovatelna($parametry)) {
-            // hack na ignorování stavu
-            $puvodniStav = $this->a['stav'];
+        if ($this->uzavrena() && $this->maOrganizatora($prihlasujici) && $this->ucastEditovatelna()) {
+            $parametry |= self::ZPETNE; // přestože je zamčená, stále ji ještě lze editovat
+        }
+        if (!($prihlasovatelna = $this->prihlasovatelna($parametry))) {
             if ($parametry & self::STAV) {
+                // hack na ignorování stavu
+                $puvodniStav = $this->a['stav'];
                 $this->a['stav'] = \Stav::AKTIVOVANA; // nastavíme stav jako by bylo vše ok
+                $prihlasovatelna = $this->prihlasovatelna($parametry);
+                $this->a['stav'] = $puvodniStav;
             }
-            $prihlasovatelna = $this->prihlasovatelna($parametry);
-            $this->a['stav'] = $puvodniStav;
             if (!$prihlasovatelna) {
                 throw new \Chyba('Aktivita není otevřena pro přihlašování.');
             }
@@ -1403,6 +1412,15 @@ SQL
                     throw new \Exception('Nepodařilo se určit výběr dalšího kola.');
                 }
             }
+        }
+    }
+
+    public function zkontrolujZdaSeMuzeOdhlasit(\Uzivatel $ucastnik, \Uzivatel $odhlasujici, SystemoveNastaveni $systemoveNastaveni = null) {
+        if ($this->prihlasen($ucastnik)
+            && $this->uzavrena()
+            && (!$this->maOrganizatora($odhlasujici) || !$this->ucastEditovatelna($systemoveNastaveni))
+        ) {
+            throw new \Chyba('Aktivita už je uzavřena a nelze z ní odhlašovat.');
         }
     }
 
@@ -2286,6 +2304,46 @@ SQL
         return $this->a['stav'] == \Stav::PROBEHNUTA;
     }
 
+    public function uzavrenaOd(): ?\DateTimeImmutable {
+        if (!$this->uzavrena()) {
+            return null;
+        }
+        if (!$this->uzavrenaOd) {
+            $posledniZmenaAPosledniStav = $this->posledniZmenaAPosledniStav();
+            if (!$posledniZmenaAPosledniStav) {
+                return null;
+            }
+            ['id_stav' => $stavId, 'kdy' => $kdy] = $posledniZmenaAPosledniStav;
+            if ($stavId != \Stav::UZAVRENA) {
+                return null;
+            }
+            $this->uzavrenaOd = \DateTimeImmutable::createFromFormat(DateTimeCz::FORMAT_DB, $kdy);
+        }
+        return $this->uzavrenaOd;
+    }
+
+    private function posledniZmenaAPosledniStav(): array {
+        return dbOneLine(<<<SQL
+SELECT akce_stavy_log.id_stav, akce_stavy_log.kdy FROM akce_stavy_log
+JOIN akce_seznam ON akce_stavy_log.id_akce = akce_seznam.id_akce
+JOIN akce_stav ON akce_stavy_log.id_stav = akce_stav.id_stav
+WHERE akce_stavy_log.id_akce = {$this->id()}
+ORDER BY akce_stavy_log.akce_stavy_log_id DESC -- autoincrement, takže nejnovější má největší ID
+LIMIT 1
+SQL
+        ) ?: [];
+    }
+
+    public function ucastEditovatelna(SystemoveNastaveni $systemoveNastaveni = null): bool {
+        $uzavrenaOd = $this->uzavrenaOd();
+        if (!$uzavrenaOd) {
+            return true;
+        }
+        $systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobalnich();
+        $editovatelnaDo = $uzavrenaOd->modify("+ {$systemoveNastaveni->aktivitaEditovatelnaXMinutPoJejimUzavreni()} minutes");
+        return $editovatelnaDo >= $systemoveNastaveni->ted();
+    }
+
     /** Je aktivita už proběhlá resp. už uzavřená pro změny? */
     public function uzavrena(): bool {
         return (bool)$this->a['uzavrena'];
@@ -2297,6 +2355,7 @@ SQL
         $this->a['stav'] = \Stav::PROBEHNUTA;
         $this->stav = \Stav::PROBEHNUTA;
         /** @see Aktivita::stav kde se změní číslo na instanci \Stav */
+        dbQuery('INSERT INTO akce_stavy_log(id_akce, id_stav, kdy) VALUES ($0, $1, NOW())', [$this->id(), \Stav::PROBEHNUTA]);
     }
 
     /** Označí aktivitu jako uzavřenou, s vyplněnou prezencí */
@@ -2305,6 +2364,7 @@ SQL
             throw new \LogicException("Aktivita {$this->id()} ještě není proběhnutá, nelze ji proto zavřít");
         }
         dbQuery('UPDATE akce_seznam SET uzavrena = 1 WHERE id_akce = ' . $this->id());
+        dbQuery('INSERT INTO akce_stavy_log(id_akce, id_stav, kdy) VALUES ($0, $1, NOW())', [$this->id(), \Stav::UZAVRENA]);
     }
 
     /**
@@ -2497,6 +2557,10 @@ SQL,
     public static function zOrganizatora(\Uzivatel $u) {
         // join hack na akt. uživatele
         return self::zWhere('JOIN akce_organizatori ao ON (ao.id_akce = a.id_akce AND ao.id_uzivatele = ' . $u->id() . ') WHERE a.rok = ' . ROK);
+    }
+
+    public function maOrganizatora(\Uzivatel $organizator): bool {
+        return in_array($organizator->id(), $this->dejOrganizatoriIds());
     }
 
     /**

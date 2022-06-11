@@ -8,6 +8,11 @@ use Gamecon\Cas\DateTimeGamecon;
 class SystemoveNastaveni
 {
 
+    public const SKUPINA_NEPLATIC = 'neplatič';
+    public const SKUPINA_FINANCE = 'finance';
+    public const SKUPINA_CAS = 'čas';
+
+    /**
     public static function vytvorZGlobalnich(): self {
         return new static(
             ROK,
@@ -301,6 +306,18 @@ SQL;
 
     public function jsmeNaBete(): bool {
         return $this->jsmeNaBete;
+    }
+
+    public function aktivitaEditovatelnaXMinutPredJejimZacatkem(): int {
+        return (int)AKTIVITA_EDITOVATELNA_X_MINUT_PRED_JEJIM_ZACATKEM;
+    }
+
+    public function aktivitaEditovatelnaXMinutPoJejimUzavreni(): int {
+        return (int)AKTIVITA_EDITOVATELNA_X_MINUT_PO_JEJIM_UZAVRENI;
+    }
+
+    public function prihlaseniNaPosledniChviliXMinutPredZacatkemAktivity(): int {
+        return (int)PRIHLASENI_NA_POSLEDNI_CHVILI_X_MINUT_PRED_ZACATKEM_AKTIVITY;
     }
 
 }

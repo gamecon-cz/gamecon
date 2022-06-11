@@ -4,6 +4,7 @@ use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml;
 use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax;
 use Gamecon\Vyjimkovac\Vyjimkovac;
+use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * Online formulář na zadávání příchozích a nedorazivších na aktivity
@@ -27,13 +28,13 @@ if ($problem) {
 global $BEZ_DEKORACE;
 $BEZ_DEKORACE = true; // pokud nedoslo k chybě, tak nechceme levé menu, ale pouze nový čistý layout pro prezenci, viz admin/index.php
 
-$onlinePrezenceHtml = new OnlinePrezenceHtml(
-    Vyjimkovac::js(URL_WEBU),
-    (int)MOJE_AKTIVITY_PRIHLASENI_NA_POSLEDNI_CHVILI_X_MINUT_PRED_JEJICH_ZACATKEM
-);
+$systemoveNastaveni = \Gamecon\SystemoveNastaveni\SystemoveNastaveni::vytvorZGlobalnich();
+$filesystem = new Filesystem();
+$onlinePrezenceHtml = new OnlinePrezenceHtml(Vyjimkovac::js(URL_WEBU), $systemoveNastaveni, $filesystem);
 $onlinePrezenceAjax = new OnlinePrezenceAjax(
     $onlinePrezenceHtml,
-    new \Symfony\Component\Filesystem\Filesystem(),
+    $filesystem,
+    $systemoveNastaveni,
     false
 );
 

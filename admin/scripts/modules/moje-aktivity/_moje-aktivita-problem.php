@@ -23,7 +23,7 @@ if (!$aktivita) {
     $sablonaKProblemu->assign('aktivita', $aktivita);
     $sablonaKProblemu->assign('konecPred', $aktivita->konec()->relativni());
     $sablonaKProblemu->parse('problem.probehla');
-} elseif (!in_array($u->id(), $aktivita->dejOrganizatoriIds(), false) && !$testujeme) {
+} elseif (!$aktivita->maOrganizatora($u) && !$testujeme) {
     $problem = true;
     $sablonaKProblemu->assign('aktivita', $aktivita);
     $sablonaKProblemu->parse('problem.cizi');
