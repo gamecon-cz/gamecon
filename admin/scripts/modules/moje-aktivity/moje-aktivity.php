@@ -1,10 +1,10 @@
 <?php
 
-use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml;
 use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax;
 use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceTestovaciAktivity;
 use Gamecon\Vyjimkovac\Vyjimkovac;
+use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * Úvodní karta organizátora s přehledem jeho aktivit
@@ -29,15 +29,19 @@ if (get('id')) {
 global $BEZ_DEKORACE;
 $BEZ_DEKORACE = true; // pokud nedoslo k chybě, tak nechceme levé menu, ale pouze nový čistý layout pro prezenci, viz admin/index.php
 
+$systemoveNastaveni = \Gamecon\SystemoveNastaveni\SystemoveNastaveni::vytvorZGlobalnich();
+$filesystem = new Filesystem();
 $onlinePrezenceHtml = new OnlinePrezenceHtml(
     Vyjimkovac::js(URL_WEBU),
-    (int)MOJE_AKTIVITY_PRIHLASENI_NA_POSLEDNI_CHVILI_X_MINUT_PRED_JEJICH_ZACATKEM,
+    $systemoveNastaveni,
+    $filesystem,
     $muzemeTestovat,
     $testujeme
 );
 $onlinePrezenceAjax = new OnlinePrezenceAjax(
     $onlinePrezenceHtml,
-    new \Symfony\Component\Filesystem\Filesystem(),
+    $filesystem,
+    $systemoveNastaveni,
     $testujeme
 );
 
@@ -45,19 +49,19 @@ if ($onlinePrezenceAjax->odbavAjax($u)) {
     return;
 }
 
-$now = new DateTimeImmutable();
+$ted = $systemoveNastaveni->ted();
 
 if ($testujeme) {
     $onlinePrezenceTestovaciAktivity = OnlinePrezenceTestovaciAktivity::vytvor();
     $organizovaneAktivity = $onlinePrezenceTestovaciAktivity->dejTestovaciAktivity();
-    $onlinePrezenceTestovaciAktivity->upravZacatkyAktivitNaParSekundPredEditovatelnosti($organizovaneAktivity, $now, 20);
-    $onlinePrezenceTestovaciAktivity->upravKonceAktivitNa($organizovaneAktivity, (clone $now)->modify('+1 hour'));
+    $onlinePrezenceTestovaciAktivity->upravZacatkyAktivitNaParSekundPredEditovatelnosti($organizovaneAktivity, $ted, 20);
+    $onlinePrezenceTestovaciAktivity->upravKonceAktivitNa($organizovaneAktivity, (clone $ted)->modify('+1 hour'));
     if (count($organizovaneAktivity) > 2) {
         $prvniDveAktivity = array_slice($organizovaneAktivity, 0, 2);
         // aby první dvě aktivity začínaly teď a neměli proto odpočet
-        $onlinePrezenceTestovaciAktivity->upravZacatkyAktivitNa($prvniDveAktivity, $now);
+        $onlinePrezenceTestovaciAktivity->upravZacatkyAktivitNa($prvniDveAktivity, $ted);
         // aby už skončily a zobrazilo se tak u nich varování
-        $onlinePrezenceTestovaciAktivity->upravKonceAktivitNa($prvniDveAktivity, $now);
+//        $onlinePrezenceTestovaciAktivity->upravKonceAktivitNa($prvniDveAktivity, $ted);
     }
     if (count($organizovaneAktivity) > 3) {
         // aby jedna aktivita po chvíli skončila a zobrazila tak varování
@@ -71,6 +75,5 @@ if ($testujeme) {
 echo $onlinePrezenceHtml->dejHtmlOnlinePrezence(
     $u,
     $organizovaneAktivity,
-    (int)MOJE_AKTIVITY_EDITOVATELNE_X_MINUT_PRED_JEJICH_ZACATKEM,
-    $now,
+    $systemoveNastaveni
 );

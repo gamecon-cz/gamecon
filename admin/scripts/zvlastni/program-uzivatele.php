@@ -19,13 +19,13 @@ $program = new Program($uPracovni, [
     'osobni' => $osobniProgram,
     'teamVyber' => true,
     'technicke' => true,
-    'zpetne' => $u->maPravo(\Gamecon\Pravo::ZMENA_HISTORIE_AKTIVIT),
+    'zpetne' => $u->maPravoNaZmenuHistorieAktivit(),
 ]);
 
 if ($uPracovni) {
     Aktivita::prihlasovatkoZpracuj(
         $uPracovni,
-        Aktivita::PLUSMINUS_KAZDY | ($u->maPravo(\Gamecon\Pravo::ZMENA_HISTORIE_AKTIVIT) ? Aktivita::ZPETNE : 0) | Aktivita::TECHNICKE
+        Aktivita::PLUSMINUS_KAZDY | ($u->maPravoNaZmenuHistorieAktivit() ? Aktivita::ZPETNE : 0) | Aktivita::TECHNICKE
     );
     Aktivita::vyberTeamuZpracuj($uPracovni);
 }

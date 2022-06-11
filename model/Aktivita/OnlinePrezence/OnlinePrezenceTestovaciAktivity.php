@@ -64,7 +64,7 @@ class OnlinePrezenceTestovaciAktivity
         int                $rozptylSekund = 10
     ) {
         array_walk($aktivity, function (Aktivita $aktivita) use ($now, $rozptylSekund) {
-            $sekundyPredZacatkemKdyUzJeEditovatelna = MOJE_AKTIVITY_EDITOVATELNE_X_MINUT_PRED_JEJICH_ZACATKEM * 60;
+            $sekundyPredZacatkemKdyUzJeEditovatelna = AKTIVITA_EDITOVATELNA_X_MINUT_PRED_JEJIM_ZACATKEM * 60;
             $sekundyKousekPredTimNezJeEditovatelna = $sekundyPredZacatkemKdyUzJeEditovatelna + random_int(0, $rozptylSekund);
             $this->upravZacatkyAktivitNa([$aktivita], (clone $now)->modify("+ $sekundyKousekPredTimNezJeEditovatelna seconds"));
         });
@@ -112,7 +112,7 @@ class OnlinePrezenceTestovaciAktivity
         $this->upravKonceAktivitNa(
             [$aktivita],
             (clone $aktivita->zacatek())
-                ->modify('-' . MOJE_AKTIVITY_EDITOVATELNE_X_MINUT_PRED_JEJICH_ZACATKEM . ' minutes')
+                ->modify('-' . AKTIVITA_EDITOVATELNA_X_MINUT_PRED_JEJIM_ZACATKEM . ' minutes')
                 ->modify("+$sekundPoOdemceni seconds")
         );
 

@@ -69,8 +69,8 @@ foreach ($aktivity as $aktivita) {
     if ($vyplnena) {
         $t->parse('prezence.aktivita.vyplnena');
     }
-    if ($zamcena && (!$vyplnena || $u->maPravo(\Gamecon\Pravo::ZMENA_HISTORIE_AKTIVIT))) {
-        if ($vyplnena && $u->maPravo(\Gamecon\Pravo::ZMENA_HISTORIE_AKTIVIT)) {
+    if ($zamcena && (!$vyplnena || $u->maPravoNaZmenuHistorieAktivit())) {
+        if ($vyplnena && $u->maPravoNaZmenuHistorieAktivit()) {
             $t->parse('prezence.aktivita.form.submit.pozorVyplnena');
         }
         $t->parse('prezence.aktivita.form.submit');

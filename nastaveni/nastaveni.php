@@ -260,6 +260,7 @@ define('SUPERADMINI', [1682 /* Štěpán "Bonjour" Štefaník */, 4032 /* Jarosl
 @define('CACHE', __DIR__ . '/../cache/public');
 @define('SQL_MIGRACE_DIR', __DIR__ . '/../migrace');
 @define('ZALOHA_DB_SLOZKA', __DIR__ . '/../backup/db'); // cesta pro zálohy databáze
+@define('ADMIN_STAMPS', rtrim(ADMIN, '/') . '/stamps');
 
 @define('AUTOMATICKE_MIGRACE', false);
 @define('AUTOMATICKA_TVORBA_DB', false);

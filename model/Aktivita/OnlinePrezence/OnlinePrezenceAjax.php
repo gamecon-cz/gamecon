@@ -4,12 +4,10 @@ namespace Gamecon\Aktivita\OnlinePrezence;
 
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\AktivitaPrezence;
-use Gamecon\Aktivita\PosledniZmenyStavuPrihlaseni;
 use Gamecon\Aktivita\RazitkoPosledniZmenyPrihlaseni;
 use Gamecon\Aktivita\StavPrihlaseni;
-use Gamecon\Aktivita\ZmenaStavuPrihlaseni;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Component\Filesystem\Filesystem;
-use function PHPUnit\Framework\returnArgument;
 
 class OnlinePrezenceAjax
 {
@@ -47,6 +45,10 @@ class OnlinePrezenceAjax
      */
     private $filesystem;
     /**
+     * @var SystemoveNastaveni
+     */
+    private $systemoveNastaveni;
+    /**
      * @var bool
      */
     private $testujeme;
@@ -54,10 +56,12 @@ class OnlinePrezenceAjax
     public function __construct(
         OnlinePrezenceHtml $onlinePrezenceHtml,
         Filesystem         $filesystem,
+        SystemoveNastaveni $systemoveNastaveni,
         bool               $testujeme
     ) {
         $this->onlinePrezenceHtml = $onlinePrezenceHtml;
         $this->filesystem = $filesystem;
+        $this->systemoveNastaveni = $systemoveNastaveni;
         $this->testujeme = $testujeme;
     }
 
@@ -75,10 +79,7 @@ class OnlinePrezenceAjax
         }
 
         if (post('akce') === 'uzavrit') {
-            $this->ajaxUzavritAktivitu(
-                (int)post('id'),
-                ['maPravoNaZmenuHistorieAktivit' => $vypravec->maPravoNaZmenuHistorieAktivit()]
-            );
+            $this->ajaxUzavritAktivitu((int)post('id'), $vypravec);
             return true;
         }
 
@@ -88,6 +89,7 @@ class OnlinePrezenceAjax
                 $zdaDorazil = (bool)$zdaDorazil;
             }
             $this->ajaxZmenitPritomnostUcastnika(
+                $vypravec,
                 (int)post('idUzivatele'),
                 (int)post('idAktivity'),
                 $zdaDorazil,
@@ -159,7 +161,7 @@ class OnlinePrezenceAjax
         ]);
     }
 
-    private function ajaxUzavritAktivitu(int $idAktivity, array $dataPriUspechu) {
+    private function ajaxUzavritAktivitu(int $idAktivity, \Uzivatel $vypravec) {
         $aktivita = Aktivita::zId($idAktivity);
         if (!$aktivita) {
             $this->echoErrorJson('Chybné ID aktivity ' . $idAktivity);
@@ -176,7 +178,11 @@ class OnlinePrezenceAjax
                     self::ZAMCENA => $aktivita->zamcena(),
                     self::UZAVRENA => $aktivita->uzavrena(),
                 ],
-                $dataPriUspechu
+                [
+                    'editovatelnaSekund' => $this->dejVypravecePodleTestu($aktivita, $vypravec)->maPravoNaZmenuHistorieAktivit()
+                        ? PHP_INT_MAX
+                        : 60 * $this->systemoveNastaveni->aktivitaEditovatelnaXMinutPoJejimUzavreni(),
+                ]
             )
         );
     }
@@ -191,7 +197,7 @@ class OnlinePrezenceAjax
         echo json_encode($data, JSON_THROW_ON_ERROR);
     }
 
-    private function ajaxZmenitPritomnostUcastnika(int $idUzivatele, int $idAktivity, ?bool $dorazil) {
+    private function ajaxZmenitPritomnostUcastnika(\Uzivatel $vypravec, int $idUzivatele, int $idAktivity, ?bool $dorazil) {
         $ucastnik = \Uzivatel::zId($idUzivatele);
         if (!$ucastnik) {
             $this->echoErrorJson('Chybné ID účastníka');
@@ -207,12 +213,14 @@ class OnlinePrezenceAjax
             $this->echoErrorJson('Chybějící příznak zda dorazil');
             return;
         }
+        $vypravec = $this->dejVypravecePodleTestu($aktivita, $vypravec);
 
         if ($dorazil) {
             try {
                 $ignorovat = Aktivita::IGNOROVAT_LIMIT | Aktivita::IGNOROVAT_PRIHLASENI_NA_SOUROZENCE;
                 $aktivita->zkontrolujZdaSeMuzePrihlasit(
                     $ucastnik,
+                    $vypravec,
                     $this->testujeme
                         ? $ignorovat | Aktivita::DOPREDNE | Aktivita::ZPETNE | Aktivita::STAV
                         : $ignorovat,
@@ -225,6 +233,12 @@ class OnlinePrezenceAjax
             }
             $aktivita->dejPrezenci()->ulozZeDorazil($ucastnik);
         } else {
+            try {
+                $aktivita->zkontrolujZdaSeMuzeOdhlasit($ucastnik, $vypravec);
+            } catch (\Chyba $chyba) {
+                $this->echoErrorJson($chyba->getMessage());
+                return;
+            }
             $aktivita->dejPrezenci()->zrusZeDorazil($ucastnik);
         }
 
@@ -239,6 +253,16 @@ class OnlinePrezenceAjax
             self::STAV_PRIHLASENI => $posledniZmenaStavuPrihlaseni->typPrezenceProJs(),
             self::ID_LOGU => $posledniZmenaStavuPrihlaseni->idLogu(),
         ]);
+    }
+
+    public function dejVypravecePodleTestu(Aktivita $aktivita, \Uzivatel $vypravec): \Uzivatel {
+        if (!$this->testujeme) {
+            return $vypravec;
+        }
+        $organizatori = $aktivita->organizatori();
+        return count($organizatori) > 0
+            ? reset($organizatori) // první organizátor co padne pod ruku
+            : $vypravec;
     }
 
     private function ajaxUlozPrezenci(int $idAktivity, array $idDorazivsich) {

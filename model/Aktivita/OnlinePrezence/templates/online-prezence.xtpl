@@ -130,7 +130,8 @@
         <!--TODO kapacity pohlaví-->
 
         <h2 id="{nadpis}">
-          <span data-bs-toggle="tooltip" data-bs-placement="top" title="Začátek: {zacatek}">
+          <span data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true"
+                title="Začátek: {zacatek}<br> Konec: {konec}">
             {nadpis}
           </span>
           <a href="#{nadpis}" style="color: darkgray; opacity: 0.6">#</a>
@@ -182,10 +183,10 @@
           <span class="col-xl col-md col-sm text-sm-center text-md-start align-self-center">
             <!-- begin:pozorNaKonecAktivity -->
             <span
-                style="white-space: nowrap; padding: 5px; display: inline-block; margin: 2px 0; width: 100%; text-align: center;"
                 id="skoncila-{idAktivity}"
                 class="alert-info text-skoncila {displayNoneCssClassAktivitaSkoncila} skryt-pokud-aktivitu-nelze-editovat-{idAktivity}"
-                data-konec-aktivity-v="{konecAktivityVTimestamp}">
+                data-konec-aktivity-v="{konecAktivityVTimestamp}"
+            >
               ✋ <em>Aktivita už skončila, pozor na úpravy</em> <span class="flipped-icon">✋</span>
             </span>
             <!-- end:pozorNaKonecAktivity -->
@@ -265,11 +266,11 @@
               <em>Nic...</em> 🤷
             </span>
             <span class="col-md-4" id="omniboxHledam{idAktivity}" style="display: none"><em>Hledám...</em> ⏳</span>
-            <span class="col-md-4 {displayNoneCssClassPozorVyplnena}" id="pozor-vyplnena-{idAktivity}"
+            <span class="col-md-4 {displayNoneCssClassPozorUzavrena}" id="pozor-uzavrena-{idAktivity}"
                   style="white-space: nowrap">
                   <span class="hinted" data-bs-toggle="tooltip" data-bs-placement="top"
                         title="Přídání účastníka zvýší jeho dluh. Zkontroluj jeho finance.">
-                    <em style="vertical-align: sub">⚠️Pozor, aktivita už je vyplněná! ⚠️</em>
+                    <em style="vertical-align: sub">⚠️Pozor, aktivita je už uzavřená! ⚠️</em>
                   </span>
             </span>
           </div>
