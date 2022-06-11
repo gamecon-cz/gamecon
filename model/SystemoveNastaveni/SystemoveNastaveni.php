@@ -310,17 +310,4 @@ SQL;
     public function prihlaseniNaPosledniChviliXMinutPredZacatkemAktivity(): int {
         return (int)PRIHLASENI_NA_POSLEDNI_CHVILI_X_MINUT_PRED_ZACATKEM_AKTIVITY;
     }
-
-    public static function zacatekNejblizsiVlnyOdhlasovani(\DateTimeInterface $kDatu = null): ?\DateTimeImmutable {
-        $kDatu = $kDatu ?? new \DateTimeImmutable();
-        $prvniHromadneOdhlasovani = new \DateTimeImmutable(HROMADNE_ODHLASOVANI);
-        if ($prvniHromadneOdhlasovani > $kDatu) { // teprve bude
-            return $prvniHromadneOdhlasovani;
-        }
-        $druheHromadneOdhlasovani = new \DateTimeImmutable(HROMADNE_ODHLASOVANI_2);
-        if ($druheHromadneOdhlasovani > $kDatu) { // teprve bude
-            return $druheHromadneOdhlasovani;
-        }
-        return null;
-    }
 }
