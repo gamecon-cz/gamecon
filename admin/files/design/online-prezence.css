@@ -80,3 +80,15 @@ label:hover {
 .text-na-celou-sirku {
   font-size: calc(100% + 1vw + 1vh);
 }
+
+.text-skoncila {
+  white-space: nowrap;
+  padding: 5px;
+  margin: 2px 0;
+  width: 100%;
+  text-align: center;
+}
+
+.text-skoncila:not(.display-none) {
+  display: inline-block;
+}

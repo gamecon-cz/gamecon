@@ -5,6 +5,7 @@ namespace Gamecon\Aktivita\OnlinePrezence;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\ZmenaStavuPrihlaseni;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 class OnlinePrezenceUcastnikHtml
 {
@@ -13,8 +14,8 @@ class OnlinePrezenceUcastnikHtml
     /** @var int */
     private $naPosledniChviliXMinutPredZacatkem;
 
-    public function __construct(int $naPosledniChviliXMinutPredZacatkem) {
-        $this->naPosledniChviliXMinutPredZacatkem = $naPosledniChviliXMinutPredZacatkem;
+    public function __construct(SystemoveNastaveni $systemoveNastaveni) {
+        $this->naPosledniChviliXMinutPredZacatkem = $systemoveNastaveni->prihlaseniNaPosledniChviliXMinutPredZacatkemAktivity();
     }
 
     public function sestavHmlUcastnikaAktivity(

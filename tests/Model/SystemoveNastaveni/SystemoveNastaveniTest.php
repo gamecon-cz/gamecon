@@ -14,7 +14,7 @@ class SystemoveNastaveniTest extends DbTest
   ';
 
     public function testZmenyKurzuEura() {
-        $nastaveni = new SystemoveNastaveni(ROK);
+        $nastaveni = SystemoveNastaveni::vytvorZGlobalnich();
 
         $zaznamKurzuEuro = $nastaveni->dejZaznamyNastaveniPodleKlicu(['KURZ_EURO'])[0];
         /** viz migrace 2022-05-05_03-kurz-euro-do-systemoveho-nastaveni.php */
@@ -32,7 +32,7 @@ class SystemoveNastaveniTest extends DbTest
      * @dataProvider provideVychoziHodnota
      */
     public function testVychoziHodnoty(int $rok, string $klic, string $ocekavanaHodnota) {
-        $nastaveni = new SystemoveNastaveni($rok);
+        $nastaveni = new SystemoveNastaveni($rok, new \DateTimeImmutable($rok . '-12-31 23:59:59'));
 
         self::assertSame($ocekavanaHodnota, $nastaveni->dejVychoziHodnotu($klic));
     }

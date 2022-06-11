@@ -359,7 +359,7 @@
       const $aktivitaNode = $(this)
       $aktivitaNode.find('.text-skoncila').each(function () {
         if (this.classList.contains('display-none')) {
-          return // etxt
+          return
         }
         const $textSkoncilaNode = $(this)
         hlidatUpozorneniNaSkoncenouAktivitu($textSkoncilaNode)
@@ -412,10 +412,14 @@ const akceAktivity = new class AkceAktivity {
     $.post(location.href, {
       /** viz \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax::ajaxUzavritAktivitu */
       akce: 'uzavrit', id: idAktivity, ajax: true,
-    }).done(function (/** @param {{maPravoNaZmenuHistorieAktivit: boolean}} data */data) {
+    }).done(function (/** @param {{editovatelnaSekund: number}} data */data) {
       that.prohoditZobrazeni(skrytElement, zobrazitElement)
-      if (data.maPravoNaZmenuHistorieAktivit) {
-        that.zobrazitVarovaniZeAktivitaUzJeVyplena(idAktivity)
+      if (data.editovatelnaSekund > 0) {
+        that.zobrazitVarovaniZeAktivitaUzJeUzavrena(idAktivity)
+        setTimeout(function () {
+          that.zablokovatEditaciAktivity(idAktivity)
+          that.skrytVarovaniZeAktivitaUzJeUzavrena(idAktivity)
+        }, data.editovatelnaSekund * 1000)
       } else {
         that.zablokovatEditaciAktivity(idAktivity)
       }
@@ -444,8 +448,16 @@ const akceAktivity = new class AkceAktivity {
    * @private
    * @param idAktivity
    */
-  zobrazitVarovaniZeAktivitaUzJeVyplena(idAktivity) {
-    $(`#pozor-vyplnena-${idAktivity}`).show()
+  zobrazitVarovaniZeAktivitaUzJeUzavrena(idAktivity) {
+    $(`#pozor-uzavrena-${idAktivity}`).show()
+  }
+
+  /**
+   * @private
+   * @param idAktivity
+   */
+  skrytVarovaniZeAktivitaUzJeUzavrena(idAktivity) {
+    $(`#pozor-uzavrena-${idAktivity}`).hide()
   }
 
   /**

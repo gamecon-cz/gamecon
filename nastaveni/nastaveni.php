@@ -22,7 +22,7 @@ if (!defined('ROK')) define('ROK', 2022); // aktuální rok -- při změně roku
 // Nastavení ovládatelné z adminu //
 ////////////////////////
 
-$nastaveni = new SystemoveNastaveni(ROK);
+$nastaveni = SystemoveNastaveni::vytvorZGlobalnich();
 $nastaveni->zaznamyDoKonstant();
 
 if (defined('BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU')) { // nemusí být ještě načtena před SQL migracemi
@@ -244,9 +244,6 @@ Organizační tým GameConu',
 @define('PROGRAM_KONEC', 24); // konec programu (tuto hodinu už se nehraje)
 
 define('SUPERADMINI', [1682 /* Štěpán "Bonjour" Štefaník */, 4032 /* Jaroslav "Kostřivec" Týc */, 1112 /* Lenka "Cemi" Zavadilová */]);
-
-@define('MOJE_AKTIVITY_EDITOVATELNE_X_MINUT_PRED_JEJICH_ZACATKEM', 20);
-@define('MOJE_AKTIVITY_PRIHLASENI_NA_POSLEDNI_CHVILI_X_MINUT_PRED_JEJICH_ZACATKEM', 10);
 
 @define('ADRESAR_WEBU_S_OBRAZKY', __DIR__ . '/../web');
 

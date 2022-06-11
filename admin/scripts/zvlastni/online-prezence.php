@@ -8,6 +8,8 @@ use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml;
 use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax;
 use Gamecon\Vyjimkovac\Vyjimkovac;
 use Gamecon\Pravo;
+use Symfony\Component\Filesystem\Filesystem;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 /** @var Uzivatel $u */
 /** @var Uzivatel|null $uPracovni */
@@ -17,13 +19,13 @@ if (!$u || !$u->maPravo(Pravo::ADMINISTRACE_PREZENCE)) {
     exit;
 }
 
-$onlinePrezenceHtml = new OnlinePrezenceHtml(
-    Vyjimkovac::js(URL_WEBU),
-    (int)MOJE_AKTIVITY_PRIHLASENI_NA_POSLEDNI_CHVILI_X_MINUT_PRED_JEJICH_ZACATKEM
-);
+$systemoveNastaveni = SystemoveNastaveni::vytvorZGlobalnich();
+$filesystem = new Filesystem();
+$onlinePrezenceHtml = new OnlinePrezenceHtml(Vyjimkovac::js(URL_WEBU), $systemoveNastaveni, $filesystem);
 $onlinePrezenceAjax = new OnlinePrezenceAjax(
     $onlinePrezenceHtml,
-    new \Symfony\Component\Filesystem\Filesystem(),
+    $filesystem,
+    $systemoveNastaveni,
     false
 );
 

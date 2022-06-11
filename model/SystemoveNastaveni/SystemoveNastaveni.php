@@ -8,13 +8,74 @@ use Gamecon\Cas\DateTimeGamecon;
 class SystemoveNastaveni
 {
 
+    public const SKUPINA_NEPLATIC = 'neplatič';
+    public const SKUPINA_FINANCE = 'finance';
+    public const SKUPINA_CAS = 'čas';
+
+    /**
+     * @param string $klic
+     * @param int $bonusZaStandardni3hAz5hAktivitu Nelze použít konstantu při změně v databázi, protože konstanta se změní až při dalším načtení PHP
+     * @return int
+     */
+    public static function spocitejBonusVypravece(
+        string $klic,
+        int    $bonusZaStandardni3hAz5hAktivitu = BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU
+    ): int {
+        switch ($klic) {
+            case 'BONUS_ZA_1H_AKTIVITU' :
+                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu / 4);
+            case 'BONUS_ZA_2H_AKTIVITU' :
+                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu / 2);
+            case 'BONUS_ZA_6H_AZ_7H_AKTIVITU' :
+                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 1.5);
+            case 'BONUS_ZA_8H_AZ_9H_AKTIVITU' :
+                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 2);
+            case 'BONUS_ZA_10H_AZ_11H_AKTIVITU' :
+                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 2.5);
+            case 'BONUS_ZA_12H_AZ_13H_AKTIVITU' :
+                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 3);
+            default :
+                throw new \LogicException("Neznámý klíč bonusu vypravěče '$klic'");
+        }
+    }
+
+    private static function zakrouhli(float $cislo): int {
+        return (int)round($cislo, 0);
+    }
+
+    public static function zacatekNejblizsiVlnyOdhlasovani(\DateTimeInterface $kDatu = null): ?\DateTimeImmutable {
+        $kDatu = $kDatu ?? new \DateTimeImmutable();
+        $prvniHromadneOdhlasovani = new \DateTimeImmutable(HROMADNE_ODHLASOVANI);
+        if ($prvniHromadneOdhlasovani > $kDatu) { // teprve bude
+            return $prvniHromadneOdhlasovani;
+        }
+        $druheHromadneOdhlasovani = new \DateTimeImmutable(HROMADNE_ODHLASOVANI_2);
+        if ($druheHromadneOdhlasovani > $kDatu) { // teprve bude
+            return $druheHromadneOdhlasovani;
+        }
+        return null;
+    }
+
+    public static function vytvorZGlobalnich(): self {
+        return new static(ROK, new \DateTimeImmutable());
+    }
+
     /**
      * @var int
      */
     private $rok;
+    /**
+     * @var \DateTimeImmutable
+     */
+    private $ted;
 
-    public function __construct(int $rok) {
+    public function __construct(int $rok, \DateTimeImmutable $ted) {
         $this->rok = $rok;
+        $this->ted = $ted;
+    }
+
+    public function ted(): \DateTimeImmutable {
+        return $this->ted;
     }
 
     public function zaznamyDoKonstant() {
@@ -238,35 +299,16 @@ SQL;
         }
     }
 
-    /**
-     * @param string $klic
-     * @param int $bonusZaStandardni3hAz5hAktivitu Nelze použít konstantu při změně v databázi, protože konstanta se změní až při dalším načtení PHP
-     * @return int
-     */
-    public static function spocitejBonusVypravece(
-        string $klic,
-        int    $bonusZaStandardni3hAz5hAktivitu = BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU
-    ): int {
-        switch ($klic) {
-            case 'BONUS_ZA_1H_AKTIVITU' :
-                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu / 4);
-            case 'BONUS_ZA_2H_AKTIVITU' :
-                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu / 2);
-            case 'BONUS_ZA_6H_AZ_7H_AKTIVITU' :
-                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 1.5);
-            case 'BONUS_ZA_8H_AZ_9H_AKTIVITU' :
-                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 2);
-            case 'BONUS_ZA_10H_AZ_11H_AKTIVITU' :
-                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 2.5);
-            case 'BONUS_ZA_12H_AZ_13H_AKTIVITU' :
-                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 3);
-            default :
-                throw new \LogicException("Neznámý klíč bonusu vypravěče '$klic'");
-        }
+    public function aktivitaEditovatelnaXMinutPredJejimZacatkem(): int {
+        return (int)AKTIVITA_EDITOVATELNA_X_MINUT_PRED_JEJIM_ZACATKEM;
     }
 
-    private static function zakrouhli(float $cislo): int {
-        return (int)round($cislo, 0);
+    public function aktivitaEditovatelnaXMinutPoJejimUzavreni(): int {
+        return (int)AKTIVITA_EDITOVATELNA_X_MINUT_PO_JEJIM_UZAVRENI;
+    }
+
+    public function prihlaseniNaPosledniChviliXMinutPredZacatkemAktivity(): int {
+        return (int)PRIHLASENI_NA_POSLEDNI_CHVILI_X_MINUT_PRED_ZACATKEM_AKTIVITY;
     }
 
     public static function zacatekNejblizsiVlnyOdhlasovani(\DateTimeInterface $kDatu = null): ?\DateTimeImmutable {
