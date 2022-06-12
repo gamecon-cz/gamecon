@@ -1,6 +1,5 @@
 
-[zadání](https://docs.google.com/document/d/1be-iH5z5Xb_a5mG69Yv_1AzJe82kuwXym_iCpz838jQ
-)
+[zadání](https://docs.google.com/document/d/1be-iH5z5Xb_a5mG69Yv_1AzJe82kuwXym_iCpz838jQ)
 
 # Infopult
 
@@ -11,13 +10,14 @@
 
 
 - [ ] Infopult
-  - [ ] Přejmenovat úvod na infopult
+  - [X] Přejmenovat úvod na infopult
   - [ ] Tlačítka
-    - [ ] tlačítko Přihlásit na GC
+    - [X] tlačítko Přihlásit na GC
     - [ ] tlačítko Přijel na GC
       - [ ] *(optional)* Kontrola povinných polí
     - [ ] tlačítko Vydat balíček
-    - [ ] tlačítko Odhlásit z GC/Odjel z GC
+    - [X] Odjel z GC
+    - [X] tlačítko Odhlásit z GC
 
     - [ ] *(optional)* Reversovatelné akce z židle "finance"
     - [ ] Řešení komunikace aktuálního stavu a stavů tlačítek s uživatelem *(klikatelné, kliknuté, nekliklatelné)*

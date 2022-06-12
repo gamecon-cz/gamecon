@@ -1,5 +1,60 @@
 <!-- begin:uvod -->
 
+<div class="clearfix">
+  <div class="children-float-left children-margin-right-8 clearfix" style="float: left;">
+    <form method="post">
+      <input type="submit" name="gcPrihlas" value="Přihlásit" {prihlasBtnAttr}>
+    </form>
+
+    <form method="post">
+    <span class="hinted">
+      <input type="submit" name="datMaterialy" value="Dát materiály" {datMaterialyBtnAttr}>
+      <span class="hint">
+        Před odkliknutím zkontroluj že proběhlo:
+        <ul>
+          <li>Předání trička, placky, stravenek, číslo pokoje, srovnání nedoplatku</li>
+          <li>Předání manuálu účastníka a vysvětlení last moment přihlašování.</li>
+          <li>Doplnění chybějících údajů, jako adresy, telefonu</li>
+          <li>Vyplnění čísla OP do sdíleného dokumentu</li>
+        </ul>
+      </span>
+    </span>
+    </form>
+    <!-- begin:upoMaterialy -->
+    <script>
+      $('form').last().on('submit', function () {
+        return confirm('Uživatel má záporný stav financí, přesto dát materiály?')
+      })
+    </script>
+    <!-- end:upoMaterialy -->
+
+
+    <form method="post">
+    <span class="hinted">
+      <input type="submit" name="gcOdjed" value="Odjel{a} z GC"  {gcOdjedBtnAttr}>
+      <span class="hint">
+        Před odkliknutím zkontroluj, že je:
+        <ul>
+          <li>Vyrovnaný nedoplatek</li>
+          <li>Vrácený klíč od pokoje</li>
+        </ul>
+      </span>
+    </span>
+    </form>
+  </div>
+
+  <form method="post" style="float: right;">
+    <input type="submit" name="gcOdhlas" value="Odhlásit z GC" {odhlasBtnAttr}>
+    <script>
+      $('[name="gcOdhlas"]').closest('form').submit(function () {
+        return confirm('Trvale odhlásit uživatele z GameConu a smazat všechny jeho aktivity a nakoupené věci?')
+      })
+    </script>
+  </form>
+</div>
+
+
+
 <h1>Úvod</h1>
 
 <!-- begin:neUzivatel -->
@@ -7,10 +62,6 @@
 <!-- end:neUzivatel -->
 <!-- begin:neprihlasen -->
 <div class="error">Uživatel{ka} není přihlášen{a} na GameCon.</div>
-<!-- begin: prihlasit -->
-Přihlásit na GameCon {rok}:
-<form class="radkovy" method="post"><input type="submit" name="gcPrihlas" value="Přihlásit"></form><br><br>
-<!-- end: prihlasit -->
 <!-- begin: nelze -->
 <div class="error">Registrace na GameCon není spuštěna.</div>
 <!-- end: nelze -->
@@ -35,45 +86,6 @@ Přihlásit na GameCon {rok}:
         <!-- begin:neprihlasen -->
         {err} nepříhlášen na GC
         <!-- end:neprihlasen -->
-        <!-- begin:pritomen -->
-        {ok} je na GC
-        <form method="post" style="float: right">
-        <span class="hinted">
-          <input type="submit" name="gcOdjed" value="Odjel{a} z GC">
-          <span class="hint">
-            Před odkliknutím zkontroluj, že je:
-            <ul>
-              <li>Vyrovnaný nedoplatek</li>
-              <li>Vrácený klíč od pokoje</li>
-            </ul>
-          </span>
-        </span>
-        </form>
-        <!-- end:pritomen -->
-        <!-- begin:nepritomen -->
-        {err} není na GC
-        <form method="post" style="float: right">
-        <span class="hinted">
-          <input type="submit" name="datMaterialy" value="Dát materiály">
-          <span class="hint">
-            Před odkliknutím zkontroluj že proběhlo:
-            <ul>
-              <li>Předání trička, placky, stravenek, číslo pokoje, srovnání nedoplatku</li>
-              <li>Předání manuálu účastníka a vysvětlení last moment přihlašování.</li>
-              <li>Doplnění chybějících údajů, jako adresy, telefonu</li>
-              <li>Vyplnění čísla OP do sdíleného dokumentu</li>
-            </ul>
-          </span>
-        </span>
-        </form>
-        <!-- begin:upoMaterialy -->
-        <script>
-          $('form').last().on('submit', function () {
-            return confirm('Uživatel má záporný stav financí, přesto dát materiály?')
-          })
-        </script>
-        <!-- end:upoMaterialy -->
-        <!-- end:nepritomen -->
         <!-- begin:odjel -->
         {ok} byl{a} na GC a už odjel{a}
         <!-- end:odjel -->
@@ -175,17 +187,6 @@ Přihlásit na GameCon {rok}:
     </table>
     <input type="submit" value="Připsat">
   </form>
-
-  <!-- begin:gcOdhlas -->
-  <form method="post" style="float:right;margin-top:-22px">
-    <input type="submit" name="gcOdhlas" value="Odhlásit z GC">
-    <script>
-      $('[name="gcOdhlas"]').closest('form').submit(function () {
-        return confirm('Trvale odhlásit uživatele z GameConu a smazat všechny jeho aktivity a nakoupené věci?')
-      })
-    </script>
-  </form>
-  <!-- end:gcOdhlas -->
 </div>
 <!-- end:uzivatel -->
 

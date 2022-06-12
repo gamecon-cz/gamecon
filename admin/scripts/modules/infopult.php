@@ -4,7 +4,7 @@
  * Úvodní stránka sloužící pro infopult a další účely. Zajišťuje registraci na
  * DrD, Trojboj, Gamecon, Placení aj.
  *
- * nazev: Úvod
+ * nazev: Infopult
  * pravo: 100
  */
 
@@ -157,7 +157,12 @@ if (post('zmenitUdaj') && $uPracovni) {
     back();
 }
 
-$x = new XTemplate('uvod.xtpl');
+$x = new XTemplate('infopult.xtpl');
+$x->assign('prihlasBtnAttr', "disabled");
+$x->assign('datMaterialyBtnAttr', "disabled");
+$x->assign('gcOdjedBtnAttr', "disabled");
+$x->assign('odhlasBtnAttr', "disabled");
+
 if ($uPracovni) {
     if (!$uPracovni->gcPrihlasen()) {
         $x->assign([
@@ -166,7 +171,7 @@ if ($uPracovni) {
             'rok' => ROK,
         ]);
         if (REG_GC) {
-            $x->parse('uvod.neprihlasen.prihlasit');
+            $x->assign('prihlasBtnAttr', "");
         } else {
             $x->parse('uvod.neprihlasen.nelze');
         }
@@ -202,19 +207,19 @@ if ($uPracovni) {
         'up' => $up,
     ]);
     if ($up->finance()->stav() < 0 && !$up->gcPritomen()) {
-        $x->parse('uvod.uzivatel.nepritomen.upoMaterialy');
+        $x->parse('uvod.nepritomen.upoMaterialy');
     }
     if (!$up->gcPrihlasen()) {
         $x->parse('uvod.uzivatel.neprihlasen');
     } elseif (!$up->gcPritomen()) {
-        $x->parse('uvod.uzivatel.nepritomen');
+        $x->assign('datMaterialyBtnAttr', "");
     } elseif (!$up->gcOdjel()) {
-        $x->parse('uvod.uzivatel.pritomen');
+        $x->assign('gcOdjedBtnAttr', "");
     } else {
         $x->parse('uvod.uzivatel.odjel');
     }
     if ($up->gcPrihlasen() && !$up->gcPritomen()) {
-        $x->parse('uvod.uzivatel.gcOdhlas');
+        // $x->parse('uvod.gcOdhlas');
     }
     $r = dbOneLine('SELECT datum_narozeni, potvrzeni_zakonneho_zastupce FROM uzivatele_hodnoty WHERE id_uzivatele = ' . $uPracovni->id());
     $datumNarozeni = new DateTimeImmutable($r['datum_narozeni']);
