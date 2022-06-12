@@ -155,7 +155,8 @@ class OnlinePrezenceAjax
             self::ZMENY => $zmenyProJson,
             self::RAZITKO_POSLEDNI_ZMENY => $this->dejPotvrzeneRazitkoPosledniZmeny(
                 $vypravec,
-                $nejnovejsiZmenyStavuPrihlaseni->posledniZmenaStavuPrihlaseni()
+                $nejnovejsiZmenyStavuPrihlaseni->posledniZmenaStavuPrihlaseni(),
+                true // tyhle změny jsou opravdu ty poslední, takže jestli esxistuje nějaké staré, jiné razítko, tak ho chceme přepsat
             ),
         ]);
     }
@@ -264,17 +265,25 @@ class OnlinePrezenceAjax
             self::CAS_POSLEDNI_ZMENY_PRIHLASENI => $posledniZmenaStavuPrihlaseni->casZmenyProJs(),
             self::STAV_PRIHLASENI => $posledniZmenaStavuPrihlaseni->typPrezenceProJs(),
             self::ID_LOGU => $posledniZmenaStavuPrihlaseni->idLogu(),
-            self::RAZITKO_POSLEDNI_ZMENY => $this->dejPotvrzeneRazitkoPosledniZmeny($vypravec, $posledniZmenaStavuPrihlaseni),
+            self::RAZITKO_POSLEDNI_ZMENY => $this->dejPotvrzeneRazitkoPosledniZmeny(
+                $vypravec,
+                $posledniZmenaStavuPrihlaseni,
+                false // kdyby se mezi uložením změn a zjišťováním razítka objevila jiná změna, tak nechceme razítko přepisovat
+            ),
         ]);
     }
 
-    private function dejPotvrzeneRazitkoPosledniZmeny(\Uzivatel $vypravec, ?ZmenaStavuPrihlaseni $posledniZmenaStavuPrihlaseni): string {
+    private function dejPotvrzeneRazitkoPosledniZmeny(
+        \Uzivatel             $vypravec,
+        ?ZmenaStavuPrihlaseni $posledniZmenaStavuPrihlaseni,
+        bool $prepsatStare
+    ): string {
         return (new RazitkoPosledniZmenyPrihlaseni(
             $vypravec,
             $posledniZmenaStavuPrihlaseni,
             $this->filesystem,
             self::RAZITKO_POSLEDNI_ZMENY
-        ))->dejPotvrzeneRazitkoPosledniZmeny();
+        ))->dejPotvrzeneRazitkoPosledniZmeny($prepsatStare);
     }
 
     public function dejVypravecePodleTestu(Aktivita $aktivita, \Uzivatel $vypravec): \Uzivatel {

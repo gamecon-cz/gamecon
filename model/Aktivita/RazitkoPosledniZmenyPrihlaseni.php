@@ -101,10 +101,10 @@ class RazitkoPosledniZmenyPrihlaseni
         return $adresarProRazitkoPosledniZmeny . "/posledni-zmena-prihlaseni.json";
     }
 
-    public function dejPotvrzeneRazitkoPosledniZmeny(): string {
+    public function dejPotvrzeneRazitkoPosledniZmeny(bool $prepsatStare = true): string {
         $razitko = static::spocitejRazitko($this->posledniZmena);
         $obsah = $this->sestavObsah($razitko);
-        $this->zapisObsah($obsah);
+        $this->zapisObsah($obsah, $prepsatStare);
 
         return $razitko;
     }
@@ -133,11 +133,11 @@ class RazitkoPosledniZmenyPrihlaseni
         return $obsah;
     }
 
-    private function zapisObsah(array $obsah) {
+    private function zapisObsah(array $obsah, bool $prepsatStare) {
         $obsahJson = json_encode($obsah, JSON_THROW_ON_ERROR);
         $souborRazitka = $this->dejCestuKSouboruRazitka();
 
-        if (!is_readable($souborRazitka) || file_get_contents($souborRazitka) !== $obsahJson) {
+        if (!is_readable($souborRazitka) || ($prepsatStare && file_get_contents($souborRazitka) !== $obsahJson)) {
             $this->zapisDoSouboru($obsahJson, $souborRazitka);
         }
     }
