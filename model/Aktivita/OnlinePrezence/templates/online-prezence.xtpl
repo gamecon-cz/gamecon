@@ -71,6 +71,7 @@
          data-url-razitka-posledni-zmeny="{urlRazitkaPosledniZmeny}"
          data-razitko-posledni-zmeny="{razitkoPosledniZmeny}"
          data-url-akce-posledni-zmeny="{urlAkcePosledniZmeny}"
+         data-posledni-logy-aktivit-ajax-klic="{posledniLogyAktivitAjaxKlic}"
          data-posledni-logy-ucastniku-ajax-klic="{posledniLogyUcastnikuAjaxKlic}"
     >
 
@@ -126,7 +127,10 @@
            id="aktivita-{idAktivity}"
            data-id="{idAktivity}"
            data-kapacita="{kapacita}"
-      >
+           data-cas-posledni-zmeny-stavu-aktivity="{casPosledniZmenyStavuAktivity}"
+           data-stav-aktivity="{stavAktivity}"
+           data-id-posledniho-logu="{idPoslednihoLogu}"
+        >
         <!--TODO kapacity pohlaví-->
 
         <h2 id="{nadpis}">
@@ -302,11 +306,7 @@
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Opravit prezenci</button>
             <button type="button" class="btn btn-primary"
-                    onclick="uzavritAktivitu(
-                      posledneKliknutaAktivitaId,
-                      document.getElementById('otevrena-' + posledneKliknutaAktivitaId),
-                      document.getElementById('uzavrena-' + posledneKliknutaAktivitaId)
-                    )"
+                    onclick="uzavritAktivitu(posledneKliknutaAktivitaId)"
                     data-bs-dismiss="modal">
               Uzavřít aktivitu
             </button>

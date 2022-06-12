@@ -33,6 +33,8 @@ class Aktivita
         $typ;
     /** @var null|AktivitaPrezence */
     private $prezence;
+    /** @var null|Filesystem */
+    private $filesystem;
 
     const
         AJAXKLIC = 'aEditFormTest',  // název post proměnné, ve které jdou data, pokud chceme ajaxově testovat jejich platnost a čekáme json odpověď
@@ -75,6 +77,75 @@ class Aktivita
     }
 
     /**
+     * @param Aktivita[] $aktivity
+     * @return ZmenaStavuAktivity|null
+     */
+    public static function posledniZmenaStavuAktivit(array $aktivity): ?ZmenaStavuAktivity {
+        if (count($aktivity) === 0) {
+            return null;
+        }
+        $posledniZnameStavyAktivit = [];
+        foreach ($aktivity as $aktivita) {
+            $posledniZnameStavyAktivit[$aktivita->id()] = ['idPoslednihoLogu' => 0];
+        }
+        return static::dejPosledniZmenyStavuAktivit($posledniZnameStavyAktivit)->posledniZmenaStavuAktivity();
+    }
+
+    public static function dejPosledniZmenyStavuAktivit(array $posledniZnameStavyAktivit): PosledniZmenyStavuAktivit {
+        $posledniZmenyStavuAktivit = new PosledniZmenyStavuAktivit();
+        foreach (self::dejDataPoslednichZmen($posledniZnameStavyAktivit) as $zmena) {
+            $zmenaStavuAktivity = ZmenaStavuAktivity::vytvorZDatDatabaze(
+                (int)$zmena['id_akce'],
+                (int)$zmena['akce_stavy_log_id'],
+                new \DateTimeImmutable($zmena['kdy']),
+                (int)$zmena['id_stav']
+            );
+            $posledniZmenyStavuAktivit->addPosledniZmenaStavuAktivity($zmenaStavuAktivity);
+        }
+        return $posledniZmenyStavuAktivit;
+    }
+
+    /**
+     * @param string[][] $posledniZnameStavyAktivit Například {"4387":[{"idPoslednihoLogu": 12345}]}
+     * Formát viz online-prezence-posledni-zname-zmeny-prihlaseni.js
+     * @return array
+     * @throws \DbException
+     */
+    private static function dejDataPoslednichZmen(array $posledniZnameStavyAktivit): array {
+        if (!$posledniZnameStavyAktivit) {
+            return [];
+        }
+
+        $whereOrArray = [];
+        $sqlQueryParametry = [];
+        foreach ($posledniZnameStavyAktivit as $idAktivity => ['idPoslednihoLogu' => $idPoslednihoZnamehoLogu]) {
+            $idAktivity = (int)$idAktivity;
+            $idPoslednihoZnamehoLogu = (int)$idPoslednihoZnamehoLogu;
+            $whereOrArray[] = "(id_akce = $idAktivity AND akce_stavy_log_id > $idPoslednihoZnamehoLogu)";
+        }
+        $where = implode(' OR ', $whereOrArray);
+
+        return dbFetchAll(<<<SQL
+SELECT akce_stavy_log.id_akce,
+       akce_stavy_log.id_stav,
+       akce_stavy_log.kdy,
+       akce_stavy_log.akce_stavy_log_id
+FROM (
+    SELECT akce_stavy_log.id_akce, MAX(akce_stavy_log.akce_stavy_log_id) AS id_posledniho_logu
+    FROM akce_stavy_log
+    WHERE {$where}
+    GROUP BY id_akce
+) AS nejnovejsi
+INNER JOIN akce_stavy_log
+    ON nejnovejsi.id_akce = akce_stavy_log.id_akce
+        AND nejnovejsi.id_posledniho_logu = akce_stavy_log.akce_stavy_log_id
+GROUP BY akce_stavy_log.id_akce
+SQL
+            , $sqlQueryParametry
+        );
+    }
+
+    /**
      * Vytvoří aktivitu dle výstupu z databáze. Pokud výstup (např. položkou
      * "přihlášen") je vztažen vůči uživateli, je potřeba ho zadat teď jako $u,
      * později to nebude možné.
@@ -87,6 +158,10 @@ class Aktivita
         }
         $this->a = $dbRow;
         $this->nova = false;
+    }
+
+    public function posledniZmenaStavuAktivity(): ?ZmenaStavuAktivity {
+        return static::dejPosledniZmenyStavuAktivit([$this->id() => ['idPoslednihoLogu' => 0]])->posledniZmenaStavuAktivity();
     }
 
     /**
@@ -1022,9 +1097,16 @@ class Aktivita
 
     public function dejPrezenci(): AktivitaPrezence {
         if (!$this->prezence) {
-            $this->prezence = new AktivitaPrezence($this, new Filesystem());
+            $this->prezence = new AktivitaPrezence($this, $this->dejFilesystem());
         }
         return $this->prezence;
+    }
+
+    private function dejFilesystem(): Filesystem {
+        if (!$this->filesystem) {
+            $this->filesystem = new Filesystem();
+        }
+        return $this->filesystem;
     }
 
     /**
@@ -1425,6 +1507,13 @@ SQL
         }
     }
 
+    /**
+     * Není zamknout jako zamknout. Tohle pouze zamkne aktivitu pro účastníky mimo tým.
+     * POkud hledáš opravdové zamknutí, @see zamci
+     *
+     * @param \Uzivatel $zamykajici
+     * @return void
+     */
     public function zamknout(\Uzivatel $zamykajici) {
         dbUpdate(
             'akce_seznam',
@@ -2362,7 +2451,12 @@ SQL
         $this->a['stav'] = \Stav::PROBEHNUTA;
         $this->stav = \Stav::PROBEHNUTA;
         /** @see Aktivita::stav kde se změní číslo na instanci \Stav */
-        dbQuery('INSERT INTO akce_stavy_log(id_akce, id_stav, kdy) VALUES ($0, $1, NOW())', [$this->id(), \Stav::PROBEHNUTA]);
+        $this->zalogujZmenuStavu(\Stav::PROBEHNUTA);
+    }
+
+    private function zalogujZmenuStavu(int $novyStav) {
+        dbQuery('INSERT INTO akce_stavy_log(id_akce, id_stav, kdy) VALUES ($0, $1, NOW())', [$this->id(), $novyStav]);
+        RazitkoPosledniZmenyPrihlaseni::smazRazitkaPoslednichZmen($this, $this->dejFilesystem());
     }
 
     /** Označí aktivitu jako uzavřenou, s vyplněnou prezencí */
@@ -2371,7 +2465,7 @@ SQL
             throw new \LogicException("Aktivita {$this->id()} ještě není proběhnutá, nelze ji proto zavřít");
         }
         dbQuery('UPDATE akce_seznam SET uzavrena = 1 WHERE id_akce = ' . $this->id());
-        dbQuery('INSERT INTO akce_stavy_log(id_akce, id_stav, kdy) VALUES ($0, $1, NOW())', [$this->id(), \Stav::UZAVRENA]);
+        $this->zalogujZmenuStavu(\Stav::UZAVRENA);
     }
 
     /**

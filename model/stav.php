@@ -29,6 +29,7 @@ class Stav extends DbObject
             self::SYSTEMOVA,
             self::PUBLIKOVANA,
             self::PRIPRAVENA,
+            self::UZAVRENA,
         ];
     }
 
@@ -46,6 +47,8 @@ class Stav extends DbObject
                 return 'publikovaná';
             case self::PRIPRAVENA :
                 return 'připravená';
+            case self::UZAVRENA :
+                return 'uzavřená';
             default :
                 throw new LogicException('Neznámý stav aktivity: ' . $stav);
         }
@@ -96,5 +99,9 @@ class Stav extends DbObject
 
     public function jePripravenaKAktivaci(): bool {
         return $this->id() === self::PRIPRAVENA;
+    }
+
+    public function jeUzavrena(): bool {
+        return $this->id() === self::UZAVRENA;
     }
 }

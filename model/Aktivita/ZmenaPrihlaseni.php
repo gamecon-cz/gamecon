@@ -2,7 +2,7 @@
 
 namespace Gamecon\Aktivita;
 
-class ZmenaStavuPrihlaseni
+class ZmenaPrihlaseni
 {
     private const UCASTNIK_SE_PRIHLASIL_JS = 'ucastnik_se_prihlasil';
     private const UCASTNIK_SE_ODHLASIL_JS = 'ucastnik_se_odhlasil';
