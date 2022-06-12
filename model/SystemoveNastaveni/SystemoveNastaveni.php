@@ -79,6 +79,10 @@ class SystemoveNastaveni
         return $this->rok;
     }
 
+    public function rok(): int {
+        return $this->rok;
+    }
+
     public function ted(): \DateTimeImmutable {
         return $this->ted;
     }

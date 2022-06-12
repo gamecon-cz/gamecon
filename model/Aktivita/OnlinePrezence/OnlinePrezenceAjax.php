@@ -27,6 +27,7 @@ class OnlinePrezenceAjax
     public const RAZITKO_POSLEDNI_ZMENY = 'razitko_posledni_zmeny';
     public const ZAMCENA = 'zamcena';
     public const UZAVRENA = 'uzavrena';
+    public const EDITOVATELNA_SEKUND = 'editovatelna_sekund';
     public const ERRORS = 'errors';
     public const PRIHLASEN = 'prihlasen';
     public const CAS_POSLEDNI_ZMENY_PRIHLASENI = 'cas_posledni_zmeny_prihlaseni';
@@ -171,18 +172,18 @@ class OnlinePrezenceAjax
         $aktivita->refresh();
 
         $this->echoJson(
-            array_merge(
-                [
-                    self::ZAMCENA => $aktivita->zamcena(),
-                    self::UZAVRENA => $aktivita->uzavrena(),
-                ],
-                [
-                    'editovatelnaSekund' => $this->dejVypravecePodleTestu($aktivita, $vypravec)->maPravoNaZmenuHistorieAktivit()
-                        ? PHP_INT_MAX
-                        : 60 * $this->systemoveNastaveni->aktivitaEditovatelnaXMinutPoJejimUzavreni(),
-                ]
-            )
+            [
+                self::ZAMCENA => $aktivita->zamcena(),
+                self::UZAVRENA => $aktivita->uzavrena(),
+                self::EDITOVATELNA_SEKUND => $this->kolikSekundJeAktivitaJesteEditovatelna($aktivita, $vypravec),
+            ]
         );
+    }
+
+    private function kolikSekundJeAktivitaJesteEditovatelna(Aktivita $aktivita, \Uzivatel $vypravec): int {
+        return $this->dejVypravecePodleTestu($aktivita, $vypravec)->maPravoNaZmenuHistorieAktivit()
+            ? PHP_INT_MAX
+            : $aktivita->editovatelnaDo($this->systemoveNastaveni)->getTimestamp() - $this->systemoveNastaveni->ted()->getTimestamp();
     }
 
     private function echoErrorJson(string $error): void {
