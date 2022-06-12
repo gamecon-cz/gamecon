@@ -6,6 +6,7 @@ use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\AktivitaPrezence;
 use Gamecon\Aktivita\RazitkoPosledniZmenyPrihlaseni;
 use Gamecon\Aktivita\StavPrihlaseni;
+use Gamecon\Aktivita\ZmenaStavuPrihlaseni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -149,15 +150,12 @@ class OnlinePrezenceAjax
                 ),
             ];
         }
-        $razitkoPosledniZmeny = new RazitkoPosledniZmenyPrihlaseni(
-            $vypravec,
-            $nejnovejsiZmenyStavuPrihlaseni->posledniZmenaStavuPrihlaseni(),
-            $this->filesystem,
-            self::RAZITKO_POSLEDNI_ZMENY
-        );
         $this->echoJson([
             self::ZMENY => $zmenyProJson,
-            self::RAZITKO_POSLEDNI_ZMENY => $razitkoPosledniZmeny->dejPotvrzeneRazitkoPosledniZmeny(),
+            self::RAZITKO_POSLEDNI_ZMENY => $this->dejPotvrzeneRazitkoPosledniZmeny(
+                $vypravec,
+                $nejnovejsiZmenyStavuPrihlaseni->posledniZmenaStavuPrihlaseni()
+            ),
         ]);
     }
 
@@ -197,7 +195,20 @@ class OnlinePrezenceAjax
         echo json_encode($data, JSON_THROW_ON_ERROR);
     }
 
-    private function ajaxZmenitPritomnostUcastnika(\Uzivatel $vypravec, int $idUzivatele, int $idAktivity, ?bool $dorazil) {
+    /**
+     * @param \Uzivatel $vypravec
+     * @param int $idUzivatele
+     * @param int $idAktivity
+     * @param bool|null $dorazil
+     * @return void
+     * @throws \JsonException
+     */
+    private function ajaxZmenitPritomnostUcastnika(
+        \Uzivatel $vypravec,
+        int       $idUzivatele,
+        int       $idAktivity,
+        ?bool     $dorazil
+    ) {
         $ucastnik = \Uzivatel::zId($idUzivatele);
         if (!$ucastnik) {
             $this->echoErrorJson('Chybné ID účastníka');
@@ -252,7 +263,17 @@ class OnlinePrezenceAjax
             self::CAS_POSLEDNI_ZMENY_PRIHLASENI => $posledniZmenaStavuPrihlaseni->casZmenyProJs(),
             self::STAV_PRIHLASENI => $posledniZmenaStavuPrihlaseni->typPrezenceProJs(),
             self::ID_LOGU => $posledniZmenaStavuPrihlaseni->idLogu(),
+            self::RAZITKO_POSLEDNI_ZMENY => $this->dejPotvrzeneRazitkoPosledniZmeny($vypravec, $posledniZmenaStavuPrihlaseni),
         ]);
+    }
+
+    private function dejPotvrzeneRazitkoPosledniZmeny(\Uzivatel $vypravec, ?ZmenaStavuPrihlaseni $posledniZmenaStavuPrihlaseni): string {
+        return (new RazitkoPosledniZmenyPrihlaseni(
+            $vypravec,
+            $posledniZmenaStavuPrihlaseni,
+            $this->filesystem,
+            self::RAZITKO_POSLEDNI_ZMENY
+        ))->dejPotvrzeneRazitkoPosledniZmeny();
     }
 
     public function dejVypravecePodleTestu(Aktivita $aktivita, \Uzivatel $vypravec): \Uzivatel {

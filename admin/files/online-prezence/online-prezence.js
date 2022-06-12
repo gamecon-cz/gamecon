@@ -121,9 +121,9 @@
      */
     function hlidejZmenyMetadatUcastnika(ucastnikNode) {
       ucastnikNode.addEventListener(
-        'zmenaMetadatPrezence',
+        'zmenaMetadatUcastnika',
         function (/** @param {{detail: {casPosledniZmenyPrihlaseni: string, stavPrihlaseni: string, idPoslednihoLogu: number}}} event */event) {
-          zapisMetadataPrezence(ucastnikNode, event.detail)
+          zapisMetadataUcastnika(ucastnikNode, event.detail)
           zobrazTypUcastnika(ucastnikNode, event.detail.stavPrihlaseni)
           upravUkazateleZaplnenostiAktivity(dejNodeAktivity(ucastnikNode.dataset.idAktivity))
         },
@@ -132,18 +132,18 @@
 
     /**
      * @param {HTMLElement} ucastnikNode
-     * @param {{casPosledniZmenyPrihlaseni: string, stavPrihlaseni: string, idPoslednihoLogu: number, callback: function|undefined}} metadataPrezence
+     * @param {{casPosledniZmenyPrihlaseni: string, stavPrihlaseni: string, idPoslednihoLogu: number, callback: function|undefined}} metadata
      */
-    function zapisMetadataPrezence(ucastnikNode, metadataPrezence) {
-      if (ucastnikNode.dataset.idPoslednihoLogu && Number(ucastnikNode.dataset.idPoslednihoLogu) >= metadataPrezence.idPoslednihoLogu) {
+    function zapisMetadataUcastnika(ucastnikNode, metadata) {
+      if (ucastnikNode.dataset.idPoslednihoLogu && Number(ucastnikNode.dataset.idPoslednihoLogu) >= metadata.idPoslednihoLogu) {
         return // změna je stejná nebo dokonce starší, než už známe
       }
-      ucastnikNode.dataset.casPosledniZmenyPrihlaseni = metadataPrezence.casPosledniZmenyPrihlaseni
-      ucastnikNode.dataset.stavPrihlaseni = metadataPrezence.stavPrihlaseni
-      ucastnikNode.dataset.idPoslednihoLogu = metadataPrezence.idPoslednihoLogu.toString()
+      ucastnikNode.dataset.casPosledniZmenyPrihlaseni = metadata.casPosledniZmenyPrihlaseni
+      ucastnikNode.dataset.stavPrihlaseni = metadata.stavPrihlaseni
+      ucastnikNode.dataset.idPoslednihoLogu = metadata.idPoslednihoLogu.toString()
 
-      if (typeof metadataPrezence.callback === 'function') {
-        metadataPrezence.callback()
+      if (typeof metadata.callback === 'function') {
+        metadata.callback()
       }
     }
 
@@ -497,12 +497,12 @@ function zmenitPritomnostUcastnika(
     idUzivatele: idUzivatele,
     dorazil: dorazil ? 1 : 0,
     ajax: 1,
-  }).done(/** @param {void|{prihlasen: boolean, cas_posledni_zmeny_prihlaseni: string, stav_prihlaseni: string, id_logu: string}} data */function (data) {
+  }).done(/** @param {void|{prihlasen: boolean, cas_posledni_zmeny_prihlaseni: string, stav_prihlaseni: string, id_logu: string, razitko_posledni_zmeny: string}} data */function (data) {
     checkboxNode.disabled = false
     if (data && typeof data.prihlasen == 'boolean') {
       checkboxNode.checked = data.prihlasen
 
-      const zmenaMetadatPrezence = new CustomEvent('zmenaMetadatPrezence', {
+      const zmenaMetadatUcastnika = new CustomEvent('zmenaMetadatUcastnika', {
         detail: {
           casPosledniZmenyPrihlaseni: data.cas_posledni_zmeny_prihlaseni,
           stavPrihlaseni: data.stav_prihlaseni,
@@ -511,7 +511,15 @@ function zmenitPritomnostUcastnika(
       })
       const ucastnikNode = $(checkboxNode).parents('.ucastnik')[0]
       // bude zpracovano v zapisMetadataPrezence()
-      ucastnikNode.dispatchEvent(zmenaMetadatPrezence)
+      ucastnikNode.dispatchEvent(zmenaMetadatUcastnika)
+
+      const zmenaMetadatPrezence = new CustomEvent('zmenaMetadatPrezence', {
+        detail: {
+          razitkoPosledniZmeny: data.razitko_posledni_zmeny,
+        },
+      })
+      const onlinePrezence = document.getElementById('online-prezence')
+      onlinePrezence.dispatchEvent(zmenaMetadatPrezence)
 
       if (callbackOnSuccess) {
         callbackOnSuccess()
@@ -582,7 +590,7 @@ function upravUkazateleZaplnenostiAktivity(aktivitaNode) {
   const {r, g, b} = barvaZaplnenosti
   const intenzitaBarvy = 0.1
   // zaškrtnuté checkboxy dostanou barvu od zelené po fialovou, jak se bued blížit vyčerpání kapacity
-  Array.from(zaskrtnuteCheckboxy).forEach(function (checkbox, index) {
+  Array.from(zaskrtnuteCheckboxy).forEach(function (checkbox) {
     const stylNode = checkbox.parentElement
     stylNode.style.backgroundColor = `rgb(${r},${g},${b},${intenzitaBarvy})`
   })
