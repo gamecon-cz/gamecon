@@ -232,20 +232,7 @@ class OnlinePrezenceHtml
     }
 
     private function dejEditovatelnaDoTimestamp(Aktivita $aktivita): int {
-        $konec = $aktivita->konec();
-        if (!$aktivita->zamcena()) {
-            return $konec !== null
-                ? $konec->getTimestamp()
-                : PHP_INT_MAX;
-        }
-        $uzavrenaOd = $aktivita->uzavrenaOd();
-        if (!$uzavrenaOd) {
-            trigger_error("Neznámý čas zamčení aktivity {$aktivita->id()}", E_USER_WARNING);
-            return $konec !== null
-                ? $konec->getTimestamp()
-                : PHP_INT_MAX;
-        }
-        $editovatelnaDo = (clone $uzavrenaOd)->modify("+ {$this->systemoveNastaveni->aktivitaEditovatelnaXMinutPoJejimUzavreni()} minutes");
+        $editovatelnaDo = $aktivita->editovatelnaDo($this->systemoveNastaveni);
         return $editovatelnaDo <= $this->systemoveNastaveni->ted()
             ? 0 // už ji nelze editovat
             : $editovatelnaDo->getTimestamp();
