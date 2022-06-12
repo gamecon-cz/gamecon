@@ -414,14 +414,14 @@ const akceAktivity = new class AkceAktivity {
     $.post(location.href, {
       /** viz \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax::ajaxUzavritAktivitu */
       akce: 'uzavrit', id: idAktivity, ajax: true,
-    }).done(function (/** @param {{editovatelnaSekund: number}} data */data) {
+    }).done(function (/** @param {{editovatelna_sekund: number}} data */data) {
       that.prohoditZobrazeni(skrytElement, zobrazitElement)
-      if (data.editovatelnaSekund > 0) {
+      if (data.editovatelna_sekund > 0) {
         that.zobrazitVarovaniZeAktivitaUzJeUzavrena(idAktivity)
         setTimeout(function () {
           that.zablokovatEditaciAktivity(idAktivity)
           that.skrytVarovaniZeAktivitaUzJeUzavrena(idAktivity)
-        }, data.editovatelnaSekund * 1000)
+        }, data.editovatelna_sekund * 1000)
       } else {
         that.zablokovatEditaciAktivity(idAktivity)
       }

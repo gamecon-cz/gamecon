@@ -4,6 +4,7 @@ namespace Gamecon\Aktivita;
 
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImportSqlColumn;
+use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\PrednacitaniTrait;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Component\Filesystem\Filesystem;
@@ -2336,13 +2337,19 @@ SQL
     }
 
     public function ucastEditovatelna(SystemoveNastaveni $systemoveNastaveni = null): bool {
+        $systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobalnich();
+
+        return $this->editovatelnaDo($systemoveNastaveni) >= $systemoveNastaveni->ted();
+    }
+
+    public function editovatelnaDo(SystemoveNastaveni $systemoveNastaveni = null): \DateTimeImmutable {
+        $systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobalnich();
         $uzavrenaOd = $this->uzavrenaOd();
         if (!$uzavrenaOd) {
-            return true;
+            $konec = $this->konec() ?? DateTimeGamecon::konecGameconu($systemoveNastaveni->rok());
+            return \DateTimeImmutable::createFromMutable($konec);
         }
-        $systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobalnich();
-        $editovatelnaDo = $uzavrenaOd->modify("+ {$systemoveNastaveni->aktivitaEditovatelnaXMinutPoJejimUzavreni()} minutes");
-        return $editovatelnaDo >= $systemoveNastaveni->ted();
+        return $uzavrenaOd->modify("+ {$systemoveNastaveni->aktivitaEditovatelnaXMinutPoJejimUzavreni()} minutes");
     }
 
     /** Je aktivita už proběhlá resp. už uzavřená pro změny? */
