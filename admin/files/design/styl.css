@@ -1,6 +1,20 @@
 html {
 }
 
+.clearfix::after {
+  content: "";
+  clear: both;
+  display: block;
+}
+
+.children-float-left > * {
+  float: left;
+}
+
+.children-margin-right-8 > * {
+  margin-right: 8px;
+}
+
 body {
   font-family: tahoma, sans-serif;
   font-size: 12px;
@@ -495,6 +509,10 @@ input[type="submit"]:disabled {
   background-color: lightgray;
   color: gray;
   cursor: not-allowed
+}
+
+.admin-page-controlls {
+
 }
 
 /* Tabulky */
