@@ -55,10 +55,6 @@ class RazitkoPosledniZmenyPrihlaseni
         return ADMIN_STAMPS . '/zmeny';
     }
 
-    public static function dejRazitko(PosledniZmenyStavuPrihlaseni $posledniZmenyStavuPrihlaseni): string {
-        return self::spocitejRazitko($posledniZmenyStavuPrihlaseni->posledniZmenaStavuPrihlaseni());
-    }
-
     /**
      * @var \Uzivatel
      */
@@ -94,30 +90,6 @@ class RazitkoPosledniZmenyPrihlaseni
         $this->jsonKlicProRazitko = $jsonKlicProRazitko;
     }
 
-    private function sestavObsah(string $razitko): array {
-        $obsah = [
-            $this->jsonKlicProRazitko => $razitko,
-        ];
-        if (defined('TESTING') && TESTING) {
-            $obsah['debug'] = $this->posledniZmena
-                ? [
-                    'idUzivatele' => $this->posledniZmena->idUzivatele(),
-                    'idAktivity' => $this->posledniZmena->idAktivity(),
-                    'idLogu' => $this->posledniZmena->idLogu(),
-                    'casZmeny' => $this->posledniZmena->casZmeny()->format(DATE_ATOM),
-                    'typPrezence' => $this->posledniZmena->typPrezence(),
-                ]
-                : null;
-        }
-        return $obsah;
-    }
-
-    private static function spocitejRazitko(?ZmenaStavuPrihlaseni $zmenaStavuPrihlaseni): string {
-        return $zmenaStavuPrihlaseni === null
-            ? md5('') // aspoň něco ve smyslu "razítko je platné"
-            : md5(($zmenaStavuPrihlaseni->typPrezenceProJs() ?? '') . ($zmenaStavuPrihlaseni->casZmenyProJs() ?? ''));
-    }
-
     public function dejUrlRazitkaPosledniZmeny(): string {
         $relativniCestaRazitka = str_replace(ADMIN, '', $this->dejCestuKSouboruRazitka());
         return rtrim(URL_ADMIN, '/') . '/' . ltrim($relativniCestaRazitka, '/');
@@ -135,6 +107,30 @@ class RazitkoPosledniZmenyPrihlaseni
         $this->zapisObsah($obsah);
 
         return $razitko;
+    }
+
+    private static function spocitejRazitko(?ZmenaStavuPrihlaseni $zmenaStavuPrihlaseni): string {
+        return $zmenaStavuPrihlaseni === null
+            ? md5('') // aspoň něco ve smyslu "razítko je platné"
+            : md5(($zmenaStavuPrihlaseni->typPrezenceProJs() ?? '') . ($zmenaStavuPrihlaseni->casZmenyProJs() ?? ''));
+    }
+
+    private function sestavObsah(string $razitko): array {
+        $obsah = [
+            $this->jsonKlicProRazitko => $razitko,
+        ];
+        if (defined('TESTING') && TESTING) {
+            $obsah['debug'] = $this->posledniZmena
+                ? [
+                    'idUzivatele' => $this->posledniZmena->idUzivatele(),
+                    'idAktivity' => $this->posledniZmena->idAktivity(),
+                    'idLogu' => $this->posledniZmena->idLogu(),
+                    'casZmeny' => $this->posledniZmena->casZmeny()->format(DATE_ATOM),
+                    'typPrezence' => $this->posledniZmena->typPrezence(),
+                ]
+                : null;
+        }
+        return $obsah;
     }
 
     private function zapisObsah(array $obsah) {
