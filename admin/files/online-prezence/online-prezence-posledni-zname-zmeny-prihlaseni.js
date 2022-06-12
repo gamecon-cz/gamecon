@@ -68,7 +68,10 @@
 
         const $ucastnici = $(aktivita).find('.ucastnik')
         $ucastnici.each(function (indexUcastnka, ucastnik) {
-          const ucastnikPosledniZnamyLog = {idUzivatele: ucastnik.dataset.id, idPoslednihoLogu: ucastnik.dataset.idPoslednihoLogu}
+          const ucastnikPosledniZnamyLog = {
+            idUzivatele: ucastnik.dataset.id,
+            idPoslednihoLogu: ucastnik.dataset.idPoslednihoLogu,
+          }
           aktivitaUcastniciPosledniZnameLogy.push(ucastnikPosledniZnamyLog)
         })
 
@@ -327,7 +330,15 @@
       zmenBarvuNa(node, color, 0.2)
 
       const intervalTransparentId = setTimeout(function () {
-        zmenBarvuNa(node, 'transparent', 0.1)
+        zmenBarvuNa(
+          node,
+          /* kvůli zachování střídaní barvy u řádků tabulky, viz
+          .main table tbody tr:nth-child(2n) {
+            background-color: #f0f0f0;
+          } */
+          node.parentElement.style.backgroundColor,
+          0.1,
+        )
         vratZmenuBarvyPriHover(node)
         clearTimeout(intervalTransparentId)
       }, 300)
