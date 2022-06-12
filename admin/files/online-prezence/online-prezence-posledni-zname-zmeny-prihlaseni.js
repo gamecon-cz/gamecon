@@ -7,6 +7,13 @@
       return // Nevedeš žádné aktivity 😞
     }
 
+    onlinePrezence.addEventListener(
+      'zmenaMetadatPrezence',
+      function (/** @param {{detail: {razitkoPosledniZmeny: string}}} */ event) {
+        onlinePrezence.dataset.razitkoPosledniZmeny = event.detail.razitkoPosledniZmeny
+      },
+    )
+
     /**
      * @return {string}
      */
@@ -97,7 +104,12 @@
             zapisZmenuPrihlaseni(zmena)
           })
         }
-        onlinePrezence.dataset.razitkoPosledniZmeny = data.razitko_posledni_zmeny
+        const zmenaMetadatPrezence = new CustomEvent('zmenaMetadatPrezence', {
+          detail: {
+            razitkoPosledniZmeny: data.razitko_posledni_zmeny,
+          },
+        })
+        onlinePrezence.dispatchEvent(zmenaMetadatPrezence)
       })
     }
 
@@ -206,8 +218,8 @@
      * @param {Zmena} zmena
      */
     function vypustEventSNovymiMetadatyPrezence(ucastnikNode, zmena) {
-      const zmenaMetadatPrezence = new CustomEvent(
-        'zmenaMetadatPrezence',
+      const zmenaMetadatUcastnika = new CustomEvent(
+        'zmenaMetadatUcastnika',
         {
           detail: {
             casPosledniZmenyPrihlaseni: zmena.casZmeny,
@@ -220,7 +232,7 @@
           },
         },
       )
-      ucastnikNode.dispatchEvent(zmenaMetadatPrezence)
+      ucastnikNode.dispatchEvent(zmenaMetadatUcastnika)
     }
 
     /**
