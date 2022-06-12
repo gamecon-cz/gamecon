@@ -77,14 +77,22 @@
       $aktivity.each(function (indexAktivity, aktivita) {
         const aktivitaUcastniciPosledniZnameLogy = []
 
-        const $ucastnici = $(aktivita).find('.ucastnik')
-        $ucastnici.each(function (indexUcastnka, ucastnik) {
-          const ucastnikPosledniZnamyLog = {
-            idUzivatele: ucastnik.dataset.id,
-            idPoslednihoLogu: ucastnik.dataset.idPoslednihoLogu,
-          }
-          aktivitaUcastniciPosledniZnameLogy.push(ucastnikPosledniZnamyLog)
-        })
+        const ucastnici = aktivita.querySelectorAll('.ucastnik')
+        if (ucastnici.length > 0) {
+          ucastnici.forEach(function (ucastnik) {
+            const ucastnikPosledniZnamyLog = {
+              idUzivatele: ucastnik.dataset.id,
+              idPoslednihoLogu: ucastnik.dataset.idPoslednihoLogu,
+            }
+            aktivitaUcastniciPosledniZnameLogy.push(ucastnikPosledniZnamyLog)
+          })
+        } else {
+          // prázdné pole by se neposlalo a my chceme posílat ID aktivity i když nemá zatím účastníka
+          aktivitaUcastniciPosledniZnameLogy.push({
+            idUzivatele: 0,
+            idPoslednihoLogu: 0,
+          })
+        }
 
         aktivityUcastniciPosledniZnameLogy[aktivita.dataset.id] = aktivitaUcastniciPosledniZnameLogy
       })
