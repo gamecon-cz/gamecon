@@ -113,7 +113,7 @@ class OnlinePrezenceHtml
 
     /**
      * @param \XTemplate $template
-     * @param array|Aktivita[] $organizovaneAktivity
+     * @param Aktivita[] $organizovaneAktivity
      * @return void
      */
     private function sestavHtmlOnlinePrezence(
@@ -179,12 +179,19 @@ class OnlinePrezenceHtml
             $template->parse('onlinePrezence.aktivity.aktivita.form');
 
             $template->assign('kapacita', (int)$aktivita->kapacita());
+            $template->assign('idAktivity', $aktivita->id());
+
+            $zmenaStavuAktivity = $aktivita->posledniZmenaStavuAktivity();
+            $template->assign('casPosledniZmenyStavuAktivity', $zmenaStavuAktivity ? $zmenaStavuAktivity->casZmenyProJs() : '');
+            $template->assign('stavAktivity', $zmenaStavuAktivity ? $zmenaStavuAktivity->stavAktivityProJs() : '');
+            $template->assign('idPoslednihoLogu', $zmenaStavuAktivity ? $zmenaStavuAktivity->idLogu() : 0);
 
             $template->parse('onlinePrezence.aktivity.aktivita');
         }
         $razitkoPosledniZmeny = new RazitkoPosledniZmenyPrihlaseni(
             $vypravec,
-            AktivitaPrezence::posledniZmenaStavuPrihlaseniAktivit(
+            Aktivita::posledniZmenaStavuAktivit($organizovaneAktivity),
+            AktivitaPrezence::posledniZmenaPrihlaseniAktivit(
                 null, // bereme každého účastníka
                 $organizovaneAktivity
             ),
@@ -194,6 +201,7 @@ class OnlinePrezenceHtml
         $template->assign('razitkoPosledniZmeny', $razitkoPosledniZmeny->dejPotvrzeneRazitkoPosledniZmeny());
         $template->assign('urlRazitkaPosledniZmeny', $razitkoPosledniZmeny->dejUrlRazitkaPosledniZmeny());
         $template->assign('urlAkcePosledniZmeny', OnlinePrezenceAjax::dejUrlAkcePosledniZmeny());
+        $template->assign('posledniLogyAktivitAjaxKlic', OnlinePrezenceAjax::POSLEDNI_LOGY_AKTIVIT_AJAX_KLIC);
         $template->assign('posledniLogyUcastnikuAjaxKlic', OnlinePrezenceAjax::POSLEDNI_LOGY_UCASTNIKU_AJAX_KLIC);
 
         $template->parse('onlinePrezence.aktivity');
@@ -212,7 +220,7 @@ class OnlinePrezenceHtml
             }
             $prezence = $aktivita->dejPrezenci();
             // později přidaný / změněný nakonec
-            return $prezence->posledniZmenaStavuPrihlaseni($nejakyPrihlaseny)->idLogu() <=> $prezence->posledniZmenaStavuPrihlaseni($jinyPrihlaseny)->idLogu();
+            return $prezence->posledniZmenaPrihlaseni($nejakyPrihlaseny)->idLogu() <=> $prezence->posledniZmenaPrihlaseni($jinyPrihlaseny)->idLogu();
         });
         return $prihlaseni;
     }

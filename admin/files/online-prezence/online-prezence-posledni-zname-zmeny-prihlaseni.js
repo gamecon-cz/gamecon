@@ -66,15 +66,19 @@
     }, 3000) // každé tři sekundy kontrolujeme, zda razitko posledni zmeny je patne (zda soubor s nim existuje) - kdyz soubor zmizi, tak se prilaseni na jedne z aktivit zmenilo a my chceme sathnout zmeny
 
     const urlAkcePosledniZmeny = onlinePrezence.dataset.urlAkcePosledniZmeny
+    const posledniLogyAktivitAjaxKlic = onlinePrezence.dataset.posledniLogyAktivitAjaxKlic
     const posledniLogyUcastnikuAjaxKlic = onlinePrezence.dataset.posledniLogyUcastnikuAjaxKlic
 
     const $aktivity = $(onlinePrezence).find('.aktivita')
 
     function nahratZmenyPrihlaseni() {
+      const aktivityPosledniZnameLogy = {}
       /* kvůli testování (viz admin/scripts/modules/moje-aktivity/moje-aktivity.php $testujeme) nelze použít \Uzivatel::organizovaneAktivity protože používáme i aktivity, které tester nemusí organizovat, proto jejich seznam posíláme z frontendu */
       const aktivityUcastniciPosledniZnameLogy = {}
 
       $aktivity.each(function (indexAktivity, aktivita) {
+        aktivityPosledniZnameLogy[aktivita.dataset.id] = {idPoslednihoLogu: aktivita.dataset.idPoslednihoLogu}
+
         const aktivitaUcastniciPosledniZnameLogy = []
 
         const ucastnici = aktivita.querySelectorAll('.ucastnik')
@@ -102,6 +106,7 @@
          * @see \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax::odbavAjax
          * @see \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax::ajaxDejPosledniZmeny
          */
+        [posledniLogyAktivitAjaxKlic]: aktivityPosledniZnameLogy,
         /*
          Musíme použít nejstarší ID logu.
          Nemůžeme použít nejnovější ID logu, protože při zmeně jednoho přihlášení přes online prezenci
@@ -109,13 +114,21 @@
          poslední změny a tím bychom přeskočili nedávnou změnu od jinud.
          */
         [posledniLogyUcastnikuAjaxKlic]: aktivityUcastniciPosledniZnameLogy,
-      }).done(/** @param {{razitko_posledni_zmeny: string, zmeny: []}} data */function (data) {
-        if (data.zmeny) {
-          const zmeny = Zmena.vytvorZmenyZOdpovedi(data.zmeny)
-          zmeny.forEach(function (zmena) {
+      }).done(/** @param {{razitko_posledni_zmeny: string, zmeny_stavu_aktivit: [], zmeny_prihlaseni: []}} data */function (data) {
+        if (data.zmeny_stavu_aktivit) {
+          const zmenyStavuAktivit = ZmenaStavuAktivity.vytvorZmenyZOdpovedi(data.zmeny_stavu_aktivit)
+          zmenyStavuAktivit.forEach(function (zmena) {
+            zapisZmenuStavuAktivity(zmena)
+          })
+        }
+
+        if (data.zmeny_prihlaseni) {
+          const zmenyPrihlaseni = ZmenaPrihlaseni.vytvorZmenyZOdpovedi(data.zmeny_prihlaseni)
+          zmenyPrihlaseni.forEach(function (zmena) {
             zapisZmenuPrihlaseni(zmena)
           })
         }
+
         const zmenaMetadatPrezence = new CustomEvent('zmenaMetadatPrezence', {
           detail: {
             razitkoPosledniZmeny: data.razitko_posledni_zmeny,
@@ -126,7 +139,48 @@
     }
 
     /**
-     * @param {Zmena} zmena
+     * @param {ZmenaStavuAktivity} zmena
+     */
+    function zapisZmenuStavuAktivity(zmena) {
+      const aktivitaNode = document.getElementById(`aktivita-${zmena.idAktivity}`)
+      if (aktivitaNode) { // else - přidávání nové aktivity nepodporujeme
+        zmenStavAktivity(aktivitaNode, zmena)
+      }
+    }
+
+    /**
+     * @param {HTMLElement} aktivitaNode
+     * @param {ZmenaStavuAktivity} zmena
+     */
+    function zmenStavAktivity(aktivitaNode, zmena) {
+      if (!jeZmenaPrihlaseniNova(aktivitaNode, zmena)) {
+        return
+      }
+      vypustEventSNovymiMetadatyAktivity(aktivitaNode, zmena)
+    }
+
+    /**
+     * Bude zpracováno v event listeneru v online-prezence.js přes zapisMetadataAktivity()
+     * @param {HTMLElement} aktivitaNode
+     * @param {ZmenaStavuAktivity} zmena
+     */
+    function vypustEventSNovymiMetadatyAktivity(aktivitaNode, zmena) {
+      const zmenaMetadatAktivity = new CustomEvent(
+        'zmenaMetadatAktivity',
+        {
+          detail: {
+            casPosledniZmenyStavuAktivity: zmena.casZmeny,
+            stavAktivity: zmena.stavAktivity,
+            idPoslednihoLogu: zmena.idPoslednihoLogu,
+            editovatelnaSekund: zmena.editovatelnaSekund,
+          },
+        },
+      )
+      aktivitaNode.dispatchEvent(zmenaMetadatAktivity)
+    }
+
+    /**
+     * @param {ZmenaPrihlaseni} zmena
      */
     function zapisZmenuPrihlaseni(zmena) {
       const ucastnikNode = document.getElementById(`ucastnik-${zmena.idUzivatele}-na-aktivite-${zmena.idAktivity}`)
@@ -138,7 +192,7 @@
     }
 
     /**
-     * @param {Zmena} zmena
+     * @param {ZmenaPrihlaseni} zmena
      */
     function pridejNovehoUcastnika(zmena) {
       if (!chceHratPodleStavu(zmena.stavPrihlaseni)) {
@@ -161,7 +215,7 @@
 
     /**
      * Bude zpracováno v event listeneru v online-prezence.js přes hlidejNovehoUcastnika()
-     * @param {Zmena} zmena
+     * @param {ZmenaPrihlaseni} zmena
      */
     function vypustEventONovemUcastnikovi(zmena) {
       const novyUcastnik = new CustomEvent(
@@ -205,31 +259,31 @@
 
     /**
      * @param {HTMLElement} ucastnikNode
-     * @param {Zmena} zmena
+     * @param {ZmenaPrihlaseni} zmena
      */
     function zmenPrihlaseni(ucastnikNode, zmena) {
-      if (!jeZmenaNova(ucastnikNode, zmena)) {
+      if (!jeZmenaPrihlaseniNova(ucastnikNode, zmena)) {
         return
       }
-      vypustEventSNovymiMetadatyPrezence(ucastnikNode, zmena)
+      vypustEventSNovymiMetadatyUcastnika(ucastnikNode, zmena)
     }
 
     /**
      * @param {HTMLElement} ucastnikNode
-     * @param {Zmena} zmena
+     * @param {ZmenaPrihlaseni} zmena
      * @return {boolean}
      */
-    function jeZmenaNova(ucastnikNode, zmena) {
+    function jeZmenaPrihlaseniNova(ucastnikNode, zmena) {
       return !ucastnikNode.dataset.idPoslednihoLogu
         || Number(ucastnikNode.dataset.idPoslednihoLogu) < zmena.idPoslednihoLogu
     }
 
     /**
-     * Bude zpracováno v event listeneru v online-prezence.js přes zapisMetadataPrezence()
+     * Bude zpracováno v event listeneru v online-prezence.js přes zapisMetadataUcastnika()
      * @param {HTMLElement} ucastnikNode
-     * @param {Zmena} zmena
+     * @param {ZmenaPrihlaseni} zmena
      */
-    function vypustEventSNovymiMetadatyPrezence(ucastnikNode, zmena) {
+    function vypustEventSNovymiMetadatyUcastnika(ucastnikNode, zmena) {
       const zmenaMetadatUcastnika = new CustomEvent(
         'zmenaMetadatUcastnika',
         {
@@ -248,6 +302,7 @@
     }
 
     /**
+     * viz \Gamecon\Aktivita\ZmenaPrihlaseni::stavPrihlaseniProJs
      * @param {string} stavPrihlaseni
      * @return {boolean}
      */
@@ -256,11 +311,11 @@
     }
 
     /**
+     * viz \Gamecon\Aktivita\ZmenaPrihlaseni::stavPrihlaseniProJs
      * @param {string} stavPrihlaseni
      * @return {boolean}
      */
     function chceHratPodleStavu(stavPrihlaseni) {
-      /** viz \Gamecon\Aktivita\ZmenaStavuPrihlaseni::stavPrihlaseniProJs */
       switch (stavPrihlaseni) {
         case 'ucastnik_se_odhlasil' :
         case 'ucastnik_nedorazil' :
@@ -397,16 +452,16 @@
 
 })(jQuery)
 
-class Zmena {
+class ZmenaPrihlaseni {
   /**
    * @param {{id_aktivity: number, id_uzivatele: number, id_logu: number, cas_zmeny: string, stav_prihlaseni: string, html_ucastnika: string}[]} dataZmen
-   * @return Zmena[]
+   * @return ZmenaPrihlaseni[]
    */
   static vytvorZmenyZOdpovedi(dataZmen) {
     const zmeny = []
     dataZmen.forEach((dataZmeny) => {
       zmeny.push(
-        new Zmena(
+        new ZmenaPrihlaseni(
           dataZmeny.id_aktivity,
           dataZmeny.id_uzivatele,
           dataZmeny.id_logu,
@@ -471,5 +526,73 @@ class Zmena {
 
   get htmlUcastnika() {
     return this._htmlUcastnika
+  }
+}
+
+class ZmenaStavuAktivity {
+  /**
+   * @param {{id_aktivity: number, id_logu: number, cas_zmeny: string, stav_aktivity: string, editovatelna_sekund: number}[]} dataZmen
+   * @return ZmenaStavuAktivity[]
+   */
+  static vytvorZmenyZOdpovedi(dataZmen) {
+    const zmeny = []
+    dataZmen.forEach((dataZmeny) => {
+      zmeny.push(
+        new ZmenaStavuAktivity(
+          dataZmeny.id_aktivity,
+          dataZmeny.id_logu,
+          dataZmeny.cas_zmeny,
+          dataZmeny.stav_aktivity,
+          dataZmeny.editovatelna_sekund,
+        ),
+      )
+    })
+    return zmeny
+  }
+
+  /** @private @var {number} */
+  _idAktivity
+  /** @private @var {number} */
+  _idPoslednihoLogu
+  /** @private @var {string} */
+  _casZmeny
+  /** @private @var {string} */
+  _stavAktivity
+  /** @private @var {number} */
+  _editovatelnaSekund
+
+  /**
+   * @param {number} idAktivity
+   * @param {number} idPoslednihoLogu
+   * @param {string} casZmeny
+   * @param {string} stavAktivity
+   * @param {number} editovatelnaSekund
+   */
+  constructor(idAktivity, idPoslednihoLogu, casZmeny, stavAktivity, editovatelnaSekund) {
+    this._idAktivity = idAktivity
+    this._idPoslednihoLogu = idPoslednihoLogu
+    this._casZmeny = casZmeny
+    this._stavAktivity = stavAktivity
+    this._editovatelnaSekund = editovatelnaSekund
+  }
+
+  get idAktivity() {
+    return this._idAktivity
+  }
+
+  get idPoslednihoLogu() {
+    return this._idPoslednihoLogu
+  }
+
+  get casZmeny() {
+    return this._casZmeny
+  }
+
+  get stavAktivity() {
+    return this._stavAktivity
+  }
+
+  get editovatelnaSekund() {
+    return this._editovatelnaSekund
   }
 }
