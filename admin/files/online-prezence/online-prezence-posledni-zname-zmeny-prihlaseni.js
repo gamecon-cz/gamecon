@@ -33,6 +33,10 @@
 
     let jePozastavenaKontrolaZmen = false
     setInterval(function () {
+      if (onlinePrezence.dataset.probihajiZmeny) {
+        return // něco se mění, necháme to na příští interval
+      }
+
       const request = new XMLHttpRequest()
 
       request.addEventListener('loadstart', function () {
