@@ -16,8 +16,8 @@ class AktivitaPrezence
     private $seznamSledujicich;
     /** @var Filesystem */
     private $filesystem;
-    /** @var ZmenaStavuPrihlaseni[]|null[] */
-    private $posledniZmenaStavuPrihlaseni = [];
+    /** @var ZmenaPrihlaseni[]|null[] */
+    private $posledniZmenaPrihlaseni = [];
 
     public function __construct(
         Aktivita   $aktivita,
@@ -46,7 +46,7 @@ class AktivitaPrezence
     }
 
     public function ulozZeDorazil(\Uzivatel $dorazil) {
-        if($this->aktivita->dorazilJakoCokoliv($dorazil)) {
+        if ($this->aktivita->dorazilJakoCokoliv($dorazil)) {
             return; // už máme hotovo
         }
         if ($this->aktivita->prihlasen($dorazil)) {
@@ -110,7 +110,7 @@ class AktivitaPrezence
             'typ' => $zprava,
         ]);
         RazitkoPosledniZmenyPrihlaseni::smazRazitkaPoslednichZmen($this->aktivita, $this->filesystem);
-        unset($this->posledniZmenaStavuPrihlaseni[$u->id()]);
+        unset($this->posledniZmenaPrihlaseni[$u->id()]);
     }
 
     public function zalogujZeSeOdhlasil(\Uzivatel $odhlaseny) {
@@ -178,18 +178,18 @@ class AktivitaPrezence
     }
 
     public function prihlasenOd(\Uzivatel $uzivatel): ?\DateTimeImmutable {
-        $posledniZmenaStavuPrihlaseni = $this->posledniZmenaStavuPrihlaseni($uzivatel);
-        if (!$posledniZmenaStavuPrihlaseni || $posledniZmenaStavuPrihlaseni->typPrezence() !== AktivitaPrezenceTyp::PRIHLASENI) {
+        $posledniZmenaPrihlaseni = $this->posledniZmenaPrihlaseni($uzivatel);
+        if (!$posledniZmenaPrihlaseni || $posledniZmenaPrihlaseni->typPrezence() !== AktivitaPrezenceTyp::PRIHLASENI) {
             return null;
         }
-        return $posledniZmenaStavuPrihlaseni->casZmeny();
+        return $posledniZmenaPrihlaseni->casZmeny();
     }
 
-    public function posledniZmenaStavuPrihlaseni(\Uzivatel $ucastnik): ?ZmenaStavuPrihlaseni {
-        if (!array_key_exists($ucastnik->id(), $this->posledniZmenaStavuPrihlaseni)) {
-            $this->posledniZmenaStavuPrihlaseni[$ucastnik->id()] = self::posledniZmenaStavuPrihlaseniAktivit($ucastnik, [$this->aktivita]);
+    public function posledniZmenaPrihlaseni(\Uzivatel $ucastnik): ?ZmenaPrihlaseni {
+        if (!array_key_exists($ucastnik->id(), $this->posledniZmenaPrihlaseni)) {
+            $this->posledniZmenaPrihlaseni[$ucastnik->id()] = self::posledniZmenaPrihlaseniAktivit($ucastnik, [$this->aktivita]);
         }
-        return $this->posledniZmenaStavuPrihlaseni[$ucastnik->id()];
+        return $this->posledniZmenaPrihlaseni[$ucastnik->id()];
     }
 
     /**
@@ -213,30 +213,22 @@ class AktivitaPrezence
     }
 
     /**
-     * Je alespoń jeden účastník označen jako že dorazil, dorazil jako náhradník, nebo byl přihlášen ale nedorazil?
-     * @return bool
+     * @param string[][][] $idsPoslednichZnamychLoguUcastniku
+     * @return PosledniZmenyPrihlaseni
      */
-    public function jePrezenceUzavrena(): bool {
-        return $this->aktivita->uzavrena();
-    }
-
-    /**
-     * @param string[][][] $idsPoslednichLoguUcastniku
-     * @return PosledniZmenyStavuPrihlaseni
-     */
-    public static function dejPosledniZmeny(array $idsPoslednichLoguUcastniku): PosledniZmenyStavuPrihlaseni {
-        $nejnovejsiZmenyStavuPrihlaseni = new PosledniZmenyStavuPrihlaseni();
-        foreach (self::dejDataPoslednichZmen($idsPoslednichLoguUcastniku) as $zmena) {
-            $zmenaStavuPrihlaseni = ZmenaStavuPrihlaseni::vytvorZDatDatabaze(
+    public static function dejPosledniZmenyPrezence(array $idsPoslednichZnamychLoguUcastniku): PosledniZmenyPrihlaseni {
+        $nejnovejsiZmenyPrihlaseni = new PosledniZmenyPrihlaseni();
+        foreach (self::dejDataPoslednichZmen($idsPoslednichZnamychLoguUcastniku) as $zmena) {
+            $zmenaPrihlaseni = ZmenaPrihlaseni::vytvorZDatDatabaze(
                 (int)$zmena['id_uzivatele'],
                 (int)$zmena['id_akce'],
                 (int)$zmena['id_log'],
                 new \DateTimeImmutable($zmena['kdy']),
                 $zmena['typ']
             );
-            $nejnovejsiZmenyStavuPrihlaseni->addPosledniZmenaStavuPrihlaseni($zmenaStavuPrihlaseni);
+            $nejnovejsiZmenyPrihlaseni->addPosledniZmenaPrihlaseni($zmenaPrihlaseni);
         }
-        return $nejnovejsiZmenyStavuPrihlaseni;
+        return $nejnovejsiZmenyPrihlaseni;
     }
 
     /**
@@ -261,13 +253,13 @@ class AktivitaPrezence
                 $idUzivatele = (int)$idUzivatele;
                 $idPoslednihoZnamehoLogu = (int)$idPoslednihoZnamehoLogu;
 
-                $whereOrArray[] = "id_akce = $idAktivity AND id_uzivatele = $idUzivatele AND id_log > $idPoslednihoZnamehoLogu";
+                $whereOrArray[] = "(id_akce = $idAktivity AND id_uzivatele = $idUzivatele AND id_log > $idPoslednihoZnamehoLogu)";
 
                 $idZnamychUcastnikuAktivity[] = $idUzivatele;
                 $idPoslednihZnamychLogu[] = $idPoslednihoZnamehoLogu;
             }
             $idNejstarsihoPoslednihoZnamehoLogu = max(array_merge($idPoslednihZnamychLogu, [0]/* pro případ že aktivita byla prázdná */));
-            $whereOrArray[] = "id_akce = {$idAktivity} AND id_uzivatele NOT IN ($$indexSqlParametru) AND id_log > $idNejstarsihoPoslednihoZnamehoLogu";
+            $whereOrArray[] = "(id_akce = {$idAktivity} AND id_uzivatele NOT IN ($$indexSqlParametru) AND id_log > $idNejstarsihoPoslednihoZnamehoLogu)";
             $sqlQueryParametry[$indexSqlParametru] = $idZnamychUcastnikuAktivity;
             $indexSqlParametru++;
         }
@@ -294,11 +286,11 @@ SQL
     /**
      * @param \Uzivatel|null $ucastnik
      * @param Aktivita[] $aktivity
-     * @return null|ZmenaStavuPrihlaseni
+     * @return null|ZmenaPrihlaseni
      * @throws \Exception
      */
-    public static function posledniZmenaStavuPrihlaseniAktivit(?\Uzivatel $ucastnik, array $aktivity): ?ZmenaStavuPrihlaseni {
-        if (!$aktivity) {
+    public static function posledniZmenaPrihlaseniAktivit(?\Uzivatel $ucastnik, array $aktivity): ?ZmenaPrihlaseni {
+        if (count($aktivity) === 0) {
             return null;
         }
         $posledniZmena = dbOneLine(<<<SQL
@@ -325,7 +317,7 @@ SQL,
         if (!$posledniZmena['id_uzivatele']) {
             return null;
         }
-        return new ZmenaStavuPrihlaseni(
+        return new ZmenaPrihlaseni(
             (int)$posledniZmena['id_uzivatele'],
             (int)$posledniZmena['id_akce'],
             (int)$posledniZmena['id_log'],

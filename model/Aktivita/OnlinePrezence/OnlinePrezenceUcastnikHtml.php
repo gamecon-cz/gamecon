@@ -4,7 +4,7 @@ namespace Gamecon\Aktivita\OnlinePrezence;
 
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavPrihlaseni;
-use Gamecon\Aktivita\ZmenaStavuPrihlaseni;
+use Gamecon\Aktivita\ZmenaPrihlaseni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 class OnlinePrezenceUcastnikHtml
@@ -51,10 +51,10 @@ class OnlinePrezenceUcastnikHtml
         $ucastnikTemplate->assign('cssTridaDisplayNahradnik', StavPrihlaseni::dorazilJakoNahradnik($stavPrihlaseni) ? '' : 'display-none');
         $ucastnikTemplate->assign('cssTridaDisplaySledujici', StavPrihlaseni::prihlasenJakoSledujici($stavPrihlaseni) ? '' : 'display-none');
 
-        $zmenaStavuPrihlaseni = $aktivita->dejPrezenci()->posledniZmenaStavuPrihlaseni($ucastnik);
-        $ucastnikTemplate->assign('casPosledniZmenyPrihlaseni', $zmenaStavuPrihlaseni ? $zmenaStavuPrihlaseni->casZmenyProJs() : '');
-        $ucastnikTemplate->assign('stavPrihlaseni', $zmenaStavuPrihlaseni ? $zmenaStavuPrihlaseni->typPrezenceProJs() : '');
-        $ucastnikTemplate->assign('idPoslednihoLogu', $zmenaStavuPrihlaseni ? $zmenaStavuPrihlaseni->idLogu() : 0);
+        $zmenaPrihlaseni = $aktivita->dejPrezenci()->posledniZmenaPrihlaseni($ucastnik);
+        $ucastnikTemplate->assign('casPosledniZmenyPrihlaseni', $zmenaPrihlaseni ? $zmenaPrihlaseni->casZmenyProJs() : '');
+        $ucastnikTemplate->assign('stavPrihlaseni', $zmenaPrihlaseni ? $zmenaPrihlaseni->typPrezenceProJs() : '');
+        $ucastnikTemplate->assign('idPoslednihoLogu', $zmenaPrihlaseni ? $zmenaPrihlaseni->idLogu() : 0);
 
         $ucastnikTemplate->parse('ucastnik');
         return $ucastnikTemplate->text('ucastnik');

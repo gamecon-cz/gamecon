@@ -24,7 +24,41 @@
       aktivitaNode.addEventListener('novyUcastnik', function (/** @param {{detail: {idAktivity: number, idUzivatele: number}}} event */event) {
         hlidejNovehoUcastnika(event.detail.idUzivatele, event.detail.idAktivity)
       })
+      aktivitaNode.addEventListener('zmenaMetadatAktivity', function (/** @param {{ detail: { casPosledniZmenyStavuAktivity: string, stavAktivity: string, idPoslednihoLogu: number, editovatelnaSekund: number} }} */event) {
+        zapisMetadataAktivity(aktivitaNode, event.detail)
+
+        const editovatelna = editovatelnaPodleStavu(event.detail.stavAktivity)
+        if (!editovatelna) { // else - znovuotevření aktivity nepodporujeme
+          reagujNaUzavreniAktivity(aktivitaNode.dataset.id, event.detail.editovatelnaSekund)
+        }
+      })
     })
+
+    /**
+     * @param {HTMLElement} aktivitaNode
+     * @param {{ casPosledniZmenyStavuAktivity: string, stavAktivity: string, idPoslednihoLogu: string, editovatelnaSekund: number}} metadata
+     */
+    function zapisMetadataAktivity(aktivitaNode, metadata) {
+      if (aktivitaNode.dataset.idPoslednihoLogu && Number(aktivitaNode.dataset.idPoslednihoLogu) >= metadata.idPoslednihoLogu) {
+        return // změna je stejná nebo dokonce starší, než už známe
+      }
+      aktivitaNode.dataset.casPosledniZmenyStavuAktivity = metadata.casPosledniZmenyStavuAktivity
+      aktivitaNode.dataset.stavAktivity = metadata.stavAktivity
+      aktivitaNode.dataset.idPoslednihoLogu = metadata.idPoslednihoLogu.toString()
+
+      if (typeof metadata.callback === 'function') {
+        metadata.callback()
+      }
+    }
+
+    /**
+     * viz \Gamecon\Aktivita\ZmenaStavuAktivity::stavAktivityProJs
+     * @param {string} stavAktivity
+     * @return {boolean}
+     */
+    function editovatelnaPodleStavu(stavAktivity) {
+      return ['aktivovana', 'systemova'].includes(stavAktivity)
+    }
 
     $('.ucastnik').each(function (index, ucastnikNode) {
       hlidejZmenyMetadatUcastnika(ucastnikNode)
@@ -404,10 +438,8 @@ const akceAktivity = new class AkceAktivity {
   /**
    * @public
    * @param {number} idAktivity
-   * @param {HTMLElement} skrytElement
-   * @param {HTMLElement} zobrazitElement
    */
-  uzavritAktivitu(idAktivity, skrytElement, zobrazitElement) {
+  uzavritAktivitu(idAktivity) {
     vypustEventOProbihajicichZmenach(true)
 
     const that = this
@@ -415,19 +447,30 @@ const akceAktivity = new class AkceAktivity {
       /** viz \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax::ajaxUzavritAktivitu */
       akce: 'uzavrit', id: idAktivity, ajax: true,
     }).done(function (/** @param {{editovatelna_sekund: number}} data */data) {
-      that.prohoditZobrazeni(skrytElement, zobrazitElement)
-      if (data.editovatelna_sekund > 0) {
-        that.zobrazitVarovaniZeAktivitaUzJeUzavrena(idAktivity)
-        setTimeout(function () {
-          that.zablokovatEditaciAktivity(idAktivity)
-          that.skrytVarovaniZeAktivitaUzJeUzavrena(idAktivity)
-        }, data.editovatelna_sekund * 1000)
-      } else {
-        that.zablokovatEditaciAktivity(idAktivity)
-      }
+      that.reagujNaUzavreniAktivity(idAktivity, data.editovatelna_sekund)
     }).always(function () {
       vypustEventOProbihajicichZmenach(false)
     })
+  }
+
+  /**
+   * @param {number} idAktivity
+   * @param {number} editovatelnaSekund
+   */
+  reagujNaUzavreniAktivity(idAktivity, editovatelnaSekund) {
+    const skrytElement = document.getElementById(`otevrena-${idAktivity}`)
+    const zobrazitElement = document.getElementById(`uzavrena-${idAktivity}`)
+    this.prohoditZobrazeni(skrytElement, zobrazitElement)
+    if (editovatelnaSekund > 0) {
+      this.zobrazitVarovaniZeAktivitaUzJeUzavrena(idAktivity)
+      const that = this
+      setTimeout(function () {
+        that.zablokovatEditaciAktivity(idAktivity)
+        that.skrytVarovaniZeAktivitaUzJeUzavrena(idAktivity)
+      }, editovatelnaSekund * 1000)
+    } else {
+      this.zablokovatEditaciAktivity(idAktivity)
+    }
   }
 
   /**
@@ -523,7 +566,7 @@ function zmenitPritomnostUcastnika(
         },
       })
       const ucastnikNode = $(checkboxNode).parents('.ucastnik')[0]
-      // bude zpracovano v zapisMetadataPrezence()
+      // bude zpracovano v zapisMetadataUcastnika()
       ucastnikNode.dispatchEvent(zmenaMetadatUcastnika)
 
       const zmenaMetadatPrezence = new CustomEvent('zmenaMetadatPrezence', {
@@ -561,11 +604,17 @@ function zmenitPritomnostUcastnika(
 
 /**
  * @param {number} idAktivity
- * @param {HTMLElement} skrytElement
- * @param {HTMLElement} zobrazitElement
  */
-function uzavritAktivitu(idAktivity, skrytElement, zobrazitElement) {
-  akceAktivity.uzavritAktivitu(idAktivity, skrytElement, zobrazitElement)
+function uzavritAktivitu(idAktivity) {
+  akceAktivity.uzavritAktivitu(idAktivity)
+}
+
+/**
+ * @param {string} idAktivity
+ * @param {number} editovatelnaSekund
+ */
+function reagujNaUzavreniAktivity(idAktivity, editovatelnaSekund) {
+  akceAktivity.reagujNaUzavreniAktivity(idAktivity, editovatelnaSekund)
 }
 
 /**

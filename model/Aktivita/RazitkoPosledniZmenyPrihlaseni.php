@@ -64,9 +64,13 @@ class RazitkoPosledniZmenyPrihlaseni
      */
     private $filesystem;
     /**
-     * @var ZmenaStavuPrihlaseni|null
+     * @var ZmenaStavuAktivity|null
      */
-    private $posledniZmena;
+    private $posledniZmenaStavuAktivity;
+    /**
+     * @var ZmenaPrihlaseni|null
+     */
+    private $posledniZmenaPrihlaseni;
     /**
      * @var string
      */
@@ -74,18 +78,21 @@ class RazitkoPosledniZmenyPrihlaseni
 
     /**
      * @param \Uzivatel $vypravec
-     * @param Aktivita[] $posledniZmena
+     * @param null|ZmenaStavuAktivity $posledniZmenaStavuAktivity
+     * @param null|ZmenaPrihlaseni $posledniZmenaPrihlaseni
      * @param Filesystem $filesystem
      * @param string $jsonKlicProRazitko
      */
     public function __construct(
-        \Uzivatel             $vypravec,
-        ?ZmenaStavuPrihlaseni $posledniZmena,
-        Filesystem            $filesystem,
-        string                $jsonKlicProRazitko
+        \Uzivatel           $vypravec,
+        ?ZmenaStavuAktivity $posledniZmenaStavuAktivity,
+        ?ZmenaPrihlaseni    $posledniZmenaPrihlaseni,
+        Filesystem          $filesystem,
+        string              $jsonKlicProRazitko
     ) {
         $this->vypravec = $vypravec;
-        $this->posledniZmena = $posledniZmena;
+        $this->posledniZmenaStavuAktivity = $posledniZmenaStavuAktivity;
+        $this->posledniZmenaPrihlaseni = $posledniZmenaPrihlaseni;
         $this->filesystem = $filesystem;
         $this->jsonKlicProRazitko = $jsonKlicProRazitko;
     }
@@ -102,17 +109,28 @@ class RazitkoPosledniZmenyPrihlaseni
     }
 
     public function dejPotvrzeneRazitkoPosledniZmeny(bool $prepsatStare = true): string {
-        $razitko = static::spocitejRazitko($this->posledniZmena);
+        $razitko = static::spocitejRazitko($this->posledniZmenaStavuAktivity, $this->posledniZmenaPrihlaseni);
         $obsah = $this->sestavObsah($razitko);
         $this->zapisObsah($obsah, $prepsatStare);
 
         return $razitko;
     }
 
-    private static function spocitejRazitko(?ZmenaStavuPrihlaseni $zmenaStavuPrihlaseni): string {
-        return $zmenaStavuPrihlaseni === null
-            ? md5('') // aspoň něco ve smyslu "razítko je platné"
-            : md5(($zmenaStavuPrihlaseni->typPrezenceProJs() ?? '') . ($zmenaStavuPrihlaseni->casZmenyProJs() ?? ''));
+    private static function spocitejRazitko(?ZmenaStavuAktivity $zmenaStavuAktivity, ?ZmenaPrihlaseni $zmenaPrihlaseni): string {
+        return md5(json_encode([
+            'zmena_stavu_aktivity' => $zmenaStavuAktivity !== null
+                ? [
+                    'stav_aktivity' => $zmenaStavuAktivity->stavAktivityProJs() ?? '',
+                    'cas_zmeny' => $zmenaStavuAktivity->casZmenyProJs() ?? '',
+                ]
+                : [],
+            'zmena_prihlaseni' => $zmenaPrihlaseni !== null
+                ? [
+                    'typ_prezence' => $zmenaPrihlaseni->typPrezenceProJs() ?? '',
+                    'cas_zmeny' => $zmenaPrihlaseni->casZmenyProJs() ?? '',
+                ]
+                : [],
+        ]));
     }
 
     private function sestavObsah(string $razitko): array {
@@ -120,15 +138,29 @@ class RazitkoPosledniZmenyPrihlaseni
             $this->jsonKlicProRazitko => $razitko,
         ];
         if (defined('TESTING') && TESTING) {
-            $obsah['debug'] = $this->posledniZmena
-                ? [
-                    'idUzivatele' => $this->posledniZmena->idUzivatele(),
-                    'idAktivity' => $this->posledniZmena->idAktivity(),
-                    'idLogu' => $this->posledniZmena->idLogu(),
-                    'casZmeny' => $this->posledniZmena->casZmeny()->format(DATE_ATOM),
-                    'typPrezence' => $this->posledniZmena->typPrezence(),
-                ]
-                : null;
+            $obsah['debug'] = [
+                'posledniZmenaStavuAktivity' => $this->posledniZmenaStavuAktivity !== null
+                    ? [
+                        'idAktivity' => $this->posledniZmenaStavuAktivity->idAktivity(),
+                        'idLogu' => $this->posledniZmenaStavuAktivity->idLogu(),
+                        'casZmeny' => $this->posledniZmenaStavuAktivity->casZmeny()->format(DATE_ATOM),
+                        'casZmenyProJs' => $this->posledniZmenaStavuAktivity->casZmenyProJs(),
+                        'stavAktivity' => $this->posledniZmenaStavuAktivity->stavAktivity(),
+                        'stavAktivityProJs' => $this->posledniZmenaStavuAktivity->stavAktivityProJs(),
+                    ]
+                    : null,
+                'posledniZmenaPrihlaseni' => $this->posledniZmenaPrihlaseni !== null
+                    ? [
+                        'idUzivatele' => $this->posledniZmenaPrihlaseni->idUzivatele(),
+                        'idAktivity' => $this->posledniZmenaPrihlaseni->idAktivity(),
+                        'idLogu' => $this->posledniZmenaPrihlaseni->idLogu(),
+                        'casZmeny' => $this->posledniZmenaPrihlaseni->casZmeny()->format(DATE_ATOM),
+                        'casZmenyProJs' => $this->posledniZmenaPrihlaseni->casZmenyProJs(),
+                        'typPrezence' => $this->posledniZmenaPrihlaseni->typPrezence(),
+                        'typPrezenceProJs' => $this->posledniZmenaPrihlaseni->typPrezenceProJs(),
+                    ]
+                    : null,
+            ];
         }
         return $obsah;
     }
