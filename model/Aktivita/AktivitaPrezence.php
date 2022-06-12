@@ -240,20 +240,20 @@ class AktivitaPrezence
     }
 
     /**
-     * @param string[][][] $idsPoslednichLoguUcastniku Například {"4387":[{"idUzivatele":"102","idPoslednihoLogu":"66329"}],"4389":[{"idUzivatele":"295","idPoslednihoLogu":"66382"},{"idUzivatele":"73","idPoslednihoLogu":"66385"}]}
+     * @param string[][][] $idsPoslednichZnamychLoguUcastniku Například {"4387":[{"idUzivatele":"102","idPoslednihoLogu":"66329"}],"4389":[{"idUzivatele":"295","idPoslednihoLogu":"66382"},{"idUzivatele":"73","idPoslednihoLogu":"66385"}]}
      * Formát viz online-prezence-posledni-zname-zmeny-prihlaseni.js
      * @return array
      * @throws \DbException
      */
-    private static function dejDataPoslednichZmen(array $idsPoslednichLoguUcastniku): array {
-        if (!$idsPoslednichLoguUcastniku) {
+    private static function dejDataPoslednichZmen(array $idsPoslednichZnamychLoguUcastniku): array {
+        if (!$idsPoslednichZnamychLoguUcastniku) {
             return [];
         }
 
         $whereOrArray = [];
         $sqlQueryParametry = [];
         $indexSqlParametru = 0;
-        foreach ($idsPoslednichLoguUcastniku as $idAktivity => $uzivateleALogy) {
+        foreach ($idsPoslednichZnamychLoguUcastniku as $idAktivity => $uzivateleALogy) {
             $idAktivity = (int)$idAktivity;
             $idZnamychUcastnikuAktivity = [];
             $idPoslednihZnamychLogu = [];
