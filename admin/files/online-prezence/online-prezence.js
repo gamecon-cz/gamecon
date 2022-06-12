@@ -408,6 +408,8 @@ const akceAktivity = new class AkceAktivity {
    * @param {HTMLElement} zobrazitElement
    */
   uzavritAktivitu(idAktivity, skrytElement, zobrazitElement) {
+    vypustEventOProbihajicichZmenach(true)
+
     const that = this
     $.post(location.href, {
       /** viz \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax::ajaxUzavritAktivitu */
@@ -423,6 +425,8 @@ const akceAktivity = new class AkceAktivity {
       } else {
         that.zablokovatEditaciAktivity(idAktivity)
       }
+    }).always(function () {
+      vypustEventOProbihajicichZmenach(false)
     })
   }
 
@@ -470,6 +474,13 @@ const akceAktivity = new class AkceAktivity {
   }
 }
 
+/**
+ * @param {boolean} probihaji
+ */
+function vypustEventOProbihajicichZmenach(probihaji) {
+  const provadimeZmenyEvent = new CustomEvent('probihajiZmeny', {detail: {probihaji: probihaji}})
+  dejNodeOnlinePrezence().dispatchEvent(provadimeZmenyEvent)
+}
 
 /**
  * @param {number} idUzivatele
@@ -485,6 +496,8 @@ function zmenitPritomnostUcastnika(
   triggeringNode,
   callbackOnSuccess,
 ) {
+  vypustEventOProbihajicichZmenach(true)
+
   checkboxNode.disabled = true
   dorazil = checkboxNode.checked
   $.post(location.href, {
@@ -518,8 +531,7 @@ function zmenitPritomnostUcastnika(
           razitkoPosledniZmeny: data.razitko_posledni_zmeny,
         },
       })
-      const onlinePrezence = document.getElementById('online-prezence')
-      onlinePrezence.dispatchEvent(zmenaMetadatPrezence)
+      dejNodeOnlinePrezence().dispatchEvent(zmenaMetadatPrezence)
 
       if (callbackOnSuccess) {
         callbackOnSuccess()
@@ -542,6 +554,8 @@ function zmenitPritomnostUcastnika(
     triggeringNode = triggeringNode || checkboxNode
     const errorsEvent = new CustomEvent('ajaxErrors', {detail: detail})
     dejNodeAktivity(idAktivity).dispatchEvent(errorsEvent)
+  }).always(function () {
+    vypustEventOProbihajicichZmenach(false)
   })
 }
 
@@ -577,6 +591,13 @@ function dejNodeUcastnika(idUzivatele, idAktivity) {
  */
 function dejNodeAktivity(idAktivity) {
   return document.getElementById(`aktivita-${idAktivity}`)
+}
+
+/**
+ * @return {HTMLElement}
+ */
+function dejNodeOnlinePrezence() {
+  return document.getElementById('online-prezence')
 }
 
 /**
