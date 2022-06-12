@@ -47,7 +47,7 @@ input:not([disabled])[type=checkbox] {
   cursor: help;
 }
 
-input[data-bs-toggle="tooltip"] {
+input[data-bs-toggle="tooltip"]:not([disabled]) {
   cursor: inherit;
 }
 
