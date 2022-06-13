@@ -3,6 +3,11 @@
 
     const onlinePrezence = document.getElementById('online-prezence')
 
+    // SEMAFOR
+    onlinePrezence.addEventListener('probihajiZmeny', function (/** @param {{detail: probihaji: boolean}} */event) {
+      onlinePrezence.dataset.probihajiZmeny = event.detail.probihaji
+    })
+
     if (!onlinePrezence) {
       return // Nevedeš žádné aktivity 😞
     }
