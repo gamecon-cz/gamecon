@@ -15,16 +15,16 @@
     - [X] tlačítko Přihlásit na GC
     - [ ] tlačítko Přijel na GC
       - [ ] *(optional)* Kontrola povinných polí
-    - [ ] tlačítko Vydat balíček
+    - [X] tlačítko Vydat balíček
     - [X] Odjel z GC
     - [X] tlačítko Odhlásit z GC
 
     - [ ] *(optional)* Reversovatelné akce z židle "finance"
-    - [ ] Řešení komunikace aktuálního stavu a stavů tlačítek s uživatelem *(klikatelné, kliknuté, nekliklatelné)*
+    - [X] Řešení komunikace aktuálního stavu a stavů tlačítek s uživatelem *(klikatelné, kliknuté, nekliklatelné)*
   - [ ] /Infopult default pro “Infopult” židli
   - [ ] Karta přehled
     - [ ] úpravy pole
-      - [ ] Stav účtu červeně záporná hodnota
+      - [X] Stav účtu červeně záporná hodnota
       - [ ] Poznámka - bude editovatelné
       - [ ] Covid test - manuálním ověření odkliknutím
       - [ ] Potvrzení
@@ -127,6 +127,11 @@
   - [ ] Doladit rozhraní (hover zvýraznění, zašednutí prodaných, přidat confirmace kde by měli být, když kliknu - na předmětu kterej má 1 tak naběhne 0 a spadne dolů zašedlej kdybych náhodou překlepl)
 
 Nebude součástí tohoto PR: Možnost rušení objednávek
+
+- [ ] Vykopírovat nehotové TODO jinam (do Trella)
+- [ ] Připravit na merge
+    - zohlednit 900-importér-balíčků
+
 
 - [ ] smazat doc-image
 - [ ] smazat tohle TODO
