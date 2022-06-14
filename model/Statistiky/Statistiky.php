@@ -119,18 +119,19 @@ SQL,
         );
 
         return tabMysql(dbQuery(<<<SQL
-  SELECT
-    jmeno_zidle as " ",
-    COUNT(uzivatele_zidle.id_uzivatele) as Celkem,
-    COUNT(z_prihlasen.id_zidle) as Přihlášen
-  FROM r_zidle_soupis AS zidle
-  LEFT JOIN r_uzivatele_zidle AS uzivatele_zidle ON zidle.id_zidle = uzivatele_zidle.id_zidle
-  LEFT JOIN r_uzivatele_zidle AS z_prihlasen ON
-    z_prihlasen.id_zidle = $0 AND
-    z_prihlasen.id_uzivatele = uzivatele_zidle.id_uzivatele
-  WHERE zidle.id_zidle IN ($1)
-  GROUP BY zidle.id_zidle, zidle.jmeno_zidle
-  ORDER BY SUBSTR(zidle.jmeno_zidle, 1, 10), zidle.id_zidle
+SELECT
+    zidle.jmeno_zidle as " ",
+    COUNT(uzivatele_zidle.id_uzivatele) as `Celkem`,
+    COUNT(zidle_prihlasen.id_zidle) as `Přihlášen`
+FROM r_zidle_soupis AS zidle
+LEFT JOIN r_uzivatele_zidle AS uzivatele_zidle
+    ON zidle.id_zidle = uzivatele_zidle.id_zidle
+LEFT JOIN r_uzivatele_zidle AS zidle_prihlasen
+    ON zidle_prihlasen.id_zidle = $0
+        AND zidle_prihlasen.id_uzivatele = uzivatele_zidle.id_uzivatele
+WHERE zidle.id_zidle IN ($1)
+GROUP BY zidle.id_zidle, zidle.jmeno_zidle
+ORDER BY SUBSTR(zidle.jmeno_zidle, 1, 10), zidle.id_zidle
 SQL, [
             Zidle::prihlasenNaGcRoku($this->letosniRok),
             $sledovaneZidle,
@@ -139,14 +140,16 @@ SQL, [
 
     public function tabulkaPredmetuHtml(): string {
         return tabMysql(dbQuery(<<<SQL
-  SELECT
+SELECT
     shop_predmety.nazev Název,
     shop_predmety.model_rok Model,
     COUNT(shop_nakupy.id_predmetu) Počet
-  FROM shop_nakupy
-  JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
-  WHERE shop_nakupy.rok=$0 AND shop_predmety.typ IN ($1)
-  GROUP BY shop_nakupy.id_predmetu
+FROM shop_nakupy
+JOIN shop_predmety
+    ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
+WHERE shop_nakupy.rok=$0
+    AND shop_predmety.typ IN ($1)
+GROUP BY shop_nakupy.id_predmetu
 SQL, [
             $this->letosniRok,
             [\Shop::PREDMET, \Shop::TRICKO],
@@ -180,27 +183,31 @@ SQL, [
 
         return tabMysql(dbQuery(<<<SQL
 SELECT Den, Počet FROM (
-SELECT
-    SUBSTR(predmety.nazev,11) Den,
-    COUNT(nakupy.id_predmetu) Počet,
-    predmety.ubytovani_den
-  FROM shop_nakupy AS nakupy
-  JOIN shop_predmety AS predmety ON nakupy.id_predmetu=predmety.id_predmetu
-  WHERE nakupy.rok=$0 AND predmety.typ=$1
-  GROUP BY predmety.ubytovani_den
+    SELECT
+        SUBSTR(predmety.nazev,11) Den,
+        COUNT(nakupy.id_predmetu) Počet,
+        predmety.ubytovani_den
+    FROM shop_nakupy AS nakupy
+    JOIN shop_predmety AS predmety
+        ON nakupy.id_predmetu=predmety.id_predmetu
+    WHERE nakupy.rok=$0
+        AND predmety.typ=$1
+    GROUP BY predmety.ubytovani_den
 UNION ALL
-  SELECT 'neubytovaní' as Den,
+    SELECT 'neubytovaní' as Den,
          COUNT(*) as Počet,
          'zzz' AS ubytovani_den
-  FROM r_uzivatele_zidle AS uzivatele_zidle
-  LEFT JOIN(
-    SELECT nakupy.id_uzivatele
-    FROM shop_nakupy AS nakupy
-    JOIN shop_predmety AS predmety ON nakupy.id_predmetu=predmety.id_predmetu AND predmety.typ=$1
-    WHERE nakupy.rok=$0
-    GROUP BY nakupy.id_uzivatele
-  ) nn ON nn.id_uzivatele=uzivatele_zidle.id_uzivatele
-  WHERE id_zidle=$2 AND ISNULL(nn.id_uzivatele)
+    FROM r_uzivatele_zidle AS uzivatele_zidle
+    LEFT JOIN(
+        SELECT nakupy.id_uzivatele
+        FROM shop_nakupy AS nakupy
+        JOIN shop_predmety AS predmety
+            ON nakupy.id_predmetu=predmety.id_predmetu
+                AND predmety.typ=$1
+        WHERE nakupy.rok=$0
+        GROUP BY nakupy.id_uzivatele
+    ) nn ON nn.id_uzivatele=uzivatele_zidle.id_uzivatele
+    WHERE id_zidle=$2 AND ISNULL(nn.id_uzivatele)
 ORDER BY ubytovani_den
 ) AS serazeno
 SQL, [
