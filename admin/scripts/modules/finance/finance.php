@@ -8,6 +8,11 @@
  * submenu_group: 5
  */
 
+/**
+ * @var Uzivatel $u
+ * @var Uzivatel|null $uPracovni
+ */
+
 if (post('uzivatelProPripsaniSlevy')) {
     $uzivatel = Uzivatel::zId(post('uzivatelProPripsaniSlevy'));
     if (!$uzivatel) chyba(sprintf('Uživatel %d neexistuje.', post('uzivatelProPripsaniSlevy')));

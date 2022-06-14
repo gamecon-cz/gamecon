@@ -4,16 +4,27 @@
 <!-- TODO upo na výběr uživatele -->
 
 <style>
-  .shopUbytovani_prvniSloupec, .shopUbytovani_sloupec { float: left; width: 65px; }
-  .shopUbytovani_radek { height: 40px; }
-  .tooltip_obsah { display: none; }
+    .shopUbytovani_prvniSloupec, .shopUbytovani_sloupec {
+        float: left;
+        width: 65px;
+    }
+
+    .shopUbytovani_radek {
+        height: 40px;
+    }
+
+    .tooltip_obsah {
+        display: none;
+    }
 </style>
 
 
 <div class="aBox">
   <h3>Ubytování uživatele</h3>
   <!-- begin:ubytovani -->
-  Standardně povolujeme pouze změnu ubytování ze spacáku na postel nebo jiný „upgrade“ (v opačném případě by postel zůstala volná a reálně by ji tak platil GameCon). Odhlášení z ubytování umožňujeme nejpozději den předem, pokud člověk např. nečekaně musí odjet. Odhlášení neděle povolujeme (člověk se často splete).<br><br>
+  Standardně povolujeme pouze změnu ubytování ze spacáku na postel nebo jiný „upgrade“ (v opačném případě by postel
+  zůstala volná a reálně by ji tak platil GameCon). Odhlášení z ubytování umožňujeme nejpozději den předem, pokud člověk
+  např. nečekaně musí odjet. Odhlášení neděle povolujeme (člověk se často splete).<br><br>
   <form method="post">
     {shop.ubytovaniHtml}<br>
     <input type="submit" name="zpracujUbytovani" value="Uložit">
@@ -26,7 +37,8 @@
 <div class="aBox">
   <h3>Jídlo uživatele</h3>
   <!-- begin:jidlo -->
-  Zrušit jídlo je možné jenom oproti vrácené stravence. Při objednání jídla je naopak potřeba předat stravenku (a zkontrolovat stav financí). Snídaně nabízíme jen organizátorům a vypravěčům.<br><br>
+  Zrušit jídlo je možné jenom oproti vrácené stravence. Při objednání jídla je naopak potřeba předat stravenku (a
+  zkontrolovat stav financí). Snídaně nabízíme jen organizátorům a vypravěčům.<br><br>
   <form method="post">
     {shop.jidloHtml}
     <input type="submit" name="zpracujJidlo" value="Uložit">
@@ -78,7 +90,9 @@
 
 <div class="aBox">
   <h3>Importér ubytování</h3>
-  Přepíše kompletně letošní údaje o ubytování. Jako soubor slouží ubytovací report ve formátu CSV. (Pozor, excel při zmáčknutí ctrl+s soubor zmrší a při opětovném otevření už ho sám nepřečte. Místo toho je potřeba ručně dát „uložit jako“ a z nabídky typů vybrat „CSV oddělený středníkem“)
+  Přepíše kompletně letošní údaje o ubytování. Jako soubor slouží <a href="reporty/{ubytovaniReport}">ubytovací
+  report</a>. (Pozor, excel při zmáčknutí ctrl+s soubor zmrší a při opětovném otevření už ho sám nepřečte. Místo toho je
+  potřeba ručně dát „uložit jako“ a z nabídky typů vybrat „CSV oddělený středníkem“)
   <br><br>
   <form method="post" enctype="multipart/form-data">
     <input type="file" name="pokojeSoubor"><br><br>

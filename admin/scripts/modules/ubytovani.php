@@ -86,5 +86,7 @@ if (!$uPracovni) {
     $t->assign('status', '<div class="error">Uživatel není přihlášen na GC</div>');
 }
 
+$t->assign('ubytovaniReport', basename(__DIR__ . '/../zvlastni/reporty/ubytovani.php', '.php'));
+
 $t->parse('ubytovani');
 $t->out('ubytovani');
