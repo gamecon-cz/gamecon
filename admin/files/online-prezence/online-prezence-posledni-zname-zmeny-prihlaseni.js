@@ -3,14 +3,14 @@
 
     const onlinePrezence = document.getElementById('online-prezence')
 
+    if (!onlinePrezence) {
+      return // Nevedeš žádné aktivity 😞
+    }
+
     // SEMAFOR
     onlinePrezence.addEventListener('probihajiZmeny', function (/** @param {{detail: probihaji: boolean}} */event) {
       onlinePrezence.dataset.probihajiZmeny = event.detail.probihaji
     })
-
-    if (!onlinePrezence) {
-      return // Nevedeš žádné aktivity 😞
-    }
 
     onlinePrezence.addEventListener(
       'zmenaMetadatPrezence',
