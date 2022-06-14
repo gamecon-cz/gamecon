@@ -12,7 +12,7 @@ $oldestOldWorldTournament2022 = reset($oldestOldWorldTournament2022Wrapped);
 unset($oldestOldWorldTournament2022Wrapped);
 
 $uzivatelGamecon = Uzivatel::zNicku('Gamecon');
-$uzivatelGamecon->gcPrihlas();
+$uzivatelGamecon->gcPrihlas($uzivatelGamecon);
 
 $puvodniStav = $oldestOldWorldTournament2022->stav();
 $oldestOldWorldTournament2022->aktivuj();
