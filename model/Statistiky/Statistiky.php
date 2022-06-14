@@ -120,18 +120,19 @@ SQL,
         );
 
         return tabMysql(dbQuery(<<<SQL
-  SELECT
-    jmeno_zidle as " ",
-    COUNT(uzivatele_zidle.id_uzivatele) as Celkem,
-    COUNT(z_prihlasen.id_zidle) as Přihlášen
-  FROM r_zidle_soupis AS zidle
-  LEFT JOIN r_uzivatele_zidle AS uzivatele_zidle ON zidle.id_zidle = uzivatele_zidle.id_zidle
-  LEFT JOIN r_uzivatele_zidle AS z_prihlasen ON
-    z_prihlasen.id_zidle = $0 AND
-    z_prihlasen.id_uzivatele = uzivatele_zidle.id_uzivatele
-  WHERE zidle.id_zidle IN ($1)
-  GROUP BY zidle.id_zidle, zidle.jmeno_zidle
-  ORDER BY SUBSTR(zidle.jmeno_zidle, 1, 10), zidle.id_zidle
+SELECT
+    zidle.jmeno_zidle as "Role",
+    COUNT(uzivatele_zidle.id_uzivatele) AS `<span class="hinted">Celkem<span class="hint">Všech uživatelů s rolí i bez přihlášení</span></span>`,
+    COUNT(zidle_prihlasen.id_zidle) AS `<span class="hinted">Přihlášen<span class="hint">Letos přihlášených uživatelů s rolí</span></span>`
+FROM r_zidle_soupis AS zidle
+LEFT JOIN r_uzivatele_zidle AS uzivatele_zidle
+    ON zidle.id_zidle = uzivatele_zidle.id_zidle
+LEFT JOIN r_uzivatele_zidle AS zidle_prihlasen
+    ON zidle_prihlasen.id_zidle = $0
+        AND zidle_prihlasen.id_uzivatele = uzivatele_zidle.id_uzivatele
+WHERE zidle.id_zidle IN ($1)
+GROUP BY zidle.id_zidle, zidle.jmeno_zidle
+ORDER BY SUBSTR(zidle.jmeno_zidle, 1, 10), zidle.id_zidle
 SQL, [
             Zidle::prihlasenNaGcRoku($this->letosniRok),
             $sledovaneZidle,
