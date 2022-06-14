@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Shop\Shop;
+
 /** @var \Godric\DbMigrations\Migration $this */
 
 $verejny = Shop::VEREJNY;

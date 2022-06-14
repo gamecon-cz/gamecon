@@ -862,3 +862,26 @@ button .ajax-loader {
 select:focus {
   border: antiquewhite 1px solid;
 }
+
+.sticky-pinned {
+  position: -webkit-sticky; /* Safari */
+  position: sticky;
+  top: -1px;
+}
+
+.pinned {
+  background-color: rgba(240, 240, 240, 0.42);
+  z-index: 100;
+}
+
+.kotva {
+  text-decoration: none;
+  color: gray;
+  opacity: 0.6;
+  font-size: smaller;
+}
+
+.kotva::before {
+  /*nelze použít HTML zápis &nbsp;*/
+  content: '\00a0';
+}

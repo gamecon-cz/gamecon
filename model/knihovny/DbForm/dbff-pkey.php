@@ -1,17 +1,18 @@
 <?php
 
-class DbffPkey extends DbFormField {
+class DbffPkey extends DbFormField
+{
 
-  function display() {
-    return self::RAW;
-  }
+    public function display() {
+        return self::RAW;
+    }
 
-  function html() {
-    return '<input type="hidden" name="'.$this->postName().'" value="'.$this->value().'">';
-  }
+    public function html() {
+        return '<input type="hidden" name="' . $this->postName() . '" value="' . $this->value() . '">';
+    }
 
-  function loadPost() {
-    $this->value($this->postValue());
-  }
+    public function loadPost() {
+        $this->value($this->postValue());
+    }
 
 }
