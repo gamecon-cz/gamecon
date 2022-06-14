@@ -26,6 +26,9 @@
     - [ ] úpravy pole
       - [X] Stav účtu červeně záporná hodnota
       - [ ] Poznámka - bude editovatelné
+        - [X] přidat
+        - [ ] Opravit stylování
+        - [ ] uložit disabled dokud nedojde k editaci
       - [ ] Covid test - manuálním ověření odkliknutím
       - [ ] Potvrzení
         - [ ] přejmenovat na Souhlas rodičů
@@ -132,6 +135,7 @@ Nebude součástí tohoto PR: Možnost rušení objednávek
 - [ ] Připravit na merge
     - zohlednit 900-importér-balíčků
 
+- [ ] smazat poznamkaHtml z uživatele (po smazání úvodu už nemá využití)
 
 - [ ] smazat doc-image
 - [ ] smazat tohle TODO

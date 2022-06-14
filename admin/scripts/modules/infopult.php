@@ -204,7 +204,7 @@ if ($uPracovni) {
         'ubytovani' => $up->dejShop()->dejPopisUbytovani(),
         'aa' => $u->koncovkaDlePohlavi(),
         'org' => $u->jmenoNick(),
-        'poznamka' => $up->poznamkaHtml(),
+        'poznamka' => $up->poznamka(),
         'up' => $up,
     ]);
     if ($up->finance()->stav() < 0 && !$up->gcPritomen()) {
@@ -317,7 +317,6 @@ if ($uPracovni) {
         'telefon_uzivatele' => 'Telefon',
         'datum_narozeni' => 'Narozen' . $uPracovni->koncA(),
         'email1_uzivatele' => 'E-mail',
-        'poznamka' => 'Poznámka',
         // 'op'                    =>          'Číslo OP',
         'potvrzeni_zakonneho_zastupce' => 'Potvrzení',
     ];

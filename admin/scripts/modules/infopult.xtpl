@@ -114,8 +114,17 @@
     <tr>
       <td><span class="hinted">Poznámka:<span class="hint">K úpravě klikněte na pole Poznámka v Osobních údajích</span></span>
       </td>
-      <td style="cursor:pointer" onclick="$('#editace_udaju_uzivatele_trigger').click(); $('#udaj_poznamka').focus();">
-        {poznamka}
+      <td >
+        <form method="post">
+          <table class="cista input" style="width: 100%;"><tbody><tr>
+            <td>
+              <input type="text" name="poznamka" value="{poznamka}" style="margin-left: -3px;">
+            </td>
+            <td>
+              <input type="submit" name="poznamkaNastav" value="uložit"></td>
+            </td>
+          </tr></tbody></table>
+        </form>
       </td>
     </tr>
     <tr>
