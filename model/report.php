@@ -1,6 +1,7 @@
 <?php
 
 use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
+use Box\Spout\Writer\Common\Creator\Style\StyleBuilder;
 
 /**
  * Třída pro vytvoření a vypsání reportu
@@ -25,12 +26,30 @@ class Report
         $fileName = $this->nazevSouboru('xlsx', $nazevReportu);
         $writer->openToBrowser($fileName); // stream data directly to the browser
 
-        $rowFromValues = WriterEntityFactory::createRowFromArray($this->hlavicky());
-        $writer->addRow($rowFromValues);
+        $styleBold = (new StyleBuilder())->setFontBold()->build();
+        $row = WriterEntityFactory::createRowFromArray($this->hlavicky(), $styleBold);
+        $writer->addRow($row);
 
+        $styleInteger = (new StyleBuilder())->setFormat('0')->build();
+        $styleNumber = (new StyleBuilder())->setFormat('0.0')->build();
+        $styleMoney = (new StyleBuilder())->setFormat('0.00')->build();
         while ($radek = $this->radek()) {
-            $rowFromValues = WriterEntityFactory::createRowFromArray($radek);
-            $writer->addRow($rowFromValues);
+            $cells = [];
+            foreach ($radek as $hodnota) {
+                if ((string)(int)$hodnota === trim((string)$hodnota)) {
+                    $cells[] = WriterEntityFactory::createCell((int)$hodnota, $styleInteger);
+                } elseif (preg_match('~^-?\d+[.,]\d{2}$~', trim((string)$hodnota))) {
+                    $cells[] = WriterEntityFactory::createCell((float)$hodnota, $styleMoney);
+                } else if ((string)(float)$hodnota === trim((string)$hodnota)
+                    || preg_match('~^-?\d+([.,]\d+)?$~', trim((string)$hodnota))
+                ) {
+                    $cells[] = WriterEntityFactory::createCell((float)$hodnota, $styleNumber);
+                } else {
+                    $cells[] = WriterEntityFactory::createCell($hodnota);
+                }
+            }
+            $row = WriterEntityFactory::createRow($cells);
+            $writer->addRow($row);
         }
 
         $writer->close();
