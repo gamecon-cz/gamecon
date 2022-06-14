@@ -10,7 +10,10 @@ use Gamecon\Shop\Shop;
  * submenu_group: 5
  */
 
-/** @var Uzivatel $u */
+/**
+ * @var Uzivatel $u
+ * @var Uzivatel|null $uPracovni
+ */
 
 if (post('uzivatelProPripsaniSlevy')) {
     $uzivatel = Uzivatel::zId(post('uzivatelProPripsaniSlevy'));
