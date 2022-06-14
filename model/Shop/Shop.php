@@ -277,7 +277,7 @@ SQL
         $druhy = $this->jidlo['druhy'];
         $jidla = $this->jidlo['jidla'];
         // vykreslení
-        $t = new XTemplate(__DIR__ . '/shop-jidlo.xtpl');
+        $t = new XTemplate(__DIR__ . '/templates/shop-jidlo.xtpl');
         if (!defined('PRODEJ_JIDLA_POZASTAVEN') || !PRODEJ_JIDLA_POZASTAVEN) {
             foreach (array_keys($druhy) as $druh) {
                 foreach (array_keys($dny) as $den) {
@@ -348,7 +348,7 @@ SQL
      * @todo vyprodání věcí
      */
     public function predmetyHtml() {
-        $t = new XTemplate(__DIR__ . '/shop-predmety.xtpl');
+        $t = new XTemplate(__DIR__ . '/templates/shop-predmety.xtpl');
 
         // předměty
         if (current($this->predmety)['stav'] == self::POZASTAVENY) {
@@ -448,7 +448,7 @@ SQL
 
     /** Vrátí html formuláře se vstupným */
     public function vstupneHtml() {
-        $t = new XTemplate(__DIR__ . '/shop-vstupne.xtpl');
+        $t = new XTemplate(__DIR__ . '/templates/shop-vstupne.xtpl');
         $t->assign([
             'jsSlider' => URL_WEBU . '/soubory/blackarrow/shop/shop-vstupne.js',
             'stav' => $this->u->gcPrihlasen()
