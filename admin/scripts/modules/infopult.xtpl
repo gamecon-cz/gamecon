@@ -8,7 +8,7 @@
 
     <form method="post">
     <span class="hinted">
-      <input type="submit" name="datMaterialy" value="Dát materiály" {datMaterialyBtnAttr}>
+      <input type="submit" name="datMaterialy" value="Přijel a Dát materiály" {datMaterialyBtnAttr}>
       <span class="hint">
         Před odkliknutím zkontroluj že proběhlo:
         <ul>
@@ -74,7 +74,7 @@
   <table>
     <tr>
       <td style="width: 60px">Stav účtu:</td>
-      <td> {stav}</td>
+      <td style={stavStyle}> {stav}</td>
     </tr>
     <tr>
       <td>Status:</td>

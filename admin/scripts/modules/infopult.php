@@ -188,6 +188,7 @@ if ($uPracovni) {
     $x->assign([
         'a' => $up->koncovkaDlePohlavi(),
         'stav' => ($up->finance()->stav() < 0 ? $err : $ok) . ' ' . $up->finance()->stavHr(),
+        'stavStyle' => ($up->finance()->stav() < 0 ? '"color: #f22; font-weight: bolder;"' : ""),
         'prehled' => $up->finance()->prehledHtml(),
         'slevyAktivity' => ($akt = $up->finance()->slevyAktivity()) ?
             '<li>' . implode('<li>', $akt) :
@@ -207,7 +208,7 @@ if ($uPracovni) {
         'up' => $up,
     ]);
     if ($up->finance()->stav() < 0 && !$up->gcPritomen()) {
-        $x->parse('uvod.nepritomen.upoMaterialy');
+        $x->parse('uvod.upoMaterialy');
     }
     if (!$up->gcPrihlasen()) {
         $x->parse('uvod.uzivatel.neprihlasen');
