@@ -1,4 +1,7 @@
 <?php
+
+use Gamecon\Shop\Shop;
+
 require __DIR__ . '/sdilene-hlavicky.php';
 
 $t = new XTemplate(__DIR__ . '/stravenky-bianco.xtpl');

@@ -3,17 +3,18 @@
 /**
  * @todo distinguish between nulls and empty strings
  */
-class DbffText extends DbFormField {
+class DbffText extends DbFormField
+{
 
-  function html() {
-    return
-      '<textarea name="'.$this->postName().'">'.
-      htmlspecialchars($this->value()).
-      '</textarea>';
-  }
+    public function html() {
+        return
+            '<textarea name="' . $this->postName() . '">' .
+            htmlspecialchars($this->value()) .
+            '</textarea>';
+    }
 
-  function loadPost() {
-    $this->value($this->postValue());
-  }
+    public function loadPost() {
+        $this->value($this->postValue());
+    }
 
 }

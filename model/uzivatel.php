@@ -2,6 +2,7 @@
 
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Shop\Shop;
 
 /**
  * Třída popisující uživatele a jeho vlastnosti

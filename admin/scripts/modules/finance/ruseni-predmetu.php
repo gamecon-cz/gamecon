@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Shop\Shop;
+
 /**
  * Nástroj na automatické rušení předmětů daného typu uživatelům s zůstatkem
  * menším jak X.

@@ -1,19 +1,25 @@
-<?php
+<?php declare(strict_types=1);
+
+namespace Gamecon\Shop;
+
+use Uzivatel;
+use Cenik;
+use ShopUbytovani;
+use XTemplate;
 
 /**
  * Třída starající se o e-shop, nákupy, formy a související
  */
-
 class Shop
 {
     // TYPY PŘEDMĚTŮ
-    public const PREDMET = 1;
-    public const UBYTOVANI = 2;
-    public const TRICKO = 3;
-    public const JIDLO = 4;
-    public const VSTUPNE = 5;
-    public const PARCON = 6;
-    public const PROPLACENI_BONUSU = 7;
+    public const PREDMET = TypPredmetu::PREDMET;
+    public const UBYTOVANI = TypPredmetu::UBYTOVANI;
+    public const TRICKO = TypPredmetu::TRICKO;
+    public const JIDLO = TypPredmetu::JIDLO;
+    public const VSTUPNE = TypPredmetu::VSTUPNE;
+    public const PARCON = TypPredmetu::PARCON;
+    public const PROPLACENI_BONUSU = TypPredmetu::PROPLACENI_BONUSU;
 
     // STAVY PŘEDMĚTŮ
     public const MIMO = 0;
@@ -24,32 +30,7 @@ class Shop
     public const PN_JIDLO = 'cShopJidlo';          // post proměnná pro jídlo
     public const PN_JIDLO_ZMEN = 'cShopJidloZmen'; // post proměnná indikující, že se má jídlo aktualizovat
 
-    protected
-        $u,
-        $cenik,               // instance ceníku
-        $nastaveni = [   // případné spec. chování shopu
-        'ubytovaniBezZamku' => false,   // ignorovat pozastavení objednávek u ubytování
-        'jidloBezZamku' => false,   // ignorovat pozastavení objednávek u jídla
-    ],
-        $ubytovani = [],
-        $tricka = [],
-        $predmety = [],
-        $jidlo = [],
-        $ubytovaniOd,
-        $ubytovaniDo,
-        $ubytovaniTypy = [],
-        $vstupne,       // dobrovolné vstupné (složka zaplacená regurélně včas)
-        $vstupnePozde,  // dobrovolné vstupné (složka zaplacená pozdě)
-        $vstupneJeVcas, // jestli se dobrovolné vstupné v tento okamžik chápe jako zaplacené včas
-        $klicU = 'shopU', //klíč formu pro identifikaci polí
-        $klicUPokoj = 'shopUPokoj', //s kým chce být na pokoji
-        $klicV = 'shopV', //klíč formu pro identifikaci vstupného
-        $klicP = 'shopP', //klíč formu pro identifikaci polí
-        $klicT = 'shopT', //klíč formu pro identifikaci polí s tričkama
-        $klicS = 'shopS'; //klíč formu pro identifikaci polí se slevami
-    //$quiet //todo
-
-    protected static $skoly = [
+    private static $skoly = [
         'UK Univerzita Karlova Praha',
         'MU Masarykova univerzita Brno',
         'VUT Vysoké učení technické Brno',
@@ -71,12 +52,98 @@ class Shop
         'UJAK Univerzita Jana Amose Komenského',
         'VŠCHT Vysoká škola chemicko-technologická v Praze',
     ];
-    protected static $dny = ['středa', 'čtvrtek', 'pátek', 'sobota', 'neděle'];
+
+    private static $dny = ['středa', 'čtvrtek', 'pátek', 'sobota', 'neděle'];
 
     /**
-     * Konstruktor
+     * @param Uzivatel[] $uzivatele
+     * @param string|int $typ
+     * @return void
+     * @throws \DbException
      */
-    function __construct(Uzivatel $u, $nastaveni = null) {
+    public static function zrusObjednavkyPro(array $uzivatele, $typ) {
+        $povoleneTypy = [self::PREDMET, self::UBYTOVANI, self::TRICKO, self::JIDLO];
+        if (!in_array($typ, $povoleneTypy)) {
+            throw new \Exception('Tento typ objednávek není možné hromadně zrušit');
+        }
+
+        $ids = array_map(static function ($u) {
+            return $u->id();
+        }, $uzivatele);
+
+        dbQuery(<<<SQL
+DELETE sn
+FROM shop_nakupy sn
+JOIN shop_predmety sp ON sp.id_predmetu = sn.id_predmetu AND sp.typ = $1
+WHERE sn.id_uzivatele IN ($2) AND sn.rok = $3
+SQL,
+            [$typ, $ids, ROK]
+        );
+    }
+
+    /** Smaže z názvu identifikaci dne */
+    public static function bezDne(string $nazev): string {
+        $re = ' ?pondělí| ?úterý| ?středa| ?čtvrtek| ?pátek| ?sobota| ?neděle';
+        return preg_replace('@' . $re . '@', '', $nazev);
+    }
+
+    /**
+     * @param int $rok
+     * @return Polozka[]
+     * @throws \DbException
+     */
+    public static function letosniPolozky(int $rok = ROK): array {
+        $polozkyData = dbFetchAll(<<<SQL
+SELECT predmety.id_predmetu,
+       TRIM(predmety.nazev) AS nazev,
+       predmety.cena_aktualni,
+       SUM(nakupy.cena_nakupni) AS suma,
+       predmety.model_rok,
+       MAX(nakupy.datum) AS naposledy_koupeno_kdy,
+       COUNT(nakupy.id_predmetu) AS prodano_kusu,
+       predmety.kusu_vyrobeno,
+       predmety.typ
+FROM shop_predmety AS predmety
+JOIN shop_nakupy AS nakupy
+    ON predmety.id_predmetu = nakupy.id_predmetu
+WHERE model_rok = $0
+GROUP BY predmety.id_predmetu, predmety.typ, predmety.ubytovani_den, predmety.nazev
+ORDER BY predmety.typ, predmety.ubytovani_den, TRIM(predmety.nazev)
+SQL,
+            [$rok]
+        );
+        $polozky = [];
+        foreach ($polozkyData as $polozkaData) {
+            $polozky[] = new Polozka($polozkaData);
+        }
+        return $polozky;
+    }
+
+    /** @var Uzivatel */
+    private $u;
+    private $cenik;                     // instance ceníku
+    private $nastaveni = [              // případné spec. chování shopu
+        'ubytovaniBezZamku' => false,   // ignorovat pozastavení objednávek u ubytování
+        'jidloBezZamku' => false,       // ignorovat pozastavení objednávek u jídla
+    ];
+    private $ubytovani = [];
+    private $tricka = [];
+    private $predmety = [];
+    private $jidlo = [];
+    private $ubytovaniOd;
+    private $ubytovaniDo;
+    private $ubytovaniTypy = [];
+    private $vstupne;                   // dobrovolné vstupné (složka zaplacená regurélně včas)
+    private $vstupnePozde;              // dobrovolné vstupné (složka zaplacená pozdě)
+    private $vstupneJeVcas;             // jestli se dobrovolné vstupné v tento okamžik chápe jako zaplacené včas
+    private $klicU = 'shopU';           // klíč formu pro identifikaci polí
+    private $klicUPokoj = 'shopUPokoj'; // s kým chce být na pokoji
+    private $klicV = 'shopV';           // klíč formu pro identifikaci vstupného
+    private $klicP = 'shopP';           // klíč formu pro identifikaci polí
+    private $klicT = 'shopT';           // klíč formu pro identifikaci polí s tričkama
+    private $klicS = 'shopS';           // klíč formu pro identifikaci polí se slevami
+
+    public function __construct(Uzivatel $u, array $nastaveni = null) {
         $this->u = $u;
         $this->cenik = new Cenik($u, $u->finance()->bonusZaVedeniAktivit());
         if (is_array($nastaveni)) {
@@ -183,7 +250,7 @@ SQL
                     $this->vstupnePozde = $r;
                 }
             } else {
-                throw new Exception('Objevil se nepodporovaný typ předmětu s č.' . var_export($r['typ'], true));
+                throw new \Exception('Objevil se nepodporovaný typ předmětu s č.' . var_export($r['typ'], true));
             }
             // vybrané předměty nastavit jako automaticky objednané
             if ($r['nabizet'] && $r['auto'] && $this->prvniNakup()) {
@@ -196,20 +263,14 @@ SQL
         $this->ubytovani = new ShopUbytovani($this->ubytovani, $this->u); // náhrada reprezentace polem za objekt
     }
 
-    /** Smaže z názvu identifikaci dne */
-    static function bezDne($nazev) {
-        $re = ' ?pondělí| ?úterý| ?středa| ?čtvrtek| ?pátek| ?sobota| ?neděle';
-        return preg_replace('@' . $re . '@', '', $nazev);
-    }
-
-    protected static function denNazev($cislo) {
+    private static function denNazev($cislo) {
         return self::$dny[$cislo];
     }
 
     /**
      * Vrátí html kód formuláře s výběrem jídla
      */
-    function jidloHtml() {
+    public function jidloHtml() {
         // inicializace
         ksort($this->jidlo['druhy']);
         $dny = $this->jidlo['dny'];
@@ -286,7 +347,7 @@ SQL
      * integraci více věcí naráz).
      * @todo vyprodání věcí
      */
-    function predmetyHtml() {
+    public function predmetyHtml() {
         $t = new XTemplate(__DIR__ . '/shop-predmety.xtpl');
 
         // předměty
@@ -372,21 +433,21 @@ SQL
     /**
      * Jestli je toto prvním nákupem daného uživatele
      */
-    protected function prvniNakup() {
+    private function prvniNakup() {
         return !$this->u->gcPrihlasen();
     }
 
     /** Vrátí html kód s rádiobuttonky pro vyklikání ubytování */
-    function ubytovaniHtml() {
+    public function ubytovaniHtml() {
         return $this->ubytovani->html();
     }
 
-    function covidFreePotrvzeniHtml(int $rok): string {
+    public function covidFreePotrvzeniHtml(int $rok): string {
         return $this->u->covidFreePotvrzeniHtml($rok);
     }
 
     /** Vrátí html formuláře se vstupným */
-    function vstupneHtml() {
+    public function vstupneHtml() {
         $t = new XTemplate(__DIR__ . '/shop-vstupne.xtpl');
         $t->assign([
             'jsSlider' => URL_WEBU . '/soubory/blackarrow/shop/shop-vstupne.js',
@@ -413,7 +474,7 @@ SQL
      * @todo zaintegrovat i jinde (ale zároveň nutno zobecnit pro vícenásobné
      * nákupy jednoho ID)
      */
-    protected function zmenObjednavku($stare, $nove) {
+    private function zmenObjednavku($stare, $nove) {
         $nechce = array_diff($stare, $nove);
         $chceNove = array_diff($nove, $stare);
         // přírustky
@@ -440,7 +501,7 @@ SQL
      * né kvůli zachování původní nákupní ceny (aktuální cena se totiž mohla od
      * nákupu změnit).
      */
-    function zpracujPredmety() {
+    public function zpracujPredmety() {
         if (isset($_POST[$this->klicP]) && isset($_POST[$this->klicT])) {
             // pole s předměty, které jsou vyplněné ve formuláři
             $nove = [];
@@ -477,8 +538,9 @@ SQL
                 dbQuery('DELETE FROM shop_nakupy WHERE id_uzivatele=' . $this->u->id() . ' AND id_predmetu=' . $idPredmetu . ' AND rok=' . ROK . ' LIMIT 1');
             // přidání předmětů, které doposud objednané nemá
             $q = 'INSERT INTO shop_nakupy(id_uzivatele,id_predmetu,rok,cena_nakupni,datum) VALUES ' . $pridat;
-            if (substr($q, -1) != ' ') //hack testující, jestli se přidala nějaká část
-                dbQuery(substr($q, 0, -1)); //odstranění nadbytečné čárky z poslední přidávané části a spuštění dotazu
+            if (substr($q, -1) != ' ') { // hack testující, jestli se přidala nějaká část
+                dbQuery(substr($q, 0, -1)); // odstranění nadbytečné čárky z poslední přidávané části a spuštění dotazu
+            }
         }
     }
 
@@ -486,16 +548,18 @@ SQL
      * Zpracuje část formuláře s ubytováním
      * @return bool jestli došlo k zpracování dat
      */
-    function zpracujUbytovani() {
+    public function zpracujUbytovani() {
         return $this->ubytovani->zpracuj();
     }
 
     /**
      * Zpracuje část formuláře s vstupným
      */
-    function zpracujVstupne() {
+    public function zpracujVstupne() {
         $castka = post($this->klicV);
-        if ($castka === null) return;
+        if ($castka === null) {
+            return;
+        }
         // rozdělení zadané částky na "včas" a "pozdě"
         $vstupneVcas = $this->vstupneJeVcas ? $castka : $this->vstupne['sum_cena_nakupni'];
         $vstupnePozde = $this->vstupneJeVcas ? 0 : max(0, $castka - $this->vstupne['sum_cena_nakupni']);
@@ -528,7 +592,7 @@ SQL
     }
 
     /** Zpracuje formulář s jídlem */
-    function zpracujJidlo() {
+    public function zpracujJidlo() {
         if (!isset($_POST[self::PN_JIDLO_ZMEN])) {
             return;
         }
@@ -537,38 +601,14 @@ SQL
         $this->zmenObjednavku($ma, $chce);
     }
 
-    static function zrusObjednavkyPro($uzivatele, $typ) {
-        $povoleneTypy = [self::PREDMET, self::UBYTOVANI, self::TRICKO, self::JIDLO];
-        if (!in_array($typ, $povoleneTypy)) {
-            throw new Exception('Tento typ objednávek není možné hromadně zrušit');
-        }
-
-        $ids = array_map(function ($u) {
-            return $u->id();
-        }, $uzivatele);
-
-        dbQuery('
-      DELETE sn
-      FROM shop_nakupy sn
-      JOIN shop_predmety sp ON sp.id_predmetu = sn.id_predmetu AND sp.typ = $1
-      WHERE sn.id_uzivatele IN ($2) AND sn.rok = $3
-    ', [$typ, $ids, ROK]);
-    }
-
-    ////////////////////
-    // Protected věci //
-    ////////////////////
-
     private function cenaTricka() {
-        $ceny = array_map(function ($t) {
-            return $t['cena_aktualni'];
-        }, $this->tricka);
+        $ceny = array_column($this->tricka, 'cena_aktualni');
         return max($ceny);
     }
 
     /**
      * @return float Hodnota prevedeneho bonusu prevedena na penize
-     * @throws DbException
+     * @throws \DbException
      */
     public function kupPrevodBonusuNaPenize(): float {
         $nevyuzityBonusZaAktivity = $this->u->finance()->nevyuzityBonusZaAktivity();
@@ -585,7 +625,7 @@ SQL
             , [self::PROPLACENI_BONUSU]
         );
         if (!$idPredmetuPrevodBonsuNaPenize) {
-            throw new RuntimeException(sprintf('Chybi virtualni "predmet" pro prevod bonusu na penize s typem %d', self::PROPLACENI_BONUSU));
+            throw new \RuntimeException(sprintf('Chybi virtualni "predmet" pro prevod bonusu na penize s typem %d', self::PROPLACENI_BONUSU));
         }
         dbQuery(<<<SQL
 INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni, datum)

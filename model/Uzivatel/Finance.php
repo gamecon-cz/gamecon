@@ -5,6 +5,7 @@ namespace Gamecon\Uzivatel;
 use Gamecon\Aktivita\TypAktivity;
 use Endroid\QrCode\Writer\Result\ResultInterface;
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Shop\Shop;
 
 /**
  * Třída zodpovídající za spočítání finanční bilance uživatele na GC.
@@ -472,9 +473,9 @@ SQL
         foreach ($o as $r) {
             $cena = $this->cenik->shop($r);
             // započtení ceny
-            if ($r['typ'] == \Shop::UBYTOVANI) {
+            if ($r['typ'] == Shop::UBYTOVANI) {
                 $this->cenaUbytovani += $cena;
-            } elseif ($r['typ'] == \Shop::VSTUPNE) {
+            } elseif ($r['typ'] == Shop::VSTUPNE) {
                 if (strpos($r['nazev'], 'pozdě') === false) {
                     $this->cenaVstupne = $cena;
                 } else {
@@ -488,14 +489,14 @@ SQL
                 $r['nazev'] = $r['nazev'] . ' ' . $r['model_rok'];
             }
             // logování do výpisu
-            if ($r['typ'] == \Shop::PREDMET) {
+            if ($r['typ'] == Shop::PREDMET) {
                 $soucty[$r['id_predmetu']]['nazev'] = $r['nazev'];
                 $soucty[$r['id_predmetu']]['typ'] = $r['typ'];
                 @$soucty[$r['id_predmetu']]['pocet']++;
                 @$soucty[$r['id_predmetu']]['suma'] += $cena;
-            } elseif ($r['typ'] == \Shop::VSTUPNE) {
+            } elseif ($r['typ'] == Shop::VSTUPNE) {
                 $this->logb($r['nazev'], $cena, self::VSTUPNE);
-            } elseif ($r['typ'] == \Shop::PROPLACENI_BONUSU) {
+            } elseif ($r['typ'] == Shop::PROPLACENI_BONUSU) {
                 $this->proplacenyBonusZaVedeniAktivit += $cena;
             } else {
                 $this->log($r['nazev'], $cena, $r['typ']);

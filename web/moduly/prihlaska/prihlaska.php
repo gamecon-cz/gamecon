@@ -1,6 +1,7 @@
 <?php
 
-use \Gamecon\Cas\DateTimeCz;
+use Gamecon\Cas\DateTimeCz;
+use Gamecon\Shop\Shop;
 
 /** @var XTemplate $t */
 /** @var Uzivatel $u */
