@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Shop\Shop;
+
 /**
  * Rychlé finanční transakce (obsolete) (starý kód)
  *

@@ -153,8 +153,10 @@ function markdown($text) {
 }
 
 /** Převede text markdown na html (přímo on the fly) */
-function markdownNoCache($text) {
-    if (!$text) return '';
+function markdownNoCache($text): string {
+    if (!$text) {
+        return '';
+    }
     $text = \Michelf\MarkdownExtra::defaultTransform($text);
     $text = Smartyp::defaultTransform($text);
     return $text;

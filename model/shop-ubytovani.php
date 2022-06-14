@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Shop\Shop;
+
 class ShopUbytovani
 {
 

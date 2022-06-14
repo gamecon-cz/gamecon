@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Shop\Shop;
+
 /**
  * Třída zodpovídající za spočítání finanční bilance uživatele na GC.
  */
