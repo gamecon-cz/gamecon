@@ -1,6 +1,8 @@
 <?php
 /** @var \Godric\DbMigrations\Migration $this */
 
+use Gamecon\Shop\Shop;
+
 $typProplaceniBonusu = Shop::PROPLACENI_BONUSU;
 $this->q(<<<SQL
 ALTER TABLE `shop_predmety`

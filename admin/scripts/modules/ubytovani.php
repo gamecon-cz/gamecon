@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Shop\Shop;
+
 /**
  * Stránka k editaci ubytovacích informací
  *

@@ -1,15 +1,16 @@
 <?php
 
-class Medailonek extends DbObject {
+class Medailonek extends DbObject
+{
 
-  protected static $tabulka = 'medailonky';
+    protected static $tabulka = 'medailonky';
 
-  function drd() {
-    return markdownNoCache($this->r['drd']);
-  }
+    public function drd(): string {
+        return markdownNoCache($this->r['drd']);
+    }
 
-  function oSobe() {
-    return markdownNoCache($this->r['o_sobe']);
-  }
+    public function oSobe(): string {
+        return markdownNoCache($this->r['o_sobe']);
+    }
 
 }

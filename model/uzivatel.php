@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Cas\DateTimeCz;
+use Gamecon\Shop\Shop;
 
 /**
  * Třída popisující uživatele a jeho vlastnosti
