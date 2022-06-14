@@ -120,9 +120,9 @@ SQL,
 
         return tabMysql(dbQuery(<<<SQL
 SELECT
-    zidle.jmeno_zidle as " ",
-    COUNT(uzivatele_zidle.id_uzivatele) as `Celkem`,
-    COUNT(zidle_prihlasen.id_zidle) as `Přihlášen`
+    zidle.jmeno_zidle as "Role",
+    COUNT(uzivatele_zidle.id_uzivatele) AS `<span class="hinted">Celkem<span class="hint">Všech uživatelů s rolí i bez přihlášení</span></span>`,
+    COUNT(zidle_prihlasen.id_zidle) AS `<span class="hinted">Přihlášen<span class="hint">Letos přihlášených uživatelů s rolí</span></span>`
 FROM r_zidle_soupis AS zidle
 LEFT JOIN r_uzivatele_zidle AS uzivatele_zidle
     ON zidle.id_zidle = uzivatele_zidle.id_zidle
