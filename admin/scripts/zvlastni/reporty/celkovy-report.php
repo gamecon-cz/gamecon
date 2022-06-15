@@ -144,4 +144,4 @@ while ($r = mysqli_fetch_assoc($o)) {
     );
 }
 
-Report::zPoli($hlavniHlavicka, $obsah)->tFormat(get('format'));
+Report::zPoli($hlavniHlavicka, $obsah)->tFormat(get('format'), null, 0);

@@ -1,7 +1,8 @@
 <?php
 
-use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
-use Box\Spout\Writer\Common\Creator\Style\StyleBuilder;
+use OpenSpout\Writer\Common\Creator\WriterEntityFactory;
+use OpenSpout\Writer\Common\Creator\Style\StyleBuilder;
+use OpenSpout\Writer\XLSX\Entity\SheetView;
 
 /**
  * Třída pro vytvoření a vypsání reportu
@@ -20,39 +21,75 @@ class Report
     /**
      * Vytiskne report jako XLSX
      */
-    public function tXlsx(string $nazevReportu = null) {
+    public function tXlsx(?string $nazevReportu, int $freeRows) {
         $writer = WriterEntityFactory::createXLSXWriter();
 
         $fileName = $this->nazevSouboru('xlsx', $nazevReportu);
         $writer->openToBrowser($fileName); // stream data directly to the browser
 
-        $styleBold = (new StyleBuilder())->setFontBold()->build();
-        $row = WriterEntityFactory::createRowFromArray($this->hlavicky(), $styleBold);
-        $writer->addRow($row);
+        if ($freeRows > 0) {
+            $sheetView = (new SheetView())->setFreezeRow($freeRows);
+            $writer->getCurrentSheet()->setSheetView($sheetView);
+        }
 
-        $styleInteger = (new StyleBuilder())->setFormat('0')->build();
-        $styleNumber = (new StyleBuilder())->setFormat('0.0')->build();
-        $styleMoney = (new StyleBuilder())->setFormat('0.00')->build();
+        $rows = [];
+
+        $headerStyle = (new StyleBuilder())->setFontBold()->setFontSize(10)->build();
+        $headerRow = WriterEntityFactory::createRowFromArray($this->hlavicky(), $headerStyle);
+        $rows[] = $headerRow;
+
+        $integerStyle = (new StyleBuilder())->setFormat('0')->build();
+        $numberStyle = (new StyleBuilder())->setFormat('0.0')->build();
+        $moneyStyle = (new StyleBuilder())->setFormat('0.00')->build();
+        $fontSizeStyle = (new StyleBuilder())->setFontSize(10)->build();
         while ($radek = $this->radek()) {
             $cells = [];
-            foreach ($radek as $hodnota) {
+            foreach ($radek as $index => $hodnota) {
                 if ((string)(int)$hodnota === trim((string)$hodnota)) {
-                    $cells[] = WriterEntityFactory::createCell((int)$hodnota, $styleInteger);
+                    $cells[] = WriterEntityFactory::createCell((int)$hodnota, $integerStyle);
                 } elseif (preg_match('~^-?\d+[.,]\d{2}$~', trim((string)$hodnota))) {
-                    $cells[] = WriterEntityFactory::createCell((float)$hodnota, $styleMoney);
+                    $cells[] = WriterEntityFactory::createCell((float)$hodnota, $moneyStyle);
                 } else if ((string)(float)$hodnota === trim((string)$hodnota)
                     || preg_match('~^-?\d+([.,]\d+)?$~', trim((string)$hodnota))
                 ) {
-                    $cells[] = WriterEntityFactory::createCell((float)$hodnota, $styleNumber);
+                    $cells[] = WriterEntityFactory::createCell((float)$hodnota, $numberStyle);
                 } else {
                     $cells[] = WriterEntityFactory::createCell($hodnota);
                 }
             }
-            $row = WriterEntityFactory::createRow($cells);
+            $rows[] = WriterEntityFactory::createRow($cells, $fontSizeStyle);
+        }
+
+        foreach ($this->calculateColumnsWidth($rows) as $columnNumber => $columnWidth) {
+            // musí být před prvním addRow
+            $writer->setColumnWidth($columnWidth, $columnNumber);
+        }
+
+        foreach ($rows as $row) {
             $writer->addRow($row);
         }
 
         $writer->close();
+    }
+
+    /**
+     * @param \OpenSpout\Common\Entity\Row[] $rows
+     * @return int[]
+     */
+    private function calculateColumnsWidth(array $rows): array {
+        $widths = [];
+        foreach ($rows as $row) {
+            foreach ($row->getCells() as $index => $cell) {
+                $pomer = $cell->getStyle()->isFontBold()
+                    ? 1.5
+                    : 1.3;
+                $widths[$index + 1] = max(
+                    (int)ceil(mb_strlen((string)$cell->getValue()) / $pomer) + 1,
+                    $widths[$index + 1] ?? 1
+                );
+            }
+        }
+        return $widths;
     }
 
     private function nazevSouboru(string $pripona, ?string $nazevReportu): string {
@@ -98,10 +135,10 @@ class Report
      * Vytiskne report v zadaném formátu. Pokud není zadán, použije výchozí csv.
      * @throws Exception pokud formát není podporován
      */
-    public function tFormat(string $format = null, string $nazev = null) {
+    public function tFormat(string $format = null, string $nazev = null, int $freeRows = 1) {
         $format = trim((string)$format);
         if (!$format || $format === 'xlsx') {
-            $this->tXlsx($nazev);
+            $this->tXlsx($nazev, $freeRows);
         } elseif ($format === 'csv') {
             $this->tCsv($nazev);
         } elseif ($format === 'html') {
