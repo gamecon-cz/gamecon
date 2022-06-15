@@ -1,9 +1,6 @@
 <?php
 
-use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
-
 if (!post('importBalicku')) {
-
     $importTemplate = new XTemplate(__DIR__ . '/_ubytovani-a-dalsi-obcasne-infopultakoviny-import-balicku.xtpl');
     $importTemplate->assign('baseUrl', URL_ADMIN);
 
@@ -29,19 +26,17 @@ EXISTS(SELECT 1 FROM shop_nakupy WHERE shop_nakupy.id_uzivatele = uzivatele_hodn
 SQL;
 };
 
-$zapsanoZmen = 0;
-
-$reader = ReaderEntityFactory::createXLSXReader();
+$reader = \OpenSpout\Reader\Common\Creator\ReaderEntityFactory::createXLSXReader();
 
 $reader->open($_FILES['souborSBalicky']['tmp_name']);
 
 $reader->getSheetIterator()->rewind();
-/** @var \Box\Spout\Reader\SheetInterface $sheet */
+/** @var \OpenSpout\Reader\SheetInterface $sheet */
 $sheet = $reader->getSheetIterator()->current();
 
 $rowIterator = $sheet->getRowIterator();
 $rowIterator->rewind();
-/** @var \Box\Spout\Common\Entity\Row|null $hlavicka */
+/** @var \OpenSpout\Common\Entity\Row|null $hlavicka */
 $row = $rowIterator->current();
 $hlavicka = array_flip($row->toArray());
 if (!array_keys_exist(['id_uzivatele', 'balicek'], $hlavicka)) {
@@ -57,7 +52,7 @@ $chyby = [];
 $varovani = [];
 $balickyProSql = [];
 $poradiRadku = 1;
-/** @var \Box\Spout\Common\Entity\Row|null $row */
+/** @var \OpenSpout\Common\Entity\Row|null $row */
 while ($rowIterator->valid()) {
     $radek = $rowIterator->current()->toArray();
     $poradiRadku++;
@@ -85,7 +80,7 @@ while ($rowIterator->valid()) {
         }
         if (!$uzivatel->gcPrihlasen()) {
             $varovani[] = sprintf(
-                'Účastník %s z řádku %d není na letošním Gameconu a byl přeskočen',
+                'Účastník %s z řádku %d není přihlášen na letošní Gamecon a byl přeskočen',
                 $uzivatel->jmenoNick(),
                 $poradiRadku,
             );
@@ -128,6 +123,7 @@ if ($varovani) {
     varovani('Drobnosti: ' . implode(',', $varovani), false);
 }
 
+$zapsanoZmen = 0;
 if ($balickyProSql) {
     $temporaryTable = uniqid('import_balicku_tmp_', true);
     dbQuery(<<<SQL

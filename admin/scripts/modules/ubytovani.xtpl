@@ -88,16 +88,4 @@
   <div style="clear: both"></div>
 </div>
 
-<div class="aBox">
-  <h3>Importér ubytování</h3>
-  Přepíše kompletně letošní údaje o ubytování. Jako soubor slouží <a href="reporty/{ubytovaniReport}">ubytovací
-  report</a>. (Pozor, excel při zmáčknutí ctrl+s soubor zmrší a při opětovném otevření už ho sám nepřečte. Místo toho je
-  potřeba ručně dát „uložit jako“ a z nabídky typů vybrat „CSV oddělený středníkem“)
-  <br><br>
-  <form method="post" enctype="multipart/form-data">
-    <input type="file" name="pokojeSoubor"><br><br>
-    <input type="submit" name="pokojeImport" value="Nahrát">
-  </form>
-</div>
-
 <!-- end:ubytovani -->
