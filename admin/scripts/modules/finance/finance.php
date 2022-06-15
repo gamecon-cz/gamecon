@@ -17,9 +17,15 @@ use Gamecon\Shop\Shop;
 
 if (post('uzivatelProPripsaniSlevy')) {
     $uzivatel = Uzivatel::zId(post('uzivatelProPripsaniSlevy'));
-    if (!$uzivatel) chyba(sprintf('Uživatel %d neexistuje.', post('uzivatelProPripsaniSlevy')));
-    if (!post('sleva')) chyba('Zadej slevu.');
-    if (!$uzivatel->gcPrihlasen()) chyba(sprintf('Uživatel %s není přihlášen na GameCon.', $uzivatel->jmenoNick()));
+    if (!$uzivatel) {
+        chyba(sprintf('Uživatel %d neexistuje.', post('uzivatelProPripsaniSlevy')));
+    }
+    if (!post('sleva')) {
+        chyba('Zadej slevu.');
+    }
+    if (!$uzivatel->gcPrihlasen()) {
+        chyba(sprintf('Uživatel %s není přihlášen na GameCon.', $uzivatel->jmenoNick()));
+    }
     $uzivatel->finance()->pripisSlevu(
         post('sleva'),
         post('poznamkaKUzivateliProPripsaniSlevy'),
@@ -27,10 +33,16 @@ if (post('uzivatelProPripsaniSlevy')) {
     );
     $numberFormatter = NumberFormatter::create('cs', NumberFormatter::PATTERN_DECIMAL);
     oznameni(sprintf('Sleva %s připsána k uživateli %s.', $numberFormatter->formatCurrency(post('sleva'), 'CZK'), $uzivatel->jmenoNick()));
-} else if (post('uzivatelKVyplaceniAktivity')) {
+}
+
+if (post('uzivatelKVyplaceniAktivity')) {
     $uzivatel = Uzivatel::zId(post('uzivatelKVyplaceniAktivity'));
-    if (!$uzivatel) chyba(sprintf('Uživatel %d neexistuje.', post('uzivatelKVyplaceniAktivity')));
-    if (!$uzivatel->gcPrihlasen()) chyba(sprintf('Uživatel %s není přihlášen na GameCon.', $uzivatel->jmenoNick()));
+    if (!$uzivatel) {
+        chyba(sprintf('Uživatel %d neexistuje.', post('uzivatelKVyplaceniAktivity')));
+    }
+    if (!$uzivatel->gcPrihlasen()) {
+        chyba(sprintf('Uživatel %s není přihlášen na GameCon.', $uzivatel->jmenoNick()));
+    }
     $shop = new Shop($uzivatel);
     $prevedenaCastka = $shop->kupPrevodBonusuNaPenize();
     if (!$prevedenaCastka) {
