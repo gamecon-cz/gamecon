@@ -3,11 +3,7 @@
 
 # Infopult
 
-
-
 ![](./doc-image/Infopult-stranka.png)
-
-
 
 - [ ] Infopult
   - [X] Přejmenovat úvod na infopult
@@ -23,12 +19,12 @@
     - [X] Řešení komunikace aktuálního stavu a stavů tlačítek s uživatelem *(klikatelné, kliknuté, nekliklatelné)*
   - [ ] /Infopult default pro “Infopult” židli
   - [ ] Karta přehled
+    - [ ] tlačítko uložit pro editace na přehledu
     - [ ] úpravy pole
       - [X] Stav účtu červeně záporná hodnota
       - [ ] Poznámka - bude editovatelné
         - [X] přidat
         - [ ] Opravit stylování
-        - [ ] uložit disabled dokud nedojde k editaci
       - [ ] Covid test - manuálním ověření odkliknutím
       - [ ] Potvrzení
         - [ ] přejmenovat na Souhlas rodičů
@@ -130,9 +126,16 @@
   - [ ] Možnost Editace organizátorem co na co proklikává
   - [ ] Doladit rozhraní (hover zvýraznění, zašednutí prodaných, přidat confirmace kde by měli být, když kliknu - na předmětu kterej má 1 tak naběhne 0 a spadne dolů zašedlej kdybych náhodou překlepl)
 
-Nebude součástí tohoto PR: Možnost rušení objednávek
+# Ujasnit
+  Infopult - přehled - poznámka: více řádků ? udělat jako text area?
+  *(optional)* Potvrzení při provedení změny v poli bez uložení
 
-- [ ] Vykopírovat nehotové TODO jinam (do Trella)
+
+# Bude součástí dalších PR
+  - undo stavu pro finance (navrácení akce při ukliknutí - přihlásit, přijel, dát materiály, odjel)
+  - Možnost rušení objednávek ?
+
+- [ ] Vykopírovat nehotové TODO pro další PR jinam (do Trella)
 - [ ] Připravit na merge
     - zohlednit 900-importér-balíčků
 
