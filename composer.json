@@ -41,7 +41,7 @@
     "ext-sqlite3": "*",
     "ext-xmlreader": "*",
     "ext-zip": "*",
-    "box/spout": "^3.3",
+    "openspout/openspout": "^3.0",
     "defuse/php-encryption": "^2.1",
     "dg/mysql-dump": "^1.5",
     "endroid/qr-code": "^4.2",
