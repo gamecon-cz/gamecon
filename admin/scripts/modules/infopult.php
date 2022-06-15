@@ -119,7 +119,7 @@ if (post('gcOdjed')) {
     back();
 }
 
-if (post('poznamkaNastav')) {
+if (post('prehledUprava')) {
     $uPracovni->poznamka(post('poznamka'));
     back();
 }

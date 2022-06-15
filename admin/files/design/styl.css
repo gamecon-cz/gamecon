@@ -15,6 +15,11 @@ html {
   margin-right: 8px;
 }
 
+.aBox .submit-btn {
+  float: right; 
+  margin-top: 4px;
+}
+
 body {
   font-family: tahoma, sans-serif;
   font-size: 12px;
