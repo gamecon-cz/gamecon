@@ -138,7 +138,7 @@ while ($r = mysqli_fetch_assoc($o)) {
             $r['pomoc_typ'], // dobrovolník pozice
             $r['pomoc_vice'], // dobrovolník info
             implode(", ", array_merge($f->slevyVse(), $f->slevyAktivity())), // Dárky a zlevněné nákupy
-            $f->prehledPopis(), // Objednávky
+            strip_tags($f->prehledPopis()), // Objednávky
             $r['poznamka'],
         ]
     );
