@@ -196,7 +196,7 @@
           <span class="col-xl col-md col-sm text-sm-center text-md-start align-self-center">
             <span
                 id="skoncila-{idAktivity}"
-                class="alert-info text-skoncila {displayNoneCssClassAktivitaSkoncila} skryt-pokud-aktivitu-nelze-editovat-{idAktivity}"
+                class="alert-info text-skoncila {displayNoneCssClassAktivitaSkoncila} skryt-pokud-aktivitu-nelze-editovat"
             >
               ✋ <em>Aktivita už skončila, pozor na úpravy</em> <span class="flipped-icon">✋</span>
             </span>
@@ -278,7 +278,9 @@
             <span class="col-md-4" id="omniboxHledam{idAktivity}" style="display: none"><em>Hledám...</em> ⏳</span>
             <span class="col-md-4 {displayNoneCssClassPozorUzavrena}" id="pozor-uzavrena-{idAktivity}"
                   style="white-space: nowrap">
-                  <span class="hinted" data-bs-toggle="tooltip" data-bs-placement="top"
+                  <span class="hinted skryt-pokud-aktivitu-nelze-editovat"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
                         title="Přídání účastníka zvýší jeho dluh. Zkontroluj jeho finance.">
                     <em style="vertical-align: sub">⚠️Pozor, aktivita je už uzavřená! ⚠️</em>
                   </span>
