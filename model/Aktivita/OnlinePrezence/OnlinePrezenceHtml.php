@@ -58,7 +58,10 @@ class OnlinePrezenceHtml
             $template->parse('onlinePrezence.test');
         }
 
-        ['url' => $urlZpet, 'nazev' => $textZpet] = $editujici->mimoMojeAktivityUvodniAdminUrl(URL_ADMIN, URL_WEBU);
+        ['url' => $urlZpet, 'nazev' => $textZpet] = $editujici->mimoMojeAktivityUvodniAdminUrl(
+            URL_ADMIN,
+            URL_WEBU
+        );
         $template->assign('urlZpet', $urlZpet);
         $template->assign('textZpet', $textZpet);
         $template->assign('jsVyjimkovac', $this->jsVyjimkovac);
@@ -124,16 +127,14 @@ class OnlinePrezenceHtml
         foreach ($organizovaneAktivity as $aktivita) {
             $editovatelnaOdTimestamp = $this->dejEditovatelnaOdTimestamp($aktivita);
             $editovatelnaDoTimestamp = $this->dejEditovatelnaDoTimestamp($aktivita);
-            $nekdoUzDorazil = $aktivita->nekdoUzDorazil();
-            $nikdoZatimNedorazil = !$nekdoUzDorazil;
-            $editovatelnaHned = $editovatelnaOdTimestamp === 0 && $editovatelnaDoTimestamp > 0;
-            $uzProbehla = $editovatelnaOdTimestamp === 0 && $editovatelnaDoTimestamp === 0;
-            $jesteNeprobehla = !$uzProbehla;
+            $editovatelnaHned = $editovatelnaOdTimestamp <= 0 && $editovatelnaDoTimestamp > 0;
+            $uzNejdeEditovat = $editovatelnaDoTimestamp <= 0;
+            $nejdeAlePujdeEditovat = !$editovatelnaHned && $editovatelnaDoTimestamp > 0;
             $zamcena = $aktivita->zamcena();
-            $odemcena = !$zamcena;
+            $uzavrena = $aktivita->uzavrena();
+            $otevrena = !$uzavrena;
             $maPravoNaZmenuHistorie = $vypravec->maPravoNaZmenuHistorieAktivit();
-            $nemaPravoNaZmenuHistorie = !$maPravoNaZmenuHistorie;
-            $muzeMenitUcastnikyHned = $editovatelnaHned && ($odemcena || $nikdoZatimNedorazil || $maPravoNaZmenuHistorie);
+            $muzeMenitUcastnikyHned = $editovatelnaHned || $maPravoNaZmenuHistorie;
             $nemuzeMenitUcastnikyHned = !$muzeMenitUcastnikyHned;
             $zmenaStavuAktivity = $aktivita->posledniZmenaStavuAktivity();
             $konec = $aktivita->konec();
@@ -154,27 +155,39 @@ class OnlinePrezenceHtml
             $template->assign('idPoslednihoLogu', $zmenaStavuAktivity ? $zmenaStavuAktivity->idLogu() : 0);
 
             // 🔒 Uzavřena pro online přihlašování 🔒
-            $template->assign('displayNoneCssClassUzavrena', $this->dejCssClassNeviditelnosti($odemcena));
+            $template->assign(
+                'displayNoneCssClassUzavrena',
+                $this->dejCssClassNeviditelnosti($otevrena)
+            );
             // Spustit a zamkout 🔒
             $template->assign(
                 'displayNoneCssClassUzavrit',
-                $this->dejCssClassNeviditelnosti($zamcena || !$editovatelnaHned || $uzProbehla)
+                $this->dejCssClassNeviditelnosti($uzavrena || $uzNejdeEditovat || $nejdeAlePujdeEditovat)
             );
             // ⏳ Můžeš ji editovat za ⏳
             $template->assign(
                 'displayNoneCssClassCeka',
-                $this->dejCssClassNeviditelnosti($zamcena || $editovatelnaHned || $uzProbehla)
+                $this->dejCssClassNeviditelnosti($zamcena || $editovatelnaHned || $uzNejdeEditovat)
             );
             // 💨 Proběhla bez povšimnutí 💨
             $template->assign(
+            /**
+             * Dost zvláštní případ, na ostré by se to mělo zamknout (nikoli uzavřít) případně samo
+             * @see \Gamecon\Aktivita\Aktivita::zamciZacinajiciDo
+             */
                 'displayNoneCssClassProbehlaBezPovsimnuti',
-                $this->dejCssClassNeviditelnosti($zamcena || $editovatelnaHned || $jesteNeprobehla)
+                $this->dejCssClassNeviditelnosti($zamcena || $editovatelnaHned || $nejdeAlePujdeEditovat)
             );
             // ✋ Aktivita už skončila, pozor na úpravy ✋
             $template->assign(
                 'displayNoneCssClassAktivitaSkoncila',
                 //zobrazíme pouze v případě, že aktivitu lze editovat i po skončení
                 $this->dejCssClassNeviditelnosti($nemuzeMenitUcastnikyHned || !$konec || ($konec > $this->systemoveNastaveni->ted()))
+            );
+            // ⚠️Pozor, aktivita je už uzavřená! ⚠️
+            $template->assign(
+                'displayNoneCssClassPozorUzavrena',
+                $this->dejCssClassNeviditelnosti($nemuzeMenitUcastnikyHned || ($uzNejdeEditovat && $maPravoNaZmenuHistorie))
             );
 
             foreach ($this->seradDleStavuPrihlaseni($aktivita->prihlaseni(), $aktivita) as $prihlasenyUzivatel) {
@@ -188,11 +201,6 @@ class OnlinePrezenceHtml
                 $template->parse('onlinePrezence.aktivity.aktivita.form.ucastnik');
             }
 
-            // ⚠️Pozor, aktivita už je uzavřená! ⚠
-            $template->assign(
-                'displayNoneCssClassPozorUzavrena',
-                $this->dejCssClassNeviditelnosti($odemcena || $nikdoZatimNedorazil || ($editovatelnaDoTimestamp <= 0 && $nemaPravoNaZmenuHistorie))
-            );
             $template->assign('disabledPridatUcastnika', $muzeMenitUcastnikyHned ? '' : 'disabled');
             $template->assign('idAktivity', $aktivita->id());
             $template->parse('onlinePrezence.aktivity.aktivita.form.pridatUcastnika');
