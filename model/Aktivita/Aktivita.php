@@ -2465,6 +2465,7 @@ SQL
         if (!$this->stav()->jeProbehnuta()) {
             throw new \LogicException("Aktivita {$this->id()} ještě není proběhnutá, nelze ji proto zavřít");
         }
+        // TODO namísto uzavrena použít stav \Stav::UZAVRENA = bude to šichta, \Stav::PROBEHNUTA se používá místo toho všude možně
         dbQuery('UPDATE akce_seznam SET uzavrena = 1 WHERE id_akce = ' . $this->id());
         $this->zalogujZmenuStavu(\Stav::UZAVRENA);
     }
