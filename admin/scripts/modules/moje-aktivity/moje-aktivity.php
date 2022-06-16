@@ -61,7 +61,7 @@ if ($testujeme) {
         // aby první dvě aktivity začínaly teď a neměli proto odpočet
         $onlinePrezenceTestovaciAktivity->upravZacatkyAktivitNa($prvniDveAktivity, $ted);
         // aby už skončily a zobrazilo se tak u nich varování
-//        $onlinePrezenceTestovaciAktivity->upravKonceAktivitNa($prvniDveAktivity, $ted);
+        $onlinePrezenceTestovaciAktivity->upravKonceAktivitNa($prvniDveAktivity, $ted);
     }
     if (count($organizovaneAktivity) > 3) {
         // aby jedna aktivita po chvíli skončila a zobrazila tak varování
@@ -72,8 +72,4 @@ if ($testujeme) {
     $organizovaneAktivity = $u->organizovaneAktivity();
 }
 
-echo $onlinePrezenceHtml->dejHtmlOnlinePrezence(
-    $u,
-    $organizovaneAktivity,
-    $systemoveNastaveni
-);
+echo $onlinePrezenceHtml->dejHtmlOnlinePrezence($u, $organizovaneAktivity);
