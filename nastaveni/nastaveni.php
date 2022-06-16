@@ -25,18 +25,6 @@ if (!defined('ROK')) define('ROK', 2022); // aktuální rok -- při změně roku
 $nastaveni = SystemoveNastaveni::vytvorZGlobalnich();
 $nastaveni->zaznamyDoKonstant();
 
-if (defined('BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU')) { // nemusí být ještě načtena před SQL migracemi
-    // OSTATNÍ FINANČNÍ NASTAVENÍ
-    @define('MODRE_TRICKO_ZDARMA_OD', 3 * BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU); // hodnota slevy od které má subjekt nárok na modré tričko
-
-    @define('BONUS_ZA_1H_AKTIVITU', SystemoveNastaveni::spocitejBonusVypravece('BONUS_ZA_1H_AKTIVITU'));
-    @define('BONUS_ZA_2H_AKTIVITU', SystemoveNastaveni::spocitejBonusVypravece('BONUS_ZA_2H_AKTIVITU'));
-    @define('BONUS_ZA_6H_AZ_7H_AKTIVITU', SystemoveNastaveni::spocitejBonusVypravece('BONUS_ZA_6H_AZ_7H_AKTIVITU'));
-    @define('BONUS_ZA_8H_AZ_9H_AKTIVITU', SystemoveNastaveni::spocitejBonusVypravece('BONUS_ZA_8H_AZ_9H_AKTIVITU'));
-    @define('BONUS_ZA_10H_AZ_11H_AKTIVITU', SystemoveNastaveni::spocitejBonusVypravece('BONUS_ZA_10H_AZ_11H_AKTIVITU'));
-    @define('BONUS_ZA_12H_AZ_13H_AKTIVITU', SystemoveNastaveni::spocitejBonusVypravece('BONUS_ZA_12H_AZ_13H_AKTIVITU'));
-}
-
 ////////////////////////
 // Základní nastavení //
 ////////////////////////
