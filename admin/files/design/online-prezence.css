@@ -4,6 +4,7 @@
 
 .online-prezence {
   padding: 0.2em;
+  margin-bottom: 2em;
 }
 
 input[disabled] {
@@ -91,4 +92,8 @@ label:hover {
 
 .text-skoncila:not(.display-none) {
   display: inline-block;
+}
+
+input[disabled]::placeholder {
+  text-decoration: line-through;
 }
