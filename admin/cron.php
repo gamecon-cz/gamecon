@@ -73,7 +73,7 @@ $i = Aktivita::odemciHromadne();
 logs("odemčeno $i aktivit.");
 
 logs('Zamykám už běžící, dosud nezamčené aktivity...');
-$idsZamcenmych = Aktivita::zamciUzBeziciOd(new DateTimeImmutable('-45 minutes'));
+$idsZamcenmych = Aktivita::zamciZacinajiciDo(new DateTimeImmutable('-' . AUTOMATICKY_UZAMKNOUT_AKTIVITU_X_MINUT_PO_ZACATKU . ' minutes'));
 $pocetZamcenych = count($idsZamcenmych);
 logs("zamčeno $pocetZamcenych aktivit.");
 
