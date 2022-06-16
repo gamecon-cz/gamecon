@@ -30,37 +30,22 @@ $poddotazKoupenehoPredmetu = static function (string $klicoveSlovo, int $idTypuP
 SQL;
 };
 
-$maNejakyNakupSql = static function (int $rok, int $typ) {
-    return <<<SQL
-EXISTS(SELECT 1 FROM shop_nakupy
-                JOIN shop_predmety on shop_nakupy.id_predmetu = shop_predmety.id_predmetu
-                WHERE shop_nakupy.id_uzivatele = uzivatele_hodnoty.id_uzivatele
-                    AND shop_nakupy.rok = $rok
-                    AND shop_predmety.typ = $typ
-                )
-SQL;
-};
-
 $prihlasenNaLetosniGc = (int)\Gamecon\Zidle::PRIHLASEN_NA_LETOSNI_GC;
 
 $report = Report::zSql(<<<SQL
-SELECT  uzivatele_hodnoty.id_uzivatele,
-        uzivatele_hodnoty.login_uzivatele,
-        uzivatele_hodnoty.jmeno_uzivatele,
-        uzivatele_hodnoty.prijmeni_uzivatele,
-        IF (COUNT(zidle_organizatoru.id_zidle) > 0, 'org', '') AS role,
-        {$poddotazKoupenehoPredmetu('', $typTricko, $rok, false)} AS tricka,
-        {$poddotazKoupenehoPredmetu('kostka', $typPredmet, $rok, true)} AS kostky,
-        {$poddotazKoupenehoPredmetu('placka', $typPredmet, $rok, false)} AS placky,
-        {$poddotazKoupenehoPredmetu('nicknack', $typPredmet, $rok, false)} AS nicknacky,
-        {$poddotazKoupenehoPredmetu('blok', $typPredmet, $rok, false)} AS bloky,
-        {$poddotazKoupenehoPredmetu('ponožky', $typPredmet, $rok, false)} AS ponozky,
-        IF ({$poddotazKoupenehoPredmetu('', $typJidlo, $rok, false)} IS NULL, '', 'stravenky') AS stravenky,
-        IF (
-            {$maNejakyNakupSql($rok, $typPredmet)},
-            IF (uzivatele_hodnoty.infopult_poznamka = 'velký balíček $rok', 'velký balíček', 'balíček'),
-            ''
-        ) AS balicek
+SELECT uzivatele_hodnoty.id_uzivatele,
+       uzivatele_hodnoty.login_uzivatele,
+       uzivatele_hodnoty.jmeno_uzivatele,
+       uzivatele_hodnoty.prijmeni_uzivatele,
+       IF (COUNT(zidle_organizatoru.id_zidle) > 0, 'org', '') AS role,
+       {$poddotazKoupenehoPredmetu('', $typTricko, $rok, false)} AS tricka,
+       {$poddotazKoupenehoPredmetu('kostka', $typPredmet, $rok, true)} AS kostky,
+       {$poddotazKoupenehoPredmetu('placka', $typPredmet, $rok, false)} AS placky,
+       {$poddotazKoupenehoPredmetu('nicknack', $typPredmet, $rok, false)} AS nicknacky,
+       {$poddotazKoupenehoPredmetu('blok', $typPredmet, $rok, false)} AS bloky,
+       {$poddotazKoupenehoPredmetu('ponožky', $typPredmet, $rok, false)} AS ponozky,
+       IF ({$poddotazKoupenehoPredmetu('', $typJidlo, $rok, false)} IS NULL, '', 'stravenky') AS stravenky,
+       IF (uzivatele_hodnoty.infopult_poznamka = 'velký balíček $rok', 'velký balíček', 'balíček') AS balicek
 FROM uzivatele_hodnoty
 JOIN r_uzivatele_zidle
     ON uzivatele_hodnoty.id_uzivatele = r_uzivatele_zidle.id_uzivatele
