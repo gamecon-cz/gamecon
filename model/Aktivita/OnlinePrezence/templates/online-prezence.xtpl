@@ -130,7 +130,10 @@
            data-cas-posledni-zmeny-stavu-aktivity="{casPosledniZmenyStavuAktivity}"
            data-stav-aktivity="{stavAktivity}"
            data-id-posledniho-logu="{idPoslednihoLogu}"
-        >
+           data-konec-aktivity-v-timestamp="{konecAktivityVTimestamp}"
+           data-editovatelna-do-timestamp="{editovatelnaDoTimestamp}"
+           data-editovatelna-od-timestamp="{editovatelnaOdTimestamp}"
+      >
         <!--TODO kapacity pohlaví-->
 
         <h2 id="{nadpis}">
@@ -155,13 +158,19 @@
         <div style="padding: 0.5em 0" class="row">
           <span class="col-xl-3 col-md-6 col-sm-12 text-sm-center text-md-start align-self-center"
                 style="white-space: nowrap; text-align: center">
+
             <span class="text-ceka {displayNoneCssClassCeka}">
-              <em>⏳ Můžeš ji editovat za <span id="odpocet-{idAktivity}" class="odpocet"
-                                               data-editovatelna-od="{editovatelnaOdTimestamp}"></span> ⏳</em>
+              <em>⏳ Můžeš ji editovat za <span id="odpocet-{idAktivity}" class="odpocet"></span> ⏳</em>
             </span>
+
+            <span class="text-probehla-bez-povsimnuti {displayNoneCssClassProbehlaBezPovsimnuti}">
+              <em><span class="flipped-icon">💨</span> Proběhla bez povšimnutí 💨</em>
+            </span>
+
             <span id="uzavrena-{idAktivity}" class="{displayNoneCssClassUzavrena}">
               <em>🔒 Uzavřena pro online přihlašování 🔒</em>
             </span>
+
             <button class="btn btn-outline-danger tlacitko-uzavrit-aktivitu {displayNoneCssClassUzavrit}"
                     style="width: 100%"
                     id="otevrena-{idAktivity}"
@@ -185,15 +194,12 @@
           </span>
 
           <span class="col-xl col-md col-sm text-sm-center text-md-start align-self-center">
-            <!-- begin:pozorNaKonecAktivity -->
             <span
                 id="skoncila-{idAktivity}"
                 class="alert-info text-skoncila {displayNoneCssClassAktivitaSkoncila} skryt-pokud-aktivitu-nelze-editovat-{idAktivity}"
-                data-konec-aktivity-v="{konecAktivityVTimestamp}"
             >
               ✋ <em>Aktivita už skončila, pozor na úpravy</em> <span class="flipped-icon">✋</span>
             </span>
-            <!-- end:pozorNaKonecAktivity -->
           </span>
 
           <span class="col-xl-2 col-md-4 col-sm-12">
