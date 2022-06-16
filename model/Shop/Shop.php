@@ -334,6 +334,15 @@ SQL
         return false;
     }
 
+    public function koupilNejakeTricko(): bool {
+        foreach ($this->tricka as $tricko) {
+            if ($tricko['kusu_uzivatele'] > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public function objednalNejakeJidlo(): bool {
         foreach ($this->jidlo['jidloObednano'] ?? [] as $nejakyTypJidlaJeObjednany) {
             if ($nejakyTypJidlaJeObjednany) {

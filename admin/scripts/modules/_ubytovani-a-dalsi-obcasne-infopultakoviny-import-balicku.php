@@ -20,12 +20,6 @@ $dejPoznamkuOVelkemBalicku = static function (string $balicek, int $rok): string
         : '';
 };
 
-$maNejakyNakupSql = static function (int $rok) {
-    return <<<SQL
-EXISTS(SELECT 1 FROM shop_nakupy WHERE shop_nakupy.id_uzivatele = uzivatele_hodnoty.id_uzivatele AND shop_nakupy.rok = $rok)
-SQL;
-};
-
 $reader = \OpenSpout\Reader\Common\Creator\ReaderEntityFactory::createXLSXReader();
 
 $reader->open($_FILES['souborSBalicky']['tmp_name']);
@@ -102,7 +96,7 @@ while ($rowIterator->valid()) {
             );
             continue;
         }
-        if ($balicekProSql && !$uzivatel->dejShop()->koupilNejakyPredmet()) {
+        if ($balicekProSql && !$uzivatel->dejShop()->koupilNejakyPredmet() && !$uzivatel->dejShop()->koupilNejakeTricko()) {
             $varovani[] = sprintf(
                 "Účastník %s z řádku %d si nic neobjednal a nemůže proto mít velký balíček",
                 $uzivatel->jmenoNick(),
@@ -154,8 +148,7 @@ SQL,
     $mysqliResult = dbQuery(<<<SQL
 UPDATE uzivatele_hodnoty
 JOIN `$temporaryTable` ON uzivatele_hodnoty.id_uzivatele = `$temporaryTable`.id_uzivatele
--- pouze pokud má účastník letos nějaký nákup, tak může mít velký balíček
-SET uzivatele_hodnoty.infopult_poznamka = IF ({$maNejakyNakupSql(ROK)}, `$temporaryTable`.infopult_poznamka, '')
+SET uzivatele_hodnoty.infopult_poznamka = `$temporaryTable`.infopult_poznamka
 SQL
     );
     $zapsanoZmen += dbNumRows($mysqliResult);
