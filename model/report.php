@@ -41,10 +41,10 @@ class Report
         $integerStyle = (new StyleBuilder())->setFormat('0')->build();
         $numberStyle = (new StyleBuilder())->setFormat('0.0')->build();
         $moneyStyle = (new StyleBuilder())->setFormat('0.00')->build();
-        $fontSizeStyle = (new StyleBuilder())->setFontSize(10)->build();
+        $fontSizeStyle = (new StyleBuilder())->setFontSize(10)->setFontName('Arial')->build();
         while ($radek = $this->radek()) {
             $cells = [];
-            foreach ($radek as $index => $hodnota) {
+            foreach ($radek as $hodnota) {
                 if ((string)(int)$hodnota === trim((string)$hodnota)) {
                     $cells[] = WriterEntityFactory::createCell((int)$hodnota, $integerStyle);
                 } elseif (preg_match('~^-?\d+[.,]\d{2}$~', trim((string)$hodnota))) {
@@ -54,7 +54,11 @@ class Report
                 ) {
                     $cells[] = WriterEntityFactory::createCell((float)$hodnota, $numberStyle);
                 } else {
-                    $cells[] = WriterEntityFactory::createCell($hodnota);
+                    $cells[] = WriterEntityFactory::createCell(
+                        (string)$hodnota !== ''
+                            ? (string)$hodnota
+                            : ' ' // jinak je bohužel ignorován styl (font a jeho velikost) v prázdných buňkách
+                    );
                 }
             }
             $rows[] = WriterEntityFactory::createRow($cells, $fontSizeStyle);
