@@ -2448,7 +2448,7 @@ SQL
 
     /** Zamče aktivitu pro další změny (k použití před jejím začátkem) */
     public function zamci() {
-        dbQuery('UPDATE akce_seznam SET stav = $1 WHERE id_akce = ' . $this->id(), [\Stav::PROBEHNUTA]);
+        dbQuery('UPDATE akce_seznam SET stav = $0 WHERE id_akce = ' . $this->id(), [\Stav::PROBEHNUTA]);
         $this->a['stav'] = \Stav::PROBEHNUTA;
         $this->stav = \Stav::PROBEHNUTA;
         /** @see Aktivita::stav kde se změní číslo na instanci \Stav */
@@ -2470,17 +2470,27 @@ SQL
     }
 
     /**
-     * @param \DateTimeInterface $beziciOd
+     * @param \DateTimeInterface $zacinajiciDo
      * @return array|int[]
      */
-    public static function zamciUzBeziciOd(\DateTimeInterface $beziciOd) {
+    public static function zamciZacinajiciDo(\DateTimeInterface $zacinajiciDo) {
         $ids = dbOneArray(<<<SQL
 SELECT id_akce FROM akce_seznam
-WHERE (NOT zamcel OR zamcel IS NULL)
-  AND zacatek <= $1
-AND stav != $2
+WHERE zacatek <= $0
+    AND stav IN ($1)
+    AND rok = $2
 SQL,
-            [$beziciOd->format(DateTimeCz::FORMAT_DB), \Stav::PROBEHNUTA]
+            [
+                $zacinajiciDo->format(DateTimeCz::FORMAT_DB),
+                [
+                    \Stav::NOVA,
+                    \Stav::AKTIVOVANA,
+                    \Stav::SYSTEMOVA,
+                    \Stav::PUBLIKOVANA,
+                    \Stav::PRIPRAVENA,
+                ],
+                ROK,
+            ]
         );
         $ids = array_map('intval', $ids);
         foreach ($ids as $id) {
