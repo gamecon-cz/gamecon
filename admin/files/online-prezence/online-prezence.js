@@ -12,7 +12,7 @@
       }
     })
 
-    Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]')).forEach(function (tooltipElement) {
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (tooltipElement) {
       bootstrap.Tooltip.getOrCreateInstance(tooltipElement).update()
     })
 
@@ -276,23 +276,28 @@
     $aktivity.each(function () {
       const $aktivitaNode = $(this)
       $aktivitaNode.find('.text-ceka .odpocet').each(function () {
-        if ($(this).data('editovatelna-od') > 0) {
+        if ($aktivitaNode.data('editovatelna-od') > 0) {
           zablokovatAktivituProEditaciSOdpoctem($aktivitaNode.data('id'))
         }
       })
     })
 
     function zablokovatAktivituProEditaciSOdpoctem(idAktivity) {
+      zablokovatAktivituProEditaci(idAktivity)
       const $aktivitaNode = $(`#aktivita-${idAktivity}`)
-      $aktivitaNode.find('input').prop('disabled', true)
-      $aktivitaNode.find('.tlacitko-uzavrit-aktivitu').hide()
       $aktivitaNode.find('.text-ceka').show()
       spustitOdpocet($aktivitaNode, idAktivity)
     }
 
+    function zablokovatAktivituProEditaci(idAktivity) {
+      const $aktivitaNode = $(`#aktivita-${idAktivity}`)
+      $aktivitaNode.find('input').prop('disabled', true)
+      $aktivitaNode.find('.tlacitko-uzavrit-aktivitu').hide()
+    }
+
     function spustitOdpocet(aktivitaNode, idAktivity) {
       const $odpocetNode = aktivitaNode.find(`#odpocet-${idAktivity}`)
-      const editovatelnaOdTimestamp = Number.parseInt($odpocetNode.data('editovatelna-od'))
+      const editovatelnaOdTimestamp = Number.parseInt(aktivitaNode.dataset.editovatelnaOdTimestamp)
 
       if (dokoncitOdpocetProEditaci($odpocetNode, idAktivity, editovatelnaOdTimestamp)) {
         return
@@ -304,6 +309,41 @@
           clearInterval(intervalId)
         }
       }, interval)
+    }
+
+    // 💨 PROBĚHLA BEZ POVŠIMNUTÍ 💨
+
+    $aktivity.each(function () {
+      const aktivitaNode = this
+      aktivitaNode.querySelectorAll('.text-probehla-bez-povsimnuti').forEach(function () {
+        if (aktivitaNode.dataset.editovatelnaDoTimestamp > 0) {
+          hlidatProbehnutouBezPovsimnuti(aktivitaNode.dataset.id)
+        }
+      })
+    })
+
+    function hlidatProbehnutouBezPovsimnuti(idAktivity) {
+      const aktivitaNode = document.getElementById(`aktivita-${idAktivity}`)
+
+      const editovatelnaDoTimestamp = aktivitaNode.dataset.editovatelnaDoTimestamp
+
+      if (!editovatelnaDoTimestamp) {
+        return
+      }
+
+      const interval = 1000
+      const intervalId = setInterval(function () {
+        if (spoctiKolikZbyvaSekund(editovatelnaDoTimestamp) <= 0) {
+          oznacitJakoProbehlouBezPovsimnuti(idAktivity)
+          clearInterval(intervalId)
+        }
+      }, interval)
+    }
+
+    function oznacitJakoProbehlouBezPovsimnuti(idAktivity) {
+      zablokovatAktivituProEditaci(idAktivity)
+      const $aktivitaNode = $(`#aktivita-${idAktivity}`)
+      $aktivitaNode.find('.text-probehla-bez-povsimnuti').show()
     }
 
     /**
@@ -390,18 +430,18 @@
 
     // ✋ AKTIVITA UŽ SKONČILA, POZOR NA ÚPRAVY ✋
     $aktivity.each(function () {
-      const $aktivitaNode = $(this)
-      $aktivitaNode.find('.text-skoncila').each(function () {
-        if (this.classList.contains('display-none')) {
+      const aktivitaNode = this
+      aktivitaNode.querySelectorAll('.text-skoncila').forEach(function (textSkoncilaNode) {
+        if (textSkoncilaNode.classList.contains('display-none')) {
           return
         }
-        const $textSkoncilaNode = $(this)
-        hlidatUpozorneniNaSkoncenouAktivitu($textSkoncilaNode)
+        const $textSkoncilaNode = $(textSkoncilaNode)
+        hlidatUpozorneniNaSkoncenouAktivitu(aktivitaNode, $textSkoncilaNode)
       })
     })
 
-    function hlidatUpozorneniNaSkoncenouAktivitu($textSkoncilaNode) {
-      const konecAktivityVTimestamp = Number.parseInt($textSkoncilaNode.data('konec-aktivity-v'))
+    function hlidatUpozorneniNaSkoncenouAktivitu(aktivitaNode, $textSkoncilaNode) {
+      const konecAktivityVTimestamp = Number.parseInt(aktivitaNode.dataset.konecAktivityVTimestamp)
       if (!konecAktivityVTimestamp) {
         return
       }
@@ -665,7 +705,7 @@ function upravUkazateleZaplnenostiAktivity(aktivitaNode) {
     stylNode.style.backgroundColor = `rgb(${r},${g},${b},${intenzitaBarvy})`
   })
   // nezaškrtnutým checkboxům zresetujeme barvy
-  Array.from(aktivitaNode.querySelectorAll('.styl-pro-dorazil-checkbox > input[type=checkbox]:not(:checked)')).forEach(function (checkbox) {
+  aktivitaNode.querySelectorAll('.styl-pro-dorazil-checkbox > input[type=checkbox]:not(:checked)').forEach(function (checkbox) {
     const stylNode = checkbox.parentElement
     stylNode.style.backgroundColor = 'inherit'
   })
@@ -676,7 +716,7 @@ function upravUkazateleZaplnenostiAktivity(aktivitaNode) {
       : `Volno ${kapacita - pocetPritomnych}`
   ) + ` (kapacita ${pocetPritomnych}/${kapacita})`
   const tooltipHtml = `<span class="${jePlno ? 'plno' : 'volno'}">${tooltipText}</span>`
-  Array.from(aktivitaNode.querySelectorAll('.styl-pro-dorazil-checkbox')).forEach(function (stylProCheckboxNode) {
+  aktivitaNode.querySelectorAll('.styl-pro-dorazil-checkbox').forEach(function (stylProCheckboxNode) {
     zmenTooltip(tooltipHtml, stylProCheckboxNode)
   })
   Array.from(aktivitaNode.getElementsByClassName('omnibox')).forEach(function (omniboxElement) {
