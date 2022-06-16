@@ -102,7 +102,7 @@ while ($rowIterator->valid()) {
             );
             continue;
         }
-        if ($balicekProSql && !$uzivatel->dejShop()->koupilNejakyPredmet()) {
+        if ($balicekProSql && !$uzivatel->dejShop()->koupilNejakyPredmet() && !$uzivatel->dejShop()->koupilNejakeTricko()) {
             $varovani[] = sprintf(
                 "Účastník %s z řádku %d si nic neobjednal a nemůže proto mít velký balíček",
                 $uzivatel->jmenoNick(),
