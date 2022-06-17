@@ -24,19 +24,19 @@
       aktivitaNode.addEventListener('novyUcastnik', function (/** @param {{detail: {idAktivity: number, idUzivatele: number}}} event */event) {
         hlidejNovehoUcastnika(event.detail.idUzivatele, event.detail.idAktivity)
       })
-      aktivitaNode.addEventListener('zmenaMetadatAktivity', function (/** @param {{ detail: { casPosledniZmenyStavuAktivity: string, stavAktivity: string, idPoslednihoLogu: number, editovatelnaSekund: number} }} */event) {
+      aktivitaNode.addEventListener('zmenaMetadatAktivity', function (/** @param {{ detail: { casPosledniZmenyStavuAktivity: string, stavAktivity: string, idPoslednihoLogu: number, editovatelnaDoTimestamp: number} }} */event) {
         zapisMetadataAktivity(aktivitaNode, event.detail)
 
         const editovatelna = editovatelnaPodleStavu(event.detail.stavAktivity)
         if (!editovatelna) { // else - znovuotevření aktivity nepodporujeme
-          reagujNaUzavreniAktivity(aktivitaNode.dataset.id, event.detail.editovatelnaSekund)
+          reagujNaUzavreniAktivity(aktivitaNode.dataset.id, event.detail.editovatelnaDoTimestamp)
         }
       })
     })
 
     /**
      * @param {HTMLElement} aktivitaNode
-     * @param {{ casPosledniZmenyStavuAktivity: string, stavAktivity: string, idPoslednihoLogu: string, editovatelnaSekund: number}} metadata
+     * @param {{ casPosledniZmenyStavuAktivity: string, stavAktivity: string, idPoslednihoLogu: string, editovatelnaDoTimestamp: number}} metadata
      */
     function zapisMetadataAktivity(aktivitaNode, metadata) {
       if (aktivitaNode.dataset.idPoslednihoLogu && Number(aktivitaNode.dataset.idPoslednihoLogu) >= metadata.idPoslednihoLogu) {
@@ -45,10 +45,7 @@
       aktivitaNode.dataset.casPosledniZmenyStavuAktivity = metadata.casPosledniZmenyStavuAktivity
       aktivitaNode.dataset.stavAktivity = metadata.stavAktivity
       aktivitaNode.dataset.idPoslednihoLogu = metadata.idPoslednihoLogu.toString()
-
-      if (typeof metadata.callback === 'function') {
-        metadata.callback()
-      }
+      aktivitaNode.dataset.editovatelnaDoTimestamp = metadata.editovatelnaDoTimestamp.toString()
     }
 
     /**
@@ -267,7 +264,7 @@
 
     $aktivity.each(function () {
       const aktivitaNode = this
-      if (aktivitaNode.dataset.editovatelnaOd > 0) {
+      if (aktivitaNode.dataset.editovatelnaOdTimestamp > 0) {
         zablokovatAktivituProEditaciSOdpoctem(aktivitaNode)
       }
     })
@@ -279,24 +276,24 @@
       zablokovatEditaciAktivity(aktivitaNode.dataset.id)
       const $aktivitaNode = $(aktivitaNode)
       $aktivitaNode.find('.text-ceka').show()
-      spustitOdpocet($aktivitaNode)
+      spustitOdpocet(aktivitaNode)
     }
 
     /**
-     * @param {object} $aktivitaNode
+     * @param {HTMLElement} aktivitaNode
      */
-    function spustitOdpocet($aktivitaNode) {
-      idAktivity = $aktivitaNode.data('id')
-      const $odpocetNode = $aktivitaNode.find(`#odpocet-${idAktivity}`)
-      const editovatelnaOdTimestamp = Number.parseInt($aktivitaNode.dataset.editovatelnaOdTimestamp)
+    function spustitOdpocet(aktivitaNode) {
+      const idAktivity = aktivitaNode.dataset.id
+      const odpocetNode = document.getElementById(`odpocet-${idAktivity}`)
+      const editovatelnaOdTimestamp = Number.parseInt(aktivitaNode.dataset.editovatelnaOdTimestamp)
 
-      if (dokoncitOdpocetProEditaci($odpocetNode, idAktivity, editovatelnaOdTimestamp)) {
+      if (dokoncitOdpocetProEditaci(odpocetNode, idAktivity, editovatelnaOdTimestamp)) {
         return
       }
 
       const interval = 1000
       const intervalId = setInterval(function () {
-        if (dokoncitOdpocetProEditaci($odpocetNode, idAktivity, editovatelnaOdTimestamp)) {
+        if (dokoncitOdpocetProEditaci(odpocetNode, idAktivity, editovatelnaOdTimestamp)) {
           clearInterval(intervalId)
         }
       }, interval)
@@ -347,13 +344,13 @@
     }
 
     /**
-     * @param {object} $odpocetNode
+     * @param {HTMLElement} odpocetNode
      * @param idAktivity
      * @param {number} editovatelnaOdTimestamp
      * @return {boolean}
      */
-    function dokoncitOdpocetProEditaci($odpocetNode, idAktivity, editovatelnaOdTimestamp) {
-      if (obnovitOdpocet($odpocetNode, editovatelnaOdTimestamp)) {
+    function dokoncitOdpocetProEditaci(odpocetNode, idAktivity, editovatelnaOdTimestamp) {
+      if (obnovitOdpocet(odpocetNode, editovatelnaOdTimestamp)) {
         return false // ještě nemůžeme odpočet dokončit, stále musí běžet
       }
       odblokovatAktivituProEditaci(idAktivity)
@@ -368,7 +365,7 @@
     }
 
     /**
-     * @param {object} odpocetNode
+     * @param {HTMLElement} odpocetNode
      * @param {number} editovatelnaOdTimestamp
      * @return {boolean}
      */
@@ -379,7 +376,7 @@
         return false
       }
 
-      odpocetNode.text(sekundyNaLidskyCas(zbyvaSekund))
+      odpocetNode.innerText = sekundyNaLidskyCas(zbyvaSekund)
       return true
     }
 
@@ -411,21 +408,6 @@
       }
 
       return lidskyCas
-    }
-
-    /**
-     * @param {number} unixTimestampInSeconds
-     * @return {number}
-     */
-    function spoctiKolikZbyvaSekund(unixTimestampInSeconds) {
-      return Math.round(unixTimestampInSeconds - getNowAsUnixTimestampInSeconds())
-    }
-
-    /**
-     * @return {number}
-     */
-    function getNowAsUnixTimestampInSeconds() {
-      return new Date().getTime() / 1000
     }
 
     // ✋ AKTIVITA UŽ SKONČILA, POZOR NA ÚPRAVY ✋
@@ -486,8 +468,8 @@ const akceAktivity = new class AkceAktivity {
     $.post(location.href, {
       /** viz \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax::ajaxUzavritAktivitu */
       akce: 'uzavrit', id: idAktivity, ajax: true,
-    }).done(function (/** @param {{editovatelna_sekund: number}} data */data) {
-      that.reagujNaUzavreniAktivity(idAktivity, data.editovatelna_sekund)
+    }).done(function (/** @param {{editovatelna_do_timestamp: number}} data */data) {
+      that.reagujNaUzavreniAktivity(idAktivity, data.editovatelna_do_timestamp)
     }).always(function () {
       vypustEventOProbihajicichZmenach(false)
     })
@@ -495,14 +477,15 @@ const akceAktivity = new class AkceAktivity {
 
   /**
    * @param {number} idAktivity
-   * @param {number} editovatelnaSekund
+   * @param {number} editovatelnaDoTimestamp
    */
-  reagujNaUzavreniAktivity(idAktivity, editovatelnaSekund) {
+  reagujNaUzavreniAktivity(idAktivity, editovatelnaDoTimestamp) {
     const skrytElement = document.getElementById(`otevrena-${idAktivity}`)
-    const zobrazitElement = document.getElementById(`uzavrena-${idAktivity}`)
+    const zobrazitElement = document.getElementById(`zamcena-${idAktivity}`)
     this.prohoditZobrazeni(skrytElement, zobrazitElement)
+    const editovatelnaSekund = spoctiKolikZbyvaSekund(editovatelnaDoTimestamp)
     if (editovatelnaSekund > 0) {
-      this.zobrazitVarovaniZeAktivitaUzJeUzavrena(idAktivity)
+      this.zobrazitVarovaniZeAktivitaJeZamcena(idAktivity)
       const that = this
       setTimeout(function () {
         that.zablokovatEditaciAktivity(idAktivity)
@@ -535,8 +518,8 @@ const akceAktivity = new class AkceAktivity {
    * @private
    * @param idAktivity
    */
-  zobrazitVarovaniZeAktivitaUzJeUzavrena(idAktivity) {
-    $(`#pozor-uzavrena-${idAktivity}`).show()
+  zobrazitVarovaniZeAktivitaJeZamcena(idAktivity) {
+    $(`#pozor-zamcena-${idAktivity}`).show()
   }
 
   /**
@@ -546,6 +529,39 @@ const akceAktivity = new class AkceAktivity {
   prohoditZobrazeni(skrytElement, zobrazitElement) {
     skrytElement.style.display = 'none'
     zobrazitElement.style.display = 'initial'
+  }
+
+  /**
+   * @param {HTMLElement} aktivitaNode
+   */
+  upravUkazateleZaplnenostiAktivity(aktivitaNode) {
+    const kapacita = Number.parseInt(aktivitaNode.dataset.kapacita)
+    const zaskrtnuteCheckboxy = aktivitaNode.querySelectorAll('.styl-pro-dorazil-checkbox > input[type=checkbox]:checked')
+    const pocetPritomnych = zaskrtnuteCheckboxy.length
+    const barvaZaplnenosti = tempToColor(pocetPritomnych, 1, kapacita + 1 /* poslední barva je fialová, my chceme po plnou aktivitu předposlední, červenou */, 'half')
+    const {r, g, b} = barvaZaplnenosti
+    const intenzitaBarvy = 0.1
+    // zaškrtnuté checkboxy dostanou barvu od zelené po fialovou, jak se bued blížit vyčerpání kapacity
+    Array.from(zaskrtnuteCheckboxy).forEach(function (checkbox) {
+      const stylNode = checkbox.parentElement
+      stylNode.style.backgroundColor = `rgb(${r},${g},${b},${intenzitaBarvy})`
+    })
+    // nezaškrtnutým checkboxům zresetujeme barvy
+    aktivitaNode.querySelectorAll('.styl-pro-dorazil-checkbox > input[type=checkbox]:not(:checked)').forEach(function (checkbox) {
+      const stylNode = checkbox.parentElement
+      stylNode.style.backgroundColor = 'inherit'
+    })
+    const jePlno = pocetPritomnych >= kapacita
+    // tooltip se zbývající kapacitou
+    const tooltipText = (jePlno ? 'Plno' : `Volno ${kapacita - pocetPritomnych}`) + ` (kapacita ${pocetPritomnych}/${kapacita})`
+    const tooltipHtml = `<span class="${jePlno ? 'plno' : 'volno'}">${tooltipText}</span>`
+    aktivitaNode.querySelectorAll('.styl-pro-dorazil-checkbox').forEach(function (stylProCheckboxNode) {
+      zmenTooltip(tooltipHtml, stylProCheckboxNode)
+    })
+    Array.from(aktivitaNode.getElementsByClassName('omnibox')).forEach(function (omniboxElement) {
+      zmenTooltip(tooltipHtml, omniboxElement)
+      omniboxElement.placeholder = `${omniboxElement.dataset.vychoziPlaceholder} ${tooltipText.toLowerCase()}`
+    })
   }
 }
 
@@ -644,10 +660,10 @@ function uzavritAktivitu(idAktivity) {
 
 /**
  * @param {string} idAktivity
- * @param {number} editovatelnaSekund
+ * @param {number} editovatelnaDoTimestamp
  */
-function reagujNaUzavreniAktivity(idAktivity, editovatelnaSekund) {
-  akceAktivity.reagujNaUzavreniAktivity(idAktivity, editovatelnaSekund)
+function reagujNaUzavreniAktivity(idAktivity, editovatelnaDoTimestamp) {
+  akceAktivity.reagujNaUzavreniAktivity(idAktivity, editovatelnaDoTimestamp)
 }
 
 /**
@@ -683,34 +699,23 @@ function dejNodeOnlinePrezence() {
 }
 
 /**
+ * @param {number} unixTimestampInSeconds
+ * @return {number}
+ */
+function spoctiKolikZbyvaSekund(unixTimestampInSeconds) {
+  return Math.round(unixTimestampInSeconds - getNowAsUnixTimestampInSeconds())
+}
+
+/**
+ * @return {number}
+ */
+function getNowAsUnixTimestampInSeconds() {
+  return new Date().getTime() / 1000
+}
+
+/**
  * @param {HTMLElement} aktivitaNode
  */
 function upravUkazateleZaplnenostiAktivity(aktivitaNode) {
-  const kapacita = Number.parseInt(aktivitaNode.dataset.kapacita)
-  const zaskrtnuteCheckboxy = aktivitaNode.querySelectorAll('.styl-pro-dorazil-checkbox > input[type=checkbox]:checked')
-  const pocetPritomnych = zaskrtnuteCheckboxy.length
-  const barvaZaplnenosti = tempToColor(pocetPritomnych, 1, kapacita + 1 /* poslední barva je fialová, my chceme po plnou aktivitu předposlední, červenou */, 'half')
-  const {r, g, b} = barvaZaplnenosti
-  const intenzitaBarvy = 0.1
-  // zaškrtnuté checkboxy dostanou barvu od zelené po fialovou, jak se bued blížit vyčerpání kapacity
-  Array.from(zaskrtnuteCheckboxy).forEach(function (checkbox) {
-    const stylNode = checkbox.parentElement
-    stylNode.style.backgroundColor = `rgb(${r},${g},${b},${intenzitaBarvy})`
-  })
-  // nezaškrtnutým checkboxům zresetujeme barvy
-  aktivitaNode.querySelectorAll('.styl-pro-dorazil-checkbox > input[type=checkbox]:not(:checked)').forEach(function (checkbox) {
-    const stylNode = checkbox.parentElement
-    stylNode.style.backgroundColor = 'inherit'
-  })
-  const jePlno = pocetPritomnych >= kapacita
-  // tooltip se zbývající kapacitou
-  const tooltipText = (jePlno ? 'Plno' : `Volno ${kapacita - pocetPritomnych}`) + ` (kapacita ${pocetPritomnych}/${kapacita})`
-  const tooltipHtml = `<span class="${jePlno ? 'plno' : 'volno'}">${tooltipText}</span>`
-  aktivitaNode.querySelectorAll('.styl-pro-dorazil-checkbox').forEach(function (stylProCheckboxNode) {
-    zmenTooltip(tooltipHtml, stylProCheckboxNode)
-  })
-  Array.from(aktivitaNode.getElementsByClassName('omnibox')).forEach(function (omniboxElement) {
-    zmenTooltip(tooltipHtml, omniboxElement)
-    omniboxElement.placeholder = `${omniboxElement.dataset.vychoziPlaceholder} ${tooltipText.toLowerCase()}`
-  })
+  akceAktivity.upravUkazateleZaplnenostiAktivity(aktivitaNode)
 }

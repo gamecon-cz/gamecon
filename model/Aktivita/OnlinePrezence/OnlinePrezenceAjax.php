@@ -30,7 +30,7 @@ class OnlinePrezenceAjax
     public const RAZITKO_POSLEDNI_ZMENY = 'razitko_posledni_zmeny';
     public const ZAMCENA = 'zamcena';
     public const UZAVRENA = 'uzavrena';
-    public const EDITOVATELNA_SEKUND = 'editovatelna_sekund';
+    public const EDITOVATELNA_DO_TIMESTAMP = 'editovatelna_do_timestamp';
     public const ERRORS = 'errors';
     public const PRIHLASEN = 'prihlasen';
     public const CAS_POSLEDNI_ZMENY_PRIHLASENI = 'cas_posledni_zmeny_prihlaseni';
@@ -142,7 +142,7 @@ class OnlinePrezenceAjax
                 self::ID_LOGU => $zmenaStavuAktivity->idLogu(),
                 self::CAS_ZMENY => $zmenaStavuAktivity->casZmenyProJs(),
                 self::STAV_AKTIVITY => $zmenaStavuAktivity->stavAktivityProJs(),
-                self::EDITOVATELNA_SEKUND => $this->kolikSekundJeAktivitaJesteEditovatelna($aktivita, $vypravec),
+                self::EDITOVATELNA_DO_TIMESTAMP => $this->editovatelnaDoTimestamp($aktivita, $vypravec),
             ];
         }
 
@@ -201,15 +201,15 @@ class OnlinePrezenceAjax
             [
                 self::ZAMCENA => $aktivita->zamcena(),
                 self::UZAVRENA => $aktivita->uzavrena(),
-                self::EDITOVATELNA_SEKUND => $this->kolikSekundJeAktivitaJesteEditovatelna($aktivita, $vypravec),
+                self::EDITOVATELNA_DO_TIMESTAMP => $this->editovatelnaDoTimestamp($aktivita, $vypravec),
             ]
         );
     }
 
-    private function kolikSekundJeAktivitaJesteEditovatelna(Aktivita $aktivita, \Uzivatel $vypravec): int {
+    private function editovatelnaDoTimestamp(Aktivita $aktivita, \Uzivatel $vypravec): int {
         return $this->dejVypravecePodleTestu($aktivita, $vypravec)->maPravoNaZmenuHistorieAktivit()
             ? PHP_INT_MAX
-            : $aktivita->editovatelnaDo($this->systemoveNastaveni)->getTimestamp() - $this->systemoveNastaveni->ted()->getTimestamp();
+            : $aktivita->editovatelnaDo($this->systemoveNastaveni)->getTimestamp();
     }
 
     private function echoErrorJson(string $error): void {
