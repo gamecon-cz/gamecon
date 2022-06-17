@@ -131,8 +131,8 @@
            data-stav-aktivity="{stavAktivity}"
            data-id-posledniho-logu="{idPoslednihoLogu}"
            data-konec-aktivity-v-timestamp="{konecAktivityVTimestamp}"
-           data-editovatelna-do-timestamp="{editovatelnaDoTimestamp}"
            data-editovatelna-od-timestamp="{editovatelnaOdTimestamp}"
+           data-editovatelna-do-timestamp="{editovatelnaDoTimestamp}"
       >
         <!--TODO kapacity pohlaví-->
 
@@ -159,19 +159,27 @@
           <span class="col-xl-3 col-md-6 col-sm-12 text-sm-center text-md-start align-self-center"
                 style="white-space: nowrap; text-align: center">
 
-            <span class="text-ceka {displayNoneCssClassCeka}">
+            <span class="text-ceka {hideCeka}">
               <em>⏳ Můžeš ji editovat za <span id="odpocet-{idAktivity}" class="odpocet"></span> ⏳</em>
             </span>
 
-            <span class="text-probehla-bez-povsimnuti {displayNoneCssClassProbehlaBezPovsimnuti}">
-              <em><span class="flipped-icon">💨</span> Proběhla bez povšimnutí 💨</em>
+            <span class="text-probehla-bez-povsimnuti {hideProbehlaBezPovsimnuti}">
+              <em>
+                <span class="flipped-icon">💨</span>
+                <span class="hinted"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Už nelze editovat a přitom není zamčená pro online přihlašování (správně by ji do hodiny od začáku měl zamknout robot)">
+                  Proběhla bez povšimnutí
+                </span> 💨
+              </em>
             </span>
 
-            <span id="uzavrena-{idAktivity}" class="{displayNoneCssClassUzavrena}">
-              <em>🔒 Uzavřena pro online přihlašování 🔒</em>
+            <span id="zamcena-{idAktivity}" class="{hideZamcena}">
+              <em>🔒 Zamčena pro online přihlašování 🔒</em>
             </span>
 
-            <button class="btn btn-outline-danger tlacitko-uzavrit-aktivitu {displayNoneCssClassUzavrit}"
+            <button class="btn btn-outline-danger tlacitko-uzavrit-aktivitu {hideUzavrit}"
                     style="width: 100%"
                     id="otevrena-{idAktivity}"
                     type="button"
@@ -183,11 +191,11 @@
 
             <script>
               { // local scope
-                const uzavrenaElement = document.getElementById('uzavrena-{idAktivity}')
-                if (uzavrenaElement.dataset.uzavrena) {
+                const zamcenaElement = document.getElementById('zamcena-{idAktivity}')
+                if (zamcenaElement.dataset.zamcena) {
                   const otevrenaElement = document.getElementById('otevrena-{idAktivity}')
                   // viz online-prezence.js prohoditZobrazeni
-                  prohoditZobrazeni(otevrenaElement, uzavrenaElement)
+                  prohoditZobrazeni(otevrenaElement, zamcenaElement)
                 }
               }
             </script>
@@ -196,7 +204,7 @@
           <span class="col-xl col-md col-sm text-sm-center text-md-start align-self-center">
             <span
                 id="skoncila-{idAktivity}"
-                class="alert-info text-skoncila {displayNoneCssClassAktivitaSkoncila} skryt-pokud-aktivitu-nelze-editovat"
+                class="alert-info text-skoncila {hideAktivitaSkoncila} skryt-pokud-aktivitu-nelze-editovat"
             >
               ✋ <em>Aktivita už skončila, pozor na úpravy</em> <span class="flipped-icon">✋</span>
             </span>
@@ -276,7 +284,7 @@
               <em>Nic...</em> 🤷
             </span>
             <span class="col-md-4" id="omniboxHledam{idAktivity}" style="display: none"><em>Hledám...</em> ⏳</span>
-            <span class="col-md-4 {displayNoneCssClassPozorUzavrena}" id="pozor-uzavrena-{idAktivity}"
+            <span class="col-md-4 {hidePozorUzavrena}" id="pozor-zamcena-{idAktivity}"
                   style="white-space: nowrap">
                   <span class="hinted skryt-pokud-aktivitu-nelze-editovat"
                         data-bs-toggle="tooltip"
