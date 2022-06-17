@@ -177,7 +177,7 @@
             casPosledniZmenyStavuAktivity: zmena.casZmeny,
             stavAktivity: zmena.stavAktivity,
             idPoslednihoLogu: zmena.idPoslednihoLogu,
-            editovatelnaSekund: zmena.editovatelnaSekund,
+            editovatelnaDoTimestamp: zmena.editovatelnaDoTimestamp,
           },
         },
       )
@@ -536,7 +536,7 @@ class ZmenaPrihlaseni {
 
 class ZmenaStavuAktivity {
   /**
-   * @param {{id_aktivity: number, id_logu: number, cas_zmeny: string, stav_aktivity: string, editovatelna_sekund: number}[]} dataZmen
+   * @param {{id_aktivity: number, id_logu: number, cas_zmeny: string, stav_aktivity: string, editovatelna_do_timestamp: number}[]} dataZmen
    * @return ZmenaStavuAktivity[]
    */
   static vytvorZmenyZOdpovedi(dataZmen) {
@@ -548,7 +548,7 @@ class ZmenaStavuAktivity {
           dataZmeny.id_logu,
           dataZmeny.cas_zmeny,
           dataZmeny.stav_aktivity,
-          dataZmeny.editovatelna_sekund,
+          dataZmeny.editovatelna_do_timestamp,
         ),
       )
     })
@@ -564,21 +564,21 @@ class ZmenaStavuAktivity {
   /** @private @var {string} */
   _stavAktivity
   /** @private @var {number} */
-  _editovatelnaSekund
+  _editovatelnaDoTimestamp
 
   /**
    * @param {number} idAktivity
    * @param {number} idPoslednihoLogu
    * @param {string} casZmeny
    * @param {string} stavAktivity
-   * @param {number} editovatelnaSekund
+   * @param {number} editovatelnaDoTimestamp
    */
-  constructor(idAktivity, idPoslednihoLogu, casZmeny, stavAktivity, editovatelnaSekund) {
+  constructor(idAktivity, idPoslednihoLogu, casZmeny, stavAktivity, editovatelnaDoTimestamp) {
     this._idAktivity = idAktivity
     this._idPoslednihoLogu = idPoslednihoLogu
     this._casZmeny = casZmeny
     this._stavAktivity = stavAktivity
-    this._editovatelnaSekund = editovatelnaSekund
+    this._editovatelnaDoTimestamp = editovatelnaDoTimestamp
   }
 
   get idAktivity() {
@@ -597,7 +597,7 @@ class ZmenaStavuAktivity {
     return this._stavAktivity
   }
 
-  get editovatelnaSekund() {
-    return this._editovatelnaSekund
+  get editovatelnaDoTimestamp() {
+    return this._editovatelnaDoTimestamp
   }
 }
