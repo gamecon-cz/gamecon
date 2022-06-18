@@ -16,7 +16,7 @@ $uzivatelGamecon->gcPrihlas($uzivatelGamecon);
 $puvodniStav = $warhammer40kTurnaj2022->stav();
 $warhammer40kTurnaj2022->aktivuj();
 $warhammer40kTurnaj2022->prihlas($uzivatelGamecon, Aktivita::STAV /* ignorovat stav */ | Aktivita::DOPREDNE /* povolit přihlášení ikdyž není registrace na aktivity ještě spuštěná */);
-$warhammer40kTurnaj2022->zamknout($uzivatelGamecon);
+$warhammer40kTurnaj2022->zamknoutProTeam($uzivatelGamecon);
 $warhammer40kTurnaj2022->prihlasTym(
     [],
     '',
