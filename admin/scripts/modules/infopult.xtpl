@@ -80,18 +80,16 @@
 
       <tr>
         <td>Poznámka:</td>
-        <td><input type="text" name="poznamka" value="{poznamka}" style="margin-left: -3px;"></td>
+        <td><input type="text" name="udaje[poznamka]" value="{poznamka}" style="margin-left: -3px;"></td>
       </tr>
 
       <tr>
-        <td><span class="hinted">Potvrzení:<span
-            class="hint">K úpravě klikněte na pole Potvrzení v Osobních údajích</span></span></td>
-        <td style="cursor:pointer"
-            onclick="$('#editace_udaju_uzivatele_trigger').click(); $('#udaj_potvrzeni_zakonneho_zastupce').focus();">
-          <!-- begin:chybiPotvrzeni -->
-          <img src="files/design/error-s.png" style="margin-bottom:-2px">
-          požádej o doplnění
-          <!-- end:chybiPotvrzeni -->
+        <td>Potvrzení</td>
+        <td>
+          <input type="checkbox" name="udaje[potvrzeni_zakonneho_zastupce]"
+              style="margin-left: -3px;" id="udaj_potvrzeni" {potvrzeniAttr}>
+            {potvrzeniText}
+          </input>
         </td>
       </tr>
 
