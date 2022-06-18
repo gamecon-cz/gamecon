@@ -1393,7 +1393,7 @@ SQL
             && $this->prihlaseno() === 0
             && $this->prihlasovatelna() /* kvuli řetězovým teamovým aktivitám schválně bez ignore parametru */
         ) {
-            $this->zamknout($uzivatel);
+            $this->zamknoutProTeam($uzivatel);
         }
         dbQuery(
             'INSERT INTO akce_prihlaseni SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=$2',
@@ -1514,7 +1514,7 @@ SQL
      * @param \Uzivatel $zamykajici
      * @return void
      */
-    public function zamknout(\Uzivatel $zamykajici) {
+    public function zamknoutProTeam(\Uzivatel $zamykajici) {
         dbUpdate(
             'akce_seznam',
             ['zamcel' => $zamykajici->id(), 'zamcel_cas' => dbNow()],
