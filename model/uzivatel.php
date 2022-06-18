@@ -647,15 +647,17 @@ SQL
         if (!$this->gcPrihlasen()) {
             return '';
         }
-        $koupilNejakyPredmet = $this->dejShop()->koupilNejakyPredmet();
-        if (!$koupilNejakyPredmet) {
-            return $this->dejShop()->objednalNejakeJidlo()
-                ? 'jen stravenky'
+        $shop = $this->dejShop();
+        $koupilNecoHmotneho = $shop->koupilNejakyPredmet() || $shop->koupilNejakeTricko();
+        if (!$koupilNecoHmotneho) {
+            return $shop->objednalNejakeJidlo()
+                ? "<span class=\"hinted\">jen stravenky<span class=\"hint\">{$shop->jidloHtml(false)}</span></span>"
                 : '';
         }
-        return $this->u['infopult_poznamka'] === 'velký balíček ' . ROK
+        $velikostBalicku = $this->u['infopult_poznamka'] === 'velký balíček ' . ROK
             ? 'velký balíček'
             : 'balíček';
+        return "<span class=\"hinted\">$velikostBalicku<span class=\"hint\">{$shop->predmetyPrehledHtml()}</span></span>";
     }
 
     /**
