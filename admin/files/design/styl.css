@@ -520,6 +520,15 @@ input[type="submit"]:disabled {
   background-color: #f0f0f0;
 }
 
+.main .hint table tr:nth-child(odd) {
+  background-color: #5b5b5b;
+}
+
+.main .hint table th {
+  background: none;
+  border: none;
+}
+
 .main table.zvyraznovana {
   cursor: default;
 }
