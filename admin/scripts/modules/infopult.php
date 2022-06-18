@@ -94,7 +94,8 @@ if (!empty($_POST['prodej'])) {
     VALUES (' . $prodej['id_uzivatele'] . ',' . $prodej['id_predmetu'] . ',' . ROK . ',(SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu=' . $prodej['id_predmetu'] . '),NOW())');
     }
     $idPredmetu = (int)$prodej['id_predmetu'];
-    $nazevPredmetu = dbOneCol(<<<SQL
+    $nazevPredmetu = dbOneCol(
+        <<<SQL
         SELECT nazev FROM shop_predmety
         WHERE id_predmetu = $idPredmetu
         SQL
@@ -119,8 +120,38 @@ if (post('gcOdjed')) {
     back();
 }
 
-if (post('prehledUprava')) {
-    $uPracovni->poznamka(post('poznamka'));
+// TODO: mělo by být obsaženo v modelové třídě
+/**
+ * @param mixin $udaje 
+ * @param int $uPracovniId
+ * @param \Gamecon\Vyjimkovac\Vyjimkovac $vyjimkovac
+ */
+function updateUzivatelHodnoty($udaje, $uPracovniId, $vyjimkovac)
+{
+    try {
+        dbUpdate('uzivatele_hodnoty', $udaje, ['id_uzivatele' => $uPracovniId]);
+    } catch (Exception $e) {
+        $vyjimkovac->zaloguj($e);
+        chyba('Došlo k neočekávané chybě.');
+    }
+}
+
+/* Editace v kartě Pŕehled */
+if ($uPracovni && post('prehledUprava')) {
+    $udaje = post('udaje');
+
+    if (isset($udaje['potvrzeni_zakonneho_zastupce'])) {
+        // pokud je hodnota "" tak to znamená že nedošlo ke změně
+        if ($udaje['potvrzeni_zakonneho_zastupce'] == "")
+            unset($udaje['potvrzeni_zakonneho_zastupce']);
+        else 
+            $udaje['potvrzeni_zakonneho_zastupce'] = date('Y-m-d');
+    } else {
+        $udaje['potvrzeni_zakonneho_zastupce'] = null;
+    }
+
+    // TODO(SECURITY): nebezpečné krmit data do databáze tímhle způsobem Každý si vytvořit do html formuláře input který se pak také propíŠe do DB
+    updateUzivatelHodnoty($udaje, $uPracovni->id(), $vyjimkovac);
     back();
 }
 
@@ -157,11 +188,16 @@ if (post('zmenitUdaj') && $uPracovni) {
     back();
 }
 
+$ok = '<img src="files/design/ok-s.png" style="margin-bottom:-2px">';
+$err = '<img src="files/design/error-s.png" style="margin-bottom:-2px">';
+
 $x = new XTemplate('infopult.xtpl');
 $x->assign('prihlasBtnAttr', "disabled");
 $x->assign('datMaterialyBtnAttr', "disabled");
 $x->assign('gcOdjedBtnAttr', "disabled");
 $x->assign('odhlasBtnAttr', "disabled");
+$x->assign('ok', $ok);
+$x->assign('err', $err);
 
 if ($uPracovni) {
     if (!$uPracovni->gcPrihlasen()) {
@@ -178,8 +214,6 @@ if ($uPracovni) {
         $x->parse('uvod.neprihlasen');
     }
     $up = $uPracovni;
-    $x->assign('ok', $ok = '<img src="files/design/ok-s.png" style="margin-bottom:-2px">');
-    $x->assign('err', $err = '<img src="files/design/error-s.png" style="margin-bottom:-2px">');
     $a = $up->koncovkaDlePohlavi();
     $pokoj = Pokoj::zUzivatele($up);
     $spolubydlici = $pokoj
@@ -229,9 +263,17 @@ if ($uPracovni) {
         : null;
     $potrebujePotvrzeniKvuliVeku = potrebujePotvrzeni($datumNarozeni);
     $mameLetosniPotvrzeniKvuliVeku = $potvrzeniOd && $potvrzeniOd->format('y') === date('y');
-    if ($potrebujePotvrzeniKvuliVeku && !$mameLetosniPotvrzeniKvuliVeku) {
-        $x->parse('uvod.uzivatel.chybiPotvrzeni');
+
+    if (!$potrebujePotvrzeniKvuliVeku) {
+        $x->assign("potvrzeniAttr", "checked disabled");
+        $x->assign("potvrzeniText", $ok . " nepotřebuje potvrzení od rodičů");
+    } else if ($mameLetosniPotvrzeniKvuliVeku) {
+        $x->assign("potvrzeniAttr", "checked value=\"\"");
+        $x->assign("potvrzeniText", $ok . " má potvrzení od rodičů");
+    } else {
+        $x->assign("potvrzeniText", $err . " chybí potvrzení od rodičů!");
     }
+
     if (VYZADOVANO_COVID_POTVRZENI) {
         $mameNahranyLetosniDokladProtiCovidu = $up->maNahranyDokladProtiCoviduProRok((int)date('Y'));
         $mameOverenePotvrzeniProtiCoviduProRok = $up->maOverenePotvrzeniProtiCoviduProRok((int)date('Y'));

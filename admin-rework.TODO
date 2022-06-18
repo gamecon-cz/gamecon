@@ -19,17 +19,19 @@
     - [X] Řešení komunikace aktuálního stavu a stavů tlačítek s uživatelem *(klikatelné, kliknuté, nekliklatelné)*
   - [ ] /Infopult default pro “Infopult” židli
   - [ ] Karta přehled
-    - [ ] tlačítko uložit pro editace na přehledu
+    - [X] tlačítko uložit pro editace na přehledu
     - [ ] úpravy pole
       - [X] Stav účtu červeně záporná hodnota
       - [ ] Poznámka - bude editovatelné
         - [X] přidat
-        - [ ] Opravit stylování
       - [ ] Covid test - manuálním ověření odkliknutím
-      - [ ] Potvrzení
-        - [ ] přejmenovat na Souhlas rodičů
-        - [ ] skrýt pro 15+ návštěvníky
-        - [ ] manuální odkliknutí
+      - [X] Potvrzení
+        - **Alternativně vyřešeno**
+          - K přejmenování nedošlo kvůli neodstatku místa v headru *(došlo by k zobrazení na dva řádky a zabíral by tbytečně moc místa)*. že jde o potvrzení rodičů lze vyčíst v doprovodném textu.
+            - **Původní zadání:** přejmenovat na Souhlas rodičů
+          - potvrzení je vždy viditelné pro zachování tvaru a vzheldu karty, dospělý účastník má nápis že potvrzení nepotřebuje
+            - **Původní zadání:** skrýt pro 15+ návštěvníky
+        - [X] manuální odkliknutí
     - [ ] odebrat pole
       - Status
       - ID uživatele
