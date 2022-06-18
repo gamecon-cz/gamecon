@@ -44,19 +44,21 @@
         - [X] formát s mezerami "000 000 000"
         - [X] formátování s podporou předvolby
       - [ ] Chybí osobní údaje (pokud) - domplnit -> proklik na uživatel
-    - [ ] pořadí polí 
+    - [X] pořadí polí 
       - Stav účtu
       - Poznámka
       - Souhlas rodičů
       - Chybí osobní údaje
       - Covid-19
       - Kontakt
-    - [ ] zvýraznění políček které vyžadují pozornost
-    - [ ] Vytvořit tlačítka Program a Program účastníka
-      - [ ] místo odkazů Program účastníka a Filtrovaný program udělat tlačítka (klidně vizuálně podobná těm čtyřem nahoře), cílem je, aby to bylo na první pohled viditelnější
-      - [ ] přejmenovat “Program účastníka” na “Program”
-      - [ ] přejmenovat “Filtrovaný program” na “Program účastníka”
-      - [ ] přejmenovat i po rozkliknutí daného odkazu nahoře vlevo na stránce /program-osobni a /program-uzivatele, pokud se to nepřejmenuje automaticky
+    - [X] zvýraznění políček které vyžadují pozornost
+    - [X] Vytvořit tlačítka Program a Program účastníka
+      - [X] odkazů Program účastníka a Filtrovaný program
+        - **Alternativně vyřešeno** odkazy zvětšené aby byly výraznější. Tlačítka jsou určené pro provádění akcí a ne pro přesměrování, proto nechávám jako odkaz.
+          - **Původní zadání:** místo odkazů Program účastníka a Filtrovaný program udělat tlačítka (klidně vizuálně podobná těm čtyřem nahoře), cílem je, aby to bylo na první pohled viditelnější
+      - [X] přejmenovat “Program účastníka” na “Program”
+      - [X] přejmenovat “Filtrovaný program” na “Program účastníka”
+      - [X] přejmenovat i po rozkliknutí daného odkazu nahoře vlevo na stránce /program-osobni a /program-uzivatele, pokud se to nepřejmenuje automaticky
   - [ ] karta ubytování
     - [ ] Pŕesunout pole
       - [ ] Pokoj
