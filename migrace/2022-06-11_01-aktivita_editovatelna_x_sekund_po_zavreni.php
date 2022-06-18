@@ -12,7 +12,7 @@ SQL
 $this->q(<<<SQL
 INSERT IGNORE INTO systemove_nastaveni (klic, hodnota, nazev, popis, datovy_typ, skupina)
     VALUES
-        ('AKTIVITA_EDITOVATELNA_X_MINUT_PO_JEJIM_UZAVRENI', 60, 'Kolik minut lze aktivitu editovat po uzavření', 'Kolik minut může ještě vypravěč zpětně editovat přihlášené na aktivitě od okamžiku jejího uzavření', 'int','Čas')
+        ('AKTIVITA_EDITOVATELNA_X_MINUT_PO_JEJIM_KONCI', 60, 'Kolik minut lze aktivitu editovat po skončení', 'Kolik minut může ještě vypravěč zpětně editovat přihlášené na aktivitě od okamžiku jejího ukončení', 'int','Čas')
 SQL
 );
 
