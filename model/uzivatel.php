@@ -735,9 +735,10 @@ SQL,
                 ? "<span class=\"hinted\">jen stravenky<span class=\"hint\">{$shop->jidloHtml(false)}</span></span>"
                 : '';
         }
-        return $this->u['infopult_poznamka'] === 'velký balíček ' . ROK
-            ? "<span class=\"hinted\">velký balíček<span class=\"hint\">{$shop->predmetyPrehledHtml(false)}</span></span>"
+        $velikostBalicku = $this->u['infopult_poznamka'] === 'velký balíček ' . ROK
+            ? 'velký balíček'
             : 'balíček';
+        return "<span class=\"hinted\">$velikostBalicku<span class=\"hint\">{$shop->predmetyPrehledHtml()}</span></span>";
     }
 
     /**

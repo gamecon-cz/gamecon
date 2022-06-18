@@ -9,7 +9,7 @@
   <!-- begin:predmet -->
   <tr>
     <td>{nazev}</td>
-    <td>{kusu_uzivatele}</td>
+    <td style="text-align: right">{kusu_uzivatele}</td>
   </tr>
   <!-- end:predmet -->
 </table>

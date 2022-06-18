@@ -439,13 +439,8 @@ SQL
         return $t->text('predmety');
     }
 
-    /**
-     * Vrátí html kód formuláře s předměty a tričky (bez form značek kvůli
-     * integraci více věcí naráz).
-     * @todo vyprodání věcí
-     */
     function predmetyPrehledHtml() {
-        $t = new XTemplate(__DIR__ . '/shop-predmety-prehled.xtpl');
+        $t = new XTemplate(__DIR__ . '/templates/shop-predmety-prehled.xtpl');
 
         foreach ($this->predmety as $predmet) {
             if ($predmet['kusu_uzivatele'] <= 0) {
