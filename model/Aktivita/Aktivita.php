@@ -2438,7 +2438,7 @@ SQL
             $konec = $this->konec() ?? DateTimeGamecon::konecGameconu($systemoveNastaveni->rok());
             return \DateTimeImmutable::createFromMutable($konec);
         }
-        return $uzavrenaOd->modify("+ {$systemoveNastaveni->aktivitaEditovatelnaXMinutPoJejimUzavreni()} minutes");
+        return $uzavrenaOd->modify("+ {$systemoveNastaveni->aktivitaEditovatelnaXMinutPoJejimKonci()} minutes");
     }
 
     /** Je aktivita už proběhlá resp. už uzavřená pro změny? */
