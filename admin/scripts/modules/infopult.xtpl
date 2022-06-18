@@ -122,11 +122,10 @@
         <td style="color: gray;">nevydal, vydal | malý, velký</td>
       </tr>
     </table>
-    <input type="submit" name="prehledUprava" value="uložit" class="submit-btn"></td>
+    <a style="font-size: 1.2em; float: left; margin-top: .2em; margin-right: 1em;" href="program-uzivatele" target="_blank">Program</a>
+    <a style="font-size: 1.2em; float: left; margin-top: .2em;" href="program-osobni" target="_blank">Program účastníka</a>
+    <input type="submit" name="prehledUprava" value="uložit" class="submit-btn">
   </form>
-  <br>
-
-  <a href="program-uzivatele">Program účastníka</a> | <a href="program-osobni">Filtrovaný program</a><br><br>
 </div>
 
 <div class="aBox grid">

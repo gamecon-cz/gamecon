@@ -80,8 +80,8 @@ $chyba = Chyba::vyzvedniHtml();
     <?= $uPracovni->jmenoNick() ?><br>
     <span id="stavUctu"><?= $uPracovni->finance()->stavHr() ?></span><br>
 
-    <a href="program-uzivatele" class="program-odkaz">Program účastníka</a> |
-    <a href="program-osobni" class="program-odkaz">Filtrovaný program</a>
+    <a href="program-uzivatele" class="program-odkaz">Program</a> |
+    <a href="program-osobni" class="program-odkaz">Program účastníka</a>
 </div>
 
 <div class="program">
