@@ -270,7 +270,7 @@ SQL
     /**
      * Vrátí html kód formuláře s výběrem jídla
      */
-    public function jidloHtml() {
+    public function jidloHtml(bool $odemceno = false) {
         // inicializace
         ksort($this->jidlo['druhy']);
         $dny = $this->jidlo['dny'];
@@ -285,7 +285,7 @@ SQL
                     if ($jidlo && ($jidlo['nabizet'] || $jidlo['kusu_uzivatele'])) {
                         $t->assign('selected', $jidlo['kusu_uzivatele'] > 0 ? 'checked' : '');
                         $t->assign('pnName', self::PN_JIDLO . '[' . $jidlo['id_predmetu'] . ']');
-                        $t->parse($jidlo['stav'] == self::POZASTAVENY && !$this->nastaveni['jidloBezZamku']
+                        $t->parse(!$odemceno || ($jidlo['stav'] == self::POZASTAVENY && !$this->nastaveni['jidloBezZamku'])
                             ? 'jidlo.druh.den.locked'
                             : 'jidlo.druh.den.checkbox'
                         );
@@ -433,6 +433,39 @@ SQL
             }
 
             $t->parse('predmety.tricko');
+        }
+
+        $t->parse('predmety');
+        return $t->text('predmety');
+    }
+
+    /**
+     * Vrátí html kód formuláře s předměty a tričky (bez form značek kvůli
+     * integraci více věcí naráz).
+     * @todo vyprodání věcí
+     */
+    function predmetyPrehledHtml() {
+        $t = new XTemplate(__DIR__ . '/shop-predmety-prehled.xtpl');
+
+        foreach ($this->predmety as $predmet) {
+            if ($predmet['kusu_uzivatele'] <= 0) {
+                continue;
+            }
+            $t->assign([
+                'nazev' => $predmet['nazev'],
+                'kusu_uzivatele' => $predmet['kusu_uzivatele'],
+            ]);
+        }
+
+        foreach ($this->tricka as $tricko) {
+            if ($tricko['kusu_uzivatele'] <= 0) {
+                continue;
+            }
+            $t->assign([
+                'nazev' => $tricko['nazev'],
+                'kusu_uzivatele' => $tricko['kusu_uzivatele'],
+            ]);
+            $t->parse('predmety.predmet');
         }
 
         $t->parse('predmety');
