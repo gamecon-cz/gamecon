@@ -17,7 +17,7 @@ $uzivatelGamecon->gcPrihlas($uzivatelGamecon);
 $puvodniStav = $oldestOldWorldTournament2022->stav();
 $oldestOldWorldTournament2022->aktivuj();
 $oldestOldWorldTournament2022->prihlas($uzivatelGamecon, Aktivita::STAV /* ignorovat stav */ | Aktivita::DOPREDNE /* povolit přihlášení ikdyž není registrace na aktivity ještě spuštěná */);
-$oldestOldWorldTournament2022->zamknout($uzivatelGamecon);
+$oldestOldWorldTournament2022->zamknoutProTeam($uzivatelGamecon);
 $oldestOldWorldTournament2022->prihlasTym(
     [],
     '',
