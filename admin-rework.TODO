@@ -40,8 +40,9 @@
       - Na pokoji (přesunout do nového přehledu ubytování viz dále)
       - Ubytování (přesunout do nového přehledu ubytování viz dále)
     - [ ] Nové pole
-      - [ ] Kontakt = telefonní číslo
-        - [ ] formát s mezerami "000 000 000"
+      - [X] Kontakt = telefonní číslo
+        - [X] formát s mezerami "000 000 000"
+        - [X] formátování s podporou předvolby
       - [ ] Chybí osobní údaje (pokud) - domplnit -> proklik na uživatel
     - [ ] pořadí polí 
       - Stav účtu
