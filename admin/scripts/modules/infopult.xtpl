@@ -114,7 +114,7 @@
 
       <tr>
         <td>Kontakt:</td>
-        <td style="color: gray;">+420 XXX XXX XXX</td>
+        <td>{telefon}</td>
       </tr>
 
       <tr>

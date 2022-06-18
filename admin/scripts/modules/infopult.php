@@ -193,9 +193,24 @@ if (post('zmenitUdaj') && $uPracovni) {
     back();
 }
 
+// TODO: přesunout do nějakého utility souboru
+#region utility
 $ok = '<img src="files/design/ok-s.png" style="margin-bottom:-2px">';
 $warn = '<img src="files/design/warning-s.png" style="margin-bottom:-2px">';
 $err = '<img src="files/design/error-s.png" style="margin-bottom:-2px">';
+
+/**
+ * @param string $cislo
+ */
+function formatujTelCislo($cislo) {
+    $bezmezer = str_replace(" ", "", $cislo);
+    if ($bezmezer == "") 
+        return "";
+    $predvolbaKonec = max(strlen($bezmezer) - 9, 0);
+    $formatovane = substr($bezmezer, 0, $predvolbaKonec) . " " . substr($bezmezer, $predvolbaKonec, 3) . " " . substr($bezmezer, $predvolbaKonec + 3, 3) . " " . substr($bezmezer, $predvolbaKonec + 6, 3);
+    return $formatovane;
+}
+#endregion utility
 
 $x = new XTemplate('infopult.xtpl');
 $x->assign('prihlasBtnAttr', "disabled");
@@ -219,6 +234,7 @@ if ($uPracovni) {
         }
         $x->parse('uvod.neprihlasen');
     }
+    /** @var \Uzivatel $up */
     $up = $uPracovni;
     $a = $up->koncovkaDlePohlavi();
     $pokoj = Pokoj::zUzivatele($up);
@@ -302,6 +318,9 @@ if ($uPracovni) {
         }
         $x->parse('uvod.uzivatel.covidSekce');
     }
+
+    $x->assign("telefon", formatujTelCislo($up->telefon()));
+
     if (GC_BEZI) {
         $zpravyProPotvrzeniZruseniPrace = [];
         if (!$up->gcPritomen()) {
