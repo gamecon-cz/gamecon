@@ -20,11 +20,11 @@
   - [ ] /Infopult default pro “Infopult” židli
   - [ ] Karta přehled
     - [X] tlačítko uložit pro editace na přehledu
-    - [ ] úpravy pole
+    - [X] úpravy pole
       - [X] Stav účtu červeně záporná hodnota
-      - [ ] Poznámka - bude editovatelné
+      - [X] Poznámka - bude editovatelné
         - [X] přidat
-      - [ ] Covid test - manuálním ověření odkliknutím
+      - [X] Covid test - manuálním ověření odkliknutím
       - [X] Potvrzení
         - **Alternativně vyřešeno**
           - K přejmenování nedošlo kvůli neodstatku místa v headru *(došlo by k zobrazení na dva řádky a zabíral by tbytečně moc místa)*. že jde o potvrzení rodičů lze vyčíst v doprovodném textu.
@@ -32,7 +32,7 @@
           - potvrzení je vždy viditelné pro zachování tvaru a vzheldu karty, dospělý účastník má nápis že potvrzení nepotřebuje
             - **Původní zadání:** skrýt pro 15+ návštěvníky
         - [X] manuální odkliknutí
-    - [ ] odebrat pole
+    - [X] odebrat pole
       - Status
       - ID uživatele
       - Dorazil (přesune se nahoru mezi tlačítka)
@@ -136,6 +136,7 @@
 # Bude součástí dalších PR
   - undo stavu pro finance (navrácení akce při ukliknutí - přihlásit, přijel, dát materiály, odjel)
   - Možnost rušení objednávek ?
+  - *(optional)* Modal potvrzení covid s ano ne bez potřeby překlikávání mezi záložkami prohlížeče ?
 
 - [ ] Vykopírovat nehotové TODO pro další PR jinam (do Trella)
 - [ ] Připravit na merge

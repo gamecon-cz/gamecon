@@ -140,14 +140,19 @@ function updateUzivatelHodnoty($udaje, $uPracovniId, $vyjimkovac)
 if ($uPracovni && post('prehledUprava')) {
     $udaje = post('udaje');
 
-    if (isset($udaje['potvrzeni_zakonneho_zastupce'])) {
-        // pokud je hodnota "" tak to znamená že nedošlo ke změně
-        if ($udaje['potvrzeni_zakonneho_zastupce'] == "")
-            unset($udaje['potvrzeni_zakonneho_zastupce']);
-        else 
-            $udaje['potvrzeni_zakonneho_zastupce'] = date('Y-m-d');
-    } else {
-        $udaje['potvrzeni_zakonneho_zastupce'] = null;
+    foreach ([
+        'potvrzeni_zakonneho_zastupce',
+        'potvrzeni_proti_covid19_overeno_kdy',
+    ] as &$pole) {
+        if (isset($udaje[$pole])) {
+            // pokud je hodnota "" tak to znamená že nedošlo ke změně
+            if ($udaje[$pole] == "")
+                unset($udaje[$pole]);
+            else 
+                $udaje[$pole] = date('Y-m-d');
+        } else {
+            $udaje[$pole] = null;
+        }
     }
 
     // TODO(SECURITY): nebezpečné krmit data do databáze tímhle způsobem Každý si vytvořit do html formuláře input který se pak také propíŠe do DB
@@ -189,6 +194,7 @@ if (post('zmenitUdaj') && $uPracovni) {
 }
 
 $ok = '<img src="files/design/ok-s.png" style="margin-bottom:-2px">';
+$warn = '<img src="files/design/warning-s.png" style="margin-bottom:-2px">';
 $err = '<img src="files/design/error-s.png" style="margin-bottom:-2px">';
 
 $x = new XTemplate('infopult.xtpl');
@@ -277,22 +283,21 @@ if ($uPracovni) {
     if (VYZADOVANO_COVID_POTVRZENI) {
         $mameNahranyLetosniDokladProtiCovidu = $up->maNahranyDokladProtiCoviduProRok((int)date('Y'));
         $mameOverenePotvrzeniProtiCoviduProRok = $up->maOverenePotvrzeniProtiCoviduProRok((int)date('Y'));
-        if (!$mameNahranyLetosniDokladProtiCovidu && !$mameOverenePotvrzeniProtiCoviduProRok /* muze byt overeno rucne bez nahraneho dokladu */) {
-            $x->parse('uvod.uzivatel.covidSekce.chybiPotvrzeniProtiCovid');
-        } elseif (!$mameNahranyLetosniDokladProtiCovidu) { // potvrzeno rucne na infopultu, bez nahraneho dokladu
-            $x->parse('uvod.uzivatel.covidSekce.overenoPotvrzeniProtiCovidIkona');
-            $x->parse('uvod.uzivatel.covidSekce.overenoPredlozenePotvrzeniProtiCovid');
+        if (!$mameNahranyLetosniDokladProtiCovidu && !$mameOverenePotvrzeniProtiCoviduProRok) {
+            /* muze byt overeno rucne bez nahraneho dokladu */
+            $x->assign("covidPotvrzeniText", $err . " požádej o doplnění");
+        } elseif (!$mameNahranyLetosniDokladProtiCovidu) { 
+            /* potvrzeno rucne na infopultu, bez nahraneho dokladu */
+            $x->assign("covidPotvrzeniAttr", "checked value=\"\"");
+            $x->assign("covidPotvrzeniText", $ok . " ověřeno bez dokladu");
         } else {
-            $x->assign('urlNaPotvrzeniProtiCovid', $up->urlNaPotvrzeniProtiCoviduProAdmin());
-            $x->assign(
-                'datumNahraniPotvrzeniProtiCovid',
-                (new DateTimeCz($up->potvrzeniProtiCoviduPridanoKdy()->format(DATE_ATOM)))->relativni()
-            );
-            $x->parse('uvod.uzivatel.covidSekce.potvrzeniProtiCovid');
+            $datumNahraniPotvrzeniProtiCovid = (new DateTimeCz($up->potvrzeniProtiCoviduPridanoKdy()->format(DATE_ATOM)))->relativni();
+            $x->assign('covidPotvrzeniOdkazAttr', "href=\n" . $up->urlNaPotvrzeniProtiCoviduProAdmin() . "\"");
             if ($mameOverenePotvrzeniProtiCoviduProRok) {
-                $x->parse('uvod.uzivatel.covidSekce.overenoPotvrzeniProtiCovidIkona');
+                $x->assign("covidPotvrzeniAttr", "checked value=\"\"");
+                $x->assign("covidPotvrzeniText", $ok . " ověřeno dokladem $datumNahraniPotvrzeniProtiCovid");
             } else {
-                $x->parse('uvod.uzivatel.covidSekce.overitPotvrzeniProtiCovid');
+                $x->assign("covidPotvrzeniText", $warn . " neověřený doklad $datumNahraniPotvrzeniProtiCovid");
             }
         }
         $x->parse('uvod.uzivatel.covidSekce');
