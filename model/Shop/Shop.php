@@ -325,7 +325,7 @@ SQL
     }
 
     public function objednneJidloPrehledHtml(): string {
-        $t = new XTemplate(__DIR__ . '/shop-jidla-prehled.xtpl');
+        $t = new XTemplate(__DIR__ . '/templates/shop-jidla-prehled.xtpl');
 
         // inicializace
         $druhy = $this->jidlo['druhy'];
