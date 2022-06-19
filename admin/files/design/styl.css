@@ -894,3 +894,7 @@ select:focus {
   /*nelze použít HTML zápis &nbsp;*/
   content: '\00a0';
 }
+
+.shop-prehled table {
+  width: 100%
+}
