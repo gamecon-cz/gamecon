@@ -729,10 +729,8 @@ SQL,
             return '';
         }
         $shop = $this->dejShop();
-        $objednalNejakeJidlo = $shop->objednalNejakeJidlo();
-        $koupilNejakouVec = $shop->koupilNejakouVec();
-        if (!$koupilNejakouVec) {
-            return $objednalNejakeJidlo
+        if (!$shop->koupilNejakouVec()) {
+            return $shop->objednalNejakeJidlo()
                 ? "<span class=\"hinted\">jen stravenky<span class=\"hint\">{$shop->objednneJidloPrehledHtml()}</span></span>"
                 : '';
         }
@@ -741,12 +739,8 @@ SQL,
             : 'balíček';
         $nakupy = [];
         $nakupy[] = $shop->koupeneVeciPrehledHtml();
-        if ($objednalNejakeJidlo) {
-            $nakupy[] = $shop->objednneJidloPrehledHtml();
-            $velikostBalicku .= ' & stravenky';
-        }
         $nakupyHtml = implode('<hr>', $nakupy);
-        return '<span class="hinted">' . htmlentities($velikostBalicku) . '<span class="hint">' . $nakupyHtml . '</span></span>';
+        return '<span class="hinted">' . $velikostBalicku . '<span class="hint">' . $nakupyHtml . '</span></span>';
     }
 
     /**
