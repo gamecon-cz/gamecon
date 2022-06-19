@@ -155,15 +155,15 @@ SQL,
 SELECT *
 FROM (
       SELECT
-        p.id_predmetu, p.model_rok, p.cena_aktualni, p.stav, p.auto, p.nabizet_do, p.kusu_vyrobeno, p.typ, p.ubytovani_den, p.popis,
-        IF(p.model_rok = $1, nazev, CONCAT(nazev, ' (', popis, ')')) AS nazev,
-        COUNT(IF(n.rok = $1, 1, NULL)) kusu_prodano,
-        COUNT(IF(n.id_uzivatele = $2 AND n.rok = $1, 1, NULL)) kusu_uzivatele,
-        SUM(IF(n.id_uzivatele = $2 AND n.rok = $1, cena_nakupni, 0)) sum_cena_nakupni
-      FROM shop_predmety p
-      LEFT JOIN shop_nakupy n USING(id_predmetu)
-      WHERE stav > $0 OR n.rok = $1
-      GROUP BY id_predmetu
+        predmety.id_predmetu, predmety.model_rok, predmety.cena_aktualni, predmety.stav, predmety.auto, predmety.nabizet_do, predmety.kusu_vyrobeno, predmety.typ, predmety.ubytovani_den, predmety.popis,
+        IF(predmety.model_rok = $1, nazev, CONCAT(nazev, ' (', popis, ')')) AS nazev,
+        COUNT(IF(nakupy.rok = $1, 1, NULL)) kusu_prodano,
+        COUNT(IF(nakupy.id_uzivatele = $2 AND nakupy.rok = $1, 1, NULL)) kusu_uzivatele,
+        SUM(IF(nakupy.id_uzivatele = $2 AND nakupy.rok = $1, nakupy.cena_nakupni, 0)) sum_cena_nakupni
+      FROM shop_predmety predmety
+      LEFT JOIN shop_nakupy nakupy USING(id_predmetu)
+      WHERE predmety.stav > $0 OR nakupy.rok = $1
+      GROUP BY nakupy.id_predmetu
 ) AS seskupeno
 ORDER BY typ, ubytovani_den, nazev, model_rok DESC, id_predmetu ASC
 SQL

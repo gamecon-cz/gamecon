@@ -21,11 +21,24 @@ $poddotazKoupenehoPredmetu = static function (string $klicoveSlovo, int $idTypuP
             JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
             WHERE shop_predmety.id_predmetu = shop_nakupy.id_predmetu
                 AND shop_predmety.typ = {$idTypuPredmetu}
-                AND shop_nakupy.rok = {$rok}
                 AND IF ('$klicoveSlovo' = '', TRUE, shop_predmety.nazev LIKE '%{$klicoveSlovo}%')
                 AND shop_nakupy.rok = {$rok}
             GROUP BY shop_nakupy.id_uzivatele, shop_predmety.nazev) AS pocet_a_druh
     WHERE pocet_a_druh.id_uzivatele = uzivatele_hodnoty.id_uzivatele
+)
+SQL;
+};
+
+$kopilNecoSql = static function (array $typyPredmetu, int $rok) {
+    $typyPredmetuSql = implode(',', array_map('intval', $typyPredmetu));
+    return <<<SQL
+EXISTS(
+    SELECT 1
+    FROM shop_predmety
+        JOIN shop_nakupy ON shop_predmety.id_predmetu = shop_nakupy.id_predmetu
+    WHERE shop_nakupy.id_uzivatele = uzivatele_hodnoty.id_uzivatele
+        AND shop_nakupy.rok = $rok
+        AND shop_predmety.typ IN ($typyPredmetuSql)
 )
 SQL;
 };
@@ -45,7 +58,11 @@ SELECT uzivatele_hodnoty.id_uzivatele,
        {$poddotazKoupenehoPredmetu('blok', $typPredmet, $rok, false)} AS bloky,
        {$poddotazKoupenehoPredmetu('ponožky', $typPredmet, $rok, false)} AS ponozky,
        IF ({$poddotazKoupenehoPredmetu('', $typJidlo, $rok, false)} IS NULL, '', 'stravenky') AS stravenky,
-       IF (uzivatele_hodnoty.infopult_poznamka = 'velký balíček $rok', 'velký balíček', 'balíček') AS balicek
+       IF (
+            {$kopilNecoSql([$typTricko, $typPredmet], $rok)},
+            IF (uzivatele_hodnoty.infopult_poznamka = 'velký balíček $rok', 'velký balíček', 'balíček'),
+           ''
+       ) AS balicek
 FROM uzivatele_hodnoty
 JOIN r_uzivatele_zidle
     ON uzivatele_hodnoty.id_uzivatele = r_uzivatele_zidle.id_uzivatele
