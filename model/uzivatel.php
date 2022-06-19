@@ -648,16 +648,24 @@ SQL
             return '';
         }
         $shop = $this->dejShop();
-        $koupilNecoHmotneho = $shop->koupilNejakyPredmet() || $shop->koupilNejakeTricko();
-        if (!$koupilNecoHmotneho) {
-            return $shop->objednalNejakeJidlo()
-                ? "<span class=\"hinted\">jen stravenky<span class=\"hint\">{$shop->jidloHtml(false)}</span></span>"
+        $objednalNejakeJidlo = $shop->objednalNejakeJidlo();
+        $koupilNejakouVec = $shop->koupilNejakouVec();
+        if (!$koupilNejakouVec) {
+            return $objednalNejakeJidlo
+                ? "<span class=\"hinted\">jen stravenky<span class=\"hint\">{$shop->objednneJidloPrehledHtml()}</span></span>"
                 : '';
         }
         $velikostBalicku = $this->u['infopult_poznamka'] === 'velký balíček ' . ROK
             ? 'velký balíček'
             : 'balíček';
-        return "<span class=\"hinted\">$velikostBalicku<span class=\"hint\">{$shop->predmetyPrehledHtml()}</span></span>";
+        $nakupy = [];
+        $nakupy[] = $shop->koupeneVeciPrehledHtml();
+        if ($objednalNejakeJidlo) {
+            $nakupy[] = $shop->objednneJidloPrehledHtml();
+            $velikostBalicku .= ' & stravenky';
+        }
+        $nakupyHtml = implode('<hr>', $nakupy);
+        return '<span class="hinted">' . htmlentities($velikostBalicku) . '<span class="hint">' . $nakupyHtml . '</span></span>';
     }
 
     /**

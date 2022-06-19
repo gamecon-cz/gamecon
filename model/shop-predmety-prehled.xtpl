@@ -1,16 +1,13 @@
 <!-- begin:predmety -->
-<table class="shopJidlo_tabulka">
-  <thead>
-  <tr>
-    <th>Název</th>
-    <th>Počet</th>
-  </tr>
-  </thead>
-  <!-- begin:predmet -->
-  <tr>
-    <td>{nazev}</td>
-    <td style="text-align: right">{kusu_uzivatele}</td>
-  </tr>
-  <!-- end:predmet -->
-</table>
+<div class="shop-prehled">
+  <table>
+    <!-- begin:predmet -->
+    <tr>
+      <td>{nazev}</td>
+      <td style="text-align: right">{kusu_uzivatele}×
+      </td>
+    </tr>
+    <!-- end:predmet -->
+  </table>
+</div>
 <!-- end:predmety -->

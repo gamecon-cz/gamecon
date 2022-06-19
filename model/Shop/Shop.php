@@ -271,7 +271,7 @@ SQL
     /**
      * Vrátí html kód formuláře s výběrem jídla
      */
-    public function jidloHtml(bool $odemceno = false) {
+    public function jidloHtml() {
         // inicializace
         ksort($this->jidlo['druhy']);
         $dny = $this->jidlo['dny'];
@@ -286,7 +286,7 @@ SQL
                     if ($jidlo && ($jidlo['nabizet'] || $jidlo['kusu_uzivatele'])) {
                         $t->assign('selected', $jidlo['kusu_uzivatele'] > 0 ? 'checked' : '');
                         $t->assign('pnName', self::PN_JIDLO . '[' . $jidlo['id_predmetu'] . ']');
-                        $t->parse(!$odemceno || ($jidlo['stav'] == self::POZASTAVENY && !$this->nastaveni['jidloBezZamku'])
+                        $t->parse($jidlo['stav'] == self::POZASTAVENY && !$this->nastaveni['jidloBezZamku']
                             ? 'jidlo.druh.den.locked'
                             : 'jidlo.druh.den.checkbox'
                         );
@@ -323,6 +323,34 @@ SQL
             }
         }
         return true;
+    }
+
+    public function objednneJidloPrehledHtml(): string {
+        $t = new XTemplate(__DIR__ . '/shop-jidla-prehled.xtpl');
+
+        // inicializace
+        $druhy = $this->jidlo['druhy'];
+        ksort($druhy);
+        $dny = $this->jidlo['dny'];
+        $jidla = $this->jidlo['jidla'];
+
+        // vykreslení
+        foreach (array_keys($druhy) as $druh) {
+            foreach (array_keys($dny) as $den) {
+                $jidlo = $jidla[$den][$druh] ?? null;
+                if ($jidlo && $jidlo['kusu_uzivatele']) {
+                    $t->assign('nazev', $jidlo['nazev']);
+                    $t->parse('jidla.jidlo');
+                }
+            }
+        }
+
+        $t->parse('jidla');
+        return $t->text('jidla');
+    }
+
+    public function koupilNejakouVec(): bool {
+        return $this->koupilNejakyPredmet() || $this->koupilNejakeTricko();
     }
 
     public function koupilNejakyPredmet(): bool {
@@ -440,7 +468,7 @@ SQL
         return $t->text('predmety');
     }
 
-    function predmetyPrehledHtml() {
+    function koupeneVeciPrehledHtml() {
         $t = new XTemplate(__DIR__ . '/shop-predmety-prehled.xtpl');
 
         foreach ($this->predmety as $predmet) {
@@ -451,6 +479,7 @@ SQL
                 'nazev' => $predmet['nazev'],
                 'kusu_uzivatele' => $predmet['kusu_uzivatele'],
             ]);
+            $t->parse('predmety.predmet');
         }
 
         foreach ($this->tricka as $tricko) {
