@@ -97,3 +97,7 @@ label:hover {
 input[disabled]::placeholder {
   text-decoration: line-through;
 }
+
+.emoji {
+  font-family: initial;
+}

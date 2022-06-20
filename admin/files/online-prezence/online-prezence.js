@@ -27,8 +27,9 @@
       aktivitaNode.addEventListener('zmenaMetadatAktivity', function (/** @param {{ detail: { casPosledniZmenyStavuAktivity: string, stavAktivity: string, idPoslednihoLogu: number, editovatelnaDoTimestamp: number} }} */event) {
         zapisMetadataAktivity(aktivitaNode, event.detail)
 
-        const editovatelna = editovatelnaPodleStavu(event.detail.stavAktivity)
-        if (!editovatelna) { // else - znovuotevření aktivity nepodporujeme
+        if (event.detail.stavAktivity === 'zamcena') {
+          reagujNaZamceniAktivity(aktivitaNode.dataset.id, event.detail.editovatelnaDoTimestamp)
+        } else if (event.detail.stavAktivity === 'uzavrena') {
           reagujNaUzavreniAktivity(aktivitaNode.dataset.id, event.detail.editovatelnaDoTimestamp)
         }
       })
@@ -299,8 +300,6 @@
       }, interval)
     }
 
-    // 💨 PROBĚHLA BEZ POVŠIMNUTÍ 💨
-
     $aktivity.each(function () {
       const aktivitaNode = this
       if (aktivitaNode.dataset.editovatelnaDoTimestamp > 0) {
@@ -321,26 +320,10 @@
       const interval = 1000
       const intervalId = setInterval(function () {
         if (spoctiKolikZbyvaSekund(editovatelnaDoTimestamp) <= 0) {
-          zablokovatKvuliUkonceniEditovatelnosti(aktivitaNode)
+          zablokovatEditaciAktivity(aktivitaNode.dataset.id, false)
           clearInterval(intervalId)
         }
       }, interval)
-    }
-
-    /**
-     * @param {HTMLElement} aktivitaNode
-     */
-    function zablokovatKvuliUkonceniEditovatelnosti(aktivitaNode) {
-      zablokovatEditaciAktivity(aktivitaNode.dataset.id)
-      if (!editovatelnaPodleStavu(aktivitaNode.dataset.stavAktivity)) {
-        return
-      }
-      if (aktivitaNode.querySelectorAll('.ucastnik').length > 0) {
-        return
-      }
-      // je stále editovatelná a ještě k tomu na ní nění nikdo přihlášen
-      const $aktivitaNode = $(aktivitaNode)
-      $aktivitaNode.find('.text-probehla-bez-povsimnuti').show()
     }
 
     /**
@@ -361,6 +344,7 @@
       const $aktivitaNode = $(`#aktivita-${idAktivity}`)
       $aktivitaNode.find('input').prop('disabled', false)
       $aktivitaNode.find('.text-ceka').hide()
+      $aktivitaNode.find(`#uz-needitovatelna-${idAktivity}`).hide()
       $aktivitaNode.find('.tlacitko-uzavrit-aktivitu').show()
     }
 
@@ -479,10 +463,19 @@ const akceAktivity = new class AkceAktivity {
    * @param {number} idAktivity
    * @param {number} editovatelnaDoTimestamp
    */
-  reagujNaUzavreniAktivity(idAktivity, editovatelnaDoTimestamp) {
+  reagujNaZamceniAktivity(idAktivity, editovatelnaDoTimestamp) {
     const skrytElement = document.getElementById(`otevrena-${idAktivity}`)
     const zobrazitElement = document.getElementById(`zamcena-${idAktivity}`)
-    this.prohoditZobrazeni(skrytElement, zobrazitElement)
+    this.prohoditZobrazeni([skrytElement], zobrazitElement)
+
+    this.zpracovatEditovatelnostDo(idAktivity, editovatelnaDoTimestamp)
+  }
+
+  /**
+   * @param {number} idAktivity
+   * @param {number} editovatelnaDoTimestamp
+   */
+  zpracovatEditovatelnostDo(idAktivity, editovatelnaDoTimestamp) {
     const editovatelnaSekund = spoctiKolikZbyvaSekund(editovatelnaDoTimestamp)
     if (editovatelnaSekund > 0) {
       this.zobrazitVarovaniZeAktivitaJeZamcena(idAktivity)
@@ -496,13 +489,33 @@ const akceAktivity = new class AkceAktivity {
   }
 
   /**
-   * @param {number|string} idAktivity
+   * @param {number} idAktivity
+   * @param {number} editovatelnaDoTimestamp
    */
-  zablokovatEditaciAktivity(idAktivity) {
+  reagujNaUzavreniAktivity(idAktivity, editovatelnaDoTimestamp) {
+    const skrytElementy = [
+      document.getElementById(`otevrena-${idAktivity}`),
+      document.getElementById(`zamcena-${idAktivity}`),
+    ]
+    const zobrazitElement = document.getElementById(`uzavrena-${idAktivity}`)
+    this.prohoditZobrazeni(skrytElementy, zobrazitElement)
+
+    this.zpracovatEditovatelnostDo(idAktivity, editovatelnaDoTimestamp)
+  }
+
+  /**
+   * @param {number|string} idAktivity
+   * @param {boolean} vcetneTlacitkaNaUzavreni
+   */
+  zablokovatEditaciAktivity(idAktivity, vcetneTlacitkaNaUzavreni = true) {
     this.zablokovatInputyAktivity(idAktivity)
     const $aktivitaNode = $(`#aktivita-${idAktivity}`)
-    $aktivitaNode.find('.tlacitko-uzavrit-aktivitu').hide()
     $aktivitaNode.find('.skryt-pokud-aktivitu-nelze-editovat').hide()
+    if (vcetneTlacitkaNaUzavreni) {
+      $aktivitaNode.find('.tlacitko-uzavrit-aktivitu').hide()
+    } else {
+      $aktivitaNode.find(`#uz-needitovatelna-${idAktivity}`).show()
+    }
   }
 
   /**
@@ -523,11 +536,13 @@ const akceAktivity = new class AkceAktivity {
   }
 
   /**
-   * @param {HTMLElement} skrytElement
+   * @param {HTMLElement[]} skrytElementy
    * @param {HTMLElement} zobrazitElement
    */
-  prohoditZobrazeni(skrytElement, zobrazitElement) {
-    skrytElement.style.display = 'none'
+  prohoditZobrazeni(skrytElementy, zobrazitElement) {
+    skrytElementy.forEach(function (skrytElement) {
+      skrytElement.style.display = 'none'
+    })
     zobrazitElement.style.display = 'initial'
   }
 
@@ -646,9 +661,10 @@ function zmenitPritomnostUcastnika(idUzivatele, idAktivity, checkboxNode, trigge
 
 /**
  * @param {number|string} idAktivity
+ * @param {boolean} vcetneTlacitkaNaUzavreni
  */
-function zablokovatEditaciAktivity(idAktivity) {
-  akceAktivity.zablokovatEditaciAktivity(idAktivity)
+function zablokovatEditaciAktivity(idAktivity, vcetneTlacitkaNaUzavreni = true) {
+  akceAktivity.zablokovatEditaciAktivity(idAktivity, vcetneTlacitkaNaUzavreni)
 }
 
 /**
@@ -662,16 +678,16 @@ function uzavritAktivitu(idAktivity) {
  * @param {string} idAktivity
  * @param {number} editovatelnaDoTimestamp
  */
-function reagujNaUzavreniAktivity(idAktivity, editovatelnaDoTimestamp) {
-  akceAktivity.reagujNaUzavreniAktivity(idAktivity, editovatelnaDoTimestamp)
+function reagujNaZamceniAktivity(idAktivity, editovatelnaDoTimestamp) {
+  akceAktivity.reagujNaZamceniAktivity(idAktivity, editovatelnaDoTimestamp)
 }
 
 /**
- * @param {HTMLElement} skrytElement
- * @param {HTMLElement} zobrazitElement
+ * @param {string} idAktivity
+ * @param {number} editovatelnaDoTimestamp
  */
-function prohoditZobrazeni(skrytElement, zobrazitElement) {
-  akceAktivity.prohoditZobrazeni(skrytElement, zobrazitElement)
+function reagujNaUzavreniAktivity(idAktivity, editovatelnaDoTimestamp) {
+  akceAktivity.reagujNaUzavreniAktivity(idAktivity, editovatelnaDoTimestamp)
 }
 
 /**

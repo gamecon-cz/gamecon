@@ -22,12 +22,15 @@ if (post('prezenceAktivity')) {
 
 $t = new XTemplate(__DIR__ . '/prezence.xtpl');
 
-require __DIR__ . '/_casy.php'; // vhackování vybírátka času
-
-$zacatek = null; // bude nastaven přes referenci v nasledujici funkci
-$t->assign('casy', _casy($zacatek, true));
-
 $jenUzamceneNeuzavrene = !empty($_GET['uzamcene_neuzavrene']);
+
+$zacatek = null; // bude nastaven přes referenci ve funkci _casy
+if (!$jenUzamceneNeuzavrene) {
+    require __DIR__ . '/_casy.php'; // vhackování vybírátka času
+
+    $t->assign('casy', _casy($zacatek, true));
+}
+
 $t->assign('checked', $jenUzamceneNeuzavrene ? 'checked' : '');
 $t->assign('urlAkce', getCurrentUrlWithQuery());
 foreach ($_GET as $name => $value) {
@@ -40,15 +43,24 @@ foreach ($_GET as $name => $value) {
 }
 $t->parse('prezence.filtrAktivit');
 
-$aktivity = $zacatek
-    ? Aktivita::zRozmezi($zacatek, $zacatek, $jenUzamceneNeuzavrene ? Aktivita::ZAMCENE | Aktivita::NEUZAVRENE : 0)
-    : [];
-
-if ($zacatek && count($aktivity) === 0) {
-    $t->parse('prezence.zadnaAktivita');
+$aktivity = [];
+if ($jenUzamceneNeuzavrene) {
+    $aktivity = Aktivita::zRozmezi(
+        new \Gamecon\Cas\DateTimeCz('0001-01-01 00:00:01'),
+        new \Gamecon\Cas\DateTimeCz('2999-12-31 00:00:01'),
+        Aktivita::ZAMCENE | Aktivita::NEUZAVRENE
+    );
+} else if ($zacatek) {
+    $aktivity = Aktivita::zRozmezi($zacatek, $zacatek);
 }
-if (!$zacatek) {
-    $t->parse('prezence.nevybrano');
+
+if (!$jenUzamceneNeuzavrene) {
+    if ($zacatek && count($aktivity) === 0) {
+        $t->parse('prezence.zadnaAktivita');
+    }
+    if (!$zacatek) {
+        $t->parse('prezence.nevybrano');
+    }
 }
 
 foreach ($aktivity as $aktivita) {

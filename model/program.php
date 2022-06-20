@@ -419,23 +419,23 @@ class Program
         if (!$iterator->valid()) {
             return null;
         }
-        /** @var Aktivita $a */
-        $a = $iterator->current();
-        $zac = (int)$a->zacatek()->format('G');
-        $kon = (int)$a->konec()->format('G');
+        /** @var Aktivita $aktivita */
+        $aktivita = $iterator->current();
+        $zac = (int)$aktivita->zacatek()->format('G');
+        $kon = (int)$aktivita->konec()->format('G');
         if ($kon == 0) {
             $kon = 24;
         }
         switch ($this->grpf) {
             case self::SKUPINY_PODLE_TYP_ID :
             case self::SKUPINY_PODLE_TYP_PORADI :
-                $grp = $a->typId();
+                $grp = $aktivita->typId();
                 break;
             case self::SKUPINY_PODLE_LOKACE_ID :
-                $grp = $a->lokaceId();
+                $grp = $aktivita->lokaceId();
                 break;
             case self::SKUPINY_PODLE_DEN :
-                $grp = $a->zacatek()->format('z');
+                $grp = $aktivita->zacatek()->format('z');
                 break;
             default :
                 throw new Exception('nepodporovaný typ shlukování aktivit ' . $this->grpf);
@@ -445,9 +445,9 @@ class Program
             'grp' => $grp,
             'zac' => $zac,
             'kon' => $kon,
-            'den' => (int)$a->zacatek()->format('z'),
+            'den' => (int)$aktivita->zacatek()->format('z'),
             'del' => $kon - $zac,
-            'obj' => $a,
+            'obj' => $aktivita,
         ];
         $iterator->next();
 
@@ -459,19 +459,16 @@ class Program
         // u osobního programu přeskočit aktivity, kde není přihlášen
         if ($this->nastaveni['osobni']) {
             if (
-                !$a['obj']->prihlasen($this->u) &&
-                !$this->u->prihlasenJakoSledujici($a['obj']) &&
-                !$this->u->organizuje($a['obj'])
+                !$aktivita->prihlasen($this->u) &&
+                !$this->u->prihlasenJakoSledujici($aktivita) &&
+                !$this->u->organizuje($aktivita)
             ) {
                 return $this->nactiDalsiAktivitu($iterator);
             }
         }
 
         // přeskočit případné speciální (neviditelné) aktivity
-        if (
-            $a['obj']->viditelnaPro($this->u) ||
-            $this->nastaveni['technicke']
-        ) {
+        if ($aktivita->viditelnaPro($this->u) || $this->nastaveni['technicke']) {
             return $a;
         } else {
             return $this->nactiDalsiAktivitu($iterator);
