@@ -2,6 +2,8 @@
 
 namespace Gamecon;
 
+use http\Exception\RuntimeException;
+
 class Zidle extends \DbObject
 {
     protected static $tabulka = 'r_zidle_soupis';
@@ -29,6 +31,10 @@ class Zidle extends \DbObject
     public const PRIHLASEN_NA_LETOSNI_GC = ZIDLE_PRIHLASEN;
     public const PRITOMEN_NA_LETOSNIM_GC = ZIDLE_PRITOMEN;
     public const ODJEL_Z_LETOSNIHO_GC = ZIDLE_ODJEL;
+
+    public const UDALOST_PRIHLASEN = 'přihlášen';
+    public const UDALOST_PRITOMEN = 'přítomen';
+    public const UDALOST_ODJEL = 'odjel';
 
     /**
      * Přihlásil se, neboli registroval, na GameCon
@@ -86,5 +92,74 @@ class Zidle extends \DbObject
      */
     public static function dejIdZidliSOrganizatory(): array {
         return [self::ORGANIZATOR, self::ORGANIZATOR_S_BONUSY_1, self::ORGANIZATOR_S_BONUSY_2];
+    }
+
+    public static function nazevZidle(int $zidle): string {
+        switch ($zidle) {
+            case 2 :
+                return 'Organizátor (zdarma)';
+            case 6 :
+                return 'Vypravěč';
+            case 7 :
+                return 'Zázemí';
+            case 8 :
+                return 'Infopult';
+            case 9 :
+                return 'Vypravěčská skupina';
+            case 13 :
+                return 'Partner';
+            case 15 :
+                return 'Čestný organizátor';
+            case 16 :
+                return 'Admin';
+            case 17 :
+                return 'Dobrovolník senior';
+            case 18 :
+                return 'Středeční noc zdarma';
+            case 19 :
+                return 'Nedělní noc zdarma';
+            case 20 :
+                return 'Správce financí GC';
+            case 21 :
+                return 'Organizátor (s bonusy 1)';
+            case 22 :
+                return 'Organizátor (s bonusy 2)';
+            case 23 :
+                return 'Neodhlašovat';
+            case 24 :
+                return 'Herman';
+            default :
+                $rok = self::rokDleZidle($zidle);
+                $udalost = self::udalostDleZidle($zidle);
+
+                return "GC{$rok} {$udalost}";
+        }
+    }
+
+    public static function rokDleZidle(int $zidleUcastiNagGc): int {
+        if (!self::jeToUdalostNaGc($zidleUcastiNagGc)) {
+            throw new \LogicException("Role (židle) s ID $zidleUcastiNagGc v sobě nemá ročník");
+        }
+        return (int)(abs($zidleUcastiNagGc) / 100) + 2000;
+    }
+
+    public static function udalostDleZidle(int $zidleUcastiNagGc): string {
+        if (!self::jeToUdalostNaGc($zidleUcastiNagGc)) {
+            throw new \LogicException("Role (židle) s ID $zidleUcastiNagGc v sobě nemá ročník a tím ani událost");
+        }
+        switch (abs($zidleUcastiNagGc) % 100) {
+            case 1 :
+                return self::UDALOST_PRIHLASEN;
+            case 2 :
+                return self::UDALOST_PRITOMEN;
+            case 3 :
+                return self::UDALOST_ODJEL;
+            default :
+                throw new \RuntimeException("Role (židle) s ID $zidleUcastiNagGc v sobě má neznámou událost");
+        }
+    }
+
+    public static function jeToUdalostNaGc(int $zidle): bool {
+        return $zidle < 0;
     }
 }

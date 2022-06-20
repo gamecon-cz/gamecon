@@ -29,8 +29,24 @@ foreach (Uzivatel::zPrihlasenych() as $letosniUcastnik) {
         ? "<a href='tel:{$letosniUcastnik->telefon()}'>{$letosniUcastnik->telefon()}</a>"
         : $letosniUcastnik->telefon();
 
+    $ucastnikData['role'] = implode(
+        ',',
+        array_map(
+            static function (int $zidle) {
+                return \Gamecon\Zidle::nazevZidle($zidle);
+            },
+            array_filter(
+                $letosniUcastnik->dejIdZidli(),
+                static function (int $zidle) {
+                    return !\Gamecon\Zidle::jeToUdalostNaGc($zidle);
+                }
+            )
+        ));
+
     $finance = $letosniUcastnik->finance();
     $kategorieNeplatice = $finance->kategorieNeplatice();
+
+    $ucastnikData['suma_plateb'] = $finance->sumaPlateb(ROK);
     $ucastnikData['kategorie_neplatice'] = $kategorieNeplatice->dejCiselnouKategoriiNeplatice();
 
     $ucastnikData['aktualni_zustatek'] = $finance->stav();

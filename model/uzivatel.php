@@ -503,9 +503,7 @@ SQL
     public function dejIdZidli(): array {
         if (!isset($this->idZidli)) {
             $zidle = dbOneArray('SELECT id_zidle FROM r_uzivatele_zidle WHERE id_uzivatele = ' . $this->id());
-            $this->idZidli = array_map(static function ($idZidle) {
-                return (int)$idZidle;
-            }, $zidle);
+            $this->idZidli = array_map('intval', $zidle);
         }
         return $this->idZidli;
     }
