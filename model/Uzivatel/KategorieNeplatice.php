@@ -92,16 +92,16 @@ class KategorieNeplatice
      * https://docs.google.com/document/d/1pP3mp9piPNAl1IKCC5YYe92zzeFdTLDMiT-xrUhVLdQ/edit
      */
     public function dejCiselnouKategoriiNeplatice(): ?int {
+        if ($this->maPravoPlatitAzNaMiste) {
+            // kategorie 6
+            return self::MA_PRAVO_PLATIT_AZ_NA_MISTE;
+        }
+
         if (!$this->kdySePrihlasilNaLetosniGc || !$this->zacatekVlnyOdhlasovani
             // zjišťovat neplatiče už nejde, některé platby mohly přijít až po začátku hromadného odhlašování (leda bychom filtrovali jednotlivé platby, ale tou dobou už to stejně nepotřebujeme)
             || $this->zacatekVlnyOdhlasovani < $this->kdySePrihlasilNaLetosniGc
         ) {
             return null;
-        }
-
-        if ($this->maPravoPlatitAzNaMiste) {
-            // kategorie 6
-            return self::MA_PRAVO_PLATIT_AZ_NA_MISTE;
         }
 
         $sumaPlateb = $this->finance->sumaPlateb($this->rok);
