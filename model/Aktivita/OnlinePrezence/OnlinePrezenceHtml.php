@@ -12,6 +12,10 @@ use Symfony\Component\Filesystem\Filesystem;
 
 class OnlinePrezenceHtml
 {
+    public static function nazevProAnchor(Aktivita $aktivita):string {
+        return implode(' – ', array_filter([$aktivita->nazev(), $aktivita->orgJmena(), $aktivita->lokace()]));
+    }
+
     /** @var \XTemplate */
     private $onlinePrezenceTemplate;
     /** @var string */
@@ -205,7 +209,7 @@ class OnlinePrezenceHtml
             $template->assign('idAktivity', $aktivita->id());
             $template->parse('onlinePrezence.aktivity.aktivita.form.pridatUcastnika');
 
-            $template->assign('nadpis', implode(' – ', array_filter([$aktivita->nazev(), $aktivita->orgJmena(), $aktivita->lokace()])));
+            $template->assign('nadpis', self::nazevProAnchor($aktivita));
             $template->assign('zacatek', $aktivita->zacatek() ? $aktivita->zacatek()->format('l H:i') : '-nevíme-');
             $template->assign('konec', $aktivita->konec() ? $aktivita->konec()->format('l H:i') : '-nevíme-');
             $template->parse('onlinePrezence.aktivity.aktivita.form');

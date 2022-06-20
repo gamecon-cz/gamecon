@@ -77,6 +77,10 @@ $idsZamcenmych = Aktivita::zamkniZacinajiciDo(new DateTimeImmutable('-' . AUTOMA
 $pocetZamcenych = count($idsZamcenmych);
 logs("zamčeno $pocetZamcenych aktivit.");
 
+logs('Odesílám vypravěčům připomenutí, že nezavřeli prezenci...');
+$pocetUpozorneni = Aktivita::upozorniNaNeuzavreneKonciciDo(new DateTimeImmutable('-' . UPOZORNIT_NA_NEUZAMKNUTOU_AKTIVITU_X_MINUT_PO_KONCI . ' minutes'));
+logs("Odesláno $pocetUpozorneni mailů.");
+
 if (date('G') >= 5) { // 5 hodin ráno či později
     $dnesniZalohaPattern = ZALOHA_DB_SLOZKA . '/export_' . date('Y-m-d_') . '[0-9][0-9][0-9][0-9][0-9][0-9].sql.gz';
     if (!glob($dnesniZalohaPattern)) { // dnešní záloha databáze ještě neexistuje
