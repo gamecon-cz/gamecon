@@ -64,6 +64,8 @@
       - [X] Pokoj
       - [X] Na pokoji
       - [X] Ubytování
+  - *karta objednávky předmětů* Odebrána, bude součástí *Infopult->Přehled->Balíček*.
+  <s>
   - [ ] karta objednávky předmětů
     - [ ] Přehled objednaných předmětů
       - **Návrh řešení:**
@@ -72,6 +74,7 @@
         - Tj. z přehledu vyřadit: aktivity, strava, ubytování, dobrovolné vstupné, platby.
         - Nezobrazovat ceny, ale pouze počet.
         - Tj. zobrazit: kostky, trička, placky, veškerý další merch
+  </s>
   - [ ] Prodej předmětů
     - *Zatím jen tlačítko po dodělání ostatních změn udělat podle zadání*
   - [ ] rozmístění karet / Stylování (grid)
