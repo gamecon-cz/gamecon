@@ -17,6 +17,9 @@ use \Gamecon\Cas\DateTimeGamecon;
  * @var \Gamecon\Vyjimkovac\Vyjimkovac $vyjimkovac
  */
 
+$nastaveni = ['ubytovaniBezZamku' => true, 'jidloBezZamku' => true];
+$shop = $uPracovni ? new Shop($uPracovni, $nastaveni) : null;
+
 if (!empty($_POST['datMaterialy']) && $uPracovni && $uPracovni->gcPrihlasen()) {
     $uPracovni->dejZidli(ZIDLE_PRITOMEN, $u->id());
     back();
@@ -148,7 +151,7 @@ if ($uPracovni && post('prehledUprava')) {
             // pokud je hodnota "" tak to znamená že nedošlo ke změně
             if ($udaje[$pole] == "")
                 unset($udaje[$pole]);
-            else 
+            else
                 $udaje[$pole] = date('Y-m-d');
         } else {
             $udaje[$pole] = null;
@@ -158,6 +161,16 @@ if ($uPracovni && post('prehledUprava')) {
     // TODO(SECURITY): nebezpečné krmit data do databáze tímhle způsobem Každý si vytvořit do html formuláře input který se pak také propíŠe do DB
     updateUzivatelHodnoty($udaje, $uPracovni->id(), $vyjimkovac);
     back();
+}
+
+if (post('zpracujUbytovani')) {
+    $shop->zpracujUbytovani();
+    oznameni('Ubytování uloženo');
+}
+
+if (post('pridelitPokoj')) {
+    Pokoj::ubytujNaCislo(Uzivatel::zId(post('uid')), post('pokoj'));
+    oznameni('Pokoj přidělen');
 }
 
 if (post('zmenitUdaj') && $uPracovni) {
@@ -202,9 +215,10 @@ $err = '<img src="files/design/error-s.png" style="margin-bottom:-2px">';
 /**
  * @param string $cislo
  */
-function formatujTelCislo($cislo) {
+function formatujTelCislo($cislo)
+{
     $bezmezer = str_replace(" ", "", $cislo);
-    if ($bezmezer == "") 
+    if ($bezmezer == "")
         return "";
     $predvolbaKonec = max(strlen($bezmezer) - 9, 0);
     $formatovane = substr($bezmezer, 0, $predvolbaKonec) . " " . substr($bezmezer, $predvolbaKonec, 3) . " " . substr($bezmezer, $predvolbaKonec + 3, 3) . " " . substr($bezmezer, $predvolbaKonec + 6, 3);
@@ -219,6 +233,9 @@ $x->assign('gcOdjedBtnAttr', "disabled");
 $x->assign('odhlasBtnAttr', "disabled");
 $x->assign('ok', $ok);
 $x->assign('err', $err);
+
+$pokoj = Pokoj::zCisla(get('pokoj'));
+$ubytovani = $pokoj ? $pokoj->ubytovani() : [];
 
 if ($uPracovni) {
     if (!$uPracovni->gcPrihlasen()) {
@@ -257,11 +274,17 @@ if ($uPracovni) {
         'spolubydlici' => array_uprint($spolubydlici, static function (Uzivatel $e) {
             return "<li> {$e->jmenoNick()} ({$e->id()}) {$e->telefon()} </li>";
         }),
-        'ubytovani' => $up->dejShop()->dejPopisUbytovani(),
         'aa' => $u->koncovkaDlePohlavi(),
         'org' => $u->jmenoNick(),
+        'shop' => $up->dejShop(),
         'poznamka' => $up->poznamka(),
         'up' => $up,
+        'ubytovani' => array_uprint($ubytovani, function ($e) {
+            $ne = $e->gcPritomen() ? '' : 'ne';
+            $color = $ne ? '#f00' : '#0a0';
+            $a = $e->koncA();
+            return $e->jmenoNick() . " (<span style=\"color:$color\">{$ne}dorazil$a</span>)";
+        }, '<br>'),
     ]);
     if ($up->finance()->stav() < 0 && !$up->gcPritomen()) {
         $x->parse('uvod.upoMaterialy');
@@ -302,7 +325,7 @@ if ($uPracovni) {
         if (!$mameNahranyLetosniDokladProtiCovidu && !$mameOverenePotvrzeniProtiCoviduProRok) {
             /* muze byt overeno rucne bez nahraneho dokladu */
             $x->assign("covidPotvrzeniText", $err . " požádej o doplnění");
-        } elseif (!$mameNahranyLetosniDokladProtiCovidu) { 
+        } elseif (!$mameNahranyLetosniDokladProtiCovidu) {
             /* potvrzeno rucne na infopultu, bez nahraneho dokladu */
             $x->assign("covidPotvrzeniAttr", "checked value=\"\"");
             $x->assign("covidPotvrzeniText", $ok . " ověřeno bez dokladu");
@@ -320,6 +343,10 @@ if ($uPracovni) {
     }
 
     $x->assign("telefon", formatujTelCislo($up->telefon()));
+
+    if ($up->gcPrihlasen()) {
+        $x->parse('uvod.uzivatel.ubytovani');
+    }
 
     if (GC_BEZI) {
         $zpravyProPotvrzeniZruseniPrace = [];
@@ -369,6 +396,10 @@ while ($r = mysqli_fetch_assoc($o)) {
     $moznosti .= '<option value="' . $r['id_predmetu'] . '"' . ($r['zbyva'] > 0 || $r['zbyva'] === null ? '' : ' disabled') . '>' . $r['nazev'] . ' (' . $zbyva . ') ' . $r['cena'] . '&thinsp;Kč</option>';
 }
 $x->assign('predmety', $moznosti);
+
+// ubytovani
+if (get('pokoj') && !$pokoj) throw new Chyba('pokoj ' . get('pokoj') . ' neexistuje nebo je prázdný');
+$x->assign('pokoj', get('pokoj'));
 
 // form s osobními údaji
 if ($uPracovni) {
