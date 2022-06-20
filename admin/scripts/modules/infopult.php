@@ -290,13 +290,11 @@ if ($uPracovni) {
         $x->parse('uvod.upoMaterialy');
     }
     if (!$up->gcPrihlasen()) {
-        $x->parse('uvod.uzivatel.neprihlasen');
     } elseif (!$up->gcPritomen()) {
         $x->assign('datMaterialyBtnAttr', "");
     } elseif (!$up->gcOdjel()) {
         $x->assign('gcOdjedBtnAttr', "");
     } else {
-        $x->parse('uvod.uzivatel.odjel');
     }
     if ($up->gcPrihlasen() && !$up->gcPritomen()) {
         // $x->parse('uvod.gcOdhlas');
@@ -372,8 +370,6 @@ if ($uPracovni) {
     }
 
     $x->parse('uvod.uzivatel');
-    $x->parse('uvod.slevy');
-    $x->parse('uvod.objednavky');
 } else {
     $x->parse('uvod.neUzivatel');
 }
@@ -400,144 +396,6 @@ $x->assign('predmety', $moznosti);
 // ubytovani
 if (get('pokoj') && !$pokoj) throw new Chyba('pokoj ' . get('pokoj') . ' neexistuje nebo je prázdný');
 $x->assign('pokoj', get('pokoj'));
-
-// form s osobními údaji
-if ($uPracovni) {
-    $udaje = [
-        'login_uzivatele' => 'Přezdívka',
-        'jmeno_uzivatele' => 'Jméno',
-        'prijmeni_uzivatele' => 'Příjmení',
-        'pohlavi' => 'Pohlaví',
-        'ulice_a_cp_uzivatele' => 'Ulice',
-        'mesto_uzivatele' => 'Město',
-        'psc_uzivatele' => 'PSČ',
-        'telefon_uzivatele' => 'Telefon',
-        'datum_narozeni' => 'Narozen' . $uPracovni->koncA(),
-        'email1_uzivatele' => 'E-mail',
-        // 'op'                    =>          'Číslo OP',
-        'potvrzeni_zakonneho_zastupce' => 'Potvrzení',
-    ];
-    if (VYZADOVANO_COVID_POTVRZENI) {
-        $udaje['potvrzeni_proti_covid19_overeno_kdy'] = 'Covid-19';
-    }
-    $r = dbOneLine('SELECT ' . implode(',', array_keys($udaje)) . ' FROM uzivatele_hodnoty WHERE id_uzivatele = ' . $uPracovni->id());
-    $datumNarozeni = new DateTimeImmutable($r['datum_narozeni']);
-    $potvrzeniOd = $r['potvrzeni_zakonneho_zastupce']
-        ? new DateTimeImmutable($r['potvrzeni_zakonneho_zastupce'])
-        : null;
-    $potrebujePotvrzeniKvuliVeku = potrebujePotvrzeni($datumNarozeni);
-    $potrebujePotvrzeniKvuliVekuZprava = '';
-    $mameLetosniPotvrzeniKvuliVeku = $potvrzeniOd && $potvrzeniOd->format('y') === date('y');
-    $mameNahranyLetosniDokladProtiCovidu = $uPracovni->maNahranyDokladProtiCoviduProRok((int)date('Y'));
-    $mameOverenePotvrzeniProtiCoviduProRok = $uPracovni->maOverenePotvrzeniProtiCoviduProRok((int)date('Y'));
-    foreach ($udaje as $sloupec => $nazev) {
-        $hodnota = $r[$sloupec];
-        if ($sloupec === 'op') {
-            $hodnota = $uPracovni->cisloOp(); // desifruj cislo obcanskeho prukazu
-        }
-        $zobrazenaHodnota = $hodnota;
-        $vstupniHodnota = $hodnota;
-        $vyber = [];
-        $popisek = '';
-        if ($sloupec === 'pohlavi') {
-            $vyber = ['f' => 'žena', 'm' => 'muž'];
-            $zobrazenaHodnota = $vyber[$r['pohlavi']] ?? '';
-        }
-        if ($sloupec === 'potvrzeni_zakonneho_zastupce') {
-            $popisek = sprintf(
-                'Zda máme letošní potvrzení od rodiče nebo zákonného zástupce, že účastník může na Gamecon, i když mu na začátku Gameconu (%s) ještě nebude patnáct.',
-                DateTimeGamecon::zacatekGameconu()->formatDatumStandard()
-            );
-            $vstupniHodnota = $potrebujePotvrzeniKvuliVeku && !$mameLetosniPotvrzeniKvuliVeku
-                ? date('Y-m-d') // ulozi se dnesni datum pouze pokud je zaskrtly checkbox
-                : $hodnota; // nepotrebujeme nove potvrzeni, nechavame puvodni hodnotu
-            $zobrazenaHodnota = $mameLetosniPotvrzeniKvuliVeku ? 'máme' : '';
-        } else if ($sloupec === 'potvrzeni_proti_covid19_overeno_kdy') {
-            $popisek = 'Zda máme letošní potvrzení o očkování, prodělané nemoci nebo negativních testech na Covid-19.';
-            $vstupniHodnota = !$mameOverenePotvrzeniProtiCoviduProRok
-                ? date('Y-m-d') // ulozi se dnesni datum pouze pokud je zaskrtly checkbox
-                : $hodnota; // nepotrebujeme nove overeni, nechavame puvodni hodnotu
-            $zobrazenaHodnota = $mameOverenePotvrzeniProtiCoviduProRok ? 'oveřeno' : '';
-        } else if ($sloupec === 'datum_narozeni') {
-            $popisek = sprintf('Věk na začátku Gameconu %d let', vekNaZacatkuLetosnihoGameconu($datumNarozeni));
-        }
-        $x->assign([
-            'nazev' => $nazev,
-            'sloupec' => $sloupec,
-            'vstupniHodnota' => $vstupniHodnota,
-            'zobrazenaHodnota' => $zobrazenaHodnota,
-            'vyber' => $vyber,
-            'popisek' => $popisek,
-        ]);
-        if ($popisek) {
-            $x->parse('uvod.udaje.udaj.nazevSPopiskem');
-        } else {
-            $x->parse('uvod.udaje.udaj.nazevBezPopisku');
-        }
-        if ($sloupec === 'pohlavi') {
-            foreach ($vyber as $optionValue => $optionText) {
-                $x->assign([
-                    'optionValue' => $optionValue,
-                    'optionText' => $optionText,
-                    'optionSelected' => $vstupniHodnota === $optionValue
-                        ? 'selected'
-                        : '',
-                ]);
-                $x->parse('uvod.udaje.udaj.select.option');
-            }
-            $x->parse('uvod.udaje.udaj.select');
-        } else if ($sloupec === 'poznamka') {
-            $x->parse('uvod.udaje.udaj.text');
-        } else if ($sloupec === 'potvrzeni_zakonneho_zastupce') {
-            $x->assign([
-                'checked' => $mameLetosniPotvrzeniKvuliVeku
-                    ? 'checked'
-                    : '',
-            ]);
-            $x->assign([
-                'disabled' => !$potrebujePotvrzeniKvuliVeku
-                    ? 'disabled'
-                    : '',
-            ]);
-            $x->parse('uvod.udaje.udaj.checkbox');
-        } else if ($sloupec === 'potvrzeni_proti_covid19_overeno_kdy') {
-            $x->assign(['disabled' => '']);
-            $x->assign([
-                'checked' => $mameOverenePotvrzeniProtiCoviduProRok
-                    ? 'checked'
-                    : '',
-            ]);
-            $x->parse('uvod.udaje.udaj.checkbox');
-        } else {
-            $x->parse('uvod.udaje.udaj.input');
-        }
-        if ($sloupec === 'potvrzeni_zakonneho_zastupce') {
-            if ($potrebujePotvrzeniKvuliVeku) {
-                $potrebujePotvrzeniKvuliVekuZprava = sprintf(
-                    'Uživalel potřebuje letošní potvrzení od rodiče nebo zákonného zástupce, že může na Gamecon, i když mu na začátku Gameconu (%s) ještě nebude patnáct. Přesto uložit?',
-                    DateTimeGamecon::zacatekGameconu()->formatDatumStandard()
-                );
-                if (!$mameLetosniPotvrzeniKvuliVeku) {
-                    $x->parse('uvod.udaje.udaj.chybi');
-                }
-            }
-        } else if ($sloupec === 'potvrzeni_proti_covid19_overeno_kdy') {
-            if (!$mameNahranyLetosniDokladProtiCovidu && !$mameOverenePotvrzeniProtiCoviduProRok) {
-                $x->parse('uvod.udaje.udaj.chybi');
-            }
-        } else if ($sloupec !== 'poznamka') {
-            if ($hodnota == '') {
-                $x->parse('uvod.udaje.udaj.chybi');
-            }
-        }
-        $x->parse('uvod.udaje.udaj');
-    }
-    $x->assign([
-        'potrebujePotvrzeni' => $potrebujePotvrzeniKvuliVeku ? '1' : '0',
-        'potrebujePotvrzeniZprava' => $potrebujePotvrzeniKvuliVekuZprava,
-    ]);
-    $x->parse('uvod.udaje');
-}
 
 // rychloregistrace
 if (!$uPracovni) { // nechceme zobrazovat rychloregistraci (zakladani uctu), kdyz mame vybraneho uzivatele pro praci
