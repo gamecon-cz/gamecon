@@ -7,15 +7,22 @@
 
 - [ ] Infopult
   - [X] Přejmenovat úvod na infopult
-  - [ ] Tlačítka
+  - [X] Tlačítka
     - [X] tlačítko Přihlásit na GC
-    - [ ] tlačítko Přijel na GC
-      - [ ] *(optional)* Kontrola povinných polí
+    - jiné PR, komplikovaná logika
+    <s>
+      - tlačítko Přijel na GC
+        - *(optional)* Kontrola povinných polí
+    </s>
     - [X] tlačítko Vydat balíček
     - [X] Odjel z GC
     - [X] tlačítko Odhlásit z GC
 
-    - [ ] *(optional)* Reversovatelné akce z židle "finance"
+
+    - jiné PR, komplikovaná logika
+    <s>
+      - *(optional)* Reversovatelné akce z židle "finance"
+    </s>
     - [X] Řešení komunikace aktuálního stavu a stavů tlačítek s uživatelem *(klikatelné, kliknuté, nekliklatelné)*
   - [ ] /Infopult default pro “Infopult” židli
   - [ ] Karta přehled
@@ -33,12 +40,12 @@
             - **Původní zadání:** skrýt pro 15+ návštěvníky
         - [X] manuální odkliknutí
     - [X] odebrat pole
-      - Status
-      - ID uživatele
-      - Dorazil (přesune se nahoru mezi tlačítka)
-      - Pokoj (přesunout do nového přehledu ubytování viz dále)
-      - Na pokoji (přesunout do nového přehledu ubytování viz dále)
-      - Ubytování (přesunout do nového přehledu ubytování viz dále)
+      - [X] Status
+      - [X] ID uživatele
+      - [X] Dorazil (přesune se nahoru mezi tlačítka)
+      - [X] Pokoj (přesunout do nového přehledu ubytování viz dále)
+      - [X] Na pokoji (přesunout do nového přehledu ubytování viz dále)
+      - [X] Ubytování (přesunout do nového přehledu ubytování viz dále)
     - [ ] Nové pole
       - [X] Kontakt = telefonní číslo
         - [X] formát s mezerami "000 000 000"
@@ -47,9 +54,9 @@
     - [X] pořadí polí 
       - Stav účtu
       - Poznámka
-      - Souhlas rodičů
+      - Potvrzení *(Souhlas rodičů)*
       - Chybí osobní údaje
-      - Covid-19
+      - *Covid-19*
       - Kontakt
     - [X] zvýraznění políček které vyžadují pozornost
     - [X] Vytvořit tlačítka Program a Program účastníka
@@ -59,15 +66,15 @@
       - [X] přejmenovat “Program účastníka” na “Program”
       - [X] přejmenovat “Filtrovaný program” na “Program účastníka”
       - [X] přejmenovat i po rozkliknutí daného odkazu nahoře vlevo na stránce /program-osobni a /program-uzivatele, pokud se to nepřejmenuje automaticky
-  - [ ] karta ubytování
-    - [X] Pŕesunout pole
+  - [X] karta ubytování
+    - [X] Přesunout pole
       - [X] Pokoj
       - [X] Na pokoji
       - [X] Ubytování
   - *karta objednávky předmětů* Odebrána, bude součástí *Infopult->Přehled->Balíček*.
   <s>
-  - [ ] karta objednávky předmětů
-    - [ ] Přehled objednaných předmětů
+  - karta objednávky předmětů
+    - Přehled objednaných předmětů
       - **Návrh řešení:**
         - Aktuální přehled “Objednávky a platby”, který se zobrazuje na záložce “Úvod” se celý tak jako je včetně objednávek předmětů, přesune na novou záložku “Uživatel” viz níže.
         - Na záložce “Úvod” by z něj měl zůstat jen přehled objednaných předmětů a jejich počet. 
@@ -75,9 +82,11 @@
         - Nezobrazovat ceny, ale pouze počet.
         - Tj. zobrazit: kostky, trička, placky, veškerý další merch
   </s>
-  - [ ] Prodej předmětů
-    - *Zatím jen tlačítko po dodělání ostatních změn udělat podle zadání*
+  - [X] Prodej předmětů
+    - *Nezměněno, bude součástí jiného PR*
   - [ ] rozmístění karet / Stylování (grid)
+  - [ ] odstranit nevyužitou logiku
+  - [ ] Ikonka tabu infopultu
 
 # Finance
 
@@ -139,14 +148,17 @@
 
 # Bude součástí dalších PR
   - undo stavu pro finance (navrácení akce při ukliknutí - přihlásit, přijel, dát materiály, odjel)
-  - Možnost rušení objednávek ?
-  - rozdělení tlačítka Přijel a Dát materiály
+  - rozdělení tlačítka Přijel a Dát materiály *(a kontrola vyplnění potřebných informací)*
   - obchod velké bloky prodej
+  - další editace prodeje předmětů
+  - *(optional)* Reversovatelné akce z židle "finance" při překlepnutí (od-přijet, od-dát materiály, od-odjel)
   - *(optional)* Modal potvrzení covid s ano ne bez potřeby překlikávání mezi záložkami prohlížeče ?
 
 - [ ] Vykopírovat nehotové TODO pro další PR jinam (do Trella)
 - [ ] Připravit na merge
     - zohlednit 900-importér-balíčků
+
+- [ ] *(optional but recommended)* refactoring kódu
 
 - [ ] smazat poznamkaHtml z uživatele (po smazání úvodu už nemá využití)
 
