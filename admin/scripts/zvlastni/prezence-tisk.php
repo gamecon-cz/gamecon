@@ -32,7 +32,7 @@ $dejVekVeZkratce = static function (?int $vek): string {
 
 foreach ($aktivity as $aktivita) {
     $datum = $aktivita->zacatek();
-    $aktivita->zamci();
+    $aktivita->zamkni();
     $t->assign('aktivita', $aktivita);
 
     // pomocná funkce pro zalamování stránek

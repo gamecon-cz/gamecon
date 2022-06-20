@@ -74,12 +74,12 @@ if (defined('FIO_TOKEN') && FIO_TOKEN !== '') {
     logs('FIO_TOKEN není definován, přeskakuji nové platby.');
 }
 
-logs('Odemykám zamčené aktivity...');
-$i = Aktivita::odemciHromadne();
-logs("odemčeno $i aktivit.");
+logs('Odemykám zamčené týmové aktivity...');
+$i = Aktivita::odemciTeamoveHromadne();
+logs("odemčeno $i týmových aktivit.");
 
-logs('Zamykám už běžící, dosud nezamčené aktivity...');
-$idsZamcenmych = Aktivita::zamciZacinajiciDo(new DateTimeImmutable('-' . AUTOMATICKY_UZAMKNOUT_AKTIVITU_X_MINUT_PO_ZACATKU . ' minutes'));
+logs('Zamykám před veřejností už běžící, dosud nezamčené aktivity...');
+$idsZamcenmych = Aktivita::zamkniZacinajiciDo(new DateTimeImmutable('-' . AUTOMATICKY_UZAMKNOUT_AKTIVITU_X_MINUT_PO_ZACATKU . ' minutes'));
 $pocetZamcenych = count($idsZamcenmych);
 logs("zamčeno $pocetZamcenych aktivit.");
 

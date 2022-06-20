@@ -1029,7 +1029,7 @@ SQL
         if (!$kapacitaCelkova) {
             return '';
         }
-        if (!$this->prihlasovatelna() && !$this->probehnuta()) { //u proběhnutých aktivit se zobrazí čísla. Možno měnit.
+        if (!$this->prihlasovatelna() && !$this->probehnuta()) { // u proběhnutých aktivit se zobrazí čísla. Možno měnit.
             return " <span class=\"neprihlasovatelna\">($prihlasenoCelkem/$kapacitaCelkova)</span>";
         }
         switch ($this->volno()) {
@@ -1051,7 +1051,7 @@ SQL
      * Odemče hromadně zamčené aktivity a odhlásí ty, kteří nesestavili teamy.
      * Vrací počet odemčených teamů (=>uvolněných míst)
      */
-    public static function odemciHromadne() {
+    public static function odemciTeamoveHromadne(): int {
         $o = dbQuery('SELECT id_akce, zamcel FROM akce_seznam WHERE zamcel AND zamcel_cas < NOW() - INTERVAL ' . self::HAJENI . ' HOUR');
         $i = 0;
         while (list($aid, $uid) = mysqli_fetch_row($o)) {
@@ -1459,8 +1459,8 @@ SQL
         if ($this->a['zamcel'] && !($parametry & self::ZAMEK)) {
             throw new \Chyba(hlaska('zamcena')); // zamčena pro tým, nikoli zamčena / uzavřena
         }
-        if ($this->uzavrena() && $this->maOrganizatora($prihlasujici) && $this->ucastEditovatelna()) {
-            $parametry |= self::ZPETNE; // přestože je zamčená, stále ji ještě lze editovat
+        if ($this->probehnuta() && $this->maOrganizatora($prihlasujici) && $this->ucastEditovatelna()) {
+            $parametry |= self::ZPETNE; // přestože je zamčená nebo dokonce uzavřená, stále ji ještě lze (po nějakou dobu) editovat
         }
         if (!($prihlasovatelna = $this->prihlasovatelna($parametry))) {
             if ($parametry & self::STAV) {
@@ -1501,7 +1501,7 @@ SQL
 
     public function zkontrolujZdaSeMuzeOdhlasit(\Uzivatel $ucastnik, \Uzivatel $odhlasujici, SystemoveNastaveni $systemoveNastaveni = null) {
         if ($this->prihlasen($ucastnik)
-            && $this->uzavrena()
+            && $this->probehnuta()
             && (!$this->maOrganizatora($odhlasujici) || !$this->ucastEditovatelna($systemoveNastaveni))
         ) {
             throw new \Chyba('Aktivita už je uzavřena a nelze z ní odhlašovat.');
@@ -1510,7 +1510,7 @@ SQL
 
     /**
      * Není zamknout jako zamknout. Tohle pouze zamkne aktivitu pro účastníky mimo tým.
-     * POkud hledáš opravdové zamknutí, @see zamci
+     * Pokud hledáš opravdové zamknutí, @see zamkni
      *
      * @param \Uzivatel $zamykajici
      * @return void
@@ -1629,7 +1629,7 @@ SQL
             && (
                 $this->a['stav'] == \Stav::AKTIVOVANA
                 || ($technicke && $this->a['stav'] == \Stav::NOVA && $this->a['typ'] == \Gamecon\Aktivita\TypAktivity::TECHNICKA)
-                || ($zpetne && $this->a['stav'] == \Stav::PROBEHNUTA)
+                || ($zpetne && $this->probehnuta())
             )
             && $this->a['zacatek']
             && $this->a['typ'];
@@ -1645,7 +1645,7 @@ SQL
         if (!(
             $this->a['stav'] == \Stav::AKTIVOVANA
             || ($technicke && $this->a['stav'] == \Stav::NOVA && $this->a['typ'] == \Gamecon\Aktivita\TypAktivity::TECHNICKA)
-            || ($zpetne && $this->a['stav'] == \Stav::PROBEHNUTA)
+            || ($zpetne && $this->probehnuta())
         )) {
             return sprintf(
                 'Aktivita není ve stavu použitelném pro přihlašování. Je ve stavu %d (%s), technické %s, zpětně %s',
@@ -1898,10 +1898,8 @@ SQL
         $this->zmenStav(\Stav::PRIPRAVENA);
     }
 
-    /** Zdali už aktivita začla a proběhla (rozhodný okamžik je vyjetí seznamů
-     *  přihlášených na infopultu) */
     public function probehnuta(): bool {
-        return $this->a['stav'] == \Stav::PROBEHNUTA;
+        return in_array($this->a['stav'], [\Stav::ZAMCENA, \Stav::UZAVRENA]);
     }
 
     public function bezpecneEditovatelna(): bool {
@@ -2226,8 +2224,8 @@ SQL
      */
     public function viditelnaPro(\Uzivatel $u = null) {
         return (
-            (in_array($this->a['stav'], [\Stav::AKTIVOVANA, \Stav::PROBEHNUTA, \Stav::PUBLIKOVANA, \Stav::PRIPRAVENA], false) // podle stavu je aktivita viditelná
-                && !($this->a['typ'] == \Gamecon\Aktivita\TypAktivity::TECHNICKA && $this->a['stav'] == \Stav::PROBEHNUTA) // ale skrýt technické proběhnuté
+            (in_array($this->a['stav'], [\Stav::AKTIVOVANA, \Stav::ZAMCENA, \Stav::PUBLIKOVANA, \Stav::PRIPRAVENA], false) // podle stavu je aktivita viditelná
+                && !($this->a['typ'] == \Gamecon\Aktivita\TypAktivity::TECHNICKA && $this->probehnuta()) // ale skrýt technické proběhnuté
             )
             || ($u && $this->prihlasen($u))
             || ($u && $u->organizuje($this))
@@ -2392,11 +2390,11 @@ SQL
 
     /** Je aktivita už proběhlá resp. už uzavřená pro změny? */
     public function zamcena(): bool {
-        return $this->a['stav'] == \Stav::PROBEHNUTA;
+        return $this->a['stav'] == \Stav::UZAVRENA;
     }
 
     public function uzavrenaOd(): ?\DateTimeImmutable {
-        if (!$this->uzavrena()) {
+        if (!$this->probehnuta()) {
             return null;
         }
         if (!$this->uzavrenaOd) {
@@ -2405,7 +2403,7 @@ SQL
                 return null;
             }
             ['id_stav' => $stavId, 'kdy' => $kdy] = $posledniZmenaAPosledniStav;
-            if ($stavId != \Stav::UZAVRENA) {
+            if ($stavId != \Stav::ZAMCENA) {
                 return null;
             }
             $this->uzavrenaOd = \DateTimeImmutable::createFromFormat(DateTimeCz::FORMAT_DB, $kdy);
@@ -2443,16 +2441,19 @@ SQL
 
     /** Je aktivita už proběhlá resp. už uzavřená pro změny? */
     public function uzavrena(): bool {
-        return (bool)$this->a['uzavrena'];
+        return $this->stav()->jeUzavrena();
     }
 
     /** Zamče aktivitu pro další změny (k použití před jejím začátkem) */
-    public function zamci() {
-        dbQuery('UPDATE akce_seznam SET stav = $0 WHERE id_akce = ' . $this->id(), [\Stav::PROBEHNUTA]);
-        $this->a['stav'] = \Stav::PROBEHNUTA;
-        $this->stav = \Stav::PROBEHNUTA;
-        /** @see Aktivita::stav kde se změní číslo na instanci \Stav */
-        $this->zalogujZmenuStavu(\Stav::PROBEHNUTA);
+    public function zamkni() {
+        $this->zmenStavNa(\Stav::ZAMCENA);
+    }
+
+    private function zmenStavNa(int $stav) {
+        dbQuery('UPDATE akce_seznam SET stav = $0 WHERE id_akce = ' . $this->id(), [$stav]);
+        $this->a['stav'] = $stav;
+        $this->stav = $stav;
+        $this->zalogujZmenuStavu($stav);
     }
 
     private function zalogujZmenuStavu(int $novyStav) {
@@ -2462,19 +2463,17 @@ SQL
 
     /** Označí aktivitu jako uzavřenou, s vyplněnou prezencí */
     public function uzavri() {
-        if (!$this->stav()->jeProbehnuta()) {
-            throw new \LogicException("Aktivita {$this->id()} ještě není proběhnutá, nelze ji proto zavřít");
+        if (!$this->stav()->jeZamcena()) {
+            $this->zamkni();
         }
-        // TODO namísto uzavrena použít stav \Stav::UZAVRENA = bude to šichta, \Stav::PROBEHNUTA se používá místo toho všude možně
-        dbQuery('UPDATE akce_seznam SET uzavrena = 1 WHERE id_akce = ' . $this->id());
-        $this->zalogujZmenuStavu(\Stav::UZAVRENA);
+        $this->zmenStavNa(\Stav::UZAVRENA);
     }
 
     /**
      * @param \DateTimeInterface $zacinajiciDo
      * @return array|int[]
      */
-    public static function zamciZacinajiciDo(\DateTimeInterface $zacinajiciDo) {
+    public static function zamkniZacinajiciDo(\DateTimeInterface $zacinajiciDo) {
         $ids = dbOneArray(<<<SQL
 SELECT id_akce FROM akce_seznam
 WHERE zacatek <= $0
@@ -2495,7 +2494,7 @@ SQL,
         );
         $ids = array_map('intval', $ids);
         foreach ($ids as $id) {
-            Aktivita::zId($id, true)->zamci();
+            Aktivita::zId($id, true)->zamkni();
         }
         return $ids;
     }
@@ -2538,13 +2537,14 @@ SQL,
             $wheres[] = 'a.id_akce IN (SELECT id_akce FROM akce_organizatori WHERE id_uzivatele = ' . (int)$filtr['organizator'] . ')';
         }
         if (!empty($filtr['jenViditelne'])) {
-            $wheres[] = 'a.stav IN(' . implode(',', [\Stav::AKTIVOVANA, \Stav::PROBEHNUTA, \Stav::PUBLIKOVANA, \Stav::PRIPRAVENA]) . ') AND NOT (a.typ = ' . \Gamecon\Aktivita\TypAktivity::TECHNICKA . ' AND a.stav = ' . \Stav::PROBEHNUTA . ')';
+            $wheres[] = 'a.stav IN (' . implode(',', [\Stav::AKTIVOVANA, \Stav::PUBLIKOVANA, \Stav::PRIPRAVENA]) . ') AND NOT (a.typ = ' . \Gamecon\Aktivita\TypAktivity::TECHNICKA . ' AND a.stav IN (' . \Stav::ZAMCENA . ',' . \Stav::UZAVRENA . '))';
+            /** stejné jako @see \Gamecon\Aktivita\Aktivita::probehnuta */
         }
         if (!empty($filtr['jenZamcene'])) {
-            $wheres[] = 'a.stav = ' . \Stav::PROBEHNUTA;
+            $wheres[] = 'a.stav = ' . \Stav::ZAMCENA;
         }
         if (!empty($filtr['jenNeuzavrene'])) {
-            $wheres[] = 'NOT a.uzavrena';
+            $wheres[] = 'a.stav != ' . \Stav::UZAVRENA;
         }
         if (!empty($filtr['od'])) {
             $wheres[] = dbQv($filtr['od']) . ' <= a.zacatek';
@@ -2681,8 +2681,8 @@ SQL,
      */
     public static function zProgramu($order) {
         return self::zWhere(
-            'WHERE a.rok = $0 AND a.zacatek AND ( a.stav IN($1) OR a.typ = $2)',
-            [ROK, [\Stav::AKTIVOVANA, \Stav::PROBEHNUTA, \Stav::SYSTEMOVA, \Stav::PUBLIKOVANA, \Stav::PRIPRAVENA], TypAktivity::TECHNICKA],
+            'WHERE a.rok = $0 AND a.zacatek AND (a.stav IN ($1) OR a.typ = $2)',
+            [ROK, [\Stav::AKTIVOVANA, \Stav::SYSTEMOVA, \Stav::PUBLIKOVANA, \Stav::PRIPRAVENA], TypAktivity::TECHNICKA],
             'ORDER BY DAY(zacatek), ' . dbQi($order) . ', HOUR(zacatek), nazev_akce'
         );
     }

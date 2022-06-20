@@ -134,8 +134,6 @@
            data-editovatelna-od-timestamp="{editovatelnaOdTimestamp}"
            data-editovatelna-do-timestamp="{editovatelnaDoTimestamp}"
       >
-        <!--TODO kapacity pohlaví-->
-
         <h2 id="{nadpis}">
           <span data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true"
                 title="Začátek: {zacatek}<br> Konec: {konec}">
@@ -159,54 +157,41 @@
           <span class="col-xl-3 col-md-6 col-sm-12 text-sm-center text-md-start align-self-center"
                 style="white-space: nowrap; text-align: center">
 
-            <span class="text-ceka {hideCeka}">
+            <span class="text-ceka {showCeka}">
               <em>⏳ Můžeš ji editovat za <span id="odpocet-{idAktivity}" class="odpocet"></span> ⏳</em>
             </span>
 
-            <span class="text-probehla-bez-povsimnuti {hideProbehlaBezPovsimnuti}">
-              <em>
-                <span class="flipped-icon">💨</span>
-                <span class="hinted"
-                      data-bs-toggle="tooltip"
-                      data-bs-placement="top"
-                      title="Už nelze editovat a přitom není zamčená pro online přihlašování (správně by ji do hodiny od začáku měl zamknout robot)">
-                  Proběhla bez povšimnutí
-                </span> 💨
-              </em>
-            </span>
-
-            <span id="zamcena-{idAktivity}" class="{hideZamcena}">
+            <span id="zamcena-{idAktivity}" class="{showZamcena}">
               <em>🔒 Zamčena pro online přihlašování 🔒</em>
             </span>
 
-            <button class="btn btn-outline-danger tlacitko-uzavrit-aktivitu {hideUzavrit}"
+            <span id="uzavrena-{idAktivity}" class="{showUzavrena}">
+              <em><span class="emoji">📕</span> Uzavřena <span class="emoji">📕</span></em>
+            </span>
+
+            <button class="btn btn-outline-danger tlacitko-uzavrit-aktivitu {showUzavrit}"
                     style="width: 100%"
                     id="otevrena-{idAktivity}"
                     type="button"
                     data-bs-toggle="modal"
-                    data-bs-target="#modalOpravduZavrit"
+                    data-bs-target="#modalOpravduUzavrit"
                     onclick="posledneKliknutaAktivitaId={idAktivity}">
-              Spustit a zamknout 🔒
+              Uzavřít <span class="emoji">📕</span>
             </button>
-
-            <script>
-              { // local scope
-                const zamcenaElement = document.getElementById('zamcena-{idAktivity}')
-                if (zamcenaElement.dataset.zamcena) {
-                  const otevrenaElement = document.getElementById('otevrena-{idAktivity}')
-                  // viz online-prezence.js prohoditZobrazeni
-                  prohoditZobrazeni(otevrenaElement, zamcenaElement)
-                }
-              }
-            </script>
           </span>
 
           <span class="col-xl col-md col-sm text-sm-center text-md-start align-self-center">
             <span
                 id="skoncila-{idAktivity}"
-                class="alert-info text-skoncila {hideAktivitaSkoncila} skryt-pokud-aktivitu-nelze-editovat"
+                class="alert-info text-skoncila {showAktivitaSkoncila} skryt-pokud-aktivitu-nelze-editovat"
             >
               ✋ <em>Aktivita už skončila, pozor na úpravy</em> <span class="flipped-icon">✋</span>
+            </span>
+            <span
+                id="uz-needitovatelna-{idAktivity}"
+                class="alert-info text-skoncila {showUzNeeditovatelna}"
+            >
+              <em>🧊Už ji nelze editovat ani zpětně 🧊</em>
             </span>
           </span>
 
@@ -284,7 +269,7 @@
               <em>Nic...</em> 🤷
             </span>
             <span class="col-md-4" id="omniboxHledam{idAktivity}" style="display: none"><em>Hledám...</em> ⏳</span>
-            <span class="col-md-4 {hidePozorUzavrena}" id="pozor-zamcena-{idAktivity}"
+            <span class="col-md-4 {showPozorUzavrena}" id="pozor-zamcena-{idAktivity}"
                   style="white-space: nowrap">
                   <span class="hinted skryt-pokud-aktivitu-nelze-editovat"
                         data-bs-toggle="tooltip"
@@ -307,7 +292,7 @@
 
     </div>
 
-    <div class="modal fade" id="modalOpravduZavrit" tabindex="-1" aria-labelledby="opravduZavrit" aria-hidden="true">
+    <div class="modal fade" id="modalOpravduUzavrit" tabindex="-1" aria-labelledby="opravduZavrit" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
