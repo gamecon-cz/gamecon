@@ -86,6 +86,11 @@ class KategorieNeplatice
         $this->maPravoPlatitAzNaMiste = $maPravoPlatitAzNaMiste;
     }
 
+    /**
+     * Specifikace viz
+     * https://trello.com/c/Zzo2htqI/892-vytvo%C5%99it-nov%C3%BD-report-email%C5%AF-p%C5%99i-odhla%C5%A1ov%C3%A1n%C3%AD-neplati%C4%8D%C5%AF
+     * https://docs.google.com/document/d/1pP3mp9piPNAl1IKCC5YYe92zzeFdTLDMiT-xrUhVLdQ/edit
+     */
     public function dejCiselnouKategoriiNeplatice(): ?int {
         if (!$this->kdySePrihlasilNaLetosniGc || !$this->zacatekVlnyOdhlasovani
             // zjišťovat neplatiče už nejde, některé platby mohly přijít až po začátku hromadného odhlašování (leda bychom filtrovali jednotlivé platby, ale tou dobou už to stejně nepotřebujeme)
@@ -95,26 +100,30 @@ class KategorieNeplatice
         }
 
         if ($this->maPravoPlatitAzNaMiste) {
+            // kategorie 6
             return self::MA_PRAVO_PLATIT_AZ_NA_MISTE;
         }
 
         $sumaPlateb = $this->finance->sumaPlateb($this->rok);
         if ($sumaPlateb >= $this->castkaPoslalDost) {
+            // kategorie 4
             return self::LETOS_POSLAL_DOST_A_JE_TAK_CHRANENY;
         }
 
         if ($this->prihlasilSeParDniPredVlnouOdhlasovani()) {
+            // kategorie 5
             return self::LETOS_SE_REGISTROVAL_PAR_DNU_PRED_ODHLASOVACI_VLNOU;
         }
 
-        if ($sumaPlateb <= 0.0) {
+        if ($sumaPlateb <= 0.0 && $this->finance->stav() > $this->castkaVelkyDluh /* jsme schovívaví k těm, co nemají velký dluh */) {
+            // kategorie 1
             return self::LETOS_NEZAPLATIL_VUBEC_NIC;
         }
 
         return $this->finance->stav() /* ještě zápornější než velký dluh */ <= $this->castkaVelkyDluh
             // poslal málo na to, abychom mu ignorovali dluh a ještě k tomu má dluh velký
-            ? self::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH
-            : self::LETOS_POSLAL_MALO_A_MA_MALY_DLUH;
+            ? self::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH // kategorie 2
+            : self::LETOS_POSLAL_MALO_A_MA_MALY_DLUH; // kategorie 3
     }
 
     private function prihlasilSeParDniPredVlnouOdhlasovani(): bool {
