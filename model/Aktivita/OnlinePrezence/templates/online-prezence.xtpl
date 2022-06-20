@@ -139,7 +139,7 @@
                 title="Začátek: {zacatek}<br> Konec: {konec}">
             {nadpis}
           </span>
-          <a href="#{nadpis}" style="color: darkgray; opacity: 0.6">#</a>
+          <a href="#{nadpis}" class="anchor">#</a>
         </h2>
 
         <div class="errors">

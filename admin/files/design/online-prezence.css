@@ -101,3 +101,8 @@ input[disabled]::placeholder {
 .emoji {
   font-family: initial;
 }
+
+.anchor {
+  color: darkgray;
+  opacity: 0.6
+}

@@ -2,6 +2,7 @@
 
 namespace Gamecon\Aktivita;
 
+use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImportSqlColumn;
 use Gamecon\Cas\DateTimeGamecon;
@@ -2497,6 +2498,57 @@ SQL,
             Aktivita::zId($id, true)->zamkni();
         }
         return $ids;
+    }
+
+    /**
+     * @param \DateTimeInterface $konciciDo
+     * @return int
+     */
+    public static function upozorniNaNeuzavreneKonciciDo(\DateTimeInterface $konciciDo): int {
+        $ids = dbOneArray(<<<SQL
+SELECT id_akce FROM akce_seznam
+WHERE akce_seznam.konec <= $0
+    AND stav NOT IN ($1)
+    AND rok = $2
+SQL,
+            [
+                $konciciDo->format(DateTimeCz::FORMAT_DB),
+                [\Stav::UZAVRENA, \Stav::SYSTEMOVA],
+                ROK,
+            ]
+        );
+
+        /** @var Aktivita[][] $vypraveciAktivit */
+        $vypraveciAktivit = [];
+        $ids = array_map('intval', $ids);
+        foreach ($ids as $id) {
+            $neuzavrenaAktivita = Aktivita::zId($id, true);
+            foreach ($neuzavrenaAktivita->dejOrganizatoriIds() as $idVypravece) {
+                $vypraveciAktivit[$idVypravece] = $vypraveciAktivit[$idVypravece] ?? [];
+                $vypraveciAktivit[$idVypravece][] = $neuzavrenaAktivita;
+            }
+        }
+
+        /** @var \Uzivatel[] $uzivatele */
+        $uzivatele = [];
+        foreach ($vypraveciAktivit as $idVypravece => $neuzavreneAktivity) {
+            $text = 'Zkontroluj prezenci a zavři';
+            foreach ($neuzavreneAktivity as $neuzavrenaAktivita) {
+                $uzivatele[$idVypravece] = \Uzivatel::zId($idVypravece);
+                $url = $uzivatele[$idVypravece]->mojeAktivityAdminUrl(URL_ADMIN)
+                    . '#' . OnlinePrezenceHtml::nazevProAnchor($neuzavrenaAktivita);
+                $text .= "<br><a href='$url'>{$neuzavrenaAktivita->nazev()}</a> (skončila {$neuzavrenaAktivita->konec()->formatCasNaMinutyStandard()})";
+            }
+            $mail = new \GcMail();
+            $mail->predmet(
+                'Gamecon: Uzavři prosím prezenci na ' . (count($neuzavreneAktivity) === 1 ? 'aktivitě' : (count($neuzavreneAktivity) . ' aktivitách'))
+            );
+            $mail->text($text);
+            $mail->adresat($uzivatele[$idVypravece]->mail());
+            $mail->odeslat();
+        }
+
+        return count($vypraveciAktivit);
     }
 
     public function pridejDite(int $idDitete) {
