@@ -28,8 +28,6 @@ class OnlinePrezenceAjax
     public const ZMENY_STAVU_AKTIVIT = 'zmeny_stavu_aktivit';
     public const ZMENY_PRIHLASENI = 'zmeny_prihlaseni';
     public const RAZITKO_POSLEDNI_ZMENY = 'razitko_posledni_zmeny';
-    public const ZAMCENA = 'zamcena';
-    public const UZAVRENA = 'uzavrena';
     public const EDITOVATELNA_DO_TIMESTAMP = 'editovatelna_do_timestamp';
     public const ERRORS = 'errors';
     public const PRIHLASEN = 'prihlasen';
@@ -193,14 +191,12 @@ class OnlinePrezenceAjax
             return;
         }
         $aktivita->dejPrezenci()->uloz($aktivita->dorazili());
-        $aktivita->zamci();
+        $aktivita->zamkni();
         $aktivita->uzavri();
         $aktivita->refresh();
 
         $this->echoJson(
             [
-                self::ZAMCENA => $aktivita->zamcena(),
-                self::UZAVRENA => $aktivita->uzavrena(),
                 self::EDITOVATELNA_DO_TIMESTAMP => $this->editovatelnaDoTimestamp($aktivita, $vypravec),
             ]
         );

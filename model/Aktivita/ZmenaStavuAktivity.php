@@ -5,11 +5,11 @@ namespace Gamecon\Aktivita;
 class ZmenaStavuAktivity
 {
     private const AKTIVOVANA_JS = 'aktivovana';
-    private const PROBEHNUTA_JS = 'probehnuta';
+    private const UZAVRENA_JS = 'uzavrena';
     private const SYSTEMOVA_JS = 'systemova';
     private const PUBLIKOVANA_JS = 'publikovana';
     private const PRIPRAVENA_JS = 'pripravena';
-    private const UZAVRENA_JS = 'uzavrena';
+    private const ZAMCENA_JS = 'zamcena';
 
     public static function vytvorZDatDatabaze(
         int                $idAktivity,
@@ -68,16 +68,16 @@ class ZmenaStavuAktivity
         switch ($this->stavAktivity()) {
             case \Stav::AKTIVOVANA :
                 return self::AKTIVOVANA_JS;
-            case \Stav::PROBEHNUTA :
-                return self::PROBEHNUTA_JS;
+            case \Stav::UZAVRENA :
+                return self::UZAVRENA_JS;
             case \Stav::SYSTEMOVA :
                 return self::SYSTEMOVA_JS;
             case \Stav::PUBLIKOVANA :
                 return self::PUBLIKOVANA_JS;
             case \Stav::PRIPRAVENA :
                 return self::PRIPRAVENA_JS;
-            case \Stav::UZAVRENA :
-                return self::UZAVRENA_JS;
+            case \Stav::ZAMCENA :
+                return self::ZAMCENA_JS;
             default :
                 return null; // nějaký pro JS nezajímavý stav
         }

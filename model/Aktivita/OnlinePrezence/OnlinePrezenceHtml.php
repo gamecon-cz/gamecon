@@ -128,14 +128,13 @@ class OnlinePrezenceHtml
             $editovatelnaOdTimestamp = $this->dejEditovatelnaOdTimestamp($aktivita);
             $editovatelnaDoTimestamp = $this->dejEditovatelnaDoTimestamp($aktivita);
             $editovatelnaHned = $editovatelnaOdTimestamp <= 0 && $editovatelnaDoTimestamp > 0;
-            $uzNejdeEditovat = $editovatelnaDoTimestamp <= 0;
             $nejdeAlePujdeEditovat = !$editovatelnaHned && $editovatelnaDoTimestamp > 0;
+            $uzNepujdeEditovat = $editovatelnaDoTimestamp <= 0;
             $zamcena = $aktivita->zamcena();
-            $odemcena = !$zamcena;
             $uzavrena = $aktivita->uzavrena();
+            $neuzavrena = !$uzavrena;
             $maPravoNaZmenuHistorie = $vypravec->maPravoNaZmenuHistorieAktivit();
-            $muzeMenitUcastnikyHned = $editovatelnaHned || $maPravoNaZmenuHistorie;
-            $nemuzeMenitUcastnikyHned = !$muzeMenitUcastnikyHned;
+            $muzeMenitUcastnikyHned = $editovatelnaHned || ($uzNepujdeEditovat && $maPravoNaZmenuHistorie);
             $zmenaStavuAktivity = $aktivita->posledniZmenaStavuAktivity();
             $konec = $aktivita->konec();
 
@@ -156,38 +155,39 @@ class OnlinePrezenceHtml
 
             // ⏳ Můžeš ji editovat za ⏳
             $template->assign(
-                'hideCeka',
-                $this->cssSkryta($zamcena || $editovatelnaHned || $uzNejdeEditovat)
-            );
-            // Spustit a zamkout 🔒
-            $template->assign(
-                'hideUzavrit',
-                $this->cssSkryta($uzavrena || $uzNejdeEditovat || $nejdeAlePujdeEditovat)
+                'showCeka',
+                $this->cssZobrazitKdyz($nejdeAlePujdeEditovat)
             );
             // 🔒 Zamčena pro online přihlašování 🔒
             $template->assign(
-                'hideZamcena',
-                $this->cssSkryta($odemcena)
+                'showZamcena',
+                $this->cssZobrazitKdyz($zamcena)
             );
-            // 💨 Proběhla bez povšimnutí 💨
+            // Uzavřít 📕
             $template->assign(
-            /**
-             * Dost zvláštní případ, na ostré by se to mělo zamknout (nikoli uzavřít) případně samo
-             * @see \Gamecon\Aktivita\Aktivita::zamciZacinajiciDo
-             */
-                'hideProbehlaBezPovsimnuti',
-                $this->cssSkryta($zamcena || $editovatelnaHned || $nejdeAlePujdeEditovat)
+                'showUzavrit',
+                $this->cssZobrazitKdyz($neuzavrena)
+            );
+            // ❄️Už ji nelze editovat ani zpětně ❄️
+            $template->assign(
+                'showUzNeeditovatelna',
+                $this->cssZobrazitKdyz($neuzavrena && $uzNepujdeEditovat)
+            );
+            // 📕 Uzavřena 📕
+            $template->assign(
+                'showUzavrena',
+                $this->cssZobrazitKdyz($uzavrena)
             );
             // ✋ Aktivita už skončila, pozor na úpravy ✋
             $template->assign(
-                'hideAktivitaSkoncila',
-                //zobrazíme pouze v případě, že aktivitu lze editovat i po skončení
-                $this->cssSkryta($nemuzeMenitUcastnikyHned || !$konec || ($konec > $this->systemoveNastaveni->ted()))
+                'showAktivitaSkoncila',
+                // zobrazíme pouze v případě, že aktivitu lze editovat i po skončení
+                $this->cssZobrazitKdyz($muzeMenitUcastnikyHned && $editovatelnaHned)
             );
             // ⚠️Pozor, aktivita je už uzavřená! ⚠️
             $template->assign(
-                'hidePozorUzavrena',
-                $this->cssSkryta($nemuzeMenitUcastnikyHned || ($uzNejdeEditovat && $maPravoNaZmenuHistorie))
+                'showPozorUzavrena',
+                $this->cssZobrazitKdyz($uzavrena && $muzeMenitUcastnikyHned)
             );
 
             foreach ($this->seradDleStavuPrihlaseni($aktivita->prihlaseni(), $aktivita) as $prihlasenyUzivatel) {
@@ -270,8 +270,10 @@ class OnlinePrezenceHtml
             : $editovatelnaDo->getTimestamp();
     }
 
-    private function cssSkryta(bool $skryt) {
-        return $skryt ? 'display-none' : '';
+    private function cssZobrazitKdyz(bool $zobrazit): string {
+        return $zobrazit
+            ? ''
+            : 'display-none';
     }
 
     private function dejOnlinePrezenceUcastnikHtml(): OnlinePrezenceUcastnikHtml {
