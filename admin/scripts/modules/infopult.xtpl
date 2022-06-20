@@ -74,217 +74,214 @@
 <!-- end: nelze -->
 <!-- end:neprihlasen -->
 
+<div class="infopult-grid--container">
 
-<!-- begin:uzivatel -->
-<div class="aBox grid">
-  <h3>Přehled</h3>
-  <form method="post" class="clearfix">
+  <!-- begin:uzivatel -->
+  <div class="infopult-grid--item infopult-grid--item-přehled  aBox">
+    <h3>Přehled</h3>
+    <form method="post" class="clearfix">
+      <table>
+        <tr>
+          <td style="width: 60px">Stav účtu:</td>
+          <td style={stavStyle}> {stav}</td>
+        </tr>
+
+        <tr>
+          <td>Poznámka:</td>
+          <td><input type="text" name="udaje[poznamka]" value="{poznamka}" style="margin-left: -3px;"></td>
+        </tr>
+
+        <tr>
+          <td>Potvrzení</td>
+          <td>
+            <input type="checkbox" name="udaje[potvrzeni_zakonneho_zastupce]"
+                style="margin-left: -3px;" id="udaj_potvrzeni" {potvrzeniAttr}>
+              {potvrzeniText}
+            </input>
+          </td>
+        </tr>
+
+        <tr>
+          <td>Údaje:</td>
+          <td>{err} Chybí osobní údaje</td>
+        </tr>
+
+        <!-- begin:covidSekce -->
+        <tr>
+          <td>Covid-19:</td>
+          <td>
+            <input type="checkbox" name="udaje[potvrzeni_proti_covid19_overeno_kdy]"
+                style="margin-left: -3px;" id="udaj_potvrzeni" {covidPotvrzeniAttr}>
+              <a target="_blank" {covidPotvrzeniOdkazAttr}>
+                {covidPotvrzeniText}
+              </a>
+            </input>
+          </td>
+        </tr>
+        <!-- end:covidSekce -->
+
+        <tr>
+          <td>Kontakt:</td>
+          <td>{telefon}</td>
+        </tr>
+
+        <tr>
+          <td>Balíček:</td>
+          <td style="color: gray;">nevydal, vydal | malý, velký</td>
+        </tr>
+      </table>
+      <a style="font-size: 1.2em; float: left; margin-top: .2em; margin-right: 1em;" href="program-uzivatele" target="_blank">Program</a>
+      <a style="font-size: 1.2em; float: left; margin-top: .2em;" href="program-osobni" target="_blank">Program účastníka</a>
+      <input type="submit" name="prehledUprava" value="uložit" class="submit-btn">
+    </form>
+  </div>
+
+  <div class="infopult-grid--item infopult-grid--item-platba aBox">
+    <h3>Připsat platbu</h3>
+    <form method="post" class="clearfix">
+      <table>
+        <tr>
+          <td>Částka:</td>
+          <td><input required type="text" name="platba" style="text-align:right;width:40px">&thinsp;Kč</td>
+        </tr>
+        <tr>
+          <td>Poznámka:</td>
+          <td><input type="text" name="poznamka"></td>
+        </tr>
+        <!-- begin:idFioPohybu -->
+        <tr>
+          <td>
+            <span class="hinted">ID Fio pohybu
+              <span class="hint">Například 23798944700. Tedy ID, pod kterým má transakci Fio. <strong>Důležité, aby stejnou platbu nepřipsalo znovu automatické párování plateb</strong>.</span>
+            </span>:
+          </td>
+          <td><input type="text" name="idPohybu" autocomplete="off"></td>
+        </tr>
+        <!-- end:idFioPohybu -->
+        <tr>
+          <td>Připsal{aa}:</td>
+          <td><input type="text" value="{org}" disabled></td>
+        </tr>
+      </table>
+      <input type="submit" value="Připsat" class="submit-btn">
+    </form>
+  </div>
+
+
+  <div class="infopult-grid--item infopult-grid--item-ubytování aBox">
+    <h3>Ubytování</h3>
     <table>
       <tr>
-        <td style="width: 60px">Stav účtu:</td>
-        <td style={stavStyle}> {stav}</td>
+        <td>Pokoj:</td>
+        <td> {pokoj}</td>
       </tr>
-
       <tr>
-        <td>Poznámka:</td>
-        <td><input type="text" name="udaje[poznamka]" value="{poznamka}" style="margin-left: -3px;"></td>
-      </tr>
-
-      <tr>
-        <td>Potvrzení</td>
+        <td>Na pokoji:</td>
         <td>
-          <input type="checkbox" name="udaje[potvrzeni_zakonneho_zastupce]"
-              style="margin-left: -3px;" id="udaj_potvrzeni" {potvrzeniAttr}>
-            {potvrzeniText}
-          </input>
+          <ul>{spolubydlici}</ul>
         </td>
       </tr>
-
       <tr>
-        <td>Údaje:</td>
-        <td>{err} Chybí osobní údaje</td>
-      </tr>
-
-      <!-- begin:covidSekce -->
-      <tr>
-        <td>Covid-19:</td>
+        <td>Ubytování:</td>
         <td>
-          <input type="checkbox" name="udaje[potvrzeni_proti_covid19_overeno_kdy]"
-              style="margin-left: -3px;" id="udaj_potvrzeni" {covidPotvrzeniAttr}>
-            <a target="_blank" {covidPotvrzeniOdkazAttr}>
-              {covidPotvrzeniText}
-            </a>
-          </input>
+          {ubytovani}
         </td>
-      </tr>
-      <!-- end:covidSekce -->
-
-      <tr>
-        <td>Kontakt:</td>
-        <td>{telefon}</td>
-      </tr>
-
-      <tr>
-        <td>Balíček:</td>
-        <td style="color: gray;">nevydal, vydal | malý, velký</td>
       </tr>
     </table>
-    <a style="font-size: 1.2em; float: left; margin-top: .2em; margin-right: 1em;" href="program-uzivatele" target="_blank">Program</a>
-    <a style="font-size: 1.2em; float: left; margin-top: .2em;" href="program-osobni" target="_blank">Program účastníka</a>
-    <input type="submit" name="prehledUprava" value="uložit" class="submit-btn">
-  </form>
-</div>
+    <!-- begin:ubytovani -->
+    Zrušit jiné ubytování než neděli může pouze šéf Infa.<br><br>
+    <form method="post">
+      {shop.ubytovaniHtml}<br>
+      <input type="submit" name="zpracujUbytovani" value="Uložit" class="submit-btn">
+    </form>
+    <!-- end:ubytovani -->
+    {status}
+  </div>
 
-<div class="aBox grid">
-  <h3>Připsat platbu</h3>
-  <form method="post" class="clearfix">
-    <table>
-      <tr>
-        <td>Částka:</td>
-        <td><input required type="text" name="platba" style="text-align:right;width:40px">&thinsp;Kč</td>
-      </tr>
-      <tr>
-        <td>Poznámka:</td>
-        <td><input type="text" name="poznamka"></td>
-      </tr>
-      <!-- begin:idFioPohybu -->
-      <tr>
-        <td>
-          <span class="hinted">ID Fio pohybu
-            <span class="hint">Například 23798944700. Tedy ID, pod kterým má transakci Fio. <strong>Důležité, aby stejnou platbu nepřipsalo znovu automatické párování plateb</strong>.</span>
-          </span>:
-        </td>
-        <td><input type="text" name="idPohybu" autocomplete="off"></td>
-      </tr>
-      <!-- end:idFioPohybu -->
-      <tr>
-        <td>Připsal{aa}:</td>
-        <td><input type="text" value="{org}" disabled></td>
-      </tr>
-    </table>
-    <input type="submit" value="Připsat" class="submit-btn">
-  </form>
-</div>
+  <div class="infopult-grid--item infopult-grid--item-pokoje aBox">
+    <h3>Nastavení pokojů</h3>
+
+    <div style="float:left">
+      Přidělit pokoj (přepíše stávající stav)<br>
+      <form method="post">
+        <table>
+          <tr>
+            <td>ID uživatele:</td>
+            <td><input type="integer" value="{id}" name="uid"></td>
+          </tr>
+          <tr>
+            <td>Pokoj:</td>
+            <td><input type="integer" name="pokoj"></td>
+          </tr>
+        </table>
+        <input type="submit" name="pridelitPokoj" value="Přidělit">
+      </form>
+    </div>
+
+    <div style="float:left; margin-left:10px">
+      Vypsat lidi na pokoji číslo<br>
+      <form method="get">
+        <table>
+          <tr>
+            <td>Číslo pokoje:</td>
+            <td><input type="integer" value="{pokoj}" name="pokoj"></td>
+          </tr>
+          <tr>
+            <td>Ubytovaní:</td>
+            <td>{ubytovani}</td>
+          </tr>
+        </table>
+        <input type="submit" value="Vypsat">
+      </form>
+    </div>
+
+    <div style="clear: both"></div>
+  </div>
 
 
-<div class="aBox grid">
-  <h3>Ubytování</h3>
-  <table>
-    <tr>
-      <td>Pokoj:</td>
-      <td> {pokoj}</td>
-    </tr>
-    <tr>
-      <td>Na pokoji:</td>
-      <td>
-        <ul>{spolubydlici}</ul>
-      </td>
-    </tr>
-    <tr>
-      <td>Ubytování:</td>
-      <td>
-        {ubytovani}
-      </td>
-    </tr>
-  </table>
-  <!-- begin:ubytovani -->
-  Zrušit jiné ubytování než neděli může pouze šéf Infa.<br><br>
-  <form method="post">
-    {shop.ubytovaniHtml}<br>
-    <input type="submit" name="zpracujUbytovani" value="Uložit">
-  </form>
-  <!-- end:ubytovani -->
-  {status}
-</div>
+  <!-- end:uzivatel -->
 
-<div class="aBox grid">
-  <h3>Nastavení pokojů</h3>
-
-  <div style="float:left">
-    Přidělit pokoj (přepíše stávající stav)<br>
+  <div class="infopult-grid--item infopult-grid--item-prodej aBox">
+    <h3>Prodej předmětů</h3>
+    Zbývající počty předmětů jsou uvedeny v závorce<br>
     <form method="post">
       <table>
         <tr>
-          <td>ID uživatele:</td>
-          <td><input type="integer" value="{id}" name="uid"></td>
+          <td>ID&nbsp;uživatele:</td>
+          <td>
+            <input type="text" name="prodej[id_uzivatele]" value="{id}" required>
+          </td>
         </tr>
         <tr>
-          <td>Pokoj:</td>
-          <td><input type="integer" name="pokoj"></td>
+          <td style="white-space: nowrap">
+            <label for="predmet">Předmět:</label>
+            <span class="hinted">
+              <input name="prodej[kusu]" style="border: none; margin: 0; padding: 0" type="number" step="1" value="1"
+                size="2" min="1" max="99" required>
+              <span class="hint" style="white-space: nowrap; width: auto">Počet kusů</span>
+            </span>
+          </td>
+          <td>
+            <select name="prodej[id_predmetu]" id="predmet" required>
+              {predmety}
+            </select>
+          </td>
         </tr>
       </table>
-      <input type="submit" name="pridelitPokoj" value="Přidělit">
+      <input type="submit" name="prodej[odeslano]" value="Prodat" class="submit-btn">
     </form>
+    <script>
+      if ("{id}") $('[name="prodej[id_uzivatele]"]').attr('disabled', true)
+      $('form').last().on('submit', function () {
+        if ($(this).find('[name="prodej[id_predmetu]"]').val() == 0) {
+          alert('vyber předmět')
+          return false
+        }
+        if ($(this).find('[name="prodej[id_uzivatele]"]').val() == '')
+          return confirm('Prodat tento předmět anonymně bez uvedení uživatele?')
+      })
+    </script>
   </div>
-
-  <div style="float:left; margin-left:10px">
-    Vypsat lidi na pokoji číslo<br>
-    <form method="get">
-      <table>
-        <tr>
-          <td>Číslo pokoje:</td>
-          <td><input type="integer" value="{pokoj}" name="pokoj"></td>
-        </tr>
-        <tr>
-          <td>Ubytovaní:</td>
-          <td>{ubytovani}</td>
-        </tr>
-      </table>
-      <input type="submit" value="Vypsat">
-    </form>
-  </div>
-
-  <div style="clear: both"></div>
-</div>
-
-
-<!-- end:uzivatel -->
-
-
-<div class="aBox grid">
-  <h3>Prodej předmětů</h3>
-  Zbývající počty předmětů jsou uvedeny v závorce<br>
-  <form method="post">
-    <table>
-      <tr>
-        <td>ID&nbsp;uživatele:</td>
-        <td>
-          <input type="text" name="prodej[id_uzivatele]" value="{id}" required>
-        </td>
-      </tr>
-      <tr>
-        <td style="white-space: nowrap">
-          <label for="predmet">Předmět:</label>
-          <span class="hinted">
-            <input name="prodej[kusu]" style="border: none; margin: 0; padding: 0" type="number" step="1" value="1"
-              size="2" min="1" max="99" required>
-            <span class="hint" style="white-space: nowrap; width: auto">Počet kusů</span>
-          </span>
-        </td>
-        <td>
-          <select name="prodej[id_predmetu]" id="predmet" required>
-            {predmety}
-          </select>
-        </td>
-      </tr>
-      <tr>
-        <td colspan="2">
-          <input type="submit" name="prodej[odeslano]" value="Prodat">
-        </td>
-      </tr>
-    </table>
-  </form>
-  <script>
-    if ("{id}") $('[name="prodej[id_uzivatele]"]').attr('disabled', true)
-    $('form').last().on('submit', function () {
-      if ($(this).find('[name="prodej[id_predmetu]"]').val() == 0) {
-        alert('vyber předmět')
-        return false
-      }
-      if ($(this).find('[name="prodej[id_uzivatele]"]').val() == '')
-        return confirm('Prodat tento předmět anonymně bez uvedení uživatele?')
-    })
-  </script>
 </div>
 
 <!-- begin:rychloregistrace -->
@@ -345,54 +342,6 @@
   </script>
 </div>
 <!-- end:rychloregistrace -->
-
-<!-- sloupcový design -->
-<div class="sloupce">
-  <div class="sloup" style="width:100%;max-width:325px;float:left"></div>
-</div>
-<div style="clear:both"></div>
-<script>
-  var $boxy = $('.aBox')
-  var previousColCount = 0
-
-  function sloupce() {
-    var $sloupce = $('.sloupce')
-    var fullw = $sloupce.width()
-    var colw = $('.sloupce > .sloup').width()
-    var currentColCount = Math.floor(fullw / colw)
-    if (currentColCount == previousColCount) {
-      return // sloupce se preskladaji jen pokud to ma smysl (pokud se jich nove vejde vic nebo min)
-    }
-    previousColCount = currentColCount
-    // vysypat boxy mimo, pokud tam jsou
-    $boxy.insertAfter($sloupce)
-    // vytvořit adekvátní počet sloupců
-    var i = $('.sloupce > .sloup').length
-    while (i * colw < fullw - colw) {
-      $sloupce.append($('.sloupce > .sloup').last().clone())
-      i++
-    }
-    while (i * colw > fullw && i > 1) {
-      $('.sloupce > .sloup').last().remove()
-      i--
-    }
-    // nasypat boxy dovnitř podle pořadí, první výš
-    $boxy.each(function () {
-      var $min
-      $sloupce.find('.sloup').each(function () {
-        if (!$min || $(this).height() < $min.height()) {
-          $min = $(this)
-        }
-      })
-      $min.append($(this))
-    })
-  }
-
-  sloupce()
-  $(window).on('resize', function () {
-    sloupce()
-  })
-</script>
 
 
 <!-- begin:potvrditZruseniPrace -->

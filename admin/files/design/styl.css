@@ -1,5 +1,3 @@
-html {
-}
 
 .clearfix::after {
   content: "";
@@ -725,7 +723,7 @@ a > .hinted {
   left: 0;
   top: 22px;
   background-color: rgba(51, 51, 51, 0.9);
-/ background-color: #333;
+/* background-color: #333; */
   border: solid 0 #000;
   z-index: 10;
   font-size: 11px;
@@ -931,3 +929,72 @@ select:focus {
 .shop-prehled table {
   width: 100%
 }
+
+
+.infopult-grid--container {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+  align-items: start;
+  grid-template-areas: 
+  "přehled"
+  "ubytování"
+  "pokoje"
+  "platba"
+  "prodej"
+  ;
+}
+
+.infopult-grid--item-přehled {
+  grid-area: přehled;
+}
+
+.infopult-grid--item-ubytování {
+  grid-area: ubytování;
+}
+
+.infopult-grid--item-pokoje {
+  grid-area: pokoje;
+}
+
+.infopult-grid--item-platba {
+  grid-area: platba;
+}
+
+.infopult-grid--item-prodej {
+  grid-area: prodej;
+}
+
+
+/* Extra small devices (phones, 600px and down) */
+@media only screen and (max-width: 600px) {
+
+}
+
+/* Small devices (portrait tablets and large phones, 600px and up) */
+@media only screen and (min-width: 600px) {
+
+}
+
+/* Medium devices (landscape tablets, 768px and up) */
+@media only screen and (min-width: 768px) {
+
+}
+
+/* Large devices (laptops/desktops, 992px and up) */
+@media only screen and (min-width: 992px) {
+  .infopult-grid--container {
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-areas: 
+    "přehled ubytování ubytování"
+    "přehled pokoje pokoje"
+    "platba nic prodej"
+    ;
+  }
+}
+
+/* Extra large devices (large laptops and desktops, 1200px and up) */
+@media only screen and (min-width: 1200px) {
+
+}
+
