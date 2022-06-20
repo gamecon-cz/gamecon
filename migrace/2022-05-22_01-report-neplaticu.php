@@ -5,6 +5,6 @@
 $this->q(<<<SQL
 INSERT INTO reporty(skript, nazev, format_csv, format_html)
 VALUES
-('finance-neplatici', 'Neplatiči k odhlášení', 1, 1)
+('finance-neplatici', 'Finance: Neplatiči k odhlášení', 1, 1)
 SQL
 );
