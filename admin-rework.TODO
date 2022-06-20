@@ -60,12 +60,10 @@
       - [X] přejmenovat “Filtrovaný program” na “Program účastníka”
       - [X] přejmenovat i po rozkliknutí daného odkazu nahoře vlevo na stránce /program-osobni a /program-uzivatele, pokud se to nepřejmenuje automaticky
   - [ ] karta ubytování
-    - [ ] Pŕesunout pole
-      - [ ] Pokoj
-      - [ ] Na pokoji
-      - [ ] Ubytování
-    - [ ]
-    - [ ] rozmístění
+    - [X] Pŕesunout pole
+      - [X] Pokoj
+      - [X] Na pokoji
+      - [X] Ubytování
   - [ ] karta objednávky předmětů
     - [ ] Přehled objednaných předmětů
       - **Návrh řešení:**
@@ -76,7 +74,7 @@
         - Tj. zobrazit: kostky, trička, placky, veškerý další merch
   - [ ] Prodej předmětů
     - *Zatím jen tlačítko po dodělání ostatních změn udělat podle zadání*
-  - [ ] rozmístění karet
+  - [ ] rozmístění karet / Stylování (grid)
 
 # Finance
 
@@ -139,6 +137,8 @@
 # Bude součástí dalších PR
   - undo stavu pro finance (navrácení akce při ukliknutí - přihlásit, přijel, dát materiály, odjel)
   - Možnost rušení objednávek ?
+  - rozdělení tlačítka Přijel a Dát materiály
+  - obchod velké bloky prodej
   - *(optional)* Modal potvrzení covid s ano ne bez potřeby překlikávání mezi záložkami prohlížeče ?
 
 - [ ] Vykopírovat nehotové TODO pro další PR jinam (do Trella)
