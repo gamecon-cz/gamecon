@@ -2391,7 +2391,7 @@ SQL
 
     /** Je aktivita už proběhlá resp. už uzavřená pro změny? */
     public function zamcena(): bool {
-        return $this->a['stav'] == \Stav::UZAVRENA;
+        return $this->stav()->jeZamcena();
     }
 
     public function uzavrenaOd(): ?\DateTimeImmutable {
