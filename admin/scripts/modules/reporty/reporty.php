@@ -40,6 +40,7 @@ FROM (
   GROUP BY reporty.id
 ) AS reporty
 LEFT JOIN reporty_log_pouziti ON reporty_log_pouziti.id = id_posledniho_logu
+ORDER BY reporty.nazev
 SQL
 );
 
