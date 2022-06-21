@@ -16,6 +16,9 @@
   <link rel="stylesheet" href="files/design/jquery-modal/jquery.modal-0.9.1.min.css"/>
   <link rel="stylesheet"
         href="files/design/jquery-modal/jquery.modal.gamecon.css?version=f946305a5585486a6c3448dd9a304720"/>
+  <link rel="stylesheet" href="files/design/font-awesome-6.1.1/css/all.min.css">
+  <link rel="stylesheet" href="files/design/font-awesome-6.1.1/css/v4-shims.css">
+
   <script type="text/javascript" src="files/jquery-3.4.1.min.js"></script>
   {jsVyjimkovac}
   <script type="text/javascript" src="files/jquery-ui-v1.12.1.min.js"></script>
