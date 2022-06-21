@@ -8,6 +8,8 @@
  * submenu_group: 1
  * submenu_order: 3
  * submenu_nazev: Přehled Aktivit
+ *
+ * @var Uzivatel $u
  */
 
 if (post('smazat')) {
@@ -116,6 +118,9 @@ foreach ($aktivity as $aktivita) {
         $tpl->parse('aktivity.aktivita.hint');
     }
 
+    $nemuzeSmazat = $aktivita->prihlaseno() > 0 && !$u->jeSpravceFinanci();
+    $tpl->assign('smazatDisabled', $nemuzeSmazat ? 'disabled' : '');
+    $tpl->assign('titleSmazat', $nemuzeSmazat ? 'Aktivita už má účastníky. Smazat ji může jen správce financí.' : 'Smaž');
     if ($r['patri_pod']) {
         $tpl->parse('aktivity.aktivita.symbolInstance');
     }

@@ -1398,7 +1398,7 @@ SQL
     }
 
     /** Počet přihlášených */
-    protected function prihlaseno(): int {
+    public function prihlaseno(): int {
         if ($p = $this->prihlaseniRaw()) {
             return substr_count($p, ',') - 1;
         }

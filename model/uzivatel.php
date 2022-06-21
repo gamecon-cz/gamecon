@@ -414,6 +414,10 @@ SQL
         return $this->maZidli(\Gamecon\Zidle::PARTNER);
     }
 
+    public function jeSpravceFinanci(): bool {
+        return $this->maZidli(\Gamecon\Zidle::SPRAVCE_FINANCI_GC);
+    }
+
     /**
      * @return bool jestli se uživatel v daném čase neúčastní / neorganizuje
      *  žádnou aktivitu (případně s výjimkou $ignorovanaAktivita)
