@@ -217,8 +217,8 @@
     <td class="tlacitko-aktivity">
       <form method="post">
         <input type="hidden" name="aktivitaId" value="{id_akce}"/>
-        <button type="submit" name="smazat" value="1" class="no-background-color"
-                title="Smaž"
+        <button type="submit" name="smazat" value="1" class="no-background-color" {smazatDisabled}
+                title="{titleSmazat}"
                 onclick="return window.confirm('Opravdu trvale smazat {nazev_akce} (včetně odhlášení všech účastníků)?');">
           <i class="fa fa-trash" aria-hidden="true"></i>
         </button>
