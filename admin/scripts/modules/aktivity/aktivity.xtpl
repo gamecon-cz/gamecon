@@ -151,7 +151,8 @@
     }
 
     table.aktivity td.tlacitko-aktivity {
-        padding: 0
+        padding: 0;
+        min-width: 36px;
     }
 
     .aktivity button {
@@ -190,7 +191,7 @@
     <th><span class="hinted">Ins<span class="hint">
       Řetěz znamená, že aktivita je členem nějaké rodiny instancí a ve výpisu webu se zobrazuje pouze jednou a s více nabídkami termínu pro přihlášení.
     </span></span></th>
-    <th style="width: 180px" colspan="6"><span class="hinted">Akce<span class="hint">
+    <th colspan="5"><span class="hinted">Akce<span class="hint">
       <i class="fa fa-trash" aria-hidden="true"></i> <strong>smaž:</strong> nevratné smazání aktivity<br>
       <i class="fa fa-pencil-square-o" aria-hidden="true"></i> <strong>uprav:</strong> podrobná editace aktivity na vlastní stránce<br>
       <strong>inst:</strong> vytvořit novou instanci aktivity (čas příp. místo lze následně měnit v editaci)<br>
