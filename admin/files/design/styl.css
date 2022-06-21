@@ -675,7 +675,7 @@ a > .hinted {
 .hint {
   position: absolute;
   display: none;
-  max-width: 250px;
+  max-width: max(95%, 300px);
   width: max-content;
   left: 0;
   top: 22px;
