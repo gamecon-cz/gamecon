@@ -478,6 +478,10 @@ SQL,
         return $this->maZidli(\Gamecon\Zidle::PARTNER);
     }
 
+    public function jeSpravceFinanci(): bool {
+        return $this->maZidli(\Gamecon\Zidle::SPRAVCE_FINANCI_GC);
+    }
+
     /**
      * @param DateTimeInterface $od
      * @param DateTimeInterface $do
