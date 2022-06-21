@@ -121,14 +121,10 @@ foreach ($aktivity as $aktivita) {
     }
     if ($r['stav'] == 0) {
         $tpl->parse('aktivity.aktivita.tlacitka.publikovat');
-    }
-    if ($r['stav'] == 4) {
+    } else if ($r['stav'] == 4) {
         $tpl->parse('aktivity.aktivita.tlacitka.pripravit');
-    }
-    if ($r['stav'] == 5) {
+    } else  if ($r['stav'] == 5) {
         $tpl->parse('aktivity.aktivita.tlacitka.odpripravit');
-    }
-    if ($r['stav'] == 5) {
         $tpl->parse('aktivity.aktivita.tlacitka.aktivovat');
     }
     $tpl->parse('aktivity.aktivita.tlacitka');
