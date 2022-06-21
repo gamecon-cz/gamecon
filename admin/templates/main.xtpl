@@ -14,6 +14,9 @@
   <link rel="stylesheet" href="files/design/jquery-multiselect/jquery.multiselect.gamecon.css?version=7726af9be4b35c7389767c3225d93d9a" />
   <link rel="stylesheet" href="files/design/jquery-modal/jquery.modal-0.9.1.min.css" />
   <link rel="stylesheet" href="files/design/jquery-modal/jquery.modal.gamecon.css?version=f946305a5585486a6c3448dd9a304720" />
+  <link rel="stylesheet" href="files/design/font-awesome-6.1.1/css/all.min.css">
+  <link rel="stylesheet" href="files/design/font-awesome-6.1.1/css/v4-shims.css">
+
   <script type="text/javascript" src="files/jquery-3.4.1.min.js"></script>
   {jsVyjimkovac}
   <script type="text/javascript" src="files/jquery-ui-v1.12.1.min.js"></script>
@@ -26,6 +29,7 @@
   <script type="text/javascript" src="files/jquery.multiselect-2.4.16.js"></script>
   <script type="text/javascript" src="files/jquery.multiselect-2.4.16.js"></script>
   <script type="text/javascript" src="files/jquery.modal-0.9.1.min.js"></script>
+  <script type="text/javascript" src="files/keep-scroll-on-reload-1.1.js"></script>
 </head>
 <body>
   <div class="obal">

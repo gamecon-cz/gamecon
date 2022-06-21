@@ -451,8 +451,11 @@ input, select, label, button {
   cursor: pointer;
 }
 
-input[disabled], textarea[disabled], select[disabled] {
+input[disabled], textarea[disabled], select[disabled], button[disabled]:not(.no-background-color) {
   background-color: lightgray;
+}
+
+input[disabled], textarea[disabled], select[disabled], button[disabled] {
   cursor: not-allowed
 }
 
