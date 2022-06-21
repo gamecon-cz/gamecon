@@ -25,6 +25,7 @@ $xtpl->assign([
     'pageTitle' => $pageTitle,
     'base' => URL_ADMIN . '/',
     'cssVersions' => new \Gamecon\Web\VerzeSouboru(__DIR__ . '/files/design', 'css'),
+    'jsVersions' => new \Gamecon\Web\VerzeSouboru(__DIR__ . '/files', 'js'),
 ]);
 
 // nastavení stránky, prázdná url => přesměrování na úvod
