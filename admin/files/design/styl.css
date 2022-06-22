@@ -997,3 +997,95 @@ select:focus {
 
 }
 
+
+
+.uzivatel-grid--container {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+  align-items: start;
+  grid-template-areas: 
+  "udaje"
+  "slevy"
+  "jídlo"
+  "objednavky"
+  "prodej"
+  "pokoje"
+  "ubytování"
+  ;
+}
+
+.uzivatel-grid--item-udaje {
+  grid-area: udaje;
+}
+
+.uzivatel-grid--item-slevy {
+  grid-area: slevy;
+}
+
+.uzivatel-grid--item-jídlo {
+  grid-area: jídlo;
+}
+
+.uzivatel-grid--item-objednavky {
+  grid-area: objednavky;
+}
+
+.uzivatel-grid--item-prodej {
+  grid-area: prodej;
+}
+
+.uzivatel-grid--item-pokoje {
+  grid-area: pokoje;
+}
+
+.uzivatel-grid--item-ubytování {
+  grid-area: ubytování;
+}
+
+
+
+
+
+
+/* Extra small devices (phones, 600px and down) */
+@media only screen and (max-width: 600px) {
+
+}
+
+/* Small devices (portrait tablets and large phones, 600px and up) */
+@media only screen and (min-width: 600px) {
+
+}
+
+/* Medium devices (landscape tablets, 768px and up) */
+@media only screen and (min-width: 768px) {
+  .uzivatel-grid--container {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-areas: 
+      "udaje slevy"
+      "udaje jídlo"
+      "prodej jídlo"
+      "pokoje ubytování"
+      "objednavky ."
+      ;
+    }
+}
+
+/* Large devices (laptops/desktops, 992px and up) */
+@media only screen and (min-width: 992px) {
+  .uzivatel-grid--container {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-areas: 
+      "udaje slevy objednavky"
+      "udaje jídlo objednavky"
+      "prodej jídlo objednavky"
+      "pokoje ubytování objednavky"
+      ;
+    }
+}
+
+/* Extra large devices (large laptops and desktops, 1200px and up) */
+@media only screen and (min-width: 1200px) {
+
+}
