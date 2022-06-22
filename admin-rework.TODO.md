@@ -107,21 +107,20 @@
 - [ ] Uživatel
   - [X] Přejmenovat ubytování na uživatel
   - [ ] /uzivatel default pro org.. židli
-  - [ ] Přesun karty z úvod do uživatel
+  - [X] Přesun karty z úvod do uživatel
     - [X] Osobní údaje
       - [X] smazat Poznámka, Potvrzení, Covid-19
     - [X] Slevy
     - [X] Objednávky a platby
   - [ ] Přidat tlačítka Program a Program účastníka (podle infopult)
   - [ ] rozmístění karet / Stylování (grid)
-  - [ ] Jídlo uživatele + Ubytování
-    - [ ] NEZOBRAZOVAT doprovodný text o tom, že ubytování kromě neděle může zrušit jen šéf Infa
-  - [ ] Prodej předmětů (stejně jako infopult)
+  - [X] Jídlo uživatele + Ubytování
+    - [X] NEZOBRAZOVAT doprovodný text o tom, že ubytování kromě neděle může zrušit jen šéf Infa
+  - [X] Prodej předmětů (stejně jako infopult)
   - [ ] nevybraný uživatel
     - [ ] hláška není vybraný uživatel
     - [ ] skrýt co není relevantní bez uživatele
-
-
+  - [ ] text Objednávání ubytování online bylo zastaveno, změny jsou možné na místě.
 
 
 # Prodej předmětů
