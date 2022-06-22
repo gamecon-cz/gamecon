@@ -987,8 +987,7 @@ select:focus {
   grid-template-columns: repeat(3, 1fr);
   grid-template-areas: 
     "přehled ubytování ubytování"
-    "přehled pokoje pokoje"
-    "platba nic prodej"
+    "platba pokoje prodej"
     ;
   }
 }

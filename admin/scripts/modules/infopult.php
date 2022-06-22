@@ -168,10 +168,21 @@ if (post('zpracujUbytovani')) {
     oznameni('Ubytování uloženo');
 }
 
-if (post('pridelitPokoj')) {
-    Pokoj::ubytujNaCislo(Uzivatel::zId(post('uid')), post('pokoj'));
-    oznameni('Pokoj přidělen');
+if (post('pridelitPokoj') && $uPracovni) {
+    $pokojPost = post('pokoj');
+    Pokoj::ubytujNaCislo($uPracovni, $pokojPost);
+    oznameni('Pokoj přidělen', false);
+    if ($_SERVER['HTTP_REFERER']) {
+        parse_str($_SERVER['QUERY_STRING'], $query_string);
+        $query_string['pokoj'] = $pokojPost;
+        unset($query_string['req']);
+        $query_string = http_build_query($query_string);
+        $targetAddress = explode("?", $_SERVER['HTTP_REFERER'])[0];
+        header('Location: ' . $targetAddress . "?" . $query_string, true, 303);
+    } else
+        back();
 }
+
 
 if (post('zmenitUdaj') && $uPracovni) {
     $udaje = post('udaj');
@@ -234,8 +245,19 @@ $x->assign('odhlasBtnAttr', "disabled");
 $x->assign('ok', $ok);
 $x->assign('err', $err);
 
-$pokoj = Pokoj::zCisla(get('pokoj'));
-$ubytovani = $pokoj ? $pokoj->ubytovani() : [];
+// ubytovani
+$pokojVypis = Pokoj::zCisla(get('pokoj'));
+$ubytovaniVypis = $pokojVypis ? $pokojVypis->ubytovani() : [];
+
+/**
+ * @param \Uzivatel[] $spolubydlici
+ */
+function spolubydliciTisk($spolubydlici)
+{
+    return array_uprint($spolubydlici, static function (Uzivatel $e) {
+        return "<li> {$e->jmenoNick()} ({$e->id()}) {$e->telefon()} </li>";
+    });
+}
 
 if ($uPracovni) {
     if (!$uPracovni->gcPrihlasen()) {
@@ -271,21 +293,31 @@ if ($uPracovni) {
             '(žádné)',
         'id' => $up->id(),
         'pokoj' => $pokoj ? $pokoj->cislo() : '(nepřidělen)',
-        'spolubydlici' => array_uprint($spolubydlici, static function (Uzivatel $e) {
-            return "<li> {$e->jmenoNick()} ({$e->id()}) {$e->telefon()} </li>";
-        }),
+        'spolubydlici' => spolubydliciTisk($spolubydlici),
         'aa' => $u->koncovkaDlePohlavi(),
         'org' => $u->jmenoNick(),
         'shop' => $up->dejShop(),
         'poznamka' => $up->poznamka(),
         'up' => $up,
-        'ubytovani' => array_uprint($ubytovani, function ($e) {
-            $ne = $e->gcPritomen() ? '' : 'ne';
-            $color = $ne ? '#f00' : '#0a0';
-            $a = $e->koncA();
-            return $e->jmenoNick() . " (<span style=\"color:$color\">{$ne}dorazil$a</span>)";
-        }, '<br>'),
+
+        'pokojVypis' => $pokoj ? $pokoj->cislo() : "",
+        'ubytovani' => spolubydliciTisk($spolubydlici),
     ]);
+
+    if (get('pokoj')) {
+        $x->assign('pokojVypis', get('pokoj'));
+        if ($pokojVypis) {
+            $x->assign('ubytovani', array_uprint($ubytovaniVypis, function ($e) {
+                $ne = $e->gcPritomen() ? '' : 'ne';
+                $color = $ne ? '#f00' : '#0a0';
+                $a = $e->koncA();
+                return $e->jmenoNick() . " (<span style=\"color:$color\">{$ne}dorazil$a</span>)";
+            }, '<br>'));
+        } else
+            throw new Chyba('pokoj ' . get('pokoj') . ' neexistuje nebo je prázdný');
+    }
+
+
     if ($up->finance()->stav() < 0 && !$up->gcPritomen()) {
         $x->parse('uvod.upoMaterialy');
     }
@@ -393,9 +425,6 @@ while ($r = mysqli_fetch_assoc($o)) {
 }
 $x->assign('predmety', $moznosti);
 
-// ubytovani
-if (get('pokoj') && !$pokoj) throw new Chyba('pokoj ' . get('pokoj') . ' neexistuje nebo je prázdný');
-$x->assign('pokoj', get('pokoj'));
 
 // rychloregistrace
 if (!$uPracovni) { // nechceme zobrazovat rychloregistraci (zakladani uctu), kdyz mame vybraneho uzivatele pro praci
