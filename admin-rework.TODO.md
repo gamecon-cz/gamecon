@@ -105,11 +105,11 @@
 
 
 - [ ] Uživatel
-  - [ ] Přejmenovat ubytování na uživatel
+  - [X] Přejmenovat ubytování na uživatel
   - [ ] /uzivatel default pro org.. židli
   - [ ] Přesun karty z úvod do uživatel
-    - [ ] Osobní údaje
-      - [ ] smazat Poznámka, Potvrzení, Covid-19
+    - [X] Osobní údaje
+      - [X] smazat Poznámka, Potvrzení, Covid-19
     - [ ] Slevy
     - [ ] Objednávky a platby
   - [ ] Přidat tlačítka Program a Program účastníka (podle infopult)

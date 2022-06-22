@@ -7,9 +7,15 @@
  * pravo: 101
  */
 
+use \Gamecon\Cas\DateTimeCz;
+use \Gamecon\Cas\DateTimeGamecon;
+
 /**
+ * @var Uzivatel|null|void $u
  * @var Uzivatel|null|void $uPracovni
+ * @var \Gamecon\Vyjimkovac\Vyjimkovac $vyjimkovac
  */
+
 
 $nastaveni = ['ubytovaniBezZamku' => true, 'jidloBezZamku' => true];
 $shop = $uPracovni ? new Shop($uPracovni, $nastaveni) : null;
@@ -58,12 +64,37 @@ if (post('zpracujJidlo')) {
     oznameni('Jídlo uloženo');
 }
 
-$t = new XTemplate('uzivatel.xtpl');
+if (post('zmenitUdaj') && $uPracovni) {
+    $udaje = post('udaj');
+    if ($udaje['op'] ?? null) {
+        $uPracovni->cisloOp($udaje['op']);
+        unset($udaje['op']);
+    }
+    try {
+        dbUpdate('uzivatele_hodnoty', $udaje, ['id_uzivatele' => $uPracovni->id()]);
+    } catch (DbDuplicateEntryException $e) {
+        if ($e->key() === 'email1_uzivatele') {
+            chyba('Uživatel se stejným e-mailem již existuje.');
+        } else if ($e->key() === 'login_uzivatele') {
+            chyba('Uživatel se stejným e-mailem již existuje.');
+        } else {
+            chyba('Uživatel se stejným údajem již existuje.');
+        }
+    } catch (Exception $e) {
+        $vyjimkovac->zaloguj($e);
+        chyba('Došlo k neočekávané chybě.');
+    }
+
+    $uPracovni->otoc();
+    back();
+}
+
+$x = new XTemplate('uzivatel.xtpl');
 
 $pokoj = Pokoj::zCisla(get('pokoj'));
 $ubytovani = $pokoj ? $pokoj->ubytovani() : [];
 if (get('pokoj') && !$pokoj) throw new Chyba('pokoj ' . get('pokoj') . ' neexistuje nebo je prázdný');
-$t->assign([
+$x->assign([
     'uid' => $uPracovni ? $uPracovni->id() : '',
     'pokoj' => get('pokoj'),
     'ubytovani' => array_uprint($ubytovani, function ($e) {
@@ -75,16 +106,84 @@ $t->assign([
 ]);
 
 if ($uPracovni && $uPracovni->gcPrihlasen()) {
-    $t->assign('shop', $shop);
-    $t->parse('ubytovani.ubytovani');
-    $t->parse('ubytovani.jidlo');
+    $x->assign('shop', $shop);
+    $x->parse('uzivatel.ubytovani');
+    $x->parse('uzivatel.jidlo');
 }
 
 if (!$uPracovni) {
-    $t->assign('status', '<div class="warning">Uživatel nevybrán</div>');
+    $x->assign('status', '<div class="warning">Uživatel nevybrán</div>');
 } elseif (!$uPracovni->gcPrihlasen()) {
-    $t->assign('status', '<div class="error">Uživatel není přihlášen na GC</div>');
+    $x->assign('status', '<div class="error">Uživatel není přihlášen na GC</div>');
 }
 
-$t->parse('ubytovani');
-$t->out('ubytovani');
+
+// form s osobními údaji
+if ($uPracovni) {
+    $udaje = [
+        'login_uzivatele' => 'Přezdívka',
+        'jmeno_uzivatele' => 'Jméno',
+        'prijmeni_uzivatele' => 'Příjmení',
+        'pohlavi' => 'Pohlaví',
+        'ulice_a_cp_uzivatele' => 'Ulice',
+        'mesto_uzivatele' => 'Město',
+        'psc_uzivatele' => 'PSČ',
+        'telefon_uzivatele' => 'Telefon',
+        'datum_narozeni' => 'Narozen' . $uPracovni->koncA(),
+        'email1_uzivatele' => 'E-mail',
+        // 'op'                    =>          'Číslo OP',
+    ];
+    $r = dbOneLine('SELECT ' . implode(',', array_keys($udaje)) . ' FROM uzivatele_hodnoty WHERE id_uzivatele = ' . $uPracovni->id());
+    $datumNarozeni = new DateTimeImmutable($r['datum_narozeni']);
+
+    foreach ($udaje as $sloupec => $nazev) {
+        $hodnota = $r[$sloupec];
+        if ($sloupec === 'op') {
+            $hodnota = $uPracovni->cisloOp(); // desifruj cislo obcanskeho prukazu
+        }
+        $zobrazenaHodnota = $hodnota;
+        $vstupniHodnota = $hodnota;
+        $vyber = [];
+        $popisek = '';
+        if ($sloupec === 'pohlavi') {
+            $vyber = ['f' => 'žena', 'm' => 'muž'];
+            $zobrazenaHodnota = $vyber[$r['pohlavi']] ?? '';
+        }
+        if ($sloupec === 'datum_narozeni') {
+            $popisek = sprintf('Věk na začátku Gameconu %d let', vekNaZacatkuLetosnihoGameconu($datumNarozeni));
+        }
+        $x->assign([
+            'nazev' => $nazev,
+            'sloupec' => $sloupec,
+            'vstupniHodnota' => $vstupniHodnota,
+            'zobrazenaHodnota' => $zobrazenaHodnota,
+            'vyber' => $vyber,
+            'popisek' => $popisek,
+        ]);
+        if ($popisek) {
+            $x->parse('uzivatel.udaje.udaj.nazevSPopiskem');
+        } else {
+            $x->parse('uzivatel.udaje.udaj.nazevBezPopisku');
+        }
+        if ($sloupec === 'pohlavi') {
+            foreach ($vyber as $optionValue => $optionText) {
+                $x->assign([
+                    'optionValue' => $optionValue,
+                    'optionText' => $optionText,
+                    'optionSelected' => $vstupniHodnota === $optionValue
+                        ? 'selected'
+                        : '',
+                ]);
+                $x->parse('uzivatel.udaje.udaj.select.option');
+            }
+            $x->parse('uzivatel.udaje.udaj.select');
+        } else {
+            $x->parse('uzivatel.udaje.udaj.input');
+        }
+        $x->parse('uzivatel.udaje.udaj');
+    }
+    $x->parse('uzivatel.udaje');
+}
+
+$x->parse('uzivatel');
+$x->out('uzivatel');
