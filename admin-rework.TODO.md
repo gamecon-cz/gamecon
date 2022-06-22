@@ -86,8 +86,9 @@
   - [ ] rozmístění karet / Stylování (grid)
   - [ ] odstranit nevyužitou logiku
   - [ ] Ikonka tabu infopultu
-  - [ ] odebrat id uživatele odevšad
+  - [X] odebrat id uživatele odevšad
   - [ ] ubytování a nastavení 
+  - [ ] Opravit anonymní prodej
 
 # Finance
 

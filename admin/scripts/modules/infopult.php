@@ -86,13 +86,8 @@ if (!empty($_POST['telefon']) && $uPracovni) {
 if (!empty($_POST['prodej'])) {
     $prodej = $_POST['prodej'];
     unset($prodej['odeslano']);
-    if ($uPracovni) {
-        $prodej['id_uzivatele'] = $uPracovni->id();
-    }
-    if (!$prodej['id_uzivatele']) {
-        $prodej['id_uzivatele'] = 0;
-    }
-    for ($kusu = $prodej['kusu'] ?? 1, $pocet = 1; $pocet <= $kusu; $pocet++) {
+    $prodej['id_uzivatele'] = $uPracovni ? $uPracovni->id() : 0;
+    for ($kusu = $prodej['kusu'] ?? 1, $i = 1; $i <= $kusu; $i++) {
         dbQuery('INSERT INTO shop_nakupy(id_uzivatele,id_predmetu,rok,cena_nakupni,datum)
     VALUES (' . $prodej['id_uzivatele'] . ',' . $prodej['id_predmetu'] . ',' . ROK . ',(SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu=' . $prodej['id_predmetu'] . '),NOW())');
     }
@@ -404,6 +399,7 @@ if ($uPracovni) {
     $x->parse('uvod.uzivatel');
 } else {
     $x->parse('uvod.neUzivatel');
+    $x->parse('uvod.prodejAnonymni');
 }
 
 // načtení předmětů a form s rychloprodejem předmětů, fixme
@@ -418,7 +414,7 @@ $o = dbQuery('
   WHERE p.stav > 0
   GROUP BY p.id_predmetu
   ORDER BY model_rok DESC, nazev');
-$moznosti = '<option value="0">(vyber)</option>';
+$moznosti = '<option value="">(vyber)</option>';
 while ($r = mysqli_fetch_assoc($o)) {
     $zbyva = $r['zbyva'] === null ? '&infin;' : $r['zbyva'];
     $moznosti .= '<option value="' . $r['id_predmetu'] . '"' . ($r['zbyva'] > 0 || $r['zbyva'] === null ? '' : ' disabled') . '>' . $r['nazev'] . ' (' . $zbyva . ') ' . $r['cena'] . '&thinsp;Kč</option>';
