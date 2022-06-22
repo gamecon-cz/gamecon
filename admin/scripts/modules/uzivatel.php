@@ -16,6 +16,8 @@ use \Gamecon\Cas\DateTimeGamecon;
  * @var \Gamecon\Vyjimkovac\Vyjimkovac $vyjimkovac
  */
 
+require_once __DIR__ . '/../funkce.php';
+require_once __DIR__ . '/../konstanty.php';
 
 $nastaveni = ['ubytovaniBezZamku' => true, 'jidloBezZamku' => true];
 $shop = $uPracovni ? new Shop($uPracovni, $nastaveni) : null;
@@ -90,6 +92,7 @@ if (post('zmenitUdaj') && $uPracovni) {
 }
 
 $x = new XTemplate('uzivatel.xtpl');
+xtemplateAssignZakladniPromenne($x, $uPracovni);
 
 $pokoj = Pokoj::zCisla(get('pokoj'));
 $ubytovani = $pokoj ? $pokoj->ubytovani() : [];
@@ -115,6 +118,54 @@ if (!$uPracovni) {
     $x->assign('status', '<div class="warning">Uživatel nevybrán</div>');
 } elseif (!$uPracovni->gcPrihlasen()) {
     $x->assign('status', '<div class="error">Uživatel není přihlášen na GC</div>');
+}
+
+$x->assign([
+    'rok' => ROK,
+]);
+
+if ($uPracovni) {
+    $up = $uPracovni;
+    $a = $up->koncovkaDlePohlavi();
+    $pokoj = Pokoj::zUzivatele($up);
+    $spolubydlici = $pokoj
+        ? $pokoj->ubytovani()
+        : [];
+    $x->assign([
+        'prehled' => $up->finance()->prehledHtml(),
+        'slevyAktivity' => ($akt = $up->finance()->slevyAktivity()) ?
+            '<li>' . implode('<li>', $akt) :
+            '(žádné)',
+        'slevyVse' => ($vse = $up->finance()->slevyVse()) ?
+            '<li>' . implode('<li>', $vse) :
+            '(žádné)',
+        'pokoj' => $pokoj ? $pokoj->cislo() : '(nepřidělen)',
+        'ubytovani' => $up->dejShop()->dejPopisUbytovani(),
+    ]);
+    $r = dbOneLine('SELECT datum_narozeni, potvrzeni_zakonneho_zastupce FROM uzivatele_hodnoty WHERE id_uzivatele = ' . $uPracovni->id());
+    $datumNarozeni = new DateTimeImmutable($r['datum_narozeni']);
+
+    if (GC_BEZI) {
+        $zpravyProPotvrzeniZruseniPrace = [];
+        if (!$up->gcPritomen()) {
+            $zpravyProPotvrzeniZruseniPrace[] = 'nedostal materiály';
+        }
+        if ($up->finance()->stav() < 0) {
+            $zpravyProPotvrzeniZruseniPrace[] = 'má záporný zůstatek';
+        }
+        if ($potrebujePotvrzeniKvuliVeku && !$mameLetosniPotvrzeniKvuliVeku) {
+            $zpravyProPotvrzeniZruseniPrace[] = 'nemá potvrzení od rodičů';
+        }
+        foreach ($zpravyProPotvrzeniZruseniPrace as $zpravaProPotvrzeniZruseniPrace) {
+            $x->assign([
+                'zpravaProPotvrzeniZruseniPrace' => "Uživatel {$zpravaProPotvrzeniZruseniPrace}. Přesto ukončit práci s uživatelem?",
+            ]);
+            $x->parse('uzivatel.potvrditZruseniPrace');
+        }
+    }
+
+    $x->parse('uzivatel.slevy');
+    $x->parse('uzivatel.objednavky');
 }
 
 
