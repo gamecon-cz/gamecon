@@ -159,7 +159,7 @@
         </tr>
         <!-- end:idFioPohybu -->
         <tr>
-          <td>Připsal{aa}:</td>
+          <td>Připsal{aOrganizator}:</td>
           <td><input type="text" value="{org}" disabled></td>
         </tr>
       </table>
