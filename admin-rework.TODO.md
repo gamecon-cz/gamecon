@@ -92,8 +92,8 @@
 
 # Finance
 
-- [ ] Finance
-  - [ ] Přesunout Importér ubytování ze záložky /ubytování do záložky /finance
+- [X] Finance
+  - [X] Přesunout Importér ubytování ze záložky /ubytování do záložky /finance
 
 # Uživatel
 
