@@ -22,45 +22,7 @@ require_once __DIR__ . '/../konstanty.php';
 $nastaveni = ['ubytovaniBezZamku' => true, 'jidloBezZamku' => true];
 $shop = $uPracovni ? new Shop($uPracovni, $nastaveni) : null;
 
-if (post('pridelitPokoj')) {
-    Pokoj::ubytujNaCislo(Uzivatel::zId(post('uid')), post('pokoj'));
-    oznameni('Pokoj přidělen');
-}
-
-if (post('zpracujUbytovani')) {
-    $shop->zpracujUbytovani();
-    oznameni('Ubytování uloženo');
-}
-
-if (post('zpracujJidlo')) {
-    $shop->zpracujJidlo();
-    oznameni('Jídlo uloženo');
-}
-
-if (post('zmenitUdaj') && $uPracovni) {
-    $udaje = post('udaj');
-    if ($udaje['op'] ?? null) {
-        $uPracovni->cisloOp($udaje['op']);
-        unset($udaje['op']);
-    }
-    try {
-        dbUpdate('uzivatele_hodnoty', $udaje, ['id_uzivatele' => $uPracovni->id()]);
-    } catch (DbDuplicateEntryException $e) {
-        if ($e->key() === 'email1_uzivatele') {
-            chyba('Uživatel se stejným e-mailem již existuje.');
-        } else if ($e->key() === 'login_uzivatele') {
-            chyba('Uživatel se stejným e-mailem již existuje.');
-        } else {
-            chyba('Uživatel se stejným údajem již existuje.');
-        }
-    } catch (Exception $e) {
-        $vyjimkovac->zaloguj($e);
-        chyba('Došlo k neočekávané chybě.');
-    }
-
-    $uPracovni->otoc();
-    back();
-}
+include __DIR__ . '/_uzivatel_ovladac.php';
 
 $x = new XTemplate('uzivatel.xtpl');
 xtemplateAssignZakladniPromenne($x, $uPracovni);
@@ -83,6 +45,10 @@ if ($uPracovni && $uPracovni->gcPrihlasen()) {
     $x->assign('shop', $shop);
     $x->parse('uzivatel.ubytovani');
     $x->parse('uzivatel.jidlo');
+}
+
+if (!$uPracovni) {
+    $x->parse('uzivatel.prodejAnonymni');
 }
 
 if (!$uPracovni) {
@@ -187,6 +153,11 @@ if ($uPracovni) {
         } else {
             $x->parse('uzivatel.udaje.udaj.nazevBezPopisku');
         }
+        if ($sloupec === 'telefon_uzivatele') {
+            $x->assign([
+                'zobrazenaHodnota' => formatujTelCislo($zobrazenaHodnota),
+            ]);
+        }
         if ($sloupec === 'pohlavi') {
             foreach ($vyber as $optionValue => $optionText) {
                 $x->assign([
@@ -206,6 +177,25 @@ if ($uPracovni) {
     }
     $x->parse('uzivatel.udaje');
 }
+
+// načtení předmětů a form s rychloprodejem předmětů, fixme
+$o = dbQuery('
+  SELECT
+    CONCAT(nazev," ",model_rok) as nazev,
+    kusu_vyrobeno-count(n.id_predmetu) as zbyva,
+    p.id_predmetu,
+    ROUND(p.cena_aktualni) as cena
+  FROM shop_predmety p
+  LEFT JOIN shop_nakupy n ON(n.id_predmetu=p.id_predmetu)
+  WHERE p.stav > 0
+  GROUP BY p.id_predmetu
+  ORDER BY model_rok DESC, nazev');
+$moznosti = '<option value="">(vyber)</option>';
+while ($r = mysqli_fetch_assoc($o)) {
+    $zbyva = $r['zbyva'] === null ? '&infin;' : $r['zbyva'];
+    $moznosti .= '<option value="' . $r['id_predmetu'] . '"' . ($r['zbyva'] > 0 || $r['zbyva'] === null ? '' : ' disabled') . '>' . $r['nazev'] . ' (' . $zbyva . ') ' . $r['cena'] . '&thinsp;Kč</option>';
+}
+$x->assign('predmety', $moznosti);
 
 $x->parse('uzivatel');
 $x->out('uzivatel');

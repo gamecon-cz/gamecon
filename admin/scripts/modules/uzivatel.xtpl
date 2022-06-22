@@ -13,7 +13,6 @@
 <div class="aBox">
   <h3>Ubytování uživatele</h3>
   <!-- begin:ubytovani -->
-  Standardně povolujeme pouze změnu ubytování ze spacáku na postel nebo jiný „upgrade“ (v opačném případě by postel zůstala volná a reálně by ji tak platil GameCon). Odhlášení z ubytování umožňujeme nejpozději den předem, pokud člověk např. nečekaně musí odjet. Odhlášení neděle povolujeme (člověk se často splete).<br><br>
   <form method="post">
     {shop.ubytovaniHtml}<br>
     <input type="submit" name="zpracujUbytovani" value="Uložit">
@@ -167,5 +166,37 @@
   </script>
 </div>
 <!-- end:udaje -->
+
+<div class="infopult-grid--item infopult-grid--item-prodej aBox">
+  <h3>Prodej předmětů</h3>
+  Zbývající počty předmětů jsou uvedeny v závorce<br>
+  <form method="post">
+    <table>
+      <!-- begin:prodejAnonymni -->
+      <tr>
+        <td></td>
+        <td>Anonymní prodej</td>
+      </tr>
+      <!-- end:prodejAnonymni -->
+
+      <tr>
+        <td style="white-space: nowrap">
+          <label for="predmet">Předmět:</label>
+          <span class="hinted">
+            <input name="prodej[kusu]" style="border: none; margin: 0; padding: 0" type="number" step="1" value="1"
+              size="2" min="1" max="99" required>
+            <span class="hint" style="white-space: nowrap; width: auto">Počet kusů</span>
+          </span>
+        </td>
+        <td>
+          <select name="prodej[id_predmetu]" id="predmet" required>
+            {predmety}
+          </select>
+        </td>
+      </tr>
+    </table>
+    <input type="submit" name="prodej[odeslano]" value="Prodat" class="submit-btn">
+  </form>
+</div>
 
 <!-- end:uzivatel -->
