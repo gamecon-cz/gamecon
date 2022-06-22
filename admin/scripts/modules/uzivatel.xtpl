@@ -86,6 +86,25 @@
   </form>
 </div>
 
+<!-- begin:slevy -->
+<div class="aBox">
+  <h3>Slevy</h3>
+  <strong>Na aktivity:</strong>
+  <ul>{slevyAktivity}</ul>
+  <strong>Na všechno:</strong>
+  <ul>{slevyVse}</ul>
+</div>
+<!-- end:slevy -->
+
+<!-- begin:objednavky -->
+<div class="aBox">
+  <h3 class="prehled">Objednávky a platby</h3>
+  {prehled}
+  <script>$('.prehled').siblings('table').css('width', '100%')</script>
+</div>
+<!-- end:objednavky -->
+
+
 <!-- begin:udaje -->
 <div class="aBox">
   <h3>Osobní údaje</h3>
