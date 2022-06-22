@@ -27,10 +27,11 @@
   - [ ] /Infopult default pro “Infopult” židli
   - [ ] Karta přehled
     - [X] tlačítko uložit pro editace na přehledu
-    - [X] úpravy pole
+    - [ ] úpravy pole
       - [X] Stav účtu červeně záporná hodnota
-      - [X] Poznámka - bude editovatelné
+      - [ ] Poznámka - bude editovatelné
         - [X] přidat
+        - [ ] větší prostor
       - [X] Covid test - manuálním ověření odkliknutím
       - [X] Potvrzení
         - **Alternativně vyřešeno**
@@ -66,27 +67,27 @@
       - [X] přejmenovat “Program účastníka” na “Program”
       - [X] přejmenovat “Filtrovaný program” na “Program účastníka”
       - [X] přejmenovat i po rozkliknutí daného odkazu nahoře vlevo na stránce /program-osobni a /program-uzivatele, pokud se to nepřejmenuje automaticky
+    - [ ] Výraznější větší text ?
   - [X] karta ubytování
     - [X] Přesunout pole
       - [X] Pokoj
       - [X] Na pokoji
       - [X] Ubytování
-  - *karta objednávky předmětů* Odebrána, bude součástí *Infopult->Přehled->Balíček*.
-  <s>
-  - karta objednávky předmětů
-    - Přehled objednaných předmětů
-      - **Návrh řešení:**
-        - Aktuální přehled “Objednávky a platby”, který se zobrazuje na záložce “Úvod” se celý tak jako je včetně objednávek předmětů, přesune na novou záložku “Uživatel” viz níže.
-        - Na záložce “Úvod” by z něj měl zůstat jen přehled objednaných předmětů a jejich počet. 
-        - Tj. z přehledu vyřadit: aktivity, strava, ubytování, dobrovolné vstupné, platby.
-        - Nezobrazovat ceny, ale pouze počet.
-        - Tj. zobrazit: kostky, trička, placky, veškerý další merch
-  </s>
+    - [ ] Přesunout "Nastavení pokojů" na stejnou kartu
+  - ~~*karta objednávky předmětů* Odebrána, bude součástí *Infopult->Přehled->Balíček*.~~ místa je dost tak nakonec se nechává
+  - [ ] karta objednávky předmětů
+    - [ ] Přehled objednaných předmětů
+        - [ ] Aktuální přehled “Objednávky a platby”, který se zobrazuje na záložce “Úvod” se celý tak jako je včetně objednávek předmětů, přesune na novou záložku “Uživatel” viz níže.
+        - [ ] Na záložce “Úvod” by z něj měl zůstat jen přehled objednaných předmětů a jejich počet. 
+        - [ ] Tj. z přehledu vyřadit: aktivity, strava, ubytování, dobrovolné vstupné, platby.
+        - [ ] Nezobrazovat ceny, ale pouze počet. Tj. zobrazit: kostky, trička, placky, veškerý další merch
   - [X] Prodej předmětů
     - *Nezměněno, bude součástí jiného PR*
   - [ ] rozmístění karet / Stylování (grid)
   - [ ] odstranit nevyužitou logiku
   - [ ] Ikonka tabu infopultu
+  - [ ] odebrat id uživatele odevšad
+  - [ ] ubytování a nastavení 
 
 # Finance
 
@@ -144,7 +145,7 @@
 # Ujasnit
   Infopult - přehled - poznámka: více řádků ? udělat jako text area?
   *(optional)* Potvrzení při provedení změny v poli bez uložení
-
+  poznámka odděleně mimo přehled ať má více místa ?
 
 # Bude součástí dalších PR
   - undo stavu pro finance (navrácení akce při ukliknutí - přihlásit, přijel, dát materiály, odjel)
