@@ -22,7 +22,7 @@
 
     $aktivity.each(function (index, aktivitaNode) {
       aktivitaNode.addEventListener('novyUcastnik', function (/** @param {{detail: {idAktivity: number, idUzivatele: number}}} event */event) {
-        hlidejNovehoUcastnika(event.detail.idUzivatele, event.detail.idAktivity)
+        zaznamenejNovehoUcastnika(event.detail.idUzivatele, event.detail.idAktivity)
       })
       aktivitaNode.addEventListener('zmenaMetadatAktivity', function (/** @param {{ detail: { casPosledniZmenyStavuAktivity: string, stavAktivity: string, idPoslednihoLogu: number, editovatelnaDoTimestamp: number} }} */event) {
         zapisMetadataAktivity(aktivitaNode, event.detail)
@@ -67,10 +67,33 @@
      * @param {number|string} idUzivatele
      * @param {number|string} idAktivity
      */
-    function hlidejNovehoUcastnika(idUzivatele, idAktivity) {
-      hlidejZmenyMetadatUcastnika(dejNodeUcastnika(idUzivatele, idAktivity))
+    function zaznamenejNovehoUcastnika(idUzivatele, idAktivity) {
+      const nodeUcastnika = dejNodeUcastnika(idUzivatele, idAktivity)
+      hlidejZmenyMetadatUcastnika(nodeUcastnika)
       aktivujTooltipUcastnika(idUzivatele, idAktivity)
       upravUkazateleZaplnenostiAktivity(dejNodeAktivity(idAktivity))
+      obnovSeznamMailu(nodeUcastnika)
+    }
+
+    /**
+     * @param {HTMLElement} nodeUcastnika
+     */
+    function obnovSeznamMailu(nodeUcastnika) {
+      const email = nodeUcastnika.dataset.email
+      if (email) {
+        const idAktivity = nodeUcastnika.dataset.idAktivity
+        const emailyNode = document.getElementById(`emaily-${idAktivity}`)
+        const aktivitaNode = dejNodeAktivity(idAktivity)
+        const vsechnyMaily = []
+        aktivitaNode.querySelectorAll(`.ucastnik`).forEach(function (nejakyUcastnkNode) {
+          if (nejakyUcastnkNode.dataset.email) {
+            vsechnyMaily.push(nejakyUcastnkNode.dataset.email)
+          }
+        })
+        const emailyAnchor = emailyNode.querySelector('a')
+        emailyAnchor.href = 'mailto:?bcc=' + vsechnyMaily.join(',')
+        emailyAnchor.innerText = vsechnyMaily.join(', ')
+      }
     }
 
     /**
@@ -177,7 +200,7 @@
     }
 
     /**
-     * Bude zpracováno v event listeneru přes hlidejNovehoUcastnika()
+     * Bude zpracováno v event listeneru přes zaznamenejNovehoUcastnika()
      * @param {number} idUzivatele
      * @param {number} idAktivity
      */
@@ -202,16 +225,15 @@
         const ucastniciAktivityNode = $(`#ucastniciAktivity${idAktivity}`)
         const novyUcastnik = $(ui.item.html)
 
-        zmenitPritomnostUcastnika(idUzivatele, idAktivity, novyUcastnik.find('input')[0], this, // kde vznikl požadavek a kde ukázat případné errory
-          function () {
-            /**
-             * Teprve až backend potvrdí uložení vybraného účastníka a JS přidá čas poslední změny a stav přihlášení,
-             * tak můžeme přidat řádek s tímto účastníkem.
-             * Data z řádku totiž potřebujeme pro kontrolu změn v online-prezence-posledni-zname-zmeny-prihlaseni.js
-             */
-            ucastniciAktivityNode.append(novyUcastnik)
-            vypustEventONovemUcastnikovi(idUzivatele, idAktivity)
-          })
+        zmenitPritomnostUcastnika(idUzivatele, idAktivity, novyUcastnik.find('input')[0], this /*kde vznikl požadavek a kde ukázat případné errory*/, function () {
+          /**
+           * Teprve až backend potvrdí uložení vybraného účastníka a JS přidá čas poslední změny a stav přihlášení,
+           * tak můžeme přidat řádek s tímto účastníkem.
+           * Data z řádku totiž potřebujeme pro kontrolu změn v online-prezence-posledni-zname-zmeny-prihlaseni.js
+           */
+          ucastniciAktivityNode.append(novyUcastnik)
+          vypustEventONovemUcastnikovi(idUzivatele, idAktivity)
+        })
 
         // vyrušení default výběru do boxu
         event.preventDefault()
@@ -493,10 +515,7 @@ const akceAktivity = new class AkceAktivity {
    * @param {number} editovatelnaDoTimestamp
    */
   reagujNaUzavreniAktivity(idAktivity, editovatelnaDoTimestamp) {
-    const skrytElementy = [
-      document.getElementById(`otevrena-${idAktivity}`),
-      document.getElementById(`zamcena-${idAktivity}`),
-    ]
+    const skrytElementy = [document.getElementById(`otevrena-${idAktivity}`), document.getElementById(`zamcena-${idAktivity}`)]
     const zobrazitElement = document.getElementById(`uzavrena-${idAktivity}`)
     this.prohoditZobrazeni(skrytElementy, zobrazitElement)
 

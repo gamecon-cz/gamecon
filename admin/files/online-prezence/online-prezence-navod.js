@@ -4,12 +4,12 @@ document.addEventListener('DOMContentLoaded', function () {
     collapseNode.addEventListener('shown.bs.collapse', function () {
       document.cookie = `collapse-${collapseNode.id}=shown;max-age=31536000`
       const buttonNode = document.getElementById(this.dataset.triggerButtonId)
-      zvyrazniTlacitkoPokudJeNavodSkryty(buttonNode, false)
+      zvyrazniTlacitkoPokudJeObsahSkryty(buttonNode, false)
     })
     collapseNode.addEventListener('hidden.bs.collapse', function (event) {
       document.cookie = `collapse-${collapseNode.id}=hidden;max-age=31536000`
       const buttonNode = document.getElementById(this.dataset.triggerButtonId)
-      zvyrazniTlacitkoPokudJeNavodSkryty(buttonNode, true)
+      zvyrazniTlacitkoPokudJeObsahSkryty(buttonNode, true)
     })
   })
 })
@@ -29,12 +29,12 @@ function zobrazNavodPodlePosledniVolby(buttonNode, collapseNode) {
     buttonNode.classList.add('collapsed')
     buttonNode.setAttribute('aria-expanded', 'false')
     collapseNode.classList.remove('show')
-    zvyrazniTlacitkoPokudJeNavodSkryty(buttonNode, true)
+    zvyrazniTlacitkoPokudJeObsahSkryty(buttonNode, true)
   } else {
     buttonNode.classList.remove('collapsed')
     buttonNode.setAttribute('aria-expanded', 'true')
     collapseNode.classList.add('show')
-    zvyrazniTlacitkoPokudJeNavodSkryty(buttonNode, false)
+    zvyrazniTlacitkoPokudJeObsahSkryty(buttonNode, false)
   }
 }
 
@@ -43,15 +43,17 @@ function zobrazNavodPodlePosledniVolby(buttonNode, collapseNode) {
  * @param {HTMLElement} buttonNode
  * @param {boolean} skryty
  */
-function zvyrazniTlacitkoPokudJeNavodSkryty(buttonNode, skryty) {
-  let title
+function zvyrazniTlacitkoPokudJeObsahSkryty(buttonNode, skryty) {
+  let novyTitle
   if (skryty) {
     buttonNode.classList.add('border', 'border-warning')
-    title = 'Zobazit návod'
+    novyTitle = buttonNode.dataset.titleProZobrazeni
   } else {
     buttonNode.classList.remove('border', 'border-warning')
-    title = 'Skrýt návod'
+    novyTitle = buttonNode.dataset.titleProSkryti
   }
-  const navodElement = buttonNode.parentElement
-  zmenTooltip(title, navodElement)
+  if (novyTitle) {
+    const navodElement = buttonNode.parentElement
+    zmenTooltip(novyTitle, navodElement)
+  }
 }

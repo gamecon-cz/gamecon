@@ -5,14 +5,12 @@ namespace Gamecon\Aktivita\OnlinePrezence;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\AktivitaPrezence;
 use Gamecon\Aktivita\RazitkoPosledniZmenyPrihlaseni;
-use Gamecon\Cas\DateTimeCz;
-use Gamecon\Pravo;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Component\Filesystem\Filesystem;
 
 class OnlinePrezenceHtml
 {
-    public static function nazevProAnchor(Aktivita $aktivita):string {
+    public static function nazevProAnchor(Aktivita $aktivita): string {
         return implode(' – ', array_filter([$aktivita->nazev(), $aktivita->orgJmena(), $aktivita->lokace()]));
     }
 
@@ -194,11 +192,16 @@ class OnlinePrezenceHtml
                 $this->cssZobrazitKdyz($uzavrena && $muzeMenitUcastnikyHned)
             );
 
-            foreach ($this->seradDleStavuPrihlaseni($aktivita->prihlaseni(), $aktivita) as $prihlasenyUzivatel) {
+            // případnou změnu je nutné promítnout i do online-prezence.js pridejEmailUcastnikaDoSeznamu()
+            $emaily = $this->emailyUcastniku($aktivita);
+            $template->assign('emailyHref', implode(',', $emaily));
+            $template->assign('emailyText', implode(', ', $emaily));
+
+            foreach ($this->seradDleStavuPrihlaseni($aktivita->prihlaseni(), $aktivita) as $ucastnik) {
                 $ucastnikHtml = $this->dejOnlinePrezenceUcastnikHtml()->sestavHmlUcastnikaAktivity(
-                    $prihlasenyUzivatel,
+                    $ucastnik,
                     $aktivita,
-                    $aktivita->stavPrihlaseni($prihlasenyUzivatel),
+                    $aktivita->stavPrihlaseni($ucastnik),
                     $muzeMenitUcastnikyHned
                 );
                 $template->assign('ucastnikHtml', $ucastnikHtml);
@@ -233,6 +236,19 @@ class OnlinePrezenceHtml
         $template->assign('posledniLogyUcastnikuAjaxKlic', OnlinePrezenceAjax::POSLEDNI_LOGY_UCASTNIKU_AJAX_KLIC);
 
         $template->parse('onlinePrezence.aktivity');
+    }
+
+    /**
+     * @param Aktivita $aktivita
+     * @return string[]
+     */
+    private function emailyUcastniku(Aktivita $aktivita): array {
+        return array_map(
+            static function (\Uzivatel $ucastnik) {
+                return trim((string)$ucastnik->mail());
+            },
+            $aktivita->prihlaseni()
+        );
     }
 
     /**
