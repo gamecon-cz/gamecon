@@ -34,11 +34,11 @@
         - [ ] větší prostor
       - [X] Covid test - manuálním ověření odkliknutím
       - [X] Potvrzení
+        - [X] skrýt pro 15+ návštěvníky
         - **Alternativně vyřešeno**
           - K přejmenování nedošlo kvůli neodstatku místa v headru *(došlo by k zobrazení na dva řádky a zabíral by tbytečně moc místa)*. že jde o potvrzení rodičů lze vyčíst v doprovodném textu.
             - **Původní zadání:** přejmenovat na Souhlas rodičů
-          - potvrzení je vždy viditelné pro zachování tvaru a vzheldu karty, dospělý účastník má nápis že potvrzení nepotřebuje
-            - **Původní zadání:** skrýt pro 15+ návštěvníky
+          ~~- potvrzení je vždy viditelné pro zachování tvaru a vzheldu karty, dospělý účastník má nápis že potvrzení nepotřebuje~~ Není moc relevantní. Není moc návštěníků 15+.
         - [X] manuální odkliknutí
     - [X] odebrat pole
       - [X] Status
@@ -67,7 +67,7 @@
       - [X] přejmenovat “Program účastníka” na “Program”
       - [X] přejmenovat “Filtrovaný program” na “Program účastníka”
       - [X] přejmenovat i po rozkliknutí daného odkazu nahoře vlevo na stránce /program-osobni a /program-uzivatele, pokud se to nepřejmenuje automaticky
-    - [ ] Výraznější větší text ?
+    - [X] Výraznější větší text
   - [X] karta ubytování
     - [X] Přesunout pole
       - [X] Pokoj

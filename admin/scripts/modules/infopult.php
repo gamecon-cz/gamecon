@@ -51,9 +51,9 @@ if ($uPracovni) {
         if (REG_GC) {
             $x->assign('prihlasBtnAttr', "");
         } else {
-            $x->parse('uvod.neprihlasen.nelze');
+            $x->parse('infopult.neprihlasen.nelze');
         }
-        $x->parse('uvod.neprihlasen');
+        $x->parse('infopult.neprihlasen');
     }
     /** @var \Uzivatel $up */
     $up = $uPracovni;
@@ -110,7 +110,7 @@ if ($uPracovni) {
 
 
     if ($up->finance()->stav() < 0 && !$up->gcPritomen()) {
-        $x->parse('uvod.upoMaterialy');
+        $x->parse('infopult.upoMaterialy');
     }
     if (!$up->gcPrihlasen()) {
     } elseif (!$up->gcPritomen()) {
@@ -120,7 +120,7 @@ if ($uPracovni) {
     } else {
     }
     if ($up->gcPrihlasen() && !$up->gcPritomen()) {
-        // $x->parse('uvod.gcOdhlas');
+        // $x->parse('infopult.gcOdhlas');
     }
     $r = dbOneLine('SELECT datum_narozeni, potvrzeni_zakonneho_zastupce FROM uzivatele_hodnoty WHERE id_uzivatele = ' . $uPracovni->id());
     $datumNarozeni = new DateTimeImmutable($r['datum_narozeni']);
@@ -130,14 +130,17 @@ if ($uPracovni) {
     $potrebujePotvrzeniKvuliVeku = potrebujePotvrzeni($datumNarozeni);
     $mameLetosniPotvrzeniKvuliVeku = $potvrzeniOd && $potvrzeniOd->format('y') === date('y');
 
-    if (!$potrebujePotvrzeniKvuliVeku) {
-        $x->assign("potvrzeniAttr", "checked disabled");
-        $x->assign("potvrzeniText", $ok . " nepotřebuje potvrzení od rodičů");
-    } else if ($mameLetosniPotvrzeniKvuliVeku) {
-        $x->assign("potvrzeniAttr", "checked value=\"\"");
-        $x->assign("potvrzeniText", $ok . " má potvrzení od rodičů");
+    if ($potrebujePotvrzeniKvuliVeku) {
+        if ($mameLetosniPotvrzeniKvuliVeku) {
+            $x->assign("potvrzeniAttr", "checked value=\"\"");
+            $x->assign("potvrzeniText", $ok . " má potvrzení od rodičů");
+        } else {
+            $x->assign("potvrzeniText", $err . " chybí potvrzení od rodičů!");
+        }
+        $x->parse('infopult.uzivatel.potvrzeni');
     } else {
-        $x->assign("potvrzeniText", $err . " chybí potvrzení od rodičů!");
+        // $x->assign("potvrzeniAttr", "checked disabled");
+        // $x->assign("potvrzeniText", $ok . " nepotřebuje potvrzení od rodičů");
     }
 
     if (VYZADOVANO_COVID_POTVRZENI) {
@@ -160,13 +163,13 @@ if ($uPracovni) {
                 $x->assign("covidPotvrzeniText", $warn . " neověřený doklad $datumNahraniPotvrzeniProtiCovid");
             }
         }
-        $x->parse('uvod.uzivatel.covidSekce');
+        $x->parse('infopult.uzivatel.covidSekce');
     }
 
     $x->assign("telefon", formatujTelCislo($up->telefon()));
 
     if ($up->gcPrihlasen()) {
-        $x->parse('uvod.uzivatel.ubytovani');
+        $x->parse('infopult.uzivatel.ubytovani');
     }
 
     if (GC_BEZI) {
@@ -184,18 +187,18 @@ if ($uPracovni) {
             $x->assign([
                 'zpravaProPotvrzeniZruseniPrace' => "Uživatel {$zpravaProPotvrzeniZruseniPrace}. Přesto ukončit práci s uživatelem?",
             ]);
-            $x->parse('uvod.potvrditZruseniPrace');
+            $x->parse('infopult.potvrditZruseniPrace');
         }
     }
 
     if ($u && $u->isSuperAdmin()) {
-        $x->parse('uvod.uzivatel.idFioPohybu');
+        $x->parse('infopult.uzivatel.idFioPohybu');
     }
 
-    $x->parse('uvod.uzivatel');
+    $x->parse('infopult.uzivatel');
 } else {
-    $x->parse('uvod.neUzivatel');
-    $x->parse('uvod.prodejAnonymni');
+    $x->parse('infopult.neUzivatel');
+    $x->parse('infopult.prodejAnonymni');
 }
 
 // načtení předmětů a form s rychloprodejem předmětů, fixme
@@ -220,11 +223,11 @@ $x->assign('predmety', $moznosti);
 
 // rychloregistrace
 if (!$uPracovni) { // nechceme zobrazovat rychloregistraci (zakladani uctu), kdyz mame vybraneho uzivatele pro praci
-    $x->parse('uvod.rychloregistrace');
+    $x->parse('infopult.rychloregistrace');
     if (REG_GC) {
-        $x->parse('uvod.rychloregistrace.prihlasitNaGc');
+        $x->parse('infopult.rychloregistrace.prihlasitNaGc');
     }
 }
 
-$x->parse('uvod');
-$x->out('uvod');
+$x->parse('infopult');
+$x->out('infopult');
