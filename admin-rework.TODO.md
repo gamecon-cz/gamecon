@@ -47,11 +47,11 @@
       - [X] Pokoj (přesunout do nového přehledu ubytování viz dále)
       - [X] Na pokoji (přesunout do nového přehledu ubytování viz dále)
       - [X] Ubytování (přesunout do nového přehledu ubytování viz dále)
-    - [ ] Nové pole
+    - [X] Nové pole
       - [X] Kontakt = telefonní číslo
         - [X] formát s mezerami "000 000 000"
         - [X] formátování s podporou předvolby
-      - [ ] Chybí osobní údaje (pokud) - domplnit -> proklik na uživatel
+      - [X] Chybí osobní údaje (pokud) - domplnit -> proklik na uživatel
     - [X] pořadí polí 
       - Stav účtu
       - Poznámka
@@ -150,6 +150,7 @@
   *(optional)* Potvrzení při provedení změny v poli bez uložení
   poznámka odděleně mimo přehled ať má více místa ?
   Dodefinovat chování upraveného nastavení pokojů
+  Co jsou povinné údaje pro infopult->Přehled->Údaje ? (implementováno v uzivatel chybejiciUdaje)
 
 # Bude součástí dalších PR
   - undo stavu pro finance (navrácení akce při ukliknutí - přihlásit, přijel, dát materiály, odjel)

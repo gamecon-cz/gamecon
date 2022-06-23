@@ -62,7 +62,7 @@
 
 
 
-<h1>Úvod</h1>
+<h1>Infopult</h1>
 
 <!-- begin:neUzivatel -->
 <div class="warning">Vyberte uživatele (pole vlevo)</div>
@@ -103,7 +103,11 @@
 
         <tr>
           <td>Údaje:</td>
-          <td style="color: gray;">{err} Chybí osobní údaje</td>
+          <td> 
+            <a {udajeChybiAttr}>
+              {udajeChybiText}
+            </a>
+          </td>
         </tr>
 
         <!-- begin:covidSekce -->

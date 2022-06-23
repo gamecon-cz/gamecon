@@ -414,6 +414,29 @@ SQL
         return $this->u['email1_uzivatele'];
     }
 
+    /**
+     * @return string[] povinné údaje které chybí
+     */
+    public function chybejiciUdaje() {
+        $pole_k_validaci = [
+            'login_uzivatele',
+            'jmeno_uzivatele',
+            'prijmeni_uzivatele',
+            'pohlavi',
+            'ulice_a_cp_uzivatele',
+            'mesto_uzivatele',
+            'psc_uzivatele',
+            'telefon_uzivatele',
+            'datum_narozeni',
+            'email1_uzivatele',
+        ];
+        $validator = function ($hodnota) {
+            return empty($this->u[$hodnota]);
+        };
+        $chybejici_udaje = array_filter($pole_k_validaci, $validator);
+        return $chybejici_udaje;
+    }
+
     public function maPravo($pravo) {
         return in_array($pravo, $this->prava());
     }
