@@ -251,7 +251,7 @@
             </span>
           </td>
           <td>
-            <select name="prodej[id_predmetu]" id="predmet" required>
+            <select name="prodej[id_predmetu]" id="predmet" style="width: 100%;" required>
               {predmety}
             </select>
           </td>
