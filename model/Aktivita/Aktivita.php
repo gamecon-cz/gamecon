@@ -2501,18 +2501,30 @@ SQL,
     }
 
     /**
-     * @param \DateTimeInterface $konciciDo
+     * @param \DateTimeInterface $konciciNejmeneDo
+     * @param \DateTimeInterface $konciciNejviceDo
+     * @param int $maximalneVypravecu
      * @return int
      */
-    public static function upozorniNaNeuzavreneKonciciDo(\DateTimeInterface $konciciDo): int {
+    public static function upozorniNaNeuzavreneKonciciOdDo(
+        \DateTime $konciciNejmeneDo,
+        \DateTime $konciciNejviceDo,
+        int       $maximalneVypravecu
+    ): int {
         $ids = dbOneArray(<<<SQL
-SELECT id_akce FROM akce_seznam
-WHERE akce_seznam.konec <= $0
-    AND stav NOT IN ($1)
-    AND rok = $2
+SELECT akce_seznam.id_akce
+FROM akce_seznam
+JOIN akce_organizatori
+    ON akce_seznam.id_akce = akce_organizatori.id_akce
+WHERE akce_seznam.konec BETWEEN $0 AND $1
+    AND akce_seznam.stav NOT IN ($2)
+    AND akce_seznam.rok = $2
+GROUP BY akce_seznam.id_akce
+HAVING COUNT(akce_organizatori.id_uzivatele) <= $maximalneVypravecu
 SQL,
             [
-                $konciciDo->format(DateTimeCz::FORMAT_DB),
+                $konciciNejmeneDo->format(DateTimeCz::FORMAT_DB),
+                $konciciNejviceDo->format(DateTimeCz::FORMAT_DB),
                 [\Stav::UZAVRENA, \Stav::SYSTEMOVA],
                 ROK,
             ]
