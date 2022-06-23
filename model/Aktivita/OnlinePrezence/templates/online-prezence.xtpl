@@ -316,7 +316,6 @@
           <div class="modal-body">
             Před uzavřením prosím zkontroluj, že u aktivity není uvedený žádný problém.
             Pokud někteří účastníci neprošli infopultem, zkus jim zavolat a přivolat je k infopultu.
-            Pokud se nedovoláš nebo zjistíš, že na GC nedojdou, odhlaš je z aktivity.
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Opravit prezenci</button>
