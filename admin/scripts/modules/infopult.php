@@ -85,6 +85,16 @@ if ($uPracovni) {
         'ubytovani' => spolubydliciTisk($spolubydlici),
     ]);
 
+    $chybiUdaje = count($uPracovni->chybejiciUdaje()) > 0;
+    $x->assign(
+        $chybiUdaje ? [
+            'udajeChybiAttr' => 'href="uzivatel"',
+            'udajeChybiText' => $err . ' Chybí osobní údaje',
+        ] : [
+            'udajeChybiText' => $ok . ' osobní údaje v pořádku',
+        ]
+    );
+
     if (get('pokoj')) {
         $x->assign('pokojVypis', get('pokoj'));
         if ($pokojVypis) {
