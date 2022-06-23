@@ -12,7 +12,6 @@ if (HTTPS_ONLY) {
 
 // nastaví uživatele $u a $uPracovni
 require __DIR__ . '/scripts/prihlaseni.php';
-
 /**
  * @var Uzivatel|void|null $u
  * @var Uzivatel|void|null $uPracovni
@@ -38,12 +37,9 @@ $podstranka = isset($req[1]) ? $req[1] : '';
 
 // zobrazení stránky
 if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
-    $chyba = chyba::vyzvedniChybu();
-    $xtpl->assign('chyba', $chyba ? '<div class="error">' . $chyba . '</div>' : '');
-    $xtpl->parse('all.prihlaseni');
-    $xtpl->parse('all');
-    $xtpl->out('all');
+    require __DIR__ . '/login.php';
     profilInfo();
+    return;
 } elseif (is_file(__DIR__ . '/scripts/zvlastni/' . $stranka . '.php')) {
     chdir(__DIR__ . '/scripts/zvlastni/');
     require($stranka . '.php');

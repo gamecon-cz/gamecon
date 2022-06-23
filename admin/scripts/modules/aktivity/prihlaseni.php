@@ -11,7 +11,7 @@
 
 use \Gamecon\Cas\DateTimeCz;
 
-$xtpl2 = new XTemplate('prihlaseni.xtpl');
+$xtpl2 = new XTemplate(__DIR__ . '/prihlaseni.xtpl');
 
 $o = dbQuery('SELECT id_typu, typ_1pmn FROM akce_typy ORDER BY poradi, typ_1pmn');
 while ($r = mysqli_fetch_assoc($o)) {
@@ -25,12 +25,12 @@ if (!get('typ')) {
     return;
 }
 
-$odpoved = dbQuery('
+$odpoved = dbQuery(<<<SQL
   SELECT a.nazev_akce as nazevAktivity, a.id_akce as id, (a.kapacita+a.kapacita_m+a.kapacita_f) as kapacita, a.zacatek, a.konec, a.team_nazev,
     u.login_uzivatele as nick, u.jmeno_uzivatele as jmeno, u.id_uzivatele,
     u.prijmeni_uzivatele as prijmeni, u.email1_uzivatele as mail, u.telefon_uzivatele as telefon,
     GROUP_CONCAT(org.login_uzivatele) AS orgove,
-    CONCAT(l.nazev,", ",l.dvere) as mistnost,
+    CONCAT(l.nazev,', ',l.dvere) as mistnost,
     MAX(log.kdy) datum_prihlaseni
   FROM akce_seznam a
   LEFT JOIN akce_prihlaseni p ON (a.id_akce=p.id_akce)
@@ -44,7 +44,9 @@ $odpoved = dbQuery('
   AND a.typ = $2
   GROUP BY u.id_uzivatele, a.id_akce
   ORDER BY a.zacatek, a.nazev_akce, a.id_akce, p.id_uzivatele
-', [ROK, get('typ')]);
+SQL,
+    [ROK, get('typ')]
+);
 
 $totoPrihlaseni = mysqli_fetch_assoc($odpoved);
 $dalsiPrihlaseni = mysqli_fetch_assoc($odpoved);
