@@ -51,7 +51,7 @@
 
     <!-- begin:zadnaAktivita -->
     <div class="d-flex justify-content-center align-items-center" style="min-height: 99vh">
-      <div class="text-na-celou-sirku">
+      <div class="fs-1">
         Nevedeš žádné aktivity 😞
         <div>
           <a class="btn btn-warning" href="{urlZpet}" style="width: 100%">↶ {textZpet}</a>
