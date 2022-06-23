@@ -7,8 +7,8 @@
 </style>
 
 
-<div class="clearfix">
-  <div class="children-float-left children-margin-right-8 clearfix" style="float: left;">
+<div class="header-buttons--container-main">
+  <div class="header-buttons--container header-buttons--container-left">
     <form method="post">
       <input type="submit" name="gcPrihlas" value="Přihlásit" {prihlasBtnAttr}>
     </form>
@@ -50,14 +50,16 @@
     </form>
   </div>
 
-  <form method="post" style="float: right;">
-    <input type="submit" name="gcOdhlas" value="Odhlásit z GC" {odhlasBtnAttr}>
-    <script>
-      $('[name="gcOdhlas"]').closest('form').submit(function () {
-        return confirm('Trvale odhlásit uživatele z GameConu a smazat všechny jeho aktivity a nakoupené věci?')
-      })
-    </script>
-  </form>
+  <div class="header-buttons--container header-buttons--container-right">
+    <form method="post" >
+      <input class="danger" type="submit" name="gcOdhlas" value="Odhlásit z GC" {odhlasBtnAttr}>
+      <script>
+        $('[name="gcOdhlas"]').closest('form').submit(function () {
+          return confirm('Trvale odhlásit uživatele z GameConu a smazat všechny jeho aktivity a nakoupené věci?')
+        })
+      </script>
+    </form>
+  </div>
 </div>
 
 
@@ -88,7 +90,13 @@
 
         <tr>
           <td>Poznámka:</td>
-          <td><input type="text" name="udaje[poznamka]" value="{poznamka}" style="margin-left: -3px;"></td>
+          <td>
+            <textarea 
+              rows="3"
+              type="area" name="udaje[poznamka]"
+              style="margin-left: -3px; width:100%; resize: vertical;"
+            >{poznamka}</textarea>
+          </td>
         </tr>
 
         <!-- begin:potvrzeni -->
