@@ -13,7 +13,7 @@
   <link rel="shortcut icon" href="files/favicon.ico"/>
 
   <link rel="stylesheet" href="files/bootstrap.5.1.3.css"/>
-  <link rel="stylesheet" href="files/font-awesome-5-15-4/all.min.css"/>
+  <link rel="stylesheet" href="files/design/font-awesome-6.1.1/css/all.min.css"/>
   <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-v1.12.1.min.css"/>
   <!-- begin:stylesheet -->
   <link rel="stylesheet" href="{url}?version={version}"/>
@@ -215,12 +215,12 @@
           <table class="zvyraznovana ucastnici" style="width: 100%" id="ucastniciAktivity{idAktivity}">
             <thead>
             <tr class="col-md col-sm-6 no-gutters">
-              <th style="text-align: center">
+              <th class="text-center">
                 <span class="hinted" data-bs-toggle="tooltip" data-bs-placement="top" title="Je vůbec na Gameconu?">
                   <i class="fas fa-check-circle"></i>
                 </span>
               </th>
-              <th style="text-align: center">
+              <th class="text-center">
                 <span class="hinted" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true"
                       title="
                       <div class='text-start'>
@@ -236,6 +236,11 @@
                         </div>
                         <hr>
                         <div>👀 Sledující. Pokud sháníš náhradníka, tenhle bude mít zájem.</div>
+                        <hr>
+                        <div>
+                          <i class='mladsi-osmnacti-let fa-solid fa-baby'></i>
+                          Mladší 18ti let
+                        </div>
                       </div>
                 ">
                  <i class="fas fa-user-tie"></i>

@@ -106,3 +106,7 @@ input[disabled]::placeholder {
   color: darkgray;
   opacity: 0.6
 }
+
+.mladsi-osmnacti-let {
+  color: darkorange;
+}

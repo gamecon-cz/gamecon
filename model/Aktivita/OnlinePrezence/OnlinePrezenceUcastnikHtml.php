@@ -48,6 +48,10 @@ class OnlinePrezenceUcastnikHtml
             $ucastnikTemplate->parse('ucastnik.prihlasenNaPosledniChvili');
         }
 
+        if ($ucastnik->vekKDatu($aktivita->zacatek()) < 18) {
+            $ucastnikTemplate->parse('ucastnik.mladsiOsmnactiLet');
+        }
+
         $ucastnikTemplate->assign('cssTridaDisplayNahradnik', StavPrihlaseni::dorazilJakoNahradnik($stavPrihlaseni) ? '' : 'display-none');
         $ucastnikTemplate->assign('cssTridaDisplaySledujici', StavPrihlaseni::prihlasenJakoSledujici($stavPrihlaseni) ? '' : 'display-none');
 
