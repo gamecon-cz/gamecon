@@ -4,7 +4,9 @@
     data-id-aktivity="{a.id}"
     data-cas-posledni-zmeny-prihlaseni="{casPosledniZmenyPrihlaseni}"
     data-stav-prihlaseni="{stavPrihlaseni}"
-    data-id-posledniho-logu="{idPoslednihoLogu}">
+    data-id-posledniho-logu="{idPoslednihoLogu}"
+    data-email="{email}"
+>
   <td style="text-align: center">
     <!-- begin:pritomen -->
     <span data-bs-toggle="tooltip" data-bs-html="true"
