@@ -5,14 +5,6 @@
   display: block;
 }
 
-.children-float-left > * {
-  float: left;
-}
-
-.children-margin-right-8 > * {
-  margin-right: 8px;
-}
-
 .aBox .submit-btn {
   float: right; 
   margin-top: 4px;
@@ -486,6 +478,10 @@ input[type="submit"], input[type="button"], .tlacitko, .adm_submenu_item a {
   padding: 2px 8px;
 }
 
+input[type="submit"]:active, input[type="button"]:active, .tlacitko:active, .adm_submenu_item a:active {
+  background: lightgray linear-gradient(to bottom, #d8d8d8 0%, #fafafa 100%);
+}
+
 .tlacitko.tlacitko_isDanger {
   background: red linear-gradient(to top, #880000 0%, #ff8888 100%);
   padding: 2px 8px;
@@ -512,6 +508,42 @@ input[type="submit"]:disabled {
   background-color: lightgray;
   color: gray;
   cursor: not-allowed
+}
+
+.danger, input.danger {
+  background-color: red;
+  background-image: linear-gradient(to top, #880000 0%, #ff8888 100%);
+  color: whitesmoke;
+  transition: background-image 3s ease-in-out;
+}
+
+@keyframes animated-border {
+  0% {
+    border-color: rgba(255, 0, 0, 0);
+  }
+
+  50% {
+    border-color: red;
+  }
+
+  100% {
+    border-color: rgba(255, 0, 0, 0);
+  }
+
+}
+
+.danger:hover:not([disabled]), input.danger:hover:not([disabled]) {
+  /* border-color: red; */
+  animation: animated-border 1s infinite ease-in-out;
+}
+
+.danger:active:not([disabled]), input.danger:active:not([disabled]) {
+  background-image: linear-gradient(to bottom, #880000 0%, #ff8888 100%);
+}
+
+.danger:disabled, input.danger:disabled {
+  background: red linear-gradient(to top, #4d0000 0%, #902323 100%);
+  color: gray;
 }
 
 .admin-page-controlls {
@@ -931,6 +963,90 @@ select:focus {
 }
 
 
+.header-buttons--container-main {
+
+}
+
+
+.header-buttons--container-left {
+  float: left;
+}
+
+.header-buttons--container-left > * {
+  float: left;
+}
+
+.header-buttons--container-right {
+  float: right;
+}
+
+.header-buttons--container-main::after {
+  content: "";
+  clear: both;
+  display: block;
+}
+
+.header-buttons--container-left::after {
+  content: "";
+  clear: both;
+  display: block;
+}
+
+.header-buttons--container-right::after {
+  content: "";
+  clear: both;
+  display: block;
+}
+
+/* Extra small devices (phones, 600px and down) */
+@media only screen and (max-width: 600px) {
+  .header-buttons--container {
+    width: 100%;
+  }
+
+  .header-buttons--container > * {
+    width: 100%;
+  }
+
+  .header-buttons--container > * > * {
+    width: 100%;
+  }
+
+  .header-buttons--container > * input {
+    width: 100%;
+  }
+
+  .header-buttons--container > * {
+    margin-bottom: 8px;
+  }
+}
+
+/* Small devices (portrait tablets and large phones, 600px and up) */
+@media only screen and (min-width: 600px) {
+  .header-buttons--container > * {
+    margin-right: 8px;
+  }
+}
+
+/* Medium devices (landscape tablets, 768px and up) */
+@media only screen and (min-width: 768px) {
+
+}
+
+/* Large devices (laptops/desktops, 992px and up) */
+@media only screen and (min-width: 992px) {
+
+}
+
+/* Extra large devices (large laptops and desktops, 1200px and up) */
+@media only screen and (min-width: 1200px) {
+
+}
+
+
+
+
+
 .infopult-grid--container {
   display: grid;
   gap: 16px;
@@ -973,7 +1089,9 @@ select:focus {
 
 /* Small devices (portrait tablets and large phones, 600px and up) */
 @media only screen and (min-width: 600px) {
-
+  .infopult-grid--item {
+    width: fit-content;
+  }
 }
 
 /* Medium devices (landscape tablets, 768px and up) */
@@ -984,11 +1102,11 @@ select:focus {
 /* Large devices (laptops/desktops, 992px and up) */
 @media only screen and (min-width: 992px) {
   .infopult-grid--container {
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-areas: 
-    "přehled ubytování ubytování"
-    "platba pokoje prodej"
-    ;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-areas: 
+      "přehled ubytování ubytování"
+      "platba pokoje prodej"
+      ;
   }
 }
 

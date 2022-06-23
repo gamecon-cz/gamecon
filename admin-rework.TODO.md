@@ -18,20 +18,18 @@
     - [X] Odjel z GC
     - [X] tlačítko Odhlásit z GC
 
-
     - jiné PR, komplikovaná logika
     <s>
       - *(optional)* Reversovatelné akce z židle "finance"
     </s>
     - [X] Řešení komunikace aktuálního stavu a stavů tlačítek s uživatelem *(klikatelné, kliknuté, nekliklatelné)*
-  - [ ] /Infopult default pro “Infopult” židli
-  - [ ] Karta přehled
+  - [X] Karta přehled
     - [X] tlačítko uložit pro editace na přehledu
-    - [ ] úpravy pole
+    - [X] úpravy pole
       - [X] Stav účtu červeně záporná hodnota
-      - [ ] Poznámka - bude editovatelné
+      - [X] Poznámka - bude editovatelné
         - [X] přidat
-        - [ ] větší prostor
+        - [X] větší prostor
       - [X] Covid test - manuálním ověření odkliknutím
       - [X] Potvrzení
         - [X] skrýt pro 15+ návštěvníky
@@ -83,6 +81,7 @@
         - [ ] Nezobrazovat ceny, ale pouze počet. Tj. zobrazit: kostky, trička, placky, veškerý další merch
   - [X] Prodej předmětů
     - *Nezměněno, bude součástí jiného PR*
+  - [ ] /Infopult default pro “Infopult” židli
   - [ ] rozmístění karet / Stylování (grid)
   - [ ] odstranit nevyužitou logiku
   - [X] odebrat id uživatele odevšad
