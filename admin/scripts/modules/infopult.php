@@ -27,10 +27,12 @@ include __DIR__ . '/_infopult_ovladac.php';
 
 $x = new XTemplate('infopult.xtpl');
 xtemplateAssignZakladniPromenne($x, $uPracovni);
-$x->assign('prihlasBtnAttr', "disabled");
-$x->assign('datMaterialyBtnAttr', "disabled");
-$x->assign('gcOdjedBtnAttr', "disabled");
-$x->assign('odhlasBtnAttr', "disabled");
+$x->assign([
+    'prihlasBtnAttr' => "disabled",
+    'datMaterialyBtnAttr' => "disabled",
+    'gcOdjedBtnAttr' => "disabled",
+    'odhlasBtnAttr' => "disabled",
+]);
 
 // ubytovani
 $pokojVypis = Pokoj::zCisla(get('pokoj'));
@@ -120,7 +122,7 @@ if ($uPracovni) {
     } else {
     }
     if ($up->gcPrihlasen() && !$up->gcPritomen()) {
-        // $x->parse('infopult.gcOdhlas');
+        $x->assign('odhlasBtnAttr', '');
     }
     $r = dbOneLine('SELECT datum_narozeni, potvrzeni_zakonneho_zastupce FROM uzivatele_hodnoty WHERE id_uzivatele = ' . $uPracovni->id());
     $datumNarozeni = new DateTimeImmutable($r['datum_narozeni']);

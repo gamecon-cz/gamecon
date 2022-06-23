@@ -150,6 +150,7 @@
   poznámka odděleně mimo přehled ať má více místa ?
   Dodefinovat chování upraveného nastavení pokojů
   Co jsou povinné údaje pro infopult->Přehled->Údaje ? (implementováno v uzivatel chybejiciUdaje)
+  Odhlásit z GC komunikovat proč nemůžu provést
 
 # Bude součástí dalších PR
   - undo stavu pro finance (navrácení akce při ukliknutí - přihlásit, přijel, dát materiály, odjel)
