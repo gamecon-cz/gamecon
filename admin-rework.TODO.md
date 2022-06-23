@@ -85,7 +85,6 @@
     - *Nezměněno, bude součástí jiného PR*
   - [ ] rozmístění karet / Stylování (grid)
   - [ ] odstranit nevyužitou logiku
-  - [ ] Ikonka tabu infopultu
   - [X] odebrat id uživatele odevšad
   - [ ] ubytování a nastavení 
   - [ ] Opravit anonymní prodej
@@ -121,6 +120,7 @@
     - [ ] hláška není vybraný uživatel
     - [ ] skrýt co není relevantní bez uživatele
   - [ ] text Objednávání ubytování online bylo zastaveno, změny jsou možné na místě.
+  - [ ] odstranit nevyužitou logiku
 
 
 # Prodej předmětů
@@ -149,6 +149,7 @@
   Infopult - přehled - poznámka: více řádků ? udělat jako text area?
   *(optional)* Potvrzení při provedení změny v poli bez uložení
   poznámka odděleně mimo přehled ať má více místa ?
+  Dodefinovat chování upraveného nastavení pokojů
 
 # Bude součástí dalších PR
   - undo stavu pro finance (navrácení akce při ukliknutí - přihlásit, přijel, dát materiály, odjel)
