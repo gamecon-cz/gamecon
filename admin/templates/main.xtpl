@@ -61,7 +61,6 @@
       <!-- end:submenu -->
       <!-- begin: zakazano -->{FILE "templates/zakazano.xtpl"}<!-- end: zakazano -->
       <!-- begin: nenalezeno -->{FILE "templates/404.xtpl"}<!-- end: nenalezeno -->
-      <!-- begin: prihlaseni -->{FILE "templates/prihlaseni.xtpl"}<!-- end: prihlaseni -->
       {chyba}
       {obsahRetezec}
     </div>
