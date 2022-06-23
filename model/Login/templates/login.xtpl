@@ -40,7 +40,7 @@
           <label for="login" class="form-label">Jméno:</label>
           <input class="form-control" type="text" name="loginNAdm" id="login" autofocus required>
           <div class="invalid-feedback">
-            Vyplň prosím přihlašovací jméno (email)
+            Vyplň prosím přihlašovací jméno
           </div>
         </div>
 
@@ -48,7 +48,7 @@
           <label for="heslo" class="form-label">Heslo:</label>
           <input class="form-control" type="password" name="hesloNAdm" id="heslo" required>
           <div class="invalid-feedback">
-            Vyplň prosím své heslo
+            Vyplň prosím heslo
           </div>
         </div>
 
