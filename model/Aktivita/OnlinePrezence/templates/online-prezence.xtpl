@@ -84,7 +84,10 @@
                     data-bs-toggle="collapse"
                     data-bs-target="#jakNaOnlinePrezenci"
                     aria-expanded="true"
-                    aria-controls="jakNaOnlinePrezenci">
+                    aria-controls="jakNaOnlinePrezenci"
+                    data-title-pro-zobrazeni="Zobazit návod"
+                    data-title-pro-skryti="Skrýt návod"
+            >
                 📖
               </button>
             </span>
@@ -198,6 +201,12 @@
           <span class="col-xl-2 col-md-4 col-sm-12">
             <a style="width: 100%" href="{urlZpet}" class="btn btn-warning">↶ {textZpet}</a>
           </span>
+        </div>
+
+        <div id="emaily-{idAktivity}" style="padding: 0.5em 0" class="row">
+          <div class="col-xl col-md col-sm text-sm-center text-md-start align-self-center">
+            <a href="mailto:?bcc={emailyHref}">{emailyText}</a>
+          </div>
         </div>
 
         <!-- begin:form -->
