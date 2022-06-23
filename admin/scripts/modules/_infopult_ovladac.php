@@ -164,15 +164,19 @@ if (post('pridelitPokoj') && $uPracovni) {
   $pokojPost = post('pokoj');
   Pokoj::ubytujNaCislo($uPracovni, $pokojPost);
   oznameni('Pokoj přidělen', false);
-  if ($_SERVER['HTTP_REFERER']) {
-      parse_str($_SERVER['QUERY_STRING'], $query_string);
-      $query_string['pokoj'] = $pokojPost;
-      unset($query_string['req']);
-      $query_string = http_build_query($query_string);
-      $targetAddress = explode("?", $_SERVER['HTTP_REFERER'])[0];
-      header('Location: ' . $targetAddress . "?" . $query_string, true, 303);
-  } else
-      back();
+  try {
+      if ($_SERVER['HTTP_REFERER']) {
+          parse_str($_SERVER['QUERY_STRING'], $query_string);
+          $query_string['pokoj'] = $pokojPost;
+          unset($query_string['req']);
+          $query_string = http_build_query($query_string);
+          $targetAddress = explode("?", $_SERVER['HTTP_REFERER'])[0];
+          header('Location: ' . $targetAddress . "?" . $query_string, true, 303);
+        } else
+        back();
+    } catch(Error $e) {
+        back();
+    }
 }
 
 
