@@ -195,7 +195,7 @@
             </span>
           </span>
 
-          <span class="col-xl-2 col-md-4 col-sm-12">
+          <span class="col-xl-2 col-md-4 col-sm-12 align-self-center">
             <a style="width: 100%" href="{urlZpet}" class="btn btn-warning">↶ {textZpet}</a>
           </span>
         </div>
