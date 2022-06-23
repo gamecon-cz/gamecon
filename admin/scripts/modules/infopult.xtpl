@@ -1,4 +1,4 @@
-<!-- begin:uvod -->
+<!-- begin:infopult -->
 
 <style>
   .shopUbytovani_prvniSloupec, .shopUbytovani_sloupec { float: left; width: 65px; }
@@ -91,6 +91,7 @@
           <td><input type="text" name="udaje[poznamka]" value="{poznamka}" style="margin-left: -3px;"></td>
         </tr>
 
+        <!-- begin:potvrzeni -->
         <tr>
           <td>Potvrzení</td>
           <td>
@@ -100,6 +101,7 @@
             </input>
           </td>
         </tr>
+        <!-- end:potvrzeni -->
 
         <tr>
           <td>Údaje:</td>
@@ -331,4 +333,4 @@
 <!-- end:potvrdZruseniPrace -->
 
 
-<!-- end:uvod -->
+<!-- end:infopult -->
