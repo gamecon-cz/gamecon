@@ -1,0 +1,3 @@
+.form-control.is-invalid, .was-validated .form-control:invalid {
+  padding-right: 0;
+}
