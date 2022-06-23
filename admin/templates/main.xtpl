@@ -38,39 +38,34 @@
   <script type="text/javascript" src="files/keep-scroll-on-reload-1.1.js"></script>
 </head>
 <body>
-<div class="obal">
-  <div class="sloupL">
-    <div class="prvniBlok">
-      {FILE "templates/uzivatel.xtpl"}
+  <div class="obal">
+    <div class="sloupL">
+      <div class="prvniBlok">
+        {FILE "templates/uzivatel.xtpl"}
+      </div>
+      {FILE "templates/menu.xtpl"}
+      {FILE "templates/operator.xtpl"}
+      {FILE "templates/mobmenu.xtpl"}
     </div>
-    {FILE "templates/menu.xtpl"}
-    {FILE "templates/operator.xtpl"}
-    {FILE "templates/mobmenu.xtpl"}
-  </div>
-  <div class="sloupR">
-    <div class="mobstin"></div>
-    <div class="main">
-      <!-- begin:submenu -->
-      <ul id="submenu" class="submenu-selected-{stranka}">
-        <li>
-          <ul class="adm_submenu_group"><!-- begin:polozka -->
-            {break}
-            <li class="adm_submenu_item adm_submenu_item_ord_{order} adm_submenu_item_grp_{group}">
-              <a href="{url}" {add_attributes}>{nazev}</a>
-            </li>
-            <!-- end:polozka --></ul>
-        </li>
-      </ul>
-      <!-- end:submenu -->
-      <!-- begin: zakazano -->{FILE "templates/zakazano.xtpl"}<!-- end: zakazano -->
-      <!-- begin: nenalezeno -->{FILE "templates/404.xtpl"}<!-- end: nenalezeno -->
-      <!-- begin: prihlaseni -->{FILE "templates/prihlaseni.xtpl"}<!-- end: prihlaseni -->
-      {chyba}
-      {obsahRetezec}
+    <div class="sloupR">
+      <div class="mobstin"></div>
+      <div class="main">
+        <!-- begin:submenu -->
+        <ul id="submenu" class="submenu-selected-{stranka}">
+          <li><ul class="adm_submenu_group"><!-- begin:polozka -->
+          {break}
+          <li class="adm_submenu_item adm_submenu_item_ord_{order} adm_submenu_item_grp_{group}"><a href="{url}" {add_attributes}>{nazev}</a></li>
+          <!-- end:polozka --></ul></li>
+        </ul>
+        <!-- end:submenu -->
+        <!-- begin: zakazano -->{FILE "templates/zakazano.xtpl"}<!-- end: zakazano -->
+        <!-- begin: nenalezeno -->{FILE "templates/404.xtpl"}<!-- end: nenalezeno -->
+        {chyba}
+        {obsahRetezec}
+      </div>
+      {FILE "templates/paticka.xtpl"}
     </div>
-    {FILE "templates/paticka.xtpl"}
   </div>
-</div>
 </body>
 </html>
 <!-- end: all -->
