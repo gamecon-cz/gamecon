@@ -217,27 +217,27 @@
         event.preventDefault()
         $(this).val('')
 
-        // skrytí výchozí oklivé hlášky
-        $('.ui-helper-hidden-accessible').hide()
+        // skrytí výchozí ošklivé hlášky
+        $('.ui-helper-hidden-accessible').addClass('display-none')
       })
 
       omnibox.on('autocompleteresponse', function (event, ui) {
         const idAktivity = this.dataset.idAktivity
-        $(`#omniboxHledam${idAktivity}`).hide()
+        $(`#omniboxHledam${idAktivity}`).addClass('display-none')
         if (!ui || ui.content === undefined || ui.content.length === 0) {
-          $(`#omniboxNicNenalezeno${idAktivity}`).show()
+          $(`#omniboxNicNenalezeno${idAktivity}`).removeClass('display-none').show()
         } else {
-          $(`#omniboxNicNenalezeno${idAktivity}`).hide()
+          $(`#omniboxNicNenalezeno${idAktivity}`).addClass('display-none')
         }
       })
 
       omnibox.on('input', function () {
         const idAktivity = this.dataset.idAktivity
-        $(`#omniboxNicNenalezeno${idAktivity}`).hide()
+        $(`#omniboxNicNenalezeno${idAktivity}`).addClass('display-none')
         const minLength = this.dataset.omniboxMinLength
         const length = this.value.length
         if (minLength <= length) {
-          $(`#omniboxHledam${idAktivity}`).show()
+          $(`#omniboxHledam${idAktivity}`).removeClass('display-none').show()
         }
       })
 
@@ -276,7 +276,7 @@
     function zablokovatAktivituProEditaciSOdpoctem(aktivitaNode) {
       zablokovatEditaciAktivity(aktivitaNode.dataset.id)
       const $aktivitaNode = $(aktivitaNode)
-      $aktivitaNode.find('.text-ceka').show()
+      $aktivitaNode.find('.text-ceka').removeClass('display-none').show()
       spustitOdpocet(aktivitaNode)
     }
 
@@ -343,9 +343,9 @@
     function odblokovatAktivituProEditaci(idAktivity) {
       const $aktivitaNode = $(`#aktivita-${idAktivity}`)
       $aktivitaNode.find('input').prop('disabled', false)
-      $aktivitaNode.find('.text-ceka').hide()
-      $aktivitaNode.find(`#uz-needitovatelna-${idAktivity}`).hide()
-      $aktivitaNode.find('.tlacitko-uzavrit-aktivitu').show()
+      $aktivitaNode.find('.text-ceka').addClass('display-none')
+      $aktivitaNode.find(`#uz-needitovatelna-${idAktivity}`).addClass('display-none')
+      $aktivitaNode.find('.tlacitko-uzavrit-aktivitu').removeClass('display-none').show()
     }
 
     /**
@@ -433,7 +433,7 @@
       if (konecZaSekund > 0) {
         return false
       }
-      $textSkoncilaNode.show()
+      $textSkoncilaNode.removeClass('display-none').show()
       return true
     }
   })
@@ -510,11 +510,11 @@ const akceAktivity = new class AkceAktivity {
   zablokovatEditaciAktivity(idAktivity, vcetneTlacitkaNaUzavreni = true) {
     this.zablokovatInputyAktivity(idAktivity)
     const $aktivitaNode = $(`#aktivita-${idAktivity}`)
-    $aktivitaNode.find('.skryt-pokud-aktivitu-nelze-editovat').hide()
+    $aktivitaNode.find('.skryt-pokud-aktivitu-nelze-editovat').addClass('display-none')
     if (vcetneTlacitkaNaUzavreni) {
-      $aktivitaNode.find('.tlacitko-uzavrit-aktivitu').hide()
+      $aktivitaNode.find('.tlacitko-uzavrit-aktivitu').addClass('display-none')
     } else {
-      $aktivitaNode.find(`#uz-needitovatelna-${idAktivity}`).show()
+      $aktivitaNode.find(`#uz-needitovatelna-${idAktivity}`).removeClass('display-none').show()
     }
   }
 
@@ -532,7 +532,7 @@ const akceAktivity = new class AkceAktivity {
    * @param idAktivity
    */
   zobrazitVarovaniZeAktivitaJeZamcena(idAktivity) {
-    $(`#pozor-zamcena-${idAktivity}`).show()
+    $(`#pozor-zamcena-${idAktivity}`).removeClass('display-none').show()
   }
 
   /**
