@@ -1,3 +1,3 @@
-.form-control.is-invalid, .was-validated .form-control:invalid {
-  padding-right: 0;
+input[type=text].form-control, input[type=password].form-control {
+  padding-right: calc(1.5em + .75rem);
 }
