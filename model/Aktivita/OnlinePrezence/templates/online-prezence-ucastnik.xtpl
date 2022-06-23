@@ -29,6 +29,13 @@
           ⏰
     </span>
     <!-- end: prihlasenNaPosledniChvili -->
+    <!-- begin: mladsiOsmnactiLet -->
+    <span class="na-posledni-chvili" id="ucastnik-{u.id}-mladsi-osmnacti-let-{a.id}"
+          data-bs-toggle="tooltip"
+          title="Účastníkovi je méně než 18 let.">
+          <i class='mladsi-osmnacti-let fa-solid fa-baby'></i>
+    </span>
+    <!-- end: mladsiOsmnactiLet -->
     <span class="nahradnik {cssTridaDisplayNahradnik}"
           id="ucastnik-{u.id}-je-nahradnik-na-aktivite-{a.id}"
           data-bs-toggle="tooltip"
