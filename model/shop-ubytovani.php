@@ -1,9 +1,117 @@
 <?php
 
 use Gamecon\Shop\Shop;
+use Gamecon\Shop\TypPredmetu;
 
 class ShopUbytovani
 {
+    public static function ulozUbytovaniUzivatele(string $pokoj, int $prvniNoc, int $posledniNoc, Uzivatel $ucastnik): int {
+        $zapsanoZmen = 0;
+        if ($pokoj === '') {
+            $mysqliResult = dbQuery(<<<SQL
+DELETE FROM ubytovani
+WHERE id_uzivatele = $0 AND rok = $1
+SQL,
+                [$ucastnik->id(), ROK]
+            );
+            return dbNumRows($mysqliResult);
+        }
+
+        $dny = range($prvniNoc, $posledniNoc);
+        foreach ($dny as $den) {
+            $mysqliResult = dbQuery(<<<SQL
+INSERT INTO ubytovani(id_uzivatele, den, pokoj, rok)
+    VALUES ($0, $1, $2, $3)
+    ON DUPLICATE KEY UPDATE pokoj = $2
+SQL,
+                [$ucastnik->id(), $den, $pokoj, ROK]
+            );
+            $zapsanoZmen += dbNumRows($mysqliResult);
+        }
+        $mysqliResult = dbQuery(<<<SQL
+DELETE FROM ubytovani
+WHERE id_uzivatele = $0 AND den NOT IN ($1) AND rok = $2
+SQL,
+            [$ucastnik->id(), $dny, ROK]
+        );
+        $zapsanoZmen += dbNumRows($mysqliResult);
+
+        return $zapsanoZmen;
+    }
+
+    public static function ulozSKymChceBytNaPokoji(string $ubytovanS, Uzivatel $ucastnik): int {
+        $mysqliResult = dbQueryS('UPDATE uzivatele_hodnoty SET ubytovan_s=$0 WHERE id_uzivatele=' . $ucastnik->id(), [trim($ubytovanS)]);
+        return dbNumRows($mysqliResult);
+    }
+
+    public static function smazLetosniNakupyUbytovaniUcastnika(Uzivatel $ucastnik): int {
+        $mysqliResult = dbQuery(<<<SQL
+DELETE nakupy.*
+FROM shop_nakupy AS nakupy
+    JOIN shop_predmety AS predmety USING(id_predmetu)
+WHERE nakupy.id_uzivatele=$0
+  AND predmety.typ=$1
+  AND nakupy.rok=$2
+SQL,
+            [$ucastnik->id(), TypPredmetu::UBYTOVANI, ROK]
+        );
+        return dbNumRows($mysqliResult);
+    }
+
+    /**
+     * @param int $idPredmetu ID předmětu "ubytování v určitý den"
+     * @param string[][][] $dny
+     * @param Uzivatel $ucastnik
+     * @return bool jestli si uživatel objednává ubytování přes kapacitu
+     */
+    public static function ubytovaniPresKapacitu(int $idPredmetu, array $dny, Uzivatel $ucastnik): bool {
+        // načtení předmětu
+        $predmet = null;
+        foreach ($dny as $den) {
+            foreach ($den as $moznyPredmet) {
+                if ($moznyPredmet['id_predmetu'] == $idPredmetu) {
+                    $predmet = $moznyPredmet;
+                    break;
+                }
+            }
+        }
+
+        $nemelObjednanoDrive = (int)$predmet['kusu_uzivatele'] <= 0;
+        $kapacitaVycerpana = $predmet['kusu_vyrobeno'] <= $predmet['kusu_prodano'];
+
+        return $kapacitaVycerpana && $nemelObjednanoDrive;
+    }
+
+    /**
+     * @param array|int[] $idPredmetuUbytovani
+     * @return int
+     * @throws Chyba
+     */
+    public static function ulozUbytovaniUcastnika(array $idsPredmetuUbytovani, Uzivatel $ucastnik): int {
+        // vložit jeho zaklikané věci - note: není zabezpečeno
+        $sqlValuesArray = [];
+        $rok = ROK;
+        $pocetZmen = 0;
+        foreach ($idsPredmetuUbytovani as $predmet) {
+            if (!$predmet) {
+                continue;
+            }
+            $predmet = (int)$predmet;
+            $sqlValuesArray[] = "({$ucastnik->id()}, $predmet, $rok, (SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu=$predmet) ,NOW())";
+            if (self::ubytovaniPresKapacitu($predmet, $ucastnik->dejShop()->ubytovani()->dny(), $ucastnik)) {
+                throw new Chyba('Vybrané ubytování je už bohužel zabrané. Vyber si prosím jiné.');
+            }
+        }
+        if (count($sqlValuesArray) > 0) {
+            $sqlValues = implode("\n", $sqlValuesArray);
+            $mysqliResult = dbQuery(<<<SQL
+INSERT INTO shop_nakupy(id_uzivatele,id_predmetu,rok,cena_nakupni,datum) VALUES $sqlValues
+SQL
+            );
+            $pocetZmen += dbNumRows($mysqliResult);
+        }
+        return $pocetZmen;
+    }
 
     private $dny;     // asoc. 2D pole [den][typ] => předmět
     private $typy;    // asoc. pole [typ] => předmět sloužící jako vzor daného typu
@@ -21,6 +129,13 @@ class ShopUbytovani
             }
             $this->dny[$p['ubytovani_den']][$nazev] = $p;
         }
+    }
+
+    /**
+     * @return string[][][]
+     */
+    public function dny(): array {
+        return $this->dny;
     }
 
     public function html() {
@@ -79,37 +194,23 @@ class ShopUbytovani
         }
     }
 
-    public function zpracuj() {
+    /**
+     * @return bool
+     * @throws Chyba
+     */
+    public function zpracuj(): bool {
         if (!isset($_POST[$this->pnDny])) {
             return false;
         }
 
         // smazat veškeré stávající ubytování uživatele
-        $deleteQuery = '
-    DELETE n.* FROM shop_nakupy n JOIN shop_predmety p USING(id_predmetu)
-    WHERE n.id_uzivatele=' . $this->u->id() . ' AND p.typ=2 AND n.rok=' . ROK;
-
-        dbQuery($deleteQuery);
+        self::smazLetosniNakupyUbytovaniUcastnika($this->u);
 
         // vložit jeho zaklikané věci - note: není zabezpečeno
-        $q = 'INSERT INTO shop_nakupy(id_uzivatele,id_predmetu,rok,cena_nakupni,datum) VALUES ' . "\n";
-        foreach ($_POST[$this->pnDny] as $predmet) {
-            if (!$predmet) continue;
-            $q .= '(' . $this->u->id() . ',' . (int)$predmet . ',' . ROK . ',(SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu=' . (int)$predmet . '),NOW()),' . "\n";
-            if ($this->presKapacitu($predmet)) {
-                dbQuery($deleteQuery);
-                throw new Chyba('Vybrané ubytování je už bohužel zabrané. Vyber si prosím jiné.');
-            }
-        }
-        $q = substr($q, 0, -2);
-        if (substr($q, -1) == ')') //hack, test že se vložila aspoň jedna položka
-            dbQuery($q);
+        self::ulozUbytovaniUcastnika($_POST[$this->pnDny], $this->u);
 
         // uložit s kým chce být na pokoji
-        if ($_POST[$this->pnPokoj])
-            dbQueryS('UPDATE uzivatele_hodnoty SET ubytovan_s=$0 WHERE id_uzivatele=' . $this->u->id(), [$_POST[$this->pnPokoj]]);
-        else
-            dbQuery('UPDATE uzivatele_hodnoty SET ubytovan_s=NULL WHERE id_uzivatele=' . $this->u->id());
+        self::ulozSKymChceBytNaPokoji($_POST[$this->pnPokoj] ?? '', $this->u);
 
         return true;
     }

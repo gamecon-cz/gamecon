@@ -263,6 +263,10 @@ SQL
         $this->ubytovani = new ShopUbytovani($this->ubytovani, $this->u); // náhrada reprezentace polem za objekt
     }
 
+    public function ubytovani(): ShopUbytovani {
+        return $this->ubytovani;
+    }
+
     private static function denNazev($cislo) {
         return self::$dny[$cislo];
     }
