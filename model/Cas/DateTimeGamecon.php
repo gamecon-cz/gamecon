@@ -4,6 +4,19 @@ namespace Gamecon\Cas;
 
 class DateTimeGamecon extends DateTimeCz
 {
+
+    public static function denPodleIndexuOdZacatkuGameconu(int $indexDneKZacatkuGc, int $rok = ROK): string {
+        static $dnyPodleIndexu = [];
+        $indexDneVuciStrede = $indexDneKZacatkuGc - 1;
+        $englishOrCzechDayName = self::spocitejZacatekGameconu($rok)->modify("$indexDneVuciStrede days")->format('l');
+        return strtr($englishOrCzechDayName, static::$dny);
+    }
+
+    /**
+     * Čtvrtek s programem pro účastníky, nikoli středa se stavbou GC
+     * @param int $rok
+     * @return DateTimeGamecon
+     */
     public static function zacatekGameconu(int $rok = ROK): DateTimeGamecon {
         if ($rok === (int)ROK && defined('GC_BEZI_OD')) {
             return self::zDbFormatu(GC_BEZI_OD);

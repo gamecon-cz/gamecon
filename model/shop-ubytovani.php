@@ -5,7 +5,35 @@ use Gamecon\Shop\TypPredmetu;
 
 class ShopUbytovani
 {
-    public static function ulozUbytovaniUzivatele(string $pokoj, ?int $prvniNoc, ?int $posledniNoc, Uzivatel $ucastnik): int {
+
+    /**
+     * @param string[] $nazvyUbytovani
+     * @param int $rok
+     * @param bool $hodVyjimkuNeniLiPresne
+     * @return int[]
+     */
+    public static function dejIdsPredmetuUbytovani(array $nazvyUbytovani, int $rok = ROK, bool $hodVyjimkuNeniLiPresne = true): array {
+        $idsPredmetuUbytovani = array_map('intval', dbOneArray(<<<SQL
+SELECT id_predmetu
+FROM shop_predmety
+WHERE TRIM(nazev) IN ($0 COLLATE utf8_czech_ci)
+AND model_rok = $rok
+SQL,
+            [$nazvyUbytovani]
+        ));
+        if ($hodVyjimkuNeniLiPresne && count($nazvyUbytovani) !== count($idsPredmetuUbytovani)) {
+            throw new Chyba(sprintf(
+                "Nalezená IDs \"předmětů\" ubytování nesedí jedna ku jedné k hledaným názvům. %d názvů '%s', %d IDs %s",
+                count($nazvyUbytovani),
+                implode(',', $nazvyUbytovani),
+                count($idsPredmetuUbytovani),
+                implode(',', $idsPredmetuUbytovani),
+            ));
+        }
+        return $idsPredmetuUbytovani;
+    }
+
+    public static function ulozPokojUzivatele(string $pokoj, ?int $prvniNoc, ?int $posledniNoc, Uzivatel $ucastnik): int {
         if ($pokoj === '' || ($prvniNoc === null && $posledniNoc === null)) {
             $mysqliResult = dbQuery(<<<SQL
 DELETE FROM ubytovani
@@ -48,7 +76,7 @@ SQL,
         return dbNumRows($mysqliResult);
     }
 
-    public static function smazLetosniNakupyUbytovaniUcastnika(Uzivatel $ucastnik): int {
+    private static function smazLetosniNakupyUbytovaniUcastnika(Uzivatel $ucastnik, int $rok = ROK): int {
         $mysqliResult = dbQuery(<<<SQL
 DELETE nakupy.*
 FROM shop_nakupy AS nakupy
@@ -57,7 +85,7 @@ WHERE nakupy.id_uzivatele=$0
   AND predmety.typ=$1
   AND nakupy.rok=$2
 SQL,
-            [$ucastnik->id(), TypPredmetu::UBYTOVANI, ROK]
+            [$ucastnik->id(), TypPredmetu::UBYTOVANI, $rok]
         );
         return dbNumRows($mysqliResult);
     }
@@ -65,10 +93,9 @@ SQL,
     /**
      * @param int $idPredmetu ID předmětu "ubytování v určitý den"
      * @param string[][][] $dny
-     * @param Uzivatel $ucastnik
      * @return bool jestli si uživatel objednává ubytování přes kapacitu
      */
-    public static function ubytovaniPresKapacitu(int $idPredmetu, array $dny, Uzivatel $ucastnik): bool {
+    public static function ubytovaniPresKapacitu(int $idPredmetu, array $dny): bool {
         // načtení předmětu
         $predmet = null;
         foreach ($dny as $den) {
@@ -91,29 +118,90 @@ SQL,
      * @return int
      * @throws Chyba
      */
-    public static function ulozUbytovaniUcastnika(array $idsPredmetuUbytovani, Uzivatel $ucastnik): int {
+    public static function ulozObjednaneUbytovaniUcastnika(
+        array    $idsPredmetuUbytovani,
+        Uzivatel $ucastnik,
+        bool     $hlidatKapacituUbytovani = true,
+        int      $rok = ROK
+    ): int {
         // vložit jeho zaklikané věci - note: není zabezpečeno
         $sqlValuesArray = [];
-        $rok = ROK;
-        $pocetZmen = 0;
-        foreach ($idsPredmetuUbytovani as $predmet) {
-            if (!$predmet) {
+        $idsPredmetuUbytovaniInt = [];
+        foreach ($idsPredmetuUbytovani as $idPredmetuUbytovani) {
+            if (!$idPredmetuUbytovani) {
                 continue;
             }
-            $predmet = (int)$predmet;
-            $sqlValuesArray[] = "({$ucastnik->id()}, $predmet, $rok, (SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu=$predmet) ,NOW())";
-            if (self::ubytovaniPresKapacitu($predmet, $ucastnik->dejShop()->ubytovani()->dny(), $ucastnik)) {
+            $idPredmetuUbytovani = (int)$idPredmetuUbytovani;
+            $idsPredmetuUbytovaniInt[] = $idPredmetuUbytovani;
+            if ($hlidatKapacituUbytovani && self::ubytovaniPresKapacitu($idPredmetuUbytovani, $ucastnik->dejShop()->ubytovani()->dny())) {
                 throw new Chyba('Vybrané ubytování je už bohužel zabrané. Vyber si prosím jiné.');
             }
+            $sqlValuesArray[] = <<<SQL
+({$ucastnik->id()}, $idPredmetuUbytovani, $rok, (SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu=$idPredmetuUbytovani), NOW())
+SQL;
         }
-        if (count($sqlValuesArray) > 0) {
-            $sqlValues = implode("\n", $sqlValuesArray);
-            $mysqliResult = dbQuery(<<<SQL
-INSERT INTO shop_nakupy(id_uzivatele,id_predmetu,rok,cena_nakupni,datum) VALUES $sqlValues
+
+        if (count($sqlValuesArray) === 0) {
+            // nemáme co uložit, budeme pouze mazat
+            return self::smazLetosniNakupyUbytovaniUcastnika($ucastnik);
+        }
+
+        $pocetZmen = 0;
+        $sqlValues = implode(",\n", $sqlValuesArray);
+        $tmpTable = uniqid('shop_nakupy_tmp', true);
+        dbQuery(<<<SQL
+CREATE TEMPORARY TABLE `$tmpTable` LIKE shop_nakupy
 SQL
-            );
-            $pocetZmen += dbNumRows($mysqliResult);
-        }
+        );
+        // "předmět" je typ ubytování a den, například 'Trojlůžák neděle', a ten chceme dovolit jen jeden pro jednoho uživatele v jednom roce
+        dbQuery(<<<SQL
+CREATE UNIQUE INDEX UNIQ_id_uzivatele_id_predmetu_rok ON `$tmpTable`(id_uzivatele,id_predmetu,rok)
+SQL
+        );
+        dbQuery(<<<SQL
+INSERT INTO `$tmpTable`(id_uzivatele,id_predmetu,rok,cena_nakupni,datum) VALUES $sqlValues
+SQL
+        );
+
+        // smažeme nákupy ubytování, které nebudeme ukládat
+        $mysqliResult = dbQuery(<<<SQL
+DELETE shop_nakupy.*
+FROM shop_nakupy
+LEFT JOIN `$tmpTable` USING(id_uzivatele,id_predmetu,rok)
+WHERE `$tmpTable`.id_uzivatele IS NULL -- není to hodnota kterou chceme mít uloženu (kombinace LEFT JOIN a IS NULL)
+    AND shop_nakupy.id_uzivatele = {$ucastnik->id()}
+    AND shop_nakupy.rok = $rok
+    AND shop_nakupy.id_predmetu IN ($0)
+SQL,
+            [$idsPredmetuUbytovaniInt]
+        );
+        $pocetZmen += dbNumRows($mysqliResult);
+
+        // smažeme připravené hodnoty, které už máme
+        dbQuery(<<<SQL
+DELETE `$tmpTable`.*
+FROM `$tmpTable`
+LEFT JOIN shop_nakupy USING(id_uzivatele,id_predmetu,rok)
+WHERE shop_nakupy.id_uzivatele IS NOT NULL -- tuhle kombinaci "typ ubytování, uživatel a rok" už máme (kombinace LEFT JOIN a IS NOT NULL)
+    AND shop_nakupy.id_uzivatele = {$ucastnik->id()}
+    AND shop_nakupy.rok = $rok
+    AND shop_nakupy.id_predmetu IN ($0)
+SQL,
+            [$idsPredmetuUbytovaniInt]
+        );
+
+        // konečně vložíme pouze nové nebo změněné hodnoty
+        $mysqliResult = dbQuery(<<<SQL
+INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni, datum)
+SELECT tmp.id_uzivatele, tmp.id_predmetu, tmp.rok, tmp.cena_nakupni, tmp.datum
+FROM `$tmpTable` AS tmp
+SQL,
+        );
+        $pocetZmen += dbNumRows($mysqliResult);
+        dbQuery(<<<SQL
+DROP TEMPORARY TABLE IF EXISTS `$tmpTable`
+SQL
+        );
         return $pocetZmen;
     }
 
@@ -207,11 +295,8 @@ SQL
             return false;
         }
 
-        // smazat veškeré stávající ubytování uživatele
-        self::smazLetosniNakupyUbytovaniUcastnika($this->u);
-
         // vložit jeho zaklikané věci - note: není zabezpečeno
-        self::ulozUbytovaniUcastnika($_POST[$this->pnDny], $this->u);
+        self::ulozObjednaneUbytovaniUcastnika($_POST[$this->pnDny], $this->u);
 
         // uložit s kým chce být na pokoji
         self::ulozSKymChceBytNaPokoji($_POST[$this->pnPokoj] ?? '', $this->u);
