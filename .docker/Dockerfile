@@ -19,7 +19,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       libfreetype6-dev libjpeg62-turbo-dev \
       libgd-dev \
       libmagickwand-dev \
-      mysql-common
+      mysql-common \
+      libzip-dev
 
 FROM gamecon-server-step1 AS gamecon-tools-step2
 
@@ -39,7 +40,7 @@ RUN apt-get update && apt-get install -y \
 
 FROM gamecon-tools-step2 AS gamecon-php-step3
 
-RUN docker-php-ext-install mysqli pdo_mysql intl exif bcmath
+RUN docker-php-ext-install mysqli pdo_mysql intl exif bcmath zip xmlreader
 
 # images support, like imagecreatefromjpeg()
 RUN docker-php-ext-configure gd \
