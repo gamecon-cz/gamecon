@@ -2,6 +2,8 @@
 
 /** @var \Godric\DbMigrations\Migration $this */
 
+use Gamecon\Shop\Shop;
+
 $verejny = Shop::VEREJNY;
 $podpultovy = Shop::PODPULTOVY;
 $typTricko = Shop::TRICKO;
