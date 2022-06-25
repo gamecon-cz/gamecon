@@ -32,6 +32,7 @@ $systemoveNastaveni->zaznamyDoKonstant();
 
 /**
  * https://trello.com/c/EgjfpfLZ/898-p%C5%99evod-ro%C4%8Dn%C3%ADku-na-2022#comment-61e83d40a3670882293b65c8
+ * 2022
  * Registrace: 12. května (čtvrtek)
  * 1 vlna 19. května (čtvrtek)
  * 2 vlna 9. června (čtvrtek)
