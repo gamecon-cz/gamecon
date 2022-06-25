@@ -1,6 +1,8 @@
 <?php
 require __DIR__ . '/sdilene-hlavicky.php';
 
+use Gamecon\Shop\Shop;
+
 $o = dbQuery(<<<SQL
   SELECT uzivatele.id_uzivatele, login_uzivatele, jmeno_uzivatele, prijmeni_uzivatele, mesto_uzivatele, ulice_a_cp_uzivatele, op as cislo_op,
     GROUP_CONCAT(DISTINCT IF(
