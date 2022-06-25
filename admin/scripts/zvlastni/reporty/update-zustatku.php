@@ -26,7 +26,7 @@ SQL;
 
 ?>
 
-<h1>Sql update pro uzavření financí</h1>
+<h1>SQL update pro uzavření financí</h1>
 
 <p>Sled příkazů v okně po provedení na databázi aktualizuje zůstatky u jednotlivých uživatelů tak, jak reálně vypadají
     po skončení aktuálního gameconu (tj. ročník <?php echo ROK ?>).</p>
