@@ -4,6 +4,8 @@ use Gamecon\Shop\Shop;
 
 require __DIR__ . '/sdilene-hlavicky.php';
 
+use Gamecon\Shop\Shop;
+
 $typTricko = Shop::TRICKO;
 $typPredmet = Shop::PREDMET;
 $typJidlo = Shop::JIDLO;
