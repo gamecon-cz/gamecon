@@ -15,7 +15,11 @@ foreach (Uzivatel::vsichni() as $uzivatel) {
     $finance = $uzivatel->finance();
     if ($finance->zustatekZPredchozichRocniku() != $uzivatel->finance()->stav()) {
         $sqlNaPrepocetZustatku[] = <<<SQL
-UPDATE uzivatele_hodnoty SET zustatek={$uzivatel->finance()->stav()} /* původní zůstatek z předchozích ročníků {$finance->zustatekZPredchozichRocniku()} */, poznamka='' WHERE id_uzivatele={$uzivatel->id()};
+UPDATE uzivatele_hodnoty
+SET zustatek={$uzivatel->finance()->stav()} /* původní zůstatek z předchozích ročníků {$finance->zustatekZPredchozichRocniku()} */,
+    poznamka='',
+    ubytovan_s=''
+WHERE id_uzivatele={$uzivatel->id()};
 SQL;
     }
 }
