@@ -3,7 +3,7 @@
 if (!post('pokojeImport')) {
     $importTemplate = new XTemplate(__DIR__ . '/_ubytovani-a-dalsi-obcasne-infopultakoviny-import-ubytovani.xtpl');
     $importTemplate->assign('baseUrl', URL_ADMIN);
-    $importTemplate->assign('ubytovaniReport', basename(__DIR__ . '/../zvlastni/reporty/ubytovani.php', '.php'));
+    $importTemplate->assign('ubytovaniReport', basename(__DIR__ . '/../zvlastni/reporty/finance-report-ubytovani.php', '.php'));
 
     $importTemplate->parse('import');
     $importTemplate->out('import');
@@ -30,8 +30,9 @@ $rowIterator->rewind();
 /** @var \OpenSpout\Common\Entity\Row|null $hlavicka */
 $row = $rowIterator->current();
 $hlavicka = array_flip($row->toArray());
-if (!array_keys_exist(['id_uzivatele', 'prvni_noc', 'posledni_noc', 'pokoj'], $hlavicka)) {
-    throw new Chyba('Chybný formát souboru - musí mít sloupce id_uzivatele, prvni_noc, posledni_noc, pokoj');
+$vyzadovaneSloupce = ['id_uzivatele', 'prvni_noc', 'posledni_noc', 'pokoj'];
+if (!array_keys_exist($vyzadovaneSloupce, $hlavicka)) {
+    throw new Chyba('Chybný formát souboru - musí mít sloupce ' . implode(', ', $vyzadovaneSloupce));
 }
 $indexIdUzivatele = $hlavicka['id_uzivatele'];
 $indexPrvniNoc = $hlavicka['prvni_noc'];
@@ -80,9 +81,18 @@ while ($rowIterator->valid()) {
         }
 
         $pokoj = trim((string)$radek[$indexPokoj]);
-        $prvniNoc = (int)$radek[$indexPrvniNoc];
-        $posledniNoc = (int)$radek[$indexPosledniNoc];
-        $zapsanoZmen += ShopUbytovani::ulozUbytovaniUzivatele($pokoj, $prvniNoc, $posledniNoc, $uzivatel);
+        $prvniNoc = trim((string)$radek[$indexPrvniNoc]) === ''
+            ? (int)$radek[$indexPrvniNoc]
+            : null;
+        $posledniNoc = trim((string)$radek[$indexPosledniNoc]) === ''
+            ? (int)$radek[$indexPosledniNoc]
+            : null;
+        try {
+            $zapsanoZmen += ShopUbytovani::ulozUbytovaniUzivatele($pokoj, $prvniNoc, $posledniNoc, $uzivatel);
+        } catch (Chyba $chyba) {
+            $chyby[] = $chyba->getMessage();
+            continue;
+        }
     }
 }
 $reader->close();
