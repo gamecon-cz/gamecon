@@ -1143,8 +1143,18 @@ SQL,
         // zahodíme českou předvolbu a mezery
         $telefon = preg_replace('~(^[+]?420|\s)~', '', $telefon);
 
-        return strlen($telefon) === 9
-            ? chunk_split($telefon, 3, ' ') // na každé třetí místo vložíme mezeru
+        $predvolba = '';
+        if (preg_match('~^(?<predvolba>[+]?\d{3})\d{9}~', $telefon, $matches)) {
+            $predvolba = $matches['predvolba'];
+            $telefon = preg_replace('~^' . preg_quote($predvolba, '~') . '~', '', $telefon);
+        }
+
+        if (strlen($telefon) === 9) {
+            $telefon = chunk_split($telefon, 3, ' '); // na každé třetí místo vložíme mezeru
+        }
+
+        return $predvolba !== ''
+            ? "$predvolba $telefon"
             : $telefon;
     }
 
