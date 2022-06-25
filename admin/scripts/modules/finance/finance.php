@@ -123,7 +123,7 @@ $x->parse('finance.vyplatitBonusZaVedeniAktivity');
 
 $x->assign('rok', ROK);
 
-$x->assign('ubytovani', basename(__DIR__ . '/../../zvlastni/reporty/ubytovani.php', '.php'));
+$x->assign('ubytovani', basename(__DIR__ . '/../../zvlastni/reporty/finance-report-ubytovani.php', '.php'));
 $x->assign('bfgr', basename(__DIR__ . '/../../zvlastni/reporty/celkovy-report.php', '.php'));
 $x->parse('finance.reporty');
 
