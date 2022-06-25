@@ -5,8 +5,8 @@ use Gamecon\Shop\TypPredmetu;
 
 class ShopUbytovani
 {
-    public static function ulozUbytovaniUzivatele(string $pokoj, int $prvniNoc, int $posledniNoc, Uzivatel $ucastnik): int {
-        if ($pokoj === '') {
+    public static function ulozUbytovaniUzivatele(string $pokoj, ?int $prvniNoc, ?int $posledniNoc, Uzivatel $ucastnik): int {
+        if ($pokoj === '' || ($prvniNoc === null && $posledniNoc === null)) {
             $mysqliResult = dbQuery(<<<SQL
 DELETE FROM ubytovani
 WHERE id_uzivatele = $0 AND rok = $1
@@ -14,6 +14,10 @@ SQL,
                 [$ucastnik->id(), ROK]
             );
             return dbNumRows($mysqliResult);
+        }
+
+        if ($prvniNoc === null || $posledniNoc === null) {
+            throw new Chyba("První a poslední noc musí být buďto obě prázdné, nebo obě zadané: první noc $prvniNoc, poslední noc $posledniNoc");
         }
 
         $zapsanoZmen = 0;
