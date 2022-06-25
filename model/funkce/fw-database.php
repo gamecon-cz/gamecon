@@ -231,13 +231,12 @@ function dbNumQ() {
 function dbNumRows($query): int {
     if ($query === true) {
         // result of mysqli_query INSERT / UPDATE / DELETE
-        return $GLOBALS['spojeni']->affected_rows ?? 0;
+        return $GLOBALS['dbAffectedRows'] ?? 0;
     } elseif ($query instanceof mysqli_result) {
         // result of mysqli_query SELECT
         return $query->num_rows ?? 0;
-    } else {
-        throw new Exception('query failed or returned unexpected type');
     }
+    throw new Exception('query failed or returned unexpected type');
 }
 
 /**
@@ -246,7 +245,9 @@ function dbNumRows($query): int {
 function dbOneArray($q, $p = null) {
     $o = dbQuery($q, $p);
     $a = [];
-    while (list($v) = mysqli_fetch_row($o)) $a[] = $v;
+    while (list($v) = mysqli_fetch_row($o)) {
+        $a[] = $v;
+    }
     return $a;
 }
 
@@ -264,13 +265,15 @@ function dbOneCol($q, array $p = null) {
 function dbOneIndex($q, $p = null) {
     $o = dbQuery($q, $p);
     $a = [];
-    while (list($v) = mysqli_fetch_row($o)) $a[$v] = true;
+    while (list($v) = mysqli_fetch_row($o)) {
+        $a[$v] = true;
+    }
     return $a;
 }
 
 /**
  * Intended for selecting single lines from whatever. If no line found, returns
- * false, otherwise returns asociative array with one line. If multiple lines
+ * false, otherwise returns associative array with one line. If multiple lines
  * found, causes crash.
  */
 function dbOneLine($q, $p = null) {
@@ -308,10 +311,14 @@ function dbQuery($q, $param = null) {
     if ($param) {
         return dbQueryS($q, $param);
     }
-    dbConnect();
+    $mysqli = dbConnect();
     $GLOBALS['dbLastQ'] = $q;
     $start = microtime(true);
-    $r = mysqli_query($GLOBALS['spojeni'], $q);
+    $r = mysqli_query($mysqli, $q);
+    // raději si to hned odložíme, protože opakovaný dotaz na mysqli->affected_rows vede k tomu, že první dotaz vrátí správnou hodnotu, ale druhý už -1 ("disk se automaticky zničí po přečtení za pět, čtyři, tři...")
+    $GLOBALS['dbAffectedRows'] = $r === true // INSERT, DELETE, UPDATE
+        ? $mysqli->affected_rows
+        : mysqli_affected_rows($mysqli);
     $end = microtime(true);
     if (!$r) {
         throw new DbException();
@@ -392,7 +399,9 @@ function dbQi($val) {
 function dbUpdate($table, $vals, $where) {
     global $dbspojeni, $dbLastQ;
 
-    if ($vals === []) return;
+    if ($vals === []) {
+        return null;
+    }
 
     dbConnect();
     $q = 'UPDATE ' . dbQi($table) . " SET \n";

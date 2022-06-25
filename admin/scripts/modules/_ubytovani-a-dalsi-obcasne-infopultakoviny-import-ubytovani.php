@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Cas\DateTimeGamecon;
+
 if (!post('pokojeImport')) {
     $importTemplate = new XTemplate(__DIR__ . '/_ubytovani-a-dalsi-obcasne-infopultakoviny-import-ubytovani.xtpl');
     $importTemplate->assign('baseUrl', URL_ADMIN);
@@ -15,7 +17,7 @@ if (!is_readable($_FILES['pokojeSoubor']['tmp_name'])) {
     throw new Chyba('Soubor se nepodařilo načíst');
 }
 
-$zapsanoZmen = 0;
+$zapsanoZmenPerUcastnik = 0;
 
 $reader = \OpenSpout\Reader\Common\Creator\ReaderEntityFactory::createXLSXReader();
 
@@ -30,7 +32,7 @@ $rowIterator->rewind();
 /** @var \OpenSpout\Common\Entity\Row|null $hlavicka */
 $row = $rowIterator->current();
 $hlavicka = array_flip($row->toArray());
-$vyzadovaneSloupce = ['id_uzivatele', 'prvni_noc', 'posledni_noc', 'pokoj'];
+$vyzadovaneSloupce = ['id_uzivatele', 'prvni_noc', 'posledni_noc', 'pokoj', 'typ'];
 if (!array_keys_exist($vyzadovaneSloupce, $hlavicka)) {
     throw new Chyba('Chybný formát souboru - musí mít sloupce ' . implode(', ', $vyzadovaneSloupce));
 }
@@ -38,6 +40,7 @@ $indexIdUzivatele = $hlavicka['id_uzivatele'];
 $indexPrvniNoc = $hlavicka['prvni_noc'];
 $indexPosledniNoc = $hlavicka['posledni_noc'];
 $indexPokoj = $hlavicka['pokoj'];
+$indexTyp = $hlavicka['typ'];
 
 $rowIterator->next();
 
@@ -62,8 +65,8 @@ while ($rowIterator->valid()) {
             continue;
         }
 
-        $uzivatel = Uzivatel::zId($idUzivatele);
-        if (!$uzivatel) {
+        $ucastnik = Uzivatel::zId($idUzivatele);
+        if (!$ucastnik) {
             $chyby[] = sprintf(
                 'Účastník s ID %d z řádku %d nexistuje',
                 $idUzivatele,
@@ -71,27 +74,87 @@ while ($rowIterator->valid()) {
             );
             continue;
         }
-        if (!$uzivatel->gcPrihlasen()) {
+        if (!$ucastnik->gcPrihlasen()) {
             $varovani[] = sprintf(
                 'Účastník %s z řádku %d není přihlášen na letošní Gamecon a byl přeskočen',
-                $uzivatel->jmenoNick(),
+                $ucastnik->jmenoNick(),
+                $poradiRadku,
+            );
+            continue;
+        }
+        $typyString = trim((string)$radek[$indexTyp]);
+        $typy = array_map('trim', explode(',', $typyString));
+        $pokoj = trim((string)$radek[$indexPokoj]); // prázdný pokoj = smazat záznam o přiřazeném pokoji
+        $prvniNocString = trim((string)$radek[$indexPrvniNoc]);
+        $prvniNoc = $prvniNocString !== ''
+            ? (int)$prvniNocString
+            : null;
+        $posledniNocString = trim((string)$radek[$indexPosledniNoc]);
+        $posledniNoc = $posledniNocString !== ''
+            ? (int)$posledniNocString
+            : null;
+
+        if (($prvniNoc === null && $posledniNoc !== null) || ($prvniNoc !== null && $posledniNoc === null)) {
+            $chyby[] = sprintf(
+                "První a poslední noc musí být buďto obě prázdné, nebo obě zadané. Účastník %s z řádku %d má první noc $prvniNoc a poslední noc $posledniNoc",
+                $ucastnik->jmenoNick(),
                 $poradiRadku,
             );
             continue;
         }
 
-        $pokoj = trim((string)$radek[$indexPokoj]);
-        $prvniNoc = trim((string)$radek[$indexPrvniNoc]) === ''
-            ? (int)$radek[$indexPrvniNoc]
-            : null;
-        $posledniNoc = trim((string)$radek[$indexPosledniNoc]) === ''
-            ? (int)$radek[$indexPosledniNoc]
-            : null;
-        try {
-            $zapsanoZmen += ShopUbytovani::ulozUbytovaniUzivatele($pokoj, $prvniNoc, $posledniNoc, $uzivatel);
-        } catch (Chyba $chyba) {
-            $chyby[] = $chyba->getMessage();
+        if (count($typy) === 0 && ($prvniNoc ?? $posledniNoc) !== null) {
+            $chyby[] = sprintf(
+                "Nelze iportovat dny bez typu ubytování. Účastník %s z řádku %d má typ $typyString, první noc $prvniNoc a poslední noc $posledniNoc",
+                $ucastnik->jmenoNick(),
+                $poradiRadku,
+            );
             continue;
+        }
+
+        if (count($typy) > 1 && ($prvniNoc ?? $posledniNoc) !== null) {
+            $chyby[] = sprintf(
+                "Nelze iportovat více než jeden typ ubytování. Účastník %s z řádku %d má typy $typyString",
+                $ucastnik->jmenoNick(),
+                $poradiRadku,
+            );
+            continue;
+        }
+
+        $zapsanoZmenVTransakci = 0;
+        try {
+            dbBegin();
+            $zapsanoZmenVTransakci += ShopUbytovani::ulozPokojUzivatele($pokoj, $prvniNoc, $posledniNoc, $ucastnik);
+
+            if (($prvniNoc ?? $posledniNoc) !== null && count($typy) === 1) {
+                $dny = range($prvniNoc, $posledniNoc);
+                $jedinyTyp = reset($typy);
+                $typyPoDnech = array_map(static function (int $den) use ($jedinyTyp) {
+                    return $jedinyTyp . ' ' . DateTimeGamecon::denPodleIndexuOdZacatkuGameconu($den);
+                }, $dny);
+                $idsUbytovani = ShopUbytovani::dejIdsPredmetuUbytovani($typyPoDnech);
+                $zapsanoZmenVTransakci += ShopUbytovani::ulozObjednaneUbytovaniUcastnika(
+                    $idsUbytovani,
+                    $ucastnik,
+                    false
+                );
+            }
+            dbCommit();
+            if ($zapsanoZmenVTransakci > 0) {
+                $zapsanoZmenPerUcastnik++;
+            }
+        } catch (Chyba $chyba) {
+            dbRollback();
+            $chyby[] = sprintf(
+                "Účastník %s z řádku %d: %s",
+                $ucastnik->jmenoNick(),
+                $poradiRadku,
+                $chyba->getMessage()
+            );
+            continue;
+        } catch (\Throwable $throwable) {
+            dbRollback();
+            throw $throwable;
         }
     }
 }
@@ -105,4 +168,4 @@ if ($varovani) {
     varovani('Drobnosti: ' . implode(',', $varovani), false);
 }
 
-oznameni("Import dokončen. " . ($zapsanoZmen > 0 ? "Změněno $zapsanoZmen záznamů (jeden záznam na každou noc)." : 'Beze změny.'));
+oznameni("Import dokončen. " . ($zapsanoZmenPerUcastnik > 0 ? "Změněno $zapsanoZmenPerUcastnik záznamů." : 'Beze změny.'));
