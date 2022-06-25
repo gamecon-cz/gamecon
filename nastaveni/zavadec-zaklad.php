@@ -33,7 +33,7 @@ if (PHP_SAPI === 'cli' || in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', 
     }
     require_once __DIR__ . '/nastaveni-local-default.php'; // výchozí lokální nastavení
 } elseif (substr($_SERVER['SERVER_NAME'], -15) === 'beta.gamecon.cz') {
-    require_once __DIR__ . '/verejne-nastaveni-beta.php';
+    require_once __DIR__ . '/nastaveni-beta.php';
 } elseif (str_ends_with($host, 'blackarrow.gamecon.cz')) {
     require_once __DIR__ . '/nastaveni-blackarrow.php';
 } elseif (str_ends_with($host, 'jakublounek.gamecon.cz')) {
@@ -43,7 +43,7 @@ if (PHP_SAPI === 'cli' || in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', 
 } elseif (str_ends_with($host, 'sciator.gamecon.cz')) {
     require_once __DIR__ . '/nastaveni-sciator.php';
 } elseif ($_SERVER['SERVER_NAME'] === 'admin.gamecon.cz' || $_SERVER['SERVER_NAME'] === 'gamecon.cz') {
-    require_once __DIR__ . '/verejne-nastaveni-produkce.php';
+    require_once __DIR__ . '/nastaveni-produkce.php';
 } else {
     echo 'Nepodařilo se detekovat prostředí, nelze načíst nastavení verze';
     exit(1);

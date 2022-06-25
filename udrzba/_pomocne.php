@@ -38,6 +38,7 @@ function nasad(array $nastaveni) {
       /dokumentace
 
       /nastaveni/*
+      !/nastaveni/verejne-{$nastaveni['souborNastaveni']}
       !/nastaveni/{$nastaveni['souborNastaveni']}
       !/nastaveni/db-migrace.php
       !/nastaveni/initial-fatal-error-handler.php
