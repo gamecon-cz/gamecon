@@ -153,11 +153,6 @@ SQL;
 CREATE TEMPORARY TABLE `$tmpTable` LIKE shop_nakupy
 SQL
         );
-        // "předmět" je typ ubytování a den, například 'Trojlůžák neděle', a ten chceme dovolit jen jeden pro jednoho uživatele v jednom roce
-        dbQuery(<<<SQL
-CREATE UNIQUE INDEX UNIQ_id_uzivatele_id_predmetu_rok ON `$tmpTable`(id_uzivatele,id_predmetu,rok)
-SQL
-        );
         dbQuery(<<<SQL
 INSERT INTO `$tmpTable`(id_uzivatele,id_predmetu,rok,cena_nakupni,datum) VALUES $sqlValues
 SQL
