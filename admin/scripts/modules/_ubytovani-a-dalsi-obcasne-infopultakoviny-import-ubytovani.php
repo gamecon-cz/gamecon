@@ -80,26 +80,9 @@ while ($rowIterator->valid()) {
         }
 
         $pokoj = trim((string)$radek[$indexPokoj]);
-        if ($pokoj !== '') {
-            $dny = range((int)$radek[$indexPrvniNoc], (int)$radek[$indexPosledniNoc]);
-            foreach ($dny as $den) {
-                $mysqliResult = dbQuery(<<<SQL
-INSERT INTO ubytovani(id_uzivatele, den, pokoj, rok)
-    VALUES ($0, $1, $2, $3)
-    ON DUPLICATE KEY UPDATE pokoj = $2
-SQL,
-                    [$uzivatel->id(), $den, $pokoj, ROK]
-                );
-                $zapsanoZmen += dbNumRows($mysqliResult);
-            }
-            $mysqliResult = dbQuery(<<<SQL
-DELETE FROM ubytovani
-WHERE id_uzivatele = $0 AND den NOT IN ($1) AND rok = $2
-SQL,
-                [$uzivatel->id(), $dny, ROK]
-            );
-            $zapsanoZmen += dbNumRows($mysqliResult);
-        }
+        $prvniNoc = (int)$radek[$indexPrvniNoc];
+        $posledniNoc = (int)$radek[$indexPosledniNoc];
+        $zapsanoZmen += ShopUbytovani::ulozUbytovaniUzivatele($pokoj, $prvniNoc, $posledniNoc, $uzivatel);
     }
 }
 $reader->close();
