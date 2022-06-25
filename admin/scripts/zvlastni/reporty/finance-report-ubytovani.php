@@ -16,7 +16,6 @@ $o = dbQuery(<<<SQL
       'Spacák',
       SUBSTR(predmety.nazev,1, LOCATE(' ', predmety.nazev))
     )) as typ,
-      COUNT(predmety.nazev) AS predmety_pocet,
      (MAX(predmety.ubytovani_den) - MIN(predmety.ubytovani_den)) AS dny,
     IF (COUNT(predmety.nazev) != (MAX(predmety.ubytovani_den) - MIN(predmety.ubytovani_den) +1 /* od 0 do 4, tedy 5 dní max */),
         GROUP_CONCAT(predmety.nazev),
