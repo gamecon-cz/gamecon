@@ -404,7 +404,7 @@
         lidskyCas += `${zbyvaDni} d`
       }
       if (zbyvaDni || zbyvaHodin) {
-        lidskyCas += `${zbyvaHodin} h`
+        lidskyCas += ` ${zbyvaHodin} h`
       }
       if (zbyvaDni || zbyvaHodin || zbyvaMinut) {
         lidskyCas += ` ${zbyvaMinut} m`
