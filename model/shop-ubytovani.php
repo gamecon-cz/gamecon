@@ -6,7 +6,6 @@ use Gamecon\Shop\TypPredmetu;
 class ShopUbytovani
 {
     public static function ulozUbytovaniUzivatele(string $pokoj, int $prvniNoc, int $posledniNoc, Uzivatel $ucastnik): int {
-        $zapsanoZmen = 0;
         if ($pokoj === '') {
             $mysqliResult = dbQuery(<<<SQL
 DELETE FROM ubytovani
@@ -17,6 +16,7 @@ SQL,
             return dbNumRows($mysqliResult);
         }
 
+        $zapsanoZmen = 0;
         $dny = range($prvniNoc, $posledniNoc);
         foreach ($dny as $den) {
             $mysqliResult = dbQuery(<<<SQL
