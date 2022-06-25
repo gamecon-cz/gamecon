@@ -316,7 +316,9 @@ function dbQuery($q, $param = null) {
     $start = microtime(true);
     $r = mysqli_query($mysqli, $q);
     // raději si to hned odložíme, protože opakovaný dotaz na mysqli->affected_rows vede k tomu, že první dotaz vrátí správnou hodnotu, ale druhý už -1 ("disk se automaticky zničí po přečtení za pět, čtyři, tři...")
-    $GLOBALS['dbAffectedRows'] = mysqli_affected_rows($mysqli);
+    $GLOBALS['dbAffectedRows'] = $r === true // INSERT, DELETE, UPDATE
+        ? $mysqli->affected_rows
+        : mysqli_affected_rows($mysqli);
     $end = microtime(true);
     if (!$r) {
         throw new DbException();
@@ -397,7 +399,9 @@ function dbQi($val) {
 function dbUpdate($table, $vals, $where) {
     global $dbspojeni, $dbLastQ;
 
-    if ($vals === []) return;
+    if ($vals === []) {
+        return null;
+    }
 
     dbConnect();
     $q = 'UPDATE ' . dbQi($table) . " SET \n";
