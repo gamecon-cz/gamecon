@@ -40,7 +40,7 @@ RUN apt-get update && apt-get install -y \
 
 FROM gamecon-tools-step2 AS gamecon-php-step3
 
-RUN docker-php-ext-install mysqli pdo_mysql intl exif bcmath zip xmlreader
+RUN docker-php-ext-install mysqli pdo_mysql intl exif bcmath xml zip
 
 # images support, like imagecreatefromjpeg()
 RUN docker-php-ext-configure gd \
