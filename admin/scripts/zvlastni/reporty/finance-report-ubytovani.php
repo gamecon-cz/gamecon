@@ -22,7 +22,6 @@ $o = dbQuery(<<<SQL
     ) AS mezera_v_ubytovani,
     MIN(predmety.ubytovani_den) as prvni_noc,
     MAX(predmety.ubytovani_den) as posledni_noc,
-    (MAX(predmety.ubytovani_den) - MIN(predmety.ubytovani_den)) AS celkem_dnu,
     GROUP_CONCAT(DISTINCT IFNULL(ubytovani.pokoj,'')) as pokoj,
     ubytovan_s
   FROM uzivatele_hodnoty uzivatele
