@@ -161,7 +161,7 @@ while ($rowIterator->valid()) {
 $reader->close();
 
 if ($chyby) {
-    throw new Chyba('Chybička se vloudila: ' . implode("; ", $chyby));
+    chyba('Potíže: ' . implode("; ", $chyby));
 }
 
 if ($varovani) {
