@@ -44,7 +44,6 @@
     "openspout/openspout": "^3.0",
     "defuse/php-encryption": "^2.1",
     "dg/mysql-dump": "^1.5",
-    "endroid/qr-code": "^4.2",
     "godric/db-backup": "dev-master",
     "godric/xtemplate": "dev-master",
     "google/apiclient": "^2.4",
