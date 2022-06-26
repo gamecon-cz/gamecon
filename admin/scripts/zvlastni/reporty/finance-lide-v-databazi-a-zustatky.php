@@ -13,7 +13,8 @@ SELECT
   uzivatele_hodnoty.telefon_uzivatele,
   uzivatele_hodnoty.zustatek,
   ucast.roky AS účast,
-  pohyb.datum AS "poslední kladný pohyb na účtu"
+  kladny_pohyb.datum AS "poslední kladný pohyb na účtu",
+  zaporny_pohyb.datum AS "poslední záporný pohyb na účtu"
 FROM uzivatele_hodnoty
 LEFT JOIN (
   SELECT
@@ -31,7 +32,15 @@ LEFT JOIN ( -- poslední kladný pohyb na účtu
   FROM platby
   WHERE castka > 0
   GROUP BY id_uzivatele
-) pohyb ON pohyb.id_uzivatele = uzivatele_hodnoty.id_uzivatele
+) AS kladny_pohyb ON kladny_pohyb.id_uzivatele = uzivatele_hodnoty.id_uzivatele
+LEFT JOIN ( -- poslední záporný pohyb na účtu
+  SELECT
+    id_uzivatele,
+    MAX(provedeno) AS datum
+  FROM platby
+  WHERE castka < 0
+  GROUP BY id_uzivatele
+) AS zaporny_pohyb ON zaporny_pohyb.id_uzivatele = uzivatele_hodnoty.id_uzivatele
 SQL
 );
 $report->tFormat(get('format'));
