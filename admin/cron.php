@@ -63,34 +63,38 @@ logs('Odemykám zamčené aktivity.');
 $i = Aktivita::odemciHromadne();
 logs("Odemčeno $i aktivit.");
 
-if (date('G') == 5) { // 5 hodin ráno
-    logs('Zálohuji databázi...');
-    $chybaZalohovaniDb = null;
-    if (!defined('ZALOHA_DB_SLOZKA') || !ZALOHA_DB_SLOZKA) {
-        $chybaZalohovaniDb = 'Není definována konstanta s adresářem pro zálohování ZALOHA_DB_SLOZKA.';
-    } elseif (!is_dir(ZALOHA_DB_SLOZKA)
-        && !@mkdir(ZALOHA_DB_SLOZKA, 0750, true)
-        && !is_dir(ZALOHA_DB_SLOZKA)
-    ) {
-        $chybaZalohovaniDb = "Nelze vytvořit adresář pro zálohování '" . ZALOHA_DB_SLOZKA . "': " . implode("\n", (array)error_get_last());
-    } else {
-        try {
-            $dump = new MySQLDump(dbConnect());
-            $time = date('Y-m-d_His');
-            $dump->save(ZALOHA_DB_SLOZKA . "/export_$time.sql.gz");
-            logs('záloha databáze dokončena.');
-        } catch (\Throwable $throwable) {
-            $chybaZalohovaniDb = 'Uložení zálohy na disk selhalo';
-            logs('Error při ukládání zálohy DB: ' . $throwable->getMessage() . '; ' . $throwable->getTraceAsString());
+if (date('G') >= 5) { // 5 hodin ráno či později
+    $dnesniZalohaPattern = ZALOHA_DB_SLOZKA . '/export_' . date('Y-m-d_H') . '[0-9][0-9][0-9][0-9].sql.gz';
+    if (!glob($dnesniZalohaPattern)) { // dnešní záloha databáze ještě neexistuje
+        logs('Zálohuji databázi...');
+        $chybaZalohovaniDb = null;
+        if (!defined('ZALOHA_DB_SLOZKA') || !ZALOHA_DB_SLOZKA) {
+            $chybaZalohovaniDb = 'Není definována konstanta s adresářem pro zálohování ZALOHA_DB_SLOZKA.';
+        } elseif (!is_dir(ZALOHA_DB_SLOZKA)
+            && !@mkdir(ZALOHA_DB_SLOZKA, 0750, true)
+            && !is_dir(ZALOHA_DB_SLOZKA)
+        ) {
+            $chybaZalohovaniDb = "Nelze vytvořit adresář pro zálohování '" . ZALOHA_DB_SLOZKA . "': " . implode("\n", (array)error_get_last());
+        } else {
+            try {
+                $dump = new MySQLDump(dbConnect());
+                $time = date('Y-m-d_His');
+                $dbBackupFile = ZALOHA_DB_SLOZKA . "/export_$time.sql.gz";
+                $dump->save($dbBackupFile);
+                logs("...záloha databáze dokončena do souboru $dbBackupFile");
+            } catch (\Throwable $throwable) {
+                $chybaZalohovaniDb = 'Uložení zálohy na disk selhalo';
+                logs('Error při ukládání zálohy DB: ' . $throwable->getMessage() . '; ' . $throwable->getTraceAsString());
+            }
         }
-    }
-    if ($chybaZalohovaniDb) {
-        logs($chybaZalohovaniDb);
-        (new GcMail)
-            ->adresat('info@gamecon.cz')
-            ->predmet('Neproběhla záloha databáze ' . date(\Gamecon\Cas\DateTimeCz::FORMAT_DB))
-            ->text($chybaZalohovaniDb)
-            ->odeslat();
+        if ($chybaZalohovaniDb) {
+            logs($chybaZalohovaniDb);
+            (new GcMail)
+                ->adresat('info@gamecon.cz')
+                ->predmet('Neproběhla záloha databáze ' . date(\Gamecon\Cas\DateTimeCz::FORMAT_DB))
+                ->text($chybaZalohovaniDb)
+                ->odeslat();
+        }
     }
 }
 
