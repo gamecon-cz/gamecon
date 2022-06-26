@@ -49,13 +49,11 @@ if (PHP_SAPI === 'cli' || in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', 
     exit(1);
 }
 
-require_once __DIR__ . '/nastaveni.php';
-
 // výchozí hodnoty konstant
 // (nezobrazovat chyby, pokud už konstanta byla nastavena dřív)
 $puvodniErrorReporting = error_reporting();
 error_reporting($puvodniErrorReporting ^ E_NOTICE);
-require_once __DIR__ . '/nastaveni-vychozi.php';
+require_once __DIR__ . '/nastaveni.php';
 error_reporting($puvodniErrorReporting);
 
 if (defined('URL_WEBU') && URL_WEBU) {

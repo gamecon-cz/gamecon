@@ -240,9 +240,20 @@ Organizační tým GameConu',
 @define('PROGRAM_ZACATEK', 8); // první hodina programu
 @define('PROGRAM_KONEC', 24); // konec programu (tuto hodinu už se nehraje)
 
+@define('PRODEJ_JIDLA_POZASTAVEN', false);
+
 define('SUPERADMINI', [1682, 4032]);
 
 @define('ADRESAR_WEBU_S_OBRAZKY', __DIR__ . '/../web');
+
+@define('WWW',   __DIR__ . '/../web');
+@define('ADMIN', __DIR__ . '/../admin');
+@define('SPEC',  __DIR__ . '/../cache/private');
+@define('CACHE', __DIR__ . '/../cache/public');
 @define('ZALOHA_DB_SLOZKA', __DIR__ . '/../backup/db'); // cesta pro zálohy databáze
 
-@define('PRODEJ_JIDLA_POZASTAVEN', false);
+@define('AUTOMATICKE_MIGRACE', false);
+@define('AUTOMATICKA_TVORBA_DB', false);
+@define('ZOBRAZIT_STACKTRACE_VYJIMKY', false);
+@define('PROFILOVACI_LISTA', false);
+@define('CACHE_SLOZKY_PRAVA', 0770);
