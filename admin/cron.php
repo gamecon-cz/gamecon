@@ -8,6 +8,7 @@ use Gamecon\Aktivita\Aktivita;
  */
 
 require __DIR__ . '/../nastaveni/zavadec.php';
+/** @var \Gamecon\Vyjimkovac\Vyjimkovac $vyjimkovac */
 
 // TODO nutný hack před zmergeování zavaděče mezi redesignem a masterem
 // tato proměnná je nastavena zavaděčem a zde upravíme zobrazení výjimek
