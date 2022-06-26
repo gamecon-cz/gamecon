@@ -28,6 +28,7 @@ function nasad(array $nastaveni) {
       /.vscode
       /.phpunit.result.cache
 
+      /backup/*
       /cache/private/*
       !/cache/private/.htaccess
       /cache/public/*
