@@ -472,7 +472,7 @@ SQL
         return $t->text('predmety');
     }
 
-    function koupeneVeciPrehledHtml() {
+    public function koupeneVeciPrehledHtml() {
         $t = new XTemplate(__DIR__ . '/templates/shop-predmety-prehled.xtpl');
 
         foreach ($this->predmety as $predmet) {
