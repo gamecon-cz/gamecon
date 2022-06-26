@@ -25,7 +25,7 @@ class Backups
         }
 
         $dump = new MySQLDump($this->db);
-        $dump->save("{$this->directory}/pre-{$migration->getCode()}.sql");
+        $dump->save("{$this->directory}/pre-migration-{$migration->getCode()}.sql.gz");
     }
 
     public function clearDatabase() {

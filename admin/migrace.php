@@ -25,7 +25,7 @@ pripravCache(SPEC . '/db-backup');
 (new DbMigrations(new DbMigrationsConfig([
     'connection' => new mysqli(DBM_SERV, DBM_USER, DBM_PASS, DBM_NAME, defined('DBM_PORT') ? DBM_PORT : null),
     'migrationsDirectory' => __DIR__ . '/../migrace',
-    'backupsDirectory' => SPEC . '/db-backup',
+    'backupsDirectory' => ZALOHA_DB_SLOZKA,
 ])))->run();
 
 // informovat, že skript doběhl
