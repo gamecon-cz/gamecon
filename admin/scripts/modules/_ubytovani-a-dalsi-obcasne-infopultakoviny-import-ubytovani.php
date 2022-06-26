@@ -125,7 +125,7 @@ while ($rowIterator->valid()) {
         try {
             dbBegin();
             $zapsanoZmenVTransakci += ShopUbytovani::ulozPokojUzivatele($pokoj, $prvniNoc, $posledniNoc, $ucastnik);
-
+            $idsUbytovani = []; // když je sezam pokojů prázdný, tak to smaže všechny letošní objednávky pokojů účastníka
             if (($prvniNoc ?? $posledniNoc) !== null && count($typy) === 1) {
                 $dny = range($prvniNoc, $posledniNoc);
                 $jedinyTyp = reset($typy);
@@ -133,12 +133,12 @@ while ($rowIterator->valid()) {
                     return $jedinyTyp . ' ' . DateTimeGamecon::denPodleIndexuOdZacatkuGameconu($den);
                 }, $dny);
                 $idsUbytovani = ShopUbytovani::dejIdsPredmetuUbytovani($typyPoDnech);
-                $zapsanoZmenVTransakci += ShopUbytovani::ulozObjednaneUbytovaniUcastnika(
-                    $idsUbytovani,
-                    $ucastnik,
-                    false
-                );
             }
+            $zapsanoZmenVTransakci += ShopUbytovani::ulozObjednaneUbytovaniUcastnika(
+                $idsUbytovani,
+                $ucastnik,
+                false
+            );
             dbCommit();
             if ($zapsanoZmenVTransakci > 0) {
                 $zapsanoZmenPerUcastnik++;
