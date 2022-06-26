@@ -3,7 +3,7 @@
 /** @var \Godric\DbMigrations\Migration $this */
 
 $this->q(<<<SQL
-CREATE TABLE uzivatele_url(
+CREATE TABLE IF NOT EXISTS uzivatele_url(
     id_url_uzivatele SERIAL,
     id_uzivatele INT NOT NULL,
     url VARCHAR(255) NOT NULL PRIMARY KEY,
