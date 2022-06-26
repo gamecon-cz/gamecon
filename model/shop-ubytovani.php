@@ -114,6 +114,7 @@ SQL,
     }
 
     /**
+     * Kombinace účastník - pokoj - rok je tady považována za unikátní. Každý může mít jen jeden pokoj v jednom dni (např. "Trojlůžák čtvrtek") v jednom roce.
      * @param array|int[] $idPredmetuUbytovani
      * @return int
      * @throws Chyba
@@ -150,11 +151,19 @@ SQL;
         $sqlValues = implode(",\n", $sqlValuesArray);
         $tmpTable = uniqid('shop_nakupy_tmp', true);
         dbQuery(<<<SQL
-CREATE TEMPORARY TABLE `$tmpTable` LIKE shop_nakupy
+CREATE TEMPORARY TABLE `$tmpTable`
+(
+    id_uzivatele INT NOT NULL,
+    id_predmetu INT NOT NULL,
+    rok SMALLINT NOT NULL,
+    cena_nakupni DECIMAL(6, 2),
+    datum DATETIME NOT NULL,
+    PRIMARY KEY (id_uzivatele, id_predmetu, rok)
+)
 SQL
         );
         dbQuery(<<<SQL
-INSERT INTO `$tmpTable`(id_uzivatele,id_predmetu,rok,cena_nakupni,datum) VALUES $sqlValues
+INSERT IGNORE INTO `$tmpTable`(id_uzivatele,id_predmetu,rok,cena_nakupni,datum) VALUES $sqlValues
 SQL
         );
 
@@ -162,13 +171,13 @@ SQL
         $mysqliResult = dbQuery(<<<SQL
 DELETE shop_nakupy.*
 FROM shop_nakupy
-LEFT JOIN `$tmpTable` USING(id_uzivatele,id_predmetu,rok)
-WHERE `$tmpTable`.id_uzivatele IS NULL -- není to hodnota kterou chceme mít uloženu (kombinace LEFT JOIN a IS NULL)
-    AND shop_nakupy.id_uzivatele = {$ucastnik->id()}
+JOIN shop_predmety on shop_predmety.id_predmetu = shop_nakupy.id_predmetu
+WHERE shop_nakupy.id_uzivatele = {$ucastnik->id()}
     AND shop_nakupy.rok = $rok
-    AND shop_nakupy.id_predmetu IN ($0)
+    AND shop_nakupy.id_predmetu NOT IN ($0) -- není to hodnota kterou chceme mít uloženu
+    AND shop_predmety.typ = $1
 SQL,
-            [$idsPredmetuUbytovaniInt]
+            [$idsPredmetuUbytovaniInt, TypPredmetu::UBYTOVANI]
         );
         $pocetZmen += dbNumRows($mysqliResult);
 
@@ -185,7 +194,7 @@ SQL,
             [$idsPredmetuUbytovaniInt]
         );
 
-        // konečně vložíme pouze nové nebo změněné hodnoty
+        // konečně vložíme pouze nové nebo změněné ubytování
         $mysqliResult = dbQuery(<<<SQL
 INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni, datum)
 SELECT tmp.id_uzivatele, tmp.id_predmetu, tmp.rok, tmp.cena_nakupni, tmp.datum
