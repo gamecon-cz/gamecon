@@ -2,12 +2,12 @@
 
 require_once __DIR__ . '/nastaveni-beta.php';
 
-define('URL_WEBU', 'http://beta.gamecon.cz'); // absolutní url uživatelského webu
-define('URL_ADMIN', 'http://admin.beta.gamecon.cz'); // absolutní url adminu
-define('URL_CACHE', 'http://cache.beta.gamecon.cz'); // url sdílených cachí
+define('URL_WEBU', 'https://beta.gamecon.cz'); // absolutní url uživatelského webu
+define('URL_ADMIN', 'https://admin.beta.gamecon.cz'); // absolutní url adminu
+define('URL_CACHE', 'https://cache.beta.gamecon.cz'); // url sdílených cachí
 
 define('ANALYTICS', false);
-define('HTTPS_ONLY', false);
+define('HTTPS_ONLY', true);
 
 define('REACT_V_PROHLIZECI', true);
 define('AUTOMATICKE_SESTAVENI', true);
