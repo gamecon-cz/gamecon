@@ -106,6 +106,7 @@ SELECT predmety.id_predmetu,
 FROM shop_predmety AS predmety
 JOIN shop_nakupy AS nakupy
     ON predmety.id_predmetu = nakupy.id_predmetu
+        AND nakupy.rok = $0
 WHERE model_rok = $0
 GROUP BY predmety.id_predmetu, predmety.typ, predmety.ubytovani_den, predmety.nazev
 ORDER BY predmety.typ, predmety.ubytovani_den, TRIM(predmety.nazev)
