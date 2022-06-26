@@ -36,7 +36,6 @@
     "openspout/openspout": "^3.0",
     "defuse/php-encryption": "^2.1",
     "dg/mysql-dump": "^1.5",
-    "godric/xtemplate": "dev-master",
     "google/apiclient": "^2.4",
     "michelf/php-markdown": "~1.4",
     "roderik/pwgen-php": "^0.1.8",

@@ -163,7 +163,7 @@ echo json_encode(['id' => 123, 'name' => 'Něco']); // pomocí echo vypíšeme p
 
 ## View
 
-Jako view se používají šablony vycházející z staršího projektu XTemplate. Základní myšlenka projektu je, že šablony jsou čistě deklarativní (neobsahují _žádný_ kód). Šablona vypadá jako obyčejné html, krom něj obsahuje navíc jenom komentáře `<!-- begin: blok -->` a `<!-- end: blok -->` rozdělující stránku na bloky (bloky mohou být vzájemně vnořené) a místa pro doplnění proměnných, např. `{promenna}` nebo `{promenna.getMetoda}`. Nejjednodušší šablona může vypadat takto:
+Jako view se používají šablony vycházející ze staršího projektu XTemplate. Základní myšlenka projektu je, že šablony jsou čistě deklarativní (neobsahují _žádný_ kód). Šablona vypadá jako obyčejné html, krom něj obsahuje navíc jenom komentáře `<!-- begin: blok -->` a `<!-- end: blok -->` rozdělující stránku na bloky (bloky mohou být vzájemně vnořené) a místa pro doplnění proměnných, např. `{promenna}` nebo `{promenna.getMetoda}`. Nejjednodušší šablona může vypadat takto:
 
 ```html
 <!-- begin: tabulka -->
@@ -199,4 +199,4 @@ Abychom nastavování proměnných a načítání šablon nemuseli psát pořád
 
 > Jak je z příkladu vidět, k zpracování šablony je potřeba i nějaký php kód, který v tomto případě je v controlleru – dá se tedy říct, že část logiky view přechází do controlleru. Původní motivací takového návrhu bylo odstínit html kodéry od všech speciálních jazykových konstrukcí, kterými se to v běžných šablonovacích jazycích jen hemží. Ačkoli funkční, v dnešní době už je to přecejen poněkud fousatý přístup.
 
-> Původní implementace [XTemplate](https://sourceforge.net/projects/xtpl/) je dnes už mrtvá. My používáme vlastní [zjednodušenou implementaci](https://github.com/godric-cz/xtemplate), která využívá kompilaci šablon do pomocných php tříd a je výrazně rychlejší.
+> Původní implementace [XTemplate](https://sourceforge.net/projects/xtpl/) je dnes už mrtvá. My používáme vlastní [zjednodušenou implementaci](./../model/XTemplate/XTemplate.php) vycházející z https://github.com/godric-cz/xtemplate, která využívá kompilaci šablon do pomocných php tříd a je výrazně rychlejší.
