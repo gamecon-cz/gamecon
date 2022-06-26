@@ -330,7 +330,7 @@ SQL
     }
 
     public function objednneJidloPrehledHtml(): string {
-        $t = new XTemplate(__DIR__ . '/shop-jidla-prehled.xtpl');
+        $t = new XTemplate(__DIR__ . '/templates/shop-jidla-prehled.xtpl');
 
         // inicializace
         $druhy = $this->jidlo['druhy'];
@@ -472,8 +472,8 @@ SQL
         return $t->text('predmety');
     }
 
-    function koupeneVeciPrehledHtml() {
-        $t = new XTemplate(__DIR__ . '/shop-predmety-prehled.xtpl');
+    public function koupeneVeciPrehledHtml() {
+        $t = new XTemplate(__DIR__ . '/templates/shop-predmety-prehled.xtpl');
 
         foreach ($this->predmety as $predmet) {
             if ($predmet['kusu_uzivatele'] <= 0) {
