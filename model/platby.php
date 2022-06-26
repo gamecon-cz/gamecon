@@ -41,7 +41,8 @@ class Platby
                 'fio_id' => $fioPlatba->id(),
                 'castka' => $fioPlatba->castka(),
                 'rok' => ROK,
-                'pripsano' => $fioPlatba->datum(),
+                'pripsano_na_ucet_banky' => $fioPlatba->datum(),
+                'provedeno' => new DateTimeImmutable(),
                 'provedl' => Uzivatel::SYSTEM,
                 'poznamka' => strlen($fioPlatba->zprava()) > 4
                     ? $fioPlatba->zprava()
