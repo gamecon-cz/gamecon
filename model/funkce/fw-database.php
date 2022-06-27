@@ -306,6 +306,7 @@ function dbFetchAll(string $query, array $params = []): array {
  * Executes arbitrary query on database
  * strings $1, $2, ... are replaced with values from $param
  * when $0 exists in, first $params maps to it, otherwise it maps to $1 etc...
+ * @return bool|mysqli
  */
 function dbQuery($q, $param = null) {
     if ($param) {
@@ -321,7 +322,8 @@ function dbQuery($q, $param = null) {
         : mysqli_affected_rows($mysqli);
     $end = microtime(true);
     if (!$r) {
-        throw new DbException();
+        $type = dbGetExceptionType();
+        throw new $type();
     }
     $GLOBALS['dbNumQ']++;
     $GLOBALS['dbExecTime'] += $end - $start;
@@ -395,36 +397,32 @@ function dbQi($val) {
 /**
  * Executes update on table $table using associtive array $vals as column=>value
  * pairs and $where as column=>value AND column=>value ... where clause
+ * @return bool|mysqli
  */
-function dbUpdate($table, $vals, $where) {
-    global $dbspojeni, $dbLastQ;
-
+function dbUpdate(string $table, array $vals, array $where) {
     if ($vals === []) {
         return null;
     }
-
-    dbConnect();
-    $q = 'UPDATE ' . dbQi($table) . " SET \n";
+    $setArray = [];
     foreach ($vals as $key => $val) {
-        if ($val instanceof DbNoChange) continue;
-        $q .= (dbQi($key) . '=' . dbQv($val) . ",\n");
+        if ($val instanceof DbNoChange) {
+            continue;
+        }
+        $setArray[] = dbQi($key) . '=' . dbQv($val);
     }
-    $q = substr($q, 0, -2) . "\n"; //odstranění čárky na konci
-    // where klauzule
-    $q .= 'WHERE 1';
+    if (!$setArray) {
+        return null;
+    }
+    $q = 'UPDATE ' . dbQi($table) . " SET \n" . implode(',', $setArray);
+
+    $whereArray = [];
     foreach ($where as $k => $v) {
-        $q .= ' AND ' . dbQi($k) . ' = ' . dbQv($v);
+        $whereArray[] = dbQi($k) . '=' . dbQv($v);
     }
-    // query execution
-    $dbLastQ = $q;
-    $start = microtime(true);
-    $r = mysqli_query($GLOBALS['spojeni'], $q);
-    $end = microtime(true);
-    if (!$r) {
-        $type = dbGetExceptionType();
-        throw new $type();
-    };
-    return $r;
+    if ($whereArray) {
+        $q .= ' WHERE ' . implode("\n\tAND ", $whereArray);
+    }
+    return dbQuery($q);
 }
 
 class ConnectionException extends RuntimeException

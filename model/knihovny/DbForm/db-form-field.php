@@ -42,7 +42,7 @@ abstract class DbFormField
      * For given identifier $n returns name of post variable dedicated to this
      * class.
      * @see postPrefix
-     * @todo should tehre be $this->name() added to generated name? It depends
+     * @todo should there be $this->name() added to generated name? It depends
      *  if we're assuming prefix is dedicated to instance or class. Instance
      *  sounds more reasonable, on the other hand it has to be set then, otherwise
      *  collisions appear.

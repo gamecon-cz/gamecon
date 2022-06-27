@@ -12,6 +12,7 @@ use Gamecon\Shop\TypPredmetu;
 
 if (($polozkyKUlozeni = post('polozky')) !== null) {
     $puvodniHodnoty = post('polozky_original');
+    $zmenenoZaznamu = 0;
     foreach ($polozkyKUlozeni as $idPredmetu => $polozkaKUlozeni) {
         if ($polozkaKUlozeni === $puvodniHodnoty[$idPredmetu]) {
             continue;
@@ -21,8 +22,9 @@ if (($polozkyKUlozeni = post('polozky')) !== null) {
             chyba("Nenzámé ID předmětu $idPredmetu");
         }
         $predmet->kusuVyrobeno((int)$polozkaKUlozeni['kusu_celkem']);
-        $predmet->uloz();
+        $zmenenoZaznamu += $predmet->uloz();
     }
+    oznameni("Uloženo $zmenenoZaznamu změn", false);
 }
 
 $template = new XTemplate(__DIR__ . '/shop.xtpl');
