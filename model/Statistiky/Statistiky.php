@@ -6,6 +6,7 @@ use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Pravo;
 use Gamecon\Zidle;
+use Gamecon\Shop\Shop;
 
 class Statistiky
 {
@@ -152,7 +153,7 @@ WHERE shop_nakupy.rok=$0
 GROUP BY shop_nakupy.id_predmetu
 SQL, [
             $this->letosniRok,
-            [\Shop::PREDMET, \Shop::TRICKO],
+            [Shop::PREDMET, Shop::TRICKO],
         ]), 'Předměty');
     }
 
@@ -175,7 +176,7 @@ SELECT Název, Počet FROM (
 ORDER BY ubytovani_sort_nazev, ubytovani_den
 SQL, [
             $this->letosniRok,
-            \Shop::UBYTOVANI,
+            Shop::UBYTOVANI,
         ]), 'Ubytování dny a místa');
     }
 
@@ -212,7 +213,7 @@ ORDER BY ubytovani_den
 ) AS serazeno
 SQL, [
             $this->letosniRok,
-            \Shop::UBYTOVANI,
+            Shop::UBYTOVANI,
             Zidle::prihlasenNaGcRoku($this->letosniRok),
         ]), 'Ubytování dny');
     }
@@ -241,7 +242,7 @@ SELECT Název,Cena,Počet,Slev FROM (
 ) AS seskupeno
 ORDER BY ubytovani_den, Název, id_predmetu
 SQL,
-            [[Pravo::JIDLO_ZDARMA, Pravo::JIDLO_SE_SLEVOU], $this->letosniRok, \Shop::JIDLO]
+            [[Pravo::JIDLO_ZDARMA, Pravo::JIDLO_SE_SLEVOU], $this->letosniRok, Shop::JIDLO]
         ), 'Jídlo');
     }
 
@@ -547,7 +548,7 @@ WHERE shop_predmety.typ = $0
 GROUP BY shop_nakupy.rok
 ORDER BY shop_nakupy.rok
 SQL,
-            [\Shop::UBYTOVANI]
+            [Shop::UBYTOVANI]
         ), 'Ubytování');
     }
 }
