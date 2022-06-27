@@ -298,12 +298,12 @@ SQL, [
             $konecGcJednohoRoku = \Gamecon\Cas\DateTimeGamecon::spocitejKonecGameconu($rok)->formatDatumDb();
             foreach ($dnyJednohoRoku as $indexDne => $denJednohoRoku) {
                 // včetně indexu 0, což je vynucená nula přes array_unshift
-                $denRegistraci = $indexDne - 1;
                 if ($indexDne === 0) {
                     $nazvyDnuJednohoRoku[] = 'před prvním přihlášeným';
                 } elseif ($indexDne === 1) {
                     $nazvyDnuJednohoRoku[] = 'před registracemi';
                 } else {
+                    $denRegistraci = $indexDne - 1;
                     $nazvyDnuJednohoRoku[] = "den $denRegistraci";
                 }
                 if ($zacatekRegistraciJednohoRoku === $denJednohoRoku) {
