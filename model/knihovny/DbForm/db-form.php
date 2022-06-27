@@ -7,6 +7,7 @@ class DbForm
     /** @var null|DbFormField[] */
     private $fields;
     private $postName = 'cDbForm';
+    private $lastSaveChangesCount = 0;
 
     /**
      * Creates default (full) form for given table
@@ -167,16 +168,22 @@ class DbForm
             $validationCallback($r);
         }
         if ($pkey->value()) {
-            dbUpdate($this->table(), $r, [$pkey->name() => $pkey->value()]);
+            $result = dbUpdate($this->table(), $r, [$pkey->name() => $pkey->value()]);
+            $this->lastSaveChangesCount = dbNumRows($result);
         } else {
             dbInsert($this->table(), $r);
             $newId = dbInsertId();
+            $this->lastSaveChangesCount = 1;
         }
         // final cleanup
         foreach ($this->fields() as $f) {
             $f->postInsert();
         }
         return $newId;
+    }
+
+    public function lastSaveChangesCount(): int {
+        return $this->lastSaveChangesCount;
     }
 
     /**

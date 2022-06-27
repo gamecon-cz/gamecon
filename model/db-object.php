@@ -42,10 +42,11 @@ abstract class DbObject
         return $form;
     }
 
-    public function uloz() {
+    public function uloz(): int {
         $form = new DbFormGc(static::$tabulka);
         $form->loadRow($this->r);
         $form->save();
+        return $form->lastSaveChangesCount();
     }
 
     /** Vrátí ID objektu (hodnota primárního klíče) */
