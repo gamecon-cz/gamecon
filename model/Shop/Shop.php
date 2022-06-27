@@ -94,24 +94,27 @@ SQL,
      */
     public static function letosniPolozky(int $rok = ROK): array {
         $polozkyData = dbFetchAll(<<<SQL
-SELECT predmety.id_predmetu,
-       TRIM(predmety.nazev) AS nazev,
-       predmety.cena_aktualni,
-       SUM(nakupy.cena_nakupni) AS suma,
-       predmety.model_rok,
-       MAX(nakupy.datum) AS naposledy_koupeno_kdy,
-       COUNT(nakupy.id_predmetu) AS prodano_kusu,
-       predmety.kusu_vyrobeno,
-       predmety.typ
-FROM shop_predmety AS predmety
-JOIN shop_nakupy AS nakupy
-    ON predmety.id_predmetu = nakupy.id_predmetu
-        AND nakupy.rok = $0
-WHERE model_rok = $0
-GROUP BY predmety.id_predmetu, predmety.typ, predmety.ubytovani_den, predmety.nazev
-ORDER BY predmety.typ, predmety.ubytovani_den, TRIM(predmety.nazev)
+SELECT id_predmetu,nazev,cena_aktualni,suma,model_rok,naposledy_koupeno_kdy,prodano_kusu,kusu_vyrobeno,typ FROM (
+    SELECT predmety.id_predmetu,
+           TRIM(predmety.nazev) AS nazev,
+           predmety.cena_aktualni,
+           SUM(nakupy.cena_nakupni) AS suma,
+           predmety.model_rok,
+           MAX(nakupy.datum) AS naposledy_koupeno_kdy,
+           COUNT(nakupy.id_predmetu) AS prodano_kusu,
+           predmety.kusu_vyrobeno,
+           predmety.typ,
+           predmety.ubytovani_den
+    FROM shop_predmety AS predmety
+    JOIN shop_nakupy AS nakupy
+        ON predmety.id_predmetu = nakupy.id_predmetu
+            AND nakupy.rok = $0
+    WHERE model_rok = $0
+    GROUP BY predmety.id_predmetu, predmety.typ, predmety.ubytovani_den, predmety.nazev
+) AS seskupeno
+ORDER BY typ, IF(typ = $1, LEFT(TRIM(nazev), LOCATE(' ',nazev) - 1), nazev), ubytovani_den
 SQL,
-            [$rok]
+            [$rok, TypPredmetu::UBYTOVANI]
         );
         $polozky = [];
         foreach ($polozkyData as $polozkaData) {
