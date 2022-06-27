@@ -70,6 +70,7 @@ function nasad(array $nastaveni) {
       /vendor/phpspec/prophecy
       /vendor/phar-io/manifest
       /vendor/phar-io/version
+      /vendor/composer/tmp-*
       {$nutneKvuliComposerAutoRequire}
 
       /nasad.log
