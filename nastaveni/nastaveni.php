@@ -22,7 +22,7 @@ if (!defined('ROK')) define('ROK', 2022); // aktuální rok -- při změně roku
 // Nastavení ovládatelné z adminu //
 ////////////////////////
 
-$nastaveni = new SystemoveNastaveni(ROK);
+$nastaveni = SystemoveNastaveni::vytvorZGlobalnich();
 $nastaveni->zaznamyDoKonstant();
 
 if (defined('BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU')) { // nemusí být ještě načtena před SQL migracemi
@@ -245,6 +245,7 @@ define('SUPERADMINI', [1682 /* Štěpán "Bonjour" Štefaník */, 4032 /* Jarosl
 
 @define('ADRESAR_WEBU_S_OBRAZKY', __DIR__ . '/../web');
 
+@define('PROJECT_ROOT_DIR',   __DIR__ . '/..');
 @define('WWW',   __DIR__ . '/../web');
 @define('ADMIN', __DIR__ . '/../admin');
 @define('SPEC',  __DIR__ . '/../cache/private');

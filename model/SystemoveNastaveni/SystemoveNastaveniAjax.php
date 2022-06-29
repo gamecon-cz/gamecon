@@ -5,7 +5,7 @@ namespace Gamecon\SystemoveNastaveni;
 class SystemoveNastaveniAjax
 {
     public const AJAX_KLIC = 'ajax';
-    public const POST_KLIC = 'nastaveni';
+    public const POST_KLIC = 'nastaveni-ajax';
     public const AKTIVNI_KLIC = 'aktivni';
     public const HODNOTA_KLIC = 'hodnota';
 
