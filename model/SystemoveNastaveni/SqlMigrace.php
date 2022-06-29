@@ -22,6 +22,6 @@ class SqlMigrace
             ),
             'migrationsDirectory' => SQL_MIGRACE_DIR,
             'backupsDirectory' => ZALOHA_DB_SLOZKA,
-        ])))->run();
+        ])))->run(true);
     }
 }

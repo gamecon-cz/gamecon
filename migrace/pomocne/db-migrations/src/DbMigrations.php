@@ -28,9 +28,9 @@ class DbMigrations
         }
     }
 
-    private function handleNormalMigrations() {
+    private function handleNormalMigrations(bool $silent) {
         foreach ($this->getUnappliedMigrations() as $migration) {
-            $this->apply($migration);
+            $this->apply($migration, $silent);
         }
     }
 
@@ -172,14 +172,16 @@ SQL
         return $this->migrations;
     }
 
-    private function apply(Migration $migration) {
-        if ($this->webGui) {
+    private function apply(Migration $migration, bool $silent) {
+        if (!$silent && $this->webGui) {
             $this->webGui->confirm();
         }
 
-        echo "Applying migration {$migration->getCode()}.\n";
-        @ob_flush();
-        flush();
+        if (!$silent) {
+            echo "Applying migration {$migration->getCode()}.\n";
+            @ob_flush();
+            flush();
+        }
 
         // backup db
         if ($this->conf->doBackups) {
@@ -203,17 +205,17 @@ SQL
         }
     }
 
-    function run() {
+    function run(bool $silent = false) {
         $driver = new \mysqli_driver();
         $oldReportMode = $driver->report_mode;
         $driver->report_mode = MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT;
-        if ($this->webGui) {
+        if (!$silent && $this->webGui) {
             $this->webGui->configureEnviroment();
         }
 
-        $this->handleNormalMigrations();
+        $this->handleNormalMigrations($silent);
 
-        if ($this->webGui) {
+        if (!$silent && $this->webGui) {
             $this->webGui->cleanupEnviroment();
         }
         $driver->report_mode = $oldReportMode;
