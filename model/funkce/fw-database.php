@@ -126,14 +126,27 @@ function dbExecTime() {
     return isset($GLOBALS['dbExecTime']) ? $GLOBALS['dbExecTime'] : 0.0;
 }
 
+function throwDbException($spojeni = null) {
+    $type = dbGetExceptionType($spojeni);
+    $message = dbGetExceptionMessage($spojeni);
+    throw new $type($message);
+}
+
 /**
  * Returns instance of concrete DbException based on error message
  */
-function dbGetExceptionType() {
-    if (mysqli_errno($GLOBALS['spojeni']) === 1062) {
+function dbGetExceptionType($spojeni = null) {
+    if (mysqli_errno($spojeni ?? $GLOBALS['spojeni']) === 1062) {
         return DbDuplicateEntryException::class;
     }
     return DbException::class;
+}
+
+/**
+ * Returns instance of concrete DbException based on error message
+ */
+function dbGetExceptionMessage($spojeni = null) {
+    return mysqli_error($spojeni ?? $GLOBALS['spojeni']);
 }
 
 /**
@@ -153,7 +166,7 @@ function dbInsert($table, $valArray) {
     $q = 'INSERT INTO ' . $table . ' (' . $sloupce . ') VALUES (' . $hodnoty . ')';
     $dbLastQ = $q;
     if (!mysqli_query($spojeni, $q)) {
-        $type = dbGetExceptionType();
+        $type = dbGetExceptionType($spojeni);
         throw new $type();
     }
 }

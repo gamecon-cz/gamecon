@@ -21,4 +21,8 @@ if ($nastaveniAjax->zpracujPost()) {
     exit;
 }
 
+if ($nastaveniHtml->zpracujPost()) {
+    back();
+}
+
 $nastaveniHtml->zobrazHtml();

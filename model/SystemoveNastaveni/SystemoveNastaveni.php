@@ -57,7 +57,11 @@ class SystemoveNastaveni
     }
 
     public static function vytvorZGlobalnich(): self {
-        return new static(ROK, new \DateTimeImmutable());
+        return new static(
+            ROK,
+            new \DateTimeImmutable(),
+            parse_url(URL_WEBU, PHP_URL_HOST) === 'beta.gamecon.cz'
+        );
     }
 
     /**
@@ -68,10 +72,19 @@ class SystemoveNastaveni
      * @var \DateTimeImmutable
      */
     private $ted;
+    /**
+     * @var bool
+     */
+    private $jsmeNaBete;
 
-    public function __construct(int $rok, \DateTimeImmutable $ted) {
+    public function __construct(
+        int                $rok,
+        \DateTimeImmutable $ted,
+        bool               $jsmeNaBete
+    ) {
         $this->rok = $rok;
         $this->ted = $ted;
+        $this->jsmeNaBete = $jsmeNaBete;
     }
 
     public function rok(): int {
@@ -325,5 +338,9 @@ SQL;
 
     public function prihlaseniNaPosledniChviliXMinutPredZacatkemAktivity(): int {
         return (int)PRIHLASENI_NA_POSLEDNI_CHVILI_X_MINUT_PRED_ZACATKEM_AKTIVITY;
+    }
+
+    public function jsmeNaBete(): bool {
+        return $this->jsmeNaBete;
     }
 }
