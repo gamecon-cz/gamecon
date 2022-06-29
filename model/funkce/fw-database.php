@@ -343,9 +343,9 @@ function dbQueryS($q, array $pole = null) {
         : 0; // povolení číslování $1, $2, $3...
     return dbQuery(
         preg_replace_callback(
-            '~\$(\d+)~',
+            '~\$(?<cislo_parametru>\d+)~',
             static function (array $matches) use ($pole, $delta) {
-                return dbQv($pole[$matches[1] + $delta]);
+                return dbQv($pole[$matches['cislo_parametru'] + $delta]);
             },
             $q
         )
