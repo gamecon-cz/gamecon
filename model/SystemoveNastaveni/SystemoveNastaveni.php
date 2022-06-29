@@ -8,13 +8,56 @@ use Gamecon\Cas\DateTimeGamecon;
 class SystemoveNastaveni
 {
 
+    public static function vytvorZGlobalnich(): self {
+        return new static(
+            ROK,
+            parse_url(URL_WEBU, PHP_URL_HOST) === 'beta.gamecon.cz'
+        );
+    }
+
+    /**
+     * @param string $klic
+     * @param int $bonusZaStandardni3hAz5hAktivitu Nelze použít konstantu při změně v databázi, protože konstanta se změní až při dalším načtení PHP
+     * @return int
+     */
+    public static function spocitejBonusVypravece(
+        string $klic,
+        int    $bonusZaStandardni3hAz5hAktivitu = BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU
+    ): int {
+        switch ($klic) {
+            case 'BONUS_ZA_1H_AKTIVITU' :
+                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu / 4);
+            case 'BONUS_ZA_2H_AKTIVITU' :
+                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu / 2);
+            case 'BONUS_ZA_6H_AZ_7H_AKTIVITU' :
+                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 1.5);
+            case 'BONUS_ZA_8H_AZ_9H_AKTIVITU' :
+                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 2);
+            case 'BONUS_ZA_10H_AZ_11H_AKTIVITU' :
+                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 2.5);
+            case 'BONUS_ZA_12H_AZ_13H_AKTIVITU' :
+                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 3);
+            default :
+                throw new \LogicException("Neznámý klíč bonusu vypravěče '$klic'");
+        }
+    }
+
+    private static function zakrouhli(float $cislo): int {
+        return (int)round($cislo, 0);
+    }
+
     /**
      * @var int
      */
     private $rok;
+    /**
+     * @var bool
+     */
+    private $jsmeNaBete;
 
-    public function __construct(int $rok) {
+    public function __construct(int $rok, bool $jsmeNaBete) {
         $this->rok = $rok;
+        $this->jsmeNaBete = $jsmeNaBete;
     }
 
     public function zaznamyDoKonstant() {
@@ -238,34 +281,8 @@ SQL;
         }
     }
 
-    /**
-     * @param string $klic
-     * @param int $bonusZaStandardni3hAz5hAktivitu Nelze použít konstantu při změně v databázi, protože konstanta se změní až při dalším načtení PHP
-     * @return int
-     */
-    public static function spocitejBonusVypravece(
-        string $klic,
-        int    $bonusZaStandardni3hAz5hAktivitu = BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU
-    ): int {
-        switch ($klic) {
-            case 'BONUS_ZA_1H_AKTIVITU' :
-                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu / 4);
-            case 'BONUS_ZA_2H_AKTIVITU' :
-                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu / 2);
-            case 'BONUS_ZA_6H_AZ_7H_AKTIVITU' :
-                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 1.5);
-            case 'BONUS_ZA_8H_AZ_9H_AKTIVITU' :
-                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 2);
-            case 'BONUS_ZA_10H_AZ_11H_AKTIVITU' :
-                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 2.5);
-            case 'BONUS_ZA_12H_AZ_13H_AKTIVITU' :
-                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 3);
-            default :
-                throw new \LogicException("Neznámý klíč bonusu vypravěče '$klic'");
-        }
+    public function jsmeNaBete(): bool {
+        return $this->jsmeNaBete;
     }
 
-    private static function zakrouhli(float $cislo): int {
-        return (int)round($cislo, 0);
-    }
 }

@@ -6,6 +6,9 @@ use Gamecon\Cas\DateTimeCz;
 
 class SystemoveNastaveniHtml
 {
+    public const SYNCHRONNI_POST_KLIC = 'nastaveni';
+    public const KLIC_ZKOPIROVAT_OSTROU = 'zkopirovat_ostrou';
+
     /**
      * @var SystemoveNastaveni
      */
@@ -16,7 +19,6 @@ class SystemoveNastaveniHtml
     }
 
     public function zobrazHtml() {
-
         $template = new \XTemplate(__DIR__ . '/templates/nastaveni.xtpl');
 
         $template->assign('ajaxKlic', SystemoveNastaveniAjax::AJAX_KLIC);
@@ -33,7 +35,17 @@ class SystemoveNastaveniHtml
             $this->vypisSkupinu($skupina, $zaznamyJedneSkupiny, $template);
         }
 
+        if ($this->systemoveNastaveni->jsmeNaBete()) {
+            $templateBeta = new \XTemplate(__DIR__ . '/templates/nastaveni-beta.xtpl');
+            $templateBeta->assign('synchronniPostKlic', self::SYNCHRONNI_POST_KLIC);
+            $templateBeta->assign('zkopirovatOstrou', self::KLIC_ZKOPIROVAT_OSTROU);
+            $templateBeta->parse('nastaveniBeta');
+            $template->assign('nastaveniBeta', $templateBeta->text('nastaveniBeta'));
+            $template->parse('nastaveni.beta');
+        }
+
         $template->parse('nastaveni');
+        $template->out('nastaveni');
     }
 
     private function seskupPodleSkupin(array $zaznamy): array {
@@ -149,5 +161,20 @@ class SystemoveNastaveniHtml
             }
         );
         return $hodnotyNastaveni;
+    }
+
+    public function zpracujPost(): bool {
+        $pozadavky = post(self::SYNCHRONNI_POST_KLIC);
+        if (!$pozadavky) {
+            return false;
+        }
+        if (empty($pozadavky[self::KLIC_ZKOPIROVAT_OSTROU])) {
+            return false;
+        }
+
+        $kopieOstreDatabaze = new KopieOstreDatabaze();
+        $kopieOstreDatabaze->zkopirovatOstrouDatabazi();
+
+        return true;
     }
 }
