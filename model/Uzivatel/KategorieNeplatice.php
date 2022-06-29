@@ -17,22 +17,16 @@ class KategorieNeplatice
     public const LETOS_SE_REGISTROVAL_PAR_DNU_PRED_ODHLASOVACI_VLNOU = 5;
     public const MA_PRAVO_PLATIT_AZ_NA_MISTE = 6; // orgové a tak
 
-    /**
-     * @var \DateTimeInterface|null
-     */
+    /** @var \DateTimeInterface|null */
     private $zacatekVlnyOdhlasovani;
-    /**
-     * @var Finance
-     */
+    /** @var Finance */
     private $finance;
-    /**
-     * @var int
-     */
+    /** @var int */
     private $rok;
-    /**
-     * @var bool
-     */
+    /** @var bool */
     private $maPravoPlatitAzNaMiste;
+    /** @var float */
+    private $sumaLetosnichPlateb;
 
     public static function vytvorProNadchazejiciVlnuZGlobals(
         \Uzivatel $uzivatel
@@ -93,6 +87,10 @@ class KategorieNeplatice
      */
     public function dejCiselnouKategoriiNeplatice(): ?int {
         if ($this->maPravoPlatitAzNaMiste) {
+            /**
+             * Kategorie účastníka s právem platit až na místě
+             * tj. orgové, vypravěči, partneři, dobrovolníci senioři, čestní orgové
+             */
             // kategorie 6
             return self::MA_PRAVO_PLATIT_AZ_NA_MISTE;
         }
@@ -105,42 +103,76 @@ class KategorieNeplatice
             return null;
         }
 
-        $sumaLetosnichPlateb = $this->finance->sumaPlateb($this->rok);
-        if ($sumaLetosnichPlateb >= $this->castkaPoslalDost) {
+        if ($this->poslalDost()) {
+            /**
+             * Zaplatil 1.000 Kč a více
+             * historický zůstatek se nepočítá (tj. 1.000 Kč+ platba v aktuálním roce)
+             * aktuální zůstatek nehraje roli ani když je záporný
+             */
             // kategorie 4
             return self::LETOS_POSLAL_DOST_A_JE_TAK_CHRANENY;
         }
 
         if ($this->prihlasilSeParDniPredVlnouOdhlasovani()) {
+            /**
+             * Registroval se v době jednoho týdne před odhlašováním
+             * registrace na GC jako takový (ne na aktivitu)
+             * poslané peníze a aktuální zůstatek (tj. ani záporný) nemají vliv
+             */
             // kategorie 5
             return self::LETOS_SE_REGISTROVAL_PAR_DNU_PRED_ODHLASOVACI_VLNOU;
         }
 
-        if ($sumaLetosnichPlateb <= 0.0
-            && $this->finance->zustatekZPredchozichRocniku() > 0.0
-            && $this->finance->stav() > $this->castkaVelkyDluh // nemá tak velký dluh (protože -999 je VĚTŠÍ než -1000)
+        if (((!$this->poslalDost() && $this->sumaLetosnichPlateb() > 0.0)
+                || $this->finance->zustatekZPredchozichRocniku() > 0.0
+            )
+            && !$this->maVelkyDluh()
         ) {
+            /**
+             * Letos poslal 1 - 999 Kč nebo má kladný historický zůstatek, má celkový dluh méně než -200 Kč
+             * a přitom se registroval na GC před více než týdnem
+             */
             // kategorie 3
             return self::LETOS_NEPOSLAL_NIC_Z_LONSKA_NECO_MA_A_MA_MALY_DLUH;
         }
 
-        if ($sumaLetosnichPlateb <= 0.0
-            && $this->finance->zustatekZPredchozichRocniku() <= 0.0
-            && $this->finance->stav() < 0.0
+        if ($this->sumaLetosnichPlateb() <= 0.0
+            && ($this->finance->zustatekZPredchozichRocniku() <= 0.0 || $this->maVelkyDluh())
         ) {
+            /**
+             * Nezaplatil vůbec nic
+             * přitom se registroval na GC před více než týdnem
+             * pokud má kladný historický zůstatek, spadá do této kategorie, pokud má celkový dluh -200 Kč a více
+             */
             // kategorie 1
             return self::LETOS_NEPOSLAL_NIC_Z_LONSKA_NIC_A_MA_DLUH;
         }
 
-        if ($sumaLetosnichPlateb < $this->castkaPoslalDost
-            && $this->finance->stav() <= $this->castkaVelkyDluh // má velký dluh
-        ) {
-            // poslal málo na to, abychom mu ignorovali dluh a ještě k tomu má dluh velký
+        if (!$this->poslalDost() && $this->maVelkyDluh()) {
+            /**
+             * Letos poslal 1 - 999 Kč, má celkový dluh -200 Kč a více
+             * přitom se registroval na GC před více než týdnem
+             */
             // kategorie 2
             return self::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH;
         }
 
         return null;
+    }
+
+    private function maVelkyDluh(): bool {
+        return $this->finance->stav() <= $this->castkaVelkyDluh;
+    }
+
+    private function poslalDost(): bool {
+        return $this->sumaLetosnichPlateb() >= $this->castkaPoslalDost;
+    }
+
+    private function sumaLetosnichPlateb(): float {
+        if ($this->sumaLetosnichPlateb === null) {
+            $this->sumaLetosnichPlateb = $this->finance->sumaPlateb($this->rok);
+        }
+        return $this->sumaLetosnichPlateb;
     }
 
     private function prihlasilSeParDniPredVlnouOdhlasovani(): bool {
