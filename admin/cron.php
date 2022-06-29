@@ -22,9 +22,6 @@ $vyjimkovac->zobrazeni(\Gamecon\Vyjimkovac\Vyjimkovac::PLAIN);
  */
 function logs($s) {
     echo date('Y-m-d H:i:s ') . $s . "\n";
-    if (defined('TESTING') || TESTING) {
-        echo '<br>';
-    }
 }
 
 if (defined('TESTING') && TESTING && !defined('MAILY_DO_SOUBORU')) {
