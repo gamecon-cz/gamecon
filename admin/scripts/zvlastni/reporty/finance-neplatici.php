@@ -54,8 +54,8 @@ foreach (Uzivatel::zPrihlasenych() as $letosniUcastnik) {
         ? (new \Gamecon\Cas\DateTimeCz($finance->datumPosledniPlatby()))->formatCasStandard()
         : '';
 
-    $ucastnikData['prihlaseni_na_letosni_gc'] = $letosniUcastnik->kdySePrihlasilNaLetosniGc()
-        ? $letosniUcastnik->kdySePrihlasilNaLetosniGc()->format(DateTimeCz::FORMAT_DATUM_A_CAS_STANDARD)
+    $ucastnikData['prihlaseni_na_letosni_gc'] = $letosniUcastnik->kdySeRegistrovalNaLetosniGc()
+        ? $letosniUcastnik->kdySeRegistrovalNaLetosniGc()->format(DateTimeCz::FORMAT_DATUM_A_CAS_STANDARD)
         : '';
 
     $ucastnikData['hromadne_odhlaseni'] = $kategorieNeplatice->zacatekVlnyOdhlasovani()
