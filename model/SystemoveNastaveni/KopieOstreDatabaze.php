@@ -57,6 +57,12 @@ SHOW TABLES
 SQL,
             $localConnection,
         );
+        $this->executeQuery(
+            <<<SQL
+SET FOREIGN_KEY_CHECKS = 0
+SQL,
+            $localConnection
+        );
         $localTables = mysqli_fetch_all($result);
         foreach ($localTables as $localTableWrapped) {
             $localTable = reset($localTableWrapped);
@@ -67,6 +73,12 @@ SQL,
                 $localConnection
             );
         }
+        $this->executeQuery(
+            <<<SQL
+SET FOREIGN_KEY_CHECKS = 1
+SQL,
+            $localConnection
+        );
         $command = '';
         while (($row = fgets($handle)) !== false) {
             $command .= $row;
