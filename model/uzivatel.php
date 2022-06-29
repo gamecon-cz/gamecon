@@ -1606,7 +1606,7 @@ SQL,
         return $zakladniAdminUrl;
     }
 
-    public function kdySePrihlasilNaLetosniGc(): ?DateTimeImmutable {
+    public function kdySeRegistrovalNaLetosniGc(): ?DateTimeImmutable {
         if (!$this->gcPrihlasen()) {
             return null;
         }

@@ -39,7 +39,7 @@ class KategorieNeplatice
     ) {
         return new self(
             $uzivatel->finance(),
-            $uzivatel->kdySePrihlasilNaLetosniGc(),
+            $uzivatel->kdySeRegistrovalNaLetosniGc(),
             $uzivatel->maPravoNerusitObjednavky(),
             SystemoveNastaveni::zacatekNejblizsiVlnyOdhlasovani(),
             ROK,
@@ -60,26 +60,26 @@ class KategorieNeplatice
     /**
      * @var int
      */
-    private $pocetDnuPredVlnouKdyJeJesteChrane;
+    private $pocetDnuPredVlnouKdyJeJesteChranen;
     /**
      * @var \DateTimeInterface|null
      */
-    private $kdySePrihlasilNaLetosniGc;
+    private $kdySeRegistrovalNaLetosniGc;
 
     public function __construct(
         Finance             $finance,
-        ?\DateTimeInterface $kdySePrihlasilNaLetosniGc,
+        ?\DateTimeInterface $kdySeRegistrovalNaLetosniGc,
         bool                $maPravoPlatitAzNaMiste,
         ?\DateTimeInterface $zacatekVlnyOdhlasovani, // prvni nebo druha vlna
         int                 $rok,
         float               $castkaVelkyDluh,
         float               $castkaPoslalDost,
-        int                 $pocetDnuPredVlnouKdyJeJesteChrane
+        int                 $pocetDnuPredVlnouKdyJeJesteChranen
     ) {
         $this->castkaVelkyDluh = -abs($castkaVelkyDluh);
         $this->castkaPoslalDost = $castkaPoslalDost;
-        $this->pocetDnuPredVlnouKdyJeJesteChrane = $pocetDnuPredVlnouKdyJeJesteChrane;
-        $this->kdySePrihlasilNaLetosniGc = $kdySePrihlasilNaLetosniGc;
+        $this->pocetDnuPredVlnouKdyJeJesteChranen = $pocetDnuPredVlnouKdyJeJesteChranen;
+        $this->kdySeRegistrovalNaLetosniGc = $kdySeRegistrovalNaLetosniGc;
         $this->zacatekVlnyOdhlasovani = $zacatekVlnyOdhlasovani;
         $this->finance = $finance;
         $this->rok = $rok;
@@ -97,9 +97,9 @@ class KategorieNeplatice
             return self::MA_PRAVO_PLATIT_AZ_NA_MISTE;
         }
 
-        if (!$this->kdySePrihlasilNaLetosniGc
+        if (!$this->kdySeRegistrovalNaLetosniGc
             || !$this->zacatekVlnyOdhlasovani
-            || $this->zacatekVlnyOdhlasovani < $this->kdySePrihlasilNaLetosniGc
+            || $this->zacatekVlnyOdhlasovani < $this->kdySeRegistrovalNaLetosniGc
         ) {
             // zjišťovat neplatiče už nejde, některé platby mohly přijít až po začátku hromadného odhlašování (leda bychom filtrovali jednotlivé platby, ale tou dobou už to stejně nepotřebujeme)
             return null;
@@ -132,14 +132,21 @@ class KategorieNeplatice
             return self::LETOS_NEPOSLAL_NIC_Z_LONSKA_NIC_A_MA_DLUH;
         }
 
-        // poslal málo na to, abychom mu ignorovali dluh a ještě k tomu má dluh velký
-        // kategorie 2
-        return self::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH;
+        if ($sumaLetosnichPlateb < $this->castkaPoslalDost
+            && $this->finance->stav() <= $this->castkaVelkyDluh // má velký dluh
+        ) {
+            // poslal málo na to, abychom mu ignorovali dluh a ještě k tomu má dluh velký
+            // kategorie 2
+            return self::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH;
+        }
+
+        return null;
     }
 
     private function prihlasilSeParDniPredVlnouOdhlasovani(): bool {
-        /** pozor, @see \DateInterval::$days vrací vždy absolutní hodnotu */
-        return $this->zacatekVlnyOdhlasovani->diff($this->kdySePrihlasilNaLetosniGc)->days <= $this->pocetDnuPredVlnouKdyJeJesteChrane;
+        return $this->kdySeRegistrovalNaLetosniGc <= $this->zacatekVlnyOdhlasovani
+            /** pozor, @see \DateInterval::$days vrací vždy absolutní hodnotu */
+            && $this->zacatekVlnyOdhlasovani->diff($this->kdySeRegistrovalNaLetosniGc)->days <= $this->pocetDnuPredVlnouKdyJeJesteChranen;
     }
 
     /**
