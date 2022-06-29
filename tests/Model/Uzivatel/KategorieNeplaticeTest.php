@@ -50,7 +50,7 @@ class KategorieNeplaticeTest extends TestCase
 
         $dataNeplatice = [];
         foreach ($this->pravoPlatitAzNaMistePrebijeVsechno() as $index => $pravoPLatitAzNaMistePrebijeVsechno) {
-            $dataNeplatice['právo platit až na místě přebije všechno ' . chr(ord('a') + $index)] = $pravoPLatitAzNaMistePrebijeVsechno;
+            $dataNeplatice['právo platit až na místě přebije všechno ' . $this->pismenoPodleIndexu($index)] = $pravoPLatitAzNaMistePrebijeVsechno;
         }
 
         return array_merge(
@@ -66,6 +66,16 @@ class KategorieNeplaticeTest extends TestCase
                 'letos poslal dost' => [$this->finance(100.0), $predMesicem, $nemaPravoPlatitAzNaMiste, $zitra, ROK, -0.2 /* < stav -0.1 = malý dluh */, 100, 0, 4],
             ]
         );
+    }
+
+    private function pismenoPodleIndexu(int $index): string {
+        $uvodniPismeno = $index < (ord('z') - ord('a'))
+            ? 'a'
+            : 'A';
+        $posunPismene = $uvodniPismeno === 'a'
+            ? $index
+            : $index - (ord('z') - ord('a'));
+        return chr(ord($uvodniPismeno) + $posunPismene);
     }
 
     /**
@@ -97,7 +107,7 @@ class KategorieNeplaticeTest extends TestCase
             }
         }
 
-        foreach ($this->kombinaceProKategorii3() as $velkyDluh) {
+        foreach ($this->kombinaceProKategorii3VelkyDluh() as $velkyDluh) {
             [
                 'suma_plateb' => $sumaPlateb,
                 'zustatek_z_predchozich_rocniku' => $zustatekZPredchozichRocniku,
@@ -135,7 +145,7 @@ class KategorieNeplaticeTest extends TestCase
     /**
      * @see \Gamecon\Uzivatel\KategorieNeplatice::LETOS_NEPOSLAL_NIC_Z_LONSKA_NECO_MA_A_MA_MALY_DLUH
      */
-    private function kombinaceProKategorii3(): array {
+    private function kombinaceProKategorii3VelkyDluh(): array {
         return [
             'nic letos neposlal' => [
                 'suma_plateb' => 0.0,
