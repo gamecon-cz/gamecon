@@ -21,6 +21,10 @@ function logs($s) {
     echo date('Y-m-d H:i:s ') . $s . "\n";
 }
 
+if (defined('TESTING') && TESTING && !defined('MAILY_DO_SOUBORU')) {
+    define('MAILY_DO_SOUBORU', true);
+}
+
 /////////////////////////////////// příprava ///////////////////////////////////
 
 // otestovat, že je skript volán s heslem a sprvánou url
