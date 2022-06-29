@@ -2517,15 +2517,15 @@ JOIN akce_organizatori
     ON akce_seznam.id_akce = akce_organizatori.id_akce
 WHERE akce_seznam.konec BETWEEN $0 AND $1
     AND akce_seznam.stav NOT IN ($2)
-    AND akce_seznam.rok = $2
+    AND akce_seznam.rok = $3
 GROUP BY akce_seznam.id_akce
 HAVING COUNT(akce_organizatori.id_uzivatele) <= $maximalneVypravecu
 SQL,
             [
-                $konciciNejmeneDo->format(DateTimeCz::FORMAT_DB),
-                $konciciNejviceDo->format(DateTimeCz::FORMAT_DB),
-                [\Stav::UZAVRENA, \Stav::SYSTEMOVA],
-                ROK,
+                0 => $konciciNejmeneDo->format(DateTimeCz::FORMAT_DB),
+                1 => $konciciNejviceDo->format(DateTimeCz::FORMAT_DB),
+                2 => [\Stav::UZAVRENA, \Stav::SYSTEMOVA],
+                3 => ROK,
             ]
         );
 
