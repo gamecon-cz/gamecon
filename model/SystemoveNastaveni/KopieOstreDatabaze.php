@@ -87,6 +87,7 @@ SQL,
                 $command = '';
             }
         }
+        (new SqlMigrace())->migruj();
     }
 
     /**
