@@ -2507,9 +2507,9 @@ SQL,
      * @return int
      */
     public static function upozorniNaNeuzavreneKonciciOdDo(
-        \DateTime $konciciNejmeneDo,
-        \DateTime $konciciNejviceDo,
-        int       $maximalneVypravecu
+        \DateTimeInterface $konciciNejmeneDo,
+        \DateTimeInterface $konciciNejviceDo,
+        int                $maximalneVypravecu
     ): int {
         $ids = dbOneArray(<<<SQL
 SELECT akce_seznam.id_akce
