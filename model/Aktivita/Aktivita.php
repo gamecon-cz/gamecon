@@ -2433,8 +2433,8 @@ SQL
         $systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobalnich();
         $uzavrenaOd = $this->uzavrenaOd();
         if (!$uzavrenaOd) {
-            $konec = $this->konec() ?? DateTimeGamecon::konecGameconu($systemoveNastaveni->rok());
-            return \DateTimeImmutable::createFromMutable($konec);
+            $konecGameconu = DateTimeGamecon::konecGameconu($this->rok());
+            return \DateTimeImmutable::createFromMutable($konecGameconu);
         }
         return $uzavrenaOd->modify("+ {$systemoveNastaveni->aktivitaEditovatelnaXMinutPoJejimKonci()} minutes");
     }
