@@ -238,11 +238,12 @@ define('SUPERADMINI', [1682 /* Štěpán "Bonjour" Štefaník */, 4032 /* Jarosl
 
 @define('ADRESAR_WEBU_S_OBRAZKY', __DIR__ . '/../web');
 
-@define('PROJECT_ROOT_DIR',   __DIR__ . '/..');
-@define('WWW',   __DIR__ . '/../web');
+@define('PROJECT_ROOT_DIR', __DIR__ . '/..');
+@define('WWW', __DIR__ . '/../web');
 @define('ADMIN', __DIR__ . '/../admin');
-@define('SPEC',  __DIR__ . '/../cache/private');
+@define('SPEC', __DIR__ . '/../cache/private');
 @define('CACHE', __DIR__ . '/../cache/public');
+@define('SQL_MIGRACE_DIR', __DIR__ . '/../migrace');
 @define('ZALOHA_DB_SLOZKA', __DIR__ . '/../backup/db'); // cesta pro zálohy databáze
 @define('ADMIN_STAMPS', rtrim(ADMIN, '/') . '/stamps');
 
