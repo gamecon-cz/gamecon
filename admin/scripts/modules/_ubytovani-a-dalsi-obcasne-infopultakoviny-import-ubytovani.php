@@ -41,6 +41,7 @@ $indexPrvniNoc = $hlavicka['prvni_noc'];
 $indexPosledniNoc = $hlavicka['posledni_noc'];
 $indexPokoj = $hlavicka['pokoj'];
 $indexTyp = $hlavicka['typ'];
+$indexUbytovanS = $hlavicka['ubytovan_s'] ?? null;
 
 $rowIterator->next();
 
@@ -139,6 +140,12 @@ while ($rowIterator->valid()) {
                 $ucastnik,
                 false
             );
+            if ($indexUbytovanS !== null) {
+                $zapsanoZmenVTransakci += ShopUbytovani::ulozSKymChceBytNaPokoji(
+                    trim((string)$radek[$indexUbytovanS]),
+                    $ucastnik,
+                );
+            }
             dbCommit();
             if ($zapsanoZmenVTransakci > 0) {
                 $zapsanoZmenPerUcastnik++;

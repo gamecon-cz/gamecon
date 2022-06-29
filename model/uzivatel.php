@@ -82,6 +82,13 @@ SQL
         return $adresa;
     }
 
+    public function ubytovanS(string $ubytovanS = null): string {
+        if ($ubytovanS !== null) {
+            $this->u['ubytovan_s'] = $ubytovanS;
+        }
+        return $this->u['ubytovan_s'] ?? '';
+    }
+
     /**
      * Vrátí aboslutní adresu avataru včetně http. Pokud avatar neexistuje, vrací
      * default avatar. Pomocí adresy je docíleno, aby se při nezměně obrázku dalo

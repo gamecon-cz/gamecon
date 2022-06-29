@@ -72,6 +72,10 @@ SQL,
     }
 
     public static function ulozSKymChceBytNaPokoji(string $ubytovanS, Uzivatel $ucastnik): int {
+        if ($ucastnik->ubytovanS() === $ubytovanS) {
+            return 0;
+        }
+        $ucastnik->ubytovanS($ubytovanS);
         $mysqliResult = dbQueryS('UPDATE uzivatele_hodnoty SET ubytovan_s=$0 WHERE id_uzivatele=' . $ucastnik->id(), [trim($ubytovanS)]);
         return dbNumRows($mysqliResult);
     }
