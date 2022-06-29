@@ -194,7 +194,7 @@
                 id="uz-needitovatelna-{idAktivity}"
                 class="alert-info text-skoncila {showUzNeeditovatelna}"
             >
-              <em>🧊Už ji nelze editovat ani zpětně 🧊</em>
+              <em>🧊 Už ji nelze editovat ani zpětně 🧊</em>
             </span>
           </span>
 
