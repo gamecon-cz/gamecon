@@ -175,6 +175,8 @@ class SystemoveNastaveniHtml
         $kopieOstreDatabaze = new KopieOstreDatabaze();
         $kopieOstreDatabaze->zkopirovatOstrouDatabazi();
 
+        oznameni('Ostrá databáze byla zkopírována');
+
         return true;
     }
 }
