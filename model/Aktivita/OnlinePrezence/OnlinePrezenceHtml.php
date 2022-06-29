@@ -170,7 +170,7 @@ class OnlinePrezenceHtml
                 'showUzavrit',
                 $this->cssZobrazitKdyz($neuzavrena)
             );
-            // ❄️Už ji nelze editovat ani zpětně ❄️
+            // 🧊 ️Už ji nelze editovat ani zpětně 🧊️
             $template->assign(
                 'showUzNeeditovatelna',
                 $this->cssZobrazitKdyz($neuzavrena && $uzNepujdeEditovat)
@@ -184,7 +184,7 @@ class OnlinePrezenceHtml
             $template->assign(
                 'showAktivitaSkoncila',
                 // zobrazíme pouze v případě, že aktivitu lze editovat i po skončení
-                $this->cssZobrazitKdyz($muzeMenitUcastnikyHned && $editovatelnaHned)
+                $this->cssZobrazitKdyz($muzeMenitUcastnikyHned && !$editovatelnaHned)
             );
             // ⚠️Pozor, aktivita je už uzavřená! ⚠️
             $template->assign(
@@ -271,12 +271,11 @@ class OnlinePrezenceHtml
 
     private function dejEditovatelnaOdTimestamp(Aktivita $aktivita): int {
         $zacatek = $aktivita->zacatek();
-        $hnedEditovatelnaSeZacatkemDo = $zacatek
-            ? (clone $zacatek)->modify("-{$this->systemoveNastaveni->aktivitaEditovatelnaXMinutPredJejimZacatkem()} minutes")
-            : null;
-        if (!$hnedEditovatelnaSeZacatkemDo) {
+        if (!$zacatek) {
             return 0;
         }
+        $hnedEditovatelnaSeZacatkemDo = (clone $zacatek)
+            ->modify("-{$this->systemoveNastaveni->aktivitaEditovatelnaXMinutPredJejimZacatkem()} minutes");
         return $hnedEditovatelnaSeZacatkemDo <= $this->systemoveNastaveni->ted()
             ? 0 // aktivitu může editovat hned
             // pokud je editovatelná například od 12:10, ale "teď" je 12:00, tak musíme počkat oněch rozdílových 10 minut
