@@ -10,9 +10,9 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 class KategorieNeplatice
 {
 
-    public const LETOS_NEZAPLATIL_VUBEC_NIC = 1;
+    public const LETOS_NEPOSLAL_NIC_Z_LONSKA_NIC_A_MA_DLUH = 1;
     public const LETOS_POSLAL_MALO_A_MA_VELKY_DLUH = 2;
-    public const LETOS_POSLAL_MALO_A_MA_MALY_DLUH = 3;
+    public const LETOS_NEPOSLAL_NIC_Z_LONSKA_NECO_MA_A_MA_MALY_DLUH = 3;
     public const LETOS_POSLAL_DOST_A_JE_TAK_CHRANENY = 4;
     public const LETOS_SE_REGISTROVAL_PAR_DNU_PRED_ODHLASOVACI_VLNOU = 5;
     public const MA_PRAVO_PLATIT_AZ_NA_MISTE = 6; // orgové a tak
@@ -97,15 +97,16 @@ class KategorieNeplatice
             return self::MA_PRAVO_PLATIT_AZ_NA_MISTE;
         }
 
-        if (!$this->kdySePrihlasilNaLetosniGc || !$this->zacatekVlnyOdhlasovani
-            // zjišťovat neplatiče už nejde, některé platby mohly přijít až po začátku hromadného odhlašování (leda bychom filtrovali jednotlivé platby, ale tou dobou už to stejně nepotřebujeme)
+        if (!$this->kdySePrihlasilNaLetosniGc
+            || !$this->zacatekVlnyOdhlasovani
             || $this->zacatekVlnyOdhlasovani < $this->kdySePrihlasilNaLetosniGc
         ) {
+            // zjišťovat neplatiče už nejde, některé platby mohly přijít až po začátku hromadného odhlašování (leda bychom filtrovali jednotlivé platby, ale tou dobou už to stejně nepotřebujeme)
             return null;
         }
 
-        $sumaPlateb = $this->finance->sumaPlateb($this->rok);
-        if ($sumaPlateb >= $this->castkaPoslalDost) {
+        $sumaLetosnichPlateb = $this->finance->sumaPlateb($this->rok);
+        if ($sumaLetosnichPlateb >= $this->castkaPoslalDost) {
             // kategorie 4
             return self::LETOS_POSLAL_DOST_A_JE_TAK_CHRANENY;
         }
@@ -115,15 +116,25 @@ class KategorieNeplatice
             return self::LETOS_SE_REGISTROVAL_PAR_DNU_PRED_ODHLASOVACI_VLNOU;
         }
 
-        if ($sumaPlateb <= 0.0 && $this->finance->stav() > $this->castkaVelkyDluh /* jsme schovívaví k těm, co nemají velký dluh */) {
-            // kategorie 1
-            return self::LETOS_NEZAPLATIL_VUBEC_NIC;
+        if ($sumaLetosnichPlateb <= 0.0
+            && $this->finance->zustatekZPredchozichRocniku() > 0.0
+            && $this->finance->stav() > $this->castkaVelkyDluh // nemá tak velký dluh (protože -999 je VĚTŠÍ než -1000)
+        ) {
+            // kategorie 3
+            return self::LETOS_NEPOSLAL_NIC_Z_LONSKA_NECO_MA_A_MA_MALY_DLUH;
         }
 
-        return $this->finance->stav() /* ještě zápornější než velký dluh */ <= $this->castkaVelkyDluh
-            // poslal málo na to, abychom mu ignorovali dluh a ještě k tomu má dluh velký
-            ? self::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH // kategorie 2
-            : self::LETOS_POSLAL_MALO_A_MA_MALY_DLUH; // kategorie 3
+        if ($sumaLetosnichPlateb <= 0.0
+            && $this->finance->zustatekZPredchozichRocniku() <= 0.0
+            && $this->finance->stav() < 0.0
+        ) {
+            // kategorie 1
+            return self::LETOS_NEPOSLAL_NIC_Z_LONSKA_NIC_A_MA_DLUH;
+        }
+
+        // poslal málo na to, abychom mu ignorovali dluh a ještě k tomu má dluh velký
+        // kategorie 2
+        return self::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH;
     }
 
     private function prihlasilSeParDniPredVlnouOdhlasovani(): bool {
