@@ -9,6 +9,7 @@ class SqlMigrace
 {
     public function migruj() {
         pripravCache(SPEC . '/db-backup');
+
         (new DbMigrations(new DbMigrationsConfig([
             'connection' => new \mysqli(
                 DBM_SERV,
@@ -17,7 +18,7 @@ class SqlMigrace
                 DBM_NAME,
                 defined('DBM_PORT')
                     ? DBM_PORT
-                    : 3305
+                    : 3306
             ),
             'migrationsDirectory' => SQL_MIGRACE_DIR,
             'backupsDirectory' => ZALOHA_DB_SLOZKA,
