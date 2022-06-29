@@ -5,12 +5,12 @@ use Gamecon\Shop\Shop;
 
 $o = dbQuery(<<<SQL
   SELECT uzivatele.id_uzivatele,
-         login_uzivatele,
-         jmeno_uzivatele,
-         prijmeni_uzivatele,
-         mesto_uzivatele,
-         ulice_a_cp_uzivatele,
-         op as cislo_op,
+         uzivatele.login_uzivatele,
+         uzivatele.jmeno_uzivatele,
+         uzivatele.prijmeni_uzivatele,
+         uzivatele.mesto_uzivatele,
+         uzivatele.ulice_a_cp_uzivatele,
+         uzivatele.op as cislo_op,
     GROUP_CONCAT(DISTINCT IF(
       predmety.nazev LIKE 'Spacák%' COLLATE utf8_czech_ci,
       'Spacák',
@@ -23,7 +23,7 @@ $o = dbQuery(<<<SQL
     MIN(predmety.ubytovani_den) as prvni_noc,
     MAX(predmety.ubytovani_den) as posledni_noc,
     GROUP_CONCAT(DISTINCT IFNULL(ubytovani.pokoj,'')) as pokoj,
-    ubytovan_s
+    uzivatele.ubytovan_s
   FROM uzivatele_hodnoty uzivatele
   JOIN r_uzivatele_zidle zidle
       ON uzivatele.id_uzivatele=zidle.id_uzivatele AND zidle.id_zidle=$0 -- přihlášení na gc
