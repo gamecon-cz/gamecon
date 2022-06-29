@@ -22,19 +22,19 @@ if (post('prezenceAktivity')) {
 
 $t = new XTemplate(__DIR__ . '/prezence.xtpl');
 
-$jenUzamceneNeuzavrene = !empty($_GET['uzamcene_neuzavrene']);
+$jenZamceneNeuzavrene = !empty($_GET['zamcene_neuzavrene']);
 
 $zacatek = null; // bude nastaven přes referenci ve funkci _casy
-if (!$jenUzamceneNeuzavrene) {
+if (!$jenZamceneNeuzavrene) {
     require __DIR__ . '/_casy.php'; // vhackování vybírátka času
 
     $t->assign('casy', _casy($zacatek, true));
 }
 
-$t->assign('checked', $jenUzamceneNeuzavrene ? 'checked' : '');
+$t->assign('checked', $jenZamceneNeuzavrene ? 'checked' : '');
 $t->assign('urlAkce', getCurrentUrlWithQuery());
 foreach ($_GET as $name => $value) {
-    if ($name === 'uzamcene_neuzavrene') {
+    if ($name === 'zamcene_neuzavrene') {
         continue;
     }
     $t->assign('name', $name);
@@ -44,7 +44,7 @@ foreach ($_GET as $name => $value) {
 $t->parse('prezence.filtrAktivit');
 
 $aktivity = [];
-if ($jenUzamceneNeuzavrene) {
+if ($jenZamceneNeuzavrene) {
     $aktivity = Aktivita::zRozmezi(
         new \Gamecon\Cas\DateTimeCz('0001-01-01 00:00:01'),
         new \Gamecon\Cas\DateTimeCz('2999-12-31 00:00:01'),
@@ -54,7 +54,7 @@ if ($jenUzamceneNeuzavrene) {
     $aktivity = Aktivita::zRozmezi($zacatek, $zacatek);
 }
 
-if (!$jenUzamceneNeuzavrene) {
+if (!$jenZamceneNeuzavrene) {
     if ($zacatek && count($aktivity) === 0) {
         $t->parse('prezence.zadnaAktivita');
     }
@@ -66,6 +66,7 @@ if (!$jenUzamceneNeuzavrene) {
 foreach ($aktivity as $aktivita) {
     $vyplnena = $aktivita->nekdoUzDorazil();
     $zamcena = $aktivita->zamcena();
+    $uzavrena = $aktivita->uzavrena();
     $t->assign('a', $aktivita);
     foreach ($aktivita->prihlaseni() as $prihlasenyUzivatel) {
         $t->assign('u', $prihlasenyUzivatel);
@@ -87,11 +88,11 @@ foreach ($aktivity as $aktivita) {
         }
         $t->parse('prezence.aktivita.form.submit');
     }
-    if (!$zamcena) {
+    if (!$uzavrena) {
         /** @var \Gamecon\Cas\DateTimeCz|null $zacatek */
         $t->assign('cas', $zacatek ? $zacatek->formatDb() : null);
         $t->parse('prezence.aktivita.form.onlinePrezence');
-        $t->parse('prezence.aktivita.pozorNezamknuta');
+        $t->parse('prezence.aktivita.pozorNeuzavrena');
     }
     $t->assign(
         'nadpis',

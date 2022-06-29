@@ -11,7 +11,7 @@
     <form id="filtr-aktivit">
       <label style="cursor:pointer">
         Jen zamčené, ale dosud neuzavřené
-        <input type="checkbox" name="uzamcene_neuzavrene" value="1"
+        <input type="checkbox" name="zamcene_neuzavrene" value="1"
                {checked}
                onchange="document.getElementById('filtr-aktivit').submit()"
                style="cursor:pointer;">
@@ -113,9 +113,9 @@
     <div class="success">Uloženo OK s účastí {a.obsazenostHtml}</div>
     <!-- end:vyplnena -->
 
-    <!-- begin:pozorNezamknuta -->
-    <div class="error">Pozor, aktivita není zamknutá pro online registraci a nemá uzavřenou prezenci!</div>
-    <!-- end:pozorNezamknuta -->
+    <!-- begin:pozorNeuzavrena -->
+    <div class="error">Pozor, aktivita nemá uzavřenou prezenci!</div>
+    <!-- end:pozorNeuzavrena -->
 
   </div>
   <!-- end:aktivita -->
