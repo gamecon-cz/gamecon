@@ -58,7 +58,8 @@ SQL,
             $localConnection,
         );
         $localTables = mysqli_fetch_all($result);
-        foreach ($localTables as $localTable) {
+        foreach ($localTables as $localTableWrapped) {
+            $localTable = reset($localTableWrapped);
             $this->executeQuery(
                 <<<SQL
 DROP TABLE IF EXISTS `$localTable`
