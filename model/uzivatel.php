@@ -1725,7 +1725,7 @@ SQL,
         return $zakladniAdminUrl . '/' . basename(__DIR__ . '/../admin/scripts/modules/moje-aktivity/moje-aktivity.php', '.php');
     }
 
-    public function kdySePrihlasilNaLetosniGc(): ?DateTimeImmutable {
+    public function kdySeRegistrovalNaLetosniGc(): ?DateTimeImmutable {
         if (!$this->gcPrihlasen()) {
             return null;
         }
