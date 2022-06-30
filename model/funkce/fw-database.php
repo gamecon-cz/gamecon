@@ -320,7 +320,7 @@ function dbFetchAll(string $query, array $params = []): array {
  * Executes arbitrary query on database
  * strings $1, $2, ... are replaced with values from $param
  * when $0 exists in, first $params maps to it, otherwise it maps to $1 etc...
- * @return bool|mysqli
+ * @return bool|mysqli_result
  */
 function dbQuery($q, $param = null) {
     if ($param) {

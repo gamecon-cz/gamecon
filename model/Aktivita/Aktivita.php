@@ -1338,7 +1338,7 @@ SQL
         $id = $this->id();
         $idRegex = '(^|,)' . $this->id() . '(,|$)'; // reg. výraz odpovídající id aktivity v seznamu odděleném čárkami
         return dbOneCol('
-      SELECT COUNT(1)
+      SELECT COUNT(id_akce)
       FROM (
         -- vybereme aktivity základního kola, z kterých se dá dostat do této aktivity (viz WHERE)
         SELECT a.id_akce
@@ -2224,7 +2224,7 @@ SQL
      */
     public function viditelnaPro(\Uzivatel $u = null) {
         return (
-            (in_array($this->a['stav'], [\Stav::AKTIVOVANA, \Stav::ZAMCENA, \Stav::PUBLIKOVANA, \Stav::PRIPRAVENA], false) // podle stavu je aktivita viditelná
+            (in_array($this->a['stav'], [\Stav::AKTIVOVANA, \Stav::ZAMCENA, \Stav::UZAVRENA, \Stav::PUBLIKOVANA, \Stav::PRIPRAVENA], false) // podle stavu je aktivita viditelná
                 && !($this->a['typ'] == \Gamecon\Aktivita\TypAktivity::TECHNICKA && $this->probehnuta()) // ale skrýt technické proběhnuté
             )
             || ($u && $this->prihlasen($u))
@@ -2745,7 +2745,7 @@ SQL,
     public static function zProgramu($order) {
         return self::zWhere(
             'WHERE a.rok = $0 AND a.zacatek AND (a.stav IN ($1) OR a.typ = $2)',
-            [ROK, [\Stav::AKTIVOVANA, \Stav::SYSTEMOVA, \Stav::PUBLIKOVANA, \Stav::PRIPRAVENA], TypAktivity::TECHNICKA],
+            [ROK, [\Stav::AKTIVOVANA, \Stav::SYSTEMOVA, \Stav::PUBLIKOVANA, \Stav::PRIPRAVENA, \Stav::ZAMCENA, \Stav::UZAVRENA], TypAktivity::TECHNICKA],
             'ORDER BY DAY(zacatek), ' . dbQi($order) . ', HOUR(zacatek), nazev_akce'
         );
     }
