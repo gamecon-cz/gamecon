@@ -22,6 +22,21 @@ if (!empty($_POST['datMaterialy']) && $uPracovni && $uPracovni->gcPrihlasen()) {
     back();
 }
 
+if (!empty($_POST['gcPrihlas']) && $uPracovni && !$uPracovni->gcPrihlasen()) {
+    $uPracovni->gcPrihlas();
+    back();
+}
+
+if (!empty($_POST['gcOdhlas']) && $uPracovni && !$uPracovni->gcPritomen()) {
+    $uPracovni->gcOdhlas();
+    back();
+}
+
+if (post('gcOdjed')) {
+    $uPracovni->gcOdjed();
+    back();
+}
+
 if (post('platba') && $uPracovni) {
     if (!$uPracovni->gcPrihlasen()) {
         varovani('Platba připsána uživateli, který není přihlášen na Gamecon', false);
@@ -38,11 +53,6 @@ if (post('platba') && $uPracovni) {
             );
         }
     }
-    back();
-}
-
-if (!empty($_POST['gcPrihlas']) && $uPracovni && !$uPracovni->gcPrihlasen()) {
-    $uPracovni->gcPrihlas();
     back();
 }
 
@@ -74,6 +84,7 @@ if (!empty($_POST['rychloreg'])) {
     }
 }
 
+// TODO: nevyužité, smazat nebo dodělat editaci na infompult
 if (!empty($_POST['telefon']) && $uPracovni) {
     dbQueryS('UPDATE uzivatele_hodnoty SET telefon_uzivatele=$0 WHERE id_uzivatele=' . $uPracovni->id(), [$_POST['telefon']]);
     $uPracovni->otoc();
@@ -102,16 +113,6 @@ if (!empty($_POST['prodej'])) {
         $yu = 'y';
     }
     oznameni("Prodáno $kusu kus$yu $nazevPredmetu");
-    back();
-}
-
-if (!empty($_POST['gcOdhlas']) && $uPracovni && !$uPracovni->gcPritomen()) {
-    $uPracovni->gcOdhlas();
-    back();
-}
-
-if (post('gcOdjed')) {
-    $uPracovni->gcOdjed();
     back();
 }
 
@@ -177,38 +178,4 @@ if (post('pridelitPokoj') && $uPracovni) {
     } catch (Error $e) {
         back();
     }
-}
-
-
-if (post('zmenitUdaj') && $uPracovni) {
-    $udaje = post('udaj');
-    if ($udaje['op'] ?? null) {
-        $uPracovni->cisloOp($udaje['op']);
-        unset($udaje['op']);
-    }
-    if (empty($udaje['potvrzeni_zakonneho_zastupce'])) {
-        // datum potvrzeni je odskrnute (prohlizec nezaskrtly chceckbox neposle), musime ho smazat
-        $udaje['potvrzeni_zakonneho_zastupce'] = null;
-    }
-    if (empty($udaje['potvrzeni_proti_covid19_overeno_kdy'])) {
-        // datum potvrzeni je odskrnute (prohlizec nezaskrtly chceckbox neposle), musime ho smazat
-        $udaje['potvrzeni_proti_covid19_overeno_kdy'] = null;
-    }
-    try {
-        dbUpdate('uzivatele_hodnoty', $udaje, ['id_uzivatele' => $uPracovni->id()]);
-    } catch (DbDuplicateEntryException $e) {
-        if ($e->key() === 'email1_uzivatele') {
-            chyba('Uživatel se stejným e-mailem již existuje.');
-        } else if ($e->key() === 'login_uzivatele') {
-            chyba('Uživatel se stejným e-mailem již existuje.');
-        } else {
-            chyba('Uživatel se stejným údajem již existuje.');
-        }
-    } catch (Exception $e) {
-        $vyjimkovac->zaloguj($e);
-        chyba('Došlo k neočekávané chybě.');
-    }
-
-    $uPracovni->otoc();
-    back();
 }

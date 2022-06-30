@@ -8,6 +8,7 @@
 .aBox .submit-btn {
   float: right; 
   margin-top: 4px;
+  margin-left: 2px;
 }
 
 body {
@@ -1140,6 +1141,7 @@ Radio musí být ve tvaru:
   "pokoje"
   "platba"
   "prodej"
+  "predmety"
   ;
 }
 
@@ -1159,6 +1161,10 @@ Radio musí být ve tvaru:
   grid-area: platba;
 }
 
+.infopult-grid--item-predmety {
+  grid-area: predmety;
+}
+
 .infopult-grid--item-prodej {
   grid-area: prodej;
 }
@@ -1173,6 +1179,7 @@ Radio musí být ve tvaru:
 @media only screen and (min-width: 600px) {
   .infopult-grid--item {
     width: fit-content;
+    min-width: 60%;
   }
 }
 
@@ -1188,6 +1195,7 @@ Radio musí být ve tvaru:
     grid-template-areas: 
       "přehled ubytování ubytování"
       "platba pokoje prodej"
+      ". . predmety"
       ;
   }
 }
@@ -1198,8 +1206,9 @@ Radio musí být ve tvaru:
     grid-template-columns: repeat(3, 1fr);
     grid-template-areas: 
       "přehled pokoje ubytování"
-      "platba pokoje ubytování"
-      "platba . prodej"
+      "přehled prodej ubytování"
+      "platba prodej ubytování"
+      "platba prodej predmety"
       ;
   }
   .infopult-grid--item-přehled {

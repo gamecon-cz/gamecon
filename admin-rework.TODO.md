@@ -74,19 +74,19 @@
       - [X] Ubytování
     - [ ] Přesunout "Nastavení pokojů" na stejnou kartu
   - ~~*karta objednávky předmětů* Odebrána, bude součástí *Infopult->Přehled->Balíček*.~~ místa je dost tak nakonec se nechává
-  - [ ] karta objednávky předmětů
-    - [ ] Přehled objednaných předmětů
-        - [ ] Aktuální přehled “Objednávky a platby”, který se zobrazuje na záložce “Úvod” se celý tak jako je včetně objednávek předmětů, přesune na novou záložku “Uživatel” viz níže.
-        - [ ] Na záložce “Úvod” by z něj měl zůstat jen přehled objednaných předmětů a jejich počet. 
-        - [ ] Tj. z přehledu vyřadit: aktivity, strava, ubytování, dobrovolné vstupné, platby.
-        - [ ] Nezobrazovat ceny, ale pouze počet. Tj. zobrazit: kostky, trička, placky, veškerý další merch
+  - [X] karta objednávky předmětů
+    - [X] Přehled objednaných předmětů
+        - [X] Aktuální přehled “Objednávky a platby”, který se zobrazuje na záložce “Úvod” se celý tak jako je včetně objednávek předmětů, přesune na novou záložku “Uživatel” viz níže.
+        - [X] Na záložce “Úvod” by z něj měl zůstat jen přehled objednaných předmětů a jejich počet. 
+          Tj. z přehledu vyřadit: aktivity, strava, ubytování, dobrovolné vstupné, platby.
+        - [X] Nezobrazovat ceny, ale pouze počet. Tj. zobrazit: kostky, trička, placky, veškerý další merch
   - [X] Prodej předmětů
     - *Nezměněno, bude součástí jiného PR*
   - [ ] /Infopult default pro “Infopult” židli
-  - [ ] rozmístění karet / Stylování (grid)
-  - [ ] odstranit nevyužitou logiku
+  - [X] rozmístění karet / Stylování (grid)
+  - [X] odstranit nevyužitou logiku
   - [X] odebrat id uživatele odevšad
-  - [ ] ubytování a nastavení 
+  - [X] ubytování a nastavení 
   - [ ] Opravit anonymní prodej
   - [ ] stylování nevybraný uživatel
 
@@ -154,6 +154,7 @@
   Dodefinovat chování upraveného nastavení pokojů
   Co jsou povinné údaje pro infopult->Přehled->Údaje ? (implementováno v uzivatel chybejiciUdaje)
   Odhlásit z GC komunikovat proč nemůžu provést
+  - chybová hláška pro vypsání pokoje je nepraktická, resetuje vypis pokoje na předchozí hondotu
 
 # Bude součástí dalších PR
   - undo stavu pro finance (navrácení akce při ukliknutí - přihlásit, přijel, dát materiály, odjel)
@@ -162,6 +163,7 @@
   - další editace prodeje předmětů
   - *(optional)* Reversovatelné akce z židle "finance" při překlepnutí (od-přijet, od-dát materiály, od-odjel)
   - *(optional)* Modal potvrzení covid s ano ne bez potřeby překlikávání mezi záložkami prohlížeče ?
+
 
 - [ ] Vykopírovat nehotové TODO pro další PR jinam (do Trella)
 - [ ] Připravit na merge
