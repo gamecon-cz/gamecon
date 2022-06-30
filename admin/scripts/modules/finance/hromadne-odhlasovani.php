@@ -74,6 +74,7 @@ $idUzivateluRaw = trim(post('ids') ?? '');
 $t->assign('ids', $idUzivateluRaw);
 
 if (post('pripravit')) {
+    ini_set('memory_limit', '256M');
     if ($idUzivateluRaw === '') {
         chyba('Žádní uživatelé nebyli odhlášeni. Nejdříve vyplň jejich IDčka.');
         return;
