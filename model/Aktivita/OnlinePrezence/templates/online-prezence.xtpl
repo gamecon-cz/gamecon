@@ -157,31 +157,33 @@
         </div>
 
         <div style="padding: 0.5em 0" class="row">
-          <span class="col-xl-3 col-md-6 col-sm-12 text-sm-center text-md-start align-self-center"
-                style="white-space: nowrap; text-align: center">
+          <div class="col-xl-3 col-md-6 col-sm-12 text-sm-center text-md-start align-self-center"
+               style="white-space: nowrap; text-align: center">
 
-            <span class="text-ceka {showCeka}">
+            <div class="text-ceka {showCeka}">
               <em>⏳ Můžeš ji editovat za <span id="odpocet-{idAktivity}" class="odpocet"></span> ⏳</em>
-            </span>
+            </div>
 
-            <span id="zamcena-{idAktivity}" class="{showZamcena}">
+            <div id="zamcena-{idAktivity}" class="{showZamcena}">
               <em>🔒 Zamčena pro online přihlašování 🔒</em>
-            </span>
+            </div>
 
-            <span id="uzavrena-{idAktivity}" class="{showUzavrena}">
+            <div id="uzavrena-{idAktivity}" class="{showUzavrena}">
               <em><span class="emoji">📕</span> Uzavřena <span class="emoji">📕</span></em>
-            </span>
+            </div>
 
-            <button class="btn btn-outline-danger tlacitko-uzavrit-aktivitu {showUzavrit}"
-                    style="width: 100%"
-                    id="otevrena-{idAktivity}"
-                    type="button"
-                    data-bs-toggle="modal"
-                    data-bs-target="#modalOpravduUzavrit"
-                    onclick="posledneKliknutaAktivitaId={idAktivity}">
-              Uzavřít <span class="emoji">📕</span>
-            </button>
-          </span>
+            <div>
+              <button class="btn btn-outline-danger tlacitko-uzavrit-aktivitu {showUzavrit}"
+                      style="width: 100%"
+                      id="otevrena-{idAktivity}"
+                      type="button"
+                      data-bs-toggle="modal"
+                      data-bs-target="#modalOpravduUzavrit"
+                      onclick="posledneKliknutaAktivitaId={idAktivity}">
+                Uzavřít <span class="emoji">📕</span>
+              </button>
+            </div>
+          </div>
 
           <span class="col-xl col-md col-sm text-sm-center text-md-start align-self-center">
             <span
