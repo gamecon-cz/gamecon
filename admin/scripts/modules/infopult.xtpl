@@ -196,19 +196,18 @@
         </td>
       </tr>
       <tr>
-        <td>Ubytování:</td>
+        <td>Spolubydlící:</td>
         <td>
           {spolubydlici}
         </td>
       </tr>
     </table>
-    <!-- begin:ubytovani -->
-    Zrušit jiné ubytování než neděli může pouze šéf Infa.<br><br>
+    Zrušit jiné ubytování než neděli může pouze šéf Infa.<br>
     <form method="post">
-      {shop.ubytovaniHtml}<br>
+      {ubytovaniTabulka}<br>
       <input type="submit" name="zpracujUbytovani" value="Uložit" class="submit-btn">
     </form>
-    <!-- end:ubytovani -->
+
     {status}
   </div>
 

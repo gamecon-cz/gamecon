@@ -19,6 +19,7 @@ use \Gamecon\Cas\DateTimeGamecon;
 
 require_once __DIR__ . '/../funkce.php';
 require_once __DIR__ . '/../konstanty.php';
+require_once __DIR__ . '/_ubytovani_tabulka.php';
 
 $nastaveni = ['ubytovaniBezZamku' => true, 'jidloBezZamku' => true];
 $shop = $uPracovni ? new Shop($uPracovni, $nastaveni) : null;
@@ -171,7 +172,7 @@ if ($uPracovni) {
     $x->assign("telefon", formatujTelCislo($up->telefon()));
 
     if ($up->gcPrihlasen()) {
-        $x->parse('infopult.uzivatel.ubytovani');
+        $x->assign('ubytovaniTabulka', UbytovaniTabulka::ubytovaniTabulkaZ($shop->ubytovani));
     }
 
     if (GC_BEZI) {
