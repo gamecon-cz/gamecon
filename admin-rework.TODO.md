@@ -45,6 +45,7 @@
       - [X] Pokoj (přesunout do nového přehledu ubytování viz dále)
       - [X] Na pokoji (přesunout do nového přehledu ubytování viz dále)
       - [X] Ubytování (přesunout do nového přehledu ubytování viz dále)
+        - [X] alternativní tabulka
     - [X] Nové pole
       - [X] Kontakt = telefonní číslo
         - [X] formát s mezerami "000 000 000"
@@ -87,6 +88,7 @@
   - [X] odebrat id uživatele odevšad
   - [ ] ubytování a nastavení 
   - [ ] Opravit anonymní prodej
+  - [ ] stylování nevybraný uživatel
 
 # Finance
 
@@ -120,6 +122,7 @@
     - [ ] skrýt co není relevantní bez uživatele
   - [ ] text Objednávání ubytování online bylo zastaveno, změny jsou možné na místě.
   - [ ] odstranit nevyužitou logiku
+  - [ ] stylování nevybraný uživatel
 
 
 # Prodej předmětů
