@@ -156,7 +156,7 @@ SQL
     /**
      * Vrátí datum narození uživatele jako DateTime
      */
-    public function datumNarozeni() {
+    public function datumNarozeni(): DateTimeCz {
         if ((int)$this->u['datum_narozeni']) //hack, neplatný formát je '0000-00-00'
             return new DateTimeCz($this->u['datum_narozeni']);
         else
@@ -659,6 +659,18 @@ SQL,
             $this->nactiPrava();
         }
         return $this->u['prava'];
+    }
+
+    /**
+     * @return DateTimeCz|null
+     */
+    public function potvrzeniZakonnehoZastupce() {
+        $potvrzeni = $this->u['potvrzeni_zakonneho_zastupce'];
+        $potvrzeni = $potvrzeni
+            ? new DateTimeCz($potvrzeni)
+            : null
+            ;
+        return $potvrzeni;
     }
 
     /** Vrátí přezdívku (nickname) uživatele */

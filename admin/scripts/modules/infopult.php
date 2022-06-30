@@ -35,9 +35,6 @@ $x->assign([
     'odhlasBtnAttr' => "disabled",
 ]);
 
-// ubytovani
-$pokojVypis = Pokoj::zCisla(get('pokoj'));
-$ubytovaniVypis = $pokojVypis ? $pokojVypis->ubytovani() : [];
 
 /**
  * @param \Uzivatel[] $spolubydlici
@@ -48,6 +45,24 @@ function spolubydliciTisk($spolubydlici)
         return "<li> {$e->jmenoNick()} ({$e->id()}) {$e->telefon()} </li>";
     });
 }
+
+// ubytovani
+$pokojVypis = Pokoj::zCisla(get('pokoj'));
+$ubytovaniVypis = $pokojVypis ? $pokojVypis->ubytovani() : [];
+
+if (get('pokoj')) {
+    $x->assign('pokojVypis', get('pokoj'));
+    if ($pokojVypis) {
+        $x->assign('ubytovani', array_uprint($ubytovaniVypis, function ($e) {
+            $ne = $e->gcPritomen() ? '' : 'ne';
+            $color = $ne ? '#f00' : '#0a0';
+            $a = $e->koncA();
+            return $e->jmenoNick() . " (<span style=\"color:$color\">{$ne}dorazil$a</span>)";
+        }, '<br>'));
+    } else
+        throw new Chyba('pokoj ' . get('pokoj') . ' neexistuje nebo je prázdný');
+}
+
 
 if ($uPracovni) {
     if (!$uPracovni->gcPrihlasen()) {
@@ -60,57 +75,30 @@ if ($uPracovni) {
     }
     /** @var \Uzivatel $up */
     $up = $uPracovni;
-    $a = $up->koncovkaDlePohlavi();
     $pokoj = Pokoj::zUzivatele($up);
     $spolubydlici = $pokoj
         ? $pokoj->ubytovani()
         : [];
     $x->assign([
-        'stav' => ($up->finance()->stav() < 0 ? $err : $ok) . ' ' . $up->finance()->stavHr(),
+        'stavUctu' => ($up->finance()->stav() < 0 ? $err : $ok) . ' ' . $up->finance()->stavHr(),
         'stavStyle' => ($up->finance()->stav() < 0 ? '"color: #f22; font-weight: bolder;"' : ""),
-        'prehled' => $up->finance()->prehledHtml(),
-        'slevyAktivity' => ($akt = $up->finance()->slevyAktivity()) ?
-            '<li>' . implode('<li>', $akt) :
-            '(žádné)',
-        'slevyVse' => ($vse = $up->finance()->slevyVse()) ?
-            '<li>' . implode('<li>', $vse) :
-            '(žádné)',
-        'id' => $up->id(),
         'pokoj' => $pokoj ? $pokoj->cislo() : '(nepřidělen)',
         'spolubydlici' => spolubydliciTisk($spolubydlici),
-        'aOrganizator' => $u->koncovkaDlePohlavi(),
         'org' => $u->jmenoNick(),
-        'shop' => $up->dejShop(),
         'poznamka' => $up->poznamka(),
-        'up' => $up,
-
         'pokojVypis' => $pokoj ? $pokoj->cislo() : "",
         'ubytovani' => spolubydliciTisk($spolubydlici),
+        'udajeChybiAttr' => 'href="uzivatel"',
+        'prehledFinance' => $up->finance()->prehledHtml([Shop::PREDMET], false),
     ]);
 
     $chybiUdaje = count($uPracovni->chybejiciUdaje()) > 0;
     $x->assign(
-        $chybiUdaje ? [
-            'udajeChybiAttr' => 'href="uzivatel"',
-            'udajeChybiText' => $err . ' Chybí osobní údaje',
-        ] : [
-            'udajeChybiText' => $ok . ' osobní údaje v pořádku',
-        ]
+        'udajeChybiText',
+        $chybiUdaje
+            ?  $err . ' chybí osobní údaje!'
+            : $ok . ' osobní údaje v pořádku',
     );
-
-    if (get('pokoj')) {
-        $x->assign('pokojVypis', get('pokoj'));
-        if ($pokojVypis) {
-            $x->assign('ubytovani', array_uprint($ubytovaniVypis, function ($e) {
-                $ne = $e->gcPritomen() ? '' : 'ne';
-                $color = $ne ? '#f00' : '#0a0';
-                $a = $e->koncA();
-                return $e->jmenoNick() . " (<span style=\"color:$color\">{$ne}dorazil$a</span>)";
-            }, '<br>'));
-        } else
-            throw new Chyba('pokoj ' . get('pokoj') . ' neexistuje nebo je prázdný');
-    }
-
 
     if ($up->finance()->stav() < 0 && !$up->gcPritomen()) {
         $x->parse('infopult.upoMaterialy');
@@ -125,11 +113,9 @@ if ($uPracovni) {
     if ($up->gcPrihlasen() && !$up->gcPritomen()) {
         $x->assign('odhlasBtnAttr', '');
     }
-    $r = dbOneLine('SELECT datum_narozeni, potvrzeni_zakonneho_zastupce FROM uzivatele_hodnoty WHERE id_uzivatele = ' . $uPracovni->id());
-    $datumNarozeni = new DateTimeImmutable($r['datum_narozeni']);
-    $potvrzeniOd = $r['potvrzeni_zakonneho_zastupce']
-        ? new DateTimeImmutable($r['potvrzeni_zakonneho_zastupce'])
-        : null;
+
+    $datumNarozeni = DateTimeImmutable::createFromMutable($up->datumNarozeni());
+    $potvrzeniOd = $up->potvrzeniZakonnehoZastupce();
     $potrebujePotvrzeniKvuliVeku = potrebujePotvrzeni($datumNarozeni);
     $mameLetosniPotvrzeniKvuliVeku = $potvrzeniOd && $potvrzeniOd->format('y') === date('y');
 
@@ -141,10 +127,11 @@ if ($uPracovni) {
             $x->assign("potvrzeniText", $err . " chybí potvrzení od rodičů!");
         }
         $x->parse('infopult.uzivatel.potvrzeni');
-    } else {
-        // $x->assign("potvrzeniAttr", "checked disabled");
-        // $x->assign("potvrzeniText", $ok . " nepotřebuje potvrzení od rodičů");
-    }
+    } 
+    // else {
+    //     $x->assign("potvrzeniAttr", "checked disabled");
+    //     $x->assign("potvrzeniText", $ok . " nepotřebuje potvrzení od rodičů");
+    // }
 
     if (VYZADOVANO_COVID_POTVRZENI) {
         $mameNahranyLetosniDokladProtiCovidu = $up->maNahranyDokladProtiCoviduProRok((int)date('Y'));
@@ -198,6 +185,7 @@ if ($uPracovni) {
         $x->parse('infopult.uzivatel.idFioPohybu');
     }
 
+    $x->parse('infopult.uzivatel.objednavky');
     $x->parse('infopult.uzivatel');
 } else {
     $x->parse('infopult.neUzivatel');
