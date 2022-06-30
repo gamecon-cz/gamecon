@@ -36,24 +36,14 @@ $x->assign([
 ]);
 
 
-/**
- * @param \Uzivatel[] $spolubydlici
- */
-function spolubydliciTisk($spolubydlici)
-{
-    return array_uprint($spolubydlici, static function (Uzivatel $e) {
-        return "<li> {$e->jmenoNick()} ({$e->id()}) {$e->telefon()} </li>";
-    });
-}
-
-// ubytovani
+// ubytovani vypis
 $pokojVypis = Pokoj::zCisla(get('pokoj'));
 $ubytovaniVypis = $pokojVypis ? $pokojVypis->ubytovani() : [];
 
 if (get('pokoj')) {
     $x->assign('pokojVypis', get('pokoj'));
     if ($pokojVypis) {
-        $x->assign('ubytovani', array_uprint($ubytovaniVypis, function ($e) {
+        $x->assign('ubytovaniVypis', array_uprint($ubytovaniVypis, function ($e) {
             $ne = $e->gcPritomen() ? '' : 'ne';
             $color = $ne ? '#f00' : '#0a0';
             $a = $e->koncA();
@@ -87,7 +77,7 @@ if ($uPracovni) {
         'org' => $u->jmenoNick(),
         'poznamka' => $up->poznamka(),
         'pokojVypis' => $pokoj ? $pokoj->cislo() : "",
-        'ubytovani' => spolubydliciTisk($spolubydlici),
+        'ubytovani' => $up->dejShop()->dejPopisUbytovani(),
         'udajeChybiAttr' => 'href="uzivatel"',
         'prehledFinance' => $up->finance()->prehledHtml([Shop::PREDMET], false),
     ]);
