@@ -52,7 +52,7 @@ class Aktivita
         BEZ_POKUT = 0b000010000,   // odhlášení bez pokut
         ZPETNE = 0b000100000,   // možnost zpětně měnit přihlášení
         TECHNICKE = 0b001000000,   // přihlašovat i skryté technické aktivity
-        NEPOSILAT_MAILY = 0b010000000,   // odhlášení bez mailů náhradníkům
+        NEPOSILAT_MAILY_SLEDUJICIM = 0b010000000,   // odhlášení bez mailů náhradníkům
         DOPREDNE = 0b100000000,   // možnost přihlásit před otevřením registrací na aktivity
         // parametry kolem továrních metod
         JEN_VOLNE = 0b00000001,   // jen volné aktivity
@@ -999,7 +999,7 @@ class Aktivita
             dbQuery("UPDATE akce_seznam SET kapacita=team_max WHERE id_akce=$idAktivity");
         }
         // Poslání mailu lidem na watchlistu
-        if ($this->volno() == "x" && !($params & self::NEPOSILAT_MAILY)) { // Před odhlášením byla aktivita plná
+        if ($this->volno() === "x" && !($params & self::NEPOSILAT_MAILY_SLEDUJICIM)) { // Před odhlášením byla aktivita plná
             $this->poslatMailNahradnikum();
         }
         $this->refresh();
@@ -1784,7 +1784,7 @@ SQL
         dbBegin();
         try {
             foreach ($this->prihlaseni() as $u) {
-                $this->odhlas($u, self::BEZ_POKUT | self::NEPOSILAT_MAILY);
+                $this->odhlas($u, self::BEZ_POKUT | self::NEPOSILAT_MAILY_SLEDUJICIM);
             }
             $idInstance = $this->patriPod();
             $idNoveMaterskeAktivity = null;
