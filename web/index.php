@@ -79,9 +79,9 @@ if (!$m->bezStranky() && !$m->bezMenu()) {
             'mojeAktivityAdminUrl' => $u->mojeAktivityAdminUrl(),
         ]);
 
-        if ($u->maPravo(P_ADMIN_UVOD)) {
+        if ($u->maPravo(\Gamecon\Pravo::ADMINISTRACE_INFOPULT)) {
             $t->parse('menu.prihlasen.admin');
-        } elseif ($u->maPravo(P_ADMIN_MUJ_PREHLED)) {
+        } elseif ($u->maPravo(\Gamecon\Pravo::ADMINISTRACE_MOJE_AKTIVITY)) {
             $t->parse('menu.prihlasen.mujPrehled');
         }
 
@@ -149,9 +149,9 @@ if ($m->bezStranky()) {
         'menu' => $menu,
     ]);
     // tisk věcí a zdar
-    if ($u && $u->maPravo(P_ADMIN_UVOD)) {
+    if ($u && $u->maPravo(\Gamecon\Pravo::ADMINISTRACE_INFOPULT)) {
         $t->parse('index.prihlasen.admin');
-    } elseif ($u && $u->maPravo(P_ADMIN_MUJ_PREHLED)) {
+    } elseif ($u && $u->maPravo(\Gamecon\Pravo::ADMINISTRACE_MOJE_AKTIVITY)) {
         $t->parse('index.prihlasen.mujPrehled');
     }
     if ($u && $u->gcPrihlasen() && FINANCE_VIDITELNE) {

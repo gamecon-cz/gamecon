@@ -102,7 +102,7 @@ unset($puvodni);
 @define('P_PLNY_SERVIS', Pravo::PLNY_SERVIS); // uživatele kompletně platí a zajišťuje GC
 @define('P_ZMENA_HISTORIE', Pravo::ZMENA_HISTORIE_AKTIVIT); // jestli smí měnit přihlášení zpětně
 
-@define('P_ADMIN_UVOD', Pravo::ADMINISTRACE_UVOD); // přístup na titulku adminu
+@define('P_ADMIN_INFOPULT', Pravo::ADMINISTRACE_INFOPULT); // přístup na titulku adminu
 @define('P_ADMIN_MUJ_PREHLED', Pravo::ADMINISTRACE_MOJE_AKTIVITY);
 
 @define('P_TRICKO_ZA_SLEVU_MODRE', Pravo::MODRE_TRICKO_ZDARMA); // modré tričko zdarma při slevě, jejíž hodnota je níže určená konstantou MODRE_TRICKO_ZDARMA_OD

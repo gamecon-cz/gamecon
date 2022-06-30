@@ -1794,7 +1794,7 @@ SQL,
      */
     public function mimoMojeAktivityUvodniAdminUrl(string $zakladniAdminUrl, string $zakladniWebUrl): array {
         // URL máme schválně přes cestu ke skriptu, protože jeho název udává výslednou URL a nechceme mít neplatnou URL, kdyby někdo ten skrip přejmenoval.
-        if ($this->maPravo(P_ADMIN_UVOD)) {
+        if ($this->maPravo(Pravo::ADMINISTRACE_INFOPULT)) {
             /** 'uvod' viz například @link http://admin.beta.gamecon.cz/moje-aktivity/uvod */
             $adminUvodUrl = basename(__DIR__ . '/../admin/scripts/modules/uvod.php', '.php');
             return ['url' => $zakladniAdminUrl . '/' . $adminUvodUrl, 'nazev' => 'do Adminu'];

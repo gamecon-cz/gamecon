@@ -14,7 +14,7 @@ class Pravo extends \DbObject
     public const PLNY_SERVIS = 7; // Uživatele kompletně platí a zajišťuje GC
     public const ZMENA_HISTORIE_AKTIVIT = 8; // Může přihlašovat a odhlašovat lidi z aktivit, které už proběhly
 
-    public const ADMINISTRACE_UVOD = 100;
+    public const ADMINISTRACE_INFOPULT = 100;
     public const ADMINISTRACE_UBYTOVANI = 101;
     public const ADMINISTRACE_AKCE = 102;
     public const ADMINISTRACE_PREZENCE = 103;
