@@ -195,6 +195,10 @@
           {spolubydlici}
         </td>
       </tr>
+      <tr>
+        <td>Ubytovaní:</td>
+        <td>{ubytovani}</td>
+      </tr>
     </table>
     Zrušit jiné ubytování než neděli může pouze šéf Infa.<br>
     <form method="post">
@@ -218,7 +222,7 @@
           </tr>
           <tr>
             <td>Ubytovaní:</td>
-            <td>{ubytovani}</td>
+            <td>{ubytovaniVypis}</td>
           </tr>
         </table>
         <input type="submit" name="pridelitPokoj" value="Přidělit" class="submit-btn">

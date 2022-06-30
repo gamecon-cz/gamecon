@@ -35,3 +35,12 @@ function xtemplateAssignZakladniPromenne($x, $u = null) {
   }
 }
 
+/**
+ * @param \Uzivatel[] $spolubydlici
+ */
+function spolubydliciTisk($spolubydlici)
+{
+    return array_uprint($spolubydlici, static function (Uzivatel $e) {
+        return "<li> {$e->jmenoNick()} ({$e->id()}) {$e->telefon()} </li>";
+    });
+}

@@ -27,19 +27,24 @@ include __DIR__ . '/_uzivatel_ovladac.php';
 $x = new XTemplate('uzivatel.xtpl');
 xtemplateAssignZakladniPromenne($x, $uPracovni);
 
-$pokoj = Pokoj::zCisla(get('pokoj'));
-$ubytovani = $pokoj ? $pokoj->ubytovani() : [];
-if (get('pokoj') && !$pokoj) throw new Chyba('pokoj ' . get('pokoj') . ' neexistuje nebo je prázdný');
-$x->assign([
-    'uid' => $uPracovni ? $uPracovni->id() : '',
-    'pokoj' => get('pokoj'),
-    'ubytovani' => array_uprint($ubytovani, function ($e) {
-        $ne = $e->gcPritomen() ? '' : 'ne';
-        $color = $ne ? '#f00' : '#0a0';
-        $a = $e->koncA();
-        return $e->jmenoNick() . " (<span style=\"color:$color\">{$ne}dorazil$a</span>)";
-    }, '<br>'),
-]);
+
+// ubytovani vypis
+$pokojVypis = Pokoj::zCisla(get('pokoj'));
+$ubytovaniVypis = $pokojVypis ? $pokojVypis->ubytovani() : [];
+
+if (get('pokoj')) {
+    $x->assign('pokojVypis', get('pokoj'));
+    if ($pokojVypis) {
+        $x->assign('ubytovaniVypis', array_uprint($ubytovaniVypis, function ($e) {
+            $ne = $e->gcPritomen() ? '' : 'ne';
+            $color = $ne ? '#f00' : '#0a0';
+            $a = $e->koncA();
+            return $e->jmenoNick() . " (<span style=\"color:$color\">{$ne}dorazil$a</span>)";
+        }, '<br>'));
+    } else
+        throw new Chyba('pokoj ' . get('pokoj') . ' neexistuje nebo je prázdný');
+}
+
 
 if ($uPracovni && $uPracovni->gcPrihlasen()) {
     $x->assign('shop', $shop);
