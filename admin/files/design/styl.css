@@ -1020,6 +1020,7 @@ Radio musí být ve tvaru:
   width: 100%;
   height: 100%;
   text-align: center;
+  user-select: none;
 }
 
 .radio--border {
@@ -1031,6 +1032,7 @@ Radio musí být ve tvaru:
   box-sizing: border-box;
   border-radius: 20% / 50%;
   border: 2px solid var(--radio-main-color);
+  cursor: pointer;
 }
 
 .radio--container--square :disabled + .radio--label {
@@ -1046,8 +1048,13 @@ Radio musí být ve tvaru:
   color: white;
 }
 
+.radio--container--square :checked ~ .radio--border {
+  cursor: unset;
+}
+
 .radio--container--square :disabled ~ .radio--border {
   border-color: gray;
+  cursor: not-allowed;
 }
 
 .header-buttons--container-main {
