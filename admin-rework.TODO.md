@@ -49,7 +49,7 @@
         - [X] formát s mezerami "000 000 000"
         - [X] formátování s podporou předvolby
       - [X] Chybí osobní údaje (pokud) - domplnit -> proklik na uživatel
-    - [X] pořadí polí 
+    - [X] pořadí polí
       - Stav účtu
       - Poznámka
       - Potvrzení *(Souhlas rodičů)*
@@ -75,7 +75,7 @@
   - [X] karta objednávky předmětů
     - [X] Přehled objednaných předmětů
         - [X] Aktuální přehled “Objednávky a platby”, který se zobrazuje na záložce “Úvod” se celý tak jako je včetně objednávek předmětů, přesune na novou záložku “Uživatel” viz níže.
-        - [X] Na záložce “Úvod” by z něj měl zůstat jen přehled objednaných předmětů a jejich počet. 
+        - [X] Na záložce “Úvod” by z něj měl zůstat jen přehled objednaných předmětů a jejich počet.
           Tj. z přehledu vyřadit: aktivity, strava, ubytování, dobrovolné vstupné, platby.
         - [X] Nezobrazovat ceny, ale pouze počet. Tj. zobrazit: kostky, trička, placky, veškerý další merch
   - [X] Prodej předmětů
@@ -84,7 +84,7 @@
   - [X] rozmístění karet / Stylování (grid)
   - [X] odstranit nevyužitou logiku
   - [X] odebrat id uživatele odevšad
-  - [X] ubytování a nastavení 
+  - [X] ubytování a nastavení
 
 
 # Finance
