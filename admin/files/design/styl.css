@@ -1000,8 +1000,7 @@ Radio musí být ve tvaru:
 .radio--container--square .radio--label {
   box-sizing: border-box;
   border-radius: 20% / 50%;
-  transition: background-color .1s ease,
-  color .1s ease;
+  transition: background-color .1s ease, color .1s ease;
 }
 
 .radio--container--square :checked + .radio--label {
