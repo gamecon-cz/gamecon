@@ -82,7 +82,7 @@
         - [X] Nezobrazovat ceny, ale pouze počet. Tj. zobrazit: kostky, trička, placky, veškerý další merch
   - [X] Prodej předmětů
     - *Nezměněno, bude součástí jiného PR*
-  - [ ] /Infopult default pro “Infopult” židli
+  - [X] /Infopult default pro “Infopult” židli
   - [X] rozmístění karet / Stylování (grid)
   - [X] odstranit nevyužitou logiku
   - [X] odebrat id uživatele odevšad

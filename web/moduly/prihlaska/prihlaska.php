@@ -165,7 +165,7 @@ foreach ($nahledy as $nahled) {
         'obrazek' => $obrazek,
         'miniatura' => $miniatura,
         'nazev' => $nahled['nazev'],
-        'display' => ($chybiObrazek || $chybiMiniatura) && (!$u || !$u->maPravo(\Gamecon\Pravo::ADMINISTRACE_UVOD))
+        'display' => ($chybiObrazek || $chybiMiniatura) && (!$u || !$u->maPravo(\Gamecon\Pravo::ADMINISTRACE_INFOPULT))
             ? 'none'
             : 'inherit',
     ]);
