@@ -164,6 +164,7 @@
   - *(optional)* Reversovatelné akce z židle "finance" při překlepnutí (od-přijet, od-dát materiály, od-odjel)
   - *(optional)* Modal potvrzení covid s ano ne bez potřeby překlikávání mezi záložkami prohlížeče ?
 
+- [ ] git filter-branch --tree-filter 'rm -f doc-image' HEAD
 
 - [ ] Vykopírovat nehotové TODO pro další PR jinam (do Trella)
 - [ ] Připravit na merge
