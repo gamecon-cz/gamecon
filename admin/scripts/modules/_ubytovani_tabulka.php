@@ -23,7 +23,6 @@ class UbytovaniTabulka {
                 'obsazeno' => $obsazeno,
                 'kapacita' => $kapacita,
                 'zbyvaMist' => $zbyvaMist,
-                'labelClass' => $zbyvaMist < 11 ? "radio--container--warning" : "",
             ])->parse('ubytovani.den.typ');
         }
         $denText = mb_ucfirst(substr($typVzor['nazev'], strrpos($typVzor['nazev'], ' ') + 1));
