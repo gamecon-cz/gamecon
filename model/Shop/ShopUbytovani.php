@@ -221,12 +221,12 @@ SQL
         return $pocetZmen;
     }
 
-    private $dny = [];     // asoc. 2D pole [den][typ] => předmět
-    private $typy = [];    // asoc. pole [typ] => předmět sloužící jako vzor daného typu
-    private $pnDny = 'shopUbytovaniDny';
-    private $pnPokoj = 'shopUbytovaniPokoj';
-    private $pnCovidFreePotvrzeni = 'shopCovidFreePotvrzeni';
-    private $u;
+    public $dny;     // asoc. 2D pole [den][typ] => předmět
+    public $typy;    // asoc. pole [typ] => předmět sloužící jako vzor daného typu
+    public $pnDny = 'shopUbytovaniDny';
+    public $pnPokoj = 'shopUbytovaniPokoj';
+    public $pnCovidFreePotvrzeni = 'shopCovidFreePotvrzeni';
+    public $u;
 
     public function __construct(array $predmety, Uzivatel $uzivatel, SystemoveNastaveni $systemoveNastaveni) {
         $this->u = $uzivatel;
@@ -340,25 +340,25 @@ SQL
     /////////////
 
     /** Vrátí, jestli daná kombinace den a typ je validní. */
-    private function existujeUbytovani($den, $typ) {
+    public function existujeUbytovani($den, $typ) {
         return isset($this->dny[$den][$typ])
             && $this->dny[$den][$typ]['nabizet'] == true;
     }
 
     /** Vrátí kapacitu */
-    private function kapacita($den, $typ) {
+    public function kapacita($den, $typ) {
         if (!isset($this->dny[$den][$typ])) return 0;
         $ub = $this->dny[$den][$typ];
         return max(0, $ub['kusu_vyrobeno']);
     }
 
     /** Vrátí počet obsazených míst pro daný den a typu ubytování */
-    private function obsazenoMist($den, $typ) {
+    public function obsazenoMist($den, $typ) {
         return $this->kapacita($den, $typ) - $this->zbyvaMist($den, $typ);
     }
 
     /** Vrátí, jestli je v daný den a typ ubytování plno */
-    private function plno($den, $typ): bool {
+    public function plno($den, $typ): bool {
         return $this->zbyvaMist($den, $typ) <= 0;
     }
 
@@ -390,13 +390,13 @@ SQL
      * @param string $typ typ ubytování ve smyslu názvu z DB bez posledního slova
      * @return bool je ubytován?
      */
-    private function ubytovan($den, $typ): bool {
+    public function ubytovan($den, $typ): bool {
         return isset($this->dny[$den][$typ])
             && $this->dny[$den][$typ]['kusu_uzivatele'] > 0;
     }
 
     /** Vrátí počet volných míst */
-    private function zbyvaMist($den, $typ): int {
+    public function zbyvaMist($den, $typ): int {
         if (!isset($this->dny[$den][$typ])) {
             return 0;
         }
@@ -405,10 +405,11 @@ SQL
     }
 
     /**
+     * TODO: dotahuje pouze data z tabulky uživatele, nemá v téhle třídě co dělat, má být součástí uživatele
      * Vrátí seznam uživatelů ve formátu Jméno Příjmení (Login) tak aby byl zpra-
      * covatelný neajaxovým našeptávátkem (čili ["položka","položka",...])
      */
-    protected function mozniUzivatele() {
+    public function mozniUzivatele() {
         $a = [];
         $o = dbQuery("
       SELECT CONCAT(jmeno_uzivatele,' ',prijmeni_uzivatele,' (',login_uzivatele,')')
