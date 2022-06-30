@@ -213,8 +213,8 @@ SQL
         return $pocetZmen;
     }
 
-    private $dny;     // asoc. 2D pole [den][typ] => předmět
-    private $typy;    // asoc. pole [typ] => předmět sloužící jako vzor daného typu
+    private $dny = [];     // asoc. 2D pole [den][typ] => předmět
+    private $typy = [];    // asoc. pole [typ] => předmět sloužící jako vzor daného typu
     private $pnDny = 'shopUbytovaniDny';
     private $pnPokoj = 'shopUbytovaniPokoj';
     private $pnCovidFreePotvrzeni = 'shopCovidFreePotvrzeni';

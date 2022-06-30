@@ -167,7 +167,7 @@ FROM (
       FROM shop_predmety predmety
       LEFT JOIN shop_nakupy nakupy USING(id_predmetu)
       WHERE predmety.stav > $0 OR nakupy.rok = $1
-      GROUP BY nakupy.id_predmetu
+      GROUP BY predmety.id_predmetu
 ) AS seskupeno
 ORDER BY typ, ubytovani_den, nazev, model_rok DESC, id_predmetu ASC
 SQL
