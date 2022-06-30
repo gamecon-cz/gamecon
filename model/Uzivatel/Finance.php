@@ -54,6 +54,10 @@ class Finance
         13 => BONUS_ZA_12H_AZ_13H_AKTIVITU,
     ];
 
+    const PREDMETY_A_STRAVA_TEXT = 'Předměty a strava';
+    const PREDMETY_TEXT = 'Předměty';
+    const STRAVA_TEXT = 'Strava';
+
     const
         // idčka typů, podle kterých se řadí výstupní tabulka $prehled
         AKTIVITA = -1,
@@ -107,7 +111,7 @@ class Finance
 
         $this->logb('Aktivity', $this->cenaAktivity, self::AKTIVITA);
         $this->logb('Ubytování', $this->cenaUbytovani, self::UBYTOVANI);
-        $this->logb('Předměty a strava', $this->cenaPredmety, self::PREDMETY_STRAVA);
+        $this->logb(self::PREDMETY_A_STRAVA_TEXT, $this->cenaPredmety, self::PREDMETY_STRAVA);
         $this->logb('Připsané platby', $this->sumaPlateb() + $this->zustatekZPredchozichRocniku, self::PLATBY_NADPIS);
         $this->logb('Stav financí', $this->stav(), self::VYSLEDNY);
     }
@@ -127,10 +131,20 @@ class Finance
         return $this->cenaUbytovani;
     }
 
+    private static function cpm_kategorie_razeni($kategorie) {
+        switch($kategorie) {
+            case 2: return 4;
+            case 3: return 2;
+            case 4: return 3;
+            default: return $kategorie;
+        }
+    }
+
     /** Porovnávání k řazení php 4 style :/ */
     private function cmp($a, $b) {
         // podle typu
-        $m = $a[2] - $b[2];
+        $m = Finance::cpm_kategorie_razeni($a[2]) 
+            - Finance::cpm_kategorie_razeni($b[2]);
         if ($m) return $m;
         // podle názvu
         $o = strcmp($a[0], $b[0]);
@@ -146,14 +160,6 @@ class Finance
         if (!$this->logovat) return;
         if (is_numeric($castka)) {
             $castka = round($castka);
-        }
-        // hack změna řazení
-        if ($kategorie == 2) {
-            $kategorie = 4;
-        } else if ($kategorie == 3) {
-            $kategorie = 2;
-        } else if ($kategorie == 4) {
-            $kategorie = 3;
         }
         // přidání
         $this->prehled[] = [
@@ -190,11 +196,42 @@ class Finance
     /**
      * Vrátí html formátovaný přehled financí
      * @todo přesun css někam sdíleně
+     * @param ?int[] $kategorie
+     * @param ?boolean $tiskCena
      */
-    function prehledHtml() {
+    function prehledHtml($kategorie = null, $tiskCena = true) {
         $out = '<table>';
-        foreach ($this->serazenyPrehled() as $r) {
-            $out .= '<tr><td style="text-align:left">' . $r[0] . '</td><td style="text-align:right">' . $r[1] . '</td></tr>';
+        $prehled = $this->serazenyPrehled();
+        if ($kategorie) {
+            $prehled = array_filter($prehled, function ($x) use ($kategorie) {
+                return in_array($x[2], $kategorie);
+            });
+
+            // TODO: fuj způsob, najít způsob jak vyřešit label hned ze začátku
+            $nahraditPredmetyAStravaS = 
+            (in_array(Shop::PREDMET, $kategorie) && !in_array(Shop::JIDLO, $kategorie)) 
+                ? self::PREDMETY_TEXT
+                : null;
+            $nahraditPredmetyAStravaS = 
+                !$nahraditPredmetyAStravaS 
+                && !in_array(Shop::PREDMET, $kategorie) 
+                && in_array(Shop::JIDLO, $kategorie)
+                    ? self::STRAVA_TEXT 
+                    : $nahraditPredmetyAStravaS
+                    ;
+            if ($nahraditPredmetyAStravaS != null)
+                $prehled = array_map(function ($x) use ($nahraditPredmetyAStravaS) {
+                        return array_replace([], $x, [str_replace(
+                            self::PREDMETY_A_STRAVA_TEXT, 
+                            $nahraditPredmetyAStravaS, 
+                            $x[0]
+                        )]);
+                    },$prehled);
+        }
+
+        foreach ($prehled as $r) {
+            $out .= '<tr><td style="text-align:left">' . $r[0] . '</td>' . 
+                ($tiskCena ? '<td style="text-align:right">' . $r[1] . '</td></tr>' : '');
         }
         $out .= '</table>';
         return $out;

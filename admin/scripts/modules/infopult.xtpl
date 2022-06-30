@@ -85,7 +85,7 @@
       <table>
         <tr>
           <td style="width: 60px">Stav účtu:</td>
-          <td style={stavStyle}> {stav}</td>
+          <td style={stavStyle}> {stavUctu}</td>
         </tr>
 
         <tr>
@@ -173,7 +173,7 @@
         </tr>
         <!-- end:idFioPohybu -->
         <tr>
-          <td>Připsal{aOrganizator}:</td>
+          <td>Připsal{a}:</td>
           <td><input type="text" value="{org}" disabled></td>
         </tr>
       </table>
@@ -188,12 +188,6 @@
       <tr>
         <td>Pokoj:</td>
         <td> {pokoj}</td>
-      </tr>
-      <tr>
-        <td>Na pokoji:</td>
-        <td>
-          <ul>{spolubydlici}</ul>
-        </td>
       </tr>
       <tr>
         <td>Spolubydlící:</td>
@@ -227,13 +221,20 @@
             <td>{ubytovani}</td>
           </tr>
         </table>
-        <input type="submit" value="Vypsat" formmethod="get">
-        <input type="submit" name="pridelitPokoj" value="Přidělit">
+        <input type="submit" name="pridelitPokoj" value="Přidělit" class="submit-btn">
+        <input type="submit" value="Vypsat" formmethod="get" class="submit-btn">
       </form>
     </div>
 
     <div style="clear: both"></div>
   </div>
+
+  <!-- begin:objednavky -->
+  <div class="infopult-grid--item infopult-grid--item-predmety aBox">
+    <h3>Objednávky a platby</h3>
+    {prehledFinance}
+  </div>
+  <!-- end:objednavky -->
 
 
   <!-- end:uzivatel -->
