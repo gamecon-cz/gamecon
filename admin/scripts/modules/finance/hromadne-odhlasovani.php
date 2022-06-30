@@ -120,6 +120,10 @@ if (post('odhlasit')) {
         $uPracovni->otoc(); // prenacti "prava" vcetne Prihlasen na GC, aby se v Uvodu neukazoval porad jako prihlaseny
     }
 
+    if (count($potize) > 0) {
+        chyba(implode('; ', $potize), false);
+    }
+
     oznameni(
         sprintf(
             'Bylo odhlášeno %d uživatelů (%s)',
