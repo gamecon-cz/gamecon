@@ -103,7 +103,7 @@ class Report
         return $nazevReportu . '_' . (new \Gamecon\Cas\DateTimeCz())->formatCasSoubor() . '.' . $pripona;
     }
 
-    private function nazevReportuZRequestu(): string {
+    public function nazevReportuZRequestu(): string {
         // část url za posledním lomítkem
         $posledniCastUrl = substr($_SERVER['REQUEST_URI'], strrpos($_SERVER['REQUEST_URI'], '/') + 1);
         $poziceZacatkuQuery = strpos($posledniCastUrl, '?');

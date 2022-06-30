@@ -270,7 +270,7 @@ SQL;
     }
 
     public static function zacatekNejblizsiVlnyOdhlasovani(\DateTimeInterface $kDatu = null): ?\DateTimeImmutable {
-        $kDatu = $kDatu ?? new \DateTimeImmutable();
+        $kDatu = $kDatu ?? new \DateTimeImmutable('-1 day'); // s rezervou jednoho dne, aby i po půlnoci ještě platilo včerejší datum odhlašování
         $prvniHromadneOdhlasovani = new \DateTimeImmutable(HROMADNE_ODHLASOVANI);
         if ($prvniHromadneOdhlasovani > $kDatu) { // teprve bude
             return $prvniHromadneOdhlasovani;

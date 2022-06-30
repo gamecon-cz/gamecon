@@ -1,6 +1,7 @@
 <?php declare(strict_types=1);
 
-use \Gamecon\Cas\DateTimeCz;
+use Gamecon\Cas\DateTimeCz;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 require_once __DIR__ . '/sdilene-hlavicky.php';
 
@@ -81,4 +82,9 @@ $report = !empty($data)
     ? Report::zPole($data)
     : Report::zPoli([], []);
 
-$report->tFormat($formatReportu);
+$report->tFormat(
+    $formatReportu,
+    'datum_hromadneho_odhlasovani_'
+    . SystemoveNastaveni::zacatekNejblizsiVlnyOdhlasovani()->format(DateTimeCz::FORMAT_DB)
+    . $report->nazevReportuZRequestu()
+);
