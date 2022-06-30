@@ -47,8 +47,18 @@ foreach (Shop::letosniPolozky() as $polozka) {
     $template->assign('cenaZaKus', $polozka->cena());
     $template->assign('suma', $polozka->suma());
     $template->assign('modelRok', $polozka->modelRok());
-    $template->assign('naposledyKoupenoKdyRelativni', $polozka->naposledyKoupenoKdy()->relativni());
-    $template->assign('naposledyKoupenoKdyPresne', $polozka->naposledyKoupenoKdy()->formatCasStandard());
+    $template->assign(
+        'naposledyKoupenoKdyRelativni',
+        $polozka->naposledyKoupenoKdy()
+            ? $polozka->naposledyKoupenoKdy()->relativni()
+            : ''
+    );
+    $template->assign(
+        'naposledyKoupenoKdyPresne',
+        $polozka->naposledyKoupenoKdy()
+            ? $polozka->naposledyKoupenoKdy()->formatCasStandard()
+            : ''
+    );
     $template->assign('letosProdanoKusu', $polozka->prodanoKusu());
     $template->assign('zbyvaKusu', $polozka->zbyvaKusu());
     $template->assign('kusuCelkem', $polozka->vyrobenoKusu());

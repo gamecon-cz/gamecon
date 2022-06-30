@@ -94,7 +94,8 @@ SQL,
      */
     public static function letosniPolozky(int $rok = ROK): array {
         $polozkyData = dbFetchAll(<<<SQL
-SELECT id_predmetu,nazev,cena_aktualni,suma,model_rok,naposledy_koupeno_kdy,prodano_kusu,kusu_vyrobeno,typ FROM (
+SELECT id_predmetu,nazev,cena_aktualni,suma,model_rok,naposledy_koupeno_kdy,prodano_kusu,kusu_vyrobeno,typ
+FROM (
     SELECT predmety.id_predmetu,
            TRIM(predmety.nazev) AS nazev,
            predmety.cena_aktualni,
@@ -106,7 +107,7 @@ SELECT id_predmetu,nazev,cena_aktualni,suma,model_rok,naposledy_koupeno_kdy,prod
            predmety.typ,
            predmety.ubytovani_den
     FROM shop_predmety AS predmety
-    JOIN shop_nakupy AS nakupy
+    LEFT JOIN shop_nakupy AS nakupy
         ON predmety.id_predmetu = nakupy.id_predmetu
             AND nakupy.rok = $0
     WHERE model_rok = $0
