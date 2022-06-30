@@ -64,7 +64,7 @@
     <div class="shop_den shopUbytovani_den">{denZkratka}</div>
     <!-- begin:typ -->
     <div class="shopUbytovani_radek">
-      <label class="radio--container radio--container--square radio--container--fill">
+      <label class="radio--container radio--container--square radio--container--fill {labelClass}">
         <input type="radio" class="shopUbytovani_radio" name="{postnameDen}" value="{idPredmetu}"
                data-kapacita="{kapacita}" {checked} {disabled}>
         <div class="radio--label">

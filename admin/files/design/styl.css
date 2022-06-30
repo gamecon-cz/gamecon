@@ -6,7 +6,7 @@
 }
 
 .aBox .submit-btn {
-  float: right; 
+  float: right;
   margin-top: 4px;
   margin-left: 2px;
 }
@@ -756,7 +756,7 @@ a > .hinted {
   left: 0;
   top: 22px;
   background-color: rgba(51, 51, 51, 0.9);
-/* background-color: #333; */
+  /* background-color: #333; */
   border: solid 0 #000;
   z-index: 10;
   font-size: 11px;
@@ -1000,10 +1000,8 @@ Radio musí být ve tvaru:
 .radio--container--square .radio--label {
   box-sizing: border-box;
   border-radius: 20% / 50%;
-  transition: 
-    background-color .1s ease,
-    color .1s ease
-    ;
+  transition: background-color .1s ease,
+  color .1s ease;
 }
 
 .radio--container--square :checked + .radio--label {
@@ -1027,7 +1025,7 @@ Radio musí být ve tvaru:
   position: absolute;
   width: 100%;
   height: 100%;
-  top:0;
+  top: 0;
   left: 0;
   box-sizing: border-box;
   border-radius: 20% / 50%;
@@ -1138,22 +1136,18 @@ Radio musí být ve tvaru:
 }
 
 
-
-
-
 .infopult-grid--container {
   display: grid;
   gap: 16px;
   grid-template-columns: 1fr;
   align-items: start;
-  grid-template-areas: 
+  grid-template-areas:
   "přehled"
   "ubytování"
   "pokoje"
   "platba"
   "prodej"
-  "predmety"
-  ;
+  "predmety";
 }
 
 .infopult-grid--item-přehled {
@@ -1203,11 +1197,10 @@ Radio musí být ve tvaru:
 @media only screen and (min-width: 992px) {
   .infopult-grid--container {
     grid-template-columns: repeat(3, 1fr);
-    grid-template-areas: 
+    grid-template-areas:
       "přehled ubytování ubytování"
       "platba pokoje prodej"
-      ". . predmety"
-      ;
+      ". . predmety";
   }
 }
 
@@ -1215,18 +1208,17 @@ Radio musí být ve tvaru:
 @media only screen and (min-width: 1200px) {
   .infopult-grid--container {
     grid-template-columns: repeat(3, 1fr);
-    grid-template-areas: 
+    grid-template-areas:
       "přehled pokoje ubytování"
       "přehled prodej ubytování"
       "platba prodej ubytování"
-      "platba prodej predmety"
-      ;
+      "platba prodej predmety";
   }
+
   .infopult-grid--item-přehled {
     font-size: 1.2em;
   }
 }
-
 
 
 .uzivatel-grid--container {
@@ -1234,15 +1226,14 @@ Radio musí být ve tvaru:
   gap: 16px;
   grid-template-columns: 1fr;
   align-items: start;
-  grid-template-areas: 
+  grid-template-areas:
   "udaje"
   "slevy"
   "jídlo"
   "objednavky"
   "prodej"
   "pokoje"
-  "ubytování"
-  ;
+  "ubytování";
 }
 
 .uzivatel-grid--item-udaje {
@@ -1274,10 +1265,6 @@ Radio musí být ve tvaru:
 }
 
 
-
-
-
-
 /* Extra small devices (phones, 600px and down) */
 @media only screen and (max-width: 600px) {
 
@@ -1299,29 +1286,27 @@ Radio musí být ve tvaru:
 @media only screen and (min-width: 768px) {
   .uzivatel-grid--container {
     grid-template-columns: repeat(2, 1fr);
-    grid-template-areas: 
+    grid-template-areas:
       "udaje slevy"
       "udaje jídlo"
       "prodej jídlo"
       "pokoje jídlo"
       "ubytování ubytování"
-      "objednavky objednavky"
-      ;
-    }
+      "objednavky objednavky";
+  }
 }
 
 /* Large devices (laptops/desktops, 992px and up) */
 @media only screen and (min-width: 992px) {
   .uzivatel-grid--container {
     grid-template-columns: repeat(3, 1fr);
-    grid-template-areas: 
+    grid-template-areas:
       "udaje slevy objednavky"
       "udaje jídlo objednavky"
       "prodej jídlo objednavky"
       "pokoje jídlo objednavky"
-      "ubytování ubytování objednavky"
-      ;
-    }
+      "ubytování ubytování objednavky";
+  }
 }
 
 /* Extra large devices (large laptops and desktops, 1200px and up) */

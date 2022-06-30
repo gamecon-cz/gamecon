@@ -42,6 +42,7 @@ class UbytovaniTabulka
                     'obsazeno' => $obsazeno,
                     'kapacita' => $kapacita,
                     'zbyvaMist' => $zbyvaMist,
+                    'labelClass' => $zbyvaMist < 11 ? "radio--container--warning" : "",
                 ])->parse('ubytovani.den.typ');
             }
             // data pro názvy dnů a pro "Žádné" ubytování
