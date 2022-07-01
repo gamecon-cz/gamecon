@@ -209,9 +209,9 @@ class DateTimeGameconTest extends TestCase
 
         $denAKousekPoDruhe = $casDruhehoHromadnehoOdhlasovani->modify('+1 day +1 second');
         self::assertEquals(
-            null,
+            $casDruhehoHromadnehoOdhlasovani,
             DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani($denAKousekPoDruhe),
-            'Zjišťování nejbližší (druhé) vlny déle než den poté, co začíná druhá vlna, by mělo vrátit null jelikož třetí vlnu nznáme'
+            'Zjišťování nejbližší (druhé) vlny déle než den poté, co začíná druhá vlna, by mělo vrátit začátek druhé vlny jako poslední známé'
         );
 
     }

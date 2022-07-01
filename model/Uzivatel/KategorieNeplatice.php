@@ -17,7 +17,7 @@ class KategorieNeplatice
     public const LETOS_SE_REGISTROVAL_PAR_DNU_PRED_ODHLASOVACI_VLNOU = 5;
     public const MA_PRAVO_PLATIT_AZ_NA_MISTE = 6; // orgové a tak
 
-    /** @var \DateTimeInterface|null */
+    /** @var \DateTimeInterface */
     private $zacatekVlnyOdhlasovani;
     /** @var Finance */
     private $finance;
@@ -62,7 +62,7 @@ class KategorieNeplatice
         Finance             $finance,
         ?\DateTimeInterface $kdySeRegistrovalNaLetosniGc,
         bool                $maPravoPlatitAzNaMiste,
-        ?\DateTimeInterface $zacatekVlnyOdhlasovani, // prvni nebo druha vlna
+        \DateTimeInterface  $zacatekVlnyOdhlasovani, // prvni nebo druha vlna
         int                 $rok,
         float               $castkaVelkyDluh,
         float               $castkaPoslalDost,
@@ -93,10 +93,10 @@ class KategorieNeplatice
             return self::MA_PRAVO_PLATIT_AZ_NA_MISTE;
         }
 
-        if (!$this->kdySeRegistrovalNaLetosniGc
-            || !$this->zacatekVlnyOdhlasovani
-            || $this->zacatekVlnyOdhlasovani < $this->kdySeRegistrovalNaLetosniGc
-        ) {
+        if (!$this->kdySeRegistrovalNaLetosniGc) {
+            return null;
+        }
+        if ($this->zacatekVlnyOdhlasovani < $this->kdySeRegistrovalNaLetosniGc) {
             /*
              * zjišťovat neplatiče už vlastně nejde, některé platby mohly přijít až po začátku hromadného odhlašování
              * (leda bychom filtrovali jednotlivé platby, ale tou dobou už to stejně nepotřebujeme)

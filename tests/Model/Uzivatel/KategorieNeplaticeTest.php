@@ -16,7 +16,7 @@ class KategorieNeplaticeTest extends TestCase
         Finance $finance,
         ?string $kdySeRegistrovalNaLetosniGc,
         bool    $maPravoPlatitAzNaMiste,
-        ?string $zacatekVlnyOdhlasovani, // prvni nebo druha vlna
+        string  $zacatekVlnyOdhlasovani, // prvni nebo druha vlna
         int     $rok,
         float   $castkaVelkyDluh,
         float   $castkaPoslalDost,
@@ -30,9 +30,7 @@ class KategorieNeplaticeTest extends TestCase
                 ? new \DateTimeImmutable($kdySeRegistrovalNaLetosniGc)
                 : null,
             $maPravoPlatitAzNaMiste,
-            $zacatekVlnyOdhlasovani
-                ? new \DateTimeImmutable($zacatekVlnyOdhlasovani)
-                : null,
+            new \DateTimeImmutable($zacatekVlnyOdhlasovani),
             $rok,
             $castkaVelkyDluh,
             $castkaPoslalDost,
@@ -57,8 +55,7 @@ class KategorieNeplaticeTest extends TestCase
             $dataNeplatice,
             [
                 'neznámé přihlášení na GC nemá kategorii' => [$this->finance(), null, $nemaPravoPlatitAzNaMiste, $ted, ROK, 0.0, 0, 0, null],
-                'neznámý začátek vlny odhlašování nemá kategorii' => [$this->finance(), $ted, $nemaPravoPlatitAzNaMiste, null, ROK, 0.0, 0, 0, null],
-                'vlna odhlašování před přihlášením na GC nemá kategorii' => [$this->finance(), $ted, $nemaPravoPlatitAzNaMiste, $predChvili, ROK, 0.0, 0, 0, null],
+                'vlna odhlašování před přihlášením na GC znamená chráněný' => [$this->finance(), $ted, $nemaPravoPlatitAzNaMiste, $predChvili, ROK, 0.0, 0, 0, 5],
                 'registrován v ochranné lhůtě pár dní před vlnou odhlašování' => [$this->finance(), '-9 days -59 minutes -59 seconds', $nemaPravoPlatitAzNaMiste, $ted, ROK, 0.0, 0, 10 /* chráněn tolik dní před odhlašováním */, 4],
                 'letos poslal málo a má velký dluh' => [$this->finance(0.1), $predMesicem, $nemaPravoPlatitAzNaMiste, $zitra, ROK, 0.0, PHP_INT_MAX, 0, 2],
                 'letos nic, z loňska žádný zůstatek a má dluh' => [$this->finance(0.0, 0.0, -0.1), $predMesicem, $nemaPravoPlatitAzNaMiste, $zitra, ROK, 0.0, PHP_INT_MAX, 0, 1],
@@ -184,19 +181,9 @@ class KategorieNeplaticeTest extends TestCase
      */
     private function registrovalSeAzPoVlneOdhlasovaniNeboPredNiNeboNevime() {
         return [
-            'neznáme ani registraci na GC, ani datum vlny odhlašování' => [
-                'kdy_se_registroval_na_letosni_gc' => null,
-                'zacatek_vlny_odhlasovani' => null,
-                'pocet_dnu_pred_vlnou_kdy_je_jeste_chranen' => 10,
-            ],
             'neznáme registraci na GC' => [
                 'kdy_se_registroval_na_letosni_gc' => null,
                 'zacatek_vlny_odhlasovani' => $ted = 'now',
-                'pocet_dnu_pred_vlnou_kdy_je_jeste_chranen' => 10,
-            ],
-            'neznáme datum vlny odhlašování' => [
-                'kdy_se_registroval_na_letosni_gc' => $ted,
-                'zacatek_vlny_odhlasovani' => null,
                 'pocet_dnu_pred_vlnou_kdy_je_jeste_chranen' => 10,
             ],
             'registroval se před vlnou odhlašování' => [

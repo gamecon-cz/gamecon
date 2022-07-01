@@ -198,17 +198,13 @@ class DateTimeGamecon extends DateTimeCz
         return $nedelePredZacatkemGameconu->setTime(23, 59, 00);
     }
 
-    public static function zacatekNejblizsiVlnyOdhlasovani(\DateTimeImmutable $ted = null): ?\DateTimeImmutable {
+    public static function zacatekNejblizsiVlnyOdhlasovani(\DateTimeImmutable $ted = null): \DateTimeImmutable {
         // s rezervou jednoho dne, aby i po půlnoci ještě platilo včerejší datum odhlašování
         $kDatu = ($ted ?? new \DateTimeImmutable())->modify('-1 day');
         $prvniHromadneOdhlasovani = new \DateTimeImmutable(HROMADNE_ODHLASOVANI);
-        if ($prvniHromadneOdhlasovani >= $kDatu) { // teprve bude
+        if ($kDatu <= $prvniHromadneOdhlasovani) { // teprve bude
             return $prvniHromadneOdhlasovani;
         }
-        $druheHromadneOdhlasovani = new \DateTimeImmutable(HROMADNE_ODHLASOVANI_2);
-        if ($druheHromadneOdhlasovani >= $kDatu) { // teprve bude
-            return $druheHromadneOdhlasovani;
-        }
-        return null;
+        return new \DateTimeImmutable(HROMADNE_ODHLASOVANI_2);
     }
 }
