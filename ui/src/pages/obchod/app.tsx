@@ -11,7 +11,7 @@ import {
   DefiniceObchodMřížkaBuňka,
   ObjednávkaPředmět,
   Předmět,
-} from "./types";
+} from "../../api/obchod/types";
 
 type TObchodProps = {};
 

@@ -1,13 +1,13 @@
 import { FunctionComponent } from "preact";
 import { useContext } from "preact/hooks";
-import { GAMECON_KONSTANTY } from "../../../env";
+import { GAMECON_KONSTANTY } from "../../../../env";
 import {
   formátujDatum,
-} from "../../../utils";
+} from "../../../../utils";
 import {
   porovnejTabulkaVýběr,
   ProgramURLState,
-} from "../routing";
+} from "../../routing";
 
 type ProgramUživatelskéVstupyProps = {};
 

@@ -1,9 +1,9 @@
 import { FunctionComponent } from "preact";
 import { useContext, useRef } from "preact/hooks";
-import { Aktivita } from "../../../api";
-import { Timetable } from "../../../components/Timetable";
-import { distinct } from "../../../utils";
-import { ProgramURLState } from "../routing";
+import { Aktivita } from "../../../../api/program";
+import { Timetable } from "../../../../components/Timetable";
+import { distinct } from "../../../../utils";
+import { ProgramURLState } from "../../routing";
 import { ProgramPosuv } from "./ProgramPosuv";
 import { TabulkaBuňka } from "./TabulkaBuňka";
 

@@ -1,5 +1,5 @@
 import { useRouter } from "preact-router";
-import { GAMECON_KONSTANTY } from "../env";
+import { GAMECON_KONSTANTY } from "../../env";
 
 const { BASE_PATH_PAGE } = GAMECON_KONSTANTY;
 
