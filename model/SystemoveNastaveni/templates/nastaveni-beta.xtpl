@@ -3,7 +3,7 @@
 
 <form method="post" onsubmit="return confirm('Opravdu přemazat současná data na betě daty z ostré?')">
   <button type="submit" value="1" name="{synchronniPostKlic}[{zkopirovatOstrou}]"
-          class="show-loading-on-click">
+          class="disable-and-show-loading-on-click">
     Zkopírovat databázi z ostré
   </button>
 </form>
