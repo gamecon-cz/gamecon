@@ -17,7 +17,7 @@
   </p>
   <form method="post" enctype="multipart/form-data">
     <input type="file" name="souborSBalicky">
-    <input type="submit" name="importBalicku" value="Nahrát" class="show-loading-on-click">
+    <input type="submit" name="importBalicku" value="Nahrát" class="disable-and-show-loading-on-click">
   </form>
 </div>
 
