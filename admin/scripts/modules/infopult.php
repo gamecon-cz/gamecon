@@ -10,6 +10,7 @@
 
 use \Gamecon\Cas\DateTimeCz;
 use \Gamecon\Cas\DateTimeGamecon;
+use \Gamecon\Shop\Shop;
 
 /**
  * @var Uzivatel|null|void $u
@@ -171,9 +172,9 @@ if ($uPracovni) {
         }
     }
 
-    if ($u && $u->isSuperAdmin()) {
-        $x->parse('infopult.uzivatel.idFioPohybu');
-    }
+    // if ($u && $u->isSuperAdmin()) {
+    //     $x->parse('infopult.uzivatel.idFioPohybu');
+    // }
 
     $x->parse('infopult.uzivatel.objednavky');
     $x->parse('infopult.uzivatel');

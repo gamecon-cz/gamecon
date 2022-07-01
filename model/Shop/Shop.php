@@ -30,33 +30,7 @@ class Shop
     public const PN_JIDLO = 'cShopJidlo';          // post proměnná pro jídlo
     public const PN_JIDLO_ZMEN = 'cShopJidloZmen'; // post proměnná indikující, že se má jídlo aktualizovat
 
-    public $ubytovani = [];
-
-    protected
-        $u,
-        $cenik,               // instance ceníku
-        $nastaveni = [   // případné spec. chování shopu
-        'ubytovaniBezZamku' => false,   // ignorovat pozastavení objednávek u ubytování
-        'jidloBezZamku' => false,   // ignorovat pozastavení objednávek u jídla
-    ],
-        $tricka = [],
-        $predmety = [],
-        $jidlo = [],
-        $ubytovaniOd,
-        $ubytovaniDo,
-        $ubytovaniTypy = [],
-        $vstupne,       // dobrovolné vstupné (složka zaplacená regurélně včas)
-        $vstupnePozde,  // dobrovolné vstupné (složka zaplacená pozdě)
-        $vstupneJeVcas, // jestli se dobrovolné vstupné v tento okamžik chápe jako zaplacené včas
-        $klicU = 'shopU', //klíč formu pro identifikaci polí
-        $klicUPokoj = 'shopUPokoj', //s kým chce být na pokoji
-        $klicV = 'shopV', //klíč formu pro identifikaci vstupného
-        $klicP = 'shopP', //klíč formu pro identifikaci polí
-        $klicT = 'shopT', //klíč formu pro identifikaci polí s tričkama
-        $klicS = 'shopS'; //klíč formu pro identifikaci polí se slevami
-    //$quiet //todo
-
-    protected static $skoly = [
+    private static $skoly = [
         'UK Univerzita Karlova Praha',
         'MU Masarykova univerzita Brno',
         'VUT Vysoké učení technické Brno',
@@ -157,7 +131,7 @@ SQL,
         'ubytovaniBezZamku' => false,   // ignorovat pozastavení objednávek u ubytování
         'jidloBezZamku' => false,       // ignorovat pozastavení objednávek u jídla
     ];
-    private $ubytovani = [];
+    public $ubytovani = [];
     private $tricka = [];
     private $predmety = [];
     private $jidlo = [];
