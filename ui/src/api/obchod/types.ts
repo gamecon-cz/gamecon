@@ -1,7 +1,8 @@
+/* 
+0-předmět, 1-stránka, 2-zpět, 3-shrnutí
+*/
 
-
-
-type DefiniceObchodMřížkaBuňkaTyp ="předmět" | "stránka" | "zpět" | "shrnutí";
+type DefiniceObchodMřížkaBuňkaTyp = "předmět" | "stránka" | "zpět" | "shrnutí";
 
 
 export type DefiniceObchodMřížkaBuňkaSpolečné = {
