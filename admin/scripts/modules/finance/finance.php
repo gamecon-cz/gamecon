@@ -159,3 +159,6 @@ $x->parse('finance.reporty');
 
 $x->parse('finance');
 $x->out('finance');
+
+require __DIR__ . '/../_ubytovani-a-dalsi-obcasne-infopultakoviny-import-ubytovani.php';
+require __DIR__ . '/../_ubytovani-a-dalsi-obcasne-infopultakoviny-import-balicku.php';

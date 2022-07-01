@@ -80,6 +80,7 @@ if ($uPracovni) {
         'pokojVypis' => $pokoj ? $pokoj->cislo() : "",
         'ubytovani' => $up->dejShop()->dejPopisUbytovani(),
         'udajeChybiAttr' => 'href="uzivatel"',
+        'balicek' => $up->balicekHtml(),
         'prehledFinance' => $up->finance()->prehledHtml([Shop::PREDMET], false),
     ]);
 
