@@ -7,6 +7,9 @@
 </style>
 
 
+<h1>Infopult</h1>
+
+
 <div class="header-buttons--container-main">
   <div class="header-buttons--container header-buttons--container-left">
     <form method="post">
@@ -61,10 +64,6 @@
     </form>
   </div>
 </div>
-
-
-
-<h1>Infopult</h1>
 
 <!-- begin:neUzivatel -->
 <div class="warning">Vyberte uživatele (pole vlevo)</div>

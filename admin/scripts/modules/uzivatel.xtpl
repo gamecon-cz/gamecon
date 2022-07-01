@@ -14,9 +14,9 @@
   <div class="uzivatel-grid--item uzivatel-grid--item-ubytování aBox">
     <h3>Ubytování uživatele</h3>
     <!-- begin:ubytovani -->
-    <form method="post">
+    <form method="post" class="clearfix">
       {shop.ubytovaniHtml}<br>
-      <input type="submit" name="zpracujUbytovani" value="Uložit">
+      <input type="submit" name="zpracujUbytovani" value="Uložit" class="submit-btn">
     </form>
     <!-- end:ubytovani -->
     {status}
@@ -27,9 +27,9 @@
     <h3>Jídlo uživatele</h3>
     <!-- begin:jidlo -->
     Zrušit jídlo je možné jenom oproti vrácené stravence. Při objednání jídla je naopak potřeba předat stravenku (a zkontrolovat stav financí). Snídaně nabízíme jen organizátorům a vypravěčům.<br><br>
-    <form method="post">
+    <form method="post" class="clearfix">
       {shop.jidloHtml}
-      <input type="submit" name="zpracujJidlo" value="Uložit">
+      <input type="submit" name="zpracujJidlo" value="Uložit" class="submit-btn">
     </form>
     <!-- end:jidlo -->
     {status}
@@ -138,6 +138,8 @@
         </tr>
         <!-- end:udaj -->
       </table>
+      <a style="font-size: 1.2em; float: left; margin-top: .2em; margin-right: 1em;" href="program-uzivatele" target="_blank">Program</a>
+      <a style="font-size: 1.2em; float: left; margin-top: .2em;" href="program-osobni" target="_blank">Program účastníka</a>
       <input type="submit" name="zmenitUdaj" value="uložit" class="submit-btn" style="display:none;">
     </form>
     <script src="files/jquery.autosize-1.18.13.js"></script>
@@ -152,7 +154,7 @@
   <div class="uzivatel-grid--item  uzivatel-grid--item-prodej aBox">
     <h3>Prodej předmětů</h3>
     Zbývající počty předmětů jsou uvedeny v závorce<br>
-    <form method="post">
+    <form method="post" class="clearfix">
       <table>
         <!-- begin:prodejAnonymni -->
         <tr>
@@ -171,7 +173,7 @@
             </span>
           </td>
           <td>
-            <select name="prodej[id_predmetu]" id="predmet" required>
+            <select name="prodej[id_predmetu]" id="predmet" style="width: 100%;" required>
               {predmety}
             </select>
           </td>
