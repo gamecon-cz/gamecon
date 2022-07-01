@@ -3,9 +3,7 @@
 
 # Infopult
 
-![](./doc-image/Infopult-stranka.png)
-
-- [ ] Infopult
+- [X] Infopult
   - [X] Přejmenovat úvod na infopult
   - [X] Tlačítka
     - [X] tlačítko Přihlásit na GC
@@ -72,7 +70,7 @@
       - [X] Pokoj
       - [X] Na pokoji
       - [X] Ubytování
-    - [ ] Přesunout "Nastavení pokojů" na stejnou kartu
+    - [X] Přesunout "Nastavení pokojů" na stejnou kartu
   - ~~*karta objednávky předmětů* Odebrána, bude součástí *Infopult->Přehled->Balíček*.~~ místa je dost tak nakonec se nechává
   - [X] karta objednávky předmětů
     - [X] Přehled objednaných předmětů
@@ -87,8 +85,7 @@
   - [X] odstranit nevyužitou logiku
   - [X] odebrat id uživatele odevšad
   - [X] ubytování a nastavení 
-  - [ ] Opravit anonymní prodej
-  - [ ] stylování nevybraný uživatel
+
 
 # Finance
 
@@ -98,80 +95,47 @@
 # Uživatel
 
 
-
-![](./doc-image/uzivatel-stranka-1.png)
-![](./doc-image/uzivatel-stranka-2.png)
-
-
-
-- [ ] Uživatel
+- [X] Uživatel
   - [X] Přejmenovat ubytování na uživatel
-  - [ ] /uzivatel default pro org.. židli
+  - [X] /uzivatel default pro org.. židli
   - [X] Přesun karty z úvod do uživatel
     - [X] Osobní údaje
       - [X] smazat Poznámka, Potvrzení, Covid-19
     - [X] Slevy
     - [X] Objednávky a platby
-  - [ ] Přidat tlačítka Program a Program účastníka (podle infopult)
-  - [ ] rozmístění karet / Stylování (grid)
+  - [X] Přidat tlačítka Program a Program účastníka (podle infopult)
+  - [X] rozmístění karet / Stylování (grid)
   - [X] Jídlo uživatele + Ubytování
     - [X] NEZOBRAZOVAT doprovodný text o tom, že ubytování kromě neděle může zrušit jen šéf Infa
   - [X] Prodej předmětů (stejně jako infopult)
-  - [ ] nevybraný uživatel
-    - [ ] hláška není vybraný uživatel
-    - [ ] skrýt co není relevantní bez uživatele
-  - [ ] text Objednávání ubytování online bylo zastaveno, změny jsou možné na místě.
-  - [ ] odstranit nevyužitou logiku
-  - [ ] stylování nevybraný uživatel
+  - [X] nevybraný uživatel
+    - [X] hláška není vybraný uživatel
+    - [X] skrýt co není relevantní bez uživatele
+  - [X] text Objednávání ubytování online bylo zastaveno, změny jsou možné na místě.
+  - [X] odstranit nevyužitou logiku
+  - [X] stylování nevybraný uživatel
 
-
-# Prodej předmětů
-
-
-
-![](./doc-image/prodej-modal-1.png)
-![](./doc-image/prodej-modal-2.png)
-
-
-
-- [ ] Prodej předmětů
-  - [ ] modal s tlačítky
-    - zobrazit/skrýt modal s Tlačítky
-    - [ ] proklik zkrze více menu
-  - [ ] Druhá obrazovka se seznamen přidaných položek
-    - [ ] storno
-    - [ ] potvrdit
-    - [ ] změna počtu předmětů
-    - [ ] odebrání předmětů
-  - [ ] Uložení rozložení obchodu do db
-  - [ ] Možnost Editace organizátorem co na co proklikává
-  - [ ] Doladit rozhraní (hover zvýraznění, zašednutí prodaných, přidat confirmace kde by měli být, když kliknu - na předmětu kterej má 1 tak naběhne 0 a spadne dolů zašedlej kdybych náhodou překlepl)
-
-# Ujasnit
-  Infopult - přehled - poznámka: více řádků ? udělat jako text area?
+# Ujasnit/Nápady
   *(optional)* Potvrzení při provedení změny v poli bez uložení
   poznámka odděleně mimo přehled ať má více místa ?
-  Dodefinovat chování upraveného nastavení pokojů
   Co jsou povinné údaje pro infopult->Přehled->Údaje ? (implementováno v uzivatel chybejiciUdaje)
-  Odhlásit z GC komunikovat proč nemůžu provést
   - chybová hláška pro vypsání pokoje je nepraktická, resetuje vypis pokoje na předchozí hondotu
 
 # Bude součástí dalších PR
   - undo stavu pro finance (navrácení akce při ukliknutí - přihlásit, přijel, dát materiály, odjel)
   - rozdělení tlačítka Přijel a Dát materiály *(a kontrola vyplnění potřebných informací)*
-  - obchod velké bloky prodej
-  - další editace prodeje předmětů
-  - *(optional)* Reversovatelné akce z židle "finance" při překlepnutí (od-přijet, od-dát materiály, od-odjel)
-  - *(optional)* Modal potvrzení covid s ano ne bez potřeby překlikávání mezi záložkami prohlížeče ?
+  - Možnost rušení objednávek
+  - opravit anonymní prodej
+  - Dlaždicový prodej předmětů
 
 
-- [ ] Vykopírovat nehotové TODO pro další PR jinam (do Trella)
+- [X] smazat původní úvod a ubytování
+- [X] smazat poznamkaHtml z uživatele (po smazání úvodu už nemá využití)
+
+- [X] Vykopírovat nehotové TODO pro další PR jinam (do Trella)
 - [ ] Připravit na merge
-    - zohlednit 900-importér-balíčků
+    - [ ] rebase
+    - [ ] zapracovat 900-importér-balíčků
 
-- [ ] *(optional but recommended)* refactoring kódu
 
-- [ ] smazat poznamkaHtml z uživatele (po smazání úvodu už nemá využití)
-
-- [ ] smazat doc-image
 - [ ] smazat tohle TODO
