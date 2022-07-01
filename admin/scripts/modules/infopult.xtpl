@@ -100,7 +100,7 @@
 
         <!-- begin:potvrzeni -->
         <tr>
-          <td>Potvrzení</td>
+          <td>Potvrzení:</td>
           <td>
             <input type="checkbox" name="udaje[potvrzeni_zakonneho_zastupce]"
                 style="margin-left: -3px;" id="udaj_potvrzeni" {potvrzeniAttr}>
@@ -140,7 +140,7 @@
 
         <tr>
           <td>Balíček:</td>
-          <td style="color: gray;">nevydal, vydal | malý, velký</td>
+          <td>{balicek}</td>
         </tr>
       </table>
       <a style="font-size: 1.2em; float: left; margin-top: .2em; margin-right: 1em;" href="program-uzivatele" target="_blank">Program</a>
