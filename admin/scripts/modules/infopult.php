@@ -228,3 +228,6 @@ if (!$uPracovni) { // nechceme zobrazovat rychloregistraci (zakladani uctu), kdy
 
 $x->parse('infopult');
 $x->out('infopult');
+
+
+require __DIR__ . '/_shop.php';

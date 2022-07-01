@@ -7,7 +7,7 @@
  * pravo: 100
  */
 
-function zabalJsSoubor($cestaNaWebu) {
+function zabalSoubor($cestaNaWebu) {
   $verze = md5_file(WWW . '/' . $cestaNaWebu);
   $url = URL_WEBU . '/' . $cestaNaWebu . '?v=' . $verze;
   return $url;
@@ -15,9 +15,9 @@ function zabalJsSoubor($cestaNaWebu) {
 
 ?>
 
-<link rel="stylesheet" href="soubory/ui/style.css">
+<link rel="stylesheet" href="<?= zabalSoubor('soubory/ui/style.css') ?>">
 
-<div id="preact-shop">Shop loading...</div>
+<div id="preact-obchod">Obchod se načítá ...</div>
 
 <script>
     // Konstanty předáváné do Preactu (env.ts)
@@ -27,4 +27,4 @@ function zabalJsSoubor($cestaNaWebu) {
     }
 </script>
 
-<script type="module" src="<?= zabalJsSoubor('soubory/ui/bundle.js') ?>"></script>
+<script type="module" src="<?= zabalSoubor('soubory/ui/bundle.js') ?>"></script>

@@ -1,0 +1,96 @@
+.shop-summary {
+  &--container {
+    button {
+      border: none;
+      transition: all .15s ease;
+      &:hover {
+        filter: hue-rotate(30deg);
+      }
+    }
+
+    display: grid;
+    padding: 24px;
+    gap: 24px;
+    width: calc(100% - 24px*2);
+    height: calc(100% - 24px*2);
+
+    grid-template-columns: 300px auto;
+    grid-template-rows: auto 150px;
+
+    grid-template-areas: 
+      "add list"
+      "storno submit"
+    ;
+  }
+
+  &--item {
+    width: 100%;
+    height: 100%;
+
+    text-align: center;
+
+
+    &-add{
+      grid-area: add;
+      background-color: aqua;
+    }
+    &-storno{
+      grid-area: storno;
+      background-color: aquamarine;
+    }
+    &-submit{
+      grid-area: submit;
+      background-color: blueviolet;
+    }
+    &-list{
+      grid-area: list;
+      background-color: bisque;
+    }
+  }
+
+  &-list {
+    &--container {
+      margin: 24px;
+      padding: 8px;
+      background-color: lightgray;
+      width: calc(100% - 24px * 2);
+      height: calc(100% - 24px * 2);
+    }
+
+    &--item {
+      display: flex;
+      align-content: center;
+      flex-wrap: nowrap;
+
+
+      &-text {
+        flex-grow: 1;
+        text-align: left;
+        font-size: 2em;
+      }
+
+      &-buttons {
+
+        > * {
+          height: 3em;
+          width: 40px;
+          display: inline-block;
+          margin-right: 4px;
+          font-weight: bolder;
+        }
+        &-remove {
+          background-color: red;
+        }
+        &-add {
+          background-color: green;
+        }
+      }
+
+      ::after {
+        clear: both;
+        display: block;
+        content: "";
+      }
+    }
+  }
+}
