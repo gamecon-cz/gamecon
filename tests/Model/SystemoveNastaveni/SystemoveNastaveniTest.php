@@ -32,7 +32,7 @@ class SystemoveNastaveniTest extends DbTest
      * @dataProvider provideVychoziHodnota
      */
     public function testVychoziHodnoty(int $rok, string $klic, string $ocekavanaHodnota) {
-        $nastaveni = new SystemoveNastaveni($rok, false);
+        $nastaveni = new SystemoveNastaveni($rok, new \DateTimeImmutable(), false);
 
         self::assertSame($ocekavanaHodnota, $nastaveni->dejVychoziHodnotu($klic));
     }
