@@ -1285,19 +1285,27 @@ Radio musí být ve tvaru:
 
 /* Small devices (portrait tablets and large phones, 600px and up) */
 @media only screen and (min-width: 600px) {
+  .uzivatel-grid--item {
+    width: fit-content;
+    min-width: 60%;
+  }
 
+  .uzivatel-grid--item-objednavky {
+    width: unset;
+  }
 }
 
 /* Medium devices (landscape tablets, 768px and up) */
 @media only screen and (min-width: 768px) {
   .uzivatel-grid--container {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     grid-template-areas: 
       "udaje slevy"
       "udaje jídlo"
       "prodej jídlo"
-      "pokoje ubytování"
-      "objednavky ."
+      "pokoje jídlo"
+      "ubytování ubytování"
+      "objednavky objednavky"
       ;
     }
 }
@@ -1310,7 +1318,8 @@ Radio musí být ve tvaru:
       "udaje slevy objednavky"
       "udaje jídlo objednavky"
       "prodej jídlo objednavky"
-      "pokoje ubytování objednavky"
+      "pokoje jídlo objednavky"
+      "ubytování ubytování objednavky"
       ;
     }
 }

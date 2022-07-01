@@ -30,7 +30,10 @@ $xtpl->assign([
 
 // nastavení stránky, prázdná url => přesměrování na úvod
 if (!get('req')) {
-    back(URL_ADMIN . '/infopult');
+    if ($u && $u->jeOrganizator()) {
+        back(URL_ADMIN . '/uzivatel');
+    }else 
+        back(URL_ADMIN . '/infopult');
 }
 $req = explode('/', get('req'));
 $stranka = $req[0];

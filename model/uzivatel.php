@@ -698,11 +698,6 @@ SQL
         }
     }
 
-    /** Vrátí formátovanou (html) poznámku uživatele **/
-    public function poznamkaHtml() {
-        return markdown($this->u['poznamka']);
-    }
-
     public function balicekHtml() {
         if (!$this->gcPrihlasen()) {
             return '';
