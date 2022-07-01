@@ -19,7 +19,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
 
   const tabulka = (
     <Timetable
-      cells={aktivity
+      buňky={aktivity
         .filter((x) =>
           urlState.výběr.typ === "můj"
             ? true

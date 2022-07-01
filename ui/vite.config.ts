@@ -10,7 +10,7 @@ export default defineConfig({
     outDir: "./../web/soubory/ui",
     emptyOutDir: true,
     lib: {
-      entry: path.resolve(__dirname, 'src/main.tsx'),
+      entry: path.resolve(__dirname, 'src/main.ts'),
       name: "script",
       fileName: () => "bundle.js",
       formats: ["iife"]
