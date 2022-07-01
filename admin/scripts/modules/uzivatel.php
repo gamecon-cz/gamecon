@@ -62,9 +62,6 @@ if (!$uPracovni) {
     $x->assign('status', '<div class="error">Uživatel není přihlášen na GC</div>');
 }
 
-$x->assign([
-    'rok' => ROK,
-]);
 
 if ($uPracovni) {
     $up = $uPracovni;
@@ -81,30 +78,8 @@ if ($uPracovni) {
         'slevyVse' => ($vse = $up->finance()->slevyVse()) ?
             '<li>' . implode('<li>', $vse) :
             '(žádné)',
-        'pokoj' => $pokoj ? $pokoj->cislo() : '(nepřidělen)',
-        'ubytovani' => $up->dejShop()->dejPopisUbytovani(),
     ]);
-    $r = dbOneLine('SELECT datum_narozeni, potvrzeni_zakonneho_zastupce FROM uzivatele_hodnoty WHERE id_uzivatele = ' . $uPracovni->id());
-    $datumNarozeni = new DateTimeImmutable($r['datum_narozeni']);
-
-    if (GC_BEZI) {
-        $zpravyProPotvrzeniZruseniPrace = [];
-        if (!$up->gcPritomen()) {
-            $zpravyProPotvrzeniZruseniPrace[] = 'nedostal materiály';
-        }
-        if ($up->finance()->stav() < 0) {
-            $zpravyProPotvrzeniZruseniPrace[] = 'má záporný zůstatek';
-        }
-        if ($potrebujePotvrzeniKvuliVeku && !$mameLetosniPotvrzeniKvuliVeku) {
-            $zpravyProPotvrzeniZruseniPrace[] = 'nemá potvrzení od rodičů';
-        }
-        foreach ($zpravyProPotvrzeniZruseniPrace as $zpravaProPotvrzeniZruseniPrace) {
-            $x->assign([
-                'zpravaProPotvrzeniZruseniPrace' => "Uživatel {$zpravaProPotvrzeniZruseniPrace}. Přesto ukončit práci s uživatelem?",
-            ]);
-            $x->parse('uzivatel.potvrditZruseniPrace');
-        }
-    }
+    $datumNarozeni = DateTimeImmutable::createFromMutable($up->datumNarozeni());
 
     $x->parse('uzivatel.slevy');
     $x->parse('uzivatel.objednavky');
