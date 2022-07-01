@@ -11,7 +11,7 @@
     <form method="post">
       <input type="hidden" name="export_activity_type_id" value="{activityTypeId}">
       <input type="submit" name="exportovat" value="Exportovat {pocetAktivit} {pocetAktivitSlovo} typu {nazevTypu}"
-             {exportDisabled} onclick="document.body.style.cursor = 'wait'; this.style.cursor = 'wait'">
+             {exportDisabled} class="show-loading-on-click">
     </form>
     <!-- end:exportovat -->
 
