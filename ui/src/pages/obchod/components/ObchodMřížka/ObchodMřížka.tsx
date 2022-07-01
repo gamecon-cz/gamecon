@@ -20,7 +20,7 @@ export const ObchodMřížka: FunctionComponent<TObchodMřížkaProps> = (props)
               class={`shop-grid--item shop-grid--item-${i}`}
               style={x.barvaPozadí ? {backgroundColor: x.barvaPozadí } : ""}
             >
-              <div>{x.typ === "předmět" ? x.předmět.text : x.text}</div>
+              <div>{!x.text && x.typ === "předmět" ? x.předmět.text : x.text}</div>
             </div>
           );
         })}
