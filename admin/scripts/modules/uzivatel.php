@@ -9,6 +9,7 @@
 
 use \Gamecon\Cas\DateTimeCz;
 use \Gamecon\Cas\DateTimeGamecon;
+use \Gamecon\Shop\Shop;
 
 /**
  * @var Uzivatel|null|void $u
