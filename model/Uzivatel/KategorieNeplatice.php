@@ -2,7 +2,7 @@
 
 namespace Gamecon\Uzivatel;
 
-use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Cas\DateTimeGamecon;
 
 /**
  * https://trello.com/c/Zzo2htqI/892-vytvo%C5%99it-nov%C3%BD-report-email%C5%AF-p%C5%99i-odhla%C5%A1ov%C3%A1n%C3%AD-neplati%C4%8D%C5%AF
@@ -28,14 +28,12 @@ class KategorieNeplatice
     /** @var float */
     private $sumaLetosnichPlateb;
 
-    public static function vytvorProNadchazejiciVlnuZGlobals(
-        \Uzivatel $uzivatel
-    ) {
+    public static function vytvorProNadchazejiciVlnuZGlobals(\Uzivatel $uzivatel) {
         return new self(
             $uzivatel->finance(),
             $uzivatel->kdySeRegistrovalNaLetosniGc(),
             $uzivatel->maPravoNerusitObjednavky(),
-            SystemoveNastaveni::zacatekNejblizsiVlnyOdhlasovani(),
+            DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani(),
             ROK,
             NEPLATIC_CASTKA_VELKY_DLUH,
             NEPLATIC_CASTKA_POSLAL_DOST,
@@ -99,8 +97,11 @@ class KategorieNeplatice
             || !$this->zacatekVlnyOdhlasovani
             || $this->zacatekVlnyOdhlasovani < $this->kdySeRegistrovalNaLetosniGc
         ) {
-            // zjišťovat neplatiče už nejde, některé platby mohly přijít až po začátku hromadného odhlašování (leda bychom filtrovali jednotlivé platby, ale tou dobou už to stejně nepotřebujeme)
-            return null;
+            /*
+             * zjišťovat neplatiče už vlastně nejde, některé platby mohly přijít až po začátku hromadného odhlašování
+             * (leda bychom filtrovali jednotlivé platby, ale tou dobou už to stejně nepotřebujeme)
+             */
+            return self::LETOS_SE_REGISTROVAL_PAR_DNU_PRED_ODHLASOVACI_VLNOU;
         }
 
         if ($this->poslalDost()) {
