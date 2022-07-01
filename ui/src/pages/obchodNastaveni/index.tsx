@@ -1,0 +1,1 @@
+export { ObchodNastaveni } from './app'

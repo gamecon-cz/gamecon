@@ -1,5 +1,5 @@
-import { ORGANIZATOR, KONCOVKA_DLE_POHLAVÍ } from "../../api";
-import { GAMECON_KONSTANTY } from "../../env";
+import { ORGANIZATOR, KONCOVKA_DLE_POHLAVÍ } from "../../../api/program";
+import { GAMECON_KONSTANTY } from "../../../env";
 
 export const ProgramLegenda = () => {
   const legendaText = GAMECON_KONSTANTY.LEGENDA;

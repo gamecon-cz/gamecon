@@ -1,5 +1,5 @@
 import { FunctionComponent } from "preact";
-import { DefiniceObchodMřížka, DefiniceObchodMřížkaBuňka } from "../../types";
+import { DefiniceObchodMřížka, DefiniceObchodMřížkaBuňka } from "../../../../api/obchod/types";
 import "./ObchodMřížka.less";
 
 type TObchodMřížkaProps = {

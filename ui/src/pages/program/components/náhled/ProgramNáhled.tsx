@@ -1,6 +1,6 @@
 import { FunctionComponent } from "preact";
 import { useEffect, useRef } from "preact/hooks";
-import { Aktivita } from "../../../api";
+import { Aktivita } from "../../../../api/program";
 
 type ProgramNáhledProps = { aktivita: Aktivita };
 
