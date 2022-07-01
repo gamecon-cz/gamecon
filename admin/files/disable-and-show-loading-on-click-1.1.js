@@ -13,12 +13,21 @@
           }, 1) // malý trik aby zablokování tlačítka proběhlo až v dalším "tiku" a tím se nezablokoval samotný submit
 
           setTimeout(function () {
-            document.body.style.cursor = originalBodyCursor
-            element.style.cursor = originalElementCursor
-            element.disabled = false
+            unblockAndRemoveLoading(element, originalBodyCursor, originalElementCursor)
           }, 10000) // něco se pokazilo, už to trvá déle než deset sekund...
         })
       }
     })
   })
+}
+
+/**
+ * @param {HTMLInputElement|HTMLButtonElement} element
+ * @param {string} originalBodyCursor
+ * @param {string} originalElementCursor
+ */
+function unblockAndRemoveLoading(element, originalBodyCursor = 'inherit', originalElementCursor = 'inherit') {
+  document.body.style.cursor = originalBodyCursor
+  element.style.cursor = originalElementCursor
+  delete element.disabled
 }
