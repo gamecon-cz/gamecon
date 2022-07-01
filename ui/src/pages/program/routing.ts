@@ -1,6 +1,6 @@
 import { createContext } from "preact";
 import { useEffect } from "preact/hooks";
-import { usePath as useUrl } from "../../api/util";
+import { usePath as useUrl } from "../../api/program/util";
 import { GAMECON_KONSTANTY } from "../../env";
 import { formátujDenVTýdnu, tryParseNumber } from "../../utils";
 

@@ -1,5 +1,5 @@
 import { FunctionComponent } from "preact";
-import { ObjednávkaPředmět, Předmět } from "../../types";
+import { ObjednávkaPředmět, Předmět } from "../../../../api/obchod/types";
 import "./ObchodShrnutí.less";
 
 type TObchodShrnutíProps = {

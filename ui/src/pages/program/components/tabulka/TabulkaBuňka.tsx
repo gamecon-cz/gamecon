@@ -1,7 +1,7 @@
 import { useContext } from "preact/hooks";
-import { Aktivita, Obsazenost } from "../../../api";
-import { obsazenostZVolnoTyp } from "../../../utils/tranformace";
-import { ProgramURLState } from "../routing";
+import { Aktivita, Obsazenost } from "../../../../api/program";
+import { obsazenostZVolnoTyp } from "../../../../utils/tranformace";
+import { ProgramURLState } from "../../routing";
 
 type ObsazenostProps = { obsazenost: Obsazenost };
 

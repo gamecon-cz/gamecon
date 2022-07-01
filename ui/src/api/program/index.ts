@@ -1,4 +1,4 @@
-import { GAMECON_KONSTANTY } from "../env";
+import { GAMECON_KONSTANTY } from "../../env";
 
 export * from "./fakeApi";
 
