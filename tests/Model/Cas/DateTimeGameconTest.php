@@ -1,6 +1,6 @@
 <?php
 
-namespace Gamecon\Tests\Cas;
+namespace Gamecon\Tests\Model\Cas;
 
 use Gamecon\Cas\DateTimeGamecon;
 use PHPUnit\Framework\TestCase;
@@ -162,5 +162,57 @@ class DateTimeGameconTest extends TestCase
             DateTimeGamecon::spocitejDruheHromadneOdhlasovaniOd(2022),
             'Očekáván jiné datum druhého hromadného odhlašování pro rok 2022'
         );
+    }
+
+    public function testDatumHromadnehoOdhlasovaniPlatiAzDenZpetne() {
+        $casPrvnihoHromadnehoOdhlasovani = new \DateTimeImmutable(HROMADNE_ODHLASOVANI);
+        self::assertEquals(
+            $casPrvnihoHromadnehoOdhlasovani,
+            DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani($casPrvnihoHromadnehoOdhlasovani),
+            'Zjišťování nejbližší (první) vlny ve stejný čas jako vlna začíná by mělo vrátit začátek té samé vlny'
+        );
+
+        $presneDenPoPrvni = $casPrvnihoHromadnehoOdhlasovani->modify('+1 day');
+        self::assertEquals(
+            $casPrvnihoHromadnehoOdhlasovani,
+            DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani($presneDenPoPrvni),
+            'Zjišťování nejbližší (první) vlny ještě den poté, co vlna začíná, by mělo vrátit začátek té den staré vlny'
+        );
+
+        $casDruhehoHromadnehoOdhlasovani = new \DateTimeImmutable(HROMADNE_ODHLASOVANI_2);
+
+        self::assertGreaterThan(
+            $casPrvnihoHromadnehoOdhlasovani->modify('+1 day'),
+            $casDruhehoHromadnehoOdhlasovani,
+            'Prní a druhá vlna od sebe musí být nejméně den a kousek'
+        );
+
+        $denAKousekPoPrvni = $casPrvnihoHromadnehoOdhlasovani->modify('+1 day +1 second');
+        self::assertEquals(
+            $casDruhehoHromadnehoOdhlasovani,
+            DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani($denAKousekPoPrvni),
+            'Zjišťování nejbližší (první) vlny déle než den poté, co vlna začíná, by mělo vrátit začátek až následující vlny'
+        );
+
+        self::assertEquals(
+            $casDruhehoHromadnehoOdhlasovani,
+            DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani($casDruhehoHromadnehoOdhlasovani),
+            'Zjišťování nejbližší (druhé) vlny ve stejný čas jako vlna začíná by mělo vrátit začátek té samé vlny'
+        );
+
+        $presneDenPoDruhe = $casDruhehoHromadnehoOdhlasovani->modify('+1 day');
+        self::assertEquals(
+            $casDruhehoHromadnehoOdhlasovani,
+            DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani($presneDenPoDruhe),
+            'Zjišťování nejbližší (druhé) vlny ještě den poté, co vlna začíná, by mělo vrátit začátek té den staré vlny'
+        );
+
+        $denAKousekPoDruhe = $casDruhehoHromadnehoOdhlasovani->modify('+1 day +1 second');
+        self::assertEquals(
+            null,
+            DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani($denAKousekPoDruhe),
+            'Zjišťování nejbližší (druhé) vlny déle než den poté, co začíná druhá vlna, by mělo vrátit null jelikož třetí vlnu nznáme'
+        );
+
     }
 }

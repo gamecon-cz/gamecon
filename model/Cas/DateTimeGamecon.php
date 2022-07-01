@@ -6,7 +6,6 @@ class DateTimeGamecon extends DateTimeCz
 {
 
     public static function denPodleIndexuOdZacatkuGameconu(int $indexDneKZacatkuGc, int $rok = ROK): string {
-        static $dnyPodleIndexu = [];
         $indexDneVuciStrede = $indexDneKZacatkuGc - 1;
         $englishOrCzechDayName = self::spocitejZacatekGameconu($rok)->modify("$indexDneVuciStrede days")->format('l');
         return strtr($englishOrCzechDayName, static::$dny);
@@ -199,4 +198,17 @@ class DateTimeGamecon extends DateTimeCz
         return $nedelePredZacatkemGameconu->setTime(23, 59, 00);
     }
 
+    public static function zacatekNejblizsiVlnyOdhlasovani(\DateTimeImmutable $ted = null): ?\DateTimeImmutable {
+        // s rezervou jednoho dne, aby i po půlnoci ještě platilo včerejší datum odhlašování
+        $kDatu = ($ted ?? new \DateTimeImmutable())->modify('-1 day');
+        $prvniHromadneOdhlasovani = new \DateTimeImmutable(HROMADNE_ODHLASOVANI);
+        if ($prvniHromadneOdhlasovani >= $kDatu) { // teprve bude
+            return $prvniHromadneOdhlasovani;
+        }
+        $druheHromadneOdhlasovani = new \DateTimeImmutable(HROMADNE_ODHLASOVANI_2);
+        if ($druheHromadneOdhlasovani >= $kDatu) { // teprve bude
+            return $druheHromadneOdhlasovani;
+        }
+        return null;
+    }
 }
