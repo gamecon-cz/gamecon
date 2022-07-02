@@ -11,11 +11,11 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveniHtml;
 
 /**
  * @var Uzivatel $u
+ * @var SystemoveNastaveni $systemoveNastaveni
  */
 
-$nastaveni = SystemoveNastaveni::vytvorZGlobalnich();
-$nastaveniHtml = new SystemoveNastaveniHtml($nastaveni);
-$nastaveniAjax = new SystemoveNastaveniAjax($nastaveni, $nastaveniHtml, $u);
+$nastaveniHtml = new SystemoveNastaveniHtml($systemoveNastaveni);
+$nastaveniAjax = new SystemoveNastaveniAjax($systemoveNastaveni, $nastaveniHtml, $u);
 
 if ($nastaveniAjax->zpracujPost()) {
     exit;

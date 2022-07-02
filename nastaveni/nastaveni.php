@@ -22,8 +22,9 @@ if (!defined('ROK')) define('ROK', 2022); // aktuální rok -- při změně roku
 // Nastavení ovládatelné z adminu //
 ////////////////////////
 
-$nastaveni = SystemoveNastaveni::vytvorZGlobalnich();
-$nastaveni->zaznamyDoKonstant();
+global $systemoveNastaveni;
+$systemoveNastaveni = SystemoveNastaveni::vytvorZGlobalnich();
+$systemoveNastaveni->zaznamyDoKonstant();
 
 if (defined('BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU')) { // nemusí být ještě načtena před SQL migracemi
     // OSTATNÍ FINANČNÍ NASTAVENÍ
@@ -57,9 +58,9 @@ if (defined('BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU')) { // nemusí být ještě 
 // SAMOTNÝ GAMECON //
 /////////////////////
 // 2022-07-21 07:00:00 čtvrtek ve třetím týdnu v červenci
-if (!defined('GC_BEZI_OD')) define('GC_BEZI_OD', $nastaveni->dejVychoziHodnotu('GC_BEZI_OD')); // začátek GameConu (přepnutí stránek do režimu "úpravy na jen na infopultu")
+if (!defined('GC_BEZI_OD')) define('GC_BEZI_OD', $systemoveNastaveni->dejVychoziHodnotu('GC_BEZI_OD')); // začátek GameConu (přepnutí stránek do režimu "úpravy na jen na infopultu")
 // 2022-07-24 21:00:00
-if (!defined('GC_BEZI_DO')) define('GC_BEZI_DO', $nastaveni->dejVychoziHodnotu('GC_BEZI_DO')); // konec GameCou (přepnutí stránek do režimu "gc skončil, úpravy nemožné")
+if (!defined('GC_BEZI_DO')) define('GC_BEZI_DO', $systemoveNastaveni->dejVychoziHodnotu('GC_BEZI_DO')); // konec GameCou (přepnutí stránek do režimu "gc skončil, úpravy nemožné")
 
 ///////////////////////////
 // REGISTRACE NA GAMECON //

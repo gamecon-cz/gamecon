@@ -46,11 +46,12 @@ class Statistiky
         /** @var \DateTimeImmutable|DateTimeGamecon $zacatekRegistraci */
         $zacatekRegistraci = min(DateTimeGamecon::spocitejZacatekRegistraciUcastniku($rok), $doChvile);
         /** @var \DateTimeImmutable|DateTimeGamecon $konecGc */
-        $konecGc = min(DateTimeGamecon::spocitejKonecGameconu($rok), $doChvile);
+        $konecGc = DateTimeGamecon::spocitejKonecGameconu($rok);
+        $posledniDen = min($konecGc, $doChvile);
 
         $ucastResult = dbQuery(<<<SQL
 SELECT
-    SUBDATE(DATE($3), 1) AS den, -- pred začátkem registrací
+    SUBDATE(DATE($3), 1) AS den, -- všichni přihlášení před začátkem registrací nahloučení v jednom "dni"
     SUM(CASE log.zmena WHEN $1 THEN 1 WHEN $2 THEN -1 ELSE 0 END) as prihlasenych
   FROM r_uzivatele_zidle_log AS log
   JOIN uzivatele_hodnoty u USING(id_uzivatele)
@@ -65,7 +66,7 @@ WHERE log.id_zidle = $0 AND log.kdy BETWEEN $3 AND $4
 GROUP BY DATE(log.kdy)
 UNION ALL
 SELECT
-    ADDDATE(DATE($4), 1) AS den, -- po GC
+    ADDDATE(DATE($4), 1) AS den, -- všichni přihlášení po GC nahloučení v jednom "dni"
     SUM(CASE log.zmena WHEN $1 THEN 1 WHEN $2 THEN -1 ELSE 0 END) as prihlasenych
   FROM r_uzivatele_zidle_log AS log
   JOIN uzivatele_hodnoty u USING(id_uzivatele)
@@ -78,7 +79,7 @@ SQL,
                 \Uzivatel::POSAZEN,
                 \Uzivatel::SESAZEN,
                 $zacatekRegistraci,
-                $konecGc,
+                $posledniDen,
             ]
         );
         $prihlasenychCelkem = 0;
@@ -88,7 +89,7 @@ SQL,
             $prihlasenychPoDnech[$row['den']] = $prihlasenychCelkem;
         }
         if ($rok < 2013) { // před rokem 2013 jsou datumy přihlášení 0000-00-00, respektive neznámé
-            // netučíme, kdy se přihlásili, tak je hodíme na poslední den GC
+            // netušíme, kdy se přihlásili, tak je hodíme na poslední den GC
             $prihlasenychPoDnech = [
                 (clone $zacatekRegistraci)->modify('-1 day')->format(DateTimeCz::FORMAT_DATUM_DB) => 0,
                 $konecGc->format(DateTimeCz::FORMAT_DATUM_DB) => $prihlasenychCelkem,
@@ -105,6 +106,7 @@ SQL,
             $prihlasenychDenPredtim = $prihlasenychPoDnech[$denString];
             $den = $den->modify('+ 1 day');
         }
+
         ksort($prihlasenychPoDnech); // data potřebujeme od nejstaršího dne
 
         return $prihlasenychPoDnech;
