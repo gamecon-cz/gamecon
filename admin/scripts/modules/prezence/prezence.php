@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml;
 
 /**
  * Vyklikávací tabulky s prezencí na aktivity
@@ -91,6 +92,7 @@ foreach ($aktivity as $aktivita) {
     if (!$uzavrena) {
         /** @var \Gamecon\Cas\DateTimeCz|null $zacatek */
         $t->assign('cas', $zacatek ? $zacatek->formatDb() : null);
+        $t->assign('htmlIdAktivity', OnlinePrezenceHtml::nazevProAnchor($aktivita));
         $t->parse('prezence.aktivita.form.onlinePrezence');
         $t->parse('prezence.aktivita.pozorNeuzavrena');
     }

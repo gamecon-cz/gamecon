@@ -100,7 +100,7 @@
         <!-- begin:onlinePrezence -->
         <tr>
           <td colspan="100%" style="padding: 0">
-            <a href="online-prezence?cas={cas}" type="button" id="otevritOnlinePrezenci" style="display: block; margin: 0"
+            <a href="online-prezence?cas={cas}#{htmlIdAktivity}" type="button" id="otevritOnlinePrezenci" style="display: block; margin: 0"
                class="ui-button">Vyplnit prezenci ✅</a>
           </td>
         </tr>
