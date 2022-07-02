@@ -168,7 +168,7 @@ class OnlinePrezenceHtml
             // Uzavřít 📕
             $template->assign(
                 'showUzavrit',
-                $this->cssZobrazitKdyz($neuzavrena)
+                $this->cssZobrazitKdyz($neuzavrena && !$nejdeAlePujdeEditovat)
             );
             // 🧊 ️Už ji nelze editovat ani zpětně 🧊️
             $template->assign(
