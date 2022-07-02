@@ -83,7 +83,19 @@ if ($uPracovni) {
         'prehledFinance' => $up->finance()->prehledHtml([Shop::PREDMET], false),
     ]);
 
-    $chybiUdaje = count($uPracovni->chybejiciUdaje()) > 0;
+    $chybiUdaje = count(
+        array_filter(
+            $uPracovni->chybejiciUdaje(),
+            function ($x) {
+                return in_array($x, [
+                    'jmeno_uzivatele',
+                    'prijmeni_uzivatele',
+                    'telefon_uzivatele',
+                    'email1_uzivatele',
+                ]);
+            }
+        )
+    ) > 0;
     $x->assign(
         'udajeChybiText',
         $chybiUdaje
@@ -118,7 +130,7 @@ if ($uPracovni) {
             $x->assign("potvrzeniText", $err . " chybí potvrzení od rodičů!");
         }
         $x->parse('infopult.uzivatel.potvrzeni');
-    } 
+    }
     // else {
     //     $x->assign("potvrzeniAttr", "checked disabled");
     //     $x->assign("potvrzeniText", $ok . " nepotřebuje potvrzení od rodičů");
