@@ -51,6 +51,7 @@ if ($uPracovni && $uPracovni->gcPrihlasen()) {
     $x->assign('shop', $shop);
     $x->parse('uzivatel.ubytovani');
     $x->parse('uzivatel.jidlo');
+    $x->parse('uzivatel.pokojPridel');
 }
 
 if (!$uPracovni) {
