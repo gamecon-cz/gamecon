@@ -7,7 +7,13 @@
  * pravo: 107
  */
 
+/**
+ * @var $u Uzivatel
+ * @var $systemoveNastaveni SystemoveNastaveni
+ */
+
 use Gamecon\Statistiky\Statistiky;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 $zbyva = new DateTime(DEN_PRVNI_DATE);
 $zbyva = $zbyva->diff(new DateTime());
@@ -30,7 +36,7 @@ $ubytovaniKratce = $statistiky->tabulkaUbytovaniKratce();
 $jidlo = $statistiky->tabulkaJidlaHtml();
 $pohlavi = $statistiky->tabulkaZastoupeniPohlaviHtml();
 
-$prihlaseniData = $statistiky->dataProGrafUcasti(new DateTimeImmutable());
+$prihlaseniData = $statistiky->dataProGrafUcasti($systemoveNastaveni->ted());
 
 $zarovnaniGrafu = get('zarovnaniGrafu') ?? Statistiky::ZAROVNANI_KE_KONCI_GC;
 [
