@@ -29,8 +29,10 @@
 <main class="main">
 
   <div class="container">
-
     <div class="d-flex justify-content-center align-items-center" style="min-height: 99vh">
+      <img alt="GC logo" src="files/design/GC2022-logo-qHD.gif?version=a082d78fe70cb2f5eb31a8bfb2058a9f"
+           class="background-image">
+
       <form method="post" class="needs-validation" novalidate>
         <!-- begin:chyba -->
         <div class="form-text alert alert-danger">{chyba}</div>
