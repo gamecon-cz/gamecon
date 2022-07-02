@@ -209,11 +209,11 @@
   </div>
 
   <div class="infopult-grid--item infopult-grid--item-pokoje aBox">
-    <h3>Nastavení pokojů</h3>
+<h3>Nastavení pokojů</h3>
 
-    <div style="float:left">
-      Přidělit pokoj (přepíše stávající stav)<br>
-      <form method="post">
+    <div>
+      Vypsat pokoj<br>
+      <form method="get" >
         <table>
           <tr>
             <td>Pokoj:</td>
@@ -224,12 +224,24 @@
             <td>{ubytovaniVypis}</td>
           </tr>
         </table>
-        <input type="submit" name="pridelitPokoj" value="Přidělit" class="submit-btn">
-        <input type="submit" value="Vypsat" formmethod="get" class="submit-btn">
+        <input type="submit" value="Vypsat" class="submit-btn">
       </form>
     </div>
 
-    <div style="clear: both"></div>
+    <br>
+
+    <div style="margin-top:8px">
+      Přidělit pokoj (přepíše stávající stav)<br>
+      <form method="post" class="cleafix">
+        <table>
+          <tr>
+            <td>Pokoj:</td>
+            <td><input type="integer" name="pokoj"></input></td>
+          </tr>
+        </table>
+        <input type="submit" name="pridelitPokoj" value="Přidělit" class="submit-btn">
+      </form>
+    </div>
   </div>
 
   <!-- begin:objednavky -->
