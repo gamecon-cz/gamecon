@@ -8,11 +8,6 @@ use Gamecon\Cas\DateTimeGamecon;
 class SystemoveNastaveni
 {
 
-    public const SKUPINA_NEPLATIC = 'neplatič';
-    public const SKUPINA_FINANCE = 'finance';
-    public const SKUPINA_CAS = 'čas';
-
-    /**
     public static function vytvorZGlobalnich(): self {
         return new static(
             ROK,
@@ -73,10 +68,6 @@ class SystemoveNastaveni
         $this->rok = $rok;
         $this->ted = $ted;
         $this->jsmeNaBete = $jsmeNaBete;
-    }
-
-    public function rok(): int {
-        return $this->rok;
     }
 
     public function rok(): int {
