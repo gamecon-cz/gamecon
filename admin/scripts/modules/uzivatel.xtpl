@@ -57,7 +57,7 @@
     </div>
 
     <br>
-
+    <!-- begin:pokojPridel -->
     <div style="margin-top:8px">
       Přidělit pokoj (přepíše stávající stav)<br>
       <form method="post" class="cleafix">
@@ -70,6 +70,7 @@
         <input type="submit" name="pridelitPokoj" value="Přidělit" class="submit-btn">
       </form>
     </div>
+    <!-- end:pokojPridel -->
   </div>
 
   <!-- begin:slevy -->
