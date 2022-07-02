@@ -121,6 +121,12 @@ function post($name, $field = null) {
     return $_POST[$name][$field] ?? null;
 }
 
+function postBody() {
+    $rawdata = file_get_contents("php://input");
+    $decoded = json_decode($rawdata, true);
+    return $decoded;
+}
+
 /** Returns temporary filename for uploaded file or '' if none */
 function postFile($name) {
     return $_FILES[$name]['tmp_name'] ?? '';
