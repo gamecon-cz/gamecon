@@ -77,7 +77,6 @@ if ($uPracovni) {
         'spolubydlici' => spolubydliciTisk($spolubydlici),
         'org' => $u->jmenoNick(),
         'poznamka' => $up->poznamka(),
-        'pokojVypis' => $pokoj ? $pokoj->cislo() : "",
         'ubytovani' => $up->dejShop()->dejPopisUbytovani(),
         'udajeChybiAttr' => 'href="uzivatel"',
         'balicek' => $up->balicekHtml(),
