@@ -80,7 +80,10 @@ if ($uPracovni) {
         'ubytovani' => $up->dejShop()->dejPopisUbytovani(),
         'udajeChybiAttr' => 'href="uzivatel"',
         'balicek' => $up->balicekHtml(),
-        'prehledFinance' => $up->finance()->prehledHtml([Shop::PREDMET], false),
+        'prehledFinance' => $up->finance()->prehledHtml([
+            Shop::PREDMET,
+            Shop::TRICKO,
+        ], false),
     ]);
 
     $chybiUdaje = count(
