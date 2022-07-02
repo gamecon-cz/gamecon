@@ -52,7 +52,7 @@
     <span class="spici {cssTridaDisplaySledujici}"
           id="ucastnik-{u.id}-je-spici-na-aktivite-{a.id}"
           data-bs-toggle="tooltip"
-          title="Byl náhradníkem, přidaným přes online prezenci. Teď není nic, ale ještě ho neskryjeme, kdyby snad jeho odkšrtnutí byl omyl."
+          title="Zrušený náhradník"
     >
       💤
     </span>
