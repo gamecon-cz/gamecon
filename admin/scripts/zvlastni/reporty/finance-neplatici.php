@@ -37,7 +37,7 @@ foreach (Uzivatel::zPrihlasenych() as $letosniUcastnik) {
                 return \Gamecon\Zidle::nazevZidle($zidle);
             },
             array_filter(
-                $letosniUcastnik->dejIdZidli(),
+                $letosniUcastnik->dejIdsZidli(),
                 static function (int $zidle) {
                     return !\Gamecon\Zidle::jeToUdalostNaGc($zidle);
                 }

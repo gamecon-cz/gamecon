@@ -68,23 +68,31 @@ class Zidle extends \DbObject
     }
 
     /**
-     * @param int[] $zidle
+     * @param int[] $idsZidli
      * @return bool
      */
-    public static function obsahujiVypravece(array $zidle): bool {
-        return in_array(self::VYPRAVEC, $zidle, false);
+    public static function obsahujiVypravece(array $idsZidli): bool {
+        return in_array(self::VYPRAVEC, $idsZidli, false);
     }
 
     /**
-     * @param int[] $zidle
+     * @param int[] $idsZidli
      * @return bool
      */
-    public static function obsahujiOrganizatora(array $zidle): bool {
+    public static function obsahujiOrganizatora(array $idsZidli): bool {
         $idZidli = array_map(static function ($idZidle) {
             return (int)$idZidle;
-        }, $zidle);
+        }, $idsZidli);
         $maZidle = array_intersect($idZidli, self::dejIdZidliSOrganizatory());
         return count($maZidle) > 0;
+    }
+
+    /**
+     * @param int[] $idsZidli
+     * @return bool
+     */
+    public static function obsahujiPartnera(array $idsZidli): bool {
+        return in_array(self::PARTNER, $idsZidli, false);
     }
 
     /**

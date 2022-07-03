@@ -3,6 +3,8 @@
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Shop\Shop;
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Pravo;
+use Gamecon\Zidle;
 
 /**
  * Třída popisující uživatele a jeho vlastnosti
@@ -64,14 +66,6 @@ SQL
         } else {
             throw new Exception('Špatný vstup konstruktoru uživatele');
         }
-    }
-
-    public function jeVypravec(): bool {
-        return \Gamecon\Zidle::obsahujiVypravece($this->dejIdZidli());
-    }
-
-    public function jeOrganizator(): bool {
-        return \Gamecon\Zidle::obsahujiOrganizatora($this->dejIdZidli());
     }
 
     /**
@@ -260,12 +254,12 @@ SQL
             );
         }
         foreach ($this->aktivityRyzePrihlasene() as $aktivita) {
-            $aktivita->odhlas($this, $aktivita::NEPOSILAT_MAILY /* nechceme posílat maily sledujícím, že se uvolnilo místo */);
+            $aktivita->odhlas($this, Aktivita::NEPOSILAT_MAILY_SLEDUJICIM /* nechceme posílat maily sledujícím, že se uvolnilo místo */);
         }
         // zrušení nákupů
         dbQuery('DELETE FROM shop_nakupy WHERE rok=' . ROK . ' AND id_uzivatele=' . $this->id());
         // finální odebrání židle "registrován na GC"
-        $this->vemZidli(\Gamecon\Zidle::PRIHLASEN_NA_LETOSNI_GC, $editor);
+        $this->vemZidli(Zidle::PRIHLASEN_NA_LETOSNI_GC, $editor);
         // odeslání upozornění, pokud u nás má peníze
         if (dbQuery('SELECT 1 FROM platby WHERE rok=' . ROK . ' AND id_uzivatele=' . $this->id() . ' LIMIT 1')->num_rows > 0) {
             (new GcMail)
@@ -328,7 +322,7 @@ SQL,
         if (!$this->gcPritomen()) {
             throw new Chyba('Uživatel není přítomen na GC');
         }
-        $this->dejZidli(\Gamecon\Zidle::ODJEL_Z_LETOSNIHO_GC, $editor);
+        $this->dejZidli(Zidle::ODJEL_Z_LETOSNIHO_GC, $editor);
     }
 
     /** Opustil uživatel GC? */
@@ -350,7 +344,7 @@ SQL,
             return;
         }
 
-        $this->dejZidli(\Gamecon\Zidle::PRIHLASEN_NA_LETOSNI_GC, $editor);
+        $this->dejZidli(Zidle::PRIHLASEN_NA_LETOSNI_GC, $editor);
     }
 
     /** Prošel uživatel infopultem, dostal materiály a je nebo byl přítomen na aktuálím
@@ -462,7 +456,7 @@ SQL,
      * @return bool
      */
     public function maPravoNerusitObjednavky(): bool {
-        return $this->maPravo(P_NERUSIT_OBJEDNAVKY);
+        return $this->maPravo(Pravo::NERUSIT_AUTOMATICKY_OBJEDNAVKY);
     }
 
     public function nemaPravoNaBonusZaVedeniAktivit(): bool {
@@ -474,19 +468,38 @@ SQL,
     }
 
     public function maPravoNaPoradaniAktivit(): bool {
-        return $this->maPravo(\Gamecon\Pravo::PORADANI_AKTIVIT);
+        return $this->maPravo(Pravo::PORADANI_AKTIVIT);
     }
 
     public function maPravoNaZmenuHistorieAktivit(): bool {
-        return $this->maPravo(\Gamecon\Pravo::ZMENA_HISTORIE_AKTIVIT);
+        return $this->maPravo(Pravo::ZMENA_HISTORIE_AKTIVIT);
+    }
+
+    public function jeVypravec(): bool {
+        return $this->maZidli(Zidle::VYPRAVEC);
+    }
+
+    public function jeOrganizator(): bool {
+        return Zidle::obsahujiOrganizatora($this->dejIdsZidli());
     }
 
     public function jePartner(): bool {
-        return $this->maZidli(\Gamecon\Zidle::PARTNER);
+        return $this->maZidli(Zidle::PARTNER);
+    }
+
+    public function jeInfopultak(): bool {
+        return $this->maZidli(Zidle::INFOPULT);
     }
 
     public function jeSpravceFinanci(): bool {
-        return $this->maZidli(\Gamecon\Zidle::SPRAVCE_FINANCI_GC);
+        return $this->maZidli(Zidle::SPRAVCE_FINANCI_GC);
+    }
+
+    public function jeSuperAdmin(): bool {
+        if (!defined('SUPERADMINI') || !is_array(SUPERADMINI)) {
+            return false;
+        }
+        return in_array($this->id(), SUPERADMINI, false);
     }
 
     /**
@@ -500,7 +513,7 @@ SQL,
     public function maVolno(DateTimeInterface $od, DateTimeInterface $do, Aktivita $ignorovanaAktivita = null, bool $jenPritomen = false) {
         // právo na překrytí aktivit dává volno vždy automaticky
         // TODO zkontrolovat, jestli vlastníci práva dřív měli někdy paralelně i účast nebo jen organizovali a pokud jen organizovali, vyhodit test odsud a vložit do kontroly kdy se ukládá aktivita
-        if ($this->maPravo(\Gamecon\Pravo::PREKRYVANI_AKTIVIT)) {
+        if ($this->maPravo(Pravo::PREKRYVANI_AKTIVIT)) {
             return true;
         }
 
@@ -558,13 +571,13 @@ SQL,
         if (!$idZidle) {
             return false;
         }
-        return in_array($idZidle, $this->dejIdZidli(), true);
+        return in_array($idZidle, $this->dejIdsZidli(), true);
     }
 
     /**
      * @return int[]
      */
-    public function dejIdZidli(): array {
+    public function dejIdsZidli(): array {
         if (!isset($this->idZidli)) {
             $zidle = dbOneArray('SELECT id_zidle FROM r_uzivatele_zidle WHERE id_uzivatele = ' . $this->id());
             $this->idZidli = array_map('intval', $zidle);
@@ -1112,25 +1125,25 @@ SQL,
     public function statusHtml() {
         $ka = $this->koncovkaDlePohlavi('ka');
         $status = [];
-        if ($this->maPravo(\Gamecon\Pravo::TITUL_ORGANIZATOR)) {
+        if ($this->maPravo(Pravo::TITUL_ORGANIZATOR)) {
             $status [] = '<span style="color:red">Organizátor' . $ka . '</span>';
         }
-        if ($this->maZidli(\Gamecon\Zidle::VYPRAVEC)) {
+        if ($this->maZidli(Zidle::VYPRAVEC)) {
             $status[] = '<span style="color:blue">Vypravěč' . $ka . '</span>';
         }
         if ($this->jePartner()) {
             $status[] = '<span style="color:darkslateblue">Partner' . $ka . '</span>';
         }
-        if ($this->maZidli(\Gamecon\Zidle::INFOPULT)) {
+        if ($this->maZidli(Zidle::INFOPULT)) {
             $status[] = '<span style="color:orange">Infopult</span>';
         }
-        if ($this->maZidli(\Gamecon\Zidle::HERMAN)) {
+        if ($this->maZidli(Zidle::HERMAN)) {
             $status[] = '<span style="color:orange">Herman</span>';
         }
         if ($this->maZidli(ZIDLE_ZAZEMI)) {
             $status[] = "Zázemí";
         }
-        if ($this->maZidli(\Gamecon\Zidle::DOBROVOLNIK_SENIOR)) {
+        if ($this->maZidli(Zidle::DOBROVOLNIK_SENIOR)) {
             $status[] = "Dobrovolník senior";
         }
         if (count($status) > 0) {
@@ -1320,6 +1333,14 @@ SQL,
     static function zId($id): ?Uzivatel {
         $o = self::zIds((int)$id);
         return $o ? $o[0] : null;
+    }
+
+    public static function zIdNeboException($id): self {
+        $uzivatel = static::zId($id);
+        if ($uzivatel !== null) {
+            return $uzivatel;
+        }
+        throw new \Gamecon\Exceptions\UzivatelNenalezen('Neznámé ID uživatele ' . $id);
     }
 
     /**
@@ -1546,13 +1567,6 @@ SQL,
         return $uzivatele;
     }
 
-    public function jeSuperAdmin(): bool {
-        if (!defined('SUPERADMINI') || !is_array(SUPERADMINI)) {
-            return false;
-        }
-        return in_array($this->id(), SUPERADMINI, false);
-    }
-
     public function dejShop(): Shop {
         if ($this->shop === null) {
             $this->shop = new Shop($this);
@@ -1704,7 +1718,7 @@ SQL,
     }
 
     public function uvodniAdminUrl(string $zakladniAdminUrl): string {
-        if ($this->maPravo(\Gamecon\Pravo::ADMINISTRACE_MOJE_AKTIVITY)) {
+        if ($this->maPravo(Pravo::ADMINISTRACE_MOJE_AKTIVITY)) {
             return $this->mojeAktivityAdminUrl($zakladniAdminUrl);
         }
         return $zakladniAdminUrl;
