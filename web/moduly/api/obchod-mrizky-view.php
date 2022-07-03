@@ -47,8 +47,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
       unset($idPuvodni);
     }
-    $bunky = $mrizkaRaw['buňky'] ?? [];
-    unset($mrizkaRaw['buňky']);
+    $bunky = $mrizkaRaw['bunky'] ?? [];
+    unset($mrizkaRaw['bunky']);
 
     $mrizka = ObchodMrizka::novy($mrizkaRaw);
     if (isset($idPuvodni)) {
@@ -82,14 +82,15 @@ $res = [];
 
 
 foreach ($vsechny as &$x) {
-  $bunkyMrizky = array_filter($bunky, function ($y) use ($x) {
-    /** @var ObchodMrizkaBunka $y */ return $y->mrizka_id() == $x->id();
-  });
+  $bunkyMrizky = array_values(
+    array_filter($bunky, function ($y) use ($x) {
+      /** @var ObchodMrizkaBunka $y */ return $y->mrizka_id() == $x->id();
+    })
+  );
   $res[] = [
     'id' => $x->id(),
     'text' => $x->text(),
-    'buňky' =>
-    array_map(function ($y) {
+    'bunky' => array_map(function ($y) {
       return [
         'id' => $y->id(),
         'typ' => $y->typ(),
