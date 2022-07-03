@@ -2,24 +2,30 @@
 0-předmět, 1-stránka, 2-zpět, 3-shrnutí
 */
 
-type DefiniceObchodMřížkaBuňkaTyp = "předmět" | "stránka" | "zpět" | "shrnutí";
+type DefiniceObchodMřížkaBuňkaTypStr = "předmět" | "stránka" | "zpět" | "shrnutí";
 
+export enum DefiniceObchodMřížkaBuňkaTyp{
+  "předmět" = 0,
+  "stránka" = 1,
+  "zpět" = 2,
+  "shrnutí" = 3,
+}
 
 export type DefiniceObchodMřížkaBuňkaSpolečné = {
   text?: string,
-  barvaPozadí?: string, 
+  barvaPozadí?: string,
+  id?: number,
 }
-
 
 export type DefiniceObchodMřížkaBuňkaPředmět = {
   typ: "předmět",
-  předmět: Předmět,
+  cilId: number,
 }
 
 export type DefiniceObchodMřížkaBuňkaStránka = {
   typ: "stránka",
   /** id od DefiniceObchodMřížka */
-  id: number,
+  cilId: number,
 }
 
 export type DefiniceObchodMřížkaBuňkaZpět = {
@@ -50,8 +56,9 @@ export type DefiniceObchod = {
 
 export type Předmět = {
   id: number,
-  text: string,
-  zbývá: number,
+  název: string,
+  cena: number,
+  zbývá: number | null,
 };
 
 export type ObjednávkaPředmět = {
