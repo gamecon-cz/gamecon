@@ -4,7 +4,11 @@ $data = omnibox(
     get('term'),
     true,
     get('dataVOdpovedi') ?: [],
-    get('labelSlozenZ')
+    get('labelSlozenZ'),
+    [],
+    false,
+    3,
+    get('jenSeZidlemi') ?: []
 );
 
 header('Content-Type: application/json');
