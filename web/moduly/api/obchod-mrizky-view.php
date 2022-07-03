@@ -3,33 +3,26 @@
 // TODO: vxužíváno adminem asi by mělo být v adminu (nutno dovymyslet)
 // TODO: ObchodMrizka, ObchodMrizkaBunka by měli být asi v nějakém namespace (nepodařilo se mi rozchodit - padá)
 // TODO: řešit pomocí joinu nebo view na DB
+// TODO: OpenAPI
 
 /*
-  GET api/obchod-mrizky-view
-  response: {
+  type MřížkaAPI = {
     id?: number, 
     text?: string, 
     bunky?: {
       id?: number,
       typ: number - TypBunky,
       text?: string,
-      barva?: ,
-      cil_id?: ,
+      barva?: string,
+      cil_id?: number,
     }[],
   }[]
 
+  GET api/obchod-mrizky-view
+  response: MřížkaAPI všechno přítomné
+
   POST api/obchod-mrizky-view
-  body: {
-    id?: number, 
-    text?: string, 
-    bunky?: {
-      id?: number,
-      typ: number - TypBunky,
-      text?: string,
-      barva?: ,
-      cil_id?: ,
-    }[],
-  }[],
+  body: MřížkaAPI
 
 */
 
