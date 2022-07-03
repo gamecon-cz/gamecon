@@ -5,7 +5,7 @@ const initializeOmnibox = function ($) {
    * @param {function} response
    * @return {{}}
    */
-  getSourceUrl = function (request, response) {
+  getSource = function (request, response) {
     const data = {term: request.term}
     const input = $omnibox.filter(function (index, input) {
       return input.value === request.term
@@ -31,7 +31,7 @@ const initializeOmnibox = function ($) {
   }
   // Našeptávátko pro omnibox
   $omnibox.autocomplete({
-    source: getSourceUrl,
+    source: getSource, // schválně jen odkaz na funkci, nikoli jeji výsledek
     minLength: $omnibox.data('omnibox-min-length') ?? 2,
     autoFocus: true, // automatický výběr první hodnoty, aby uživatel mohl zmáčknout rovnou enter
     focus: function (event, ui) {
