@@ -68,3 +68,34 @@ foreach (Shop::letosniPolozky() as $polozka) {
 $template->parse('eshop.typ');
 $template->parse('eshop');
 $template->out('eshop');
+
+
+// TODO: od tohodle řádku dál potřebuje refactor
+
+function zabalSoubor($cestaNaWebu)
+{
+  $verze = md5_file(WWW . '/' . $cestaNaWebu);
+  $url = URL_WEBU . '/' . $cestaNaWebu . '?v=' . $verze;
+  return $url;
+}
+
+?>
+
+<div class="aBox" style="width:100%; overflow: auto;">
+    <h3>Nastavení mřížkového prodeje</h3>
+
+    <link rel="stylesheet" href="<?= zabalSoubor('soubory/ui/style.css') ?>">
+
+    <div id="preact-obchod-nastaveni">Nastavení mřížek obchodu se načítá ...</div>
+
+    <script>
+    // Konstanty předáváné do Preactu (env.ts)
+    window.GAMECON_KONSTANTY = {
+        BASE_PATH_API: "<?= "/web/api/" ?>",
+        ROK: <?= ROK ?>,
+    }
+    </script>
+
+    <script type="module" src="<?= zabalSoubor('soubory/ui/bundle.js') ?>"></script>
+
+</div>
