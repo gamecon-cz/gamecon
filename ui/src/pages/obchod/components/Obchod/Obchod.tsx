@@ -19,6 +19,7 @@ import {
   Předmět,
 } from "../../../../api/obchod/types";
 import { PředmětyContext } from "../../App";
+import { fetchProdej } from "../../../../api/obchod/endpoints";
 
 /** Ruční optimalizace, nedoporučuju používat pokud neznáš dobře react! */
 const useFixed = <T,>(value: T) => useRef(value).current;
@@ -144,6 +145,13 @@ export const Obchod: FunctionComponent<TObchodProps> = (props) => {
     setVisible(false);
   }, []);
 
+  const onPotvrdit = useCallback(async () => {
+    await fetchProdej(předměty);
+    předmětySmažVšechny();
+    setMřížka.výchozí();
+    setVisible(false);
+  }, [předměty]);
+
   return (
     <>
       {visible ? (
@@ -159,6 +167,7 @@ export const Obchod: FunctionComponent<TObchodProps> = (props) => {
                   onStorno,
                   předmětPřidej,
                   předmětOdeber,
+                  onPotvrdit,
                 }}
               />
             )}
