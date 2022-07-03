@@ -43,7 +43,13 @@ if (post('zrusitUzivateleProPraci')) {
     back();
 }
 
-if (post('prihlasitSeJakoUzivatel') && $u->jeSuperAdmin()) {
-    $u = Uzivatel::prihlasId(post('id'));
-    back();
+if (post('prihlasitSeJakoUzivatel')) {
+    try {
+        if ($u->jeSuperAdmin() || ($u->jeInfopultak() && Uzivatel::zIdNeboException(post('id')->jeVypravec()))) {
+            $u = Uzivatel::prihlasId(post('id'));
+            back();
+        }
+    } catch (\Gamecon\Exceptions\UzivatelNenalezen $uzivatelNenalezen) {
+        chyba($uzivatelNenalezen->getMessage());
+    }
 }
