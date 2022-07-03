@@ -392,7 +392,7 @@ function dbQv($val): string {
     if ($val === null) {
         return 'NULL';
     }
-    if (is_int($val) || (string)(int)$val === $val) {
+    if (is_int($val) || (is_numeric($val) && (string)(int)$val === $val)) {
         return $val;
     }
     if ($val instanceof DateTimeInterface) {
