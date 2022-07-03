@@ -82,9 +82,12 @@ export const EditorMřížek: FunctionComponent<TEditorMřížekProps> = (props)
           value={mřížkaVybranáI}
           onChange={(e: any) => setMřížkaVybranáI(+e.target.value)}
         >
-          {mřížky.map((x, i) => (
-            <option value={i}>{x.id}</option>
-          ))}
+          {mřížky.map((x, i) => 
+            {
+              const text = !x.text || x.text === "" ? x.id : x.text
+              return <option key={x.id} value={i}>{text}</option>;
+            }
+          )}
         </select>
       </div>
       {mřížka ? <EditorMřížky {...{ mřížka, setMřížka }} /> : undefined}

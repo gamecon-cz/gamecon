@@ -24,7 +24,7 @@ export const ObchodShrnutí: FunctionComponent<TObchodShrnutíProps> = (props) =
       {předmětyObjednávka.map((x) => {
         return (
           <div class="obchod-shrnuti-seznam--item" key={x.předmět.id}>
-            <div class="obchod-shrnuti-seznam--item-text">{x.předmět.text}</div>
+            <div class="obchod-shrnuti-seznam--item-text">{x.předmět.název}</div>
             <div class="obchod-shrnuti-seznam--item-buttons">
               <button
                 class="obchod-shrnuti-seznam--item-buttons-remove"
