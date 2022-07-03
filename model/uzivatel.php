@@ -1292,16 +1292,16 @@ SQL,
      * jménem, nickem, apod.
      */
     static function zHledani(string $dotaz, $opt = [], int $limit = 20, int $minimumZnaku = 3) {
-        if (mb_strlen($dotaz) < $minimumZnaku) {
-            return [];
-        }
-        $opt = opt($opt, [
-            'mail' => false,
-            'jenPrihlaseniAPritomniNaGc' => false,
-            'kromeIdUzivatelu' => [],
-            'min' => $minimumZnaku,
-        ]);
-        if (strlen($dotaz) < $opt['min']) {
+        $opt = opt(
+            $opt,
+            [
+                'mail' => false,
+                'jenPrihlaseniAPritomniNaGc' => false,
+                'kromeIdUzivatelu' => [],
+                'min' => $minimumZnaku,
+            ]
+        );
+        if (!is_numeric($dotaz) && mb_strlen($dotaz) < $opt['min']) {
             return [];
         }
         $q = dbQv($dotaz);
@@ -1314,7 +1314,7 @@ SQL,
 
         return self::zWhere("
       WHERE u.id_uzivatele NOT IN ($kromeIdUzivateluSql)
-      " . ($opt['jenPrihlaseniAPritomniNaGc'] ? " AND p.id_prava IN (" . ID_PRAVO_PRIHLASEN . ',' . ID_PRAVO_PRITOMEN . ')' : "") . "
+      " . ($opt['jenPrihlaseniAPritomniNaGc'] ? " AND p.id_zidle IN (" . Zidle::PRIHLASEN_NA_LETOSNI_GC . ',' . Zidle::PRITOMEN_NA_LETOSNIM_GC . ')' : "") . "
       AND (
           u.id_uzivatele = $q
           OR login_uzivatele LIKE $l
