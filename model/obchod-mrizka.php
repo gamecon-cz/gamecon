@@ -9,16 +9,22 @@ class ObchodMrizka extends \DbObject
     protected static $tabulka = 'obchod_mrizky';
     protected static $pk = 'id';
 
-    public static function novy($array=null) {
-        $obj = new ObchodMrizka(array_replace(["id"=>null, "text"=>null], $array ?? []));
-        return $obj;
+    // TODO: mohlo by být součástí DbObject
+    public static function novy($array = null) {
+        dbInsertUpdate(static::$tabulka, array_replace(["id"=>null, "text"=>null], $array ?? []));
+        $id = null;
+        if (empty($array['id']))
+            $id = dbInsertId();
+        else  
+            $id = $array['id'];
+        return static::zId($id);
     }
 
 
-    public function id($val = null) {
+    public function id($val = null): int {
         return intval($this->getSetR('id', $val));
     }
-    public function text($val = null) {
+    public function text($val = null): string {
         return $this->getSetR('text', $val) ?: "";
     }
 }
