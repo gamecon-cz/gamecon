@@ -4,7 +4,7 @@ import "./ObchodShrnutí.less";
 
 type TObchodShrnutíProps = {
   předmětyObjednávka: ObjednávkaPředmět[];
-  předmětPřidej: (předmět: Předmět) => void;
+  předmětPřidej: (předmětId: number) => void;
   předmětOdeber: (předmět: Předmět) => void;
   onDalšíPředmět?: () => void;
   onStorno?: () => void;
@@ -24,7 +24,7 @@ export const ObchodShrnutí: FunctionComponent<TObchodShrnutíProps> = (props) =
       {předmětyObjednávka.map((x) => {
         return (
           <div class="shop-summary-list--item" key={x.předmět.id}>
-            <div class="shop-summary-list--item-text">{x.předmět.text}</div>
+            <div class="shop-summary-list--item-text">{x.předmět.název}</div>
             <div class="shop-summary-list--item-buttons">
               <button
                 class="shop-summary-list--item-buttons-remove"
@@ -38,7 +38,7 @@ export const ObchodShrnutí: FunctionComponent<TObchodShrnutíProps> = (props) =
               ></input>
               <button
                 class="shop-summary-list--item-buttons-add"
-                onClick={() => předmětPřidej(x.předmět)}
+                onClick={() => předmětPřidej(x.předmět.id)}
               >
                 +
               </button>
