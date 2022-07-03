@@ -50,7 +50,6 @@ if (!empty($_POST['prodej-mrizka'])) {
 <script>
   // Konstanty předáváné do Preactu (env.ts)
   window.GAMECON_KONSTANTY = {
-    BASE_PATH_PAGE: "<?= WWW . "/infopult/" ?>",
     BASE_PATH_API: "<?= "/web/api/" ?>",
     ROK: <?= ROK ?>,
   }
