@@ -14,6 +14,21 @@ class ObchodMrizkaBunka extends \DbObject
     protected static $tabulka = 'obchod_bunky';
     protected static $pk = 'id';
 
+    public static function novy($array = null) {
+        dbInsertUpdate(static::$tabulka, array_replace(["id"=>null, "text"=>null], $array ?? []));
+        $id = null;
+        if (empty($array['id']))
+            $id = dbInsertId();
+        else  
+            $id = $array['id'];
+        return static::zId($id);
+    }
+
+    public const TYP_PREDMET = 0;
+    public const TYP_STRANKA = 1;
+    public const TYP_ZPET = 2;
+    public const TYP_SHRNUTI = 3;	
+
     public function id($val = null) {
         return intval($this->getSetR('id', $val));
     }
