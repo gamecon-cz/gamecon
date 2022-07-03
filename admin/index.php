@@ -110,7 +110,12 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
     // operátor - info & odhlašování
     $xtpl->assign('a', $u->koncovkaDlePohlavi());
     $xtpl->assign('operator', $u->jmenoNick());
-    if ($u->jeSuperAdmin()) {
+    if ($u->jeSuperAdmin() || $u->jeInfopultak()) {
+        $dataOmnibox = [];
+        if ($u->jeInfopultak()) {
+            $dataOmnibox['jenSeZidlemi'] = [\Gamecon\Zidle::VYPRAVEC];
+        }
+        $xtpl->assign('dataOmniboxJson', htmlspecialchars(json_encode($dataOmnibox, JSON_FORCE_OBJECT)));
         $xtpl->parse('all.operator.prepnutiUzivatele');
     }
     $xtpl->parse('all.operator');

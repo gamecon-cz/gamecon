@@ -45,9 +45,12 @@ if (post('zrusitUzivateleProPraci')) {
 
 if (post('prihlasitSeJakoUzivatel')) {
     try {
-        if ($u->jeSuperAdmin() || ($u->jeInfopultak() && Uzivatel::zIdNeboException(post('id')->jeVypravec()))) {
+        if ($u->jeSuperAdmin() || ($u->jeInfopultak() && Uzivatel::zIdUrcite(post('id'))->jeVypravec())) {
             $u = Uzivatel::prihlasId(post('id'));
-            back();
+            back($u->jeVypravec()
+                ? $u->mojeAktivityAdminUrl()
+                : null
+            );
         }
     } catch (\Gamecon\Exceptions\UzivatelNenalezen $uzivatelNenalezen) {
         chyba($uzivatelNenalezen->getMessage());

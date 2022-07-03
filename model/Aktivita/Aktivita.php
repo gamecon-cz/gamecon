@@ -2546,7 +2546,7 @@ SQL,
             $text = 'Zkontroluj prezenci a zavři';
             foreach ($neuzavreneAktivity as $neuzavrenaAktivita) {
                 $uzivatele[$idVypravece] = \Uzivatel::zId($idVypravece);
-                $url = $uzivatele[$idVypravece]->mojeAktivityAdminUrl(URL_ADMIN)
+                $url = $uzivatele[$idVypravece]->mojeAktivityAdminUrl()
                     . '#' . OnlinePrezenceHtml::nazevProAnchor($neuzavrenaAktivita);
                 $text .= "<br><a href='$url'>{$neuzavrenaAktivita->nazev()}</a> (skončila {$neuzavrenaAktivita->konec()->formatCasNaMinutyStandard()})";
             }

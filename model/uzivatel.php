@@ -1298,6 +1298,7 @@ SQL,
                 'mail' => false,
                 'jenPrihlaseniAPritomniNaGc' => false,
                 'kromeIdUzivatelu' => [],
+                'jenSeZidlemi' => null,
                 'min' => $minimumZnaku,
             ]
         );
@@ -1306,22 +1307,33 @@ SQL,
         }
         $q = dbQv($dotaz);
         $l = dbQv($dotaz . '%'); // pro LIKE dotazy
-        $kromeIdUzivateluSql = $opt['kromeIdUzivatelu']
-            ? implode(',', array_map(static function ($idUzivatele) {
-                return (int)$idUzivatele;
-            }, $opt['kromeIdUzivatelu']))
-            : '0';
+        $kromeIdUzivatelu = $opt['kromeIdUzivatelu'];
+        $kromeIdUzivateluSql = dbQv($kromeIdUzivatelu);
+        $pouzeIdZidli = [];
+        if ($opt['jenSeZidlemi']) {
+            $pouzeIdZidli = $opt['jenSeZidlemi'];
+        }
+        if ($opt['jenPrihlaseniAPritomniNaGc']) {
+            $pouzeIdZidli = array_merge($pouzeIdZidli, [Zidle::PRIHLASEN_NA_LETOSNI_GC, Zidle::PRITOMEN_NA_LETOSNIM_GC]);
+        }
+        $pouzeIdZidliSql = dbQv($pouzeIdZidli);
 
         return self::zWhere("
-      WHERE u.id_uzivatele NOT IN ($kromeIdUzivateluSql)
-      " . ($opt['jenPrihlaseniAPritomniNaGc'] ? " AND p.id_zidle IN (" . Zidle::PRIHLASEN_NA_LETOSNI_GC . ',' . Zidle::PRITOMEN_NA_LETOSNIM_GC . ')' : "") . "
+      WHERE TRUE
+      " . ($kromeIdUzivatelu ? " AND u.id_uzivatele NOT IN ($kromeIdUzivateluSql)" : '') . "
+      " . ($pouzeIdZidli ? " AND p.id_zidle IN ($pouzeIdZidliSql) " : '') . "
       AND (
           u.id_uzivatele = $q
-          OR login_uzivatele LIKE $l
-          OR jmeno_uzivatele LIKE $l
-          OR prijmeni_uzivatele LIKE $l
-          " . ($opt['mail'] ? " OR email1_uzivatele LIKE $l " : "") . "
-          OR CONCAT(jmeno_uzivatele,' ',prijmeni_uzivatele) LIKE $l
+          " . ((string)(int)$dotaz !== (string)$dotaz // nehledáme ID
+                ? ("
+                  OR login_uzivatele LIKE $l
+                  OR jmeno_uzivatele LIKE $l
+                  OR prijmeni_uzivatele LIKE $l
+                  " . ($opt['mail'] ? " OR email1_uzivatele LIKE $l " : "") . "
+                  OR CONCAT(jmeno_uzivatele,' ',prijmeni_uzivatele) LIKE $l
+                  ")
+                : ''
+            ) . "
       )
     ", null, 'LIMIT ' . $limit);
     }
@@ -1335,7 +1347,7 @@ SQL,
         return $o ? $o[0] : null;
     }
 
-    public static function zIdNeboException($id): self {
+    public static function zIdUrcite($id): self {
         $uzivatel = static::zId($id);
         if ($uzivatel !== null) {
             return $uzivatel;
@@ -1717,7 +1729,7 @@ SQL,
             : null;
     }
 
-    public function uvodniAdminUrl(string $zakladniAdminUrl): string {
+    public function uvodniAdminUrl(string $zakladniAdminUrl = URL_ADMIN): string {
         if ($this->maPravo(Pravo::ADMINISTRACE_MOJE_AKTIVITY)) {
             return $this->mojeAktivityAdminUrl($zakladniAdminUrl);
         }
@@ -1741,7 +1753,7 @@ SQL,
         return ['url' => $zakladniWebUrl . '/' . $webProgramUrl, 'nazev' => 'na Program'];
     }
 
-    public function mojeAktivityAdminUrl(string $zakladniAdminUrl): string {
+    public function mojeAktivityAdminUrl(string $zakladniAdminUrl = URL_ADMIN): string {
         // vrátí "moje-aktivity" - máme to schválně přes cestu ke skriptu, protože jeho název udává výslednou URL a nechceme mít neplatnou URL, kdyby někdo ten skrip přejmenoval.
         return $zakladniAdminUrl . '/' . basename(__DIR__ . '/../admin/scripts/modules/moje-aktivity/moje-aktivity.php', '.php');
     }

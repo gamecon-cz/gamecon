@@ -8,7 +8,7 @@
   <form method="post">
     <input type="hidden" name="prihlasitSeJakoUzivatel" value="1">
     <span class="hinted">
-      <input id="omniboxUzivatel" class="omnibox autosubmit" type="text" name="id" style="max-width: 95%">
+      <input id="omniboxUzivatel" class="omnibox autosubmit" type="text" name="id" style="max-width: 95%" data-omnibox="{dataOmniboxJson}">
       <span class="hint" style="max-width: 85%">
         ↑ vyber uživatele: napiš pár písmen přezdívky, jména, příjmení nebo ID
       </span>

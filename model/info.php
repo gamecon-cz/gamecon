@@ -27,6 +27,9 @@ class Info {
     return $o;
   }
 
+    /**
+     * @return Info|string|null
+     */
   function nazev() {
     if(func_num_args() == 0) {
       return $this->nazev;
