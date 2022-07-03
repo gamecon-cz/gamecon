@@ -40,9 +40,12 @@ const initializeOmnibox = function ($) {
     select: function (event, ui) {
       // automatické odeslání, pokud je nastaveno
       $this = $(this)
-      if ($this.hasClass('autosubmit') && $this.parent().is('form')) {
-        $this.val(ui.item.value) // nutno nastavit před submitem
-        $this.parent().submit()
+      if ($this.hasClass('autosubmit')) {
+        const $form = $this.closest('form')
+        if ($form.length > 0) {
+          $this.val(ui.item.value) // nutno nastavit před submitem
+          $form.submit()
+        }
       }
     },
   })
