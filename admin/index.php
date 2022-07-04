@@ -53,6 +53,9 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
 } elseif (is_file(__DIR__ . '/scripts/zvlastni/' . $stranka . '/' . $podstranka . '.php')) {
     chdir(__DIR__ . '/scripts/zvlastni/' . $stranka);
     require($podstranka . '.php');
+} elseif ($stranka == "api") {
+    chdir(__DIR__ . '/scripts/api/');
+    require($podstranka . '.php');
 } else {
     // načtení menu
     $menuObject = new AdminMenu('./scripts/modules/');
