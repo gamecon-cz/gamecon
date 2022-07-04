@@ -91,7 +91,7 @@ function zabalSoubor($cestaNaWebu)
     <script>
     // Konstanty předáváné do Preactu (env.ts)
     window.GAMECON_KONSTANTY = {
-        BASE_PATH_API: "<?= "/web/api/" ?>",
+        BASE_PATH_API: "<?= "/admin/api/" ?>",
         ROK: <?= ROK ?>,
     }
     </script>
