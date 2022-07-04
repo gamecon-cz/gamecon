@@ -26,10 +26,8 @@ const useGenerujId = () => {
   return generate;
 };
 
-const vytvořPrázdnouMřížku = (id: number) => ({
-  id,
-  text: "",
-  buňky: new Array(12).fill(0).map(
+const vytvořPrázdnouMřížku = (id: number) => {
+  const buňky = new Array(16).fill(0).map(
     () =>
       ({
         typ: "předmět",
@@ -37,8 +35,19 @@ const vytvořPrázdnouMřížku = (id: number) => ({
         text: "",
         cilId: 0,
       } as DefiniceObchodMřížkaBuňka)
-  ),
-});
+  );
+  buňky[buňky.length-1].typ = "zpět";
+  buňky[buňky.length-1].text = "zpět";
+  buňky[buňky.length-1].barvaPozadí = "#EAFF9E";
+  buňky[buňky.length-2].typ ="shrnutí";
+  buňky[buňky.length-2].text = "shrnutí";
+  buňky[buňky.length-2].barvaPozadí = "#DEDEDE";
+  return {
+    id,
+    text: "",
+    buňky,
+  };
+};
 
 export const EditorMřížek: FunctionComponent<TEditorMřížekProps> = (props) => {
   const { mřížky, setMřížky, uložMřížky } = props;
@@ -61,10 +70,10 @@ export const EditorMřížek: FunctionComponent<TEditorMřížekProps> = (props)
   }, [setMřížky, mřížky, generateId]);
 
   // Vytvoř výchozí mřížku pokud neexistuje
-  useEffect(()=>{
-    if (!mřížky.some(x=>x.id === 1)) {
+  useEffect(() => {
+    if (!mřížky.some((x) => x.id === 1)) {
       setMřížkaVybranáI(0);
-      setMřížky([vytvořPrázdnouMřížku(1),...mřížky]);
+      setMřížky([vytvořPrázdnouMřížku(1), ...mřížky]);
     }
   }, []);
 
@@ -82,12 +91,14 @@ export const EditorMřížek: FunctionComponent<TEditorMřížekProps> = (props)
           value={mřížkaVybranáI}
           onChange={(e: any) => setMřížkaVybranáI(+e.target.value)}
         >
-          {mřížky.map((x, i) => 
-            {
-              const text = !x.text || x.text === "" ? x.id : x.text
-              return <option key={x.id} value={i}>{text}</option>;
-            }
-          )}
+          {mřížky.map((x, i) => {
+            const text = !x.text || x.text === "" ? x.id : x.text;
+            return (
+              <option key={x.id} value={i}>
+                {text}
+              </option>
+            );
+          })}
         </select>
       </div>
       {mřížka ? <EditorMřížky {...{ mřížka, setMřížka }} /> : undefined}
