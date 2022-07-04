@@ -37,7 +37,12 @@ const usePředmětyObjednávka = () => {
         ? předměty.map((x) =>
             x.předmět.id === předmětId ? { ...x, množství: x.množství + 1 } : x
           )
-        : předměty.concat([{ množství: 1, předmět: předmětyVšechny.find(x=>x.id === předmětId)! }])
+        : předměty.concat([
+            {
+              množství: 1,
+              předmět: předmětyVšechny.find((x) => x.id === předmětId)!,
+            },
+          ])
     );
   });
   const předmětOdeber = useFixed((předmět: Předmět) => {
@@ -63,7 +68,7 @@ const usePředmětyObjednávka = () => {
 
 const výchoZíMřížka = 1;
 
-const useMřižka = (definice: DefiniceObchod ) => {
+const useMřižka = (definice: DefiniceObchod) => {
   const [mřížkaId, _setMřížkaId] = useState(1);
   const [mřížkaIdHist, setMřížkaIdHist] = useState<number[]>([1]);
   const setId = (id: number) => {
@@ -98,11 +103,11 @@ const useMřižka = (definice: DefiniceObchod ) => {
 };
 
 type TObchodProps = {
-  definice: DefiniceObchod 
+  definice: DefiniceObchod;
 };
 
 export const Obchod: FunctionComponent<TObchodProps> = (props) => {
-  const {definice} = props;
+  const { definice } = props;
 
   const [visible, setVisible] = useState(GAMECON_KONSTANTY.IS_DEV_SERVER);
 
@@ -155,7 +160,7 @@ export const Obchod: FunctionComponent<TObchodProps> = (props) => {
   return (
     <>
       {visible ? (
-        <Overlay>
+        <Overlay onClickOutside={() => setVisible(false)}>
           <div class="shop--container">
             {mřížka ? (
               <ObchodMřížka {...{ mřížka, onBuňkaClicked }} />

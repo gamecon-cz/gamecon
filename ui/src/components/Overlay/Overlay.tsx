@@ -1,20 +1,25 @@
 import { FunctionComponent } from "preact";
-import "./Overlay.less"
+import "./Overlay.less";
 
 type TOverlayProps = {
-
+  onClickOutside?: () => void;
 };
 
 export const Overlay: FunctionComponent<TOverlayProps> = (props) => {
-  const {children} = props;
+  const { children, onClickOutside } = props;
 
-  return <>
-    <div class="overlay--container">
-      <div class="overlay--child">
-        {children}
+  return (
+    <>
+      <div
+        class="overlay--container"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClickOutside?.();
+        }}
+      >
+        <div class="overlay--child">{children}</div>
       </div>
-    </div>
-  </>;
+    </>
+  );
 };
 
 Overlay.displayName = "Overlay";
