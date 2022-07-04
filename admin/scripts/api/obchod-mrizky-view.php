@@ -26,7 +26,6 @@
 
 */
 
-$this->bezStranky(true);
 header('Content-type: application/json');
 $config = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
 
