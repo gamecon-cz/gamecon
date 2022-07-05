@@ -104,7 +104,8 @@
                 <li>Volná místa nabídni náhradníkům
                   <span class="text-nowrap"><img alt="Náhradník" class="font-sized"
                                                  src="files/design/substitution-icon.png">.</span>
-                  Sledující <span class="bg-dark ui-corner-all">👀</span> můžeš oslovit první.
+                  Sledující <span class="flipped-icon"><span class="bg-dark">👀</span></span> můžeš
+                  oslovit první.
                 </li>
                 <li>Náhradníky přidej na prezenčku.</li>
                 <li>Prezenčku uzavři. Případné další hráče můžeš přidávat nejdéle 1h po konci aktivity.</li>
@@ -149,8 +150,10 @@
                     data-title-pro-zobrazeni="Zobazit prezenci"
                     data-title-pro-skryti="Skrýt prezenci"
             >
-              <span class="minimize {showMinimize} show-when-expanded"><i class="fa-solid fa-window-minimize"></i></span>
-              <span class="maximize {showMaximize} show-when-collapsed"><i class="fa-solid fa-window-maximize"></i></span>
+              <span class="minimize {showMinimize} show-when-expanded"><i
+                  class="fa-solid fa-window-minimize"></i></span>
+              <span class="maximize {showMaximize} show-when-collapsed"><i
+                  class="fa-solid fa-window-maximize"></i></span>
             </button>
           </span>
         </h2>
@@ -249,7 +252,7 @@
                           Náhradník
                         </div>
                         <hr>
-                        <div>👀 Sledující. Pokud sháníš náhradníka, tenhle bude mít zájem.</div>
+                        <div><span class='flipped-icon'>👀</span> Sledující. Pokud sháníš náhradníka, tenhle bude mít zájem.</div>
                         <hr>
                         <div>
                           <i class='mladsi-osmnacti-let fa-solid fa-baby'></i>

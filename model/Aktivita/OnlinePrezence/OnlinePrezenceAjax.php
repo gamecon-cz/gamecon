@@ -269,11 +269,11 @@ class OnlinePrezenceAjax
         } else {
             try {
                 $aktivita->zkontrolujZdaSeMuzeOdhlasit($ucastnik, $vypravec);
+                $aktivita->dejPrezenci()->zrusZeDorazil($ucastnik);
             } catch (\Chyba $chyba) {
                 $this->echoErrorJson($chyba->getMessage());
                 return;
             }
-            $aktivita->dejPrezenci()->zrusZeDorazil($ucastnik);
         }
 
         /** Abychom mměli nová data pro @see Aktivita::dorazilJakoCokoliv */

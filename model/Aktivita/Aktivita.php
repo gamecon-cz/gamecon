@@ -6,6 +6,7 @@ use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImportSqlColumn;
 use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Exceptions\ChybaKolizeAktivit;
 use Gamecon\PrednacitaniTrait;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Component\Filesystem\Filesystem;
@@ -29,9 +30,10 @@ class Aktivita
         $stav,
         $nova,      // jestli jde o nově uloženou aktivitu nebo načtenou z DB
         $organizatori,
-        $sledujici,
         $uzavrenaOd,
         $typ;
+    /** @var void|\Uzivatel[] */
+    private $seznamSledujicich;
     /** @var null|AktivitaPrezence */
     private $prezence;
     /** @var null|Filesystem */
@@ -952,7 +954,20 @@ SQL
      * @return \Uzivatel[]
      */
     public function seznamSledujicich(): array {
-        return $this->dejPrezenci()->seznamSledujicich();
+        if (!isset($this->seznamSledujicich)) {
+            $this->seznamSledujicich = \Uzivatel::zIds(
+                dbOneCol('
+                    SELECT GROUP_CONCAT(akce_prihlaseni_spec.id_uzivatele)
+                    FROM akce_seznam
+                    LEFT JOIN akce_prihlaseni_spec
+                        ON akce_prihlaseni_spec.id_akce = akce_seznam.id_akce
+                    WHERE akce_prihlaseni_spec.id_akce = $1
+                        AND akce_prihlaseni_spec.id_stavu_prihlaseni = $2',
+                    [$this->id(), StavPrihlaseni::SLEDUJICI]
+                )
+            );
+        }
+        return $this->seznamSledujicich;
     }
 
     public function nazev(): string {
@@ -1419,7 +1434,7 @@ SQL
     ) {
         if ($jenPritomen) {
             if ($this->dorazilJakoCokoliv($uzivatel)) {
-                return;
+                return; // na současnou aktivitu už dorazil, takže se vlastně na ní může přihlásit
             }
         } elseif ($this->prihlasen($uzivatel)) {
             return;
@@ -1585,6 +1600,13 @@ SQL
         if ($pos !== false) {
             return (int)substr($prihlaseni, $pos + strlen($usymbol), 1);
         }
+
+        foreach ($this->seznamSledujicich() as $sledujici) {
+            if ($sledujici->id() === $u->id()) {
+                return StavPrihlaseni::SLEDUJICI;
+            }
+        }
+
         return -1;
     }
 
@@ -1598,21 +1620,16 @@ SQL
     }
 
     public function dorazilJakoCokoliv(\Uzivatel $uzivatel): bool {
-        $stav = $this->stavPrihlaseni($uzivatel);
-
-        return in_array($stav, [self::PRIHLASEN_A_DORAZIL, self::DORAZIL_JAKO_NAHRADNIK]);
+        $stavPrihlaseni = $this->stavPrihlaseni($uzivatel);
+        return StavPrihlaseni::dorazil($stavPrihlaseni);
     }
 
     public function dorazilJakoNahradnik(\Uzivatel $uzivatel): bool {
-        $stav = $this->stavPrihlaseni($uzivatel);
-
-        return $stav === self::DORAZIL_JAKO_NAHRADNIK;
+        return $this->stavPrihlaseni($uzivatel) === self::DORAZIL_JAKO_NAHRADNIK;;
     }
 
     public function dorazilJakoPredemPrihlaseny(\Uzivatel $uzivatel): bool {
-        $stav = $this->stavPrihlaseni($uzivatel);
-
-        return $stav === self::PRIHLASEN_A_DORAZIL;
+        return $this->stavPrihlaseni($uzivatel) === self::PRIHLASEN_A_DORAZIL;
     }
 
     /** Zdali chceme, aby se na aktivitu bylo možné běžně přihlašovat */
@@ -1683,24 +1700,24 @@ SQL
         } elseif (!$this->prihlasovatelna($parametry)) {
             $out = self::formatujDuvodProTesting($this->procNeniPrihlasovatelna($parametry));
         } else {
-            if (($stav = $this->stavPrihlaseni($u)) > -1) {
-                if ($stav == 0 || $parametry & self::ZPETNE) {
+            if (($stav = $this->stavPrihlaseni($u)) > -1 && $stav != StavPrihlaseni::SLEDUJICI) {
+                if ($stav == StavPrihlaseni::PRIHLASEN || $parametry & self::ZPETNE) {
                     $out .=
                         '<form method="post" style="display:inline">' .
                         '<input type="hidden" name="odhlasit" value="' . $this->id() . '">' .
                         '<a href="#" onclick="this.parentNode.submit(); return false">odhlásit</a>' .
                         '</form>';
                 }
-                if ($stav == 1) {
+                if ($stav == StavPrihlaseni::PRIHLASEN_A_DORAZIL) {
                     $out .= '<em>účast</em>';
                 }
-                if ($stav == 2) {
+                if ($stav == StavPrihlaseni::DORAZIL_JAKO_NAHRADNIK) {
                     $out .= '<em>jako náhradník</em>';
                 }
-                if ($stav == 3) {
+                if ($stav == StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL) {
                     $out .= '<em>neúčast</em>';
                 }
-                if ($stav == 4) {
+                if ($stav == StavPrihlaseni::POZDE_ZRUSIL) {
                     $out .= '<em>pozdní odhlášení</em>';
                 }
             } elseif ($u->organizuje($this)) {
@@ -1790,7 +1807,7 @@ SQL
         }
         // Uživatel nesmí mít ve stejný slot jinou přihlášenou aktivitu
         if (!$u->maVolno($this->zacatek(), $this->konec())) {
-            throw new \Chyba(hlaska('masKoliziAktivit'));
+            throw new ChybaKolizeAktivit();
         }
         // Uživatel musí být přihlášen na GameCon
         if (!$u->gcPrihlasen()) {
@@ -1934,6 +1951,7 @@ SQL
     public function refresh() {
         $this->a = self::zId($this->id())->a;
         $this->prezence = null;
+        $this->seznamSledujicich = null;
     }
 
     /** Vrátí aktivity, u kterých je tato aktivita jako jedno z dětí */
@@ -2129,8 +2147,7 @@ SQL
      */
     public function dorazili(): array {
         return array_filter($this->prihlaseni(), function (\Uzivatel $prihlaseny) {
-            $stavPrihlaseni = $this->stavPrihlaseni($prihlaseny);
-            return StavPrihlaseni::dorazil($stavPrihlaseni);
+            return $this->dorazilJakoCokoliv($prihlaseny);
         });
     }
 

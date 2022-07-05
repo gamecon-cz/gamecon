@@ -52,8 +52,8 @@ input[data-bs-toggle="tooltip"]:not([disabled]) {
   cursor: inherit;
 }
 
-[data-stav-prihlaseni="sledujici_se_prihlasil"], [data-stav-prihlaseni="nahradnik_nedorazil"] {
-  color: grey;
+[data-stav-prihlaseni="nahradnik_nedorazil"], [data-stav-prihlaseni="sledujici_se_prihlasil"] {
+  opacity: 0.7;
 }
 
 .styl-pro-dorazil-checkbox {

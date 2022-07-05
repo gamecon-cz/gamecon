@@ -2,6 +2,7 @@
 
 namespace Gamecon\Aktivita;
 
+use Gamecon\Exceptions\ChybaKolizeAktivit;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
@@ -12,8 +13,6 @@ class AktivitaPrezence
 
     /** @var Aktivita */
     private $aktivita;
-    /** @var void|\Uzivatel[] */
-    private $seznamSledujicich;
     /** @var Filesystem */
     private $filesystem;
     /** @var ZmenaPrihlaseni[]|null[] */
@@ -81,9 +80,17 @@ class AktivitaPrezence
             ]);
             $this->zalogujZeZrusilPrihlaseniJakoNahradik($nedorazil);
             /* Návštěvník přidaný k aktivitě přes online prezenci se přidá jako náhradník a obratem potvrdí jeho přítomnost - přestože to aktivita sama vlastně nedovoluje. Když ho z aktivity zas ruší, tak ho ale nemůžeme zařadit do fronty jako náhradníka, protože to aktivita vlastně nedovoluje (a my to popravdě ani nechceme, když ho odškrtli při samotné online prezenci).
-            PS: vlastně nechceme účastníka, kterého přidal vypravěč, "vracet" do stavu sledujícího, ale zatím to nechceme řešit. */
+            PS: vlastně nechceme účastníka, kterého přidal vypravěč, "vracet" do stavu sledujícího, ale zatím to nechceme řešit.
+                Museli bychom logovat i kdo ho původně přihlásil jako náhradníka v \Gamecon\Aktivita\Aktivita::prihlas */
             if ($this->aktivita->prihlasovatelnaProSledujici()) {
-                $this->aktivita->prihlasSledujiciho($nedorazil);
+                /** jinak si aktivita bude stále pamatovat, že uživatel je přihllášen a přeskočí přihlášení sledujícího,
+                 * @see \Gamecon\Aktivita\Aktivita::prihlasen
+                 */
+                $this->aktivita->refresh(); // pozor na to, že tímto jsme odstřihli současnou instanci AktivitaPrezence od Aktivita
+                try {
+                    $this->aktivita->prihlasSledujiciho($nedorazil);
+                } catch (ChybaKolizeAktivit $chybaKolizeAktivit) {
+                }
             }
             return true;
         }
@@ -190,26 +197,6 @@ class AktivitaPrezence
             $this->posledniZmenaPrihlaseni[$ucastnik->id()] = self::posledniZmenaPrihlaseniAktivit($ucastnik, [$this->aktivita]);
         }
         return $this->posledniZmenaPrihlaseni[$ucastnik->id()];
-    }
-
-    /**
-     * Vrátí pole uživatelů, kteří jsou sledujícími na aktivitě
-     * @return \Uzivatel[]
-     */
-    public function seznamSledujicich(): array {
-        if (!isset($this->seznamSledujicich)) {
-            $this->seznamSledujicich = \Uzivatel::zIds(
-                dbOneCol('
-                    SELECT GROUP_CONCAT(akce_prihlaseni_spec.id_uzivatele)
-                    FROM akce_seznam a
-                    LEFT JOIN akce_prihlaseni_spec ON akce_prihlaseni_spec.id_akce = a.id_akce
-                    WHERE akce_prihlaseni_spec.id_akce = $1
-                    AND akce_prihlaseni_spec.id_stavu_prihlaseni = $2',
-                    [$this->aktivita->id(), $this->aktivita::SLEDUJICI]
-                )
-            );
-        }
-        return $this->seznamSledujicich;
     }
 
     /**

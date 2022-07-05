@@ -240,12 +240,13 @@
      * @return {HTMLElement}
      */
     function dejNodeUcastniku(aktivita) {
-      const ucastnici = aktivita.getElementsByClassName('ucastnici-seznam')[0]
+      const cssClass = 'ucastnici-seznam'
+      const ucastnici = aktivita.getElementsByClassName(cssClass)[0]
       if (!ucastnici) {
-        throw new Error(`Element s účastníky nebyl nalezen v aktivitě ${aktivita.id}`)
+        throw new Error(`Element s účastníky nebyl nalezen v aktivitě ${aktivita.id} podle CSS třídy '${cssClass}'`)
       }
       if (ucastnici.tagName.toUpperCase() !== 'TBODY') {
-        throw new Error(`Element s účastníky z aktivity ${aktivita.id} měl být tbody, je ${ucastnici.tagName}`)
+        throw new Error(`Element s účastníky v aktivitě ${aktivita.id} podle CSS třídy '${cssClass}' měl být tbody, je ${ucastnici.tagName}`)
       }
       return ucastnici
     }
@@ -385,7 +386,7 @@
     }
 
     /**
-     * @param {HTMLElement} node
+     * @param {ChildNode} node
      * @param {string} color
      */
     function upozorniNaZmenu(node, color) {

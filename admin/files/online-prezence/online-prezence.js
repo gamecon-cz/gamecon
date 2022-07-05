@@ -106,27 +106,27 @@
       const naPosledniChvili = ucastnikNode.querySelector('.na-posledni-chvili')
       const jeNahradnik = document.getElementById(`ucastnik-${idUzivatele}-je-nahradnik-na-aktivite-${idAktivity}`)
       const jeSledujici = document.getElementById(`ucastnik-${idUzivatele}-je-sledujici-aktivity-${idAktivity}`)
-      const jePryc = document.getElementById(`ucastnik-${idUzivatele}-je-spici-na-aktivite-${idAktivity}`)
+      const jeSpici = document.getElementById(`ucastnik-${idUzivatele}-je-spici-na-aktivite-${idAktivity}`)
       switch (stavPrihlaseni) {
         case 'sledujici_se_prihlasil' :
-        /*
-        Když je náhradník přidán z online prezence, tak při opětovném odkškrtnutí je vlastně smazán, tedy není z něj náhradník.
-        Ale prezence ho neodstraní, kdyby to snad byl překlik aby šel zas hned vrátit, proto ho ponecháme jako "spícího".
-         */
+          skryt(jeNahradnik)
+          zobrazit(jeSledujici)
+          skryt(jeSpici)
+          break
         case 'nahradnik_nedorazil' :
           skryt(jeNahradnik)
           skryt(jeSledujici)
-          zobrazit(jePryc)
+          zobrazit(jeSpici)
           break
         case 'nahradnik_dorazil' :
           skryt(jeSledujici)
-          skryt(jePryc)
+          skryt(jeSpici)
           zobrazit(jeNahradnik)
           break
         case 'ucastnik_dorazil' :
           skryt(jeSledujici)
           skryt(jeNahradnik)
-          skryt(jePryc)
+          skryt(jeSpici)
           if (naPosledniChvili) {
             skryt(naPosledniChvili)
           }
@@ -134,7 +134,7 @@
         case 'ucastnik_se_prihlasil' :
           skryt(jeSledujici)
           skryt(jeNahradnik)
-          skryt(jePryc)
+          skryt(jeSpici)
           if (naPosledniChvili) {
             zobrazit(naPosledniChvili)
           }
@@ -142,7 +142,7 @@
         default :
           skryt(jeNahradnik)
           skryt(jeSledujici)
-          skryt(jePryc)
+          skryt(jeSpici)
       }
     }
 

@@ -53,8 +53,8 @@ class OnlinePrezenceUcastnikHtml
             $ucastnikTemplate->parse('ucastnik.mladsiOsmnactiLet');
         }
 
-        $ucastnikTemplate->assign('cssTridaDisplayNahradnik', StavPrihlaseni::dorazilJakoNahradnik($stavPrihlaseni) ? '' : 'display-none');
-        $ucastnikTemplate->assign('cssTridaDisplaySledujici', StavPrihlaseni::prihlasenJakoSledujici($stavPrihlaseni) ? '' : 'display-none');
+        $ucastnikTemplate->assign('cssTridaDisplayNahradnik', $this->cssZobrazitKdyz(StavPrihlaseni::dorazilJakoNahradnik($stavPrihlaseni)));
+        $ucastnikTemplate->assign('cssTridaDisplaySledujici', $this->cssZobrazitKdyz(StavPrihlaseni::prihlasenJakoSledujici($stavPrihlaseni)));
 
         $zmenaPrihlaseni = $aktivita->dejPrezenci()->posledniZmenaPrihlaseni($ucastnik);
         $ucastnikTemplate->assign('casPosledniZmenyPrihlaseni', $zmenaPrihlaseni ? $zmenaPrihlaseni->casZmenyProJs() : '');
@@ -64,6 +64,12 @@ class OnlinePrezenceUcastnikHtml
 
         $ucastnikTemplate->parse('ucastnik');
         return $ucastnikTemplate->text('ucastnik');
+    }
+
+    private function cssZobrazitKdyz(bool $zobrazit): string {
+        return $zobrazit
+            ? ''
+            : 'display-none';
     }
 
     private function jeToNaPosledniChvili(\Uzivatel $ucastnik, Aktivita $aktivita): bool {

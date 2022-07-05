@@ -197,7 +197,8 @@ class OnlinePrezenceHtml
             $template->assign('emailyHref', implode(',', $emaily));
             $template->assign('emailyText', implode(', ', $emaily));
 
-            foreach ($this->seradDleStavuPrihlaseni($aktivita->prihlaseni(), $aktivita) as $ucastnik) {
+            $prihlaseni = $this->seradDleStavuPrihlaseni($aktivita->prihlaseni(), $aktivita);
+            foreach ($prihlaseni as $ucastnik) {
                 $ucastnikHtml = $this->dejOnlinePrezenceUcastnikHtml()->sestavHmlUcastnikaAktivity(
                     $ucastnik,
                     $aktivita,
@@ -205,6 +206,18 @@ class OnlinePrezenceHtml
                     $muzeMenitUcastnikyHned
                 );
                 $template->assign('ucastnikHtml', $ucastnikHtml);
+                $template->parse('onlinePrezence.aktivity.aktivita.form.ucastnik');
+            }
+
+            $seznamSledujicich = $this->seradDleStavuPrihlaseni($aktivita->seznamSledujicich(), $aktivita);
+            foreach ($seznamSledujicich as $sledujici) {
+                $sledujiciHtml = $this->dejOnlinePrezenceUcastnikHtml()->sestavHmlUcastnikaAktivity(
+                    $sledujici,
+                    $aktivita,
+                    $aktivita->stavPrihlaseni($sledujici),
+                    $muzeMenitUcastnikyHned
+                );
+                $template->assign('ucastnikHtml', $sledujiciHtml);
                 $template->parse('onlinePrezence.aktivity.aktivita.form.ucastnik');
             }
 
