@@ -2502,25 +2502,19 @@ SQL,
     /**
      * @param \DateTimeInterface $konciciNejmeneDo
      * @param \DateTimeInterface $konciciNejviceDo
-     * @param int $maximalneVypravecu
      * @return int
      */
     public static function upozorniNaNeuzavreneKonciciOdDo(
         \DateTimeInterface $konciciNejmeneDo,
-        \DateTimeInterface $konciciNejviceDo,
-        int                $maximalneVypravecu
+        \DateTimeInterface $konciciNejviceDo
     ): int {
         $ids = dbOneArray(<<<SQL
 SELECT akce_seznam.id_akce
 FROM akce_seznam
-JOIN akce_organizatori
-    ON akce_seznam.id_akce = akce_organizatori.id_akce
 WHERE akce_seznam.konec BETWEEN $0 AND $1
     AND akce_seznam.stav NOT IN ($2)
     AND akce_seznam.rok = $3
     AND akce_seznam.cena > 0 -- u aktivit zdarma nás prezence tolik netrápí
-GROUP BY akce_seznam.id_akce
-HAVING COUNT(akce_organizatori.id_uzivatele) <= $maximalneVypravecu
 SQL,
             [
                 0 => $konciciNejmeneDo->format(DateTimeCz::FORMAT_DB),
