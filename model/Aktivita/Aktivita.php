@@ -2518,6 +2518,7 @@ JOIN akce_organizatori
 WHERE akce_seznam.konec BETWEEN $0 AND $1
     AND akce_seznam.stav NOT IN ($2)
     AND akce_seznam.rok = $3
+    AND akce_seznam.cena > 0 -- u aktivit zdarma nás prezence tolik netrápí
 GROUP BY akce_seznam.id_akce
 HAVING COUNT(akce_organizatori.id_uzivatele) <= $maximalneVypravecu
 SQL,
@@ -2540,13 +2541,15 @@ SQL,
             }
         }
 
-        /** @var \Uzivatel[] $uzivatele */
-        $uzivatele = [];
         foreach ($vypraveciAktivit as $idVypravece => $neuzavreneAktivity) {
+            $vypravec = \Uzivatel::zId($idVypravece);
+            // například nechceme posílat mail vypravěčským skupinám
+            if ((!$vypravec->jeVypravec() && !$vypravec->jePartner()) || $vypravec->mrtvyMail()) {
+                continue;
+            }
             $text = 'Zkontroluj prezenci a zavři';
             foreach ($neuzavreneAktivity as $neuzavrenaAktivita) {
-                $uzivatele[$idVypravece] = \Uzivatel::zId($idVypravece);
-                $url = $uzivatele[$idVypravece]->mojeAktivityAdminUrl()
+                $url = $vypravec->mojeAktivityAdminUrl()
                     . '#' . OnlinePrezenceHtml::nazevProAnchor($neuzavrenaAktivita);
                 $text .= "<br><a href='$url'>{$neuzavrenaAktivita->nazev()}</a> (skončila {$neuzavrenaAktivita->konec()->formatCasNaMinutyStandard()})";
             }
@@ -2555,7 +2558,7 @@ SQL,
                 'Gamecon: Uzavři prosím prezenci na ' . (count($neuzavreneAktivity) === 1 ? 'aktivitě' : (count($neuzavreneAktivity) . ' aktivitách'))
             );
             $mail->text($text);
-            $mail->adresat($uzivatele[$idVypravece]->mail());
+            $mail->adresat($vypravec->mail());
             $mail->odeslat();
         }
 
