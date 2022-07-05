@@ -93,7 +93,7 @@ class OnlinePrezenceHtml
                 __DIR__ . '/../../../admin/files/online-prezence/online-prezence-tooltip.js',
                 __DIR__ . '/../../../admin/files/online-prezence/online-prezence.js',
                 __DIR__ . '/../../../admin/files/online-prezence/online-prezence-posledni-zname-zmeny-prihlaseni.js',
-                __DIR__ . '/../../../admin/files/online-prezence/online-prezence-navod.js',
+                __DIR__ . '/../../../admin/files/online-prezence/online-prezence-prepinani-viditelnosti.js',
                 __DIR__ . '/../../../admin/files/online-prezence/online-prezence-errors.js',
             ],
         ];
@@ -215,6 +215,11 @@ class OnlinePrezenceHtml
             $template->assign('nadpis', self::nazevProAnchor($aktivita));
             $template->assign('zacatek', $aktivita->zacatek() ? $aktivita->zacatek()->format('l H:i') : '-nevíme-');
             $template->assign('konec', $aktivita->konec() ? $aktivita->konec()->format('l H:i') : '-nevíme-');
+
+            $jePrezenceRozbalena = $this->jePrezenceRozbalena($aktivita);
+            $template->assign('showMinimize', $this->cssZobrazitKdyz($jePrezenceRozbalena));
+            $template->assign('showMaximize', $this->cssZobrazitKdyz(!$jePrezenceRozbalena));
+
             $template->parse('onlinePrezence.aktivity.aktivita.form');
 
             $template->parse('onlinePrezence.aktivity.aktivita');
@@ -236,6 +241,11 @@ class OnlinePrezenceHtml
         $template->assign('posledniLogyUcastnikuAjaxKlic', OnlinePrezenceAjax::POSLEDNI_LOGY_UCASTNIKU_AJAX_KLIC);
 
         $template->parse('onlinePrezence.aktivity');
+    }
+
+    private function jePrezenceRozbalena(Aktivita $aktivita): bool {
+        return $aktivita->cena() > 0 // u aktivit zadarmo nás prezence tolik nezajímá a ještě k tomu mívají strašně moc účastníků, přednášky třeba
+            || !$aktivita->uzavrena();
     }
 
     /**
