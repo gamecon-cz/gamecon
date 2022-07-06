@@ -37,8 +37,11 @@
           <th>ID</th>
           <th>Jméno</th>
           <th>Telefon</th>
-          <th>
-            <span class="hinted">?<span class="hint">Dorazil účastník na aktivitu?</span></span>
+          <th class="text-center">
+            <span class="hinted">
+              ?
+              <span class="hint">Dorazil účastník na aktivitu?</span>
+            </span>
           </th>
         </tr>
         <!-- begin:ucastnik -->
@@ -71,18 +74,27 @@
           <td>{u.jmenoNick}</td>
           <td>{u.telefon}</td>
           <td>
-            <!-- begin:checkbox --><input type="checkbox" name="dorazil[{u.id}]"><!-- end:checkbox -->
-            <!-- begin:skryty --><input type="hidden" name="dorazil[{u.id}]"><!-- end:skryty -->
+            <!-- begin:dorazil -->
+            <span class="hinted">
+              <i class="fa-solid fa-square-check"></i>
+              <span class="hint">Dorazil</span>
+            </span>
+            <!-- end:dorazil -->
+            <!-- begin:nedorazil -->
+            <span class="hinted">
+              <i class="fa-solid fa-square-xmark"></i>
+              <span class="hint">Nedrazil</span>
+            </span>
+            <!-- end:nedorazil -->
+            <!-- begin:nepotvrzeno -->
+            <span class="hinted">
+              <i class="fa-solid fa-question"></i>
+              <span class="hint">Nepotvrzeno</span>
+            </span>
+            <!-- end:nepotvrzeno -->
           </td>
         </tr>
         <!-- end:ucastnik -->
-        <!-- begin:submit -->
-        <tr>
-          <td colspan="5">
-            <input type="text" class="omnibox"
-                   data-omnibox='{"labelSlozenZ": ["id", "jmenoNick", "mail", "zustatek"], "dataVOdpovedi":["jmenoNick", "telefon"]}'>
-          </td>
-        </tr>
         <!-- begin:pozorVyplnena -->
         <tr>
           <td colspan="100%" style="padding: 0">
@@ -93,25 +105,18 @@
           </td>
         </tr>
         <!-- end:pozorVyplnena -->
-        <tr style="background-color: transparent">
-          <td colspan="5"><input type="submit" value="uložit"></td>
-        </tr>
-        <!-- end:submit -->
         <!-- begin:onlinePrezence -->
         <tr>
           <td colspan="100%" style="padding: 0">
-            <a href="online-prezence?cas={cas}#{htmlIdAktivity}" type="button" id="otevritOnlinePrezenci" style="display: block; margin: 0"
-               class="ui-button">Vyplnit prezenci ✅</a>
+            <a href="online-prezence?cas={cas}#{htmlIdAktivity}" type="button" id="otevritOnlinePrezenci"
+               style="display: block; margin: 0"
+               class="ui-button">Vyplnit prezenci <img src="files/design/prezence.png"></a>
           </td>
         </tr>
         <!-- end:onlinePrezence -->
       </table>
     </form>
     <!-- end:form -->
-
-    <!-- begin:vyplnena -->
-    <div class="success">Uloženo OK s účastí {a.obsazenostHtml}</div>
-    <!-- end:vyplnena -->
 
     <!-- begin:pozorNeuzavrena -->
     <div class="error">Pozor, aktivita nemá uzavřenou prezenci!</div>

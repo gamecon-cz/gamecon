@@ -14,13 +14,6 @@ use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml;
  * @var Uzivatel $u
  */
 
-if (post('prezenceAktivity')) {
-    $aktivita = Aktivita::zId(post('prezenceAktivity'));
-    $dorazili = Uzivatel::zIds(array_keys(post('dorazil') ?: []));
-    $aktivita->dejPrezenci()->uloz($dorazili);
-    back();
-}
-
 $t = new XTemplate(__DIR__ . '/prezence.xtpl');
 
 $jenZamceneNeuzavrene = !empty($_GET['zamcene_neuzavrene']);
@@ -71,23 +64,21 @@ foreach ($aktivity as $aktivita) {
     $t->assign('a', $aktivita);
     foreach ($aktivita->prihlaseni() as $prihlasenyUzivatel) {
         $t->assign('u', $prihlasenyUzivatel);
-        if (!$vyplnena && $zamcena) {
-            $t->parse('prezence.aktivita.form.ucastnik.checkbox');
-        } else {
-            $t->parse('prezence.aktivita.form.ucastnik.skryty');
-        }
         $t->parse('prezence.aktivita.form.ucastnik.' . ($prihlasenyUzivatel->gcPritomen() ? 'pritomen' : 'nepritomen'));
         $t->parse('prezence.aktivita.form.ucastnik.' . ($prihlasenyUzivatel->finance()->stav() < 0 ? 'dluh' : 'prebytek'));
+        if ($aktivita->dorazilJakoCokoliv($prihlasenyUzivatel)) {
+            $t->parse('prezence.aktivita.form.ucastnik.dorazil');
+        } elseif ($aktivita->nedorazilNeboZrusil($prihlasenyUzivatel)) {
+            $t->parse('prezence.aktivita.form.ucastnik.nedorazil');
+        } else {
+            $t->parse('prezence.aktivita.form.ucastnik.nepotvrzeno');
+        }
         $t->parse('prezence.aktivita.form.ucastnik');
-    }
-    if ($vyplnena) {
-        $t->parse('prezence.aktivita.vyplnena');
     }
     if ($zamcena && (!$vyplnena || $u->maPravoNaZmenuHistorieAktivit())) {
         if ($vyplnena && $u->maPravoNaZmenuHistorieAktivit()) {
-            $t->parse('prezence.aktivita.form.submit.pozorVyplnena');
+            $t->parse('prezence.aktivita.form.pozorVyplnena');
         }
-        $t->parse('prezence.aktivita.form.submit');
     }
     if (!$uzavrena) {
         /** @var \Gamecon\Cas\DateTimeCz|null $zacatek */

@@ -29,7 +29,7 @@ class OnlinePrezenceUcastnikHtml
         $ucastnikTemplate->assign('u', $ucastnik);
         $ucastnikTemplate->assign('a', $aktivita);
 
-        $ucastnikTemplate->assign('checkedUcastnik', StavPrihlaseni::dorazil($stavPrihlaseni) ? 'checked' : '');
+        $ucastnikTemplate->assign('checkedUcastnik', StavPrihlaseni::dorazilJakoCokoliv($stavPrihlaseni) ? 'checked' : '');
         $ucastnikTemplate->assign('disabledUcastnik', $muzeMenitUcastniky ? '' : 'disabled');
         $ucastnikTemplate->parse('ucastnik.checkbox');
 

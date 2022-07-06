@@ -11,10 +11,20 @@ class StavPrihlaseni
     public const POZDE_ZRUSIL = 4;
     public const SLEDUJICI = 5;
 
-    public static function dorazil(int $stavPrihlaseni): bool {
+    public static function dorazilJakoCokoliv(int $stavPrihlaseni): bool {
         switch ($stavPrihlaseni) {
             case self::PRIHLASEN_A_DORAZIL :
             case self::DORAZIL_JAKO_NAHRADNIK :
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    public static function nedorazilNeboZrusil(int $stavPrihlaseni): bool {
+        switch ($stavPrihlaseni) {
+            case self::PRIHLASEN_ALE_NEDORAZIL :
+            case self::POZDE_ZRUSIL :
                 return true;
             default:
                 return false;

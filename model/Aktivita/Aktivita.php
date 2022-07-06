@@ -1619,17 +1619,22 @@ SQL
         return array_map('intval', $matches['stav'] ?? []);
     }
 
-    public function dorazilJakoCokoliv(\Uzivatel $uzivatel): bool {
-        $stavPrihlaseni = $this->stavPrihlaseni($uzivatel);
-        return StavPrihlaseni::dorazil($stavPrihlaseni);
+    public function dorazilJakoCokoliv(\Uzivatel $ucastnik): bool {
+        $stavPrihlaseni = $this->stavPrihlaseni($ucastnik);
+        return StavPrihlaseni::dorazilJakoCokoliv($stavPrihlaseni);
     }
 
-    public function dorazilJakoNahradnik(\Uzivatel $uzivatel): bool {
-        return $this->stavPrihlaseni($uzivatel) === self::DORAZIL_JAKO_NAHRADNIK;;
+    public function dorazilJakoNahradnik(\Uzivatel $ucastnik): bool {
+        return $this->stavPrihlaseni($ucastnik) === self::DORAZIL_JAKO_NAHRADNIK;;
     }
 
-    public function dorazilJakoPredemPrihlaseny(\Uzivatel $uzivatel): bool {
-        return $this->stavPrihlaseni($uzivatel) === self::PRIHLASEN_A_DORAZIL;
+    public function dorazilJakoPredemPrihlaseny(\Uzivatel $ucastnik): bool {
+        return $this->stavPrihlaseni($ucastnik) === self::PRIHLASEN_A_DORAZIL;
+    }
+
+    public function nedorazilNeboZrusil(\Uzivatel $ucastnik): bool {
+        $stavPrihlaseni = $this->stavPrihlaseni($ucastnik);
+        return StavPrihlaseni::nedorazilNeboZrusil($stavPrihlaseni);
     }
 
     /** Zdali chceme, aby se na aktivitu bylo možné běžně přihlašovat */
