@@ -55,8 +55,6 @@ class Finance
     ];
 
     const PREDMETY_A_STRAVA_TEXT = 'Předměty a strava';
-    const PREDMETY_TEXT = 'Předměty';
-    const STRAVA_TEXT = 'Strava';
 
     const
         // idčka typů, podle kterých se řadí výstupní tabulka $prehled
@@ -132,40 +130,49 @@ class Finance
     }
 
     private static function cpm_kategorie_razeni($kategorie) {
-        switch($kategorie) {
-            case 2: return 4;
-            case 3: return 2;
-            case 4: return 3;
-            default: return $kategorie;
+        switch ($kategorie) {
+            case 2:
+                return 4;
+            case 3:
+                return 2;
+            case 4:
+                return 3;
+            default:
+                return $kategorie;
         }
     }
 
     /** Porovnávání k řazení php 4 style :/ */
     private function cmp($a, $b) {
         // podle typu
-        $m = Finance::cpm_kategorie_razeni($a[2]) 
-            - Finance::cpm_kategorie_razeni($b[2]);
-        if ($m) return $m;
+        $m = Finance::cpm_kategorie_razeni($a['kategorie']) - Finance::cpm_kategorie_razeni($b['kategorie']);
+        if ($m) {
+            return $m;
+        }
         // podle názvu
-        $o = strcmp($a[0], $b[0]);
-        if ($o) return $o;
+        $o = strcmp($a['nazev'], $b['nazev']);
+        if ($o) {
+            return $o;
+        }
         // podle ceny
-        return $a[1] - $b[1];
+        return $a['castka'] - $b['castka'];
     }
 
     /**
      * Zaloguje do seznamu nákupů položku (pokud je logování zapnuto)
      */
     private function log($nazev, $castka, $kategorie = null) {
-        if (!$this->logovat) return;
+        if (!$this->logovat) {
+            return;
+        }
         if (is_numeric($castka)) {
             $castka = round($castka);
         }
         // přidání
         $this->prehled[] = [
-            $nazev,
-            $castka,
-            $kategorie,
+            'nazev' => $nazev,
+            'castka' => $castka,
+            'kategorie' => $kategorie,
         ];
     }
 
@@ -195,43 +202,47 @@ class Finance
 
     /**
      * Vrátí html formátovaný přehled financí
+     * @param null|int[] $idKategorii
+     * @param boolean $vcetneCeny
      * @todo přesun css někam sdíleně
-     * @param ?int[] $kategorie
-     * @param ?boolean $tiskCena
      */
-    function prehledHtml($kategorie = null, $tiskCena = true) {
+    function prehledHtml(array $idKategorii = null, bool $vcetneCeny = true) {
         $out = '<table>';
         $prehled = $this->serazenyPrehled();
-        if ($kategorie) {
-            $prehled = array_filter($prehled, function ($x) use ($kategorie) {
-                return in_array($x[2], $kategorie);
+        if ($idKategorii) {
+            $prehled = array_filter($prehled, function ($radekPrehledu) use ($idKategorii) {
+                return in_array($radekPrehledu['kategorie'], $idKategorii);
             });
 
+            if (in_array(Shop::PREDMET, $idKategorii) && !in_array(Shop::JIDLO, $idKategorii)) {
+                $predmetyNeboStravaNazev = 'Předměty';
+            } elseif (!in_array(Shop::PREDMET, $idKategorii) && in_array(Shop::JIDLO, $idKategorii)) {
+                $predmetyNeboStravaNazev = 'Strava';
+            }
+
             // TODO: fuj způsob, najít způsob jak vyřešit label hned ze začátku
-            $nahraditPredmetyAStravaS = 
-            (in_array(Shop::PREDMET, $kategorie) && !in_array(Shop::JIDLO, $kategorie)) 
-                ? self::PREDMETY_TEXT
-                : null;
-            $nahraditPredmetyAStravaS = 
-                !$nahraditPredmetyAStravaS 
-                && !in_array(Shop::PREDMET, $kategorie) 
-                && in_array(Shop::JIDLO, $kategorie)
-                    ? self::STRAVA_TEXT 
-                    : $nahraditPredmetyAStravaS
-                    ;
-            if ($nahraditPredmetyAStravaS != null)
-                $prehled = array_map(function ($x) use ($nahraditPredmetyAStravaS) {
-                        return array_replace([], $x, [str_replace(
-                            self::PREDMETY_A_STRAVA_TEXT, 
-                            $nahraditPredmetyAStravaS, 
-                            $x[0]
-                        )]);
-                    },$prehled);
+            if ($predmetyNeboStravaNazev != null)
+                $prehled = array_map(function ($radekPrehledu) use ($predmetyNeboStravaNazev) {
+                    $radekPrehledu['nazev'] = str_replace(
+                        self::PREDMETY_A_STRAVA_TEXT,
+                        $predmetyNeboStravaNazev,
+                        $radekPrehledu['nazev']
+                    );
+                    return $radekPrehledu;
+                }, $prehled);
         }
 
-        foreach ($prehled as $r) {
-            $out .= '<tr><td style="text-align:left">' . $r[0] . '</td>' . 
-                ($tiskCena ? '<td style="text-align:right">' . $r[1] . '</td></tr>' : '');
+        foreach ($prehled as $radekPredhledu) {
+            $castkaRow = '';
+            if ($vcetneCeny) {
+                $castkaRow = "<td style='text-align:right'>{$radekPredhledu['castka']}</td>";
+            }
+            $out .= <<<HTML
+              <tr>
+                <td style='text-align:left'>{$radekPredhledu['nazev']}</td>
+                $castkaRow
+              </tr>
+              HTML;
         }
         $out .= '</table>';
         return $out;
@@ -240,7 +251,7 @@ class Finance
     public function prehledPopis(): string {
         $out = [];
         foreach ($this->serazenyPrehled() as $r) {
-            $out[] = $r[0] . ' ' . $r[1];
+            $out[] = $r['nazev'] . ' ' . $r['castka'];
         }
         return implode(', ', $out);
     }

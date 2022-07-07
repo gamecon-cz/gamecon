@@ -2,6 +2,8 @@
 
 $this->blackarrowStyl(true);
 
+/** @var Uzivatel|null $u */
+
 if(!$u) { //jen přihlášení
   echo hlaska('jenPrihlaseni');
   return;
@@ -37,10 +39,10 @@ if(!$zaplaceno) {
 <p>V následujícím přehledu vidíš seznam všech položek, které sis na GameConu objednal<?=$a?>, s výslednými cenami po započítání všech slev. Pokud je tvůj celkový stav financí záporný, pokyny k <b>zaplacení</b> najdeš <a href="finance#placeni">úplně dole</a>.</p>
 
 
-<style> 
+<style>
 .tabVeci table { border-collapse: collapse; }
 .tabVeci table td { border-bottom: solid 1px #ddd; padding-right: 5px; }
-.tabVeci table td:last-child { width: 20px; } 
+.tabVeci table td:last-child { width: 20px; }
 </style>
 <div style="float:left;width:250px;margin-bottom:24px; margin-right: 50px" class="tabVeci">
 <h2>Objednané věci</h2>
