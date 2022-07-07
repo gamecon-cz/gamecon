@@ -8,9 +8,8 @@
  * pravo: 100
  */
 
-use \Gamecon\Cas\DateTimeCz;
-use \Gamecon\Cas\DateTimeGamecon;
-use \Gamecon\Shop\Shop;
+use Gamecon\Cas\DateTimeCz;
+use Gamecon\Shop\Shop;
 
 /**
  * @var Uzivatel|null|void $u
@@ -19,8 +18,12 @@ use \Gamecon\Shop\Shop;
  */
 
 require_once __DIR__ . '/../funkce.php';
-require_once __DIR__ . '/../konstanty.php';
+require __DIR__ . '/../konstanty.php';
 require_once __DIR__ . '/_ubytovani_tabulka.php';
+
+$ok = '<img src="files/design/ok-s.png" style="margin-bottom:-2px">';
+$warn = '<img src="files/design/warning-s.png" style="margin-bottom:-2px">';
+$err = '<img src="files/design/error-s.png" style="margin-bottom:-2px">';
 
 $nastaveni = ['ubytovaniBezZamku' => true, 'jidloBezZamku' => true];
 $shop = $uPracovni ? new Shop($uPracovni, $nastaveni) : null;
@@ -35,7 +38,6 @@ $x->assign([
     'gcOdjedBtnAttr' => "disabled",
     'odhlasBtnAttr' => "disabled",
 ]);
-
 
 // ubytovani vypis
 $pokojVypis = Pokoj::zCisla(get('pokoj'));
@@ -53,7 +55,6 @@ if (get('pokoj')) {
     } else
         throw new Chyba('pokoj ' . get('pokoj') . ' neexistuje nebo je prázdný');
 }
-
 
 if ($uPracovni) {
     if (!$uPracovni->gcPrihlasen()) {
@@ -87,22 +88,22 @@ if ($uPracovni) {
     ]);
 
     $chybiUdaje = count(
-        array_filter(
-            $uPracovni->chybejiciUdaje(),
-            function ($x) {
-                return in_array($x, [
-                    'jmeno_uzivatele',
-                    'prijmeni_uzivatele',
-                    'telefon_uzivatele',
-                    'email1_uzivatele',
-                ]);
-            }
-        )
-    ) > 0;
+            array_filter(
+                $uPracovni->chybejiciUdaje(),
+                function ($x) {
+                    return in_array($x, [
+                        'jmeno_uzivatele',
+                        'prijmeni_uzivatele',
+                        'telefon_uzivatele',
+                        'email1_uzivatele',
+                    ]);
+                }
+            )
+        ) > 0;
     $x->assign(
         'udajeChybiText',
         $chybiUdaje
-            ?  $err . ' chybí osobní údaje!'
+            ? $err . ' chybí osobní údaje!'
             : $ok . ' osobní údaje v pořádku',
     );
 
@@ -199,9 +200,9 @@ if ($uPracovni) {
 }
 
 // načtení předmětů a form s rychloprodejem předmětů, fixme
-$o = dbQuery('
+$o = dbQuery(<<<SQL
   SELECT
-    CONCAT(nazev," ",model_rok) as nazev,
+    CONCAT(nazev,' ',model_rok) as nazev,
     kusu_vyrobeno-count(n.id_predmetu) as zbyva,
     p.id_predmetu,
     ROUND(p.cena_aktualni) as cena
@@ -209,14 +210,15 @@ $o = dbQuery('
   LEFT JOIN shop_nakupy n ON(n.id_predmetu=p.id_predmetu)
   WHERE p.stav > 0
   GROUP BY p.id_predmetu
-  ORDER BY model_rok DESC, nazev');
+  ORDER BY model_rok DESC, nazev
+SQL
+);
 $moznosti = '<option value="">(vyber)</option>';
 while ($r = mysqli_fetch_assoc($o)) {
     $zbyva = $r['zbyva'] === null ? '&infin;' : $r['zbyva'];
     $moznosti .= '<option value="' . $r['id_predmetu'] . '"' . ($r['zbyva'] > 0 || $r['zbyva'] === null ? '' : ' disabled') . '>' . $r['nazev'] . ' (' . $zbyva . ') ' . $r['cena'] . '&thinsp;Kč</option>';
 }
 $x->assign('predmety', $moznosti);
-
 
 // rychloregistrace
 if (!$uPracovni) { // nechceme zobrazovat rychloregistraci (zakladani uctu), kdyz mame vybraneho uzivatele pro praci
