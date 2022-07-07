@@ -89,6 +89,35 @@ SQL
     exit();
 }
 
+if (post('pokojeImport')) {
+    $f = fopen($_FILES['pokojeSoubor']['tmp_name'], 'rb');
+    if (!$f) throw new Exception('Soubor se nepodařilo načíst');
+
+    $hlavicka = array_flip(fgetcsv($f, 512, ";"));
+    if (!array_key_exists('id_uzivatele', $hlavicka)) throw new Exception('Nepodařilo se zpracovat soubor');
+    $uid = $hlavicka['id_uzivatele'];
+    $od = $hlavicka['prvni_noc'];
+    $do = $hlavicka['posledni_noc'];
+    $pokoj = $hlavicka['pokoj'];
+
+    dbDelete('ubytovani', ['rok' => ROK]);
+
+    while ($r = fgetcsv($f, 512, ";")) {
+        if ($r[$pokoj]) {
+            for ($den = $r[$od]; $den <= $r[$do]; $den++) {
+                dbInsert('ubytovani', [
+                    'id_uzivatele' => $r[$uid],
+                    'den' => $den,
+                    'pokoj' => $r[$pokoj],
+                    'rok' => ROK,
+                ]);
+            }
+        }
+    }
+
+    oznameni('Import dokončen');
+}
+
 $x = new XTemplate('finance.xtpl');
 if (isset($_GET['minimum'])) {
     $min = (int)$_GET['minimum'];
@@ -129,3 +158,6 @@ $x->parse('finance.reporty');
 
 $x->parse('finance');
 $x->out('finance');
+
+require __DIR__ . '/../_ubytovani-a-dalsi-obcasne-infopultakoviny-import-ubytovani.php';
+require __DIR__ . '/../_ubytovani-a-dalsi-obcasne-infopultakoviny-import-balicku.php';

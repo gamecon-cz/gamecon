@@ -131,7 +131,7 @@ SQL,
         'ubytovaniBezZamku' => false,   // ignorovat pozastavení objednávek u ubytování
         'jidloBezZamku' => false,       // ignorovat pozastavení objednávek u jídla
     ];
-    private $ubytovani = [];
+    public $ubytovani = [];
     private $tricka = [];
     private $predmety = [];
     private $jidlo = [];

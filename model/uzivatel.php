@@ -155,7 +155,7 @@ SQL
     /**
      * Vrátí datum narození uživatele jako DateTime
      */
-    public function datumNarozeni() {
+    public function datumNarozeni(): DateTimeCz {
         if ((int)$this->u['datum_narozeni']) //hack, neplatný formát je '0000-00-00'
             return new DateTimeCz($this->u['datum_narozeni']);
         else
@@ -447,6 +447,29 @@ SQL,
         return $this->u['email1_uzivatele'];
     }
 
+    /**
+     * @return string[] povinné údaje které chybí
+     */
+    public function chybejiciUdaje() {
+        $pole_k_validaci = [
+            'login_uzivatele',
+            'jmeno_uzivatele',
+            'prijmeni_uzivatele',
+            'pohlavi',
+            'ulice_a_cp_uzivatele',
+            'mesto_uzivatele',
+            'psc_uzivatele',
+            'telefon_uzivatele',
+            'datum_narozeni',
+            'email1_uzivatele',
+        ];
+        $validator = function ($hodnota) {
+            return empty($this->u[$hodnota]);
+        };
+        $chybejici_udaje = array_filter($pole_k_validaci, $validator);
+        return $chybejici_udaje;
+    }
+
     public function maPravo($pravo) {
         return in_array($pravo, $this->prava());
     }
@@ -625,6 +648,18 @@ SQL,
         return $this->u['prava'];
     }
 
+    /**
+     * @return DateTimeCz|null
+     */
+    public function potvrzeniZakonnehoZastupce() {
+        $potvrzeni = $this->u['potvrzeni_zakonneho_zastupce'];
+        $potvrzeni = $potvrzeni
+            ? new DateTimeCz($potvrzeni)
+            : null
+            ;
+        return $potvrzeni;
+    }
+
     /** Vrátí přezdívku (nickname) uživatele */
     public function login(): string {
         return $this->u['login_uzivatele'];
@@ -739,11 +774,6 @@ SQL,
             return $poznamka;
         }
         return $this->u['poznamka'];
-    }
-
-    /** Vrátí formátovanou (html) poznámku uživatele **/
-    public function poznamkaHtml() {
-        return markdown($this->u['poznamka']);
     }
 
     public function balicekHtml() {
