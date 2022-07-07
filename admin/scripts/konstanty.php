@@ -10,7 +10,3 @@ $protipy = array(
   'používání klávesových zkratek urychlí práci',
   'všichni lžou',
 );
-
-$ok = '<img src="files/design/ok-s.png" style="margin-bottom:-2px">';
-$warn = '<img src="files/design/warning-s.png" style="margin-bottom:-2px">';
-$err = '<img src="files/design/error-s.png" style="margin-bottom:-2px">';
