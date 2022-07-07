@@ -668,8 +668,7 @@ SQL,
         $potvrzeni = $this->u['potvrzeni_zakonneho_zastupce'];
         $potvrzeni = $potvrzeni
             ? new DateTimeCz($potvrzeni)
-            : null
-            ;
+            : null;
         return $potvrzeni;
     }
 
@@ -1790,8 +1789,13 @@ SQL,
     public function mimoMojeAktivityUvodniAdminUrl(string $zakladniAdminUrl, string $zakladniWebUrl): array {
         // URL máme schválně přes cestu ke skriptu, protože jeho název udává výslednou URL a nechceme mít neplatnou URL, kdyby někdo ten skrip přejmenoval.
         if ($this->maPravo(Pravo::ADMINISTRACE_INFOPULT)) {
-            /** 'uvod' viz například @link http://admin.beta.gamecon.cz/moje-aktivity/uvod */
-            $adminUvodUrl = basename(__DIR__ . '/../admin/scripts/modules/uvod.php', '.php');
+            /** 'uvod' viz například @link http://admin.beta.gamecon.cz/moje-aktivity/infopult */
+            $adminUvodUrl = basename(__DIR__ . '/../admin/scripts/modules/infopult.php', '.php');
+            return ['url' => $zakladniAdminUrl . '/' . $adminUvodUrl, 'nazev' => 'do Adminu'];
+        }
+        if ($this->jeOrganizator()) {
+            /** 'uvod' viz například @link http://admin.beta.gamecon.cz/moje-aktivity/uzivatel */
+            $adminUvodUrl = basename(__DIR__ . '/../admin/scripts/modules/uzivatel.php', '.php');
             return ['url' => $zakladniAdminUrl . '/' . $adminUvodUrl, 'nazev' => 'do Adminu'];
         }
         $webProgramUrl = basename(__DIR__ . '/../web/moduly/program.php', '.php');
