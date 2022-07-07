@@ -29,11 +29,13 @@ $xtpl->assign([
 
 // nastavení stránky, prázdná url => přesměrování na úvod
 if (!get('req')) {
-    if ($u->maPravo(\Gamecon\Pravo::ADMINISTRACE_INFOPULT)) {
-        back(URL_ADMIN . '/infopult');
-    }
-    if ($u->jeOrganizator()) {
-        back(URL_ADMIN . '/moje-aktivity');
+    if ($u) {
+        if ($u->maPravo(\Gamecon\Pravo::ADMINISTRACE_INFOPULT)) {
+            back(URL_ADMIN . '/infopult');
+        }
+        if ($u->jeOrganizator()) {
+            back(URL_ADMIN . '/moje-aktivity');
+        }
     }
     back(URL_ADMIN . '/moje-aktivity');
 }
@@ -130,8 +132,7 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
     }
     $xtpl->parse('all.operator');
     // výběr uživatele
-    if ($u->maPravo(\Gamecon\Pravo::ADMINISTRACE_INFOPULT))
-    {
+    if ($u->maPravo(\Gamecon\Pravo::ADMINISTRACE_INFOPULT)) {
         if ($uPracovni) {
             $xtpl->assign('uPracovni', $uPracovni);
             $xtpl->parse('all.uzivatel.vybrany');
