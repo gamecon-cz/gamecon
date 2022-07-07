@@ -29,7 +29,10 @@ $xtpl->assign([
 
 // nastavení stránky, prázdná url => přesměrování na úvod
 if (!get('req')) {
-    back(URL_ADMIN . '/uvod');
+    back(empty($u) || $u->maPravo(\Gamecon\Pravo::ADMINISTRACE_UVOD)
+        ? URL_ADMIN . '/uvod'
+        : URL_ADMIN . '/moje-aktivity'
+    );
 }
 $req = explode('/', get('req'));
 $stranka = $req[0];
