@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f175d503e4ef0558ea0c3a21d8c3c376",
+    "content-hash": "d2ac62b7bf3e84f15e3289b0365f0486",
     "packages": [
         {
             "name": "defuse/php-encryption",
@@ -176,37 +176,6 @@
                 "source": "https://github.com/firebase/php-jwt/tree/v6.2.0"
             },
             "time": "2022-05-13T20:54:50+00:00"
-        },
-        {
-            "name": "godric/db-backup",
-            "version": "dev-master",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/godric-cz/db-backup.git",
-                "reference": "33b5a05b7d4890f6a7ca6c4cea81841aa65b6302"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/godric-cz/db-backup/zipball/33b5a05b7d4890f6a7ca6c4cea81841aa65b6302",
-                "reference": "33b5a05b7d4890f6a7ca6c4cea81841aa65b6302",
-                "shasum": ""
-            },
-            "require": {
-                "dg/mysql-dump": "^1.4"
-            },
-            "default-branch": true,
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Godric\\DbBackup\\": "src/"
-                }
-            },
-            "description": "Backup mysql database to FTP with pure PHP. No mysqldump on server needed.",
-            "support": {
-                "source": "https://github.com/godric-cz/db-backup/tree/master",
-                "issues": "https://github.com/godric-cz/db-backup/issues"
-            },
-            "time": "2018-09-19T20:51:29+00:00"
         },
         {
             "name": "godric/xtemplate",
@@ -4729,7 +4698,6 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "godric/db-backup": 20,
         "godric/xtemplate": 20,
         "roave/security-advisories": 20
     },
