@@ -75,7 +75,10 @@
 </div>
 
 <!-- begin:neUzivatel -->
-<div class="warning">Vyberte uživatele (pole vlevo)</div>
+<div class="warning" onclick="document.getElementById('omniboxUzivateleProPraci').focus()">Vyberte uživatele
+  <span class="skryt-pri-uzkem">(pole vlevo)</span>
+  <span class="zobrazit-pri-uzkem">(pole nahoře)</span>
+</div>
 <!-- end:neUzivatel -->
 <!-- begin:neprihlasen -->
 <div class="error">Uživatel{ka} není přihlášen{a} na GameCon.</div>
@@ -93,7 +96,7 @@
       <table>
         <tr>
           <td style="width: 60px">Stav účtu:</td>
-          <td style={stavStyle}> {stavUctu}</td>
+          <td style="{stavStyle}"> {stavUctu}</td>
         </tr>
 
         <tr>
