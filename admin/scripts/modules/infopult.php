@@ -77,6 +77,7 @@ if ($uPracovni) {
         'pokoj' => $pokoj ? $pokoj->cislo() : '(nepřidělen)',
         'spolubydlici' => spolubydliciTisk($spolubydlici),
         'org' => $u->jmenoNick(),
+        'a' => $u->koncovkaDlePohlavi(),
         'poznamka' => $up->poznamka(),
         'ubytovani' => $up->dejShop()->dejPopisUbytovani(),
         'udajeChybiAttr' => 'href="uzivatel"',
@@ -209,7 +210,7 @@ $o = dbQuery(<<<SQL
   FROM shop_predmety p
   LEFT JOIN shop_nakupy n ON(n.id_predmetu=p.id_predmetu)
   WHERE p.stav > 0
-  GROUP BY p.id_predmetu
+  GROUP BY p.id_predmetu, model_rok
   ORDER BY model_rok DESC, nazev
 SQL
 );
