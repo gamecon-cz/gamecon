@@ -57,7 +57,6 @@ function nasad(array $nastaveni) {
       /web/soubory/*
       !/web/soubory/blackarrow
       !/web/soubory/styl
-      !/web/soubory/ui
       !/web/soubory/*.js
       !/web/soubory/*.html
       !/web/soubory/systemove/*/.gitkeep
