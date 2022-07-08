@@ -2,6 +2,8 @@
 
 namespace Gamecon\Cas;
 
+use Gamecon\Cas\Exceptions\InvalidDateTimeFormat;
+
 /**
  * Datum a čas s českými názvy dnů a měsíců + další vychytávky
  */
@@ -62,8 +64,19 @@ class DateTimeCz extends \DateTime
     }
 
     public static function createFromFormat($format, $time, \DateTimeZone $timezone = null) {
-        $dateTime = parent::createFromFormat($format, $time, $timezone);
-        return new static($dateTime->format(DATE_ATOM));
+        try {
+            $dateTime = parent::createFromFormat($format, $time, $timezone);
+            return new static($dateTime->format(DATE_ATOM));
+        } catch (\Throwable $throwable) {
+            throw new InvalidDateTimeFormat(
+                sprintf(
+                    "Can not create %s from value %s using format '%s'",
+                    static::class,
+                    var_export($time, true),
+                    var_export($format, true)
+                )
+            );
+        }
     }
 
     public static function poradiDne(string $den): int {

@@ -4,6 +4,8 @@ namespace Gamecon\SystemoveNastaveni;
 
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Cas\Exceptions\InvalidDateTimeFormat;
+use Gamecon\SystemoveNastaveni\Exceptions\InvalidSystemSettingsValue;
 
 class SystemoveNastaveni
 {
@@ -181,17 +183,28 @@ SQL,
     }
 
     private function formatujHodnotuProDb($hodnota, string $klic) {
-        switch ($this->dejDatovyTyp($klic)) {
-            case 'date' :
-                return $hodnota
-                    ? DateTimeCz::createFromFormat('j. n. Y', $hodnota)->formatDatumDb()
-                    : $hodnota;
-            case 'datetime' :
-                return $hodnota
-                    ? DateTimeCz::createFromFormat('j. n. Y H:i:s', $hodnota)->formatDb()
-                    : $hodnota;
-            default :
-                return $hodnota;
+        try {
+            switch ($this->dejDatovyTyp($klic)) {
+                case 'date' :
+                    return $hodnota
+                        ? DateTimeCz::createFromFormat('j. n. Y', $hodnota)->formatDatumDb()
+                        : $hodnota;
+                case 'datetime' :
+                    return $hodnota
+                        ? DateTimeCz::createFromFormat('j. n. Y H:i:s', $hodnota)->formatDb()
+                        : $hodnota;
+                default :
+                    return $hodnota;
+            }
+        } catch (InvalidDateTimeFormat $invalidDateTimeFormat) {
+            throw new InvalidSystemSettingsValue(
+                sprintf(
+                    "Can not convert %s (%s) into DB format: %s",
+                    var_export($hodnota, true),
+                    var_export($klic, true),
+                    $invalidDateTimeFormat->getMessage()
+                )
+            );
         }
     }
 
