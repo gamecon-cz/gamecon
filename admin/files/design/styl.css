@@ -1312,3 +1312,7 @@ Radio musí být ve tvaru:
 @media only screen and (min-width: 1200px) {
 
 }
+
+.zobrazit-pri-uzkem {
+  display: none;
+}
