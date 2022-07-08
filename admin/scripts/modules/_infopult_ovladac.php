@@ -4,9 +4,6 @@
  * akce proveditelné z infopult záložky
  */
 
-use \Gamecon\Cas\DateTimeCz;
-use \Gamecon\Cas\DateTimeGamecon;
-
 /**
  * @var Uzivatel|null|void $u
  * @var Uzivatel|null|void $uPracovni
@@ -28,11 +25,11 @@ if (!empty($_POST['gcPrihlas']) && $uPracovni && !$uPracovni->gcPrihlasen()) {
 }
 
 if (!empty($_POST['gcOdhlas']) && $uPracovni && !$uPracovni->gcPritomen()) {
-    $uPracovni->gcOdhlas();
+    $uPracovni->gcOdhlas($u);
     back();
 }
 
-if (post('gcOdjed')) {
+if (post('gcOdjed') && $uPracovni) {
     $uPracovni->gcOdjed($u);
     back();
 }
@@ -78,7 +75,7 @@ if (!empty($_POST['rychloreg'])) {
         $_SESSION["id_uzivatele"] = $nid;
         $uPracovni = Uzivatel::prihlasId($nid, 'uzivatel_pracovni');
         if (!empty($_POST['vcetnePrihlaseni'])) {
-            $uPracovni->gcPrihlas();
+            $uPracovni->gcPrihlas($u);
         }
         back();
     }
