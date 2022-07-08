@@ -72,7 +72,9 @@ $chyba = Chyba::vyzvedniHtml();
     border-bottom-right-radius: 12px;
     z-index: 20;
   ">
-    <input type="button" value="Zavřít" onclick="window.location = '<?= URL_ADMIN ?>/uvod'" style="
+    <input type="button" value="Zavřít"
+           onclick="window.location = '<?= $u ? $u->mimoMojeAktivityUvodniAdminLink()['url'] : URL_ADMIN . '/uzivatel' ?>'"
+           style="
       float: right;
       width: 100px;
       height: 35px;

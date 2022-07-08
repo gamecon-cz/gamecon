@@ -60,7 +60,7 @@ class OnlinePrezenceHtml
             $template->parse('onlinePrezence.test');
         }
 
-        ['url' => $urlZpet, 'nazev' => $textZpet] = $editujici->mimoMojeAktivityUvodniAdminUrl(
+        ['url' => $urlZpet, 'nazev' => $textZpet] = $editujici->mimoMojeAktivityUvodniAdminLink(
             URL_ADMIN,
             URL_WEBU
         );

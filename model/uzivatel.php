@@ -1733,8 +1733,8 @@ SQL,
     }
 
     public function urlNaPotvrzeniProtiCoviduProAdmin(): string {
-        // admin/scripts/zvlastni/uvod/potvrzeni-proti-covidu.php
-        return URL_ADMIN . '/uvod/potvrzeni-proti-covidu?id=' . $this->id();
+        // admin/scripts/zvlastni/infopult/potvrzeni-proti-covidu.php
+        return URL_ADMIN . '/infopult/potvrzeni-proti-covidu?id=' . $this->id();
     }
 
     public function urlNaPotvrzeniProtiCoviduProVlastnika(): string {
@@ -1786,7 +1786,7 @@ SQL,
      * @param string $zakladniWebUrl
      * @return string[] nazev => název, url => URL
      */
-    public function mimoMojeAktivityUvodniAdminUrl(string $zakladniAdminUrl, string $zakladniWebUrl): array {
+    public function mimoMojeAktivityUvodniAdminLink(string $zakladniAdminUrl = URL_ADMIN, string $zakladniWebUrl = URL_WEBU): array {
         // URL máme schválně přes cestu ke skriptu, protože jeho název udává výslednou URL a nechceme mít neplatnou URL, kdyby někdo ten skrip přejmenoval.
         if ($this->maPravo(Pravo::ADMINISTRACE_INFOPULT)) {
             /** 'uvod' viz například @link http://admin.beta.gamecon.cz/moje-aktivity/infopult */
