@@ -80,7 +80,7 @@ function zabalAdminSoubor(string $cestaKSouboru): string {
 <div class="aBox" style="width:100%; overflow: auto;">
     <h3>Nastavení mřížkového prodeje</h3>
 
-    <link rel="stylesheet" href="<?= zabalAdminSoubor('soubory/ui/style.css') ?>">
+    <link rel="stylesheet" href="<?= zabalAdminSoubor('files/ui/style.css') ?>">
 
     <div id="preact-obchod-nastaveni">Nastavení mřížek obchodu se načítá ...</div>
 
@@ -92,6 +92,6 @@ function zabalAdminSoubor(string $cestaKSouboru): string {
         }
     </script>
 
-    <script type="module" src="<?= zabalAdminSoubor('soubory/ui/bundle.js') ?>"></script>
+    <script type="module" src="<?= zabalAdminSoubor('files/ui/bundle.js') ?>"></script>
 
 </div>
