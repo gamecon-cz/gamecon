@@ -808,7 +808,7 @@ SQL,
             $nakupy[] = $shop->objednneJidloPrehledHtml();
         }
         $nakupyHtml = implode('<hr>', $nakupy);
-        return '<span class="hinted">' . htmlentities($velikostBalicku) . '<span class="hint">' . $nakupyHtml . '</span></span>';
+        return '<span class="hinted">' . htmlentities($velikostBalicku) . ' ' . $this->id() . '<span class="hint">' . $nakupyHtml . '</span></span>';
     }
 
     /**
