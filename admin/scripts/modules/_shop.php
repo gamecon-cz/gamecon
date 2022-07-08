@@ -43,7 +43,7 @@ if (!empty($_POST['prodej-mrizka'])) {
 <!-- Náhrada za api call -->
 <form id="prodej-mrizka-form" method="POST" style="display:none;"></form>
 
-<link rel="stylesheet" href="<?= zabalAdminSoubor('soubory/ui/style.css') ?>">
+<link rel="stylesheet" href="<?= zabalAdminSoubor('files/ui/style.css') ?>">
 
 <div id="preact-obchod">Obchod se načítá ...</div>
 
@@ -55,4 +55,4 @@ if (!empty($_POST['prodej-mrizka'])) {
     }
 </script>
 
-<script type="module" src="<?= zabalAdminSoubor('soubory/ui/bundle.js') ?>"></script>
+<script type="module" src="<?= zabalAdminSoubor('files/ui/bundle.js') ?>"></script>
