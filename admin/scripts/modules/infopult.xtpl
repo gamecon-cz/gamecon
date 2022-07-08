@@ -262,17 +262,18 @@
 
   <!-- begin:objednavky -->
   <div class="infopult-grid--item infopult-grid--item-predmety aBox">
-    <h3>Objednávky a platby</h3>
-    {prehledFinance}
+    <h3>Objednávky předmětů</h3>
+    {prehledPredmetu}
   </div>
   <!-- end:objednavky -->
-
 
   <!-- end:uzivatel -->
 
   <div class="infopult-grid--item infopult-grid--item-prodej aBox">
     <h3>Prodej předmětů</h3>
-    Zbývající počty předmětů jsou uvedeny v závorce<br>
+    <div>
+      Zbývající počty předmětů jsou uvedeny v závorce
+    </div>
     <form method="post">
       <table>
         <!-- begin:prodejAnonymni -->

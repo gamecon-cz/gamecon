@@ -81,7 +81,7 @@ if ($uPracovni) {
         'ubytovani' => $up->dejShop()->dejPopisUbytovani(),
         'udajeChybiAttr' => 'href="uzivatel"',
         'balicek' => $up->balicekHtml(),
-        'prehledFinance' => $up->finance()->prehledHtml([
+        'prehledPredmetu' => $up->finance()->prehledHtml([
             Shop::PREDMET,
             Shop::TRICKO,
         ], false),

@@ -54,8 +54,6 @@ class Finance
         13 => BONUS_ZA_12H_AZ_13H_AKTIVITU,
     ];
 
-    const PREDMETY_A_STRAVA_TEXT = 'Předměty a strava';
-
     const
         // idčka typů, podle kterých se řadí výstupní tabulka $prehled
         AKTIVITA = -1,
@@ -109,7 +107,7 @@ class Finance
 
         $this->logb('Aktivity', $this->cenaAktivity, self::AKTIVITA);
         $this->logb('Ubytování', $this->cenaUbytovani, self::UBYTOVANI);
-        $this->logb(self::PREDMETY_A_STRAVA_TEXT, $this->cenaPredmety, self::PREDMETY_STRAVA);
+        $this->logb('Předměty a strava', $this->cenaPredmety, self::PREDMETY_STRAVA);
         $this->logb('Připsané platby', $this->sumaPlateb() + $this->zustatekZPredchozichRocniku, self::PLATBY_NADPIS);
         $this->logb('Stav financí', $this->stav(), self::VYSLEDNY);
     }
@@ -202,37 +200,24 @@ class Finance
 
     /**
      * Vrátí html formátovaný přehled financí
-     * @param null|int[] $idKategorii
+     * @param null|int[] $jekKategorieIds
      * @param boolean $vcetneCeny
      * @todo přesun css někam sdíleně
      */
-    function prehledHtml(array $idKategorii = null, bool $vcetneCeny = true) {
+    function prehledHtml(array $jekKategorieIds = null, bool $vcetneCeny = true) {
         $out = '<table>';
         $prehled = $this->serazenyPrehled();
-        if ($idKategorii) {
-            $prehled = array_filter($prehled, function ($radekPrehledu) use ($idKategorii) {
-                return in_array($radekPrehledu['kategorie'], $idKategorii);
+        if ($jekKategorieIds) {
+            $prehled = array_filter($prehled, function ($radekPrehledu) use ($jekKategorieIds) {
+                return in_array($radekPrehledu['kategorie'], $jekKategorieIds);
             });
-
-            if (in_array(Shop::PREDMET, $idKategorii) && !in_array(Shop::JIDLO, $idKategorii)) {
-                $predmetyNeboStravaNazev = 'Předměty';
-            } elseif (!in_array(Shop::PREDMET, $idKategorii) && in_array(Shop::JIDLO, $idKategorii)) {
-                $predmetyNeboStravaNazev = 'Strava';
-            }
-
-            // TODO: fuj způsob, najít způsob jak vyřešit label hned ze začátku
-            if ($predmetyNeboStravaNazev != null)
-                $prehled = array_map(function ($radekPrehledu) use ($predmetyNeboStravaNazev) {
-                    $radekPrehledu['nazev'] = str_replace(
-                        self::PREDMETY_A_STRAVA_TEXT,
-                        $predmetyNeboStravaNazev,
-                        $radekPrehledu['nazev']
-                    );
-                    return $radekPrehledu;
-                }, $prehled);
         }
+        $prehledBezNadpisu = array_filter($prehled, static function ($radekPrehledu) {
+            // nadpis je tučně
+            return strpos($radekPrehledu['nazev'], '<b>') === false;
+        });
 
-        foreach ($prehled as $radekPredhledu) {
+        foreach ($prehledBezNadpisu as $radekPredhledu) {
             $castkaRow = '';
             if ($vcetneCeny) {
                 $castkaRow = "<td style='text-align:right'>{$radekPredhledu['castka']}</td>";
@@ -604,9 +589,9 @@ SQL
         ['cena' => $cena, 'sleva' => $this->nevyuzityBonusZaVedeniAktivit] = \Cenik::aplikujSlevu($cena, $bonusZaVedeniAktivit);
         $this->vyuzityBonusZaVedenAktivit = $this->bonusZaVedeniAktivit - $this->nevyuzityBonusZaVedeniAktivit;
         if ($this->bonusZaVedeniAktivit) {
-            $this->log(
-                '<b>Bonus za aktivity - využitý</b>',
-                '<b>' . $this->vyuzityBonusZaVedenAktivit . '</b>',
+            $this->logb(
+                'Bonus za aktivity - využitý',
+                $this->vyuzityBonusZaVedenAktivit,
                 self::ORGSLEVA
             );
             $this->log(

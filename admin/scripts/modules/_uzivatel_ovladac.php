@@ -7,11 +7,11 @@ use \Gamecon\Cas\DateTimeGamecon;
  * @var Uzivatel|null|void $u
  * @var Uzivatel|null|void $uPracovni
  * @var \Gamecon\Vyjimkovac\Vyjimkovac $vyjimkovac
+ * @var \Gamecon\Shop\Shop $shop
  */
 
 require_once __DIR__ . '/../funkce.php';
 require_once __DIR__ . '/../konstanty.php';
-
 
 if (post('pridelitPokoj')) {
     Pokoj::ubytujNaCislo(Uzivatel::zId(post('uid')), post('pokoj'));
