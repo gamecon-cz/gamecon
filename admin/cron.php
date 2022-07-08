@@ -37,7 +37,7 @@ if (!defined('CRON_KEY') || get('key') !== CRON_KEY)
 // otevřít log soubor pro zápis a přesměrovat do něj výstup
 $logdir = SPEC . '/logs';
 $logfile = 'cron-' . date('Y-m') . '.log';
-if (!mkdir($logdir) && !is_dir($logdir)) {
+if (!is_dir($logdir) && !@mkdir($logdir) && !is_dir($logdir)) {
     throw new \RuntimeException(sprintf('Directory "%s" was not created', $logdir));
 }
 $logDescriptor = fopen($logdir . '/' . $logfile, 'ab');
