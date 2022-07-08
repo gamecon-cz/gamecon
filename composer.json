@@ -6,14 +6,6 @@
     {
       "type": "vcs",
       "url": "https://github.com/godric-cz/xtemplate"
-    },
-    {
-      "type": "vcs",
-      "url": "https://github.com/godric-cz/db-backup"
-    },
-    {
-      "type": "vcs",
-      "url": "https://github.com/godric-cz/db-migrations"
     }
   ],
   "autoload": {
@@ -44,7 +36,6 @@
     "ext-sqlite3": "*",
     "defuse/php-encryption": "^2.1",
     "dg/mysql-dump": "^1.5",
-    "godric/db-backup": "dev-master",
     "godric/xtemplate": "dev-master",
     "google/apiclient": "^2.4",
     "michelf/php-markdown": "~1.4",
