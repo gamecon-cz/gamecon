@@ -1,9 +1,18 @@
 <!-- begin:infopult -->
 
 <style>
-  .shopUbytovani_prvniSloupec, .shopUbytovani_sloupec { float: left; width: 65px; }
-  .shopUbytovani_radek { height: 40px; }
-  .tooltip_obsah { display: none; }
+    .shopUbytovani_prvniSloupec, .shopUbytovani_sloupec {
+        float: left;
+        width: 65px;
+    }
+
+    .shopUbytovani_radek {
+        height: 40px;
+    }
+
+    .tooltip_obsah {
+        display: none;
+    }
 </style>
 
 
@@ -41,7 +50,7 @@
 
     <form method="post">
     <span class="hinted">
-      <input type="submit" name="gcOdjed" value="Odjel{a} z GC"  {gcOdjedBtnAttr}>
+      <input type="submit" name="gcOdjed" value="Odjel{a} z GC" {gcOdjedBtnAttr}>
       <span class="hint">
         Před odkliknutím zkontroluj, že je:
         <ul>
@@ -54,7 +63,7 @@
   </div>
 
   <div class="header-buttons--container header-buttons--container-right">
-    <form method="post" >
+    <form method="post">
       <input class="danger" type="submit" name="gcOdhlas" value="Odhlásit z GC" {odhlasBtnAttr}>
       <script>
         $('[name="gcOdhlas"]').closest('form').submit(function () {
@@ -90,10 +99,10 @@
         <tr>
           <td>Poznámka:</td>
           <td>
-            <textarea 
-              rows="3"
-              type="area" name="udaje[poznamka]"
-              style="margin-left: -3px; width:100%; resize: vertical;"
+            <textarea
+                rows="3"
+                type="area" name="udaje[poznamka]"
+                style="margin-left: -3px; width:100%; resize: vertical;"
             >{poznamka}</textarea>
           </td>
         </tr>
@@ -103,8 +112,8 @@
           <td>Potvrzení:</td>
           <td>
             <input type="checkbox" name="udaje[potvrzeni_zakonneho_zastupce]"
-                style="margin-left: -3px;" id="udaj_potvrzeni" {potvrzeniAttr}>
-              {potvrzeniText}
+                   style="margin-left: -3px;" id="udaj_potvrzeni" {potvrzeniAttr}>
+            {potvrzeniText}
             </input>
           </td>
         </tr>
@@ -112,7 +121,7 @@
 
         <tr>
           <td>Údaje:</td>
-          <td> 
+          <td>
             <a {udajeChybiAttr}>
               {udajeChybiText}
             </a>
@@ -124,14 +133,20 @@
           <td>Covid-19:</td>
           <td>
             <input type="checkbox" name="udaje[potvrzeni_proti_covid19_overeno_kdy]"
-                style="margin-left: -3px;" id="udaj_potvrzeni" {covidPotvrzeniAttr}>
-              <a target="_blank" {covidPotvrzeniOdkazAttr}>
-                {covidPotvrzeniText}
-              </a>
+                   style="margin-left: -3px;" id="udaj_covid19" {covidPotvrzeniAttr}>
+            <a target="_blank" {covidPotvrzeniOdkazAttr}>
+              {covidPotvrzeniText}
+            </a>
             </input>
           </td>
         </tr>
         <!-- end:covidSekce -->
+
+        <tr>
+          <td colspan="100%" class="text-end">
+            <input type="submit" value="uložit" class="submit-btn">
+          </td>
+        </tr>
 
         <tr>
           <td>Kontakt:</td>
@@ -143,9 +158,10 @@
           <td>{balicek}</td>
         </tr>
       </table>
-      <a style="font-size: 1.2em; float: left; margin-top: .2em; margin-right: 1em;" href="program-uzivatele" target="_blank">Program</a>
-      <a style="font-size: 1.2em; float: left; margin-top: .2em;" href="program-osobni" target="_blank">Program účastníka</a>
-      <input type="submit" name="prehledUprava" value="uložit" class="submit-btn">
+      <a style="font-size: 1.2em; float: left; margin-top: .2em; margin-right: 1em;" href="program-uzivatele"
+         target="_blank">Program</a>
+      <a style="font-size: 1.2em; float: left; margin-top: .2em;" href="program-osobni" target="_blank">Program
+        účastníka</a>
     </form>
   </div>
 
@@ -209,11 +225,11 @@
   </div>
 
   <div class="infopult-grid--item infopult-grid--item-pokoje aBox">
-<h3>Nastavení pokojů</h3>
+    <h3>Nastavení pokojů</h3>
 
     <div>
       Vypsat pokoj<br>
-      <form method="get" >
+      <form method="get">
         <table>
           <tr>
             <td>Pokoj:</td>
@@ -271,7 +287,7 @@
             <label for="predmet">Předmět:</label>
             <span class="hinted">
               <input name="prodej[kusu]" style="border: none; margin: 0; padding: 0" type="number" step="1" value="1"
-                size="2" min="1" max="99" required>
+                     size="2" min="1" max="99" required>
               <span class="hint" style="white-space: nowrap; width: auto">Počet kusů</span>
             </span>
           </td>
@@ -292,7 +308,7 @@
 <div class="aBox grid">
   <h3>Vypsat pokoj</h3>
   <div>
-    <form method="get" >
+    <form method="get">
       <table>
         <tr>
           <td>Pokoj:</td>
@@ -350,7 +366,7 @@
         <td colspan="2">
           <input type="submit" value="Jen registrovat" class="submit-btn">
           <!-- begin: prihlasitNaGc -->
-          <input type="submit" name="vcetnePrihlaseni" value="Reg. a přihlásit na GC"  class="submit-btn">
+          <input type="submit" name="vcetnePrihlaseni" value="Reg. a přihlásit na GC" class="submit-btn">
           <!-- end: prihlasitNaGc -->
         </td>
       </tr>

@@ -117,42 +117,34 @@ if (!empty($_POST['prodej'])) {
 }
 
 // TODO: mělo by být obsaženo v modelové třídě
-/**
- * @param mixin $udaje
- * @param int $uPracovniId
- * @param \Gamecon\Vyjimkovac\Vyjimkovac $vyjimkovac
- */
-function updateUzivatelHodnoty($udaje, $uPracovniId, $vyjimkovac)
-{
+function updateUzivatelHodnoty(array $udaje, int $uPracovniId, \Gamecon\Vyjimkovac\Vyjimkovac $vyjimkovac): int {
     try {
-        dbUpdate('uzivatele_hodnoty', $udaje, ['id_uzivatele' => $uPracovniId]);
+        $result = dbUpdate('uzivatele_hodnoty', $udaje, ['id_uzivatele' => $uPracovniId]);
+        return dbNumRows($result);
     } catch (Exception $e) {
         $vyjimkovac->zaloguj($e);
         chyba('Došlo k neočekávané chybě.');
+        return 0;
     }
 }
 
 /* Editace v kartě Pŕehled */
-if ($uPracovni && post('prehledUprava')) {
-    $udaje = post('udaje');
-
-    foreach ([
-        'potvrzeni_zakonneho_zastupce',
-        'potvrzeni_proti_covid19_overeno_kdy',
-    ] as &$pole) {
-        if (isset($udaje[$pole])) {
+if ($uPracovni && $udaje = post('udaje')) {
+    foreach (['potvrzeni_zakonneho_zastupce', 'potvrzeni_proti_covid19_overeno_kdy'] as $klic) {
+        if (isset($udaje[$klic])) {
             // pokud je hodnota "" tak to znamená že nedošlo ke změně
-            if ($udaje[$pole] == "")
-                unset($udaje[$pole]);
+            if ($udaje[$klic] == "")
+                unset($udaje[$klic]);
             else
-                $udaje[$pole] = date('Y-m-d');
+                $udaje[$klic] = date('Y-m-d');
         } else {
-            $udaje[$pole] = null;
+            $udaje[$klic] = null;
         }
     }
 
     // TODO(SECURITY): nebezpečné krmit data do databáze tímhle způsobem Každý si vytvořit do html formuláře input který se pak také propíŠe do DB
-    updateUzivatelHodnoty($udaje, $uPracovni->id(), $vyjimkovac);
+    $zmenenoZaznamu = updateUzivatelHodnoty($udaje, $uPracovni->id(), $vyjimkovac);
+    oznameni("Změněno $zmenenoZaznamu záznamů");
     back();
 }
 
