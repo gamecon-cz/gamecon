@@ -14,16 +14,16 @@ use \Gamecon\Cas\DateTimeGamecon;
  */
 
 /**
- * @var \Shop|null $shop
+ * @var \Gamecon\Shop\Shop|null $shop
  */
 
 if (!empty($_POST['datMaterialy']) && $uPracovni && $uPracovni->gcPrihlasen()) {
-    $uPracovni->dejZidli(ZIDLE_PRITOMEN, $u->id());
+    $uPracovni->dejZidli(ZIDLE_PRITOMEN, $u);
     back();
 }
 
 if (!empty($_POST['gcPrihlas']) && $uPracovni && !$uPracovni->gcPrihlasen()) {
-    $uPracovni->gcPrihlas();
+    $uPracovni->gcPrihlas($u);
     back();
 }
 
@@ -33,7 +33,7 @@ if (!empty($_POST['gcOdhlas']) && $uPracovni && !$uPracovni->gcPritomen()) {
 }
 
 if (post('gcOdjed')) {
-    $uPracovni->gcOdjed();
+    $uPracovni->gcOdjed($u);
     back();
 }
 
@@ -118,7 +118,7 @@ if (!empty($_POST['prodej'])) {
 
 // TODO: mělo by být obsaženo v modelové třídě
 /**
- * @param mixin $udaje 
+ * @param mixin $udaje
  * @param int $uPracovniId
  * @param \Gamecon\Vyjimkovac\Vyjimkovac $vyjimkovac
  */

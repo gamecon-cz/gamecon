@@ -110,12 +110,12 @@ if ($uPracovni) {
     if ($up->finance()->stav() < 0 && !$up->gcPritomen()) {
         $x->parse('infopult.upoMaterialy');
     }
-    if (!$up->gcPrihlasen()) {
-    } elseif (!$up->gcPritomen()) {
-        $x->assign('datMaterialyBtnAttr', "");
-    } elseif (!$up->gcOdjel()) {
-        $x->assign('gcOdjedBtnAttr', "");
-    } else {
+    if ($up->gcPrihlasen()) {
+        if (!$up->gcPritomen()) {
+            $x->assign('datMaterialyBtnAttr', "");
+        } elseif (!$up->gcOdjel()) {
+            $x->assign('gcOdjedBtnAttr', "");
+        }
     }
     if ($up->gcPrihlasen() && !$up->gcPritomen()) {
         $x->assign('odhlasBtnAttr', '');
