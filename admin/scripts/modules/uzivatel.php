@@ -28,7 +28,6 @@ include __DIR__ . '/_uzivatel_ovladac.php';
 $x = new XTemplate('uzivatel.xtpl');
 xtemplateAssignZakladniPromenne($x, $uPracovni);
 
-
 // ubytovani vypis
 $pokojVypis = Pokoj::zCisla(get('pokoj'));
 $ubytovaniVypis = $pokojVypis ? $pokojVypis->ubytovani() : [];
@@ -46,7 +45,6 @@ if (get('pokoj')) {
         throw new Chyba('pokoj ' . get('pokoj') . ' neexistuje nebo je prázdný');
 }
 
-
 if ($uPracovni && $uPracovni->gcPrihlasen()) {
     $x->assign('shop', $shop);
     $x->parse('uzivatel.ubytovani');
@@ -59,11 +57,19 @@ if (!$uPracovni) {
 }
 
 if (!$uPracovni) {
-    $x->assign('status', '<div class="warning">Uživatel nevybrán</div>');
+    $x->assign(
+        'status',
+        <<<HTML
+        <div class="warning inline" onclick="document.getElementById('omniboxUzivateleProPraci').focus()">
+            Vyberte uživatele
+            <span class="skryt-pri-uzkem">(pole vlevo)</span>
+            <span class="zobrazit-pri-uzkem">(pole nahoře)</span>
+        </div>
+        HTML
+    );
 } elseif (!$uPracovni->gcPrihlasen()) {
     $x->assign('status', '<div class="error">Uživatel není přihlášen na GC</div>');
 }
-
 
 if ($uPracovni) {
     $up = $uPracovni;
@@ -86,7 +92,6 @@ if ($uPracovni) {
     $x->parse('uzivatel.slevy');
     $x->parse('uzivatel.objednavky');
 }
-
 
 // form s osobními údaji
 if ($uPracovni) {
@@ -161,17 +166,19 @@ if ($uPracovni) {
 }
 
 // načtení předmětů a form s rychloprodejem předmětů, fixme
-$o = dbQuery('
+$o = dbQuery(<<<SQL
   SELECT
-    CONCAT(nazev," ",model_rok) as nazev,
+    CONCAT(nazev,' ',model_rok) as nazev,
     kusu_vyrobeno-count(n.id_predmetu) as zbyva,
     p.id_predmetu,
     ROUND(p.cena_aktualni) as cena
   FROM shop_predmety p
   LEFT JOIN shop_nakupy n ON(n.id_predmetu=p.id_predmetu)
   WHERE p.stav > 0
-  GROUP BY p.id_predmetu
-  ORDER BY model_rok DESC, nazev');
+  GROUP BY p.id_predmetu, model_rok
+  ORDER BY model_rok DESC, nazev
+SQL
+);
 $moznosti = '<option value="">(vyber)</option>';
 while ($r = mysqli_fetch_assoc($o)) {
     $zbyva = $r['zbyva'] === null ? '&infin;' : $r['zbyva'];

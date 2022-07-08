@@ -73,7 +73,7 @@ if ($uPracovni) {
         : [];
     $x->assign([
         'stavUctu' => ($up->finance()->stav() < 0 ? $err : $ok) . ' ' . $up->finance()->stavHr(),
-        'stavStyle' => ($up->finance()->stav() < 0 ? '"color: #f22; font-weight: bolder;"' : ""),
+        'stavStyle' => ($up->finance()->stav() < 0 ? 'color: #f22; font-weight: bolder;' : ''),
         'pokoj' => $pokoj ? $pokoj->cislo() : '(nepřidělen)',
         'spolubydlici' => spolubydliciTisk($spolubydlici),
         'org' => $u->jmenoNick(),
