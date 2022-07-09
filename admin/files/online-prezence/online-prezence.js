@@ -68,20 +68,20 @@
      * @param {number|string} idAktivity
      */
     function zaznamenejNovehoUcastnika(idUzivatele, idAktivity) {
-      const nodeUcastnika = dejNodeUcastnika(idUzivatele, idAktivity)
-      hlidejZmenyMetadatUcastnika(nodeUcastnika)
+      const ucastnikNode = dejNodeUcastnika(idUzivatele, idAktivity)
+      hlidejZmenyMetadatUcastnika(ucastnikNode)
       aktivujTooltipUcastnika(idUzivatele, idAktivity)
       upravUkazateleZaplnenostiAktivity(dejNodeAktivity(idAktivity))
-      obnovSeznamMailu(nodeUcastnika)
+      obnovSeznamMailu(ucastnikNode)
     }
 
     /**
-     * @param {HTMLElement} nodeUcastnika
+     * @param {HTMLElement} ucastnikNode
      */
-    function obnovSeznamMailu(nodeUcastnika) {
-      const email = nodeUcastnika.dataset.email
+    function obnovSeznamMailu(ucastnikNode) {
+      const email = ucastnikNode.dataset.email
       if (email) {
-        const idAktivity = nodeUcastnika.dataset.idAktivity
+        const idAktivity = ucastnikNode.dataset.idAktivity
         const emailyNode = document.getElementById(`emaily-${idAktivity}`)
         const aktivitaNode = dejNodeAktivity(idAktivity)
         const vsechnyMaily = []
@@ -225,15 +225,26 @@
         const ucastniciAktivityNode = $(`#ucastniciAktivity${idAktivity}`)
         const novyUcastnik = $(ui.item.html)
 
-        zmenitPritomnostUcastnika(idUzivatele, idAktivity, novyUcastnik.find('input')[0], this /*kde vznikl požadavek a kde ukázat případné errory*/, function () {
-          /**
-           * Teprve až backend potvrdí uložení vybraného účastníka a JS přidá čas poslední změny a stav přihlášení,
-           * tak můžeme přidat řádek s tímto účastníkem.
-           * Data z řádku totiž potřebujeme pro kontrolu změn v online-prezence-posledni-zname-zmeny-prihlaseni.js
-           */
-          ucastniciAktivityNode.append(novyUcastnik)
-          vypustEventONovemUcastnikovi(idUzivatele, idAktivity)
-        })
+        zmenitPritomnostUcastnika(
+          idUzivatele,
+          idAktivity,
+          novyUcastnik.find('input')[0],
+          this /*kde vznikl požadavek a kde ukázat případné errory*/,
+          function () {
+            /**
+             * Teprve až backend potvrdí uložení vybraného účastníka, tak můžeme přidat řádek s tímto účastníkem.
+             */
+            ucastniciAktivityNode.append(novyUcastnik)
+            hlidejZmenyMetadatUcastnika(dejNodeUcastnika(idUzivatele, idAktivity))
+          },
+          function () {
+            /**
+             * Přidáme řádek účastníka a JS přidá čas poslední změny a stav přihlášení, tak můžeme vypustit event o upečené novince.
+             * Data z řádku totiž potřebujeme pro kontrolu změn v online-prezence-posledni-zname-zmeny-prihlaseni.js
+             */
+            vypustEventONovemUcastnikovi(idUzivatele, idAktivity)
+          },
+        )
 
         // vyrušení default výběru do boxu
         event.preventDefault()
@@ -596,6 +607,30 @@ const akceAktivity = new class AkceAktivity {
       zmenTooltip(tooltipHtml, omniboxElement)
       omniboxElement.placeholder = `${omniboxElement.dataset.vychoziPlaceholder} ${tooltipText.toLowerCase()}`
     })
+
+    const ucastnici = aktivitaNode.querySelectorAll('.ucastnik')
+    const prihlaseni = Array.from(ucastnici).filter((ucastnik) => jeToUcastnikPodleStavu(ucastnik.dataset.stavPrihlaseni))
+    const pocetPrihlasenychCisloNode = aktivitaNode.querySelector('.pocet-prihlasenych-cislo')
+    pocetPrihlasenychCisloNode.textContent = prihlaseni.length
+  }
+}
+
+/**
+ * viz \Gamecon\Aktivita\ZmenaPrihlaseni::stavPrihlaseniProJs
+ * @param {string} stavPrihlaseni
+ * @return {boolean}
+ */
+function jeToUcastnikPodleStavu(stavPrihlaseni) {
+  switch (stavPrihlaseni) {
+    case 'ucastnik_se_odhlasil' :
+    case 'ucastnik_nedorazil' :
+    case 'nahradnik_nedorazil' :
+    case 'ucastnik_se_prihlasil' :
+    case 'ucastnik_dorazil' :
+    case 'nahradnik_dorazil' :
+      return true
+    default :
+      return false
   }
 }
 
@@ -612,9 +647,17 @@ function vypustEventOProbihajicichZmenach(probihaji) {
  * @param {number} idAktivity
  * @param {HTMLElement} checkboxNode
  * @param {HTMLElement|undefined} triggeringNode
- * @param {function|undefined} callbackOnSuccess
+ * @param {function|undefined} callbackOnSuccessBeforeMetadataChange
+ * @param {function|undefined} callbackOnSuccessAfterMetadataChange
  */
-function zmenitPritomnostUcastnika(idUzivatele, idAktivity, checkboxNode, triggeringNode, callbackOnSuccess) {
+function zmenitPritomnostUcastnika(
+  idUzivatele,
+  idAktivity,
+  checkboxNode,
+  triggeringNode,
+  callbackOnSuccessBeforeMetadataChange,
+  callbackOnSuccessAfterMetadataChange,
+) {
   vypustEventOProbihajicichZmenach(true)
 
   checkboxNode.disabled = true
@@ -634,6 +677,10 @@ function zmenitPritomnostUcastnika(idUzivatele, idAktivity, checkboxNode, trigge
     if (data && typeof data.prihlasen == 'boolean') {
       checkboxNode.checked = data.prihlasen
 
+      if (callbackOnSuccessBeforeMetadataChange) {
+        callbackOnSuccessBeforeMetadataChange()
+      }
+
       const zmenaMetadatUcastnika = new CustomEvent('zmenaMetadatUcastnika', {
         detail: {
           casPosledniZmenyPrihlaseni: data.cas_posledni_zmeny_prihlaseni,
@@ -641,7 +688,8 @@ function zmenitPritomnostUcastnika(idUzivatele, idAktivity, checkboxNode, trigge
           idPoslednihoLogu: data.id_logu,
         },
       })
-      const ucastnikNode = $(checkboxNode).parents('.ucastnik')[0]
+      const ucastnikNode = dejNodeUcastnika(idUzivatele, idAktivity)
+      // const ucastnikNode = $(checkboxNode).closest('.ucastnik')
       // bude zpracovano v zapisMetadataUcastnika()
       ucastnikNode.dispatchEvent(zmenaMetadatUcastnika)
 
@@ -652,8 +700,8 @@ function zmenitPritomnostUcastnika(idUzivatele, idAktivity, checkboxNode, trigge
       })
       dejNodeOnlinePrezence().dispatchEvent(zmenaMetadatPrezence)
 
-      if (callbackOnSuccess) {
-        callbackOnSuccess()
+      if (callbackOnSuccessAfterMetadataChange) {
+        callbackOnSuccessAfterMetadataChange()
       }
     }
   }).fail(function (response) {
