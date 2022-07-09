@@ -107,3 +107,9 @@ input[disabled]::placeholder {
 .mladsi-osmnacti-let {
   color: darkorange;
 }
+
+.pocet-prihlasenych {
+  font-size: 0.5em;
+  color: darkgoldenrod;
+  white-space: nowrap;
+}
