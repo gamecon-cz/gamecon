@@ -2,6 +2,7 @@
 
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Shop\Shop;
+use Gamecon\Cas\DateTimeGamecon;
 
 /** @var XTemplate $t */
 /** @var Uzivatel $u */
@@ -180,6 +181,7 @@ $t->assign([
         : 'Přihlásit na GameCon',
     'vstupne' => $shop->vstupneHtml(),
     'pomoc' => $pomoc->html(),
+    'zaplatitNejpozdejiDo' => DateTimeGamecon::druheHromadneOdhlasovaniOd()->format('j. n.')
 ]);
 
 $t->parse($u->gcPrihlasen()

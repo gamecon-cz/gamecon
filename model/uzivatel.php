@@ -261,11 +261,18 @@ SQL
         // finální odebrání židle "registrován na GC"
         $this->vemZidli(Zidle::PRIHLASEN_NA_LETOSNI_GC, $editor);
         // odeslání upozornění, pokud u nás má peníze
-        if (dbQuery('SELECT 1 FROM platby WHERE rok=' . ROK . ' AND id_uzivatele=' . $this->id() . ' LIMIT 1')->num_rows > 0) {
+        if (($celkemLetosPoslal = $this->finance()->sumaPlateb()) > 0) {
             (new GcMail)
                 ->adresat('info@gamecon.cz')
                 ->predmet('Uživatel ' . $this->jmenoNick() . ' se odhlásil ale platil')
-                ->text(hlaskaMail('odhlasilPlatil', $this->jmenoNick(), $this->id(), ROK))
+                ->text(hlaskaMail('odhlasilPlatil', $this->jmenoNick(), $this->id(), ROK, $celkemLetosPoslal))
+                ->odeslat();
+        }
+        if ($dnyUbytovani = array_keys($this->dejShop()->ubytovani()->dny())) {
+            (new GcMail)
+                ->adresat('info@gamecon.cz')
+                ->predmet('Uživatel ' . $this->jmenoNick() . ' se odhlásil a měl ubytování')
+                ->text(hlaskaMail('odhlasilMelUbytovani', $this->jmenoNick(), $this->id(), ROK, implode(', ', $dnyUbytovani)))
                 ->odeslat();
         }
         return true;

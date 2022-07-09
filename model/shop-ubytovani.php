@@ -289,7 +289,7 @@ SQL
             $t->assign([
                 'den' => mb_ucfirst(substr($typVzor['nazev'], strrpos($typVzor['nazev'], ' ') + 1)),
                 'checked' => $ubytovan ? '' : 'checked',
-                'disabled' => $ubytovan && $typVzor['stav'] == 3 && !$typVzor['nabizet'] ? 'disabled' : '',
+                'disabled' => $ubytovan && $typVzor['stav'] == Shop::POZASTAVENY && !$typVzor['nabizet'] ? 'disabled' : '',
             ])->parse('ubytovani.den');
         }
     }
@@ -335,7 +335,7 @@ SQL
     }
 
     /** Vrátí, jestli je v daný den a typ ubytování plno */
-    private function plno($den, $typ) {
+    private function plno($den, $typ): bool {
         return $this->zbyvaMist($den, $typ) <= 0;
     }
 
@@ -367,18 +367,18 @@ SQL
      * @param string $typ typ ubytování ve smyslu názvu z DB bez posledního slova
      * @return bool je ubytován?
      */
-    private function ubytovan($den, $typ) {
+    private function ubytovan($den, $typ): bool {
         return isset($this->dny[$den][$typ])
             && $this->dny[$den][$typ]['kusu_uzivatele'] > 0;
     }
 
     /** Vrátí počet volných míst */
-    private function zbyvaMist($den, $typ) {
+    private function zbyvaMist($den, $typ): int {
         if (!isset($this->dny[$den][$typ])) {
             return 0;
         }
         $ub = $this->dny[$den][$typ];
-        return max(0, $ub['kusu_vyrobeno'] - $ub['kusu_prodano']);
+        return (int)max(0, $ub['kusu_vyrobeno'] - $ub['kusu_prodano']);
     }
 
     /**
