@@ -22,58 +22,68 @@ class Report
      * Vytiskne report jako XLSX
      */
     public function tXlsx(?string $nazevReportu, int $freeRows) {
-        $writer = WriterEntityFactory::createXLSXWriter();
+        $previousMemoryLimit = ini_get('memory_limit');
 
-        $fileName = $this->nazevSouboru('xlsx', $nazevReportu);
-        $writer->openToBrowser($fileName); // stream data directly to the browser
+        try {
+            ini_set('memory_limit', '1G');
 
-        if ($freeRows > 0) {
-            $sheetView = (new SheetView())->setFreezeRow($freeRows);
-            $writer->getCurrentSheet()->setSheetView($sheetView);
-        }
+            $writer = WriterEntityFactory::createXLSXWriter();
 
-        $rows = [];
+            $fileName = $this->nazevSouboru('xlsx', $nazevReportu);
+            $writer->openToBrowser($fileName); // stream data directly to the browser
 
-        $headerStyle = (new StyleBuilder())->setFontBold()->setFontSize(10)->build();
-        $headerRow = WriterEntityFactory::createRowFromArray($this->hlavicky(), $headerStyle);
-        $rows[] = $headerRow;
-
-        $integerStyle = (new StyleBuilder())->setFormat('0')->build();
-        $numberStyle = (new StyleBuilder())->setFormat('0.0')->build();
-        $moneyStyle = (new StyleBuilder())->setFormat('0.00')->build();
-        $fontSizeStyle = (new StyleBuilder())->setFontSize(10)->setFontName('Arial')->build();
-        while ($radek = $this->radek()) {
-            $cells = [];
-            foreach ($radek as $hodnota) {
-                if ((string)(int)$hodnota === trim((string)$hodnota)) {
-                    $cells[] = WriterEntityFactory::createCell((int)$hodnota, $integerStyle);
-                } elseif (preg_match('~^-?\d+[.,]\d{2}$~', trim((string)$hodnota))) {
-                    $cells[] = WriterEntityFactory::createCell((float)$hodnota, $moneyStyle);
-                } else if ((string)(float)$hodnota === trim((string)$hodnota)
-                    || preg_match('~^-?\d+([.,]\d+)?$~', trim((string)$hodnota))
-                ) {
-                    $cells[] = WriterEntityFactory::createCell((float)$hodnota, $numberStyle);
-                } else {
-                    $cells[] = WriterEntityFactory::createCell(
-                        (string)$hodnota !== ''
-                            ? (string)$hodnota
-                            : ' ' // jinak je bohužel ignorován styl (font a jeho velikost) v prázdných buňkách
-                    );
-                }
+            if ($freeRows > 0) {
+                $sheetView = (new SheetView())->setFreezeRow($freeRows);
+                $writer->getCurrentSheet()->setSheetView($sheetView);
             }
-            $rows[] = WriterEntityFactory::createRow($cells, $fontSizeStyle);
-        }
 
-        foreach ($this->calculateColumnsWidth($rows) as $columnNumber => $columnWidth) {
-            // musí být před prvním addRow
-            $writer->setColumnWidth($columnWidth, $columnNumber);
-        }
+            $rows = [];
 
-        foreach ($rows as $row) {
-            $writer->addRow($row);
-        }
+            $headerStyle = (new StyleBuilder())->setFontBold()->setFontSize(10)->build();
+            $headerRow = WriterEntityFactory::createRowFromArray($this->hlavicky(), $headerStyle);
+            $rows[] = $headerRow;
 
-        $writer->close();
+            $integerStyle = (new StyleBuilder())->setFormat('0')->build();
+            $numberStyle = (new StyleBuilder())->setFormat('0.0')->build();
+            $moneyStyle = (new StyleBuilder())->setFormat('0.00')->build();
+            $fontSizeStyle = (new StyleBuilder())->setFontSize(10)->setFontName('Arial')->build();
+            while ($radek = $this->radek()) {
+                $cells = [];
+                foreach ($radek as $hodnota) {
+                    if ((string)(int)$hodnota === trim((string)$hodnota)) {
+                        $cells[] = WriterEntityFactory::createCell((int)$hodnota, $integerStyle);
+                    } elseif (preg_match('~^-?\d+[.,]\d{2}$~', trim((string)$hodnota))) {
+                        $cells[] = WriterEntityFactory::createCell((float)$hodnota, $moneyStyle);
+                    } else if ((string)(float)$hodnota === trim((string)$hodnota)
+                        || preg_match('~^-?\d+([.,]\d+)?$~', trim((string)$hodnota))
+                    ) {
+                        $cells[] = WriterEntityFactory::createCell((float)$hodnota, $numberStyle);
+                    } else {
+                        $cells[] = WriterEntityFactory::createCell(
+                            (string)$hodnota !== ''
+                                ? (string)$hodnota
+                                : ' ' // jinak je bohužel ignorován styl (font a jeho velikost) v prázdných buňkách
+                        );
+                    }
+                }
+                $rows[] = WriterEntityFactory::createRow($cells, $fontSizeStyle);
+            }
+
+            foreach ($this->calculateColumnsWidth($rows) as $columnNumber => $columnWidth) {
+                // musí být před prvním addRow
+                $writer->setColumnWidth($columnWidth, $columnNumber);
+            }
+
+            foreach ($rows as $row) {
+                $writer->addRow($row);
+            }
+
+            $writer->close();
+        } finally {
+            if ($previousMemoryLimit) {
+                ini_set('memory_limit', $previousMemoryLimit);
+            }
+        }
     }
 
     /**
