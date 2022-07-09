@@ -132,12 +132,17 @@
            data-editovatelna-od-timestamp="{editovatelnaOdTimestamp}"
            data-editovatelna-do-timestamp="{editovatelnaDoTimestamp}"
       >
-        <h2 id="{nadpis}">
+        <h2 id="{nadpis}" class="clearfix">
           <span data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true"
                 title="Začátek: {zacatek}<br> Konec: {konec}">
             {nadpis}
           </span>
           <a href="#{nadpis}" class="anchor">#</a>
+          <span class="pocet-prihlasenych" data-bs-toggle="tooltip" data-bs-placement="right"
+                title="Počet přihlášených bez sledujících">
+            <i class="fa-solid fa-user-group"></i>
+            <span class="pocet-prihlasenych-cislo">{pocetPrihlasenych}</span>
+          </span>
           <span data-bs-toggle="tooltip" data-bs-placement="top" title="Ovládání viditelnosti prezence"
                 class="float-end">
             <button id="tlacitkoPrepinaniViditelnostiPrezence{idAktivity}"
