@@ -276,3 +276,14 @@ function flatten($mutliDimensionalArray): array {
     });
     return $flattened;
 }
+
+function nahradNazvyKonstantZaHodnoty(string $text): string {
+    if (preg_match_all('~%(?<konstanta>[A-Z_]+)%~', $text, $matches)) {
+        foreach ($matches['konstanta'] as $nazevKonstanty) {
+            if (defined($nazevKonstanty)) {
+                $text = str_replace("%$nazevKonstanty%", constant($nazevKonstanty), $text);
+            }
+        }
+    }
+    return $text;
+}
