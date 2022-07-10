@@ -29,10 +29,10 @@ class Platby
     private static function zpracujPlatby(array $fioPlatby): array {
         $vysledek = [];
         foreach ($fioPlatby as $fioPlatba) {
-            if (!is_numeric($fioPlatba->vs()) || self::platbuUzMame($fioPlatba->id())) {
+            if (!$fioPlatba->idUcastnika() || self::platbuUzMame($fioPlatba->id())) {
                 continue;
             }
-            $u = Uzivatel::zId($fioPlatba->vs());
+            $u = Uzivatel::zId($fioPlatba->idUcastnika());
             if (!$u) {
                 continue;
             }
@@ -44,8 +44,8 @@ class Platby
                 'pripsano_na_ucet_banky' => $fioPlatba->datum(),
                 'provedeno' => new DateTimeImmutable(),
                 'provedl' => Uzivatel::SYSTEM,
-                'poznamka' => strlen($fioPlatba->zprava()) > 4
-                    ? $fioPlatba->zprava()
+                'poznamka' => strlen($fioPlatba->zpravaProPrijemce()) > 4
+                    ? $fioPlatba->zpravaProPrijemce()
                     : null,
             ]);
             $vysledek[] = $fioPlatba;

@@ -124,7 +124,7 @@ SQL,
     /** Variabilní symbol */
     public function vs(): string {
         $vs = $this->data['VS'] ?? '';
-        return $vs ?: $this->nactiVsZTextu($this->zprava());
+        return $vs ?: $this->nactiVsZTextu($this->zpravaProPrijemce());
     }
 
     private function nactiVsZTextu(string $text): string {
@@ -134,8 +134,54 @@ SQL,
         return $matches['vs'];
     }
 
+    /** Variabilní symbol */
+    public function idUcastnika(): ?int {
+        if ($this->castka() > 0) {
+            return trim($this->vs()) === ''
+                ? null
+                : (int)trim($this->vs());
+        }
+        if ($this->castka() === 0.0) {
+            return null;
+        }
+        return $this->nactiIdUcastnikaZeZpravyproPrijemce();
+    }
+
+    private function nactiIdUcastnikaZeZpravyproPrijemce(): ?int {
+        $parovaciText = defined('TEXT_PRO_SPAROVANI_ODCHOZI_PLATBY')
+            ? trim(TEXT_PRO_SPAROVANI_ODCHOZI_PLATBY)
+            : '';
+        if ($parovaciText === '') {
+            return null;
+        }
+        $poznamkaProMe = trim($this->poznamkaProMne());
+        if ($poznamkaProMe === '') {
+            return null;
+        }
+        $parovaciTextBezDiakritiky = $this->lowercaseBezMezerABezDiakritiky($parovaciText);
+        $poznamkaProMeBezDiakritiky = $this->lowercaseBezMezerABezDiakritiky($poznamkaProMe);
+        if (!preg_match(
+            '~' . preg_quote($parovaciTextBezDiakritiky, '~') . '[^[:alnum:]]*(?<idUcastnika>\d+)~',
+            $poznamkaProMeBezDiakritiky,
+            $matches)
+        ) {
+            return null;
+        }
+        return (int)$matches['idUcastnika'];
+    }
+
+    private function lowercaseBezMezerABezDiakritiky(string $text): string {
+        $bezMezer = preg_replace('~\s~', '', $text);
+        $bezDiakritiky = removeDiacritics($bezMezer);
+        return strtolower($bezDiakritiky);
+    }
+
     /** Zpráva pro příjemce */
-    public function zprava(): string {
+    public function zpravaProPrijemce(): string {
         return $this->data['Zpráva pro příjemce'] ?? '';
+    }
+
+    public function poznamkaProMne(): string {
+        return $this->data['Komentář'] ?? '';
     }
 }
