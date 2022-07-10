@@ -106,6 +106,10 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
         http_response_code(403);
         $xtpl->parse('all.zakazano');
     } else {
+        $stareRouty = include __DIR__ . '/stare-routy.php';
+        if ($novaRouta = $stareRouty[$stranka] ?? false) {
+            back(URL_ADMIN . '/' . $novaRouta);
+        }
         http_response_code(404);
         $xtpl->parse('all.nenalezeno');
     }
