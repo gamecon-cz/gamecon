@@ -1,7 +1,6 @@
 <?php
 /** @var \Godric\DbMigrations\Migration $this */
 
-$pozastaveny = \Gamecon\Shop\Shop::POZASTAVENY;
 $ubytovani = \Gamecon\Shop\TypPredmetu::UBYTOVANI;
 $this->q(<<<SQL
 UPDATE shop_predmety
