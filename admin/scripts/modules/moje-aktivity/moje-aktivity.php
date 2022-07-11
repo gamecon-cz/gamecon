@@ -15,6 +15,7 @@ use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * @var Uzivatel $u
+ * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
 $muzemeTestovat = defined('TESTING') && TESTING

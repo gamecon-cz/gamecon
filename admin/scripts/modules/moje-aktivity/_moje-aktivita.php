@@ -16,6 +16,7 @@ use Symfony\Component\Filesystem\Filesystem;
 /**
  * @var Uzivatel $u
  * @var bool $testujeme
+ * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
 $aktivita = Aktivita::zId(get('id'));
@@ -28,7 +29,6 @@ if ($problem) {
 global $BEZ_DEKORACE;
 $BEZ_DEKORACE = true; // pokud nedoslo k chybě, tak nechceme levé menu, ale pouze nový čistý layout pro prezenci, viz admin/index.php
 
-$systemoveNastaveni = \Gamecon\SystemoveNastaveni\SystemoveNastaveni::vytvorZGlobalnich();
 $filesystem = new Filesystem();
 $onlinePrezenceHtml = new OnlinePrezenceHtml(Vyjimkovac::js(URL_WEBU), $systemoveNastaveni, $filesystem);
 $onlinePrezenceAjax = new OnlinePrezenceAjax(

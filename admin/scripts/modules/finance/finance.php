@@ -13,6 +13,7 @@ use Gamecon\Shop\Shop;
 /**
  * @var Uzivatel $u
  * @var Uzivatel|null $uPracovni
+ * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
 if (post('uzivatelProPripsaniSlevy')) {
@@ -43,7 +44,7 @@ if (post('uzivatelKVyplaceniAktivity')) {
     if (!$uzivatel->gcPrihlasen()) {
         chyba(sprintf('Uživatel %s není přihlášen na GameCon.', $uzivatel->jmenoNick()));
     }
-    $shop = new Shop($uzivatel);
+    $shop = new Shop($uzivatel, null, $systemoveNastaveni);
     $prevedenaCastka = $shop->kupPrevodBonusuNaPenize();
     if (!$prevedenaCastka) {
         chyba(sprintf('Uživatel %s nemá žádný bonus k převodu.', $uzivatel->jmenoNick()));

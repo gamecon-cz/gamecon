@@ -47,4 +47,22 @@ class SystemoveNastaveniTest extends DbTest
             'HROMADNE_ODHLASOVANI_2' => [2022, 'HROMADNE_ODHLASOVANI_2', '2022-07-17 23:59:00'],
         ];
     }
+
+    /**
+     * @dataProvider provideKonecUbytovani
+     */
+    public function testUkoceniUbytovani(string $konecUbytovaniDne, bool $ocekavaneUkoceniProdeje) {
+        define('UBYTOVANI_LZE_OBJEDNAT_A_MENIT_DO_DNE', $konecUbytovaniDne);
+        $nastaveni = new SystemoveNastaveni(ROK, new \DateTimeImmutable(), false);
+        self::assertSame($ocekavaneUkoceniProdeje, $nastaveni->prodejUbytovaniUkoncen());
+    }
+
+    public function provideKonecUbytovani() {
+        return [
+            'Byl ukončen' => [
+                (new \DateTimeImmutable())->setTime(0, 0, 0)->modify('-1 second')->format('Y-m-d'),
+                true,
+            ],
+        ];
+    }
 }

@@ -4,8 +4,11 @@ use Gamecon\Cas\DateTimeCz;
 use Gamecon\Shop\Shop;
 use Gamecon\Cas\DateTimeGamecon;
 
-/** @var XTemplate $t */
-/** @var Uzivatel $u */
+/**
+ * @var XTemplate $t
+ * @var Uzivatel $u
+ * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
+ */
 
 $this->pridejJsSoubor('soubory/blackarrow/prihlaska/prihlaska.js');
 $this->blackarrowStyl(true);
@@ -81,7 +84,7 @@ if (po(REG_GC_DO)) {
     return;
 }
 
-$shop = new Shop($u);
+$shop = new Shop($u, null, $systemoveNastaveni);
 $pomoc = new Pomoc($u);
 
 if (post('odhlasit')) {
@@ -181,7 +184,7 @@ $t->assign([
         : 'Přihlásit na GameCon',
     'vstupne' => $shop->vstupneHtml(),
     'pomoc' => $pomoc->html(),
-    'zaplatitNejpozdejiDo' => DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani()->format('j. n.')
+    'zaplatitNejpozdejiDo' => DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani()->format('j. n.'),
 ]);
 
 $t->parse($u->gcPrihlasen()

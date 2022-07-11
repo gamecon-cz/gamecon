@@ -14,6 +14,10 @@ omezCsrf();
 
 $u = Uzivatel::zSession();
 
+/**
+ * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
+ */
+
 try {
     $url = Url::zAktualni();
 } catch (UrlException $e) {
@@ -21,18 +25,18 @@ try {
 }
 
 // určení modulu, který zpracuje požadavek (router)
-$m = $url ? Modul::zUrl() : Modul::zNazvu('nenalezeno');
+$m = $url ? Modul::zUrl(null, $systemoveNastaveni) : Modul::zNazvu('nenalezeno', null, $systemoveNastaveni);
 if (!$m && ($stranka = Stranka::zUrl())) {
-    $m = Modul::zNazvu('stranka');
+    $m = Modul::zNazvu('stranka', null, $systemoveNastaveni);
     $m->param('stranka', $stranka);
 }
 if (!$m && (($typ = TypAktivity::zUrl()) || ($org = Uzivatel::zUrl()))) {
-    $m = Modul::zNazvu('aktivity');
+    $m = Modul::zNazvu('aktivity', null, $systemoveNastaveni);
     $m->param('typ', $typ ?: null);
     $m->param('org', !$typ ? $org : null);
 }
 if (!$m) {
-    $m = Modul::zNazvu('nenalezeno');
+    $m = Modul::zNazvu('nenalezeno', null, $systemoveNastaveni);
 }
 
 // spuštění kódu modulu + buffering výstupu a nastavení
@@ -47,9 +51,9 @@ $m->info($i);
 try {
     $m->spust();
 } catch (Nenalezeno $e) {
-    $m = Modul::zNazvu('nenalezeno')->spust();
+    $m = Modul::zNazvu('nenalezeno', null, $systemoveNastaveni)->spust();
 } catch (Neprihlasen $e) {
-    $m = Modul::zNazvu('neprihlasen')->spust();
+    $m = Modul::zNazvu('neprihlasen', null, $systemoveNastaveni)->spust();
 }
 if (!$i->titulek()) {
     if ($i->nazev()) {
@@ -122,7 +126,7 @@ if ($m->bezStranky()) {
         'base' => URL_WEBU . '/',
         'admin' => URL_ADMIN,
         'obsah' => $m->vystup(),  // TODO nastavování titulku stránky
-        'sponzori' => Modul::zNazvu('sponzori')->spust()->vystup(),
+        'sponzori' => Modul::zNazvu('sponzori', null, $systemoveNastaveni)->spust()->vystup(),
         'css' => perfectcache(
             'soubory/styl/flaticon.ttf',
             'soubory/styl/easybox.min.css',

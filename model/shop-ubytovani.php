@@ -2,9 +2,14 @@
 
 use Gamecon\Shop\Shop;
 use Gamecon\Shop\TypPredmetu;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 class ShopUbytovani
 {
+    /**
+     * @var SystemoveNastaveni
+     */
+    private $systemoveNastaveni;
 
     /**
      * @param string[] $nazvyUbytovani
@@ -220,7 +225,7 @@ SQL
     private $pnCovidFreePotvrzeni = 'shopCovidFreePotvrzeni';
     private $u;
 
-    public function __construct(array $predmety, Uzivatel $uzivatel) {
+    public function __construct(array $predmety, Uzivatel $uzivatel, SystemoveNastaveni $systemoveNastaveni) {
         $this->u = $uzivatel;
         foreach ($predmety as $p) {
             $nazev = Shop::bezDne($p['nazev']);
@@ -229,6 +234,7 @@ SQL
             }
             $this->dny[$p['ubytovani_den']][$nazev] = $p;
         }
+        $this->systemoveNastaveni = $systemoveNastaveni;
     }
 
     /**
@@ -268,6 +274,7 @@ SQL
 
     /** Zparsuje šablonu s ubytováním po dnech */
     private function htmlDny(XTemplate $t) {
+        $vseDisabled = $this->systemoveNastaveni->prodejUbytovaniUkoncen();
         foreach ($this->dny as $den => $typy) { // typy _v daný den_
             $ubytovan = false;
             $typVzor = reset($typy);
@@ -281,7 +288,10 @@ SQL
                 $t->assign([
                     'idPredmetu' => isset($this->dny[$den][$typ]) ? $this->dny[$den][$typ]['id_predmetu'] : null,
                     'checked' => $checked,
-                    'disabled' => !$ubytovan && (!$this->existujeUbytovani($den, $typ) || $this->plno($den, $typ)) ? 'disabled' : '',
+                    'disabled' => !$checked // GUI neumí checked disabled, tak nesmíme dát disabled, když je chcecked
+                    && ($vseDisabled || (!$ubytovan && (!$this->existujeUbytovani($den, $typ) || $this->plno($den, $typ))))
+                        ? 'disabled'
+                        : '',
                     'obsazeno' => $this->obsazenoMist($den, $typ),
                     'kapacita' => $this->kapacita($den, $typ),
                 ])->parse('ubytovani.den.typ');
