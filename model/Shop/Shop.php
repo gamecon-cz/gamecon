@@ -2,10 +2,12 @@
 
 namespace Gamecon\Shop;
 
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Uzivatel;
 use Cenik;
 use ShopUbytovani;
 use XTemplate;
+use function PHPUnit\Framework\anything;
 
 /**
  * Třída starající se o e-shop, nákupy, formy a související
@@ -148,7 +150,7 @@ SQL,
     private $klicT = 'shopT';           // klíč formu pro identifikaci polí s tričkama
     private $klicS = 'shopS';           // klíč formu pro identifikaci polí se slevami
 
-    public function __construct(Uzivatel $u, array $nastaveni = null) {
+    public function __construct(Uzivatel $u, array $nastaveni = null, SystemoveNastaveni $systemoveNastaveni) {
         $this->u = $u;
         $this->cenik = new Cenik($u, $u->finance()->bonusZaVedeniAktivit());
         if (is_array($nastaveni)) {
@@ -265,7 +267,7 @@ SQL
             $fronta = $r;
         }
 
-        $this->ubytovani = new ShopUbytovani($this->ubytovani, $this->u); // náhrada reprezentace polem za objekt
+        $this->ubytovani = new ShopUbytovani($this->ubytovani, $this->u, $systemoveNastaveni); // náhrada reprezentace polem za objekt
     }
 
     public function ubytovani(): ShopUbytovani {

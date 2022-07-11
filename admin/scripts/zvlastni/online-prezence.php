@@ -11,15 +11,17 @@ use Gamecon\Pravo;
 use Symfony\Component\Filesystem\Filesystem;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
-/** @var Uzivatel $u */
-/** @var Uzivatel|null $uPracovni */
+/**
+ * @var Uzivatel $u
+ * @var Uzivatel|null $uPracovni
+ * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
+ */
 
 if (!$u || !$u->maPravo(Pravo::ADMINISTRACE_PREZENCE)) {
     back(URL_WEBU);
     exit;
 }
 
-$systemoveNastaveni = SystemoveNastaveni::vytvorZGlobalnich();
 $filesystem = new Filesystem();
 $onlinePrezenceHtml = new OnlinePrezenceHtml(Vyjimkovac::js(URL_WEBU), $systemoveNastaveni, $filesystem);
 $onlinePrezenceAjax = new OnlinePrezenceAjax(

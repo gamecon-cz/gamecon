@@ -340,4 +340,8 @@ SQL;
         return (int)PRIHLASENI_NA_POSLEDNI_CHVILI_X_MINUT_PRED_ZACATKEM_AKTIVITY;
     }
 
+    public function prodejUbytovaniUkoncen(): bool {
+        $prvniOkamzikDnes = $this->ted()->setTime(0, 0, 0)->getTimestamp();
+        return strtotime(UBYTOVANI_LZE_OBJEDNAT_A_MENIT_DO_DNE) < $prvniOkamzikDnes;
+    }
 }
