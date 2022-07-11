@@ -258,7 +258,7 @@ SQL
         }
 
         // specifická info podle uživatele a stavu nabídky
-        if (reset($this->typy)['stav'] == 3) {
+        if (reset($this->typy)['stav'] == Shop::POZASTAVENY) {
             $t->parse('ubytovani.konec');
         }
 
