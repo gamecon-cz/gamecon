@@ -276,20 +276,24 @@ SQL
     private function htmlDny(XTemplate $t) {
         $vseDisabled = $this->systemoveNastaveni->prodejUbytovaniUkoncen();
         foreach ($this->dny as $den => $typy) { // typy _v daný den_
-            $ubytovan = false;
             $typVzor = reset($typy);
             $t->assign('postnameDen', $this->pnDny . '[' . $den . ']');
+            $ubytovanVeDni = false;
             foreach ($this->typy as $typ => $rozsah) {
+                $ubytovanVeDniATypu = false;
                 $checked = '';
                 if ($this->ubytovan($den, $typ)) {
-                    $ubytovan = true;
+                    $ubytovanVeDniATypu = true;
                     $checked = 'checked';
                 }
+                $ubytovanVeDni = $ubytovanVeDni || $ubytovanVeDniATypu;
                 $t->assign([
                     'idPredmetu' => isset($this->dny[$den][$typ]) ? $this->dny[$den][$typ]['id_predmetu'] : null,
                     'checked' => $checked,
                     'disabled' => !$checked // GUI neumí checked disabled, tak nesmíme dát disabled, když je chcecked
-                    && ($vseDisabled || (!$ubytovan && (!$this->existujeUbytovani($den, $typ) || $this->plno($den, $typ))))
+                    && ($vseDisabled
+                        || (!$ubytovanVeDniATypu && (!$this->existujeUbytovani($den, $typ) || $this->plno($den, $typ)))
+                    )
                         ? 'disabled'
                         : '',
                     'obsazeno' => $this->obsazenoMist($den, $typ),
@@ -298,8 +302,8 @@ SQL
             }
             $t->assign([
                 'den' => mb_ucfirst(substr($typVzor['nazev'], strrpos($typVzor['nazev'], ' ') + 1)),
-                'checked' => $ubytovan ? '' : 'checked',
-                'disabled' => $ubytovan && $typVzor['stav'] == Shop::POZASTAVENY && !$typVzor['nabizet'] ? 'disabled' : '',
+                'checked' => $ubytovanVeDni ? '' : 'checked',
+                'disabled' => $ubytovanVeDni && $typVzor['stav'] == Shop::POZASTAVENY && !$typVzor['nabizet'] ? 'disabled' : '',
             ])->parse('ubytovani.den');
         }
     }
