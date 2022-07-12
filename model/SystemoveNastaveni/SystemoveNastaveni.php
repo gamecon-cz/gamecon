@@ -319,6 +319,12 @@ SQL;
                 return DateTimeGamecon::spocitejPrvniHromadneOdhlasovaniOd($this->rok)->formatDb();
             case 'HROMADNE_ODHLASOVANI_2' :
                 return DateTimeGamecon::spocitejDruheHromadneOdhlasovaniOd($this->rok)->formatDb();
+            case 'JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE' :
+                return DateTimeGamecon::spocitejDruheHromadneOdhlasovaniOd($this->rok)->formatDatumDb();
+            case 'PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE' :
+                return DateTimeGamecon::zacatekProgramu($this->rok)->modify('-1 day')->formatDatumDb();
+            case 'TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE' :
+                return DateTimeGamecon::spocitejPrvniHromadneOdhlasovaniOd($this->rok)->formatDatumDb();
             default :
                 return '';
         }
@@ -340,8 +346,39 @@ SQL;
         return (int)PRIHLASENI_NA_POSLEDNI_CHVILI_X_MINUT_PRED_ZACATKEM_AKTIVITY;
     }
 
+    public function prodejUbytovaniDo(): \DateTimeImmutable {
+        return (new \DateTimeImmutable(UBYTOVANI_LZE_OBJEDNAT_A_MENIT_DO_DNE))
+            ->setTime(23, 59, 59);
+    }
+
     public function prodejUbytovaniUkoncen(): bool {
-        $prvniOkamzikDnes = $this->ted()->setTime(0, 0, 0)->getTimestamp();
-        return strtotime(UBYTOVANI_LZE_OBJEDNAT_A_MENIT_DO_DNE) < $prvniOkamzikDnes;
+        return $this->prodejUbytovaniDo() < $this->ted();
+    }
+
+    public function prodejJidlaDo(): \DateTimeImmutable {
+        return (new \DateTimeImmutable(JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE))
+            ->setTime(23, 59, 59);
+    }
+
+    public function prodejJidlaUkoncen(): bool {
+        return $this->prodejJidlaDo() < $this->ted();
+    }
+
+    public function prodejTricekDo(): \DateTimeImmutable {
+        return (new \DateTimeImmutable(TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE))
+            ->setTime(23, 59, 59);
+    }
+
+    public function prodejTricekUkoncen(): bool {
+        return $this->prodejTricekDo() < $this->ted();
+    }
+
+    public function prodejPredmetuDo(): \DateTimeImmutable {
+        return (new \DateTimeImmutable(PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE))
+            ->setTime(23, 59, 59);
+    }
+
+    public function prodejPredmetuBezTricekUkoncen(): bool {
+        return $this->prodejPredmetuDo() < $this->ted();
     }
 }

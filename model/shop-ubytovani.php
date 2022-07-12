@@ -264,7 +264,7 @@ SQL
         }
 
         // specifická info podle uživatele a stavu nabídky
-        if (reset($this->typy)['stav'] == Shop::POZASTAVENY) {
+        if ($this->systemoveNastaveni->prodejUbytovaniUkoncen() || reset($this->typy)['stav'] == Shop::POZASTAVENY) {
             $t->parse('ubytovani.konec');
         }
 
@@ -274,7 +274,7 @@ SQL
 
     /** Zparsuje šablonu s ubytováním po dnech */
     private function htmlDny(XTemplate $t) {
-        $vseDisabled = $this->systemoveNastaveni->prodejUbytovaniUkoncen();
+        $prodejUbytovaniUkoncen = $this->systemoveNastaveni->prodejUbytovaniUkoncen();
         foreach ($this->dny as $den => $typy) { // typy _v daný den_
             $typVzor = reset($typy);
             $t->assign('postnameDen', $this->pnDny . '[' . $den . ']');
@@ -291,7 +291,7 @@ SQL
                     'idPredmetu' => isset($this->dny[$den][$typ]) ? $this->dny[$den][$typ]['id_predmetu'] : null,
                     'checked' => $checked,
                     'disabled' => !$checked // GUI neumí checked disabled, tak nesmíme dát disabled, když je chcecked
-                    && ($vseDisabled
+                    && ($prodejUbytovaniUkoncen
                         || (!$ubytovanVeDniATypu && (!$this->existujeUbytovani($den, $typ) || $this->plno($den, $typ)))
                     )
                         ? 'disabled'
@@ -300,11 +300,15 @@ SQL
                     'kapacita' => $this->kapacita($den, $typ),
                 ])->parse('ubytovani.den.typ');
             }
+            // data pro názvy dnů a pro "Žádné" ubytování
             $t->assign([
                 'den' => mb_ucfirst(substr($typVzor['nazev'], strrpos($typVzor['nazev'], ' ') + 1)),
-                'checked' => $ubytovanVeDni ? '' : 'checked',
-                'disabled' => $ubytovanVeDni && $typVzor['stav'] == Shop::POZASTAVENY && !$typVzor['nabizet'] ? 'disabled' : '',
-            ])->parse('ubytovani.den');
+                'checked' => $ubytovanVeDni ? '' : 'checked', // checked = "Žádné" ubytování
+                'disabled' => $prodejUbytovaniUkoncen || ($ubytovanVeDni && $typVzor['stav'] == Shop::POZASTAVENY && !$typVzor['nabizet'])
+                    ? 'disabled'
+                    : '',
+            ]);
+            $t->parse('ubytovani.den');
         }
     }
 

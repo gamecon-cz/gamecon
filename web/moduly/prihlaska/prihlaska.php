@@ -175,9 +175,13 @@ foreach ($nahledy as $nahled) {
 $t->assign([
     'a' => $u->koncovkaDlePohlavi(),
     'jidlo' => $shop->jidloHtml(),
+    'jidloObjednatelneDo' => $shop->jidloObjednatelneDoHtml(),
     'predmety' => $shop->predmetyHtml(),
+    'trickaObjednatelnaDo' => $shop->trickaObjednatelnaDoHtml(),
+    'predmetyBezTricekObjednatelneDo' => $shop->predmetyBezTricekObjednatelneDoHtml(),
     'rok' => ROK,
     'ubytovani' => $shop->ubytovaniHtml(),
+    'ubytovaniObjednatelneDo' => $shop->ubytovaniObjednatelneDoHtml(),
     'covidSekce' => VYZADOVANO_COVID_POTVRZENI ? $covidSekceFunkce($shop) : '',
     'ulozitNeboPrihlasit' => $u->gcPrihlasen()
         ? 'Uložit změny'
