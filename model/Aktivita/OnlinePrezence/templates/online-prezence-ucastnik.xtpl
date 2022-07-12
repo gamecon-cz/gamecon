@@ -25,7 +25,7 @@
     <!-- begin: prihlasenNaPosledniChvili -->
     <span class="na-posledni-chvili" id="ucastnik-{u.id}-na-posledni-chvili-na-aktivitu-{a.id}"
           data-bs-toggle="tooltip"
-          title="Přihlásil se před méně než {minutNaPosledniChvili} minutami před začátkem aktivity a měl by si pospíšit.">
+          title="Přihlásil se méně než {minutNaPosledniChvili} minut před začátkem aktivity a měl by si pospíšit.">
           ⏰
     </span>
     <!-- end: prihlasenNaPosledniChvili -->
