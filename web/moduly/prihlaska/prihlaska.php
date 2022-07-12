@@ -49,7 +49,7 @@ if (GC_BEZI || ($u && $u->gcPritomen())) {
     // zpřístupnit varianty mimo registraci i pro nepřihlášeného uživatele kvůli
     // příchodům z titulky, menu a podobně
     if (VYZADOVANO_COVID_POTVRZENI && $u) {
-        $t->assign('covidSekce', $covidSekceFunkce(new Shop($u)));
+        $t->assign('covidSekce', $covidSekceFunkce(new Shop($u, null, $systemoveNastaveni)));
         $t->parse('prihlaskaUzavrena.covidSekce.doklad');
         $letosniRok = (int)date('Y');
         if (!$u->maNahranyDokladProtiCoviduProRok($letosniRok) && !$u->maOverenePotvrzeniProtiCoviduProRok($letosniRok)) {

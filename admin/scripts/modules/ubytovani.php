@@ -11,10 +11,11 @@ use Gamecon\Shop\Shop;
 
 /**
  * @var Uzivatel|null|void $uPracovni
+ * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
 $nastaveni = ['ubytovaniBezZamku' => true, 'jidloBezZamku' => true];
-$shop = $uPracovni ? new Shop($uPracovni, $nastaveni) : null;
+$shop = $uPracovni ? new Shop($uPracovni, $nastaveni, $systemoveNastaveni) : null;
 
 if (post('pridelitPokoj')) {
     Pokoj::ubytujNaCislo(Uzivatel::zId(post('uid')), post('pokoj'));

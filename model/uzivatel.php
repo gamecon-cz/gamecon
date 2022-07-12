@@ -5,6 +5,7 @@ use Gamecon\Shop\Shop;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Pravo;
 use Gamecon\Zidle;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 /**
  * Třída popisující uživatele a jeho vlastnosti
@@ -1588,7 +1589,7 @@ SQL,
 
     public function dejShop(): Shop {
         if ($this->shop === null) {
-            $this->shop = new Shop($this);
+            $this->shop = new Shop($this, null, SystemoveNastaveni::vytvorZGlobalnich());
         }
         return $this->shop;
     }
