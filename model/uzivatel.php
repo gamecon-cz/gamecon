@@ -257,25 +257,30 @@ SQL
         foreach ($this->aktivityRyzePrihlasene() as $aktivita) {
             $aktivita->odhlas($this, Aktivita::NEPOSILAT_MAILY_SLEDUJICIM /* nechceme posílat maily sledujícím, že se uvolnilo místo */);
         }
-        // zrušení nákupů
-        dbQuery('DELETE FROM shop_nakupy WHERE rok=' . ROK . ' AND id_uzivatele=' . $this->id());
         // finální odebrání židle "registrován na GC"
         $this->vemZidli(Zidle::PRIHLASEN_NA_LETOSNI_GC, $editor);
-        // odeslání upozornění, pokud u nás má peníze
-        if (($celkemLetosPoslal = $this->finance()->sumaPlateb()) > 0) {
-            (new GcMail)
-                ->adresat('info@gamecon.cz')
-                ->predmet('Uživatel ' . $this->jmenoNick() . ' se odhlásil ale platil')
-                ->text(hlaskaMail('odhlasilPlatil', $this->jmenoNick(), $this->id(), ROK, $celkemLetosPoslal))
-                ->odeslat();
+        try {
+            // odeslání upozornění, pokud u nás má peníze
+            if (($celkemLetosPoslal = $this->finance()->sumaPlateb()) > 0) {
+                (new GcMail)
+                    ->adresat('info@gamecon.cz')
+                    ->predmet('Uživatel ' . $this->jmenoNick() . ' se odhlásil ale platil')
+                    ->text(hlaskaMail('odhlasilPlatil', $this->jmenoNick(), $this->id(), ROK, $celkemLetosPoslal))
+                    ->odeslat();
+            }
+            if ($dnyUbytovani = array_keys($this->dejShop()->ubytovani()->dny())) {
+                (new GcMail)
+                    ->adresat('info@gamecon.cz')
+                    ->predmet('Uživatel ' . $this->jmenoNick() . ' se odhlásil a měl ubytování')
+                    ->text(hlaskaMail('odhlasilMelUbytovani', $this->jmenoNick(), $this->id(), ROK, implode(', ', $dnyUbytovani)))
+                    ->odeslat();
+            }
+        } catch (\Throwable $throwable) {
+            trigger_error($throwable->getMessage() . '; ' . $throwable->getTraceAsString(), E_USER_WARNING);
         }
-        if ($dnyUbytovani = array_keys($this->dejShop()->ubytovani()->dny())) {
-            (new GcMail)
-                ->adresat('info@gamecon.cz')
-                ->predmet('Uživatel ' . $this->jmenoNick() . ' se odhlásil a měl ubytování')
-                ->text(hlaskaMail('odhlasilMelUbytovani', $this->jmenoNick(), $this->id(), ROK, implode(', ', $dnyUbytovani)))
-                ->odeslat();
-        }
+        // zrušení nákupů (až po použití dejShop a ubytovani)
+        dbQuery('DELETE FROM shop_nakupy WHERE rok=' . ROK . ' AND id_uzivatele=' . $this->id());
+
         return true;
     }
 
@@ -1028,8 +1033,10 @@ SQL,
 
         if ($chyby) {
             $ch = Chyby::zPole($chyby);
-            $ch->globalniChyba($u ?
-                'Úprava se nepodařila, oprav prosím zvýrazněné položky.' :
+            $ch->globalniChyba($u
+                ?
+                'Úprava se nepodařila, oprav prosím zvýrazněné položky.'
+                :
                 'Registrace se nepodařila. Oprav prosím zvýrazněné položky.'
             );
             throw $ch;
