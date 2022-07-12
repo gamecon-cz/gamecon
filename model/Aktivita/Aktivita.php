@@ -2416,7 +2416,7 @@ SQL
     }
 
     public function uzavrenaOd(): ?\DateTimeImmutable {
-        if (!$this->probehnuta()) {
+        if (!$this->uzavrena()) {
             return null;
         }
         if (!$this->uzavrenaOd) {
@@ -2425,7 +2425,7 @@ SQL
                 return null;
             }
             ['id_stav' => $stavId, 'kdy' => $kdy] = $posledniZmenaAPosledniStav;
-            if ($stavId != \Stav::ZAMCENA) {
+            if ($stavId != \Stav::UZAVRENA) {
                 return null;
             }
             $this->uzavrenaOd = \DateTimeImmutable::createFromFormat(DateTimeCz::FORMAT_DB, $kdy);
@@ -2455,8 +2455,7 @@ SQL
         $systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobalnich();
         $uzavrenaOd = $this->uzavrenaOd();
         if (!$uzavrenaOd) {
-            $konecGameconu = DateTimeGamecon::konecGameconu($this->rok());
-            return \DateTimeImmutable::createFromMutable($konecGameconu);
+            return \DateTimeImmutable::createFromMutable($systemoveNastaveni->konecLetosnihoGameconu());
         }
         return $uzavrenaOd->modify("+ {$systemoveNastaveni->aktivitaEditovatelnaXMinutPoJejimKonci()} minutes");
     }

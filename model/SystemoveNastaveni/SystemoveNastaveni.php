@@ -80,6 +80,10 @@ class SystemoveNastaveni
         return $this->ted;
     }
 
+    public function konecLetosnihoGameconu(): DateTimeGamecon {
+        return DateTimeGamecon::konecGameconu($this->rok());
+    }
+
     public function zaznamyDoKonstant() {
         try {
             $zaznamy = dbFetchAll(<<<SQL
