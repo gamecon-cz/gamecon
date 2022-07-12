@@ -9,7 +9,8 @@
 
     // SEMAFOR
     onlinePrezence.addEventListener('probihajiZmeny', function (/** @param {{detail: probihaji: boolean}} */event) {
-      onlinePrezence.dataset.probihajiZmeny = event.detail.probihaji
+      // dataset by stejně převedl boolean na string, například true na 'true'
+      onlinePrezence.dataset.probihajiZmeny = event.detail.probihaji.toString()
     })
 
     onlinePrezence.addEventListener(
@@ -38,7 +39,7 @@
 
     let jePozastavenaKontrolaZmen = false
     setInterval(function () {
-      if (onlinePrezence.dataset.probihajiZmeny) {
+      if (onlinePrezence.dataset.probihajiZmeny === 'true') {
         return // něco se mění, necháme to na příští interval
       }
 
