@@ -497,9 +497,8 @@ const akceAktivity = new class AkceAktivity {
    * @param {number} editovatelnaDoTimestamp
    */
   reagujNaZamceniAktivity(idAktivity, editovatelnaDoTimestamp) {
-    const skrytElement = document.getElementById(`otevrena-${idAktivity}`)
     const zobrazitElement = document.getElementById(`zamcena-${idAktivity}`)
-    this.prohoditZobrazeni([skrytElement], zobrazitElement)
+    this.zobrazitElement(zobrazitElement)
 
     this.zpracovatEditovatelnostDo(idAktivity, editovatelnaDoTimestamp)
   }
@@ -571,9 +570,17 @@ const akceAktivity = new class AkceAktivity {
    */
   prohoditZobrazeni(skrytElementy, zobrazitElement) {
     skrytElementy.forEach(function (skrytElement) {
-      skrytElement.style.display = 'none'
+      skrytElement.classList.add('display-none')
     })
-    zobrazitElement.style.display = 'initial'
+    this.zobrazitElement(zobrazitElement)
+  }
+
+  /**
+   * @param {HTMLElement} element
+   */
+  zobrazitElement(element) {
+    element.classList.remove('display-none')
+    element.style.display = 'initial'
   }
 
   /**
