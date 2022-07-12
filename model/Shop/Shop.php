@@ -128,6 +128,8 @@ SQL,
 
     /** @var Uzivatel */
     private $u;
+    /** @var SystemoveNastaveni */
+    private $systemoveNastaveni;
     private $cenik;                     // instance ceníku
     private $nastaveni = [              // případné spec. chování shopu
         'ubytovaniBezZamku' => false,   // ignorovat pozastavení objednávek u ubytování
@@ -152,6 +154,7 @@ SQL,
 
     public function __construct(Uzivatel $u, array $nastaveni = null, SystemoveNastaveni $systemoveNastaveni) {
         $this->u = $u;
+        $this->systemoveNastaveni = $systemoveNastaveni;
         $this->cenik = new Cenik($u, $u->finance()->bonusZaVedeniAktivit());
         if (is_array($nastaveni)) {
             $this->nastaveni = array_replace($this->nastaveni, $nastaveni);
@@ -278,6 +281,10 @@ SQL
         return self::$dny[$cislo];
     }
 
+    public function jidloObjednatelneDoHtml(): string {
+        return $this->systemoveNastaveni->prodejJidlaDo()->format('j. n.');
+    }
+
     /**
      * Vrátí html kód formuláře s výběrem jídla
      */
@@ -287,6 +294,7 @@ SQL
         $dny = $this->jidlo['dny'];
         $druhy = $this->jidlo['druhy'];
         $jidla = $this->jidlo['jidla'];
+        $prodejJidlaUkoncen = $this->systemoveNastaveni->prodejJidlaUkoncen();
         // vykreslení
         $t = new XTemplate(__DIR__ . '/templates/shop-jidlo.xtpl');
         if (!defined('PRODEJ_JIDLA_POZASTAVEN') || !PRODEJ_JIDLA_POZASTAVEN) {
@@ -296,7 +304,7 @@ SQL
                     if ($jidlo && ($jidlo['nabizet'] || $jidlo['kusu_uzivatele'])) {
                         $t->assign('selected', $jidlo['kusu_uzivatele'] > 0 ? 'checked' : '');
                         $t->assign('pnName', self::PN_JIDLO . '[' . $jidlo['id_predmetu'] . ']');
-                        $t->parse($jidlo['stav'] == self::POZASTAVENY && !$this->nastaveni['jidloBezZamku']
+                        $t->parse($prodejJidlaUkoncen || ($jidlo['stav'] == self::POZASTAVENY && !$this->nastaveni['jidloBezZamku'])
                             ? 'jidlo.druh.den.locked'
                             : 'jidlo.druh.den.checkbox'
                         );
@@ -313,7 +321,10 @@ SQL
                 $t->parse('jidlo.den');
             }
             // info o pozastaveni
-            if (!$dny || $this->jsouVsechnaJidlaPozastavena((array)$jidla)) {
+            if ($prodejJidlaUkoncen
+                || !$dny
+                || $this->jsouVsechnaJidlaPozastavena((array)$jidla)
+            ) {
                 $t->parse('jidlo.objednavkyZmrazeny');
             }
         } else {
@@ -390,6 +401,14 @@ SQL
         return false;
     }
 
+    public function trickaObjednatelnaDoHtml(): string {
+        return $this->systemoveNastaveni->prodejTricekDo()->format('j. n.');
+    }
+
+    public function predmetyBezTricekObjednatelneDoHtml(): string {
+        return $this->systemoveNastaveni->prodejPredmetuDo()->format('j. n.');
+    }
+
     /**
      * Vrátí html kód formuláře s předměty a tričky (bez form značek kvůli
      * integraci více věcí naráz).
@@ -398,9 +417,13 @@ SQL
     public function predmetyHtml() {
         $t = new XTemplate(__DIR__ . '/templates/shop-predmety.xtpl');
 
-        // předměty
-        if (current($this->predmety)['stav'] == self::POZASTAVENY) {
+        // PŘEDMĚTY
+        $predmetyZamceny = false;
+        if ($this->systemoveNastaveni->prodejPredmetuBezTricekUkoncen()
+            || !$this->predmety
+            || $this->jsouVsechnyPredmetyNeboTrickaPozastaveny($this->predmety)) {
             $t->parse('predmety.predmetyPozastaveny');
+            $predmetyZamceny = true;
         }
 
         foreach ($this->predmety as $predmet) {
@@ -411,7 +434,7 @@ SQL
                 'postName' => $this->klicP . '[' . $predmet['id_predmetu'] . ']',
             ]);
 
-            if ($predmet['nabizet']) {
+            if ($predmet['nabizet'] && !$predmetyZamceny) {
                 $t->parse('predmety.predmet.nakup');
                 $t->parse('predmety.predmet');
             } else if ($predmet['kusu_uzivatele']) {
@@ -422,11 +445,11 @@ SQL
             }
         }
 
-        // trička
-        $zamceno = false;
-        if (current($this->tricka)['stav'] == self::POZASTAVENY) {
+        // TRIČKA
+        $trickaZamcena = false;
+        if ($this->systemoveNastaveni->prodejTricekUkoncen() || !$this->tricka || $this->jsouVsechnyPredmetyNeboTrickaPozastaveny($this->tricka)) {
             $t->parse('predmety.trickaPozastavena');
-            $zamceno = true;
+            $trickaZamcena = true;
         }
 
         $koupenaTricka = [];
@@ -447,7 +470,7 @@ SQL
             ]);
 
             // nagenerovat výběr triček
-            if (!$zamceno || $pid == 0) {
+            if (!$trickaZamcena || $pid == 0) {
                 $t->assign([
                     'id_predmetu' => 0,
                     'nazev' => '(žádné tričko)',
@@ -459,13 +482,13 @@ SQL
                 $koupene = ($tricko['id_predmetu'] == $pid);
                 $nabizet = $tricko['nabizet'];
 
-                if (($zamceno || !$nabizet) && !$koupene) {
+                if (($trickaZamcena || !$nabizet) && !$koupene) {
                     continue;
                 }
 
                 $t->assign([
                     'id_predmetu' => $tricko['id_predmetu'],
-                    'nazev' => ($zamceno ? '&#128274;' : '') . $tricko['nazev'],
+                    'nazev' => ($trickaZamcena ? '&#128274;' : '') . $tricko['nazev'],
                     'selected' => $koupene ? 'selected' : '',
                 ]);
                 $t->parse('predmety.tricko.moznost');
@@ -476,6 +499,15 @@ SQL
 
         $t->parse('predmety');
         return $t->text('predmety');
+    }
+
+    private function jsouVsechnyPredmetyNeboTrickaPozastaveny(array $tricka): bool {
+        foreach ($tricka as $tricko) {
+            if ($tricko['stav'] != self::POZASTAVENY) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public function koupeneVeciPrehledHtml() {
@@ -517,6 +549,10 @@ SQL
     /** Vrátí html kód s rádiobuttonky pro vyklikání ubytování */
     public function ubytovaniHtml() {
         return $this->ubytovani->html();
+    }
+
+    public function ubytovaniObjednatelneDoHtml(): string {
+        return $this->systemoveNastaveni->prodejUbytovaniDo()->format('j. n.');
     }
 
     public function covidFreePotrvzeniHtml(int $rok): string {
