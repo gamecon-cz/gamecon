@@ -144,10 +144,10 @@ SQL,
         if ($this->castka() === 0.0) {
             return null;
         }
-        return $this->nactiIdUcastnikaZeZpravyproPrijemce();
+        return $this->nactiIdUcastnikaZeZpravyProPrijemce();
     }
 
-    private function nactiIdUcastnikaZeZpravyproPrijemce(): ?int {
+    private function nactiIdUcastnikaZeZpravyProPrijemce(): ?int {
         $parovaciText = defined('TEXT_PRO_SPAROVANI_ODCHOZI_PLATBY')
             ? trim(TEXT_PRO_SPAROVANI_ODCHOZI_PLATBY)
             : '';
