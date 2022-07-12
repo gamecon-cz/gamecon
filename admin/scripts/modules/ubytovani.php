@@ -49,7 +49,8 @@ $t->assign([
 ]);
 
 if ($uPracovni && $uPracovni->gcPrihlasen()) {
-    $t->assign('shop', $shop);
+    $t->assign('ubytovaniHtml', $shop->ubytovaniHtml(true));
+    $t->assign('jidloHtml', $shop->jidloHtml(true));
     $t->parse('ubytovani.ubytovani');
     $t->parse('ubytovani.jidlo');
 }

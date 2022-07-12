@@ -26,7 +26,7 @@
   zůstala volná a reálně by ji tak platil GameCon). Odhlášení z ubytování umožňujeme nejpozději den předem, pokud člověk
   např. nečekaně musí odjet. Odhlášení neděle povolujeme (člověk se často splete).<br><br>
   <form method="post">
-    {shop.ubytovaniHtml}<br>
+    {ubytovaniHtml}<br>
     <input type="submit" name="zpracujUbytovani" value="Uložit">
   </form>
   <!-- end:ubytovani -->
@@ -40,7 +40,7 @@
   Zrušit jídlo je možné jenom oproti vrácené stravence. Při objednání jídla je naopak potřeba předat stravenku (a
   zkontrolovat stav financí). Snídaně nabízíme jen organizátorům a vypravěčům.<br><br>
   <form method="post">
-    {shop.jidloHtml}
+    {jidloHtml}
     <input type="submit" name="zpracujJidlo" value="Uložit">
   </form>
   <!-- end:jidlo -->

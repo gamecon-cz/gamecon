@@ -1,8 +1,11 @@
 <?php
 
-use Gamecon\Shop\Shop;
-use Gamecon\Shop\TypPredmetu;
+namespace Gamecon\Shop;
+
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Chyba;
+use Uzivatel;
+use XTemplate;
 
 class ShopUbytovani
 {
@@ -244,14 +247,14 @@ SQL
         return $this->dny;
     }
 
-    public function html() {
-        $t = new XTemplate(__DIR__ . '/shop-ubytovani.xtpl');
+    public function html(bool $muzeEditovatUkoncenyProdej = false) {
+        $t = new XTemplate(__DIR__ . '/templates/shop-ubytovani.xtpl');
         $t->assign([
             'spolubydlici' => dbOneCol('SELECT ubytovan_s FROM uzivatele_hodnoty WHERE id_uzivatele=' . $this->u->id()),
             'postnameSpolubydlici' => $this->pnPokoj,
             'uzivatele' => $this->mozniUzivatele(),
         ]);
-        $this->htmlDny($t);
+        $this->htmlDny($t, $muzeEditovatUkoncenyProdej);
         // sloupce popisků
         foreach ($this->typy as $typ => $predmet) {
             $t->assign([
@@ -264,7 +267,9 @@ SQL
         }
 
         // specifická info podle uživatele a stavu nabídky
-        if ($this->systemoveNastaveni->prodejUbytovaniUkoncen() || reset($this->typy)['stav'] == Shop::POZASTAVENY) {
+        if ((!$muzeEditovatUkoncenyProdej && $this->systemoveNastaveni->prodejUbytovaniUkoncen())
+            || reset($this->typy)['stav'] == Shop::POZASTAVENY
+        ) {
             $t->parse('ubytovani.konec');
         }
 
@@ -273,8 +278,8 @@ SQL
     }
 
     /** Zparsuje šablonu s ubytováním po dnech */
-    private function htmlDny(XTemplate $t) {
-        $prodejUbytovaniUkoncen = $this->systemoveNastaveni->prodejUbytovaniUkoncen();
+    private function htmlDny(XTemplate $t, bool $muzeEditovatUkoncenyProdej) {
+        $prodejUbytovaniUkoncen = !$muzeEditovatUkoncenyProdej && $this->systemoveNastaveni->prodejUbytovaniUkoncen();
         foreach ($this->dny as $den => $typy) { // typy _v daný den_
             $typVzor = reset($typy);
             $t->assign('postnameDen', $this->pnDny . '[' . $den . ']');
