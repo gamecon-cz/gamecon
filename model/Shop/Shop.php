@@ -5,9 +5,7 @@ namespace Gamecon\Shop;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Uzivatel;
 use Cenik;
-use ShopUbytovani;
 use XTemplate;
-use function PHPUnit\Framework\anything;
 
 /**
  * Třída starající se o e-shop, nákupy, formy a související
@@ -288,13 +286,13 @@ SQL
     /**
      * Vrátí html kód formuláře s výběrem jídla
      */
-    public function jidloHtml() {
+    public function jidloHtml(bool $muzeEditovatUkoncenyProdej = false) {
         // inicializace
         ksort($this->jidlo['druhy']);
         $dny = $this->jidlo['dny'];
         $druhy = $this->jidlo['druhy'];
         $jidla = $this->jidlo['jidla'];
-        $prodejJidlaUkoncen = $this->systemoveNastaveni->prodejJidlaUkoncen();
+        $prodejJidlaUkoncen = !$muzeEditovatUkoncenyProdej && $this->systemoveNastaveni->prodejJidlaUkoncen();
         // vykreslení
         $t = new XTemplate(__DIR__ . '/templates/shop-jidlo.xtpl');
         if (!defined('PRODEJ_JIDLA_POZASTAVEN') || !PRODEJ_JIDLA_POZASTAVEN) {
@@ -547,8 +545,8 @@ SQL
     }
 
     /** Vrátí html kód s rádiobuttonky pro vyklikání ubytování */
-    public function ubytovaniHtml() {
-        return $this->ubytovani->html();
+    public function ubytovaniHtml(bool $muzeEditovatUkoncenyProdej = false) {
+        return $this->ubytovani->html($muzeEditovatUkoncenyProdej);
     }
 
     public function ubytovaniObjednatelneDoHtml(): string {
