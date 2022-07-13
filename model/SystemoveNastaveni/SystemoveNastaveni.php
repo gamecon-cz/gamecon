@@ -314,6 +314,7 @@ SQL;
             case 'GC_BEZI_OD' :
                 return DateTimeGamecon::spocitejZacatekGameconu($this->rok)->formatDb();
             case 'GC_BEZI_DO' :
+            case 'REG_GC_DO' :
                 return DateTimeGamecon::spocitejKonecGameconu($this->rok)->formatDb();
             case 'REG_GC_OD' :
                 return DateTimeGamecon::spocitejZacatekRegistraciUcastniku($this->rok)->formatDb();
