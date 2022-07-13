@@ -1,7 +1,8 @@
 <!-- begin:ubytovani -->
 
 <!-- begin:konec -->
-<p>Objednávání ubytování online bylo zastaveno, změny jsou možné na místě.</p>
+<p>Možnost objednávek ubytování přes web už skončila. Zbylé postele lze zarezervovat přes e-mail <a
+    href="mailto:info@gamecon.cz">info@gamecon.cz</a>.</p>
 <!-- end:konec -->
 
 <div class="shopUbytovani_tabulka">
@@ -85,8 +86,8 @@
     ostatniNames.forEach(function (ostatniName) {
       const ostatniZvoleneUbytovani = document.querySelector('input[type=radio][class=shopUbytovani_radio][name="' + ostatniName + '"]:checked')
       if (ostatniZvoleneUbytovani
-          && ostatniZvoleneUbytovani.dataset.kapacitaZvolenaUzivatelem !== undefined
-          && Number.parseInt(ostatniZvoleneUbytovani.dataset.kapacitaZvolenaUzivatelem) === 0
+        && ostatniZvoleneUbytovani.dataset.kapacitaZvolenaUzivatelem !== undefined
+        && Number.parseInt(ostatniZvoleneUbytovani.dataset.kapacitaZvolenaUzivatelem) === 0
       ) {
         return // v tomto dni je uzivatelem rucne vybrano Zadne ubytovani, to nechceme menit
       }
