@@ -463,24 +463,11 @@ SQL,
     /**
      * @return string[] povinné údaje které chybí
      */
-    public function chybejiciUdaje() {
-        $pole_k_validaci = [
-            'login_uzivatele',
-            'jmeno_uzivatele',
-            'prijmeni_uzivatele',
-            'pohlavi',
-            'ulice_a_cp_uzivatele',
-            'mesto_uzivatele',
-            'psc_uzivatele',
-            'telefon_uzivatele',
-            'datum_narozeni',
-            'email1_uzivatele',
-        ];
-        $validator = function ($hodnota) {
-            return empty($this->u[$hodnota]);
+    public function chybejiciUdaje(array $povinneUdaje) {
+        $validator = function (string $sloupec) {
+            return empty($this->u[$sloupec]);
         };
-        $chybejici_udaje = array_filter($pole_k_validaci, $validator);
-        return $chybejici_udaje;
+        return array_filter($povinneUdaje, $validator, ARRAY_FILTER_USE_KEY);
     }
 
     public function maPravo($pravo) {

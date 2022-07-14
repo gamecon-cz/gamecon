@@ -95,23 +95,16 @@ if ($uPracovni) {
         ], false),
     ]);
 
-    $chybiUdaje = count(
-            array_filter(
-                $uPracovni->chybejiciUdaje(),
-                function ($x) {
-                    return in_array($x, [
-                        'jmeno_uzivatele',
-                        'prijmeni_uzivatele',
-                        'telefon_uzivatele',
-                        'email1_uzivatele',
-                    ]);
-                }
-            )
-        ) > 0;
+    $chybejiciUdaje = $uPracovni->chybejiciUdaje([
+        'jmeno_uzivatele' => 'Jméno',
+        'prijmeni_uzivatele' => 'Příjmení',
+        'telefon_uzivatele' => 'Telefon',
+        'email1_uzivatele' => 'Email',
+    ]);
     $x->assign(
         'udajeChybiText',
-        $chybiUdaje
-            ? $err . ' chybí osobní údaje!'
+        count($chybejiciUdaje) > 0
+            ? $err . ' chybí osobní údaje ' . implode(', ', $chybejiciUdaje)
             : $ok . ' osobní údaje v pořádku',
     );
 
