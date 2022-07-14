@@ -31,18 +31,21 @@ const usePředmětyObjednávka = () => {
 
   const předmětyVšechny = useContext(PředmětyContext);
 
+  // TODO: nějak eskalovat když předmět není nalezen
   const předmětPřidej = useFixed((předmětId: number) => {
     setPředmětyObjednávka((předměty) =>
       předměty.some((x) => x.předmět.id === předmětId)
         ? předměty.map((x) =>
             x.předmět.id === předmětId ? { ...x, množství: x.množství + 1 } : x
           )
-        : předměty.concat([
+        : předmětyVšechny.some((x) => x.id === předmětId)
+        ? předměty.concat([
             {
               množství: 1,
               předmět: předmětyVšechny.find((x) => x.id === předmětId)!,
             },
           ])
+        : předměty
     );
   });
   const předmětOdeber = useFixed((předmět: Předmět) => {
@@ -90,12 +93,13 @@ const useMřižka = (definice: DefiniceObchod) => {
   const setVýchozí = useCallback(() => setId(výchoZíMřížka), []);
 
   const setMřížka = useMemo(
-    () => ({
-      id: setId,
-      zpět: setZpět,
-      výchozí: setVýchozí,
-      shrnutí: setShrnutí,
-    }),
+    () =>
+      Object.assign((id: number) => setId(id), {
+        id: setId,
+        zpět: setZpět,
+        výchozí: setVýchozí,
+        shrnutí: setShrnutí,
+      }),
     [setId, setZpět, setVýchozí, setShrnutí]
   );
 
@@ -127,14 +131,17 @@ export const Obchod: FunctionComponent<TObchodProps> = (props) => {
 
   const onBuňkaClicked = useCallback((buňka: DefiniceObchodMřížkaBuňka) => {
     switch (buňka.typ) {
+      case "shrnutí":
+        setMřížka.shrnutí();
+        break;
       case "stránka":
-        setMřížka.id(buňka.cilId);
+        setMřížka(buňka.cilId);
         break;
       case "zpět":
         setMřížka.zpět();
         break;
       case "předmět":
-        setMřížka.id(0);
+        setMřížka.shrnutí();
         předmětPřidej(buňka.cilId);
         break;
     }
