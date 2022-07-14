@@ -123,7 +123,7 @@ if ($uPracovni) {
     }
 
     $datumNarozeni = DateTimeImmutable::createFromMutable($uPracovni->datumNarozeni());
-    $potvrzeniOd = $uPracovni->potvrzeniZakonnehoZastupce();
+    $potvrzeniOd = $uPracovni->potvrzeniZakonnehoZastupceOd();
     $potrebujePotvrzeniKvuliVeku = potrebujePotvrzeni($datumNarozeni);
     $mameLetosniPotvrzeniKvuliVeku = $potvrzeniOd && $potvrzeniOd->format('y') === date('y');
 

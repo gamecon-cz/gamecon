@@ -648,15 +648,12 @@ SQL,
         return $this->u['prava'];
     }
 
-    /**
-     * @return DateTimeCz|null
-     */
-    public function potvrzeniZakonnehoZastupce() {
-        $potvrzeni = $this->u['potvrzeni_zakonneho_zastupce'];
-        $potvrzeni = $potvrzeni
-            ? new DateTimeCz($potvrzeni)
+    public function potvrzeniZakonnehoZastupceOd(): ?DateTimeImmutable {
+        $potvrzeniOdString = $this->u['potvrzeni_zakonneho_zastupce'];
+
+        return $potvrzeniOdString
+            ? new \DateTimeImmutable($potvrzeniOdString)
             : null;
-        return $potvrzeni;
     }
 
     /** Vrátí přezdívku (nickname) uživatele */
