@@ -28,12 +28,12 @@ if (post('odhlasNAdm')) {
 // Výběr uživatele pro práci
 $uPracovni = null;
 if (post('vybratUzivateleProPraci')) {
-    $u = Uzivatel::prihlasId(post('id'), Uzivatel::UZIVATEL_PRACOVNI);
+    $uPracovni = Uzivatel::prihlasId(post('id'), Uzivatel::UZIVATEL_PRACOVNI);
     back();
 }
 
 if (get('pracovni_uzivatel')) {
-    $u = Uzivatel::prihlasId(get('pracovni_uzivatel'), Uzivatel::UZIVATEL_PRACOVNI);
+    $uPracovni = Uzivatel::prihlasId(get('pracovni_uzivatel'), Uzivatel::UZIVATEL_PRACOVNI);
     back();
 }
 
