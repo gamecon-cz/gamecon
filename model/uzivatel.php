@@ -1196,9 +1196,6 @@ SQL,
         return 'Účastník';
     }
 
-    /**
-     * Vrátí telefon uživatele v blíže neurčeném formátu
-     */
     public function telefon(): string {
         $telefon = trim((string)$this->u['telefon_uzivatele']);
         if ($telefon === '') {

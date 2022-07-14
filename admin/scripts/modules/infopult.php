@@ -18,7 +18,6 @@ use Gamecon\Shop\Shop;
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
-require_once __DIR__ . '/../funkce.php';
 require_once __DIR__ . '/_ubytovani_tabulka.php';
 
 $ok = '<img alt="OK" src="files/design/ok-s.png" style="margin-bottom:-2px">';
@@ -31,7 +30,15 @@ $shop = $uPracovni ? new Shop($uPracovni, $nastaveni, $systemoveNastaveni) : nul
 include __DIR__ . '/_infopult_ovladac.php';
 
 $x = new XTemplate(__DIR__ . '/infopult.xtpl');
-xtemplateAssignZakladniPromenne($x, $uPracovni);
+
+$x->assign(['ok' => $ok, 'err' => $err, 'rok' => ROK]);
+if ($uPracovni) {
+    $x->assign([
+        'a' => $uPracovni->koncovkaDlePohlavi(),
+        'ka' => $uPracovni->koncovkaDlePohlavi() ? 'ka' : '',
+    ]);
+}
+
 $x->assign([
     'prihlasBtnAttr' => "disabled",
     'datMaterialyBtnAttr' => "disabled",
@@ -73,7 +80,9 @@ if ($uPracovni) {
         'stavUctu' => ($uPracovni->finance()->stav() < 0 ? $err : $ok) . ' ' . $uPracovni->finance()->stavHr(),
         'stavStyle' => ($uPracovni->finance()->stav() < 0 ? 'color: #f22; font-weight: bolder;' : ''),
         'pokoj' => $pokoj ? $pokoj->cislo() : '(nepřidělen)',
-        'spolubydlici' => spolubydliciTisk($spolubydlici),
+        'spolubydlici' => array_uprint($spolubydlici, static function (Uzivatel $spolubydla) {
+            return "<li> {$spolubydla->jmenoNick()} ({$spolubydla->id()}) {$spolubydla->telefon()} </li>";
+        }),
         'org' => $u->jmenoNick(),
         'a' => $u->koncovkaDlePohlavi(),
         'poznamka' => $uPracovni->poznamka(),
@@ -158,7 +167,7 @@ if ($uPracovni) {
         $x->parse('infopult.uzivatel.covidSekce');
     }
 
-    $x->assign("telefon", formatujTelCislo($uPracovni->telefon()));
+    $x->assign("telefon", $uPracovni->telefon());
 
     if ($uPracovni->gcPrihlasen()) {
         $x->assign(
