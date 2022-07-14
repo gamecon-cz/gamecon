@@ -52,7 +52,7 @@ function nasad(array $nastaveni) {
 
       /tests
       /udrzba
-      /node_modules
+      /ui
 
       /web/soubory/*
       !/web/soubory/blackarrow
