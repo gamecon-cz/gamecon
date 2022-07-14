@@ -16,7 +16,9 @@ use Gamecon\Shop\Shop;
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
-require_once __DIR__ . '/../funkce.php';
+$ok = '<img alt="OK" src="files/design/ok-s.png" style="margin-bottom:-2px">';
+$warn = '<img alt="warning" src="files/design/warning-s.png" style="margin-bottom:-2px">';
+$err = '<img alt="error" src="files/design/error-s.png" style="margin-bottom:-2px">';
 
 $nastaveni = ['ubytovaniBezZamku' => true, 'jidloBezZamku' => true];
 $shop = $uPracovni ? new Shop($uPracovni, $nastaveni, $systemoveNastaveni) : null;
@@ -24,7 +26,14 @@ $shop = $uPracovni ? new Shop($uPracovni, $nastaveni, $systemoveNastaveni) : nul
 include __DIR__ . '/_uzivatel_ovladac.php';
 
 $x = new XTemplate('uzivatel.xtpl');
-xtemplateAssignZakladniPromenne($x, $uPracovni);
+
+$x->assign(['ok' => $ok, 'err' => $err, 'rok' => ROK]);
+if ($uPracovni) {
+    $x->assign([
+        'a' => $uPracovni->koncovkaDlePohlavi(),
+        'ka' => $uPracovni->koncovkaDlePohlavi() ? 'ka' : '',
+    ]);
+}
 
 // ubytovani vypis
 $pokojVypis = Pokoj::zCisla(get('pokoj'));
@@ -127,6 +136,9 @@ if ($uPracovni) {
             $vyber = ['f' => 'žena', 'm' => 'muž'];
             $zobrazenaHodnota = $vyber[$r['pohlavi']] ?? '';
         }
+        if ($sloupec === 'telefon_uzivatele') {
+            $zobrazenaHodnota = $uPracovni->telefon();
+        }
         if ($sloupec === 'datum_narozeni') {
             $popisek = sprintf('Věk na začátku Gameconu %d let', vekNaZacatkuLetosnihoGameconu($datumNarozeni));
         }
@@ -142,11 +154,6 @@ if ($uPracovni) {
             $x->parse('uzivatel.udaje.udaj.nazevSPopiskem');
         } else {
             $x->parse('uzivatel.udaje.udaj.nazevBezPopisku');
-        }
-        if ($sloupec === 'telefon_uzivatele') {
-            $x->assign([
-                'zobrazenaHodnota' => formatujTelCislo($zobrazenaHodnota),
-            ]);
         }
         if ($sloupec === 'pohlavi') {
             foreach ($vyber as $optionValue => $optionText) {

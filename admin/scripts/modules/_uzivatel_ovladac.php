@@ -10,8 +10,6 @@ use \Gamecon\Cas\DateTimeGamecon;
  * @var \Gamecon\Shop\Shop $shop
  */
 
-require_once __DIR__ . '/../funkce.php';
-
 if (post('pridelitPokoj')) {
     Pokoj::ubytujNaCislo(Uzivatel::zId(post('uid')), post('pokoj'));
     oznameni('Pokoj přidělen');
