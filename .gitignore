@@ -24,6 +24,7 @@
 /web/soubory/systemove/*/*
 !/web/soubory/systemove/*/.gitkeep
 !/web/soubory/systemove/*/.htaccess
+*.map
 
 /nasad.log
 /.htdeployment
