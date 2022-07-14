@@ -211,13 +211,14 @@ class Finance
             $prehled = array_filter($prehled, function ($radekPrehledu) use ($jekKategorieIds) {
                 return in_array($radekPrehledu['kategorie'], $jekKategorieIds);
             });
+            // Infopult nechce mikronadpisy, pokud je přehled omezen jen na pár kategorií
+            $prehled = array_filter($prehled, static function ($radekPrehledu) {
+                // našli jsme nadpis, jediný je tučně
+                return strpos($radekPrehledu['nazev'], '<b>') === false;
+            });
         }
-        $prehledBezNadpisu = array_filter($prehled, static function ($radekPrehledu) {
-            // nadpis je tučně
-            return strpos($radekPrehledu['nazev'], '<b>') === false;
-        });
 
-        foreach ($prehledBezNadpisu as $radekPredhledu) {
+        foreach ($prehled as $radekPredhledu) {
             $castkaRow = '';
             if ($vcetneCeny) {
                 $castkaRow = "<td style='text-align:right'>{$radekPredhledu['castka']}</td>";
