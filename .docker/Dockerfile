@@ -79,7 +79,18 @@ USER root
 
 RUN mkdir -p /var/log/php && chown -R www-data /var/log/php && chmod +w /var/log/php
 
-FROM gamecon-php-step3 AS gamecon-project-step-final
+FROM gamecon-php-step3 AS gamecon-php-step4
+
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - \
+    && apt-get install -y nodejs
+
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add - \
+    && echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list \
+    && apt-get install -y yarnpkg
+
+ENV NODE_PATH=/usr/lib/nodejs:/usr/share/nodejs
+
+FROM gamecon-php-step4 AS gamecon-project-step-final
 
 # dot . reflects current dir, which is .docker
 COPY . /.docker
@@ -91,6 +102,8 @@ RUN sed -ri -e "s!/var/www/html!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/sites-av
 RUN sed -ri -e "s!/var/www/!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
 ENV ENV=local
+
+RUN export NODE_PATH=/usr/lib/nodejs:/usr/share/nodejs
 
 WORKDIR $APACHE_DOCUMENT_ROOT
 
