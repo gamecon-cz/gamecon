@@ -11,7 +11,6 @@ use \Gamecon\Cas\DateTimeGamecon;
  */
 
 require_once __DIR__ . '/../funkce.php';
-require_once __DIR__ . '/../konstanty.php';
 
 if (post('pridelitPokoj')) {
     Pokoj::ubytujNaCislo(Uzivatel::zId(post('uid')), post('pokoj'));

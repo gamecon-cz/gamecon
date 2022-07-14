@@ -7,21 +7,19 @@
  * pravo: 101
  */
 
-use \Gamecon\Cas\DateTimeCz;
-use \Gamecon\Cas\DateTimeGamecon;
-use \Gamecon\Shop\Shop;
+use Gamecon\Shop\Shop;
 
 /**
  * @var Uzivatel|null|void $u
  * @var Uzivatel|null|void $uPracovni
- * @var \Gamecon\Vyjimkovac\Vyjimkovac $vyjimkovac
+ * @var Gamecon\Vyjimkovac\Vyjimkovac $vyjimkovac
+ * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
 require_once __DIR__ . '/../funkce.php';
-require_once __DIR__ . '/../konstanty.php';
 
 $nastaveni = ['ubytovaniBezZamku' => true, 'jidloBezZamku' => true];
-$shop = $uPracovni ? new Shop($uPracovni, $nastaveni) : null;
+$shop = $uPracovni ? new Shop($uPracovni, $nastaveni, $systemoveNastaveni) : null;
 
 include __DIR__ . '/_uzivatel_ovladac.php';
 
@@ -46,7 +44,8 @@ if (get('pokoj')) {
 }
 
 if ($uPracovni && $uPracovni->gcPrihlasen()) {
-    $x->assign('shop', $shop);
+    $x->assign('ubytovaniHtml', $shop->ubytovaniHtml(true));
+    $x->assign('jidloHtml', $shop->jidloHtml(true));
     $x->parse('uzivatel.ubytovani');
     $x->parse('uzivatel.jidlo');
     $x->parse('uzivatel.pokojPridel');
@@ -80,11 +79,15 @@ if ($uPracovni) {
         : [];
     $x->assign([
         'prehled' => $up->finance()->prehledHtml(),
-        'slevyAktivity' => ($akt = $up->finance()->slevyAktivity()) ?
-            '<li>' . implode('<li>', $akt) :
+        'slevyAktivity' => ($akt = $up->finance()->slevyAktivity())
+            ?
+            '<li>' . implode('<li>', $akt)
+            :
             '(žádné)',
-        'slevyVse' => ($vse = $up->finance()->slevyVse()) ?
-            '<li>' . implode('<li>', $vse) :
+        'slevyVse' => ($vse = $up->finance()->slevyVse())
+            ?
+            '<li>' . implode('<li>', $vse)
+            :
             '(žádné)',
     ]);
     $datumNarozeni = DateTimeImmutable::createFromMutable($up->datumNarozeni());

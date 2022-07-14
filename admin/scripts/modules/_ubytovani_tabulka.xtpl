@@ -1,30 +1,35 @@
 <!-- begin:ubytovani -->
 
 <!-- begin:konec -->
-<p xmlns="http://www.w3.org/1999/html">Objednávání ubytování online bylo zastaveno, změny jsou možné na místě.</p>
+<p>Možnost objednávek ubytování přes web už skončila. Zbylé postele lze zarezervovat přes e-mail <a
+    href="mailto:info@gamecon.cz">info@gamecon.cz</a>.</p>
 <!-- end:konec -->
 
 <!--
 //TODO: less styly
 -->
 <style>
-.shop_den {
-  text-align: center;
-}
-.shopUbytovani_prvniSloupec {
-  width: fit-content;
-  padding-right: 10px;
-}
-.shop_popisCena {
-  display: inline-block;
-}
-.shopUbytovani_radek {
-  height: 1.25rem;
-  margin: 1px;
-}
-.shopUbytovani_sloupec {
-  width: 33px;
-}
+    .shop_den {
+        text-align: center;
+    }
+
+    .shopUbytovani_prvniSloupec {
+        width: fit-content;
+        padding-right: 10px;
+    }
+
+    .shop_popisCena {
+        display: inline-block;
+    }
+
+    .shopUbytovani_radek {
+        height: 1.25rem;
+        margin: 1px;
+    }
+
+    .shopUbytovani_sloupec {
+        width: 33px;
+    }
 </style>
 
 <div class="shopUbytovani_tabulka">
@@ -60,8 +65,8 @@
     <!-- begin:typ -->
     <div class="shopUbytovani_radek">
       <label class="radio--container radio--container--square radio--container--fill">
-          <input type="radio" class="shopUbytovani_radio" name="{postnameDen}" value="{idPredmetu}"
-                data-kapacita="{kapacita}" {checked} {disabled}>
+        <input type="radio" class="shopUbytovani_radio" name="{postnameDen}" value="{idPredmetu}"
+               data-kapacita="{kapacita}" {checked} {disabled}>
         <div class="radio--label">
           {zbyvaMist}
         </div>
@@ -69,10 +74,10 @@
       </label>
     </div>
     <!-- end:typ -->
-    <div class="shopUbytovani_radek">
+    <div class="shopUbytovani_radek shopUbytovani_zadne">
       <label class="radio--container radio--container--square radio--container--fill">
-          <input type="radio" class="shopUbytovani_radio" name="{postnameDen}" value=""
-                data-kapacita="0" {checked} {disabled}>
+        <input type="radio" class="shopUbytovani_radio" name="{postnameDen}" value=""
+               data-kapacita="0" {checked} {disabled}>
         <div class="radio--label">
         </div>
         <div class="radio--border"></div>
@@ -85,18 +90,12 @@
 
 </div>
 
-<div class="shopUbytovani_spolubydlici">
-  Na pokoji chci být s:
-  <input type="text" class="formular_input" name="{postnameSpolubydlici}" value="{spolubydlici}"
-         placeholder="jména oddělená čárkou, nebo nech prázdné">
-</div>
-
 <script type="text/javascript">
   const shopUbytovaniRadios = document.querySelectorAll('input[type=radio][class=shopUbytovani_radio]')
-  const shopUbitovaniNames = []
+  const shopUbytovaniNames = []
   shopUbytovaniRadios.forEach(function (shopUbytovaniRadio) {
-    if (!shopUbitovaniNames.includes(shopUbytovaniRadio.name)) {
-      shopUbitovaniNames.push(shopUbytovaniRadio.name)
+    if (!shopUbytovaniNames.includes(shopUbytovaniRadio.name)) {
+      shopUbytovaniNames.push(shopUbytovaniRadio.name)
     }
   })
 
@@ -114,12 +113,12 @@
       return
     }
     const zvoleneName = this.name
-    const ostatniNames = shopUbitovaniNames.filter(name => name !== zvoleneName)
+    const ostatniNames = shopUbytovaniNames.filter(name => name !== zvoleneName)
     ostatniNames.forEach(function (ostatniName) {
       const ostatniZvoleneUbytovani = document.querySelector('input[type=radio][class=shopUbytovani_radio][name="' + ostatniName + '"]:checked')
       if (ostatniZvoleneUbytovani
-          && ostatniZvoleneUbytovani.dataset.kapacitaZvolenaUzivatelem !== undefined
-          && Number.parseInt(ostatniZvoleneUbytovani.dataset.kapacitaZvolenaUzivatelem) === 0
+        && ostatniZvoleneUbytovani.dataset.kapacitaZvolenaUzivatelem !== undefined
+        && Number.parseInt(ostatniZvoleneUbytovani.dataset.kapacitaZvolenaUzivatelem) === 0
       ) {
         return // v tomto dni je uzivatelem rucne vybrano Zadne ubytovani, to nechceme menit
       }

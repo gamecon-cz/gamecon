@@ -221,15 +221,15 @@ SQL
         return $pocetZmen;
     }
 
-    public $dny;     // asoc. 2D pole [den][typ] => předmět
-    public $typy;    // asoc. pole [typ] => předmět sloužící jako vzor daného typu
-    public $pnDny = 'shopUbytovaniDny';
-    public $pnPokoj = 'shopUbytovaniPokoj';
-    public $pnCovidFreePotvrzeni = 'shopCovidFreePotvrzeni';
-    public $u;
+    private $dny = [];     // asoc. 2D pole [den][typ] => předmět
+    private $typy = [];    // asoc. pole [typ] => předmět sloužící jako vzor daného typu
+    private $pnDny = 'shopUbytovaniDny';
+    private $pnPokoj = 'shopUbytovaniPokoj';
+    private $pnCovidFreePotvrzeni = 'shopCovidFreePotvrzeni';
+    private $uzivatel;
 
     public function __construct(array $predmety, Uzivatel $uzivatel, SystemoveNastaveni $systemoveNastaveni) {
-        $this->u = $uzivatel;
+        $this->uzivatel = $uzivatel;
         foreach ($predmety as $p) {
             $nazev = Shop::bezDne($p['nazev']);
             if (!isset($this->typy[$nazev])) {
@@ -247,10 +247,22 @@ SQL
         return $this->dny;
     }
 
+    public function typy(): array {
+        return $this->typy;
+    }
+
+    public function postnameDen(): string {
+        return $this->pnDny;
+    }
+
+    public function uzivatel(): Uzivatel {
+        return $this->uzivatel;
+    }
+
     public function html(bool $muzeEditovatUkoncenyProdej = false) {
         $t = new XTemplate(__DIR__ . '/templates/shop-ubytovani.xtpl');
         $t->assign([
-            'spolubydlici' => dbOneCol('SELECT ubytovan_s FROM uzivatele_hodnoty WHERE id_uzivatele=' . $this->u->id()),
+            'spolubydlici' => dbOneCol('SELECT ubytovan_s FROM uzivatele_hodnoty WHERE id_uzivatele=' . $this->uzivatel->id()),
             'postnameSpolubydlici' => $this->pnPokoj,
             'uzivatele' => $this->mozniUzivatele(),
         ]);
@@ -317,20 +329,18 @@ SQL
         }
     }
 
-    /**
-     * @return bool
-     * @throws Chyba
-     */
-    public function zpracuj(): bool {
+    public function zpracuj(bool $vcetneSpolubydliciho = true): bool {
         if (!isset($_POST[$this->pnDny])) {
             return false;
         }
 
         // vložit jeho zaklikané věci - note: není zabezpečeno
-        self::ulozObjednaneUbytovaniUcastnika($_POST[$this->pnDny], $this->u);
+        self::ulozObjednaneUbytovaniUcastnika($_POST[$this->pnDny], $this->uzivatel);
 
-        // uložit s kým chce být na pokoji
-        self::ulozSKymChceBytNaPokoji($_POST[$this->pnPokoj] ?? '', $this->u);
+        if ($vcetneSpolubydliciho) {
+            // uložit s kým chce být na pokoji
+            self::ulozSKymChceBytNaPokoji($_POST[$this->pnPokoj] ?? '', $this->uzivatel);
+        }
 
         return true;
     }
@@ -415,7 +425,7 @@ SQL
       SELECT CONCAT(jmeno_uzivatele,' ',prijmeni_uzivatele,' (',login_uzivatele,')')
       FROM uzivatele_hodnoty
       WHERE jmeno_uzivatele != '' AND prijmeni_uzivatele != '' AND id_uzivatele != $1
-    ", [$this->u->id()]);
+    ", [$this->uzivatel->id()]);
         while ($u = mysqli_fetch_row($o)) {
             $a[] = $u[0];
         }
