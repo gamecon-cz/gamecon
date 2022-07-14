@@ -15,22 +15,22 @@ use Gamecon\Shop\Shop;
  * @var Uzivatel|null|void $u
  * @var Uzivatel|null|void $uPracovni
  * @var \Gamecon\Vyjimkovac\Vyjimkovac $vyjimkovac
+ * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
 require_once __DIR__ . '/../funkce.php';
-require __DIR__ . '/../konstanty.php';
 require_once __DIR__ . '/_ubytovani_tabulka.php';
 
-$ok = '<img src="files/design/ok-s.png" style="margin-bottom:-2px">';
-$warn = '<img src="files/design/warning-s.png" style="margin-bottom:-2px">';
-$err = '<img src="files/design/error-s.png" style="margin-bottom:-2px">';
+$ok = '<img alt="OK" src="files/design/ok-s.png" style="margin-bottom:-2px">';
+$warn = '<img alt="warning" src="files/design/warning-s.png" style="margin-bottom:-2px">';
+$err = '<img alt="error" src="files/design/error-s.png" style="margin-bottom:-2px">';
 
 $nastaveni = ['ubytovaniBezZamku' => true, 'jidloBezZamku' => true];
-$shop = $uPracovni ? new Shop($uPracovni, $nastaveni) : null;
+$shop = $uPracovni ? new Shop($uPracovni, $nastaveni, $systemoveNastaveni) : null;
 
 include __DIR__ . '/_infopult_ovladac.php';
 
-$x = new XTemplate('infopult.xtpl');
+$x = new XTemplate(__DIR__ . '/infopult.xtpl');
 xtemplateAssignZakladniPromenne($x, $uPracovni);
 $x->assign([
     'prihlasBtnAttr' => "disabled",
@@ -65,24 +65,22 @@ if ($uPracovni) {
         }
         $x->parse('infopult.neprihlasen');
     }
-    /** @var \Uzivatel $up */
-    $up = $uPracovni;
-    $pokoj = Pokoj::zUzivatele($up);
+    $pokoj = Pokoj::zUzivatele($uPracovni);
     $spolubydlici = $pokoj
         ? $pokoj->ubytovani()
         : [];
     $x->assign([
-        'stavUctu' => ($up->finance()->stav() < 0 ? $err : $ok) . ' ' . $up->finance()->stavHr(),
-        'stavStyle' => ($up->finance()->stav() < 0 ? 'color: #f22; font-weight: bolder;' : ''),
+        'stavUctu' => ($uPracovni->finance()->stav() < 0 ? $err : $ok) . ' ' . $uPracovni->finance()->stavHr(),
+        'stavStyle' => ($uPracovni->finance()->stav() < 0 ? 'color: #f22; font-weight: bolder;' : ''),
         'pokoj' => $pokoj ? $pokoj->cislo() : '(nepřidělen)',
         'spolubydlici' => spolubydliciTisk($spolubydlici),
         'org' => $u->jmenoNick(),
         'a' => $u->koncovkaDlePohlavi(),
-        'poznamka' => $up->poznamka(),
-        'ubytovani' => $up->dejShop()->dejPopisUbytovani(),
+        'poznamka' => $uPracovni->poznamka(),
+        'ubytovani' => $uPracovni->dejShop()->dejPopisUbytovani(),
         'udajeChybiAttr' => 'href="uzivatel"',
-        'balicek' => $up->balicekHtml(),
-        'prehledPredmetu' => $up->finance()->prehledHtml([
+        'balicek' => $uPracovni->balicekHtml(),
+        'prehledPredmetu' => $uPracovni->finance()->prehledHtml([
             Shop::PREDMET,
             Shop::TRICKO,
         ], false),
@@ -108,22 +106,22 @@ if ($uPracovni) {
             : $ok . ' osobní údaje v pořádku',
     );
 
-    if ($up->finance()->stav() < 0 && !$up->gcPritomen()) {
+    if ($uPracovni->finance()->stav() < 0 && !$uPracovni->gcPritomen()) {
         $x->parse('infopult.upoMaterialy');
     }
-    if ($up->gcPrihlasen()) {
-        if (!$up->gcPritomen()) {
+    if ($uPracovni->gcPrihlasen()) {
+        if (!$uPracovni->gcPritomen()) {
             $x->assign('datMaterialyBtnAttr', "");
-        } elseif (!$up->gcOdjel()) {
+        } elseif (!$uPracovni->gcOdjel()) {
             $x->assign('gcOdjedBtnAttr', "");
         }
     }
-    if ($up->gcPrihlasen() && !$up->gcPritomen()) {
+    if ($uPracovni->gcPrihlasen() && !$uPracovni->gcPritomen()) {
         $x->assign('odhlasBtnAttr', '');
     }
 
-    $datumNarozeni = DateTimeImmutable::createFromMutable($up->datumNarozeni());
-    $potvrzeniOd = $up->potvrzeniZakonnehoZastupce();
+    $datumNarozeni = DateTimeImmutable::createFromMutable($uPracovni->datumNarozeni());
+    $potvrzeniOd = $uPracovni->potvrzeniZakonnehoZastupce();
     $potrebujePotvrzeniKvuliVeku = potrebujePotvrzeni($datumNarozeni);
     $mameLetosniPotvrzeniKvuliVeku = $potvrzeniOd && $potvrzeniOd->format('y') === date('y');
 
@@ -136,14 +134,10 @@ if ($uPracovni) {
         }
         $x->parse('infopult.uzivatel.potvrzeni');
     }
-    // else {
-    //     $x->assign("potvrzeniAttr", "checked disabled");
-    //     $x->assign("potvrzeniText", $ok . " nepotřebuje potvrzení od rodičů");
-    // }
 
     if (VYZADOVANO_COVID_POTVRZENI) {
-        $mameNahranyLetosniDokladProtiCovidu = $up->maNahranyDokladProtiCoviduProRok((int)date('Y'));
-        $mameOverenePotvrzeniProtiCoviduProRok = $up->maOverenePotvrzeniProtiCoviduProRok((int)date('Y'));
+        $mameNahranyLetosniDokladProtiCovidu = $uPracovni->maNahranyDokladProtiCoviduProRok((int)date('Y'));
+        $mameOverenePotvrzeniProtiCoviduProRok = $uPracovni->maOverenePotvrzeniProtiCoviduProRok((int)date('Y'));
         if (!$mameNahranyLetosniDokladProtiCovidu && !$mameOverenePotvrzeniProtiCoviduProRok) {
             /* muze byt overeno rucne bez nahraneho dokladu */
             $x->assign("covidPotvrzeniText", $err . " požádej o doplnění");
@@ -152,8 +146,8 @@ if ($uPracovni) {
             $x->assign("covidPotvrzeniAttr", "checked value=\"\"");
             $x->assign("covidPotvrzeniText", $ok . " ověřeno bez dokladu");
         } else {
-            $datumNahraniPotvrzeniProtiCovid = (new DateTimeCz($up->potvrzeniProtiCoviduPridanoKdy()->format(DATE_ATOM)))->relativni();
-            $x->assign('covidPotvrzeniOdkazAttr', "href=\n" . $up->urlNaPotvrzeniProtiCoviduProAdmin() . "\"");
+            $datumNahraniPotvrzeniProtiCovid = (new DateTimeCz($uPracovni->potvrzeniProtiCoviduPridanoKdy()->format(DATE_ATOM)))->relativni();
+            $x->assign('covidPotvrzeniOdkazAttr', "href=\n" . $uPracovni->urlNaPotvrzeniProtiCoviduProAdmin() . "\"");
             if ($mameOverenePotvrzeniProtiCoviduProRok) {
                 $x->assign("covidPotvrzeniAttr", "checked value=\"\"");
                 $x->assign("covidPotvrzeniText", $ok . " ověřeno dokladem $datumNahraniPotvrzeniProtiCovid");
@@ -164,18 +158,25 @@ if ($uPracovni) {
         $x->parse('infopult.uzivatel.covidSekce');
     }
 
-    $x->assign("telefon", formatujTelCislo($up->telefon()));
+    $x->assign("telefon", formatujTelCislo($uPracovni->telefon()));
 
-    if ($up->gcPrihlasen()) {
-        $x->assign('ubytovaniTabulka', UbytovaniTabulka::ubytovaniTabulkaZ($shop->ubytovani));
+    if ($uPracovni->gcPrihlasen()) {
+        $x->assign(
+            'ubytovaniTabulka',
+            UbytovaniTabulka::ubytovaniTabulkaZ(
+                $shop->ubytovani(),
+                $systemoveNastaveni,
+                true
+            )
+        );
     }
 
     if (GC_BEZI) {
         $zpravyProPotvrzeniZruseniPrace = [];
-        if (!$up->gcPritomen()) {
+        if (!$uPracovni->gcPritomen()) {
             $zpravyProPotvrzeniZruseniPrace[] = 'nedostal materiály';
         }
-        if ($up->finance()->stav() < 0) {
+        if ($uPracovni->finance()->stav() < 0) {
             $zpravyProPotvrzeniZruseniPrace[] = 'má záporný zůstatek';
         }
         if ($potrebujePotvrzeniKvuliVeku && !$mameLetosniPotvrzeniKvuliVeku) {

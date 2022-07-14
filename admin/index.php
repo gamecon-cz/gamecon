@@ -3,7 +3,6 @@
 require __DIR__ . '/../nastaveni/zavadec.php';
 
 /** získáme @var array|string[] $protipy */
-require_once __DIR__ . '/scripts/konstanty.php'; // lokální konstanty pro admin
 require_once __DIR__ . '/scripts/admin-menu.php'; // třída administračního menu
 
 if (HTTPS_ONLY) {
@@ -198,6 +197,15 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
     }
     $xtpl->assign('stranka', $stranka);
     $xtpl->parse('all.submenu');
+
+    $protipy = [
+        'tlačítka, které mají podtržené písmeno, je možné zrychleně použít pomocí alt+písmeno',
+        'užij si GameCon',
+        'alt+u vybírá uživatele, alt+z ruší',
+        'odhlášením uživatele z GC se nenávratně zruší všechny jeho aktivity a nákupy',
+        'osobní údaje lze upravit kliknutím a přepsáním na úvodní straně',
+        'používání klávesových zkratek urychlí práci',
+    ];
 
     // výstup
     $xtpl->assign('protip', $protipy[array_rand($protipy)]);
