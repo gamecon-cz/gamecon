@@ -21,6 +21,9 @@ class Uzivatel
     public const UZIVATEL_PRACOVNI = 'uzivatel_pracovni';
     public const UZIVATEL = 'uzivatel';
 
+    public const FAKE = 0x01;  // modifikátor "fake uživatel"
+    public const SYSTEM = 1;   // id uživatele reprezentujícího systém (např. "operaci provedl systém")
+
     /**
      * @return Uzivatel[]
      */
@@ -57,9 +60,6 @@ SQL
     protected $shop;
 
     private $kdySeRegistrovalNaLetosniGc;
-
-    public const FAKE = 0x01;  // modifikátor "fake uživatel"
-    public const SYSTEM = 1;   // id uživatele reprezentujícího systém (např. "operaci provedl systém")
 
     public function __construct($uzivatel) {
         if (is_array($uzivatel) && array_keys_exist(['id_uzivatele', 'login_uzivatele', 'pohlavi'], $uzivatel)) {
