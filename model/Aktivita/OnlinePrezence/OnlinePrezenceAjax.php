@@ -28,7 +28,8 @@ class OnlinePrezenceAjax
     public const ZMENY_STAVU_AKTIVIT = 'zmeny_stavu_aktivit';
     public const ZMENY_PRIHLASENI = 'zmeny_prihlaseni';
     public const RAZITKO_POSLEDNI_ZMENY = 'razitko_posledni_zmeny';
-    public const EDITOVATELNA_DO_TIMESTAMP = 'editovatelna_do_timestamp';
+    public const UCASTNIK_PRIDATELNY_DO_TIMESTAMP = 'ucastnik_pridatelny_do_timestamp';
+    public const UCASTNIK_ODEBRATELNY_DO_TIMESTAMP = 'ucastnik_odebratelny_do_timestamp';
     public const ERRORS = 'errors';
     public const PRIHLASEN = 'prihlasen';
     public const CAS_POSLEDNI_ZMENY_PRIHLASENI = 'cas_posledni_zmeny_prihlaseni';
@@ -94,7 +95,7 @@ class OnlinePrezenceAjax
             }
             $this->ajaxZmenitPritomnostUcastnika(
                 $vypravec,
-                (int)post('idUzivatele'),
+                (int)post('idUcastnika'),
                 (int)post('idAktivity'),
                 $zdaDorazil,
             );
@@ -140,7 +141,8 @@ class OnlinePrezenceAjax
                 self::ID_LOGU => $zmenaStavuAktivity->idLogu(),
                 self::CAS_ZMENY => $zmenaStavuAktivity->casZmenyProJs(),
                 self::STAV_AKTIVITY => $zmenaStavuAktivity->stavAktivityProJs(),
-                self::EDITOVATELNA_DO_TIMESTAMP => $this->editovatelnaDoTimestamp($aktivita, $vypravec),
+                self::UCASTNIK_ODEBRATELNY_DO_TIMESTAMP => $this->ucastniciOdebratelniDoTimestamp($aktivita),
+                self::UCASTNIK_PRIDATELNY_DO_TIMESTAMP => $this->ucastniciPridatelniDoTimestamp($aktivita),
             ];
         }
 
@@ -166,8 +168,7 @@ class OnlinePrezenceAjax
                 self::HTML_UCASTNIKA => $this->onlinePrezenceHtml->sestavHmlUcastnikaAktivity(
                     \Uzivatel::zId($zmenaPrihlaseni->idUzivatele()),
                     $aktivita,
-                    $zmenaPrihlaseni->stavPrihlaseni(),
-                    false
+                    $zmenaPrihlaseni->stavPrihlaseni()
                 ),
             ];
         }
@@ -197,15 +198,18 @@ class OnlinePrezenceAjax
 
         $this->echoJson(
             [
-                self::EDITOVATELNA_DO_TIMESTAMP => $this->editovatelnaDoTimestamp($aktivita, $vypravec),
+                self::UCASTNIK_PRIDATELNY_DO_TIMESTAMP => $this->ucastniciPridatelniDoTimestamp($aktivita),
+                self::UCASTNIK_ODEBRATELNY_DO_TIMESTAMP => $this->ucastniciOdebratelniDoTimestamp($aktivita),
             ]
         );
     }
 
-    private function editovatelnaDoTimestamp(Aktivita $aktivita, \Uzivatel $vypravec): int {
-        return $this->dejVypravecePodleTestu($aktivita, $vypravec)->maPravoNaZmenuHistorieAktivit()
-            ? PHP_INT_MAX
-            : $aktivita->editovatelnaDo($this->systemoveNastaveni)->getTimestamp();
+    private function ucastniciOdebratelniDoTimestamp(Aktivita $aktivita): int {
+        return $aktivita->ucastniciOdebratelniDo($this->systemoveNastaveni)->getTimestamp();
+    }
+
+    private function ucastniciPridatelniDoTimestamp(Aktivita $aktivita): int {
+        return $aktivita->ucastniciPridatelniDo($this->systemoveNastaveni)->getTimestamp();
     }
 
     private function echoErrorJson(string $error): void {
@@ -220,7 +224,7 @@ class OnlinePrezenceAjax
 
     /**
      * @param \Uzivatel $vypravec
-     * @param int $idUzivatele
+     * @param int $idUcastnika
      * @param int $idAktivity
      * @param bool|null $dorazil
      * @return void
@@ -228,11 +232,11 @@ class OnlinePrezenceAjax
      */
     private function ajaxZmenitPritomnostUcastnika(
         \Uzivatel $vypravec,
-        int       $idUzivatele,
+        int       $idUcastnika,
         int       $idAktivity,
         ?bool     $dorazil
     ) {
-        $ucastnik = \Uzivatel::zId($idUzivatele);
+        $ucastnik = \Uzivatel::zId($idUcastnika);
         if (!$ucastnik) {
             $this->echoErrorJson('Chybné ID účastníka');
             return;
@@ -366,8 +370,7 @@ class OnlinePrezenceAjax
                 $aktivita,
                 /* jenom zobrazeni - skutečné uložení, že dorazil, řešíme už po vybrání uživatele z omniboxu,
                    což je ještě před vykreslením účastníka */
-                StavPrihlaseni::DORAZIL_JAKO_NAHRADNIK,
-                false
+                StavPrihlaseni::DORAZIL_JAKO_NAHRADNIK
             );
             $prihlasenyUzivatelOmnibox['html'] = $ucastnikHtml;
         }

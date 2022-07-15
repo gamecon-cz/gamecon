@@ -73,7 +73,7 @@
              name="dorazil[]"
              value="{u.id}"
              {checkedUcastnik} {disabledUcastnik} data-initial-checked="{checkedUcastnik}"
-             onchange="zmenitPritomnostUcastnika('{u.id}', '{a.id}', this)"
+             onchange="document.getElementById('online-prezence').dispatchEvent(new CustomEvent('zmenitPritomnostUcastnika', {detail: {idUcastnika: '{u.id}', idAktivity: '{a.id}', checkboxNode: this, triggeringNode: this}}))"
       >
     </label>
     <!-- end:checkbox -->

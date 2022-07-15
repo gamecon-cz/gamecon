@@ -343,8 +343,8 @@ SQL;
         return (int)AKTIVITA_EDITOVATELNA_X_MINUT_PRED_JEJIM_ZACATKEM;
     }
 
-    public function aktivitaEditovatelnaXMinutPoJejimKonci(): int {
-        return (int)AKTIVITA_EDITOVATELNA_X_MINUT_PO_JEJIM_KONCI;
+    public function ucastnikyLzePridatXMinutPoUzavreniAktivity(): int {
+        return (int)UCASTNIKY_LZE_PRIDAVAT_X_MINUT_PO_KONCI_AKTIVITY;
     }
 
     public function prihlaseniNaPosledniChviliXMinutPredZacatkemAktivity(): int {

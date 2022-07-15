@@ -1,3 +1,5 @@
+import {ZmenaMetadatAktivity} from "./online-prezence-eventy.js"
+
 (function ($) {
   document.addEventListener('DOMContentLoaded', function () {
 
@@ -171,17 +173,7 @@
      * @param {ZmenaStavuAktivity} zmena
      */
     function vypustEventSNovymiMetadatyAktivity(aktivitaNode, zmena) {
-      const zmenaMetadatAktivity = new CustomEvent(
-        'zmenaMetadatAktivity',
-        {
-          detail: {
-            casPosledniZmenyStavuAktivity: zmena.casZmeny,
-            stavAktivity: zmena.stavAktivity,
-            idPoslednihoLogu: zmena.idPoslednihoLogu,
-            editovatelnaDoTimestamp: zmena.editovatelnaDoTimestamp,
-          },
-        },
-      )
+      const zmenaMetadatAktivity = ZmenaMetadatAktivity.vytvorZeZmeny(zmena)
       aktivitaNode.dispatchEvent(zmenaMetadatAktivity)
     }
 
@@ -538,7 +530,7 @@ class ZmenaPrihlaseni {
 
 class ZmenaStavuAktivity {
   /**
-   * @param {{id_aktivity: number, id_logu: number, cas_zmeny: string, stav_aktivity: string, editovatelna_do_timestamp: number}[]} dataZmen
+   * @param {{id_aktivity: number, id_logu: number, cas_zmeny: string, stav_aktivity: string, ucastnik_pridatelny_do_timestamp: number, ucastnik_odebratelny_do_timestamp: number}[]} dataZmen
    * @return ZmenaStavuAktivity[]
    */
   static vytvorZmenyZOdpovedi(dataZmen) {
@@ -550,7 +542,8 @@ class ZmenaStavuAktivity {
           dataZmeny.id_logu,
           dataZmeny.cas_zmeny,
           dataZmeny.stav_aktivity,
-          dataZmeny.editovatelna_do_timestamp,
+          dataZmeny.ucastnik_pridatelny_do_timestamp,
+          dataZmeny.ucastnik_odebratelny_do_timestamp,
         ),
       )
     })
@@ -566,21 +559,30 @@ class ZmenaStavuAktivity {
   /** @private @var {string} */
   _stavAktivity
   /** @private @var {number} */
-  _editovatelnaDoTimestamp
+  _ucastniciOdebratelniDoTimestamp
 
   /**
    * @param {number} idAktivity
    * @param {number} idPoslednihoLogu
    * @param {string} casZmeny
    * @param {string} stavAktivity
-   * @param {number} editovatelnaDoTimestamp
+   * @param {number} ucastniciPridatelniDoTimestamp
+   * @param {number} ucastniciOdebratelniDoTimestamp
    */
-  constructor(idAktivity, idPoslednihoLogu, casZmeny, stavAktivity, editovatelnaDoTimestamp) {
+  constructor(
+    idAktivity,
+    idPoslednihoLogu,
+    casZmeny,
+    stavAktivity,
+    ucastniciPridatelniDoTimestamp,
+    ucastniciOdebratelniDoTimestamp,
+  ) {
     this._idAktivity = idAktivity
     this._idPoslednihoLogu = idPoslednihoLogu
     this._casZmeny = casZmeny
     this._stavAktivity = stavAktivity
-    this._editovatelnaDoTimestamp = editovatelnaDoTimestamp
+    this._ucastniciPridatelniDoTimestamp = ucastniciPridatelniDoTimestamp
+    this._ucastniciOdebratelniDoTimestamp = ucastniciOdebratelniDoTimestamp
   }
 
   get idAktivity() {
@@ -599,7 +601,11 @@ class ZmenaStavuAktivity {
     return this._stavAktivity
   }
 
-  get editovatelnaDoTimestamp() {
-    return this._editovatelnaDoTimestamp
+  get ucastniciPridatelniDoTimestamp() {
+    return this._ucastniciPridatelniDoTimestamp
+  }
+
+  get ucastniciOdebratelniDoTimestamp() {
+    return this._ucastniciOdebratelniDoTimestamp
   }
 }
