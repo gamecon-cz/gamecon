@@ -39,15 +39,16 @@ class AkceAktivity {
     const zobrazitElement = document.getElementById(`zamcena-${idAktivity}`)
     this.zobrazitElement(zobrazitElement)
 
-    this.zpracovatEditovatelnostDo(idAktivity, ucastniciPridatelniDoTimestamp, ucastniciOdebratelniDoTimestamp)
+    this.zpracovatEditovatelnostDoPoZamknuti(idAktivity, ucastniciPridatelniDoTimestamp, ucastniciOdebratelniDoTimestamp)
   }
 
   /**
+   * @private
    * @param {number} idAktivity
    * @param {number} ucastniciPridatelniDoTimestamp
    * @param {number} ucastniciOdebratelniDoTimestamp
    */
-  zpracovatEditovatelnostDo(idAktivity, ucastniciPridatelniDoTimestamp, ucastniciOdebratelniDoTimestamp) {
+  zpracovatEditovatelnostDoPoZamknuti(idAktivity, ucastniciPridatelniDoTimestamp, ucastniciOdebratelniDoTimestamp) {
     const ucastniciPridatelniSekund = this.spoctiKolikZbyvaSekund(ucastniciPridatelniDoTimestamp)
     const ucastniciOdebratelniSekund = this.spoctiKolikZbyvaSekund(ucastniciOdebratelniDoTimestamp)
 
@@ -108,7 +109,7 @@ class AkceAktivity {
     const zobrazitElement = document.getElementById(`uzavrena-${idAktivity}`)
     this.prohoditZobrazeni(skrytElementy, zobrazitElement)
 
-    this.zpracovatEditovatelnostDo(idAktivity, ucastniciPridatelniDoTimestamp, ucastniciOdebratelniDoTimestamp)
+    this.zpracovatEditovatelnostDoPoZamknuti(idAktivity, ucastniciPridatelniDoTimestamp, ucastniciOdebratelniDoTimestamp)
   }
 
   /**
