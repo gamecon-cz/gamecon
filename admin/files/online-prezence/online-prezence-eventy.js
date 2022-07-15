@@ -38,4 +38,4 @@ class ProbihajiZmeny extends CustomEvent {
   }
 }
 
-export {ZmenaMetadatAktivity}
+export {ZmenaMetadatAktivity, ProbihajiZmeny}
