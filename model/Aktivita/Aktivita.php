@@ -2458,7 +2458,7 @@ SQL
         }
         /*
          * nechceme dovolit editaci účastníků už uzavřených aktivit
-         * (při odebrání by jim naskákaly storna, při opětovném přidání bychom museli strorno zrušit)
+         * (při odebrání by jim naskákaly storna, při opětovném přidání bychom museli storno zrušit)
          */
         return $systemoveNastaveni->ted()->modify('-1 second');
     }
