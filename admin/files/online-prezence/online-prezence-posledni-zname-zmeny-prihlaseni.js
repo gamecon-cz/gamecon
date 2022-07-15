@@ -559,6 +559,8 @@ class ZmenaStavuAktivity {
   /** @private @var {string} */
   _stavAktivity
   /** @private @var {number} */
+  _ucastniciPridatelniDoTimestamp
+  /** @private @var {number} */
   _ucastniciOdebratelniDoTimestamp
 
   /**
