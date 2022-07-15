@@ -13,11 +13,11 @@ class AkceAktivity {
     $.post(location.href, {
       /** viz \Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceAjax::ajaxUzavritAktivitu */
       akce: 'uzavrit', id: idAktivity, ajax: true,
-    }).done(function (/** @param {{ucastnik_pridatelny_do_timestamp: number, ucastnik_odebratelny_do_timestamp: number}} data */data) {
+    }).done(function (/** @param {{ucastnici_pridatelni_do_timestamp: number, ucastnici_odebratelni_do_timestamp: number}} data */data) {
       that.reagujNaUzavreniAktivity(
         idAktivity,
-        data.ucastnik_pridatelny_do_timestamp,
-        data.ucastnik_odebratelny_do_timestamp,
+        data.ucastnici_pridatelni_do_timestamp,
+        data.ucastnici_odebratelni_do_timestamp,
       )
     }).always(function () {
       vypustEventOProbihajicichZmenach(false)

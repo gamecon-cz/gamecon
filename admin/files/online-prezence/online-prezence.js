@@ -341,15 +341,15 @@ import {AkceAktivity} from "./online-prezence-tridy-akce-aktivity.js"
     $aktivity.each(function () {
       const aktivitaNode = this
       if (aktivitaNode.dataset.ucastniciOdebratelniDoTimestamp > 0) {
-        hlidatUcastnikyPridavatelneDo(aktivitaNode)
-        hlidatUcastnikyOdebratelneDo(aktivitaNode)
+        hlidatDoKdyJeMoznePridavatUcastniky(aktivitaNode)
+        hlidatDoKdyJeMozneOdebiratUcastniky(aktivitaNode)
       }
     })
 
     /**
      * @param {HTMLElement} aktivitaNode
      */
-    function hlidatUcastnikyPridavatelneDo(aktivitaNode) {
+    function hlidatDoKdyJeMoznePridavatUcastniky(aktivitaNode) {
       const ucastniciPridatelniDoTimestamp = Number.parseInt(aktivitaNode.dataset.ucastniciPridatelniDoTimestamp)
 
       if (!ucastniciPridatelniDoTimestamp) {
@@ -368,7 +368,7 @@ import {AkceAktivity} from "./online-prezence-tridy-akce-aktivity.js"
     /**
      * @param {HTMLElement} aktivitaNode
      */
-    function hlidatUcastnikyOdebratelneDo(aktivitaNode) {
+    function hlidatDoKdyJeMozneOdebiratUcastniky(aktivitaNode) {
       const ucastniciOdebratelniDoTimestamp = Number.parseInt(aktivitaNode.dataset.ucastniciOdebratelniDoTimestamp)
 
       if (!ucastniciOdebratelniDoTimestamp) {
