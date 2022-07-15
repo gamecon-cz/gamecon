@@ -530,7 +530,7 @@ class ZmenaPrihlaseni {
 
 class ZmenaStavuAktivity {
   /**
-   * @param {{id_aktivity: number, id_logu: number, cas_zmeny: string, stav_aktivity: string, ucastnik_pridatelny_do_timestamp: number, ucastnik_odebratelny_do_timestamp: number}[]} dataZmen
+   * @param {{id_aktivity: number, id_logu: number, cas_zmeny: string, stav_aktivity: string, ucastnici_pridatelni_do_timestamp: number, ucastnici_odebratelni_do_timestamp: number}[]} dataZmen
    * @return ZmenaStavuAktivity[]
    */
   static vytvorZmenyZOdpovedi(dataZmen) {
@@ -542,8 +542,8 @@ class ZmenaStavuAktivity {
           dataZmeny.id_logu,
           dataZmeny.cas_zmeny,
           dataZmeny.stav_aktivity,
-          dataZmeny.ucastnik_pridatelny_do_timestamp,
-          dataZmeny.ucastnik_odebratelny_do_timestamp,
+          dataZmeny.ucastnici_pridatelni_do_timestamp,
+          dataZmeny.ucastnici_odebratelni_do_timestamp,
         ),
       )
     })

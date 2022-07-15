@@ -28,8 +28,8 @@ class OnlinePrezenceAjax
     public const ZMENY_STAVU_AKTIVIT = 'zmeny_stavu_aktivit';
     public const ZMENY_PRIHLASENI = 'zmeny_prihlaseni';
     public const RAZITKO_POSLEDNI_ZMENY = 'razitko_posledni_zmeny';
-    public const UCASTNIK_PRIDATELNY_DO_TIMESTAMP = 'ucastnik_pridatelny_do_timestamp';
-    public const UCASTNIK_ODEBRATELNY_DO_TIMESTAMP = 'ucastnik_odebratelny_do_timestamp';
+    public const UCASTNICI_PRIDATELNI_DO_TIMESTAMP = 'ucastnici_pridatelni_do_timestamp';
+    public const UCASTNICI_ODEBRATELNI_DO_TIMESTAMP = 'ucastnici_odebratelni_do_timestamp';
     public const ERRORS = 'errors';
     public const PRIHLASEN = 'prihlasen';
     public const CAS_POSLEDNI_ZMENY_PRIHLASENI = 'cas_posledni_zmeny_prihlaseni';
@@ -141,8 +141,8 @@ class OnlinePrezenceAjax
                 self::ID_LOGU => $zmenaStavuAktivity->idLogu(),
                 self::CAS_ZMENY => $zmenaStavuAktivity->casZmenyProJs(),
                 self::STAV_AKTIVITY => $zmenaStavuAktivity->stavAktivityProJs(),
-                self::UCASTNIK_ODEBRATELNY_DO_TIMESTAMP => $this->ucastniciOdebratelniDoTimestamp($aktivita),
-                self::UCASTNIK_PRIDATELNY_DO_TIMESTAMP => $this->ucastniciPridatelniDoTimestamp($aktivita),
+                self::UCASTNICI_ODEBRATELNI_DO_TIMESTAMP => $this->ucastniciOdebratelniDoTimestamp($aktivita),
+                self::UCASTNICI_PRIDATELNI_DO_TIMESTAMP => $this->ucastniciPridatelniDoTimestamp($aktivita),
             ];
         }
 
@@ -198,8 +198,8 @@ class OnlinePrezenceAjax
 
         $this->echoJson(
             [
-                self::UCASTNIK_PRIDATELNY_DO_TIMESTAMP => $this->ucastniciPridatelniDoTimestamp($aktivita),
-                self::UCASTNIK_ODEBRATELNY_DO_TIMESTAMP => $this->ucastniciOdebratelniDoTimestamp($aktivita),
+                self::UCASTNICI_PRIDATELNI_DO_TIMESTAMP => $this->ucastniciPridatelniDoTimestamp($aktivita),
+                self::UCASTNICI_ODEBRATELNI_DO_TIMESTAMP => $this->ucastniciOdebratelniDoTimestamp($aktivita),
             ]
         );
     }
