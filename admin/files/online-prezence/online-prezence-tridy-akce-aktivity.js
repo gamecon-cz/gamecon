@@ -5,7 +5,7 @@ class AkceAktivity {
    */
   vypustEventOProbihajicichZmenach(probihaji) {
     const probihajiZmenyEvent = ProbihajiZmeny.vytvor(probihaji)
-    document.getElementById('online-prezence').dispatchEvent(probihajiZmenyEvent)
+    this.dejNodeOnlinePrezence().dispatchEvent(probihajiZmenyEvent)
   }
 
   /**
@@ -84,16 +84,20 @@ class AkceAktivity {
     }
   }
 
-
   /**
    * @private
    * @param {number} idAktivity
    */
   oznacitAktivituJakoKompletneZablokovanou(idAktivity) {
-    const $aktivitaNode = $(`#aktivita-${idAktivity}`)
-    $aktivitaNode.find('.skryt-pokud-aktivitu-nelze-editovat').addClass('display-none')
-    $aktivitaNode.find(`.zobrazit-pokud-aktivitu-nelze-editovat`).removeClass('display-none')
-    $(`#pozor-zamcena-${idAktivity}`).addClass('display-none')
+    const that = this
+    const nodeAktivity = this.dejNodeAktivity(idAktivity)
+    nodeAktivity.querySelectorAll('.skryt-pokud-aktivitu-nelze-editovat').forEach(function (element) {
+      that.skrytElement(element)
+    })
+    nodeAktivity.querySelectorAll('.zobrazit-pokud-aktivitu-nelze-editovat').forEach(function (element) {
+      that.zobrazitElement(element)
+    })
+    this.skrytVarovaniZeAktivitaJeZamcena(idAktivity)
   }
 
   /**
@@ -152,7 +156,15 @@ class AkceAktivity {
    * @param idAktivity
    */
   zobrazitVarovaniZeAktivitaJeZamcena(idAktivity) {
-    $(`#pozor-zamcena-${idAktivity}`).removeClass('display-none')
+    this.zobrazitElement(document.getElementById(`pozor-zamcena-${idAktivity}`))
+  }
+
+  /**
+   * @private
+   * @param idAktivity
+   */
+  skrytVarovaniZeAktivitaJeZamcena(idAktivity) {
+    this.skrytElement(document.getElementById(`pozor-zamcena-${idAktivity}`))
   }
 
   /**
@@ -160,18 +172,27 @@ class AkceAktivity {
    * @param {HTMLElement} zobrazitElement
    */
   prohoditZobrazeni(skrytElementy, zobrazitElement) {
+    const that = this
     skrytElementy.forEach(function (skrytElement) {
-      skrytElement.classList.add('display-none')
+      that.skrytElement(skrytElement)
     })
     this.zobrazitElement(zobrazitElement)
   }
 
   /**
+   * @private
    * @param {HTMLElement} element
    */
   zobrazitElement(element) {
     element.classList.remove('display-none')
-    element.style.display = 'initial'
+  }
+
+  /**
+   * @private
+   * @param {HTMLElement} element
+   */
+  skrytElement(element) {
+    element.classList.add('display-none')
   }
 
   /**
@@ -250,17 +271,6 @@ class AkceAktivity {
     return new Date().getTime() / 1000
   }
 
-
-  /**
-   * @param {number} idUzivatele
-   * @param {number} idAktivity
-   * @param {HTMLElement} checkboxNode
-   * @param {HTMLElement|undefined} triggeringNode
-   * @param {function|undefined} callbackOnSuccessBeforeMetadataChange
-   * @param {function|undefined} callbackOnSuccessAfterMetadataChange
-   */
-  function
-
   /**
    * @param {number} idUcastnika
    * @param {number} idAktivity
@@ -318,7 +328,7 @@ class AkceAktivity {
             razitkoPosledniZmeny: data.razitko_posledni_zmeny,
           },
         })
-        document.getElementById('online-prezence').dispatchEvent(zmenaMetadatPrezence)
+        that.dejNodeOnlinePrezence().dispatchEvent(zmenaMetadatPrezence)
 
         if (callbackOnSuccessAfterMetadataChange) {
           callbackOnSuccessAfterMetadataChange()
@@ -361,6 +371,13 @@ class AkceAktivity {
    */
   dejNodeAktivity(idAktivity) {
     return document.getElementById(`aktivita-${idAktivity}`)
+  }
+
+  /**
+   * @return {HTMLElement}
+   */
+  dejNodeOnlinePrezence() {
+    return document.getElementById(`online-prezence`)
   }
 }
 
