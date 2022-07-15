@@ -1,13 +1,19 @@
-import {vypustEventOProbihajicichZmenach} from "./online-prezence-eventy.js"
-
 class AkceAktivity {
+
+  /**
+   * @param {boolean} probihaji
+   */
+  vypustEventOProbihajicichZmenach(probihaji) {
+    const probihajiZmenyEvent = ProbihajiZmeny.vytvor(probihaji)
+    document.getElementById('online-prezence').dispatchEvent(probihajiZmenyEvent)
+  }
 
   /**
    * @public
    * @param {number} idAktivity
    */
   uzavritAktivitu(idAktivity) {
-    vypustEventOProbihajicichZmenach(true)
+    this.vypustEventOProbihajicichZmenach(true)
 
     const that = this
     $.post(location.href, {
@@ -20,7 +26,7 @@ class AkceAktivity {
         data.ucastnici_odebratelni_do_timestamp,
       )
     }).always(function () {
-      vypustEventOProbihajicichZmenach(false)
+      that.vypustEventOProbihajicichZmenach(false)
     })
   }
 
@@ -270,7 +276,7 @@ class AkceAktivity {
     callbackOnSuccessBeforeMetadataChange,
     callbackOnSuccessAfterMetadataChange,
   ) {
-    vypustEventOProbihajicichZmenach(true)
+    this.vypustEventOProbihajicichZmenach(true)
 
     checkboxNode.disabled = true
     const dorazil = checkboxNode.checked
@@ -335,7 +341,7 @@ class AkceAktivity {
       const errorsEvent = new CustomEvent('ajaxErrors', {detail: detail})
       that.dejNodeAktivity(idAktivity).dispatchEvent(errorsEvent)
     }).always(function () {
-      vypustEventOProbihajicichZmenach(false)
+      that.vypustEventOProbihajicichZmenach(false)
     })
   }
 

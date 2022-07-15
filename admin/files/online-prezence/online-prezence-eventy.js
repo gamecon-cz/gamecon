@@ -38,12 +38,4 @@ class ProbihajiZmeny extends CustomEvent {
   }
 }
 
-/**
- * @param {boolean} probihaji
- */
-function vypustEventOProbihajicichZmenach(probihaji) {
-  const probihajiZmenyEvent = ProbihajiZmeny.vytvor(probihaji)
-  document.getElementById('online-prezence').dispatchEvent(probihajiZmenyEvent)
-}
-
-export {ZmenaMetadatAktivity, vypustEventOProbihajicichZmenach}
+export {ZmenaMetadatAktivity}
