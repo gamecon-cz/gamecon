@@ -71,19 +71,18 @@ class AktivitaPrezence
      * @return bool false pokud byl uživatel už zrušen a nic se tedy nezměnilo
      */
     public function zrusZeDorazil(\Uzivatel $nedorazil): bool {
-        // TODO kontrola, jestli prezence smí být uložena (např. jestli už nebyla uložena dřív)
-
         if ($this->aktivita->dorazilJakoNahradnik($nedorazil)) {
             dbDelete('akce_prihlaseni', [
                 'id_uzivatele' => $nedorazil->id(),
                 'id_akce' => $this->aktivita->id(),
             ]);
             $this->zalogujZeZrusilPrihlaseniJakoNahradik($nedorazil);
-            /* Návštěvník přidaný k aktivitě přes online prezenci se přidá jako náhradník a obratem potvrdí jeho přítomnost - přestože to aktivita sama vlastně nedovoluje. Když ho z aktivity zas ruší, tak ho ale nemůžeme zařadit do fronty jako náhradníka, protože to aktivita vlastně nedovoluje (a my to popravdě ani nechceme, když ho odškrtli při samotné online prezenci).
-            PS: vlastně nechceme účastníka, kterého přidal vypravěč, "vracet" do stavu sledujícího, ale zatím to nechceme řešit.
+            /* Návštěvník přidaný k aktivitě přes online prezenci se přidá jako náhradník a obratem potvrdí jeho přítomnost - přestože to aktivita sama vlastně nedovoluje. Když ho z aktivity zas ruší, tak ho ale nemůžeme zařadit do fronty jako náhradníka, pokud to aktivita nedovoluje (a my to popravdě ani nechceme, když ho odškrtli při samotné online prezenci).
+            PS: ano, vlastně nechceme účastníka, kterého přidal vypravěč, "vracet" do stavu sledujícího, ale zatím to nechceme řešit.
                 Museli bychom logovat i kdo ho původně přihlásil jako náhradníka v \Gamecon\Aktivita\Aktivita::prihlas */
             if ($this->aktivita->prihlasovatelnaProSledujici()) {
-                /** jinak si aktivita bude stále pamatovat, že uživatel je přihllášen a přeskočí přihlášení sledujícího,
+                /**
+                 * Musíme refreshovat, jinak si aktivita bude stále pamatovat, že uživatel je přihlášen a přeskočí přihlášení sledujícího,
                  * @see \Gamecon\Aktivita\Aktivita::prihlasen
                  */
                 $this->aktivita->refresh(); // pozor na to, že tímto jsme odstřihli současnou instanci AktivitaPrezence od Aktivita

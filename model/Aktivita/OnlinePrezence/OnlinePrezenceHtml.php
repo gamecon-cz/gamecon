@@ -141,17 +141,17 @@ class OnlinePrezenceHtml
             $editovatelnaOdTimestamp = $this->dejEditovatelnaOdTimestamp($aktivita);
             $ucastniciPridatelniDoTimestamp = $this->ucastniciPridatelniDoTimestamp($aktivita);
             $ucastniciOdebratelniDoTimestamp = $this->ucastniciOdebratelniDoTimestamp($aktivita);
-            $pridatelnyHned = $editovatelnaOdTimestamp <= 0 && $ucastniciPridatelniDoTimestamp > 0;
-            $odebratelnyHned = $editovatelnaOdTimestamp <= 0 && $ucastniciOdebratelniDoTimestamp > 0;
-            $nejdeAlePujdePridat = !$pridatelnyHned && $ucastniciPridatelniDoTimestamp > 0;
-            $nejdeAlePujdeOdebrat = !$odebratelnyHned && $ucastniciOdebratelniDoTimestamp > 0;
+            $pridatelniHned = $editovatelnaOdTimestamp <= 0 && $ucastniciPridatelniDoTimestamp > 0;
+            $odebratelniHned = $editovatelnaOdTimestamp <= 0 && $ucastniciOdebratelniDoTimestamp > 0;
+            $nejdouAlePujdouPridat = !$pridatelniHned && $ucastniciPridatelniDoTimestamp > 0;
+            $nejdouAlePujdouOdebrat = !$odebratelniHned && $ucastniciOdebratelniDoTimestamp > 0;
             $uzNepujdePridat = $ucastniciPridatelniDoTimestamp <= 0;
             $uzNepujdeOdebrat = $ucastniciOdebratelniDoTimestamp <= 0;
             $zamcena = $aktivita->zamcena();
             $uzavrena = $aktivita->uzavrena();
             $neuzavrena = !$uzavrena;
-            $muzePridatUcastnikyHned = $pridatelnyHned; // TODO připraveno pro právo na změnu historie aktivit
-            $muzeOdebratUcastnikyHned = $odebratelnyHned; // TODO připraveno pro právo na změnu historie aktivit
+            $muzePridatUcastnikyHned = $pridatelniHned; // TODO připraveno pro právo na změnu historie aktivit
+            $muzeOdebratUcastnikyHned = $odebratelniHned; // TODO připraveno pro právo na změnu historie aktivit
             $zmenaStavuAktivity = $aktivita->posledniZmenaStavuAktivity();
             $konec = $aktivita->konec();
 
@@ -173,7 +173,7 @@ class OnlinePrezenceHtml
             // ⏳ Můžeš ji editovat za ⏳
             $template->assign(
                 'showCeka',
-                $this->cssZobrazitKdyz($nejdeAlePujdePridat && $nejdeAlePujdeOdebrat)
+                $this->cssZobrazitKdyz($nejdouAlePujdouPridat && $nejdouAlePujdouOdebrat)
             );
             // 🔒 Zamčena pro online přihlašování 🔒
             $template->assign(
@@ -183,7 +183,7 @@ class OnlinePrezenceHtml
             // Uzavřít 📕
             $template->assign(
                 'showUzavrit',
-                $this->cssZobrazitKdyz($neuzavrena && !$nejdeAlePujdePridat)
+                $this->cssZobrazitKdyz($neuzavrena && !$nejdouAlePujdouPridat)
             );
             // 🧊 ️Už ji nelze editovat ani zpětně 🧊️
             $template->assign(
@@ -198,14 +198,14 @@ class OnlinePrezenceHtml
             // ✋ Aktivita už skončila, pozor na úpravy ✋
             $template->assign(
                 'showAktivitaSkoncila',
-                // zobrazíme pouze v případě, že aktivitu lze editovat i po skončení
+                // zobrazíme pouze v případě, že aktivitu lze editovat i po skončení (není tedy ještě uzavřená, nebo má editující zvláštní právo)
                 $this->cssZobrazitKdyz(
-                    ($muzePridatUcastnikyHned && !$pridatelnyHned)
-                    || ($muzeOdebratUcastnikyHned && !$odebratelnyHned)
+                    ($muzePridatUcastnikyHned && !$pridatelniHned)
+                    || ($muzeOdebratUcastnikyHned && !$odebratelniHned)
                 )
             );
             // ⚠️Pozor, aktivita je už uzavřená! ⚠️
-            $template->assign(
+            $template->assign( // určeno pro zvláštní admin právo
                 'showPozorUzavrena',
                 $this->cssZobrazitKdyz($uzavrena && ($muzePridatUcastnikyHned || $muzeOdebratUcastnikyHned))
             );
