@@ -88,13 +88,17 @@ class OnlinePrezenceHtml
                 __DIR__ . '/../../../admin/files/design/online-prezence.css',
             ],
             'javascripts' => [
-                __DIR__ . '/../../../admin/files/omnibox-1.1.3.js',
-                __DIR__ . '/../../../admin/files/online-prezence/online-prezence-heat-colors.js',
-                __DIR__ . '/../../../admin/files/online-prezence/online-prezence-tooltip.js',
-                __DIR__ . '/../../../admin/files/online-prezence/online-prezence.js',
-                __DIR__ . '/../../../admin/files/online-prezence/online-prezence-posledni-zname-zmeny-prihlaseni.js',
-                __DIR__ . '/../../../admin/files/online-prezence/online-prezence-prepinani-viditelnosti.js',
-                __DIR__ . '/../../../admin/files/online-prezence/online-prezence-errors.js',
+                'text' => [
+                    __DIR__ . '/../../../admin/files/omnibox-1.1.3.js',
+                    __DIR__ . '/../../../admin/files/online-prezence/online-prezence-heat-colors.js',
+                    __DIR__ . '/../../../admin/files/online-prezence/online-prezence-tooltip.js',
+                    __DIR__ . '/../../../admin/files/online-prezence/online-prezence-errors.js',
+                    __DIR__ . '/../../../admin/files/online-prezence/online-prezence-prepinani-viditelnosti.js',
+                ],
+                'module' => [
+                    __DIR__ . '/../../../admin/files/online-prezence/online-prezence.js',
+                    __DIR__ . '/../../../admin/files/online-prezence/online-prezence-posledni-zname-zmeny-prihlaseni.js',
+                ],
             ],
         ];
         foreach ($localAssets['stylesheets'] as $stylesheet) {
@@ -102,9 +106,16 @@ class OnlinePrezenceHtml
             $template->assign('version', md5_file($stylesheet));
             $template->parse('onlinePrezence.stylesheet');
         }
-        foreach ($localAssets['javascripts'] as $javascript) {
-            $template->assign('url', str_replace(__DIR__ . '/../../../admin/', '', $javascript));
-            $template->assign('version', md5_file($javascript));
+        foreach ($localAssets['javascripts'] as $type => $javascripts) {
+            foreach ($javascripts as $javascript) {
+                $template->assign('url', str_replace(__DIR__ . '/../../../admin/', '', $javascript));
+                $template->assign('version', md5_file($javascript));
+                if ($type === 'module') {
+                    $template->parse('onlinePrezence.javascript.module');
+                } else {
+                    $template->parse('onlinePrezence.javascript.text');
+                }
+            }
             $template->parse('onlinePrezence.javascript');
         }
     }
@@ -128,15 +139,19 @@ class OnlinePrezenceHtml
     ) {
         foreach ($organizovaneAktivity as $aktivita) {
             $editovatelnaOdTimestamp = $this->dejEditovatelnaOdTimestamp($aktivita);
-            $editovatelnaDoTimestamp = $this->dejEditovatelnaDoTimestamp($aktivita);
-            $editovatelnaHned = $editovatelnaOdTimestamp <= 0 && $editovatelnaDoTimestamp > 0;
-            $nejdeAlePujdeEditovat = !$editovatelnaHned && $editovatelnaDoTimestamp > 0;
-            $uzNepujdeEditovat = $editovatelnaDoTimestamp <= 0;
+            $ucastniciPridatelniDoTimestamp = $this->ucastniciPridatelniDoTimestamp($aktivita);
+            $ucastniciOdebratelniDoTimestamp = $this->ucastniciOdebratelniDoTimestamp($aktivita);
+            $pridatelnyHned = $editovatelnaOdTimestamp <= 0 && $ucastniciPridatelniDoTimestamp > 0;
+            $odebratelnyHned = $editovatelnaOdTimestamp <= 0 && $ucastniciOdebratelniDoTimestamp > 0;
+            $nejdeAlePujdePridat = !$pridatelnyHned && $ucastniciPridatelniDoTimestamp > 0;
+            $nejdeAlePujdeOdebrat = !$odebratelnyHned && $ucastniciOdebratelniDoTimestamp > 0;
+            $uzNepujdePridat = $ucastniciPridatelniDoTimestamp <= 0;
+            $uzNepujdeOdebrat = $ucastniciOdebratelniDoTimestamp <= 0;
             $zamcena = $aktivita->zamcena();
             $uzavrena = $aktivita->uzavrena();
             $neuzavrena = !$uzavrena;
-            $maPravoNaZmenuHistorie = $vypravec->maPravoNaZmenuHistorieAktivit();
-            $muzeMenitUcastnikyHned = $editovatelnaHned || ($uzNepujdeEditovat && $maPravoNaZmenuHistorie);
+            $muzePridatUcastnikyHned = $pridatelnyHned; // TODO připraveno pro právo na změnu historie aktivit
+            $muzeOdebratUcastnikyHned = $odebratelnyHned; // TODO připraveno pro právo na změnu historie aktivit
             $zmenaStavuAktivity = $aktivita->posledniZmenaStavuAktivity();
             $konec = $aktivita->konec();
 
@@ -146,8 +161,8 @@ class OnlinePrezenceHtml
             );
             $template->assign('konecAktivityVTimestamp', $konec ? $konec->getTimestamp() : null);
             $template->assign('editovatelnaOdTimestamp', $editovatelnaOdTimestamp);
-            $template->assign('editovatelnaDoTimestamp', $editovatelnaDoTimestamp);
-            $template->assign('maPravoNaZmenuHistorie', $maPravoNaZmenuHistorie);
+            $template->assign('ucastniciPridatelniDoTimestamp', $ucastniciPridatelniDoTimestamp);
+            $template->assign('ucastniciOdebratelniDoTimestamp', $ucastniciOdebratelniDoTimestamp);
             $template->assign('minutNaPosledniChvili', $this->systemoveNastaveni->prihlaseniNaPosledniChviliXMinutPredZacatkemAktivity());
             $template->assign('kapacita', (int)$aktivita->kapacita());
             $template->assign('idAktivity', $aktivita->id());
@@ -158,7 +173,7 @@ class OnlinePrezenceHtml
             // ⏳ Můžeš ji editovat za ⏳
             $template->assign(
                 'showCeka',
-                $this->cssZobrazitKdyz($nejdeAlePujdeEditovat)
+                $this->cssZobrazitKdyz($nejdeAlePujdePridat && $nejdeAlePujdeOdebrat)
             );
             // 🔒 Zamčena pro online přihlašování 🔒
             $template->assign(
@@ -168,12 +183,12 @@ class OnlinePrezenceHtml
             // Uzavřít 📕
             $template->assign(
                 'showUzavrit',
-                $this->cssZobrazitKdyz($neuzavrena && !$nejdeAlePujdeEditovat)
+                $this->cssZobrazitKdyz($neuzavrena && !$nejdeAlePujdePridat)
             );
             // 🧊 ️Už ji nelze editovat ani zpětně 🧊️
             $template->assign(
                 'showUzNeeditovatelna',
-                $this->cssZobrazitKdyz($neuzavrena && $uzNepujdeEditovat)
+                $this->cssZobrazitKdyz($neuzavrena && $uzNepujdePridat && $uzNepujdeOdebrat)
             );
             // 📕 Uzavřena 📕
             $template->assign(
@@ -184,12 +199,15 @@ class OnlinePrezenceHtml
             $template->assign(
                 'showAktivitaSkoncila',
                 // zobrazíme pouze v případě, že aktivitu lze editovat i po skončení
-                $this->cssZobrazitKdyz($muzeMenitUcastnikyHned && !$editovatelnaHned)
+                $this->cssZobrazitKdyz(
+                    ($muzePridatUcastnikyHned && !$pridatelnyHned)
+                    || ($muzeOdebratUcastnikyHned && !$odebratelnyHned)
+                )
             );
             // ⚠️Pozor, aktivita je už uzavřená! ⚠️
             $template->assign(
                 'showPozorUzavrena',
-                $this->cssZobrazitKdyz($uzavrena && $muzeMenitUcastnikyHned)
+                $this->cssZobrazitKdyz($uzavrena && ($muzePridatUcastnikyHned || $muzeOdebratUcastnikyHned))
             );
 
             // případnou změnu je nutné promítnout i do online-prezence.js pridejEmailUcastnikaDoSeznamu()
@@ -203,7 +221,8 @@ class OnlinePrezenceHtml
                     $ucastnik,
                     $aktivita,
                     $aktivita->stavPrihlaseni($ucastnik),
-                    $muzeMenitUcastnikyHned
+                    $muzePridatUcastnikyHned,
+                    $muzeOdebratUcastnikyHned
                 );
                 $template->assign('ucastnikHtml', $ucastnikHtml);
                 $template->parse('onlinePrezence.aktivity.aktivita.form.ucastnik');
@@ -215,13 +234,14 @@ class OnlinePrezenceHtml
                     $sledujici,
                     $aktivita,
                     $aktivita->stavPrihlaseni($sledujici),
-                    $muzeMenitUcastnikyHned
+                    $muzePridatUcastnikyHned,
+                    $muzeOdebratUcastnikyHned,
                 );
                 $template->assign('ucastnikHtml', $sledujiciHtml);
                 $template->parse('onlinePrezence.aktivity.aktivita.form.ucastnik');
             }
 
-            $template->assign('disabledPridatUcastnika', $muzeMenitUcastnikyHned ? '' : 'disabled');
+            $template->assign('disabledPridatUcastnika', $muzeOdebratUcastnikyHned ? '' : 'disabled');
             $template->assign('idAktivity', $aktivita->id());
             $template->parse('onlinePrezence.aktivity.aktivita.form.pridatUcastnika');
 
@@ -306,11 +326,18 @@ class OnlinePrezenceHtml
             : time() + ($hnedEditovatelnaSeZacatkemDo->getTimestamp() - $this->systemoveNastaveni->ted()->getTimestamp());
     }
 
-    private function dejEditovatelnaDoTimestamp(Aktivita $aktivita): int {
-        $editovatelnaDo = $aktivita->editovatelnaDo($this->systemoveNastaveni);
-        return $editovatelnaDo <= $this->systemoveNastaveni->ted()
-            ? 0 // už ji nelze editovat
-            : $editovatelnaDo->getTimestamp();
+    private function ucastniciOdebratelniDoTimestamp(Aktivita $aktivita): int {
+        $ucastniciOdebratelniDo = $aktivita->ucastniciOdebratelniDo($this->systemoveNastaveni);
+        return $ucastniciOdebratelniDo <= $this->systemoveNastaveni->ted()
+            ? 0 // už je nelze odebrat
+            : $ucastniciOdebratelniDo->getTimestamp();
+    }
+
+    private function ucastniciPridatelniDoTimestamp(Aktivita $aktivita): int {
+        $ucastniciPridatelniDo = $aktivita->ucastniciPridatelniDo($this->systemoveNastaveni);
+        return $ucastniciPridatelniDo <= $this->systemoveNastaveni->ted()
+            ? 0 // už je nelze přidat
+            : $ucastniciPridatelniDo->getTimestamp();
     }
 
     private function cssZobrazitKdyz(bool $zobrazit): string {
@@ -329,10 +356,15 @@ class OnlinePrezenceHtml
     public function sestavHmlUcastnikaAktivity(
         \Uzivatel $ucastnik,
         Aktivita  $aktivita,
-        int       $stavPrihlaseni,
-        bool      $zatimPouzeProCteni
+        int       $stavPrihlaseni
     ): string {
+        $editovatelnaOdTimestamp = $this->dejEditovatelnaOdTimestamp($aktivita);
+        $ucastniciPridatelniDoTimestamp = $this->ucastniciPridatelniDoTimestamp($aktivita);
+        $ucastniciOdebratelniDoTimestamp = $this->ucastniciOdebratelniDoTimestamp($aktivita);
+        $pridatelnyHned = $editovatelnaOdTimestamp <= 0 && $ucastniciPridatelniDoTimestamp > 0;
+        $odebratelnyHned = $editovatelnaOdTimestamp <= 0 && $ucastniciOdebratelniDoTimestamp > 0;
+
         return $this->dejOnlinePrezenceUcastnikHtml()
-            ->sestavHmlUcastnikaAktivity($ucastnik, $aktivita, $stavPrihlaseni, $zatimPouzeProCteni);
+            ->sestavHmlUcastnikaAktivity($ucastnik, $aktivita, $stavPrihlaseni, $pridatelnyHned, $odebratelnyHned);
     }
 }

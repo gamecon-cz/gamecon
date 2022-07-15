@@ -22,15 +22,22 @@ class OnlinePrezenceUcastnikHtml
         \Uzivatel $ucastnik,
         Aktivita  $aktivita,
         int       $stavPrihlaseni,
-        bool      $muzeMenitUcastniky
+        bool      $ucastnikMuzeBytPridan,
+        bool      $ucastnikMuzeBytOdebran
     ): string {
         $ucastnikTemplate = $this->dejOnlinePrezenceUcastnikTemplate();
 
         $ucastnikTemplate->assign('u', $ucastnik);
         $ucastnikTemplate->assign('a', $aktivita);
 
-        $ucastnikTemplate->assign('checkedUcastnik', StavPrihlaseni::dorazilJakoCokoliv($stavPrihlaseni) ? 'checked' : '');
-        $ucastnikTemplate->assign('disabledUcastnik', $muzeMenitUcastniky ? '' : 'disabled');
+        $dorazil = StavPrihlaseni::dorazilJakoCokoliv($stavPrihlaseni);
+        $ucastnikTemplate->assign('checkedUcastnik', $dorazil ? 'checked' : '');
+        $ucastnikTemplate->assign(
+            'disabledUcastnik',
+            (!$dorazil && $ucastnikMuzeBytPridan) || ($dorazil && $ucastnikMuzeBytOdebran)
+                ? ''
+                : 'disabled'
+        );
         $ucastnikTemplate->parse('ucastnik.checkbox');
 
         if ($ucastnik->gcPritomen()) {

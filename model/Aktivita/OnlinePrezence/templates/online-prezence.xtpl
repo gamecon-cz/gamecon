@@ -25,11 +25,22 @@
   <script type="text/javascript" src="files/jquery.hotkeys-0.8.0.js"></script>
   <script type="text/javascript" src="files/bootstrap.bundle.5.1.3.js"></script>
   <!-- begin:javascript -->
+  <!-- begin:text -->
   <script type="text/javascript" src="{url}?version={version}"></script>
+  <!-- end:text -->
+  <!-- begin:module -->
+  <script type="module" src="{url}?version={version}"></script>
+  <!-- end:module -->
   <!-- end:javascript -->
 </head>
 
 <body>
+
+<script type="text/javascript">
+  if (window.navigator.userAgent.indexOf("MSIE ") > -1) {
+    alert('Internet Explorer není podporován. Budeš mít potíže. Raději si stáhni novější prohlížeč.')
+  }
+</script>
 
 <main class="main">
 
@@ -130,7 +141,8 @@
            data-id-posledniho-logu="{idPoslednihoLogu}"
            data-konec-aktivity-v-timestamp="{konecAktivityVTimestamp}"
            data-editovatelna-od-timestamp="{editovatelnaOdTimestamp}"
-           data-editovatelna-do-timestamp="{editovatelnaDoTimestamp}"
+           data-ucastnici-pridatelni-do-timestamp="{ucastniciPridatelniDoTimestamp}"
+           data-ucastnici-odebratelni-do-timestamp="{ucastniciOdebratelniDoTimestamp}"
       >
         <h2 id="{nadpis}" class="clearfix">
           <span data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true"
@@ -212,10 +224,7 @@
             >
               ✋ <em>Aktivita už skončila, pozor na úpravy</em> <span class="flipped-icon">✋</span>
             </span>
-            <span
-                id="uz-needitovatelna-{idAktivity}"
-                class="alert-info text-skoncila {showUzNeeditovatelna}"
-            >
+            <span class="alert-info text-skoncila {showUzNeeditovatelna} zobrazit-pokud-aktivitu-nelze-editovat">
               <em>🧊 Už ji nelze editovat ani zpětně 🧊</em>
             </span>
           </span>
@@ -327,7 +336,15 @@
 
       </div>
       <script type="text/javascript">
-        upravUkazateleZaplnenostiAktivity(document.getElementById(`aktivita-{idAktivity}`))
+        { // local scope abychom nemuseli řešit že const už je definována
+          const aktivitaVyrenderovana = new CustomEvent(
+            'aktivitaVyrenderovana',
+            {
+              detail: document.getElementById(`aktivita-{idAktivity}`),
+            },
+          )
+          document.dispatchEvent(aktivitaVyrenderovana)
+        }
       </script>
       <!-- end:aktivita -->
 
@@ -351,7 +368,7 @@
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Opravit prezenci</button>
             <button type="button" class="btn btn-primary"
-                    onclick="uzavritAktivitu(posledneKliknutaAktivitaId)"
+                    onclick="document.getElementById('online-prezence').dispatchEvent(new CustomEvent('uzavritAktivitu', {detail: posledneKliknutaAktivitaId}))"
                     data-bs-dismiss="modal">
               Uzavřít aktivitu
             </button>

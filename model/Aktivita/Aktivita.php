@@ -1474,7 +1474,7 @@ SQL
         if ($this->a['zamcel'] && !($parametry & self::ZAMEK)) {
             throw new \Chyba(hlaska('zamcena')); // zamčena pro tým, nikoli zamčena / uzavřena
         }
-        if ($this->probehnuta() && $this->maOrganizatora($prihlasujici) && $this->ucastEditovatelna()) {
+        if ($this->probehnuta() && $this->maOrganizatora($prihlasujici) && $this->ucastniciPridatelni()) {
             $parametry |= self::ZPETNE; // přestože je zamčená nebo dokonce uzavřená, stále ji ještě lze (po nějakou dobu) editovat
         }
         if (!($prihlasovatelna = $this->prihlasovatelna($parametry))) {
@@ -1517,7 +1517,7 @@ SQL
     public function zkontrolujZdaSeMuzeOdhlasit(\Uzivatel $ucastnik, \Uzivatel $odhlasujici, SystemoveNastaveni $systemoveNastaveni = null) {
         if ($this->prihlasen($ucastnik)
             && $this->probehnuta()
-            && (!$this->maOrganizatora($odhlasujici) || !$this->ucastEditovatelna($systemoveNastaveni))
+            && (!$this->maOrganizatora($odhlasujici) || !$this->ucastniciOdebratelni($systemoveNastaveni))
         ) {
             throw new \Chyba('Aktivita už je uzavřena a nelze z ní odhlašovat.');
         }
@@ -1625,7 +1625,7 @@ SQL
     }
 
     public function dorazilJakoNahradnik(\Uzivatel $ucastnik): bool {
-        return $this->stavPrihlaseni($ucastnik) === self::DORAZIL_JAKO_NAHRADNIK;;
+        return $this->stavPrihlaseni($ucastnik) === self::DORAZIL_JAKO_NAHRADNIK;
     }
 
     public function dorazilJakoPredemPrihlaseny(\Uzivatel $ucastnik): bool {
@@ -2445,19 +2445,39 @@ SQL
         ) ?: [];
     }
 
-    public function ucastEditovatelna(SystemoveNastaveni $systemoveNastaveni = null): bool {
+    public function ucastniciOdebratelni(SystemoveNastaveni $systemoveNastaveni = null): bool {
         $systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobalnich();
 
-        return $this->editovatelnaDo($systemoveNastaveni) >= $systemoveNastaveni->ted();
+        return $this->ucastniciOdebratelniDo($systemoveNastaveni) >= $systemoveNastaveni->ted();
     }
 
-    public function editovatelnaDo(SystemoveNastaveni $systemoveNastaveni = null): \DateTimeImmutable {
+    public function ucastniciOdebratelniDo(SystemoveNastaveni $systemoveNastaveni = null): \DateTimeImmutable {
         $systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobalnich();
-        $uzavrenaOd = $this->uzavrenaOd();
-        if (!$uzavrenaOd) {
+        if (!$this->uzavrena()) {
             return \DateTimeImmutable::createFromMutable($systemoveNastaveni->konecLetosnihoGameconu());
         }
-        return $uzavrenaOd->modify("+ {$systemoveNastaveni->aktivitaEditovatelnaXMinutPoJejimKonci()} minutes");
+        /*
+         * nechceme dovolit editaci účastníků už uzavřených aktivit
+         * (při odebrání by jim naskákaly storna, při opětovném přidání bychom museli strorno zrušit)
+         */
+        return $systemoveNastaveni->ted()->modify('-1 second');
+    }
+
+    public function ucastniciPridatelni(SystemoveNastaveni $systemoveNastaveni = null): bool {
+        $systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobalnich();
+
+        return $this->ucastniciPridatelniDo($systemoveNastaveni) >= $systemoveNastaveni->ted();
+    }
+
+    public function ucastniciPridatelniDo(SystemoveNastaveni $systemoveNastaveni = null): \DateTimeImmutable {
+        $systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobalnich();
+        if (!$this->uzavrena() || !$this->konec()) {
+            return \DateTimeImmutable::createFromMutable($systemoveNastaveni->konecLetosnihoGameconu());
+        }
+        return \DateTimeImmutable::createFromMutable(
+            (clone $this->konec())
+                ->modify("+ {$systemoveNastaveni->ucastnikyLzePridatXMinutPoUzavreniAktivity()} minutes")
+        );
     }
 
     /** Je aktivita už proběhlá resp. už uzavřená pro změny? */
