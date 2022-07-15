@@ -1,3 +1,5 @@
+import {ProbihajiZmeny} from "./online-prezence-eventy.js"
+
 class AkceAktivity {
 
   /**
