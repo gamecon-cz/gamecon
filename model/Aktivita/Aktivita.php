@@ -5,7 +5,6 @@ namespace Gamecon\Aktivita;
 use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImportSqlColumn;
-use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Exceptions\ChybaKolizeAktivit;
 use Gamecon\PrednacitaniTrait;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -1474,7 +1473,10 @@ SQL
         if ($this->a['zamcel'] && !($parametry & self::ZAMEK)) {
             throw new \Chyba(hlaska('zamcena')); // zamčena pro tým, nikoli zamčena / uzavřena
         }
-        if ($this->probehnuta() && $this->maOrganizatora($prihlasujici) && $this->ucastniciPridatelni()) {
+        if ($this->probehnuta()
+            && ($prihlasujici->organizuje($this) || $prihlasujici->maPravoNaPristupDoPrezence())
+            && $this->ucastniciPridatelni()
+        ) {
             $parametry |= self::ZPETNE; // přestože je zamčená nebo dokonce uzavřená, stále ji ještě lze (po nějakou dobu) editovat
         }
         if (!($prihlasovatelna = $this->prihlasovatelna($parametry))) {
@@ -1517,7 +1519,9 @@ SQL
     public function zkontrolujZdaSeMuzeOdhlasit(\Uzivatel $ucastnik, \Uzivatel $odhlasujici, SystemoveNastaveni $systemoveNastaveni = null) {
         if ($this->prihlasen($ucastnik)
             && $this->probehnuta()
-            && (!$this->maOrganizatora($odhlasujici) || !$this->ucastniciOdebratelni($systemoveNastaveni))
+            && ((!$odhlasujici->organizuje($this) && !$odhlasujici->maPravoNaPristupDoPrezence())
+                || !$this->ucastniciOdebratelni($systemoveNastaveni)
+            )
         ) {
             throw new \Chyba('Aktivita už je uzavřena a nelze z ní odhlašovat.');
         }
