@@ -243,7 +243,7 @@ class OnlinePrezenceHtml
                 $template->parse('onlinePrezence.aktivity.aktivita.form.ucastnik');
             }
 
-            $template->assign('disabledPridatUcastnika', $muzeOdebratUcastnikyHned ? '' : 'disabled');
+            $template->assign('disabledPridatUcastnika', $muzePridatUcastnikyHned ? '' : 'disabled');
             $template->assign('idAktivity', $aktivita->id());
             $template->parse('onlinePrezence.aktivity.aktivita.form.pridatUcastnika');
 
