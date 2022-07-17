@@ -1473,10 +1473,7 @@ SQL
         if ($this->a['zamcel'] && !($parametry & self::ZAMEK)) {
             throw new \Chyba(hlaska('zamcena')); // zamčena pro tým, nikoli zamčena / uzavřena
         }
-        if ($this->probehnuta()
-            && ($prihlasujici->organizuje($this) || $prihlasujici->maPravoNaPristupDoPrezence())
-            && $this->ucastniciPridatelni()
-        ) {
+        if ($this->probehnuta() && $this->ucastniciPridatelni($prihlasujici)) {
             $parametry |= self::ZPETNE; // přestože je zamčená nebo dokonce uzavřená, stále ji ještě lze (po nějakou dobu) editovat
         }
         if (!($prihlasovatelna = $this->prihlasovatelna($parametry))) {
@@ -1519,9 +1516,7 @@ SQL
     public function zkontrolujZdaSeMuzeOdhlasit(\Uzivatel $ucastnik, \Uzivatel $odhlasujici, SystemoveNastaveni $systemoveNastaveni = null) {
         if ($this->prihlasen($ucastnik)
             && $this->probehnuta()
-            && ((!$odhlasujici->organizuje($this) && !$odhlasujici->maPravoNaPristupDoPrezence())
-                || !$this->ucastniciOdebratelni($systemoveNastaveni)
-            )
+            && !$this->ucastniciOdebratelni($odhlasujici, $systemoveNastaveni)
         ) {
             throw new \Chyba('Aktivita už je uzavřena a nelze z ní odhlašovat.');
         }
@@ -2449,39 +2444,74 @@ SQL
         ) ?: [];
     }
 
-    public function ucastniciOdebratelni(SystemoveNastaveni $systemoveNastaveni = null): bool {
+    public function ucastniciOdebratelni(\Uzivatel $odhlasujici, SystemoveNastaveni $systemoveNastaveni = null): bool {
         $systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobalnich();
 
-        return $this->ucastniciOdebratelniDo($systemoveNastaveni) >= $systemoveNastaveni->ted();
+        return $this->ucastniciOdebratelniDo($odhlasujici, $systemoveNastaveni) >= $systemoveNastaveni->ted();
     }
 
-    public function ucastniciOdebratelniDo(SystemoveNastaveni $systemoveNastaveni = null): \DateTimeImmutable {
+    public function ucastniciOdebratelniDo(
+        \Uzivatel          $odhlasujici,
+        SystemoveNastaveni $systemoveNastaveni = null
+    ): \DateTimeImmutable {
         $systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobalnich();
-        if (!$this->uzavrena()) {
+        if (!$this->probehnuta()) {
+            return \DateTimeImmutable::createFromMutable($systemoveNastaveni->konecLetosnihoGameconu());
+        }
+        // Ze zamčené aktivity mohou účastníky odebírat (odpotvrzovat) jen její vypravěči či z admin stránky Prezence
+        if ($this->zamcena()
+            && ($this->maOrganizatora($odhlasujici) || $odhlasujici->maPravoNaPristupDoPrezence())
+        ) {
             return \DateTimeImmutable::createFromMutable($systemoveNastaveni->konecLetosnihoGameconu());
         }
         /*
-         * nechceme dovolit editaci účastníků už uzavřených aktivit
-         * (při odebrání by jim naskákaly storna, při opětovném přidání bychom museli storno zrušit)
+         * Nechceme dovolit editaci účastníků už uzavřených aktivit ani vypravěčům a adminům.
+         * (při odebrání by jim naskákala storna, při opětovném přidání bychom museli storno zrušit)
          */
         return $systemoveNastaveni->ted()->modify('-1 second');
     }
 
-    public function ucastniciPridatelni(SystemoveNastaveni $systemoveNastaveni = null): bool {
+    public function ucastniciPridatelni(\Uzivatel $prihlasujici, SystemoveNastaveni $systemoveNastaveni = null): bool {
         $systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobalnich();
 
-        return $this->ucastniciPridatelniDo($systemoveNastaveni) >= $systemoveNastaveni->ted();
+        return $this->ucastniciPridatelniDo($prihlasujici, $systemoveNastaveni) >= $systemoveNastaveni->ted();
     }
 
-    public function ucastniciPridatelniDo(SystemoveNastaveni $systemoveNastaveni = null): \DateTimeImmutable {
+    public function ucastniciPridatelniDo(\Uzivatel $prihlasujici, SystemoveNastaveni $systemoveNastaveni = null): \DateTimeImmutable {
         $systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobalnich();
-        if (!$this->uzavrena() || !$this->konec()) {
+        if (!$this->zamcena() && !$this->uzavrena()) {
             return \DateTimeImmutable::createFromMutable($systemoveNastaveni->konecLetosnihoGameconu());
         }
+        if (!$this->maOrganizatora($prihlasujici) && !$prihlasujici->maPravoNaPristupDoPrezence()) {
+            // na zamknutou nebo dokonce uzavřenou aktivitu už mohou účastníky přidávat jen organizátoři nebo admini s přístupem do Prezence
+            return $this->dejDrivejsiZacatekNeboPredChvilkou($systemoveNastaveni);
+        }
+        // jak organizátoři tak admini s přístupem do Prezence mohou stále přidávat na zamčenou aktivitu
+        if ($this->zamcena()) {
+            return \DateTimeImmutable::createFromMutable($systemoveNastaveni->konecLetosnihoGameconu());
+        }
+        if (!$this->maOrganizatora($prihlasujici)) {
+            // admini s přístupem do Prezence, kteří nejsou vypravěči této aktivity, nemohou editovat uzavřenou aktivitu
+            return $this->dejDrivejsiZacatekNeboPredChvilkou($systemoveNastaveni);
+        }
+        if (!$this->konec()) {
+            return \DateTimeImmutable::createFromMutable($systemoveNastaveni->konecLetosnihoGameconu());
+        }
+        // organizátoři a admini s přístupem do Prezence mohou přidávat účastníky k uzavřené aktivitě ještě několik minut po jejím konci
         return \DateTimeImmutable::createFromMutable(
             (clone $this->konec())
                 ->modify("+ {$systemoveNastaveni->ucastnikyLzePridatXMinutPoUzavreniAktivity()} minutes")
         );
+    }
+
+    private function dejDrivejsiZacatekNeboPredChvilkou(SystemoveNastaveni $systemoveNastaveni): \DateTimeImmutable {
+        $zacatekAktivity = $this->zacatek();
+        $predChvilkou = $systemoveNastaveni->ted()->modify('-1 second');
+        if (!$zacatekAktivity) {
+            return $predChvilkou;
+        }
+        $zacatekAktivity = \DateTimeImmutable::createFromMutable($zacatekAktivity);
+        return min($zacatekAktivity, $predChvilkou);
     }
 
     /** Je aktivita už proběhlá resp. už uzavřená pro změny? */

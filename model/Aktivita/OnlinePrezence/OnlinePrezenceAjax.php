@@ -109,6 +109,7 @@ class OnlinePrezenceAjax
 
         if (get('omnibox')) {
             $this->ajaxOmnibox(
+                $vypravec,
                 (int)get('idAktivity'),
                 (string)get('term') ?: '',
                 (array)get('dataVOdpovedi') ?: [],
@@ -141,8 +142,8 @@ class OnlinePrezenceAjax
                 self::ID_LOGU => $zmenaStavuAktivity->idLogu(),
                 self::CAS_ZMENY => $zmenaStavuAktivity->casZmenyProJs(),
                 self::STAV_AKTIVITY => $zmenaStavuAktivity->stavAktivityProJs(),
-                self::UCASTNICI_ODEBRATELNI_DO_TIMESTAMP => $this->ucastniciOdebratelniDoTimestamp($aktivita),
-                self::UCASTNICI_PRIDATELNI_DO_TIMESTAMP => $this->ucastniciPridatelniDoTimestamp($aktivita),
+                self::UCASTNICI_PRIDATELNI_DO_TIMESTAMP => $this->ucastniciPridatelniDoTimestamp($vypravec, $aktivita),
+                self::UCASTNICI_ODEBRATELNI_DO_TIMESTAMP => $this->ucastniciOdebratelniDoTimestamp($vypravec, $aktivita),
             ];
         }
 
@@ -168,6 +169,7 @@ class OnlinePrezenceAjax
                 self::HTML_UCASTNIKA => $this->onlinePrezenceHtml->sestavHmlUcastnikaAktivity(
                     \Uzivatel::zId($zmenaPrihlaseni->idUzivatele()),
                     $aktivita,
+                    $vypravec,
                     $zmenaPrihlaseni->stavPrihlaseni()
                 ),
             ];
@@ -198,18 +200,18 @@ class OnlinePrezenceAjax
 
         $this->echoJson(
             [
-                self::UCASTNICI_PRIDATELNI_DO_TIMESTAMP => $this->ucastniciPridatelniDoTimestamp($aktivita),
-                self::UCASTNICI_ODEBRATELNI_DO_TIMESTAMP => $this->ucastniciOdebratelniDoTimestamp($aktivita),
+                self::UCASTNICI_PRIDATELNI_DO_TIMESTAMP => $this->ucastniciPridatelniDoTimestamp($vypravec, $aktivita),
+                self::UCASTNICI_ODEBRATELNI_DO_TIMESTAMP => $this->ucastniciOdebratelniDoTimestamp($vypravec, $aktivita),
             ]
         );
     }
 
-    private function ucastniciOdebratelniDoTimestamp(Aktivita $aktivita): int {
-        return $aktivita->ucastniciOdebratelniDo($this->systemoveNastaveni)->getTimestamp();
+    private function ucastniciPridatelniDoTimestamp(\Uzivatel $prihlasujici, Aktivita $aktivita): int {
+        return $aktivita->ucastniciPridatelniDo($prihlasujici, $this->systemoveNastaveni)->getTimestamp();
     }
 
-    private function ucastniciPridatelniDoTimestamp(Aktivita $aktivita): int {
-        return $aktivita->ucastniciPridatelniDo($this->systemoveNastaveni)->getTimestamp();
+    private function ucastniciOdebratelniDoTimestamp(\Uzivatel $odhlasujici, Aktivita $aktivita): int {
+        return $aktivita->ucastniciOdebratelniDo($odhlasujici, $this->systemoveNastaveni)->getTimestamp();
     }
 
     private function echoErrorJson(string $error): void {
@@ -337,10 +339,11 @@ class OnlinePrezenceAjax
     }
 
     private function ajaxOmnibox(
-        int    $idAktivity,
-        string $term,
-        array  $dataVOdpovedi,
-        ?array $labelSlozenZ
+        \Uzivatel $vypravec,
+        int       $idAktivity,
+        string    $term,
+        array     $dataVOdpovedi,
+        ?array    $labelSlozenZ
     ) {
         $aktivita = Aktivita::zId($idAktivity, true);
         if (!$aktivita) {
@@ -368,6 +371,7 @@ class OnlinePrezenceAjax
             $ucastnikHtml = $this->onlinePrezenceHtml->sestavHmlUcastnikaAktivity(
                 $prihlasenyUzivatel,
                 $aktivita,
+                $vypravec,
                 /* jenom zobrazeni - skutečné uložení, že dorazil, řešíme už po vybrání uživatele z omniboxu,
                    což je ještě před vykreslením účastníka */
                 StavPrihlaseni::DORAZIL_JAKO_NAHRADNIK
