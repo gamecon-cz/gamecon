@@ -27,7 +27,7 @@ for ($i = 2009; $i <= $maxRok; $i++) {
 }
 
 $hlavicka = array_merge(
-    ['Účastník' => ['ID', 'Příjmení', 'Jméno', 'Přezdívka', 'Mail', 'Židle', 'Práva', 'Datum registrace', 'Prošel infopultem']],
+    ['Účastník' => ['ID', 'Příjmení', 'Jméno', 'Přezdívka', 'Mail', 'Židle', 'Práva', 'Datum registrace', 'Prošel infopultem', 'Odjel kdy']],
     ['Datum narození' => ['Den', 'Měsíc', 'Rok']],
     ['Bydliště' => ['Stát', 'Město', 'Ulice', 'PSČ', 'Škola']],
     ['Ubytovací informace' => array_merge(['Chci bydlet s', 'První noc', 'Poslední noc (počátek)', 'Typ', 'Dorazil na GC'], $ucastPodleRoku)],
@@ -65,6 +65,7 @@ WHERE prihlasen.id_uzivatele IS NOT NULL -- left join, takže může být NULL v
     OR pritomen.id_uzivatele IS NOT NULL -- tohle by bylo hodně divné, musela by být díra v systému, aby nebyl přihlášen ale byl přítomen, ale radši...
     OR EXISTS(SELECT * FROM shop_nakupy WHERE uzivatele_hodnoty.id_uzivatele = shop_nakupy.id_uzivatele AND shop_nakupy.rok = $rok)
     OR EXISTS(SELECT * FROM platby WHERE platby.id_uzivatele = uzivatele_hodnoty.id_uzivatele AND platby.rok = $rok)
+LIMIT 2 -- TODO REMOVE
 SQL,
     [0 => \Gamecon\Zidle::PRIHLASEN_NA_LETOSNI_GC, 1 => \Gamecon\Zidle::PRITOMEN_NA_LETOSNIM_GC, 2 => \Gamecon\Zidle::ODJEL_Z_LETOSNIHO_GC]
 );
@@ -97,16 +98,16 @@ while ($r = mysqli_fetch_assoc($o)) {
     }
     $obsah[] = array_merge(
         [
-            $r['id_uzivatele'],
-            $r['prijmeni_uzivatele'],
-            $r['jmeno_uzivatele'],
-            $r['login_uzivatele'],
-            $r['email1_uzivatele'],
-            $r['zidleZDotazu'],
-            nahradNazvyKonstantZaHodnoty($r['pravaZDotazu'] ?? ''),
-            ed($r['prihlasen_na_gc_kdy']),
-            ed($r['prosel_info_kdy']),
-            ed($r['odjel_kdy']),
+            $r['id_uzivatele'], // 'ID'
+            $r['prijmeni_uzivatele'], // 'Příjmení'
+            $r['jmeno_uzivatele'], // 'Jméno', 'Přezdívka', 'Mail', 'Židle', 'Práva', 'Datum registrace', 'Prošel infopultem
+            $r['login_uzivatele'], // 'Přezdívka'
+            $r['email1_uzivatele'], // 'Mail'
+            $r['zidleZDotazu'], // 'Židle'
+            nahradNazvyKonstantZaHodnoty($r['pravaZDotazu'] ?? ''), // 'Práva'
+            ed($r['prihlasen_na_gc_kdy']), // 'Datum registrace'
+            ed($r['prosel_info_kdy']), // 'Prošel infopultem
+            ed($r['odjel_kdy']), // 'Odjel kdy'
             date('j', strtotime($r['datum_narozeni'])),
             date('n', strtotime($r['datum_narozeni'])),
             date('Y', strtotime($r['datum_narozeni'])),
