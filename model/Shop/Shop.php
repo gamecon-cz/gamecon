@@ -566,7 +566,7 @@ SQL
                 ? $this->vstupne['sum_cena_nakupni'] + $this->vstupnePozde['sum_cena_nakupni']
                 : VYCHOZI_DOBROVOLNE_VSTUPNE, // výchozí hodnota
             'postname' => $this->klicV,
-            'min' => $this->vstupneJeVcas ? 0 : $this->vstupne['sum_cena_nakupni'],
+            'min' => 0,
             'smajliky' => json_encode([
                 [1000, URL_WEBU . '/soubory/blackarrow/shop/vstupne-smajliky/6.png'],
                 [600, URL_WEBU . '/soubory/blackarrow/shop/vstupne-smajliky/5.png'],
