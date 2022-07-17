@@ -1,9 +1,11 @@
-import {ZmenaMetadatAktivity} from "./online-prezence-eventy.js"
+import {ZmenaMetadatAktivity, ZmenaMetadatPrezence, ZmenaMetadatUcastnika} from "./online-prezence-eventy.js"
+import {AkceAktivity} from "./online-prezence-akce-aktivity-class.js"
 
 (function ($) {
   document.addEventListener('DOMContentLoaded', function () {
 
     const onlinePrezence = document.getElementById('online-prezence')
+    const akceAktivity = new AkceAktivity()
 
     if (!onlinePrezence) {
       return // Nevedeš žádné aktivity 😞
@@ -137,11 +139,7 @@ import {ZmenaMetadatAktivity} from "./online-prezence-eventy.js"
           })
         }
 
-        const zmenaMetadatPrezence = new CustomEvent('zmenaMetadatPrezence', {
-          detail: {
-            razitkoPosledniZmeny: data.razitko_posledni_zmeny,
-          },
-        })
+        const zmenaMetadatPrezence = ZmenaMetadatPrezence.vytvor(data.razitko_posledni_zmeny)
         onlinePrezence.dispatchEvent(zmenaMetadatPrezence)
       })
     }
@@ -150,7 +148,7 @@ import {ZmenaMetadatAktivity} from "./online-prezence-eventy.js"
      * @param {ZmenaStavuAktivity} zmena
      */
     function zapisZmenuStavuAktivity(zmena) {
-      const aktivitaNode = document.getElementById(`aktivita-${zmena.idAktivity}`)
+      const aktivitaNode = akceAktivity.dejNodeAktivity(zmena.idAktivity)
       if (aktivitaNode) { // else - přidávání nové aktivity nepodporujeme
         zmenStavAktivity(aktivitaNode, zmena)
       }
@@ -206,26 +204,9 @@ import {ZmenaMetadatAktivity} from "./online-prezence-eventy.js"
 
       const nodeNovehoUcastnika = dejNodeUcastniku(dejNodeAktivity(zmena.idAktivity)).appendChild(template.content.firstChild)
 
-      vypustEventONovemUcastnikovi(zmena)
+      akceAktivity.vypustEventONovemUcastnikovi(zmena.idUzivatele, zmena.idAktivity)
 
       upozorniNaZmenu(nodeNovehoUcastnika, 'lime')
-    }
-
-    /**
-     * Bude zpracováno v event listeneru v online-prezence.js přes hlidejNovehoUcastnika()
-     * @param {ZmenaPrihlaseni} zmena
-     */
-    function vypustEventONovemUcastnikovi(zmena) {
-      const novyUcastnik = new CustomEvent(
-        'novyUcastnik',
-        {
-          detail: {
-            idAktivity: zmena.idAktivity,
-            idUzivatele: zmena.idUzivatele,
-          },
-        },
-      )
-      document.getElementById(`aktivita-${zmena.idAktivity}`).dispatchEvent(novyUcastnik)
     }
 
     /**
@@ -278,23 +259,18 @@ import {ZmenaMetadatAktivity} from "./online-prezence-eventy.js"
     }
 
     /**
-     * Bude zpracováno v event listeneru v online-prezence.js přes zapisMetadataUcastnika()
+     * Bude zpracováno v event listeneru přes AkceAktivity.zapisMetadataUcastnika()
      * @param {HTMLElement} ucastnikNode
      * @param {ZmenaPrihlaseni} zmena
      */
     function vypustEventSNovymiMetadatyUcastnika(ucastnikNode, zmena) {
-      const zmenaMetadatUcastnika = new CustomEvent(
-        'zmenaMetadatUcastnika',
-        {
-          detail: {
-            casPosledniZmenyPrihlaseni: zmena.casZmeny,
-            stavPrihlaseni: zmena.stavPrihlaseni,
-            idPoslednihoLogu: zmena.idPoslednihoLogu,
-            callback: function () {
-              const dorazil = dorazilPodleStavu(zmena.stavPrihlaseni)
-              zmenZaskrtnutiZdaDorazil(ucastnikNode, dorazil)
-            },
-          },
+      const zmenaMetadatUcastnika = ZmenaMetadatUcastnika.vytvor(
+        zmena.casZmeny,
+        zmena.stavPrihlaseni,
+        zmena.idPoslednihoLogu,
+        function () {
+          const dorazil = dorazilPodleStavu(zmena.stavPrihlaseni)
+          zmenZaskrtnutiZdaDorazil(ucastnikNode, dorazil)
         },
       )
       ucastnikNode.dispatchEvent(zmenaMetadatUcastnika)

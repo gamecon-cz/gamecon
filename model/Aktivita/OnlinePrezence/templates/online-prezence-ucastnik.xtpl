@@ -30,7 +30,7 @@
     </span>
     <!-- end: prihlasenNaPosledniChvili -->
     <!-- begin: mladsiOsmnactiLet -->
-    <span class="na-posledni-chvili" id="ucastnik-{u.id}-mladsi-osmnacti-let-{a.id}"
+    <span id="ucastnik-{u.id}-mladsi-osmnacti-let-{a.id}"
           data-bs-toggle="tooltip"
           title="Účastníkovi je pouze {vek} let">
           <i class='mladsi-osmnacti-let fa-solid fa-baby'></i>

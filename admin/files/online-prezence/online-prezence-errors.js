@@ -1,7 +1,10 @@
 // ZOBRAZENI ERRORS
+
+import {AjaxErrors} from "./online-prezence-eventy.js"
+
 document.addEventListener('DOMContentLoaded', function () {
   Array.from(document.getElementsByClassName('aktivita')).forEach(function (aktivita) {
-    aktivita.addEventListener('ajaxErrors', function (
+    aktivita.addEventListener(AjaxErrors.eventName, function (
       /** @var {{detail: {errors: string[]|undefined, warnings: string[]|undefined, triggeringNode: HTMLElement|undefined}}} */event,
     ) {
       if (event.detail.errors) {

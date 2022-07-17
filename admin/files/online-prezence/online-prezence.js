@@ -1,5 +1,6 @@
 import {ZmenaMetadatAktivity} from "./online-prezence-eventy.js"
-import {AkceAktivity} from "./online-prezence-tridy-akce-aktivity.js"
+import {AkceAktivity} from "./online-prezence-akce-aktivity-class.js"
+import {OnlinePrezenceOmnibox} from "./online-prezence-omnibox.js"
 
 (function ($) {
   $(function () {
@@ -32,13 +33,13 @@ import {AkceAktivity} from "./online-prezence-tridy-akce-aktivity.js"
         zapisMetadataAktivity(aktivitaNode, event.detail)
 
         if (event.detail.stavAktivity === 'zamcena') {
-          reagujNaZamceniAktivity(
+          akceAktivity.reagujNaZamceniAktivity(
             aktivitaNode.dataset.id,
             event.detail.ucastniciPridatelniDoTimestamp,
             event.detail.ucastniciOdebratelniDoTimestamp,
           )
         } else if (event.detail.stavAktivity === 'uzavrena') {
-          reagujNaUzavreniAktivity(
+          akceAktivity.reagujNaUzavreniAktivity(
             aktivitaNode.dataset.id,
             event.detail.ucastniciPridatelniDoTimestamp,
             event.detail.ucastniciOdebratelniDoTimestamp,
@@ -63,7 +64,7 @@ import {AkceAktivity} from "./online-prezence-tridy-akce-aktivity.js"
     }
 
     $('.ucastnik').each(function (index, ucastnikNode) {
-      hlidejZmenyMetadatUcastnika(ucastnikNode)
+      akceAktivity.hlidejZmenyMetadatUcastnika(ucastnikNode)
       aktivujTooltipUcastnika(ucastnikNode.dataset.id, ucastnikNode.dataset.idAktivity)
     })
 
@@ -73,9 +74,9 @@ import {AkceAktivity} from "./online-prezence-tridy-akce-aktivity.js"
      */
     function zaznamenejNovehoUcastnika(idUzivatele, idAktivity) {
       const ucastnikNode = akceAktivity.dejNodeUcastnika(idUzivatele, idAktivity)
-      hlidejZmenyMetadatUcastnika(ucastnikNode)
+      akceAktivity.hlidejZmenyMetadatUcastnika(ucastnikNode)
       aktivujTooltipUcastnika(idUzivatele, idAktivity)
-      akceAktivity.upravUkazateleZaplnenostiAktivity(akceAktivity.dejNodeAktivity(idAktivity))
+      upravUkazateleZaplnenostiAktivity(akceAktivity.dejNodeAktivity(idAktivity))
       obnovSeznamMailu(ucastnikNode)
     }
 
@@ -101,70 +102,6 @@ import {AkceAktivity} from "./online-prezence-tridy-akce-aktivity.js"
     }
 
     /**
-     * @param {HTMLElement} ucastnikNode
-     * @param {string} stavPrihlaseni
-     */
-    function zobrazTypUcastnika(ucastnikNode, stavPrihlaseni) {
-      const idUzivatele = ucastnikNode.dataset.id
-      const idAktivity = ucastnikNode.dataset.idAktivity
-      const naPosledniChvili = ucastnikNode.querySelector('.na-posledni-chvili')
-      const jeNahradnik = document.getElementById(`ucastnik-${idUzivatele}-je-nahradnik-na-aktivite-${idAktivity}`)
-      const jeSledujici = document.getElementById(`ucastnik-${idUzivatele}-je-sledujici-aktivity-${idAktivity}`)
-      const jeSpici = document.getElementById(`ucastnik-${idUzivatele}-je-spici-na-aktivite-${idAktivity}`)
-      switch (stavPrihlaseni) {
-        case 'sledujici_se_prihlasil' :
-          skryt(jeNahradnik)
-          zobrazit(jeSledujici)
-          skryt(jeSpici)
-          break
-        case 'nahradnik_nedorazil' :
-          skryt(jeNahradnik)
-          skryt(jeSledujici)
-          zobrazit(jeSpici)
-          break
-        case 'nahradnik_dorazil' :
-          skryt(jeSledujici)
-          skryt(jeSpici)
-          zobrazit(jeNahradnik)
-          break
-        case 'ucastnik_dorazil' :
-          skryt(jeSledujici)
-          skryt(jeNahradnik)
-          skryt(jeSpici)
-          if (naPosledniChvili) {
-            skryt(naPosledniChvili)
-          }
-          break
-        case 'ucastnik_se_prihlasil' :
-          skryt(jeSledujici)
-          skryt(jeNahradnik)
-          skryt(jeSpici)
-          if (naPosledniChvili) {
-            zobrazit(naPosledniChvili)
-          }
-          break
-        default :
-          skryt(jeNahradnik)
-          skryt(jeSledujici)
-          skryt(jeSpici)
-      }
-    }
-
-    /**
-     * @param {HTMLElement} node
-     */
-    function skryt(node) {
-      node.classList.add('display-none')
-    }
-
-    /**
-     * @param {HTMLElement} node
-     */
-    function zobrazit(node) {
-      node.classList.remove('display-none')
-    }
-
-    /**
      * @param {number} idUzivatele
      * @param {number} idAktivity
      */
@@ -175,128 +112,9 @@ import {AkceAktivity} from "./online-prezence-tridy-akce-aktivity.js"
       })
     }
 
-    /**
-     * @param {HTMLElement} ucastnikNode
-     */
-    function hlidejZmenyMetadatUcastnika(ucastnikNode) {
-      ucastnikNode.addEventListener('zmenaMetadatUcastnika', function (/** @param {{detail: {casPosledniZmenyPrihlaseni: string, stavPrihlaseni: string, idPoslednihoLogu: number}}} event */event) {
-        zapisMetadataUcastnika(ucastnikNode, event.detail)
-        zobrazTypUcastnika(ucastnikNode, event.detail.stavPrihlaseni)
-        akceAktivity.upravUkazateleZaplnenostiAktivity(akceAktivity.dejNodeAktivity(ucastnikNode.dataset.idAktivity))
-      })
-    }
-
-    /**
-     * @param {HTMLElement} ucastnikNode
-     * @param {{casPosledniZmenyPrihlaseni: string, stavPrihlaseni: string, idPoslednihoLogu: number, callback: function|undefined}} metadata
-     */
-    function zapisMetadataUcastnika(ucastnikNode, metadata) {
-      if (ucastnikNode.dataset.idPoslednihoLogu && Number(ucastnikNode.dataset.idPoslednihoLogu) >= metadata.idPoslednihoLogu) {
-        return // změna je stejná nebo dokonce starší, než už známe
-      }
-      ucastnikNode.dataset.casPosledniZmenyPrihlaseni = metadata.casPosledniZmenyPrihlaseni
-      ucastnikNode.dataset.stavPrihlaseni = metadata.stavPrihlaseni
-      ucastnikNode.dataset.idPoslednihoLogu = metadata.idPoslednihoLogu.toString()
-
-      if (typeof metadata.callback === 'function') {
-        metadata.callback()
-      }
-    }
-
-    /**
-     * Bude zpracováno v event listeneru přes zaznamenejNovehoUcastnika()
-     * @param {number} idUzivatele
-     * @param {number} idAktivity
-     */
-    function vypustEventONovemUcastnikovi(idUzivatele, idAktivity) {
-      const novyUcastnik = new CustomEvent('novyUcastnik', {
-        detail: {
-          idAktivity: idAktivity, idUzivatele: idUzivatele,
-        },
-      })
-      akceAktivity.dejNodeAktivity(idAktivity).dispatchEvent(novyUcastnik)
-    }
-
-
     // OMNIBOX
-    intializePrezenceOmnibox()
-
-    function intializePrezenceOmnibox() {
-      const omnibox = $('.online-prezence .omnibox')
-      omnibox.on('autocompleteselect', function (event, ui) {
-        const idAktivity = Number(this.dataset.idAktivity)
-        const idUzivatele = Number(ui.item.value)
-        const ucastniciAktivityNode = $(`#ucastniciAktivity${idAktivity}`)
-        const novyUcastnik = $(ui.item.html)
-
-        akceAktivity.zmenitPritomnostUcastnika(
-          idUzivatele,
-          idAktivity,
-          novyUcastnik.find('input')[0],
-          this /* kde vznikl požadavek a kde ukázat případné errory */,
-          function () {
-            /**
-             * Teprve až backend potvrdí uložení vybraného účastníka, tak můžeme přidat řádek s tímto účastníkem.
-             */
-            ucastniciAktivityNode.append(novyUcastnik)
-            hlidejZmenyMetadatUcastnika(akceAktivity.dejNodeUcastnika(idUzivatele, idAktivity))
-          },
-          function () {
-            /**
-             * Přidáme řádek účastníka a JS přidá čas poslední změny a stav přihlášení, tak můžeme vypustit event o upečené novince.
-             * Data z řádku totiž potřebujeme pro kontrolu změn v online-prezence-posledni-zname-zmeny-prihlaseni.js
-             */
-            vypustEventONovemUcastnikovi(idUzivatele, idAktivity)
-          },
-        )
-
-        // vyrušení default výběru do boxu
-        event.preventDefault()
-        $(this).val('')
-
-        // skrytí výchozí ošklivé hlášky
-        $('.ui-helper-hidden-accessible').addClass('display-none')
-      })
-
-      omnibox.on('autocompleteresponse', function (event, ui) {
-        const idAktivity = this.dataset.idAktivity
-        $(`#omniboxHledam${idAktivity}`).addClass('display-none')
-        if (!ui || ui.content === undefined || ui.content.length === 0) {
-          $(`#omniboxNicNenalezeno${idAktivity}`).removeClass('display-none')
-        } else {
-          $(`#omniboxNicNenalezeno${idAktivity}`).addClass('display-none')
-        }
-      })
-
-      omnibox.on('input', function () {
-        const idAktivity = this.dataset.idAktivity
-        $(`#omniboxNicNenalezeno${idAktivity}`).addClass('display-none')
-        const minLength = this.dataset.omniboxMinLength
-        const length = this.value.length
-        if (minLength <= length) {
-          $(`#omniboxHledam${idAktivity}`).removeClass('display-none')
-        }
-      })
-
-      $('.formAktivita').submit(function () {
-        const $aktivita = $(this).closest('.blokAktivita')
-        // test na vyplnění políček / potvrzení
-        const policek = $aktivita.find('[type=checkbox]').length
-        const vybrano = $aktivita.find('[type=checkbox]:checked').length
-        if (vybrano < policek / 2) {
-          if (!confirm('Opravdu uložit s účastí menší jak polovina?')) {
-            return false
-          }
-        }
-        // odeslání
-        $aktivita.find('[type=submit]').attr('disabled', true)
-        $aktivita.load(document.URL + ' .blokAktivita[data-id=' + $aktivita.data('id') + '] > *', $(this).serializeObject(), function () {
-          initializeOmnibox($)
-          intializePrezenceOmnibox()
-        })
-        return false
-      })
-    }
+    const omnibox = new OnlinePrezenceOmnibox(akceAktivity, $)
+    omnibox.inicializujOmnibox()
 
     // ⏳ ČEKÁNÍ NA EDITACI ⏳
 
@@ -394,16 +212,8 @@ import {AkceAktivity} from "./online-prezence-tridy-akce-aktivity.js"
       if (obnovitOdpocet(odpocetNode, editovatelnaOdTimestamp)) {
         return false // ještě nemůžeme odpočet dokončit, stále musí běžet
       }
-      odblokovatAktivituProEditaci(idAktivity)
+      akceAktivity.odblokovatAktivituProEditaci(idAktivity)
       return true
-    }
-
-    function odblokovatAktivituProEditaci(idAktivity) {
-      const $aktivitaNode = $(`#aktivita-${idAktivity}`)
-      $aktivitaNode.find('input').prop('disabled', false)
-      $aktivitaNode.find('.text-ceka').addClass('display-none')
-      $aktivitaNode.find(`.zobrazit-pokud-aktivitu-nelze-editovat`).addClass('display-none')
-      $aktivitaNode.find('.tlacitko-uzavrit-aktivitu').removeClass('display-none')
     }
 
     /**
@@ -497,48 +307,36 @@ import {AkceAktivity} from "./online-prezence-tridy-akce-aktivity.js"
   })
 })(jQuery)
 
-
-const akceAktivity = new AkceAktivity()
-
-/**
- * @param {string} idAktivity
- * @param {number} ucastniciPridatelniDoTimestamp
- * @param {number} ucastniciOdebratelniDoTimestamp
- */
-function reagujNaZamceniAktivity(idAktivity, ucastniciPridatelniDoTimestamp, ucastniciOdebratelniDoTimestamp) {
-  akceAktivity.reagujNaZamceniAktivity(idAktivity, ucastniciPridatelniDoTimestamp, ucastniciOdebratelniDoTimestamp)
-}
-
-/**
- * @param {string} idAktivity
- * @param {number} ucastniciPridatelniDoTimestamp
- * @param {number} ucastniciOdebratelniDoTimestamp
- */
-function reagujNaUzavreniAktivity(idAktivity, ucastniciPridatelniDoTimestamp, ucastniciOdebratelniDoTimestamp) {
-  akceAktivity.reagujNaUzavreniAktivity(idAktivity, ucastniciPridatelniDoTimestamp, ucastniciOdebratelniDoTimestamp)
-}
-
 document.addEventListener('aktivitaVyrenderovana', function (event) {
   const aktivitaNode = event.detail
-  akceAktivity.upravUkazateleZaplnenostiAktivity(aktivitaNode)
+  if (aktivitaNode.dataset.editovatelnaOdTimestamp > 0) {
+    zablokovatAktivituProEditaciSOdpoctem(aktivitaNode)
+  }
 })
 
-document.getElementById('online-prezence').addEventListener('uzavritAktivitu', function (event) {
-  const idAktivity = event.detail
-  akceAktivity.uzavritAktivitu(idAktivity)
-})
+const onlinePrezence = document.getElementById('online-prezence')
 
-document.getElementById('online-prezence').addEventListener('zmenitPritomnostUcastnika', function (event) {
-  const {
-    idUcastnika: idUcastnika,
-    idAktivity: idAktivity,
-    checkboxNode: checkboxNode,
-    triggeringNode: triggeringNode,
-  } = event.detail
-  akceAktivity.zmenitPritomnostUcastnika(
-    idUcastnika,
-    idAktivity,
-    checkboxNode,
-    triggeringNode,
-  )
-})
+if (onlinePrezence) {
+
+  const akceAktivity = new AkceAktivity()
+
+  document.getElementById('online-prezence').addEventListener('uzavritAktivitu', function (event) {
+    const idAktivity = event.detail
+    akceAktivity.uzavritAktivitu(idAktivity)
+  })
+
+  document.getElementById('online-prezence').addEventListener('zmenitPritomnostUcastnika', function (event) {
+    const {
+      idUcastnika: idUcastnika,
+      idAktivity: idAktivity,
+      checkboxNode: checkboxNode,
+      triggeringNode: triggeringNode,
+    } = event.detail
+    akceAktivity.zmenitPritomnostUcastnika(
+      idUcastnika,
+      idAktivity,
+      checkboxNode,
+      triggeringNode,
+    )
+  })
+}

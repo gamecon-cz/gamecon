@@ -92,12 +92,14 @@ class OnlinePrezenceHtml
                     __DIR__ . '/../../../admin/files/omnibox-1.1.3.js',
                     __DIR__ . '/../../../admin/files/online-prezence/online-prezence-heat-colors.js',
                     __DIR__ . '/../../../admin/files/online-prezence/online-prezence-tooltip.js',
-                    __DIR__ . '/../../../admin/files/online-prezence/online-prezence-errors.js',
                     __DIR__ . '/../../../admin/files/online-prezence/online-prezence-prepinani-viditelnosti.js',
+                    __DIR__ . '/../../../admin/files/online-prezence/online-prezence-ukazatele-zaplnenosti.js',
                 ],
+                // pozor, JS moduly se automaticky načítají jako deffer, tedy asynchronně a vykonávají se až někdy po načtení celé stránky
                 'module' => [
                     __DIR__ . '/../../../admin/files/online-prezence/online-prezence.js',
                     __DIR__ . '/../../../admin/files/online-prezence/online-prezence-posledni-zname-zmeny-prihlaseni.js',
+                    __DIR__ . '/../../../admin/files/online-prezence/online-prezence-errors.js',
                 ],
             ],
         ];
@@ -358,6 +360,7 @@ class OnlinePrezenceHtml
         Aktivita  $aktivita,
         int       $stavPrihlaseni
     ): string {
+        // i při "Testovat" (bool $this->testujeme) tohle vrací skutečný čas namísto potřebného testovacího, takže to často vrátí zablokvaný checkbox
         $editovatelnaOdTimestamp = $this->dejEditovatelnaOdTimestamp($aktivita);
         $ucastniciPridatelniDoTimestamp = $this->ucastniciPridatelniDoTimestamp($aktivita);
         $ucastniciOdebratelniDoTimestamp = $this->ucastniciOdebratelniDoTimestamp($aktivita);
