@@ -1,4 +1,10 @@
-import {ProbihajiZmeny} from "./online-prezence-eventy.js"
+import {
+  AjaxErrors,
+  NovyUcastnik,
+  ProbihajiZmeny,
+  ZmenaMetadatPrezence,
+  ZmenaMetadatUcastnika,
+} from "./online-prezence-eventy.js"
 
 class AkceAktivity {
 
@@ -33,20 +39,20 @@ class AkceAktivity {
   }
 
   /**
-   * @param {number} idAktivity
+   * @param {number|string} idAktivity
    * @param {number} ucastniciPridatelniDoTimestamp
    * @param {number} ucastniciOdebratelniDoTimestamp
    */
   reagujNaZamceniAktivity(idAktivity, ucastniciPridatelniDoTimestamp, ucastniciOdebratelniDoTimestamp) {
     const zobrazitElement = document.getElementById(`zamcena-${idAktivity}`)
-    this.zobrazitElement(zobrazitElement)
+    this.zobrazit(zobrazitElement)
 
     this.zpracovatEditovatelnostDoPoZamknuti(idAktivity, ucastniciPridatelniDoTimestamp, ucastniciOdebratelniDoTimestamp)
   }
 
   /**
    * @private
-   * @param {number} idAktivity
+   * @param {number|string} idAktivity
    * @param {number} ucastniciPridatelniDoTimestamp
    * @param {number} ucastniciOdebratelniDoTimestamp
    */
@@ -94,16 +100,27 @@ class AkceAktivity {
     const that = this
     const nodeAktivity = this.dejNodeAktivity(idAktivity)
     nodeAktivity.querySelectorAll('.skryt-pokud-aktivitu-nelze-editovat').forEach(function (element) {
-      that.skrytElement(element)
+      that.skryt(element)
     })
     nodeAktivity.querySelectorAll('.zobrazit-pokud-aktivitu-nelze-editovat').forEach(function (element) {
-      that.zobrazitElement(element)
+      that.zobrazit(element)
     })
     this.skrytVarovaniZeAktivitaJeZamcena(idAktivity)
   }
 
   /**
-   * @param {number} idAktivity
+   * @param {string|number} idAktivity
+   */
+  odblokovatAktivituProEditaci(idAktivity) {
+    const $aktivitaNode = $(`#aktivita-${idAktivity}`)
+    $aktivitaNode.find('input').prop('disabled', false)
+    $aktivitaNode.find('.text-ceka').addClass('display-none')
+    $aktivitaNode.find(`.zobrazit-pokud-aktivitu-nelze-editovat`).addClass('display-none')
+    $aktivitaNode.find('.tlacitko-uzavrit-aktivitu').removeClass('display-none')
+  }
+
+  /**
+   * @param {number|string} idAktivity
    * @param {number} ucastniciPridatelniDoTimestamp
    * @param {number} ucastniciOdebratelniDoTimestamp
    */
@@ -158,7 +175,7 @@ class AkceAktivity {
    * @param idAktivity
    */
   zobrazitVarovaniZeAktivitaJeZamcena(idAktivity) {
-    this.zobrazitElement(document.getElementById(`pozor-zamcena-${idAktivity}`))
+    this.zobrazit(document.getElementById(`pozor-zamcena-${idAktivity}`))
   }
 
   /**
@@ -166,7 +183,7 @@ class AkceAktivity {
    * @param idAktivity
    */
   skrytVarovaniZeAktivitaJeZamcena(idAktivity) {
-    this.skrytElement(document.getElementById(`pozor-zamcena-${idAktivity}`))
+    this.skryt(document.getElementById(`pozor-zamcena-${idAktivity}`))
   }
 
   /**
@@ -176,16 +193,16 @@ class AkceAktivity {
   prohoditZobrazeni(skrytElementy, zobrazitElement) {
     const that = this
     skrytElementy.forEach(function (skrytElement) {
-      that.skrytElement(skrytElement)
+      that.skryt(skrytElement)
     })
-    this.zobrazitElement(zobrazitElement)
+    this.zobrazit(zobrazitElement)
   }
 
   /**
    * @private
    * @param {HTMLElement} element
    */
-  zobrazitElement(element) {
+  zobrazit(element) {
     element.classList.remove('display-none')
   }
 
@@ -193,67 +210,8 @@ class AkceAktivity {
    * @private
    * @param {HTMLElement} element
    */
-  skrytElement(element) {
+  skryt(element) {
     element.classList.add('display-none')
-  }
-
-  /**
-   * @param {HTMLElement} aktivitaNode
-   */
-  upravUkazateleZaplnenostiAktivity(aktivitaNode) {
-    const kapacita = Number.parseInt(aktivitaNode.dataset.kapacita)
-    const zaskrtnuteCheckboxy = aktivitaNode.querySelectorAll('.styl-pro-dorazil-checkbox > input[type=checkbox]:checked')
-    const pocetPritomnych = zaskrtnuteCheckboxy.length
-    const barvaZaplnenosti = tempToColor(pocetPritomnych, 1, kapacita + 1 /* poslední barva je fialová, my chceme po plnou aktivitu předposlední, červenou */, 'half')
-    const {r, g, b} = barvaZaplnenosti
-    const intenzitaBarvy = 0.1
-    // zaškrtnuté checkboxy dostanou barvu od zelené po fialovou, jak se bued blížit vyčerpání kapacity
-    Array.from(zaskrtnuteCheckboxy).forEach(function (checkbox) {
-      const stylNode = checkbox.parentElement
-      stylNode.style.backgroundColor = `rgb(${r},${g},${b},${intenzitaBarvy})`
-    })
-    // nezaškrtnutým checkboxům zresetujeme barvy
-    aktivitaNode.querySelectorAll('.styl-pro-dorazil-checkbox > input[type=checkbox]:not(:checked)').forEach(function (checkbox) {
-      const stylNode = checkbox.parentElement
-      stylNode.style.backgroundColor = 'inherit'
-    })
-    const jePlno = pocetPritomnych >= kapacita
-    // tooltip se zbývající kapacitou
-    const tooltipText = (jePlno ? 'Plno' : `Volno ${kapacita - pocetPritomnych}`) + ` (kapacita ${pocetPritomnych}/${kapacita})`
-    const tooltipHtml = `<span class="${jePlno ? 'plno' : 'volno'}">${tooltipText}</span>`
-    aktivitaNode.querySelectorAll('.styl-pro-dorazil-checkbox').forEach(function (stylProCheckboxNode) {
-      zmenTooltip(tooltipHtml, stylProCheckboxNode)
-    })
-    Array.from(aktivitaNode.getElementsByClassName('omnibox')).forEach(function (omniboxElement) {
-      zmenTooltip(tooltipHtml, omniboxElement)
-      omniboxElement.placeholder = `${omniboxElement.dataset.vychoziPlaceholder} ${tooltipText.toLowerCase()}`
-    })
-
-    const ucastnici = aktivitaNode.querySelectorAll('.ucastnik')
-    const prihlaseni = Array.from(ucastnici).filter((ucastnik) => this.jeToUcastnikPodleStavu(ucastnik.dataset.stavPrihlaseni))
-    const pocetPrihlasenychCisloNode = aktivitaNode.querySelector('.pocet-prihlasenych-cislo')
-    pocetPrihlasenychCisloNode.textContent = prihlaseni.length
-  }
-
-
-  /**
-   * viz \Gamecon\Aktivita\ZmenaPrihlaseni::stavPrihlaseniProJs
-   * @private
-   * @param {string} stavPrihlaseni
-   * @return {boolean}
-   */
-  jeToUcastnikPodleStavu(stavPrihlaseni) {
-    switch (stavPrihlaseni) {
-      case 'ucastnik_se_odhlasil' :
-      case 'ucastnik_nedorazil' :
-      case 'nahradnik_nedorazil' :
-      case 'ucastnik_se_prihlasil' :
-      case 'ucastnik_dorazil' :
-      case 'nahradnik_dorazil' :
-        return true
-      default :
-        return false
-    }
   }
 
   /**
@@ -291,6 +249,7 @@ class AkceAktivity {
   ) {
     this.vypustEventOProbihajicichZmenach(true)
 
+    const originalDisabled = checkboxNode.disabled
     checkboxNode.disabled = true
     const dorazil = checkboxNode.checked
     const that = this
@@ -305,7 +264,7 @@ class AkceAktivity {
       dorazil: dorazil ? 1 : 0,
       ajax: 1,
     }).done(/** @param {void|{prihlasen: boolean, cas_posledni_zmeny_prihlaseni: string, stav_prihlaseni: string, id_logu: string, razitko_posledni_zmeny: string}} data */function (data) {
-      checkboxNode.disabled = false
+      checkboxNode.disabled = originalDisabled
       if (data && typeof data.prihlasen == 'boolean') {
         checkboxNode.checked = data.prihlasen
 
@@ -313,23 +272,15 @@ class AkceAktivity {
           callbackOnSuccessBeforeMetadataChange()
         }
 
-        const zmenaMetadatUcastnika = new CustomEvent('zmenaMetadatUcastnika', {
-          detail: {
-            casPosledniZmenyPrihlaseni: data.cas_posledni_zmeny_prihlaseni,
-            stavPrihlaseni: data.stav_prihlaseni,
-            idPoslednihoLogu: data.id_logu,
-          },
-        })
+        const zmenaMetadatUcastnika = ZmenaMetadatUcastnika.vytvor(
+          data.cas_posledni_zmeny_prihlaseni,
+          data.stav_prihlaseni,
+          data.id_logu,
+        )
         const ucastnikNode = that.dejNodeUcastnika(idUcastnika, idAktivity)
-        // const ucastnikNode = $(checkboxNode).closest('.ucastnik')
-        // bude zpracovano v zapisMetadataUcastnika()
         ucastnikNode.dispatchEvent(zmenaMetadatUcastnika)
 
-        const zmenaMetadatPrezence = new CustomEvent('zmenaMetadatPrezence', {
-          detail: {
-            razitkoPosledniZmeny: data.razitko_posledni_zmeny,
-          },
-        })
+        const zmenaMetadatPrezence = ZmenaMetadatPrezence.vytvor(data.razitko_posledni_zmeny)
         that.dejNodeOnlinePrezence().dispatchEvent(zmenaMetadatPrezence)
 
         if (callbackOnSuccessAfterMetadataChange) {
@@ -338,21 +289,21 @@ class AkceAktivity {
       }
     }).fail(function (response) {
       checkboxNode.checked = !checkboxNode.checked // vrátit zpět
-      checkboxNode.disabled = false
+      checkboxNode.disabled = originalDisabled
 
-      const detail = {
+      const problems = {
         triggeringNode: triggeringNode || checkboxNode,
       }
 
       if (response.status === 400 && response.responseJSON && response.responseJSON.errors) {
-        detail.warnings = response.responseJSON.errors
+        problems.warnings = response.responseJSON.errors
       } else {
-        detail.errors = ['Něco se pokazilo 😢']
+        problems.errors = ['Něco se pokazilo 😢']
       }
 
       triggeringNode = triggeringNode || checkboxNode
-      const errorsEvent = new CustomEvent('ajaxErrors', {detail: detail})
-      that.dejNodeAktivity(idAktivity).dispatchEvent(errorsEvent)
+      const ajaxErrors = AjaxErrors.vytvor(problems)
+      that.dejNodeAktivity(idAktivity).dispatchEvent(ajaxErrors)
     }).always(function () {
       that.vypustEventOProbihajicichZmenach(false)
     })
@@ -380,6 +331,100 @@ class AkceAktivity {
    */
   dejNodeOnlinePrezence() {
     return document.getElementById(`online-prezence`)
+  }
+
+  /**
+   * Bude zpracováno v event listeneru přes zaznamenejNovehoUcastnika()
+   * @param {number} idUzivatele
+   * @param {number} idAktivity
+   */
+  vypustEventONovemUcastnikovi(idUzivatele, idAktivity) {
+    const novyUcastnik = NovyUcastnik.vytvor(idUzivatele, idAktivity)
+    this.dejNodeAktivity(idAktivity).dispatchEvent(novyUcastnik)
+  }
+
+  /**
+   * @param {HTMLElement} ucastnikNode
+   */
+  hlidejZmenyMetadatUcastnika(ucastnikNode) {
+    const that = this
+    ucastnikNode.addEventListener(
+      ZmenaMetadatUcastnika.eventName,
+      function (/** @param {{detail: {casPosledniZmenyPrihlaseni: string, stavPrihlaseni: string, idPoslednihoLogu: number}}} event */event) {
+        that.zapisMetadataUcastnika(ucastnikNode, event.detail)
+        that.zobrazTypUcastnika(ucastnikNode, event.detail.stavPrihlaseni)
+        upravUkazateleZaplnenostiAktivity(that.dejNodeAktivity(ucastnikNode.dataset.idAktivity))
+      },
+    )
+  }
+
+  /**
+   * @private
+   * @param {HTMLElement} ucastnikNode
+   * @param {{casPosledniZmenyPrihlaseni: string, stavPrihlaseni: string, idPoslednihoLogu: number, callback: function|undefined}} metadata
+   */
+  zapisMetadataUcastnika(ucastnikNode, metadata) {
+    if (ucastnikNode.dataset.idPoslednihoLogu && Number(ucastnikNode.dataset.idPoslednihoLogu) >= metadata.idPoslednihoLogu) {
+      return // změna je stejná nebo dokonce starší, než už známe
+    }
+    ucastnikNode.dataset.casPosledniZmenyPrihlaseni = metadata.casPosledniZmenyPrihlaseni
+    ucastnikNode.dataset.stavPrihlaseni = metadata.stavPrihlaseni
+    ucastnikNode.dataset.idPoslednihoLogu = metadata.idPoslednihoLogu.toString()
+
+    if (typeof metadata.callback === 'function') {
+      metadata.callback()
+    }
+  }
+
+  /**
+   * @private
+   * @param {HTMLElement} ucastnikNode
+   * @param {string} stavPrihlaseni
+   */
+  zobrazTypUcastnika(ucastnikNode, stavPrihlaseni) {
+    const idUzivatele = ucastnikNode.dataset.id
+    const idAktivity = ucastnikNode.dataset.idAktivity
+    const naPosledniChvili = document.getElementById(`ucastnik-${idUzivatele}-na-posledni-chvili-na-aktivitu-${idAktivity}`)
+    const jeNahradnik = document.getElementById(`ucastnik-${idUzivatele}-je-nahradnik-na-aktivite-${idAktivity}`)
+    const jeSledujici = document.getElementById(`ucastnik-${idUzivatele}-je-sledujici-aktivity-${idAktivity}`)
+    const jeSpici = document.getElementById(`ucastnik-${idUzivatele}-je-spici-na-aktivite-${idAktivity}`)
+    switch (stavPrihlaseni) {
+      case 'sledujici_se_prihlasil' :
+        this.skryt(jeNahradnik)
+        this.zobrazit(jeSledujici)
+        this.skryt(jeSpici)
+        break
+      case 'nahradnik_nedorazil' :
+        this.skryt(jeNahradnik)
+        this.skryt(jeSledujici)
+        this.zobrazit(jeSpici)
+        break
+      case 'nahradnik_dorazil' :
+        this.skryt(jeSledujici)
+        this.skryt(jeSpici)
+        this.zobrazit(jeNahradnik)
+        break
+      case 'ucastnik_dorazil' :
+        this.skryt(jeSledujici)
+        this.skryt(jeNahradnik)
+        this.skryt(jeSpici)
+        if (naPosledniChvili) {
+          this.skryt(naPosledniChvili)
+        }
+        break
+      case 'ucastnik_se_prihlasil' :
+        this.skryt(jeSledujici)
+        this.skryt(jeNahradnik)
+        this.skryt(jeSpici)
+        if (naPosledniChvili) {
+          this.zobrazit(naPosledniChvili)
+        }
+        break
+      default :
+        this.skryt(jeNahradnik)
+        this.skryt(jeSledujici)
+        this.skryt(jeSpici)
+    }
   }
 }
 

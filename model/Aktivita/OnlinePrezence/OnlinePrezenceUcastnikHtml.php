@@ -34,9 +34,9 @@ class OnlinePrezenceUcastnikHtml
         $ucastnikTemplate->assign('checkedUcastnik', $dorazil ? 'checked' : '');
         $ucastnikTemplate->assign(
             'disabledUcastnik',
-            (!$dorazil && $ucastnikMuzeBytPridan) || ($dorazil && $ucastnikMuzeBytOdebran)
-                ? ''
-                : 'disabled'
+            ($dorazil && !$ucastnikMuzeBytOdebran) || (!$dorazil && !$ucastnikMuzeBytPridan)
+                ? 'disabled'
+                : ''
         );
         $ucastnikTemplate->parse('ucastnik.checkbox');
 
