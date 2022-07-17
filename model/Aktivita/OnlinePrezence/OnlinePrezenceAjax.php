@@ -191,8 +191,8 @@ class OnlinePrezenceAjax
             $this->echoErrorJson('Chybné ID aktivity ' . $idAktivity);
             return;
         }
-        $aktivita->dejPrezenci()->uloz($aktivita->dorazili());
         $aktivita->zamkni();
+        $aktivita->dejPrezenci()->uloz($aktivita->dorazili());
         $aktivita->uzavri();
         $aktivita->refresh();
 
