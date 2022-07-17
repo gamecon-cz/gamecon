@@ -48,7 +48,7 @@
     <!-- end:upoMaterialy -->
 
 
-    <form method="post">
+    <form method="post" onsubmit="confirm('Opravdu odjel{a}?')">
     <span class="hinted">
       <input type="submit" name="gcOdjed" value="Odjel{a} z GC" {gcOdjedBtnAttr}>
       <span class="hint">
