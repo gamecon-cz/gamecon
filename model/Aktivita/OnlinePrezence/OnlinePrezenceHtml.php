@@ -144,8 +144,8 @@ class OnlinePrezenceHtml
     ) {
         foreach ($organizovaneAktivity as $aktivita) {
             $editovatelnaOdTimestamp         = $this->dejEditovatelnaOdTimestamp($aktivita);
-            $ucastniciPridatelniDoTimestamp  = $this->ucastniciPridatelniDoTimestamp($aktivita);
-            $ucastniciOdebratelniDoTimestamp = $this->ucastniciOdebratelniDoTimestamp($aktivita);
+            $ucastniciPridatelniDoTimestamp  = $this->ucastniciPridatelniDoTimestamp($vypravec, $aktivita);
+            $ucastniciOdebratelniDoTimestamp = $this->ucastniciOdebratelniDoTimestamp($vypravec, $aktivita);
             $pridatelniHned                  = $editovatelnaOdTimestamp <= 0 && $ucastniciPridatelniDoTimestamp > 0;
             $odebratelniHned                 = $editovatelnaOdTimestamp <= 0 && $ucastniciOdebratelniDoTimestamp > 0;
             $nejdouAlePujdouPridat           = !$pridatelniHned && $ucastniciPridatelniDoTimestamp > 0;
@@ -337,15 +337,15 @@ class OnlinePrezenceHtml
             : time() + ($hnedEditovatelnaSeZacatkemDo->getTimestamp() - $this->systemoveNastaveni->ted()->getTimestamp());
     }
 
-    private function ucastniciOdebratelniDoTimestamp(Aktivita $aktivita): int {
-        $ucastniciOdebratelniDo = $aktivita->ucastniciOdebratelniDo($this->systemoveNastaveni);
+    private function ucastniciOdebratelniDoTimestamp(\Uzivatel $odhlasujici, Aktivita $aktivita): int {
+        $ucastniciOdebratelniDo = $aktivita->ucastniciOdebratelniDo($odhlasujici, $this->systemoveNastaveni);
         return $ucastniciOdebratelniDo <= $this->systemoveNastaveni->ted()
             ? 0 // už je nelze odebrat
             : $ucastniciOdebratelniDo->getTimestamp();
     }
 
-    private function ucastniciPridatelniDoTimestamp(Aktivita $aktivita): int {
-        $ucastniciPridatelniDo = $aktivita->ucastniciPridatelniDo($this->systemoveNastaveni);
+    private function ucastniciPridatelniDoTimestamp(\Uzivatel $prihlasujici, Aktivita $aktivita): int {
+        $ucastniciPridatelniDo = $aktivita->ucastniciPridatelniDo($prihlasujici, $this->systemoveNastaveni);
         return $ucastniciPridatelniDo <= $this->systemoveNastaveni->ted()
             ? 0 // už je nelze přidat
             : $ucastniciPridatelniDo->getTimestamp();
@@ -367,12 +367,13 @@ class OnlinePrezenceHtml
     public function sestavHmlUcastnikaAktivity(
         \Uzivatel $ucastnik,
         Aktivita  $aktivita,
+        \Uzivatel $vypravec,
         int       $stavPrihlaseni
     ): string {
         // i při "Testovat" (bool $this->testujeme) tohle vrací skutečný čas namísto potřebného testovacího, takže to často vrátí zablokvaný checkbox
         $editovatelnaOdTimestamp         = $this->dejEditovatelnaOdTimestamp($aktivita);
-        $ucastniciPridatelniDoTimestamp  = $this->ucastniciPridatelniDoTimestamp($aktivita);
-        $ucastniciOdebratelniDoTimestamp = $this->ucastniciOdebratelniDoTimestamp($aktivita);
+        $ucastniciPridatelniDoTimestamp  = $this->ucastniciPridatelniDoTimestamp($vypravec, $aktivita);
+        $ucastniciOdebratelniDoTimestamp = $this->ucastniciOdebratelniDoTimestamp($vypravec, $aktivita);
         $pridatelnyHned                  = $editovatelnaOdTimestamp <= 0 && $ucastniciPridatelniDoTimestamp > 0;
         $odebratelnyHned                 = $editovatelnaOdTimestamp <= 0 && $ucastniciOdebratelniDoTimestamp > 0;
 
