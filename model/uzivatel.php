@@ -474,6 +474,10 @@ SQL,
         return in_array($pravo, $this->prava());
     }
 
+    public function maPravoNaPristupDoPrezence(): bool {
+        return $this->maPravo(Pravo::ADMINISTRACE_PREZENCE);
+    }
+
     /**
      * Což taky znamená "Právo na placení až na místě"
      * @return bool
