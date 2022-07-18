@@ -254,11 +254,6 @@ SQL
                 'Už jsi prošel infopultem, odhlášení není možné.'
             );
         }
-        foreach ($this->aktivityRyzePrihlasene() as $aktivita) {
-            $aktivita->odhlas($this, Aktivita::NEPOSILAT_MAILY_SLEDUJICIM /* nechceme posílat maily sledujícím, že se uvolnilo místo */);
-        }
-        // finální odebrání židle "registrován na GC"
-        $this->vemZidli(Zidle::PRIHLASEN_NA_LETOSNI_GC, $editor);
         try {
             // odeslání upozornění, pokud u nás má peníze
             if (($celkemLetosPoslal = $this->finance()->sumaPlateb()) > 0) {
@@ -268,7 +263,7 @@ SQL
                     ->text(hlaskaMail('odhlasilPlatil', $this->jmenoNick(), $this->id(), ROK, $celkemLetosPoslal))
                     ->odeslat();
             }
-            if ($dnyUbytovani = array_keys($this->dejShop()->ubytovani()->dny())) {
+            if ($dnyUbytovani = array_keys($this->dejShop()->ubytovani()->veKterychDnechJeUbytovan())) {
                 (new GcMail)
                     ->adresat('info@gamecon.cz')
                     ->predmet('Uživatel ' . $this->jmenoNick() . ' se odhlásil a měl ubytování')
@@ -278,6 +273,11 @@ SQL
         } catch (\Throwable $throwable) {
             trigger_error($throwable->getMessage() . '; ' . $throwable->getTraceAsString(), E_USER_WARNING);
         }
+        foreach ($this->aktivityRyzePrihlasene() as $aktivita) {
+            $aktivita->odhlas($this, Aktivita::NEPOSILAT_MAILY_SLEDUJICIM /* nechceme posílat maily sledujícím, že se uvolnilo místo */);
+        }
+        // finální odebrání židle "registrován na GC"
+        $this->vemZidli(Zidle::PRIHLASEN_NA_LETOSNI_GC, $editor);
         // zrušení nákupů (až po použití dejShop a ubytovani)
         dbQuery('DELETE FROM shop_nakupy WHERE rok=' . ROK . ' AND id_uzivatele=' . $this->id());
 

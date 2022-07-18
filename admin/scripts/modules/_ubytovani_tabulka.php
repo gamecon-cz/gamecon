@@ -13,11 +13,11 @@ class UbytovaniTabulka
         bool               $muzeEditovatUkoncenyProdej
     ) {
         $prodejUbytovaniUkoncen = !$muzeEditovatUkoncenyProdej && $systemoveNastaveni->prodejUbytovaniUkoncen();
-        foreach ($shop->dny() as $den => $typy) { // typy _v daný den_
+        foreach ($shop->mozneDny() as $den => $typy) { // typy _v daný den_
             $typVzor = reset($typy);
             $t->assign('postnameDen', $shop->postnameDen() . '[' . $den . ']');
             $ubytovanVeDni = false;
-            foreach ($shop->typy() as $typ => $rozsah) {
+            foreach ($shop->mozneTypy() as $typ => $rozsah) {
                 $ubytovanVeDniATypu = false;
                 $checked = '';
                 if ($shop->ubytovan($den, $typ)) {
@@ -31,7 +31,7 @@ class UbytovaniTabulka
                 $zbyvaMist = $shop->zbyvaMist($den, $typ);
 
                 $t->assign([
-                    'idPredmetu' => $shop->dny()[$den][$typ]['id_predmetu'] ?? null,
+                    'idPredmetu' => $shop->mozneDny()[$den][$typ]['id_predmetu'] ?? null,
                     'checked' => $checked,
                     'disabled' => !$checked // GUI neumí checked disabled, tak nesmíme dát disabled, když je chcecked
                     && ($prodejUbytovaniUkoncen
@@ -66,7 +66,7 @@ class UbytovaniTabulka
         self::htmlDny($shop, $t, $systemoveNastaveni, $muzeEditovatUkoncenyProdej);
         // sloupce popisků
         $prvniUbytovani = null;
-        foreach ($shop->typy() as $typ => $ubytovani) {
+        foreach ($shop->mozneTypy() as $typ => $ubytovani) {
             $prvniUbytovani = $prvniUbytovani ?? $ubytovani;
             $t->assign([
                 'typ' => $typ,
