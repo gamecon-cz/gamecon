@@ -10,9 +10,14 @@ use \Gamecon\Cas\DateTimeGamecon;
  * @var \Gamecon\Shop\Shop $shop
  */
 
-if (post('pridelitPokoj')) {
-    Pokoj::ubytujNaCislo(Uzivatel::zId(post('uid')), post('pokoj'));
-    oznameni('Pokoj přidělen');
+if (post('pridelitPokoj') && post('uid')) {
+    $uzivatelProUbytovani = Uzivatel::zId(post('uid'));
+    if ($uzivatelProUbytovani) {
+        Pokoj::ubytujNaCislo($uzivatelProUbytovani, post('pokoj'));
+        oznameni('Pokoj přidělen');
+    } else {
+        chyba("Neznámé ID uživatele " . post('uid'));
+    }
 }
 
 if (post('zpracujUbytovani')) {
