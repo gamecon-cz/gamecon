@@ -146,7 +146,7 @@ SQL,
             }
             $idPredmetuUbytovani = (int)$idPredmetuUbytovani;
             $idsPredmetuUbytovaniInt[] = $idPredmetuUbytovani;
-            if ($hlidatKapacituUbytovani && self::ubytovaniPresKapacitu($idPredmetuUbytovani, $ucastnik->dejShop()->ubytovani()->dny())) {
+            if ($hlidatKapacituUbytovani && self::ubytovaniPresKapacitu($idPredmetuUbytovani, $ucastnik->dejShop()->ubytovani()->mozneDny())) {
                 throw new Chyba('Vybrané ubytování je už bohužel zabrané. Vyber si prosím jiné.');
             }
             $sqlValuesArray[] = <<<SQL
@@ -221,8 +221,8 @@ SQL
         return $pocetZmen;
     }
 
-    private $dny = [];     // asoc. 2D pole [den][typ] => předmět
-    private $typy = [];    // asoc. pole [typ] => předmět sloužící jako vzor daného typu
+    private $mozneDny = [];     // asoc. 2D pole [den][typ] => předmět
+    private $mozneTypy = [];    // asoc. pole [typ] => předmět sloužící jako vzor daného typu
     private $pnDny = 'shopUbytovaniDny';
     private $pnPokoj = 'shopUbytovaniPokoj';
     private $pnCovidFreePotvrzeni = 'shopCovidFreePotvrzeni';
@@ -232,10 +232,10 @@ SQL
         $this->uzivatel = $uzivatel;
         foreach ($predmety as $p) {
             $nazev = Shop::bezDne($p['nazev']);
-            if (!isset($this->typy[$nazev])) {
-                $this->typy[$nazev] = $p;
+            if (!isset($this->mozneTypy[$nazev])) {
+                $this->mozneTypy[$nazev] = $p;
             }
-            $this->dny[$p['ubytovani_den']][$nazev] = $p;
+            $this->mozneDny[$p['ubytovani_den']][$nazev] = $p;
         }
         $this->systemoveNastaveni = $systemoveNastaveni;
     }
@@ -243,12 +243,12 @@ SQL
     /**
      * @return string[][][]
      */
-    public function dny(): array {
-        return $this->dny;
+    public function mozneDny(): array {
+        return $this->mozneDny;
     }
 
-    public function typy(): array {
-        return $this->typy;
+    public function mozneTypy(): array {
+        return $this->mozneTypy;
     }
 
     public function postnameDen(): string {
@@ -268,7 +268,7 @@ SQL
         ]);
         $this->htmlDny($t, $muzeEditovatUkoncenyProdej);
         // sloupce popisků
-        foreach ($this->typy as $typ => $predmet) {
+        foreach ($this->mozneTypy as $typ => $predmet) {
             $t->assign([
                 'typ' => $typ,
                 'hint' => $predmet['popis'],
@@ -280,7 +280,7 @@ SQL
 
         // specifická info podle uživatele a stavu nabídky
         if ((!$muzeEditovatUkoncenyProdej && $this->systemoveNastaveni->prodejUbytovaniUkoncen())
-            || reset($this->typy)['stav'] == Shop::POZASTAVENY
+            || reset($this->mozneTypy)['stav'] == Shop::POZASTAVENY
         ) {
             $t->parse('ubytovani.konec');
         }
@@ -292,11 +292,11 @@ SQL
     /** Zparsuje šablonu s ubytováním po dnech */
     private function htmlDny(XTemplate $t, bool $muzeEditovatUkoncenyProdej) {
         $prodejUbytovaniUkoncen = !$muzeEditovatUkoncenyProdej && $this->systemoveNastaveni->prodejUbytovaniUkoncen();
-        foreach ($this->dny as $den => $typy) { // typy _v daný den_
+        foreach ($this->mozneDny as $den => $typy) { // typy _v daný den_
             $typVzor = reset($typy);
             $t->assign('postnameDen', $this->pnDny . '[' . $den . ']');
             $ubytovanVeDni = false;
-            foreach ($this->typy as $typ => $rozsah) {
+            foreach ($this->mozneTypy as $typ => $rozsah) {
                 $ubytovanVeDniATypu = false;
                 $checked = '';
                 if ($this->ubytovan($den, $typ)) {
@@ -305,7 +305,7 @@ SQL
                 }
                 $ubytovanVeDni = $ubytovanVeDni || $ubytovanVeDniATypu;
                 $t->assign([
-                    'idPredmetu' => isset($this->dny[$den][$typ]) ? $this->dny[$den][$typ]['id_predmetu'] : null,
+                    'idPredmetu' => isset($this->mozneDny[$den][$typ]) ? $this->mozneDny[$den][$typ]['id_predmetu'] : null,
                     'checked' => $checked,
                     'disabled' => !$checked // GUI neumí checked disabled, tak nesmíme dát disabled, když je chcecked
                     && ($prodejUbytovaniUkoncen
@@ -351,14 +351,14 @@ SQL
 
     /** Vrátí, jestli daná kombinace den a typ je validní. */
     public function existujeUbytovani($den, $typ) {
-        return isset($this->dny[$den][$typ])
-            && $this->dny[$den][$typ]['nabizet'] == true;
+        return isset($this->mozneDny[$den][$typ])
+            && $this->mozneDny[$den][$typ]['nabizet'] == true;
     }
 
     /** Vrátí kapacitu */
     public function kapacita($den, $typ) {
-        if (!isset($this->dny[$den][$typ])) return 0;
-        $ub = $this->dny[$den][$typ];
+        if (!isset($this->mozneDny[$den][$typ])) return 0;
+        $ub = $this->mozneDny[$den][$typ];
         return max(0, $ub['kusu_vyrobeno']);
     }
 
@@ -379,7 +379,7 @@ SQL
     private function presKapacitu($idPredmetu) {
         // načtení předmětu
         $predmet = null;
-        foreach ($this->dny as $den) {
+        foreach ($this->mozneDny as $den) {
             foreach ($den as $moznyPredmet) {
                 if ($moznyPredmet['id_predmetu'] == $idPredmetu) {
                     $predmet = $moznyPredmet;
@@ -401,16 +401,28 @@ SQL
      * @return bool je ubytován?
      */
     public function ubytovan($den, $typ): bool {
-        return isset($this->dny[$den][$typ])
-            && $this->dny[$den][$typ]['kusu_uzivatele'] > 0;
+        return isset($this->mozneDny[$den][$typ])
+            && $this->mozneDny[$den][$typ]['kusu_uzivatele'] > 0;
+    }
+
+    public function veKterychDnechJeUbytovan(): array {
+        $dnyUbytovani = [];
+        foreach ($this->mozneDny as $den => $typyADetaily) {
+            foreach ($typyADetaily as $typ => $detail) {
+                if ($detail['kusu_uzivatele']) {
+                    $dnyUbytovani[] = $den;
+                }
+            }
+        }
+        return $dnyUbytovani;
     }
 
     /** Vrátí počet volných míst */
     public function zbyvaMist($den, $typ): int {
-        if (!isset($this->dny[$den][$typ])) {
+        if (!isset($this->mozneDny[$den][$typ])) {
             return 0;
         }
-        $ub = $this->dny[$den][$typ];
+        $ub = $this->mozneDny[$den][$typ];
         return (int)max(0, $ub['kusu_vyrobeno'] - $ub['kusu_prodano']);
     }
 
@@ -434,9 +446,9 @@ SQL
 
     public function kratkyPopis(string $oddelovacDalsihoRadku = '<br>'): string {
         $dnyPoTypech = [];
-        foreach ($this->dny as $cisloDne => $typy) { // typy _v daný den_
+        foreach ($this->mozneDny as $cisloDne => $typy) { // typy _v daný den_
             $typVzor = reset($typy);
-            foreach ($this->typy as $typ => $rozsah) {
+            foreach ($this->mozneTypy as $typ => $rozsah) {
                 if ($this->ubytovan($cisloDne, $typ)) {
                     $poziceZaPosledniMezerou = strrpos($typVzor['nazev'], ' ') + 1;
                     $nazevDne = mb_strtolower(substr($typVzor['nazev'], $poziceZaPosledniMezerou));
