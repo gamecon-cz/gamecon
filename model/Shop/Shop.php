@@ -671,9 +671,9 @@ SQL
         if ($castka === null) {
             return;
         }
-        // rozdělení zadané částky na "včas" a "pozdě"
-        $vstupneVcas = $this->vstupneJeVcas ? $castka : $this->vstupne['sum_cena_nakupni'];
-        $vstupnePozde = $this->vstupneJeVcas ? 0 : max(0, $castka - $this->vstupne['sum_cena_nakupni']);
+        // rušíme rozdělení zadané částky na "včas" a "pozdě", vše bude včas
+        $vstupneVcas = $castka;
+        $vstupnePozde = 0;
         // funkce pro provedení změn
         $zmeny = function ($radek, $cena) {
             if ($radek['kusu_uzivatele'] == 0) {
