@@ -242,9 +242,9 @@ class Finance
                             </form>
                         </td>
                     HTML;
+                } else {
+                    $mazaniRow = '<td></td>';
                 }
-            } else {
-                $mazaniRow = '<td></td>';
             }
             $out .= <<<HTML
               <tr>
