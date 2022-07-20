@@ -32,9 +32,11 @@ if (post('vybratUzivateleProPraci')) {
     back();
 }
 
-if (get('pracovni_uzivatel')) {
-    $uPracovni = Uzivatel::prihlasId(get('pracovni_uzivatel'), Uzivatel::UZIVATEL_PRACOVNI);
-    back();
+if ($idPracovnihoUzivatele = get('pracovni_uzivatel')) {
+    if (!$uPracovni || $uPracovni->id() != $idPracovnihoUzivatele) {
+        $uPracovni = Uzivatel::prihlasId($idPracovnihoUzivatele, Uzivatel::UZIVATEL_PRACOVNI);
+        back(getCurrentUrlWithQuery(['pracovni_uzivatel' => null]));
+    }
 }
 
 $uPracovni = Uzivatel::zSession(Uzivatel::UZIVATEL_PRACOVNI);
