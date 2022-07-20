@@ -56,7 +56,7 @@ if (post('platba') && $uPracovni) {
 }
 
 if ($uPracovni && ($idPolozky = post(Finance::KLIC_ZRUS_NAKUP_POLOZKY)) && $u->jeSpravceFinanci()) {
-    if ($uPracovni->dejShop()->zrusNakupyPredmetu([$idPolozky])) {
+    if ($uPracovni->dejShop()->zrusNakupPredmetu($idPolozky, -1 /* vsechny */)) {
         oznameni('Nákup položky zrušen');
     }
 }
