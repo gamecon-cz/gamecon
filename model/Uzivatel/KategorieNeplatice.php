@@ -10,7 +10,7 @@ use Gamecon\Cas\DateTimeGamecon;
 class KategorieNeplatice
 {
 
-    public const LETOS_NEPOSLAL_NIC_Z_LONSKA_NIC_A_MA_DLUH = 1;
+    public const LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH = 1;
     public const LETOS_POSLAL_MALO_A_MA_VELKY_DLUH = 2;
     public const LETOS_NEPOSLAL_NIC_Z_LONSKA_NECO_MA_A_MA_MALY_DLUH = 3;
     public const LETOS_POSLAL_DOST_A_JE_TAK_CHRANENY = 4;
@@ -146,7 +146,7 @@ class KategorieNeplatice
              * pokud má kladný historický zůstatek, spadá do této kategorie, pokud má celkový dluh -200 Kč a více
              */
             // kategorie 1
-            return self::LETOS_NEPOSLAL_NIC_Z_LONSKA_NIC_A_MA_DLUH;
+            return self::LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH;
         }
 
         if (!$this->poslalDost() && $this->maVelkyDluh()) {
