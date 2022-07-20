@@ -1203,10 +1203,13 @@ SQL,
         }
 
         if ($html) {
+            $cssClassSPredvolbou = $predvolba === ''
+                ? ''
+                : 's-predvolbou';
             $htmPredvolba = $predvolba === ''
                 ? ''
                 : "<span class='predvolba'>$predvolba</span> ";
-            return "<span class='telefon'>$htmPredvolba$telefon</span>";
+            return "<span class='telefon $cssClassSPredvolbou'>$htmPredvolba$telefon</span>";
         }
 
         return $predvolba !== ''

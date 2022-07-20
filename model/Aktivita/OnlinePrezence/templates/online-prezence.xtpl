@@ -144,19 +144,20 @@
            data-ucastnici-pridatelni-do-timestamp="{ucastniciPridatelniDoTimestamp}"
            data-ucastnici-odebratelni-do-timestamp="{ucastniciOdebratelniDoTimestamp}"
       >
-        <h2 id="{nadpis}" class="clearfix">
+        <div class="row">
+          <h2 id="{nadpis}" class="clearfix">
           <span data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true"
                 title="Začátek: {zacatek}<br> Konec: {konec}">
             {nadpis}
           </span>
-          <a href="#{nadpis}" class="anchor">#</a>
-          <span class="pocet-prihlasenych" data-bs-toggle="tooltip" data-bs-placement="right"
-                title="Počet přihlášených bez sledujících">
+            <a href="#{nadpis}" class="anchor">#</a>
+            <span class="pocet-prihlasenych" data-bs-toggle="tooltip" data-bs-placement="right"
+                  title="Počet přihlášených bez sledujících">
             <i class="fa-solid fa-user-group"></i>
             <span class="pocet-prihlasenych-cislo">{pocetPrihlasenych}</span>
           </span>
-          <span data-bs-toggle="tooltip" data-bs-placement="top" title="Ovládání viditelnosti prezence"
-                class="float-end">
+            <span data-bs-toggle="tooltip" data-bs-placement="top" title="Ovládání viditelnosti prezence"
+                  class="float-end">
             <button id="tlacitkoPrepinaniViditelnostiPrezence{idAktivity}"
                     class="btn btn-light"
                     type="button"
@@ -173,7 +174,8 @@
                   class="fa-solid fa-window-maximize"></i></span>
             </button>
           </span>
-        </h2>
+          </h2>
+        </div>
 
         <div class="errors">
           <div class="alert alert-warning alert-dismissible fade show display-none warning-template" role="alert">
@@ -236,7 +238,7 @@
 
           <div id="emaily-{idAktivity}" style="padding: 0.5em 0" class="row">
             <div class="col-xl col-md col-sm text-sm-center text-md-start align-self-center">
-              <a href="mailto:?bcc={emailyHref}">{emailyText}</a>
+              <i class="far fa-envelope"></i> <a href="mailto:?bcc={emailyHref}">{emailyText}</a>
             </div>
           </div>
 
@@ -282,6 +284,7 @@
                 </span>
                 </th>
                 <th>Jméno</th>
+                <th class="text-center"><i class="fas fa-envelope"></i></th>
                 <th>Telefon</th>
                 <th style="text-align: center">
                 <span class="hinted" data-bs-toggle="tooltip" data-bs-placement="top"
