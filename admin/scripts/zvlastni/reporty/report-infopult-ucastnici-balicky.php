@@ -28,6 +28,25 @@ $poddotazKoupenehoPredmetu = static function (string $klicoveSlovo, int $idTypuP
 SQL;
 };
 
+$poddotazOstatnichKoupeneychPredmetu = static function (array $mimoKlicovaSlova, int $idTypuPredmetu, int $rok) {
+    $mimoKlicovaSlovaSql = implode(' AND ', array_map(static function (string $klicoveSlovo) {
+        return "shop_predmety.nazev NOT LIKE '%{$klicoveSlovo}%'";
+    }, $mimoKlicovaSlova));
+    return <<<SQL
+(SELECT GROUP_CONCAT(pocet_a_nazev SEPARATOR ', ')
+    FROM (SELECT CONCAT_WS('× ', COUNT(*), shop_predmety.nazev) AS pocet_a_nazev, shop_nakupy.id_uzivatele
+        FROM shop_nakupy
+            JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
+            WHERE shop_predmety.id_predmetu = shop_nakupy.id_predmetu
+                AND shop_predmety.typ = {$idTypuPredmetu}
+                AND ($mimoKlicovaSlovaSql)
+                AND shop_nakupy.rok = {$rok}
+            GROUP BY shop_nakupy.id_uzivatele, shop_predmety.nazev) AS pocet_a_druh
+    WHERE pocet_a_druh.id_uzivatele = uzivatele_hodnoty.id_uzivatele
+)
+SQL;
+};
+
 $kopilNecoSql = static function (array $typyPredmetu, int $rok) {
     $typyPredmetuSql = implode(',', array_map('intval', $typyPredmetu));
     return <<<SQL
@@ -56,6 +75,8 @@ SELECT uzivatele_hodnoty.id_uzivatele,
        {$poddotazKoupenehoPredmetu('nicknack', $typPredmet, $rok, false)} AS nicknacky,
        {$poddotazKoupenehoPredmetu('blok', $typPredmet, $rok, false)} AS bloky,
        {$poddotazKoupenehoPredmetu('ponožky', $typPredmet, $rok, false)} AS ponozky,
+       {$poddotazKoupenehoPredmetu('taška', $typPredmet, $rok, false)} AS tasky,
+       {$poddotazOstatnichKoupeneychPredmetu(['kostka', 'placka', 'nicknack', 'blok', 'ponožky', 'taška'], $typPredmet, $rok)} AS ostatni,
        IF ({$poddotazKoupenehoPredmetu('', $typJidlo, $rok, false)} IS NULL, '', 'stravenky') AS stravenky,
        IF (
             {$kopilNecoSql([$typTricko, $typPredmet], $rok)},
