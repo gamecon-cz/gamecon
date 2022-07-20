@@ -365,8 +365,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            Před uzavřením prosím zkontroluj, že u aktivity není uvedený žádný problém.
-            Pokud někteří účastníci neprošli infopultem, zkus jim zavolat a přivolat je k infopultu.
+            Po uzavření aktivity už nebudeš mít možnost prezenci měnit. Až do 1 hodiny po skončení aktivity můžeš ještě někoho přidat.
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Opravit prezenci</button>
