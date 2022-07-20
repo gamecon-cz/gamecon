@@ -2499,16 +2499,21 @@ SQL
         if (!$this->zamcena() && !$this->uzavrena()) {
             return \DateTimeImmutable::createFromMutable($systemoveNastaveni->konecLetosnihoGameconu());
         }
-        if (!$this->maOrganizatora($prihlasujici) && !$prihlasujici->maPravoNaPristupDoPrezence()) {
-            // na zamknutou nebo dokonce uzavřenou aktivitu už mohou účastníky přidávat jen organizátoři nebo admini s přístupem do Prezence
+        if (!$this->maOrganizatora($prihlasujici)
+            && !$prihlasujici->maPravoNaPristupDoPrezence()
+            && !$prihlasujici->maPravoNaZmenuHistorieAktivit()
+        ) {
+            // na zamknutou nebo dokonce uzavřenou aktivitu už mohou účastníky přidávat jen organizátoři nebo někteří admini
             return $this->dejDrivejsiZacatekNeboPredChvilkou($systemoveNastaveni);
         }
         // jak organizátoři tak admini s přístupem do Prezence mohou stále přidávat na zamčenou aktivitu
-        if ($this->zamcena()) {
+        if ($this->zamcena()
+            || $prihlasujici->maPravoNaZmenuHistorieAktivit() // nebo kdo může editovat i dlouho zavřené
+        ) {
             return \DateTimeImmutable::createFromMutable($systemoveNastaveni->konecLetosnihoGameconu());
         }
         if (!$this->maOrganizatora($prihlasujici)) {
-            // admini s přístupem do Prezence, kteří nejsou vypravěči této aktivity, nemohou editovat uzavřenou aktivitu
+            // admini s přístupem do Prezence, kteří nejsou vypravěči této aktivity, nemohou přidávat účastníky do uzavřené aktivity
             return $this->dejDrivejsiZacatekNeboPredChvilkou($systemoveNastaveni);
         }
         if (!$this->konec()) {
