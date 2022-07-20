@@ -497,6 +497,7 @@ SQL,
     public function maPravoNaPoradaniAktivit(): bool {
         return $this->maPravo(Pravo::PORADANI_AKTIVIT);
     }
+
     public function maPravoNaStrankuFinance(): bool {
         return $this->maPravo(Pravo::ADMINISTRACE_FINANCE);
     }
@@ -1772,10 +1773,18 @@ SQL,
     }
 
     public function uvodniAdminUrl(string $zakladniAdminUrl = URL_ADMIN): string {
+        if ($this->maPravo(Pravo::ADMINISTRACE_INFOPULT)) {
+            return $this->infopultAdminUrl($zakladniAdminUrl);
+        }
         if ($this->maPravo(Pravo::ADMINISTRACE_MOJE_AKTIVITY)) {
             return $this->mojeAktivityAdminUrl($zakladniAdminUrl);
         }
         return $zakladniAdminUrl;
+    }
+
+    public function infopultAdminUrl(string $zakladniAdminUrl = URL_ADMIN): string {
+        // vrátí "infopult" - máme to schválně přes cestu ke skriptu, protože jeho název udává výslednou URL a nechceme mít neplatnou URL, kdyby někdo ten skrip přejmenoval.
+        return $zakladniAdminUrl . '/' . basename(__DIR__ . '/../admin/scripts/modules/infopult.php', '.php');
     }
 
     /**
