@@ -73,15 +73,12 @@ if (!$m->bezStranky() && !$m->bezMenu()) {
 
     // položky uživatelského menu
     if ($u) {
-        $t->assign([
-            'u' => $u,
-            'uvodniAdminUrl' => $u->uvodniAdminUrl(),
-            'mojeAktivityAdminUrl' => $u->mojeAktivityAdminUrl(),
-        ]);
-
-        if ($u->maPravo(\Gamecon\Pravo::ADMINISTRACE_INFOPULT)) {
+        $t->assign(['u' => $u]);
+        if ($u->maPravo(\Gamecon\Pravo::ADMINISTRACE_INFOPULT) || $u->jeOrganizator()) {
+            $t->assign(['uvodniAdminUrl' => $u->uvodniAdminUrl()]);
             $t->parse('menu.prihlasen.admin');
         } elseif ($u->maPravo(\Gamecon\Pravo::ADMINISTRACE_MOJE_AKTIVITY)) {
+            $t->assign(['mojeAktivityAdminUrl' => $u->mojeAktivityAdminUrl()]);
             $t->parse('menu.prihlasen.mujPrehled');
         }
 
