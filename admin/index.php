@@ -29,14 +29,14 @@ $xtpl->assign([
 // nastavení stránky, prázdná url => přesměrování na úvod
 if (!get('req')) {
     if ($u) {
-        if ($u->maPravo(\Gamecon\Pravo::ADMINISTRACE_INFOPULT)) {
-            back(URL_ADMIN . '/infopult');
-        }
         if ($u->jeOrganizator()) {
             back(URL_ADMIN . '/uzivatel');
         }
+        if ($u->maPravo(\Gamecon\Pravo::ADMINISTRACE_INFOPULT)) {
+            back(URL_ADMIN . '/infopult');
+        }
+        back(URL_ADMIN . '/moje-aktivity');
     }
-    back(URL_ADMIN . '/moje-aktivity');
 }
 $req = explode('/', get('req'));
 $stranka = $req[0];
