@@ -14,6 +14,8 @@
  * @var \Gamecon\Shop\Shop|null $shop
  */
 
+use Gamecon\Uzivatel\Finance;
+
 if (!empty($_POST['datMaterialy']) && $uPracovni && $uPracovni->gcPrihlasen()) {
     $uPracovni->dejZidli(ZIDLE_PRITOMEN, $u);
     back();
@@ -51,6 +53,12 @@ if (post('platba') && $uPracovni) {
         }
     }
     back();
+}
+
+if ($uPracovni && ($idPolozky = post(Finance::KLIC_ZRUS_NAKUP_POLOZKY)) && $u->jeSpravceFinanci()) {
+    if ($uPracovni->dejShop()->zrusNakupyPredmetu([$idPolozky])) {
+        oznameni('Nákup položky zrušen');
+    }
 }
 
 if (!empty($_POST['rychloreg'])) {

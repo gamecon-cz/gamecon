@@ -497,6 +497,9 @@ SQL,
     public function maPravoNaPoradaniAktivit(): bool {
         return $this->maPravo(Pravo::PORADANI_AKTIVIT);
     }
+    public function maPravoNaStrankuFinance(): bool {
+        return $this->maPravo(Pravo::ADMINISTRACE_FINANCE);
+    }
 
     public function maPravoNaZmenuHistorieAktivit(): bool {
         return $this->maPravo(Pravo::ZMENA_HISTORIE_AKTIVIT);

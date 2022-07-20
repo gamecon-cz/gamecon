@@ -1316,3 +1316,19 @@ Radio musí být ve tvaru:
 .zobrazit-pri-uzkem {
   display: none;
 }
+
+.objednavky {
+  width: 100%;
+}
+
+.objednavky td:first-child {
+  text-align: left;
+}
+
+.objednavky td:nth-child(2) {
+  text-align: right;
+}
+
+.objednavky a {
+  color: inherit;
+}

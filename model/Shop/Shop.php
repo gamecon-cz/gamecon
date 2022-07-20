@@ -645,14 +645,27 @@ SQL
                     // prvky jsou shodné, skočíme o jedna v obou seznamech a neděláme nic
                     $i++ == $j++; //porovnání bez efektu
             // odstranění předmětů, které z objednávky oproti DB zmizely
-            foreach ($odstranit as $idPredmetu)
-                dbQuery('DELETE FROM shop_nakupy WHERE id_uzivatele=' . $this->u->id() . ' AND id_predmetu=' . $idPredmetu . ' AND rok=' . ROK . ' LIMIT 1');
+            $this->zrusNakupyPredmetu($odstranit);
             // přidání předmětů, které doposud objednané nemá
             $q = 'INSERT INTO shop_nakupy(id_uzivatele,id_predmetu,rok,cena_nakupni,datum) VALUES ' . $pridat;
             if (substr($q, -1) != ' ') { // hack testující, jestli se přidala nějaká část
                 dbQuery(substr($q, 0, -1)); // odstranění nadbytečné čárky z poslední přidávané části a spuštění dotazu
             }
         }
+    }
+
+    public function zrusNakupyPredmetu(array $idsPredmetu): int {
+        $idsPredmetu = array_map('intval', $idsPredmetu);
+        if (count($idsPredmetu) === 0) {
+            return 0;
+        }
+        $mysqli = dbQuery(
+            'DELETE FROM shop_nakupy
+           WHERE id_uzivatele=' . $this->u->id() . '
+           AND id_predmetu IN (' . implode(',', $idsPredmetu) . ')
+           AND rok=' . ROK
+        );
+        return dbNumRows($mysqli);
     }
 
     /**
