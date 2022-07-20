@@ -58,7 +58,7 @@
     </span>
   </td>
   <td>{u.jmenoNick}</td>
-  <td><a href="mailto:{u.mail}" title="{u.mail}"><i class="far fa-envelope"></i></a></td>
+  <td class="text-center"><a href="mailto:{u.mail}" title="{u.mail}"><i class="far fa-envelope"></i></a></td>
   <td>
     <!-- begin:telefon -->
     <a href="tel:{telefonRaw}" class="text-nowrap"><i class="fas fa-phone"></i> {telefonHtml}</a>
