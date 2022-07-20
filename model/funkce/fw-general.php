@@ -82,7 +82,10 @@ function getCurrentUrlWithQuery(array $queryPartsToAddOrReplace = []): string {
     if ($newQuery === []) {
         return $path;
     }
-    return $path . '?' . http_build_query($newQuery);
+    $newQueryString = http_build_query($newQuery);
+    return $newQueryString !== '' // když je nějaká hodnota NULL, tak se z query smaže
+        ? $path . '?' . $newQueryString
+        : $path;
 }
 
 function get($name) {
