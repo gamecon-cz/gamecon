@@ -75,9 +75,10 @@
 </div>
 
 <!-- begin:neUzivatel -->
-<div class="warning" onclick="document.getElementById('omniboxUzivateleProPraci').focus()">Vyberte uživatele
-  <span class="skryt-pri-uzkem">(pole vlevo)</span>
-  <span class="zobrazit-pri-uzkem">(pole nahoře)</span>
+<div class="warning" onclick="document.getElementById('omniboxUzivateleProPraci').focus()">
+  <strong class="skryt-pri-uzkem ">↖</strong>Vyberte uživatele
+  <span class="skryt-pri-uzkem">(pole vlevo nahoře)</span>
+  <span class="zobrazit-pri-uzkem">(⬆ pole nahoře)</span>
 </div>
 <!-- end:neUzivatel -->
 <!-- begin:neprihlasen -->

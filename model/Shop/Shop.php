@@ -645,14 +645,34 @@ SQL
                     // prvky jsou shodné, skočíme o jedna v obou seznamech a neděláme nic
                     $i++ == $j++; //porovnání bez efektu
             // odstranění předmětů, které z objednávky oproti DB zmizely
-            foreach ($odstranit as $idPredmetu)
-                dbQuery('DELETE FROM shop_nakupy WHERE id_uzivatele=' . $this->u->id() . ' AND id_predmetu=' . $idPredmetu . ' AND rok=' . ROK . ' LIMIT 1');
+            foreach ($odstranit as $idPredmetuProOdstraneni) {
+                $this->zrusNakupPredmetu($idPredmetuProOdstraneni, 1 /* jen jeden, necheme zlikvidovat všechny ojednávky toho předmětu */);
+            }
             // přidání předmětů, které doposud objednané nemá
             $q = 'INSERT INTO shop_nakupy(id_uzivatele,id_predmetu,rok,cena_nakupni,datum) VALUES ' . $pridat;
             if (substr($q, -1) != ' ') { // hack testující, jestli se přidala nějaká část
                 dbQuery(substr($q, 0, -1)); // odstranění nadbytečné čárky z poslední přidávané části a spuštění dotazu
             }
         }
+    }
+
+    public function zrusNakupPredmetu($idPredmetu, int $pocet): int {
+        $idPredmetu = (int)$idPredmetu;
+        $rok = ROK;
+        $query = <<<SQL
+            DELETE FROM shop_nakupy
+            WHERE id_uzivatele={$this->u->id()}
+            AND id_predmetu = $idPredmetu
+            AND rok=$rok
+        SQL;
+        if ($pocet > 0) {
+            $query .= <<<SQL
+                -- pozor musi byt aspon jeden bily znak, treba novy radek
+                LIMIT $pocet
+            SQL;
+        }
+        $mysqli = dbQuery($query);
+        return dbNumRows($mysqli);
     }
 
     /**

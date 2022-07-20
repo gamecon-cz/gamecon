@@ -89,10 +89,14 @@ if ($uPracovni) {
         'ubytovani' => $uPracovni->dejShop()->dejPopisUbytovani(),
         'udajeChybiAttr' => 'href="uzivatel"',
         'balicek' => $uPracovni->balicekHtml(),
-        'prehledPredmetu' => $uPracovni->finance()->prehledHtml([
-            Shop::PREDMET,
-            Shop::TRICKO,
-        ], false),
+        'prehledPredmetu' => $uPracovni->finance()->prehledHtml(
+            [
+                Shop::PREDMET,
+                Shop::TRICKO,
+            ],
+            false,
+            $u->jeSpravceFinanci()
+        ),
     ]);
 
     $chybejiciUdaje = $uPracovni->chybejiciUdaje([
@@ -234,6 +238,5 @@ if (!$uPracovni) { // nechceme zobrazovat rychloregistraci (zakladani uctu), kdy
 
 $x->parse('infopult');
 $x->out('infopult');
-
 
 require __DIR__ . '/_shop.php';
