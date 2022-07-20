@@ -60,7 +60,7 @@
   <td>{u.jmenoNick}</td>
   <td>
     <!-- begin:telefon -->
-    <a href="tel:{u.telefon}" class="text-nowrap"><i class="fas fa-phone"></i> {u.telefon}</a>
+    <a href="tel:{telefon}" class="text-nowrap"><i class="fas fa-phone"></i> {telefon}</a>
     <!-- end:telefon -->
   </td>
   <td style="text-align: center; padding: 0">

@@ -1184,13 +1184,13 @@ SQL,
         return 'Účastník';
     }
 
-    public function telefon(): string {
+    public function telefon(bool $html = false): string {
         $telefon = trim((string)$this->u['telefon_uzivatele']);
         if ($telefon === '') {
             return '';
         }
         // zahodíme českou předvolbu a mezery
-        $telefon = preg_replace('~(^[+]?420|\s)~', '', $telefon);
+        $telefon = preg_replace('~(^[+]?\s*420|\s)~', '', $telefon);
 
         $predvolba = '';
         if (preg_match('~^(?<predvolba>[+]?\d{3})\d{9}~', $telefon, $matches)) {
@@ -1200,6 +1200,13 @@ SQL,
 
         if (strlen($telefon) === 9) {
             $telefon = chunk_split($telefon, 3, ' '); // na každé třetí místo vložíme mezeru
+        }
+
+        if ($html) {
+            $htmPredvolba = $predvolba === ''
+                ? ''
+                : "<span class='predvolba'>$predvolba</span> ";
+            return "<span class='telefon'>$htmPredvolba$telefon</span>";
         }
 
         return $predvolba !== ''

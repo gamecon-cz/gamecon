@@ -47,6 +47,7 @@ class OnlinePrezenceUcastnikHtml
         }
 
         if ($ucastnik->telefon()) {
+            $ucastnikTemplate->assign('telefon', $ucastnik->telefon(true));
             $ucastnikTemplate->parse('ucastnik.telefon');
         }
 
