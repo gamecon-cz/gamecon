@@ -2,15 +2,19 @@
 
 namespace Gamecon\Uzivatel;
 
+use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Shop\Shop;
+use Gamecon\Shop\TypPredmetu;
 
 /**
  * Třída zodpovídající za spočítání finanční bilance uživatele na GC.
  */
 class Finance
 {
+
+    public const KLIC_ZRUS_NAKUP_POLOZKY = 'zrus-nakup-polozky';
 
     /** @var \Uzivatel */
     private $u; // uživatel, jehož finance se počítají
@@ -159,7 +163,7 @@ class Finance
     /**
      * Zaloguje do seznamu nákupů položku (pokud je logování zapnuto)
      */
-    private function log($nazev, $castka, $kategorie = null) {
+    private function log($nazev, $castka, $kategorie = null, $idPolozky = null) {
         if (!$this->logovat) {
             return;
         }
@@ -171,14 +175,15 @@ class Finance
             'nazev' => $nazev,
             'castka' => $castka,
             'kategorie' => $kategorie,
+            'id_polozky' => $idPolozky,
         ];
     }
 
     /**
      * Zaloguje zvýrazněný záznam
      */
-    private function logb($nazev, $castka, $kategorie = null) {
-        $this->log("<b>$nazev</b>", "<b>$castka</b>", $kategorie);
+    private function logb($nazev, $castka, $kategorie = null, $idPolozky = null) {
+        $this->log("<b>$nazev</b>", "<b>$castka</b>", $kategorie, $idPolozky);
     }
 
     /**
@@ -202,10 +207,10 @@ class Finance
      * Vrátí html formátovaný přehled financí
      * @param null|int[] $jekKategorieIds
      * @param boolean $vcetneCeny
-     * @todo přesun css někam sdíleně
+     * @param boolean $vcetneMazani
      */
-    function prehledHtml(array $jekKategorieIds = null, bool $vcetneCeny = true) {
-        $out = '<table>';
+    function prehledHtml(array $jekKategorieIds = null, bool $vcetneCeny = true, bool $vcetneMazani = false) {
+        $out = '<table class="objednavky">';
         $prehled = $this->serazenyPrehled();
         if ($jekKategorieIds) {
             $prehled = array_filter($prehled, function ($radekPrehledu) use ($jekKategorieIds) {
@@ -218,15 +223,34 @@ class Finance
             });
         }
 
-        foreach ($prehled as $radekPredhledu) {
+        foreach ($prehled as $radekPrehledu) {
             $castkaRow = '';
             if ($vcetneCeny) {
-                $castkaRow = "<td style='text-align:right'>{$radekPredhledu['castka']}</td>";
+                $castkaRow = "<td>{$radekPrehledu['castka']}</td>";
+            }
+            $mazaniRow = '';
+            if ($vcetneMazani) {
+                if (!empty($radekPrehledu['id_polozky'])) {
+                    $klicZrusNakuppolozky = self::KLIC_ZRUS_NAKUP_POLOZKY;
+                    $mazaniRow = <<<HTML
+                        <td xmlns="http://www.w3.org/1999/html">
+                            <form method="post" onsubmit="return confirm('Opravdu zrušit objednávku {$radekPrehledu['nazev']}?')">
+                                <input type="hidden" name="$klicZrusNakuppolozky" value="{$radekPrehledu['id_polozky']}">
+                                <button type="submit">
+                                    <i class='fa fa-trash' aria-hidden='true'></i>
+                                </button>
+                            </form>
+                        </td>
+                    HTML;
+                }
+            } else {
+                $mazaniRow = '<td></td>';
             }
             $out .= <<<HTML
               <tr>
-                <td style='text-align:left'>{$radekPredhledu['nazev']}</td>
+                <td>{$radekPrehledu['nazev']}</td>
                 $castkaRow
+                $mazaniRow
               </tr>
               HTML;
         }
@@ -420,7 +444,6 @@ class Finance
 
     /**
      * Započítá do mezisoučtů aktivity uživatele
-     * @todo odstranit zbytečnosti
      */
     private function zapoctiAktivity() {
         $scn = $this->soucinitelAktivit();
@@ -432,7 +455,7 @@ class Finance
 
         $o = dbQuery("
       SELECT
-        a.nazev_akce as nazev,
+        a.nazev_akce AS nazev,
         a.cena *
           (st.platba_procent/100) *
           IF(a.bez_slevy OR a.typ=$technicka, 1.0, $scn) *
@@ -459,10 +482,22 @@ class Finance
             }
 
             $poznamka = '';
-            if ($r['id_stavu_prihlaseni'] == 3) $poznamka = " <i>(nedorazil$a)</i>";
-            if ($r['id_stavu_prihlaseni'] == 4) $poznamka = " <i>(odhlášen$a pozdě)</i>";
-            if ($r['id_stavu_prihlaseni'] == Aktivita::SLEDUJICI) continue;
-            $this->log($r['nazev'] . $poznamka, $r['cena'] < 0 ? 0 : $r['cena'], self::AKTIVITA);
+            if ($r['id_stavu_prihlaseni'] == StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL) {
+                $poznamka = " <i>(nedorazil$a)</i>";
+            }
+            if ($r['id_stavu_prihlaseni'] == StavPrihlaseni::POZDE_ZRUSIL) {
+                $poznamka = " <i>(odhlášen$a pozdě)</i>";
+            }
+            if ($r['id_stavu_prihlaseni'] == StavPrihlaseni::SLEDUJICI) {
+                continue;
+            }
+            $this->log(
+                $r['nazev'] . $poznamka,
+                $r['cena'] < 0
+                    ? 0
+                    : $r['cena'],
+                self::AKTIVITA
+            );
         }
     }
 
@@ -521,11 +556,11 @@ SQL
                 $r['nazev'] = $r['nazev'] . ' ' . $r['model_rok'];
             }
             // logování do výpisu
-            if ($r['typ'] == Shop::PREDMET) {
+            if (in_array($r['typ'], [TypPredmetu::PREDMET, TypPredmetu::TRICKO])) {
                 $soucty[$r['id_predmetu']]['nazev'] = $r['nazev'];
                 $soucty[$r['id_predmetu']]['typ'] = $r['typ'];
-                @$soucty[$r['id_predmetu']]['pocet']++;
-                @$soucty[$r['id_predmetu']]['suma'] += $cena;
+                $soucty[$r['id_predmetu']]['pocet'] = ($soucty[$r['id_predmetu']]['pocet'] ?? 0) + 1;
+                $soucty[$r['id_predmetu']]['suma'] = ($soucty[$r['id_predmetu']]['suma'] ?? 0) + $cena;
             } elseif ($r['typ'] == Shop::VSTUPNE) {
                 $this->logb($r['nazev'], $cena, self::VSTUPNE);
             } elseif ($r['typ'] == Shop::PROPLACENI_BONUSU) {
@@ -535,8 +570,9 @@ SQL
             }
         }
 
-        foreach ($soucty as $p) {
-            $this->log($p['nazev'] . '  ' . $p['pocet'] . '×', $p['suma'], $p['typ']); // dvojmezera kvůli řazení
+        foreach ($soucty as $idPredmetu => $predmet) {
+            // dvojmezera kvůli řazení
+            $this->log($predmet['nazev'] . '  ' . $predmet['pocet'] . '×', $predmet['suma'], $predmet['typ'], $idPredmetu);
         }
     }
 
