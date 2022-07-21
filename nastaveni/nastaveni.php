@@ -226,7 +226,7 @@ Organizační tým GameConu',
 @define('ID_PRAVO_PRIHLASEN', ZIDLE_PRIHLASEN);
 @define('ID_PRAVO_PRITOMEN', ZIDLE_PRITOMEN);
 
-@define('ODHLASENI_POKUTA_KONTROLA', po(ROK . '-07-18 00:00:01')); // jestli se má kontrolovat pozdní odhlášní z aktivit
+@define('ODHLASENI_POKUTA_KONTROLA', true); // jestli se má kontrolovat pozdní odhlášní z aktivit
 @define('ODHLASENI_POKUTA1_H', 24); // kolik hodin před aktivitou se začne uplatňovat pokuta 1
 
 @define('DEN_PRVNI_DATE', date('Y-m-d', strtotime(PROGRAM_OD))); // první den v programu ve formátu YYYY-MM-DD
