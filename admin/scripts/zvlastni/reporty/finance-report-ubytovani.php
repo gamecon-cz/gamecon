@@ -1,7 +1,8 @@
 <?php
 require __DIR__ . '/sdilene-hlavicky.php';
 
-use Gamecon\Shop\Shop;
+use Gamecon\Zidle;
+use Gamecon\Shop\TypPredmetu;
 
 $o = dbQuery(<<<SQL
 SELECT uzivatele.id_uzivatele,
@@ -22,7 +23,7 @@ SELECT uzivatele.id_uzivatele,
     ) AS mezera_v_ubytovani,
     MIN(predmety.ubytovani_den) as prvni_noc,
     MAX(predmety.ubytovani_den) as posledni_noc,
-    GROUP_CONCAT(DISTINCT IFNULL(ubytovani.pokoj,'')) as pokoj,
+    GROUP_CONCAT(DISTINCT IF(ubytovani.pokoj = '', NULL, ubytovani.pokoj)) as pokoj,
     uzivatele.ubytovan_s
 FROM uzivatele_hodnoty uzivatele
 JOIN r_uzivatele_zidle zidle
@@ -39,9 +40,9 @@ GROUP BY uzivatele.id_uzivatele
 ORDER BY id_uzivatele
 SQL,
     [
-        \Gamecon\Zidle::PRIHLASEN_NA_LETOSNI_GC,
+        Zidle::PRIHLASEN_NA_LETOSNI_GC,
         ROK,
-        Shop::UBYTOVANI,
+        TypPredmetu::UBYTOVANI,
     ]
 );
 
