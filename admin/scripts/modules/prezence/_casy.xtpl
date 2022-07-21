@@ -1,25 +1,27 @@
 <!-- begin:casy -->
 <div style="position: relative">
-<div style="position: absolute; right: 5px; top: -55px; text-align: right">
-  Stránka načtena {datum} v {casAktualni}<br />
-  <!-- begin:casMan -->Čas vybrán manuálně (<a href="prezence">vybrat automaticky</a>)<br /><!-- end:casMan -->
-  <!-- begin:casAuto -->Čas vybrán automaticky podle aktuálního času<br /><!-- end:casAuto -->
-  <!-- begin:casAutoPrvni -->Čas vybrán automaticky podle první letošní aktivity<br /><!-- end:casAuto -->
-  <!-- begin:vyberCasu -->
-  Zobrazují se aktivity začínající od
-  <form method="get" style="display: inline-block" id="cas">
-    <select name="cas" onchange="$('#cas').submit()" style="margin-right:0">
-      <option value="">(zvolte čas)</option>
-      <!-- begin:cas --><option {sel} value="{val}">{cas}</option><!-- end:cas -->
-    </select>
-  </form>
-  <!-- end:vyberCasu -->
-  <!-- begin:zadnyCas -->
-  Žádné aktivity a tím žádné časy k výběru
-  <!-- end:zadnyCas -->
-  <!-- begin:chybaCasu -->
+  <div class="vyber-casu">
+    Stránka načtena {datum} v {casAktualni}<br/>
+    <!-- begin:casMan -->Čas vybrán manuálně (<a href="prezence">vybrat automaticky</a>)<br/><!-- end:casMan -->
+    <!-- begin:casAuto -->Čas vybrán automaticky podle aktuálního času<br/><!-- end:casAuto -->
+    <!-- begin:casAutoPrvni -->Čas vybrán automaticky podle první letošní aktivity<br/><!-- end:casAuto -->
+    <!-- begin:vyberCasu -->
+    Zobrazují se aktivity začínající od
+    <form method="get" style="display: inline-block" id="cas">
+      <select name="cas" onchange="$('#cas').submit()" style="margin-right:0">
+        <option value="">(zvolte čas)</option>
+        <!-- begin:cas -->
+        <option {sel} value="{val}">{cas}</option>
+        <!-- end:cas -->
+      </select>
+    </form>
+    <!-- end:vyberCasu -->
+    <!-- begin:zadnyCas -->
+    Žádné aktivity a tím žádné časy k výběru
+    <!-- end:zadnyCas -->
+    <!-- begin:chybaCasu -->
     <div class="error textDoprava">Čas '{chybnyCas}' nelze rozpoznat. Zkuste to znovu.</div>
-  <!-- end:chybaCasu -->
-</div>
+    <!-- end:chybaCasu -->
+  </div>
 </div>
 <!-- end:casy -->

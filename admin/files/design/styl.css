@@ -1332,3 +1332,16 @@ Radio musí být ve tvaru:
 .objednavky a {
   color: inherit;
 }
+
+@media (min-width: 1100px) {
+  .vyber-casu {
+    position: absolute;
+    right: 5px;
+    top: -55px;
+  }
+}
+
+.vyber-casu {
+  max-width: 350px;
+  text-align: right;
+}
