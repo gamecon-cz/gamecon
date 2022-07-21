@@ -1701,6 +1701,7 @@ SQL
      * @todo konstanty pro jména POST proměnných? viz prihlasovatkoZpracuj
      */
     public function prihlasovatko(\Uzivatel $u = null, $parametry = 0) {
+        return ''; // TODO revert ažto fixneme
         $out = '';
         if (!$u) {
             $out = self::formatujDuvodProTesting('Nejsi přihlášený/ná');
