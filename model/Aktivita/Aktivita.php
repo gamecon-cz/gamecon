@@ -1415,7 +1415,7 @@ SQL
             [$idUzivatele, $idAktivity, self::PRIHLASEN]
         );
         $this->dejPrezenci()->zalogujZeSePrihlasil($uzivatel);
-        if (ODHLASENI_POKUTA_KONTROLA) { //pokud by náhodou měl záznam za pokutu a přihlásil se teď, tak smazat
+        if (ODHLASENI_POKUTA_KONTROLA) { // pokud by náhodou měl záznam za pokutu a přihlásil se teď, tak smazat
             dbQuery(
                 'DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0 AND id_akce=$1 AND id_stavu_prihlaseni=$2',
                 [$idUzivatele, $idAktivity, self::POZDE_ZRUSIL]
@@ -1701,7 +1701,6 @@ SQL
      * @todo konstanty pro jména POST proměnných? viz prihlasovatkoZpracuj
      */
     public function prihlasovatko(\Uzivatel $u = null, $parametry = 0) {
-        return ''; // TODO revert ažto fixneme
         $out = '';
         if (!$u) {
             $out = self::formatujDuvodProTesting('Nejsi přihlášený/ná');
