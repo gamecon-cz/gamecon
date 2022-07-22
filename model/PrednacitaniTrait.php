@@ -130,7 +130,7 @@ trait PrednacitaniTrait
         // nahrazení ids v zdrojových objektech za skutečné cílové objekty
         foreach ($kolekce as $zdrojObjekt) {
             if (isset($zdrojObjekt->$atribut)) {
-                $zdrojObjekt->$atribut = $cileIndex[$zdrojObjekt->$atribut];
+                $zdrojObjekt->$atribut = $cileIndex[$zdrojObjekt->$atribut] ?? null;
             }
         }
     }
