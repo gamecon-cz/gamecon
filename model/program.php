@@ -150,13 +150,13 @@ class Program
      * Zpracuje POST data nastavená odesláním nějakého formuláře v programu.
      * Pokud je očekávaná POST proměnná nastavena, přesměruje a ukončí skript.
      */
-    public function zpracujPost() {
+    public function zpracujPost(Uzivatel $prihlasujici) {
         if (!$this->u) {
             return;
         }
 
-        Aktivita::prihlasovatkoZpracuj($this->u);
-        Aktivita::vyberTeamuZpracuj($this->u);
+        Aktivita::prihlasovatkoZpracuj($this->u, $prihlasujici);
+        Aktivita::vyberTeamuZpracuj($this->u, $prihlasujici);
     }
 
     ////////////////////

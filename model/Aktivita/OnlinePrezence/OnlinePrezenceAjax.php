@@ -113,7 +113,11 @@ class OnlinePrezenceAjax
         }
 
         if (post('prezenceAktivity')) {
-            $this->ajaxUlozPrezenci((int)post('prezenceAktivity'), array_keys(post('zdaDorazil') ?: []));
+            $this->ajaxUlozPrezenci(
+                (int)post('prezenceAktivity'),
+                array_keys(post('zdaDorazil') ?: []),
+                $vypravec
+            );
             return true;
         }
 
@@ -204,7 +208,7 @@ class OnlinePrezenceAjax
             return;
         }
         $aktivita->zamkni();
-        $aktivita->dejPrezenci()->uloz($aktivita->dorazili());
+        $aktivita->dejPrezenci()->uloz($aktivita->dorazili(), $vypravec);
         $aktivita->uzavri();
         $aktivita->refresh();
 
@@ -281,11 +285,11 @@ class OnlinePrezenceAjax
                 $this->echoErrorJson($chyba->getMessage());
                 return;
             }
-            $aktivita->dejPrezenci()->ulozZeDorazil($ucastnik);
+            $aktivita->dejPrezenci()->ulozZeDorazil($ucastnik, $vypravec);
         } else {
             try {
                 $aktivita->zkontrolujZdaSeMuzeOdhlasit($ucastnik, $vypravec);
-                $aktivita->dejPrezenci()->zrusZeDorazil($ucastnik);
+                $aktivita->dejPrezenci()->zrusZeDorazil($ucastnik, $vypravec);
             } catch (\Chyba $chyba) {
                 $this->echoErrorJson($chyba->getMessage());
                 return;
@@ -336,14 +340,14 @@ class OnlinePrezenceAjax
             : $vypravec;
     }
 
-    private function ajaxUlozPrezenci(int $idAktivity, array $idDorazivsich) {
+    private function ajaxUlozPrezenci(int $idAktivity, array $idDorazivsich, \Uzivatel $vypravec) {
         $aktivita = Aktivita::zId($idAktivity, true);
         if (!$aktivita) {
             $this->echoErrorJson('Chybné ID aktivity' . $idAktivity);
             return;
         }
         $dorazili = \Uzivatel::zIds($idDorazivsich);
-        $aktivita->dejPrezenci()->uloz($dorazili);
+        $aktivita->dejPrezenci()->uloz($dorazili, $vypravec);
 
         $this->echoJson([self::AKTIVITA => $aktivita->rawDb(), self::DORAZILI => $dorazili]);
     }

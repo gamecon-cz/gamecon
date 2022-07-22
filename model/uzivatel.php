@@ -247,7 +247,7 @@ SQL
      * @todo Možná vyhodit výjimku, pokud už prošel infem, místo pouhého neudělání nic?
      * @todo Při odhlášení z GC pokud jsou zakázané rušení nákupů může být též problém (k zrušení dojde)
      */
-    public function gcOdhlas(Uzivatel $editor): bool {
+    public function gcOdhlas(Uzivatel $odhlasujici): bool {
         if (!$this->gcPrihlasen()) {
             return false;
         }
@@ -276,10 +276,14 @@ SQL
             trigger_error($throwable->getMessage() . '; ' . $throwable->getTraceAsString(), E_USER_WARNING);
         }
         foreach ($this->aktivityRyzePrihlasene() as $aktivita) {
-            $aktivita->odhlas($this, Aktivita::NEPOSILAT_MAILY_SLEDUJICIM /* nechceme posílat maily sledujícím, že se uvolnilo místo */);
+            $aktivita->odhlas(
+                $this,
+                $odhlasujici,
+                Aktivita::NEPOSILAT_MAILY_SLEDUJICIM /* nechceme posílat maily sledujícím, že se uvolnilo místo */
+            );
         }
         // finální odebrání židle "registrován na GC"
-        $this->vemZidli(Zidle::PRIHLASEN_NA_LETOSNI_GC, $editor);
+        $this->vemZidli(Zidle::PRIHLASEN_NA_LETOSNI_GC, $odhlasujici);
         // zrušení nákupů (až po použití dejShop a ubytovani)
         dbQuery('DELETE FROM shop_nakupy WHERE rok=' . ROK . ' AND id_uzivatele=' . $this->id());
 
@@ -998,6 +1002,7 @@ SQL,
             if ($u2 && $u && $u2->id() != $u->id()) {
                 return 'e-mail už je zabraný. Pokud je tvůj, resetuj si heslo';
             }
+            return '';
         };
 
         $validaceHesla = function ($heslo) use ($dbTab) {
@@ -1009,6 +1014,7 @@ SQL,
             ) {
                 return 'hesla se neshodují';
             }
+            return '';
         };
 
         $validace = [

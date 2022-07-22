@@ -30,21 +30,21 @@ class AktivitaPrezence
      * Uloží prezenci do databáze.
      * @param \Uzivatel[] $dorazili uživatelé, kteří se nakonec aktivity zúčastnili
      */
-    public function uloz(array $dorazili) {
+    public function uloz(array $dorazili, \Uzivatel $potvrzujici) {
         $doraziliIds = []; // id všech co dorazili (kvůli kontrole přítomnosti)
 
         foreach ($dorazili as $dorazil) {
-            $this->ulozZeDorazil($dorazil);
+            $this->ulozZeDorazil($dorazil, $potvrzujici);
             $doraziliIds[$dorazil->id()] = true;
         }
         foreach ($this->aktivita->prihlaseni() as $uzivatel) {
             if (!isset($doraziliIds[$uzivatel->id()])) {
-                $this->ulozNedorazivsiho($uzivatel);
+                $this->ulozNedorazivsiho($uzivatel, $potvrzujici);
             }
         }
     }
 
-    public function ulozZeDorazil(\Uzivatel $dorazil) {
+    public function ulozZeDorazil(\Uzivatel $dorazil, \Uzivatel $potvrzujici) {
         if ($this->aktivita->dorazilJakoCokoliv($dorazil)) {
             return; // už máme hotovo
         }
@@ -54,15 +54,15 @@ class AktivitaPrezence
                 'id_akce'             => $this->aktivita->id(),
                 'id_stavu_prihlaseni' => StavPrihlaseni::PRIHLASEN_A_DORAZIL,
             ]);
-            $this->zalogujZeDorazil($dorazil);
+            $this->zalogujZeDorazil($dorazil, $potvrzujici);
         } else {
-            $this->aktivita->odhlasZeSledovaniAktivitVeStejnemCase($dorazil);
+            $this->aktivita->odhlasZeSledovaniAktivitVeStejnemCase($dorazil, $potvrzujici);
             dbInsert('akce_prihlaseni', [
                 'id_uzivatele'        => $dorazil->id(),
                 'id_akce'             => $this->aktivita->id(),
                 'id_stavu_prihlaseni' => StavPrihlaseni::DORAZIL_JAKO_NAHRADNIK,
             ]);
-            $this->zalogujZeDorazilJakoNahradnik($dorazil);
+            $this->zalogujZeDorazilJakoNahradnik($dorazil, $potvrzujici);
         }
         $this->zrusPredchoziPokutu($dorazil);
     }
@@ -78,13 +78,13 @@ class AktivitaPrezence
      * @param \Uzivatel $dorazil
      * @return bool false pokud byl uživatel už zrušen a nic se tedy nezměnilo
      */
-    public function zrusZeDorazil(\Uzivatel $nedorazil): bool {
+    public function zrusZeDorazil(\Uzivatel $nedorazil, \Uzivatel $zmenil): bool {
         if ($this->aktivita->dorazilJakoNahradnik($nedorazil)) {
             dbDelete('akce_prihlaseni', [
                 'id_uzivatele' => $nedorazil->id(),
                 'id_akce'      => $this->aktivita->id(),
             ]);
-            $this->zalogujZeZrusilPrihlaseniJakoNahradik($nedorazil);
+            $this->zalogujZeZrusilPrihlaseniJakoNahradik($nedorazil, $zmenil);
             /* Návštěvník přidaný k aktivitě přes online prezenci se přidá jako náhradník a obratem potvrdí jeho přítomnost - přestože to aktivita sama vlastně nedovoluje. Když ho z aktivity zas ruší, tak ho ale nemůžeme zařadit do fronty jako náhradníka, pokud to aktivita nedovoluje (a my to popravdě ani nechceme, když ho odškrtli při samotné online prezenci).
             PS: ano, vlastně nechceme účastníka, kterého přidal vypravěč, "vracet" do stavu sledujícího, ale zatím to nechceme řešit.
                 Museli bychom logovat i kdo ho původně přihlásil jako náhradníka v \Gamecon\Aktivita\Aktivita::prihlas */
@@ -95,7 +95,7 @@ class AktivitaPrezence
                  */
                 $this->aktivita->refresh(); // pozor na to, že tímto jsme odstřihli současnou instanci AktivitaPrezence od Aktivita
                 try {
-                    $this->aktivita->prihlasSledujiciho($nedorazil);
+                    $this->aktivita->prihlasSledujiciho($nedorazil, $zmenil);
                 } catch (ChybaKolizeAktivit $chybaKolizeAktivit) {
                 }
             }
@@ -106,60 +106,61 @@ class AktivitaPrezence
                 ['id_stavu_prihlaseni' => StavPrihlaseni::PRIHLASEN], // vratime ho zpet jako "jen prihlaseneho"
                 ['id_uzivatele' => $nedorazil->id(), 'id_akce' => $this->aktivita->id()]
             );
-            $this->zalogujZeSePrihlasil($nedorazil);
+            $this->zalogujPrihlaseni($nedorazil, $zmenil);
             return true;
         }
         // else není co měnit, už je všude zrušený
         return false;
     }
 
-    public function zalogujZeSePrihlasil(\Uzivatel $prihlaseny) {
-        $this->log($prihlaseny, AktivitaPrezenceTyp::PRIHLASENI);
+    public function zalogujPrihlaseni(\Uzivatel $prihlaseny, \Uzivatel $zmenil) {
+        $this->log($prihlaseny, AktivitaPrezenceTyp::PRIHLASENI, $zmenil);
     }
 
-    private function log(\Uzivatel $u, string $udalost) {
+    private function log(\Uzivatel $ucastnik, string $udalost, \Uzivatel $zmenil) {
         dbInsert('akce_prihlaseni_log', [
-            'id_uzivatele' => $u->id(),
+            'id_uzivatele' => $ucastnik->id(),
             'id_akce'      => $this->aktivita->id(),
             'typ'          => $udalost,
+            'id_zmenil'    => $zmenil->id(),
         ]);
         RazitkoPosledniZmenyPrihlaseni::smazRazitkaPoslednichZmen($this->aktivita, $this->filesystem);
-        unset($this->posledniZmenaPrihlaseni[$u->id()]);
+        unset($this->posledniZmenaPrihlaseni[$ucastnik->id()]);
     }
 
-    public function zalogujZeSeOdhlasil(\Uzivatel $odhlaseny) {
-        $this->log($odhlaseny, AktivitaPrezenceTyp::ODHLASENI);
+    public function zalogujOdhlaseni(\Uzivatel $odhlaseny, \Uzivatel $odhlasujici) {
+        $this->log($odhlaseny, AktivitaPrezenceTyp::ODHLASENI, $odhlasujici);
     }
 
-    private function zalogujZeZeNedostavil(\Uzivatel $nedorazil) {
-        $this->log($nedorazil, AktivitaPrezenceTyp::NEDOSTAVENI_SE);
+    private function zalogujZeZeNedostavil(\Uzivatel $nedorazil, \Uzivatel $potvrzujici) {
+        $this->log($nedorazil, AktivitaPrezenceTyp::NEDOSTAVENI_SE, $potvrzujici);
     }
 
-    public function zalogujZeBylHromadneOdhlasen(\Uzivatel $hromadneOdhlasen) {
-        $this->log($hromadneOdhlasen, AktivitaPrezenceTyp::ODHLASENI_HROMADNE);
+    public function zalogujZeBylHromadneOdhlasen(\Uzivatel $hromadneOdhlasen, \Uzivatel $odhlasujici) {
+        $this->log($hromadneOdhlasen, AktivitaPrezenceTyp::ODHLASENI_HROMADNE, $odhlasujici);
     }
 
-    public function zalogujZeDorazil(\Uzivatel $dorazil) {
-        $this->log($dorazil, AktivitaPrezenceTyp::DORAZIL);
+    public function zalogujZeDorazil(\Uzivatel $dorazil, \Uzivatel $potvrzujici) {
+        $this->log($dorazil, AktivitaPrezenceTyp::DORAZIL, $potvrzujici);
     }
 
-    private function zalogujZeDorazilJakoNahradnik(\Uzivatel $dorazilNahradnik) {
-        $this->log($dorazilNahradnik, AktivitaPrezenceTyp::DORAZIL_JAKO_NAHRADNIK);
+    private function zalogujZeDorazilJakoNahradnik(\Uzivatel $dorazilNahradnik, \Uzivatel $potvrzujici) {
+        $this->log($dorazilNahradnik, AktivitaPrezenceTyp::DORAZIL_JAKO_NAHRADNIK, $potvrzujici);
     }
 
-    public function zalogujZeSePrihlasilJakoSledujici(\Uzivatel $prihlasenySledujici) {
-        $this->log($prihlasenySledujici, AktivitaPrezenceTyp::PRIHLASENI_SLEDUJICI);
+    public function zalogujZeSePrihlasilJakoSledujici(\Uzivatel $prihlasenySledujici, \Uzivatel $prihlasujici) {
+        $this->log($prihlasenySledujici, AktivitaPrezenceTyp::PRIHLASENI_SLEDUJICI, $prihlasujici);
     }
 
-    public function zalogujZeZrusilPrihlaseniJakoNahradik(\Uzivatel $prihlasenySledujici) {
-        $this->log($prihlasenySledujici, AktivitaPrezenceTyp::NAHRADNIK_NEDORAZIL);
+    public function zalogujZeZrusilPrihlaseniJakoNahradik(\Uzivatel $prihlasenySledujici, \Uzivatel $odhlasujici) {
+        $this->log($prihlasenySledujici, AktivitaPrezenceTyp::NAHRADNIK_NEDORAZIL, $odhlasujici);
     }
 
-    public function zalogujZeSeOdhlasilJakoSledujici(\Uzivatel $odhlasenySledujici) {
-        $this->log($odhlasenySledujici, AktivitaPrezenceTyp::ODHLASENI_SLEDUJICI);
+    public function zalogujZeSeOdhlasilJakoSledujici(\Uzivatel $odhlasenySledujici, \Uzivatel $odhlasujici) {
+        $this->log($odhlasenySledujici, AktivitaPrezenceTyp::ODHLASENI_SLEDUJICI, $odhlasujici);
     }
 
-    public function ulozNedorazivsiho(\Uzivatel $nedorazil) {
+    public function ulozNedorazivsiho(\Uzivatel $nedorazil, \Uzivatel $potvrzujici) {
         // TODO kontrola, jestli prezence smí být uložena (např. jestli už nebyla uložena dřív)
 
         dbDelete('akce_prihlaseni', [
@@ -171,7 +172,7 @@ class AktivitaPrezence
             'id_akce'             => $this->aktivita->id(),
             'id_stavu_prihlaseni' => StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL,
         ]);
-        $this->zalogujZeZeNedostavil($nedorazil);
+        $this->zalogujZeZeNedostavil($nedorazil, $potvrzujici);
         $this->posliMailNedorazivsimu($nedorazil);
     }
 
