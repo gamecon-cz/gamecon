@@ -12,7 +12,7 @@
 <!-- end:clen -->
 
 <!-- begin:neuzavreno -->
-<div class="error">základní aktivita není uavřená, není možné uložit ne/postup</div>
+<div class="error">základní aktivita není uzavřená, není možné uložit ne/postup</div>
 <!-- end:neuzavreno -->
 <!-- begin:vyber -->
 <form method="post">
