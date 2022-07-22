@@ -189,7 +189,7 @@ SQL
      * uvedení uživatele vrací pro něj specifickou cenu.
      */
     public function cena(\Uzivatel $u = null) {
-        if ($this->a['typ'] == 10) {
+        if ($this->a['typ'] == TypAktivity::TECHNICKA) {
             return null;
         }
         if (!($this->cenaZaklad() > 0)) {
@@ -535,8 +535,6 @@ SQL
 
     private static function parseUpravyTabulkaTypy(?Aktivita $aktivita, \XTemplate $xtpl) {
         $aktivitaData = $aktivita ? $aktivita->a : null; // databázový řádek
-        $xtpl->assign(['selected' => '', 'id_typu' => 0, 'typ_1p' => '(bez typu – organizační)']);
-        $xtpl->parse('upravy.tabulka.typ');
         $q = dbQuery('SELECT id_typu, typ_1p FROM akce_typy WHERE aktivni = 1 ORDER BY poradi');
         while ($akceTypData = mysqli_fetch_assoc($q)) {
             $xtpl->assign('selected', $aktivita && $akceTypData['id_typu'] == $aktivitaData['typ'] ? 'selected' : '');
@@ -1654,7 +1652,7 @@ SQL
             )
             && (
                 $this->a['stav'] == \Stav::AKTIVOVANA
-                || ($technicke && $this->a['stav'] == \Stav::NOVA && $this->a['typ'] == \Gamecon\Aktivita\TypAktivity::TECHNICKA)
+                || ($technicke && $this->a['stav'] == \Stav::NOVA && $this->a['typ'] == TypAktivity::TECHNICKA)
                 || ($zpetne && $this->probehnuta())
             )
             && $this->a['zacatek']
@@ -1670,7 +1668,7 @@ SQL
         }
         if (!(
             $this->a['stav'] == \Stav::AKTIVOVANA
-            || ($technicke && $this->a['stav'] == \Stav::NOVA && $this->a['typ'] == \Gamecon\Aktivita\TypAktivity::TECHNICKA)
+            || ($technicke && $this->a['stav'] == \Stav::NOVA && $this->a['typ'] == TypAktivity::TECHNICKA)
             || ($zpetne && $this->probehnuta())
         )) {
             return sprintf(
@@ -2109,20 +2107,18 @@ SQL
         return null;
     }
 
-    public function typ(): \Gamecon\Aktivita\TypAktivity {
+    public function typ(): TypAktivity {
         if (is_numeric($this->typ)) {
             $this->prednactiN1([
                 'atribut' => 'typ',
-                'cil' => \Gamecon\Aktivita\TypAktivity::class,
+                'cil' => TypAktivity::class,
             ]);
         }
         return $this->typ;
     }
 
-    public function typId(): ?int {
-        return (string)$this->a['typ'] !== ''
-            ? (int)$this->a['typ']
-            : null;
+    public function typId(): int {
+        return $this->typ()->id();
     }
 
     /**
@@ -2251,7 +2247,7 @@ SQL
     public function viditelnaPro(\Uzivatel $u = null) {
         return (
             (in_array($this->a['stav'], [\Stav::AKTIVOVANA, \Stav::ZAMCENA, \Stav::UZAVRENA, \Stav::PUBLIKOVANA, \Stav::PRIPRAVENA], false) // podle stavu je aktivita viditelná
-                && !($this->a['typ'] == \Gamecon\Aktivita\TypAktivity::TECHNICKA && $this->probehnuta()) // ale skrýt technické proběhnuté
+                && !($this->a['typ'] == TypAktivity::TECHNICKA && $this->probehnuta()) // ale skrýt technické proběhnuté
             )
             || ($u && $this->prihlasen($u))
             || ($u && $u->organizuje($this))
@@ -2336,7 +2332,7 @@ SQL
         }
 
         // název (povinný pro DrD)
-        if ($this->a['typ'] == \Gamecon\Aktivita\TypAktivity::DRD) {
+        if ($this->a['typ'] == TypAktivity::DRD) {
             $t->parse('formular.nazevPovinny');
         } else {
             $t->parse('formular.nazevVolitelny');
@@ -2642,7 +2638,7 @@ SQL,
             $wheres[] = 'a.id_akce IN (SELECT id_akce FROM akce_organizatori WHERE id_uzivatele = ' . (int)$filtr['organizator'] . ')';
         }
         if (!empty($filtr['jenViditelne'])) {
-            $wheres[] = 'a.stav IN (' . implode(',', [\Stav::AKTIVOVANA, \Stav::PUBLIKOVANA, \Stav::PRIPRAVENA]) . ') AND NOT (a.typ = ' . \Gamecon\Aktivita\TypAktivity::TECHNICKA . ' AND a.stav IN (' . \Stav::ZAMCENA . ',' . \Stav::UZAVRENA . '))';
+            $wheres[] = 'a.stav IN (' . implode(',', [\Stav::AKTIVOVANA, \Stav::PUBLIKOVANA, \Stav::PRIPRAVENA]) . ') AND NOT (a.typ = ' . TypAktivity::TECHNICKA . ' AND a.stav IN (' . \Stav::ZAMCENA . ',' . \Stav::UZAVRENA . '))';
             /** stejné jako @see \Gamecon\Aktivita\Aktivita::probehnuta */
         }
         if (!empty($filtr['jenZamcene'])) {
@@ -2661,7 +2657,7 @@ SQL,
             $wheres[] = 'a.stav IN (' . dbQv($filtr['stav']) . ')';
         }
         if (!empty($filtr['bezDalsichKol'])) {
-            $wheres[] = 'NOT (a.typ IN (' . \Gamecon\Aktivita\TypAktivity::DRD . ',' . \Gamecon\Aktivita\TypAktivity::LKD . ') AND cena = 0)';
+            $wheres[] = 'NOT (a.typ IN (' . TypAktivity::DRD . ',' . TypAktivity::LKD . ') AND cena = 0)';
         }
         $where = implode(' AND ', $wheres);
 
