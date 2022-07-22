@@ -25,9 +25,10 @@ $program = new Program($uPracovni, [
 if ($uPracovni) {
     Aktivita::prihlasovatkoZpracuj(
         $uPracovni,
+        $u,
         Aktivita::PLUSMINUS_KAZDY | ($u->maPravoNaZmenuHistorieAktivit() ? Aktivita::ZPETNE : 0) | Aktivita::TECHNICKE
     );
-    Aktivita::vyberTeamuZpracuj($uPracovni);
+    Aktivita::vyberTeamuZpracuj($uPracovni, $u);
 }
 
 $chyba = Chyba::vyzvedniHtml();

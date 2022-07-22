@@ -77,7 +77,7 @@ if (post('vypadliSemifinale') || post('vypadliFinale')) {
     $aVypadli = post('vypadliSemifinale') ? Aktivita::zId(post('semifinale')) : Aktivita::zId(post('finale'));
 
     foreach ($a->prihlaseni() as $uc) {
-        $aVypadli->odhlas($uc, Aktivita::BEZ_POKUT);
+        $aVypadli->odhlas($uc, $u, Aktivita::BEZ_POKUT);
     }
 
     $mail = new GcMail();

@@ -1065,11 +1065,11 @@ SQL
      * Odemče hromadně zamčené aktivity a odhlásí ty, kteří nesestavili teamy.
      * Vrací počet odemčených teamů (=>uvolněných míst)
      */
-    public static function odemciTeamoveHromadne(): int {
+    public static function odemciTeamoveHromadne(\Uzivatel $odemykajici): int {
         $o = dbQuery('SELECT id_akce, zamcel FROM akce_seznam WHERE zamcel AND zamcel_cas < NOW() - INTERVAL ' . self::HAJENI . ' HOUR');
         $i = 0;
         while (list($aid, $uid) = mysqli_fetch_row($o)) {
-            Aktivita::zId($aid)->odhlas(\Uzivatel::zId($uid));
+            Aktivita::zId($aid)->odhlas(\Uzivatel::zId($uid), $odemykajici);
             $i++;
         }
         return $i;
@@ -1081,9 +1081,9 @@ SQL
      * @todo kontroly? (např. jestli je aktivní přihlašování?) (administrativní
      *  odhlašování z DrD počítá s možnosti odhlásit např. od semifinále dál)
      */
-    public function odhlas(\Uzivatel $u, $params = 0) {
+    public function odhlas(\Uzivatel $u, \Uzivatel $odhlasujici, $params = 0) {
         foreach ($this->deti() as $dite) { // odhlášení z potomků
-            $dite->odhlas($u); // spoléhá na odolnost proti odhlašování z aktivit kde uživatel není
+            $dite->odhlas($u, $odhlasujici); // spoléhá na odolnost proti odhlašování z aktivit kde uživatel není
         }
         if (!$this->prihlasen($u)) {
             return; // ignorovat pokud přihlášen není tak či tak
@@ -1092,7 +1092,7 @@ SQL
         $idAktivity  = $this->id();
         $idUzivatele = $u->id();
         dbQuery("DELETE FROM akce_prihlaseni WHERE id_uzivatele=$idUzivatele AND id_akce=$idAktivity");
-        $this->dejPrezenci()->zalogujZeSeOdhlasil($u);
+        $this->dejPrezenci()->zalogujOdhlaseni($u, $odhlasujici);
         if (ODHLASENI_POKUTA_KONTROLA && !($params & self::BEZ_POKUT) && $this->zbyvaHodinDoZacatku() < ODHLASENI_POKUTA1_H) { // pokuta aktivní
             dbQuery(<<<SQL
 INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$idUzivatele, id_akce=$idAktivity, id_stavu_prihlaseni=$0
@@ -1131,13 +1131,16 @@ SQL,
     /**
      * Odhlásí uživatele z náhradníků (watchlistu)
      */
-    public function odhlasSledujiciho(\Uzivatel $u) {
+    public function odhlasSledujiciho(\Uzivatel $u, ?\Uzivatel $odhlasujici) {
         if (!$u->prihlasenJakoSledujici($this)) { // Ignorovat pokud není přihlášen jako sledující
             return;
         }
         // Uložení odhlášení do DB
-        dbQuery("DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0 AND id_akce=$1 AND id_stavu_prihlaseni=$2", [$u->id(), $this->id(), StavPrihlaseni::SLEDUJICI]);
-        $this->dejPrezenci()->zalogujZeSeOdhlasilJakoSledujici($u);
+        dbQuery(
+            "DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0 AND id_akce=$1 AND id_stavu_prihlaseni=$2",
+            [$u->id(), $this->id(), StavPrihlaseni::SLEDUJICI]
+        );
+        $this->dejPrezenci()->zalogujZeSeOdhlasilJakoSledujici($u, $odhlasujici);
         $this->refresh();
     }
 
@@ -1145,7 +1148,7 @@ SQL,
      * Odhlásí ze všech sledování aktivit ve stejný čas jako aktivita po přihlášení na aktivitu.
      * @return bool True pokud došlo k odhlášení nějakých sledování
      */
-    public function odhlasZeSledovaniAktivitVeStejnemCase(\Uzivatel $u): bool {
+    public function odhlasZeSledovaniAktivitVeStejnemCase(\Uzivatel $u, \Uzivatel $odhlasujici): bool {
         $konfliktniAktivity = self::zIds(dbOneArray("
       SELECT p.id_akce
       FROM akce_prihlaseni_spec p
@@ -1158,7 +1161,7 @@ SQL,
             $u->id(), $this->a['zacatek'], $this->a['konec'], StavPrihlaseni::SLEDUJICI,
         ]));
         foreach ($konfliktniAktivity as $aktivita) {
-            $aktivita->odhlasSledujiciho($u);
+            $aktivita->odhlasSledujiciho($u, $odhlasujici);
         }
         return count($konfliktniAktivity) > 0;
     }
@@ -1395,7 +1398,7 @@ SQL
     /**
      * Přihlásí uživatele na aktivitu
      */
-    public function prihlas(\Uzivatel $uzivatel, $ignorovat = 0) {
+    public function prihlas(\Uzivatel $uzivatel, \Uzivatel $prihlasujici, $ignorovat = 0) {
         if ($this->prihlasen($uzivatel)) {
             return;
         }
@@ -1403,7 +1406,7 @@ SQL
         $this->zkontrolujZdaSeMuzePrihlasit($uzivatel, $uzivatel, $ignorovat);
 
         // odhlášení náhradnictví v kolidujících aktivitách
-        $this->odhlasZeSledovaniAktivitVeStejnemCase($uzivatel);
+        $this->odhlasZeSledovaniAktivitVeStejnemCase($uzivatel, $prihlasujici);
 
         // přihlášení na samu aktivitu (uložení věcí do DB)
         $idAktivity  = $this->id();
@@ -1418,7 +1421,7 @@ SQL
             'INSERT INTO akce_prihlaseni SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=$2',
             [$idUzivatele, $idAktivity, StavPrihlaseni::PRIHLASEN]
         );
-        $this->dejPrezenci()->zalogujZeSePrihlasil($uzivatel);
+        $this->dejPrezenci()->zalogujPrihlaseni($uzivatel, $prihlasujici);
         // vrací se, storno rušíme a započítáme cenu za běžnou návštěvu aktivity
         $this->zrusPredchoziStornoPoplatek($uzivatel);
 
@@ -1501,7 +1504,7 @@ SQL
         if ($this->a['dite'] && $this->prihlaseno() > 0) {
             $deti = $this->deti();
             if (count($deti) === 1) {
-                current($deti)->prihlas($uzivatel, self::STAV);
+                current($deti)->prihlas($uzivatel, $prihlasujici, self::STAV);
             } else {
                 // vybrání jednoho uživatele, který už na navázané aktivity přihlášen je
                 $vzor   = \Uzivatel::zId(substr(explode(',', $this->prihlaseniRaw())[1], 0, -2));
@@ -1509,7 +1512,7 @@ SQL
                 foreach ($deti as $dite) {
                     // přihlášení na navázané aktivity podle vzoru vybraného uživatele
                     if ($dite->prihlasen($vzor)) {
-                        $dite->prihlas($uzivatel, self::STAV);
+                        $dite->prihlas($uzivatel, $prihlasujici, self::STAV);
                         $uspech = true;
                         break;
                     }
@@ -1778,12 +1781,13 @@ SQL
     }
 
     /** Zpracuje post data z přihlašovátka. Pokud došlo ke změně, vyvolá reload */
-    public static function prihlasovatkoZpracuj(\Uzivatel $u = null, $parametry = 0) {
+    public static function prihlasovatkoZpracuj(?\Uzivatel $u, ?\Uzivatel $prihlasujici, $parametry = 0) {
         if ($u) {
+            $prihlasujici = $prihlasujici ?? $u;
             if (post('prihlasit')) {
                 $aktivita = self::zId(post('prihlasit'));
                 if ($aktivita) {
-                    $aktivita->prihlas($u, $parametry);
+                    $aktivita->prihlas($u, $prihlasujici, $parametry);
                 }
                 back();
             }
@@ -1793,21 +1797,21 @@ SQL
                     : 0;
                 $aktivita = self::zId(post('odhlasit'));
                 if ($aktivita) {
-                    $aktivita->odhlas($u, $bezPokut);
+                    $aktivita->odhlas($u, $prihlasujici, $bezPokut);
                 }
                 back();
             }
             if (post('prihlasSledujiciho')) {
                 $aktivita = self::zId(post('prihlasSledujiciho'));
                 if ($aktivita) {
-                    $aktivita->prihlasSledujiciho($u);
+                    $aktivita->prihlasSledujiciho($u, $prihlasujici);
                 }
                 back();
             }
             if (post('odhlasSledujiciho')) {
                 $aktivita = self::zId(post('odhlasSledujiciho'));
                 if ($aktivita) {
-                    $aktivita->odhlasSledujiciho($u);
+                    $aktivita->odhlasSledujiciho($u, $prihlasujici);
                 }
                 back();
             }
@@ -1820,7 +1824,7 @@ SQL
     /**
      * Přihlásí uživatele jako sledujícího (watchlist)
      */
-    public function prihlasSledujiciho(\Uzivatel $u) {
+    public function prihlasSledujiciho(\Uzivatel $u, ?\Uzivatel $prihlasujici) {
         // Aktivita musí mít přihlašování náhradníků povoleno
         if (!$this->prihlasovatelnaProSledujici()) {
             throw new \Chyba('Na aktivitu se nelze přihlašovat jako sledující.');
@@ -1840,7 +1844,7 @@ SQL
 
         // Uložení přihlášení do DB
         dbQuery("INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=$2", [$u->id(), $this->id(), StavPrihlaseni::SLEDUJICI]);
-        $this->dejPrezenci()->zalogujZeSePrihlasilJakoSledujici($u);
+        $this->dejPrezenci()->zalogujZeSePrihlasilJakoSledujici($u, $prihlasujici);
         $this->refresh();
     }
 
@@ -1854,11 +1858,12 @@ SQL
      * @param int $ignorovat
      */
     public function prihlasTym(
-        $uzivatele,
-        $nazevTymu = null,
-        $pocetMist = null,
-        $dalsiKola = [],
-        $ignorovat = 0
+        array     $uzivatele,
+        \Uzivatel $prihlasujici,
+        ?string   $nazevTymu = null,
+        ?int      $pocetMist = null,
+        ?array    $dalsiKola = [],
+                  $ignorovat = 0
     ) {
         if (!$this->tymova()) {
             throw new \Exception('Nelze přihlásit tým na netýmovou aktivitu.');
@@ -1879,13 +1884,13 @@ SQL
             // nutno jít od konce, jinak vazby na potomky můžou vyvolat chyby kvůli
             // duplicitním pokusům o přihlášení
             foreach (array_reverse($dalsiKola) as $kolo) {
-                $kolo->prihlas($lidr, self::STAV | $ignorovat);
+                $kolo->prihlas($lidr, $prihlasujici, self::STAV | $ignorovat);
             }
 
             // přihlášení členů týmu
             foreach ($uzivatele as $clen) {
                 try {
-                    $this->prihlas($clen, self::ZAMEK);
+                    $this->prihlas($clen, $prihlasujici, self::ZAMEK);
                 } catch (\Exception $e) {
                     $chybnyClen = $clen;
                     throw $e;
@@ -1986,11 +1991,15 @@ SQL
     /**
      * Smaže aktivitu z DB
      */
-    public function smaz() {
+    public function smaz(\Uzivatel $mazajici) {
         dbBegin();
         try {
             foreach ($this->prihlaseni() as $u) {
-                $this->odhlas($u, self::BEZ_POKUT | self::NEPOSILAT_MAILY_SLEDUJICIM);
+                $this->odhlas(
+                    $u,
+                    $mazajici,
+                    self::BEZ_POKUT | self::NEPOSILAT_MAILY_SLEDUJICIM
+                );
             }
             $idInstance             = $this->patriPod();
             $idNoveMaterskeAktivity = null;
@@ -2171,14 +2180,6 @@ SQL
         return array_filter($this->prihlaseni(), function (\Uzivatel $prihlaseny) {
             return $this->dorazilJakoCokoliv($prihlaseny);
         });
-    }
-
-    /**
-     * Uloží údaje o prezenci u této aktivity
-     * @param \Uzivatel[] $dorazili uživatelé, kteří se nakonec aktivity zúčastnili
-     */
-    public function ulozPrezenci(array $dorazili) {
-        $this->dejPrezenci()->uloz($dorazili);
     }
 
     /**
@@ -2364,7 +2365,7 @@ SQL
      * Zpracuje data formuláře pro výběr teamu a vrátí případné chyby jako json.
      * Ukončuje skript.
      */
-    public static function vyberTeamuZpracuj(\Uzivatel $leader = null) {
+    public static function vyberTeamuZpracuj(?\Uzivatel $leader, ?\Uzivatel $prihlasujici) {
         if (!$leader || !post(self::TEAMKLIC . 'Aktivita')) {
             return;
         }
@@ -2394,7 +2395,7 @@ SQL
 
         // přihlášení týmu
         try {
-            $a->prihlasTym($clenove, $nazev, $novaKapacita, $dalsiKola);
+            $a->prihlasTym($clenove, $prihlasujici, $nazev, $novaKapacita, $dalsiKola);
             $chyby = [];
         } catch (\Chyba $ch) {
             $chyby = [$ch->getMessage()];

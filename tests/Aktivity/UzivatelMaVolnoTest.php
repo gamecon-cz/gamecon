@@ -20,8 +20,8 @@ class UzivatelMaVolnoTest extends UzivatelDbTest
     static function setUpBeforeClass(): void {
         parent::setUpBeforeClass();
         self::$uzivatel = self::prihlasenyUzivatel();
-        Aktivita::zId(1)->prihlas(self::$uzivatel);
-        Aktivita::zId(2)->prihlas(self::$uzivatel);
+        Aktivita::zId(1)->prihlas(self::$uzivatel, self::$uzivatel);
+        Aktivita::zId(2)->prihlas(self::$uzivatel, self::$uzivatel);
     }
 
     function testZadneAktivity() {
