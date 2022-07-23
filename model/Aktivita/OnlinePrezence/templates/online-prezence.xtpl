@@ -82,6 +82,7 @@
          data-url-razitka-posledni-zmeny="{urlRazitkaPosledniZmeny}"
          data-razitko-posledni-zmeny="{razitkoPosledniZmeny}"
          data-url-akce-posledni-zmeny="{urlAkcePosledniZmeny}"
+         data-url-akce-keep-alive="{urlAkceKeepAlive}"
          data-posledni-logy-aktivit-ajax-klic="{posledniLogyAktivitAjaxKlic}"
          data-posledni-logy-ucastniku-ajax-klic="{posledniLogyUcastnikuAjaxKlic}"
     >
