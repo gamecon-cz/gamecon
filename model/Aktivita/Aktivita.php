@@ -1413,13 +1413,17 @@ SQL
             [$idUzivatele, $idAktivity, self::PRIHLASEN]
         );
         $this->dejPrezenci()->zalogujZeSePrihlasil($uzivatel);
-        if (ODHLASENI_POKUTA_KONTROLA) { // pokud by náhodou měl záznam za pokutu a přihlásil se teď, tak smazat
-            dbQuery(
-                'DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0 AND id_akce=$1 AND id_stavu_prihlaseni=$2',
-                [$idUzivatele, $idAktivity, self::POZDE_ZRUSIL]
-            );
-        }
+        // vrací se, storno rušíme a započítáme cenu za běžnou návštěvu aktivity
+        $this->zrusPredchoziStornoPoplatek($uzivatel);
+
         $this->refresh();
+    }
+
+    private function zrusPredchoziStornoPoplatek(\Uzivatel $uzivatel) {
+        dbQuery(
+            'DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0 AND id_akce=$1 AND id_stavu_prihlaseni=$2',
+            [$uzivatel->id(), $this->id(), self::POZDE_ZRUSIL]
+        );
     }
 
     public function zkontrolujZdaSeMuzePrihlasit(
