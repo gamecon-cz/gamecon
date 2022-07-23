@@ -75,7 +75,7 @@ import {AkceAktivity} from "./online-prezence-akce-aktivity-class.js"
       request.send()
     }, 3000) // každé tři sekundy kontrolujeme, zda razitko posledni zmeny je patne (zda soubor s nim existuje) - kdyz soubor zmizi, tak se prilaseni na jedne z aktivit zmenilo a my chceme sathnout zmeny
 
-    const urlAkcePosledniZmeny = onlinePrezence.dataset.urlAkcePosledniZmeny
+    const urlAkcePosledniZmeny = onlinePrezence.dataset.urlAkcePosledniZmeny // bez domény - jQuery to nevadí
     const posledniLogyAktivitAjaxKlic = onlinePrezence.dataset.posledniLogyAktivitAjaxKlic
     const posledniLogyUcastnikuAjaxKlic = onlinePrezence.dataset.posledniLogyUcastnikuAjaxKlic
 

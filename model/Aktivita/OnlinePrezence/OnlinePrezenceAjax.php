@@ -14,6 +14,7 @@ use Symfony\Component\Filesystem\Filesystem;
 class OnlinePrezenceAjax
 {
     public const AJAX = 'ajax';
+    public const KEEP_ALIVE = 'keep-alive';
     public const POSLEDNI_ZMENY = 'posledni-zmeny';
 
     public const POSLEDNI_LOGY_AKTIVIT_AJAX_KLIC = 'posledni_logy_aktivit_ajax_klic';
@@ -38,6 +39,10 @@ class OnlinePrezenceAjax
 
     public static function dejUrlAkcePosledniZmeny(): string {
         return getCurrentUrlWithQuery([self::AJAX => 1, 'akce' => self::POSLEDNI_ZMENY]);
+    }
+
+    public static function dejUrlAkceKeepAlive(): string {
+        return getCurrentUrlWithQuery([self::AJAX => 1, 'akce' => self::KEEP_ALIVE]);
     }
 
     /**
@@ -72,6 +77,11 @@ class OnlinePrezenceAjax
     public function odbavAjax(\Uzivatel $vypravec) {
         if (!post(self::AJAX) && !get(self::AJAX)) {
             return false;
+        }
+
+        if (get('akce') === self::KEEP_ALIVE) {
+            $this->echoJson([]);
+            return true;
         }
 
         if (get('akce') === self::POSLEDNI_ZMENY) {

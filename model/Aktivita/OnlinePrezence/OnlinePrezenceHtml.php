@@ -94,6 +94,7 @@ class OnlinePrezenceHtml
                     __DIR__ . '/../../../admin/files/online-prezence/online-prezence-tooltip.js',
                     __DIR__ . '/../../../admin/files/online-prezence/online-prezence-prepinani-viditelnosti.js',
                     __DIR__ . '/../../../admin/files/online-prezence/online-prezence-ukazatele-zaplnenosti.js',
+                    __DIR__ . '/../../../admin/files/online-prezence/online-prezence-keep-alive.js',
                 ],
                 // pozor, JS moduly se automaticky načítají jako deffer, tedy asynchronně a vykonávají se až někdy po načtení celé stránky
                 'module' => [
@@ -273,6 +274,7 @@ class OnlinePrezenceHtml
         $template->assign('razitkoPosledniZmeny', $razitkoPosledniZmeny->dejPotvrzeneRazitkoPosledniZmeny());
         $template->assign('urlRazitkaPosledniZmeny', $razitkoPosledniZmeny->dejUrlRazitkaPosledniZmeny());
         $template->assign('urlAkcePosledniZmeny', OnlinePrezenceAjax::dejUrlAkcePosledniZmeny());
+        $template->assign('urlAkceKeepAlive', OnlinePrezenceAjax::dejUrlAkceKeepAlive());
         $template->assign('posledniLogyAktivitAjaxKlic', OnlinePrezenceAjax::POSLEDNI_LOGY_AKTIVIT_AJAX_KLIC);
         $template->assign('posledniLogyUcastnikuAjaxKlic', OnlinePrezenceAjax::POSLEDNI_LOGY_UCASTNIKU_AJAX_KLIC);
 
