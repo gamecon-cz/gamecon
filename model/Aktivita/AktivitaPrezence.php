@@ -64,6 +64,14 @@ class AktivitaPrezence
             ]);
             $this->zalogujZeDorazilJakoNahradnik($dorazil);
         }
+        $this->zrusPredchoziPokutu($dorazil);
+    }
+
+    private function zrusPredchoziPokutu(\Uzivatel $uzivatel) {
+        dbQuery(
+            'DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0 AND id_akce=$1 AND id_stavu_prihlaseni IN ($2)',
+            [$uzivatel->id(), $this->aktivita->id(), [StavPrihlaseni::POZDE_ZRUSIL, StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL]]
+        );
     }
 
     /**
