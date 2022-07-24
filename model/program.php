@@ -60,7 +60,7 @@ class Program
     /**
      * @return string url k stylu programu
      */
-    function cssUrl() {
+    public function cssUrl(): string {
         $soubor = 'soubory/blackarrow/program/program-trida.css';
         $verze = substr(filemtime(WWW . '/' . $soubor), -6);
         return URL_WEBU . '/' . $soubor . '?v=' . $verze;
@@ -69,7 +69,7 @@ class Program
     /**
      * Příprava pro tisk programu
      */
-    function tiskToPrint() {
+    public function tiskToPrint() {
         $this->init();
 
         require_once __DIR__ . '/../vendor/setasign/tfpdf/tfpdf.php';
@@ -150,7 +150,7 @@ class Program
      * Zpracuje POST data nastavená odesláním nějakého formuláře v programu.
      * Pokud je očekávaná POST proměnná nastavena, přesměruje a ukončí skript.
      */
-    function zpracujPost() {
+    public function zpracujPost() {
         if (!$this->u) {
             return;
         }
@@ -481,7 +481,7 @@ class Program
      *
      * @param int $denId číslo dne v roce (formát dateTimeCZ->format('z'))
      */
-    function nactiAktivityDne($denId) {
+    public function nactiAktivityDne($denId) {
         $aktivita = $this->dalsiAktivita();
         $this->maxPocetAktivit [$denId] = 0;
         $this->aktivityUzivatele = new ArrayObject();
