@@ -10,13 +10,17 @@ if ((int)date('Y') !== (int)ROK) { // fix pro datum z špatných let
     $test = ROK . '-01-01 01:00';
 }
 $od = (new DateTimeCz($test))->sub(new DateInterval('PT15M'));
-$do = (int)(new DateTimeCz($test))->format('G') < 20 ? // před 20:00 vypisovat 4h dopředu, potom už další den
-    (new DateTimeCz($test))->add(new DateInterval('PT3H45M')) :
-    (new DateTimeCz($test))->add(new DateInterval('P1D'))->setTime(9, 0);
+$do = (int)(new DateTimeCz($test))->format('G') < 20
+    ? (new DateTimeCz($test))->add(new DateInterval('PT3H45M')) // před 20:00 vypisovat 4h dopředu, potom už další den
+    : (new DateTimeCz($test))->add(new DateInterval('P1D'))->setTime(9, 0);
 $denPredchozihoBloku = null;
 $zacatekPrvniAktivityBloku = null;
 $zitra = null;
-$aktivity = Aktivita::zRozmezi($od, $do, Aktivita::JEN_VOLNE | Aktivita::VEREJNE);
+$aktivity = Aktivita::zRozmezi(
+    $od,
+    $do,
+    Aktivita::JEN_VOLNE | Aktivita::VEREJNE | Aktivita::NEUZAVRENE
+);
 usort($aktivity, static function (Aktivita $nejakaAktivita, Aktivita $dalsiAktivita) {
     return $nejakaAktivita->zacatek() <=> $dalsiAktivita->zacatek();
 });

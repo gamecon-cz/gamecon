@@ -2642,7 +2642,7 @@ SQL,
             $wheres[] = 'a.id_akce IN (SELECT id_akce FROM akce_organizatori WHERE id_uzivatele = ' . (int)$filtr['organizator'] . ')';
         }
         if (!empty($filtr['jenViditelne'])) {
-            $wheres[] = 'a.stav IN (' . implode(',', [\Stav::AKTIVOVANA, \Stav::PUBLIKOVANA, \Stav::PRIPRAVENA]) . ') AND NOT (a.typ = ' . TypAktivity::TECHNICKA . ' AND a.stav IN (' . \Stav::ZAMCENA . ',' . \Stav::UZAVRENA . '))';
+            $wheres[] = 'a.stav IN (' . implode(',', [\Stav::AKTIVOVANA, \Stav::PUBLIKOVANA, \Stav::PRIPRAVENA, \Stav::ZAMCENA, \Stav::UZAVRENA]) . ') AND NOT (a.typ = ' . TypAktivity::TECHNICKA . ' AND a.stav IN (' . \Stav::ZAMCENA . ',' . \Stav::UZAVRENA . '))';
             /** stejné jako @see \Gamecon\Aktivita\Aktivita::probehnuta */
         }
         if (!empty($filtr['jenZamcene'])) {
@@ -2786,8 +2786,8 @@ SQL,
      */
     public static function zProgramu($order) {
         return self::zWhere(
-            'WHERE a.rok = $0 AND a.zacatek AND (a.stav IN ($1) OR a.typ = $2)',
-            [ROK, [\Stav::AKTIVOVANA, \Stav::SYSTEMOVA, \Stav::PUBLIKOVANA, \Stav::PRIPRAVENA, \Stav::ZAMCENA, \Stav::UZAVRENA], TypAktivity::TECHNICKA],
+            'WHERE a.rok = $0 AND a.zacatek AND (a.stav != $1 OR a.typ = $2)',
+            [ROK, \Stav::NOVA, TypAktivity::TECHNICKA],
             'ORDER BY DAY(zacatek), ' . dbQi($order) . ', HOUR(zacatek), nazev_akce'
         );
     }
