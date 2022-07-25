@@ -124,7 +124,7 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
     // operátor - info & odhlašování
     $xtpl->assign('a', $u->koncovkaDlePohlavi());
     $xtpl->assign('operator', $u->jmenoNick());
-    if ($u->jeSuperAdmin() || $u->jeInfopultak()) {
+    if ($u && ($u->jeSuperAdmin() || $u->jeInfopultak())) {
         $dataOmnibox = [];
         if ($u->jeInfopultak()) {
             $dataOmnibox['jenSeZidlemi'] = [\Gamecon\Zidle::VYPRAVEC, \Gamecon\Zidle::PARTNER];
@@ -134,7 +134,7 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
     }
     $xtpl->parse('all.operator');
     // výběr uživatele
-    if ($u->maPravo(\Gamecon\Pravo::ADMINISTRACE_INFOPULT)) {
+    if ($u && $u->maPravo(\Gamecon\Pravo::ADMINISTRACE_INFOPULT)) {
         if ($uPracovni) {
             $xtpl->assign('uPracovni', $uPracovni);
             $xtpl->parse('all.uzivatel.vybrany');
@@ -168,7 +168,7 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
 
     // výstup submenu
     foreach ($submenu as $url => $polozka) {
-        if ($u->maPravo($polozka['pravo'])) {
+        if ($u && $u->maPravo($polozka['pravo'])) {
             $xtpl->assign('url', $url == $stranka ? $url : $stranka . '/' . $url);
             $xtpl->assign('nazev', $polozka['nazev']);
             $addAttributes = [];
