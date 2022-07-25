@@ -2374,7 +2374,7 @@ SQL
 
         $a = Aktivita::zId(post(self::TEAMKLIC . 'Aktivita'));
         if ($leader->id() != $a->a['zamcel']) {
-            throw new \Exception('Nejsi teamleader.');
+            throw new \Chyba('Nejsi teamleader.');
         }
 
         // načtení zvolených parametrů z formuláře (spoluhráči, kola, ...)
