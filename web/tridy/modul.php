@@ -105,7 +105,7 @@ class Modul
             ? $cesta
             : WWW . '/' . $cesta;
         $verze = md5_file($cestaKSouboru);
-        $cestaNaWebu = ltrim(substr($cestaKSouboru, strlen($cestaKSouboru)), '/');
+        $cestaNaWebu = ltrim(substr(realpath($cestaKSouboru), strlen(realpath(WWW))), '/');
         $url = URL_WEBU . '/' . $cestaNaWebu . '?version=' . $verze;
         $this->jsUrls[] = $url;
     }
