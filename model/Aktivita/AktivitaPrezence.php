@@ -52,7 +52,7 @@ class AktivitaPrezence
             dbInsertUpdate('akce_prihlaseni', [
                 'id_uzivatele' => $dorazil->id(),
                 'id_akce' => $this->aktivita->id(),
-                'id_stavu_prihlaseni' => Aktivita::PRIHLASEN_A_DORAZIL,
+                'id_stavu_prihlaseni' => StavPrihlaseni::PRIHLASEN_A_DORAZIL,
             ]);
             $this->zalogujZeDorazil($dorazil);
         } else {
@@ -60,7 +60,7 @@ class AktivitaPrezence
             dbInsert('akce_prihlaseni', [
                 'id_uzivatele' => $dorazil->id(),
                 'id_akce' => $this->aktivita->id(),
-                'id_stavu_prihlaseni' => Aktivita::DORAZIL_JAKO_NAHRADNIK,
+                'id_stavu_prihlaseni' => StavPrihlaseni::DORAZIL_JAKO_NAHRADNIK,
             ]);
             $this->zalogujZeDorazilJakoNahradnik($dorazil);
         }
@@ -103,7 +103,7 @@ class AktivitaPrezence
         }
         if ($this->aktivita->dorazilJakoPredemPrihlaseny($nedorazil)) {
             dbUpdate('akce_prihlaseni',
-                ['id_stavu_prihlaseni' => Aktivita::PRIHLASEN], // vratime ho zpet jako "jen prihlaseneho"
+                ['id_stavu_prihlaseni' => StavPrihlaseni::PRIHLASEN], // vratime ho zpet jako "jen prihlaseneho"
                 ['id_uzivatele' => $nedorazil->id(), 'id_akce' => $this->aktivita->id()]
             );
             $this->zalogujZeSePrihlasil($nedorazil);
@@ -169,7 +169,7 @@ class AktivitaPrezence
         dbInsert('akce_prihlaseni_spec', [
             'id_uzivatele' => $nedorazil->id(),
             'id_akce' => $this->aktivita->id(),
-            'id_stavu_prihlaseni' => Aktivita::PRIHLASEN_ALE_NEDORAZIL,
+            'id_stavu_prihlaseni' => StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL,
         ]);
         $this->zalogujZeZeNedostavil($nedorazil);
         $this->posliMailNedorazivsimu($nedorazil);

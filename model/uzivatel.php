@@ -1,5 +1,6 @@
 <?php
 
+use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Shop\Shop;
 use Gamecon\Aktivita\Aktivita;
@@ -308,7 +309,7 @@ WHERE akce_prihlaseni.id_uzivatele = $1
 AND akce_prihlaseni.id_stavu_prihlaseni = $2
 AND akce_seznam.rok = $3
 SQL,
-            [$this->id(), Aktivita::PRIHLASEN, $rok]
+            [$this->id(), StavPrihlaseni::PRIHLASEN, $rok]
         );
         return Aktivita::zIds($ids);
     }
@@ -916,7 +917,7 @@ SQL,
         SELECT id_akce
         FROM akce_prihlaseni_spec
         WHERE id_uzivatele = $0 AND id_stavu_prihlaseni = $1
-      ", [$this->id(), Aktivita::SLEDUJICI]);
+      ", [$this->id(), StavPrihlaseni::SLEDUJICI]);
         }
         return isset($this->aktivityJakoSledujici[$a->id()]);
     }

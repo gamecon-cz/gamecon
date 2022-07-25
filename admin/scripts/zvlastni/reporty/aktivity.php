@@ -1,18 +1,19 @@
 <?php
 
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\TypAktivity;
 
 require __DIR__ . '/sdilene-hlavicky.php';
 
 // dorazili
-$prihlasen = Aktivita::PRIHLASEN; // tohle je k něčemu leda v případě, že nějaká aktivita ještě nebyla uzavřena - což by se mělo stávat jen před a během Gameconu (a možná u technických aktivit)
-$prihlasenADorazil = Aktivita::PRIHLASEN_A_DORAZIL;
-$dorazilJakoNahradnik = Aktivita::DORAZIL_JAKO_NAHRADNIK;
+$prihlasen = StavPrihlaseni::PRIHLASEN; // tohle je k něčemu leda v případě, že nějaká aktivita ještě nebyla uzavřena - což by se mělo stávat jen před a během Gameconu (a možná u technických aktivit)
+$prihlasenADorazil = StavPrihlaseni::PRIHLASEN_A_DORAZIL;
+$dorazilJakoNahradnik = StavPrihlaseni::DORAZIL_JAKO_NAHRADNIK;
 // nepritomni
-$prihlasenAleNedorazil = Aktivita::PRIHLASEN_ALE_NEDORAZIL;
-$pozdeZrusil = Aktivita::POZDE_ZRUSIL;
-$sledujici = Aktivita::SLEDUJICI;
+$prihlasenAleNedorazil = StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL;
+$pozdeZrusil = StavPrihlaseni::POZDE_ZRUSIL;
+$sledujici = StavPrihlaseni::SLEDUJICI;
 
 $technicka = TypAktivity::TECHNICKA;
 

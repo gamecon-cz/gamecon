@@ -1092,8 +1092,10 @@ SQL
         dbQuery("DELETE FROM akce_prihlaseni WHERE id_uzivatele=$idUzivatele AND id_akce=$idAktivity");
         $this->dejPrezenci()->zalogujZeSeOdhlasil($u);
         if (ODHLASENI_POKUTA_KONTROLA && !($params & self::BEZ_POKUT) && $this->zbyvaHodinDoZacatku() < ODHLASENI_POKUTA1_H) { // pokuta aktivní
-            $pozdeZrusil = self::POZDE_ZRUSIL;
-            dbQuery("INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$idUzivatele, id_akce=$idAktivity, id_stavu_prihlaseni=$pozdeZrusil");
+            dbQuery(
+                "INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$idUzivatele, id_akce=$idAktivity, id_stavu_prihlaseni=$0",
+                [StavPrihlaseni::POZDE_ZRUSIL]
+            );
         }
         if ($this->a['zamcel'] == $idUzivatele) {
             dbQuery("UPDATE akce_seznam SET zamcel=NULL, zamcel_cas=NULL, team_nazev=NULL WHERE id_akce=$idAktivity");
@@ -1130,7 +1132,7 @@ SQL
             return;
         }
         // Uložení odhlášení do DB
-        dbQuery("DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0 AND id_akce=$1 AND id_stavu_prihlaseni=$2", [$u->id(), $this->id(), self::SLEDUJICI]);
+        dbQuery("DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0 AND id_akce=$1 AND id_stavu_prihlaseni=$2", [$u->id(), $this->id(), StavPrihlaseni::SLEDUJICI]);
         $this->dejPrezenci()->zalogujZeSeOdhlasilJakoSledujici($u);
         $this->refresh();
     }
@@ -1149,7 +1151,7 @@ SQL
         p.id_uzivatele = $0 AND
         NOT (a.konec <= $1 OR $2 <= a.zacatek) -- aktivita 'a' se kryje s aktuální aktivitou
     ", [
-            $u->id(), $this->a['zacatek'], $this->a['konec'], self::SLEDUJICI,
+            $u->id(), $this->a['zacatek'], $this->a['konec'], StavPrihlaseni::SLEDUJICI,
         ]));
         foreach ($konfliktniAktivity as $aktivita) {
             $aktivita->odhlasSledujiciho($u);
@@ -1376,7 +1378,7 @@ SQL
       FROM akce_prihlaseni_spec a
       JOIN uzivatele_hodnoty u ON u.id_uzivatele = a.id_uzivatele
       WHERE a.id_akce = $0 AND a.id_stavu_prihlaseni = $1
-    ", [$this->id(), self::SLEDUJICI]);
+    ", [$this->id(), StavPrihlaseni::SLEDUJICI]);
         foreach ($emaily as $email) {
             $mail = new \GcMail();
             $mail->predmet('Gamecon: Volné místo na aktivitě ' . $this->nazev());
@@ -1410,7 +1412,7 @@ SQL
         }
         dbQuery(
             'INSERT INTO akce_prihlaseni SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=$2',
-            [$idUzivatele, $idAktivity, self::PRIHLASEN]
+            [$idUzivatele, $idAktivity, StavPrihlaseni::PRIHLASEN]
         );
         $this->dejPrezenci()->zalogujZeSePrihlasil($uzivatel);
         // vrací se, storno rušíme a započítáme cenu za běžnou návštěvu aktivity
@@ -1422,7 +1424,7 @@ SQL
     private function zrusPredchoziStornoPoplatek(\Uzivatel $uzivatel) {
         dbQuery(
             'DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0 AND id_akce=$1 AND id_stavu_prihlaseni=$2',
-            [$uzivatel->id(), $this->id(), self::POZDE_ZRUSIL]
+            [$uzivatel->id(), $this->id(), StavPrihlaseni::POZDE_ZRUSIL]
         );
     }
 
@@ -1558,7 +1560,7 @@ SQL
         SELECT 1
         FROM akce_prihlaseni_spec
         WHERE id_akce=$1 AND id_uzivatele=$2 AND id_stavu_prihlaseni = $3
-      ", [$this->id(), $uzivatel->id(), Aktivita::SLEDUJICI]);
+      ", [$this->id(), $uzivatel->id(), StavPrihlaseni::SLEDUJICI]);
     }
 
     public function prihlasenOd(\Uzivatel $uzivatel): ?\DateTimeInterface {
@@ -1631,11 +1633,11 @@ SQL
     }
 
     public function dorazilJakoNahradnik(\Uzivatel $ucastnik): bool {
-        return $this->stavPrihlaseni($ucastnik) === self::DORAZIL_JAKO_NAHRADNIK;
+        return $this->stavPrihlaseni($ucastnik) === StavPrihlaseni::DORAZIL_JAKO_NAHRADNIK;
     }
 
     public function dorazilJakoPredemPrihlaseny(\Uzivatel $ucastnik): bool {
-        return $this->stavPrihlaseni($ucastnik) === self::PRIHLASEN_A_DORAZIL;
+        return $this->stavPrihlaseni($ucastnik) === StavPrihlaseni::PRIHLASEN_A_DORAZIL;
     }
 
     public function nedorazilNeboZrusil(\Uzivatel $ucastnik): bool {
@@ -1826,7 +1828,7 @@ SQL
         }
 
         // Uložení přihlášení do DB
-        dbQuery("INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=$2", [$u->id(), $this->id(), self::SLEDUJICI]);
+        dbQuery("INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$0, id_akce=$1, id_stavu_prihlaseni=$2", [$u->id(), $this->id(), StavPrihlaseni::SLEDUJICI]);
         $this->dejPrezenci()->zalogujZeSePrihlasilJakoSledujici($u);
         $this->refresh();
     }
@@ -2005,7 +2007,7 @@ SQL
                 }
             }
 
-            dbQuery('DELETE FROM akce_prihlaseni_spec WHERE id_akce = $1 AND id_stavu_prihlaseni = $2', [$this->id(), self::SLEDUJICI]);
+            dbQuery('DELETE FROM akce_prihlaseni_spec WHERE id_akce = $1 AND id_stavu_prihlaseni = $2', [$this->id(), StavPrihlaseni::SLEDUJICI]);
             dbQuery('DELETE FROM akce_organizatori WHERE id_akce = $1', [$this->id()]);
             dbQuery('DELETE FROM akce_seznam WHERE id_akce = $1', [$this->id()]); // posledni kvuli SQL cizim klicum a cascade
 
@@ -2400,7 +2402,7 @@ SQL
      * (aktivity s 0 lidmi jsou považovány za nevyplněné vždycky)
      */
     public function nekdoUzDorazil() {
-        return self::PRIHLASEN < dbOneCol('SELECT MAX(id_stavu_prihlaseni) FROM akce_prihlaseni WHERE id_akce = ' . $this->id());
+        return StavPrihlaseni::PRIHLASEN < dbOneCol('SELECT MAX(id_stavu_prihlaseni) FROM akce_prihlaseni WHERE id_akce = ' . $this->id());
     }
 
     /**

@@ -450,8 +450,8 @@ class Finance
         $rok = ROK;
         $uid = $this->u->id();
         $technicka = TypAktivity::TECHNICKA;
-        $nedorazil = Aktivita::PRIHLASEN_ALE_NEDORAZIL;
-        $pozdeZrusil = Aktivita::POZDE_ZRUSIL;
+        $nedorazil = StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL;
+        $pozdeZrusil = StavPrihlaseni::POZDE_ZRUSIL;
 
         $o = dbQuery("
       SELECT
@@ -465,7 +465,8 @@ class Finance
       FROM (
         SELECT * FROM akce_prihlaseni WHERE id_uzivatele = $uid
         UNION
-        SELECT * FROM akce_prihlaseni_spec WHERE id_uzivatele = $uid) p
+        SELECT * FROM akce_prihlaseni_spec WHERE id_uzivatele = $uid
+      ) p
       JOIN akce_seznam a USING(id_akce)
       JOIN akce_prihlaseni_stavy st USING(id_stavu_prihlaseni)
       WHERE rok = $rok
