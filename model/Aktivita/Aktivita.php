@@ -1784,22 +1784,34 @@ SQL
     public static function prihlasovatkoZpracuj(\Uzivatel $u = null, $parametry = 0) {
         if ($u) {
             if (post('prihlasit')) {
-                self::zId(post('prihlasit'))->prihlas($u, $parametry);
+                $aktivita = self::zId(post('prihlasit'));
+                if ($aktivita) {
+                    $aktivita->prihlas($u, $parametry);
+                }
                 back();
             }
             if (post('odhlasit')) {
                 $bezPokut = ($parametry & self::ZPETNE)
                     ? self::BEZ_POKUT // v případě zpětných změn bez pokut
                     : 0;
-                self::zId(post('odhlasit'))->odhlas($u, $bezPokut);
+                $aktivita = self::zId(post('odhlasit'));
+                if ($aktivita) {
+                    $aktivita->odhlas($u, $bezPokut);
+                }
                 back();
             }
             if (post('prihlasSledujiciho')) {
-                self::zId(post('prihlasSledujiciho'))->prihlasSledujiciho($u);
+                $aktivita = self::zId(post('prihlasSledujiciho'));
+                if ($aktivita) {
+                    $aktivita->prihlasSledujiciho($u);
+                }
                 back();
             }
             if (post('odhlasSledujiciho')) {
-                self::zId(post('odhlasSledujiciho'))->odhlasSledujiciho($u);
+                $aktivita = self::zId(post('odhlasSledujiciho'));
+                if ($aktivita) {
+                    $aktivita->odhlasSledujiciho($u);
+                }
                 back();
             }
         }
