@@ -118,12 +118,12 @@ class Aktivita
             return [];
         }
 
-        $whereOrArray = [];
+        $whereOrArray      = [];
         $sqlQueryParametry = [];
         foreach ($posledniZnameStavyAktivit as $idAktivity => ['idPoslednihoLogu' => $idPoslednihoZnamehoLogu]) {
-            $idAktivity = (int)$idAktivity;
+            $idAktivity              = (int)$idAktivity;
             $idPoslednihoZnamehoLogu = (int)$idPoslednihoZnamehoLogu;
-            $whereOrArray[] = "(id_akce = $idAktivity AND akce_stavy_log_id > $idPoslednihoZnamehoLogu)";
+            $whereOrArray[]          = "(id_akce = $idAktivity AND akce_stavy_log_id > $idPoslednihoZnamehoLogu)";
         }
         $where = implode(' OR ', $whereOrArray);
 
@@ -158,7 +158,7 @@ SQL
         if (!$dbRow && !$povolitPrazdnou) {
             throw new \RuntimeException('Nelze vytvořiit aktivitu. Prázdný parametr jejího konstruktoru.');
         }
-        $this->a = $dbRow;
+        $this->a    = $dbRow;
         $this->nova = false;
     }
 
@@ -307,8 +307,8 @@ SQL
 
         // kontrola dostupnosti organizátorů v daný čas
         if (!empty($a['den']) && !empty($a['zacatek']) && !empty($a['konec'])) {
-            $zacatek = (new DateTimeCz($a['den']))->add('PT' . $a['zacatek'] . 'H');
-            $konec = (new DateTimeCz($a['den']))->add('PT' . $a['konec'] . 'H');
+            $zacatek           = (new DateTimeCz($a['den']))->add('PT' . $a['zacatek'] . 'H');
+            $konec             = (new DateTimeCz($a['den']))->add('PT' . $a['konec'] . 'H');
             $ignorovatAktivitu = isset($a['id_akce']) ? self::zId($a['id_akce']) : null;
             foreach ($a['organizatori'] ?? [] as $orgId) {
                 $org = \Uzivatel::zId($orgId);
@@ -403,7 +403,7 @@ SQL
 
     private static function parseUpravyTabulkaLokace(?Aktivita $aktivita, \XTemplate $xtpl) {
         $aktivitaData = $aktivita ? $aktivita->a : null; // databázový řádek
-        $q = dbQuery('SELECT id_lokace, nazev FROM akce_lokace ORDER BY poradi');
+        $q            = dbQuery('SELECT id_lokace, nazev FROM akce_lokace ORDER BY poradi');
         $xtpl->assign(['id_lokace' => null, 'nazev' => '(žádná)', 'selected' => '']);
         $xtpl->parse('upravy.tabulka.lokace');
         while ($lokaceData = mysqli_fetch_assoc($q)) {
@@ -414,7 +414,7 @@ SQL
     }
 
     private static function parseUpravyTabulkaDeti(?Aktivita $aktivita, \XTemplate $xtpl) {
-        $q = dbQuery(
+        $q       = dbQuery(
             "SELECT id_akce FROM akce_seznam WHERE id_akce != $1 AND rok = $2 ORDER BY nazev_akce",
             [$aktivita ? $aktivita->id() : null, ROK]
         );
@@ -450,7 +450,7 @@ SQL
         );
         while ($moznyRodicData = mysqli_fetch_assoc($q)) {
             $moznyRodicId = $moznyRodicData['id_akce'];
-            $moznyRodic = Aktivita::zId($moznyRodicId, true);
+            $moznyRodic   = Aktivita::zId($moznyRodicId, true);
             $xtpl->assign(
                 'selected',
                 $aktivita && $moznyRodic->maDite($aktivita->id()) ? 'selected' : ''
@@ -464,14 +464,14 @@ SQL
     private static function parseUpravyTabulkaDen(?Aktivita $aktivita, \XTemplate $xtpl) {
         $xtpl->assign([
             'selected' => $aktivita && !$aktivita->zacatek() ? 'selected' : '',
-            'den' => 0,
+            'den'      => 0,
             'denSlovy' => '?',
         ]);
         $xtpl->parse('upravy.tabulka.den');
         for ($den = new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen()) {
             $xtpl->assign([
                 'selected' => $aktivita && $den->stejnyDen($aktivita->zacatek()) ? 'selected' : '',
-                'den' => $den->format('Y-m-d'),
+                'den'      => $den->format('Y-m-d'),
                 'denSlovy' => $den->format('l'),
             ]);
             $xtpl->parse('upravy.tabulka.den');
@@ -479,10 +479,10 @@ SQL
     }
 
     private static function parseUpravyTabulkaZacatekAKonec(?Aktivita $aktivita, \XTemplate $xtpl) {
-        $aZacatek = $aktivita && $aktivita->zacatek()
+        $aZacatek      = $aktivita && $aktivita->zacatek()
             ? (int)$aktivita->zacatek()->format('G')
             : null;
-        $aKonec = $aktivita && $aktivita->konec()
+        $aKonec        = $aktivita && $aktivita->konec()
             ? (int)$aktivita->konec()->sub(new \DateInterval('PT1H'))->format('G')
             : null;
         $hodinyZacatku = range(PROGRAM_ZACATEK, PROGRAM_KONEC - 1, 1);
@@ -501,7 +501,7 @@ SQL
     }
 
     private static function parseUpravyTabulkaVypraveci(?Aktivita $aktivita, \XTemplate $xtpl) {
-        $q = dbQuery('
+        $q          = dbQuery('
                 SELECT u.id_uzivatele, u.login_uzivatele, u.jmeno_uzivatele, u.prijmeni_uzivatele
                 FROM uzivatele_hodnoty u
                 LEFT JOIN r_uzivatele_zidle z USING(id_uzivatele)
@@ -514,7 +514,7 @@ SQL
         while ($uzivatelData = mysqli_fetch_assoc($q)) {
             $vsichniOrg[$uzivatelData['id_uzivatele']] = \Uzivatel::jmenoNickZjisti($uzivatelData);
         }
-        $aktOrg = $aktivita
+        $aktOrg   = $aktivita
             ? array_map(static function (\Uzivatel $e) {
                 return (int)$e->id();
             }, $aktivita->organizatori())
@@ -535,7 +535,7 @@ SQL
 
     private static function parseUpravyTabulkaTypy(?Aktivita $aktivita, \XTemplate $xtpl) {
         $aktivitaData = $aktivita ? $aktivita->a : null; // databázový řádek
-        $q = dbQuery('SELECT id_typu, typ_1p FROM akce_typy WHERE aktivni = 1 ORDER BY poradi');
+        $q            = dbQuery('SELECT id_typu, typ_1p FROM akce_typy WHERE aktivni = 1 ORDER BY poradi');
         while ($akceTypData = mysqli_fetch_assoc($q)) {
             $xtpl->assign('selected', $aktivita && $akceTypData['id_typu'] == $aktivitaData['typ'] ? 'selected' : '');
             $xtpl->assign($akceTypData);
@@ -544,8 +544,8 @@ SQL
     }
 
     private static function nactiTagy(array $vybraneTagy, \EditorTagu $editorTagu, \XTemplate $xtpl) {
-        $vsechnyTagy = $editorTagu->getTagy();
-        $pocetVsechTagu = count($vsechnyTagy);
+        $vsechnyTagy             = $editorTagu->getTagy();
+        $pocetVsechTagu          = count($vsechnyTagy);
         $nazevPredchoziKategorie = null;
         foreach ($vsechnyTagy as $indexTagu => $mappedTag) {
             $encodedTag = [];
@@ -611,10 +611,10 @@ SQL
                 chyba('Buďto vyplň den se začátkem i koncem, nebo nic. Čas byl zrušen.', false);
             }
             $a['zacatek'] = null;
-            $a['konec'] = null;
+            $a['konec']   = null;
         } else {
             $a['zacatek'] = (new DateTimeCz($a['den']))->add(new \DateInterval('PT' . $a['zacatek'] . 'H'))->formatDb();
-            $a['konec'] = (new DateTimeCz($a['den']))->add(new \DateInterval('PT' . $a['konec'] . 'H'))->formatDb();
+            $a['konec']   = (new DateTimeCz($a['den']))->add(new \DateInterval('PT' . $a['konec'] . 'H'))->formatDb();
         }
         unset($a['den']);
         // extra položky kvůli sep. tabulkám
@@ -661,12 +661,12 @@ SQL
         }
 
         $obrazekSoubor = postFile(self::OBRKLIC);
-        $obrazekUrl = post(self::OBRKLIC . 'Url');
+        $obrazekUrl    = post(self::OBRKLIC . 'Url');
 
         $aktivita = self::uloz($a, $popis, $organizatori, $tagIds, $obrazekSoubor, $obrazekUrl);
 
         if ($rodiceIds) {
-            $detiIds = $aktivita->detiIds();
+            $detiIds    = $aktivita->detiIds();
             $rodicIDite = [];
             foreach ($rodiceIds as $rodicId) {
                 $rodic = self::zId($rodicId);
@@ -694,23 +694,23 @@ SQL
     public static function uloz(array $data, ?string $markdownPopis, array $organizatoriIds, array $tagIds, string $obrazekSoubor = null, string $obrazekUrl = null): Aktivita {
         $data['bez_slevy'] = (int)!empty($data['bez_slevy']); //checkbox pro "bez_slevy"
 
-        $teamova = !empty($data['teamova']);
-        $data['teamova'] = (int)$teamova;   //checkbox pro "teamova"
+        $teamova          = !empty($data['teamova']);
+        $data['teamova']  = (int)$teamova;   //checkbox pro "teamova"
         $data['team_min'] = $teamova ? (int)$data['team_min'] : null;
         $data['team_max'] = $teamova ? (int)$data['team_max'] : null;
 
         if ($teamova) {
-            $data['kapacita'] = $data['team_max'] ?? 0;
+            $data['kapacita']   = $data['team_max'] ?? 0;
             $data['kapacita_f'] = 0;
             $data['kapacita_m'] = 0;
         } else {
-            $data['kapacita'] = !empty($data['kapacita']) ? (int)$data['kapacita'] : 0;
+            $data['kapacita']   = !empty($data['kapacita']) ? (int)$data['kapacita'] : 0;
             $data['kapacita_f'] = !empty($data['kapacita_f']) ? (int)$data['kapacita_f'] : 0;
             $data['kapacita_m'] = !empty($data['kapacita_m']) ? (int)$data['kapacita_m'] : 0;
         }
 
         $data['patri_pod'] = !empty($data['patri_pod']) ? $data['patri_pod'] : null;
-        $data['lokace'] = !empty($data['lokace']) ? $data['lokace'] : null;
+        $data['lokace']    = !empty($data['lokace']) ? $data['lokace'] : null;
 
         // uložení změn do akce_seznam
         if (empty($data['patri_pod']) && !empty($data['id_akce'])) {
@@ -719,9 +719,9 @@ SQL
             $aktivita = self::zId($data['id_akce']);
         } elseif (!empty($data['patri_pod'])) {
             // editace aktivity z rodiny instancí
-            $doHlavni = ['url_akce', 'popis', 'vybaveni'];  // věci, které se mají změnit jen u hlavní (master) `instance
+            $doHlavni   = ['url_akce', 'popis', 'vybaveni'];  // věci, které se mají změnit jen u hlavní (master) `instance
             $doAktualni = ['lokace', 'zacatek', 'konec'];       // věci, které se mají změnit jen u aktuální instance
-            $aktivita = self::zId($data['id_akce']); // instance už musí existovat
+            $aktivita   = self::zId($data['id_akce']); // instance už musí existovat
             if (array_key_exists(ActivitiesImportSqlColumn::STAV, $data)) {
                 $aktivita->zmenStav($data[ActivitiesImportSqlColumn::STAV]);
                 unset($data[ActivitiesImportSqlColumn::STAV]); // stav se může měnit jenom u jedné instance
@@ -732,7 +732,7 @@ SQL
             $patriPod = $data['patri_pod'];
             unset($data['patri_pod']);
             // změny v hlavní aktivitě
-            $zmenyHlavni = array_diff_key($data, array_flip($doAktualni));
+            $zmenyHlavni            = array_diff_key($data, array_flip($doAktualni));
             $zmenyHlavni['id_akce'] = $idHlavni;
             dbInsertUpdate('akce_seznam', $zmenyHlavni);
             // změny v konkrétní instanci
@@ -746,7 +746,7 @@ SQL
             // vkládání nové aktivity
             // inicializace hodnot pro novou aktivitu
             $data['id_akce'] = null;
-            $data['rok'] = ROK;
+            $data['rok']     = ROK;
             if ($data['teamova']) $data['kapacita'] = $data['team_max'] ?? 0; // při vytváření nové aktivity se kapacita inicializuje na max. teamu
             if (empty($data['nazev_akce'])) $data['nazev_akce'] = '(bez názvu)';
             if (empty($data['stav'])) {
@@ -755,8 +755,8 @@ SQL
             // vložení
             dbInsertUpdate('akce_seznam', $data);
             $data['id_akce'] = dbInsertId();
-            $aktivita = self::zId($data['id_akce']);
-            $aktivita->nova = true;
+            $aktivita        = self::zId($data['id_akce']);
+            $aktivita->nova  = true;
         }
 
         if ($obrazekSoubor) {
@@ -849,7 +849,7 @@ SQL
         } else { //aktivita je zatím bez instanční skupiny - vytvoříme
             dbBegin();
             try {
-                $patriPod = $this->vytvorInstanci();
+                $patriPod         = $this->vytvorInstanci();
                 $akt['patri_pod'] = $patriPod;
                 dbInsert('akce_seznam', $akt);
                 $idNoveAktivity = dbInsertId();
@@ -934,7 +934,7 @@ SQL
         if (is_numeric($this->lokace)) {
             $this->prednactiN1([
                 'atribut' => 'lokace',
-                'cil' => \Lokace::class,
+                'cil'     => \Lokace::class,
             ]);
         }
         return $this->lokace ?: null;
@@ -1031,13 +1031,13 @@ SQL
 
     /** Vrátí html kód s políčky určujícímí obsazenost */
     public function obsazenostHtml() {
-        $prihlasenoMuzu = $this->prihlasenoMuzu(); // počty
-        $prihlasenoZen = $this->prihlasenoZen();
-        $prihlasenoCelkem = $prihlasenoMuzu + $prihlasenoZen;
-        $kapacitaMuzi = (int)$this->a['kapacita_m']; // kapacity
-        $kapacitaZeny = (int)$this->a['kapacita_f'];
+        $prihlasenoMuzu      = $this->prihlasenoMuzu(); // počty
+        $prihlasenoZen       = $this->prihlasenoZen();
+        $prihlasenoCelkem    = $prihlasenoMuzu + $prihlasenoZen;
+        $kapacitaMuzi        = (int)$this->a['kapacita_m']; // kapacity
+        $kapacitaZeny        = (int)$this->a['kapacita_f'];
         $kapacitaUniverzalni = (int)$this->a['kapacita'];
-        $kapacitaCelkova = $kapacitaUniverzalni + $kapacitaMuzi + $kapacitaZeny;
+        $kapacitaCelkova     = $kapacitaUniverzalni + $kapacitaMuzi + $kapacitaZeny;
         if (!$kapacitaCelkova) {
             return '';
         }
@@ -1087,13 +1087,15 @@ SQL
             return; // ignorovat pokud přihlášen není tak či tak
         }
         // reálné odhlášení
-        $idAktivity = $this->id();
+        $idAktivity  = $this->id();
         $idUzivatele = $u->id();
         dbQuery("DELETE FROM akce_prihlaseni WHERE id_uzivatele=$idUzivatele AND id_akce=$idAktivity");
         $this->dejPrezenci()->zalogujZeSeOdhlasil($u);
         if (ODHLASENI_POKUTA_KONTROLA && !($params & self::BEZ_POKUT) && $this->zbyvaHodinDoZacatku() < ODHLASENI_POKUTA1_H) { // pokuta aktivní
-            dbQuery(
-                "INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$idUzivatele, id_akce=$idAktivity, id_stavu_prihlaseni=$0",
+            dbQuery(<<<SQL
+INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$idUzivatele, id_akce=$idAktivity, id_stavu_prihlaseni=$0
+ON DUPLICATE KEY UPDATE id_stavu_prihlaseni=$0
+SQL,
                 [StavPrihlaseni::POZDE_ZRUSIL]
             );
         }
@@ -1191,11 +1193,11 @@ SQL
         } else {
             if (!isset($this->organizatori)) {
                 $this->prednactiMN([
-                    'atribut' => 'organizatori',
-                    'cil' => \Uzivatel::class,
-                    'tabulka' => 'akce_organizatori',
+                    'atribut'      => 'organizatori',
+                    'cil'          => \Uzivatel::class,
+                    'tabulka'      => 'akce_organizatori',
                     'zdrojSloupec' => 'id_akce',
-                    'cilSloupec' => 'id_uzivatele',
+                    'cilSloupec'   => 'id_uzivatele',
                 ]);
             }
             return $this->organizatori;
@@ -1293,7 +1295,7 @@ SQL
             return dbMarkdown($this->a['popis']);
         }
         $oldId = $this->a['popis'];
-        $id = dbTextHash($popis);
+        $id    = dbTextHash($popis);
         if ($this->a['patri_pod']) {
             dbUpdate('akce_seznam', ['popis' => $id], ['patri_pod' => $this->a['patri_pod']]);
         } else {
@@ -1349,7 +1351,7 @@ SQL
      * @return int počet týmů přihlášených na tuto aktivitu
      */
     protected function pocetTeamu() {
-        $id = $this->id();
+        $id      = $this->id();
         $idRegex = '(^|,)' . $this->id() . '(,|$)'; // reg. výraz odpovídající id aktivity v seznamu odděleném čárkami
         return dbOneCol('
       SELECT COUNT(id_akce)
@@ -1402,7 +1404,7 @@ SQL
         $this->odhlasZeSledovaniAktivitVeStejnemCase($uzivatel);
 
         // přihlášení na samu aktivitu (uložení věcí do DB)
-        $idAktivity = $this->id();
+        $idAktivity  = $this->id();
         $idUzivatele = $uzivatel->id();
         if ($this->a['teamova']
             && $this->prihlaseno() === 0
@@ -1486,7 +1488,7 @@ SQL
         if (!($prihlasovatelna = $this->prihlasovatelna($parametry))) {
             if ($parametry & self::STAV) {
                 // hack na ignorování stavu
-                $puvodniStav = $this->a['stav'];
+                $puvodniStav     = $this->a['stav'];
                 $this->a['stav'] = \Stav::AKTIVOVANA; // nastavíme stav jako by bylo vše ok
                 $prihlasovatelna = $this->prihlasovatelna($parametry);
                 $this->a['stav'] = $puvodniStav;
@@ -1503,7 +1505,7 @@ SQL
                 current($deti)->prihlas($uzivatel, self::STAV);
             } else {
                 // vybrání jednoho uživatele, který už na navázané aktivity přihlášen je
-                $vzor = \Uzivatel::zId(substr(explode(',', $this->prihlaseniRaw())[1], 0, -2));
+                $vzor   = \Uzivatel::zId(substr(explode(',', $this->prihlaseniRaw())[1], 0, -2));
                 $uspech = false;
                 foreach ($deti as $dite) {
                     // přihlášení na navázané aktivity podle vzoru vybraného uživatele
@@ -1603,8 +1605,8 @@ SQL
      */
     public function stavPrihlaseni(\Uzivatel $u): int {
         $prihlaseni = $this->prihlaseniRaw();
-        $usymbol = ',' . $u->id() . $u->pohlavi();
-        $pos = strpos($prihlaseni, $usymbol);
+        $usymbol    = ',' . $u->id() . $u->pohlavi();
+        $pos        = strpos($prihlaseni, $usymbol);
         if ($pos !== false) {
             return (int)substr($prihlaseni, $pos + strlen($usymbol), 1);
         }
@@ -1647,8 +1649,8 @@ SQL
 
     /** Zdali chceme, aby se na aktivitu bylo možné běžně přihlašovat */
     public function prihlasovatelna($parametry = 0) {
-        $dopredne = $parametry & self::DOPREDNE;
-        $zpetne = $parametry & self::ZPETNE;
+        $dopredne  = $parametry & self::DOPREDNE;
+        $zpetne    = $parametry & self::ZPETNE;
         $technicke = $parametry & self::TECHNICKE;
         // stav 4 je rezervovaný pro viditelné nepřihlašovatelné aktivity
         return
@@ -1666,7 +1668,7 @@ SQL
     }
 
     private function procNeniPrihlasovatelna($parametry): string {
-        $zpetne = $parametry & self::ZPETNE;
+        $zpetne    = $parametry & self::ZPETNE;
         $technicke = $parametry & self::TECHNICKE;
 
         if (!(REG_AKTIVIT || ($zpetne && po(REG_GC_DO)))) {
@@ -1859,7 +1861,7 @@ SQL
             throw new \Exception('Nepovolený výběr dalších kol.');
         }
 
-        $lidr = \Uzivatel::zId($this->a['zamcel']);
+        $lidr       = \Uzivatel::zId($this->a['zamcel']);
         $chybnyClen = null; // nastavíme v případě, že u daného člena týmu nastala při přihlášení chyba
 
         dbBegin();
@@ -1883,10 +1885,10 @@ SQL
 
             // doplňující úpravy aktivity
             dbUpdate('akce_seznam', [
-                'zamcel' => null,
+                'zamcel'     => null,
                 'zamcel_cas' => null,
                 'team_nazev' => $nazevTymu ?: null,
-                'kapacita' => $pocetMist ?: dbNoChange(),
+                'kapacita'   => $pocetMist ?: dbNoChange(),
             ], [
                 'id_akce' => $this->id(),
             ]);
@@ -1940,7 +1942,7 @@ SQL
         if (is_numeric($this->stav)) {
             $this->prednactiN1([
                 'atribut' => 'stav',
-                'cil' => \Stav::class,
+                'cil'     => \Stav::class,
             ]);
         }
         return $this->stav;
@@ -1962,8 +1964,8 @@ SQL
 
     /** Aktualizuje stav aktivity podle databáze */
     public function refresh() {
-        $this->a = self::zId($this->id())->a;
-        $this->prezence = null;
+        $this->a                 = self::zId($this->id())->a;
+        $this->prezence          = null;
         $this->seznamSledujicich = null;
     }
 
@@ -1981,7 +1983,7 @@ SQL
             foreach ($this->prihlaseni() as $u) {
                 $this->odhlas($u, self::BEZ_POKUT | self::NEPOSILAT_MAILY_SLEDUJICIM);
             }
-            $idInstance = $this->patriPod();
+            $idInstance             = $this->patriPod();
             $idNoveMaterskeAktivity = null;
             if ($idInstance) {
                 $materskaProInstanciId = dbOneCol('SELECT id_instance FROM akce_instance WHERE id_hlavni_akce = $1', [$this->id()]);
@@ -2042,7 +2044,7 @@ SQL
 
     public function nastavTagy(array $tagy) {
         // nastavit tagy aktivitám
-        $idInstanci = $this->idInstanci();
+        $idInstanci    = $this->idInstanci();
         $idInstanciSql = dbQa($idInstanci);
         dbQuery("DELETE FROM akce_sjednocene_tagy WHERE id_akce IN ($idInstanciSql)");
         if ($tagy) {
@@ -2117,7 +2119,7 @@ SQL
         if (is_numeric($this->typ)) {
             $this->prednactiN1([
                 'atribut' => 'typ',
-                'cil' => TypAktivity::class,
+                'cil'     => TypAktivity::class,
             ]);
         }
         return $this->typ;
@@ -2133,7 +2135,7 @@ SQL
      */
     public function prihlaseni(): array {
         $prihlaseniZakodovano = array_filter(explode(',', $this->prihlaseniRaw()));
-        $ids = array_map(static function (string $prihlasenyZakodovano) {
+        $ids                  = array_map(static function (string $prihlasenyZakodovano) {
             // například '588m0'
             preg_match(
                 '~(?<idUzivatele>\d+)(?<pohlavi>[mf])(?<idStavuPrihlaseni>\d+)~',
@@ -2142,7 +2144,7 @@ SQL
             );
             return (int)$matches['idUzivatele'];
         }, $prihlaseniZakodovano);
-        $uzivatele = \Uzivatel::zIds($ids);
+        $uzivatele            = \Uzivatel::zIds($ids);
         usort($uzivatele, static function (\Uzivatel $nejakyUzivatel, \Uzivatel $jinyUzivatel) use ($ids) {
             /**
              * Chceme zachovat původní pořadí přihlášených. ids byly seřazeny, ale @see \Uzivatel::zIds
@@ -2205,10 +2207,10 @@ SQL
     /** Vrátí typ volných míst na aktivitě */
     public function volno() {
         $prihlasenoMuzu = $this->prihlasenoMuzu();
-        $prihlasenoZen = $this->prihlasenoZen();
+        $prihlasenoZen  = $this->prihlasenoZen();
         $unisexKapacita = $this->a['kapacita'];
-        $kapacitaMuzu = $this->a['kapacita_m'];
-        $kapacitaZen = $this->a['kapacita_f'];
+        $kapacitaMuzu   = $this->a['kapacita_m'];
+        $kapacitaZen    = $this->a['kapacita_f'];
         if (($unisexKapacita + $kapacitaMuzu + $kapacitaZen) <= 0) {
             return 'u'; //aktivita bez omezení
         }
@@ -2285,13 +2287,13 @@ SQL
         // obecné proměnné šablony
         $zbyva = strtotime($this->a['zamcel_cas']) + self::HAJENI * 60 * 60 - time();
         $t->assign([
-            'zbyva' => floor($zbyva / 3600) . ' hodin ' . floor($zbyva % 3600 / 60) . ' minut',
-            'postname' => self::TEAMKLIC,
+            'zbyva'                => floor($zbyva / 3600) . ' hodin ' . floor($zbyva % 3600 / 60) . ' minut',
+            'postname'             => self::TEAMKLIC,
             'prihlasenyUzivatelId' => $u->id(),
-            'aktivitaId' => $this->id(),
-            'cssUrlAutocomplete' => URL_WEBU . '/soubory/blackarrow/_spolecne/auto-complete.css',
-            'jsUrlAutocomplete' => URL_WEBU . '/soubory/blackarrow/_spolecne/auto-complete.min.js',
-            'jsUrl' => URL_WEBU . '/soubory/blackarrow/tym-formular/tym-formular.js',
+            'aktivitaId'           => $this->id(),
+            'cssUrlAutocomplete'   => URL_WEBU . '/soubory/blackarrow/_spolecne/auto-complete.css',
+            'jsUrlAutocomplete'    => URL_WEBU . '/soubory/blackarrow/_spolecne/auto-complete.min.js',
+            'jsUrl'                => URL_WEBU . '/soubory/blackarrow/tym-formular/tym-formular.js',
         ]);
 
         // výběr instancí, pokud to aktivita vyžaduje
@@ -2318,7 +2320,7 @@ SQL
                 foreach ($uroven as $varianta) {
                     $t->assign([
                         'koloId' => $varianta->id(),
-                        'nazev' => $varianta->nazev() . ': ' . $varianta->denCas(),
+                        'nazev'  => $varianta->nazev() . ': ' . $varianta->denCas(),
                     ]);
                     $t->parse('formular.kola.uroven.varianta');
                 }
@@ -2364,7 +2366,7 @@ SQL
         }
 
         // načtení zvolených parametrů z formuláře (spoluhráči, kola, ...)
-        $up = post(self::TEAMKLIC) ?? [];
+        $up      = post(self::TEAMKLIC) ?? [];
         $zamceno = 0;
         foreach ($up as $i => $uid) {
             if ($uid == -1 || !$uid) {
@@ -2374,10 +2376,10 @@ SQL
                 $zamceno++;
             }
         }
-        $clenove = \Uzivatel::zIds($up);
+        $clenove      = \Uzivatel::zIds($up);
         $novaKapacita = $a->kapacita() - $zamceno;
-        $nazev = post(self::TEAMKLIC . 'Nazev');
-        $dalsiKola = array_values(array_map(function ($id) { // array_map kvůli nutnosti zachovat pořadí
+        $nazev        = post(self::TEAMKLIC . 'Nazev');
+        $dalsiKola    = array_values(array_map(function ($id) { // array_map kvůli nutnosti zachovat pořadí
             return self::zId($id);
         }, post(self::TEAMKLIC_KOLA) ?: []));
 
@@ -2499,7 +2501,7 @@ SQL
     private function zmenStavNa(int $stav) {
         dbQuery('UPDATE akce_seznam SET stav = $0 WHERE id_akce = ' . $this->id(), [$stav]);
         $this->a['stav'] = $stav;
-        $this->stav = $stav;
+        $this->stav      = $stav;
         $this->zalogujZmenuStavu($stav);
     }
 
@@ -2573,11 +2575,11 @@ SQL,
 
         /** @var Aktivita[][] $vypraveciAktivit */
         $vypraveciAktivit = [];
-        $ids = array_map('intval', $ids);
+        $ids              = array_map('intval', $ids);
         foreach ($ids as $id) {
             $neuzavrenaAktivita = Aktivita::zId($id, true);
             foreach ($neuzavrenaAktivita->dejOrganizatoriIds() as $idVypravece) {
-                $vypraveciAktivit[$idVypravece] = $vypraveciAktivit[$idVypravece] ?? [];
+                $vypraveciAktivit[$idVypravece]   = $vypraveciAktivit[$idVypravece] ?? [];
                 $vypraveciAktivit[$idVypravece][] = $neuzavrenaAktivita;
             }
         }
@@ -2590,7 +2592,7 @@ SQL,
             }
             $text = 'Zkontroluj prezenci a zavři';
             foreach ($neuzavreneAktivity as $neuzavrenaAktivita) {
-                $url = $vypravec->mojeAktivityAdminUrl()
+                $url  = $vypravec->mojeAktivityAdminUrl()
                     . '#' . OnlinePrezenceHtml::nazevProAnchor($neuzavrenaAktivita);
                 $text .= "<br><a href='$url'>{$neuzavrenaAktivita->nazev()}</a> (skončila {$neuzavrenaAktivita->konec()->formatCasNaMinutyStandard()})";
             }
@@ -2611,9 +2613,9 @@ SQL,
         if (in_array($idDitete, $detiIds, true)) {
             return;
         }
-        $detiIds[] = $idDitete;
-        $detiIds = array_unique($detiIds);
-        $detiString = implode(',', $detiIds);
+        $detiIds[]       = $idDitete;
+        $detiIds         = array_unique($detiIds);
+        $detiString      = implode(',', $detiIds);
         $this->a['dite'] = $detiString;
         dbQuery('UPDATE akce_seznam SET dite = $1 WHERE id_akce = ' . $this->id(), [$detiString]);
     }
@@ -2668,16 +2670,16 @@ SQL,
         $where = implode(' AND ', $wheres);
 
         // sestavení řazení
-        $order = null;
+        $order     = null;
         $phpRazeni = [];
-        $orderBy = [];
+        $orderBy   = [];
         foreach ($razeni as $sloupec) {
             $directionRegExp = '~\s(?<direction>ASC|DESC)\s*$~i';
             preg_match($directionRegExp, $sloupec, $matches);
             $direction = 'ASC';
             if (!empty($matches['direction'])) {
                 $direction = strtoupper(trim($matches['direction']));
-                $sloupec = preg_replace($directionRegExp, '', $sloupec);
+                $sloupec   = preg_replace($directionRegExp, '', $sloupec);
             }
             if ($sloupec === 'organizatori') {
                 $phpRazeni[$sloupec] = $direction;
@@ -2802,11 +2804,11 @@ SQL,
     public static function zRozmezi(DateTimeCz $od, DateTimeCz $do, $flags = 0, $razeni = []): array {
         $aktivity = self::zFiltru(
             [
-                'jenViditelne' => (bool)($flags & self::VEREJNE),
-                'jenZamcene' => (bool)($flags & self::ZAMCENE),
+                'jenViditelne'  => (bool)($flags & self::VEREJNE),
+                'jenZamcene'    => (bool)($flags & self::ZAMCENE),
                 'jenNeuzavrene' => (bool)($flags & self::NEUZAVRENE),
-                'od' => $od->formatDb(),
-                'do' => $do->formatDb(),
+                'od'            => $od->formatDb(),
+                'do'            => $do->formatDb(),
             ],
             $razeni
         );
@@ -2829,7 +2831,7 @@ SQL,
         return self::zFiltru(
             [
                 'nazev_akce' => $nazev,
-                'rok' => $rok,
+                'rok'        => $rok,
             ],
         );
     }
@@ -2867,7 +2869,7 @@ SQL,
         $limitSql = $limit !== null
             ? "LIMIT $limit"
             : '';
-        $o = dbQueryS(<<<SQL
+        $o        = dbQueryS(<<<SQL
         SELECT t3.*,
             (SELECT GROUP_CONCAT(sjednocene_tagy.nazev ORDER BY kst.poradi, sjednocene_tagy.nazev)
                 FROM sjednocene_tagy
@@ -2912,13 +2914,13 @@ SQL,
         $kolekce = []; // pomocný sdílený seznam aktivit pro přednačítání
 
         while ($r = mysqli_fetch_assoc($o)) {
-            $r['url_akce'] = $r['url_temp'];
-            $aktivita = new self($r);
-            $aktivita->typ = $r['typ'];
+            $r['url_akce']    = $r['url_temp'];
+            $aktivita         = new self($r);
+            $aktivita->typ    = $r['typ'];
             $aktivita->lokace = $r['lokace'];
-            $aktivita->stav = $r['stav'];
+            $aktivita->stav   = $r['stav'];
 
-            $aktivita->kolekce = &$kolekce;
+            $aktivita->kolekce                = &$kolekce;
             $aktivita->kolekce[$r['id_akce']] = $aktivita;
         }
 
