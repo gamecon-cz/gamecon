@@ -312,7 +312,12 @@ class OnlinePrezenceHtml
             }
             $prezence = $aktivita->dejPrezenci();
             // později přidaný / změněný nakonec
-            return $prezence->posledniZmenaPrihlaseni($nejakyPrihlaseny)->idLogu() <=> $prezence->posledniZmenaPrihlaseni($jinyPrihlaseny)->idLogu();
+            $nejakaPosledniZmena = $prezence->posledniZmenaPrihlaseni($nejakyPrihlaseny);
+            $jinaPosledniZmena = $prezence->posledniZmenaPrihlaseni($jinyPrihlaseny);
+            if ($nejakaPosledniZmena === null || $jinaPosledniZmena === null) {
+                return $nejakaPosledniZmena <=> $jinaPosledniZmena;
+            }
+            return $nejakaPosledniZmena->idLogu() <=> $jinaPosledniZmena->idLogu();
         });
         return $prihlaseni;
     }
