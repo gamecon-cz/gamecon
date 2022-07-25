@@ -21,13 +21,13 @@ class Cenik
      * ručně. V polích se případně udává, které právo daný index „přebíjí“.
      */
     private static $textySlev = [
-        P_KOSTKA_ZDARMA => 'kostka zdarma',
-        P_PLACKA_ZDARMA => 'placka zdarma',
-        P_UBYTOVANI_ZDARMA => 'ubytování zdarma',
+        P_KOSTKA_ZDARMA           => 'kostka zdarma',
+        P_PLACKA_ZDARMA           => 'placka zdarma',
+        P_UBYTOVANI_ZDARMA        => 'ubytování zdarma',
         P_UBYTOVANI_STREDA_ZDARMA => ['ubytování ve středu zdarma', P_UBYTOVANI_ZDARMA],
-        P_JIDLO_ZDARMA => 'jídlo zdarma',
-        P_JIDLO_SLEVA => ['jídlo se slevou', P_JIDLO_ZDARMA],
-        P_DVE_TRICKA_ZDARMA => 'dvě jakákoli trička zdarma',
+        P_JIDLO_ZDARMA            => 'jídlo zdarma',
+        P_JIDLO_SLEVA             => ['jídlo se slevou', P_JIDLO_ZDARMA],
+        P_DVE_TRICKA_ZDARMA       => 'dvě jakákoli trička zdarma',
     ];
 
     /**
@@ -46,7 +46,7 @@ class Cenik
             $this->jakychkoliTricekZdarma = 2;
         if ($u->maPravo(P_TRICKO_ZA_SLEVU_MODRE) && $sleva >= MODRE_TRICKO_ZDARMA_OD) {
             $this->modrychTricekZdarma = 1;
-            $this->textySlevExtra[] = 'modré tričko zdarma';
+            $this->textySlevExtra[]    = 'modré tričko zdarma';
         }
     }
 
@@ -58,11 +58,11 @@ class Cenik
             return ['cena' => $cena, 'sleva' => $sleva];
         }
         if ($sleva <= $cena) {
-            $cena -= $sleva;
+            $cena  -= $sleva;
             $sleva = 0;
         } else { // $sleva > $cena
             $sleva -= $cena;
-            $cena = 0;
+            $cena  = 0;
         }
         return ['cena' => $cena, 'sleva' => $sleva];
     }
@@ -82,7 +82,7 @@ class Cenik
      * @todo vypravěčská sleva s číslem apod. (migrovat z financí)
      */
     function slevySpecialni() {
-        $u = $this->u;
+        $u     = $this->u;
         $slevy = [];
 
         // standardní slevy vyplývající z práv
