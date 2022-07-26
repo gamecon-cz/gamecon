@@ -31,7 +31,6 @@ define('GOOGLE_API_CREDENTIALS', '$GOOGLE_API_CREDENTIALS');
 PHP
         );
     }
-    die(file_get_contents($souborSkrytehoNastaveni));
 }
 
 function souborSkrytehoNastaveniPodleVerejneho(string $souborVerejnehoNastaveni): string {
