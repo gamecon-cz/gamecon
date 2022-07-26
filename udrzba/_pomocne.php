@@ -99,18 +99,18 @@ function nasad(array $nastaveni) {
     }
 
     // migrace DB
-    runMigrationsOnRemote($nastaveni['urlMigrace'], $nastaveni['hesloMigrace']);
+    runMigrationsOnRemote($nastaveni['hesloMigrace']);
 
     msg('nasazení dokončeno');
 }
 
-function runMigrationsOnRemote(string $urlMigrace, string $hesloMigrace) {
+function runMigrationsOnRemote(string $hesloMigrace) {
     msg("spouštím migrace na vzdálené databázi");
     call_check([
         'curl',
         '--data', http_build_query(['migraceHeslo' => $hesloMigrace]),
         '--silent', // skrýt progressbar
-        $urlMigrace,
+        URL_ADMIN . '/' . basename(__DIR__ . '/../admin/migrace.php'),
     ]);
 }
 
