@@ -31,7 +31,10 @@ if (!preg_match('/^nothing to commit, working (tree|directory) clean$/', end($ou
 }
 
 // spuštění testů
-call_check(['php', __DIR__ . '/testuj.php']);
+$skipTests = getopt('', ['skip-tests']);
+if (!$skipTests) {
+    call_check(['php', __DIR__ . '/testuj.php']);
+}
 
 // nasazení
 if ($vetev === 'master') {

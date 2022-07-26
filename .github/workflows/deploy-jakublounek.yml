@@ -40,7 +40,7 @@ jobs:
         run: ./vendor/bin/phpunit
 
       - name: Deploy via FTP
-        run: php ./udrzba/nasad.php
+        run: php ./udrzba/nasad.php --skip-tests # testy provádíme zvlášť, abychom neměli output z deploye moc dlouhý
         env:
           FTP_DIR: jakublounek
           FTP_BASE_URL: ${{ secrets.FTP_BASE_URL }}
