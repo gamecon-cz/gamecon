@@ -2,11 +2,11 @@
 
 function nasad(array $nastaveni) {
 
-    $deployment = __DIR__ . '/ftp-deployment.php';
+    $deployment     = __DIR__ . '/ftp-deployment.php';
     $zdrojovaSlozka = realpath($nastaveni['zdrojovaSlozka']);
 
     // some files are always required by Composer autoloader, even if not needed, so we have to copy them to server, even if they are for dev (tests) only
-    $alwaysAutoloadedRelative = getFilesAlwaysRequiredByAutoloader();
+    $alwaysAutoloadedRelative      = getFilesAlwaysRequiredByAutoloader();
     $nutneKvuliComposerAutoRequire = implode(
         "      \n",
         array_map(static function (string $file) {
@@ -39,8 +39,8 @@ function nasad(array $nastaveni) {
       /dokumentace
 
       /nastaveni/*
-      !/nastaveni/verejne-{$nastaveni['souborNastaveni']}
-      !/nastaveni/{$nastaveni['souborNastaveni']}
+      !/nastaveni/verejne-{$nastaveni['souborSkrytehoNastaveni']}
+      !/nastaveni/{$nastaveni['souborSkrytehoNastaveni']}
       !/nastaveni/db-migrace.php
       !/nastaveni/initial-fatal-error-handler.php
       !/nastaveni/nastaveni.php
@@ -83,9 +83,25 @@ function nasad(array $nastaveni) {
         nadpis("NASAZUJI '{$nastaveni['vetev']}'");
     }
 
-    // kontroly
-    if (!is_file($zdrojovaSlozka . '/nastaveni/' . $nastaveni['souborNastaveni'])) {
-        throw new Exception('Nenalezen soubor s nastaveními pro vzdálený server.');
+    $souborSeSkrytymNastavenim = $zdrojovaSlozka . '/nastaveni/' . $nastaveni['souborSkrytehoNastaveni'];
+    if (!is_file($souborSeSkrytymNastavenim)) {
+        // ENV data viz například .github/workflows/deploy-jakublounek.yml
+        file_put_contents($souborSeSkrytymNastavenim, <<<PHP
+define('DB_USER', '{$_ENV['DB_USER']}');
+define('DB_PASS', '{$_ENV['DB_PASS']}');
+define('DB_NAME', '{$_ENV['DB_NAME']}');
+define('DB_SERV', '{$_ENV['DB_SERV']}');
+
+// uživatel s přístupem k změnám struktury
+define('DBM_USER', '{$_ENV['DBM_USER']}');
+define('DBM_PASS', '{$_ENV['DB_PASS']}');
+
+define('MIGRACE_HESLO', '{$_ENV['MIGRACE_HESLO']}');
+define('SECRET_CRYPTO_KEY', '{$_ENV['SECRET_CRYPTO_KEY']}');
+
+define('CRON_KEY', '{$_ENV['CRON_KEY']}');
+define('GOOGLE_API_CREDENTIALS', '{$_ENV['GOOGLE_API_CREDENTIALS']}');
+PHP);
     }
 
     // nahrání souborů

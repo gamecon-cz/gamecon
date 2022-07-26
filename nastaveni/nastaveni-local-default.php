@@ -11,8 +11,6 @@ ini_set('display_errors', true); // zobrazovat chyby při lokálním vývoji (po
 // uživatel s přístupem k změnám struktury
 @define('DBM_USER', DB_USER);
 @define('DBM_PASS', DB_PASS);
-@define('DBM_NAME', DB_NAME);
-@define('DBM_SERV', DB_SERV);
 //@define('DBM_PORT', DB_PORT);
 
 $baseUrl = (($_SERVER['HTTPS'] ?? 'off') === 'on' ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? '/gamecon');
