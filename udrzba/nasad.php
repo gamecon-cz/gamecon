@@ -14,6 +14,10 @@
 
 require_once __DIR__ . '/_pomocne.php';
 
+print_r($_ENV);
+phpinfo(INFO_ENVIRONMENT);
+die('FTP_BASE_URL - ' . getenv('FTP_BASE_URL'));
+
 $nastaveni = [];
 if (file_exists(__DIR__ . '/../nastaveni/nastaveni-nasazovani.php')) {
     $nastaveni = require __DIR__ . '/../nastaveni/nastaveni-nasazovani.php';
