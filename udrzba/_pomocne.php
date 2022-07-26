@@ -16,7 +16,9 @@ function nasad(array $nastaveni) {
         }, $alwaysAutoloadedRelative)
     );
 
-    $logFile = $nastaveni['log'] ?? 'nasad.log';
+    $logFile                        = $nastaveni['log'] ?? 'nasad.log';
+    $nazevSouboruVerejnehoNastaveni = basename($nastaveni['souborVerejnehoNastaveni']);
+    $nazevSouboruSkrytehoNastaveni  = souborSkrytehoNastaveniPodleVerejneho($nazevSouboruVerejnehoNastaveni);
 
     $nastaveniDeploymentu = "
     log     = {$logFile}
@@ -41,8 +43,8 @@ function nasad(array $nastaveni) {
       /dokumentace
 
       /nastaveni/*
-      !/nastaveni/verejne-{$nastaveni['souborSkrytehoNastaveni']}
-      !/nastaveni/{$nastaveni['souborSkrytehoNastaveni']}
+      !/nastaveni/$nazevSouboruVerejnehoNastaveni
+      !/nastaveni/$nazevSouboruSkrytehoNastaveni
       !/nastaveni/db-migrace.php
       !/nastaveni/initial-fatal-error-handler.php
       !/nastaveni/nastaveni.php
@@ -85,9 +87,8 @@ function nasad(array $nastaveni) {
         nadpis("NASAZUJI '{$nastaveni['vetev']}'");
     }
 
-    $souborVerejnehoNastaveni = $zdrojovaSlozka . '/nastaveni/verejne-' . $nastaveni['souborSkrytehoNastaveni'];
-    vytvorSouborSkrytehoNastaveniPodleEnv($souborVerejnehoNastaveni);
-    require_once $souborVerejnehoNastaveni;
+    vytvorSouborSkrytehoNastaveniPodleEnv($nastaveni['souborVerejnehoNastaveni']);
+    require_once $nastaveni['souborVerejnehoNastaveni'];
 
     // nahrání souborů
     msg('synchronizuji soubory na vzdáleném ftp');
