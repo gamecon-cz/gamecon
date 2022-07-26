@@ -22,6 +22,8 @@ define('DB_SERV', '$DB_SERV');
 // uživatel s přístupem k změnám struktury
 define('DBM_USER', '$DBM_USER');
 define('DBM_PASS', '$DBM_PASS');
+define('DBM_NAME', '$DB_NAME');
+define('DBM_SERV', '$DB_SERV');
 
 define('MIGRACE_HESLO', '$MIGRACE_HESLO');
 define('SECRET_CRYPTO_KEY', '$SECRET_CRYPTO_KEY');
