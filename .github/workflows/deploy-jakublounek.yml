@@ -18,7 +18,7 @@ jobs:
         with:
           php-version: '7.3' # musí odpovídat verzi na wedosu
           # extensions musí odpovídat seznamu v composer.json
-          extension: bcmath, curl, exif, fileinfo, gd, iconv, imagick, intl, json, mbstring, mysqli, pdo, sqlite3, xmlreader, zip
+          extensions: bcmath, curl, exif, fileinfo, gd, iconv, imagick, intl, json, mbstring, mysqli, pdo, sqlite3, xmlreader, zip
           tools: composer
           coverage: none
 
