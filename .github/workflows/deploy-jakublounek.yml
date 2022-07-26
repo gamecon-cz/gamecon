@@ -31,10 +31,12 @@ jobs:
       - name: Install dependencies
         run: composer install # includes dev by default
 
-      - name: Run tests
+      - name: Setup MySQL for tests
         uses: shogo82148/actions-setup-mysql@v1
         with:
-          mysql-version: '5.5' # musí odpovídat verzi na wedosu
+          mysql-version: 'mysql-5.6' # mělo by odpovídat verzi na wedosu
+
+      - name: Run tests
         run: ./vendor/bin/phpunit
 
       - name: Deploy via FTP
