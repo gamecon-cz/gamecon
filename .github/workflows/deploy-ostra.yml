@@ -1,0 +1,57 @@
+name: Deploy OSTRA (master) on direct push or merged pull request
+
+on:
+  push:
+    branches:
+      - 'master'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.3' # musí odpovídat verzi na wedosu
+          # extensions musí odpovídat seznamu v composer.json
+          extensions: bcmath, curl, exif, fileinfo, gd, iconv, imagick, intl, json, mbstring, mysqli, pdo, sqlite3, xmlreader, zip
+          tools: composer
+          coverage: none
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v1
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+
+      - name: Install dependencies
+        run: composer install # includes dev by default
+
+      - name: Setup MySQL for tests
+        uses: shogo82148/actions-setup-mysql@v1
+        with:
+          mysql-version: 'mysql-5.6' # mělo by odpovídat verzi na wedosu
+
+      - name: Run tests
+        run: ./vendor/bin/phpunit
+
+      - name: Deploy via FTP
+        run: php ./udrzba/nasad.php --skip-tests # testy provádíme zvlášť, abychom neměli output z deploye moc dlouhý
+        env:
+          FTP_DIR: ostra
+          FTP_BASE_URL: ${{ secrets.FTP_BASE_URL }}
+          DB_USER: ${{ secrets.OSTRA_DB_USER }}
+          DB_PASS: ${{ secrets.OSTRA_DB_PASS }}
+          DB_NAME: ${{ secrets.OSTRA_DB_NAME }}
+          DB_SERV: ${{ secrets.OSTRA_DB_SERV }}
+          DBM_USER: ${{ secrets.OSTRA_DBM_USER }}
+          DBM_PASS: ${{ secrets.OSTRA_DBM_PASS }}
+          MIGRACE_HESLO: ${{ secrets.OSTRA_MIGRACE_HESLO }}
+          SECRET_CRYPTO_KEY: ${{ secrets.OSTRA_SECRET_CRYPTO_KEY }}
+          CRON_KEY: ${{ secrets.OSTRA_CRON_KEY }}
+          GOOGLE_API_CREDENTIALS: ${{ secrets.OSTRA_GOOGLE_API_CREDENTIALS }}
+          FIO_TOKEN: ${{ secrets.OSTRA_FIO_TOKEN }}
