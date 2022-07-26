@@ -85,8 +85,9 @@ function nasad(array $nastaveni) {
         nadpis("NASAZUJI '{$nastaveni['vetev']}'");
     }
 
-    $souboruVerejnehoNastaveni = $zdrojovaSlozka . '/nastaveni/verejne-' . $nastaveni['souborSkrytehoNastaveni'];
-    vytvorSouborSkrytehoNastaveniPodleEnv($souboruVerejnehoNastaveni);
+    $souborVerejnehoNastaveni = $zdrojovaSlozka . '/nastaveni/verejne-' . $nastaveni['souborSkrytehoNastaveni'];
+    vytvorSouborSkrytehoNastaveniPodleEnv($souborVerejnehoNastaveni);
+    require_once $souborVerejnehoNastaveni;
 
     // nahrání souborů
     msg('synchronizuji soubory na vzdáleném ftp');
