@@ -1,0 +1,48 @@
+name: Deploy JAKUBLOUNEK on direct push or merged pull request
+
+on:
+  push:
+    branches:
+      - 'jakublounek'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.3' # musí odpovídat verzi na wedosu
+          # extensions musí odpovídat seznamu v composer.json
+          extension: bcmath, curl, exif, fileinfo, gd, iconv, imagick, intl, json, mbstring, mysqli, pdo, sqlite3, xmlreader, zip
+          tools: composer
+          coverage: none
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v1
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+
+      - name: Install dependencies
+        run: composer install # includes dev by default
+
+      - name: Deploy via FTP
+        run: php ./udrzba/nasad.php
+        with:
+          FTP_DIR: jakublounek
+          FTP_BASE_URL: ${{ secrets.FTP_BASE_URL }}
+          DB_USER: ${{ secrets.JAKUBLOUNEK_DB_USER }}
+          DB_PASS: ${{ secrets.JAKUBLOUNEK_DB_PASS }}
+          DB_NAME: ${{ secrets.JAKUBLOUNEK_DB_NAME }}
+          DB_SERV: ${{ secrets.JAKUBLOUNEK_DB_SERV }}
+          DBM_USER: ${{ secrets.JAKUBLOUNEK_DBM_USER }}
+          DBM_PASS: ${{ secrets.JAKUBLOUNEK_DBM_PASS }}
+          MIGRACE_HESLO: ${{ secrets.JAKUBLOUNEK_MIGRACE_HESLO }}
+          SECRET_CRYPTO_KEY: ${{ secrets.JAKUBLOUNEK_SECRET_CRYPTO_KEY }}
+          CRON_KEY: ${{ secrets.JAKUBLOUNEK_CRON_KEY }}
+          GOOGLE_API_CREDENTIALS: ${{ secrets.JAKUBLOUNEK_GOOGLE_API_CREDENTIALS }}

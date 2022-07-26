@@ -10,8 +10,6 @@ define('DB_SERV', 'sql.gamecon');
 // uživatel s přístupem k změnám struktury
 define('DBM_USER', 'root');
 define('DBM_PASS', 'root');
-define('DBM_NAME', 'gamecon');
-define('DBM_SERV', 'sql.gamecon');
 
 $baseUrl = (($_SERVER['HTTPS'] ?? 'off') === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
 @define('URL_WEBU', $baseUrl . '/web'); // absolutní url uživatelského webu

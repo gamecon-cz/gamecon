@@ -16,6 +16,9 @@ mb_internal_encoding('UTF-8');
 $puvodni = error_reporting(); // vymaskování notice, aby bylo možné "přetížit" konstanty dříve includnutými
 error_reporting($puvodni ^ E_NOTICE);
 
+@define('DBM_NAME', DB_NAME);
+@define('DBM_SERV', DB_SERV);
+
 if (!defined('ROK')) define('ROK', 2022); // aktuální rok -- při změně roku viz Překlápění ročníku na Gamecon Gdrive https://docs.google.com/document/d/1H_PM70WjNpQ1Xz65OYfr1BeSTdLrNQSkScMIZEtxWEc/edit
 
 ////////////////////////
