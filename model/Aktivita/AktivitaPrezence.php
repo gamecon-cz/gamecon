@@ -22,7 +22,7 @@ class AktivitaPrezence
         Aktivita   $aktivita,
         Filesystem $filesystem
     ) {
-        $this->aktivita = $aktivita;
+        $this->aktivita   = $aktivita;
         $this->filesystem = $filesystem;
     }
 
@@ -50,16 +50,16 @@ class AktivitaPrezence
         }
         if ($this->aktivita->prihlasen($dorazil)) {
             dbInsertUpdate('akce_prihlaseni', [
-                'id_uzivatele' => $dorazil->id(),
-                'id_akce' => $this->aktivita->id(),
+                'id_uzivatele'        => $dorazil->id(),
+                'id_akce'             => $this->aktivita->id(),
                 'id_stavu_prihlaseni' => StavPrihlaseni::PRIHLASEN_A_DORAZIL,
             ]);
             $this->zalogujZeDorazil($dorazil);
         } else {
             $this->aktivita->odhlasZeSledovaniAktivitVeStejnemCase($dorazil);
             dbInsert('akce_prihlaseni', [
-                'id_uzivatele' => $dorazil->id(),
-                'id_akce' => $this->aktivita->id(),
+                'id_uzivatele'        => $dorazil->id(),
+                'id_akce'             => $this->aktivita->id(),
                 'id_stavu_prihlaseni' => StavPrihlaseni::DORAZIL_JAKO_NAHRADNIK,
             ]);
             $this->zalogujZeDorazilJakoNahradnik($dorazil);
@@ -82,7 +82,7 @@ class AktivitaPrezence
         if ($this->aktivita->dorazilJakoNahradnik($nedorazil)) {
             dbDelete('akce_prihlaseni', [
                 'id_uzivatele' => $nedorazil->id(),
-                'id_akce' => $this->aktivita->id(),
+                'id_akce'      => $this->aktivita->id(),
             ]);
             $this->zalogujZeZrusilPrihlaseniJakoNahradik($nedorazil);
             /* Návštěvník přidaný k aktivitě přes online prezenci se přidá jako náhradník a obratem potvrdí jeho přítomnost - přestože to aktivita sama vlastně nedovoluje. Když ho z aktivity zas ruší, tak ho ale nemůžeme zařadit do fronty jako náhradníka, pokud to aktivita nedovoluje (a my to popravdě ani nechceme, když ho odškrtli při samotné online prezenci).
@@ -117,11 +117,11 @@ class AktivitaPrezence
         $this->log($prihlaseny, AktivitaPrezenceTyp::PRIHLASENI);
     }
 
-    private function log(\Uzivatel $u, string $zprava) {
+    private function log(\Uzivatel $u, string $udalost) {
         dbInsert('akce_prihlaseni_log', [
             'id_uzivatele' => $u->id(),
-            'id_akce' => $this->aktivita->id(),
-            'typ' => $zprava,
+            'id_akce'      => $this->aktivita->id(),
+            'typ'          => $udalost,
         ]);
         RazitkoPosledniZmenyPrihlaseni::smazRazitkaPoslednichZmen($this->aktivita, $this->filesystem);
         unset($this->posledniZmenaPrihlaseni[$u->id()]);
@@ -164,11 +164,11 @@ class AktivitaPrezence
 
         dbDelete('akce_prihlaseni', [
             'id_uzivatele' => $nedorazil->id(),
-            'id_akce' => $this->aktivita->id(),
+            'id_akce'      => $this->aktivita->id(),
         ]);
         dbInsert('akce_prihlaseni_spec', [
-            'id_uzivatele' => $nedorazil->id(),
-            'id_akce' => $this->aktivita->id(),
+            'id_uzivatele'        => $nedorazil->id(),
+            'id_akce'             => $this->aktivita->id(),
             'id_stavu_prihlaseni' => StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL,
         ]);
         $this->zalogujZeZeNedostavil($nedorazil);
@@ -236,24 +236,24 @@ class AktivitaPrezence
             return [];
         }
 
-        $whereOrArray = [];
+        $whereOrArray      = [];
         $sqlQueryParametry = [];
         $indexSqlParametru = 0;
         foreach ($idsPoslednichZnamychLoguUcastniku as $idAktivity => $uzivateleALogy) {
-            $idAktivity = (int)$idAktivity;
+            $idAktivity                 = (int)$idAktivity;
             $idZnamychUcastnikuAktivity = [];
-            $idPoslednihZnamychLogu = [];
+            $idPoslednihZnamychLogu     = [];
             foreach ($uzivateleALogy as ['idUzivatele' => $idUzivatele, 'idPoslednihoLogu' => $idPoslednihoZnamehoLogu]) {
-                $idUzivatele = (int)$idUzivatele;
+                $idUzivatele             = (int)$idUzivatele;
                 $idPoslednihoZnamehoLogu = (int)$idPoslednihoZnamehoLogu;
 
                 $whereOrArray[] = "(id_akce = $idAktivity AND id_uzivatele = $idUzivatele AND id_log > $idPoslednihoZnamehoLogu)";
 
                 $idZnamychUcastnikuAktivity[] = $idUzivatele;
-                $idPoslednihZnamychLogu[] = $idPoslednihoZnamehoLogu;
+                $idPoslednihZnamychLogu[]     = $idPoslednihoZnamehoLogu;
             }
-            $idNejstarsihoPoslednihoZnamehoLogu = max(array_merge($idPoslednihZnamychLogu, [0]/* pro případ že aktivita byla prázdná */));
-            $whereOrArray[] = "(id_akce = {$idAktivity} AND id_uzivatele NOT IN ($$indexSqlParametru) AND id_log > $idNejstarsihoPoslednihoZnamehoLogu)";
+            $idNejstarsihoPoslednihoZnamehoLogu    = max(array_merge($idPoslednihZnamychLogu, [0]/* pro případ že aktivita byla prázdná */));
+            $whereOrArray[]                        = "(id_akce = {$idAktivity} AND id_uzivatele NOT IN ($$indexSqlParametru) AND id_log > $idNejstarsihoPoslednihoZnamehoLogu)";
             $sqlQueryParametry[$indexSqlParametru] = $idZnamychUcastnikuAktivity;
             $indexSqlParametru++;
         }
