@@ -33,7 +33,7 @@ jobs:
 
       - name: Deploy via FTP
         run: php ./udrzba/nasad.php
-        with:
+        env:
           FTP_DIR: jakublounek
           FTP_BASE_URL: ${{ secrets.FTP_BASE_URL }}
           DB_USER: ${{ secrets.JAKUBLOUNEK_DB_USER }}
