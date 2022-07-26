@@ -68,7 +68,6 @@ if ($vetev === 'master') {
         'zdrojovaSlozka'           => __DIR__ . '/..',
         'ciloveFtp'                => $nastaveni['jakublounek']['ftp'] ?? (getenv('FTP_BASE_URL') . '/' . getenv('FTP_DIR')),
         'hesloMigrace'             => $nastaveni['jakublounek'] ['hesloMigrace'] ?? getenv('MIGRACE_HESLO'),
-        'log'                      => $nastaveni['jakublounek']['log'],
         'souborVerejnehoNastaveni' => __DIR__ . '/../nastaveni/verejne-nastaveni-jakublounek.php',
     ]);
 } elseif ($vetev === 'misahojna') {
@@ -77,7 +76,6 @@ if ($vetev === 'master') {
         'zdrojovaSlozka'           => __DIR__ . '/..',
         'ciloveFtp'                => $nastaveni['misahojna']['ftp'] ?? (getenv('FTP_BASE_URL') . '/' . getenv('FTP_DIR')),
         'hesloMigrace'             => $nastaveni['misahojna'] ['hesloMigrace'] ?? getenv('MIGRACE_HESLO'),
-        'log'                      => $nastaveni['misahojna']['log'],
         'souborVerejnehoNastaveni' => __DIR__ . '/../nastaveni/verejne-nastaveni-misahojna.php',
     ]);
 } elseif ($vetev === 'sciator') {
@@ -86,7 +84,6 @@ if ($vetev === 'master') {
         'zdrojovaSlozka'           => __DIR__ . '/..',
         'ciloveFtp'                => $nastaveni['sciator']['ftp'] ?? (getenv('FTP_BASE_URL') . '/' . getenv('FTP_DIR')),
         'hesloMigrace'             => $nastaveni['sciator'] ['hesloMigrace'] ?? getenv('MIGRACE_HESLO'),
-        'log'                      => $nastaveni['sciator']['log'],
         'souborVerejnehoNastaveni' => __DIR__ . '/../nastaveni/verejne-nastaveni-sciator.php',
     ]);
 } else {
