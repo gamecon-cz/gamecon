@@ -3,12 +3,13 @@
 namespace Gamecon\Aktivita\OnlinePrezence;
 
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\StavAktivity;
 
 class OnlinePrezenceTestovaciAktivity
 {
 
     public static function vytvor(): self {
-        return new static(Aktivita::dejPrazdnou(), \Stav::dejPrazdny());
+        return new static(Aktivita::dejPrazdnou(), StavAktivity::dejPrazdny());
     }
 
     /**
@@ -16,11 +17,11 @@ class OnlinePrezenceTestovaciAktivity
      */
     private $obecnaAktivita;
     /**
-     * @var \Stav
+     * @var StavAktivity
      */
     private $obecnyStav;
 
-    public function __construct(Aktivita $obecnaAktivita, \Stav $obecnyStav) {
+    public function __construct(Aktivita $obecnaAktivita, StavAktivity $obecnyStav) {
         $this->obecnaAktivita = $obecnaAktivita;
         $this->obecnyStav = $obecnyStav;
     }

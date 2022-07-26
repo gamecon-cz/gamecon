@@ -6,6 +6,7 @@ use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Aktivita\StavAktivity;
 
 class ImportValuesSanitizer
 {
@@ -370,7 +371,7 @@ class ImportValuesSanitizer
         if ((string)$stateValue === '') {
             return ImportStepResult::success($sourceActivity && $sourceActivity->idStavu() !== null
                 ? $sourceActivity->idStavu()
-                : \Stav::NOVA
+                : StavAktivity::NOVA
             );
         }
         $state = $this->importObjectsContainer->getStateFromValue((string)$stateValue);

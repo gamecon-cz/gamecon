@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\StavAktivity;
 
 $oldestOldWorldTournament2022Wrapped = Aktivita::zNazvuARoku('Oldest Old World Tournament - WFB 6.5 edition - 1. kolo', ROK);
 
@@ -27,7 +28,7 @@ $oldestOldWorldTournament2022->prihlasTym(
 );
 
 if ($puvodniStav->jeAktivovana()) {
-    $publikovana = Stav::PUBLIKOVANA;
+    $publikovana = StavAktivity::PUBLIKOVANA;
 
     /** @var \Godric\DbMigrations\Migration $this */
 

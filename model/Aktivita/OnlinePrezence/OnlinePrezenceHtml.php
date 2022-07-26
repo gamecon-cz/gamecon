@@ -141,6 +141,9 @@ class OnlinePrezenceHtml
         array      $organizovaneAktivity
     ) {
         foreach ($organizovaneAktivity as $aktivita) {
+            if($aktivita->id() === 4629) {
+                $coze = 1;
+            }
             $editovatelnaOdTimestamp = $this->dejEditovatelnaOdTimestamp($aktivita);
             $ucastniciPridatelniDoTimestamp = $this->ucastniciPridatelniDoTimestamp($aktivita);
             $ucastniciOdebratelniDoTimestamp = $this->ucastniciOdebratelniDoTimestamp($aktivita);

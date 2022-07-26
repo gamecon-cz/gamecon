@@ -173,7 +173,7 @@ SQL
         if (!$this->zacatek()) {
             throw new \Chyba('Aktivita nemá nastavený čas');
         }
-        dbQuery('UPDATE akce_seznam SET stav = $1 WHERE id_akce = $2', [\Stav::AKTIVOVANA, $this->id()]);
+        dbQuery('UPDATE akce_seznam SET stav = $1 WHERE id_akce = $2', [StavAktivity::AKTIVOVANA, $this->id()]);
         $this->refresh();
     }
 
@@ -750,7 +750,7 @@ SQL
             if ($data['teamova']) $data['kapacita'] = $data['team_max'] ?? 0; // při vytváření nové aktivity se kapacita inicializuje na max. teamu
             if (empty($data['nazev_akce'])) $data['nazev_akce'] = '(bez názvu)';
             if (empty($data['stav'])) {
-                $data['stav'] = \Stav::NOVA;
+                $data['stav'] = StavAktivity::NOVA;
             }
             // vložení
             dbInsertUpdate('akce_seznam', $data);
@@ -1163,13 +1163,13 @@ SQL,
 
     /** Vráti aktivitu ze stavu připravená do stavu publikovaná */
     public function odpriprav() {
-        if ($this->idStavu() === \Stav::PUBLIKOVANA) {
+        if ($this->idStavu() === StavAktivity::PUBLIKOVANA) {
             return;
         }
-        if ($this->idStavu() !== \Stav::PRIPRAVENA) {
+        if ($this->idStavu() !== StavAktivity::PRIPRAVENA) {
             throw new \LogicException('Aktivita není v stavu "připravená"');
         }
-        dbQuery('UPDATE akce_seznam SET stav=$1 WHERE id_akce=$2', [\Stav::PUBLIKOVANA, $this->id()]);
+        dbQuery('UPDATE akce_seznam SET stav=$1 WHERE id_akce=$2', [StavAktivity::PUBLIKOVANA, $this->id()]);
     }
 
     /**
@@ -1322,7 +1322,7 @@ SQL
      */
     protected function plusminus(\Uzivatel $u = null, $parametry = 0) {
         // kontroly
-        if (!$this->a['teamova'] || $this->a['stav'] != \Stav::AKTIVOVANA) return '';
+        if (!$this->a['teamova'] || $this->a['stav'] != StavAktivity::AKTIVOVANA) return '';
         if ($parametry & self::PLUSMINUS && (!$u || !$this->prihlasen($u))) return '';
         // tisk formu
         $out = '';
@@ -1489,7 +1489,7 @@ SQL
             if ($parametry & self::STAV) {
                 // hack na ignorování stavu
                 $puvodniStav     = $this->a['stav'];
-                $this->a['stav'] = \Stav::AKTIVOVANA; // nastavíme stav jako by bylo vše ok
+                $this->a['stav'] = StavAktivity::AKTIVOVANA; // nastavíme stav jako by bylo vše ok
                 $prihlasovatelna = $this->prihlasovatelna($parametry);
                 $this->a['stav'] = $puvodniStav;
             }
@@ -1659,8 +1659,8 @@ SQL
                 || ($zpetne && po(REG_GC_DO))
             )
             && (
-                $this->a['stav'] == \Stav::AKTIVOVANA
-                || ($technicke && $this->a['stav'] == \Stav::NOVA && $this->a['typ'] == TypAktivity::TECHNICKA)
+                $this->a['stav'] == StavAktivity::AKTIVOVANA
+                || ($technicke && $this->a['stav'] == StavAktivity::NOVA && $this->a['typ'] == TypAktivity::TECHNICKA)
                 || ($zpetne && $this->probehnuta())
             )
             && $this->a['zacatek']
@@ -1675,13 +1675,13 @@ SQL
             return sprintf('Není spuštěna registrace aktivit (začne %s a končí %s)', REG_AKTIVIT_OD, REG_AKTIVIT_DO);
         }
         if (!(
-            $this->a['stav'] == \Stav::AKTIVOVANA
-            || ($technicke && $this->a['stav'] == \Stav::NOVA && $this->a['typ'] == TypAktivity::TECHNICKA)
+            $this->a['stav'] == StavAktivity::AKTIVOVANA
+            || ($technicke && $this->a['stav'] == StavAktivity::NOVA && $this->a['typ'] == TypAktivity::TECHNICKA)
             || ($zpetne && $this->probehnuta())
         )) {
             return sprintf(
                 'Aktivita není ve stavu použitelném pro přihlašování. Je ve stavu %d (%s), technické %s, zpětně %s',
-                $this->a['stav'], \Stav::dejNazev((int)$this->a['stav']), $technicke ? 'ANO' : 'NE', $zpetne ? 'ANO' : 'NE'
+                $this->a['stav'], StavAktivity::dejNazev((int)$this->a['stav']), $technicke ? 'ANO' : 'NE', $zpetne ? 'ANO' : 'NE'
             );
         }
         if (!$this->a['zacatek']) {
@@ -1927,11 +1927,11 @@ SQL
     }
 
     public function publikuj() {
-        $this->zmenStav(\Stav::PUBLIKOVANA);
+        $this->zmenStav(StavAktivity::PUBLIKOVANA);
     }
 
     private function zmenStav(int $novyStav) {
-        if (!\Stav::jeZnamy($novyStav)) {
+        if (!StavAktivity::jeZnamy($novyStav)) {
             throw new \LogicException("Neznámý stav aktivity '$novyStav'");
         }
         dbQuery('UPDATE akce_seznam SET stav=$1 WHERE id_akce=$2', [$novyStav, $this->id()]);
@@ -1939,22 +1939,22 @@ SQL
 
     /** Nastaví aktivitu jako "připravena pro aktivaci" */
     public function priprav() {
-        $this->zmenStav(\Stav::PRIPRAVENA);
+        $this->zmenStav(StavAktivity::PRIPRAVENA);
     }
 
     public function probehnuta(): bool {
-        return in_array($this->a['stav'], [\Stav::ZAMCENA, \Stav::UZAVRENA]);
+        return in_array($this->a['stav'], [StavAktivity::ZAMCENA, StavAktivity::UZAVRENA]);
     }
 
     public function bezpecneEditovatelna(): bool {
-        return in_array($this->idStavu(), [\Stav::NOVA, \Stav::PUBLIKOVANA, \Stav::PRIPRAVENA], true);
+        return in_array($this->idStavu(), [StavAktivity::NOVA, StavAktivity::PUBLIKOVANA, StavAktivity::PRIPRAVENA], true);
     }
 
-    public function stav(): \Stav {
+    public function stav(): StavAktivity {
         if (is_numeric($this->stav)) {
             $this->prednactiN1([
                 'atribut' => 'stav',
-                'cil'     => \Stav::class,
+                'cil'     => StavAktivity::class,
             ]);
         }
         return $this->stav;
@@ -2207,13 +2207,13 @@ SQL
 
     /** Vrátí, jestli aktivita bude aktivována v budoucnu, později než v další vlně */
     public function vBudoucnu(): bool {
-        return $this->a['stav'] == \Stav::PUBLIKOVANA;
+        return $this->a['stav'] == StavAktivity::PUBLIKOVANA;
     }
 
     /** Vrátí, jestli aktivita bude aktivována v další vlně */
     public function vDalsiVlne() {
-        return $this->a['stav'] == \Stav::PRIPRAVENA
-            || (!REG_AKTIVIT && $this->a['stav'] == \Stav::AKTIVOVANA);
+        return $this->a['stav'] == StavAktivity::PRIPRAVENA
+            || (!REG_AKTIVIT && $this->a['stav'] == StavAktivity::AKTIVOVANA);
     }
 
     /** Vrátí typ volných míst na aktivitě */
@@ -2266,7 +2266,7 @@ SQL
      */
     public function viditelnaPro(\Uzivatel $u = null) {
         return (
-            (in_array($this->a['stav'], [\Stav::AKTIVOVANA, \Stav::ZAMCENA, \Stav::UZAVRENA, \Stav::PUBLIKOVANA, \Stav::PRIPRAVENA], false) // podle stavu je aktivita viditelná
+            (in_array($this->a['stav'], [StavAktivity::AKTIVOVANA, StavAktivity::ZAMCENA, StavAktivity::UZAVRENA, StavAktivity::PUBLIKOVANA, StavAktivity::PRIPRAVENA], false) // podle stavu je aktivita viditelná
                 && !($this->a['typ'] == TypAktivity::TECHNICKA && $this->probehnuta()) // ale skrýt technické proběhnuté
             )
             || ($u && $this->prihlasen($u))
@@ -2445,7 +2445,7 @@ SQL
                 return null;
             }
             ['id_stav' => $stavId, 'kdy' => $kdy] = $posledniZmenaAPosledniStav;
-            if ($stavId != \Stav::UZAVRENA) {
+            if ($stavId != StavAktivity::UZAVRENA) {
                 return null;
             }
             $this->uzavrenaOd = \DateTimeImmutable::createFromFormat(DateTimeCz::FORMAT_DB, $kdy);
@@ -2507,7 +2507,7 @@ SQL
 
     /** Zamče aktivitu pro další změny (k použití před jejím začátkem) */
     public function zamkni() {
-        $this->zmenStavNa(\Stav::ZAMCENA);
+        $this->zmenStavNa(StavAktivity::ZAMCENA);
     }
 
     private function zmenStavNa(int $stav) {
@@ -2527,7 +2527,7 @@ SQL
         if (!$this->stav()->jeZamcena()) {
             $this->zamkni();
         }
-        $this->zmenStavNa(\Stav::UZAVRENA);
+        $this->zmenStavNa(StavAktivity::UZAVRENA);
     }
 
     /**
@@ -2544,11 +2544,11 @@ SQL,
             [
                 $zacinajiciDo->format(DateTimeCz::FORMAT_DB),
                 [
-                    \Stav::NOVA,
-                    \Stav::AKTIVOVANA,
-                    \Stav::SYSTEMOVA,
-                    \Stav::PUBLIKOVANA,
-                    \Stav::PRIPRAVENA,
+                    StavAktivity::NOVA,
+                    StavAktivity::AKTIVOVANA,
+                    StavAktivity::SYSTEMOVA,
+                    StavAktivity::PUBLIKOVANA,
+                    StavAktivity::PRIPRAVENA,
                 ],
                 ROK,
             ]
@@ -2580,7 +2580,7 @@ SQL,
             [
                 0 => $konciciNejmeneDo->format(DateTimeCz::FORMAT_DB),
                 1 => $konciciNejviceDo->format(DateTimeCz::FORMAT_DB),
-                2 => [\Stav::UZAVRENA, \Stav::SYSTEMOVA],
+                2 => [StavAktivity::UZAVRENA, StavAktivity::SYSTEMOVA],
                 3 => ROK,
             ]
         );
@@ -2658,14 +2658,14 @@ SQL,
             $wheres[] = 'a.id_akce IN (SELECT id_akce FROM akce_organizatori WHERE id_uzivatele = ' . (int)$filtr['organizator'] . ')';
         }
         if (!empty($filtr['jenViditelne'])) {
-            $wheres[] = 'a.stav IN (' . implode(',', [\Stav::AKTIVOVANA, \Stav::PUBLIKOVANA, \Stav::PRIPRAVENA, \Stav::ZAMCENA, \Stav::UZAVRENA]) . ') AND NOT (a.typ = ' . TypAktivity::TECHNICKA . ' AND a.stav IN (' . \Stav::ZAMCENA . ',' . \Stav::UZAVRENA . '))';
+            $wheres[] = 'a.stav IN (' . implode(',', [StavAktivity::AKTIVOVANA, StavAktivity::PUBLIKOVANA, StavAktivity::PRIPRAVENA, StavAktivity::ZAMCENA, StavAktivity::UZAVRENA]) . ') AND NOT (a.typ = ' . TypAktivity::TECHNICKA . ' AND a.stav IN (' . StavAktivity::ZAMCENA . ',' . StavAktivity::UZAVRENA . '))';
             /** stejné jako @see \Gamecon\Aktivita\Aktivita::probehnuta */
         }
         if (!empty($filtr['jenZamcene'])) {
-            $wheres[] = 'a.stav = ' . \Stav::ZAMCENA;
+            $wheres[] = 'a.stav = ' . StavAktivity::ZAMCENA;
         }
         if (!empty($filtr['jenNeuzavrene'])) {
-            $wheres[] = 'a.stav != ' . \Stav::UZAVRENA;
+            $wheres[] = 'a.stav != ' . StavAktivity::UZAVRENA;
         }
         if (!empty($filtr['od'])) {
             $wheres[] = dbQv($filtr['od']) . ' <= a.zacatek';
@@ -2803,7 +2803,7 @@ SQL,
     public static function zProgramu($order) {
         return self::zWhere(
             'WHERE a.rok = $0 AND a.zacatek AND (a.stav != $1 OR a.typ = $2)',
-            [ROK, \Stav::NOVA, TypAktivity::TECHNICKA],
+            [ROK, StavAktivity::NOVA, TypAktivity::TECHNICKA],
             'ORDER BY DAY(zacatek), ' . dbQi($order) . ', HOUR(zacatek), nazev_akce'
         );
     }
@@ -2948,7 +2948,7 @@ SQL,
     }
 
     public static function aktivujVsePripravene(int $rok) {
-        dbQuery('UPDATE akce_seznam SET stav=$1 WHERE stav=$2 AND rok=$3', [\Stav::AKTIVOVANA, \Stav::PRIPRAVENA, $rok]);
+        dbQuery('UPDATE akce_seznam SET stav=$1 WHERE stav=$2 AND rok=$3', [StavAktivity::AKTIVOVANA, StavAktivity::PRIPRAVENA, $rok]);
     }
 
     public static function idExistujiciInstancePodleUrl(string $url, int $rok, int $typId): ?int {

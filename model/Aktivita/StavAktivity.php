@@ -1,10 +1,12 @@
 <?php
 
+namespace Gamecon\Aktivita;
+
 /**
- * @method static Stav zId($id)
- * @method static Stav[] zVsech()
+ * @method static StavAktivity zId($id)
+ * @method static StavAktivity[] zVsech()
  */
-class Stav extends DbObject
+class StavAktivity extends \DbObject
 {
     public const NOVA = 0; // v přípravě
     public const AKTIVOVANA = 1;
@@ -50,7 +52,7 @@ class Stav extends DbObject
             case self::ZAMCENA :
                 return 'zamčená';
             default :
-                throw new LogicException('Neznámý stav aktivity: ' . $stav);
+                throw new \LogicException('Neznámý stav aktivity: ' . $stav);
         }
     }
 
