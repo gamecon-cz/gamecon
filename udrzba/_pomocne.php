@@ -95,7 +95,7 @@ function nasad(array $nastaveni) {
     $souborNastaveniDeploymentu = tempnam(sys_get_temp_dir(), 'gamecon-ftpdeploy-');
     file_put_contents($souborNastaveniDeploymentu, $nastaveniDeploymentu);
     try {
-        call_check(['php', $deployment, $souborNastaveniDeploymentu]);
+        call_check(['php', $deployment, $souborNastaveniDeploymentu, '--no-progress']);
     } finally {
         unlink($souborNastaveniDeploymentu);
     }
