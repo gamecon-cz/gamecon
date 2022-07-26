@@ -7,7 +7,7 @@ function vytvorSouborSkrytehoNastaveniPodleEnv(string $souborVerejnehoNastaveni)
         $DB_NAME                = getenv('DB_NAME');
         $DB_SERV                = getenv('DB_SERV');
         $DBM_USER               = getenv('DBM_USER');
-        $DB_PASS                = getenv('DB_PASS');
+        $DBM_PASS               = getenv('DBM_PASS');
         $MIGRACE_HESLO          = getenv('MIGRACE_HESLO');
         $SECRET_CRYPTO_KEY      = getenv('SECRET_CRYPTO_KEY');
         $CRON_KEY               = getenv('CRON_KEY');
@@ -21,7 +21,7 @@ define('DB_SERV', '$DB_SERV');
 
 // uživatel s přístupem k změnám struktury
 define('DBM_USER', '$DBM_USER');
-define('DBM_PASS', '$DB_PASS');
+define('DBM_PASS', '$DBM_PASS');
 
 define('MIGRACE_HESLO', '$MIGRACE_HESLO');
 define('SECRET_CRYPTO_KEY', '$SECRET_CRYPTO_KEY');
@@ -31,6 +31,7 @@ define('GOOGLE_API_CREDENTIALS', '$GOOGLE_API_CREDENTIALS');
 PHP
         );
     }
+    die(file_get_contents($souborSkrytehoNastaveni));
 }
 
 function souborSkrytehoNastaveniPodleVerejneho(string $souborVerejnehoNastaveni): string {
