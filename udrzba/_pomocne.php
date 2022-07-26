@@ -16,9 +16,7 @@ function nasad(array $nastaveni) {
         }, $alwaysAutoloadedRelative)
     );
 
-    $logFile                        = $nastaveni['log'] ?? 'nasad.log';
-    $nazevSouboruVerejnehoNastaveni = basename($nastaveni['souborVerejnehoNastaveni']);
-    $nazevSouboruSkrytehoNastaveni  = souborSkrytehoNastaveniPodleVerejneho($nazevSouboruVerejnehoNastaveni);
+    $logFile = $nastaveni['log'] ?? 'nasad.log';
 
     $nastaveniDeploymentu = "
     log     = {$logFile}
@@ -43,8 +41,8 @@ function nasad(array $nastaveni) {
       /dokumentace
 
       /nastaveni/*
-      !/nastaveni/$nazevSouboruVerejnehoNastaveni
-      !/nastaveni/$nazevSouboruSkrytehoNastaveni
+      !/nastaveni/verejne-{$nastaveni['souborSkrytehoNastaveni']}
+      !/nastaveni/{$nastaveni['souborSkrytehoNastaveni']}
       !/nastaveni/db-migrace.php
       !/nastaveni/initial-fatal-error-handler.php
       !/nastaveni/nastaveni.php
@@ -87,32 +85,32 @@ function nasad(array $nastaveni) {
         nadpis("NASAZUJI '{$nastaveni['vetev']}'");
     }
 
-    vytvorSouborSkrytehoNastaveniPodleEnv($nastaveni['souborVerejnehoNastaveni']);
-    require_once $nastaveni['souborVerejnehoNastaveni'];
+    $souboruVerejnehoNastaveni = $zdrojovaSlozka . '/nastaveni/verejne-' . $nastaveni['souborSkrytehoNastaveni'];
+    vytvorSouborSkrytehoNastaveniPodleEnv($souboruVerejnehoNastaveni);
 
     // nahrání souborů
     msg('synchronizuji soubory na vzdáleném ftp');
     $souborNastaveniDeploymentu = tempnam(sys_get_temp_dir(), 'gamecon-ftpdeploy-');
     file_put_contents($souborNastaveniDeploymentu, $nastaveniDeploymentu);
     try {
-        call_check(['php', $deployment, $souborNastaveniDeploymentu, '--no-progress']);
+        call_check(['php', $deployment, $souborNastaveniDeploymentu]);
     } finally {
         unlink($souborNastaveniDeploymentu);
     }
 
     // migrace DB
-    runMigrationsOnRemote($nastaveni['hesloMigrace']);
+    runMigrationsOnRemote($nastaveni['urlMigrace'], $nastaveni['hesloMigrace']);
 
     msg('nasazení dokončeno');
 }
 
-function runMigrationsOnRemote(string $hesloMigrace) {
+function runMigrationsOnRemote(string $urlMigrace, string $hesloMigrace) {
     msg("spouštím migrace na vzdálené databázi");
     call_check([
         'curl',
         '--data', http_build_query(['migraceHeslo' => $hesloMigrace]),
         '--silent', // skrýt progressbar
-        URL_ADMIN . '/' . basename(__DIR__ . '/../admin/migrace.php'),
+        $urlMigrace,
     ]);
 }
 

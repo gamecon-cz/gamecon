@@ -1,39 +1,23 @@
 <?php
-function vytvorSouborSkrytehoNastaveniPodleEnv(string $souborVerejnehoNastaveni) {
-    $souborSkrytehoNastaveni = souborSkrytehoNastaveniPodleVerejneho($souborVerejnehoNastaveni);
+function vytvorSouborSkrytehoNastaveniPodleEnv(string $absolutniCestaKSouboruVerejnehoNastaveni) {
+    $souborSkrytehoNastaveni = souborSkrytehoNastaveniPodleVerejneho($absolutniCestaKSouboruVerejnehoNastaveni);
     if (!is_file($souborSkrytehoNastaveni)) {
-        // ENV názvy a hodnoty viz například .github/workflows/deploy-jakublounek.yml
-        $DB_USER                = getenv('DB_USER');
-        $DB_PASS                = getenv('DB_PASS');
-        $DB_NAME                = getenv('DB_NAME');
-        $DB_SERV                = getenv('DB_SERV');
-        $DBM_USER               = getenv('DBM_USER');
-        $DBM_PASS               = getenv('DBM_PASS');
-        $MIGRACE_HESLO          = getenv('MIGRACE_HESLO');
-        $SECRET_CRYPTO_KEY      = getenv('SECRET_CRYPTO_KEY');
-        $CRON_KEY               = getenv('CRON_KEY');
-        $GOOGLE_API_CREDENTIALS = json_decode(getenv('GOOGLE_API_CREDENTIALS') ?: '{}', true);
-        $ted = date(DATE_ATOM);
-        $nazevTetoFunkce = __FUNCTION__;
+        // ENV data viz například .github/workflows/deploy-jakublounek.yml
         file_put_contents($souborSkrytehoNastaveni, <<<PHP
-<?php
-// vygenerováno $ted v $nazevTetoFunkce
-
-// uživatel se základním přístupem
-define('DB_USER', '$DB_USER');
-define('DB_PASS', '$DB_PASS');
-define('DB_NAME', '$DB_NAME');
-define('DB_SERV', '$DB_SERV');
+define('DB_USER', '{$_ENV['DB_USER']}');
+define('DB_PASS', '{$_ENV['DB_PASS']}');
+define('DB_NAME', '{$_ENV['DB_NAME']}');
+define('DB_SERV', '{$_ENV['DB_SERV']}');
 
 // uživatel s přístupem k změnám struktury
-define('DBM_USER', '$DBM_USER');
-define('DBM_PASS', '$DBM_PASS');
+define('DBM_USER', '{$_ENV['DBM_USER']}');
+define('DBM_PASS', '{$_ENV['DB_PASS']}');
 
-define('MIGRACE_HESLO', '$MIGRACE_HESLO');
-define('SECRET_CRYPTO_KEY', '$SECRET_CRYPTO_KEY');
+define('MIGRACE_HESLO', '{$_ENV['MIGRACE_HESLO']}');
+define('SECRET_CRYPTO_KEY', '{$_ENV['SECRET_CRYPTO_KEY']}');
 
-define('CRON_KEY', '$CRON_KEY');
-define('GOOGLE_API_CREDENTIALS', '$GOOGLE_API_CREDENTIALS');
+define('CRON_KEY', '{$_ENV['CRON_KEY']}');
+define('GOOGLE_API_CREDENTIALS', '{$_ENV['GOOGLE_API_CREDENTIALS']}');
 PHP
         );
     }
