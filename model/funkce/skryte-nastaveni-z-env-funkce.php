@@ -1,6 +1,6 @@
 <?php
-function vytvorSouborSkrytehoNastaveniPodleEnv(string $absolutniCestaKSouboruVerejnehoNastaveni) {
-    $souborSkrytehoNastaveni = souborSkrytehoNastaveniPodleVerejneho($absolutniCestaKSouboruVerejnehoNastaveni);
+function vytvorSouborSkrytehoNastaveniPodleEnv(string $souborVerejnehoNastaveni) {
+    $souborSkrytehoNastaveni = souborSkrytehoNastaveniPodleVerejneho($souborVerejnehoNastaveni);
     if (!is_file($souborSkrytehoNastaveni)) {
         $DB_USER                = getenv('DB_USER');
         $DB_PASS                = getenv('DB_PASS');
