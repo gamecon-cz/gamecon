@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/../model/funkce/skryte-nastaveni-z-env-funkce.php';
+
 function nasad(array $nastaveni) {
 
     $deployment     = __DIR__ . '/ftp-deployment.php';
@@ -83,26 +85,8 @@ function nasad(array $nastaveni) {
         nadpis("NASAZUJI '{$nastaveni['vetev']}'");
     }
 
-    $souborSeSkrytymNastavenim = $zdrojovaSlozka . '/nastaveni/' . $nastaveni['souborSkrytehoNastaveni'];
-    if (!is_file($souborSeSkrytymNastavenim)) {
-        // ENV data viz například .github/workflows/deploy-jakublounek.yml
-        file_put_contents($souborSeSkrytymNastavenim, <<<PHP
-define('DB_USER', '{$_ENV['DB_USER']}');
-define('DB_PASS', '{$_ENV['DB_PASS']}');
-define('DB_NAME', '{$_ENV['DB_NAME']}');
-define('DB_SERV', '{$_ENV['DB_SERV']}');
-
-// uživatel s přístupem k změnám struktury
-define('DBM_USER', '{$_ENV['DBM_USER']}');
-define('DBM_PASS', '{$_ENV['DB_PASS']}');
-
-define('MIGRACE_HESLO', '{$_ENV['MIGRACE_HESLO']}');
-define('SECRET_CRYPTO_KEY', '{$_ENV['SECRET_CRYPTO_KEY']}');
-
-define('CRON_KEY', '{$_ENV['CRON_KEY']}');
-define('GOOGLE_API_CREDENTIALS', '{$_ENV['GOOGLE_API_CREDENTIALS']}');
-PHP);
-    }
+    $souboruVerejnehoNastaveni = $zdrojovaSlozka . '/nastaveni/verejne-' . $nastaveni['souborSkrytehoNastaveni'];
+    vytvorSouborSkrytehoNastaveniPodleEnv($souboruVerejnehoNastaveni);
 
     // nahrání souborů
     msg('synchronizuji soubory na vzdáleném ftp');
@@ -151,17 +135,17 @@ function msg($msg) {
 
 function nadpis(string $msg) {
     $length = mb_strlen($msg);
-    $okraj = str_repeat('=', $length);
-    $eol = PHP_EOL;
+    $okraj  = str_repeat('=', $length);
+    $eol    = PHP_EOL;
     echo "  $okraj  $eol";
     echo "‖ $msg ‖$eol";
     echo "  $okraj  $eol";
 }
 
 function call_check($params) {
-    $command = escapeshellcmd($params[0]);
-    $args = array_map('escapeshellarg', array_slice($params, 1));
-    $args = implode(' ', $args);
+    $command         = escapeshellcmd($params[0]);
+    $args            = array_map('escapeshellarg', array_slice($params, 1));
+    $args            = implode(' ', $args);
     $commandWithArgs = $command . ' ' . $args;
 
     passthru($commandWithArgs, $exitStatus);
