@@ -2,6 +2,7 @@
 function vytvorSouborSkrytehoNastaveniPodleEnv(string $souborVerejnehoNastaveni) {
     $souborSkrytehoNastaveni = souborSkrytehoNastaveniPodleVerejneho($souborVerejnehoNastaveni);
     if (!is_file($souborSkrytehoNastaveni)) {
+        // ENV názvy a hodnoty viz například .github/workflows/deploy-jakublounek.yml
         $DB_USER                = getenv('DB_USER');
         $DB_PASS                = getenv('DB_PASS');
         $DB_NAME                = getenv('DB_NAME');
@@ -11,8 +12,7 @@ function vytvorSouborSkrytehoNastaveniPodleEnv(string $souborVerejnehoNastaveni)
         $MIGRACE_HESLO          = getenv('MIGRACE_HESLO');
         $SECRET_CRYPTO_KEY      = getenv('SECRET_CRYPTO_KEY');
         $CRON_KEY               = getenv('CRON_KEY');
-        $GOOGLE_API_CREDENTIALS = getenv('GOOGLE_API_CREDENTIALS');
-        // ENV data viz například .github/workflows/deploy-jakublounek.yml
+        $GOOGLE_API_CREDENTIALS = json_decode(getenv('GOOGLE_API_CREDENTIALS') ?: '{}', true);
         $ted = date(DATE_ATOM);
         $nazevTetoFunkce = __FUNCTION__;
         file_put_contents($souborSkrytehoNastaveni, <<<PHP
