@@ -57,6 +57,9 @@ function nasad(array $nastaveni) {
       /tests
       /udrzba
       /ui
+      /admin/files/ui/bundle.js.map
+
+      /docker-compose.yml
 
       /web/soubory/*
       !/web/soubory/blackarrow
