@@ -1,5 +1,11 @@
 <?php
 
+debug_print_backtrace();
+
+echo file_get_contents(__DIR__ . '/nastaveni-jakublounek.php');
+
+die;
+
 require_once __DIR__ . '/nastaveni-jakublounek.php';
 
 define('DBM_NAME', DB_NAME);
