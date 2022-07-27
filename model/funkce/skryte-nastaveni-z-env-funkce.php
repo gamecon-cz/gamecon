@@ -13,7 +13,13 @@ function vytvorSouborSkrytehoNastaveniPodleEnv(string $souborVerejnehoNastaveni)
         $CRON_KEY               = getenv('CRON_KEY');
         $GOOGLE_API_CREDENTIALS = getenv('GOOGLE_API_CREDENTIALS');
         // ENV data viz například .github/workflows/deploy-jakublounek.yml
+        $ted = date(DATE_ATOM);
+        $nazevTetoFunkce = __FUNCTION__;
         file_put_contents($souborSkrytehoNastaveni, <<<PHP
+<?php
+// vygenerováno $ted v $nazevTetoFunkce
+
+// uživatel se základním přístupem
 define('DB_USER', '$DB_USER');
 define('DB_PASS', '$DB_PASS');
 define('DB_NAME', '$DB_NAME');
@@ -22,8 +28,6 @@ define('DB_SERV', '$DB_SERV');
 // uživatel s přístupem k změnám struktury
 define('DBM_USER', '$DBM_USER');
 define('DBM_PASS', '$DBM_PASS');
-define('DBM_NAME', '$DB_NAME');
-define('DBM_SERV', '$DB_SERV');
 
 define('MIGRACE_HESLO', '$MIGRACE_HESLO');
 define('SECRET_CRYPTO_KEY', '$SECRET_CRYPTO_KEY');
