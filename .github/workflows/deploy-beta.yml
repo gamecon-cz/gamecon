@@ -54,3 +54,4 @@ jobs:
           SECRET_CRYPTO_KEY: ${{ secrets.BETA_SECRET_CRYPTO_KEY }}
           CRON_KEY: ${{ secrets.BETA_CRON_KEY }}
           GOOGLE_API_CREDENTIALS: ${{ secrets.BETA_GOOGLE_API_CREDENTIALS }}
+          FIO_TOKEN: ${{ secrets.BETA_FIO_TOKEN }}
