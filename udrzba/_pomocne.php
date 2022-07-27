@@ -33,12 +33,12 @@ function nasad(array $nastaveni) {
       /.phpunit.result.cache
 
       /backup/*
+      !/backup/.htaccess
       /cache/private/*
-      /admin/stamps/*
       !/cache/private/.htaccess
+      /admin/stamps/*
       /cache/public/*
       !/cache/public/.htaccess
-      !/cache/public/sestavene
 
       /dokumentace
 
