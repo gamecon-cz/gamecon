@@ -4,14 +4,15 @@ namespace Gamecon\SystemoveNastaveni;
 
 use Godric\DbMigrations\DbMigrations;
 use Godric\DbMigrations\DbMigrationsConfig;
+use Symfony\Component\Filesystem\Filesystem;
 
 class SqlMigrace
 {
     public function migruj() {
-        pripravCache(SPEC . '/db-backup');
+        (new Filesystem())->mkdir(ZALOHA_DB_SLOZKA);
 
         (new DbMigrations(new DbMigrationsConfig([
-            'connection' => new \mysqli(
+            'connection'          => new \mysqli(
                 DBM_SERV,
                 DBM_USER,
                 DBM_PASS,
@@ -21,7 +22,7 @@ class SqlMigrace
                     : 3306
             ),
             'migrationsDirectory' => SQL_MIGRACE_DIR,
-            'backupsDirectory' => ZALOHA_DB_SLOZKA,
+            'backupsDirectory'    => ZALOHA_DB_SLOZKA,
         ])))->run(true);
     }
 }
