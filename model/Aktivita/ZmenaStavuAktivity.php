@@ -15,7 +15,7 @@ class ZmenaStavuAktivity
         int                $idAktivity,
         int                $idLogu,
         \DateTimeImmutable $casZmeny,
-        int                $stavAktivity/** @see \Stav */
+        int                $stavAktivity/** @see StavAktivity */
     ): self {
         return new static($idAktivity, $idLogu, $casZmeny, $stavAktivity);
     }
@@ -30,7 +30,7 @@ class ZmenaStavuAktivity
     private $stavAktivity;
 
     public function __construct(int $idAktivity, int $idLogu, \DateTimeImmutable $casZmeny, int $stavAktivity) {
-        if ($stavAktivity && !\Stav::jeZnamy($stavAktivity)) {
+        if ($stavAktivity && !StavAktivity::jeZnamy($stavAktivity)) {
             throw new \LogicException('Neznamy stav prihlaseni ' . var_export($stavAktivity, true));
         }
         $this->idAktivity = $idAktivity;
@@ -66,17 +66,17 @@ class ZmenaStavuAktivity
      */
     public function stavAktivityProJs(): ?string {
         switch ($this->stavAktivity()) {
-            case \Stav::AKTIVOVANA :
+            case StavAktivity::AKTIVOVANA :
                 return self::AKTIVOVANA_JS;
-            case \Stav::UZAVRENA :
+            case StavAktivity::UZAVRENA :
                 return self::UZAVRENA_JS;
-            case \Stav::SYSTEMOVA :
+            case StavAktivity::SYSTEMOVA :
                 return self::SYSTEMOVA_JS;
-            case \Stav::PUBLIKOVANA :
+            case StavAktivity::PUBLIKOVANA :
                 return self::PUBLIKOVANA_JS;
-            case \Stav::PRIPRAVENA :
+            case StavAktivity::PRIPRAVENA :
                 return self::PRIPRAVENA_JS;
-            case \Stav::ZAMCENA :
+            case StavAktivity::ZAMCENA :
                 return self::ZAMCENA_JS;
             default :
                 return null; // nějaký pro JS nezajímavý stav

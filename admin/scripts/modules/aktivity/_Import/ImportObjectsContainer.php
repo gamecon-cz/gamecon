@@ -3,6 +3,7 @@
 namespace Gamecon\Admin\Modules\Aktivity\Import;
 
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Aktivita\StavAktivity;
 
 class ImportObjectsContainer
 {
@@ -20,7 +21,7 @@ class ImportObjectsContainer
      */
     private $tagsCache;
     /**
-     * @var array|\Stav[][]
+     * @var array|StavAktivity[][]
      */
     private $statesCache;
 
@@ -68,7 +69,7 @@ class ImportObjectsContainer
         return $this->programLinesCache;
     }
 
-    public function getStateFromValue(string $StateValue): ?\Stav {
+    public function getStateFromValue(string $StateValue): ?StavAktivity {
         $StateInt = (int)$StateValue;
         if ($StateInt > 0) {
             return $this->getStateById($StateInt);
@@ -76,18 +77,18 @@ class ImportObjectsContainer
         return $this->getStateByName($StateValue);
     }
 
-    private function getStateById(int $id): ?\Stav {
+    private function getStateById(int $id): ?StavAktivity {
         return $this->getStatesCache()['id'][$id] ?? null;
     }
 
-    private function getStateByName(string $name): ?\Stav {
+    private function getStateByName(string $name): ?StavAktivity {
         return $this->getStatesCache()['keyFromName'][ImportKeyUnifier::toUnifiedKey(mb_substr($name, 0, 3, 'UTF-8'), [])] ?? null;
     }
 
     private function getStatesCache(): array {
         if (!$this->statesCache) {
             $this->statesCache = ['id' => [], 'keyFromName' => []];
-            foreach (\Stav::zVsech() as $stav) {
+            foreach (StavAktivity::zVsech() as $stav) {
                 $this->statesCache['id'][$stav->id()] = $stav;
                 $keyFromName = ImportKeyUnifier::toUnifiedKey(mb_substr($stav->nazev(), 0, 3, 'UTF-8'), array_keys($this->statesCache['keyFromName']));
                 $this->statesCache['keyFromName'][$keyFromName] = $stav;

@@ -141,6 +141,9 @@ class OnlinePrezenceHtml
         array      $organizovaneAktivity
     ) {
         foreach ($organizovaneAktivity as $aktivita) {
+            if($aktivita->id() === 4629) {
+                $coze = 1;
+            }
             $editovatelnaOdTimestamp = $this->dejEditovatelnaOdTimestamp($aktivita);
             $ucastniciPridatelniDoTimestamp = $this->ucastniciPridatelniDoTimestamp($vypravec, $aktivita);
             $ucastniciOdebratelniDoTimestamp = $this->ucastniciOdebratelniDoTimestamp($vypravec, $aktivita);
@@ -312,7 +315,12 @@ class OnlinePrezenceHtml
             }
             $prezence = $aktivita->dejPrezenci();
             // později přidaný / změněný nakonec
-            return $prezence->posledniZmenaPrihlaseni($nejakyPrihlaseny)->idLogu() <=> $prezence->posledniZmenaPrihlaseni($jinyPrihlaseny)->idLogu();
+            $nejakaPosledniZmena = $prezence->posledniZmenaPrihlaseni($nejakyPrihlaseny);
+            $jinaPosledniZmena = $prezence->posledniZmenaPrihlaseni($jinyPrihlaseny);
+            if ($nejakaPosledniZmena === null || $jinaPosledniZmena === null) {
+                return $nejakaPosledniZmena <=> $jinaPosledniZmena;
+            }
+            return $nejakaPosledniZmena->idLogu() <=> $jinaPosledniZmena->idLogu();
         });
         return $prihlaseni;
     }

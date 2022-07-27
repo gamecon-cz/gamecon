@@ -40,9 +40,9 @@ $program = new Program($u, $nastaveni);
 $program->zpracujPost();
 
 $this->pridejCssUrl($program->cssUrl());
-$this->pridejJsSoubor('soubory/blackarrow/program-nahled/program-nahled.js');
-$this->pridejJsSoubor('soubory/blackarrow/program-posuv/program-posuv.js');
-$this->pridejJsSoubor('soubory/blackarrow/_spolecne/zachovej-scroll.js');
+$this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program-nahled/program-nahled.js');
+$this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program-posuv/program-posuv.js');
+$this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/_spolecne/zachovej-scroll.js');
 
 $zacatekPrvniVlnyOd = \Gamecon\Cas\DateTimeGamecon::zacatekPrvniVlnyOd();
 $zacatekPrvniVlnyZaSekund = $zacatekPrvniVlnyOd->getTimestamp() - time();

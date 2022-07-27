@@ -1,5 +1,7 @@
 <?php
-use \Gamecon\Aktivita\Aktivita;
+
+use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\StavAktivity;
 
 $warhammer40kTurnaj2022Wrapped = Aktivita::zNazvuARoku('Warhammer 40k turnaj - 1.kolo', ROK);
 
@@ -26,7 +28,7 @@ $warhammer40kTurnaj2022->prihlasTym(
 );
 
 if ($puvodniStav->jeAktivovana()) {
-    $publikovana = Stav::PUBLIKOVANA;
+    $publikovana = StavAktivity::PUBLIKOVANA;
 
     /** @var \Godric\DbMigrations\Migration $this */
 

@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/../model/funkce/skryte-nastaveni-z-env-funkce.php';
+
 function nasad(array $nastaveni) {
 
     $deployment     = __DIR__ . '/ftp-deployment.php';
@@ -14,7 +16,9 @@ function nasad(array $nastaveni) {
         }, $alwaysAutoloadedRelative)
     );
 
-    $logFile = $nastaveni['log'] ?? 'nasad.log';
+    $logFile                        = $nastaveni['log'] ?? 'nasad.log';
+    $nazevSouboruVerejnehoNastaveni = basename($nastaveni['souborVerejnehoNastaveni']);
+    $nazevSouboruSkrytehoNastaveni  = souborSkrytehoNastaveniPodleVerejneho($nazevSouboruVerejnehoNastaveni);
 
     $nastaveniDeploymentu = "
     log     = {$logFile}
@@ -39,8 +43,8 @@ function nasad(array $nastaveni) {
       /dokumentace
 
       /nastaveni/*
-      !/nastaveni/verejne-{$nastaveni['souborSkrytehoNastaveni']}
-      !/nastaveni/{$nastaveni['souborSkrytehoNastaveni']}
+      !/nastaveni/$nazevSouboruVerejnehoNastaveni
+      !/nastaveni/$nazevSouboruSkrytehoNastaveni
       !/nastaveni/db-migrace.php
       !/nastaveni/initial-fatal-error-handler.php
       !/nastaveni/nastaveni.php
@@ -83,50 +87,32 @@ function nasad(array $nastaveni) {
         nadpis("NASAZUJI '{$nastaveni['vetev']}'");
     }
 
-    $souborSeSkrytymNastavenim = $zdrojovaSlozka . '/nastaveni/' . $nastaveni['souborSkrytehoNastaveni'];
-    if (!is_file($souborSeSkrytymNastavenim)) {
-        // ENV data viz například .github/workflows/deploy-jakublounek.yml
-        file_put_contents($souborSeSkrytymNastavenim, <<<PHP
-define('DB_USER', '{$_ENV['DB_USER']}');
-define('DB_PASS', '{$_ENV['DB_PASS']}');
-define('DB_NAME', '{$_ENV['DB_NAME']}');
-define('DB_SERV', '{$_ENV['DB_SERV']}');
-
-// uživatel s přístupem k změnám struktury
-define('DBM_USER', '{$_ENV['DBM_USER']}');
-define('DBM_PASS', '{$_ENV['DB_PASS']}');
-
-define('MIGRACE_HESLO', '{$_ENV['MIGRACE_HESLO']}');
-define('SECRET_CRYPTO_KEY', '{$_ENV['SECRET_CRYPTO_KEY']}');
-
-define('CRON_KEY', '{$_ENV['CRON_KEY']}');
-define('GOOGLE_API_CREDENTIALS', '{$_ENV['GOOGLE_API_CREDENTIALS']}');
-PHP);
-    }
+    vytvorSouborSkrytehoNastaveniPodleEnv($nastaveni['souborVerejnehoNastaveni']);
+    require_once $nastaveni['souborVerejnehoNastaveni'];
 
     // nahrání souborů
     msg('synchronizuji soubory na vzdáleném ftp');
     $souborNastaveniDeploymentu = tempnam(sys_get_temp_dir(), 'gamecon-ftpdeploy-');
     file_put_contents($souborNastaveniDeploymentu, $nastaveniDeploymentu);
     try {
-        call_check(['php', $deployment, $souborNastaveniDeploymentu]);
+        call_check(['php', $deployment, $souborNastaveniDeploymentu, '--no-progress']);
     } finally {
         unlink($souborNastaveniDeploymentu);
     }
 
     // migrace DB
-    runMigrationsOnRemote($nastaveni['urlMigrace'], $nastaveni['hesloMigrace']);
+    runMigrationsOnRemote($nastaveni['hesloMigrace']);
 
     msg('nasazení dokončeno');
 }
 
-function runMigrationsOnRemote(string $urlMigrace, string $hesloMigrace) {
+function runMigrationsOnRemote(string $hesloMigrace) {
     msg("spouštím migrace na vzdálené databázi");
     call_check([
         'curl',
         '--data', http_build_query(['migraceHeslo' => $hesloMigrace]),
         '--silent', // skrýt progressbar
-        $urlMigrace,
+        URL_ADMIN . '/' . basename(__DIR__ . '/../admin/migrace.php'),
     ]);
 }
 
@@ -151,17 +137,17 @@ function msg($msg) {
 
 function nadpis(string $msg) {
     $length = mb_strlen($msg);
-    $okraj = str_repeat('=', $length);
-    $eol = PHP_EOL;
+    $okraj  = str_repeat('=', $length);
+    $eol    = PHP_EOL;
     echo "  $okraj  $eol";
     echo "‖ $msg ‖$eol";
     echo "  $okraj  $eol";
 }
 
 function call_check($params) {
-    $command = escapeshellcmd($params[0]);
-    $args = array_map('escapeshellarg', array_slice($params, 1));
-    $args = implode(' ', $args);
+    $command         = escapeshellcmd($params[0]);
+    $args            = array_map('escapeshellarg', array_slice($params, 1));
+    $args            = implode(' ', $args);
     $commandWithArgs = $command . ' ' . $args;
 
     passthru($commandWithArgs, $exitStatus);

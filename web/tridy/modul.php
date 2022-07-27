@@ -100,9 +100,13 @@ class Modul
         $this->cssUrls[] = $url;
     }
 
-    function pridejJsSoubor($cestaNaWebu) {
-        $verze = md5_file(WWW . '/' . $cestaNaWebu);
-        $url = URL_WEBU . '/' . $cestaNaWebu . '?v=' . $verze;
+    function pridejJsSoubor($cesta) {
+        $cestaKSouboru = strpos(realpath($cesta), realpath(WWW)) === 0
+            ? $cesta
+            : WWW . '/' . $cesta;
+        $verze = md5_file($cestaKSouboru);
+        $cestaNaWebu = ltrim(substr(realpath($cestaKSouboru), strlen(realpath(WWW))), '/');
+        $url = URL_WEBU . '/' . $cestaNaWebu . '?version=' . $verze;
         $this->jsUrls[] = $url;
     }
 

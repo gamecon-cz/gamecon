@@ -6,6 +6,7 @@ use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeCz;
+use Gamecon\Aktivita\StavAktivity;
 
 class ImportSqlMappedValuesChecker
 {
@@ -312,16 +313,16 @@ SQL
         if ($stateId === null) {
             return ImportStepResult::success(null);
         }
-        $state = \Stav::zId($stateId);
+        $state = StavAktivity::zId($stateId);
         if ($state->jeNanejvysPripravenaKAktivaci()) {
             return ImportStepResult::success($state->id());
         }
         return ImportStepResult::successWithErrorLikeWarnings(
-            \Stav::PRIPRAVENA,
+            StavAktivity::PRIPRAVENA,
             [sprintf(
                 "Aktivovat musíš aktivity ručně. Požadovaný stav '%s' byl změněn na '%s'.",
                 $state->nazev(),
-                \Stav::zId(\Stav::PRIPRAVENA)->nazev()
+                StavAktivity::zId(StavAktivity::PRIPRAVENA)->nazev()
             )]
         );
     }
@@ -331,7 +332,7 @@ SQL
         if ($stateId === null) {
             return ImportStepResult::success(null);
         }
-        $state = \Stav::zId($stateId);
+        $state = StavAktivity::zId($stateId);
         if ($state->jePublikovana()) {
             $requiredFieldsForPublishingResult = $this->checkRequiredFieldsForPublishing($sqlMappedValues, $longAnnotation, $tagIds, $potentialImageUrls);
             if ($requiredFieldsForPublishingResult->isError()) {
@@ -347,11 +348,11 @@ SQL
             return ImportStepResult::success($state->id());
         }
         return ImportStepResult::successWithErrorLikeWarnings(
-            \Stav::PRIPRAVENA,
+            StavAktivity::PRIPRAVENA,
             [sprintf(
                 "Aktivovat musíš aktivity ručně. Požadovaný stav '%s' byl změněn na '%s'.",
                 $state->nazev(),
-                \Stav::zId(\Stav::PRIPRAVENA)->nazev()
+                StavAktivity::zId(StavAktivity::PRIPRAVENA)->nazev()
             )]
         );
     }

@@ -8,6 +8,7 @@ use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Cas\DateTimeCz;
+use Gamecon\Aktivita\StavAktivity;
 
 class ActivitiesExporter
 {
@@ -262,7 +263,7 @@ class ActivitiesExporter
 
     private function getAllActivityStatesData(): array {
         $data[] = $this->exportStavuAktivitSloupce::vsechnySloupceStavu();
-        foreach (\Stav::zVsech() as $stav) {
+        foreach (StavAktivity::zVsech() as $stav) {
             $data[] = [
                 $stav->nazev(),
             ];

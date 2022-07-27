@@ -3,13 +3,14 @@
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\TypAktivity;
 
+/** @var Modul $this */
 /** @var Url $url */
 /** @var XTemplate $t */
 /** @var Uzivatel $u */
 /** @var Uzivatel|null|void $org */
 
 $this->blackarrowStyl(true);
-$this->pridejJsSoubor('soubory/blackarrow/_spolecne/zachovej-scroll.js');
+$this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/_spolecne/zachovej-scroll.js');
 
 $typ = $this->param('typ');
 

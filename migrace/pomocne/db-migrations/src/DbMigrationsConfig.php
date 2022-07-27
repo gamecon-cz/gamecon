@@ -58,8 +58,7 @@ class DbMigrationsConfig
     public function __construct(array $params) {
         foreach ($params as $key => $value) {
             if (property_exists($this, $key)) {
-                // TODO this is a little basic implementation - test if attr
-                // is public, reject unused attributes from array etc.
+                // TODO this is a little basic implementation - test if attr is public, reject unused attributes from array etc.
                 $this->$key = $value;
             } else {
                 throw new \LogicException(sprintf("Unknown parameter '%s'", $key));
@@ -67,7 +66,10 @@ class DbMigrationsConfig
         }
 
         if ($this->doBackups && !is_writable($this->backupsDirectory)) {
-            throw new \RuntimeException('Backups are enabled but target directory is not set or not writable.');
+            throw new \RuntimeException(
+                'Backups are enabled but target directory is not set or not writable '
+                . var_export($this->backupsDirectory, true)
+            );
         }
     }
 

@@ -10,6 +10,12 @@ if (HTTPS_ONLY) {
 }
 
 // ověřit, že je posláno správné heslo
+if (!post('migraceHeslo') || !MIGRACE_HESLO) {
+    http_response_code(403);
+    die("Chyba: Neznámé heslo migrace.\n");
+}
+
+// ověřit, že je posláno správné heslo
 if (post('migraceHeslo') !== MIGRACE_HESLO) {
     http_response_code(403);
     die("Chyba: Je nutné zadat správné heslo v POST datech.\n");
