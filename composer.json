@@ -2,12 +2,6 @@
   "name": "gamecon-cz/gamecon",
   "type": "project",
   "description": "Počítačem řízené zázemí pro Největší festival nepočítačových her",
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/godric-cz/xtemplate"
-    }
-  ],
   "autoload": {
     "psr-4": {
       "Gamecon\\": "model",

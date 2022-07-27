@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d2ac62b7bf3e84f15e3289b0365f0486",
+    "content-hash": "e1aa6f4588d7184934acdfd0932a7f91",
     "packages": [
         {
             "name": "defuse/php-encryption",
@@ -178,34 +178,6 @@
             "time": "2022-07-15T16:48:45+00:00"
         },
         {
-            "name": "godric/xtemplate",
-            "version": "dev-master",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/godric-cz/xtemplate.git",
-                "reference": "bad94b1348477cce8868c54a066cbea11938f962"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/godric-cz/xtemplate/zipball/bad94b1348477cce8868c54a066cbea11938f962",
-                "reference": "bad94b1348477cce8868c54a066cbea11938f962",
-                "shasum": ""
-            },
-            "default-branch": true,
-            "type": "library",
-            "autoload": {
-                "classmap": [
-                    "src/"
-                ]
-            },
-            "description": "simple templating engine",
-            "support": {
-                "source": "https://github.com/godric-cz/xtemplate/tree/master",
-                "issues": "https://github.com/godric-cz/xtemplate/issues"
-            },
-            "time": "2020-09-28T19:28:21+00:00"
-        },
-        {
             "name": "google/apiclient",
             "version": "v2.12.6",
             "source": {
@@ -277,16 +249,16 @@
         },
         {
             "name": "google/apiclient-services",
-            "version": "v0.258.0",
+            "version": "v0.259.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/googleapis/google-api-php-client-services.git",
-                "reference": "71eb32534aba05e373fe317c1373a9645065881c"
+                "reference": "3f68a8b8f825974bc0318b8f7268a09216d5fee1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/googleapis/google-api-php-client-services/zipball/71eb32534aba05e373fe317c1373a9645065881c",
-                "reference": "71eb32534aba05e373fe317c1373a9645065881c",
+                "url": "https://api.github.com/repos/googleapis/google-api-php-client-services/zipball/3f68a8b8f825974bc0318b8f7268a09216d5fee1",
+                "reference": "3f68a8b8f825974bc0318b8f7268a09216d5fee1",
                 "shasum": ""
             },
             "require": {
@@ -315,9 +287,9 @@
             ],
             "support": {
                 "issues": "https://github.com/googleapis/google-api-php-client-services/issues",
-                "source": "https://github.com/googleapis/google-api-php-client-services/tree/v0.258.0"
+                "source": "https://github.com/googleapis/google-api-php-client-services/tree/v0.259.0"
             },
-            "time": "2022-07-18T01:10:11+00:00"
+            "time": "2022-07-24T01:26:12+00:00"
         },
         {
             "name": "google/auth",
@@ -755,16 +727,16 @@
         },
         {
             "name": "monolog/monolog",
-            "version": "2.7.0",
+            "version": "2.8.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Seldaek/monolog.git",
-                "reference": "5579edf28aee1190a798bfa5be8bc16c563bd524"
+                "reference": "720488632c590286b88b80e62aa3d3d551ad4a50"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/5579edf28aee1190a798bfa5be8bc16c563bd524",
-                "reference": "5579edf28aee1190a798bfa5be8bc16c563bd524",
+                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/720488632c590286b88b80e62aa3d3d551ad4a50",
+                "reference": "720488632c590286b88b80e62aa3d3d551ad4a50",
                 "shasum": ""
             },
             "require": {
@@ -784,11 +756,10 @@
                 "guzzlehttp/psr7": "^2.2",
                 "mongodb/mongodb": "^1.8",
                 "php-amqplib/php-amqplib": "~2.4 || ^3",
-                "php-console/php-console": "^3.1.3",
                 "phpspec/prophecy": "^1.15",
                 "phpstan/phpstan": "^0.12.91",
                 "phpunit/phpunit": "^8.5.14",
-                "predis/predis": "^1.1",
+                "predis/predis": "^1.1 || ^2.0",
                 "rollbar/rollbar": "^1.3 || ^2 || ^3",
                 "ruflin/elastica": "^7",
                 "swiftmailer/swiftmailer": "^5.3|^6.0",
@@ -808,7 +779,6 @@
                 "graylog2/gelf-php": "Allow sending log messages to a GrayLog2 server",
                 "mongodb/mongodb": "Allow sending log messages to a MongoDB server (via library)",
                 "php-amqplib/php-amqplib": "Allow sending log messages to an AMQP server using php-amqplib",
-                "php-console/php-console": "Allow sending log messages to Google Chrome",
                 "rollbar/rollbar": "Allow sending log messages to Rollbar",
                 "ruflin/elastica": "Allow sending log messages to an Elastic Search server"
             },
@@ -843,7 +813,7 @@
             ],
             "support": {
                 "issues": "https://github.com/Seldaek/monolog/issues",
-                "source": "https://github.com/Seldaek/monolog/tree/2.7.0"
+                "source": "https://github.com/Seldaek/monolog/tree/2.8.0"
             },
             "funding": [
                 {
@@ -855,7 +825,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-06-09T08:59:12+00:00"
+            "time": "2022-07-24T11:55:47+00:00"
         },
         {
             "name": "openspout/openspout",
@@ -3121,12 +3091,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "0144c1225b5e4da02cf2c27a0e2cb2705168c47c"
+                "reference": "13587f393de35e82081d102217f46284d3beb4f7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/0144c1225b5e4da02cf2c27a0e2cb2705168c47c",
-                "reference": "0144c1225b5e4da02cf2c27a0e2cb2705168c47c",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/13587f393de35e82081d102217f46284d3beb4f7",
+                "reference": "13587f393de35e82081d102217f46284d3beb4f7",
                 "shasum": ""
             },
             "conflict": {
@@ -3206,7 +3176,7 @@
                 "doctrine/orm": ">=2,<2.4.8|>=2.5,<2.5.1|>=2.8.3,<2.8.4",
                 "dolibarr/dolibarr": "<16|= 12.0.5|>= 3.3.beta1, < 13.0.2",
                 "dompdf/dompdf": "<2",
-                "drupal/core": ">=7,<7.88|>=8,<9.2.13|>=9.3,<9.3.6",
+                "drupal/core": ">=7,<7.91|>=8,<9.3.19|>=9.4,<9.4.3",
                 "drupal/drupal": ">=7,<7.80|>=8,<8.9.16|>=9,<9.1.12|>=9.2,<9.2.4",
                 "dweeves/magmi": "<=0.7.24",
                 "ecodev/newsletter": "<=4",
@@ -3288,6 +3258,7 @@
                 "in2code/femanager": "<5.5.1|>=6,<6.3.1",
                 "in2code/lux": "<17.6.1|>=18,<24.0.2",
                 "intelliants/subrion": "<=4.2.1",
+                "islandora/islandora": ">=2,<2.4.1",
                 "ivankristianto/phpwhois": "<=4.3",
                 "jackalope/jackalope-doctrine-dbal": "<1.7.4",
                 "james-heinrich/getid3": "<1.9.21",
@@ -3454,7 +3425,7 @@
                 "simplito/elliptic-php": "<1.0.6",
                 "slim/slim": "<2.6",
                 "smarty/smarty": "<3.1.45|>=4,<4.1.1",
-                "snipe/snipe-it": "<5.4.4|>= 6.0.0-RC-1, <= 6.0.0-RC-5",
+                "snipe/snipe-it": "<=6.0.2|>= 6.0.0-RC-1, <= 6.0.0-RC-5",
                 "socalnick/scn-social-auth": "<1.15.2",
                 "socialiteproviders/steam": "<1.1",
                 "spipu/html2pdf": "<5.2.4",
@@ -3545,6 +3516,7 @@
                 "wikimedia/parsoid": "<0.12.2",
                 "willdurand/js-translation-bundle": "<2.1.1",
                 "wintercms/winter": "<1.0.475|>=1.1,<1.1.9",
+                "woocommerce/woocommerce": "<6.6",
                 "wp-cli/wp-cli": "<2.5",
                 "wp-graphql/wp-graphql": "<0.3.5",
                 "wpanel/wpanel4-cms": "<=4.3.1",
@@ -3624,7 +3596,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-07-15T22:04:13+00:00"
+            "time": "2022-07-26T09:04:23+00:00"
         },
         {
             "name": "sebastian/cli-parser",
@@ -4702,7 +4674,6 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "godric/xtemplate": 20,
         "roave/security-advisories": 20
     },
     "prefer-stable": false,
@@ -4721,9 +4692,9 @@
         "ext-mbstring": "*",
         "ext-mysqli": "*",
         "ext-pdo": "*",
+        "ext-sqlite3": "*",
         "ext-xmlreader": "*",
-        "ext-zip": "*",
-        "ext-sqlite3": "*"
+        "ext-zip": "*"
     },
     "platform-dev": [],
     "plugin-api-version": "2.3.0"
