@@ -337,7 +337,7 @@ SQL;
 
     public function ucastniciPridatelniDoNeuzavrenePrezenceDo(): \DateTimeImmutable {
         return $this->konecLetosnihoGameconu()
-            ->modify($this->ucastnikyLzePridatXDniPoKonciGcDoNeuzavreneAktivity() . ' days');
+            ->modify($this->ucastnikyLzePridatXDniPoGcDoNeuzavreneAktivity() . ' days');
     }
 
     public function jsmeNaBete(): bool {
@@ -352,8 +352,8 @@ SQL;
         return (int)UCASTNIKY_LZE_PRIDAVAT_X_MINUT_PO_KONCI_AKTIVITY;
     }
 
-    public function ucastnikyLzePridatXDniPoKonciGcDoNeuzavreneAktivity(): int {
-        return (int)UCASTNIKY_LZE_PRIDAVAT_X_DNI_PO_KONCI_GC_U_NEUZAVRENE_PREZENCE;
+    public function ucastnikyLzePridatXDniPoGcDoNeuzavreneAktivity(): int {
+        return (int)UCASTNIKY_LZE_PRIDAVAT_X_DNI_PO_GC_U_NEUZAVRENE_PREZENCE;
     }
 
     public function prihlaseniNaPosledniChviliXMinutPredZacatkemAktivity(): int {
