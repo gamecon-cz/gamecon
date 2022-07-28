@@ -5,6 +5,7 @@ namespace Gamecon\Aktivita;
 use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImportSqlColumn;
+use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Exceptions\ChybaKolizeAktivit;
 use Gamecon\PrednacitaniTrait;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -2473,13 +2474,13 @@ SQL
     ): \DateTimeImmutable {
         $systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobalnich();
         if (!$this->probehnuta()) {
-            return \DateTimeImmutable::createFromMutable($systemoveNastaveni->konecLetosnihoGameconu());
+            return $systemoveNastaveni->konecLetosnihoGameconu();
         }
         // Ze zamčené aktivity mohou účastníky odebírat (odpotvrzovat) jen její vypravěči či z admin stránky Prezence
         if ($this->zamcena()
             && ($this->maOrganizatora($odhlasujici) || $odhlasujici->maPravoNaPristupDoPrezence())
         ) {
-            return \DateTimeImmutable::createFromMutable($systemoveNastaveni->konecLetosnihoGameconu());
+            return $systemoveNastaveni->konecLetosnihoGameconu();
         }
         /*
          * Nechceme dovolit editaci účastníků už uzavřených aktivit ani vypravěčům a adminům.
@@ -2495,31 +2496,32 @@ SQL
     }
 
     public function ucastniciPridatelniDo(\Uzivatel $prihlasujici, SystemoveNastaveni $systemoveNastaveni = null): \DateTimeImmutable {
+        if ($prihlasujici->maPravoNaZmenuHistorieAktivit()) {
+            // až do začátku příštího GC
+            return \DateTimeImmutable::createFromMutable(DateTimeGamecon::zacatekGameconu(ROK + 1));
+        }
+
         $systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobalnich();
         if (!$this->zamcena() && !$this->uzavrena()) {
-            return \DateTimeImmutable::createFromMutable($systemoveNastaveni->konecLetosnihoGameconu());
+            return $systemoveNastaveni->ucastniciPridatelniDoNeuzavrenePrezenceDo();
         }
-        if (!$this->maOrganizatora($prihlasujici)
-            && !$prihlasujici->maPravoNaPristupDoPrezence()
-            && !$prihlasujici->maPravoNaZmenuHistorieAktivit()
-        ) {
+
+        if (!$this->maOrganizatora($prihlasujici) && !$prihlasujici->maPravoNaPristupDoPrezence()) {
             // na zamknutou nebo dokonce uzavřenou aktivitu už mohou účastníky přidávat jen organizátoři nebo někteří admini
             return $this->dejDrivejsiZacatekNeboPredChvilkou($systemoveNastaveni);
         }
         // jak organizátoři tak admini s přístupem do Prezence mohou stále přidávat na zamčenou aktivitu
-        if ($this->zamcena()
-            || $prihlasujici->maPravoNaZmenuHistorieAktivit() // nebo kdo může editovat i dlouho zavřené
-        ) {
-            return \DateTimeImmutable::createFromMutable($systemoveNastaveni->konecLetosnihoGameconu());
+        if (!$this->uzavrena()) {
+            return $systemoveNastaveni->ucastniciPridatelniDoNeuzavrenePrezenceDo();
         }
         if (!$this->maOrganizatora($prihlasujici)) {
             // admini s přístupem do Prezence, kteří nejsou vypravěči této aktivity, nemohou přidávat účastníky do uzavřené aktivity
             return $this->dejDrivejsiZacatekNeboPredChvilkou($systemoveNastaveni);
         }
         if (!$this->konec()) {
-            return \DateTimeImmutable::createFromMutable($systemoveNastaveni->konecLetosnihoGameconu());
+            return $systemoveNastaveni->konecLetosnihoGameconu();
         }
-        // organizátoři a admini s přístupem do Prezence mohou přidávat účastníky k uzavřené aktivitě ještě několik minut po jejím konci
+        // vypravěči mohou přidávat účastníky k uzavřené aktivitě ještě několik minut po jejím konci
         return \DateTimeImmutable::createFromMutable(
             (clone $this->konec())
                 ->modify("+ {$systemoveNastaveni->ucastnikyLzePridatXMinutPoUzavreniAktivity()} minutes")
@@ -2528,7 +2530,7 @@ SQL
 
     private function dejDrivejsiZacatekNeboPredChvilkou(SystemoveNastaveni $systemoveNastaveni): \DateTimeImmutable {
         $zacatekAktivity = $this->zacatek();
-        $predChvilkou = $systemoveNastaveni->ted()->modify('-1 second');
+        $predChvilkou    = $systemoveNastaveni->ted()->modify('-1 second');
         if (!$zacatekAktivity) {
             return $predChvilkou;
         }

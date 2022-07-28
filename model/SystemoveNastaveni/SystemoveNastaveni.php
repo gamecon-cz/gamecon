@@ -67,21 +67,9 @@ class SystemoveNastaveni
         \DateTimeImmutable $ted,
         bool               $jsmeNaBete
     ) {
-        $this->rok = $rok;
-        $this->ted = $ted;
+        $this->rok        = $rok;
+        $this->ted        = $ted;
         $this->jsmeNaBete = $jsmeNaBete;
-    }
-
-    public function rok(): int {
-        return $this->rok;
-    }
-
-    public function ted(): \DateTimeImmutable {
-        return $this->ted;
-    }
-
-    public function konecLetosnihoGameconu(): DateTimeGamecon {
-        return DateTimeGamecon::konecGameconu($this->rok());
     }
 
     public function zaznamyDoKonstant() {
@@ -238,8 +226,8 @@ SQL
                 continue;
             }
             $bonusZaStandardni3hAz5hAktivitu = (int)$zaznam['hodnota'];
-            $popis = &$zaznam['popis'];
-            $popis .= '<hr><i>vypočtené bonusy</i>:<br>'
+            $popis                           = &$zaznam['popis'];
+            $popis                           .= '<hr><i>vypočtené bonusy</i>:<br>'
                 . 'BONUS_ZA_1H_AKTIVITU = ' . self::spocitejBonusVypravece('BONUS_ZA_1H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
                 . 'BONUS_ZA_2H_AKTIVITU = ' . self::spocitejBonusVypravece('BONUS_ZA_2H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
                 . '•••<br>'
@@ -298,7 +286,7 @@ SQL;
         return array_map(
             function (array &$zaznam) {
                 $zaznam['vychozi_hodnota'] = $this->dejVychoziHodnotu($zaznam['klic']);
-                $zaznam['popis'] .= '<hr><i>výchozí hodnota</i>: ' . (
+                $zaznam['popis']           .= '<hr><i>výchozí hodnota</i>: ' . (
                     $zaznam['vychozi_hodnota'] !== ''
                         ? htmlspecialchars($zaznam['vychozi_hodnota'])
                         : '<i>' . htmlspecialchars('>>>není<<<') . '</i>'
@@ -335,6 +323,23 @@ SQL;
         }
     }
 
+    public function rok(): int {
+        return $this->rok;
+    }
+
+    public function ted(): \DateTimeImmutable {
+        return $this->ted;
+    }
+
+    public function konecLetosnihoGameconu(): \DateTimeImmutable {
+        return \DateTimeImmutable::createFromMutable(DateTimeGamecon::konecGameconu($this->rok()));
+    }
+
+    public function ucastniciPridatelniDoNeuzavrenePrezenceDo(): \DateTimeImmutable {
+        return $this->konecLetosnihoGameconu()
+            ->modify($this->ucastnikyLzePridatXDniPoKonciGcDoNeuzavreneAktivity() . ' days');
+    }
+
     public function jsmeNaBete(): bool {
         return $this->jsmeNaBete;
     }
@@ -345,6 +350,10 @@ SQL;
 
     public function ucastnikyLzePridatXMinutPoUzavreniAktivity(): int {
         return (int)UCASTNIKY_LZE_PRIDAVAT_X_MINUT_PO_KONCI_AKTIVITY;
+    }
+
+    public function ucastnikyLzePridatXDniPoKonciGcDoNeuzavreneAktivity(): int {
+        return (int)UCASTNIKY_LZE_PRIDAVAT_X_DNI_PO_KONCI_GC_U_NEUZAVRENE_PREZENCE;
     }
 
     public function prihlaseniNaPosledniChviliXMinutPredZacatkemAktivity(): int {
