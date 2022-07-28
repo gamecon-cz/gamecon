@@ -15,7 +15,7 @@ class OnlinePrezenceHtml
         return implode(' – ', array_filter([$aktivita->nazev(), $aktivita->orgJmena(), $aktivita->lokace()]));
     }
 
-    /** @var \XTemplate */
+    /** @var XTemplate */
     private $onlinePrezenceTemplate;
     /** @var string */
     private $jsVyjimkovac;
@@ -188,7 +188,7 @@ class OnlinePrezenceHtml
             // Uzavřít 📕
             $template->assign(
                 'showUzavrit',
-                false // TODO fix a revert $this->cssZobrazitKdyz($neuzavrena && !$nejdouAlePujdouPridat)
+                $this->cssZobrazitKdyz(false /* TODO fix and revert $neuzavrena && !$nejdouAlePujdouPridat*/)
             );
             // 🧊 ️Už ji nelze editovat ani zpětně 🧊️
             $template->assign(
