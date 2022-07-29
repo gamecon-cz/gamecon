@@ -4,12 +4,12 @@
 
 $this->q(<<<SQL
 UPDATE akce_stav
-SET nazev = 'uzavřená' WHERE id_stav = 2
+SET nazev = 'zamčená' WHERE id_stav = 6
 SQL
 );
 
 $this->q(<<<SQL
 UPDATE akce_stav
-SET nazev = 'zamčená' WHERE id_stav = 6
+SET nazev = 'uzavřená' WHERE id_stav = 2
 SQL
 );
