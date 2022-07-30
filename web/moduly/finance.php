@@ -75,9 +75,6 @@ if (!$zaplaceno) {
                 <strong>Variabilní symbol:</strong> <?= $uid ?><br>
                 <strong>Částka k zaplacení:</strong> <?= $castka ?>
             </div>
-            <div style="float: right">
-                <img src="<?= $u->finance()->dejQrKodProPlatbu()->getDataUri() ?>" alt="qrPlatba">
-            </div>
         <?php } else { ?>
             <h2 id="placeni">Platba (SEPA)</h2>
             <div style="float: left">
@@ -86,11 +83,11 @@ if (!$zaplaceno) {
                 <strong>Poznámka pro příjemce:</strong> /VS/<?= $uid ?> <i>(vč. lomítek)</i><br>
                 <strong>Částka k zaplacení:</strong> <?= $castka ?>
             </div>
-            <div style="float: right">
-                <img src="<?= $u->finance()->dejQrKodProPlatbu()->getDataUri() ?>" alt="qrPlatba">
-            </div>
-            <div style="clear: both"
         <?php } ?>
+        <div style="text-align: center">
+            <img src="<?= $u->finance()->dejQrKodProPlatbu()->getDataUri() ?>" alt="qrPlatba">
+        </div>
+        <div style="clear: both"></div>
 
         <?php if (pred(HROMADNE_ODHLASOVANI)) { ?>
             <?php if ($u->stat() === \Gamecon\Stat::CZ) { ?>
