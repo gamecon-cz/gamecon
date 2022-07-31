@@ -37,10 +37,11 @@ class FunkceTest extends TestCase
     }
 
     public function provideVicerozmernePole(): array {
+        $jenorozmernePole = ['něco', 1, null];
         return [
-            'prázdné pole' => [[], []],
+            'prázdné pole'                 => [[], []],
             'prázdný ArrayIterator object' => [new \ArrayIterator(), []],
-            'jednorozměrné pole' => [$jenorozmernePole = ['něco', 1, null], $jenorozmernePole],
+            'jednorozměrné pole'           => [$jenorozmernePole, $jenorozmernePole],
             'jednorozměrný ArrayIterator object' => [new \ArrayIterator($jenorozmernePole), $jenorozmernePole],
             'vícerozměrné pole' => [
                 ['něco', 1, null, ['dále' => [1, $datum = new \DateTime()], 'ještě dále' => [false]]],

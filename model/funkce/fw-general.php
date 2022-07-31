@@ -269,12 +269,13 @@ function tabMysqlR($a, string $title = ''): string {
 }
 
 /**
- * @param array|Iterator $mutliDimensionalArray
+ * @param Iterator|array $multiDimensionalArray
  * @return array
  */
-function flatten($mutliDimensionalArray): array {
-    $flattened = [];
-    array_walk_recursive($mutliDimensionalArray, function ($array) use (&$flattened) {
+function flatten(Iterator|array $multiDimensionalArray): array {
+    $flattened             = [];
+    $multiDimensionalArray = (array)$multiDimensionalArray;
+    array_walk_recursive($multiDimensionalArray, function ($array) use (&$flattened) {
         $flattened[] = $array;
     });
     return $flattened;
