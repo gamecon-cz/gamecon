@@ -11,7 +11,7 @@ use Gamecon\Shop\Shop;
 class Statistiky
 {
     public const ZAROVNANI_K_ZACATKU_REGISTRACI = 'zacatekRegistaci';
-    public const ZAROVNANI_KE_KONCI_GC = 'konecGc';
+    public const ZAROVNANI_KE_KONCI_GC          = 'konecGc';
 
     /**
      * @var int[]
@@ -177,8 +177,8 @@ SELECT Název, Počet FROM (
 ) AS seskupeno
 ORDER BY ubytovani_sort_nazev, ubytovani_den
 SQL, [
-            $this->letosniRok,
-            Shop::UBYTOVANI,
+            0 => $this->letosniRok,
+            1 => Shop::UBYTOVANI,
         ]), 'Ubytování dny a místa');
     }
 
@@ -214,9 +214,9 @@ UNION ALL
 ORDER BY ubytovani_den
 ) AS serazeno
 SQL, [
-            $this->letosniRok,
-            Shop::UBYTOVANI,
-            Zidle::prihlasenNaGcRoku($this->letosniRok),
+            0 => $this->letosniRok,
+            1 => Shop::UBYTOVANI,
+            2 => Zidle::prihlasenNaGcRoku($this->letosniRok),
         ]), 'Ubytování dny');
     }
 
@@ -550,7 +550,9 @@ WHERE shop_predmety.typ = $0
 GROUP BY shop_nakupy.rok
 ORDER BY shop_nakupy.rok
 SQL,
-            [Shop::UBYTOVANI]
+            [
+                0 => Shop::UBYTOVANI,
+            ]
         ), 'Ubytování');
     }
 }

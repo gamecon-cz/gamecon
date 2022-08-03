@@ -8,13 +8,13 @@ namespace Gamecon\Aktivita;
  */
 class StavAktivity extends \DbObject
 {
-    public const NOVA = 0; // v přípravě
-    public const AKTIVOVANA = 1;
-    public const UZAVRENA = 2;
-    public const SYSTEMOVA = 3; // deprecated
+    public const NOVA        = 0; // v přípravě
+    public const AKTIVOVANA  = 1;
+    public const UZAVRENA    = 2;
     public const PUBLIKOVANA = 4; // viditelná, nepřihlašovatelá
-    public const PRIPRAVENA = 5;
-    public const ZAMCENA = 6;
+    public const PRIPRAVENA  = 5;
+    public const ZAMCENA     = 6;
+    public const SYSTEMOVA   = 3;
 
     public static function jeZnamy(int $stav): bool {
         return in_array($stav, self::vsechnyStavy(), true);
@@ -43,14 +43,14 @@ class StavAktivity extends \DbObject
                 return 'aktivovaná';
             case self::UZAVRENA :
                 return 'uzavřená';
-            case self::SYSTEMOVA :
-                return 'systémová';
             case self::PUBLIKOVANA :
                 return 'publikovaná';
             case self::PRIPRAVENA :
                 return 'připravená';
             case self::ZAMCENA :
                 return 'zamčená';
+            case self::SYSTEMOVA :
+                return 'systémová';
             default :
                 throw new \LogicException('Neznámý stav aktivity: ' . $stav);
         }

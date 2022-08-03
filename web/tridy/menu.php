@@ -23,7 +23,7 @@ class Menu
 
     public function __construct(Uzivatel $u = null, Url $url = null) {
         // personalizace seznamu stránek
-        $a = $u ? $u->koncA() : '';
+        $a = $u ? $u->koncovkaDlePohlavi() : '';
         if (po(REG_GC_OD)) {
             $this->stranky['prihlaska'] .= $u && $u->gcPrihlasen() ?
                 '<img src="soubory/styl/ok.png" style="margin-bottom:-3px"> přihlášen' . $a . ' na GC' :
