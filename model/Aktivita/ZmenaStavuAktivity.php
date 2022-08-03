@@ -4,12 +4,12 @@ namespace Gamecon\Aktivita;
 
 class ZmenaStavuAktivity
 {
-    private const AKTIVOVANA_JS = 'aktivovana';
-    private const UZAVRENA_JS = 'uzavrena';
-    private const SYSTEMOVA_JS = 'systemova';
+    private const AKTIVOVANA_JS  = 'aktivovana';
+    private const UZAVRENA_JS    = 'uzavrena';
+    private const SYSTEMOVA_JS   = 'systemova';
     private const PUBLIKOVANA_JS = 'publikovana';
-    private const PRIPRAVENA_JS = 'pripravena';
-    private const ZAMCENA_JS = 'zamcena';
+    private const PRIPRAVENA_JS  = 'pripravena';
+    private const ZAMCENA_JS     = 'zamcena';
 
     public static function vytvorZDatDatabaze(
         int                $idAktivity,
@@ -33,9 +33,9 @@ class ZmenaStavuAktivity
         if ($stavAktivity && !StavAktivity::jeZnamy($stavAktivity)) {
             throw new \LogicException('Neznamy stav prihlaseni ' . var_export($stavAktivity, true));
         }
-        $this->idAktivity = $idAktivity;
-        $this->idLogu = $idLogu;
-        $this->casZmeny = $casZmeny;
+        $this->idAktivity   = $idAktivity;
+        $this->idLogu       = $idLogu;
+        $this->casZmeny     = $casZmeny;
         $this->stavAktivity = $stavAktivity;
     }
 
@@ -70,14 +70,14 @@ class ZmenaStavuAktivity
                 return self::AKTIVOVANA_JS;
             case StavAktivity::UZAVRENA :
                 return self::UZAVRENA_JS;
-            case StavAktivity::SYSTEMOVA :
-                return self::SYSTEMOVA_JS;
             case StavAktivity::PUBLIKOVANA :
                 return self::PUBLIKOVANA_JS;
             case StavAktivity::PRIPRAVENA :
                 return self::PRIPRAVENA_JS;
             case StavAktivity::ZAMCENA :
                 return self::ZAMCENA_JS;
+            case StavAktivity::SYSTEMOVA :
+                return self::SYSTEMOVA_JS;
             default :
                 return null; // nějaký pro JS nezajímavý stav
         }

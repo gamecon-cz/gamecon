@@ -22,15 +22,15 @@ LEFT JOIN (
     FROM akce_seznam xa
     JOIN akce_prihlaseni xap ON xap.id_akce = xa.id_akce
     WHERE
-        xa.typ = 9 AND
-        xa.rok = $1 AND
+        xa.rok = $0 AND
+        xa.typ = $1 AND
         xa.nazev_akce LIKE '%semifinále%'
 ) semifinale ON semifinale.id_uzivatele = uzivatele_hodnoty.id_uzivatele
 WHERE
-    akce_seznam.typ = 9 AND
-    akce_seznam.rok = $1 AND
+    akce_seznam.rok = $0 AND
+    akce_seznam.typ = $1 AND
     akce_seznam.cena > 0 -- detekce základního kola
 SQL
-  , [ROK]
+    , [0 => ROK, 1 => \Gamecon\Aktivita\TypAktivity::DRD]
 );
 $report->tFormat(get('format'));

@@ -108,10 +108,18 @@ class Cenik
      * @return float cena věci v e-shopu pro daného uživatele
      */
     function shop($r): float {
-        if (isset($r['cena_aktualni'])) $cena = $r['cena_aktualni'];
-        if (isset($r['cena_nakupni'])) $cena = $r['cena_nakupni'];
-        if (!isset($cena)) throw new Exception('Nelze načíst cenu předmětu');
-        if (!($typ = $r['typ'])) throw new Exception('Nenačten typ předmetu');
+        if (isset($r['cena_aktualni'])) {
+            $cena = $r['cena_aktualni'];
+        }
+        if (isset($r['cena_nakupni'])) {
+            $cena = $r['cena_nakupni'];
+        }
+        if (!isset($cena)) {
+            throw new Exception('Nelze načíst cenu předmětu');
+        }
+        if (!($typ = $r['typ'])) {
+            throw new Exception('Nenačten typ předmetu');
+        }
 
         // aplikace možných slev
         if ($typ == Shop::PREDMET) {
