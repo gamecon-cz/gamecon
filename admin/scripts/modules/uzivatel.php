@@ -117,7 +117,7 @@ if ($uPracovni) {
         'mesto_uzivatele' => 'Město',
         'psc_uzivatele' => 'PSČ',
         'telefon_uzivatele' => 'Telefon',
-        'datum_narozeni' => 'Narozen' . $uPracovni->koncA(),
+        'datum_narozeni' => 'Narozen' . $uPracovni->koncovkaDlePohlavi(),
         'email1_uzivatele' => 'E-mail',
         // 'op'                    =>          'Číslo OP',
     ];

@@ -13,21 +13,21 @@ use Gamecon\XTemplate\XTemplate;
 class Shop
 {
     // TYPY PŘEDMĚTŮ
-    public const PREDMET = TypPredmetu::PREDMET;
-    public const UBYTOVANI = TypPredmetu::UBYTOVANI;
-    public const TRICKO = TypPredmetu::TRICKO;
-    public const JIDLO = TypPredmetu::JIDLO;
-    public const VSTUPNE = TypPredmetu::VSTUPNE;
-    public const PARCON = TypPredmetu::PARCON;
+    public const PREDMET           = TypPredmetu::PREDMET;
+    public const UBYTOVANI         = TypPredmetu::UBYTOVANI;
+    public const TRICKO            = TypPredmetu::TRICKO;
+    public const JIDLO             = TypPredmetu::JIDLO;
+    public const VSTUPNE           = TypPredmetu::VSTUPNE;
+    public const PARCON            = TypPredmetu::PARCON;
     public const PROPLACENI_BONUSU = TypPredmetu::PROPLACENI_BONUSU;
 
     // STAVY PŘEDMĚTŮ
-    public const MIMO = 0;
-    public const VEREJNY = 1;
-    public const PODPULTOVY = 2;
+    public const MIMO        = 0;
+    public const VEREJNY     = 1;
+    public const PODPULTOVY  = 2;
     public const POZASTAVENY = 3;
 
-    public const PN_JIDLO = 'cShopJidlo';          // post proměnná pro jídlo
+    public const PN_JIDLO      = 'cShopJidlo';          // post proměnná pro jídlo
     public const PN_JIDLO_ZMEN = 'cShopJidloZmen'; // post proměnná indikující, že se má jídlo aktualizovat
 
     private static $skoly = [
@@ -74,10 +74,10 @@ class Shop
         dbQuery(<<<SQL
 DELETE sn
 FROM shop_nakupy sn
-JOIN shop_predmety sp ON sp.id_predmetu = sn.id_predmetu AND sp.typ = $1
-WHERE sn.id_uzivatele IN ($2) AND sn.rok = $3
+JOIN shop_predmety sp ON sp.id_predmetu = sn.id_predmetu AND sp.typ = $0
+WHERE sn.id_uzivatele IN ($1) AND sn.rok = $2
 SQL,
-            [$typ, $ids, ROK]
+            [0 => $typ, 1 => $ids, 2 => ROK]
         );
     }
 
@@ -115,9 +115,9 @@ FROM (
 ) AS seskupeno
 ORDER BY typ, IF(typ = $1, LEFT(TRIM(nazev), LOCATE(' ',nazev) - 1), nazev), ubytovani_den
 SQL,
-            [$rok, TypPredmetu::UBYTOVANI]
+            [0 => $rok, 1 => TypPredmetu::UBYTOVANI]
         );
-        $polozky = [];
+        $polozky     = [];
         foreach ($polozkyData as $polozkaData) {
             $polozky[] = new Polozka($polozkaData);
         }
@@ -131,7 +131,7 @@ SQL,
     private $cenik;                     // instance ceníku
     private $nastaveni = [              // případné spec. chování shopu
         'ubytovaniBezZamku' => false,   // ignorovat pozastavení objednávek u ubytování
-        'jidloBezZamku' => false,       // ignorovat pozastavení objednávek u jídla
+        'jidloBezZamku'     => false,       // ignorovat pozastavení objednávek u jídla
     ];
     public $ubytovani = [];
     private $tricka = [];
@@ -151,9 +151,9 @@ SQL,
     private $klicS = 'shopS';           // klíč formu pro identifikaci polí se slevami
 
     public function __construct(Uzivatel $u, array $nastaveni = null, SystemoveNastaveni $systemoveNastaveni) {
-        $this->u = $u;
+        $this->u                  = $u;
         $this->systemoveNastaveni = $systemoveNastaveni;
-        $this->cenik = new Cenik($u, $u->finance()->bonusZaVedeniAktivit());
+        $this->cenik              = new Cenik($u, $u->finance()->bonusZaVedeniAktivit());
         if (is_array($nastaveni)) {
             $this->nastaveni = array_replace($this->nastaveni, $nastaveni);
         }
@@ -178,7 +178,7 @@ SQL
             , [self::MIMO, ROK, $this->u->id()]);
 
         //inicializace
-        $this->jidlo['dny'] = [];
+        $this->jidlo['dny']   = [];
         $this->jidlo['druhy'] = [];
 
         while ($r = mysqli_fetch_assoc($o)) {
@@ -195,7 +195,7 @@ SQL
             if ($typ == self::PREDMET) {
                 $fronta = &$this->predmety[];
             } elseif ($typ == self::JIDLO) {
-                $den = $r['ubytovani_den'];
+                $den  = $r['ubytovani_den'];
                 $druh = self::bezDne($r['nazev']);
                 if (!empty($this->jidlo['jidla'][$den][$druh]['kusu_uzivatele'])) {
                     /*
@@ -214,22 +214,22 @@ SQL
                 }
                 if ($r['kusu_uzivatele'] || $r['nabizet']) {
                     //zobrazení jen dnů / druhů, které mají smysl
-                    $this->jidlo['dny'][$den] = true;
+                    $this->jidlo['dny'][$den]    = true;
                     $this->jidlo['druhy'][$druh] = true;
                 }
                 $fronta = &$this->jidlo['jidla'][$den][$druh];
             } elseif ($typ == self::UBYTOVANI) {
                 $r['nabizet'] = $r['nabizet'] || ($r['stav'] == self::POZASTAVENY && $this->nastaveni['ubytovaniBezZamku']);
-                $fronta = &$this->ubytovani[];
+                $fronta       = &$this->ubytovani[];
             } elseif ($typ == self::TRICKO) {
-                $smiModre = $this->u->maPravo(P_TRICKO_MODRA_BARVA);
-                $smiCervene = $this->u->maPravo(P_TRICKO_CERVENA_BARVA);
+                $smiModre     = $this->u->maPravo(P_TRICKO_MODRA_BARVA);
+                $smiCervene   = $this->u->maPravo(P_TRICKO_CERVENA_BARVA);
                 $r['nabizet'] = (
                     $r['nabizet']
                     || ($r['stav'] == self::PODPULTOVY && mb_stripos($r['nazev'], 'modré') !== false && $smiModre)
                     || ($r['stav'] == self::PODPULTOVY && mb_stripos($r['nazev'], 'červené') !== false && $smiCervene)
                 );
-                $fronta = &$this->tricka[];
+                $fronta       = &$this->tricka[];
                 if (AUTOMATICKY_VYBER_TRICKA) {
                     // hack pro výběr správného automaticky objednaného trička
                     if ($smiCervene) {
@@ -252,7 +252,7 @@ SQL
                 }
             } elseif ($typ == self::VSTUPNE) {
                 if (strpos($r['nazev'], 'pozdě') === false) {
-                    $this->vstupne = $r;
+                    $this->vstupne       = $r;
                     $this->vstupneJeVcas = $r['stav'] == self::PODPULTOVY;
                 } else {
                     $this->vstupnePozde = $r;
@@ -289,9 +289,9 @@ SQL
     public function jidloHtml(bool $muzeEditovatUkoncenyProdej = false) {
         // inicializace
         ksort($this->jidlo['druhy']);
-        $dny = $this->jidlo['dny'];
-        $druhy = $this->jidlo['druhy'];
-        $jidla = $this->jidlo['jidla'];
+        $dny                = $this->jidlo['dny'];
+        $druhy              = $this->jidlo['druhy'];
+        $jidla              = $this->jidlo['jidla'];
         $prodejJidlaUkoncen = !$muzeEditovatUkoncenyProdej && $this->systemoveNastaveni->prodejJidlaUkoncen();
         // vykreslení
         $t = new XTemplate(__DIR__ . '/templates/shop-jidlo.xtpl');
@@ -350,7 +350,7 @@ SQL
         // inicializace
         $druhy = $this->jidlo['druhy'];
         ksort($druhy);
-        $dny = $this->jidlo['dny'];
+        $dny   = $this->jidlo['dny'];
         $jidla = $this->jidlo['jidla'];
 
         // vykreslení
@@ -426,10 +426,10 @@ SQL
 
         foreach ($this->predmety as $predmet) {
             $t->assign([
-                'nazev' => $predmet['nazev'],
-                'cena' => round($predmet['cena_aktualni']) . '&thinsp;Kč',
+                'nazev'          => $predmet['nazev'],
+                'cena'           => round($predmet['cena_aktualni']) . '&thinsp;Kč',
                 'kusu_uzivatele' => $predmet['kusu_uzivatele'],
-                'postName' => $this->klicP . '[' . $predmet['id_predmetu'] . ']',
+                'postName'       => $this->klicP . '[' . $predmet['id_predmetu'] . ']',
             ]);
 
             if ($predmet['nabizet'] && !$predmetyZamceny) {
@@ -457,21 +457,21 @@ SQL
             }
         }
 
-        $selecty = $koupenaTricka;
+        $selecty   = $koupenaTricka;
         $selecty[] = 0;
 
         foreach ($selecty as $i => $pid) {
             $t->assign([
                 'postName' => $this->klicT . '[' . $i . ']',
-                'cena' => round($this->cenaTricka()) . '&thinsp;Kč',
-                'rok' => ROK,
+                'cena'     => round($this->cenaTricka()) . '&thinsp;Kč',
+                'rok'      => ROK,
             ]);
 
             // nagenerovat výběr triček
             if (!$trickaZamcena || $pid == 0) {
                 $t->assign([
                     'id_predmetu' => 0,
-                    'nazev' => '(žádné tričko)',
+                    'nazev'       => '(žádné tričko)',
                 ]);
                 $t->parse('predmety.tricko.moznost');
             }
@@ -486,8 +486,8 @@ SQL
 
                 $t->assign([
                     'id_predmetu' => $tricko['id_predmetu'],
-                    'nazev' => ($trickaZamcena ? '&#128274;' : '') . $tricko['nazev'],
-                    'selected' => $koupene ? 'selected' : '',
+                    'nazev'       => ($trickaZamcena ? '&#128274;' : '') . $tricko['nazev'],
+                    'selected'    => $koupene ? 'selected' : '',
                 ]);
                 $t->parse('predmety.tricko.moznost');
             }
@@ -516,7 +516,7 @@ SQL
                 continue;
             }
             $t->assign([
-                'nazev' => $predmet['nazev'],
+                'nazev'          => $predmet['nazev'],
                 'kusu_uzivatele' => $predmet['kusu_uzivatele'],
             ]);
             $t->parse('predmety.predmet');
@@ -527,7 +527,7 @@ SQL
                 continue;
             }
             $t->assign([
-                'nazev' => $tricko['nazev'],
+                'nazev'          => $tricko['nazev'],
                 'kusu_uzivatele' => $tricko['kusu_uzivatele'],
             ]);
             $t->parse('predmety.predmet');
@@ -562,11 +562,11 @@ SQL
         $t = new XTemplate(__DIR__ . '/templates/shop-vstupne.xtpl');
         $t->assign([
             'jsSlider' => URL_WEBU . '/soubory/blackarrow/shop/shop-vstupne.js',
-            'stav' => $this->u->gcPrihlasen()
+            'stav'     => $this->u->gcPrihlasen()
                 ? $this->vstupne['sum_cena_nakupni'] + $this->vstupnePozde['sum_cena_nakupni']
                 : VYCHOZI_DOBROVOLNE_VSTUPNE, // výchozí hodnota
             'postname' => $this->klicV,
-            'min' => 0,
+            'min'      => 0,
             'smajliky' => json_encode([
                 [1000, URL_WEBU . '/soubory/blackarrow/shop/vstupne-smajliky/6.png'],
                 [600, URL_WEBU . '/soubory/blackarrow/shop/vstupne-smajliky/5.png'],
@@ -586,12 +586,12 @@ SQL
      * nákupy jednoho ID)
      */
     private function zmenObjednavku($stare, $nove) {
-        $nechce = array_diff($stare, $nove);
+        $nechce   = array_diff($stare, $nove);
         $chceNove = array_diff($nove, $stare);
         // přírustky
         $values = '';
         foreach ($chceNove as $n) {
-            $sel = 'SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu = ' . $n;
+            $sel    = 'SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu = ' . $n;
             $values .= "\n" . '(' . $this->u->id() . ',' . $n . ',' . ROK . ',(' . $sel . '),NOW()),';
         }
         if ($values) {
@@ -625,13 +625,13 @@ SQL
             sort($nove);
             // pole s předměty, které už má objednané dříve (bez ubytování)
             $stare = [];
-            $o = dbQuery('SELECT id_predmetu FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE id_uzivatele=' . $this->u->id() . ' AND rok=' . ROK . ' AND typ IN(' . self::PREDMET . ',' . self::TRICKO . ') ORDER BY id_predmetu');
+            $o     = dbQuery('SELECT id_predmetu FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE id_uzivatele=' . $this->u->id() . ' AND rok=' . ROK . ' AND typ IN(' . self::PREDMET . ',' . self::TRICKO . ') ORDER BY id_predmetu');
             while ($r = mysqli_fetch_assoc($o))
                 $stare[] = (int)$r['id_predmetu'];
             // určení rozdílů polí (note: array_diff ignoruje vícenásobné výskyty hodnot a nedá se použít)
-            $i = $j = 0;
+            $i         = $j = 0;
             $odstranit = []; //čísla (kvůli nutností více delete dotazů s limitem)
-            $pridat = ''; //část sql dotazu
+            $pridat    = ''; //část sql dotazu
             while (!empty($nove[$i]) || !empty($stare[$j]))
                 if (empty($stare[$j]) || (!empty($nove[$i]) && $nove[$i] < $stare[$j]))
                     // tento prvek není v staré objednávce
@@ -658,8 +658,8 @@ SQL
 
     public function zrusNakupPredmetu($idPredmetu, int $pocet): int {
         $idPredmetu = (int)$idPredmetu;
-        $rok = ROK;
-        $query = <<<SQL
+        $rok        = ROK;
+        $query      = <<<SQL
             DELETE FROM shop_nakupy
             WHERE id_uzivatele={$this->u->id()}
             AND id_predmetu = $idPredmetu
@@ -692,7 +692,7 @@ SQL
             return;
         }
         // rušíme rozdělení zadané částky na "včas" a "pozdě", vše bude včas
-        $vstupneVcas = $castka;
+        $vstupneVcas  = $castka;
         $vstupnePozde = 0;
         // funkce pro provedení změn
         $zmeny = function ($radek, $cena) {
@@ -700,16 +700,16 @@ SQL
                 dbInsert('shop_nakupy', [
                     'cena_nakupni' => $cena,
                     'id_uzivatele' => $this->u->id(),
-                    'id_predmetu' => $radek['id_predmetu'],
-                    'rok' => ROK,
+                    'id_predmetu'  => $radek['id_predmetu'],
+                    'rok'          => ROK,
                 ]);
             } else {
                 dbUpdate('shop_nakupy', [
                     'cena_nakupni' => $cena,
                 ], [
                     'id_uzivatele' => $this->u->id(),
-                    'id_predmetu' => $radek['id_predmetu'],
-                    'rok' => ROK,
+                    'id_predmetu'  => $radek['id_predmetu'],
+                    'rok'          => ROK,
                 ]);
             }
         };
@@ -727,7 +727,7 @@ SQL
         if (!isset($_POST[self::PN_JIDLO_ZMEN])) {
             return;
         }
-        $ma = array_keys($this->jidlo['jidloObednano'] ?? []);
+        $ma   = array_keys($this->jidlo['jidloObednano'] ?? []);
         $chce = array_keys(post(self::PN_JIDLO) ?: []);
         $this->zmenObjednavku($ma, $chce);
     }

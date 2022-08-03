@@ -16,6 +16,7 @@ SELECT
     p.id_uzivatele AS "ID uživatele",
     COUNT(*) AS "Počet aktivit",
     COUNT(IF(a.typ = $0, 1, NULL)) AS "Systémové",
+    COUNT(IF(a.typ = $9, 1, NULL)) AS "Brigádnické",
     COUNT(IF(a.typ = $1, 1, NULL)) AS "Deskovkové turnaje",
     COUNT(IF(a.typ = $2, 1, NULL)) AS "Larpy",
     COUNT(IF(a.typ = $3, 1, NULL)) AS "Přednášky",
@@ -30,7 +31,8 @@ WHERE a.rok=$rok
 GROUP BY p.id_uzivatele
 SQL,
     [
-        0 => TypAktivity::SYSTEMOVE,
+        0 => TypAktivity::SYSTEMOVA,
+        9 => TypAktivity::BRIGADNICKA,
         1 => TypAktivity::TURNAJ_V_DESKOVKACH,
         2 => TypAktivity::LARP,
         3 => TypAktivity::PREDNASKA,
@@ -44,10 +46,10 @@ SQL,
 
 $data = [];
 while ($row = mysqli_fetch_assoc($result)) {
-    $row['Σ cena'] = Uzivatel::zId($row['ID uživatele'])->finance()->cenaAktivit();
-    $div = sprintf('%.3f', aktivityDiverzifikace(array_slice($row, 2, 8)));
+    $row['Σ cena']        = Uzivatel::zId($row['ID uživatele'])->finance()->cenaAktivit();
+    $div                  = sprintf('%.3f', aktivityDiverzifikace(array_slice($row, 2, 8)));
     $row['Diverzifikace'] = $div;
-    $data[] = $row;
+    $data[]               = $row;
 }
 
 Report::zPole($data)->tFormat(get('format'));

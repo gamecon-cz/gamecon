@@ -4,12 +4,12 @@ namespace Gamecon\Aktivita;
 
 class StavPrihlaseni
 {
-    public const PRIHLASEN = 0;
-    public const PRIHLASEN_A_DORAZIL = 1;
-    public const DORAZIL_JAKO_NAHRADNIK = 2;
+    public const PRIHLASEN               = 0;
+    public const PRIHLASEN_A_DORAZIL     = 1;
+    public const DORAZIL_JAKO_NAHRADNIK  = 2;
     public const PRIHLASEN_ALE_NEDORAZIL = 3;
-    public const POZDE_ZRUSIL = 4;
-    public const SLEDUJICI = 5;
+    public const POZDE_ZRUSIL            = 4;
+    public const SLEDUJICI               = 5;
 
     public static function dorazilJakoCokoliv(int $stavPrihlaseni): bool {
         switch ($stavPrihlaseni) {
