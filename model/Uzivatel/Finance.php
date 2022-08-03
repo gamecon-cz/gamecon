@@ -34,6 +34,7 @@ class Finance
         $slevyA = [],    // pole s textovými popisy slev uživatele na aktivity
         $slevyO = [],    // pole s textovými popisy obecných slev
         $proplacenyBonusZaVedeniAktivit = 0, // "sleva" za aktivity, nebo-li bonus vypravěče, nebo-li odměna za vedení hry, převedená na peníze
+        $brigadnickaOdmena = 0.0,  // výplata zaměstnance (který nechce bonus/kredit na útratu, ale tvrdou měnu za tvrdou práci)
         // součásti výsledné ceny
         $cenaAktivity = 0.0,  // cena aktivit
         $cenaUbytovani = 0.0,  // cena objednaného ubytování
@@ -64,20 +65,19 @@ class Finance
         13 => BONUS_ZA_12H_AZ_13H_AKTIVITU,
     ];
 
-    const
-        // idčka typů, podle kterých se řadí výstupní tabulka $prehled
-        AKTIVITA = -1,
-        PREDMETY_STRAVA = 1,
-        UBYTOVANI = 2,
-        // mezera na typy předmětů (1-4? viz db)
-        ORGSLEVA = 10,
-        PRIPSANE_SLEVY = 11,
-        VSTUPNE = 12,
-        CELKOVA = 13,
-        PLATBY_NADPIS = 14,
-        ZUSTATEK_Z_PREDCHOZICH_LET = 15,
-        PLATBA = 16,
-        VYSLEDNY = 17;
+    // idčka typů, podle kterých se řadí výstupní tabulka $prehled
+    public const AKTIVITA        = -1;
+    public const PREDMETY_STRAVA = 1;
+    public const UBYTOVANI       = 2;
+    // mezera na typy předmětů (1-4? viz db)
+    public const ORGSLEVA                   = 10;
+    public const PRIPSANE_SLEVY             = 11;
+    public const VSTUPNE                    = 12;
+    public const CELKOVA                    = 13;
+    public const PLATBY_NADPIS              = 14;
+    public const ZUSTATEK_Z_PREDCHOZICH_LET = 15;
+    public const PLATBA                     = 16;
+    public const VYSLEDNY                   = 17;
 
     /**
      * @param \Uzivatel $u uživatel, pro kterého se finance sestavují
@@ -459,40 +459,48 @@ class Finance
      * Započítá do mezisoučtů aktivity uživatele
      */
     private function zapoctiAktivity() {
-        $scn         = $this->soucinitelAktivit();
-        $rok         = ROK;
-        $uid         = $this->u->id();
-        $technicka   = TypAktivity::TECHNICKA;
-        $nedorazil   = StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL;
-        $pozdeZrusil = StavPrihlaseni::POZDE_ZRUSIL;
+        $soucinitelAktivit     = $this->soucinitelAktivit();
+        $rok                   = ROK;
+        $idUcastnika           = $this->u->id();
+        $technicka             = TypAktivity::TECHNICKA; // výpomoc, jejíž cena se započítá jako bonus vypravěče, který může použít na nákup na GC
+        $brigadnicka           = TypAktivity::BRIGADNICKA; // placený "zaměstnanec"
+        $prihlasenAleNedorazil = StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL;
+        $pozdeZrusil           = StavPrihlaseni::POZDE_ZRUSIL;
 
-        $o = dbQuery("
-      SELECT
-        a.nazev_akce AS nazev,
-        a.cena *
-          (st.platba_procent/100) *
-          IF(a.bez_slevy OR a.typ=$technicka, 1.0, $scn) *
-          IF(a.typ = $technicka AND p.id_stavu_prihlaseni IN($nedorazil,$pozdeZrusil), 0.0, 1.0) *    -- zrušit 'storno' pro pozdě odhlášené tech. aktivity
-          IF(a.typ=$technicka,-1.0,1.0) as cena,
-        st.id_stavu_prihlaseni
-      FROM (
-        SELECT * FROM akce_prihlaseni WHERE id_uzivatele = $uid
-        UNION
-        SELECT * FROM akce_prihlaseni_spec WHERE id_uzivatele = $uid
-      ) p
-      JOIN akce_seznam a USING(id_akce)
-      JOIN akce_prihlaseni_stavy st USING(id_stavu_prihlaseni)
-      WHERE rok = $rok
-    ");
+        $o = dbQuery(<<<SQL
+SELECT
+    aktivita.nazev_akce AS nazev,
+    (
+        aktivita.cena
+        * (stav.platba_procent/100)
+        * IF(aktivita.bez_slevy OR aktivita.typ IN ($technicka, $brigadnicka), 1.0, $soucinitelAktivit)
+        * IF(aktivita.typ IN ($technicka, $brigadnicka) AND prihlaseni.id_stavu_prihlaseni IN ($prihlasenAleNedorazil, $pozdeZrusil), 0.0, 1.0) -- zrušit 'storno' pro pozdě odhlášené technické a brigádnické aktivity
+     ) AS cena,
+    aktivita.typ,
+    stav.id_stavu_prihlaseni
+FROM (
+    SELECT * FROM akce_prihlaseni WHERE id_uzivatele = $idUcastnika
+    UNION
+    SELECT * FROM akce_prihlaseni_spec WHERE id_uzivatele = $idUcastnika
+) AS prihlaseni
+JOIN akce_seznam AS aktivita
+    ON prihlaseni.id_akce = aktivita.id_akce
+JOIN akce_prihlaseni_stavy AS stav
+    ON prihlaseni.id_stavu_prihlaseni = stav.id_stavu_prihlaseni
+WHERE rok = $rok
+SQL
+        );
 
-        $a = $this->u->koncA();
+        $a = $this->u->koncovkaDlePohlavi();
         while ($r = mysqli_fetch_assoc($o)) {
-            if ($r['cena'] >= 0) {
-                $this->cenaAktivity += $r['cena'];
-            } else {
-                if (!$this->u->maPravo(P_NEMA_BONUS_ZA_AKTIVITY)) {
-                    $this->bonusZaVedeniAktivit -= $r['cena'];
+            if ($r['typ'] == TypAktivity::TECHNICKA) {
+                if ($this->u->maPravoNaBonusZaVedeniAktivit()) {
+                    $this->bonusZaVedeniAktivit += $r['cena'];
                 }
+            } else if ($r['typ'] == TypAktivity::BRIGADNICKA) {
+                $this->brigadnickaOdmena += $r['cena'];
+            } else {
+                $this->cenaAktivity += $r['cena'];
             }
 
             $poznamka = '';
@@ -507,7 +515,7 @@ class Finance
             }
             $this->log(
                 $r['nazev'] . $poznamka,
-                $r['cena'] < 0
+                in_array($r['typ'], [TypAktivity::TECHNICKA, TypAktivity::BRIGADNICKA])
                     ? 0
                     : $r['cena'],
                 self::AKTIVITA

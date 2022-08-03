@@ -24,15 +24,14 @@ class Aktivita
 
     private static $cache = [];
 
-    private
-        $a,         // databázový řádek s aktivitou
-        $kolekce,   // nadřízená kolekce, v rámci které byla aktivita načtena
-        $lokace,
-        $stav,
-        $nova,      // jestli jde o nově uloženou aktivitu nebo načtenou z DB
-        $organizatori,
-        $uzavrenaOd,
-        $typ;
+    private $a;         // databázový řádek s aktivitou
+    private $kolekce;   // nadřízená kolekce, v rámci které byla aktivita načtena
+    private $lokace;
+    private $stav;
+    private $nova;      // jestli jde o nově uloženou aktivitu nebo načtenou z DB
+    private $organizatori;
+    private $uzavrenaOd;
+    private $typ;
     /** @var void|\Uzivatel[] */
     private $seznamSledujicich;
     /** @var null|AktivitaPrezence */
@@ -40,41 +39,33 @@ class Aktivita
     /** @var null|Filesystem */
     private $filesystem;
 
-    const
-        AJAXKLIC = 'aEditFormTest',  // název post proměnné, ve které jdou data, pokud chceme ajaxově testovat jejich platnost a čekáme json odpověď
-        OBRKLIC = 'aEditObrazek',    // název proměnné, v které bude případně obrázek
-        TAGYKLIC = 'aEditTag',       // název proměnné, v které jdou tagy
-        POSTKLIC = 'aEditForm',      // název proměnné (ve výsledku pole), v které bude editační formulář aktivity předávat data
-        TEAMKLIC = 'aTeamForm',      // název post proměnné s formulářem pro výběr teamu
-        TEAMKLIC_KOLA = 'aTeamFormKolo',      // název post proměnné s výběrem kol pro team
-        PN_PLUSMINUSP = 'cAktivitaPlusminusp',  // název post proměnné pro úpravy typu plus
-        PN_PLUSMINUSM = 'cAktivitaPlusminusm',  // název post proměnné pro úpravy typu mínus
-        HAJENI = 72,      // počet hodin po kterýc aktivita automatick vykopává nesestavený tým
-        LIMIT_POPIS_KRATKY = 180,  // max počet znaků v krátkém popisku
-        // stavy přihlášení, viz tabulka akce_prihlaseni_stavy
-        PRIHLASEN = StavPrihlaseni::PRIHLASEN,
-        PRIHLASEN_A_DORAZIL = StavPrihlaseni::PRIHLASEN_A_DORAZIL,
-        DORAZIL_JAKO_NAHRADNIK = StavPrihlaseni::DORAZIL_JAKO_NAHRADNIK,
-        PRIHLASEN_ALE_NEDORAZIL = StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL,
-        POZDE_ZRUSIL = StavPrihlaseni::POZDE_ZRUSIL,
-        SLEDUJICI = StavPrihlaseni::SLEDUJICI,
-        //ignore a parametry kolem přihlašovátka
-        PLUSMINUS = 0b00000000001,   // plus/mínus zkratky pro měnění míst v team. aktivitě
-        PLUSMINUS_KAZDY = 0b00000000010,   // plus/mínus zkratky pro každého
-        STAV = 0b00000000100,   // ignorování stavu
-        ZAMEK = 0b00000001000,   // ignorování zamčení pro tým
-        BEZ_POKUT = 0b00000010000,   // odhlášení bez pokut
-        ZPETNE = 0b00000100000,   // možnost zpětně měnit přihlášení
-        TECHNICKE = 0b00001000000,   // přihlašovat i skryté technické aktivity
-        NEPOSILAT_MAILY_SLEDUJICIM = 0b00010000000,   // odhlášení bez mailů náhradníkům
-        DOPREDNE = 0b00100000000,   // možnost přihlásit před otevřením registrací na aktivity
-        IGNOROVAT_LIMIT = 0b01000000000,
-        IGNOROVAT_PRIHLASENI_NA_SOUROZENCE = 0b10000000000,
-        // parametry kolem továrních metod
-        JEN_VOLNE = 0b00000001,   // jen volné aktivity
-        VEREJNE = 0b00000010,   // jen veřejně viditelné aktivity
-        ZAMCENE = 0b00000100,
-        NEUZAVRENE = 0b00001000;
+    const AJAXKLIC           = 'aEditFormTest';  // název post proměnné; ve které jdou data; pokud chceme ajaxově testovat jejich platnost a čekáme json odpověď
+    const OBRKLIC            = 'aEditObrazek';    // název proměnné; v které bude případně obrázek
+    const TAGYKLIC           = 'aEditTag';       // název proměnné; v které jdou tagy
+    const POSTKLIC           = 'aEditForm';      // název proměnné (ve výsledku pole); v které bude editační formulář aktivity předávat data
+    const TEAMKLIC           = 'aTeamForm';      // název post proměnné s formulářem pro výběr teamu
+    const TEAMKLIC_KOLA      = 'aTeamFormKolo';      // název post proměnné s výběrem kol pro team
+    const PN_PLUSMINUSP      = 'cAktivitaPlusminusp';  // název post proměnné pro úpravy typu plus
+    const PN_PLUSMINUSM      = 'cAktivitaPlusminusm';  // název post proměnné pro úpravy typu mínus
+    const HAJENI             = 72;      // počet hodin po kterýc aktivita automatick vykopává nesestavený tým
+    const LIMIT_POPIS_KRATKY = 180;  // max počet znaků v krátkém popisku
+    // ignore a parametry kolem přihlašovátka
+    const PLUSMINUS                          = 0b00000000001;   // plus/mínus zkratky pro měnění míst v team. aktivitě
+    const PLUSMINUS_KAZDY                    = 0b00000000010;   // plus/mínus zkratky pro každého
+    const STAV                               = 0b00000000100;   // ignorování stavu
+    const ZAMEK                              = 0b00000001000;   // ignorování zamčení pro tým
+    const BEZ_POKUT                          = 0b00000010000;   // odhlášení bez pokut
+    const ZPETNE                             = 0b00000100000;   // možnost zpětně měnit přihlášení
+    const TECHNICKE                          = 0b00001000000;   // přihlašovat i skryté technické aktivity
+    const NEPOSILAT_MAILY_SLEDUJICIM         = 0b00010000000;   // odhlášení bez mailů náhradníkům
+    const DOPREDNE                           = 0b00100000000;   // možnost přihlásit před otevřením registrací na aktivity
+    const IGNOROVAT_LIMIT                    = 0b01000000000;
+    const IGNOROVAT_PRIHLASENI_NA_SOUROZENCE = 0b10000000000;
+    // parametry kolem továrních metod
+    const JEN_VOLNE  = 0b00000001;   // jen volné aktivity
+    const VEREJNE    = 0b00000010;   // jen veřejně viditelné aktivity
+    const ZAMCENE    = 0b00000100;
+    const NEUZAVRENE = 0b00001000;
 
     public static function dejPrazdnou(): self {
         return new static([], true);
@@ -345,7 +336,7 @@ SQL
      */
     protected static function editorParam(\EditorTagu $editorTagu, Aktivita $aktivita = null, $omezeni = []) {
         // inicializace šablony
-        $xtpl = new \XTemplate(__DIR__ . '/templates/editor-aktivity.xtpl');
+        $xtpl = new XTemplate(__DIR__ . '/templates/editor-aktivity.xtpl');
         $xtpl->assign('fields', self::POSTKLIC); // název proměnné (pole) v kterém se mají posílat věci z formuláře
         $xtpl->assign('ajaxKlic', self::AJAXKLIC);
         $xtpl->assign('obrKlic', self::OBRKLIC);
@@ -403,7 +394,7 @@ SQL
         return $xtpl->text('upravy');
     }
 
-    private static function parseUpravyTabulkaLokace(?Aktivita $aktivita, \XTemplate $xtpl) {
+    private static function parseUpravyTabulkaLokace(?Aktivita $aktivita, XTemplate $xtpl) {
         $aktivitaData = $aktivita ? $aktivita->a : null; // databázový řádek
         $q            = dbQuery('SELECT id_lokace, nazev FROM akce_lokace ORDER BY poradi');
         $xtpl->assign(['id_lokace' => null, 'nazev' => '(žádná)', 'selected' => '']);
@@ -415,7 +406,7 @@ SQL
         }
     }
 
-    private static function parseUpravyTabulkaDeti(?Aktivita $aktivita, \XTemplate $xtpl) {
+    private static function parseUpravyTabulkaDeti(?Aktivita $aktivita, XTemplate $xtpl) {
         $q       = dbQuery(
             "SELECT id_akce FROM akce_seznam WHERE id_akce != $1 AND rok = $2 ORDER BY nazev_akce",
             [$aktivita ? $aktivita->id() : null, ROK]
@@ -445,7 +436,7 @@ SQL
         );
     }
 
-    private static function parseUpravyTabulkaRodice(?Aktivita $aktivita, \XTemplate $xtpl) {
+    private static function parseUpravyTabulkaRodice(?Aktivita $aktivita, XTemplate $xtpl) {
         $q = dbQuery(
             "SELECT id_akce FROM akce_seznam WHERE id_akce != $1 AND rok = $2 ORDER BY nazev_akce",
             [$aktivita ? $aktivita->id() : null, ROK]
@@ -463,7 +454,7 @@ SQL
         }
     }
 
-    private static function parseUpravyTabulkaDen(?Aktivita $aktivita, \XTemplate $xtpl) {
+    private static function parseUpravyTabulkaDen(?Aktivita $aktivita, XTemplate $xtpl) {
         $xtpl->assign([
             'selected' => $aktivita && !$aktivita->zacatek() ? 'selected' : '',
             'den'      => 0,
@@ -480,7 +471,7 @@ SQL
         }
     }
 
-    private static function parseUpravyTabulkaZacatekAKonec(?Aktivita $aktivita, \XTemplate $xtpl) {
+    private static function parseUpravyTabulkaZacatekAKonec(?Aktivita $aktivita, XTemplate $xtpl) {
         $aZacatek      = $aktivita && $aktivita->zacatek()
             ? (int)$aktivita->zacatek()->format('G')
             : null;
@@ -535,7 +526,7 @@ SQL
         $xtpl->parse('upravy.tabulka.vypraveci');
     }
 
-    private static function parseUpravyTabulkaTypy(?Aktivita $aktivita, \XTemplate $xtpl) {
+    private static function parseUpravyTabulkaTypy(?Aktivita $aktivita, XTemplate $xtpl) {
         $aktivitaData = $aktivita ? $aktivita->a : null; // databázový řádek
         $q            = dbQuery('SELECT id_typu, typ_1p FROM akce_typy WHERE aktivni = 1 ORDER BY poradi');
         while ($akceTypData = mysqli_fetch_assoc($q)) {
@@ -545,7 +536,7 @@ SQL
         }
     }
 
-    private static function nactiTagy(array $vybraneTagy, \EditorTagu $editorTagu, \XTemplate $xtpl) {
+    private static function nactiTagy(array $vybraneTagy, \EditorTagu $editorTagu, XTemplate $xtpl) {
         $vsechnyTagy             = $editorTagu->getTagy();
         $pocetVsechTagu          = count($vsechnyTagy);
         $nazevPredchoziKategorie = null;
@@ -2292,7 +2283,7 @@ SQL
             return null;
         }
 
-        $t = new \XTemplate(__DIR__ . '/templates/tym-formular.xtpl');
+        $t = new XTemplate(__DIR__ . '/templates/tym-formular.xtpl');
 
         // obecné proměnné šablony
         $zbyva = strtotime($this->a['zamcel_cas']) + self::HAJENI * 60 * 60 - time();
@@ -2581,15 +2572,15 @@ WHERE zacatek <= $0
     AND rok = $2
 SQL,
             [
-                $zacinajiciDo->format(DateTimeCz::FORMAT_DB),
-                [
+                0 => $zacinajiciDo->format(DateTimeCz::FORMAT_DB),
+                1 => [
                     StavAktivity::NOVA,
                     StavAktivity::AKTIVOVANA,
-                    StavAktivity::SYSTEMOVA,
                     StavAktivity::PUBLIKOVANA,
                     StavAktivity::PRIPRAVENA,
+                    StavAktivity::SYSTEMOVA,
                 ],
-                ROK,
+                2 => ROK,
             ]
         );
         $ids = array_map('intval', $ids);
@@ -2697,7 +2688,7 @@ SQL,
             $wheres[] = 'a.id_akce IN (SELECT id_akce FROM akce_organizatori WHERE id_uzivatele = ' . (int)$filtr['organizator'] . ')';
         }
         if (!empty($filtr['jenViditelne'])) {
-            $wheres[] = 'a.stav IN (' . implode(',', [StavAktivity::AKTIVOVANA, StavAktivity::PUBLIKOVANA, StavAktivity::PRIPRAVENA, StavAktivity::ZAMCENA, StavAktivity::UZAVRENA]) . ') AND NOT (a.typ = ' . TypAktivity::TECHNICKA . ' AND a.stav IN (' . StavAktivity::ZAMCENA . ',' . StavAktivity::UZAVRENA . '))';
+            $wheres[] = 'a.stav IN (' . implode(',', [StavAktivity::AKTIVOVANA, StavAktivity::PUBLIKOVANA, StavAktivity::PRIPRAVENA, StavAktivity::ZAMCENA, StavAktivity::UZAVRENA]) . ') AND NOT (a.typ IN (' . implode(',', [TypAktivity::TECHNICKA, TypAktivity::BRIGADNICKA]) . ') AND a.stav IN (' . StavAktivity::ZAMCENA . ',' . StavAktivity::UZAVRENA . '))';
             /** stejné jako @see \Gamecon\Aktivita\Aktivita::probehnuta */
         }
         if (!empty($filtr['jenZamcene'])) {
@@ -2841,8 +2832,12 @@ SQL,
      */
     public static function zProgramu($order) {
         return self::zWhere(
-            'WHERE a.rok = $0 AND a.zacatek AND (a.stav != $1 OR a.typ = $2)',
-            [ROK, StavAktivity::NOVA, TypAktivity::TECHNICKA],
+            'WHERE a.rok = $0 AND a.zacatek AND (a.stav != $1 OR a.typ IN ($2))',
+            [
+                0 => ROK,
+                1 => StavAktivity::NOVA,
+                2 => [TypAktivity::TECHNICKA, TypAktivity::BRIGADNICKA],
+            ],
             'ORDER BY DAY(zacatek), ' . dbQi($order) . ', HOUR(zacatek), nazev_akce'
         );
     }
