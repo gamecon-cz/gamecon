@@ -2,8 +2,6 @@
 
 namespace Gamecon;
 
-use http\Exception\RuntimeException;
-
 class Zidle extends \DbObject
 {
     protected static $tabulka = 'r_zidle_soupis';
@@ -11,30 +9,31 @@ class Zidle extends \DbObject
     /**
      * Konstanty jsou kopie SQL tabulky `r_zidle_soupis`
      */
-    public const ORGANIZATOR = 2; // (zdarma) Člen organizačního týmu GC
-    public const VYPRAVEC = 6; // Organizátor aktivit na GC
-    public const ZAZEMI = 7; // Členové zázemí GC (kuchařky, …)
-    public const INFOPULT = 8; // Operátor infopultu
-    public const VYPRAVECSKA_SKUPINA = 9; // Organizátorská skupina pořádající na GC (dodavatelé, …)
-    public const PARTNER = 13; // Vystavovatelé, lidé od deskovek, atp.
-    public const CESTNY_ORGANIZATOR = 15; // Bývalý organizátor GC
-    public const ADMIN = 16; // Spec. židle pro úpravy databáze. NEPOUŽÍVAT.
-    public const DOBROVOLNIK_SENIOR = 17; // Dobrovolník dlouhodobě spolupracující s GC
-    public const STREDECNI_NOC_ZDARMA = 18;
-    public const NEDELNI_NOC_ZDARMA = 19;
-    public const SPRAVCE_FINANCI_GC = 20; // Organizátor, který může nakládat s financemi GC
+    public const ORGANIZATOR            = 2; // (zdarma) Člen organizačního týmu GC
+    public const VYPRAVEC               = 6; // Organizátor aktivit na GC
+    public const ZAZEMI                 = 7; // Členové zázemí GC (kuchařky, …)
+    public const INFOPULT               = 8; // Operátor infopultu
+    public const VYPRAVECSKA_SKUPINA    = 9; // Organizátorská skupina pořádající na GC (dodavatelé, …)
+    public const PARTNER                = 13; // Vystavovatelé, lidé od deskovek, atp.
+    public const CESTNY_ORGANIZATOR     = 15; // Bývalý organizátor GC
+    public const ADMIN                  = 16; // Spec. židle pro úpravy databáze. NEPOUŽÍVAT.
+    public const DOBROVOLNIK_SENIOR     = 17; // Dobrovolník dlouhodobě spolupracující s GC
+    public const STREDECNI_NOC_ZDARMA   = 18;
+    public const NEDELNI_NOC_ZDARMA     = 19;
+    public const SPRAVCE_FINANCI_GC     = 20; // Organizátor, který může nakládat s financemi GC
     public const ORGANIZATOR_S_BONUSY_1 = 21;
     public const ORGANIZATOR_S_BONUSY_2 = 22;
-    public const NEODHLASOVAT = 23;
-    public const HERMAN = 24;
+    public const NEODHLASOVAT           = 23;
+    public const HERMAN                 = 24;
+    public const BRIGADNIK              = 25;
 
     public const PRIHLASEN_NA_LETOSNI_GC = ZIDLE_PRIHLASEN;
     public const PRITOMEN_NA_LETOSNIM_GC = ZIDLE_PRITOMEN;
-    public const ODJEL_Z_LETOSNIHO_GC = ZIDLE_ODJEL;
+    public const ODJEL_Z_LETOSNIHO_GC    = ZIDLE_ODJEL;
 
     public const UDALOST_PRIHLASEN = 'přihlášen';
-    public const UDALOST_PRITOMEN = 'přítomen';
-    public const UDALOST_ODJEL = 'odjel';
+    public const UDALOST_PRITOMEN  = 'přítomen';
+    public const UDALOST_ODJEL     = 'odjel';
 
     /**
      * Přihlásil se, neboli registroval, na GameCon
@@ -137,7 +136,7 @@ class Zidle extends \DbObject
             case 24 :
                 return 'Herman';
             default :
-                $rok = self::rokDleZidle($zidle);
+                $rok     = self::rokDleZidle($zidle);
                 $udalost = self::udalostDleZidle($zidle);
 
                 return "GC{$rok} {$udalost}";

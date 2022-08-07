@@ -493,7 +493,7 @@ SQL,
     }
 
     public function nemaPravoNaBonusZaVedeniAktivit(): bool {
-        return $this->maPravo(P_NEMA_BONUS_ZA_AKTIVITY);
+        return $this->maPravo(Pravo::BEZ_SLEVY_ZA_VEDENI_AKTIVIT);
     }
 
     public function maPravoNaBonusZaVedeniAktivit(): bool {
@@ -510,6 +510,10 @@ SQL,
 
     public function maPravoNaZmenuHistorieAktivit(): bool {
         return $this->maPravo(Pravo::ZMENA_HISTORIE_AKTIVIT);
+    }
+
+    public function jeBrigadnik(): bool {
+        return $this->maZidli(Zidle::BRIGADNIK);
     }
 
     public function jeVypravec(): bool {
@@ -1183,6 +1187,9 @@ SQL,
         }
         if ($this->maZidli(Zidle::HERMAN)) {
             $status[] = '<span style="color:orange">Herman</span>';
+        }
+        if ($this->maZidli(Zidle::BRIGADNIK)) {
+            $status[] = '<span style="color:yellowgreen">Brigádník</span>';
         }
         if ($this->maZidli(ZIDLE_ZAZEMI)) {
             $status[] = "Zázemí";
