@@ -23,39 +23,39 @@ class Finance
 
     /** @var \Uzivatel */
     private $u; // uživatel, jehož finance se počítají
-    private
-        $stav = 0,  // celkový výsledný stav uživatele na účtu
-        $deltaPozde = 0,      // o kolik se zvýší platba při zaplacení pozdě
-        $scnA,              // součinitel ceny aktivit
-        $logovat = true,    // ukládat seznam předmětů?
-        $cenik,             // instance ceníku
-        // tabulky s přehledy
-        $prehled = [],   // tabulka s detaily o platbách
-        $slevyA = [],    // pole s textovými popisy slev uživatele na aktivity
-        $slevyO = [],    // pole s textovými popisy obecných slev
-        $proplacenyBonusZaVedeniAktivit = 0, // "sleva" za aktivity, nebo-li bonus vypravěče, nebo-li odměna za vedení hry, převedená na peníze
-        $brigadnickaOdmena = 0.0,  // výplata zaměstnance (který nechce bonus/kredit na útratu, ale tvrdou měnu za tvrdou práci)
-        // součásti výsledné ceny
-        $cenaAktivity = 0.0,  // cena aktivit
-        $cenaUbytovani = 0.0,  // cena objednaného ubytování
-        $cenaPredmety = 0.0,  // cena předmětů a dalších objednávek v shopu
-        $cenaVstupne = 0.0,
-        $cenaVstupnePozde = 0.0,
-        $bonusZaVedeniAktivit = 0.0,  // sleva za tech. aktivity a odvedené aktivity
-        $slevaObecna = 0.0,  // sleva získaná z tabulky slev
-        $nevyuzityBonusZaVedeniAktivit = 0.0,  // zbývající sleva za odvedené aktivity (nevyužitá část)
-        $vyuzityBonusZaVedenAktivit = 0.0,  // sleva za odvedené aktivity (využitá část)
-        $zbyvajiciObecnaSleva = 0.0,
-        $vyuzitaSlevaObecna = 0.0,
-        $zustatekZPredchozichRocniku = 0,    // zůstatek z minula
-        $sumyPlatebVRocich = [],  // platby připsané na účet v jednotlivých letech (zatím jen letos, protože máme obskurnost jménem "Uzavření ročníku")
-        $datumPosledniPlatby;        // datum poslední připsané platby
+    private $stav = 0;  // celkový výsledný stav uživatele na účtu
+    private $deltaPozde = 0;      // o kolik se zvýší platba při zaplacení pozdě
+    private $scnA;              // součinitel ceny aktivit
+    private $logovat = true;    // ukládat seznam předmětů?
+    private $cenik;             // instance ceníku
+    // tabulky s přehledy
+    private $prehled = [];   // tabulka s detaily o platbách
+    private $slevyA = [];    // pole s textovými popisy slev uživatele na aktivity
+    private $slevyO = [];    // pole s textovými popisy obecných slev
+    private $proplacenyBonusZaVedeniAktivit = 0; // "sleva" za aktivity; nebo-li bonus vypravěče; nebo-li odměna za vedení hry; převedená na peníze
+    private $brigadnickaOdmena = 0.0;  // výplata zaměstnance (který nechce bonus/kredit na útratu; ale tvrdou měnu za tvrdou práci)
+    // součásti výsledné ceny
+    private $cenaAktivity = 0.0;  // cena aktivit
+    private $cenaUbytovani = 0.0;  // cena objednaného ubytování
+    private $cenaPredmety = 0.0;  // cena předmětů a dalších objednávek v shopu
+    private $cenaVstupne = 0.0;
+    private $cenaVstupnePozde = 0.0;
+    private $bonusZaVedeniAktivit = 0.0;  // sleva za tech. aktivity a odvedené aktivity
+    private $slevaObecna = 0.0;  // sleva získaná z tabulky slev
+    private $nevyuzityBonusZaVedeniAktivit = 0.0;  // zbývající sleva za odvedené aktivity (nevyužitá část)
+    private $vyuzityBonusZaVedenAktivit = 0.0;  // sleva za odvedené aktivity (využitá část)
+    private $zbyvajiciObecnaSleva = 0.0;
+    private $vyuzitaSlevaObecna = 0.0;
+    private $zustatekZPredchozichRocniku = 0;    // zůstatek z minula
+    private $sumyPlatebVRocich = [];  // platby připsané na účet v jednotlivých letech (zatím jen letos; protože máme obskurnost jménem "Uzavření ročníku")
+    /** @var string|null */
+    private $datumPosledniPlatby;        // datum poslední připsané platby
 
     private $kategorieNeplatice;
     private $dobrovolneVstupnePrehled;
 
     private static $maxSlevaAktivit = 100; // v procentech
-    private static $bonusZaVedeniAktivity = [ // ve formátu max. délka => sleva
+    private static $bonusZaVedeniAktivity = [ // ve formatu max. delka => sleva
         1  => BONUS_ZA_1H_AKTIVITU,
         2  => BONUS_ZA_2H_AKTIVITU,
         5  => BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU,
@@ -70,14 +70,15 @@ class Finance
     public const PREDMETY_STRAVA = 1;
     public const UBYTOVANI       = 2;
     // mezera na typy předmětů (1-4? viz db)
-    public const ORGSLEVA                   = 10;
-    public const PRIPSANE_SLEVY             = 11;
-    public const VSTUPNE                    = 12;
-    public const CELKOVA                    = 13;
-    public const PLATBY_NADPIS              = 14;
-    public const ZUSTATEK_Z_PREDCHOZICH_LET = 15;
-    public const PLATBA                     = 16;
-    public const VYSLEDNY                   = 17;
+    public const BRIGADNICKA_ODMENA         = 10;
+    public const ORGSLEVA                   = 11;
+    public const PRIPSANE_SLEVY             = 12;
+    public const VSTUPNE                    = 13;
+    public const CELKOVA                    = 14;
+    public const PLATBY_NADPIS              = 15;
+    public const ZUSTATEK_Z_PREDCHOZICH_LET = 16;
+    public const PLATBA                     = 17;
+    public const VYSLEDNY                   = 18;
 
     /**
      * @param \Uzivatel $u uživatel, pro kterého se finance sestavují
@@ -102,6 +103,7 @@ class Finance
             + $this->cenaAktivity;
 
         $cena = $this->aplikujBonusZaVedeniAktivit($cena);
+        $cena = $this->aplikujBrigadnickouOdmenu($cena);
         $cena = $this->aplikujSlevy($cena);
 
         $cena = $cena
@@ -498,7 +500,9 @@ SQL
                     $this->bonusZaVedeniAktivit += $r['cena'];
                 }
             } else if ($r['typ'] == TypAktivity::BRIGADNICKA) {
-                $this->brigadnickaOdmena += $r['cena'];
+                if ($this->u->jeBrigadnik()) {
+                    $this->brigadnickaOdmena += $r['cena'];
+                }
             } else {
                 $this->cenaAktivity += $r['cena'];
             }
@@ -667,6 +671,17 @@ SQL
         }
 
         return $cena;
+    }
+
+    private function aplikujBrigadnickouOdmenu(float $cena) {
+        if ($this->brigadnickaOdmena) {
+            $this->logb(
+                'Brigádnická odměna',
+                $this->brigadnickaOdmena,
+                self::BRIGADNICKA_ODMENA
+            );
+        }
+        return $cena; // žádná změna, peníze chceme vyplácet
     }
 
     private function aplikujSlevy(float $cena) {

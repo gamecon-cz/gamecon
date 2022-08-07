@@ -33,7 +33,7 @@ class Cenik
     /**
      * Konstruktor
      * @param Uzivatel $u pro kterého uživatele se cena počítá
-     * @param int $sleva celková sleva získaná za pořádané aktivity
+     * @param int|float $sleva celková sleva získaná za pořádané aktivity
      */
     function __construct(Uzivatel $u, $sleva) {
         $this->u = $u;
