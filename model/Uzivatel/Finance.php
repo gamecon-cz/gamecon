@@ -759,7 +759,7 @@ SQL
                 self::BRIGADNICKA_ODMENA
             );
         }
-        return $cena - $this->brigadnickaOdmena;
+        return $cena; // žádná změna, peníze chceme vyplácet
     }
 
     private function aplikujSlevy(float $cena) {
