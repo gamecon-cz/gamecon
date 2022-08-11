@@ -40,12 +40,12 @@ class Report
             $rows = [];
 
             $headerStyle = (new StyleBuilder())->setFontBold()->setFontSize(10)->build();
-            $headerRow = WriterEntityFactory::createRowFromArray($this->hlavicky(), $headerStyle);
-            $rows[] = $headerRow;
+            $headerRow   = WriterEntityFactory::createRowFromArray($this->hlavicky(), $headerStyle);
+            $rows[]      = $headerRow;
 
-            $integerStyle = (new StyleBuilder())->setFormat('0')->build();
-            $numberStyle = (new StyleBuilder())->setFormat('0.0')->build();
-            $moneyStyle = (new StyleBuilder())->setFormat('0.00')->build();
+            $integerStyle  = (new StyleBuilder())->setFormat('0')->build();
+            $numberStyle   = (new StyleBuilder())->setFormat('0.0')->build();
+            $moneyStyle    = (new StyleBuilder())->setFormat('0.00')->build();
             $fontSizeStyle = (new StyleBuilder())->setFontSize(10)->setFontName('Arial')->build();
             while ($radek = $this->radek()) {
                 $cells = [];
@@ -94,7 +94,7 @@ class Report
         $widths = [];
         foreach ($rows as $row) {
             foreach ($row->getCells() as $index => $cell) {
-                $pomer = $cell->getStyle()->isFontBold()
+                $pomer              = $cell->getStyle()->isFontBold()
                     ? 1.5
                     : 1.3;
                 $widths[$index + 1] = max(
@@ -115,7 +115,7 @@ class Report
 
     public function nazevReportuZRequestu(): string {
         // část url za posledním lomítkem
-        $posledniCastUrl = substr($_SERVER['REQUEST_URI'], strrpos($_SERVER['REQUEST_URI'], '/') + 1);
+        $posledniCastUrl    = substr($_SERVER['REQUEST_URI'], strrpos($_SERVER['REQUEST_URI'], '/') + 1);
         $poziceZacatkuQuery = strpos($posledniCastUrl, '?');
         return $poziceZacatkuQuery !== false
             ? substr($posledniCastUrl, 0, $poziceZacatkuQuery)
@@ -194,13 +194,44 @@ HTML;
     }
 
     /**
+     * Vytvoří report z asoc. polí, jako hlavičky použije klíče
+     */
+    static function zPoleSDvojitouHlavickou(array $pole) {
+        $hlavniHlavicka   = [];
+        $obsah            = [];
+        $vedlejsiHlavicka = [];
+        foreach (reset($pole) as $nazevHlavniHlavicky => $radekSVedlejsiHlavickou) {
+            $hlavniHlavicka[] = $nazevHlavniHlavicky;
+            for ($vypln = 0, $celkemVyplne = count($radekSVedlejsiHlavickou) - 1; $vypln < $celkemVyplne; $vypln++) {
+                $hlavniHlavicka[] = '';
+            }
+            foreach (array_keys($radekSVedlejsiHlavickou) as $nazevVedlejsiHlavicky) {
+                $vedlejsiHlavicka[] = $nazevVedlejsiHlavicky; // pod-hlavicka je prvnim radkem obsahu
+            }
+        }
+        $obsah[] = $vedlejsiHlavicka;
+
+        foreach ($pole as $skupiny) {
+            $radek = [];
+            foreach ($skupiny as $skupina) {
+                foreach ($skupina as $polozka) {
+                    $radek[] = $polozka;
+                }
+            }
+            $obsah[] = $radek;
+        }
+
+        return self::zPoli($hlavniHlavicka, $obsah);
+    }
+
+    /**
      * Vytvoří report ze zadaných polí
      * @param array $hlavicky hlavičkový řádek
      * @param array $obsah pole normálních řádků
      */
     static function zPoli(array $hlavicky, array $obsah): self {
-        $report = new static();
-        $report->hlavicky = $hlavicky;
+        $report            = new static();
+        $report->hlavicky  = $hlavicky;
         $report->poleObsah = $obsah;
         return $report;
     }
@@ -211,8 +242,8 @@ HTML;
      * @param array|null $dotazParametry = []
      */
     static function zSql(string $dotaz, array $dotazParametry = null): self {
-        $report = new static();
-        $report->sql = $dotaz;
+        $report               = new static();
+        $report->sql          = $dotaz;
         $report->sqlParametry = $dotazParametry;
         return $report;
     }
@@ -235,7 +266,7 @@ HTML;
             $this->o = dbQuery($this->sql, $this->sqlParametry);
         }
         for ($i = 0, $sloupcu = mysqli_num_fields($this->o); $i < $sloupcu; $i++) {
-            $field_info = mysqli_fetch_field($this->o);
+            $field_info       = mysqli_fetch_field($this->o);
             $this->hlavicky[] = $field_info->name;
         }
         return $this->hlavicky;

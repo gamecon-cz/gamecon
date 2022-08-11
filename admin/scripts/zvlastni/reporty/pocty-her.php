@@ -44,7 +44,7 @@ SQL,
 
 $data = [];
 while ($row = mysqli_fetch_assoc($result)) {
-    $row['Σ cena'] = Uzivatel::zId($row['ID uživatele'])->finance()->cenaAktivity();
+    $row['Σ cena'] = Uzivatel::zId($row['ID uživatele'])->finance()->cenaAktivit();
     $div = sprintf('%.3f', aktivityDiverzifikace(array_slice($row, 2, 8)));
     $row['Diverzifikace'] = $div;
     $data[] = $row;
