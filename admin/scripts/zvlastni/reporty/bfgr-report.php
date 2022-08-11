@@ -108,29 +108,12 @@ ORDER BY TRIM(shop_predmety.nazev)
 SQL, [Shop::PREDMET]
 );
 
-$hlavicka = [
-    'Účastník'            => ['ID', 'Příjmení', 'Jméno', 'Přezdívka', 'Mail', 'Pozice', 'Židle', 'Práva', 'Datum registrace', 'Prošel infopultem', 'Odjel kdy'],
-    'Datum narození'      => ['Den', 'Měsíc', 'Rok'],
-    'Bydliště'            => ['Stát', 'Město', 'Ulice', 'PSČ', 'Škola'],
-    'Ubytovací informace' => array_merge(['Chci bydlet s', 'První noc', 'Poslední noc (počátek)', 'Typ', 'Dorazil na GC'], $ucastPodleRoku),
-    'Celkové náklady'     => ['Celkem dní', 'Cena / den', 'Ubytování', 'Předměty a strava'],
-    'Ostatní platby'      => ['Aktivity', 'Bonus za vedení aktivit', 'Využitý bonus za vedení aktivit', 'Proplacený bonus za vedení aktivit', 'dobrovolné vstupné', 'dobrovolné vstupné (pozdě)', 'stav', 'suma slev', 'zůstatek z minula', 'připsané platby', 'první blok', 'poslední blok', 'dobrovolník pozice', 'dobrovolník info', 'Dárky a zlevněné nákupy', 'Objednávky', 'Poznámka'],
-    'Eshop'               => array_merge(
-        ['sleva', 'placka zdarma', 'placka GC placená', 'kostka zdarma'],
-        $letosniKostky,
-        $letosniJidla,
-        ['tričko zdarma', 'tílko zdarma', 'tričko se slevou', 'tílko se slevou', 'účastnické tričko placené', 'účastnické tílko placené'],
-        $letosniOstatniPredmety,
-        ['COVID test'], // "dát pls až nakonec", tak pravil Gandalf
-    ),
-];
-
 $rok = ROK;
 $o   = dbQuery(<<<SQL
 SELECT
     uzivatele_hodnoty.*,
     prihlasen.posazen AS prihlasen_na_gc_kdy,
-    pritomen.posazen as prosel_info_kdy,
+    pritomen.posazen as prosel_infopultem_kdy,
     odjel.posazen as odjel_kdy,
     ( SELECT MIN(shop_predmety.ubytovani_den) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=$rok AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.typ=2 ) AS den_prvni,
     ( SELECT MAX(shop_predmety.ubytovani_den) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=$rok AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.typ=2 ) AS den_posledni,
@@ -168,18 +151,6 @@ if (mysqli_num_rows($o) === 0) {
     exit('V tabulce nejsou žádná data.');
 }
 
-$hlavniHlavicka = [];
-$obsah          = [0 => []];
-foreach ($hlavicka as $hlavni => $vedlejsiHlavicka) {
-    $hlavniHlavicka[] = $hlavni;
-    for ($vypln = 0, $celkemVyplne = count($vedlejsiHlavicka) - 1; $vypln < $celkemVyplne; $vypln++) {
-        $hlavniHlavicka[] = '';
-    }
-    foreach ($vedlejsiHlavicka as $vedlejsi) {
-        $obsah[0][] = $vedlejsi; // pod-hlavicka je prvnim radkem obsahu
-    }
-}
-
 $letosniPlackyKlice          = array_fill_keys($letosniPlacky, null);
 $letosniKostkyKlice          = array_fill_keys($letosniKostky, null);
 $letosniJidlaKlice           = array_fill_keys($letosniJidla, null);
@@ -191,8 +162,8 @@ while ($r = mysqli_fetch_assoc($o)) {
     $navstevnik->nactiPrava(); // sql subdotaz, zlo
     $finance        = $navstevnik->finance();
     $ucastiHistorie = [];
-    foreach ($ucastPodleRoku as $rok => $nul) {
-        $ucastiHistorie[] = $navstevnik->maPravo((int)('-' . substr($rok, 2) . '02')) ? 'ano' : 'ne';
+    foreach ($ucastPodleRoku as $rok => $nazevUcasti) {
+        $ucastiHistorie[$nazevUcasti] = $navstevnik->maPravo((int)('-' . substr($rok, 2) . '02')) ? 'ano' : 'ne';
     }
     $stat = '';
     try {
@@ -204,83 +175,100 @@ while ($r = mysqli_fetch_assoc($o)) {
 
     $obsah[] = array_merge(
         [
-            $r['id_uzivatele'], // 'ID'
-            $r['prijmeni_uzivatele'], // 'Příjmení'
-            $r['jmeno_uzivatele'], // 'Jméno', 'Přezdívka', 'Mail', 'Židle', 'Práva', 'Datum registrace', 'Prošel infopultem
-            $r['login_uzivatele'], // 'Přezdívka'
-            $r['email1_uzivatele'], // 'Mail'
-            $r['zidleZDotazu'], // 'Židle'
-            nahradNazvyKonstantZaHodnoty($r['pravaZDotazu'] ?? ''), // 'Práva'
-            $dejNazevPozice(explode(',', $r['idPravZDotazu'])),
-            excelDatum($r['prihlasen_na_gc_kdy']), // 'Datum registrace'
-            excelDatum($r['prosel_info_kdy']), // 'Prošel infopultem
-            excelDatum($r['odjel_kdy']), // 'Odjel kdy'
-            date('j', strtotime($r['datum_narozeni'])),
-            date('n', strtotime($r['datum_narozeni'])),
-            date('Y', strtotime($r['datum_narozeni'])),
-            $stat,
-            $r['mesto_uzivatele'],
-            $r['ulice_a_cp_uzivatele'],
-            $r['psc_uzivatele'],
-            $r['skola'],
-            $r['ubytovan_s'],
-            $r['den_prvni'] === null
-                ? '-'
-                :
-                (new DateTimeCz(DEN_PRVNI_UBYTOVANI))->add("P$r[den_prvni]D")->format('j.n.Y'),
-            $r['den_posledni'] === null
-                ? '-'
-                :
-                (new DateTimeCz(DEN_PRVNI_UBYTOVANI))->add("P$r[den_posledni]D")->format('j.n.Y'),
-            typUbytovani($r['ubytovani_typ']),
-            $navstevnik->gcPritomen() ? 'ano' : 'ne',
-        ],
-        $ucastiHistorie,
-        [
-            $pobyt = ($r['den_prvni'] !== null ? $r['den_posledni'] - $r['den_prvni'] + 1 : 0),
-            $pobyt ? $finance->cenaUbytovani() / $pobyt : 0,
-            $finance->cenaUbytovani(),
-            $finance->cenaPredmety(),
-            $finance->cenaAktivity(),
-
-            $finance->bonusZaVedeniAktivit(),
-            $finance->vyuzityBonusZaAktivity(),
-            $finance->proplacenyBonusZaAktivity(),
-
-            $finance->vstupne(),
-            $finance->vstupnePozde(),
-            excelCislo($finance->stav()),
-            excelCislo($finance->slevaObecna()),  // Suma slev
-            excelCislo($r['zustatek']),
-            excelCislo($finance->sumaPlateb()), // připsané platby
-            excelDatum($navstevnik->prvniBlok()),
-            excelDatum($navstevnik->posledniBlok()),
-            $r['pomoc_typ'], // dobrovolník pozice
-            $r['pomoc_vice'], // dobrovolník info
-            implode(", ", array_merge($finance->slevyVse(), $finance->slevyAktivity())), // Dárky a zlevněné nákupy
-            strip_tags($finance->prehledPopis()), // Objednávky
-            strip_tags($r['poznamka'] ?? ''),
+            'Účastník'            => [
+                'ID'                => $r['id_uzivatele'],
+                'Příjmení'          => $r['prijmeni_uzivatele'],
+                'Jméno'             => $r['jmeno_uzivatele'],
+                'Přezdívka'         => $r['login_uzivatele'],
+                'Mail'              => $r['email1_uzivatele'],
+                'Pozice'            => $dejNazevPozice(explode(',', $r['idPravZDotazu'])),
+                'Židle'             => $r['zidleZDotazu'],
+                'Práva'             => nahradNazvyKonstantZaHodnoty($r['pravaZDotazu'] ?? ''),
+                'Datum registrace'  => excelDatum($r['prihlasen_na_gc_kdy']),
+                'Prošel infopultem' => excelDatum($r['prosel_infopultem_kdy']),
+                'Odjel kdy'         => excelDatum($r['odjel_kdy']),
+            ],
+            'Datum narození'      => [
+                'Den'   => date('j', strtotime($r['datum_narozeni'])),
+                'Měsíc' => date('n', strtotime($r['datum_narozeni'])),
+                'Rok'   => date('Y', strtotime($r['datum_narozeni'])),
+            ],
+            'Bydliště'            => [
+                'Stát'  => $stat,
+                'Město' => $r['mesto_uzivatele'],
+                'Ulice' => $r['ulice_a_cp_uzivatele'],
+                'PSČ'   => $r['psc_uzivatele'],
+                'Škola' => $r['skola'],
+            ],
+            'Ubytovací informace' => array_merge(
+                [
+                    'Chci bydlet s'          => $r['ubytovan_s'],
+                    'První noc'              => $r['den_prvni'] === null
+                        ? '-'
+                        :
+                        (new DateTimeCz(DEN_PRVNI_UBYTOVANI))->add("P$r[den_prvni]D")->format('j.n.Y'),
+                    'Poslední noc (počátek)' => $r['den_posledni'] === null
+                        ? '-'
+                        :
+                        (new DateTimeCz(DEN_PRVNI_UBYTOVANI))->add("P$r[den_posledni]D")->format('j.n.Y'),
+                    'Typ'                    => typUbytovani($r['ubytovani_typ']),
+                    'Dorazil na GC'          => $navstevnik->gcPritomen() ? 'ano' : 'ne',
+                ],
+                $ucastiHistorie
+            ),
         ],
         [
-            $finance->slevaZaAktivityVProcentech(), // sleva
-            dejPocetPlacekZdarma($navstevnik), // placka zdarma
-            dejPocetPlacekPlacenych($navstevnik), // placka GC placená
-            dejPocetKostekZdarma($navstevnik), // kostka zdarma
+            'Celkové náklady' => [
+                'Celkem dní'        => $pobyt = ($r['den_prvni'] !== null
+                    ? $r['den_posledni'] - $r['den_prvni'] + 1
+                    : 0
+                ),
+                'Cena / den'        => $pobyt ? $finance->cenaUbytovani() / $pobyt : 0,
+                'Ubytování'         => $finance->cenaUbytovani(),
+                'Předměty a strava' => $finance->cenaPredmetyAStrava(),
+            ],
+            'Ostatní platby'  => [
+                'Aktivity'                           => $finance->cenaAktivit(),
+                'Bonus za vedení aktivit'            => $finance->bonusZaVedeniAktivit(),
+                'Využitý bonus za vedení aktivit'    => $finance->vyuzityBonusZaAktivity(),
+                'Proplacený bonus za vedení aktivit' => $finance->proplacenyBonusZaAktivity(),
+                'dobrovolné vstupné'                 => $finance->vstupne(),
+                'dobrovolné vstupné (pozdě)'         => $finance->vstupnePozde(),
+                'stav'                               => excelCislo($finance->stav()),
+                'suma slev'                          => excelCislo($finance->slevaObecna()),
+                'zůstatek z minula'                  => excelCislo($r['zustatek']),
+                'připsané platby'                    => excelCislo($finance->sumaPlateb()),
+                'první blok'                         => excelDatum($navstevnik->prvniBlok()),
+                'poslední blok'                      => excelDatum($navstevnik->posledniBlok()),
+                'dobrovolník pozice'                 => $r['pomoc_typ'],
+                'dobrovolník info'                   => $r['pomoc_vice'],
+                'Dárky a zlevněné nákupy'            => implode(", ", array_merge($finance->slevyVse(), $finance->slevyAktivity())),
+                'Objednávky'                         => strip_tags($finance->prehledPopis()),
+                'Poznámka'                           => strip_tags($r['poznamka'] ?? ''),
+            ],
+            'Eshop'           => array_merge(
+                [
+                    'sleva'             => $finance->slevaZaAktivityVProcentech(),
+                    'placka zdarma'     => dejPocetPlacekZdarma($navstevnik),
+                    'placka GC placená' => dejPocetPlacekPlacenych($navstevnik),
+                    'kostka zdarma'     => dejPocetKostekZdarma($navstevnik),
+                ],
+                dejNazvyAPoctyKostek($navstevnik, $letosniKostky),
+                dejNazvyAPoctyJidel($navstevnik, $letosniJidla),
+                [
+                    'tričko zdarma'             => dejPocetTricekZdarma($navstevnik),
+                    'tílko zdarma'              => dejPocetTilekZdarma($navstevnik),
+                    'tričko se slevou'          => dejPocetTricekSeSlevou($navstevnik),
+                    'tílko se slevou'           => dejPocetTilekSeSlevou($navstevnik),
+                    'účastnické tričko placené' => dejPocetTricekPlacenych($navstevnik),
+                    'účastnické tílko placené'  => dejPocetTilekPlacenych($navstevnik),
+                ],
+                dejNazvyAPoctyOstatnichPredmetu($navstevnik, $letosniOstatniPredmety),
+//                $letosniOstatniPredmetyPocty,
+                dejNazvyAPoctyCovidTestu($navstevnik, $letosniCovidTesty) // "dát pls až nakonec", tak pravil Gandalf
+            ),
         ],
-        dejNazvyAPoctyKostek($navstevnik, $letosniKostky),
-        dejNazvyAPoctyJidel($navstevnik, $letosniJidla),
-        [
-            dejPocetTricekZdarma($navstevnik), // tričko zdarma
-            dejPocetTilekZdarma($navstevnik), // tílko zdarma
-            dejPocetTricekSeSlevou($navstevnik), // tričko se slevou
-            dejPocetTilekSeSlevou($navstevnik), // tílko se slevou
-            dejPocetTricekPlacenych($navstevnik), // účastnické tričko placené
-            dejPocetTilekPlacenych($navstevnik), // účastnické tílko placené
-        ],
-        dejNazvyAPoctyOstatnichPredmetu($navstevnik, $letosniOstatniPredmety),
-//        $letosniOstatniPredmetyPocty,
-        dejNazvyAPoctyCovidTestu($navstevnik, $letosniCovidTesty),
     );
 }
 
-Report::zPoli($hlavniHlavicka, $obsah)->tFormat(get('format'), null, 0);
+Report::zPoleSDvojitouHlavickou($obsah)->tFormat(get('format'), null, 0);

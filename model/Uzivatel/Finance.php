@@ -36,9 +36,9 @@ class Finance
         $slevyO = [],    // pole s textovými popisy obecných slev
         $proplacenyBonusZaVedeniAktivit = 0, // "sleva" za aktivity, nebo-li bonus vypravěče, nebo-li odměna za vedení hry, převedená na peníze
         // součásti výsledné ceny
-        $cenaAktivity = 0.0,  // cena aktivit
+        $cenaAktivit = 0.0,  // cena aktivit
         $cenaUbytovani = 0.0,  // cena objednaného ubytování
-        $cenaPredmety = 0.0,  // cena předmětů a dalších objednávek v shopu
+        $cenaPredmetyAStrava = 0.0,  // cena předmětů a dalších objednávek v shopu
         $cenaVstupne = 0.0,
         $cenaVstupnePozde = 0.0,
         $bonusZaVedeniAktivit = 0.0,  // sleva za tech. aktivity a odvedené aktivity
@@ -98,9 +98,9 @@ class Finance
         $this->zapoctiZustatekZPredchozichRocniku();
 
         $cena =
-            +$this->cenaPredmety
+            $this->cenaPredmetyAStrava
             + $this->cenaUbytovani
-            + $this->cenaAktivity;
+            + $this->cenaAktivit;
 
         $cena = $this->aplikujBonusZaVedeniAktivit($cena);
         $cena = $this->aplikujSlevy($cena);
@@ -116,24 +116,22 @@ class Finance
             + $this->sumaPlateb()
             + $this->zustatekZPredchozichRocniku, 2);
 
-        $this->logb('Aktivity', $this->cenaAktivity, self::AKTIVITA);
+        $this->logb('Aktivity', $this->cenaAktivit, self::AKTIVITA);
         $this->logb('Ubytování', $this->cenaUbytovani, self::UBYTOVANI);
-        $this->logb('Předměty a strava', $this->cenaPredmety, self::PREDMETY_STRAVA);
+        $this->logb('Předměty a strava', $this->cenaPredmetyAStrava, self::PREDMETY_STRAVA);
         $this->logb('Připsané platby', $this->sumaPlateb() + $this->zustatekZPredchozichRocniku, self::PLATBY_NADPIS);
         $this->logb('Stav financí', $this->stav(), self::VYSLEDNY);
     }
 
     /** Cena za uživatelovy aktivity */
-    public function cenaAktivity() {
-        return $this->cenaAktivity;
+    public function cenaAktivit() {
+        return $this->cenaAktivit;
     }
 
-    /** Cena za objednané předměty */
-    public function cenaPredmety() {
-        return $this->cenaPredmety;
+    public function cenaPredmetyAStrava() {
+        return $this->cenaPredmetyAStrava;
     }
 
-    /** Cena za objednané ubytování */
     public function cenaUbytovani() {
         return $this->cenaUbytovani;
     }
@@ -172,10 +170,10 @@ class Finance
             return;
         }
         $this->strukturovanyPrehled[] = [
-            'nazev' => trim($nazev),
-            'pocet' => $pocet,
+            'nazev'  => trim($nazev),
+            'pocet'  => $pocet,
             'castka' => $castka,
-            'typ' => $typ,
+            'typ'    => $typ,
         ];
     }
 
@@ -551,7 +549,7 @@ class Finance
         $a = $this->u->koncA();
         while ($r = mysqli_fetch_assoc($o)) {
             if ($r['cena'] >= 0) {
-                $this->cenaAktivity += $r['cena'];
+                $this->cenaAktivit += $r['cena'];
             } else {
                 if (!$this->u->maPravo(P_NEMA_BONUS_ZA_AKTIVITY)) {
                     $this->bonusZaVedeniAktivit -= $r['cena'];
@@ -627,7 +625,7 @@ SQL
                 }
                 $this->dobrovolneVstupnePrehled = $this->formatujProLog("{$r['nazev']} $cena.-", $cena, $r['typ'], $r['id_predmetu']);
             } else {
-                $this->cenaPredmety += $cena;
+                $this->cenaPredmetyAStrava += $cena;
             }
             // přidání roku do názvu
             if ($r['model_rok'] && $r['model_rok'] != ROK) {
