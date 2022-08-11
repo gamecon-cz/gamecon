@@ -25,7 +25,7 @@ function typUbytovani($typ) { // ubytování typ - z názvu předmětu odhadne t
 }
 
 // poradi je dulezite, udava prioritu
-$idZidliProPozici = [
+$idZidliProPozici    = [
     Zidle::ORGANIZATOR,
     Zidle::ORGANIZATOR_S_BONUSY_1,
     Zidle::ORGANIZATOR_S_BONUSY_2,
@@ -47,7 +47,7 @@ $dejNazevPozice = static function (array $idPrav) use ($jmenaZidliProPozici): st
 };
 
 $ucastPodleRoku = [];
-$maxRok = po(REG_GC_DO) ? ROK : ROK - 1;
+$maxRok         = po(REG_GC_DO) ? ROK : ROK - 1;
 for ($i = 2009; $i <= $maxRok; $i++) {
     $ucastPodleRoku[$i] = 'účast ' . $i;
 }
@@ -60,7 +60,7 @@ AND stav > 0
 SQL, [ROK]
 );
 
-$poradiKostek = [
+$poradiKostek    = [
     'kostka zdarma',
     'Kostka Cthulhu 2021',
     'Fate kostka 2021',
@@ -68,7 +68,7 @@ $poradiKostek = [
     'Kostka 2012',
 ];
 $poradiKostekSql = implode(',', $poradiKostek);
-$letosniKostky = dbFetchPairs(<<<SQL
+$letosniKostky   = dbFetchPairs(<<<SQL
 SELECT shop_predmety.id_predmetu, CONCAT_WS(' ', TRIM(shop_predmety.nazev), model_rok)
 FROM shop_predmety
 WHERE nazev LIKE '%kostka%' COLLATE utf8_czech_ci
@@ -109,13 +109,13 @@ SQL, [Shop::PREDMET]
 );
 
 $hlavicka = [
-    'Účastník' => ['ID', 'Příjmení', 'Jméno', 'Přezdívka', 'Mail', 'Pozice', 'Židle', 'Práva', 'Datum registrace', 'Prošel infopultem', 'Odjel kdy'],
-    'Datum narození' => ['Den', 'Měsíc', 'Rok'],
-    'Bydliště' => ['Stát', 'Město', 'Ulice', 'PSČ', 'Škola'],
+    'Účastník'            => ['ID', 'Příjmení', 'Jméno', 'Přezdívka', 'Mail', 'Pozice', 'Židle', 'Práva', 'Datum registrace', 'Prošel infopultem', 'Odjel kdy'],
+    'Datum narození'      => ['Den', 'Měsíc', 'Rok'],
+    'Bydliště'            => ['Stát', 'Město', 'Ulice', 'PSČ', 'Škola'],
     'Ubytovací informace' => array_merge(['Chci bydlet s', 'První noc', 'Poslední noc (počátek)', 'Typ', 'Dorazil na GC'], $ucastPodleRoku),
-    'Celkové náklady' => ['Celkem dní', 'Cena / den', 'Ubytování', 'Předměty a strava'],
-    'Ostatní platby' => ['Aktivity', 'Bonus za vedení aktivit', 'Využitý bonus za vedení aktivit', 'Proplacený bonus za vedení aktivit', 'dobrovolné vstupné', 'dobrovolné vstupné (pozdě)', 'stav', 'suma slev', 'zůstatek z minula', 'připsané platby', 'první blok', 'poslední blok', 'dobrovolník pozice', 'dobrovolník info', 'Dárky a zlevněné nákupy', 'Objednávky', 'Poznámka'],
-    'Eshop' => array_merge(
+    'Celkové náklady'     => ['Celkem dní', 'Cena / den', 'Ubytování', 'Předměty a strava'],
+    'Ostatní platby'      => ['Aktivity', 'Bonus za vedení aktivit', 'Využitý bonus za vedení aktivit', 'Proplacený bonus za vedení aktivit', 'dobrovolné vstupné', 'dobrovolné vstupné (pozdě)', 'stav', 'suma slev', 'zůstatek z minula', 'připsané platby', 'první blok', 'poslední blok', 'dobrovolník pozice', 'dobrovolník info', 'Dárky a zlevněné nákupy', 'Objednávky', 'Poznámka'],
+    'Eshop'               => array_merge(
         ['sleva', 'placka zdarma', 'placka GC placená', 'kostka zdarma'],
         $letosniKostky,
         $letosniJidla,
@@ -126,15 +126,15 @@ $hlavicka = [
 ];
 
 $rok = ROK;
-$o = dbQuery(<<<SQL
+$o   = dbQuery(<<<SQL
 SELECT
     uzivatele_hodnoty.*,
     prihlasen.posazen AS prihlasen_na_gc_kdy,
     pritomen.posazen as prosel_info_kdy,
     odjel.posazen as odjel_kdy,
-    ( SELECT MIN(shop_predmety.ubytovani_den) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=" . ROK . " AND shop_nakupy.id_uzivatele=r_uzivatele_zidle.id_uzivatele AND shop_predmety.typ=2 ) AS den_prvni,
-    ( SELECT MAX(shop_predmety.ubytovani_den) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=" . ROK . " AND shop_nakupy.id_uzivatele=r_uzivatele_zidle.id_uzivatele AND shop_predmety.typ=2 ) AS den_posledni,
-    ( SELECT MAX(shop_predmety.nazev) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=" . ROK . " AND shop_nakupy.id_uzivatele=r_uzivatele_zidle.id_uzivatele AND shop_predmety.typ=2 ) AS ubytovani_typ,
+    ( SELECT MIN(shop_predmety.ubytovani_den) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=$rok AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.typ=2 ) AS den_prvni,
+    ( SELECT MAX(shop_predmety.ubytovani_den) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=$rok AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.typ=2 ) AS den_posledni,
+    ( SELECT MAX(shop_predmety.nazev) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=$rok AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.typ=2 ) AS ubytovani_typ,
     ( SELECT GROUP_CONCAT(r_prava_soupis.jmeno_prava SEPARATOR ', ')
       FROM r_uzivatele_zidle
       JOIN r_prava_zidle ON r_uzivatele_zidle.id_zidle=r_prava_zidle.id_zidle
@@ -152,7 +152,7 @@ SELECT
       LEFT JOIN r_zidle_soupis ON r_uzivatele_zidle.id_zidle = r_zidle_soupis.id_zidle
       WHERE r_uzivatele_zidle.id_uzivatele=uzivatele_hodnoty.id_uzivatele AND r_uzivatele_zidle.id_zidle > 0
       GROUP BY r_uzivatele_zidle.id_uzivatele
-    ) as zidleZDotazu,
+    ) as zidleZDotazu
 FROM uzivatele_hodnoty
 LEFT JOIN r_uzivatele_zidle AS prihlasen ON(prihlasen.id_zidle = $0 AND prihlasen.id_uzivatele = uzivatele_hodnoty.id_uzivatele)
 LEFT JOIN r_uzivatele_zidle AS pritomen ON(pritomen.id_zidle = $1 AND pritomen.id_uzivatele = uzivatele_hodnoty.id_uzivatele)
@@ -169,7 +169,7 @@ if (mysqli_num_rows($o) === 0) {
 }
 
 $hlavniHlavicka = [];
-$obsah = [0 => []];
+$obsah          = [0 => []];
 foreach ($hlavicka as $hlavni => $vedlejsiHlavicka) {
     $hlavniHlavicka[] = $hlavni;
     for ($vypln = 0, $celkemVyplne = count($vedlejsiHlavicka) - 1; $vypln < $celkemVyplne; $vypln++) {
@@ -180,16 +180,16 @@ foreach ($hlavicka as $hlavni => $vedlejsiHlavicka) {
     }
 }
 
-$letosniPlackyKlice = array_fill_keys($letosniPlacky, null);
-$letosniKostkyKlice = array_fill_keys($letosniKostky, null);
-$letosniJidlaKlice = array_fill_keys($letosniJidla, null);
+$letosniPlackyKlice          = array_fill_keys($letosniPlacky, null);
+$letosniKostkyKlice          = array_fill_keys($letosniKostky, null);
+$letosniJidlaKlice           = array_fill_keys($letosniJidla, null);
 $letosniOstatniPredmetyKlice = array_fill_keys($letosniOstatniPredmety, null);
-$letosniCovidTestyKlice = array_fill_keys($letosniCovidTesty, null);
+$letosniCovidTestyKlice      = array_fill_keys($letosniCovidTesty, null);
 
 while ($r = mysqli_fetch_assoc($o)) {
     $navstevnik = new Uzivatel($r);
     $navstevnik->nactiPrava(); // sql subdotaz, zlo
-    $finance = $navstevnik->finance();
+    $finance        = $navstevnik->finance();
     $ucastiHistorie = [];
     foreach ($ucastPodleRoku as $rok => $nul) {
         $ucastiHistorie[] = $navstevnik->maPravo((int)('-' . substr($rok, 2) . '02')) ? 'ano' : 'ne';
@@ -224,10 +224,12 @@ while ($r = mysqli_fetch_assoc($o)) {
             $r['psc_uzivatele'],
             $r['skola'],
             $r['ubytovan_s'],
-            $r['den_prvni'] === null ? '-' :
-                (new DateTimeCz(DEN_PRVNI_UBYTOVANI))->add(new \DateInterval("P$r[den_prvni]D"))->format('j.n.Y'),
-            $r['den_posledni'] === null ? '-' :
-                (new DateTimeCz(DEN_PRVNI_UBYTOVANI))->add(new \DateInterval("P$r[den_posledni]D"))->format('j.n.Y'),
+            $r['den_prvni'] === null
+                    ? '-'
+                : (new DateTimeCz(DEN_PRVNI_UBYTOVANI))->add(new \DateInterval("P$r[den_prvni]D"))->format('j.n.Y'),
+            $r['den_posledni'] === null
+                    ? '-'
+     : (new DateTimeCz(DEN_PRVNI_UBYTOVANI))->add(new \DateInterval("P$r[den_posledni]D"))->format('j.n.Y'),
             typUbytovani($r['ubytovani_typ']),
             $navstevnik->gcPritomen() ? 'ano' : 'ne',
         ],
