@@ -51,14 +51,15 @@ class Finance
         $datumPosledniPlatby;        // datum poslední připsané platby
 
     private $kategorieNeplatice;
+    private $dobrovolneVstupnePrehled;
 
     private static $maxSlevaAktivit = 100; // v procentech
     private static $bonusZaVedeniAktivity = [ // ve formátu max. délka => sleva
-        1 => BONUS_ZA_1H_AKTIVITU,
-        2 => BONUS_ZA_2H_AKTIVITU,
-        5 => BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU,
-        7 => BONUS_ZA_6H_AZ_7H_AKTIVITU,
-        9 => BONUS_ZA_8H_AZ_9H_AKTIVITU,
+        1  => BONUS_ZA_1H_AKTIVITU,
+        2  => BONUS_ZA_2H_AKTIVITU,
+        5  => BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU,
+        7  => BONUS_ZA_6H_AZ_7H_AKTIVITU,
+        9  => BONUS_ZA_8H_AZ_9H_AKTIVITU,
         11 => BONUS_ZA_10H_AZ_11H_AKTIVITU,
         13 => BONUS_ZA_12H_AZ_13H_AKTIVITU,
     ];
@@ -83,7 +84,7 @@ class Finance
      * @param float $zustatek zůstatek na účtu z minulých GC
      */
     function __construct(\Uzivatel $u, float $zustatek) {
-        $this->u = $u;
+        $this->u                           = $u;
         $this->zustatekZPredchozichRocniku = $zustatek;
 
         $this->zapoctiVedeniAktivit();
@@ -172,14 +173,18 @@ class Finance
         if (!$this->logovat) {
             return;
         }
+        // přidání
+        $this->prehled[] = $this->formatujProLog($nazev, $castka, $kategorie, $idPolozky);
+    }
+
+    private function formatujProLog($nazev, $castka, $kategorie = null, $idPolozky = null): array {
         if (is_numeric($castka)) {
             $castka = round($castka);
         }
-        // přidání
-        $this->prehled[] = [
-            'nazev' => $nazev,
-            'castka' => $castka,
-            'kategorie' => $kategorie,
+        return [
+            'nazev'      => $nazev,
+            'castka'     => $castka,
+            'kategorie'  => $kategorie,
             'id_polozky' => $idPolozky,
         ];
     }
@@ -198,7 +203,7 @@ class Finance
      */
     function datumPosledniPlatby() {
         if (!isset($this->datumPosledniPlatby)) {
-            $uid = $this->u->id();
+            $uid                       = $this->u->id();
             $this->datumPosledniPlatby = dbOneCol("
         SELECT max(provedeno) as datum
         FROM platby
@@ -210,16 +215,19 @@ class Finance
 
     /**
      * Vrátí html formátovaný přehled financí
-     * @param null|int[] $jekKategorieIds
+     * @param null|int[] $jenKategorieIds
      * @param boolean $vcetneCeny
      * @param boolean $vcetneMazani
      */
-    function prehledHtml(array $jekKategorieIds = null, bool $vcetneCeny = true, bool $vcetneMazani = false) {
-        $out = '<table class="objednavky">';
+    function prehledHtml(array $jenKategorieIds = null, bool $vcetneCeny = true, bool $vcetneMazani = false) {
+        $out     = '<table class="objednavky">';
         $prehled = $this->serazenyPrehled();
-        if ($jekKategorieIds) {
-            $prehled = array_filter($prehled, function ($radekPrehledu) use ($jekKategorieIds) {
-                return in_array($radekPrehledu['kategorie'], $jekKategorieIds);
+        if ($jenKategorieIds) {
+            if (in_array(TypPredmetu::VSTUPNE, $jenKategorieIds) && $this->dobrovolneVstupnePrehled) {
+                $prehled[] = $this->dobrovolneVstupnePrehled;
+            }
+            $prehled = array_filter($prehled, static function ($radekPrehledu) use ($jenKategorieIds) {
+                return in_array($radekPrehledu['kategorie'], $jenKategorieIds);
             });
             // Infopult nechce mikronadpisy, pokud je přehled omezen jen na pár kategorií
             $prehled = array_filter($prehled, static function ($radekPrehledu) {
@@ -237,7 +245,7 @@ class Finance
             if ($vcetneMazani) {
                 if (!empty($radekPrehledu['id_polozky'])) {
                     $klicZrusNakuppolozky = self::KLIC_ZRUS_NAKUP_POLOZKY;
-                    $mazaniRow = <<<HTML
+                    $mazaniRow            = <<<HTML
                         <td xmlns="http://www.w3.org/1999/html">
                             <form method="post" onsubmit="return confirm('Opravdu zrušit objednávku {$radekPrehledu['nazev']}?')">
                                 <input type="hidden" name="$klicZrusNakuppolozky" value="{$radekPrehledu['id_polozky']}">
@@ -290,11 +298,11 @@ class Finance
             'platby',
             [
                 'id_uzivatele' => $this->u->id(),
-                'fio_id' => $idFioPlatby ?: null,
-                'castka' => $castka,
-                'rok' => ROK,
-                'provedl' => $provedl->id(),
-                'poznamka' => $poznamka ?: null,
+                'fio_id'       => $idFioPlatby ?: null,
+                'castka'       => $castka,
+                'rok'          => ROK,
+                'provedl'      => $provedl->id(),
+                'poznamka'     => $poznamka ?: null,
             ]
         );
     }
@@ -417,11 +425,11 @@ class Finance
             // výpočet pravidel
             if ($this->u->maPravo(P_AKTIVITY_ZDARMA)) {
                 // sleva 100%
-                $sleva += 100;
+                $sleva          += 100;
                 $this->slevyA[] = 'sleva 100%';
             } elseif ($this->u->maPravo(P_AKTIVITY_SLEVA)) {
                 // sleva 40%
-                $sleva += 40;
+                $sleva          += 40;
                 $this->slevyA[] = 'sleva 40%';
             }
             if ($sleva > self::$maxSlevaAktivit) {
@@ -451,11 +459,11 @@ class Finance
      * Započítá do mezisoučtů aktivity uživatele
      */
     private function zapoctiAktivity() {
-        $scn = $this->soucinitelAktivit();
-        $rok = ROK;
-        $uid = $this->u->id();
-        $technicka = TypAktivity::TECHNICKA;
-        $nedorazil = StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL;
+        $scn         = $this->soucinitelAktivit();
+        $rok         = ROK;
+        $uid         = $this->u->id();
+        $technicka   = TypAktivity::TECHNICKA;
+        $nedorazil   = StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL;
         $pozdeZrusil = StavPrihlaseni::POZDE_ZRUSIL;
 
         $o = dbQuery("
@@ -509,7 +517,7 @@ class Finance
 
     public function sumaPlateb(int $rok = ROK): float {
         if (!isset($this->sumyPlatebVRocich[$rok])) {
-            $result = dbQuery(<<<SQL
+            $result     = dbQuery(<<<SQL
 SELECT
     IF(provedl=1,
       CONCAT(DATE_FORMAT(provedeno,'%e.%c.'),' Platba na účet'),
@@ -554,6 +562,7 @@ SQL
                 } else {
                     $this->cenaVstupnePozde = $cena;
                 }
+                $this->dobrovolneVstupnePrehled = $this->formatujProLog("{$r['nazev']} $cena.-", $cena, $r['typ'], $r['id_predmetu']);
             } else {
                 $this->cenaPredmety += $cena;
             }
@@ -564,9 +573,9 @@ SQL
             // logování do výpisu
             if (in_array($r['typ'], [TypPredmetu::PREDMET, TypPredmetu::TRICKO])) {
                 $soucty[$r['id_predmetu']]['nazev'] = $r['nazev'];
-                $soucty[$r['id_predmetu']]['typ'] = $r['typ'];
+                $soucty[$r['id_predmetu']]['typ']   = $r['typ'];
                 $soucty[$r['id_predmetu']]['pocet'] = ($soucty[$r['id_predmetu']]['pocet'] ?? 0) + 1;
-                $soucty[$r['id_predmetu']]['suma'] = ($soucty[$r['id_predmetu']]['suma'] ?? 0) + $cena;
+                $soucty[$r['id_predmetu']]['suma']  = ($soucty[$r['id_predmetu']]['suma'] ?? 0) + $cena;
             } elseif ($r['typ'] == Shop::VSTUPNE) {
                 $this->logb($r['nazev'], $cena, self::VSTUPNE);
             } elseif ($r['typ'] == Shop::PROPLACENI_BONUSU) {
