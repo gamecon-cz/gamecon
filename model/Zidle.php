@@ -90,7 +90,7 @@ class Zidle extends \DbObject
         $idZidli = array_map(static function ($idZidle) {
             return (int)$idZidle;
         }, $idsZidli);
-        $maZidle = array_intersect($idZidli, self::dejIdZidliSOrganizatory());
+        $maZidle = array_intersect($idZidli, self::dejIdckaZidliSOrganizatory());
         return count($maZidle) > 0;
     }
 
