@@ -132,9 +132,9 @@ if (isset($_GET['minimum'])) {
             $x->assign([
                 'login' => $un->prezdivka(),
                 'stav' => $stav,
-                'aktivity' => $un->finance()->cenaAktivity(),
+                'aktivity' => $un->finance()->cenaAktivit(),
                 'ubytovani' => $un->finance()->cenaUbytovani(),
-                'predmety' => $un->finance()->cenaPredmety(),
+                'predmety' => $un->finance()->cenaPredmetyAStrava(),
             ]);
             $x->parse('finance.uzivatele.uzivatel');
             $ids .= $un->id() . ',';
