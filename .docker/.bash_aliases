@@ -1,5 +1,6 @@
 alias ll="ls -alF"
 alias cu="composer update"
 alias ci="composer install"
+alias cr="composer require"
 alias pu="./vendor/bin/phpunit"
 alias puf="./vendor/bin/phpunit --filter"

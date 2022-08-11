@@ -74,7 +74,7 @@ if (defined('FIO_TOKEN') && FIO_TOKEN !== '') {
 }
 
 logs('Odemykám zamčené týmové aktivity...');
-$i = Aktivita::odemciTeamoveHromadne();
+$i = Aktivita::odemciTeamoveHromadne(Uzivatel::zId(Uzivatel::SYSTEM));
 logs("odemčeno $i týmových aktivit.");
 
 logs('Zamykám před veřejností už běžící, dosud nezamčené aktivity...');

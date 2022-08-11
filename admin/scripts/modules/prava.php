@@ -7,7 +7,8 @@
  * pravo: 106
  */
 
-use \Gamecon\Cas\DateTimeCz;
+use Gamecon\Cas\DateTimeCz;
+use Gamecon\XTemplate\XTemplate;
 
 /** @var Uzivatel|null $uPracovni */
 /** @var Uzivatel $u */

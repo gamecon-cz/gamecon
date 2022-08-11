@@ -2,9 +2,6 @@
 
 require_once __DIR__ . '/nastaveni-jakublounek.php';
 
-define('DBM_NAME', DB_NAME);
-define('DBM_SERV', DB_SERV);
-
 define('URL_WEBU', 'http://jakublounek.gamecon.cz'); // absolutní url uživatelského webu
 define('URL_ADMIN', 'http://admin.jakublounek.gamecon.cz'); // absolutní url adminu
 define('URL_CACHE', 'http://cache.jakublounek.gamecon.cz'); // url sdílených cachí

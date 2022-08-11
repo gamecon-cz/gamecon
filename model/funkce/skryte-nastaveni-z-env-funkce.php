@@ -12,9 +12,12 @@ function vytvorSouborSkrytehoNastaveniPodleEnv(string $souborVerejnehoNastaveni)
         $MIGRACE_HESLO          = getenv('MIGRACE_HESLO');
         $SECRET_CRYPTO_KEY      = getenv('SECRET_CRYPTO_KEY');
         $CRON_KEY               = getenv('CRON_KEY');
-        $GOOGLE_API_CREDENTIALS = json_decode(getenv('GOOGLE_API_CREDENTIALS') ?: '{}', true);
-        $ted = date(DATE_ATOM);
+        $GOOGLE_API_CREDENTIALS = getenv('GOOGLE_API_CREDENTIALS') ?: '{}';
+        $FIO_TOKEN              = getenv('FIO_TOKEN');
+
+        $ted             = date(DATE_ATOM);
         $nazevTetoFunkce = __FUNCTION__;
+
         file_put_contents($souborSkrytehoNastaveni, <<<PHP
 <?php
 // vygenerováno $ted v $nazevTetoFunkce
@@ -33,7 +36,9 @@ define('MIGRACE_HESLO', '$MIGRACE_HESLO');
 define('SECRET_CRYPTO_KEY', '$SECRET_CRYPTO_KEY');
 
 define('CRON_KEY', '$CRON_KEY');
-define('GOOGLE_API_CREDENTIALS', '$GOOGLE_API_CREDENTIALS');
+define('GOOGLE_API_CREDENTIALS', json_decode('$GOOGLE_API_CREDENTIALS', true));
+
+define('FIO_TOKEN', '$FIO_TOKEN'); // platnost do 11.9.2030
 PHP
         );
     }

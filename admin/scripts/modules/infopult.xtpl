@@ -266,7 +266,14 @@
 
   <!-- begin:objednavky -->
   <div class="infopult-grid--item infopult-grid--item-predmety aBox">
-    <h3>Objednávky předmětů</h3>
+    <h3>
+      <!-- begin:nadpisJenPredmety -->
+      Objednávky předmětů
+      <!-- end:nadpisJenPredmety -->
+      <!-- begin:nadpisVse -->
+      Objednávky
+      <!-- end:nadpisVse -->
+    </h3>
     {prehledPredmetu}
   </div>
   <!-- end:objednavky -->

@@ -3,6 +3,7 @@
 use Gamecon\Shop\ShopUbytovani;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Shop\Shop;
+use Gamecon\XTemplate\XTemplate;
 
 class UbytovaniTabulka
 {

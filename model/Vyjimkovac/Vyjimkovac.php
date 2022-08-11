@@ -2,6 +2,8 @@
 
 namespace Gamecon\Vyjimkovac;
 
+use Gamecon\XTemplate\Exceptions\XTemplateRecompilationException;
+
 /**
  * Třída starající se o zpracování, zobrazení a zaznamenávání výjimek a chyb
  */
@@ -53,7 +55,7 @@ class Vyjimkovac implements Logovac
         set_exception_handler(function ($e) {
             if ($e instanceof \Chyba) {
                 $e->zpet(); // u zobrazitelných chyb ignorovat a jen zobrazit upo
-            } elseif ($e instanceof \XTemplateRecompilationException) {
+            } elseif ($e instanceof XTemplateRecompilationException) {
                 back($_SERVER['REQUEST_URI']);
             } else {
                 $this->zpracuj($e);

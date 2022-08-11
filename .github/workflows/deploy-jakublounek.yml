@@ -54,3 +54,4 @@ jobs:
           SECRET_CRYPTO_KEY: ${{ secrets.JAKUBLOUNEK_SECRET_CRYPTO_KEY }}
           CRON_KEY: ${{ secrets.JAKUBLOUNEK_CRON_KEY }}
           GOOGLE_API_CREDENTIALS: ${{ secrets.JAKUBLOUNEK_GOOGLE_API_CREDENTIALS }}
+          FIO_TOKEN: ${{ secrets.JAKUBLOUNEK_FIO_TOKEN }}

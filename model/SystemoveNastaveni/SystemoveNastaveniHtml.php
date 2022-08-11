@@ -3,6 +3,7 @@
 namespace Gamecon\SystemoveNastaveni;
 
 use Gamecon\Cas\DateTimeCz;
+use Gamecon\XTemplate\XTemplate;
 
 class SystemoveNastaveniHtml
 {
@@ -19,7 +20,7 @@ class SystemoveNastaveniHtml
     }
 
     public function zobrazHtml() {
-        $template = new \XTemplate(__DIR__ . '/templates/nastaveni.xtpl');
+        $template = new XTemplate(__DIR__ . '/templates/nastaveni.xtpl');
 
         $template->assign('ajaxKlic', SystemoveNastaveniAjax::AJAX_KLIC);
         $template->assign('postKlic', SystemoveNastaveniAjax::POST_KLIC);
@@ -29,14 +30,14 @@ class SystemoveNastaveniHtml
         $template->assign('systemoveNastavenJsVerze', md5_file(__DIR__ . '/../../admin/files/systemove-nastaveni.js'));
 
         $zaznamyNastaveniProHtml = $this->dejZaznamyNastaveniProHtml();
-        $zaznamyPodleSkupin = $this->seskupPodleSkupin($zaznamyNastaveniProHtml);
+        $zaznamyPodleSkupin      = $this->seskupPodleSkupin($zaznamyNastaveniProHtml);
 
         foreach ($zaznamyPodleSkupin as $skupina => $zaznamyJedneSkupiny) {
             $this->vypisSkupinu($skupina, $zaznamyJedneSkupiny, $template);
         }
 
         if ($this->systemoveNastaveni->jsmeNaBete()) {
-            $templateBeta = new \XTemplate(__DIR__ . '/templates/nastaveni-beta.xtpl');
+            $templateBeta = new XTemplate(__DIR__ . '/templates/nastaveni-beta.xtpl');
             $templateBeta->assign('synchronniPostKlic', self::SYNCHRONNI_POST_KLIC);
             $templateBeta->assign('zkopirovatOstrou', self::KLIC_ZKOPIROVAT_OSTROU);
             $templateBeta->parse('nastaveniBeta');
@@ -64,7 +65,7 @@ class SystemoveNastaveniHtml
         return $zaznamyPodleSkupin;
     }
 
-    private function vypisSkupinu(string $skupina, array $zaznamy, \XTemplate $template) {
+    private function vypisSkupinu(string $skupina, array $zaznamy, XTemplate $template) {
         $template->assign('nazevSkupiny', mb_ucfirst($skupina));
         $template->parse('nastaveni.skupina.nazev');
 
@@ -138,24 +139,24 @@ class SystemoveNastaveniHtml
             $hodnotyNastaveni,
             function (array &$zaznam) {
                 $zaznam['posledniZmena'] = (new \Gamecon\Cas\DateTimeCz($zaznam['kdy']))->relativni();
-                $zaznam['zmenil'] = '<strong>' . ($zaznam['id_uzivatele']
+                $zaznam['zmenil']        = '<strong>' . ($zaznam['id_uzivatele']
                         ? \Uzivatel::zId($zaznam['id_uzivatele'])->jmenoNick()
                         : '<i>SQL migrace</i>'
                     ) . '</strong><br>' . (new \Gamecon\Cas\DateTimeCz($zaznam['kdy']))->formatCasStandard();;
-                $zaznam['inputType'] = $this->dejHtmlInputType($zaznam['datovy_typ']);
-                $zaznam['tagInputType'] = $this->dejHtmlTagInputType($zaznam['datovy_typ']);
-                $zaznam['inputValue'] = $this->dejHtmlInputValue($zaznam['hodnota'], $zaznam['datovy_typ']);
-                $zaznam['vychoziHodnotaValue'] = $this->dejHtmlInputValue($zaznam['vychozi_hodnota'], $zaznam['datovy_typ']);
-                $zaznam['checked'] = $zaznam['aktivni']
+                $zaznam['inputType']                  = $this->dejHtmlInputType($zaznam['datovy_typ']);
+                $zaznam['tagInputType']               = $this->dejHtmlTagInputType($zaznam['datovy_typ']);
+                $zaznam['inputValue']                 = $this->dejHtmlInputValue($zaznam['hodnota'], $zaznam['datovy_typ']);
+                $zaznam['vychoziHodnotaValue']        = $this->dejHtmlInputValue($zaznam['vychozi_hodnota'], $zaznam['datovy_typ']);
+                $zaznam['checked']                    = $zaznam['aktivni']
                     ? 'checked'
                     : '';
-                $zaznam['disabled'] = $zaznam['vychozi_hodnota'] === ''
+                $zaznam['disabled']                   = $zaznam['vychozi_hodnota'] === ''
                     ? 'disabled'
                     : '';
                 $zaznam['vychoziHodnotaDisplayClass'] = $zaznam['aktivni']
                     ? 'display-none'
                     : '';
-                $zaznam['hodnotaDisplayClass'] = !$zaznam['aktivni']
+                $zaznam['hodnotaDisplayClass']        = !$zaznam['aktivni']
                     ? 'display-none'
                     : '';
             }

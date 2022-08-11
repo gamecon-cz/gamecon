@@ -5,7 +5,7 @@ use Gamecon\Shop\Shop;
 use Gamecon\Cas\DateTimeGamecon;
 
 /**
- * @var XTemplate $t
+ * @var \Gamecon\XTemplate\XTemplate $t
  * @var Uzivatel $u
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
@@ -84,7 +84,7 @@ if (po(REG_GC_DO)) {
     return;
 }
 
-$shop = new Shop($u, null, $systemoveNastaveni);
+$shop  = new Shop($u, null, $systemoveNastaveni);
 $pomoc = new Pomoc($u);
 
 if (post('odhlasit')) {
@@ -144,51 +144,55 @@ $nahledy = [
 ];
 foreach ($nahledy as $nahled) {
     $cestaKObrazku = cestaKObrazkuPredmetu($nahled['obrazek']);
-    $chybiObrazek = false;
+    $chybiObrazek  = false;
     try {
         $obrazek = nahledPredmetu($cestaKObrazku);
     } catch (\RuntimeException $runtimeException) {
-        $obrazek = $cestaKObrazku;
+        $obrazek      = $cestaKObrazku;
         $chybiObrazek = true;
     }
 
     $cestaKMiniature = cestaKObrazkuPredmetu($nahled['miniatura']);
-    $chybiMiniatura = false;
+    $chybiMiniatura  = false;
     try {
         $miniatura = nahledPredmetu($cestaKMiniature);
     } catch (\RuntimeException $runtimeException) {
-        $miniatura = $cestaKObrazku;
+        $miniatura      = $cestaKObrazku;
         $chybiMiniatura = true;
     }
 
     $t->assign([
-        'obrazek' => $obrazek,
+        'obrazek'   => $obrazek,
         'miniatura' => $miniatura,
-        'nazev' => $nahled['nazev'],
-        'display' => ($chybiObrazek || $chybiMiniatura) && (!$u || !$u->maPravo(\Gamecon\Pravo::ADMINISTRACE_INFOPULT))
+        'nazev'     => $nahled['nazev'],
+        'display'   => ($chybiObrazek || $chybiMiniatura) && (!$u || !$u->maPravo(\Gamecon\Pravo::ADMINISTRACE_INFOPULT))
             ? 'none'
             : 'inherit',
     ]);
     $t->parse('prihlaska.nahled');
 }
 
+$qrObrazekProPlatbu = $u->finance()->dejQrKodProPlatbu();
+
 $t->assign([
-    'a' => $u->koncovkaDlePohlavi(),
-    'jidlo' => $shop->jidloHtml(),
-    'jidloObjednatelneDo' => $shop->jidloObjednatelneDoHtml(),
-    'predmety' => $shop->predmetyHtml(),
-    'trickaObjednatelnaDo' => $shop->trickaObjednatelnaDoHtml(),
+    'a'                               => $u->koncovkaDlePohlavi(),
+    'jidlo'                           => $shop->jidloHtml(),
+    'jidloObjednatelneDo'             => $shop->jidloObjednatelneDoHtml(),
+    'predmety'                        => $shop->predmetyHtml(),
+    'trickaObjednatelnaDo'            => $shop->trickaObjednatelnaDoHtml(),
     'predmetyBezTricekObjednatelneDo' => $shop->predmetyBezTricekObjednatelneDoHtml(),
-    'rok' => ROK,
-    'ubytovani' => $shop->ubytovaniHtml(),
-    'ubytovaniObjednatelneDo' => $shop->ubytovaniObjednatelneDoHtml(),
-    'covidSekce' => VYZADOVANO_COVID_POTVRZENI ? $covidSekceFunkce($shop) : '',
-    'ulozitNeboPrihlasit' => $u->gcPrihlasen()
+    'rok'                             => ROK,
+    'ubytovani'                       => $shop->ubytovaniHtml(),
+    'ubytovaniObjednatelneDo'         => $shop->ubytovaniObjednatelneDoHtml(),
+    'covidSekce'                      => VYZADOVANO_COVID_POTVRZENI ? $covidSekceFunkce($shop) : '',
+    'qrPlatbaMimeType'                => $qrObrazekProPlatbu->getMimeType(),
+    'qrPlatbaBase64'                  => base64_encode($qrObrazekProPlatbu->getString()),
+    'ulozitNeboPrihlasit'             => $u->gcPrihlasen()
         ? 'Uložit změny'
         : 'Přihlásit na GameCon',
-    'vstupne' => $shop->vstupneHtml(),
-    'pomoc' => $pomoc->html(),
-    'zaplatitNejpozdejiDo' => DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani()->format('j. n.'),
+    'vstupne'                         => $shop->vstupneHtml(),
+    'pomoc'                           => $pomoc->html(),
+    'zaplatitNejpozdejiDo'            => DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani()->format('j. n.'),
 ]);
 
 $t->parse($u->gcPrihlasen()

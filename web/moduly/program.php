@@ -3,7 +3,7 @@
 use \Gamecon\Cas\DateTimeCz;
 
 /** @var Modul $this */
-/** @var XTemplate $t */
+/** @var \Gamecon\XTemplate\XTemplate $t */
 /** @var Uzivatel $u */
 /** @var url $url */
 
@@ -37,7 +37,7 @@ if ($url->cast(1) === 'muj') {
 $this->info()->nazev($title);
 
 $program = new Program($u, $nastaveni);
-$program->zpracujPost();
+$program->zpracujPost($u);
 
 $this->pridejCssUrl($program->cssUrl());
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program-nahled/program-nahled.js');

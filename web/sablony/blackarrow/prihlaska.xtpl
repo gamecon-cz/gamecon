@@ -20,6 +20,14 @@
   </div>
 </div>
 
+<style>
+  @keyframes blinker {
+    50% {
+      opacity: 0;
+    }
+  }
+</style>
+
 <form method="post" class="prihlaska" enctype="multipart/form-data">
 
   <!----------------------------------------------------------------------------->

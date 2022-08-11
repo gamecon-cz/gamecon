@@ -7,6 +7,7 @@ use Gamecon\Aktivita\Aktivita;
 use Gamecon\Pravo;
 use Gamecon\Zidle;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\XTemplate\XTemplate;
 
 /**
  * Třída popisující uživatele a jeho vlastnosti
@@ -246,7 +247,7 @@ SQL
      * @todo Možná vyhodit výjimku, pokud už prošel infem, místo pouhého neudělání nic?
      * @todo Při odhlášení z GC pokud jsou zakázané rušení nákupů může být též problém (k zrušení dojde)
      */
-    public function gcOdhlas(Uzivatel $editor): bool {
+    public function gcOdhlas(Uzivatel $odhlasujici): bool {
         if (!$this->gcPrihlasen()) {
             return false;
         }
@@ -275,10 +276,14 @@ SQL
             trigger_error($throwable->getMessage() . '; ' . $throwable->getTraceAsString(), E_USER_WARNING);
         }
         foreach ($this->aktivityRyzePrihlasene() as $aktivita) {
-            $aktivita->odhlas($this, Aktivita::NEPOSILAT_MAILY_SLEDUJICIM /* nechceme posílat maily sledujícím, že se uvolnilo místo */);
+            $aktivita->odhlas(
+                $this,
+                $odhlasujici,
+                Aktivita::NEPOSILAT_MAILY_SLEDUJICIM /* nechceme posílat maily sledujícím, že se uvolnilo místo */
+            );
         }
         // finální odebrání židle "registrován na GC"
-        $this->vemZidli(Zidle::PRIHLASEN_NA_LETOSNI_GC, $editor);
+        $this->vemZidli(Zidle::PRIHLASEN_NA_LETOSNI_GC, $odhlasujici);
         // zrušení nákupů (až po použití dejShop a ubytovani)
         dbQuery('DELETE FROM shop_nakupy WHERE rok=' . ROK . ' AND id_uzivatele=' . $this->id());
 
@@ -471,7 +476,7 @@ SQL,
         return array_filter($povinneUdaje, $validator, ARRAY_FILTER_USE_KEY);
     }
 
-    public function maPravo($pravo) {
+    public function maPravo($pravo): bool {
         return in_array($pravo, $this->prava());
     }
 
@@ -997,6 +1002,7 @@ SQL,
             if ($u2 && $u && $u2->id() != $u->id()) {
                 return 'e-mail už je zabraný. Pokud je tvůj, resetuj si heslo';
             }
+            return '';
         };
 
         $validaceHesla = function ($heslo) use ($dbTab) {
@@ -1008,6 +1014,7 @@ SQL,
             ) {
                 return 'hesla se neshodují';
             }
+            return '';
         };
 
         $validace = [
@@ -1320,8 +1327,8 @@ SQL,
     }
 
     /** Vrátí kód státu ve formátu ISO 3166-1 alpha-2 https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2 */
-    public function stat() {
-        return \Gamecon\Stat::dejKodStatuPodleId((int)$this->u['stat_uzivatele']);
+    public function stat(): ?string {
+        return \Gamecon\Stat::dejKodStatuPodleId($this->u['stat_uzivatele'] ? (int)$this->u['stat_uzivatele'] : null);
     }
 
     /**

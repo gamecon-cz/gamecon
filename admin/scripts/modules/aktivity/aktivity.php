@@ -1,5 +1,6 @@
 <?php
 
+use Gamecon\XTemplate\XTemplate;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\TypAktivity;
 
@@ -18,7 +19,7 @@ use Gamecon\Aktivita\TypAktivity;
 if (post('smazat')) {
     $a = Aktivita::zId(post('aktivitaId'));
     if ($a) {
-        $a->smaz();
+        $a->smaz($u);
     }
     back();
 }
@@ -79,7 +80,7 @@ $aktivity = Aktivita::zFiltru($filtr, $razeni);
 
 if (defined('TESTING') && TESTING && !empty($filtr['typ']) && post('smazatVsechnyTypu')) {
     foreach ($aktivity as $aktivita) {
-        $aktivita->smaz();
+        $aktivita->smaz($u);
     }
     back();
 }

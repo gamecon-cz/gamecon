@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\XTemplate\XTemplate;
+
 class FiltrMoznosti
 {
     public const FILTROVAT_PODLE_ROKU = true;

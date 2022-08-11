@@ -7,7 +7,7 @@ use Gamecon\Vyjimkovac\Logovac;
 use Gamecon\Zidle;
 use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
 
-/** @var XTemplate $template */
+/** @var \Gamecon\XTemplate\XTemplate $template */
 /** @var \Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService $googleDriveService */
 /** @var \Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService $googleSheetsService */
 /** @var int $currentUserId */

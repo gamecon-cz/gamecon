@@ -254,6 +254,7 @@ define('SUPERADMINI', [4032 /* Jaroslav "Kostřivec" Týc */, 1112 /* Lenka "Cem
 @define('SQL_MIGRACE_DIR', __DIR__ . '/../migrace');
 @define('ZALOHA_DB_SLOZKA', __DIR__ . '/../backup/db'); // cesta pro zálohy databáze
 @define('ADMIN_STAMPS', rtrim(ADMIN, '/') . '/stamps');
+@define('NAZEV_SPOLECNOSTI_GAMECON', 'GameCon z.s.');
 
 @define('AUTOMATICKE_MIGRACE', false);
 @define('AUTOMATICKA_TVORBA_DB', false);

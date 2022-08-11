@@ -239,7 +239,9 @@
 
           <div id="emaily-{idAktivity}" style="padding: 0.5em 0" class="row">
             <div class="col-xl col-md col-sm text-sm-center text-md-start align-self-center">
-              <i class="far fa-envelope"></i> <a href="mailto:?bcc={emailyHref}">{emailyText}</a>
+              <i class="far fa-envelope hinted" data-bs-toggle="tooltip" data-bs-placement="top"
+                 title="Emaily přihlášených (ne sledujících)"></i>
+              <a href="mailto:?bcc={emailyHref}">{emailyText}</a>
             </div>
           </div>
 
@@ -366,7 +368,8 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            Po uzavření aktivity už nebudeš mít možnost prezenci měnit. Až do 1 hodiny po skončení aktivity můžeš ještě někoho přidat.
+            Po uzavření aktivity už nebudeš mít možnost prezenci měnit. Až do 1 hodiny po skončení aktivity můžeš ještě
+            někoho přidat.
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Opravit prezenci</button>

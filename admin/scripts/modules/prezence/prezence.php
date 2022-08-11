@@ -2,6 +2,7 @@
 
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml;
+use Gamecon\XTemplate\XTemplate;
 
 /**
  * Vyklikávací tabulky s prezencí na aktivity

@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/nastaveni-produkce.php';
 
 define('URL_WEBU', 'https://gamecon.cz'); // absolutní url uživatelského webu
 define('URL_ADMIN', 'https://admin.gamecon.cz'); // absolutní url adminu

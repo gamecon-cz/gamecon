@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\XTemplate\XTemplate;
+
 ini_set('display_errors', false); // nezobrazovat chyby (lze přetížít, třeba v lokálních nastaveních)
 // TODO nefunguje, opravit jak najede
 //require_once __DIR__ . '/initial-fatal-error-handler.php'; // pro ten kritický kousek, než naběhne Tracy (Vyjimkovac)
@@ -24,5 +26,5 @@ define('SHUTDOWN_FUNCTION_REGISTERED', true);
 
 // automatické migrace databáze
 if (AUTOMATICKE_MIGRACE) {
-  require __DIR__ . '/db-migrace.php';
+    require __DIR__ . '/db-migrace.php';
 }

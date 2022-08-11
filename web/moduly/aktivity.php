@@ -5,7 +5,7 @@ use Gamecon\Aktivita\TypAktivity;
 
 /** @var Modul $this */
 /** @var Url $url */
-/** @var XTemplate $t */
+/** @var \Gamecon\XTemplate\XTemplate $t */
 /** @var Uzivatel $u */
 /** @var Uzivatel|null|void $org */
 
@@ -16,8 +16,8 @@ $typ = $this->param('typ');
 
 // zpracování POST požadavků
 
-Aktivita::prihlasovatkoZpracuj($u);
-Aktivita::vyberTeamuZpracuj($u);
+Aktivita::prihlasovatkoZpracuj($u, $u);
+Aktivita::vyberTeamuZpracuj($u, $u);
 Tym::vypisZpracuj($u);
 
 // aktivity

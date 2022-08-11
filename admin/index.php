@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\XTemplate\XTemplate;
+
 require __DIR__ . '/../nastaveni/zavadec.php';
 
 /** získáme @var array|string[] $protipy */

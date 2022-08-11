@@ -5,7 +5,7 @@ namespace Gamecon\Shop;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Uzivatel;
 use Cenik;
-use XTemplate;
+use Gamecon\XTemplate\XTemplate;
 
 /**
  * Třída starající se o e-shop, nákupy, formy a související
