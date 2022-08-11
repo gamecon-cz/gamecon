@@ -206,6 +206,11 @@ if ($uPracovni) {
     //     $x->parse('infopult.uzivatel.idFioPohybu');
     // }
 
+    if ($u && $u->jeSpravceFinanci()) {
+        $x->parse('infopult.uzivatel.objednavky.nadpisVse');
+    } else {
+        $x->parse('infopult.uzivatel.objednavky.nadpisJenPredmety');
+    }
     $x->parse('infopult.uzivatel.objednavky');
     $x->parse('infopult.uzivatel');
 } else {
