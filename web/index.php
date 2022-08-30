@@ -142,7 +142,7 @@ if ($m->bezStranky()) {
         'jsVyjimkovac' => \Gamecon\Vyjimkovac\Vyjimkovac::js(URL_WEBU),
         'chyba' => Chyba::vyzvedniHtml(),
         'info' => $m->info() ? $m->info()->html() : '',
-        'a' => $u ? $u->koncA() : '',
+        'a' => $u ? $u->koncovkaDlePohlavi() : '',
         'datum' => date('j.', strtotime(GC_BEZI_OD)) . '–' . date('j. n. Y', strtotime(GC_BEZI_DO)),
         'menu' => $menu,
     ]);

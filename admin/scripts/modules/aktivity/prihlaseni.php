@@ -40,26 +40,26 @@ $odpoved = dbQuery(<<<SQL
   LEFT JOIN akce_organizatori ao ON (ao.id_akce = a.id_akce)
   LEFT JOIN uzivatele_hodnoty org ON (org.id_uzivatele = ao.id_uzivatele)
   LEFT JOIN akce_lokace l ON (l.id_lokace = a.lokace)
-  WHERE a.rok = $1
+  WHERE a.rok = $0
   AND a.zacatek
-  AND a.typ = $2
+  AND a.typ = $1
   GROUP BY u.id_uzivatele, a.id_akce
   ORDER BY a.zacatek, a.nazev_akce, a.id_akce, p.id_uzivatele
 SQL,
-    [ROK, get('typ')]
+    [0 => ROK, 1 => get('typ')]
 );
 
-$totoPrihlaseni = mysqli_fetch_assoc($odpoved);
+$totoPrihlaseni  = mysqli_fetch_assoc($odpoved);
 $dalsiPrihlaseni = mysqli_fetch_assoc($odpoved);
-$obsazenost = 0;
-$odd = 0;
-$maily = [];
+$obsazenost      = 0;
+$odd             = 0;
+$maily           = [];
 while ($totoPrihlaseni) {
     $xtpl2->assign($totoPrihlaseni);
     if ($totoPrihlaseni['id_uzivatele']) {
-        $hrac = Uzivatel::zId($totoPrihlaseni['id_uzivatele']);
+        $hrac  = Uzivatel::zId($totoPrihlaseni['id_uzivatele']);
         $datum = new DateTimeCz($totoPrihlaseni['zacatek']);
-        $vek = $hrac->vekKDatu($datum);
+        $vek   = $hrac->vekKDatu($datum);
         if ($vek === null) $vek = "Nevyplnil";
         elseif ($vek >= 18) $vek = "18+";
 
@@ -84,10 +84,10 @@ while ($totoPrihlaseni) {
             $xtpl2->parse('prihlaseni.aktivita.lide');
         $xtpl2->parse('prihlaseni.aktivita');
         $obsazenost = 0;
-        $odd = 0;
-        $maily = [];
+        $odd        = 0;
+        $maily      = [];
     }
-    $totoPrihlaseni = $dalsiPrihlaseni;
+    $totoPrihlaseni  = $dalsiPrihlaseni;
     $dalsiPrihlaseni = mysqli_fetch_assoc($odpoved);
 }
 

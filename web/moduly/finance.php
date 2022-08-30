@@ -8,9 +8,9 @@ if (!$u) { //jen přihlášení
     echo hlaska('jenPrihlaseni');
     return;
 }
-/* TODO revert if (!$u->gcPrihlasen() || !FINANCE_VIDITELNE) {
+if (!$u->gcPrihlasen() || !FINANCE_VIDITELNE) {
     return; // přehled vidí jen přihlášení na GC (a jen po začátku letošních registrací)
-}*/
+}
 
 $fin       = $u->finance();
 $veci      = $u->finance()->prehledHtml();
@@ -19,7 +19,7 @@ $slevyV    = array_flat('<li>', $u->finance()->slevyVse(), '</li>');
 $zaplaceno = $u->finance()->stav() >= 0;
 $limit     = false;
 
-$a   = $u->koncA();
+$a   = $u->koncovkaDlePohlavi();
 $uid = $u->id();
 
 if (!$zaplaceno) {

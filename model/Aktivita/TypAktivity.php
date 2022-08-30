@@ -18,20 +18,22 @@ class TypAktivity extends \DbObject
     protected static $pk = 'id_typu';
     protected static $sloupecNazev = 'typ_1pmn';
 
-    public const SYSTEMOVE = 0;
     public const TURNAJ_V_DESKOVKACH = 1;
-    public const LARP = 2;
-    public const PREDNASKA = 3;
-    public const RPG = 4;
-    public const WORKSHOP = 5;
-    public const WARGAMING = 6;
-    public const BONUS = 7;
-    public const LKD = 8; // legendy klubu dobrodruhů
-    public const DRD = 9; // mistrovství v DrD
-    public const TECHNICKA = 10;
-    public const EPIC = 11;
-    public const DOPROVODNY_PROGRAM = 12;
-    public const DESKOHERNA = 13;
+    public const LARP                = 2;
+    public const PREDNASKA           = 3;
+    public const RPG                 = 4;
+    public const WORKSHOP            = 5;
+    public const WARGAMING           = 6;
+    public const BONUS               = 7;
+    public const LKD                 = 8; // legendy klubu dobrodruhů
+    public const DRD                 = 9; // mistrovství v DrD
+    public const EPIC                = 11;
+    public const DOPROVODNY_PROGRAM  = 12;
+    public const DESKOHERNA          = 13;
+    // interní
+    public const SYSTEMOVA   = 0;
+    public const TECHNICKA   = 10; // účast na tchnické aktivitě => cena aktivity = bonus pro "vypravěče"
+    public const BRIGADNICKA = 102; // účast na brigádnícké aktivitě => cena aktivityu = výplata pro "vypravěče" (brigádníka)
 
     public function id(): int {
         return (int)parent::id();
