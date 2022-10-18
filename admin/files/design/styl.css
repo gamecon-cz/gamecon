@@ -924,6 +924,10 @@ button .ajax-loader {
   font-family: "Droid Sans Mono", monospace;
 }
 
+.technicke input {
+  word-spacing: -0.3em;
+}
+
 .display-none {
   display: none;
 }
