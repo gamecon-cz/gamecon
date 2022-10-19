@@ -301,9 +301,12 @@
   width        : 100%;
   text-overflow: ellipsis;
   overflow     : hidden;
-  white-space  : nowrap;
   min-width    : 85px;
-}
+  display: -webkit-box;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  }
 
 .program .program_osobniTyp::before {
   position        : absolute;
