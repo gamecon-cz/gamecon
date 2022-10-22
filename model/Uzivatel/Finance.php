@@ -565,7 +565,7 @@ SQL
                     $this->brigadnickaOdmena += $r['cena'];
                 }
             } else {
-                $this->cenaAktivity += $r['cena'];
+                $this->cenaAktivit += $r['cena'];
             }
 
             $poznamka = '';
