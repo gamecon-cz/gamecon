@@ -14,22 +14,22 @@ for ($den = new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen())
     $dny[slugify($den->format('l'))] = clone $den;
 }
 
-$nastaveni = [];
+$nastaveni       = [];
 $alternativniUrl = null;
-$title = 'Program';
+$title           = 'Program';
 if ($url->cast(1) === 'muj') {
     if (!$u) {
         throw new Neprihlasen();
     }
     $nastaveni['osobni'] = true;
-    $title = 'Můj program';
+    $title               = 'Můj program';
 } else if (isset($dny[$url->cast(1)])) {
     $nastaveni['den'] = $dny[$url->cast(1)]->format('z');
-    $title = 'Program ' . $dny[$url->cast(1)]->format('l');
+    $title            = 'Program ' . $dny[$url->cast(1)]->format('l');
 } else if (!$url->cast(1)) {
     $nastaveni['den'] = reset($dny)->format('z');
-    $alternativniUrl = 'program/' . slugify(reset($dny)->format('l'));
-    $title = 'Program ' . reset($dny)->format('l');
+    $alternativniUrl  = 'program/' . slugify(reset($dny)->format('l'));
+    $title            = 'Program ' . reset($dny)->format('l');
 } else {
     throw new Nenalezeno();
 }
@@ -39,15 +39,17 @@ $this->info()->nazev($title);
 $program = new Program($u, $nastaveni);
 $program->zpracujPost($u);
 
-$this->pridejCssUrl($program->cssUrl());
+foreach ($program->cssUrls() as $cssUrl) {
+    $this->pridejCssUrl($cssUrl);
+}
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program-nahled/program-nahled.js');
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program-posuv/program-posuv.js');
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/_spolecne/zachovej-scroll.js');
 
-$zacatekPrvniVlnyOd = \Gamecon\Cas\DateTimeGamecon::zacatekPrvniVlnyOd();
+$zacatekPrvniVlnyOd       = \Gamecon\Cas\DateTimeGamecon::zacatekPrvniVlnyOd();
 $zacatekPrvniVlnyZaSekund = $zacatekPrvniVlnyOd->getTimestamp() - time();
 
-$legendaText = Stranka::zUrl('program-legenda-text')->html();
+$legendaText   = Stranka::zUrl('program-legenda-text')->html();
 $jeOrganizator = isset($u) && $u && $u->maPravo(P_ORG_AKTIVIT);
 
 // pomocná funkce pro zobrazení aktivního odkazu
