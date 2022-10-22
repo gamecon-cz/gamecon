@@ -84,7 +84,7 @@
       <select id="zacatekAkce" name="{fields}[zacatek]">
         <!-- begin:zacatek -->
         <option {selected} value="{zacatek}">{zacatekSlovy}</option><!-- end:zacatek -->
-      </select>–<select name="{fields}[konec]">
+      </select>–<select name="{fields}[konec]" id="konecAkce">
       <!-- begin:konec -->
       <option {selected} value="{konec}">{konecSlovy}</option><!-- end:konec -->
     </select>
@@ -154,11 +154,21 @@
     </td>
   </tr>
   <tr>
-    <th><label for="cenaAktivity" class="display-block">Cena</label></th>
+    <th>
+      <label for="cenaAktivityCelkem" class="display-block">Cena</label>
+      <label for="odmenaZaHodinu" class="display-block">Odměna za hodinu</label>
+    </th>
     <td>
-      <input id="cenaAktivity" type="text" style="width:25px" name="{fields}[cena]" value="{cena}">
+      <input id="cenaAktivityCelkem" type="text" style="width:4em" name="{fields}[cena]" value="{cena}">
+      <span class="hinted">
+        <input id="odmenaZaHodinu" type="text" style="width:4em; display: none" name="odmena_za_hodinu"
+               value="{odmenaZaHodinu}"><span id="odmenaZaHodinuChybiHodiny"> ⚠️</span>
+        <span class="hint">Musíš správně vyplnit čas od - do</span>
+      </span>
       <input id="bezSlev" style="float:right" type="checkbox" name="{fields}[bez_slevy]" value="1">
-      <script>if ('{bez_slevy}' == true) $('[name="{fields}[bez_slevy]"]').attr('checked', true)</script>
+      <script>if ('{bez_slevy}') {
+        $('[name="{fields}[bez_slevy]"]').attr('checked', true)
+      }</script>
       <div class="hinted" style="float:right;margin-top:2px"><label for="bezSlev">bez slev</label>
         <div class="hint">Jestli má být cena pevná a nesmí se na ni aplikovat slevy</div>
       </div>
@@ -187,6 +197,66 @@
         box.change()
       </script>
     </td>
+    <script type="text/javascript">
+      {
+        function pripravCenu() {
+          const cenaAktivityCelkemInput = document.getElementById('cenaAktivityCelkem')
+          const cenaAktivityCelkemLabel = document.querySelector('label[for=cenaAktivityCelkem]')
+          const odmenaZaHodinuInput = document.getElementById('odmenaZaHodinu')
+          const odmenaZaHodinuLabel = document.querySelector('label[for=odmenaZaHodinu]')
+
+          const typAktivityInput = document.getElementById('typAktivity')
+          const jeBrigadnicka = typAktivityInput.value === '{typBrigadnicka}'
+
+          const delkaAkceVHodinach = dejDelkuAkceVHodinach()
+
+          if (!delkaAkceVHodinach) {
+            odmenaZaHodinuInput.disabled = true
+            odmenaZaHodinuInput.classList.add('hinted')
+            document.getElementById('odmenaZaHodinuChybiHodiny').style.display = 'inherit'
+          } else {
+            odmenaZaHodinuInput.disabled = false
+            odmenaZaHodinuInput.classList.remove('hinted')
+            document.getElementById('odmenaZaHodinuChybiHodiny').style.display = 'none'
+          }
+
+          if (jeBrigadnicka) {
+            if (delkaAkceVHodinach > 0) {
+              if (cenaAktivityCelkemInput.value.trim() !== '' && odmenaZaHodinuInput.value.trim() === '') {
+                const cenaCelkem = Number.parseInt(cenaAktivityCelkemInput.value.trim())
+                if (cenaCelkem > 0) {
+                  odmenaZaHodinuInput.value = Math.round(cenaCelkem / delkaAkceVHodinach)
+                }
+              }
+            }
+            cenaAktivityCelkemInput.style.display = 'none'
+            cenaAktivityCelkemLabel.style.display = 'none'
+            odmenaZaHodinuInput.style.display = 'inherit'
+            odmenaZaHodinuLabel.style.display = 'inherit'
+          } else {
+            cenaAktivityCelkemInput.style.display = 'inherit'
+            cenaAktivityCelkemLabel.style.display = 'inherit'
+            odmenaZaHodinuInput.style.display = 'none'
+            odmenaZaHodinuLabel.style.display = 'none'
+          }
+
+          function dejDelkuAkceVHodinach() {
+            const zacatekAkce = Number.parseInt(document.getElementById('zacatekAkce').value.trim())
+            const konecAkce = Number.parseInt(document.getElementById('konecAkce').value.trim())
+            if (zacatekAkce < konecAkce) {
+              return konecAkce - zacatekAkce
+            }
+            return 0
+          }
+        }
+
+        pripravCenu()
+
+        document.getElementById('typAktivity').addEventListener('change', pripravCenu)
+        document.getElementById('zacatekAkce').addEventListener('change', pripravCenu)
+        document.getElementById('konecAkce').addEventListener('change', pripravCenu)
+      }
+    </script>
   </tr>
   <tr>
     <th><label for="vyberTagu" class="display-block">Tagy</label></th>
