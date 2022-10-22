@@ -1667,7 +1667,7 @@ SQL
         $technicke = $parametry & self::TECHNICKE;
 
         if (!(REG_AKTIVIT || ($zpetne && po(REG_GC_DO)))) {
-            return sprintf('Není spuštěna registrace aktivit (začne %s a končí %s)', REG_AKTIVIT_OD, REG_AKTIVIT_DO);
+            return sprintf('Není spuštěna registrace aktivit (začíná %s a končí %s)', REG_AKTIVIT_OD, REG_AKTIVIT_DO);
         }
         if (!(
             $this->a['stav'] == StavAktivity::AKTIVOVANA
