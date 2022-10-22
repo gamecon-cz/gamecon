@@ -3,8 +3,8 @@
 /** @var \Godric\DbMigrations\Migration $this */
 
 $this->q(<<<SQL
-INSERT IGNORE INTO r_zidle_soupis
-    SET id_zidle = 24,
+INSERT INTO r_zidle_soupis
+    SET id_zidle = 25,
     jmeno_zidle = 'Brigádník',
     popis_zidle = 'Zase práce?'
 SQL
