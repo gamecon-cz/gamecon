@@ -345,7 +345,7 @@ SQL
      */
     protected static function editorParam(\EditorTagu $editorTagu, Aktivita $aktivita = null, $omezeni = []) {
         // inicializace šablony
-        $xtpl = new \XTemplate(__DIR__ . '/templates/editor-aktivity.xtpl');
+        $xtpl = new XTemplate(__DIR__ . '/templates/editor-aktivity.xtpl');
         $xtpl->assign('fields', self::POSTKLIC); // název proměnné (pole) v kterém se mají posílat věci z formuláře
         $xtpl->assign('ajaxKlic', self::AJAXKLIC);
         $xtpl->assign('obrKlic', self::OBRKLIC);
@@ -403,7 +403,7 @@ SQL
         return $xtpl->text('upravy');
     }
 
-    private static function parseUpravyTabulkaLokace(?Aktivita $aktivita, \XTemplate $xtpl) {
+    private static function parseUpravyTabulkaLokace(?Aktivita $aktivita, XTemplate $xtpl) {
         $aktivitaData = $aktivita ? $aktivita->a : null; // databázový řádek
         $q            = dbQuery('SELECT id_lokace, nazev FROM akce_lokace ORDER BY poradi');
         $xtpl->assign(['id_lokace' => null, 'nazev' => '(žádná)', 'selected' => '']);
@@ -415,7 +415,7 @@ SQL
         }
     }
 
-    private static function parseUpravyTabulkaDeti(?Aktivita $aktivita, \XTemplate $xtpl) {
+    private static function parseUpravyTabulkaDeti(?Aktivita $aktivita, XTemplate $xtpl) {
         $q       = dbQuery(
             "SELECT id_akce FROM akce_seznam WHERE id_akce != $1 AND rok = $2 ORDER BY nazev_akce",
             [$aktivita ? $aktivita->id() : null, ROK]
@@ -445,7 +445,7 @@ SQL
         );
     }
 
-    private static function parseUpravyTabulkaRodice(?Aktivita $aktivita, \XTemplate $xtpl) {
+    private static function parseUpravyTabulkaRodice(?Aktivita $aktivita, XTemplate $xtpl) {
         $q = dbQuery(
             "SELECT id_akce FROM akce_seznam WHERE id_akce != $1 AND rok = $2 ORDER BY nazev_akce",
             [$aktivita ? $aktivita->id() : null, ROK]
@@ -463,7 +463,7 @@ SQL
         }
     }
 
-    private static function parseUpravyTabulkaDen(?Aktivita $aktivita, \XTemplate $xtpl) {
+    private static function parseUpravyTabulkaDen(?Aktivita $aktivita, XTemplate $xtpl) {
         $xtpl->assign([
             'selected' => $aktivita && !$aktivita->zacatek() ? 'selected' : '',
             'den'      => 0,
@@ -480,7 +480,7 @@ SQL
         }
     }
 
-    private static function parseUpravyTabulkaZacatekAKonec(?Aktivita $aktivita, \XTemplate $xtpl) {
+    private static function parseUpravyTabulkaZacatekAKonec(?Aktivita $aktivita, XTemplate $xtpl) {
         $aZacatek      = $aktivita && $aktivita->zacatek()
             ? (int)$aktivita->zacatek()->format('G')
             : null;
@@ -535,7 +535,7 @@ SQL
         $xtpl->parse('upravy.tabulka.vypraveci');
     }
 
-    private static function parseUpravyTabulkaTypy(?Aktivita $aktivita, \XTemplate $xtpl) {
+    private static function parseUpravyTabulkaTypy(?Aktivita $aktivita, XTemplate $xtpl) {
         $aktivitaData = $aktivita ? $aktivita->a : null; // databázový řádek
         $q            = dbQuery('SELECT id_typu, typ_1p FROM akce_typy WHERE aktivni = 1 ORDER BY poradi');
         while ($akceTypData = mysqli_fetch_assoc($q)) {
@@ -545,7 +545,7 @@ SQL
         }
     }
 
-    private static function nactiTagy(array $vybraneTagy, \EditorTagu $editorTagu, \XTemplate $xtpl) {
+    private static function nactiTagy(array $vybraneTagy, \EditorTagu $editorTagu, XTemplate $xtpl) {
         $vsechnyTagy             = $editorTagu->getTagy();
         $pocetVsechTagu          = count($vsechnyTagy);
         $nazevPredchoziKategorie = null;
@@ -2292,7 +2292,7 @@ SQL
             return null;
         }
 
-        $t = new \XTemplate(__DIR__ . '/templates/tym-formular.xtpl');
+        $t = new XTemplate(__DIR__ . '/templates/tym-formular.xtpl');
 
         // obecné proměnné šablony
         $zbyva = strtotime($this->a['zamcel_cas']) + self::HAJENI * 60 * 60 - time();
