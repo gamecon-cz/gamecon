@@ -26,7 +26,7 @@ if (($idAktivity = get('idAktivity'))) {
             $a->organizatori()
         ),
         'stitky'      => array_map('mb_ucfirst', $a->tagy()),
-        'cena'        => $a->cena(),
+        'cena'        => $a->cenaTextem(),
         'cas'         => $a->zacatek()->format('G') . ':00&ndash;' . $a->konec()->format('G') . ':00',
         'obsazenost'  => $a->obsazenost(),
     ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);

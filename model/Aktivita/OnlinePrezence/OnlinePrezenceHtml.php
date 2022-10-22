@@ -284,7 +284,7 @@ class OnlinePrezenceHtml
     }
 
     private function jePrezenceRozbalena(Aktivita $aktivita): bool {
-        return $aktivita->cena() > 0 // u aktivit zadarmo nás prezence tolik nezajímá a ještě k tomu mívají strašně moc účastníků, přednášky třeba
+        return $aktivita->cenaZaklad() > 0 // u aktivit zadarmo nás prezence tolik nezajímá a ještě k tomu mívají strašně moc účastníků, přednášky třeba
             || !$aktivita->uzavrena();
     }
 
