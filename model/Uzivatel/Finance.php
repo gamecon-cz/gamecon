@@ -66,7 +66,7 @@ class Finance
     ];
 
     // idčka typů, podle kterých se řadí výstupní tabulka $prehled
-    public const AKTIVITA        = -1;
+    public const AKTIVITY        = -1;
     public const PREDMETY_STRAVA = 1;
     public const UBYTOVANI       = 2;
     // mezera na typy předmětů (1-4? viz db)
@@ -117,7 +117,7 @@ class Finance
             + $this->sumaPlateb()
             + $this->zustatekZPredchozichRocniku, 2);
 
-        $this->logb('Aktivity', $this->cenaAktivity, self::AKTIVITA);
+        $this->logb('Aktivity', $this->cenaAktivity, self::AKTIVITY);
         $this->logb('Ubytování', $this->cenaUbytovani, self::UBYTOVANI);
         $this->logb('Předměty a strava', $this->cenaPredmety, self::PREDMETY_STRAVA);
         $this->logb('Připsané platby', $this->sumaPlateb() + $this->zustatekZPredchozichRocniku, self::PLATBY_NADPIS);
@@ -522,7 +522,7 @@ SQL
                 in_array($r['typ'], [TypAktivity::TECHNICKA, TypAktivity::BRIGADNICKA])
                     ? 0
                     : $r['cena'],
-                self::AKTIVITA
+                self::AKTIVITY
             );
         }
     }
