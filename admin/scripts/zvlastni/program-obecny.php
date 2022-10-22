@@ -4,24 +4,28 @@ $program = new Program();
 
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="cs">
 <head>
-  <meta http-equiv="refresh" content="30">
-  <link rel="stylesheet" href="<?=$program->cssUrl()?>">
-  <style>
-    body {
-      font-family: tahoma, sans;
-      font-size: 11px;
-      line-height: 1.2;
-    }
-    h2 {
-      text-align: center;
-    }
-  </style>
+    <title>Obecný program</title>
+    <meta http-equiv="refresh" content="30">
+    <?php foreach ($program->cssUrls() as $cssUrl) { ?>
+        <link rel="stylesheet" href="<?= $cssUrl ?>">
+    <?php } ?>
+    <style>
+        body {
+            font-family: tahoma, sans, sans-serif;
+            font-size: 11px;
+            line-height: 1.2;
+        }
+
+        h2 {
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
 
-  <?php $program->tisk(); ?>
+<?php $program->tisk(); ?>
 
 </body>
 </html>

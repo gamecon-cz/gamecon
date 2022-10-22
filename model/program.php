@@ -17,17 +17,17 @@ class Program
     private $aktFronta = [];
     private $program; // iterátor aktivit seřazených pro použití v programu
     private $nastaveni = [
-        'drdPj' => false, // u DrD explicitně zobrazit jména PJů
+        'drdPj'      => false, // u DrD explicitně zobrazit jména PJů
         'drdPrihlas' => false, // jestli se zobrazují přihlašovátka pro DrD
-        'plusMinus' => false, // jestli jsou v programu '+' a '-' pro změnu kapacity team. aktivit
-        'osobni' => false, // jestli se zobrazuje osobní program (jinak se zobrazuje full)
+        'plusMinus'  => false, // jestli jsou v programu '+' a '-' pro změnu kapacity team. aktivit
+        'osobni'     => false, // jestli se zobrazuje osobní program (jinak se zobrazuje full)
         'tableClass' => 'program', //todo edit
-        'teamVyber' => true, // jestli se u teamové aktivity zobrazí full výběr teamu přímo v programu
-        'technicke' => false, // jestli jdou vidět i skryté technické aktivity
-        'skupiny' => 'linie', // seskupování programu - po místnostech nebo po liniích
-        'prazdne' => false, // zobrazovat prázdné skupiny?
-        'zpetne' => false, // jestli smí měnit přihlášení zpětně
-        'den' => null,  // zobrazit jen konkrétní den
+        'teamVyber'  => true, // jestli se u teamové aktivity zobrazí full výběr teamu přímo v programu
+        'technicke'  => false, // jestli jdou vidět i skryté technické aktivity
+        'skupiny'    => 'linie', // seskupování programu - po místnostech nebo po liniích
+        'prazdne'    => false, // zobrazovat prázdné skupiny?
+        'zpetne'     => false, // jestli smí měnit přihlášení zpětně
+        'den'        => null,  // zobrazit jen konkrétní den
     ];
     private $grpf; // název metody na objektu aktivita, podle které se shlukuje
     private $skupiny; // pole skupin, do kterých se shlukuje program, ve stylu id => název
@@ -35,9 +35,9 @@ class Program
     private $aktivityUzivatele = []; // aktivity uživatele
     private $maxPocetAktivit = []; // maximální počet souběžných aktivit v daném dni
 
-    private const SKUPINY_PODLE_LOKACE_ID = 'lokaceId';
-    private const SKUPINY_PODLE_DEN = 'den';
-    private const SKUPINY_PODLE_TYP_ID = 'typId';
+    private const SKUPINY_PODLE_LOKACE_ID  = 'lokaceId';
+    private const SKUPINY_PODLE_DEN        = 'den';
+    private const SKUPINY_PODLE_TYP_ID     = 'typId';
     private const SKUPINY_PODLE_TYP_PORADI = 'typPoradi';
 
     /**
@@ -45,7 +45,7 @@ class Program
      */
     public function __construct(Uzivatel $u = null, $nastaveni = null) {
         if ($u instanceof Uzivatel) {
-            $this->u = $u;
+            $this->u   = $u;
             $this->uid = $this->u->id();
         }
         if (is_array($nastaveni)) {
@@ -58,12 +58,20 @@ class Program
     }
 
     /**
-     * @return string url k stylu programu
+     * @return string[] urls k stylu programu
      */
-    public function cssUrl(): string {
-        $soubor = 'soubory/blackarrow/program/program-trida.css';
-        $verze = substr(filemtime(WWW . '/' . $soubor), -6);
-        return URL_WEBU . '/' . $soubor . '?v=' . $verze;
+    public function cssUrls(): array {
+        $soubory = [
+            __DIR__ . '/../web/soubory/blackarrow/_spolecne/hint.css',
+            __DIR__ . '/../web/soubory/blackarrow/program/program-trida.css',
+        ];
+        $cssUrls = [];
+        foreach ($soubory as $soubor) {
+            $verze     = md5_file($soubor);
+            $url       = str_replace(__DIR__ . '/../web/', '', $soubor);
+            $cssUrls[] = URL_WEBU . '/' . $url . '?version=' . $verze;
+        }
+        return $cssUrls;
     }
 
     /**
@@ -178,23 +186,23 @@ class Program
     private function init() {
         if ($this->nastaveni['skupiny'] === 'mistnosti') {
             $this->program = new ArrayIterator(Aktivita::zProgramu('poradi'));
-            $this->grpf = self::SKUPINY_PODLE_LOKACE_ID;
+            $this->grpf    = self::SKUPINY_PODLE_LOKACE_ID;
 
             $this->skupiny['0'] = 'Ostatní';
-            $grp = serazenePodle(Lokace::zVsech(), 'poradi');
+            $grp                = serazenePodle(Lokace::zVsech(), 'poradi');
             foreach ($grp as $t) {
                 $this->skupiny[$t->id()] = ucfirst($t->nazev());
             }
         } else if ($this->nastaveni['osobni']) {
             $this->program = new ArrayIterator(Aktivita::zProgramu('zacatek'));
-            $this->grpf = self::SKUPINY_PODLE_DEN;
+            $this->grpf    = self::SKUPINY_PODLE_DEN;
 
             foreach ($this->dny() as $den) {
                 $this->skupiny[$den->format('z')] = mb_ucfirst($den->format('l'));
             }
         } else {
             $this->program = new ArrayIterator(Aktivita::zProgramu('poradi_typu'));
-            $this->grpf = self::SKUPINY_PODLE_TYP_PORADI;
+            $this->grpf    = self::SKUPINY_PODLE_TYP_PORADI;
 
             // řazení podle poradi typu je nutné proto, že v tomto pořadí je i seznam aktivit
             $grp = serazenePodle(\Gamecon\Aktivita\TypAktivity::zVsech(), 'poradi');
@@ -251,11 +259,11 @@ class Program
 
         while ($this->koliduje($this->posledniVydana, $this->dbPosledni)) {
             $this->aktFronta[] = $this->dbPosledni;
-            $this->dbPosledni = $this->nactiDalsiAktivitu($this->program);
+            $this->dbPosledni  = $this->nactiDalsiAktivitu($this->program);
         }
 
         if ($this->stejnaSkupina($this->dbPosledni, $this->posledniVydana) || !$this->aktFronta) {
-            $t = $this->dbPosledni;
+            $t                = $this->dbPosledni;
             $this->dbPosledni = null;
             return $this->posledniVydana = $t;
         } else {
@@ -421,8 +429,8 @@ class Program
         }
         /** @var Aktivita $aktivita */
         $aktivita = $iterator->current();
-        $zac = (int)$aktivita->zacatek()->format('G');
-        $kon = (int)$aktivita->konec()->format('G');
+        $zac      = (int)$aktivita->zacatek()->format('G');
+        $kon      = (int)$aktivita->konec()->format('G');
         if ($kon == 0) {
             $kon = 24;
         }
@@ -482,9 +490,9 @@ class Program
      * @param int $denId číslo dne v roce (formát dateTimeCZ->format('z'))
      */
     public function nactiAktivityDne($denId) {
-        $aktivita = $this->dalsiAktivita();
+        $aktivita                       = $this->dalsiAktivita();
         $this->maxPocetAktivit [$denId] = 0;
-        $this->aktivityUzivatele = new ArrayObject();
+        $this->aktivityUzivatele        = new ArrayObject();
 
         while ($aktivita) {
             if ($denId == $aktivita['den']) {

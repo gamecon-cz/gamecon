@@ -13,13 +13,13 @@ if (!$uPracovni) {
 $osobniProgram = !empty($osobniProgram);
 
 $program = new Program($uPracovni, [
-    'drdPj' => true,
+    'drdPj'      => true,
     'drdPrihlas' => true,
-    'plusMinus' => true,
-    'osobni' => $osobniProgram,
-    'teamVyber' => true,
-    'technicke' => true,
-    'zpetne' => $u->maPravoNaZmenuHistorieAktivit(),
+    'plusMinus'  => true,
+    'osobni'     => $osobniProgram,
+    'teamVyber'  => true,
+    'technicke'  => true,
+    'zpetne'     => $u->maPravoNaZmenuHistorieAktivit(),
 ]);
 
 if ($uPracovni) {
@@ -42,7 +42,10 @@ $chyba = Chyba::vyzvedniHtml();
     <script src="files/jquery-3.4.1.min.js"></script>
     <script src="files/jquery-ui-v1.12.1.min.js"></script>
     <base href="<?= URL_ADMIN ?>/">
-    <link rel="stylesheet" href="<?= $program->cssUrl() ?>">
+    <?php foreach ($program->cssUrls() as $cssUrl) { ?>
+        <link rel="stylesheet" href="<?= $cssUrl ?>">
+    <?php } ?>
+    <link rel="stylesheet" href="files/design/hint.css">
     <style>
         body {
             font-family: tahoma, sans, sans-serif;
