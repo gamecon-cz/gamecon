@@ -328,7 +328,7 @@ class Program
                 $parametry |= Aktivita::ZPETNE;
             }
             if ($this->nastaveni['technicke']) {
-                $parametry |= Aktivita::TECHNICKE;
+                $parametry |= Aktivita::INTERNI;
             }
             echo ' ' . $aktivitaObjekt->prihlasovatko($this->u, $parametry);
         } elseif (defined('TESTING') && TESTING) {

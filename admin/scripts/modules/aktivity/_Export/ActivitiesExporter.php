@@ -189,7 +189,7 @@ class ActivitiesExporter
                     },
                     $aktivita->deti()
                 )),
-                $this->exportAktivitSloupce::CENA => (float)$aktivita->cenaZaklad(), // Cena
+                $this->exportAktivitSloupce::CENA => $aktivita->cenaZaklad(), // Cena
                 $this->exportAktivitSloupce::BEZ_SLEV => $aktivita->bezSlevy() // Bez slev
                     ? 'ano'
                     : 'ne',

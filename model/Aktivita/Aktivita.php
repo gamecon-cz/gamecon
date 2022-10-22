@@ -56,7 +56,7 @@ class Aktivita
     const ZAMEK                              = 0b00000001000;   // ignorování zamčení pro tým
     const BEZ_POKUT                          = 0b00000010000;   // odhlášení bez pokut
     const ZPETNE                             = 0b00000100000;   // možnost zpětně měnit přihlášení
-    const TECHNICKE                          = 0b00001000000;   // přihlašovat i skryté technické aktivity
+    const INTERNI                            = 0b00001000000;   // přihlašovat i skryté technické a brigádnické aktivity
     const NEPOSILAT_MAILY_SLEDUJICIM         = 0b00010000000;   // odhlášení bez mailů náhradníkům
     const DOPREDNE                           = 0b00100000000;   // možnost přihlásit před otevřením registrací na aktivity
     const IGNOROVAT_LIMIT                    = 0b01000000000;
@@ -181,11 +181,11 @@ SQL
      * Cena aktivity čitelná člověkem, poplatná aktuálnímu okamžiku. V případě
      * uvedení uživatele vrací pro něj specifickou cenu.
      */
-    public function cena(\Uzivatel $u = null) {
-        if ($this->a['typ'] == TypAktivity::TECHNICKA) {
+    public function cenaTextem(\Uzivatel $u = null): ?string {
+        if (TypAktivity::jeInterni((int)$this->a['typ'])) {
             return null;
         }
-        if (!($this->cenaZaklad() > 0)) {
+        if ($this->cenaZaklad() <= 0) {
             return 'zdarma';
         }
         if ($this->a['bez_slevy']) {
@@ -198,8 +198,8 @@ SQL
     }
 
     /** Základní cena aktivity */
-    public function cenaZaklad() {
-        return $this->a['cena'];
+    public function cenaZaklad(): float {
+        return (float)$this->a['cena'];
     }
 
     /**
@@ -1640,9 +1640,9 @@ SQL
 
     /** Zdali chceme, aby se na aktivitu bylo možné běžně přihlašovat */
     public function prihlasovatelna($parametry = 0) {
-        $dopredne  = $parametry & self::DOPREDNE;
-        $zpetne    = $parametry & self::ZPETNE;
-        $technicke = $parametry & self::TECHNICKE;
+        $dopredne = $parametry & self::DOPREDNE;
+        $zpetne   = $parametry & self::ZPETNE;
+        $interni  = $parametry & self::INTERNI;
         // stav 4 je rezervovaný pro viditelné nepřihlašovatelné aktivity
         return
             (REG_AKTIVIT
@@ -1651,7 +1651,7 @@ SQL
             )
             && (
                 $this->a['stav'] == StavAktivity::AKTIVOVANA
-                || ($technicke && $this->a['stav'] == StavAktivity::NOVA && $this->a['typ'] == TypAktivity::TECHNICKA)
+                || ($interni && $this->a['stav'] == StavAktivity::NOVA && TypAktivity::jeInterni($this->a['typ']))
                 || ($zpetne && $this->probehnuta())
             )
             && $this->a['zacatek']
@@ -1659,20 +1659,20 @@ SQL
     }
 
     private function procNeniPrihlasovatelna($parametry): string {
-        $zpetne    = $parametry & self::ZPETNE;
-        $technicke = $parametry & self::TECHNICKE;
+        $zpetne  = $parametry & self::ZPETNE;
+        $interni = $parametry & self::INTERNI;
 
         if (!(REG_AKTIVIT || ($zpetne && po(REG_GC_DO)))) {
             return sprintf('Není spuštěna registrace aktivit (začíná %s a končí %s)', REG_AKTIVIT_OD, REG_AKTIVIT_DO);
         }
         if (!(
             $this->a['stav'] == StavAktivity::AKTIVOVANA
-            || ($technicke && $this->a['stav'] == StavAktivity::NOVA && $this->a['typ'] == TypAktivity::TECHNICKA)
+            || ($interni && $this->a['stav'] == StavAktivity::NOVA && TypAktivity::jeInterni($this->a['typ']))
             || ($zpetne && $this->probehnuta())
         )) {
             return sprintf(
                 'Aktivita není ve stavu použitelném pro přihlašování. Je ve stavu %d (%s), technické %s, zpětně %s',
-                $this->a['stav'], StavAktivity::dejNazev((int)$this->a['stav']), $technicke ? 'ANO' : 'NE', $zpetne ? 'ANO' : 'NE'
+                $this->a['stav'], StavAktivity::dejNazev((int)$this->a['stav']), $interni ? 'ANO' : 'NE', $zpetne ? 'ANO' : 'NE'
             );
         }
         if (!$this->a['zacatek']) {
@@ -1938,7 +1938,7 @@ SQL
     }
 
     public function probehnuta(): bool {
-        return in_array($this->a['stav'], [StavAktivity::ZAMCENA, StavAktivity::UZAVRENA]);
+        return in_array($this->a['stav'], StavAktivity::probehnuteStavy());
     }
 
     public function bezpecneEditovatelna(): bool {
@@ -2261,8 +2261,8 @@ SQL
      */
     public function viditelnaPro(\Uzivatel $u = null) {
         return (
-            (in_array($this->a['stav'], [StavAktivity::AKTIVOVANA, StavAktivity::ZAMCENA, StavAktivity::UZAVRENA, StavAktivity::PUBLIKOVANA, StavAktivity::PRIPRAVENA], false) // podle stavu je aktivita viditelná
-                && !($this->a['typ'] == TypAktivity::TECHNICKA && $this->probehnuta()) // ale skrýt technické proběhnuté
+            (in_array($this->a['stav'], StavAktivity::bezneViditelneStavy(), false) // podle stavu je aktivita viditelná
+                && !(TypAktivity::jeInterni($this->a['typ']) && $this->probehnuta()) // ale skrýt technické a brigádnické proběhnuté
             )
             || ($u && $this->prihlasen($u))
             || ($u && $u->organizuje($this))
@@ -2694,8 +2694,8 @@ SQL,
             $wheres[] = 'a.id_akce IN (SELECT id_akce FROM akce_organizatori WHERE id_uzivatele = ' . (int)$filtr['organizator'] . ')';
         }
         if (!empty($filtr['jenViditelne'])) {
-            $wheres[] = 'a.stav IN (' . implode(',', [StavAktivity::AKTIVOVANA, StavAktivity::PUBLIKOVANA, StavAktivity::PRIPRAVENA, StavAktivity::ZAMCENA, StavAktivity::UZAVRENA]) . ') AND NOT (a.typ IN (' . implode(',', [TypAktivity::TECHNICKA, TypAktivity::BRIGADNICKA]) . ') AND a.stav IN (' . StavAktivity::ZAMCENA . ',' . StavAktivity::UZAVRENA . '))';
-            /** stejné jako @see \Gamecon\Aktivita\Aktivita::probehnuta */
+            $wheres[] = 'a.stav IN (' . implode(',', [StavAktivity::bezneViditelneStavy()]) . ')
+                AND NOT (a.typ IN (' . implode(',', TypAktivity::interniTypy()) . ') AND a.stav IN (' . implode(',', StavAktivity::probehnuteStavy()/** stejné jako @see \Gamecon\Aktivita\Aktivita::probehnuta */) . '))';
         }
         if (!empty($filtr['jenZamcene'])) {
             $wheres[] = 'a.stav = ' . StavAktivity::ZAMCENA;
@@ -2842,7 +2842,7 @@ SQL,
             [
                 0 => ROK,
                 1 => StavAktivity::NOVA,
-                2 => [TypAktivity::TECHNICKA, TypAktivity::BRIGADNICKA],
+                2 => TypAktivity::interniTypy(),
             ],
             'ORDER BY DAY(zacatek), ' . dbQi($order) . ', HOUR(zacatek), nazev_akce'
         );
