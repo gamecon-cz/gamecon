@@ -10,6 +10,21 @@ use Gamecon\Aktivita\TypAktivity;
 class Program
 {
 
+    public const DRD_PJ      = 'drd_pj';
+    public const DRD_PRIHLAS = 'drd_prihlas';
+    public const PLUS_MINUS  = 'plus_minus';
+    public const OSOBNI      = 'osobni';
+    public const TABLE_CLASS = 'table_class';
+    public const TEAM_VYBER  = 'team_vyber';
+    public const INTERNI     = 'interni';
+    public const SKUPINY     = 'skupiny';
+    public const PRAZDNE     = 'prazdne';
+    public const ZPETNE      = 'zpetne';
+    public const DEN         = 'den';
+
+    public const SKUPINY_LINIE     = 'linie';
+    public const SKUPINY_MISTNOSTI = 'mistnosti';
+
     /** @var Uzivatel|null */
     private $u = null; // aktuální uživatel v objektu
     private $posledniVydana = null;
@@ -17,17 +32,17 @@ class Program
     private $aktFronta = [];
     private $program; // iterátor aktivit seřazených pro použití v programu
     private $nastaveni = [
-        'drdPj'      => false, // u DrD explicitně zobrazit jména PJů
-        'drdPrihlas' => false, // jestli se zobrazují přihlašovátka pro DrD
-        'plusMinus'  => false, // jestli jsou v programu '+' a '-' pro změnu kapacity team. aktivit
-        'osobni'     => false, // jestli se zobrazuje osobní program (jinak se zobrazuje full)
-        'tableClass' => 'program', //todo edit
-        'teamVyber'  => true, // jestli se u teamové aktivity zobrazí full výběr teamu přímo v programu
-        'technicke'  => false, // jestli jdou vidět i skryté technické aktivity
-        'skupiny'    => 'linie', // seskupování programu - po místnostech nebo po liniích
-        'prazdne'    => false, // zobrazovat prázdné skupiny?
-        'zpetne'     => false, // jestli smí měnit přihlášení zpětně
-        'den'        => null,  // zobrazit jen konkrétní den
+        self::DRD_PJ      => false, // u DrD explicitně zobrazit jména PJů
+        self::DRD_PRIHLAS => false, // jestli se zobrazují přihlašovátka pro DrD
+        self::PLUS_MINUS  => false, // jestli jsou v programu '+' a '-' pro změnu kapacity team. aktivit
+        self::OSOBNI      => false, // jestli se zobrazuje osobní program (jinak se zobrazuje full)
+        self::TABLE_CLASS => 'program', //todo edit
+        self::TEAM_VYBER  => true, // jestli se u teamové aktivity zobrazí full výběr teamu přímo v programu
+        self::INTERNI     => false, // jestli jdou vidět i skryté technické a brigádnické aktivity
+        self::SKUPINY     => self::SKUPINY_LINIE, // seskupování programu - po místnostech nebo po liniích
+        self::PRAZDNE     => false, // zobrazovat prázdné skupiny?
+        self::ZPETNE      => false, // jestli smí měnit přihlášení zpětně
+        self::DEN         => null,  // zobrazit jen konkrétní den
     ];
     private $grpf; // název metody na objektu aktivita, podle které se shlukuje
     private $skupiny; // pole skupin, do kterých se shlukuje program, ve stylu id => název
@@ -52,8 +67,8 @@ class Program
             $this->nastaveni = array_replace($this->nastaveni, $nastaveni);
         }
 
-        if ($this->nastaveni['osobni']) {
-            $this->nastaveni['prazdne'] = true;
+        if ($this->nastaveni[self::OSOBNI]) {
+            $this->nastaveni[self::PRAZDNE] = true;
         }
     }
 
@@ -143,7 +158,7 @@ class Program
         $this->init();
 
         $aktivita = $this->dalsiAktivita();
-        if ($this->nastaveni['osobni'] || $this->nastaveni['den']) {
+        if ($this->nastaveni[self::OSOBNI] || $this->nastaveni[self::DEN]) {
             $this->tiskTabulky($aktivita);
         } else {
             foreach ($this->dny() as $den) {
@@ -184,7 +199,7 @@ class Program
      * program (iterátor aktivit)
      */
     private function init() {
-        if ($this->nastaveni['skupiny'] === 'mistnosti') {
+        if ($this->nastaveni[self::SKUPINY] === self::SKUPINY_MISTNOSTI) {
             $this->program = new ArrayIterator(Aktivita::zProgramu('poradi'));
             $this->grpf    = self::SKUPINY_PODLE_LOKACE_ID;
 
@@ -193,7 +208,7 @@ class Program
             foreach ($grp as $t) {
                 $this->skupiny[$t->id()] = ucfirst($t->nazev());
             }
-        } else if ($this->nastaveni['osobni']) {
+        } else if ($this->nastaveni[self::OSOBNI]) {
             $this->program = new ArrayIterator(Aktivita::zProgramu('zacatek'));
             $this->grpf    = self::SKUPINY_PODLE_DEN;
 
@@ -308,7 +323,7 @@ class Program
         echo '<a href="' . $aktivitaObjekt->url() . '" target="_blank" class="programNahled_odkaz" data-program-nahled-id="' . $aktivitaObjekt->id() . '" title="' . $aktivitaObjekt->nazev() . '">' . $aktivitaObjekt->nazev() . '</a>';
 
         // doplňkové informace (druhý řádek)
-        if ($this->nastaveni['drdPj'] && $aktivitaObjekt->typId() == TypAktivity::DRD && $aktivitaObjekt->prihlasovatelna()) {
+        if ($this->nastaveni[self::DRD_PJ] && $aktivitaObjekt->typId() == TypAktivity::DRD && $aktivitaObjekt->prihlasovatelna()) {
             echo ' (' . $aktivitaObjekt->orgJmena() . ') ';
         }
 
@@ -319,15 +334,15 @@ class Program
             }
         }
 
-        if ($aktivitaObjekt->typId() != TypAktivity::DRD || $this->nastaveni['drdPrihlas']) { // hack na nezobrazování přihlašovátek pro DrD
+        if ($aktivitaObjekt->typId() != TypAktivity::DRD || $this->nastaveni[self::DRD_PRIHLAS]) { // hack na nezobrazování přihlašovátek pro DrD
             $parametry = 0;
-            if ($this->nastaveni['plusMinus']) {
+            if ($this->nastaveni[self::PLUS_MINUS]) {
                 $parametry |= Aktivita::PLUSMINUS_KAZDY;
             }
-            if ($this->nastaveni['zpetne']) {
+            if ($this->nastaveni[self::ZPETNE]) {
                 $parametry |= Aktivita::ZPETNE;
             }
-            if ($this->nastaveni['technicke']) {
+            if ($this->nastaveni[self::INTERNI]) {
                 $parametry |= Aktivita::INTERNI;
             }
             echo ' ' . $aktivitaObjekt->prihlasovatko($this->u, $parametry);
@@ -335,12 +350,12 @@ class Program
             echo $aktivitaObjekt::formatujDuvodProTesting('DrD nemá povolené přihlašování');
         }
 
-        if ($this->nastaveni['osobni']) {
+        if ($this->nastaveni[self::OSOBNI]) {
             echo '<span class="program_osobniTyp">' . mb_ucfirst($aktivitaObjekt->typ()->nazev()) . '</span>';
         }
 
         // případný formulář pro výběr týmu
-        if ($this->nastaveni['teamVyber']) {
+        if ($this->nastaveni[self::TEAM_VYBER]) {
             echo $aktivitaObjekt->vyberTeamu($this->u);
         }
 
@@ -358,7 +373,7 @@ class Program
      * Vytiskne tabulku programu
      */
     private function tiskTabulky(?array &$aktivitaRaw, $denId = null) {
-        echo '<table class="' . $this->nastaveni['tableClass'] . '">';
+        echo '<table class="' . $this->nastaveni[self::TABLE_CLASS] . '">';
 
         // tisk hlavičkového řádku s čísly
         echo '<tr><th></th>';
@@ -379,7 +394,7 @@ class Program
         $aktivit = 0;
         foreach ($this->skupiny as $typId => $typNazev) {
             // pokud v skupině není aktivita a nemají se zobrazit prázdné skupiny, přeskočit
-            if (!$this->nastaveni['prazdne'] && (!$aktivitaRaw || $aktivitaRaw['grp'] != $typId)) {
+            if (!$this->nastaveni[self::PRAZDNE] && (!$aktivitaRaw || $aktivitaRaw['grp'] != $typId)) {
                 continue;
             }
 
@@ -408,7 +423,7 @@ class Program
             if ($radku > 0) {
                 echo '<tr><td rowspan="' . $radku . '"><div class="program_nazevLinie">' . $typNazev . '</div></td>';
                 echo $radky;
-            } else if ($this->nastaveni['prazdne'] && $radku == 0) {
+            } else if ($this->nastaveni[self::PRAZDNE] && $radku == 0) {
                 echo $this->prazdnaMistnost($typNazev);
             }
         }
@@ -460,12 +475,12 @@ class Program
         $iterator->next();
 
         // u programu dne přeskočit aktivity, které nejsou daný den
-        if ($this->nastaveni['den'] && $this->nastaveni['den'] != $a['den']) {
+        if ($this->nastaveni[self::DEN] && $this->nastaveni[self::DEN] != $a['den']) {
             return $this->nactiDalsiAktivitu($iterator);
         }
 
         // u osobního programu přeskočit aktivity, kde není přihlášen
-        if ($this->nastaveni['osobni']) {
+        if ($this->nastaveni[self::OSOBNI]) {
             if (
                 !$aktivita->prihlasen($this->u) &&
                 !$this->u->prihlasenJakoSledujici($aktivita) &&
@@ -476,7 +491,7 @@ class Program
         }
 
         // přeskočit případné speciální (neviditelné) aktivity
-        if ($aktivita->viditelnaPro($this->u) || $this->nastaveni['technicke']) {
+        if ($aktivita->viditelnaPro($this->u) || $this->nastaveni[self::INTERNI]) {
             return $a;
         } else {
             return $this->nactiDalsiAktivitu($iterator);

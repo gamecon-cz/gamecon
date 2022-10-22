@@ -21,15 +21,15 @@ if ($url->cast(1) === 'muj') {
     if (!$u) {
         throw new Neprihlasen();
     }
-    $nastaveni['osobni'] = true;
-    $title               = 'Můj program';
+    $nastaveni[Program::OSOBNI] = true;
+    $title                      = 'Můj program';
 } else if (isset($dny[$url->cast(1)])) {
-    $nastaveni['den'] = $dny[$url->cast(1)]->format('z');
-    $title            = 'Program ' . $dny[$url->cast(1)]->format('l');
+    $nastaveni[Program::DEN] = $dny[$url->cast(1)]->format('z');
+    $title                   = 'Program ' . $dny[$url->cast(1)]->format('l');
 } else if (!$url->cast(1)) {
-    $nastaveni['den'] = reset($dny)->format('z');
-    $alternativniUrl  = 'program/' . slugify(reset($dny)->format('l'));
-    $title            = 'Program ' . reset($dny)->format('l');
+    $nastaveni[Program::DEN] = reset($dny)->format('z');
+    $alternativniUrl         = 'program/' . slugify(reset($dny)->format('l'));
+    $title                   = 'Program ' . reset($dny)->format('l');
 } else {
     throw new Nenalezeno();
 }
