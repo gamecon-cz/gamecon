@@ -2,8 +2,8 @@
 
 $program = new Program(null, [
     'technicke' => true,
-    'skupiny' => 'mistnosti',
-    'prazdne' => true,
+    'skupiny'   => 'mistnosti',
+    'prazdne'   => true,
 ]);
 
 ?>
@@ -11,7 +11,9 @@ $program = new Program(null, [
 <html lang="cs">
 <head>
     <title>Program</title>
-    <link rel="stylesheet" href="<?= $program->cssUrl() ?>">
+    <?php foreach ($program->cssUrls() as $cssUrl) { ?>
+        <link rel="stylesheet" href="<?= $cssUrl ?>">
+    <?php } ?>
     <style>
         body {
             font-family: tahoma, sans-serif;
