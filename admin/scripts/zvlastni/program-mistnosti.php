@@ -1,9 +1,9 @@
 <?php
 
 $program = new Program(null, [
-    'technicke' => true,
-    'skupiny'   => 'mistnosti',
-    'prazdne'   => true,
+    Program::INTERNI => true,
+    Program::SKUPINY => Program::SKUPINY_MISTNOSTI,
+    Program::PRAZDNE => true,
 ]);
 
 ?>
