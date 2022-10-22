@@ -1663,7 +1663,7 @@ SQL
         $technicke = $parametry & self::TECHNICKE;
 
         if (!(REG_AKTIVIT || ($zpetne && po(REG_GC_DO)))) {
-            return sprintf('Není spuštěna registrace aktivit (začne %s a končí %s)', REG_AKTIVIT_OD, REG_AKTIVIT_DO);
+            return sprintf('Není spuštěna registrace aktivit (začíná %s a končí %s)', REG_AKTIVIT_OD, REG_AKTIVIT_DO);
         }
         if (!(
             $this->a['stav'] == StavAktivity::AKTIVOVANA
@@ -1705,6 +1705,8 @@ SQL
             $out = self::formatujDuvodProTesting('Nejsi přihlášený/ná na letoční GC');
         } elseif (!$this->prihlasovatelna($parametry)) {
             $out = self::formatujDuvodProTesting($this->procNeniPrihlasovatelna($parametry));
+        } elseif ($this->jeBrigadnicka() && !$u->jeBrigadnik()) {
+            $out = self::formatujDuvodProTesting('Aktivita je brigádnická, ale ty nejsi brigádník');
         } else {
             if (($stav = $this->stavPrihlaseni($u)) > -1 && $stav != StavPrihlaseni::SLEDUJICI) {
                 if ($stav == StavPrihlaseni::PRIHLASEN || $parametry & self::ZPETNE) {
@@ -2136,6 +2138,10 @@ SQL
 
     public function typId(): int {
         return $this->typ()->id();
+    }
+
+    public function jeBrigadnicka(): bool {
+        return $this->typ()->id() === TypAktivity::BRIGADNICKA;
     }
 
     /**
