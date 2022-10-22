@@ -38,7 +38,8 @@ class Finance
         // součásti výsledné ceny
         $cenaAktivit = 0.0,  // cena aktivit
         $cenaUbytovani = 0.0,  // cena objednaného ubytování
-        $cenaPredmetyAStrava = 0.0,  // cena předmětů a dalších objednávek v shopu
+        $cenaPredmetu = 0.0,  // cena předmětů objednaných z shopu
+        $cenaStravy = 0.0,  // cena jídel objednaných z shopu
         $cenaVstupne = 0.0,
         $cenaVstupnePozde = 0.0,
         $bonusZaVedeniAktivit = 0.0,  // sleva za tech. aktivity a odvedené aktivity
@@ -98,7 +99,8 @@ class Finance
         $this->zapoctiZustatekZPredchozichRocniku();
 
         $cena =
-            $this->cenaPredmetyAStrava
+            $this->cenaPredmetu
+            + $this->cenaStravy
             + $this->cenaUbytovani
             + $this->cenaAktivit;
 
@@ -118,7 +120,7 @@ class Finance
 
         $this->logb('Aktivity', $this->cenaAktivit, self::AKTIVITA);
         $this->logb('Ubytování', $this->cenaUbytovani, self::UBYTOVANI);
-        $this->logb('Předměty a strava', $this->cenaPredmetyAStrava, self::PREDMETY_STRAVA);
+        $this->logb('Předměty a strava', $this->cenaPredmetyAStrava(), self::PREDMETY_STRAVA);
         $this->logb('Připsané platby', $this->sumaPlateb() + $this->zustatekZPredchozichRocniku, self::PLATBY_NADPIS);
         $this->logb('Stav financí', $this->stav(), self::VYSLEDNY);
     }
@@ -129,7 +131,15 @@ class Finance
     }
 
     public function cenaPredmetyAStrava() {
-        return $this->cenaPredmetyAStrava;
+        return $this->cenaPredmetu() + $this->cenaStravy();
+    }
+
+    public function cenaPredmetu() {
+        return $this->cenaPredmetu;
+    }
+
+    public function cenaStravy() {
+        return $this->cenaStravy;
     }
 
     public function cenaUbytovani() {
@@ -625,7 +635,11 @@ SQL
                 }
                 $this->dobrovolneVstupnePrehled = $this->formatujProLog("{$r['nazev']} $cena.-", $cena, $r['typ'], $r['id_predmetu']);
             } else {
-                $this->cenaPredmetyAStrava += $cena;
+                if ($r['typ'] == Shop::JIDLO) {
+                    $this->cenaStravy += $cena;
+                } else {
+                    $this->cenaPredmetu = $cena;
+                }
             }
             // přidání roku do názvu
             if ($r['model_rok'] && $r['model_rok'] != ROK) {
