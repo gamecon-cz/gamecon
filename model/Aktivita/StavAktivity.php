@@ -35,6 +35,26 @@ class StavAktivity extends \DbObject
         ];
     }
 
+    /**
+     * @return int[]
+     */
+    public static function bezneViditelneStavy(): array {
+        return [
+            self::AKTIVOVANA,
+            self::PUBLIKOVANA,
+            self::PRIPRAVENA,
+            self::ZAMCENA,
+            self::UZAVRENA,
+        ];
+    }
+
+    /**
+     * @return int[]
+     */
+    public static function probehnuteStavy(): array {
+        return [self::ZAMCENA, self::UZAVRENA];
+    }
+
     public static function dejNazev(int $stav): string {
         switch ($stav) {
             case self::NOVA :
