@@ -219,13 +219,14 @@ while ($r = mysqli_fetch_assoc($o)) {
         ],
         [
             'Celkové náklady' => [
-                'Celkem dní'        => $pobyt = ($r['den_prvni'] !== null
+                'Celkem dní' => $pobyt = ($r['den_prvni'] !== null
                     ? $r['den_posledni'] - $r['den_prvni'] + 1
                     : 0
                 ),
-                'Cena / den'        => $pobyt ? $finance->cenaUbytovani() / $pobyt : 0,
-                'Ubytování'         => $finance->cenaUbytovani(),
-                'Předměty a strava' => $finance->cenaPredmetyAStrava(),
+                'Cena / den' => $pobyt ? $finance->cenaUbytovani() / $pobyt : 0,
+                'Ubytování'  => $finance->cenaUbytovani(),
+                'Předměty'   => $finance->cenaPredmetu(),
+                'Strava'     => $finance->cenaStravy(),
             ],
             'Ostatní platby'  => [
                 'Aktivity'                           => $finance->cenaAktivit(),
