@@ -39,16 +39,17 @@ class Aktivita
     /** @var null|Filesystem */
     private $filesystem;
 
-    const AJAXKLIC           = 'aEditFormTest';  // název post proměnné; ve které jdou data; pokud chceme ajaxově testovat jejich platnost a čekáme json odpověď
-    const OBRKLIC            = 'aEditObrazek';    // název proměnné; v které bude případně obrázek
-    const TAGYKLIC           = 'aEditTag';       // název proměnné; v které jdou tagy
-    const POSTKLIC           = 'aEditForm';      // název proměnné (ve výsledku pole); v které bude editační formulář aktivity předávat data
-    const TEAMKLIC           = 'aTeamForm';      // název post proměnné s formulářem pro výběr teamu
-    const TEAMKLIC_KOLA      = 'aTeamFormKolo';      // název post proměnné s výběrem kol pro team
-    const PN_PLUSMINUSP      = 'cAktivitaPlusminusp';  // název post proměnné pro úpravy typu plus
-    const PN_PLUSMINUSM      = 'cAktivitaPlusminusm';  // název post proměnné pro úpravy typu mínus
-    const HAJENI             = 72;      // počet hodin po kterýc aktivita automatick vykopává nesestavený tým
-    const LIMIT_POPIS_KRATKY = 180;  // max počet znaků v krátkém popisku
+    const AJAXKLIC              = 'aEditFormTest';  // název post proměnné; ve které jdou data; pokud chceme ajaxově testovat jejich platnost a čekáme json odpověď
+    const OBRAZEK_KLIC          = 'aEditObrazek';    // název proměnné; v které bude případně obrázek
+    const ODMENA_ZA_HODINU_KLIC = 'odmena_za_hodinu';
+    const TAGYKLIC              = 'aEditTag';       // název proměnné; v které jdou tagy
+    const POSTKLIC              = 'aEditForm';      // název proměnné (ve výsledku pole); v které bude editační formulář aktivity předávat data
+    const TEAMKLIC              = 'aTeamForm';      // název post proměnné s formulářem pro výběr teamu
+    const TEAMKLIC_KOLA         = 'aTeamFormKolo';      // název post proměnné s výběrem kol pro team
+    const PN_PLUSMINUSP         = 'cAktivitaPlusminusp';  // název post proměnné pro úpravy typu plus
+    const PN_PLUSMINUSM         = 'cAktivitaPlusminusm';  // název post proměnné pro úpravy typu mínus
+    const HAJENI                = 72;      // počet hodin po kterýc aktivita automatick vykopává nesestavený tým
+    const LIMIT_POPIS_KRATKY    = 180;  // max počet znaků v krátkém popisku
     // ignore a parametry kolem přihlašovátka
     const PLUSMINUS                          = 0b00000000001;   // plus/mínus zkratky pro měnění míst v team. aktivitě
     const PLUSMINUS_KAZDY                    = 0b00000000010;   // plus/mínus zkratky pro každého
@@ -339,10 +340,11 @@ SQL
         $xtpl = new XTemplate(__DIR__ . '/templates/editor-aktivity.xtpl');
         $xtpl->assign('fields', self::POSTKLIC); // název proměnné (pole) v kterém se mají posílat věci z formuláře
         $xtpl->assign('ajaxKlic', self::AJAXKLIC);
-        $xtpl->assign('obrKlic', self::OBRKLIC);
-        $xtpl->assign('obrKlicUrl', self::OBRKLIC . 'Url');
+        $xtpl->assign('obrKlic', self::OBRAZEK_KLIC);
+        $xtpl->assign('obrKlicUrl', self::OBRAZEK_KLIC . 'Url');
         $xtpl->assign('aEditTag', self::TAGYKLIC);
         $xtpl->assign('limitPopisKratky', self::LIMIT_POPIS_KRATKY);
+        $xtpl->assign('typBrigadnicka', TypAktivity::BRIGADNICKA);
 
         if ($aktivita) {
             $aktivitaData = $aktivita->a; // databázový řádek
@@ -653,10 +655,12 @@ SQL
             }
         }
 
-        $obrazekSoubor = postFile(self::OBRKLIC);
-        $obrazekUrl    = post(self::OBRKLIC . 'Url');
+        $obrazekSoubor = postFile(self::OBRAZEK_KLIC);
+        $obrazekUrl    = post(self::OBRAZEK_KLIC . 'Url');
 
-        $aktivita = self::uloz($a, $popis, $organizatori, $tagIds, $obrazekSoubor, $obrazekUrl);
+        $odmenaZaHodinu = (int)post(self::ODMENA_ZA_HODINU_KLIC);
+
+        $aktivita = self::uloz($a, $popis, $organizatori, $tagIds, $obrazekSoubor, $obrazekUrl, $odmenaZaHodinu);
 
         if ($rodiceIds) {
             $detiIds    = $aktivita->detiIds();
@@ -684,7 +688,15 @@ SQL
         return $aktivita;
     }
 
-    public static function uloz(array $data, ?string $markdownPopis, array $organizatoriIds, array $tagIds, string $obrazekSoubor = null, string $obrazekUrl = null): Aktivita {
+    public static function uloz(
+        array   $data,
+        ?string $markdownPopis,
+        array   $organizatoriIds,
+        array   $tagIds,
+        string  $obrazekSoubor = null,
+        string  $obrazekUrl = null,
+        int     $odmenaZaHodinu = null
+    ): Aktivita {
         $data['bez_slevy'] = (int)!empty($data['bez_slevy']); //checkbox pro "bez_slevy"
 
         $teamova          = !empty($data['teamova']);
@@ -704,6 +716,18 @@ SQL
 
         $data['patri_pod'] = !empty($data['patri_pod']) ? $data['patri_pod'] : null;
         $data['lokace']    = !empty($data['lokace']) ? $data['lokace'] : null;
+
+        if (!empty($data['typ']) && (int)$data['typ'] === TypAktivity::BRIGADNICKA && $odmenaZaHodinu
+            && !empty($data['zacatek']) && !empty($data['konec'])
+        ) {
+            $trvaniVSekundach = (new \DateTimeImmutable($data['konec']))->getTimestamp() - (new \DateTimeImmutable($data['zacatek']))->getTimestamp();
+            if ($trvaniVSekundach) {
+                $trvaniVHodinach = (int)round($trvaniVSekundach / 3600);
+                if ($trvaniVHodinach > 0) {
+                    $data['cena'] = $odmenaZaHodinu * $trvaniVHodinach;
+                }
+            }
+        }
 
         // uložení změn do akce_seznam
         if (empty($data['patri_pod']) && !empty($data['id_akce'])) {
