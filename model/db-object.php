@@ -1,5 +1,7 @@
 <?php
-@define('DB_NULL', new class {});
+if (!defined('DB_NULL')) {
+    define('DB_NULL', uniqid('DB_NULL_', true));
+}
 
 /**
  * Abstrakce jednoduché třídy nad tabulkou databáze
