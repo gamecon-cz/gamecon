@@ -13,13 +13,13 @@ if (!$uPracovni) {
 $osobniProgram = !empty($osobniProgram);
 
 $program = new Program($uPracovni, [
-    'drdPj'      => true,
-    'drdPrihlas' => true,
-    'plusMinus'  => true,
-    'osobni'     => $osobniProgram,
-    'teamVyber'  => true,
-    'technicke'  => true,
-    'zpetne'     => $u->maPravoNaZmenuHistorieAktivit(),
+    Program::DRD_PJ      => true,
+    Program::DRD_PRIHLAS => true,
+    Program::PLUS_MINUS  => true,
+    Program::OSOBNI      => $osobniProgram,
+    Program::TEAM_VYBER  => true,
+    Program::INTERNI     => true,
+    Program::ZPETNE      => $u->maPravoNaZmenuHistorieAktivit(),
 ]);
 
 if ($uPracovni) {
