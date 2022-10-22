@@ -519,7 +519,7 @@ SQL
             }
             $this->log(
                 $r['nazev'] . $poznamka,
-                in_array($r['typ'], [TypAktivity::TECHNICKA, TypAktivity::BRIGADNICKA])
+                in_array($r['typ'], TypAktivity::interniTypy())
                     ? 0
                     : $r['cena'],
                 self::AKTIVITY

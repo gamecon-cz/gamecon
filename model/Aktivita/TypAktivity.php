@@ -104,4 +104,16 @@ class TypAktivity extends \DbObject
         return self::zWhere('zobrazit_v_menu = 1');
     }
 
+    /**
+     * @param int|string $idTypuAktivity
+     * @return bool
+     */
+    public static function jeInterni($idTypuAktivity): bool {
+        return in_array((int)$idTypuAktivity, self::interniTypy());
+    }
+
+    public static function interniTypy(): array {
+        return [self::TECHNICKA, self::BRIGADNICKA];
+    }
+
 }

@@ -26,7 +26,7 @@ if ($uPracovni) {
     Aktivita::prihlasovatkoZpracuj(
         $uPracovni,
         $u,
-        Aktivita::PLUSMINUS_KAZDY | ($u->maPravoNaZmenuHistorieAktivit() ? Aktivita::ZPETNE : 0) | Aktivita::TECHNICKE
+        Aktivita::PLUSMINUS_KAZDY | ($u->maPravoNaZmenuHistorieAktivit() ? Aktivita::ZPETNE : 0) | Aktivita::INTERNI
     );
     Aktivita::vyberTeamuZpracuj($uPracovni, $u);
 }
