@@ -247,10 +247,10 @@ while ($r = mysqli_fetch_assoc($o)) {
             ],
             'Eshop'           => array_merge(
                 [
-                    'sleva'             => $finance->slevaZaAktivityVProcentech(),
-                    'placka zdarma'     => dejPocetPlacekZdarma($navstevnik),
-                    'placka GC placená' => dejPocetPlacekPlacenych($navstevnik),
-                    'kostka zdarma'     => dejPocetKostekZdarma($navstevnik),
+                    'průměrná sleva na aktivity %' => $finance->slevaZaAktivityVProcentech(),
+                    'placka zdarma'                => dejPocetPlacekZdarma($navstevnik),
+                    'placka GC placená'            => dejPocetPlacekPlacenych($navstevnik),
+                    'kostka zdarma'                => dejPocetKostekZdarma($navstevnik),
                 ],
                 dejNazvyAPoctyKostek($navstevnik, $letosniKostky),
                 dejNazvyAPoctyJidel($navstevnik, $letosniJidla),
