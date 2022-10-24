@@ -1,7 +1,8 @@
+# docker pull jaroslavtyc/gamecon-7.3:latest && docker-compose up --build
 version: "3"
 services:
   web:
-    build: .
+    image: jaroslavtyc/gamecon-7.3:latest
     restart: "no"
     volumes:
       - .:/var/www/html/gamecon:delegated
