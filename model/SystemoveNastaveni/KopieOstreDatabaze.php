@@ -10,12 +10,12 @@ class KopieOstreDatabaze
             throw new \RuntimeException('Nelze přečíst soubor s nastavením ostré ' . $souborNastaveniOstra);
         }
         $obsahNastaveniOstre = file_get_contents($souborNastaveniOstra);
-        $nastaveniOstre = [
+        $nastaveniOstre      = [
             'DBM_USER' => true,
             'DBM_PASS' => true,
-            'DBM_NAME' => true,
-            'DBM_SERV' => true,
-            'DBM_PORT' => false,
+            'DB_NAME'  => true,
+            'DB_SERV'  => true,
+            'DB_PORT'  => false,
         ];
         foreach ($nastaveniOstre as $klic => $vyzadovana) {
             if (!preg_match("~^\s*@?define\s*\(\s*'$klic'\s*,\s*'(?<hodnota>[^']+)'\s*\)~m", $obsahNastaveniOstre, $matches)) {
@@ -25,33 +25,33 @@ class KopieOstreDatabaze
             }
             $nastaveniOstre[$klic] = $matches['hodnota'] ?? null;
         }
-        if ($nastaveniOstre['DBM_SERV'] === DBM_SERV && $nastaveniOstre['DBM_NAME'] === DBM_NAME) {
+        if ($nastaveniOstre['DB_SERV'] === DB_SERV && $nastaveniOstre['DB_NAME'] === DB_NAME) {
             throw new \RuntimeException('Kopírovat sebe sama nemá smysl');
         }
         $ostraConnection = new \mysqli(
-            $nastaveniOstre['DBM_SERV'],
+            $nastaveniOstre['DB_SERV'],
             $nastaveniOstre['DBM_USER'],
             $nastaveniOstre['DBM_PASS'],
-            $nastaveniOstre['DBM_NAME'],
-            $nastaveniOstre['DBM_PORT'] ?? 3306,
+            $nastaveniOstre['DB_NAME'],
+            $nastaveniOstre['DB_PORT'] ?? 3306,
         );
-        $dump = new \MySQLDump($ostraConnection);
-        $handle = fopen('php://memory', 'r+b');
+        $dump            = new \MySQLDump($ostraConnection);
+        $handle          = fopen('php://memory', 'r+b');
         $dump->write($handle);
         mysqli_close($ostraConnection);
         fflush($handle);
         rewind($handle);
 
         $localConnection = new \mysqli(
-            DBM_SERV,
+            DB_SERV,
             DBM_USER,
             DBM_PASS,
-            DBM_NAME,
-            defined('DBM_PORT') && DBM_PORT
-                ? DBM_PORT
+            DB_NAME,
+            defined('DBM_PORT') && constant('DB_PORT')
+                ? constant('DB_PORT')
                 : 3306,
         );
-        $result = $this->executeQuery(
+        $result          = $this->executeQuery(
             <<<SQL
 SHOW TABLES
 SQL,
