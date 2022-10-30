@@ -16,7 +16,8 @@ class Report
     private $poleObsah;             // obsah ve formě pole
     private $csvSeparator = ';';    // oddělovač v csv souborech
 
-    public const BEZ_STYLU = 1;
+    public const BEZ_STYLU                        = 1;
+    public const HLAVICKU_ZACINAT_VElKYM_PISMENEM = 10;
 
     /**
      * Vytiskne report jako XLSX
@@ -196,7 +197,7 @@ HTML;
     /**
      * Vytvoří report z asoc. polí, jako hlavičky použije klíče
      */
-    static function zPoleSDvojitouHlavickou(array $pole) {
+    static function zPoleSDvojitouHlavickou(array $pole, int $parametry = 0) {
         $hlavniHlavicka   = [];
         $obsah            = [];
         $vedlejsiHlavicka = [];
@@ -209,6 +210,16 @@ HTML;
                 $vedlejsiHlavicka[] = $nazevVedlejsiHlavicky; // pod-hlavicka je prvnim radkem obsahu
             }
         }
+
+        if ($parametry & self::HLAVICKU_ZACINAT_VElKYM_PISMENEM) {
+            foreach ($hlavniHlavicka as &$nazev) {
+                $nazev = mb_ucfirst($nazev, 'UTF-8');
+            }
+            foreach ($vedlejsiHlavicka as &$nazev) {
+                $nazev = mb_ucfirst($nazev, 'UTF-8');
+            }
+        }
+
         $obsah[] = $vedlejsiHlavicka;
 
         foreach ($pole as $skupiny) {
