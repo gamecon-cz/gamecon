@@ -19,13 +19,18 @@ require __DIR__ . '/scripts/prihlaseni.php';
  */
 
 $pageTitle = 'GameCon – Administrace';
+
+global $systemoveNastaveni;
+if ($systemoveNastaveni instanceof Gamecon\SystemoveNastaveni\SystemoveNastaveni && $systemoveNastaveni->jsmeNaBete()) {
+    $pageTitle = 'β ' . $pageTitle;
+}
 // xtemplate inicializace
 $xtpl = new XTemplate(__DIR__ . '/templates/main.xtpl');
 $xtpl->assign([
-    'pageTitle' => $pageTitle,
-    'base' => URL_ADMIN . '/',
+    'pageTitle'   => $pageTitle,
+    'base'        => URL_ADMIN . '/',
     'cssVersions' => new \Gamecon\Web\VerzeSouboru(__DIR__ . '/files/design', 'css'),
-    'jsVersions' => new \Gamecon\Web\VerzeSouboru(__DIR__ . '/files', 'js'),
+    'jsVersions'  => new \Gamecon\Web\VerzeSouboru(__DIR__ . '/files', 'js'),
 ]);
 
 // nastavení stránky, prázdná url => přesměrování na úvod
@@ -40,8 +45,8 @@ if (!get('req')) {
         back(URL_ADMIN . '/moje-aktivity');
     }
 }
-$req = explode('/', get('req'));
-$stranka = $req[0];
+$req        = explode('/', get('req'));
+$stranka    = $req[0];
 $podstranka = isset($req[1]) ? $req[1] : '';
 
 // zobrazení stránky
@@ -61,28 +66,28 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
 } else {
     // načtení menu
     $menuObject = new AdminMenu('./scripts/modules/');
-    $menu = $menuObject->pole();
+    $menu       = $menuObject->pole();
 
     // načtení submenu
-    $submenu = [];
+    $submenu       = [];
     $submenuObject = null;
     if (!empty($menu[$stranka]['submenu'])) {
         $submenuObject = new AdminMenu('./scripts/modules/' . $stranka . '/', true);
-        $submenu = $submenuObject->pole();
+        $submenu       = $submenuObject->pole();
     }
 
     // zjištění práv na zobrazení stránky
-    $strankaExistuje = isset($menu[$stranka]);
+    $strankaExistuje    = isset($menu[$stranka]);
     $podstrankaExistuje = isset($submenu[$podstranka]);
-    $uzivatelMaPristup = ($strankaExistuje && $podstrankaExistuje && $u->maPravo($submenu[$podstranka]['pravo']))
+    $uzivatelMaPristup  = ($strankaExistuje && $podstrankaExistuje && $u->maPravo($submenu[$podstranka]['pravo']))
         || ($strankaExistuje && !$podstrankaExistuje && $u->maPravo($menu[$stranka]['pravo']));
 
     // konstrukce stránky
     if ($strankaExistuje && $uzivatelMaPristup) {
-        $_SESSION['id_admin'] = $u->id(); // součást interface starých modulů
+        $_SESSION['id_admin']     = $u->id(); // součást interface starých modulů
         $_SESSION['id_uzivatele'] = $uPracovni ? $uPracovni->id() : null; // součást interface starých modulů
-        $BEZ_DEKORACE = false;
-        $cwd = getcwd(); // uložíme si aktuální working directory pro pozdější návrat
+        $BEZ_DEKORACE             = false;
+        $cwd                      = getcwd(); // uložíme si aktuální working directory pro pozdější návrat
         if ($submenu) {
             chdir('./scripts/modules/' . $stranka . '/');
             $soubor = $podstranka && $podstrankaExistuje
@@ -90,7 +95,7 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
                 : $cwd . '/' . $submenu[$stranka]['soubor'];
         } else {
             chdir('./scripts/modules/');
-            $soubor = $cwd . '/' . $menu[$stranka]['soubor'];
+            $soubor    = $cwd . '/' . $menu[$stranka]['soubor'];
             $pageTitle .= ' | ' . $menu[$stranka]['nazev'];
         }
         ob_start(); // výstup uložíme do bufferu
@@ -179,7 +184,7 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
             }
             if (($podstranka != '' && $podstranka == $url) || ($podstranka == '' && $stranka == $url)) {
                 $addAttributes[] = 'class="activeSubmenuLink"';
-                $pageTitle = $pageTitle . ' | ' . $polozka['nazev'];
+                $pageTitle       = $pageTitle . ' | ' . $polozka['nazev'];
             }
             $xtpl->assign('add_attributes', implode(' ', $addAttributes));
 
