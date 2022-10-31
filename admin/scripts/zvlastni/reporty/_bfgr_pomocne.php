@@ -1,6 +1,6 @@
 <?php
-function dejPocetPolozekZdarma(Uzivatel $uzivatel, string $castNazvu) {
-    $financniPrehled = $uzivatel->finance()->dejStrukturovanyPrehled();
+function dejPocetPolozekZdarma(Uzivatel $navstevnik, string $castNazvu) {
+    $financniPrehled    = $navstevnik->finance()->dejStrukturovanyPrehled();
     $pocetPolozekZdarma = 0;
     foreach ($financniPrehled as $polozka) {
         ['nazev' => $nazev, 'castka' => $castka] = $polozka;
@@ -11,40 +11,40 @@ function dejPocetPolozekZdarma(Uzivatel $uzivatel, string $castNazvu) {
     return $pocetPolozekZdarma;
 }
 
-function dejPocetPlacekZdarma(Uzivatel $uzivatel): int {
-    return dejPocetPolozekZdarma($uzivatel, 'placka');
+function dejPocetPlacekZdarma(Uzivatel $navstevnik): int {
+    return dejPocetPolozekZdarma($navstevnik, 'placka');
 }
 
-function dejPocetKostekZdarma(Uzivatel $uzivatel): int {
-    return dejPocetPolozekZdarma($uzivatel, 'kostka');
+function dejPocetKostekZdarma(Uzivatel $navstevnik): int {
+    return dejPocetPolozekZdarma($navstevnik, 'kostka');
 }
 
-function dejPocetTricekZdarma(Uzivatel $uzivatel): int {
-    return dejPocetPolozekZdarma($uzivatel, 'tričko');
+function dejPocetTricekZdarma(Uzivatel $navstevnik): int {
+    return dejPocetPolozekZdarma($navstevnik, 'tričko');
 }
 
-function dejPocetTilekZdarma(Uzivatel $uzivatel): int {
-    return dejPocetPolozekZdarma($uzivatel, 'tílko');
+function dejPocetTilekZdarma(Uzivatel $navstevnik): int {
+    return dejPocetPolozekZdarma($navstevnik, 'tílko');
 }
 
-function dejPocetTricekSeSlevou(Uzivatel $uzivatel): int {
-    return dejPocetPolozekPlacenych($uzivatel, 'tričko modré') + dejPocetPolozekPlacenych($uzivatel, 'tričko červené');
+function dejPocetTricekSeSlevou(Uzivatel $navstevnik): int {
+    return dejPocetPolozekPlacenych($navstevnik, 'tričko modré') + dejPocetPolozekPlacenych($navstevnik, 'tričko červené');
 }
 
-function dejPocetTilekSeSlevou(Uzivatel $uzivatel): int {
-    return dejPocetPolozekPlacenych($uzivatel, 'tílko modré') + dejPocetPolozekPlacenych($uzivatel, 'tílko červené');
+function dejPocetTilekSeSlevou(Uzivatel $navstevnik): int {
+    return dejPocetPolozekPlacenych($navstevnik, 'tílko modré') + dejPocetPolozekPlacenych($navstevnik, 'tílko červené');
 }
 
-function dejPocetTricekPlacenych(Uzivatel $uzivatel): int {
-    return dejPocetPolozekPlacenych($uzivatel, 'tričko') - dejPocetTricekSeSlevou($uzivatel);
+function dejPocetTricekPlacenych(Uzivatel $navstevnik): int {
+    return dejPocetPolozekPlacenych($navstevnik, 'tričko') - dejPocetTricekSeSlevou($navstevnik);
 }
 
-function dejPocetTilekPlacenych(Uzivatel $uzivatel): int {
-    return dejPocetPolozekPlacenych($uzivatel, 'tílko') - dejPocetTilekSeSlevou($uzivatel);
+function dejPocetTilekPlacenych(Uzivatel $navstevnik): int {
+    return dejPocetPolozekPlacenych($navstevnik, 'tílko') - dejPocetTilekSeSlevou($navstevnik);
 }
 
-function dejPocetPolozekPlacenych(Uzivatel $uzivatel, string $castNazvu) {
-    $financniPrehled = $uzivatel->finance()->dejStrukturovanyPrehled();
+function dejPocetPolozekPlacenych(Uzivatel $navstevnik, string $castNazvu) {
+    $financniPrehled       = $navstevnik->finance()->dejStrukturovanyPrehled();
     $pocetPolozekPlacenych = 0;
     foreach ($financniPrehled as $polozka) {
         ['nazev' => $nazev, 'castka' => $castka] = $polozka;
@@ -55,25 +55,27 @@ function dejPocetPolozekPlacenych(Uzivatel $uzivatel, string $castNazvu) {
     return $pocetPolozekPlacenych;
 }
 
-function dejPocetPlacekPlacenych(Uzivatel $uzivatel): int {
-    return dejPocetPolozekPlacenych($uzivatel, 'placka');
+function dejPocetPlacekPlacenych(Uzivatel $navstevnik): int {
+    return dejPocetPolozekPlacenych($navstevnik, 'placka');
 }
 
-function dejNazvyAPoctyJidel(Uzivatel $uzivatel, array $moznaJidla): array {
-    $objednanaJidla = dejNazvyAPoctyPredmetu($uzivatel, implode('|', \Gamecon\Jidlo::dejJidlaBehemDne()));
+function dejNazvyAPoctyJidel(Uzivatel $navstevnik, array $moznaJidla): array {
+    $objednanaJidla = dejNazvyAPoctyPredmetu($navstevnik, implode('|', \Gamecon\Jidlo::dejJidlaBehemDne()));
     uksort($objednanaJidla, static function (string $nejakeJidloADen, string $jineJidloADen) {
         $nejakeJidloBehemDne = najdiJidloBehemDne($nejakeJidloADen);
-        $jineJidloBehemDne = najdiJidloBehemDne($jineJidloADen);
-        $rozdilPoradiJidel = \Gamecon\Jidlo::dejPoradiJidlaBehemDne($nejakeJidloBehemDne) <=> \Gamecon\Jidlo::dejPoradiJidlaBehemDne($jineJidloBehemDne);
+        $jineJidloBehemDne   = najdiJidloBehemDne($jineJidloADen);
+        $rozdilPoradiJidel   = \Gamecon\Jidlo::dejPoradiJidlaBehemDne($nejakeJidloBehemDne) <=> \Gamecon\Jidlo::dejPoradiJidlaBehemDne($jineJidloBehemDne);
         if ($rozdilPoradiJidel !== 0) {
             return $rozdilPoradiJidel; // nejdříve chceme řadit podle typu jídla, teprve potom podle dnů
         }
         $denNejakehoJidla = najdiDenVTydnu($nejakeJidloADen);
-        $denJinehoJidla = najdiDenVTydnu($jineJidloADen);
+        $denJinehoJidla   = najdiDenVTydnu($jineJidloADen);
         return \Gamecon\Cas\DateTimeCz::poradiDne($denNejakehoJidla) <=> \Gamecon\Cas\DateTimeCz::poradiDne($denJinehoJidla);
     });
-    $vsechnaJidlaJakoNeobjednana = array_fill_keys($moznaJidla, 0);
-    return array_merge($vsechnaJidlaJakoNeobjednana, $objednanaJidla);
+    $vsechnaJidlaJakoNeobjednana  = array_fill_keys($moznaJidla, 0);
+    $vsechnaJidla                 = array_merge($vsechnaJidlaJakoNeobjednana, $objednanaJidla);
+    $vsechnaJidla['Celkem jídel'] = array_sum($vsechnaJidla);
+    return $vsechnaJidla;
 }
 
 function najdiDenVTydnu(string $text): string {
@@ -87,16 +89,16 @@ function najdiJidloBehemDne(string $text): string {
 }
 
 /**
- * @param Uzivatel $uzivatel
+ * @param Uzivatel $navstevnik
  * @param string|array $castNazvuRegexpNeboPole
  * @return array
  */
-function dejNazvyAPoctyPredmetu(Uzivatel $uzivatel, $castNazvuRegexpNeboPole): array {
+function dejNazvyAPoctyPredmetu(Uzivatel $navstevnik, $castNazvuRegexpNeboPole): array {
     $castNazvuRegexp = is_array($castNazvuRegexpNeboPole)
         ? dejPoleJakoRegexp($castNazvuRegexpNeboPole, '~')
         : $castNazvuRegexpNeboPole;
-    $financniPrehled = $uzivatel->finance()->dejStrukturovanyPrehled();
-    $poctyPredmetu = [];
+    $financniPrehled = $navstevnik->finance()->dejStrukturovanyPrehled();
+    $poctyPredmetu   = [];
     foreach ($financniPrehled as $polozka) {
         ['nazev' => $nazev, 'pocet' => $pocet] = $polozka;
         if (preg_match('~' . $castNazvuRegexp . '~iS', $nazev)) {
@@ -117,19 +119,32 @@ function dejPoleJakoRegexp(array $retezce, string $delimiter) {
     );
 }
 
-function dejNazvyAPoctyCovidTestu(Uzivatel $uzivatel, array $vsechnyMozneCovidTesty): array {
-    $objednaneCovidTesty = dejNazvyAPoctyPredmetu($uzivatel, 'covid');
+function dejNazvyAPoctyCovidTestu(Uzivatel $navstevnik, array $vsechnyMozneCovidTesty): array {
+    $objednaneCovidTesty = dejNazvyAPoctyPredmetu($navstevnik, 'covid');
     return seradADoplnNenakoupene($objednaneCovidTesty, $vsechnyMozneCovidTesty);
 }
 
-function dejNazvyAPoctyOstatnichPredmetu(Uzivatel $uzivatel, array $vsechnyMozneOstatniPredmety): array {
-    $objednaneOstatniPredmety = dejNazvyAPoctyPredmetu($uzivatel, $vsechnyMozneOstatniPredmety);
+function dejNazvyAPoctySvrsku(Uzivatel $navstevnik): array {
+    $poctySvrsku                  = [
+        'Tričko zdarma'             => dejPocetTricekZdarma($navstevnik),
+        'Tílko zdarma'              => dejPocetTilekZdarma($navstevnik),
+        'Tričko se slevou'          => dejPocetTricekSeSlevou($navstevnik),
+        'Tílko se slevou'           => dejPocetTilekSeSlevou($navstevnik),
+        'Účastnické tričko placené' => dejPocetTricekPlacenych($navstevnik),
+        'Účastnické tílko placené'  => dejPocetTilekPlacenych($navstevnik),
+    ];
+    $poctySvrsku['Celkem svršků'] = array_sum($poctySvrsku);
+    return $poctySvrsku;
+}
+
+function dejNazvyAPoctyOstatnichPredmetu(Uzivatel $navstevnik, array $vsechnyMozneOstatniPredmety): array {
+    $objednaneOstatniPredmety = dejNazvyAPoctyPredmetu($navstevnik, $vsechnyMozneOstatniPredmety);
     return seradADoplnNenakoupene($objednaneOstatniPredmety, $vsechnyMozneOstatniPredmety);
 }
 
 function seradADoplnNenakoupene(array $objednaneSPocty, array $vsechnyMozneJenNazvy): array {
     $vsechnyMozneJakoNeobjednane = array_fill_keys($vsechnyMozneJenNazvy, 0); // zachová pořadí
-    $objednaneANeobjednane = array_merge( // zachová pořadí
+    $objednaneANeobjednane       = array_merge( // zachová pořadí
         $vsechnyMozneJakoNeobjednane,
         $objednaneSPocty
     );
@@ -141,13 +156,25 @@ function seradADoplnNenakoupene(array $objednaneSPocty, array $vsechnyMozneJenNa
     return $objednaneANeobjednane;
 }
 
-function dejNazvyAPoctyKostek(Uzivatel $uzivatel, array $vsechnyMozneKostky): array {
-    $objednaneKostky = dejNazvyAPoctyPredmetu($uzivatel, 'kostka');
+function dejNazvyAPoctyPlacek(Uzivatel $navstevnik): array {
+    $poctyPlacek                  = [
+        'Placka zdarma'     => dejPocetPlacekZdarma($navstevnik),
+        'Placka GC placená' => dejPocetPlacekPlacenych($navstevnik),
+    ];
+    $poctyPlacek['Celkem placek'] = array_sum($poctyPlacek);
+    return $poctyPlacek;
+}
+
+function dejNazvyAPoctyKostek(Uzivatel $navstevnik, array $vsechnyMozneKostky): array {
+    $objednaneKostky = dejNazvyAPoctyPredmetu($navstevnik, 'kostka');
     foreach ($objednaneKostky as $objednanaKostka => $pocet) {
         if (!preg_match('~ \d{4}$~', $objednanaKostka)) {
             unset($objednaneKostky[$objednanaKostka]);
             $objednaneKostky[$objednanaKostka . ' ' . ROK] = $pocet;
         }
     }
-    return seradADoplnNenakoupene($objednaneKostky, $vsechnyMozneKostky);
+    $poctyKostek                  = seradADoplnNenakoupene($objednaneKostky, $vsechnyMozneKostky);
+    $poctyKostek['Kostka zdarma'] = dejPocetKostekZdarma($navstevnik);
+    $poctyKostek['Celkem kostek'] = array_sum($poctyKostek);
+    return $poctyKostek;
 }
