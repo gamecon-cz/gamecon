@@ -995,7 +995,7 @@ SQL,
         };
 
         $validaceMailu = function ($mail) use ($u) {
-            if (!preg_match('/^[a-z0-9_\-.]+@[a-z0-9_\-.]+\.[a-z]+$/', $mail)) {
+            if (!preg_match('/^[a-z0-9_\-.+]+@[a-z0-9_\-.]+\.[a-z]+$/', $mail)) {
                 return 'zadej prosím platný e-mail';
             }
 
