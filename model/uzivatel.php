@@ -1009,6 +1009,16 @@ SQL,
             return '';
         };
 
+        $validaceDataNarozeni = function ($datum) {
+            // přichází ve formátu rrrr-mm-dd
+            $data = explode('-', $datum);
+            if (count($data) != 3 || strlen($data[0]) != 4 || strlen($data[1]) != 2 || strlen($data[2]) != 2 ||
+                !checkdate($data[1], $data[2], $data[0])) {
+                return 'vyplň prosím datum narození ve formátu mm/dd/rrrr';
+            }
+            return '';
+        };
+
         $validaceHesla = function ($heslo) use ($dbTab) {
             if (empty($heslo)) return 'vyplň prosím heslo';
 
@@ -1032,7 +1042,7 @@ SQL,
             'psc_uzivatele'        => ['^[\d ]+$', 'vyplň prosím PSČ, např. 602 00'],
             'stat_uzivatele'       => ['^(1|2|-1)$', 'vyber prosím stát'],
             'telefon_uzivatele'    => ['^[\d \+]+$', 'vyplň prosím telefon, např. +420 789 123 456'],
-            'datum_narozeni'       => ['\d+', 'vyber prosím datum narození'], // TODO
+            'datum_narozeni'       => $validaceDataNarozeni,
             'heslo'                => $validaceHesla,
             'heslo_kontrola'       => $validaceHesla,
         ];
