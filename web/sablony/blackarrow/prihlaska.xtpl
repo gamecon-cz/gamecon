@@ -195,7 +195,10 @@
   <div class="prihlaska_hlavicka">
     <h1>Přihláška na GameCon</h1>
 
-    <p>GameCon už proběhl, těšíme se na viděnou v roce {rok}.</p>
+    <p>
+      GameCon už proběhl, těšíme se na viděnou v roce {rok}. 
+      Můžeš se podívat, o co jsi přišel, na našem <a href="https://www.facebook.com/gamecon" title="Facebook Gameconu">Facebooku</a>.
+    </p>
   </div>
 </div>
 <!-- end: prihlaskaPo -->
