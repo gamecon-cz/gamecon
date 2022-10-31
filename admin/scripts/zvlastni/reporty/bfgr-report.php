@@ -250,23 +250,14 @@ while ($r = mysqli_fetch_assoc($o)) {
             'Eshop'           => array_merge(
                 [
                     'Průměrná sleva na aktivity %' => $finance->slevaZaAktivityVProcentech(),
-                    'Placka zdarma'                => dejPocetPlacekZdarma($navstevnik),
-                    'Placka GC placená'            => dejPocetPlacekPlacenych($navstevnik),
-                    'Kostka zdarma'                => dejPocetKostekZdarma($navstevnik),
                 ],
+                dejNazvyAPoctyPlacek($navstevnik),
                 dejNazvyAPoctyKostek($navstevnik, $letosniKostky),
                 dejNazvyAPoctyJidel($navstevnik, $letosniJidla),
-                [
-                    'Tričko zdarma'             => dejPocetTricekZdarma($navstevnik),
-                    'Tílko zdarma'              => dejPocetTilekZdarma($navstevnik),
-                    'Tričko se slevou'          => dejPocetTricekSeSlevou($navstevnik),
-                    'Tílko se slevou'           => dejPocetTilekSeSlevou($navstevnik),
-                    'Účastnické tričko placené' => dejPocetTricekPlacenych($navstevnik),
-                    'Účastnické tílko placené'  => dejPocetTilekPlacenych($navstevnik),
-                ],
+                dejNazvyAPoctySvrsku($navstevnik),
                 dejNazvyAPoctyOstatnichPredmetu($navstevnik, $letosniOstatniPredmety),
 //                $letosniOstatniPredmetyPocty,
-                dejNazvyAPoctyCovidTestu($navstevnik, $letosniCovidTesty) // "dát pls až nakonec", tak pravil Gandalf
+                dejNazvyAPoctyCovidTestu($navstevnik, $letosniCovidTesty) // "dát pls až nakonec", tak pravil Gandalf 30. 7. 2021
             ),
         ],
     );
