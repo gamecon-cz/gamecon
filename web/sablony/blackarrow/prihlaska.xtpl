@@ -190,6 +190,16 @@
 </div>
 <!-- end: prihlaskaPred -->
 
+<!-- begin: prihlaskaNaMiste -->
+<div class="prihlaska_hlavickaObal">
+  <div class="prihlaska_hlavicka">
+    <h1>Přihláška na GameCon</h1>
+
+    <p>Online přihlášky jsou uzavřeny, ale můžeš se za námi stavit a přihlásit se na místě.</p>
+  </div>
+</div>
+<!-- end: prihlaskaNaMiste -->
+
 <!-- begin: prihlaskaPo -->
 <div class="prihlaska_hlavickaObal">
   <div class="prihlaska_hlavicka">
