@@ -4,6 +4,7 @@
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Zidle;
 use Gamecon\Shop\Shop;
+use Gamecon\Report\KonfiguraceReportu;
 
 require __DIR__ . '/sdilene-hlavicky.php';
 
@@ -228,13 +229,13 @@ while ($r = mysqli_fetch_assoc($o)) {
             ],
             'Ostatní platby'  => [
                 'Aktivity'                           => $finance->cenaAktivit(),
+                'Dobrovolné vstupné'                 => $finance->vstupne(),
+                'Dobrovolné vstupné (pozdě)'         => $finance->vstupnePozde(),
+                'Suma slev'                          => excelCislo($finance->slevaObecna()),
                 'Bonus za vedení aktivit'            => $finance->bonusZaVedeniAktivit(),
                 'Využitý bonus za vedení aktivit'    => $finance->vyuzityBonusZaAktivity(),
                 'Proplacený bonus za vedení aktivit' => $finance->proplacenyBonusZaAktivity(),
-                'dobrovolné vstupné'                 => $finance->vstupne(),
-                'dobrovolné vstupné (pozdě)'         => $finance->vstupnePozde(),
                 'Stav'                               => excelCislo($finance->stav()),
-                'Suma slev'                          => excelCislo($finance->slevaObecna()),
                 'Zůstatek z minula'                  => excelCislo($r['zustatek']),
                 'Připsané platby'                    => excelCislo($finance->sumaPlateb()),
                 'První blok'                         => excelDatum($navstevnik->prvniBlok()),
@@ -261,5 +262,16 @@ while ($r = mysqli_fetch_assoc($o)) {
     );
 }
 
+$indexySloupcuSBydlistem         = Report::dejIndexyKlicuPodsloupcuDruhehoRadkuDleKliceVPrvnimRadku('Bydliště', $obsah);
+$maximalniSirkaSloupcuSBydlistem = array_fill_keys($indexySloupcuSBydlistem, 30);
+
+$indexySloupcuSDatemNarozeni         = Report::dejIndexyKlicuPodsloupcuDruhehoRadkuDleKliceVPrvnimRadku('Datum narození', $obsah);
+$maximalniSirkaSloupcuSDatemNarozeni = array_fill_keys($indexySloupcuSBydlistem, 10);
+
+$konfiguraceReportu = (new KonfiguraceReportu())
+    ->setRowToFreeze(KonfiguraceReportu::NO_ROW_TO_FREEZE)
+    ->setMaxGenericColumnWidth(50)
+    ->setMaxColumnsWidths(array_merge($maximalniSirkaSloupcuSBydlistem, $maximalniSirkaSloupcuSDatemNarozeni));
+
 Report::zPoleSDvojitouHlavickou($obsah, Report::HLAVICKU_ZACINAT_VElKYM_PISMENEM)
-    ->tFormat(get('format'), null, 0);
+    ->tFormat(get('format'), null, $konfiguraceReportu);
