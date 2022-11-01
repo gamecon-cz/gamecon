@@ -262,16 +262,19 @@ while ($r = mysqli_fetch_assoc($o)) {
     );
 }
 
-$indexySloupcuSBydlistem         = Report::dejIndexyKlicuPodsloupcuDruhehoRadkuDleKliceVPrvnimRadku('Bydliště', $obsah);
-$maximalniSirkaSloupcuSBydlistem = array_fill_keys($indexySloupcuSBydlistem, 30);
+$indexySloupcuSBydlistem = Report::dejIndexyKlicuPodsloupcuDruhehoRadkuDleKliceVPrvnimRadku('Bydliště', $obsah);
+$sirkaSloupcuSBydlistem  = array_fill_keys($indexySloupcuSBydlistem, 30);
 
-$indexySloupcuSDatemNarozeni         = Report::dejIndexyKlicuPodsloupcuDruhehoRadkuDleKliceVPrvnimRadku('Datum narození', $obsah);
-$maximalniSirkaSloupcuSDatemNarozeni = array_fill_keys($indexySloupcuSBydlistem, 10);
+$indexySloupcuSDatemNarozeni = Report::dejIndexyKlicuPodsloupcuDruhehoRadkuDleKliceVPrvnimRadku('Datum narození', $obsah);
+$sirkaSloupcuSDatemNarozeni  = array_fill_keys($indexySloupcuSDatemNarozeni, 10);
+
+$indexSloupceSPravy = Report::dejIndexKlicePodsloupceDruhehoRadku('Práva', $obsah);
+$sirkaSloupcuSPravy = [$indexSloupceSPravy => 50];
 
 $konfiguraceReportu = (new KonfiguraceReportu())
     ->setRowToFreeze(KonfiguraceReportu::NO_ROW_TO_FREEZE)
     ->setMaxGenericColumnWidth(50)
-    ->setMaxColumnsWidths(array_merge($maximalniSirkaSloupcuSBydlistem, $maximalniSirkaSloupcuSDatemNarozeni));
+    ->setColumnsWidths($sirkaSloupcuSBydlistem + $sirkaSloupcuSDatemNarozeni + $sirkaSloupcuSPravy);
 
 Report::zPoleSDvojitouHlavickou($obsah, Report::HLAVICKU_ZACINAT_VElKYM_PISMENEM)
     ->tFormat(get('format'), null, $konfiguraceReportu);
