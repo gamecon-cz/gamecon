@@ -72,10 +72,9 @@ function dejNazvyAPoctyJidel(Uzivatel $navstevnik, array $moznaJidla): array {
         $denJinehoJidla   = najdiDenVTydnu($jineJidloADen);
         return \Gamecon\Cas\DateTimeCz::poradiDne($denNejakehoJidla) <=> \Gamecon\Cas\DateTimeCz::poradiDne($denJinehoJidla);
     });
-    $vsechnaJidlaJakoNeobjednana  = array_fill_keys($moznaJidla, 0);
-    $vsechnaJidla                 = array_merge($vsechnaJidlaJakoNeobjednana, $objednanaJidla);
-    $vsechnaJidla['Celkem jídel'] = array_sum($vsechnaJidla);
-    return $vsechnaJidla;
+    $vsechnaJidlaJakoNeobjednana = array_fill_keys($moznaJidla, 0);
+    $vsechnaJidla                = array_merge($vsechnaJidlaJakoNeobjednana, $objednanaJidla);
+    return pridejNaZacatekPole('Celkem jídel', array_sum($vsechnaJidla), $vsechnaJidla);
 }
 
 function najdiDenVTydnu(string $text): string {
@@ -125,7 +124,7 @@ function dejNazvyAPoctyCovidTestu(Uzivatel $navstevnik, array $vsechnyMozneCovid
 }
 
 function dejNazvyAPoctySvrsku(Uzivatel $navstevnik): array {
-    $poctySvrsku                  = [
+    $poctySvrsku = [
         'Tričko zdarma'             => dejPocetTricekZdarma($navstevnik),
         'Tílko zdarma'              => dejPocetTilekZdarma($navstevnik),
         'Tričko se slevou'          => dejPocetTricekSeSlevou($navstevnik),
@@ -133,8 +132,7 @@ function dejNazvyAPoctySvrsku(Uzivatel $navstevnik): array {
         'Účastnické tričko placené' => dejPocetTricekPlacenych($navstevnik),
         'Účastnické tílko placené'  => dejPocetTilekPlacenych($navstevnik),
     ];
-    $poctySvrsku['Celkem svršků'] = array_sum($poctySvrsku);
-    return $poctySvrsku;
+    return pridejNaZacatekPole('Celkem svršků', array_sum($poctySvrsku), $poctySvrsku);
 }
 
 function dejNazvyAPoctyOstatnichPredmetu(Uzivatel $navstevnik, array $vsechnyMozneOstatniPredmety): array {
@@ -157,12 +155,11 @@ function seradADoplnNenakoupene(array $objednaneSPocty, array $vsechnyMozneJenNa
 }
 
 function dejNazvyAPoctyPlacek(Uzivatel $navstevnik): array {
-    $poctyPlacek                  = [
+    $poctyPlacek = [
         'Placka zdarma'     => dejPocetPlacekZdarma($navstevnik),
         'Placka GC placená' => dejPocetPlacekPlacenych($navstevnik),
     ];
-    $poctyPlacek['Celkem placek'] = array_sum($poctyPlacek);
-    return $poctyPlacek;
+    return pridejNaZacatekPole('Celkem placek', array_sum($poctyPlacek), $poctyPlacek);
 }
 
 function dejNazvyAPoctyKostek(Uzivatel $navstevnik, array $vsechnyMozneKostky): array {
@@ -173,8 +170,8 @@ function dejNazvyAPoctyKostek(Uzivatel $navstevnik, array $vsechnyMozneKostky): 
             $objednaneKostky[$objednanaKostka . ' ' . ROK] = $pocet;
         }
     }
-    $poctyKostek                  = seradADoplnNenakoupene($objednaneKostky, $vsechnyMozneKostky);
+    $poctyKostek = seradADoplnNenakoupene($objednaneKostky, $vsechnyMozneKostky);
+    // pozor, kostky zdarma je počet kostek z výše uvedených objednaných (podmnožina) - nejsou to kostky navíc
     $poctyKostek['Kostka zdarma'] = dejPocetKostekZdarma($navstevnik);
-    $poctyKostek['Celkem kostek'] = array_sum($poctyKostek);
-    return $poctyKostek;
+    return pridejNaZacatekPole('Celkem kostek', array_sum($objednaneKostky), $poctyKostek);
 }
