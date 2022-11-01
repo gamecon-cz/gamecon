@@ -3,6 +3,8 @@
 use OpenSpout\Writer\Common\Creator\WriterEntityFactory;
 use OpenSpout\Writer\Common\Creator\Style\StyleBuilder;
 use OpenSpout\Writer\XLSX\Entity\SheetView;
+use Gamecon\Report\KonfiguraceReportu;
+use OpenSpout\Common\Entity\Style\CellAlignment;
 
 /**
  * Třída pro vytvoření a vypsání reportu
@@ -22,7 +24,9 @@ class Report
     /**
      * Vytiskne report jako XLSX
      */
-    public function tXlsx(?string $nazevReportu, int $freeRows) {
+    public function tXlsx(?string $nazevReportu, KonfiguraceReportu $konfiguraceReportu = null) {
+        $konfiguraceReportu = $konfiguraceReportu ?? new KonfiguraceReportu();
+
         $previousMemoryLimit = ini_get('memory_limit');
 
         try {
@@ -33,21 +37,27 @@ class Report
             $fileName = $this->nazevSouboru('xlsx', $nazevReportu);
             $writer->openToBrowser($fileName); // stream data directly to the browser
 
-            if ($freeRows > 0) {
-                $sheetView = (new SheetView())->setFreezeRow($freeRows);
+            if ($konfiguraceReportu->getRowToFreeze() > 0) {
+                // OpenSpout library uses 2 for first row, so it is +1 from our point of view
+                $sheetView = (new SheetView())->setFreezeRow($konfiguraceReportu->getRowToFreeze() + 1);
                 $writer->getCurrentSheet()->setSheetView($sheetView);
             }
 
             $rows = [];
 
-            $headerStyle = (new StyleBuilder())->setFontBold()->setFontSize(10)->build();
+            $headerStyle = (new StyleBuilder())->setFontBold()->setFontSize($konfiguraceReportu->getHeaderFontSize())->build();
             $headerRow   = WriterEntityFactory::createRowFromArray($this->hlavicky(), $headerStyle);
             $rows[]      = $headerRow;
 
-            $integerStyle  = (new StyleBuilder())->setFormat('0')->build();
-            $numberStyle   = (new StyleBuilder())->setFormat('0.0')->build();
-            $moneyStyle    = (new StyleBuilder())->setFormat('0.00')->build();
-            $fontSizeStyle = (new StyleBuilder())->setFontSize(10)->setFontName('Arial')->build();
+            $integerStyle     = (new StyleBuilder())->setFormat('0')->build();
+            $numberStyle      = (new StyleBuilder())->setFormat('0.0')->build();
+            $moneyStyle       = (new StyleBuilder())->setFormat('0.00')->build();
+            $genericSizeStyle = (new StyleBuilder())
+                ->setFontSize($konfiguraceReportu->getBodyFontSize())
+                ->setFontName('Arial')
+                ->setCellAlignment(CellAlignment::LEFT)
+                ->setShouldWrapText(false)
+                ->build();
             while ($radek = $this->radek()) {
                 $cells = [];
                 foreach ($radek as $hodnota) {
@@ -60,17 +70,15 @@ class Report
                     ) {
                         $cells[] = WriterEntityFactory::createCell((float)$hodnota, $numberStyle);
                     } else {
-                        $cells[] = WriterEntityFactory::createCell(
-                            (string)$hodnota !== ''
-                                ? (string)$hodnota
-                                : ' ' // jinak je bohužel ignorován styl (font a jeho velikost) v prázdných buňkách
-                        );
+                        $textCell = WriterEntityFactory::createCell((string)$hodnota);
+                        $textCell->setType($textCell::TYPE_STRING); // jinak by ignorován styl (font a jeho velikost) v prázdných buňkách
+                        $cells[] = $textCell;
                     }
                 }
-                $rows[] = WriterEntityFactory::createRow($cells, $fontSizeStyle);
+                $rows[] = WriterEntityFactory::createRow($cells, $genericSizeStyle);
             }
 
-            foreach ($this->calculateColumnsWidth($rows) as $columnNumber => $columnWidth) {
+            foreach ($this->calculateColumnsWidth($rows, $konfiguraceReportu) as $columnNumber => $columnWidth) {
                 // musí být před prvním addRow
                 $writer->setColumnWidth($columnWidth, $columnNumber);
             }
@@ -89,19 +97,30 @@ class Report
 
     /**
      * @param \OpenSpout\Common\Entity\Row[] $rows
+     * @param KonfiguraceReportu $konfiguraceReportu
      * @return int[]
      */
-    private function calculateColumnsWidth(array $rows): array {
-        $widths = [];
+    private function calculateColumnsWidth(array $rows, KonfiguraceReportu $konfiguraceReportu): array {
+        $maxGenericColumnWidth = $konfiguraceReportu->getMaxGenericColumnWidth();
+        $maxColumnsWidths      = $konfiguraceReportu->getMaxColumnsWidths();
+        $widths                = [];
         foreach ($rows as $row) {
             foreach ($row->getCells() as $index => $cell) {
-                $pomer              = $cell->getStyle()->isFontBold()
+                $columnNumber        = $index + 1;
+                $maxForCurrentColumn = $maxColumnsWidths[$index] ?? $maxGenericColumnWidth ?? false; // maximum for current column from configuration
+                if ($maxForCurrentColumn && ($widths[$columnNumber] ?? null) === $maxForCurrentColumn) {
+                    continue; // current colum already has maximal width set for current column
+                }
+                $ratio                 = $cell->getStyle()->isFontBold()
                     ? 1.5
                     : 1.3;
-                $widths[$index + 1] = max(
-                    (int)ceil(mb_strlen((string)$cell->getValue()) / $pomer) + 1,
-                    $widths[$index + 1] ?? 1
+                $widths[$columnNumber] = max(
+                    (int)ceil(mb_strlen((string)$cell->getValue()) / $ratio) + 1,
+                    $widths[$columnNumber] ?? 1 // maximum from previous rows
                 );
+                if ($maxForCurrentColumn) {
+                    $widths[$columnNumber] = min($widths[$columnNumber], $maxForCurrentColumn);
+                }
             }
         }
         return $widths;
@@ -150,10 +169,10 @@ class Report
      * Vytiskne report v zadaném formátu. Pokud není zadán, použije výchozí csv.
      * @throws Exception pokud formát není podporován
      */
-    public function tFormat(string $format = null, string $nazev = null, int $freeRows = 1) {
+    public function tFormat(string $format = null, string $nazev = null, KonfiguraceReportu $konfiguraceReportu = null) {
         $format = trim((string)$format);
         if (!$format || $format === 'xlsx') {
-            $this->tXlsx($nazev, $freeRows);
+            $this->tXlsx($nazev, $konfiguraceReportu);
         } elseif ($format === 'csv') {
             $this->tCsv($nazev);
         } elseif ($format === 'html') {
@@ -257,6 +276,36 @@ HTML;
         $report->sql          = $dotaz;
         $report->sqlParametry = $dotazParametry;
         return $report;
+    }
+
+    /**
+     * [0 => ['foo' => ['foo-bar' => 1, 'foo-baz' => 2], 'bar' => ['bar-bar']], 1 => ...], $klic = 'foo', vysledek = ['foo-bar', 'foo-baz']
+     * @param string $klic
+     * @param string[][] $pole
+     * @return string[]
+     */
+    public static function dejIndexyKlicuPodsloupcuDruhehoRadkuDleKliceVPrvnimRadku(string $klic, array $pole): array {
+        $prvniRadek = reset($pole);
+        if (!$prvniRadek) {
+            return [];
+        }
+        $dataSloupceDlePrvnihoRadku = $prvniRadek[$klic] ?? [];
+        if (!$dataSloupceDlePrvnihoRadku) {
+            return [];
+        }
+        $pocetPodsloupcuPredtim = 0;
+        foreach ($prvniRadek as $klicHlavnihoSloupce => $dataDleHlavnihoSloupce) {
+            if ($klicHlavnihoSloupce === $klic) {
+                break;
+            }
+            $pocetPodsloupcuPredtim += count($dataDleHlavnihoSloupce);
+        }
+        $klicePodsloupcu       = array_keys($dataSloupceDlePrvnihoRadku);
+        $indexyKlicuPodsloupcu = array_keys($klicePodsloupcu);
+
+        return array_map(static function (int $indexKlicePodsloupce) use ($pocetPodsloupcuPredtim) {
+            return $indexKlicePodsloupce + $pocetPodsloupcuPredtim;
+        }, $indexyKlicuPodsloupcu);
     }
 
     //////////////////////
