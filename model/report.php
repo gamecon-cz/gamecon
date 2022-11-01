@@ -102,13 +102,17 @@ class Report
      */
     private function calculateColumnsWidth(array $rows, KonfiguraceReportu $konfiguraceReportu): array {
         $maxGenericColumnWidth = $konfiguraceReportu->getMaxGenericColumnWidth();
-        $maxColumnsWidths      = $konfiguraceReportu->getMaxColumnsWidths();
+        $columnsWidths         = $konfiguraceReportu->getColumnsWidths();
         $widths                = [];
         foreach ($rows as $row) {
             foreach ($row->getCells() as $index => $cell) {
-                $columnNumber        = $index + 1;
-                $maxForCurrentColumn = $maxColumnsWidths[$index] ?? $maxGenericColumnWidth ?? false; // maximum for current column from configuration
-                if ($maxForCurrentColumn && ($widths[$columnNumber] ?? null) === $maxForCurrentColumn) {
+                $columnNumber       = $index + 1;
+                $currentColumnWidth = $columnsWidths[$index] ?? false;
+                if ($currentColumnWidth) {
+                    $widths[$columnNumber] = $currentColumnWidth;
+                    continue;
+                }
+                if ($maxGenericColumnWidth && ($widths[$columnNumber] ?? null) === $maxGenericColumnWidth) {
                     continue; // current colum already has maximal width set for current column
                 }
                 $ratio                 = $cell->getStyle()->isFontBold()
@@ -118,8 +122,8 @@ class Report
                     (int)ceil(mb_strlen((string)$cell->getValue()) / $ratio) + 1,
                     $widths[$columnNumber] ?? 1 // maximum from previous rows
                 );
-                if ($maxForCurrentColumn) {
-                    $widths[$columnNumber] = min($widths[$columnNumber], $maxForCurrentColumn);
+                if ($maxGenericColumnWidth) {
+                    $widths[$columnNumber] = min($widths[$columnNumber], $maxGenericColumnWidth);
                 }
             }
         }
@@ -280,22 +284,22 @@ HTML;
 
     /**
      * [0 => ['foo' => ['foo-bar' => 1, 'foo-baz' => 2], 'bar' => ['bar-bar']], 1 => ...], $klic = 'foo', vysledek = ['foo-bar', 'foo-baz']
-     * @param string $klic
+     * @param string $hledanyKlicHlavnihoSloupce
      * @param string[][] $pole
      * @return string[]
      */
-    public static function dejIndexyKlicuPodsloupcuDruhehoRadkuDleKliceVPrvnimRadku(string $klic, array $pole): array {
+    public static function dejIndexyKlicuPodsloupcuDruhehoRadkuDleKliceVPrvnimRadku(string $hledanyKlicHlavnihoSloupce, array $pole): array {
         $prvniRadek = reset($pole);
         if (!$prvniRadek) {
             return [];
         }
-        $dataSloupceDlePrvnihoRadku = $prvniRadek[$klic] ?? [];
+        $dataSloupceDlePrvnihoRadku = $prvniRadek[$hledanyKlicHlavnihoSloupce] ?? [];
         if (!$dataSloupceDlePrvnihoRadku) {
             return [];
         }
         $pocetPodsloupcuPredtim = 0;
         foreach ($prvniRadek as $klicHlavnihoSloupce => $dataDleHlavnihoSloupce) {
-            if ($klicHlavnihoSloupce === $klic) {
+            if ($klicHlavnihoSloupce === $hledanyKlicHlavnihoSloupce) {
                 break;
             }
             $pocetPodsloupcuPredtim += count($dataDleHlavnihoSloupce);
@@ -306,6 +310,23 @@ HTML;
         return array_map(static function (int $indexKlicePodsloupce) use ($pocetPodsloupcuPredtim) {
             return $indexKlicePodsloupce + $pocetPodsloupcuPredtim;
         }, $indexyKlicuPodsloupcu);
+    }
+
+    public static function dejIndexKlicePodsloupceDruhehoRadku(string $hledanyKlicPodsloupce, array $pole): ?int {
+        $prvniRadek = reset($pole);
+        if (!$prvniRadek) {
+            return null;
+        }
+        $pocetPodsloupcuPredtim = 0;
+        foreach ($prvniRadek as $podsloupce) {
+            foreach ($podsloupce as $klicPodsloupce => $hodnota) {
+                if ($klicPodsloupce === $hledanyKlicPodsloupce) {
+                    return $pocetPodsloupcuPredtim; // protože je indexováno od nuly
+                }
+                $pocetPodsloupcuPredtim++;
+            }
+        }
+        return null;
     }
 
     //////////////////////
