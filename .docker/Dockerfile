@@ -1,9 +1,9 @@
 # UPDATE
-# docker pull php:7.3-apache && docker build --no-cache --tag jaroslavtyc/gamecon-7.3:latest . && docker push jaroslavtyc/gamecon-7.3:latest
+# docker pull php:8.1-apache && docker build --no-cache --tag jaroslavtyc/gamecon-8.1:latest . && docker push jaroslavtyc/gamecon-8.1:latest
 # REBUILD (simply without --no-cache)
-# docker pull php:7.3-apache && docker build --tag jaroslavtyc/gamecon-7.3:latest . && docker push jaroslavtyc/gamecon-7.3:latest
+# docker pull php:8.1-apache && docker build --tag jaroslavtyc/gamecon-8.1:latest . && docker push jaroslavtyc/gamecon-8.1:latest
 
-FROM php:7.3-apache AS gamecon-server-step1
+FROM php:8.1-apache AS gamecon-server-step1
 
 RUN a2enmod rewrite expires && \
 	# avoid warning on start
@@ -43,11 +43,8 @@ FROM gamecon-tools-step2 AS gamecon-php-step3
 RUN docker-php-ext-install mysqli pdo_mysql intl exif bcmath xml zip
 
 # images support, like imagecreatefromjpeg()
-RUN docker-php-ext-configure gd \
-      --with-freetype-dir=/usr/include/ \
-      --with-jpeg-dir=/usr/include/
-
-RUN docker-php-ext-install gd \
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd \
     && php -r 'exit(function_exists("imagecreatefromjpeg") ? 0 : 1);'
 
 # XDebug - to start it use docker compose
@@ -73,8 +70,6 @@ RUN mkdir -p /home/www-data/bin \
   	&& echo 'export PATH="/home/www-data/bin:$PATH"' >> /home/www-data/.bashrc \
     && echo 'if [ -f ~/.bash_aliases ]; then . ~/.bash_aliases; fi' >> /home/www-data/.bashrc
 
-COPY ./.bash_aliases /home/www-data/.bash_aliases
-
 USER root
 
 RUN mkdir -p /var/log/php && chown -R www-data /var/log/php && chmod +w /var/log/php
@@ -94,6 +89,7 @@ FROM gamecon-php-step4 AS gamecon-project-step-final
 
 # dot . reflects current dir, which is .docker
 COPY . /.docker
+COPY ./.bash_aliases /home/www-data/.bash_aliases
 
 RUN chmod +x /.docker/*.sh
 

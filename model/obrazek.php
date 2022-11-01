@@ -183,7 +183,7 @@ class Obrazek
       if ($url === $soubor) {
         $errorMessage .= sprintf(", velikost zdrojového souboru je %d bajtů", filesize($url));
       }
-      $errorMessage .= ", detail '%s'" . error_get_last()['message'];
+      $errorMessage .= sprintf(", detail '%s'", (error_get_last()['message'] ?? ''));
       throw new ObrazekException($errorMessage);
     }
     if($typ === IMAGETYPE_JPEG) $o = @imagecreatefromjpeg($url);

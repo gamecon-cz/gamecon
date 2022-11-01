@@ -2,12 +2,20 @@ name: Run tests
 on: push
 jobs:
   run-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        # musí odpovídat verzím na wedosu
+        php: ['8.1'] # musí odpovídat verzi na wedosu
+        include:
+          - mysql: 5.6 # musí odpovídat verzi na wedosu
+
     name: Run tests job
     runs-on: ubuntu-latest
 
     services:
       mysql:
-        image: mysql:5.5 # musí odpovídat verzi na wedosu
+        image: mysql:${{ matrix.mysql }}
         env:
           MYSQL_ALLOW_EMPTY_PASSWORD: yes
         ports:
@@ -21,7 +29,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '7.3' # musí odpovídat verzi na wedosu
+          php-version: ${{ matrix.php }}
           extensions: bcmath, curl, exif, fileinfo, gd, iconv, imagick, intl, json, mbstring, mysqli, pdo, sqlite3, xmlreader, zip
           tools: composer
           coverage: none
