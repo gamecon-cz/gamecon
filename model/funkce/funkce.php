@@ -714,3 +714,8 @@ function omnibox(
         $uzivatele
     );
 }
+
+function pridejNaZacatekPole(string $klic, $hodnota, array $pole): array {
+    unset($pole[$klic]); // pro případ, že by byl klíč obsazen - potom by původní honota přepsala novou níže a to nechceme
+    return array_merge([$klic => $hodnota], $pole);
+}
