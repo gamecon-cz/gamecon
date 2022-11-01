@@ -14,7 +14,7 @@ class KonfiguraceReportu
     /** @var null|int */
     private $maxGenericColumnWidth = null;
     /** @var int[] */
-    private $maxColumnsWidths = [];
+    private $columnsWidths = [];
 
     public function getHeaderFontSize(): int {
         return $this->headerFontSize;
@@ -55,15 +55,15 @@ class KonfiguraceReportu
     /**
      * @return int[]
      */
-    public function getMaxColumnsWidths(): array {
-        return $this->maxColumnsWidths;
+    public function getColumnsWidths(): array {
+        return $this->columnsWidths;
     }
 
     /**
-     * @param int[] $maxColumnsWidths
+     * @param int[] $columnsWidths
      */
-    public function setMaxColumnsWidths(array $maxColumnsWidths): self {
-        $this->maxColumnsWidths = $maxColumnsWidths;
+    public function setColumnsWidths(array $columnsWidths): self {
+        $this->columnsWidths = $columnsWidths;
         return $this;
     }
 
