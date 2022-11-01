@@ -70,8 +70,6 @@ RUN mkdir -p /home/www-data/bin \
   	&& echo 'export PATH="/home/www-data/bin:$PATH"' >> /home/www-data/.bashrc \
     && echo 'if [ -f ~/.bash_aliases ]; then . ~/.bash_aliases; fi' >> /home/www-data/.bashrc
 
-COPY ./.bash_aliases /home/www-data/.bash_aliases
-
 USER root
 
 RUN mkdir -p /var/log/php && chown -R www-data /var/log/php && chmod +w /var/log/php
@@ -91,6 +89,7 @@ FROM gamecon-php-step4 AS gamecon-project-step-final
 
 # dot . reflects current dir, which is .docker
 COPY . /.docker
+COPY ./.bash_aliases /home/www-data/.bash_aliases
 
 RUN chmod +x /.docker/*.sh
 
