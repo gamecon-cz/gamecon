@@ -75,8 +75,8 @@ function getCurrentUrlPath(): string {
 }
 
 function getCurrentUrlWithQuery(array $queryPartsToAddOrReplace = []): string {
-    $path = getCurrentUrlPath();
-    $queryString = parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY);
+    $path        = getCurrentUrlPath();
+    $queryString = (string)parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY);
     parse_str($queryString, $query);
     $newQuery = array_merge($query, $queryPartsToAddOrReplace);
     if ($newQuery === []) {
@@ -252,7 +252,7 @@ function tabMysql($a, string $title = ''): string {
  * Returns table array from mysql answer
  */
 function tabMysqlArray($a): array {
-    $r = mysqli_fetch_assoc($a);
+    $r    = mysqli_fetch_assoc($a);
     $oa[] = array_keys($r);
     $oa[] = array_values($r);
     while ($r = mysqli_fetch_row($a)) {
