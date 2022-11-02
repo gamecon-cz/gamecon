@@ -69,18 +69,18 @@ function dbConnect($selectDb = true) {
 
     if ($spojeni === null) {
         // inicializace glob. nastavení
-        $dbhost = DB_SERV;
-        $dbname = DB_NAME;
-        $dbuser = DB_USER;
-        $dbpass = DB_PASS;
-        $dbPort = defined('DB_PORT') ? DB_PORT : null;
-        $spojeni = null;
-        $dbLastQ = '';   //vztahuje se pouze na dotaz v aktualnim skriptu
-        $dbNumQ = 0;    //počet dotazů do databáze
+        $dbhost     = DB_SERV;
+        $dbname     = DB_NAME;
+        $dbuser     = DB_USER;
+        $dbpass     = DB_PASS;
+        $dbPort     = defined('DB_PORT') ? DB_PORT : null;
+        $spojeni    = null;
+        $dbLastQ    = '';   //vztahuje se pouze na dotaz v aktualnim skriptu
+        $dbNumQ     = 0;    //počet dotazů do databáze
         $dbExecTime = 0.0;  //délka výpočtu dotazů
 
         // připojení
-        $start = microtime(true);
+        $start   = microtime(true);
         $spojeni = @mysqli_connect('p:' . $dbhost, $dbuser, $dbpass, $selectDb ? $dbname : '', $dbPort); // persistent connection
         if (!$spojeni) {
             $spojeni = null; // aby bylo možné zachytit exception a zkusit spojení znovu
@@ -89,7 +89,7 @@ function dbConnect($selectDb = true) {
         if (!$spojeni->set_charset('utf8')) {
             throw new Exception('Failed to set charset to db connection.');
         }
-        $end = microtime(true);
+        $end                   = microtime(true);
         $GLOBALS['dbExecTime'] += $end - $start;
         dbQuery('SET SESSION group_concat_max_len = 65536');
     }
@@ -113,7 +113,7 @@ function dbDelete($table, $whereArray) {
  * Returns 2D array with table structure description
  */
 function dbDescribe($table) {
-    $a = dbQuery('show full columns from ' . dbQi($table));
+    $a   = dbQuery('show full columns from ' . dbQi($table));
     $out = [];
     while ($r = mysqli_fetch_assoc($a)) $out[] = $r;
     return $out;
@@ -127,7 +127,7 @@ function dbExecTime() {
 }
 
 function throwDbException($spojeni = null) {
-    $type = dbGetExceptionType($spojeni);
+    $type    = dbGetExceptionType($spojeni);
     $message = dbGetExceptionMessage($spojeni);
     throw new $type($message);
 }
@@ -163,7 +163,7 @@ function dbInsert($table, $valArray) {
     }
     $sloupce = substr($sloupce, 0, -1); //useknutí přebytečné čárky na konci
     $hodnoty = substr($hodnoty, 0, -1);
-    $q = 'INSERT INTO ' . $table . ' (' . $sloupce . ') VALUES (' . $hodnoty . ')';
+    $q       = 'INSERT INTO ' . $table . ' (' . $sloupce . ') VALUES (' . $hodnoty . ')';
     $dbLastQ = $q;
     if (!mysqli_query($spojeni, $q)) {
         $type = dbGetExceptionType($spojeni);
@@ -191,17 +191,17 @@ function dbInsertUpdate($table, $valArray) {
     global $dbspojeni, $dbLastQ;
     dbConnect();
     $update = 'INSERT INTO ' . $table . ' SET ';
-    $dupl = ' ON DUPLICATE KEY UPDATE ';
-    $vals = '';
+    $dupl   = ' ON DUPLICATE KEY UPDATE ';
+    $vals   = '';
     foreach ($valArray as $key => $val) {
         $vals .= $key . '=' . dbQv($val) . ', ';
     }
-    $vals = substr($vals, 0, -2); //odstranění čárky na konci
-    $q = $update . $vals . $dupl . $vals;
+    $vals    = substr($vals, 0, -2); //odstranění čárky na konci
+    $q       = $update . $vals . $dupl . $vals;
     $dbLastQ = $q;
-    $start = microtime(true);
-    $r = mysqli_query($GLOBALS['spojeni'], $q);
-    $end = microtime(true);
+    $start   = microtime(true);
+    $r       = mysqli_query($GLOBALS['spojeni'], $q);
+    $end     = microtime(true);
     if (!$r) {
         $type = dbGetExceptionType();
         throw new $type();
@@ -290,15 +290,15 @@ function dbOneIndex($q, $p = null) {
  * false, otherwise returns associative array with one line. If multiple lines
  * found, causes crash.
  */
-function dbOneLine($q, $p = null) {
+function dbOneLine($q, $p = null): array {
     $r = dbQueryS($q, $p);
     if (mysqli_num_rows($r) > 1) {
         throw new RuntimeException('Multiple lines matched on query ' . $q);
     }
     if (mysqli_num_rows($r) < 1) {
-        return FALSE;
+        return [];
     }
-    return mysqli_fetch_assoc($r);
+    return mysqli_fetch_assoc($r) ?: [];
 }
 
 /**
@@ -308,7 +308,7 @@ function dbOneLine($q, $p = null) {
  * @throws DbException
  */
 function dbFetchAll(string $query, array $params = []): array {
-    $result = dbQuery($query, $params);
+    $result        = dbQuery($query, $params);
     $resultAsArray = [];
     while ($row = mysqli_fetch_assoc($result)) {
         $resultAsArray[] = $row;
@@ -317,7 +317,7 @@ function dbFetchAll(string $query, array $params = []): array {
 }
 
 function dbFetchColumn(string $query, array $params = []): array {
-    $result = dbQuery($query, $params);
+    $result       = dbQuery($query, $params);
     $columnValues = [];
     while ($row = mysqli_fetch_array($result)) {
         $columnValues[] = reset($row);
@@ -327,7 +327,7 @@ function dbFetchColumn(string $query, array $params = []): array {
 
 function dbFetchPairs(string $query, array $params = []): array {
     $result = dbQuery($query, $params);
-    $pairs = [];
+    $pairs  = [];
     while ($row = mysqli_fetch_array($result)) {
         $pairs[$row[0]] = $row[1];
     }
@@ -344,15 +344,15 @@ function dbQuery($q, $param = null) {
     if ($param) {
         return dbQueryS($q, $param);
     }
-    $mysqli = dbConnect();
+    $mysqli             = dbConnect();
     $GLOBALS['dbLastQ'] = $q;
-    $start = microtime(true);
-    $r = mysqli_query($mysqli, $q);
+    $start              = microtime(true);
+    $r                  = mysqli_query($mysqli, $q);
     // raději si to hned odložíme, protože opakovaný dotaz na mysqli->affected_rows vede k tomu, že první dotaz vrátí správnou hodnotu, ale druhý už -1 ("disk se automaticky zničí po přečtení za pět, čtyři, tři...")
     $GLOBALS['dbAffectedRows'] = $r === true // INSERT, DELETE, UPDATE
         ? $mysqli->affected_rows
         : mysqli_affected_rows($mysqli);
-    $end = microtime(true);
+    $end                       = microtime(true);
     if (!$r) {
         $type = dbGetExceptionType();
         throw new $type();
