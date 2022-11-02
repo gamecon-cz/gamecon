@@ -49,8 +49,8 @@ SQL,
     [0 => ROK, 1 => get('typ')]
 );
 
-$totoPrihlaseni  = mysqli_fetch_assoc($odpoved);
-$dalsiPrihlaseni = mysqli_fetch_assoc($odpoved);
+$totoPrihlaseni  = mysqli_fetch_assoc($odpoved) ?: [];
+$dalsiPrihlaseni = mysqli_fetch_assoc($odpoved) ?: [];
 $obsazenost      = 0;
 $odd             = 0;
 $maily           = [];
@@ -73,7 +73,7 @@ while ($totoPrihlaseni) {
         $maily[] = $totoPrihlaseni['mail'];
         $obsazenost++;
     }
-    if ($totoPrihlaseni['id'] != $dalsiPrihlaseni['id']) {
+    if (($totoPrihlaseni['id'] ?? null) != ($dalsiPrihlaseni['id'] ?? null)) {
         $xtpl2->assign('maily', implode('; ', $maily));
         $xtpl2->assign('cas', datum2($totoPrihlaseni));
         $xtpl2->assign('orgove', $totoPrihlaseni['orgove']);
