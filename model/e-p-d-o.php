@@ -55,7 +55,7 @@ class EPDO extends PDO
      * Quote value (with apostrophes around)
      */
     public function qv($value) {
-        return $this->quote($value);
+        return $this->quote((string)$value);
     }
 
 }
