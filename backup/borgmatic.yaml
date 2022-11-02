@@ -1,0 +1,44 @@
+---
+location:
+  source_directories:
+    - ${FTP_DIR}
+  repositories:
+    - ${BORG_REPO}
+  one_file_system: true
+  exclude_caches: true
+  exclude_if_present: .nobackup
+
+storage:
+  compression: auto,zstd
+  ssh_command: ssh -o StrictHostKeyChecking=no -i sshkey
+  archive_name_format: 'gamecon-{now:%Y-%m-%d}'
+  encryption_passphrase: ${BORG_PASSPHRASE}
+
+retention:
+  keep_daily: 7
+  keep_weekly: 4
+  keep_monthly: 12
+  keep_yearly: 2
+  prefix: 'gamecon-'
+
+consistency:
+  checks:
+    - repository
+    - archives
+  check_last: 3
+  prefix: 'gamecon-'
+
+hooks:
+  before_backup:
+    - >-
+      echo "$(date): Backup started"
+    - >-
+      rclone sync
+      --verbose
+      --create-empty-src-dirs
+      --filter-from backup-list.txt
+      gamecon:${FTP_DIR}
+      ${FTP_DIR}
+  after_backup:
+    - >-
+      echo "$(date): Backup finished"
