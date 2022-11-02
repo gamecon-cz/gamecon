@@ -168,7 +168,7 @@ SQL
         }
         $razeni    = array_map(static function ($raditPodle) {
             return urldecode((string)$raditPodle); // například organizatori+ASC = organizatori ASC
-        }, $razeni);w
+        }, $razeni);
         $filtrRoku = $pouzitFiltrRokuProExport
             ? $this->posledniProExportPouzitelnyFiltrRoku
             : $this->filtrRoku;
