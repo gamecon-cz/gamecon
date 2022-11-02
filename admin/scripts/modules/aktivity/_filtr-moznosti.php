@@ -166,9 +166,9 @@ SQL
         if (!empty($_COOKIE['akceRazeni'])) {
             array_unshift($razeni, $_COOKIE['akceRazeni']);
         }
-        array_walk($razeni, static function($raditPodle) {
+        $razeni    = array_map(static function ($raditPodle) {
             return urldecode((string)$raditPodle); // například organizatori+ASC = organizatori ASC
-        });
+        }, $razeni);w
         $filtrRoku = $pouzitFiltrRokuProExport
             ? $this->posledniProExportPouzitelnyFiltrRoku
             : $this->filtrRoku;
