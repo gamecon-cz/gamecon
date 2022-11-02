@@ -4,7 +4,7 @@ use Gamecon\XTemplate\XTemplate;
 
 class FiltrMoznosti
 {
-    public const FILTROVAT_PODLE_ROKU = true;
+    public const FILTROVAT_PODLE_ROKU   = true;
     public const NEFILTROVAT_PODLE_ROKU = false;
     /**
      * @var int
@@ -58,8 +58,8 @@ class FiltrMoznosti
 
     private function __construct(string $adminAktivityFiltr, int $letosniRok, int $filtrRoku, bool $filtrovatPodleRoku) {
         $this->adminAktivityFiltr = $adminAktivityFiltr;
-        $this->letosniRok = $letosniRok;
-        $this->filtrRoku = $filtrRoku;
+        $this->letosniRok         = $letosniRok;
+        $this->filtrRoku          = $filtrRoku;
         $this->filtrovatPodleRoku = $filtrovatPodleRoku;
     }
 
@@ -72,7 +72,7 @@ class FiltrMoznosti
 
         $posledniZobrazenyRok = null;
         if ($this->filtrovatPodleRoku) {
-            $pocetAktivitVLetech = $this->dejPoctyAktivitProTemplate();
+            $pocetAktivitVLetech  = $this->dejPoctyAktivitProTemplate();
             $posledniZobrazenyRok = $this->vyberPosledniZobrazenyRok($pocetAktivitVLetech);
             foreach ($pocetAktivitVLetech as $pocetAktivitVRoce) {
                 $tplFiltrMoznosti->assign('rok', $pocetAktivitVRoce['rok']);
@@ -88,7 +88,7 @@ class FiltrMoznosti
         }
 
         $proExportPouzitelnyFiltrRoku = $this->dejProExportPouzitelnyFiltrRoku($posledniZobrazenyRok);
-        $programoveLinie = $this->programoveLinie($proExportPouzitelnyFiltrRoku);
+        $programoveLinie              = $this->programoveLinie($proExportPouzitelnyFiltrRoku);
         foreach ($this->pocetAktivitProgramovychLinii($programoveLinie) as $idTypu => $varianta) {
             $tplFiltrMoznosti->assign('idTypu', $idTypu);
             $tplFiltrMoznosti->assign(
@@ -121,12 +121,12 @@ class FiltrMoznosti
     }
 
     private function dejPoctyAktivitProTemplate(): array {
-        $posledniZobrazenyRok = null;
+        $posledniZobrazenyRok           = null;
         $poctyAktivitVLetechProTemplate = [];
-        $poctyAktivitVLetech = dbArrayCol('SELECT rok, COUNT(*) AS pocet FROM akce_seznam WHERE ROK > 2000 GROUP BY rok ORDER BY rok DESC');
+        $poctyAktivitVLetech            = dbArrayCol('SELECT rok, COUNT(*) AS pocet FROM akce_seznam WHERE ROK > 2000 GROUP BY rok ORDER BY rok DESC');
         foreach ($poctyAktivitVLetech as $rok => $pocetAktivit) {
-            $posledniZobrazenyRok = max($posledniZobrazenyRok ?? 0, $rok);
-            $nazevRoku = $rok == $this->letosniRok ? 'letos' : $rok;
+            $posledniZobrazenyRok             = max($posledniZobrazenyRok ?? 0, $rok);
+            $nazevRoku                        = $rok == $this->letosniRok ? 'letos' : $rok;
             $poctyAktivitVLetechProTemplate[] = ['rok' => $rok, 'nazevRoku' => $nazevRoku, 'pocetAktivit' => $pocetAktivit];
         }
         return $poctyAktivitVLetechProTemplate;
@@ -149,7 +149,7 @@ SQL
     }
 
     private function pocetAktivitProgramovychLinii(array $typy): array {
-        $varianty = ['vsechno' => ['popis' => '(všechno)']];
+        $varianty                             = ['vsechno' => ['popis' => '(všechno)']];
         $varianty['vsechno']['pocet_aktivit'] = $this->pocetAktivitCelkem($typy);
         foreach ($typy as $typ) {
             $varianty[$typ['id_typu']] = ['popis' => $typ['nazev_typu'], 'db' => $typ['id_typu'], 'pocet_aktivit' => $typ['pocet_aktivit']];
@@ -166,16 +166,19 @@ SQL
         if (!empty($_COOKIE['akceRazeni'])) {
             array_unshift($razeni, $_COOKIE['akceRazeni']);
         }
+        array_walk($razeni, static function($raditPodle) {
+            return urldecode((string)$raditPodle); // například organizatori+ASC = organizatori ASC
+        });
         $filtrRoku = $pouzitFiltrRokuProExport
             ? $this->posledniProExportPouzitelnyFiltrRoku
             : $this->filtrRoku;
 
         $programoveLinie = $this->programoveLinie($filtrRoku);
-        $varianty = $this->pocetAktivitProgramovychLinii($programoveLinie);
-        $filtr = empty($varianty[$this->adminAktivityFiltr]['db'])
+        $varianty        = $this->pocetAktivitProgramovychLinii($programoveLinie);
+        $filtr           = empty($varianty[$this->adminAktivityFiltr]['db'])
             ? []
             : ['typ' => $varianty[$this->adminAktivityFiltr]['db']];
-        $filtr['rok'] = $filtrRoku;
+        $filtr['rok']    = $filtrRoku;
 
         return [$filtr, $razeni];
     }

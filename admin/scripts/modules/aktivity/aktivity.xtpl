@@ -165,28 +165,28 @@
     <th>
       <span class="hinted">Název<div class="hint">
       Trojúhelníčky slouží k řazení.</div></span>
-      <a href="aktivity?sort=nazev_akce ASC">▲</a>
-      <a href="aktivity?sort=nazev_akce DESC">▼</a>
+      <a href="aktivity?sort=nazev_akce%20ASC">▲</a>
+      <a href="aktivity?sort=nazev_akce%20DESC">▼</a>
     </th>
     <th style="width:120px">
       Čas
-      <a href="aktivity?sort=zacatek ASC">▲</a>
-      <a href="aktivity?sort=zacatek DESC">▼</a>
+      <a href="aktivity?sort=zacatek%20ASC">▲</a>
+      <a href="aktivity?sort=zacatek%20DESC">▼</a>
     </th>
     <th style="width:190px">
       Vypravěč
-      <a href="aktivity?sort=organizatori ASC">▲</a>
-      <a href="aktivity?sort=organizatori DESC">▼</a>
+      <a href="aktivity?sort=organizatori%20ASC">▲</a>
+      <a href="aktivity?sort=organizatori%20DESC">▼</a>
     </th>
     <th style="width:90px">
       Místnost
-      <a href="aktivity?sort=lokace ASC">▲</a>
-      <a href="aktivity?sort=lokace DESC">▼</a>
+      <a href="aktivity?sort=lokace%20ASC">▲</a>
+      <a href="aktivity?sort=lokace%20DESC">▼</a>
     </th>
     <th>
       Typ
-      <a href="aktivity?sort=typ ASC">▲</a>
-      <a href="aktivity?sort=typ DESC">▼</a>
+      <a href="aktivity?sort=typ%20ASC">▲</a>
+      <a href="aktivity?sort=typ%20DESC">▼</a>
     </th>
     <th><span class="hinted">Ins<span class="hint">
       Řetěz znamená, že aktivita je členem nějaké rodiny instancí a ve výpisu webu se zobrazuje pouze jednou a s více nabídkami termínu pro přihlášení.
