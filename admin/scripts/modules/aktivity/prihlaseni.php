@@ -49,17 +49,17 @@ SQL,
     [ROK, get('typ')]
 );
 
-$totoPrihlaseni = mysqli_fetch_assoc($odpoved);
-$dalsiPrihlaseni = mysqli_fetch_assoc($odpoved);
-$obsazenost = 0;
-$odd = 0;
-$maily = [];
+$totoPrihlaseni  = mysqli_fetch_assoc($odpoved) ?: [];
+$dalsiPrihlaseni = mysqli_fetch_assoc($odpoved) ?: [];
+$obsazenost      = 0;
+$odd             = 0;
+$maily           = [];
 while ($totoPrihlaseni) {
     $xtpl2->assign($totoPrihlaseni);
     if ($totoPrihlaseni['id_uzivatele']) {
-        $hrac = Uzivatel::zId($totoPrihlaseni['id_uzivatele']);
+        $hrac  = Uzivatel::zId($totoPrihlaseni['id_uzivatele']);
         $datum = new DateTimeCz($totoPrihlaseni['zacatek']);
-        $vek = $hrac->vekKDatu($datum);
+        $vek   = $hrac->vekKDatu($datum);
         if ($vek === null) $vek = "Nevyplnil";
         elseif ($vek >= 18) $vek = "18+";
 
@@ -73,7 +73,7 @@ while ($totoPrihlaseni) {
         $maily[] = $totoPrihlaseni['mail'];
         $obsazenost++;
     }
-    if ($totoPrihlaseni['id'] != $dalsiPrihlaseni['id']) {
+    if (($totoPrihlaseni['id'] ?? null) != ($dalsiPrihlaseni['id'] ?? null)) {
         $xtpl2->assign('maily', implode('; ', $maily));
         $xtpl2->assign('cas', datum2($totoPrihlaseni));
         $xtpl2->assign('orgove', $totoPrihlaseni['orgove']);
@@ -84,10 +84,10 @@ while ($totoPrihlaseni) {
             $xtpl2->parse('prihlaseni.aktivita.lide');
         $xtpl2->parse('prihlaseni.aktivita');
         $obsazenost = 0;
-        $odd = 0;
-        $maily = [];
+        $odd        = 0;
+        $maily      = [];
     }
-    $totoPrihlaseni = $dalsiPrihlaseni;
+    $totoPrihlaseni  = $dalsiPrihlaseni;
     $dalsiPrihlaseni = mysqli_fetch_assoc($odpoved);
 }
 
