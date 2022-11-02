@@ -309,7 +309,7 @@ SQL,
                 $ucastnik ? $ucastnik->id() : null,
             ]
         );
-        if (!$posledniZmena['id_uzivatele']) {
+        if (!$posledniZmena || !$posledniZmena['id_uzivatele']) {
             return null;
         }
         return new ZmenaPrihlaseni(
