@@ -1,0 +1,8 @@
+# Zálohy databáze
++ backup/db/export_*.sql.gz
+
+# Odkomentuj pro zálohu obsahu
+#+ web/soubory/obsah/**
+
+# Ignoruj vše ostatní
+- **
