@@ -3,8 +3,6 @@ use Gamecon\XTemplate\XTemplate;
 
 use Gamecon\Aktivita\TypAktivity;
 
-die('V 18:30 budeme zpět!');
-
 require __DIR__ . '/../nastaveni/zavadec.php';
 require __DIR__ . '/tridy/modul.php';
 require __DIR__ . '/tridy/menu.php';

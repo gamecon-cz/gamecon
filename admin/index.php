@@ -2,8 +2,6 @@
 
 use Gamecon\XTemplate\XTemplate;
 
-die('V 18:30 budeme zpět!');
-
 require __DIR__ . '/../nastaveni/zavadec.php';
 
 /** získáme @var array|string[] $protipy */
