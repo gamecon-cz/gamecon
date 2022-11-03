@@ -110,6 +110,7 @@ if (date('G') >= 5) { // 5 hodin ráno či později
                 $dbBackupFile = ZALOHA_DB_SLOZKA . "/export_$time.sql.gz";
                 $dump->save($dbBackupFile);
                 logs("...záloha databáze dokončena do souboru $dbBackupFile");
+                copy($dbBackupFile, ZALOHA_DB_SLOZKA . "/export_latest.sql.gz");
             } catch (\Throwable $throwable) {
                 $chybaZalohovaniDb = 'Uložení zálohy na disk selhalo';
                 logs('Error při ukládání zálohy DB: ' . $throwable->getMessage() . '; ' . $throwable->getTraceAsString());
