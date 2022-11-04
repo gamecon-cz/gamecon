@@ -125,18 +125,18 @@ SELECT
       JOIN r_prava_soupis ON r_prava_soupis.id_prava=r_prava_zidle.id_prava
       WHERE r_uzivatele_zidle.id_uzivatele=uzivatele_hodnoty.id_uzivatele AND r_uzivatele_zidle.id_zidle > 0
       GROUP BY r_uzivatele_zidle.id_uzivatele
-    ) as pravaZDotazu,
+    ) AS pravaZDotazu,
     ( SELECT GROUP_CONCAT(r_uzivatele_zidle.id_zidle SEPARATOR ',')
       FROM r_uzivatele_zidle
       WHERE r_uzivatele_zidle.id_uzivatele=uzivatele_hodnoty.id_uzivatele AND r_uzivatele_zidle.id_zidle > 0
       GROUP BY r_uzivatele_zidle.id_uzivatele
-    ) as idPravZDotazu,
+    ) AS idPravZDotazu,
     ( SELECT GROUP_CONCAT(r_zidle_soupis.jmeno_zidle SEPARATOR ', ')
       FROM r_uzivatele_zidle
       LEFT JOIN r_zidle_soupis ON r_uzivatele_zidle.id_zidle = r_zidle_soupis.id_zidle
       WHERE r_uzivatele_zidle.id_uzivatele=uzivatele_hodnoty.id_uzivatele AND r_uzivatele_zidle.id_zidle > 0
       GROUP BY r_uzivatele_zidle.id_uzivatele
-    ) as zidleZDotazu
+    ) AS zidleZDotazu
 FROM uzivatele_hodnoty
 LEFT JOIN r_uzivatele_zidle AS prihlasen ON(prihlasen.id_zidle = $0 AND prihlasen.id_uzivatele = uzivatele_hodnoty.id_uzivatele)
 LEFT JOIN r_uzivatele_zidle AS pritomen ON(pritomen.id_zidle = $1 AND pritomen.id_uzivatele = uzivatele_hodnoty.id_uzivatele)
@@ -182,9 +182,9 @@ while ($r = mysqli_fetch_assoc($o)) {
                 'Jméno'             => $r['jmeno_uzivatele'],
                 'Přezdívka'         => $r['login_uzivatele'],
                 'Mail'              => $r['email1_uzivatele'],
-                'Pozice'            => $dejNazevPozice(explode(',', $r['idPravZDotazu'])),
+                'Pozice'            => $dejNazevPozice(explode(',', (string)$r['idPravZDotazu'])),
                 'Židle'             => $r['zidleZDotazu'],
-                'Práva'             => nahradNazvyKonstantZaHodnoty($r['pravaZDotazu'] ?? ''),
+                'Práva'             => nahradNazvyKonstantZaHodnoty((string)$r['pravaZDotazu']),
                 'Datum registrace'  => excelDatum($r['prihlasen_na_gc_kdy']),
                 'Prošel infopultem' => excelDatum($r['prosel_infopultem_kdy']),
                 'Odjel kdy'         => excelDatum($r['odjel_kdy']),
@@ -206,11 +206,11 @@ while ($r = mysqli_fetch_assoc($o)) {
                     'Chci bydlet s'          => $r['ubytovan_s'],
                     'První noc'              => $r['den_prvni'] === null
                         ? '-'
-                        : (new DateTimeCz(DEN_PRVNI_UBYTOVANI))->add(new \DateInterval("P$r[den_prvni]D"))->format('j.n.Y'),
+                        : (new DateTimeCz(DEN_PRVNI_UBYTOVANI))->add(new DateInterval("P$r[den_prvni]D"))->format('j.n.Y'),
                     'Poslední noc (počátek)' => $r['den_posledni'] === null
                         ? '-'
-                        : (new DateTimeCz(DEN_PRVNI_UBYTOVANI))->add(new \DateInterval("P$r[den_posledni]D"))->format('j.n.Y'),
-                    'Typ'                    => typUbytovani($r['ubytovani_typ']),
+                        : (new DateTimeCz(DEN_PRVNI_UBYTOVANI))->add(new DateInterval("P$r[den_posledni]D"))->format('j.n.Y'),
+                    'Typ'                    => typUbytovani((string)$r['ubytovani_typ']),
                     'Dorazil na GC'          => $navstevnik->gcPritomen() ? 'ano' : 'ne',
                 ],
                 $ucastiHistorie
@@ -242,9 +242,10 @@ while ($r = mysqli_fetch_assoc($o)) {
                 'Poslední blok'                      => excelDatum($navstevnik->posledniBlok()),
                 'Dobrovolník pozice'                 => $r['pomoc_typ'],
                 'Dobrovolník info'                   => $r['pomoc_vice'],
+                'Storno aktivit'                     => $finance->sumaStorna(),
                 'Dárky a zlevněné nákupy'            => implode(", ", array_merge($finance->slevyVse(), $finance->slevyAktivity())),
                 'Objednávky'                         => strip_tags($finance->prehledPopis()),
-                'Poznámka'                           => strip_tags($r['poznamka'] ?? ''),
+                'Poznámka'                           => strip_tags((string)$r['poznamka']),
             ],
             'Eshop'           => array_merge(
                 [
