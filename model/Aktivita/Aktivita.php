@@ -1662,6 +1662,10 @@ SQL
         return StavPrihlaseni::nedorazilNeboZrusil($stavPrihlaseni);
     }
 
+    public function platiStorno(\Uzivatel $uzivatel): bool {
+        return $this->nedorazilNeboZrusil($uzivatel);
+    }
+
     /** Zdali chceme, aby se na aktivitu bylo možné běžně přihlašovat */
     public function prihlasovatelna($parametry = 0) {
         $dopredne = $parametry & self::DOPREDNE;

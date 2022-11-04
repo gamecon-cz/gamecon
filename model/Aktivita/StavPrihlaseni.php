@@ -31,6 +31,10 @@ class StavPrihlaseni
         }
     }
 
+    public static function platiStorno(int $stavPrihlaseni): bool {
+        return self::nedorazilNeboZrusil($stavPrihlaseni);
+    }
+
     public static function dorazilJakoNahradnik(int $stavPrihlaseni): bool {
         return $stavPrihlaseni === self::DORAZIL_JAKO_NAHRADNIK;
     }

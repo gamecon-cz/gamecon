@@ -8,10 +8,6 @@ use Gamecon\Aktivita\Aktivita;
 use Gamecon\Shop\Shop;
 use Gamecon\Shop\TypPredmetu;
 use Endroid\QrCode\Writer\Result\ResultInterface;
-use Rikudou\CzQrPayment\QrPayment;
-use Rikudou\CzQrPayment\Options\QrPaymentOptions;
-use Rikudou\Iban\Iban\CzechIbanAdapter;
-use Rikudou\Iban\Iban\IbanInterface;
 
 /**
  * Třída zodpovídající za spočítání finanční bilance uživatele na GC.
@@ -37,6 +33,7 @@ class Finance
     private $brigadnickaOdmena = 0.0;  // výplata zaměstnance (který nechce bonus/kredit na útratu; ale tvrdou měnu za tvrdou práci)
     // součásti výsledné ceny
     private $cenaAktivit = 0.0;  // cena aktivit
+    private $sumaStorna = 0.0;  // suma storna za aktivity (je součástí ceny za aktivity)
     private $cenaUbytovani = 0.0;  // cena objednaného ubytování
     private $cenaPredmetu = 0.0;  // cena předmětů objednaných z shopu
     private $cenaStravy = 0.0;  // cena jídel objednaných z shopu
@@ -57,7 +54,7 @@ class Finance
     private $dobrovolneVstupnePrehled;
 
     private static $maxSlevaAktivit = 100; // v procentech
-    private static $bonusZaVedeniAktivity = [ // ve formatu max. delka => sleva
+    private static $bonusZaVedeniAktivity = [ // ve formátu max. délka => sleva
         1  => BONUS_ZA_1H_AKTIVITU,
         2  => BONUS_ZA_2H_AKTIVITU,
         5  => BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU,
@@ -545,12 +542,12 @@ SELECT
     aktivita.nazev_akce AS nazev,
     (
         aktivita.cena
-        * (stav.platba_procent/100)
+        * (stav_prihlaseni.platba_procent/100)
         * IF(aktivita.bez_slevy OR aktivita.typ IN ($technicka, $brigadnicka), 1.0, $soucinitelAktivit)
         * IF(aktivita.typ IN ($technicka, $brigadnicka) AND prihlaseni.id_stavu_prihlaseni IN ($prihlasenAleNedorazil, $pozdeZrusil), 0.0, 1.0) -- zrušit 'storno' pro pozdě odhlášené technické a brigádnické aktivity
      ) AS cena,
     aktivita.typ,
-    stav.id_stavu_prihlaseni
+    stav_prihlaseni.id_stavu_prihlaseni
 FROM (
     SELECT * FROM akce_prihlaseni WHERE id_uzivatele = $idUcastnika
     UNION
@@ -558,8 +555,8 @@ FROM (
 ) AS prihlaseni
 JOIN akce_seznam AS aktivita
     ON prihlaseni.id_akce = aktivita.id_akce
-JOIN akce_prihlaseni_stavy AS stav
-    ON prihlaseni.id_stavu_prihlaseni = stav.id_stavu_prihlaseni
+JOIN akce_prihlaseni_stavy AS stav_prihlaseni
+    ON prihlaseni.id_stavu_prihlaseni = stav_prihlaseni.id_stavu_prihlaseni
 WHERE rok = $rok
 SQL
         );
@@ -576,6 +573,9 @@ SQL
                 }
             } else {
                 $this->cenaAktivit += $r['cena'];
+                if (StavPrihlaseni::platiStorno((int)$r['id_stavu_prihlaseni'])) {
+                    $this->sumaStorna += $r['cena'];
+                }
             }
 
             $poznamka = '';
@@ -814,4 +814,7 @@ SQL
         return $qrPlatba->dejQrObrazek();
     }
 
+    public function sumaStorna(): float {
+        return $this->sumaStorna;
+    }
 }
