@@ -525,6 +525,10 @@ class Finance
         return $this->proplacenyBonusZaVedeniAktivit;
     }
 
+    public function brigadnickaOdmena(): float {
+        return $this->brigadnickaOdmena;
+    }
+
     /**
      * Započítá do mezisoučtů aktivity uživatele
      */

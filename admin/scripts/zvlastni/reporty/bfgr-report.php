@@ -235,6 +235,7 @@ while ($r = mysqli_fetch_assoc($o)) {
                 'Bonus za vedení aktivit'            => $finance->bonusZaVedeniAktivit(),
                 'Využitý bonus za vedení aktivit'    => $finance->vyuzityBonusZaAktivity(),
                 'Proplacený bonus za vedení aktivit' => $finance->proplacenyBonusZaAktivity(),
+                'Brigádnické odměny'                 => $finance->brigadnickaOdmena(),
                 'Stav'                               => excelCislo($finance->stav()),
                 'Zůstatek z minula'                  => excelCislo($r['zustatek']),
                 'Připsané platby'                    => excelCislo($finance->sumaPlateb()),
