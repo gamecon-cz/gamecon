@@ -206,12 +206,10 @@ while ($r = mysqli_fetch_assoc($o)) {
                     'Chci bydlet s'          => $r['ubytovan_s'],
                     'První noc'              => $r['den_prvni'] === null
                         ? '-'
-                        :
-                        (new DateTimeCz(DEN_PRVNI_UBYTOVANI))->add(new DateInterval("P$r[den_prvni]D"))->format('j.n.Y'),
+                        : (new DateTimeCz(DEN_PRVNI_UBYTOVANI))->add(new DateInterval("P$r[den_prvni]D"))->format('j.n.Y'),
                     'Poslední noc (počátek)' => $r['den_posledni'] === null
                         ? '-'
-                        :
-                        (new DateTimeCz(DEN_PRVNI_UBYTOVANI))->add(new DateInterval("P$r[den_posledni]D"))->format('j.n.Y'),
+                        : (new DateTimeCz(DEN_PRVNI_UBYTOVANI))->add(new DateInterval("P$r[den_posledni]D"))->format('j.n.Y'),
                     'Typ'                    => typUbytovani((string)$r['ubytovani_typ']),
                     'Dorazil na GC'          => $navstevnik->gcPritomen() ? 'ano' : 'ne',
                 ],
@@ -237,6 +235,7 @@ while ($r = mysqli_fetch_assoc($o)) {
                 'Bonus za vedení aktivit'            => $finance->bonusZaVedeniAktivit(),
                 'Využitý bonus za vedení aktivit'    => $finance->vyuzityBonusZaAktivity(),
                 'Proplacený bonus za vedení aktivit' => $finance->proplacenyBonusZaAktivity(),
+                'Brigádnické odměny'                 => $finance->brigadnickaOdmena(),
                 'Stav'                               => excelCislo($finance->stav()),
                 'Zůstatek z minula'                  => excelCislo($r['zustatek']),
                 'Připsané platby'                    => excelCislo($finance->sumaPlateb()),
