@@ -210,10 +210,12 @@ class Vyjimkovac implements Logovac
 class JsException extends \Exception
 {
 
-    public function __construct($zprava, $soubor, $radek) {
-        parent::__construct($zprava);
-        $this->file = $soubor;
-        $this->line = $radek;
+    public function __construct(?string $zprava, ?string $soubor, $radek) {
+        parent::__construct((string)$zprava);
+        $this->file = (string)$soubor;
+        $this->line = $radek !== null
+            ? (int)$radek
+            : -1;
     }
 
 }
