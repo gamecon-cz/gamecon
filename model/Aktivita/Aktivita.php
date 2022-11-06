@@ -2722,7 +2722,7 @@ SQL,
             $wheres[] = 'a.id_akce IN (SELECT id_akce FROM akce_organizatori WHERE id_uzivatele = ' . (int)$filtr['organizator'] . ')';
         }
         if (!empty($filtr['jenViditelne'])) {
-            $wheres[] = 'a.stav IN (' . implode(',', [StavAktivity::bezneViditelneStavy()]) . ')
+            $wheres[] = 'a.stav IN (' . implode(',', StavAktivity::bezneViditelneStavy()) . ')
                 AND NOT (a.typ IN (' . implode(',', TypAktivity::interniTypy()) . ') AND a.stav IN (' . implode(',', StavAktivity::probehnuteStavy()/** stejné jako @see \Gamecon\Aktivita\Aktivita::probehnuta */) . '))';
         }
         if (!empty($filtr['jenZamcene'])) {
