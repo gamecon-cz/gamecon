@@ -58,7 +58,7 @@
     <h2>{zprava}</h2>
     <a href="{url}" target="_blank">{url}</a>{zdroj}<br>
     <div class="bubliny">
-      <span>{soubor}: {radek}</span>
+      <span>{soubor}:{radek}</span>
       <div>{jazyk}</div>
       <div class="hinted">{uzivatelu}<div class="hint">{uzivatele}</div></div>
       <div class="hinted">
