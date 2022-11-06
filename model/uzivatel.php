@@ -1011,10 +1011,8 @@ SQL,
 
         $validaceDataNarozeni = function ($datum) {
             // přichází ve formátu rrrr-mm-dd
-            $data = explode('-', $datum);
-            if (count($data) != 3 || strlen($data[0]) != 4 || strlen($data[1]) != 2 || strlen($data[2]) != 2 ||
-                !checkdate($data[1], $data[2], $data[0])) {
-                return 'vyplň prosím datum narození ve formátu mm/dd/rrrr';
+            if (!DateTimeImmutable::createFromFormat('Y-m-d', trim((string)$datum))) {
+                return 'vyplň prosím platné datum narození';
             }
             return '';
         };
