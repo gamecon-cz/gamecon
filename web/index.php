@@ -105,7 +105,7 @@ if ($m->bezStranky()) {
         'menu' => $menu,
         'obsah' => $m->vystup(),
         'base' => URL_WEBU . '/',
-        'info' => $m->info()->html(),
+        'info' => $m->info() ? $m->info()->html() : '',
         'letosniRok' => date('Y'),
     ]);
     $t->parseEach($m->cssUrls(), 'url', 'index.extraCss');
