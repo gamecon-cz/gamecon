@@ -45,6 +45,12 @@ if (post('pridatPotvrzeniProtiCovidu')) {
     }
 }
 
+if (po(GC_BEZI_DO)) {
+    $t->assign('rok', ROK + 1);
+    $t->parse('prihlaskaPo');
+    return;
+}
+
 if (GC_BEZI || ($u && $u->gcPritomen())) {
     // zpřístupnit varianty mimo registraci i pro nepřihlášeného uživatele kvůli
     // příchodům z titulky, menu a podobně
