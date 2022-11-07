@@ -1,0 +1,11 @@
+--- /dev/null
++++ ../src/Tracy/Helpers.php
+@@ -118,7 +118,7 @@
+ 	/** @internal */
+ 	public static function fixStack(\Throwable $exception): \Throwable
+ 	{
+-		if (function_exists('xdebug_get_function_stack')) {
++		if (function_exists('xdebug_get_function_stack') && ini_get('xdebug.mode') === 'develop') {
+ 			$stack = [];
+ 			$trace = @xdebug_get_function_stack(); // @ xdebug compatibility warning
+ 			$trace = array_slice(array_reverse($trace), 2, -1);

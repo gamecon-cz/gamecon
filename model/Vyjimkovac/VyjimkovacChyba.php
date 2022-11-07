@@ -25,7 +25,7 @@ class VyjimkovacChyba {
     $r = [
       'vznikla' => time(),
       'url'     => 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'],
-      'zdroj'   => @$_SERVER['HTTP_REFERER'] ?: null,
+      'zdroj'   => $_SERVER['HTTP_REFERER'] ?? null,
     ];
 
     try {
