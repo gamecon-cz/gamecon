@@ -22,8 +22,25 @@ class StrankyWebuTest extends TestCase
             static::$localServerProcess = new Process(['php', '-S', $localAddress]);
             static::$localServerProcess->start();
 
+            $this->waitForLocalServerBoot();
+
             $this->skipTestIfLocalWebServerIsNotRunning();
         }
+    }
+
+    protected function waitForLocalServerBoot() {
+        $curlHandle     = curl_init(self::LOCAL_WEB_SERVER);
+        $anotherAttempt = false;
+        do {
+            curl_setopt($curlHandle, CURLOPT_NOBODY, true);
+            curl_setopt($curlHandle, CURLOPT_HEADER, false);
+            curl_exec($curlHandle);
+            if ($anotherAttempt) {
+                usleep(20000);
+            }
+            $anotherAttempt = true;
+        } while (curl_errno($curlHandle) === 7);
+        curl_close($curlHandle);
     }
 
     protected function skipTestIfLocalWebServerIsNotRunning() {
@@ -46,6 +63,7 @@ class StrankyWebuTest extends TestCase
      * @param string[] $urls
      */
     public function Muzu_si_zobrazit_kazdou_stranku_na_webu(array $urls) {
+
         $multiCurl   = curl_multi_init();
         $curlHandles = [];
         $errors      = [];
