@@ -40,7 +40,7 @@
 
         <div class="mb-3">
           <label for="login" class="form-label">Jméno:</label>
-          <input class="form-control" type="text" name="loginNAdm" id="login" autofocus required>
+          <input class="form-control" type="text" name="{loginInputName}" id="login" autofocus required>
           <div class="invalid-feedback">
             Vyplň prosím přihlašovací jméno
           </div>
@@ -48,7 +48,7 @@
 
         <div class="mb-3">
           <label for="heslo" class="form-label">Heslo:</label>
-          <input class="form-control" type="password" name="hesloNAdm" id="heslo" required>
+          <input class="form-control" type="password" name="{passwordInputName}" id="heslo" required>
           <div class="invalid-feedback">
             Vyplň prosím heslo
           </div>

@@ -37,9 +37,9 @@ dbQuery(sprintf('CREATE DATABASE IF NOT EXISTS `%s` COLLATE "utf8_czech_ci"', DB
 dbQuery(sprintf('USE `%s`', DB_NAME));
 
 (new DbMigrations(new DbMigrationsConfig([
-    'connection' => dbConnect(), // předpokládá se, že spojení pro testy má administrativní práva
+    'connection'          => dbConnect(), // předpokládá se, že spojení pro testy má administrativní práva
     'migrationsDirectory' => __DIR__ . '/../migrace',
-    'doBackups' => false,
+    'doBackups'           => false,
 ])))->run();
 
 dbConnect(); // nutno inicalizovat spojení

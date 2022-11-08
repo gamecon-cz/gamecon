@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\web;
 
-use PHPUnit\Framework\TestCase;
+use Gamecon\Login\Login;
+use Gamecon\Tests\Db\DbTest;
 use Symfony\Component\Process\Process;
 
-abstract class AbstractWebTest extends TestCase
+abstract class AbstractWebTest extends DbTest
 {
 
     protected static int $freeLocalServerPort = 8888;
@@ -17,6 +18,7 @@ abstract class AbstractWebTest extends TestCase
     protected array $localServersProcesses = [];
 
     protected function tearDown(): void {
+        parent::tearDown();
         foreach ($this->localServersProcesses as $port => $localServersProcess) {
             $localServersProcess->stop();
             if (static::$freeLocalServerPort + 1 === $port) {
@@ -28,8 +30,8 @@ abstract class AbstractWebTest extends TestCase
     /**
      * @param string[] $urls
      */
-    protected function testPagesAccessibility(array $urls) {
-        $urlsOfFreeLocalServers = $this->getUrlsOfFreeLocalServers(count($urls));
+    protected function testPagesAccessibility(array $urls, string $username = null, string $password = null) {
+        $urlsOfFreeLocalServers = $this->getUrlsOfFreeLocalServers(count($urls), $username, $password);
         reset($urlsOfFreeLocalServers);
 
         $multiCurl   = curl_multi_init();
@@ -48,7 +50,6 @@ abstract class AbstractWebTest extends TestCase
             curl_setopt($curlHandle, CURLOPT_CONNECTTIMEOUT, 10); // timeout na připojení
             curl_setopt($curlHandle, CURLOPT_TIMEOUT, 5); // timeout na stahování
             curl_setopt($curlHandle, CURLOPT_FOLLOWLOCATION, true);
-            curl_setopt($curlHandle, CURLOPT_NOBODY, true);
             curl_setopt($curlHandle, CURLOPT_HEADER, true);
             curl_multi_add_handle($multiCurl, $curlHandle);
 
@@ -122,15 +123,23 @@ abstract class AbstractWebTest extends TestCase
         );
     }
 
-    protected function getUrlsOfFreeLocalServers(int $count): array {
-        $urls = [];
+    protected function getUrlsOfFreeLocalServers(int $count, ?string $username, ?string $password): array {
+        $localServersUrls = [];
         for ($current = 1; $current <= $count; $current++) {
-            $urls[] = $this->getUrlOfFreeLocalServer(false);
+            $localServersUrls[] = $this->getUrlOfFreeLocalServer(false);
         }
 
-        $this->waitForLocalServersBoot($urls);
+        $this->waitForLocalServersBoot($localServersUrls);
 
-        return $urls;
+        if ($username && $password) {
+            foreach ($localServersUrls as $localServerUrl) {
+                // ke každé instanci PHP serveru se musíme přihlásit zvlášť, protože každá má své cookies
+                // TODO solve keeping session
+//                $this->loginToAdmin($localServerUrl . '/admin', $username, $password);
+            }
+        }
+
+        return $localServersUrls;
     }
 
     /**
@@ -266,4 +275,47 @@ abstract class AbstractWebTest extends TestCase
         } while (curl_errno($curlHandle) === 7);
         curl_close($curlHandle);
     }
+
+    protected function loginToAdmin(string $adminAbsoluteUrl, string $username, string $password) {
+        $curlHandle = curl_init($adminAbsoluteUrl);
+        curl_setopt($curlHandle, CURLOPT_NOBODY, true);
+        curl_setopt($curlHandle, CURLOPT_HEADER, true);
+        curl_setopt($curlHandle, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curlHandle, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($curlHandle, CURLOPT_POST, true);
+        curl_setopt(
+            $curlHandle,
+            CURLOPT_POSTFIELDS,
+            [Login::LOGIN_INPUT_NAME => $username, Login::PASSWORD_INPUT_NAME => $password]
+        );
+        $output      = curl_exec($curlHandle);
+        $errorNumber = curl_errno($curlHandle);
+        if ($errorNumber !== 0) {
+            self::fail(
+                sprintf(
+                    "Chyba při přihlašování do adminu přes CURL: %s, %s (%d). Odpověď:'%s'",
+                    $adminAbsoluteUrl,
+                    curl_error($curlHandle),
+                    $errorNumber,
+                    $output
+                )
+            );
+        }
+        $info = curl_getinfo($curlHandle);
+        if ($info['http_code'] >= 300) {
+            $this->fail(
+                sprintf(
+                    "Nepodařilo se přihlásit do adminu přes stránku %s, response code %d%s, output: '%s'",
+                    $adminAbsoluteUrl,
+                    $info['http_code'],
+                    $info['http_code'] === 404
+                        ? ' (nenalezeno)'
+                        : '',
+                    $output
+                )
+            );
+        }
+        curl_close($curlHandle);
+    }
+
 }

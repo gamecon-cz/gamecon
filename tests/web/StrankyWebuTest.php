@@ -6,6 +6,11 @@ namespace Gamecon\Tests\web;
 
 class StrankyWebuTest extends AbstractWebTest
 {
+    protected static $initData = '
+    # uzivatele_hodnoty
+    id_uzivatele,login_uzivatele,jmeno_uzivatele,prijmeni_uzivatele
+    48,Elden,Jakub,Jandák
+  ';
 
     /**
      * @test
@@ -16,15 +21,28 @@ class StrankyWebuTest extends AbstractWebTest
         $this->testPagesAccessibility($urls);
     }
 
-    public function provideWebUrls(): array {
+    /**
+     * @test
+     * @dataProvider provideAdminUrls
+     * @param string[] $urls
+     */
+    public function Muzu_si_zobrazit_kazdou_stranku_v_adminu(...$urls) {
+        $this->testPagesAccessibility($urls, 'Elden', UNIVERZALNI_HESLO);
+    }
 
+    public function provideWebUrls(): array {
         return [
             'základní'    => [
                 basename(__DIR__ . '/../../web'),
                 basename(__DIR__ . '/../../admin'),
             ],
             'moduly webu' => $this->getUrlsModuluWebu(),
-//            'moduly adminu' => $this->getUrlsModuluWebu(),
+        ];
+    }
+
+    public function provideAdminUrls(): array {
+        return [
+            'moduly adminu' => $this->getUrlsModuluAdminu(),
         ];
     }
 
@@ -38,8 +56,8 @@ class StrankyWebuTest extends AbstractWebTest
             $modulyWebuBaseUrls[] = basename($modulWebu, '.php');
         }
         $webBaseUrl = basename(__DIR__ . '/../../web');
-        return array_map(static function (string $modulWebuBaseurl) use ($webBaseUrl) {
-            return $webBaseUrl . '/' . $modulWebuBaseurl;
+        return array_map(static function (string $modulWebuUrl) use ($webBaseUrl) {
+            return $webBaseUrl . '/' . $modulWebuUrl;
         }, $modulyWebuBaseUrls);
     }
 
@@ -47,14 +65,14 @@ class StrankyWebuTest extends AbstractWebTest
         $modulyWebu         = scandir(__DIR__ . '/../../admin/scripts/modules');
         $modulyWebuBaseUrls = [];
         foreach ($modulyWebu as $modulWebu) {
-            if (!preg_match('~([.]php)(^[a-z-]+)$~', $modulWebu)) {
+            if (!preg_match('~(^[^_].*[.]php$|^[a-z-]+$)~', $modulWebu)) {
                 continue;
             }
             $modulyWebuBaseUrls[] = basename($modulWebu, '.php');
         }
-        $webUrl = basename(__DIR__ . '/../../web');
-        return array_map(static function (string $modulWebuBaseurl) use ($webUrl) {
-            return $webUrl . '/' . $modulWebuBaseurl;
+        $adminBaseUrl = basename(__DIR__ . '/../../admin');
+        return array_map(static function (string $modulAdminuUrl) use ($adminBaseUrl) {
+            return $adminBaseUrl . '/' . $modulAdminuUrl;
         }, $modulyWebuBaseUrls);
     }
 }
