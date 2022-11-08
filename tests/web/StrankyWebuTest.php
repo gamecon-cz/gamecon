@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\web;
 
-use Gamecon\Tests\AbstractWebTest;
-
 class StrankyWebuTest extends AbstractWebTest
 {
 
@@ -22,8 +20,8 @@ class StrankyWebuTest extends AbstractWebTest
 
         return [
             'základní'    => [
-                self::LOCAL_WEB_SERVER . '/' . basename(__DIR__ . '/../../web'),
-                self::LOCAL_WEB_SERVER . '/' . basename(__DIR__ . '/../../admin'),
+                basename(__DIR__ . '/../../web'),
+                basename(__DIR__ . '/../../admin'),
             ],
             'moduly webu' => $this->getUrlsModuluWebu(),
 //            'moduly adminu' => $this->getUrlsModuluWebu(),
@@ -39,9 +37,9 @@ class StrankyWebuTest extends AbstractWebTest
             }
             $modulyWebuBaseUrls[] = basename($modulWebu, '.php');
         }
-        $webUrl = self::LOCAL_WEB_SERVER . '/' . basename(__DIR__ . '/../../web');
-        return array_map(static function (string $modulWebuBaseurl) use ($webUrl) {
-            return $webUrl . '/' . $modulWebuBaseurl;
+        $webBaseUrl = basename(__DIR__ . '/../../web');
+        return array_map(static function (string $modulWebuBaseurl) use ($webBaseUrl) {
+            return $webBaseUrl . '/' . $modulWebuBaseurl;
         }, $modulyWebuBaseUrls);
     }
 
@@ -54,7 +52,7 @@ class StrankyWebuTest extends AbstractWebTest
             }
             $modulyWebuBaseUrls[] = basename($modulWebu, '.php');
         }
-        $webUrl = self::LOCAL_WEB_SERVER . '/' . basename(__DIR__ . '/../../web');
+        $webUrl = basename(__DIR__ . '/../../web');
         return array_map(static function (string $modulWebuBaseurl) use ($webUrl) {
             return $webUrl . '/' . $modulWebuBaseurl;
         }, $modulyWebuBaseUrls);
