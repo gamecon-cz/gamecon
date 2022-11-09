@@ -41,6 +41,24 @@ function reload() {
     exit;
 }
 
+function parseRoute(): array {
+    $rawReq = get('req');
+    if (!$rawReq) {
+        $requestUri = $_SERVER['REQUEST_URI'] ?? '';
+        if (str_starts_with($requestUri, '/admin')) {
+            $rawReq = substr($requestUri, strlen('/admin'));
+        } elseif (str_starts_with($requestUri, '/web')) {
+            $rawReq = substr($requestUri, strlen('/web'));
+        } else {
+            $rawReq = $requestUri;
+        }
+    }
+    $rawReq = ltrim($rawReq, '/');
+    $req    = explode('/', $rawReq ?? '');
+    $req[1] = $req[1] ?? '';
+    return $req;
+}
+
 /**
  * Ends current script execution and reloads page to http referrer.
  * @param string $to alternative location to go to instead of referrer

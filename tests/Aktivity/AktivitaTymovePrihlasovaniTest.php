@@ -15,7 +15,7 @@ class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
     private $clen1;
     private $clen2;
 
-    protected static $initData = '
+    protected static string $initData = '
     # akce_seznam
     id_akce, dite,  stav, typ, teamova, kapacita, team_min, team_max, zacatek,          konec
     1,       "2,3", 1,    1,   1,       3,        2,        3,        2099-01-01 08:00, 2099-01-01 14:00

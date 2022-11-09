@@ -23,8 +23,9 @@ class Uzivatel
     public const UZIVATEL_PRACOVNI = 'uzivatel_pracovni';
     public const UZIVATEL          = 'uzivatel';
 
-    public const FAKE   = 0x01;  // modifikátor "fake uživatel"
-    public const SYSTEM = 1;   // id uživatele reprezentujícího systém (např. "operaci provedl systém")
+    public const FAKE         = 0x01;  // modifikátor "fake uživatel"
+    public const SYSTEM       = 1;   // id uživatele reprezentujícího systém (např. "operaci provedl systém")
+    public const SYSTEM_LOGIN = 'SYSTEM';
 
     /**
      * @return Uzivatel[]
