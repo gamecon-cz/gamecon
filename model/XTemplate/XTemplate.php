@@ -122,7 +122,7 @@ class XTemplate
         $this->current = "";
         return $out;
       } else {
-        $out = @$this->buffer["<name>"];
+        $out = $this->buffer["<name>"] ?? "";
         $this->buffer["<name>"] = "";
         return $out;
       }
@@ -130,7 +130,9 @@ class XTemplate
 
     function parse_<name>() {
       if($this->current != "<name>") {
-        if($this->current) @$this->buffer[$this->current] .= ob_get_clean();
+        if($this->current) {
+          $this->buffer[$this->current] = ($this->buffer[$this->current] ?? "") . ob_get_clean();
+        }
         ob_start();
         $this->current = "<name>";
       }
@@ -155,13 +157,15 @@ class XTemplate
      * @todo dependency injection of cache location
      */
     protected function compiledTemplate($file) {
-        $cFile = self::$cacheDir ?  // comiled file name
-            self::$cacheDir . '/' . md5($file) . '.php' :
+        $cFile = self::$cacheDir
+            ?  // comiled file name
+            self::$cacheDir . '/' . md5($file) . '.php'
+            :
             dirname($file) . '/' . basename($file, '.xtpl') . '.xtpc';
         $cName = $this->generateClassName($file);
 
         // main template modification check & load
-        $compiledModified = @filemtime($cFile);
+        $compiledModified = file_exists($cFile) ? filemtime($cFile) : 0;
         $templateModified = filemtime($file);
         if ($compiledModified < $templateModified || $compiledModified < $this->libraryModified()) {
             $this->outlineRead($file);
@@ -216,9 +220,9 @@ class XTemplate
      */
     protected function nodePutblock($node, $blockname) {
         if (!$node) return; // skip root nodes
-        $parent = $this->toIdent($node);
-        $child = $this->toIdent(array_merge($node, [$blockname]));
-        @$this->outline[$parent] .= '<?=$this->' . $child . '()?>';
+        $parent                 = $this->toIdent($node);
+        $child                  = $this->toIdent(array_merge($node, [$blockname]));
+        $this->outline[$parent] = ($this->outline[$parent] ?? '') . '<?=$this->' . $child . '()?>';
     }
 
     /**
@@ -226,9 +230,9 @@ class XTemplate
      */
     protected function nodePuttext($node, $text) {
         if (!$node) return; // skip root nodes
-        $node = $this->toIdent($node);
-        $text = $this->convertVariables($text);
-        @$this->outline[$node] .= $text;
+        $node                 = $this->toIdent($node);
+        $text                 = $this->convertVariables($text);
+        $this->outline[$node] = ($this->outline[$node] ?? '') . $text;
     }
 
     /**
@@ -245,8 +249,8 @@ class XTemplate
             ]);
         }
         $class = strtr(self::$class, [
-            '<name>' => $cName,
-            '<methods>' => $methods,
+            '<name>'         => $cName,
+            '<methods>'      => $methods,
             '<dependencies>' => '"' . implode('","', $this->dependencies) . '"',
         ]);
         return $class;
@@ -258,14 +262,14 @@ class XTemplate
     protected function outlineRead($file) {
         // split source file by block delimiters
         $delim = '<!-- (begin|end): ?([a-zA-Z][a-zA-Z0-9]*) -->';
-        $f = file_get_contents($file);
-        $f = preg_replace_callback('@{FILE "([^"]+)"}@', function ($m) {
+        $f     = file_get_contents($file);
+        $f     = preg_replace_callback('@{FILE "([^"]+)"}@', function ($m) {
             $this->dependencies[] = $m[1];
             return file_get_contents($m[1]);
         }, $f);
         $bloky = preg_split('@' . $delim . '@', $f, -1, PREG_SPLIT_DELIM_CAPTURE);
         // inits
-        $len = count($bloky);
+        $len  = count($bloky);
         $path = [];
         // walk through loaded blocks and delimiters
         for ($i = 0; $i < $len; $i++) {

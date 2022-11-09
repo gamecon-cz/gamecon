@@ -126,7 +126,6 @@ table.program {
     font-size: 12px;
     } @media (max-width: 800px) { .program td:not([rowspan]) > div {
         padding: 10px;
-        height: 52px;
         overflow: hidden;
     }
 }
@@ -144,10 +143,6 @@ table.program {
     width: -moz-fit-content;
     width: fit-content;
     } @media (max-width: 800px) { .program td > div > a {
-        line-height: 14px;
-        min-height: 14px;
-        max-height: 14px;
-        min-width: 200px; /* vynutit jeden řádek */
         margin-bottom: 7px;
     }
 }

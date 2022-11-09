@@ -6,6 +6,9 @@ use Gamecon\XTemplate\XTemplate;
 
 class Login
 {
+    public const LOGIN_INPUT_NAME    = 'loginNAdm';
+    public const PASSWORD_INPUT_NAME = 'hesloNAdm';
+
     public function dejHtmlLogin(): string {
 
         $loginTemplate = $this->dejLoginTemplate();
@@ -24,8 +27,10 @@ class Login
         $loginTemplate = new XTemplate(__DIR__ . '/templates/login.xtpl');
 
         $loginTemplate->assign([
-            'pageTitle' => 'GameCon – Administrace',
-            'base' => URL_ADMIN . '/',
+            'pageTitle'         => 'GameCon – Administrace',
+            'base'              => URL_ADMIN . '/',
+            'loginInputName'    => self::LOGIN_INPUT_NAME,
+            'passwordInputName' => self::PASSWORD_INPUT_NAME,
         ]);
 
         $this->pridejLokalniAssety($loginTemplate);

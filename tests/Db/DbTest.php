@@ -35,7 +35,7 @@ class DbTest extends \PHPUnit\Framework\TestCase
         }
     }
 
-    public function tearDown(): void
+    protected function tearDown(): void
     {
         self::$connection->rollback();
     }

@@ -45,7 +45,7 @@ if (!get('req')) {
         back(URL_ADMIN . '/moje-aktivity');
     }
 }
-$req        = explode('/', get('req'));
+$req        = explode('/', get('req') ?? '');
 $stranka    = $req[0];
 $podstranka = isset($req[1]) ? $req[1] : '';
 

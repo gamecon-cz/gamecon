@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Login\Login;
+
 /**
  * Kód starající o přihlášení uživatele a výběr uživatele pro práci
  */
@@ -10,8 +12,8 @@ if (!empty($_GET['update_code'])) {
 }
 // Přihlášení
 $u = null;
-if (post('loginNAdm') && post('hesloNAdm')) {
-    $pravePrihlaseny = Uzivatel::prihlas(post('loginNAdm'), post('hesloNAdm'));
+if (post(Login::LOGIN_INPUT_NAME) && post(Login::PASSWORD_INPUT_NAME)) {
+    $pravePrihlaseny = Uzivatel::prihlas(post(Login::LOGIN_INPUT_NAME), post(Login::PASSWORD_INPUT_NAME));
     if (!$pravePrihlaseny) {
         chyba("Chybné přihlašovací jméno nebo heslo");
     }
