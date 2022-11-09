@@ -1,1 +1,7 @@
-Deny from all
+RewriteEngine on
+
+RewriteCond %{HTTP_HOST} ^localhost$
+RewriteRule .* web/$0 [L]
+
+RewriteRule .* - [F,L]
+
