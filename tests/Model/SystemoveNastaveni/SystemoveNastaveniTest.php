@@ -9,7 +9,7 @@ use Gamecon\Tests\Db\DbTest;
 
 class SystemoveNastaveniTest extends DbTest
 {
-    protected static $initData = '
+    protected static string $initData = '
     # uzivatele_hodnoty
     id_uzivatele,login_uzivatele,jmeno_uzivatele,prijmeni_uzivatele
     48,Elden,Jakub,Jandák

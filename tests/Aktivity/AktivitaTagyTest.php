@@ -8,7 +8,7 @@ use Gamecon\Aktivita\Aktivita;
 class AktivitaTagyTest extends DbTest
 {
 
-  protected static $initData = '
+  protected static string $initData = '
     # akce_seznam
     id_akce, patri_pod
     1,       null

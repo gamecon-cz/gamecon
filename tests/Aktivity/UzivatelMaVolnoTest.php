@@ -8,7 +8,7 @@ use Gamecon\Aktivita\Aktivita;
 class UzivatelMaVolnoTest extends UzivatelDbTest
 {
 
-    protected static $initData = '
+    protected static string $initData = '
     # akce_seznam
     id_akce, stav, typ, rok,     zacatek,          konec
     1,       1,    1,   ' . ROK . ', 2000-01-01 16:00, 2000-01-01 18:00
