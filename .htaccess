@@ -4,4 +4,3 @@ RewriteCond %{HTTP_HOST} ^localhost$
 RewriteRule .* web/$0 [L]
 
 RewriteRule .* - [F,L]
-
