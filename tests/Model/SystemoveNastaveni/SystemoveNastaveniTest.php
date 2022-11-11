@@ -34,7 +34,7 @@ class SystemoveNastaveniTest extends DbTest
      * @dataProvider provideVychoziHodnota
      */
     public function testVychoziHodnoty(int $rok, string $klic, string $ocekavanaHodnota) {
-        $nastaveni = new SystemoveNastaveni($rok, new \DateTimeImmutable($rok . '-12-31 23:59:59'), false);
+        $nastaveni = new SystemoveNastaveni($rok, new \DateTimeImmutable($rok . '-12-31 23:59:59'), false, false);
 
         self::assertSame($ocekavanaHodnota, $nastaveni->dejVychoziHodnotu($klic));
     }
@@ -55,7 +55,7 @@ class SystemoveNastaveniTest extends DbTest
      */
     public function testUkoceniUbytovani(string $konecUbytovaniDne, bool $ocekavaneUkoceniProdeje) {
         define('UBYTOVANI_LZE_OBJEDNAT_A_MENIT_DO_DNE', $konecUbytovaniDne);
-        $nastaveni = new SystemoveNastaveni(ROK, new \DateTimeImmutable(), false);
+        $nastaveni = new SystemoveNastaveni(ROK, new \DateTimeImmutable(), false, false);
         self::assertSame($ocekavaneUkoceniProdeje, $nastaveni->prodejUbytovaniUkoncen());
     }
 

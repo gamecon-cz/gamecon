@@ -14,7 +14,8 @@ class SystemoveNastaveni
         return new static(
             ROK,
             new \DateTimeImmutable(),
-            parse_url(URL_WEBU, PHP_URL_HOST) === 'beta.gamecon.cz'
+            parse_url(URL_WEBU, PHP_URL_HOST) === 'beta.gamecon.cz',
+            parse_url(URL_WEBU, PHP_URL_HOST) === 'localhost'
         );
     }
 
@@ -57,19 +58,19 @@ class SystemoveNastaveni
      * @var \DateTimeImmutable
      */
     private $ted;
-    /**
-     * @var bool
-     */
-    private $jsmeNaBete;
+    private bool $jsmeNaBete;
+    private bool $jsmeNaLocale;
 
     public function __construct(
         int                $rok,
         \DateTimeImmutable $ted,
-        bool               $jsmeNaBete
+        bool               $jsmeNaBete,
+        bool               $jsmeNaLocale
     ) {
-        $this->rok        = $rok;
-        $this->ted        = $ted;
-        $this->jsmeNaBete = $jsmeNaBete;
+        $this->rok          = $rok;
+        $this->ted          = $ted;
+        $this->jsmeNaBete   = $jsmeNaBete;
+        $this->jsmeNaLocale = $jsmeNaLocale;
     }
 
     public function zaznamyDoKonstant() {
@@ -347,6 +348,10 @@ SQL;
 
     public function jsmeNaBete(): bool {
         return $this->jsmeNaBete;
+    }
+
+    public function jsmeNaLocale(): bool {
+        return $this->jsmeNaLocale;
     }
 
     public function aktivitaEditovatelnaXMinutPredJejimZacatkem(): int {

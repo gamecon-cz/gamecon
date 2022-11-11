@@ -1,4 +1,5 @@
 <?php
+
 use Gamecon\XTemplate\XTemplate;
 
 use Gamecon\Aktivita\TypAktivity;
@@ -43,7 +44,7 @@ if (!$m) {
 // spuštění kódu modulu + buffering výstupu a nastavení
 $m->param('u', $u);
 $m->param('url', $url);
-$i = (new Info())
+$i = (new Info($systemoveNastaveni))
     ->obrazek('soubory/styl/og-image.jpg')
     ->site('GameCon')
     ->url("http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]");
@@ -99,14 +100,14 @@ if ($m->bezStranky()) {
 } elseif ($m->blackarrowStyl()) {
     $t = new XTemplate('sablony/blackarrow/index.xtpl');
     $t->assign([
-        'css' => perfectcache('soubory/blackarrow/*/*.less'),
+        'css'          => perfectcache('soubory/blackarrow/*/*.less'),
         'jsVyjimkovac' => \Gamecon\Vyjimkovac\Vyjimkovac::js(URL_WEBU),
-        'chyba' => Chyba::vyzvedniHtml(),
-        'menu' => $menu,
-        'obsah' => $m->vystup(),
-        'base' => URL_WEBU . '/',
-        'info' => $m->info() ? $m->info()->html() : '',
-        'letosniRok' => date('Y'),
+        'chyba'        => Chyba::vyzvedniHtml(),
+        'menu'         => $menu,
+        'obsah'        => $m->vystup(),
+        'base'         => URL_WEBU . '/',
+        'info'         => $m->info() ? $m->info()->html() : '',
+        'letosniRok'   => date('Y'),
     ]);
     $t->parseEach($m->cssUrls(), 'url', 'index.extraCss');
     $t->parseEach($m->jsUrls(), 'url', 'index.extraJs');
@@ -120,12 +121,12 @@ if ($m->bezStranky()) {
     $t = new XTemplate('sablony/index.xtpl');
     // templata a nastavení proměnných do glob templaty
     $t->assign([
-        'u' => $u,
-        'base' => URL_WEBU . '/',
-        'admin' => URL_ADMIN,
-        'obsah' => $m->vystup(),  // TODO nastavování titulku stránky
-        'sponzori' => Modul::zNazvu('sponzori', null, $systemoveNastaveni)->spust()->vystup(),
-        'css' => perfectcache(
+        'u'            => $u,
+        'base'         => URL_WEBU . '/',
+        'admin'        => URL_ADMIN,
+        'obsah'        => $m->vystup(),  // TODO nastavování titulku stránky
+        'sponzori'     => Modul::zNazvu('sponzori', null, $systemoveNastaveni)->spust()->vystup(),
+        'css'          => perfectcache(
             'soubory/styl/flaticon.ttf',
             'soubory/styl/easybox.min.css',
             'soubory/styl/styl.less',
@@ -133,18 +134,18 @@ if ($m->bezStranky()) {
             'soubory/styl/jquery-ui.min.css',
             'soubory/blackarrow/menu/menu.less'
         ),
-        'js' => perfectcache(
+        'js'           => perfectcache(
             'soubory/jquery-2.1.1.min.js',
             'soubory/aplikace.js',
             'soubory/jquery-ui.min.js',
             'soubory/easybox.distrib.min.js' // nějaká debiláž, musí být poslední
         ),
         'jsVyjimkovac' => \Gamecon\Vyjimkovac\Vyjimkovac::js(URL_WEBU),
-        'chyba' => Chyba::vyzvedniHtml(),
-        'info' => $m->info() ? $m->info()->html() : '',
-        'a' => $u ? $u->koncovkaDlePohlavi() : '',
-        'datum' => date('j.', strtotime(GC_BEZI_OD)) . '–' . date('j. n. Y', strtotime(GC_BEZI_DO)),
-        'menu' => $menu,
+        'chyba'        => Chyba::vyzvedniHtml(),
+        'info'         => $m->info() ? $m->info()->html() : '',
+        'a'            => $u ? $u->koncovkaDlePohlavi() : '',
+        'datum'        => date('j.', strtotime(GC_BEZI_OD)) . '–' . date('j. n. Y', strtotime(GC_BEZI_DO)),
+        'menu'         => $menu,
     ]);
     // tisk věcí a zdar
     if ($u && $u->maPravo(\Gamecon\Pravo::ADMINISTRACE_INFOPULT)) {
