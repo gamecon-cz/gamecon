@@ -270,10 +270,19 @@ SQL;
     protected function getUrlOfUnusedLocalServer(
         bool $waitForBoot = true,
     ): string {
-        $port = static::$unusedLocalServerPort;
-        static::$unusedLocalServerPort++;
-        $localServerUrl                     = "localhost:$port";
-        $localServerProcess                 = $this->startLocalWebServer($localServerUrl, $waitForBoot);
+        $localServerProcess = null;
+        $attemptsRemains    = 5;
+        do {
+            $port = $this->getUnusedPort();
+            static::$unusedLocalServerPort++;
+            $localServerUrl = "localhost:$port";
+            try {
+                $localServerProcess = $this->startLocalWebServer($localServerUrl, $waitForBoot);
+            } catch (\RuntimeException $runtimeException) {
+                $attemptsRemains--;
+            }
+        } while (!$localServerProcess && $attemptsRemains > 0);
+        // TODO
         $this->localServersProcesses[$port] = $localServerProcess;
         return $localServerUrl;
     }
@@ -285,13 +294,39 @@ SQL;
         $localServerProcess = new Process(['php', '-S', $localServerUrl]);
         $localServerProcess->start();
 
-        $this->failTestIfLocalWebServerIsNotRunning($localServerProcess);
+        if (!$localServerProcess->isRunning()) {
+            throw new \RuntimeException(
+                sprintf(
+                    "Failed command %s with exit code %d and output %s (%s)",
+                    $localServerProcess->getCommandLine(),
+                    $localServerProcess->getExitCode(),
+                    $localServerProcess->getExitCodeText(),
+                    $localServerProcess->getErrorOutput(),
+                )
+            );
+        }
 
         if ($waitForBoot) {
             $this->waitForLocalServerBoot($localServerUrl);
         }
 
         return $localServerProcess;
+    }
+
+    protected function getUnusedPort(): int {
+        $localServerProcess = new Process(['ss', '--listening', '--tcp', '--udp', '--raw', '--no-header']);
+        $localServerProcess->start();
+        $localServerProcess->wait();
+        $output = $localServerProcess->getOutput();
+        preg_match('~\d+[.]\d+[.]\d+([.]\d+)*:(?<port>\d+)~m', $output, $matches);
+        $usedPorts = $matches['ports'];
+        if (!$usedPorts) {
+            return static::$unusedLocalServerPort;
+        }
+        while (in_array(static::$unusedLocalServerPort, $usedPorts, false)) {
+            static::$unusedLocalServerPort++;
+        }
+        return static::$unusedLocalServerPort;
     }
 
     protected function failTestIfLocalWebServerIsNotRunning(Process $process) {
