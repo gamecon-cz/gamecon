@@ -1,100 +1,104 @@
 <?php
 
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+
 /**
  * Reprezentace metainformací o stránce
  */
-class Info {
+class Info
+{
+    private bool $jsmeNaBete;
+    private bool $jsmeNaLocale;
 
-  private $nazev;
-  private $obrazek;
-  private $popis;
-  private $site;
-  private $titulek;
-  private $url;
-
-  function html() {
-    $o = '';
-    if($e = $this->titulek())   $o .= '<title>'.$e.'</title>';
-    if($e = $this->nazev())     $o .= '<meta property="og:title" content="'.$e.'">';
-    if($e = $this->url())       $o .= '<meta property="og:url" content="'.$e.'">';
-    if($e = $this->site())      $o .= '<meta property="og:site_name" content="'.$e.'">';
-    if($e = $this->popis())     $o .= '<meta property="og:description" content="'.$e.'">';
-    if($e = $this->obrazek()) {
-      if(substr($e, 0, 4) != 'http') $e = URL_WEBU.'/'.$e;
-      $o .= '<meta property="og:image" content="'.$e.'">';
+    public function __construct(SystemoveNastaveni $systemoveNastaveni) {
+        $this->jsmeNaBete   = $systemoveNastaveni->jsmeNaBete();
+        $this->jsmeNaLocale = $systemoveNastaveni->jsmeNaLocale();
     }
-    $o .= '<meta property="og:type" content="website">';
-    return $o;
-  }
 
-    /**
-     * @return Info|string|null
-     */
-  function nazev() {
-    if(func_num_args() == 0) {
-      return $this->nazev;
-    } elseif(func_num_args() == 1) {
-      $this->nazev = func_get_arg(0);
-      return $this;
-    } else {
-      throw new BadMethodCallException();
-    }
-  }
+    private ?string $nazev = null;
+    private ?string $obrazek = null;
+    private ?string $popis = null;
+    private ?string $site = null;
+    private ?string $titulek = null;
+    private ?string $url = null;
 
-  function obrazek() {
-    if(func_num_args() == 0) {
-      return $this->obrazek;
-    } elseif(func_num_args() == 1) {
-      $this->obrazek = func_get_arg(0);
-      return $this;
-    } else {
-      throw new BadMethodCallException();
+    public function html(): string {
+        $o = '';
+        if ($titulek = $this->titulek()) {
+            $o .= '<title>' . $titulek . '</title>';
+        }
+        if ($titulek = $this->nazev()) {
+            $o .= '<meta property="og:title" content="' . $titulek . '">';
+        }
+        if ($titulek = $this->url()) {
+            $o .= '<meta property="og:url" content="' . $titulek . '">';
+        }
+        if ($titulek = $this->site()) {
+            $o .= '<meta property="og:site_name" content="' . $titulek . '">';
+        }
+        if ($titulek = $this->popis()) {
+            $o .= '<meta property="og:description" content="' . $titulek . '">';
+        }
+        if ($titulek = $this->obrazek()) {
+            if (substr($titulek, 0, 4) !== 'http') $titulek = URL_WEBU . '/' . $titulek;
+            $o .= '<meta property="og:image" content="' . $titulek . '">';
+        }
+        $o .= '<meta property="og:type" content="website">';
+        return $o;
     }
-  }
 
-  function popis() {
-    if(func_num_args() == 0) {
-      return $this->popis;
-    } elseif(func_num_args() == 1) {
-      $this->popis = func_get_arg(0);
-      return $this;
-    } else {
-      throw new BadMethodCallException();
+    public function nazev(string $nazev = null): string|null|Info {
+        if ($nazev === null) {
+            return $this->nazev;
+        }
+        $this->nazev = $nazev;
+        return $this;
     }
-  }
 
-  /** The name of your website (such as IMDb, not imdb.com) */
-  function site() {
-    if(func_num_args() == 0) {
-      return $this->site;
-    } elseif(func_num_args() == 1) {
-      $this->site = func_get_arg(0);
-      return $this;
-    } else {
-      throw new BadMethodCallException();
+    public function obrazek(string $obrazek = null): string|null|Info {
+        if ($obrazek === null) {
+            return $this->obrazek;
+        }
+        $this->obrazek = $obrazek;
+        return $this;
     }
-  }
 
-  function titulek() {
-    if(func_num_args() == 0) {
-      return $this->titulek;
-    } elseif(func_num_args() == 1) {
-      $this->titulek = func_get_arg(0);
-      return $this;
-    } else {
-      throw new BadMethodCallException();
+    public function popis(string $popis = null): string|null|Info {
+        if ($popis === null) {
+            return $this->popis;
+        }
+        $this->popis = $popis;
+        return $this;
     }
-  }
 
-  function url() {
-    if(func_num_args() == 0) {
-      return $this->url;
-    } elseif(func_num_args() == 1) {
-      $this->url = func_get_arg(0);
-      return $this;
-    } else {
-      throw new BadMethodCallException();
+    /** The name of your website (such as IMDb, not imdb.com) */
+    public function site(string $site = null): string|null|Info {
+        if ($site === null) {
+            return $this->site;
+        }
+        $this->site = $site;
+        return $this;
     }
-  }
+
+    public function titulek(string $titulek = null): string|null|Info {
+        if ($titulek === null) {
+            return $this->titulek;
+        }
+        if ($this->jsmeNaLocale) {
+            $titulek = 'άλφα ' . $titulek;
+        } elseif ($this->jsmeNaBete) {
+            $titulek = 'β ' . $titulek;
+        }
+        $this->titulek = $titulek;
+        return $this;
+    }
+
+    public function url(string $url = null): string|null|Info {
+        if ($url === null) {
+            return $this->url;
+        }
+        $this->url = $url;
+        return $this;
+    }
 
 }

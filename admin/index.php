@@ -21,8 +21,12 @@ require __DIR__ . '/scripts/prihlaseni.php';
 $pageTitle = 'GameCon – Administrace';
 
 global $systemoveNastaveni;
-if ($systemoveNastaveni instanceof Gamecon\SystemoveNastaveni\SystemoveNastaveni && $systemoveNastaveni->jsmeNaBete()) {
-    $pageTitle = 'β ' . $pageTitle;
+if ($systemoveNastaveni instanceof Gamecon\SystemoveNastaveni\SystemoveNastaveni) {
+    if ($systemoveNastaveni->jsmeNaBete()) {
+        $pageTitle = 'β ' . $pageTitle;
+    } elseif ($systemoveNastaveni->jsmeNaLocale()) {
+        $pageTitle = 'α ' . $pageTitle;
+    }
 }
 // xtemplate inicializace
 $xtpl = new XTemplate(__DIR__ . '/templates/main.xtpl');
