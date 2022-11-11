@@ -995,7 +995,7 @@ SQL,
         };
 
         $validaceMailu = function ($mail) use ($u) {
-            if (!preg_match('/^[a-z0-9_\-.]+@[a-z0-9_\-.]+\.[a-z]+$/', $mail)) {
+            if (!preg_match('/^[a-z0-9_\-.+]+@[a-z0-9_\-.]+\.[a-z]+$/', $mail)) {
                 return 'zadej prosím platný e-mail';
             }
 
@@ -1005,6 +1005,14 @@ SQL,
             }
             if ($u2 && $u && $u2->id() != $u->id()) {
                 return 'e-mail už je zabraný. Pokud je tvůj, resetuj si heslo';
+            }
+            return '';
+        };
+
+        $validaceDataNarozeni = function ($datum) {
+            // přichází ve formátu rrrr-mm-dd
+            if (!DateTimeImmutable::createFromFormat('Y-m-d', trim((string)$datum))) {
+                return 'vyplň prosím platné datum narození';
             }
             return '';
         };
@@ -1032,7 +1040,7 @@ SQL,
             'psc_uzivatele'        => ['^[\d ]+$', 'vyplň prosím PSČ, např. 602 00'],
             'stat_uzivatele'       => ['^(1|2|-1)$', 'vyber prosím stát'],
             'telefon_uzivatele'    => ['^[\d \+]+$', 'vyplň prosím telefon, např. +420 789 123 456'],
-            'datum_narozeni'       => ['\d+', 'vyber prosím datum narození'], // TODO
+            'datum_narozeni'       => $validaceDataNarozeni,
             'heslo'                => $validaceHesla,
             'heslo_kontrola'       => $validaceHesla,
         ];
