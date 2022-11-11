@@ -15,90 +15,102 @@ class Info
         $this->jsmeNaLocale = $systemoveNastaveni->jsmeNaLocale();
     }
 
-    private ?string $nazev = null;
-    private ?string $obrazek = null;
-    private ?string $popis = null;
-    private ?string $site = null;
-    private ?string $titulek = null;
-    private ?string $url = null;
+    private $nazev;
+    private $obrazek;
+    private $popis;
+    private $site;
+    private $titulek;
+    private $url;
 
-    public function html(): string {
+    function html() {
         $o = '';
-        if ($titulek = $this->titulek()) {
-            $o .= '<title>' . $titulek . '</title>';
-        }
-        if ($titulek = $this->nazev()) {
-            $o .= '<meta property="og:title" content="' . $titulek . '">';
-        }
-        if ($titulek = $this->url()) {
-            $o .= '<meta property="og:url" content="' . $titulek . '">';
-        }
-        if ($titulek = $this->site()) {
-            $o .= '<meta property="og:site_name" content="' . $titulek . '">';
-        }
-        if ($titulek = $this->popis()) {
-            $o .= '<meta property="og:description" content="' . $titulek . '">';
-        }
-        if ($titulek = $this->obrazek()) {
-            if (substr($titulek, 0, 4) !== 'http') $titulek = URL_WEBU . '/' . $titulek;
-            $o .= '<meta property="og:image" content="' . $titulek . '">';
+        if ($e = $this->titulek()) $o .= '<title>' . $e . '</title>';
+        if ($e = $this->nazev()) $o .= '<meta property="og:title" content="' . $e . '">';
+        if ($e = $this->url()) $o .= '<meta property="og:url" content="' . $e . '">';
+        if ($e = $this->site()) $o .= '<meta property="og:site_name" content="' . $e . '">';
+        if ($e = $this->popis()) $o .= '<meta property="og:description" content="' . $e . '">';
+        if ($e = $this->obrazek()) {
+            if (substr($e, 0, 4) != 'http') $e = URL_WEBU . '/' . $e;
+            $o .= '<meta property="og:image" content="' . $e . '">';
         }
         $o .= '<meta property="og:type" content="website">';
         return $o;
     }
 
-    public function nazev(string $nazev = null): string|null|Info {
-        if ($nazev === null) {
+    /**
+     * @return Info|string|null
+     */
+    function nazev() {
+        if (func_num_args() == 0) {
             return $this->nazev;
+        } elseif (func_num_args() == 1) {
+            $this->nazev = func_get_arg(0);
+            return $this;
+        } else {
+            throw new BadMethodCallException();
         }
-        $this->nazev = $nazev;
-        return $this;
     }
 
-    public function obrazek(string $obrazek = null): string|null|Info {
-        if ($obrazek === null) {
+    function obrazek() {
+        if (func_num_args() == 0) {
             return $this->obrazek;
+        } elseif (func_num_args() == 1) {
+            $this->obrazek = func_get_arg(0);
+            return $this;
+        } else {
+            throw new BadMethodCallException();
         }
-        $this->obrazek = $obrazek;
-        return $this;
     }
 
-    public function popis(string $popis = null): string|null|Info {
-        if ($popis === null) {
+    function popis() {
+        if (func_num_args() == 0) {
             return $this->popis;
+        } elseif (func_num_args() == 1) {
+            $this->popis = func_get_arg(0);
+            return $this;
+        } else {
+            throw new BadMethodCallException();
         }
-        $this->popis = $popis;
-        return $this;
     }
 
     /** The name of your website (such as IMDb, not imdb.com) */
-    public function site(string $site = null): string|null|Info {
-        if ($site === null) {
+    function site() {
+        if (func_num_args() == 0) {
             return $this->site;
+        } elseif (func_num_args() == 1) {
+            $this->site = func_get_arg(0);
+            return $this;
+        } else {
+            throw new BadMethodCallException();
         }
-        $this->site = $site;
-        return $this;
     }
 
-    public function titulek(string $titulek = null): string|null|Info {
-        if ($titulek === null) {
+    function titulek() {
+        if (func_num_args() == 0) {
             return $this->titulek;
+        } elseif (func_num_args() == 1) {
+            $titulek = func_get_arg(0);
+            if ($this->jsmeNaLocale) {
+                $titulek = 'άλφα ' . $titulek;
+            } elseif ($this->jsmeNaBete) {
+                $titulek = 'β ' . $titulek;
+            }
+            $this->titulek = $titulek;
+            return $this;
+        } else {
+            throw new BadMethodCallException();
         }
-        if ($this->jsmeNaLocale) {
-            $titulek = 'άλφα ' . $titulek;
-        } elseif ($this->jsmeNaBete) {
-            $titulek = 'β ' . $titulek;
-        }
-        $this->titulek = $titulek;
-        return $this;
     }
 
-    public function url(string $url = null): string|null|Info {
-        if ($url === null) {
+    function url() {
+        if (func_num_args() == 0) {
             return $this->url;
+        } elseif (func_num_args() == 1) {
+            $this->url = func_get_arg(0);
+            return $this;
+        } else {
+            throw new BadMethodCallException();
         }
-        $this->url = $url;
-        return $this;
     }
 
 }
