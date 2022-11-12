@@ -282,7 +282,9 @@ SQL;
                 $attemptsRemains--;
             }
         } while (!$localServerProcess && $attemptsRemains > 0);
-        // TODO
+        if (!$localServerProcess) {
+            self::fail("Local web server on URL `%s` does not start",);
+        }
         $this->localServersProcesses[$port] = $localServerProcess;
         return $localServerUrl;
     }
@@ -318,7 +320,7 @@ SQL;
         $localServerProcess->start();
         $localServerProcess->wait();
         $output = $localServerProcess->getOutput();
-        preg_match('~\d+[.]\d+[.]\d+([.]\d+)*:(?<port>\d+)~m', $output, $matches);
+        preg_match_all('~\d+[.]\d+[.]\d+([.]\d+)*:(?<ports>\d+)~', $output, $matches);
         $usedPorts = $matches['ports'];
         if (!$usedPorts) {
             return static::$unusedLocalServerPort;
