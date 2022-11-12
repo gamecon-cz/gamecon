@@ -526,11 +526,12 @@ SQL,
             $locationId,
             [
                 sprintf(
-                    'Místnost %s je někdy mezi %s a %s již zabraná %s. Nyní tak byla přidána další aktivita do této místnosti.',
+                    'Varování: Místnost %s je někdy mezi %s a %s již zabraná %s. Teď do ní byla přidána %d. aktivita.',
                     $this->importValuesDescriber->describeLocationById($locationId),
                     $zacatek->formatCasNaMinutyStandard(),
                     $konec->formatCasNaMinutyStandard(),
                     $activitiesDescription,
+                    count($locationOccupyingActivityIds)
                 ),
             ]
         );
