@@ -94,12 +94,10 @@ SQL,
      * @param string $query
      * @param \mysqli $connection
      * @return \mysqli_result|bool
+     * @throws \DbDuplicateEntryException
+     * @throws \DbException
      */
-    private function executeQuery(string $query, $connection) {
-        $result = mysqli_query($connection, $query);
-        if ($result === false) {
-            throwDbException($connection);
-        }
-        return $result;
+    private function executeQuery(string $query, \mysqli $connection): bool|\mysqli_result {
+        return dbMysqliQuery($query, $connection);
     }
 }
