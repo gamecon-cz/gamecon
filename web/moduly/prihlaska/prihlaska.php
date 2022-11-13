@@ -84,12 +84,6 @@ if (pred(REG_GC_OD)) {
     return;
 }
 
-if (po(REG_GC_DO)) {
-    $t->assign('rok', ROK + 1);
-    $t->parse('prihlaskaPo');
-    return;
-}
-
 $shop  = new Shop($u, null, $systemoveNastaveni);
 $pomoc = new Pomoc($u);
 
