@@ -45,6 +45,12 @@ if (post('pridatPotvrzeniProtiCovidu')) {
     }
 }
 
+if (po(GC_BEZI_DO)) {
+    $t->assign('rok', ROK + 1);
+    $t->parse('prihlaskaPo');
+    return;
+}
+
 if (GC_BEZI || ($u && $u->gcPritomen())) {
     // zpřístupnit varianty mimo registraci i pro nepřihlášeného uživatele kvůli
     // příchodům z titulky, menu a podobně
@@ -75,12 +81,6 @@ if (!$u) {
 if (pred(REG_GC_OD)) {
     $t->assign('zacatek', (new DateTimeCz(REG_GC_OD))->format('j. n. \v\e H:i'));
     $t->parse('prihlaskaPred');
-    return;
-}
-
-if (po(REG_GC_DO)) {
-    $t->assign('rok', ROK + 1);
-    $t->parse('prihlaskaPo');
     return;
 }
 
