@@ -100,12 +100,10 @@ function dbText($hash) {
 /**
  * Uloží daný text do databáze a vrátí id (hash) kterým se na něj odkázat
  */
-function dbTextHash($text) {
+function dbTextHash($text): int {
+    $text = (string)$text;
     $hash = scrc32($text);
-    try {
-        dbInsert('texty', ['id' => $hash, 'text' => $text]);
-    } catch (DbException $e) {
-    }
+    dbInsertIgnore('texty', ['id' => $hash, 'text' => $text]);
     return $hash;
 }
 
@@ -116,6 +114,8 @@ function dbTextClean($hash) {
     try {
         dbQuery('DELETE FROM texty WHERE id = ' . (int)$hash);
     } catch (DbException $e) {
+        // Cannot delete or update a parent row: a foreign key constraint fails
+        // mažeme pouze texty, které nejsou nikde použité
     }
 }
 
