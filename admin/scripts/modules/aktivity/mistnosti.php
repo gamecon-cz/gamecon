@@ -29,7 +29,7 @@ if (post('dolu')) {
 }
 
 if (post('novaMistnost')) {
-    $a = dbOneLine('SELECT MAX(poradi) as posledni FROM akce_lokace');
+    $a      = dbOneLine('SELECT MAX(poradi) as posledni FROM akce_lokace');
     $poradi = $a['posledni'] + 1;
     dbInsertUpdate('akce_lokace', ['nazev' => 'Nová místnost ' . $poradi, 'poradi' => $poradi]);
     back();
@@ -50,5 +50,3 @@ for ($i = 0; $r = mysqli_fetch_assoc($o); $i++) {
 
 $tpl->parse('mistnosti');
 $tpl->out('mistnosti');
-
-?>
