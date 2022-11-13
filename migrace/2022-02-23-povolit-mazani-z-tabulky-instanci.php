@@ -1,11 +1,13 @@
 <?php
 /** @var \Godric\DbMigrations\Migration $this */
 
+$schema = DBM_NAME;
 $mysqli = $this->q(<<<SQL
 SELECT 1
 FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
 WHERE
   TABLE_NAME = 'akce_seznam'
+  AND TABLE_SCHEMA = '$schema'
 AND CONSTRAINT_NAME = 'akce_seznam_ibfk_2';
 SQL
 );
