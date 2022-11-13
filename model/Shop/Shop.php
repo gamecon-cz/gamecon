@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 
 namespace Gamecon\Shop;
 
@@ -427,7 +427,7 @@ SQL
         foreach ($this->predmety as $predmet) {
             $t->assign([
                 'nazev'          => $predmet['nazev'],
-                'cena'           => round($predmet['cena_aktualni']) . '&thinsp;Kč',
+                'cena'           => round((float)$predmet['cena_aktualni']) . '&thinsp;Kč',
                 'kusu_uzivatele' => $predmet['kusu_uzivatele'],
                 'postName'       => $this->klicP . '[' . $predmet['id_predmetu'] . ']',
             ]);
@@ -438,9 +438,8 @@ SQL
             } else if ($predmet['kusu_uzivatele']) {
                 $t->parse('predmety.predmet.fixniPocet');
                 $t->parse('predmety.predmet');
-            } else {
-                // přeskočit
             }
+            // else přeskočit
         }
 
         // TRIČKA
@@ -463,7 +462,7 @@ SQL
         foreach ($selecty as $i => $pid) {
             $t->assign([
                 'postName' => $this->klicT . '[' . $i . ']',
-                'cena'     => round($this->cenaTricka()) . '&thinsp;Kč',
+                'cena'     => round((float)$this->cenaTricka()) . '&thinsp;Kč',
                 'rok'      => ROK,
             ]);
 
@@ -734,7 +733,9 @@ SQL
 
     private function cenaTricka() {
         $ceny = array_column($this->tricka, 'cena_aktualni');
-        return max($ceny);
+        return $ceny
+            ? (float)max($ceny)
+            : null;
     }
 
     /**
