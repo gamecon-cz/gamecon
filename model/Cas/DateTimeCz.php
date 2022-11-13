@@ -10,43 +10,43 @@ use Gamecon\Cas\Exceptions\InvalidDateTimeFormat;
 class DateTimeCz extends \DateTime
 {
     public const PONDELI = 'pondělí';
-    public const UTERY = 'úterý';
-    public const STREDA = 'středa';
+    public const UTERY   = 'úterý';
+    public const STREDA  = 'středa';
     public const CTVRTEK = 'čtvrtek';
-    public const PATEK = 'pátek';
-    public const SOBOTA = 'sobota';
-    public const NEDELE = 'neděle';
+    public const PATEK   = 'pátek';
+    public const SOBOTA  = 'sobota';
+    public const NEDELE  = 'neděle';
 
-    public const FORMAT_DB = 'Y-m-d H:i:s';
-    public const FORMAT_DATUM_DB = 'Y-m-d';
-    public const FORMAT_DATUM_STANDARD = 'j. n. Y';
-    public const FORMAT_DATUM_A_CAS_STANDARD = 'j. n. Y H:i:s';
+    public const FORMAT_DB                     = 'Y-m-d H:i:s';
+    public const FORMAT_DATUM_DB               = 'Y-m-d';
+    public const FORMAT_DATUM_STANDARD         = 'j. n. Y';
+    public const FORMAT_DATUM_A_CAS_STANDARD   = 'j. n. Y H:i:s';
     public const FORMAT_CAS_NA_MINUTY_STANDARD = 'j. n. Y H:i';
-    public const FORMAT_CAS_SOUBOR = 'Y-m-d_H-i-s';
+    public const FORMAT_CAS_SOUBOR             = 'Y-m-d_H-i-s';
 
     protected static $dny = [
-        'Monday' => 'pondělí',
-        'Tuesday' => 'úterý',
+        'Monday'    => 'pondělí',
+        'Tuesday'   => 'úterý',
         'Wednesday' => 'středa',
-        'Thursday' => 'čtvrtek',
-        'Friday' => 'pátek',
-        'Saturday' => 'sobota',
-        'Sunday' => 'neděle',
+        'Thursday'  => 'čtvrtek',
+        'Friday'    => 'pátek',
+        'Saturday'  => 'sobota',
+        'Sunday'    => 'neděle',
     ];
 
     protected static $mesice = [
-        'January' => 'ledna',
-        'February' => 'února',
-        'March' => 'března',
-        'April' => 'dubna',
-        'May' => 'května',
-        'June' => 'června',
-        'July' => 'července',
-        'August' => 'srpna',
+        'January'   => 'ledna',
+        'February'  => 'února',
+        'March'     => 'března',
+        'April'     => 'dubna',
+        'May'       => 'května',
+        'June'      => 'června',
+        'July'      => 'července',
+        'August'    => 'srpna',
         'September' => 'září',
-        'October' => 'října',
-        'November' => 'listopadu',
-        'December' => 'prosince',
+        'October'   => 'října',
+        'November'  => 'listopadu',
+        'December'  => 'prosince',
     ];
 
     protected static $dnyVTydnuBezDiakritiky = [
@@ -84,8 +84,8 @@ class DateTimeCz extends \DateTime
     }
 
     public static function poradiDne(string $den): int {
-        $hledanyDenMalymiPismeny = mb_strtolower($den);
-        $hledadnyDenBezDiakritiky = odstranDiakritiku($hledanyDenMalymiPismeny);
+        $hledanyDenMalymiPismeny     = mb_strtolower($den);
+        $hledadnyDenBezDiakritiky    = odstranDiakritiku($hledanyDenMalymiPismeny);
         $poradiDnuZacinajicichStejne = [];
         foreach (self::$dnyVTydnuBezDiakritiky as $poradiDneVTydnu => $denVTydnuBezDiakritiky) {
             if (strpos($denVTydnuBezDiakritiky, $hledadnyDenBezDiakritiky) === 0) {
@@ -217,10 +217,10 @@ class DateTimeCz extends \DateTime
      * Vrátí „včera“, „předevčírem“, „pozítří“ apod. (místo dnes vrací emptystring)
      */
     public function rozdilDne(\DateTimeInterface $od) {
-        $od = clone $od;
-        $od = $od->setTime(0, 0); // nutné znulování času pro funkční porovnání počtu dní
-        $do = clone $this;
-        $do = $do->setTime(0, 0);
+        $od   = clone $od;
+        $od   = $od->setTime(0, 0); // nutné znulování času pro funkční porovnání počtu dní
+        $do   = clone $this;
+        $do   = $do->setTime(0, 0);
         $diff = (int)$od->diff($do)->format('%r%a');
         switch ($diff) {
             case -2:
@@ -246,6 +246,9 @@ class DateTimeCz extends \DateTime
 
     /** Jestli tento den je stejný s $d2 v formátu \DateTime nebo string s časem */
     public function stejnyDen($d2): bool {
+        if (!$d2) {
+            return false;
+        }
         if (!($d2 instanceof \DateTime)) {
             $d2 = new static($d2, $this->getTimezone());
         }

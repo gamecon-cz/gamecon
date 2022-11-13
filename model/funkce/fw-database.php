@@ -63,6 +63,7 @@ function dbRollback() {
 
 /**
  * @param bool $selectDb if database should be selected on connect or not
+ * @throws ConnectionException
  */
 function dbConnect($selectDb = true) {
     global $spojeni, $dbLastQ, $dbNumQ, $dbExecTime;
@@ -87,7 +88,7 @@ function dbConnect($selectDb = true) {
             throw new ConnectionException('Failed to connect to the database, error: "' . mysqli_connect_error() . '".');
         }
         if (!$spojeni->set_charset('utf8')) {
-            throw new Exception('Failed to set charset to db connection.');
+            throw new DbException('Failed to set charset to db connection.');
         }
         $end                   = microtime(true);
         $GLOBALS['dbExecTime'] += $end - $start;
@@ -142,6 +143,13 @@ function dbGetExceptionType($spojeni = null) {
     return DbException::class;
 }
 
+function dbCreateExceptionFromMysqliException(mysqli_sql_exception $mysqliException): DbException|DbDuplicateEntryException {
+    $exceptionClass = $mysqliException->getCode() === 1062
+        ? DbDuplicateEntryException::class
+        : DbException::class;
+    return new $exceptionClass($mysqliException->getMessage(), $mysqliException->getCode(), $mysqliException);
+}
+
 /**
  * Returns instance of concrete DbException based on error message
  */
@@ -151,24 +159,74 @@ function dbGetExceptionMessage($spojeni = null) {
 
 /**
  * Inserts values from $valArray as (column => value) into $table
+ * @throws DbDuplicateEntryException
+ * @throws DbException
  */
-function dbInsert($table, $valArray) {
-    global $spojeni, $dbLastQ;
-    dbConnect();
+function dbInsert($table, $valArray, bool $ignore = false) {
+    global $dbLastQ;
     $sloupce = '';
     $hodnoty = '';
     foreach ($valArray as $sloupec => $hodnota) {
         $sloupce .= dbQi($sloupec) . ',';
         $hodnoty .= dbQv($hodnota) . ',';
     }
-    $sloupce = substr($sloupce, 0, -1); //useknutí přebytečné čárky na konci
-    $hodnoty = substr($hodnoty, 0, -1);
-    $q       = 'INSERT INTO ' . $table . ' (' . $sloupce . ') VALUES (' . $hodnoty . ')';
-    $dbLastQ = $q;
-    if (!mysqli_query($spojeni, $q)) {
-        $type = dbGetExceptionType($spojeni);
-        throw new $type();
+    $sloupce   = substr($sloupce, 0, -1); //useknutí přebytečné čárky na konci
+    $hodnoty   = substr($hodnoty, 0, -1);
+    $ignoreSql = $ignore
+        ? 'IGNORE'
+        : '';
+    $q         = "INSERT $ignoreSql INTO $table ($sloupce) VALUES ($hodnoty)";
+    $dbLastQ   = $q;
+    dbMysqliQuery($q);
+}
+
+/**
+ * @param string $query
+ * @throws DbDuplicateEntryException
+ * @throws DbException
+ */
+function dbMysqliQuery(string $query, mysqli $mysqli = null): bool|mysqli_result {
+    try {
+        if (!$r = mysqli_query($mysqli ?? dbConnect(), $query)) {
+            $type = dbGetExceptionType();
+            throw new $type();
+        }
+        return $r;
+    } catch (mysqli_sql_exception $mysqliException) {
+        throw dbCreateExceptionFromMysqliException($mysqliException);
     }
+}
+
+/**
+ * @param string $table
+ * @param array $valArray
+ * @throws DbException
+ */
+function dbInsertIgnore(string $table, array $valArray) {
+    dbInsert($table, $valArray, true);
+}
+
+/**
+ * @param string $tableName
+ * @return string[][]
+ * @throws DbException
+ */
+function getTableUniqueKeysColumns(string $tableName): array {
+    static $primaryKeysColumns = [];
+    if (!isset($primaryKeysColumns[$tableName])) {
+        $uniqueKeysDetails = dbFetchAll(<<<SQL
+SHOW INDEXES FROM `$tableName`
+WHERE `Non_unique` = 0
+SQL
+        );
+        foreach ($uniqueKeysDetails as $uniqueKeyDetails) {
+            // index can be combined from multiple columns
+            $keyName                                    = $uniqueKeyDetails['Key_name'];
+            $columnName                                 = $uniqueKeyDetails['Column_name'];
+            $primaryKeysColumns[$tableName][$keyName][] = $columnName;
+        }
+    }
+    return $primaryKeysColumns[$tableName];
 }
 
 /**
@@ -183,29 +241,57 @@ function dbInsertId(bool $strict = true) {
     return $id;
 }
 
+function dbRecordExists(string $table, array $values): bool {
+    $sqlValuesArray = [];
+    foreach ($values as $column => $value) {
+        $sqlValuesArray[] = dbQi($column) . '=' . dbQv($value);
+    }
+    $sqlValues = implode(',', $sqlValuesArray);
+    return (bool)dbFetchSingle(<<<SQL
+SELECT EXISTS(SELECT * FROM $table WHERE $sqlValues)
+SQL
+    );
+}
+
 /**
  * Insert with actualisation
  * @see dbInsert
+ * @return mysqli|bool
+ * @throws DbException
  */
 function dbInsertUpdate($table, $valArray) {
-    global $dbspojeni, $dbLastQ;
-    dbConnect();
-    $update = 'INSERT INTO ' . $table . ' SET ';
-    $dupl   = ' ON DUPLICATE KEY UPDATE ';
-    $vals   = '';
-    foreach ($valArray as $key => $val) {
-        $vals .= $key . '=' . dbQv($val) . ', ';
+    $uniqueKeysColumns = getTableUniqueKeysColumns($table);
+    if ($uniqueKeysColumns) {
+        $completeUniqueKeyValues = [];
+        foreach ($uniqueKeysColumns as $uniqueKeyColumns) {
+            $uniqueKeyValues = array_intersect_key($valArray, array_fill_keys($uniqueKeyColumns, true));
+            if (count($uniqueKeyValues) == count($uniqueKeyColumns)) {
+                $completeUniqueKeyValues = array_merge($completeUniqueKeyValues, $uniqueKeyValues); // values for unique key are complete
+            }
+        }
+        if ($completeUniqueKeyValues) {
+            $query = dbUpdate($table, $valArray, $completeUniqueKeyValues);
+            if (dbNumRows($query) > 0) {
+                return $query;
+            }
+            if (dbRecordExists($table, $completeUniqueKeyValues)) {
+                return $query; // no change
+            }
+        }
     }
-    $vals    = substr($vals, 0, -2); //odstranění čárky na konci
+
+    global $dbLastQ;
+
+    $update  = 'INSERT INTO ' . $table . ' SET ';
+    $dupl    = ' ON DUPLICATE KEY UPDATE ';
+    $sqlVals = [];
+    foreach ($valArray as $key => $val) {
+        $sqlVals[] = dbQi($key) . '=' . dbQv($val);
+    }
+    $vals    = implode(',', $sqlVals);
     $q       = $update . $vals . $dupl . $vals;
     $dbLastQ = $q;
-    $start   = microtime(true);
-    $r       = mysqli_query($GLOBALS['spojeni'], $q);
-    $end     = microtime(true);
-    if (!$r) {
-        $type = dbGetExceptionType();
-        throw new $type();
-    }
+    return dbMysqliQuery($q);
 }
 
 /**
@@ -334,11 +420,18 @@ function dbFetchPairs(string $query, array $params = []): array {
     return $pairs;
 }
 
+function dbFetchSingle(string $query, array $params = []) {
+    $result = dbQuery($query, $params);
+    $row    = mysqli_fetch_array($result);
+    return reset($row);
+}
+
 /**
  * Executes arbitrary query on database
  * strings $1, $2, ... are replaced with values from $param
  * when $0 exists in, first $params maps to it, otherwise it maps to $1 etc...
  * @return bool|mysqli_result
+ * @throws DbException|DbDuplicateEntryException
  */
 function dbQuery($q, $param = null) {
     if ($param) {
@@ -347,16 +440,16 @@ function dbQuery($q, $param = null) {
     $mysqli             = dbConnect();
     $GLOBALS['dbLastQ'] = $q;
     $start              = microtime(true);
-    $r                  = mysqli_query($mysqli, $q);
+    $r                  = dbMysqliQuery($q);
+    if (!$r) {
+        $type = dbGetExceptionType();
+        throw new $type();
+    }
     // raději si to hned odložíme, protože opakovaný dotaz na mysqli->affected_rows vede k tomu, že první dotaz vrátí správnou hodnotu, ale druhý už -1 ("disk se automaticky zničí po přečtení za pět, čtyři, tři...")
     $GLOBALS['dbAffectedRows'] = $r === true // INSERT, DELETE, UPDATE
         ? $mysqli->affected_rows
         : mysqli_affected_rows($mysqli);
     $end                       = microtime(true);
-    if (!$r) {
-        $type = dbGetExceptionType();
-        throw new $type();
-    }
     $GLOBALS['dbNumQ']++;
     $GLOBALS['dbExecTime'] += $end - $start;
     return $r;
@@ -454,10 +547,15 @@ function dbUpdate(string $table, array $vals, array $where) {
     if ($whereArray) {
         $q .= ' WHERE ' . implode("\n\tAND ", $whereArray);
     }
-    return dbQuery($q);
+    $r = dbQuery($q);
+    if (!$r) {
+        $type = dbGetExceptionType();
+        throw new $type();
+    }
+    return $r;
 }
 
-class ConnectionException extends RuntimeException
+class ConnectionException extends DbException
 {
 
 }
@@ -465,11 +563,15 @@ class ConnectionException extends RuntimeException
 /**
  * Exception thrown when error is generated by database
  */
-class DbException extends Exception
+class DbException extends RuntimeException
 {
 
-    public function __construct($message = null) {
-        parent::__construct(($message ?? '') . ' ' . mysqli_error($GLOBALS['spojeni']) . ' caused by ' . $GLOBALS['dbLastQ'], mysqli_errno($GLOBALS['spojeni']));
+    public function __construct($message = null, int $code = null, Throwable $previous = null) {
+        parent::__construct(
+            $message ?? (mysqli_error($GLOBALS['spojeni']) . ' caused by ' . $GLOBALS['dbLastQ']),
+            $code ?? mysqli_errno($GLOBALS['spojeni']),
+            $previous
+        );
     }
 
 }
@@ -479,8 +581,8 @@ class DbDuplicateEntryException extends DbException
 
     private $key;
 
-    public function __construct() {
-        parent::__construct();
+    public function __construct($message = null, int $code = null, Throwable $previous = null) {
+        parent::__construct($message, $code, $previous);
         preg_match("@Duplicate entry '([^']*)' for key '([^']+)'@", $this->message, $m);
         $this->key = $m[2] ?? '';
     }
