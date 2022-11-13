@@ -156,15 +156,13 @@
   <tr>
     <th>
       <label for="cenaAktivityCelkem" class="display-block">Cena</label>
-      <label for="odmenaZaHodinu" class="display-block">Odměna za hodinu</label>
+      <label for="odmenaZaHodinu" class="display-none">Odměna za hodinu</label>
     </th>
     <td>
       <input id="cenaAktivityCelkem" type="text" style="width:4em" name="{fields}[cena]" value="{cena}">
-      <span class="hinted">
-        <input id="odmenaZaHodinu" type="text" style="width:4em; display: none" name="odmena_za_hodinu"
-               value="{odmenaZaHodinu}"><span id="odmenaZaHodinuChybiHodiny"> ⚠️</span>
-        <span class="hint">Musíš správně vyplnit čas od - do</span>
-      </span>
+      <input id="odmenaZaHodinu" type="text" style="width:4em; display: none" name="odmena_za_hodinu"
+             value="{odmenaZaHodinu}">
+      <span id="odmenaZaHodinuChybiHodiny" class="hinted"> ⚠️<span class="hint">Musíš správně vyplnit čas od - do</span></span>
       <input id="bezSlev" style="float:right" type="checkbox" name="{fields}[bez_slevy]" value="1">
       <script>if ('{bez_slevy}') {
         $('[name="{fields}[bez_slevy]"]').attr('checked', true)
@@ -204,6 +202,7 @@
           const cenaAktivityCelkemLabel = document.querySelector('label[for=cenaAktivityCelkem]')
           const odmenaZaHodinuInput = document.getElementById('odmenaZaHodinu')
           const odmenaZaHodinuLabel = document.querySelector('label[for=odmenaZaHodinu]')
+          const odmenaZaHodinuChybiHodiny = document.getElementById('odmenaZaHodinuChybiHodiny')
 
           const typAktivityInput = document.getElementById('typAktivity')
           const jeBrigadnicka = typAktivityInput.value === '{typBrigadnicka}'
@@ -212,12 +211,10 @@
 
           if (!delkaAkceVHodinach) {
             odmenaZaHodinuInput.disabled = true
-            odmenaZaHodinuInput.classList.add('hinted')
-            document.getElementById('odmenaZaHodinuChybiHodiny').style.display = 'inherit'
+            odmenaZaHodinuChybiHodiny.style.display = 'initial'
           } else {
             odmenaZaHodinuInput.disabled = false
-            odmenaZaHodinuInput.classList.remove('hinted')
-            document.getElementById('odmenaZaHodinuChybiHodiny').style.display = 'none'
+            odmenaZaHodinuChybiHodiny.style.display = 'none'
           }
 
           if (jeBrigadnicka) {
@@ -236,6 +233,7 @@
           } else {
             cenaAktivityCelkemInput.style.display = 'inherit'
             cenaAktivityCelkemLabel.style.display = 'inherit'
+            odmenaZaHodinuChybiHodiny.style.display = 'none'
             odmenaZaHodinuInput.style.display = 'none'
             odmenaZaHodinuLabel.style.display = 'none'
           }
