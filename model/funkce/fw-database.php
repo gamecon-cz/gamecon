@@ -198,19 +198,23 @@ function dbInsertIgnore(string $table, array $valArray) {
 
 /**
  * @param string $tableName
- * @return string[]
+ * @return string[][]
  * @throws DbException
  */
-function getTablePrimaryKeyColumn(string $tableName): array {
+function getTableUniqueKeysColumns(string $tableName): array {
     static $primaryKeysColumns = [];
     if (!isset($primaryKeysColumns[$tableName])) {
-        $primaryKeyColumnsDetails       = dbFetchAll(<<<SQL
-SHOW COLUMNS FROM `$tableName`
-WHERE `Key` = 'PRI'
+        $uniqueKeysDetails = dbFetchAll(<<<SQL
+SHOW INDEXES FROM `$tableName`
+WHERE `Non_unique` = 0
 SQL
         );
-        $primaryKeyColumns              = array_column($primaryKeyColumnsDetails, 'Field');
-        $primaryKeysColumns[$tableName] = $primaryKeyColumns;
+        foreach ($uniqueKeysDetails as $uniqueKeyDetails) {
+            // index can be combined from multiple columns
+            $keyName                                    = $uniqueKeyDetails['Key_name'];
+            $columnName                                 = $uniqueKeyDetails['Column_name'];
+            $primaryKeysColumns[$tableName][$keyName][] = $columnName;
+        }
     }
     return $primaryKeysColumns[$tableName];
 }
@@ -246,15 +250,21 @@ SQL
  * @throws DbException
  */
 function dbInsertUpdate($table, $valArray) {
-    $primaryKeyColumns = getTablePrimaryKeyColumn($table);
-    if ($primaryKeyColumns) {
-        $primaryKeyValues = array_intersect_key($valArray, array_fill_keys($primaryKeyColumns, true));
-        if ($primaryKeyValues) {
-            $query = dbUpdate($table, $valArray, $primaryKeyValues);
+    $uniqueKeysColumns = getTableUniqueKeysColumns($table);
+    if ($uniqueKeysColumns) {
+        $completeUniqueKeyValues = [];
+        foreach ($uniqueKeysColumns as $uniqueKeyColumns) {
+            $uniqueKeyValues = array_intersect_key($valArray, array_fill_keys($uniqueKeyColumns, true));
+            if (count($uniqueKeyValues) == count($uniqueKeyColumns)) {
+                $completeUniqueKeyValues = array_merge($completeUniqueKeyValues, $uniqueKeyValues); // values for unique key are complete
+            }
+        }
+        if ($completeUniqueKeyValues) {
+            $query = dbUpdate($table, $valArray, $completeUniqueKeyValues);
             if (dbNumRows($query) > 0) {
                 return $query;
             }
-            if (dbRecordExists($table, $primaryKeyValues)) {
+            if (dbRecordExists($table, $completeUniqueKeyValues)) {
                 return $query; // no change
             }
         }
