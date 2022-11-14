@@ -182,7 +182,10 @@ class Modul
     ): ?self {
         if ($nazev) {
             if ($podstranka) {
-                $soubor = "moduly/{$nazev}/{$podstranka}.php";
+                $pripona = str_ends_with($podstranka, '.php')
+                    ? ''
+                    : '.php';
+                $soubor = "moduly/{$nazev}/{$podstranka}{$pripona}";
                 if (is_file($soubor)) {
                     return new self($soubor, $systemoveNastaveni);
                 }

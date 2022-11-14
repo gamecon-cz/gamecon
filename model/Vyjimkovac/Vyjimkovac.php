@@ -29,8 +29,15 @@ class Vyjimkovac implements Logovac
      */
     public function aktivuj() {
 
-        // fatal errory
         register_shutdown_function(function () {
+            // ošklivě vložené uzavření DB connection tady, protože register_shutdown_function může byt jen jednou
+            global $spojeni;
+            if ($spojeni && (mysqli_get_connection_stats($spojeni)['active_connections'] ?? false)) {
+                mysqli_close($spojeni);
+                $spojeni = null;
+            }
+
+            // fatal errory
             $error = error_get_last();
             if (!$error || $error["type"] != E_ERROR) {
                 return;
