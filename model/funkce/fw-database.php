@@ -433,7 +433,7 @@ function dbFetchSingle(string $query, array $params = []) {
  * @return bool|mysqli_result
  * @throws DbException|DbDuplicateEntryException
  */
-function dbQuery($q, $param = null) {
+function dbQuery($q, $param = null): bool|mysqli_result {
     if ($param) {
         return dbQueryS($q, $param);
     }

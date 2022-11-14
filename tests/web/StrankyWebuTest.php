@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\web;
 
-use Uzivatel;
-
 class StrankyWebuTest extends AbstractWebTest
 {
     /**
@@ -66,7 +64,7 @@ class StrankyWebuTest extends AbstractWebTest
             }
             $modulyWebuBaseUrls[] = basename($modulWebu, '.php');
         }
-        $adminBaseUrl = basename(__DIR__ . '/../../admin');
+        $adminBaseUrl       = basename(__DIR__ . '/../../admin');
         return array_map(static function (string $modulAdminuUrl) use ($adminBaseUrl) {
             return $adminBaseUrl . '/' . $modulAdminuUrl;
         }, $modulyWebuBaseUrls);

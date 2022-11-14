@@ -25,26 +25,26 @@ $vybraneRoky = array_diff(
     get('rok') ?? range(ROK - 3, ROK),
     [2020] // abychom netrápili databázi hleáním dat pro rok Call of Covid
 );
-$mozneRoky = range(2009, ROK);
+$mozneRoky   = range(2009, ROK);
 
 $statistiky = new Statistiky($vybraneRoky, ROK);
 
-$ucast = $statistiky->tabulkaUcastiHtml();
-$predmety = $statistiky->tabulkaPredmetuHtml();
-$ubytovani = $statistiky->tabulkaUbytovaniHtml();
+$ucast           = $statistiky->tabulkaUcastiHtml();
+$predmety        = $statistiky->tabulkaPredmetuHtml();
+$ubytovani       = $statistiky->tabulkaUbytovaniHtml();
 $ubytovaniKratce = $statistiky->tabulkaUbytovaniKratce();
-$jidlo = $statistiky->tabulkaJidlaHtml();
-$pohlavi = $statistiky->tabulkaZastoupeniPohlaviHtml();
+$jidlo           = $statistiky->tabulkaJidlaHtml();
+$pohlavi         = $statistiky->tabulkaZastoupeniPohlaviHtml();
 
 $prihlaseniData = $statistiky->dataProGrafUcasti($systemoveNastaveni->ted());
 
 $zarovnaniGrafu = get('zarovnaniGrafu') ?? Statistiky::ZAROVNANI_KE_KONCI_GC;
 [
-    'nazvyDnu' => $nazvyDnu,
+    'nazvyDnu'         => $nazvyDnu,
     'zacatkyRegistaci' => $zacatkyRegistaci,
-    'zacatkyGc' => $zacatkyGc,
-    'konceGc' => $konceGc,
-    'prihlaseniProJs' => $prihlaseniProJs,
+    'zacatkyGc'        => $zacatkyGc,
+    'konceGc'          => $konceGc,
+    'prihlaseniProJs'  => $prihlaseniProJs,
 ] = $statistiky->pripravDataProGraf($prihlaseniData, $vybraneRoky, $zarovnaniGrafu);
 
 $indexyDnuZacatkuRegistraci = [];
@@ -53,7 +53,7 @@ foreach ($zacatkyRegistaci as $rok => $nazevDneZacatkuRegistrace) {
         continue; // registace na letošní GC ještě nezačala
     }
     // nejdřív posbíráme indexy z výsledných názvů dnů, měnit je musíme až později, abychom nepodřízli větev ostatním názvům dnů
-    $indexDneZacatkuRegistraciJednohoGc = array_search($nazevDneZacatkuRegistrace, $nazvyDnu);
+    $indexDneZacatkuRegistraciJednohoGc                                = array_search($nazevDneZacatkuRegistrace, $nazvyDnu);
     $indexyDnuZacatkuRegistraci[$indexDneZacatkuRegistraciJednohoGc][] = $rok;
 }
 $indexyDnuZacatkuGc = [];
@@ -62,7 +62,7 @@ foreach ($zacatkyGc as $rok => $nazevDneZacatkuGc) {
         continue; // letošní GC ještě nezačal, nechceme ukazovat poslední známé hodnoty s názvem "začátek GC"
     }
     // nejdřív posbíráme indexy z výsledných názvů dnů, měnit je musíme až později, abychom nepodřízli větev ostatním názvům dnů
-    $indexDneZacatkuJednohoGc = array_search($nazevDneZacatkuGc, $nazvyDnu);
+    $indexDneZacatkuJednohoGc                        = array_search($nazevDneZacatkuGc, $nazvyDnu);
     $indexyDnuZacatkuGc[$indexDneZacatkuJednohoGc][] = $rok;
 }
 $indexyDnuKoncuGc = [];
@@ -70,7 +70,7 @@ foreach ($konceGc as $rok => $nazevDneKonceGc) {
     if ($rok === ROK && pred(GC_BEZI_DO)) {
         continue; // letošní GC ještě neskončil, nechceme ukazovat poslední známé hodnoty s názvem "konec GC"
     }
-    $indexDneKonceJednohoGc = array_search($nazevDneKonceGc, $nazvyDnu);
+    $indexDneKonceJednohoGc                      = array_search($nazevDneKonceGc, $nazvyDnu);
     $indexyDnuKoncuGc[$indexDneKonceJednohoGc][] = $rok;
 }
 foreach ($indexyDnuZacatkuRegistraci as $indexDneZacatkuRegistraci => $rokyZacinajiciRegistraceStejnyDen) {

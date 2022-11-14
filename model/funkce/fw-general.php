@@ -234,7 +234,7 @@ function tabHtml(array $tab, string $title = ''): string {
     if ($title !== '') {
         $tabOut .= "<caption>$title</caption>";
     }
-    $tabOut .= "  <tr>\n    <th>" . implode("</th>\n    <th>", $tab[0]) . "</th>\n  </tr>\n";
+    $tabOut .= "  <tr>\n    <th>" . implode("</th>\n    <th>", $tab[0] ?? []) . "</th>\n  </tr>\n";
     for ($i = 1, $tabsCount = count($tab); $i < $tabsCount; $i++) {
         $tabOut .= "  <tr>\n    <td>" . implode("</td>\n    <td>", $tab[$i]) . "</td>\n  </tr>\n";
     }
@@ -266,15 +266,15 @@ function tabMysql($a, string $title = ''): string {
 }
 
 /**
- * @param mysqli_result $a
+ * @param mysqli_result $result
  * Returns table array from mysql answer
  */
-function tabMysqlArray($a): array {
-    $r    = mysqli_fetch_assoc($a);
-    $oa[] = array_keys($r);
-    $oa[] = array_values($r);
-    while ($r = mysqli_fetch_row($a)) {
-        $oa[] = $r;
+function tabMysqlArray(mysqli_result $result): array {
+    $header = mysqli_fetch_assoc($result) ?? [];
+    $oa[]   = array_keys($header);
+    $oa[]   = array_values($header);
+    while ($values = mysqli_fetch_row($result)) {
+        $oa[] = $values;
     }
     return $oa;
 }
@@ -282,8 +282,8 @@ function tabMysqlArray($a): array {
 /**
  * Returns HTML formatted table from db answer, mirrored
  */
-function tabMysqlR($a, string $title = ''): string {
-    return tabHtml(tabArrayR(tabMysqlArray($a)), $title);
+function tabMysqlR(mysqli_result $result, string $title = ''): string {
+    return tabHtml(tabArrayR(tabMysqlArray($result)), $title);
 }
 
 /**
