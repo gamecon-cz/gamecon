@@ -6,12 +6,6 @@ namespace Gamecon\Tests\web;
 
 class StrankyWebuTest extends AbstractWebTest
 {
-    protected static $initData = '
-    # uzivatele_hodnoty
-    id_uzivatele,login_uzivatele,jmeno_uzivatele,prijmeni_uzivatele
-    48,Elden,Jakub,Jandák
-  ';
-
     /**
      * @test
      * @dataProvider provideWebUrls
@@ -27,7 +21,7 @@ class StrankyWebuTest extends AbstractWebTest
      * @param string[] $urls
      */
     public function Muzu_si_zobrazit_kazdou_stranku_v_adminu(...$urls) {
-        $this->testPagesAccessibility($urls, 'Elden', UNIVERZALNI_HESLO);
+        $this->testAdminPagesAccessibility($urls);
     }
 
     public function provideWebUrls(): array {
@@ -70,7 +64,7 @@ class StrankyWebuTest extends AbstractWebTest
             }
             $modulyWebuBaseUrls[] = basename($modulWebu, '.php');
         }
-        $adminBaseUrl = basename(__DIR__ . '/../../admin');
+        $adminBaseUrl       = basename(__DIR__ . '/../../admin');
         return array_map(static function (string $modulAdminuUrl) use ($adminBaseUrl) {
             return $adminBaseUrl . '/' . $modulAdminuUrl;
         }, $modulyWebuBaseUrls);

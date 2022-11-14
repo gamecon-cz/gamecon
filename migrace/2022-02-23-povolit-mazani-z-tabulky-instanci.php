@@ -8,7 +8,7 @@ FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
 WHERE
   TABLE_NAME = 'akce_seznam'
   AND TABLE_SCHEMA = '$schema'
-AND CONSTRAINT_NAME = 'akce_seznam_ibfk_2';
+  AND CONSTRAINT_NAME = 'akce_seznam_ibfk_2';
 SQL
 );
 

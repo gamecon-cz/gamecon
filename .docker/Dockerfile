@@ -20,7 +20,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       libgd-dev \
       libmagickwand-dev \
       mysql-common \
-      libzip-dev
+      libzip-dev \
+      iproute2 # to get 'ss' command for list of used ports via 'ss -tulw'
 
 FROM gamecon-server-step1 AS gamecon-tools-step2
 

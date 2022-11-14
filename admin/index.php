@@ -37,21 +37,20 @@ $xtpl->assign([
     'jsVersions'  => new \Gamecon\Web\VerzeSouboru(__DIR__ . '/files', 'js'),
 ]);
 
+[$stranka, $podstranka] = parseRoute();
+
 // nastavení stránky, prázdná url => přesměrování na úvod
-if (!get('req')) {
+if (!$stranka) {
     if ($u) {
         if ($u->jeOrganizator()) {
-            back(URL_ADMIN . '/uzivatel');
+            back(URL_ADMIN . '/' . basename(__DIR__ . '/scripts/modules/uzivatel.php', '.php'));
         }
         if ($u->maPravo(\Gamecon\Pravo::ADMINISTRACE_INFOPULT)) {
-            back(URL_ADMIN . '/infopult');
+            back(URL_ADMIN . '/' . basename(__DIR__ . '/scripts/modules/infopult.php', '.php'));
         }
-        back(URL_ADMIN . '/moje-aktivity');
+        back(URL_ADMIN . '/' . basename(__DIR__ . '/scripts/modules/moje-aktivity'));
     }
 }
-$req        = explode('/', get('req') ?? '');
-$stranka    = $req[0];
-$podstranka = isset($req[1]) ? $req[1] : '';
 
 // zobrazení stránky
 if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
@@ -83,8 +82,10 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
     // zjištění práv na zobrazení stránky
     $strankaExistuje    = isset($menu[$stranka]);
     $podstrankaExistuje = isset($submenu[$podstranka]);
-    $uzivatelMaPristup  = ($strankaExistuje && $podstrankaExistuje && $u->maPravo($submenu[$podstranka]['pravo']))
-        || ($strankaExistuje && !$podstrankaExistuje && $u->maPravo($menu[$stranka]['pravo']));
+    $uzivatelMaPristup  = $strankaExistuje
+        && (($podstrankaExistuje && $u->maPravo($submenu[$podstranka]['pravo']))
+            || (!$podstrankaExistuje && $u->maPravo($menu[$stranka]['pravo']))
+        );
 
     // konstrukce stránky
     if ($strankaExistuje && $uzivatelMaPristup) {
@@ -122,6 +123,11 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
         }
     } elseif ($strankaExistuje && !$uzivatelMaPristup) {
         http_response_code(403);
+        if ($u) {
+            $xtpl->assign('a', $u->koncovkaDlePohlavi());
+            $xtpl->assign('login', $u->login());
+            $xtpl->parse('all.zakazano.kdoJsi');
+        }
         $xtpl->parse('all.zakazano');
     } else {
         $stareRouty = include __DIR__ . '/stare-routy.php';

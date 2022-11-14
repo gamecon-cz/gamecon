@@ -4,43 +4,95 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\web;
 
+use Uzivatel;
 use Gamecon\Login\Login;
+use Gamecon\Pravo;
 use Gamecon\Tests\Db\DbTest;
 use Symfony\Component\Process\Process;
 
 abstract class AbstractWebTest extends DbTest
 {
 
-    protected static int $freeLocalServerPort = 8888;
+    protected static int $unusedLocalServerPort = 8888;
     /**
      * @var Process[]
      */
     protected array $localServersProcesses = [];
+    /** @var string[] */
+    protected array $cookieFilesPerServer = [];
+
+    protected static function keepDbChangesInTransaction(): bool {
+        return false;
+    }
+
+    /**
+     * @return string[]
+     */
+    protected static function getInitQueries(): array {
+        $queries   = [];
+        $queries[] = <<<SQL
+INSERT INTO r_zidle_soupis(id_zidle, jmeno_zidle, popis_zidle)
+VALUES (1, 'všemocná', 'všemocná')
+SQL;
+
+        $idsPrav       = Pravo::dejIdsVsechPrav();
+        $pravaSqlArray = [];
+        foreach ($idsPrav as $nazevKonstanty => $idPrava) {
+            $pravaSqlArray[] = "($idPrava, '$nazevKonstanty', '$nazevKonstanty')";
+        }
+        $pravaSql  = implode(',', $pravaSqlArray);
+        $queries[] = <<<SQL
+INSERT IGNORE INTO r_prava_soupis(id_prava, jmeno_prava, popis_prava)
+    VALUES
+$pravaSql
+SQL;
+
+        $queries[] = <<<SQL
+INSERT INTO r_prava_zidle(id_zidle, id_prava)
+SELECT 1, id_prava
+FROM r_prava_soupis
+SQL;
+
+        $idUzivateleSystem = Uzivatel::SYSTEM;
+        $queries[]         = <<<SQL
+INSERT INTO r_uzivatele_zidle(id_uzivatele, id_zidle)
+VALUES ($idUzivateleSystem, 1)
+SQL;
+
+        return $queries;
+    }
 
     protected function tearDown(): void {
         parent::tearDown();
         foreach ($this->localServersProcesses as $port => $localServersProcess) {
             $localServersProcess->stop();
-            if (static::$freeLocalServerPort + 1 === $port) {
-                static::$freeLocalServerPort = $port;
+            if (static::$unusedLocalServerPort + 1 === $port) {
+                static::$unusedLocalServerPort = $port;
             }
         }
+        foreach ($this->cookieFilesPerServer as $cookieFile) {
+            unlink($cookieFile);
+        }
+    }
+
+    protected function testAdminPagesAccessibility(array $urls) {
+        $this->testPagesAccessibility($urls, Uzivatel::SYSTEM_LOGIN, UNIVERZALNI_HESLO);
     }
 
     /**
      * @param string[] $urls
      */
     protected function testPagesAccessibility(array $urls, string $username = null, string $password = null) {
-        $urlsOfFreeLocalServers = $this->getUrlsOfFreeLocalServers(count($urls), $username, $password);
-        reset($urlsOfFreeLocalServers);
+        $urlsOfUnusedLocalServers = $this->getUrlsOfUnusedLocalServers(count($urls), $username, $password);
+        reset($urlsOfUnusedLocalServers);
 
         $multiCurl   = curl_multi_init();
         $curlHandles = [];
         $errors      = [];
 
         foreach ($urls as $url) {
-            $localServerUrl = current($urlsOfFreeLocalServers);
-            next($urlsOfFreeLocalServers);
+            $localServerUrl = current($urlsOfUnusedLocalServers);
+            next($urlsOfUnusedLocalServers);
             $absoluteUrl = $localServerUrl . '/' . $url;
             $curlHandle  = curl_init($absoluteUrl);
             if (!$curlHandle) {
@@ -51,6 +103,8 @@ abstract class AbstractWebTest extends DbTest
             curl_setopt($curlHandle, CURLOPT_TIMEOUT, 5); // timeout na stahování
             curl_setopt($curlHandle, CURLOPT_FOLLOWLOCATION, true);
             curl_setopt($curlHandle, CURLOPT_HEADER, true);
+            $this->setLocalServerCookieWithGameconTestDb($curlHandle);
+            curl_setopt($curlHandle, CURLOPT_COOKIEFILE, $this->getCookieFileForServer($localServerUrl));
             curl_multi_add_handle($multiCurl, $curlHandle);
 
             $curlHandles[$absoluteUrl] = $curlHandle;
@@ -123,10 +177,10 @@ abstract class AbstractWebTest extends DbTest
         );
     }
 
-    protected function getUrlsOfFreeLocalServers(int $count, ?string $username, ?string $password): array {
+    protected function getUrlsOfUnusedLocalServers(int $count, ?string $username, ?string $password): array {
         $localServersUrls = [];
         for ($current = 1; $current <= $count; $current++) {
-            $localServersUrls[] = $this->getUrlOfFreeLocalServer(false);
+            $localServersUrls[] = $this->getUrlOfUnusedLocalServer(false);
         }
 
         $this->waitForLocalServersBoot($localServersUrls);
@@ -134,8 +188,7 @@ abstract class AbstractWebTest extends DbTest
         if ($username && $password) {
             foreach ($localServersUrls as $localServerUrl) {
                 // ke každé instanci PHP serveru se musíme přihlásit zvlášť, protože každá má své cookies
-                // TODO solve keeping session
-//                $this->loginToAdmin($localServerUrl . '/admin', $username, $password);
+                $this->loginToAdmin($localServerUrl, $username, $password);
             }
         }
 
@@ -218,13 +271,24 @@ abstract class AbstractWebTest extends DbTest
         curl_multi_close($multiCurl);
     }
 
-    protected function getUrlOfFreeLocalServer(
+    protected function getUrlOfUnusedLocalServer(
         bool $waitForBoot = true,
     ): string {
-        $port = static::$freeLocalServerPort;
-        static::$freeLocalServerPort++;
-        $localServerUrl                     = "localhost:$port";
-        $localServerProcess                 = $this->startLocalWebServer($localServerUrl, $waitForBoot);
+        $localServerProcess = null;
+        $attemptsRemains    = 5;
+        do {
+            $port = $this->getUnusedPort();
+            static::$unusedLocalServerPort++;
+            $localServerUrl = "localhost:$port";
+            try {
+                $localServerProcess = $this->startLocalWebServer($localServerUrl, $waitForBoot);
+            } catch (\RuntimeException $runtimeException) {
+                $attemptsRemains--;
+            }
+        } while (!$localServerProcess && $attemptsRemains > 0);
+        if (!$localServerProcess) {
+            self::fail("Local web server on URL `%s` does not start",);
+        }
         $this->localServersProcesses[$port] = $localServerProcess;
         return $localServerUrl;
     }
@@ -236,13 +300,39 @@ abstract class AbstractWebTest extends DbTest
         $localServerProcess = new Process(['php', '-S', $localServerUrl]);
         $localServerProcess->start();
 
-        $this->failTestIfLocalWebServerIsNotRunning($localServerProcess);
+        if (!$localServerProcess->isRunning()) {
+            throw new \RuntimeException(
+                sprintf(
+                    "Failed command %s with exit code %d and output %s (%s)",
+                    $localServerProcess->getCommandLine(),
+                    $localServerProcess->getExitCode(),
+                    $localServerProcess->getExitCodeText(),
+                    $localServerProcess->getErrorOutput(),
+                )
+            );
+        }
 
         if ($waitForBoot) {
             $this->waitForLocalServerBoot($localServerUrl);
         }
 
         return $localServerProcess;
+    }
+
+    protected function getUnusedPort(): int {
+        $localServerProcess = new Process(['ss', '--listening', '--tcp', '--udp', '--raw', '--no-header']);
+        $localServerProcess->start();
+        $localServerProcess->wait();
+        $output = $localServerProcess->getOutput();
+        preg_match_all('~\d+[.]\d+[.]\d+([.]\d+)*:(?<ports>\d+)~', $output, $matches);
+        $usedPorts = $matches['ports'];
+        if (!$usedPorts) {
+            return static::$unusedLocalServerPort;
+        }
+        while (in_array(static::$unusedLocalServerPort, $usedPorts, false)) {
+            static::$unusedLocalServerPort++;
+        }
+        return static::$unusedLocalServerPort;
     }
 
     protected function failTestIfLocalWebServerIsNotRunning(Process $process) {
@@ -276,12 +366,19 @@ abstract class AbstractWebTest extends DbTest
         curl_close($curlHandle);
     }
 
-    protected function loginToAdmin(string $adminAbsoluteUrl, string $username, string $password) {
-        $curlHandle = curl_init($adminAbsoluteUrl);
-        curl_setopt($curlHandle, CURLOPT_NOBODY, true);
+    protected function loginToAdmin(string $serverUrl, string $username, string $password) {
+        $cookieFile       = $this->getCookieFileForServer($serverUrl);
+        $adminUrl         = basename(__DIR__ . '/../../admin');
+        $adminAbsoluteUrl = $serverUrl . '/' . $adminUrl;
+        $curlHandle       = curl_init($adminAbsoluteUrl);
+
         curl_setopt($curlHandle, CURLOPT_HEADER, true);
         curl_setopt($curlHandle, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curlHandle, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($curlHandle, CURLOPT_COOKIEJAR, $cookieFile);
+        curl_setopt($curlHandle, CURLOPT_COOKIESESSION, true); // force fresh new cookies session
+        curl_setopt($curlHandle, CURLOPT_FOLLOWLOCATION, true);
+        $this->setLocalServerCookieWithGameconTestDb($curlHandle);
         curl_setopt($curlHandle, CURLOPT_POST, true);
         curl_setopt(
             $curlHandle,
@@ -305,7 +402,7 @@ abstract class AbstractWebTest extends DbTest
         if ($info['http_code'] >= 300) {
             $this->fail(
                 sprintf(
-                    "Nepodařilo se přihlásit do adminu přes stránku %s, response code %d%s, output: '%s'",
+                    "Nepodařilo se přihlásit do adminu přes stránku %s, response code %d%s, output:\n'%s'",
                     $adminAbsoluteUrl,
                     $info['http_code'],
                     $info['http_code'] === 404
@@ -316,6 +413,17 @@ abstract class AbstractWebTest extends DbTest
             );
         }
         curl_close($curlHandle);
+    }
+
+    protected function getCookieFileForServer(string $serverUrl): string {
+        if (empty($this->cookieFilesPerServer[$serverUrl])) {
+            $this->cookieFilesPerServer[$serverUrl] = tempnam(sys_get_temp_dir(), 'server_cookie_file_');
+        }
+        return $this->cookieFilesPerServer[$serverUrl];
+    }
+
+    protected function setLocalServerCookieWithGameconTestDb(\CurlHandle $curlHandle) {
+        curl_setopt($curlHandle, CURLOPT_COOKIE, 'gamecon_test_db=' . DB_NAME . '; unit_tests=1');
     }
 
 }

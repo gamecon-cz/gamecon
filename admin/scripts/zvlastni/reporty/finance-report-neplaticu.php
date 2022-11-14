@@ -18,16 +18,16 @@ foreach (Uzivatel::zPrihlasenych() as $letosniUcastnik) {
     $ucastnikData = [];
 
     $ucastnikData['id_uzivatele'] = $letosniUcastnik->id();
-    $urlUzivatele = URL_ADMIN . '/uzivatel?pracovni_uzivatel=' . $letosniUcastnik->id();
+    $urlUzivatele                 = URL_ADMIN . '/uzivatel?pracovni_uzivatel=' . $letosniUcastnik->id();
 
     if ($formatReportu === 'html') {
         $ucastnikData['jmeno'] = "<a target='_blank' href='$urlUzivatele'>{$letosniUcastnik->jmenoNick()}</a>";
     } else {
-        $ucastnikData['jmeno'] = $letosniUcastnik->jmenoNick();
+        $ucastnikData['jmeno']             = $letosniUcastnik->jmenoNick();
         $ucastnikData['uzivatel_v_adminu'] = $urlUzivatele;
     }
 
-    $ucastnikData['email'] = $formatReportu === 'html' && $letosniUcastnik->mail()
+    $ucastnikData['email']   = $formatReportu === 'html' && $letosniUcastnik->mail()
         ? "<a href='mailto:{$letosniUcastnik->mail()}'>{$letosniUcastnik->mail()}</a>"
         : $letosniUcastnik->mail();
     $ucastnikData['telefon'] = $formatReportu === 'html' && $letosniUcastnik->telefon()
@@ -48,13 +48,13 @@ foreach (Uzivatel::zPrihlasenych() as $letosniUcastnik) {
             )
         ));
 
-    $finance = $letosniUcastnik->finance();
+    $finance            = $letosniUcastnik->finance();
     $kategorieNeplatice = $finance->kategorieNeplatice();
 
-    $ucastnikData['suma_plateb'] = $finance->sumaPlateb(ROK);
+    $ucastnikData['suma_plateb']         = $finance->sumaPlateb(ROK);
     $ucastnikData['kategorie_neplatice'] = $kategorieNeplatice->dejCiselnouKategoriiNeplatice();
 
-    $ucastnikData['aktualni_zustatek'] = $finance->stav();
+    $ucastnikData['aktualni_zustatek']     = $finance->stav();
     $ucastnikData['datum_posledni_platby'] = $finance->datumPosledniPlatby()
         ? (new \Gamecon\Cas\DateTimeCz($finance->datumPosledniPlatby()))->formatCasStandard()
         : '';
@@ -90,5 +90,5 @@ $report->tFormat(
     $formatReportu,
     'datum_hromadneho_odhlasovani_'
     . DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani()->format(DateTimeCz::FORMAT_DB)
-    . $report->nazevReportuZRequestu()
+    . '-' . $report->nazevReportuZRequestu()
 );

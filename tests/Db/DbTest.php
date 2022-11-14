@@ -7,42 +7,60 @@ class DbTest extends \PHPUnit\Framework\TestCase
     /** @var DbWrapper */
     private static $connection;
     /** @var string[] */
-    protected static $initQueries = [];
-    protected static $initData;
+    protected static array $initQueries = [];
+    protected static string $initData = '';
 
-    static function setConnection(DbWrapper $connection)
-    {
+    protected $revertDbChangesAfterTest = true;
+
+    static function setConnection(DbWrapper $connection) {
         self::$connection = $connection;
     }
 
-    public function setUp(): void
-    {
-        self::$connection->begin();
+    public function setUp(): void {
+        if (static::keepDbChangesInTransaction()) {
+            self::$connection->begin();
+        }
     }
 
-    static function setUpBeforeClass(): void
-    {
-        self::$connection->begin();
+    static function setUpBeforeClass(): void {
+        if (static::keepDbChangesInTransaction()) {
+            self::$connection->begin();
+        }
 
-        foreach (static::$initQueries as $initQuery) {
+        foreach (static::getInitQueries() as $initQuery) {
             self::$connection->query($initQuery);
         }
 
-        if (isset(static::$initData)) {
+        $initData = static::getInitData();
+        if ($initData) {
             $dataset = new Dataset;
-            $dataset->addCsv(static::$initData);
+            $dataset->addCsv($initData);
             self::$connection->import($dataset);
         }
     }
 
-    protected function tearDown(): void
-    {
-        self::$connection->rollback();
+    protected static function keepDbChangesInTransaction(): bool {
+        return true;
     }
 
-    public static function tearDownAfterClass(): void
-    {
-        self::$connection->rollback();
+    protected static function getInitQueries(): array {
+        return static::$initQueries;
+    }
+
+    protected static function getInitData(): string {
+        return (string)static::$initData;
+    }
+
+    protected function tearDown(): void {
+        if (static::keepDbChangesInTransaction()) {
+            self::$connection->rollback();
+        }
+    }
+
+    public static function tearDownAfterClass(): void {
+        if (static::keepDbChangesInTransaction()) {
+            self::$connection->rollback();
+        }
     }
 
 }

@@ -1,9 +1,9 @@
 <?php
 /** @var \Godric\DbMigrations\Migration $this */
 $this->q(<<<SQL
-DROP PROCEDURE IF EXISTS GDPR_PROCISTENI_UDAJU;
+DROP PROCEDURE IF EXISTS `GDPR_PROCISTENI_UDAJU`;
 
-CREATE PROCEDURE `GDPR_PROCISTENI_UDAJU`(IN cilove_id_uzivatele INT)
+CREATE PROCEDURE `GDPR_PROCISTENI_UDAJU`(IN id_uzivatele_param INT)
     MODIFIES SQL DATA
 UPDATE uzivatele_hodnoty
 SET jmeno_uzivatele      = 'ANON',
@@ -21,6 +21,6 @@ SET jmeno_uzivatele      = 'ANON',
     skola                = 'ANON',
     pomoc_typ            = 'ANON',
     pomoc_vice           = 'ANON'
-WHERE id_uzivatele = cilove_id_uzivatele
+WHERE id_uzivatele = id_uzivatele_param
 SQL
 );
