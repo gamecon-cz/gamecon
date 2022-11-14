@@ -250,17 +250,19 @@ SQL,
 
     public function tabulkaZastoupeniPohlaviHtml(): string {
         return tabMysqlR(dbQuery(<<<SQL
-  SELECT
+    SELECT
     'Počet' AS ' ', -- formátování
     COALESCE(SUM(IF(uzivatele.pohlavi='m',1,0)), 0) as Muži,
     COALESCE(SUM(IF(uzivatele.pohlavi='f',1,0)), 0) as Ženy,
     COALESCE(ROUND(SUM(IF(uzivatele.pohlavi='f',1,0))/COUNT(1),2), 0) as Poměr
-  FROM r_uzivatele_zidle AS uzivatele_zidle
-  JOIN uzivatele_hodnoty AS uzivatele ON uzivatele_zidle.id_uzivatele=uzivatele.id_uzivatele
-  WHERE uzivatele_zidle.id_zidle = $0
-SQL, [
-            Zidle::prihlasenNaGcRoku($this->letosniRok),
-        ]), 'Pohlaví');
+    FROM r_uzivatele_zidle AS uzivatele_zidle
+    JOIN uzivatele_hodnoty AS uzivatele ON uzivatele_zidle.id_uzivatele=uzivatele.id_uzivatele
+    WHERE uzivatele_zidle.id_zidle = $0
+SQL,
+            [Zidle::prihlasenNaGcRoku($this->letosniRok)]
+        ),
+            'Pohlaví'
+        );
     }
 
     public function pripravDataProGraf(array $prihlaseniData, array $vybraneRoky, string $zarovnaniGrafu): array {

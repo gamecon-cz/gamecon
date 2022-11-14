@@ -10,16 +10,22 @@ class DbTest extends \PHPUnit\Framework\TestCase
     protected static array $initQueries = [];
     protected static string $initData = '';
 
+    protected $revertDbChangesAfterTest = true;
+
     static function setConnection(DbWrapper $connection) {
         self::$connection = $connection;
     }
 
     public function setUp(): void {
-        self::$connection->begin();
+        if (static::keepDbChangesInTransaction()) {
+            self::$connection->begin();
+        }
     }
 
     static function setUpBeforeClass(): void {
-        self::$connection->begin();
+        if (static::keepDbChangesInTransaction()) {
+            self::$connection->begin();
+        }
 
         foreach (static::getInitQueries() as $initQuery) {
             self::$connection->query($initQuery);
@@ -33,6 +39,10 @@ class DbTest extends \PHPUnit\Framework\TestCase
         }
     }
 
+    protected static function keepDbChangesInTransaction(): bool {
+        return true;
+    }
+
     protected static function getInitQueries(): array {
         return static::$initQueries;
     }
@@ -42,11 +52,15 @@ class DbTest extends \PHPUnit\Framework\TestCase
     }
 
     protected function tearDown(): void {
-        self::$connection->rollback();
+        if (static::keepDbChangesInTransaction()) {
+            self::$connection->rollback();
+        }
     }
 
     public static function tearDownAfterClass(): void {
-        self::$connection->rollback();
+        if (static::keepDbChangesInTransaction()) {
+            self::$connection->rollback();
+        }
     }
 
 }

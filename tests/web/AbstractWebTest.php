@@ -21,6 +21,10 @@ abstract class AbstractWebTest extends DbTest
     /** @var string[] */
     protected array $cookieFilesPerServer = [];
 
+    protected static function keepDbChangesInTransaction(): bool {
+        return false;
+    }
+
     /**
      * @return string[]
      */
