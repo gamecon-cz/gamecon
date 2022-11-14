@@ -27,7 +27,9 @@ try {
 }
 
 // určení modulu, který zpracuje požadavek (router)
-$m = $url ? Modul::zUrl(null, $systemoveNastaveni) : Modul::zNazvu('nenalezeno', null, $systemoveNastaveni);
+$m = $url
+    ? Modul::zUrl(null, $systemoveNastaveni)
+    : Modul::zNazvu('nenalezeno', null, $systemoveNastaveni);
 if (!$m && ($stranka = Stranka::zUrl())) {
     $m = Modul::zNazvu('stranka', null, $systemoveNastaveni);
     $m->param('stranka', $stranka);

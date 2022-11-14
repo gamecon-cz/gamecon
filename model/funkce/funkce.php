@@ -189,6 +189,12 @@ function omezCsrf() {
     if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
         return;
     }
+
+    if (in_array($_SERVER['REQUEST_URI'], ['/web/wp/xmlrpc.php', '/web/wordpress/xmlrpc.php'])) {
+        /** Když vy takhle, tak my takhle web/moduly/wordpress/xmlrpc.php */
+        return;
+    }
+
     $referrerHost = parse_url($_SERVER['HTTP_REFERER'] ?? '', PHP_URL_HOST);
 
     if ($referrerHost !== $_SERVER['SERVER_NAME'] && $referrerHost !== parse_url(URL_ADMIN, PHP_URL_HOST)) {
