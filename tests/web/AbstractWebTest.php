@@ -147,7 +147,7 @@ SQL;
             if ($multiInfo) {
                 ['result' => $resultCode] = $multiInfo;
                 if ($resultCode !== CURLE_OK) {
-                    $errors[] = sprintf('%s (%d)', curl_strerror($resultCode), $resultCode);
+                    $errors[] = sprintf('Nelze číst ze serveru: %s (%d)', curl_strerror($resultCode), $resultCode);
                 }
             }
         } while ($multiInfo && $remainingMessages);
