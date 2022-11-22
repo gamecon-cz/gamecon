@@ -42,7 +42,7 @@ class Finance
     private $bonusZaVedeniAktivit = 0.0;  // sleva za tech. aktivity a odvedené aktivity
     private $slevaObecna = 0.0;  // sleva získaná z tabulky slev
     private $nevyuzityBonusZaVedeniAktivit = 0.0;  // zbývající sleva za odvedené aktivity (nevyužitá část)
-    private $vyuzityBonusZaVedenAktivit = 0.0;  // sleva za odvedené aktivity (využitá část)
+    private $vyuzityBonusZaVedeniAktivit = 0.0;  // sleva za odvedené aktivity (využitá část)
     private $zbyvajiciObecnaSleva = 0.0;
     private $vyuzitaSlevaObecna = 0.0;
     private $zustatekZPredchozichRocniku = 0;    // zůstatek z minula
@@ -104,7 +104,7 @@ class Finance
 
         $cena = $this->aplikujBonusZaVedeniAktivit($cena);
         $cena = $this->aplikujBrigadnickouOdmenu($cena);
-        $cena = $this->aplikujSlevy($cena);
+        $cena = $this->aplikujObecnouSlevu($cena);
 
         $cena = $cena
             + $this->cenaVstupne
@@ -429,7 +429,7 @@ class Finance
      * Výše použitého bonusu za vypravěčství (vyčerpané vypravěčské slevy)
      */
     public function vyuzityBonusZaAktivity(): float {
-        return $this->vyuzityBonusZaVedenAktivit;
+        return $this->vyuzityBonusZaVedeniAktivit;
     }
 
     /**
@@ -650,6 +650,8 @@ SQL
                     $this->cenaVstupnePozde = $cena;
                 }
                 $this->dobrovolneVstupnePrehled = $this->formatujProLog("{$r['nazev']} $cena.-", $cena, $r['typ'], $r['id_predmetu']);
+            } elseif ($r['typ'] == Shop::PROPLACENI_BONUSU) {
+                $this->proplacenyBonusZaVedeniAktivit += $cena;
             } else {
                 if ($r['typ'] == Shop::JIDLO) {
                     $this->cenaStravy += $cena;
@@ -670,9 +672,7 @@ SQL
             } elseif ($r['typ'] == Shop::VSTUPNE) {
                 $this->logStrukturovane((string)$r['nazev'], 1, $cena, self::VSTUPNE);
                 $this->logb($r['nazev'], $cena, self::VSTUPNE);
-            } elseif ($r['typ'] == Shop::PROPLACENI_BONUSU) {
-                $this->proplacenyBonusZaVedeniAktivit += $cena;
-            } else {
+            } elseif ($r['typ'] != Shop::PROPLACENI_BONUSU) {
                 $this->logStrukturovane((string)$r['nazev'], 1, $cena, $r['typ']);
                 $this->log($r['nazev'], $cena, $r['typ']);
             }
@@ -733,11 +733,11 @@ SQL
     private function aplikujBonusZaVedeniAktivit(float $cena): float {
         $bonusZaVedeniAktivit = $this->bonusZaVedeniAktivit;
         ['cena' => $cena, 'sleva' => $this->nevyuzityBonusZaVedeniAktivit] = \Cenik::aplikujSlevu($cena, $bonusZaVedeniAktivit);
-        $this->vyuzityBonusZaVedenAktivit = $this->bonusZaVedeniAktivit - $this->nevyuzityBonusZaVedeniAktivit;
+        $this->vyuzityBonusZaVedeniAktivit = $this->bonusZaVedeniAktivit - $this->nevyuzityBonusZaVedeniAktivit;
         if ($this->bonusZaVedeniAktivit) {
             $this->logb(
                 'Bonus za aktivity - využitý',
-                $this->vyuzityBonusZaVedenAktivit,
+                $this->vyuzityBonusZaVedeniAktivit,
                 self::ORGSLEVA
             );
             $this->log(
@@ -766,7 +766,7 @@ SQL
         return $cena - $this->brigadnickaOdmena;
     }
 
-    private function aplikujSlevy(float $cena) {
+    private function aplikujObecnouSlevu(float $cena) {
         $slevaObecna = $this->slevaObecna;
         ['cena' => $cena, 'sleva' => $this->zbyvajiciObecnaSleva] = \Cenik::aplikujSlevu($cena, $slevaObecna);
         $this->vyuzitaSlevaObecna = $this->slevaObecna - $this->zbyvajiciObecnaSleva;
