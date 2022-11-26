@@ -244,6 +244,12 @@
                   <i class="fas fa-check-circle"></i>
                 </span>
                 </th>
+                <th style="text-align: center">
+                <span class="hinted" data-bs-toggle="tooltip" data-bs-placement="top"
+                      title="Dorazil účastník na aktivitu?">
+                  <i class="fas fa-check-square"></i>
+                </span>
+                </th>
                 <th class="text-center">
                 <span class="hinted" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true"
                       title="
@@ -277,12 +283,6 @@
                 <th>Jméno</th>
                 <th class="text-center"><i class="fas fa-envelope"></i></th>
                 <th>Telefon</th>
-                <th style="text-align: center">
-                <span class="hinted" data-bs-toggle="tooltip" data-bs-placement="top"
-                      title="Dorazil účastník na aktivitu?">
-                  <i class="fas fa-check-square"></i>
-                </span>
-                </th>
               </tr>
               </thead>
               <tbody class="ucastnici-seznam">
