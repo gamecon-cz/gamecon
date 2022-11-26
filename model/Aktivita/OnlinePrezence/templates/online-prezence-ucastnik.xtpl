@@ -21,6 +21,21 @@
     </span>
     <!-- end:nepritomen -->
   </td>
+  <td style="text-align: center; padding: 0">
+    <!-- begin:checkbox -->
+    <label class="styl-pro-dorazil-checkbox error-tooltip"
+           data-bs-placement="left"
+           data-bs-html="true"
+    >
+      <input type="checkbox" class="dorazil"
+             name="dorazil[]"
+             value="{u.id}"
+             {checkedUcastnik} {disabledUcastnik} data-initial-checked="{checkedUcastnik}"
+             onchange="document.getElementById('online-prezence').dispatchEvent(new CustomEvent('zmenitPritomnostUcastnika', {detail: {idUcastnika: '{u.id}', idAktivity: '{a.id}', checkboxNode: this, triggeringNode: this}}))"
+      >
+    </label>
+    <!-- end:checkbox -->
+  </td>
   <td style="text-align: center">
     <!-- begin: prihlasenNaPosledniChvili -->
     <span class="na-posledni-chvili" id="ucastnik-{u.id}-na-posledni-chvili-na-aktivitu-{a.id}"
@@ -63,21 +78,6 @@
     <!-- begin:telefon -->
     <a href="tel:{telefonRaw}" class="text-nowrap"><i class="fas fa-phone"></i> {telefonHtml}</a>
     <!-- end:telefon -->
-  </td>
-  <td style="text-align: center; padding: 0">
-    <!-- begin:checkbox -->
-    <label class="styl-pro-dorazil-checkbox error-tooltip"
-           data-bs-placement="left"
-           data-bs-html="true"
-    >
-      <input type="checkbox" class="dorazil"
-             name="dorazil[]"
-             value="{u.id}"
-             {checkedUcastnik} {disabledUcastnik} data-initial-checked="{checkedUcastnik}"
-             onchange="document.getElementById('online-prezence').dispatchEvent(new CustomEvent('zmenitPritomnostUcastnika', {detail: {idUcastnika: '{u.id}', idAktivity: '{a.id}', checkboxNode: this, triggeringNode: this}}))"
-      >
-    </label>
-    <!-- end:checkbox -->
   </td>
 </tr>
 <!-- end:ucastnik -->
