@@ -240,45 +240,45 @@
               <thead>
               <tr class="col-md col-sm-6 no-gutters">
                 <th class="text-center">
-                <span class="hinted" data-bs-toggle="tooltip" data-bs-placement="top" title="Je vůbec na Gameconu?">
-                  <i class="fas fa-check-circle"></i>
-                </span>
-                </th>
-                <th style="text-align: center">
-                <span class="hinted" data-bs-toggle="tooltip" data-bs-placement="top"
-                      title="Dorazil účastník na aktivitu?">
-                  <i class="fas fa-check-square"></i>
-                </span>
+                  <span class="hinted" data-bs-toggle="tooltip" data-bs-placement="top" title="Je vůbec na Gameconu?">
+                    <i class="fas fa-check-circle"></i>
+                  </span>
                 </th>
                 <th class="text-center">
-                <span class="hinted" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true"
-                      title="
-                      <div class='text-start'>
-                        <h5 class='text-center'>Legenda</h4>
-                        <hr>
-                        <div>⏰ Přihlásil se před chvílí.
-                        <div>(do {minutNaPosledniChvili} minut před začátkem aktivity)</div>
-                        a je nejspíš na cestě.</div>
-                        <hr>
-                        <div>
-                          <img alt='Náhradník' class='font-sized bg-light ui-corner-all' src='files/design/substitution-icon.png'>
-                          Náhradník
+                  <span class="hinted" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true"
+                        title="
+                        <div class='text-start'>
+                          <h5 class='text-center'>Legenda</h4>
+                          <hr>
+                          <div>⏰ Přihlásil se před chvílí.
+                          <div>(do {minutNaPosledniChvili} minut před začátkem aktivity)</div>
+                          a je nejspíš na cestě.</div>
+                          <hr>
+                          <div>
+                            <img alt='Náhradník' class='font-sized bg-light ui-corner-all' src='files/design/substitution-icon.png'>
+                            Náhradník
+                          </div>
+                          <hr>
+                          <div>
+                            💤 Zrušený náhradník
+                          </div>
+                          <hr>
+                          <div><span class='flipped-icon'>👀</span> Sledující. Pokud sháníš náhradníka, tenhle bude mít zájem.</div>
+                          <hr>
+                          <div>
+                            <i class='mladsi-osmnacti-let fa-solid fa-baby'></i>
+                            Mladší 18ti let
+                          </div>
                         </div>
-                        <hr>
-                        <div>
-                          💤 Zrušený náhradník
-                        </div>
-                        <hr>
-                        <div><span class='flipped-icon'>👀</span> Sledující. Pokud sháníš náhradníka, tenhle bude mít zájem.</div>
-                        <hr>
-                        <div>
-                          <i class='mladsi-osmnacti-let fa-solid fa-baby'></i>
-                          Mladší 18ti let
-                        </div>
-                      </div>
-                ">
-                 <i class="fas fa-user-tie"></i>
-                </span>
+                  ">
+                  <i class="fas fa-user-tie"></i>
+                  </span>
+                </th>
+                <th style="text-align: center">
+                  <span class="hinted" data-bs-toggle="tooltip" data-bs-placement="top"
+                        title="Dorazil účastník na aktivitu?">
+                    <i class="fas fa-check-square"></i>
+                  </span>
                 </th>
                 <th>Jméno</th>
                 <th class="text-center"><i class="fas fa-envelope"></i></th>
