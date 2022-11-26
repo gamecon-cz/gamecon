@@ -1,12 +1,15 @@
 <?php
 
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\XTemplate\XTemplate;
+
 /**
  * Modul stránek (controller). Objektové zapouzdření pro soubory ze složky
  * "moduly" v rootu stránek.
  */
-
 class Modul
 {
+    private const VYCHOZI = 'titulka';
 
     protected $src;
     protected $params = [];
@@ -21,11 +24,13 @@ class Modul
     protected $cssUrls = [];
     protected $jsUrls = [];
 
-    const VYCHOZI = 'titulka';
+    /** @var SystemoveNastaveni */
+    private $systemoveNastaveni;
 
     /** Načte modul ze zadané cesty k souboru */
-    protected function __construct($soubor) {
+    protected function __construct(string $soubor, SystemoveNastaveni $systemoveNastaveni) {
         $this->src = $soubor;
+        $this->systemoveNastaveni = $systemoveNastaveni;
     }
 
     /** Jestli se má modul renderovat bez obalovacího divu (tj. ne jak stránka) */
@@ -103,8 +108,12 @@ class Modul
      * @return string
      */
     function zabalJsSoubor($cestaNaWebu) {
-        $verze = md5_file(WWW . '/' . $cestaNaWebu);
-        $url = URL_WEBU . '/' . $cestaNaWebu . '?v=' . $verze;
+        $cestaKSouboru = strpos(realpath($cestaNaWebu), realpath(WWW)) === 0
+            ? $cestaNaWebu
+            : WWW . '/' . $cestaNaWebu;
+        $verze = md5_file($cestaKSouboru);
+        $cestaNaWebu = ltrim(substr(realpath($cestaKSouboru), strlen(realpath(WWW))), '/');
+        $url = URL_WEBU . '/' . $cestaNaWebu . '?version=' . $verze;
         return $url;
     }
 
@@ -137,6 +146,7 @@ class Modul
         $t = $this->sablona();
 
         ob_start();
+        $systemoveNastaveni = $this->systemoveNastaveni;
         $vysledek = require $this->src;
         $earlyReturn = ($vysledek === null); // při dokončení skriptu je výsledek 1
         if ($t && !$earlyReturn) {
@@ -161,7 +171,7 @@ class Modul
     }
 
     /** Načte modul odpovídající dané Url (pokud není zadaná, použije aktuální) */
-    static function zUrl(Url $urlObjekt = null) {
+    static function zUrl(Url $urlObjekt = null, SystemoveNastaveni $systemoveNastaveni) {
         $url = null;
         $podstranka = null;
         if (!$urlObjekt) {
@@ -172,25 +182,32 @@ class Modul
         if (!$url) {
             $url = self::VYCHOZI;
         }
-        return self::zNazvu($url, $podstranka);
+        return self::zNazvu($url, $podstranka, $systemoveNastaveni);
     }
 
     /** Načte modul podle daného názvu */
-    static function zNazvu(?string $nazev, string $podstranka = null): ?self {
+    static function zNazvu(
+        ?string            $nazev,
+        string             $podstranka = null,
+        SystemoveNastaveni $systemoveNastaveni
+    ): ?self {
         if ($nazev) {
             if ($podstranka) {
-                $soubor = "moduly/{$nazev}/{$podstranka}.php";
+                $pripona = str_ends_with($podstranka, '.php')
+                    ? ''
+                    : '.php';
+                $soubor = "moduly/{$nazev}/{$podstranka}{$pripona}";
                 if (is_file($soubor)) {
-                    return new self($soubor);
+                    return new self($soubor, $systemoveNastaveni);
                 }
             }
             $soubor = "moduly/{$nazev}.php";
             if (is_file($soubor)) {
-                return new self($soubor);
+                return new self($soubor, $systemoveNastaveni);
             }
             $soubor = "moduly/{$nazev}/{$nazev}.php";
             if (is_file($soubor)) {
-                return new self($soubor);
+                return new self($soubor, $systemoveNastaveni);
             }
         }
         return null;

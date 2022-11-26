@@ -1,0 +1,24 @@
+<!-- begin:import -->
+
+<div class="aBox solo">
+  <h3>Importér balíčků</h3>
+  <p>Uloží, zda má účastník velký balíček.</p>
+  <p>Jako zdrojový soubor slouží
+    <a href="{baseUrl}/reporty/report-infopult-ucastnici-balicky?format=xlsx">report <em>Infopult: Balíčky
+      účastníků</em> ve
+      formátu XLSX</a>.</p>
+  <p>Do sloupce <span style="font-family: 'Droid Sans Mono', monospace; font-weight: bolder">balicek</span> napiš
+    <strong>velký
+      balíček</strong>, pokud ho má účastník dostat. Pokud ne, nech tam cokoliv jiného.
+    <br>
+    <span style="font-size: smaller">
+      (systém ví, zda má účastník balíček, stravenky a tak, takže to nerozbiješ)
+    </span>
+  </p>
+  <form method="post" enctype="multipart/form-data">
+    <input type="file" name="souborSBalicky">
+    <input type="submit" name="importBalicku" value="Nahrát" class="disable-and-show-loading-on-click">
+  </form>
+</div>
+
+<!-- end:import -->

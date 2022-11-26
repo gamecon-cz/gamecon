@@ -110,7 +110,7 @@ table.program {
 }
 
 .program td > div {
-    background-color: #F0EAE1;
+    background-color: #CDF2D9;
 }
 
 .program td > .program_nazevLinie {
@@ -244,5 +244,5 @@ table.program {
 .program .vBudoucnu { background-color: #FFECEC; }
 .program .plno { background-color: #F5F5F5; opacity: 0.5; }
 .program .prihlasen { background-color: #65D161; opacity: 1; }
-.program .nahradnik { background-color: #E5E891; opacity: 1; }
+.program .sledujici { background-color: #E5E891; opacity: 1; }
 .program .organizator { background-color: #7EA5FF; opacity: 1; }

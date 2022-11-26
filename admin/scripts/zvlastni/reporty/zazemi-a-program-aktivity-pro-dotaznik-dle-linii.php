@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/sdilene-hlavicky.php';
+require __DIR__ . '/sdilene-hlavicky.php';
 
 $report = Report::zSql(<<<SQL
 SELECT
@@ -19,7 +19,7 @@ SELECT
     DATE_FORMAT(zacatek,'%H:%i'),
     ', ',
     (
-      SELECT GROUP_CONCAT(CONCAT(u.jmeno_uzivatele,' "',u.login_uzivatele,'" ', u.prijmeni_uzivatele) SEPARATOR ' ') 
+      SELECT GROUP_CONCAT(CONCAT(u.jmeno_uzivatele,' "',u.login_uzivatele,'" ', u.prijmeni_uzivatele) SEPARATOR ' ')
       FROM akce_organizatori ao
       JOIN uzivatele_hodnoty u ON ao.id_uzivatele = u.id_uzivatele
       WHERE ao.id_akce = s.id_akce

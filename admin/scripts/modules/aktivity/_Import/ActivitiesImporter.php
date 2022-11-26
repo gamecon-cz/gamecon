@@ -7,6 +7,7 @@ use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleConnectionExcep
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
 use Gamecon\Admin\Modules\Aktivity\Import\Exceptions\ActivitiesImportException;
+use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Mutex\Mutex;
@@ -199,7 +200,7 @@ class ActivitiesImporter
                     $result->solveActivityDescription($activityGuid, $activityFinalDescription);
                     continue;
                 }
-                /** @var \Aktivita $importedActivity */
+                /** @var Aktivita $importedActivity */
                 ['message' => $successMessage, 'importedActivity' => $importedActivity] = $importActivityResult->getSuccess();
                 if ($result->wasProblemWith($activityGuid)) {
                     $result->addWarningMessage($successMessage . ' Import ale nebyl bez problémů, viz výše.', $activityGuid);

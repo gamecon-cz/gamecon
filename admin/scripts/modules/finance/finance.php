@@ -1,5 +1,8 @@
 <?php
 
+use Gamecon\Shop\Shop;
+use Gamecon\XTemplate\XTemplate;
+
 /**
  * Rychlé finanční transakce (obsolete) (starý kód)
  *
@@ -8,11 +11,23 @@
  * submenu_group: 5
  */
 
+/**
+ * @var Uzivatel $u
+ * @var Uzivatel|null $uPracovni
+ * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
+ */
+
 if (post('uzivatelProPripsaniSlevy')) {
     $uzivatel = Uzivatel::zId(post('uzivatelProPripsaniSlevy'));
-    if (!$uzivatel) chyba(sprintf('Uživatel %d neexistuje.', post('uzivatelProPripsaniSlevy')));
-    if (!post('sleva')) chyba('Zadej slevu.');
-    if (!$uzivatel->gcPrihlasen()) chyba(sprintf('Uživatel %s není přihlášen na GameCon.', $uzivatel->jmenoNick()));
+    if (!$uzivatel) {
+        chyba(sprintf('Uživatel %d neexistuje.', post('uzivatelProPripsaniSlevy')));
+    }
+    if (!post('sleva')) {
+        chyba('Zadej slevu.');
+    }
+    if (!$uzivatel->gcPrihlasen()) {
+        chyba(sprintf('Uživatel %s není přihlášen na GameCon.', $uzivatel->jmenoNick()));
+    }
     $uzivatel->finance()->pripisSlevu(
         post('sleva'),
         post('poznamkaKUzivateliProPripsaniSlevy'),
@@ -20,11 +35,17 @@ if (post('uzivatelProPripsaniSlevy')) {
     );
     $numberFormatter = NumberFormatter::create('cs', NumberFormatter::PATTERN_DECIMAL);
     oznameni(sprintf('Sleva %s připsána k uživateli %s.', $numberFormatter->formatCurrency(post('sleva'), 'CZK'), $uzivatel->jmenoNick()));
-} else if (post('uzivatelKVyplaceniAktivity')) {
+}
+
+if (post('uzivatelKVyplaceniAktivity')) {
     $uzivatel = Uzivatel::zId(post('uzivatelKVyplaceniAktivity'));
-    if (!$uzivatel) chyba(sprintf('Uživatel %d neexistuje.', post('uzivatelKVyplaceniAktivity')));
-    if (!$uzivatel->gcPrihlasen()) chyba(sprintf('Uživatel %s není přihlášen na GameCon.', $uzivatel->jmenoNick()));
-    $shop = new Shop($uzivatel);
+    if (!$uzivatel) {
+        chyba(sprintf('Uživatel %d neexistuje.', post('uzivatelKVyplaceniAktivity')));
+    }
+    if (!$uzivatel->gcPrihlasen()) {
+        chyba(sprintf('Uživatel %s není přihlášen na GameCon.', $uzivatel->jmenoNick()));
+    }
+    $shop = new Shop($uzivatel, null, $systemoveNastaveni);
     $prevedenaCastka = $shop->kupPrevodBonusuNaPenize();
     if (!$prevedenaCastka) {
         chyba(sprintf('Uživatel %s nemá žádný bonus k převodu.', $uzivatel->jmenoNick()));
@@ -70,6 +91,35 @@ SQL
     exit();
 }
 
+if (post('pokojeImport')) {
+    $f = fopen($_FILES['pokojeSoubor']['tmp_name'], 'rb');
+    if (!$f) throw new Exception('Soubor se nepodařilo načíst');
+
+    $hlavicka = array_flip(fgetcsv($f, 512, ";"));
+    if (!array_key_exists('id_uzivatele', $hlavicka)) throw new Exception('Nepodařilo se zpracovat soubor');
+    $uid = $hlavicka['id_uzivatele'];
+    $od = $hlavicka['prvni_noc'];
+    $do = $hlavicka['posledni_noc'];
+    $pokoj = $hlavicka['pokoj'];
+
+    dbDelete('ubytovani', ['rok' => ROK]);
+
+    while ($r = fgetcsv($f, 512, ";")) {
+        if ($r[$pokoj]) {
+            for ($den = $r[$od]; $den <= $r[$do]; $den++) {
+                dbInsert('ubytovani', [
+                    'id_uzivatele' => $r[$uid],
+                    'den' => $den,
+                    'pokoj' => $r[$pokoj],
+                    'rok' => ROK,
+                ]);
+            }
+        }
+    }
+
+    oznameni('Import dokončen');
+}
+
 $x = new XTemplate('finance.xtpl');
 if (isset($_GET['minimum'])) {
     $min = (int)$_GET['minimum'];
@@ -82,9 +132,9 @@ if (isset($_GET['minimum'])) {
             $x->assign([
                 'login' => $un->prezdivka(),
                 'stav' => $stav,
-                'aktivity' => $un->finance()->cenaAktivity(),
+                'aktivity' => $un->finance()->cenaAktivit(),
                 'ubytovani' => $un->finance()->cenaUbytovani(),
-                'predmety' => $un->finance()->cenaPredmety(),
+                'predmety' => $un->finance()->cenaPredmetyAStrava(),
             ]);
             $x->parse('finance.uzivatele.uzivatel');
             $ids .= $un->id() . ',';
@@ -104,9 +154,12 @@ $x->parse('finance.vyplatitBonusZaVedeniAktivity');
 
 $x->assign('rok', ROK);
 
-$x->assign('ubytovani', basename(__DIR__ . '/../../zvlastni/reporty/ubytovani.php', '.php'));
+$x->assign('ubytovani', basename(__DIR__ . '/../../zvlastni/reporty/finance-report-ubytovani.php', '.php'));
 $x->assign('bfgr', basename(__DIR__ . '/../../zvlastni/reporty/celkovy-report.php', '.php'));
 $x->parse('finance.reporty');
 
 $x->parse('finance');
 $x->out('finance');
+
+require __DIR__ . '/../_ubytovani-a-dalsi-obcasne-infopultakoviny-import-ubytovani.php';
+require __DIR__ . '/../_ubytovani-a-dalsi-obcasne-infopultakoviny-import-balicku.php';

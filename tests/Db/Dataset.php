@@ -8,11 +8,12 @@ class Dataset
     private $replaceNull = true;
     private $tables = [];
 
-    public function addCsv(string $csvString)
-    {
+    public function addCsv(string $csvString) {
         foreach (explode("\n", $csvString) as $line) {
             $line = trim($line);
-            $values = array_map('trim', str_getcsv($line));
+            $values = array_map(static function ($value) {
+                return trim((string)$value);
+            }, str_getcsv($line));
             $lastTable = $this->tables[count($this->tables) - 1] ?? null;
 
             if (empty($line)) {
@@ -34,16 +35,14 @@ class Dataset
         }
     }
 
-    public function getTables(): array
-    {
+    public function getTables(): array {
         return $this->tables;
     }
 
     /**
      * Do replacement of special values to non-string datatypes (ie NULL)
      */
-    private function replaceValues(string $value): ?string
-    {
+    private function replaceValues(string $value): ?string {
         if ($this->replaceNull && strtoupper($value) === 'NULL') {
             return null;
         }

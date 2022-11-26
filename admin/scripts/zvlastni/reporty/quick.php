@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/sdilene-hlavicky.php';
+require __DIR__ . '/sdilene-hlavicky.php';
 
 $r = dbOneLine('SELECT * FROM reporty_quick WHERE id = $1', [get('id')]);
 if ($r) {
@@ -11,8 +11,7 @@ if ($r) {
     $quickReportFormat = get('format');
     if ($quickReportFormat) {
       $BEZ_DEKORACE = true;
-      $report->tFormat($quickReportFormat);
-      return;
+      $report->tFormat($quickReportFormat, $r['nazev']);
     } else {
       $report->tHtml(Report::BEZ_STYLU);
     }

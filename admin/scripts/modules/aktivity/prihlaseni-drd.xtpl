@@ -1,36 +1,48 @@
 <!-- begin:drd -->
 
 <!-- begin:druzina -->
-  <b>{a.tym.cislo}. {a.tym.nazev} – {a.orgJmena}
+<b>{a.tym.cislo}. {a.tym.nazev} – {a.orgJmena}
   <!-- begin:zakladni --><span style="color: #f00"> – skončili v základním</span><!-- end:zakladni -->
   <!-- begin:semifinale --><span style="color: #f60"> – skončili v semifinále</span><!-- end:semifinale -->
   <!-- begin:finale --><span style="color: #0a0"> – postoupili do finále</span><!-- end:finale -->
-  </b><br>
-  {a.denCas}<br>
-  <!-- begin:clen -->
-  {u.jmenoNick}<br>
-  <!-- end:clen -->
+</b><br>
+{a.denCas}<br>
+<!-- begin:clen -->
+{u.jmenoNick}<br>
+<!-- end:clen -->
 
-  <!-- begin:nezamceno -->
-  <div class="error">základní aktivita není zamčená, není možné uložit ne/postup</div>
-  <!-- end:nezamceno -->
-  <!-- begin:vyber -->
-  <form method="post">
-    <input type="hidden" name="zakladni" value="{a.id}">
-    <input type="hidden" name="semifinale" value="{sfid}">
-    <input type="hidden" name="finale" value="{fid}">
-    <input type="submit" name="vypadliSemifinale" value="Skončili v základním kole">
-    <input type="submit" name="vypadliFinale" value="Skončili v semifinále">
-  </form>
-  <!-- end:vyber -->
-  <br>
+<!-- begin:neuzavreno -->
+<div class="error">základní aktivita není uzavřená, není možné uložit ne/postup</div>
+<!-- end:neuzavreno -->
+<!-- begin:vyber -->
+<form method="post">
+  <input type="hidden" name="zakladni" value="{a.id}">
+  <input type="hidden" name="semifinale" value="{sfid}">
+  <input type="hidden" name="finale" value="{fid}">
+  <input type="submit" name="vypadliSemifinale" value="Skončili v základním kole">
+  <input type="submit" name="vypadliFinale" value="Skončili v semifinále">
+  <!-- begin:semifinale -->
+  <button type="submit" name="postoupiliDoSemifinale" value="1" class="hinted">
+    <i class="fas fa-envelope"></i> Postoupili do semifinále <i class="fa-solid fa-hands-clapping"></i>
+    <span class="hint">{textMailuOPostupuDoSemifinale}</span>
+  </button>
+  <!-- end:semifinale -->
+  <!-- begin:finale -->
+  <button type="submit" name="postoupiliDoFinale" value="1" class="hinted">
+    <i class="fas fa-envelope"></i> Postoupili do finále <i class="fa-solid fa-trophy"></i>
+    <span class="hint">{textMailuOPostupuDoFinale}</span>
+  </button>
+  <!-- end:finale -->
+</form>
+<!-- end:vyber -->
+<br>
 
-  <br>
+<br>
 <!-- end:druzina -->
 
 <script src="{zachovejScroll}"></script>
 <script>
-zachovejScroll(document.querySelectorAll('[name^=vypadli]'))
+  zachovejScroll(document.querySelectorAll('[name^=vypadli]'))
 </script>
 
 <!-- end:drd -->

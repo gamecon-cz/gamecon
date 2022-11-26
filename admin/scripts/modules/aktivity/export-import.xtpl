@@ -11,7 +11,7 @@
     <form method="post">
       <input type="hidden" name="export_activity_type_id" value="{activityTypeId}">
       <input type="submit" name="exportovat" value="Exportovat {pocetAktivit} {pocetAktivitSlovo} typu {nazevTypu}"
-             {exportDisabled} onclick="document.body.style.cursor = 'wait'; this.style.cursor = 'wait'">
+             {exportDisabled} class="disable-and-show-loading-on-click">
     </form>
     <!-- end:exportovat -->
 
@@ -38,7 +38,7 @@
 <div class="warning no-image fullwidth">
   <p><a href="{authorizationUrl}">Povol Gameconu přístup</a> ke tvému Google drive a Google sheets, aby Gamecon mohl
     vybrané aktivity exportovat a nazpět importovat.</p>
-  <p>Gamecon bude moci číst a zapisovat <strong>pouze</strong> soubory, které sám vytvoří. Nedostane práva k žádným tvým
+  <p>Gamecon bude moci číst a zapisovat <strong>pouze soubory, které sám vytvoří</strong>. Nedostane práva k žádným tvým
     soukromým datům.</p>
 </div>
 <!-- end:autorizace -->

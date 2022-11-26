@@ -1,6 +1,6 @@
 <!-- begin: index -->
 <!DOCTYPE html>
-<html>
+<html lang="cs">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
@@ -64,7 +64,7 @@
           <a href="finance">finance</a><br>
           <a href="registrace">nastavení</a><br>
           <!-- begin:admin --><a href="{admin}" target="_blank">administrace</a><br><!-- end:admin -->
-          <!-- begin:mujPrehled --><a href="{admin}/muj-prehled" target="_blank">hry, které vedu</a><br><!-- end:mujPrehled -->
+          <!-- begin:mujPrehled --><a href="{admin}/moje-aktivity" target="_blank">hry, které vedu</a><br><!-- end:mujPrehled -->
           <!-- begin:gcNeprihlasen --><img src="soubory/styl/error.png" style="margin-bottom:-3px"> <a href="prihlaska">nepřihlášen{a} na GC</a><!-- end:gcNeprihlasen -->
           <!-- begin:gcPrihlasen --><img src="soubory/styl/ok.png" style="margin-bottom:-3px"> <a href="prihlaska">přihlášen{a} na GC</a><!-- end:gcPrihlasen -->
           <form method="post" action="prihlaseni" id="odhlasit">

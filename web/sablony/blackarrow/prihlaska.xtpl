@@ -8,7 +8,8 @@
     <p>Jsi přihlášen{a} na GameCon {rok}. Níž si můžeš upravit svou přihlášku, tj. objednané ubytování a předměty až
       téměř do začátku GameConu.</p>
 
-    <p>Objednávku je potřeba uhradit do 30.6. Svůj přehled financí a údaje k platbě najdeš v <a href="finance">Přehledu
+    <p>Objednávku je potřeba uhradit do {zaplatitNejpozdejiDo} Svůj přehled financí a údaje k platbě najdeš v <a
+        href="finance">Přehledu
       financí</a>.</p>
     <!-- end:prihlasen -->
 
@@ -18,6 +19,14 @@
     <!-- end:neprihlasen -->
   </div>
 </div>
+
+<style>
+  @keyframes blinker {
+    50% {
+      opacity: 0;
+    }
+  }
+</style>
 
 <form method="post" class="prihlaska" enctype="multipart/form-data">
 
@@ -32,7 +41,7 @@
         <h3>GameCon merch</h3>
         <p>Placek, kostek i triček s logem GameConu si můžeš objednat více. Stačí kliknout na tlačítko + nebo u triček
           vyplnit jedno a po potvrzení formuláře se ti nabídne položka pro výběr dalšího.<br>
-          <b>Výběr jde změnit do 30.6.</b></p>
+          <b>Výběr triček a tílek jde změnit do {trickaObjednatelnaDo}, ostatních předmětů do {predmetyBezTricekObjednatelneDo}</b></p>
       </div>
       <!-- begin: slevy -->
       <div class="prihlaska_info prihlaska_info-ikona">
@@ -62,7 +71,7 @@
         <img class="prihlaska_infoSymbol" src="soubory/blackarrow/prihlaska/rum.png" style="top: -48px; right: -8px">
         <h3>Informace ke stravování</h3>
         <ul>
-          <li>Jídlo je možné objednat nebo zrušit do 11.7.</li>
+          <li>Jídlo je možné objednat nebo zrušit do {jidloObjednatelneDo}</li>
           <li>Na výběr je z 3–5 jídel, která jsou vždy stejná na oběd i večeři a jedno vegetariánské jídlo.</li>
           <li><a href="jidelnicek">Jídelníček</a></li>
         </ul>
@@ -83,7 +92,7 @@
              style="top: -33px; right: -15px">
         <h3>Informace k ubytování</h3>
         <ul>
-          <li>Ubytování je možné objednat nebo zrušit do 11.7.</li>
+          <li>Objednat nebo změnit ubytování je možné do {ubytovaniObjednatelneDo}</li>
           <li>Čísla ukazují počet obsazených míst / celkem.</li>
           <li>Ubytování je k dispozici od středy, program začíná ve <strong>čtvrtek</strong> v poledne.</li>
           <li>Ubytování v neděli znamená noc z neděle na pondělí, kdy už neprobíhá program. V pondělí je potřeba pokoj
@@ -186,7 +195,12 @@
   <div class="prihlaska_hlavicka">
     <h1>Přihláška na GameCon</h1>
 
-    <p>GameCon už proběhl, těšíme se na viděnou v roce {rok}.</p>
+    <p>
+      GameCon už proběhl, těšíme se na viděnou v roce {rok}. 
+    </p>
+    <p>
+      Můžeš se podívat, o co jsi přišel, na našem <a href="https://www.facebook.com/gamecon" title="Facebook Gameconu">Facebooku</a> nebo <a href="https://www.instagram.com/gamecon_cz/" title="Instagram Gameconu">Instagramu</a>.
+    </p>
   </div>
 </div>
 <!-- end: prihlaskaPo -->

@@ -11,64 +11,50 @@ class DbMigrations
 
     private $backups;
     private $conf;
-    private $datastore;
+    /** @var \mysqli */
     private $db;
     private $migrations;
     private $webGui = null;
-    private $version;
+    private $hasTableMigrationsV2 = null;
+    private $hasTableMigrationsV1 = null;
 
     public function __construct(DbMigrationsConfig $conf) {
         $this->conf = $conf;
 
         $this->db = $this->conf->connection;
-        $this->datastore = new Datastore($this->db, $this->conf->tableName);
         $this->backups = new Backups($this->db, $this->conf->backupsDirectory);
         if ($this->conf->webGui) {
             $this->webGui = new WebGui;
         }
     }
 
-    private function handleNormalMigrations() {
-        if ($this->getVersion() === 1) {
-            foreach ($this->getUnappliedMigrationsV1() as $migration) {
-                $this->apply($migration);
-            }
-        } else {
-            foreach ($this->getUnappliedMigrationsV2() as $migration) {
-                $this->apply($migration);
-            }
+    private function handleNormalMigrations(bool $silent) {
+        foreach ($this->getUnappliedMigrations() as $migration) {
+            $this->apply($migration, $silent);
         }
-    }
-
-    private function getVersion(): int {
-        if (!$this->version) {
-            $query = $this->db->query("SHOW TABLES LIKE 'migrations'");
-            if (count($query->fetch_all()) === 0) {
-                $this->version = 1;
-            } else {
-                $this->version = 2;
-            }
-        }
-        return $this->version;
-    }
-
-    private function getUnappliedMigrationsV1() {
-        return array_filter($this->getMigrations(), function ($migration) {
-            $lastId = $this->datastore->get(LAST_APPLIED_MIGRATION_ID) ?? PHP_INT_MIN;
-            return is_numeric($migration->getId()) && (int)$migration->getId() > (int)$lastId;
-        });
     }
 
     /**
      * @return Migration[]
      */
-    private function getUnappliedMigrationsV2(): array {
+    private function getUnappliedMigrations(): array {
         $migrations = $this->getMigrations();
         if (!$migrations) {
             return [];
         }
+
+        if (!$this->hasTableMigrationsForV2()) {
+            if (!$this->hasTableMigrationsForV1()) {
+                return $migrations;
+            }
+            $migrationsV1 = $this->getMigrationsV1($migrations);
+            $unappliedMigrationsV1 = $this->getUnappliedMigrationsV1($migrationsV1);
+            $migrationsV2 = $this->getMigrationsV2($migrations);
+            return array_merge($unappliedMigrationsV1, $migrationsV2);
+        }
+
         $migrationCodes = array_map(static function (Migration $migration) {
-            return $migration->getId();
+            return $migration->getCode();
         }, $migrations);
 
         $this->db->query("CREATE TEMPORARY TABLE known_migration_codes_tmp (migration_code VARCHAR(128) PRIMARY KEY)");
@@ -100,9 +86,68 @@ WHERE migrations.migration_id IS NULL"
         return array_filter(
             $this->getMigrations(),
             static function (Migration $migration) use ($unappliedMigrationCodes) {
-                return in_array($migration->getId(), $unappliedMigrationCodes, false);
+                return in_array($migration->getCode(), $unappliedMigrationCodes, false);
             }
         );
+    }
+
+    /**
+     * @param Migration[] $migrations
+     * @return Migration[]
+     */
+    private function getMigrationsV1(array $migrations): array {
+        return array_filter($migrations, static function (Migration $migration) {
+            return $migration->getVersion() === 1;
+        });
+    }
+
+    /**
+     * @param Migration[] $migrationsV1
+     * @return Migration[]
+     */
+    private function getUnappliedMigrationsV1(array $migrationsV1): array {
+        $idOfLastAppliedMigrationV1 = $this->getIdOfLastAppliedMigrationV1();
+
+        return array_filter($migrationsV1, static function (Migration $migration) use ($idOfLastAppliedMigrationV1) {
+            return $migration->getId() > $idOfLastAppliedMigrationV1;
+        });
+    }
+
+    private function getIdOfLastAppliedMigrationV1(): int {
+        $query = $this->db->query(<<<SQL
+SELECT value FROM db_migrations WHERE name = 'last_applied_migration_id'
+SQL
+        );
+        $lastAppliedMigrationSerialized = $query->fetch_row()[0] ?? false;
+        return $lastAppliedMigrationSerialized !== false
+            ? unserialize($lastAppliedMigrationSerialized)
+            : -1;
+    }
+
+    /**
+     * @param Migration[] $migrations
+     * @return Migration[]
+     */
+    private function getMigrationsV2(array $migrations): array {
+        return array_filter($migrations, static function (Migration $migration) {
+            return $migration->getVersion() === 2;
+        });
+    }
+
+    private function hasTableMigrationsForV2(): bool {
+        if ($this->hasTableMigrationsV2 === true) {
+            return true;
+        }
+        $this->hasTableMigrationsV2 = count($this->db->query("SHOW TABLES LIKE 'migrations'")->fetch_all()) > 0;
+        return $this->hasTableMigrationsV2;
+    }
+
+    private function hasTableMigrationsForV1(): bool {
+        if ($this->hasTableMigrationsV1 === true) {
+            return true;
+        }
+        $this->hasTableMigrationsV1 = count($this->db->query("SHOW TABLES LIKE 'db_migrations'")->fetch_all()) > 0;
+        return $this->hasTableMigrationsV1;
     }
 
     /**
@@ -127,14 +172,18 @@ WHERE migrations.migration_id IS NULL"
         return $this->migrations;
     }
 
-    private function apply(Migration $migration) {
-        if ($this->webGui) {
+    private function apply(Migration $migration, bool $silent) {
+        if (!$silent && $this->webGui) {
             $this->webGui->confirm();
         }
 
-        echo "Applying migration {$migration->getId()}.\n";
-        @ob_flush();
-        flush();
+        if (!$silent) {
+            echo "Applying migration {$migration->getCode()}.\n";
+            if (ob_get_level() > 0) {
+                @ob_flush();
+            }
+            flush();
+        }
 
         // backup db
         if ($this->conf->doBackups) {
@@ -145,11 +194,11 @@ WHERE migrations.migration_id IS NULL"
         $this->db->query('BEGIN');
         try {
             $migration->apply();
-            if ($this->getVersion() === 1) {
-                $this->datastore->set(LAST_APPLIED_MIGRATION_ID, $migration->getId());
-                $this->datastore->set(LATEST_MIGRATION_HASH, $migration->getHash());
-            } else {
-                $this->db->query("INSERT INTO migrations(migration_code, applied_at) VALUES ('{$migration->getId()}', NOW())");
+            if ($this->hasTableMigrationsForV2()) {
+                $this->db->query(<<<SQL
+INSERT IGNORE INTO migrations(migration_code, applied_at) VALUES ('{$migration->getCode()}', NOW())
+SQL
+                );
             }
             $this->db->query('COMMIT');
         } catch (\Throwable $throwable) {
@@ -158,17 +207,17 @@ WHERE migrations.migration_id IS NULL"
         }
     }
 
-    function run() {
+    function run(bool $silent = false) {
         $driver = new \mysqli_driver();
         $oldReportMode = $driver->report_mode;
         $driver->report_mode = MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT;
-        if ($this->webGui) {
+        if (!$silent && $this->webGui) {
             $this->webGui->configureEnviroment();
         }
 
-        $this->handleNormalMigrations();
+        $this->handleNormalMigrations($silent);
 
-        if ($this->webGui) {
+        if (!$silent && $this->webGui) {
             $this->webGui->cleanupEnviroment();
         }
         $driver->report_mode = $oldReportMode;

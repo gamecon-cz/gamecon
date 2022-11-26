@@ -1,8 +1,10 @@
-<?php 
+<?php
 
 $mail = get('email');
 
 $uzivatel = Uzivatel::zMailu($mail);
-$uzivatel->odhlasZMaileru();
+if ($uzivatel) {
+    $uzivatel->odhlasZMaileru();
 
-echo "<p>Váš e-mail $mail byl úspěšně odhlášen z odběru novinek.</p>";
+    echo "<p>Váš e-mail $mail byl úspěšně odhlášen z odběru novinek.</p>";
+}

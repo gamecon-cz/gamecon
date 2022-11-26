@@ -1,5 +1,8 @@
 <?php
 
+use Gamecon\Aktivita\TypAktivity;
+use Gamecon\XTemplate\XTemplate;
+
 class Menu
 {
 
@@ -18,9 +21,9 @@ class Menu
     ];
     protected $url;
 
-    function __construct(Uzivatel $u = null, Url $url = null) {
+    public function __construct(Uzivatel $u = null, Url $url = null) {
         // personalizace seznamu stránek
-        $a = $u ? $u->koncA() : '';
+        $a = $u ? $u->koncovkaDlePohlavi() : '';
         if (po(REG_GC_OD)) {
             $this->stranky['prihlaska'] .= $u && $u->gcPrihlasen() ?
                 '<img src="soubory/styl/ok.png" style="margin-bottom:-3px"> přihlášen' . $a . ' na GC' :
@@ -32,23 +35,32 @@ class Menu
     }
 
     /** Celý kód menu (html) */
-    function cele() {
+    public function cele() {
         $a = $this->url ? $this->url->cast(0) : null;
         $t = new XTemplate('sablony/menu.xtpl');
         $t->assign('menu', $this);
-        if (isset(self::$linie[$a])) $t->assign('aaktiv', 'aktivni');
-        if (isset($this->stranky[$a])) $t->assign('saktiv', 'aktivni');
-        if ($a == 'blog') $t->assign('baktiv', 'aktivni');
+        if (isset(self::$linie[$a])) {
+            $t->assign('aaktiv', 'aktivni');
+        }
+        if (isset($this->stranky[$a])) {
+            $t->assign('saktiv', 'aktivni');
+        }
+        if ($a === 'blog') {
+            $t->assign('baktiv', 'aktivni');
+        }
         $t->parse('menu');
         return $t->text('menu');
     }
 
     /** Seznam linií s prokliky (html) */
-    function linie() {
+    public function linie(): string {
         $linie = self::linieSeznam();
         // ne/zobrazení linku na program
-        if (PROGRAM_VIDITELNY && !isset($linie['program'])) $linie = ['program' => 'Program'] + $linie;
-        elseif (!isset($linie['pripravujeme'])) $linie = ['pripravujeme' => 'Letos připravujeme…'] + $linie;
+        if (PROGRAM_VIDITELNY && !isset($linie['program'])) {
+            $linie = ['program' => 'Program'] + $linie;
+        } elseif (!isset($linie['pripravujeme'])) {
+            $linie = ['pripravujeme' => 'Letos připravujeme…'] + $linie;
+        }
         // výstup
         $o = '';
         foreach ($linie as $a => $l) {
@@ -58,12 +70,13 @@ class Menu
     }
 
     /** Asoc. pole url linie => název */
-    static function linieSeznam() {
-        if (!isset(self::$linie)) { // TODO cacheování
-            $typy = \Gamecon\Aktivita\TypAktivity::zViditelnych();
-            usort($typy, function ($a, $b) {
+    public static function linieSeznam(): array {
+        if (!isset(self::$linie)) {
+            $typy = TypAktivity::zViditelnych();
+            usort($typy, static function ($a, $b) {
                 return $a->poradi() - $b->poradi();
             });
+            self::$linie = [];
             foreach ($typy as $typ) {
                 self::$linie[$typ->url()] = mb_ucfirst($typ->nazev());
             }
@@ -72,7 +85,7 @@ class Menu
     }
 
     /** Seznam stránek s prokliky (html) */
-    function stranky() {
+    public function stranky(): string {
         $o = '';
         foreach ($this->stranky as $a => $l) {
             $o .= "<li><a href=\"$a\">$l</a></li>";

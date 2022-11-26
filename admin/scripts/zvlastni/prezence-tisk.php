@@ -1,8 +1,11 @@
 <?php
 
+use Gamecon\Aktivita\Aktivita;
+use Gamecon\XTemplate\XTemplate;
+
 $naStranku = 15;
 $prazdnychRadku = 4;
-$minNahradniku = 5;
+$minSledujicich = 5;
 
 $t = new XTemplate('prezence-tisk.xtpl');
 
@@ -30,7 +33,7 @@ $dejVekVeZkratce = static function (?int $vek): string {
 
 foreach ($aktivity as $aktivita) {
     $datum = $aktivita->zacatek();
-    $aktivita->zamci();
+    $aktivita->zamkni();
     $t->assign('aktivita', $aktivita);
 
     // pomocná funkce pro zalamování stránek
@@ -57,9 +60,10 @@ foreach ($aktivity as $aktivita) {
         $pridejRadek();
     }
 
-    if ($aktivita->nahradnici()) {
+    $seznamSledujicich = $aktivita->seznamSledujicich();
+    if ($seznamSledujicich) {
         $zbyvaRadku = $naStranku - $radkuNaStrance;
-        $potrebaRadku = 2 + min(count($aktivita->nahradnici()), $minNahradniku);
+        $potrebaRadku = 2 + min(count($seznamSledujicich), $minSledujicich);
         if ($zbyvaRadku < $potrebaRadku) {
             for ($i = 0; $i < $zbyvaRadku; $i++) {
                 $t->parse('aktivity.aktivita.prazdnyRadek');
@@ -71,15 +75,15 @@ foreach ($aktivity as $aktivita) {
         $t->parse('aktivity.aktivita.hlavickaNahradnik');
         $radkuNaStrance += 2; // hlavička s náhradníky zabírá 2 řádky
 
-        foreach ($aktivita->nahradnici() as $nahradnik) {
-            $vek = $nahradnik->vekKDatu($datum);
+        foreach ($seznamSledujicich as $sledujici) {
+            $vek = $sledujici->vekKDatu($datum);
             if ($vek === null) {
                 $vek = "?";
             } elseif ($vek >= 18) {
                 $vek = "18+";
             }
             $t->assign('vek', $vek);
-            $t->assign('u', $nahradnik);
+            $t->assign('u', $sledujici);
             $t->parse('aktivity.aktivita.nahradnik');
             $pridejRadek();
 

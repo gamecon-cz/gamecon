@@ -1,0 +1,15 @@
+input[type=text].form-control, input[type=password].form-control {
+  padding-right: calc(1.5em + .75rem);
+}
+
+.container .d-flex {
+  position: relative;
+}
+
+.background-image {
+  opacity: 0.1;
+  position: absolute;
+  width: 100%;
+  height: auto;
+  z-index: -100;
+}

@@ -1,5 +1,8 @@
 <?php
 
+use Gamecon\Aktivita\Aktivita;
+use Gamecon\XTemplate\XTemplate;
+
 /**
  * Přehled aktivit, které se mají tisknout, a link, který je vytiskne
  *
@@ -9,6 +12,7 @@
 
 $t = new XTemplate('tisk.xtpl');
 
+$zacatek = null;
 require __DIR__ . '/_casy.php'; // vhackování vybírátka času
 $t->assign('casy', _casy($zacatek));
 

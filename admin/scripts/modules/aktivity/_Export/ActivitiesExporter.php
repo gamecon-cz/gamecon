@@ -6,7 +6,9 @@ use Gamecon\Admin\Modules\Aktivity\Export\Exceptions\ActivitiesExportException;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\Exceptions\GoogleConnectionException;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService;
 use Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleSheetsService;
+use Gamecon\Aktivita\Aktivita;
 use Gamecon\Cas\DateTimeCz;
+use Gamecon\Aktivita\StavAktivity;
 
 class ActivitiesExporter
 {
@@ -68,7 +70,7 @@ class ActivitiesExporter
     }
 
     /**
-     * @param array|\Aktivita[] $activities
+     * @param array|Aktivita[] $activities
      * @param string $prefix
      * @return string Name of exported file
      */
@@ -109,7 +111,7 @@ class ActivitiesExporter
     }
 
     /**
-     * @param \Aktivita[] $aktivity
+     * @param Aktivita[] $aktivity
      * @return array
      */
     private function getActivitiesData(array $aktivity): array {
@@ -181,13 +183,13 @@ class ActivitiesExporter
                     ? $aktivita->tymMaxKapacita() ?? '' // Maximální kapacita týmu
                     : '',
                 $this->exportAktivitSloupce::NASLEDUJICI_SEMIFINALE => implode(', ', array_map( // Následující (semi)finále
-                    static function (\Aktivita $aktivita) {
+                    static function (Aktivita $aktivita) {
                         // can not allow comma "," in a name as that is used on import as a values delimiter
                         return $aktivita->id() . ' - ' . str_replace(',', ' ', $aktivita->nazev());
                     },
                     $aktivita->deti()
                 )),
-                $this->exportAktivitSloupce::CENA => (float)$aktivita->cenaZaklad(), // Cena
+                $this->exportAktivitSloupce::CENA => $aktivita->cenaZaklad(), // Cena
                 $this->exportAktivitSloupce::BEZ_SLEV => $aktivita->bezSlevy() // Bez slev
                     ? 'ano'
                     : 'ne',
@@ -261,7 +263,7 @@ class ActivitiesExporter
 
     private function getAllActivityStatesData(): array {
         $data[] = $this->exportStavuAktivitSloupce::vsechnySloupceStavu();
-        foreach (\Stav::zVsech() as $stav) {
+        foreach (StavAktivity::zVsech() as $stav) {
             $data[] = [
                 $stav->nazev(),
             ];
@@ -317,7 +319,7 @@ class ActivitiesExporter
     private function getActivitiesUniqueTypeNames(array $aktivity): array {
         return array_unique(
             array_map(
-                static function (\Aktivita $aktivita) {
+                static function (Aktivita $aktivita) {
                     return $aktivita->typ()->nazev();
                 },
                 $aktivity

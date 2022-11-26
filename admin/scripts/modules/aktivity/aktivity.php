@@ -1,5 +1,9 @@
 <?php
 
+use Gamecon\XTemplate\XTemplate;
+use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\TypAktivity;
+
 /**
  * Stránka pro tvorbu a správu aktivit.
  *
@@ -8,12 +12,14 @@
  * submenu_group: 1
  * submenu_order: 3
  * submenu_nazev: Přehled Aktivit
+ *
+ * @var Uzivatel $u
  */
 
 if (post('smazat')) {
     $a = Aktivita::zId(post('aktivitaId'));
     if ($a) {
-        $a->smaz();
+        $a->smaz($u);
     }
     back();
 }
@@ -74,7 +80,7 @@ $aktivity = Aktivita::zFiltru($filtr, $razeni);
 
 if (defined('TESTING') && TESTING && !empty($filtr['typ']) && post('smazatVsechnyTypu')) {
     foreach ($aktivity as $aktivita) {
-        $aktivita->smaz();
+        $aktivita->smaz($u);
     }
     back();
 }
@@ -82,7 +88,7 @@ if (defined('TESTING') && TESTING && !empty($filtr['typ']) && post('smazatVsechn
 $tpl = new XTemplate('aktivity.xtpl');
 
 $currentRequestUrl = rtrim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
-$exportImportUrl = $currentRequestUrl . '/export-import';
+$exportImportUrl   = $currentRequestUrl . '/export-import';
 $tpl->assign('urlProExport', $exportImportUrl);
 $tpl->assign('urlProImport', $exportImportUrl);
 $tpl->parse('aktivity.exportImport');
@@ -91,11 +97,11 @@ if (defined('TESTING') && TESTING && !empty($filtr['typ'])) {
     $tpl->assign('pocet', count($aktivity));
     $idTypu = $filtr['typ'];
     $tpl->assign('id_typu', $idTypu);
-    $tpl->assign('nazev_typu', \Gamecon\Aktivita\TypAktivity::zId($idTypu)->nazev());
+    $tpl->assign('nazev_typu', TypAktivity::zId($idTypu)->nazev());
     $tpl->parse('aktivity.smazatTyp');
 }
 
-$typy = dbArrayCol('SELECT id_typu, typ_1p FROM akce_typy');
+$typy    = dbArrayCol('SELECT id_typu, typ_1p FROM akce_typy');
 $typy[0] = '';
 
 $mistnosti = dbArrayCol('SELECT id_lokace, nazev FROM akce_lokace');
@@ -103,13 +109,13 @@ $mistnosti = dbArrayCol('SELECT id_lokace, nazev FROM akce_lokace');
 foreach ($aktivity as $aktivita) {
     $r = $aktivita->rawDb();
     $tpl->assign([
-        'id_akce' => $aktivita->id(),
-        'nazev_akce' => $aktivita->nazev(),
-        'hinted' => $aktivita->tagy() ? 'hinted' : '',
-        'cas' => $aktivita->denCas(),
+        'id_akce'      => $aktivita->id(),
+        'nazev_akce'   => $aktivita->nazev(),
+        'hinted'       => $aktivita->tagy() ? 'hinted' : '',
+        'cas'          => $aktivita->denCas(),
         'organizatori' => $aktivita->orgJmena(),
-        'typ' => $typy[$r['typ']],
-        'mistnost' => $mistnosti[$r['lokace']] ?? '(žádná)',
+        'typ'          => $typy[$r['typ']],
+        'mistnost'     => $mistnosti[$r['lokace']] ?? '(žádná)',
     ]);
     if ($aktivita->tagy()) {
         $tpl->assign('tagy', implode(' | ', $aktivita->tagy()));
@@ -121,14 +127,10 @@ foreach ($aktivity as $aktivita) {
     }
     if ($r['stav'] == 0) {
         $tpl->parse('aktivity.aktivita.tlacitka.publikovat');
-    }
-    if ($r['stav'] == 4) {
+    } else if ($r['stav'] == 4) {
         $tpl->parse('aktivity.aktivita.tlacitka.pripravit');
-    }
-    if ($r['stav'] == 5) {
+    } else if ($r['stav'] == 5) {
         $tpl->parse('aktivity.aktivita.tlacitka.odpripravit');
-    }
-    if ($r['stav'] == 5) {
         $tpl->parse('aktivity.aktivita.tlacitka.aktivovat');
     }
     $tpl->parse('aktivity.aktivita.tlacitka');

@@ -10,8 +10,6 @@ define('DB_SERV', 'sql.gamecon');
 // uživatel s přístupem k změnám struktury
 define('DBM_USER', 'root');
 define('DBM_PASS', 'root');
-define('DBM_NAME', 'gamecon');
-define('DBM_SERV', 'sql.gamecon');
 
 $baseUrl = (($_SERVER['HTTPS'] ?? 'off') === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
 @define('URL_WEBU', $baseUrl . '/web'); // absolutní url uživatelského webu
@@ -31,7 +29,6 @@ define('SECRET_CRYPTO_KEY', 'def0000066cba9ae32fdda839a143276cc0646b3880920c9387
 define('CRON_KEY', '123');
 define('UNIVERZALNI_HESLO', 'heslo123'); // obejití zadávání hesla pro vývojové prostředí
 define('FIO_TOKEN', '123456'); // přístup k api fio banky pro načítání plateb
-define('FTP_ZALOHA_DB', 'ftp://user:password@server/directory'); // FTP pro zálohy databáze
 define('MAILY_DO_SOUBORU', __DIR__ . '/../cache/private/maily.log');
 define('AUTOMATICKE_MIGRACE', true);
 define('PROFILOVACI_LISTA', true);

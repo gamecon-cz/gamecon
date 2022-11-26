@@ -4,6 +4,18 @@ namespace Gamecon\Cas;
 
 class DateTimeGamecon extends DateTimeCz
 {
+
+    public static function denPodleIndexuOdZacatkuGameconu(int $indexDneKZacatkuGc, int $rok = ROK): string {
+        $indexDneVuciStrede = $indexDneKZacatkuGc - 1;
+        $englishOrCzechDayName = self::spocitejZacatekGameconu($rok)->modify("$indexDneVuciStrede days")->format('l');
+        return strtr($englishOrCzechDayName, static::$dny);
+    }
+
+    /**
+     * Čtvrtek s programem pro účastníky, nikoli středa se stavbou GC
+     * @param int $rok
+     * @return DateTimeGamecon
+     */
     public static function zacatekGameconu(int $rok = ROK): DateTimeGamecon {
         if ($rok === (int)ROK && defined('GC_BEZI_OD')) {
             return self::zDbFormatu(GC_BEZI_OD);
@@ -79,14 +91,6 @@ class DateTimeGamecon extends DateTimeCz
         return (clone $odData)->modify("+ $rozdilDni days");
     }
 
-    protected static function naTestuOTydenDriv(DateTimeGamecon $datum): DateTimeGamecon {
-        if (defined('TESTING') && TESTING) {
-            return $datum->modify('-1 week');
-        } else {
-            return $datum;
-        }
-    }
-
     public static function denKolemZacatkuGameconu(string $den, int $rok = ROK): DateTimeGamecon {
         $zacatekGameconu = static::zacatekGameconu($rok);
         if ($den === static::CTVRTEK) {
@@ -108,33 +112,56 @@ class DateTimeGamecon extends DateTimeCz
         return $zacatekTechnickychAktivit->setTime(0, 0, 0);
     }
 
-    public static function zacatekRegistraciUcastniku(int $rok = ROK, bool $naTestuOTydenDriv = true): DateTimeGamecon {
+    public static function zacatekRegistraciUcastniku(int $rok = ROK): DateTimeGamecon {
         $zacatekRegistraciUcastniku = $rok === (int)ROK && defined('REG_GC_OD')
             ? static::zDbFormatu(REG_GC_OD)
             : static::spocitejZacatekRegistraciUcastniku($rok);
-        if ($naTestuOTydenDriv) {
-            return static::naTestuOTydenDriv($zacatekRegistraciUcastniku);
-        }
         return $zacatekRegistraciUcastniku;
     }
 
     public static function spocitejZacatekRegistraciUcastniku(int $rok): DateTimeGamecon {
+        if ($rok === 2013) {
+            // čtvrtek
+            return DateTimeGamecon::createFromMysql('2013-05-02 00:00:00');
+        }
+        if ($rok === 2014) {
+            // čtvrtek
+            return DateTimeGamecon::createFromMysql('2014-05-01 20:00:00');
+        }
+        if ($rok === 2015) {
+            // úterý
+            return DateTimeGamecon::createFromMysql('2015-04-28 20:15:00');
+        }
         $zacatekKvetna = new static($rok . '-05-01 00:00:00');
-        $zacatekTretihoTydneVKvetnu = self::dejZacatekXTydne(3, $zacatekKvetna);
-        $ctvrtekVeTretimTydnuVKvetnu = self::dejDatumDneVTydnuOdData(static::CTVRTEK, $zacatekTretihoTydneVKvetnu);
+        switch ($rok) {
+            case 2016 :
+                $poradiTydne = 2;
+                $denVTydnu = static::UTERY;
+                break;
+            case 2017 :
+                $poradiTydne = 1;
+                $denVTydnu = static::UTERY;
+                break;
+            case 2018 :
+            case 2019 :
+                $poradiTydne = 3;
+                $denVTydnu = static::UTERY;
+                break;
+            default : // 2020+
+                $poradiTydne = 3;
+                $denVTydnu = static::CTVRTEK;
+        }
+        $zacatekXTydneVKvetnu = self::dejZacatekXTydne($poradiTydne, $zacatekKvetna);
+        $denVTydnuVKvetnu = self::dejDatumDneVTydnuOdData($denVTydnu, $zacatekXTydneVKvetnu);
         [$hodina, $minuta] = str_split((string)$rok, 2); // ciselna hricka, rok 2022 = hodina 20 a minuta 22
 
-        return $ctvrtekVeTretimTydnuVKvetnu->setTime((int)$hodina, (int)$minuta, 0);
+        return $denVTydnuVKvetnu->setTime((int)$hodina, (int)$minuta, 0);
     }
 
-    public static function zacatekPrvniVlnyOd(int $rok = ROK, bool $naTestuOTydenDriv = true): DateTimeGamecon {
+    public static function zacatekPrvniVlnyOd(int $rok = ROK): DateTimeGamecon {
         $zacatekPrvniVlnyOd = $rok === (int)ROK && defined('REG_AKTIVIT_OD')
             ? static::zDbFormatu(REG_AKTIVIT_OD)
             : self::spoctejZacatekPrvniVlnyOd($rok);
-
-        if ($naTestuOTydenDriv) {
-            static::naTestuOTydenDriv($zacatekPrvniVlnyOd);
-        }
 
         return $zacatekPrvniVlnyOd;
     }
@@ -171,4 +198,13 @@ class DateTimeGamecon extends DateTimeCz
         return $nedelePredZacatkemGameconu->setTime(23, 59, 00);
     }
 
+    public static function zacatekNejblizsiVlnyOdhlasovani(\DateTimeImmutable $ted = null): \DateTimeImmutable {
+        // s rezervou jednoho dne, aby i po půlnoci ještě platilo včerejší datum odhlašování
+        $kDatu = ($ted ?? new \DateTimeImmutable())->modify('-1 day');
+        $prvniHromadneOdhlasovani = new \DateTimeImmutable(HROMADNE_ODHLASOVANI);
+        if ($kDatu <= $prvniHromadneOdhlasovani) { // teprve bude
+            return $prvniHromadneOdhlasovani;
+        }
+        return new \DateTimeImmutable(HROMADNE_ODHLASOVANI_2);
+    }
 }

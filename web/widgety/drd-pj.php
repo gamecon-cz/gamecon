@@ -1,6 +1,8 @@
 <?php
 
-/** @var XTemplate $t */
+use Gamecon\Aktivita\Aktivita;
+
+/** @var \Gamecon\XTemplate\XTemplate $t */
 
 // načíst aktivity DrD (všechna kola)
 $aktivity = Aktivita::zFiltru(['typ' => \Gamecon\Aktivita\TypAktivity::DRD, 'rok' => ROK]);

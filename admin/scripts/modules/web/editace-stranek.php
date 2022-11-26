@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\XTemplate\XTemplate;
+
 /**
  * nazev: Editace stránek
  * pravo: 105

@@ -1,0 +1,32 @@
+.hinted {
+  cursor: default;
+  color: inherit;
+  text-decoration: inherit;
+  border-bottom: dotted 1px;
+  position: relative;
+}
+
+.hinted:hover .hint {
+  display: block;
+}
+
+a > .hinted {
+  cursor: inherit
+}
+
+.hint {
+  position: absolute;
+  display: none;
+  width: 200px;
+  left: 0;
+  top: 16px;
+  background-color: rgba(51, 51, 51, 0.9);
+  background-color: #333;
+  border: solid 0 #000;
+  z-index: 10;
+  font-size: 11px;
+  color: #fff;
+  text-align: left;
+  padding: 10px;
+  white-space: normal
+}

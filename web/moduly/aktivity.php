@@ -1,19 +1,23 @@
 <?php
 
+use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\TypAktivity;
+
+/** @var Modul $this */
 /** @var Url $url */
-/** @var XTemplate $t */
+/** @var \Gamecon\XTemplate\XTemplate $t */
 /** @var Uzivatel $u */
 /** @var Uzivatel|null|void $org */
 
 $this->blackarrowStyl(true);
-$this->pridejJsSoubor('soubory/blackarrow/_spolecne/zachovej-scroll.js');
+$this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/_spolecne/zachovej-scroll.js');
 
 $typ = $this->param('typ');
 
 // zpracování POST požadavků
 
-Aktivita::prihlasovatkoZpracuj($u);
-Aktivita::vyberTeamuZpracuj($u);
+Aktivita::prihlasovatkoZpracuj($u, $u);
+Aktivita::vyberTeamuZpracuj($u, $u);
 Tym::vypisZpracuj($u);
 
 // aktivity
@@ -46,7 +50,7 @@ foreach ($skupiny as $skupina) {
         }
 
         $tym = $aktivita->tym();
-        if ($tym && in_array($aktivita->typId(), [\Gamecon\Aktivita\TypAktivity::DRD, \Gamecon\Aktivita\TypAktivity::LKD])) {
+        if ($tym && in_array($aktivita->typId(), [TypAktivity::DRD, TypAktivity::LKD])) {
             $t->assign('tym', $tym);
             $t->parse('aktivity.aktivita.termin.tym');
         }
@@ -58,7 +62,7 @@ foreach ($skupiny as $skupina) {
         }
 
         $vypravec = current($aktivita->organizatori());
-        if ($vypravec && ($aktivita->typId() == \Gamecon\Aktivita\TypAktivity::DRD || $aktivita->patriPod() > 0)) {
+        if ($vypravec && ($aktivita->typId() == TypAktivity::DRD || $aktivita->patriPod() > 0)) {
             $t->assign('vypravec', $vypravec->jmenoNick());
             $t->parse('aktivity.aktivita.termin.vypravec');
         }
@@ -73,13 +77,11 @@ foreach ($skupiny as $skupina) {
         $t->parse('aktivity.aktivita.termin');
     }
 
-    $organizatori = implode(', ', array_map(function ($organizator) {
-        $url = $organizator->url();
-        if ($url) {
-            return '<a href="' . $url . '">' . $organizator->jmenoNick() . '</a>';
-        } else {
-            return $organizator->jmenoNick();
-        }
+    $organizatori = implode(', ', array_map(static function (Uzivatel $organizator) {
+        $url = $organizator->url(true);
+        return $url === null // asi vypravěčská skupina nebo podobně
+            ? $organizator->jmenoNick()
+            : '<a href="' . $url . '">' . $organizator->jmenoNick() . '</a>';
     }, $aktivita->organizatori()));
 
     $obrazek = $aktivita->obrazek();
@@ -119,7 +121,7 @@ if (!empty($org)) {
     $t->assign([
         'popisLinie' => $typ->oTypu(),
         'ikonaLinie' => 'soubory/systemove/linie-ikony/' . $typ->id() . '.png',
-        'specTridy' => $typ->id() == \Gamecon\Aktivita\TypAktivity::DRD ? 'aktivity_aktivity-drd' : null,
+        'specTridy' => $typ->id() == TypAktivity::DRD ? 'aktivity_aktivity-drd' : null,
     ]);
 
     // podstránky linie

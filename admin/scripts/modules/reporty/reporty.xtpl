@@ -28,7 +28,7 @@
         </span>
       </span>
     </td>
-    <td>{csv}</td>
+    <td>{xlsx}</td>
     <td>{html}</td>
   </tr>
   <!-- end: report -->
@@ -56,7 +56,7 @@
         </span>
       </span>
     </td>
-    <td><a href="reporty/quick?id={id}&format=csv" target="_blank">csv</a></td>
+    <td><a href="reporty/quick?id={id}&format=xlsx" target="_blank">xlsx</a></td>
     <td><a href="reporty/quick?id={id}&format=html" target="_blank">html</a></td>
     <td><a href="reporty/quick-reporty?id={id}" class="tlacitko">upravit</a></td>
   </tr>

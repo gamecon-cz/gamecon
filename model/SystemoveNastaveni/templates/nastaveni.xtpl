@@ -65,4 +65,8 @@
 
 <script type="text/javascript" src="files/systemove-nastaveni.js?version={systemoveNastavenJsVerze}"></script>
 
+<!-- begin:beta -->
+{nastaveniBeta}
+<!-- end:beta -->
+
 <!-- end:nastaveni -->

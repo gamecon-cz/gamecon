@@ -5,9 +5,10 @@
  * pravo: 105
  */
 
-use \Gamecon\Cas\DateTimeCz;
+use Gamecon\Cas\DateTimeCz;
+use Gamecon\XTemplate\XTemplate;
 
-$db = new EPDO('sqlite:' . SPEC . '/chyby.sqlite');
+$db         = new EPDO('sqlite:' . SPEC . '/chyby.sqlite');
 $ignorovane = json_decode($_COOKIE['ignorovaneChyby'] ?? '[]');
 
 if (post('vyresit')) {
@@ -29,8 +30,8 @@ if (post('pridatIgnorovanouHodnotu')) {
 
 // zobrazení specifické výjimky
 if (get('vyjimka')) {
-    $BEZ_DEKORACE = true;
-    $dotaz = 'SELECT vyjimka FROM chyby WHERE rowid = ' . $db->qv(get('vyjimka'));
+    $BEZ_DEKORACE         = true;
+    $dotaz                = 'SELECT vyjimka FROM chyby WHERE rowid = ' . $db->qv(get('vyjimka'));
     $serializovanaVyjimka = $db->query($dotaz)->fetchColumn();
     if (!$serializovanaVyjimka) {
         echo "Výjimka s rowid '" . htmlspecialchars(get('vyjimka')) . "' neexistuje.";
@@ -50,13 +51,13 @@ if (get('vyjimka')) {
 }
 
 // zobrazení přehledu všech výjimek
-$ignorovaneSql = array_map([$db, 'quote'], $ignorovane);
-$ignorovaneSql = implode(',', $ignorovaneSql);
+$ignorovaneSql       = array_map([$db, 'quote'], $ignorovane);
+$ignorovaneSql       = implode(',', $ignorovaneSql);
 $ignorovaneSqlZpravy = array_map(function ($e) use ($db) {
     return $db->quote(explode('|', $e)[1] ?? '');
 }, $ignorovane);
 $ignorovaneSqlZpravy = implode(',', $ignorovaneSqlZpravy);
-$o = $db->query("
+$o                   = $db->query("
   SELECT
     *,
     COUNT(1) as vyskytu,
@@ -79,15 +80,21 @@ $o = $o->fetchAll(PDO::FETCH_ASSOC); // aby se spojení uzavřelo a necyklily se
 
 foreach ($o as $r) {
     // počet uživatelů česky
-    if ($r['uzivatelu'] == 1) $r['uzivatelu'] .= ' uživatel';
-    elseif ($r['uzivatelu'] && $r['uzivatelu'] < 5) $r['uzivatelu'] .= ' uživatelé';
-    else $r['uzivatelu'] .= ' uživatelů';
+    if ($r['uzivatelu'] == 1) {
+        $r['uzivatelu'] .= ' uživatel';
+    } elseif ($r['uzivatelu'] && $r['uzivatelu'] < 5) {
+        $r['uzivatelu'] .= ' uživatelé';
+    } else {
+        $r['uzivatelu'] .= ' uživatelů';
+    }
     // čas
-    $r['posledni'] = (new DateTimeCz('@' . $r['posledni']))->relativni();
+    $posledniJakoObjekt  = (new DateTimeCz('@' . $r['posledni']));
+    $r['posledni']       = $posledniJakoObjekt->relativni();
+    $r['posledniPresne'] = $posledniJakoObjekt->formatCasStandard();
     // zvýraznění url
     $r['soubor'] = strtr($r['soubor'], '\\', '/');
     $r['soubor'] = strrafter($r['soubor'], '/');
-    $r['zdroj'] = $r['zdroj'] ? '&emsp;«&emsp;<a href="' . $r['zdroj'] . '">' . $r['zdroj'] . '</a>' : '';
+    $r['zdroj']  = $r['zdroj'] ? '&emsp;«&emsp;<a href="' . $r['zdroj'] . '">' . $r['zdroj'] . '</a>' : '';
     // odkaz na detail
     if ($r['vyjimka'] && $r['jazyk'] == 'php') {
         $t->assign('detailUrl', 'web/chyby?vyjimka=' . urlencode($r['rowid']));

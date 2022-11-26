@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\XTemplate\XTemplate;
+
 /**
  * Nástroj na hromadné odhlašování účastníků (obvykle neplatičů)
  *
@@ -9,14 +11,16 @@
  */
 
 /**
+ * @var Uzivatel $u
+ */
+
+/**
  * @param array $idUzivatelu
  * @return Uzivatel[]|null
  */
 $dejUzivatelekOdhlaseni = static function (array $idUzivatelu): ?array {
     $idUzivatelu = array_unique(
-        array_map(static function ($id) {
-            return (int)$id;
-        }, $idUzivatelu)
+        array_map('intval', $idUzivatelu)
     );
     $neznamaId = [];
     $uzivatele = array_map(static function ($id) use (&$neznamaId) {
@@ -70,6 +74,7 @@ $idUzivateluRaw = trim(post('ids') ?? '');
 $t->assign('ids', $idUzivateluRaw);
 
 if (post('pripravit')) {
+    ini_set('memory_limit', '256M');
     if ($idUzivateluRaw === '') {
         chyba('Žádní uživatelé nebyli odhlášeni. Nejdříve vyplň jejich IDčka.');
         return;
@@ -97,9 +102,9 @@ if (post('odhlasit')) {
     $idUzivatelu = post('id');
     $uzivatele = $dejUzivatelekOdhlaseni($idUzivatelu);
 
-    array_walk($uzivatele, static function (Uzivatel $uzivatel) use (&$potize) {
+    array_walk($uzivatele, static function (Uzivatel $uzivatel) use (&$potize, $u) {
         try {
-            $uzivatel->gcOdhlas();
+            $uzivatel->gcOdhlas($u);
         } catch (\Gamecon\Exceptions\CanNotKickOutUserFromGamecon $canNotKickOutUserFromGamecon) {
             $potize[] = sprintf(
                 "Nelze ohlásit účastníka %s s ID %d: '%s'",

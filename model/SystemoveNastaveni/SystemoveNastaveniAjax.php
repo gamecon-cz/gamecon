@@ -2,10 +2,12 @@
 
 namespace Gamecon\SystemoveNastaveni;
 
+use Gamecon\SystemoveNastaveni\Exceptions\InvalidSystemSettingsValue;
+
 class SystemoveNastaveniAjax
 {
     public const AJAX_KLIC = 'ajax';
-    public const POST_KLIC = 'nastaveni';
+    public const POST_KLIC = 'nastaveni-ajax';
     public const AKTIVNI_KLIC = 'aktivni';
     public const HODNOTA_KLIC = 'hodnota';
 
@@ -40,18 +42,25 @@ class SystemoveNastaveniAjax
         if (!$zmeny) {
             return false;
         }
-        foreach ($zmeny as $klic => $zmena) {
-            if (array_key_exists(self::HODNOTA_KLIC, $zmena)) {
-                $this->systemoveNastaveni->ulozZmenuHodnoty(trim($zmena[self::HODNOTA_KLIC]), $klic, $this->editujici);
+
+        try {
+            foreach ($zmeny as $klic => $zmena) {
+                if (array_key_exists(self::HODNOTA_KLIC, $zmena)) {
+                    $this->systemoveNastaveni->ulozZmenuHodnoty(trim($zmena[self::HODNOTA_KLIC]), $klic, $this->editujici);
+                }
+                if (array_key_exists(self::AKTIVNI_KLIC, $zmena)) {
+                    $this->systemoveNastaveni->ulozZmenuPlatnosti(
+                    // filter_var z "true" udělá true a z "false" udělá false
+                        filter_var(trim($zmena[self::AKTIVNI_KLIC]), FILTER_VALIDATE_BOOLEAN),
+                        $klic,
+                        $this->editujici
+                    );
+                }
             }
-            if (array_key_exists(self::AKTIVNI_KLIC, $zmena)) {
-                $this->systemoveNastaveni->ulozZmenuPlatnosti(
-                // filter_var z "true" udělá true a z "false" udělá false
-                    filter_var(trim($zmena[self::AKTIVNI_KLIC]), FILTER_VALIDATE_BOOLEAN),
-                    $klic,
-                    $this->editujici
-                );
-            }
+        } catch (InvalidSystemSettingsValue $invalidSystemSettingsValue) {
+            $this->echoJson(['error' => 'Neplatná hodnota']);
+
+            return true;
         }
 
         $soucasneStavy = $this->systemoveNastaveniHtml->dejZaznamyNastaveniProHtml(array_keys($zmeny));

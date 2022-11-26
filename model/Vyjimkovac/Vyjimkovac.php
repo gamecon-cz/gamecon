@@ -2,6 +2,8 @@
 
 namespace Gamecon\Vyjimkovac;
 
+use Gamecon\XTemplate\Exceptions\XTemplateRecompilationException;
+
 /**
  * Třída starající se o zpracování, zobrazení a zaznamenávání výjimek a chyb
  */
@@ -13,9 +15,9 @@ class Vyjimkovac implements Logovac
     private $ukoncitPriNotice = true; // TODO nastavení zvenčí
     private $zobrazeni = self::PLAIN;
 
-    const NIC = 1;
-    const PLAIN = 2;
-    const TRACY = 3;
+    const NIC    = 1;
+    const PLAIN  = 2;
+    const TRACY  = 3;
     const PICARD = 4;
 
     public function __construct($dbFile) {
@@ -27,13 +29,22 @@ class Vyjimkovac implements Logovac
      */
     public function aktivuj() {
 
-        // fatal errory
         register_shutdown_function(function () {
+            // ošklivě vložené uzavření DB connection tady, protože register_shutdown_function může byt jen jednou
+            global $spojeni;
+            if ($spojeni && (mysqli_get_connection_stats($spojeni)['active_connections'] ?? false)) {
+                mysqli_close($spojeni);
+                $spojeni = null;
+            }
+
+            // fatal errory
             $error = error_get_last();
-            if (!$error || $error["type"] != E_ERROR) return;
+            if (!$error || $error["type"] != E_ERROR) {
+                return;
+            }
 
             $eException = new \ErrorException($error['message'], 0, $error['type'], $error['file'], $error['line']);
-            $eFixed = \Tracy\Helpers::fixStack($eException);
+            $eFixed     = \Tracy\Helpers::fixStack($eException);
             $this->zpracuj($eFixed);
         });
 
@@ -42,18 +53,24 @@ class Vyjimkovac implements Logovac
             // omezení typu na pouze aktuálně reportované
             // (nutné kvůli operátoru @ použitého typicky v parse_ metodách šablon,
             // který by jinak tento handler odchytával)
-            if (!(error_reporting() & $typ)) return;
+            if (!(error_reporting() & $typ)) {
+                return;
+            }
 
             $eException = new \ErrorException($msg, 0, $typ, $file, $line);
-            $eFixed = \Tracy\Helpers::fixStack($eException);
-            $this->zpracuj($eFixed);
+            $eFixed     = \Tracy\Helpers::fixStack($eException);
+            if ($this->zobrazeni == self::PICARD) {
+                $this->zaloguj($eFixed); // pouze log - necheme ukazovat Pickarda na warning
+            } else {
+                $this->zpracuj($eFixed);
+            }
         });
 
-        // standardní výjimky
+        // standardní výjimky a od PHP 7 i Error, například "Call to undefined function foo()"
         set_exception_handler(function ($e) {
             if ($e instanceof \Chyba) {
                 $e->zpet(); // u zobrazitelných chyb ignorovat a jen zobrazit upo
-            } elseif ($e instanceof \XTemplateRecompilationException) {
+            } elseif ($e instanceof XTemplateRecompilationException) {
                 back($_SERVER['REQUEST_URI']);
             } else {
                 $this->zpracuj($e);
@@ -74,16 +91,16 @@ class Vyjimkovac implements Logovac
 
     /**
      * Vrátí HTML skript element s kódem aktivujícím js výjimkovač
-     * @todo předělat z jQuery volání na vanilla JS
      */
-    static function js($url) {
+    public static function js(string $urlWebu) {
+        $url = rtrim($urlWebu, '/') . '/ajax-vyjimkovac';
         ob_start();
         ?>
         <script>
             window.onerror = function (msg, url, line) {
                 const newXHR = new XMLHttpRequest()
 
-                newXHR.open('POST', '<?=$url?>')
+                newXHR.open('POST', '<?= $url ?>')
 
                 newXHR.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
 
@@ -150,22 +167,34 @@ class Vyjimkovac implements Logovac
         $this->zaloguj($e);
 
         // hlavičky
-        if ($e instanceof JsException) return; // js výjimky nezobrazovat
+        if ($e instanceof JsException) {
+            return; // js výjimky nezobrazovat
+        }
         if (!headers_sent()) {
-            if ($e instanceof \UrlException) header('HTTP/1.1 400 Bad Request'); // nastavení chybových hlaviček
-            else                                header('HTTP/1.1 500 Internal Server Error');
+            // nastavení chybových hlaviček
+            if ($e instanceof \UrlException) {
+                header('HTTP/1.1 400 Bad Request');
+            } else {
+                header('HTTP/1.1 500 Internal Server Error');
+            }
         }
 
         // zobrazení
-        if ($this->zobrazeni == self::PLAIN) {
-            echo $e . "\n";
-        } elseif ($this->zobrazeni == self::TRACY) {
-            (new \Tracy\BlueScreen)->render($e);
-            if ($e instanceof \DbException) echo '<pre>', dbLastQ();
-        } elseif ($this->zobrazeni == self::PICARD) {
-            $this->zobrazOmluvu(); // TODO možná nějaké maily / reporting?
-        } else {
-            // self::NIC => nezobrazovat nic
+        switch ((int)$this->zobrazeni) {
+            case self::PLAIN :
+                echo $e . "\n";
+                break;
+            case self::TRACY :
+                (new \Tracy\BlueScreen)->render($e);
+                if ($e instanceof \DbException) {
+                    echo '<pre>', dbLastQ();
+                }
+                break;
+            case self::PICARD :
+                $this->zobrazOmluvu(); // TODO možná nějaké maily / reporting?
+                break;
+            case self::NIC :
+            default:
         }
 
         // ukončení skriptu - efektivně řešíme jen notice, vše ostatní by vedlo
@@ -188,10 +217,12 @@ class Vyjimkovac implements Logovac
 class JsException extends \Exception
 {
 
-    public function __construct($zprava, $soubor, $radek) {
-        parent::__construct($zprava);
-        $this->file = $soubor;
-        $this->line = $radek;
+    public function __construct(?string $zprava, ?string $soubor, $radek) {
+        parent::__construct((string)$zprava);
+        $this->file = (string)$soubor;
+        $this->line = $radek !== null
+            ? (int)$radek
+            : -1;
     }
 
 }

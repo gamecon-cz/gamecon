@@ -2,6 +2,7 @@
 
 namespace Gamecon\Admin\Modules\Aktivity\Import;
 
+use Gamecon\Aktivita\Aktivita;
 use Gamecon\Vyjimkovac\Logovac;
 
 class ActivityImagesImporter
@@ -17,7 +18,7 @@ class ActivityImagesImporter
         $this->logovac = $logovac;
     }
 
-    public function addImage(array $potentialImageUrls, \Aktivita $activity): ImportStepResult {
+    public function addImage(array $potentialImageUrls, Aktivita $activity): ImportStepResult {
         $fetchImageResult = $this->fetchImage($potentialImageUrls, $activity);
         if ($fetchImageResult->isError()) {
             return ImportStepResult::successWithErrorLikeWarnings(null, [$fetchImageResult->getError()]);
@@ -44,7 +45,7 @@ class ActivityImagesImporter
         }
     }
 
-    private function fetchImage(array $potentialImageUrls, \Aktivita $aktivita): ImportStepResult {
+    private function fetchImage(array $potentialImageUrls, Aktivita $aktivita): ImportStepResult {
         $potentialImageUrls = array_unique($potentialImageUrls);
         $newImages = array_filter($potentialImageUrls, static function (string $potentialImageUrl) use ($aktivita) {
             return $potentialImageUrl !== $aktivita->urlObrazku();

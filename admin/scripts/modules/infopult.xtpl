@@ -1,0 +1,411 @@
+<!-- begin:infopult -->
+
+<style>
+    .shopUbytovani_prvniSloupec, .shopUbytovani_sloupec {
+        float: left;
+        width: 65px;
+    }
+
+    .shopUbytovani_radek {
+        height: 40px;
+    }
+
+    .tooltip_obsah {
+        display: none;
+    }
+</style>
+
+
+<h1>Infopult</h1>
+
+
+<div class="header-buttons--container-main">
+  <div class="header-buttons--container header-buttons--container-left">
+    <form method="post">
+      <input type="submit" name="gcPrihlas" value="Přihlásit" {prihlasBtnAttr}>
+    </form>
+
+    <form method="post">
+    <span class="hinted">
+      <input type="submit" name="datMaterialy" value="Přijel a Dát materiály" {datMaterialyBtnAttr}>
+      <span class="hint">
+        Před odkliknutím zkontroluj že proběhlo:
+        <ul>
+          <li>Předání trička, placky, stravenek, číslo pokoje, srovnání nedoplatku</li>
+          <li>Předání manuálu účastníka a vysvětlení last moment přihlašování.</li>
+          <li>Doplnění chybějících údajů, jako adresy, telefonu</li>
+          <li>Vyplnění čísla OP do sdíleného dokumentu</li>
+        </ul>
+      </span>
+    </span>
+    </form>
+    <!-- begin:upoMaterialy -->
+    <script>
+      $('form').last().on('submit', function () {
+        return confirm('Uživatel má záporný stav financí, přesto dát materiály?')
+      })
+    </script>
+    <!-- end:upoMaterialy -->
+
+
+    <form method="post" onsubmit="confirm('Opravdu odjel{a}?')">
+    <span class="hinted">
+      <input type="submit" name="gcOdjed" value="Odjel{a} z GC" {gcOdjedBtnAttr}>
+      <span class="hint">
+        Před odkliknutím zkontroluj, že je:
+        <ul>
+          <li>Vyrovnaný nedoplatek</li>
+          <li>Vrácený klíč od pokoje</li>
+        </ul>
+      </span>
+    </span>
+    </form>
+  </div>
+
+  <div class="header-buttons--container header-buttons--container-right">
+    <form method="post">
+      <input class="danger" type="submit" name="gcOdhlas" value="Odhlásit z GC" {odhlasBtnAttr}>
+      <script>
+        $('[name="gcOdhlas"]').closest('form').submit(function () {
+          return confirm('Trvale odhlásit uživatele z GameConu a smazat všechny jeho aktivity a nakoupené věci?')
+        })
+      </script>
+    </form>
+  </div>
+</div>
+
+<!-- begin:neUzivatel -->
+<div class="warning" onclick="document.getElementById('omniboxUzivateleProPraci').focus()">
+  <strong class="skryt-pri-uzkem ">↖</strong>Vyberte uživatele
+  <span class="skryt-pri-uzkem">(pole vlevo nahoře)</span>
+  <span class="zobrazit-pri-uzkem">(⬆ pole nahoře)</span>
+</div>
+<!-- end:neUzivatel -->
+<!-- begin:neprihlasen -->
+<div class="error">Uživatel{ka} není přihlášen{a} na GameCon.</div>
+<!-- begin: nelze -->
+<div class="error">Registrace na GameCon není spuštěna.</div>
+<!-- end: nelze -->
+<!-- end:neprihlasen -->
+
+<div class="infopult-grid--container">
+
+  <!-- begin:uzivatel -->
+  <div class="infopult-grid--item infopult-grid--item-přehled  aBox">
+    <h3>Přehled</h3>
+    <form method="post" class="clearfix">
+      <table>
+        <tr>
+          <td style="width: 60px">Stav účtu:</td>
+          <td style="{stavStyle}"> {stavUctu}</td>
+        </tr>
+
+        <tr>
+          <td>Poznámka:</td>
+          <td>
+            <textarea
+                rows="3"
+                type="area" name="udaje[poznamka]"
+                style="margin-left: -3px; width:100%; resize: vertical;"
+            >{poznamka}</textarea>
+          </td>
+        </tr>
+
+        <!-- begin:potvrzeni -->
+        <tr>
+          <td>Potvrzení:</td>
+          <td>
+            <input type="checkbox" name="udaje[potvrzeni_zakonneho_zastupce]"
+                   style="margin-left: -3px;" id="udaj_potvrzeni" {potvrzeniAttr}>
+            {potvrzeniText}
+            </input>
+          </td>
+        </tr>
+        <!-- end:potvrzeni -->
+
+        <tr>
+          <td>Údaje:</td>
+          <td>
+            <a {udajeChybiAttr}>
+              {udajeChybiText}
+            </a>
+          </td>
+        </tr>
+
+        <!-- begin:covidSekce -->
+        <tr>
+          <td>Covid-19:</td>
+          <td>
+            <input type="checkbox" name="udaje[potvrzeni_proti_covid19_overeno_kdy]"
+                   style="margin-left: -3px;" id="udaj_covid19" {covidPotvrzeniAttr}>
+            <a target="_blank" {covidPotvrzeniOdkazAttr}>
+              {covidPotvrzeniText}
+            </a>
+            </input>
+          </td>
+        </tr>
+        <!-- end:covidSekce -->
+
+        <tr>
+          <td colspan="100%" class="text-end">
+            <input type="submit" value="uložit" class="submit-btn">
+          </td>
+        </tr>
+
+        <tr>
+          <td>Kontakt:</td>
+          <td>{telefon}</td>
+        </tr>
+
+        <tr>
+          <td>Balíček:</td>
+          <td>{balicek}</td>
+        </tr>
+      </table>
+      <a style="font-size: 1.2em; float: left; margin-top: .2em; margin-right: 1em;" href="program-uzivatele"
+         target="_blank">Program</a>
+      <a style="font-size: 1.2em; float: left; margin-top: .2em;" href="program-osobni" target="_blank">Program
+        účastníka</a>
+    </form>
+  </div>
+
+  <div class="infopult-grid--item infopult-grid--item-platba aBox">
+    <h3>Připsat platbu</h3>
+    <form method="post" class="clearfix">
+      <table>
+        <tr>
+          <td>Částka:</td>
+          <td><input required type="text" name="platba" style="text-align:right;width:40px">&thinsp;Kč</td>
+        </tr>
+        <tr>
+          <td>Poznámka:</td>
+          <td><input type="text" name="poznamka"></td>
+        </tr>
+        <!-- begin:idFioPohybu -->
+        <tr>
+          <td>
+            <span class="hinted">ID Fio pohybu
+              <span class="hint">Například 23798944700. Tedy ID, pod kterým má transakci Fio. <strong>Důležité, aby stejnou platbu nepřipsalo znovu automatické párování plateb</strong>.</span>
+            </span>:
+          </td>
+          <td><input type="text" name="idPohybu" autocomplete="off"></td>
+        </tr>
+        <!-- end:idFioPohybu -->
+        <tr>
+          <td>Připsal{a}:</td>
+          <td><input type="text" value="{org}" disabled></td>
+        </tr>
+      </table>
+      <input type="submit" value="Připsat" class="submit-btn">
+    </form>
+  </div>
+
+
+  <div class="infopult-grid--item infopult-grid--item-ubytování aBox">
+    <h3>Ubytování</h3>
+    <table>
+      <tr>
+        <td>Pokoj:</td>
+        <td> {pokoj}</td>
+      </tr>
+      <tr>
+        <td>Spolubydlící:</td>
+        <td>
+          {spolubydlici}
+        </td>
+      </tr>
+      <tr>
+        <td>Ubytovaní:</td>
+        <td>{ubytovani}</td>
+      </tr>
+    </table>
+    Zrušit jiné ubytování než neděli může pouze šéf Infa.<br>
+    <form method="post">
+      {ubytovaniTabulka}<br>
+      <input type="submit" name="zpracujUbytovani" value="Uložit" class="submit-btn">
+    </form>
+
+    {status}
+  </div>
+
+  <div class="infopult-grid--item infopult-grid--item-pokoje aBox">
+    <h3>Nastavení pokojů</h3>
+
+    <div>
+      Vypsat pokoj<br>
+      <form method="get">
+        <table>
+          <tr>
+            <td>Pokoj:</td>
+            <td><input type="integer" value="{pokojVypis}" name="pokoj"></input></td>
+          </tr>
+          <tr>
+            <td>Ubytovaní:</td>
+            <td>{ubytovaniVypis}</td>
+          </tr>
+        </table>
+        <input type="submit" value="Vypsat" class="submit-btn">
+      </form>
+    </div>
+
+    <br>
+
+    <div style="margin-top:8px">
+      Přidělit pokoj (přepíše stávající stav)<br>
+      <form method="post" class="cleafix">
+        <table>
+          <tr>
+            <td>Pokoj:</td>
+            <td><input type="integer" name="pokoj"></input></td>
+          </tr>
+        </table>
+        <input type="submit" name="pridelitPokoj" value="Přidělit" class="submit-btn">
+      </form>
+    </div>
+  </div>
+
+  <!-- begin:objednavky -->
+  <div class="infopult-grid--item infopult-grid--item-predmety aBox">
+    <h3>
+      <!-- begin:nadpisJenPredmety -->
+      Objednávky předmětů
+      <!-- end:nadpisJenPredmety -->
+      <!-- begin:nadpisVse -->
+      Objednávky
+      <!-- end:nadpisVse -->
+    </h3>
+    {prehledPredmetu}
+  </div>
+  <!-- end:objednavky -->
+
+  <!-- end:uzivatel -->
+
+  <div class="infopult-grid--item infopult-grid--item-prodej aBox">
+    <h3>Prodej předmětů</h3>
+    <div>
+      Zbývající počty předmětů jsou uvedeny v závorce
+    </div>
+    <form method="post">
+      <table>
+        <!-- begin:prodejAnonymni -->
+        <tr>
+          <td></td>
+          <td>Anonymní prodej</td>
+        </tr>
+        <!-- end:prodejAnonymni -->
+
+        <tr>
+          <td style="white-space: nowrap">
+            <label for="predmet">Předmět:</label>
+            <span class="hinted">
+              <input name="prodej[kusu]" style="border: none; margin: 0; padding: 0" type="number" step="1" value="1"
+                     size="2" min="1" max="99" required>
+              <span class="hint" style="white-space: nowrap; width: auto">Počet kusů</span>
+            </span>
+          </td>
+          <td>
+            <select name="prodej[id_predmetu]" id="predmet" style="width: 100%;" required>
+              {predmety}
+            </select>
+          </td>
+        </tr>
+      </table>
+      <input type="submit" name="prodej[odeslano]" value="Prodat" class="submit-btn">
+    </form>
+    <button value="Shop" class="submit-btn" style="width: 100px;" onclick="preactMost.obchod.show()">Shop</button>
+  </div>
+</div>
+
+<!-- begin:rychloregistrace -->
+<!-- TODO: tohle není rychloregistrace tak přesunout jinam z bloku nebo přejmenovat blok -->
+<div class="aBox grid">
+  <h3>Vypsat pokoj</h3>
+  <div>
+    <form method="get">
+      <table>
+        <tr>
+          <td>Pokoj:</td>
+          <td><input type="integer" value="{pokojVypis}" name="pokoj"></input></td>
+        </tr>
+        <tr>
+          <td>Ubytovaní:</td>
+          <td>{ubytovaniVypis}</td>
+        </tr>
+      </table>
+      <input type="submit" value="Vypsat" class="submit-btn">
+    </form>
+  </div>
+</div>
+<br>
+
+<div class="aBox grid">
+  <h3>Rychloregistrace</h3>
+  Všechny položky povinné<br>
+  <form method="post">
+    <table>
+      <tr>
+        <td>Jméno&nbsp;a&nbsp;příjm.:</td>
+        <td>
+          <table class="cista">
+            <tr>
+              <td style="padding-right: 5px"><input type="text" name="rychloreg[jmeno_uzivatele]"></td>
+              <td><input type="text" name="rychloreg[prijmeni_uzivatele]"></td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td>E-mail:</td>
+        <td><input type="text" name="rychloreg[email1_uzivatele]"></td>
+      </tr>
+      <tr>
+        <td>Pohlaví:</td>
+        <td>
+          <label><input type="radio" name="rychloreg[pohlavi]" value="m">muž</label> &emsp;
+          <label><input type="radio" name="rychloreg[pohlavi]" value="f">žena</label>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2"><label>
+          Informovat e-mailem o registraci <input type="checkbox" name="informovat" checked>
+        </label></td>
+      </tr>
+      <tr>
+        <td colspan="2"><label>
+          Neposílat novinky e-mailem <input type="checkbox" name="rychloreg[nechce_maily]" unchecked>
+        </label></td>
+      </tr>
+      <tr>
+        <td colspan="2">
+          <input type="submit" value="Jen registrovat" class="submit-btn">
+          <!-- begin: prihlasitNaGc -->
+          <input type="submit" name="vcetnePrihlaseni" value="Reg. a přihlásit na GC" class="submit-btn">
+          <!-- end: prihlasitNaGc -->
+        </td>
+      </tr>
+    </table>
+  </form>
+  <script>
+    $('form').last().on('submit', function () {
+      if ($(this).find('[name="rychloreg[email1_uzivatele]"]').val() == '' || $(this).find('[name="rychloreg[pohlavi]"]:checked').length == 0) {
+        alert('všechny položky jsou povinné')
+        return false
+      }
+    })
+  </script>
+</div>
+<!-- end:rychloregistrace -->
+
+
+<!-- begin:potvrditZruseniPrace -->
+<script>
+  $('#zrusit').submit(function () {
+    return confirm('{zpravaProPotvrzeniZruseniPrace}')
+  })
+</script>
+<!-- end:potvrdZruseniPrace -->
+
+
+<div style="clear: both;"></div>
+
+<!-- end:infopult -->

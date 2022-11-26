@@ -1,11 +1,13 @@
 <!-- begin:slucovani -->
 
 <p>
-Výsledné ID by se vždy mělo zvolit nižší. Přihláška na GC se uživateli zachová, i když bude mít přihlášku původně s vyšším ID. Pokud je uživatel vybrán pro práci, je potřeba ho zrušit a vybrat znova. Případné dluhy / zůstatky se sečtou. Pokud se vyskytne chyba, hlásit.
+  Výsledné ID by se vždy mělo zvolit nižší. Přihláška na GC se uživateli zachová, i když bude mít přihlášku původně s
+  vyšším ID. Pokud je uživatel vybrán pro práci, je potřeba ho zrušit a vybrat znova. Případné dluhy / zůstatky se
+  sečtou. Pokud se vyskytne chyba, hlásit.
 </p>
 
 <p>
-Vhodné vycházet z <a href="reporty/duplicity">reportu</a> s potenciálně duplicitními uživateli.
+  Vhodné vycházet z <a href="reporty/duplicity">reportu</a> s potenciálně duplicitními uživateli.
 </p>
 
 <form method="post">
@@ -13,29 +15,33 @@ Vhodné vycházet z <a href="reporty/duplicity">reportu</a> s potenciálně dupl
   <table>
     <tr>
       <th></th>
-      <th>První</th>
-      <th>Druhý</th>
+      <th><label for="uzivatelA" style="display: block; cursor: pointer">První</label></th>
+      <th><label for="uzivatelB" style="display: block; cursor: pointer">Druhý</label></th>
     </tr>
     <tr>
       <td>ID</td>
-      <td><input type="text" name="u1" value="{uaid}"></td>
-      <td><input type="text" name="u2" value="{ubid}"></td>
+      <td><input id="uzivatelA" type="text" name="ua" value="{uaid}" class="omnibox"></td>
+      <td><input id="uzivatelB" type="text" name="ub" value="{ubid}" class="omnibox"></td>
     </tr>
     <!-- begin:detaily -->
-      <tr>
-        <td></td>
-        <td><input type="hidden" name="skrytyU1" value="{uaid}"></td>
-        <td><input type="hidden" name="skrytyU2" value="{ubid}"></td>
-      </tr>
-      <!-- begin: historiePrihlaseni -->
-      <tr>
-        <td>Přihlášen {rok}</td>
-        <!-- begin:aPrihlasen --><td style="background-color: #8d8">ano</td><!-- end:aPrihlasen -->
-        <!-- begin:aNeprihlasen --><td style="background-color: #faa">ne</td><!-- end:aNeprihlasen -->
-        <!-- begin:bPrihlasen --><td style="background-color: #8d8">ano</td><!-- end:bPrihlasen -->
-        <!-- begin:bNeprihlasen --><td style="background-color: #faa">ne</td><!-- end:bNeprihlasen -->
-      </tr>
-      <!-- end: historiePrihlaseni -->
+    <tr>
+      <td></td>
+      <td><input type="hidden" name="skrytyUA" value="{uaid}"></td>
+      <td><input type="hidden" name="skrytyUB" value="{ubid}"></td>
+    </tr>
+    <!-- begin: historiePrihlaseni -->
+    <tr>
+      <td>Přihlášen {rok}</td>
+      <!-- begin:aPrihlasen -->
+      <td style="background-color: #8d8">ano</td><!-- end:aPrihlasen -->
+      <!-- begin:aNeprihlasen -->
+      <td style="background-color: #faa">ne</td><!-- end:aNeprihlasen -->
+      <!-- begin:bPrihlasen -->
+      <td style="background-color: #8d8">ano</td><!-- end:bPrihlasen -->
+      <!-- begin:bNeprihlasen -->
+      <td style="background-color: #faa">ne</td><!-- end:bNeprihlasen -->
+    </tr>
+    <!-- end: historiePrihlaseni -->
     <tr>
       <td>Login</td>
       <td><label><input type="radio" name="login" value="{uaid}" checked> {ua.nick}</label></td>
@@ -90,8 +96,10 @@ Vhodné vycházet z <a href="reporty/duplicity">reportu</a> s potenciálně dupl
     </tr>
     <tr>
       <td>Datum narození</td>
-      <td><label><input type="radio" name="datum_narozeni" value="{uaid}" checked> {ua.datumNarozeni.formatDatumStandard}</label></td>
-      <td><label><input type="radio" name="datum_narozeni" value="{ubid}"> {ub.datumNarozeni.formatDatumStandard}</label></td>
+      <td><label><input type="radio" name="datum_narozeni" value="{uaid}" checked>
+        {ua.datumNarozeni.formatDatumStandard}</label></td>
+      <td><label><input type="radio" name="datum_narozeni" value="{ubid}">
+        {ub.datumNarozeni.formatDatumStandard}</label></td>
     </tr>
     <tr>
       <td>Zůstatek z předchozích ročníků</td>
@@ -100,8 +108,8 @@ Vhodné vycházet z <a href="reporty/duplicity">reportu</a> s potenciálně dupl
     </tr>
     <tr>
       <td>Poslední Platba</td>
-      <td>{ua.finance.posledniPlatba}</td>
-      <td>{ub.finance.posledniPlatba}</td>
+      <td>{ua.finance.datumPosledniPlatby}</td>
+      <td>{ub.finance.datumPosledniPlatby}</td>
     </tr>
     <!-- TODO později
     <tr>
@@ -111,7 +119,9 @@ Vhodné vycházet z <a href="reporty/duplicity">reportu</a> s potenciálně dupl
     -->
     <tr>
       <td colspan="3" style="text-align: center">
-        <input type="submit" name="sloucit" value="Sloučit uživatele" onclick="return confirm('Opravdu sloučit?')">
+        <input id="sloucit" data-jmeno-nick-a="{ua.jmenoNick}" data-jmeno-nick-b="{ub.jmenoNick}"
+               type="submit" name="sloucit" value="Sloučit uživatele"
+               onclick="return confirm(`Opravdu sloučit ${document.getElementById('sloucit').dataset.jmenoNickA} s ${document.getElementById('sloucit').dataset.jmenoNickB}?`)">
       </td>
     </tr>
     <!-- end:detaily -->
@@ -121,8 +131,6 @@ Vhodné vycházet z <a href="reporty/duplicity">reportu</a> s potenciálně dupl
   <input type="submit" name="pripravit" value="Načíst údaje">
 
 </form>
-
-
 
 
 <!-- end:slucovani -->

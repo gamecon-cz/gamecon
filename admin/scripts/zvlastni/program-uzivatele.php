@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Aktivita\Aktivita;
+
 /** @var Uzivatel $u */
 /** @var Uzivatel|null $uPracovni */
 
@@ -11,38 +13,42 @@ if (!$uPracovni) {
 $osobniProgram = !empty($osobniProgram);
 
 $program = new Program($uPracovni, [
-    'drdPj' => true,
-    'drdPrihlas' => true,
-    'plusMinus' => true,
-    'osobni' => $osobniProgram,
-    'teamVyber' => true,
-    'technicke' => true,
-    'zpetne' => $u->maPravo(\Gamecon\Pravo::ZMENA_HISTORIE_AKTIVIT),
+    Program::DRD_PJ      => true,
+    Program::DRD_PRIHLAS => true,
+    Program::PLUS_MINUS  => true,
+    Program::OSOBNI      => $osobniProgram,
+    Program::TEAM_VYBER  => true,
+    Program::INTERNI     => true,
+    Program::ZPETNE      => $u->maPravoNaZmenuHistorieAktivit(),
 ]);
 
 if ($uPracovni) {
     Aktivita::prihlasovatkoZpracuj(
         $uPracovni,
-        Aktivita::PLUSMINUS_KAZDY | ($u->maPravo(\Gamecon\Pravo::ZMENA_HISTORIE_AKTIVIT) ? Aktivita::ZPETNE : 0) | Aktivita::TECHNICKE
+        $u,
+        Aktivita::PLUSMINUS_KAZDY | ($u->maPravoNaZmenuHistorieAktivit() ? Aktivita::ZPETNE : 0) | Aktivita::INTERNI
     );
-    Aktivita::vyberTeamuZpracuj($uPracovni);
+    Aktivita::vyberTeamuZpracuj($uPracovni, $u);
 }
 
 $chyba = Chyba::vyzvedniHtml();
 
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="cs">
 <head>
+    <title>Program <?= htmlspecialchars($uPracovni->jmenoNick(), ENT_QUOTES | ENT_HTML5) ?></title>
     <!-- jquery kvůli týmovým formulářům -->
     <script src="files/jquery-3.4.1.min.js"></script>
-    <script src="files/jquery-ui-1.10.3.custom.min.js"></script>
-    <script src="files/jquery-migrate-3.1.0.js"></script>
+    <script src="files/jquery-ui-v1.12.1.min.js"></script>
     <base href="<?= URL_ADMIN ?>/">
-    <link rel="stylesheet" href="<?= $program->cssUrl() ?>">
+    <?php foreach ($program->cssUrls() as $cssUrl) { ?>
+        <link rel="stylesheet" href="<?= $cssUrl ?>">
+    <?php } ?>
+    <link rel="stylesheet" href="files/design/hint.css">
     <style>
         body {
-            font-family: tahoma, sans;
+            font-family: tahoma, sans, sans-serif;
             font-size: 11px;
             line-height: 1.2;
             background-color: #fff;
@@ -53,7 +59,7 @@ $chyba = Chyba::vyzvedniHtml();
             color: #fff;
         }
     </style>
-    <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-1.10.3.custom.min.css">
+    <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-v1.12.1.min.css">
 </head>
 <body>
 
@@ -70,7 +76,9 @@ $chyba = Chyba::vyzvedniHtml();
     border-bottom-right-radius: 12px;
     z-index: 20;
   ">
-    <input type="button" value="Zavřít" onclick="window.location = '<?= URL_ADMIN ?>/uvod'" style="
+    <input type="button" value="Zavřít"
+           onclick="window.location = '<?= $u ? $u->mimoMojeAktivityUvodniAdminLink()['url'] : URL_ADMIN . '/uzivatel' ?>'"
+           style="
       float: right;
       width: 100px;
       height: 35px;
@@ -78,8 +86,8 @@ $chyba = Chyba::vyzvedniHtml();
     <?= $uPracovni->jmenoNick() ?><br>
     <span id="stavUctu"><?= $uPracovni->finance()->stavHr() ?></span><br>
 
-    <a href="program-uzivatele" class="program-odkaz">Program účastníka</a> |
-    <a href="program-osobni" class="program-odkaz">Filtrovaný program</a>
+    <a href="program-uzivatele" class="program-odkaz">Program</a> |
+    <a href="program-osobni" class="program-odkaz">Program účastníka</a>
 </div>
 
 <div class="program">

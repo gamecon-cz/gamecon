@@ -1,4 +1,14 @@
-html {
+
+.clearfix::after {
+  content: "";
+  clear: both;
+  display: block;
+}
+
+.aBox .submit-btn {
+  float: right;
+  margin-top: 4px;
+  margin-left: 2px;
 }
 
 body {
@@ -447,12 +457,15 @@ input, textarea, select, .tlacitko, .adm_submenu_item a {
   color: inherit;
 }
 
-input, select {
+input, select, label, button, input[type=file] {
   cursor: pointer;
 }
 
-input[disabled], textarea[disabled], select[disabled] {
+input[disabled], textarea[disabled], select[disabled], button[disabled]:not(.no-background-color) {
   background-color: lightgray;
+}
+
+input[disabled], textarea[disabled], select[disabled], button[disabled] {
   cursor: not-allowed
 }
 
@@ -464,6 +477,10 @@ input::-moz-focus-inner {
 input[type="submit"], input[type="button"], .tlacitko, .adm_submenu_item a {
   background: lightgray linear-gradient(to top, #d8d8d8 0%, #fafafa 100%);
   padding: 2px 8px;
+}
+
+input[type="submit"]:active, input[type="button"]:active, .tlacitko:active, .adm_submenu_item a:active {
+  background: lightgray linear-gradient(to bottom, #d8d8d8 0%, #fafafa 100%);
 }
 
 .tlacitko.tlacitko_isDanger {
@@ -494,6 +511,46 @@ input[type="submit"]:disabled {
   cursor: not-allowed
 }
 
+.danger, input.danger {
+  background-color: red;
+  background-image: linear-gradient(to top, #880000 0%, #ff8888 100%);
+  color: whitesmoke;
+  transition: background-image 3s ease-in-out;
+}
+
+@keyframes animated-border {
+  0% {
+    border-color: rgba(255, 0, 0, 0);
+  }
+
+  50% {
+    border-color: red;
+  }
+
+  100% {
+    border-color: rgba(255, 0, 0, 0);
+  }
+
+}
+
+.danger:hover:not([disabled]), input.danger:hover:not([disabled]) {
+  /* border-color: red; */
+  animation: animated-border 1s infinite ease-in-out;
+}
+
+.danger:active:not([disabled]), input.danger:active:not([disabled]) {
+  background-image: linear-gradient(to bottom, #880000 0%, #ff8888 100%);
+}
+
+.danger:disabled, input.danger:disabled {
+  background: red linear-gradient(to top, #4d0000 0%, #902323 100%);
+  color: gray;
+}
+
+.admin-page-controlls {
+
+}
+
 /* Tabulky */
 .main table {
   border-collapse: collapse;
@@ -504,8 +561,18 @@ input[type="submit"]:disabled {
   background-color: #f2f1f3;
   border: solid 1px #eee;
   padding: 3px;
-  font-family: verdana;
+  font-family: verdana, serif;
   font-weight: normal;
+}
+
+.main table caption {
+  background: linear-gradient(to top, #fafdff 0%, #fdffff 50%, #f7f9fa 50%, #f2f1f3 100%);
+  background-color: rgba(0, 0, 0, 0);
+  background-color: #f2f1f3;
+  border: none;
+  padding: 3px;
+  font-family: verdana, serif;
+  font-weight: bolder;
 }
 
 .main table td {
@@ -515,6 +582,15 @@ input[type="submit"]:disabled {
 
 .main table tr:nth-child(odd) {
   background-color: #f0f0f0;
+}
+
+.main .hint table tr:nth-child(odd) {
+  background-color: #5b5b5b;
+}
+
+.main .hint table th {
+  background: none;
+  border: none;
 }
 
 .main table.zvyraznovana {
@@ -628,13 +704,13 @@ form table .full {
   width: 99%;
 }
 
-form table .obrazekNahled {
+form table .obrazek_nahled {
   background-image: url('sachy.png');
   padding: 5px;
   text-align: center;
 }
 
-form table .obrazekNahled img {
+form table .obrazek_nahled img {
   margin: -1px 0 -2px 0;
 }
 
@@ -675,14 +751,13 @@ a > .hinted {
 .hint {
   position: absolute;
   display: none;
-  max-width: 250px;
+  max-width: max(95%, 300px);
   width: max-content;
   left: 0;
-  top: 16px;
+  top: 22px;
   background-color: rgba(51, 51, 51, 0.9);
-/ background-color: #333;
-  border: solid 0px #000;
-  padding: 3px;
+  /* background-color: #333; */
+  border: solid 0 #000;
   z-index: 10;
   font-size: 11px;
   color: #fff;
@@ -832,10 +907,6 @@ li.list-header {
   padding: 8px 8px 8px 40px;
 }
 
-button {
-  cursor: pointer;
-}
-
 button .ajax-loader {
   margin-left: 1em;
   vertical-align: middle;
@@ -853,6 +924,428 @@ button .ajax-loader {
   font-family: "Droid Sans Mono", monospace;
 }
 
+.technicke input {
+  word-spacing: -0.3em;
+}
+
 .display-none {
   display: none;
+}
+
+.display-block {
+  display: block;
+}
+
+select:focus {
+  border: antiquewhite 1px solid;
+}
+
+.sticky-pinned {
+  position: -webkit-sticky; /* Safari */
+  position: sticky;
+  top: -1px;
+}
+
+.pinned {
+  background-color: rgba(240, 240, 240, 0.42);
+  z-index: 100;
+}
+
+.kotva {
+  text-decoration: none;
+  color: gray;
+  opacity: 0.6;
+  font-size: smaller;
+}
+
+.kotva::before {
+  /*nelze použít HTML zápis &nbsp;*/
+  content: '\00a0';
+}
+
+.shop-prehled table {
+  width: 100%
+}
+
+
+/*
+Radio musí být ve tvaru:
+
+<label class="radio--container">
+  <input type="radio">
+  <div class="radio--label">
+    text
+  </div>
+  <div class="radio--border"></div>
+</label>
+*/
+
+.radio--container {
+  display: block;
+  --radio-main-color: #0075FF;
+}
+
+.radio--container.radio--container--warning {
+  --radio-main-color: #bdb504;
+}
+
+.radio--container--fill {
+  width: 100%;
+  height: 100%;
+}
+
+.radio--container--square {
+  /* box-sizing: border-box; */
+  /* border: 2px solid var(--radio-main-color); */
+  border-radius: 10px;
+  position: relative;
+}
+
+.radio--container--square .radio--label {
+  box-sizing: border-box;
+  border-radius: 20% / 50%;
+  transition: background-color .1s ease, color .1s ease;
+}
+
+.radio--container--square :checked + .radio--label {
+  border: 1px solid white;
+  background-color: var(--radio-main-color);
+  color: white;
+}
+
+.radio--container--square input[type="radio"] {
+  display: none;
+}
+
+.radio--label {
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  user-select: none;
+}
+
+.radio--border {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  border-radius: 20% / 50%;
+  border: 2px solid var(--radio-main-color);
+  cursor: pointer;
+}
+
+.radio--container--square :disabled + .radio--label {
+  background-color: #f5f5f5;
+}
+
+.radio--container--square :disabled + .radio--label {
+  color: gray;
+}
+
+.radio--container--square :checked:disabled + .radio--label {
+  background-color: gray;
+  color: white;
+}
+
+.radio--container--square :checked ~ .radio--border {
+  cursor: unset;
+}
+
+.radio--container--square :disabled ~ .radio--border {
+  border-color: gray;
+  cursor: not-allowed;
+}
+
+.header-buttons--container-main {
+
+}
+
+
+.header-buttons--container-left {
+  float: left;
+}
+
+.header-buttons--container-left > * {
+  float: left;
+}
+
+.header-buttons--container-right {
+  float: right;
+}
+
+.header-buttons--container-main::after {
+  content: "";
+  clear: both;
+  display: block;
+}
+
+.header-buttons--container-left::after {
+  content: "";
+  clear: both;
+  display: block;
+}
+
+.header-buttons--container-right::after {
+  content: "";
+  clear: both;
+  display: block;
+}
+
+/* Extra small devices (phones, 600px and down) */
+@media only screen and (max-width: 600px) {
+  .header-buttons--container {
+    width: 100%;
+  }
+
+  .header-buttons--container > * {
+    width: 100%;
+  }
+
+  .header-buttons--container > * > * {
+    width: 100%;
+  }
+
+  .header-buttons--container > * input {
+    width: 100%;
+  }
+
+  .header-buttons--container > * {
+    margin-bottom: 8px;
+  }
+}
+
+/* Small devices (portrait tablets and large phones, 600px and up) */
+@media only screen and (min-width: 600px) {
+  .header-buttons--container > * {
+    margin-right: 8px;
+  }
+}
+
+/* Medium devices (landscape tablets, 768px and up) */
+@media only screen and (min-width: 768px) {
+
+}
+
+/* Large devices (laptops/desktops, 992px and up) */
+@media only screen and (min-width: 992px) {
+
+}
+
+/* Extra large devices (large laptops and desktops, 1200px and up) */
+@media only screen and (min-width: 1200px) {
+
+}
+
+
+.infopult-grid--container {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+  align-items: start;
+  grid-template-areas:
+  "přehled"
+  "ubytování"
+  "pokoje"
+  "platba"
+  "prodej"
+  "predmety";
+}
+
+.infopult-grid--item-přehled {
+  grid-area: přehled;
+}
+
+.infopult-grid--item-ubytování {
+  grid-area: ubytování;
+}
+
+.infopult-grid--item-pokoje {
+  grid-area: pokoje;
+}
+
+.infopult-grid--item-platba {
+  grid-area: platba;
+}
+
+.infopult-grid--item-predmety {
+  grid-area: predmety;
+}
+
+.infopult-grid--item-prodej {
+  grid-area: prodej;
+}
+
+
+/* Extra small devices (phones, 600px and down) */
+@media only screen and (max-width: 600px) {
+
+}
+
+/* Small devices (portrait tablets and large phones, 600px and up) */
+@media only screen and (min-width: 600px) {
+  .infopult-grid--item {
+    width: fit-content;
+    min-width: 60%;
+  }
+}
+
+/* Medium devices (landscape tablets, 768px and up) */
+@media only screen and (min-width: 768px) {
+
+}
+
+/* Large devices (laptops/desktops, 992px and up) */
+@media only screen and (min-width: 992px) {
+  .infopult-grid--container {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-areas:
+      "přehled ubytování ubytování"
+      "platba pokoje prodej"
+      ". . predmety";
+  }
+}
+
+/* Extra large devices (large laptops and desktops, 1200px and up) */
+@media only screen and (min-width: 1200px) {
+  .infopult-grid--container {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-areas:
+      "přehled pokoje ubytování"
+      "přehled prodej ubytování"
+      "platba prodej ubytování"
+      "platba prodej predmety";
+  }
+
+  .infopult-grid--item-přehled {
+    font-size: 1.2em;
+  }
+}
+
+
+.uzivatel-grid--container {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+  align-items: start;
+  grid-template-areas:
+  "udaje"
+  "slevy"
+  "jídlo"
+  "objednavky"
+  "prodej"
+  "pokoje"
+  "ubytování";
+}
+
+.uzivatel-grid--item-udaje {
+  grid-area: udaje;
+}
+
+.uzivatel-grid--item-slevy {
+  grid-area: slevy;
+}
+
+.uzivatel-grid--item-jídlo {
+  grid-area: jídlo;
+}
+
+.uzivatel-grid--item-objednavky {
+  grid-area: objednavky;
+}
+
+.uzivatel-grid--item-prodej {
+  grid-area: prodej;
+}
+
+.uzivatel-grid--item-pokoje {
+  grid-area: pokoje;
+}
+
+.uzivatel-grid--item-ubytování {
+  grid-area: ubytování;
+}
+
+
+/* Extra small devices (phones, 600px and down) */
+@media only screen and (max-width: 600px) {
+
+}
+
+/* Small devices (portrait tablets and large phones, 600px and up) */
+@media only screen and (min-width: 600px) {
+  .uzivatel-grid--item {
+    width: fit-content;
+    min-width: 60%;
+  }
+
+  .uzivatel-grid--item-objednavky {
+    width: unset;
+  }
+}
+
+/* Medium devices (landscape tablets, 768px and up) */
+@media only screen and (min-width: 768px) {
+  .uzivatel-grid--container {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-areas:
+      "udaje slevy"
+      "udaje jídlo"
+      "prodej jídlo"
+      "pokoje jídlo"
+      "ubytování ubytování"
+      "objednavky objednavky";
+  }
+}
+
+/* Large devices (laptops/desktops, 992px and up) */
+@media only screen and (min-width: 992px) {
+  .uzivatel-grid--container {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-areas:
+      "udaje slevy objednavky"
+      "udaje jídlo objednavky"
+      "prodej jídlo objednavky"
+      "pokoje jídlo objednavky"
+      "ubytování ubytování objednavky";
+  }
+}
+
+/* Extra large devices (large laptops and desktops, 1200px and up) */
+@media only screen and (min-width: 1200px) {
+
+}
+
+.zobrazit-pri-uzkem {
+  display: none;
+}
+
+.objednavky {
+  width: 100%;
+}
+
+.objednavky td:first-child {
+  text-align: left;
+}
+
+.objednavky td:nth-child(2) {
+  text-align: right;
+}
+
+.objednavky a {
+  color: inherit;
+}
+
+@media (min-width: 1100px) {
+  .vyber-casu {
+    position: absolute;
+    right: 5px;
+    top: -55px;
+  }
+}
+
+.vyber-casu {
+  max-width: 350px;
+  text-align: right;
 }

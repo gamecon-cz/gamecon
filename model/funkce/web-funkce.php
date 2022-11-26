@@ -83,7 +83,8 @@ function varovani(string $zprava, bool $back = true) {
 
 /**
  * Předá oznámení volajícímu skritpu, vyvolá reload
- * @param back bool má se reloadovat?
+ * @param string $zprava
+ * @param bool $back má se reloadovat?
  */
 function oznameni($zprava, $back = true) {
     Chyba::nastav($zprava, Chyba::OZNAMENI);
@@ -103,7 +104,7 @@ function oznameniPresmeruj($zprava, $cil) {
 /** Tisk informace profileru. */
 function profilInfo() {
     if (!PROFILOVACI_LISTA) {
-        return false; // v ostré verzi se neprofiluje
+        return; // v ostré verzi se neprofiluje
     }
     $schema = 'data:image/png;base64,';
     $iDb = $schema . base64_encode(file_get_contents(__DIR__ . '/db.png'));

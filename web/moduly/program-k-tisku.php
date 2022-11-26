@@ -9,5 +9,5 @@ if (!$u) {
 
 $this->blackarrowStyl(true);
 $this->bezStranky(true);
-$program = new Program($u, ['osobni' => $this->param('osobni')]);
+$program = new Program($u, [Program::OSOBNI => $this->param('osobni')]);
 $program->tiskToPrint();

@@ -6,6 +6,22 @@
 <div class="prezence">
 
   <div>{casy}</div>
+  <div style="margin-bottom: 1em">
+    <!-- begin:filtrAktivit -->
+    <form id="filtr-aktivit">
+      <label style="cursor:pointer">
+        Jen zamčené, ale dosud neuzavřené
+        <input type="checkbox" name="zamcene_neuzavrene" value="1"
+               {checked}
+               onchange="document.getElementById('filtr-aktivit').submit()"
+               style="cursor:pointer;">
+        <!-- begin:ostatniFiltry -->
+        <input type="hidden" name="{name}" value="{value}">
+        <!-- end:ostatniFiltry -->
+      </label>
+    </form>
+    <!-- end:filtrAktivit -->
+  </div>
 
   <!-- begin:aktivita -->
   <div class="blokAktivita" data-id="{a.id}">
@@ -21,8 +37,11 @@
           <th>ID</th>
           <th>Jméno</th>
           <th>Telefon</th>
-          <th>
-            <span class="hinted">?<span class="hint">Dorazil účastník na aktivitu?</span></span>
+          <th class="text-center">
+            <span class="hinted">
+              ?
+              <span class="hint">Dorazil účastník na aktivitu?</span>
+            </span>
           </th>
         </tr>
         <!-- begin:ucastnik -->
@@ -55,19 +74,28 @@
           <td>{u.jmenoNick}</td>
           <td>{u.telefon}</td>
           <td>
-            <!-- begin:checkbox --><input type="checkbox" name="dorazil[{u.id}]"><!-- end:checkbox -->
-            <!-- begin:skryty --><input type="hidden" name="dorazil[{u.id}]"><!-- end:skryty -->
+            <!-- begin:dorazil -->
+            <span class="hinted">
+              <i class="fa-solid fa-square-check"></i>
+              <span class="hint">Dorazil</span>
+            </span>
+            <!-- end:dorazil -->
+            <!-- begin:nedorazil -->
+            <span class="hinted">
+              <i class="fa-solid fa-square-xmark"></i>
+              <span class="hint">Nedrazil</span>
+            </span>
+            <!-- end:nedorazil -->
+            <!-- begin:nepotvrzeno -->
+            <span class="hinted">
+              <i class="fa-solid fa-question"></i>
+              <span class="hint">Nepotvrzeno</span>
+            </span>
+            <!-- end:nepotvrzeno -->
           </td>
         </tr>
         <!-- end:ucastnik -->
-        <!-- begin:submit -->
-        <tr>
-          <td colspan="5">
-            <input type="text" class="omnibox"
-                   data-omnibox='{"labelSlozenZ": ["id", "jmenoNick", "mail", "zustatek"], "dataVOdpovedi":["jmenoNick", "telefon"]}'>
-          </td>
-        </tr>
-        <!-- begin:pozorVyplena -->
+        <!-- begin:pozorVyplnena -->
         <tr>
           <td colspan="100%" style="padding: 0">
             <div class="error" style="padding-right: 1em">
@@ -76,22 +104,23 @@
             </div>
           </td>
         </tr>
-        <!-- end:pozorVyplena -->
-        <tr style="background-color: transparent">
-          <td colspan="5"><input type="submit" value="uložit"></td>
+        <!-- end:pozorVyplnena -->
+        <!-- begin:onlinePrezence -->
+        <tr>
+          <td colspan="100%" style="padding: 0">
+            <a href="online-prezence?cas={cas}#{htmlIdAktivity}" type="button" id="otevritOnlinePrezenci"
+               style="display: block; margin: 0"
+               class="ui-button">Vyplnit prezenci <img src="files/design/prezence.png"></a>
+          </td>
         </tr>
-        <!-- end:submit -->
+        <!-- end:onlinePrezence -->
       </table>
     </form>
     <!-- end:form -->
 
-    <!-- begin:vyplnena -->
-    <div class="success">Uloženo OK s účastí {a.obsazenostHtml}</div>
-    <!-- end:vyplnena -->
-
-    <!-- begin:pozorNezamknuta -->
-    <div class="error">Pozor, aktivita není zamknutá pro online registraci a nemá vytištěnou prezenci!</div>
-    <!-- end:pozorNezamknuta -->
+    <!-- begin:pozorNeuzavrena -->
+    <div class="error">Pozor, aktivita nemá uzavřenou prezenci!</div>
+    <!-- end:pozorNeuzavrena -->
 
   </div>
   <!-- end:aktivita -->

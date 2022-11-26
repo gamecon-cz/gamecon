@@ -1,12 +1,12 @@
 <!-- begin: all --><!DOCTYPE html>
 <html lang="cs">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <meta name="viewport" content="width=device-width" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <meta name="viewport" content="width=device-width"/>
   <base href="{base}">
   <title>{pageTitle}</title>
-  <link rel="shortcut icon" href="files/favicon.ico" />
-  <link rel="stylesheet" href="files/design/styl.css?version={cssVersions.styl}" />
+  <link rel="shortcut icon" href="files/favicon.ico"/>
+  <link rel="stylesheet" href="files/design/styl.css?version={cssVersions.styl}"/>
   <link rel="stylesheet" href="files/design/uzky.css?version={cssVersions.uzky}" media="(max-width: 550px)">
   <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-v1.12.1.min.css" />
   <link rel="stylesheet" href="files/design/ui-lightness/jquery-ui-timepicker-addon-1.6.3.min.css" />
@@ -14,6 +14,9 @@
   <link rel="stylesheet" href="files/design/jquery-multiselect/jquery.multiselect.gamecon.css?version=7726af9be4b35c7389767c3225d93d9a" />
   <link rel="stylesheet" href="files/design/jquery-modal/jquery.modal-0.9.1.min.css" />
   <link rel="stylesheet" href="files/design/jquery-modal/jquery.modal.gamecon.css?version=f946305a5585486a6c3448dd9a304720" />
+  <link rel="stylesheet" href="files/design/font-awesome-6.1.1/css/all.min.css">
+  <link rel="stylesheet" href="files/design/font-awesome-6.1.1/css/v4-shims.css">
+
   <script type="text/javascript" src="files/jquery-3.4.1.min.js"></script>
   {jsVyjimkovac}
   <script type="text/javascript" src="files/jquery-ui-v1.12.1.min.js"></script>
@@ -21,42 +24,49 @@
   <script type="text/javascript" src="files/jquery.hotkeys-0.8.0.js"></script>
   <script type="text/javascript" src="files/jquery.serializeobject.js?version=756c72ca3178bfe417882afe5b460406"></script>
   <script type="text/javascript" src="files/jquery.cookie-v1.4.1.js"></script>
-  <script type="text/javascript" src="files/aplikace.js?version=f4a8464b38ba6a06a94a8c1bc881bebc"></script>
-  <script type="text/javascript" src="files/omnibox.js?version=e5cd9171d8ae5178823bdcf81f68b43d"></script>
-  <script type="text/javascript" src="files/jquery.multiselect-2.4.16.js"></script>
+  <script type="text/javascript" src="files/aplikace.js?version={jsVersions.aplikace}"></script>
+  <script type="text/javascript" src="files/omnibox-1.1.3.js"></script>
   <script type="text/javascript" src="files/jquery.multiselect-2.4.16.js"></script>
   <script type="text/javascript" src="files/jquery.modal-0.9.1.min.js"></script>
+  <script type="text/javascript" src="files/jquery.dirty-0.8.3.js"></script>
+  <script type="text/javascript" src="files/prevent-leaving-without-save-1.0.js"></script>
+  <script type="text/javascript" src="files/sticky-pinned-1.0.js"></script>
+  <script type="text/javascript" src="files/keep-scroll-on-reload-1.1.js"></script>
+  <script type="text/javascript" src="files/disable-and-show-loading-on-click-1.1.js"></script>
 </head>
 <body>
-  <div class="obal">
-    <div class="sloupL">
-      <div class="prvniBlok">
-        {FILE "templates/uzivatel.xtpl"}
-      </div>
-      {FILE "templates/menu.xtpl"}
-      {FILE "templates/operator.xtpl"}
-      {FILE "templates/mobmenu.xtpl"}
+<div class="obal">
+  <div class="sloupL">
+    <div class="prvniBlok">
+      {FILE "templates/uzivatel.xtpl"}
     </div>
-    <div class="sloupR">
-      <div class="mobstin"></div>
-      <div class="main">
-        <!-- begin:submenu -->
-        <ul id="submenu" class="submenu-selected-{stranka}">
-          <li><ul class="adm_submenu_group"><!-- begin:polozka -->
-          {break}
-          <li class="adm_submenu_item adm_submenu_item_ord_{order} adm_submenu_item_grp_{group}"><a href="{url}" {add_attributes}>{nazev}</a></li>
-          <!-- end:polozka --></ul></li>
-        </ul>
-        <!-- end:submenu -->
-        <!-- begin: zakazano -->{FILE "templates/zakazano.xtpl"}<!-- end: zakazano -->
-        <!-- begin: nenalezeno -->{FILE "templates/404.xtpl"}<!-- end: nenalezeno -->
-        <!-- begin: prihlaseni -->{FILE "templates/prihlaseni.xtpl"}<!-- end: prihlaseni -->
-        {chyba}
-        {obsahRetezec}
-      </div>
-      {FILE "templates/paticka.xtpl"}
-    </div>
+    {FILE "templates/menu.xtpl"}
+    {FILE "templates/operator.xtpl"}
+    {FILE "templates/mobmenu.xtpl"}
   </div>
+  <div class="sloupR">
+    <div class="mobstin"></div>
+    <div class="main">
+      <!-- begin:submenu -->
+      <ul id="submenu" class="submenu-selected-{stranka}">
+        <li>
+          <ul class="adm_submenu_group"><!-- begin:polozka -->
+            {break}
+            <li class="adm_submenu_item adm_submenu_item_ord_{order} adm_submenu_item_grp_{group}">
+              <a href="{url}" {add_attributes}>{nazev}</a>
+            </li>
+            <!-- end:polozka --></ul>
+        </li>
+      </ul>
+      <!-- end:submenu -->
+      <!-- begin: zakazano -->{FILE "templates/zakazano.xtpl"}<!-- end: zakazano -->
+      <!-- begin: nenalezeno -->{FILE "templates/404.xtpl"}<!-- end: nenalezeno -->
+      {chyba}
+      {obsahRetezec}
+    </div>
+    {FILE "templates/paticka.xtpl"}
+  </div>
+</div>
 </body>
 </html>
 <!-- end: all -->

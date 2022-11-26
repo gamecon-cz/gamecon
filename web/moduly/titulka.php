@@ -1,8 +1,10 @@
 <?php
 
-use \Gamecon\Cas\DateTimeCz;
+use Gamecon\Cas\DateTimeCz;
+use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Cas\DateTimeGamecon;
 
-/** @var XTemplate $t */
+/** @var \Gamecon\XTemplate\XTemplate $t */
 
 $this->blackarrowStyl(true);
 $this->info()
@@ -13,7 +15,7 @@ $this->info()
 
 // linie
 $offsety = [120, 320, 280];
-$typy = serazenePodle(\Gamecon\Aktivita\TypAktivity::zViditelnych(), 'poradi');
+$typy = serazenePodle(TypAktivity::zViditelnych(), 'poradi');
 foreach ($typy as $i => $typ) {
     $t->assign([
         'cislo' => sprintf('%02d', $i + 1),
@@ -56,8 +58,8 @@ if (pred(REG_GC_OD)) {
     $t->parse('titulka.odpocetPrihlasit');
 }
 
-$zacatekGameconu = \Gamecon\Cas\DateTimeGamecon::zacatekGameconu();
-$konecGameconu = \Gamecon\Cas\DateTimeGamecon::konecGameconu();
+$zacatekGameconu = DateTimeGamecon::zacatekGameconu();
+$konecGameconu = DateTimeGamecon::konecGameconu();
 
 // ostatní
 $t->assign([

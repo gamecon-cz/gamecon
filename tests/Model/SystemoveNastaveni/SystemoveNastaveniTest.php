@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Gamecon\Tests\Model\SystemoveNastaveni;
 
@@ -7,14 +9,14 @@ use Gamecon\Tests\Db\DbTest;
 
 class SystemoveNastaveniTest extends DbTest
 {
-    protected static $initData = '
+    protected static string $initData = '
     # uzivatele_hodnoty
     id_uzivatele,login_uzivatele,jmeno_uzivatele,prijmeni_uzivatele
     48,Elden,Jakub,Jandák
   ';
 
     public function testZmenyKurzuEura() {
-        $nastaveni = new SystemoveNastaveni(ROK);
+        $nastaveni = SystemoveNastaveni::vytvorZGlobalnich();
 
         $zaznamKurzuEuro = $nastaveni->dejZaznamyNastaveniPodleKlicu(['KURZ_EURO'])[0];
         /** viz migrace 2022-05-05_03-kurz-euro-do-systemoveho-nastaveni.php */
@@ -32,7 +34,7 @@ class SystemoveNastaveniTest extends DbTest
      * @dataProvider provideVychoziHodnota
      */
     public function testVychoziHodnoty(int $rok, string $klic, string $ocekavanaHodnota) {
-        $nastaveni = new SystemoveNastaveni($rok);
+        $nastaveni = new SystemoveNastaveni($rok, new \DateTimeImmutable($rok . '-12-31 23:59:59'), false, false);
 
         self::assertSame($ocekavanaHodnota, $nastaveni->dejVychoziHodnotu($klic));
     }
@@ -45,6 +47,24 @@ class SystemoveNastaveniTest extends DbTest
             'REG_AKTIVIT_OD' => [2022, 'REG_AKTIVIT_OD', '2022-05-19 20:22:00'],
             'HROMADNE_ODHLASOVANI' => [2022, 'HROMADNE_ODHLASOVANI', '2022-06-30 23:59:00'],
             'HROMADNE_ODHLASOVANI_2' => [2022, 'HROMADNE_ODHLASOVANI_2', '2022-07-17 23:59:00'],
+        ];
+    }
+
+    /**
+     * @dataProvider provideKonecUbytovani
+     */
+    public function testUkoceniUbytovani(string $konecUbytovaniDne, bool $ocekavaneUkoceniProdeje) {
+        define('UBYTOVANI_LZE_OBJEDNAT_A_MENIT_DO_DNE', $konecUbytovaniDne);
+        $nastaveni = new SystemoveNastaveni(ROK, new \DateTimeImmutable(), false, false);
+        self::assertSame($ocekavaneUkoceniProdeje, $nastaveni->prodejUbytovaniUkoncen());
+    }
+
+    public function provideKonecUbytovani() {
+        return [
+            'Byl ukončen' => [
+                (new \DateTimeImmutable())->setTime(0, 0, 0)->modify('-1 second')->format('Y-m-d'),
+                true,
+            ],
         ];
     }
 }

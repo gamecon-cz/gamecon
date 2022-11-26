@@ -1,0 +1,111 @@
+<!-- begin:ubytovani -->
+
+<!-- begin:konec -->
+<p>Možnost objednávek ubytování přes web už skončila. Zbylé postele lze zarezervovat přes e-mail <a
+    href="mailto:info@gamecon.cz">info@gamecon.cz</a>.</p>
+<!-- end:konec -->
+
+<div class="shopUbytovani_tabulka">
+
+  <div class="shopUbytovani_prvniSloupec">
+    <div class="shop_den shopUbytovani_den">&nbsp;</div>
+    <!-- begin:typ -->
+
+    <!-- begin:normal -->
+    <div class="shop_popis shopUbytovani_radek">
+      {typ}
+      <div class="shop_popisCena">{cena}&thinsp;Kč</div>
+    </div>
+    <!-- end:normal -->
+
+    <!-- begin:hinted -->
+    <div class="shop_popis shopUbytovani_radek tooltip">
+      {typ} <span class="shopUbytovani_i"></span>
+      <div class="shop_popisCena">{cena}&thinsp;Kč</div>
+      <div class="tooltip_obsah">{hint}</div>
+    </div>
+    <!-- end:hinted -->
+
+    <!-- end:typ -->
+    <div class="shopUbytovani_zadne">
+      <div class="shop_popis">Žádné</div>
+    </div>
+  </div>
+
+  <!-- begin:den -->
+  <div class="shopUbytovani_sloupec">
+    <div class="shop_den shopUbytovani_den">{den}</div>
+    <!-- begin:typ -->
+    <div class="shopUbytovani_radek">
+      <input type="radio" class="shopUbytovani_radio" name="{postnameDen}" value="{idPredmetu}"
+             data-kapacita="{kapacita}" {checked} {disabled}>
+      <div class="shopUbytovani_kapacita">{obsazeno}/{kapacita}</div>
+    </div>
+    <!-- end:typ -->
+    <div class="shopUbytovani_zadne">
+      <input type="radio" class="shopUbytovani_radio" name="{postnameDen}" value="" data-kapacita="0" {checked}
+             {disabled}>
+    </div>
+  </div>
+  <!-- end:den -->
+
+  <div style="clear: both"></div>
+
+</div>
+
+<div class="shopUbytovani_spolubydlici">
+  Na pokoji chci být s:
+  <input type="text" class="formular_input" name="{postnameSpolubydlici}" value="{spolubydlici}"
+         placeholder="jména oddělená čárkou, nebo nech prázdné">
+</div>
+
+<script type="text/javascript">
+  const shopUbytovaniRadios = document.querySelectorAll('input[type=radio][class=shopUbytovani_radio]')
+  const shopUbytovaniNames = []
+  shopUbytovaniRadios.forEach(function (shopUbytovaniRadio) {
+    if (!shopUbytovaniNames.includes(shopUbytovaniRadio.name)) {
+      shopUbytovaniNames.push(shopUbytovaniRadio.name)
+    }
+  })
+
+  function zapamatujKapacituJakoRucneZvolenou(radioInput) {
+    const zvolenaKapacita = radioInput.dataset.kapacita
+    const radiaJednohoDne = document.querySelectorAll('input[type=radio][class=shopUbytovani_radio][name="' + radioInput.name + '"]')
+    radiaJednohoDne.forEach(radioJednohoDne => radioJednohoDne.dataset.kapacitaZvolenaUzivatelem = zvolenaKapacita)
+  }
+
+  function onShopUbytovaniChange() {
+    zapamatujKapacituJakoRucneZvolenou(this)
+    const zvolenaKapacita = this.dataset.kapacita
+    const zvolenaKapacitaInt = Number.parseInt(zvolenaKapacita)
+    if (zvolenaKapacitaInt === 0) {
+      return
+    }
+    const zvoleneName = this.name
+    const ostatniNames = shopUbytovaniNames.filter(name => name !== zvoleneName)
+    ostatniNames.forEach(function (ostatniName) {
+      const ostatniZvoleneUbytovani = document.querySelector('input[type=radio][class=shopUbytovani_radio][name="' + ostatniName + '"]:checked')
+      if (ostatniZvoleneUbytovani
+        && ostatniZvoleneUbytovani.dataset.kapacitaZvolenaUzivatelem !== undefined
+        && Number.parseInt(ostatniZvoleneUbytovani.dataset.kapacitaZvolenaUzivatelem) === 0
+      ) {
+        return // v tomto dni je uzivatelem rucne vybrano Zadne ubytovani, to nechceme menit
+      }
+      const ostatniStejneUbytovani = document.querySelector('input[type=radio][class=shopUbytovani_radio][name="' + ostatniName + '"][data-kapacita="' + zvolenaKapacita + '"]')
+      if (!ostatniStejneUbytovani.disabled) {
+        ostatniStejneUbytovani.checked = true
+      } else {
+        document.querySelector('input[type=radio][class=shopUbytovani_radio][name="' + ostatniName + '"][data-kapacita="0"]').checked = true // v tomto dni je cilova kapacita jiz vycerpana, vybereme proto Zadne ubytovani (kapacita 0)
+      }
+    })
+  }
+
+  shopUbytovaniRadios.forEach(function (shopUbytovaniRadio) {
+    shopUbytovaniRadio.addEventListener('change', onShopUbytovaniChange)
+    if (shopUbytovaniRadio.checked) {
+      zapamatujKapacituJakoRucneZvolenou(shopUbytovaniRadio)
+    }
+  })
+</script>
+
+<!-- end:ubytovani -->

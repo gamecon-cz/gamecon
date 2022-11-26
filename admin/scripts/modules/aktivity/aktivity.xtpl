@@ -15,7 +15,7 @@
 <!-- begin:aktivovatVse -->
 <form class="submenuAktivovatVse" method="post">
   <input class="tlacitko tlacitko_isDanger" type="submit" name="aktivovatVse" value="aktivovat hromadně"
-    onclick="return window.confirm('Toto aktivuje všechny aktivity označené jako „připravené“ ve všech kategoriích. Určitě?');" />
+         onclick="return window.confirm('Toto aktivuje všechny aktivity označené jako „připravené“ ve všech kategoriích. Určitě?');"/>
 </form>
 <!-- end:aktivovatVse -->
 
@@ -23,32 +23,74 @@
 
 <!-- ilustrace stavů -->
 <style>
-  .maluvka { margin-bottom: 1em; overflow: hidden; text-align: left; }
-  .maluvka .bublina { float: left; max-width: 14.8em; overflow: hidden; }
-  .maluvka .bublina h2 { background-color: #555; color: #fff; border-radius: 8px; text-align: center; padding: 0.5em 0.1em; font-size: 1.2em; font-weight: normal; }
-  .maluvka .bublina > div { margin: -1em 1.5em 0 1.5em; }
-  .maluvka .sipka { float: left; border-top: solid 2px #000; margin: 2.3em 1em; position: relative; padding-top: 0.5em; }
-  .maluvka .sipka span { border: solid 1px #888; border-radius: 2px; background-color: #eee; padding: 0 0.1em; }
-  .maluvka .sipka .zpet { border-top: solid 2px #000; margin: 1em 0 0 0; padding: 0.5em 0 0 0; }
-  .maluvka .sipka::after {
-    position: absolute;
-    top: -9px; right: -12px;
-    content: '';
-    width: 0;
-    height: 0;
-    border: 8px solid transparent;
-    border-left-color: #000;
-  }
-  .maluvka .sipka .zpet::after {
-    position: absolute;
-    margin-top: -1.25em;
-    left: -12px;
-    content: '';
-    width: 0;
-    height: 0;
-    border: 8px solid transparent;
-    border-right-color: #000;
-  }
+    .maluvka {
+        margin-bottom: 1em;
+        overflow: hidden;
+        text-align: left;
+    }
+
+    .maluvka .bublina {
+        float: left;
+        max-width: 14.8em;
+        overflow: hidden;
+    }
+
+    .maluvka .bublina h2 {
+        background-color: #555;
+        color: #fff;
+        border-radius: 8px;
+        text-align: center;
+        padding: 0.5em 0.1em;
+        font-size: 1.2em;
+        font-weight: normal;
+    }
+
+    .maluvka .bublina > div {
+        margin: -1em 1.5em 0 1.5em;
+    }
+
+    .maluvka .sipka {
+        float: left;
+        border-top: solid 2px #000;
+        margin: 2.3em 1em;
+        position: relative;
+        padding-top: 0.5em;
+    }
+
+    .maluvka .sipka span {
+        border: solid 1px #888;
+        border-radius: 2px;
+        background-color: #eee;
+        padding: 0 0.1em;
+    }
+
+    .maluvka .sipka .zpet {
+        border-top: solid 2px #000;
+        margin: 1em 0 0 0;
+        padding: 0.5em 0 0 0;
+    }
+
+    .maluvka .sipka::after {
+        position: absolute;
+        top: -9px;
+        right: -12px;
+        content: '';
+        width: 0;
+        height: 0;
+        border: 8px solid transparent;
+        border-left-color: #000;
+    }
+
+    .maluvka .sipka .zpet::after {
+        position: absolute;
+        margin-top: -1.25em;
+        left: -12px;
+        content: '';
+        width: 0;
+        height: 0;
+        border: 8px solid transparent;
+        border-right-color: #000;
+    }
 </style>
 <div class="maluvka">
   <div class="bublina">
@@ -66,17 +108,21 @@
   </div>
   <div class="bublina">
     <h2>Připravená k aktivaci</h2>
-    <div>je vidět, nedá se na ni přihlašovat, kliknutím na <em>aktivovat hromadně</em> se ale otevře k přihlašování</div>
+    <div>
+      je vidět, nedá se na ni přihlašovat, kliknutím na <em>aktivovat hromadně</em> se ale otevře k přihlašování
+    </div>
   </div>
   <div class="sipka"><span>aktiv</span>ovat</div>
   <div class="bublina">
     <h2>Aktivovaná</h2>
     <div>na aktivitu se dá přihlašovat</div>
-    <div style="text-align:right"><br><br><a href="https://docs.google.com/document/d/1VJfHbHGxxojGu0rDwFwa7i40EJZupzQ9N2cZXO1s0rs/edit" target="_blank">více info</a></div>
+    <div style="text-align:right"><br><br><a
+        href="https://docs.google.com/document/d/1VJfHbHGxxojGu0rDwFwa7i40EJZupzQ9N2cZXO1s0rs/edit" target="_blank">více
+      info</a></div>
   </div>
 </div>
 
-  <!-- begin:smazatTyp -->
+<!-- begin:smazatTyp -->
 <div>
   <form method="post">
     <button type="submit" name="smazatVsechnyTypu" value="1">
@@ -89,99 +135,157 @@
   </form>
 </div>
 <!-- end:smazatTyp -->
-<style> th > a { text-decoration:none; color:#88c; position: relative; top: -2px; left: 2px; } </style>
+<style>
+    table tr:first-child th {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    th > a {
+        text-decoration: none;
+        color: #88c;
+        position: relative;
+        top: -2px;
+        left: 2px;
+    }
+
+    table.aktivity td.tlacitko-aktivity {
+        padding: 0;
+        min-width: 36px;
+    }
+
+    .aktivity button {
+        padding: 0 4px;
+        margin-top: 1px;
+    }
+</style>
 <table class="zvyraznovana aktivity" style="width: 100%">
   <tr>
     <th>
       <span class="hinted">Název<div class="hint">
       Trojúhelníčky slouží k řazení.</div></span>
-      <a href="aktivity?sort=nazev_akce ASC">▲</a>
-      <a href="aktivity?sort=nazev_akce DESC">▼</a>
+      <a href="aktivity?sort=nazev_akce%20ASC">▲</a>
+      <a href="aktivity?sort=nazev_akce%20DESC">▼</a>
     </th>
     <th style="width:120px">
       Čas
-      <a href="aktivity?sort=zacatek ASC">▲</a>
-      <a href="aktivity?sort=zacatek DESC">▼</a>
+      <a href="aktivity?sort=zacatek%20ASC">▲</a>
+      <a href="aktivity?sort=zacatek%20DESC">▼</a>
     </th>
     <th style="width:190px">
       Vypravěč
-      <a href="aktivity?sort=organizatori ASC">▲</a>
-      <a href="aktivity?sort=organizatori DESC">▼</a>
+      <a href="aktivity?sort=organizatori%20ASC">▲</a>
+      <a href="aktivity?sort=organizatori%20DESC">▼</a>
     </th>
     <th style="width:90px">
       Místnost
-      <a href="aktivity?sort=lokace ASC">▲</a>
-      <a href="aktivity?sort=lokace DESC">▼</a>
+      <a href="aktivity?sort=lokace%20ASC">▲</a>
+      <a href="aktivity?sort=lokace%20DESC">▼</a>
     </th>
     <th>
       Typ
-      <a href="aktivity?sort=typ ASC">▲</a>
-      <a href="aktivity?sort=typ DESC">▼</a>
+      <a href="aktivity?sort=typ%20ASC">▲</a>
+      <a href="aktivity?sort=typ%20DESC">▼</a>
     </th>
-    <th><span class="hinted">Ins<div class="hint">
+    <th><span class="hinted">Ins<span class="hint">
       Řetěz znamená, že aktivita je členem nějaké rodiny instancí a ve výpisu webu se zobrazuje pouze jednou a s více nabídkami termínu pro přihlášení.
-    </div></span></th>
-    <th style="width: 180px"><span class="hinted">Akce<div class="hint">
-      <strong>smaž:</strong> nevratné smazání aktivity<br>
-      <strong>uprav:</strong> podrobná editace aktivity na vlastní stránce<br>
+    </span></span></th>
+    <th colspan="5"><span class="hinted">Akce<span class="hint">
+      <i class="fa fa-trash" aria-hidden="true"></i> <strong>smaž:</strong> nevratné smazání aktivity<br>
+      <i class="fa fa-pencil-square-o" aria-hidden="true"></i> <strong>uprav:</strong> podrobná editace aktivity na vlastní stránce<br>
       <strong>inst:</strong> vytvořit novou instanci aktivity (čas příp. místo lze následně měnit v editaci)<br>
       <strong>pub:</strong> publikovat (ukázat) akci na webu<br>
       <strong>přip:</strong> připravit aktivitu k hromadné aktivaci<br>
       <strong>odpři:</strong> zrušit připravení aktivity k hromadné aktivaci<br>
       <strong>aktiv:</strong> aktivovat (otevřít k přihlašování) akci v programu (projevuje se jen pokud jede registrace)
-    </div></span></th>
+    </span></span></th>
   </tr>
-  <!-- begin:aktivita --><tr>
-    <td><span class="{hinted}">{nazev_akce}<!-- begin:hint --><span class="hint">{tagy}</span><!-- end:hint --></span></td>
+  <!-- begin:aktivita -->
+  <tr>
+    <td><span class="{hinted}">{nazev_akce}<!-- begin:hint --><span class="hint">{tagy}</span><!-- end:hint --></span>
+    </td>
     <td>{cas}</td>
     <td>{organizatori}</td>
     <td>{mistnost}</td>
     <td>{typ}</td>
-    <td><!-- begin:symbolInstance -->
-      <img src="files/design/chain-icon.png" />
-    <!-- end:symbolInstance --></td>
     <td>
-      <!-- begin:tlacitka -->
-        <form method="post">
-          <input type="hidden" name="aktivitaId" value="{id_akce}" />
-          <input type="submit" name="smazat" value="smaž"
-            onclick="return window.confirm('Fakt trvale smazat {nazev_akce} (včetně odhlášení všech účastníků)?');" />
-        </form>
-        <form method="get" action="aktivity/upravy">
-          <input type="hidden" name="aktivitaId" value="{id_akce}" />
-          <input type="submit" value="uprav" />
-        </form>
-        <form method="post">
-          <input type="hidden" name="aktivitaId" value="{id_akce}" />
-          <input type="submit" name="instance" value="inst" />
-        </form>
-        <!-- begin:publikovat -->
-        <form method="post">
-          <input type="hidden" name="aktivitaId" value="{id_akce}" />
-           <input type="submit" name="publikovat" value="pub" />
-        </form>
-        <!-- end:publikovat -->
-        <!-- begin:pripravit -->
-        <form method="post" style="margin-left:36px">
-          <input type="hidden" name="aktivitaId" value="{id_akce}" />
-           <input type="submit" name="pripravit" value="přip" />
-        </form>
-        <!-- end:pripravit -->
-        <!-- begin:odpripravit -->
-        <form method="post">
-          <input type="hidden" name="aktivitaId" value="{id_akce}" />
-           <input type="submit" name="odpripravit" value="odpři" />
-        </form>
-        <!-- end:odpripravit -->
-        <!-- begin:aktivovat -->
-        <form method="post">
-          <input type="hidden" name="aktivitaId" value="{id_akce}" />
-           <input type="submit" name="aktivovat" value="aktiv" />
-        </form>
-        <!-- end:aktivovat -->
-      <!-- end:tlacitka -->
+      <!-- begin:symbolInstance -->
+      <img alt="Řetěz instance" src="files/design/chain-icon.png"/>
+      <!-- end:symbolInstance -->
     </td>
+    <!-- begin:tlacitka -->
+    <td class="tlacitko-aktivity">
+      <form method="post">
+        <input type="hidden" name="aktivitaId" value="{id_akce}"/>
+        <button type="submit" name="smazat" value="1" class="no-background-color"
+                title="Smaž"
+                onclick="return window.confirm('Opravdu trvale smazat {nazev_akce} (včetně odhlášení všech účastníků)?');">
+          <i class="fa fa-trash" aria-hidden="true"></i>
+        </button>
+      </form>
+    </td>
+    <td class="tlacitko-aktivity">
+      <form method="get" action="aktivity/upravy">
+        <input type="hidden" name="aktivitaId" value="{id_akce}" title="Uprav"/>
+        <button type="submit" name="uprav" value="1">
+          <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+        </button>
+      </form>
+    </td>
+    <td class="tlacitko-aktivity">
+      <form method="post">
+        <input type="hidden" name="aktivitaId" value="{id_akce}"/>
+        <button type="submit" name="instance" value="1" style="padding-left: 0; padding-right: 0" title="Instancuj">
+          inst
+        </button>
+      </form>
+    </td>
+    <td class="tlacitko-aktivity">
+      <!-- begin:publikovat -->
+      <form method="post">
+        <input type="hidden" name="aktivitaId" value="{id_akce}"/>
+        <button type="submit" name="publikovat" value="1" style="padding-left: 0; padding-right: 0"
+                title="Publikuj na webu">
+          pub
+        </button>
+      </form>
+      <!-- end:publikovat -->
+      <!-- begin:pripravit -->
+      <form method="post">
+        <input type="hidden" name="aktivitaId" value="{id_akce}"/>
+        <button type="submit" name="pripravit" value="1" style="padding-left: 0; padding-right: 0"
+                title="Připrav k hromadné aktivaci">
+          přip
+        </button>
+      </form>
+      <!-- end:pripravit -->
+      <!-- begin:odpripravit -->
+      <form method="post">
+        <input type="hidden" name="aktivitaId" value="{id_akce}"/>
+        <button type="submit" name="odpripravit" value="1"
+                style="padding-left: 0; padding-right: 0; letter-spacing: -1px"
+                title="Zruš připravení k hromadné aktivaci">
+          odpři
+        </button>
+      </form>
+      <!-- end:odpripravit -->
+    </td>
+    <td class="tlacitko-aktivity">
+      <!-- begin:aktivovat -->
+      <form method="post">
+        <input type="hidden" name="aktivitaId" value="{id_akce}"/>
+        <button type="submit" name="aktivovat" value="1" style="padding-left: 0; padding-right: 0; letter-spacing: -1px"
+                title="Otevři k přihlašování">
+          aktiv
+        </button>
+      </form>
+      <!-- end:aktivovat -->
+    </td>
+    <!-- end:tlacitka -->
   </tr><!-- end:aktivita -->
 </table>
-
+<script>
+  scrollToPreviousPosition()
+</script>
 <!-- end:aktivity -->

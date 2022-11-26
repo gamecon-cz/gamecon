@@ -3,8 +3,10 @@
 namespace Gamecon\Admin\Modules\Aktivity\Import;
 
 use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
+use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Aktivita\StavAktivity;
 
 class ImportValuesSanitizer
 {
@@ -54,7 +56,7 @@ class ImportValuesSanitizer
 
         $stepsResults = [];
 
-        /** @var \Aktivita|null $originalActivity */
+        /** @var Aktivita|null $originalActivity */
         $originalActivity = $originalActivityResult->getSuccess();
         $stepsResults[] = $originalActivityResult;
         unset($originalActivityResult);
@@ -100,7 +102,7 @@ class ImportValuesSanitizer
         )->setLastActivityDescription($this->importValuesDescriber->describeActivityByInputValues($inputValues, $originalActivity));
     }
 
-    private function getSanitizedValues(array $inputValues, TypAktivity $singleProgramLine, ?\Aktivita $originalActivity): ImportStepResult {
+    private function getSanitizedValues(array $inputValues, TypAktivity $singleProgramLine, ?Aktivita $originalActivity): ImportStepResult {
         $sanitizedValues = $this->getValuesFromOriginalActivity($originalActivity);
 
         $stepsResults = [];
@@ -308,7 +310,7 @@ class ImportValuesSanitizer
         ]);
     }
 
-    private function getValuesFromOriginalActivity(?\Aktivita $originalActivity): array {
+    private function getValuesFromOriginalActivity(?Aktivita $originalActivity): array {
         if (!$originalActivity) {
             return [];
         }
@@ -329,7 +331,7 @@ class ImportValuesSanitizer
         if (!$originalActivityId) {
             return ImportStepResult::success(null);
         }
-        $originalActivity = \Aktivita::zId($originalActivityId);
+        $originalActivity = Aktivita::zId($originalActivityId);
         if ($originalActivity) {
             return ImportStepResult::success($originalActivity);
         }
@@ -363,13 +365,13 @@ class ImportValuesSanitizer
         ]);
     }
 
-    private function getValidatedStateId(array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
+    private function getValidatedStateId(array $activityValues, ?Aktivita $originalActivity, ?Aktivita $parentActivity): ImportStepResult {
         $stateValue = $activityValues[ExportAktivitSloupce::STAV] ?? null;
         $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
         if ((string)$stateValue === '') {
             return ImportStepResult::success($sourceActivity && $sourceActivity->idStavu() !== null
                 ? $sourceActivity->idStavu()
-                : \Stav::NOVA
+                : StavAktivity::NOVA
             );
         }
         $state = $this->importObjectsContainer->getStateFromValue((string)$stateValue);
@@ -392,7 +394,7 @@ class ImportValuesSanitizer
         ));
     }
 
-    private function getValidatedEquipment(array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
+    private function getValidatedEquipment(array $activityValues, ?Aktivita $originalActivity, ?Aktivita $parentActivity): ImportStepResult {
         $equipmentValue = $activityValues[ExportAktivitSloupce::PRIPRAVA_MISTNOSTI] ?? null;
         if ((string)$equipmentValue === '') {
             $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
@@ -404,7 +406,7 @@ class ImportValuesSanitizer
         return ImportStepResult::success($equipmentValue);
     }
 
-    private function getValidatedMinimalTeamCapacity(bool $forTeam, array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
+    private function getValidatedMinimalTeamCapacity(bool $forTeam, array $activityValues, ?Aktivita $originalActivity, ?Aktivita $parentActivity): ImportStepResult {
         $minimalTeamCapacityValue = $activityValues[ExportAktivitSloupce::MINIMALNI_KAPACITA_TYMU] ?? null;
         $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
         return $this->getValidatedTeamCapacity(
@@ -419,7 +421,7 @@ class ImportValuesSanitizer
         );
     }
 
-    private function getValidatedTeamCapacity(bool $forTeam, ?string $teamCapacityValue, string $capacityName, ?int $capacityOfSourceActivity, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
+    private function getValidatedTeamCapacity(bool $forTeam, ?string $teamCapacityValue, string $capacityName, ?int $capacityOfSourceActivity, ?Aktivita $originalActivity, ?Aktivita $parentActivity): ImportStepResult {
         if ((string)$teamCapacityValue === '') {
             if (!$forTeam && $capacityOfSourceActivity) {
                 return ImportStepResult::error(sprintf(
@@ -456,13 +458,13 @@ class ImportValuesSanitizer
         ));
     }
 
-    private function getValidatedMaximalTeamCapacity(bool $forTeam, array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
+    private function getValidatedMaximalTeamCapacity(bool $forTeam, array $activityValues, ?Aktivita $originalActivity, ?Aktivita $parentActivity): ImportStepResult {
         $maximalTeamCapacityValue = $activityValues[ExportAktivitSloupce::MAXIMALNI_KAPACITA_TYMU] ?? null;
         $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
         return $this->getValidatedTeamCapacity($forTeam, $maximalTeamCapacityValue, 'maximální', $sourceActivity ? $sourceActivity->tymMaxKapacita() : null, $originalActivity, $parentActivity);
     }
 
-    private function getValidatedForTeam(array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
+    private function getValidatedForTeam(array $activityValues, ?Aktivita $originalActivity, ?Aktivita $parentActivity): ImportStepResult {
         $forTeamValue = $activityValues[ExportAktivitSloupce::JE_TYMOVA] ?? null;
         if ((string)$forTeamValue === '') {
             $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
@@ -486,7 +488,7 @@ class ImportValuesSanitizer
         ));
     }
 
-    private function getValidatedStorytellersIds(array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
+    private function getValidatedStorytellersIds(array $activityValues, ?Aktivita $originalActivity, ?Aktivita $parentActivity): ImportStepResult {
         $storytellersString = $activityValues[ExportAktivitSloupce::VYPRAVECI] ?? '';
         if (!$storytellersString) {
             $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
@@ -543,7 +545,7 @@ HTML;
         });
     }
 
-    private function getValidatedLongAnnotation(array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
+    private function getValidatedLongAnnotation(array $activityValues, ?Aktivita $originalActivity, ?Aktivita $parentActivity): ImportStepResult {
         if (!empty($activityValues[ExportAktivitSloupce::DLOUHA_ANOTACE])) {
             return ImportStepResult::success($activityValues[ExportAktivitSloupce::DLOUHA_ANOTACE]);
         }
@@ -554,7 +556,7 @@ HTML;
         );
     }
 
-    private function getValidatedTagIds(array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
+    private function getValidatedTagIds(array $activityValues, ?Aktivita $originalActivity, ?Aktivita $parentActivity): ImportStepResult {
         $tagsString = $activityValues[ExportAktivitSloupce::TAGY] ?? '';
         $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
         if ($tagsString === '' && $sourceActivity) {
@@ -594,7 +596,7 @@ HTML;
         return ImportStepResult::success($tagIds);
     }
 
-    private function getValidatedTagIdsFromActivity(\Aktivita $sourceActivity): ImportStepResult {
+    private function getValidatedTagIdsFromActivity(Aktivita $sourceActivity): ImportStepResult {
         $tagIds = [];
         $invalidTagsValues = [];
         foreach ($sourceActivity->tagy() as $tagValue) {
@@ -614,7 +616,7 @@ HTML;
         return ImportStepResult::success($tagIds);
     }
 
-    private function getValidatedShortAnnotation(array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
+    private function getValidatedShortAnnotation(array $activityValues, ?Aktivita $originalActivity, ?Aktivita $parentActivity): ImportStepResult {
         if (!empty($activityValues[ExportAktivitSloupce::KRATKA_ANOTACE])) {
             return ImportStepResult::success($activityValues[ExportAktivitSloupce::KRATKA_ANOTACE]);
         }
@@ -625,7 +627,7 @@ HTML;
         );
     }
 
-    private function getValidatedInstanceId(?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
+    private function getValidatedInstanceId(?Aktivita $originalActivity, ?Aktivita $parentActivity): ImportStepResult {
         $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
         return ImportStepResult::success($sourceActivity
             ? $sourceActivity->patriPod()
@@ -633,7 +635,7 @@ HTML;
         );
     }
 
-    private function getValidatedYear(?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
+    private function getValidatedYear(?Aktivita $originalActivity, ?Aktivita $parentActivity): ImportStepResult {
         $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
         if (!$sourceActivity) {
             return ImportStepResult::success($this->currentYear);
@@ -656,7 +658,7 @@ HTML;
         return ImportStepResult::success($this->currentYear);
     }
 
-    private function getValidatedWithoutDiscount(array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
+    private function getValidatedWithoutDiscount(array $activityValues, ?Aktivita $originalActivity, ?Aktivita $parentActivity): ImportStepResult {
         $withoutDiscountValue = $activityValues[ExportAktivitSloupce::BEZ_SLEV] ?? null;
         if ((string)$withoutDiscountValue === '') {
             $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
@@ -699,7 +701,7 @@ HTML;
         }
     }
 
-    private function getValidatedUnisexCapacity(array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
+    private function getValidatedUnisexCapacity(array $activityValues, ?Aktivita $originalActivity, ?Aktivita $parentActivity): ImportStepResult {
         $capacityValue = $activityValues[ExportAktivitSloupce::KAPACITA_UNISEX] ?? null;
         if ((string)$capacityValue === '') {
             $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
@@ -721,7 +723,7 @@ HTML;
         ));
     }
 
-    private function getValidatedMenCapacity(array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
+    private function getValidatedMenCapacity(array $activityValues, ?Aktivita $originalActivity, ?Aktivita $parentActivity): ImportStepResult {
         $capacityValue = $activityValues[ExportAktivitSloupce::KAPACITA_MUZI] ?? null;
         if ((string)$capacityValue === '') {
             $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
@@ -743,7 +745,7 @@ HTML;
         ));
     }
 
-    private function getValidatedWomenCapacity(array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
+    private function getValidatedWomenCapacity(array $activityValues, ?Aktivita $originalActivity, ?Aktivita $parentActivity): ImportStepResult {
         $capacityValue = $activityValues[ExportAktivitSloupce::KAPACITA_ZENY] ?? null;
         if ((string)$capacityValue === '') {
             $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
@@ -765,7 +767,7 @@ HTML;
         ));
     }
 
-    private function getValidatedChild(array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
+    private function getValidatedChild(array $activityValues, ?Aktivita $originalActivity, ?Aktivita $parentActivity): ImportStepResult {
         $childrenValue = $activityValues[ExportAktivitSloupce::NASLEDUJICI_SEMIFINALE] ?? null;
         if ((string)$childrenValue === '') {
             $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
@@ -801,7 +803,7 @@ HTML;
                     );
                     continue;
                 }
-                $child = \Aktivita::zId($childId, true);
+                $child = Aktivita::zId($childId, true);
                 if (!$child) {
                     $errorLikeWarnings[] = sprintf(
                         "Neznámé ID aktivity '%d' (%s). Pro %s nebylo použito.",
@@ -823,7 +825,7 @@ HTML;
                 }
                 $childrenIds[] = $childId;
             } else {
-                $children = \Aktivita::zNazvuARoku($childValue, $this->currentYear);
+                $children = Aktivita::zNazvuARoku($childValue, $this->currentYear);
                 if (!$children) {
                     $errorLikeWarnings[] = sprintf(
                         "Neznámá aktivita '%s' pro %s. Pro rok %d nebyla rozpoznána ani podle ID, ani podle názvu.",
@@ -844,7 +846,7 @@ HTML;
         return ImportStepResult::success($childrenIdsForSql);
     }
 
-    private function getValidatedPrice(array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
+    private function getValidatedPrice(array $activityValues, ?Aktivita $originalActivity, ?Aktivita $parentActivity): ImportStepResult {
         $priceValue = $activityValues[ExportAktivitSloupce::CENA] ?? null;
         if ((string)$priceValue === '') {
             $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
@@ -866,7 +868,7 @@ HTML;
         ));
     }
 
-    private function getValidatedLocationId(array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
+    private function getValidatedLocationId(array $activityValues, ?Aktivita $originalActivity, ?Aktivita $parentActivity): ImportStepResult {
         $locationValue = $activityValues[ExportAktivitSloupce::MISTNOST] ?? null;
         if (!$locationValue) {
             $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
@@ -888,7 +890,7 @@ HTML;
         );
     }
 
-    private function getValidatedStart(array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
+    private function getValidatedStart(array $activityValues, ?Aktivita $originalActivity, ?Aktivita $parentActivity): ImportStepResult {
         $startValue = $activityValues[ExportAktivitSloupce::ZACATEK] ?? null;
         if (!$startValue) {
             $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
@@ -913,7 +915,7 @@ HTML;
         return $this->createDateTimeFromRangeBorder($activityValues[ExportAktivitSloupce::DEN], $activityValues[ExportAktivitSloupce::ZACATEK], 'začátek');
     }
 
-    private function getValidatedEnd(array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
+    private function getValidatedEnd(array $activityValues, ?Aktivita $originalActivity, ?Aktivita $parentActivity): ImportStepResult {
         $activityEndValue = $activityValues[ExportAktivitSloupce::KONEC] ?? null;
         if (!$activityEndValue) {
             $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
@@ -1001,7 +1003,7 @@ HTML;
         return ImportStepResult::success($dateTime->formatDb());
     }
 
-    private function getValidatedUrl(array $activityValues, ?\Aktivita $originalActivity): ImportStepResult {
+    private function getValidatedUrl(array $activityValues, ?Aktivita $originalActivity): ImportStepResult {
         $activityUrl = $activityValues[ExportAktivitSloupce::URL] ?? null;
         if (!$activityUrl) {
             if ($originalActivity) {
@@ -1017,7 +1019,7 @@ HTML;
     }
 
     private function getValidatedParentActivity(string $url, TypAktivity $singleProgramLine): ImportStepResult {
-        return ImportStepResult::success(\Aktivita::moznaHlavniAktivitaPodleUrl($url, $this->currentYear, $singleProgramLine->id()));
+        return ImportStepResult::success(Aktivita::moznaHlavniAktivitaPodleUrl($url, $this->currentYear, $singleProgramLine->id()));
     }
 
     private function toUrl(string $value): string {
@@ -1025,7 +1027,7 @@ HTML;
         return preg_replace('~\W+~', '-', $sanitized);
     }
 
-    private function getValidatedActivityName(array $activityValues, ?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ImportStepResult {
+    private function getValidatedActivityName(array $activityValues, ?Aktivita $originalActivity, ?Aktivita $parentActivity): ImportStepResult {
         $activityNameValue = $activityValues[ExportAktivitSloupce::NAZEV] ?? null;
         if (!$activityNameValue) {
             $sourceActivity = $this->getSourceActivity($originalActivity, $parentActivity);
@@ -1036,7 +1038,7 @@ HTML;
         return ImportStepResult::success($activityNameValue);
     }
 
-    private function getSourceActivity(?\Aktivita $originalActivity, ?\Aktivita $parentActivity): ?\Aktivita {
+    private function getSourceActivity(?Aktivita $originalActivity, ?Aktivita $parentActivity): ?Aktivita {
         return $originalActivity ?: $parentActivity;
     }
 

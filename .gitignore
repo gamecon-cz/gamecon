@@ -19,12 +19,13 @@
 !/web/soubory/blackarrow
 !/web/soubory/styl
 !/web/soubory/*.js
-!/web/soubory/systemove
 !/web/soubory/ui
 /web/soubory/**/*.js.map
+!/web/soubory/systemove
 /web/soubory/systemove/*/*
 !/web/soubory/systemove/*/.gitkeep
 !/web/soubory/systemove/*/.htaccess
+*.map
 
 /nasad.log
 /.htdeployment

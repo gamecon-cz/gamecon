@@ -1,13 +1,17 @@
 <!-- begin:operator -->
 <div class="operator">
-  <b>Přihlášen{a} jako</b><br>
-  {operator}
+  <label for="omniboxUzivatel">
+    <b>Přihlášen{a} jako</b><br>
+    {operator}
+  </label>
   <!-- begin:prepnutiUzivatele -->
   <form method="post">
     <input type="hidden" name="prihlasitSeJakoUzivatel" value="1">
     <span class="hinted">
-      <input id="omnibox" class="omnibox autosubmit" type="text" name="id" style="max-width: 95%">
-      <span class="hint" style="max-width: 85%">↑ vyberte uživatele: napište pár písmen přezdívky, jména, příjmení nebo ID (alt+U)</span>
+      <input id="omniboxUzivatel" class="omnibox autosubmit" type="text" name="id" style="max-width: 95%" data-omnibox="{dataOmniboxJson}">
+      <span class="hint" style="max-width: 85%">
+        ↑ vyber uživatele: napiš pár písmen přezdívky, jména, příjmení nebo ID
+      </span>
     </span>
   </form>
   <!-- end:prepnutiUzivatele -->

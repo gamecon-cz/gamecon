@@ -1,4 +1,5 @@
 <?php
+use Gamecon\XTemplate\XTemplate;
 
 /**
  * Stránka s linky na reporty
@@ -11,18 +12,18 @@
  */
 
 $pouzitiReportu = static function (array $r): array {
-  return [
-    'jmeno_posledniho_uzivatele' => $r['id_posledniho_uzivatele']
-      ? (new Uzivatel(dbOneLine('SELECT * FROM uzivatele_hodnoty WHERE id_uzivatele=' . $r['id_posledniho_uzivatele'])))->jmenoNick()
-      : '',
-    'cas_posledniho_pouziti' => $r['cas_posledniho_pouziti']
-      ? (new DateTime($r['cas_posledniho_pouziti'], new DateTimeZone($r['casova_zona_posledniho_pouziti'])))->format('j. m. Y H:m:s')
-      : '',
-    'pocet_pouziti' => $r['pocet_pouziti']
-  ];
+    return [
+        'jmeno_posledniho_uzivatele' => $r['id_posledniho_uzivatele']
+            ? (new Uzivatel(dbOneLine('SELECT * FROM uzivatele_hodnoty WHERE id_uzivatele=' . $r['id_posledniho_uzivatele'])))->jmenoNick()
+            : '',
+        'cas_posledniho_pouziti' => $r['cas_posledniho_pouziti']
+            ? (new DateTime($r['cas_posledniho_pouziti'], new DateTimeZone($r['casova_zona_posledniho_pouziti'])))->format('j. m. Y H:m:s')
+            : '',
+        'pocet_pouziti' => $r['pocet_pouziti'],
+    ];
 };
 
-$t = new XTemplate('reporty.xtpl');
+$t = new XTemplate(__DIR__ . '/reporty.xtpl');
 
 $univerzalniReporty = dbFetchAll(<<<SQL
 SELECT reporty.*,
@@ -30,7 +31,7 @@ SELECT reporty.*,
        reporty_log_pouziti.cas_pouziti AS cas_posledniho_pouziti,
        reporty_log_pouziti.casova_zona AS casova_zona_posledniho_pouziti
 FROM (
-  SELECT skript, nazev, format_csv, format_html,
+  SELECT skript, nazev, format_xlsx, format_html,
         COUNT(reporty_log_pouziti.id) AS pocet_pouziti,
         MAX(reporty_log_pouziti.id) AS id_posledniho_logu
   FROM reporty
@@ -40,25 +41,26 @@ FROM (
   GROUP BY reporty.id
 ) AS reporty
 LEFT JOIN reporty_log_pouziti ON reporty_log_pouziti.id = id_posledniho_logu
+ORDER BY reporty.nazev
 SQL
 );
 
 foreach ($univerzalniReporty as $r) {
-  $pouziti = $pouzitiReportu($r);
-  $kontext = [
-    'nazev' => str_replace('{ROK}', ROK, $r['nazev']),
-    'html' => $r['format_html']
-      ? '<a href="reporty/' . $r['skript'] . (strpos('?', $r['skript']) === false ? '?' : '&') . 'format=html" target="_blank">html</a>'
-      : '',
-    'csv' => $r['format_csv']
-      ? '<a href="reporty/' . $r['skript'] . (strpos('?', $r['skript']) === false ? '?' : '&') . 'format=csv">csv</a>'
-      : '',
-    'jmeno_posledniho_uzivatele' => $pouziti['jmeno_posledniho_uzivatele'],
-    'cas_posledniho_pouziti' => $pouziti['cas_posledniho_pouziti'],
-    'pocet_pouziti' => $pouziti['pocet_pouziti'],
-  ];
-  $t->assign($kontext);
-  $t->parse('reporty.report');
+    $pouziti = $pouzitiReportu($r);
+    $kontext = [
+        'nazev' => str_replace('{ROK}', ROK, $r['nazev']),
+        'html' => $r['format_html']
+            ? '<a href="reporty/' . $r['skript'] . (strpos('?', $r['skript']) === false ? '?' : '&') . 'format=html" target="_blank">html</a>'
+            : '',
+        'xlsx' => $r['format_xlsx']
+            ? '<a href="reporty/' . $r['skript'] . (strpos('?', $r['skript']) === false ? '?' : '&') . 'format=xlsx">xlsx</a>'
+            : '',
+        'jmeno_posledniho_uzivatele' => $pouziti['jmeno_posledniho_uzivatele'],
+        'cas_posledniho_pouziti' => $pouziti['cas_posledniho_pouziti'],
+        'pocet_pouziti' => $pouziti['pocet_pouziti'],
+    ];
+    $t->assign($kontext);
+    $t->parse('reporty.report');
 }
 
 $quickReporty = dbFetchAll(<<<SQL
@@ -81,16 +83,16 @@ ORDER BY nazev
 SQL
 );
 foreach ($quickReporty as $r) {
-  $pouziti = $pouzitiReportu($r);
-  $kontext = [
-    'id' => $r['id'],
-    'nazev' => $r['nazev'],
-    'jmeno_posledniho_uzivatele' => $pouziti['jmeno_posledniho_uzivatele'],
-    'cas_posledniho_pouziti' => $pouziti['cas_posledniho_pouziti'],
-    'pocet_pouziti' => $pouziti['pocet_pouziti'],
-  ];
-  $t->assign($kontext);
-  $t->parse('reporty.quick');
+    $pouziti = $pouzitiReportu($r);
+    $kontext = [
+        'id' => $r['id'],
+        'nazev' => $r['nazev'],
+        'jmeno_posledniho_uzivatele' => $pouziti['jmeno_posledniho_uzivatele'],
+        'cas_posledniho_pouziti' => $pouziti['cas_posledniho_pouziti'],
+        'pocet_pouziti' => $pouziti['pocet_pouziti'],
+    ];
+    $t->assign($kontext);
+    $t->parse('reporty.quick');
 }
 
 $t->parse('reporty');

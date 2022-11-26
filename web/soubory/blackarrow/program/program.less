@@ -145,8 +145,8 @@
   background-color: #65D161;
 }
 
-.program tbody .nahradnik,
-.program_legenda_typ.nahradnik::before {
+.program tbody .sledujici,
+.program_legenda_typ.sledujici::before {
   background-color: #E5E891;
 }
 
@@ -172,7 +172,7 @@
   opacity: 1;
 }
 
-.program_legenda_typ.nahradnik::before {
+.program_legenda_typ.sledujici::before {
   opacity: 1;
 }
 
@@ -259,18 +259,18 @@
 }
 
 .program td div.prihlasen,
-.program td div.nahradnik,
+.program td div.sledujici,
 .program td div.organizator {
   position: relative;
 }
 
-.program .nahradnik form a:before {
-  content  : "odsledovat";
+.program .sledujici form a:before {
+  content  : "zrušit sledování";
   display  : inline-block;
   font-size: 12px;
 }
 
-.program .nahradnik form a {
+.program .sledujici form a {
   display    : inline-block;
   white-space: nowrap;
   width      : 0;

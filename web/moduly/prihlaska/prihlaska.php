@@ -1,9 +1,14 @@
 <?php
 
-use \Gamecon\Cas\DateTimeCz;
+use Gamecon\Cas\DateTimeCz;
+use Gamecon\Shop\Shop;
+use Gamecon\Cas\DateTimeGamecon;
 
-/** @var XTemplate $t */
-/** @var Uzivatel $u */
+/**
+ * @var \Gamecon\XTemplate\XTemplate $t
+ * @var Uzivatel $u
+ * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
+ */
 
 $this->pridejJsSoubor('soubory/blackarrow/prihlaska/prihlaska.js');
 $this->blackarrowStyl(true);
@@ -40,11 +45,17 @@ if (post('pridatPotvrzeniProtiCovidu')) {
     }
 }
 
+if (po(GC_BEZI_DO)) {
+    $t->assign('rok', ROK + 1);
+    $t->parse('prihlaskaPo');
+    return;
+}
+
 if (GC_BEZI || ($u && $u->gcPritomen())) {
     // zpřístupnit varianty mimo registraci i pro nepřihlášeného uživatele kvůli
     // příchodům z titulky, menu a podobně
     if (VYZADOVANO_COVID_POTVRZENI && $u) {
-        $t->assign('covidSekce', $covidSekceFunkce(new Shop($u)));
+        $t->assign('covidSekce', $covidSekceFunkce(new Shop($u, null, $systemoveNastaveni)));
         $t->parse('prihlaskaUzavrena.covidSekce.doklad');
         $letosniRok = (int)date('Y');
         if (!$u->maNahranyDokladProtiCoviduProRok($letosniRok) && !$u->maOverenePotvrzeniProtiCoviduProRok($letosniRok)) {
@@ -73,17 +84,11 @@ if (pred(REG_GC_OD)) {
     return;
 }
 
-if (po(REG_GC_DO)) {
-    $t->assign('rok', ROK + 1);
-    $t->parse('prihlaskaPo');
-    return;
-}
-
-$shop = new Shop($u);
+$shop  = new Shop($u, null, $systemoveNastaveni);
 $pomoc = new Pomoc($u);
 
 if (post('odhlasit')) {
-    $u->gcOdhlas();
+    $u->gcOdhlas($u);
     oznameni(hlaska('odhlaseniZGc', $u));
 }
 
@@ -91,7 +96,7 @@ if (post('prihlasitNeboUpravit')) {
     $prihlasovani = false;
     if (!$u->gcPrihlasen()) {
         $prihlasovani = true;
-        $u->gcPrihlas();
+        $u->gcPrihlas($u);
     }
     $shop->zpracujPredmety();
     $shop->zpracujUbytovani();
@@ -117,7 +122,7 @@ if ($slevy) {
     $t->parse('prihlaska.slevy');
 }
 
-$t->assign('ka', $u->koncA() ? 'ka' : '');
+$t->assign('ka', $u->koncovkaDlePohlavi() ? 'ka' : '');
 if ($u->maPravo(P_UBYTOVANI_ZDARMA)) {
     $t->parse('prihlaska.ubytovaniInfoOrg');
 } else if ($u->maPravo(P_ORG_AKTIVIT) && !$u->maPravo(P_NEMA_BONUS_ZA_AKTIVITY)) {
@@ -139,46 +144,55 @@ $nahledy = [
 ];
 foreach ($nahledy as $nahled) {
     $cestaKObrazku = cestaKObrazkuPredmetu($nahled['obrazek']);
-    $chybiObrazek = false;
+    $chybiObrazek  = false;
     try {
         $obrazek = nahledPredmetu($cestaKObrazku);
     } catch (\RuntimeException $runtimeException) {
-        $obrazek = $cestaKObrazku;
+        $obrazek      = $cestaKObrazku;
         $chybiObrazek = true;
     }
 
     $cestaKMiniature = cestaKObrazkuPredmetu($nahled['miniatura']);
-    $chybiMiniatura = false;
+    $chybiMiniatura  = false;
     try {
         $miniatura = nahledPredmetu($cestaKMiniature);
     } catch (\RuntimeException $runtimeException) {
-        $miniatura = $cestaKObrazku;
+        $miniatura      = $cestaKObrazku;
         $chybiMiniatura = true;
     }
 
     $t->assign([
-        'obrazek' => $obrazek,
+        'obrazek'   => $obrazek,
         'miniatura' => $miniatura,
-        'nazev' => $nahled['nazev'],
-        'display' => ($chybiObrazek || $chybiMiniatura) && (!$u || !$u->maPravo(\Gamecon\Pravo::ADMINISTRACE_UVOD))
+        'nazev'     => $nahled['nazev'],
+        'display'   => ($chybiObrazek || $chybiMiniatura) && (!$u || !$u->maPravo(\Gamecon\Pravo::ADMINISTRACE_INFOPULT))
             ? 'none'
             : 'inherit',
     ]);
     $t->parse('prihlaska.nahled');
 }
 
+$qrObrazekProPlatbu = $u->finance()->dejQrKodProPlatbu();
+
 $t->assign([
-    'a' => $u->koncovkaDlePohlavi(),
-    'jidlo' => $shop->jidloHtml(),
-    'predmety' => $shop->predmetyHtml(),
-    'rok' => ROK,
-    'ubytovani' => $shop->ubytovaniHtml(),
-    'covidSekce' => VYZADOVANO_COVID_POTVRZENI ? $covidSekceFunkce($shop) : '',
-    'ulozitNeboPrihlasit' => $u->gcPrihlasen()
+    'a'                               => $u->koncovkaDlePohlavi(),
+    'jidlo'                           => $shop->jidloHtml(),
+    'jidloObjednatelneDo'             => $shop->jidloObjednatelneDoHtml(),
+    'predmety'                        => $shop->predmetyHtml(),
+    'trickaObjednatelnaDo'            => $shop->trickaObjednatelnaDoHtml(),
+    'predmetyBezTricekObjednatelneDo' => $shop->predmetyBezTricekObjednatelneDoHtml(),
+    'rok'                             => ROK,
+    'ubytovani'                       => $shop->ubytovaniHtml(),
+    'ubytovaniObjednatelneDo'         => $shop->ubytovaniObjednatelneDoHtml(),
+    'covidSekce'                      => VYZADOVANO_COVID_POTVRZENI ? $covidSekceFunkce($shop) : '',
+    'qrPlatbaMimeType'                => $qrObrazekProPlatbu->getMimeType(),
+    'qrPlatbaBase64'                  => base64_encode($qrObrazekProPlatbu->getString()),
+    'ulozitNeboPrihlasit'             => $u->gcPrihlasen()
         ? 'Uložit změny'
         : 'Přihlásit na GameCon',
-    'vstupne' => $shop->vstupneHtml(),
-    'pomoc' => $pomoc->html(),
+    'vstupne'                         => $shop->vstupneHtml(),
+    'pomoc'                           => $pomoc->html(),
+    'zaplatitNejpozdejiDo'            => DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani()->format('j. n.'),
 ]);
 
 $t->parse($u->gcPrihlasen()

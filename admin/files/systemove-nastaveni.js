@@ -131,7 +131,7 @@ class SystemoveNastaveni {
       if (request.status >= 200 && request.status < 300) {
         callableOnSuccess(JSON.parse(request.responseText))
       } else {
-        callableOnFailure()
+        callableOnFailure(JSON.parse(request.responseText))
       }
     })
 

@@ -3,16 +3,6 @@
 
 Web a informační systém festivalu nepočítačových her [GameCon](https://gamecon.cz).
 
-TODO: linter
-TODO: revidovat názvosloví
-TODO: návod na práci s ui BUILDING Vývoj atd.
-TODO: pro api používat normalizovaný čas třeba unix timestamp
-TODO: Vytvořit zálohy node_modules pro případ nekompatabilní změny balíčku a smazání staré verze
-TODO: program/muj_program při refreshi vrací nenalezeno. Preact by měl mít pod kontrolou komplet url za program/
-TODO: legendaText by nemělo být html
-TODO: uklidit duplicitní less styly.
-
-
 ## Návod na rozjetí
 
 Návod je určený pro Windows, v Linuxu by mělo stačit nainstalovat všechno z balíčků a nastavit podle návodu.

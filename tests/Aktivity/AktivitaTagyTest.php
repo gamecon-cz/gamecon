@@ -3,11 +3,12 @@
 namespace Gamecon\Tests\Aktivity;
 
 use Gamecon\Tests\Db\DbTest;
+use Gamecon\Aktivita\Aktivita;
 
 class AktivitaTagyTest extends DbTest
 {
 
-  protected static $initData = '
+  protected static string $initData = '
     # akce_seznam
     id_akce, patri_pod
     1,       null
@@ -39,9 +40,9 @@ class AktivitaTagyTest extends DbTest
    */
   public function testNastaveni(int $idNastavovaneAktivity, int $idCteneAktivity, array $nastaveneTagy)
   {
-    $a = \Aktivita::zId($idNastavovaneAktivity);
+    $a = Aktivita::zId($idNastavovaneAktivity);
     $a->nastavTagy($nastaveneTagy);
-    $b = \Aktivita::zId($idCteneAktivity);
+    $b = Aktivita::zId($idCteneAktivity);
     self::assertEquals(self::getSortedCopy($nastaveneTagy), self::getSortedCopy($b->tagy()),
       "Tagy nastavené aktivitě $idNastavovaneAktivity musí odpovídat tagům přečteným z aktivity $idCteneAktivity."
     );
@@ -63,7 +64,7 @@ class AktivitaTagyTest extends DbTest
    */
   public function testKopiePriInstanciaci(int $idAktivity, $_, array $tagy)
   {
-    $a = \Aktivita::zId($idAktivity);
+    $a = Aktivita::zId($idAktivity);
     $a->nastavTagy($tagy);
     $b = $a->instancuj();
     self::assertEquals(

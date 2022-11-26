@@ -1,9 +1,10 @@
 <?php
 
+use Gamecon\XTemplate\XTemplate;
+
 require __DIR__ . '/../nastaveni/zavadec.php';
 
 /** získáme @var array|string[] $protipy */
-require_once __DIR__ . '/scripts/konstanty.php'; // lokální konstanty pro admin
 require_once __DIR__ . '/scripts/admin-menu.php'; // třída administračního menu
 
 if (HTTPS_ONLY) {
@@ -12,68 +13,86 @@ if (HTTPS_ONLY) {
 
 // nastaví uživatele $u a $uPracovni
 require __DIR__ . '/scripts/prihlaseni.php';
-
 /**
  * @var Uzivatel|void|null $u
  * @var Uzivatel|void|null $uPracovni
  */
 
 $pageTitle = 'GameCon – Administrace';
+
+global $systemoveNastaveni;
+if ($systemoveNastaveni instanceof Gamecon\SystemoveNastaveni\SystemoveNastaveni) {
+    if ($systemoveNastaveni->jsmeNaBete()) {
+        $pageTitle = 'β ' . $pageTitle;
+    } elseif ($systemoveNastaveni->jsmeNaLocale()) {
+        $pageTitle = 'α ' . $pageTitle;
+    }
+}
 // xtemplate inicializace
 $xtpl = new XTemplate(__DIR__ . '/templates/main.xtpl');
 $xtpl->assign([
-    'pageTitle' => $pageTitle,
-    'base' => URL_ADMIN . '/',
+    'pageTitle'   => $pageTitle,
+    'base'        => URL_ADMIN . '/',
     'cssVersions' => new \Gamecon\Web\VerzeSouboru(__DIR__ . '/files/design', 'css'),
+    'jsVersions'  => new \Gamecon\Web\VerzeSouboru(__DIR__ . '/files', 'js'),
 ]);
 
+[$stranka, $podstranka] = parseRoute();
+
 // nastavení stránky, prázdná url => přesměrování na úvod
-if (!get('req')) {
-    back('uvod');
+if (!$stranka) {
+    if ($u) {
+        if ($u->jeOrganizator()) {
+            back(URL_ADMIN . '/' . basename(__DIR__ . '/scripts/modules/uzivatel.php', '.php'));
+        }
+        if ($u->maPravo(\Gamecon\Pravo::ADMINISTRACE_INFOPULT)) {
+            back(URL_ADMIN . '/' . basename(__DIR__ . '/scripts/modules/infopult.php', '.php'));
+        }
+        back(URL_ADMIN . '/' . basename(__DIR__ . '/scripts/modules/moje-aktivity'));
+    }
 }
-$req = explode('/', get('req'));
-$stranka = $req[0];
-$podstranka = isset($req[1]) ? $req[1] : '';
 
 // zobrazení stránky
 if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
-    $chyba = chyba::vyzvedniChybu();
-    $xtpl->assign('chyba', $chyba ? '<div class="error">' . $chyba . '</div>' : '');
-    $xtpl->parse('all.prihlaseni');
-    $xtpl->parse('all');
-    $xtpl->out('all');
+    require __DIR__ . '/login.php';
     profilInfo();
+    return;
 } elseif (is_file(__DIR__ . '/scripts/zvlastni/' . $stranka . '.php')) {
     chdir(__DIR__ . '/scripts/zvlastni/');
     require($stranka . '.php');
 } elseif (is_file(__DIR__ . '/scripts/zvlastni/' . $stranka . '/' . $podstranka . '.php')) {
     chdir(__DIR__ . '/scripts/zvlastni/' . $stranka);
     require($podstranka . '.php');
+} elseif ($stranka == "api") {
+    chdir(__DIR__ . '/scripts/api/');
+    require($podstranka . '.php');
 } else {
     // načtení menu
     $menuObject = new AdminMenu('./scripts/modules/');
-    $menu = $menuObject->pole();
+    $menu       = $menuObject->pole();
 
     // načtení submenu
-    $submenu = [];
+    $submenu       = [];
     $submenuObject = null;
     if (!empty($menu[$stranka]['submenu'])) {
         $submenuObject = new AdminMenu('./scripts/modules/' . $stranka . '/', true);
-        $submenu = $submenuObject->pole();
+        $submenu       = $submenuObject->pole();
     }
 
     // zjištění práv na zobrazení stránky
-    $strankaExistuje = isset($menu[$stranka]);
+    $strankaExistuje    = isset($menu[$stranka]);
     $podstrankaExistuje = isset($submenu[$podstranka]);
-    $uzivatelMaPristup = ($strankaExistuje && $podstrankaExistuje && $u->maPravo($submenu[$podstranka]['pravo']))
-        || ($strankaExistuje && !$podstrankaExistuje && $u->maPravo($menu[$stranka]['pravo']));
+    $uzivatelMaPristup  = $strankaExistuje
+        && (($podstrankaExistuje && $u->maPravo($submenu[$podstranka]['pravo']))
+            || (!$podstrankaExistuje && $u->maPravo($menu[$stranka]['pravo']))
+        );
 
     // konstrukce stránky
     if ($strankaExistuje && $uzivatelMaPristup) {
-        $_SESSION['id_admin'] = $u->id(); // součást interface starých modulů
+        $_SESSION['id_admin']     = $u->id(); // součást interface starých modulů
         $_SESSION['id_uzivatele'] = $uPracovni ? $uPracovni->id() : null; // součást interface starých modulů
-        $BEZ_DEKORACE = false;
-        $cwd = getcwd(); // uložíme si aktuální working directory pro pozdější návrat
+        $BEZ_DEKORACE             = false;
+        $cwd                      = getcwd(); // uložíme si aktuální working directory pro pozdější návrat
         if ($submenu) {
             chdir('./scripts/modules/' . $stranka . '/');
             $soubor = $podstranka && $podstrankaExistuje
@@ -81,7 +100,7 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
                 : $cwd . '/' . $submenu[$stranka]['soubor'];
         } else {
             chdir('./scripts/modules/');
-            $soubor = $cwd . '/' . $menu[$stranka]['soubor'];
+            $soubor    = $cwd . '/' . $menu[$stranka]['soubor'];
             $pageTitle .= ' | ' . $menu[$stranka]['nazev'];
         }
         ob_start(); // výstup uložíme do bufferu
@@ -104,8 +123,17 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
         }
     } elseif ($strankaExistuje && !$uzivatelMaPristup) {
         http_response_code(403);
+        if ($u) {
+            $xtpl->assign('a', $u->koncovkaDlePohlavi());
+            $xtpl->assign('login', $u->login());
+            $xtpl->parse('all.zakazano.kdoJsi');
+        }
         $xtpl->parse('all.zakazano');
     } else {
+        $stareRouty = include __DIR__ . '/stare-routy.php';
+        if ($novaRouta = $stareRouty[$stranka] ?? false) {
+            back(URL_ADMIN . '/' . $novaRouta);
+        }
         http_response_code(404);
         $xtpl->parse('all.nenalezeno');
     }
@@ -113,13 +141,17 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
     // operátor - info & odhlašování
     $xtpl->assign('a', $u->koncovkaDlePohlavi());
     $xtpl->assign('operator', $u->jmenoNick());
-    if ($u->isSuperAdmin()) {
+    if ($u && ($u->jeSuperAdmin() || $u->jeInfopultak())) {
+        $dataOmnibox = [];
+        if ($u->jeInfopultak()) {
+            $dataOmnibox['jenSeZidlemi'] = [\Gamecon\Zidle::VYPRAVEC, \Gamecon\Zidle::PARTNER];
+        }
+        $xtpl->assign('dataOmniboxJson', htmlspecialchars(json_encode($dataOmnibox, JSON_FORCE_OBJECT)));
         $xtpl->parse('all.operator.prepnutiUzivatele');
     }
     $xtpl->parse('all.operator');
     // výběr uživatele
-    if ($u->maPravo(\Gamecon\Pravo::ADMINISTRACE_UVOD)) // panel úvod
-    {
+    if ($u && $u->maPravo(\Gamecon\Pravo::ADMINISTRACE_INFOPULT)) {
         if ($uPracovni) {
             $xtpl->assign('uPracovni', $uPracovni);
             $xtpl->parse('all.uzivatel.vybrany');
@@ -153,7 +185,7 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
 
     // výstup submenu
     foreach ($submenu as $url => $polozka) {
-        if ($u->maPravo($polozka['pravo'])) {
+        if ($u && $u->maPravo($polozka['pravo'])) {
             $xtpl->assign('url', $url == $stranka ? $url : $stranka . '/' . $url);
             $xtpl->assign('nazev', $polozka['nazev']);
             $addAttributes = [];
@@ -162,7 +194,7 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
             }
             if (($podstranka != '' && $podstranka == $url) || ($podstranka == '' && $stranka == $url)) {
                 $addAttributes[] = 'class="activeSubmenuLink"';
-                $pageTitle = $pageTitle . ' | ' . $polozka['nazev'];
+                $pageTitle       = $pageTitle . ' | ' . $polozka['nazev'];
             }
             $xtpl->assign('add_attributes', implode(' ', $addAttributes));
 
@@ -186,11 +218,20 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
     $xtpl->assign('stranka', $stranka);
     $xtpl->parse('all.submenu');
 
+    $protipy = [
+        'tlačítka, které mají podtržené písmeno, je možné zrychleně použít pomocí alt+písmeno',
+        'užij si GameCon',
+        'alt+u vybírá uživatele, alt+z ruší',
+        'odhlášením uživatele z GC se nenávratně zruší všechny jeho aktivity a nákupy',
+        'osobní údaje lze upravit kliknutím a přepsáním na úvodní straně',
+        'používání klávesových zkratek urychlí práci',
+    ];
+
     // výstup
     $xtpl->assign('protip', $protipy[array_rand($protipy)]);
     $xtpl->parse('all.paticka');
     $xtpl->assign('chyba', chyba::vyzvedniHtml());
-    $xtpl->assign('jsVyjimkovac', \Gamecon\Vyjimkovac\Vyjimkovac::js(URL_WEBU . '/ajax-vyjimkovac'));
+    $xtpl->assign('jsVyjimkovac', \Gamecon\Vyjimkovac\Vyjimkovac::js(URL_WEBU));
     $xtpl->assign('pageTitle', $pageTitle);
     $xtpl->parse('all');
     $xtpl->out('all');

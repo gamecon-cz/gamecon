@@ -6,7 +6,7 @@
 
 // autoloader Gamecon webu (modelu)
 spl_autoload_register(function ($trida) {
-    $trida = strtolower(preg_replace('@[A-Z]@', '-$0', lcfirst($trida)));
+    $trida     = strtolower(preg_replace('@[A-Z]@', '-$0', lcfirst($trida)));
     $classFile = __DIR__ . '/../model/' . $trida . '.php';
     if (file_exists($classFile)) {
         include_once $classFile;
@@ -21,39 +21,49 @@ require_once __DIR__ . '/../model/funkce/fw-general.php';
 require_once __DIR__ . '/../model/funkce/fw-database.php';
 require_once __DIR__ . '/../model/funkce/funkce.php';
 require_once __DIR__ . '/../model/funkce/web-funkce.php';
+require_once __DIR__ . '/../model/funkce/skryte-nastaveni-z-env-funkce.php';
 
 // načtení konfiguračních konstant
 
 error_reporting(E_ALL & ~E_NOTICE); // skrýt notice, aby se konstanty daly "přetížit" dřív vloženými
 
-$host = $_SERVER['SERVER_NAME'] ?? 'localhost';
+$host                     = $_SERVER['SERVER_NAME'] ?? 'localhost';
+$souborVerejnehoNastaveni = null;
+if (!empty($_COOKIE['unit_tests'])) {
+    include __DIR__ . '/verejne-nastaveni-tests.php';
+}
 if (PHP_SAPI === 'cli' || in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1']) || ($_ENV['ENV'] ?? '') === 'local') {
     if (file_exists(__DIR__ . '/nastaveni-local.php')) {
         include __DIR__ . '/nastaveni-local.php'; // nepovinné lokální nastavení
     }
-    require __DIR__ . '/nastaveni-local-default.php'; // výchozí lokální nastavení
-} elseif (substr($_SERVER['SERVER_NAME'], -15) === 'beta.gamecon.cz') {
-    require __DIR__ . '/nastaveni-beta.php';
+    require_once __DIR__ . '/nastaveni-local-default.php'; // výchozí lokální nastavení
+} elseif (str_ends_with($host, 'beta.gamecon.cz')) {
+    $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-beta.php';
 } elseif (str_ends_with($host, 'blackarrow.gamecon.cz')) {
-    require __DIR__ . '/nastaveni-blackarrow.php';
+    $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-blackarrow.php';
 } elseif (str_ends_with($host, 'jakublounek.gamecon.cz')) {
-    require __DIR__ . '/nastaveni-jakublounek.php';
+    $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-jakublounek.php';
 } elseif (str_ends_with($host, 'misahojna.gamecon.cz')) {
-    require __DIR__ . '/nastaveni-misahojna.php';
-} elseif ($_SERVER['SERVER_NAME'] === 'admin.gamecon.cz' || $_SERVER['SERVER_NAME'] === 'gamecon.cz') {
-    require __DIR__ . '/nastaveni-produkce.php';
+    $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-misahojna.php';
+} elseif (str_ends_with($host, 'sciator.gamecon.cz')) {
+    $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-sciator.php';
+} elseif ($host === 'admin.gamecon.cz' || $host === 'gamecon.cz') {
+    $souborVerejnehoNastaveni = __DIR__ . '/verejne-nastaveni-produkce.php';
 } else {
     echo 'Nepodařilo se detekovat prostředí, nelze načíst nastavení verze';
     exit(1);
 }
 
-require_once __DIR__ . '/nastaveni.php';
+if ($souborVerejnehoNastaveni) {
+    vytvorSouborSkrytehoNastaveniPodleEnv($souborVerejnehoNastaveni);
+    require_once $souborVerejnehoNastaveni;
+}
 
 // výchozí hodnoty konstant
 // (nezobrazovat chyby, pokud už konstanta byla nastavena dřív)
 $puvodniErrorReporting = error_reporting();
 error_reporting($puvodniErrorReporting ^ E_NOTICE);
-require_once __DIR__ . '/nastaveni-vychozi.php';
+require_once __DIR__ . '/nastaveni.php';
 error_reporting($puvodniErrorReporting);
 
 if (defined('URL_WEBU') && URL_WEBU) {
@@ -62,11 +72,11 @@ if (defined('URL_WEBU') && URL_WEBU) {
         || (!empty($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443);
     session_set_cookie_params([
         'lifetime' => 0,
-        'path' => '/',
-        'domain' => $domain !== 'localhost'
+        'path'     => '/',
+        'domain'   => $domain !== 'localhost'
             ? ".$domain"
             : $domain, // Chrome-based browsers consider .localhost cookie domain as invalid (as localhost can not have subdomains)
-        'secure' => $secure,
+        'secure'   => $secure,
         'httponly' => true,
         'samesite' => 'lax',
     ]);

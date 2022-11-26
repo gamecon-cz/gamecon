@@ -14,17 +14,16 @@
 
 require_once __DIR__ . '/_pomocne.php';
 
-$nastaveni = require __DIR__ . '/../nastaveni/nastaveni-nasazovani.php';
+$nastaveni = [];
+if (file_exists(__DIR__ . '/../nastaveni/nastaveni-nasazovani.php')) {
+    $nastaveni = require __DIR__ . '/../nastaveni/nastaveni-nasazovani.php';
+}
 
 chdir(__DIR__ . '/../');
 
 // testování větve před pushem a čistoty repa, aby se na FTP nedostalo smetí
 exec('git rev-parse --abbrev-ref HEAD', $out);
 $vetev = $out[0];
-if (!in_array($vetev, ['master', 'beta', 'blackarrow', 'jakublounek', 'misahojna'], true)) {
-    echo "You're not on automatically deployed branch, deployment skipped\n";
-    exit(0);
-}
 exec('git status', $out);
 if (!preg_match('/^nothing to commit, working (tree|directory) clean$/', end($out))) {
     echo "error: working directory is not clean\n";
@@ -32,56 +31,60 @@ if (!preg_match('/^nothing to commit, working (tree|directory) clean$/', end($ou
 }
 
 // spuštění testů
-call_check(['php', __DIR__ . '/testuj.php']);
+$skipTests = getopt('', ['skip-tests']);
+if (!$skipTests) {
+    call_check(['php', __DIR__ . '/testuj.php']);
+}
 
 // nasazení
 if ($vetev === 'master') {
     nasad([
-        'vetev' => $vetev,
-        'zdrojovaSlozka' => __DIR__ . '/..',
-        'ciloveFtp' => $nastaveni['ostra']['ftp'],
-        'urlMigrace' => $nastaveni['ostra']['urlMigrace'],
-        'hesloMigrace' => $nastaveni['ostra']['hesloMigrace'],
-        'souborNastaveni' => basename(__DIR__ . '/../nastaveni/nastaveni-produkce.php'),
+        'vetev'                    => $vetev,
+        'zdrojovaSlozka'           => __DIR__ . '/..',
+        'ciloveFtp'                => $nastaveni['ostra']['ftp'] ?? (getenv('FTP_BASE_URL') . '/' . getenv('FTP_DIR')),
+        'hesloMigrace'             => $nastaveni['ostra']['hesloMigrace'] ?? getenv('MIGRACE_HESLO'),
+        'souborVerejnehoNastaveni' => __DIR__ . '/../nastaveni/verejne-nastaveni-produkce.php',
     ]);
 } elseif ($vetev === 'beta') {
     nasad([
-        'vetev' => $vetev,
-        'zdrojovaSlozka' => __DIR__ . '/..',
-        'ciloveFtp' => $nastaveni['beta']['ftp'],
-        'urlMigrace' => $nastaveni['beta']['urlMigrace'],
-        'hesloMigrace' => $nastaveni['beta']['hesloMigrace'],
-        'souborNastaveni' => basename(__DIR__ . '/../nastaveni/nastaveni-beta.php'),
+        'vetev'                    => $vetev,
+        'zdrojovaSlozka'           => __DIR__ . '/..',
+        'ciloveFtp'                => $nastaveni['beta']['ftp'] ?? (getenv('FTP_BASE_URL') . '/' . getenv('FTP_DIR')),
+        'hesloMigrace'             => $nastaveni['beta'] ['hesloMigrace'] ?? getenv('MIGRACE_HESLO'),
+        'souborVerejnehoNastaveni' => __DIR__ . '/../nastaveni/verejne-nastaveni-beta.php',
     ]);
 } elseif ($vetev === 'blackarrow') {
     nasad([
-        'vetev' => $vetev,
-        'zdrojovaSlozka' => __DIR__ . '/..',
-        'ciloveFtp' => $nastaveni['blackarrow']['ftp'],
-        'urlMigrace' => $nastaveni['blackarrow']['urlMigrace'],
-        'hesloMigrace' => $nastaveni['blackarrow']['hesloMigrace'],
-        'log' => $nastaveni['blackarrow']['log'],
-        'souborNastaveni' => basename(__DIR__ . '/../nastaveni/nastaveni-blackarrow.php'),
+        'vetev'                    => $vetev,
+        'zdrojovaSlozka'           => __DIR__ . '/..',
+        'ciloveFtp'                => $nastaveni['blackarrow']['ftp'] ?? (getenv('FTP_BASE_URL') . '/' . getenv('FTP_DIR')),
+        'hesloMigrace'             => $nastaveni['blackarrow'] ['hesloMigrace'] ?? getenv('MIGRACE_HESLO'),
+        'log'                      => $nastaveni['blackarrow']['log'],
+        'souborVerejnehoNastaveni' => __DIR__ . '/../nastaveni/verejne-nastaveni-blackarrow.php',
     ]);
 } elseif ($vetev === 'jakublounek') {
     nasad([
-        'vetev' => $vetev,
-        'zdrojovaSlozka' => __DIR__ . '/..',
-        'ciloveFtp' => $nastaveni['jakublounek']['ftp'],
-        'urlMigrace' => $nastaveni['jakublounek']['urlMigrace'],
-        'hesloMigrace' => $nastaveni['jakublounek']['hesloMigrace'],
-        'log' => $nastaveni['jakublounek']['log'],
-        'souborNastaveni' => basename(__DIR__ . '/../nastaveni/nastaveni-jakublounek.php'),
+        'vetev'                    => $vetev,
+        'zdrojovaSlozka'           => __DIR__ . '/..',
+        'ciloveFtp'                => $nastaveni['jakublounek']['ftp'] ?? (getenv('FTP_BASE_URL') . '/' . getenv('FTP_DIR')),
+        'hesloMigrace'             => $nastaveni['jakublounek'] ['hesloMigrace'] ?? getenv('MIGRACE_HESLO'),
+        'souborVerejnehoNastaveni' => __DIR__ . '/../nastaveni/verejne-nastaveni-jakublounek.php',
     ]);
 } elseif ($vetev === 'misahojna') {
     nasad([
-        'vetev' => $vetev,
-        'zdrojovaSlozka' => __DIR__ . '/..',
-        'ciloveFtp' => $nastaveni['misahojna']['ftp'],
-        'urlMigrace' => $nastaveni['misahojna']['urlMigrace'],
-        'hesloMigrace' => $nastaveni['misahojna']['hesloMigrace'],
-        'log' => $nastaveni['misahojna']['log'],
-        'souborNastaveni' => basename(__DIR__ . '/../nastaveni/nastaveni-misahojna.php'),
+        'vetev'                    => $vetev,
+        'zdrojovaSlozka'           => __DIR__ . '/..',
+        'ciloveFtp'                => $nastaveni['misahojna']['ftp'] ?? (getenv('FTP_BASE_URL') . '/' . getenv('FTP_DIR')),
+        'hesloMigrace'             => $nastaveni['misahojna'] ['hesloMigrace'] ?? getenv('MIGRACE_HESLO'),
+        'souborVerejnehoNastaveni' => __DIR__ . '/../nastaveni/verejne-nastaveni-misahojna.php',
+    ]);
+} elseif ($vetev === 'sciator') {
+    nasad([
+        'vetev'                    => $vetev,
+        'zdrojovaSlozka'           => __DIR__ . '/..',
+        'ciloveFtp'                => $nastaveni['sciator']['ftp'] ?? (getenv('FTP_BASE_URL') . '/' . getenv('FTP_DIR')),
+        'hesloMigrace'             => $nastaveni['sciator'] ['hesloMigrace'] ?? getenv('MIGRACE_HESLO'),
+        'souborVerejnehoNastaveni' => __DIR__ . '/../nastaveni/verejne-nastaveni-sciator.php',
     ]);
 } else {
     echo "error: unexpected branch '$vetev'\n";

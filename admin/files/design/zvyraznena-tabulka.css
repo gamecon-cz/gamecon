@@ -1,0 +1,49 @@
+/* Tabulky */
+.main table {
+  border-collapse: collapse;
+}
+
+.main table th {
+  background: linear-gradient(to bottom, #fafdff 0%, #fdffff 50%, #f7f9fa 50%, #f2f1f3 100%);
+  background-color: #f2f1f3;
+  border: solid 1px #eee;
+  padding: 3px;
+  font-family: verdana;
+  font-weight: normal;
+}
+
+.main table td {
+  padding: 2px 5px;
+  text-align: left;
+}
+
+.main table tr:nth-child(odd) {
+  background-color: #f0f0f0;
+}
+
+/*Pokud je v tabulce tbody, tak to změní pořadí dalších tagů*/
+.main table tbody tr:nth-child(odd) {
+  background-color: inherit;
+}
+
+.main table tbody tr:nth-child(even) {
+  background-color: #f0f0f0;
+}
+
+.main table.zvyraznovana {
+  cursor: default;
+}
+
+.main table.zvyraznovana tr:hover td {
+  background-color: #c6e6f8;
+}
+
+.main table.zvyraznovana tr.no-hover:hover td {
+  background-color: inherit;
+}
+
+.main table td img {
+  margin: -4px 0;
+  border: 0;
+  padding: 0;
+}

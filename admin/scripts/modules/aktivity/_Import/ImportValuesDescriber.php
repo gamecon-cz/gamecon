@@ -3,6 +3,7 @@
 namespace Gamecon\Admin\Modules\Aktivity\Import;
 
 use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
+use Gamecon\Aktivita\Aktivita;
 
 class ImportValuesDescriber
 {
@@ -20,15 +21,15 @@ class ImportValuesDescriber
         return $this->describeActivity($activity);
     }
 
-    public function describeActivity(\Aktivita $activity): string {
+    public function describeActivity(Aktivita $activity): string {
         return $this->getLinkToActivity($activity);
     }
 
-    private function getLinkToActivity(\Aktivita $activity): string {
+    private function getLinkToActivity(Aktivita $activity): string {
         return $this->createLinkToActivity($activity->id(), $activity->nazev());
     }
 
-    public function describeActivityByInputValues(array $activityValues, ?\Aktivita $originalActivity): string {
+    public function describeActivityByInputValues(array $activityValues, ?Aktivita $originalActivity): string {
         return $this->describeActivityByValues(
             empty($activityValues[ExportAktivitSloupce::ID_AKTIVITY])
                 ? null
@@ -40,7 +41,7 @@ class ImportValuesDescriber
         );
     }
 
-    public function describeActivityBySqlMappedValues(array $sqlMappedValues, ?\Aktivita $originalActivity): string {
+    public function describeActivityBySqlMappedValues(array $sqlMappedValues, ?Aktivita $originalActivity): string {
         return $this->describeActivityByValues(
             $sqlMappedValues[ActivitiesImportSqlColumn::ID_AKCE] ?? null,
             $sqlMappedValues[ActivitiesImportSqlColumn::NAZEV_AKCE] ?? null,
@@ -50,7 +51,7 @@ class ImportValuesDescriber
         );
     }
 
-    private function describeActivityByValues(?int $id, ?string $nazev, ?string $url, ?string $kratkaAnotace, ?\Aktivita $originalActivity): string {
+    private function describeActivityByValues(?int $id, ?string $nazev, ?string $url, ?string $kratkaAnotace, ?Aktivita $originalActivity): string {
         if (!$id && $originalActivity) {
             $id = $originalActivity->id();
         }

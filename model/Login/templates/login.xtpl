@@ -1,0 +1,68 @@
+<!-- begin:login -->
+<!DOCTYPE html>
+<html lang="cs">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>{pageTitle}</title>
+
+  <base href="{base}">
+
+  <link rel="shortcut icon" href="files/favicon.ico"/>
+
+  <link rel="stylesheet" href="files/bootstrap.5.1.3.css"/>
+  <link rel="stylesheet" href="files/design/font-awesome-6.1.1/css/all.min.css"/>
+  <!-- begin:stylesheet -->
+  <link rel="stylesheet" href="{url}?version={version}"/>
+  <!-- end:stylesheet -->
+
+  <script type="text/javascript" src="files/bootstrap.bundle.5.1.3.js"></script>
+  <!-- begin:javascript -->
+  <script type="text/javascript" src="{url}?version={version}"></script>
+  <!-- end:javascript -->
+</head>
+
+<body>
+
+<main class="main">
+
+  <div class="container">
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 99vh">
+      <img alt="GC logo" src="files/design/GC2022-logo-qHD.gif?version=a082d78fe70cb2f5eb31a8bfb2058a9f"
+           class="background-image">
+
+      <form method="post" class="needs-validation" novalidate>
+        <!-- begin:chyba -->
+        <div class="form-text alert alert-danger">{chyba}</div>
+        <!-- end:chyba -->
+
+        <div class="mb-3">
+          <label for="login" class="form-label">Jméno:</label>
+          <input class="form-control" type="text" name="{loginInputName}" id="login" autofocus required>
+          <div class="invalid-feedback">
+            Vyplň prosím přihlašovací jméno
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label for="heslo" class="form-label">Heslo:</label>
+          <input class="form-control" type="password" name="{passwordInputName}" id="heslo" required>
+          <div class="invalid-feedback">
+            Vyplň prosím heslo
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Přihlásit</button>
+      </form>
+    </div>
+
+  </div>
+
+</main>
+
+</body>
+</html>
+
+<!-- end:login -->

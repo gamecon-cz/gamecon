@@ -1,17 +1,22 @@
 <?php
 
-require_once __DIR__ . '/sdilene-hlavicky.php';
+use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\StavPrihlaseni;
+use Gamecon\Aktivita\TypAktivity;
+
+require __DIR__ . '/sdilene-hlavicky.php';
 
 // dorazili
-$prihlasen = Aktivita::PRIHLASEN; // tohle je k něčemu leda v případě, že nějaká aktivita ještě nebyla uzavřena - což by se mělo stávat jen před a během Gameconu (a možná u technických aktivit)
-$prihlasenADorazil = Aktivita::PRIHLASEN_A_DORAZIL;
-$dorazilJakoNahradnik = Aktivita::DORAZIL_JAKO_NAHRADNIK;
+$prihlasen            = StavPrihlaseni::PRIHLASEN; // tohle je k něčemu leda v případě, že nějaká aktivita ještě nebyla uzavřena - což by se mělo stávat jen před a během Gameconu (a možná u technických aktivit)
+$prihlasenADorazil    = StavPrihlaseni::PRIHLASEN_A_DORAZIL;
+$dorazilJakoNahradnik = StavPrihlaseni::DORAZIL_JAKO_NAHRADNIK;
 // nepritomni
-$prihlasenAleNedorazil = Aktivita::PRIHLASEN_ALE_NEDORAZIL;
-$pozdeZrusil = Aktivita::POZDE_ZRUSIL;
-$sledujici = Aktivita::SLEDUJICI;
+$prihlasenAleNedorazil = StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL;
+$pozdeZrusil           = StavPrihlaseni::POZDE_ZRUSIL;
+$sledujici             = StavPrihlaseni::SLEDUJICI;
 
-$technicka = \Gamecon\Aktivita\TypAktivity::TECHNICKA;
+$technicka   = TypAktivity::TECHNICKA;
+$brigadnicka = TypAktivity::BRIGADNICKA;
 
 $o = dbQuery(<<<SQL
 SELECT * FROM
@@ -39,6 +44,7 @@ SELECT * FROM
         akce_seznam.zacatek,
         akce_typy.typ_1p AS typ,
         IF(akce_seznam.typ = {$technicka}, 1, 0) AS technicka,
+        IF(akce_seznam.typ = {$brigadnicka}, 1, 0) AS brigadnicka,
         akce_seznam.cena,
         FORMAT(TIMESTAMPDIFF(SECOND, akce_seznam.zacatek, akce_seznam.konec) / 3600, 1) AS delka_v_hodinach
     FROM akce_seznam
@@ -53,30 +59,28 @@ SQL
 
 $p = [];
 while ($r = mysqli_fetch_assoc($o)) {
-    $a = Aktivita::zId($r['id_akce']);
-    $bonusZaAktivitu = Finance::bonusZaAktivitu($a);
-    $organizatoriSBonusemZaAktivitu = Finance::nechOrganizatorySBonusemZaVedeniAktivit($a->organizatori());
+    $a                                      = Aktivita::zId($r['id_akce']);
+    $bonusZaAktivitu                        = \Gamecon\Uzivatel\Finance::bonusZaAktivitu($a);
+    $organizatoriSBonusemZaAktivitu         = \Gamecon\Uzivatel\Finance::nechOrganizatorySBonusemZaVedeniAktivit($a->organizatori());
     $r['suma_priznanych_bonusu_vypravecum'] = $a
         ? $bonusZaAktivitu * count($organizatoriSBonusemZaAktivitu)
         : 0;
-    $r['priznany_bonus_jednomu_vypraveci'] = $a
+    $r['priznany_bonus_jednomu_vypraveci']  = $a
         ? $bonusZaAktivitu
         : 0;
-    $r['vypraveci_jmena'] = '';
-    $r['vypraveci_ids'] = '';
+    $r['vypraveci_jmena']                   = '';
+    $r['vypraveci_ids']                     = '';
     if ($a) {
         $vypraveciJmena = [];
-        $vypraveciIds = [];
+        $vypraveciIds   = [];
         foreach ($a->organizatori() as $vypravec) {
             $vypraveciJmena[] = $vypravec->jmenoNick();
-            $vypraveciIds[] = $vypravec->id();
+            $vypraveciIds[]   = $vypravec->id();
         }
         $r['vypraveci_jmena'] = implode(', ', $vypraveciJmena);
-        $r['vypraveci_ids'] = implode(', ', $vypraveciIds);
+        $r['vypraveci_ids']   = implode(', ', $vypraveciIds);
     }
     $p[] = $r;
 }
 
-$report = Report::zPole($p);
-$format = get('format') === 'html' ? 'tHtml' : 'tCsv';
-$report->$format();
+Report::zPole($p)->tFormat(get('format'));

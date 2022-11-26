@@ -11,14 +11,18 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveniHtml;
 
 /**
  * @var Uzivatel $u
+ * @var SystemoveNastaveni $systemoveNastaveni
  */
 
-$nastaveni = new SystemoveNastaveni(ROK);
-$nastaveniHtml = new SystemoveNastaveniHtml($nastaveni);
-$nastaveniAjax = new SystemoveNastaveniAjax($nastaveni, $nastaveniHtml, $u);
+$nastaveniHtml = new SystemoveNastaveniHtml($systemoveNastaveni);
+$nastaveniAjax = new SystemoveNastaveniAjax($systemoveNastaveni, $nastaveniHtml, $u);
 
 if ($nastaveniAjax->zpracujPost()) {
     exit;
+}
+
+if ($nastaveniHtml->zpracujPost()) {
+    back();
 }
 
 $nastaveniHtml->zobrazHtml();

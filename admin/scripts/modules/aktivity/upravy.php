@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Vyjimkovac\Logovac;
+use Gamecon\Aktivita\Aktivita;
 
 /**
  * Stránka pro tvorbu a editaci aktivit. Brand new.
@@ -34,7 +35,7 @@ try {
     }
 }
 
-$a = Aktivita::zId(get('aktivitaId'));  // načtení aktivity podle předaného ID
+$a              = Aktivita::zId(get('aktivitaId'));  // načtení aktivity podle předaného ID
 $editorAktivity = Aktivita::editor($a);         // načtení html editoru aktivity
 
 ?>

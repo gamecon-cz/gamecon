@@ -1,0 +1,143 @@
+.ui-helper-hidden-accessible {
+  display: none
+}
+
+.online-prezence {
+  padding: 0.2em;
+  margin-bottom: 2em;
+}
+
+input[disabled] {
+  cursor: not-allowed;
+}
+
+input:not([disabled])[type=checkbox] {
+  cursor: pointer
+}
+
+.display-none {
+  display: none;
+}
+
+.ucastnici th:first-child, .ucastnici th:nth-child(2) {
+  width: 100px;
+}
+
+.ucastnik {
+  background-color: white;
+  transition: background 0.1s linear;
+  -webkit-transition: background 0.1s linear;
+  -moz-transition: background 0.1s linear;
+}
+
+.flipped-icon {
+  transform: scale(-1, 1);
+  display: inline-block;
+}
+
+.tlacitko-testu {
+  width: 100%;
+  z-index: 1;
+}
+
+.font-sized {
+  height: 1.3em;
+}
+
+.hinted:hover, [data-bs-toggle="tooltip"] {
+  cursor: help;
+}
+
+input[data-bs-toggle="tooltip"]:not([disabled]) {
+  cursor: inherit;
+}
+
+[data-stav-prihlaseni="nahradnik_nedorazil"], [data-stav-prihlaseni="sledujici_se_prihlasil"] {
+  opacity: 0.7;
+}
+
+.styl-pro-dorazil-checkbox {
+  display: inline-block;
+  min-width: 2em;
+  min-height: 2em;
+}
+
+.styl-pro-dorazil-checkbox input[type=checkbox] {
+  vertical-align: sub;
+}
+
+label:hover {
+  cursor: pointer;
+}
+
+.plno {
+  color: #ff4d00;
+}
+
+.volno {
+  color: inherit;
+}
+
+.text-skoncila {
+  white-space: nowrap;
+  padding: 5px;
+  margin: 2px 0;
+  width: 100%;
+  text-align: center;
+}
+
+.text-skoncila:not(.display-none) {
+  display: inline-block;
+}
+
+input[disabled]::placeholder {
+  text-decoration: line-through;
+  opacity: 0.2;
+}
+
+.emoji {
+  font-family: initial;
+}
+
+.anchor {
+  color: darkgray;
+  opacity: 0.6
+}
+
+.mladsi-osmnacti-let {
+  color: darkorange;
+}
+
+.pocet-prihlasenych {
+  font-size: 0.5em;
+  color: darkgoldenrod;
+  white-space: nowrap;
+}
+
+@media only screen and (max-width: 600px) {
+
+  .container {
+    padding: 0;
+  }
+
+  .row {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .far.fa-envelope {
+    font-size: smaller;
+  }
+
+  .telefon {
+    word-spacing: -1px;
+  }
+
+  .telefon.s-predvolbou {
+    font-size: smaller;
+  }
+
+  .predvolba {
+    font-size: smaller;
+  }
+}

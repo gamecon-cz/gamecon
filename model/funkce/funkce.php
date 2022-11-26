@@ -10,12 +10,12 @@ $GLOBALS['SKRIPT_ZACATEK'] = microtime(true); // profiling
  * tlivých typů. Délka pole ovlivňuje výsledek (je potřeba aby obsahovalo i 0)
  */
 function aktivityDiverzifikace($poleTypu) {
-    $typu = count($poleTypu);
+    $typu  = count($poleTypu);
     $pocet = array_sum($poleTypu);
     if ($pocet == 0) return 0.0;
     $pocty = $poleTypu;
     rsort($pocty, SORT_NUMERIC);
-    $max = ($pocet - $pocty[0]) / ($pocet * ($typu - 1));
+    $max    = ($pocet - $pocty[0]) / ($pocet * ($typu - 1));
     $nPocty = [];
     for ($i = 1; $i < $typu; $i++) { //první počet přeskočit
         if ($pocty[$i] / $pocet > $max)
@@ -88,9 +88,9 @@ function dbText($hash) {
         dbQuery('DELETE FROM texty WHERE id = ' . (int)$hash);
         return 0;
     } else {
-        $text = func_get_arg(1);
+        $text  = func_get_arg(1);
         $nhash = scrc32($text);
-        $nrow = ['text' => $text, 'id' => $nhash];
+        $nrow  = ['text' => $text, 'id' => $nhash];
         if ($hash) dbUpdate('texty', $nrow, ['id' => $hash]);
         else dbInsert('texty', $nrow);
         return $nhash;
@@ -100,12 +100,10 @@ function dbText($hash) {
 /**
  * Uloží daný text do databáze a vrátí id (hash) kterým se na něj odkázat
  */
-function dbTextHash($text) {
+function dbTextHash($text): int {
+    $text = (string)$text;
     $hash = scrc32($text);
-    try {
-        dbInsert('texty', ['id' => $hash, 'text' => $text]);
-    } catch (DbException $e) {
-    }
+    dbInsertIgnore('texty', ['id' => $hash, 'text' => $text]);
     return $hash;
 }
 
@@ -116,13 +114,15 @@ function dbTextClean($hash) {
     try {
         dbQuery('DELETE FROM texty WHERE id = ' . (int)$hash);
     } catch (DbException $e) {
+        // Cannot delete or update a parent row: a foreign key constraint fails
+        // mažeme pouze texty, které nejsou nikde použité
     }
 }
 
 /** Načte / uloží hodnotu do key-value storage s daným názvem */
 function kvs($nazev, $index, $hodnota = null) {
     if (!isset($GLOBALS['CACHEDB'][$nazev])) {
-        $db = new SQLite3(SPEC . '/' . $nazev . '.sqlite');
+        $db                         = new SQLite3(SPEC . '/' . $nazev . '.sqlite');
         $GLOBALS['CACHEDB'][$nazev] = $db;
         $db->exec("create table if not exists kvs (k integer primary key, v text)");
     }
@@ -144,7 +144,7 @@ function kvs($nazev, $index, $hodnota = null) {
  */
 function markdown($text) {
     $hash = scrc32($text);
-    $out = kvs('markdown', $hash);
+    $out  = kvs('markdown', $hash);
     if ($out === null) {
         kvs('markdown', $hash, markdownNoCache($text));
         $out = kvs('markdown', $hash);
@@ -153,8 +153,10 @@ function markdown($text) {
 }
 
 /** Převede text markdown na html (přímo on the fly) */
-function markdownNoCache($text) {
-    if (!$text) return '';
+function markdownNoCache($text): string {
+    if (!$text) {
+        return '';
+    }
     $text = \Michelf\MarkdownExtra::defaultTransform($text);
     $text = Smartyp::defaultTransform($text);
     return $text;
@@ -162,9 +164,11 @@ function markdownNoCache($text) {
 
 /** Multibyte (utf-8) první písmeno velké */
 function mb_ucfirst($string, $encoding = null) {
-    if (!$encoding) $encoding = mb_internal_encoding();
+    if (!$encoding) {
+        $encoding = mb_internal_encoding();
+    }
     $firstChar = mb_substr($string, 0, 1, $encoding);
-    $then = mb_substr($string, 1, mb_strlen($string), $encoding);
+    $then      = mb_substr($string, 1, mb_strlen($string), $encoding);
     return mb_strtoupper($firstChar, $encoding) . $then;
 }
 
@@ -185,12 +189,18 @@ function omezCsrf() {
     if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
         return;
     }
-    $referrerHost = parse_url($_SERVER['HTTP_REFERER'] ?? null, PHP_URL_HOST);
 
-    if ($referrerHost !== $_SERVER['HTTP_HOST'] && $referrerHost !== parse_url(URL_ADMIN, PHP_URL_HOST)) {
+    if (in_array($_SERVER['REQUEST_URI'], ['/web/wp/xmlrpc.php', '/web/wordpress/xmlrpc.php'])) {
+        /** Když vy takhle, tak my takhle web/moduly/wordpress/xmlrpc.php */
+        return;
+    }
+
+    $referrerHost = parse_url($_SERVER['HTTP_REFERER'] ?? '', PHP_URL_HOST);
+
+    if ($referrerHost !== $_SERVER['SERVER_NAME'] && $referrerHost !== parse_url(URL_ADMIN, PHP_URL_HOST)) {
         // výjimka, aby došlo k zalogování
         throw new Exception(
-            "Referrer POST '$referrerHost' požadavku neodpovídá doméně '{$_SERVER['HTTP_HOST']}' ani '" . PHP_URL_HOST . "'"
+            "Referrer POST '$referrerHost' požadavku neodpovídá doméně '{$_SERVER['SERVER_NAME']}' ani '" . parse_url(URL_ADMIN, PHP_URL_HOST) . "'"
         );
     }
 }
@@ -205,10 +215,10 @@ function omezCsrf() {
  *  timestampem, nic se nestane)
  */
 function perfectcache(/* variadic */) {
-    $args = perfectcacheExpandujArgumenty(func_get_args());
+    $args  = perfectcacheExpandujArgumenty(func_get_args());
     $lastf = end($args);
-    $typ = substr($lastf, -3) == '.js' ? 'js' : 'css';
-    $last = 0;
+    $typ   = substr($lastf, -3) == '.js' ? 'js' : 'css';
+    $last  = 0;
     foreach ($args as $a) {
         if (!$a) continue;
         $m = filemtime($a);
@@ -217,7 +227,7 @@ function perfectcache(/* variadic */) {
     $mind = CACHE . '/' . $typ;
     $minf = $mind . '/' . md5(implode('', $args)) . '.' . $typ;
     $minu = URL_CACHE . '/' . $typ . '/' . md5(implode('', $args)) . '.' . $typ;
-    $m = @filemtime($minf);
+    $m    = @filemtime($minf);
     // případná rekompilace
     if ($m < $last) {
         pripravCache($mind);
@@ -229,8 +239,8 @@ function perfectcache(/* variadic */) {
             foreach ($args as $a) if ($a) {
                 if (substr($a, -4) != '.ttf') {
                     $tmpSouborStylu = tempnam(sys_get_temp_dir(), 'perfectcacheCss');
-                    $css = file_get_contents($a);
-                    $css = pefrectcacheProcessRel($css, 1920, 1200);
+                    $css            = file_get_contents($a);
+                    $css            = pefrectcacheProcessRel($css, 1920, 1200);
                     file_put_contents($tmpSouborStylu, $css);
                     $parser->parseFile($tmpSouborStylu, URL_WEBU . '/soubory/styl/');
                     unlink($tmpSouborStylu);
@@ -318,9 +328,15 @@ function pred($cas) {
  * Vytvoří zapisovatelnou složku, pokud taková už neexistuje
  */
 function pripravCache($slozka) {
-    if (is_writable($slozka)) return;
-    if (is_dir($slozka)) throw new Exception("Do existující cache složky '$slozka' není možné zapisovat");
-    if (!mkdir($slozka, 0777, true)) throw new Exception("Složku '$slozka' se nepodařilo vytvořit");
+    if (is_writable($slozka)) {
+        return;
+    }
+    if (is_dir($slozka)) {
+        throw new Exception("Do existující cache složky '$slozka' není možné zapisovat");
+    }
+    if (!mkdir($slozka, 0777, true)) {
+        throw new Exception("Složku '$slozka' se nepodařilo vytvořit");
+    }
     chmod($slozka, CACHE_SLOZKY_PRAVA);
 }
 
@@ -365,7 +381,7 @@ function seskupenePodle($pole, $funkce) {
     $out = [];
 
     foreach ($pole as $prvek) {
-        $klic = $funkce($prvek);
+        $klic         = $funkce($prvek);
         $out[$klic][] = $prvek;
     }
 
@@ -383,7 +399,7 @@ function vek(DateTimeInterface $datumNarozeni, ?DateTimeInterface $kDatu): int {
 }
 
 function odstranDiakritiku(string $value): string {
-    $valueWithoutDiacritics = '';
+    $valueWithoutDiacritics    = '';
     $valueWithSpecialsReplaced = \str_replace(
         ['̱', '̤', '̩', 'Ə', 'ə', 'ʿ', 'ʾ', 'ʼ',],
         ['', '', '', 'E', 'e', "'", "'", "'",],
@@ -391,7 +407,7 @@ function odstranDiakritiku(string $value): string {
     );
     \preg_match_all('~(?<words>\w*)(?<nonWords>\W*)~u', $valueWithSpecialsReplaced, $matches);
     foreach ($matches['words'] as $index => $word) {
-        $wordWithoutDiacritics = \transliterator_transliterate('Any-Latin; Latin-ASCII', $word);
+        $wordWithoutDiacritics  = \transliterator_transliterate('Any-Latin; Latin-ASCII', $word);
         $valueWithoutDiacritics .= $wordWithoutDiacritics . $matches['nonWords'][$index];
     }
     return $valueWithoutDiacritics;
@@ -413,20 +429,20 @@ if (!function_exists('array_key_first')) {
  * @return string[][] Cesty ke staženým souborům a chyby [ ['files'][], ['errors'][] ]
  */
 function hromadneStazeni(array $urls, int $timeout = 60, string $dirToSaveTo = null): array {
-    $urls = array_map('trim', $urls);
-    $urls = array_filter($urls, static function (string $url) {
+    $urls   = array_map('trim', $urls);
+    $urls   = array_filter($urls, static function (string $url) {
         return $url !== '';
     });
     $result = [
-        'errorUrls' => [],
-        'errors' => [],
-        'files' => [],
+        'errorUrls'     => [],
+        'errors'        => [],
+        'files'         => [],
         'responseCodes' => [],
     ];
     if (count($urls) === 0) {
         return $result;
     }
-    $urls = array_unique($urls);
+    $urls          = array_unique($urls);
     $sanitizedUrls = [];
     foreach ($urls as $url) {
         $sanitizedUrls[$url] = sanitizeUrlForCurl($url);
@@ -437,25 +453,25 @@ function hromadneStazeni(array $urls, int $timeout = 60, string $dirToSaveTo = n
     if (!mkdir($dirToSaveTo, 0777, true) && !is_dir($dirToSaveTo)) {
         throw new \RuntimeException(sprintf('Directory "%s" was not created', $dirToSaveTo));
     }
-    $multiCurl = curl_multi_init();
+    $multiCurl   = curl_multi_init();
     $curlHandles = [];
     $fileHandles = [];
 
     // Add curl multi handles, one per file we don't already have
     foreach ($sanitizedUrls as $originalUrl => $sanitizedUrl) {
-        $path = parse_url($sanitizedUrl, PHP_URL_PATH);
-        $basename = basename($path);
-        $file = $dirToSaveTo . '/' . uniqid('image', true) . $basename;
+        $path       = parse_url($sanitizedUrl, PHP_URL_PATH);
+        $basename   = basename($path);
+        $file       = $dirToSaveTo . '/' . uniqid('image', true) . $basename;
         $curlHandle = curl_init($sanitizedUrl);
         if (!$curlHandle) {
             $result['errors'][$originalUrl] = sprintf("Nelze otevřít CURL handle pro URL '%s'", $sanitizedUrl);
-            $result['errorUrls'][] = $originalUrl;
+            $result['errorUrls'][]          = $originalUrl;
             continue;
         }
         $fileHandle = fopen($file, 'wb');
         if (!$fileHandle) {
             $result['errors'][$originalUrl] = sprintf("Nelze otevřít file handle pro soubor '%s'", $file);
-            $result['errorUrls'][] = $originalUrl;
+            $result['errorUrls'][]          = $originalUrl;
             continue;
         }
         curl_setopt($curlHandle, CURLOPT_FILE, $fileHandle);
@@ -464,8 +480,8 @@ function hromadneStazeni(array $urls, int $timeout = 60, string $dirToSaveTo = n
         curl_multi_add_handle($multiCurl, $curlHandle);
 
         $result['files'][$originalUrl] = $file;
-        $curlHandles[$sanitizedUrl] = $curlHandle;
-        $fileHandles[$sanitizedUrl] = $fileHandle;
+        $curlHandles[$sanitizedUrl]    = $curlHandle;
+        $fileHandles[$sanitizedUrl]    = $fileHandle;
     }
 
     // stahování souborů
@@ -499,7 +515,7 @@ function hromadneStazeni(array $urls, int $timeout = 60, string $dirToSaveTo = n
     foreach ($curlHandles as $sanitizedUrl => $curlHandle) {
         fclose($fileHandles[$sanitizedUrl]);
 
-        $info = curl_getinfo($curlHandle);
+        $info                                  = curl_getinfo($curlHandle);
         $result['responseCodes'][$info['url']] = $info['http_code'];
         if ($info['http_code'] >= 400) {
             $result['errors'][$info['url']] = sprintf(
@@ -510,8 +526,8 @@ function hromadneStazeni(array $urls, int $timeout = 60, string $dirToSaveTo = n
                     ? ' (nenalezeno)'
                     : ''
             );
-            $originalUrl = array_search($sanitizedUrl, $sanitizedUrls, true);
-            $result['errorUrls'][] = $originalUrl;
+            $originalUrl                    = array_search($sanitizedUrl, $sanitizedUrls, true);
+            $result['errorUrls'][]          = $originalUrl;
             unset($result['files'][$originalUrl]);
         }
         curl_multi_remove_handle($multiCurl, $curlHandle);
@@ -567,7 +583,7 @@ function sanitizeUrlForCurl(string $url): string {
 
 function removeDiacritics(string $value) {
     $withoutDiacritics = '';
-    $specialsReplaced = \str_replace(
+    $specialsReplaced  = \str_replace(
         ['̱', '̤', '̩', 'Ə', 'ə', 'ʿ', 'ʾ', 'ʼ',],
         ['', '', '', 'E', 'e', "'", "'", "'",],
         $value
@@ -575,7 +591,7 @@ function removeDiacritics(string $value) {
     \preg_match_all('~(?<words>\w*)(?<nonWords>\W*)~u', $specialsReplaced, $matches);
     foreach ($matches['words'] as $index => $word) {
         $wordWithoutDiacritics = \transliterator_transliterate('Any-Latin; Latin-ASCII', $word);
-        $withoutDiacritics .= $wordWithoutDiacritics . $matches['nonWords'][$index];
+        $withoutDiacritics     .= $wordWithoutDiacritics . $matches['nonWords'][$index];
     }
     return $withoutDiacritics;
 }
@@ -593,4 +609,119 @@ function nahradPlaceholderZaKonstantu(?string $value): ?string {
         }
     }
     return $value;
+}
+
+function omnibox(
+    string $term,
+    bool   $hledatTakeVMailech = true,
+    array  $dataVOdpovedi = [],
+    array  $labelSlozenZ = null,
+    array  $kromeIdUzivatelu = [],
+    bool   $jenPrihlaseniAPritomniNaGc = false,
+    int    $minimumZnaku = 3,
+    array  $jenSeZidlemi = null
+): array {
+
+    $uzivatele = Uzivatel::zHledani(
+        $term,
+        [
+            'mail'                       => $hledatTakeVMailech,
+            'jenPrihlaseniAPritomniNaGc' => $jenPrihlaseniAPritomniNaGc,
+            'kromeIdUzivatelu'           => $kromeIdUzivatelu,
+            'jenSeZidlemi'               => $jenSeZidlemi,
+        ],
+        20,
+        $minimumZnaku
+    );
+
+    $sestavData = static function (Uzivatel $uzivatel, array $dataVOdpovedi): array {
+        $data = [];
+        foreach ($dataVOdpovedi as $polozka) {
+            switch ($polozka) {
+                case 'id' :
+                    $data['id'] = $uzivatel->id();
+                    break;
+                case 'jmenoNick' :
+                    $data['jmenoNick'] = $uzivatel->jmenoNick();
+                    break;
+                case 'jmeno' :
+                    $data['jmeno'] = $uzivatel->jmeno();
+                    break;
+                case 'mail' :
+                    $data['mail'] = $uzivatel->mail();
+                    break;
+                case 'zustatek' :
+                    $data['zustatek'] = $uzivatel->finance()->stavHr(false);
+                    break;
+                case 'telefon' :
+                    $data['telefon'] = $uzivatel->telefon();
+                    break;
+                case 'gcPritomen' :
+                    $data['gcPritomen'] = $uzivatel->gcPritomen();
+                    break;
+                default :
+                    trigger_error("Nepodporovana polozka pro Omnibox: '$polozka'", E_USER_WARNING);
+            }
+        }
+        return $data;
+    };
+
+    $sestavLabel = static function (Uzivatel $uzivatel, ?array $labelSlozenZ) use ($sestavData): string {
+        $labelSlozenZ = $labelSlozenZ ?: ['id', 'jmenoNick', 'mail'];
+        $data         = $sestavData($uzivatel, $labelSlozenZ);
+        $labelCasti   = [];
+        if (isset($data['gcPritomen'])) {
+            if ($labelCasti) {
+                $labelCasti[] = '; ';
+            }
+            $labelCasti[] = $data['gcPritomen'] ? '✅' : '❌';
+        }
+        if (!empty($data['id'])) {
+            if ($labelCasti) {
+                $labelCasti[] = ' - ';
+            }
+            $labelCasti[] = $data['id'];
+        }
+        if (!empty($data['jmenoNick'])) {
+            if ($labelCasti) {
+                $labelCasti[] = ' - ';
+            }
+            $labelCasti[] = $data['jmenoNick'];
+        }
+        if (!empty($data['jmeno'])) {
+            if ($labelCasti) {
+                $labelCasti[] = ' - ';
+            }
+            $labelCasti[] = $data['jmeno'];
+        }
+        if (!empty($data['mail'])) {
+            if ($labelCasti) {
+                $labelCasti[] = ' ';
+            }
+            $labelCasti[] = "({$data['mail']})";
+        }
+        if (!empty($data['zustatek'])) {
+            if ($labelCasti) {
+                $labelCasti[] = '; ';
+            }
+            $labelCasti[] = "{$data['zustatek']}";
+        }
+        return implode($labelCasti);
+    };
+
+    return array_map(
+        static function (Uzivatel $uzivatel) use ($sestavLabel, $sestavData, $dataVOdpovedi, $labelSlozenZ) {
+            return [
+                'label' => $sestavLabel($uzivatel, $labelSlozenZ),
+                'data'  => $sestavData($uzivatel, $dataVOdpovedi),
+                'value' => $uzivatel->id(),
+            ];
+        },
+        $uzivatele
+    );
+}
+
+function pridejNaZacatekPole(string $klic, $hodnota, array $pole): array {
+    unset($pole[$klic]); // pro případ, že by byl klíč obsazen - potom by původní honota přepsala novou níže a to nechceme
+    return array_merge([$klic => $hodnota], $pole);
 }

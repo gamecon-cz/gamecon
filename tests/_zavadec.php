@@ -7,19 +7,7 @@ use Gamecon\Tests\Db\DbWrapper;
 use Godric\DbMigrations\DbMigrationsConfig;
 use Godric\DbMigrations\DbMigrations;
 
-define('DB_NAME', uniqid('gamecon_test_', true));
-define('SPEC', sys_get_temp_dir());
-define('UNIT_TESTS', true);
-
-// konfigurace
-// TODO dokud není konfigurace vyřešena jinak, než přes konstanty, musíme testovat jen jeden vydefinovaný stav, tj. "reg na aktivity i GC běží"
-define('REG_GC_OD', '2000-01-01 00:00:00');
-define('REG_GC_DO', '2038-01-01 00:00:00');
-define('REG_AKTIVIT_OD', '2000-01-01 00:00:00');
-define('REG_AKTIVIT_DO', '2038-01-01 00:00:00');
-
-define('MAILY_DO_SOUBORU', '/dev/null'); // TODO přidat speciální nastavení pro CI
-
+require_once __DIR__ . '/../nastaveni/verejne-nastaveni-tests.php';
 require_once __DIR__ . '/../nastaveni/zavadec-zaklad.php';
 
 // příprava databáze
@@ -29,16 +17,10 @@ dbQuery(sprintf('CREATE DATABASE IF NOT EXISTS `%s` COLLATE "utf8_czech_ci"', DB
 dbQuery(sprintf('USE `%s`', DB_NAME));
 
 (new DbMigrations(new DbMigrationsConfig([
-    'connection' => dbConnect(), // předpokládá se, že spojení pro testy má administrativní práva
+    'connection'          => dbConnect(), // předpokládá se, že spojení pro testy má administrativní práva
     'migrationsDirectory' => __DIR__ . '/../migrace',
-    'doBackups' => false,
-])))->run(); // migrations v1
-
-(new DbMigrations(new DbMigrationsConfig([
-    'connection' => dbConnect(), // předpokládá se, že spojení pro testy má administrativní práva
-    'migrationsDirectory' => __DIR__ . '/../migrace',
-    'doBackups' => false,
-])))->run();// migrations v2
+    'doBackups'           => false,
+])))->run();
 
 dbConnect(); // nutno inicalizovat spojení
 

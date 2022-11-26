@@ -4,17 +4,73 @@ namespace Gamecon\SystemoveNastaveni;
 
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Cas\Exceptions\InvalidDateTimeFormat;
+use Gamecon\SystemoveNastaveni\Exceptions\InvalidSystemSettingsValue;
 
 class SystemoveNastaveni
 {
+
+    public static function vytvorZGlobalnich(): self {
+        return new static(
+            ROK,
+            new \DateTimeImmutable(),
+            parse_url(URL_WEBU, PHP_URL_HOST) === 'beta.gamecon.cz',
+            parse_url(URL_WEBU, PHP_URL_HOST) === 'localhost'
+        );
+    }
+
+    /**
+     * @param string $klic
+     * @param int $bonusZaStandardni3hAz5hAktivitu Nelze použít konstantu při změně v databázi, protože konstanta se změní až při dalším načtení PHP
+     * @return int
+     */
+    public static function spocitejBonusVypravece(
+        string $klic,
+        int    $bonusZaStandardni3hAz5hAktivitu = BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU
+    ): int {
+        switch ($klic) {
+            case 'BONUS_ZA_1H_AKTIVITU' :
+                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu / 4);
+            case 'BONUS_ZA_2H_AKTIVITU' :
+                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu / 2);
+            case 'BONUS_ZA_6H_AZ_7H_AKTIVITU' :
+                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 1.5);
+            case 'BONUS_ZA_8H_AZ_9H_AKTIVITU' :
+                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 2);
+            case 'BONUS_ZA_10H_AZ_11H_AKTIVITU' :
+                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 2.5);
+            case 'BONUS_ZA_12H_AZ_13H_AKTIVITU' :
+                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 3);
+            default :
+                throw new \LogicException("Neznámý klíč bonusu vypravěče '$klic'");
+        }
+    }
+
+    private static function zakrouhli(float $cislo): int {
+        return (int)round($cislo, 0);
+    }
 
     /**
      * @var int
      */
     private $rok;
+    /**
+     * @var \DateTimeImmutable
+     */
+    private $ted;
+    private bool $jsmeNaBete;
+    private bool $jsmeNaLocale;
 
-    public function __construct(int $rok) {
-        $this->rok = $rok;
+    public function __construct(
+        int                $rok,
+        \DateTimeImmutable $ted,
+        bool               $jsmeNaBete,
+        bool               $jsmeNaLocale
+    ) {
+        $this->rok          = $rok;
+        $this->ted          = $ted;
+        $this->jsmeNaBete   = $jsmeNaBete;
+        $this->jsmeNaLocale = $jsmeNaLocale;
     }
 
     public function zaznamyDoKonstant() {
@@ -27,6 +83,11 @@ SELECT systemove_nastaveni.klic,
 FROM systemove_nastaveni
 SQL
             );
+        } catch (\mysqli_sql_exception $exception) {
+            if ($exception->getCode() === 1049) { // Unknown database
+                return;
+            }
+            throw $exception;
         } catch (\ConnectionException $connectionException) {
             // testy nebo úplně prázdný Gamecon na začátku nemají ještě databázi
             return;
@@ -46,6 +107,18 @@ SQL
                 define($nazevKonstanty, $hodnota);
             }
         }
+        $this->definujOdvozeneKonstanty();
+    }
+
+    private function definujOdvozeneKonstanty() {
+        @define('MODRE_TRICKO_ZDARMA_OD', 3 * BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU); // hodnota slevy od které má subjekt nárok na modré tričko
+
+        @define('BONUS_ZA_1H_AKTIVITU', self::spocitejBonusVypravece('BONUS_ZA_1H_AKTIVITU'));
+        @define('BONUS_ZA_2H_AKTIVITU', self::spocitejBonusVypravece('BONUS_ZA_2H_AKTIVITU'));
+        @define('BONUS_ZA_6H_AZ_7H_AKTIVITU', self::spocitejBonusVypravece('BONUS_ZA_6H_AZ_7H_AKTIVITU'));
+        @define('BONUS_ZA_8H_AZ_9H_AKTIVITU', self::spocitejBonusVypravece('BONUS_ZA_8H_AZ_9H_AKTIVITU'));
+        @define('BONUS_ZA_10H_AZ_11H_AKTIVITU', self::spocitejBonusVypravece('BONUS_ZA_10H_AZ_11H_AKTIVITU'));
+        @define('BONUS_ZA_12H_AZ_13H_AKTIVITU', self::spocitejBonusVypravece('BONUS_ZA_12H_AZ_13H_AKTIVITU'));
     }
 
     public function zkonvertujHodnotuNaTyp($hodnota, string $datovyTyp) {
@@ -108,17 +181,28 @@ SQL,
     }
 
     private function formatujHodnotuProDb($hodnota, string $klic) {
-        switch ($this->dejDatovyTyp($klic)) {
-            case 'date' :
-                return $hodnota
-                    ? DateTimeCz::createFromFormat('j. n. Y', $hodnota)->formatDatumDb()
-                    : $hodnota;
-            case 'datetime' :
-                return $hodnota
-                    ? DateTimeCz::createFromFormat('j. n. Y H:i:s', $hodnota)->formatDb()
-                    : $hodnota;
-            default :
-                return $hodnota;
+        try {
+            switch ($this->dejDatovyTyp($klic)) {
+                case 'date' :
+                    return $hodnota
+                        ? DateTimeCz::createFromFormat('j. n. Y', $hodnota)->formatDatumDb()
+                        : $hodnota;
+                case 'datetime' :
+                    return $hodnota
+                        ? DateTimeCz::createFromFormat('j. n. Y H:i:s', $hodnota)->formatDb()
+                        : $hodnota;
+                default :
+                    return $hodnota;
+            }
+        } catch (InvalidDateTimeFormat $invalidDateTimeFormat) {
+            throw new InvalidSystemSettingsValue(
+                sprintf(
+                    "Can not convert %s (%s) into DB format: %s",
+                    var_export($hodnota, true),
+                    var_export($klic, true),
+                    $invalidDateTimeFormat->getMessage()
+                )
+            );
         }
     }
 
@@ -148,8 +232,8 @@ SQL
                 continue;
             }
             $bonusZaStandardni3hAz5hAktivitu = (int)$zaznam['hodnota'];
-            $popis = &$zaznam['popis'];
-            $popis .= '<hr><i>vypočtené bonusy</i>:<br>'
+            $popis                           = &$zaznam['popis'];
+            $popis                           .= '<hr><i>vypočtené bonusy</i>:<br>'
                 . 'BONUS_ZA_1H_AKTIVITU = ' . self::spocitejBonusVypravece('BONUS_ZA_1H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
                 . 'BONUS_ZA_2H_AKTIVITU = ' . self::spocitejBonusVypravece('BONUS_ZA_2H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
                 . '•••<br>'
@@ -206,9 +290,9 @@ SQL;
 
     private function pridejVychoziHodnoty(array $zaznamy): array {
         return array_map(
-            function (array &$zaznam) {
+            function (array $zaznam) {
                 $zaznam['vychozi_hodnota'] = $this->dejVychoziHodnotu($zaznam['klic']);
-                $zaznam['popis'] .= '<hr><i>výchozí hodnota</i>: ' . (
+                $zaznam['popis']           .= '<hr><i>výchozí hodnota</i>: ' . (
                     $zaznam['vychozi_hodnota'] !== ''
                         ? htmlspecialchars($zaznam['vychozi_hodnota'])
                         : '<i>' . htmlspecialchars('>>>není<<<') . '</i>'
@@ -224,6 +308,7 @@ SQL;
             case 'GC_BEZI_OD' :
                 return DateTimeGamecon::spocitejZacatekGameconu($this->rok)->formatDb();
             case 'GC_BEZI_DO' :
+            case 'REG_GC_DO' :
                 return DateTimeGamecon::spocitejKonecGameconu($this->rok)->formatDb();
             case 'REG_GC_OD' :
                 return DateTimeGamecon::spocitejZacatekRegistraciUcastniku($this->rok)->formatDb();
@@ -233,39 +318,91 @@ SQL;
                 return DateTimeGamecon::spocitejPrvniHromadneOdhlasovaniOd($this->rok)->formatDb();
             case 'HROMADNE_ODHLASOVANI_2' :
                 return DateTimeGamecon::spocitejDruheHromadneOdhlasovaniOd($this->rok)->formatDb();
+            case 'JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE' :
+                return DateTimeGamecon::spocitejDruheHromadneOdhlasovaniOd($this->rok)->formatDatumDb();
+            case 'PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE' :
+                return DateTimeGamecon::zacatekProgramu($this->rok)->modify('-1 day')->formatDatumDb();
+            case 'TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE' :
+                return DateTimeGamecon::spocitejPrvniHromadneOdhlasovaniOd($this->rok)->formatDatumDb();
             default :
                 return '';
         }
     }
 
-    /**
-     * @param string $klic
-     * @param int $bonusZaStandardni3hAz5hAktivitu Nelze použít konstantu při změně v databázi, protože konstanta se změní až při dalším načtení PHP
-     * @return int
-     */
-    public static function spocitejBonusVypravece(
-        string $klic,
-        int    $bonusZaStandardni3hAz5hAktivitu = BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU
-    ): int {
-        switch ($klic) {
-            case 'BONUS_ZA_1H_AKTIVITU' :
-                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu / 4);
-            case 'BONUS_ZA_2H_AKTIVITU' :
-                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu / 2);
-            case 'BONUS_ZA_6H_AZ_7H_AKTIVITU' :
-                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 1.5);
-            case 'BONUS_ZA_8H_AZ_9H_AKTIVITU' :
-                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 2);
-            case 'BONUS_ZA_10H_AZ_11H_AKTIVITU' :
-                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 2.5);
-            case 'BONUS_ZA_12H_AZ_13H_AKTIVITU' :
-                return self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 3);
-            default :
-                throw new \LogicException("Neznámý klíč bonusu vypravěče '$klic'");
-        }
+    public function rok(): int {
+        return $this->rok;
     }
 
-    private static function zakrouhli(float $cislo): int {
-        return (int)round($cislo, 0);
+    public function ted(): \DateTimeImmutable {
+        return $this->ted;
+    }
+
+    public function konecLetosnihoGameconu(): \DateTimeImmutable {
+        return \DateTimeImmutable::createFromMutable(DateTimeGamecon::konecGameconu($this->rok()));
+    }
+
+    public function ucastniciPridatelniDoNeuzavrenePrezenceDo(): \DateTimeImmutable {
+        return $this->konecLetosnihoGameconu()
+            ->modify($this->ucastnikyLzePridatXDniPoGcDoNeuzavreneAktivity() . ' days');
+    }
+
+    public function jsmeNaBete(): bool {
+        return $this->jsmeNaBete;
+    }
+
+    public function jsmeNaLocale(): bool {
+        return $this->jsmeNaLocale;
+    }
+
+    public function aktivitaEditovatelnaXMinutPredJejimZacatkem(): int {
+        return (int)AKTIVITA_EDITOVATELNA_X_MINUT_PRED_JEJIM_ZACATKEM;
+    }
+
+    public function ucastnikyLzePridatXMinutPoUzavreniAktivity(): int {
+        return (int)UCASTNIKY_LZE_PRIDAVAT_X_MINUT_PO_KONCI_AKTIVITY;
+    }
+
+    public function ucastnikyLzePridatXDniPoGcDoNeuzavreneAktivity(): int {
+        return (int)UCASTNIKY_LZE_PRIDAVAT_X_DNI_PO_GC_U_NEUZAVRENE_PREZENCE;
+    }
+
+    public function prihlaseniNaPosledniChviliXMinutPredZacatkemAktivity(): int {
+        return (int)PRIHLASENI_NA_POSLEDNI_CHVILI_X_MINUT_PRED_ZACATKEM_AKTIVITY;
+    }
+
+    public function prodejUbytovaniDo(): \DateTimeImmutable {
+        return (new \DateTimeImmutable(UBYTOVANI_LZE_OBJEDNAT_A_MENIT_DO_DNE))
+            ->setTime(23, 59, 59);
+    }
+
+    public function prodejUbytovaniUkoncen(): bool {
+        return $this->prodejUbytovaniDo() < $this->ted();
+    }
+
+    public function prodejJidlaDo(): \DateTimeImmutable {
+        return (new \DateTimeImmutable(JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE))
+            ->setTime(23, 59, 59);
+    }
+
+    public function prodejJidlaUkoncen(): bool {
+        return $this->prodejJidlaDo() < $this->ted();
+    }
+
+    public function prodejTricekDo(): \DateTimeImmutable {
+        return (new \DateTimeImmutable(TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE))
+            ->setTime(23, 59, 59);
+    }
+
+    public function prodejTricekUkoncen(): bool {
+        return $this->prodejTricekDo() < $this->ted();
+    }
+
+    public function prodejPredmetuDo(): \DateTimeImmutable {
+        return (new \DateTimeImmutable(PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE))
+            ->setTime(23, 59, 59);
+    }
+
+    public function prodejPredmetuBezTricekUkoncen(): bool {
+        return $this->prodejPredmetuDo() < $this->ted();
     }
 }

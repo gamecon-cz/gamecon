@@ -3,7 +3,7 @@
 $this->bezStranky(true);
 
 $out = [];
-foreach(Uzivatel::zHledani($_GET['term']) as $u) { // TODO lepší přístup k parametru
+foreach(Uzivatel::zHledani((string)$_GET['term']) as $u) { // TODO lepší přístup k parametru
   $out[] = [
     'label' => $u->id().' – '.$u->jmenoNick(),
     'value' => $u->id()

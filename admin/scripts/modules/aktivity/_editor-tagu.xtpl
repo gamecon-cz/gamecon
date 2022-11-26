@@ -33,124 +33,126 @@
   </form>
 </div>
 <script type="text/javascript">
-  const allTagNames = {allTagNamesJson};
-  const chybyEditoruTagu = $('#chybyEditoruTagu');
-  const nazevTaguEditorTagu = $('#nazevTaguEditorTagu');
-  const detectDuplicity = function () {
-    chybyEditoruTagu.html('');
-    const tagValue = nazevTaguEditorTagu.val().trim();
-    if (tagValue === '') {
-      return false;
-    }
-    const tagValueLoverCased = tagValue.toLowerCase()
-    const tagId = document.getElementById('idTaguEditorTagu').value;
-    if (Object.values(allTagNames).includes(tagValueLoverCased)
-      // tag has an ID, so duplicity can occur only if tag has changed name to already used name of another tag
-      && (!tagId || !allTagNames.hasOwnProperty(tagId) || allTagNames[tagId].toLowerCase() !== tagValueLoverCased)
-    ) {
-      chybyEditoruTagu.append($('<div id="tagAlreadyExists" class="warning">Tag "' + tagValue + '" už existuje</div>'));
-    }
-  };
-  const fillFromData = function (element) {
-    const tag = $(element).data('{editorTaguData}');
-    if (tag && typeof (tag) === 'object' && tag.id) {
-      document.getElementById('idTaguEditorTagu').value = tag.id;
-      const nazevTaguElement = document.getElementById('nazevTaguEditorTagu');
-      nazevTaguElement.value = tag.nazev;
-      $('#idKategorieTaguEditorTagu').find('option[value="' + tag.id_kategorie_tagu + '"]').attr('selected', 'selected');
-      document.getElementById('poznamkaEditorTagu').value = tag.poznamka;
-    }
-  };
-  nazevTaguEditorTagu.on('change', detectDuplicity);
-  nazevTaguEditorTagu.on('input', detectDuplicity);
-  const editorTagu = $('#{editorTaguHtmlId}');
-  editorTagu.on($.modal.OPEN, function () {
-    fillFromData(this)
-    detectDuplicity()
-  });
-  const resetTagEditorValues = function () {
-    editorTagu.find('input, textarea').val(''); // reset editor values
-  };
-
-  editorTagu.find('form').on('submit', function (event) {
-    event.preventDefault();
-
-    const form = $(this);
-
-    const clearErrors = function () {
-      chybyEditoruTagu.html('').css('text-decoration', 'inherit');
-    };
-
-    const resolveUpdatedTag = function (response, status) {
-      clearErrors();
-      if (response.errors && response.errors.length > 0) {
-        for (let error of response.errors) {
-          chybyEditoruTagu.append($('<p class="error">' + error + '</p>'));
-        }
+  (function ($) {
+    const allTagNames = {allTagNamesJson};
+    const chybyEditoruTagu = $('#chybyEditoruTagu');
+    const nazevTaguEditorTagu = $('#nazevTaguEditorTagu');
+    const detectDuplicity = function () {
+      chybyEditoruTagu.html('');
+      const tagValue = nazevTaguEditorTagu.val().trim();
+      if (tagValue === '') {
         return false;
       }
-      if (typeof response.tag === 'undefined' || !response.tag) {
-        chybyEditoruTagu.append($('<p class="error">Něco se nepovedlo: "' + status + '"</p>'));
+      const tagValueLoverCased = tagValue.toLowerCase()
+      const tagId = document.getElementById('idTaguEditorTagu').value;
+      if (Object.values(allTagNames).includes(tagValueLoverCased)
+        // tag has an ID, so duplicity can occur only if tag has changed name to already used name of another tag
+        && (!tagId || !allTagNames.hasOwnProperty(tagId) || allTagNames[tagId].toLowerCase() !== tagValueLoverCased)
+      ) {
+        chybyEditoruTagu.append($('<div id="tagAlreadyExists" class="warning">Tag "' + tagValue + '" už existuje</div>'));
       }
-      let event;
-      if (response.tag) {
-        resetTagEditorValues();
-        editorTagu.find('input, textarea').val(''); // reset editor values
-        allTagNames[response.tag.id] = response.tag.nazev;
-        if (response.tagIsNew) {
-          event = new CustomEvent('tagCreated', {
-            detail: {
-              tag: {
-                id: response.tag.id,
-                nazev: response.tag.nazev
-              }
-            }
-          });
-        } else if (response.tagIsEdited) {
-          editorTagu.data('{editorTaguData}', response.tag); // to fill the form later on open for edit
-          event = new CustomEvent('tagEdited', {
-            detail: {
-              tag: {
-                id: response.tag.id,
-                nazev: response.tag.nazev,
-                id_kategorie_tagu: response.tag.id_kategorie_tagu,
-                nazev_kategorie: response.tag.nazev_kategorie,
-                poznamka: response.tag.poznamka,
-              }
-            }
-          });
-        }
+    };
+    const fillFromData = function (element) {
+      const tag = $(element).data('{editorTaguData}');
+      if (tag && typeof (tag) === 'object' && tag.id) {
+        document.getElementById('idTaguEditorTagu').value = tag.id;
+        const nazevTaguElement = document.getElementById('nazevTaguEditorTagu');
+        nazevTaguElement.value = tag.nazev;
+        $('#idKategorieTaguEditorTagu').find('option[value="' + tag.id_kategorie_tagu + '"]').attr('selected', 'selected');
+        document.getElementById('poznamkaEditorTagu').value = tag.poznamka;
       }
-      document.getElementById('{editorTaguHtmlId}').dispatchEvent(event);
-      $.modal.close();
-      return true;
     };
-    const resolveFailedTagUpdate = function (request, status, error) {
-      clearErrors();
-      chybyEditoruTagu.append($('<p class="error">Něco se nepovedlo: "' + error + '"</p>'));
-    };
-    const invalidateErrorsAndAddLoader = function () {
-      const submit = form.find('button[type=submit]')
-      submit.attr('disabled', 'disabled')
-      const ajaxLoader = $('<img class="ajax-loader" src="files/design/ajax-loader.gif">')
-      submit.append(ajaxLoader)
-      chybyEditoruTagu.css('text-decoration', 'line-through');
-    };
-    const validateErrorsAndRemoveLoader = function () {
-      const submit = form.find('button[type=submit]')
-      submit.attr('disabled', null).find('.ajax-loader').remove();
-    };
-    $.ajax({
-      type: "POST",
-      url: document.URL,
-      data: form.serialize(),
-      timeout: 6000,
-      beforeSend: invalidateErrorsAndAddLoader,
-      success: resolveUpdatedTag,
-      error: resolveFailedTagUpdate,
-      failure: resolveFailedTagUpdate,
-      complete: validateErrorsAndRemoveLoader
+    nazevTaguEditorTagu.on('change', detectDuplicity);
+    nazevTaguEditorTagu.on('input', detectDuplicity);
+    const editorTagu = $('#{editorTaguHtmlId}');
+    editorTagu.on($.modal.OPEN, function () {
+      fillFromData(this)
+      detectDuplicity()
     });
-  });
+    const resetTagEditorValues = function () {
+      editorTagu.find('input, textarea').val(''); // reset editor values
+    };
+
+    editorTagu.find('form').on('submit', function (event) {
+      event.preventDefault();
+
+      const form = $(this);
+
+      const clearErrors = function () {
+        chybyEditoruTagu.html('').css('text-decoration', 'inherit');
+      };
+
+      const resolveUpdatedTag = function (response, status) {
+        clearErrors();
+        if (response.errors && response.errors.length > 0) {
+          for (let error of response.errors) {
+            chybyEditoruTagu.append($('<p class="error">' + error + '</p>'));
+          }
+          return false;
+        }
+        if (typeof response.tag === 'undefined' || !response.tag) {
+          chybyEditoruTagu.append($('<p class="error">Něco se nepovedlo: "' + status + '"</p>'));
+        }
+        let event;
+        if (response.tag) {
+          resetTagEditorValues();
+          editorTagu.find('input, textarea').val(''); // reset editor values
+          allTagNames[response.tag.id] = response.tag.nazev;
+          if (response.tagIsNew) {
+            event = new CustomEvent('tagCreated', {
+              detail: {
+                tag: {
+                  id: response.tag.id,
+                  nazev: response.tag.nazev
+                }
+              }
+            });
+          } else if (response.tagIsEdited) {
+            editorTagu.data('{editorTaguData}', response.tag); // to fill the form later on open for edit
+            event = new CustomEvent('tagEdited', {
+              detail: {
+                tag: {
+                  id: response.tag.id,
+                  nazev: response.tag.nazev,
+                  id_kategorie_tagu: response.tag.id_kategorie_tagu,
+                  nazev_kategorie: response.tag.nazev_kategorie,
+                  poznamka: response.tag.poznamka,
+                }
+              }
+            });
+          }
+        }
+        document.getElementById('{editorTaguHtmlId}').dispatchEvent(event);
+        $.modal.close();
+        return true;
+      };
+      const resolveFailedTagUpdate = function (request, status, error) {
+        clearErrors();
+        chybyEditoruTagu.append($('<p class="error">Něco se nepovedlo: "' + error + '"</p>'));
+      };
+      const invalidateErrorsAndAddLoader = function () {
+        const submit = form.find('button[type=submit]')
+        submit.attr('disabled', 'disabled')
+        const ajaxLoader = $('<img class="ajax-loader" src="files/design/ajax-loader.gif">')
+        submit.append(ajaxLoader)
+        chybyEditoruTagu.css('text-decoration', 'line-through');
+      };
+      const validateErrorsAndRemoveLoader = function () {
+        const submit = form.find('button[type=submit]')
+        submit.attr('disabled', null).find('.ajax-loader').remove();
+      };
+      $.ajax({
+        type: "POST",
+        url: document.URL,
+        data: form.serialize(),
+        timeout: 6000,
+        beforeSend: invalidateErrorsAndAddLoader,
+        success: resolveUpdatedTag,
+        error: resolveFailedTagUpdate,
+        failure: resolveFailedTagUpdate,
+        complete: validateErrorsAndRemoveLoader
+      });
+    });
+  })(jQuery)
 </script>
 <!-- end:editorTagu -->

@@ -1,0 +1,57 @@
+name: Deploy BETA on direct push or merged pull request
+
+on:
+  push:
+    branches:
+      - 'beta'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1' # musí odpovídat verzi na wedosu
+          # extensions musí odpovídat seznamu v composer.json
+          extensions: bcmath, curl, exif, fileinfo, gd, iconv, imagick, intl, json, mbstring, mysqli, pdo, sqlite3, xmlreader, zip
+          tools: composer
+          coverage: none
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v1
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+
+      - name: Install dependencies
+        run: composer install # includes dev by default
+
+      - name: Setup MySQL for tests
+        uses: shogo82148/actions-setup-mysql@v1
+        with:
+          mysql-version: 'mysql-5.6' # mělo by odpovídat verzi na wedosu
+
+      - name: Run tests
+        run: ./vendor/bin/phpunit
+
+      - name: Deploy via FTP
+        run: php ./udrzba/nasad.php --skip-tests # testy provádíme zvlášť, abychom neměli output z deploye moc dlouhý
+        env:
+          FTP_DIR: beta
+          FTP_BASE_URL: ${{ secrets.FTP_BASE_URL }}
+          DB_USER: ${{ secrets.BETA_DB_USER }}
+          DB_PASS: ${{ secrets.BETA_DB_PASS }}
+          DB_NAME: ${{ secrets.BETA_DB_NAME }}
+          DB_SERV: ${{ secrets.BETA_DB_SERV }}
+          DBM_USER: ${{ secrets.BETA_DBM_USER }}
+          DBM_PASS: ${{ secrets.BETA_DBM_PASS }}
+          MIGRACE_HESLO: ${{ secrets.BETA_MIGRACE_HESLO }}
+          SECRET_CRYPTO_KEY: ${{ secrets.BETA_SECRET_CRYPTO_KEY }}
+          CRON_KEY: ${{ secrets.BETA_CRON_KEY }}
+          GOOGLE_API_CREDENTIALS: ${{ secrets.BETA_GOOGLE_API_CREDENTIALS }}
+          FIO_TOKEN: ${{ secrets.BETA_FIO_TOKEN }}

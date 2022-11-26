@@ -7,9 +7,10 @@
  * pravo: 106
  */
 
-use \Gamecon\Cas\DateTimeCz;
+use Gamecon\Cas\DateTimeCz;
+use Gamecon\XTemplate\XTemplate;
 
-/** @var Uzivatel $uPracovni */
+/** @var Uzivatel|null $uPracovni */
 /** @var Uzivatel $u */
 
 $zidle = $req[1] ?? null;
@@ -20,32 +21,36 @@ function zaloguj($zprava) {
 }
 
 if ($z = get('posad')) {
-    $uPracovni->dejZidli($z, $u->id());
-    zaloguj('Uživatel ' . $u->jmenoNick() . " posadil na židli $z uživatele " . $uPracovni->jmenoNick());
+    if ($uPracovni) {
+        $uPracovni->dejZidli($z, $u);
+        zaloguj('Uživatel ' . $u->jmenoNick() . " posadil na židli $z uživatele " . $uPracovni->jmenoNick());
+    }
     back();
 }
 
 if ($z = get('sesad')) {
-    $uPracovni->vemZidli($z);
-    zaloguj('Uživatel ' . $u->jmenoNick() . " sesadil ze židle $z uživatele " . $uPracovni->jmenoNick());
+    if ($uPracovni) {
+        $uPracovni->vemZidli((int)$z, $u);
+        zaloguj('Uživatel ' . $u->jmenoNick() . " sesadil ze židle $z uživatele " . $uPracovni->jmenoNick());
+    }
     back();
 }
 
-if ($p = get('odeberPravo')) {
+if ($zidle !== null && ($p = get('odeberPravo')) !== null) {
     dbQuery('DELETE FROM r_prava_zidle WHERE id_prava = $1 AND id_zidle = $2', [$p, $zidle]);
     zaloguj('Uživatel ' . $u->jmenoNick() . " odebral židli $zidle právo $p");
     back();
 }
 
-if ($p = get('dejPravo')) {
+if ($zidle !== null && ($p = get('dejPravo')) !== null) {
     dbInsert('r_prava_zidle', ['id_prava' => $p, 'id_zidle' => $zidle]);
     zaloguj('Uživatel ' . $u->jmenoNick() . " přidal židli $zidle právo $p");
     back();
 }
 
-if ($uid = get('sesadUzivatele')) {
+if ($zidle !== null && $uid = get('sesadUzivatele')) {
     $u2 = Uzivatel::zId($uid);
-    $u2->vemZidli($zidle);
+    $u2->vemZidli((int)$zidle, $u);
     zaloguj('Uživatel ' . $u->jmenoNick() . " sesadil ze židle $zidle uživatele " . $u2->jmenoNick());
     back();
 }

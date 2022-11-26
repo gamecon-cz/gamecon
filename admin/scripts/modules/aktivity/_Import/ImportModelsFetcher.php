@@ -3,6 +3,7 @@
 namespace Gamecon\Admin\Modules\Aktivity\Import;
 
 use Gamecon\Admin\Modules\Aktivity\Import\Exceptions\ActivitiesImportException;
+use Gamecon\Aktivita\Aktivita;
 
 class ImportModelsFetcher
 {
@@ -31,8 +32,8 @@ class ImportModelsFetcher
         return $users[$userId];
     }
 
-    public static function fetchActivity(int $activityId): \Aktivita {
-        $activity = \Aktivita::zId($activityId);
+    public static function fetchActivity(int $activityId): Aktivita {
+        $activity = Aktivita::zId($activityId);
         if (!$activity) {
             throw new ActivitiesImportException("Activity with ID '$activityId' does not exist");
         }

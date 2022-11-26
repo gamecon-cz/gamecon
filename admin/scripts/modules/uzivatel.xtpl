@@ -1,0 +1,213 @@
+<!-- begin:uzivatel -->
+<h1>Uživatel</h1>
+
+<!-- TODO upo na výběr uživatele -->
+
+<style>
+    .shopUbytovani_prvniSloupec, .shopUbytovani_sloupec {
+        float: left;
+        width: 65px;
+    }
+
+    .shopUbytovani_radek {
+        height: 40px;
+    }
+
+    .tooltip_obsah {
+        display: none;
+    }
+</style>
+
+<div class="uzivatel-grid--container">
+
+  <div class="uzivatel-grid--item uzivatel-grid--item-ubytování aBox">
+    <h3>Ubytování uživatele</h3>
+    <!-- begin:ubytovani -->
+    <form method="post" class="clearfix">
+      {ubytovaniHtml}<br>
+      <input type="submit" name="zpracujUbytovani" value="Uložit" class="submit-btn">
+    </form>
+    <!-- end:ubytovani -->
+    {status}
+  </div>
+
+
+  <div class="uzivatel-grid--item  uzivatel-grid--item-jídlo aBox">
+    <h3>Jídlo uživatele</h3>
+    <!-- begin:jidlo -->
+    Zrušit jídlo je možné jenom oproti vrácené stravence. Při objednání jídla je naopak potřeba předat stravenku (a
+    zkontrolovat stav financí). Snídaně nabízíme jen organizátorům a vypravěčům.<br><br>
+    <form method="post" class="clearfix">
+      {jidloHtml}
+      <input type="submit" name="zpracujJidlo" value="Uložit" class="submit-btn">
+    </form>
+    <!-- end:jidlo -->
+    {status}
+  </div>
+
+
+  <div class="uzivatel-grid--item  uzivatel-grid--item-pokoje aBox">
+    <h3>Nastavení pokojů</h3>
+
+    <div>
+      Vypsat pokoj<br>
+      <form method="get">
+        <table>
+          <tr>
+            <td><label for="pokojVypis">Pokoj:</label></td>
+            <td><input id="pokojVypis" type="number" min="1" step="1" value="{pokojVypis}" name="pokoj"></td>
+          </tr>
+          <tr>
+            <td>Ubytovaní:</td>
+            <td>{ubytovaniVypis}</td>
+          </tr>
+        </table>
+        <input type="submit" value="Vypsat" class="submit-btn">
+      </form>
+    </div>
+
+    <br>
+    <!-- begin:pokojPridel -->
+    <div style="margin-top:8px">
+      Přidělit pokoj (přepíše stávající stav)<br>
+      <form method="post" class="cleafix">
+        <table>
+          <tr>
+            <td><label for="pokoj">Pokoj:</label></td>
+            <td><input id="pokoj" type="number" min="1" step="1" name="pokoj"></td>
+          </tr>
+        </table>
+        <input type="submit" name="pridelitPokoj" value="Přidělit" class="submit-btn">
+      </form>
+    </div>
+    <!-- end:pokojPridel -->
+  </div>
+
+  <!-- begin:slevy -->
+  <div class="uzivatel-grid--item  uzivatel-grid--item-slevy aBox">
+    <h3>Slevy</h3>
+    <strong>Na aktivity:</strong>
+    <ul>{slevyAktivity}</ul>
+    <strong>Na všechno:</strong>
+    <ul>{slevyVse}</ul>
+  </div>
+  <!-- end:slevy -->
+
+  <!-- begin:objednavky -->
+  <div class="uzivatel-grid--item  uzivatel-grid--item-objednavky aBox">
+    <h3 class="prehled">Objednávky a platby</h3>
+    {prehled}
+    <script>$('.prehled').siblings('table').css('width', '100%')</script>
+  </div>
+  <!-- end:objednavky -->
+
+
+  <!-- begin:udaje -->
+  <div class="uzivatel-grid--item uzivatel-grid--item-udaje aBox">
+    <h3>Osobní údaje</h3>
+    Pro úpravu klikni na údaj
+    <form method="post" class="udaje clearfix" id="osobni_udaje">
+      <table>
+        <!-- begin:udaj -->
+        <tr>
+          <td style="width:80px">
+            <!-- begin:nazevSPopiskem -->
+            <span class="hinted">{nazev}:<span class="hint">{popisek}</span></span>
+            <!-- end:nazevSPopiskem -->
+            <!-- begin:nazevBezPopisku -->
+            {nazev}:
+            <!-- end:nazevBezPopisku -->
+          </td>
+          <td style="padding:0">
+            <div id="editace_udaju_uzivatele_trigger"
+                 onclick="$('.udaje .label').hide(); $('.udaje .submit-btn').show(); $('.udaje .input').show().find('input, textarea').first().focus()"
+                 style="width: 100%; cursor: pointer;" class="label">
+              {zobrazenaHodnota} &nbsp;
+              <!-- begin:chybi -->
+              <img src="files/design/error-s.png" style="margin-bottom:-2px">
+              požádej o doplnění
+              <!-- end:chybi -->
+            </div>
+
+            <table class="cista input" style="width:100%;display:none;">
+              <tr>
+                <!-- begin:input -->
+                <td><input
+                    type="text" name="udaj[{sloupec}]" value="{vstupniHodnota}" style="margin-left: -3px;"
+                    id="udaj_{sloupec}"></td>
+                <!-- end:input -->
+                <!-- begin:checkbox -->
+                <td><input
+                    type="checkbox" name="udaj[{sloupec}]" value="{vstupniHodnota}" {checked} {disabled}
+                    style="margin-left: -3px;" id="udaj_{sloupec}"></td>
+                <!-- end:checkbox -->
+                <!-- begin:select -->
+                <td>
+                  <select name="udaj[{sloupec}]" style="margin-left: -3px; width: 15.3em">
+                    <!-- begin:option -->
+                    <option value="{optionValue}" {optionSelected}>{optionText}</option>
+                    <!-- end:option -->
+                  </select>
+                </td>
+                <!-- end:select -->
+                <!-- begin:text -->
+                <td colspan="2">
+                  <textarea id="udaj_{sloupec}" name="udaj[{sloupec}]" style="margin-left: -3px; margin-top: -1px">{vstupniHodnota}</textarea>
+                </td>
+                <!-- end:text -->
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <!-- end:udaj -->
+      </table>
+      <a style="font-size: 1.2em; float: left; margin-top: .2em; margin-right: 1em;" href="program-uzivatele"
+         target="_blank">Program</a>
+      <a style="font-size: 1.2em; float: left; margin-top: .2em;" href="program-osobni" target="_blank">Program
+        účastníka</a>
+      <input type="submit" name="zmenitUdaj" value="uložit" class="submit-btn" style="display:none;">
+    </form>
+    <script src="files/jquery.autosize-1.18.13.js"></script>
+    <script>
+      $('textarea').last().focus(function () {
+        $(this).css('width', '98%').autosize()
+      })
+    </script>
+  </div>
+  <!-- end:udaje -->
+
+  <div class="uzivatel-grid--item  uzivatel-grid--item-prodej aBox">
+    <h3>Prodej předmětů</h3>
+    Zbývající počty předmětů jsou uvedeny v závorce<br>
+    <form method="post" class="clearfix">
+      <table>
+        <!-- begin:prodejAnonymni -->
+        <tr>
+          <td></td>
+          <td>Anonymní prodej</td>
+        </tr>
+        <!-- end:prodejAnonymni -->
+
+        <tr>
+          <td style="white-space: nowrap">
+            <label for="predmet">Předmět:</label>
+            <span class="hinted">
+              <input name="prodej[kusu]" style="border: none; margin: 0; padding: 0" type="number" step="1" value="1"
+                     size="2" min="1" max="99" required>
+              <span class="hint" style="white-space: nowrap; width: auto">Počet kusů</span>
+            </span>
+          </td>
+          <td>
+            <select name="prodej[id_predmetu]" id="predmet" style="width: 100%;" required>
+              {predmety}
+            </select>
+          </td>
+        </tr>
+      </table>
+      <input type="submit" name="prodej[odeslano]" value="Prodat" class="submit-btn">
+    </form>
+  </div>
+
+</div>
+
+<!-- end:uzivatel -->

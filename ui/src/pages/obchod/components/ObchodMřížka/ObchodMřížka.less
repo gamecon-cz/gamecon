@@ -1,0 +1,29 @@
+
+
+.shop-grid {
+  &--container {
+    background-color: lightgray;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    padding: 24px;
+    width: 100%;
+    height: 100%;
+  }
+
+  &--item {
+    background-color: white;
+    width: 100%;
+    height: 100%;
+
+    position: relative;
+
+    &-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2em;
+    }
+  }
+}

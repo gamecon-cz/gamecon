@@ -1,12 +1,14 @@
 <?php
 
+require_once __DIR__ . '/../model/funkce/skryte-nastaveni-z-env-funkce.php';
+
 function nasad(array $nastaveni) {
 
-    $deployment = __DIR__ . '/ftp-deployment.php';
+    $deployment     = __DIR__ . '/ftp-deployment.php';
     $zdrojovaSlozka = realpath($nastaveni['zdrojovaSlozka']);
 
     // some files are always required by Composer autoloader, even if not needed, so we have to copy them to server, even if they are for dev (tests) only
-    $alwaysAutoloadedRelative = getFilesAlwaysRequiredByAutoloader();
+    $alwaysAutoloadedRelative      = getFilesAlwaysRequiredByAutoloader();
     $nutneKvuliComposerAutoRequire = implode(
         "      \n",
         array_map(static function (string $file) {
@@ -14,7 +16,9 @@ function nasad(array $nastaveni) {
         }, $alwaysAutoloadedRelative)
     );
 
-    $logFile = $nastaveni['log'] ?? 'nasad.log';
+    $logFile                        = $nastaveni['log'] ?? 'nasad.log';
+    $nazevSouboruVerejnehoNastaveni = basename($nastaveni['souborVerejnehoNastaveni']);
+    $nazevSouboruSkrytehoNastaveni  = souborSkrytehoNastaveniPodleVerejneho($nazevSouboruVerejnehoNastaveni);
 
     $nastaveniDeploymentu = "
     log     = {$logFile}
@@ -28,16 +32,19 @@ function nasad(array $nastaveni) {
       /.vscode
       /.phpunit.result.cache
 
+      /backup/*
+      !/backup/.htaccess
       /cache/private/*
       !/cache/private/.htaccess
+      /admin/stamps/*
       /cache/public/*
       !/cache/public/.htaccess
-      !/cache/public/sestavene
 
       /dokumentace
 
       /nastaveni/*
-      !/nastaveni/{$nastaveni['souborNastaveni']}
+      !/nastaveni/$nazevSouboruVerejnehoNastaveni
+      !/nastaveni/$nazevSouboruSkrytehoNastaveni
       !/nastaveni/db-migrace.php
       !/nastaveni/initial-fatal-error-handler.php
       !/nastaveni/nastaveni.php
@@ -49,7 +56,10 @@ function nasad(array $nastaveni) {
 
       /tests
       /udrzba
-      /node_modules
+      /ui
+      /admin/files/ui/bundle.js.map
+
+      /docker-compose.yml
 
       /web/soubory/*
       !/web/soubory/blackarrow
@@ -67,6 +77,7 @@ function nasad(array $nastaveni) {
       /vendor/phpspec/prophecy
       /vendor/phar-io/manifest
       /vendor/phar-io/version
+      /vendor/composer/tmp-*
       {$nutneKvuliComposerAutoRequire}
 
       /nasad.log
@@ -79,36 +90,32 @@ function nasad(array $nastaveni) {
         nadpis("NASAZUJI '{$nastaveni['vetev']}'");
     }
 
-    // kontroly
-    if (!is_file($zdrojovaSlozka . '/nastaveni/' . $nastaveni['souborNastaveni'])) {
-        throw new Exception('Nenalezen soubor s nastaveními pro vzdálený server.');
-    }
+    vytvorSouborSkrytehoNastaveniPodleEnv($nastaveni['souborVerejnehoNastaveni']);
+    require_once $nastaveni['souborVerejnehoNastaveni'];
 
     // nahrání souborů
     msg('synchronizuji soubory na vzdáleném ftp');
     $souborNastaveniDeploymentu = tempnam(sys_get_temp_dir(), 'gamecon-ftpdeploy-');
     file_put_contents($souborNastaveniDeploymentu, $nastaveniDeploymentu);
     try {
-        call_check(['php', $deployment, $souborNastaveniDeploymentu]);
+        call_check(['php', $deployment, $souborNastaveniDeploymentu, '--no-progress']);
     } finally {
         unlink($souborNastaveniDeploymentu);
     }
 
     // migrace DB
-    runMigrationsOnRemote($nastaveni['urlMigrace'], $nastaveni['hesloMigrace'], 'v1');
-    // twice to run migrations v1 followed by v2
-    runMigrationsOnRemote($nastaveni['urlMigrace'], $nastaveni['hesloMigrace'], 'v2');
+    runMigrationsOnRemote($nastaveni['hesloMigrace']);
 
     msg('nasazení dokončeno');
 }
 
-function runMigrationsOnRemote(string $urlMigrace, string $hesloMigrace, string $detail) {
-    msg("spouštím migrace na vzdálené databázi: $detail");
+function runMigrationsOnRemote(string $hesloMigrace) {
+    msg("spouštím migrace na vzdálené databázi");
     call_check([
         'curl',
-        '--data', 'migraceHeslo=' . $hesloMigrace,
+        '--data', http_build_query(['migraceHeslo' => $hesloMigrace]),
         '--silent', // skrýt progressbar
-        $urlMigrace,
+        URL_ADMIN . '/' . basename(__DIR__ . '/../admin/migrace.php'),
     ]);
 }
 
@@ -133,17 +140,17 @@ function msg($msg) {
 
 function nadpis(string $msg) {
     $length = mb_strlen($msg);
-    $okraj = str_repeat('=', $length);
-    $eol = PHP_EOL;
+    $okraj  = str_repeat('=', $length);
+    $eol    = PHP_EOL;
     echo "  $okraj  $eol";
     echo "‖ $msg ‖$eol";
     echo "  $okraj  $eol";
 }
 
 function call_check($params) {
-    $command = escapeshellcmd($params[0]);
-    $args = array_map('escapeshellarg', array_slice($params, 1));
-    $args = implode(' ', $args);
+    $command         = escapeshellcmd($params[0]);
+    $args            = array_map('escapeshellarg', array_slice($params, 1));
+    $args            = implode(' ', $args);
     $commandWithArgs = $command . ' ' . $args;
 
     passthru($commandWithArgs, $exitStatus);
