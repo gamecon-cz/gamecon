@@ -232,7 +232,7 @@ $pocetDni = count($nazvyDnu);
 <h2>Dlouhodobé statistiky</h2>
 
 <style>
-    .dlouhodobeStatistiky table {
+    .dlouhodobeStatistiky > div {
         margin-bottom: 2em;
     }
 
@@ -247,12 +247,19 @@ $pocetDni = count($nazvyDnu);
 </style>
 
 <div class="dlouhodobeStatistiky">
-    <?= $statistiky->tabulkaHistorieRegistrovaniVsDoraziliHtml() ?>
+    <div class="responzivni-tabulka">
+        <?= $statistiky->tabulkaHistorieRegistrovaniVsDoraziliHtml() ?>
+    </div>
 
-    <?= $statistiky->tabulkaLidiNaGcCelkemHtml() ?>
+    <div class="responzivni-tabulka">
+        <?= $statistiky->tabulkaLidiNaGcCelkemHtml() ?>
+    </div>
 
-    <?= $statistiky->tabulkaHistorieProdanychPredmetuHtml() ?>
+    <div class="responzivni-tabulka">
+        <?= $statistiky->tabulkaHistorieProdanychPredmetuHtml() ?>
+    </div>
 
-    <?= $statistiky->tabulkaHistorieUbytovaniHtml() ?><br>
-
+    <div class="responzivni-tabulka">
+        <?= $statistiky->tabulkaHistorieUbytovaniHtml() ?><br>
+    </div>
 </div>
