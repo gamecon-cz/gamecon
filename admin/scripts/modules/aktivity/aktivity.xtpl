@@ -160,6 +160,7 @@
         margin-top: 1px;
     }
 </style>
+<div class="responzivni-tabulka">
 <table class="zvyraznovana aktivity" style="width: 100%">
   <tr>
     <th>
@@ -285,6 +286,7 @@
     <!-- end:tlacitka -->
   </tr><!-- end:aktivita -->
 </table>
+</div>
 <script>
   scrollToPreviousPosition()
 </script>
