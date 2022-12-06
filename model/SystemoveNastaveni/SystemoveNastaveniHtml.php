@@ -7,8 +7,9 @@ use Gamecon\XTemplate\XTemplate;
 
 class SystemoveNastaveniHtml
 {
-    public const SYNCHRONNI_POST_KLIC = 'nastaveni';
-    public const KLIC_ZKOPIROVAT_OSTROU = 'zkopirovat_ostrou';
+    public const SYNCHRONNI_POST_KLIC           = 'nastaveni';
+    public const ZKOPIROVAT_OSTROU_KLIC         = 'zkopirovat_ostrou';
+    public const EXPORTOVAT_ANONYMIZOVANOU_KLIC = 'exportovat_anonymizovanou';
 
     /**
      * @var SystemoveNastaveni
@@ -27,7 +28,10 @@ class SystemoveNastaveniHtml
         $template->assign('aktivniKlic', SystemoveNastaveniAjax::AKTIVNI_KLIC);
         $template->assign('hodnotaKlic', SystemoveNastaveniAjax::HODNOTA_KLIC);
 
-        $template->assign('systemoveNastavenJsVerze', md5_file(__DIR__ . '/../../admin/files/systemove-nastaveni.js'));
+        $template->assign(
+            'systemoveNastavenJsVerze',
+            md5_file(__DIR__ . '/../../admin/files/systemove-nastaveni.js')
+        );
 
         $zaznamyNastaveniProHtml = $this->dejZaznamyNastaveniProHtml();
         $zaznamyPodleSkupin      = $this->seskupPodleSkupin($zaznamyNastaveniProHtml);
@@ -37,13 +41,20 @@ class SystemoveNastaveniHtml
         }
 
         if ($this->systemoveNastaveni->jsmeNaBete()) {
-            $templateBeta = new XTemplate(__DIR__ . '/templates/nastaveni-beta.xtpl');
-            $templateBeta->assign('synchronniPostKlic', self::SYNCHRONNI_POST_KLIC);
-            $templateBeta->assign('zkopirovatOstrou', self::KLIC_ZKOPIROVAT_OSTROU);
-            $templateBeta->parse('nastaveniBeta');
-            $template->assign('nastaveniBeta', $templateBeta->text('nastaveniBeta'));
+            $templateZkopirovaniOstre = new XTemplate(__DIR__ . '/templates/zkopirovani-ostre-databaze.xtpl');
+            $templateZkopirovaniOstre->assign('synchronniPostKlic', self::SYNCHRONNI_POST_KLIC);
+            $templateZkopirovaniOstre->assign('zkopirovatOstrouKlic', self::ZKOPIROVAT_OSTROU_KLIC);
+            $templateZkopirovaniOstre->parse('zkopirovaniOstreDatabaze');
+            $template->assign('zkopirovaniOstreDatabaze', $templateZkopirovaniOstre->text('zkopirovaniOstreDatabaze'));
             $template->parse('nastaveni.beta');
         }
+
+        $templateAnonymniDatabaze = new XTemplate(__DIR__ . '/templates/export-anonymizovane-databaze.xtpl');
+        $templateAnonymniDatabaze->assign('synchronniPostKlic', self::SYNCHRONNI_POST_KLIC);
+        $templateAnonymniDatabaze->assign('exportovatAnonymizovanouKlic', self::EXPORTOVAT_ANONYMIZOVANOU_KLIC);
+        $templateAnonymniDatabaze->parse('exportAnonymizovaneDatabaze');
+        $template->assign('exportAnonymizovaneDatabaze', $templateAnonymniDatabaze->text('exportAnonymizovaneDatabaze'));
+        $template->parse('nastaveni.exportAnonymizovaneDatabaze');
 
         $template->parse('nastaveni');
         $template->out('nastaveni');
@@ -169,15 +180,27 @@ class SystemoveNastaveniHtml
         if (!$pozadavky) {
             return false;
         }
-        if (empty($pozadavky[self::KLIC_ZKOPIROVAT_OSTROU])) {
-            return false;
+        if (!empty($pozadavky[self::ZKOPIROVAT_OSTROU_KLIC])) {
+            $this->zkopirujOstrouDatabazi();
+            oznameni('Ostrá databáze byla zkopírována');
+            return true;
+        }
+        if (!empty($pozadavky[self::EXPORTOVAT_ANONYMIZOVANOU_KLIC])) {
+            $this->exportujAnonymizovanouDatabazi();
+            exit;
         }
 
+        return false;
+    }
+
+    private function zkopirujOstrouDatabazi() {
         $kopieOstreDatabaze = new KopieOstreDatabaze();
-        $kopieOstreDatabaze->zkopirovatOstrouDatabazi();
+        $kopieOstreDatabaze->zkopirujOstrouDatabazi();
+    }
 
-        oznameni('Ostrá databáze byla zkopírována');
-
-        return true;
+    private function exportujAnonymizovanouDatabazi() {
+        $anonymizovanaDatabaze = AnonymizovanaDatabaze::vytvorZGlobals();
+        $anonymizovanaDatabaze->obnov();
+        $anonymizovanaDatabaze->exportuj();
     }
 }

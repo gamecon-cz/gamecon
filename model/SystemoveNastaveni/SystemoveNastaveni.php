@@ -10,7 +10,7 @@ use Gamecon\SystemoveNastaveni\Exceptions\InvalidSystemSettingsValue;
 class SystemoveNastaveni
 {
 
-    public static function vytvorZGlobalnich(): self {
+    public static function vytvorZGlobals(): self {
         return new static(
             ROK,
             new \DateTimeImmutable(),
