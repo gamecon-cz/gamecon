@@ -8,3 +8,9 @@ UPDATE akce_stav
 ORDER BY id_stav DESC
 SQL
 );
+
+$this->q(<<<SQL
+ALTER TABLE akce_seznam
+    MODIFY COLUMN stav INT NOT NULL DEFAULT 1
+SQL
+);
