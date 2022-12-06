@@ -30,4 +30,5 @@ function unblockAndRemoveLoading(element, originalBodyCursor = 'inherit', origin
   document.body.style.cursor = originalBodyCursor
   element.style.cursor = originalElementCursor
   delete element.disabled
+  return true
 }

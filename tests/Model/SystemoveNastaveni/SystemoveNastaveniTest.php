@@ -16,7 +16,7 @@ class SystemoveNastaveniTest extends DbTest
   ';
 
     public function testZmenyKurzuEura() {
-        $nastaveni = SystemoveNastaveni::vytvorZGlobalnich();
+        $nastaveni = SystemoveNastaveni::vytvorZGlobals();
 
         $zaznamKurzuEuro = $nastaveni->dejZaznamyNastaveniPodleKlicu(['KURZ_EURO'])[0];
         /** viz migrace 2022-05-05_03-kurz-euro-do-systemoveho-nastaveni.php */
