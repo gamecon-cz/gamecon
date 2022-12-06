@@ -4,7 +4,7 @@ namespace Gamecon\SystemoveNastaveni;
 
 class KopieOstreDatabaze
 {
-    public function zkopirovatOstrouDatabazi() {
+    public function zkopirujOstrouDatabazi() {
         $souborNastaveniOstra = PROJECT_ROOT_DIR . '/../ostra/nastaveni/nastaveni-produkce.php';
         if (!is_readable($souborNastaveniOstra)) {
             throw new \RuntimeException('Nelze přečíst soubor s nastavením ostré ' . $souborNastaveniOstra);

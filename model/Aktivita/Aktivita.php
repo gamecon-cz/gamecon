@@ -2489,7 +2489,7 @@ SQL
     }
 
     public function ucastniciOdebratelni(\Uzivatel $odhlasujici, SystemoveNastaveni $systemoveNastaveni = null): bool {
-        $systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobalnich();
+        $systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals();
 
         return $this->ucastniciOdebratelniDo($odhlasujici, $systemoveNastaveni) >= $systemoveNastaveni->ted();
     }
@@ -2498,7 +2498,7 @@ SQL
         \Uzivatel          $odhlasujici,
         SystemoveNastaveni $systemoveNastaveni = null
     ): \DateTimeImmutable {
-        $systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobalnich();
+        $systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals();
         if (!$this->probehnuta()) {
             return $systemoveNastaveni->konecLetosnihoGameconu();
         }
@@ -2516,7 +2516,7 @@ SQL
     }
 
     public function ucastniciPridatelni(\Uzivatel $prihlasujici, SystemoveNastaveni $systemoveNastaveni = null): bool {
-        $systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobalnich();
+        $systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals();
 
         return $this->ucastniciPridatelniDo($prihlasujici, $systemoveNastaveni) >= $systemoveNastaveni->ted();
     }
@@ -2527,7 +2527,7 @@ SQL
             return \DateTimeImmutable::createFromMutable(DateTimeGamecon::zacatekGameconu(ROK + 1));
         }
 
-        $systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobalnich();
+        $systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals();
         if (!$this->zamcena() && !$this->uzavrena()) {
             return $systemoveNastaveni->ucastniciPridatelniDoNeuzavrenePrezenceDo();
         }
