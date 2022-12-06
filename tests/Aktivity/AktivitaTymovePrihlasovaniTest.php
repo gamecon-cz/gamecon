@@ -18,11 +18,11 @@ class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
     protected static string $initData = '
     # akce_seznam
     id_akce, dite,  stav, typ, teamova, kapacita, team_min, team_max, zacatek,          konec
-    1,       "2,3", 1,    1,   1,       3,        2,        3,        2099-01-01 08:00, 2099-01-01 14:00
-    2,       4,     4,    1,   0,       3,        NULL,     NULL,     2099-01-01 08:00, 2099-01-01 14:00
-    3,       4,     4,    1,   0,       3,        NULL,     NULL,     2099-01-01 15:00, 2099-01-01 16:00
-    4,       NULL,  4,    1,   0,       3,        NULL,     NULL,     2099-01-01 08:00, 2099-01-01 14:00
-    5,       NULL,  1,    1,   0,       3,        NULL,     NULL,     2099-01-01 08:00, 2099-01-01 14:00
+    1,       "2,3", 2,    1,   1,       3,        2,        3,        2099-01-01 08:00, 2099-01-01 14:00
+    2,       4,     5,    1,   0,       3,        NULL,     NULL,     2099-01-01 08:00, 2099-01-01 14:00
+    3,       4,     5,    1,   0,       3,        NULL,     NULL,     2099-01-01 15:00, 2099-01-01 16:00
+    4,       NULL,  5,    1,   0,       3,        NULL,     NULL,     2099-01-01 08:00, 2099-01-01 14:00
+    5,       NULL,  2,    1,   0,       3,        NULL,     NULL,     2099-01-01 08:00, 2099-01-01 14:00
     ';
 
     public function setUp(): void {

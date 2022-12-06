@@ -30,7 +30,7 @@ if (get('id')) {
 global $BEZ_DEKORACE;
 $BEZ_DEKORACE = true; // pokud nedoslo k chybě, tak nechceme levé menu, ale pouze nový čistý layout pro prezenci, viz admin/index.php
 
-$systemoveNastaveni = \Gamecon\SystemoveNastaveni\SystemoveNastaveni::vytvorZGlobalnich();
+$systemoveNastaveni = \Gamecon\SystemoveNastaveni\SystemoveNastaveni::vytvorZGlobals();
 $filesystem = new Filesystem();
 $onlinePrezenceHtml = new OnlinePrezenceHtml(
     Vyjimkovac::js(URL_WEBU),

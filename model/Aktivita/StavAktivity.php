@@ -8,13 +8,14 @@ namespace Gamecon\Aktivita;
  */
 class StavAktivity extends \DbObject
 {
-    public const NOVA        = 0; // v přípravě
-    public const AKTIVOVANA  = 1;
-    public const UZAVRENA    = 2;
-    public const PUBLIKOVANA = 4; // viditelná, nepřihlašovatelá
-    public const PRIPRAVENA  = 5;
-    public const ZAMCENA     = 6;
-    public const SYSTEMOVA   = 3;
+    public const NOVA        = 1; // v přípravě
+    // 0 dělá potíže při kopírování do klonu tabulky - INSERT 0 do AUTOINCREMENT sloupce se chová jako NULL
+    public const AKTIVOVANA  = 2;
+    public const UZAVRENA    = 3;
+    public const PUBLIKOVANA = 5; // viditelná, nepřihlašovatelá
+    public const PRIPRAVENA  = 6;
+    public const ZAMCENA     = 7;
+    public const SYSTEMOVA   = 4;
 
     public static function jeZnamy(int $stav): bool {
         return in_array($stav, self::vsechnyStavy(), true);

@@ -26,7 +26,7 @@ if (!defined('ROK')) define('ROK', 2022); // aktuální rok -- při změně roku
 ////////////////////////
 
 global $systemoveNastaveni;
-$systemoveNastaveni = SystemoveNastaveni::vytvorZGlobalnich();
+$systemoveNastaveni = SystemoveNastaveni::vytvorZGlobals();
 $systemoveNastaveni->zaznamyDoKonstant();
 
 ////////////////////////
