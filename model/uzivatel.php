@@ -1652,7 +1652,7 @@ SQL,
 
     public function dejShop(): Shop {
         if ($this->shop === null) {
-            $this->shop = new Shop($this, null, SystemoveNastaveni::vytvorZGlobalnich());
+            $this->shop = new Shop($this, null, SystemoveNastaveni::vytvorZGlobals());
         }
         return $this->shop;
     }

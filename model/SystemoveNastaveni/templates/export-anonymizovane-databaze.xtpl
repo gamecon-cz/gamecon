@@ -1,0 +1,11 @@
+<!-- begin:exportAnonymizovaneDatabaze -->
+<h2>Export anonymizované databáze</h2>
+
+<form method="post">
+  <button type="submit" value="1" name="{synchronniPostKlic}[{exportovatAnonymizovanouKlic}]"
+          class="disable-and-show-loading-on-click"
+          onclick="this.innerHTML='strpení prosím (chroupej oříšky, chroupu data)'">
+    Exportovat současnou databázi s anonymizovanými daty
+  </button>
+</form>
+<!-- end:exportAnonymizovaneDatabaze -->
