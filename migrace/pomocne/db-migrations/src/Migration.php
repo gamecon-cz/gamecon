@@ -12,7 +12,7 @@ class Migration
     public function __construct(string $path, string $code, \mysqli $db) {
         $this->path = $path;
         $this->code = removeDiacritics($code);
-        $this->db = $db;
+        $this->db   = $db;
     }
 
     public function apply() {
@@ -63,6 +63,41 @@ class Migration
         }
 
         return $result;
+    }
+
+    public function dropForeignKeysIfExist(array $foreignKeysToDrop, string $tableName) {
+        $db          = DBM_NAME;
+        $result      = $this->q(<<<SQl
+SELECT
+    CONSTRAINT_NAME
+FROM
+    information_schema.KEY_COLUMN_USAGE
+WHERE
+	TABLE_SCHEMA = '$db'
+    AND TABLE_NAME = '$tableName';
+SQl
+        );
+        $constraints = [];
+        while ($constrain = mysqli_fetch_column($result)) {
+            $constraints[] = $constrain;
+        }
+        $existingForeignKeysToDrop = array_intersect(
+            $foreignKeysToDrop,
+            $constraints
+        );
+
+        $foreignKeysToDropSqlParts = array_map(static function (string $foreignKeyToDrop) {
+            return "DROP FOREIGN KEY `$foreignKeyToDrop`";
+        }, $existingForeignKeysToDrop);
+
+        if ($foreignKeysToDropSqlParts) {
+            $foreignKeysToDropSql = implode("\n,", $foreignKeysToDropSqlParts);
+            $this->q(<<<SQL
+ALTER TABLE `$tableName`
+    $foreignKeysToDropSql
+SQL
+            );
+        }
     }
 
 }

@@ -1,0 +1,8 @@
+# Nejnovější záloha databáze
++ backup/db/export_latest.sql.gz
+
+# Odkomentuj pro zálohu obsahu
+#+ web/soubory/obsah/**
+
+# Ignoruj vše ostatní
+- **

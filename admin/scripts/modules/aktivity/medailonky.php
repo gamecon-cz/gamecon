@@ -17,7 +17,7 @@ if(get('id') !== null) {
 }
 
 if(post('noveId')) {
-  dbInsert('medailonky', ['id' => post('noveId')]);
+  dbInsert('medailonky', ['id_uzivatele' => post('noveId')]);
   oznameni('vytvořeno');
 }
 
