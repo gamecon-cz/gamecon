@@ -57,14 +57,14 @@ SQL
         $maxId  = mysqli_fetch_column($result);
 
         // Anonymizace ID uživatele
-        $remainingAttempts = 10;
+        $remainingAttempts = 20;
         do {
-            $dbException  = null;
+            $dbException = null;
             try {
                 do {
-                    $updateIdUzivateleResult       = dbQuery(<<<SQL
+                    $updateIdUzivateleResult = dbQuery(<<<SQL
 UPDATE `{$this->anonymniDatabaze}`.uzivatele_hodnoty
-SET id_uzivatele = (SELECT $maxId + CAST(FLOOR(RAND() * 1000000) AS UNSIGNED))
+SET id_uzivatele = (SELECT $maxId + CAST(FLOOR(RAND() * 10000000) AS UNSIGNED))
 WHERE id_uzivatele <= $maxId
 LIMIT 100 -- nutno dávkovat, jinak to způsobí Duplicate entry 'X' for key 'PRIMARY'
 SQL
@@ -75,10 +75,27 @@ SQL
             }
         } while ($dbException && $remainingAttempts > 0);
         if ($dbException && $remainingAttempts <= 0) {
-            throw $dbException;
+            throw new \RuntimeException(
+                "Ani po několika pokusech se nepodařilo změnit všechna ID uživatelů: " . $dbException->getMessage(),
+                $dbException->getCode(),
+                $dbException
+            );
         }
 
-        // Anonymizace dat
+        dbQuery(<<<SQL
+UPDATE `{$this->anonymniDatabaze}`.stranky
+SET
+    obsah = REGEXP_REPLACE(obsah, '[a-zA-Z_0-9.]+@[a-zA-Z_0-9.]+', 'foo@example.com')
+SQL
+        );
+
+        dbQuery(<<<SQL
+UPDATE `{$this->anonymniDatabaze}`.texty
+SET
+    `text` = REGEXP_REPLACE(`text`, '[a-zA-Z_0-9.]+@[a-zA-Z_0-9.]+', 'foo@example.com')
+SQL
+        );
+
         dbQuery(<<<SQL
 UPDATE `{$this->anonymniDatabaze}`.uzivatele_hodnoty
 SET
