@@ -36,11 +36,9 @@ class KopieOstreDatabaze
             $nastaveniOstre['DB_PORT'] ?? 3306,
         );
         $dump            = new \MySQLDump($ostraConnection);
-        $handle          = fopen('php://memory', 'r+b');
-        $dump->write($handle);
+        $tempFile        = tempnam(sys_get_temp_dir(), 'gc_kopie_ostre_databaze');
+        $dump->save($tempFile);
         mysqli_close($ostraConnection);
-        fflush($handle);
-        rewind($handle);
 
         $localConnection = new \mysqli(
             DB_SERV,
@@ -79,14 +77,8 @@ SET FOREIGN_KEY_CHECKS = 1
 SQL,
             $localConnection
         );
-        $command = '';
-        while (($row = fgets($handle)) !== false) {
-            $command .= $row;
-            if (substr(trim($row), -1, 1) === ';') {
-                $this->executeQuery($command, $localConnection);
-                $command = '';
-            }
-        }
+        $this->executeQuery(file_get_contents($tempFile), $localConnection);
+        unlink($tempFile);
         (new SqlMigrace())->migruj();
     }
 
