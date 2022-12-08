@@ -34,6 +34,8 @@ class AnonymizovanaDatabaze
     }
 
     public function obnov() {
+        dbConnectWithAlterPermissions(true, true);
+
         if ($this->jsmeNaLocale) {
             $this->obnovAnonymniDatabazi();
         }
