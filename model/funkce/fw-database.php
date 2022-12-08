@@ -76,15 +76,31 @@ function dbConnect($selectDb = true, bool $reconnect = false) {
     );
 }
 
-function dbConnectWithAlterPermissions($selectDb = true, bool $reconnect = false) {
-    return _dbConnect(
-        DBM_SERV,
-        DBM_USER,
-        DBM_PASS,
-        defined('DBM_PORT') ? (int)DBM_PORT : null,
-        $selectDb ? DBM_NAME : null,
-        $reconnect
+function dbConnectionAnonymDb(): mysqli {
+    $connection = mysqli_connect(
+        DB_ANONYM_SERV,
+        DB_ANONYM_USER,
+        DB_ANONYM_PASS,
+        null,
+        defined('DB_ANONYM_PORT') ? (int)DB_ANONYM_PORT : null
     );
+    $dbAnonym   = DB_ANONYM_NAME;
+    $result     = mysqli_query(
+        $connection,
+        <<<SQL
+            SHOW DATABASES LIKE '$dbAnonym'
+        SQL
+    );
+    $exists     = mysqli_fetch_column($result);
+    if ($exists) {
+        mysqli_query(
+            $connection,
+            <<<SQL
+            USE `$dbAnonym`
+        SQL
+        );
+    }
+    return $connection;
 }
 
 /**
@@ -429,8 +445,8 @@ function dbFetchAll(string $query, array $params = []): array {
     return $resultAsArray;
 }
 
-function dbFetchColumn(string $query, array $params = []): array {
-    $result       = dbQuery($query, $params);
+function dbFetchColumn(string $query, array $params = [], mysqli $connection = null): array {
+    $result       = dbQuery($query, $params, $connection);
     $columnValues = [];
     while ($row = mysqli_fetch_array($result)) {
         $columnValues[] = reset($row);
@@ -438,8 +454,8 @@ function dbFetchColumn(string $query, array $params = []): array {
     return $columnValues;
 }
 
-function dbFetchPairs(string $query, array $params = []): array {
-    $result = dbQuery($query, $params);
+function dbFetchPairs(string $query, array $params = [], mysqli $connection = null): array {
+    $result = dbQuery($query, $params, $connection);
     $pairs  = [];
     while ($row = mysqli_fetch_array($result)) {
         $pairs[$row[0]] = $row[1];
