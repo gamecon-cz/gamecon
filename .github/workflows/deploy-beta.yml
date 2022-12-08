@@ -55,3 +55,7 @@ jobs:
           CRON_KEY: ${{ secrets.BETA_CRON_KEY }}
           GOOGLE_API_CREDENTIALS: ${{ secrets.BETA_GOOGLE_API_CREDENTIALS }}
           FIO_TOKEN: ${{ secrets.BETA_FIO_TOKEN }}
+          DB_ANONYM_SERV: ${{ secrets.DB_ANONYM_SERV }}
+          DB_ANONYM_USER: ${{ secrets.DB_ANONYM_USER }}
+          DB_ANONYM_PASS: ${{ secrets.DB_ANONYM_PASS }}
+          DB_ANONYM_NAME: ${{ secrets.DB_ANONYM_NAME }}
