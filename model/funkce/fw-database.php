@@ -65,35 +65,62 @@ function dbRollback() {
  * @param bool $selectDb if database should be selected on connect or not
  * @throws ConnectionException
  */
-function dbConnect($selectDb = true) {
-    global $spojeni, $dbLastQ, $dbNumQ, $dbExecTime;
+function dbConnect($selectDb = true, bool $reconnect = false) {
+    return _dbConnect(
+        DB_SERV,
+        DB_USER,
+        DB_PASS,
+        defined('DB_PORT') ? DB_PORT : null,
+        $selectDb ? DB_NAME : null,
+        $reconnect
+    );
+}
 
-    if ($spojeni === null) {
-        // inicializace glob. nastavení
-        $dbhost     = DB_SERV;
-        $dbname     = DB_NAME;
-        $dbuser     = DB_USER;
-        $dbpass     = DB_PASS;
-        $dbPort     = defined('DB_PORT') ? DB_PORT : null;
-        $spojeni    = null;
-        $dbLastQ    = '';   //vztahuje se pouze na dotaz v aktualnim skriptu
-        $dbNumQ     = 0;    //počet dotazů do databáze
-        $dbExecTime = 0.0;  //délka výpočtu dotazů
+function dbConnectWithAlterPermissions($selectDb = true, bool $reconnect = false) {
+    return _dbConnect(
+        DBM_SERV,
+        DBM_USER,
+        DBM_PASS,
+        defined('DBM_PORT') ? (int)DBM_PORT : null,
+        $selectDb ? DBM_NAME : null,
+        $reconnect
+    );
+}
 
-        // připojení
-        $start   = microtime(true);
-        $spojeni = @mysqli_connect('p:' . $dbhost, $dbuser, $dbpass, $selectDb ? $dbname : '', $dbPort); // persistent connection
-        if (!$spojeni) {
-            $spojeni = null; // aby bylo možné zachytit exception a zkusit spojení znovu
-            throw new ConnectionException('Failed to connect to the database, error: "' . mysqli_connect_error() . '".');
-        }
-        if (!$spojeni->set_charset('utf8')) {
-            throw new DbException('Failed to set charset to db connection.');
-        }
-        $end                   = microtime(true);
-        $GLOBALS['dbExecTime'] += $end - $start;
-        dbQuery('SET SESSION group_concat_max_len = 65536');
+/**
+ * @param bool $selectDb if database should be selected on connect or not
+ * @throws ConnectionException
+ */
+function _dbConnect(string $dbHost, string $dbUser, string $dbPass, ?int $dbPort, ?string $dbName, bool $reconnect = false) {
+    global $spojeni;
+
+    if ($reconnect && $spojeni) {
+        mysqli_close($spojeni);
+        $spojeni = null;
     }
+
+    if ($spojeni instanceof mysqli) {
+        return $spojeni;
+    }
+
+    try {
+        // persistent connection
+        $spojeni = @mysqli_connect('p:' . $dbHost, $dbUser, $dbPass, $dbName ?? '', $dbPort);
+    } catch (\Throwable $throwable) {
+        throw new ConnectionException(
+            "Failed to connect to the database, error: '{$throwable->getMessage()}'",
+            $throwable->getCode(),
+            $throwable
+        );
+    }
+    if (!$spojeni) {
+        $spojeni = null; // aby bylo možné zachytit exception a zkusit spojení znovu
+        throw new ConnectionException('Failed to connect to the database, error: "' . mysqli_connect_error() . '".');
+    }
+    if (!$spojeni->set_charset('utf8')) {
+        throw new DbException('Failed to set charset utf8 to db connection.');
+    }
+    dbQuery('SET SESSION group_concat_max_len = 65536', null, $spojeni);
 
     return $spojeni;
 }
@@ -433,14 +460,15 @@ function dbFetchSingle(string $query, array $params = []) {
  * @return bool|mysqli_result
  * @throws DbException|DbDuplicateEntryException
  */
-function dbQuery($q, $param = null): bool|mysqli_result {
+function dbQuery($q, $param = null, mysqli $mysqli = null): bool|mysqli_result {
     if ($param) {
         return dbQueryS($q, $param);
     }
-    $mysqli             = dbConnect();
-    $GLOBALS['dbLastQ'] = $q;
-    $start              = microtime(true);
-    $r                  = dbMysqliQuery($q);
+    global $dbLastQ, $dbNumQ, $dbExecTime;
+    $mysqli  = $mysqli ?? dbConnect();
+    $dbLastQ = $q;
+    $start   = microtime(true);
+    $r       = dbMysqliQuery($q, $mysqli);
     if (!$r) {
         $type = dbGetExceptionType();
         throw new $type();
@@ -450,8 +478,8 @@ function dbQuery($q, $param = null): bool|mysqli_result {
         ? $mysqli->affected_rows
         : mysqli_affected_rows($mysqli);
     $end                       = microtime(true);
-    $GLOBALS['dbNumQ']++;
-    $GLOBALS['dbExecTime'] += $end - $start;
+    $dbNumQ++;
+    $dbExecTime += $end - $start;
     return $r;
 }
 
