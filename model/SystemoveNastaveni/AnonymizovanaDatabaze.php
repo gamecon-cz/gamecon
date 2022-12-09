@@ -179,7 +179,7 @@ SQL,
 
         fclose($currentDbDump);
 
-        foreach (['platby', 'akce_import'] as $prilisCitlivaTabulka) {
+        foreach (['_vars', 'platby', 'akce_import'] as $prilisCitlivaTabulka) {
             dbQuery(<<<SQL
 DELETE FROM $prilisCitlivaTabulka
 SQL,
