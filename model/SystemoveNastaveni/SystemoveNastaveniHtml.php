@@ -40,8 +40,7 @@ class SystemoveNastaveniHtml
             $this->vypisSkupinu($skupina, $zaznamyJedneSkupiny, $template);
         }
 
-        // TODO fix import
-        if (FALSE && $this->systemoveNastaveni->jsmeNaBete()) {
+        if ($this->systemoveNastaveni->jsmeNaBete()) {
             $templateZkopirovaniOstre = new XTemplate(__DIR__ . '/templates/zkopirovani-ostre-databaze.xtpl');
             $templateZkopirovaniOstre->assign('synchronniPostKlic', self::SYNCHRONNI_POST_KLIC);
             $templateZkopirovaniOstre->assign('zkopirovatOstrouKlic', self::ZKOPIROVAT_OSTROU_KLIC);
