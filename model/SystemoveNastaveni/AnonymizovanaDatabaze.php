@@ -170,14 +170,16 @@ SQL,
         \mysqli $dbConnectionCurrentDb,
         \mysqli $dbConnectionAnonymDb
     ) {
-        $currentDbDump = tmpfile();
-        (new \MySQLDump($dbConnectionCurrentDb))->write($currentDbDump);
+        $handle = fopen('php://memory', 'r+b');
 
-        rewind($currentDbDump);
+        (new \MySQLDump($dbConnectionCurrentDb))->write($handle);
 
-        (new \MySQLImport($dbConnectionAnonymDb))->read($currentDbDump);
+        fflush($handle);
+        rewind($handle);
 
-        fclose($currentDbDump);
+        (new \MySQLImport($dbConnectionAnonymDb))->read($handle);
+
+        fclose($handle);
 
         foreach (['_vars', 'platby', 'akce_import'] as $prilisCitlivaTabulka) {
             dbQuery(<<<SQL
