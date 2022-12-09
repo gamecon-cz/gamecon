@@ -190,13 +190,8 @@ SQL,
     }
 
     public function exportuj() {
-        $dbConnectionAnonymDb = dbConnectionAnonymDb();
-        dbQuery(<<<SQL
-USE `$this->anonymniDatabaze`
-SQL
-        );
         $tempFile = tempnam(sys_get_temp_dir(), 'anonymizovana_databaze');
-        (new \MySQLDump($dbConnectionAnonymDb))->save($tempFile);
+        (new \MySQLDump(dbConnectionAnonymDb()))->save($tempFile);
         $request  = new Request();
         $response = (new BinaryFileResponse($tempFile));
         $response->headers->set('Content-Type', 'application/sql');
