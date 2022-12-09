@@ -64,12 +64,12 @@ SQL;
 
     protected function tearDown(): void {
         parent::tearDown();
-        foreach ($this->localServersProcesses as $port => $localServersProcess) {
+/*        foreach ($this->localServersProcesses as $port => $localServersProcess) {
             $localServersProcess->stop();
-            if (static::$unusedLocalServerPort + 1 === $port) {
-                static::$unusedLocalServerPort = $port;
+            if (static::$unusedLocalServerPort === $port + 1) {
+                static::$unusedLocalServerPort = $port; // port se uvolnil
             }
-        }
+        }*/
         foreach ($this->cookieFilesPerServer as $cookieFile) {
             unlink($cookieFile);
         }
@@ -100,7 +100,7 @@ SQL;
                 continue;
             }
             curl_setopt($curlHandle, CURLOPT_CONNECTTIMEOUT, 10); // timeout na připojení
-            curl_setopt($curlHandle, CURLOPT_TIMEOUT, 5); // timeout na stahování
+            curl_setopt($curlHandle, CURLOPT_TIMEOUT, 10); // timeout na stahování
             curl_setopt($curlHandle, CURLOPT_FOLLOWLOCATION, true);
             curl_setopt($curlHandle, CURLOPT_HEADER, true);
             $this->setLocalServerCookieWithGameconTestDb($curlHandle);

@@ -26,10 +26,10 @@ class StrankyWebuTest extends AbstractWebTest
 
     public function provideWebUrls(): array {
         return [
-            'základní'    => [
+            /*'základní'    => [
                 basename(__DIR__ . '/../../web'),
                 basename(__DIR__ . '/../../admin'),
-            ],
+            ],*/
             'moduly webu' => $this->getUrlsModuluWebu(),
         ];
     }
