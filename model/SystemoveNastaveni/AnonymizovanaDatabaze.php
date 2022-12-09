@@ -14,7 +14,7 @@ class AnonymizovanaDatabaze
 
     public static function vytvorZGlobals(): self {
         global $systemoveNastaveni;
-        return new static(DBM_NAME, DB_ANONYM_NAME, $systemoveNastaveni);
+        return new static(\DBM_NAME, \DB_ANONYM_NAME, $systemoveNastaveni);
     }
 
     private bool $jsmeNaLocale;
