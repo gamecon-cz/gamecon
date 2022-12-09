@@ -13,6 +13,12 @@ if (!defined('DBM_USER')) define('DBM_USER', DB_USER);
 if (!defined('DBM_PASS')) define('DBM_PASS', DB_PASS);
 //if (!defined('DBM_PORT')) define('DBM_PORT', DB_PORT);
 
+if (!defined('DB_ANONYM_SERV')) define('DB_ANONYM_SERV', DB_SERV);
+if (!defined('DB_ANONYM_USER')) define('DB_ANONYM_USER', DBM_USER);
+if (!defined('DB_ANONYM_PASS')) define('DB_ANONYM_PASS', DBM_PASS);
+//if (!defined('DB_ANONYM_PORT')) define('DB_ANONYM_PORT', DB_PORT);
+if (!defined('DB_ANONYM_NAME')) define('DB_ANONYM_NAME', 'anonymni_databaze');
+
 $baseUrl = (($_SERVER['HTTPS'] ?? 'off') === 'on' ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? '/gamecon');
 if (!defined('URL_WEBU')) define('URL_WEBU', $baseUrl . '/web'); // absolutní url uživatelského webu
 if (!defined('URL_ADMIN')) define('URL_ADMIN', $baseUrl . '/admin'); // absolutní url adminu
