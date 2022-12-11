@@ -360,42 +360,6 @@
 
     </div>
 
-    <script type="text/javascript">
-      /* logika k situaci, že není zaškrtnutý ani jeden účastník k aktivitě  */
-      function checkboxyNezaskrtnuty() {
-        const checkboxy = document.querySelector("table#ucastniciAktivity" + posledneKliknutaAktivitaId + " input.dorazil");
-        if(checkboxy === null) return true; 
-        Array.from(checkboxy).forEach(el => {
-          if (el.checked) {
-            return false;
-          };
-        })
-        return true;
-      }
-
-      function potvrdModal() {
-        if (checkboxyNezaskrtnuty()) {
-          if (!document.getElementById('bezUcastniku').checked) {
-            document.getElementById('labelBezUcastniku').classList.add('fw-bold');
-            return;
-          }
-        }
-        $("#modalOpravduUzavrit").modal('hide'); // fungovalo jen takto (z neznámého důvodu)
-        document.getElementById('online-prezence').dispatchEvent(new CustomEvent('uzavritAktivitu', {detail: posledneKliknutaAktivitaId}))
-      }
-
-      Array.from(document.getElementsByClassName('tlacitko-uzavrit-aktivitu')).forEach(el => {
-          el.addEventListener('click', function() {
-            if (checkboxyNezaskrtnuty()) {
-              // žádné vybrané aktivity
-              document.getElementById('wrapperBezUcastniku').classList.remove('d-none');
-              return;
-            }
-            document.getElementById('wrapperBezUcastniku').classList.add('d-none');            
-          });
-      });
-    </script>
-
     <div class="modal fade" id="modalOpravduUzavrit" tabindex="-1" aria-labelledby="opravduZavrit" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -405,21 +369,20 @@
           </div>
           <div class="modal-body">
             <p>
-              Po uzavření aktivity už nebudeš mít možnost prezenci měnit. Až do 1 hodiny po skončení aktivity můžeš ještě
-              někoho přidat.
+              Po uzavření aktivity už nebudeš mít možnost prezenci měnit. Až do 1 hodiny po skončení aktivity můžeš
+              ještě někoho přidat.
             </p>
             <!-- V případě, že nejsou zaškrtlí účastníci: -->
-            <div class="d-none" id="wrapperBezUcastniku">
-              <input type="checkbox" name="bezUcastniku" id="bezUcastniku">
-              <label for="bezUcastniku" id="labelBezUcastniku" class="d-inline text-danger">
-                Jsem si vědom(a), že aktivitu uzavírám bez účastníků (= není zaškrtlá ničí účast).
+            <div class="d-none" id="wrapperPotvrzujiBezUcastniku">
+              <input type="checkbox" name="potvrzujiBezUcastniku" id="potvrzujiBezUcastniku">
+              <label for="potvrzujiBezUcastniku" id="labelPotvrzujiBezUcastniku" class="d-inline text-danger">
+                Jsem si vědom{a}, že aktivitu uzavírám bez účastníků (tj. není zaškrtlá ničí účast).
               </label>
             </div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Opravit prezenci</button>
-            <button type="button" class="btn btn-primary"
-                    onclick="potvrdModal()">
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="potvrdModal()">
               Uzavřít aktivitu
             </button>
           </div>
