@@ -57,13 +57,6 @@
       💤
     </span>
   </td>
-  <td>{u.jmenoNick}</td>
-  <td class="text-center"><a href="mailto:{u.mail}" title="{u.mail}"><i class="far fa-envelope"></i></a></td>
-  <td>
-    <!-- begin:telefon -->
-    <a href="tel:{telefonRaw}" class="text-nowrap"><i class="fas fa-phone"></i> {telefonHtml}</a>
-    <!-- end:telefon -->
-  </td>
   <td style="text-align: center; padding: 0">
     <!-- begin:checkbox -->
     <label class="styl-pro-dorazil-checkbox error-tooltip"
@@ -78,6 +71,13 @@
       >
     </label>
     <!-- end:checkbox -->
+  </td>
+  <td>{u.jmenoNick}</td>
+  <td class="text-center"><a href="mailto:{u.mail}" title="{u.mail}"><i class="far fa-envelope"></i></a></td>
+  <td>
+    <!-- begin:telefon -->
+    <a href="tel:{telefonRaw}" class="text-nowrap"><i class="fas fa-phone"></i> {telefonHtml}</a>
+    <!-- end:telefon -->
   </td>
 </tr>
 <!-- end:ucastnik -->
