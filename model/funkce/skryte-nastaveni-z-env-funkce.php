@@ -9,6 +9,10 @@ function vytvorSouborSkrytehoNastaveniPodleEnv(string $souborVerejnehoNastaveni)
         $DB_SERV                = getenv('DB_SERV');
         $DBM_USER               = getenv('DBM_USER');
         $DBM_PASS               = getenv('DBM_PASS');
+        $DB_ANONYM_SERV         = getenv('DB_ANONYM_SERV');
+        $DB_ANONYM_USER         = getenv('DB_ANONYM_USER');
+        $DB_ANONYM_PASS         = getenv('DB_ANONYM_PASS');
+        $DB_ANONYM_NAME         = getenv('DB_ANONYM_NAME');
         $MIGRACE_HESLO          = getenv('MIGRACE_HESLO');
         $SECRET_CRYPTO_KEY      = getenv('SECRET_CRYPTO_KEY');
         $CRON_KEY               = getenv('CRON_KEY');
@@ -31,6 +35,11 @@ define('DB_SERV', '$DB_SERV');
 // uživatel s přístupem k změnám struktury
 define('DBM_USER', '$DBM_USER');
 define('DBM_PASS', '$DBM_PASS');
+
+define('DB_ANONYM_SERV', '$DB_ANONYM_SERV');
+define('DB_ANONYM_USER', '$DB_ANONYM_USER');
+define('DB_ANONYM_PASS', '$DB_ANONYM_PASS');
+define('DB_ANONYM_NAME', '$DB_ANONYM_NAME');
 
 define('MIGRACE_HESLO', '$MIGRACE_HESLO');
 define('SECRET_CRYPTO_KEY', '$SECRET_CRYPTO_KEY');
