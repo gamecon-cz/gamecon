@@ -309,9 +309,9 @@ SQL;
                 return DateTimeGamecon::spocitejZacatekGameconu($this->rok)->formatDb();
             case 'GC_BEZI_DO' :
             case 'REG_GC_DO' :
-                return '2022-12-10'; //DateTimeGamecon::spocitejKonecGameconu($this->rok)->formatDb();
+                return DateTimeGamecon::spocitejKonecGameconu($this->rok)->formatDb();
             case 'REG_GC_OD' :
-                return '2022-11-10'; //DateTimeGamecon::spocitejZacatekRegistraciUcastniku($this->rok)->formatDb();
+                return DateTimeGamecon::spocitejZacatekRegistraciUcastniku($this->rok)->formatDb();
             case 'REG_AKTIVIT_OD' :
                 return DateTimeGamecon::spoctejZacatekPrvniVlnyOd($this->rok)->formatDb();
             case 'HROMADNE_ODHLASOVANI' :
