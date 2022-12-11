@@ -51,6 +51,21 @@ class OnlinePrezenceTestovaciAktivity
             $limit
         );
 
+        if ($organizovaneAktivity) {
+            return $organizovaneAktivity;
+        }
+
+        $stavPublikovana = $this->obecnyStav::PUBLIKOVANA;
+
+        dbBegin();
+        dbQuery(<<<SQL
+UPDATE akce_seznam
+SET stav = '$stavPublikovana'
+WHERE rok = $rok
+SQL
+        );
+        $organizovaneAktivity = $this->dejTestovaciAktivity($rok, $limit);
+        dbRollback();
         return $organizovaneAktivity;
     }
 
