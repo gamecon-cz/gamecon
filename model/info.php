@@ -44,7 +44,12 @@ class Info
         if (func_num_args() == 0) {
             return $this->nazev;
         } elseif (func_num_args() == 1) {
-            $this->nazev = func_get_arg(0);
+            $nazev = func_get_arg(0);
+            $prefix  = $this->dejPrefixPodleVyvoje();
+            if ($prefix !== '') {
+                $nazev = $prefix . ' ' . $nazev;
+            }
+            $this->nazev = $nazev;
             return $this;
         } else {
             throw new BadMethodCallException();
@@ -90,16 +95,25 @@ class Info
             return $this->titulek;
         } elseif (func_num_args() == 1) {
             $titulek = func_get_arg(0);
-            if ($this->jsmeNaLocale) {
-                $titulek = 'άλφα ' . $titulek;
-            } elseif ($this->jsmeNaBete) {
-                $titulek = 'β ' . $titulek;
+            $prefix  = $this->dejPrefixPodleVyvoje();
+            if ($prefix !== '') {
+                $titulek = $prefix . ' ' . $titulek;
             }
             $this->titulek = $titulek;
             return $this;
         } else {
             throw new BadMethodCallException();
         }
+    }
+
+    function dejPrefixPodleVyvoje(): string {
+        if ($this->jsmeNaLocale) {
+            return 'άλφα';
+        }
+        if ($this->jsmeNaBete) {
+            return 'β';
+        }
+        return '';
     }
 
     function url() {
