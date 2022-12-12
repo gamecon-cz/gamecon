@@ -95,14 +95,14 @@ zachovejScroll(document.querySelectorAll('.aktivity_aktivity form > a'), null)
     <label class="aktivity_nahledZavrit" for="aktivity_nahledId{aktivita.id}">✕</label>
 
     <div class="aktivity_nahledTextPole">
-        <h2>{aktivita.nazev()}</h2>
+        <h2>{aktivita.nazev}</h2>
         <div class="aktivity_stitky">
             <!-- begin: stitek -->
             <div class="aktivity_stitek aktivity_stitek-nahled">{stitek}</div>
             <!-- end: stitek -->
         </div>
-        <p><b>{aktivita.kratkyPopis()}</b></p>
-        {aktivita.popis()}
+        <p><b>{aktivita.kratkyPopis}</b></p>
+        {aktivita.popis}
     </div>
 
     <div class="aktivity_nahledInfoPole">
@@ -111,13 +111,13 @@ zachovejScroll(document.querySelectorAll('.aktivity_aktivity form > a'), null)
 
         <h3>Informace:</h3>
         <div class="programNahled_obsazenost aktivity_nahledInfo">{kapacita}</div>
-        <div class="programNahled_cas aktivity_nahledInfo">{aktivita.delka()}&thinsp;h</div>
-        <div class="programNahled_cena aktivity_nahledInfo">{aktivita.cenaZaklad()}</div>
+        <div class="programNahled_cas aktivity_nahledInfo">{aktivita.delka}&thinsp;h</div>
+        <div class="programNahled_cena aktivity_nahledInfo">{aktivita.cenaZaklad}</div>
 
         <h3>Termíny:</h3>
         <!-- begin: termin -->
         <div class="aktivity_termin">
-            <b>{aktivita.denCas()}</b>&ensp;
+            <b>{aktivita.denCas}</b>&ensp;
             {obsazenost}&ensp;
         </div>
         <!-- end: termin -->
