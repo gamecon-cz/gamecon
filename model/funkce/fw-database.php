@@ -289,7 +289,7 @@ function dbRecordExists(string $table, array $values): bool {
     foreach ($values as $column => $value) {
         $sqlValuesArray[] = dbQi($column) . '=' . dbQv($value);
     }
-    $sqlValues = implode(',', $sqlValuesArray);
+    $sqlValues = implode(' AND ', $sqlValuesArray);
     return (bool)dbFetchSingle(<<<SQL
 SELECT EXISTS(SELECT * FROM $table WHERE $sqlValues)
 SQL
