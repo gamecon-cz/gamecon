@@ -656,7 +656,7 @@ SQL
                 if ($r['typ'] == Shop::JIDLO) {
                     $this->cenaStravy += $cena;
                 } else {
-                    $this->cenaPredmetu = $cena;
+                    $this->cenaPredmetu += $cena;
                 }
             }
             // přidání roku do názvu
