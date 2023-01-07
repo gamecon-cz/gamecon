@@ -5,6 +5,7 @@ namespace Gamecon\Uzivatel;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Exceptions\NeznamyTypPredmetu;
 use Gamecon\Shop\Shop;
 use Gamecon\Shop\TypPredmetu;
 use Endroid\QrCode\Writer\Result\ResultInterface;
@@ -655,8 +656,12 @@ SQL
             } else {
                 if ($r['typ'] == Shop::JIDLO) {
                     $this->cenaStravy += $cena;
-                } else {
+                } elseif ($r['typ'] == Shop::PREDMET) {
                     $this->cenaPredmetu += $cena;
+                } else {
+                    throw new NeznamyTypPredmetu(
+                        "Neznámý typ předmětu " . var_export($r['typ'], true) . ': ' . var_export($r, true)
+                    );
                 }
             }
             // přidání roku do názvu

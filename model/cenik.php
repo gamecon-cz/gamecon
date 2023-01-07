@@ -149,8 +149,11 @@ class Cenik
         } elseif ($typ == Shop::UBYTOVANI && $r['ubytovani_den'] == 4 && $this->u->maPravo(P_UBYTOVANI_NEDELE_ZDARMA)) {
             $cena = 0;
         } elseif ($typ == Shop::JIDLO) {
-            if ($this->u->maPravo(P_JIDLO_ZDARMA)) $cena = 0;
-            elseif ($this->u->maPravo(P_JIDLO_SLEVA) && strpos($r['nazev'], 'Snídaně') === false) $cena -= 20;
+            if ($this->u->maPravo(P_JIDLO_ZDARMA)) {
+                $cena = 0;
+            } elseif ($this->u->maPravo(P_JIDLO_SLEVA) && strpos($r['nazev'], 'Snídaně') === false) {
+                $cena -= 20;
+            }
         }
 
         return (float)$cena;

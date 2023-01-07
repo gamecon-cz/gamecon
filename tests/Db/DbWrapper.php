@@ -22,9 +22,9 @@ class DbWrapper
     return dbQv($value);
   }
 
-  function query(string $sql)
+  function query(string $sql, array $params = null)
   {
-    return dbQuery($sql);
+    return dbQuery($sql, $params);
   }
 
   public function rollback()

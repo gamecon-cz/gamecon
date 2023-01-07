@@ -1,4 +1,7 @@
 <?php
+ini_set('zend.exception_ignore_args', '0'); // zaloguj argumenty při erroru
+ini_set('zend.exception_string_param_max_len', '999'); // loguj argumenty až do délky 999 bajtů před oříznutím
+
 define('DB_NAME', $_COOKIE['gamecon_test_db'] ?? uniqid('gamecon_test_', true));
 define('SPEC', sys_get_temp_dir());
 define('UNIT_TESTS', true);

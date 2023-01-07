@@ -27,8 +27,16 @@ class DbTest extends \PHPUnit\Framework\TestCase
             self::$connection->begin();
         }
 
-        foreach (static::getInitQueries() as $initQuery) {
-            self::$connection->query($initQuery);
+        foreach (static::getInitQueries() as $index => $initQuery) {
+            $initQuerySql = $initQuery;
+            $params       = null;
+            if (is_array($initQuery)) {
+                $initQuerySql = reset($initQuery);
+                $params       = count($initQuery) > 1
+                    ? end($initQuery)
+                    : null;
+            }
+            self::$connection->query($initQuerySql, $params);
         }
 
         $initData = static::getInitData();
