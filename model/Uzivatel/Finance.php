@@ -217,11 +217,6 @@ class Finance
         $this->log("<b>$nazev</b>", "<b>$castka</b>", $kategorie, $idPolozky);
     }
 
-    /** Vrátí sumu plateb (připsaných peněz) */
-    public function platby() {
-        return $this->platby;
-    }
-
     /**
      * Vrátí / nastaví datum posledního provedení platby
      *
@@ -656,9 +651,9 @@ SQL
             } else {
                 if ($r['typ'] == Shop::JIDLO) {
                     $this->cenaStravy += $cena;
-                } elseif ($r['typ'] == Shop::PREDMET) {
+                } elseif (in_array($r['typ'], [Shop::PREDMET, Shop::TRICKO])) {
                     $this->cenaPredmetu += $cena;
-                } else {
+                } elseif ($r['typ'] != Shop::PARCON) {
                     throw new NeznamyTypPredmetu(
                         "Neznámý typ předmětu " . var_export($r['typ'], true) . ': ' . var_export($r, true)
                     );
