@@ -10,6 +10,8 @@ use Gamecon\SystemoveNastaveni\Exceptions\InvalidSystemSettingsValue;
 class SystemoveNastaveni
 {
 
+    public const ROK = ROK;
+
     public static function vytvorZGlobals(): self {
         return new static(
             ROK,

@@ -5,6 +5,7 @@ namespace Gamecon\Uzivatel;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Exceptions\NeznamyTypPredmetu;
 use Gamecon\Shop\Shop;
 use Gamecon\Shop\TypPredmetu;
 use Endroid\QrCode\Writer\Result\ResultInterface;
@@ -214,11 +215,6 @@ class Finance
      */
     private function logb($nazev, $castka, $kategorie = null, $idPolozky = null) {
         $this->log("<b>$nazev</b>", "<b>$castka</b>", $kategorie, $idPolozky);
-    }
-
-    /** Vrátí sumu plateb (připsaných peněz) */
-    public function platby() {
-        return $this->platby;
     }
 
     /**
@@ -655,8 +651,12 @@ SQL
             } else {
                 if ($r['typ'] == Shop::JIDLO) {
                     $this->cenaStravy += $cena;
-                } else {
+                } elseif (in_array($r['typ'], [Shop::PREDMET, Shop::TRICKO])) {
                     $this->cenaPredmetu += $cena;
+                } elseif ($r['typ'] != Shop::PARCON) {
+                    throw new NeznamyTypPredmetu(
+                        "Neznámý typ předmětu " . var_export($r['typ'], true) . ': ' . var_export($r, true)
+                    );
                 }
             }
             // přidání roku do názvu
