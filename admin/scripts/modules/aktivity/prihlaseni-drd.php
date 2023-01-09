@@ -4,6 +4,7 @@ use Gamecon\XTemplate\XTemplate;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Logger\LogUdalosti;
+use Gamecon\Kanaly\GcMail;
 
 /**
  * Stránka pro přehled všech přihlášených na aktivitu DrD. DrD je starý modul a

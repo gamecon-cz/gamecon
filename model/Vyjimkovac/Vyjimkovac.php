@@ -10,18 +10,24 @@ use Gamecon\XTemplate\Exceptions\XTemplateRecompilationException;
 class Vyjimkovac implements Logovac
 {
 
-    private $dbFile;
-    private $db;
-    private $ukoncitPriNotice = true; // TODO nastavení zvenčí
-    private $zobrazeni = self::PLAIN;
+    private string $dbFile;
+    private ?\EPDO $db = null;
+    private bool $ukoncitPriNotice = true; // TODO nastavení zvenčí
+    private int $zobrazeni = self::PLAIN;
 
-    const NIC    = 1;
-    const PLAIN  = 2;
-    const TRACY  = 3;
-    const PICARD = 4;
+    public const NIC    = 1;
+    public const PLAIN  = 2;
+    public const TRACY  = 3;
+    public const PICARD = 4;
+    private array $emails;
 
-    public function __construct($dbFile) {
+    public static function vytvorZGlobals(): self {
+        return new self(SPEC . '/chyby.sqlite', PRIJEMCI_CHYB);
+    }
+
+    public function __construct(string $dbFile, array $emails) {
         $this->dbFile = $dbFile;
+        $this->emails = $emails;
     }
 
     /**
@@ -30,13 +36,6 @@ class Vyjimkovac implements Logovac
     public function aktivuj() {
 
         register_shutdown_function(function () {
-            // ošklivě vložené uzavření DB connection tady, protože register_shutdown_function může byt jen jednou
-            global $spojeni;
-            if ($spojeni && (mysqli_get_connection_stats($spojeni)['active_connections'] ?? false)) {
-                mysqli_close($spojeni);
-                $spojeni = null;
-            }
-
             // fatal errory
             $error = error_get_last();
             if (!$error || $error["type"] != E_ERROR) {
@@ -47,6 +46,7 @@ class Vyjimkovac implements Logovac
             $eFixed     = \Tracy\Helpers::fixStack($eException);
             $this->zpracuj($eFixed);
         });
+        $this->markShutdownFunctionRegistered();
 
         // typicky notice, warningy a stricty
         set_error_handler(function ($typ, $msg, $file, $line) {
@@ -77,6 +77,12 @@ class Vyjimkovac implements Logovac
             }
         });
 
+    }
+
+    protected function markShutdownFunctionRegistered() {
+        if (!defined('SHUTDOWN_FUNCTION_REGISTERED')) {
+            define('SHUTDOWN_FUNCTION_REGISTERED', true);
+        }
     }
 
     /**
@@ -139,12 +145,11 @@ class Vyjimkovac implements Logovac
         $this->zpracuj($e);
     }
 
-    public function zobrazeni(...$args) {
-        if (!$args) {
-            return $this->zobrazeni;
-        } else {
-            $this->zobrazeni = $args[0];
+    public function zobrazeni(int $zobrazeni = null): int {
+        if ($zobrazeni !== null) {
+            $this->zobrazeni = $zobrazeni;
         }
+        return $this->zobrazeni;
     }
 
     /**
@@ -205,7 +210,9 @@ class Vyjimkovac implements Logovac
     }
 
     public function zaloguj(\Throwable $e) {
-        VyjimkovacChyba::zVyjimky($e)->uloz($this->db());
+        VyjimkovacChyba::zVyjimky($e)
+            ->uloz($this->db())
+            ->odesli($this->emails);
     }
 
 }

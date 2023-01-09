@@ -115,6 +115,8 @@ function _dbConnect(string $dbHost, string $dbUser, string $dbPass, ?int $dbPort
         $spojeni = null;
     }
 
+    dbDisconnectOnShutdown();
+
     if ($spojeni instanceof mysqli) {
         return $spojeni;
     }
@@ -139,6 +141,20 @@ function _dbConnect(string $dbHost, string $dbUser, string $dbPass, ?int $dbPort
     dbQuery('SET SESSION group_concat_max_len = 65536', null, $spojeni);
 
     return $spojeni;
+}
+
+function dbDisconnectOnShutdown() {
+    if (defined('DB_DISCONNECT_ON_SHUTDOWN_REGISTERED')) {
+        return;
+    }
+    register_shutdown_function(static function () {
+        global $spojeni;
+        if ($spojeni && (mysqli_get_connection_stats($spojeni)['active_connections'] ?? false)) {
+            mysqli_close($spojeni);
+            $spojeni = null;
+        }
+    });
+    define('DB_DISCONNECT_ON_SHUTDOWN_REGISTERED', true);
 }
 
 /**
