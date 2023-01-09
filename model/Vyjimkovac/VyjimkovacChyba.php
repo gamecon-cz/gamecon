@@ -6,9 +6,18 @@ use Gamecon\Kanaly\GcMail;
 
 class VyjimkovacChyba
 {
+    public const VYJIMKA = 'vyjimka';
 
     private array $radek;
     private ?string $idPosledniUlozeneChyby = null;
+
+    public static function absolutniUrlDetailuChyby(int $idChyby, string $urlAdmin = URL_ADMIN): string {
+        return $urlAdmin . self::urlDetailuChyby($idChyby);
+    }
+
+    public static function urlDetailuChyby(int $idChyby): string {
+        return '/web/chyby?' . self::VYJIMKA . '=' . $idChyby;
+    }
 
     public static function zVyjimky(\Throwable $throwable) {
         $radek = self::radekInit();
@@ -149,7 +158,7 @@ class VyjimkovacChyba
             (new GcMail())
                 ->adresati($emails)
                 ->predmet("Gamecon chyba: {$this->radek['jazyk']}, typ {$this->radek['typ']}")
-                ->text($this->radek['zprava'] . "\r\n\r\n<a href='" . URL_ADMIN . "/web/chyby/?vyjimka={$this->idPosledniUlozeneChyby}'>Detail</a>")
+                ->text($this->radek['zprava'] . "\r\n\r\n<a href='" . URL_ADMIN . "/web/chyby/?" . self::VYJIMKA . "={$this->idPosledniUlozeneChyby}'>Detail</a>")
                 ->odeslat();
         }
     }
