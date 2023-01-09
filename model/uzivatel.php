@@ -8,6 +8,7 @@ use Gamecon\Pravo;
 use Gamecon\Zidle;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\XTemplate\XTemplate;
+use Gamecon\Kanaly\GcMail;
 
 /**
  * Třída popisující uživatele a jeho vlastnosti
@@ -260,14 +261,14 @@ SQL
         try {
             // odeslání upozornění, pokud u nás má peníze
             if (($celkemLetosPoslal = $this->finance()->sumaPlateb()) > 0) {
-                (new GcMail)
+                (new GcMail())
                     ->adresat('info@gamecon.cz')
                     ->predmet('Uživatel ' . $this->jmenoNick() . ' se odhlásil ale platil')
                     ->text(hlaskaMail('odhlasilPlatil', $this->jmenoNick(), $this->id(), ROK, $celkemLetosPoslal))
                     ->odeslat();
             }
             if ($dnyUbytovani = array_keys($this->dejShop()->ubytovani()->veKterychDnechJeUbytovan())) {
-                (new GcMail)
+                (new GcMail())
                     ->adresat('info@gamecon.cz')
                     ->predmet('Uživatel ' . $this->jmenoNick() . ' se odhlásil a měl ubytování')
                     ->text(hlaskaMail('odhlasilMelUbytovani', $this->jmenoNick(), $this->id(), ROK, implode(', ', $dnyUbytovani)))

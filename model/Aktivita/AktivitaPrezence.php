@@ -4,6 +4,7 @@ namespace Gamecon\Aktivita;
 
 use Gamecon\Exceptions\ChybaKolizeAktivit;
 use Symfony\Component\Filesystem\Filesystem;
+use Gamecon\Kanaly\GcMail;
 
 /**
  * Prezenční listina aktivity.
@@ -185,7 +186,7 @@ class AktivitaPrezence
             return;
         }
 
-        (new \GcMail)
+        (new GcMail)
             ->adresat($u->mail())
             ->predmet('Nedostavení se na aktivitu')
             ->text(hlaskaMail('nedostaveniSeNaAktivituMail', $u))

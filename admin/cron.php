@@ -1,5 +1,6 @@
 <?php
 
+use Gamecon\Kanaly\GcMail;
 use Gamecon\Aktivita\Aktivita;
 
 /**
@@ -30,7 +31,9 @@ if (defined('TESTING') && TESTING && !defined('MAILY_DO_SOUBORU')) {
 /////////////////////////////////// příprava ///////////////////////////////////
 
 // otestovat, že je skript volán s heslem a sprvánou url
-if (HTTPS_ONLY) httpsOnly();
+if (HTTPS_ONLY) {
+    httpsOnly();
+}
 if (!defined('CRON_KEY') || get('key') !== CRON_KEY)
     die('špatný klíč');
 
