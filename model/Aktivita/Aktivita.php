@@ -1,6 +1,7 @@
 <?php
 
 namespace Gamecon\Aktivita;
+use Gamecon\Kanaly\GcMail;
 
 use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml;
 use Gamecon\Cas\DateTimeCz;
@@ -1402,7 +1403,7 @@ SQL
       WHERE a.id_akce = $0 AND a.id_stavu_prihlaseni = $1
     ", [$this->id(), StavPrihlaseni::SLEDUJICI]);
         foreach ($emaily as $email) {
-            $mail = new \GcMail();
+            $mail = new GcMail();
             $mail->predmet('Gamecon: Volné místo na aktivitě ' . $this->nazev());
             $mail->text(hlaskaMail('uvolneneMisto', $this->nazev(), $this->denCas()));
             $mail->adresat($email);
@@ -1939,7 +1940,7 @@ SQL
         dbCommit();
 
         // maily přihlášeným
-        $mail = new \GcMail(hlaskaMail('prihlaseniTeamMail',
+        $mail = new GcMail(hlaskaMail('prihlaseniTeamMail',
             $lidr, $lidr->jmenoNick(), $this->nazev(), $this->denCas()
         ));
         $mail->predmet('Přihláška na ' . $this->nazev());
@@ -2672,7 +2673,7 @@ SQL,
                     . '#' . OnlinePrezenceHtml::nazevProAnchor($neuzavrenaAktivita);
                 $text .= "<br><a href='$url'>{$neuzavrenaAktivita->nazev()}</a> (skončila {$neuzavrenaAktivita->konec()->formatCasNaMinutyStandard()})";
             }
-            $mail = new \GcMail();
+            $mail = new GcMail();
             $mail->predmet(
                 'Gamecon: Uzavři prosím prezenci na ' . (count($neuzavreneAktivity) === 1 ? 'aktivitě' : (count($neuzavreneAktivity) . ' aktivitách'))
             );

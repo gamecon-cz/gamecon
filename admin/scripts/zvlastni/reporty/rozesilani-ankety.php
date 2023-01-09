@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Kanaly\GcMail;
+
 require __DIR__ . '/sdilene-hlavicky.php';
 
 $delay = 500;
