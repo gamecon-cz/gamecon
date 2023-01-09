@@ -7,6 +7,7 @@
 
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\XTemplate\XTemplate;
+use Gamecon\Vyjimkovac\VyjimkovacChyba;
 
 $db         = new EPDO('sqlite:' . SPEC . '/chyby.sqlite');
 $ignorovane = json_decode($_COOKIE['ignorovaneChyby'] ?? '[]');
@@ -29,23 +30,23 @@ if (post('pridatIgnorovanouHodnotu')) {
 }
 
 // zobrazení specifické výjimky
-if (get('vyjimka')) {
+if (get(VyjimkovacChyba::VYJIMKA)) {
     $BEZ_DEKORACE         = true;
-    $dotaz                = 'SELECT vyjimka FROM chyby WHERE rowid = ' . $db->qv(get('vyjimka'));
+    $dotaz                = 'SELECT vyjimka FROM chyby WHERE rowid = ' . $db->qv(get(VyjimkovacChyba::VYJIMKA));
     $serializovanaVyjimka = $db->query($dotaz)->fetchColumn();
     if (!$serializovanaVyjimka) {
-        echo "Výjimka s rowid '" . htmlspecialchars(get('vyjimka')) . "' neexistuje.";
+        echo "Výjimka s rowid '" . htmlspecialchars(get(VyjimkovacChyba::VYJIMKA)) . "' neexistuje.";
     }
     $vyjimka = unserialize(base64_decode($serializovanaVyjimka));
     if (!$vyjimka) {
-        echo "Výjimku s rowid '" . htmlspecialchars(get('vyjimka')) . "' nelze načíst.";
+        echo "Výjimku s rowid '" . htmlspecialchars(get(VyjimkovacChyba::VYJIMKA)) . "' nelze načíst.";
     }
     try {
         (new Tracy\BlueScreen)->render($vyjimka);
         // hack na změnu pozadí, aby bylo jasné, že vidíme preview
         echo '<style>#tracy-bs-error { background-color: #45f; }</style>';
     } catch (Throwable $e2) {
-        echo "Výjimku s rowid '" . htmlspecialchars(get('vyjimka')) . "' nelze zobrazit.";
+        echo "Výjimku s rowid '" . htmlspecialchars(get(VyjimkovacChyba::VYJIMKA)) . "' nelze zobrazit.";
     }
     return;
 }
@@ -97,7 +98,7 @@ foreach ($o as $r) {
     $r['zdroj']  = $r['zdroj'] ? '&emsp;«&emsp;<a href="' . $r['zdroj'] . '">' . $r['zdroj'] . '</a>' : '';
     // odkaz na detail
     if ($r['vyjimka'] && $r['jazyk'] == 'php') {
-        $t->assign('detailUrl', 'web/chyby?vyjimka=' . urlencode($r['rowid']));
+        $t->assign('detailUrl', VyjimkovacChyba::urlDetailuChyby((int)$r['rowid']));
         $t->parse('chyby.chyba.detailUrl');
     }
     // výstup
