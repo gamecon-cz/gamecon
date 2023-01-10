@@ -21,7 +21,7 @@ class StrankyWebuTest extends AbstractWebTest
      * @param string[] $urls
      */
     public function Muzu_si_zobrazit_kazdou_stranku_v_adminu(...$urls) {
-        self::assertContains('blblsto', $urls);
+        self::fail(var_export($urls, true));
         $this->testAdminPagesAccessibility($urls);
     }
 
