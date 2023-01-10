@@ -36,8 +36,6 @@ if ($uPracovni) {
     ]);
 }
 
-throw new Exception('zfe');
-
 // ubytovani vypis
 $pokojVypis = Pokoj::zCisla(get('pokoj'));
 $ubytovaniVypis = $pokojVypis ? $pokojVypis->ubytovani() : [];
