@@ -67,7 +67,6 @@ class StrankyWebuTest extends AbstractWebTest
             }
             $modulyWebuBaseUrls[] = basename($modulWebu, '.php');
         }
-        $modulyWebuBaseUrls= ['uzivatel']; // TODO REMOVE
         $adminBaseUrl       = basename(__DIR__ . '/../../admin');
         return array_map(static function (string $modulAdminuUrl) use ($adminBaseUrl) {
             return $adminBaseUrl . '/' . $modulAdminuUrl;

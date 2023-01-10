@@ -175,6 +175,8 @@ SQL;
             $errors ?? [],
             sprintf("Chyby během stahování stránek: %s", implode(',', $errors))
         );
+
+        self::fail(implode("\n", array_keys($curlHandles)));
     }
 
     protected function getUrlsOfUnusedLocalServers(int $count, ?string $username, ?string $password): array {
