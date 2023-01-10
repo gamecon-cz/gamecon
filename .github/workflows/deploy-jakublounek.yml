@@ -37,7 +37,7 @@ jobs:
           mysql-version: 'mysql-5.6' # mělo by odpovídat verzi na wedosu
 
       - name: Run tests
-        run: ./vendor/bin/phpunit
+        run: ./vendor/bin/phpunit --testdox
 
       - name: Deploy via FTP
         run: php ./udrzba/nasad.php --skip-tests # testy provádíme zvlášť, abychom neměli output z deploye moc dlouhý

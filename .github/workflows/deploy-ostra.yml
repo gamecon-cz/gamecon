@@ -37,7 +37,7 @@ jobs:
           mysql-version: 'mariadb-10.3' # mělo by odpovídat verzi na wedosu
 
       - name: Run tests
-        run: ./vendor/bin/phpunit
+        run: ./vendor/bin/phpunit --testdox
 
       - name: Deploy via FTP
         run: php ./udrzba/nasad.php --skip-tests # testy provádíme zvlášť, abychom neměli output z deploye moc dlouhý
