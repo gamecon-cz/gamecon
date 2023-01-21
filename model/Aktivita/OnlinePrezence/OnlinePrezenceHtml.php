@@ -68,6 +68,7 @@ class OnlinePrezenceHtml
         $template->assign('urlZpet', $urlZpet);
         $template->assign('textZpet', $textZpet);
         $template->assign('jsVyjimkovac', $this->jsVyjimkovac);
+        $template->assign('a', $editujici->koncovkaDlePohlavi());
 
         $this->pridejLokalniAssety($template);
 
@@ -95,9 +96,13 @@ class OnlinePrezenceHtml
                     __DIR__ . '/../../../admin/files/online-prezence/online-prezence-tooltip.js',
                     __DIR__ . '/../../../admin/files/online-prezence/online-prezence-prepinani-viditelnosti.js',
                     __DIR__ . '/../../../admin/files/online-prezence/online-prezence-ukazatele-zaplnenosti.js',
+                    __DIR__ . '/../../../admin/files/online-prezence/online-prezence-potvrzovaci-modal.js',
                     __DIR__ . '/../../../admin/files/online-prezence/online-prezence-keep-alive.js',
                 ],
-                // pozor, JS moduly se automaticky načítají jako deffer, tedy asynchronně a vykonávají se až někdy po načtení celé stránky
+                /*
+                 * Pozor, JS moduly se automaticky načítají jako deffer, tedy asynchronně a vykonávají se až někdy po načtení celé stránky.
+                 * Zároveň kód načtený jako module nejde volat z HTML.
+                 */
                 'module' => [
                     __DIR__ . '/../../../admin/files/online-prezence/online-prezence.js',
                     __DIR__ . '/../../../admin/files/online-prezence/online-prezence-posledni-zname-zmeny-prihlaseni.js',
