@@ -190,14 +190,11 @@ SQL
 
         $id = mysqli_insert_id($dbConnectionAnonymDb);
 
-        dbQuery(
-            "INSERT INTO `{$this->anonymniDatabaze}`.r_uzivatele_zidle (id_uzivatele, id_zidle, posazen, posadil) VALUES ($0, $1, NOW(), null), ($0, $2, NOW(), null)",
-            [
-                0 => $id,
-                1 => Zidle::ORGANIZATOR,
-                2 => Zidle::SPRAVCE_FINANCI_GC,
-            ],
-            $dbConnectionAnonymDb
+        $idZidleOrganizator = Zidle::ORGANIZATOR;
+        $idZidleSpravceFinanci = Zidle::SPRAVCE_FINANCI_GC;
+        mysqli_query(
+            $dbConnectionAnonymDb,
+            "INSERT INTO `{$this->anonymniDatabaze}`.r_uzivatele_zidle (id_uzivatele, id_zidle, posazen, posadil) VALUES ($id, $idZidleOrganizator, NOW(), null), ($id, $idZidleSpravceFinanci, NOW(), null)"
         );
     }
 
