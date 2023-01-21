@@ -8,7 +8,6 @@ use Gamecon\Zidle;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
-use Uzivatel;
 
 class AnonymizovanaDatabaze
 {
@@ -146,24 +145,16 @@ SQL,
 
         dbQuery("ALTER TABLE `{$this->anonymniDatabaze}`.r_uzivatele_zidle MODIFY COLUMN `posazen` TIMESTAMP NULL", null, $dbConnectionAnonymDb);
         dbQuery("ALTER TABLE `{$this->anonymniDatabaze}`.akce_prihlaseni_log MODIFY COLUMN `kdy` TIMESTAMP NULL", null, $dbConnectionAnonymDb);
-
-        dbQuery("INSERT INTO `{$this->anonymniDatabaze}`.uzivatele_hodnoty (login_uzivatele, jmeno_uzivatele, prijmeni_uzivatele, ulice_a_cp_uzivatele, mesto_uzivatele, stat_uzivatele, psc_uzivatele, telefon_uzivatele, datum_narozeni, heslo_md5, funkce_uzivatele, email1_uzivatele, email2_uzivatele, jine_uzivatele, nechce_maily, mrtvy_mail, forum_razeni, random, zustatek, pohlavi, registrovan, ubytovan_s, skola, poznamka, pomoc_typ, pomoc_vice, op, potvrzeni_zakonneho_zastupce, potvrzeni_proti_covid19_pridano_kdy, potvrzeni_proti_covid19_overeno_kdy, infopult_poznamka) VALUES ('admin', 'admin', 'adminovec', 'Na Vyhaslém 3265', 'Kladno', 1, '27201', '736256978', '1983-08-28', '$2y$10$IudcF5OOSXxvO9I4SK.GBe5AgLhK8IsH7CPBkCknYMhKvJ4HQskzS', 0, 'gamecon@example.com', '', '', null, 0, '', '0d336e2ab4cdad85255b', 250, 'm', '2019-05-24 05:52:49', '', null, '', '', '', '', null, '2021-07-14 20:35:00', '2021-07-14 00:00:00', '')", null, $dbConnectionAnonymDb);
-
-        $id = dbQuery("SELECT last_insert_id()", null, $dbConnectionAnonymDb);
-
-        dbQuery("INSERT INTO `{$this->anonymniDatabaze}`.r_uzivatele_zidle (id_uzivatele, id_zidle, posazen, posadil) VALUES (`$id`, -2202, '2022-07-21 13:56:15', null)", null, $dbConnectionAnonymDb);
-        dbQuery("INSERT INTO `{$this->anonymniDatabaze}`.r_uzivatele_zidle (id_uzivatele, id_zidle, posazen, posadil) VALUES (`$id`, -2201, '2022-07-21 13:56:16', null)", null, $dbConnectionAnonymDb);
-        dbQuery("INSERT INTO `{$this->anonymniDatabaze}`.r_uzivatele_zidle (id_uzivatele, id_zidle, posazen, posadil) VALUES (`$id`, -2202, '2022-07-21 13:56:17', null)", null, $dbConnectionAnonymDb);
-        dbQuery("INSERT INTO `{$this->anonymniDatabaze}`.r_uzivatele_zidle (id_uzivatele, id_zidle, posazen, posadil) VALUES (`$id`, -2201, '2022-07-21 13:56:18', null)", null, $dbConnectionAnonymDb);
-        dbQuery("INSERT INTO `{$this->anonymniDatabaze}`.r_uzivatele_zidle (id_uzivatele, id_zidle, posazen, posadil) VALUES (`$id`, 2, '2022-07-21 13:56:19', null)", null, $dbConnectionAnonymDb);
-        dbQuery("INSERT INTO `{$this->anonymniDatabaze}`.r_uzivatele_zidle (id_uzivatele, id_zidle, posazen, posadil) VALUES (`$id`, 20, '2022-07-21 13:56:20', null)", null, $dbConnectionAnonymDb);
-        
     }
 
     private function pridejAdminUzivatele(\mysqli $dbConnectionAnonymDb) {
-        dbQuery(<<<SQL
+        $passwordHash = '$2y$10$IudcF5OOSXxvO9I4SK.GBe5AgLhK8IsH7CPBkCknYMhKvJ4HQskzS';
+        mysqli_query(
+            $dbConnectionAnonymDb,
+            <<<SQL
 INSERT INTO `{$this->anonymniDatabaze}`.uzivatele_hodnoty
-    SET login_uzivatele = 'admin',
+    SET id_uzivatele = null,
+        login_uzivatele = 'admin',
         jmeno_uzivatele = 'admin',
         prijmeni_uzivatele = 'adminovec',
         ulice_a_cp_uzivatele = '',
@@ -172,7 +163,7 @@ INSERT INTO `{$this->anonymniDatabaze}`.uzivatele_hodnoty
         psc_uzivatele = '',
         telefon_uzivatele= '',
         datum_narozeni = NOW(),
-        heslo_md5 = $0,
+        heslo_md5 = '$passwordHash',
         funkce_uzivatele = 0,
         email1_uzivatele = 'gamecon@example.com',
         email2_uzivatele = '',
@@ -194,11 +185,7 @@ INSERT INTO `{$this->anonymniDatabaze}`.uzivatele_hodnoty
         potvrzeni_proti_covid19_pridano_kdy = NULL,
         potvrzeni_proti_covid19_overeno_kdy=NULL,
         infopult_poznamka= ''
-SQL,
-            [
-                0 => '$2y$10$IudcF5OOSXxvO9I4SK.GBe5AgLhK8IsH7CPBkCknYMhKvJ4HQskzS',
-            ],
-            $dbConnectionAnonymDb
+SQL
         );
 
         $id = mysqli_insert_id($dbConnectionAnonymDb);
@@ -296,7 +283,41 @@ SQL,
     ) {
         $handle = fopen('php://memory', 'r+b');
 
+        // David Grudl je čuně a co na začátku dump souboru vypne, to na konci nezapne
+        fwrite(
+            $handle,
+            <<<SQL
+                /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+                /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+                /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+                /*!50503 SET NAMES utf8mb4 */;
+                /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+                /*!40103 SET TIME_ZONE='+00:00' */;
+                /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+                /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+                /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+                /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+            SQL,
+        );
+
         (new \MySQLDump($dbConnectionCurrentDb))->write($handle);
+
+        fwrite(
+            $handle,
+            <<<SQL
+
+                /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+                /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+                /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+                /*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+                /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+                /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+                /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+                /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+            SQL
+        );
 
         fflush($handle);
         rewind($handle);
