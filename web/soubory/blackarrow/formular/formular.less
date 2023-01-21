@@ -5,16 +5,8 @@
     box-sizing: border-box;
     // background:
     //     url('../blackarrow/formular/pozadi.jpg') no-repeat fixed 0 7vh ~'/' auto 93vh;
-    padding: 60px 60px 120px; // dolní padding kvůli tooltipu na os. údaje
-    padding-left: ~'calc(' @levyOkraj ~'+ 60px)';
+    padding: 60px 60px 120px ~'calc(' @levyOkraj ~'+ 60px)'; // dolní padding kvůli tooltipu na os. údaje
     position: relative; // kvůli nadpisu
-    @media (max-aspect-ratio: 1.5) {
-        background: none;
-        padding-left: 120px;
-        .formular_strankaNadpis { display: none; }
-        .formular_strankaPodtitul { display: none; }
-    }
-
     @media (max-width: 900px) {
         padding: 20px;
     }
