@@ -187,9 +187,9 @@ class Report
     }
 
     /**
-     * Vytiskne report jako HTML tabulku
+     * Vytiskne report jako stranky k tisku s print CSS
      */
-    public function tXTemplate($fn) {
+    public function tXTemplate(callable $fn) {
         while ($radek = $this->radek()) {
             $fn($radek);
         }

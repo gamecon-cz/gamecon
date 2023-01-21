@@ -105,19 +105,19 @@ FROM uzivatele_hodnoty
 LEFT JOIN r_uzivatele_zidle
     ON uzivatele_hodnoty.id_uzivatele = r_uzivatele_zidle.id_uzivatele
 LEFT JOIN r_uzivatele_zidle AS zidle_organizatoru
-    ON uzivatele_hodnoty.id_uzivatele = zidle_organizatoru.id_uzivatele AND zidle_organizatoru.id_zidle IN ($idZidliSOrganizatorySql)
+    ON uzivatele_hodnoty.id_uzivatele = zidle_organizatoru.id_uzivatele AND zidle_organizatoru.id_zidle IN ({$idZidliSOrganizatorySql})
 WHERE uzivatele_hodnoty.id_uzivatele IN (
     SELECT DISTINCT(sn.id_uzivatele)
     FROM shop_nakupy AS sn
-    JOIN shop_predmety AS sp ON sp.id_predmetu = sn.id_predmetu AND sp.typ IN (1, 3)
-    WHERE sn.rok = 2022
+    JOIN shop_predmety AS sp ON sp.id_predmetu = sn.id_predmetu AND sp.typ IN ({$typTricko}, {$typPredmet})
+    WHERE sn.rok = $rok
 )
 GROUP BY uzivatele_hodnoty.id_uzivatele
-ORDER BY 2 DESC
+ORDER BY count_typu_predmetu DESC
 SQL
 );
 
-$fn = static function ($radek) use (&$t) {
+$fn = static function ($radek) use ($t) {
     $t->assign('id_uzivatele', array_shift($radek));
     $t->assign('pocet_typu', array_shift($radek));
     $t->assign('login_uzivatele', array_shift($radek));
@@ -131,5 +131,3 @@ $report->tXTemplate($fn);
 
 $t->parse('balicky');
 $t->out('balicky');
-
-// $report->tFormat(get('format'));
