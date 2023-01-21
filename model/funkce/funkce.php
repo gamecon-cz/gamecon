@@ -725,3 +725,16 @@ function pridejNaZacatekPole(string $klic, $hodnota, array $pole): array {
     unset($pole[$klic]); // pro případ, že by byl klíč obsazen - potom by původní honota přepsala novou níže a to nechceme
     return array_merge([$klic => $hodnota], $pole);
 }
+
+function prevedNaFloat($castka): float {
+    if (is_int($castka) || is_float($castka)) {
+        return (float)$castka;
+    }
+    $original = $castka;
+    $castka   = preg_replace('~[^\d,.]~', '', $castka);
+    $castka   = str_replace(',', '.', $castka);
+    if (!preg_match('~^\d+[.]?(\d+)?$~', $castka)) { // 1. je OK, stane se z toho 1.0
+        throw new \InvalidArgumentException("Chybné číslo '$original'");
+    }
+    return (float)$castka;
+}

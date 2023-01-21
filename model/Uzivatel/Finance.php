@@ -312,7 +312,7 @@ class Finance
 
     /**
      * Připíše aktuálnímu uživateli platbu ve výši $castka.
-     * @param float $castka
+     * @param float|string $castka
      * @param \Uzivatel $provedl
      * @param string|null $poznamka
      * @param string|int|null $idFioPlatby
@@ -324,7 +324,7 @@ class Finance
             [
                 'id_uzivatele' => $this->u->id(),
                 'fio_id'       => $idFioPlatby ?: null,
-                'castka'       => $castka,
+                'castka'       => prevedNaFloat($castka),
                 'rok'          => ROK,
                 'provedl'      => $provedl->id(),
                 'poznamka'     => $poznamka ?: null,
@@ -339,6 +339,7 @@ class Finance
      * @param \Uzivatel $provedl
      */
     public function pripisSlevu($sleva, $poznamka, \Uzivatel $provedl) {
+        $sleva = prevedNaFloat($sleva);
         dbQuery(
             'INSERT INTO slevy(id_uzivatele, castka, rok, provedl, poznamka) VALUES ($1, $2, $3, $4, $5)',
             [$this->u->id(), $sleva, ROK, $provedl->id(), $poznamka ?: null]
