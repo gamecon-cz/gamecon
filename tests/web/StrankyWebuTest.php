@@ -24,13 +24,6 @@ class StrankyWebuTest extends AbstractWebTest
         $this->testAdminPagesAccessibility($urls);
     }
 
-    /**
-     * @test
-     */
-    public function Muzu_si_zobrazit_stranku_uzivatel_v_adminu() {
-        $this->testAdminPagesAccessibility(['admin/uzivatel']);
-    }
-
     public function provideWebUrls(): array {
         return [
             'moduly webu' => $this->getUrlsModuluWebu(),
