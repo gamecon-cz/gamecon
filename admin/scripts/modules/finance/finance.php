@@ -34,7 +34,16 @@ if (post('uzivatelProPripsaniSlevy')) {
         $u
     );
     $numberFormatter = NumberFormatter::create('cs', NumberFormatter::PATTERN_DECIMAL);
-    oznameni(sprintf('Sleva %s připsána k uživateli %s.', $numberFormatter->formatCurrency(post('sleva'), 'CZK'), $uzivatel->jmenoNick()));
+    oznameni(
+        sprintf(
+            'Sleva %s připsána k uživateli %s.',
+            $numberFormatter->formatCurrency(
+                prevedNaFloat(post('sleva')),
+                'CZK'
+            ),
+            $uzivatel->jmenoNick()
+        )
+    );
 }
 
 if (post('uzivatelKVyplaceniAktivity')) {
@@ -45,7 +54,7 @@ if (post('uzivatelKVyplaceniAktivity')) {
     if (!$uzivatel->gcPrihlasen()) {
         chyba(sprintf('Uživatel %s není přihlášen na GameCon.', $uzivatel->jmenoNick()));
     }
-    $shop = new Shop($uzivatel, null, $systemoveNastaveni);
+    $shop            = new Shop($uzivatel, null, $systemoveNastaveni);
     $prevedenaCastka = $shop->kupPrevodBonusuNaPenize();
     if (!$prevedenaCastka) {
         chyba(sprintf('Uživatel %s nemá žádný bonus k převodu.', $uzivatel->jmenoNick()));
@@ -69,17 +78,17 @@ GROUP BY uzivatele_hodnoty.id_uzivatele
 SQL
         , [ZIDLE_ORG_AKTIVIT, ZIDLE_PRIHLASEN] // při změně změn hint v šabloně finance.xtpl
     );
-    $numberFormatter = NumberFormatter::create('cs', NumberFormatter::PATTERN_DECIMAL);
-    $organizatorAkciData = [];
+    $numberFormatter       = NumberFormatter::create('cs', NumberFormatter::PATTERN_DECIMAL);
+    $organizatorAkciData   = [];
     while ($organizatorAkciRadek = mysqli_fetch_assoc($organizatoriAkciQuery)) {
-        $organizatorAkci = new Uzivatel($organizatorAkciRadek);
+        $organizatorAkci          = new Uzivatel($organizatorAkciRadek);
         $nevyuzityBonusZaAktivity = $organizatorAkci->finance()->nevyuzityBonusZaAktivity();
         if (!$nevyuzityBonusZaAktivity) {
             continue;
         }
         $organizatorAkciData[] = [
-            'id' => $organizatorAkci->id(),
-            'jmeno' => $organizatorAkci->jmenoNick(),
+            'id'                       => $organizatorAkci->id(),
+            'jmeno'                    => $organizatorAkci->jmenoNick(),
             'nevyuzityBonusZaAktivity' => $numberFormatter->formatCurrency($nevyuzityBonusZaAktivity, 'CZK'),
         ];
     }
@@ -97,9 +106,9 @@ if (post('pokojeImport')) {
 
     $hlavicka = array_flip(fgetcsv($f, 512, ";"));
     if (!array_key_exists('id_uzivatele', $hlavicka)) throw new Exception('Nepodařilo se zpracovat soubor');
-    $uid = $hlavicka['id_uzivatele'];
-    $od = $hlavicka['prvni_noc'];
-    $do = $hlavicka['posledni_noc'];
+    $uid   = $hlavicka['id_uzivatele'];
+    $od    = $hlavicka['prvni_noc'];
+    $do    = $hlavicka['posledni_noc'];
     $pokoj = $hlavicka['pokoj'];
 
     dbDelete('ubytovani', ['rok' => ROK]);
@@ -109,9 +118,9 @@ if (post('pokojeImport')) {
             for ($den = $r[$od]; $den <= $r[$do]; $den++) {
                 dbInsert('ubytovani', [
                     'id_uzivatele' => $r[$uid],
-                    'den' => $den,
-                    'pokoj' => $r[$pokoj],
-                    'rok' => ROK,
+                    'den'          => $den,
+                    'pokoj'        => $r[$pokoj],
+                    'rok'          => ROK,
                 ]);
             }
         }
@@ -123,18 +132,18 @@ if (post('pokojeImport')) {
 $x = new XTemplate('finance.xtpl');
 if (isset($_GET['minimum'])) {
     $min = (int)$_GET['minimum'];
-    $o = dbQuery("SELECT u.* FROM uzivatele_hodnoty u JOIN r_uzivatele_zidle z ON(z.id_uzivatele=u.id_uzivatele AND z.id_zidle=" . ZIDLE_PRIHLASEN . ")");
+    $o   = dbQuery("SELECT u.* FROM uzivatele_hodnoty u JOIN r_uzivatele_zidle z ON(z.id_uzivatele=u.id_uzivatele AND z.id_zidle=" . ZIDLE_PRIHLASEN . ")");
     $ids = '';
     while ($r = mysqli_fetch_assoc($o)) {
         $un = new Uzivatel($r);
         $un->nactiPrava();
         if (($stav = $un->finance()->stav()) >= $min) {
             $x->assign([
-                'login' => $un->prezdivka(),
-                'stav' => $stav,
-                'aktivity' => $un->finance()->cenaAktivit(),
+                'login'     => $un->prezdivka(),
+                'stav'      => $stav,
+                'aktivity'  => $un->finance()->cenaAktivit(),
                 'ubytovani' => $un->finance()->cenaUbytovani(),
-                'predmety' => $un->finance()->cenaPredmetyAStrava(),
+                'predmety'  => $un->finance()->cenaPredmetyAStrava(),
             ]);
             $x->parse('finance.uzivatele.uzivatel');
             $ids .= $un->id() . ',';
@@ -146,7 +155,7 @@ if (isset($_GET['minimum'])) {
 }
 
 $x->assign([
-    'id' => $uPracovni ? $uPracovni->id() : null,
+    'id'  => $uPracovni ? $uPracovni->id() : null,
     'org' => $u->jmenoNick(),
 ]);
 $x->parse('finance.pripsatSlevu');
