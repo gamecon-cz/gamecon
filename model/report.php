@@ -187,6 +187,16 @@ class Report
     }
 
     /**
+     * Vytiskne report jako stranky k tisku s print CSS
+     */
+    public function tXTemplate(callable $fn) {
+        while ($radek = $this->radek()) {
+            $fn($radek);
+        }
+    }
+
+
+    /**
      * Vytiskne report jako HTML tabulku
      */
     public function tHtml($param = 0) {

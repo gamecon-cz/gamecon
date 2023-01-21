@@ -69,19 +69,28 @@ const usePředmětyObjednávka = () => {
   };
 };
 
-const výchoZíMřížka = 1;
+const výchozíMřížka = 1;
 
-const useMřižka = (definice: DefiniceObchod) => {
-  const [mřížkaId, _setMřížkaId] = useState(1);
+const useMřížka = (definice: DefiniceObchod) => {
+  const [mřížkaId, setMřížkaId] = useState(1);
   const [mřížkaIdHist, setMřížkaIdHist] = useState<number[]>([1]);
   const setId = (id: number) => {
     setMřížkaIdHist((x) => [id, ...x]);
-    _setMřížkaId(id);
+    setMřížkaId(id);
   };
+
   const setZpět = () => {
-    const last = mřížkaIdHist[0] ?? 0;
-    setMřížkaIdHist((x) => x.slice(1));
-    setId(last);
+    let retval = true;
+    setMřížkaIdHist((x) => { 
+      if (x.length == 1) {
+        retval = false;
+        return x;
+      }
+      const last = x[1] ?? 1;
+      setId(last);
+      return x.slice(1); 
+    });
+    return retval;
   };
 
   const mřížka: DefiniceObchodMřížka | undefined = definice.mřížky.find(
@@ -90,7 +99,7 @@ const useMřižka = (definice: DefiniceObchod) => {
 
   const setShrnutí = useFixed(() => setId(-1));
 
-  const setVýchozí = useCallback(() => setId(výchoZíMřížka), []);
+  const setVýchozí = useCallback(() => setId(výchozíMřížka), []);
 
   const setMřížka = useMemo(
     () =>
@@ -121,11 +130,22 @@ export const Obchod: FunctionComponent<TObchodProps> = (props) => {
     předmětOdeber,
     předmětySmažVšechny,
   } = usePředmětyObjednávka();
-  const { mřížka, setMřížka } = useMřižka(definice);
+  const { mřížka, setMřížka } = useMřížka(definice);
+
+  const escFunction = useCallback((e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      setVisible(false);
+    }
+  }, []);
 
   useEffect(() => {
     window.preactMost.obchod.show = () => {
       setVisible(true);
+    };
+    document.addEventListener("keydown", escFunction, false);
+
+    return () => {
+      document.removeEventListener("keydown", escFunction, false);
     };
   }, []);
 
@@ -138,7 +158,8 @@ export const Obchod: FunctionComponent<TObchodProps> = (props) => {
         setMřížka(buňka.cilId);
         break;
       case "zpět":
-        setMřížka.zpět();
+        if (!setMřížka.zpět())
+          setVisible(false);
         break;
       case "předmět":
         setMřížka.shrnutí();
@@ -169,6 +190,7 @@ export const Obchod: FunctionComponent<TObchodProps> = (props) => {
       {visible ? (
         <Overlay onClickOutside={() => setVisible(false)}>
           <div class="shop--container">
+            <span class="shop--close" title='zavřít' aria-label='close' onClick={() => setVisible(false)}>&times;</span>
             {mřížka ? (
               <ObchodMřížka {...{ mřížka, onBuňkaClicked }} />
             ) : (

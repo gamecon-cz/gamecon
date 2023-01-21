@@ -1,0 +1,57 @@
+<!-- begin:balicky -->
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="cs">
+<head>
+  <title>Balíčky - k tisku</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <style>
+    html { padding: 0; margin: 0; }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Times New Roman', serif;
+      font-size: 18pt;
+      text-align: left;
+      color: #000;
+      background-color: #fff;
+    }
+    h2 { font-size: 5rem; padding: 0; margin: 0; }
+    h3 { font-size: 2rem; font-weight: normal;  padding: 0; margin: 0; }
+    .balicek { margin: 1px; padding: 10pt; box-sizing: border-box; outline: 1pt solid #000; }
+    .balicek ul { padding: 1rem 0 0 1rem; height: calc(83vh - 10rem); margin: 0; column-count: 2; column-fill: auto; }
+    .balicek ul li { list-style-type: none; margin: 0; padding: 0 0 0.5rem 0; font-size: 18pt; }
+    .balicek ul li:empty { margin: 0; padding: 0; list-style-type: none; display: none; }
+    button { font-size: 18pt; height: 21pt; line-height: 1.0; padding: 1pt 4pt; border: 1px solid grey; cursor: pointer; background-color: lightgrey; color: #000; display: inline-block; }
+    p { padding: 3pt 0; font-size: 18pt; display: block; margin: 0; text-align: center; }
+    small { font-size: 50%; }
+  </style>
+  <style type="text/css" media="print">
+    @page {
+      size: A5;
+      margin: 0;
+    }
+    p { display: none; }
+    .balicek {
+      width: calc(99% - 4pt);
+      height: calc(96% - 4pt);
+      page-break-after: always; break-after: always;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <p>
+      <button onclick="javascript:window.print()">Tiskni</button> a v Nastavení tisku pak změň na <b>4 Stránky na jednu A4</b>. Další jsou <a href="./stravenky?format=html" target="_blank">Stravenky k tisku</a>.
+    </p>
+    <!-- begin:balicek -->
+      <section class="balicek" title="{pocet_typu} typů předmětů">
+        <h2><small>id:</small> {id_uzivatele}</h2>
+        <h3>{login_uzivatele}</h3>
+        <ul><li>{vsechno}</li></ul>
+      </section>
+      <!-- end:balicek -->
+  </div>
+
+</body>
+</html>
+<!-- end:balicky -->
