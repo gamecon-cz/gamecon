@@ -127,6 +127,8 @@ $select = function ($nazev, $klic, $moznosti) use ($formData, $chyby) {
 ?>
 
 <form method="post" class="formular_stranka">
+    <div class="bg"></div>
+
     <?php if ($u) { ?>
         <div class="formular_strankaNadpis">Nastavení</div>
     <?php } else { ?>

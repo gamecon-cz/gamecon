@@ -1,10 +1,10 @@
-@levyOkraj: 76vh;
+@levyOkraj: 50%;
 
 .formular_stranka {
     min-height: ~'calc(100vh - 70px)';
     box-sizing: border-box;
-    background:
-        url('../blackarrow/formular/pozadi.jpg') no-repeat fixed 0 7vh ~'/' auto 93vh;
+    // background:
+    //     url('../blackarrow/formular/pozadi.jpg') no-repeat fixed 0 7vh ~'/' auto 93vh;
     padding: 60px 60px 120px; // dolní padding kvůli tooltipu na os. údaje
     padding-left: ~'calc(' @levyOkraj ~'+ 60px)';
     position: relative; // kvůli nadpisu
@@ -12,17 +12,32 @@
         background: none;
         padding-left: 120px;
         .formular_strankaNadpis { display: none; }
-        .fromular_strankaPodtitul { display: none; }
+        .formular_strankaPodtitul { display: none; }
     }
-    @media (max-width: 600px) {
+
+    @media (max-width: 900px) {
         padding: 20px;
-        background: none;
+    }
+}
+
+.formular_stranka .bg {
+    background:
+        url('../blackarrow/formular/pozadi.jpg') no-repeat center center/cover;;
+    // background-size: cover;
+    // background-repeat: no-repeat;
+    width: 50%;
+    height: 100%;
+    position: fixed;
+    left: 0;
+    top: 100px;
+    @media (max-width: 900px) {
+        display: none;
     }
 }
 
 .formular_stranka-login {
     padding-top: 170px;
-    @media (max-width: 600px) {
+    @media (max-width: 900px) {
         padding-top: 50px;
     }
 }
@@ -35,13 +50,13 @@
     font-weight: bold;
     font-size: 64rel;
     color: #fff;
-    width: @levyOkraj;
-    @media (max-width: 600px) {
+    width: 47.5%; //@levyOkraj
+    @media (max-width: 900px) {
         display: none;
     }
 }
 
-.fromular_strankaPodtitul {
+.formular_strankaPodtitul {
     position: fixed;
     top: ~'calc(43vh + 110rel)';
     left: 0;
@@ -52,7 +67,7 @@
     width: @levyOkraj;
     box-sizing: border-box;
     &>div { margin: 0 auto; } // center
-    @media (max-width: 600px) {
+    @media (max-width: 900px) {
         display: none;
     }
 }
@@ -65,7 +80,7 @@
     font-size: 13px;
     color: inherit;
     opacity: 0.5;
-    @media (max-width: 600px) {
+    @media (max-width: 900px) {
         right: 20px;
     }
 }
@@ -74,12 +89,12 @@
     font-size: 13px;
     color: #86878b;
     text-decoration: underline;
-    position: absolute;
-    width: 200px;
-    margin: 30px 0 0 336px;
+    margin: 30px 0 -50px 0;
     text-align: right;
-    @media (max-width: 800px) {
+    max-width: 530px;
+    @media (max-width: 900px) {
         right: 20px;
+        max-width: 440px;
     }
 }
 
@@ -196,7 +211,7 @@ input[type=checkbox] {
 .formular_sloupce .formular_polozka {
     width: 260px;
     margin-right: 16px;
-    @media (max-width: 800px) {
+    @media (max-width: 900px) {
         width: 100%;
         margin-right: 0;
     }
@@ -248,7 +263,7 @@ input[type=checkbox] {
 
     cursor: pointer;
 
-    @media (max-width: 600px) {
+    @media (max-width: 900px) {
         margin: 0 0 16px 0;
         width: 100%;
     }
@@ -291,7 +306,7 @@ input[type=checkbox] {
     background-color: transparent;
     line-height: 48px;
     padding: 0 19px;
-    @media (max-width: 600px) { margin-left: 0; }
+    @media (max-width: 900px) { margin-left: 0; }
 }
 
 .formular_sekundarni:hover {
@@ -308,7 +323,7 @@ input[type=checkbox] {
     margin: 15px 30px;
     border: none;
     &:hover { color: #BE0F18 }
-    @media (max-width: 600px) { margin: 30px 0; }
+    @media (max-width: 900px) { margin: 30px 0; }
 }
 
 // generický formulář - infobox
