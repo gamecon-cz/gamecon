@@ -563,8 +563,7 @@ input[type="submit"]:disabled {
 .responzivni-tabulka {
   display: block;
   width: 100%;
-  overflow-x: auto;
-  -ms-overflow-style: -ms-autohiding-scrollbar;
+  overflow-x: scroll;
 }
 
 .responzivni-tabulka td:first-child, .responzivni-tabulka th:first-child {
