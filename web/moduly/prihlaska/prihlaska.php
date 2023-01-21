@@ -46,7 +46,12 @@ if (post('pridatPotvrzeniProtiCovidu')) {
 }
 
 if (po(GC_BEZI_DO)) {
-    $t->assign('rok', ROK + 1);
+    if ($u && $u->gcPritomen()) {
+        $t->parse('prihlaskaPo.ucastnilSe');
+    } else {
+        $t->assign('rok', ROK + 1);
+        $t->parse('prihlaskaPo.neucastnilSe');
+    }
     $t->parse('prihlaskaPo');
     return;
 }
@@ -63,13 +68,25 @@ if (GC_BEZI || ($u && $u->gcPritomen())) {
         }
         $t->parse('prihlaskaUzavrena.covidSekce');
     }
-    if (GC_BEZI) {
-        $t->parse('prihlaskaUzavrena.gcBezi');
-    } else {
-        $t->parse('prihlaskaUzavrena.proselInfopultem');
-    }
+}
+
+if (GC_BEZI && ($u && $u->gcPritomen())) {
+    $t->parse('prihlaskaUzavrena.proselInfopultem');
     $t->parse('prihlaskaUzavrena');
     return;
+}
+
+if (GC_BEZI && ($u && $u->gcPrihlasen())) {
+    $t->parse('prihlaskaUzavrena.neproselInfopultem');
+    $t->parse('prihlaskaUzavrena');
+    return;
+}
+
+if (GC_BEZI) {
+    $t->parse('prihlaskaUzavrena.gcBezi');
+    $t->parse('prihlaskaUzavrena');
+    return;
+
 }
 
 if (!$u) {
