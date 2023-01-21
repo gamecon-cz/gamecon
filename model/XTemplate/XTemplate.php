@@ -145,7 +145,7 @@ class XTemplate
      */
     protected function convertVariables($text) {
         $text = preg_replace('@{([a-zA-Z][a-zA-Z0-9_]*)}@', '<?=isset($this->context["$1"])?$this->context["$1"]:\'\'?>', $text);
-        $text = preg_replace('@{([a-zA-Z]+)\.([a-zA-Z]+)}@', '<?=$this->context["$1"]->$2()?>', $text);
+        $text = preg_replace('@{([a-zA-Z]+)\.([a-zA-Z_]+)}@', '<?=$this->context["$1"]->$2()?>', $text);
         $text = preg_replace('@{([a-zA-Z]+)\.([a-zA-Z]+)\.([a-zA-Z]+)}@', '<?=$this->context["$1"]->$2()->$3()?>', $text);
         return $text;
     }
