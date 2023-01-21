@@ -7,6 +7,7 @@ namespace Gamecon\SystemoveNastaveni;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Uzivatel;
 
 class AnonymizovanaDatabaze
 {
@@ -26,7 +27,7 @@ class AnonymizovanaDatabaze
     ) {
         $this->jsmeNaLocale = $systemoveNastaveni->jsmeNaLocale();
         if ($anonymniDatabaze === $soucasnaDatabaze) {
-            throw new \LogicException("Anonymní a současná databáze nemůžou nýt stejné: '$soucasnaDatabaze'");
+            throw new \LogicException("Anonymní a současná databáze nemůžou být stejné: '$soucasnaDatabaze'");
         }
         $this->anonymniDatabaze = $anonymniDatabaze;
     }
@@ -142,6 +143,18 @@ SQL,
 
         dbQuery("ALTER TABLE `{$this->anonymniDatabaze}`.r_uzivatele_zidle MODIFY COLUMN `posazen` TIMESTAMP NULL", null, $dbConnectionAnonymDb);
         dbQuery("ALTER TABLE `{$this->anonymniDatabaze}`.akce_prihlaseni_log MODIFY COLUMN `kdy` TIMESTAMP NULL", null, $dbConnectionAnonymDb);
+
+        dbQuery("INSERT INTO `{$this->anonymniDatabaze}`.uzivatele_hodnoty (login_uzivatele, jmeno_uzivatele, prijmeni_uzivatele, ulice_a_cp_uzivatele, mesto_uzivatele, stat_uzivatele, psc_uzivatele, telefon_uzivatele, datum_narozeni, heslo_md5, funkce_uzivatele, email1_uzivatele, email2_uzivatele, jine_uzivatele, nechce_maily, mrtvy_mail, forum_razeni, random, zustatek, pohlavi, registrovan, ubytovan_s, skola, poznamka, pomoc_typ, pomoc_vice, op, potvrzeni_zakonneho_zastupce, potvrzeni_proti_covid19_pridano_kdy, potvrzeni_proti_covid19_overeno_kdy, infopult_poznamka) VALUES ('admin', 'admin', 'adminovec', 'Na Vyhaslém 3265', 'Kladno', 1, '27201', '736256978', '1983-08-28', '$2y$10$IudcF5OOSXxvO9I4SK.GBe5AgLhK8IsH7CPBkCknYMhKvJ4HQskzS', 0, 'gamecon@example.com', '', '', null, 0, '', '0d336e2ab4cdad85255b', 250, 'm', '2019-05-24 05:52:49', '', null, '', '', '', '', null, '2021-07-14 20:35:00', '2021-07-14 00:00:00', '')", null, $dbConnectionAnonymDb);
+
+        $id = dbQuery("SELECT last_insert_id()", null, $dbConnectionAnonymDb);
+
+        dbQuery("INSERT INTO `{$this->anonymniDatabaze}`.r_uzivatele_zidle (id_uzivatele, id_zidle, posazen, posadil) VALUES (`$id`, -2202, '2022-07-21 13:56:15', null)", null, $dbConnectionAnonymDb);
+        dbQuery("INSERT INTO `{$this->anonymniDatabaze}`.r_uzivatele_zidle (id_uzivatele, id_zidle, posazen, posadil) VALUES (`$id`, -2201, '2022-07-21 13:56:16', null)", null, $dbConnectionAnonymDb);
+        dbQuery("INSERT INTO `{$this->anonymniDatabaze}`.r_uzivatele_zidle (id_uzivatele, id_zidle, posazen, posadil) VALUES (`$id`, -2202, '2022-07-21 13:56:17', null)", null, $dbConnectionAnonymDb);
+        dbQuery("INSERT INTO `{$this->anonymniDatabaze}`.r_uzivatele_zidle (id_uzivatele, id_zidle, posazen, posadil) VALUES (`$id`, -2201, '2022-07-21 13:56:18', null)", null, $dbConnectionAnonymDb);
+        dbQuery("INSERT INTO `{$this->anonymniDatabaze}`.r_uzivatele_zidle (id_uzivatele, id_zidle, posazen, posadil) VALUES (`$id`, 2, '2022-07-21 13:56:19', null)", null, $dbConnectionAnonymDb);
+        dbQuery("INSERT INTO `{$this->anonymniDatabaze}`.r_uzivatele_zidle (id_uzivatele, id_zidle, posazen, posadil) VALUES (`$id`, 20, '2022-07-21 13:56:20', null)", null, $dbConnectionAnonymDb);
+        
     }
 
     private function obnovAnonymniDatabazi(\mysqli $dbConnectionAnonymDb) {
