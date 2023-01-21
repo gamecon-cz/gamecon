@@ -29,6 +29,8 @@ if (post('prihlasit')) {
 ?>
 
 <form method="post" class="formular formular_stranka formular_stranka-login">
+    <div class="bg"></div>
+
     <div class="formular_strankaNadpis">Přihlášení</div>
 
     <label class="formular_polozka">
