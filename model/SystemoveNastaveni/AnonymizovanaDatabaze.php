@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\SystemoveNastaveni;
 
+use Gamecon\Zidle;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
@@ -26,7 +27,7 @@ class AnonymizovanaDatabaze
     ) {
         $this->jsmeNaLocale = $systemoveNastaveni->jsmeNaLocale();
         if ($anonymniDatabaze === $soucasnaDatabaze) {
-            throw new \LogicException("Anonymní a současná databáze nemůžou nýt stejné: '$soucasnaDatabaze'");
+            throw new \LogicException("Anonymní a současná databáze nemůžou být stejné: '$soucasnaDatabaze'");
         }
         $this->anonymniDatabaze = $anonymniDatabaze;
     }
@@ -41,6 +42,8 @@ class AnonymizovanaDatabaze
         $this->zkopirujData($dbConnectionCurrentDb, $dbConnectionAnonymDb);
 
         $this->anonymizujData($dbConnectionAnonymDb);
+
+        $this->pridejAdminUzivatele($dbConnectionAnonymDb);
     }
 
     private function anonymizujData(\mysqli $dbConnectionAnonymDb) {
@@ -144,6 +147,60 @@ SQL,
         dbQuery("ALTER TABLE `{$this->anonymniDatabaze}`.akce_prihlaseni_log MODIFY COLUMN `kdy` TIMESTAMP NULL", null, $dbConnectionAnonymDb);
     }
 
+    private function pridejAdminUzivatele(\mysqli $dbConnectionAnonymDb) {
+        dbQuery(<<<SQL
+INSERT INTO `{$this->anonymniDatabaze}`.uzivatele_hodnoty
+    SET login_uzivatele = 'admin',
+        jmeno_uzivatele = 'admin',
+        prijmeni_uzivatele = 'adminovec',
+        ulice_a_cp_uzivatele = '',
+        mesto_uzivatele = '',
+        stat_uzivatele = -1,
+        psc_uzivatele = '',
+        telefon_uzivatele= '',
+        datum_narozeni = NOW(),
+        heslo_md5 = $0,
+        funkce_uzivatele = 0,
+        email1_uzivatele = 'gamecon@example.com',
+        email2_uzivatele = '',
+        jine_uzivatele = '',
+        nechce_maily = null,
+        mrtvy_mail = 0,
+        forum_razeni= '',
+        random = '',
+        zustatek = 0,
+        pohlavi = 'm',
+        registrovan = NOW(),
+        ubytovan_s = '',
+        skola = '',
+        poznamka = '',
+        pomoc_typ = '',
+        pomoc_vice= '',
+        op ='',
+        potvrzeni_zakonneho_zastupce = NULL,
+        potvrzeni_proti_covid19_pridano_kdy = NULL,
+        potvrzeni_proti_covid19_overeno_kdy=NULL,
+        infopult_poznamka= ''
+SQL,
+            [
+                0 => '$2y$10$IudcF5OOSXxvO9I4SK.GBe5AgLhK8IsH7CPBkCknYMhKvJ4HQskzS',
+            ],
+            $dbConnectionAnonymDb
+        );
+
+        $id = mysqli_insert_id($dbConnectionAnonymDb);
+
+        dbQuery(
+            "INSERT INTO `{$this->anonymniDatabaze}`.r_uzivatele_zidle (id_uzivatele, id_zidle, posazen, posadil) VALUES ($0, $1, NOW(), null), ($0, $2, NOW(), null)",
+            [
+                0 => $id,
+                1 => Zidle::ORGANIZATOR,
+                2 => Zidle::SPRAVCE_FINANCI_GC,
+            ],
+            $dbConnectionAnonymDb
+        );
+    }
+
     private function obnovAnonymniDatabazi(\mysqli $dbConnectionAnonymDb) {
         dbQuery(<<<SQL
 DROP DATABASE IF EXISTS `{$this->anonymniDatabaze}`
@@ -181,7 +238,7 @@ SQL,
 
         fclose($handle);
 
-        foreach (['_vars', 'platby', 'akce_import'] as $prilisCitlivaTabulka) {
+        foreach (['_vars', 'platby', 'akce_import', 'uzivatele_url'] as $prilisCitlivaTabulka) {
             dbQuery(<<<SQL
 DELETE FROM $prilisCitlivaTabulka
 SQL,
