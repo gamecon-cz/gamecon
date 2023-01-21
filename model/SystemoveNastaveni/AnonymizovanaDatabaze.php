@@ -43,18 +43,16 @@ class AnonymizovanaDatabaze
 
         $this->anonymizujData($dbConnectionAnonymDb);
 
-        $this->pridejAdminUzivatele();
+        $dbConnectionAnonymDb  = dbConnectionAnonymDb(); // nevím proč, ale pokud použiju předchozí connection, tak se admin uživatel přidá někam do voidu
+        $this->pridejAdminUzivatele($dbConnectionAnonymDb);
     }
 
     private function anonymizujData(\mysqli $dbConnectionAnonymDb) {
-        // Generování nových id a výpočet věku
-        //dbQuery('ALTER TABLE `{$this->anonymniDatabaze}`.uzivatele_hodnoty ADD COLUMN vek int');
-        //dbQuery('UPDATE `{$this->anonymniDatabaze}`.uzivatele_hodnoty SET vek = TIMESTAMPDIFF(YEAR, datum_narozeni,CURRENT_DATE()), nahoda = RAND() * 1000000000');
-        $result = dbQuery(<<<SQL
-SELECT COALESCE(MAX(id_uzivatele), 0) FROM `{$this->anonymniDatabaze}`.uzivatele_hodnoty
-SQL,
-            null,
-            $dbConnectionAnonymDb
+        $result = mysqli_query(
+            $dbConnectionAnonymDb,
+            <<<SQL
+                SELECT COALESCE(MAX(id_uzivatele), 0) FROM `{$this->anonymniDatabaze}`.uzivatele_hodnoty
+            SQL
         );
         $maxId  = mysqli_fetch_column($result);
 
@@ -64,17 +62,17 @@ SQL,
             $dbException = null;
             try {
                 do {
-                    $updateIdUzivateleResult = dbQuery(<<<SQL
-UPDATE `{$this->anonymniDatabaze}`.uzivatele_hodnoty
-SET id_uzivatele = (SELECT $maxId + CAST(FLOOR(RAND() * 10000000) AS UNSIGNED))
-WHERE id_uzivatele <= $maxId
-LIMIT 100 -- nutno dávkovat, jinak to způsobí Duplicate entry 'X' for key 'PRIMARY'
-SQL,
-                        null,
-                        $dbConnectionAnonymDb
+                    $updateIdUzivateleResult = mysqli_query(
+                        $dbConnectionAnonymDb,
+                        <<<SQL
+                            UPDATE `{$this->anonymniDatabaze}`.uzivatele_hodnoty
+                            SET id_uzivatele = (SELECT $maxId + CAST(FLOOR(RAND() * 10000000) AS UNSIGNED))
+                            WHERE id_uzivatele <= $maxId
+                            LIMIT 100 -- nutno dávkovat, jinak to způsobí Duplicate entry 'X' for key 'PRIMARY'
+                        SQL
                     );
-                } while (dbNumRows($updateIdUzivateleResult) > 0);
-            } catch (\DbException $dbException) {
+                } while ($updateIdUzivateleResult && mysqli_affected_rows($dbConnectionAnonymDb) > 0);
+            } catch (\mysqli_sql_exception $dbException) {
                 $remainingAttempts--;
             }
         } while ($dbException && $remainingAttempts > 0);
@@ -86,69 +84,77 @@ SQL,
             );
         }
 
-        dbQuery(<<<SQL
-UPDATE `{$this->anonymniDatabaze}`.stranky
-SET
-    obsah = REGEXP_REPLACE(obsah, '[a-zA-Z_0-9.]+@[a-zA-Z_0-9.]+', 'foo@example.com')
-SQL,
-            null,
-            $dbConnectionAnonymDb
+        mysqli_query(
+            $dbConnectionAnonymDb,
+            <<<SQL
+                UPDATE `{$this->anonymniDatabaze}`.stranky
+                SET
+                    obsah = REGEXP_REPLACE(obsah, '[a-zA-Z_0-9.]+@[a-zA-Z_0-9.]+', 'foo@example.com')
+            SQL
         );
 
-        dbQuery(<<<SQL
-UPDATE `{$this->anonymniDatabaze}`.texty
-SET
-    `text` = REGEXP_REPLACE(`text`, '[a-zA-Z_0-9.]+@[a-zA-Z_0-9.]+', 'foo@example.com')
-SQL,
-            null,
-            $dbConnectionAnonymDb
+        mysqli_query(
+            $dbConnectionAnonymDb,
+            <<<SQL
+                UPDATE `{$this->anonymniDatabaze}`.texty
+                SET
+                    `text` = REGEXP_REPLACE(`text`, '[a-zA-Z_0-9.]+@[a-zA-Z_0-9.]+', 'foo@example.com')
+            SQL
         );
 
-        dbQuery(<<<SQL
-UPDATE `{$this->anonymniDatabaze}`.uzivatele_hodnoty
-SET
-login_uzivatele = CONCAT('Login', id_uzivatele),
-jmeno_uzivatele = '',
-prijmeni_uzivatele = '',
-ulice_a_cp_uzivatele = '',
-mesto_uzivatele = '',
-stat_uzivatele = -1,
-psc_uzivatele = '',
-telefon_uzivatele = '',
-datum_narozeni = '0000-01-01',
-heslo_md5 = '',
-email1_uzivatele = CONCAT('email', id_uzivatele, '@gamecon.cz'),
-email2_uzivatele = '',
-jine_uzivatele = '',
-nechce_maily = null,
-mrtvy_mail = 0,
-forum_razeni = '',
-random = '',
-zustatek = 0,
-registrovan = NOW(),
-ubytovan_s = '',
-skola = '',
-poznamka = '',
-pomoc_typ = '',
-pomoc_vice = '',
-op = '',
-potvrzeni_zakonneho_zastupce = null,
-potvrzeni_proti_covid19_pridano_kdy = null,
-potvrzeni_proti_covid19_overeno_kdy = null,
-infopult_poznamka = ''
-SQL,
-            null,
-            $dbConnectionAnonymDb
+        mysqli_query(
+            $dbConnectionAnonymDb,
+            <<<SQL
+                UPDATE `{$this->anonymniDatabaze}`.uzivatele_hodnoty
+                SET
+                login_uzivatele = CONCAT('Login', id_uzivatele),
+                jmeno_uzivatele = '',
+                prijmeni_uzivatele = '',
+                ulice_a_cp_uzivatele = '',
+                mesto_uzivatele = '',
+                stat_uzivatele = -1,
+                psc_uzivatele = '',
+                telefon_uzivatele = '',
+                datum_narozeni = '0000-01-01',
+                heslo_md5 = '',
+                email1_uzivatele = CONCAT('email', id_uzivatele, '@gamecon.cz'),
+                email2_uzivatele = '',
+                jine_uzivatele = '',
+                nechce_maily = null,
+                mrtvy_mail = 0,
+                forum_razeni = '',
+                random = '',
+                zustatek = 0,
+                registrovan = NOW(),
+                ubytovan_s = '',
+                skola = '',
+                poznamka = '',
+                pomoc_typ = '',
+                pomoc_vice = '',
+                op = '',
+                potvrzeni_zakonneho_zastupce = null,
+                potvrzeni_proti_covid19_pridano_kdy = null,
+                potvrzeni_proti_covid19_overeno_kdy = null,
+                infopult_poznamka = ''
+            SQL
         );
 
-        dbQuery("UPDATE `{$this->anonymniDatabaze}`.medailonky SET o_sobe = '', drd = ''", null, $dbConnectionAnonymDb);
+        mysqli_query(
+            $dbConnectionAnonymDb,
+            "UPDATE `{$this->anonymniDatabaze}`.medailonky SET o_sobe = '', drd = ''"
+        );
 
-        dbQuery("ALTER TABLE `{$this->anonymniDatabaze}`.r_uzivatele_zidle MODIFY COLUMN `posazen` TIMESTAMP NULL", null, $dbConnectionAnonymDb);
-        dbQuery("ALTER TABLE `{$this->anonymniDatabaze}`.akce_prihlaseni_log MODIFY COLUMN `kdy` TIMESTAMP NULL", null, $dbConnectionAnonymDb);
+        mysqli_query(
+            $dbConnectionAnonymDb,
+            "ALTER TABLE `{$this->anonymniDatabaze}`.r_uzivatele_zidle MODIFY COLUMN `posazen` TIMESTAMP NULL"
+        );
+        mysqli_query(
+            $dbConnectionAnonymDb,
+            "ALTER TABLE `{$this->anonymniDatabaze}`.akce_prihlaseni_log MODIFY COLUMN `kdy` TIMESTAMP NULL"
+        );
     }
 
-    private function pridejAdminUzivatele() {
-        $dbConnectionAnonymDb = dbConnectionAnonymDb();
+    private function pridejAdminUzivatele(\mysqli $dbConnectionAnonymDb) {
         $passwordHash = '$2y$10$IudcF5OOSXxvO9I4SK.GBe5AgLhK8IsH7CPBkCknYMhKvJ4HQskzS';
         mysqli_query(
             $dbConnectionAnonymDb,
@@ -191,7 +197,7 @@ SQL
 
         $id = mysqli_insert_id($dbConnectionAnonymDb);
 
-        $idZidleOrganizator = Zidle::ORGANIZATOR;
+        $idZidleOrganizator    = Zidle::ORGANIZATOR;
         $idZidleSpravceFinanci = Zidle::SPRAVCE_FINANCI_GC;
         mysqli_query(
             $dbConnectionAnonymDb,
@@ -200,24 +206,23 @@ SQL
     }
 
     private function obnovAnonymniDatabazi(\mysqli $dbConnectionAnonymDb) {
-        dbQuery(<<<SQL
-DROP DATABASE IF EXISTS `{$this->anonymniDatabaze}`
-SQL
-            ,
-            null,
-            $dbConnectionAnonymDb
+        mysqli_query(
+            $dbConnectionAnonymDb,
+            <<<SQL
+                DROP DATABASE IF EXISTS `{$this->anonymniDatabaze}`
+            SQL
         );
-        dbQuery(<<<SQL
-CREATE DATABASE `{$this->anonymniDatabaze}` DEFAULT CHARACTER SET utf8 COLLATE utf8_czech_ci
-SQL,
-            null,
-            $dbConnectionAnonymDb
+        mysqli_query(
+            $dbConnectionAnonymDb,
+            <<<SQL
+                CREATE DATABASE `{$this->anonymniDatabaze}` DEFAULT CHARACTER SET utf8 COLLATE utf8_czech_ci
+            SQL
         );
-        dbQuery(<<<SQL
-USE `{$this->anonymniDatabaze}`
-SQL,
-            null,
-            $dbConnectionAnonymDb
+        mysqli_query(
+            $dbConnectionAnonymDb,
+            <<<SQL
+                USE `{$this->anonymniDatabaze}`
+            SQL
         );
     }
 
@@ -271,11 +276,11 @@ SQL,
         fclose($handle);
 
         foreach (['_vars', 'platby', 'akce_import', 'uzivatele_url'] as $prilisCitlivaTabulka) {
-            dbQuery(<<<SQL
-DELETE FROM $prilisCitlivaTabulka
-SQL,
-                null,
-                $dbConnectionAnonymDb
+            mysqli_query(
+                $dbConnectionAnonymDb,
+                <<<SQL
+                    DELETE FROM $prilisCitlivaTabulka
+                SQL
             );
         }
     }
