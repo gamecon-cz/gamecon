@@ -14,6 +14,7 @@ function potvrdModal() {
   document.getElementById('online-prezence').dispatchEvent(
     new CustomEvent('uzavritAktivitu', {detail: posledneKliknutaAktivitaId}),
   )
+  document.getElementById('modalOpravduUzavrit').modal('hide');
 }
 
 document.addEventListener('DOMContentLoaded', function () {

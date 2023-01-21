@@ -7,7 +7,7 @@ $typTricko = Shop::TRICKO;
 $typPredmet = Shop::PREDMET;
 $typJidlo = Shop::JIDLO;
 $rok = ROK;
-$idZidliSOrganizatorySql = implode(',', \Gamecon\Zidle::dejIdZidliSOrganizatory());
+$idZidliSOrganizatorySql = implode(',', \Gamecon\Zidle::dejIdckaZidliSOrganizatory());
 
 $poddotazKoupenehoPredmetu = static function (string $klicoveSlovo, int $idTypuPredmetu, int $rok, bool $prilepitRokKNazvu) {
     $rokKNazvu = $prilepitRokKNazvu
