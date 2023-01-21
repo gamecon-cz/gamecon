@@ -559,6 +559,13 @@ input[type="submit"]:disabled {
   -ms-overflow-style: -ms-autohiding-scrollbar;
 }
 
+.responzivni-tabulka td:first-child, .responzivni-tabulka th:first-child {
+  position: sticky;
+  left: 0;
+  background-color: inherit;
+  z-index: 99;
+}
+
 .main table {
   border-collapse: collapse;
 }

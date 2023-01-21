@@ -240,12 +240,6 @@ $pocetDni = count($nazvyDnu);
         width: 110px;
     }
 
-    .dlouhodobeStatistiky td:first-child {
-        position: sticky;
-        left: 0;
-        background-color: inherit;
-    }
-
     .dlouhodobeStatistiky th:nth-child(12), .dlouhodobeStatistiky td:nth-child(12) /* 2019 */
     {
         border-right: dotted grey;
