@@ -247,19 +247,23 @@ $pocetDni = count($nazvyDnu);
 </style>
 
 <div class="dlouhodobeStatistiky">
-    <div class="responzivni-tabulka">
+    <div class="responzivni-tabulka odscrolluj-doprava">
         <?= $statistiky->tabulkaHistorieRegistrovaniVsDoraziliHtml() ?>
     </div>
 
-    <div class="responzivni-tabulka">
+    <div class="responzivni-tabulka odscrolluj-doprava">
         <?= $statistiky->tabulkaLidiNaGcCelkemHtml() ?>
     </div>
 
-    <div class="responzivni-tabulka">
+    <div class="responzivni-tabulka odscrolluj-doprava">
         <?= $statistiky->tabulkaHistorieProdanychPredmetuHtml() ?>
     </div>
 
-    <div class="responzivni-tabulka">
+    <div class="responzivni-tabulka odscrolluj-doprava">
         <?= $statistiky->tabulkaHistorieUbytovaniHtml() ?><br>
     </div>
 </div>
+
+<script type="text/javascript">
+    odscrollujElementyDoprava(document.querySelectorAll('.responzivni-tabulka.odscrolluj-doprava'))
+</script>

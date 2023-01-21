@@ -33,6 +33,7 @@
   <script type="text/javascript" src="files/sticky-pinned-1.0.js"></script>
   <script type="text/javascript" src="files/keep-scroll-on-reload-1.1.js"></script>
   <script type="text/javascript" src="files/disable-and-show-loading-on-click-1.1.js"></script>
+  <script type="text/javascript" src="files/responsivni_tabulka_auto_scroll_right.js?version={jsVersions.responsivni_tabulka_auto_scroll_right}"></script>
 </head>
 <body>
 <div class="obal">
