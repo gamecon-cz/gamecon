@@ -382,7 +382,7 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Opravit prezenci</button>
-            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="potvrdModal()">
+            <button type="button" class="btn btn-primary" onclick="potvrdModal()">
               Uzavřít aktivitu
             </button>
           </div>

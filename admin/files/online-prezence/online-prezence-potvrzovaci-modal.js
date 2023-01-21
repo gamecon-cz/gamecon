@@ -4,6 +4,9 @@ function zadnyUcastnikNeniPotvrzen() {
   return checkboxy.length === 0
 }
 
+/**
+ * @param {Event} event
+ */
 function potvrdModal() {
   if (zadnyUcastnikNeniPotvrzen()) {
     if (!document.getElementById('potvrzujiBezUcastniku').checked) {
@@ -14,6 +17,7 @@ function potvrdModal() {
   document.getElementById('online-prezence').dispatchEvent(
     new CustomEvent('uzavritAktivitu', {detail: posledneKliknutaAktivitaId}),
   )
+  document.getElementById('modalOpravduUzavrit').modal('hide');
 }
 
 document.addEventListener('DOMContentLoaded', function () {
