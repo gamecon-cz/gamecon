@@ -591,6 +591,10 @@ input[type="submit"]:disabled {
   background-color: #f0f0f0;
 }
 
+.main table tr:nth-child(even) {
+  background-color: #fff;
+}
+
 .main .hint table tr:nth-child(odd) {
   background-color: #5b5b5b;
 }
