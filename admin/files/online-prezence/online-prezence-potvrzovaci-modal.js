@@ -4,9 +4,6 @@ function zadnyUcastnikNeniPotvrzen() {
   return checkboxy.length === 0
 }
 
-/**
- * @param {Event} event
- */
 function potvrdModal() {
   if (zadnyUcastnikNeniPotvrzen()) {
     if (!document.getElementById('potvrzujiBezUcastniku').checked) {
