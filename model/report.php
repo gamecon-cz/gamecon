@@ -189,6 +189,16 @@ class Report
     /**
      * Vytiskne report jako HTML tabulku
      */
+    public function tXTemplate($fn) {
+        while ($radek = $this->radek()) {
+            $fn($radek);
+        }
+    }
+
+
+    /**
+     * Vytiskne report jako HTML tabulku
+     */
     public function tHtml($param = 0) {
         if (!($param & self::BEZ_STYLU)) {
             echo <<<HTML

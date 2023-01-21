@@ -2,6 +2,9 @@
 require __DIR__ . '/sdilene-hlavicky.php';
 
 use Gamecon\Shop\Shop;
+use Gamecon\XTemplate\XTemplate;
+
+$t = new XTemplate(__DIR__ . '/report-infopult-ucastnici-balicky.xtpl');
 
 $typTricko = Shop::TRICKO;
 $typPredmet = Shop::PREDMET;
@@ -14,7 +17,7 @@ $poddotazKoupenehoPredmetu = static function (string $klicoveSlovo, int $idTypuP
         ? " $rok"
         : '';
     return <<<SQL
-(SELECT GROUP_CONCAT(pocet_a_nazev SEPARATOR ', ')
+(SELECT GROUP_CONCAT(pocet_a_nazev SEPARATOR '</li><li>')
     FROM (SELECT CONCAT_WS('× ', COUNT(*), CONCAT(shop_predmety.nazev, '$rokKNazvu')) AS pocet_a_nazev, shop_nakupy.id_uzivatele
         FROM shop_nakupy
             JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
@@ -33,7 +36,7 @@ $poddotazOstatnichKoupeneychPredmetu = static function (array $mimoKlicovaSlova,
         return "shop_predmety.nazev NOT LIKE '%{$klicoveSlovo}%'";
     }, $mimoKlicovaSlova));
     return <<<SQL
-(SELECT GROUP_CONCAT(pocet_a_nazev SEPARATOR ', ')
+(SELECT GROUP_CONCAT(pocet_a_nazev SEPARATOR '</li><li>')
     FROM (SELECT CONCAT_WS('× ', COUNT(*), shop_predmety.nazev) AS pocet_a_nazev, shop_nakupy.id_uzivatele
         FROM shop_nakupy
             JOIN shop_predmety ON shop_nakupy.id_predmetu = shop_predmety.id_predmetu
@@ -61,13 +64,28 @@ EXISTS(
 SQL;
 };
 
+$kolikTypuNakoupil = static function (array $typyPredmetu, int $rok) {
+    $typyPredmetuSql = implode(',', array_map('intval', $typyPredmetu));
+    return <<<SQL
+    (
+        SELECT count(distinct(shop_nakupy.id_predmetu))
+        FROM shop_predmety
+            JOIN shop_nakupy ON shop_predmety.id_predmetu = shop_nakupy.id_predmetu
+        WHERE shop_nakupy.id_uzivatele = uzivatele_hodnoty.id_uzivatele
+            AND shop_nakupy.rok = $rok
+            AND shop_predmety.typ IN ($typyPredmetuSql)
+    )
+    SQL;
+};
+
 $prihlasenNaLetosniGc = (int)\Gamecon\Zidle::PRIHLASEN_NA_LETOSNI_GC;
 
 $report = Report::zSql(<<<SQL
 SELECT uzivatele_hodnoty.id_uzivatele,
-       uzivatele_hodnoty.login_uzivatele,
-       uzivatele_hodnoty.jmeno_uzivatele,
-       uzivatele_hodnoty.prijmeni_uzivatele,
+       {$kolikTypuNakoupil([$typTricko, $typPredmet], $rok)} AS count_typu_predmetu,
+       uzivatele_hodnoty.login_uzivatele AS login,
+       uzivatele_hodnoty.jmeno_uzivatele AS jmeno,
+       uzivatele_hodnoty.prijmeni_uzivatele AS prijmeni,
        IF (COUNT(zidle_organizatoru.id_zidle) > 0, 'org', '') AS role,
        {$poddotazKoupenehoPredmetu('', $typTricko, $rok, false)} AS tricka,
        {$poddotazKoupenehoPredmetu('kostka', $typPredmet, $rok, true)} AS kostky,
@@ -84,13 +102,34 @@ SELECT uzivatele_hodnoty.id_uzivatele,
            ''
        ) AS balicek
 FROM uzivatele_hodnoty
-JOIN r_uzivatele_zidle
+LEFT JOIN r_uzivatele_zidle
     ON uzivatele_hodnoty.id_uzivatele = r_uzivatele_zidle.id_uzivatele
 LEFT JOIN r_uzivatele_zidle AS zidle_organizatoru
     ON uzivatele_hodnoty.id_uzivatele = zidle_organizatoru.id_uzivatele AND zidle_organizatoru.id_zidle IN ($idZidliSOrganizatorySql)
-WHERE r_uzivatele_zidle.id_zidle = {$prihlasenNaLetosniGc}
+WHERE uzivatele_hodnoty.id_uzivatele IN (
+    SELECT DISTINCT(sn.id_uzivatele)
+    FROM shop_nakupy AS sn
+    JOIN shop_predmety AS sp ON sp.id_predmetu = sn.id_predmetu AND sp.typ IN (1, 3)
+    WHERE sn.rok = 2022
+)
 GROUP BY uzivatele_hodnoty.id_uzivatele
+ORDER BY 2 DESC
 SQL
 );
 
-$report->tFormat(get('format'));
+$fn = static function ($radek) use (&$t) {
+    $t->assign('id_uzivatele', array_shift($radek));
+    $t->assign('pocet_typu', array_shift($radek));
+    $t->assign('login_uzivatele', array_shift($radek));
+    $t->assign('jmeno_uzivatele', array_shift($radek));
+    $t->assign('prijmeni_uzivatele', array_shift($radek));
+    $t->assign('vsechno', implode('</li><li>', $radek));
+    $t->parse('balicky.balicek');
+};
+
+$report->tXTemplate($fn);
+
+$t->parse('balicky');
+$t->out('balicky');
+
+// $report->tFormat(get('format'));
