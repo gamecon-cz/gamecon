@@ -43,7 +43,7 @@ class AnonymizovanaDatabaze
 
         $this->anonymizujData($dbConnectionAnonymDb);
 
-        $this->pridejAdminUzivatele($dbConnectionAnonymDb);
+        $this->pridejAdminUzivatele();
     }
 
     private function anonymizujData(\mysqli $dbConnectionAnonymDb) {
@@ -147,7 +147,8 @@ SQL,
         dbQuery("ALTER TABLE `{$this->anonymniDatabaze}`.akce_prihlaseni_log MODIFY COLUMN `kdy` TIMESTAMP NULL", null, $dbConnectionAnonymDb);
     }
 
-    private function pridejAdminUzivatele(\mysqli $dbConnectionAnonymDb) {
+    private function pridejAdminUzivatele() {
+        $dbConnectionAnonymDb = dbConnectionAnonymDb();
         $passwordHash = '$2y$10$IudcF5OOSXxvO9I4SK.GBe5AgLhK8IsH7CPBkCknYMhKvJ4HQskzS';
         mysqli_query(
             $dbConnectionAnonymDb,
