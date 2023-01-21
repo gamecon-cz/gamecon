@@ -82,8 +82,11 @@ const useMřížka = (definice: DefiniceObchod) => {
   const setZpět = () => {
     let retval = true;
     setMřížkaIdHist((x) => { 
+      if (x.length == 1) {
+        retval = false;
+        return x;
+      }
       const last = x[1] ?? 1;
-      retval = (x[0] != 1);
       setId(last);
       return x.slice(1); 
     });
@@ -129,9 +132,20 @@ export const Obchod: FunctionComponent<TObchodProps> = (props) => {
   } = usePředmětyObjednávka();
   const { mřížka, setMřížka } = useMřížka(definice);
 
+  const escFunction = useCallback((e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      setVisible(false);
+    }
+  }, []);
+
   useEffect(() => {
     window.preactMost.obchod.show = () => {
       setVisible(true);
+    };
+    document.addEventListener("keydown", escFunction, false);
+
+    return () => {
+      document.removeEventListener("keydown", escFunction, false);
     };
   }, []);
 
@@ -176,6 +190,7 @@ export const Obchod: FunctionComponent<TObchodProps> = (props) => {
       {visible ? (
         <Overlay onClickOutside={() => setVisible(false)}>
           <div class="shop--container">
+            <span class="shop--close" onClick={() => setVisible(false)}>❌</span>
             {mřížka ? (
               <ObchodMřížka {...{ mřížka, onBuňkaClicked }} />
             ) : (
