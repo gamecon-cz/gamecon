@@ -184,7 +184,6 @@
 <div class="prihlaska_hlavickaObal">
   <div class="prihlaska_hlavicka">
     <h1>Přihláška na GameCon</h1>
-
     <p>Přihlašování na GameCon bude spuštěno {zacatek}.</p>
   </div>
 </div>
@@ -194,13 +193,27 @@
 <div class="prihlaska_hlavickaObal">
   <div class="prihlaska_hlavicka">
     <h1>Přihláška na GameCon</h1>
+aa
+    <!-- begin: ucastnilSe -->
+      <p>
+      Děkujeme za tvou účast na GameConu! Budeme moc rádi za jakoukoliv 
+      <a href="https://gamecon.cz/info-po-gc" title="Zpětná vazba">zpětnou vazbu</a>, 
+      abychom věděli, co zlepšit, případně co určitě nevynechat ani v příštích letech. 
+      Budeme se těšit zase za rok, do té doby nás můžeš sledovat na 
+      <a href="https://www.facebook.com/gamecon" title="Facebook GameConu">Facebooku</a>, 
+      <a href="https://www.instagram.com/gamecon_cz/" title="Instagram GameConu">Instagramu</a> 
+      nebo na <a href="https://discord.gg/trKrQbH5rd" title="Discord GameConu">Discordu</a>. 
+      </p>
+    <!-- end: ucastnilSe -->
 
-    <p>
-      GameCon už proběhl, těšíme se na viděnou v roce {rok}. 
-    </p>
-    <p>
-      Můžeš se podívat, o co jsi přišel, na našem <a href="https://www.facebook.com/gamecon" title="Facebook Gameconu">Facebooku</a> nebo <a href="https://www.instagram.com/gamecon_cz/" title="Instagram Gameconu">Instagramu</a>.
-    </p>
+    <!-- begin: neucastnilSe -->
+      <p>
+        GameCon už proběhl, těšíme se na viděnou v roce {rok}. 
+      </p>
+      <p>
+        Fotky z předešlých ročníků najdeš na našem <a href="https://www.facebook.com/gamecon" title="Facebook GameConu">Facebooku</a> nebo <a href="https://www.instagram.com/gamecon_cz/" title="Instagram GameConu">Instagramu</a>. Přidej se k nám na <a href="https://discord.gg/trKrQbH5rd" title="Discord GameConu">Discord</a>, aby ti neutekly žádné novinky. 
+      </p>
+    <!-- end: neucastnilSe -->    
   </div>
 </div>
 <!-- end: prihlaskaPo -->
@@ -211,11 +224,19 @@
     <h1>Přihláška na GameCon</h1>
 
     <!-- begin: gcBezi -->
-    <p>Registrace přes internet jsou ukončeny, <strong>registrovat se můžeš přímo na místě na infopultu</strong>.
-      Upravit si program a vybrat aktivity můžeš tamtéž.</p>
+    <p>
+    Registrace přes internet jsou ukončeny, <strong>stále se ale můžeš přihlásit na místě u Infopultu</strong>. 
+    Tam bude také možnost vytvořit si program a zapsat se na aktivity. I když je vstup do deskoherny, na přednášky 
+    a doprovodný program zdarma, <strong>prosíme o registraci</strong>, abys měl/a pásku pro účastníky festivalu.
+    </p>
     <!-- end: gcBezi -->
     <!-- begin: proselInfopultem -->
-    <p>Vítej na Gameconu! <strong>Dodatečně si upravit program a vybrat aktivity můžeš na infopultu</strong>.</p>
+    <p>Přihlášku již nelze upravovat online, případné změny je <strong>momentálně možné provádět pouze na místě u Infopultu</strong>. 
+    Přehled svých objednávek a plateb najdeš v záložce <a href="https://gamecon.cz/finance">finance</a> na svém profilu.</p>
+    <!-- end: proselInfopultem -->
+    <!-- begin: neproselInfopultem -->
+    <p>Vítáme tě na GameConu! Přihlášku již nelze upravovat online, veškeré případné změny v přihlášce proto řeš na Infopultu, přehled 
+    plateb najdeš v záložce <a href="https://gamecon.cz/finance">finance</a> na svém profilu.</p>
     <!-- end: proselInfopultem -->
   </div>
 </div>
