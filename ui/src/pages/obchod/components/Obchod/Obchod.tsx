@@ -190,7 +190,7 @@ export const Obchod: FunctionComponent<TObchodProps> = (props) => {
       {visible ? (
         <Overlay onClickOutside={() => setVisible(false)}>
           <div class="shop--container">
-            <span class="shop--close" onClick={() => setVisible(false)}>❌</span>
+            <span class="shop--close" title='zavřít' aria-label='close' onClick={() => setVisible(false)}>&times;</span>
             {mřížka ? (
               <ObchodMřížka {...{ mřížka, onBuňkaClicked }} />
             ) : (
