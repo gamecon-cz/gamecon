@@ -88,7 +88,7 @@ class Vyjimkovac implements Logovac
     /**
      * Vrátí PDO instanci s připravenou databází pro uložení / čtení chyb
      */
-    protected function db() {
+    protected function db(): \EPDO {
         if (!$this->db) {
             $this->db = new \EPDO('sqlite:' . $this->dbFile);
         }

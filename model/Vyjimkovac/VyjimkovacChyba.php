@@ -155,11 +155,15 @@ class VyjimkovacChyba
 
     public function odesli(array $emails) {
         if ($emails) {
-            $kodJazyka = strtoupper((string)$this->radek['jazyk']);
+            $kodJazyka      = strtoupper((string)$this->radek['jazyk']);
+            $zprava         = (string)$this->radek['zprava'];
+            $zkracenaZprava = strlen($zprava) > 63
+                ? (mb_substr($zprava, 0, 60) . '...')
+                : $zprava;
             (new GcMail())
                 ->adresati($emails)
-                ->predmet("Gamecon chyba: {$kodJazyka}, typ {$this->radek['typ']}")
-                ->text($this->radek['zprava'] . "\r\n\r\n<a href='" . URL_ADMIN . "/web/chyby/?" . self::VYJIMKA . "={$this->idPosledniUlozeneChyby}'>Detail</a>")
+                ->predmet("Gamecon chyba: {$kodJazyka}, typ {$this->radek['typ']}, '$zkracenaZprava'")
+                ->text($zprava . "\r\n\r\n<a href='" . URL_ADMIN . "/web/chyby/?" . self::VYJIMKA . "={$this->idPosledniUlozeneChyby}'>Detail</a>")
                 ->odeslat();
         }
     }
