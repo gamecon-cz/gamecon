@@ -155,9 +155,10 @@ class VyjimkovacChyba
 
     public function odesli(array $emails) {
         if ($emails) {
+            $kodJazyka = strtoupper((string)$this->radek['jazyk']);
             (new GcMail())
                 ->adresati($emails)
-                ->predmet("Gamecon chyba: {$this->radek['jazyk']}, typ {$this->radek['typ']}")
+                ->predmet("Gamecon chyba: {$kodJazyka}, typ {$this->radek['typ']}")
                 ->text($this->radek['zprava'] . "\r\n\r\n<a href='" . URL_ADMIN . "/web/chyby/?" . self::VYJIMKA . "={$this->idPosledniUlozeneChyby}'>Detail</a>")
                 ->odeslat();
         }
