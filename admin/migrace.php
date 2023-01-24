@@ -1,8 +1,5 @@
 <?php
 
-use Godric\DbMigrations\DbMigrationsConfig;
-use Godric\DbMigrations\DbMigrations;
-
 require __DIR__ . '/../nastaveni/zavadec-zaklad.php';
 
 if (HTTPS_ONLY) {
