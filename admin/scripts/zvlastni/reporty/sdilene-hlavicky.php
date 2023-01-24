@@ -26,8 +26,8 @@ try {
     dbQuery(<<<SQL
 INSERT INTO reporty_log_pouziti(id_reportu, id_uzivatele, format, cas_pouziti, casova_zona)
 VALUES ((SELECT id FROM reporty WHERE skript = $0), $1, $2, $3, $4)
-SQL
-        , [
+SQL,
+        [
             0 => $skript,
             1 => $u->id(),
             2 => $format,
