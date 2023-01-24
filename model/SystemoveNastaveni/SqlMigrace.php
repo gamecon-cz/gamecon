@@ -18,9 +18,10 @@ class SqlMigrace
                 DBM_PASS,
                 DBM_NAME,
                 defined('DBM_PORT')
-                    ? DBM_PORT
+                    ? constant('DBM_PORT')
                     : 3306
             ),
+            'doBackups' => true,
             'migrationsDirectory' => SQL_MIGRACE_DIR,
             'backupsDirectory'    => ZALOHA_DB_SLOZKA,
         ])))->run(true);
