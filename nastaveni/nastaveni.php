@@ -19,7 +19,7 @@ error_reporting($puvodni ^ E_NOTICE);
 if (!defined('DBM_NAME')) define('DBM_NAME', DB_NAME);
 if (!defined('DBM_SERV')) define('DBM_SERV', DB_SERV);
 
-if (!defined('ROK')) define('ROK', 2022); // aktuální rok -- při změně roku viz Překlápění ročníku na Gamecon Gdrive https://docs.google.com/document/d/1H_PM70WjNpQ1Xz65OYfr1BeSTdLrNQSkScMIZEtxWEc/edit
+if (!defined('ROK')) define('ROK', 2023); // aktuální rok -- při změně roku viz Překlápění ročníku na Gamecon Gdrive https://docs.google.com/document/d/1H_PM70WjNpQ1Xz65OYfr1BeSTdLrNQSkScMIZEtxWEc/edit
 
 ////////////////////////
 // Nastavení ovládatelné z adminu //
