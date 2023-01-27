@@ -2,9 +2,13 @@
 
 namespace Gamecon;
 
+/**
+ * @method static Pravo|null zId($id)
+ */
 class Pravo extends \DbObject
 {
     protected static $tabulka = 'r_prava_soupis';
+    protected static $pk = 'id_prava';
 
     /**
      * Konstanty jsou kopie SQL tabulky `r_prava_soupis`
