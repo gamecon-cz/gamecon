@@ -11,10 +11,12 @@ require_once __DIR__ . '/../nastaveni/verejne-nastaveni-tests.php';
 require_once __DIR__ . '/../nastaveni/zavadec-zaklad.php';
 
 // příprava databáze
-dbConnect(false);
+$connection = dbConnect(false);
 dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', DB_NAME));
 dbQuery(sprintf('CREATE DATABASE IF NOT EXISTS `%s` COLLATE "utf8_czech_ci"', DB_NAME));
 dbQuery(sprintf('USE `%s`', DB_NAME));
+// naimportujeme databázi s už proběhnutými staršími migracemi
+(new \MySQLImport($connection))->load(__DIR__ . '/Db/data/localhost-2023_01_27_11_18_45-dump.sql');
 
 (new DbMigrations(new DbMigrationsConfig([
     'connection'          => dbConnect(), // předpokládá se, že spojení pro testy má administrativní práva
@@ -22,7 +24,10 @@ dbQuery(sprintf('USE `%s`', DB_NAME));
     'doBackups'           => false,
 ])))->run();
 
-dbConnect(); // nutno inicalizovat spojení
+$sqlMode = dbFetchSingle('SELECT @@SESSION.sql_mode');
+// vypneme kontrolu "Field 'cena' doesn't have a default value"
+$sqlMode = preg_replace('~STRICT_TRANS_TABLES,?~', '', $sqlMode);
+dbQuery("SET SESSION sql_mode = '$sqlMode'");
 
 DbTest::setConnection(new DbWrapper());
 
