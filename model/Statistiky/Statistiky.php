@@ -97,7 +97,7 @@ SQL,
             ];
         }
 
-        $den                    = clone $zacatekRegistraci;
+        $den                    = DateTimeGamecon::createFromInterface($zacatekRegistraci);
         $prihlasenychDenPredtim = reset($prihlasenychPoDnech);
         while ($den < $konecGc) {
             $denString = $den->formatDatumDb();
@@ -294,7 +294,7 @@ SQL,
             array_unshift($dataJednohoRoku, 0); // aby každý graf včetně nejdelšího vždy začínal pěkne na nule
             $prihlaseniProJs[]            = [
                 'name' => "Přihlášených $rok",
-                'data' => array_values($dataJednohoRoku) // JS knihovna vyžaduje číselné indexování
+                'data' => array_values($dataJednohoRoku), // JS knihovna vyžaduje číselné indexování
             ];
             $dnyJednohoRoku               = array_keys($dataJednohoRoku);
             $nazvyDnuJednohoRoku          = [];
