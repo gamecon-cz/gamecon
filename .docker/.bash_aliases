@@ -2,5 +2,11 @@ alias ll="ls -alF"
 alias cu="composer update"
 alias ci="composer install"
 alias cr="composer require"
-alias pu="./vendor/bin/phpunit"
-alias puf="./vendor/bin/phpunit --filter"
+
+alias phpunit='php ./vendor/phpunit/phpunit/phpunit --verbose --disallow-test-output --disallow-todo-tests'
+alias pu='phpunit --testdox'
+alias puf='pu --filter'
+alias pusoe='phpunit --stop-on-error'
+alias pusof='phpunit --stop-on-failure'
+alias pufsof='pusof --filter'
+alias pufsoe='pusoe --filter'
