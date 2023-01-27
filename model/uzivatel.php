@@ -651,12 +651,18 @@ SQL,
     public function nactiPrava() {
         if (!isset($this->u['prava'])) {
             //načtení uživatelských práv
-            $p     = dbQuery('SELECT id_prava FROM r_uzivatele_zidle uz
-        LEFT JOIN r_prava_zidle pz USING(id_zidle)
-        WHERE uz.id_uzivatele=' . $this->id());
+            $p     = dbQuery(<<<SQL
+                SELECT r_prava_zidle.id_prava
+                FROM r_uzivatele_zidle
+                LEFT JOIN r_prava_zidle USING(id_zidle)
+                WHERE r_uzivatele_zidle.id_uzivatele=$0
+                SQL,
+                [0 => $this->id()]
+            );
             $prava = []; //inicializace nutná, aby nepadala výjimka pro uživatele bez práv
-            while ($r = mysqli_fetch_assoc($p))
+            while ($r = mysqli_fetch_assoc($p)) {
                 $prava[] = (int)$r['id_prava'];
+            }
             $this->u['prava'] = $prava;
         }
     }
@@ -1609,17 +1615,8 @@ SQL,
      * Aktualizuje práva uživatele z databáze (protože se provedla nějaká změna)
      */
     protected function aktualizujPrava() {
-        $p     = dbQuery(
-            'SELECT id_prava
-                FROM r_uzivatele_zidle uz
-                    LEFT JOIN r_prava_zidle pz USING(id_zidle)
-                WHERE uz.id_uzivatele=' . $this->id()
-        );
-        $prava = []; // inicializace nutná, aby nepadala výjimka pro uživatele bez práv
-        while ($r = mysqli_fetch_assoc($p)) {
-            $prava[] = (int)$r['id_prava'];
-        }
-        $this->u['prava'] = $prava;
+        $this->u['prava'] = null;
+        $this->nactiPrava();
     }
 
     /**
