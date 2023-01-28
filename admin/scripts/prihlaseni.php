@@ -2,8 +2,6 @@
 
 use Gamecon\Login\Login;
 
-$coze = dbConnect()->query('select * from r_zidle_soupis where id_zidle = 1')->fetch_all();
-
 /**
  * Kód starající o přihlášení uživatele a výběr uživatele pro práci
  */
