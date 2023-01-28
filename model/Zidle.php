@@ -98,10 +98,6 @@ class Zidle extends \DbObject
         return in_array(self::PARTNER, $idsZidli, false);
     }
 
-    public function jmenoZidle(): ?string {
-        return $this->r['jmeno_zidle'] ?? null;
-    }
-
     /**
      * @return int[]
      */
@@ -152,14 +148,14 @@ class Zidle extends \DbObject
     }
 
     public static function rokDleZidle(int $zidleUcastiNagGc): int {
-        if (!self::jeToUdalostNaGc($zidleUcastiNagGc)) {
+        if (!self::jeToRocnikovaUdalostNaGc($zidleUcastiNagGc)) {
             throw new \LogicException("Role (židle) s ID $zidleUcastiNagGc v sobě nemá ročník");
         }
         return (int)(abs($zidleUcastiNagGc) / 100) + 2000;
     }
 
     public static function udalostDleZidle(int $zidleUcastiNagGc): string {
-        if (!self::jeToUdalostNaGc($zidleUcastiNagGc)) {
+        if (!self::jeToRocnikovaUdalostNaGc($zidleUcastiNagGc)) {
             throw new \LogicException("Role (židle) s ID $zidleUcastiNagGc v sobě nemá ročník a tím ani událost");
         }
         switch (abs($zidleUcastiNagGc) % 100) {
@@ -174,7 +170,27 @@ class Zidle extends \DbObject
         }
     }
 
-    public static function jeToUdalostNaGc(int $zidle): bool {
+    public static function jeToRocnikovaUdalostNaGc(int $zidle): bool {
         return $zidle < 0;
     }
+
+    public static function jePouzeProTentoRocnik(int $idZidle, int $rocnik = ROK): bool {
+        if (!static::jeToRocnikovaUdalostNaGc($idZidle)) {
+            return false;
+        }
+        return static::rokDleZidle($idZidle) === $rocnik;
+    }
+
+    public static function vymysliZidleUcastiProRocnik(int $rocnik = ROK): array {
+        return [
+            ZIDLE_PRIHLASEN => "GC{$rocnik} přihlášen",
+            ZIDLE_PRITOMEN  => "GC{$rocnik} přítomen",
+            ZIDLE_ODJEL     => "GC{$rocnik} odjel",
+        ];
+    }
+
+    public function jmenoZidle(): ?string {
+        return $this->r['jmeno_zidle'] ?? null;
+    }
+
 }

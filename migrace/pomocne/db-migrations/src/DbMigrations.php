@@ -21,7 +21,7 @@ class DbMigrations
     public function __construct(DbMigrationsConfig $conf) {
         $this->conf = $conf;
 
-        $this->db = $this->conf->connection;
+        $this->db      = $this->conf->connection;
         $this->backups = new Backups($this->db, $this->conf->backupsDirectory);
         if ($this->conf->webGui) {
             $this->webGui = new WebGui;
@@ -30,7 +30,7 @@ class DbMigrations
 
     private function handleNormalMigrations(bool $silent) {
         foreach ($this->getUnappliedMigrations() as $migration) {
-            $this->apply($migration, $silent);
+            $this->apply($migration, $silent || !$migration->isEndless());
         }
     }
 
@@ -47,9 +47,9 @@ class DbMigrations
             if (!$this->hasTableMigrationsForV1()) {
                 return $migrations;
             }
-            $migrationsV1 = $this->getMigrationsV1($migrations);
+            $migrationsV1          = $this->getMigrationsV1($migrations);
             $unappliedMigrationsV1 = $this->getUnappliedMigrationsV1($migrationsV1);
-            $migrationsV2 = $this->getMigrationsV2($migrations);
+            $migrationsV2          = $this->getMigrationsV2($migrations);
             return array_merge($unappliedMigrationsV1, $migrationsV2);
         }
 
@@ -114,7 +114,7 @@ WHERE migrations.migration_id IS NULL"
     }
 
     private function getIdOfLastAppliedMigrationV1(): int {
-        $query = $this->db->query(<<<SQL
+        $query                          = $this->db->query(<<<SQL
 SELECT value FROM db_migrations WHERE name = 'last_applied_migration_id'
 SQL
         );
@@ -194,11 +194,13 @@ SQL
         $this->db->query('BEGIN');
         try {
             $migration->apply();
-            if ($this->hasTableMigrationsForV2()) {
-                $this->db->query(<<<SQL
+            if (!$migration->isEndless()) {
+                if ($this->hasTableMigrationsForV2()) {
+                    $this->db->query(<<<SQL
 INSERT IGNORE INTO migrations(migration_code, applied_at) VALUES ('{$migration->getCode()}', NOW())
 SQL
-                );
+                    );
+                }
             }
             $this->db->query('COMMIT');
         } catch (\Throwable $throwable) {
@@ -208,8 +210,8 @@ SQL
     }
 
     function run(bool $silent = false) {
-        $driver = new \mysqli_driver();
-        $oldReportMode = $driver->report_mode;
+        $driver              = new \mysqli_driver();
+        $oldReportMode       = $driver->report_mode;
         $driver->report_mode = MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT;
         if (!$silent && $this->webGui) {
             $this->webGui->configureEnviroment();
