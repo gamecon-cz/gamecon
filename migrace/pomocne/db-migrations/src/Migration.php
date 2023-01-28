@@ -5,9 +5,10 @@ namespace Godric\DbMigrations;
 class Migration
 {
 
-    private $db;
-    private $code;
-    private $path;
+    private \mysqli $db;
+    private string $code;
+    private string $path;
+    private bool $endless = false;
 
     public function __construct(string $path, string $code, \mysqli $db) {
         $this->path = $path;
@@ -98,6 +99,17 @@ ALTER TABLE `$tableName`
 SQL
             );
         }
+    }
+
+    public function setEndless(bool $endless = true) {
+        $this->endless = $endless;
+    }
+
+    /**
+     * Should run again and again and again...
+     */
+    public function isEndless(): bool {
+        return $this->endless;
     }
 
 }

@@ -49,6 +49,15 @@ class Pravo extends \DbObject
     public const UNIKATNI_ZIDLE                              = 1027; // Uživatel může mít jen jednu židli s tímto právem
     public const BEZ_SLEVY_ZA_VEDENI_AKTIVIT                 = 1028; // Nedostává slevu za vedení aktivit ani účast na tech. aktivitách
 
+    public const PRIHLASEN_NA_LETOSNI_GC = ID_PRAVO_PRIHLASEN;
+    public const PRITOMEN_NA_LETOSNIM_GC = ID_PRAVO_PRITOMEN;
+
+    /*
+     * Právo "odjel" neexistuje - je to nekonzistence, předchozí dva stavy se řeší přes "dej židli => ověřuj přes právo",
+     * ale poslední stav se řeší přes "dej židli => ověřuj přes židli"
+     * public const ODJEL_Z_LETOSNIHO_GC;
+     */
+
     public static function obsahujePravoPoradatAktivity(array $idPrav): bool {
         return in_array(self::PORADANI_AKTIVIT, $idPrav, false);
     }
@@ -61,4 +70,29 @@ class Pravo extends \DbObject
         }
         return $idsVsechPrav;
     }
+
+    public static function vymysliPravaUcastiProRocnik(int $rocnik = ROK): array {
+        return [
+            ID_PRAVO_PRIHLASEN => "GC{$rocnik} přihlášen",
+            ID_PRAVO_PRITOMEN  => "GC{$rocnik} přítomen",
+            /*
+             * Právo "odjel" neexistuje - je to nekonzistence, předchozí dva stavy se řeší přes "dej židli => ověřuj přes právo",
+             * ale poslední stav se řeší přes "dej židli => ověřuj přes židli"
+             *          ID_PRAVO_ODJEL     => "GC{$rocnik} odjel",
+            */
+        ];
+    }
+
+    /**
+     * @param int $idPravaUcasti
+     * @return int
+     * @throws \UnhandledMatchError
+     */
+    public static function dejIdZidlePodlePravaUcasti(int $idPravaUcasti) {
+        return match ($idPravaUcasti) {
+            self::PRIHLASEN_NA_LETOSNI_GC => Zidle::PRIHLASEN_NA_LETOSNI_GC,
+            self::PRITOMEN_NA_LETOSNIM_GC => Zidle::PRITOMEN_NA_LETOSNIM_GC,
+        };
+    }
+
 }

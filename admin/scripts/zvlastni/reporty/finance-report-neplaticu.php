@@ -43,7 +43,7 @@ foreach (Uzivatel::zPrihlasenych() as $letosniUcastnik) {
             array_filter(
                 $letosniUcastnik->dejIdsZidli(),
                 static function (int $zidle) {
-                    return !\Gamecon\Zidle::jeToUdalostNaGc($zidle);
+                    return !\Gamecon\Zidle::jeToRocnikovaUdalostNaGc($zidle);
                 }
             )
         ));

@@ -70,9 +70,12 @@ if (!$zidle) {
     while ($r = mysqli_fetch_assoc($o)) {
         $r['sedi'] = $r['sedi'] ? '<span style="color:#0d0;font-weight:bold">&bull;</span>' : '';
         $t->assign($r);
-        if ($r['id_zidle'] < 0 && floor(-$r['id_zidle'] / 100) == ROK - 2000) { // dočasná, letos
-            $t->parse('prava.zidleDocasna');
-        } elseif ($r['id_zidle'] > 0) { //trvalá
+        if ($r['id_zidle'] < 0) { // dočasná židle pro nějaký rok
+            if (\Gamecon\Zidle::jePouzeProTentoRocnik((int)$r['id_zidle'])) { // dočasná, letos
+                $t->parse('prava.zidleDocasna');
+            }
+            // 'else' ji nechceme ukazovat
+        } else { //trvalá
             if ($uPracovni && $r['sedi']) {
                 if ($r['posadil']) {
                     $posazenKym = Uzivatel::zId($r['posadil']);

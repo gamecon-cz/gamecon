@@ -81,7 +81,9 @@ abstract class DbObject
      */
     public static function zIds($ids) {
         if (is_array($ids)) {
-            if (empty($ids)) return []; // vůbec se nedotazovat DB
+            if (empty($ids)) {
+                return [];
+            } // vůbec se nedotazovat DB
             return self::zWhere(static::$pk . ' IN (' . dbQa($ids) . ')');
         } else if (preg_match('@^([0-9]+,)*[0-9]+$@', $ids)) {
             return self::zWhere(static::$pk . ' IN (' . $ids . ')');
@@ -102,8 +104,9 @@ abstract class DbObject
     protected static function zWhere($where, $params = null): array {
         $o = dbQuery(static::dotaz($where), $params); // static aby odděděná třída mohla přepsat dotaz na něco složitějšího
         $a = [];
-        while ($r = mysqli_fetch_assoc($o))
+        while ($r = mysqli_fetch_assoc($o)) {
             $a[] = new static($r); // static aby vznikaly objekty správné třídy
+        }
         // TODO id jako klíč pole?
         // TODO cacheování?
         return $a;
