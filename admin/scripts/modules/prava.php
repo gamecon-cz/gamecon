@@ -13,7 +13,7 @@ use Gamecon\XTemplate\XTemplate;
 /** @var Uzivatel|null $uPracovni */
 /** @var Uzivatel $u */
 
-$zidle = $req[1] ?? null;
+$zidle = $podstranka ?? null;
 
 function zaloguj($zprava) {
     $cas = (new DateTimeCz())->formatDb();
