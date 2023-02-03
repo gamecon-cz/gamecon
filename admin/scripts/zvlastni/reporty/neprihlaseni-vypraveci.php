@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Shop\Shop;
+use Gamecon\Role\Zidle;
 
 require __DIR__ . '/sdilene-hlavicky.php';
 
@@ -24,9 +25,9 @@ $r = Report::zSql('
     IF(zp.id_zidle, "", "ne") as přihlášen,
     IF(ub.id_uzivatele, "", "ne") as ubytován,
     IF(akt.id_uzivatele, "", "ne") as "vede aktivity"
-  FROM r_uzivatele_zidle z
+  FROM letos_platne_zidle_uzivatelu z
   JOIN r_zidle_soupis zs USING (id_zidle)
-  LEFT JOIN r_uzivatele_zidle zp ON (z.id_uzivatele = zp.id_uzivatele AND zp.id_zidle = ' . ZIDLE_PRIHLASEN . ')
+  LEFT JOIN letos_platne_zidle_uzivatelu zp ON (z.id_uzivatele = zp.id_uzivatele AND zp.id_zidle = ' . Zidle::PRIHLASEN_NA_LETOSNI_GC . ')
   JOIN uzivatele_hodnoty u ON (u.id_uzivatele = z.id_uzivatele)
   LEFT JOIN (
       SELECT id_uzivatele, GROUP_CONCAT(DISTINCT at.typ_1pmn SEPARATOR ", ") as sekce
@@ -44,7 +45,7 @@ $r = Report::zSql('
   WHERE z.id_zidle IN (' . $sledovaneZidleSql . ') AND (
       zp.id_zidle IS NULL OR
       ub.id_uzivatele IS NULL OR
-      akt.id_uzivatele IS NULL AND z.id_zidle = ' . ZIDLE_ORG_AKTIVIT . '
+      akt.id_uzivatele IS NULL AND z.id_zidle = ' . Zidle::LETOSNI_VYPRAVEC . '
     )
   GROUP BY u.id_uzivatele
   ORDER BY sekce, jmeno_zidle, prijmeni_uzivatele, jmeno_uzivatele

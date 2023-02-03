@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Db;
 
-use Gamecon\Pravo;
-use Gamecon\Zidle;
+use Gamecon\Role\Zidle;
 
 abstract class UzivatelDbTest extends DbTest
 {
@@ -13,7 +12,7 @@ abstract class UzivatelDbTest extends DbTest
      * @return \Uzivatel vrátí nového testovacího uživatele přihlášeného na GC
      */
     public static function prihlasenyUzivatel(): \Uzivatel {
-        static::zkontrolujZidliAPravoKPrihlaseniNaLetosniGc();
+        static::zkontrolujZidliKPrihlaseniNaLetosniGc();
 
         $cislo = self::unikatniCislo();
         dbInsert('uzivatele_hodnoty', [
@@ -23,7 +22,7 @@ abstract class UzivatelDbTest extends DbTest
         $idUzivatele = dbInsertId();
         dbInsert('r_uzivatele_zidle', [
             'id_uzivatele' => $idUzivatele,
-            'id_zidle'     => ZIDLE_PRIHLASEN,
+            'id_zidle'     => Zidle::PRIHLASEN_NA_LETOSNI_GC,
         ]);
         $uzivatel = \Uzivatel::zId($idUzivatele);
         self::assertNotNull($uzivatel);
@@ -32,21 +31,13 @@ abstract class UzivatelDbTest extends DbTest
         return $uzivatel;
     }
 
-    protected static function zkontrolujZidliAPravoKPrihlaseniNaLetosniGc() {
+    protected static function zkontrolujZidliKPrihlaseniNaLetosniGc() {
         self::assertNotNull(
-            Zidle::zId(ZIDLE_PRIHLASEN),
+            Zidle::zId(Zidle::PRIHLASEN_NA_LETOSNI_GC),
             sprintf(
                 "Chybí židle 'Přihlášen pro rok %d' s ID %d",
                 ROK,
-                ZIDLE_PRIHLASEN
-            )
-        );
-        self::assertNotNull(
-            Pravo::zId(ID_PRAVO_PRIHLASEN),
-            sprintf(
-                "Chybí právo 'Přihlášen pro rok %d' s ID %d",
-                ROK,
-                ID_PRAVO_PRIHLASEN
+                Zidle::PRIHLASEN_NA_LETOSNI_GC
             )
         );
     }

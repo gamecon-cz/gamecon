@@ -14,10 +14,11 @@
  * @var \Gamecon\Shop\Shop|null $shop
  */
 
+use Gamecon\Role\Zidle;
 use Gamecon\Uzivatel\Finance;
 
 if (!empty($_POST['datMaterialy']) && $uPracovni && $uPracovni->gcPrihlasen()) {
-    $uPracovni->dejZidli(ZIDLE_PRITOMEN, $u);
+    $uPracovni->dejZidli(Zidle::PRIHLASEN_NA_LETOSNI_GC, $u);
     back();
 }
 

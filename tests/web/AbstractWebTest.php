@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\web;
 
+use Gamecon\Role\Zidle;
 use Uzivatel;
 use Gamecon\Login\Login;
 use Gamecon\Pravo;
@@ -29,11 +30,15 @@ abstract class AbstractWebTest extends DbTest
      * @return string[]
      */
     protected static function getInitQueries(): array {
-        $queries   = [];
-        $queries[] = <<<SQL
-INSERT INTO r_zidle_soupis(id_zidle, jmeno_zidle, popis_zidle)
-VALUES (1, 'všemocná', 'všemocná')
-SQL;
+        $queries = [];
+
+        $queries[] = [
+            <<<SQL
+INSERT INTO r_zidle_soupis(id_zidle, kod_zidle, jmeno_zidle, popis_zidle, vyznam, typ, rok)
+VALUES (1, 'VSEMOCNA', 'všemocná', 'všemocná', $0, $1, @rocnik)
+SQL,
+            [Zidle::VYZNAM_ADMIN, Zidle::TYP_TRVALA],
+        ];
 
         $idsPrav       = Pravo::dejIdsVsechPrav();
         $pravaSqlArray = [];
@@ -64,12 +69,12 @@ SQL;
 
     protected function tearDown(): void {
         parent::tearDown();
-/*        foreach ($this->localServersProcesses as $port => $localServersProcess) {
-            $localServersProcess->stop();
-            if (static::$unusedLocalServerPort === $port + 1) {
-                static::$unusedLocalServerPort = $port; // port se uvolnil
-            }
-        }*/
+        /*        foreach ($this->localServersProcesses as $port => $localServersProcess) {
+                    $localServersProcess->stop();
+                    if (static::$unusedLocalServerPort === $port + 1) {
+                        static::$unusedLocalServerPort = $port; // port se uvolnil
+                    }
+                }*/
         foreach ($this->cookieFilesPerServer as $cookieFile) {
             unlink($cookieFile);
         }

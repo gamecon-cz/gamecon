@@ -38,12 +38,12 @@ foreach (Uzivatel::zPrihlasenych() as $letosniUcastnik) {
         ',',
         array_map(
             static function (int $zidle) {
-                return \Gamecon\Zidle::nazevZidle($zidle);
+                return \Gamecon\Role\Zidle::nazevZidle($zidle);
             },
             array_filter(
                 $letosniUcastnik->dejIdsZidli(),
                 static function (int $zidle) {
-                    return !\Gamecon\Zidle::jeToRocnikovaUdalostNaGc($zidle);
+                    return !\Gamecon\Role\Zidle::jeToUcastNaGc($zidle);
                 }
             )
         ));

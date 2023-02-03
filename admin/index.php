@@ -144,7 +144,7 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
     if ($u && ($u->jeSuperAdmin() || $u->jeInfopultak())) {
         $dataOmnibox = [];
         if ($u->jeInfopultak()) {
-            $dataOmnibox['jenSeZidlemi'] = [\Gamecon\Zidle::VYPRAVEC, \Gamecon\Zidle::PARTNER];
+            $dataOmnibox['jenSeZidlemi'] = [\Gamecon\Role\Zidle::LETOSNI_VYPRAVEC, \Gamecon\Role\Zidle::LETOSNI_PARTNER];
         }
         $xtpl->assign('dataOmniboxJson', htmlspecialchars(json_encode($dataOmnibox, JSON_FORCE_OBJECT)));
         $xtpl->parse('all.operator.prepnutiUzivatele');

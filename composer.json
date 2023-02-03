@@ -32,6 +32,8 @@
         "endroid/qr-code": "^4.2",
         "google/apiclient": "^2.4",
         "ifsnop/mysqldump-php": "^2.10",
+        "granam/remove-diacritics": "^1.0",
+        "granam/string": "^4.2",
         "michelf/php-markdown": "~1.4",
         "openspout/openspout": "^3.0",
         "rikudou/czqrpayment": "^5.0",

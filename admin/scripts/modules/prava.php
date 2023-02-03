@@ -9,6 +9,7 @@
 
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\XTemplate\XTemplate;
+use Gamecon\Role\Zidle;
 
 /** @var Uzivatel|null $uPracovni */
 /** @var Uzivatel $u */
@@ -59,39 +60,53 @@ $t = new XTemplate('prava.xtpl');
 
 if (!$zidle) {
     // výpis seznamu židlí
-    $o = dbQuery(
-        'SELECT z.*, uz.id_zidle IS NOT NULL AS sedi, uz.posadil, uz.posazen
-    FROM r_zidle_soupis z
-    LEFT JOIN r_uzivatele_zidle uz ON uz.id_zidle = z.id_zidle AND uz.id_uzivatele = $1
-    GROUP BY z.id_zidle
-    ORDER BY z.id_zidle',
-        [$uPracovni ? $uPracovni->id() : null]
+    $o            = dbQuery(
+        'SELECT zidle.*, zidle_uzivatelu.id_zidle IS NOT NULL AS sedi, zidle_uzivatelu.posadil, zidle_uzivatelu.posazen
+    FROM r_zidle_soupis AS zidle
+    LEFT JOIN letos_platne_zidle_uzivatelu AS zidle_uzivatelu
+        ON zidle_uzivatelu.id_zidle = zidle.id_zidle AND zidle_uzivatelu.id_uzivatele = $0
+    WHERE zidle.rok IN ($1, $2)
+    GROUP BY zidle.id_zidle, zidle.typ, zidle.jmeno_zidle
+    ORDER BY zidle.typ, zidle.jmeno_zidle',
+        [0 => $uPracovni?->id(), 1 => ROK, 2 => Zidle::JAKYKOLI_ROK]
     );
+    $predchoziTyp = null;
     while ($r = mysqli_fetch_assoc($o)) {
         $r['sedi'] = $r['sedi'] ? '<span style="color:#0d0;font-weight:bold">&bull;</span>' : '';
         $t->assign($r);
-        if ($r['id_zidle'] < 0) { // dočasná židle pro nějaký rok
-            if (\Gamecon\Zidle::jePouzeProTentoRocnik((int)$r['id_zidle'])) { // dočasná, letos
-                $t->parse('prava.zidleDocasna');
+        if ($r['typ'] === Zidle::TYP_UCAST) {
+            if (Zidle::platiPouzeProRocnik($r['rok'], ROK)) {
+                $t->parse('prava.zidleUcast');
+            } // 'else' jde o starou účast jako "GC2019 přijel" a ji nechceme ukazovat
+        } elseif (Zidle::platiProRocnik($r['rok'], ROK)) {
+            if ($predchoziTyp !== $r['typ']) {
+                if($predchoziTyp !== null) {
+                    $t->parse('prava.jedenTypZidli');
+                }
+                if ($r['typ'] === Zidle::TYP_TRVALA) {
+                    $t->parse('prava.jedenTypZidli.zidleTrvaleNadpis');
+                } elseif ($r['typ'] === Zidle::TYP_ROCNIKOVA) {
+                    $t->parse('prava.jedenTypZidli.zidleRocnikoveNadpis');
+                }
             }
-            // 'else' ji nechceme ukazovat
-        } else { //trvalá
             if ($uPracovni && $r['sedi']) {
                 if ($r['posadil']) {
                     $posazenKym = Uzivatel::zId($r['posadil']);
                     if ($posazenKym) {
                         $t->assign('posazenKym', $posazenKym->jmenoNick());
                         $t->assign('posazenKdy', DateTimeCz::createFromMysql($r['posazen'])->relativni());
-                        $t->parse('prava.zidle.sesad.posazenKym');
+                        $t->parse('prava.jedenTypZidli.zidle.sesad.posazenKym');
                     }
                 }
-                $t->parse('prava.zidle.sesad');
+                $t->parse('prava.jedenTypZidli.zidle.sesad');
             } elseif ($uPracovni && !$r['sedi']) {
-                $t->parse('prava.zidle.posad');
+                $t->parse('prava.jedenTypZidli.zidle.posad');
             }
-            $t->parse('prava.zidle');
+            $t->parse('prava.jedenTypZidli.zidle');
         }
+        $predchoziTyp = $r['typ'];
     }
+    $t->parse('prava.jedenTypZidli');
     $t->parse('prava');
     $t->out('prava');
 } else {

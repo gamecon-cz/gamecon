@@ -1,5 +1,6 @@
 <?php
 
+use Gamecon\Role\Zidle;
 use Gamecon\Shop\Shop;
 use Gamecon\XTemplate\XTemplate;
 
@@ -72,11 +73,11 @@ if (get('ajax') === 'uzivatel-k-vyplaceni-aktivity') {
     $organizatoriAkciQuery = dbQuery(<<<SQL
 SELECT uzivatele_hodnoty.*
 FROM uzivatele_hodnoty
-JOIN r_uzivatele_zidle
-    ON r_uzivatele_zidle.id_uzivatele = uzivatele_hodnoty.id_uzivatele AND r_uzivatele_zidle.id_zidle IN($1, $2)
+JOIN letos_platne_zidle_uzivatelu AS zidle_uzivatelu
+    ON zidle_uzivatelu.id_uzivatele = uzivatele_hodnoty.id_uzivatele AND zidle_uzivatelu.id_zidle IN($0, $1)
 GROUP BY uzivatele_hodnoty.id_uzivatele
 SQL
-        , [ZIDLE_ORG_AKTIVIT, ZIDLE_PRIHLASEN] // při změně změn hint v šabloně finance.xtpl
+        , [0 => Zidle::LETOSNI_VYPRAVEC, 1 => Zidle::PRIHLASEN_NA_LETOSNI_GC] // při změně změň hint v šabloně finance.xtpl
     );
     $numberFormatter       = NumberFormatter::create('cs', NumberFormatter::PATTERN_DECIMAL);
     $organizatorAkciData   = [];
@@ -132,7 +133,14 @@ if (post('pokojeImport')) {
 $x = new XTemplate('finance.xtpl');
 if (isset($_GET['minimum'])) {
     $min = (int)$_GET['minimum'];
-    $o   = dbQuery("SELECT u.* FROM uzivatele_hodnoty u JOIN r_uzivatele_zidle z ON(z.id_uzivatele=u.id_uzivatele AND z.id_zidle=" . ZIDLE_PRIHLASEN . ")");
+    $o   = dbQuery(<<<SQL
+SELECT uzivatele_hodnoty.*
+FROM uzivatele_hodnoty
+JOIN letos_platne_zidle_uzivatelu AS zidle_uzivatelu
+    ON(zidle_uzivatelu.id_uzivatele=uzivatele_hodnoty.id_uzivatele AND zidle_uzivatelu.id_zidle=$0)
+SQL,
+        [Zidle::PRIHLASEN_NA_LETOSNI_GC]
+    );
     $ids = '';
     while ($r = mysqli_fetch_assoc($o)) {
         $un = new Uzivatel($r);

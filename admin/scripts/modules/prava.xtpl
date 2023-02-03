@@ -1,7 +1,18 @@
 <!-- begin:prava -->
 
-Trvalé židle:
+<i>Židle s právy</i>
 <table class="zvyraznovana">
+  <!-- begin:jedenTypZidli -->
+  <!-- begin:zidleTrvaleNadpis -->
+  <tr>
+    <th colspan="100%"><strong>Trvalé židle</strong></th>
+  </tr>
+  <!-- end:zidleTrvaleNadpis -->
+  <!-- begin:zidleRocnikoveNadpis -->
+  <tr>
+    <th colspan="100%"><strong>Ročníkové židle (pro aktuální rok)</strong></th>
+  </tr>
+  <!-- end:zidleRocnikoveNadpis -->
   <tr>
     <th>&emsp;</th>
     <th>Jméno židle</th>
@@ -18,24 +29,29 @@ Trvalé židle:
       <!-- begin:posad --><a href="prava?posad={id_zidle}">posaď</a><!-- end:posad -->
       <!-- begin:sesad -->
       <a href="prava?sesad={id_zidle}">
-        <span class="hinted">sesaď<!-- begin:posazenKym --><span class="hint">Posadil(a) {posazenKym} {posazenKdy}</span><!-- end:posazenKym --></span>
+        <span class="hinted">sesaď<!-- begin:posazenKym --><span
+            class="hint">Posadil(a) {posazenKym} {posazenKdy}</span><!-- end:posazenKym --></span>
       </a>
       <!-- end:sesad -->
     </td>
     <td><a href="prava/{id_zidle}">detail</a></td>
   </tr>
   <!-- end:zidle -->
+  <!-- end:jedenTypZidli -->
 </table><br><br>
 
-Dočasné židle (pro aktuální rok):
+<i>Židle bez práv</i>
 <table class="zvyraznovana">
+  <tr>
+    <th colspan="100%"><strong>Účast</strong></th>
+  </tr>
   <tr>
     <th>&emsp;</th>
     <th>Jméno židle</th>
     <th>Popis židle</th>
     <th></th>
   </tr>
-  <!-- begin:zidleDocasna -->
+  <!-- begin:zidleUcast -->
   <tr>
     <td>{sedi}</td>
     <td>{jmeno_zidle}</td>
@@ -44,7 +60,7 @@ Dočasné židle (pro aktuální rok):
       <a href="prava/{id_zidle}">detail</a>
     </td>
   </tr>
-  <!-- end:zidleDocasna -->
+  <!-- end:zidleUcast -->
 </table><br><br>
 
 <!-- end:prava -->

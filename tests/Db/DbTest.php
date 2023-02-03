@@ -9,6 +9,8 @@ class DbTest extends \PHPUnit\Framework\TestCase
     /** @var string[] */
     protected static array $initQueries = [];
     protected static string $initData = '';
+    // například pro vypnutí kontroly "Field 'cena' doesn't have a default value"
+    protected static bool $disableStrictTransTables = false;
 
     protected $revertDbChangesAfterTest = true;
 
@@ -25,6 +27,10 @@ class DbTest extends \PHPUnit\Framework\TestCase
     static function setUpBeforeClass(): void {
         if (static::keepDbChangesInTransaction()) {
             self::$connection->begin();
+        }
+
+        if (static::$disableStrictTransTables) {
+            static::disableStrictTransTables();
         }
 
         foreach (static::getInitQueries() as $index => $initQuery) {
@@ -69,6 +75,24 @@ class DbTest extends \PHPUnit\Framework\TestCase
         if (static::keepDbChangesInTransaction()) {
             self::$connection->rollback();
         }
+        if (static::$disableStrictTransTables) {
+            static::disableStrictTransTables();
+        }
+    }
+
+    // například pro vypnutí kontroly "Field 'cena' doesn't have a default value"
+    protected static function disableStrictTransTables() {
+        self::$connection->query(<<<SQL
+SET SESSION sql_mode = REGEXP_REPLACE(@@SESSION.sql_mode, 'STRICT_TRANS_TABLES,?', '')
+SQL
+        );
+    }
+
+    protected static function enableStrictTransTables() {
+        self::$connection->query(<<<SQL
+SET SESSION sql_mode = CONCAT_WS(',', @@SESSION.sql_mode, 'STRICT_TRANS_TABLES')
+SQL
+        );
     }
 
 }

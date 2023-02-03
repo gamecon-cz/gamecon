@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2abfab189c00979996a82e279b64212f",
+    "content-hash": "3d6da13b241c03c604441e28e56ab475",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -523,6 +523,284 @@
             "time": "2022-11-28T18:29:23+00:00"
         },
         {
+            "name": "granam/remove-diacritics",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/granam/remove-diacritics.git",
+                "reference": "d3dc7be4a6ff2810827e21867d3b7af6b328c2e7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/granam/remove-diacritics/zipball/d3dc7be4a6ff2810827e21867d3b7af6b328c2e7",
+                "reference": "d3dc7be4a6ff2810827e21867d3b7af6b328c2e7",
+                "shasum": ""
+            },
+            "require": {
+                "ext-intl": "*",
+                "ext-mbstring": "*",
+                "granam/scalar": "^5.1",
+                "granam/strict-object": ">=3.0",
+                "granam/string": "^4.1",
+                "php": ">=7.4"
+            },
+            "require-dev": {
+                "granam/exceptions-hierarchy": "^5.0",
+                "mockery/mockery": ">=1.2",
+                "phpunit/phpunit": ">=9.0"
+            },
+            "type": "project",
+            "autoload": {
+                "psr-4": {
+                    "Granam\\RemoveDiacritics\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jaroslav Týc",
+                    "homepage": "https://www.jaroslavtyc.com",
+                    "role": "Original author"
+                }
+            ],
+            "description": "Cleanse text from diacritics and special characters",
+            "homepage": "https://github.com/granam/remove-diacritics",
+            "keywords": [
+                "Plain",
+                "character",
+                "diacritics",
+                "php",
+                "special",
+                "string",
+                "text"
+            ],
+            "support": {
+                "issues": "https://github.com/granam/remove-diacritics/issues",
+                "source": "https://github.com/granam/remove-diacritics/tree/1.0.0"
+            },
+            "time": "2022-09-05T11:22:52+00:00"
+        },
+        {
+            "name": "granam/scalar",
+            "version": "5.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/granam/scalar.git",
+                "reference": "1aa83e665edbee8a093ac845e1644c5f935ca4d8"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/granam/scalar/zipball/1aa83e665edbee8a093ac845e1644c5f935ca4d8",
+                "reference": "1aa83e665edbee8a093ac845e1644c5f935ca4d8",
+                "shasum": ""
+            },
+            "require": {
+                "granam/strict-object": "^3.0",
+                "granam/tools": "^6.0",
+                "php": ">=7.3"
+            },
+            "require-dev": {
+                "granam/exceptions-hierarchy": "^5.0",
+                "mockery/mockery": "^1.2",
+                "phpunit/phpunit": "^9.0"
+            },
+            "type": "project",
+            "autoload": {
+                "psr-4": {
+                    "Granam\\Scalar\\": "Scalar"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jaroslav Týc",
+                    "homepage": "http://jaroslavtyc.com",
+                    "role": "Original author"
+                }
+            ],
+            "description": "Lightweight scalar-type container",
+            "homepage": "https://github.com/jaroslavtyc/granam-scalar",
+            "keywords": [
+                "php",
+                "scalar"
+            ],
+            "support": {
+                "issues": "https://github.com/granam/scalar/issues",
+                "source": "https://github.com/granam/scalar/tree/5.1.0"
+            },
+            "time": "2021-03-24T09:42:19+00:00"
+        },
+        {
+            "name": "granam/strict-object",
+            "version": "3.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/granam/strict-object.git",
+                "reference": "9d12475bb26a7bd1a31c27a37da82dbf87cbff24"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/granam/strict-object/zipball/9d12475bb26a7bd1a31c27a37da82dbf87cbff24",
+                "reference": "9d12475bb26a7bd1a31c27a37da82dbf87cbff24",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.3"
+            },
+            "require-dev": {
+                "granam/exceptions-hierarchy": "~5.0",
+                "phpunit/phpunit": "~9.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Granam\\Strict\\Object\\": "StrictObject"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jaroslav Týc",
+                    "homepage": "https://jaroslavtyc.com",
+                    "role": "Original author"
+                }
+            ],
+            "description": "Base object, checking access to undefined properties and methods",
+            "homepage": "https://github.com/jaroslavtyc/granam-strict-object",
+            "keywords": [
+                "access",
+                "object",
+                "permissions",
+                "php",
+                "read",
+                "strict",
+                "write"
+            ],
+            "support": {
+                "issues": "https://github.com/granam/strict-object/issues",
+                "source": "https://github.com/granam/strict-object/tree/3.1.0"
+            },
+            "time": "2021-03-25T06:23:06+00:00"
+        },
+        {
+            "name": "granam/string",
+            "version": "4.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/granam/string.git",
+                "reference": "7f711a682562aa305dcc5c4522e4b894a79bde75"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/granam/string/zipball/7f711a682562aa305dcc5c4522e4b894a79bde75",
+                "reference": "7f711a682562aa305dcc5c4522e4b894a79bde75",
+                "shasum": ""
+            },
+            "require": {
+                "granam/scalar": "^5.0",
+                "granam/strict-object": ">=3.0",
+                "php": ">=7.4"
+            },
+            "require-dev": {
+                "granam/exceptions-hierarchy": "^5.0",
+                "mockery/mockery": "^1.2",
+                "phpunit/phpunit": ">=9.0",
+                "rector/rector": "^0.14.2"
+            },
+            "type": "project",
+            "autoload": {
+                "psr-4": {
+                    "Granam\\String\\": "String"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jaroslav Týc",
+                    "homepage": "https://www.jaroslavtyc.com",
+                    "role": "Original author"
+                }
+            ],
+            "description": "Lightweight string wrapper",
+            "homepage": "https://github.com/granam/string",
+            "keywords": [
+                "object",
+                "php",
+                "string"
+            ],
+            "support": {
+                "issues": "https://github.com/granam/string/issues",
+                "source": "https://github.com/granam/string/tree/4.2.0"
+            },
+            "time": "2022-09-05T11:43:57+00:00"
+        },
+        {
+            "name": "granam/tools",
+            "version": "6.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/granam/tools.git",
+                "reference": "f40b7b35760092795e48ac5323a46a0de43f8607"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/granam/tools/zipball/f40b7b35760092795e48ac5323a46a0de43f8607",
+                "reference": "f40b7b35760092795e48ac5323a46a0de43f8607",
+                "shasum": ""
+            },
+            "require": {
+                "granam/strict-object": ">=3.0",
+                "php": ">=7.3"
+            },
+            "require-dev": {
+                "granam/exceptions-hierarchy": "^5.0",
+                "mockery/mockery": "^1.2",
+                "phpunit/phpunit": "^9.0"
+            },
+            "type": "project",
+            "autoload": {
+                "psr-4": {
+                    "Granam\\Tools\\": "Tools"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jaroslav Týc",
+                    "homepage": "http://jaroslavtyc.com",
+                    "role": "Original author"
+                }
+            ],
+            "description": "Toolbox",
+            "homepage": "https://github.com/granam/tools",
+            "keywords": [
+                "Toolbox",
+                "object",
+                "php",
+                "string"
+            ],
+            "support": {
+                "issues": "https://github.com/granam/tools/issues",
+                "source": "https://github.com/granam/tools/tree/6.1.0"
+            },
+            "time": "2021-03-24T16:40:58+00:00"
+        },
+        {
             "name": "guzzlehttp/guzzle",
             "version": "7.5.0",
             "source": {
@@ -852,65 +1130,6 @@
                 }
             ],
             "time": "2022-10-26T14:07:24+00:00"
-        },
-        {
-            "name": "ifsnop/mysqldump-php",
-            "version": "v2.10",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/ifsnop/mysqldump-php.git",
-                "reference": "16f36121df7e5484d0847cbf7f603b00a3747fca"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/ifsnop/mysqldump-php/zipball/16f36121df7e5484d0847cbf7f603b00a3747fca",
-                "reference": "16f36121df7e5484d0847cbf7f603b00a3747fca",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.3.0"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "4.8.36",
-                "squizlabs/php_codesniffer": "1.*"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Ifsnop\\": "src/Ifsnop/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "GPL-3.0-or-later"
-            ],
-            "authors": [
-                {
-                    "name": "Diego Torres",
-                    "homepage": "https://github.com/ifsnop",
-                    "role": "Developer"
-                }
-            ],
-            "description": "PHP version of mysqldump cli that comes with MySQL",
-            "homepage": "https://github.com/ifsnop/mysqldump-php",
-            "keywords": [
-                "PHP7",
-                "database",
-                "hhvm",
-                "mariadb",
-                "mysql",
-                "mysql-backup",
-                "mysqldump",
-                "pdo",
-                "php",
-                "php5",
-                "sql"
-            ],
-            "support": {
-                "issues": "https://github.com/ifsnop/mysqldump-php/issues",
-                "source": "https://github.com/ifsnop/mysqldump-php/tree/v2.10"
-            },
-            "time": "2023-02-09T02:00:29+00:00"
         },
         {
             "name": "michelf/php-markdown",

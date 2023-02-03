@@ -2,9 +2,9 @@
 // takzvaný BFGR (Big f**king Gandalf report)
 
 use Gamecon\Cas\DateTimeCz;
-use Gamecon\Zidle;
-use Gamecon\Shop\Shop;
 use Gamecon\Report\KonfiguraceReportu;
+use Gamecon\Role\Zidle;
+use Gamecon\Shop\Shop;
 
 require __DIR__ . '/sdilene-hlavicky.php';
 
@@ -30,17 +30,17 @@ $idZidliProPozici    = [
     Zidle::ORGANIZATOR,
     Zidle::ORGANIZATOR_S_BONUSY_1,
     Zidle::ORGANIZATOR_S_BONUSY_2,
-    Zidle::VYPRAVEC,
-    Zidle::PARTNER,
-    Zidle::DOBROVOLNIK_SENIOR,
+    Zidle::LETOSNI_VYPRAVEC,
+    Zidle::LETOSNI_PARTNER,
+    Zidle::LETOSNI_DOBROVOLNIK_SENIOR,
 ];
 $jmenaZidliProPozici = [];
 foreach ($idZidliProPozici as $idZidle) {
     $jmenaZidliProPozici[$idZidle] = Zidle::zId($idZidle)->jmenoZidle();
 }
-$dejNazevPozice = static function (array $idPrav) use ($jmenaZidliProPozici): string {
+$dejNazevRole = static function (array $idclaZidli) use ($jmenaZidliProPozici): string {
     foreach ($jmenaZidliProPozici as $idZidle => $jmenoZidle) {
-        if (in_array($idZidle, $idPrav, false)) {
+        if (in_array($idZidle, $idclaZidli, false)) {
             return $jmenoZidle;
         }
     }
@@ -109,44 +109,48 @@ ORDER BY TRIM(shop_predmety.nazev)
 SQL, [Shop::PREDMET]
 );
 
-$rok = ROK;
-$o   = dbQuery(<<<SQL
+$rok              = ROK;
+$predmetUbytovani = \Gamecon\Shop\TypPredmetu::UBYTOVANI;
+$o                = dbQuery(<<<SQL
 SELECT
     uzivatele_hodnoty.*,
     prihlasen.posazen AS prihlasen_na_gc_kdy,
     pritomen.posazen as prosel_infopultem_kdy,
     odjel.posazen as odjel_kdy,
-    ( SELECT MIN(shop_predmety.ubytovani_den) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=$rok AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.typ=2 ) AS den_prvni,
-    ( SELECT MAX(shop_predmety.ubytovani_den) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=$rok AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.typ=2 ) AS den_posledni,
-    ( SELECT MAX(shop_predmety.nazev) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=$rok AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.typ=2 ) AS ubytovani_typ,
-    ( SELECT GROUP_CONCAT(r_prava_soupis.jmeno_prava SEPARATOR ', ')
-      FROM r_uzivatele_zidle
-      JOIN r_prava_zidle ON r_uzivatele_zidle.id_zidle=r_prava_zidle.id_zidle
-      JOIN r_prava_soupis ON r_prava_soupis.id_prava=r_prava_zidle.id_prava
-      WHERE r_uzivatele_zidle.id_uzivatele=uzivatele_hodnoty.id_uzivatele AND r_uzivatele_zidle.id_zidle > 0
-      GROUP BY r_uzivatele_zidle.id_uzivatele
+    ( SELECT MIN(shop_predmety.ubytovani_den) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=$rok AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.typ=$predmetUbytovani ) AS den_prvni,
+    ( SELECT MAX(shop_predmety.ubytovani_den) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=$rok AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.typ=$predmetUbytovani ) AS den_posledni,
+    ( SELECT MAX(shop_predmety.nazev) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=$rok AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.typ=$predmetUbytovani ) AS ubytovani_typ,
+    ( SELECT GROUP_CONCAT(r_prava_soupis.jmeno_prava SEPARATOR ', ') -- TODO teď bude chybět "právo" přihlášen / přítomen (ale odjel ne, to právo nebylo)
+      FROM letos_platne_zidle_uzivatelu
+      JOIN r_prava_zidle
+          ON letos_platne_zidle_uzivatelu.id_zidle = r_prava_zidle.id_zidle
+      JOIN r_prava_soupis
+          ON r_prava_zidle.id_prava = r_prava_soupis.id_prava
+      WHERE letos_platne_zidle_uzivatelu.id_uzivatele = uzivatele_hodnoty.id_uzivatele
+      GROUP BY letos_platne_zidle_uzivatelu.id_uzivatele
     ) AS pravaZDotazu,
-    ( SELECT GROUP_CONCAT(r_uzivatele_zidle.id_zidle SEPARATOR ',')
-      FROM r_uzivatele_zidle
-      WHERE r_uzivatele_zidle.id_uzivatele=uzivatele_hodnoty.id_uzivatele AND r_uzivatele_zidle.id_zidle > 0
-      GROUP BY r_uzivatele_zidle.id_uzivatele
-    ) AS idPravZDotazu,
+    ( SELECT GROUP_CONCAT(letos_platne_zidle_uzivatelu.id_zidle SEPARATOR ',')
+      FROM letos_platne_zidle_uzivatelu
+      WHERE letos_platne_zidle_uzivatelu.id_uzivatele=uzivatele_hodnoty.id_uzivatele
+      GROUP BY letos_platne_zidle_uzivatelu.id_uzivatele
+    ) AS idckaZidliZDotazu,
     ( SELECT GROUP_CONCAT(r_zidle_soupis.jmeno_zidle SEPARATOR ', ')
-      FROM r_uzivatele_zidle
-      LEFT JOIN r_zidle_soupis ON r_uzivatele_zidle.id_zidle = r_zidle_soupis.id_zidle
-      WHERE r_uzivatele_zidle.id_uzivatele=uzivatele_hodnoty.id_uzivatele AND r_uzivatele_zidle.id_zidle > 0
-      GROUP BY r_uzivatele_zidle.id_uzivatele
+      FROM letos_platne_zidle_uzivatelu
+      JOIN r_zidle_soupis
+          ON letos_platne_zidle_uzivatelu.id_zidle = r_zidle_soupis.id_zidle
+      WHERE letos_platne_zidle_uzivatelu.id_uzivatele=uzivatele_hodnoty.id_uzivatele
+      GROUP BY letos_platne_zidle_uzivatelu.id_uzivatele
     ) AS zidleZDotazu
 FROM uzivatele_hodnoty
-LEFT JOIN r_uzivatele_zidle AS prihlasen ON(prihlasen.id_zidle = $0 AND prihlasen.id_uzivatele = uzivatele_hodnoty.id_uzivatele)
-LEFT JOIN r_uzivatele_zidle AS pritomen ON(pritomen.id_zidle = $1 AND pritomen.id_uzivatele = uzivatele_hodnoty.id_uzivatele)
-LEFT JOIN r_uzivatele_zidle AS odjel ON(odjel.id_zidle = $2 AND odjel.id_uzivatele = uzivatele_hodnoty.id_uzivatele)
+LEFT JOIN letos_platne_zidle_uzivatelu AS prihlasen ON (prihlasen.id_zidle = $0 AND prihlasen.id_uzivatele = uzivatele_hodnoty.id_uzivatele)
+LEFT JOIN letos_platne_zidle_uzivatelu AS pritomen ON (pritomen.id_zidle = $1 AND pritomen.id_uzivatele = uzivatele_hodnoty.id_uzivatele)
+LEFT JOIN letos_platne_zidle_uzivatelu AS odjel ON(odjel.id_zidle = $2 AND odjel.id_uzivatele = uzivatele_hodnoty.id_uzivatele)
 WHERE prihlasen.id_uzivatele IS NOT NULL -- left join, takže může být NULL ve smyslu "nemáme záznam" = "není přihlášen"
     OR pritomen.id_uzivatele IS NOT NULL -- tohle by bylo hodně divné, musela by být díra v systému, aby nebyl přihlášen ale byl přítomen, ale radši...
     OR EXISTS(SELECT * FROM shop_nakupy WHERE uzivatele_hodnoty.id_uzivatele = shop_nakupy.id_uzivatele AND shop_nakupy.rok = $rok)
     OR EXISTS(SELECT * FROM platby WHERE platby.id_uzivatele = uzivatele_hodnoty.id_uzivatele AND platby.rok = $rok)
 SQL,
-    [0 => \Gamecon\Zidle::PRIHLASEN_NA_LETOSNI_GC, 1 => \Gamecon\Zidle::PRITOMEN_NA_LETOSNIM_GC, 2 => \Gamecon\Zidle::ODJEL_Z_LETOSNIHO_GC]
+    [0 => Zidle::PRIHLASEN_NA_LETOSNI_GC, 1 => Zidle::PRITOMEN_NA_LETOSNIM_GC, 2 => Zidle::ODJEL_Z_LETOSNIHO_GC]
 );
 if (mysqli_num_rows($o) === 0) {
     exit('V tabulce nejsou žádná data.');
@@ -182,7 +186,7 @@ while ($r = mysqli_fetch_assoc($o)) {
                 'Jméno'             => $r['jmeno_uzivatele'],
                 'Přezdívka'         => $r['login_uzivatele'],
                 'Mail'              => $r['email1_uzivatele'],
-                'Pozice'            => $dejNazevPozice(explode(',', (string)$r['idPravZDotazu'])),
+                'Pozice'            => $dejNazevRole(explode(',', (string)$r['idckaZidliZDotazu'])),
                 'Židle'             => $r['zidleZDotazu'],
                 'Práva'             => nahradNazvyKonstantZaHodnoty((string)$r['pravaZDotazu']),
                 'Datum registrace'  => excelDatum($r['prihlasen_na_gc_kdy']),

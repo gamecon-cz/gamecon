@@ -10,7 +10,7 @@ $typTricko = Shop::TRICKO;
 $typPredmet = Shop::PREDMET;
 $typJidlo = Shop::JIDLO;
 $rok = ROK;
-$idZidliSOrganizatorySql = implode(',', \Gamecon\Zidle::dejIdckaZidliSOrganizatory());
+$idckaZidliSOrganizatorySql = implode(',', \Gamecon\Role\Zidle::dejIdckaZidliSOrganizatory());
 
 $poddotazKoupenehoPredmetu = static function (string $klicoveSlovo, int $idTypuPredmetu, int $rok, bool $prilepitRokKNazvu) {
     $rokKNazvu = $prilepitRokKNazvu
@@ -78,8 +78,6 @@ $kolikTypuNakoupil = static function (array $typyPredmetu, int $rok) {
     SQL;
 };
 
-$prihlasenNaLetosniGc = (int)\Gamecon\Zidle::PRIHLASEN_NA_LETOSNI_GC;
-
 $report = Report::zSql(<<<SQL
 SELECT uzivatele_hodnoty.id_uzivatele,
        {$kolikTypuNakoupil([$typTricko, $typPredmet], $rok)} AS count_typu_predmetu,
@@ -102,10 +100,8 @@ SELECT uzivatele_hodnoty.id_uzivatele,
            ''
        ) AS balicek
 FROM uzivatele_hodnoty
-LEFT JOIN r_uzivatele_zidle
-    ON uzivatele_hodnoty.id_uzivatele = r_uzivatele_zidle.id_uzivatele
-LEFT JOIN r_uzivatele_zidle AS zidle_organizatoru
-    ON uzivatele_hodnoty.id_uzivatele = zidle_organizatoru.id_uzivatele AND zidle_organizatoru.id_zidle IN ({$idZidliSOrganizatorySql})
+LEFT JOIN letos_platne_zidle_uzivatelu AS zidle_organizatoru
+    ON uzivatele_hodnoty.id_uzivatele = zidle_organizatoru.id_uzivatele AND zidle_organizatoru.id_zidle IN ({$idckaZidliSOrganizatorySql})
 WHERE uzivatele_hodnoty.id_uzivatele IN (
     SELECT DISTINCT(sn.id_uzivatele)
     FROM shop_nakupy AS sn
