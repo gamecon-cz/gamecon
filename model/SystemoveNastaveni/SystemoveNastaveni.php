@@ -55,14 +55,8 @@ class SystemoveNastaveni
         return (int)round($cislo, 0);
     }
 
-    /**
-     * @var int
-     */
-    private $rok;
-    /**
-     * @var \DateTimeImmutable
-     */
-    private $ted;
+    private int $rok;
+    private \DateTimeImmutable $ted;
     private bool $jsmeNaBete;
     private bool $jsmeNaLocale;
 
@@ -92,7 +86,7 @@ SELECT systemove_nastaveni.klic,
        systemove_nastaveni.datovy_typ,
        systemove_nastaveni.aktivni
 FROM systemove_nastaveni
-SQL
+SQL,
             );
         } catch (\mysqli_sql_exception $exception) {
             if ($exception->getCode() === 1049) { // Unknown database
@@ -159,7 +153,7 @@ UPDATE systemove_nastaveni
 SET hodnota = $1
 WHERE klic = $2
 SQL,
-            [$this->formatujHodnotuProDb($hodnota, $klic), $klic]
+            [$this->formatujHodnotuProDb($hodnota, $klic), $klic],
         );
         dbQuery(<<<SQL
 INSERT INTO systemove_nastaveni_log(id_uzivatele, id_nastaveni, hodnota)
@@ -167,7 +161,7 @@ SELECT $1, id_nastaveni, hodnota
 FROM systemove_nastaveni
 WHERE klic = $2
 SQL,
-            [$editujici->id(), $klic]
+            [$editujici->id(), $klic],
         );
         return dbNumRows($updateQuery);
     }
@@ -178,7 +172,7 @@ UPDATE systemove_nastaveni
 SET aktivni = $1
 WHERE klic = $2
 SQL,
-            [$aktivni, $klic]
+            [$aktivni, $klic],
         );
         dbQuery(<<<SQL
 INSERT INTO systemove_nastaveni_log(id_uzivatele, id_nastaveni, aktivni)
@@ -186,7 +180,7 @@ SELECT $1, id_nastaveni, aktivni
 FROM systemove_nastaveni
 WHERE klic = $2
 SQL,
-            [$editujici->id(), $klic]
+            [$editujici->id(), $klic],
         );
         return dbNumRows($updateQuery);
     }
@@ -223,7 +217,7 @@ SQL,
             $datoveTypy = dbArrayCol(<<<SQL
 SELECT klic, datovy_typ
 FROM systemove_nastaveni
-SQL
+SQL,
             );
         }
         return $datoveTypy[$klic] ?? null;
@@ -293,7 +287,7 @@ SQL;
             $this->pridejVychoziHodnoty(
                 dbFetchAll(
                     $this->dejSqlNaZaVsechnyZaznamyNastaveni(['systemove_nastaveni.klic IN ($1)']),
-                    [$klice]
+                    [$klice],
                 )
             )
         );

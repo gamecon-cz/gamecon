@@ -1,11 +1,11 @@
 <?php
 
+use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
 use Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImporter;
 use Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImportLogger;
 use Gamecon\Mutex\Mutex;
+use Gamecon\Role\Zidle;
 use Gamecon\Vyjimkovac\Logovac;
-use Gamecon\Zidle;
-use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
 
 /** @var \Gamecon\XTemplate\XTemplate $template */
 /** @var \Gamecon\Admin\Modules\Aktivity\GoogleSheets\GoogleDriveService $googleDriveService */
@@ -36,7 +36,7 @@ if (!empty($_POST['googleSheetId'])) {
         $googleSheetsService,
         $urlNaEditaciAktivity,
         $now,
-        URL_ADMIN . '/prava/' . Zidle::VYPRAVEC,
+        URL_ADMIN . '/prava/' . Zidle::LETOSNI_VYPRAVEC,
         $vyjimkovac,
         Mutex::proAktivity(),
         URL_ADMIN . '/web/chyby',

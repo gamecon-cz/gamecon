@@ -9,8 +9,8 @@ $dbTransactionDepth = 0;
 /**
  * Load one column into array in $id => $value manner
  */
-function dbArrayCol($q, $param = null) {
-    $a = dbQueryS($q, $param);
+function dbArrayCol($q, $param = null, mysqli $mysqli = null) {
+    $a = dbQueryS($q, $param, $mysqli);
     $o = [];
     while ($r = mysqli_fetch_row($a)) {
         $o[$r[0]] = $r[1];
@@ -62,22 +62,22 @@ function dbRollback() {
 }
 
 /**
- * @param bool $selectDb if database should be selected on connect or not
  * @throws ConnectionException
  */
-function dbConnect($selectDb = true, bool $reconnect = false) {
+function dbConnect($selectDb = true, bool $reconnect = false, int $rok = ROK): \mysqli {
     global $spojeni;
 
     if ($reconnect && $spojeni) {
         mysqli_close($spojeni);
         $spojeni = null;
-    } else
+    }
 
-        if ($spojeni instanceof mysqli) {
-            return $spojeni;
-        }
+    if ($spojeni instanceof mysqli) {
+        return $spojeni;
+    }
 
-    $spojeni = _dbConnect(
+    $stareSpojeni = $spojeni;
+    $noveSpojeni = _dbConnect(
         DB_SERV,
         DB_USER,
         DB_PASS,
@@ -85,8 +85,10 @@ function dbConnect($selectDb = true, bool $reconnect = false) {
         $selectDb ? DB_NAME : null,
         $reconnect
     );
-
-    return $spojeni;
+    if ($noveSpojeni && $stareSpojeni !== $noveSpojeni) {
+        dbQuery('SET @rocnik = IF(@rocnik IS NOT NULL, @rocnik, $0)', $rok, $noveSpojeni);
+    }
+    return $noveSpojeni;
 }
 
 /**
@@ -465,11 +467,12 @@ function dbOneLine($q, $p = null): array {
 /**
  * @param string $query
  * @param array $params
+ * @param mysqli|null $mysqli
  * @return array
  * @throws DbException
  */
-function dbFetchAll(string $query, array $params = []): array {
-    $result        = dbQuery($query, $params);
+function dbFetchAll(string $query, array $params = [], mysqli $mysqli = null): array {
+    $result        = dbQuery($query, $params, $mysqli);
     $resultAsArray = [];
     while ($row = mysqli_fetch_assoc($result)) {
         $resultAsArray[] = $row;
@@ -510,7 +513,7 @@ function dbFetchSingle(string $query, array $params = []) {
  */
 function dbQuery($q, $param = null, mysqli $mysqli = null): bool|mysqli_result {
     if ($param) {
-        return dbQueryS($q, $param);
+        return dbQueryS($q, (array)$param, $mysqli);
     }
     global $dbLastQ, $dbNumQ, $dbExecTime;
     $mysqli  = $mysqli ?? dbConnect();
@@ -535,9 +538,9 @@ function dbQuery($q, $param = null, mysqli $mysqli = null): bool|mysqli_result {
  * Dotaz s nahrazováním jmen proměnných, pokud je nastaveno pole, tak jen z
  * pole ve forme $0 $1 atd resp $index
  */
-function dbQueryS($q, array $pole = null) {
+function dbQueryS($q, array $pole = null, mysqli $mysqli = null) {
     if (!$pole) {
-        return dbQuery($q);
+        return dbQuery($q, null, $mysqli);
     }
     $delta = !str_contains($q, '$0')
         ? -1
@@ -549,7 +552,9 @@ function dbQueryS($q, array $pole = null) {
                 return dbQv($pole[$matches['cislo_parametru'] + $delta]);
             },
             $q
-        )
+        ),
+        null,
+        $mysqli
     );
 }
 

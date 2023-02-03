@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\XTemplate\XTemplate;
+use Gamecon\Role\Zidle;
 
 /**
  * nazev: Promlčení zůstatků
@@ -14,18 +15,18 @@ use Gamecon\XTemplate\XTemplate;
 $p = new XTemplate('promlceni.xtpl');
 
 $p->assign([
-    'castka' => 0,
+    'castka'   => 0,
     'pocetLet' => 3,
 ]);
 
 // provede promlčení zůstatku
 if (post('promlcet')) {
-    $idAdm = $u->id();
+    $idAdm    = $u->id();
     $idsArray = post('ids');
-    $ids = explode(",", $idsArray);
+    $ids      = explode(",", $idsArray);
 
     $pocet = count($ids);
-    $suma = 0;
+    $suma  = 0;
 
     foreach ($ids as $id) {
         $odpoved = dbOneLine('
@@ -35,7 +36,7 @@ if (post('promlcet')) {
     ', [$id]);
 
         $zustatek = $odpoved['zustatek'];
-        $suma += $zustatek;
+        $suma     += $zustatek;
 
         try {
             dbQuery('UPDATE uzivatele_hodnoty SET zustatek = 0 WHERE id_uzivatele = $0', [$id]);
@@ -44,7 +45,7 @@ if (post('promlcet')) {
         }
 
         $soubor = SPEC . '/promlceni.log';
-        $cas = date('Y-m-d H:i:s');
+        $cas    = date('Y-m-d H:i:s');
         $zprava = "Promlčení provedl admin s id:          $idAdm";
         file_put_contents($soubor, "$cas $zprava\n", FILE_APPEND);
         $zprava = "Promlčení zůstatku pro uživatele s id: $id";
@@ -71,15 +72,17 @@ if (post('pripravit')) {
         chyba('Zadejte hranici let jako celé číslo větší než 0');
     }
 
-    $castka = post('castka');
+    $castka   = post('castka');
     $pocetLet = post('pocetLet') * (-1);  // v sql dotazu se odečítá počet let
 
     $p->assign([
-        'castka' => $castka,
+        'castka'   => $castka,
         'pocetLet' => $pocetLet * (-1),  // pevedení na kladné číslo do formuláře
     ]);
 
-    $o = dbQuery(
+    $ucast    = Zidle::TYP_UCAST;
+    $pritomen = Zidle::VYZNAM_PRITOMEN;
+    $o        = dbQuery(
         "SELECT
     u.id_uzivatele AS uzivatel,
     jmeno_uzivatele AS jmeno,
@@ -89,33 +92,34 @@ if (post('pripravit')) {
     pohyb.datum AS pohyb
   FROM uzivatele_hodnoty u
   LEFT JOIN (
-    SELECT id_uzivatele, group_concat(2000-(id_zidle div 100)
-    ORDER BY id_zidle DESC) AS roky,
-    COUNT(id_zidle) AS pocet
-    FROM r_uzivatele_zidle
-    WHERE id_zidle < 0 AND id_zidle % 100 = -2
+    SELECT id_uzivatele, GROUP_CONCAT(zidle.rok ORDER BY zidle.rok ASC) AS roky,
+    COUNT(*) AS pocet
+    FROM letos_platne_zidle_uzivatelu
+    JOIN r_zidle_soupis AS zidle ON letos_platne_zidle_uzivatelu.id_zidle = zidle.id_zidle
+    WHERE zidle.typ = '$ucast' AND zidle.vyznam = '$pritomen'
     GROUP BY id_uzivatele
-  ) ucast ON ucast.id_uzivatele = u.id_uzivatele
+  ) AS ucast ON ucast.id_uzivatele = u.id_uzivatele
   LEFT JOIN (
     SELECT id_uzivatele, MAX(provedeno) AS datum
     FROM platby
     WHERE castka > 0
     GROUP BY id_uzivatele
-  ) pohyb ON pohyb.id_uzivatele = u.id_uzivatele
+  ) AS pohyb ON pohyb.id_uzivatele = u.id_uzivatele
   WHERE
-    zustatek > $1 AND
-    pohyb.datum < DATE_ADD(CURRENT_DATE, INTERVAL $2 YEAR)", [$castka, $pocetLet]
+    zustatek > $0 AND
+    pohyb.datum < DATE_ADD(CURRENT_DATE, INTERVAL $1 YEAR)",
+        [0 => $castka, 1 => $pocetLet]
     );
 
     $ids = [];
     while ($r = mysqli_fetch_assoc($o)) {
         $p->assign([
-            'id' => $r['uzivatel'],
-            'jmeno' => $r['jmeno'],
+            'id'       => $r['uzivatel'],
+            'jmeno'    => $r['jmeno'],
             'prijmeni' => $r['prijmeni'],
-            'stav' => $r['zustatek'],
-            'ucast' => $r['ucast'],
-            'pohyb' => $r['pohyb'],
+            'stav'     => $r['zustatek'],
+            'ucast'    => $r['ucast'],
+            'pohyb'    => $r['pohyb'],
         ]);
         $p->parse('promlceni.detaily');
         $ids[] = $r['uzivatel'];

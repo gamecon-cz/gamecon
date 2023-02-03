@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Shop\Shop;
+use Gamecon\Role\Zidle;
 
 require __DIR__ . '/sdilene-hlavicky.php';
 
@@ -8,7 +9,7 @@ $typTricko = Shop::TRICKO;
 $typPredmet = Shop::PREDMET;
 $typJidlo = Shop::JIDLO;
 $rok = ROK;
-$idckaZidliSOrganizatorySql = implode(',', \Gamecon\Zidle::dejIdckaZidliSOrganizatory());
+$idckaZidliSOrganizatorySql = implode(',', Zidle::dejIdckaZidliSOrganizatory());
 
 $poddotazKoupenehoPredmetu = static function (string $klicoveSlovo, int $idTypuPredmetu, int $rok, bool $prilepitRokKNazvu) {
     $rokKNazvu = $prilepitRokKNazvu
@@ -35,7 +36,7 @@ SELECT uzivatele_hodnoty.id_uzivatele,
        uzivatele_hodnoty.login_uzivatele,
        uzivatele_hodnoty.jmeno_uzivatele,
        uzivatele_hodnoty.prijmeni_uzivatele,
-       IF (COUNT(r_uzivatele_zidle.id_zidle) > 0, 'org', '') AS role,
+       IF (COUNT(letos_platne_zidle_uzivatelu.id_zidle) > 0, 'org', '') AS role,
        {$poddotazKoupenehoPredmetu('', $typTricko, $rok, false)} AS tricka,
        {$poddotazKoupenehoPredmetu('kostka', $typPredmet, $rok, true)} AS kostky,
        {$poddotazKoupenehoPredmetu('placka', $typPredmet, $rok, false)} AS placky,
@@ -44,7 +45,9 @@ SELECT uzivatele_hodnoty.id_uzivatele,
        {$poddotazKoupenehoPredmetu('ponožky', $typPredmet, $rok, false)} AS ponozky,
        IF ({$poddotazKoupenehoPredmetu('', $typJidlo, $rok, false)} IS NULL, '', 'stravenky') AS stravenky
 FROM uzivatele_hodnoty
-LEFT JOIN r_uzivatele_zidle ON uzivatele_hodnoty.id_uzivatele = r_uzivatele_zidle.id_uzivatele AND r_uzivatele_zidle.id_zidle IN ($idckaZidliSOrganizatorySql)
+LEFT JOIN letos_platne_zidle_uzivatelu
+    ON uzivatele_hodnoty.id_uzivatele = letos_platne_zidle_uzivatelu.id_uzivatele
+       AND letos_platne_zidle_uzivatelu.id_zidle IN ($idckaZidliSOrganizatorySql)
 GROUP BY uzivatele_hodnoty.id_uzivatele
 SQL
 );

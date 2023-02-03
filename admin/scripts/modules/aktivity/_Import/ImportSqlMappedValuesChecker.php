@@ -7,6 +7,7 @@ use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Aktivita\StavAktivity;
+use Gamecon\Role\Zidle;
 
 class ImportSqlMappedValuesChecker
 {
@@ -548,19 +549,19 @@ SQL,
         $occupiedStorytellers    = dbArrayCol(<<<SQL
 SELECT id_uzivatele, activity_ids
 FROM (
-SELECT akce_organizatori.id_uzivatele,
-       GROUP_CONCAT(DISTINCT akce_organizatori.id_akce SEPARATOR ',') AS activity_ids,
-       FIND_IN_SET($4, GROUP_CONCAT(DISTINCT id_zidle SEPARATOR ',')) AS user_is_group_in_fact
-FROM akce_organizatori
-JOIN akce_seznam ON akce_organizatori.id_akce = akce_seznam.id_akce
-LEFT JOIN r_uzivatele_zidle on akce_organizatori.id_uzivatele = r_uzivatele_zidle.id_uzivatele
-WHERE
-    /* povolit navazování aktivit přímo na sebe pro téhož vypravěče
-       https://trello.com/c/bGIZcH9N/792-hromadn%C3%A9-vkl%C3%A1d%C3%A1n%C3%AD-do-adminu-v11 */
-    ($1 < akce_seznam.konec /* importovaná aktivita začíná před koncem nějaké už existující */
-        AND $2 > akce_seznam.zacatek /* importovaná aktivita končí po začátku té už existující */)
-    AND CASE WHEN $3 IS NULL THEN TRUE ELSE akce_seznam.id_akce != $3 END
-GROUP BY akce_organizatori.id_uzivatele
+    SELECT akce_organizatori.id_uzivatele,
+           GROUP_CONCAT(DISTINCT akce_organizatori.id_akce SEPARATOR ',') AS activity_ids,
+           FIND_IN_SET($4, GROUP_CONCAT(DISTINCT zidle_uzivatelu.id_zidle SEPARATOR ',')) AS user_is_group_in_fact
+    FROM akce_organizatori
+    JOIN akce_seznam ON akce_organizatori.id_akce = akce_seznam.id_akce
+    LEFT JOIN letos_platne_zidle_uzivatelu AS zidle_uzivatelu ON akce_organizatori.id_uzivatele = zidle_uzivatelu.id_uzivatele
+    WHERE
+        /* povolit navazování aktivit přímo na sebe pro téhož vypravěče
+           https://trello.com/c/bGIZcH9N/792-hromadn%C3%A9-vkl%C3%A1d%C3%A1n%C3%AD-do-adminu-v11 */
+        $1 < akce_seznam.konec /* importovaná aktivita začíná před koncem nějaké už existující */
+        AND $2 > akce_seznam.zacatek /* importovaná aktivita končí po začátku té už existující */
+        AND IF($3 IS NULL, TRUE, akce_seznam.id_akce != $3)
+    GROUP BY akce_organizatori.id_uzivatele
 ) AS with_groups_as_users
 /* umožnit kolizi aktivit vedených vypravěčskou skupinou
    https://trello.com/c/bGIZcH9N/792-hromadn%C3%A9-vkl%C3%A1d%C3%A1n%C3%AD-do-adminu-v11 */
@@ -570,7 +571,7 @@ SQL
                 $zacatek->formatDb(),
                 $konec->formatDb(),
                 $originalActivity ? $originalActivity->id() : null,
-                ZIDLE_ORG_SKUPINA,
+                Zidle::VYPRAVECSKA_SKUPINA,
                 $originalActivity ? $originalActivity->dejOrganizatoriIds() : null,
             ]
         );

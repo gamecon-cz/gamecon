@@ -1,15 +1,18 @@
 <?php
 
+use Gamecon\Role\Zidle;
+
 require __DIR__ . '/sdilene-hlavicky.php';
 
-// záměrně jsou zahrnutí i uživatelé co nechtějí maily
-$o = '
-  SELECT u.email1_uzivatele
-  FROM uzivatele_hodnoty u
-  JOIN r_uzivatele_zidle uz ON uz.id_uzivatele = u.id_uzivatele AND uz.id_zidle = ' . ZIDLE_ORG_AKTIVIT . '
-  WHERE u.email1_uzivatele LIKE "%@%"
-  ORDER BY u.email1_uzivatele
-';
+// Záměrně jsou zahrnutí i uživatelé co nechtějí maily – pokud už se přihlásili, musíme mít možnost je informovat o daném GC.
+$query = <<<SQL
+SELECT uzivatele_hodnoty.email1_uzivatele
+FROM uzivatele_hodnoty
+JOIN letos_platne_zidle_uzivatelu AS zidle_uzivatelu
+    ON zidle_uzivatelu.id_uzivatele = uzivatele_hodnoty.id_uzivatele AND zidle_uzivatelu.id_zidle = $0 -- přihlášen na letošní GC
+WHERE uzivatele_hodnoty.email1_uzivatele LIKE '%@%'
+ORDER BY uzivatele_hodnoty.email1_uzivatele
+SQL;
 
-$report = Report::zSql($o);
+$report = Report::zSql($query, [0 => Zidle::LETOSNI_VYPRAVEC]);
 $report->tFormat(get('format'));

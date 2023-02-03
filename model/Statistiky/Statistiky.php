@@ -5,7 +5,7 @@ namespace Gamecon\Statistiky;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Pravo;
-use Gamecon\Zidle;
+use Gamecon\Role\Zidle;
 use Gamecon\Shop\Shop;
 
 class Statistiky
@@ -75,7 +75,7 @@ SELECT
 ORDER BY den
 SQL,
             [
-                Zidle::prihlasenNaGcRoku($rok),
+                Zidle::PRIHLASEN_NA_LETOSNI_GC($rok),
                 \Uzivatel::POSAZEN,
                 \Uzivatel::SESAZEN,
                 $zacatekRegistraci,
@@ -114,7 +114,7 @@ SQL,
 
     public function tabulkaUcastiHtml(): string {
         $sledovaneZidle = array_merge(
-            [Zidle::prihlasenNaGcRoku($this->letosniRok), Zidle::pritomenNaGcRoku($this->letosniRok)],
+            [Zidle::PRIHLASEN_NA_LETOSNI_GC($this->letosniRok), Zidle::PRITOMEN_NA_LETOSNIM_GC($this->letosniRok)],
             dbOneArray(
                 'SELECT id_zidle FROM r_prava_zidle WHERE id_prava = $0',
                 [Pravo::ZOBRAZOVAT_VE_STATISTIKACH_V_TABULCE_UCASTI]
@@ -136,7 +136,7 @@ WHERE zidle.id_zidle IN ($1)
 GROUP BY zidle.id_zidle, zidle.jmeno_zidle
 ORDER BY SUBSTR(zidle.jmeno_zidle, 1, 10), zidle.id_zidle
 SQL, [
-            Zidle::prihlasenNaGcRoku($this->letosniRok),
+            Zidle::PRIHLASEN_NA_LETOSNI_GC($this->letosniRok),
             $sledovaneZidle,
         ]), 'Účast');
     }
@@ -216,7 +216,7 @@ ORDER BY ubytovani_den
 SQL, [
             0 => $this->letosniRok,
             1 => Shop::UBYTOVANI,
-            2 => Zidle::prihlasenNaGcRoku($this->letosniRok),
+            2 => Zidle::PRIHLASEN_NA_LETOSNI_GC($this->letosniRok),
         ]), 'Ubytování dny');
     }
 
@@ -259,7 +259,7 @@ SQL,
     JOIN uzivatele_hodnoty AS uzivatele ON uzivatele_zidle.id_uzivatele=uzivatele.id_uzivatele
     WHERE uzivatele_zidle.id_zidle = $0
 SQL,
-            [Zidle::prihlasenNaGcRoku($this->letosniRok)]
+            [Zidle::PRIHLASEN_NA_LETOSNI_GC($this->letosniRok)]
         ),
             'Pohlaví'
         );
@@ -337,6 +337,9 @@ SQL,
     }
 
     public function tabulkaHistorieRegistrovaniVsDoraziliHtml(): string {
+        $prihlasen = Zidle::VYZNAM_PRIHLASEN;
+        $pritomen = Zidle::VYZNAM_PRITOMEN;
+        $ucast = Zidle::TYP_UCAST;
         return tabMysqlR(dbQuery(<<<SQL
 SELECT
     rok AS ' ', -- formátování
@@ -437,28 +440,30 @@ FROM (
             WHEN {$this->letosniRok} THEN SUM(IF(dorazeni AND EXISTS(SELECT * FROM r_uzivatele_zidle WHERE r_uzivatele_zidle.id_uzivatele = podle_roku.id_uzivatele AND r_uzivatele_zidle.id_zidle = $2), 1 , 0))
             ELSE SUM(IF(dorazeni AND EXISTS(
                 SELECT * FROM r_uzivatele_zidle_log AS posazen
-                    LEFT JOIN r_uzivatele_zidle_log AS sesazen ON sesazen.id_zidle = posazen.id_zidle AND sesazen.id_uzivatele =posazen.id_uzivatele AND sesazen.kdy > posazen.kdy AND sesazen.zmena = $4
+                    LEFT JOIN r_uzivatele_zidle_log AS sesazen ON sesazen.id_zidle = posazen.id_zidle AND sesazen.id_uzivatele = posazen.id_uzivatele AND sesazen.kdy > posazen.kdy AND sesazen.zmena = $4
                 WHERE posazen.zmena = $3 AND sesazen.id_uzivatele IS NULL /* neexistuje novější záznam */ AND posazen.id_uzivatele = podle_roku.id_uzivatele AND posazen.id_zidle = $2
             ), 1 , 0)) END
         AS vypravěči
     FROM (
         SELECT
-            2000 - (uzivatele_zidle.id_zidle DIV 100) AS rok,
+            zidle.rok,
             uzivatele_zidle.id_zidle,
-            id_zidle % 100 = -1 AS registrace,
-            id_zidle % 100 = -2 AS dorazeni,
+            zidle.vyznam = '$prihlasen' AS registrace,
+            zidle.vyznam = '$pritomen' AS dorazeni,
             uzivatele_zidle.id_uzivatele
             FROM r_uzivatele_zidle AS uzivatele_zidle
-            WHERE uzivatele_zidle.id_zidle < 0
+            JOIN r_zidle_soupis AS zidle
+                ON uzivatele_zidle.id_zidle = zidle.id_zidle
+            WHERE zidle.typ = '$ucast'
     ) AS podle_roku
     GROUP BY rok
 ) AS pocty
 SQL, [
-            Zidle::ORGANIZATOR,
-            Zidle::ZAZEMI,
-            Zidle::VYPRAVEC,
-            \Uzivatel::POSAZEN,
-            \Uzivatel::SESAZEN,
+            0 => Zidle::ORGANIZATOR,
+            1 => Zidle::LETOSNI_ZAZEMI,
+            2 => Zidle::LETOSNI_VYPRAVEC,
+            3 => \Uzivatel::POSAZEN,
+            4 => \Uzivatel::SESAZEN,
         ]), 'Registrovaní vs Dorazili');
     }
 

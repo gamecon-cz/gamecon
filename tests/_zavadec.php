@@ -24,10 +24,7 @@ dbQuery(sprintf('USE `%s`', DB_NAME));
     'doBackups'           => false,
 ])))->run();
 
-$sqlMode = dbFetchSingle('SELECT @@SESSION.sql_mode');
-// vypneme kontrolu "Field 'cena' doesn't have a default value"
-$sqlMode = preg_replace('~STRICT_TRANS_TABLES,?~', '', $sqlMode);
-dbQuery("SET SESSION sql_mode = '$sqlMode'");
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 DbTest::setConnection(new DbWrapper());
 

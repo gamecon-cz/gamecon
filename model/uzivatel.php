@@ -1,14 +1,14 @@
 <?php
 
+use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Cas\DateTimeCz;
-use Gamecon\Shop\Shop;
-use Gamecon\Aktivita\Aktivita;
+use Gamecon\Kanaly\GcMail;
 use Gamecon\Pravo;
-use Gamecon\Zidle;
+use Gamecon\Role\Zidle;
+use Gamecon\Shop\Shop;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\XTemplate\XTemplate;
-use Gamecon\Kanaly\GcMail;
 
 /**
  * Třída popisující uživatele a jeho vlastnosti
@@ -47,8 +47,8 @@ SQL
         $ids = dbOneArray(<<<SQL
 SELECT DISTINCT uzivatele_hodnoty.id_uzivatele
 FROM uzivatele_hodnoty
-JOIN r_uzivatele_zidle ON uzivatele_hodnoty.id_uzivatele = r_uzivatele_zidle.id_uzivatele
-JOIN r_prava_zidle ON r_uzivatele_zidle.id_zidle = r_prava_zidle.id_zidle
+JOIN letos_platne_zidle_uzivatelu ON uzivatele_hodnoty.id_uzivatele = letos_platne_zidle_uzivatelu.id_uzivatele
+JOIN r_prava_zidle ON letos_platne_zidle_uzivatelu.id_zidle = r_prava_zidle.id_zidle
 WHERE r_prava_zidle.id_prava = $1
 SQL
             , [\Gamecon\Pravo::PORADANI_AKTIVIT]
@@ -351,12 +351,12 @@ SQL,
         if (!$this->gcPritomen()) {
             return false; // ani nedorazil, nemohl odjet
         }
-        return $this->maZidli(ZIDLE_ODJEL);
+        return $this->maZidli(Zidle::ODJEL_Z_LETOSNIHO_GC);
     }
 
     /** Je uživatel přihlášen na aktuální GC? */
     public function gcPrihlasen() {
-        return $this->maPravo(ID_PRAVO_PRIHLASEN);
+        return $this->maZidli(Zidle::PRIHLASEN_NA_LETOSNI_GC);
     }
 
     /** Příhlásí uživatele na GC */
@@ -371,7 +371,7 @@ SQL,
     /** Prošel uživatel infopultem, dostal materiály a je nebo byl přítomen na aktuálím
      *  GC? */
     public function gcPritomen() {
-        return $this->maPravo(ID_PRAVO_PRITOMEN);
+        return $this->maZidli(Zidle::PRITOMEN_NA_LETOSNIM_GC);
     }
 
     /**
@@ -387,15 +387,20 @@ SQL,
      */
     public function historiePrihlaseni() {
         if (!isset($this->historiePrihlaseni)) {
-            $q                        = dbQuery('
-        SELECT 2000 - (id_zidle DIV 100) AS "rok"
-        FROM r_uzivatele_zidle
-        WHERE id_zidle < 0 AND id_zidle MOD 100 = -1 AND id_uzivatele = $0
-      ', [$this->id()]);
-            $roky                     = mysqli_fetch_all($q);
-            $roky                     = array_map(function ($e) {
-                return (int)$e[0];
-            }, $roky);
+            $ucast                    = Zidle::TYP_UCAST;
+            $prihlasen                = Zidle::VYZNAM_PRIHLASEN;
+            $q                        = dbQuery(<<<SQL
+SELECT zidle.rok
+FROM r_uzivatele_zidle AS uzivatele_zidle
+JOIN r_zidle_soupis AS zidle
+    ON uzivatele_zidle.id_zidle = zidle.id_zidle
+WHERE uzivatele_zidle.id_uzivatele = $0
+    AND zidle.typ = '$ucast'
+    AND zidle.vyznam = '$prihlasen'
+SQL,
+                [$this->id()]);
+            $rokyWrapped              = mysqli_fetch_all($q);
+            $roky                     = array_map(fn($e) => (int)$e[0], $rokyWrapped);
             $this->historiePrihlaseni = $roky;
         }
         return $this->historiePrihlaseni;
@@ -515,11 +520,11 @@ SQL,
     }
 
     public function jeBrigadnik(): bool {
-        return $this->maZidli(Zidle::BRIGADNIK);
+        return $this->maZidli(Zidle::LETOSNI_BRIGADNIK);
     }
 
     public function jeVypravec(): bool {
-        return $this->maZidli(Zidle::VYPRAVEC);
+        return $this->maZidli(Zidle::LETOSNI_VYPRAVEC);
     }
 
     public function jeOrganizator(): bool {
@@ -527,11 +532,11 @@ SQL,
     }
 
     public function jePartner(): bool {
-        return $this->maZidli(Zidle::PARTNER);
+        return $this->maZidli(Zidle::LETOSNI_PARTNER);
     }
 
     public function jeInfopultak(): bool {
-        return $this->maZidli(Zidle::INFOPULT);
+        return $this->maZidli(Zidle::LETOSNI_INFOPULT);
     }
 
     public function jeSpravceFinanci(): bool {
@@ -622,7 +627,7 @@ SQL,
      */
     public function dejIdsZidli(): array {
         if (!isset($this->idZidli)) {
-            $zidle         = dbOneArray('SELECT id_zidle FROM r_uzivatele_zidle WHERE id_uzivatele = ' . $this->id());
+            $zidle         = dbOneArray('SELECT id_zidle FROM letos_platne_zidle_uzivatelu WHERE id_uzivatele = ' . $this->id());
             $this->idZidli = array_map('intval', $zidle);
         }
         return $this->idZidli;
@@ -653,9 +658,9 @@ SQL,
             //načtení uživatelských práv
             $p     = dbQuery(<<<SQL
                 SELECT r_prava_zidle.id_prava
-                FROM r_uzivatele_zidle
+                FROM letos_platne_zidle_uzivatelu
                 LEFT JOIN r_prava_zidle USING(id_zidle)
-                WHERE r_uzivatele_zidle.id_uzivatele=$0
+                WHERE letos_platne_zidle_uzivatelu.id_uzivatele=$0
                 SQL,
                 [0 => $this->id()]
             );
@@ -865,11 +870,12 @@ SQL,
         $uzivatelData['id_uzivatele']    = $idUzivatele;
         $_SESSION[$klic]['id_uzivatele'] = $idUzivatele;
         // načtení uživatelských práv
-        $p     = dbQuery(
-            'SELECT id_prava
-                FROM r_uzivatele_zidle uz
-                    LEFT JOIN r_prava_zidle pz USING(id_zidle)
-                WHERE uz.id_uzivatele=' . $idUzivatele
+        $p     = dbQuery(<<<SQL
+SELECT id_prava
+FROM letos_platne_zidle_uzivatelu
+    LEFT JOIN r_prava_zidle ON letos_platne_zidle_uzivatelu.id_zidle = r_prava_zidle.id_zidle
+WHERE letos_platne_zidle_uzivatelu.id_uzivatele={$idUzivatele}
+SQL
         );
         $prava = []; // inicializace nutná, aby nepadala výjimka pro uživatele bez práv
         while ($r = mysqli_fetch_assoc($p)) {
@@ -896,7 +902,7 @@ SQL,
         $_SESSION[$klic]['id_uzivatele'] = $idUzivatele;
         //načtení uživatelských práv
         $p     = dbQuery(
-            'SELECT id_prava FROM r_uzivatele_zidle uz LEFT JOIN r_prava_zidle pz USING(id_zidle) WHERE uz.id_uzivatele=' . $idUzivatele
+            'SELECT id_prava FROM letos_platne_zidle_uzivatelu uz LEFT JOIN r_prava_zidle pz USING(id_zidle) WHERE uz.id_uzivatele=' . $idUzivatele
         );
         $prava = []; //inicializace nutná, aby nepadala výjimka pro uživatele bez práv
         while ($r = mysqli_fetch_assoc($p)) {
@@ -1192,25 +1198,25 @@ SQL,
         if ($this->maPravo(Pravo::TITUL_ORGANIZATOR)) {
             $status [] = '<span style="color:red">Organizátor' . $ka . '</span>';
         }
-        if ($this->maZidli(Zidle::VYPRAVEC)) {
+        if ($this->maZidli(Zidle::LETOSNI_VYPRAVEC)) {
             $status[] = '<span style="color:blue">Vypravěč' . $ka . '</span>';
         }
         if ($this->jePartner()) {
             $status[] = '<span style="color:darkslateblue">Partner' . $ka . '</span>';
         }
-        if ($this->maZidli(Zidle::INFOPULT)) {
+        if ($this->maZidli(Zidle::LETOSNI_INFOPULT)) {
             $status[] = '<span style="color:orange">Infopult</span>';
         }
-        if ($this->maZidli(Zidle::HERMAN)) {
+        if ($this->maZidli(Zidle::LETOSNI_HERMAN)) {
             $status[] = '<span style="color:orange">Herman</span>';
         }
-        if ($this->maZidli(Zidle::BRIGADNIK)) {
+        if ($this->maZidli(Zidle::LETOSNI_BRIGADNIK)) {
             $status[] = '<span style="color:yellowgreen">Brigádník</span>';
         }
-        if ($this->maZidli(ZIDLE_ZAZEMI)) {
+        if ($this->maZidli(Zidle::LETOSNI_ZAZEMI)) {
             $status[] = "Zázemí";
         }
-        if ($this->maZidli(Zidle::DOBROVOLNIK_SENIOR)) {
+        if ($this->maZidli(Zidle::LETOSNI_DOBROVOLNIK_SENIOR)) {
             $status[] = "Dobrovolník senior";
         }
         if (count($status) > 0) {
@@ -1491,8 +1497,8 @@ SQL,
         return self::zWhere('
       WHERE u.id_uzivatele IN(
         SELECT id_uzivatele
-        FROM r_uzivatele_zidle
-        WHERE id_zidle = ' . ZIDLE_PRIHLASEN . '
+        FROM letos_platne_zidle_uzivatelu
+        WHERE id_zidle = ' . Zidle::PRIHLASEN_NA_LETOSNI_GC . '
       )
     ');
     }
@@ -1571,7 +1577,7 @@ SQL,
         (SELECT url FROM uzivatele_url WHERE uzivatele_url.id_uzivatele = u.id_uzivatele ORDER BY id_url_uzivatele DESC LIMIT 1) AS url,
         GROUP_CONCAT(DISTINCT p.id_prava) as prava
       FROM uzivatele_hodnoty u
-      LEFT JOIN r_uzivatele_zidle z ON(z.id_uzivatele = u.id_uzivatele)
+      LEFT JOIN letos_platne_zidle_uzivatelu z ON(z.id_uzivatele = u.id_uzivatele)
       LEFT JOIN r_prava_zidle p ON(p.id_zidle = z.id_zidle)
       ' . $where . '
       GROUP BY u.id_uzivatele
@@ -1590,23 +1596,6 @@ SQL,
         return self::nactiUzivatele( // WHERE nelze, protože by se omezily načítané práva uživatele
             'JOIN r_uzivatele_zidle z2 ON (z2.id_zidle = ' . dbQv($id) . ' AND z2.id_uzivatele = u.id_uzivatele)'
         );
-    }
-
-    /**
-     * @param int $idZidle
-     * @return int[]
-     */
-    public static function idsZeZidle(int $idZidle): array {
-        $uzivateleIds = dbArrayCol(<<<SQL
-SELECT uzivatele_hodnoty.id_uzivatele
-FROM uzivatele_hodnoty
-JOIN r_uzivatele_zidle on uzivatele_hodnoty.id_uzivatele = r_uzivatele_zidle.id_uzivatele
-WHERE id_zidle = $1
-SQL,
-            $idZidle
-        );
-
-        return array_map('intval', $uzivateleIds);
     }
 
     ///////////////////////////////// Protected //////////////////////////////////
@@ -1634,7 +1623,7 @@ SQL,
         -- p.id_prava,
         GROUP_CONCAT(DISTINCT p.id_prava) as prava
       FROM uzivatele_hodnoty u
-      LEFT JOIN r_uzivatele_zidle z ON(z.id_uzivatele=u.id_uzivatele)
+      LEFT JOIN letos_platne_zidle_uzivatelu z ON(z.id_uzivatele=u.id_uzivatele)
       LEFT JOIN r_prava_zidle p ON(p.id_zidle=z.id_zidle)
       LEFT JOIN uzivatele_url ON u.id_uzivatele = uzivatele_url.id_uzivatele
       ' . $where . '
@@ -1846,9 +1835,9 @@ SQL,
         }
         if (!$this->kdySeRegistrovalNaLetosniGc) {
             $hodnota                           = dbOneCol(<<<SQL
-SELECT posazen FROM r_uzivatele_zidle WHERE id_uzivatele = $0 AND id_zidle = $1
+SELECT posazen FROM letos_platne_zidle_uzivatelu WHERE id_uzivatele = $0 AND id_zidle = $1
 SQL,
-                [$this->id(), ID_PRAVO_PRIHLASEN]
+                [$this->id(), Zidle::PRIHLASEN_NA_LETOSNI_GC]
             );
             $this->kdySeRegistrovalNaLetosniGc = $hodnota
                 ? new DateTimeImmutable($hodnota)

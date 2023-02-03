@@ -1,6 +1,7 @@
 <?php
 
 namespace Gamecon\Aktivita;
+
 use Gamecon\Kanaly\GcMail;
 
 use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml;
@@ -8,7 +9,9 @@ use Gamecon\Cas\DateTimeCz;
 use Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImportSqlColumn;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Exceptions\ChybaKolizeAktivit;
+use Gamecon\Pravo;
 use Gamecon\PrednacitaniTrait;
+use Gamecon\Role\Zidle;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Component\Filesystem\Filesystem;
 use Gamecon\XTemplate\XTemplate;
@@ -381,7 +384,7 @@ SQL
 
         // načtení organizátorů
         if (!$omezeni || !empty($omezeni['organizator'])) {
-            self::parseUpravyTabulkaVypraveci($aktivita, $xtpl);
+            self::parseUpravyTabulkaVypraveci($aktivita, $xtpl, ROK);
         }
 
         // načtení typů
@@ -496,16 +499,23 @@ SQL
         }
     }
 
-    private static function parseUpravyTabulkaVypraveci(?Aktivita $aktivita, XTemplate $xtpl) {
-        $q          = dbQuery('
+    private static function parseUpravyTabulkaVypraveci(?Aktivita $aktivita, XTemplate $xtpl, int $rok) {
+        $q = dbQuery(<<<SQL
                 SELECT u.id_uzivatele, u.login_uzivatele, u.jmeno_uzivatele, u.prijmeni_uzivatele
                 FROM uzivatele_hodnoty u
-                LEFT JOIN r_uzivatele_zidle z USING(id_uzivatele)
-                LEFT JOIN r_prava_zidle p USING(id_zidle)
-                WHERE p.id_prava = ' . \Gamecon\Pravo::PORADANI_AKTIVIT . '
+                JOIN letos_platne_zidle_uzivatelu
+                    ON u.id_uzivatele = letos_platne_zidle_uzivatelu.id_uzivatele
+                JOIN r_prava_zidle
+                    ON letos_platne_zidle_uzivatelu.id_zidle = r_prava_zidle.id_zidle
+                WHERE r_prava_zidle.id_prava = $0
                 GROUP BY u.login_uzivatele
                 ORDER BY u.login_uzivatele
-            ');
+            SQL,
+            [
+                0 => Pravo::PORADANI_AKTIVIT,
+            ]
+        );
+
         $vsichniOrg = [];
         while ($uzivatelData = mysqli_fetch_assoc($q)) {
             $vsichniOrg[$uzivatelData['id_uzivatele']] = \Uzivatel::jmenoNickZjisti($uzivatelData);

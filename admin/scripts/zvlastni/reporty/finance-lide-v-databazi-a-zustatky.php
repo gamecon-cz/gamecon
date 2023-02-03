@@ -1,6 +1,10 @@
 <?php
 require __DIR__ . '/sdilene-hlavicky.php';
 
+use Gamecon\Role\Zidle;
+
+$ucast = Zidle::TYP_UCAST;
+
 $report = Report::zSql(<<<SQL
 SELECT
   uzivatele_hodnoty.id_uzivatele,
@@ -19,12 +23,13 @@ FROM uzivatele_hodnoty
 LEFT JOIN (
   SELECT
     id_uzivatele,
-    GROUP_CONCAT(2000-(id_zidle DIV 100) ORDER BY id_zidle DESC) AS roky,
-    COUNT(id_zidle) AS pocet
-    FROM r_uzivatele_zidle
-  WHERE id_zidle < 0 AND id_zidle % 100 = -2
+    GROUP_CONCAT(rok ORDER BY rok ASC) AS roky,
+    COUNT(r_uzivatele_zidle.id_zidle) AS pocet
+    FROM r_zidle_soupis
+    JOIN r_uzivatele_zidle ON r_zidle_soupis.id_zidle = r_uzivatele_zidle.id_zidle
+  WHERE r_zidle_soupis.typ = '$ucast'
   GROUP BY id_uzivatele
-) ucast ON ucast.id_uzivatele = uzivatele_hodnoty.id_uzivatele
+) AS ucast ON ucast.id_uzivatele = uzivatele_hodnoty.id_uzivatele
 LEFT JOIN ( -- poslední kladný pohyb na účtu
   SELECT
     id_uzivatele,
