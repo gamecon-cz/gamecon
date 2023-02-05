@@ -49,6 +49,8 @@ function nasad(array $nastaveni) {
       !/nastaveni/initial-fatal-error-handler.php
       !/nastaveni/nastaveni.php
       !/nastaveni/nastaveni-vychozi.php
+      !/nastaveni/nastaveni-prava.php
+      !/nastaveni/nastaveni-role.php
       !/nastaveni/zavadec.php
       !/nastaveni/zavadec-zaklad.php
       !/nastaveni/google_api_client_secret_produkce.json
