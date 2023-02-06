@@ -86,9 +86,11 @@ $report = !empty($data)
     ? Report::zPole($data)
     : Report::zPoli([], []);
 
+global $systemoveNastaveni;
+
 $report->tFormat(
     $formatReportu,
     'datum_hromadneho_odhlasovani_'
-    . DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani()->format(DateTimeCz::FORMAT_DB)
+    . $systemoveNastaveni->zacatekNejblizsiVlnyOdhlasovani()->format(DateTimeCz::FORMAT_DB)
     . '-' . $report->nazevReportuZRequestu()
 );

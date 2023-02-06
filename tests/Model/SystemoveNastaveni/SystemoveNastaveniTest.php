@@ -4,17 +4,23 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Model\SystemoveNastaveni;
 
+use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\SystemoveNastaveni\DatabazoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\DbTest;
 
 class SystemoveNastaveniTest extends DbTest
 {
-    protected static string $initData = '
-    # uzivatele_hodnoty
-    id_uzivatele,login_uzivatele,jmeno_uzivatele,prijmeni_uzivatele
-    48,Elden,Jakub,Jandák
-  ';
+    protected static array $initQueries = [
+        [
+            <<<SQL
+INSERT INTO uzivatele_hodnoty
+SET id_uzivatele=$0,login_uzivatele=$1,jmeno_uzivatele=$2,prijmeni_uzivatele=$3
+SQL,
+            [0 => 48, 1 => 'Elden', 2 => 'Jakub', 3 => 'Jandák'],
+        ],
+    ];
 
     public function testZmenyKurzuEura() {
         $nastaveni = SystemoveNastaveni::vytvorZGlobals();
@@ -35,7 +41,7 @@ class SystemoveNastaveniTest extends DbTest
      * @dataProvider provideVychoziHodnota
      */
     public function testVychoziHodnoty(int $rok, string $klic, string $ocekavanaHodnota) {
-        $nastaveni = $this->systemoveNastaveni($rok, new \DateTimeImmutable($rok . '-12-31 23:59:59'));
+        $nastaveni = $this->systemoveNastaveni($rok, new DateTimeImmutableStrict($rok . '-12-31 23:59:59'));
 
         self::assertSame($ocekavanaHodnota, $nastaveni->dejVychoziHodnotu($klic));
     }
@@ -57,12 +63,13 @@ class SystemoveNastaveniTest extends DbTest
 
     public function provideVychoziHodnota(): array {
         return [
-            'GC_BEZI_OD'             => [2022, 'GC_BEZI_OD', '2022-07-21 07:00:00'],
-            'GC_BEZI_DO'             => [2022, 'GC_BEZI_DO', '2022-07-24 21:00:00'],
-            'REG_GC_OD'              => [2022, 'REG_GC_OD', '2022-05-12 20:22:00'],
-            'REG_AKTIVIT_OD'         => [2022, 'REG_AKTIVIT_OD', '2022-05-19 20:22:00'],
-            'HROMADNE_ODHLASOVANI'   => [2022, 'HROMADNE_ODHLASOVANI', '2022-06-30 23:59:00'],
-            'HROMADNE_ODHLASOVANI_2' => [2022, 'HROMADNE_ODHLASOVANI_2', '2022-07-17 23:59:00'],
+            'GC_BEZI_OD'             => [2023, 'GC_BEZI_OD', '2023-07-20 07:00:00'],
+            'GC_BEZI_DO'             => [2023, 'GC_BEZI_DO', '2023-07-23 21:00:00'],
+            'REG_GC_OD'              => [2023, 'REG_GC_OD', '2023-05-18 20:23:00'],
+            'REG_AKTIVIT_OD'         => [2023, 'REG_AKTIVIT_OD', '2023-05-25 20:23:00'],
+            'HROMADNE_ODHLASOVANI_1' => [2023, 'HROMADNE_ODHLASOVANI_1', '2023-06-30 23:59:00'],
+            'HROMADNE_ODHLASOVANI_2' => [2023, 'HROMADNE_ODHLASOVANI_2', '2023-07-09 23:59:00'],
+            'HROMADNE_ODHLASOVANI_3' => [2023, 'HROMADNE_ODHLASOVANI_3', '2023-07-16 23:59:00'],
         ];
     }
 
@@ -105,5 +112,16 @@ class SystemoveNastaveniTest extends DbTest
     public function testNemuzemeNastavitZeJsmeJakNaBeteTakNaLocale() {
         $this->expectException(\LogicException::class);
         $this->systemoveNastaveni(ROCNIK, new \DateTimeImmutable(), true, true);
+    }
+
+    /**
+     * @test
+     */
+    public function Zacatek_nejblizsi_vlny_ubytovani_je_ocekavany() {
+        $nastaveni = new SystemoveNastaveni(ROK, new DateTimeImmutableStrict(), false, false);
+        self::assertEquals(
+            DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani($nastaveni),
+            $nastaveni->zacatekNejblizsiVlnyOdhlasovani()
+        );
     }
 }

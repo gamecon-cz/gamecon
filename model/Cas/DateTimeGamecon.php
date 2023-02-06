@@ -2,6 +2,8 @@
 
 namespace Gamecon\Cas;
 
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+
 class DateTimeGamecon extends DateTimeCz
 {
 
@@ -24,8 +26,8 @@ class DateTimeGamecon extends DateTimeCz
     }
 
     public static function spocitejZacatekGameconu(int $rok): DateTimeGamecon {
-        $zacatekCervence = new static($rok . '-07-01 00:00:00');
-        $zacatekTretihoTydneVCervenci = self::dejZacatekXTydne(3, $zacatekCervence);
+        $zacatekCervence               = new static($rok . '-07-01 00:00:00');
+        $zacatekTretihoTydneVCervenci  = self::dejZacatekXTydne(3, $zacatekCervence);
         $ctvrtekVeTretimTydnuVCervenci = self::dejDatumDneVTydnuOdData(static::CTVRTEK, $zacatekTretihoTydneVCervenci);
         if ($ctvrtekVeTretimTydnuVCervenci->format('d') >= 15) { // ve třetím týdnu pouze pokud začne v půlce měsíce či později
             return $ctvrtekVeTretimTydnuVCervenci->setTime(7, 0, 0);
@@ -36,7 +38,7 @@ class DateTimeGamecon extends DateTimeCz
 
     public static function dejZacatekPredposlednihoTydneVMesici(DateTimeGamecon $datum): DateTimeGamecon {
         $posledniDenString = (clone $datum)->format('Y-m-t 00:00:00'); // t je maximum dni v mesici
-        $posledniDen = DateTimeGamecon::createFromFormat('Y-m-d H:i:s', $posledniDenString);
+        $posledniDen       = DateTimeGamecon::createFromFormat('Y-m-d H:i:s', $posledniDenString);
         $predposledniTyden = $posledniDen->modify('-1 week');
         return self::dejDatumDneVTydnuDoData(self::PONDELI, $predposledniTyden);
     }
@@ -49,7 +51,7 @@ class DateTimeGamecon extends DateTimeCz
     }
 
     public static function spocitejKonecGameconu(int $rok): DateTimeGamecon {
-        $zacatekGameconu = self::spocitejZacatekGameconu($rok);
+        $zacatekGameconu              = self::spocitejZacatekGameconu($rok);
         $prvniNedelePoZacatkuGameconu = self::dejDatumDneVTydnuOdData(static::NEDELE, $zacatekGameconu);
 
         return $prvniNedelePoZacatkuGameconu->setTime(21, 0, 0);
@@ -65,22 +67,22 @@ class DateTimeGamecon extends DateTimeCz
     }
 
     protected static function dejZacatekXTydne(int $poradiTydne, DateTimeGamecon $datum): DateTimeGamecon {
-        $prvniDenVMesici = (clone $datum)->setDate((int)$datum->format('Y'), (int)$datum->format('m'), 1);
-        $posunTydnu = $poradiTydne - 1; // prvni tyden uz mame, dalsi posun je bez nej
+        $prvniDenVMesici      = (clone $datum)->setDate((int)$datum->format('Y'), (int)$datum->format('m'), 1);
+        $posunTydnu           = $poradiTydne - 1; // prvni tyden uz mame, dalsi posun je bez nej
         $datumSeChtenymTydnem = $prvniDenVMesici->modify("+$posunTydnu weeks");
         return self::dejDatumDneVTydnuDoData(self::PONDELI, $datumSeChtenymTydnem);
     }
 
     public static function dejDatumDneVTydnuDoData(string $cilovyDenVTydnuDoData, DateTimeGamecon $doData): DateTimeGamecon {
-        $poradiDneVTydnuDoData = (int)$doData->format('N');
+        $poradiDneVTydnuDoData   = (int)$doData->format('N');
         $poradiCilovehoDneVTydnu = static::poradiDne($cilovyDenVTydnuDoData);
-        $rozdilDni = $poradiCilovehoDneVTydnu - $poradiDneVTydnuDoData;
+        $rozdilDni               = $poradiCilovehoDneVTydnu - $poradiDneVTydnuDoData;
         // záporné rozdíly posouvají vzad
         return (clone $doData)->modify("$rozdilDni days");
     }
 
     public static function dejDatumDneVTydnuOdData(string $cilovyDenVTydnuOdData, DateTimeGamecon $odData): DateTimeGamecon {
-        $poradiDneVTydnu = $odData->format('N');
+        $poradiDneVTydnu         = $odData->format('N');
         $poradiCilovehoDneVTydnu = static::poradiDne($cilovyDenVTydnuOdData);
         // například neděle - čtvrtek = 7 - 4 = 3; nebo středa - středa = 3 - 3 = 0; pondělí - středa = 1 - 3 = -2
         $rozdilDni = $poradiCilovehoDneVTydnu - $poradiDneVTydnu;
@@ -97,7 +99,7 @@ class DateTimeGamecon extends DateTimeCz
             return $zacatekGameconu;
         }
         $poradiCtvrtka = static::poradiDne(static::CTVRTEK);
-        $poradiDne = static::poradiDne($den);
+        $poradiDne     = static::poradiDne($den);
         if ($poradiDne === $poradiCtvrtka) {
             return $zacatekGameconu;
         }
@@ -136,23 +138,23 @@ class DateTimeGamecon extends DateTimeCz
         switch ($rok) {
             case 2016 :
                 $poradiTydne = 2;
-                $denVTydnu = static::UTERY;
+                $denVTydnu   = static::UTERY;
                 break;
             case 2017 :
                 $poradiTydne = 1;
-                $denVTydnu = static::UTERY;
+                $denVTydnu   = static::UTERY;
                 break;
             case 2018 :
             case 2019 :
                 $poradiTydne = 3;
-                $denVTydnu = static::UTERY;
+                $denVTydnu   = static::UTERY;
                 break;
             default : // 2020+
                 $poradiTydne = 3;
-                $denVTydnu = static::CTVRTEK;
+                $denVTydnu   = static::CTVRTEK;
         }
         $zacatekXTydneVKvetnu = self::dejZacatekXTydne($poradiTydne, $zacatekKvetna);
-        $denVTydnuVKvetnu = self::dejDatumDneVTydnuOdData($denVTydnu, $zacatekXTydneVKvetnu);
+        $denVTydnuVKvetnu     = self::dejDatumDneVTydnuOdData($denVTydnu, $zacatekXTydneVKvetnu);
         [$hodina, $minuta] = str_split((string)$rok, 2); // ciselna hricka, rok 2022 = hodina 20 a minuta 22
 
         return $denVTydnuVKvetnu->setTime((int)$hodina, (int)$minuta, 0);
@@ -171,8 +173,8 @@ class DateTimeGamecon extends DateTimeCz
     }
 
     public static function prvniHromadneOdhlasovaniOd(int $rok = ROCNIK): DateTimeGamecon {
-        if ($rok === (int)ROCNIK && defined('HROMADNE_ODHLASOVANI')) {
-            return static::zDbFormatu(HROMADNE_ODHLASOVANI);
+        if ($rok === (int)ROCNIK && defined('HROMADNE_ODHLASOVANI_1')) {
+            return static::zDbFormatu(HROMADNE_ODHLASOVANI_1);
         }
         // konec června
         return static::spocitejPrvniHromadneOdhlasovaniOd($rok);
@@ -191,20 +193,39 @@ class DateTimeGamecon extends DateTimeCz
     }
 
     public static function spocitejDruheHromadneOdhlasovaniOd(int $rok): DateTimeGamecon {
-        $zacatekGameconu = self::spocitejZacatekGameconu($rok);
-        $nedeleNaKonciGameconu = self::dejDatumDneVTydnuDoData(self::NEDELE, $zacatekGameconu);
+        $zacatekGameconu                    = self::spocitejZacatekGameconu($rok);
+        $nedeleNaKonciGameconu              = self::dejDatumDneVTydnuDoData(self::NEDELE, $zacatekGameconu);
+        $nedeleDvaTydnyPredZacatkemGameconu = $nedeleNaKonciGameconu->modify('-2 week');
+
+        return $nedeleDvaTydnyPredZacatkemGameconu->setTime(23, 59, 00);
+    }
+
+    public static function tretiHromadneOdhlasovaniOd(int $rok = ROK): DateTimeGamecon {
+        if ($rok === (int)ROK && defined('HROMADNE_ODHLASOVANI_3')) {
+            return static::zDbFormatu(HROMADNE_ODHLASOVANI_3);
+        }
+        return static::spocitejTretiHromadneOdhlasovaniOd($rok);
+    }
+
+    public static function spocitejTretiHromadneOdhlasovaniOd(int $rok): DateTimeGamecon {
+        $zacatekGameconu            = self::spocitejZacatekGameconu($rok);
+        $nedeleNaKonciGameconu      = self::dejDatumDneVTydnuDoData(self::NEDELE, $zacatekGameconu);
         $nedelePredZacatkemGameconu = $nedeleNaKonciGameconu->modify('-1 week');
 
         return $nedelePredZacatkemGameconu->setTime(23, 59, 00);
     }
 
-    public static function zacatekNejblizsiVlnyOdhlasovani(\DateTimeImmutable $ted = null): \DateTimeImmutable {
+    public static function zacatekNejblizsiVlnyOdhlasovani(SystemoveNastaveni $systemoveNastaveni): \DateTimeImmutable {
         // s rezervou jednoho dne, aby i po půlnoci ještě platilo včerejší datum odhlašování
-        $kDatu = ($ted ?? new \DateTimeImmutable())->modify('-1 day');
-        $prvniHromadneOdhlasovani = new \DateTimeImmutable(HROMADNE_ODHLASOVANI);
-        if ($kDatu <= $prvniHromadneOdhlasovani) { // teprve bude
+        $kDatu                    = ($systemoveNastaveni->ted())->modifyStrict('-1 day');
+        $prvniHromadneOdhlasovani = $systemoveNastaveni->prvniHromadneOdhlasovani();
+        if ($kDatu <= $prvniHromadneOdhlasovani) { // právě je nebo teprve bude
             return $prvniHromadneOdhlasovani;
         }
-        return new \DateTimeImmutable(HROMADNE_ODHLASOVANI_2);
+        $druheHromadneOdhlasovani = $systemoveNastaveni->druheHromadneOdhlasovani();
+        if ($kDatu <= $druheHromadneOdhlasovani) { // právě je nebo teprve bude
+            return $druheHromadneOdhlasovani;
+        }
+        return $systemoveNastaveni->tretiHromadneOdhlasovani();
     }
 }
