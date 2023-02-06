@@ -10,23 +10,12 @@ use Gamecon\Cas\DateTimeGamecon;
 class KategorieNeplatice
 {
 
-    public const LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH = 1;
-    public const LETOS_POSLAL_MALO_A_MA_VELKY_DLUH = 2;
-    public const LETOS_NEPOSLAL_NIC_Z_LONSKA_NECO_MA_A_MA_MALY_DLUH = 3;
-    public const LETOS_POSLAL_DOST_A_JE_TAK_CHRANENY = 4;
+    public const LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH    = 1;
+    public const LETOS_POSLAL_MALO_A_MA_VELKY_DLUH                   = 2;
+    public const LETOS_NEPOSLAL_NIC_Z_LONSKA_NECO_MA_A_MA_MALY_DLUH  = 3;
+    public const LETOS_POSLAL_DOST_A_JE_TAK_CHRANENY                 = 4;
     public const LETOS_SE_REGISTROVAL_PAR_DNU_PRED_ODHLASOVACI_VLNOU = 5;
-    public const MA_PRAVO_PLATIT_AZ_NA_MISTE = 6; // orgové a tak
-
-    /** @var \DateTimeInterface */
-    private $zacatekVlnyOdhlasovani;
-    /** @var Finance */
-    private $finance;
-    /** @var int */
-    private $rok;
-    /** @var bool */
-    private $maPravoPlatitAzNaMiste;
-    /** @var float */
-    private $sumaLetosnichPlateb;
+    public const MA_PRAVO_PLATIT_AZ_NA_MISTE                         = 6; // orgové a tak
 
     public static function vytvorProNadchazejiciVlnuZGlobals(\Uzivatel $uzivatel) {
         return new self(
@@ -41,41 +30,20 @@ class KategorieNeplatice
         );
     }
 
-    /**
-     * @var float
-     */
-    private $castkaVelkyDluh;
-    /**
-     * @var float
-     */
-    private $castkaPoslalDost;
-    /**
-     * @var int
-     */
-    private $pocetDnuPredVlnouKdyJeJesteChranen;
-    /**
-     * @var \DateTimeInterface|null
-     */
-    private $kdySeRegistrovalNaLetosniGc;
+    private float $castkaVelkyDluh;
+    private ?float $sumaLetosnichPlateb = null;
 
     public function __construct(
-        Finance             $finance,
-        ?\DateTimeInterface $kdySeRegistrovalNaLetosniGc,
-        bool                $maPravoPlatitAzNaMiste,
-        \DateTimeInterface  $zacatekVlnyOdhlasovani, // prvni nebo druha vlna
-        int                 $rok,
-        float               $castkaVelkyDluh,
-        float               $castkaPoslalDost,
-        int                 $pocetDnuPredVlnouKdyJeJesteChranen
+        private Finance             $finance,
+        private ?\DateTimeInterface $kdySeRegistrovalNaLetosniGc,
+        private bool                $maPravoPlatitAzNaMiste,
+        private \DateTimeInterface  $zacatekVlnyOdhlasovani, // prvni nebo druha vlna
+        private int                 $rok,
+        float                       $castkaVelkyDluh,
+        private float               $castkaPoslalDost,
+        private int                 $pocetDnuPredVlnouKdyJeJesteChranen
     ) {
         $this->castkaVelkyDluh = -abs($castkaVelkyDluh);
-        $this->castkaPoslalDost = $castkaPoslalDost;
-        $this->pocetDnuPredVlnouKdyJeJesteChranen = $pocetDnuPredVlnouKdyJeJesteChranen;
-        $this->kdySeRegistrovalNaLetosniGc = $kdySeRegistrovalNaLetosniGc;
-        $this->zacatekVlnyOdhlasovani = $zacatekVlnyOdhlasovani;
-        $this->finance = $finance;
-        $this->rok = $rok;
-        $this->maPravoPlatitAzNaMiste = $maPravoPlatitAzNaMiste;
     }
 
     /**
@@ -182,9 +150,6 @@ class KategorieNeplatice
             && $this->zacatekVlnyOdhlasovani->diff($this->kdySeRegistrovalNaLetosniGc)->days <= $this->pocetDnuPredVlnouKdyJeJesteChranen;
     }
 
-    /**
-     * @return \DateTimeInterface|null
-     */
     public function zacatekVlnyOdhlasovani(): ?\DateTimeInterface {
         return $this->zacatekVlnyOdhlasovani;
     }
