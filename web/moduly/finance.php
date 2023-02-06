@@ -34,7 +34,7 @@ $uid = $u->id();
 
 if (!$zaplaceno) {
     $castka = -$fin->stav();
-    $limit  = datum3(HROMADNE_ODHLASOVANI);
+    $limit  = datum3(HROMADNE_ODHLASOVANI_1);
     $limit2 = datum3(HROMADNE_ODHLASOVANI_2);
     if ($u->stat() == 'CZ') {
         $castka .= '&thinsp;Kč';
@@ -104,7 +104,7 @@ if (!$zaplaceno) {
             </div>
         <?php } ?>
 
-        <?php if (pred(HROMADNE_ODHLASOVANI)) { ?>
+        <?php if (pred(HROMADNE_ODHLASOVANI_1)) { ?>
             <?php if ($u->stat() === \Gamecon\Stat::CZ) { ?>
                 <p>GameCon je nutné zaplatit převodem <strong>do <?= $limit ?></strong>. Platíš celkem
                     <strong><?= $castka ?></strong>, variabilní symbol je tvoje ID <strong><?= $uid ?></strong>.</p>
@@ -114,7 +114,7 @@ if (!$zaplaceno) {
             <?php } ?>
             <ul class="seznam-bez-okraje">
                 <li class="poznamka">Při pozdější platbě tě systém dne
-                    <strong><?php echo datum3(HROMADNE_ODHLASOVANI) ?></strong>
+                    <strong><?php echo datum3(HROMADNE_ODHLASOVANI_1) ?></strong>
                     (příp. <?php echo datum3(HROMADNE_ODHLASOVANI_2) ?> při pozdější přihlášce)<strong> automaticky
                         odhlásí</strong>.
                 </li>

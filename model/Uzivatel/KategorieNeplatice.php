@@ -2,8 +2,6 @@
 
 namespace Gamecon\Uzivatel;
 
-use Gamecon\Cas\DateTimeGamecon;
-
 /**
  * https://trello.com/c/Zzo2htqI/892-vytvo%C5%99it-nov%C3%BD-report-email%C5%AF-p%C5%99i-odhla%C5%A1ov%C3%A1n%C3%AD-neplati%C4%8D%C5%AF
  */
@@ -18,11 +16,12 @@ class KategorieNeplatice
     public const MA_PRAVO_PLATIT_AZ_NA_MISTE                         = 6; // orgové a tak
 
     public static function vytvorProNadchazejiciVlnuZGlobals(\Uzivatel $uzivatel) {
+        global $systemoveNastaveni;
         return new self(
             $uzivatel->finance(),
             $uzivatel->kdySeRegistrovalNaLetosniGc(),
             $uzivatel->maPravoNerusitObjednavky(),
-            DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani(),
+            $systemoveNastaveni->zacatekNejblizsiVlnyOdhlasovani(),
             ROCNIK,
             NEPLATIC_CASTKA_VELKY_DLUH,
             NEPLATIC_CASTKA_POSLAL_DOST,
