@@ -9,6 +9,16 @@ if (!$u) { //jen přihlášení
     return;
 }
 if (!$u->gcPrihlasen() || !FINANCE_VIDITELNE) {
+    $urlWebu = URL_WEBU;
+    echo <<<HTML
+<div class="stranka">
+    <h1>Přehled financí</h1>
+
+    <p>Zde by byl seznam všech položek, které sis letos na GameConu objednal(a) a tvůj celkový stav financí.</p>
+
+    <p><a href="{$urlWebu}">Zpět na <i>Úvodní stránku</i></a></p>
+</div>
+HTML;
     return; // přehled vidí jen přihlášení na GC (a jen po začátku letošních registrací)
 }
 
