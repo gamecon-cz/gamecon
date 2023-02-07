@@ -6,6 +6,7 @@ use Gamecon\Cas\Exceptions\InvalidDateTimeFormat;
 
 /**
  * Datum a čas s českými názvy dnů a měsíců + další vychytávky
+ * @method DateTimeCz add(\DateInterval $interval)
  */
 class DateTimeCz extends \DateTime
 {
@@ -102,17 +103,6 @@ class DateTimeCz extends \DateTime
         return self::$dny;
     }
 
-    /**
-     * @param \DateInterval $interval
-     * Obalovací fce, umožňuje vložit přímo řetězec pro konstruktor DateIntervalu
-     */
-    public function add(\DateInterval $interval): \DateTime {
-        if ($interval instanceof \DateInterval) {
-            return parent::add($interval);
-        }
-        return parent::add(new \DateInterval($interval));
-    }
-
     /** Formát data s upravenými dny česky */
     public function format($f): string {
         return strtr(parent::format($f), static::$dny);
@@ -162,6 +152,10 @@ class DateTimeCz extends \DateTime
     /** Vrací blogový/dopisový formát */
     public function formatBlog() {
         return strtr(parent::format('j. F Y'), static::$mesice);
+    }
+
+    public function formatCasZacatekUdalosti(): string {
+        return (string)parent::format('j. n. \v\e H:i');
     }
 
     /** Zvýší časový údaj o jeden den. Upravuje objekt. */
