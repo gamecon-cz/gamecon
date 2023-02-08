@@ -100,7 +100,7 @@ SELECT uzivatele_hodnoty.id_uzivatele,
            ''
        ) AS balicek
 FROM uzivatele_hodnoty
-LEFT JOIN letos_platne_zidle_uzivatelu AS zidle_organizatoru
+LEFT JOIN platne_zidle_uzivatelu AS zidle_organizatoru
     ON uzivatele_hodnoty.id_uzivatele = zidle_organizatoru.id_uzivatele AND zidle_organizatoru.id_zidle IN ({$idckaZidliSOrganizatorySql})
 WHERE uzivatele_hodnoty.id_uzivatele IN (
     SELECT DISTINCT(sn.id_uzivatele)

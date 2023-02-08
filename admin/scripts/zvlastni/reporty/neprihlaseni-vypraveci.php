@@ -25,9 +25,9 @@ $r = Report::zSql('
     IF(zp.id_zidle, "", "ne") as přihlášen,
     IF(ub.id_uzivatele, "", "ne") as ubytován,
     IF(akt.id_uzivatele, "", "ne") as "vede aktivity"
-  FROM letos_platne_zidle_uzivatelu z
+  FROM platne_zidle_uzivatelu z
   JOIN r_zidle_soupis zs USING (id_zidle)
-  LEFT JOIN letos_platne_zidle_uzivatelu zp ON (z.id_uzivatele = zp.id_uzivatele AND zp.id_zidle = ' . Zidle::PRIHLASEN_NA_LETOSNI_GC . ')
+  LEFT JOIN platne_zidle_uzivatelu zp ON (z.id_uzivatele = zp.id_uzivatele AND zp.id_zidle = ' . Zidle::PRIHLASEN_NA_LETOSNI_GC . ')
   JOIN uzivatele_hodnoty u ON (u.id_uzivatele = z.id_uzivatele)
   LEFT JOIN (
       SELECT id_uzivatele, GROUP_CONCAT(DISTINCT at.typ_1pmn SEPARATOR ", ") as sekce

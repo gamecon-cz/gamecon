@@ -47,8 +47,8 @@ SQL
         $ids = dbOneArray(<<<SQL
 SELECT DISTINCT uzivatele_hodnoty.id_uzivatele
 FROM uzivatele_hodnoty
-JOIN letos_platne_zidle_uzivatelu ON uzivatele_hodnoty.id_uzivatele = letos_platne_zidle_uzivatelu.id_uzivatele
-JOIN r_prava_zidle ON letos_platne_zidle_uzivatelu.id_zidle = r_prava_zidle.id_zidle
+JOIN platne_zidle_uzivatelu ON uzivatele_hodnoty.id_uzivatele = platne_zidle_uzivatelu.id_uzivatele
+JOIN r_prava_zidle ON platne_zidle_uzivatelu.id_zidle = r_prava_zidle.id_zidle
 WHERE r_prava_zidle.id_prava = $1
 SQL
             , [\Gamecon\Pravo::PORADANI_AKTIVIT]
@@ -390,12 +390,12 @@ SQL,
             $ucast                    = Zidle::TYP_UCAST;
             $prihlasen                = Zidle::VYZNAM_PRIHLASEN;
             $q                        = dbQuery(<<<SQL
-SELECT zidle.rok
+SELECT zidle.rocnik
 FROM r_uzivatele_zidle AS uzivatele_zidle
 JOIN r_zidle_soupis AS zidle
     ON uzivatele_zidle.id_zidle = zidle.id_zidle
 WHERE uzivatele_zidle.id_uzivatele = $0
-    AND zidle.typ = '$ucast'
+    AND zidle.typ_zidle = '$ucast'
     AND zidle.vyznam = '$prihlasen'
 SQL,
                 [$this->id()]);
@@ -627,7 +627,7 @@ SQL,
      */
     public function dejIdsZidli(): array {
         if (!isset($this->idZidli)) {
-            $zidle         = dbOneArray('SELECT id_zidle FROM letos_platne_zidle_uzivatelu WHERE id_uzivatele = ' . $this->id());
+            $zidle         = dbOneArray('SELECT id_zidle FROM platne_zidle_uzivatelu WHERE id_uzivatele = ' . $this->id());
             $this->idZidli = array_map('intval', $zidle);
         }
         return $this->idZidli;
@@ -658,9 +658,9 @@ SQL,
             //načtení uživatelských práv
             $p     = dbQuery(<<<SQL
                 SELECT r_prava_zidle.id_prava
-                FROM letos_platne_zidle_uzivatelu
+                FROM platne_zidle_uzivatelu
                 LEFT JOIN r_prava_zidle USING(id_zidle)
-                WHERE letos_platne_zidle_uzivatelu.id_uzivatele=$0
+                WHERE platne_zidle_uzivatelu.id_uzivatele=$0
                 SQL,
                 [0 => $this->id()]
             );
@@ -872,9 +872,9 @@ SQL,
         // načtení uživatelských práv
         $p     = dbQuery(<<<SQL
 SELECT id_prava
-FROM letos_platne_zidle_uzivatelu
-    LEFT JOIN r_prava_zidle ON letos_platne_zidle_uzivatelu.id_zidle = r_prava_zidle.id_zidle
-WHERE letos_platne_zidle_uzivatelu.id_uzivatele={$idUzivatele}
+FROM platne_zidle_uzivatelu
+    LEFT JOIN r_prava_zidle ON platne_zidle_uzivatelu.id_zidle = r_prava_zidle.id_zidle
+WHERE platne_zidle_uzivatelu.id_uzivatele={$idUzivatele}
 SQL
         );
         $prava = []; // inicializace nutná, aby nepadala výjimka pro uživatele bez práv
@@ -902,7 +902,7 @@ SQL
         $_SESSION[$klic]['id_uzivatele'] = $idUzivatele;
         //načtení uživatelských práv
         $p     = dbQuery(
-            'SELECT id_prava FROM letos_platne_zidle_uzivatelu uz LEFT JOIN r_prava_zidle pz USING(id_zidle) WHERE uz.id_uzivatele=' . $idUzivatele
+            'SELECT id_prava FROM platne_zidle_uzivatelu uz LEFT JOIN r_prava_zidle pz USING(id_zidle) WHERE uz.id_uzivatele=' . $idUzivatele
         );
         $prava = []; //inicializace nutná, aby nepadala výjimka pro uživatele bez práv
         while ($r = mysqli_fetch_assoc($p)) {
@@ -1497,7 +1497,7 @@ SQL,
         return self::zWhere('
       WHERE u.id_uzivatele IN(
         SELECT id_uzivatele
-        FROM letos_platne_zidle_uzivatelu
+        FROM platne_zidle_uzivatelu
         WHERE id_zidle = ' . Zidle::PRIHLASEN_NA_LETOSNI_GC . '
       )
     ');
@@ -1577,7 +1577,7 @@ SQL,
         (SELECT url FROM uzivatele_url WHERE uzivatele_url.id_uzivatele = u.id_uzivatele ORDER BY id_url_uzivatele DESC LIMIT 1) AS url,
         GROUP_CONCAT(DISTINCT p.id_prava) as prava
       FROM uzivatele_hodnoty u
-      LEFT JOIN letos_platne_zidle_uzivatelu z ON(z.id_uzivatele = u.id_uzivatele)
+      LEFT JOIN platne_zidle_uzivatelu z ON(z.id_uzivatele = u.id_uzivatele)
       LEFT JOIN r_prava_zidle p ON(p.id_zidle = z.id_zidle)
       ' . $where . '
       GROUP BY u.id_uzivatele
@@ -1623,7 +1623,7 @@ SQL,
         -- p.id_prava,
         GROUP_CONCAT(DISTINCT p.id_prava) as prava
       FROM uzivatele_hodnoty u
-      LEFT JOIN letos_platne_zidle_uzivatelu z ON(z.id_uzivatele=u.id_uzivatele)
+      LEFT JOIN platne_zidle_uzivatelu z ON(z.id_uzivatele=u.id_uzivatele)
       LEFT JOIN r_prava_zidle p ON(p.id_zidle=z.id_zidle)
       LEFT JOIN uzivatele_url ON u.id_uzivatele = uzivatele_url.id_uzivatele
       ' . $where . '
@@ -1835,7 +1835,7 @@ SQL,
         }
         if (!$this->kdySeRegistrovalNaLetosniGc) {
             $hodnota                           = dbOneCol(<<<SQL
-SELECT posazen FROM letos_platne_zidle_uzivatelu WHERE id_uzivatele = $0 AND id_zidle = $1
+SELECT posazen FROM platne_zidle_uzivatelu WHERE id_uzivatele = $0 AND id_zidle = $1
 SQL,
                 [$this->id(), Zidle::PRIHLASEN_NA_LETOSNI_GC]
             );

@@ -26,7 +26,7 @@ SELECT uzivatele.id_uzivatele,
     GROUP_CONCAT(DISTINCT IF(ubytovani.pokoj = '', NULL, ubytovani.pokoj)) as pokoj,
     uzivatele.ubytovan_s
 FROM uzivatele_hodnoty uzivatele
-JOIN letos_platne_zidle_uzivatelu AS zidle_uzivatelu
+JOIN platne_zidle_uzivatelu AS zidle_uzivatelu
     ON uzivatele.id_uzivatele=zidle_uzivatelu.id_uzivatele AND zidle_uzivatelu.id_zidle=$0 -- přihlášení na gc
 JOIN shop_nakupy nakupy
     ON nakupy.id_uzivatele=uzivatele.id_uzivatele AND nakupy.rok=$1 -- nákupy tento rok

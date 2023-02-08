@@ -10,7 +10,7 @@
   <!-- end:zidleTrvaleNadpis -->
   <!-- begin:zidleRocnikoveNadpis -->
   <tr>
-    <th colspan="100%"><strong>Ročníkové židle (pro aktuální rok)</strong></th>
+    <th colspan="100%"><strong>Ročníkové židle</strong> <i>(pro aktuální ročník {rocnik})</i></th>
   </tr>
   <!-- end:zidleRocnikoveNadpis -->
   <tr>

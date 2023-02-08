@@ -73,7 +73,7 @@ if (get('ajax') === 'uzivatel-k-vyplaceni-aktivity') {
     $organizatoriAkciQuery = dbQuery(<<<SQL
 SELECT uzivatele_hodnoty.*
 FROM uzivatele_hodnoty
-JOIN letos_platne_zidle_uzivatelu AS zidle_uzivatelu
+JOIN platne_zidle_uzivatelu AS zidle_uzivatelu
     ON zidle_uzivatelu.id_uzivatele = uzivatele_hodnoty.id_uzivatele AND zidle_uzivatelu.id_zidle IN($0, $1)
 GROUP BY uzivatele_hodnoty.id_uzivatele
 SQL
@@ -136,7 +136,7 @@ if (isset($_GET['minimum'])) {
     $o   = dbQuery(<<<SQL
 SELECT uzivatele_hodnoty.*
 FROM uzivatele_hodnoty
-JOIN letos_platne_zidle_uzivatelu AS zidle_uzivatelu
+JOIN platne_zidle_uzivatelu AS zidle_uzivatelu
     ON(zidle_uzivatelu.id_uzivatele=uzivatele_hodnoty.id_uzivatele AND zidle_uzivatelu.id_zidle=$0)
 SQL,
         [Zidle::PRIHLASEN_NA_LETOSNI_GC]

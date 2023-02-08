@@ -503,10 +503,10 @@ SQL
         $q = dbQuery(<<<SQL
                 SELECT u.id_uzivatele, u.login_uzivatele, u.jmeno_uzivatele, u.prijmeni_uzivatele
                 FROM uzivatele_hodnoty u
-                JOIN letos_platne_zidle_uzivatelu
-                    ON u.id_uzivatele = letos_platne_zidle_uzivatelu.id_uzivatele
+                JOIN platne_zidle_uzivatelu
+                    ON u.id_uzivatele = platne_zidle_uzivatelu.id_uzivatele
                 JOIN r_prava_zidle
-                    ON letos_platne_zidle_uzivatelu.id_zidle = r_prava_zidle.id_zidle
+                    ON platne_zidle_uzivatelu.id_zidle = r_prava_zidle.id_zidle
                 WHERE r_prava_zidle.id_prava = $0
                 GROUP BY u.login_uzivatele
                 ORDER BY u.login_uzivatele

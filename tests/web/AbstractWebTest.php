@@ -34,7 +34,7 @@ abstract class AbstractWebTest extends DbTest
 
         $queries[] = [
             <<<SQL
-INSERT INTO r_zidle_soupis(id_zidle, kod_zidle, jmeno_zidle, popis_zidle, vyznam, typ, rok)
+INSERT INTO r_zidle_soupis(id_zidle, kod_zidle, jmeno_zidle, popis_zidle, vyznam, typ_zidle, rocnik)
 VALUES (1, 'VSEMOCNA', 'všemocná', 'všemocná', $0, $1, @rocnik)
 SQL,
             [Zidle::VYZNAM_ADMIN, Zidle::TYP_TRVALA],

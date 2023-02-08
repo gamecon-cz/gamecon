@@ -23,11 +23,11 @@ FROM uzivatele_hodnoty
 LEFT JOIN (
   SELECT
     id_uzivatele,
-    GROUP_CONCAT(rok ORDER BY rok ASC) AS roky,
+    GROUP_CONCAT(rocnik ORDER BY rocnik ASC) AS roky,
     COUNT(r_uzivatele_zidle.id_zidle) AS pocet
     FROM r_zidle_soupis
     JOIN r_uzivatele_zidle ON r_zidle_soupis.id_zidle = r_uzivatele_zidle.id_zidle
-  WHERE r_zidle_soupis.typ = '$ucast'
+  WHERE r_zidle_soupis.typ_zidle = '$ucast'
   GROUP BY id_uzivatele
 ) AS ucast ON ucast.id_uzivatele = uzivatele_hodnoty.id_uzivatele
 LEFT JOIN ( -- poslední kladný pohyb na účtu

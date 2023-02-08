@@ -554,7 +554,7 @@ FROM (
            FIND_IN_SET($4, GROUP_CONCAT(DISTINCT zidle_uzivatelu.id_zidle SEPARATOR ',')) AS user_is_group_in_fact
     FROM akce_organizatori
     JOIN akce_seznam ON akce_organizatori.id_akce = akce_seznam.id_akce
-    LEFT JOIN letos_platne_zidle_uzivatelu AS zidle_uzivatelu ON akce_organizatori.id_uzivatele = zidle_uzivatelu.id_uzivatele
+    LEFT JOIN platne_zidle_uzivatelu AS zidle_uzivatelu ON akce_organizatori.id_uzivatele = zidle_uzivatelu.id_uzivatele
     WHERE
         /* povolit navazování aktivit přímo na sebe pro téhož vypravěče
            https://trello.com/c/bGIZcH9N/792-hromadn%C3%A9-vkl%C3%A1d%C3%A1n%C3%AD-do-adminu-v11 */
