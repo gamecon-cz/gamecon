@@ -8,8 +8,8 @@ namespace Gamecon\Role;
 class Zidle extends \DbObject
 {
 
-    protected static $tabulka = 'r_zidle_soupis';
-    protected static $pk = 'id_zidle';
+    protected static $tabulka = ZidleSqlStruktura::ZIDLE_TABULKA;
+    protected static $pk = ZidleSqlStruktura::ID_ZIDLE;
 
     /**
      * Konstanty jsou kopie SQL tabulky `r_zidle_soupis`
