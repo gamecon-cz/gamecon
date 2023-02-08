@@ -127,10 +127,13 @@ SELECT
           ON platne_zidle_uzivatelu.id_zidle = r_prava_zidle.id_zidle
       JOIN r_prava_soupis
           ON r_prava_zidle.id_prava = r_prava_soupis.id_prava
+      JOIN r_zidle_soupis
+          ON platne_zidle_uzivatelu.id_zidle = r_zidle_soupis.id_zidle
       WHERE platne_zidle_uzivatelu.id_uzivatele = uzivatele_hodnoty.id_uzivatele
+          AND r_zidle_soupis.typ_zidle != '$typUcast'
       GROUP BY platne_zidle_uzivatelu.id_uzivatele
     ) AS pravaZDotazu,
-    ( SELECT GROUP_CONCAT(r_zidle_soupis.jmeno_zidle SEPARATOR ', ')
+    ( SELECT GROUP_CONCAT(r_zidle_soupis.jmeno_zidle ORDER BY r_zidle_soupis.id_zidle DESC SEPARATOR ', ')
       FROM r_zidle_soupis
       JOIN platne_zidle_uzivatelu
           ON r_zidle_soupis.id_zidle = platne_zidle_uzivatelu.id_zidle
@@ -162,6 +165,7 @@ WHERE prihlasen.id_uzivatele IS NOT NULL -- left join, takže může být NULL v
     OR pritomen.id_uzivatele IS NOT NULL -- tohle by bylo hodně divné, musela by být díra v systému, aby nebyl přihlášen ale byl přítomen, ale radši...
     OR EXISTS(SELECT * FROM shop_nakupy WHERE uzivatele_hodnoty.id_uzivatele = shop_nakupy.id_uzivatele AND shop_nakupy.rok = $rok)
     OR EXISTS(SELECT * FROM platby WHERE platby.id_uzivatele = uzivatele_hodnoty.id_uzivatele AND platby.rok = $rok)
+LIMIT 2 -- TODO REVERT
 SQL,
     [0 => Zidle::PRIHLASEN_NA_LETOSNI_GC, 1 => Zidle::PRITOMEN_NA_LETOSNIM_GC, 2 => Zidle::ODJEL_Z_LETOSNIHO_GC]
 );
