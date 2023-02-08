@@ -10,7 +10,7 @@
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Role\Zidle;
-use Gamecon\Role\ZidleSqlSloupce;
+use Gamecon\Role\ZidleSqlStruktura;
 
 /** @var Uzivatel|null $uPracovni */
 /** @var Uzivatel $u */
@@ -75,18 +75,18 @@ if (!$zidle) {
     while ($r = mysqli_fetch_assoc($o)) {
         $r['sedi'] = $r['sedi'] ? '<span style="color:#0d0;font-weight:bold">&bull;</span>' : '';
         $t->assign($r);
-        if ($r[ZidleSqlSloupce::TYP_ZIDLE] === Zidle::TYP_UCAST) {
-            if (Zidle::platiPouzeProRocnik($r[ZidleSqlSloupce::ROCNIK], ROK)) {
+        if ($r[ZidleSqlStruktura::TYP_ZIDLE] === Zidle::TYP_UCAST) {
+            if (Zidle::platiPouzeProRocnik($r[ZidleSqlStruktura::ROCNIK], ROK)) {
                 $t->parse('prava.zidleUcast');
             } // 'else' jde o starou účast jako "GC2019 přijel" a ji nechceme ukazovat
-        } elseif (Zidle::platiProRocnik($r[ZidleSqlSloupce::ROCNIK], ROK)) {
-            if ($predchoziTyp !== $r[ZidleSqlSloupce::TYP_ZIDLE]) {
+        } elseif (Zidle::platiProRocnik($r[ZidleSqlStruktura::ROCNIK], ROK)) {
+            if ($predchoziTyp !== $r[ZidleSqlStruktura::TYP_ZIDLE]) {
                 if ($predchoziTyp !== null) {
                     $t->parse('prava.jedenTypZidli');
                 }
-                if ($r[ZidleSqlSloupce::TYP_ZIDLE] === Zidle::TYP_TRVALA) {
+                if ($r[ZidleSqlStruktura::TYP_ZIDLE] === Zidle::TYP_TRVALA) {
                     $t->parse('prava.jedenTypZidli.zidleTrvaleNadpis');
-                } elseif ($r[ZidleSqlSloupce::TYP_ZIDLE] === Zidle::TYP_ROCNIKOVA) {
+                } elseif ($r[ZidleSqlStruktura::TYP_ZIDLE] === Zidle::TYP_ROCNIKOVA) {
                     $t->assign('rocnik', ROK);
                     $t->parse('prava.jedenTypZidli.zidleRocnikoveNadpis');
                 }
@@ -106,7 +106,7 @@ if (!$zidle) {
             }
             $t->parse('prava.jedenTypZidli.zidle');
         }
-        $predchoziTyp = $r[ZidleSqlSloupce::TYP_ZIDLE];
+        $predchoziTyp = $r[ZidleSqlStruktura::TYP_ZIDLE];
     }
     $t->parse('prava.jedenTypZidli');
     $t->parse('prava');

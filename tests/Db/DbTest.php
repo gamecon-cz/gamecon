@@ -95,4 +95,15 @@ SQL
         );
     }
 
+    protected function nazvySloupcuTabulky(string $tabulka): array {
+        $result = self::$connection->query(<<<SQL
+SHOW COLUMNS FROM $tabulka
+SQL
+        );
+        return array_map(
+            fn(array $row) => reset($row),
+            mysqli_fetch_all($result)
+        );
+    }
+
 }
