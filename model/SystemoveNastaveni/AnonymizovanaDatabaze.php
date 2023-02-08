@@ -33,7 +33,7 @@ class AnonymizovanaDatabaze
     }
 
     public function obnov() {
-        $dbConnectionCurrentDb = dbConnect();
+        $dbConnectionCurrentDb = dbConnectForAlterStructure();
         $dbConnectionAnonymDb  = dbConnectionAnonymDb();
         if ($this->jsmeNaLocale) {
             $this->obnovAnonymniDatabazi($dbConnectionAnonymDb);
@@ -43,7 +43,7 @@ class AnonymizovanaDatabaze
 
         $this->anonymizujData($dbConnectionAnonymDb);
 
-        $dbConnectionAnonymDb  = dbConnectionAnonymDb(); // nevím proč, ale pokud použiju předchozí connection, tak se admin uživatel přidá někam do voidu
+        $dbConnectionAnonymDb = dbConnectionAnonymDb(); // nevím proč, ale pokud použiju předchozí connection, tak se admin uživatel přidá někam do voidu
         $this->pridejAdminUzivatele($dbConnectionAnonymDb);
     }
 
@@ -250,6 +250,11 @@ SQL
             SQL,
         );
 
+        fwrite(
+            $handle,
+            $this->definiceSqlFunkci($dbConnectionCurrentDb, DBM_NAME)
+        );
+
         (new \MySQLDump($dbConnectionCurrentDb))->write($handle);
 
         fwrite(
@@ -283,6 +288,44 @@ SQL
                 SQL
             );
         }
+    }
+
+    private function definiceSqlFunkci(\mysqli $connection, string $databaze): string {
+        $result                 = mysqli_query(
+            $connection,
+            <<<SQL
+                SHOW FUNCTION STATUS
+            SQL
+        );
+        $functionsStatuses      = mysqli_fetch_all($result, MYSQLI_ASSOC);
+        $localFunctionsStatuses = array_filter($functionsStatuses, static function (array $functionStatus) use ($databaze) {
+            return $functionStatus['Db'] === $databaze && $functionStatus['Type'] === 'FUNCTION';
+        });
+        if (!$localFunctionsStatuses) {
+            return '';
+        }
+
+        $localFunctionNames        = array_map(static fn(array $definition) => $definition['Name'], $localFunctionsStatuses);
+        $localFunctionsDefinitions = [];
+        foreach ($localFunctionNames as $localFunctionName) {
+            $result                      = mysqli_query(
+                $connection,
+                <<<SQL
+                SHOW CREATE FUNCTION `$localFunctionName`
+            SQL
+            );
+            $localFunctionsDefinitions[] = "DROP FUNCTION IF EXISTS `$localFunctionName`";
+            $localFunctionsDefinitions[] = mysqli_fetch_assoc($result)['Create Function'];
+        }
+        return "DELIMITER ;;\n"
+            . implode(
+                "\n",
+                array_map(
+                    static fn(string $definice) => $definice . ';;',
+                    $localFunctionsDefinitions
+                )
+            )
+            . "\nDELIMITER ;\n";
     }
 
     public function exportuj() {

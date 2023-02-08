@@ -66,7 +66,18 @@ function dbRollback() {
  * @throws ConnectionException
  */
 function dbConnect($selectDb = true, bool $reconnect = false) {
-    return _dbConnect(
+    global $spojeni;
+
+    if ($reconnect && $spojeni) {
+        mysqli_close($spojeni);
+        $spojeni = null;
+    } else
+
+        if ($spojeni instanceof mysqli) {
+            return $spojeni;
+        }
+
+    $spojeni = _dbConnect(
         DB_SERV,
         DB_USER,
         DB_PASS,
@@ -74,15 +85,31 @@ function dbConnect($selectDb = true, bool $reconnect = false) {
         $selectDb ? DB_NAME : null,
         $reconnect
     );
+
+    return $spojeni;
+}
+
+/**
+ * @param bool $selectDb if database should be selected on connect or not
+ * @throws ConnectionException
+ */
+function dbConnectForAlterStructure($selectDb = true) {
+    return _dbConnect(
+        DBM_SERV,
+        DBM_USER,
+        DBM_PASS,
+        defined('DBM_PORT') ? DBM_PORT : null,
+        $selectDb ? DBM_NAME : null
+    );
 }
 
 function dbConnectionAnonymDb(): mysqli {
-    $connection = mysqli_connect(
+    $connection = _dbConnect(
         DB_ANONYM_SERV,
         DB_ANONYM_USER,
         DB_ANONYM_PASS,
-        null,
-        defined('DB_ANONYM_PORT') ? (int)DB_ANONYM_PORT : null
+        defined('DB_ANONYM_PORT') ? (int)DB_ANONYM_PORT : null,
+        null
     );
     $dbAnonym   = DB_ANONYM_NAME;
     $result     = mysqli_query(
@@ -108,18 +135,7 @@ function dbConnectionAnonymDb(): mysqli {
  * @throws ConnectionException
  */
 function _dbConnect(string $dbHost, string $dbUser, string $dbPass, ?int $dbPort, ?string $dbName, bool $reconnect = false) {
-    global $spojeni;
-
-    if ($reconnect && $spojeni) {
-        mysqli_close($spojeni);
-        $spojeni = null;
-    }
-
     dbDisconnectOnShutdown();
-
-    if ($spojeni instanceof mysqli) {
-        return $spojeni;
-    }
 
     try {
         // persistent connection
