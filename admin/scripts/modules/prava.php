@@ -10,6 +10,7 @@
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Role\Zidle;
+use Gamecon\Role\ZidleSqlSloupce;
 
 /** @var Uzivatel|null $uPracovni */
 /** @var Uzivatel $u */
@@ -63,29 +64,30 @@ if (!$zidle) {
     $o            = dbQuery(
         'SELECT zidle.*, zidle_uzivatelu.id_zidle IS NOT NULL AS sedi, zidle_uzivatelu.posadil, zidle_uzivatelu.posazen
     FROM r_zidle_soupis AS zidle
-    LEFT JOIN letos_platne_zidle_uzivatelu AS zidle_uzivatelu
+    LEFT JOIN platne_zidle_uzivatelu AS zidle_uzivatelu
         ON zidle_uzivatelu.id_zidle = zidle.id_zidle AND zidle_uzivatelu.id_uzivatele = $0
-    WHERE zidle.rok IN ($1, $2)
-    GROUP BY zidle.id_zidle, zidle.typ, zidle.jmeno_zidle
-    ORDER BY zidle.typ, zidle.jmeno_zidle',
+    WHERE zidle.rocnik IN ($1, $2)
+    GROUP BY zidle.id_zidle, zidle.typ_zidle, zidle.jmeno_zidle
+    ORDER BY zidle.typ_zidle, zidle.jmeno_zidle',
         [0 => $uPracovni?->id(), 1 => ROK, 2 => Zidle::JAKYKOLI_ROK]
     );
     $predchoziTyp = null;
     while ($r = mysqli_fetch_assoc($o)) {
         $r['sedi'] = $r['sedi'] ? '<span style="color:#0d0;font-weight:bold">&bull;</span>' : '';
         $t->assign($r);
-        if ($r['typ'] === Zidle::TYP_UCAST) {
-            if (Zidle::platiPouzeProRocnik($r['rok'], ROK)) {
+        if ($r[ZidleSqlSloupce::TYP_ZIDLE] === Zidle::TYP_UCAST) {
+            if (Zidle::platiPouzeProRocnik($r[ZidleSqlSloupce::ROCNIK], ROK)) {
                 $t->parse('prava.zidleUcast');
             } // 'else' jde o starou účast jako "GC2019 přijel" a ji nechceme ukazovat
-        } elseif (Zidle::platiProRocnik($r['rok'], ROK)) {
-            if ($predchoziTyp !== $r['typ']) {
-                if($predchoziTyp !== null) {
+        } elseif (Zidle::platiProRocnik($r[ZidleSqlSloupce::ROCNIK], ROK)) {
+            if ($predchoziTyp !== $r[ZidleSqlSloupce::TYP_ZIDLE]) {
+                if ($predchoziTyp !== null) {
                     $t->parse('prava.jedenTypZidli');
                 }
-                if ($r['typ'] === Zidle::TYP_TRVALA) {
+                if ($r[ZidleSqlSloupce::TYP_ZIDLE] === Zidle::TYP_TRVALA) {
                     $t->parse('prava.jedenTypZidli.zidleTrvaleNadpis');
-                } elseif ($r['typ'] === Zidle::TYP_ROCNIKOVA) {
+                } elseif ($r[ZidleSqlSloupce::TYP_ZIDLE] === Zidle::TYP_ROCNIKOVA) {
+                    $t->assign('rocnik', ROK);
                     $t->parse('prava.jedenTypZidli.zidleRocnikoveNadpis');
                 }
             }
@@ -104,7 +106,7 @@ if (!$zidle) {
             }
             $t->parse('prava.jedenTypZidli.zidle');
         }
-        $predchoziTyp = $r['typ'];
+        $predchoziTyp = $r[ZidleSqlSloupce::TYP_ZIDLE];
     }
     $t->parse('prava.jedenTypZidli');
     $t->parse('prava');

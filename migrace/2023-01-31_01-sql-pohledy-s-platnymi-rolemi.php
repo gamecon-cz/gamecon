@@ -17,27 +17,27 @@ SQL
 );
 
 $this->q(<<<SQL
-DROP VIEW IF EXISTS letos_platne_zidle
+DROP VIEW IF EXISTS platne_zidle
 SQL
 );
 
 $jakykoliRocnik = \Gamecon\Role\Zidle::JAKYKOLI_ROK;
 $this->q(<<<SQL
-CREATE SQL SECURITY INVOKER VIEW letos_platne_zidle
+CREATE SQL SECURITY INVOKER VIEW platne_zidle
 AS SELECT * FROM r_zidle_soupis
-WHERE rok IN (rocnik(), $jakykoliRocnik)
+WHERE rocnik IN (rocnik(), $jakykoliRocnik)
 SQL
 );
 
 $this->q(<<<SQL
-DROP VIEW IF EXISTS letos_platne_zidle_uzivatelu
+DROP VIEW IF EXISTS platne_zidle_uzivatelu
 SQL
 );
 
 $this->q(<<<SQL
-CREATE SQL SECURITY INVOKER VIEW letos_platne_zidle_uzivatelu
+CREATE SQL SECURITY INVOKER VIEW platne_zidle_uzivatelu
 AS SELECT r_uzivatele_zidle.*
    FROM r_uzivatele_zidle
-   JOIN letos_platne_zidle ON r_uzivatele_zidle.id_zidle = letos_platne_zidle.id_zidle
+   JOIN platne_zidle ON r_uzivatele_zidle.id_zidle = platne_zidle.id_zidle
 SQL
 );

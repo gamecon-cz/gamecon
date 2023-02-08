@@ -38,9 +38,9 @@ $jmenaZidliProPozici = [];
 foreach ($idZidliProPozici as $idZidle) {
     $jmenaZidliProPozici[$idZidle] = Zidle::zId($idZidle)->jmenoZidle();
 }
-$dejNazevRole = static function (array $idclaZidli) use ($jmenaZidliProPozici): string {
+$dejNazevRole = static function (array $idckaZidli) use ($jmenaZidliProPozici): string {
     foreach ($jmenaZidliProPozici as $idZidle => $jmenoZidle) {
-        if (in_array($idZidle, $idclaZidli, false)) {
+        if (in_array($idZidle, $idckaZidli, false)) {
             return $jmenoZidle;
         }
     }
@@ -111,6 +111,7 @@ SQL, [Shop::PREDMET]
 
 $rok              = ROK;
 $predmetUbytovani = \Gamecon\Shop\TypPredmetu::UBYTOVANI;
+$typUcast         = Zidle::TYP_UCAST;
 $o                = dbQuery(<<<SQL
 SELECT
     uzivatele_hodnoty.*,
@@ -120,31 +121,43 @@ SELECT
     ( SELECT MIN(shop_predmety.ubytovani_den) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=$rok AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.typ=$predmetUbytovani ) AS den_prvni,
     ( SELECT MAX(shop_predmety.ubytovani_den) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=$rok AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.typ=$predmetUbytovani ) AS den_posledni,
     ( SELECT MAX(shop_predmety.nazev) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=$rok AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.typ=$predmetUbytovani ) AS ubytovani_typ,
-    ( SELECT GROUP_CONCAT(r_prava_soupis.jmeno_prava SEPARATOR ', ') -- TODO teď bude chybět "právo" přihlášen / přítomen (ale odjel ne, to právo nebylo)
-      FROM letos_platne_zidle_uzivatelu
+    ( SELECT GROUP_CONCAT(r_prava_soupis.jmeno_prava SEPARATOR ', ')
+      FROM platne_zidle_uzivatelu
       JOIN r_prava_zidle
-          ON letos_platne_zidle_uzivatelu.id_zidle = r_prava_zidle.id_zidle
+          ON platne_zidle_uzivatelu.id_zidle = r_prava_zidle.id_zidle
       JOIN r_prava_soupis
           ON r_prava_zidle.id_prava = r_prava_soupis.id_prava
-      WHERE letos_platne_zidle_uzivatelu.id_uzivatele = uzivatele_hodnoty.id_uzivatele
-      GROUP BY letos_platne_zidle_uzivatelu.id_uzivatele
+      WHERE platne_zidle_uzivatelu.id_uzivatele = uzivatele_hodnoty.id_uzivatele
+      GROUP BY platne_zidle_uzivatelu.id_uzivatele
     ) AS pravaZDotazu,
-    ( SELECT GROUP_CONCAT(letos_platne_zidle_uzivatelu.id_zidle SEPARATOR ',')
-      FROM letos_platne_zidle_uzivatelu
-      WHERE letos_platne_zidle_uzivatelu.id_uzivatele=uzivatele_hodnoty.id_uzivatele
-      GROUP BY letos_platne_zidle_uzivatelu.id_uzivatele
+    ( SELECT GROUP_CONCAT(r_zidle_soupis.jmeno_zidle SEPARATOR ', ')
+      FROM r_zidle_soupis
+      JOIN platne_zidle_uzivatelu
+          ON r_zidle_soupis.id_zidle = platne_zidle_uzivatelu.id_zidle
+      WHERE platne_zidle_uzivatelu.id_uzivatele = uzivatele_hodnoty.id_uzivatele
+          AND r_zidle_soupis.typ_zidle = '$typUcast'
+      GROUP BY platne_zidle_uzivatelu.id_uzivatele
+    ) AS ucastZDotazu,
+    ( SELECT GROUP_CONCAT(platne_zidle_uzivatelu.id_zidle SEPARATOR ',')
+      FROM platne_zidle_uzivatelu
+      JOIN r_zidle_soupis
+          ON platne_zidle_uzivatelu.id_zidle = r_zidle_soupis.id_zidle
+      WHERE platne_zidle_uzivatelu.id_uzivatele=uzivatele_hodnoty.id_uzivatele
+          AND r_zidle_soupis.typ_zidle != '$typUcast'
+      GROUP BY platne_zidle_uzivatelu.id_uzivatele
     ) AS idckaZidliZDotazu,
     ( SELECT GROUP_CONCAT(r_zidle_soupis.jmeno_zidle SEPARATOR ', ')
-      FROM letos_platne_zidle_uzivatelu
+      FROM platne_zidle_uzivatelu
       JOIN r_zidle_soupis
-          ON letos_platne_zidle_uzivatelu.id_zidle = r_zidle_soupis.id_zidle
-      WHERE letos_platne_zidle_uzivatelu.id_uzivatele=uzivatele_hodnoty.id_uzivatele
-      GROUP BY letos_platne_zidle_uzivatelu.id_uzivatele
+          ON platne_zidle_uzivatelu.id_zidle = r_zidle_soupis.id_zidle
+      WHERE platne_zidle_uzivatelu.id_uzivatele=uzivatele_hodnoty.id_uzivatele
+          AND r_zidle_soupis.typ_zidle != '$typUcast'
+      GROUP BY platne_zidle_uzivatelu.id_uzivatele
     ) AS zidleZDotazu
 FROM uzivatele_hodnoty
-LEFT JOIN letos_platne_zidle_uzivatelu AS prihlasen ON (prihlasen.id_zidle = $0 AND prihlasen.id_uzivatele = uzivatele_hodnoty.id_uzivatele)
-LEFT JOIN letos_platne_zidle_uzivatelu AS pritomen ON (pritomen.id_zidle = $1 AND pritomen.id_uzivatele = uzivatele_hodnoty.id_uzivatele)
-LEFT JOIN letos_platne_zidle_uzivatelu AS odjel ON(odjel.id_zidle = $2 AND odjel.id_uzivatele = uzivatele_hodnoty.id_uzivatele)
+LEFT JOIN platne_zidle_uzivatelu AS prihlasen ON (prihlasen.id_zidle = $0 AND prihlasen.id_uzivatele = uzivatele_hodnoty.id_uzivatele)
+LEFT JOIN platne_zidle_uzivatelu AS pritomen ON (pritomen.id_zidle = $1 AND pritomen.id_uzivatele = uzivatele_hodnoty.id_uzivatele)
+LEFT JOIN platne_zidle_uzivatelu AS odjel ON(odjel.id_zidle = $2 AND odjel.id_uzivatele = uzivatele_hodnoty.id_uzivatele)
 WHERE prihlasen.id_uzivatele IS NOT NULL -- left join, takže může být NULL ve smyslu "nemáme záznam" = "není přihlášen"
     OR pritomen.id_uzivatele IS NOT NULL -- tohle by bylo hodně divné, musela by být díra v systému, aby nebyl přihlášen ale byl přítomen, ale radši...
     OR EXISTS(SELECT * FROM shop_nakupy WHERE uzivatele_hodnoty.id_uzivatele = shop_nakupy.id_uzivatele AND shop_nakupy.rok = $rok)
@@ -189,6 +202,7 @@ while ($r = mysqli_fetch_assoc($o)) {
                 'Pozice'            => $dejNazevRole(explode(',', (string)$r['idckaZidliZDotazu'])),
                 'Židle'             => $r['zidleZDotazu'],
                 'Práva'             => nahradNazvyKonstantZaHodnoty((string)$r['pravaZDotazu']),
+                'Účast'             => $r['ucastZDotazu'],
                 'Datum registrace'  => excelDatum($r['prihlasen_na_gc_kdy']),
                 'Prošel infopultem' => excelDatum($r['prosel_infopultem_kdy']),
                 'Odjel kdy'         => excelDatum($r['odjel_kdy']),

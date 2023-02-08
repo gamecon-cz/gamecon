@@ -29,14 +29,14 @@ if ($resultZidli) {
 }
 
 if ($chybejiciZidleUcasti) {
-    $rok   = rocnik_z_promenne_mysql();
-    $ucast = Zidle::TYP_UCAST;
+    $rocnik = rocnik_z_promenne_mysql();
+    $ucast  = Zidle::TYP_UCAST;
     foreach ($chybejiciZidleUcasti as $idChybejiciZidleUcasti => $nazevChybejiciZidleUcasti) {
         $kodZidle = RemoveDiacritics::toConstantLikeName($nazevChybejiciZidleUcasti);
         $vyznam   = Zidle::vyznamPodleKodu($kodZidle);
         $this->q(<<<SQL
-INSERT INTO r_zidle_soupis (id_zidle, kod_zidle, jmeno_zidle, popis_zidle, rok, typ, vyznam)
-VALUES ($idChybejiciZidleUcasti, '$kodZidle', '$nazevChybejiciZidleUcasti', '$nazevChybejiciZidleUcasti', $rok, '$ucast', '$vyznam')
+INSERT INTO r_zidle_soupis (id_zidle, kod_zidle, jmeno_zidle, popis_zidle, rocnik, typ_zidle, vyznam)
+VALUES ($idChybejiciZidleUcasti, '$kodZidle', '$nazevChybejiciZidleUcasti', '$nazevChybejiciZidleUcasti', $rocnik, '$ucast', '$vyznam')
 SQL
         );
     }

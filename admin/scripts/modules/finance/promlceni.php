@@ -92,11 +92,11 @@ if (post('pripravit')) {
     pohyb.datum AS pohyb
   FROM uzivatele_hodnoty u
   LEFT JOIN (
-    SELECT id_uzivatele, GROUP_CONCAT(zidle.rok ORDER BY zidle.rok ASC) AS roky,
+    SELECT id_uzivatele, GROUP_CONCAT(zidle.rocnik ORDER BY zidle.rocnik ASC) AS roky,
     COUNT(*) AS pocet
-    FROM letos_platne_zidle_uzivatelu
-    JOIN r_zidle_soupis AS zidle ON letos_platne_zidle_uzivatelu.id_zidle = zidle.id_zidle
-    WHERE zidle.typ = '$ucast' AND zidle.vyznam = '$pritomen'
+    FROM platne_zidle_uzivatelu
+    JOIN r_zidle_soupis AS zidle ON platne_zidle_uzivatelu.id_zidle = zidle.id_zidle
+    WHERE zidle.typ_zidle = '$ucast' AND zidle.vyznam = '$pritomen'
     GROUP BY id_uzivatele
   ) AS ucast ON ucast.id_uzivatele = u.id_uzivatele
   LEFT JOIN (

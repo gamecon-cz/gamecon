@@ -17,7 +17,7 @@ LEFT JOIN r_zidle_soupis
 WHERE uzivatele_hodnoty.nechce_maily IS NULL
     AND uzivatele_hodnoty.email1_uzivatele LIKE '%@%'
 GROUP BY uzivatele_hodnoty.id_uzivatele
-ORDER BY MAX(COALESCE(r_zidle_soupis.rok, 0)) DESC -- 0 je "Nikdy se na GC ještě nepřihlásil" a je proto v seznamu až dole
+ORDER BY MAX(COALESCE(r_zidle_soupis.rocnik, 0)) DESC -- 0 je "Nikdy se na GC ještě nepřihlásil" a je proto v seznamu až dole
 SQL
 );
 

@@ -28,19 +28,19 @@ if ($resultZidli) {
 }
 
 if ($chybejiciRocnikoveZidle) {
-    $rok           = rocnik_z_promenne_mysql();
-    $letosniPrefix = Zidle::prefixRocniku($rok);
+    $rocnik        = rocnik_z_promenne_mysql();
+    $letosniPrefix = Zidle::prefixRocniku($rocnik);
     foreach ($chybejiciRocnikoveZidle as $idChybejiciRocnikoveZidle => $nazevChybejiciRocnikoveZidle) {
         $result = $this->q(<<<SQL
-SELECT rok FROM r_zidle_soupis
+SELECT rocnik FROM r_zidle_soupis
 WHERE jmeno_zidle = '$nazevChybejiciRocnikoveZidle'
 SQL
         );
         if ($result) {
-            $rokZidlePredchozihoRocniku = $result->fetch_column();
+            $rocnikZidlePredchozihoRocniku = $result->fetch_column();
             $result->close();
-            if ($rokZidlePredchozihoRocniku) {
-                $prefixProZidliPredchozihoRocniku = Zidle::prefixRocniku($rokZidlePredchozihoRocniku);
+            if ($rocnikZidlePredchozihoRocniku) {
+                $prefixProZidliPredchozihoRocniku = Zidle::prefixRocniku($rocnikZidlePredchozihoRocniku);
                 $this->q(<<<SQL
 UPDATE r_zidle_soupis
 SET jmeno_zidle = CONCAT('$prefixProZidliPredchozihoRocniku', ' ', jmeno_zidle)
@@ -55,8 +55,8 @@ SQL
         $vyznam    = Zidle::vyznamPodleKodu($kodZidle);
         $rocnikova = Zidle::TYP_ROCNIKOVA;
         $this->q(<<<SQL
-INSERT INTO r_zidle_soupis (id_zidle, kod_zidle, jmeno_zidle, popis_zidle, rok, typ, vyznam)
-VALUES ($idChybejiciRocnikoveZidle, '$kodZidle', '$nazevChybejiciRocnikoveZidle', '$nazevChybejiciRocnikoveZidle', $rok, '$rocnikova', '$vyznam')
+INSERT INTO r_zidle_soupis (id_zidle, kod_zidle, jmeno_zidle, popis_zidle, rocnik, typ_zidle, vyznam)
+VALUES ($idChybejiciRocnikoveZidle, '$kodZidle', '$nazevChybejiciRocnikoveZidle', '$nazevChybejiciRocnikoveZidle', $rocnik, '$rocnikova', '$vyznam')
 SQL
         );
     }

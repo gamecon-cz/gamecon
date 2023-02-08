@@ -342,7 +342,7 @@ SQL,
         $ucast = Zidle::TYP_UCAST;
         return tabMysqlR(dbQuery(<<<SQL
 SELECT
-    rok AS ' ', -- formátování
+    rocnik AS ' ', -- formátování
     Registrovaných,
     Dorazilo,
     studenti AS ` z toho studenti`,
@@ -353,10 +353,10 @@ SELECT
     vypravěči AS ` vypravěči`
 FROM (
     SELECT
-        rok,
+        rocnik,
         SUM(IF(registrace, 1, 0)) AS Registrovaných,
         SUM(IF(dorazeni, 1, 0)) AS Dorazilo,
-        CASE rok
+        CASE rocnik
             WHEN 2013 THEN 149
             WHEN 2014 THEN 172
             WHEN 2015 THEN 148
@@ -364,7 +364,7 @@ FROM (
             WHEN 2017 THEN 153
             ELSE '' END
         AS studenti,
-        CASE rok
+        CASE rocnik
             WHEN 2009 THEN 43
             WHEN 2010 THEN 45
             WHEN 2011 THEN 71
@@ -384,7 +384,7 @@ FROM (
                 WHERE posazen.zmena = $3 AND sesazen.id_uzivatele IS NULL /* neexistuje novější záznam */ AND posazen.id_uzivatele = podle_roku.id_uzivatele AND posazen.id_zidle IN ($0, $1, $2)
                 ), 1 , 0)) END
         AS `Podpůrný tým`,
-        CASE rok
+        CASE rocnik
             WHEN 2009 THEN 6
             WHEN 2010 THEN 8
             WHEN 2011 THEN 13
@@ -404,7 +404,7 @@ FROM (
                 WHERE posazen.zmena = $3 AND sesazen.id_uzivatele IS NULL /* neexistuje novější záznam */ AND posazen.id_uzivatele = podle_roku.id_uzivatele AND posazen.id_zidle = $0
             ), 1 , 0)) END
         AS organizátoři,
-        CASE rok
+        CASE rocnik
             WHEN 2009 THEN 7
             WHEN 2010 THEN 7
             WHEN 2011 THEN 6
@@ -424,7 +424,7 @@ FROM (
                 WHERE posazen.zmena = $3 AND sesazen.id_uzivatele IS NULL /* neexistuje novější záznam */ AND posazen.id_uzivatele = podle_roku.id_uzivatele AND posazen.id_zidle = $1
             ), 1 , 0)) END
         AS zázemí,
-        CASE rok
+        CASE rocnik
             WHEN 2009 THEN 30
             WHEN 2010 THEN 30
             WHEN 2011 THEN 52
@@ -446,7 +446,7 @@ FROM (
         AS vypravěči
     FROM (
         SELECT
-            zidle.rok,
+            zidle.rocnik,
             uzivatele_zidle.id_zidle,
             zidle.vyznam = '$prihlasen' AS registrace,
             zidle.vyznam = '$pritomen' AS dorazeni,
@@ -454,9 +454,9 @@ FROM (
             FROM r_uzivatele_zidle AS uzivatele_zidle
             JOIN r_zidle_soupis AS zidle
                 ON uzivatele_zidle.id_zidle = zidle.id_zidle
-            WHERE zidle.typ = '$ucast'
+            WHERE zidle.typ_zidle = '$ucast'
     ) AS podle_roku
-    GROUP BY rok
+    GROUP BY rocnik
 ) AS pocty
 SQL, [
             0 => Zidle::ORGANIZATOR,
