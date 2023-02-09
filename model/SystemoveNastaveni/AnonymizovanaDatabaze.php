@@ -276,6 +276,11 @@ SQL
         fflush($handle);
         rewind($handle);
 
+        $this->removeDefinerFromHandle($handle);
+
+        fflush($handle);
+        rewind($handle);
+
         (new \MySQLImport($dbConnectionAnonymDb))->read($handle);
 
         fclose($handle);
@@ -288,6 +293,21 @@ SQL
                 SQL
             );
         }
+    }
+
+    private function removeDefinerFromHandle($handle) {
+        while ($row = fgets($handle)) {
+            $rowWithoutDefiner = $this->removeDefiner($row);
+            if ($rowWithoutDefiner !== $row) {
+                fseek($handle, -strlen($row), SEEK_CUR);
+                fwrite($handle, $rowWithoutDefiner);
+                fwrite($handle, str_repeat(' ', strlen($row) - strlen($rowWithoutDefiner)));
+            }
+        }
+    }
+
+    private function removeDefiner(string $content): string {
+        return preg_replace('~\sDEFINER=`[^`]+`@`[^`]+`\s~i', ' ', $content);
     }
 
     private function definiceSqlFunkci(\mysqli $connection, string $databaze): string {
@@ -320,8 +340,7 @@ SQL
              * DEFINER clause requires SUPER privileges https://stackoverflow.com/questions/44015692/access-denied-you-need-at-least-one-of-the-super-privileges-for-this-operat
              * but we do not need it
              */
-            $localFunctionsDefinition    = preg_replace('~\sDEFINER=`[^`]+`@`[^`]+`\s~i', ' ', $localFunctionsDefinition);
-            $localFunctionsDefinitions[] = $localFunctionsDefinition;
+            $localFunctionsDefinitions[] = mysqli_fetch_assoc($result)['Create Function'];
         }
         return "DELIMITER ;;\n"
             . implode(
