@@ -32,9 +32,8 @@ class AnonymizovanaDatabaze
     public function obnov() {
         $dbConnectionCurrentDb = dbConnectForAlterStructure();
         $dbConnectionAnonymDb  = dbConnectionAnonymDb();
-        if ($this->jsmeNaLocale) {
-            $this->obnovAnonymniDatabazi($dbConnectionAnonymDb);
-        }
+
+        $this->obnovAnonymniDatabazi($dbConnectionAnonymDb);
 
         $this->zkopirujData($dbConnectionCurrentDb, $dbConnectionAnonymDb);
 
@@ -203,6 +202,14 @@ SQL
     }
 
     private function obnovAnonymniDatabazi(\mysqli $dbConnectionAnonymDb) {
+        if ($this->jsmeNaLocale) {
+            $this->smazVytvorAnonymniDatabazi($dbConnectionAnonymDb);
+        } else {
+            $this->vycistiAnonymniDatabazi($dbConnectionAnonymDb);
+        }
+    }
+
+    private function smazVytvorAnonymniDatabazi(\mysqli $dbConnectionAnonymDb) {
         mysqli_query(
             $dbConnectionAnonymDb,
             <<<SQL
@@ -219,6 +226,62 @@ SQL
             $dbConnectionAnonymDb,
             <<<SQL
                 USE `{$this->anonymniDatabaze}`
+            SQL
+        );
+    }
+
+    private function vycistiAnonymniDatabazi(\mysqli $dbConnectionAnonymDb) {
+        $this->smazTabulkyAViews($dbConnectionAnonymDb);
+        $this->smazFunctions($dbConnectionAnonymDb);
+    }
+
+    private function smazFunctions(\mysqli $dbConnectionAnonymDb) {
+        $localFunctionNames = $this->getLocalFunctionNames($dbConnectionAnonymDb, $this->anonymniDatabaze);
+        foreach ($localFunctionNames as $localFunctionName) {
+            mysqli_query(
+                $dbConnectionAnonymDb,
+                <<<SQL
+                    DROP FUNCTION `$localFunctionName`
+                SQL
+            );
+        }
+    }
+
+    private function smazTabulkyAViews(\mysqli $dbConnectionAnonymDb) {
+        mysqli_query(
+            $dbConnectionAnonymDb,
+            <<<SQL
+                SET FOREIGN_KEY_CHECKS = 0
+            SQL
+        );
+        $showTablesResult = mysqli_query(
+            $dbConnectionAnonymDb,
+            <<<SQL
+                SHOW TABLES FROM`{$this->anonymniDatabaze}`
+            SQL
+        );
+        while ($table = mysqli_fetch_column($showTablesResult)) {
+            $showCreateTableResult = mysqli_query(
+                $dbConnectionAnonymDb,
+                <<<SQL
+                    SHOW CREATE TABLE `$table`
+                SQL
+            );
+            $showCreateTable       = mysqli_fetch_assoc($showCreateTableResult);
+            $type                  = !empty($showCreateTable['View'])
+                ? 'VIEW'
+                : 'TABLE';
+            mysqli_query(
+                $dbConnectionAnonymDb,
+                <<<SQL
+                    DROP $type `$table`
+                SQL
+            );
+        }
+        mysqli_query(
+            $dbConnectionAnonymDb,
+            <<<SQL
+                SET FOREIGN_KEY_CHECKS = 1
             SQL
         );
     }
@@ -331,22 +394,12 @@ SQL
         return str_replace("`{$sourceDatabase}`.", ' ', $content);
     }
 
-    private function definiceSqlFunkci(\mysqli $connection, string $databaze): string {
-        $result                 = mysqli_query(
-            $connection,
-            <<<SQL
-                SHOW FUNCTION STATUS
-            SQL
-        );
-        $functionsStatuses      = mysqli_fetch_all($result, MYSQLI_ASSOC);
-        $localFunctionsStatuses = array_filter($functionsStatuses, static function (array $functionStatus) use ($databaze) {
-            return $functionStatus['Db'] === $databaze && $functionStatus['Type'] === 'FUNCTION';
-        });
-        if (!$localFunctionsStatuses) {
+    private function definiceSqlFunkci(\mysqli $connection, string $database): string {
+        $localFunctionNames = $this->getLocalFunctionNames($connection, $database);
+        if (!$localFunctionNames) {
             return '';
         }
 
-        $localFunctionNames        = array_map(static fn(array $definition) => $definition['Name'], $localFunctionsStatuses);
         $localFunctionsDefinitions = [];
         foreach ($localFunctionNames as $localFunctionName) {
             $result                      = mysqli_query(
@@ -367,6 +420,24 @@ SQL
                 )
             )
             . "\nDELIMITER ;\n";
+    }
+
+    private function getLocalFunctionNames(\mysqli $connection, string $database): array {
+        $result                 = mysqli_query(
+            $connection,
+            <<<SQL
+                SHOW FUNCTION STATUS
+            SQL
+        );
+        $functionsStatuses      = mysqli_fetch_all($result, MYSQLI_ASSOC);
+        $localFunctionsStatuses = array_filter($functionsStatuses, static function (array $functionStatus) use ($database) {
+            return $functionStatus['Db'] === $database && $functionStatus['Type'] === 'FUNCTION';
+        });
+        if (!$localFunctionsStatuses) {
+            return [];
+        }
+
+        return array_map(static fn(array $definition) => $definition['Name'], $localFunctionsStatuses);
     }
 
     public function exportuj() {
