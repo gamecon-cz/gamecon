@@ -12,9 +12,9 @@ require_once __DIR__ . '/../nastaveni/zavadec-zaklad.php';
 
 // příprava databáze
 $connection = dbConnect(false);
-dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', DB_NAME), null, $connection);
-dbQuery(sprintf('CREATE DATABASE IF NOT EXISTS `%s` COLLATE "utf8_czech_ci"', DB_NAME), null, $connection);
-dbQuery(sprintf('USE `%s`', DB_NAME), null, $connection);
+dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', DB_NAME));
+dbQuery(sprintf('CREATE DATABASE IF NOT EXISTS `%s` COLLATE "utf8_czech_ci"', DB_NAME));
+dbQuery(sprintf('USE `%s`', DB_NAME));
 // naimportujeme databázi s už proběhnutými staršími migracemi
 (new \MySQLImport($connection))->load(__DIR__ . '/Db/data/localhost-2023_01_27_11_18_45-dump.sql');
 
@@ -28,6 +28,7 @@ mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 DbTest::setConnection(new DbWrapper());
 
-register_shutdown_function(static function () use ($connection) {
+register_shutdown_function(static function () {
+    // nemůžeme použít předchozí $connection, protože to už je uzavřené
     dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', DB_NAME));
 });
