@@ -19,7 +19,7 @@ class FunkceTest extends TestCase
         self::assertSame($sNeznamouKnstantou, nahradPlaceholderZaKonstantu($sNeznamouKnstantou));
 
         $nahodnaKonstanta = uniqid(__FUNCTION__, true);
-        $sKonstantou = "Jsem s konstantou %$nahodnaKonstanta%";
+        $sKonstantou      = "Jsem s konstantou %$nahodnaKonstanta%";
 
         self::assertFalse(defined($nahodnaKonstanta));
         self::assertSame($sKonstantou, nahradPlaceholderZaKonstantu($sKonstantou));
@@ -41,14 +41,35 @@ class FunkceTest extends TestCase
     public function provideVicerozmernePole(): array {
         $jenorozmernePole = ['něco', 1, null];
         return [
-            'prázdné pole'                 => [[], []],
-            'prázdný ArrayIterator object' => [new \ArrayIterator(), []],
-            'jednorozměrné pole'           => [$jenorozmernePole, $jenorozmernePole],
+            'prázdné pole'                       => [[], []],
+            'prázdný ArrayIterator object'       => [new \ArrayIterator(), []],
+            'jednorozměrné pole'                 => [$jenorozmernePole, $jenorozmernePole],
             'jednorozměrný ArrayIterator object' => [new \ArrayIterator($jenorozmernePole), $jenorozmernePole],
-            'vícerozměrné pole' => [
+            'vícerozměrné pole'                  => [
                 ['něco', 1, null, ['dále' => [1, $datum = new \DateTime()], 'ještě dále' => [false]]],
                 ['něco', 1, null, 1, $datum, false],
             ],
         ];
+    }
+
+    /**
+     * @test
+     */
+    public function Ve_vychozim_nastaveni_dostanu_existujici_sql_pripojeni() {
+        $nejakeSpojeni = dbConnect();
+        self::assertInstanceOf(\mysqli::class, $nejakeSpojeni);
+        $dalsiSpojeni = dbConnect();
+        self::assertSame($nejakeSpojeni, $dalsiSpojeni);
+    }
+
+    /**
+     * @test
+     */
+    public function Muzu_vyzadat_nove_sql_pripojeni() {
+        $nejakeSpojeni = dbConnect();
+        self::assertInstanceOf(\mysqli::class, $nejakeSpojeni);
+        $dalsiSpojeni = dbConnect(true, true);
+        self::assertInstanceOf(\mysqli::class, $dalsiSpojeni);
+        self::assertNotSame($nejakeSpojeni, $dalsiSpojeni);
     }
 }
