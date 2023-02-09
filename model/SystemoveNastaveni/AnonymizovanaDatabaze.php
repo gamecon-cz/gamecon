@@ -11,8 +11,6 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
 class AnonymizovanaDatabaze
 {
-    private string $anonymniDatabaze;
-
     public static function vytvorZGlobals(): self {
         global $systemoveNastaveni;
         return new static(\DBM_NAME, \DB_ANONYM_NAME, $systemoveNastaveni);
@@ -21,15 +19,14 @@ class AnonymizovanaDatabaze
     private bool $jsmeNaLocale;
 
     public function __construct(
-        string             $soucasnaDatabaze,
-        string             $anonymniDatabaze,
+        private string     $zdrojovaDatabaze,
+        private string     $anonymniDatabaze,
         SystemoveNastaveni $systemoveNastaveni,
     ) {
         $this->jsmeNaLocale = $systemoveNastaveni->jsmeNaLocale();
-        if ($anonymniDatabaze === $soucasnaDatabaze) {
-            throw new \LogicException("Anonymní a současná databáze nemůžou být stejné: '$soucasnaDatabaze'");
+        if ($anonymniDatabaze === $zdrojovaDatabaze) {
+            throw new \LogicException("Anonymní a současná databáze nemůžou být stejné: '$zdrojovaDatabaze'");
         }
-        $this->anonymniDatabaze = $anonymniDatabaze;
     }
 
     public function obnov() {
@@ -252,7 +249,7 @@ SQL
 
         fwrite(
             $handle,
-            $this->definiceSqlFunkci($dbConnectionCurrentDb, DBM_NAME)
+            $this->definiceSqlFunkci($dbConnectionCurrentDb, $this->zdrojovaDatabaze)
         );
 
         (new \MySQLDump($dbConnectionCurrentDb))->write($handle);
@@ -273,14 +270,11 @@ SQL
             SQL
         );
 
-        fflush($handle);
-        rewind($handle);
-
         $this->removeDefinerFromHandle($handle);
+        $this->removeDatabaseFromHandle($handle, $this->zdrojovaDatabaze);
 
         fflush($handle);
         rewind($handle);
-
         (new \MySQLImport($dbConnectionAnonymDb))->read($handle);
 
         fclose($handle);
@@ -295,7 +289,13 @@ SQL
         }
     }
 
+    /*
+    * DEFINER clause requires SUPER privileges https://stackoverflow.com/questions/44015692/access-denied-you-need-at-least-one-of-the-super-privileges-for-this-operat
+    * but we do not need it
+    */
     private function removeDefinerFromHandle($handle) {
+        fflush($handle);
+        rewind($handle);
         while ($row = fgets($handle)) {
             $rowWithoutDefiner = $this->removeDefiner($row);
             if ($rowWithoutDefiner !== $row) {
@@ -308,6 +308,27 @@ SQL
 
     private function removeDefiner(string $content): string {
         return preg_replace('~\sDEFINER=`[^`]+`@`[^`]+`\s~i', ' ', $content);
+    }
+
+    /*
+    * SQL views may be exported with original columns listed with absolute identifier name, including original database name.
+     * We do not want it.
+    */
+    private function removeDatabaseFromHandle($handle, string $sourceDatabase) {
+        fflush($handle);
+        rewind($handle);
+        while ($row = fgets($handle)) {
+            $rowWithoutDatabase = $this->removeSourceDatabase($row, $sourceDatabase);
+            if ($rowWithoutDatabase !== $row) {
+                fseek($handle, -strlen($row), SEEK_CUR);
+                fwrite($handle, $rowWithoutDatabase);
+                fwrite($handle, str_repeat(' ', strlen($row) - strlen($rowWithoutDatabase)));
+            }
+        }
+    }
+
+    private function removeSourceDatabase(string $content, string $sourceDatabase): string {
+        return str_replace("`{$sourceDatabase}`.", ' ', $content);
     }
 
     private function definiceSqlFunkci(\mysqli $connection, string $databaze): string {
@@ -335,10 +356,6 @@ SQL
             SQL
             );
             $localFunctionsDefinitions[] = "DROP FUNCTION IF EXISTS `$localFunctionName`";
-            /*
-             * DEFINER clause requires SUPER privileges https://stackoverflow.com/questions/44015692/access-denied-you-need-at-least-one-of-the-super-privileges-for-this-operat
-             * but we do not need it
-             */
             $localFunctionsDefinitions[] = mysqli_fetch_assoc($result)['Create Function'];
         }
         return "DELIMITER ;;\n"
