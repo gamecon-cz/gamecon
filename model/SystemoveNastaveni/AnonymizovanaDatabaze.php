@@ -315,7 +315,13 @@ SQL
             SQL
             );
             $localFunctionsDefinitions[] = "DROP FUNCTION IF EXISTS `$localFunctionName`";
-            $localFunctionsDefinitions[] = mysqli_fetch_assoc($result)['Create Function'];
+            $localFunctionsDefinition    = mysqli_fetch_assoc($result)['Create Function'];
+            /*
+             * DEFINER clause requires SUPER privileges https://stackoverflow.com/questions/44015692/access-denied-you-need-at-least-one-of-the-super-privileges-for-this-operat
+             * but we do not need it
+             */
+            $localFunctionsDefinition    = preg_replace('~\sDEFINER=`[^`]+`@`[^`]+`\s~i', ' ', $localFunctionsDefinition);
+            $localFunctionsDefinitions[] = $localFunctionsDefinition;
         }
         return "DELIMITER ;;\n"
             . implode(
