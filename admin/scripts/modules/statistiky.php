@@ -22,12 +22,12 @@ $zbyva = $zbyva->format('%a dní') . ' (' . round($zbyva->format('%a') / 7, 1) .
 /** @var string $zbyva */
 
 $vybraneRoky = array_diff(
-    get('rok') ?? range(ROK - 3, ROK),
+    get('rok') ?? range(ROCNIK - 3, ROCNIK),
     [2020] // abychom netrápili databázi hleáním dat pro rok Call of Covid
 );
-$mozneRoky   = range(2009, ROK);
+$mozneRoky   = range(2009, ROCNIK);
 
-$statistiky = new Statistiky($vybraneRoky, ROK);
+$statistiky = new Statistiky($vybraneRoky, ROCNIK);
 
 $ucast           = $statistiky->tabulkaUcastiHtml();
 $predmety        = $statistiky->tabulkaPredmetuHtml();
@@ -49,7 +49,7 @@ $zarovnaniGrafu = get('zarovnaniGrafu') ?? Statistiky::ZAROVNANI_KE_KONCI_GC;
 
 $indexyDnuZacatkuRegistraci = [];
 foreach ($zacatkyRegistaci as $rok => $nazevDneZacatkuRegistrace) {
-    if ($rok === ROK && pred(REG_GC_OD)) {
+    if ($rok === ROCNIK && pred(REG_GC_OD)) {
         continue; // registace na letošní GC ještě nezačala
     }
     // nejdřív posbíráme indexy z výsledných názvů dnů, měnit je musíme až později, abychom nepodřízli větev ostatním názvům dnů
@@ -58,7 +58,7 @@ foreach ($zacatkyRegistaci as $rok => $nazevDneZacatkuRegistrace) {
 }
 $indexyDnuZacatkuGc = [];
 foreach ($zacatkyGc as $rok => $nazevDneZacatkuGc) {
-    if ($rok === ROK && pred(GC_BEZI_OD)) {
+    if ($rok === ROCNIK && pred(GC_BEZI_OD)) {
         continue; // letošní GC ještě nezačal, nechceme ukazovat poslední známé hodnoty s názvem "začátek GC"
     }
     // nejdřív posbíráme indexy z výsledných názvů dnů, měnit je musíme až později, abychom nepodřízli větev ostatním názvům dnů
@@ -67,7 +67,7 @@ foreach ($zacatkyGc as $rok => $nazevDneZacatkuGc) {
 }
 $indexyDnuKoncuGc = [];
 foreach ($konceGc as $rok => $nazevDneKonceGc) {
-    if ($rok === ROK && pred(GC_BEZI_DO)) {
+    if ($rok === ROCNIK && pred(GC_BEZI_DO)) {
         continue; // letošní GC ještě neskončil, nechceme ukazovat poslední známé hodnoty s názvem "konec GC"
     }
     $indexDneKonceJednohoGc                      = array_search($nazevDneKonceGc, $nazvyDnu);
@@ -161,7 +161,7 @@ $pocetDni = count($nazvyDnu);
 </script>
 <script src="files/highcharts-v4.2.7.js"></script>
 
-<h2>Aktuální statistiky <?= ROK ?></h2>
+<h2>Aktuální statistiky <?= ROCNIK ?></h2>
 
 <div>
     <p>

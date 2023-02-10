@@ -167,7 +167,7 @@ function dejNazvyAPoctyKostek(Uzivatel $navstevnik, array $vsechnyMozneKostky): 
     foreach ($objednaneKostky as $objednanaKostka => $pocet) {
         if (!preg_match('~ \d{4}$~', $objednanaKostka)) {
             unset($objednaneKostky[$objednanaKostka]);
-            $objednaneKostky[$objednanaKostka . ' ' . ROK] = $pocet;
+            $objednaneKostky[$objednanaKostka . ' ' . ROCNIK] = $pocet;
         }
     }
     $poctyKostek = seradADoplnNenakoupene($objednaneKostky, $vsechnyMozneKostky);

@@ -78,7 +78,7 @@ if (post('pripravit')) {
         'bmrtvy' => $uzivatel2->mrtvyMail() ? '(mrtvý)' : '',
     ]);
 
-    for ($rok = 2009; $rok <= ROK; $rok++) {
+    for ($rok = 2009; $rok <= ROCNIK; $rok++) {
         $t->assign('rok', $rok);
         $t->parse(
             in_array($rok, $uzivatel1->historiePrihlaseni()) ?

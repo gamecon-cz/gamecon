@@ -48,7 +48,7 @@ $dejNazevRole = static function (array $idckaZidli) use ($jmenaZidliProPozici): 
 };
 
 $ucastPodleRoku = [];
-$maxRok         = po(REG_GC_DO) ? ROK : ROK - 1;
+$maxRok         = po(REG_GC_DO) ? ROCNIK : ROCNIK - 1;
 for ($i = 2009; $i <= $maxRok; $i++) {
     $ucastPodleRoku[$i] = 'účast ' . $i;
 }
@@ -58,7 +58,7 @@ SELECT shop_predmety.id_predmetu, CONCAT_WS(' ', TRIM(shop_predmety.nazev), mode
 FROM shop_predmety
 WHERE nazev LIKE '%placka%' COLLATE utf8_czech_ci
 AND stav > 0
-SQL, [ROK]
+SQL, [ROCNIK]
 );
 
 $poradiKostek    = [
@@ -75,7 +75,7 @@ FROM shop_predmety
 WHERE nazev LIKE '%kostka%' COLLATE utf8_czech_ci
 AND stav > 0
 ORDER BY FIND_IN_SET(CONCAT_WS(' ', TRIM(shop_predmety.nazev), model_rok), '{$poradiKostekSql}')
-SQL, [ROK]
+SQL, [ROCNIK]
 );
 
 $letosniJidla = dbFetchPairs(<<<SQL
@@ -85,7 +85,7 @@ WHERE shop_predmety.typ = $1
 AND model_rok = $2
 ORDER BY FIELD(SUBSTRING(TRIM(shop_predmety.nazev), 1, POSITION(' ' IN TRIM(shop_predmety.nazev)) - 1), 'Snídaně', 'Oběd', 'Večeře'),
          FIELD(SUBSTRING(TRIM(shop_predmety.nazev), POSITION(' ' IN TRIM(shop_predmety.nazev)) + 1), 'středa', 'čtvrtek', 'pátek', 'sobota', 'neděle')
-SQL, [Shop::JIDLO, ROK]
+SQL, [Shop::JIDLO, ROCNIK]
 );
 
 $letosniOstatniPredmety = dbFetchPairs(<<<SQL
@@ -96,7 +96,7 @@ WHERE shop_predmety.typ = $2
 AND stav > 0
 AND (TRIM(nazev) IN ('GameCon blok', 'Nicknack') OR nazev LIKE '%ponožky%' COLLATE utf8_czech_ci)
 ORDER BY TRIM(shop_predmety.nazev)
-SQL, [ROK, Shop::PREDMET]
+SQL, [ROCNIK, Shop::PREDMET]
 );
 
 $letosniCovidTesty = dbFetchPairs(<<<SQL
@@ -109,7 +109,7 @@ ORDER BY TRIM(shop_predmety.nazev)
 SQL, [Shop::PREDMET]
 );
 
-$rok              = ROK;
+$rok              = ROCNIK;
 $predmetUbytovani = \Gamecon\Shop\TypPredmetu::UBYTOVANI;
 $typUcast         = Zidle::TYP_UCAST;
 $o                = dbQuery(<<<SQL

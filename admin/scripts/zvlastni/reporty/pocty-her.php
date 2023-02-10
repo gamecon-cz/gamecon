@@ -9,7 +9,7 @@ use \Gamecon\Aktivita\TypAktivity;
 /** @var string $NAZEV_SKRIPTU */
 require __DIR__ . '/sdilene-hlavicky.php';
 
-$rok = ROK;
+$rok = ROCNIK;
 
 $result = dbQuery(<<<SQL
 SELECT

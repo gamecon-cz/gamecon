@@ -1,4 +1,5 @@
 <?php
+
 use Gamecon\XTemplate\XTemplate;
 
 /**
@@ -16,10 +17,10 @@ $pouzitiReportu = static function (array $r): array {
         'jmeno_posledniho_uzivatele' => $r['id_posledniho_uzivatele']
             ? (new Uzivatel(dbOneLine('SELECT * FROM uzivatele_hodnoty WHERE id_uzivatele=' . $r['id_posledniho_uzivatele'])))->jmenoNick()
             : '',
-        'cas_posledniho_pouziti' => $r['cas_posledniho_pouziti']
+        'cas_posledniho_pouziti'     => $r['cas_posledniho_pouziti']
             ? (new DateTime($r['cas_posledniho_pouziti'], new DateTimeZone($r['casova_zona_posledniho_pouziti'])))->format('j. m. Y H:m:s')
             : '',
-        'pocet_pouziti' => $r['pocet_pouziti'],
+        'pocet_pouziti'              => $r['pocet_pouziti'],
     ];
 };
 
@@ -48,16 +49,16 @@ SQL
 foreach ($univerzalniReporty as $r) {
     $pouziti = $pouzitiReportu($r);
     $kontext = [
-        'nazev' => str_replace('{ROK}', ROK, $r['nazev']),
-        'html' => $r['format_html']
+        'nazev'                      => str_ireplace(['{ROK}', '{ROCNIK}'], ROCNIK, $r['nazev']),
+        'html'                       => $r['format_html']
             ? '<a href="reporty/' . $r['skript'] . (strpos('?', $r['skript']) === false ? '?' : '&') . 'format=html" target="_blank">html</a>'
             : '',
-        'xlsx' => $r['format_xlsx']
+        'xlsx'                       => $r['format_xlsx']
             ? '<a href="reporty/' . $r['skript'] . (strpos('?', $r['skript']) === false ? '?' : '&') . 'format=xlsx">xlsx</a>'
             : '',
         'jmeno_posledniho_uzivatele' => $pouziti['jmeno_posledniho_uzivatele'],
-        'cas_posledniho_pouziti' => $pouziti['cas_posledniho_pouziti'],
-        'pocet_pouziti' => $pouziti['pocet_pouziti'],
+        'cas_posledniho_pouziti'     => $pouziti['cas_posledniho_pouziti'],
+        'pocet_pouziti'              => $pouziti['pocet_pouziti'],
     ];
     $t->assign($kontext);
     $t->parse('reporty.report');
@@ -85,11 +86,11 @@ SQL
 foreach ($quickReporty as $r) {
     $pouziti = $pouzitiReportu($r);
     $kontext = [
-        'id' => $r['id'],
-        'nazev' => $r['nazev'],
+        'id'                         => $r['id'],
+        'nazev'                      => $r['nazev'],
         'jmeno_posledniho_uzivatele' => $pouziti['jmeno_posledniho_uzivatele'],
-        'cas_posledniho_pouziti' => $pouziti['cas_posledniho_pouziti'],
-        'pocet_pouziti' => $pouziti['pocet_pouziti'],
+        'cas_posledniho_pouziti'     => $pouziti['cas_posledniho_pouziti'],
+        'pocet_pouziti'              => $pouziti['pocet_pouziti'],
     ];
     $t->assign($kontext);
     $t->parse('reporty.quick');

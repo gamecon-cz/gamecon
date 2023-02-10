@@ -10,7 +10,7 @@ LEFT JOIN shop_nakupy n ON (n.id_uzivatele = u.id_uzivatele)
 LEFT JOIN shop_predmety p ON (p.id_predmetu = n.id_predmetu)
 WHERE (n.rok = $0) AND (p.typ = $tricko)
 SQL
-    , [0 => ROK]
+    , [0 => ROCNIK]
 );
 
 $report->tFormat(get('format'));

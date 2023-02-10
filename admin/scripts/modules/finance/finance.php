@@ -112,7 +112,7 @@ if (post('pokojeImport')) {
     $do    = $hlavicka['posledni_noc'];
     $pokoj = $hlavicka['pokoj'];
 
-    dbDelete('ubytovani', ['rok' => ROK]);
+    dbDelete('ubytovani', ['rok' => ROCNIK]);
 
     while ($r = fgetcsv($f, 512, ";")) {
         if ($r[$pokoj]) {
@@ -121,7 +121,7 @@ if (post('pokojeImport')) {
                     'id_uzivatele' => $r[$uid],
                     'den'          => $den,
                     'pokoj'        => $r[$pokoj],
-                    'rok'          => ROK,
+                    'rok'          => ROCNIK,
                 ]);
             }
         }
@@ -169,7 +169,7 @@ $x->assign([
 $x->parse('finance.pripsatSlevu');
 $x->parse('finance.vyplatitBonusZaVedeniAktivity');
 
-$x->assign('rok', ROK);
+$x->assign('rok', ROCNIK);
 
 $x->assign('ubytovani', basename(__DIR__ . '/../../zvlastni/reporty/finance-report-ubytovani.php', '.php'));
 $x->assign('bfgr', basename(__DIR__ . '/../../zvlastni/reporty/celkovy-report.php', '.php'));

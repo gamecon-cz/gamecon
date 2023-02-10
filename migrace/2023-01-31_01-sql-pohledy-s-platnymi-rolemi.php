@@ -2,30 +2,31 @@
 /** @var \Godric\DbMigrations\Migration $this */
 
 $this->q(<<<SQL
-DROP FUNCTION IF EXISTS rocnik
-SQL
-);
-
-// workaround abychom mohli použít variable v SQL view
-$this->q(<<<SQL
-CREATE FUNCTION rocnik()
-    RETURNS INTEGER
-BEGIN
-    RETURN IF(@rocnik IS NOT NULL, @rocnik, YEAR(NOW()));
-END
+ALTER TABLE systemove_nastaveni
+    ADD COLUMN pouze_pro_cteni TINYINT(1) DEFAULT 0
 SQL
 );
 
 $this->q(<<<SQL
-DROP VIEW IF EXISTS platne_zidle
+INSERT IGNORE INTO systemove_nastaveni
+    SET
+        klic='ROCNIK',
+        hodnota=2023,
+        aktivni=1,
+        datovy_typ= 'number',
+        nazev='Ročník',
+        popis='Který ročník GC je aktivní',
+        skupina='Časy',
+        poradi=(SELECT MAX(poradi)+1 FROM systemove_nastaveni AS predchozi),
+        pouze_pro_cteni=1
 SQL
 );
 
-$jakykoliRocnik = \Gamecon\Role\Zidle::JAKYKOLI_ROK;
+$jakykoliRocnik = \Gamecon\Role\Zidle::JAKYKOLI_ROCNIK;
 $this->q(<<<SQL
 CREATE SQL SECURITY INVOKER VIEW platne_zidle
 AS SELECT * FROM r_zidle_soupis
-WHERE rocnik IN (rocnik(), $jakykoliRocnik)
+WHERE rocnik IN ((SELECT hodnota FROM systemove_nastaveni WHERE klic = 'ROCNIK' LIMIT 1), $jakykoliRocnik)
 SQL
 );
 

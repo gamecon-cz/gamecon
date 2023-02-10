@@ -31,6 +31,6 @@ WHERE
     akce_seznam.typ = $1 AND
     akce_seznam.cena > 0 -- detekce základního kola
 SQL
-    , [0 => ROK, 1 => \Gamecon\Aktivita\TypAktivity::DRD]
+    , [0 => ROCNIK, 1 => \Gamecon\Aktivita\TypAktivity::DRD]
 );
 $report->tFormat(get('format'));

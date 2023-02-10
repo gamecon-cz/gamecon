@@ -84,7 +84,7 @@ while ($rowIterator->valid()) {
         }
 
         $balicek = trim((string)($radek[$indexBalicek] ?? ''));
-        $balicekProSql = $dejPoznamkuOVelkemBalicku($balicek, ROK);
+        $balicekProSql = $dejPoznamkuOVelkemBalicku($balicek, ROCNIK);
         if ($balicekProSql === ''
             && !in_array(
                 strtolower(removeDiacritics($balicek)),

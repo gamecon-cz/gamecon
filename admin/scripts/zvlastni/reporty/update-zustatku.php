@@ -29,10 +29,10 @@ SQL;
 <h1>SQL update pro uzavření financí</h1>
 
 <p>Sled příkazů v okně po provedení na databázi aktualizuje zůstatky u jednotlivých uživatelů tak, jak reálně vypadají
-    po skončení aktuálního gameconu (tj. ročník <?php echo ROK ?>).</p>
+    po skončení aktuálního gameconu (tj. ročník <?php echo ROCNIK ?>).</p>
 
 <p>Po provedení dotazu všechny výsledky výpočtu peněz <strong>už nebudou platit</strong> až do okamžiku překlopení webu
-    (tj. hlavně konstanty ROK) na další ročník.</p>
+    (tj. hlavně konstanty ROCNIK) na další ročník.</p>
 
 <textarea style="width:650px;height:400px">
 <?= implode("\n", $sqlNaPrepocetZustatku) ?>

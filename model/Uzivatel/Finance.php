@@ -325,7 +325,7 @@ class Finance
                 'id_uzivatele' => $this->u->id(),
                 'fio_id'       => $idFioPlatby ?: null,
                 'castka'       => prevedNaFloat($castka),
-                'rok'          => ROK,
+                'rok'          => ROCNIK,
                 'provedl'      => $provedl->id(),
                 'poznamka'     => $poznamka ?: null,
             ]
@@ -342,7 +342,7 @@ class Finance
         $sleva = prevedNaFloat($sleva);
         dbQuery(
             'INSERT INTO slevy(id_uzivatele, castka, rok, provedl, poznamka) VALUES ($1, $2, $3, $4, $5)',
-            [$this->u->id(), $sleva, ROK, $provedl->id(), $poznamka ?: null]
+            [$this->u->id(), $sleva, ROCNIK, $provedl->id(), $poznamka ?: null]
         );
     }
 
@@ -531,7 +531,7 @@ class Finance
      */
     private function zapoctiAktivity() {
         $soucinitelAktivit     = $this->soucinitelAktivit();
-        $rok                   = ROK;
+        $rok                   = ROCNIK;
         $idUcastnika           = $this->u->id();
         $technicka             = TypAktivity::TECHNICKA; // výpomoc, jejíž cena se započítá jako bonus vypravěče, který může použít na nákup na GC
         $brigadnicka           = TypAktivity::BRIGADNICKA; // placený "zaměstnanec"
@@ -599,7 +599,7 @@ SQL
         }
     }
 
-    public function sumaPlateb(int $rok = ROK): float {
+    public function sumaPlateb(int $rok = ROCNIK): float {
         if (!isset($this->sumyPlatebVRocich[$rok])) {
             $result     = dbQuery(<<<SQL
 SELECT
@@ -632,7 +632,7 @@ SQL
       JOIN shop_predmety p USING(id_predmetu)
       WHERE n.id_uzivatele = $0 AND n.rok = $1
       ORDER BY n.cena_nakupni -- od nejlevnějších kvůli aplikaci slev na trička
-    ', [$this->u->id(), ROK]);
+    ', [$this->u->id(), ROCNIK]);
 
         $soucty = [];
         foreach ($o as $r) {
@@ -661,7 +661,7 @@ SQL
                 }
             }
             // přidání roku do názvu
-            if ($r['model_rok'] && $r['model_rok'] != ROK) {
+            if ($r['model_rok'] && $r['model_rok'] != ROCNIK) {
                 $r['nazev'] = $r['nazev'] . ' ' . $r['model_rok'];
             }
             // logování do výpisu
@@ -694,7 +694,7 @@ SQL
       SELECT castka, poznamka
       FROM slevy
       WHERE id_uzivatele = $0 AND rok = $1
-    ', [$this->u->id(), ROK]);
+    ', [$this->u->id(), ROCNIK]);
 
         foreach ($q as $sleva) {
             if (strpos($sleva['poznamka'], '#kompenzace') !== false) {

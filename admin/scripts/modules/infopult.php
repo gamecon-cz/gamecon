@@ -33,7 +33,7 @@ include __DIR__ . '/_infopult_ovladac.php';
 
 $x = new XTemplate(__DIR__ . '/infopult.xtpl');
 
-$x->assign(['ok' => $ok, 'err' => $err, 'rok' => ROK]);
+$x->assign(['ok' => $ok, 'err' => $err, 'rok' => ROCNIK]);
 if ($uPracovni) {
     $x->assign([
         'a'  => $uPracovni->koncovkaDlePohlavi(),

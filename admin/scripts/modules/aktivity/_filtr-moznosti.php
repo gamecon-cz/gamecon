@@ -47,13 +47,13 @@ class FiltrMoznosti
             }
         }
 
-        $filtrRoku = $filtrovatPodleRoku && !empty($_SESSION['adminAktivityFiltrRoku']) && $_SESSION['adminAktivityFiltrRoku'] >= 2000 && $_SESSION['adminAktivityFiltrRoku'] <= ROK
+        $filtrRoku = $filtrovatPodleRoku && !empty($_SESSION['adminAktivityFiltrRoku']) && $_SESSION['adminAktivityFiltrRoku'] >= 2000 && $_SESSION['adminAktivityFiltrRoku'] <= ROCNIK
             ? $_SESSION['adminAktivityFiltrRoku']
-            : ROK;
+            : ROCNIK;
 
         $adminAktivityFiltr = $_SESSION['adminAktivityFiltr'] ?? '';
 
-        return new static($adminAktivityFiltr, ROK, $filtrRoku, $filtrovatPodleRoku);
+        return new static($adminAktivityFiltr, ROCNIK, $filtrRoku, $filtrovatPodleRoku);
     }
 
     private function __construct(string $adminAktivityFiltr, int $letosniRok, int $filtrRoku, bool $filtrovatPodleRoku) {

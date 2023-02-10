@@ -16,7 +16,7 @@ FROM r_zidle_soupis
 SQL
 );
 
-$letosniPrefix = Zidle::prefixRocniku(ROK);
+$letosniPrefix = Zidle::prefixRocniku(ROCNIK);
 foreach ($result->fetch_all(MYSQLI_ASSOC) as ['id_zidle' => $idZidle, 'jmeno_zidle' => $jmenoZidle]) {
     $nazevZidleSPrefixem = $idZidle > 0
         ? $letosniPrefix . ' ' . $jmenoZidle // Infopult = GC2023 Infopult

@@ -32,14 +32,14 @@ $r = Report::zSql('
   LEFT JOIN (
       SELECT id_uzivatele, GROUP_CONCAT(DISTINCT at.typ_1pmn SEPARATOR ", ") as sekce
       FROM akce_organizatori ao
-      JOIN akce_seznam a ON (ao.id_akce = a.id_akce AND a.rok = ' . ROK . ')
+      JOIN akce_seznam a ON (ao.id_akce = a.id_akce AND a.rok = ' . ROCNIK . ')
       JOIN akce_typy at ON (a.typ = at.id_typu)
       GROUP BY id_uzivatele
     ) akt ON (akt.id_uzivatele = z.id_uzivatele)
   LEFT JOIN (
       SELECT id_uzivatele FROM shop_nakupy sn
       JOIN shop_predmety sp ON (sp.id_predmetu = sn.id_predmetu AND sp.typ = ' . Shop::UBYTOVANI . ')
-      WHERE sn.rok = ' . ROK . '
+      WHERE sn.rok = ' . ROCNIK . '
       GROUP BY sn.id_uzivatele
     ) ub ON (ub.id_uzivatele = z.id_uzivatele)
   WHERE z.id_zidle IN (' . $sledovaneZidleSql . ') AND (

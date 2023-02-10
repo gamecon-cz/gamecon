@@ -89,7 +89,7 @@ function zabalAdminSoubor(string $cestaKSouboru): string {
         // Konstanty předáváné do Preactu (env.ts)
         window.GAMECON_KONSTANTY = {
             BASE_PATH_API: "<?= URL_ADMIN . "/api/" ?>",
-            ROK: <?= ROK ?>,
+            ROCNIK: <?= ROCNIK ?>,
         }
     </script>
 

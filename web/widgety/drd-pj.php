@@ -5,10 +5,10 @@ use Gamecon\Aktivita\Aktivita;
 /** @var \Gamecon\XTemplate\XTemplate $t */
 
 // načíst aktivity DrD (všechna kola)
-$aktivity = Aktivita::zFiltru(['typ' => \Gamecon\Aktivita\TypAktivity::DRD, 'rok' => ROK]);
+$aktivity = Aktivita::zFiltru(['typ' => \Gamecon\Aktivita\TypAktivity::DRD, 'rok' => ROCNIK]);
 if (empty($aktivity)) {
     // když aktivity nejsou založeny, použít z minulého roku
-    $aktivity = Aktivita::zFiltru(['typ' => \Gamecon\Aktivita\TypAktivity::DRD, 'rok' => ROK - 1]);
+    $aktivity = Aktivita::zFiltru(['typ' => \Gamecon\Aktivita\TypAktivity::DRD, 'rok' => ROCNIK - 1]);
 }
 
 // načíst organizátory aktivit

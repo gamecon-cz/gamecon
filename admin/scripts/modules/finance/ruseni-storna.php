@@ -36,7 +36,7 @@ $o = dbQuery('
   JOIN akce_prihlaseni_stavy aps ON aps.id_stavu_prihlaseni = ap.id_stavu_prihlaseni
   WHERE aps.id_stavu_prihlaseni IN (3, 4)
   ORDER BY a.zacatek, a.nazev_akce
-', [ROK]);
+', [ROCNIK]);
 
 foreach($o as $r) {
   $t->assign($r);

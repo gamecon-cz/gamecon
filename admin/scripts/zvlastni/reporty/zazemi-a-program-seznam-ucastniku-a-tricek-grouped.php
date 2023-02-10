@@ -8,7 +8,7 @@ require __DIR__ . '/sdilene-hlavicky.php';
 $typTricko = Shop::TRICKO;
 $typPredmet = Shop::PREDMET;
 $typJidlo = Shop::JIDLO;
-$rok = ROK;
+$rok = ROCNIK;
 $idckaZidliSOrganizatorySql = implode(',', Zidle::dejIdckaZidliSOrganizatory());
 
 $poddotazKoupenehoPredmetu = static function (string $klicoveSlovo, int $idTypuPredmetu, int $rok, bool $prilepitRokKNazvu) {

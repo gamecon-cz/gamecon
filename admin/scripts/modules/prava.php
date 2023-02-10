@@ -69,17 +69,17 @@ if (!$zidle) {
     WHERE zidle.rocnik IN ($1, $2)
     GROUP BY zidle.id_zidle, zidle.typ_zidle, zidle.jmeno_zidle
     ORDER BY zidle.typ_zidle, zidle.jmeno_zidle',
-        [0 => $uPracovni?->id(), 1 => ROK, 2 => Zidle::JAKYKOLI_ROK]
+        [0 => $uPracovni?->id(), 1 => ROCNIK, 2 => Zidle::JAKYKOLI_ROCNIK]
     );
     $predchoziTyp = null;
     while ($r = mysqli_fetch_assoc($o)) {
         $r['sedi'] = $r['sedi'] ? '<span style="color:#0d0;font-weight:bold">&bull;</span>' : '';
         $t->assign($r);
         if ($r[ZidleSqlStruktura::TYP_ZIDLE] === Zidle::TYP_UCAST) {
-            if (Zidle::platiPouzeProRocnik($r[ZidleSqlStruktura::ROCNIK], ROK)) {
+            if (Zidle::platiPouzeProRocnik($r[ZidleSqlStruktura::ROCNIK], ROCNIK)) {
                 $t->parse('prava.zidleUcast');
             } // 'else' jde o starou účast jako "GC2019 přijel" a ji nechceme ukazovat
-        } elseif (Zidle::platiProRocnik($r[ZidleSqlStruktura::ROCNIK], ROK)) {
+        } elseif (Zidle::platiProRocnik($r[ZidleSqlStruktura::ROCNIK], ROCNIK)) {
             if ($predchoziTyp !== $r[ZidleSqlStruktura::TYP_ZIDLE]) {
                 if ($predchoziTyp !== null) {
                     $t->parse('prava.jedenTypZidli');
@@ -87,7 +87,7 @@ if (!$zidle) {
                 if ($r[ZidleSqlStruktura::TYP_ZIDLE] === Zidle::TYP_TRVALA) {
                     $t->parse('prava.jedenTypZidli.zidleTrvaleNadpis');
                 } elseif ($r[ZidleSqlStruktura::TYP_ZIDLE] === Zidle::TYP_ROCNIKOVA) {
-                    $t->assign('rocnik', ROK);
+                    $t->assign('rocnik', ROCNIK);
                     $t->parse('prava.jedenTypZidli.zidleRocnikoveNadpis');
                 }
             }

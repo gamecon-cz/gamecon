@@ -9,7 +9,7 @@ $t = new XTemplate(__DIR__ . '/report-infopult-ucastnici-balicky.xtpl');
 $typTricko = Shop::TRICKO;
 $typPredmet = Shop::PREDMET;
 $typJidlo = Shop::JIDLO;
-$rok = ROK;
+$rok = ROCNIK;
 $idckaZidliSOrganizatorySql = implode(',', \Gamecon\Role\Zidle::dejIdckaZidliSOrganizatory());
 
 $poddotazKoupenehoPredmetu = static function (string $klicoveSlovo, int $idTypuPredmetu, int $rok, bool $prilepitRokKNazvu) {

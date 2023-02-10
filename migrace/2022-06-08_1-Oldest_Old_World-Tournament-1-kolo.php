@@ -3,7 +3,7 @@
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavAktivity;
 
-$oldestOldWorldTournament2022Wrapped = Aktivita::zNazvuARoku('Oldest Old World Tournament - WFB 6.5 edition - 1. kolo', ROK);
+$oldestOldWorldTournament2022Wrapped = Aktivita::zNazvuARoku('Oldest Old World Tournament - WFB 6.5 edition - 1. kolo', ROCNIK);
 
 if (!$oldestOldWorldTournament2022Wrapped) {
     return;

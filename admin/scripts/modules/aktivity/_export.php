@@ -52,14 +52,14 @@ if (count($activityTypeIdsFromFilter) > 1) {
             new ExportLokaciSloupce(),
             new ExportVypravecuSloupce()
         );
-        $nazevExportovanehoSouboru = $activitiesExporter->exportActivities($aktivity, (string)($filtr['rok'] ?? ROK));
+        $nazevExportovanehoSouboru = $activitiesExporter->exportActivities($aktivity, (string)($filtr['rok'] ?? ROCNIK));
         oznameni(sprintf("Aktivity byly exportovány do Google sheets pod názvem '%s'", $nazevExportovanehoSouboru));
         exit;
     }
     $template->assign('activityTypeId', $activityTypeIdFromFilter);
 
     $typAktivity = TypAktivity::zId($activityTypeIdFromFilter);
-    $template->assign('nazevTypu', mb_ucfirst($typAktivity->nazev()) . (($filtr['rok'] ?? ROK) != ROK ? (' ' . $filtr['rok']) : ''));
+    $template->assign('nazevTypu', mb_ucfirst($typAktivity->nazev()) . (($filtr['rok'] ?? ROCNIK) != ROCNIK ? (' ' . $filtr['rok']) : ''));
     $pocetAktivit = count($aktivity);
     $pocetAktivitSlovo = 'aktivit';
     if ($pocetAktivit === 1) {

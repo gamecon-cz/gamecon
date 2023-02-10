@@ -11,6 +11,6 @@ LEFT JOIN akce_lokace ON akce_lokace.id_lokace = akce_seznam.lokace
 WHERE akce_seznam.rok = $1
 ORDER BY akce_seznam.zacatek
 SQL
-  , [ROK]
+  , [ROCNIK]
 );
 $report->tFormat(get('format'));

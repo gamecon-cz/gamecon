@@ -320,7 +320,7 @@ SQL
         // kontrola duplicit url
         if (dbOneLine('SELECT 1 FROM akce_seznam
       WHERE url_akce = $1 AND ( patri_pod IS NULL OR patri_pod != $2 ) AND id_akce != $3 AND rok = $4',
-            [$a['url_akce'], $a['patri_pod'], $a['id_akce'], ROK])
+            [$a['url_akce'], $a['patri_pod'], $a['id_akce'], ROCNIK])
         ) {
             $chyby[] = sprintf("Url '%s' je už letos použitá pro jinou aktivitu. Vyberte jinou, nebo použijte tlačítko „inst“ v seznamu aktivit pro duplikaci.", $a['url_akce']);
         }
@@ -384,7 +384,7 @@ SQL
 
         // načtení organizátorů
         if (!$omezeni || !empty($omezeni['organizator'])) {
-            self::parseUpravyTabulkaVypraveci($aktivita, $xtpl, ROK);
+            self::parseUpravyTabulkaVypraveci($aktivita, $xtpl, ROCNIK);
         }
 
         // načtení typů
@@ -415,7 +415,7 @@ SQL
     private static function parseUpravyTabulkaDeti(?Aktivita $aktivita, XTemplate $xtpl) {
         $q       = dbQuery(
             "SELECT id_akce FROM akce_seznam WHERE id_akce != $1 AND rok = $2 ORDER BY nazev_akce",
-            [$aktivita ? $aktivita->id() : null, ROK]
+            [$aktivita ? $aktivita->id() : null, ROCNIK]
         );
         $detiIds = $aktivita ? $aktivita->detiIds() : [];
         while ($mozneDiteData = mysqli_fetch_assoc($q)) {
@@ -445,7 +445,7 @@ SQL
     private static function parseUpravyTabulkaRodice(?Aktivita $aktivita, XTemplate $xtpl) {
         $q = dbQuery(
             "SELECT id_akce FROM akce_seznam WHERE id_akce != $1 AND rok = $2 ORDER BY nazev_akce",
-            [$aktivita ? $aktivita->id() : null, ROK]
+            [$aktivita ? $aktivita->id() : null, ROCNIK]
         );
         while ($moznyRodicData = mysqli_fetch_assoc($q)) {
             $moznyRodicId = $moznyRodicData['id_akce'];
@@ -774,7 +774,7 @@ SQL
             // vkládání nové aktivity
             // inicializace hodnot pro novou aktivitu
             $data['id_akce'] = null;
-            $data['rok']     = ROK;
+            $data['rok']     = ROCNIK;
             if ($data['teamova']) $data['kapacita'] = $data['team_max'] ?? 0; // při vytváření nové aktivity se kapacita inicializuje na max. teamu
             if (empty($data['nazev_akce'])) $data['nazev_akce'] = '(bez názvu)';
             if (empty($data['stav'])) {
@@ -2535,7 +2535,7 @@ SQL
     public function ucastniciPridatelniDo(\Uzivatel $prihlasujici, SystemoveNastaveni $systemoveNastaveni = null): \DateTimeImmutable {
         if ($prihlasujici->maPravoNaZmenuHistorieAktivit()) {
             // až do začátku příštího GC
-            return \DateTimeImmutable::createFromMutable(DateTimeGamecon::zacatekGameconu(ROK + 1));
+            return \DateTimeImmutable::createFromMutable(DateTimeGamecon::zacatekGameconu(ROCNIK + 1));
         }
 
         $systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals();
@@ -2625,7 +2625,7 @@ SQL,
                     StavAktivity::PRIPRAVENA,
                     StavAktivity::SYSTEMOVA,
                 ],
-                2 => ROK,
+                2 => ROCNIK,
             ]
         );
         $ids = array_map('intval', $ids);
@@ -2656,7 +2656,7 @@ SQL,
                 0 => $konciciNejmeneDo->format(DateTimeCz::FORMAT_DB),
                 1 => $konciciNejviceDo->format(DateTimeCz::FORMAT_DB),
                 2 => [StavAktivity::UZAVRENA, StavAktivity::SYSTEMOVA],
-                3 => ROK,
+                3 => ROCNIK,
             ]
         );
 
@@ -2865,7 +2865,7 @@ SQL,
      */
     public static function zOrganizatora(\Uzivatel $u) {
         // join hack na akt. uživatele
-        return self::zWhere('JOIN akce_organizatori ao ON (ao.id_akce = a.id_akce AND ao.id_uzivatele = ' . $u->id() . ') WHERE a.rok = ' . ROK);
+        return self::zWhere('JOIN akce_organizatori ao ON (ao.id_akce = a.id_akce AND ao.id_uzivatele = ' . $u->id() . ') WHERE a.rok = ' . ROCNIK);
     }
 
     public function maOrganizatora(\Uzivatel $organizator): bool {
@@ -2879,7 +2879,7 @@ SQL,
         return self::zWhere(
             'WHERE a.rok = $0 AND a.zacatek AND (a.stav != $1 OR a.typ IN ($2))',
             [
-                0 => ROK,
+                0 => ROCNIK,
                 1 => StavAktivity::NOVA,
                 2 => TypAktivity::interniTypy(),
             ],

@@ -264,14 +264,14 @@ SQL
                 (new GcMail())
                     ->adresat('info@gamecon.cz')
                     ->predmet('Uživatel ' . $this->jmenoNick() . ' se odhlásil ale platil')
-                    ->text(hlaskaMail('odhlasilPlatil', $this->jmenoNick(), $this->id(), ROK, $celkemLetosPoslal))
+                    ->text(hlaskaMail('odhlasilPlatil', $this->jmenoNick(), $this->id(), ROCNIK, $celkemLetosPoslal))
                     ->odeslat();
             }
             if ($dnyUbytovani = array_keys($this->dejShop()->ubytovani()->veKterychDnechJeUbytovan())) {
                 (new GcMail())
                     ->adresat('info@gamecon.cz')
                     ->predmet('Uživatel ' . $this->jmenoNick() . ' se odhlásil a měl ubytování')
-                    ->text(hlaskaMail('odhlasilMelUbytovani', $this->jmenoNick(), $this->id(), ROK, implode(', ', $dnyUbytovani)))
+                    ->text(hlaskaMail('odhlasilMelUbytovani', $this->jmenoNick(), $this->id(), ROCNIK, implode(', ', $dnyUbytovani)))
                     ->odeslat();
             }
         } catch (\Throwable $throwable) {
@@ -287,7 +287,7 @@ SQL
         // finální odebrání židle "registrován na GC"
         $this->vemZidli(Zidle::PRIHLASEN_NA_LETOSNI_GC, $odhlasujici);
         // zrušení nákupů (až po použití dejShop a ubytovani)
-        dbQuery('DELETE FROM shop_nakupy WHERE rok=' . ROK . ' AND id_uzivatele=' . $this->id());
+        dbQuery('DELETE FROM shop_nakupy WHERE rok=' . ROCNIK . ' AND id_uzivatele=' . $this->id());
 
         return true;
     }
@@ -296,7 +296,7 @@ SQL
      * @param int $rok
      * @return Aktivita[]
      */
-    public function organizovaneAktivity(int $rok = ROK): array {
+    public function organizovaneAktivity(int $rok = ROCNIK): array {
         return Aktivita::zFiltru(
             ['rok' => $rok, 'organizator' => $this->id()],
             ['zacatek']
@@ -307,7 +307,7 @@ SQL
      * @param int $rok
      * @return Aktivita[]
      */
-    public function aktivityRyzePrihlasene(int $rok = ROK): array {
+    public function aktivityRyzePrihlasene(int $rok = ROCNIK): array {
         $ids = dbOneArray(<<<SQL
 SELECT akce_prihlaseni.id_akce
 FROM akce_prihlaseni
@@ -325,7 +325,7 @@ SQL,
      * @param int $rok
      * @return Aktivita[]
      */
-    public function zapsaneAktivity(int $rok = ROK): array {
+    public function zapsaneAktivity(int $rok = ROCNIK): array {
         $ids = dbOneArray(<<<SQL
 SELECT akce_prihlaseni.id_akce
 FROM akce_prihlaseni
@@ -742,7 +742,7 @@ SQL,
         JOIN akce_seznam
             ON akce_seznam.id_akce = akce_organizatori.id_akce AND akce_seznam.rok = $2
         WHERE akce_organizatori.id_uzivatele = $1
-      ', [$this->id(), ROK]);
+      ', [$this->id(), ROCNIK]);
         }
         return isset($this->organizovaneAktivityIds[$a->id()]);
     }
@@ -788,7 +788,7 @@ SQL,
       SELECT MAX(a.zacatek)
       FROM akce_seznam a
       JOIN akce_prihlaseni p USING(id_akce)
-      WHERE p.id_uzivatele = ' . $this->id() . ' AND a.rok = ' . ROK . '
+      WHERE p.id_uzivatele = ' . $this->id() . ' AND a.rok = ' . ROCNIK . '
     ');
         return $cas;
     }
@@ -814,7 +814,7 @@ SQL,
                 ? "<span class=\"hinted\">jen stravenky<span class=\"hint\">{$shop->objednneJidloPrehledHtml()}</span></span>"
                 : '';
         }
-        $velikostBalicku = $this->u['infopult_poznamka'] === 'velký balíček ' . ROK
+        $velikostBalicku = $this->u['infopult_poznamka'] === 'velký balíček ' . ROCNIK
             ? 'velký balíček'
             : 'balíček';
         $nakupy          = [];
@@ -957,7 +957,7 @@ SQL
             'SELECT MIN(a.zacatek)
                 FROM akce_seznam a
                     JOIN akce_prihlaseni p USING(id_akce)
-                WHERE p.id_uzivatele = ' . $this->id() . ' AND a.rok = ' . ROK
+                WHERE p.id_uzivatele = ' . $this->id() . ' AND a.rok = ' . ROCNIK
         );
     }
 

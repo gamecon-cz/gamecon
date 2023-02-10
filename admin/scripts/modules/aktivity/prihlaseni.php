@@ -46,7 +46,7 @@ $odpoved = dbQuery(<<<SQL
   GROUP BY u.id_uzivatele, a.id_akce
   ORDER BY a.zacatek, a.nazev_akce, a.id_akce, p.id_uzivatele
 SQL,
-    [0 => ROK, 1 => get('typ')]
+    [0 => ROCNIK, 1 => get('typ')]
 );
 
 $totoPrihlaseni  = mysqli_fetch_assoc($odpoved) ?: [];

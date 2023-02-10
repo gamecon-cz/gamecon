@@ -36,7 +36,7 @@ abstract class UzivatelDbTest extends DbTest
             Zidle::zId(Zidle::PRIHLASEN_NA_LETOSNI_GC),
             sprintf(
                 "Chybí židle 'Přihlášen pro rok %d' s ID %d",
-                ROK,
+                ROCNIK,
                 Zidle::PRIHLASEN_NA_LETOSNI_GC
             )
         );

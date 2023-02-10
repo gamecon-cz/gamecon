@@ -28,7 +28,7 @@ include __DIR__ . '/_uzivatel_ovladac.php';
 
 $x = new XTemplate('uzivatel.xtpl');
 
-$x->assign(['ok' => $ok, 'err' => $err, 'rok' => ROK]);
+$x->assign(['ok' => $ok, 'err' => $err, 'rok' => ROCNIK]);
 if ($uPracovni) {
     $x->assign([
         'a' => $uPracovni->koncovkaDlePohlavi(),
