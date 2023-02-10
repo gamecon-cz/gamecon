@@ -111,14 +111,14 @@ SQL,
             if (!defined($nazevKonstanty)) {
                 define($nazevKonstanty, $hodnota);
             } elseif (constant($nazevKonstanty) !== $hodnota) {
-                throw new InvalidSystemSettingsValue(
+                /*throw new InvalidSystemSettingsValue(
                     sprintf(
                         "Konstanta '%s' už je definována, ale s jinou hodnotou '%s' než očekávanou '%s'",
                         $nazevKonstanty,
                         var_export(constant($nazevKonstanty), true),
                         var_export($hodnota, true),
                     )
-                );
+                );*/
             }
         }
         $this->definujOdvozeneKonstanty();
