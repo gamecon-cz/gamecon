@@ -24,7 +24,7 @@ class AnonymizovanaDatabaze
     private bool $jsmeNaLocale;
 
     public function __construct(
-        private string           $zdrojovaDatabaze,
+        string                   $zdrojovaDatabaze,
         private string           $anonymniDatabaze,
         SystemoveNastaveni       $systemoveNastaveni,
         private NastrojeDatabaze $nastrojeDatabaze,
@@ -247,7 +247,9 @@ SQL
         * DEFINER vyžaduje SUPER privileges https://stackoverflow.com/questions/44015692/access-denied-you-need-at-least-one-of-the-super-privileges-for-this-operat
         * ale nás definer nezajímá, tak ho zahodíme
         */
-        $mysqldump = $this->nastrojeDatabaze->vytvorMysqldumpProHlavniDatabazi(['skip-definer' => true]);
+        $mysqldump = $this->nastrojeDatabaze->vytvorMysqldumpProHlavniDatabazi([
+            'skip-definer' => true,
+        ]);
         $mysqldump->start($tempFile);
 
         (new \MySQLImport($dbConnectionAnonymDb))->load($tempFile);
@@ -263,8 +265,17 @@ SQL
     }
 
     public function exportuj() {
-        $tempFile = tempnam(sys_get_temp_dir(), 'anonymizovana_databaze');
-        (new \MySQLDump(dbConnectionAnonymDb()))->save($tempFile);
+        $tempFile = tempnam(sys_get_temp_dir(), 'anonymizovana_databaze_');
+        /*
+        * DEFINER vyžaduje SUPER privileges https://stackoverflow.com/questions/44015692/access-denied-you-need-at-least-one-of-the-super-privileges-for-this-operat
+        * ale nás definer nezajímá, tak ho zahodíme
+        */
+        $mysqldump = $this->nastrojeDatabaze->vytvorMysqldumpProAnonymniDatabazi([
+            'skip-definer'     => true,
+            'add-drop-table'   => true,
+            'add-drop-trigger' => true,
+        ]);
+        $mysqldump->start($tempFile);
         $request  = new Request();
         $response = (new BinaryFileResponse($tempFile));
         $response->headers->set('Content-Type', 'application/sql');
