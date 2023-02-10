@@ -25,17 +25,22 @@ class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
     5,       NULL,  2,    1,   0,       3,        NULL,     NULL,     2099-01-01 08:00, 2099-01-01 14:00
     ';
 
-    public function setUp(): void {
+    protected function setUp(): void {
         parent::setUp();
 
-        $this->ctvrtfinale = Aktivita::zId(1);
-        $this->semifinaleA = Aktivita::zId(2);
-        $this->semifinaleB = Aktivita::zId(3);
-        $this->finale = Aktivita::zId(4);
+        try {
+            $this->ctvrtfinale = Aktivita::zId(1);
+            $this->semifinaleA = Aktivita::zId(2);
+            $this->semifinaleB = Aktivita::zId(3);
+            $this->finale      = Aktivita::zId(4);
 
-        $this->tymlidr = self::prihlasenyUzivatel();
-        $this->clen1 = self::prihlasenyUzivatel();
-        $this->clen2 = self::prihlasenyUzivatel();
+            $this->tymlidr = self::prihlasenyUzivatel();
+            $this->clen1   = self::prihlasenyUzivatel();
+            $this->clen2   = self::prihlasenyUzivatel();
+        } catch (\Throwable $throwable) {
+            $this->tearDown();
+            throw $throwable;
+        }
     }
 
     public function testOdhlaseniPosledniho() {
@@ -170,12 +175,12 @@ class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
 
     public function spatnaVolbaDalsichKol(): array {
         return [
-            'nevybrání ničeho' => [[]],
-            'vybrání i čtvrtfinále' => [[1, 2, 4]],
+            'nevybrání ničeho'        => [[]],
+            'vybrání i čtvrtfinále'   => [[1, 2, 4]],
             'vybrání dvou semifinále' => [[2, 3, 4]],
-            'nevybrání finále' => [[2]],
-            'špatné pořadí' => [[4, 2]],
-            'smetí navíc' => [[2, 4, 5]],
+            'nevybrání finále'        => [[2]],
+            'špatné pořadí'           => [[4, 2]],
+            'smetí navíc'             => [[2, 4, 5]],
         ];
     }
 

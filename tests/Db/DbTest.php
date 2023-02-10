@@ -18,9 +18,15 @@ class DbTest extends \PHPUnit\Framework\TestCase
         self::$connection = $connection;
     }
 
-    public function setUp(): void {
+    protected function setUp(): void {
         if (static::keepDbChangesInTransaction()) {
             self::$connection->begin();
+        }
+    }
+
+    protected function tearDown(): void {
+        if (static::keepDbChangesInTransaction()) {
+            self::$connection->rollback();
         }
     }
 
@@ -63,12 +69,6 @@ class DbTest extends \PHPUnit\Framework\TestCase
 
     protected static function getInitData(): string {
         return (string)static::$initData;
-    }
-
-    protected function tearDown(): void {
-        if (static::keepDbChangesInTransaction()) {
-            self::$connection->rollback();
-        }
     }
 
     public static function tearDownAfterClass(): void {
