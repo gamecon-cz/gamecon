@@ -30,5 +30,11 @@ DbTest::setConnection(new DbWrapper());
 
 register_shutdown_function(static function () {
     // nemůžeme použít předchozí $connection, protože to už je uzavřené
-    dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', DB_NAME));
+    $connection = mysqli_connect(DB_SERV, DB_USER, DB_PASS);
+    dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', DB_NAME), null, $connection);
+    $dbTestPrefix = DB_TEST_PREFIX;
+    $oldTestDatabasesWrapped = dbFetchAll("SHOW DATABASES LIKE '{$dbTestPrefix}%'", [], $connection);
+    foreach ($oldTestDatabasesWrapped as $oldTestDatabaseWrapped) {
+        dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', reset($oldTestDatabaseWrapped)), null, $connection);
+    }
 });
