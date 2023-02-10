@@ -17,7 +17,10 @@ class SystemoveNastaveni
             ROK,
             new \DateTimeImmutable(),
             parse_url(URL_WEBU, PHP_URL_HOST) === 'beta.gamecon.cz',
-            parse_url(URL_WEBU, PHP_URL_HOST) === 'localhost'
+            parse_url(URL_WEBU, PHP_URL_HOST) === 'localhost',
+            DB_SERV,
+            DB_NAME,
+            DB_ANONYM_NAME
         );
     }
 
@@ -67,10 +70,16 @@ class SystemoveNastaveni
         int                $rok,
         \DateTimeImmutable $ted,
         bool               $jsmeNaBete,
-        bool               $jsmeNaLocale
+        bool               $jsmeNaLocale,
+        private string     $serverDatabase,
+        private string     $hlavniDatabaze,
+        private string     $anonymizovanaDatabaze
     ) {
-        $this->rok          = $rok;
-        $this->ted          = $ted;
+        $this->rok = $rok;
+        $this->ted = $ted;
+        if ($jsmeNaLocale && $jsmeNaBete) {
+            throw new \LogicException('Nemůžeme být na betě a zároveň na locale');
+        }
         $this->jsmeNaBete   = $jsmeNaBete;
         $this->jsmeNaLocale = $jsmeNaLocale;
     }
@@ -348,6 +357,10 @@ SQL;
             ->modify($this->ucastnikyLzePridatXDniPoGcDoNeuzavreneAktivity() . ' days');
     }
 
+    public function jsmeNaOstre(): bool {
+        return !$this->jsmeNaBete() && !$this->jsmeNaLocale();
+    }
+
     public function jsmeNaBete(): bool {
         return $this->jsmeNaBete;
     }
@@ -406,5 +419,17 @@ SQL;
 
     public function prodejPredmetuBezTricekUkoncen(): bool {
         return $this->prodejPredmetuDo() < $this->ted();
+    }
+
+    public function hlavniDatabaze(): string {
+        return $this->hlavniDatabaze;
+    }
+
+    public function databazovyServer(): string {
+        return $this->serverDatabase;
+    }
+
+    public function anonymizovanaDatabaze(): string {
+        return $this->anonymizovanaDatabaze;
     }
 }

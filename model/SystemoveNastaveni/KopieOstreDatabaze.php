@@ -2,8 +2,19 @@
 
 namespace Gamecon\SystemoveNastaveni;
 
+use Ifsnop\Mysqldump\Mysqldump;
+
 class KopieOstreDatabaze
 {
+    public static function createFromGlobals() {
+        return new static(NastrojeDatabaze::vytvorZGlobals());
+    }
+
+    public function __construct(
+        private NastrojeDatabaze $nastrojeDatabaze
+    ) {
+    }
+
     public function zkopirujOstrouDatabazi() {
         $souborNastaveniOstra = PROJECT_ROOT_DIR . '/../ostra/nastaveni/nastaveni-produkce.php';
         if (!is_readable($souborNastaveniOstra)) {
@@ -28,21 +39,10 @@ class KopieOstreDatabaze
         if ($nastaveniOstre['DB_SERV'] === DB_SERV && $nastaveniOstre['DB_NAME'] === DB_NAME) {
             throw new \RuntimeException('Kopírovat sebe sama nemá smysl');
         }
-        $ostraConnection = new \mysqli(
-            $nastaveniOstre['DB_SERV'],
-            $nastaveniOstre['DBM_USER'],
-            $nastaveniOstre['DBM_PASS'],
-            $nastaveniOstre['DB_NAME'],
-            $nastaveniOstre['DB_PORT'] ?? 3306,
-        );
 
-        $handle = fopen('php://memory', 'r+b');
-
-        (new \MySQLDump($ostraConnection))->write($handle);
-        mysqli_close($ostraConnection);
-
-        fflush($handle);
-        rewind($handle);
+        $tempFile  = tempnam(sys_get_temp_dir(), 'kopie_ostre_databaze_');
+        $mysqldump = $this->nastrojeDatabaze->vytvorMysqldumpProHlavniDatabazi();
+        $mysqldump->start($tempFile);
 
         $localConnection = new \mysqli(
             DBM_SERV,
@@ -54,9 +54,12 @@ class KopieOstreDatabaze
                 : 3306,
         );
 
-        (new \MySQLImport($localConnection))->read($handle);
+        // aby nám nezůstaly viset tabulky, views a functions z novějších SQL migrací, než má zdroj
+        $this->nastrojeDatabaze->vymazVseZHlavniDatabaze();
 
-        fclose($handle);
+        (new \MySQLImport($localConnection))->load($tempFile);
+
+        unlink($tempFile);
 
         (new SqlMigrace())->migruj();
     }
