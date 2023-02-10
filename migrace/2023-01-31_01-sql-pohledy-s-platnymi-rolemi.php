@@ -22,6 +22,11 @@ INSERT IGNORE INTO systemove_nastaveni
 SQL
 );
 
+$this->q(<<<SQL
+DROP VIEW IF EXISTS platne_zidle
+SQL
+);
+
 $jakykoliRocnik = \Gamecon\Role\Zidle::JAKYKOLI_ROCNIK;
 $this->q(<<<SQL
 CREATE SQL SECURITY INVOKER VIEW platne_zidle
