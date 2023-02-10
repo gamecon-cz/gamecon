@@ -64,7 +64,9 @@ class VyjimkovacChyba
     private static function radekInit(): array {
         $radek = [
             'vznikla' => time(),
-            'url'     => 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'],
+            'url'     => PHP_SAPI === 'cli'
+                ? ''
+                : 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'],
             'zdroj'   => $_SERVER['HTTP_REFERER'] ?? null,
         ];
 

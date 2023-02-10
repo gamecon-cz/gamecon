@@ -13,15 +13,21 @@ class AnonymizovanaDatabaze
 {
     public static function vytvorZGlobals(): self {
         global $systemoveNastaveni;
-        return new static(\DBM_NAME, \DB_ANONYM_NAME, $systemoveNastaveni);
+        return new static(
+            \DBM_NAME,
+            \DB_ANONYM_NAME,
+            $systemoveNastaveni,
+            new NastrojeDatabaze($systemoveNastaveni)
+        );
     }
 
     private bool $jsmeNaLocale;
 
     public function __construct(
-        private string     $zdrojovaDatabaze,
-        private string     $anonymniDatabaze,
-        SystemoveNastaveni $systemoveNastaveni,
+        private string           $zdrojovaDatabaze,
+        private string           $anonymniDatabaze,
+        SystemoveNastaveni       $systemoveNastaveni,
+        private NastrojeDatabaze $nastrojeDatabaze,
     ) {
         $this->jsmeNaLocale = $systemoveNastaveni->jsmeNaLocale();
         if ($anonymniDatabaze === $zdrojovaDatabaze) {
@@ -30,12 +36,11 @@ class AnonymizovanaDatabaze
     }
 
     public function obnov() {
-        $dbConnectionCurrentDb = dbConnectForAlterStructure();
-        $dbConnectionAnonymDb  = dbConnectionAnonymDb();
+        $dbConnectionAnonymDb = dbConnectionAnonymDb();
 
         $this->obnovAnonymniDatabazi($dbConnectionAnonymDb);
 
-        $this->zkopirujData($dbConnectionCurrentDb, $dbConnectionAnonymDb);
+        $this->zkopirujData($dbConnectionAnonymDb);
 
         $this->anonymizujData($dbConnectionAnonymDb);
 
@@ -231,116 +236,17 @@ SQL
     }
 
     private function vycistiAnonymniDatabazi(\mysqli $dbConnectionAnonymDb) {
-        $this->smazTabulkyAViews($dbConnectionAnonymDb);
-        $this->smazFunctions($dbConnectionAnonymDb);
-    }
-
-    private function smazFunctions(\mysqli $dbConnectionAnonymDb) {
-        $localFunctionNames = $this->getLocalFunctionNames($dbConnectionAnonymDb, $this->anonymniDatabaze);
-        foreach ($localFunctionNames as $localFunctionName) {
-            mysqli_query(
-                $dbConnectionAnonymDb,
-                <<<SQL
-                    DROP FUNCTION `$localFunctionName`
-                SQL
-            );
-        }
-    }
-
-    private function smazTabulkyAViews(\mysqli $dbConnectionAnonymDb) {
-        mysqli_query(
-            $dbConnectionAnonymDb,
-            <<<SQL
-                SET FOREIGN_KEY_CHECKS = 0
-            SQL
-        );
-        $showTablesResult = mysqli_query(
-            $dbConnectionAnonymDb,
-            <<<SQL
-                SHOW TABLES FROM`{$this->anonymniDatabaze}`
-            SQL
-        );
-        while ($table = mysqli_fetch_column($showTablesResult)) {
-            $showCreateTableResult = mysqli_query(
-                $dbConnectionAnonymDb,
-                <<<SQL
-                    SHOW CREATE TABLE `$table`
-                SQL
-            );
-            $showCreateTable       = mysqli_fetch_assoc($showCreateTableResult);
-            $type                  = !empty($showCreateTable['View'])
-                ? 'VIEW'
-                : 'TABLE';
-            mysqli_query(
-                $dbConnectionAnonymDb,
-                <<<SQL
-                    DROP $type `$table`
-                SQL
-            );
-        }
-        mysqli_query(
-            $dbConnectionAnonymDb,
-            <<<SQL
-                SET FOREIGN_KEY_CHECKS = 1
-            SQL
-        );
+        $this->nastrojeDatabaze->vymazVseZDatabaze($this->anonymniDatabaze, $dbConnectionAnonymDb);
     }
 
     private function zkopirujData(
-        \mysqli $dbConnectionCurrentDb,
         \mysqli $dbConnectionAnonymDb
     ) {
-        $handle = fopen('php://memory', 'r+b');
+        $tempFile  = tempnam(sys_get_temp_dir(), 'anonymizovana_databaze_');
+        $mysqldump = $this->nastrojeDatabaze->vytvorMysqldumpProHlavniDatabazi(['skip-definer' => true]);
+        $mysqldump->start($tempFile);
 
-        // David Grudl je čuně a co na začátku dump souboru vypne, to na konci nezapne
-        fwrite(
-            $handle,
-            <<<SQL
-                /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-                /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-                /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-                /*!50503 SET NAMES utf8mb4 */;
-                /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-                /*!40103 SET TIME_ZONE='+00:00' */;
-                /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-                /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-                /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-                /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-
-            SQL,
-        );
-
-        fwrite(
-            $handle,
-            $this->definiceSqlFunkci($dbConnectionCurrentDb, $this->zdrojovaDatabaze)
-        );
-
-        (new \MySQLDump($dbConnectionCurrentDb))->write($handle);
-
-        fwrite(
-            $handle,
-            <<<SQL
-
-                /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
-                /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-                /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-                /*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-                /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-                /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-                /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-                /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-
-            SQL
-        );
-
-        $this->removeDefinerFromHandle($handle);
-        $this->removeDatabaseFromHandle($handle, $this->zdrojovaDatabaze);
-
-        fflush($handle);
-        rewind($handle);
-        (new \MySQLImport($dbConnectionAnonymDb))->read($handle);
-
-        fclose($handle);
+        (new \MySQLImport($dbConnectionAnonymDb))->load($tempFile);
 
         foreach (['_vars', 'platby', 'akce_import', 'uzivatele_url'] as $prilisCitlivaTabulka) {
             mysqli_query(
@@ -350,94 +256,6 @@ SQL
                 SQL
             );
         }
-    }
-
-    /*
-    * DEFINER clause requires SUPER privileges https://stackoverflow.com/questions/44015692/access-denied-you-need-at-least-one-of-the-super-privileges-for-this-operat
-    * but we do not need it
-    */
-    private function removeDefinerFromHandle($handle) {
-        fflush($handle);
-        rewind($handle);
-        while ($row = fgets($handle)) {
-            $rowWithoutDefiner = $this->removeDefiner($row);
-            if ($rowWithoutDefiner !== $row) {
-                fseek($handle, -strlen($row), SEEK_CUR);
-                fwrite($handle, $rowWithoutDefiner);
-                fwrite($handle, str_repeat(' ', strlen($row) - strlen($rowWithoutDefiner)));
-            }
-        }
-    }
-
-    private function removeDefiner(string $content): string {
-        return preg_replace('~\sDEFINER=`[^`]+`@`[^`]+`\s~i', ' ', $content);
-    }
-
-    /*
-    * SQL views may be exported with original columns listed with absolute identifier name, including original database name.
-     * We do not want it.
-    */
-    private function removeDatabaseFromHandle($handle, string $sourceDatabase) {
-        fflush($handle);
-        rewind($handle);
-        while ($row = fgets($handle)) {
-            $rowWithoutDatabase = $this->removeSourceDatabase($row, $sourceDatabase);
-            if ($rowWithoutDatabase !== $row) {
-                fseek($handle, -strlen($row), SEEK_CUR);
-                fwrite($handle, $rowWithoutDatabase);
-                fwrite($handle, str_repeat(' ', strlen($row) - strlen($rowWithoutDatabase)));
-            }
-        }
-    }
-
-    private function removeSourceDatabase(string $content, string $sourceDatabase): string {
-        return str_replace("`{$sourceDatabase}`.", ' ', $content);
-    }
-
-    private function definiceSqlFunkci(\mysqli $connection, string $database): string {
-        $localFunctionNames = $this->getLocalFunctionNames($connection, $database);
-        if (!$localFunctionNames) {
-            return '';
-        }
-
-        $localFunctionsDefinitions = [];
-        foreach ($localFunctionNames as $localFunctionName) {
-            $result                      = mysqli_query(
-                $connection,
-                <<<SQL
-                SHOW CREATE FUNCTION `$localFunctionName`
-            SQL
-            );
-            $localFunctionsDefinitions[] = "DROP FUNCTION IF EXISTS `$localFunctionName`";
-            $localFunctionsDefinitions[] = mysqli_fetch_assoc($result)['Create Function'];
-        }
-        return "DELIMITER ;;\n"
-            . implode(
-                "\n",
-                array_map(
-                    static fn(string $definice) => $definice . ';;',
-                    $localFunctionsDefinitions
-                )
-            )
-            . "\nDELIMITER ;\n";
-    }
-
-    private function getLocalFunctionNames(\mysqli $connection, string $database): array {
-        $result                 = mysqli_query(
-            $connection,
-            <<<SQL
-                SHOW FUNCTION STATUS
-            SQL
-        );
-        $functionsStatuses      = mysqli_fetch_all($result, MYSQLI_ASSOC);
-        $localFunctionsStatuses = array_filter($functionsStatuses, static function (array $functionStatus) use ($database) {
-            return $functionStatus['Db'] === $database && $functionStatus['Type'] === 'FUNCTION';
-        });
-        if (!$localFunctionsStatuses) {
-            return [];
-        }
-
-        return array_map(static fn(array $definition) => $definition['Name'], $localFunctionsStatuses);
     }
 
     public function exportuj() {
