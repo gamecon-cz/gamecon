@@ -13,7 +13,7 @@ INSERT IGNORE INTO systemove_nastaveni
         klic='ROCNIK',
         hodnota=2023,
         aktivni=1,
-        datovy_typ= 'number',
+        datovy_typ= 'integer',
         nazev='Ročník',
         popis='Který ročník GC je aktivní',
         skupina='Časy',
