@@ -12,9 +12,10 @@ require_once __DIR__ . '/../nastaveni/zavadec-zaklad.php';
 
 // příprava databáze
 $connection = dbConnect(false);
-dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', DB_NAME));
-dbQuery(sprintf('CREATE DATABASE IF NOT EXISTS `%s` COLLATE "utf8_czech_ci"', DB_NAME));
-dbQuery(sprintf('USE `%s`', DB_NAME));
+dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', DB_NAME), [], $connection);
+dbQuery(sprintf('CREATE DATABASE IF NOT EXISTS `%s` COLLATE "utf8_czech_ci"', DB_NAME), [], $connection);
+dbQuery(sprintf('USE `%s`', DB_NAME), [], $connection);
+
 // naimportujeme databázi s už proběhnutými staršími migracemi
 (new \MySQLImport($connection))->load(__DIR__ . '/Db/data/localhost-2023_01_27_11_18_45-dump.sql');
 
@@ -28,11 +29,14 @@ mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 DbTest::setConnection(new DbWrapper());
 
+/** vynutíme reconnect, hlavně kvůli nastavení ROCNIK v databázi, @see \dbConnect */
+dbClose();
+
 register_shutdown_function(static function () {
     // nemůžeme použít předchozí $connection, protože to už je uzavřené
     $connection = mysqli_connect(DB_SERV, DB_USER, DB_PASS);
     dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', DB_NAME), null, $connection);
-    $dbTestPrefix = DB_TEST_PREFIX;
+    $dbTestPrefix            = DB_TEST_PREFIX;
     $oldTestDatabasesWrapped = dbFetchAll("SHOW DATABASES LIKE '{$dbTestPrefix}%'", [], $connection);
     foreach ($oldTestDatabasesWrapped as $oldTestDatabaseWrapped) {
         dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', reset($oldTestDatabaseWrapped)), null, $connection);
