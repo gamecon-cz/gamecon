@@ -64,13 +64,12 @@ function dbRollback() {
 /**
  * @throws ConnectionException
  */
-function dbConnect($selectDb = true, bool $reconnect = false, int $rok = ROCNIK): \mysqli {
-    global $spojeni;
-
-    if ($reconnect && $spojeni) {
-        mysqli_close($spojeni);
-        $spojeni = null;
+function dbConnect($selectDb = true, bool $reconnect = false, int $rocnik = ROCNIK): \mysqli {
+    if ($reconnect) {
+        dbClose();
     }
+
+    global $spojeni;
 
     if ($spojeni instanceof mysqli) {
         return $spojeni;
@@ -86,15 +85,24 @@ function dbConnect($selectDb = true, bool $reconnect = false, int $rok = ROCNIK)
         $reconnect
     );
     if ($noveSpojeni && $stareSpojeni !== $noveSpojeni) {
-        dbQuery('SET @rocnik = IF(@rocnik IS NOT NULL, @rocnik, $0)', $rok, $noveSpojeni);
+        dbQuery('SET @rocnik = IF(@rocnik IS NOT NULL, @rocnik, $0)', $rocnik, $noveSpojeni);
         if ($selectDb) {
             // pro SQL view, který nesnese variable
-            dbQuery("UPDATE systemove_nastaveni SET hodnota = $0 WHERE klic = 'ROCNIK'", $rok, $noveSpojeni);
+            dbQuery("UPDATE systemove_nastaveni SET hodnota = $0 WHERE klic = 'ROCNIK'", $rocnik, $noveSpojeni);
         }
     }
     $spojeni = $noveSpojeni;
 
     return $noveSpojeni;
+}
+
+function dbClose() {
+    global $spojeni;
+
+    if ($spojeni) {
+        mysqli_close($spojeni);
+    }
+    $spojeni = null;
 }
 
 /**
