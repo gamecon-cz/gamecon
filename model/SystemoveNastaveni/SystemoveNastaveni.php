@@ -18,9 +18,7 @@ class SystemoveNastaveni
             new \DateTimeImmutable(),
             parse_url(URL_WEBU, PHP_URL_HOST) === 'beta.gamecon.cz',
             parse_url(URL_WEBU, PHP_URL_HOST) === 'localhost',
-            DB_SERV,
-            DB_NAME,
-            DB_ANONYM_NAME
+            DatabazoveNastaveni::vytvorZGlobals()
         );
     }
 
@@ -61,13 +59,11 @@ class SystemoveNastaveni
     private bool $jsmeNaLocale;
 
     public function __construct(
-        int                $rok,
-        \DateTimeImmutable $ted,
-        bool               $jsmeNaBete,
-        bool               $jsmeNaLocale,
-        private string     $serverDatabase,
-        private string     $hlavniDatabaze,
-        private string     $anonymizovanaDatabaze
+        int                         $rok,
+        \DateTimeImmutable          $ted,
+        bool                        $jsmeNaBete,
+        bool                        $jsmeNaLocale,
+        private DatabazoveNastaveni $databazoveNastaveni
     ) {
         $this->rok = $rok;
         $this->ted = $ted;
@@ -437,15 +433,7 @@ SQL;
         return $this->prodejPredmetuDo() < $this->ted();
     }
 
-    public function hlavniDatabaze(): string {
-        return $this->hlavniDatabaze;
-    }
-
-    public function databazovyServer(): string {
-        return $this->serverDatabase;
-    }
-
-    public function anonymizovanaDatabaze(): string {
-        return $this->anonymizovanaDatabaze;
+    public function databazoveNastaveni(): DatabazoveNastaveni {
+        return $this->databazoveNastaveni;
     }
 }

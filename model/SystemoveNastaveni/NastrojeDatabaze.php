@@ -23,10 +23,20 @@ class NastrojeDatabaze
 
     public function vytvorMysqldumpProHlavniDatabazi(array $mysqldumpSettings = []): Mysqldump {
         return $this->vytvorMysqldump(
-            $this->systemoveNastaveni->databazovyServer(),
+            $this->systemoveNastaveni->databazoveNastaveni()->serverHlavniDatabaze(),
             DBM_USER, // běžný uživatel nemá právo SHOW VIEW
             DBM_PASS,
-            $this->systemoveNastaveni->hlavniDatabaze(),
+            $this->systemoveNastaveni->databazoveNastaveni()->hlavniDatabaze(),
+            $mysqldumpSettings,
+        );
+    }
+
+    public function vytvorMysqldumpProAnonymniDatabazi(array $mysqldumpSettings = []): Mysqldump {
+        return $this->vytvorMysqldump(
+            $this->systemoveNastaveni->databazoveNastaveni()->serverAnonymizovaneDatabase(),
+            DB_ANONYM_USER, // běžný uživatel nemá právo SHOW VIEW
+            DB_ANONYM_PASS,
+            $this->systemoveNastaveni->databazoveNastaveni()->anonymizovanaDatabaze(),
             $mysqldumpSettings,
         );
     }
@@ -36,7 +46,7 @@ class NastrojeDatabaze
         string $dbUser,
         string $dbPassword,
         string $dbName,
-        array $mysqldumpSettings
+        array  $mysqldumpSettings
     ): Mysqldump {
         return new Mysqldump(
             $this->vytvorDsn($dbServer, $dbName),
@@ -51,11 +61,11 @@ class NastrojeDatabaze
     }
 
     public function vymazVseZHlavniDatabaze() {
-        $this->vymazVseZDatabaze($this->systemoveNastaveni->hlavniDatabaze(), dbConnect());
+        $this->vymazVseZDatabaze($this->systemoveNastaveni->databazoveNastaveni()->hlavniDatabaze(), dbConnect());
     }
 
     public function vymazVseZDatabaze(string $databaze, \mysqli $spojeni) {
-        if ($databaze === $this->systemoveNastaveni->hlavniDatabaze()
+        if ($databaze === $this->systemoveNastaveni->databazoveNastaveni()->hlavniDatabaze()
             && $this->systemoveNastaveni->jsmeNaOstre()
         ) {
             throw new \LogicException("Nemůžeme promazávat databázi na ostré");

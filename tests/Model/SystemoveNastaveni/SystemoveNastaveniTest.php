@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Model\SystemoveNastaveni;
 
+use Gamecon\SystemoveNastaveni\DatabazoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Tests\Db\DbTest;
 
@@ -50,9 +51,7 @@ class SystemoveNastaveniTest extends DbTest
             $now,
             $jsmeNaBete,
             $jsmeNaLocale,
-            DB_SERV,
-            DB_NAME,
-            DB_ANONYM_NAME
+            DatabazoveNastaveni::vytvorZGlobals()
         );
     }
 
