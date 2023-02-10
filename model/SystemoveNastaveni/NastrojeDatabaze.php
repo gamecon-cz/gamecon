@@ -24,8 +24,8 @@ class NastrojeDatabaze
     public function vytvorMysqldumpProHlavniDatabazi(array $mysqldumpSettings = []): Mysqldump {
         return $this->vytvorMysqldump(
             $this->systemoveNastaveni->databazovyServer(),
-            DB_USER,
-            DB_PASS,
+            DBM_USER, // běžný uživatel nemá právo SHOW VIEW
+            DBM_PASS,
             $this->systemoveNastaveni->hlavniDatabaze(),
             $mysqldumpSettings,
         );

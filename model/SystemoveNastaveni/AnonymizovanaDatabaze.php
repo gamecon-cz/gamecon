@@ -242,7 +242,11 @@ SQL
     private function zkopirujData(
         \mysqli $dbConnectionAnonymDb
     ) {
-        $tempFile  = tempnam(sys_get_temp_dir(), 'anonymizovana_databaze_');
+        $tempFile = tempnam(sys_get_temp_dir(), 'anonymizovana_databaze_');
+        /*
+        * DEFINER vyžaduje SUPER privileges https://stackoverflow.com/questions/44015692/access-denied-you-need-at-least-one-of-the-super-privileges-for-this-operat
+        * ale nás definer nezajímá, tak ho zahodíme
+        */
         $mysqldump = $this->nastrojeDatabaze->vytvorMysqldumpProHlavniDatabazi(['skip-definer' => true]);
         $mysqldump->start($tempFile);
 
