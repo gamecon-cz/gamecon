@@ -11,6 +11,6 @@ WHERE a.rok = $1
 GROUP BY u.id_uzivatele, a.typ
 ORDER BY a.typ, u.jmeno_uzivatele, u.prijmeni_uzivatele
 SQL
-  , [ROK]
+  , [ROCNIK]
 );
 $report->tFormat(get('format'));

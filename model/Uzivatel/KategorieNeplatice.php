@@ -34,7 +34,7 @@ class KategorieNeplatice
             $uzivatel->kdySeRegistrovalNaLetosniGc(),
             $uzivatel->maPravoNerusitObjednavky(),
             DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani(),
-            ROK,
+            ROCNIK,
             NEPLATIC_CASTKA_VELKY_DLUH,
             NEPLATIC_CASTKA_POSLAL_DOST,
             NEPLATIC_POCET_DNU_PRED_VLNOU_KDY_JE_CHRANEN

@@ -16,7 +16,7 @@ if (!$aktivita) {
     $problem = true;
     $sablonaKProblemu->assign('id', get('id'));
     $sablonaKProblemu->parse('problem.neznama');
-} elseif ($aktivita->konec()->format('Y') < ROK) {
+} elseif ($aktivita->konec()->format('Y') < ROCNIK) {
     $problem = true;
     $sablonaKProblemu->assign('aktivita', $aktivita);
     $sablonaKProblemu->assign('rok', $aktivita->konec()->format('Y'));

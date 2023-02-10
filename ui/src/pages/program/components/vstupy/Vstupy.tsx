@@ -16,7 +16,7 @@ export const ProgramUživatelskéVstupy: FunctionComponent<
 > = (props) => {
   const { možnosti, setUrlState, urlState } = useContext(ProgramURLState);
 
-  const rok = GAMECON_KONSTANTY.ROK;
+  const rok = GAMECON_KONSTANTY.ROCNIK;
 
   return (
     <>

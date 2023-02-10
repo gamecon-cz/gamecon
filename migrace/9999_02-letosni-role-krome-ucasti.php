@@ -10,7 +10,7 @@ $this->setEndless(true);
 require_once __DIR__ . '/pomocne/rocnik_z_promenne_mysql.php';
 
 // ZIDLE
-$rocnikoveZidle     = Zidle::vsechnyRocnikoveZidle(ROK);
+$rocnikoveZidle     = Zidle::vsechnyRocnikoveZidle(ROCNIK);
 $idRocnikovychZidli = array_keys($rocnikoveZidle);
 $idZidliUcastiSql   = implode(',', $idRocnikovychZidli);
 $resultZidli        = $this->q(<<<SQL

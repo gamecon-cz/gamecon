@@ -83,7 +83,7 @@ $zobrazitMujProgramOdkaz = isset($u);
         <?php if ($u) { ?>
             <!-- zatim nefunguje            <a href="program-k-tisku" class="program_tisk" target="_blank">Můj program v PDF</a>-->
         <?php } ?>
-        <h1>Program <?= ROK ?></h1>
+        <h1>Program <?= ROCNIK ?></h1>
         <div class="program_dny">
             <?php foreach ($dny as $denSlug => $den) { ?>
                 <a <?= $aktivni('program/' . $denSlug) ?>><?= $den->format('l d.n.') ?></a>

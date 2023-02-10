@@ -59,7 +59,7 @@ class Zidle extends \DbObject
     public const UDALOST_PRITOMEN  = 'přítomen';
     public const UDALOST_ODJEL     = 'odjel';
 
-    public const JAKYKOLI_ROK               = -1;
+    public const JAKYKOLI_ROCNIK            = -1;
     public const KOEFICIENT_ROCNIKOVE_ZIDLE = -100000;
 
     public const TYP_ROCNIKOVA = 'rocnikova';
@@ -114,7 +114,7 @@ class Zidle extends \DbObject
      * @param int $rok
      * @return int
      */
-    public static function PRIHLASEN_NA_LETOSNI_GC(int $rok = ROK): int {
+    public static function PRIHLASEN_NA_LETOSNI_GC(int $rok = ROCNIK): int {
         return self::preProUcastRoku($rok) - self::ZIDLE_PRIHLASEN_ID_ZAKLAD;
     }
 
@@ -123,7 +123,7 @@ class Zidle extends \DbObject
      * @param int $rok
      * @return int
      */
-    public static function PRITOMEN_NA_LETOSNIM_GC(int $rok = ROK): int {
+    public static function PRITOMEN_NA_LETOSNIM_GC(int $rok = ROCNIK): int {
         return self::preProUcastRoku($rok) - self::ZIDLE_PRITOMEN_ID_ZAKLAD;
     }
 
@@ -132,7 +132,7 @@ class Zidle extends \DbObject
      * @param int $rok
      * @return int
      */
-    public static function ODJEL_Z_LETOSNIHO_GC(int $rok = ROK): int {
+    public static function ODJEL_Z_LETOSNIHO_GC(int $rok = ROCNIK): int {
         return self::preProUcastRoku($rok) - self::ZIDLE_ODJEL_ID_ZAKLAD;
     }
 
@@ -140,43 +140,43 @@ class Zidle extends \DbObject
         return -($rok - 2000) * 100; // předpona pro židle a práva vázaná na daný rok
     }
 
-    public static function LETOSNI_VYPRAVEC(int $rok = ROK): int {
+    public static function LETOSNI_VYPRAVEC(int $rok = ROCNIK): int {
         return self::idRocnikoveZidle(self::ZIDLE_VYPRAVEC_ID_ZAKLAD, $rok);
     }
 
-    public static function LETOSNI_ZAZEMI(int $rok = ROK): int {
+    public static function LETOSNI_ZAZEMI(int $rok = ROCNIK): int {
         return self::idRocnikoveZidle(self::ZIDLE_ZAZEMI_ID_ZAKLAD, $rok);
     }
 
-    public static function LETOSNI_INFOPULT(int $rok = ROK): int {
+    public static function LETOSNI_INFOPULT(int $rok = ROCNIK): int {
         return self::idRocnikoveZidle(self::ZIDLE_INFOPULT_ID_ZAKLAD, $rok);
     }
 
-    public static function LETOSNI_PARTNER(int $rok = ROK): int {
+    public static function LETOSNI_PARTNER(int $rok = ROCNIK): int {
         return self::idRocnikoveZidle(self::ZIDLE_PARTNER_ID_ZAKLAD, $rok);
     }
 
-    public static function LETOSNI_DOBROVOLNIK_SENIOR(int $rok = ROK): int {
+    public static function LETOSNI_DOBROVOLNIK_SENIOR(int $rok = ROCNIK): int {
         return self::idRocnikoveZidle(self::ZIDLE_DOBROVOLNIK_SENIOR_ID_ZAKLAD, $rok);
     }
 
-    public static function LETOSNI_STREDECNI_NOC_ZDARMA(int $rok = ROK): int {
+    public static function LETOSNI_STREDECNI_NOC_ZDARMA(int $rok = ROCNIK): int {
         return self::idRocnikoveZidle(self::ZIDLE_STREDECNI_NOC_ZDARMA_ID_ZAKLAD, $rok);
     }
 
-    public static function LETOSNI_NEDELNI_NOC_ZDARMA(int $rok = ROK): int {
+    public static function LETOSNI_NEDELNI_NOC_ZDARMA(int $rok = ROCNIK): int {
         return self::idRocnikoveZidle(self::ZIDLE_NEDELNI_NOC_ZDARMA_ID_ZAKLAD, $rok);
     }
 
-    public static function LETOSNI_NEODHLASOVAT(int $rok = ROK): int {
+    public static function LETOSNI_NEODHLASOVAT(int $rok = ROCNIK): int {
         return self::idRocnikoveZidle(self::ZIDLE_NEODHLASOVAT_ID_ZAKLAD, $rok);
     }
 
-    public static function LETOSNI_HERMAN(int $rok = ROK): int {
+    public static function LETOSNI_HERMAN(int $rok = ROCNIK): int {
         return self::idRocnikoveZidle(self::ZIDLE_HERMAN_ID_ZAKLAD, $rok);
     }
 
-    public static function LETOSNI_BRIGADNIK(int $rok = ROK): int {
+    public static function LETOSNI_BRIGADNIK(int $rok = ROCNIK): int {
         return self::idRocnikoveZidle(self::ZIDLE_BRIGADNIK_ID_ZAKLAD, $rok);
     }
 
@@ -274,14 +274,14 @@ class Zidle extends \DbObject
         return $zidle <= self::KOEFICIENT_ROCNIKOVE_ZIDLE;
     }
 
-    public static function jePouzeProTentoRocnik(int $idZidle, int $rocnik = ROK): bool {
+    public static function jePouzeProTentoRocnik(int $idZidle, int $rocnik = ROCNIK): bool {
         if (!self::jeToUcastNaGc($idZidle) && !self::jeToRocnikovaZidle($idZidle)) {
             return false;
         }
         return self::rokDleZidleUcasti($idZidle) === $rocnik;
     }
 
-    public static function vsechnyZidleUcastiProRocnik(int $rocnik = ROK): array {
+    public static function vsechnyZidleUcastiProRocnik(int $rocnik = ROCNIK): array {
         return [
             Zidle::PRIHLASEN_NA_LETOSNI_GC => self::pridejGcRocnikPrefix($rocnik, 'přihlášen'),
             Zidle::PRITOMEN_NA_LETOSNIM_GC => self::pridejGcRocnikPrefix($rocnik, 'přítomen'),
@@ -293,7 +293,7 @@ class Zidle extends \DbObject
         return self::prefixRocniku($rocnik) . ' ' . $nazev;
     }
 
-    public static function vsechnyRocnikoveZidle(int $rocnik = ROK): array {
+    public static function vsechnyRocnikoveZidle(int $rocnik = ROCNIK): array {
         $idckaRocnikovychZidli = [
             self::LETOSNI_VYPRAVEC($rocnik),
             self::LETOSNI_ZAZEMI($rocnik),
@@ -317,16 +317,16 @@ class Zidle extends \DbObject
         return $this->r['jmeno_zidle'] ?? null;
     }
 
-    public static function platiProRocnik(int $zidleProRok, int $rocnik = ROK): bool {
-        return $zidleProRok === self::JAKYKOLI_ROK
+    public static function platiProRocnik(int $zidleProRok, int $rocnik = ROCNIK): bool {
+        return $zidleProRok === self::JAKYKOLI_ROCNIK
             || self::platiPouzeProRocnik($zidleProRok, $rocnik);
     }
 
-    public static function platiPouzeProRocnik(int $zidleProRok, int $rocnik = ROK): bool {
+    public static function platiPouzeProRocnik(int $zidleProRok, int $rocnik = ROCNIK): bool {
         return $zidleProRok === $rocnik;
     }
 
-    public static function prefixRocniku(int $rocnik = ROK): string {
+    public static function prefixRocniku(int $rocnik = ROCNIK): string {
         return 'GC' . $rocnik;
     }
 }

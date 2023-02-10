@@ -3,7 +3,7 @@
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavAktivity;
 
-$warhammer40kTurnaj2022Wrapped = Aktivita::zNazvuARoku('Warhammer 40k turnaj - 1.kolo', ROK);
+$warhammer40kTurnaj2022Wrapped = Aktivita::zNazvuARoku('Warhammer 40k turnaj - 1.kolo', ROCNIK);
 
 if (!$warhammer40kTurnaj2022Wrapped) {
     return;

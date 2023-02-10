@@ -20,7 +20,7 @@ class ShopUbytovani
      * @param bool $hodVyjimkuNeniLiPresne
      * @return int[]
      */
-    public static function dejIdsPredmetuUbytovani(array $nazvyUbytovani, int $rok = ROK, bool $hodVyjimkuNeniLiPresne = true): array {
+    public static function dejIdsPredmetuUbytovani(array $nazvyUbytovani, int $rok = ROCNIK, bool $hodVyjimkuNeniLiPresne = true): array {
         $idsPredmetuUbytovani = array_map('intval', dbOneArray(<<<SQL
 SELECT id_predmetu
 FROM shop_predmety
@@ -47,7 +47,7 @@ SQL,
 DELETE FROM ubytovani
 WHERE id_uzivatele = $0 AND rok = $1
 SQL,
-                [$ucastnik->id(), ROK]
+                [$ucastnik->id(), ROCNIK]
             );
             return dbNumRows($mysqliResult);
         }
@@ -64,7 +64,7 @@ INSERT INTO ubytovani(id_uzivatele, den, pokoj, rok)
     VALUES ($0, $1, $2, $3)
     ON DUPLICATE KEY UPDATE pokoj = $2
 SQL,
-                [$ucastnik->id(), $den, $pokoj, ROK]
+                [$ucastnik->id(), $den, $pokoj, ROCNIK]
             );
             $zapsanoZmen  += dbNumRows($mysqliResult);
         }
@@ -72,7 +72,7 @@ SQL,
 DELETE FROM ubytovani
 WHERE id_uzivatele = $0 AND den NOT IN ($1) AND rok = $2
 SQL,
-            [$ucastnik->id(), $dny, ROK]
+            [$ucastnik->id(), $dny, ROCNIK]
         );
         $zapsanoZmen  += dbNumRows($mysqliResult);
 
@@ -88,7 +88,7 @@ SQL,
         return dbNumRows($mysqliResult);
     }
 
-    private static function smazLetosniNakupyUbytovaniUcastnika(Uzivatel $ucastnik, int $rok = ROK): int {
+    private static function smazLetosniNakupyUbytovaniUcastnika(Uzivatel $ucastnik, int $rok = ROCNIK): int {
         $mysqliResult = dbQuery(<<<SQL
 DELETE nakupy.*
 FROM shop_nakupy AS nakupy
@@ -135,7 +135,7 @@ SQL,
         array    $idsPredmetuUbytovani,
         Uzivatel $ucastnik,
         bool     $hlidatKapacituUbytovani = true,
-        int      $rok = ROK
+        int      $rok = ROCNIK
     ): int {
         // vložit jeho zaklikané věci - note: není zabezpečeno
         $sqlValuesArray          = [];

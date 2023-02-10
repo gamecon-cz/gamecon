@@ -69,7 +69,7 @@ preview:<br>
       $mail = new GcMail();
       $mail->text( strtr($zprava, ['{link}' => "<a href=\"$link\">$link</a>"]) );
       $mail->adresat($adresa);
-      $mail->predmet('Jaký byl GameCon '.ROK.'?');
+      $mail->predmet('Jaký byl GameCon '.ROCNIK.'?');
       echoFlush('Odesílám na '.$adresa.'… ');
       echoFlush('<script>sb()</script>'); // scrollování
       if($mail->odeslat()) echoFlush('odesláno<br>');

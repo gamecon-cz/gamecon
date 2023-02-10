@@ -41,7 +41,7 @@ ORDER BY id_uzivatele
 SQL,
     [
         Zidle::PRIHLASEN_NA_LETOSNI_GC,
-        ROK,
+        ROCNIK,
         TypPredmetu::UBYTOVANI,
     ]
 );

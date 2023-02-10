@@ -23,7 +23,7 @@ if (!empty($_POST['prodej-mrizka'])) {
 
         for ($kusu = $prodej['kusu'] ?? 1, $i = 1; $i <= $kusu; $i++) {
             dbQuery('INSERT INTO shop_nakupy(id_uzivatele,id_predmetu,rok,cena_nakupni,datum)
-    VALUES (' . $prodej['id_uzivatele'] . ',' . $prodej['id_predmetu'] . ',' . ROK . ',(SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu=' . $prodej['id_predmetu'] . '),NOW())');
+    VALUES (' . $prodej['id_uzivatele'] . ',' . $prodej['id_predmetu'] . ',' . ROCNIK . ',(SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu=' . $prodej['id_predmetu'] . '),NOW())');
         }
         $idPredmetu = (int)$prodej['id_predmetu'];
         $nazevPredmetu = dbOneCol(
@@ -51,7 +51,7 @@ if (!empty($_POST['prodej-mrizka'])) {
     // Konstanty předáváné do Preactu (env.ts)
     window.GAMECON_KONSTANTY = {
         BASE_PATH_API: "<?= URL_ADMIN . "/api/" ?>",
-        ROK: <?= ROK ?>,
+        ROCNIK: <?= ROCNIK ?>,
     }
 </script>
 

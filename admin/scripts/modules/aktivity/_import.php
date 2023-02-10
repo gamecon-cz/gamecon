@@ -14,7 +14,7 @@ use Gamecon\Vyjimkovac\Logovac;
 
 $activitiesImportLogger = new ActivitiesImportLogger();
 $now = new \DateTimeImmutable();
-if (defined('TESTING') && TESTING && (int)$now->format('Y') !== (int)ROK) {
+if (defined('TESTING') && TESTING && (int)$now->format('Y') !== (int)ROCNIK) {
     $now = DateTimeImmutable::createFromFormat(\Gamecon\Cas\DateTimeCz::FORMAT_DB, GC_BEZI_OD);
 }
 $urlNaAktivity = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) . '/..';

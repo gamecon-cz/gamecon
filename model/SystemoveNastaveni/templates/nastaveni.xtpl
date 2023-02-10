@@ -29,7 +29,7 @@
     <td style="width: 5%">
       <label>
         <input class="aktivace-nastaveni" type="checkbox" name="{postKlic}[{klic}][{aktivniKlic}]" value="1"
-               {checked} {disabled}>
+               {checked} {checkboxDisabled}>
       </label>
     </td>
     <td class="technicke nazev hinted" style="width: 45%">
@@ -44,8 +44,8 @@
     <td class="technicke" style="width: 25%">
       <form style="position:relative;">
         <input name="{postKlic}[{klic}][{hodnotaKlic}]" class="hodnota-nastaveni {hodnotaDisplayClass}"
-               id="hodnota-{klic}"
-               value="{inputValue}" type="{inputType}" data-tag-input-type="{tagInputType}">
+               id="hodnota-{klic}" value="{inputValue}" type="{inputType}" {valueChangeDisabled}
+               data-tag-input-type="{tagInputType}">
         <span class="hinted">
           <input id="vychozi-hodnota-{klic}" value="{vychoziHodnotaValue}" type="{inputType}"
                  class="vychozi-hodnota-nastaveni {vychoziHodnotaDisplayClass}" disabled>

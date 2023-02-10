@@ -19,6 +19,6 @@ LEFT JOIN uzivatele_hodnoty prijemce ON prijemce.id_uzivatele = platby.id_uzivat
 WHERE rok = $1 AND platby.provedl != 1
 ORDER BY platby.id
 SQL
-  , [ROK]
+  , [ROCNIK]
 );
 $report->tFormat(get('format'));

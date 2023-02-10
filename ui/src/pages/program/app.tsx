@@ -27,7 +27,7 @@ export const Program:FunctionComponent =  ()=> {
 
   useEffect(() => {
     (async () => {
-      const aktivity = await fetchAktivity(GAMECON_KONSTANTY.ROK);
+      const aktivity = await fetchAktivity(GAMECON_KONSTANTY.ROCNIK);
       setAktivity(aktivity);
     })();
   }, []);

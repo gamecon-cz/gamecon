@@ -54,13 +54,13 @@ class KategorieNeplaticeTest extends TestCase
         return array_merge(
             $dataNeplatice,
             [
-                'neznámé přihlášení na GC nemá kategorii' => [$this->finance(), null, $nemaPravoPlatitAzNaMiste, $ted, ROK, 0.0, 0, 0, null],
-                'vlna odhlašování před přihlášením na GC znamená chráněný' => [$this->finance(), $ted, $nemaPravoPlatitAzNaMiste, $predChvili, ROK, 0.0, 0, 0, 5],
-                'registrován v ochranné lhůtě pár dní před vlnou odhlašování' => [$this->finance(), '-9 days -59 minutes -59 seconds', $nemaPravoPlatitAzNaMiste, $ted, ROK, 0.0, 0, 10 /* chráněn tolik dní před odhlašováním */, 4],
-                'letos poslal málo a má velký dluh' => [$this->finance(0.1), $predMesicem, $nemaPravoPlatitAzNaMiste, $zitra, ROK, 0.0, PHP_INT_MAX, 0, 2],
-                'letos nic, z loňska žádný zůstatek a má dluh' => [$this->finance(0.0, 0.0, -0.1), $predMesicem, $nemaPravoPlatitAzNaMiste, $zitra, ROK, 0.0, PHP_INT_MAX, 0, 1],
-                'letos nic, z loňska něco málo a má malý dluh' => [$this->finance(0.0, 0.1, -0.1), $predMesicem, $nemaPravoPlatitAzNaMiste, $zitra, ROK, -0.2 /* < stav -0.1 = malý dluh */, PHP_INT_MAX, 0, 3],
-                'letos poslal dost' => [$this->finance(100.0), $predMesicem, $nemaPravoPlatitAzNaMiste, $zitra, ROK, -0.2 /* < stav -0.1 = malý dluh */, 100, 0, 4],
+                'neznámé přihlášení na GC nemá kategorii' => [$this->finance(), null, $nemaPravoPlatitAzNaMiste, $ted, ROCNIK, 0.0, 0, 0, null],
+                'vlna odhlašování před přihlášením na GC znamená chráněný' => [$this->finance(), $ted, $nemaPravoPlatitAzNaMiste, $predChvili, ROCNIK, 0.0, 0, 0, 5],
+                'registrován v ochranné lhůtě pár dní před vlnou odhlašování' => [$this->finance(), '-9 days -59 minutes -59 seconds', $nemaPravoPlatitAzNaMiste, $ted, ROCNIK, 0.0, 0, 10 /* chráněn tolik dní před odhlašováním */, 4],
+                'letos poslal málo a má velký dluh' => [$this->finance(0.1), $predMesicem, $nemaPravoPlatitAzNaMiste, $zitra, ROCNIK, 0.0, PHP_INT_MAX, 0, 2],
+                'letos nic, z loňska žádný zůstatek a má dluh' => [$this->finance(0.0, 0.0, -0.1), $predMesicem, $nemaPravoPlatitAzNaMiste, $zitra, ROCNIK, 0.0, PHP_INT_MAX, 0, 1],
+                'letos nic, z loňska něco málo a má malý dluh' => [$this->finance(0.0, 0.1, -0.1), $predMesicem, $nemaPravoPlatitAzNaMiste, $zitra, ROCNIK, -0.2 /* < stav -0.1 = malý dluh */, PHP_INT_MAX, 0, 3],
+                'letos poslal dost' => [$this->finance(100.0), $predMesicem, $nemaPravoPlatitAzNaMiste, $zitra, ROCNIK, -0.2 /* < stav -0.1 = malý dluh */, 100, 0, 4],
             ]
         );
     }
@@ -95,7 +95,7 @@ class KategorieNeplaticeTest extends TestCase
                     $kdySeRegistrovalNaLetosniGc,
                     true,
                     $zacatekVlnyOdhlasovani,
-                    ROK,
+                    ROCNIK,
                     0.0,
                     $castkaPoslalDost,
                     $pocetDnuPredVlnouKdyJeJesteChranen,
@@ -127,7 +127,7 @@ class KategorieNeplaticeTest extends TestCase
                     $kdySeRegistrovalNaLetosniGc,
                     true,
                     $zacatekVlnyOdhlasovani,
-                    ROK,
+                    ROCNIK,
                     $castkaVelkyDluh,
                     $castkaPoslalDost,
                     $pocetDnuPredVlnouKdyJeJesteChranen,
@@ -255,7 +255,7 @@ class KategorieNeplaticeTest extends TestCase
                 $this->stav = $stav;
             }
 
-            public function sumaPlateb(int $rok = ROK): float {
+            public function sumaPlateb(int $rok = ROCNIK): float {
                 return $this->sumaPlateb;
             }
 

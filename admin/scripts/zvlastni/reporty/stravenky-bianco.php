@@ -7,7 +7,7 @@ require __DIR__ . '/sdilene-hlavicky.php';
 
 $t = new XTemplate(__DIR__ . '/stravenky-bianco.xtpl');
 
-$o = dbQuery('SELECT nazev FROM shop_predmety WHERE model_rok = ' . ROK . ' AND typ = ' . Shop::JIDLO);
+$o = dbQuery('SELECT nazev FROM shop_predmety WHERE model_rok = ' . ROCNIK . ' AND typ = ' . Shop::JIDLO);
 while ($r = mysqli_fetch_assoc($o)) {
     $jidla[] = $r['nazev'];
 }

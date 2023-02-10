@@ -40,7 +40,7 @@ class SystemoveNastaveniTest extends DbTest
     }
 
     private function systemoveNastaveni(
-        int                $rocnik = ROK,
+        int                $rocnik = ROCNIK,
         \DateTimeImmutable $now = new \DateTimeImmutable(),
         bool               $jsmeNaBete = false,
         bool               $jsmeNaLocale = false
@@ -89,7 +89,7 @@ class SystemoveNastaveniTest extends DbTest
      * @dataProvider provideKdeJsme
      */
     public function testKdeJsme(bool $jsmeNaBete, bool $jsmeNaLocale, bool $ocekavaneJsmeNaOstre) {
-        $nastaveni = $this->systemoveNastaveni(ROK, new \DateTimeImmutable(), $jsmeNaBete, $jsmeNaLocale);
+        $nastaveni = $this->systemoveNastaveni(ROCNIK, new \DateTimeImmutable(), $jsmeNaBete, $jsmeNaLocale);
         self::assertSame($jsmeNaBete, $nastaveni->jsmeNaBete());
         self::assertSame($jsmeNaLocale, $nastaveni->jsmeNaLocale());
         self::assertSame($ocekavaneJsmeNaOstre, $nastaveni->jsmeNaOstre());
@@ -105,6 +105,6 @@ class SystemoveNastaveniTest extends DbTest
 
     public function testNemuzemeNastavitZeJsmeJakNaBeteTakNaLocale() {
         $this->expectException(\LogicException::class);
-        $this->systemoveNastaveni(ROK, new \DateTimeImmutable(), true, true);
+        $this->systemoveNastaveni(ROCNIK, new \DateTimeImmutable(), true, true);
     }
 }

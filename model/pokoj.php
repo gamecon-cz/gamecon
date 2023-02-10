@@ -36,14 +36,14 @@ class Pokoj
       FROM shop_nakupy n
       JOIN shop_predmety p USING(id_predmetu)
       WHERE n.id_uzivatele = $0 AND n.rok = $1 AND p.typ = $2
-    ', [0 => $u->id(), 1 => ROK, 2 => \Gamecon\Shop\TypPredmetu::UBYTOVANI]);
+    ', [0 => $u->id(), 1 => ROCNIK, 2 => \Gamecon\Shop\TypPredmetu::UBYTOVANI]);
         if (mysqli_num_rows($o) == 0) {
             throw new Chyba('Uživatel nemá ubytování nebo ubytování pro daný den neexistuje');
         }
-        dbQueryS('DELETE FROM ubytovani WHERE rok = $2 AND id_uzivatele = $1', [$u->id(), ROK]);
+        dbQueryS('DELETE FROM ubytovani WHERE rok = $2 AND id_uzivatele = $1', [$u->id(), ROCNIK]);
         $valuesSqlArray = [];
         while ($r = mysqli_fetch_assoc($o)) {
-            $valuesSqlArray[] = '(' . $u->id() . ',' . $r['ubytovani_den'] . ',' . dbQv($pokoj) . ',' . ROK . ')';
+            $valuesSqlArray[] = '(' . $u->id() . ',' . $r['ubytovani_den'] . ',' . dbQv($pokoj) . ',' . ROCNIK . ')';
         }
         $valuesSql = implode(",\n", $valuesSqlArray);
         $q         = "INSERT INTO ubytovani(id_uzivatele, den, pokoj, rok) VALUES $valuesSql";
@@ -52,12 +52,12 @@ class Pokoj
 
     /** Vrátí letošní pokoj s číslem $cislo */
     static function zCisla($cislo) {
-        return self::zWhere('WHERE pokoj = $1 AND rok = $2', [$cislo, ROK]);
+        return self::zWhere('WHERE pokoj = $1 AND rok = $2', [$cislo, ROCNIK]);
     }
 
     /** Vrátí pokoj, kde letos bydlí uživatel $u */
     static function zUzivatele(Uzivatel $u) {
-        return self::zWhere('WHERE rok = $2 AND pokoj = (SELECT MAX(pokoj) FROM ubytovani WHERE id_uzivatele = $1 AND rok = $2)', [$u->id(), ROK]);
+        return self::zWhere('WHERE rok = $2 AND pokoj = (SELECT MAX(pokoj) FROM ubytovani WHERE id_uzivatele = $1 AND rok = $2)', [$u->id(), ROCNIK]);
     }
 
     /** Vrátí iterátor pokojů podle zadané where klauzule */

@@ -161,7 +161,10 @@ class SystemoveNastaveniHtml
                 $zaznam['checked']                    = $zaznam['aktivni']
                     ? 'checked'
                     : '';
-                $zaznam['disabled']                   = $zaznam['vychozi_hodnota'] === ''
+                $zaznam['checkboxDisabled']           = $zaznam['pouze_pro_cteni'] || $zaznam['vychozi_hodnota'] === ''
+                    ? 'disabled'
+                    : '';
+                $zaznam['valueChangeDisabled']        = $zaznam['pouze_pro_cteni']
                     ? 'disabled'
                     : '';
                 $zaznam['vychoziHodnotaDisplayClass'] = $zaznam['aktivni']

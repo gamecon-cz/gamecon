@@ -8,7 +8,7 @@ WHERE id_zidle = -1403
 SQL
 );
 
-$jakykoliRocnik = \Gamecon\Role\Zidle::JAKYKOLI_ROK;
+$jakykoliRocnik = \Gamecon\Role\Zidle::JAKYKOLI_ROCNIK;
 $this->q(<<<SQL
 ALTER TABLE r_zidle_soupis
 ADD COLUMN rocnik INT NULL -- NULL pouze dočasně, viz níže
@@ -50,7 +50,7 @@ WHERE id_zidle IN ($idckaTrvalychZidliSql)
 SQL
 );
 
-$rocnik = ROK;
+$rocnik = ROCNIK;
 $this->q(<<<SQL
 UPDATE r_zidle_soupis
 SET rocnik = $rocnik

@@ -21,7 +21,7 @@ SQL,
 INSERT INTO shop_predmety SET id_predmetu = 33313, nazev = 'nesmysl', model_rok = $0, cena_aktualni = 0, stav = 1, auto = 0, nabizet_do = NOW(), kusu_vyrobeno = 0, typ = 8888
 SQL,
             [
-                0 => SystemoveNastaveni::ROK,
+                0 => SystemoveNastaveni::ROCNIK,
             ],
         ],
         [
@@ -29,7 +29,7 @@ SQL,
 INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni)
 SELECT 334, id_predmetu, $0, 0 FROM shop_predmety WHERE id_predmetu IN (33313)
 SQL,
-            [0 => SystemoveNastaveni::ROK],
+            [0 => SystemoveNastaveni::ROCNIK],
         ],
     ];
 

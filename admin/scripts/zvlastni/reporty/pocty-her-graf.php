@@ -21,7 +21,7 @@ $o = dbQuery('
   FROM akce_prihlaseni p
   JOIN akce_seznam a USING(id_akce)
   WHERE a.rok=$1
-  GROUP BY p.id_uzivatele', [ROK]);
+  GROUP BY p.id_uzivatele', [ROCNIK]);
 
 if (mysqli_num_rows($o) == 0) {
     exit('V tabulce nejsou žádná data.');

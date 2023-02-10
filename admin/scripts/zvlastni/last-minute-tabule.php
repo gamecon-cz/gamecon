@@ -7,8 +7,8 @@ use Gamecon\XTemplate\XTemplate;
 $xtpl = new XTemplate(__DIR__ . '/last-minute-tabule.xtpl');
 
 $test = null; // debug
-if ((int)date('Y') !== (int)ROK) { // fix pro datum z špatných let
-    $test = ROK . '-01-01 01:00';
+if ((int)date('Y') !== (int)ROCNIK) { // fix pro datum z špatných let
+    $test = ROCNIK . '-01-01 01:00';
 }
 $od = (new DateTimeCz($test))->sub(new \DateInterval('PT15M'));
 $do = (int)(new DateTimeCz($test))->format('G') < 20

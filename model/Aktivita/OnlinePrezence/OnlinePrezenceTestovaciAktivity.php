@@ -32,7 +32,7 @@ class OnlinePrezenceTestovaciAktivity
      * @return array|Aktivita[]
      * @throws \ReflectionException
      */
-    public function dejTestovaciAktivity(int $rok = ROK, int $limit = 10): array {
+    public function dejTestovaciAktivity(int $rok = ROCNIK, int $limit = 10): array {
         $organizovaneAktivityFiltr = [
             'rok' => $rok,
             'stav' => [

@@ -19,10 +19,10 @@ if (!defined('DBM_NAME')) define('DBM_NAME', DB_NAME);
 if (!defined('DBM_SERV')) define('DBM_SERV', DB_SERV);
 
 // aktuální rok -- při změně roku viz Překlápění ročníku na Gamecon Gdrive https://docs.google.com/document/d/1H_PM70WjNpQ1Xz65OYfr1BeSTdLrNQSkScMIZEtxWEc/edit
-if (!defined('ROK')) define(
-    'ROK',
-    !empty($_COOKIE['gamecon_test_rok'])
-        ? (int)$_COOKIE['gamecon_test_rok']
+if (!defined('ROCNIK')) define(
+    'ROCNIK',
+    defined('ROK')
+        ? constant('ROK')
         : 2023
 );
 
@@ -63,22 +63,22 @@ if (!defined('GC_BEZI_DO')) define('GC_BEZI_DO', $systemoveNastaveni->dejVychozi
 // REGISTRACE NA GAMECON //
 ///////////////////////////
 // 2022-05-12 20:22:00
-if (!defined('REG_GC_OD')) define('REG_GC_OD', DateTimeGamecon::zacatekRegistraciUcastniku(ROK)->formatDb()); // spuštění možnosti registrace na GameCon
+if (!defined('REG_GC_OD')) define('REG_GC_OD', DateTimeGamecon::zacatekRegistraciUcastniku(ROCNIK)->formatDb()); // spuštění možnosti registrace na GameCon
 if (!defined('REG_GC_DO')) define('REG_GC_DO', GC_BEZI_DO); // ukončení možnosti registrace na GameCon
 
 ////////////////////////////////////////////////////////
 // REGISTRACE NA AKTIVITY (PRVNÍ, DRUHÁ A TŘETÍ VLNA) //
 ////////////////////////////////////////////////////////
 // 2022-05-19 20:22:00
-if (!defined('REG_AKTIVIT_OD')) define('REG_AKTIVIT_OD', DateTimeGamecon::zacatekPrvniVlnyOd(ROK)->formatDb()); // spuštění možnosti registrace na aktivity, pokud jsou aktivované 1. vlna
+if (!defined('REG_AKTIVIT_OD')) define('REG_AKTIVIT_OD', DateTimeGamecon::zacatekPrvniVlnyOd(ROCNIK)->formatDb()); // spuštění možnosti registrace na aktivity, pokud jsou aktivované 1. vlna
 if (!defined('REG_AKTIVIT_DO')) define('REG_AKTIVIT_DO', GC_BEZI_DO); // ukončení možnosti registrace na aktivity
 // 2022-06-30 23:59:00
-if (!defined('HROMADNE_ODHLASOVANI')) define('HROMADNE_ODHLASOVANI' /* a začátek třetí vlny */, DateTimeGamecon::prvniHromadneOdhlasovaniOd(ROK)->formatDb()); // datum hromadného odhlašování neplatičů
+if (!defined('HROMADNE_ODHLASOVANI')) define('HROMADNE_ODHLASOVANI' /* a začátek třetí vlny */, DateTimeGamecon::prvniHromadneOdhlasovaniOd(ROCNIK)->formatDb()); // datum hromadného odhlašování neplatičů
 // 2022-07-17 23:59:00
-if (!defined('HROMADNE_ODHLASOVANI_2')) define('HROMADNE_ODHLASOVANI_2', DateTimeGamecon::druheHromadneOdhlasovaniOd(ROK)->formatDb()); // datum druhého hromadného odhlašování neplatičů
+if (!defined('HROMADNE_ODHLASOVANI_2')) define('HROMADNE_ODHLASOVANI_2', DateTimeGamecon::druheHromadneOdhlasovaniOd(ROCNIK)->formatDb()); // datum druhého hromadného odhlašování neplatičů
 
 // 2022-07-13 00:00:00
-if (!defined('PROGRAM_OD')) define('PROGRAM_OD', DateTimeGamecon::zacatekProgramu(ROK)->formatDb()); // první den programu
+if (!defined('PROGRAM_OD')) define('PROGRAM_OD', DateTimeGamecon::zacatekProgramu(ROCNIK)->formatDb()); // první den programu
 if (!defined('PROGRAM_DO')) define('PROGRAM_DO', GC_BEZI_DO); // poslední den programu
 if (!defined('PROGRAM_VIDITELNY')) define('PROGRAM_VIDITELNY', po(REG_GC_OD)); // jestli jsou viditelné linky na program
 if (!defined('CENY_VIDITELNE')) define('CENY_VIDITELNE', PROGRAM_VIDITELNY && pred(GC_BEZI_DO)); // jestli jsou viditelné ceny aktivit
@@ -143,8 +143,8 @@ $GLOBALS['HLASKY_SUBST'] = [
 nechal{a} sis vygenerovat nové heslo na Gamecon.cz. Tvoje přihlašovací jméno je stejné jako e-mail (%1), tvoje nové heslo je %2. Heslo si prosím po přihlášení změň.
 
 S pozdravem Tým organizátorů GameConu',
-    'odhlaseniZGc'                => 'Odhlásil{a} ses z GameConu ' . ROK,
-    'prihlaseniNaGc'              => 'Přihlásil{a} ses na GameCon ' . ROK,
+    'odhlaseniZGc'                => 'Odhlásil{a} ses z GameConu ' . ROCNIK,
+    'prihlaseniNaGc'              => 'Přihlásil{a} ses na GameCon ' . ROCNIK,
     'prihlaseniTeamMail'          =>
         'Ahoj,
 

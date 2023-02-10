@@ -35,7 +35,7 @@ $vsichniUzDostaliMailOPostupu = function (Aktivita $zakladni, Aktivita $pristiKo
     $text = textMailuOPostupu($zakladni->tym(), $pristiKolo);
     foreach ($zakladni->prihlaseni() as $uc) {
         $metadataLogu = ['ucastnik' => $uc->id()];
-        if (!$log->existujeLog($text, $metadataLogu, ROK)) {
+        if (!$log->existujeLog($text, $metadataLogu, ROCNIK)) {
             return false;
         }
     }
@@ -60,13 +60,13 @@ if (post('postoupiliDoSemifinale') || post('postoupiliDoFinale')) {
         foreach ($a->prihlaseni() as $uc) {
             $text = textMailuOPostupu($a->tym(), $pristiKolo);
             $metadataLogu = ['ucastnik' => $uc->id()];
-            if ($log->existujeLog($text, $metadataLogu, ROK)) {
+            if ($log->existujeLog($text, $metadataLogu, ROCNIK)) {
                 continue;
             }
             $mail->text($text);
             $mail->adresat($uc->mail());
             $mail->odeslat();
-            $log->zalogovatUdalost($u, $text, $metadataLogu, ROK);
+            $log->zalogovatUdalost($u, $text, $metadataLogu, ROCNIK);
             $emaily[] = $uc->mail();
         }
         oznameni("Odeslána zpráva '$text' na emaily: " . implode(', ', $emaily));
@@ -123,7 +123,7 @@ $t = new XTemplate(__DIR__ . '/prihlaseni-drd.xtpl');
 
 $semifinale = [];
 $finale = [];
-foreach (Aktivita::zFiltru(['typ' => TypAktivity::DRD, 'rok' => ROK]) as $a) {
+foreach (Aktivita::zFiltru(['typ' => TypAktivity::DRD, 'rok' => ROCNIK]) as $a) {
     if ($a->cenaZaklad() == 0) {
         continue;
     }

@@ -77,7 +77,7 @@ FROM shop_nakupy sn
 JOIN shop_predmety sp ON sp.id_predmetu = sn.id_predmetu AND sp.typ = $0
 WHERE sn.id_uzivatele IN ($1) AND sn.rok = $2
 SQL,
-            [0 => $typ, 1 => $ids, 2 => ROK]
+            [0 => $typ, 1 => $ids, 2 => ROCNIK]
         );
     }
 
@@ -92,7 +92,7 @@ SQL,
      * @return Polozka[]
      * @throws \DbException
      */
-    public static function letosniPolozky(int $rok = ROK): array {
+    public static function letosniPolozky(int $rok = ROCNIK): array {
         $polozkyData = dbFetchAll(<<<SQL
 SELECT id_predmetu,nazev,cena_aktualni,suma,model_rok,naposledy_koupeno_kdy,prodano_kusu,kusu_vyrobeno,typ
 FROM (
@@ -175,7 +175,7 @@ FROM (
 ) AS seskupeno
 ORDER BY typ, ubytovani_den, nazev, model_rok DESC, id_predmetu ASC
 SQL
-            , [self::MIMO, ROK, $this->u->id()]);
+            , [self::MIMO, ROCNIK, $this->u->id()]);
 
         //inicializace
         $this->jidlo['dny']   = [];
@@ -463,7 +463,7 @@ SQL
             $t->assign([
                 'postName' => $this->klicT . '[' . $i . ']',
                 'cena'     => round((float)$this->cenaTricka()) . '&thinsp;Kč',
-                'rok'      => ROK,
+                'rok'      => ROCNIK,
             ]);
 
             // nagenerovat výběr triček
@@ -591,7 +591,7 @@ SQL
         $values = '';
         foreach ($chceNove as $n) {
             $sel    = 'SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu = ' . $n;
-            $values .= "\n" . '(' . $this->u->id() . ',' . $n . ',' . ROK . ',(' . $sel . '),NOW()),';
+            $values .= "\n" . '(' . $this->u->id() . ',' . $n . ',' . ROCNIK . ',(' . $sel . '),NOW()),';
         }
         if ($values) {
             $values[strlen($values) - 1] = ';';
@@ -600,7 +600,7 @@ SQL
         // mazání
         if ($nechce) {
             dbQueryS('DELETE FROM shop_nakupy WHERE id_uzivatele = $1 AND rok = $2 AND id_predmetu IN($3)', [
-                $this->u->id(), ROK, $nechce,
+                $this->u->id(), ROCNIK, $nechce,
             ]);
         }
     }
@@ -624,7 +624,7 @@ SQL
             sort($nove);
             // pole s předměty, které už má objednané dříve (bez ubytování)
             $stare = [];
-            $o     = dbQuery('SELECT id_predmetu FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE id_uzivatele=' . $this->u->id() . ' AND rok=' . ROK . ' AND typ IN(' . self::PREDMET . ',' . self::TRICKO . ') ORDER BY id_predmetu');
+            $o     = dbQuery('SELECT id_predmetu FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE id_uzivatele=' . $this->u->id() . ' AND rok=' . ROCNIK . ' AND typ IN(' . self::PREDMET . ',' . self::TRICKO . ') ORDER BY id_predmetu');
             while ($r = mysqli_fetch_assoc($o))
                 $stare[] = (int)$r['id_predmetu'];
             // určení rozdílů polí (note: array_diff ignoruje vícenásobné výskyty hodnot a nedá se použít)
@@ -635,7 +635,7 @@ SQL
                 if (empty($stare[$j]) || (!empty($nove[$i]) && $nove[$i] < $stare[$j]))
                     // tento prvek není v staré objednávce
                     // zapíšeme si ho pro přidání a přeskočíme na další
-                    $pridat .= "\n" . '(' . $this->u->id() . ',' . $nove[$i] . ',' . ROK . ',(SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu=' . $nove[$i++] . '),NOW()),'; //$i se inkrementuje se po provedení druhého!
+                    $pridat .= "\n" . '(' . $this->u->id() . ',' . $nove[$i] . ',' . ROCNIK . ',(SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu=' . $nove[$i++] . '),NOW()),'; //$i se inkrementuje se po provedení druhého!
                 else if (empty($nove[$i]) || $stare[$j] < $nove[$i])
                     // tento prvek ze staré objednávky není v nové objednávce
                     // zapíšeme si ho, že má být odstraněn, a skočíme na další
@@ -657,7 +657,7 @@ SQL
 
     public function zrusNakupPredmetu($idPredmetu, int $pocet): int {
         $idPredmetu = (int)$idPredmetu;
-        $rok        = ROK;
+        $rok        = ROCNIK;
         $query      = <<<SQL
             DELETE FROM shop_nakupy
             WHERE id_uzivatele={$this->u->id()}
@@ -700,7 +700,7 @@ SQL
                     'cena_nakupni' => $cena,
                     'id_uzivatele' => $this->u->id(),
                     'id_predmetu'  => $radek['id_predmetu'],
-                    'rok'          => ROK,
+                    'rok'          => ROCNIK,
                 ]);
             } else {
                 dbUpdate('shop_nakupy', [
@@ -708,7 +708,7 @@ SQL
                 ], [
                     'id_uzivatele' => $this->u->id(),
                     'id_predmetu'  => $radek['id_predmetu'],
-                    'rok'          => ROK,
+                    'rok'          => ROCNIK,
                 ]);
             }
         };
@@ -763,7 +763,7 @@ SQL
 INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni, datum)
     VALUES ($1, $2, $3, $4, NOW())
 SQL
-            , [$this->u->id(), $idPredmetuPrevodBonsuNaPenize, ROK, $nevyuzityBonusZaAktivity]
+            , [$this->u->id(), $idPredmetuPrevodBonsuNaPenize, ROCNIK, $nevyuzityBonusZaAktivity]
         );
         return $nevyuzityBonusZaAktivity;
     }

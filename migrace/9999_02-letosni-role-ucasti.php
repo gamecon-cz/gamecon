@@ -10,7 +10,7 @@ require_once __DIR__ . '/pomocne/rocnik_z_promenne_mysql.php';
 $this->setEndless(true);
 
 // ZIDLE
-$zidleUcasti      = Zidle::vsechnyZidleUcastiProRocnik(ROK);
+$zidleUcasti      = Zidle::vsechnyZidleUcastiProRocnik(ROCNIK);
 $idZidliUcasti    = array_keys($zidleUcasti);
 $idZidliUcastiSql = implode(',', $idZidliUcasti);
 $resultZidli      = $this->q(<<<SQL

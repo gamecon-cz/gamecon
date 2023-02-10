@@ -40,7 +40,7 @@ class Platby
                 'id_uzivatele' => $u->id(),
                 'fio_id' => $fioPlatba->id(),
                 'castka' => $fioPlatba->castka(),
-                'rok' => ROK,
+                'rok' => ROCNIK,
                 'pripsano_na_ucet_banky' => $fioPlatba->datum(),
                 'provedeno' => new DateTimeImmutable(),
                 'provedl' => Uzivatel::SYSTEM,

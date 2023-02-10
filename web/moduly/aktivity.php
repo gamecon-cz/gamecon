@@ -23,7 +23,7 @@ Tym::vypisZpracuj($u);
 // aktivity
 
 $aktivity = Aktivita::zFiltru([
-    'rok' => ROK,
+    'rok' => ROCNIK,
     'jenViditelne' => true,
     'bezDalsichKol' => true,
     'typ' => $typ ? $typ->id() : null,

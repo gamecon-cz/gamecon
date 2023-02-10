@@ -12,7 +12,7 @@ LEFT JOIN akce_seznam AS ostatni_akce_seznam ON akce_seznam.patri_pod IS NOT NUL
 LEFT JOIN akce_lokace ON akce_lokace.id_lokace = COALESCE(ostatni_akce_seznam.lokace, akce_seznam.lokace)
 WHERE akce_seznam.vybaveni != '' AND akce_seznam.rok = $1
 SQL
-  , [ROK]
+  , [ROCNIK]
 );
 
 $report->tFormat(get('format'));

@@ -15,7 +15,7 @@ error_reporting(E_ALL);
 define('REG_GC_OD', '2000-01-01 00:00:00');
 define('REG_AKTIVIT_OD', '2000-01-01 00:00:00');
 
-@define('ROK', 2022);
+@define('ROCNIK', 2022);
 
 @define('TESTING', true);
 

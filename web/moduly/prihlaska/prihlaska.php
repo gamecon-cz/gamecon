@@ -18,7 +18,7 @@ $this->info()->nazev('Přihláška');
 $covidSekceFunkce = require __DIR__ . '/covid-sekce-funkce.php';
 
 function cestaKObrazkuPredmetu(string $soubor): string {
-    return WWW . '/soubory/obsah/materialy/' . ROK . '/' . $soubor;
+    return WWW . '/soubory/obsah/materialy/' . ROCNIK . '/' . $soubor;
 }
 
 /**
@@ -49,7 +49,7 @@ if (po(GC_BEZI_DO)) {
     if ($u && $u->gcPritomen()) {
         $t->parse('prihlaskaPo.ucastnilSe');
     } else {
-        $t->assign('rok', ROK + 1);
+        $t->assign('rok', ROCNIK + 1);
         $t->parse('prihlaskaPo.neucastnilSe');
     }
     $t->parse('prihlaskaPo');
@@ -89,7 +89,7 @@ if (!$u) {
 }
 
 if (pred(REG_GC_OD)) {
-    $t->assign('zacatek', ROK < date('Y')
+    $t->assign('zacatek', ROCNIK < date('Y')
         ? '(upřesníme)' // ještě jsme nepřeklopili ročník
         : DateTimeGamecon::zacatekRegistraciUcastniku()->formatCasZacatekUdalosti());
     $t->parse('prihlaskaPred');
@@ -145,7 +145,7 @@ if ($u->maPravo(P_UBYTOVANI_ZDARMA)) {
 $nahledy = [
     ['obrazek' => 'Triko.jpg', 'miniatura' => 'Triko_detail.jpg', 'nazev' => 'Tričko'],
     ['obrazek' => 'Tilko.jpg', 'miniatura' => 'Tilko_detail.jpg', 'nazev' => 'Tílko'],
-    ['obrazek' => 'Kostka_Duna_2022.png', 'miniatura' => 'Kostka_Duna_2022_detail.png', 'nazev' => ROK === 2022 ? 'Kostka' : 'Kostka Duna'],
+    ['obrazek' => 'Kostka_Duna_2022.png', 'miniatura' => 'Kostka_Duna_2022_detail.png', 'nazev' => ROCNIK === 2022 ? 'Kostka' : 'Kostka Duna'],
     ['obrazek' => 'Kostka_Cthulhu_2021.png', 'miniatura' => 'Kostka_Cthulhu_2021_detail.png', 'nazev' => 'Kostka Cthulhu'],
     ['obrazek' => 'Kostka_Fate_2019.png', 'miniatura' => 'Kostka_Fate_2019_detail.png', 'nazev' => 'Fate kostka'],
     ['obrazek' => 'Placka.png', 'miniatura' => 'Placka_detail.png', 'nazev' => 'Placka'],
@@ -193,7 +193,7 @@ $t->assign([
     'predmety'                        => $shop->predmetyHtml(),
     'trickaObjednatelnaDo'            => $shop->trickaObjednatelnaDoHtml(),
     'predmetyBezTricekObjednatelneDo' => $shop->predmetyBezTricekObjednatelneDoHtml(),
-    'rok'                             => ROK,
+    'rok'                             => ROCNIK,
     'ubytovani'                       => $shop->ubytovaniHtml(),
     'ubytovaniObjednatelneDo'         => $shop->ubytovaniObjednatelneDoHtml(),
     'covidSekce'                      => VYZADOVANO_COVID_POTVRZENI ? $covidSekceFunkce($shop) : '',

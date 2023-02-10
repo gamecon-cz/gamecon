@@ -33,6 +33,6 @@ JOIN akce_typy at ON at.id_typu = s.typ
 WHERE s.rok = $1
 ORDER BY s.typ, s.nazev_akce
 SQL
-  , [ROK]
+  , [ROCNIK]
 );
 $report->tFormat(get('format'));

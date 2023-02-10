@@ -64,7 +64,7 @@ function dbRollback() {
 /**
  * @throws ConnectionException
  */
-function dbConnect($selectDb = true, bool $reconnect = false, int $rok = ROK): \mysqli {
+function dbConnect($selectDb = true, bool $reconnect = false, int $rok = ROCNIK): \mysqli {
     global $spojeni;
 
     if ($reconnect && $spojeni) {
@@ -87,6 +87,10 @@ function dbConnect($selectDb = true, bool $reconnect = false, int $rok = ROK): \
     );
     if ($noveSpojeni && $stareSpojeni !== $noveSpojeni) {
         dbQuery('SET @rocnik = IF(@rocnik IS NOT NULL, @rocnik, $0)', $rok, $noveSpojeni);
+        if ($selectDb) {
+            // pro SQL view, který nesnese variable
+            dbQuery("UPDATE systemove_nastaveni SET hodnota = $0 WHERE klic = 'ROCNIK'", $rok, $noveSpojeni);
+        }
     }
     $spojeni = $noveSpojeni;
 

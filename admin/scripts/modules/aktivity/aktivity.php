@@ -57,7 +57,7 @@ if (post('aktivovat')) {
 }
 
 if (post('aktivovatVse')) {
-    Aktivita::aktivujVsePripravene(ROK);
+    Aktivita::aktivujVsePripravene(ROCNIK);
     back();
 }
 
@@ -137,7 +137,7 @@ foreach ($aktivity as $aktivita) {
     $tpl->parse('aktivity.aktivita');
 }
 
-if ($filtr == ['rok' => ROK]) {
+if ($filtr == ['rok' => ROCNIK]) {
     $tpl->parse('aktivity.aktivovatVse');
 }
 
