@@ -5,8 +5,9 @@ function zadnyUcastnikNeniPotvrzen() {
 }
 
 function potvrdModal() {
+  const potvrzujiBezUcastniku = document.getElementById('potvrzujiBezUcastniku')
   if (zadnyUcastnikNeniPotvrzen()) {
-    if (!document.getElementById('potvrzujiBezUcastniku').checked) {
+    if (!potvrzujiBezUcastniku.checked) {
       document.getElementById('labelPotvrzujiBezUcastniku').classList.add('fw-bold')
       return
     }
@@ -14,6 +15,7 @@ function potvrdModal() {
   document.getElementById('online-prezence').dispatchEvent(
     new CustomEvent('uzavritAktivitu', {detail: posledneKliknutaAktivitaId}),
   )
+  potvrzujiBezUcastniku.checked = false
   jQuery('#modalOpravduUzavrit').modal('hide');
 }
 
