@@ -24,7 +24,7 @@ function zaloguj($zprava) {
 
 if ($z = get('posad')) {
     if ($uPracovni) {
-        $uPracovni->dejZidli($z, $u);
+        $uPracovni->dejRoli($z, $u);
         zaloguj('Uživatel ' . $u->jmenoNick() . " posadil na roli $z uživatele " . $uPracovni->jmenoNick());
     }
     back();
@@ -32,7 +32,7 @@ if ($z = get('posad')) {
 
 if ($z = get('sesad')) {
     if ($uPracovni) {
-        $uPracovni->vemZidli((int)$z, $u);
+        $uPracovni->vemRoli((int)$z, $u);
         zaloguj('Uživatel ' . $u->jmenoNick() . " sesadil ze role $z uživatele " . $uPracovni->jmenoNick());
     }
     back();
@@ -52,7 +52,7 @@ if ($role !== null && ($p = get('dejPravo')) !== null) {
 
 if ($role !== null && $uid = get('sesadUzivatele')) {
     $u2 = Uzivatel::zId($uid);
-    $u2->vemZidli((int)$role, $u);
+    $u2->vemRoli((int)$role, $u);
     zaloguj('Uživatel ' . $u->jmenoNick() . " sesadil ze role $role uživatele " . $u2->jmenoNick());
     back();
 }
@@ -82,13 +82,13 @@ if (!$role) {
         } elseif (Role::platiProRocnik($r[RoleSqlStruktura::ROCNIK_ROLE], ROCNIK)) {
             if ($predchoziTyp !== $r[RoleSqlStruktura::TYP_ROLE]) {
                 if ($predchoziTyp !== null) {
-                    $t->parse('prava.jedenTypZidli');
+                    $t->parse('prava.jedenTypRoli');
                 }
                 if ($r[RoleSqlStruktura::TYP_ROLE] === Role::TYP_TRVALA) {
-                    $t->parse('prava.jedenTypZidli.roleTrvaleNadpis');
+                    $t->parse('prava.jedenTypRoli.roleTrvaleNadpis');
                 } elseif ($r[RoleSqlStruktura::TYP_ROLE] === Role::TYP_ROCNIKOVA) {
                     $t->assign('rocnik', ROCNIK);
-                    $t->parse('prava.jedenTypZidli.roleRocnikoveNadpis');
+                    $t->parse('prava.jedenTypRoli.roleRocnikoveNadpis');
                 }
             }
             if ($uPracovni && $r['sedi']) {
@@ -97,18 +97,18 @@ if (!$role) {
                     if ($posazenKym) {
                         $t->assign('posazenKym', $posazenKym->jmenoNick());
                         $t->assign('posazenKdy', DateTimeCz::createFromMysql($r['posazen'])->relativni());
-                        $t->parse('prava.jedenTypZidli.prava.sesad.posazenKym');
+                        $t->parse('prava.jedenTypRoli.prava.sesad.posazenKym');
                     }
                 }
-                $t->parse('prava.jedenTypZidli.prava.sesad');
+                $t->parse('prava.jedenTypRoli.prava.sesad');
             } elseif ($uPracovni && !$r['sedi']) {
-                $t->parse('prava.jedenTypZidli.prava.posad');
+                $t->parse('prava.jedenTypRoli.prava.posad');
             }
-            $t->parse('prava.jedenTypZidli.prava');
+            $t->parse('prava.jedenTypRoli.prava');
         }
         $predchoziTyp = $r[RoleSqlStruktura::TYP_ROLE];
     }
-    $t->parse('prava.jedenTypZidli');
+    $t->parse('prava.jedenTypRoli');
     $t->parse('prava');
     $t->out('prava');
 } else {
@@ -148,7 +148,7 @@ if (!$role) {
         $t->parse('prava.uzivatel');
     }
     // posazování
-    if ($uPracovni && !$uPracovni->maZidli($role)) {
+    if ($uPracovni && !$uPracovni->maRoli($role)) {
         $t->parse('prava.posad');
     } elseif ($uPracovni) {
         $t->parse('prava.sesad');

@@ -41,7 +41,7 @@ foreach (Uzivatel::zPrihlasenych() as $letosniUcastnik) {
                 return \Gamecon\Role\Role::nazevRole($role);
             },
             array_filter(
-                $letosniUcastnik->dejIdsZidli(),
+                $letosniUcastnik->dejIdsRoli(),
                 static function (int $role) {
                     return !\Gamecon\Role\Role::jeToUcastNaGc($role);
                 }
