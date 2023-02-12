@@ -9,7 +9,7 @@ $typTricko = Shop::TRICKO;
 $typPredmet = Shop::PREDMET;
 $typJidlo = Shop::JIDLO;
 $rok = ROCNIK;
-$idckaZidliSOrganizatorySql = implode(',', Role::dejIdckaZidliSOrganizatory());
+$idckaRoliSOrganizatorySql = implode(',', Role::dejIdckaRoliSOrganizatory());
 
 $poddotazKoupenehoPredmetu = static function (string $klicoveSlovo, int $idTypuPredmetu, int $rok, bool $prilepitRokKNazvu) {
     $rokKNazvu = $prilepitRokKNazvu
@@ -47,7 +47,7 @@ SELECT uzivatele_hodnoty.id_uzivatele,
 FROM uzivatele_hodnoty
 LEFT JOIN platne_role_uzivatelu
     ON uzivatele_hodnoty.id_uzivatele = platne_role_uzivatelu.id_uzivatele
-       AND platne_role_uzivatelu.id_role IN ($idckaZidliSOrganizatorySql)
+       AND platne_role_uzivatelu.id_role IN ($idckaRoliSOrganizatorySql)
 GROUP BY uzivatele_hodnoty.id_uzivatele
 SQL
 );

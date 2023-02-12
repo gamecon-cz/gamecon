@@ -26,7 +26,7 @@ function typUbytovani($typ) { // ubytování typ - z názvu předmětu odhadne t
 }
 
 // poradi je dulezite, udava prioritu
-$idZidliProPozici   = [
+$idRoliiProPozici = [
     Role::ORGANIZATOR,
     Role::ORGANIZATOR_S_BONUSY_1,
     Role::ORGANIZATOR_S_BONUSY_2,
@@ -35,7 +35,7 @@ $idZidliProPozici   = [
     Role::LETOSNI_DOBROVOLNIK_SENIOR,
 ];
 $jmenaRoliProPozici = [];
-foreach ($idZidliProPozici as $idRole) {
+foreach ($idRoliiProPozici as $idRole) {
     $jmenaRoliProPozici[$idRole] = Role::zId($idRole)->jmenoRole();
 }
 $dejNazevRole = static function (array $idckaRoli) use ($jmenaRoliProPozici): string {
@@ -148,7 +148,7 @@ SELECT
       WHERE platne_role_uzivatelu.id_uzivatele=uzivatele_hodnoty.id_uzivatele
           AND role_seznam.typ_role != '$typUcast'
       GROUP BY platne_role_uzivatelu.id_uzivatele
-    ) AS idckaZidliZDotazu,
+    ) AS idckaRoliZDotazu,
     ( SELECT GROUP_CONCAT(role_seznam.nazev_role SEPARATOR ', ')
       FROM platne_role_uzivatelu
       JOIN role_seznam
@@ -202,7 +202,7 @@ while ($r = mysqli_fetch_assoc($o)) {
                 'Jméno'             => $r['jmeno_uzivatele'],
                 'Přezdívka'         => $r['login_uzivatele'],
                 'Mail'              => $r['email1_uzivatele'],
-                'Pozice'            => $dejNazevRole(explode(',', (string)$r['idckaZidliZDotazu'])),
+                'Pozice'            => $dejNazevRole(explode(',', (string)$r['idckaRoliZDotazu'])),
                 'Role'              => $r['roleZDotazu'],
                 'Práva'             => nahradNazvyKonstantZaHodnoty((string)$r['pravaZDotazu']),
                 'Účast'             => $r['ucastZDotazu'],

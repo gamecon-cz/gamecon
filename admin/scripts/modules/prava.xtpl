@@ -2,7 +2,7 @@
 
 <i>Role s právy</i>
 <table class="zvyraznovana">
-  <!-- begin:jedenTypZidli -->
+  <!-- begin:jedenTypRoli -->
   <!-- begin:roleTrvaleNadpis -->
   <tr>
     <th colspan="100%"><strong>Trvalé role</strong></th>
@@ -37,7 +37,7 @@
     <td><a href="prava/{id_role}">detail</a></td>
   </tr>
   <!-- end:prava -->
-  <!-- end:jedenTypZidli -->
+  <!-- end:jedenTypRoli -->
 </table><br><br>
 
 <i>Role bez práv</i>

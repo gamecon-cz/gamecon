@@ -93,7 +93,7 @@ class Role extends \DbObject
     /**
      * @return int[]
      */
-    public static function idckaTrvalychZidli(): array {
+    public static function idckaTrvalychRoli(): array {
         return [
             Role::ORGANIZATOR,
             Role::ORGANIZATOR_S_BONUSY_1,
@@ -182,29 +182,29 @@ class Role extends \DbObject
 
     public static function idRocnikoveRole(int $zakladIdRole, int $rok) {
         // 6, 2023 = -2 023 006
-        return self::preProRocnikovouZidli($rok) - $zakladIdRole;
+        return self::preProRocnikovouRoli($rok) - $zakladIdRole;
     }
 
-    private static function preProRocnikovouZidli(int $rok): int {
+    private static function preProRocnikovouRoli(int $rok): int {
         return $rok * self::KOEFICIENT_ROCNIKOVE_ROLE; // 2023 = 202 300 000
     }
 
     /**
-     * @param int[] $idsZidli
+     * @param int[] $idsRoli
      * @return bool
      */
-    public static function obsahujiOrganizatora(array $idsZidli): bool {
-        $idZidli = array_map(static function ($idRole) {
+    public static function obsahujiOrganizatora(array $idsRoli): bool {
+        $idsRoliInt = array_map(static function ($idRole) {
             return (int)$idRole;
-        }, $idsZidli);
-        $maRole = array_intersect($idZidli, self::dejIdckaZidliSOrganizatory());
+        }, $idsRoli);
+        $maRole = array_intersect($idsRoliInt, self::dejIdckaRoliSOrganizatory());
         return count($maRole) > 0;
     }
 
     /**
      * @return int[]
      */
-    public static function dejIdckaZidliSOrganizatory(): array {
+    public static function dejIdckaRoliSOrganizatory(): array {
         return [self::ORGANIZATOR, self::ORGANIZATOR_S_BONUSY_1, self::ORGANIZATOR_S_BONUSY_2];
     }
 
@@ -294,7 +294,7 @@ class Role extends \DbObject
     }
 
     public static function vsechnyRocnikoveRole(int $rocnik = ROCNIK): array {
-        $idckaRocnikovychZidli = [
+        $idckaRocnikovychRoli = [
             self::LETOSNI_VYPRAVEC($rocnik),
             self::LETOSNI_ZAZEMI($rocnik),
             self::LETOSNI_INFOPULT($rocnik),
@@ -307,7 +307,7 @@ class Role extends \DbObject
             self::LETOSNI_BRIGADNIK($rocnik),
         ];
         $vsechnyRocnikoveRole = [];
-        foreach ($idckaRocnikovychZidli as $id) {
+        foreach ($idckaRocnikovychRoli as $id) {
             $vsechnyRocnikoveRole[$id] = self::nazevRole($id);
         }
         return $vsechnyRocnikoveRole;

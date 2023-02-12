@@ -12,7 +12,7 @@ abstract class UzivatelDbTest extends DbTest
      * @return \Uzivatel vrátí nového testovacího uživatele přihlášeného na GC
      */
     public static function prihlasenyUzivatel(): \Uzivatel {
-        static::zkontrolujZidliKPrihlaseniNaLetosniGc();
+        static::zkontrolujRoliKPrihlaseniNaLetosniGc();
 
         $cislo = self::unikatniCislo();
         dbInsert('uzivatele_hodnoty', [
@@ -31,7 +31,7 @@ abstract class UzivatelDbTest extends DbTest
         return $uzivatel;
     }
 
-    protected static function zkontrolujZidliKPrihlaseniNaLetosniGc() {
+    protected static function zkontrolujRoliKPrihlaseniNaLetosniGc() {
         self::assertNotNull(
             Role::zId(Role::PRIHLASEN_NA_LETOSNI_GC),
             sprintf(

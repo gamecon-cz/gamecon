@@ -59,7 +59,7 @@ SQL
     protected $aktivityJakoSledujici; // pole s klíči id aktvit, kde je jako sledující
     protected $u = [];
     protected $klic = '';
-    protected $idZidli;         // pole s klíči id židlí uživatele
+    protected $idsRoli;         // pole s klíči id židlí uživatele
     protected $finance;
     protected $shop;
 
@@ -170,8 +170,8 @@ SQL
     /**
      * Přidá uživateli roli (posadí uživatele na roli)
      */
-    public function dejZidli(int $idRole, Uzivatel $posadil) {
-        if ($this->maZidli($idRole)) {
+    public function dejRoli(int $idRole, Uzivatel $posadil) {
+        if ($this->maRoli($idRole)) {
             return;
         }
 
@@ -285,7 +285,7 @@ SQL
             );
         }
         // finální odebrání role "registrován na GC"
-        $this->vemZidli(Role::PRIHLASEN_NA_LETOSNI_GC, $odhlasujici);
+        $this->vemRoli(Role::PRIHLASEN_NA_LETOSNI_GC, $odhlasujici);
         // zrušení nákupů (až po použití dejShop a ubytovani)
         dbQuery('DELETE FROM shop_nakupy WHERE rok=' . ROCNIK . ' AND id_uzivatele=' . $this->id());
 
@@ -343,7 +343,7 @@ SQL,
         if (!$this->gcPritomen()) {
             throw new Chyba('Uživatel není přítomen na GC');
         }
-        $this->dejZidli(Role::ODJEL_Z_LETOSNIHO_GC, $editor);
+        $this->dejRoli(Role::ODJEL_Z_LETOSNIHO_GC, $editor);
     }
 
     /** Opustil uživatel GC? */
@@ -351,12 +351,12 @@ SQL,
         if (!$this->gcPritomen()) {
             return false; // ani nedorazil, nemohl odjet
         }
-        return $this->maZidli(Role::ODJEL_Z_LETOSNIHO_GC);
+        return $this->maRoli(Role::ODJEL_Z_LETOSNIHO_GC);
     }
 
     /** Je uživatel přihlášen na aktuální GC? */
     public function gcPrihlasen() {
-        return $this->maZidli(Role::PRIHLASEN_NA_LETOSNI_GC);
+        return $this->maRoli(Role::PRIHLASEN_NA_LETOSNI_GC);
     }
 
     /** Příhlásí uživatele na GC */
@@ -365,13 +365,13 @@ SQL,
             return;
         }
 
-        $this->dejZidli(Role::PRIHLASEN_NA_LETOSNI_GC, $editor);
+        $this->dejRoli(Role::PRIHLASEN_NA_LETOSNI_GC, $editor);
     }
 
     /** Prošel uživatel infopultem, dostal materiály a je nebo byl přítomen na aktuálím
      *  GC? */
     public function gcPritomen() {
-        return $this->maZidli(Role::PRITOMEN_NA_LETOSNIM_GC);
+        return $this->maRoli(Role::PRITOMEN_NA_LETOSNIM_GC);
     }
 
     /**
@@ -520,27 +520,27 @@ SQL,
     }
 
     public function jeBrigadnik(): bool {
-        return $this->maZidli(Role::LETOSNI_BRIGADNIK);
+        return $this->maRoli(Role::LETOSNI_BRIGADNIK);
     }
 
     public function jeVypravec(): bool {
-        return $this->maZidli(Role::LETOSNI_VYPRAVEC);
+        return $this->maRoli(Role::LETOSNI_VYPRAVEC);
     }
 
     public function jeOrganizator(): bool {
-        return Role::obsahujiOrganizatora($this->dejIdsZidli());
+        return Role::obsahujiOrganizatora($this->dejIdsRoli());
     }
 
     public function jePartner(): bool {
-        return $this->maZidli(Role::LETOSNI_PARTNER);
+        return $this->maRoli(Role::LETOSNI_PARTNER);
     }
 
     public function jeInfopultak(): bool {
-        return $this->maZidli(Role::LETOSNI_INFOPULT);
+        return $this->maRoli(Role::LETOSNI_INFOPULT);
     }
 
     public function jeSpravceFinanci(): bool {
-        return $this->maZidli(Role::SPRAVCE_FINANCI_GC);
+        return $this->maRoli(Role::SPRAVCE_FINANCI_GC);
     }
 
     public function jeSuperAdmin(): bool {
@@ -614,23 +614,23 @@ SQL,
      * Uzivatel::maPravo(), skutečně výhradně k správě židlí jako takových.
      * @todo při načítání práv udělat pole místo načítání z DB
      */
-    public function maZidli($role): bool {
+    public function maRoli($role): bool {
         $idRole = (int)$role;
         if (!$idRole) {
             return false;
         }
-        return in_array($idRole, $this->dejIdsZidli(), true);
+        return in_array($idRole, $this->dejIdsRoli(), true);
     }
 
     /**
      * @return int[]
      */
-    public function dejIdsZidli(): array {
-        if (!isset($this->idZidli)) {
-            $role         = dbOneArray('SELECT id_role FROM platne_role_uzivatelu WHERE id_uzivatele = ' . $this->id());
-            $this->idZidli = array_map('intval', $role);
+    public function dejIdsRoli(): array {
+        if (!isset($this->idsRoli)) {
+            $role          = dbOneArray('SELECT id_role FROM platne_role_uzivatelu WHERE id_uzivatele = ' . $this->id());
+            $this->idsRoli = array_map('intval', $role);
         }
-        return $this->idZidli;
+        return $this->idsRoli;
     }
 
     protected function medailonek() {
@@ -1198,25 +1198,25 @@ SQL
         if ($this->maPravo(Pravo::TITUL_ORGANIZATOR)) {
             $status [] = '<span style="color:red">Organizátor' . $ka . '</span>';
         }
-        if ($this->maZidli(Role::LETOSNI_VYPRAVEC)) {
+        if ($this->maRoli(Role::LETOSNI_VYPRAVEC)) {
             $status[] = '<span style="color:blue">Vypravěč' . $ka . '</span>';
         }
         if ($this->jePartner()) {
             $status[] = '<span style="color:darkslateblue">Partner' . $ka . '</span>';
         }
-        if ($this->maZidli(Role::LETOSNI_INFOPULT)) {
+        if ($this->maRoli(Role::LETOSNI_INFOPULT)) {
             $status[] = '<span style="color:orange">Infopult</span>';
         }
-        if ($this->maZidli(Role::LETOSNI_HERMAN)) {
+        if ($this->maRoli(Role::LETOSNI_HERMAN)) {
             $status[] = '<span style="color:orange">Herman</span>';
         }
-        if ($this->maZidli(Role::LETOSNI_BRIGADNIK)) {
+        if ($this->maRoli(Role::LETOSNI_BRIGADNIK)) {
             $status[] = '<span style="color:yellowgreen">Brigádník</span>';
         }
-        if ($this->maZidli(Role::LETOSNI_ZAZEMI)) {
+        if ($this->maRoli(Role::LETOSNI_ZAZEMI)) {
             $status[] = "Zázemí";
         }
-        if ($this->maZidli(Role::LETOSNI_DOBROVOLNIK_SENIOR)) {
+        if ($this->maRoli(Role::LETOSNI_DOBROVOLNIK_SENIOR)) {
             $status[] = "Dobrovolník senior";
         }
         if (count($status) > 0) {
@@ -1319,7 +1319,7 @@ SQL
     /**
      * Odstraní uživatele z role a aktualizuje jeho práva.
      */
-    public function vemZidli(int $idRole, Uzivatel $editor) {
+    public function vemRoli(int $idRole, Uzivatel $editor) {
         $result = dbQuery('DELETE FROM uzivatele_role WHERE id_uzivatele=' . $this->id() . ' AND id_role=' . $idRole);
         if (dbNumRows($result) > 0) {
             $this->zalogujZmenuRole($idRole, $editor->id(), self::SESAZEN);
@@ -1389,19 +1389,19 @@ SQL,
         $l                   = dbQv($dotaz . '%'); // pro LIKE dotazy
         $kromeIdUzivatelu    = $opt['kromeIdUzivatelu'];
         $kromeIdUzivateluSql = dbQv($kromeIdUzivatelu);
-        $pouzeIdZidli        = [];
+        $pouzeIdsRoli        = [];
         if ($opt['jenSRolemi']) {
-            $pouzeIdZidli = $opt['jenSRolemi'];
+            $pouzeIdsRoli = $opt['jenSRolemi'];
         }
         if ($opt['jenPrihlaseniAPritomniNaGc']) {
-            $pouzeIdZidli = array_merge($pouzeIdZidli, [Role::PRIHLASEN_NA_LETOSNI_GC, Role::PRITOMEN_NA_LETOSNIM_GC]);
+            $pouzeIdsRoli = array_merge($pouzeIdsRoli, [Role::PRIHLASEN_NA_LETOSNI_GC, Role::PRITOMEN_NA_LETOSNIM_GC]);
         }
-        $pouzeIdZidliSql = dbQv($pouzeIdZidli);
+        $pouzeIdsRoliSql = dbQv($pouzeIdsRoli);
 
         return self::zWhere("
       WHERE TRUE
       " . ($kromeIdUzivatelu ? " AND u.id_uzivatele NOT IN ($kromeIdUzivateluSql)" : '') . "
-      " . ($pouzeIdZidli ? " AND p.id_role IN ($pouzeIdZidliSql) " : '') . "
+      " . ($pouzeIdsRoli ? " AND p.id_role IN ($pouzeIdsRoliSql) " : '') . "
       AND (
           u.id_uzivatele = $q
           " . ((string)(int)$dotaz !== (string)$dotaz // nehledáme ID

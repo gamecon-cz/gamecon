@@ -10,7 +10,7 @@ $typTricko = Shop::TRICKO;
 $typPredmet = Shop::PREDMET;
 $typJidlo = Shop::JIDLO;
 $rok = ROCNIK;
-$idckaZidliSOrganizatorySql = implode(',', \Gamecon\Role\Role::dejIdckaZidliSOrganizatory());
+$idckaRoliSOrganizatorySql = implode(',', \Gamecon\Role\Role::dejIdckaRoliSOrganizatory());
 
 $poddotazKoupenehoPredmetu = static function (string $klicoveSlovo, int $idTypuPredmetu, int $rok, bool $prilepitRokKNazvu) {
     $rokKNazvu = $prilepitRokKNazvu
@@ -101,7 +101,7 @@ SELECT uzivatele_hodnoty.id_uzivatele,
        ) AS balicek
 FROM uzivatele_hodnoty
 LEFT JOIN platne_role_uzivatelu AS role_organizatoru
-    ON uzivatele_hodnoty.id_uzivatele = role_organizatoru.id_uzivatele AND role_organizatoru.id_role IN ({$idckaZidliSOrganizatorySql})
+    ON uzivatele_hodnoty.id_uzivatele = role_organizatoru.id_uzivatele AND role_organizatoru.id_role IN ({$idckaRoliSOrganizatorySql})
 WHERE uzivatele_hodnoty.id_uzivatele IN (
     SELECT DISTINCT(sn.id_uzivatele)
     FROM shop_nakupy AS sn
