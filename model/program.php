@@ -360,7 +360,7 @@ class Program
         }
 
         // Místnost v programu pro orgy
-        // if ($this->u && ($this->u->maZidli(ZIDLE_INFO) || $this->u->maPravo(P_TITUL_ORG))) {
+        // if ($this->u && ($this->u->maZidli(ROLE_INFO) || $this->u->maPravo(P_TITUL_ORG))) {
         //     $lokace = $aktivitaObjekt->lokace();
         //     if ($lokace) {
         //         echo '<div class="program_lokace">' . $lokace . '</div>';

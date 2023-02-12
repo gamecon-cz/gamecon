@@ -1,6 +1,6 @@
 <?php
 
-use Gamecon\Role\Zidle;
+use Gamecon\Role\Role;
 
 require __DIR__ . '/sdilene-hlavicky.php';
 
@@ -12,7 +12,7 @@ if (post('znacky')) {
     $o = dbQuery('
     SELECT u.*
     FROM uzivatele_hodnoty u
-    JOIN platne_zidle_uzivatelu z ON(z.id_uzivatele = u.id_uzivatele AND z.id_zidle=' . Zidle::PRIHLASEN_NA_LETOSNI_GC . ')
+    JOIN platne_role_uzivatelu z ON(z.id_uzivatele = u.id_uzivatele AND z.id_role=' . Role::PRIHLASEN_NA_LETOSNI_GC . ')
   ');
     $i = 0;
     $uzivatele = [];

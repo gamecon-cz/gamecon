@@ -1,7 +1,7 @@
 <?php
 
 use Gamecon\XTemplate\XTemplate;
-use Gamecon\Role\Zidle;
+use Gamecon\Role\Role;
 
 /**
  * nazev: Promlčení zůstatků
@@ -80,8 +80,8 @@ if (post('pripravit')) {
         'pocetLet' => $pocetLet * (-1),  // pevedení na kladné číslo do formuláře
     ]);
 
-    $ucast    = Zidle::TYP_UCAST;
-    $pritomen = Zidle::VYZNAM_PRITOMEN;
+    $ucast    = Role::TYP_UCAST;
+    $pritomen = Role::VYZNAM_PRITOMEN;
     $o        = dbQuery(
         "SELECT
     u.id_uzivatele AS uzivatel,
@@ -92,11 +92,11 @@ if (post('pripravit')) {
     pohyb.datum AS pohyb
   FROM uzivatele_hodnoty u
   LEFT JOIN (
-    SELECT id_uzivatele, GROUP_CONCAT(zidle.rocnik ORDER BY zidle.rocnik ASC) AS roky,
+    SELECT id_uzivatele, GROUP_CONCAT(role.rocnik_role ORDER BY role.rocnik_role ASC) AS roky,
     COUNT(*) AS pocet
-    FROM platne_zidle_uzivatelu
-    JOIN r_zidle_soupis AS zidle ON platne_zidle_uzivatelu.id_zidle = zidle.id_zidle
-    WHERE zidle.typ_zidle = '$ucast' AND zidle.vyznam = '$pritomen'
+    FROM platne_role_uzivatelu
+    JOIN role_seznam AS role ON platne_role_uzivatelu.id_role = role.id_role
+    WHERE role.typ_role = '$ucast' AND role.vyznam_role = '$pritomen'
     GROUP BY id_uzivatele
   ) AS ucast ON ucast.id_uzivatele = u.id_uzivatele
   LEFT JOIN (

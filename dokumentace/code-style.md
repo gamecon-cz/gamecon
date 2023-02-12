@@ -31,9 +31,9 @@ else          throw new Exception('nesplněno');
 ```sql
 SELECT u.email1_uzivatele as 'mail'
 FROM uzivatele_hodnoty u
-JOIN r_uzivatele_zidle uz ON
+JOIN uzivatele_role uz ON
   uz.id_uzivatele = u.id_uzivatele AND -- [1]
-  uz.id_zidle = {zPritomen}
+  uz.id_role = {zPritomen}
 LEFT JOIN medailonky m ON m.id_uzivatele = u.id_uzivatele
 WHERE u.souhlas_maily AND NOT u.mrtvy_mail
 ORDER BY u.email1_uzivatele

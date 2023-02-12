@@ -8,7 +8,7 @@ WHERE id_zidle = -1403
 SQL
 );
 
-$jakykoliRocnik = \Gamecon\Role\Zidle::JAKYKOLI_ROCNIK;
+$jakykoliRocnik = \Gamecon\Role\Role::JAKYKOLI_ROCNIK;
 $this->q(<<<SQL
 ALTER TABLE r_zidle_soupis
 ADD COLUMN rocnik INT NULL -- NULL pouze dočasně, viz níže
@@ -40,7 +40,7 @@ DROP TEMPORARY TABLE r_zidle_soupis_rocnik_temp
 SQL
 );
 
-$idckaTrvalychZidli    = \Gamecon\Role\Zidle::idckaTrvalychZidli();
+$idckaTrvalychZidli    = \Gamecon\Role\Role::idckaTrvalychZidli();
 $idckaTrvalychZidliSql = implode(',', $idckaTrvalychZidli);
 
 $this->q(<<<SQL

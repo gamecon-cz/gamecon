@@ -5,7 +5,7 @@ namespace Gamecon\Statistiky;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Pravo;
-use Gamecon\Role\Zidle;
+use Gamecon\Role\Role;
 use Gamecon\Shop\Shop;
 
 class Statistiky
@@ -53,29 +53,29 @@ class Statistiky
 SELECT
     SUBDATE(DATE($3), 1) AS den, -- všichni přihlášení před začátkem registrací nahloučení v jednom "dni"
     SUM(CASE log.zmena WHEN $1 THEN 1 WHEN $2 THEN -1 ELSE 0 END) as prihlasenych
-  FROM r_uzivatele_zidle_log AS log
+  FROM uzivatele_role_log AS log
   JOIN uzivatele_hodnoty u USING(id_uzivatele)
-  WHERE log.id_zidle = $0 AND log.kdy < $3
+  WHERE log.id_role = $0 AND log.kdy < $3
 UNION ALL
 SELECT
     DATE(log.kdy) AS den,
     SUM(CASE log.zmena WHEN $1 THEN 1 WHEN $2 THEN -1 ELSE 0 END) as prihlasenych
-FROM r_uzivatele_zidle_log AS log
+FROM uzivatele_role_log AS log
 JOIN uzivatele_hodnoty u USING(id_uzivatele)
-WHERE log.id_zidle = $0 AND log.kdy BETWEEN $3 AND $4
+WHERE log.id_role = $0 AND log.kdy BETWEEN $3 AND $4
 GROUP BY DATE(log.kdy)
 UNION ALL
 SELECT
     ADDDATE(DATE($4), 1) AS den, -- všichni přihlášení po GC nahloučení v jednom "dni"
     SUM(CASE log.zmena WHEN $1 THEN 1 WHEN $2 THEN -1 ELSE 0 END) as prihlasenych
-  FROM r_uzivatele_zidle_log AS log
+  FROM uzivatele_role_log AS log
   JOIN uzivatele_hodnoty u USING(id_uzivatele)
-  WHERE log.id_zidle = $0 AND log.kdy > $4
+  WHERE log.id_role = $0 AND log.kdy > $4
 
 ORDER BY den
 SQL,
             [
-                Zidle::PRIHLASEN_NA_LETOSNI_GC($rok),
+                Role::PRIHLASEN_NA_LETOSNI_GC($rok),
                 \Uzivatel::POSAZEN,
                 \Uzivatel::SESAZEN,
                 $zacatekRegistraci,
@@ -113,31 +113,31 @@ SQL,
     }
 
     public function tabulkaUcastiHtml(): string {
-        $sledovaneZidle = array_merge(
-            [Zidle::PRIHLASEN_NA_LETOSNI_GC($this->letosniRok), Zidle::PRITOMEN_NA_LETOSNIM_GC($this->letosniRok)],
+        $sledovaneRole = array_merge(
+            [Role::PRIHLASEN_NA_LETOSNI_GC($this->letosniRok), Role::PRITOMEN_NA_LETOSNIM_GC($this->letosniRok)],
             dbOneArray(
-                'SELECT id_zidle FROM r_prava_zidle WHERE id_prava = $0',
+                'SELECT id_role FROM prava_role WHERE id_prava = $0',
                 [Pravo::ZOBRAZOVAT_VE_STATISTIKACH_V_TABULCE_UCASTI]
             )
         );
 
         return tabMysql(dbQuery(<<<SQL
 SELECT
-    zidle.jmeno_zidle as "Role",
-    COUNT(uzivatele_zidle.id_uzivatele) AS `<span class="hinted">Celkem<span class="hint">Všech uživatelů s rolí i bez přihlášení</span></span>`,
-    COUNT(zidle_prihlasen.id_zidle) AS `<span class="hinted">Přihlášen<span class="hint">Letos přihlášených uživatelů s rolí</span></span>`
-FROM r_zidle_soupis AS zidle
-LEFT JOIN r_uzivatele_zidle AS uzivatele_zidle
-    ON zidle.id_zidle = uzivatele_zidle.id_zidle
-LEFT JOIN r_uzivatele_zidle AS zidle_prihlasen
-    ON zidle_prihlasen.id_zidle = $0
-        AND zidle_prihlasen.id_uzivatele = uzivatele_zidle.id_uzivatele
-WHERE zidle.id_zidle IN ($1)
-GROUP BY zidle.id_zidle, zidle.jmeno_zidle
-ORDER BY SUBSTR(zidle.jmeno_zidle, 1, 10), zidle.id_zidle
+    role_seznam.nazev_role as "Role",
+    COUNT(uzivatele_role.id_uzivatele) AS `<span class="hinted">Celkem<span class="hint">Všech uživatelů s rolí i bez přihlášení</span></span>`,
+    COUNT(role_prihlasen.id_role) AS `<span class="hinted">Přihlášen<span class="hint">Letos přihlášených uživatelů s rolí</span></span>`
+FROM role_seznam
+LEFT JOIN uzivatele_role
+    ON role_seznam.id_role = uzivatele_role.id_role
+LEFT JOIN uzivatele_role AS role_prihlasen
+    ON role_prihlasen.id_role = $0
+        AND role_prihlasen.id_uzivatele = uzivatele_role.id_uzivatele
+WHERE role_seznam.id_role IN ($1)
+GROUP BY role_seznam.id_role, role_seznam.nazev_role
+ORDER BY SUBSTR(role_seznam.nazev_role, 1, 10), role_seznam.id_role
 SQL, [
-            Zidle::PRIHLASEN_NA_LETOSNI_GC($this->letosniRok),
-            $sledovaneZidle,
+            Role::PRIHLASEN_NA_LETOSNI_GC($this->letosniRok),
+            $sledovaneRole,
         ]), 'Účast');
     }
 
@@ -200,7 +200,7 @@ UNION ALL
     SELECT 'neubytovaní' as Den,
          COUNT(*) as Počet,
          'zzz' AS ubytovani_den
-    FROM r_uzivatele_zidle AS uzivatele_zidle
+    FROM uzivatele_role AS uzivatele_role
     LEFT JOIN(
         SELECT nakupy.id_uzivatele
         FROM shop_nakupy AS nakupy
@@ -209,14 +209,14 @@ UNION ALL
                 AND predmety.typ=$1
         WHERE nakupy.rok=$0
         GROUP BY nakupy.id_uzivatele
-    ) nn ON nn.id_uzivatele=uzivatele_zidle.id_uzivatele
-    WHERE id_zidle=$2 AND ISNULL(nn.id_uzivatele)
+    ) nn ON nn.id_uzivatele=uzivatele_role.id_uzivatele
+    WHERE id_role=$2 AND ISNULL(nn.id_uzivatele)
 ORDER BY ubytovani_den
 ) AS serazeno
 SQL, [
             0 => $this->letosniRok,
             1 => Shop::UBYTOVANI,
-            2 => Zidle::PRIHLASEN_NA_LETOSNI_GC($this->letosniRok),
+            2 => Role::PRIHLASEN_NA_LETOSNI_GC($this->letosniRok),
         ]), 'Ubytování dny');
     }
 
@@ -235,8 +235,8 @@ SELECT Název,Cena,Počet,Slev FROM (
   JOIN shop_predmety AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
   LEFT JOIN (
     SELECT uz.id_uzivatele -- id uživatelů s právy uvedenými níž
-    FROM r_uzivatele_zidle uz
-    JOIN r_prava_zidle pz ON pz.id_zidle = uz.id_zidle AND pz.id_prava IN($0)
+    FROM uzivatele_role uz
+    JOIN prava_role pz ON pz.id_role = uz.id_role AND pz.id_prava IN($0)
     GROUP BY uz.id_uzivatele
   ) AS slevy ON slevy.id_uzivatele = nakupy.id_uzivatele
   WHERE nakupy.rok = $1 AND predmety.typ = $2
@@ -255,11 +255,11 @@ SQL,
     COALESCE(SUM(IF(uzivatele.pohlavi='m',1,0)), 0) as Muži,
     COALESCE(SUM(IF(uzivatele.pohlavi='f',1,0)), 0) as Ženy,
     COALESCE(ROUND(SUM(IF(uzivatele.pohlavi='f',1,0))/COUNT(1),2), 0) as Poměr
-    FROM r_uzivatele_zidle AS uzivatele_zidle
-    JOIN uzivatele_hodnoty AS uzivatele ON uzivatele_zidle.id_uzivatele=uzivatele.id_uzivatele
-    WHERE uzivatele_zidle.id_zidle = $0
+    FROM uzivatele_role AS uzivatele_role
+    JOIN uzivatele_hodnoty AS uzivatele ON uzivatele_role.id_uzivatele=uzivatele.id_uzivatele
+    WHERE uzivatele_role.id_role = $0
 SQL,
-            [Zidle::PRIHLASEN_NA_LETOSNI_GC($this->letosniRok)]
+            [Role::PRIHLASEN_NA_LETOSNI_GC($this->letosniRok)]
         ),
             'Pohlaví'
         );
@@ -337,12 +337,12 @@ SQL,
     }
 
     public function tabulkaHistorieRegistrovaniVsDoraziliHtml(): string {
-        $prihlasen = Zidle::VYZNAM_PRIHLASEN;
-        $pritomen = Zidle::VYZNAM_PRITOMEN;
-        $ucast = Zidle::TYP_UCAST;
+        $prihlasen = Role::VYZNAM_PRIHLASEN;
+        $pritomen = Role::VYZNAM_PRITOMEN;
+        $ucast = Role::TYP_UCAST;
         return tabMysqlR(dbQuery(<<<SQL
 SELECT
-    rocnik AS ' ', -- formátování
+    rocnik_role AS ' ', -- formátování
     Registrovaných,
     Dorazilo,
     studenti AS ` z toho studenti`,
@@ -353,10 +353,10 @@ SELECT
     vypravěči AS ` vypravěči`
 FROM (
     SELECT
-        rocnik,
+        rocnik_role,
         SUM(IF(registrace, 1, 0)) AS Registrovaných,
         SUM(IF(dorazeni, 1, 0)) AS Dorazilo,
-        CASE rocnik
+        CASE rocnik_role
             WHEN 2013 THEN 149
             WHEN 2014 THEN 172
             WHEN 2015 THEN 148
@@ -364,7 +364,7 @@ FROM (
             WHEN 2017 THEN 153
             ELSE '' END
         AS studenti,
-        CASE rocnik
+        CASE rocnik_role
             WHEN 2009 THEN 43
             WHEN 2010 THEN 45
             WHEN 2011 THEN 71
@@ -377,14 +377,14 @@ FROM (
             WHEN 2018 THEN 176
             WHEN 2019 THEN 185
             WHEN 2021 THEN 198
-            WHEN {$this->letosniRok} THEN SUM(IF(dorazeni AND EXISTS(SELECT * FROM r_uzivatele_zidle WHERE r_uzivatele_zidle.id_uzivatele = podle_roku.id_uzivatele AND r_uzivatele_zidle.id_zidle IN ($0, $1, $2)), 1 , 0))
+            WHEN {$this->letosniRok} THEN SUM(IF(dorazeni AND EXISTS(SELECT * FROM uzivatele_role WHERE uzivatele_role.id_uzivatele = podle_roku.id_uzivatele AND uzivatele_role.id_role IN ($0, $1, $2)), 1 , 0))
             ELSE SUM(IF(dorazeni AND EXISTS(
-                SELECT * FROM r_uzivatele_zidle_log AS posazen
-                    LEFT JOIN r_uzivatele_zidle_log AS sesazen ON sesazen.id_zidle = posazen.id_zidle AND sesazen.id_uzivatele =posazen.id_uzivatele AND sesazen.kdy > posazen.kdy AND sesazen.zmena = $4
-                WHERE posazen.zmena = $3 AND sesazen.id_uzivatele IS NULL /* neexistuje novější záznam */ AND posazen.id_uzivatele = podle_roku.id_uzivatele AND posazen.id_zidle IN ($0, $1, $2)
+                SELECT * FROM uzivatele_role_log AS posazen
+                    LEFT JOIN uzivatele_role_log AS sesazen ON sesazen.id_role = posazen.id_role AND sesazen.id_uzivatele =posazen.id_uzivatele AND sesazen.kdy > posazen.kdy AND sesazen.zmena = $4
+                WHERE posazen.zmena = $3 AND sesazen.id_uzivatele IS NULL /* neexistuje novější záznam */ AND posazen.id_uzivatele = podle_roku.id_uzivatele AND posazen.id_role IN ($0, $1, $2)
                 ), 1 , 0)) END
         AS `Podpůrný tým`,
-        CASE rocnik
+        CASE rocnik_role
             WHEN 2009 THEN 6
             WHEN 2010 THEN 8
             WHEN 2011 THEN 13
@@ -397,14 +397,14 @@ FROM (
             WHEN 2018 THEN 38
             WHEN 2019 THEN 38
             WHEN 2021 THEN 37
-            WHEN {$this->letosniRok} THEN SUM(IF(dorazeni AND EXISTS(SELECT * FROM r_uzivatele_zidle WHERE r_uzivatele_zidle.id_uzivatele = podle_roku.id_uzivatele AND r_uzivatele_zidle.id_zidle = $0), 1 , 0))
+            WHEN {$this->letosniRok} THEN SUM(IF(dorazeni AND EXISTS(SELECT * FROM uzivatele_role WHERE uzivatele_role.id_uzivatele = podle_roku.id_uzivatele AND uzivatele_role.id_role = $0), 1 , 0))
             ELSE SUM(IF(dorazeni AND EXISTS(
-                SELECT * FROM r_uzivatele_zidle_log AS posazen
-                    LEFT JOIN r_uzivatele_zidle_log AS sesazen ON sesazen.id_zidle = posazen.id_zidle AND sesazen.id_uzivatele =posazen.id_uzivatele AND sesazen.kdy > posazen.kdy AND sesazen.zmena = $4
-                WHERE posazen.zmena = $3 AND sesazen.id_uzivatele IS NULL /* neexistuje novější záznam */ AND posazen.id_uzivatele = podle_roku.id_uzivatele AND posazen.id_zidle = $0
+                SELECT * FROM uzivatele_role_log AS posazen
+                    LEFT JOIN uzivatele_role_log AS sesazen ON sesazen.id_role = posazen.id_role AND sesazen.id_uzivatele =posazen.id_uzivatele AND sesazen.kdy > posazen.kdy AND sesazen.zmena = $4
+                WHERE posazen.zmena = $3 AND sesazen.id_uzivatele IS NULL /* neexistuje novější záznam */ AND posazen.id_uzivatele = podle_roku.id_uzivatele AND posazen.id_role = $0
             ), 1 , 0)) END
         AS organizátoři,
-        CASE rocnik
+        CASE rocnik_role
             WHEN 2009 THEN 7
             WHEN 2010 THEN 7
             WHEN 2011 THEN 6
@@ -417,14 +417,14 @@ FROM (
             WHEN 2018 THEN ''
             WHEN 2019 THEN ''
             WHEN 2021 THEN 15
-            WHEN {$this->letosniRok} THEN SUM(IF(dorazeni AND EXISTS(SELECT * FROM r_uzivatele_zidle WHERE r_uzivatele_zidle.id_uzivatele = podle_roku.id_uzivatele AND r_uzivatele_zidle.id_zidle = $1), 1 , 0))
+            WHEN {$this->letosniRok} THEN SUM(IF(dorazeni AND EXISTS(SELECT * FROM uzivatele_role WHERE uzivatele_role.id_uzivatele = podle_roku.id_uzivatele AND uzivatele_role.id_role = $1), 1 , 0))
             ELSE SUM(IF(dorazeni AND EXISTS(
-                SELECT * FROM r_uzivatele_zidle_log AS posazen
-                    LEFT JOIN r_uzivatele_zidle_log AS sesazen ON sesazen.id_zidle = posazen.id_zidle AND sesazen.id_uzivatele =posazen.id_uzivatele AND sesazen.kdy > posazen.kdy AND sesazen.zmena = $4
-                WHERE posazen.zmena = $3 AND sesazen.id_uzivatele IS NULL /* neexistuje novější záznam */ AND posazen.id_uzivatele = podle_roku.id_uzivatele AND posazen.id_zidle = $1
+                SELECT * FROM uzivatele_role_log AS posazen
+                    LEFT JOIN uzivatele_role_log AS sesazen ON sesazen.id_role = posazen.id_role AND sesazen.id_uzivatele =posazen.id_uzivatele AND sesazen.kdy > posazen.kdy AND sesazen.zmena = $4
+                WHERE posazen.zmena = $3 AND sesazen.id_uzivatele IS NULL /* neexistuje novější záznam */ AND posazen.id_uzivatele = podle_roku.id_uzivatele AND posazen.id_role = $1
             ), 1 , 0)) END
         AS zázemí,
-        CASE rocnik
+        CASE rocnik_role
             WHEN 2009 THEN 30
             WHEN 2010 THEN 30
             WHEN 2011 THEN 52
@@ -437,31 +437,31 @@ FROM (
             WHEN 2018 THEN 138
             WHEN 2019 THEN 147
             WHEN 2021 THEN 146
-            WHEN {$this->letosniRok} THEN SUM(IF(dorazeni AND EXISTS(SELECT * FROM r_uzivatele_zidle WHERE r_uzivatele_zidle.id_uzivatele = podle_roku.id_uzivatele AND r_uzivatele_zidle.id_zidle = $2), 1 , 0))
+            WHEN {$this->letosniRok} THEN SUM(IF(dorazeni AND EXISTS(SELECT * FROM uzivatele_role WHERE uzivatele_role.id_uzivatele = podle_roku.id_uzivatele AND uzivatele_role.id_role = $2), 1 , 0))
             ELSE SUM(IF(dorazeni AND EXISTS(
-                SELECT * FROM r_uzivatele_zidle_log AS posazen
-                    LEFT JOIN r_uzivatele_zidle_log AS sesazen ON sesazen.id_zidle = posazen.id_zidle AND sesazen.id_uzivatele = posazen.id_uzivatele AND sesazen.kdy > posazen.kdy AND sesazen.zmena = $4
-                WHERE posazen.zmena = $3 AND sesazen.id_uzivatele IS NULL /* neexistuje novější záznam */ AND posazen.id_uzivatele = podle_roku.id_uzivatele AND posazen.id_zidle = $2
+                SELECT * FROM uzivatele_role_log AS posazen
+                    LEFT JOIN uzivatele_role_log AS sesazen ON sesazen.id_role = posazen.id_role AND sesazen.id_uzivatele = posazen.id_uzivatele AND sesazen.kdy > posazen.kdy AND sesazen.zmena = $4
+                WHERE posazen.zmena = $3 AND sesazen.id_uzivatele IS NULL /* neexistuje novější záznam */ AND posazen.id_uzivatele = podle_roku.id_uzivatele AND posazen.id_role = $2
             ), 1 , 0)) END
         AS vypravěči
     FROM (
         SELECT
-            zidle.rocnik,
-            uzivatele_zidle.id_zidle,
-            zidle.vyznam = '$prihlasen' AS registrace,
-            zidle.vyznam = '$pritomen' AS dorazeni,
-            uzivatele_zidle.id_uzivatele
-            FROM r_uzivatele_zidle AS uzivatele_zidle
-            JOIN r_zidle_soupis AS zidle
-                ON uzivatele_zidle.id_zidle = zidle.id_zidle
-            WHERE zidle.typ_zidle = '$ucast'
+            role_seznam.rocnik_role,
+            uzivatele_role.id_role,
+            role_seznam.vyznam_role = '$prihlasen' AS registrace,
+            role_seznam.vyznam_role = '$pritomen' AS dorazeni,
+            uzivatele_role.id_uzivatele
+            FROM uzivatele_role AS uzivatele_role
+            JOIN role_seznam
+                ON uzivatele_role.id_role = role_seznam.id_role
+            WHERE role_seznam.typ_role = '$ucast'
     ) AS podle_roku
-    GROUP BY rocnik
+    GROUP BY rocnik_role
 ) AS pocty
 SQL, [
-            0 => Zidle::ORGANIZATOR,
-            1 => Zidle::LETOSNI_ZAZEMI,
-            2 => Zidle::LETOSNI_VYPRAVEC,
+            0 => Role::ORGANIZATOR,
+            1 => Role::LETOSNI_ZAZEMI,
+            2 => Role::LETOSNI_VYPRAVEC,
             3 => \Uzivatel::POSAZEN,
             4 => \Uzivatel::SESAZEN,
         ]), 'Registrovaní vs Dorazili');
@@ -483,11 +483,11 @@ FROM (
         SUM(IF(pohlavi= 'f', 1, 0)) AS zen
     FROM (
         SELECT
-            2000 - (uzivatele_zidle.id_zidle DIV 100) AS rok,
+            2000 - (uzivatele_role.id_role DIV 100) AS rok,
             uzivatele_hodnoty.pohlavi
-            FROM r_uzivatele_zidle AS uzivatele_zidle
-            JOIN uzivatele_hodnoty ON uzivatele_zidle.id_uzivatele = uzivatele_hodnoty.id_uzivatele
-            WHERE uzivatele_zidle.id_zidle % 100 = -2
+            FROM uzivatele_role AS uzivatele_role
+            JOIN uzivatele_hodnoty ON uzivatele_role.id_uzivatele = uzivatele_hodnoty.id_uzivatele
+            WHERE uzivatele_role.id_role % 100 = -2
     ) AS podle_roku
     GROUP BY rok
 ) AS pohlavi

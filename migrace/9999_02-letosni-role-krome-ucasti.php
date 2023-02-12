@@ -1,7 +1,7 @@
 <?php
 /** @var \Godric\DbMigrations\Migration $this */
 
-use Gamecon\Role\Zidle;
+use Gamecon\Role\Role;
 use Granam\RemoveDiacritics\RemoveDiacritics;
 
 // jen malý, neškodný hack, aby se tahle migrace pouštěla pořád
@@ -9,54 +9,54 @@ $this->setEndless(true);
 
 require_once __DIR__ . '/pomocne/rocnik_z_promenne_mysql.php';
 
-// ZIDLE
-$rocnikoveZidle     = Zidle::vsechnyRocnikoveZidle(ROCNIK);
-$idRocnikovychZidli = array_keys($rocnikoveZidle);
-$idZidliUcastiSql   = implode(',', $idRocnikovychZidli);
-$resultZidli        = $this->q(<<<SQL
-    SELECT id_zidle
-    FROM r_zidle_soupis
-    WHERE id_zidle IN ($idZidliUcastiSql)
+// ROLE
+$rocnikoveRole     = Role::vsechnyRocnikoveRole(ROCNIK);
+$idRocnikovychRoli = array_keys($rocnikoveRole);
+$idRoliUcastiSql   = implode(',', $idRocnikovychRoli);
+$resultRoli       = $this->q(<<<SQL
+    SELECT id_role
+    FROM role_seznam
+    WHERE id_role IN ($idRoliUcastiSql)
     SQL
 );
 
-$chybejiciRocnikoveZidle = $rocnikoveZidle;
-if ($resultZidli) {
-    while ($idExistujiciZidle = $resultZidli->fetch_column()) {
-        unset($chybejiciRocnikoveZidle[(int)$idExistujiciZidle]);
+$chybejiciRocnikoveRole = $rocnikoveRole;
+if ($resultRoli) {
+    while ($idExistujiciRole = $resultRoli->fetch_column()) {
+        unset($chybejiciRocnikoveRole[(int)$idExistujiciRole]);
     }
 }
 
-if ($chybejiciRocnikoveZidle) {
+if ($chybejiciRocnikoveRole) {
     $rocnik        = rocnik_z_promenne_mysql();
-    $letosniPrefix = Zidle::prefixRocniku($rocnik);
-    foreach ($chybejiciRocnikoveZidle as $idChybejiciRocnikoveZidle => $nazevChybejiciRocnikoveZidle) {
+    $letosniPrefix = Role::prefixRocniku($rocnik);
+    foreach ($chybejiciRocnikoveRole as $idChybejiciRocnikoveRole => $nazevChybejiciRocnikoveRole) {
         $result = $this->q(<<<SQL
-SELECT rocnik FROM r_zidle_soupis
-WHERE jmeno_zidle = '$nazevChybejiciRocnikoveZidle'
+SELECT rocnik_role FROM role_seznam
+WHERE nazev_role = '$nazevChybejiciRocnikoveRole'
 SQL
         );
         if ($result) {
-            $rocnikZidlePredchozihoRocniku = $result->fetch_column();
+            $rocnikRolePredchozihoRocniku = $result->fetch_column();
             $result->close();
-            if ($rocnikZidlePredchozihoRocniku) {
-                $prefixProZidliPredchozihoRocniku = Zidle::prefixRocniku($rocnikZidlePredchozihoRocniku);
+            if ($rocnikRolePredchozihoRocniku) {
+                $prefixProRoliPredchozihoRocniku = Role::prefixRocniku($rocnikRolePredchozihoRocniku);
                 $this->q(<<<SQL
-UPDATE r_zidle_soupis
-SET jmeno_zidle = CONCAT('$prefixProZidliPredchozihoRocniku', ' ', jmeno_zidle)
-WHERE jmeno_zidle = '$nazevChybejiciRocnikoveZidle'
+UPDATE role_seznam
+SET nazev_role = CONCAT('$prefixProRoliPredchozihoRocniku', ' ', nazev_role)
+WHERE nazev_role = '$nazevChybejiciRocnikoveRole'
 SQL
                 );
             }
         }
 
         // 'Herman' v "letos" roce 2023 = GC2023_HERMAN
-        $kodZidle  = RemoveDiacritics::toConstantLikeName($letosniPrefix . ' ' . $nazevChybejiciRocnikoveZidle);
-        $vyznam    = Zidle::vyznamPodleKodu($kodZidle);
-        $rocnikova = Zidle::TYP_ROCNIKOVA;
+        $kodRole   = RemoveDiacritics::toConstantLikeName($letosniPrefix . ' ' . $nazevChybejiciRocnikoveRole);
+        $vyznam    = Role::vyznamPodleKodu($kodRole);
+        $rocnikova = Role::TYP_ROCNIKOVA;
         $this->q(<<<SQL
-INSERT INTO r_zidle_soupis (id_zidle, kod_zidle, jmeno_zidle, popis_zidle, rocnik, typ_zidle, vyznam)
-VALUES ($idChybejiciRocnikoveZidle, '$kodZidle', '$nazevChybejiciRocnikoveZidle', '$nazevChybejiciRocnikoveZidle', $rocnik, '$rocnikova', '$vyznam')
+INSERT INTO role_seznam (id_role, kod_role, nazev_role, popis_role, rocnik_role, typ_role, vyznam_role)
+VALUES ($idChybejiciRocnikoveRole, '$kodRole', '$nazevChybejiciRocnikoveRole', '$nazevChybejiciRocnikoveRole', $rocnik, '$rocnikova', '$vyznam')
 SQL
         );
     }

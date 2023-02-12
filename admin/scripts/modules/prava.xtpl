@@ -1,74 +1,74 @@
 <!-- begin:prava -->
 
-<i>Židle s právy</i>
+<i>Role s právy</i>
 <table class="zvyraznovana">
   <!-- begin:jedenTypZidli -->
-  <!-- begin:zidleTrvaleNadpis -->
+  <!-- begin:roleTrvaleNadpis -->
   <tr>
-    <th colspan="100%"><strong>Trvalé židle</strong></th>
+    <th colspan="100%"><strong>Trvalé role</strong></th>
   </tr>
-  <!-- end:zidleTrvaleNadpis -->
-  <!-- begin:zidleRocnikoveNadpis -->
+  <!-- end:roleTrvaleNadpis -->
+  <!-- begin:roleRocnikoveNadpis -->
   <tr>
-    <th colspan="100%"><strong>Ročníkové židle</strong> <i>(pro aktuální ročník {rocnik})</i></th>
+    <th colspan="100%"><strong>Ročníkové role</strong> <i>(pro aktuální ročník {rocnik})</i></th>
   </tr>
-  <!-- end:zidleRocnikoveNadpis -->
+  <!-- end:roleRocnikoveNadpis -->
   <tr>
     <th>&emsp;</th>
-    <th>Jméno židle</th>
-    <th>Popis židle</th>
+    <th>Jméno role</th>
+    <th>Popis role</th>
     <th></th>
     <th></th>
   </tr>
-  <!-- begin:zidle -->
+  <!-- begin:prava -->
   <tr>
     <td>{sedi}</td>
-    <td>{jmeno_zidle}</td>
-    <td>{popis_zidle}</td>
+    <td>{nazev_role}</td>
+    <td>{popis_role}</td>
     <td>
-      <!-- begin:posad --><a href="prava?posad={id_zidle}">posaď</a><!-- end:posad -->
+      <!-- begin:posad --><a href="prava?posad={id_role}">posaď</a><!-- end:posad -->
       <!-- begin:sesad -->
-      <a href="prava?sesad={id_zidle}">
+      <a href="prava?sesad={id_role}">
         <span class="hinted">sesaď<!-- begin:posazenKym --><span
             class="hint">Posadil(a) {posazenKym} {posazenKdy}</span><!-- end:posazenKym --></span>
       </a>
       <!-- end:sesad -->
     </td>
-    <td><a href="prava/{id_zidle}">detail</a></td>
+    <td><a href="prava/{id_role}">detail</a></td>
   </tr>
-  <!-- end:zidle -->
+  <!-- end:prava -->
   <!-- end:jedenTypZidli -->
 </table><br><br>
 
-<i>Židle bez práv</i>
+<i>Role bez práv</i>
 <table class="zvyraznovana">
   <tr>
     <th colspan="100%"><strong>Účast</strong></th>
   </tr>
   <tr>
     <th>&emsp;</th>
-    <th>Jméno židle</th>
-    <th>Popis židle</th>
+    <th>Jméno role</th>
+    <th>Popis role</th>
     <th></th>
   </tr>
-  <!-- begin:zidleUcast -->
+  <!-- begin:roleUcast -->
   <tr>
     <td>{sedi}</td>
-    <td>{jmeno_zidle}</td>
-    <td>{popis_zidle}</td>
+    <td>{nazev_role}</td>
+    <td>{popis_role}</td>
     <td>
-      <a href="prava/{id_zidle}">detail</a>
+      <a href="prava/{id_role}">detail</a>
     </td>
   </tr>
-  <!-- end:zidleUcast -->
+  <!-- end:roleUcast -->
 </table><br><br>
 
 <!-- end:prava -->
 
 
-<!-- begin:zidle -->
+<!-- begin:prava -->
 
-Práva židle <strong>{jmeno_zidle}</strong> ({popis_zidle}):
+Práva role <strong>{nazev_role}</strong> ({popis_role}):
 <table class="zvyraznovana">
   <tr>
     <th>Název práva</th>
@@ -79,7 +79,7 @@ Práva židle <strong>{jmeno_zidle}</strong> ({popis_zidle}):
   <tr>
     <td>{jmeno_prava}</td>
     <td>{popis_prava}</td>
-    <td><a href="prava/{id_zidle}?odeberPravo={id_prava}">vzít židli právo</a></td>
+    <td><a href="prava/{id_role}?odeberPravo={id_prava}">vzít roli právo</a></td>
   </tr>
   <!-- end:pravo -->
 </table>
@@ -89,10 +89,10 @@ Práva židle <strong>{jmeno_zidle}</strong> ({popis_zidle}):
     <option value="{id_prava}">{jmeno_prava}</option>
     <!-- end:pravoVyber -->
   </select>
-  <input type="submit" value="přidat židli právo">
+  <input type="submit" value="přidat roli právo">
 </form><br><br>
 
-Seznam uživatelů na této židli:
+Seznam uživatelů na této roli:
 <table class="zvyraznovana">
   <tr>
     <th>ID</th>
@@ -105,21 +105,21 @@ Seznam uživatelů na této židli:
     <td>{id}</td>
     <td>{nick}</td>
     <td>{jmeno}</td>
-    <td><a href="prava/{id_zidle}?sesadUzivatele={id}">sesadit uživatele</a></td>
+    <td><a href="prava/{id_role}?sesadUzivatele={id}">sesadit uživatele</a></td>
   </tr>
   <!-- end:uzivatel -->
 </table><br>
 <!-- begin:posad -->
 <form>
-  <input type="hidden" name="posad" value="{id_zidle}">
-  <input type="submit" value="Posadit aktuálního uživatele na židli">
+  <input type="hidden" name="posad" value="{id_role}">
+  <input type="submit" value="Posadit aktuálního uživatele na roli">
 </form>
 <!-- end:posad -->
 <!-- begin:sesad -->
 <form>
-  <input type="hidden" name="sesad" value="{id_zidle}">
-  <input type="submit" value="Sesadit aktuálního uživatele z židle">
+  <input type="hidden" name="sesad" value="{id_role}">
+  <input type="submit" value="Sesadit aktuálního uživatele z role">
 </form>
 <!-- end:sesad -->
 
-<!-- end:zidle -->
+<!-- end:prava -->

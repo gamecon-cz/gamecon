@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\SystemoveNastaveni;
 
-use Gamecon\Role\Zidle;
+use Gamecon\Role\Role;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
@@ -147,7 +147,7 @@ class AnonymizovanaDatabaze
 
         mysqli_query(
             $dbConnectionAnonymDb,
-            "ALTER TABLE `{$this->anonymniDatabaze}`.r_uzivatele_zidle MODIFY COLUMN `posazen` TIMESTAMP NULL"
+            "ALTER TABLE `{$this->anonymniDatabaze}`.uzivatele_role MODIFY COLUMN `posazen` TIMESTAMP NULL"
         );
         mysqli_query(
             $dbConnectionAnonymDb,
@@ -198,11 +198,11 @@ SQL
 
         $id = mysqli_insert_id($dbConnectionAnonymDb);
 
-        $idZidleOrganizator    = Zidle::ORGANIZATOR;
-        $idZidleSpravceFinanci = Zidle::SPRAVCE_FINANCI_GC;
+        $idRoleOrganizator    = Role::ORGANIZATOR;
+        $idRoleSpravceFinanci = Role::SPRAVCE_FINANCI_GC;
         mysqli_query(
             $dbConnectionAnonymDb,
-            "INSERT INTO `{$this->anonymniDatabaze}`.r_uzivatele_zidle (id_uzivatele, id_zidle, posazen, posadil) VALUES ($id, $idZidleOrganizator, NOW(), null), ($id, $idZidleSpravceFinanci, NOW(), null)"
+            "INSERT INTO `{$this->anonymniDatabaze}`.uzivatele_role (id_uzivatele, id_role, posazen, posadil) VALUES ($id, $idRoleOrganizator, NOW(), null), ($id, $idRoleSpravceFinanci, NOW(), null)"
         );
     }
 

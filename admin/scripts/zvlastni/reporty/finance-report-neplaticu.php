@@ -37,13 +37,13 @@ foreach (Uzivatel::zPrihlasenych() as $letosniUcastnik) {
     $ucastnikData['role'] = implode(
         ',',
         array_map(
-            static function (int $zidle) {
-                return \Gamecon\Role\Zidle::nazevZidle($zidle);
+            static function (int $role) {
+                return \Gamecon\Role\Role::nazevRole($role);
             },
             array_filter(
                 $letosniUcastnik->dejIdsZidli(),
-                static function (int $zidle) {
-                    return !\Gamecon\Role\Zidle::jeToUcastNaGc($zidle);
+                static function (int $role) {
+                    return !\Gamecon\Role\Role::jeToUcastNaGc($role);
                 }
             )
         ));

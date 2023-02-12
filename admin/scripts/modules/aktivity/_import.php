@@ -4,7 +4,7 @@ use Gamecon\Admin\Modules\Aktivity\Export\ExportAktivitSloupce;
 use Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImporter;
 use Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImportLogger;
 use Gamecon\Mutex\Mutex;
-use Gamecon\Role\Zidle;
+use Gamecon\Role\Role;
 use Gamecon\Vyjimkovac\Logovac;
 
 /** @var \Gamecon\XTemplate\XTemplate $template */
@@ -36,7 +36,7 @@ if (!empty($_POST['googleSheetId'])) {
         $googleSheetsService,
         $urlNaEditaciAktivity,
         $now,
-        URL_ADMIN . '/prava/' . Zidle::LETOSNI_VYPRAVEC,
+        URL_ADMIN . '/prava/' . Role::LETOSNI_VYPRAVEC,
         $vyjimkovac,
         Mutex::proAktivity(),
         URL_ADMIN . '/web/chyby',

@@ -1,7 +1,7 @@
 <?php
 require __DIR__ . '/sdilene-hlavicky.php';
 
-use Gamecon\Role\Zidle;
+use Gamecon\Role\Role;
 use Gamecon\Shop\TypPredmetu;
 
 $o = dbQuery(<<<SQL
@@ -26,8 +26,8 @@ SELECT uzivatele.id_uzivatele,
     GROUP_CONCAT(DISTINCT IF(ubytovani.pokoj = '', NULL, ubytovani.pokoj)) as pokoj,
     uzivatele.ubytovan_s
 FROM uzivatele_hodnoty uzivatele
-JOIN platne_zidle_uzivatelu AS zidle_uzivatelu
-    ON uzivatele.id_uzivatele=zidle_uzivatelu.id_uzivatele AND zidle_uzivatelu.id_zidle=$0 -- přihlášení na gc
+JOIN platne_role_uzivatelu
+    ON uzivatele.id_uzivatele=platne_role_uzivatelu.id_uzivatele AND platne_role_uzivatelu.id_role=$0 -- přihlášení na gc
 JOIN shop_nakupy nakupy
     ON nakupy.id_uzivatele=uzivatele.id_uzivatele AND nakupy.rok=$1 -- nákupy tento rok
 JOIN shop_predmety predmety
@@ -40,7 +40,7 @@ GROUP BY uzivatele.id_uzivatele
 ORDER BY id_uzivatele
 SQL,
     [
-        Zidle::PRIHLASEN_NA_LETOSNI_GC,
+        Role::PRIHLASEN_NA_LETOSNI_GC,
         ROCNIK,
         TypPredmetu::UBYTOVANI,
     ]

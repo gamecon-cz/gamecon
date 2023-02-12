@@ -2,7 +2,7 @@
 
 namespace Gamecon;
 
-use Gamecon\Role\Zidle;
+use Gamecon\Role\Role;
 
 /**
  * @method static Pravo|null zId($id)
@@ -45,10 +45,10 @@ class Pravo extends \DbObject
     public const MUZE_OBJEDNAVAT_MODRA_TRICKA                = 1021; // Může si objednávat modrá trička
     public const MUZE_OBJEDNAVAT_CERVENA_TRICKA              = 1022; // Může si objednávat červená trička
     public const AKTIVITY_ZDARMA                             = 1023; // Sleva 100% na aktivity
-    public const ZOBRAZOVAT_VE_STATISTIKACH_V_TABULCE_UCASTI = 1024; // V adminu v sekci statistiky v tabulce vlevo nahoře se tato židle vypisuje
-    public const VYPISOVAT_V_REPORTU_NEUBYTOVANYCH           = 1025; // V reportu Nepřihlášení a neubytovaní vypravěči se lidé na této židli vypisují
+    public const ZOBRAZOVAT_VE_STATISTIKACH_V_TABULCE_UCASTI = 1024; // V adminu v sekci statistiky v tabulce vlevo nahoře se tato role vypisuje
+    public const VYPISOVAT_V_REPORTU_NEUBYTOVANYCH           = 1025; // V reportu Nepřihlášení a neubytovaní vypravěči se lidé na této roli vypisují
     public const TITUL_ORGANIZATOR                           = 1026; // V různých výpisech se označuje jako organizátor
-    public const UNIKATNI_ZIDLE                              = 1027; // Uživatel může mít jen jednu židli s tímto právem
+    public const UNIKATNI_ROLE                              = 1027; // Uživatel může mít jen jednu roli s tímto právem
     public const BEZ_SLEVY_ZA_VEDENI_AKTIVIT                 = 1028; // Nedostává slevu za vedení aktivit ani účast na tech. aktivitách
 
     public static function dejIdsVsechPrav(): array {

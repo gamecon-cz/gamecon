@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\Db;
 
-use Gamecon\Role\Zidle;
+use Gamecon\Role\Role;
 
 abstract class UzivatelDbTest extends DbTest
 {
@@ -20,9 +20,9 @@ abstract class UzivatelDbTest extends DbTest
             'email1_uzivatele' => 'godric.cz+gc_test_' . $cislo . '@gmail.com',
         ]);
         $idUzivatele = dbInsertId();
-        dbInsert('r_uzivatele_zidle', [
+        dbInsert('uzivatele_role', [
             'id_uzivatele' => $idUzivatele,
-            'id_zidle'     => Zidle::PRIHLASEN_NA_LETOSNI_GC,
+            'id_role'     => Role::PRIHLASEN_NA_LETOSNI_GC,
         ]);
         $uzivatel = \Uzivatel::zId($idUzivatele);
         self::assertNotNull($uzivatel);
@@ -33,11 +33,11 @@ abstract class UzivatelDbTest extends DbTest
 
     protected static function zkontrolujZidliKPrihlaseniNaLetosniGc() {
         self::assertNotNull(
-            Zidle::zId(Zidle::PRIHLASEN_NA_LETOSNI_GC),
+            Role::zId(Role::PRIHLASEN_NA_LETOSNI_GC),
             sprintf(
-                "Chybí židle 'Přihlášen pro rok %d' s ID %d",
+                "Chybí role 'Přihlášen pro rok %d' s ID %d",
                 ROCNIK,
-                Zidle::PRIHLASEN_NA_LETOSNI_GC
+                Role::PRIHLASEN_NA_LETOSNI_GC
             )
         );
     }

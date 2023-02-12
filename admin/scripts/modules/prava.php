@@ -9,23 +9,23 @@
 
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\XTemplate\XTemplate;
-use Gamecon\Role\Zidle;
-use Gamecon\Role\ZidleSqlStruktura;
+use Gamecon\Role\Role;
+use Gamecon\Role\RoleSqlStruktura;
 
 /** @var Uzivatel|null $uPracovni */
 /** @var Uzivatel $u */
 
-$zidle = $podstranka ?? null;
+$role = $podstranka ?? null;
 
 function zaloguj($zprava) {
     $cas = (new DateTimeCz())->formatDb();
-    file_put_contents(SPEC . '/zidle.log', "$cas $zprava\n", FILE_APPEND);
+    file_put_contents(SPEC . '/role.log', "$cas $zprava\n", FILE_APPEND);
 }
 
 if ($z = get('posad')) {
     if ($uPracovni) {
         $uPracovni->dejZidli($z, $u);
-        zaloguj('Uživatel ' . $u->jmenoNick() . " posadil na židli $z uživatele " . $uPracovni->jmenoNick());
+        zaloguj('Uživatel ' . $u->jmenoNick() . " posadil na roli $z uživatele " . $uPracovni->jmenoNick());
     }
     back();
 }
@@ -33,62 +33,62 @@ if ($z = get('posad')) {
 if ($z = get('sesad')) {
     if ($uPracovni) {
         $uPracovni->vemZidli((int)$z, $u);
-        zaloguj('Uživatel ' . $u->jmenoNick() . " sesadil ze židle $z uživatele " . $uPracovni->jmenoNick());
+        zaloguj('Uživatel ' . $u->jmenoNick() . " sesadil ze role $z uživatele " . $uPracovni->jmenoNick());
     }
     back();
 }
 
-if ($zidle !== null && ($p = get('odeberPravo')) !== null) {
-    dbQuery('DELETE FROM r_prava_zidle WHERE id_prava = $1 AND id_zidle = $2', [$p, $zidle]);
-    zaloguj('Uživatel ' . $u->jmenoNick() . " odebral židli $zidle právo $p");
+if ($role !== null && ($p = get('odeberPravo')) !== null) {
+    dbQuery('DELETE FROM prava_role WHERE id_prava = $1 AND id_role = $2', [$p, $role]);
+    zaloguj('Uživatel ' . $u->jmenoNick() . " odebral roli $role právo $p");
     back();
 }
 
-if ($zidle !== null && ($p = get('dejPravo')) !== null) {
-    dbInsert('r_prava_zidle', ['id_prava' => $p, 'id_zidle' => $zidle]);
-    zaloguj('Uživatel ' . $u->jmenoNick() . " přidal židli $zidle právo $p");
+if ($role !== null && ($p = get('dejPravo')) !== null) {
+    dbInsert('prava_role', ['id_prava' => $p, 'id_role' => $role]);
+    zaloguj('Uživatel ' . $u->jmenoNick() . " přidal roli $role právo $p");
     back();
 }
 
-if ($zidle !== null && $uid = get('sesadUzivatele')) {
+if ($role !== null && $uid = get('sesadUzivatele')) {
     $u2 = Uzivatel::zId($uid);
-    $u2->vemZidli((int)$zidle, $u);
-    zaloguj('Uživatel ' . $u->jmenoNick() . " sesadil ze židle $zidle uživatele " . $u2->jmenoNick());
+    $u2->vemZidli((int)$role, $u);
+    zaloguj('Uživatel ' . $u->jmenoNick() . " sesadil ze role $role uživatele " . $u2->jmenoNick());
     back();
 }
 
 $t = new XTemplate('prava.xtpl');
 
-if (!$zidle) {
+if (!$role) {
     // výpis seznamu židlí
     $o            = dbQuery(
-        'SELECT zidle.*, zidle_uzivatelu.id_zidle IS NOT NULL AS sedi, zidle_uzivatelu.posadil, zidle_uzivatelu.posazen
-    FROM r_zidle_soupis AS zidle
-    LEFT JOIN platne_zidle_uzivatelu AS zidle_uzivatelu
-        ON zidle_uzivatelu.id_zidle = zidle.id_zidle AND zidle_uzivatelu.id_uzivatele = $0
-    WHERE zidle.rocnik IN ($1, $2)
-    GROUP BY zidle.id_zidle, zidle.typ_zidle, zidle.jmeno_zidle
-    ORDER BY zidle.typ_zidle, zidle.jmeno_zidle',
-        [0 => $uPracovni?->id(), 1 => ROCNIK, 2 => Zidle::JAKYKOLI_ROCNIK]
+        'SELECT role.*, platne_role_uzivatelu.id_role IS NOT NULL AS sedi, platne_role_uzivatelu.posadil, platne_role_uzivatelu.posazen
+    FROM role_seznam AS role
+    LEFT JOIN platne_role_uzivatelu
+        ON platne_role_uzivatelu.id_role = role.id_role AND platne_role_uzivatelu.id_uzivatele = $0
+    WHERE role.rocnik_role IN ($1, $2)
+    GROUP BY role.id_role, role.typ_role, role.nazev_role
+    ORDER BY role.typ_role, role.nazev_role',
+        [0 => $uPracovni?->id(), 1 => ROCNIK, 2 => Role::JAKYKOLI_ROCNIK]
     );
     $predchoziTyp = null;
     while ($r = mysqli_fetch_assoc($o)) {
         $r['sedi'] = $r['sedi'] ? '<span style="color:#0d0;font-weight:bold">&bull;</span>' : '';
         $t->assign($r);
-        if ($r[ZidleSqlStruktura::TYP_ZIDLE] === Zidle::TYP_UCAST) {
-            if (Zidle::platiPouzeProRocnik($r[ZidleSqlStruktura::ROCNIK], ROCNIK)) {
-                $t->parse('prava.zidleUcast');
+        if ($r[RoleSqlStruktura::TYP_ROLE] === Role::TYP_UCAST) {
+            if (Role::platiPouzeProRocnik($r[RoleSqlStruktura::ROCNIK_ROLE], ROCNIK)) {
+                $t->parse('prava.roleUcast');
             } // 'else' jde o starou účast jako "GC2019 přijel" a ji nechceme ukazovat
-        } elseif (Zidle::platiProRocnik($r[ZidleSqlStruktura::ROCNIK], ROCNIK)) {
-            if ($predchoziTyp !== $r[ZidleSqlStruktura::TYP_ZIDLE]) {
+        } elseif (Role::platiProRocnik($r[RoleSqlStruktura::ROCNIK_ROLE], ROCNIK)) {
+            if ($predchoziTyp !== $r[RoleSqlStruktura::TYP_ROLE]) {
                 if ($predchoziTyp !== null) {
                     $t->parse('prava.jedenTypZidli');
                 }
-                if ($r[ZidleSqlStruktura::TYP_ZIDLE] === Zidle::TYP_TRVALA) {
-                    $t->parse('prava.jedenTypZidli.zidleTrvaleNadpis');
-                } elseif ($r[ZidleSqlStruktura::TYP_ZIDLE] === Zidle::TYP_ROCNIKOVA) {
+                if ($r[RoleSqlStruktura::TYP_ROLE] === Role::TYP_TRVALA) {
+                    $t->parse('prava.jedenTypZidli.roleTrvaleNadpis');
+                } elseif ($r[RoleSqlStruktura::TYP_ROLE] === Role::TYP_ROCNIKOVA) {
                     $t->assign('rocnik', ROCNIK);
-                    $t->parse('prava.jedenTypZidli.zidleRocnikoveNadpis');
+                    $t->parse('prava.jedenTypZidli.roleRocnikoveNadpis');
                 }
             }
             if ($uPracovni && $r['sedi']) {
@@ -97,62 +97,62 @@ if (!$zidle) {
                     if ($posazenKym) {
                         $t->assign('posazenKym', $posazenKym->jmenoNick());
                         $t->assign('posazenKdy', DateTimeCz::createFromMysql($r['posazen'])->relativni());
-                        $t->parse('prava.jedenTypZidli.zidle.sesad.posazenKym');
+                        $t->parse('prava.jedenTypZidli.prava.sesad.posazenKym');
                     }
                 }
-                $t->parse('prava.jedenTypZidli.zidle.sesad');
+                $t->parse('prava.jedenTypZidli.prava.sesad');
             } elseif ($uPracovni && !$r['sedi']) {
-                $t->parse('prava.jedenTypZidli.zidle.posad');
+                $t->parse('prava.jedenTypZidli.prava.posad');
             }
-            $t->parse('prava.jedenTypZidli.zidle');
+            $t->parse('prava.jedenTypZidli.prava');
         }
-        $predchoziTyp = $r[ZidleSqlStruktura::TYP_ZIDLE];
+        $predchoziTyp = $r[RoleSqlStruktura::TYP_ROLE];
     }
     $t->parse('prava.jedenTypZidli');
     $t->parse('prava');
     $t->out('prava');
 } else {
-    // výpis detailu židle
+    // výpis detailu role
     $o = dbQuery(
-        'SELECT r_zidle_soupis.*, r_prava_soupis.*
-    FROM r_zidle_soupis
-    LEFT JOIN r_prava_zidle USING(id_zidle)
+        'SELECT role_seznam.*, r_prava_soupis.*
+    FROM role_seznam
+    LEFT JOIN prava_role USING(id_role)
     LEFT JOIN r_prava_soupis USING(id_prava)
-    WHERE r_zidle_soupis.id_zidle = $1',
-        [$zidle]
+    WHERE role_seznam.id_role = $1',
+        [$role]
     );
     while (($r = mysqli_fetch_assoc($o)) && $r['id_prava']) {
         $r['jmeno_prava'] = nahradPlaceholderZaKonstantu($r['jmeno_prava']);
         $t->assign($r);
-        $t->parse('zidle.pravo');
+        $t->parse('prava.pravo');
     }
-    $t->assign('id_zidle', $zidle); // bugfix pro židle s 0 právy
+    $t->assign('id_role', $role); // bugfix pro role s 0 právy
     // nabídka židlí
     $o = dbQuery(
         'SELECT p.*
     FROM r_prava_soupis p
-    LEFT JOIN r_prava_zidle pz ON(pz.id_prava = p.id_prava AND pz.id_zidle = $1)
+    LEFT JOIN prava_role pz ON(pz.id_prava = p.id_prava AND pz.id_role = $1)
     WHERE p.id_prava > 0 AND pz.id_prava IS NULL
     ORDER BY p.jmeno_prava',
-        [$zidle]
+        [$role]
     );
     while ($r = mysqli_fetch_assoc($o)) {
         $t->assign($r);
-        $t->parse('zidle.pravoVyber');
+        $t->parse('prava.pravoVyber');
     }
     // sedící uživatelé
-    foreach (Uzivatel::zZidle($zidle) as $uz) {
+    foreach (Uzivatel::zRole($role) as $uz) {
         $t->assign('id', $uz->id());
         $t->assign('jmeno', $uz->jmeno());
         $t->assign('nick', $uz->nick());
-        $t->parse('zidle.uzivatel');
+        $t->parse('prava.uzivatel');
     }
     // posazování
-    if ($uPracovni && !$uPracovni->maZidli($zidle)) {
-        $t->parse('zidle.posad');
+    if ($uPracovni && !$uPracovni->maZidli($role)) {
+        $t->parse('prava.posad');
     } elseif ($uPracovni) {
-        $t->parse('zidle.sesad');
+        $t->parse('prava.sesad');
     }
-    $t->parse('zidle');
-    $t->out('zidle');
+    $t->parse('prava');
+    $t->out('prava');
 }

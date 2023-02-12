@@ -619,7 +619,7 @@ function omnibox(
     array  $kromeIdUzivatelu = [],
     bool   $jenPrihlaseniAPritomniNaGc = false,
     int    $minimumZnaku = 3,
-    array  $jenSeZidlemi = null
+    array  $jenSRolemi = null
 ): array {
 
     $uzivatele = Uzivatel::zHledani(
@@ -628,7 +628,7 @@ function omnibox(
             'mail'                       => $hledatTakeVMailech,
             'jenPrihlaseniAPritomniNaGc' => $jenPrihlaseniAPritomniNaGc,
             'kromeIdUzivatelu'           => $kromeIdUzivatelu,
-            'jenSeZidlemi'               => $jenSeZidlemi,
+            'jenSRolemi'               => $jenSRolemi,
         ],
         20,
         $minimumZnaku

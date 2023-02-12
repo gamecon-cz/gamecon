@@ -27,7 +27,7 @@ DROP VIEW IF EXISTS platne_zidle
 SQL
 );
 
-$jakykoliRocnik = \Gamecon\Role\Zidle::JAKYKOLI_ROCNIK;
+$jakykoliRocnik = \Gamecon\Role\Role::JAKYKOLI_ROCNIK;
 $this->q(<<<SQL
 CREATE SQL SECURITY INVOKER VIEW platne_zidle
 AS SELECT * FROM r_zidle_soupis
