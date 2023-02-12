@@ -16,7 +16,7 @@ Rámcový přehled činností, které se během roku běžně v souvislosti s we
 - (začátek května) Automatický start přihlašování na aktivity (tento okamžik bychom měli marketovat). Je vhodné po programu zkontrolovat, že většina aktivit je v stavu „aktivní“, aby se skutečně v okamžiku určeném v nastavení otevřela registrace.
 - (květen–červen) Spouštění „vln“ programu – provádí si postupně program.
 - (konec června) Poloautomatické odhlašování – má na starosti zázemí, ale většinou to zapomíná a zpětně to nejde¹ opravit, tzn. je nutné je s tím urgovat. Obsahuje několik kroků:
-  - Poslední večer (ideálně v 23:xx) kdy ještě platí včasná platba: pomocí panelu Finance v adminu všem účastníkům odebrat židli včasné platby, vyfiltrovat ty s zůstatkem větším jak např. -100Kč a potvrdit jejich posazení na židli včasné platby. Pokud se toto neudělá, po půlnoci všem naskočí nedoplatek (sleva se přestane automaticky dávat) a tím pádem už se nedá zjistit, kdo vlastně zaplatil a kdo ne.
+  - Poslední večer (ideálně v 23:xx) kdy ještě platí včasná platba: pomocí panelu Finance v adminu všem účastníkům odebrat roli včasné platby, vyfiltrovat ty s zůstatkem větším jak např. -100Kč a potvrdit jejich posazení na roli včasné platby. Pokud se toto neudělá, po půlnoci všem naskočí nedoplatek (sleva se přestane automaticky dávat) a tím pádem už se nedá zjistit, kdo vlastně zaplatil a kdo ne.
   - O pár dní po té pomocí panelu Finance > Hromadné rušení objednávek v adminu odhlásit lidem s nedoplatky vybrané věci (co se bude odhlašovat a jaká výše nedoplatku se bere v úvahu si opět určuje zázemí).
   - Odhlásit neplatičům aktivity – provádí ručně zázemí.
 - (před GC) Další vlna odhlašování (TODO: toto je nějaká nová věc zavedená zázemím, nevíme o tom mnoho)

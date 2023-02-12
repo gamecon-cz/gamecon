@@ -11,7 +11,7 @@ use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Exceptions\ChybaKolizeAktivit;
 use Gamecon\Pravo;
 use Gamecon\PrednacitaniTrait;
-use Gamecon\Role\Zidle;
+use Gamecon\Role\Role;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Symfony\Component\Filesystem\Filesystem;
 use Gamecon\XTemplate\XTemplate;
@@ -503,11 +503,11 @@ SQL
         $q = dbQuery(<<<SQL
                 SELECT u.id_uzivatele, u.login_uzivatele, u.jmeno_uzivatele, u.prijmeni_uzivatele
                 FROM uzivatele_hodnoty u
-                JOIN platne_zidle_uzivatelu
-                    ON u.id_uzivatele = platne_zidle_uzivatelu.id_uzivatele
-                JOIN r_prava_zidle
-                    ON platne_zidle_uzivatelu.id_zidle = r_prava_zidle.id_zidle
-                WHERE r_prava_zidle.id_prava = $0
+                JOIN platne_role_uzivatelu
+                    ON u.id_uzivatele = platne_role_uzivatelu.id_uzivatele
+                JOIN prava_role
+                    ON platne_role_uzivatelu.id_role = prava_role.id_role
+                WHERE prava_role.id_prava = $0
                 GROUP BY u.login_uzivatele
                 ORDER BY u.login_uzivatele
             SQL,

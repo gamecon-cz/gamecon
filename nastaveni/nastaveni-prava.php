@@ -25,8 +25,8 @@ if (!defined('P_UBYTOVANI_NEDELE_ZDARMA')) define('P_UBYTOVANI_NEDELE_ZDARMA', P
 if (!defined('P_NERUSIT_OBJEDNAVKY')) define('P_NERUSIT_OBJEDNAVKY', Pravo::NERUSIT_AUTOMATICKY_OBJEDNAVKY); // nebudou mu automaticky rušeny objednávky
 if (!defined('P_AKTIVITY_SLEVA')) define('P_AKTIVITY_SLEVA', Pravo::CASTECNA_SLEVA_NA_AKTIVITY); // má 40% slevu na aktivity
 if (!defined('P_AKTIVITY_ZDARMA')) define('P_AKTIVITY_ZDARMA', Pravo::AKTIVITY_ZDARMA); // má 100% slevu na aktivity
-if (!defined('P_STATISTIKY_UCAST')) define('P_STATISTIKY_UCAST', Pravo::ZOBRAZOVAT_VE_STATISTIKACH_V_TABULCE_UCASTI); // židle se vypisuje se v tabulce účasti v statistikách
+if (!defined('P_STATISTIKY_UCAST')) define('P_STATISTIKY_UCAST', Pravo::ZOBRAZOVAT_VE_STATISTIKACH_V_TABULCE_UCASTI); // role se vypisuje se v tabulce účasti v statistikách
 if (!defined('P_REPORT_NEUBYTOVANI')) define('P_REPORT_NEUBYTOVANI', Pravo::VYPISOVAT_V_REPORTU_NEUBYTOVANYCH); // v reportu neubytovaných se vypisuje
 if (!defined('P_TITUL_ORG')) define('P_TITUL_ORG', Pravo::TITUL_ORGANIZATOR); // v různých výpisech se označuje jako organizátor
-if (!defined('P_UNIKATNI_ZIDLE')) define('P_UNIKATNI_ZIDLE', Pravo::UNIKATNI_ZIDLE); // uživatel může mít jen jednu židli s tímto právem
+if (!defined('P_UNIKATNI_ROLE')) define('P_UNIKATNI_ROLE', Pravo::UNIKATNI_ROLE); // uživatel může mít jen jednu roli s tímto právem
 if (!defined('P_NEMA_BONUS_ZA_AKTIVITY')) define('P_NEMA_BONUS_ZA_AKTIVITY', Pravo::BEZ_SLEVY_ZA_VEDENI_AKTIVIT); // nedostává slevu za odvedené a tech. aktivity

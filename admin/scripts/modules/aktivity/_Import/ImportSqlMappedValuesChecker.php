@@ -7,7 +7,7 @@ use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Aktivita\StavAktivity;
-use Gamecon\Role\Zidle;
+use Gamecon\Role\Role;
 
 class ImportSqlMappedValuesChecker
 {
@@ -551,10 +551,10 @@ SELECT id_uzivatele, activity_ids
 FROM (
     SELECT akce_organizatori.id_uzivatele,
            GROUP_CONCAT(DISTINCT akce_organizatori.id_akce SEPARATOR ',') AS activity_ids,
-           FIND_IN_SET($4, GROUP_CONCAT(DISTINCT zidle_uzivatelu.id_zidle SEPARATOR ',')) AS user_is_group_in_fact
+           FIND_IN_SET($4, GROUP_CONCAT(DISTINCT platne_role_uzivatelu.id_role SEPARATOR ',')) AS user_is_group_in_fact
     FROM akce_organizatori
     JOIN akce_seznam ON akce_organizatori.id_akce = akce_seznam.id_akce
-    LEFT JOIN platne_zidle_uzivatelu AS zidle_uzivatelu ON akce_organizatori.id_uzivatele = zidle_uzivatelu.id_uzivatele
+    LEFT JOIN platne_role_uzivatelu ON akce_organizatori.id_uzivatele = platne_role_uzivatelu.id_uzivatele
     WHERE
         /* povolit navazování aktivit přímo na sebe pro téhož vypravěče
            https://trello.com/c/bGIZcH9N/792-hromadn%C3%A9-vkl%C3%A1d%C3%A1n%C3%AD-do-adminu-v11 */
@@ -571,7 +571,7 @@ SQL
                 $zacatek->formatDb(),
                 $konec->formatDb(),
                 $originalActivity ? $originalActivity->id() : null,
-                Zidle::VYPRAVECSKA_SKUPINA,
+                Role::VYPRAVECSKA_SKUPINA,
                 $originalActivity ? $originalActivity->dejOrganizatoriIds() : null,
             ]
         );

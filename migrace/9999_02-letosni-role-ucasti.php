@@ -1,7 +1,7 @@
 <?php
 /** @var \Godric\DbMigrations\Migration $this */
 
-use Gamecon\Role\Zidle;
+use Gamecon\Role\Role;
 use Granam\RemoveDiacritics\RemoveDiacritics;
 
 require_once __DIR__ . '/pomocne/rocnik_z_promenne_mysql.php';
@@ -9,34 +9,34 @@ require_once __DIR__ . '/pomocne/rocnik_z_promenne_mysql.php';
 // jen malý, neškodný hack, aby se tahle migrace pouštěla pořád
 $this->setEndless(true);
 
-// ZIDLE
-$zidleUcasti      = Zidle::vsechnyZidleUcastiProRocnik(ROCNIK);
-$idZidliUcasti    = array_keys($zidleUcasti);
-$idZidliUcastiSql = implode(',', $idZidliUcasti);
-$resultZidli      = $this->q(<<<SQL
-SELECT id_zidle
-FROM r_zidle_soupis
-WHERE id_zidle IN ($idZidliUcastiSql)
+// ROLE
+$roleUcasi       = Role::vsechnyRoleUcastiProRocnik(ROCNIK);
+$idRoliUcasti    = array_keys($roleUcasi);
+$idRoliUcastiSql = implode(',', $idRoliUcasti);
+$resultRoli      = $this->q(<<<SQL
+SELECT id_role
+FROM role_seznam
+WHERE id_role IN ($idRoliUcastiSql)
 SQL
 );
 
-$chybejiciZidleUcasti = $zidleUcasti;
-if ($resultZidli) {
-    foreach ($resultZidli->fetch_all() as $idExistujiciZidleArray) {
-        $idExistujiciZidle = (int)(reset($idExistujiciZidleArray));
-        unset($chybejiciZidleUcasti[$idExistujiciZidle]);
+$chybejiciRoleUcasti = $roleUcasi;
+if ($resultRoli) {
+    foreach ($resultRoli->fetch_all() as $idExistujiciRoleArray) {
+        $idExistujiciRole = (int)(reset($idExistujiciRoleArray));
+        unset($chybejiciRoleUcasti[$idExistujiciRole]);
     }
 }
 
-if ($chybejiciZidleUcasti) {
+if ($chybejiciRoleUcasti) {
     $rocnik = rocnik_z_promenne_mysql();
-    $ucast  = Zidle::TYP_UCAST;
-    foreach ($chybejiciZidleUcasti as $idChybejiciZidleUcasti => $nazevChybejiciZidleUcasti) {
-        $kodZidle = RemoveDiacritics::toConstantLikeName($nazevChybejiciZidleUcasti);
-        $vyznam   = Zidle::vyznamPodleKodu($kodZidle);
+    $ucast  = Role::TYP_UCAST;
+    foreach ($chybejiciRoleUcasti as $idChybejiciRoleUcasti => $nazevChybejiciRoleUcasti) {
+        $kodRole = RemoveDiacritics::toConstantLikeName($nazevChybejiciRoleUcasti);
+        $vyznam  = Role::vyznamPodleKodu($kodRole);
         $this->q(<<<SQL
-INSERT INTO r_zidle_soupis (id_zidle, kod_zidle, jmeno_zidle, popis_zidle, rocnik, typ_zidle, vyznam)
-VALUES ($idChybejiciZidleUcasti, '$kodZidle', '$nazevChybejiciZidleUcasti', '$nazevChybejiciZidleUcasti', $rocnik, '$ucast', '$vyznam')
+INSERT INTO role_seznam (id_role, kod_role, nazev_role, popis_role, rocnik_role, typ_role, vyznam_role)
+VALUES ($idChybejiciRoleUcasti, '$kodRole', '$nazevChybejiciRoleUcasti', '$nazevChybejiciRoleUcasti', $rocnik, '$ucast', '$vyznam')
 SQL
         );
     }

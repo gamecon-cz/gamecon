@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\web;
 
-use Gamecon\Role\Zidle;
+use Gamecon\Role\Role;
 use Uzivatel;
 use Gamecon\Login\Login;
 use Gamecon\Pravo;
@@ -34,10 +34,10 @@ abstract class AbstractWebTest extends DbTest
 
         $queries[] = [
             <<<SQL
-INSERT INTO r_zidle_soupis(id_zidle, kod_zidle, jmeno_zidle, popis_zidle, vyznam, typ_zidle, rocnik)
+INSERT INTO role_seznam(id_role, kod_role, nazev_role, popis_role, vyznam_role, typ_role, rocnik_role)
 VALUES (1, 'VSEMOCNA', 'všemocná', 'všemocná', $0, $1, @rocnik)
 SQL,
-            [Zidle::VYZNAM_ADMIN, Zidle::TYP_TRVALA],
+            [Role::VYZNAM_ADMIN, Role::TYP_TRVALA],
         ];
 
         $idsPrav       = Pravo::dejIdsVsechPrav();
@@ -53,14 +53,14 @@ $pravaSql
 SQL;
 
         $queries[] = <<<SQL
-INSERT INTO r_prava_zidle(id_zidle, id_prava)
+INSERT INTO prava_role(id_role, id_prava)
 SELECT 1, id_prava
 FROM r_prava_soupis
 SQL;
 
         $idUzivateleSystem = Uzivatel::SYSTEM;
         $queries[]         = <<<SQL
-INSERT INTO r_uzivatele_zidle(id_uzivatele, id_zidle)
+INSERT INTO uzivatele_role(id_uzivatele, id_role)
 VALUES ($idUzivateleSystem, 1)
 SQL;
 

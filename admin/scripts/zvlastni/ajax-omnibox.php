@@ -8,7 +8,7 @@ $data = omnibox(
     [],
     false,
     3,
-    get('jenSeZidlemi') ?: []
+    get('jenSRolemi') ?: []
 );
 
 header('Content-Type: application/json');

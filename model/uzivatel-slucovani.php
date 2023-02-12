@@ -39,7 +39,7 @@ class UzivatelSlucovani
     try {
       // převedení referencí na nového uživatele
       foreach ($this->odkazujiciTabulky() as [$tabulka, $sloupec]) {
-        $ignore = $tabulka === 'r_uzivatele_zidle' ? 'IGNORE' : ''; // u židlí ignorovat duplicity
+        $ignore = $tabulka === 'uzivatele_role' ? 'IGNORE' : ''; // u židlí ignorovat duplicity
         dbQuery("UPDATE $ignore $tabulka SET $sloupec = $novyId WHERE $sloupec = $staryId");
       }
 

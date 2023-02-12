@@ -3,7 +3,7 @@
 
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Report\KonfiguraceReportu;
-use Gamecon\Role\Zidle;
+use Gamecon\Role\Role;
 use Gamecon\Shop\Shop;
 
 require __DIR__ . '/sdilene-hlavicky.php';
@@ -26,22 +26,22 @@ function typUbytovani($typ) { // ubytování typ - z názvu předmětu odhadne t
 }
 
 // poradi je dulezite, udava prioritu
-$idZidliProPozici    = [
-    Zidle::ORGANIZATOR,
-    Zidle::ORGANIZATOR_S_BONUSY_1,
-    Zidle::ORGANIZATOR_S_BONUSY_2,
-    Zidle::LETOSNI_VYPRAVEC,
-    Zidle::LETOSNI_PARTNER,
-    Zidle::LETOSNI_DOBROVOLNIK_SENIOR,
+$idZidliProPozici   = [
+    Role::ORGANIZATOR,
+    Role::ORGANIZATOR_S_BONUSY_1,
+    Role::ORGANIZATOR_S_BONUSY_2,
+    Role::LETOSNI_VYPRAVEC,
+    Role::LETOSNI_PARTNER,
+    Role::LETOSNI_DOBROVOLNIK_SENIOR,
 ];
-$jmenaZidliProPozici = [];
-foreach ($idZidliProPozici as $idZidle) {
-    $jmenaZidliProPozici[$idZidle] = Zidle::zId($idZidle)->jmenoZidle();
+$jmenaRoliProPozici = [];
+foreach ($idZidliProPozici as $idRole) {
+    $jmenaRoliProPozici[$idRole] = Role::zId($idRole)->jmenoRole();
 }
-$dejNazevRole = static function (array $idckaZidli) use ($jmenaZidliProPozici): string {
-    foreach ($jmenaZidliProPozici as $idZidle => $jmenoZidle) {
-        if (in_array($idZidle, $idckaZidli, false)) {
-            return $jmenoZidle;
+$dejNazevRole = static function (array $idckaRoli) use ($jmenaRoliProPozici): string {
+    foreach ($jmenaRoliProPozici as $idRole => $jmenoRole) {
+        if (in_array($idRole, $idckaRoli, false)) {
+            return $jmenoRole;
         }
     }
     return 'Účastník';
@@ -111,7 +111,7 @@ SQL, [Shop::PREDMET]
 
 $rok              = ROCNIK;
 $predmetUbytovani = \Gamecon\Shop\TypPredmetu::UBYTOVANI;
-$typUcast         = Zidle::TYP_UCAST;
+$typUcast         = Role::TYP_UCAST;
 $o                = dbQuery(<<<SQL
 SELECT
     uzivatele_hodnoty.*,
@@ -122,52 +122,51 @@ SELECT
     ( SELECT MAX(shop_predmety.ubytovani_den) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=$rok AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.typ=$predmetUbytovani ) AS den_posledni,
     ( SELECT MAX(shop_predmety.nazev) FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE shop_nakupy.rok=$rok AND shop_nakupy.id_uzivatele=prihlasen.id_uzivatele AND shop_predmety.typ=$predmetUbytovani ) AS ubytovani_typ,
     ( SELECT GROUP_CONCAT(r_prava_soupis.jmeno_prava SEPARATOR ', ')
-      FROM platne_zidle_uzivatelu
-      JOIN r_prava_zidle
-          ON platne_zidle_uzivatelu.id_zidle = r_prava_zidle.id_zidle
+      FROM platne_role_uzivatelu
+      JOIN prava_role
+          ON platne_role_uzivatelu.id_role = prava_role.id_role
       JOIN r_prava_soupis
-          ON r_prava_zidle.id_prava = r_prava_soupis.id_prava
-      JOIN r_zidle_soupis
-          ON platne_zidle_uzivatelu.id_zidle = r_zidle_soupis.id_zidle
-      WHERE platne_zidle_uzivatelu.id_uzivatele = uzivatele_hodnoty.id_uzivatele
-          AND r_zidle_soupis.typ_zidle != '$typUcast'
-      GROUP BY platne_zidle_uzivatelu.id_uzivatele
+          ON prava_role.id_prava = r_prava_soupis.id_prava
+      JOIN role_seznam
+          ON platne_role_uzivatelu.id_role = role_seznam.id_role
+      WHERE platne_role_uzivatelu.id_uzivatele = uzivatele_hodnoty.id_uzivatele
+          AND role_seznam.typ_role != '$typUcast'
+      GROUP BY platne_role_uzivatelu.id_uzivatele
     ) AS pravaZDotazu,
-    ( SELECT GROUP_CONCAT(r_zidle_soupis.jmeno_zidle ORDER BY r_zidle_soupis.id_zidle DESC SEPARATOR ', ')
-      FROM r_zidle_soupis
-      JOIN platne_zidle_uzivatelu
-          ON r_zidle_soupis.id_zidle = platne_zidle_uzivatelu.id_zidle
-      WHERE platne_zidle_uzivatelu.id_uzivatele = uzivatele_hodnoty.id_uzivatele
-          AND r_zidle_soupis.typ_zidle = '$typUcast'
-      GROUP BY platne_zidle_uzivatelu.id_uzivatele
+    ( SELECT GROUP_CONCAT(role_seznam.nazev_role ORDER BY role_seznam.id_role DESC SEPARATOR ', ')
+      FROM role_seznam
+      JOIN platne_role_uzivatelu
+          ON role_seznam.id_role = platne_role_uzivatelu.id_role
+      WHERE platne_role_uzivatelu.id_uzivatele = uzivatele_hodnoty.id_uzivatele
+          AND role_seznam.typ_role = '$typUcast'
+      GROUP BY platne_role_uzivatelu.id_uzivatele
     ) AS ucastZDotazu,
-    ( SELECT GROUP_CONCAT(platne_zidle_uzivatelu.id_zidle SEPARATOR ',')
-      FROM platne_zidle_uzivatelu
-      JOIN r_zidle_soupis
-          ON platne_zidle_uzivatelu.id_zidle = r_zidle_soupis.id_zidle
-      WHERE platne_zidle_uzivatelu.id_uzivatele=uzivatele_hodnoty.id_uzivatele
-          AND r_zidle_soupis.typ_zidle != '$typUcast'
-      GROUP BY platne_zidle_uzivatelu.id_uzivatele
+    ( SELECT GROUP_CONCAT(platne_role_uzivatelu.id_role SEPARATOR ',')
+      FROM platne_role_uzivatelu
+      JOIN role_seznam
+          ON platne_role_uzivatelu.id_role = role_seznam.id_role
+      WHERE platne_role_uzivatelu.id_uzivatele=uzivatele_hodnoty.id_uzivatele
+          AND role_seznam.typ_role != '$typUcast'
+      GROUP BY platne_role_uzivatelu.id_uzivatele
     ) AS idckaZidliZDotazu,
-    ( SELECT GROUP_CONCAT(r_zidle_soupis.jmeno_zidle SEPARATOR ', ')
-      FROM platne_zidle_uzivatelu
-      JOIN r_zidle_soupis
-          ON platne_zidle_uzivatelu.id_zidle = r_zidle_soupis.id_zidle
-      WHERE platne_zidle_uzivatelu.id_uzivatele=uzivatele_hodnoty.id_uzivatele
-          AND r_zidle_soupis.typ_zidle != '$typUcast'
-      GROUP BY platne_zidle_uzivatelu.id_uzivatele
-    ) AS zidleZDotazu
+    ( SELECT GROUP_CONCAT(role_seznam.nazev_role SEPARATOR ', ')
+      FROM platne_role_uzivatelu
+      JOIN role_seznam
+          ON platne_role_uzivatelu.id_role = role_seznam.id_role
+      WHERE platne_role_uzivatelu.id_uzivatele=uzivatele_hodnoty.id_uzivatele
+          AND role_seznam.typ_role != '$typUcast'
+      GROUP BY platne_role_uzivatelu.id_uzivatele
+    ) AS roleZDotazu
 FROM uzivatele_hodnoty
-LEFT JOIN platne_zidle_uzivatelu AS prihlasen ON (prihlasen.id_zidle = $0 AND prihlasen.id_uzivatele = uzivatele_hodnoty.id_uzivatele)
-LEFT JOIN platne_zidle_uzivatelu AS pritomen ON (pritomen.id_zidle = $1 AND pritomen.id_uzivatele = uzivatele_hodnoty.id_uzivatele)
-LEFT JOIN platne_zidle_uzivatelu AS odjel ON(odjel.id_zidle = $2 AND odjel.id_uzivatele = uzivatele_hodnoty.id_uzivatele)
+LEFT JOIN platne_role_uzivatelu AS prihlasen ON (prihlasen.id_role = $0 AND prihlasen.id_uzivatele = uzivatele_hodnoty.id_uzivatele)
+LEFT JOIN platne_role_uzivatelu AS pritomen ON (pritomen.id_role = $1 AND pritomen.id_uzivatele = uzivatele_hodnoty.id_uzivatele)
+LEFT JOIN platne_role_uzivatelu AS odjel ON(odjel.id_role = $2 AND odjel.id_uzivatele = uzivatele_hodnoty.id_uzivatele)
 WHERE prihlasen.id_uzivatele IS NOT NULL -- left join, takže může být NULL ve smyslu "nemáme záznam" = "není přihlášen"
     OR pritomen.id_uzivatele IS NOT NULL -- tohle by bylo hodně divné, musela by být díra v systému, aby nebyl přihlášen ale byl přítomen, ale radši...
     OR EXISTS(SELECT * FROM shop_nakupy WHERE uzivatele_hodnoty.id_uzivatele = shop_nakupy.id_uzivatele AND shop_nakupy.rok = $rok)
     OR EXISTS(SELECT * FROM platby WHERE platby.id_uzivatele = uzivatele_hodnoty.id_uzivatele AND platby.rok = $rok)
-LIMIT 2 -- TODO REVERT
 SQL,
-    [0 => Zidle::PRIHLASEN_NA_LETOSNI_GC, 1 => Zidle::PRITOMEN_NA_LETOSNIM_GC, 2 => Zidle::ODJEL_Z_LETOSNIHO_GC]
+    [0 => Role::PRIHLASEN_NA_LETOSNI_GC, 1 => Role::PRITOMEN_NA_LETOSNIM_GC, 2 => Role::ODJEL_Z_LETOSNIHO_GC]
 );
 if (mysqli_num_rows($o) === 0) {
     exit('V tabulce nejsou žádná data.');
@@ -204,7 +203,7 @@ while ($r = mysqli_fetch_assoc($o)) {
                 'Přezdívka'         => $r['login_uzivatele'],
                 'Mail'              => $r['email1_uzivatele'],
                 'Pozice'            => $dejNazevRole(explode(',', (string)$r['idckaZidliZDotazu'])),
-                'Židle'             => $r['zidleZDotazu'],
+                'Role'              => $r['roleZDotazu'],
                 'Práva'             => nahradNazvyKonstantZaHodnoty((string)$r['pravaZDotazu']),
                 'Účast'             => $r['ucastZDotazu'],
                 'Datum registrace'  => excelDatum($r['prihlasen_na_gc_kdy']),

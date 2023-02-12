@@ -2,7 +2,7 @@
 /** @var \Godric\DbMigrations\Migration $this */
 
 use Granam\RemoveDiacritics\RemoveDiacritics;
-use Gamecon\Role\Zidle;
+use Gamecon\Role\Role;
 
 $this->q(<<<SQL
 ALTER TABLE r_zidle_soupis
@@ -16,7 +16,7 @@ FROM r_zidle_soupis
 SQL
 );
 
-$letosniPrefix = Zidle::prefixRocniku(ROCNIK);
+$letosniPrefix = Role::prefixRocniku(ROCNIK);
 foreach ($result->fetch_all(MYSQLI_ASSOC) as ['id_zidle' => $idZidle, 'jmeno_zidle' => $jmenoZidle]) {
     $nazevZidleSPrefixem = $idZidle > 0
         ? $letosniPrefix . ' ' . $jmenoZidle // Infopult = GC2023 Infopult

@@ -5,7 +5,7 @@ use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Pravo;
-use Gamecon\Role\Zidle;
+use Gamecon\Role\Role;
 use Gamecon\Shop\Shop;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\XTemplate\XTemplate;
@@ -47,9 +47,9 @@ SQL
         $ids = dbOneArray(<<<SQL
 SELECT DISTINCT uzivatele_hodnoty.id_uzivatele
 FROM uzivatele_hodnoty
-JOIN platne_zidle_uzivatelu ON uzivatele_hodnoty.id_uzivatele = platne_zidle_uzivatelu.id_uzivatele
-JOIN r_prava_zidle ON platne_zidle_uzivatelu.id_zidle = r_prava_zidle.id_zidle
-WHERE r_prava_zidle.id_prava = $1
+JOIN platne_role_uzivatelu ON uzivatele_hodnoty.id_uzivatele = platne_role_uzivatelu.id_uzivatele
+JOIN prava_role ON platne_role_uzivatelu.id_role = prava_role.id_role
+WHERE prava_role.id_prava = $1
 SQL
             , [\Gamecon\Pravo::PORADANI_AKTIVIT]
         );
@@ -168,26 +168,26 @@ SQL
     }
 
     /**
-     * Přidá uživateli židli (posadí uživatele na židli)
+     * Přidá uživateli roli (posadí uživatele na roli)
      */
-    public function dejZidli(int $idZidle, Uzivatel $posadil) {
-        if ($this->maZidli($idZidle)) {
+    public function dejZidli(int $idRole, Uzivatel $posadil) {
+        if ($this->maZidli($idRole)) {
             return;
         }
 
-        $novaPrava = dbOneArray('SELECT id_prava FROM r_prava_zidle WHERE id_zidle = $0', [$idZidle]);
+        $novaPrava = dbOneArray('SELECT id_prava FROM prava_role WHERE id_role = $0', [$idRole]);
 
-        if ($this->maPravo(P_UNIKATNI_ZIDLE) && in_array(P_UNIKATNI_ZIDLE, $novaPrava)) {
-            throw new Chyba('Uživatel už má jinou unikátní židli.');
+        if ($this->maPravo(P_UNIKATNI_ROLE) && in_array(P_UNIKATNI_ROLE, $novaPrava)) {
+            throw new Chyba('Uživatel už má jinou unikátní roli.');
         }
 
         $result = dbQuery(
-            "INSERT IGNORE INTO r_uzivatele_zidle(id_uzivatele, id_zidle, posadil)
+            "INSERT IGNORE INTO uzivatele_role(id_uzivatele, id_role, posadil)
             VALUES ($1, $2, $3)",
-            [$this->id(), $idZidle, $posadil->id()]
+            [$this->id(), $idRole, $posadil->id()]
         );
         if (dbNumRows($result) > 0) {
-            $this->zalogujZmenuZidle($idZidle, $posadil->id(), self::POSAZEN);
+            $this->zalogujZmenuRole($idRole, $posadil->id(), self::POSAZEN);
         }
 
         $this->aktualizujPrava();
@@ -284,8 +284,8 @@ SQL
                 Aktivita::NEPOSILAT_MAILY_SLEDUJICIM /* nechceme posílat maily sledujícím, že se uvolnilo místo */
             );
         }
-        // finální odebrání židle "registrován na GC"
-        $this->vemZidli(Zidle::PRIHLASEN_NA_LETOSNI_GC, $odhlasujici);
+        // finální odebrání role "registrován na GC"
+        $this->vemZidli(Role::PRIHLASEN_NA_LETOSNI_GC, $odhlasujici);
         // zrušení nákupů (až po použití dejShop a ubytovani)
         dbQuery('DELETE FROM shop_nakupy WHERE rok=' . ROCNIK . ' AND id_uzivatele=' . $this->id());
 
@@ -343,7 +343,7 @@ SQL,
         if (!$this->gcPritomen()) {
             throw new Chyba('Uživatel není přítomen na GC');
         }
-        $this->dejZidli(Zidle::ODJEL_Z_LETOSNIHO_GC, $editor);
+        $this->dejZidli(Role::ODJEL_Z_LETOSNIHO_GC, $editor);
     }
 
     /** Opustil uživatel GC? */
@@ -351,12 +351,12 @@ SQL,
         if (!$this->gcPritomen()) {
             return false; // ani nedorazil, nemohl odjet
         }
-        return $this->maZidli(Zidle::ODJEL_Z_LETOSNIHO_GC);
+        return $this->maZidli(Role::ODJEL_Z_LETOSNIHO_GC);
     }
 
     /** Je uživatel přihlášen na aktuální GC? */
     public function gcPrihlasen() {
-        return $this->maZidli(Zidle::PRIHLASEN_NA_LETOSNI_GC);
+        return $this->maZidli(Role::PRIHLASEN_NA_LETOSNI_GC);
     }
 
     /** Příhlásí uživatele na GC */
@@ -365,13 +365,13 @@ SQL,
             return;
         }
 
-        $this->dejZidli(Zidle::PRIHLASEN_NA_LETOSNI_GC, $editor);
+        $this->dejZidli(Role::PRIHLASEN_NA_LETOSNI_GC, $editor);
     }
 
     /** Prošel uživatel infopultem, dostal materiály a je nebo byl přítomen na aktuálím
      *  GC? */
     public function gcPritomen() {
-        return $this->maZidli(Zidle::PRITOMEN_NA_LETOSNIM_GC);
+        return $this->maZidli(Role::PRITOMEN_NA_LETOSNIM_GC);
     }
 
     /**
@@ -387,16 +387,16 @@ SQL,
      */
     public function historiePrihlaseni() {
         if (!isset($this->historiePrihlaseni)) {
-            $ucast                    = Zidle::TYP_UCAST;
-            $prihlasen                = Zidle::VYZNAM_PRIHLASEN;
+            $ucast                    = Role::TYP_UCAST;
+            $prihlasen                = Role::VYZNAM_PRIHLASEN;
             $q                        = dbQuery(<<<SQL
-SELECT zidle.rocnik
-FROM r_uzivatele_zidle AS uzivatele_zidle
-JOIN r_zidle_soupis AS zidle
-    ON uzivatele_zidle.id_zidle = zidle.id_zidle
-WHERE uzivatele_zidle.id_uzivatele = $0
-    AND zidle.typ_zidle = '$ucast'
-    AND zidle.vyznam = '$prihlasen'
+SELECT role.rocnik_role
+FROM uzivatele_role AS uzivatele_role
+JOIN role_seznam AS role
+    ON uzivatele_role.id_role = role.id_role
+WHERE uzivatele_role.id_uzivatele = $0
+    AND role.typ_role = '$ucast'
+    AND role.vyznam_role = '$prihlasen'
 SQL,
                 [$this->id()]);
             $rokyWrapped              = mysqli_fetch_all($q);
@@ -520,27 +520,27 @@ SQL,
     }
 
     public function jeBrigadnik(): bool {
-        return $this->maZidli(Zidle::LETOSNI_BRIGADNIK);
+        return $this->maZidli(Role::LETOSNI_BRIGADNIK);
     }
 
     public function jeVypravec(): bool {
-        return $this->maZidli(Zidle::LETOSNI_VYPRAVEC);
+        return $this->maZidli(Role::LETOSNI_VYPRAVEC);
     }
 
     public function jeOrganizator(): bool {
-        return Zidle::obsahujiOrganizatora($this->dejIdsZidli());
+        return Role::obsahujiOrganizatora($this->dejIdsZidli());
     }
 
     public function jePartner(): bool {
-        return $this->maZidli(Zidle::LETOSNI_PARTNER);
+        return $this->maZidli(Role::LETOSNI_PARTNER);
     }
 
     public function jeInfopultak(): bool {
-        return $this->maZidli(Zidle::LETOSNI_INFOPULT);
+        return $this->maZidli(Role::LETOSNI_INFOPULT);
     }
 
     public function jeSpravceFinanci(): bool {
-        return $this->maZidli(Zidle::SPRAVCE_FINANCI_GC);
+        return $this->maZidli(Role::SPRAVCE_FINANCI_GC);
     }
 
     public function jeSuperAdmin(): bool {
@@ -609,17 +609,17 @@ SQL,
     }
 
     /**
-     * Sedí uživatel na dané židli?
+     * Sedí uživatel na dané roli?
      * NEslouží k čekování vlastností uživatele, které obecně řeší práva resp.
      * Uzivatel::maPravo(), skutečně výhradně k správě židlí jako takových.
      * @todo při načítání práv udělat pole místo načítání z DB
      */
-    public function maZidli($zidle): bool {
-        $idZidle = (int)$zidle;
-        if (!$idZidle) {
+    public function maZidli($role): bool {
+        $idRole = (int)$role;
+        if (!$idRole) {
             return false;
         }
-        return in_array($idZidle, $this->dejIdsZidli(), true);
+        return in_array($idRole, $this->dejIdsZidli(), true);
     }
 
     /**
@@ -627,8 +627,8 @@ SQL,
      */
     public function dejIdsZidli(): array {
         if (!isset($this->idZidli)) {
-            $zidle         = dbOneArray('SELECT id_zidle FROM platne_zidle_uzivatelu WHERE id_uzivatele = ' . $this->id());
-            $this->idZidli = array_map('intval', $zidle);
+            $role         = dbOneArray('SELECT id_role FROM platne_role_uzivatelu WHERE id_uzivatele = ' . $this->id());
+            $this->idZidli = array_map('intval', $role);
         }
         return $this->idZidli;
     }
@@ -657,10 +657,10 @@ SQL,
         if (!isset($this->u['prava'])) {
             //načtení uživatelských práv
             $p     = dbQuery(<<<SQL
-                SELECT r_prava_zidle.id_prava
-                FROM platne_zidle_uzivatelu
-                LEFT JOIN r_prava_zidle USING(id_zidle)
-                WHERE platne_zidle_uzivatelu.id_uzivatele=$0
+                SELECT prava_role.id_prava
+                FROM platne_role_uzivatelu
+                LEFT JOIN prava_role USING(id_role)
+                WHERE platne_role_uzivatelu.id_uzivatele=$0
                 SQL,
                 [0 => $this->id()]
             );
@@ -872,9 +872,9 @@ SQL,
         // načtení uživatelských práv
         $p     = dbQuery(<<<SQL
 SELECT id_prava
-FROM platne_zidle_uzivatelu
-    LEFT JOIN r_prava_zidle ON platne_zidle_uzivatelu.id_zidle = r_prava_zidle.id_zidle
-WHERE platne_zidle_uzivatelu.id_uzivatele={$idUzivatele}
+FROM platne_role_uzivatelu
+    LEFT JOIN prava_role ON platne_role_uzivatelu.id_role = prava_role.id_role
+WHERE platne_role_uzivatelu.id_uzivatele={$idUzivatele}
 SQL
         );
         $prava = []; // inicializace nutná, aby nepadala výjimka pro uživatele bez práv
@@ -902,7 +902,7 @@ SQL
         $_SESSION[$klic]['id_uzivatele'] = $idUzivatele;
         //načtení uživatelských práv
         $p     = dbQuery(
-            'SELECT id_prava FROM platne_zidle_uzivatelu uz LEFT JOIN r_prava_zidle pz USING(id_zidle) WHERE uz.id_uzivatele=' . $idUzivatele
+            'SELECT id_prava FROM platne_role_uzivatelu uz LEFT JOIN prava_role pz USING(id_role) WHERE uz.id_uzivatele=' . $idUzivatele
         );
         $prava = []; //inicializace nutná, aby nepadala výjimka pro uživatele bez práv
         while ($r = mysqli_fetch_assoc($p)) {
@@ -1198,25 +1198,25 @@ SQL
         if ($this->maPravo(Pravo::TITUL_ORGANIZATOR)) {
             $status [] = '<span style="color:red">Organizátor' . $ka . '</span>';
         }
-        if ($this->maZidli(Zidle::LETOSNI_VYPRAVEC)) {
+        if ($this->maZidli(Role::LETOSNI_VYPRAVEC)) {
             $status[] = '<span style="color:blue">Vypravěč' . $ka . '</span>';
         }
         if ($this->jePartner()) {
             $status[] = '<span style="color:darkslateblue">Partner' . $ka . '</span>';
         }
-        if ($this->maZidli(Zidle::LETOSNI_INFOPULT)) {
+        if ($this->maZidli(Role::LETOSNI_INFOPULT)) {
             $status[] = '<span style="color:orange">Infopult</span>';
         }
-        if ($this->maZidli(Zidle::LETOSNI_HERMAN)) {
+        if ($this->maZidli(Role::LETOSNI_HERMAN)) {
             $status[] = '<span style="color:orange">Herman</span>';
         }
-        if ($this->maZidli(Zidle::LETOSNI_BRIGADNIK)) {
+        if ($this->maZidli(Role::LETOSNI_BRIGADNIK)) {
             $status[] = '<span style="color:yellowgreen">Brigádník</span>';
         }
-        if ($this->maZidli(Zidle::LETOSNI_ZAZEMI)) {
+        if ($this->maZidli(Role::LETOSNI_ZAZEMI)) {
             $status[] = "Zázemí";
         }
-        if ($this->maZidli(Zidle::LETOSNI_DOBROVOLNIK_SENIOR)) {
+        if ($this->maZidli(Role::LETOSNI_DOBROVOLNIK_SENIOR)) {
             $status[] = "Dobrovolník senior";
         }
         if (count($status) > 0) {
@@ -1317,22 +1317,22 @@ SQL
     }
 
     /**
-     * Odstraní uživatele z židle a aktualizuje jeho práva.
+     * Odstraní uživatele z role a aktualizuje jeho práva.
      */
-    public function vemZidli(int $idZidle, Uzivatel $editor) {
-        $result = dbQuery('DELETE FROM r_uzivatele_zidle WHERE id_uzivatele=' . $this->id() . ' AND id_zidle=' . $idZidle);
+    public function vemZidli(int $idRole, Uzivatel $editor) {
+        $result = dbQuery('DELETE FROM uzivatele_role WHERE id_uzivatele=' . $this->id() . ' AND id_role=' . $idRole);
         if (dbNumRows($result) > 0) {
-            $this->zalogujZmenuZidle($idZidle, $editor->id(), self::SESAZEN);
+            $this->zalogujZmenuRole($idRole, $editor->id(), self::SESAZEN);
         }
         $this->aktualizujPrava();
     }
 
-    private function zalogujZmenuZidle(int $idZidle, int $idEditora, string $zmena) {
+    private function zalogujZmenuRole(int $idRole, int $idEditora, string $zmena) {
         dbQuery(<<<SQL
-INSERT INTO r_uzivatele_zidle_log(id_uzivatele, id_zidle, id_zmenil, zmena, kdy)
+INSERT INTO uzivatele_role_log(id_uzivatele, id_role, id_zmenil, zmena, kdy)
 VALUES ($0, $1, $2, $3, NOW())
 SQL,
-            [$this->id(), $idZidle, $idEditora, $zmena]
+            [$this->id(), $idRole, $idEditora, $zmena]
         );
     }
 
@@ -1378,7 +1378,7 @@ SQL,
                 'mail'                       => false,
                 'jenPrihlaseniAPritomniNaGc' => false,
                 'kromeIdUzivatelu'           => [],
-                'jenSeZidlemi'               => null,
+                'jenSRolemi'               => null,
                 'min'                        => $minimumZnaku,
             ]
         );
@@ -1390,18 +1390,18 @@ SQL,
         $kromeIdUzivatelu    = $opt['kromeIdUzivatelu'];
         $kromeIdUzivateluSql = dbQv($kromeIdUzivatelu);
         $pouzeIdZidli        = [];
-        if ($opt['jenSeZidlemi']) {
-            $pouzeIdZidli = $opt['jenSeZidlemi'];
+        if ($opt['jenSRolemi']) {
+            $pouzeIdZidli = $opt['jenSRolemi'];
         }
         if ($opt['jenPrihlaseniAPritomniNaGc']) {
-            $pouzeIdZidli = array_merge($pouzeIdZidli, [Zidle::PRIHLASEN_NA_LETOSNI_GC, Zidle::PRITOMEN_NA_LETOSNIM_GC]);
+            $pouzeIdZidli = array_merge($pouzeIdZidli, [Role::PRIHLASEN_NA_LETOSNI_GC, Role::PRITOMEN_NA_LETOSNIM_GC]);
         }
         $pouzeIdZidliSql = dbQv($pouzeIdZidli);
 
         return self::zWhere("
       WHERE TRUE
       " . ($kromeIdUzivatelu ? " AND u.id_uzivatele NOT IN ($kromeIdUzivateluSql)" : '') . "
-      " . ($pouzeIdZidli ? " AND p.id_zidle IN ($pouzeIdZidliSql) " : '') . "
+      " . ($pouzeIdZidli ? " AND p.id_role IN ($pouzeIdZidliSql) " : '') . "
       AND (
           u.id_uzivatele = $q
           " . ((string)(int)$dotaz !== (string)$dotaz // nehledáme ID
@@ -1497,8 +1497,8 @@ SQL,
         return self::zWhere('
       WHERE u.id_uzivatele IN(
         SELECT id_uzivatele
-        FROM platne_zidle_uzivatelu
-        WHERE id_zidle = ' . Zidle::PRIHLASEN_NA_LETOSNI_GC . '
+        FROM platne_role_uzivatelu
+        WHERE id_role = ' . Role::PRIHLASEN_NA_LETOSNI_GC . '
       )
     ');
     }
@@ -1577,8 +1577,8 @@ SQL,
         (SELECT url FROM uzivatele_url WHERE uzivatele_url.id_uzivatele = u.id_uzivatele ORDER BY id_url_uzivatele DESC LIMIT 1) AS url,
         GROUP_CONCAT(DISTINCT p.id_prava) as prava
       FROM uzivatele_hodnoty u
-      LEFT JOIN platne_zidle_uzivatelu z ON(z.id_uzivatele = u.id_uzivatele)
-      LEFT JOIN r_prava_zidle p ON(p.id_zidle = z.id_zidle)
+      LEFT JOIN platne_role_uzivatelu z ON(z.id_uzivatele = u.id_uzivatele)
+      LEFT JOIN prava_role p ON(p.id_role = z.id_role)
       ' . $where . '
       GROUP BY u.id_uzivatele
     ' . $extra, $param);
@@ -1591,10 +1591,10 @@ SQL,
         return $uzivatele;
     }
 
-    /** Vrátí pole uživatelů sedících na židli s daným ID */
-    public static function zZidle($id) {
+    /** Vrátí pole uživatelů sedících na roli s daným ID */
+    public static function zRole($id) {
         return self::nactiUzivatele( // WHERE nelze, protože by se omezily načítané práva uživatele
-            'JOIN r_uzivatele_zidle z2 ON (z2.id_zidle = ' . dbQv($id) . ' AND z2.id_uzivatele = u.id_uzivatele)'
+            'JOIN uzivatele_role z2 ON (z2.id_role = ' . dbQv($id) . ' AND z2.id_uzivatele = u.id_uzivatele)'
         );
     }
 
@@ -1619,12 +1619,12 @@ SQL,
         u.*,
         (SELECT url FROM uzivatele_url WHERE uzivatele_url.id_uzivatele = u.id_uzivatele ORDER BY id_url_uzivatele DESC LIMIT 1) AS url,
         -- u.login_uzivatele,
-        -- z.id_zidle,
+        -- z.id_role,
         -- p.id_prava,
         GROUP_CONCAT(DISTINCT p.id_prava) as prava
       FROM uzivatele_hodnoty u
-      LEFT JOIN platne_zidle_uzivatelu z ON(z.id_uzivatele=u.id_uzivatele)
-      LEFT JOIN r_prava_zidle p ON(p.id_zidle=z.id_zidle)
+      LEFT JOIN platne_role_uzivatelu z ON(z.id_uzivatele=u.id_uzivatele)
+      LEFT JOIN prava_role p ON(p.id_role=z.id_role)
       LEFT JOIN uzivatele_url ON u.id_uzivatele = uzivatele_url.id_uzivatele
       ' . $where . '
       GROUP BY u.id_uzivatele');
@@ -1835,9 +1835,9 @@ SQL,
         }
         if (!$this->kdySeRegistrovalNaLetosniGc) {
             $hodnota                           = dbOneCol(<<<SQL
-SELECT posazen FROM platne_zidle_uzivatelu WHERE id_uzivatele = $0 AND id_zidle = $1
+SELECT posazen FROM platne_role_uzivatelu WHERE id_uzivatele = $0 AND id_role = $1
 SQL,
-                [$this->id(), Zidle::PRIHLASEN_NA_LETOSNI_GC]
+                [$this->id(), Role::PRIHLASEN_NA_LETOSNI_GC]
             );
             $this->kdySeRegistrovalNaLetosniGc = $hodnota
                 ? new DateTimeImmutable($hodnota)

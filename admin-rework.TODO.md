@@ -18,7 +18,7 @@
 
     - jiné PR, komplikovaná logika
     <s>
-      - *(optional)* Reversovatelné akce z židle "finance"
+      - *(optional)* Reversovatelné akce z role "finance"
     </s>
     - [X] Řešení komunikace aktuálního stavu a stavů tlačítek s uživatelem *(klikatelné, kliknuté, nekliklatelné)*
   - [X] Karta přehled
@@ -80,7 +80,7 @@
         - [X] Nezobrazovat ceny, ale pouze počet. Tj. zobrazit: kostky, trička, placky, veškerý další merch
   - [X] Prodej předmětů
     - *Nezměněno, bude součástí jiného PR*
-  - [X] /Infopult default pro “Infopult” židli
+  - [X] /Infopult default pro “Infopult” roli
   - [X] rozmístění karet / Stylování (grid)
   - [X] odstranit nevyužitou logiku
   - [X] odebrat id uživatele odevšad
@@ -97,7 +97,7 @@
 
 - [X] Uživatel
   - [X] Přejmenovat ubytování na uživatel
-  - [X] /uzivatel default pro org.. židli
+  - [X] /uzivatel default pro org.. roli
   - [X] Přesun karty z úvod do uživatel
     - [X] Osobní údaje
       - [X] smazat Poznámka, Potvrzení, Covid-19

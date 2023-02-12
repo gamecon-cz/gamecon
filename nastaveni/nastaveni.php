@@ -86,7 +86,7 @@ if (!defined('CENY_VIDITELNE')) define('CENY_VIDITELNE', PROGRAM_VIDITELNY && pr
 if (!defined('FINANCE_VIDITELNE')) define('FINANCE_VIDITELNE', po(REG_GC_OD)); // jestli jsou public viditelné finance
 
 ///////////////////
-// Židle a práva //
+// Role a práva //
 ///////////////////
 
 error_reporting($puvodni); // zrušení maskování notice

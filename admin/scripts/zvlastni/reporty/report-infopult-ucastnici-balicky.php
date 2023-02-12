@@ -10,7 +10,7 @@ $typTricko = Shop::TRICKO;
 $typPredmet = Shop::PREDMET;
 $typJidlo = Shop::JIDLO;
 $rok = ROCNIK;
-$idckaZidliSOrganizatorySql = implode(',', \Gamecon\Role\Zidle::dejIdckaZidliSOrganizatory());
+$idckaZidliSOrganizatorySql = implode(',', \Gamecon\Role\Role::dejIdckaZidliSOrganizatory());
 
 $poddotazKoupenehoPredmetu = static function (string $klicoveSlovo, int $idTypuPredmetu, int $rok, bool $prilepitRokKNazvu) {
     $rokKNazvu = $prilepitRokKNazvu
@@ -84,7 +84,7 @@ SELECT uzivatele_hodnoty.id_uzivatele,
        uzivatele_hodnoty.login_uzivatele AS login,
        uzivatele_hodnoty.jmeno_uzivatele AS jmeno,
        uzivatele_hodnoty.prijmeni_uzivatele AS prijmeni,
-       IF (COUNT(zidle_organizatoru.id_zidle) > 0, 'org', '') AS role,
+       IF (COUNT(role_organizatoru.id_role) > 0, 'org', '') AS role,
        {$poddotazKoupenehoPredmetu('', $typTricko, $rok, false)} AS tricka,
        {$poddotazKoupenehoPredmetu('kostka', $typPredmet, $rok, true)} AS kostky,
        {$poddotazKoupenehoPredmetu('placka', $typPredmet, $rok, false)} AS placky,
@@ -100,8 +100,8 @@ SELECT uzivatele_hodnoty.id_uzivatele,
            ''
        ) AS balicek
 FROM uzivatele_hodnoty
-LEFT JOIN platne_zidle_uzivatelu AS zidle_organizatoru
-    ON uzivatele_hodnoty.id_uzivatele = zidle_organizatoru.id_uzivatele AND zidle_organizatoru.id_zidle IN ({$idckaZidliSOrganizatorySql})
+LEFT JOIN platne_role_uzivatelu AS role_organizatoru
+    ON uzivatele_hodnoty.id_uzivatele = role_organizatoru.id_uzivatele AND role_organizatoru.id_role IN ({$idckaZidliSOrganizatorySql})
 WHERE uzivatele_hodnoty.id_uzivatele IN (
     SELECT DISTINCT(sn.id_uzivatele)
     FROM shop_nakupy AS sn
