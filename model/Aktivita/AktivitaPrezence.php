@@ -216,11 +216,11 @@ class AktivitaPrezence
         $nejnovejsiZmenyPrihlaseni = new PosledniZmenyPrihlaseni();
         foreach (self::dejDataPoslednichZmen($idsPoslednichZnamychLoguUcastniku) as $zmena) {
             $zmenaPrihlaseni = ZmenaPrihlaseni::vytvorZDatDatabaze(
-                (int)$zmena['id_uzivatele'],
-                (int)$zmena['id_akce'],
-                (int)$zmena['id_log'],
-                new \DateTimeImmutable($zmena['kdy']),
-                $zmena['typ']
+                (int)$zmena[AkcePrihlaseniLogSqlStruktura::ID_UZIVATELE],
+                (int)$zmena[AkcePrihlaseniLogSqlStruktura::ID_AKCE],
+                (int)$zmena[AkcePrihlaseniLogSqlStruktura::ID_LOG],
+                new \DateTimeImmutable($zmena[AkcePrihlaseniLogSqlStruktura::KDY]),
+                $zmena[AkcePrihlaseniLogSqlStruktura::TYP]
             );
             $nejnovejsiZmenyPrihlaseni->addPosledniZmenaPrihlaseni($zmenaPrihlaseni);
         }
