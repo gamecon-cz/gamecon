@@ -467,7 +467,7 @@ function dbOneIndex($q, $p = null) {
  * false, otherwise returns associative array with one line. If multiple lines
  * found, causes crash.
  */
-function dbOneLine($q, $p = null): array {
+function dbOneLine($q, $p = null, mysqli $mysqli = null): array {
     $r = dbQueryS($q, $p);
     if (mysqli_num_rows($r) > 1) {
         throw new RuntimeException('Multiple lines matched on query ' . $q);
@@ -476,6 +476,10 @@ function dbOneLine($q, $p = null): array {
         return [];
     }
     return mysqli_fetch_assoc($r) ?: [];
+}
+
+function dbFetchRow(string $query, array $params = [], mysqli $mysqli = null): array {
+    return dbOneLine($query, $params, $mysqli);
 }
 
 /**

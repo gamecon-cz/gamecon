@@ -11,6 +11,7 @@ use Gamecon\Cas\DateTimeCz;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Role\Role;
 use Gamecon\Role\RoleSqlStruktura;
+use Gamecon\Role\PravoSqlStruktura;
 
 /** @var Uzivatel|null $uPracovni */
 /** @var Uzivatel $u */
@@ -57,9 +58,8 @@ if ($role !== null && $uid = get('sesadUzivatele')) {
     back();
 }
 
-$t = new XTemplate('prava.xtpl');
-
 if (!$role) {
+    $t = new XTemplate(__DIR__ . '/prava.xtpl');
     // výpis seznamu židlí
     $o            = dbQuery(
         'SELECT role.*, platne_role_uzivatelu.id_role IS NOT NULL AS sedi, platne_role_uzivatelu.posadil, platne_role_uzivatelu.posazen
@@ -112,19 +112,20 @@ if (!$role) {
     $t->parse('prava');
     $t->out('prava');
 } else {
+    $t = new XTemplate(__DIR__ . '/pravaJedneRole.xtpl');
     // výpis detailu role
     $o = dbQuery(
-        'SELECT role_seznam.*, r_prava_soupis.*
+        'SELECT id_prava, jmeno_prava, popis_prava
     FROM role_seznam
     LEFT JOIN prava_role USING(id_role)
     LEFT JOIN r_prava_soupis USING(id_prava)
-    WHERE role_seznam.id_role = $1',
-        [$role]
+    WHERE role_seznam.id_role = $0',
+        [0 => $role]
     );
-    while (($r = mysqli_fetch_assoc($o)) && $r['id_prava']) {
-        $r['jmeno_prava'] = nahradPlaceholderZaKonstantu($r['jmeno_prava']);
+    while (($r = mysqli_fetch_assoc($o)) && $r[PravoSqlStruktura::ID_PRAVA]) {
+        $r[PravoSqlStruktura::JMENO_PRAVA] = nahradPlaceholderZaKonstantu($r[PravoSqlStruktura::JMENO_PRAVA]);
         $t->assign($r);
-        $t->parse('prava.pravo');
+        $t->parse('pravaJedneRole.pravo');
     }
     $t->assign('id_role', $role); // bugfix pro role s 0 právy
     // nabídka židlí
@@ -138,21 +139,29 @@ if (!$role) {
     );
     while ($r = mysqli_fetch_assoc($o)) {
         $t->assign($r);
-        $t->parse('prava.pravoVyber');
+        $t->parse('pravaJedneRole.pravoVyber');
     }
     // sedící uživatelé
     foreach (Uzivatel::zRole($role) as $uz) {
         $t->assign('id', $uz->id());
         $t->assign('jmeno', $uz->jmeno());
         $t->assign('nick', $uz->nick());
-        $t->parse('prava.uzivatel');
+        $t->parse('pravaJedneRole.uzivatel');
     }
     // posazování
     if ($uPracovni && !$uPracovni->maRoli($role)) {
-        $t->parse('prava.posad');
+        $t->parse('pravaJedneRole.posad');
     } elseif ($uPracovni) {
-        $t->parse('prava.sesad');
+        $t->parse('pravaJedneRole.sesad');
     }
-    $t->parse('prava');
-    $t->out('prava');
+    $detailyRole = dbFetchRow(<<<SQL
+        SELECT nazev_role, IF(popis_role != '', popis_role, nazev_role) AS popis_role
+        FROM role_seznam
+        WHERE id_role = $0
+        SQL,
+        [$role]
+    );
+    $t->assign($detailyRole);
+    $t->parse('pravaJedneRole');
+    $t->out('pravaJedneRole');
 }

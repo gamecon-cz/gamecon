@@ -1,0 +1,57 @@
+<!-- begin:pravaJedneRole -->
+
+Práva role <strong>{nazev_role}</strong> ({popis_role}):
+<table class="zvyraznovana">
+  <tr>
+    <th>Název práva</th>
+    <th>Popis práva</th>
+    <th style="min-width: 100px"></th>
+  </tr>
+  <!-- begin:pravo -->
+  <tr>
+    <td>{jmeno_prava}</td>
+    <td>{popis_prava}</td>
+    <td><a href="prava/{id_role}?odeberPravo={id_prava}">vzít roli právo</a></td>
+  </tr>
+  <!-- end:pravo -->
+</table>
+<form>
+  <select name="dejPravo">
+    <!-- begin:pravoVyber -->
+    <option value="{id_prava}">{jmeno_prava}</option>
+    <!-- end:pravoVyber -->
+  </select>
+  <input type="submit" value="přidat roli právo">
+</form><br><br>
+
+Seznam uživatelů na této roli:
+<table class="zvyraznovana">
+  <tr>
+    <th>ID</th>
+    <th>Přezdívka</th>
+    <th>Jméno a příjmení</th>
+    <th></th>
+  </tr>
+  <!-- begin:uzivatel -->
+  <tr>
+    <td>{id}</td>
+    <td>{nick}</td>
+    <td>{jmeno}</td>
+    <td><a href="prava/{id_role}?sesadUzivatele={id}">sesadit uživatele</a></td>
+  </tr>
+  <!-- end:uzivatel -->
+</table><br>
+<!-- begin:posad -->
+<form>
+  <input type="hidden" name="posad" value="{id_role}">
+  <input type="submit" value="Posadit aktuálního uživatele na roli">
+</form>
+<!-- end:posad -->
+<!-- begin:sesad -->
+<form>
+  <input type="hidden" name="sesad" value="{id_role}">
+  <input type="submit" value="Sesadit aktuálního uživatele z role">
+</form>
+<!-- end:sesad -->
+
+<!-- end:pravaJedneRole -->
