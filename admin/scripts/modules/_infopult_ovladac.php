@@ -27,7 +27,7 @@ if (!empty($_POST['gcPrihlas']) && $uPracovni && !$uPracovni->gcPrihlasen()) {
     back();
 }
 
-if (!empty($_POST['gcOdhlas']) && $uPracovni && !$uPracovni->gcPritomen()) {
+if (!empty($_POST['gcOdhlas']) && $uPracovni && !$uPracovni->gcPritomen() && $u->maRoli(Role::SPRAVCE_FINANCI_GC)) {
     $uPracovni->gcOdhlas($u);
     back();
 }
@@ -82,7 +82,7 @@ if (!empty($_POST['rychloreg'])) {
             Uzivatel::odhlasKlic('uzivatel_pracovni');
         }
         $_SESSION["id_uzivatele"] = $nid;
-        $uPracovni = Uzivatel::prihlasId($nid, 'uzivatel_pracovni');
+        $uPracovni                = Uzivatel::prihlasId($nid, 'uzivatel_pracovni');
         if (!empty($_POST['vcetnePrihlaseni'])) {
             $uPracovni->gcPrihlas($u);
         }
@@ -105,14 +105,14 @@ if (!empty($_POST['prodej'])) {
         dbQuery('INSERT INTO shop_nakupy(id_uzivatele,id_predmetu,rok,cena_nakupni,datum)
   VALUES (' . $prodej['id_uzivatele'] . ',' . $prodej['id_predmetu'] . ',' . ROCNIK . ',(SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu=' . $prodej['id_predmetu'] . '),NOW())');
     }
-    $idPredmetu = (int)$prodej['id_predmetu'];
+    $idPredmetu    = (int)$prodej['id_predmetu'];
     $nazevPredmetu = dbOneCol(
         <<<SQL
       SELECT nazev FROM shop_predmety
       WHERE id_predmetu = $idPredmetu
       SQL
     );
-    $yu = '';
+    $yu            = '';
     if ($kusu >= 5) {
         $yu = 'ů';
     } elseif ($kusu > 1) {
@@ -168,7 +168,7 @@ if (post('pridelitPokoj') && $uPracovni) {
             parse_str($_SERVER['QUERY_STRING'], $query_string);
             unset($query_string['req']);
             unset($query_string['pokoj']);
-            $query_string = http_build_query($query_string);
+            $query_string  = http_build_query($query_string);
             $targetAddress = explode("?", $_SERVER['HTTP_REFERER'])[0];
             header('Location: ' . $targetAddress . ($query_string != "" ? "?" . $query_string : ""), true, 303);
         } else
