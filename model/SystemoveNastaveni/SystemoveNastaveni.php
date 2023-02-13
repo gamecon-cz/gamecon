@@ -15,7 +15,7 @@ class SystemoveNastaveni
 
     public static function vytvorZGlobals(): self {
         return new static(
-            ROK,
+            ROCNIK,
             new DateTimeImmutableStrict(),
             parse_url(URL_WEBU, PHP_URL_HOST) === 'beta.gamecon.cz',
             parse_url(URL_WEBU, PHP_URL_HOST) === 'localhost',
@@ -51,10 +51,10 @@ class SystemoveNastaveni
         private int                     $rok,
         private DateTimeImmutableStrict $ted,
         private bool                    $jsmeNaBete,
-        private bool                    $jsmeNaLocale
-        private DatabazoveNastaveni $databazoveNastaveni
+        private bool                    $jsmeNaLocale,
+        private DatabazoveNastaveni     $databazoveNastaveni
     ) {
-      if ($jsmeNaLocale && $jsmeNaBete) {
+        if ($jsmeNaLocale && $jsmeNaBete) {
             throw new \LogicException('Nemůžeme být na betě a zároveň na locale');
         }
     }
