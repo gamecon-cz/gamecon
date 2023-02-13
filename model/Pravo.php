@@ -37,9 +37,9 @@ class Pravo extends \DbObject
     public const JIDLO_ZDARMA                                = 1005; // Může si objednávat jídlo zdarma
     public const UBYTOVANI_ZDARMA                            = 1008; // Má zdarma ubytování po celou dobu
     public const MODRE_TRICKO_ZDARMA                         = 1012; // modré tričko zdarma při slevě, jejíž hodnota je určená konstantou MODRE_TRICKO_ZDARMA_OD
-    public const STREDECNI_NOC_ZDARMA                        = 1015;
+    public const UBYTOVANI_STREDECNI_NOC_ZDARMA              = 1015;
     public const NERUSIT_AUTOMATICKY_OBJEDNAVKY              = 1016; // uživateli se při nezaplacení včas nebudou automaticky rušit objednávky
-    public const NEDELNI_NOC_ZDARMA                          = 1018;
+    public const UBYTOVANI_NEDELNI_NOC_ZDARMA                = 1018;
     public const CASTECNA_SLEVA_NA_AKTIVITY                  = 1019; // Sleva 40% na aktivity
     public const DVE_JAKAKOLI_TRICKA_ZDARMA                  = 1020;
     public const MUZE_OBJEDNAVAT_MODRA_TRICKA                = 1021; // Může si objednávat modrá trička
@@ -48,7 +48,7 @@ class Pravo extends \DbObject
     public const ZOBRAZOVAT_VE_STATISTIKACH_V_TABULCE_UCASTI = 1024; // V adminu v sekci statistiky v tabulce vlevo nahoře se tato role vypisuje
     public const VYPISOVAT_V_REPORTU_NEUBYTOVANYCH           = 1025; // V reportu Nepřihlášení a neubytovaní vypravěči se lidé na této roli vypisují
     public const TITUL_ORGANIZATOR                           = 1026; // V různých výpisech se označuje jako organizátor
-    public const UNIKATNI_ROLE                              = 1027; // Uživatel může mít jen jednu roli s tímto právem
+    public const UNIKATNI_ROLE                               = 1027; // Uživatel může mít jen jednu roli s tímto právem
     public const BEZ_SLEVY_ZA_VEDENI_AKTIVIT                 = 1028; // Nedostává slevu za vedení aktivit ani účast na tech. aktivitách
 
     public static function dejIdsVsechPrav(): array {

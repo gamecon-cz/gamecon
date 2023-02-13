@@ -15,8 +15,8 @@
   <!-- end:roleRocnikoveNadpis -->
   <tr>
     <th>&emsp;</th>
-    <th>Jméno role</th>
-    <th>Popis role</th>
+    <th><i>Jméno role</i></th>
+    <th><i>Popis role</i></th>
     <th></th>
     <th></th>
   </tr>
@@ -47,8 +47,8 @@
   </tr>
   <tr>
     <th>&emsp;</th>
-    <th>Jméno role</th>
-    <th>Popis role</th>
+    <th><i>Jméno role</i></th>
+    <th><i>Popis role</i></th>
     <th></th>
   </tr>
   <!-- begin:roleUcast -->

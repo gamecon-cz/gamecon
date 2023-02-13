@@ -10,7 +10,7 @@ if (!defined('ROLE_ORGANIZATOR_S_BONUSY_1')) define('ROLE_ORGANIZATOR_S_BONUSY_1
 if (!defined('ROLE_ORGANIZATOR_S_BONUSY_2')) define('ROLE_ORGANIZATOR_S_BONUSY_2', 22);
 if (!defined('ROLE_CESTNY_ORGANIZATOR')) define('ROLE_CESTNY_ORGANIZATOR', 15);
 if (!defined('ROLE_SPRAVCE_FINANCI_GC')) define('ROLE_SPRAVCE_FINANCI_GC', 20);
-if (!defined('ROLE_ADMIN')) define('ROLE_ADMIN', 16);
+if (!defined('ROLE_ADMIN')) define('ROLE_PREZENCNI_ADMIN', 16);
 if (!defined('ROLE_VYPRAVECSKA_SKUPINA')) define('ROLE_VYPRAVECSKA_SKUPINA', 9);
 
 // ročníkové role (židle) účasti

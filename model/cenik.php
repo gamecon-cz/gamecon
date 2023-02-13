@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Shop\Shop;
+use Gamecon\Pravo;
 
 /**
  * Třída zodpovědná za stanovení / prezentaci cen a slev věcí
@@ -20,13 +21,13 @@ class Cenik
      * ručně. V polích se případně udává, které právo daný index „přebíjí“.
      */
     private static $textySlev = [
-        P_KOSTKA_ZDARMA           => 'kostka zdarma',
-        P_PLACKA_ZDARMA           => 'placka zdarma',
-        P_UBYTOVANI_ZDARMA        => 'ubytování zdarma',
-        P_UBYTOVANI_STREDA_ZDARMA => ['ubytování ve středu zdarma', P_UBYTOVANI_ZDARMA],
-        P_JIDLO_ZDARMA            => 'jídlo zdarma',
-        P_JIDLO_SLEVA             => ['jídlo se slevou', P_JIDLO_ZDARMA],
-        P_DVE_TRICKA_ZDARMA       => 'dvě jakákoli trička zdarma',
+        Pravo::KOSTKA_ZDARMA                  => 'kostka zdarma',
+        Pravo::PLACKA_ZDARMA                  => 'placka zdarma',
+        Pravo::UBYTOVANI_ZDARMA               => 'ubytování zdarma',
+        Pravo::UBYTOVANI_STREDECNI_NOC_ZDARMA => ['ubytování ve středu zdarma', Pravo::UBYTOVANI_ZDARMA],
+        Pravo::JIDLO_ZDARMA                   => 'jídlo zdarma',
+        Pravo::JIDLO_SE_SLEVOU                => ['jídlo se slevou', Pravo::JIDLO_ZDARMA],
+        Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA     => 'dvě jakákoli trička zdarma',
     ];
 
     /**
@@ -37,16 +38,16 @@ class Cenik
     public function __construct(Uzivatel $u, $sleva) {
         $this->u = $u;
 
-        if ($u->maPravo(P_KOSTKA_ZDARMA)) {
+        if ($u->maPravo(Pravo::KOSTKA_ZDARMA)) {
             $this->slevaKostky = 25;
         }
-        if ($u->maPravo(P_PLACKA_ZDARMA)) {
+        if ($u->maPravo(Pravo::PLACKA_ZDARMA)) {
             $this->slevaPlacky = 25;
         }
-        if ($u->maPravo(P_DVE_TRICKA_ZDARMA)) {
+        if ($u->maPravo(Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA)) {
             $this->jakychkoliTricekZdarma = 2;
         }
-        if ($sleva >= MODRE_TRICKO_ZDARMA_OD && $u->maPravo(P_TRICKO_ZA_SLEVU_MODRE)) {
+        if ($sleva >= MODRE_TRICKO_ZDARMA_OD && $u->maPravo(Pravo::MODRE_TRICKO_ZDARMA)) {
             $this->modrychTricekZdarma = 1;
             $this->textySlevExtra[]    = 'modré tričko zdarma';
         }
@@ -142,11 +143,11 @@ class Cenik
         } elseif ($typ == Shop::TRICKO && $this->jakychkoliTricekZdarma > 0) {
             $cena = 0;
             $this->jakychkoliTricekZdarma--;
-        } elseif ($typ == Shop::UBYTOVANI && $this->u->maPravo(P_UBYTOVANI_ZDARMA)) {
+        } elseif ($typ == Shop::UBYTOVANI && $this->u->maPravo(Pravo::UBYTOVANI_ZDARMA)) {
             $cena = 0;
-        } elseif ($typ == Shop::UBYTOVANI && $r['ubytovani_den'] == 0 && $this->u->maPravo(P_UBYTOVANI_STREDA_ZDARMA)) {
+        } elseif ($typ == Shop::UBYTOVANI && $r['ubytovani_den'] == 0 && $this->u->maPravo(Pravo::UBYTOVANI_STREDECNI_NOC_ZDARMA)) {
             $cena = 0;
-        } elseif ($typ == Shop::UBYTOVANI && $r['ubytovani_den'] == 4 && $this->u->maPravo(P_UBYTOVANI_NEDELE_ZDARMA)) {
+        } elseif ($typ == Shop::UBYTOVANI && $r['ubytovani_den'] == 4 && $this->u->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_ZDARMA)) {
             $cena = 0;
         } elseif ($typ == Shop::JIDLO) {
             if ($this->u->maPravo(P_JIDLO_ZDARMA)) {
