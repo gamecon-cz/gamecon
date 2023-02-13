@@ -3,6 +3,7 @@
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Shop\Shop;
 use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Pravo;
 
 /**
  * @var \Gamecon\XTemplate\XTemplate $t
@@ -135,7 +136,7 @@ if ($slevy) {
 }
 
 $t->assign('ka', $u->koncovkaDlePohlavi() ? 'ka' : '');
-if ($u->maPravo(P_UBYTOVANI_ZDARMA)) {
+if ($u->maPravo(Pravo::UBYTOVANI_ZDARMA)) {
     $t->parse('prihlaska.ubytovaniInfoOrg');
 } else if ($u->maPravo(P_ORG_AKTIVIT) && !$u->maPravo(P_NEMA_BONUS_ZA_AKTIVITY)) {
     $t->parse('prihlaska.ubytovaniInfoVypravec');

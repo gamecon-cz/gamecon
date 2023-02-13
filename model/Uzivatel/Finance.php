@@ -6,6 +6,7 @@ use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Exceptions\NeznamyTypPredmetu;
+use Gamecon\Finance\SlevySqlStruktura;
 use Gamecon\Shop\Shop;
 use Gamecon\Shop\TypPredmetu;
 use Endroid\QrCode\Writer\Result\ResultInterface;
@@ -697,14 +698,14 @@ SQL
     ', [$this->u->id(), ROCNIK]);
 
         foreach ($q as $sleva) {
-            if (strpos($sleva['poznamka'], '#kompenzace') !== false) {
+            if (strpos($sleva[SlevySqlStruktura::POZNAMKA], '#kompenzace') !== false) {
                 // speciální typ slevy: kompenzace
                 // započítává se stejně jako sleva za vedené aktivity
-                $this->bonusZaVedeniAktivit += $sleva['castka'];
+                $this->bonusZaVedeniAktivit += $sleva[SlevySqlStruktura::CASTKA];
             } else {
                 // normální sleva
                 // započítává se zvlášť
-                $this->slevaObecna += $sleva['castka'];
+                $this->slevaObecna += $sleva[SlevySqlStruktura::CASTKA];
             }
         }
     }

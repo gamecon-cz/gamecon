@@ -20,7 +20,7 @@ class Role extends \DbObject
     public const ORGANIZATOR_S_BONUSY_2 = ROLE_ORGANIZATOR_S_BONUSY_2;
     public const CESTNY_ORGANIZATOR     = ROLE_CESTNY_ORGANIZATOR; // Bývalý organizátor GC
     public const SPRAVCE_FINANCI_GC     = ROLE_SPRAVCE_FINANCI_GC; // Organizátor, který může nakládat s financemi GC
-    public const ADMIN                  = ROLE_ADMIN; // Spec. role pro úpravy databáze. NEPOUŽÍVAT.
+    public const PREZENCNI_ADMIN        = ROLE_PREZENCNI_ADMIN; // Pro změnu účastníků v uzavřených aktivitách. NEBEZPEČNÉ, NEPOUŽÍVAT!
     public const VYPRAVECSKA_SKUPINA    = ROLE_VYPRAVECSKA_SKUPINA; // Organizátorská skupina pořádající na GC (dodavatelé, …)
 
     // DOČASNÉ ROČNÍKOVÉ ROLE
@@ -59,7 +59,7 @@ class Role extends \DbObject
     public const UDALOST_PRITOMEN  = 'přítomen';
     public const UDALOST_ODJEL     = 'odjel';
 
-    public const JAKYKOLI_ROCNIK            = -1;
+    public const JAKYKOLI_ROCNIK           = -1;
     public const KOEFICIENT_ROCNIKOVE_ROLE = -100000;
 
     public const TYP_ROCNIKOVA = 'rocnikova';
@@ -100,7 +100,7 @@ class Role extends \DbObject
             Role::ORGANIZATOR_S_BONUSY_2,
             Role::CESTNY_ORGANIZATOR,
             Role::SPRAVCE_FINANCI_GC,
-            Role::ADMIN,
+            Role::PREZENCNI_ADMIN,
             Role::VYPRAVECSKA_SKUPINA,
         ];
     }
@@ -197,7 +197,7 @@ class Role extends \DbObject
         $idsRoliInt = array_map(static function ($idRole) {
             return (int)$idRole;
         }, $idsRoli);
-        $maRole = array_intersect($idsRoliInt, self::dejIdckaRoliSOrganizatory());
+        $maRole     = array_intersect($idsRoliInt, self::dejIdckaRoliSOrganizatory());
         return count($maRole) > 0;
     }
 
@@ -217,7 +217,7 @@ class Role extends \DbObject
             self::VYPRAVECSKA_SKUPINA => 'Vypravěčská skupina',
             self::LETOSNI_PARTNER => 'Partner',
             self::CESTNY_ORGANIZATOR => 'Čestný organizátor',
-            self::ADMIN => 'Admin',
+            self::PREZENCNI_ADMIN => 'Prezenční admin',
             self::LETOSNI_DOBROVOLNIK_SENIOR => 'Dobrovolník senior',
             self::LETOSNI_STREDECNI_NOC_ZDARMA => 'Středeční noc zdarma',
             self::LETOSNI_NEDELNI_NOC_ZDARMA => 'Nedělní noc zdarma',
