@@ -12,6 +12,7 @@ use Gamecon\Cas\DateTimeCz;
 use Gamecon\Shop\Shop;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Shop\TypPredmetu;
+use Gamecon\Role\Role;
 
 /**
  * @var Uzivatel|null|void $u
@@ -42,10 +43,10 @@ if ($uPracovni) {
 }
 
 $x->assign([
-    'prihlasBtnAttr'      => "disabled",
-    'datMaterialyBtnAttr' => "disabled",
-    'gcOdjedBtnAttr'      => "disabled",
-    'odhlasBtnAttr'       => "disabled",
+    'prihlasDisabled'      => "disabled",
+    'datMaterialyDisabled' => "disabled",
+    'gcOdjedDisabled'      => "disabled",
+    'odhlasDisabled'       => "disabled",
 ]);
 
 // ubytovani vypis
@@ -68,7 +69,7 @@ if (get('pokoj')) {
 if ($uPracovni) {
     if (!$uPracovni->gcPrihlasen()) {
         if (REG_GC) {
-            $x->assign('prihlasBtnAttr', "");
+            $x->assign('prihlasDisabled', '');
         } else {
             $x->parse('infopult.neprihlasen.nelze');
         }
@@ -123,13 +124,18 @@ if ($uPracovni) {
     }
     if ($uPracovni->gcPrihlasen()) {
         if (!$uPracovni->gcPritomen()) {
-            $x->assign('datMaterialyBtnAttr', "");
+            $x->assign('datMaterialyDisabled', '');
         } elseif (!$uPracovni->gcOdjel()) {
-            $x->assign('gcOdjedBtnAttr', "");
+            $x->assign('gcOdjedDisabled', '');
         }
     }
-    if ($uPracovni->gcPrihlasen() && !$uPracovni->gcPritomen()) {
-        $x->assign('odhlasBtnAttr', '');
+    if ($uPracovni) {
+        if (!$uPracovni->gcPrihlasen() || $uPracovni->gcPritomen()) {
+            $x->parse('infopult.odhlasitZGc.prihlasenyNepritomny');
+        } elseif ($uPracovni->gcPrihlasen() && !$uPracovni->gcPritomen() && $u->maRoli(Role::SPRAVCE_FINANCI_GC)) {
+            $x->assign('odhlasDisabled', '');
+        }
+        $x->parse('infopult.odhlasitZGc');
     }
 
     $datumNarozeni                 = DateTimeImmutable::createFromMutable($uPracovni->datumNarozeni());
@@ -139,7 +145,7 @@ if ($uPracovni) {
 
     if ($potrebujePotvrzeniKvuliVeku) {
         if ($mameLetosniPotvrzeniKvuliVeku) {
-            $x->assign("potvrzeniAttr", "checked value=\"\"");
+            $x->assign("potvrzeniAttr", 'checked value=""');
             $x->assign("potvrzeniText", $ok . " má potvrzení od rodičů");
         } else {
             $x->assign("potvrzeniText", $err . " chybí potvrzení od rodičů!");
@@ -155,13 +161,13 @@ if ($uPracovni) {
             $x->assign("covidPotvrzeniText", $err . " požádej o doplnění");
         } elseif (!$mameNahranyLetosniDokladProtiCovidu) {
             /* potvrzeno rucne na infopultu, bez nahraneho dokladu */
-            $x->assign("covidPotvrzeniAttr", "checked value=\"\"");
+            $x->assign("covidPotvrzeniAttr", 'checked value=""');
             $x->assign("covidPotvrzeniText", $ok . " ověřeno bez dokladu");
         } else {
             $datumNahraniPotvrzeniProtiCovid = (new DateTimeCz($uPracovni->potvrzeniProtiCoviduPridanoKdy()->format(DATE_ATOM)))->relativni();
             $x->assign('covidPotvrzeniOdkazAttr', "href=\n" . $uPracovni->urlNaPotvrzeniProtiCoviduProAdmin() . "\"");
             if ($mameOverenePotvrzeniProtiCoviduProRok) {
-                $x->assign("covidPotvrzeniAttr", "checked value=\"\"");
+                $x->assign("covidPotvrzeniAttr", 'checked value=""');
                 $x->assign("covidPotvrzeniText", $ok . " ověřeno dokladem $datumNahraniPotvrzeniProtiCovid");
             } else {
                 $x->assign("covidPotvrzeniText", $warn . " neověřený doklad $datumNahraniPotvrzeniProtiCovid");

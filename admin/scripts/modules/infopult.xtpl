@@ -22,12 +22,12 @@
 <div class="header-buttons--container-main">
   <div class="header-buttons--container header-buttons--container-left">
     <form method="post">
-      <input type="submit" name="gcPrihlas" value="Přihlásit" {prihlasBtnAttr}>
+      <input type="submit" name="gcPrihlas" value="Přihlásit" {prihlasDisabled}>
     </form>
 
     <form method="post">
     <span class="hinted">
-      <input type="submit" name="datMaterialy" value="Přijel a Dát materiály" {datMaterialyBtnAttr}>
+      <input type="submit" name="datMaterialy" value="Přijel a Dát materiály" {datMaterialyDisabled}>
       <span class="hint">
         Před odkliknutím zkontroluj že proběhlo:
         <ul>
@@ -50,7 +50,7 @@
 
     <form method="post" onsubmit="confirm('Opravdu odjel{a}?')">
     <span class="hinted">
-      <input type="submit" name="gcOdjed" value="Odjel{a} z GC" {gcOdjedBtnAttr}>
+      <input type="submit" name="gcOdjed" value="Odjel{a} z GC" {gcOdjedDisabled}>
       <span class="hint">
         Před odkliknutím zkontroluj, že je:
         <ul>
@@ -62,9 +62,20 @@
     </form>
   </div>
 
+  <!-- begin:odhlasitZGc -->
   <div class="header-buttons--container header-buttons--container-right">
     <form method="post">
-      <input class="danger" type="submit" name="gcOdhlas" value="Odhlásit z GC" {odhlasBtnAttr}>
+      <div class="hinted">
+        <input class="danger" type="submit" name="gcOdhlas" value="Odhlásit z GC" {odhlasDisabled}>
+        <div class="hint">
+          <!-- begin:prihlasenyNepritomny -->
+          <p>
+            Odhlásit lze pouze účastníka, který je přihlášen na GC, ale ještě nedorazil.
+          </p>
+          <!-- end:prihlasenyNepritomny -->
+          Odhlásit účastníka z GC může pouze správce financí.
+        </div>
+      </div>
       <script>
         $('[name="gcOdhlas"]').closest('form').submit(function () {
           return confirm('Trvale odhlásit uživatele z GameConu a smazat všechny jeho aktivity a nakoupené věci?')
@@ -72,6 +83,7 @@
       </script>
     </form>
   </div>
+  <!-- end:odhlasitZGc -->
 </div>
 
 <!-- begin:neUzivatel -->
