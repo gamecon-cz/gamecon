@@ -47,10 +47,10 @@ SQL,
     }
 
     private function systemoveNastaveni(
-        int                $rocnik = ROCNIK,
-        \DateTimeImmutable $now = new \DateTimeImmutable(),
-        bool               $jsmeNaBete = false,
-        bool               $jsmeNaLocale = false
+        int                     $rocnik = ROCNIK,
+        DateTimeImmutableStrict $now = new DateTimeImmutableStrict(),
+        bool                    $jsmeNaBete = false,
+        bool                    $jsmeNaLocale = false
     ): SystemoveNastaveni {
         return new SystemoveNastaveni(
             $rocnik,
@@ -92,10 +92,11 @@ SQL,
     }
 
     /**
+     * @test
      * @dataProvider provideKdeJsme
      */
-    public function testKdeJsme(bool $jsmeNaBete, bool $jsmeNaLocale, bool $ocekavaneJsmeNaOstre) {
-        $nastaveni = $this->systemoveNastaveni(ROCNIK, new \DateTimeImmutable(), $jsmeNaBete, $jsmeNaLocale);
+    public function Ze_systemoveho_nastaveni_vime_kde_jsme(bool $jsmeNaBete, bool $jsmeNaLocale, bool $ocekavaneJsmeNaOstre) {
+        $nastaveni = $this->systemoveNastaveni(ROCNIK, new DateTimeImmutableStrict(), $jsmeNaBete, $jsmeNaLocale);
         self::assertSame($jsmeNaBete, $nastaveni->jsmeNaBete());
         self::assertSame($jsmeNaLocale, $nastaveni->jsmeNaLocale());
         self::assertSame($ocekavaneJsmeNaOstre, $nastaveni->jsmeNaOstre());
@@ -111,14 +112,14 @@ SQL,
 
     public function testNemuzemeNastavitZeJsmeJakNaBeteTakNaLocale() {
         $this->expectException(\LogicException::class);
-        $this->systemoveNastaveni(ROCNIK, new \DateTimeImmutable(), true, true);
+        $this->systemoveNastaveni(ROCNIK, new DateTimeImmutableStrict(), true, true);
     }
 
     /**
      * @test
      */
     public function Zacatek_nejblizsi_vlny_ubytovani_je_ocekavany() {
-        $nastaveni = new SystemoveNastaveni(ROK, new DateTimeImmutableStrict(), false, false);
+        $nastaveni = $this->systemoveNastaveni();
         self::assertEquals(
             DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani($nastaveni),
             $nastaveni->zacatekNejblizsiVlnyOdhlasovani()

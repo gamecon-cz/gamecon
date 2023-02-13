@@ -4,6 +4,7 @@ namespace Gamecon\Tests\Model\Cas;
 
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\SystemoveNastaveni\DatabazoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use PHPUnit\Framework\TestCase;
 
@@ -289,10 +290,11 @@ class DateTimeGameconTest extends TestCase
 
     private function dejSystemoveNastaveni(DateTimeImmutableStrict $ted): SystemoveNastaveni {
         return new SystemoveNastaveni(
-            ROK,
+            ROCNIK,
             $ted,
             false,
-            false
+            false,
+            DatabazoveNastaveni::vytvorZGlobals()
         );
     }
 }
