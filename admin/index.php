@@ -18,25 +18,6 @@ require __DIR__ . '/scripts/prihlaseni.php';
  * @var Uzivatel|void|null $uPracovni
  */
 
-$pageTitle = 'GameCon – Administrace';
-
-global $systemoveNastaveni;
-if ($systemoveNastaveni instanceof Gamecon\SystemoveNastaveni\SystemoveNastaveni) {
-    if ($systemoveNastaveni->jsmeNaBete()) {
-        $pageTitle = 'β ' . $pageTitle;
-    } elseif ($systemoveNastaveni->jsmeNaLocale()) {
-        $pageTitle = 'α ' . $pageTitle;
-    }
-}
-// xtemplate inicializace
-$xtpl = new XTemplate(__DIR__ . '/templates/main.xtpl');
-$xtpl->assign([
-    'pageTitle'   => $pageTitle,
-    'base'        => URL_ADMIN . '/',
-    'cssVersions' => new \Gamecon\Web\VerzeSouboru(__DIR__ . '/files/design', 'css'),
-    'jsVersions'  => new \Gamecon\Web\VerzeSouboru(__DIR__ . '/files', 'js'),
-]);
-
 [$stranka, $podstranka] = parseRoute();
 
 // nastavení stránky, prázdná url => přesměrování na úvod
@@ -51,6 +32,19 @@ if (!$stranka) {
         back(URL_ADMIN . '/' . basename(__DIR__ . '/scripts/modules/moje-aktivity'));
     }
 }
+
+global $systemoveNastaveni;
+$info = new \Gamecon\Web\Info($systemoveNastaveni);
+$info->nazev('Administrace');
+
+// xtemplate inicializace
+$xtpl = new XTemplate(__DIR__ . '/templates/main.xtpl');
+$xtpl->assign([
+    'headerPageInfo' => $info->html(),
+    'base'           => URL_ADMIN . '/',
+    'cssVersions'    => new \Gamecon\Web\VerzeSouboru(__DIR__ . '/files/design', 'css'),
+    'jsVersions'     => new \Gamecon\Web\VerzeSouboru(__DIR__ . '/files', 'js'),
+]);
 
 // zobrazení stránky
 if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
@@ -100,8 +94,8 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
                 : $cwd . '/' . $submenu[$stranka]['soubor'];
         } else {
             chdir('./scripts/modules/');
-            $soubor    = $cwd . '/' . $menu[$stranka]['soubor'];
-            $pageTitle .= ' | ' . $menu[$stranka]['nazev'];
+            $soubor = $cwd . '/' . $menu[$stranka]['soubor'];
+            $info->nazev($menu[$stranka]['nazev']);
         }
         ob_start(); // výstup uložíme do bufferu
         require $soubor;
@@ -194,7 +188,7 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
             }
             if (($podstranka != '' && $podstranka == $url) || ($podstranka == '' && $stranka == $url)) {
                 $addAttributes[] = 'class="activeSubmenuLink"';
-                $pageTitle       = $pageTitle . ' | ' . $polozka['nazev'];
+                $info->nazev($polozka['nazev']);
             }
             $xtpl->assign('add_attributes', implode(' ', $addAttributes));
 
@@ -225,15 +219,16 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
         'odhlášením uživatele z GC se nenávratně zruší všechny jeho aktivity a nákupy',
         'osobní údaje lze upravit kliknutím a přepsáním na úvodní straně',
         'používání klávesových zkratek urychlí práci',
-        '<q>Bacha, tady můžeš něco posrat, ses si jistej, že víš co děláš?"</q> -Cemi, 2022'
+        '<q>Bacha, tady můžeš něco posrat, ses si jistej, že víš co děláš?"</q> -Cemi, 2022',
     ];
 
+    $info->nazev($info->nazev() ?? '', 'Administrace');
     // výstup
     $xtpl->assign('protip', $protipy[array_rand($protipy)]);
     $xtpl->parse('all.paticka');
     $xtpl->assign('chyba', chyba::vyzvedniHtml());
     $xtpl->assign('jsVyjimkovac', \Gamecon\Vyjimkovac\Vyjimkovac::js(URL_WEBU));
-    $xtpl->assign('pageTitle', $pageTitle);
+    $xtpl->assign('headerPageInfo', $info->html());
     $xtpl->parse('all');
     $xtpl->out('all');
     profilInfo();
