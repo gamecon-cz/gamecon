@@ -14,7 +14,7 @@ class Login
         private Info $info
     ) {
         $this->info = clone $info;
-        $this->info->nazev('GameCon – Administrace');
+        $this->info->nazev('Login', 'Administrace');
     }
 
     public function dejHtmlLogin(): string {

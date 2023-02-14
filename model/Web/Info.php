@@ -53,20 +53,19 @@ class Info
     /**
      * @return Info|string|null
      */
-    public function nazev() {
-        if (func_num_args() == 0) {
+    public function nazev(string ...$nazev) {
+        if ($nazev === []) {
             return $this->nazev;
-        } elseif (func_num_args() == 1) {
-            $nazev  = func_get_arg(0);
-            $prefix = $this->dejPrefixPodleVyvoje();
-            if ($prefix !== '') {
-                $nazev = $prefix . ' ' . $nazev;
-            }
-            $this->nazev = $nazev;
-            return $this;
-        } else {
-            throw new \BadMethodCallException();
         }
+        $nazev  = array_filter($nazev, fn(string $castNazvu) => $castNazvu !== '');
+        $nazev  = array_unique($nazev);
+        $nazev  = implode(' – ', $nazev);
+        $prefix = $this->dejPrefixPodleVyvoje();
+        if ($prefix !== '' && !str_starts_with($nazev, $prefix)) {
+            $nazev = $prefix . ' ' . $nazev;
+        }
+        $this->nazev = $nazev;
+        return $this;
     }
 
     public function obrazek() {
@@ -103,31 +102,15 @@ class Info
         }
     }
 
-    public function titulek() {
-        if (func_num_args() == 0) {
-            if (!$this->titulek) {
-                $this->vytvorTitulek();
-            }
-            return $this->titulek;
-        } elseif (func_num_args() == 1) {
-            $titulek = func_get_arg(0);
-            $prefix  = $this->dejPrefixPodleVyvoje();
-            if ($prefix !== '' && !str_starts_with($titulek, $prefix)) {
-                $titulek = $prefix . ' ' . $titulek;
-            }
-            $this->titulek = $titulek;
-            return $this;
-        } else {
-            throw new \BadMethodCallException();
-        }
+    public function titulek(string $titulek = null) {
+        return $this->vytvorTitulek();
     }
 
     private function vytvorTitulek() {
-        if ($this->nazev()) {
-            $this->titulek($this->nazev() . ' – GameCon');
-        } else {
-            $this->titulek('GameCon')->nazev('GameCon');
+        if (!$this->nazev()) {
+            $this->nazev('Gamecon');
         }
+        return $this->nazev();
     }
 
     public function dejPrefixPodleVyvoje(): string {
