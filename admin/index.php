@@ -45,6 +45,9 @@ $xtpl->assign([
     'cssVersions'    => new \Gamecon\Web\VerzeSouboru(__DIR__ . '/files/design', 'css'),
     'jsVersions'     => new \Gamecon\Web\VerzeSouboru(__DIR__ . '/files', 'js'),
 ]);
+if ($systemoveNastaveni->jeApril()) {
+    $xtpl->parse('all.april');
+}
 
 // zobrazení stránky
 if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {

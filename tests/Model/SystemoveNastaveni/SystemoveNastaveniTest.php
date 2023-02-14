@@ -22,6 +22,8 @@ SQL,
         ],
     ];
 
+    protected static bool $disableStrictTransTables = true;
+
     public function testZmenyKurzuEura() {
         $nastaveni = SystemoveNastaveni::vytvorZGlobals();
 
@@ -124,5 +126,22 @@ SQL,
             DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani($nastaveni),
             $nastaveni->zacatekNejblizsiVlnyOdhlasovani()
         );
+    }
+
+    /**
+     * @test
+     */
+    public function Muzeme_zjistit_ze_je_april() {
+        $secondBeforeApril = new DateTimeImmutableStrict('2023-03-31 23:59:59');
+        self::assertFalse($this->systemoveNastaveni(ROCNIK, $secondBeforeApril)->jeApril());
+
+        $firstSecondOfApril = $secondBeforeApril->modify('+1 second');
+        self::assertTrue($this->systemoveNastaveni(ROCNIK, $firstSecondOfApril)->jeApril());
+
+        $lastSecondOfApril = $secondBeforeApril->modify('+1 day');
+        self::assertTrue($this->systemoveNastaveni(ROCNIK, $lastSecondOfApril)->jeApril());
+
+        $secondAfterApril = $lastSecondOfApril->modify('+1 second');
+        self::assertFalse($this->systemoveNastaveni(ROCNIK, $secondAfterApril)->jeApril());
     }
 }

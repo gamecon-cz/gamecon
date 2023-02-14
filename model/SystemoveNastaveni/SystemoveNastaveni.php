@@ -430,4 +430,8 @@ SQL;
     public function databazoveNastaveni(): DatabazoveNastaveni {
         return $this->databazoveNastaveni;
     }
+
+    public function jeApril(): bool {
+        return $this->ted()->format('j. n.') === '1. 4.';
+    }
 }
