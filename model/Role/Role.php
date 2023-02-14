@@ -15,13 +15,13 @@ class Role extends \DbObject
      * Konstanty jsou kopie SQL tabulky `role_seznam`
      */
     // TRVALÉ ROLE
-    public const ORGANIZATOR            = ROLE_ORGANIZATOR; // Organizátor (zdarma), Člen organizačního týmu GC
-    public const ORGANIZATOR_S_BONUSY_1 = ROLE_ORGANIZATOR_S_BONUSY_1;
-    public const ORGANIZATOR_S_BONUSY_2 = ROLE_ORGANIZATOR_S_BONUSY_2;
-    public const CESTNY_ORGANIZATOR     = ROLE_CESTNY_ORGANIZATOR; // Bývalý organizátor GC
-    public const SPRAVCE_FINANCI_GC     = ROLE_SPRAVCE_FINANCI_GC; // Organizátor, který může nakládat s financemi GC
-    public const PREZENCNI_ADMIN        = ROLE_PREZENCNI_ADMIN; // Pro změnu účastníků v uzavřených aktivitách. NEBEZPEČNÉ, NEPOUŽÍVAT!
-    public const VYPRAVECSKA_SKUPINA    = ROLE_VYPRAVECSKA_SKUPINA; // Organizátorská skupina pořádající na GC (dodavatelé, …)
+    public const ORGANIZATOR          = ROLE_ORGANIZATOR; // Organizátor (zdarma), Člen organizačního týmu GC
+    public const PUL_ORG_BONUS_UBYTKO = ROLE_PUL_ORG_BONUS_UBYTKO; // Ubytování zdarma
+    public const PUL_ORG_BONUS_TRICKA = ROLE_PUL_ORG_BONUS_TRICKA; // Dvě jakákoli trička zdarma
+    public const CESTNY_ORGANIZATOR   = ROLE_CESTNY_ORGANIZATOR; // Bývalý organizátor GC
+    public const SPRAVCE_FINANCI_GC   = ROLE_SPRAVCE_FINANCI_GC; // Organizátor, který může nakládat s financemi GC
+    public const PREZENCNI_ADMIN      = ROLE_PREZENCNI_ADMIN; // Pro změnu účastníků v uzavřených aktivitách. NEBEZPEČNÉ, NEPOUŽÍVAT!
+    public const VYPRAVECSKA_SKUPINA  = ROLE_VYPRAVECSKA_SKUPINA; // Organizátorská skupina pořádající na GC (dodavatelé, …)
 
     // DOČASNÉ ROČNÍKOVÉ ROLE
     public const LETOSNI_VYPRAVEC             = ROLE_VYPRAVEC; // Organizátor aktivit na GC
@@ -96,8 +96,8 @@ class Role extends \DbObject
     public static function idckaTrvalychRoli(): array {
         return [
             Role::ORGANIZATOR,
-            Role::ORGANIZATOR_S_BONUSY_1,
-            Role::ORGANIZATOR_S_BONUSY_2,
+            Role::PUL_ORG_BONUS_UBYTKO,
+            Role::PUL_ORG_BONUS_TRICKA,
             Role::CESTNY_ORGANIZATOR,
             Role::SPRAVCE_FINANCI_GC,
             Role::PREZENCNI_ADMIN,
@@ -205,7 +205,7 @@ class Role extends \DbObject
      * @return int[]
      */
     public static function dejIdckaRoliSOrganizatory(): array {
-        return [self::ORGANIZATOR, self::ORGANIZATOR_S_BONUSY_1, self::ORGANIZATOR_S_BONUSY_2];
+        return [self::ORGANIZATOR, self::PUL_ORG_BONUS_UBYTKO, self::PUL_ORG_BONUS_TRICKA];
     }
 
     public static function nazevRole(int $idRole): string {
@@ -222,8 +222,8 @@ class Role extends \DbObject
             self::LETOSNI_STREDECNI_NOC_ZDARMA => 'Středeční noc zdarma',
             self::LETOSNI_NEDELNI_NOC_ZDARMA => 'Nedělní noc zdarma',
             self::SPRAVCE_FINANCI_GC => 'Správce financí GC',
-            self::ORGANIZATOR_S_BONUSY_1 => 'Organizátor (s bonusy 1)',
-            self::ORGANIZATOR_S_BONUSY_2 => 'Organizátor (s bonusy 2)',
+            self::PUL_ORG_BONUS_UBYTKO => 'Organizátor (s bonusy 1)',
+            self::PUL_ORG_BONUS_TRICKA => 'Organizátor (s bonusy 2)',
             self::LETOSNI_NEODHLASOVAT => 'Neodhlašovat',
             self::LETOSNI_HERMAN => 'Herman',
             self::LETOSNI_BRIGADNIK => 'Brigádník',
