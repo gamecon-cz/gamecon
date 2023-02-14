@@ -3,6 +3,7 @@
 use Gamecon\XTemplate\XTemplate;
 
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Web\Info;
 
 require __DIR__ . '/../nastaveni/zavadec.php';
 require __DIR__ . '/tridy/modul.php';
@@ -58,13 +59,6 @@ try {
     $m = Modul::zNazvu('nenalezeno', null, $systemoveNastaveni)->spust();
 } catch (Neprihlasen $e) {
     $m = Modul::zNazvu('neprihlasen', null, $systemoveNastaveni)->spust();
-}
-if (!$i->titulek()) {
-    if ($i->nazev()) {
-        $i->titulek($i->nazev() . ' – GameCon');
-    } else {
-        $i->titulek('GameCon')->nazev('GameCon');
-    }
 }
 
 // sestavení menu

@@ -2,6 +2,7 @@
 
 namespace Gamecon\Login;
 
+use Gamecon\Web\Info;
 use Gamecon\XTemplate\XTemplate;
 
 class Login
@@ -9,9 +10,17 @@ class Login
     public const LOGIN_INPUT_NAME    = 'loginNAdm';
     public const PASSWORD_INPUT_NAME = 'hesloNAdm';
 
+    public function __construct(
+        private Info $info
+    ) {
+        $this->info = clone $info;
+        $this->info->nazev('GameCon – Administrace');
+    }
+
     public function dejHtmlLogin(): string {
 
         $loginTemplate = $this->dejLoginTemplate();
+        $loginTemplate->assign('headerPageInfo', $this->info->html());
 
         $chyba = \Chyba::vyzvedniChybu();
         if ($chyba) {
@@ -27,7 +36,6 @@ class Login
         $loginTemplate = new XTemplate(__DIR__ . '/templates/login.xtpl');
 
         $loginTemplate->assign([
-            'pageTitle'         => 'GameCon – Administrace',
             'base'              => URL_ADMIN . '/',
             'loginInputName'    => self::LOGIN_INPUT_NAME,
             'passwordInputName' => self::PASSWORD_INPUT_NAME,
