@@ -1,5 +1,7 @@
 <?php
 
+namespace Gamecon\Web;
+
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 /**
@@ -22,91 +24,113 @@ class Info
     private $titulek;
     private $url;
 
-    function html() {
-        $o = '';
-        if ($e = $this->titulek()) $o .= '<title>' . $e . '</title>';
-        if ($e = $this->nazev()) $o .= '<meta property="og:title" content="' . $e . '">';
-        if ($e = $this->url()) $o .= '<meta property="og:url" content="' . $e . '">';
-        if ($e = $this->site()) $o .= '<meta property="og:site_name" content="' . $e . '">';
-        if ($e = $this->popis()) $o .= '<meta property="og:description" content="' . $e . '">';
+    public function html(): string {
+        $o = [];
+        if ($e = $this->titulek()) {
+            $o[] = '<title>' . $e . '</title>';
+        }
+        if ($e = $this->nazev()) {
+            $o[] = '<meta property="og:title" content="' . $e . '">';
+        }
+        if ($e = $this->url()) {
+            $o[] = '<meta property="og:url" content="' . $e . '">';
+        }
+        if ($e = $this->site()) {
+            $o[] = '<meta property="og:site_name" content="' . $e . '">';
+        }
+        if ($e = $this->popis()) {
+            $o[] = '<meta property="og:description" content="' . $e . '">';
+        }
         if ($e = $this->obrazek()) {
             if (substr($e, 0, 4) != 'http') $e = URL_WEBU . '/' . $e;
-            $o .= '<meta property="og:image" content="' . $e . '">';
+            $o[] = '<meta property="og:image" content="' . $e . '">';
         }
-        $o .= '<meta property="og:type" content="website">';
-        return $o;
+        $o[] = '<meta property="og:type" content="website">';
+
+        return implode("\n", $o);
     }
 
     /**
      * @return Info|string|null
      */
-    function nazev() {
+    public function nazev() {
         if (func_num_args() == 0) {
             return $this->nazev;
         } elseif (func_num_args() == 1) {
-            $nazev = func_get_arg(0);
-            $prefix  = $this->dejPrefixPodleVyvoje();
+            $nazev  = func_get_arg(0);
+            $prefix = $this->dejPrefixPodleVyvoje();
             if ($prefix !== '') {
                 $nazev = $prefix . ' ' . $nazev;
             }
             $this->nazev = $nazev;
             return $this;
         } else {
-            throw new BadMethodCallException();
+            throw new \BadMethodCallException();
         }
     }
 
-    function obrazek() {
+    public function obrazek() {
         if (func_num_args() == 0) {
             return $this->obrazek;
         } elseif (func_num_args() == 1) {
             $this->obrazek = func_get_arg(0);
             return $this;
         } else {
-            throw new BadMethodCallException();
+            throw new \BadMethodCallException();
         }
     }
 
-    function popis() {
+    public function popis() {
         if (func_num_args() == 0) {
             return $this->popis;
         } elseif (func_num_args() == 1) {
             $this->popis = func_get_arg(0);
             return $this;
         } else {
-            throw new BadMethodCallException();
+            throw new \BadMethodCallException();
         }
     }
 
     /** The name of your website (such as IMDb, not imdb.com) */
-    function site() {
+    public function site() {
         if (func_num_args() == 0) {
             return $this->site;
         } elseif (func_num_args() == 1) {
             $this->site = func_get_arg(0);
             return $this;
         } else {
-            throw new BadMethodCallException();
+            throw new \BadMethodCallException();
         }
     }
 
-    function titulek() {
+    public function titulek() {
         if (func_num_args() == 0) {
+            if (!$this->titulek) {
+                $this->vytvorTitulek();
+            }
             return $this->titulek;
         } elseif (func_num_args() == 1) {
             $titulek = func_get_arg(0);
             $prefix  = $this->dejPrefixPodleVyvoje();
-            if ($prefix !== '') {
+            if ($prefix !== '' && !str_starts_with($titulek, $prefix)) {
                 $titulek = $prefix . ' ' . $titulek;
             }
             $this->titulek = $titulek;
             return $this;
         } else {
-            throw new BadMethodCallException();
+            throw new \BadMethodCallException();
         }
     }
 
-    function dejPrefixPodleVyvoje(): string {
+    private function vytvorTitulek() {
+        if ($this->nazev()) {
+            $this->titulek($this->nazev() . ' – GameCon');
+        } else {
+            $this->titulek('GameCon')->nazev('GameCon');
+        }
+    }
+
+    public function dejPrefixPodleVyvoje(): string {
         if ($this->jsmeNaLocale) {
             return 'άλφα';
         }
@@ -116,14 +140,14 @@ class Info
         return '';
     }
 
-    function url() {
+    public function url() {
         if (func_num_args() == 0) {
             return $this->url;
         } elseif (func_num_args() == 1) {
             $this->url = func_get_arg(0);
             return $this;
         } else {
-            throw new BadMethodCallException();
+            throw new \BadMethodCallException();
         }
     }
 

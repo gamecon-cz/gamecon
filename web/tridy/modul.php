@@ -2,6 +2,7 @@
 
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\XTemplate\XTemplate;
+use Gamecon\Web\Info;
 
 /**
  * Modul stránek (controller). Objektové zapouzdření pro soubory ze složky
