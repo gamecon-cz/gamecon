@@ -104,12 +104,15 @@ SQL;
                 $errors[] = sprintf("Nelze otevřít CURL handle pro URL '%s'", $absoluteUrl);
                 continue;
             }
+
             curl_setopt($curlHandle, CURLOPT_CONNECTTIMEOUT, 10); // timeout na připojení
             curl_setopt($curlHandle, CURLOPT_TIMEOUT, 10); // timeout na stahování
             curl_setopt($curlHandle, CURLOPT_FOLLOWLOCATION, true);
             curl_setopt($curlHandle, CURLOPT_HEADER, true);
+            curl_setopt($curlHandle, CURLOPT_RETURNTRANSFER, true);
             $this->setLocalServerCookieWithGameconTestDb($curlHandle);
             curl_setopt($curlHandle, CURLOPT_COOKIEFILE, $this->getCookieFileForServer($localServerUrl));
+
             curl_multi_add_handle($multiCurl, $curlHandle);
 
             $curlHandles[$absoluteUrl] = $curlHandle;
@@ -121,8 +124,12 @@ SQL;
             sprintf("Potíže s CURL: %s", implode(',', $errors))
         );
 
-        $outputs = [];
         do {
+            $totalResultCode = curl_multi_exec($multiCurl, $running);
+        } while ($totalResultCode === CURLM_CALL_MULTI_PERFORM);
+
+        $outputs = [];
+        while ($running > 0 && $totalResultCode === CURLM_OK) {
             ob_start();
             $totalResultCode = curl_multi_exec($multiCurl, $running);
             $outputs[]       = ob_get_clean();
@@ -130,7 +137,7 @@ SQL;
             if ($running > 0 && curl_multi_select($multiCurl) === -1) {
                 usleep(100000);
             }
-        } while ($running > 0 && $totalResultCode === CURLM_OK);
+        }
         if ($totalResultCode !== CURLM_OK) {
             $errors[] = sprintf(
                 "Nepodařilo se stáhnout stránky z URLs %s s chybou %s (%d) a výstupy '%s'",
@@ -161,14 +168,22 @@ SQL;
             $info = curl_getinfo($curlHandle);
             if ($info['http_code'] >= 400) {
                 $errors[$info['url']] = sprintf(
-                    'Nepodařilo se stáhnout stránku %s, response code %d%s',
+                    "nepodařilo se stáhnout stránku '%s', response code %d%s",
                     $url,
                     $info['http_code'],
                     $info['http_code'] === 404
                         ? ' (nenalezeno)'
                         : ''
                 );
+            } else {
+                $content = curl_multi_getcontent($curlHandle);
+                $parts   = explode("\r\n\r\n", $content);
+                $body    = $parts[1] ?? false;
+                if (!$body) {
+                    $errors[$info['url']] = sprintf("stránka '%s' je prázdná", $url);
+                }
             }
+
             curl_multi_remove_handle($multiCurl, $curlHandle);
             curl_close($curlHandle);
         }
@@ -178,7 +193,7 @@ SQL;
         self::assertCount(
             0,
             $errors ?? [],
-            sprintf("Chyby během stahování stránek: %s", implode(',', $errors))
+            sprintf("Chyby během stahování stránek: %s", implode('; ', $errors))
         );
     }
 
