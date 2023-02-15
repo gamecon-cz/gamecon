@@ -65,7 +65,6 @@ try {
 $menu = '';
 if (!$m->bezStranky() && !$m->bezMenu()) {
     $t = new XTemplate('sablony/blackarrow/menu.xtpl');
-    exit;
 
     $typy = serazenePodle(TypAktivity::zViditelnych(), 'poradi');
     $t->parseEach($typy, 'typ', 'menu.typAktivit');
