@@ -1,7 +1,5 @@
 # UPDATE
-# docker pull php:8.1-apache && docker build --no-cache --tag jaroslavtyc/gamecon-8.1:latest . && docker push jaroslavtyc/gamecon-8.1:latest
-# REBUILD (simply without --no-cache)
-# docker pull php:8.1-apache && docker build --tag jaroslavtyc/gamecon-8.1:latest . && docker push jaroslavtyc/gamecon-8.1:latest
+# docker build --pull --no-cache --tag jaroslavtyc/gamecon-8.1:latest . && docker push jaroslavtyc/gamecon-8.1:latest
 
 FROM php:8.1-apache AS gamecon-server-step1
 
