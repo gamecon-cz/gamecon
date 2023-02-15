@@ -102,7 +102,7 @@ class Info
         }
     }
 
-    public function titulek(string $titulek = null) {
+    public function titulek() {
         return $this->vytvorTitulek();
     }
 

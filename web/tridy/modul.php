@@ -30,7 +30,7 @@ class Modul
 
     /** Načte modul ze zadané cesty k souboru */
     protected function __construct(string $soubor, SystemoveNastaveni $systemoveNastaveni) {
-        $this->src = $soubor;
+        $this->src                = $soubor;
         $this->systemoveNastaveni = $systemoveNastaveni;
     }
 
@@ -103,18 +103,18 @@ class Modul
     }
 
     function pridejJsSoubor($cesta) {
-        $cestaKSouboru = strpos(realpath($cesta), realpath(WWW)) === 0
+        $cestaKSouboru  = strpos(realpath($cesta), realpath(WWW)) === 0
             ? $cesta
             : WWW . '/' . $cesta;
-        $verze = md5_file($cestaKSouboru);
-        $cestaNaWebu = ltrim(substr(realpath($cestaKSouboru), strlen(realpath(WWW))), '/');
-        $url = URL_WEBU . '/' . $cestaNaWebu . '?version=' . $verze;
+        $verze          = md5_file($cestaKSouboru);
+        $cestaNaWebu    = ltrim(substr(realpath($cestaKSouboru), strlen(realpath(WWW))), '/');
+        $url            = URL_WEBU . '/' . $cestaNaWebu . '?version=' . $verze;
         $this->jsUrls[] = $url;
     }
 
     /** Vrátí výchozí šablonu pro tento modul (pokud existuje) */
     protected function sablona() {
-        $soubor = 'sablony/' . $this->nazev() . '.xtpl';
+        $soubor           = 'sablony/' . $this->nazev() . '.xtpl';
         $blackarrowSoubor = 'sablony/blackarrow/' . $this->nazev() . '.xtpl';
 
         if (is_file($blackarrowSoubor)) {
@@ -137,8 +137,8 @@ class Modul
 
         ob_start();
         $systemoveNastaveni = $this->systemoveNastaveni;
-        $vysledek = require $this->src;
-        $earlyReturn = ($vysledek === null); // při dokončení skriptu je výsledek 1
+        $vysledek           = require $this->src;
+        $earlyReturn        = ($vysledek === null); // při dokončení skriptu je výsledek 1
         if ($t && !$earlyReturn) {
             $t->parse($this->nazev());
             $t->out($this->nazev());
@@ -162,11 +162,11 @@ class Modul
 
     /** Načte modul odpovídající dané Url (pokud není zadaná, použije aktuální) */
     static function zUrl(Url $urlObjekt = null, SystemoveNastaveni $systemoveNastaveni) {
-        $url = null;
+        $url        = null;
         $podstranka = null;
         if (!$urlObjekt) {
-            $urlObjekt = Url::zAktualni();
-            $url = $urlObjekt->cast(0);
+            $urlObjekt  = Url::zAktualni();
+            $url        = $urlObjekt->cast(0);
             $podstranka = $urlObjekt->cast(1);
         }
         if (!$url) {
@@ -186,7 +186,7 @@ class Modul
                 $pripona = str_ends_with($podstranka, '.php')
                     ? ''
                     : '.php';
-                $soubor = "moduly/{$nazev}/{$podstranka}{$pripona}";
+                $soubor  = "moduly/{$nazev}/{$podstranka}{$pripona}";
                 if (is_file($soubor)) {
                     return new self($soubor, $systemoveNastaveni);
                 }
