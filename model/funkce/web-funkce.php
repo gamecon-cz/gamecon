@@ -18,12 +18,12 @@ function hlaska($nazev, $u = null) {
     elseif ($u instanceof Uzivatel) {
         $koncA = $u->pohlavi() == 'f' ? 'a' : '';
         return strtr($HLASKY_SUBST[$nazev], [
-            "\n" => '<br />',
+            "\n"  => '<br />',
             '{a}' => $koncA,
-            '%1' => func_num_args() > 2 ? func_get_arg(2) : '',
-            '%2' => func_num_args() > 3 ? func_get_arg(3) : '',
-            '%3' => func_num_args() > 4 ? func_get_arg(4) : '',
-            '%4' => func_num_args() > 5 ? func_get_arg(5) : '',
+            '%1'  => func_num_args() > 2 ? func_get_arg(2) : '',
+            '%2'  => func_num_args() > 3 ? func_get_arg(3) : '',
+            '%3'  => func_num_args() > 4 ? func_get_arg(4) : '',
+            '%4'  => func_num_args() > 5 ? func_get_arg(5) : '',
         ]);
     } elseif (func_num_args() > 1) {
         return strtr($HLASKY_SUBST[$nazev], [
@@ -106,8 +106,8 @@ function profilInfo() {
     if (!PROFILOVACI_LISTA) {
         return; // v ostré verzi se neprofiluje
     }
-    $schema = 'data:image/png;base64,';
-    $iDb = $schema . base64_encode(file_get_contents(__DIR__ . '/db.png'));
+    $schema  = 'data:image/png;base64,';
+    $iDb     = $schema . base64_encode(file_get_contents(__DIR__ . '/db.png'));
     $iHodiny = $schema . base64_encode(file_get_contents(__DIR__ . '/hodiny.png'));
     //$iconRoot = URL_ADMIN.'/files/design/';
     $delka = microtime(true) - $GLOBALS['SKRIPT_ZACATEK'];
@@ -143,5 +143,6 @@ function profilInfo() {
 function is_ajax(): bool {
     return (!empty($_REQUEST['ajax'])
         || (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest')
+        || str_contains($_SERVER['REQUEST_URI'] ?? '', '/api/')
     );
 }
