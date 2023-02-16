@@ -25,6 +25,6 @@ $vyjimkovac->zobrazeni($typZobrazeni);
 $vyjimkovac->aktivuj();
 
 // automatické migrace databáze
-if (AUTOMATICKE_MIGRACE) {
+if (AUTOMATICKE_MIGRACE && !is_ajax()) {
     require __DIR__ . '/db-migrace.php';
 }
