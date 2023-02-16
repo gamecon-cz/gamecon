@@ -15,5 +15,6 @@ class RoleSqlStruktura
     public const ROCNIK_ROLE = 'rocnik_role';
     public const TYP_ROLE    = 'typ_role';
     public const VYZNAM_ROLE = 'vyznam_role';
+    public const SKRYTA      = 'skryta';
 
 }
