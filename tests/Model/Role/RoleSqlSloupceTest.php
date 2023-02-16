@@ -11,8 +11,8 @@ class RoleSqlSloupceTest extends DbTest
      * @test
      */
     public function Konstanty_odpovidaji_sloupcum() {
-        $classReflection   = new \ReflectionClass(RoleSqlStruktura::class);
-        $constantsToValues = $classReflection->getConstants(\ReflectionClassConstant::IS_PUBLIC);
+        $classReflection           = new \ReflectionClass(RoleSqlStruktura::class);
+        $constantsToValues         = $classReflection->getConstants(\ReflectionClassConstant::IS_PUBLIC);
         $roleTabulkaNazevKonstanty = array_search(RoleSqlStruktura::ROLE_TABULKA, $constantsToValues);
         unset($constantsToValues[$roleTabulkaNazevKonstanty]);
 
