@@ -143,16 +143,20 @@ class Cenik
         } elseif ($typ == Shop::TRICKO && $this->jakychkoliTricekZdarma > 0) {
             $cena = 0;
             $this->jakychkoliTricekZdarma--;
-        } elseif ($typ == Shop::UBYTOVANI && $this->u->maPravo(Pravo::UBYTOVANI_ZDARMA)) {
-            $cena = 0;
-        } elseif ($typ == Shop::UBYTOVANI && $r['ubytovani_den'] == 0 && $this->u->maPravo(Pravo::UBYTOVANI_STREDECNI_NOC_ZDARMA)) {
-            $cena = 0;
-        } elseif ($typ == Shop::UBYTOVANI && $r['ubytovani_den'] == 4 && $this->u->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_ZDARMA)) {
-            $cena = 0;
-        } elseif ($typ == Shop::JIDLO) {
-            if ($this->u->maPravo(P_JIDLO_ZDARMA)) {
+        } elseif ($typ == Shop::UBYTOVANI) {
+            if ($this->u->maPravo(Pravo::UBYTOVANI_ZDARMA)
+                || ($r['ubytovani_den'] == 0 && $this->u->maPravo(Pravo::UBYTOVANI_STREDECNI_NOC_ZDARMA))
+                || ($r['ubytovani_den'] == 1 && $this->u->maPravo(Pravo::UBYTOVANI_CTVRTECNI_NOC_ZDARMA))
+                || ($r['ubytovani_den'] == 2 && $this->u->maPravo(Pravo::UBYTOVANI_PATECNI_NOC_ZDARMA))
+                || ($r['ubytovani_den'] == 3 && $this->u->maPravo(Pravo::UBYTOVANI_SOBOTNI_NOC_ZDARMA))
+                || ($r['ubytovani_den'] == 4 && $this->u->maPravo(Pravo::UBYTOVANI_NEDELNI_NOC_ZDARMA))
+            ) {
                 $cena = 0;
-            } elseif ($this->u->maPravo(P_JIDLO_SLEVA) && strpos($r['nazev'], 'Snídaně') === false) {
+            }
+        } elseif ($typ == Shop::JIDLO) {
+            if ($this->u->maPravo(Pravo::JIDLO_ZDARMA)) {
+                $cena = 0;
+            } elseif ($this->u->maPravo(Pravo::JIDLO_SE_SLEVOU) && strpos($r['nazev'], 'Snídaně') === false) {
                 $cena -= 20;
             }
         }

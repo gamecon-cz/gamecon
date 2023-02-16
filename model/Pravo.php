@@ -31,11 +31,15 @@ class Pravo extends \DbObject
     public const ADMINISTRACE_FINANCE       = 108;
     public const ADMINISTRACE_MOJE_AKTIVITY = 109;
 
-    public const PLACKA_ZDARMA                               = 1002;
-    public const KOSTKA_ZDARMA                               = 1003;
-    public const JIDLO_SE_SLEVOU                             = 1004; // Může si objednávat jídlo se slevou
-    public const JIDLO_ZDARMA                                = 1005; // Může si objednávat jídlo zdarma
-    public const UBYTOVANI_ZDARMA                            = 1008; // Má zdarma ubytování po celou dobu
+    public const PLACKA_ZDARMA    = 1002;
+    public const KOSTKA_ZDARMA    = 1003;
+    public const JIDLO_SE_SLEVOU  = 1004; // Může si objednávat jídlo se slevou
+    public const JIDLO_ZDARMA     = 1005; // Může si objednávat jídlo zdarma
+    public const UBYTOVANI_ZDARMA = 1008; // Má zdarma ubytování po celou dobu
+    /**
+     * modré tričko zdarma při slevě, jejíž hodnota je určená konstantou @see MODRE_TRICKO_ZDARMA_OD
+     * @see \Gamecon\SystemoveNastaveni\SystemoveNastaveni::definujOdvozeneKonstanty
+     */
     public const MODRE_TRICKO_ZDARMA                         = 1012; // modré tričko zdarma při slevě, jejíž hodnota je určená konstantou MODRE_TRICKO_ZDARMA_OD
     public const UBYTOVANI_STREDECNI_NOC_ZDARMA              = 1015;
     public const NERUSIT_AUTOMATICKY_OBJEDNAVKY              = 1016; // uživateli se při nezaplacení včas nebudou automaticky rušit objednávky
@@ -50,6 +54,9 @@ class Pravo extends \DbObject
     public const TITUL_ORGANIZATOR                           = 1026; // V různých výpisech se označuje jako organizátor
     public const UNIKATNI_ROLE                               = 1027; // Uživatel může mít jen jednu roli s tímto právem
     public const BEZ_SLEVY_ZA_VEDENI_AKTIVIT                 = 1028; // Nedostává slevu za vedení aktivit ani účast na tech. aktivitách
+    public const UBYTOVANI_CTVRTECNI_NOC_ZDARMA              = 1029;
+    public const UBYTOVANI_PATECNI_NOC_ZDARMA                = 1030;
+    public const UBYTOVANI_SOBOTNI_NOC_ZDARMA                = 1031;
 
     public static function dejIdsVsechPrav(): array {
         static $idsVsechPrav;

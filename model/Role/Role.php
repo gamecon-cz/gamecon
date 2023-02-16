@@ -30,6 +30,9 @@ class Role extends \DbObject
     public const LETOSNI_PARTNER              = ROLE_PARTNER; // Vystavovatelé, lidé od deskovek, atp.
     public const LETOSNI_DOBROVOLNIK_SENIOR   = ROLE_DOBROVOLNIK_SENIOR; // Dobrovolník dlouhodobě spolupracující s GC
     public const LETOSNI_STREDECNI_NOC_ZDARMA = ROLE_STREDECNI_NOC_ZDARMA;
+    public const LETOSNI_CTVRTECNI_NOC_ZDARMA = ROLE_CTVRTECNI_NOC_ZDARMA;
+    public const LETOSNI_PATECNI_NOC_ZDARMA   = ROLE_PATECNI_NOC_ZDARMA;
+    public const LETOSNI_SOBOTNI_NOC_ZDARMA   = ROLE_SOBOTNI_NOC_ZDARMA;
     public const LETOSNI_NEDELNI_NOC_ZDARMA   = ROLE_NEDELNI_NOC_ZDARMA;
     public const LETOSNI_NEODHLASOVAT         = ROLE_NEODHLASOVAT;
     public const LETOSNI_HERMAN               = ROLE_HERMAN;
@@ -45,6 +48,9 @@ class Role extends \DbObject
     protected const ROLE_NEODHLASOVAT_ID_ZAKLAD         = 23;
     protected const ROLE_HERMAN_ID_ZAKLAD               = 24;
     protected const ROLE_BRIGADNIK_ID_ZAKLAD            = 25;
+    protected const ROLE_CTVRTECNI_NOC_ZDARMA_ID_ZAKLAD = 26;
+    protected const ROLE_PATECNI_NOC_ZDARMA_ID_ZAKLAD   = 27;
+    protected const ROLE_SOBOTNI_NOC_ZDARMA_ID_ZAKLAD   = 28;
 
     // ROLE ÚČASTI
     public const PRIHLASEN_NA_LETOSNI_GC = ROLE_PRIHLASEN;
@@ -164,6 +170,18 @@ class Role extends \DbObject
         return self::idRocnikoveRole(self::ROLE_STREDECNI_NOC_ZDARMA_ID_ZAKLAD, $rok);
     }
 
+    public static function LETOSNI_CTVRTECNI_NOC_ZDARMA(int $rok = ROCNIK): int {
+        return self::idRocnikoveRole(self::ROLE_CTVRTECNI_NOC_ZDARMA_ID_ZAKLAD, $rok);
+    }
+
+    public static function LETOSNI_PATECNI_NOC_ZDARMA(int $rok = ROCNIK): int {
+        return self::idRocnikoveRole(self::ROLE_PATECNI_NOC_ZDARMA_ID_ZAKLAD, $rok);
+    }
+
+    public static function LETOSNI_SOBOTNI_NOC_ZDARMA(int $rok = ROCNIK): int {
+        return self::idRocnikoveRole(self::ROLE_SOBOTNI_NOC_ZDARMA_ID_ZAKLAD, $rok);
+    }
+
     public static function LETOSNI_NEDELNI_NOC_ZDARMA(int $rok = ROCNIK): int {
         return self::idRocnikoveRole(self::ROLE_NEDELNI_NOC_ZDARMA_ID_ZAKLAD, $rok);
     }
@@ -209,26 +227,33 @@ class Role extends \DbObject
     }
 
     public static function nazevRole(int $idRole): string {
-        return match ($idRole) {
-            self::ORGANIZATOR => 'Organizátor (zdarma)',
-            self::LETOSNI_VYPRAVEC => 'Vypravěč',
-            self::LETOSNI_ZAZEMI => 'Zázemí',
-            self::LETOSNI_INFOPULT => 'Infopult',
-            self::VYPRAVECSKA_SKUPINA => 'Vypravěčská skupina',
-            self::LETOSNI_PARTNER => 'Partner',
-            self::CESTNY_ORGANIZATOR => 'Čestný organizátor',
-            self::PREZENCNI_ADMIN => 'Prezenční admin',
-            self::LETOSNI_DOBROVOLNIK_SENIOR => 'Dobrovolník senior',
-            self::LETOSNI_STREDECNI_NOC_ZDARMA => 'Středeční noc zdarma',
-            self::LETOSNI_NEDELNI_NOC_ZDARMA => 'Nedělní noc zdarma',
-            self::SPRAVCE_FINANCI_GC => 'Správce financí GC',
-            self::PUL_ORG_BONUS_UBYTKO => 'Půl-org ubytko',
-            self::PUL_ORG_BONUS_TRICKO => 'Půl-org tričko',
-            self::LETOSNI_NEODHLASOVAT => 'Neodhlašovat',
-            self::LETOSNI_HERMAN => 'Herman',
-            self::LETOSNI_BRIGADNIK => 'Brigádník',
-            default => self::nazevRoleStareUcasti($idRole),
-        };
+        try {
+            return match ($idRole) {
+                self::ORGANIZATOR => 'Organizátor (zdarma)',
+                self::LETOSNI_VYPRAVEC => 'Vypravěč',
+                self::LETOSNI_ZAZEMI => 'Zázemí',
+                self::LETOSNI_INFOPULT => 'Infopult',
+                self::VYPRAVECSKA_SKUPINA => 'Vypravěčská skupina',
+                self::LETOSNI_PARTNER => 'Partner',
+                self::CESTNY_ORGANIZATOR => 'Čestný organizátor',
+                self::PREZENCNI_ADMIN => 'Prezenční admin',
+                self::LETOSNI_DOBROVOLNIK_SENIOR => 'Dobrovolník senior',
+                self::LETOSNI_STREDECNI_NOC_ZDARMA => 'Středeční noc zdarma',
+                self::LETOSNI_CTVRTECNI_NOC_ZDARMA => 'Čtvrteční noc zdarma',
+                self::LETOSNI_PATECNI_NOC_ZDARMA => 'Páteční noc zdarma',
+                self::LETOSNI_SOBOTNI_NOC_ZDARMA => 'Sobotní noc zdarma',
+                self::LETOSNI_NEDELNI_NOC_ZDARMA => 'Nedělní noc zdarma',
+                self::SPRAVCE_FINANCI_GC => 'Správce financí GC',
+                self::PUL_ORG_BONUS_UBYTKO => 'Půl-org ubytko',
+                self::PUL_ORG_BONUS_TRICKO => 'Půl-org tričko',
+                self::LETOSNI_NEODHLASOVAT => 'Neodhlašovat',
+                self::LETOSNI_HERMAN => 'Herman',
+                self::LETOSNI_BRIGADNIK => 'Brigádník',
+                default => self::nazevRoleStareUcasti($idRole),
+            };
+        } catch (\LogicException $exception) {
+            throw new \LogicException("Pro roli '$idRole' nemáme název.", 0, $exception);
+        }
     }
 
     private static function nazevRoleStareUcasti(int $idRole): string {
@@ -301,6 +326,7 @@ class Role extends \DbObject
             self::LETOSNI_PARTNER($rocnik),
             self::LETOSNI_DOBROVOLNIK_SENIOR($rocnik),
             self::LETOSNI_STREDECNI_NOC_ZDARMA($rocnik),
+            self::LETOSNI_SOBOTNI_NOC_ZDARMA($rocnik),
             self::LETOSNI_NEDELNI_NOC_ZDARMA($rocnik),
             self::LETOSNI_NEODHLASOVAT($rocnik),
             self::LETOSNI_HERMAN($rocnik),

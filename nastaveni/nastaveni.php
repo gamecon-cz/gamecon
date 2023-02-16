@@ -93,7 +93,6 @@ error_reporting($puvodni); // zrušení maskování notice
 unset($puvodni);
 
 require_once __DIR__ . '/nastaveni-role.php';
-require_once __DIR__ . '/nastaveni-prava.php';
 
 ////////////////////////
 // Finanční nastavení //

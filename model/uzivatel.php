@@ -177,7 +177,7 @@ SQL
 
         $novaPrava = dbOneArray('SELECT id_prava FROM prava_role WHERE id_role = $0', [$idRole]);
 
-        if ($this->maPravo(P_UNIKATNI_ROLE) && in_array(P_UNIKATNI_ROLE, $novaPrava)) {
+        if ($this->maPravo(Pravo::UNIKATNI_ROLE) && in_array(Pravo::UNIKATNI_ROLE, $novaPrava)) {
             throw new Chyba('Uživatel už má jinou unikátní roli.');
         }
 
@@ -203,7 +203,7 @@ SQL
      */
     public function drdTituly() {
         $tituly = ['Pán Jeskyně', 'vypravěč'];
-        if ($this->maPravo(P_TITUL_ORG)) $tituly[] = 'organizátor GC';
+        if ($this->maPravo(Pravo::TITUL_ORGANIZATOR)) $tituly[] = 'organizátor GC';
         return $tituly;
     }
 
@@ -391,7 +391,7 @@ SQL,
             $prihlasen                = Role::VYZNAM_PRIHLASEN;
             $q                        = dbQuery(<<<SQL
 SELECT role.rocnik_role
-FROM uzivatele_role AS uzivatele_role
+FROM uzivatele_role
 JOIN role_seznam AS role
     ON uzivatele_role.id_role = role.id_role
 WHERE uzivatele_role.id_uzivatele = $0
