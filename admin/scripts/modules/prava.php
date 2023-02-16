@@ -67,6 +67,7 @@ if (!$role) {
     LEFT JOIN platne_role_uzivatelu
         ON platne_role_uzivatelu.id_role = role.id_role AND platne_role_uzivatelu.id_uzivatele = $0
     WHERE role.rocnik_role IN ($1, $2)
+        AND role.skryta = 0
     GROUP BY role.id_role, role.typ_role, role.nazev_role
     ORDER BY role.typ_role, role.nazev_role',
         [0 => $uPracovni?->id(), 1 => ROCNIK, 2 => Role::JAKYKOLI_ROCNIK]
