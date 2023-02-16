@@ -2,6 +2,7 @@
 
 namespace Gamecon\Shop;
 
+use Gamecon\Pravo;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Uzivatel;
 use Cenik;
@@ -222,8 +223,8 @@ SQL
                 $r['nabizet'] = $r['nabizet'] || ($r['stav'] == self::POZASTAVENY && $this->nastaveni['ubytovaniBezZamku']);
                 $fronta       = &$this->ubytovani[];
             } elseif ($typ == self::TRICKO) {
-                $smiModre     = $this->u->maPravo(P_TRICKO_MODRA_BARVA);
-                $smiCervene   = $this->u->maPravo(P_TRICKO_CERVENA_BARVA);
+                $smiModre     = $this->u->maPravo(Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA);
+                $smiCervene   = $this->u->maPravo(Pravo::MUZE_OBJEDNAVAT_CERVENA_TRICKA);
                 $r['nabizet'] = (
                     $r['nabizet']
                     || ($r['stav'] == self::PODPULTOVY && mb_stripos($r['nazev'], 'modré') !== false && $smiModre)

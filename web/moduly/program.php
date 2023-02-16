@@ -1,6 +1,7 @@
 <?php
 
-use \Gamecon\Cas\DateTimeCz;
+use Gamecon\Cas\DateTimeCz;
+use Gamecon\Pravo;
 
 /** @var Modul $this */
 /** @var \Gamecon\XTemplate\XTemplate $t */
@@ -50,7 +51,7 @@ $zacatekPrvniVlnyOd       = \Gamecon\Cas\DateTimeGamecon::zacatekPrvniVlnyOd();
 $zacatekPrvniVlnyZaSekund = $zacatekPrvniVlnyOd->getTimestamp() - time();
 
 $legendaText   = Stranka::zUrl('program-legenda-text')->html();
-$jeOrganizator = isset($u) && $u && $u->maPravo(P_ORG_AKTIVIT);
+$jeOrganizator = isset($u) && $u && $u->maPravo(Pravo::PORADANI_AKTIVIT);
 
 // pomocná funkce pro zobrazení aktivního odkazu
 $aktivni = function ($urlOdkazu) use ($url, $alternativniUrl) {

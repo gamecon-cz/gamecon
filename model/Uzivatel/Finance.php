@@ -7,6 +7,7 @@ use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Exceptions\NeznamyTypPredmetu;
 use Gamecon\Finance\SlevySqlStruktura;
+use Gamecon\Pravo;
 use Gamecon\Shop\Shop;
 use Gamecon\Shop\TypPredmetu;
 use Endroid\QrCode\Writer\Result\ResultInterface;
@@ -439,13 +440,13 @@ class Finance
     }
 
     public function maximalniPocetPlacekZdarma(): int {
-        return $this->u->maPravo(P_PLACKA_ZDARMA)
+        return $this->u->maPravo(Pravo::PLACKA_ZDARMA)
             ? 1
             : 0;
     }
 
     public function maximalniPocetKostekZdarma(): int {
-        return $this->u->maPravo(P_KOSTKA_ZDARMA)
+        return $this->u->maPravo(Pravo::KOSTKA_ZDARMA)
             ? 1
             : 0;
     }
@@ -456,23 +457,23 @@ class Finance
      * + @see maximalniPocetModrychTricekZdarma
      */
     public function maximalniPocetLibovolnychTricekZdarmaBezModrychZdarma(): int {
-        return $this->u->maPravo(P_DVE_TRICKA_ZDARMA)
+        return $this->u->maPravo(Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA)
             ? 2
             : 0;
     }
 
     public function maximalniPocetModrychTricekZdarma(): int {
-        return $this->u->maPravo(P_TRICKO_ZA_SLEVU_MODRE) && $this->bonusZaVedeniAktivit() >= MODRE_TRICKO_ZDARMA_OD
+        return $this->u->maPravo(Pravo::MODRE_TRICKO_ZDARMA) && $this->bonusZaVedeniAktivit() >= MODRE_TRICKO_ZDARMA_OD
             ? 1
             : 0;
     }
 
     public function muzeObjednavatModreTrickoSeSlevou(): bool {
-        return $this->u->maPravo(P_TRICKO_MODRA_BARVA);
+        return $this->u->maPravo(Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA);
     }
 
     public function muzeObjednavatCerveneTrickoSeSlevou(): bool {
-        return $this->u->maPravo(P_TRICKO_CERVENA_BARVA);
+        return $this->u->maPravo(Pravo::MUZE_OBJEDNAVAT_CERVENA_TRICKA);
     }
 
     /**
@@ -491,11 +492,11 @@ class Finance
             // pomocné proměnné
             $sleva = 0; // v procentech
             // výpočet pravidel
-            if ($this->u->maPravo(P_AKTIVITY_ZDARMA)) {
+            if ($this->u->maPravo(Pravo::AKTIVITY_ZDARMA)) {
                 // sleva 100%
                 $sleva                   += 100;
                 $this->slevyNaAktivity[] = 'sleva 100%';
-            } elseif ($this->u->maPravo(P_AKTIVITY_SLEVA)) {
+            } elseif ($this->u->maPravo(Pravo::CASTECNA_SLEVA_NA_AKTIVITY)) {
                 // sleva 40%
                 $sleva                   += 40;
                 $this->slevyNaAktivity[] = 'sleva 40%';

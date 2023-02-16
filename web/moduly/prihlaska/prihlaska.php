@@ -138,7 +138,7 @@ if ($slevy) {
 $t->assign('ka', $u->koncovkaDlePohlavi() ? 'ka' : '');
 if ($u->maPravo(Pravo::UBYTOVANI_ZDARMA)) {
     $t->parse('prihlaska.ubytovaniInfoOrg');
-} else if ($u->maPravo(P_ORG_AKTIVIT) && !$u->maPravo(P_NEMA_BONUS_ZA_AKTIVITY)) {
+} else if ($u->maPravo(Pravo::PORADANI_AKTIVIT) && !$u->maPravo(Pravo::BEZ_SLEVY_ZA_VEDENI_AKTIVIT)) {
     $t->parse('prihlaska.ubytovaniInfoVypravec');
 }
 

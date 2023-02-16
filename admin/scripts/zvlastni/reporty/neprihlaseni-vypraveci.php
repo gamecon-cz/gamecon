@@ -2,10 +2,11 @@
 
 use Gamecon\Shop\Shop;
 use Gamecon\Role\Role;
+use Gamecon\Pravo;
 
 require __DIR__ . '/sdilene-hlavicky.php';
 
-$sledovaneRole = dbOneArray('SELECT id_role FROM prava_role WHERE id_prava = $0', [P_REPORT_NEUBYTOVANI]);
+$sledovaneRole = dbOneArray('SELECT id_role FROM prava_role WHERE id_prava = $0', [Pravo::VYPISOVAT_V_REPORTU_NEUBYTOVANYCH]);
 if (empty($sledovaneRole)) {
     die('Žádná role nemá nastaveno právo, aby se vypisovala v tomto reportu.');
 }
