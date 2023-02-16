@@ -30,6 +30,8 @@ class Pravo extends \DbObject
     public const ADMINISTRACE_STATISTIKY    = 107;
     public const ADMINISTRACE_FINANCE       = 108;
     public const ADMINISTRACE_MOJE_AKTIVITY = 109;
+    public const ADMINISTRACE_NASTAVENI     = 110;
+    public const ADMINISTRACE_PENIZE        = 111;
 
     public const PLACKA_ZDARMA    = 1002;
     public const KOSTKA_ZDARMA    = 1003;
