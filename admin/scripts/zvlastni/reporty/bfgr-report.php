@@ -29,7 +29,7 @@ function typUbytovani($typ) { // ubytování typ - z názvu předmětu odhadne t
 $idRoliiProPozici = [
     Role::ORGANIZATOR,
     Role::PUL_ORG_BONUS_UBYTKO,
-    Role::PUL_ORG_BONUS_TRICKA,
+    Role::PUL_ORG_BONUS_TRICKO,
     Role::LETOSNI_VYPRAVEC,
     Role::LETOSNI_PARTNER,
     Role::LETOSNI_DOBROVOLNIK_SENIOR,
