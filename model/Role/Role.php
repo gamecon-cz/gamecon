@@ -15,13 +15,13 @@ class Role extends \DbObject
      * Konstanty jsou kopie SQL tabulky `role_seznam`
      */
     // TRVALÉ ROLE
-    public const ORGANIZATOR          = ROLE_ORGANIZATOR; // Organizátor (zdarma), Člen organizačního týmu GC
-    public const PUL_ORG_BONUS_UBYTKO = ROLE_PUL_ORG_BONUS_UBYTKO; // Ubytování zdarma
-    public const PUL_ORG_BONUS_TRICKA = ROLE_PUL_ORG_BONUS_TRICKA; // Dvě jakákoli trička zdarma
-    public const CESTNY_ORGANIZATOR   = ROLE_CESTNY_ORGANIZATOR; // Bývalý organizátor GC
-    public const SPRAVCE_FINANCI_GC   = ROLE_SPRAVCE_FINANCI_GC; // Organizátor, který může nakládat s financemi GC
-    public const PREZENCNI_ADMIN      = ROLE_PREZENCNI_ADMIN; // Pro změnu účastníků v uzavřených aktivitách. NEBEZPEČNÉ, NEPOUŽÍVAT!
-    public const VYPRAVECSKA_SKUPINA  = ROLE_VYPRAVECSKA_SKUPINA; // Organizátorská skupina pořádající na GC (dodavatelé, …)
+    public const ORGANIZATOR          = 2; // Organizátor (zdarma), Člen organizačního týmu GC
+    public const PUL_ORG_BONUS_UBYTKO = 21; // Ubytování zdarma
+    public const PUL_ORG_BONUS_TRICKO = 22; // Dvě jakákoli trička zdarma
+    public const CESTNY_ORGANIZATOR   = 15; // Bývalý organizátor GC
+    public const SPRAVCE_FINANCI_GC   = 20; // Organizátor, který může nakládat s financemi GC
+    public const PREZENCNI_ADMIN      = 16; // Pro změnu účastníků v uzavřených aktivitách. NEBEZPEČNÉ, NEPOUŽÍVAT!
+    public const VYPRAVECSKA_SKUPINA  = 9; // Organizátorská skupina pořádající na GC (dodavatelé, …)
 
     // DOČASNÉ ROČNÍKOVÉ ROLE
     public const LETOSNI_VYPRAVEC             = ROLE_VYPRAVEC; // Organizátor aktivit na GC
@@ -67,13 +67,13 @@ class Role extends \DbObject
     public const TYP_TRVALA    = 'trvala';
 
     // TYP TRVALE
-    public const VYZNAM_ORGANIZATOR_ZDARMA     = 'ORGANIZATOR_ZDARMA';
-    public const VYZNAM_ORGANIZATOR_S_BONUSY_1 = 'ORGANIZATOR_S_BONUSY_1';
-    public const VYZNAM_ORGANIZATOR_S_BONUSY_2 = 'ORGANIZATOR_S_BONUSY_2';
-    public const VYZNAM_CESTNY_ORGANIZATOR     = 'CESTNY_ORGANIZATOR';
-    public const VYZNAM_SPRAVCE_FINANCI_GC     = 'SPRAVCE_FINANCI_GC';
-    public const VYZNAM_ADMIN                  = 'ADMIN';
-    public const VYZNAM_VYPRAVECSKA_SKUPINA    = 'VYPRAVECSKA_SKUPINA';
+    public const VYZNAM_ORGANIZATOR_ZDARMA  = 'ORGANIZATOR_ZDARMA';
+    public const VYZNAM_PUL_ORG_UBYTKO      = 'PUL_ORG_UBYTKO';
+    public const VYZNAM_PUL_ORG_TRICKO      = 'PUL_ORG_TRICKO';
+    public const VYZNAM_CESTNY_ORGANIZATOR  = 'CESTNY_ORGANIZATOR';
+    public const VYZNAM_SPRAVCE_FINANCI_GC  = 'SPRAVCE_FINANCI_GC';
+    public const VYZNAM_ADMIN               = 'ADMIN';
+    public const VYZNAM_VYPRAVECSKA_SKUPINA = 'VYPRAVECSKA_SKUPINA';
     // TYP ROCNIKOVE
     public const VYZNAM_BRIGADNIK            = 'BRIGADNIK';
     public const VYZNAM_DOBROVOLNIK_SENIOR   = 'DOBROVOLNIK_SENIOR';
@@ -97,7 +97,7 @@ class Role extends \DbObject
         return [
             Role::ORGANIZATOR,
             Role::PUL_ORG_BONUS_UBYTKO,
-            Role::PUL_ORG_BONUS_TRICKA,
+            Role::PUL_ORG_BONUS_TRICKO,
             Role::CESTNY_ORGANIZATOR,
             Role::SPRAVCE_FINANCI_GC,
             Role::PREZENCNI_ADMIN,
@@ -205,7 +205,7 @@ class Role extends \DbObject
      * @return int[]
      */
     public static function dejIdckaRoliSOrganizatory(): array {
-        return [self::ORGANIZATOR, self::PUL_ORG_BONUS_UBYTKO, self::PUL_ORG_BONUS_TRICKA];
+        return [self::ORGANIZATOR, self::PUL_ORG_BONUS_UBYTKO, self::PUL_ORG_BONUS_TRICKO];
     }
 
     public static function nazevRole(int $idRole): string {
@@ -222,8 +222,8 @@ class Role extends \DbObject
             self::LETOSNI_STREDECNI_NOC_ZDARMA => 'Středeční noc zdarma',
             self::LETOSNI_NEDELNI_NOC_ZDARMA => 'Nedělní noc zdarma',
             self::SPRAVCE_FINANCI_GC => 'Správce financí GC',
-            self::PUL_ORG_BONUS_UBYTKO => 'Organizátor (s bonusy 1)',
-            self::PUL_ORG_BONUS_TRICKA => 'Organizátor (s bonusy 2)',
+            self::PUL_ORG_BONUS_UBYTKO => 'Půl-org ubytko',
+            self::PUL_ORG_BONUS_TRICKO => 'Půl-org tričko',
             self::LETOSNI_NEODHLASOVAT => 'Neodhlašovat',
             self::LETOSNI_HERMAN => 'Herman',
             self::LETOSNI_BRIGADNIK => 'Brigádník',
