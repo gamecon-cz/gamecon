@@ -4,9 +4,6 @@
 use Gamecon\Role\Role;
 use Granam\RemoveDiacritics\RemoveDiacritics;
 
-// jen malý, neškodný hack, aby se tahle migrace pouštěla pořád
-$this->setEndless(true);
-
 require_once __DIR__ . '/pomocne/rocnik_z_promenne_mysql.php';
 
 // ROLE

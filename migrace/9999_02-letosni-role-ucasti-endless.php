@@ -6,9 +6,6 @@ use Granam\RemoveDiacritics\RemoveDiacritics;
 
 require_once __DIR__ . '/pomocne/rocnik_z_promenne_mysql.php';
 
-// jen malý, neškodný hack, aby se tahle migrace pouštěla pořád
-$this->setEndless(true);
-
 // ROLE
 $roleUcasi       = Role::vsechnyRoleUcastiProRocnik(ROCNIK);
 $idRoliUcasti    = array_keys($roleUcasi);
