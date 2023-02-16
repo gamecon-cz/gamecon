@@ -17,6 +17,7 @@ class DbMigrations
     private $webGui = null;
     private $hasTableMigrationsV2 = null;
     private $hasTableMigrationsV1 = null;
+    private ?array $unappliedMigrations = null;
 
     public function __construct(DbMigrationsConfig $conf) {
         $this->conf = $conf;
@@ -28,9 +29,19 @@ class DbMigrations
         }
     }
 
-    private function handleNormalMigrations(bool $silent) {
+    private function hasUnappliedMigrations(): bool {
+        return (bool)$this->getUnappliedMigrations();
+    }
+
+    private function handleUnappliedMigrations(bool $silently) {
         foreach ($this->getUnappliedMigrations() as $migration) {
-            $this->apply($migration, $silent || !$migration->isEndless());
+            $this->apply($migration, $silently || $migration->isEndless());
+        }
+    }
+
+    private function handleEndlessMigrations() {
+        foreach ($this->getEndlessMigrations() as $migration) {
+            $this->apply($migration, true);
         }
     }
 
@@ -38,57 +49,58 @@ class DbMigrations
      * @return Migration[]
      */
     private function getUnappliedMigrations(): array {
-        $migrations = $this->getMigrations();
-        if (!$migrations) {
-            return [];
-        }
-
-        if (!$this->hasTableMigrationsForV2()) {
-            if (!$this->hasTableMigrationsForV1()) {
-                return $migrations;
+        if (!isset($this->unappliedMigrations)) {
+            $migrations = $this->getNormalMigrations();
+            if (!$migrations) {
+                return [];
             }
-            $migrationsV1          = $this->getMigrationsV1($migrations);
-            $unappliedMigrationsV1 = $this->getUnappliedMigrationsV1($migrationsV1);
-            $migrationsV2          = $this->getMigrationsV2($migrations);
-            return array_merge($unappliedMigrationsV1, $migrationsV2);
-        }
 
-        $migrationCodes = array_map(static function (Migration $migration) {
-            return $migration->getCode();
-        }, $migrations);
+            if (!$this->hasTableMigrationsForV2()) {
+                if (!$this->hasTableMigrationsForV1()) {
+                    return $migrations;
+                }
+                $migrationsV1          = $this->getMigrationsV1($migrations);
+                $unappliedMigrationsV1 = $this->getUnappliedMigrationsV1($migrationsV1);
+                $migrationsV2          = $this->getMigrationsV2($migrations);
+                return array_merge($unappliedMigrationsV1, $migrationsV2);
+            }
 
-        $this->db->query("CREATE TEMPORARY TABLE known_migration_codes_tmp (migration_code VARCHAR(128) PRIMARY KEY)");
-        $migrationCodesSql = implode(
-            ',',
-            array_map(
-                static function ($migrationCode) {
-                    $escapedCode = dbQv($migrationCode);
-                    return "($escapedCode)";
-                },
-                $migrationCodes
-            )
-        );
-        $this->db->query("INSERT INTO known_migration_codes_tmp (migration_code) VALUES $migrationCodesSql");
+            $migrationCodes = array_map(static function (Migration $migration) {
+                return $migration->getCode();
+            }, $migrations);
 
-        $query = $this->db->query(
-            "SELECT known_migration_codes_tmp.migration_code
+            $this->db->query("CREATE TEMPORARY TABLE known_migration_codes_tmp (migration_code VARCHAR(128) PRIMARY KEY)");
+            $migrationCodesSql = implode(
+                ',',
+                array_map(
+                    static function ($migrationCode) {
+                        $escapedCode = dbQv($migrationCode);
+                        return "($escapedCode)";
+                    },
+                    $migrationCodes
+                )
+            );
+            $this->db->query("INSERT INTO known_migration_codes_tmp (migration_code) VALUES $migrationCodesSql");
+
+            $query = $this->db->query(
+                "SELECT known_migration_codes_tmp.migration_code
 FROM known_migration_codes_tmp
 LEFT JOIN migrations ON migrations.migration_code = known_migration_codes_tmp.migration_code
 WHERE migrations.migration_id IS NULL"
-        );
+            );
 
-        $wrappedUnappliedMigrationCodes = $query->fetch_all();
+            $wrappedUnappliedMigrationCodes = $query->fetch_all();
 
-        $this->db->query("DROP TEMPORARY TABLE known_migration_codes_tmp");
+            $this->db->query("DROP TEMPORARY TABLE known_migration_codes_tmp");
 
-        $unappliedMigrationCodes = array_column($wrappedUnappliedMigrationCodes, 0);
+            $unappliedMigrationCodes = array_column($wrappedUnappliedMigrationCodes, 0);
 
-        return array_filter(
-            $this->getMigrations(),
-            static function (Migration $migration) use ($unappliedMigrationCodes) {
-                return in_array($migration->getCode(), $unappliedMigrationCodes, false);
-            }
-        );
+            $this->unappliedMigrations = array_filter(
+                $migrations,
+                static fn(Migration $migration) => in_array($migration->getCode(), $unappliedMigrationCodes, false)
+            );
+        }
+        return $this->unappliedMigrations;
     }
 
     /**
@@ -172,6 +184,14 @@ SQL
         return $this->migrations;
     }
 
+    private function getNormalMigrations(): array {
+        return array_filter($this->getMigrations(), static fn(Migration $migration) => !$migration->isEndless());
+    }
+
+    private function getEndlessMigrations(): array {
+        return array_filter($this->getMigrations(), static fn(Migration $migration) => $migration->isEndless());
+    }
+
     private function apply(Migration $migration, bool $silent) {
         if (!$silent && $this->webGui) {
             $this->webGui->confirm();
@@ -209,19 +229,25 @@ SQL
         }
     }
 
-    function run(bool $silent = false) {
+    public function run(bool $silent = false) {
         $driver              = new \mysqli_driver();
         $oldReportMode       = $driver->report_mode;
         $driver->report_mode = MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT;
-        if (!$silent && $this->webGui) {
-            $this->webGui->configureEnviroment();
+
+        if ($this->hasUnappliedMigrations()) {
+            if (!$silent && $this->webGui) {
+                $this->webGui->configureEnviroment();
+            }
+
+            $this->handleUnappliedMigrations($silent);
+
+            if (!$silent && $this->webGui) {
+                $this->webGui->cleanupEnviroment();
+            }
         }
 
-        $this->handleNormalMigrations($silent);
+        $this->handleEndlessMigrations();
 
-        if (!$silent && $this->webGui) {
-            $this->webGui->cleanupEnviroment();
-        }
         $driver->report_mode = $oldReportMode;
     }
 

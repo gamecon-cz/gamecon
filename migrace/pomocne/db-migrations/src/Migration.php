@@ -14,6 +14,8 @@ class Migration
         $this->path = $path;
         $this->code = removeDiacritics($code);
         $this->db   = $db;
+        // jen malý, neškodný hack, aby se migrace pouštěla pořád
+        $this->setEndless(str_ends_with(basename($path, '.php'), 'endless'));
     }
 
     public function apply() {
@@ -101,7 +103,7 @@ SQL
         }
     }
 
-    public function setEndless(bool $endless = true) {
+    private function setEndless(bool $endless = true) {
         $this->endless = $endless;
     }
 
