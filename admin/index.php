@@ -33,6 +33,12 @@ if (!$stranka) {
     }
 }
 
+if ($stranka == "api") {
+    chdir(__DIR__ . '/scripts/api/');
+    require $podstranka . '.php';
+    return;
+}
+
 global $systemoveNastaveni;
 $info = new \Gamecon\Web\Info($systemoveNastaveni);
 $info->nazev('Administrace');
@@ -59,9 +65,6 @@ if (!$u && !in_array($stranka, ['last-minute-tabule', 'program-obecny'])) {
     require($stranka . '.php');
 } elseif (is_file(__DIR__ . '/scripts/zvlastni/' . $stranka . '/' . $podstranka . '.php')) {
     chdir(__DIR__ . '/scripts/zvlastni/' . $stranka);
-    require($podstranka . '.php');
-} elseif ($stranka == "api") {
-    chdir(__DIR__ . '/scripts/api/');
     require($podstranka . '.php');
 } else {
     // načtení menu
