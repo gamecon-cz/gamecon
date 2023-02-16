@@ -1,4 +1,4 @@
-<h3>Nový fake účet</h3>
+<h3>Nový fake účet (Vypravěčská skupina)</h3>
 
 <?php
 
@@ -24,7 +24,7 @@ if(post('vypravec')) {
   }
   if($un) {
     $un->dejRoli(Role::VYPRAVECSKA_SKUPINA, $u);
-    echo '<p style="color:green">Uživatel '.$un->jmenoNick().' ('.$un->id().') vytvořen a přidán do seznamu vypravěčů</p>';
+    echo '<p style="color:green">Uživatel ' . $un->jmenoNick() . ' (' . $un->id() . ') vytvořen a přidán do seznamu vypravěčských skupin</p>';
   }
 }
 
