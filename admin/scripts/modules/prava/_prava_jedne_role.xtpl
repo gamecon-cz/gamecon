@@ -11,10 +11,16 @@ Práva role <strong>{nazev_role}</strong> ({popis_role}):
   <tr>
     <td>{jmeno_prava}</td>
     <td>{popis_prava}</td>
-    <td><a href="prava/{id_role}?odeberPravo={id_prava}">vzít roli právo</a></td>
+    <td>
+      <!-- begin:akce -->
+      <a href="prava/{id_role}?odeberPravo={id_prava}">vzít roli právo</a>
+      <!-- end:akce -->
+    </td>
   </tr>
   <!-- end:pravo -->
 </table>
+
+<!-- begin:akce -->
 <form>
   <select name="dejPravo">
     <!-- begin:pravoVyber -->
@@ -22,7 +28,9 @@ Práva role <strong>{nazev_role}</strong> ({popis_role}):
     <!-- end:pravoVyber -->
   </select>
   <input type="submit" value="přidat roli právo">
-</form><br><br>
+</form>
+<!-- end:akce -->
+<br><br>
 
 Seznam uživatelů na této roli:
 <table class="zvyraznovana">
@@ -37,10 +45,16 @@ Seznam uživatelů na této roli:
     <td>{id}</td>
     <td>{nick}</td>
     <td>{jmeno}</td>
-    <td><a href="prava/{id_role}?sesadUzivatele={id}">sesadit uživatele</a></td>
+    <td>
+      <!-- begin:akce -->
+      <a href="prava/{id_role}?sesadUzivatele={id}">sesadit uživatele</a>
+      <!-- end:akce -->
+    </td>
   </tr>
   <!-- end:uzivatel -->
 </table><br>
+
+<!-- begin:akceUzivatel -->
 <!-- begin:posad -->
 <form>
   <input type="hidden" name="posad" value="{id_role}">
@@ -53,5 +67,6 @@ Seznam uživatelů na této roli:
   <input type="submit" value="Sesadit aktuálního uživatele z role">
 </form>
 <!-- end:sesad -->
+<!-- end:akceUzivatel -->
 
 <!-- end:pravaJedneRole -->

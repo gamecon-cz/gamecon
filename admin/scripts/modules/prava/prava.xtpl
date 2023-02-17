@@ -26,6 +26,7 @@
     <td>{nazev_role}</td>
     <td>{popis_role}</td>
     <td>
+      <!-- begin:akce -->
       <!-- begin:posad --><a href="prava?posad={id_role}">posaď</a><!-- end:posad -->
       <!-- begin:sesad -->
       <a href="prava?sesad={id_role}">
@@ -33,6 +34,7 @@
             class="hint">Posadil(a) {posazenKym} {posazenKdy}</span><!-- end:posazenKym --></span>
       </a>
       <!-- end:sesad -->
+      <!-- end:akce -->
     </td>
     <td><a href="prava/{id_role}">detail</a></td>
   </tr>
