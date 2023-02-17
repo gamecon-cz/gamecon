@@ -1,5 +1,7 @@
+import { DefiniceObchod, DefiniceObchodMřížkaBuňka, DefiniceObchodMřížkaBuňkaPředmět, DefiniceObchodMřížkaBuňkaStránka, ObjednávkaPředmět, Předmět } from "./types";
 import { GAMECON_KONSTANTY } from "../../env";
-import { DefiniceObchod, DefiniceObchodMřížka, DefiniceObchodMřížkaBuňka, DefiniceObchodMřížkaBuňkaPředmět, DefiniceObchodMřížkaBuňkaStránka, DefiniceObchodMřížkaBuňkaTyp, ObjednávkaPředmět, Předmět } from "./types";
+import { sleep } from "../../utils";
+import { DefiniceObchodMřížkaBuňkaTyp } from "./types";
 
 /**
  * Typ pro zápis a čtení pro api
@@ -30,11 +32,11 @@ export const fetchMřížky = async (): Promise<DefiniceObchod | null> => {
 
     const obj: DefiniceObchod = {
       mřížky: mřížkyApi.map(mřížkaRaw => ({
-        id: mřížkaRaw.id!,
+        id: mřížkaRaw.id ?? -1,
         text: mřížkaRaw.text,
         buňky: mřížkaRaw.bunky?.map(
           (buňka) => ({
-            typ: DefiniceObchodMřížkaBuňkaTyp[buňka.typ] as string,
+            typ: DefiniceObchodMřížkaBuňkaTyp[buňka.typ] ,
             cilId: buňka.cil_id,
             text: buňka.text,
             barvaPozadí: buňka.barva,
@@ -42,7 +44,7 @@ export const fetchMřížky = async (): Promise<DefiniceObchod | null> => {
           } as DefiniceObchodMřížkaBuňka)
         ) ?? [],
       }))
-    }
+    };
 
     return obj;
   } catch (e) {
@@ -55,13 +57,13 @@ export const fetchNastavMřížky = async (obj: DefiniceObchod) => {
   try {
     const body = JSON.stringify(obj.mřížky.map(mřížka => ({
       id: mřížka.id,
-      text: mřížka?.text,
+      text: mřížka.text,
       bunky: mřížka.buňky.map(buňka => ({
         id: buňka.id,
         barva: buňka.barvaPozadí,
         cil_id: (buňka as (
           DefiniceObchodMřížkaBuňkaPředmět | DefiniceObchodMřížkaBuňkaStránka
-        ))?.cilId,
+        )).cilId,
         text: buňka.text,
         typ: DefiniceObchodMřížkaBuňkaTyp[buňka.typ],
       } as (Required<MřížkaAPI[0]>["bunky"][0])))
@@ -95,7 +97,7 @@ export const fetchPředměty = async (): Promise<Předmět[] | null> => {
     console.error(e);
   }
   return null;
-}
+};
 
 // TODO: využívá formuláře pro poslání postu do adminu - nahradit pomocí admin api
 const fakeFetchProdej = (objednávky: ObjednávkaPředmět[]) => {
@@ -106,27 +108,28 @@ const fakeFetchProdej = (objednávky: ObjednávkaPředmět[]) => {
     const idInput = document.createElement("input");
     idInput.setAttribute("value", objednávka.předmět.id.toString());
     idInput.setAttribute("name", `prodej-mrizka[${i}][id_predmetu]`);
-    formElement.appendChild(idInput)
+    formElement.appendChild(idInput);
 
     const kusuInput = document.createElement("input");
     kusuInput.setAttribute("value", objednávka.množství.toString());
     kusuInput.setAttribute("name", `prodej-mrizka[${i}][kusu]`);
-    formElement.appendChild(kusuInput)
+    formElement.appendChild(kusuInput);
   });
 
   formElement.submit();
-}
+};
 
 /**
  * TODO: aktuálně refreshne stránku!!
  */
 export const fetchProdej = async (objednávky: ObjednávkaPředmět[]): Promise<void> => {
+  await sleep(0);
   try {
     fakeFetchProdej(objednávky);
   } catch (e) {
     console.error(e);
   }
-}
+};
 
 
 

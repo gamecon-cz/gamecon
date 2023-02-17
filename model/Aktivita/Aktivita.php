@@ -232,6 +232,13 @@ SQL
         return (bool)$this->a[Sql::BEZ_SLEVY];
     }
 
+    public function slevaNasobic(\Uzivatel $u = null) {
+        return (!$this->a['bez_slevy'] && $u && $u->gcPrihlasen())
+            ? $u->finance()->slevaAktivity()
+            : 1.
+            ;
+    }
+
     /**
      * Cena aktivity čitelná člověkem, poplatná aktuálnímu okamžiku. V případě
      * uvedení uživatele vrací pro něj specifickou cenu.
@@ -1295,6 +1302,22 @@ SQL
         }
     }
 
+    public function obsazenostObj() {
+        $prihlasenoMuzu      = $this->prihlasenoMuzu(); // počty
+        $prihlasenoZen       = $this->prihlasenoZen();
+        $kapacitaMuzi        = (int)$this->a['kapacita_m']; // kapacity
+        $kapacitaZeny        = (int)$this->a['kapacita_f'];
+        $kapacitaUniverzalni = (int)$this->a['kapacita'];
+
+        return [
+            'm'  => $prihlasenoMuzu,
+            'f'  => $prihlasenoZen,
+            'km' => $kapacitaMuzi,
+            'kf' => $kapacitaZeny,
+            'ku' => $kapacitaUniverzalni
+        ];
+    }
+
     /**
      * Odhlásí uživatele z aktivity
      * @todo kontroly? (např. jestli je aktivní přihlašování?) (administrativní
@@ -1924,7 +1947,7 @@ SQL
     /**
      * @see \Gamecon\Aktivita\StavPrihlaseni
      * Vrátí stav přihlášení uživatele na aktivitu. Pokud není přihlášen, vrací
-     * hodnotu -1.
+     * hodnotu StavPrihlaseni::NEPRIHLASEN.
      */
     public function stavPrihlaseni(Uzivatel $u): int
     {
@@ -1943,7 +1966,7 @@ SQL
             }
         }
 
-        return -1;
+        return StavPrihlaseni::NEPRIHLASEN;
     }
 
     /**

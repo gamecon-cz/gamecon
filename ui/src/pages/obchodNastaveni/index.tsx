@@ -1,1 +1,1 @@
-export { ObchodNastaveni } from './app'
+export { ObchodNastaveni } from "./app";

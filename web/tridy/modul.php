@@ -117,14 +117,24 @@ class Modul
         $this->cssUrls[] = $url;
     }
 
-    public function pridejJsSoubor($cesta)
-    {
-        $cestaKSouboru  = strpos(realpath($cesta), realpath(WWW)) === 0
-            ? $cesta
-            : WWW . '/' . $cesta;
+    /** 
+     * Přidá k js souboru kořenovou cestu webu a verzi
+     * 
+     * @param string $cestaNaWebu cesta ve tvaru soubory/blackarrow/... .js
+     * @return string
+     */
+    function zabalJsSoubor($cestaNaWebu) {
+        $cestaKSouboru  = strpos(realpath($cestaNaWebu), realpath(WWW)) === 0
+        ? $cestaNaWebu
+        : WWW . '/' . $cestaNaWebu;
         $verze          = md5_file($cestaKSouboru);
         $cestaNaWebu    = ltrim(substr(realpath($cestaKSouboru), strlen(realpath(WWW))), '/');
         $url            = URL_WEBU . '/' . $cestaNaWebu . '?version=' . $verze;
+        return $url;
+    }
+
+    function pridejJsSoubor($cestaNaWebu) {
+        $url = $this->zabalJsSoubor($cestaNaWebu);
         $this->jsUrls[] = $url;
     }
 
