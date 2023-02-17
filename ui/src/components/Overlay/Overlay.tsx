@@ -1,9 +1,10 @@
 import { FunctionComponent } from "preact";
+
 import "./Overlay.less";
 
 type TOverlayProps = {
   onClickOutside?: () => void;
-};
+}
 
 export const Overlay: FunctionComponent<TOverlayProps> = (props) => {
   const { children, onClickOutside } = props;

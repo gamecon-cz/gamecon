@@ -1,43 +1,48 @@
 import { FunctionComponent } from "preact";
-import { useContext } from "preact/hooks";
-import { GAMECON_KONSTANTY } from "../../../../env";
-import {
-  formátujDatum,
-} from "../../../../utils";
-import {
-  porovnejTabulkaVýběr,
-  ProgramURLState,
-} from "../../routing";
+import { useProgramStore } from "../../../../store/program";
+import { formátujDatum } from "../../../../utils";
+import produce from "immer";
+import { generujUrl, porovnejTabulkaVýběr } from "../../../../store/program/logic/url";
 
 type ProgramUživatelskéVstupyProps = {};
 
 export const ProgramUživatelskéVstupy: FunctionComponent<
   ProgramUživatelskéVstupyProps
 > = (props) => {
-  const { možnosti, setUrlState, urlState } = useContext(ProgramURLState);
-
-  const rok = GAMECON_KONSTANTY.ROCNIK;
+  const {} = props;
+  const urlState = useProgramStore((s) => s.urlState);
+  const urlStateMožnosti = useProgramStore(s=>s.urlStateMožnosti);
 
   return (
     <>
       <div class="program_hlavicka">
-        <h1>Program {rok}</h1>
+        <h1>Program {urlState.rok}</h1>
         <div class="program_dny">
-          {možnosti.map((možnost) => {
+          {urlStateMožnosti.map((možnost) => {
             return (
-              <button
+              <a
+                href={
+                  generujUrl(produce(urlState, (s) => {
+                    s.výběr = možnost;
+                  }))
+                }
                 class={
                   "program_den" +
                   (porovnejTabulkaVýběr(možnost, urlState.výběr)
                     ? " program_den-aktivni"
                     : "")
                 }
-                onClick={() => setUrlState({ výběr: možnost })}
+                onClick={(e) => {
+                  e.preventDefault();
+                  useProgramStore.setState((s) => {
+                    s.urlState.výběr = možnost;
+                  }, undefined, "nastav program den");
+                }}
               >
                 {možnost.typ === "můj"
                   ? "můj program"
                   : formátujDatum(možnost.datum)}
-              </button>
+              </a>
             );
           })}
         </div>

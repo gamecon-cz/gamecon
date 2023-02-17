@@ -8,7 +8,7 @@ type TObchodShrnutíProps = {
   předmětOdeber: (předmět: Předmět) => void;
   onDalšíPředmět?: () => void;
   onStorno?: () => void;
-};
+}
 
 export const ObchodShrnutí: FunctionComponent<TObchodShrnutíProps> = (props) => {
   const {
@@ -28,7 +28,7 @@ export const ObchodShrnutí: FunctionComponent<TObchodShrnutíProps> = (props) =
             <div class="obchod-shrnuti-seznam--item-buttons">
               <button
                 class="obchod-shrnuti-seznam--item-buttons-remove"
-                onClick={() => předmětOdeber(x.předmět)}
+                onClick={() => { předmětOdeber(x.předmět); }}
               >
                 -
               </button>
@@ -38,7 +38,7 @@ export const ObchodShrnutí: FunctionComponent<TObchodShrnutíProps> = (props) =
               ></input>
               <button
                 class="obchod-shrnuti-seznam--item-buttons-add"
-                onClick={() => předmětPřidej(x.předmět)}
+                onClick={() => { předmětPřidej(x.předmět); }}
               >
                 +
               </button>

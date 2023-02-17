@@ -17,10 +17,8 @@ for ($den = new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen())
 $nastaveni       = [];
 $alternativniUrl = null;
 $title           = 'Program';
+// TODO: přesunout logiku práce s URL za program/ do preactu
 if ($url->cast(1) === 'muj') {
-    if (!$u) {
-        throw new Neprihlasen();
-    }
     $nastaveni[Program::OSOBNI] = true;
     $title                      = 'Můj program';
 } else if (isset($dny[$url->cast(1)])) {
@@ -42,9 +40,6 @@ $program->zpracujPost($u);
 foreach ($program->cssUrls() as $cssUrl) {
     $this->pridejCssUrl($cssUrl);
 }
-$this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program-nahled/program-nahled.js');
-$this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program-posuv/program-posuv.js');
-$this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/_spolecne/zachovej-scroll.js');
 
 $zacatekPrvniVlnyOd       = \Gamecon\Cas\DateTimeGamecon::zacatekPrvniVlnyOd();
 $zacatekPrvniVlnyZaSekund = $zacatekPrvniVlnyOd->getTimestamp() - time();
@@ -52,101 +47,71 @@ $zacatekPrvniVlnyZaSekund = $zacatekPrvniVlnyOd->getTimestamp() - time();
 $legendaText   = Stranka::zUrl('program-legenda-text')->html();
 $jeOrganizator = isset($u) && $u && $u->maPravo(P_ORG_AKTIVIT);
 
-// pomocná funkce pro zobrazení aktivního odkazu
-$aktivni = function ($urlOdkazu) use ($url, $alternativniUrl) {
-    $cssTridy = 'program_den';
-
-    if ($urlOdkazu == $url->cela() || $urlOdkazu == $alternativniUrl) {
-        $cssTridy .= ' program_den-aktivni';
-    }
-
-    return 'href="' . $urlOdkazu . '" class="' . $cssTridy . '"';
-};
-
-$zobrazitMujProgramOdkaz = isset($u);
-
 ?>
 
 <style>
     /* na stránce programu nedělat sticky menu, aby bylo maximum místa pro progam */
     .menu {
-        position: relative; /* relative, aby fungoval z-index */
+        position: relative;
+        /* relative, aby fungoval z-index */
     }
 </style>
 
-<!-- relativní obal kvůli náhledu -->
-<div style="position: relative">
 
-    <?php require __DIR__ . '/../soubory/blackarrow/program-nahled/program-nahled.html'; ?>
+<?php
+function zabalSoubor(string $cestaKSouboru): string
+{
+    return $cestaKSouboru . '?version=' . md5_file(ADMIN . '/' . $cestaKSouboru);
+}
+?>
 
-    <div class="program_hlavicka">
-        <?php if ($u) { ?>
-            <!-- zatim nefunguje            <a href="program-k-tisku" class="program_tisk" target="_blank">Můj program v PDF</a>-->
-        <?php } ?>
-        <h1>Program <?= ROCNIK ?></h1>
-        <div class="program_dny">
-            <?php foreach ($dny as $denSlug => $den) { ?>
-                <a <?= $aktivni('program/' . $denSlug) ?>><?= $den->format('l d.n.') ?></a>
-            <?php } ?>
-            <?php if ($zobrazitMujProgramOdkaz) { ?>
-                <a <?= $aktivni('program/muj') ?>>můj program</a>
-            <?php } ?>
-        </div>
-    </div>
+<link rel="stylesheet" href="<?= zabalSoubor('/../web/soubory/ui/style.css') ?>">
 
-    <div class="program_legenda">
+<div id="preact-program">Program se načítá ...</div>
+<script>
+    // Konstanty předáváné do Preactu (env.ts)
+    window.GAMECON_KONSTANTY = {
+        BASE_PATH_API: "<?= URL_WEBU . "/api/" ?>",
+        BASE_PATH_PAGE: "<?= URL_WEBU . "/program/" ?>",
+        ROCNIK: <?= ROCNIK ?>,
+        LEGENDA: <?= json_encode($legendaText) ?>,
+        FORCE_REDUX_DEVTOOLS: <?= defined("FORCE_REDUX_DEVTOOLS") ? "true" : "false" ?>,
+        PROGRAM_OD: <?= (new DateTimeCz(PROGRAM_OD))->getTimestamp() ?>000,
+        PROGRAM_DO: <?= (new DateTimeCz(PROGRAM_DO))->getTimestamp() ?>000,
+    }
 
-        <div class="informaceSpustime"><?= $legendaText ?></div>
+    window.gameconPřednačtení =
+        <?php
+        $res = [];
+        if ($u) {
+            $res["prihlasen"] = true;
+            $res["pohlavi"] = $u->pohlavi();
+            $res["koncovkaDlePohlavi"] = $u->koncovkaDlePohlavi();
 
-        <div class="program_legenda_inner">
-            <span class="program_legenda_typ">Otevřené</span>
-            <span class="program_legenda_typ vDalsiVlne">V další vlně</span>
-            <span class="program_legenda_typ vBudoucnu">Připravujeme</span>
-            <span class="program_legenda_typ sledujici">Sleduji</span>
-            <span class="program_legenda_typ prihlasen">Přihlášen<?= $u ? $u->koncovkaDlePohlavi() : '' ?></span>
-            <span class="program_legenda_typ plno">Plno</span>
-            <?php if ($jeOrganizator) { ?>
-                <span class="program_legenda_typ organizator">organizuji</span>
-            <?php } ?>
-        </div>
-    </div>
+            if ($u->jeOrganizator()) {
+                $res["organizator"] = true;
+            }
+            if ($u->jeBrigadnik()) {
+                $res["brigadnik"] = true;
+            }
 
+            $res["gcStav"] = "nepřihlášen";
 
-    <div class="programNahled_obalProgramu">
-        <div class="programPosuv_obal2">
-            <div class="programPosuv_obal">
-                <?php $program->tisk(); ?>
-            </div>
-        </div>
-    </div>
+            if ($u->gcPrihlasen()) {
+                $res["gcStav"] = "přihlášen";
+            }
+            if ($u->gcPritomen()) {
+                $res["gcStav"] = "přítomen";
+            }
+            if ($u->gcOdjel()) {
+                $res["gcStav"] = "odjel";
+            }
+        }
+        // TODO: použít jednu logiku stejně jako z API
+        echo json_encode(["přihlášenýUživatel" => $res], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        ?>
+</script>
 
-</div>
+<script type="module" src="<?= zabalSoubor('/../web/soubory/ui/bundle.js') ?>"></script>
 
 <div style="height: 70px"></div>
-
-<script type="text/javascript">
-    programNahled(
-        document.querySelector('.programNahled_obalNahledu'),
-        document.querySelector('.programNahled_obalProgramu'),
-        document.querySelectorAll('.programNahled_odkaz'),
-        document.querySelectorAll('.program form > a'),
-    )
-
-    zachovejScroll(
-        document.querySelectorAll('.program form > a'),
-        document.querySelector('.programPosuv_obal'),
-    )
-
-    programPosuv(document.querySelector('.programPosuv_obal2'))
-
-    <?php if ($zacatekPrvniVlnyZaSekund > 0) {
-    $zacatekPrvniVlnyZaMilisekund = $zacatekPrvniVlnyZaSekund * 1000;
-    if ($zacatekPrvniVlnyZaMilisekund > 0) { ?> /*kdyby to náhodou přeteklo za 2^32 -1 */
-    if (<?= $zacatekPrvniVlnyZaMilisekund ?> <= 2147483647) {
-        setTimeout(function () {
-            location.reload()
-        }, <?= $zacatekPrvniVlnyZaMilisekund ?>)
-    }
-    <?php }
-    } ?>
-</script>

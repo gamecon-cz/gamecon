@@ -4,6 +4,7 @@ namespace Gamecon\Aktivita;
 
 class StavPrihlaseni
 {
+    public const NEPRIHLASEN             = -1;
     public const PRIHLASEN               = 0;
     public const PRIHLASEN_A_DORAZIL     = 1;
     public const DORAZIL_JAKO_NAHRADNIK  = 2;
