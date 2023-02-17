@@ -22,6 +22,8 @@ class Role extends \DbObject
     public const SPRAVCE_FINANCI_GC   = 20; // Organizátor, který může nakládat s financemi GC
     public const PREZENCNI_ADMIN      = 16; // Pro změnu účastníků v uzavřených aktivitách. NEBEZPEČNÉ, NEPOUŽÍVAT!
     public const VYPRAVECSKA_SKUPINA  = 9; // Organizátorská skupina pořádající na GC (dodavatelé, …)
+    public const CLEN_RADY            = 23;
+    public const SEF_INFOPULTU        = 24;
 
     // DOČASNÉ ROČNÍKOVÉ ROLE
     public const LETOSNI_VYPRAVEC             = ROLE_VYPRAVEC; // Organizátor aktivit na GC
@@ -80,6 +82,8 @@ class Role extends \DbObject
     public const VYZNAM_SPRAVCE_FINANCI_GC  = 'SPRAVCE_FINANCI_GC';
     public const VYZNAM_ADMIN               = 'ADMIN';
     public const VYZNAM_VYPRAVECSKA_SKUPINA = 'VYPRAVECSKA_SKUPINA';
+    public const VYZNAM_CLEN_RADY           = 'CLEN_RADY';
+    public const VYZNAM_SEF_INFOPULTU       = 'SEF_INFOPULTU';
     // TYP ROCNIKOVE
     public const VYZNAM_BRIGADNIK            = 'BRIGADNIK';
     public const VYZNAM_DOBROVOLNIK_SENIOR   = 'DOBROVOLNIK_SENIOR';
@@ -108,6 +112,8 @@ class Role extends \DbObject
             Role::SPRAVCE_FINANCI_GC,
             Role::PREZENCNI_ADMIN,
             Role::VYPRAVECSKA_SKUPINA,
+            Role::CLEN_RADY,
+            Role::SEF_INFOPULTU,
         ];
     }
 

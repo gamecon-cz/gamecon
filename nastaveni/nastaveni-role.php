@@ -4,15 +4,6 @@ use Gamecon\Role\Role;
 
 // role - nepoužívat pro vyjádření atributů (slev, možnosti se přihlašovat, …), na to jsou práva
 
-// trvalé role
-if (!defined('ROLE_ORGANIZATOR')) define('ROLE_ORGANIZATOR', Role::ORGANIZATOR);
-if (!defined('ROLE_PUL_ORG_BONUS_UBYTKO')) define('ROLE_PUL_ORG_BONUS_UBYTKO', Role::PUL_ORG_BONUS_UBYTKO);
-if (!defined('ROLE_PUL_ORG_BONUS_TRICKO')) define('ROLE_PUL_ORG_BONUS_TRICKO', Role::PUL_ORG_BONUS_TRICKO);
-if (!defined('ROLE_CESTNY_ORGANIZATOR')) define('ROLE_CESTNY_ORGANIZATOR', Role::CESTNY_ORGANIZATOR);
-if (!defined('ROLE_SPRAVCE_FINANCI_GC')) define('ROLE_SPRAVCE_FINANCI_GC', Role::SPRAVCE_FINANCI_GC);
-if (!defined('ROLE_ADMIN')) define('ROLE_PREZENCNI_ADMIN', Role::PREZENCNI_ADMIN);
-if (!defined('ROLE_VYPRAVECSKA_SKUPINA')) define('ROLE_VYPRAVECSKA_SKUPINA', Role::VYPRAVECSKA_SKUPINA);
-
 // ročníkové role (židle) účasti
 if (!defined('ROLE_PRIHLASEN')) define('ROLE_PRIHLASEN', Role::PRIHLASEN_NA_LETOSNI_GC()); // přihlášen na GameCon
 if (!defined('ROLE_PRITOMEN')) define('ROLE_PRITOMEN', Role::PRITOMEN_NA_LETOSNIM_GC());    // prošel infopulteP_ORG_AKm a je na GameConu
