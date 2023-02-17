@@ -10,7 +10,7 @@ import "./ObchodMřížka.less";
 type TObchodMřížkaProps = {
   onBuňkaClicked?: (buňka: DefiniceObchodMřížkaBuňka) => void;
   mřížka: DefiniceObchodMřížka;
-}
+};
 
 export const ObchodMřížka: FunctionComponent<TObchodMřížkaProps> = (props) => {
   const { onBuňkaClicked, mřížka: mřížka } = props;
@@ -27,7 +27,7 @@ export const ObchodMřížka: FunctionComponent<TObchodMřížkaProps> = (props)
               : undefined;
 
           const text = !x.text && předmět ? předmět.název : x.text;
-          const cena = předmět?.cena ? `${předmět.cena}Kč` : "";
+          const cena = předmět?.cena ? předmět.cena + "Kč" : "";
           const kusů = předmět?.zbývá ? `(${předmět.zbývá})` : "";
 
           return (

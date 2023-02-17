@@ -1,14 +1,13 @@
-import { FunctionComponent } from "preact";
-import { createContext } from "preact";
-import { useEffect, useState } from "preact/hooks";
+import { createContext, FunctionComponent } from "preact";
+import { useCallback, useEffect, useState } from "preact/hooks";
 import { fetchMřížky, fetchPředměty } from "../../api/obchod/endpoints";
-import { DefiniceObchod, Předmět } from "../../api/obchod/types";
+import { DefiniceObchod, DefiniceObchodMřížka, Předmět } from "../../api/obchod/types";
 import { Obchod } from "./components/Obchod";
 import "./App.less";
 
 type TAppProps = {
 
-}
+};
 
 // TODO: hodně společné logika pro Obchod a Obchod nastavení, sjednotit
 
@@ -17,7 +16,7 @@ export const PředmětyContext = createContext<Předmět[]>([]);
 const usePředměty = () => {
   const [předměty, setPředměty] = useState<Předmět[] | null | undefined>();
   useEffect(() => {
-    void (async () => {
+    (async () => {
       setPředměty(await fetchPředměty());
     })();
   }, []);
@@ -35,7 +34,7 @@ export const App: FunctionComponent<TAppProps> = (props) => {
   const předměty = usePředměty();
 
   useEffect(() => {
-    void (async () => {
+    (async () => {
       setDefiniceObchod(await fetchMřížky());
     })();
   }, []);

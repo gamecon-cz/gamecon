@@ -9,7 +9,7 @@ type TObchodShrnutíProps = {
   onDalšíPředmět?: () => void;
   onStorno?: () => void;
   onPotvrdit?: () => void;
-}
+};
 
 export const ObchodShrnutí: FunctionComponent<TObchodShrnutíProps> = (props) => {
   const {
@@ -19,7 +19,7 @@ export const ObchodShrnutí: FunctionComponent<TObchodShrnutíProps> = (props) =
     předmětOdeber,
     předmětPřidej,
   
-    onPotvrdit} = props;
+  onPotvrdit} = props;
 
   const seznam = (
     <div class="shop-summary-list--container">
@@ -30,7 +30,7 @@ export const ObchodShrnutí: FunctionComponent<TObchodShrnutíProps> = (props) =
             <div class="shop-summary-list--item-buttons">
               <button
                 class="shop-summary-list--item-buttons-remove"
-                onClick={() => { předmětOdeber(x.předmět); }}
+                onClick={() => předmětOdeber(x.předmět)}
               >
                 -
               </button>
@@ -40,7 +40,7 @@ export const ObchodShrnutí: FunctionComponent<TObchodShrnutíProps> = (props) =
               ></input>
               <button
                 class="shop-summary-list--item-buttons-add"
-                onClick={() => { předmětPřidej(x.předmět.id); }}
+                onClick={() => předmětPřidej(x.předmět.id)}
               >
                 +
               </button>
@@ -67,7 +67,7 @@ export const ObchodShrnutí: FunctionComponent<TObchodShrnutíProps> = (props) =
           Storno!
         </button>
         <button class="shop-summary--item shop-summary--item-submit"
-          onClick={onPotvrdit}>
+        onClick={onPotvrdit}>
           Potvrdit
         </button>
         <div class="shop-summary--item shop-summary--item-list">{seznam}</div>
