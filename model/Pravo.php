@@ -20,6 +20,7 @@ class Pravo extends \DbObject
     public const PLNY_SERVIS            = 7; // Uživatele kompletně platí a zajišťuje GC
     public const ZMENA_HISTORIE_AKTIVIT = 8; // Může přihlašovat a odhlašovat lidi z aktivit, které už proběhly
 
+    // Práva pro panely v adminu
     public const ADMINISTRACE_INFOPULT      = 100;
     public const ADMINISTRACE_UBYTOVANI     = 101;
     public const ADMINISTRACE_AKCE          = 102;
@@ -42,7 +43,7 @@ class Pravo extends \DbObject
      * modré tričko zdarma při slevě, jejíž hodnota je určená konstantou @see MODRE_TRICKO_ZDARMA_OD
      * @see \Gamecon\SystemoveNastaveni\SystemoveNastaveni::definujOdvozeneKonstanty
      */
-    public const MODRE_TRICKO_ZDARMA                         = 1012; // modré tričko zdarma při slevě, jejíž hodnota je určená konstantou MODRE_TRICKO_ZDARMA_OD
+    public const MODRE_TRICKO_ZDARMA                         = 1012;
     public const UBYTOVANI_STREDECNI_NOC_ZDARMA              = 1015;
     public const NERUSIT_AUTOMATICKY_OBJEDNAVKY              = 1016; // uživateli se při nezaplacení včas nebudou automaticky rušit objednávky
     public const UBYTOVANI_NEDELNI_NOC_ZDARMA                = 1018;
@@ -59,6 +60,7 @@ class Pravo extends \DbObject
     public const UBYTOVANI_CTVRTECNI_NOC_ZDARMA              = 1029;
     public const UBYTOVANI_PATECNI_NOC_ZDARMA                = 1030;
     public const UBYTOVANI_SOBOTNI_NOC_ZDARMA                = 1031;
+    public const HROMADNA_AKTIVACE_AKTIVIT                   = 1032; // Může použít nebezpečné tlačítko "Aktivovat hromadně" u aktivit
 
     public static function dejIdsVsechPrav(): array {
         static $idsVsechPrav;

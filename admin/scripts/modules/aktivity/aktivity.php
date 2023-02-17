@@ -5,6 +5,7 @@ use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Aktivita\StavAktivity;
+use Gamecon\Pravo;
 
 /**
  * Stránka pro tvorbu a správu aktivit.
@@ -59,7 +60,7 @@ if (post('aktivovat')) {
     back();
 }
 
-if (post('aktivovatVse')) {
+if (post('aktivovatVse') && $u->maPravo(Pravo::HROMADNA_AKTIVACE_AKTIVIT)) {
     Aktivita::aktivujVsePripravene(ROCNIK);
     back();
 }
@@ -141,6 +142,7 @@ foreach ($aktivity as $aktivita) {
 }
 
 if ($filtr == ['rok' => ROCNIK]) {
+    $tpl->assign('disabled', $u->maPravo(Pravo::HROMADNA_AKTIVACE_AKTIVIT) ? '' : 'disabled');
     $tpl->parse('aktivity.aktivovatVse');
 }
 
