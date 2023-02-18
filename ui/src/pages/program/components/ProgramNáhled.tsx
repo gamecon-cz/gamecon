@@ -1,16 +1,18 @@
 import { FunctionComponent } from "preact";
 import { useEffect, useRef } from "preact/hooks";
-import { useAktivitaNáhled } from "../../../store/program/selektory";
+import {
+  useAktivitaNáhled,
+  useUživatel,
+} from "../../../store/program/selektory";
 import { skryjAktivitaNáhledId } from "../../../store/program/slices/urlSlice";
-
-
+import { Obsazenost } from "./tabulka/Obsazenost";
 
 type ProgramNáhledProps = {};
 
-// TODO: obsazenost
+// TODO: přihlašovátko ?
 export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) => {
   const {} = props;
-  const aktivita = useAktivitaNáhled();
+  const { aktivita, aktivitaPřihlášen } = useAktivitaNáhled();
 
   const programNáhledTextRef = useRef<HTMLDivElement>(null);
 
@@ -30,7 +32,10 @@ export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) =>
         <div class="programNahled_placeholder"></div>
 
         <div class="programNahled_obsah">
-          <div class="programNahled_zaviratko" onClick={skryjAktivitaNáhledId}></div>
+          <div
+            class="programNahled_zaviratko"
+            onClick={skryjAktivitaNáhledId}
+          ></div>
           <div class="programNahled_hlavicka">
             <div
               class="programNahled_nazev"
@@ -60,12 +65,36 @@ export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) =>
           </div>
           <div class="programNahled_paticka">
             <img class="programNahled_obrazek" src={aktivita?.obrazek} />
-            <div class="programNahled_obsazenost"></div>
+            <div class="programNahled_obsazenost">
+              {` `}
+              <Obsazenost
+                obsazenost={aktivitaPřihlášen?.obsazenost}
+                prihlasovatelna={aktivitaPřihlášen?.prihlasovatelna ?? false}
+                probehnuta={aktivita?.probehnuta ?? false}
+                bezObalu
+              />
+            </div>
             <div
               class="programNahled_cas"
               dangerouslySetInnerHTML={{ __html: aktivita?.casText ?? "" }}
             ></div>
-            <div class="programNahled_cena">{aktivita?.cenaZaklad}</div>
+            <div class="programNahled_cena">
+              {aktivitaPřihlášen?.slevaNasobic !== 0 &&
+              aktivita?.cenaZaklad !== 0
+                ? aktivita?.cenaZaklad != undefined
+                  ? aktivita?.cenaZaklad *
+                    (aktivitaPřihlášen?.slevaNasobic ?? 1)
+                  : " - "
+                : "zdarma"}
+              <p style={{ opacity: 0.3, display:"inline" }}>
+                {aktivitaPřihlášen?.slevaNasobic !== undefined &&
+                aktivitaPřihlášen?.slevaNasobic !== 1
+                  ? `*(osobni sleva ${
+                    (1 - aktivitaPřihlášen?.slevaNasobic) * 100
+                  }%)`
+                  : undefined}
+              </p>
+            </div>
           </div>
         </div>
       </div>

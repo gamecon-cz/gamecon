@@ -1,5 +1,4 @@
 import { FunctionComponent } from "preact";
-import { useProgramStore } from "../../../../store/program";
 import { formátujDatum } from "../../../../utils";
 import produce from "immer";
 import { generujUrl, porovnejTabulkaVýběr } from "../../../../store/program/logic/url";

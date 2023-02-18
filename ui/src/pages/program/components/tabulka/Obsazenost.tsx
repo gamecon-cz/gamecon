@@ -6,10 +6,11 @@ type TObsazenostProps = {
   obsazenost: ObsazenostTyp | undefined;
   prihlasovatelna: boolean;
   probehnuta: boolean;
+  bezObalu?: boolean;
 };
 
 export const Obsazenost: FunctionComponent<TObsazenostProps> = (props) => {
-  const { obsazenost, prihlasovatelna, probehnuta } = props;
+  const { obsazenost, prihlasovatelna, probehnuta, bezObalu } = props;
 
   let aktivitaObsazenost: JSX.Element | undefined = undefined;
   if (obsazenost) {
@@ -18,7 +19,7 @@ export const Obsazenost: FunctionComponent<TObsazenostProps> = (props) => {
 
     const celkem = m + f;
     const kapacitaCelkem = km + kf + ku;
-    // TODO: jak poznám aktivitu bez omezení ?
+
     if (kapacitaCelkem) {
       if (!prihlasovatelna && !probehnuta) {
         aktivitaObsazenost = (
@@ -50,7 +51,7 @@ export const Obsazenost: FunctionComponent<TObsazenostProps> = (props) => {
           aktivitaObsazenost = <>{` (${f + m}/${ku})`}</>;
           break;
       }
-      if (aktivitaObsazenost) {
+      if (aktivitaObsazenost && !bezObalu) {
         aktivitaObsazenost = (
           <>
             <span class="program_obsazenost">{aktivitaObsazenost}</span>

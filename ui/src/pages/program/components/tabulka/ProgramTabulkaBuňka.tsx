@@ -1,23 +1,22 @@
 import produce from "immer";
 import { FunctionComponent } from "preact";
-import { Aktivita, AktivitaPřihlášen } from "../../../../api/program";
+import { APIAktivita, APIAktivitaPřihlášen } from "../../../../api/program";
 import { Pohlavi } from "../../../../api/přihlášenýUživatel";
 import { generujUrl } from "../../../../store/program/logic/url";
-import { useAktivita, useUrlState, useUrlVýběr, useUživatelPohlaví } from "../../../../store/program/selektory";
+import { useAktivita, useUrlState, useUživatelPohlaví } from "../../../../store/program/selektory";
 import { nastavUrlAktivitaNáhledId } from "../../../../store/program/slices/urlSlice";
 import { volnoTypZObsazenost } from "../../../../utils";
 import { Obsazenost } from "./Obsazenost";
 import { Přihlašovátko } from "./Přihlašovátko";
-import { SeskupováníAktivit } from "./seskupování";
 
 const aktivitaTřídy = (
-  aktivita: Aktivita,
-  aktivitaPřihlášen: AktivitaPřihlášen,
+  aktivita: APIAktivita,
+  aktivitaPřihlášen: APIAktivitaPřihlášen,
   pohlavi: Pohlavi | undefined
 ) => {
   const classes: string[] = [];
   if (
-    aktivitaPřihlášen.prihlasen &&
+    aktivitaPřihlášen.stavPrihlaseni != undefined &&
     aktivitaPřihlášen.stavPrihlaseni !== "sledujici"
   ) {
     classes.push("prihlasen");

@@ -1,7 +1,7 @@
 import { GAMECON_KONSTANTY } from "../../env";
 import { fetchTestovacíAktivity, fetchTestovacíAktivityPřihlášen } from "../../testing/fakeAPI";
 
-export type ActivityStatus =
+export type AktivitaStatus =
   | "vDalsiVlne"
   | "vBudoucnu"
   | "plno"
@@ -32,8 +32,7 @@ export type OdDo = {
   do: number,
 };
 
-// TODO: zhodnotit jestli obsazenost a další vlastnosti které se s vysokou pravděpodobností budou během gc hodně měnit nemají být taky v AktivitaPřihlášen pro jednodušší cache
-export type Aktivita = {
+export type APIAktivita = {
   id: number,
   nazev: string,
   kratkyPopis: string,
@@ -54,12 +53,9 @@ export type Aktivita = {
   tymova?: boolean,
 }
 
-export type AktivitaPřihlášen = {
+export type APIAktivitaPřihlášen = {
   id: number,
   obsazenost?: Obsazenost,
-  // TODO: odebrat přihlášen, redundantní k stavPrihlaseni
-  /** uživatelská vlastnost */
-  prihlasen?: boolean,
   /** V jakém stavu je pokud je přihlášen */
   stavPrihlaseni?: StavPřihlášení,
   /** uživatelská vlastnost */
@@ -73,9 +69,7 @@ export type AktivitaPřihlášen = {
   prihlasovatelna?: boolean,
 }
 
-// TODO: dotahovat zvlášť aktivity a metadata k nim (současně posílá moc velký soubor)
-
-export const fetchAktivity = async (rok: number): Promise<Aktivita[]> => {
+export const fetchAktivity = async (rok: number): Promise<APIAktivita[]> => {
   if (GAMECON_KONSTANTY.IS_DEV_SERVER) {
     return fetchTestovacíAktivity(rok);
   }
@@ -84,7 +78,7 @@ export const fetchAktivity = async (rok: number): Promise<Aktivita[]> => {
 };
 
 
-export const fetchAktivityPřihlášen = async (rok: number): Promise<AktivitaPřihlášen[]> => {
+export const fetchAktivityPřihlášen = async (rok: number): Promise<APIAktivitaPřihlášen[]> => {
   if (GAMECON_KONSTANTY.IS_DEV_SERVER) {
     return fetchTestovacíAktivityPřihlášen(rok);
   }

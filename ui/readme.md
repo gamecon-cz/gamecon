@@ -66,3 +66,6 @@ export const createExampleSlice: MyStateCreator<ExmampleSlice> = (set, get) => (
   },
 });
 ```
+
+TODO:
+navrhnout a implementovat politiku updatů programu pro cache

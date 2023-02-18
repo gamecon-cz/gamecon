@@ -1,8 +1,8 @@
-import { Aktivita, Obsazenost, OdDo } from "../api/program";
+import { APIAktivita, Obsazenost, OdDo } from "../api/program";
 import { containsSame } from ".";
 
 
-export const tagyZAktivit = (aktivity: Aktivita[]): string[] => {
+export const tagyZAktivit = (aktivity: APIAktivita[]): string[] => {
   const tagyMap = new Set<string>();
 
   for (let i = aktivity.length; i--;) {
@@ -20,7 +20,7 @@ export const tagyZAktivit = (aktivity: Aktivita[]): string[] => {
 /**
  * @param denVyber Zatím dokud nebude vyřešeno jinak
  */
-export const getFiltredActivities = (activity: Aktivita[], linie: string[], tagy: string[], denVyber: string): Aktivita[] => {
+export const getFiltredActivities = (activity: APIAktivita[], linie: string[], tagy: string[], denVyber: string): APIAktivita[] => {
   console.log(denVyber);
   return (
     tagy.length
@@ -52,7 +52,7 @@ export const volnoTypZObsazenost = (obsazenost: Obsazenost) => {
   return "u"; //je volno a žádné pohlaví nevyžralo limit míst
 };
 
-export const casRozsahZAktivit = (aktivity: Aktivita[]): OdDo => {
+export const casRozsahZAktivit = (aktivity: APIAktivita[]): OdDo => {
   // TODO: better way, spread operator passes arguments through stack, not optimal
   const casOd = Math.min(...aktivity.map(x => x.cas.od));
   const casDo = Math.max(...aktivity.map(x => x.cas.do));

@@ -1,5 +1,5 @@
 import produce from "immer";
-import { Aktivita, AktivitaPřihlášen } from "../api/program";
+import { APIAktivita, APIAktivitaPřihlášen } from "../api/program";
 import { GAMECON_KONSTANTY } from "../env";
 import { useProgramStore } from "../store/program";
 
@@ -33,7 +33,7 @@ const resetStav = {
   },
 };
 
-type AktivitaSPřihlášen = { aktivita: Aktivita, přihlášen: AktivitaPřihlášen };
+type AktivitaSPřihlášen = { aktivita: APIAktivita, přihlášen: APIAktivitaPřihlášen };
 
 const časV = (hodina: number) => {
   const dateObj = new Date(GAMECON_KONSTANTY.PROGRAM_OD);

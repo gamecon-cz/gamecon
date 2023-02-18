@@ -25,12 +25,12 @@ const FormTlačítko: FunctionComponent<{ id: number; typ: FormTlačítkoTyp }> 
     typ === "prihlasit"
       ? "přihlásit"
       : typ === "odhlasit"
-      ? "odhlásit"
-      : typ === "prihlasSledujiciho"
-      ? "sledovat"
-      : typ === "odhlasSledujiciho"
-      ? "zrušit sledování"
-      : "";
+        ? "odhlásit"
+        : typ === "prihlasSledujiciho"
+          ? "sledovat"
+          : typ === "odhlasSledujiciho"
+            ? "zrušit sledování"
+            : "";
 
   return (
     <form ref={formRef} method="post" style="display:inline">

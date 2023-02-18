@@ -1,6 +1,6 @@
 import { FunctionComponent } from "preact";
 import { useRef } from "preact/hooks";
-import { range, volnoTypZObsazenost } from "../../../../utils";
+import { range } from "../../../../utils";
 import { ProgramPosuv } from "./ProgramPosuv";
 import {
   PROGRAM_DNY_TEXT,
@@ -41,7 +41,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
 
   const aktivityFiltrované = aktivity.filter((aktivita) =>
     urlStateVýběr.typ === "můj"
-      ? aktivityPřihlášen.find((x) => x.id === aktivita.id)?.prihlasen
+      ? aktivityPřihlášen.find((x) => x.id === aktivita.id)?.stavPrihlaseni != undefined
       : new Date(aktivita.cas.od).getDay() === urlStateVýběr.datum.getDay()
   );
 

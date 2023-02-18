@@ -1,4 +1,4 @@
-import { Aktivita, OdDo } from "../../../../api/program";
+import { APIAktivita, OdDo } from "../../../../api/program";
 import { GAMECON_KONSTANTY } from "../../../../env";
 import { formátujDenVTýdnu, zip } from "../../../../utils";
 
@@ -31,18 +31,18 @@ export enum SeskupováníAktivit {
   den = "den",
 }
 
-type SkupinyAktivit = { [klíč: string]: Aktivita[] };
+type SkupinyAktivit = { [klíč: string]: APIAktivita[] };
 
 export const PROGRAM_DNY_TEXT = GAMECON_KONSTANTY.PROGRAM_DNY.map((x) =>
   formátujDenVTýdnu(x, true)
 );
 
-const seskupAktivity = (aktivity: Aktivita[], seskupitPodle = SeskupováníAktivit.linie): SkupinyAktivit => {
+const seskupAktivity = (aktivity: APIAktivita[], seskupitPodle = SeskupováníAktivit.linie): SkupinyAktivit => {
   const skupinyAktivit: SkupinyAktivit = Object.create(null);
 
   const získejKlíč = (seskupitPodle === SeskupováníAktivit.den)
-    ? (aktivita: Aktivita) => formátujDenVTýdnu(aktivita.cas.od, true)
-    : (aktivita: Aktivita) => aktivita.linie
+    ? (aktivita: APIAktivita) => formátujDenVTýdnu(aktivita.cas.od, true)
+    : (aktivita: APIAktivita) => aktivita.linie
     ;
 
   if (seskupitPodle === SeskupováníAktivit.den) {
@@ -61,12 +61,12 @@ const seskupAktivity = (aktivity: Aktivita[], seskupitPodle = SeskupováníAktiv
   return skupinyAktivit;
 };
 
-type PředpřivenáTabulkaAktivit = { [klíč: string]: { řádek: number, aktivita: Aktivita }[] }
+type PředpřivenáTabulkaAktivit = { [klíč: string]: { řádek: number, aktivita: APIAktivita }[] }
 
-export const připravTabulkuAktivit = (aktivity: Aktivita[], seskupitPodle = SeskupováníAktivit.linie) => {
+export const připravTabulkuAktivit = (aktivity: APIAktivita[], seskupitPodle = SeskupováníAktivit.linie) => {
   const seskupené = seskupAktivity(aktivity, seskupitPodle);
 
-  const zpracujSkupinu = (skupina: Aktivita[]): PředpřivenáTabulkaAktivit["klíč"] =>
+  const zpracujSkupinu = (skupina: APIAktivita[]): PředpřivenáTabulkaAktivit["klíč"] =>
     zip(skupina, časyDoŘádkůBezPřekryvu(skupina.map(x => x.cas))).map(([aktivita, řádek]) => ({ aktivita, řádek }));
 
 

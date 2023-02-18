@@ -35,7 +35,6 @@ export const parsujUrl = (url: string) => {
   const urlState: ProgramURLState = {
     výběr,
     aktivitaNáhledId,
-    // TODO: logika pro rok
     rok: GAMECON_KONSTANTY.ROCNIK,
   };
   return urlState;

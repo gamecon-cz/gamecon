@@ -1,25 +1,21 @@
 import { ProgramStateCreator } from "..";
-import { Aktivita, AktivitaPřihlášen, fetchAktivity, fetchAktivityPřihlášen } from "../../../api/program";
-
-// TODO: navrhnout a implementovat politiku updatů programu pro cache
-// TODO: poupravit tvar dat rozdělit na data a indexaci (PodleRoku bude obsahovat jen id aktivity a ne celý objekt ...)
-
+import { APIAktivita, APIAktivitaPřihlášen, fetchAktivity, fetchAktivityPřihlášen } from "../../../api/program";
 
 export type ProgramDataSlice = {
   data: {
     aktivityPodleRoku: {
-      [rok: number]: Aktivita[],
+      [rok: number]: APIAktivita[],
     },
     aktivityPřihlášenPodleRoku: {
-      [rok: number]: AktivitaPřihlášen[],
+      [rok: number]: APIAktivitaPřihlášen[],
     },
     aktivityPodleId: {
-      [id: number]: Aktivita,
+      [id: number]: APIAktivita,
     },
     aktivityPřihlášenPodleId: {
-      [id: number]: AktivitaPřihlášen,
+      [id: number]: APIAktivitaPřihlášen,
     },
-  }
+  },
   /** Pokud ještě není dotažený tak dotáhne rok, příhlášen se dotahuje vždy */
   načtiRok(rok: number, načtiZnova?: boolean): Promise<void>;
 }

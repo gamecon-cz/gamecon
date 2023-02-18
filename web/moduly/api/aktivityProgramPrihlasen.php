@@ -60,8 +60,6 @@ foreach ($aktivity as &$a) {
   if ($u) {
     $stavPrihlasen = $a->stavPrihlaseni($u);
 
-    if ($stavPrihlasen != StavPrihlaseni::NEPRIHLASEN) $aktivitaRes['prihlasen'] = true;
-
     if ($stavPrihlasen == StavPrihlaseni::PRIHLASEN) $aktivitaRes['stavPrihlaseni'] = 'prihlasen';
     if ($stavPrihlasen == StavPrihlaseni::PRIHLASEN_A_DORAZIL) $aktivitaRes['stavPrihlaseni'] = 'prihlasenADorazil';
     if ($stavPrihlasen == StavPrihlaseni::DORAZIL_JAKO_NAHRADNIK) $aktivitaRes['stavPrihlaseni'] = 'dorazilJakoNahradnik';
