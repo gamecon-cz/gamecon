@@ -36,6 +36,7 @@
     </div>
     <!-- end: paticka -->
 
+    <!-- begin: extraModulyJs --><script type="module" src="{url}"></script><!-- end: extraModulyJs -->
 </body>
 </html>
 <!-- end: index -->

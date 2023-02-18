@@ -116,9 +116,10 @@ if ($m->bezStranky()) {
     if (!$m->bezPaticky()) {
         $t->parse('index.paticka');
     }
+    $t->parseEach($m->jsModulyUrls(), 'url', 'index.extraModulyJs');
     $t->parse('index');
     $t->out('index');
-    echo profilInfo();
+    profilInfo();
 } else {
     $t = new XTemplate('sablony/index.xtpl');
     // templata a nastavení proměnných do glob templaty
@@ -169,5 +170,5 @@ if ($m->bezStranky()) {
     $t->parse($u ? 'index.prihlasen' : 'index.neprihlasen');
     $t->parse('index');
     $t->out('index');
-    echo profilInfo();
+    profilInfo();
 }

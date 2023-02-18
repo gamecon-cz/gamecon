@@ -15,6 +15,10 @@ export const jeAktivitaDotažená = (část: AktivitaČást | undefined): část
   return !!část && (DOTAŽENO in část);
 };
 
+export const filtrujDotaženéAktivity = (aktivityPodleId: {
+  [id: number]: AktivitaČást
+}): Aktivita[] => Object.values(aktivityPodleId).filter(jeAktivitaDotažená);
+
 export type ProgramDataSlice = {
   data: {
     aktivityPodleId: {

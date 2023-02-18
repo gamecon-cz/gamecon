@@ -79,6 +79,7 @@ class Program
         $soubory = [
             __DIR__ . '/../web/soubory/blackarrow/_spolecne/hint.css',
             __DIR__ . '/../web/soubory/blackarrow/program/program-trida.css',
+            __DIR__ . '/../web/soubory/ui/style.css',
         ];
         $cssUrls = [];
         foreach ($soubory as $soubor) {
@@ -87,6 +88,22 @@ class Program
             $cssUrls[] = URL_WEBU . '/' . $url . '?version=' . $verze;
         }
         return $cssUrls;
+    }
+
+    /**
+     * @return string[] urls k JS modulům programu
+     */
+    public function jsModulyUrls(): array {
+        $soubory = [
+            __DIR__ . '/../web/soubory/ui/bundle.js',
+        ];
+        $jsModulyUrls = [];
+        foreach ($soubory as $soubor) {
+            $verze     = md5_file($soubor);
+            $url       = str_replace(__DIR__ . '/../web/', '', $soubor);
+            $jsModulyUrls[] = URL_WEBU . '/' . $url . '?version=' . $verze;
+        }
+        return $jsModulyUrls;
     }
 
     /**
