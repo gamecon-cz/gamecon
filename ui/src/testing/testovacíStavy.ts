@@ -13,8 +13,6 @@ const resetStav = {
   setter() {
     useProgramStore.setState(s => {
       s.data = {
-        aktivityPodleRoku: {},
-        aktivityPřihlášenPodleRoku: {},
         aktivityPodleId: {},
         aktivityPřihlášenPodleId: {},
       };
@@ -98,10 +96,6 @@ const nastavAktivity = (aktivity: AktivitaSPřihlášen[]) => {
       s.data.aktivityPodleId[x.aktivita.id] = x.aktivita;
       s.data.aktivityPřihlášenPodleId[x.přihlášen.id] = x.přihlášen;
     });
-
-    s.data.aktivityPodleRoku[GAMECON_KONSTANTY.ROCNIK] = aktivity.map(x => x.aktivita);
-    s.data.aktivityPřihlášenPodleRoku[GAMECON_KONSTANTY.ROCNIK] =
-      aktivity.map(x => x.přihlášen);
   });
 };
 
@@ -126,12 +120,10 @@ export const TESTOVACÍ_STAVY: TestovacíStav[] = [
         }),
         produce(createAktivita({ id: 4, hodina: 11 }), x => {
           x.přihlášen.prihlasovatelna = true;
-          x.přihlášen.prihlasen = true;
           x.přihlášen.stavPrihlaseni = "prihlasen";
         }),
         produce(createAktivita({ id: 5, hodina: 12, trvání: 3 }), x => {
           x.přihlášen.prihlasovatelna = true;
-          x.přihlášen.prihlasen = true;
           x.přihlášen.stavPrihlaseni = "prihlasen";
         }),
         produce(createAktivita({ id: 6, hodina: 13 }), x => {
@@ -143,17 +135,14 @@ export const TESTOVACÍ_STAVY: TestovacíStav[] = [
         }),
         produce(createAktivita({ id: 8, hodina: 15 }), x => {
           x.přihlášen.prihlasovatelna = true;
-          x.přihlášen.prihlasen = true;
           x.přihlášen.stavPrihlaseni = "prihlasenAleNedorazil";
         }),
         produce(createAktivita({ id: 9, hodina: 9+24*2 }), x => {
           x.přihlášen.prihlasovatelna = true;
-          x.přihlášen.prihlasen = true;
           x.přihlášen.stavPrihlaseni = "prihlasen";
         }),
         produce(createAktivita({ id: 10, hodina: 8+24*3 }), x => {
           x.přihlášen.prihlasovatelna = true;
-          x.přihlášen.prihlasen = true;
           x.přihlášen.stavPrihlaseni = "prihlasen";
         }),
       ]);

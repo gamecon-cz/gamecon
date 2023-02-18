@@ -10,7 +10,7 @@ import {
 import { GAMECON_KONSTANTY } from "../../../../env";
 import {
   useAktivitaNáhled,
-  useAktivity,
+  useAktivityFiltrované,
   useUrlVýběr,
 } from "../../../../store/program/selektory";
 import { ProgramTabulkaBuňka } from "./ProgramTabulkaBuňka";
@@ -37,11 +37,12 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
   const {} = props;
 
   const urlStateVýběr = useUrlVýběr();
-  const { aktivity, aktivityPřihlášen } = useAktivity();
+  const { aktivity, aktivityPřihlášen } = useAktivityFiltrované();
 
   const aktivityFiltrované = aktivity.filter((aktivita) =>
     urlStateVýběr.typ === "můj"
-      ? aktivityPřihlášen.find((x) => x.id === aktivita.id)?.stavPrihlaseni != undefined
+      ? aktivityPřihlášen.find((x) => x.id === aktivita.id)?.stavPrihlaseni !=
+        undefined
       : new Date(aktivita.cas.od).getDay() === urlStateVýběr.datum.getDay()
   );
 
@@ -123,8 +124,8 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
                   })}
                 {posledníAktivitaDo > 0
                   ? range(KONEC_AKITIVIT - posledníAktivitaDo).map(() => (
-                    <td></td>
-                  ))
+                      <td></td>
+                    ))
                   : undefined}
               </tr>
             );
@@ -144,7 +145,7 @@ export const ProgramTabulka: FunctionComponent<ProgramTabulkaProps> = (
 
   const obalRef = useRef<HTMLDivElement>(null);
 
-  const aktivitaNáhled = useAktivitaNáhled();
+  const { aktivita: aktivitaNáhled } = useAktivitaNáhled();
 
   const programNáhledObalProgramuClass =
     "programNahled_obalProgramu" +

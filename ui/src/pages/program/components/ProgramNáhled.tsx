@@ -2,7 +2,6 @@ import { FunctionComponent } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 import {
   useAktivitaNáhled,
-  useUživatel,
 } from "../../../store/program/selektory";
 import { skryjAktivitaNáhledId } from "../../../store/program/slices/urlSlice";
 import { Obsazenost } from "./tabulka/Obsazenost";

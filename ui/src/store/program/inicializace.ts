@@ -1,6 +1,7 @@
 import { useProgramStore } from ".";
 import { LOCAL_STORAGE_KLÍČE } from "../localStorageKlíče";
 import { tabulkaMožnostíUrlStateProgram } from "./logic/url";
+import { načtiRok } from "./slices/programDataSlice";
 import { nastavStateZUrl, nastavUrlZState } from "./slices/urlSlice";
 
 
@@ -49,10 +50,8 @@ export const inicializujProgramStore = () => {
     localStorage.setItem(LOCAL_STORAGE_KLÍČE.DATA_PROGRAM, JSON.stringify(data));
   });
 
-  const načtiRok = useProgramStore.getState().načtiRok;
-
   const rok = useProgramStore.getState().urlState.rok;
-  void načtiRok(rok, true);
+  void načtiRok(rok);
 
   useProgramStore.subscribe(s => s.urlState.rok, (rok) => {
     void načtiRok(rok);

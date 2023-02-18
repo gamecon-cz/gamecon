@@ -4,13 +4,14 @@ import { Pohlavi, PřihlášenýUživatel } from "../../api/přihlášenýUživa
 import { ProgramTabulkaVýběr, ProgramURLState } from "./logic/url";
 import shallow from "zustand/shallow";
 
-export const useAktivity = (): { aktivity: APIAktivita[]; aktivityPřihlášen: APIAktivitaPřihlášen[]; } => {
+// TODO: přidat zbytek filtrů
+export const useAktivityFiltrované = (): { aktivity: APIAktivita[]; aktivityPřihlášen: APIAktivitaPřihlášen[]; } => {
   const urlState = useProgramStore((s) => s.urlState);
   const aktivity = useProgramStore(
-    (s) => s.data.aktivityPodleRoku[urlState.rok] ?? []
+    (s) => Object.values(s.data.aktivityPodleId).filter(x => new Date(x.cas.od).getFullYear() === urlState.rok)
   );
   const aktivityPřihlášen = useProgramStore(
-    (s) => s.data.aktivityPřihlášenPodleRoku[urlState.rok] ?? []
+    (s) => aktivity.map(x => s.data.aktivityPřihlášenPodleId[x.id]).filter(x => x)
   );
 
   return { aktivity, aktivityPřihlášen };
