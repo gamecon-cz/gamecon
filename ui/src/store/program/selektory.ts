@@ -1,34 +1,38 @@
 import { useProgramStore } from ".";
-import { APIAktivita, APIAktivitaPřihlášen } from "../../api/program";
 import { Pohlavi, PřihlášenýUživatel } from "../../api/přihlášenýUživatel";
 import { ProgramTabulkaVýběr, ProgramURLState } from "./logic/url";
 import shallow from "zustand/shallow";
+import { Aktivita, jeAktivitaDotažená } from "./slices/programDataSlice";
 
 // TODO: přidat zbytek filtrů
-export const useAktivityFiltrované = (): { aktivity: APIAktivita[]; aktivityPřihlášen: APIAktivitaPřihlášen[]; } => {
+export const useAktivityFiltrované = (): Aktivita[] => {
   const urlState = useProgramStore((s) => s.urlState);
   const aktivity = useProgramStore(
-    (s) => Object.values(s.data.aktivityPodleId).filter(x => new Date(x.cas.od).getFullYear() === urlState.rok)
+    (s) => Object.values(s.data.aktivityPodleId).filter(jeAktivitaDotažená).filter(x => new Date(x.cas.od).getFullYear() === urlState.rok)
   );
-  const aktivityPřihlášen = useProgramStore(
-    (s) => aktivity.map(x => s.data.aktivityPřihlášenPodleId[x.id]).filter(x => x)
+  const urlStateVýběr = useUrlVýběr();
+
+  const aktivityFiltrované = aktivity.filter((aktivita) =>
+    urlStateVýběr.typ === "můj"
+      ? aktivita?.stavPrihlaseni !=
+      undefined
+      : new Date(aktivita.cas.od).getDay() === urlStateVýběr.datum.getDay()
   );
 
-  return { aktivity, aktivityPřihlášen };
+  return aktivityFiltrované;
 };
 
-export const useAktivita = (akitivitaId: number): { aktivita: APIAktivita | undefined; aktivitaPřihlášen: APIAktivitaPřihlášen | undefined; } => {
-  const aktivita = useProgramStore(s => s.data.aktivityPodleId[akitivitaId]);
-  const aktivitaPřihlášen = useProgramStore(s => s.data.aktivityPřihlášenPodleId[aktivita.id]);
+export const useAktivita = (akitivitaId: number): Aktivita | undefined =>
+  useProgramStore(s => {
+    const aktivita = s.data.aktivityPodleId[akitivitaId];
+    return jeAktivitaDotažená(aktivita) ? aktivita : undefined;
+  });
 
-  return { aktivita, aktivitaPřihlášen };
-};
 
-export const useAktivitaNáhled = (): { aktivita: APIAktivita | undefined; aktivitaPřihlášen: APIAktivitaPřihlášen | undefined; } =>
+export const useAktivitaNáhled = (): Aktivita | undefined =>
   useProgramStore(s => {
     const aktivita = s.data.aktivityPodleId[s.urlState.aktivitaNáhledId ?? -1];
-    const aktivitaPřihlášen = s.data.aktivityPřihlášenPodleId[s.urlState.aktivitaNáhledId ?? -1];
-    return ({ aktivita, aktivitaPřihlášen });
+    return jeAktivitaDotažená(aktivita) ? aktivita : undefined;
   }, shallow);
 
 export const useUrlState = (): ProgramURLState => useProgramStore(s => s.urlState);

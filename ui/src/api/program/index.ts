@@ -53,6 +53,9 @@ export type APIAktivita = {
   tymova?: boolean,
 }
 
+/**
+ * Pro jednodušší práci musí být všechny parametry optional
+ */
 export type APIAktivitaPřihlášen = {
   id: number,
   obsazenost?: Obsazenost,

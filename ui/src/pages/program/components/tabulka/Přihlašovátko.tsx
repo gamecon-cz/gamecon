@@ -54,38 +54,38 @@ export const Přihlašovátko: FunctionComponent<TPřihlašovátkoProps> = (
   const { akitivitaId } = props;
 
   const uživatel = useUživatel();
-  const { aktivita, aktivitaPřihlášen } = useAktivita(akitivitaId);
+  const aktivita = useAktivita(akitivitaId);
 
   if (!uživatel.prihlasen) return <></>;
 
   if (uživatel.gcStav === "nepřihlášen") return <></>;
 
-  if (!aktivitaPřihlášen?.prihlasovatelna) return <></>;
+  if (!aktivita?.prihlasovatelna) return <></>;
 
   if (aktivita?.jeBrigadnicka && !uživatel.brigadnik) return <></>;
 
   if (
-    aktivitaPřihlášen.stavPrihlaseni &&
-    aktivitaPřihlášen.stavPrihlaseni !== "sledujici"
+    aktivita.stavPrihlaseni &&
+    aktivita.stavPrihlaseni !== "sledujici"
   ) {
-    if (aktivitaPřihlášen.stavPrihlaseni === "prihlasen")
+    if (aktivita.stavPrihlaseni === "prihlasen")
       return <FormTlačítko id={akitivitaId} typ={"odhlasit"} />;
-    else if (aktivitaPřihlášen.stavPrihlaseni === "prihlasenADorazil")
+    else if (aktivita.stavPrihlaseni === "prihlasenADorazil")
       return <em>účast</em>;
-    else if (aktivitaPřihlášen.stavPrihlaseni === "dorazilJakoNahradnik")
+    else if (aktivita.stavPrihlaseni === "dorazilJakoNahradnik")
       return <em>jako náhradník</em>;
-    else if (aktivitaPřihlášen.stavPrihlaseni === "prihlasenAleNedorazil")
+    else if (aktivita.stavPrihlaseni === "prihlasenAleNedorazil")
       return <em>neúčast</em>;
-    else if (aktivitaPřihlášen.stavPrihlaseni === "pozdeZrusil")
+    else if (aktivita.stavPrihlaseni === "pozdeZrusil")
       return <em>pozdní odhlášení</em>;
   }
 
-  if (aktivitaPřihlášen.vedu) return <></>;
+  if (aktivita.vedu) return <></>;
 
-  if (aktivitaPřihlášen.zamcena) return <>{zámeček}</>;
+  if (aktivita.zamcena) return <>{zámeček}</>;
 
-  if (aktivitaPřihlášen.obsazenost) {
-    const volnoTyp = volnoTypZObsazenost(aktivitaPřihlášen.obsazenost);
+  if (aktivita.obsazenost) {
+    const volnoTyp = volnoTypZObsazenost(aktivita.obsazenost);
 
     if (volnoTyp === "u" || volnoTyp === uživatel.pohlavi)
       return <FormTlačítko id={akitivitaId} typ={"prihlasit"} />;
@@ -95,7 +95,7 @@ export const Přihlašovátko: FunctionComponent<TPřihlašovátkoProps> = (
     const prihlasovatelnaProSledujici =
       !aktivita?.dite?.length && !aktivita?.tymova;
     if (prihlasovatelnaProSledujici) {
-      if (aktivitaPřihlášen.stavPrihlaseni === "sledujici")
+      if (aktivita.stavPrihlaseni === "sledujici")
         return <FormTlačítko id={akitivitaId} typ={"odhlasSledujiciho"} />;
       else return <FormTlačítko id={akitivitaId} typ={"prihlasSledujiciho"} />;
     }

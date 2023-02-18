@@ -11,7 +11,7 @@ type ProgramNáhledProps = {};
 // TODO: přihlašovátko ?
 export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) => {
   const {} = props;
-  const { aktivita, aktivitaPřihlášen } = useAktivitaNáhled();
+  const aktivita = useAktivitaNáhled();
 
   const programNáhledTextRef = useRef<HTMLDivElement>(null);
 
@@ -67,8 +67,8 @@ export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) =>
             <div class="programNahled_obsazenost">
               {` `}
               <Obsazenost
-                obsazenost={aktivitaPřihlášen?.obsazenost}
-                prihlasovatelna={aktivitaPřihlášen?.prihlasovatelna ?? false}
+                obsazenost={aktivita?.obsazenost}
+                prihlasovatelna={aktivita?.prihlasovatelna ?? false}
                 probehnuta={aktivita?.probehnuta ?? false}
                 bezObalu
               />
@@ -78,18 +78,18 @@ export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) =>
               dangerouslySetInnerHTML={{ __html: aktivita?.casText ?? "" }}
             ></div>
             <div class="programNahled_cena">
-              {aktivitaPřihlášen?.slevaNasobic !== 0 &&
+              {aktivita?.slevaNasobic !== 0 &&
               aktivita?.cenaZaklad !== 0
                 ? aktivita?.cenaZaklad != undefined
                   ? aktivita?.cenaZaklad *
-                    (aktivitaPřihlášen?.slevaNasobic ?? 1)
+                    (aktivita?.slevaNasobic ?? 1)
                   : " - "
                 : "zdarma"}
               <p style={{ opacity: 0.3, display:"inline" }}>
-                {aktivitaPřihlášen?.slevaNasobic !== undefined &&
-                aktivitaPřihlášen?.slevaNasobic !== 1
+                {aktivita?.slevaNasobic !== undefined &&
+                aktivita?.slevaNasobic !== 1
                   ? `*(osobni sleva ${
-                    (1 - aktivitaPřihlášen?.slevaNasobic) * 100
+                    (1 - aktivita?.slevaNasobic) * 100
                   }%)`
                   : undefined}
               </p>

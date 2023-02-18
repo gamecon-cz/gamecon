@@ -1,30 +1,29 @@
 import produce from "immer";
 import { FunctionComponent } from "preact";
-import { APIAktivita, APIAktivitaPřihlášen } from "../../../../api/program";
 import { Pohlavi } from "../../../../api/přihlášenýUživatel";
 import { generujUrl } from "../../../../store/program/logic/url";
 import { useAktivita, useUrlState, useUživatelPohlaví } from "../../../../store/program/selektory";
+import { Aktivita } from "../../../../store/program/slices/programDataSlice";
 import { nastavUrlAktivitaNáhledId } from "../../../../store/program/slices/urlSlice";
 import { volnoTypZObsazenost } from "../../../../utils";
 import { Obsazenost } from "./Obsazenost";
 import { Přihlašovátko } from "./Přihlašovátko";
 
 const aktivitaTřídy = (
-  aktivita: APIAktivita,
-  aktivitaPřihlášen: APIAktivitaPřihlášen,
+  aktivita: Aktivita,
   pohlavi: Pohlavi | undefined
 ) => {
   const classes: string[] = [];
   if (
-    aktivitaPřihlášen.stavPrihlaseni != undefined &&
-    aktivitaPřihlášen.stavPrihlaseni !== "sledujici"
+    aktivita.stavPrihlaseni != undefined &&
+    aktivita.stavPrihlaseni !== "sledujici"
   ) {
     classes.push("prihlasen");
   }
-  if (aktivitaPřihlášen.vedu) {
+  if (aktivita.vedu) {
     classes.push("organizator");
   }
-  if (aktivitaPřihlášen.stavPrihlaseni === "sledujici") {
+  if (aktivita.stavPrihlaseni === "sledujici") {
     classes.push("sledujici");
   }
   if (aktivita.vdalsiVlne) {
@@ -34,8 +33,8 @@ const aktivitaTřídy = (
     classes.push("vBudoucnu");
   }
 
-  if (aktivitaPřihlášen.obsazenost) {
-    const volnoTyp = volnoTypZObsazenost(aktivitaPřihlášen.obsazenost);
+  if (aktivita.obsazenost) {
+    const volnoTyp = volnoTypZObsazenost(aktivita.obsazenost);
     if (volnoTyp !== "u" && volnoTyp !== pohlavi) {
       classes.push("plno");
     }
@@ -53,7 +52,7 @@ export const ProgramTabulkaBuňka: FunctionComponent<
 > = (props) => {
   const { aktivitaId, zobrazLinii } = props;
 
-  const {aktivita, aktivitaPřihlášen} = useAktivita(aktivitaId);
+  const aktivita = useAktivita(aktivitaId);
   const pohlavi = useUživatelPohlaví();
   const urlState = useUrlState();
 
@@ -64,7 +63,7 @@ export const ProgramTabulkaBuňka: FunctionComponent<
     nastavUrlAktivitaNáhledId(aktivitaId);
   };
 
-  if (!aktivita || !aktivitaPřihlášen) return <></>;
+  if (!aktivita) return <></>;
 
   const hodinOd = new Date(aktivita.cas.od).getHours();
   const hodinDo = new Date(aktivita.cas.do).getHours();
@@ -73,7 +72,7 @@ export const ProgramTabulkaBuňka: FunctionComponent<
   return (
     <>
       <td colSpan={rozsah}>
-        <div class={aktivitaTřídy(aktivita, aktivitaPřihlášen, pohlavi)}>
+        <div class={aktivitaTřídy(aktivita, pohlavi)}>
           <a
             href={generujUrl(
               produce(urlState, (s) => {
@@ -86,13 +85,13 @@ export const ProgramTabulkaBuňka: FunctionComponent<
             {aktivita.nazev}
           </a>
           <Obsazenost
-            obsazenost={aktivitaPřihlášen.obsazenost}
-            prihlasovatelna={aktivitaPřihlášen.prihlasovatelna ?? false}
+            obsazenost={aktivita.obsazenost}
+            prihlasovatelna={aktivita.prihlasovatelna ?? false}
             probehnuta={aktivita.probehnuta ?? false}
           />
           <Přihlašovátko akitivitaId={aktivita.id} />
-          {(aktivitaPřihlášen.mistnost || undefined) && (
-            <div class="program_lokace">{aktivitaPřihlášen.mistnost}</div>
+          {(aktivita.mistnost || undefined) && (
+            <div class="program_lokace">{aktivita.mistnost}</div>
           )}
           {zobrazLinii ? (
             <span class="program_osobniTyp">{aktivita.linie}</span>

@@ -1,5 +1,6 @@
-import { APIAktivita, OdDo } from "../../../../api/program";
+import { OdDo } from "../../../../api/program";
 import { GAMECON_KONSTANTY } from "../../../../env";
+import { Aktivita } from "../../../../store/program/slices/programDataSlice";
 import { formátujDenVTýdnu, zip } from "../../../../utils";
 
 /**
@@ -31,18 +32,18 @@ export enum SeskupováníAktivit {
   den = "den",
 }
 
-type SkupinyAktivit = { [klíč: string]: APIAktivita[] };
+type SkupinyAktivit = { [klíč: string]: Aktivita[] };
 
 export const PROGRAM_DNY_TEXT = GAMECON_KONSTANTY.PROGRAM_DNY.map((x) =>
   formátujDenVTýdnu(x, true)
 );
 
-const seskupAktivity = (aktivity: APIAktivita[], seskupitPodle = SeskupováníAktivit.linie): SkupinyAktivit => {
+const seskupAktivity = (aktivity: Aktivita[], seskupitPodle = SeskupováníAktivit.linie): SkupinyAktivit => {
   const skupinyAktivit: SkupinyAktivit = Object.create(null);
 
   const získejKlíč = (seskupitPodle === SeskupováníAktivit.den)
-    ? (aktivita: APIAktivita) => formátujDenVTýdnu(aktivita.cas.od, true)
-    : (aktivita: APIAktivita) => aktivita.linie
+    ? (aktivita: Aktivita) => formátujDenVTýdnu(aktivita.cas.od, true)
+    : (aktivita: Aktivita) => aktivita.linie
     ;
 
   if (seskupitPodle === SeskupováníAktivit.den) {
@@ -61,12 +62,12 @@ const seskupAktivity = (aktivity: APIAktivita[], seskupitPodle = SeskupováníAk
   return skupinyAktivit;
 };
 
-type PředpřivenáTabulkaAktivit = { [klíč: string]: { řádek: number, aktivita: APIAktivita }[] }
+type PředpřivenáTabulkaAktivit = { [klíč: string]: { řádek: number, aktivita: Aktivita }[] }
 
-export const připravTabulkuAktivit = (aktivity: APIAktivita[], seskupitPodle = SeskupováníAktivit.linie) => {
+export const připravTabulkuAktivit = (aktivity: Aktivita[], seskupitPodle = SeskupováníAktivit.linie) => {
   const seskupené = seskupAktivity(aktivity, seskupitPodle);
 
-  const zpracujSkupinu = (skupina: APIAktivita[]): PředpřivenáTabulkaAktivit["klíč"] =>
+  const zpracujSkupinu = (skupina: Aktivita[]): PředpřivenáTabulkaAktivit["klíč"] =>
     zip(skupina, časyDoŘádkůBezPřekryvu(skupina.map(x => x.cas))).map(([aktivita, řádek]) => ({ aktivita, řádek }));
 
 

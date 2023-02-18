@@ -1,13 +1,24 @@
 import { ProgramStateCreator, useProgramStore } from "..";
 import { APIAktivita, APIAktivitaPřihlášen, fetchAktivity, fetchAktivityPřihlášen } from "../../../api/program";
 
+const DOTAŽENO = "dotaženo";
+
+export type Aktivita = APIAktivita & APIAktivitaPřihlášen & {
+  /** 
+   * kdy byla APIAktivita dotažena
+   */
+  [DOTAŽENO]: number
+};
+type AktivitaČást = Aktivita | APIAktivitaPřihlášen;
+
+export const jeAktivitaDotažená = (část: AktivitaČást | undefined): část is Aktivita => {
+  return !!část && (DOTAŽENO in část);
+};
+
 export type ProgramDataSlice = {
   data: {
     aktivityPodleId: {
-      [id: number]: APIAktivita,
-    },
-    aktivityPřihlášenPodleId: {
-      [id: number]: APIAktivitaPřihlášen,
+      [id: number]: AktivitaČást
     },
   },
 }
@@ -15,24 +26,23 @@ export type ProgramDataSlice = {
 export const createProgramDataSlice: ProgramStateCreator<ProgramDataSlice> = () => ({
   data: {
     aktivityPodleId: {},
-    aktivityPřihlášenPodleId: {},
   },
 });
 
 /** Pokud ještě není dotažený tak dotáhne rok, příhlášen se dotahuje vždy */
 export const načtiRok = async (rok: number) => {
-  const aktivityPřihlášen = await fetchAktivityPřihlášen(rok);
+  const [aktivityPřihlášen, aktivity] =
+    await Promise.all([
+      fetchAktivityPřihlášen(rok),
+      fetchAktivity(rok)
+    ]);
 
-  useProgramStore.setState(s => {
-    for (const aktivita of aktivityPřihlášen) {
-      s.data.aktivityPřihlášenPodleId[aktivita.id] = aktivita;
-    }
-  }, undefined, "dotažení přihlášen-aktivity");
-
-  const aktivity = await fetchAktivity(rok);
   useProgramStore.setState(s => {
     for (const aktivita of aktivity) {
-      s.data.aktivityPodleId[aktivita.id] = aktivita;
+      s.data.aktivityPodleId[aktivita.id] = { ...s.data.aktivityPodleId[aktivita.id], ...aktivita, [DOTAŽENO]: Date.now() };
+    }
+    for (const aktivita of aktivityPřihlášen) {
+      s.data.aktivityPodleId[aktivita.id] = { ...s.data.aktivityPodleId[aktivita.id], ...aktivita };
     }
   }, undefined, "dotažení aktivit");
 };
