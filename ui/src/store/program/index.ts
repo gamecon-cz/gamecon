@@ -14,6 +14,4 @@ const createState: ProgramStateCreator<ProgramState> = (...args) => ({
   ...createPřihlášenýUživatelSlice(...args),
 });
 
-// TODO: vytáhnout metody na modifikaci stavu ven ze slices, slices budou obsahovat pouze data
-// TODO: nepoužívat nikde tenhle hook, zaobalit do selektorů a použít je
 export const useProgramStore = createMyStore(createState);

@@ -20,10 +20,12 @@ type GCStav =
   | typeof GC_STAV_ODJEL
   ;
 
+export type Pohlavi = "m" | "l";
+
 export type PřihlášenýUživatel = {
   organizator?: boolean,
   prihlasen?: boolean,
-  pohlavi?: "m" | "l",
+  pohlavi?: Pohlavi,
   koncovkaDlePohlavi?: string,
   gcStav?: GCStav,
   brigadnik?: boolean,

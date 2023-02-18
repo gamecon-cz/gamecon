@@ -1,13 +1,9 @@
 import { FunctionComponent } from "preact";
 import { useEffect, useRef } from "preact/hooks";
-import { useProgramStore } from "../../../../store/program";
-import { useAktivitaNáhled } from "../../../../store/program/selektory";
+import { useAktivitaNáhled } from "../../../store/program/selektory";
+import { skryjAktivitaNáhledId } from "../../../store/program/slices/urlSlice";
 
-const skryj = () => {
-  useProgramStore.setState((s) => {
-    s.urlState.aktivitaNáhledId = undefined;
-  });
-};
+
 
 type ProgramNáhledProps = {};
 
@@ -34,7 +30,7 @@ export const ProgramNáhled: FunctionComponent<ProgramNáhledProps> = (props) =>
         <div class="programNahled_placeholder"></div>
 
         <div class="programNahled_obsah">
-          <div class="programNahled_zaviratko" onClick={skryj}></div>
+          <div class="programNahled_zaviratko" onClick={skryjAktivitaNáhledId}></div>
           <div class="programNahled_hlavicka">
             <div
               class="programNahled_nazev"

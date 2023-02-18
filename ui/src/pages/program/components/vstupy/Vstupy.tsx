@@ -3,6 +3,8 @@ import { useProgramStore } from "../../../../store/program";
 import { formátujDatum } from "../../../../utils";
 import produce from "immer";
 import { generujUrl, porovnejTabulkaVýběr } from "../../../../store/program/logic/url";
+import { nastavUrlVýběr } from "../../../../store/program/slices/urlSlice";
+import { useUrlState, useUrlStateMožnosti } from "../../../../store/program/selektory";
 
 type ProgramUživatelskéVstupyProps = {};
 
@@ -10,8 +12,8 @@ export const ProgramUživatelskéVstupy: FunctionComponent<
   ProgramUživatelskéVstupyProps
 > = (props) => {
   const {} = props;
-  const urlState = useProgramStore((s) => s.urlState);
-  const urlStateMožnosti = useProgramStore(s=>s.urlStateMožnosti);
+  const urlState = useUrlState();
+  const urlStateMožnosti = useUrlStateMožnosti();
 
   return (
     <>
@@ -34,9 +36,7 @@ export const ProgramUživatelskéVstupy: FunctionComponent<
                 }
                 onClick={(e) => {
                   e.preventDefault();
-                  useProgramStore.setState((s) => {
-                    s.urlState.výběr = možnost;
-                  }, undefined, "nastav program den");
+                  nastavUrlVýběr(možnost);
                 }}
               >
                 {možnost.typ === "můj"

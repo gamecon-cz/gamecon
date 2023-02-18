@@ -27,11 +27,11 @@ const nastavUrlState = (url: string) => {
 };
 
 
-export const nastavStateZUrl = () =>{
+export const nastavStateZUrl = () => {
   nastavUrlState(location.href);
 };
 
-export const nastavUrlZState = (replace = false) =>{
+export const nastavUrlZState = (replace = false) => {
   const současnéUrl = location.href;
   const novéUrl = generujUrl(useProgramStore.getState().urlState);
 
@@ -41,3 +41,25 @@ export const nastavUrlZState = (replace = false) =>{
   history[!replace ? "pushState" : "replaceState"](null, "", novéUrl);
 };
 
+
+export const nastavUrlAktivitaNáhledId = (aktivitaNáhledId: number) => {
+  useProgramStore.setState(
+    (s) => {
+      s.urlState.aktivitaNáhledId = aktivitaNáhledId;
+    },
+    undefined,
+    "nastav url nahled id"
+  );
+};
+
+export const skryjAktivitaNáhledId = () => {
+  useProgramStore.setState((s) => {
+    s.urlState.aktivitaNáhledId = undefined;
+  });
+};
+
+export const nastavUrlVýběr = (možnost: ProgramTabulkaVýběr) =>{
+  useProgramStore.setState((s) => {
+    s.urlState.výběr = možnost;
+  }, undefined, "nastav program den");
+};

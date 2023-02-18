@@ -35,6 +35,8 @@ TODO:
 zdokumentovat používání FORCE_REDUX_DEVTOOLS
 jak používat linter
 
+TODO: guidlines nereferencovat nikde useProgramStore přímo místo toho využít selektory.ts a pro změny přímo změny ve slices
+
 TODO: návod pro práci se zustand
 ```ts
 import { MyStateCreator } from ".";

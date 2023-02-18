@@ -1,94 +1,103 @@
 import { FunctionComponent } from "preact";
 import { useRef } from "preact/hooks";
-import { useProgramStore } from "../../../../store/program";
+import { useAktivita, useUživatel } from "../../../../store/program/selektory";
 import { volnoTypZObsazenost } from "../../../../utils";
 
 const zámeček = `🔒`;
 
 type TPřihlašovátkoProps = {
-  akitivitaId: number
+  akitivitaId: number;
 };
 
 type FormTlačítkoTyp =
   | "prihlasit"
   | "odhlasit"
   | "prihlasSledujiciho"
-  | "odhlasSledujiciho"
-  ;
+  | "odhlasSledujiciho";
 
-const FormTlačítko: FunctionComponent<{ id: number, typ: FormTlačítkoTyp }> = ({ id, typ }) => {
+const FormTlačítko: FunctionComponent<{ id: number; typ: FormTlačítkoTyp }> = ({
+  id,
+  typ,
+}) => {
   const formRef = useRef<HTMLFormElement>(null);
 
   const text =
-    (typ === "prihlasit") ? "přihlásit" :
-      (typ === "odhlasit") ? "odhlásit" :
-        (typ === "prihlasSledujiciho") ? "sledovat" :
-          (typ === "odhlasSledujiciho") ? "zrušit sledování" :
-            "";
+    typ === "prihlasit"
+      ? "přihlásit"
+      : typ === "odhlasit"
+      ? "odhlásit"
+      : typ === "prihlasSledujiciho"
+      ? "sledovat"
+      : typ === "odhlasSledujiciho"
+      ? "zrušit sledování"
+      : "";
 
-  return <form ref={formRef} method="post" style="display:inline">
-    <input type="hidden" name={typ} value={id}></input>
-    <a href="#" onClick={(e) => {
-      formRef.current?.submit?.();
-      e.preventDefault();
-    }}>{text}</a>
-  </form>;
+  return (
+    <form ref={formRef} method="post" style="display:inline">
+      <input type="hidden" name={typ} value={id}></input>
+      <a
+        href="#"
+        onClick={(e) => {
+          formRef.current?.submit?.();
+          e.preventDefault();
+        }}
+      >
+        {text}
+      </a>
+    </form>
+  );
 };
 
-export const Přihlašovátko: FunctionComponent<TPřihlašovátkoProps> = (props) => {
+export const Přihlašovátko: FunctionComponent<TPřihlašovátkoProps> = (
+  props
+) => {
   const { akitivitaId } = props;
 
-  const aktivita = useProgramStore(s => s.data.aktivityPodleId[akitivitaId]);
-  const uživatel = useProgramStore(s => s.přihlášenýUživatel.data);
-  const aktivitaUživatel = useProgramStore(s => s.data.aktivityPřihlášenPodleId[aktivita.id]);
+  const uživatel = useUživatel();
+  const { aktivita, aktivitaPřihlášen } = useAktivita(akitivitaId);
 
-  if (!uživatel.prihlasen)
-    return <></>;
+  if (!uživatel.prihlasen) return <></>;
 
-  if (uživatel.gcStav === "nepřihlášen")
-    return <></>;
+  if (uživatel.gcStav === "nepřihlášen") return <></>;
 
-  if (!aktivitaUživatel?.prihlasovatelna)
-    return <></>;
+  if (!aktivitaPřihlášen?.prihlasovatelna) return <></>;
 
-  if (aktivita.jeBrigadnicka && !uživatel.brigadnik)
-    return <></>;
+  if (aktivita?.jeBrigadnicka && !uživatel.brigadnik) return <></>;
 
-  if (aktivitaUživatel.stavPrihlaseni && aktivitaUživatel.stavPrihlaseni !== "sledujici") {
-    if (aktivitaUživatel.stavPrihlaseni === "prihlasen")
-      return <FormTlačítko id={aktivita.id} typ={"odhlasit"} />;
-    else if (aktivitaUživatel.stavPrihlaseni === "prihlasenADorazil")
+  if (
+    aktivitaPřihlášen.stavPrihlaseni &&
+    aktivitaPřihlášen.stavPrihlaseni !== "sledujici"
+  ) {
+    if (aktivitaPřihlášen.stavPrihlaseni === "prihlasen")
+      return <FormTlačítko id={akitivitaId} typ={"odhlasit"} />;
+    else if (aktivitaPřihlášen.stavPrihlaseni === "prihlasenADorazil")
       return <em>účast</em>;
-    else if (aktivitaUživatel.stavPrihlaseni === "dorazilJakoNahradnik")
+    else if (aktivitaPřihlášen.stavPrihlaseni === "dorazilJakoNahradnik")
       return <em>jako náhradník</em>;
-    else if (aktivitaUživatel.stavPrihlaseni === "prihlasenAleNedorazil")
+    else if (aktivitaPřihlášen.stavPrihlaseni === "prihlasenAleNedorazil")
       return <em>neúčast</em>;
-    else if (aktivitaUživatel.stavPrihlaseni === "pozdeZrusil")
+    else if (aktivitaPřihlášen.stavPrihlaseni === "pozdeZrusil")
       return <em>pozdní odhlášení</em>;
   }
 
-  if (aktivitaUživatel.vedu)
-    return <></>;
+  if (aktivitaPřihlášen.vedu) return <></>;
 
-  if (aktivitaUživatel.zamcena)
-    return <>{zámeček}</>;
+  if (aktivitaPřihlášen.zamcena) return <>{zámeček}</>;
 
-  if (aktivitaUživatel.obsazenost) {
-    const volnoTyp = volnoTypZObsazenost(aktivitaUživatel.obsazenost);
+  if (aktivitaPřihlášen.obsazenost) {
+    const volnoTyp = volnoTypZObsazenost(aktivitaPřihlášen.obsazenost);
 
     if (volnoTyp === "u" || volnoTyp === uživatel.pohlavi)
-      return <FormTlačítko id={aktivita.id} typ={"prihlasit"} />;
-    else if (volnoTyp === "f")
-      return <>pouze ženská místa</>;
-    else if (volnoTyp === "m")
-      return <>pouze mužská místa</>;
+      return <FormTlačítko id={akitivitaId} typ={"prihlasit"} />;
+    else if (volnoTyp === "f") return <>pouze ženská místa</>;
+    else if (volnoTyp === "m") return <>pouze mužská místa</>;
 
-    const prihlasovatelnaProSledujici = !aktivita.dite?.length && !aktivita.tymova;
+    const prihlasovatelnaProSledujici =
+      !aktivita?.dite?.length && !aktivita?.tymova;
     if (prihlasovatelnaProSledujici) {
-      if (aktivitaUživatel.stavPrihlaseni === "sledujici")
-        return <FormTlačítko id={aktivita.id} typ={"odhlasSledujiciho"} />;
-      else
-        return <FormTlačítko id={aktivita.id} typ={"prihlasSledujiciho"} />;
+      if (aktivitaPřihlášen.stavPrihlaseni === "sledujici")
+        return <FormTlačítko id={akitivitaId} typ={"odhlasSledujiciho"} />;
+      else return <FormTlačítko id={akitivitaId} typ={"prihlasSledujiciho"} />;
     }
   }
   return <></>;

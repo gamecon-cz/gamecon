@@ -1,9 +1,9 @@
 import { GAMECON_KONSTANTY } from "../../../env";
-import { useProgramStore } from "../../../store/program";
+import { useUživatel } from "../../../store/program/selektory";
 
 export const ProgramLegenda = () => {
   const legendaText = GAMECON_KONSTANTY.LEGENDA;
-  const uživatel = useProgramStore(s => s.přihlášenýUživatel.data);
+  const uživatel = useUživatel();
 
   const organizator = uživatel.organizator ?? false;
   const koncovkaDlePohlaví = uživatel.koncovkaDlePohlavi ?? "";
