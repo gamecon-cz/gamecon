@@ -8,5 +8,6 @@
  * submenu_order: 3
  */
 
-header('Location: /reporty/neprihlaseni-vypraveci?format=html', true, 301);
+$adminUrl = URL_ADMIN;
+header("Location: $adminUrl/reporty/neprihlaseni-vypraveci?format=html", true, 301);
 exit();
