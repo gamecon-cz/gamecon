@@ -6,7 +6,7 @@ namespace Gamecon\Finance;
 
 class SlevySqlStruktura
 {
-    public const SLEVY_TABULKA = 'skevy';
+    public const SLEVY_TABULKA = 'slevy';
 
     public const ID           = 'id';
     public const ID_UZIVATELE = 'id_uzivatele';
