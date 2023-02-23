@@ -28,15 +28,19 @@ SQL
 
     $this->q(<<<SQL
 INSERT INTO uzivatele_role (id_uzivatele, id_role, posadil)
-SELECT id_uzivatele, 23 /* "Člen rady" */, 1 /* uživatel "System" */
+SELECT clenove_rady_temp.id_uzivatele, 23 /* "Člen rady" */, 1 /* uživatel "System" */
 FROM clenove_rady_temp
+JOIN uzivatele_hodnoty
+    ON clenove_rady_temp.id_uzivatele = uzivatele_hodnoty.id_uzivatele -- protože testovací DB takové uživatele nezná, tak je pro testy zahodíme
 SQL
     );
 
     $this->q(<<<SQL
 INSERT INTO uzivatele_role_log (id_uzivatele, id_role, id_zmenil, zmena)
-SELECT id_uzivatele, 23 /*"Člen rady"*/, 1 /* uživatel "System" */, 'posazen'
+SELECT clenove_rady_temp.id_uzivatele, 23 /*"Člen rady"*/, 1 /* uživatel "System" */, 'posazen'
 FROM clenove_rady_temp
+JOIN uzivatele_hodnoty
+    ON clenove_rady_temp.id_uzivatele = uzivatele_hodnoty.id_uzivatele -- protože testovací DB takové uživatele nezná, tak je pro testy zahodíme
 SQL
     );
 
