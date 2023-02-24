@@ -170,7 +170,7 @@ SQL
     /**
      * Přidá uživateli roli (posadí uživatele na roli)
      */
-    public function dejRoli(int $idRole, Uzivatel $posadil) {
+    public function pridejRoli(int $idRole, Uzivatel $posadil) {
         if ($this->maRoli($idRole)) {
             return;
         }
@@ -285,7 +285,7 @@ SQL
             );
         }
         // finální odebrání role "registrován na GC"
-        $this->vemRoli(Role::PRIHLASEN_NA_LETOSNI_GC, $odhlasujici);
+        $this->odeberRoli(Role::PRIHLASEN_NA_LETOSNI_GC, $odhlasujici);
         // zrušení nákupů (až po použití dejShop a ubytovani)
         dbQuery('DELETE FROM shop_nakupy WHERE rok=' . ROCNIK . ' AND id_uzivatele=' . $this->id());
 
@@ -343,7 +343,7 @@ SQL,
         if (!$this->gcPritomen()) {
             throw new Chyba('Uživatel není přítomen na GC');
         }
-        $this->dejRoli(Role::ODJEL_Z_LETOSNIHO_GC, $editor);
+        $this->pridejRoli(Role::ODJEL_Z_LETOSNIHO_GC, $editor);
     }
 
     /** Opustil uživatel GC? */
@@ -365,7 +365,7 @@ SQL,
             return;
         }
 
-        $this->dejRoli(Role::PRIHLASEN_NA_LETOSNI_GC, $editor);
+        $this->pridejRoli(Role::PRIHLASEN_NA_LETOSNI_GC, $editor);
     }
 
     /** Prošel uživatel infopultem, dostal materiály a je nebo byl přítomen na aktuálím
@@ -485,6 +485,28 @@ SQL,
 
     public function maPravo($pravo): bool {
         return in_array($pravo, $this->prava());
+    }
+
+    public function maPravoNaPrirazeniRole(int $idRole): bool {
+        $role = Role::zId($idRole, true);
+        if (!$role) {
+            return false;
+        }
+        return $this->maPravoNaZmenuKategorieRole($role->kategorieRole());
+    }
+
+    public function maPravoNaZmenuKategorieRole(int $kategorieRole): bool {
+        return match ($kategorieRole) {
+            Role::KATEGORIE_OMEZENA => $this->maRoli(Role::CLEN_RADY),
+            Role::KATEGORIE_BEZNA => true,
+            default => throw new \Gamecon\Role\Exceptions\NeznamaKategorieRole(
+                "Kategorie $kategorieRole je neznámá"
+            )
+        };
+    }
+
+    public function maPravoNaZmenuPrav(): bool {
+        return $this->maPravo(Pravo::ZMENA_PRAV);
     }
 
     public function maPravoNaPristupDoPrezence(): bool {
@@ -1319,7 +1341,7 @@ SQL
     /**
      * Odstraní uživatele z role a aktualizuje jeho práva.
      */
-    public function vemRoli(int $idRole, Uzivatel $editor) {
+    public function odeberRoli(int $idRole, Uzivatel $editor) {
         $result = dbQuery('DELETE FROM uzivatele_role WHERE id_uzivatele=' . $this->id() . ' AND id_role=' . $idRole);
         if (dbNumRows($result) > 0) {
             $this->zalogujZmenuRole($idRole, $editor->id(), self::SESAZEN);
@@ -1378,7 +1400,7 @@ SQL,
                 'mail'                       => false,
                 'jenPrihlaseniAPritomniNaGc' => false,
                 'kromeIdUzivatelu'           => [],
-                'jenSRolemi'               => null,
+                'jenSRolemi'                 => null,
                 'min'                        => $minimumZnaku,
             ]
         );

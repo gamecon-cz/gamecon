@@ -23,7 +23,7 @@ if(post('vypravec')) {
     echo '<p style="color:red">Zadaný login nelze vytvořit. Možná je už zabraný.</p>';
   }
   if($un) {
-    $un->dejRoli(Role::VYPRAVECSKA_SKUPINA, $u);
+    $un->pridejRoli(Role::VYPRAVECSKA_SKUPINA, $u);
     echo '<p style="color:green">Uživatel ' . $un->jmenoNick() . ' (' . $un->id() . ') vytvořen a přidán do seznamu vypravěčských skupin</p>';
   }
 }

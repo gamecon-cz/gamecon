@@ -38,7 +38,7 @@ foreach (Uzivatel::zPrihlasenych() as $letosniUcastnik) {
         ',',
         array_map(
             static function (int $role) {
-                return \Gamecon\Role\Role::nazevRole($role);
+                return \Gamecon\Role\Role::nazevRolePodleId($role);
             },
             array_filter(
                 $letosniUcastnik->dejIdsRoli(),

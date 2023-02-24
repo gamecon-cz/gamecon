@@ -23,22 +23,20 @@ function zaloguj($zprava) {
     file_put_contents(SPEC . '/role.log', "$cas $zprava\n", FILE_APPEND);
 }
 
-if ($u->maPravo(Pravo::ZMENA_PRAV)) {
-    if ($z = get('posad')) {
-        if ($uPracovni) {
-            $uPracovni->dejRoli($z, $u);
-            zaloguj('Uživatel ' . $u->jmenoNick() . " posadil na roli $z uživatele " . $uPracovni->jmenoNick());
-        }
-        back();
+if ($idRoleNaPrirazeni = (int)get('posad')) {
+    if ($uPracovni && $u->maPravoNaPrirazeniRole($idRoleNaPrirazeni)) {
+        $uPracovni->pridejRoli($idRoleNaPrirazeni, $u);
+        zaloguj('Uživatel ' . $u->jmenoNick() . " posadil na roli $idRoleNaPrirazeni uživatele " . $uPracovni->jmenoNick());
     }
+    back();
+}
 
-    if ($z = get('sesad')) {
-        if ($uPracovni) {
-            $uPracovni->vemRoli((int)$z, $u);
-            zaloguj('Uživatel ' . $u->jmenoNick() . " sesadil ze role $z uživatele " . $uPracovni->jmenoNick());
-        }
-        back();
+if ($idRoleNaOdebrani = (int)get('sesad')) {
+    if ($uPracovni && $u->maPravoNaPrirazeniRole($idRoleNaPrirazeni)) {
+        $uPracovni->odeberRoli($idRoleNaOdebrani, $u);
+        zaloguj('Uživatel ' . $u->jmenoNick() . " sesadil z role $idRoleNaOdebrani uživatele " . $uPracovni->jmenoNick());
     }
+    back();
 }
 
 if (!$role) {
@@ -75,7 +73,7 @@ if (!$role) {
                     $t->parse('prava.jedenTypRoli.roleRocnikoveNadpis');
                 }
             }
-            if ($u->maPravo(Pravo::ZMENA_PRAV)) {
+            if ($u->maPravoNaPrirazeniRole($r[RoleSqlStruktura::ID_ROLE])) {
                 if ($uPracovni && $r['sedi']) {
                     if ($r['posadil']) {
                         $posazenKym = Uzivatel::zId($r['posadil']);

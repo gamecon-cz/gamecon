@@ -18,7 +18,7 @@ use Gamecon\Role\Role;
 use Gamecon\Uzivatel\Finance;
 
 if (!empty($_POST['datMaterialy']) && $uPracovni && $uPracovni->gcPrihlasen()) {
-    $uPracovni->dejRoli(Role::PRIHLASEN_NA_LETOSNI_GC, $u);
+    $uPracovni->pridejRoli(Role::PRIHLASEN_NA_LETOSNI_GC, $u);
     back();
 }
 
