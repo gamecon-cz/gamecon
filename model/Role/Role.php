@@ -2,8 +2,10 @@
 
 namespace Gamecon\Role;
 
+use Gamecon\Role\Exceptions\NeznamyVyznamRole;
+
 /**
- * @method static Role zId($id)
+ * @method static Role zId($id, $zCache)
  */
 class Role extends \DbObject
 {
@@ -74,6 +76,9 @@ class Role extends \DbObject
     public const TYP_UCAST     = 'ucast';
     public const TYP_TRVALA    = 'trvala';
 
+    public const KATEGORIE_OMEZENA = 0;
+    public const KATEGORIE_BEZNA   = 1;
+
     // TYP TRVALE
     public const VYZNAM_ORGANIZATOR_ZDARMA  = 'ORGANIZATOR_ZDARMA';
     public const VYZNAM_PUL_ORG_UBYTKO      = 'PUL_ORG_UBYTKO';
@@ -89,10 +94,11 @@ class Role extends \DbObject
     public const VYZNAM_DOBROVOLNIK_SENIOR   = 'DOBROVOLNIK_SENIOR';
     public const VYZNAM_HERMAN               = 'HERMAN';
     public const VYZNAM_INFOPULT             = 'INFOPULT';
-    public const VYZNAM_NEDELNI_NOC_ZDARMA   = 'NEDELNI_NOC_ZDARMA';
     public const VYZNAM_NEODHLASOVAT         = 'NEODHLASOVAT';
     public const VYZNAM_PARTNER              = 'PARTNER';
     public const VYZNAM_STREDECNI_NOC_ZDARMA = 'STREDECNI_NOC_ZDARMA';
+    public const VYZNAM_SOBOTNI_NOC_ZDARMA   = 'SOBOTNI_NOC_ZDARMA';
+    public const VYZNAM_NEDELNI_NOC_ZDARMA   = 'NEDELNI_NOC_ZDARMA';
     public const VYZNAM_VYPRAVEC             = 'VYPRAVEC';
     public const VYZNAM_ZAZEMI               = 'ZAZEMI';
     // TYP UCAST
@@ -119,6 +125,38 @@ class Role extends \DbObject
 
     public static function vyznamPodleKodu(string $kodRole): string {
         return preg_replace('~^GC\d+_~', '', $kodRole);
+    }
+
+    public static function kategoriePodleVyznamu(string $vyznam): int {
+        return match ($vyznam) {
+            self::VYZNAM_ORGANIZATOR_ZDARMA => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_PUL_ORG_UBYTKO => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_PUL_ORG_TRICKO => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_CESTNY_ORGANIZATOR => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_SPRAVCE_FINANCI_GC => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_ADMIN => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_VYPRAVECSKA_SKUPINA => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_CLEN_RADY => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_SEF_INFOPULTU => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_BRIGADNIK => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_ZAZEMI => self::KATEGORIE_OMEZENA,
+
+            self::VYZNAM_DOBROVOLNIK_SENIOR => self::KATEGORIE_BEZNA,
+            self::VYZNAM_HERMAN => self::KATEGORIE_BEZNA,
+            self::VYZNAM_INFOPULT => self::KATEGORIE_BEZNA,
+            self::VYZNAM_NEODHLASOVAT => self::KATEGORIE_BEZNA,
+            self::VYZNAM_PARTNER => self::KATEGORIE_BEZNA,
+            self::VYZNAM_STREDECNI_NOC_ZDARMA => self::KATEGORIE_BEZNA,
+            self::VYZNAM_SOBOTNI_NOC_ZDARMA => self::KATEGORIE_BEZNA,
+            self::VYZNAM_NEDELNI_NOC_ZDARMA => self::KATEGORIE_BEZNA,
+            self::VYZNAM_VYPRAVEC => self::KATEGORIE_BEZNA,
+
+            self::VYZNAM_PRIHLASEN => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_PRITOMEN => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_ODJEL => self::KATEGORIE_OMEZENA,
+
+            'default' => throw new NeznamyVyznamRole("Vyznam '$vyznam' je neznámý"),
+        };
     }
 
     /**
@@ -232,7 +270,7 @@ class Role extends \DbObject
         return [self::ORGANIZATOR, self::PUL_ORG_BONUS_UBYTKO, self::PUL_ORG_BONUS_TRICKO];
     }
 
-    public static function nazevRole(int $idRole): string {
+    public static function nazevRolePodleId(int $idRole): string {
         try {
             return match ($idRole) {
                 self::ORGANIZATOR => 'Organizátor (zdarma)',
@@ -340,13 +378,9 @@ class Role extends \DbObject
         ];
         $vsechnyRocnikoveRole = [];
         foreach ($idckaRocnikovychRoli as $id) {
-            $vsechnyRocnikoveRole[$id] = self::nazevRole($id);
+            $vsechnyRocnikoveRole[$id] = self::nazevRolePodleId($id);
         }
         return $vsechnyRocnikoveRole;
-    }
-
-    public function jmenoRole(): ?string {
-        return $this->r['nazev_role'] ?? null;
     }
 
     public static function platiProRocnik(int $roleProRok, int $rocnik = ROCNIK): bool {
@@ -361,4 +395,16 @@ class Role extends \DbObject
     public static function prefixRocniku(int $rocnik = ROCNIK): string {
         return 'GC' . $rocnik;
     }
+
+    public function nazevRole(): ?string {
+        return $this->r[RoleSqlStruktura::NAZEV_ROLE] ?? null;
+    }
+
+    public function kategorieRole(): ?int {
+        $kategorie = $this->r[RoleSqlStruktura::KATEGORIE_ROLE] ?? null;
+        return $kategorie === null
+            ? null
+            : (int)$kategorie;
+    }
+
 }

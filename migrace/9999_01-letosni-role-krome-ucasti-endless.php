@@ -51,9 +51,17 @@ SQL
         $kodRole   = RemoveDiacritics::toConstantLikeName($letosniPrefix . ' ' . $nazevChybejiciRocnikoveRole);
         $vyznam    = Role::vyznamPodleKodu($kodRole);
         $rocnikova = Role::TYP_ROCNIKOVA;
+        $kategorie = Role::kategoriePodleVyznamu($vyznam);
         $this->q(<<<SQL
-INSERT INTO role_seznam (id_role, kod_role, nazev_role, popis_role, rocnik_role, typ_role, vyznam_role)
-VALUES ($idChybejiciRocnikoveRole, '$kodRole', '$nazevChybejiciRocnikoveRole', '$nazevChybejiciRocnikoveRole', $rocnik, '$rocnikova', '$vyznam')
+INSERT INTO role_seznam
+    SET id_role = $idChybejiciRocnikoveRole,
+        kod_role = '$kodRole',
+        nazev_role = '$nazevChybejiciRocnikoveRole',
+        popis_role = '$nazevChybejiciRocnikoveRole',
+        rocnik_role = $rocnik,
+        typ_role = '$rocnikova',
+        vyznam_role = '$vyznam',
+        kategorie_role = '$kategorie'
 SQL
         );
     }

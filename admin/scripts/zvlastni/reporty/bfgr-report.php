@@ -36,7 +36,7 @@ $idRoliiProPozici = [
 ];
 $jmenaRoliProPozici = [];
 foreach ($idRoliiProPozici as $idRole) {
-    $jmenaRoliProPozici[$idRole] = Role::zId($idRole)->jmenoRole();
+    $jmenaRoliProPozici[$idRole] = Role::zId($idRole)->nazevRole();
 }
 $dejNazevRole = static function (array $idckaRoli) use ($jmenaRoliProPozici): string {
     foreach ($jmenaRoliProPozici as $idRole => $jmenoRole) {

@@ -3,13 +3,13 @@
 Práva role <strong>{nazev_role}</strong> ({popis_role}):
 <table class="zvyraznovana">
   <tr>
-    <th>Název práva</th>
-    <th>Popis práva</th>
+    <th><i>Název práva</i></th>
+    <th><i>Popis práva</i></th>
     <th style="min-width: 100px"></th>
   </tr>
   <!-- begin:pravo -->
   <tr>
-    <td>{jmeno_prava}</td>
+    <td style="white-space: nowrap">{jmeno_prava}</td>
     <td>{popis_prava}</td>
     <td>
       <!-- begin:akce -->

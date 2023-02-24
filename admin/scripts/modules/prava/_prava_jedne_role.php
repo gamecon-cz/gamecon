@@ -1,58 +1,60 @@
 <?php
 
-use Gamecon\Cas\DateTimeCz;
 use Gamecon\XTemplate\XTemplate;
-use Gamecon\Role\Role;
-use Gamecon\Role\RoleSqlStruktura;
 use Gamecon\Role\PravoSqlStruktura;
 use Gamecon\Pravo;
+use Gamecon\Role\RoleSqlStruktura;
 
 /** @var Uzivatel|null $uPracovni */
 /** @var Uzivatel $u */
-/** @var int $role */
+/** @var int|string $role */
 
-if ($u->maPravo(Pravo::ZMENA_PRAV)) {
-    if ($role !== null && $uid = get('sesadUzivatele')) {
+if ($role !== null && $uid = get('sesadUzivatele')) {
+    if ($u->maPravoNaPrirazeniRole((int)$role)) {
         $u2 = Uzivatel::zId($uid);
-        $u2->vemRoli((int)$role, $u);
+        $u2->odeberRoli((int)$role, $u);
         zaloguj('Uživatel ' . $u->jmenoNick() . " sesadil ze role $role uživatele " . $u2->jmenoNick());
-        back();
     }
+    back();
+}
 
-    if ($role !== null && ($p = get('odeberPravo')) !== null) {
+if ($role !== null && ($p = get('odeberPravo')) !== null) {
+    if ($u->maPravoNaPrirazeniRole((int)$role) && $u->maPravo(Pravo::ZMENA_PRAV)) {
         dbQuery('DELETE FROM prava_role WHERE id_prava = $1 AND id_role = $2', [$p, $role]);
         zaloguj('Uživatel ' . $u->jmenoNick() . " odebral roli $role právo $p");
-        back();
     }
+    back();
+}
 
-    if ($role !== null && ($p = get('dejPravo')) !== null) {
+if ($role !== null && ($p = get('dejPravo')) !== null) {
+    if ($u->maPravo(Pravo::ZMENA_PRAV) && $u->maPravoNaPrirazeniRole((int)$role)) {
         dbInsert('prava_role', ['id_prava' => $p, 'id_role' => $role]);
         zaloguj('Uživatel ' . $u->jmenoNick() . " přidal roli $role právo $p");
-        back();
     }
+    back();
 }
 
 $t = new XTemplate(__DIR__ . '/_prava_jedne_role.xtpl');
 // výpis detailu role
 $o = dbQuery(
-    'SELECT id_prava, jmeno_prava, popis_prava
-    FROM role_seznam
-    LEFT JOIN prava_role USING(id_role)
-    LEFT JOIN r_prava_soupis USING(id_prava)
-    WHERE role_seznam.id_role = $0',
+    'SELECT prava.id_prava, prava.jmeno_prava, prava.popis_prava, role.id_role
+    FROM role_seznam AS role
+    LEFT JOIN prava_role ON role.id_role = prava_role.id_role
+    LEFT JOIN r_prava_soupis AS prava ON prava_role.id_prava = prava.id_prava
+    WHERE role.id_role = $0',
     [0 => $role]
 );
 while (($r = mysqli_fetch_assoc($o)) && $r[PravoSqlStruktura::ID_PRAVA]) {
     $r[PravoSqlStruktura::JMENO_PRAVA] = nahradPlaceholderZaKonstantu($r[PravoSqlStruktura::JMENO_PRAVA]);
     $t->assign($r);
-    if ($u->maPravo(Pravo::ZMENA_PRAV)) {
+    if ($u->maPravoNaPrirazeniRole($r[RoleSqlStruktura::ID_ROLE]) && $u->maPravo(Pravo::ZMENA_PRAV)) {
         $t->parse('pravaJedneRole.pravo.akce');
     }
     $t->parse('pravaJedneRole.pravo');
 }
 $t->assign('id_role', $role); // bugfix pro role s 0 právy
 
-if ($u->maPravo(Pravo::ZMENA_PRAV)) {
+if ($u->maPravoNaPrirazeniRole((int)$role) && $u->maPravo(Pravo::ZMENA_PRAV)) {
 // nabídka židlí
     $o = dbQuery(
         'SELECT p.*
@@ -74,13 +76,13 @@ foreach (Uzivatel::zRole($role) as $uz) {
     $t->assign('id', $uz->id());
     $t->assign('jmeno', $uz->jmeno());
     $t->assign('nick', $uz->nick());
-    if ($u->maPravo(Pravo::ZMENA_PRAV)) {
+    if ($u->maPravoNaPrirazeniRole((int)$role)) {
         $t->parse('pravaJedneRole.uzivatel.akce');
     }
     $t->parse('pravaJedneRole.uzivatel');
 }
 
-if ($u->maPravo(Pravo::ZMENA_PRAV)) {
+if ($u->maPravoNaPrirazeniRole((int)$role)) {
 // posazování
     if ($uPracovni && !$uPracovni->maRoli($role)) {
         $t->parse('pravaJedneRole.akceUzivatel.posad');

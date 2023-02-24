@@ -17,8 +17,7 @@
     <th>&emsp;</th>
     <th><i>Jméno role</i></th>
     <th><i>Popis role</i></th>
-    <th></th>
-    <th></th>
+    <th colspan="2"></th>
   </tr>
   <!-- begin:prava -->
   <tr>
