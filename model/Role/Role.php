@@ -5,7 +5,7 @@ namespace Gamecon\Role;
 use Gamecon\Role\Exceptions\NeznamyVyznamRole;
 
 /**
- * @method static Role zId($id, $zCache)
+ * @method static Role zId($id, bool $zCache = false)
  */
 class Role extends \DbObject
 {

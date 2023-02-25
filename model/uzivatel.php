@@ -644,6 +644,10 @@ SQL,
         return in_array($idRole, $this->dejIdsRoli(), true);
     }
 
+    public function maRoliClenRady(): bool {
+        return $this->maRoli(Role::CLEN_RADY);
+    }
+
     /**
      * @return int[]
      */
