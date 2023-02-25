@@ -10,8 +10,8 @@ class Stranka extends DbObject
 
     public function html() {
         if (!isset($this->html)) {
-            $html = markdownNoCache($this->r['obsah']);
-            $html = preg_replace_callback('@(<p>)?\(widget:([a-z\-]+)\)(</p>)?@', function ($m) {
+            $html       = markdownNoCache($this->r['obsah']);
+            $html       = preg_replace_callback('@(<p>)?\(widget:([a-z\-]+)\)(</p>)?@', function ($m) {
                 $w = Widget::zNazvu($m[2]);
                 if ($w) {
                     return $w->html();
@@ -23,18 +23,22 @@ class Stranka extends DbObject
         return $this->html;
     }
 
-    public function nadpis() {
+    public function nadpis(): string {
         $html = preg_quote_wildcard('<h1>~</h1>');
-        $md = '^#\s*([^#].+)$';
-        preg_match("@$html|$md@m", $this->r['obsah'], $m);
-        return @($m[1] ?: $m[2]);
+        $md   = '^#\s*([^#].+)$';
+        if (!preg_match("@$html|$md@m", $this->r['obsah'], $matches)) {
+            return '';
+        }
+        return $matches[1] ?: $matches[2];
     }
 
-    public function obrazek() {
+    public function obrazek(): string {
         $html = preg_quote_wildcard('<img src="~"~>');
-        $md = preg_quote_wildcard('![~](~)');
-        preg_match("@$html|$md@", $this->r['obsah'], $m);
-        return @($m[1] ?: $m[4]);
+        $md   = preg_quote_wildcard('![~](~)');
+        if (!preg_match("@$html|$md@", $this->r['obsah'], $m)) {
+            return '';
+        }
+        return $m[1] ?: $m[4];
     }
 
     public function poradi() {
