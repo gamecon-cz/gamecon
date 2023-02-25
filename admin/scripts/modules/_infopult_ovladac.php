@@ -27,7 +27,7 @@ if (!empty($_POST['gcPrihlas']) && $uPracovni && !$uPracovni->gcPrihlasen()) {
     back();
 }
 
-if (!empty($_POST['gcOdhlas']) && $uPracovni && !$uPracovni->gcPritomen() && $u->maRoli(Role::SPRAVCE_FINANCI_GC)) {
+if (!empty($_POST['gcOdhlas']) && $uPracovni && !$uPracovni->gcPritomen() && $u->maRoli(Role::CFO)) {
     $uPracovni->gcOdhlas($u);
     back();
 }

@@ -21,7 +21,7 @@ class Role extends \DbObject
     public const PUL_ORG_BONUS_UBYTKO = 21; // Ubytování zdarma
     public const PUL_ORG_BONUS_TRICKO = 22; // Dvě jakákoli trička zdarma
     public const CESTNY_ORGANIZATOR   = 15; // Bývalý organizátor GC
-    public const SPRAVCE_FINANCI_GC   = 20; // Organizátor, který může nakládat s financemi GC
+    public const CFO                  = 20; // Organizátor, který může nakládat s financemi GC
     public const PREZENCNI_ADMIN      = 16; // Pro změnu účastníků v uzavřených aktivitách. NEBEZPEČNÉ, NEPOUŽÍVAT!
     public const VYPRAVECSKA_SKUPINA  = 9; // Organizátorská skupina pořádající na GC (dodavatelé, …)
     public const CLEN_RADY            = 23;
@@ -84,7 +84,7 @@ class Role extends \DbObject
     public const VYZNAM_PUL_ORG_UBYTKO      = 'PUL_ORG_UBYTKO';
     public const VYZNAM_PUL_ORG_TRICKO      = 'PUL_ORG_TRICKO';
     public const VYZNAM_CESTNY_ORGANIZATOR  = 'CESTNY_ORGANIZATOR';
-    public const VYZNAM_SPRAVCE_FINANCI_GC  = 'SPRAVCE_FINANCI_GC';
+    public const VYZNAM_CFO                 = 'CFO';
     public const VYZNAM_ADMIN               = 'ADMIN';
     public const VYZNAM_VYPRAVECSKA_SKUPINA = 'VYPRAVECSKA_SKUPINA';
     public const VYZNAM_CLEN_RADY           = 'CLEN_RADY';
@@ -115,7 +115,7 @@ class Role extends \DbObject
             Role::PUL_ORG_BONUS_UBYTKO,
             Role::PUL_ORG_BONUS_TRICKO,
             Role::CESTNY_ORGANIZATOR,
-            Role::SPRAVCE_FINANCI_GC,
+            Role::CFO,
             Role::PREZENCNI_ADMIN,
             Role::VYPRAVECSKA_SKUPINA,
             Role::CLEN_RADY,
@@ -133,7 +133,7 @@ class Role extends \DbObject
             self::VYZNAM_PUL_ORG_UBYTKO => self::KATEGORIE_OMEZENA,
             self::VYZNAM_PUL_ORG_TRICKO => self::KATEGORIE_OMEZENA,
             self::VYZNAM_CESTNY_ORGANIZATOR => self::KATEGORIE_OMEZENA,
-            self::VYZNAM_SPRAVCE_FINANCI_GC => self::KATEGORIE_OMEZENA,
+            self::VYZNAM_CFO => self::KATEGORIE_OMEZENA,
             self::VYZNAM_ADMIN => self::KATEGORIE_OMEZENA,
             self::VYZNAM_VYPRAVECSKA_SKUPINA => self::KATEGORIE_OMEZENA,
             self::VYZNAM_CLEN_RADY => self::KATEGORIE_OMEZENA,
@@ -287,7 +287,7 @@ class Role extends \DbObject
                 self::LETOSNI_PATECNI_NOC_ZDARMA => 'Páteční noc zdarma',
                 self::LETOSNI_SOBOTNI_NOC_ZDARMA => 'Sobotní noc zdarma',
                 self::LETOSNI_NEDELNI_NOC_ZDARMA => 'Nedělní noc zdarma',
-                self::SPRAVCE_FINANCI_GC => 'Správce financí GC',
+                self::CFO => 'CFO',
                 self::PUL_ORG_BONUS_UBYTKO => 'Půl-org ubytko',
                 self::PUL_ORG_BONUS_TRICKO => 'Půl-org tričko',
                 self::LETOSNI_NEODHLASOVAT => 'Neodhlašovat',
