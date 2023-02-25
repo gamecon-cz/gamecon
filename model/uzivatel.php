@@ -562,7 +562,7 @@ SQL,
     }
 
     public function jeSpravceFinanci(): bool {
-        return $this->maRoli(Role::SPRAVCE_FINANCI_GC);
+        return $this->maRoli(Role::CFO);
     }
 
     public function jeSuperAdmin(): bool {

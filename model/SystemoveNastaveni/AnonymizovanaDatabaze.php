@@ -199,7 +199,7 @@ SQL
         $id = mysqli_insert_id($dbConnectionAnonymDb);
 
         $idRoleOrganizator    = Role::ORGANIZATOR;
-        $idRoleSpravceFinanci = Role::SPRAVCE_FINANCI_GC;
+        $idRoleSpravceFinanci = Role::CFO;
         mysqli_query(
             $dbConnectionAnonymDb,
             "INSERT INTO `{$this->anonymniDatabaze}`.uzivatele_role (id_uzivatele, id_role, posazen, posadil) VALUES ($id, $idRoleOrganizator, NOW(), null), ($id, $idRoleSpravceFinanci, NOW(), null)"

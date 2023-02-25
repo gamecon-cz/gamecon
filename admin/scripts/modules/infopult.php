@@ -132,7 +132,7 @@ if ($uPracovni) {
     if ($uPracovni) {
         if (!$uPracovni->gcPrihlasen() || $uPracovni->gcPritomen()) {
             $x->parse('infopult.odhlasitZGc.prihlasenyNepritomny');
-        } elseif ($uPracovni->gcPrihlasen() && !$uPracovni->gcPritomen() && $u->maRoli(Role::SPRAVCE_FINANCI_GC)) {
+        } elseif ($uPracovni->gcPrihlasen() && !$uPracovni->gcPritomen() && $u->maRoli(Role::CFO)) {
             $x->assign('odhlasDisabled', '');
         }
         $x->parse('infopult.odhlasitZGc');
