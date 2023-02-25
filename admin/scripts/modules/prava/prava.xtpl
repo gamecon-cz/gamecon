@@ -41,6 +41,7 @@
   <!-- end:jedenTypRoli -->
 </table><br><br>
 
+<!-- begin:roleBezPrav -->
 <i>Role bez práv</i>
 <table class="zvyraznovana">
   <tr>
@@ -63,5 +64,6 @@
   </tr>
   <!-- end:roleUcast -->
 </table><br><br>
+<!-- end:roleBezPrav -->
 
 <!-- end:prava -->

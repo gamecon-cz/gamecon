@@ -11,12 +11,19 @@ use Gamecon\Cas\DateTimeCz;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Role\Role;
 use Gamecon\Role\RoleSqlStruktura;
-use Gamecon\Pravo;
 
 /** @var Uzivatel|null $uPracovni */
 /** @var Uzivatel $u */
 
 $role = $podstranka ?? null;
+
+$roleObjekt = $role
+    ? Role::zId($role, true)
+    : null;
+if (!$roleObjekt || ($roleObjekt->kategorieRole() == Role::KATEGORIE_OMEZENA && !$u->maRoliClenRady())) {
+    $role = null;
+}
+unset($roleObjekt);
 
 function zaloguj($zprava) {
     $cas = (new DateTimeCz())->formatDb();
@@ -32,7 +39,7 @@ if ($idRoleNaPrirazeni = (int)get('posad')) {
 }
 
 if ($idRoleNaOdebrani = (int)get('sesad')) {
-    if ($uPracovni && $u->maPravoNaPrirazeniRole($idRoleNaPrirazeni)) {
+    if ($uPracovni && $u->maPravoNaPrirazeniRole($idRoleNaOdebrani)) {
         $uPracovni->odeberRoli($idRoleNaOdebrani, $u);
         zaloguj('Uživatel ' . $u->jmenoNick() . " sesadil z role $idRoleNaOdebrani uživatele " . $uPracovni->jmenoNick());
     }
@@ -40,26 +47,37 @@ if ($idRoleNaOdebrani = (int)get('sesad')) {
 }
 
 if (!$role) {
-    $t = new XTemplate(__DIR__ . '/prava.xtpl');
+    $t                 = new XTemplate(__DIR__ . '/prava.xtpl');
+    $povoleneKategorie = [Role::KATEGORIE_BEZNA];
+    if ($u->maRoliClenRady()) {
+        $povoleneKategorie[] = Role::KATEGORIE_OMEZENA;
+    }
     // výpis seznamu židlí
-    $o            = dbQuery(
-        'SELECT role.*, platne_role_uzivatelu.id_role IS NOT NULL AS sedi, platne_role_uzivatelu.posadil, platne_role_uzivatelu.posazen
-    FROM role_seznam AS role
-    LEFT JOIN platne_role_uzivatelu
-        ON platne_role_uzivatelu.id_role = role.id_role AND platne_role_uzivatelu.id_uzivatele = $0
-    WHERE role.rocnik_role IN ($1, $2)
-        AND role.skryta = 0
-    GROUP BY role.id_role, role.typ_role, role.nazev_role
-    ORDER BY role.typ_role, role.nazev_role',
-        [0 => $uPracovni?->id(), 1 => ROCNIK, 2 => Role::JAKYKOLI_ROCNIK]
+    $o               = dbQuery(<<<SQL
+SELECT role.id_role, role.kod_role, role.nazev_role, role.popis_role, role.rocnik_role, role.typ_role, role.vyznam_role, role.skryta, role.kategorie_role,
+       platne_role_uzivatelu.id_role IS NOT NULL AS sedi,
+       platne_role_uzivatelu.posadil,
+       platne_role_uzivatelu.posazen
+FROM role_seznam AS role
+LEFT JOIN platne_role_uzivatelu
+    ON platne_role_uzivatelu.id_role = role.id_role AND platne_role_uzivatelu.id_uzivatele = $0
+WHERE role.rocnik_role IN ($1)
+    AND role.skryta = 0
+    AND (role.kategorie_role IN ($2))
+GROUP BY role.id_role, role.typ_role, role.nazev_role
+ORDER BY role.typ_role, role.nazev_role
+SQL,
+        [0 => $uPracovni?->id(), 1 => [ROCNIK, Role::JAKYKOLI_ROCNIK], 2 => $povoleneKategorie]
     );
-    $predchoziTyp = null;
+    $predchoziTyp    = null;
+    $vidiRoleBezPrav = false;
     while ($r = mysqli_fetch_assoc($o)) {
         $r['sedi'] = $r['sedi'] ? '<span style="color:#0d0;font-weight:bold">&bull;</span>' : '';
         $t->assign($r);
         if ($r[RoleSqlStruktura::TYP_ROLE] === Role::TYP_UCAST) {
             if (Role::platiPouzeProRocnik($r[RoleSqlStruktura::ROCNIK_ROLE], ROCNIK)) {
-                $t->parse('prava.roleUcast');
+                $t->parse('prava.roleBezPrav.roleUcast');
+                $vidiRoleBezPrav = true;
             } // 'else' jde o starou účast jako "GC2019 přijel" a ji nechceme ukazovat
         } elseif (Role::platiProRocnik($r[RoleSqlStruktura::ROCNIK_ROLE], ROCNIK)) {
             if ($predchoziTyp !== $r[RoleSqlStruktura::TYP_ROLE]) {
@@ -94,6 +112,9 @@ if (!$role) {
         $predchoziTyp = $r[RoleSqlStruktura::TYP_ROLE];
     }
     $t->parse('prava.jedenTypRoli');
+    if ($vidiRoleBezPrav) {
+        $t->parse('prava.roleBezPrav');
+    }
     $t->parse('prava');
     $t->out('prava');
 } else {
