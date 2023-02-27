@@ -4,6 +4,10 @@ namespace Gamecon\Cas;
 
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
+/**
+ * @method static DateTimeGamecon|false createFromMysql(string $dateTime, \DateTimeZone $timeZone = null)
+ * @method static DateTimeGamecon|false createFromFormat($format, $time, $timezone = null)
+ */
 class DateTimeGamecon extends DateTimeCz
 {
 
@@ -121,6 +125,10 @@ class DateTimeGamecon extends DateTimeCz
         return $zacatekRegistraciUcastniku;
     }
 
+    public static function konecRegistraciUcastniku(int $rocnik = ROCNIK): DateTimeGamecon {
+        return DateTimeGamecon::createFromMysql(REG_GC_DO);
+    }
+
     public static function spocitejZacatekRegistraciUcastniku(int $rocnik): DateTimeGamecon {
         if ($rocnik === 2013) {
             // čtvrtek
@@ -137,22 +145,27 @@ class DateTimeGamecon extends DateTimeCz
         $zacatekKvetna = new static($rocnik . '-05-01 00:00:00');
         switch ($rocnik) {
             case 2016 :
-                $poradiTydne = 2;
-                $denVTydnu   = static::UTERY;
-                break;
             case 2017 :
                 $poradiTydne = 1;
                 $denVTydnu   = static::UTERY;
                 break;
             case 2018 :
             case 2019 :
-                $poradiTydne = 3;
+                $poradiTydne = 2;
                 $denVTydnu   = static::UTERY;
                 break;
-            default : // 2020+
-                $poradiTydne = 3;
+            default :
+                $poradiTydne = 2;
                 $denVTydnu   = static::CTVRTEK;
+                break;
         }
+
+        $nedelePrvniTydenVKvetnu = self::dejDatumDneVTydnuOdData(self::NEDELE, $zacatekKvetna);
+        $poradiPrvniNedele       = $nedelePrvniTydenVKvetnu->format('j');
+        if ((int)$poradiPrvniNedele !== 7) {
+            $poradiTydne++; // přeskočíme neúplný týden
+        }
+
         $zacatekXTydneVKvetnu = self::dejZacatekXTydne($poradiTydne, $zacatekKvetna);
         $denVTydnuVKvetnu     = self::dejDatumDneVTydnuOdData($denVTydnu, $zacatekXTydneVKvetnu);
         [$hodina, $minuta] = str_split((string)$rocnik, 2); // ciselna hricka, rok 2022 = hodina 20 a minuta 22
@@ -172,27 +185,52 @@ class DateTimeGamecon extends DateTimeCz
         return self::spocitejZacatekRegistraciUcastniku($rocnik)->modify('+1 week');
     }
 
-    public static function prvniHromadneOdhlasovaniOd(int $rocnik = ROCNIK): DateTimeGamecon {
+    public static function zacatekDruheVlnyOd(int $rocnik = ROCNIK): DateTimeGamecon {
+        $zacatekDruheVlnyOd = $rocnik === (int)ROCNIK && defined('ZACATEK_DRUHE_VLNY')
+            ? static::zDbFormatu(ZACATEK_DRUHE_VLNY)
+            : self::spoctejZacatekDruheVlnyOd($rocnik);
+
+        return $zacatekDruheVlnyOd;
+    }
+
+    public static function spoctejZacatekDruheVlnyOd(int $rocnik): DateTimeGamecon {
+        return self::spoctejZacatekPrvniVlnyOd($rocnik)->modify('+3 weeks');
+    }
+
+    public static function zacatekTretiVlnyOd(int $rocnik = ROCNIK): DateTimeGamecon {
+        $zacatekTretiVlnyOd = $rocnik === (int)ROCNIK && defined('ZACATEK_TRETI_VLNY')
+            ? static::zDbFormatu(ZACATEK_TRETI_VLNY)
+            : self::spoctejZacatekTretiVlnyOd($rocnik);
+
+        return $zacatekTretiVlnyOd;
+    }
+
+    public static function spoctejZacatekTretiVlnyOd(int $rocnik): DateTimeGamecon {
+        // první červenec
+        return self::spocitejZacatekRegistraciUcastniku($rocnik)->setDate($rocnik, 7, 1);
+    }
+
+    public static function prvniHromadneOdhlasovaniDo(int $rocnik = ROCNIK): DateTimeGamecon {
         if ($rocnik === (int)ROCNIK && defined('HROMADNE_ODHLASOVANI_1')) {
             return static::zDbFormatu(HROMADNE_ODHLASOVANI_1);
         }
         // konec června
-        return static::spocitejPrvniHromadneOdhlasovaniOd($rocnik);
+        return static::spocitejPrvniHromadneOdhlasovaniDo($rocnik);
     }
 
-    public static function spocitejPrvniHromadneOdhlasovaniOd(int $rocnik) {
+    public static function spocitejPrvniHromadneOdhlasovaniDo(int $rocnik) {
         // konec června
         return new static($rocnik . '-06-30 23:59:00');
     }
 
-    public static function druheHromadneOdhlasovaniOd(int $rocnik = ROCNIK): DateTimeGamecon {
+    public static function druheHromadneOdhlasovaniDo(int $rocnik = ROCNIK): DateTimeGamecon {
         if ($rocnik === (int)ROCNIK && defined('HROMADNE_ODHLASOVANI_2')) {
             return static::zDbFormatu(HROMADNE_ODHLASOVANI_2);
         }
-        return static::spocitejDruheHromadneOdhlasovaniOd($rocnik);
+        return static::spocitejDruheHromadneOdhlasovaniDo($rocnik);
     }
 
-    public static function spocitejDruheHromadneOdhlasovaniOd(int $rocnik): DateTimeGamecon {
+    public static function spocitejDruheHromadneOdhlasovaniDo(int $rocnik): DateTimeGamecon {
         $zacatekGameconu                    = self::spocitejZacatekGameconu($rocnik);
         $nedeleNaKonciGameconu              = self::dejDatumDneVTydnuDoData(self::NEDELE, $zacatekGameconu);
         $nedeleDvaTydnyPredZacatkemGameconu = $nedeleNaKonciGameconu->modify('-2 week');
@@ -200,14 +238,14 @@ class DateTimeGamecon extends DateTimeCz
         return $nedeleDvaTydnyPredZacatkemGameconu->setTime(23, 59, 00);
     }
 
-    public static function tretiHromadneOdhlasovaniOd(int $rocnik = ROCNIK): DateTimeGamecon {
+    public static function tretiHromadneOdhlasovaniDo(int $rocnik = ROCNIK): DateTimeGamecon {
         if ($rocnik === (int)ROCNIK && defined('HROMADNE_ODHLASOVANI_3')) {
             return static::zDbFormatu(HROMADNE_ODHLASOVANI_3);
         }
-        return static::spocitejTretiHromadneOdhlasovaniOd($rocnik);
+        return static::spocitejTretiHromadneOdhlasovaniDo($rocnik);
     }
 
-    public static function spocitejTretiHromadneOdhlasovaniOd(int $rocnik): DateTimeGamecon {
+    public static function spocitejTretiHromadneOdhlasovaniDo(int $rocnik): DateTimeGamecon {
         $zacatekGameconu            = self::spocitejZacatekGameconu($rocnik);
         $nedeleNaKonciGameconu      = self::dejDatumDneVTydnuDoData(self::NEDELE, $zacatekGameconu);
         $nedelePredZacatkemGameconu = $nedeleNaKonciGameconu->modify('-1 week');
