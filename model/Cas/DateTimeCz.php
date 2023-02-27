@@ -138,6 +138,14 @@ class DateTimeCz extends \DateTime
         return parent::format(self::FORMAT_DATUM_STANDARD);
     }
 
+    public function formatDatumStandardZarovnaneHtml(): string {
+        return $this->zarovnatProHtml($this->formatDatumStandard());
+    }
+
+    protected function zarovnatProHtml(string $datum): string {
+        return preg_replace('~(^\d[.])~', '&nbsp;&nbsp;$1', $datum);
+    }
+
     /**
      * Vrací běžně používaný formát data a času s přesností na minuty - tvar d. m. yyyy 16:46
      *
@@ -154,6 +162,10 @@ class DateTimeCz extends \DateTime
      */
     public function formatCasStandard() {
         return parent::format(self::FORMAT_DATUM_A_CAS_STANDARD);
+    }
+
+    public function formatCasStandardZarovnaneHtml(): string {
+        return $this->zarovnatProHtml($this->formatCasStandard());
     }
 
     public function formatCasSoubor(): string {

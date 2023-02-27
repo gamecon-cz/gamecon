@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Cas\DateTimeCz;
+use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Pravo;
 
 /** @var Modul $this */
@@ -47,7 +48,7 @@ $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program-nahled/program-n
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program-posuv/program-posuv.js');
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/_spolecne/zachovej-scroll.js');
 
-$zacatekPrvniVlnyOd       = \Gamecon\Cas\DateTimeGamecon::zacatekPrvniVlnyOd();
+$zacatekPrvniVlnyOd       = DateTimeGamecon::zacatekPrvniVlnyOd();
 $zacatekPrvniVlnyZaSekund = $zacatekPrvniVlnyOd->getTimestamp() - time();
 
 $legendaText   = Stranka::zUrl('program-legenda-text')->html();
