@@ -11,7 +11,7 @@ define('UNIT_TESTS', true);
 // TODO dokud není konfigurace vyřešena jinak, než přes konstanty, musíme testovat jen jeden vydefinovaný stav, tj. "reg na aktivity i GC běží"
 define('REG_GC_OD', '2000-01-01 00:00:00');
 define('REG_GC_DO', '2038-01-01 00:00:00');
-define('REG_AKTIVIT_OD', '2000-01-01 00:00:00');
+define('ZACATEK_PRVNI_VLNY', '2000-01-01 00:00:00');
 define('REG_AKTIVIT_DO', '2038-01-01 00:00:00');
 
 define('BONUS_ZA_1H_AKTIVITU', 1);
