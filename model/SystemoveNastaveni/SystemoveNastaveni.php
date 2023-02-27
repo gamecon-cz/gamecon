@@ -48,7 +48,7 @@ class SystemoveNastaveni
     }
 
     public function __construct(
-        private int                     $rok,
+        private int                     $rocnik,
         private DateTimeImmutableStrict $ted,
         private bool                    $jsmeNaBete,
         private bool                    $jsmeNaLocale,
@@ -161,7 +161,7 @@ UPDATE systemove_nastaveni
 SET aktivni = $1
 WHERE klic = $2
 SQL,
-            [$aktivni, $klic],
+            [$aktivni ? 1 : 0, $klic],
         );
         dbQuery(<<<SQL
 INSERT INTO systemove_nastaveni_log(id_uzivatele, id_nastaveni, aktivni)
@@ -297,30 +297,30 @@ SQL;
 
     public function dejVychoziHodnotu(string $klic) {
         return match ($klic) {
-            'GC_BEZI_OD' => DateTimeGamecon::spocitejZacatekGameconu($this->rok())
+            'GC_BEZI_OD' => DateTimeGamecon::spocitejZacatekGameconu($this->rocnik())
                 ->formatDb(),
-            'GC_BEZI_DO', 'REG_GC_DO' => DateTimeGamecon::spocitejKonecGameconu($this->rok())
+            'GC_BEZI_DO', 'REG_GC_DO' => DateTimeGamecon::spocitejKonecGameconu($this->rocnik())
                 ->formatDb(),
-            'REG_GC_OD' => DateTimeGamecon::spocitejZacatekRegistraciUcastniku($this->rok())
+            'REG_GC_OD' => DateTimeGamecon::spocitejZacatekRegistraciUcastniku($this->rocnik())
                 ->formatDb(),
-            'ZACATEK_PRVNI_VLNY' => DateTimeGamecon::spoctejZacatekPrvniVlnyOd($this->rok())
+            'ZACATEK_PRVNI_VLNY' => DateTimeGamecon::spoctejZacatekPrvniVlnyOd($this->rocnik())
                 ->formatDb(),
-            'ZACATEK_DRUHE_VLNY' => DateTimeGamecon::spoctejZacatekPrvniVlnyOd($this->rok())
+            'ZACATEK_DRUHE_VLNY' => DateTimeGamecon::spoctejZacatekDruheVlnyOd($this->rocnik())
                 ->formatDb(),
-            'ZACATEK_TRETI_VLNY' => DateTimeGamecon::spoctejZacatekPrvniVlnyOd($this->rok())
+            'ZACATEK_TRETI_VLNY' => DateTimeGamecon::spoctejZacatekTretiVlnyOd($this->rocnik())
                 ->formatDb(),
-            'HROMADNE_ODHLASOVANI_1' => DateTimeGamecon::spocitejPrvniHromadneOdhlasovaniOd($this->rok())
+            'HROMADNE_ODHLASOVANI_1' => DateTimeGamecon::spocitejPrvniHromadneOdhlasovaniDo($this->rocnik())
                 ->formatDb(),
-            'HROMADNE_ODHLASOVANI_2' => DateTimeGamecon::spocitejDruheHromadneOdhlasovaniOd($this->rok())
+            'HROMADNE_ODHLASOVANI_2' => DateTimeGamecon::spocitejDruheHromadneOdhlasovaniDo($this->rocnik())
                 ->formatDb(),
-            'HROMADNE_ODHLASOVANI_3' => DateTimeGamecon::spocitejTretiHromadneOdhlasovaniOd($this->rok())
+            'HROMADNE_ODHLASOVANI_3' => DateTimeGamecon::spocitejTretiHromadneOdhlasovaniDo($this->rocnik())
                 ->formatDb(),
-            'JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE' => DateTimeGamecon::spocitejDruheHromadneOdhlasovaniOd($this->rok())
+            'JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE' => DateTimeGamecon::spocitejDruheHromadneOdhlasovaniDo($this->rocnik())
                 ->formatDatumDb(),
-            'PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE' => DateTimeGamecon::zacatekProgramu($this->rok())
+            'PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE' => DateTimeGamecon::zacatekProgramu($this->rocnik())
                 ->modify('-1 day')
                 ->formatDatumDb(),
-            'TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE' => DateTimeGamecon::spocitejPrvniHromadneOdhlasovaniOd($this->rok())
+            'TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE' => DateTimeGamecon::spocitejPrvniHromadneOdhlasovaniDo($this->rocnik())
                 ->formatDatumDb(),
             default => '',
         };
@@ -330,8 +330,8 @@ SQL;
      * Pozor, mělo by to odpovídat konstantě ROCNIK, respektive hodnotě v SQL tabulce systemove_nastaveni.
      * Pokud je to jinak, tak za následky neručíme (doporučené pouze pro testy).
      */
-    public function rok(): int {
-        return $this->rok;
+    public function rocnik(): int {
+        return $this->rocnik;
     }
 
     public function ted(): DateTimeImmutableStrict {
@@ -339,7 +339,7 @@ SQL;
     }
 
     public function konecLetosnihoGameconu(): \DateTimeImmutable {
-        return \DateTimeImmutable::createFromMutable(DateTimeGamecon::konecGameconu($this->rok()));
+        return \DateTimeImmutable::createFromMutable(DateTimeGamecon::konecGameconu($this->rocnik()));
     }
 
     public function ucastniciPridatelniDoNeuzavrenePrezenceDo(): \DateTimeImmutable {
@@ -429,6 +429,14 @@ SQL;
 
     public function databazoveNastaveni(): DatabazoveNastaveni {
         return $this->databazoveNastaveni;
+    }
+
+    public function zacatekPrvniVlnyOd(): DateTimeGamecon {
+        return DateTimeGamecon::zacatekPrvniVlnyOd($this->rocnik());
+    }
+
+    public function probihaRegistraceAktivit(): bool {
+        return REG_AKTIVIT;
     }
 
     public function jeApril(): bool {

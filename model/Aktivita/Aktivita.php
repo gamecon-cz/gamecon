@@ -1678,15 +1678,15 @@ SQL
     }
 
     /** Zdali chceme, aby se na aktivitu bylo možné běžně přihlašovat */
-    public function prihlasovatelna($parametry = 0) {
+    public function prihlasovatelna($parametry = 0, SystemoveNastaveni $systemoveNastaveni = null) {
         $dopredne = $parametry & self::DOPREDNE;
         $zpetne   = $parametry & self::ZPETNE;
         $interni  = $parametry & self::INTERNI;
         // stav 4 je rezervovaný pro viditelné nepřihlašovatelné aktivity
         return
-            (REG_AKTIVIT
-                || ($dopredne && pred(ZACATEK_PRVNI_VLNY))
-                || ($zpetne && po(REG_GC_DO))
+            (($systemoveNastaveni?->probihaRegistraceAktivit() ?? REG_AKTIVIT)
+                || ($dopredne && pred($systemoveNastaveni?->zacatekPrvniVlnyOd()->formatDb() ?? ZACATEK_PRVNI_VLNY))
+                || ($zpetne && po($systemoveNastaveni?->zacatekPrvniVlnyOd()->formatDb() ?? REG_GC_DO))
             )
             && (
                 $this->a['stav'] == StavAktivity::AKTIVOVANA
