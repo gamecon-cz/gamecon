@@ -15,7 +15,7 @@ define('BABEL_BINARKA', null);
 
 // ruční spuštění registrace na betě
 define('REG_GC_OD', '2000-01-01 00:00:00');
-define('REG_AKTIVIT_OD', '2000-01-01 00:00:00');
+define('ZACATEK_PRVNI_VLNY', '2000-01-01 00:00:00');
 
 /**
  * Pozor! Při vypnutí na betě to ovlivní i posílání mailů z CRONu, pokud není výslovně nastavená konstanta MAILY_DO_SOUBORU
