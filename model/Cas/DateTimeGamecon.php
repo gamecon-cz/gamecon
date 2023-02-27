@@ -161,8 +161,8 @@ class DateTimeGamecon extends DateTimeCz
     }
 
     public static function zacatekPrvniVlnyOd(int $rocnik = ROCNIK): DateTimeGamecon {
-        $zacatekPrvniVlnyOd = $rocnik === (int)ROCNIK && defined('REG_AKTIVIT_OD')
-            ? static::zDbFormatu(REG_AKTIVIT_OD)
+        $zacatekPrvniVlnyOd = $rocnik === (int)ROCNIK && defined('ZACATEK_PRVNI_VLNY')
+            ? static::zDbFormatu(ZACATEK_PRVNI_VLNY)
             : self::spoctejZacatekPrvniVlnyOd($rocnik);
 
         return $zacatekPrvniVlnyOd;

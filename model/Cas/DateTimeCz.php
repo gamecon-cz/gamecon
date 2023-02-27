@@ -60,10 +60,21 @@ class DateTimeCz extends \DateTime
         7 => 'nedele',
     ];
 
+    /**
+     * @param string $dateTime
+     * @param \DateTimeZone|null $timeZone
+     * @return DateTimeCz|false
+     */
     public static function createFromMysql(string $dateTime, \DateTimeZone $timeZone = null) {
         return static::createFromFormat('Y-m-d H:i:s', $dateTime, $timeZone);
     }
 
+    /**
+     * @param $format
+     * @param $time
+     * @param $timezone
+     * @return DateTimeCz|false
+     */
     public static function createFromFormat($format, $time, $timezone = null): \DateTime|false {
         try {
             $dateTime = parent::createFromFormat($format, $time, $timezone);

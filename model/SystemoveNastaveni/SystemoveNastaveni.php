@@ -106,14 +106,13 @@ SQL,
     }
 
     private function definujOdvozeneKonstanty() {
-        @define('MODRE_TRICKO_ZDARMA_OD', 3 * BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU); // hodnota slevy od které má subjekt nárok na modré tričko
-
-        @define('BONUS_ZA_1H_AKTIVITU', self::spocitejBonusVypravece('BONUS_ZA_1H_AKTIVITU'));
-        @define('BONUS_ZA_2H_AKTIVITU', self::spocitejBonusVypravece('BONUS_ZA_2H_AKTIVITU'));
-        @define('BONUS_ZA_6H_AZ_7H_AKTIVITU', self::spocitejBonusVypravece('BONUS_ZA_6H_AZ_7H_AKTIVITU'));
-        @define('BONUS_ZA_8H_AZ_9H_AKTIVITU', self::spocitejBonusVypravece('BONUS_ZA_8H_AZ_9H_AKTIVITU'));
-        @define('BONUS_ZA_10H_AZ_11H_AKTIVITU', self::spocitejBonusVypravece('BONUS_ZA_10H_AZ_11H_AKTIVITU'));
-        @define('BONUS_ZA_12H_AZ_13H_AKTIVITU', self::spocitejBonusVypravece('BONUS_ZA_12H_AZ_13H_AKTIVITU'));
+        try_define('MODRE_TRICKO_ZDARMA_OD', 3 * BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU); // hodnota slevy od které má subjekt nárok na modré tričko
+        try_define('BONUS_ZA_1H_AKTIVITU', self::spocitejBonusVypravece('BONUS_ZA_1H_AKTIVITU'));
+        try_define('BONUS_ZA_2H_AKTIVITU', self::spocitejBonusVypravece('BONUS_ZA_2H_AKTIVITU'));
+        try_define('BONUS_ZA_6H_AZ_7H_AKTIVITU', self::spocitejBonusVypravece('BONUS_ZA_6H_AZ_7H_AKTIVITU'));
+        try_define('BONUS_ZA_8H_AZ_9H_AKTIVITU', self::spocitejBonusVypravece('BONUS_ZA_8H_AZ_9H_AKTIVITU'));
+        try_define('BONUS_ZA_10H_AZ_11H_AKTIVITU', self::spocitejBonusVypravece('BONUS_ZA_10H_AZ_11H_AKTIVITU'));
+        try_define('BONUS_ZA_12H_AZ_13H_AKTIVITU', self::spocitejBonusVypravece('BONUS_ZA_12H_AZ_13H_AKTIVITU'));
     }
 
     public function zkonvertujHodnotuNaTyp($hodnota, string $datovyTyp) {
@@ -177,18 +176,15 @@ SQL,
 
     private function formatujHodnotuProDb($hodnota, string $klic) {
         try {
-            switch ($this->dejDatovyTyp($klic)) {
-                case 'date' :
-                    return $hodnota
-                        ? DateTimeCz::createFromFormat('j. n. Y', $hodnota)->formatDatumDb()
-                        : $hodnota;
-                case 'datetime' :
-                    return $hodnota
-                        ? DateTimeCz::createFromFormat('j. n. Y H:i:s', $hodnota)->formatDb()
-                        : $hodnota;
-                default :
-                    return $hodnota;
-            }
+            return match ($this->dejDatovyTyp($klic)) {
+                'date' => $hodnota
+                    ? DateTimeCz::createFromFormat('j. n. Y', $hodnota)->formatDatumDb()
+                    : $hodnota,
+                'datetime' => $hodnota
+                    ? DateTimeCz::createFromFormat('j. n. Y H:i:s', $hodnota)->formatDb()
+                    : $hodnota,
+                default => $hodnota,
+            };
         } catch (InvalidDateTimeFormat $invalidDateTimeFormat) {
             throw new InvalidSystemSettingsValue(
                 sprintf(
@@ -307,7 +303,11 @@ SQL;
                 ->formatDb(),
             'REG_GC_OD' => DateTimeGamecon::spocitejZacatekRegistraciUcastniku($this->rok())
                 ->formatDb(),
-            'REG_AKTIVIT_OD' => DateTimeGamecon::spoctejZacatekPrvniVlnyOd($this->rok())
+            'ZACATEK_PRVNI_VLNY' => DateTimeGamecon::spoctejZacatekPrvniVlnyOd($this->rok())
+                ->formatDb(),
+            'ZACATEK_DRUHE_VLNY' => DateTimeGamecon::spoctejZacatekPrvniVlnyOd($this->rok())
+                ->formatDb(),
+            'ZACATEK_TRETI_VLNY' => DateTimeGamecon::spoctejZacatekPrvniVlnyOd($this->rok())
                 ->formatDb(),
             'HROMADNE_ODHLASOVANI_1' => DateTimeGamecon::spocitejPrvniHromadneOdhlasovaniOd($this->rok())
                 ->formatDb(),
