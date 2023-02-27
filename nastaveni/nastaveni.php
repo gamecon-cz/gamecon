@@ -70,7 +70,7 @@ if (!defined('REG_GC_DO')) define('REG_GC_DO', GC_BEZI_DO); // ukončení možno
 // REGISTRACE NA AKTIVITY (PRVNÍ, DRUHÁ A TŘETÍ VLNA) //
 ////////////////////////////////////////////////////////
 // 2022-05-19 20:22:00
-if (!defined('REG_AKTIVIT_OD')) define('REG_AKTIVIT_OD', DateTimeGamecon::zacatekPrvniVlnyOd(ROCNIK)->formatDb()); // spuštění možnosti registrace na aktivity, pokud jsou aktivované 1. vlna
+if (!defined('ZACATEK_PRVNI_VLNY')) define('ZACATEK_PRVNI_VLNY', DateTimeGamecon::zacatekPrvniVlnyOd(ROCNIK)->formatDb()); // spuštění možnosti registrace na aktivity, pokud jsou aktivované 1. vlna
 if (!defined('REG_AKTIVIT_DO')) define('REG_AKTIVIT_DO', GC_BEZI_DO); // ukončení možnosti registrace na aktivity
 // 2022-06-30 23:59:00
 if (!defined('HROMADNE_ODHLASOVANI_1')) define('HROMADNE_ODHLASOVANI_1' /* a začátek třetí vlny */, DateTimeGamecon::prvniHromadneOdhlasovaniOd(ROCNIK)->formatDb()); // datum hromadného odhlašování neplatičů
@@ -188,7 +188,7 @@ if (!defined('VYZADOVANO_COVID_POTVRZENI')) define('VYZADOVANO_COVID_POTVRZENI',
 
 // odpočítané tvrdé údaje podle dat
 if (!defined('REG_GC')) define('REG_GC', mezi(REG_GC_OD, REG_GC_DO));
-if (!defined('REG_AKTIVIT')) define('REG_AKTIVIT', mezi(REG_AKTIVIT_OD, REG_AKTIVIT_DO));
+if (!defined('REG_AKTIVIT')) define('REG_AKTIVIT', mezi(ZACATEK_PRVNI_VLNY, REG_AKTIVIT_DO));
 if (!defined('GC_BEZI')) define('GC_BEZI', mezi(GC_BEZI_OD, GC_BEZI_DO)); // jestli gamecon aktivně běží (zakázání online registrací ubytování aj.) - do budoucna se vyvarovat a používat speciální konstanty per vlastnost
 
 if (!defined('ARCHIV_OD')) define('ARCHIV_OD', 2009);           //rok, od kterého se vedou (nabízejí) archivy (aktivit atp.)

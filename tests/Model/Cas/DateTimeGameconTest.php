@@ -121,9 +121,9 @@ class DateTimeGameconTest extends TestCase
 
     public function testZacatekPrvniVlnyOd() {
         self::assertEquals(
-            DateTimeGamecon::createFromMysql(REG_AKTIVIT_OD),
+            DateTimeGamecon::createFromMysql(ZACATEK_PRVNI_VLNY),
             DateTimeGamecon::zacatekPrvniVlnyOd(ROCNIK),
-            'Očekáván jiný začátek první vlny pro letošek, viz konstanta REG_AKTIVIT_OD: ' . REG_AKTIVIT_OD
+            'Očekáván jiný začátek první vlny pro letošek, viz konstanta ZACATEK_PRVNI_VLNY: ' . ZACATEK_PRVNI_VLNY
         );
 
         self::assertEquals(

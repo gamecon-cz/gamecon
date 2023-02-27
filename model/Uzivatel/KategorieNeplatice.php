@@ -36,7 +36,7 @@ class KategorieNeplatice
         private Finance             $finance,
         private ?\DateTimeInterface $kdySeRegistrovalNaLetosniGc,
         private bool                $maPravoPlatitAzNaMiste,
-        private \DateTimeInterface  $zacatekVlnyOdhlasovani, // prvni nebo druha vlna
+        private \DateTimeInterface  $zacatekVlnyOdhlasovani,
         private int                 $rok,
         float                       $castkaVelkyDluh,
         private float               $castkaPoslalDost,

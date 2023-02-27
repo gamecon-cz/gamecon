@@ -313,3 +313,9 @@ function nahradNazvyKonstantZaHodnoty(string $text): string {
     }
     return $text;
 }
+
+function try_define(string $constantName, $value) {
+    if (!defined($constantName)) {
+        define($constantName, $value);
+    }
+}
