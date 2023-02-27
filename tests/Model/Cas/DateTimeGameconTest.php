@@ -107,6 +107,7 @@ class DateTimeGameconTest extends TestCase
 
     public function provideZacatkyRegistraciUcastniku(): array {
         return [
+            [2023, '2023-05-11 20:23:00'],
             [2022, '2022-05-12 20:22:00'],
             [2021, '2021-05-13 20:21:00'],
             [2019, '2019-05-14 20:19:00'],
@@ -119,36 +120,93 @@ class DateTimeGameconTest extends TestCase
         ];
     }
 
-    public function testZacatekPrvniVlnyOd() {
+    /**
+     * @dataProvider provideZacatekPrvniVlnyOd
+     */
+    public function testZacatekPrvniVlnyOd(int $rocnik, string $ocekavanyZacatek) {
         self::assertEquals(
-            DateTimeGamecon::createFromMysql(ZACATEK_PRVNI_VLNY),
-            DateTimeGamecon::zacatekPrvniVlnyOd(ROCNIK),
-            'Očekáván jiný začátek první vlny pro letošek, viz konstanta ZACATEK_PRVNI_VLNY: ' . ZACATEK_PRVNI_VLNY
+            DateTimeGamecon::createFromMysql($ocekavanyZacatek),
+            DateTimeGamecon::spoctejZacatekPrvniVlnyOd($rocnik),
+            "Očekáván jiný spočítaný začátek první vlny pro rok $rocnik"
         );
+        if ($rocnik !== ROCNIK) {
+            self::assertEquals(
+                DateTimeGamecon::createFromMysql($ocekavanyZacatek),
+                DateTimeGamecon::zacatekPrvniVlnyOd($rocnik),
+                "Očekáván jiný začátek první vlny pro rok $rocnik"
+            );
+        }
+    }
 
-        self::assertEquals(
-            DateTimeGamecon::createFromFormat('Y-m-d H:i:s', '2022-05-19 20:22:00'),
-            DateTimeGamecon::spoctejZacatekPrvniVlnyOd(2022),
-            'Očekáván jiný začátek první vlny pro rok 2022'
-        );
+    public function provideZacatekPrvniVlnyOd(): array {
+        return [
+//            'současný ročník' => [ROCNIK, ZACATEK_PRVNI_VLNY],
+            '2023' => [2023, '2023-05-18 20:23:00'],
+            '2022' => [2022, '2022-05-19 20:22:00'],
+            '2016' => [2016, '2016-05-10 20:16:00'],
+        ];
+    }
 
+    /**
+     * @dataProvider provideZacatekDruheVlnyOd
+     */
+    public function testZacatekDruheVlnyOd(int $rocnik, string $ocekavanyZacatek) {
         self::assertEquals(
-            DateTimeGamecon::createFromFormat('Y-m-d H:i:s', '2016-05-10 20:16:00'),
-            DateTimeGamecon::spoctejZacatekPrvniVlnyOd(2016),
-            'Očekáván jiný začátek první vlny pro rok 2016'
+            DateTimeGamecon::createFromMysql($ocekavanyZacatek),
+            DateTimeGamecon::spoctejZacatekDruheVlnyOd($rocnik),
+            "Očekáván jiný spočítaný začátek druhé vlny pro rok $rocnik"
         );
+        if ($rocnik !== ROCNIK) {
+            self::assertEquals(
+                DateTimeGamecon::createFromMysql($ocekavanyZacatek),
+                DateTimeGamecon::zacatekDruheVlnyOd($rocnik),
+                "Očekáván jiný začátek druhé vlny pro rok $rocnik"
+            );
+        }
+    }
+
+    public function provideZacatekDruheVlnyOd(): array {
+        return [
+//            'současný ročník' => [ROCNIK, ZACATEK_DRUHE_VLNY],
+            '2023' => [2023, '2023-06-08 20:23:00'],
+        ];
+    }
+
+    /**
+     * @dataProvider provideZacatekTretiVlnyOd
+     */
+    public function testZacatekTretiVlnyOd(int $rocnik, string $ocekavanyZacatek) {
+        self::assertEquals(
+            DateTimeGamecon::createFromMysql($ocekavanyZacatek),
+            DateTimeGamecon::spoctejZacatekTretiVlnyOd($rocnik),
+            "Očekáván jiný spočítaný začátek třetí vlny pro rok $rocnik"
+        );
+        if ($rocnik !== ROCNIK) {
+            self::assertEquals(
+                DateTimeGamecon::createFromMysql($ocekavanyZacatek),
+                DateTimeGamecon::zacatekTretiVlnyOd($rocnik),
+                "Očekáván jiný začátek třetí vlny pro rok $rocnik"
+            );
+        }
+    }
+
+    public function provideZacatekTretiVlnyOd(): array {
+        return [
+//            'současný ročník' => [ROCNIK, ZACATEK_TRETI_VLNY],
+            '2023' => [2023, '2023-07-01 20:23:00'],
+        ];
     }
 
     public function testPrvniHromadneOdhlasovaniOd() {
         self::assertEquals(
             DateTimeGamecon::createFromMysql(HROMADNE_ODHLASOVANI_1),
-            DateTimeGamecon::prvniHromadneOdhlasovaniOd(),
+            DateTimeGamecon::prvniHromadneOdhlasovaniDo(),
             'Očekáván jiné datum prvního hromadného ohlašování, viz konstanta HROMADNE_ODHLASOVANI_1: ' . HROMADNE_ODHLASOVANI_1
         );
 
         self::assertEquals(
             DateTimeGamecon::createFromFormat('Y-m-d H:i:s', '2023-06-30 23:59:00'),
-            DateTimeGamecon::spocitejPrvniHromadneOdhlasovaniOd(2023),
+            DateTimeGamecon::spocitejPrvniHromadneOdhlasovaniDo(2023),
             'Očekáván jiné datum prvního hromadného odhlašování pro rok 2023'
         );
     }
@@ -156,13 +214,13 @@ class DateTimeGameconTest extends TestCase
     public function testDruheHromadneOdhlasovaniOd() {
         self::assertEquals(
             DateTimeGamecon::createFromMysql(HROMADNE_ODHLASOVANI_2),
-            DateTimeGamecon::druheHromadneOdhlasovaniOd(),
+            DateTimeGamecon::druheHromadneOdhlasovaniDo(),
             'Očekáváno jiné datum druhého hromadného ohlašování, viz konstanta HROMADNE_ODHLASOVANI_2: ' . HROMADNE_ODHLASOVANI_2
         );
 
         self::assertEquals(
             DateTimeGamecon::createFromFormat('Y-m-d H:i:s', '2023-07-09 23:59:00'),
-            DateTimeGamecon::spocitejDruheHromadneOdhlasovaniOd(2023),
+            DateTimeGamecon::spocitejDruheHromadneOdhlasovaniDo(2023),
             'Očekáváno jiné datum druhého hromadného odhlašování pro rok 2023'
         );
     }
@@ -170,13 +228,13 @@ class DateTimeGameconTest extends TestCase
     public function testTretiHromadneOdhlasovaniOd() {
         self::assertEquals(
             DateTimeGamecon::createFromMysql(HROMADNE_ODHLASOVANI_3),
-            DateTimeGamecon::tretiHromadneOdhlasovaniOd(),
+            DateTimeGamecon::tretiHromadneOdhlasovaniDo(),
             'Očekáváno jiné datum třetího hromadného ohlašování, viz konstanta HROMADNE_ODHLASOVANI_3: ' . HROMADNE_ODHLASOVANI_3
         );
 
         self::assertEquals(
             DateTimeGamecon::createFromFormat('Y-m-d H:i:s', '2023-07-16 23:59:00'),
-            DateTimeGamecon::spocitejTretiHromadneOdhlasovaniOd(2023),
+            DateTimeGamecon::spocitejTretiHromadneOdhlasovaniDo(2023),
             'Očekáváno jiné datum třetího hromadného odhlašování pro rok 2023'
         );
     }
@@ -295,6 +353,46 @@ class DateTimeGameconTest extends TestCase
             false,
             false,
             DatabazoveNastaveni::vytvorZGlobals()
+        );
+    }
+
+    public function testDatumDneVTydnuDoData() {
+        self::assertSame(
+            '2023-05-11',
+            DateTimeGamecon::dejDatumDneVTydnuDoData(
+                DateTimeGamecon::CTVRTEK,
+                new DateTimeGamecon('2023-05-14')
+            )->format(DateTimeGamecon::FORMAT_DATUM_DB),
+            'Měli bychom dostat čtvrtek ve stejném týdnu i z datumu s nedělí'
+        );
+
+        self::assertSame(
+            '2023-05-11',
+            DateTimeGamecon::dejDatumDneVTydnuDoData(
+                DateTimeGamecon::CTVRTEK,
+                new DateTimeGamecon('2023-05-11')
+            )->format(DateTimeGamecon::FORMAT_DATUM_DB),
+            'Měli bychom dostat zase stejný čtvrtek'
+        );
+    }
+
+    public function testDatumDneVTydnuOdData() {
+        self::assertSame(
+            '2023-05-11',
+            DateTimeGamecon::dejDatumDneVTydnuOdData(
+                DateTimeGamecon::CTVRTEK,
+                new DateTimeGamecon('2023-05-08')
+            )->format(DateTimeGamecon::FORMAT_DATUM_DB),
+            'Měli bychom dostat čtvrtek ve stejném týdnu i z datumu s pondělím'
+        );
+
+        self::assertSame(
+            '2023-05-11',
+            DateTimeGamecon::dejDatumDneVTydnuOdData(
+                DateTimeGamecon::CTVRTEK,
+                new DateTimeGamecon('2023-05-11')
+            )->format(DateTimeGamecon::FORMAT_DATUM_DB),
+            'Měli bychom dostat zase stejný čtvrtek'
         );
     }
 }

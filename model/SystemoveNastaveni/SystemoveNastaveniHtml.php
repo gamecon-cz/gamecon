@@ -142,11 +142,11 @@ class SystemoveNastaveniHtml
         switch (strtolower(trim($datovyTyp))) {
             case 'date' :
                 return $hodnota
-                    ? (new DateTimeCz($hodnota))->formatDatumStandard()
+                    ? (new DateTimeCz($hodnota))->formatDatumStandardZarovnaneHtml()
                     : $hodnota;
             case 'datetime' :
                 return $hodnota
-                    ? (new DateTimeCz($hodnota))->formatCasStandard()
+                    ? (new DateTimeCz($hodnota))->formatCasStandardZarovnaneHtml()
                     : $hodnota;
             default :
                 return $hodnota;
