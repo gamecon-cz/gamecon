@@ -7,6 +7,7 @@ use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\Cas\Exceptions\InvalidDateTimeFormat;
 use Gamecon\SystemoveNastaveni\Exceptions\InvalidSystemSettingsValue;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveniSqlStruktura as Sql;
 
 class SystemoveNastaveni
 {
@@ -245,7 +246,7 @@ SELECT systemove_nastaveni.klic,
        systemove_nastaveni.aktivni,
        systemove_nastaveni.nazev,
        systemove_nastaveni.popis,
-       COALESCE(naposledy, systemove_nastaveni.zmena_kdy) AS kdy,
+       COALESCE(naposledy, systemove_nastaveni.zmena_kdy) AS zmena_kdy,
        posledni_s_uzivatelem.id_uzivatele,
        systemove_nastaveni.skupina,
        systemove_nastaveni.poradi,
@@ -273,7 +274,7 @@ SQL;
         return $this->vlozOstatniBonusyVypravecuDoPopisu(
             $this->pridejVychoziHodnoty(
                 dbFetchAll(
-                    $this->dejSqlNaZaVsechnyZaznamyNastaveni(['systemove_nastaveni.klic IN ($0)']),
+                    $this->dejSqlNaZaVsechnyZaznamyNastaveni([Sql::SYSTEMOVE_NASTAVENI_TABULKA . '.' . Sql::KLIC . ' IN ($0)']),
                     [0 => $klice],
                 )
             )
@@ -283,7 +284,7 @@ SQL;
     private function pridejVychoziHodnoty(array $zaznamy): array {
         return array_map(
             function (array $zaznam) {
-                $zaznam['vychozi_hodnota'] = $this->dejVychoziHodnotu($zaznam['klic']);
+                $zaznam['vychozi_hodnota'] = $this->dejVychoziHodnotu($zaznam[Sql::KLIC]);
                 $zaznam['popis']           .= '<hr><i>výchozí hodnota</i>: ' . (
                     $zaznam['vychozi_hodnota'] !== ''
                         ? htmlspecialchars($zaznam['vychozi_hodnota'], ENT_QUOTES | ENT_HTML5)
