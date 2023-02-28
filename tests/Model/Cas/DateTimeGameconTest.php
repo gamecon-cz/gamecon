@@ -143,6 +143,8 @@ class DateTimeGameconTest extends TestCase
 //            'současný ročník' => [ROCNIK, ZACATEK_PRVNI_VLNY],
             '2023' => [2023, '2023-05-18 20:23:00'],
             '2022' => [2022, '2022-05-19 20:22:00'],
+            '2021' => [2021, '2021-05-20 20:21:00'],
+            '2019' => [2019, '2019-05-21 20:19:00'],
             '2016' => [2016, '2016-05-10 20:16:00'],
         ];
     }
@@ -167,8 +169,12 @@ class DateTimeGameconTest extends TestCase
 
     public function provideZacatekDruheVlnyOd(): array {
         return [
-//            'současný ročník' => [ROCNIK, ZACATEK_DRUHE_VLNY],
-            '2023' => [2023, '2023-06-08 20:23:00'],
+            'současný ročník' => [ROCNIK, ZACATEK_DRUHE_VLNY],
+            '2023'            => [2023, '2023-06-08 20:23:00'],
+            '2022'            => [2022, '2022-06-09 20:22:00'],
+            '2021'            => [2021, '2021-06-10 20:21:00'],
+//            '2014'            => [2014, '2014-05-19 20:00:00'],
+//            '2013'            => [2013, '2013-06-01 20:00:00'],
         ];
     }
 
@@ -192,8 +198,10 @@ class DateTimeGameconTest extends TestCase
 
     public function provideZacatekTretiVlnyOd(): array {
         return [
-//            'současný ročník' => [ROCNIK, ZACATEK_TRETI_VLNY],
-            '2023' => [2023, '2023-07-01 20:23:00'],
+            'současný ročník' => [ROCNIK, ZACATEK_TRETI_VLNY],
+            '2023'            => [2023, '2023-07-01 20:23:00'],
+            '2022'            => [2022, '2022-07-01 20:22:00'],
+//            '2014'            => [2014, '2014-06-09 20:00:00'],
         ];
     }
 
