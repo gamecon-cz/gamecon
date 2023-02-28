@@ -4,6 +4,7 @@ namespace Gamecon\SystemoveNastaveni;
 
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\XTemplate\XTemplate;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveniStruktura as Struktura;
 use Granam\RemoveDiacritics\RemoveDiacritics;
 
 class SystemoveNastaveniHtml
@@ -160,28 +161,28 @@ class SystemoveNastaveniHtml
         array_walk(
             $hodnotyNastaveni,
             function (array &$zaznam) {
-                $zaznam['posledniZmena'] = (new \Gamecon\Cas\DateTimeCz($zaznam['kdy']))->relativni();
-                $zaznam['zmenil']        = '<strong>' . ($zaznam['id_uzivatele']
-                        ? \Uzivatel::zId($zaznam['id_uzivatele'])->jmenoNick()
+                $zaznam['posledniZmena'] = (new \Gamecon\Cas\DateTimeCz($zaznam[Struktura::ZMENA_KDY]))->relativni();
+                $zaznam['zmenil']        = '<strong>' . ($zaznam[Struktura::ZMENA_KDY]
+                        ? (\Uzivatel::zId($zaznam[Struktura::ID_UZIVATELE]) ?? \Uzivatel::zId(\Uzivatel::SYSTEM))->jmenoNick()
                         : '<i>SQL migrace</i>'
-                    ) . '</strong><br>' . (new \Gamecon\Cas\DateTimeCz($zaznam['kdy']))->formatCasStandard();;
-                $zaznam['inputType']                  = $this->dejHtmlInputType($zaznam['datovy_typ']);
-                $zaznam['tagInputType']               = $this->dejHtmlTagInputType($zaznam['datovy_typ']);
-                $zaznam['inputValue']                 = $this->dejHtmlInputValue($zaznam['hodnota'], $zaznam['datovy_typ']);
-                $zaznam['vychoziHodnotaValue']        = $this->dejHtmlInputValue($zaznam['vychozi_hodnota'], $zaznam['datovy_typ']);
-                $zaznam['checked']                    = $zaznam['aktivni']
+                    ) . '</strong><br>' . (new \Gamecon\Cas\DateTimeCz($zaznam[Struktura::ZMENA_KDY]))->formatCasStandard();;
+                $zaznam['inputType']                  = $this->dejHtmlInputType($zaznam[Struktura::DATOVY_TYP]);
+                $zaznam['tagInputType']               = $this->dejHtmlTagInputType($zaznam[Struktura::DATOVY_TYP]);
+                $zaznam['inputValue']                 = $this->dejHtmlInputValue($zaznam[Struktura::HODNOTA], $zaznam[Struktura::DATOVY_TYP]);
+                $zaznam['vychoziHodnotaValue']        = $this->dejHtmlInputValue($zaznam[Struktura::VYCHOZI_HODNOTA], $zaznam[Struktura::DATOVY_TYP]);
+                $zaznam['checked']                    = $zaznam[Struktura::AKTIVNI]
                     ? 'checked'
                     : '';
-                $zaznam['checkboxDisabled']           = $zaznam['pouze_pro_cteni'] || $zaznam['vychozi_hodnota'] === ''
+                $zaznam['checkboxDisabled']           = $zaznam[Struktura::POUZE_PRO_CTENI] || $zaznam[Struktura::VYCHOZI_HODNOTA] === ''
                     ? 'disabled'
                     : '';
-                $zaznam['valueChangeDisabled']        = $zaznam['pouze_pro_cteni']
+                $zaznam['valueChangeDisabled']        = $zaznam[Struktura::POUZE_PRO_CTENI]
                     ? 'disabled'
                     : '';
-                $zaznam['vychoziHodnotaDisplayClass'] = $zaznam['aktivni']
+                $zaznam['vychoziHodnotaDisplayClass'] = $zaznam[Struktura::AKTIVNI]
                     ? 'display-none'
                     : '';
-                $zaznam['hodnotaDisplayClass']        = !$zaznam['aktivni']
+                $zaznam['hodnotaDisplayClass']        = !$zaznam[Struktura::AKTIVNI]
                     ? 'display-none'
                     : '';
             }
