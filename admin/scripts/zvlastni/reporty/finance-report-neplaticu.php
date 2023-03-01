@@ -91,6 +91,6 @@ global $systemoveNastaveni;
 $report->tFormat(
     $formatReportu,
     'datum_hromadneho_odhlasovani_'
-    . $systemoveNastaveni->zacatekNejblizsiVlnyOdhlasovani()->format(DateTimeCz::FORMAT_DB)
+    . $systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy()->format(DateTimeCz::FORMAT_DB)
     . '-' . $report->nazevReportuZRequestu()
 );

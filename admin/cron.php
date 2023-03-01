@@ -21,6 +21,15 @@ if (!defined('CRON_KEY') || get('key') !== CRON_KEY) {
     die('špatný klíč');
 }
 
+$job = get('job');
+if ($job !== null) {
+    if ($job === 'odhlaseni_neplaticu') {
+        require __DIR__ . '/cron/odhlaseni_neplaticu.php';
+        return;
+    }
+    throw new \RuntimeException(sprintf("Invalid job '%s'", $job));
+}
+
 // otevřít log soubor pro zápis a přesměrovat do něj výstup
 $logdir  = SPEC . '/logs';
 $logfile = 'cron-' . date('Y-m') . '.log';
