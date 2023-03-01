@@ -1,12 +1,12 @@
 <?php
 /** @var \Godric\DbMigrations\Migration $this */
 
-$zacatekPrvniVlny = defined('ZACATEK_PRVNI_VLNY') ? ZACATEK_PRVNI_VLNY : '';
+$zacatekPrvniVlny = defined('PRVNI_VLNA_KDY') ? PRVNI_VLNA_KDY : '';
 
 $this->q(<<<SQL
 UPDATE systemove_nastaveni
     SET
-        klic = 'ZACATEK_PRVNI_VLNY',
+        klic = 'PRVNI_VLNA_KDY',
         popis = 'Kdy se poprvé hromadně změní aktivity Připravené k aktivaci na Aktivované',
         poradi = (SELECT MAX(poradi) + 1 FROM systemove_nastaveni AS predchozi),
         aktivni = IF('$zacatekPrvniVlny' = hodnota, 0 /* bude použita výchozí hodnota */, 1)
@@ -16,7 +16,7 @@ SQL
 
 $this->q(<<<SQL
 INSERT INTO systemove_nastaveni
-SET klic = 'ZACATEK_DRUHE_VLNY',
+SET klic = 'DRUHA_VLNA_KDY',
     hodnota = '',
     aktivni = 0, -- bude použita výchozí hodnota
     datovy_typ = 'datetime',
@@ -31,7 +31,7 @@ SQL
 
 $this->q(<<<SQL
 INSERT INTO systemove_nastaveni
-SET klic = 'ZACATEK_TRETI_VLNY',
+SET klic = 'TRETI_VLNA_KDY',
     hodnota = '',
     aktivni = 0, -- bude použita výchozí hodnota
     datovy_typ = 'datetime',
