@@ -68,7 +68,7 @@ if (get('pokoj')) {
 
 if ($uPracovni) {
     if (!$uPracovni->gcPrihlasen()) {
-        if (REG_GC) {
+        if ($systemoveNastaveni->registraceUcastnikuSpustena()) {
             $x->assign('prihlasDisabled', '');
         } else {
             $x->parse('infopult.neprihlasen.nelze');
