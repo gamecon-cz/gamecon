@@ -205,7 +205,7 @@ $t->assign([
         : 'Přihlásit na GameCon',
     'vstupne'                         => $shop->vstupneHtml(),
     'pomoc'                           => $pomoc->html(),
-    'zaplatitNejpozdejiDo'            => $systemoveNastaveni->zacatekNejblizsiVlnyOdhlasovani()->format('j. n.'),
+    'zaplatitNejpozdejiDo'            => $systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy()->format('j. n.'),
 ]);
 
 $t->parse($u->gcPrihlasen()

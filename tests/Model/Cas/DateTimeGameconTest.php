@@ -126,13 +126,13 @@ class DateTimeGameconTest extends TestCase
     public function testZacatekPrvniVlnyOd(int $rocnik, string $ocekavanyZacatek) {
         self::assertEquals(
             DateTimeGamecon::createFromMysql($ocekavanyZacatek),
-            DateTimeGamecon::spoctejZacatekPrvniVlnyOd($rocnik),
+            DateTimeGamecon::spoctejKdyJePrvniVlna($rocnik),
             "Očekáván jiný spočítaný začátek první vlny pro rok $rocnik"
         );
         if ($rocnik !== ROCNIK) {
             self::assertEquals(
                 DateTimeGamecon::createFromMysql($ocekavanyZacatek),
-                DateTimeGamecon::zacatekPrvniVlnyOd($rocnik),
+                DateTimeGamecon::prvniVlnaKdy($rocnik),
                 "Očekáván jiný začátek první vlny pro rok $rocnik"
             );
         }
@@ -140,7 +140,7 @@ class DateTimeGameconTest extends TestCase
 
     public function provideZacatekPrvniVlnyOd(): array {
         return [
-//            'současný ročník' => [ROCNIK, ZACATEK_PRVNI_VLNY],
+//            'současný ročník' => [ROCNIK, PRVNI_VLNA_KDY],
             '2023' => [2023, '2023-05-18 20:23:00'],
             '2022' => [2022, '2022-05-19 20:22:00'],
             '2021' => [2021, '2021-05-20 20:21:00'],
@@ -155,13 +155,13 @@ class DateTimeGameconTest extends TestCase
     public function testZacatekDruheVlnyOd(int $rocnik, string $ocekavanyZacatek) {
         self::assertEquals(
             DateTimeGamecon::createFromMysql($ocekavanyZacatek),
-            DateTimeGamecon::spoctejZacatekDruheVlnyOd($rocnik),
+            DateTimeGamecon::spocitejKdyJeDruhaVlna($rocnik),
             "Očekáván jiný spočítaný začátek druhé vlny pro rok $rocnik"
         );
         if ($rocnik !== ROCNIK) {
             self::assertEquals(
                 DateTimeGamecon::createFromMysql($ocekavanyZacatek),
-                DateTimeGamecon::zacatekDruheVlnyOd($rocnik),
+                DateTimeGamecon::druhaVlnaKdy($rocnik),
                 "Očekáván jiný začátek druhé vlny pro rok $rocnik"
             );
         }
@@ -169,7 +169,7 @@ class DateTimeGameconTest extends TestCase
 
     public function provideZacatekDruheVlnyOd(): array {
         return [
-            'současný ročník' => [ROCNIK, ZACATEK_DRUHE_VLNY],
+            'současný ročník' => [ROCNIK, DRUHA_VLNA_KDY],
             '2023'            => [2023, '2023-06-08 20:23:00'],
             '2022'            => [2022, '2022-06-09 20:22:00'],
             '2021'            => [2021, '2021-06-10 20:21:00'],
@@ -184,13 +184,13 @@ class DateTimeGameconTest extends TestCase
     public function testZacatekTretiVlnyOd(int $rocnik, string $ocekavanyZacatek) {
         self::assertEquals(
             DateTimeGamecon::createFromMysql($ocekavanyZacatek),
-            DateTimeGamecon::spoctejZacatekTretiVlnyOd($rocnik),
+            DateTimeGamecon::spocitejKdyJeTretiVlna($rocnik),
             "Očekáván jiný spočítaný začátek třetí vlny pro rok $rocnik"
         );
         if ($rocnik !== ROCNIK) {
             self::assertEquals(
                 DateTimeGamecon::createFromMysql($ocekavanyZacatek),
-                DateTimeGamecon::zacatekTretiVlnyOd($rocnik),
+                DateTimeGamecon::tretiVlnaKdy($rocnik),
                 "Očekáván jiný začátek třetí vlny pro rok $rocnik"
             );
         }
@@ -198,7 +198,7 @@ class DateTimeGameconTest extends TestCase
 
     public function provideZacatekTretiVlnyOd(): array {
         return [
-            'současný ročník' => [ROCNIK, ZACATEK_TRETI_VLNY],
+            'současný ročník' => [ROCNIK, TRETI_VLNA_KDY],
             '2023'            => [2023, '2023-07-01 20:23:00'],
             '2022'            => [2022, '2022-07-01 20:22:00'],
 //            '2014'            => [2014, '2014-06-09 20:00:00'],
@@ -265,7 +265,7 @@ class DateTimeGameconTest extends TestCase
         $nastaveniCasPrvnihoHromadnehoOdhlasovani = $this->dejSystemoveNastaveni($casPrvnihoHromadnehoOdhlasovani);
         self::assertEquals(
             $casPrvnihoHromadnehoOdhlasovani,
-            DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani($nastaveniCasPrvnihoHromadnehoOdhlasovani),
+            DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($nastaveniCasPrvnihoHromadnehoOdhlasovani),
             'Zjišťování nejbližší (první) vlny ve stejný čas jako vlna začíná by mělo vrátit začátek té samé vlny'
         );
 
@@ -273,7 +273,7 @@ class DateTimeGameconTest extends TestCase
         $nastveniPresneDenPoPrvni = $this->dejSystemoveNastaveni($presneDenPoPrvni);
         self::assertEquals(
             $casPrvnihoHromadnehoOdhlasovani,
-            DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani($nastveniPresneDenPoPrvni),
+            DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($nastveniPresneDenPoPrvni),
             'Zjišťování nejbližší (první) vlny ještě den poté, co vlna začíná, by mělo vrátit začátek té den staré vlny'
         );
     }
@@ -292,14 +292,14 @@ class DateTimeGameconTest extends TestCase
         $nastaveniDenAKousekPoPrvni = $this->dejSystemoveNastaveni($denAKousekPoPrvni);
         self::assertEquals(
             $casDruhehoHromadnehoOdhlasovani,
-            DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani($nastaveniDenAKousekPoPrvni),
+            DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($nastaveniDenAKousekPoPrvni),
             'Zjišťování nejbližší (první) vlny déle než den poté, co vlna začíná, by mělo vrátit začátek až následující vlny'
         );
 
         $nastaveniCasDruhehoHromadnehoOdhlasovani = $this->dejSystemoveNastaveni($casDruhehoHromadnehoOdhlasovani);
         self::assertEquals(
             $casDruhehoHromadnehoOdhlasovani,
-            DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani($nastaveniCasDruhehoHromadnehoOdhlasovani),
+            DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($nastaveniCasDruhehoHromadnehoOdhlasovani),
             'Zjišťování nejbližší (druhé) vlny ve stejný čas jako vlna začíná by mělo vrátit začátek té samé vlny'
         );
 
@@ -307,7 +307,7 @@ class DateTimeGameconTest extends TestCase
         $nastaveniPresneDenPoDruhe = $this->dejSystemoveNastaveni($presneDenPoDruhe);
         self::assertEquals(
             $casDruhehoHromadnehoOdhlasovani,
-            DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani($nastaveniPresneDenPoDruhe),
+            DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($nastaveniPresneDenPoDruhe),
             'Zjišťování nejbližší (druhé) vlny ještě den poté, co vlna začíná, by mělo vrátit začátek té den staré vlny'
         );
     }
@@ -326,14 +326,14 @@ class DateTimeGameconTest extends TestCase
         $nastaveniDenAKousekPoTreti = $this->dejSystemoveNastaveni($denAKousekPoTreti);
         self::assertEquals(
             $casTretihoHromadnehoOdhlasovani,
-            DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani($nastaveniDenAKousekPoTreti),
+            DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($nastaveniDenAKousekPoTreti),
             'Zjišťování nejbližší (druhé) vlny déle než den poté, co vlna začíná, by mělo vrátit začátek až následující vlny'
         );
 
         $nastaveniCasTretihoHromadnehoOdhlasovani = $this->dejSystemoveNastaveni($casTretihoHromadnehoOdhlasovani);
         self::assertEquals(
             $casTretihoHromadnehoOdhlasovani,
-            DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani($nastaveniCasTretihoHromadnehoOdhlasovani),
+            DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($nastaveniCasTretihoHromadnehoOdhlasovani),
             'Zjišťování nejbližší (třetí) vlny ve stejný čas jako vlna začíná by mělo vrátit začátek té samé vlny'
         );
 
@@ -341,7 +341,7 @@ class DateTimeGameconTest extends TestCase
         $nastaveniPresneDenPoDruhe = $this->dejSystemoveNastaveni($presneDenPoTreti);
         self::assertEquals(
             $casTretihoHromadnehoOdhlasovani,
-            DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani($nastaveniPresneDenPoDruhe),
+            DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($nastaveniPresneDenPoDruhe),
             'Zjišťování nejbližší (třetí) vlny ještě den poté, co vlna začíná, by mělo vrátit začátek té den staré vlny'
         );
 
@@ -349,7 +349,7 @@ class DateTimeGameconTest extends TestCase
         $nastaveniDenAKousekPoTreti = $this->dejSystemoveNastaveni($denAKousekPoTreti);
         self::assertEquals(
             $casTretihoHromadnehoOdhlasovani,
-            DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani($nastaveniDenAKousekPoTreti),
+            DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($nastaveniDenAKousekPoTreti),
             'Zjišťování nejbližší (třetí) vlny déle než den poté, co začíná druhá vlna, by mělo vrátit začátek třetí vlny jako poslední známé'
         );
     }
