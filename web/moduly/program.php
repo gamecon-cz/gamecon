@@ -48,7 +48,7 @@ $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program-nahled/program-n
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program-posuv/program-posuv.js');
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/_spolecne/zachovej-scroll.js');
 
-$zacatekPrvniVlnyOd       = DateTimeGamecon::zacatekPrvniVlnyOd();
+$zacatekPrvniVlnyOd       = DateTimeGamecon::prvniVlnaKdy();
 $zacatekPrvniVlnyZaSekund = $zacatekPrvniVlnyOd->getTimestamp() - time();
 
 $legendaText   = Stranka::zUrl('program-legenda-text')->html();

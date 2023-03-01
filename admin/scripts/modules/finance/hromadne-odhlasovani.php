@@ -105,12 +105,12 @@ if (post('odhlasit')) {
     array_walk($uzivatele, static function (Uzivatel $uzivatel) use (&$potize, $u) {
         try {
             $uzivatel->gcOdhlas($u);
-        } catch (\Gamecon\Exceptions\CanNotKickOutUserFromGamecon $canNotKickOutUserFromGamecon) {
+        } catch (Chyba $chyba) {
             $potize[] = sprintf(
                 "Nelze ohlásit účastníka %s s ID %d: '%s'",
                 $uzivatel->jmenoNick(),
                 $uzivatel->id(),
-                $canNotKickOutUserFromGamecon->getMessage()
+                $chyba->getMessage()
             );
         }
     });

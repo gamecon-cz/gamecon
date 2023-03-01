@@ -1825,8 +1825,8 @@ SQL
         // stav 4 je rezervovaný pro viditelné nepřihlašovatelné aktivity
         return
             (($systemoveNastaveni?->probihaRegistraceAktivit() ?? REG_AKTIVIT)
-                || ($dopredne && pred($systemoveNastaveni?->zacatekPrvniVlnyOd()->formatDb() ?? ZACATEK_PRVNI_VLNY))
-                || ($zpetne && po($systemoveNastaveni?->zacatekPrvniVlnyOd()->formatDb() ?? REG_GC_DO))
+                || ($dopredne && pred($systemoveNastaveni?->prvniVlnaKdy()->formatDb() ?? PRVNI_VLNA_KDY))
+                || ($zpetne && po($systemoveNastaveni?->prvniVlnaKdy()->formatDb() ?? REG_GC_DO))
             )
             && (
                 $this->a['stav'] == StavAktivity::AKTIVOVANA
@@ -1843,7 +1843,7 @@ SQL
         $interni = $parametry & self::INTERNI;
 
         if (!(REG_AKTIVIT || ($zpetne && po(REG_GC_DO)))) {
-            return sprintf('Není spuštěna registrace aktivit (začíná %s a končí %s)', ZACATEK_PRVNI_VLNY, REG_AKTIVIT_DO);
+            return sprintf('Není spuštěna registrace aktivit (začíná %s a končí %s)', PRVNI_VLNA_KDY, REG_AKTIVIT_DO);
         }
         if (!(
             $this->a['stav'] == StavAktivity::AKTIVOVANA
