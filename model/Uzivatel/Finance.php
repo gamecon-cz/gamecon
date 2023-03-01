@@ -832,9 +832,11 @@ SQL
                 static fn(array $logovanaPolozka) => in_array(
                     $logovanaPolozka['typ'],
                     [
-                        self::AKTIVITY,
-                        self::PREDMETY_STRAVA,
-                        self::UBYTOVANI,
+                        TypPredmetu::PREDMET,
+                        TypPredmetu::UBYTOVANI,
+                        TypPredmetu::TRICKO,
+                        TypPredmetu::VSTUPNE,
+                        TypPredmetu::JIDLO,
                     ]
                 )
             )

@@ -61,6 +61,8 @@ class KategorieNeplaticeTest extends TestCase
                 'letos nic, z loňska žádný zůstatek a má dluh' => [$this->finance(0.0, 0.0, -0.1), $predMesicem, $nemaPravoPlatitAzNaMiste, $zitra, ROCNIK, 0.0, PHP_INT_MAX, 0, 1],
                 'letos nic, z loňska něco málo a má malý dluh' => [$this->finance(0.0, 0.1, -0.1), $predMesicem, $nemaPravoPlatitAzNaMiste, $zitra, ROCNIK, -0.2 /* < stav -0.1 = malý dluh */, PHP_INT_MAX, 0, 3],
                 'letos poslal dost' => [$this->finance(100.0), $predMesicem, $nemaPravoPlatitAzNaMiste, $zitra, ROCNIK, -0.2 /* < stav -0.1 = malý dluh */, 100, 0, 4],
+                'letos nic, z loňska nic a nemá velký dluh' => [$this->finance(0.0, 0.0, -0.1), $predMesicem, $nemaPravoPlatitAzNaMiste, $zitra, ROCNIK, -0.2 /* < stav -0.1 = malý dluh */, PHP_INT_MAX, 0, 7],
+
             ]
         );
     }
