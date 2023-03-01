@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Cas\DateTimeCz;
+
 $cas = null;
 
 { // local scope
@@ -17,7 +19,7 @@ $cas = null;
     $ted = new DateTimeImmutable();
 
     if ($cas < $ted) {
-        throw new RuntimeException("Na spuštění CRONu v '$casString' už je pozdě");
+        throw new RuntimeException("Na spuštění CRONu v '$casString' už je pozdě. Teď je {$ted->format(DateTimeCz::FORMAT_DB)}");
     }
 
 }

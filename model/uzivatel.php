@@ -1612,7 +1612,7 @@ SQL,
      * @todo zrefaktorovat nactiUzivatele na toto
      */
     protected static function zWhere($where, $param = null, $extra = ''): array {
-        return parent::zWhere('WHERE TRUE', $param, ' GROUP BY u.id_uzivatele ' . $extra);
+        return parent::zWhere($where, $param, ' GROUP BY u.id_uzivatele ' . $extra);
     }
 
     protected static function dotaz($where): string {

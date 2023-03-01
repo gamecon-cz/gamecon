@@ -6,6 +6,7 @@ namespace Gamecon\Uzivatel;
 
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Pravo;
+use Gamecon\Role\Role;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Uzivatel\Exceptions\NaHromadneOdhlasovaniJeBrzy;
 use Gamecon\Uzivatel\Exceptions\NaHromadneOdhlasovaniJePozde;
@@ -21,11 +22,20 @@ class OdhlaseniNeplaticu
     /**
      * @throws Chyba
      */
-    public function hromadneOdhlasit(): int {
+    public function hromadneOdhlasit(\DateTimeInterface $platnostZpetneKDatu = null): int {
         $ted                             = $this->systemoveNastaveni->ted();
-        $platnostZpetneKDatu             = $ted->modify('-1 day');
+        $platnostZpetneKDatu             = $platnostZpetneKDatu ?? $ted->modify('-1 day');
         $nejblizsiHromadneOdhlasovaniKdy = $this->systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy($platnostZpetneKDatu);
-        $nejblizsiVlnaKdy                = $this->systemoveNastaveni->nejblizsiVlnaKdy($platnostZpetneKDatu);
+        $nejblizsiVlnaOtevreniAktivitKdy = $this->systemoveNastaveni->nejblizsiVlnaKdy($platnostZpetneKDatu);
+
+        if ($nejblizsiHromadneOdhlasovaniKdy > $ted) {
+            throw new NaHromadneOdhlasovaniJeBrzy(
+                sprintf(
+                    "Hromadné odhlášení může být spuštěno nejdříve v '%s'",
+                    $nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB)
+                )
+            );
+        }
 
         if ($nejblizsiHromadneOdhlasovaniKdy < $platnostZpetneKDatu) {
             throw new NaHromadneOdhlasovaniJePozde(
@@ -37,20 +47,11 @@ class OdhlaseniNeplaticu
             );
         }
 
-        if ($nejblizsiHromadneOdhlasovaniKdy >= $nejblizsiVlnaKdy) {
+        if ($nejblizsiHromadneOdhlasovaniKdy >= $nejblizsiVlnaOtevreniAktivitKdy) {
             throw new NaHromadneOdhlasovaniJePozde(
                 sprintf(
                     "Nejbližší vlna aktivit už začala v '%s', nemůžeme začít hromadně odhlašovat k okamžiku '%s'",
-                    $nejblizsiVlnaKdy->format(DateTimeCz::FORMAT_DB),
-                    $nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB)
-                )
-            );
-        }
-
-        if ($nejblizsiHromadneOdhlasovaniKdy > $ted) {
-            throw new NaHromadneOdhlasovaniJeBrzy(
-                sprintf(
-                    "Hromadné odhlášení může být spuštěno nejdříve v '%s'",
+                    $nejblizsiVlnaOtevreniAktivitKdy->format(DateTimeCz::FORMAT_DB),
                     $nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB)
                 )
             );
@@ -59,7 +60,11 @@ class OdhlaseniNeplaticu
         $potize         = [];
         $uzivatelSystem = \Uzivatel::zId(\Uzivatel::SYSTEM);
         foreach ($this->uzivateleKeKontrole() as $uzivatel) {
-            $kategorieNeplatice = KategorieNeplatice::vytvorProVlnu($uzivatel, $nejblizsiVlnaKdy);
+            $kategorieNeplatice = KategorieNeplatice::vytvorZHromadnehoOdhlasovani(
+                $uzivatel,
+                $nejblizsiHromadneOdhlasovaniKdy,
+                $this->systemoveNastaveni
+            );
             if ($kategorieNeplatice->melByBytOdhlasen()) {
                 try {
                     $uzivatel->gcOdhlas($uzivatelSystem);
@@ -89,12 +94,16 @@ SELECT uzivatele_hodnoty.id_uzivatele
 FROM uzivatele_hodnoty
 LEFT JOIN platne_role_uzivatelu AS role ON uzivatele_hodnoty.id_uzivatele = role.id_uzivatele
 LEFT JOIN prava_role on role.id_role = prava_role.id_role
-WHERE prava_role.id_role != $0
+WHERE prava_role.id_role = $0
+    AND prava_role.id_prava != $1
 SQL,
-            [0 => Pravo::NERUSIT_AUTOMATICKY_OBJEDNAVKY]
+            [
+                0 => Role::PRIHLASEN_NA_LETOSNI_GC,
+                1 => Pravo::NERUSIT_AUTOMATICKY_OBJEDNAVKY,
+            ]
         );
-        foreach ($idUzivatelu as $iduzivatele) {
-            yield \Uzivatel::zId($iduzivatele);
+        foreach ($idUzivatelu as $idUzivatele) {
+            yield \Uzivatel::zId($idUzivatele);
         }
     }
 
