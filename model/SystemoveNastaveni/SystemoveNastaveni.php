@@ -5,6 +5,7 @@ namespace Gamecon\SystemoveNastaveni;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\Cas\Exceptions\ChybnaZpetnaPlatnost;
 use Gamecon\Cas\Exceptions\InvalidDateTimeFormat;
 use Gamecon\SystemoveNastaveni\Exceptions\InvalidSystemSettingsValue;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveniSqlStruktura as Sql;
@@ -304,11 +305,11 @@ SQL;
                 ->formatDb(),
             'REG_GC_OD' => DateTimeGamecon::spocitejZacatekRegistraciUcastniku($this->rocnik())
                 ->formatDb(),
-            'ZACATEK_PRVNI_VLNY' => DateTimeGamecon::spoctejZacatekPrvniVlnyOd($this->rocnik())
+            'PRVNI_VLNA_KDY' => DateTimeGamecon::spoctejKdyJePrvniVlna($this->rocnik())
                 ->formatDb(),
-            'ZACATEK_DRUHE_VLNY' => DateTimeGamecon::spoctejZacatekDruheVlnyOd($this->rocnik())
+            'DRUHA_VLNA_KDY' => DateTimeGamecon::spocitejKdyJeDruhaVlna($this->rocnik())
                 ->formatDb(),
-            'ZACATEK_TRETI_VLNY' => DateTimeGamecon::spoctejZacatekTretiVlnyOd($this->rocnik())
+            'TRETI_VLNA_KDY' => DateTimeGamecon::spocitejKdyJeTretiVlna($this->rocnik())
                 ->formatDb(),
             'HROMADNE_ODHLASOVANI_1' => DateTimeGamecon::spocitejPrvniHromadneOdhlasovaniDo($this->rocnik())
                 ->formatDb(),
@@ -424,16 +425,31 @@ SQL;
         return new DateTimeImmutableStrict(HROMADNE_ODHLASOVANI_3);
     }
 
-    public function zacatekNejblizsiVlnyOdhlasovani(): \DateTimeImmutable {
-        return DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani($this);
+    /**
+     * @throws ChybnaZpetnaPlatnost
+     */
+    public function nejblizsiHromadneOdhlasovaniKdy(\DateTimeInterface $platnostZpetneKDatu = null): \DateTimeImmutable {
+        return DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($this, $platnostZpetneKDatu);
+    }
+
+    public function nejblizsiVlnaKdy(\DateTimeInterface $platnostZpetneKDatu = null): DateTimeGamecon {
+        return DateTimeGamecon::nejblizsiVlnaKdy($this, $platnostZpetneKDatu);
     }
 
     public function databazoveNastaveni(): DatabazoveNastaveni {
         return $this->databazoveNastaveni;
     }
 
-    public function zacatekPrvniVlnyOd(): DateTimeGamecon {
-        return DateTimeGamecon::zacatekPrvniVlnyOd($this->rocnik());
+    public function prvniVlnaKdy(): DateTimeGamecon {
+        return DateTimeGamecon::prvniVlnaKdy($this->rocnik());
+    }
+
+    public function druhaVlnaKdy(): DateTimeGamecon {
+        return DateTimeGamecon::druhaVlnaKdy($this->rocnik());
+    }
+
+    public function tretiVlnaKdy(): DateTimeGamecon {
+        return DateTimeGamecon::tretiVlnaKdy($this->rocnik());
     }
 
     public function probihaRegistraceAktivit(): bool {

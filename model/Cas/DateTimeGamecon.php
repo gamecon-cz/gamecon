@@ -2,6 +2,7 @@
 
 namespace Gamecon\Cas;
 
+use Gamecon\Cas\Exceptions\ChybnaZpetnaPlatnost;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 /**
@@ -173,39 +174,39 @@ class DateTimeGamecon extends DateTimeCz
         return $denVTydnuVKvetnu->setTime((int)$hodina, (int)$minuta, 0);
     }
 
-    public static function zacatekPrvniVlnyOd(int $rocnik = ROCNIK): DateTimeGamecon {
-        $zacatekPrvniVlnyOd = $rocnik === (int)ROCNIK && defined('ZACATEK_PRVNI_VLNY')
-            ? static::zDbFormatu(ZACATEK_PRVNI_VLNY)
-            : self::spoctejZacatekPrvniVlnyOd($rocnik);
+    public static function prvniVlnaKdy(int $rocnik = ROCNIK): DateTimeGamecon {
+        $zacatekPrvniVlnyOd = $rocnik === (int)ROCNIK && defined('PRVNI_VLNA_KDY')
+            ? static::zDbFormatu(PRVNI_VLNA_KDY)
+            : self::spoctejKdyJePrvniVlna($rocnik);
 
         return $zacatekPrvniVlnyOd;
     }
 
-    public static function spoctejZacatekPrvniVlnyOd(int $rocnik): DateTimeGamecon {
+    public static function spoctejKdyJePrvniVlna(int $rocnik): DateTimeGamecon {
         return self::spocitejZacatekRegistraciUcastniku($rocnik)->modify('+1 week');
     }
 
-    public static function zacatekDruheVlnyOd(int $rocnik = ROCNIK): DateTimeGamecon {
-        $zacatekDruheVlnyOd = $rocnik === (int)ROCNIK && defined('ZACATEK_DRUHE_VLNY')
-            ? static::zDbFormatu(ZACATEK_DRUHE_VLNY)
-            : self::spoctejZacatekDruheVlnyOd($rocnik);
+    public static function druhaVlnaKdy(int $rocnik = ROCNIK): DateTimeGamecon {
+        $zacatekDruheVlnyOd = $rocnik === (int)ROCNIK && defined('DRUHA_VLNA_KDY')
+            ? static::zDbFormatu(DRUHA_VLNA_KDY)
+            : self::spocitejKdyJeDruhaVlna($rocnik);
 
         return $zacatekDruheVlnyOd;
     }
 
-    public static function spoctejZacatekDruheVlnyOd(int $rocnik): DateTimeGamecon {
-        return self::spoctejZacatekPrvniVlnyOd($rocnik)->modify('+3 weeks');
+    public static function spocitejKdyJeDruhaVlna(int $rocnik): DateTimeGamecon {
+        return self::spoctejKdyJePrvniVlna($rocnik)->modify('+3 weeks');
     }
 
-    public static function zacatekTretiVlnyOd(int $rocnik = ROCNIK): DateTimeGamecon {
-        $zacatekTretiVlnyOd = $rocnik === (int)ROCNIK && defined('ZACATEK_TRETI_VLNY')
-            ? static::zDbFormatu(ZACATEK_TRETI_VLNY)
-            : self::spoctejZacatekTretiVlnyOd($rocnik);
+    public static function tretiVlnaKdy(int $rocnik = ROCNIK): DateTimeGamecon {
+        $zacatekTretiVlnyOd = $rocnik === (int)ROCNIK && defined('TRETI_VLNA_KDY')
+            ? static::zDbFormatu(TRETI_VLNA_KDY)
+            : self::spocitejKdyJeTretiVlna($rocnik);
 
         return $zacatekTretiVlnyOd;
     }
 
-    public static function spoctejZacatekTretiVlnyOd(int $rocnik): DateTimeGamecon {
+    public static function spocitejKdyJeTretiVlna(int $rocnik): DateTimeGamecon {
         // první červenec
         return self::spocitejZacatekRegistraciUcastniku($rocnik)->setDate($rocnik, 7, 1);
     }
@@ -253,17 +254,63 @@ class DateTimeGamecon extends DateTimeCz
         return $nedelePredZacatkemGameconu->setTime(23, 59, 00);
     }
 
-    public static function zacatekNejblizsiVlnyOdhlasovani(SystemoveNastaveni $systemoveNastaveni): \DateTimeImmutable {
-        // s rezervou jednoho dne, aby i po půlnoci ještě platilo včerejší datum odhlašování
-        $kDatu                    = ($systemoveNastaveni->ted())->modifyStrict('-1 day');
+    /**
+     * @throws ChybnaZpetnaPlatnost
+     */
+    public static function nejblizsiHromadneOdhlasovaniKdy(
+        SystemoveNastaveni $systemoveNastaveni,
+        \DateTimeInterface $platnostZpetne = null
+    ): DateTimeImmutableStrict {
+        $platnostZpetne = static::overenaPlatnostZpetne($systemoveNastaveni, $platnostZpetne);
+
         $prvniHromadneOdhlasovani = $systemoveNastaveni->prvniHromadneOdhlasovani();
-        if ($kDatu <= $prvniHromadneOdhlasovani) { // právě je nebo teprve bude
+        if ($platnostZpetne <= $prvniHromadneOdhlasovani) { // právě je nebo teprve bude
             return $prvniHromadneOdhlasovani;
         }
         $druheHromadneOdhlasovani = $systemoveNastaveni->druheHromadneOdhlasovani();
-        if ($kDatu <= $druheHromadneOdhlasovani) { // právě je nebo teprve bude
+        if ($platnostZpetne <= $druheHromadneOdhlasovani) { // právě je nebo teprve bude
             return $druheHromadneOdhlasovani;
         }
         return $systemoveNastaveni->tretiHromadneOdhlasovani();
+    }
+
+    /**
+     * @throws ChybnaZpetnaPlatnost
+     */
+    private static function overenaPlatnostZpetne(
+        SystemoveNastaveni $systemoveNastaveni,
+        \DateTimeInterface $platnostZpetne = null
+    ): \DateTimeInterface {
+        $ted = $systemoveNastaveni->ted();
+        // s rezervou jednoho dne, aby i po půlnoci ještě platilo včerejší datum odhlašování
+        $platnostZpetne = $platnostZpetne ?? $ted->modifyStrict('-1 day');
+        if ($platnostZpetne > $ted) {
+            throw new ChybnaZpetnaPlatnost(
+                sprintf(
+                    "Nelze použít platnost zpětně k datu '%s' když je teprve '%s'. Vyžadován čas v minulosti.",
+                    $platnostZpetne->format(DateTimeCz::FORMAT_DB),
+                    $ted->format(DateTimeCz::FORMAT_DB),
+                )
+            );
+        }
+
+        return $platnostZpetne;
+    }
+
+    public static function nejblizsiVlnaKdy(
+        SystemoveNastaveni $systemoveNastaveni,
+        \DateTimeInterface $platnostZpetne = null
+    ): DateTimeGamecon {
+        $platnostZpetne = static::overenaPlatnostZpetne($systemoveNastaveni, $platnostZpetne);
+
+        $prvniVlnaKdy = $systemoveNastaveni->prvniVlnaKdy();
+        if ($platnostZpetne <= $prvniVlnaKdy) { // právě je nebo teprve bude
+            return $prvniVlnaKdy;
+        }
+        $druhaVlnaKdy = $systemoveNastaveni->druhaVlnaKdy();
+        if ($platnostZpetne <= $druhaVlnaKdy) { // právě je nebo teprve bude
+            return $druhaVlnaKdy;
+        }
+        return $systemoveNastaveni->tretiVlnaKdy();
     }
 }

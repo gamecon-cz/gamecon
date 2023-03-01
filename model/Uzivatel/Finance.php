@@ -824,4 +824,20 @@ SQL
     public function sumaStorna(): float {
         return $this->sumaStorna;
     }
+
+    public function pocetObjednavek(): int {
+        return count(
+            array_filter(
+                $this->dejStrukturovanyPrehled(),
+                static fn(array $logovanaPolozka) => in_array(
+                    $logovanaPolozka['typ'],
+                    [
+                        self::AKTIVITY,
+                        self::PREDMETY_STRAVA,
+                        self::UBYTOVANI,
+                    ]
+                )
+            )
+        );
+    }
 }

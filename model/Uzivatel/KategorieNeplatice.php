@@ -2,6 +2,9 @@
 
 namespace Gamecon\Uzivatel;
 
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Uzivatel\Exceptions\NepodporovanaKategorieNeplatice;
+
 /**
  * https://trello.com/c/Zzo2htqI/892-vytvo%C5%99it-nov%C3%BD-report-email%C5%AF-p%C5%99i-odhla%C5%A1ov%C3%A1n%C3%AD-neplati%C4%8D%C5%AF
  */
@@ -14,14 +17,27 @@ class KategorieNeplatice
     public const LETOS_POSLAL_DOST_A_JE_TAK_CHRANENY                 = 4;
     public const LETOS_SE_REGISTROVAL_PAR_DNU_PRED_ODHLASOVACI_VLNOU = 5;
     public const MA_PRAVO_PLATIT_AZ_NA_MISTE                         = 6; // orgové a tak
+    public const LETOS_NEPOSLAL_NIC_ALE_TAKY_NEOBJEDNAL_NIC          = 7;
 
-    public static function vytvorProNadchazejiciVlnuZGlobals(\Uzivatel $uzivatel) {
-        global $systemoveNastaveni;
+    public static function vytvorProNadchazejiciVlnuZGlobals(
+        \Uzivatel          $uzivatel,
+        SystemoveNastaveni $systemoveNastaveni = null
+    ): static {
+        /** @var SystemoveNastaveni $systemoveNastaveni */
+        $systemoveNastaveni ??= $GLOBALS['systemoveNastaveni'];
+
+        return static::vytvorProVlnu($uzivatel, $systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy());
+    }
+
+    public static function vytvorProVlnu(
+        \Uzivatel          $uzivatel,
+        \DateTimeInterface $hromadneOdhlasovaniKdy
+    ): static {
         return new self(
             $uzivatel->finance(),
             $uzivatel->kdySeRegistrovalNaLetosniGc(),
             $uzivatel->maPravoNerusitObjednavky(),
-            $systemoveNastaveni->zacatekNejblizsiVlnyOdhlasovani(),
+            $hromadneOdhlasovaniKdy,
             ROCNIK,
             NEPLATIC_CASTKA_VELKY_DLUH,
             NEPLATIC_CASTKA_POSLAL_DOST,
@@ -31,6 +47,7 @@ class KategorieNeplatice
 
     private float $castkaVelkyDluh;
     private ?float $sumaLetosnichPlateb = null;
+    private ?int $pocetLetosnichObjednavek = null;
 
     public function __construct(
         private Finance             $finance,
@@ -43,6 +60,21 @@ class KategorieNeplatice
         private int                 $pocetDnuPredVlnouKdyJeJesteChranen
     ) {
         $this->castkaVelkyDluh = -abs($castkaVelkyDluh);
+    }
+
+    public function melByBytOdhlasen(): bool {
+        return match ($this->dejCiselnouKategoriiNeplatice()) {
+            null => false,
+            self::MA_PRAVO_PLATIT_AZ_NA_MISTE => false,
+            self::LETOS_SE_REGISTROVAL_PAR_DNU_PRED_ODHLASOVACI_VLNOU => false,
+            self::LETOS_POSLAL_DOST_A_JE_TAK_CHRANENY => false,
+            self::LETOS_NEPOSLAL_NIC_ALE_TAKY_NEOBJEDNAL_NIC => false,
+            self::LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH => true,
+            self::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH => true,
+            default => throw new NepodporovanaKategorieNeplatice(
+                sprintf("Nepodporovaná kategorie neplatiče '{$this->dejCiselnouKategoriiNeplatice()}'. Doplňte podporu sem do logiky.")
+            )
+        };
     }
 
     /**
@@ -104,6 +136,10 @@ class KategorieNeplatice
             return self::LETOS_NEPOSLAL_NIC_Z_LONSKA_NECO_MA_A_MA_MALY_DLUH;
         }
 
+        if ($this->sumaLetosnichPlateb() <= 0.0 && $this->pocetLetosnichObjednavek() === 0) {
+            return self::LETOS_NEPOSLAL_NIC_ALE_TAKY_NEOBJEDNAL_NIC;
+        }
+
         if ($this->sumaLetosnichPlateb() <= 0.0
             && ($this->finance->zustatekZPredchozichRocniku() <= 0.0 || $this->maVelkyDluh())
         ) {
@@ -141,6 +177,13 @@ class KategorieNeplatice
             $this->sumaLetosnichPlateb = $this->finance->sumaPlateb($this->rok);
         }
         return $this->sumaLetosnichPlateb;
+    }
+
+    private function pocetLetosnichObjednavek(): int {
+        if ($this->pocetLetosnichObjednavek === null) {
+            $this->pocetLetosnichObjednavek = $this->finance->pocetObjednavek();
+        }
+        return $this->pocetLetosnichObjednavek;
     }
 
     private function prihlasilSeParDniPredVlnouOdhlasovani(): bool {
