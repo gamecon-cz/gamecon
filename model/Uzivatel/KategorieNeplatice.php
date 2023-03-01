@@ -26,22 +26,30 @@ class KategorieNeplatice
         /** @var SystemoveNastaveni $systemoveNastaveni */
         $systemoveNastaveni ??= $GLOBALS['systemoveNastaveni'];
 
-        return static::vytvorProVlnu($uzivatel, $systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy());
+        return static::vytvorZHromadnehoOdhlasovani(
+            $uzivatel,
+            $systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy(),
+            $systemoveNastaveni
+        );
     }
 
-    public static function vytvorProVlnu(
+    public static function vytvorZHromadnehoOdhlasovani(
         \Uzivatel          $uzivatel,
-        \DateTimeInterface $hromadneOdhlasovaniKdy
+        \DateTimeInterface $hromadneOdhlasovaniKdy,
+        SystemoveNastaveni $systemoveNastaveni = null
     ): static {
+        /** @var SystemoveNastaveni $systemoveNastaveni */
+        $systemoveNastaveni ??= $GLOBALS['systemoveNastaveni'];
+
         return new self(
             $uzivatel->finance(),
             $uzivatel->kdySeRegistrovalNaLetosniGc(),
             $uzivatel->maPravoNerusitObjednavky(),
             $hromadneOdhlasovaniKdy,
-            ROCNIK,
-            NEPLATIC_CASTKA_VELKY_DLUH,
-            NEPLATIC_CASTKA_POSLAL_DOST,
-            NEPLATIC_POCET_DNU_PRED_VLNOU_KDY_JE_CHRANEN
+            $systemoveNastaveni->rocnik(),
+            $systemoveNastaveni->nepaticCastkaVelkyDluh(),
+            $systemoveNastaveni->neplaticCastkaPoslalDost(),
+            $systemoveNastaveni->neplaticPocetDnuPredVlnouKdyJeChranen()
         );
     }
 
@@ -97,6 +105,7 @@ class KategorieNeplatice
         }
         if ($this->zacatekVlnyOdhlasovani < $this->kdySeRegistrovalNaLetosniGc) {
             /*
+             * TODO tohle je duplicita radku 117 ?
              * zjišťovat neplatiče už vlastně nejde, některé platby mohly přijít až po začátku hromadného odhlašování
              * (leda bychom filtrovali jednotlivé platby, ale tou dobou už to stejně nepotřebujeme)
              */
@@ -136,12 +145,8 @@ class KategorieNeplatice
             return self::LETOS_NEPOSLAL_NIC_Z_LONSKA_NECO_MA_A_MA_MALY_DLUH;
         }
 
-        if ($this->sumaLetosnichPlateb() <= 0.0 && $this->pocetLetosnichObjednavek() === 0) {
-            return self::LETOS_NEPOSLAL_NIC_ALE_TAKY_NEOBJEDNAL_NIC;
-        }
-
         if ($this->sumaLetosnichPlateb() <= 0.0
-            && ($this->finance->zustatekZPredchozichRocniku() <= 0.0 || $this->maVelkyDluh())
+            && ($this->finance->zustatekZPredchozichRocniku() < 0.0 || $this->maVelkyDluh())
         ) {
             /**
              * Nezaplatil vůbec nic
@@ -150,6 +155,10 @@ class KategorieNeplatice
              */
             // kategorie 1
             return self::LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH;
+        }
+
+        if ($this->sumaLetosnichPlateb() <= 0.0 && $this->pocetLetosnichObjednavek() === 0 && !$this->maVelkyDluh()) {
+            return self::LETOS_NEPOSLAL_NIC_ALE_TAKY_NEOBJEDNAL_NIC;
         }
 
         if (!$this->poslalDost() && $this->maVelkyDluh()) {

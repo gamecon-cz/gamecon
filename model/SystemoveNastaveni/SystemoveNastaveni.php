@@ -452,8 +452,20 @@ SQL;
         return DateTimeGamecon::tretiVlnaKdy($this->rocnik());
     }
 
-    public function probihaRegistraceAktivit(): bool {
-        return REG_AKTIVIT;
+    public function registraceUcastnikuSpustena(): bool {
+        return REG_GC;
+    }
+
+    public function nepaticCastkaVelkyDluh(): float {
+        return NEPLATIC_CASTKA_VELKY_DLUH;
+    }
+
+    public function neplaticCastkaPoslalDost(): float {
+        return NEPLATIC_CASTKA_POSLAL_DOST;
+    }
+
+    public function neplaticPocetDnuPredVlnouKdyJeChranen(): int {
+        return NEPLATIC_POCET_DNU_PRED_VLNOU_KDY_JE_CHRANEN;
     }
 
     public function jeApril(): bool {
