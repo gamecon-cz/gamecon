@@ -6,9 +6,9 @@ use Gamecon\SystemoveNastaveni\Exceptions\InvalidSystemSettingsValue;
 
 class SystemoveNastaveniAjax
 {
-    public const AJAX_KLIC = 'ajax';
-    public const POST_KLIC = 'nastaveni-ajax';
-    public const AKTIVNI_KLIC = 'aktivni';
+    public const AJAX_KLIC    = 'ajax';
+    public const POST_KLIC    = 'nastaveni-ajax';
+    public const VLASTNI_KLIC = 'vlastni';
     public const HODNOTA_KLIC = 'hodnota';
 
     /**
@@ -29,9 +29,9 @@ class SystemoveNastaveniAjax
         SystemoveNastaveniHtml $systemoveNastaveniHtml,
         \Uzivatel              $editujici
     ) {
-        $this->systemoveNastaveni = $systemoveNastaveni;
+        $this->systemoveNastaveni     = $systemoveNastaveni;
         $this->systemoveNastaveniHtml = $systemoveNastaveniHtml;
-        $this->editujici = $editujici;
+        $this->editujici              = $editujici;
     }
 
     public function zpracujPost(): bool {
@@ -48,10 +48,10 @@ class SystemoveNastaveniAjax
                 if (array_key_exists(self::HODNOTA_KLIC, $zmena)) {
                     $this->systemoveNastaveni->ulozZmenuHodnoty(trim($zmena[self::HODNOTA_KLIC]), $klic, $this->editujici);
                 }
-                if (array_key_exists(self::AKTIVNI_KLIC, $zmena)) {
+                if (array_key_exists(self::VLASTNI_KLIC, $zmena)) {
                     $this->systemoveNastaveni->ulozZmenuPlatnosti(
                     // filter_var z "true" udělá true a z "false" udělá false
-                        filter_var(trim($zmena[self::AKTIVNI_KLIC]), FILTER_VALIDATE_BOOLEAN),
+                        filter_var(trim($zmena[self::VLASTNI_KLIC]), FILTER_VALIDATE_BOOLEAN),
                         $klic,
                         $this->editujici
                     );
@@ -64,7 +64,7 @@ class SystemoveNastaveniAjax
         }
 
         $soucasneStavy = $this->systemoveNastaveniHtml->dejZaznamyNastaveniProHtml(array_keys($zmeny));
-        $soucasnyStav = reset($soucasneStavy);
+        $soucasnyStav  = reset($soucasneStavy);
         $this->echoJson($soucasnyStav);
 
         return true;

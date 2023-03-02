@@ -28,7 +28,7 @@ class SystemoveNastaveniHtml
 
         $template->assign('ajaxKlic', SystemoveNastaveniAjax::AJAX_KLIC);
         $template->assign('postKlic', SystemoveNastaveniAjax::POST_KLIC);
-        $template->assign('aktivniKlic', SystemoveNastaveniAjax::AKTIVNI_KLIC);
+        $template->assign('vlastniKlic', SystemoveNastaveniAjax::VLASTNI_KLIC);
         $template->assign('hodnotaKlic', SystemoveNastaveniAjax::HODNOTA_KLIC);
 
         $template->assign(
@@ -170,7 +170,7 @@ class SystemoveNastaveniHtml
                 $zaznam['tagInputType']               = $this->dejHtmlTagInputType($zaznam[Struktura::DATOVY_TYP]);
                 $zaznam['inputValue']                 = $this->dejHtmlInputValue($zaznam[Struktura::HODNOTA], $zaznam[Struktura::DATOVY_TYP]);
                 $zaznam['vychoziHodnotaValue']        = $this->dejHtmlInputValue($zaznam[Struktura::VYCHOZI_HODNOTA], $zaznam[Struktura::DATOVY_TYP]);
-                $zaznam['checked']                    = $zaznam[Struktura::AKTIVNI]
+                $zaznam['checked']                    = $zaznam[Struktura::VLASTNI]
                     ? 'checked'
                     : '';
                 $zaznam['checkboxDisabled']           = $zaznam[Struktura::POUZE_PRO_CTENI] || $zaznam[Struktura::VYCHOZI_HODNOTA] === ''
@@ -179,10 +179,10 @@ class SystemoveNastaveniHtml
                 $zaznam['valueChangeDisabled']        = $zaznam[Struktura::POUZE_PRO_CTENI]
                     ? 'disabled'
                     : '';
-                $zaznam['vychoziHodnotaDisplayClass'] = $zaznam[Struktura::AKTIVNI]
+                $zaznam['vychoziHodnotaDisplayClass'] = $zaznam[Struktura::VLASTNI]
                     ? 'display-none'
                     : '';
-                $zaznam['hodnotaDisplayClass']        = !$zaznam[Struktura::AKTIVNI]
+                $zaznam['hodnotaDisplayClass']        = !$zaznam[Struktura::VLASTNI]
                     ? 'display-none'
                     : '';
             }
