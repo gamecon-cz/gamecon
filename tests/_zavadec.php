@@ -25,6 +25,10 @@ dbQuery(sprintf('USE `%s`', DB_NAME), [], $connection);
     'doBackups'           => false,
 ])))->run();
 
+/**
+ * pokud chceš vyřadit STRICT_TRANS_TABLES (potlačit "Field 'nazev_akce' doesn't have a default value"), použij @see \Gamecon\Tests\Db\DbTest::$disableStrictTransTables
+ * Inspirace @see \Gamecon\Tests\Aktivity\AktivitaTagyTest::setUpBeforeClass
+ */
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 DbTest::setConnection(new DbWrapper());
@@ -33,6 +37,7 @@ DbTest::setConnection(new DbWrapper());
 dbClose();
 
 register_shutdown_function(static function () {
+    dbClose(); // asi není důležité, ale radši...
     // nemůžeme použít předchozí $connection, protože to už je uzavřené
     $connection = mysqli_connect(DB_SERV, DB_USER, DB_PASS);
     dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', DB_NAME), null, $connection);
