@@ -25,6 +25,11 @@ class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
     5,       NULL,  2,    1,   0,       3,        NULL,     NULL,     2099-01-01 08:00, 2099-01-01 14:00
     ';
 
+    static function setUpBeforeClass(): void {
+        self::$disableStrictTransTables = true;
+        parent::setUpBeforeClass();
+    }
+
     protected function setUp(): void {
         parent::setUp();
 
