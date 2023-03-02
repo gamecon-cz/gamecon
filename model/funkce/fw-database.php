@@ -519,7 +519,9 @@ function dbFetchPairs(string $query, array $params = [], mysqli $connection = nu
 function dbFetchSingle(string $query, array $params = []) {
     $result = dbQuery($query, $params);
     $row    = mysqli_fetch_array($result);
-    return reset($row);
+    return $row
+        ? reset($row)
+        : null;
 }
 
 /**
