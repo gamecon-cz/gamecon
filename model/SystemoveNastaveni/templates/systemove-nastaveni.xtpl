@@ -29,7 +29,7 @@
     <!-- zaznamClass může být "zvyrazni", viz \Gamecon\SystemoveNastaveni\SystemoveNastaveniHtml::vypisSkupinu -->
     <td style="width: 5%">
       <label>
-        <input class="aktivace-nastaveni" type="checkbox" name="{postKlic}[{klic}][{aktivniKlic}]" value="1"
+        <input class="aktivace-nastaveni" type="checkbox" name="{postKlic}[{klic}][{vlastniKlic}]" value="1"
                {checked} {checkboxDisabled}>
       </label>
     </td>

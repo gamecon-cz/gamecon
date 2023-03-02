@@ -127,7 +127,7 @@ class DateTimeGamecon extends DateTimeCz
     }
 
     public static function konecRegistraciUcastniku(int $rocnik = ROCNIK): DateTimeGamecon {
-        return DateTimeGamecon::createFromMysql(REG_GC_DO);
+        return DateTimeGamecon::createFromMysql(GC_BEZI_DO);
     }
 
     public static function spocitejZacatekRegistraciUcastniku(int $rocnik): DateTimeGamecon {
