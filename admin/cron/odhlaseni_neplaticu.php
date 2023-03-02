@@ -1,12 +1,14 @@
 <?php
 
-use Gamecon\Uzivatel\OdhlaseniNeplaticu;
+use Gamecon\Uzivatel\HromadneOdhlaseniNeplaticu;
 use Gamecon\Uzivatel\Exceptions\NevhodnyCasProHromadneOdhlasovani;
 use Gamecon\Kanaly\GcMail;
+use Gamecon\Cas\DateTimeCz;
 
 require_once __DIR__ . '/cron_zavadec.php';
 
 try {
+    $casovaTolerance = new DateInterval('PT1S');
     /** @var DateTimeImmutable $cas */
     $cas = require __DIR__ . '/odlozeny_cas.php';
 } catch (RuntimeException $runtimeException) {
@@ -32,23 +34,30 @@ set_time_limit(30);
 
 global $systemoveNastaveni;
 
-$potize             = false;
-$odhlaseniNeplaticu = new OdhlaseniNeplaticu($systemoveNastaveni);
+$potize                     = false;
+$hromadneOdhlaseniNeplaticu = new HromadneOdhlaseniNeplaticu($systemoveNastaveni);
+
+$odhlaseniProvedenoKdy = $hromadneOdhlaseniNeplaticu->odhlaseniProvedenoKdy();
+if ($odhlaseniProvedenoKdy) {
+    logs("Hromadné odhlášení už bylo provedeno {$odhlaseniProvedenoKdy->format(DateTimeCz::FORMAT_DB)}");
+    return;
+}
+
 try {
-    $odhlaseno = $odhlaseniNeplaticu->hromadneOdhlasit();
+    $hromadneOdhlaseniNeplaticu->hromadneOdhlasit();
 } catch (NevhodnyCasProHromadneOdhlasovani $nevhodnyCasProHromadneOdhlasovani) {
     logs($nevhodnyCasProHromadneOdhlasovani->getMessage());
     return;
 } catch (Chyba $chyba) {
-    $potize    = $chyba->getMessage();
-    $odhlaseno = $odhlaseniNeplaticu->odhlaseno();
+    $potize = $chyba->getMessage();
 }
+$odhlasenoCelkem = $hromadneOdhlaseniNeplaticu->odhlasenoCelkem();
 
-$zprava = "Hromadně odhlášeno $odhlaseno účastníků z GC";
+$zprava = "Hromadně odhlášeno $odhlasenoCelkem účastníků z GC";
 (new GcMail())
     ->adresat('info@gamecon.cz')
     ->predmet($zprava)
-    ->text("Právě jsme odhlásili $odhlaseno účastníků z letošního Gameconu."
+    ->text("Právě jsme odhlásili $odhlasenoCelkem účastníků z letošního Gameconu."
         . ($potize
             ? ("\n\nU některých se vyskytly komplikace $potize")
             : ''
