@@ -67,7 +67,7 @@ class SystemoveNastaveni
 SELECT systemove_nastaveni.klic,
        systemove_nastaveni.hodnota,
        systemove_nastaveni.datovy_typ,
-       systemove_nastaveni.aktivni
+       systemove_nastaveni.vlastni
 FROM systemove_nastaveni
 SQL,
             );
@@ -86,22 +86,22 @@ SQL,
             throw $dbException;
         }
         foreach ($zaznamy as $zaznam) {
-            $nazevKonstanty = trim(strtoupper($zaznam['klic']));
-            $hodnota        = $zaznam['aktivni']
-                ? $zaznam['hodnota']
+            $nazevKonstanty = trim(strtoupper($zaznam[SystemoveNastaveniStruktura::KLIC]));
+            $hodnota        = $zaznam[SystemoveNastaveniStruktura::VLASTNI]
+                ? $zaznam[SystemoveNastaveniStruktura::HODNOTA]
                 : $this->dejVychoziHodnotu($nazevKonstanty);
-            $hodnota        = $this->zkonvertujHodnotuNaTyp($hodnota, $zaznam['datovy_typ']);
+            $hodnota        = $this->zkonvertujHodnotuNaTyp($hodnota, $zaznam[SystemoveNastaveniStruktura::DATOVY_TYP]);
             if (!defined($nazevKonstanty)) {
                 define($nazevKonstanty, $hodnota);
-            } elseif (constant($nazevKonstanty) !== $hodnota) {
-                /*throw new InvalidSystemSettingsValue(
+            } elseif (constant($nazevKonstanty) !== $hodnota && $this->jsmeNaOstre()) {
+                throw new InvalidSystemSettingsValue(
                     sprintf(
                         "Konstanta '%s' už je definována, ale s jinou hodnotou '%s' než očekávanou '%s'",
                         $nazevKonstanty,
                         var_export(constant($nazevKonstanty), true),
                         var_export($hodnota, true),
                     )
-                );*/
+                );
             }
         }
         $this->definujOdvozeneKonstanty();
@@ -156,18 +156,18 @@ SQL,
         }
     }
 
-    public function ulozZmenuPlatnosti(bool $aktivni, string $klic, \Uzivatel $editujici): int {
+    public function ulozZmenuPlatnosti(bool $vlastni, string $klic, \Uzivatel $editujici): int {
         $this->hlidejZakazaneZmeny($klic);
         $updateQuery = dbQuery(<<<SQL
 UPDATE systemove_nastaveni
-SET aktivni = $1
+SET vlastni = $1
 WHERE klic = $2
 SQL,
-            [$aktivni ? 1 : 0, $klic],
+            [$vlastni ? 1 : 0, $klic],
         );
         dbQuery(<<<SQL
-INSERT INTO systemove_nastaveni_log(id_uzivatele, id_nastaveni, aktivni)
-SELECT $1, id_nastaveni, aktivni
+INSERT INTO systemove_nastaveni_log(id_uzivatele, id_nastaveni, vlastni)
+SELECT $1, id_nastaveni, vlastni
 FROM systemove_nastaveni
 WHERE klic = $2
 SQL,
@@ -212,11 +212,7 @@ SQL,
     }
 
     public function dejVsechnyZaznamyNastaveni(): array {
-        return $this->vlozOstatniBonusyVypravecuDoPopisu(
-            $this->pridejVychoziHodnoty(
-                dbFetchAll($this->dejSqlNaZaVsechnyZaznamyNastaveni())
-            )
-        );
+        return $this->dejZaznamyNastaveni();
     }
 
     private function vlozOstatniBonusyVypravecuDoPopisu(array $zaznamy): array {
@@ -238,13 +234,13 @@ SQL,
         return $zaznamy;
     }
 
-    private function dejSqlNaZaVsechnyZaznamyNastaveni(array $whereArray = ['1']): string {
+    private function dejSqlNaZaznamyNastaveni(array $whereArray = ['1']): string {
         $where = implode(' AND ', $whereArray);
         return <<<SQL
 SELECT systemove_nastaveni.klic,
        systemove_nastaveni.hodnota,
        systemove_nastaveni.datovy_typ,
-       systemove_nastaveni.aktivni,
+       systemove_nastaveni.vlastni,
        systemove_nastaveni.nazev,
        systemove_nastaveni.popis,
        COALESCE(naposledy, systemove_nastaveni.zmena_kdy) AS zmena_kdy,
@@ -272,11 +268,18 @@ SQL;
         if (!$klice) {
             return [];
         }
+        return $this->dejZaznamyNastaveni(
+            [Sql::SYSTEMOVE_NASTAVENI_TABULKA . '.' . Sql::KLIC . ' IN ($0)'],
+            [0 => $klice],
+        );
+    }
+
+    private function dejZaznamyNastaveni(array $whereArray = ['1'], array $parametryDotazu = []): array {
         return $this->vlozOstatniBonusyVypravecuDoPopisu(
             $this->pridejVychoziHodnoty(
                 dbFetchAll(
-                    $this->dejSqlNaZaVsechnyZaznamyNastaveni([Sql::SYSTEMOVE_NASTAVENI_TABULKA . '.' . Sql::KLIC . ' IN ($0)']),
-                    [0 => $klice],
+                    $this->dejSqlNaZaznamyNastaveni($whereArray),
+                    $parametryDotazu,
                 )
             )
         );
