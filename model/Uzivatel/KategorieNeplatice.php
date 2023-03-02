@@ -61,8 +61,8 @@ class KategorieNeplatice
         private Finance             $finance,
         private ?\DateTimeInterface $kdySeRegistrovalNaLetosniGc,
         private bool                $maPravoPlatitAzNaMiste,
-        private \DateTimeInterface  $zacatekVlnyOdhlasovani,
-        private int                 $rok,
+        private \DateTimeInterface  $hromadneOdhlasovaniKdy,
+        private int                 $rocnik,
         float                       $castkaVelkyDluh,
         private float               $castkaPoslalDost,
         private int                 $pocetDnuPredVlnouKdyJeJesteChranen
@@ -103,9 +103,8 @@ class KategorieNeplatice
         if (!$this->kdySeRegistrovalNaLetosniGc) {
             return null;
         }
-        if ($this->zacatekVlnyOdhlasovani < $this->kdySeRegistrovalNaLetosniGc) {
+        if ($this->hromadneOdhlasovaniKdy < $this->kdySeRegistrovalNaLetosniGc) {
             /*
-             * TODO tohle je duplicita radku 117 ?
              * zjišťovat neplatiče už vlastně nejde, některé platby mohly přijít až po začátku hromadného odhlašování
              * (leda bychom filtrovali jednotlivé platby, ale tou dobou už to stejně nepotřebujeme)
              */
@@ -183,7 +182,7 @@ class KategorieNeplatice
 
     private function sumaLetosnichPlateb(): float {
         if ($this->sumaLetosnichPlateb === null) {
-            $this->sumaLetosnichPlateb = $this->finance->sumaPlateb($this->rok);
+            $this->sumaLetosnichPlateb = $this->finance->sumaPlateb($this->rocnik);
         }
         return $this->sumaLetosnichPlateb;
     }
@@ -196,12 +195,12 @@ class KategorieNeplatice
     }
 
     private function prihlasilSeParDniPredVlnouOdhlasovani(): bool {
-        return $this->kdySeRegistrovalNaLetosniGc <= $this->zacatekVlnyOdhlasovani
+        return $this->kdySeRegistrovalNaLetosniGc <= $this->hromadneOdhlasovaniKdy
             /** pozor, @see \DateInterval::$days vrací vždy absolutní hodnotu */
-            && $this->zacatekVlnyOdhlasovani->diff($this->kdySeRegistrovalNaLetosniGc)->days <= $this->pocetDnuPredVlnouKdyJeJesteChranen;
+            && $this->hromadneOdhlasovaniKdy->diff($this->kdySeRegistrovalNaLetosniGc)->days <= $this->pocetDnuPredVlnouKdyJeJesteChranen;
     }
 
     public function zacatekVlnyOdhlasovani(): ?\DateTimeInterface {
-        return $this->zacatekVlnyOdhlasovani;
+        return $this->hromadneOdhlasovaniKdy;
     }
 }
