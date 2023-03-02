@@ -11,7 +11,7 @@ class SystemoveNastaveniSqlStruktura
     public const ID_NASTAVENI    = 'id_nastaveni';
     public const KLIC            = 'klic';
     public const HODNOTA         = 'hodnota';
-    public const AKTIVNI         = 'aktivni';
+    public const VLASTNI         = 'vlastni';
     public const DATOVY_TYP      = 'datovy_typ';
     public const NAZEV           = 'nazev';
     public const POPIS           = 'popis';
