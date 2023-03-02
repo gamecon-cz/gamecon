@@ -41,7 +41,7 @@ class AktivitaTagyTest extends DbTest
     }
 
     /**
-     * @dataProvider aktivity
+     * @dataProvider provideAktivity
      */
     public function testNastaveni(int $idNastavovaneAktivity, int $idCteneAktivity, array $nastaveneTagy) {
         $a = Aktivita::zId($idNastavovaneAktivity);
@@ -52,7 +52,7 @@ class AktivitaTagyTest extends DbTest
         );
     }
 
-    public function aktivity(): array {
+    public function provideAktivity(): array {
         return [
             'obyčejná aktivita, nastavení více štítků'    => [1, 1, ['První', 'druhý']],
             'obyčejná aktivita, nastavení žádných štítků' => [1, 1, []],
@@ -63,7 +63,7 @@ class AktivitaTagyTest extends DbTest
     }
 
     /**
-     * @dataProvider aktivity
+     * @dataProvider provideAktivity
      */
     public function testKopiePriInstanciaci(int $idAktivity, $_, array $tagy) {
         $a = Aktivita::zId($idAktivity);

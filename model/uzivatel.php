@@ -1451,7 +1451,7 @@ SQL,
      * @param int $id
      * @return Uzivatel|null
      */
-    static function zId($id): ?Uzivatel {
+    static function zId($id, bool $zCache = false): ?Uzivatel {
         $o = self::zIds((int)$id);
         return $o ? $o[0] : null;
     }
@@ -1478,7 +1478,8 @@ SQL,
             return self::nactiUzivatele('WHERE u.id_uzivatele IN(' . dbQv($ids) . ')');
         }
         if (preg_match('@[0-9,]+@', $ids)) {
-            return self::nactiUzivatele('WHERE u.id_uzivatele IN(' . $ids . ')');
+            $ids = array_map('intval', explode(',', $ids));
+            return self::nactiUzivatele('WHERE u.id_uzivatele IN(' . dbQv($ids) . ')');
         }
         throw new Exception('neplatný formát množiny id: ' . var_export($ids, true));
     }
@@ -1600,7 +1601,7 @@ SQL,
      * @todo zrefaktorovat nactiUzivatele na toto
      */
     protected static function zWhere($where, $param = null, $extra = ''): array {
-        return parent::zWhere($where, $param, ' GROUP BY u.id_uzivatele ' . $extra);
+        return parent::zWhere($where, $param, $extra);
     }
 
     protected static function dotaz($where): string {
@@ -1610,9 +1611,11 @@ SELECT
     (SELECT url FROM uzivatele_url WHERE uzivatele_url.id_uzivatele = u.id_uzivatele ORDER BY id_url_uzivatele DESC LIMIT 1) AS url,
     GROUP_CONCAT(DISTINCT p.id_prava) as prava
 FROM uzivatele_hodnoty u
-LEFT JOIN platne_role_uzivatelu z ON(z.id_uzivatele = u.id_uzivatele)
-LEFT JOIN prava_role p ON(p.id_role = z.id_role)
+LEFT JOIN platne_role_uzivatelu z ON (z.id_uzivatele = u.id_uzivatele)
+LEFT JOIN prava_role p ON (p.id_role = z.id_role)
+LEFT JOIN uzivatele_url ON u.id_uzivatele = uzivatele_url.id_uzivatele
 $where
+GROUP BY u.id_uzivatele
 SQL;
     }
 
@@ -1640,19 +1643,8 @@ SQL;
      * @return Uzivatel[]
      */
     protected static function nactiUzivatele(string $where): array {
-        $o         = dbQuery('SELECT
-        u.*,
-        (SELECT url FROM uzivatele_url WHERE uzivatele_url.id_uzivatele = u.id_uzivatele ORDER BY id_url_uzivatele DESC LIMIT 1) AS url,
-        -- u.login_uzivatele,
-        -- z.id_role,
-        -- p.id_prava,
-        GROUP_CONCAT(DISTINCT p.id_prava) as prava
-      FROM uzivatele_hodnoty u
-      LEFT JOIN platne_role_uzivatelu z ON(z.id_uzivatele=u.id_uzivatele)
-      LEFT JOIN prava_role p ON(p.id_role=z.id_role)
-      LEFT JOIN uzivatele_url ON u.id_uzivatele = uzivatele_url.id_uzivatele
-      ' . $where . '
-      GROUP BY u.id_uzivatele');
+        $query     = self::dotaz($where);
+        $o         = dbQuery($query);
         $uzivatele = [];
         while ($r = mysqli_fetch_assoc($o)) {
             $u             = new self($r);
