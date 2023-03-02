@@ -17,7 +17,7 @@ class KategorieNeplaticeTest extends TestCase
         ?string $kdySeRegistrovalNaLetosniGc,
         bool    $maPravoPlatitAzNaMiste,
         string  $zacatekVlnyOdhlasovani, // prvni nebo druha vlna
-        int     $rok,
+        int     $rocnik,
         float   $castkaVelkyDluh,
         float   $castkaPoslalDost,
         int     $pocetDnuPredVlnouKdyJeJesteChrane,
@@ -31,7 +31,7 @@ class KategorieNeplaticeTest extends TestCase
                 : null,
             $maPravoPlatitAzNaMiste,
             new \DateTimeImmutable($zacatekVlnyOdhlasovani),
-            $rok,
+            $rocnik,
             $castkaVelkyDluh,
             $castkaPoslalDost,
             $pocetDnuPredVlnouKdyJeJesteChrane
