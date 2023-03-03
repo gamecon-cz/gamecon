@@ -6,6 +6,7 @@ namespace Gamecon\Uzivatel;
 
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\Logger\LogHomadnychAkciTrait;
 use Gamecon\Pravo;
 use Gamecon\Role\Role;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -15,6 +16,10 @@ use Chyba;
 
 class HromadneOdhlaseniNeplaticu
 {
+    private const SKUPINA = 'uzivatele';
+
+    use LogHomadnychAkciTrait;
+
     private int $odhlasenoCelkem = 0;
 
     public function __construct(private readonly SystemoveNastaveni $systemoveNastaveni) {
@@ -25,9 +30,7 @@ class HromadneOdhlaseniNeplaticu
      */
     public function hromadneOdhlasit(\DateTimeInterface $platnostZpetneKDatu = null): int {
         $ted                             = $this->systemoveNastaveni->ted();
-        $platnostZpetneKDatu             = $platnostZpetneKDatu ?? $ted->modify('-1 day');
         $nejblizsiHromadneOdhlasovaniKdy = $this->systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy($platnostZpetneKDatu);
-        $nejblizsiVlnaOtevreniAktivitKdy = $this->systemoveNastaveni->nejblizsiVlnaKdy($platnostZpetneKDatu);
 
         if ($nejblizsiHromadneOdhlasovaniKdy > $ted) {
             throw new NaHromadneOdhlasovaniJeBrzy(
@@ -38,16 +41,20 @@ class HromadneOdhlaseniNeplaticu
             );
         }
 
+        $platnostZpetneKDatu ??= $ted->modify('-1 day');
         if ($nejblizsiHromadneOdhlasovaniKdy < $platnostZpetneKDatu) {
             throw new NaHromadneOdhlasovaniJePozde(
                 sprintf(
-                    "Hromadné odhlášení může být spuštěno nanejvýš den po platnosti. Platnost hromadného odhlášení byla '%s' a teď je '%s'",
+                    "Hromadné odhlášení může být spuštěno nanejvýš den po platnosti.
+Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hromadně odhlásit v '%s'",
                     $nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB),
-                    $ted->format(DateTimeCz::FORMAT_DB)
+                    $ted->format(DateTimeCz::FORMAT_DB),
+                    $platnostZpetneKDatu->format(DateTimeCz::FORMAT_DB),
                 )
             );
         }
 
+        $nejblizsiVlnaOtevreniAktivitKdy = $this->systemoveNastaveni->nejblizsiVlnaKdy($platnostZpetneKDatu);
         if ($nejblizsiHromadneOdhlasovaniKdy >= $nejblizsiVlnaOtevreniAktivitKdy) {
             throw new NaHromadneOdhlasovaniJePozde(
                 sprintf(
@@ -86,22 +93,30 @@ class HromadneOdhlaseniNeplaticu
             throw new Chyba(implode('; ', $potize));
         }
 
-        $this->zalogujHromadneOdhlaseni($this->odhlasenoCelkem, $nejblizsiHromadneOdhlasovaniKdy);
+        $this->zalogujHromadneOdhlaseni(
+            $this->odhlasenoCelkem,
+            $nejblizsiHromadneOdhlasovaniKdy,
+            \Uzivatel::zId(\Uzivatel::SYSTEM, true)
+        );
 
         return $this->odhlasenoCelkem;
     }
 
-    private function zalogujHromadneOdhlaseni(int $odhlaseno, \DateTimeInterface $nejblizsiHromadneOdhlasovaniKdy) {
-        dbQuery(<<<SQL
-INSERT INTO uzivatele_hromadne_akce_log(skupina, akce, vysledek)
-VALUES ('odhlaseni', $0, $odhlaseno)
-SQL,
-            [0 => $this->sestavNazevAkceHromadnehoOdhlaseni($nejblizsiHromadneOdhlasovaniKdy)]
+    private function zalogujHromadneOdhlaseni(
+        int                $odhlaseno,
+        \DateTimeInterface $hromadneOdhlasovaniKdy,
+        \Uzivatel          $odhlasujici
+    ) {
+        $this->zalogujHromadnouAkci(
+            self::SKUPINA,
+            $this->sestavNazevAkceHromadnehoOdhlaseni($hromadneOdhlasovaniKdy),
+            $odhlaseno,
+            $odhlasujici
         );
     }
 
     private function sestavNazevAkceHromadnehoOdhlaseni(\DateTimeInterface $hromadneOdhlasovaniKdy): string {
-        return 'odhlaseni-' . $hromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB);
+        return 'odhlaseni-' . $hromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_CAS_SOUBOR);
     }
 
     private function uzivateleKeKontrole(): \Generator {
@@ -129,16 +144,8 @@ SQL,
 
     public function odhlaseniProvedenoKdy(\DateTimeInterface $hromadneOdhlasovaniKdy = null): ?\DateTimeInterface {
         $hromadneOdhlasovaniKdy ??= $this->systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy();
-        $dokoncenoKdy           = dbFetchSingle(<<<SQL
-SELECT kdy
-FROM uzivatele_hromadne_akce_log
-WHERE akce = $0
-LIMIT 1
-SQL,
-            [0 => $this->sestavNazevAkceHromadnehoOdhlaseni($hromadneOdhlasovaniKdy)]
-        );
-        return $dokoncenoKdy
-            ? new DateTimeImmutableStrict($dokoncenoKdy)
-            : null;
+        $nazevAkce              = $this->sestavNazevAkceHromadnehoOdhlaseni($hromadneOdhlasovaniKdy);
+
+        return $this->posledniHromadnaAkceKdy(self::SKUPINA, $nazevAkce);
     }
 }
