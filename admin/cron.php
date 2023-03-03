@@ -2,6 +2,7 @@
 
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\HromadneAkceAktivit;
 
 /**
  * Skript který je hostingem automaticky spouštěn jednou za hodinu. Standardní
@@ -25,6 +26,10 @@ $job = get('job');
 if ($job !== null) {
     if ($job === 'odhlaseni_neplaticu') {
         require __DIR__ . '/cron/odhlaseni_neplaticu.php';
+        return;
+    }
+    if ($job === 'aktivace_aktivit') {
+        require __DIR__ . '/cron/aktivace_aktivit.php';
         return;
     }
     throw new \RuntimeException(sprintf("Invalid job '%s'", $job));
@@ -70,8 +75,10 @@ if (defined('FIO_TOKEN') && FIO_TOKEN !== '') {
 }
 
 logs('Odemykám zamčené týmové aktivity...');
-$i = Aktivita::odemciTeamoveHromadne(Uzivatel::zId(Uzivatel::SYSTEM));
-logs("odemčeno $i týmových aktivit.");
+global $systemoveNastaveni;
+$odemcenoTymovychAktivit = (new HromadneAkceAktivit($systemoveNastaveni))
+    ->odemciTeamoveHromadne(Uzivatel::zId(Uzivatel::SYSTEM, true));
+logs("odemčeno $odemcenoTymovychAktivit týmových aktivit.");
 
 logs('Zamykám před veřejností už běžící, dosud nezamčené aktivity...');
 $idsZamcenmych  = Aktivita::zamkniZacinajiciDo(new DateTimeImmutable('-' . AUTOMATICKY_UZAMKNOUT_AKTIVITU_X_MINUT_PO_ZACATKU . ' minutes'));
