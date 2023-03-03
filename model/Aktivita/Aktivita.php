@@ -55,7 +55,7 @@ class Aktivita
     const TEAMKLIC_KOLA         = 'aTeamFormKolo';      // název post proměnné s výběrem kol pro team
     const PN_PLUSMINUSP         = 'cAktivitaPlusminusp';  // název post proměnné pro úpravy typu plus
     const PN_PLUSMINUSM         = 'cAktivitaPlusminusm';  // název post proměnné pro úpravy typu mínus
-    const HAJENI                = 72;      // počet hodin po kterýc aktivita automatick vykopává nesestavený tým
+    const HAJENI_TEAMU_HODIN    = 72;      // počet hodin po kterýc aktivita automatick vykopává nesestavený tým
     const LIMIT_POPIS_KRATKY    = 180;  // max počet znaků v krátkém popisku
     // ignore a parametry kolem přihlašovátka
     const PLUSMINUS                          = 0b00000000001;   // plus/mínus zkratky pro měnění míst v team. aktivitě
@@ -410,7 +410,7 @@ SQL
 
         // načtení organizátorů
         if (!$omezeni || !empty($omezeni['organizator'])) {
-            self::parseUpravyTabulkaVypraveci($aktivita, $xtpl, ROCNIK);
+            self::parseUpravyTabulkaVypraveci($aktivita, $xtpl);
         }
 
         // načtení typů
@@ -531,7 +531,7 @@ SQL
         }
     }
 
-    private static function parseUpravyTabulkaVypraveci(?Aktivita $aktivita, XTemplate $xtpl, int $rok)
+    private static function parseUpravyTabulkaVypraveci(?Aktivita $aktivita, XTemplate $xtpl)
     {
         $q = dbQuery(<<<SQL
                 SELECT u.id_uzivatele, u.login_uzivatele, u.jmeno_uzivatele, u.prijmeni_uzivatele
@@ -2325,7 +2325,7 @@ SQL,
     {
         if ($this->a['zamcel_cas']) {
             $dt = new DateTimeCz($this->a['zamcel_cas']);
-            $dt->add(new \DateInterval('PT' . self::HAJENI . 'H'));
+            $dt->add(new \DateInterval('PT' . self::HAJENI_TEAMU_HODIN . 'H'));
             return $dt;
         }
         return null;
@@ -2514,7 +2514,7 @@ SQL,
         $t = new XTemplate(__DIR__ . '/templates/tym-formular.xtpl');
 
         // obecné proměnné šablony
-        $zbyva = strtotime($this->a['zamcel_cas']) + self::HAJENI * 60 * 60 - time();
+        $zbyva = strtotime($this->a['zamcel_cas']) + self::HAJENI_TEAMU_HODIN * 60 * 60 - time();
         $t->assign([
             'zbyva'                => floor($zbyva / 3600) . ' hodin ' . floor($zbyva % 3600 / 60) . ' minut',
             'postname'             => self::TEAMKLIC,
@@ -3124,15 +3124,15 @@ SQL,
 
     /**
      * @param string $nazev
-     * @param int $rok
+     * @param int $rocnik
      * @return Aktivita[]
      */
-    public static function zNazvuARoku(string $nazev, int $rok): array
+    public static function zNazvuARoku(string $nazev, int $rocnik): array
     {
         return self::zFiltru(
             [
                 'nazev_akce' => $nazev,
-                'rok'        => $rok,
+                'rok'        => $rocnik,
             ],
         );
     }
@@ -3244,7 +3244,7 @@ SQL,
         dbQuery('UPDATE akce_seznam SET stav=$1 WHERE stav=$2 AND rok=$3', [StavAktivity::AKTIVOVANA, StavAktivity::PRIPRAVENA, $rok]);
     }
 
-    public static function idExistujiciInstancePodleUrl(string $url, int $rok, int $typId): ?int
+    public static function idExistujiciInstancePodleUrl(string $url, int $rocnik, int $typId): ?int
     {
         $idInstance = dbOneCol(<<<SQL
 SELECT akce_seznam.patri_pod
@@ -3252,30 +3252,30 @@ FROM akce_seznam
 WHERE akce_seznam.url_akce = $1 AND akce_seznam.rok = $2 AND akce_seznam.typ = $3 AND akce_seznam.patri_pod IS NOT NULL
 LIMIT 1
 SQL
-            , [$url, $rok, $typId],
+            , [$url, $rocnik, $typId],
         );
         return $idInstance
             ? (int)$idInstance
             : null;
     }
 
-    public static function idMozneHlavniAktivityPodleUrl(string $url, int $rok, int $typId): ?int
+    public static function idMozneHlavniAktivityPodleUrl(string $url, int $rocnik, int $typId): ?int
     {
         $idHlavniAktivity = dbOneCol(<<<SQL
 SELECT MIN(akce_seznam.id_akce)
 FROM akce_seznam
 WHERE akce_seznam.url_akce = $1 AND akce_seznam.rok = $2 AND akce_seznam.typ = $3
 SQL
-            , [$url, $rok, $typId],
+            , [$url, $rocnik, $typId],
         );
         return $idHlavniAktivity
             ? (int)$idHlavniAktivity
             : null;
     }
 
-    public static function moznaHlavniAktivitaPodleUrl(string $url, int $rok, int $typId): ?Aktivita
+    public static function moznaHlavniAktivitaPodleUrl(string $url, int $rocnik, int $typId): ?Aktivita
     {
-        $idHlavniAktivity = static::idMozneHlavniAktivityPodleUrl($url, $rok, $typId);
+        $idHlavniAktivity = static::idMozneHlavniAktivityPodleUrl($url, $rocnik, $typId);
         if (!$idHlavniAktivity) {
             return null;
         }
