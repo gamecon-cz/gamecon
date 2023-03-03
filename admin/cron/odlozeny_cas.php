@@ -16,13 +16,14 @@ $cas = null;
         throw new RuntimeException("Chybný čas CRONu '$casString'");
     }
 
-    $ted = new DateTimeImmutable();
+    global $systemoveNastaveni;
+    $ted = $systemoveNastaveni->ted();
     if (!empty($casovaTolerance) && $casovaTolerance instanceof DateInterval) {
         $ted = $ted->sub($casovaTolerance);
     }
 
     if ($cas < $ted) {
-        throw new RuntimeException("Na spuštění CRONu v '$casString' už je pozdě. Teď je {$ted->format(DateTimeCz::FORMAT_DB)}");
+        throw new RuntimeException("Na spuštění CRONu v '$casString' už je pozdě. Teď je '{$ted->format(DateTimeCz::FORMAT_DB)}'");
     }
 
 }
