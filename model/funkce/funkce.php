@@ -48,13 +48,16 @@ function datum2($dbRadek) {
         return '';
 }
 
-/** Vrací datum ve stylu 1. července
- *  akceptuje vše, co žere strtotime */
-function datum3($datum) {
-    $mesic = ['ledna', 'února', 'března', 'dubna', 'května', 'června',
+/**
+ * Vrací datum ve stylu 1. července
+ *  akceptuje vše, co žere strtotime
+ */
+function datum3(string|DateTimeInterface $datum): string {
+    $datumTimestamp = ($datum instanceof DateTimeInterface) ? $datum->getTimestamp() : strtotime($datum);
+    $mesic          = ['ledna', 'února', 'března', 'dubna', 'května', 'června',
         'července', 'srpna', 'září', 'října', 'listopadu', 'prosince'];
-    return date('j. ', strtotime($datum)) .
-        $mesic[date('n', strtotime($datum)) - 1];
+
+    return date('j. ', $datumTimestamp) . $mesic[date('n', $datumTimestamp) - 1];
 }
 
 /** Vrátí markdown textu daného hashe (cacheované, text musí být v DB) */
@@ -316,12 +319,14 @@ function pefrectcacheProcessRel($css, $originalWidth, $minWidth) {
     );
 }
 
-function po($cas) {
-    return strtotime($cas) < time();
+function po(string|DateTimeInterface $cas): bool {
+    $casTimestamp = ($cas instanceof DateTimeInterface) ? $cas->getTimestamp() : strtotime($cas);
+    return $casTimestamp < time();
 }
 
-function pred($cas) {
-    return time() < strtotime($cas);
+function pred(string|DateTimeInterface $cas): bool {
+    $casTimestamp = ($cas instanceof DateTimeInterface) ? $cas->getTimestamp() : strtotime($cas);
+    return time() < $casTimestamp;
 }
 
 /**
@@ -628,7 +633,7 @@ function omnibox(
             'mail'                       => $hledatTakeVMailech,
             'jenPrihlaseniAPritomniNaGc' => $jenPrihlaseniAPritomniNaGc,
             'kromeIdUzivatelu'           => $kromeIdUzivatelu,
-            'jenSRolemi'               => $jenSRolemi,
+            'jenSRolemi'                 => $jenSRolemi,
         ],
         20,
         $minimumZnaku
