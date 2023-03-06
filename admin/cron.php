@@ -24,15 +24,8 @@ if (!defined('CRON_KEY') || get('key') !== CRON_KEY) {
 
 $job = get('job');
 if ($job !== null) {
-    if ($job === 'odhlaseni_neplaticu') {
-        require __DIR__ . '/cron/odhlaseni_neplaticu.php';
-        return;
-    }
-    if ($job === 'aktivace_aktivit') {
-        require __DIR__ . '/cron/aktivace_aktivit.php';
-        return;
-    }
-    throw new \RuntimeException(sprintf("Invalid job '%s'", $job));
+    require __DIR__ . '/cron/cron_job.php';
+    return;
 }
 
 // otevřít log soubor pro zápis a přesměrovat do něj výstup

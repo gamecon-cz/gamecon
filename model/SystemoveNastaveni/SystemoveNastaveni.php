@@ -50,11 +50,11 @@ class SystemoveNastaveni
     }
 
     public function __construct(
-        private int                     $rocnik,
-        private DateTimeImmutableStrict $ted,
-        private bool                    $jsmeNaBete,
-        private bool                    $jsmeNaLocale,
-        private DatabazoveNastaveni     $databazoveNastaveni
+        private readonly int                     $rocnik,
+        private readonly DateTimeImmutableStrict $ted,
+        private readonly bool                    $jsmeNaBete,
+        private readonly bool                    $jsmeNaLocale,
+        private readonly DatabazoveNastaveni     $databazoveNastaveni
     ) {
         if ($jsmeNaLocale && $jsmeNaBete) {
             throw new \LogicException('Nemůžeme být na betě a zároveň na locale');
@@ -300,7 +300,7 @@ SQL;
         );
     }
 
-    public function dejVychoziHodnotu(string $klic) {
+    public function dejVychoziHodnotu(string $klic): string {
         return match ($klic) {
             'GC_BEZI_OD' => DateTimeGamecon::spocitejZacatekGameconu($this->rocnik())
                 ->formatDb(),
@@ -314,19 +314,14 @@ SQL;
                 ->formatDb(),
             'TRETI_VLNA_KDY' => DateTimeGamecon::spocitejKdyJeTretiVlna($this->rocnik())
                 ->formatDb(),
-            'HROMADNE_ODHLASOVANI_1' => DateTimeGamecon::spocitejPrvniHromadneOdhlasovaniDo($this->rocnik())
-                ->formatDb(),
-            'HROMADNE_ODHLASOVANI_2' => DateTimeGamecon::spocitejDruheHromadneOdhlasovaniDo($this->rocnik())
-                ->formatDb(),
-            'HROMADNE_ODHLASOVANI_3' => DateTimeGamecon::spocitejTretiHromadneOdhlasovaniDo($this->rocnik())
-                ->formatDb(),
-            'JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE' => DateTimeGamecon::spocitejDruheHromadneOdhlasovaniDo($this->rocnik())
+            'JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE' => DateTimeGamecon::spocitejDruheHromadneOdhlasovani($this->rocnik())
                 ->formatDatumDb(),
             'PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE' => DateTimeGamecon::zacatekProgramu($this->rocnik())
                 ->modify('-1 day')
                 ->formatDatumDb(),
-            'TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE' => DateTimeGamecon::spocitejPrvniHromadneOdhlasovaniDo($this->rocnik())
+            'TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE' => DateTimeGamecon::spocitejPrvniHromadneOdhlasovani($this->rocnik())
                 ->formatDatumDb(),
+            'TEXT_PRO_SPAROVANI_ODCHOZI_PLATBY' => 'vraceni zustatku GC ID:',
             default => '',
         };
     }
@@ -417,15 +412,15 @@ SQL;
     }
 
     public function prvniHromadneOdhlasovani(): DateTimeImmutableStrict {
-        return new DateTimeImmutableStrict(HROMADNE_ODHLASOVANI_1);
+        return DateTimeImmutableStrict::createFromInterface(
+            DateTimeGamecon::prvniHromadneOdhlasovani($this->rocnik())
+        );
     }
 
     public function druheHromadneOdhlasovani(): DateTimeImmutableStrict {
-        return new DateTimeImmutableStrict(HROMADNE_ODHLASOVANI_2);
-    }
-
-    public function tretiHromadneOdhlasovani(): DateTimeImmutableStrict {
-        return new DateTimeImmutableStrict(HROMADNE_ODHLASOVANI_3);
+        return DateTimeImmutableStrict::createFromInterface(
+            DateTimeGamecon::druheHromadneOdhlasovani($this->rocnik())
+        );
     }
 
     /**

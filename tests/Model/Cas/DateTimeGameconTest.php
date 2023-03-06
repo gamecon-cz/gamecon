@@ -205,60 +205,62 @@ class DateTimeGameconTest extends TestCase
         ];
     }
 
-    public function testPrvniHromadneOdhlasovaniOd() {
+    public function testPrvniHromadneOdhlasovani() {
+        $ted                = new DateTimeImmutableStrict();
+        $systemoveNastaveni = $this->dejSystemoveNastaveni($ted);
+        $druhaVlnaKdy       = $systemoveNastaveni->druhaVlnaKdy();
         self::assertEquals(
-            DateTimeGamecon::createFromMysql(HROMADNE_ODHLASOVANI_1),
-            DateTimeGamecon::prvniHromadneOdhlasovaniDo(),
-            'Očekáván jiné datum prvního hromadného ohlašování, viz konstanta HROMADNE_ODHLASOVANI_1: ' . HROMADNE_ODHLASOVANI_1
+            $druhaVlnaKdy->modify('-10 minutes'),
+            DateTimeGamecon::prvniHromadneOdhlasovani(),
+            'Očekáváno jiné datum prvního hromadného ohlašování'
         );
 
+        $systemoveNastaveni2023 = $this->dejSystemoveNastaveni($ted, 2023);
+        $tretiVlna2023          = $systemoveNastaveni2023->druhaVlnaKdy();
         self::assertEquals(
-            DateTimeGamecon::createFromFormat('Y-m-d H:i:s', '2023-06-30 23:59:00'),
-            DateTimeGamecon::spocitejPrvniHromadneOdhlasovaniDo(2023),
-            'Očekáván jiné datum prvního hromadného odhlašování pro rok 2023'
+            $tretiVlna2023->modify('-10 minutes'),
+            DateTimeGamecon::spocitejPrvniHromadneOdhlasovani(2023),
+            'Očekáváno jiné datum prvního hromadného odhlašování pro rok 2023'
+        );
+        self::assertEquals(
+            new DateTimeGamecon('2023-06-08 20:13:00'),
+            DateTimeGamecon::spocitejPrvniHromadneOdhlasovani(2023),
+            'Očekáváno jiné datum prvního hromadného odhlašování pro rok 2023'
         );
     }
 
-    public function testDruheHromadneOdhlasovaniOd() {
+    public function testDruheHromadneOdhlasovani() {
+        $ted                = new DateTimeImmutableStrict();
+        $systemoveNastaveni = $this->dejSystemoveNastaveni($ted);
+        $druhaVlnaKdy       = $systemoveNastaveni->tretiVlnaKdy();
         self::assertEquals(
-            DateTimeGamecon::createFromMysql(HROMADNE_ODHLASOVANI_2),
-            DateTimeGamecon::druheHromadneOdhlasovaniDo(),
-            'Očekáváno jiné datum druhého hromadného ohlašování, viz konstanta HROMADNE_ODHLASOVANI_2: ' . HROMADNE_ODHLASOVANI_2
+            $druhaVlnaKdy->modify('-10 minutes'),
+            DateTimeGamecon::druheHromadneOdhlasovani(),
+            'Očekáváno jiné datum druhého hromadného ohlašování'
         );
 
+        $systemoveNastaveni2023 = $this->dejSystemoveNastaveni($ted, 2023);
+        $tretiVlna2023          = $systemoveNastaveni2023->tretiVlnaKdy();
         self::assertEquals(
-            DateTimeGamecon::createFromFormat('Y-m-d H:i:s', '2023-07-09 23:59:00'),
-            DateTimeGamecon::spocitejDruheHromadneOdhlasovaniDo(2023),
+            $tretiVlna2023->modify('-10 minutes'),
+            DateTimeGamecon::spocitejDruheHromadneOdhlasovani(2023),
             'Očekáváno jiné datum druhého hromadného odhlašování pro rok 2023'
         );
-    }
-
-    public function testTretiHromadneOdhlasovaniOd() {
         self::assertEquals(
-            DateTimeGamecon::createFromMysql(HROMADNE_ODHLASOVANI_3),
-            DateTimeGamecon::tretiHromadneOdhlasovaniDo(),
-            'Očekáváno jiné datum třetího hromadného ohlašování, viz konstanta HROMADNE_ODHLASOVANI_3: ' . HROMADNE_ODHLASOVANI_3
-        );
-
-        self::assertEquals(
-            DateTimeGamecon::createFromFormat('Y-m-d H:i:s', '2023-07-16 23:59:00'),
-            DateTimeGamecon::spocitejTretiHromadneOdhlasovaniDo(2023),
-            'Očekáváno jiné datum třetího hromadného odhlašování pro rok 2023'
+            new DateTimeGamecon('2023-07-01 20:13:00'),
+            DateTimeGamecon::spocitejDruheHromadneOdhlasovani(2023),
+            'Očekáváno jiné datum druhého hromadného odhlašování pro rok 2023'
         );
     }
 
     public function testDatumHromadnehoOdhlasovaniPlatiAzDenZpetne() {
         // PRVNÍ VLNA
-        $casPrvnihoHromadnehoOdhlasovani = new DateTimeImmutableStrict(HROMADNE_ODHLASOVANI_1);
+        $casPrvnihoHromadnehoOdhlasovani = DateTimeImmutableStrict::createFromInterface(DateTimeGamecon::prvniHromadneOdhlasovani());
         $this->testPrvnihoHromadnehoOdhlasovani($casPrvnihoHromadnehoOdhlasovani);
 
         // DRUHÁ VLNA
-        $casDruhehoHromadnehoOdhlasovani = new DateTimeImmutableStrict(HROMADNE_ODHLASOVANI_2);
+        $casDruhehoHromadnehoOdhlasovani = DateTimeImmutableStrict::createFromInterface(DateTimeGamecon::druheHromadneOdhlasovani());
         $this->testDruhehoHromadnehoOdhlasovani($casPrvnihoHromadnehoOdhlasovani, $casDruhehoHromadnehoOdhlasovani);
-
-        // TŘETÍ VLNA
-        $casTretihoHromadnehoOdhlasovani = new DateTimeImmutableStrict(HROMADNE_ODHLASOVANI_3);
-        $this->testTretihoHromadnehoOdhlasovani($casDruhehoHromadnehoOdhlasovani, $casTretihoHromadnehoOdhlasovani);
     }
 
     private function testPrvnihoHromadnehoOdhlasovani(DateTimeImmutableStrict $casPrvnihoHromadnehoOdhlasovani) {
@@ -354,7 +356,10 @@ class DateTimeGameconTest extends TestCase
         );
     }
 
-    private function dejSystemoveNastaveni(DateTimeImmutableStrict $ted): SystemoveNastaveni {
+    private function dejSystemoveNastaveni(
+        DateTimeImmutableStrict $ted,
+        int                     $rocnik = ROCNIK
+    ): SystemoveNastaveni {
         return new SystemoveNastaveni(
             ROCNIK,
             $ted,
@@ -366,10 +371,18 @@ class DateTimeGameconTest extends TestCase
 
     public function testDatumDneVTydnuDoData() {
         self::assertSame(
+            '2021-07-25',
+            DateTimeGamecon::dejDatumDneVTydnuDoData(
+                DateTimeGamecon::NEDELE,
+                new DateTimeGamecon('2021-07-31') // sobota
+            )->format(DateTimeGamecon::FORMAT_DATUM_DB),
+            'Měli bychom dostat neděli v předchozím týdnu'
+        );
+        self::assertSame(
             '2023-05-11',
             DateTimeGamecon::dejDatumDneVTydnuDoData(
                 DateTimeGamecon::CTVRTEK,
-                new DateTimeGamecon('2023-05-14')
+                new DateTimeGamecon('2023-05-14') // neděle
             )->format(DateTimeGamecon::FORMAT_DATUM_DB),
             'Měli bychom dostat čtvrtek ve stejném týdnu i z datumu s nedělí'
         );
@@ -378,7 +391,7 @@ class DateTimeGameconTest extends TestCase
             '2023-05-11',
             DateTimeGamecon::dejDatumDneVTydnuDoData(
                 DateTimeGamecon::CTVRTEK,
-                new DateTimeGamecon('2023-05-11')
+                new DateTimeGamecon('2023-05-11') // čtvrtek
             )->format(DateTimeGamecon::FORMAT_DATUM_DB),
             'Měli bychom dostat zase stejný čtvrtek'
         );
