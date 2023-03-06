@@ -1,8 +1,11 @@
 <?php
 
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+
 $this->blackarrowStyl(true);
 
 /** @var Uzivatel|null $u */
+/** @var SystemoveNastaveni $systemoveNastaveni */
 
 if (!$u) { //jen přihlášení
     echo hlaska('jenPrihlaseni');
@@ -34,8 +37,8 @@ $uid = $u->id();
 
 if (!$zaplaceno) {
     $castka = -$fin->stav();
-    $limit  = datum3(HROMADNE_ODHLASOVANI_1);
-    $limit2 = datum3(HROMADNE_ODHLASOVANI_2);
+    $limit  = datum3($systemoveNastaveni->prvniHromadneOdhlasovani());
+    $limit2 = datum3($systemoveNastaveni->druheHromadneOdhlasovani());
     if ($u->stat() == 'CZ') {
         $castka .= '&thinsp;Kč';
     } else {
@@ -104,7 +107,7 @@ if (!$zaplaceno) {
             </div>
         <?php } ?>
 
-        <?php if (pred(HROMADNE_ODHLASOVANI_1)) { ?>
+        <?php if (pred($systemoveNastaveni->prvniHromadneOdhlasovani())) { ?>
             <?php if ($u->stat() === \Gamecon\Stat::CZ) { ?>
                 <p>GameCon je nutné zaplatit převodem <strong>do <?= $limit ?></strong>. Platíš celkem
                     <strong><?= $castka ?></strong>, variabilní symbol je tvoje ID <strong><?= $uid ?></strong>.</p>
@@ -114,15 +117,15 @@ if (!$zaplaceno) {
             <?php } ?>
             <ul class="seznam-bez-okraje">
                 <li class="poznamka">Při pozdější platbě tě systém dne
-                    <strong><?php echo datum3(HROMADNE_ODHLASOVANI_1) ?></strong>
-                    (příp. <?php echo datum3(HROMADNE_ODHLASOVANI_2) ?> při pozdější přihlášce)<strong> automaticky
+                    <strong><?php echo datum3($systemoveNastaveni->prvniHromadneOdhlasovani()) ?></strong>
+                    (příp. <?php echo datum3($systemoveNastaveni->druheHromadneOdhlasovani()) ?> při pozdější přihlášce)<strong> automaticky
                         odhlásí</strong>.
                 </li>
                 <li class="poznamka">Při plánování aktivit si na účet pošli klidně více peněz. Přebytek ti vrátíme na
                     infopultu nebo ho můžeš využít k přihlašování uvolněných aktivit na místě.
                 </li>
             </ul>
-        <?php } elseif (pred(HROMADNE_ODHLASOVANI_2)) { ?>
+        <?php } elseif (pred($systemoveNastaveni->druheHromadneOdhlasovani())) { ?>
             <?php if ($u->stat() === \Gamecon\Stat::CZ) { ?>
                 <p>GameCon je nutné zaplatit převodem <strong>do <?= $limit2 ?></strong>. Platíš celkem
                     <strong><?= $castka ?></strong>, variabilní symbol je tvoje ID <strong><?= $uid ?></strong>.</p>
@@ -132,7 +135,7 @@ if (!$zaplaceno) {
             <?php } ?>
             <ul class="seznam-bez-okraje">
                 <li class="poznamka">Při pozdější platbě tě systém dne
-                    <strong><?php echo datum3(HROMADNE_ODHLASOVANI_2) ?> automaticky odhlásí</strong>.
+                    <strong><?php echo datum3($systemoveNastaveni->druheHromadneOdhlasovani()) ?> automaticky odhlásí</strong>.
                 </li>
                 <li class="poznamka">Při plánování aktivit si na účet pošli klidně více peněz. Přebytek ti vrátíme na
                     infopultu nebo ho můžeš využít k přihlašování uvolněných aktivit na místě.
