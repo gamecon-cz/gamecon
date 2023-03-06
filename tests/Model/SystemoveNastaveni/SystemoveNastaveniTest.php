@@ -65,13 +65,13 @@ SQL,
 
     public function provideVychoziHodnota(): array {
         return [
-            'GC_BEZI_OD'             => [2023, 'GC_BEZI_OD', '2023-07-20 07:00:00'],
-            'GC_BEZI_DO'             => [2023, 'GC_BEZI_DO', '2023-07-23 21:00:00'],
-            'REG_GC_OD'              => [2023, 'REG_GC_OD', '2023-05-11 20:23:00'],
-            'PRVNI_VLNA_KDY'     => [2023, 'PRVNI_VLNA_KDY', '2023-05-18 20:23:00'],
-            'HROMADNE_ODHLASOVANI_1' => [2023, 'HROMADNE_ODHLASOVANI_1', '2023-06-30 23:59:00'],
-            'HROMADNE_ODHLASOVANI_2' => [2023, 'HROMADNE_ODHLASOVANI_2', '2023-07-09 23:59:00'],
-            'HROMADNE_ODHLASOVANI_3' => [2023, 'HROMADNE_ODHLASOVANI_3', '2023-07-16 23:59:00'],
+            'GC_BEZI_OD'                        => [2023, 'GC_BEZI_OD', '2023-07-20 07:00:00'],
+            'GC_BEZI_DO'                        => [2023, 'GC_BEZI_DO', '2023-07-23 21:00:00'],
+            'REG_GC_OD'                         => [2023, 'REG_GC_OD', '2023-05-11 20:23:00'],
+            'PRVNI_VLNA_KDY'                    => [2023, 'PRVNI_VLNA_KDY', '2023-05-18 20:23:00'],
+            'DRUHA_VLNA_KDY'                    => [2023, 'DRUHA_VLNA_KDY', '2023-06-08 20:23:00'],
+            'TRETI_VLNA_KDY'                    => [2023, 'TRETI_VLNA_KDY', '2023-07-01 20:23:00'],
+            'TEXT_PRO_SPAROVANI_ODCHOZI_PLATBY' => [2023, 'TEXT_PRO_SPAROVANI_ODCHOZI_PLATBY', 'vraceni zustatku GC ID:'],
         ];
     }
 
