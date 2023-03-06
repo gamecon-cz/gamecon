@@ -43,6 +43,9 @@ if ($odhlaseniProvedenoKdy) {
     return;
 }
 
+// abychom neodhlásli nešťastlivce, od kterého dorazili finance chvíli před odhlašováním neplatičů
+require __DIR__ . '/fio_stazeni_novych_plateb.php';
+
 try {
     $hromadneOdhlaseniNeplaticu->hromadneOdhlasit();
 } catch (NevhodnyCasProHromadneOdhlasovani $nevhodnyCasProHromadneOdhlasovani) {
