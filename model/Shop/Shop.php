@@ -672,7 +672,7 @@ SQL
             SQL;
         }
         $mysqli = dbQuery($query);
-        return dbNumRows($mysqli);
+        return dbAffectedOrNumRows($mysqli);
     }
 
     /**
