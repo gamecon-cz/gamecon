@@ -11,6 +11,7 @@ use Gamecon\Pravo;
 use Gamecon\Shop\Shop;
 use Gamecon\Shop\TypPredmetu;
 use Endroid\QrCode\Writer\Result\ResultInterface;
+use Gamecon\SystemoveNastaveni\ZdrojRocniku;
 
 /**
  * Třída zodpovídající za spočítání finanční bilance uživatele na GC.
@@ -841,5 +842,14 @@ SQL
                 )
             )
         );
+    }
+
+    public function zrusLetosniObjedavky(ZdrojRocniku $zdrojRocniku): int {
+        $result = dbQuery(<<<SQL
+            DELETE FROM shop_nakupy
+            WHERE rok = {$zdrojRocniku->rocnik()} AND id_uzivatele = {$this->u->id()}
+            SQL
+        );
+        return dbAffectedOrNumRows($result);
     }
 }

@@ -171,7 +171,7 @@ class DbForm
         }
         if ($pkey->value()) {
             $result = dbUpdate($this->table(), $r, [$pkey->name() => $pkey->value()]);
-            $this->lastSaveChangesCount = dbNumRows($result);
+            $this->lastSaveChangesCount = dbAffectedOrNumRows($result);
         } else {
             dbInsert($this->table(), $r);
             $newId = dbInsertId();

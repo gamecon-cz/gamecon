@@ -12,7 +12,7 @@ class GcMail
 
     private string $text;
     private array $adresati = [];
-    private $predmet;
+    private string $predmet = '';
 
     public function __construct(string $text = '') {
         $this->text = $text;
@@ -80,6 +80,14 @@ class GcMail
             trim($this->text) . "\n\n"
         );
         return file_put_contents($soubor, $text, FILE_APPEND);
+    }
+
+    public function dejText(): string {
+        return $this->text;
+    }
+
+    public function dejPredmet(): string {
+        return $this->predmet;
     }
 
 }

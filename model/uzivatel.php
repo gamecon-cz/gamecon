@@ -9,6 +9,8 @@ use Gamecon\Role\Role;
 use Gamecon\Shop\Shop;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\XTemplate\XTemplate;
+use Gamecon\SystemoveNastaveni\ZdrojRocniku;
+use Gamecon\Logger\Zaznamnik;
 
 /**
  * Třída popisující uživatele a jeho vlastnosti
@@ -186,7 +188,7 @@ SQL
             VALUES ($1, $2, $3)",
             [$this->id(), $idRole, $posadil->id()]
         );
-        if (dbNumRows($result) > 0) {
+        if (dbAffectedOrNumRows($result) > 0) {
             $this->zalogujZmenuRole($idRole, $posadil->id(), self::POSAZEN);
         }
 
@@ -246,38 +248,24 @@ SQL
      * při počítání zůstatků a různých jiných administrativních úkolech to toho
      * uživatele může přeskakovat či ignorovat, atd…). Jmenovité problémy:
      * - platby (pokud ho vynecháme při přepočtu zůstatku, přijde o love)
-     * @todo Možná vyhodit výjimku, pokud už prošel infem, místo pouhého neudělání nic?
      * @todo Při odhlášení z GC pokud jsou zakázané rušení nákupů může být též problém (k zrušení dojde)
      */
-    public function gcOdhlas(Uzivatel $odhlasujici): bool {
+    public function gcOdhlas(
+        Uzivatel         $odhlasujici,
+        ZdrojRocniku     $zdrojRocniku,
+        Zaznamnik $schrankaNaZpravy = null
+    ): bool {
         if (!$this->gcPrihlasen()) {
             return false;
         }
+
+        $hlaskyVeTretiOsobe = $this->id() !== $odhlasujici->id();
         if ($this->gcPritomen()) {
-            throw new Chyba('Už jsi prošel infopultem, odhlášení není možné.');
+            throw new Chyba($hlaskyVeTretiOsobe
+                ? "Účastník '{$odhlasujici->jmenoNick()}' už prošel infopultem, odhlášení není možné."
+                : 'Už jsi prošel infopultem, odhlášení není možné.');
         }
-        try {
-            $odhlasilSe = $this->id() === $odhlasujici->id()
-                ? ' se odhlásil'
-                : 'byl odhlášen';
-            // odeslání upozornění, pokud u nás má peníze
-            if (($celkemLetosPoslal = $this->finance()->sumaPlateb()) > 0) {
-                (new GcMail())
-                    ->adresat('info@gamecon.cz')
-                    ->predmet("Uživatel {$this->jmenoNick()} $odhlasilSe ale platil")
-                    ->text(hlaskaMail('odhlasilPlatil', $this->jmenoNick(), $this->id(), $odhlasilSe, ROCNIK, $celkemLetosPoslal))
-                    ->odeslat();
-            }
-            if ($dnyUbytovani = array_keys($this->dejShop()->ubytovani()->veKterychDnechJeUbytovan())) {
-                (new GcMail())
-                    ->adresat('info@gamecon.cz')
-                    ->predmet("Uživatel $odhlasilSe a měl ubytování")
-                    ->text(hlaskaMail('odhlasilMelUbytovani', $this->jmenoNick(), $this->id(), $odhlasilSe, ROCNIK, implode(', ', $dnyUbytovani)))
-                    ->odeslat();
-            }
-        } catch (\Throwable $throwable) {
-            trigger_error($throwable->getMessage() . '; ' . $throwable->getTraceAsString(), E_USER_WARNING);
-        }
+
         foreach ($this->aktivityRyzePrihlasene() as $aktivita) {
             $aktivita->odhlas(
                 $this,
@@ -285,12 +273,53 @@ SQL
                 Aktivita::NEPOSILAT_MAILY_SLEDUJICIM /* nechceme posílat maily sledujícím, že se uvolnilo místo */
             );
         }
+
         // finální odebrání role "registrován na GC"
         $this->odeberRoli(Role::PRIHLASEN_NA_LETOSNI_GC, $odhlasujici);
         // zrušení nákupů (až po použití dejShop a ubytovani)
-        dbQuery('DELETE FROM shop_nakupy WHERE rok=' . ROCNIK . ' AND id_uzivatele=' . $this->id());
+        $this->finance()->zrusLetosniObjedavky($zdrojRocniku);
+
+        try {
+            $this->informujOOdhlaseni($odhlasujici, $schrankaNaZpravy);
+        } catch (\Throwable $throwable) {
+            trigger_error($throwable->getMessage() . '; ' . $throwable->getTraceAsString(), E_USER_WARNING);
+        }
 
         return true;
+    }
+
+    private function informujOOdhlaseni(Uzivatel $odhlasujici, ?Zaznamnik $zaznamnik) {
+        $odhlasen = $this->id() === $odhlasujici->id()
+            ? ' se odhlásil'
+            : 'byl odhlášen';
+        // odeslání upozornění, pokud u nás má peníze
+        if (($celkemLetosPoslal = $this->finance()->sumaPlateb()) > 0) {
+            $mailOdhlasilAlePlatil = (new GcMail())
+                ->adresat('info@gamecon.cz')
+                ->predmet("Uživatel {$this->jmenoNick()} $odhlasen ale platil")
+                ->text(hlaskaMail('odhlasilPlatil', $this->jmenoNick(), $this->id(), $odhlasen, ROCNIK, $celkemLetosPoslal));
+            if ($zaznamnik) {
+                $zaznamnik->uchovejZEmailu($mailOdhlasilAlePlatil);
+            } else {
+                $mailOdhlasilAlePlatil->odeslat();
+            }
+        }
+        if ($dnyUbytovani = array_keys($this->dejShop()->ubytovani()->veKterychDnechJeUbytovan())) {
+            $mailMelUbytovani = (new GcMail())
+                ->adresat('info@gamecon.cz')
+                ->predmet("Uživatel $odhlasen a měl ubytování")
+                ->text(
+                    hlaskaMail(
+                        'odhlasilMelUbytovani',
+                        $this->jmenoNick(), $this->id(), $odhlasen, ROCNIK, implode(', ', $dnyUbytovani)
+                    )
+                );
+            if ($zaznamnik) {
+                $zaznamnik->uchovejZEmailu($mailMelUbytovani);
+            } else {
+                $mailMelUbytovani->odeslat();
+            }
+        }
     }
 
     /**
@@ -1350,7 +1379,7 @@ SQL
      */
     public function odeberRoli(int $idRole, Uzivatel $editor) {
         $result = dbQuery('DELETE FROM uzivatele_role WHERE id_uzivatele=' . $this->id() . ' AND id_role=' . $idRole);
-        if (dbNumRows($result) > 0) {
+        if (dbAffectedOrNumRows($result) > 0) {
             $this->zalogujZmenuRole($idRole, $editor->id(), self::SESAZEN);
         }
         $this->aktualizujPrava();

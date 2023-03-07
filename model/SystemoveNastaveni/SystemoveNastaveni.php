@@ -10,7 +10,7 @@ use Gamecon\Cas\Exceptions\InvalidDateTimeFormat;
 use Gamecon\SystemoveNastaveni\Exceptions\InvalidSystemSettingsValue;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveniSqlStruktura as Sql;
 
-class SystemoveNastaveni
+class SystemoveNastaveni implements ZdrojRocniku
 {
 
     public const ROCNIK = ROCNIK;
@@ -147,7 +147,7 @@ WHERE klic = $2
 SQL,
             [$editujici->id(), $klic],
         );
-        return dbNumRows($updateQuery);
+        return dbAffectedOrNumRows($updateQuery);
     }
 
     private function hlidejZakazaneZmeny(string $klic) {
@@ -173,7 +173,7 @@ WHERE klic = $2
 SQL,
             [$editujici->id(), $klic],
         );
-        return dbNumRows($updateQuery);
+        return dbAffectedOrNumRows($updateQuery);
     }
 
     private function formatujHodnotuProDb($hodnota, string $klic) {
