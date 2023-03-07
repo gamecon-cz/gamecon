@@ -46,7 +46,7 @@ foreach($o as $r) {
   $t->parse('ruseniStorna.storno');
 }
 
-if(dbNumRows($o) == 0)
+if(dbAffectedOrNumRows($o) == 0)
   $t->parse('ruseniStorna.nikdo');
 
 $t->parse('ruseniStorna');

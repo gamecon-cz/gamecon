@@ -101,7 +101,7 @@ $shop  = new Shop($u, null, $systemoveNastaveni);
 $pomoc = new Pomoc($u);
 
 if (post('odhlasit')) {
-    $u->gcOdhlas($u);
+    $u->gcOdhlas($u, $systemoveNastaveni);
     oznameni(hlaska('odhlaseniZGc', $u));
 }
 

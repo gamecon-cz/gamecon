@@ -34,7 +34,6 @@ set_time_limit(30);
 
 global $systemoveNastaveni;
 
-$potize                     = false;
 $hromadneOdhlaseniNeplaticu = new HromadneOdhlaseniNeplaticu($systemoveNastaveni);
 
 $odhlaseniProvedenoKdy = $hromadneOdhlaseniNeplaticu->odhlaseniProvedenoKdy();
@@ -46,25 +45,25 @@ if ($odhlaseniProvedenoKdy) {
 // abychom neodhlásli nešťastlivce, od kterého dorazili finance chvíli před odhlašováním neplatičů
 require __DIR__ . '/fio_stazeni_novych_plateb.php';
 
+$zaznamnik = new \Gamecon\Logger\Zaznamnik();
 try {
-    $hromadneOdhlaseniNeplaticu->hromadneOdhlasit();
+    $hromadneOdhlaseniNeplaticu->hromadneOdhlasit($zaznamnik);
 } catch (NevhodnyCasProHromadneOdhlasovani $nevhodnyCasProHromadneOdhlasovani) {
     logs($nevhodnyCasProHromadneOdhlasovani->getMessage());
     return;
-} catch (Chyba $chyba) {
-    $potize = $chyba->getMessage();
 }
 $odhlasenoCelkem = $hromadneOdhlaseniNeplaticu->odhlasenoCelkem();
 
-$zprava = "Hromadně odhlášeno $odhlasenoCelkem účastníků z GC";
+$zprava  = "Hromadně odhlášeno $odhlasenoCelkem účastníků z GC";
+$zaznamy = implode(";\n", $zaznamnik->zpravy());
 (new GcMail())
     ->adresat('info@gamecon.cz')
     ->predmet($zprava)
-    ->text("Právě jsme odhlásili $odhlasenoCelkem účastníků z letošního Gameconu."
-        . ($potize
-            ? ("\n\nU některých se vyskytly komplikace $potize")
-            : ''
-        )
+    ->text(<<<TEXT
+        Právě jsme odhlásili $odhlasenoCelkem účastníků z letošního Gameconu."
+        ══════════════════════════════════════════════════════════════════════
+        $zaznamy
+        TEXT
     )
     ->odeslat();
 

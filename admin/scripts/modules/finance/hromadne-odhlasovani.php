@@ -12,6 +12,7 @@ use Gamecon\XTemplate\XTemplate;
 
 /**
  * @var Uzivatel $u
+ * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
 /**
@@ -22,8 +23,8 @@ $dejUzivatelekOdhlaseni = static function (array $idUzivatelu): ?array {
     $idUzivatelu = array_unique(
         array_map('intval', $idUzivatelu)
     );
-    $neznamaId = [];
-    $uzivatele = array_map(static function ($id) use (&$neznamaId) {
+    $neznamaId   = [];
+    $uzivatele   = array_map(static function ($id) use (&$neznamaId) {
         $uzivatel = Uzivatel::zId($id);
         if (!$uzivatel) {
             $neznamaId[] = $id;
@@ -34,7 +35,7 @@ $dejUzivatelekOdhlaseni = static function (array $idUzivatelu): ?array {
     $potize = [];
     if (count($neznamaId) > 0) {
         $uzivatele = array_filter($uzivatele);
-        $potize[] = 'Některá ID uživatelů neexistují. Zkontroluj je a případně vyřaď ze seznamu k odhlášení: ' . implode(',', $neznamaId);
+        $potize[]  = 'Některá ID uživatelů neexistují. Zkontroluj je a případně vyřaď ze seznamu k odhlášení: ' . implode(',', $neznamaId);
     }
 
     array_walk(
@@ -100,11 +101,11 @@ if (post('pripravit')) {
 
 if (post('odhlasit')) {
     $idUzivatelu = post('id');
-    $uzivatele = $dejUzivatelekOdhlaseni($idUzivatelu);
+    $uzivatele   = $dejUzivatelekOdhlaseni($idUzivatelu);
 
-    array_walk($uzivatele, static function (Uzivatel $uzivatel) use (&$potize, $u) {
+    array_walk($uzivatele, static function (Uzivatel $uzivatel) use (&$potize, $u, $systemoveNastaveni) {
         try {
-            $uzivatel->gcOdhlas($u);
+            $uzivatel->gcOdhlas($u, $systemoveNastaveni);
         } catch (Chyba $chyba) {
             $potize[] = sprintf(
                 "Nelze ohlásit účastníka %s s ID %d: '%s'",
