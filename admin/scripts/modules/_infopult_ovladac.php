@@ -8,10 +8,8 @@
  * @var Uzivatel|null|void $u
  * @var Uzivatel|null|void $uPracovni
  * @var \Gamecon\Vyjimkovac\Vyjimkovac $vyjimkovac
- */
-
-/**
  * @var \Gamecon\Shop\Shop|null $shop
+ * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
 use Gamecon\Role\Role;
@@ -28,7 +26,7 @@ if (!empty($_POST['gcPrihlas']) && $uPracovni && !$uPracovni->gcPrihlasen()) {
 }
 
 if (!empty($_POST['gcOdhlas']) && $uPracovni && !$uPracovni->gcPritomen() && $u->maRoli(Role::CFO)) {
-    $uPracovni->gcOdhlas($u);
+    $uPracovni->gcOdhlas($u, $systemoveNastaveni);
     back();
 }
 
@@ -126,7 +124,7 @@ if (!empty($_POST['prodej'])) {
 function updateUzivatelHodnoty(array $udaje, int $uPracovniId, \Gamecon\Vyjimkovac\Vyjimkovac $vyjimkovac): int {
     try {
         $result = dbUpdate('uzivatele_hodnoty', $udaje, ['id_uzivatele' => $uPracovniId]);
-        return dbNumRows($result);
+        return dbAffectedOrNumRows($result);
     } catch (Exception $e) {
         $vyjimkovac->zaloguj($e);
         chyba('Došlo k neočekávané chybě.');

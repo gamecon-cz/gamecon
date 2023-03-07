@@ -362,7 +362,7 @@ function dbInsertUpdate($table, $valArray) {
         }
         if ($completeUniqueKeyValues) {
             $query = dbUpdate($table, $valArray, $completeUniqueKeyValues);
-            if (dbNumRows($query) > 0) {
+            if (dbAffectedOrNumRows($query) > 0) {
                 return $query;
             }
             if (dbRecordExists($table, $completeUniqueKeyValues)) {
@@ -416,9 +416,10 @@ function dbNumQ() {
 }
 
 /**
- * @return number of rows affected / returned by query
+ * @return int of rows affected / returned by query
+ * @throws Exception
  */
-function dbNumRows($query): int {
+function dbAffectedOrNumRows($query): int {
     if ($query === true) {
         // result of mysqli_query INSERT / UPDATE / DELETE
         return $GLOBALS['dbAffectedRows'] ?? 0;

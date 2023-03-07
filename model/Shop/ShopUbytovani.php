@@ -49,7 +49,7 @@ WHERE id_uzivatele = $0 AND rok = $1
 SQL,
                 [$ucastnik->id(), ROCNIK]
             );
-            return dbNumRows($mysqliResult);
+            return dbAffectedOrNumRows($mysqliResult);
         }
 
         if ($prvniNoc === null || $posledniNoc === null) {
@@ -66,7 +66,7 @@ INSERT INTO ubytovani(id_uzivatele, den, pokoj, rok)
 SQL,
                 [$ucastnik->id(), $den, $pokoj, ROCNIK]
             );
-            $zapsanoZmen  += dbNumRows($mysqliResult);
+            $zapsanoZmen  += dbAffectedOrNumRows($mysqliResult);
         }
         $mysqliResult = dbQuery(<<<SQL
 DELETE FROM ubytovani
@@ -74,7 +74,7 @@ WHERE id_uzivatele = $0 AND den NOT IN ($1) AND rok = $2
 SQL,
             [$ucastnik->id(), $dny, ROCNIK]
         );
-        $zapsanoZmen  += dbNumRows($mysqliResult);
+        $zapsanoZmen  += dbAffectedOrNumRows($mysqliResult);
 
         return $zapsanoZmen;
     }
@@ -85,7 +85,7 @@ SQL,
         }
         $ucastnik->ubytovanS($ubytovanS);
         $mysqliResult = dbQueryS('UPDATE uzivatele_hodnoty SET ubytovan_s=$0 WHERE id_uzivatele=' . $ucastnik->id(), [trim($ubytovanS)]);
-        return dbNumRows($mysqliResult);
+        return dbAffectedOrNumRows($mysqliResult);
     }
 
     private static function smazLetosniNakupyUbytovaniUcastnika(Uzivatel $ucastnik, int $rok = ROCNIK): int {
@@ -99,7 +99,7 @@ WHERE nakupy.id_uzivatele=$0
 SQL,
             [$ucastnik->id(), TypPredmetu::UBYTOVANI, $rok]
         );
-        return dbNumRows($mysqliResult);
+        return dbAffectedOrNumRows($mysqliResult);
     }
 
     /**
@@ -191,13 +191,16 @@ WHERE shop_nakupy.id_uzivatele = {$ucastnik->id()}
 SQL,
             [$idsPredmetuUbytovaniInt, TypPredmetu::UBYTOVANI]
         );
-        $pocetZmen    += dbNumRows($mysqliResult);
+        $pocetZmen    += dbAffectedOrNumRows($mysqliResult);
 
         // smažeme připravené hodnoty, které už máme
         dbQuery(<<<SQL
 DELETE `$tmpTable`.*
 FROM `$tmpTable`
-LEFT JOIN shop_nakupy USING(id_uzivatele,id_predmetu,rok)
+LEFT JOIN shop_nakupy
+    ON `$tmpTable`.id_uzivatele = shop_nakupy.id_uzivatele
+    AND `$tmpTable`.id_predmetu = shop_nakupy.id_predmetu
+    AND `$tmpTable`.rok = shop_nakupy.rok)
 WHERE shop_nakupy.id_uzivatele IS NOT NULL -- tuhle kombinaci "typ ubytování, uživatel a rok" už máme (kombinace LEFT JOIN a IS NOT NULL)
     AND shop_nakupy.id_uzivatele = {$ucastnik->id()}
     AND shop_nakupy.rok = $rok
@@ -213,7 +216,7 @@ SELECT tmp.id_uzivatele, tmp.id_predmetu, tmp.rok, tmp.cena_nakupni, tmp.datum
 FROM `$tmpTable` AS tmp
 SQL,
         );
-        $pocetZmen    += dbNumRows($mysqliResult);
+        $pocetZmen    += dbAffectedOrNumRows($mysqliResult);
         dbQuery(<<<SQL
 DROP TEMPORARY TABLE IF EXISTS `$tmpTable`
 SQL

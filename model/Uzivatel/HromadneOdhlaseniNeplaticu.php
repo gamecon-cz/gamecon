@@ -7,6 +7,7 @@ namespace Gamecon\Uzivatel;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\Logger\LogHomadnychAkciTrait;
+use Gamecon\Logger\Zaznamnik;
 use Gamecon\Pravo;
 use Gamecon\Role\Role;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -25,10 +26,10 @@ class HromadneOdhlaseniNeplaticu
     public function __construct(private readonly SystemoveNastaveni $systemoveNastaveni) {
     }
 
-    /**
-     * @throws Chyba
-     */
-    public function hromadneOdhlasit(\DateTimeInterface $platnostZpetneKDatu = null): int {
+    public function hromadneOdhlasit(
+        ?Zaznamnik         $zaznamnik,
+        \DateTimeInterface $platnostZpetneKDatu = null
+    ): int {
         $ted                             = $this->systemoveNastaveni->ted();
         $nejblizsiHromadneOdhlasovaniKdy = $this->systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy($platnostZpetneKDatu);
 
@@ -65,7 +66,6 @@ Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hro
             );
         }
 
-        $potize         = [];
         $uzivatelSystem = \Uzivatel::zId(\Uzivatel::SYSTEM);
         foreach ($this->uzivateleKeKontrole() as $uzivatel) {
             $kategorieNeplatice = KategorieNeplatice::vytvorZHromadnehoOdhlasovani(
@@ -75,22 +75,19 @@ Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hro
             );
             if ($kategorieNeplatice->melByBytOdhlasen()) {
                 try {
-                    $uzivatel->gcOdhlas($uzivatelSystem);
+                    $uzivatel->gcOdhlas($uzivatelSystem, $this->systemoveNastaveni, $zaznamnik);
                     $this->odhlasenoCelkem++;
                     set_time_limit(30); // jenom pro jistotu, mělo by to trvat maximálně sekundu
                 } catch (Chyba $chyba) {
-                    $potize[] = sprintf(
+                    $potiz = sprintf(
                         "Nelze ohlásit účastníka %s s ID %d: '%s'",
                         $uzivatel->jmenoNick(),
                         $uzivatel->id(),
                         $chyba->getMessage()
                     );
+                    $zaznamnik->pridejZpravu("Potíže: $potiz");
                 }
             }
-        }
-
-        if ($potize) {
-            throw new Chyba(implode('; ', $potize));
         }
 
         $this->zalogujHromadneOdhlaseni(

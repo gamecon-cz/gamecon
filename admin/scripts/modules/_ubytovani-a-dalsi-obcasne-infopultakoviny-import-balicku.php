@@ -153,7 +153,7 @@ JOIN `$temporaryTable` ON uzivatele_hodnoty.id_uzivatele = `$temporaryTable`.id_
 SET uzivatele_hodnoty.infopult_poznamka = `$temporaryTable`.infopult_poznamka
 SQL
     );
-    $zapsanoZmen += dbNumRows($mysqliResult);
+    $zapsanoZmen += dbAffectedOrNumRows($mysqliResult);
 
     dbQuery(<<<SQL
 DROP TEMPORARY TABLE `$temporaryTable`

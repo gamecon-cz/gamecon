@@ -51,7 +51,7 @@ Platnost hromadné aktivace byla '%s', teď je '%s' a aktivaci současné vlny �
             'UPDATE akce_seznam SET stav=$0 WHERE stav=$1 AND rok=$2',
             [0 => StavAktivity::AKTIVOVANA, 1 => StavAktivity::PRIPRAVENA, 2 => $this->systemoveNastaveni->rocnik()]
         );
-        $automatickyAktivovanoCelkem = (int)dbNumRows($result);
+        $automatickyAktivovanoCelkem = (int)dbAffectedOrNumRows($result);
 
         $this->zalogujHromadnouAkci(
             self::SKUPINA,
@@ -74,7 +74,7 @@ Platnost hromadné aktivace byla '%s', teď je '%s' a aktivaci současné vlny �
             'UPDATE akce_seznam SET stav=$0 WHERE stav=$1 AND rok=$2',
             [0 => StavAktivity::AKTIVOVANA, 1 => StavAktivity::PRIPRAVENA, 2 => $rocnik]
         );
-        $hromadneAktivovanoAktivit = (int)dbNumRows($result);
+        $hromadneAktivovanoAktivit = (int)dbAffectedOrNumRows($result);
 
         $this->zalogujHromadnouAkci(
             self::SKUPINA,
