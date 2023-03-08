@@ -92,7 +92,7 @@ class SystemoveNastaveniHtml
             foreach ($zaznam as $klic => $hodnota) {
                 $template->assign($klic, $hodnota);
             }
-            $template->assign('zaznamClass', $zaznam['klic'] === $klicKeZvyrazneni
+            $template->assign('zaznamClass', $zaznam[Sql::KLIC] === $klicKeZvyrazneni
                 ? 'zvyrazni'
                 : ''
             );
