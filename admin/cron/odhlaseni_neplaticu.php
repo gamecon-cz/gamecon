@@ -4,13 +4,14 @@ use Gamecon\Uzivatel\HromadneOdhlaseniNeplaticu;
 use Gamecon\Uzivatel\Exceptions\NevhodnyCasProHromadneOdhlasovani;
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Cas\DateTimeCz;
+use Gamecon\Logger\Zaznamnik;
 
-require_once __DIR__ . '/cron_zavadec.php';
+require_once __DIR__ . '/_cron_zavadec.php';
 
 try {
     $casovaTolerance = new DateInterval('PT1S');
     /** @var DateTimeImmutable $cas */
-    $cas = require __DIR__ . '/odlozeny_cas.php';
+    $cas = require __DIR__ . '/_odlozeny_cas.php';
 } catch (RuntimeException $runtimeException) {
     logs($runtimeException->getMessage());
     exit(1);
@@ -42,10 +43,10 @@ if ($odhlaseniProvedenoKdy) {
     return;
 }
 
-// abychom neodhlásli nešťastlivce, od kterého dorazili finance chvíli před odhlašováním neplatičů
+// abychom neodhlásili nešťastlivce, od kterého dorazili finance chvíli před odhlašováním neplatičů
 require __DIR__ . '/fio_stazeni_novych_plateb.php';
 
-$zaznamnik = new \Gamecon\Logger\Zaznamnik();
+$zaznamnik = new Zaznamnik();
 try {
     $hromadneOdhlaseniNeplaticu->hromadneOdhlasit($zaznamnik);
 } catch (NevhodnyCasProHromadneOdhlasovani $nevhodnyCasProHromadneOdhlasovani) {
@@ -60,8 +61,8 @@ $zaznamy = implode(";\n", $zaznamnik->zpravy());
     ->adresat('info@gamecon.cz')
     ->predmet($zprava)
     ->text(<<<TEXT
-        Právě jsme odhlásili $odhlasenoCelkem účastníků z letošního Gameconu."
-        ══════════════════════════════════════════════════════════════════════
+        Právě jsme odhlásili $odhlasenoCelkem účastníků z letošního Gameconu.
+        ═════════════════════════════════════════════════════════════════════
         $zaznamy
         TEXT
     )
