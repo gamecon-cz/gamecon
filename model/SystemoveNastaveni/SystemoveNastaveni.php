@@ -469,4 +469,8 @@ SQL;
     public function jeApril(): bool {
         return $this->ted()->format('j. n.') === '1. 4.';
     }
+
+    public function nacitatPlatbyXDniZpet(): int {
+        return 14; // kolik dní zpět se mají načítat platby při kontrole nově došlých plateb
+    }
 }
