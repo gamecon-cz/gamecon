@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/cron_zavadec.php';
+require_once __DIR__ . '/_cron_zavadec.php';
 
 if (!defined('FIO_TOKEN') || FIO_TOKEN === '') {
     logs('FIO_TOKEN není definován, přeskakuji nové platby.');
