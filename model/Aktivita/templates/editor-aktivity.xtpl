@@ -165,7 +165,7 @@
       <span id="odmenaZaHodinuChybiHodiny" class="hinted"> ⚠️<span class="hint">Musíš správně vyplnit čas od - do</span></span>
       <input id="bezSlev" style="float:right" type="checkbox" name="{fields}[bez_slevy]" value="1">
       <script>if ('{bez_slevy}') {
-        $('[name="{fields}[bez_slevy]"]').attr('checked', true)
+        $('[name="{fields}[bez_slevy]"]').attr('checked', '{bez_slevy}' === '1')
       }</script>
       <div class="hinted" style="float:right;margin-top:2px"><label for="bezSlev">bez slev</label>
         <div class="hint">Jestli má být cena pevná a nesmí se na ni aplikovat slevy</div>
