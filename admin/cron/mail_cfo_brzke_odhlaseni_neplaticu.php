@@ -20,27 +20,39 @@ global $systemoveNastaveni;
 
 $hromadneOdhlaseniNeplaticu = new HromadneOdhlaseniNeplaticu($systemoveNastaveni);
 
-$odhlaseniProvedenoKdy = $hromadneOdhlaseniNeplaticu->odhlaseniProvedenoKdy();
-if ($odhlaseniProvedenoKdy) {
-    logs("Hromadné odhlášení už bylo provedeno {$odhlaseniProvedenoKdy->format(DateTimeCz::FORMAT_DB)}");
-    return;
+$poradiOznameni = null;
+foreach ([1 => '+1 day', 2 => '+1 hour'] as $poradiOznameni => $posun) {
+    $overenaPlatnostZpetne           = DateTimeGamecon::overenaPlatnostZpetne($systemoveNastaveni)
+        ->modifyStrict($posun); // jako kdybychom bychom pouštěli hromadné odhlašování zítra / za hodinu
+    $nejblizsiHromadneOdhlasovaniKdy = DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($systemoveNastaveni, $overenaPlatnostZpetne);
+
+    $odhlaseniProvedenoKdy = $hromadneOdhlaseniNeplaticu->odhlaseniProvedenoKdy($nejblizsiHromadneOdhlasovaniKdy);
+    if ($odhlaseniProvedenoKdy) {
+        logs("Hromadné odhlášení už bylo provedeno {$odhlaseniProvedenoKdy->format(DateTimeCz::FORMAT_DB)}");
+        return;
+    }
+
+    $cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy = $hromadneOdhlaseniNeplaticu->cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy(
+        $nejblizsiHromadneOdhlasovaniKdy,
+        $poradiOznameni
+    );
+    if ($cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy) {
+        logs("{$poradiOznameni}. email pro CFO o brzkém hromadném odhlášení už byl odeslán {$cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy->format(DateTimeCz::FORMAT_DB)}");
+        unset($poradiOznameni);
+        continue;
+    } else {
+        break; // tohle oznámení jsme ještě neposlali
+    }
 }
 
-$overenaPlatnostZpetne           = DateTimeGamecon::overenaPlatnostZpetne($systemoveNastaveni)
-    ->modifyStrict('+1 day'); // jako kdybychom bychom pouštěli hromadné odhlašování zítra
-$nejblizsiHromadneOdhlasovaniKdy = DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($systemoveNastaveni, $overenaPlatnostZpetne);
-
-
-$emailCfoOBlizicimSeOdhlaseniOdeslanKdy = $hromadneOdhlaseniNeplaticu->cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy($nejblizsiHromadneOdhlasovaniKdy);
-if ($emailCfoOBlizicimSeOdhlaseniOdeslanKdy) {
-    logs("Email pro CFO o zítřejším hromadné, odhlášení už byl odeslán {$emailCfoOBlizicimSeOdhlaseniOdeslanKdy->format(DateTimeCz::FORMAT_DB)}");
+if (!$poradiOznameni) {
     return;
 }
 
 // abychom měli čerstvé informace o neplatičích
 require __DIR__ . '/fio_stazeni_novych_plateb.php';
 
-$zpravy                          = [];
+$zpravy = [];
 try {
     foreach ($hromadneOdhlaseniNeplaticu->neplaticiAKategorie()
              as ['uzivatel' => $uzivatel, 'kategorie_neplatice' => $kategorieNeplatice]) {
@@ -58,7 +70,7 @@ $cfosEmaily = array_filter(
 );
 
 $budeOdhlaseno = count($zpravy);
-$zpravyString = implode(";\n", $zpravy);
+$zpravyString  = implode(";\n", $zpravy);
 (new GcMail())
     ->adresati($cfosEmaily ?: ['info@gamecon.cz'])
     ->predmet("Zítra bude hromadně odhlášeno $budeOdhlaseno neplatičů z GC")
@@ -73,5 +85,6 @@ $zpravyString = implode(";\n", $zpravy);
 $hromadneOdhlaseniNeplaticu->zalogujCfoNotifikovanOBrzkemHromadnemOdhlaseni(
     $budeOdhlaseno,
     $nejblizsiHromadneOdhlasovaniKdy,
+    $poradiOznameni,
     Uzivatel::zId(Uzivatel::SYSTEM)
 );
