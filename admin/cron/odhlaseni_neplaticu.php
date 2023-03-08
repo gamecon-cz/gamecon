@@ -46,6 +46,10 @@ if ($odhlaseniProvedenoKdy) {
 // abychom neodhlásili nešťastlivce, od kterého dorazili finance chvíli před odhlašováním neplatičů
 require __DIR__ . '/fio_stazeni_novych_plateb.php';
 
+// jistota je jistota
+$vynutZalohuDatabaze = true;
+require __DIR__ . '/zaloha_databaze.php';
+
 $zaznamnik = new Zaznamnik();
 try {
     $hromadneOdhlaseniNeplaticu->hromadneOdhlasit($zaznamnik);
