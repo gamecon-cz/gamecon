@@ -3,6 +3,8 @@
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Aktivita\StavAktivity;
 
 /**
  * Stránka pro tvorbu a správu aktivit.
@@ -14,6 +16,7 @@ use Gamecon\Aktivita\TypAktivity;
  * submenu_nazev: Přehled Aktivit
  *
  * @var Uzivatel $u
+ * @var SystemoveNastaveni $ystemoveNastaveni
  */
 
 if (post('smazat')) {
@@ -125,11 +128,11 @@ foreach ($aktivity as $aktivita) {
     if ($r['patri_pod']) {
         $tpl->parse('aktivity.aktivita.symbolInstance');
     }
-    if ($r['stav'] == 0) {
+    if ($r['stav'] == StavAktivity::NOVA) {
         $tpl->parse('aktivity.aktivita.tlacitka.publikovat');
-    } else if ($r['stav'] == 4) {
+    } else if ($r['stav'] == StavAktivity::PUBLIKOVANA) {
         $tpl->parse('aktivity.aktivita.tlacitka.pripravit');
-    } else if ($r['stav'] == 5) {
+    } else if ($r['stav'] == StavAktivity::PRIPRAVENA) {
         $tpl->parse('aktivity.aktivita.tlacitka.odpripravit');
         $tpl->parse('aktivity.aktivita.tlacitka.aktivovat');
     }
