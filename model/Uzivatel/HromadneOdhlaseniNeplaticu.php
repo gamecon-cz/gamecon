@@ -30,49 +30,10 @@ class HromadneOdhlaseniNeplaticu
         ?Zaznamnik         $zaznamnik,
         \DateTimeInterface $platnostZpetneKDatu = null
     ): int {
-        $ted                             = $this->systemoveNastaveni->ted();
         $nejblizsiHromadneOdhlasovaniKdy = $this->systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy($platnostZpetneKDatu);
-
-        if ($nejblizsiHromadneOdhlasovaniKdy > $ted) {
-            throw new NaHromadneOdhlasovaniJeBrzy(
-                sprintf(
-                    "Hromadné odhlášení může být spuštěno nejdříve v '%s'",
-                    $nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB)
-                )
-            );
-        }
-
-        $platnostZpetneKDatu ??= $ted->modify('-1 day');
-        if ($nejblizsiHromadneOdhlasovaniKdy < $platnostZpetneKDatu) {
-            throw new NaHromadneOdhlasovaniJePozde(
-                sprintf(
-                    "Hromadné odhlášení může být spuštěno nanejvýš den po platnosti.
-Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hromadně odhlásit v '%s'",
-                    $nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB),
-                    $ted->format(DateTimeCz::FORMAT_DB),
-                    $platnostZpetneKDatu->format(DateTimeCz::FORMAT_DB),
-                )
-            );
-        }
-
-        $nejblizsiVlnaOtevreniAktivitKdy = $this->systemoveNastaveni->nejblizsiVlnaKdy($platnostZpetneKDatu);
-        if ($nejblizsiHromadneOdhlasovaniKdy >= $nejblizsiVlnaOtevreniAktivitKdy) {
-            throw new NaHromadneOdhlasovaniJePozde(
-                sprintf(
-                    "Nejbližší vlna aktivit už začala v '%s', nemůžeme začít hromadně odhlašovat k okamžiku '%s'",
-                    $nejblizsiVlnaOtevreniAktivitKdy->format(DateTimeCz::FORMAT_DB),
-                    $nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB)
-                )
-            );
-        }
-
-        $uzivatelSystem = \Uzivatel::zId(\Uzivatel::SYSTEM);
-        foreach ($this->uzivateleKeKontrole() as $uzivatel) {
-            $kategorieNeplatice = KategorieNeplatice::vytvorZHromadnehoOdhlasovani(
-                $uzivatel,
-                $nejblizsiHromadneOdhlasovaniKdy,
-                $this->systemoveNastaveni
-            );
+        $uzivatelSystem                  = \Uzivatel::zId(\Uzivatel::SYSTEM);
+        foreach ($this->neplaticiAKategorie($nejblizsiHromadneOdhlasovaniKdy)
+                 as ['uzivatel' => $uzivatel, 'kategorie_neplatice' => $kategorieNeplatice]) {
             if ($kategorieNeplatice->melByBytOdhlasen()) {
                 try {
                     $uzivatel->gcOdhlas($uzivatelSystem, $this->systemoveNastaveni, $zaznamnik);
@@ -131,7 +92,7 @@ SQL,
             ]
         );
         foreach ($idUzivatelu as $idUzivatele) {
-            yield \Uzivatel::zId($idUzivatele);
+            yield \Uzivatel::zId($idUzivatele, true);
         }
     }
 
@@ -144,5 +105,83 @@ SQL,
         $nazevAkce              = $this->sestavNazevAkceHromadnehoOdhlaseni($hromadneOdhlasovaniKdy);
 
         return $this->posledniHromadnaAkceKdy(self::SKUPINA, $nazevAkce);
+    }
+
+    /**
+     * @return \Generator{neplatic: \Uzivatel, kategorie_neplatice: KategorieNeplatice}
+     * @throws NaHromadneOdhlasovaniJeBrzy
+     * @throws NaHromadneOdhlasovaniJePozde
+     */
+    public function neplaticiAKategorie(\DateTimeInterface $nejblizsiHromadneOdhlasovaniKdy = null): \Generator {
+        $ted                             = $this->systemoveNastaveni->ted();
+        $nejblizsiHromadneOdhlasovaniKdy ??= $this->systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy();
+
+        if ($nejblizsiHromadneOdhlasovaniKdy > $ted) {
+            throw new NaHromadneOdhlasovaniJeBrzy(
+                sprintf(
+                    "Hromadné odhlášení může být spuštěno nejdříve v '%s'",
+                    $nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB)
+                )
+            );
+        }
+
+        $platnostZpetneKDatu ??= $ted->modify('-1 day');
+        if ($nejblizsiHromadneOdhlasovaniKdy < $platnostZpetneKDatu) {
+            throw new NaHromadneOdhlasovaniJePozde(
+                sprintf(
+                    "Hromadné odhlášení může být spuštěno nanejvýš den po platnosti.
+Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hromadně odhlásit v '%s'",
+                    $nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB),
+                    $ted->format(DateTimeCz::FORMAT_DB),
+                    $platnostZpetneKDatu->format(DateTimeCz::FORMAT_DB),
+                )
+            );
+        }
+
+        $nejblizsiVlnaOtevreniAktivitKdy = $this->systemoveNastaveni->nejblizsiVlnaKdy($platnostZpetneKDatu);
+        if ($nejblizsiHromadneOdhlasovaniKdy >= $nejblizsiVlnaOtevreniAktivitKdy) {
+            throw new NaHromadneOdhlasovaniJePozde(
+                sprintf(
+                    "Nejbližší vlna aktivit už začala v '%s', nemůžeme začít hromadně odhlašovat k okamžiku '%s'",
+                    $nejblizsiVlnaOtevreniAktivitKdy->format(DateTimeCz::FORMAT_DB),
+                    $nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB)
+                )
+            );
+        }
+
+        foreach ($this->uzivateleKeKontrole() as $uzivatel) {
+            $kategorieNeplatice = KategorieNeplatice::vytvorZHromadnehoOdhlasovani(
+                $uzivatel,
+                $nejblizsiHromadneOdhlasovaniKdy,
+                $this->systemoveNastaveni
+            );
+            if ($kategorieNeplatice->melByBytOdhlasen()) {
+                yield ['neplatic' => $uzivatel, 'kategorie_neplatice' => $kategorieNeplatice];
+            }
+        }
+    }
+
+    public function cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy(\DateTimeInterface $hromadneOdhlasovaniKdy): ?DateTimeImmutableStrict {
+        return $this->posledniHromadnaAkceKdy(
+            self::SKUPINA,
+            $this->sestavNazevAkceHromadnehoOdhlaseni($hromadneOdhlasovaniKdy),
+        );
+    }
+
+    public function zalogujCfoNotifikovanOBrzkemHromadnemOdhlaseni(
+        int                $budeOdhlaseno,
+        \DateTimeInterface $hromadneOdhlasovaniKdy,
+        \Uzivatel          $odeslal
+    ) {
+        $this->zalogujHromadnouAkci(
+            self::SKUPINA,
+            $this->sestavNazevAkceHromadnehoOdhlaseni($hromadneOdhlasovaniKdy),
+            $budeOdhlaseno,
+            $odeslal
+        );
+    }
+
+    private function sestavNazevAkceEmailuOBlizicimSeHromadnemOdhlaseni(\DateTimeInterface $hromadneOdhlasovaniKdy): string {
+        return 'email-cfo-brzke-odhlaseni-' . $hromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_CAS_SOUBOR);
     }
 }

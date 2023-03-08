@@ -9,7 +9,7 @@ use Gamecon\Aktivita\HromadneAkceAktivit;
  * limit vykonání je 90 sekund jako jinde na webu.
  */
 
-require_once __DIR__ . '/cron/cron_zavadec.php';
+require_once __DIR__ . '/cron/_cron_zavadec.php';
 
 /////////////////////////////////// příprava ///////////////////////////////////
 
@@ -24,7 +24,7 @@ if (!defined('CRON_KEY') || get('key') !== CRON_KEY) {
 
 $job = get('job');
 if ($job !== null) {
-    require __DIR__ . '/cron/cron_job.php';
+    require __DIR__ . '/cron/_cron_job.php';
     return;
 }
 
