@@ -161,27 +161,34 @@ Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hro
         }
     }
 
-    public function cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy(\DateTimeInterface $hromadneOdhlasovaniKdy): ?DateTimeImmutableStrict {
+    public function cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy(
+        \DateTimeInterface $hromadneOdhlasovaniKdy,
+        int                $poradiOznameni
+    ): ?DateTimeImmutableStrict {
         return $this->posledniHromadnaAkceKdy(
             self::SKUPINA,
-            $this->sestavNazevAkceHromadnehoOdhlaseni($hromadneOdhlasovaniKdy),
+            $this->sestavNazevAkceEmailuOBlizicimSeHromadnemOdhlaseni($poradiOznameni, $hromadneOdhlasovaniKdy),
         );
     }
 
     public function zalogujCfoNotifikovanOBrzkemHromadnemOdhlaseni(
         int                $budeOdhlaseno,
         \DateTimeInterface $hromadneOdhlasovaniKdy,
+        int                $poradiOznameni,
         \Uzivatel          $odeslal
     ) {
         $this->zalogujHromadnouAkci(
             self::SKUPINA,
-            $this->sestavNazevAkceHromadnehoOdhlaseni($hromadneOdhlasovaniKdy),
+            $this->sestavNazevAkceEmailuOBlizicimSeHromadnemOdhlaseni($poradiOznameni, $hromadneOdhlasovaniKdy),
             $budeOdhlaseno,
             $odeslal
         );
     }
 
-    private function sestavNazevAkceEmailuOBlizicimSeHromadnemOdhlaseni(\DateTimeInterface $hromadneOdhlasovaniKdy): string {
-        return 'email-cfo-brzke-odhlaseni-' . $hromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_CAS_SOUBOR);
+    private function sestavNazevAkceEmailuOBlizicimSeHromadnemOdhlaseni(
+        int                $poradiOznameni,
+        \DateTimeInterface $hromadneOdhlasovaniKdy
+    ): string {
+        return "email-cfo-brzke-odhlaseni-$poradiOznameni-" . $hromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_CAS_SOUBOR);
     }
 }
