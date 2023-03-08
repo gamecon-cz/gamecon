@@ -13,7 +13,8 @@ use Gamecon\Aktivita\Aktivita;
  */
 
 if (Aktivita::editorTestJson()) {       // samo sebe volání ajaxu
-    die(Aktivita::editorChybyJson());
+    echo Aktivita::editorChybyJson();
+    exit;
 }
 
 /** @var Logovac $vyjimkovac */
