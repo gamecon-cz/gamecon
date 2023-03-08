@@ -249,7 +249,7 @@ class DateTimeGamecon extends DateTimeCz
         $platnostZpetne = static::overenaPlatnostZpetne($systemoveNastaveni, $platnostZpetne);
 
         $prvniHromadneOdhlasovani = $systemoveNastaveni->prvniHromadneOdhlasovani();
-        if ($platnostZpetne <= $prvniHromadneOdhlasovani) { // právě je nebo teprve bude
+        if ($prvniHromadneOdhlasovani >= $platnostZpetne) { // právě je nebo teprve bude
             return $prvniHromadneOdhlasovani;
         }
         return $systemoveNastaveni->druheHromadneOdhlasovani();
@@ -258,10 +258,10 @@ class DateTimeGamecon extends DateTimeCz
     /**
      * @throws ChybnaZpetnaPlatnost
      */
-    private static function overenaPlatnostZpetne(
+    public static function overenaPlatnostZpetne(
         SystemoveNastaveni $systemoveNastaveni,
         \DateTimeInterface $platnostZpetne = null
-    ): \DateTimeInterface {
+    ): DateTimeImmutableStrict {
         $ted = $systemoveNastaveni->ted();
         // s rezervou jednoho dne, aby i po půlnoci ještě platilo včerejší datum odhlašování
         $platnostZpetne = $platnostZpetne ?? $ted->modifyStrict('-1 day');
@@ -275,7 +275,7 @@ class DateTimeGamecon extends DateTimeCz
             );
         }
 
-        return $platnostZpetne;
+        return DateTimeImmutableStrict::createFromInterface($platnostZpetne);
     }
 
     public static function nejblizsiVlnaKdy(
