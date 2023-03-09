@@ -63,20 +63,24 @@ try {
     return;
 }
 
-$cfos       = Uzivatel::zRole(Role::CFO);
-$cfosEmaily = array_filter(
-    array_map(static fn(Uzivatel $cfo) => $cfo->mail(), $cfos),
-    static fn($mail) => is_string($mail) && filter_var($mail, FILTER_VALIDATE_EMAIL) !== false
-);
-
+$cfosEmaily    = Uzivatel::cfosEmaily();
 $budeOdhlaseno = count($zpravy);
 $zpravyString  = implode(";\n", $zpravy);
+$brzy          = match ($poradiOznameni) {
+    1 => 'Zítra',
+    2 => 'Za hodinu',
+    default => 'Brzy'
+};
+$uvod          = "$brzy Gamecon systém odhlásí $budeOdhlaseno účastníků z letošního Gameconu, protože jsou neplatiči.";
+$oddelovac     = str_repeat('═', mb_strlen($uvod));
 (new GcMail())
     ->adresati($cfosEmaily ?: ['info@gamecon.cz'])
-    ->predmet("Zítra bude hromadně odhlášeno $budeOdhlaseno neplatičů z GC")
+    ->predmet("$brzy bude hromadně odhlášeno $budeOdhlaseno neplatičů z GC")
     ->text(<<<TEXT
-        Zítra Gamecon systém odhlásí $budeOdhlaseno účastníků z letošního Gameconu, protože jsou neplatiči.
-        ═══════════════════════════════════════════════════════════════════════════════════════════════════
+        $uvod
+
+        $oddelovac
+
         $zpravyString
         TEXT
     )
