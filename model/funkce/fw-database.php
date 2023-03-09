@@ -61,6 +61,27 @@ function dbRollback() {
     $GLOBALS['dbTransactionDepth']--;
 }
 
+function dbConnectTemporary(
+    bool              $selectDb = true,
+    bool              $reconnect = false,
+    int               $rocnik = ROCNIK,
+    mysqli|null|false $stareSpojeni = null
+): \mysqli {
+    $noveSpojeni = _dbConnect(
+        DB_SERV,
+        DB_USER,
+        DB_PASS,
+        defined('DB_PORT') ? DB_PORT : null,
+        $selectDb ? DB_NAME : null,
+        false
+    );
+    if ($noveSpojeni && $stareSpojeni !== $noveSpojeni) {
+        _nastavRocnikDoSpojeni($rocnik, $noveSpojeni, $selectDb);
+    }
+
+    return $noveSpojeni;
+}
+
 /**
  * @throws ConnectionException
  */
@@ -76,24 +97,32 @@ function dbConnect($selectDb = true, bool $reconnect = false, int $rocnik = ROCN
     }
 
     $stareSpojeni = $spojeni;
-    $noveSpojeni  = _dbConnect(
-        DB_SERV,
-        DB_USER,
-        DB_PASS,
-        defined('DB_PORT') ? DB_PORT : null,
-        $selectDb ? DB_NAME : null,
-        $reconnect
-    );
+    try {
+        $noveSpojeni = _dbConnect(
+            DB_SERV,
+            DB_USER,
+            DB_PASS,
+            defined('DB_PORT') ? DB_PORT : null,
+            $selectDb ? DB_NAME : null
+        );
+    } catch (Throwable $throwable) {
+        $spojeni = null; // aby bylo možné zachytit exception a zkusit spojení znovu
+        throw $throwable;
+    }
     if ($noveSpojeni && $stareSpojeni !== $noveSpojeni) {
-        dbQuery('SET @rocnik = IF(@rocnik IS NOT NULL, @rocnik, $0)', $rocnik, $noveSpojeni);
-        if ($selectDb) {
-            // pro SQL view, který nesnese variable
-            dbQuery("UPDATE systemove_nastaveni SET hodnota = $0 WHERE klic = 'ROCNIK'", $rocnik, $noveSpojeni);
-        }
+        _nastavRocnikDoSpojeni($rocnik, $noveSpojeni, $selectDb);
     }
     $spojeni = $noveSpojeni;
 
     return $noveSpojeni;
+}
+
+function _nastavRocnikDoSpojeni(int $rocnik, mysqli $spojeni, bool $databaseSelected) {
+    dbQuery('SET @rocnik = IF(@rocnik IS NOT NULL, @rocnik, $0)', $rocnik, $spojeni);
+    if ($databaseSelected) {
+        // pro SQL view, který nesnese variable
+        dbQuery("UPDATE systemove_nastaveni SET hodnota = $0 WHERE klic = 'ROCNIK'", $rocnik, $spojeni);
+    }
 }
 
 function dbClose() {
@@ -150,12 +179,28 @@ function dbConnectionAnonymDb(): mysqli {
  * @param bool $selectDb if database should be selected on connect or not
  * @throws ConnectionException
  */
-function _dbConnect(string $dbHost, string $dbUser, string $dbPass, ?int $dbPort, ?string $dbName, bool $reconnect = false) {
-    dbDisconnectOnShutdown();
-
+function _dbConnect(
+    string  $dbHost,
+    string  $dbUser,
+    string  $dbPass,
+    ?int    $dbPort,
+    ?string $dbName,
+    bool    $persistent = true
+) {
     try {
         // persistent connection
-        $spojeni = @mysqli_connect('p:' . $dbHost, $dbUser, $dbPass, $dbName ?? '', $dbPort);
+        $spojeni = @mysqli_connect(
+            $persistent
+                ? "p:$dbHost"
+                : $dbHost,
+            $dbUser,
+            $dbPass,
+            $dbName ?? '',
+            $dbPort
+        );
+        if ($spojeni) {
+            dbDisconnectOnShutdown($spojeni);
+        }
     } catch (\Throwable $throwable) {
         throw new ConnectionException(
             "Failed to connect to the database, error: '{$throwable->getMessage()}'",
@@ -164,7 +209,6 @@ function _dbConnect(string $dbHost, string $dbUser, string $dbPass, ?int $dbPort
         );
     }
     if (!$spojeni) {
-        $spojeni = null; // aby bylo možné zachytit exception a zkusit spojení znovu
         throw new ConnectionException('Failed to connect to the database, error: "' . mysqli_connect_error() . '".');
     }
     if (!$spojeni->query('SET NAMES utf8 COLLATE utf8_czech_ci')) {
@@ -175,18 +219,12 @@ function _dbConnect(string $dbHost, string $dbUser, string $dbPass, ?int $dbPort
     return $spojeni;
 }
 
-function dbDisconnectOnShutdown() {
-    if (defined('DB_DISCONNECT_ON_SHUTDOWN_REGISTERED')) {
-        return;
-    }
-    register_shutdown_function(static function () {
-        global $spojeni;
+function dbDisconnectOnShutdown(mysqli $spojeni) {
+    register_shutdown_function(static function () use ($spojeni) {
         if ($spojeni && (mysqli_get_connection_stats($spojeni)['active_connections'] ?? false)) {
             mysqli_close($spojeni);
-            $spojeni = null;
         }
     });
-    define('DB_DISCONNECT_ON_SHUTDOWN_REGISTERED', true);
 }
 
 /**
