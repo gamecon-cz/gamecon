@@ -78,7 +78,7 @@ class HromadneOdhlaseniNeplaticu
     }
 
     private function uzivateleKeKontrole(): \Generator {
-        $idUzivatelu = dbFetchColumn(<<<SQL
+        $result = dbQuery(<<<SQL
 SELECT uzivatele_hodnoty.id_uzivatele
 FROM uzivatele_hodnoty
 LEFT JOIN platne_role_uzivatelu AS role ON uzivatele_hodnoty.id_uzivatele = role.id_uzivatele
@@ -89,9 +89,10 @@ SQL,
             [
                 0 => Role::PRIHLASEN_NA_LETOSNI_GC,
                 1 => Pravo::NERUSIT_AUTOMATICKY_OBJEDNAVKY,
-            ]
+            ],
+            dbConnectTemporary() // abychom nevyblokovali globální sdílené connection
         );
-        foreach ($idUzivatelu as $idUzivatele) {
+        while ($idUzivatele = mysqli_fetch_column($result)) {
             yield \Uzivatel::zId($idUzivatele, true);
         }
     }
