@@ -14,6 +14,8 @@
 
 use Gamecon\Role\Role;
 use Gamecon\Uzivatel\Finance;
+use Gamecon\Uzivatel\Exceptions\DuplicitniEmail;
+use Gamecon\Uzivatel\Exceptions\DuplicitniLogin;
 
 if (!empty($_POST['datMaterialy']) && $uPracovni && $uPracovni->gcPrihlasen()) {
     $uPracovni->pridejRoli(Role::PRIHLASEN_NA_LETOSNI_GC, $u);
@@ -70,9 +72,9 @@ if (!empty($_POST['rychloreg'])) {
         $nid = Uzivatel::rychloreg($tab, [
             'informovat' => post('informovat'),
         ]);
-    } catch (DuplicitniEmailException $e) {
+    } catch (DuplicitniEmail $e) {
         throw new Chyba('Uživatel s zadaným e-mailem už v databázi existuje');
-    } catch (DuplicitniLoginException $e) {
+    } catch (DuplicitniLogin $e) {
         throw new Chyba('Uživatel s loginem odpovídajícím zadanému e-mailu už v databázi existuje');
     }
     if ($nid) {
