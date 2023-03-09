@@ -4,6 +4,8 @@ namespace Gamecon\Uzivatel;
 
 use FioPlatba;
 use DateTimeInterface;
+use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\Logger\LogHomadnychAkciTrait;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Uzivatel;
 use DateTimeImmutable;
@@ -11,6 +13,10 @@ use Gamecon\Uzivatel\PlatbySqlStruktura as Sql;
 
 class Platby
 {
+
+    use LogHomadnychAkciTrait;
+
+    private const SKUPINA = 'patby';
 
     public function __construct(private readonly SystemoveNastaveni $systemoveNastaveni) {
     }
@@ -71,29 +77,54 @@ class Platby
 
     /**
      * @param int|null $rok
-     * @return array|Platba[]
+     * @return \Generator|Platba[]
      */
-    public function nesparovanePlatby(int $rok = null): array {
-        $ids    = dbFetchColumn(<<<SQL
+    public function nesparovanePlatby(?int $rok = ROCNIK): \Generator {
+        $result = dbQuery(<<<SQL
             SELECT id
             FROM platby
             WHERE id_uzivatele IS NULL
                 AND IF ($0, rok = $0, TRUE)
             SQL,
+            [0 => $rok],
+            dbConnectTemporary()
+        );
+        while ($id = mysqli_fetch_column($result)) {
+            yield Platba::zId($id, true);
+        }
+    }
+
+    public function nejakeNesparovanePlatby(?int $rok = ROCNIK): bool {
+        return dbOneCol(<<<SQL
+            SELECT 1
+            WHERE EXISTS(SELECT * FROM platby WHERE id_uzivatele IS NULL AND IF ($0, rok = $0, TRUE))
+            SQL,
             [0 => $rok]
         );
-        $platby = [];
-        foreach ($ids as $id) {
-            $platby[] = Platba::zId($id);
-        }
-        return $platby;
     }
 
-    public function nejakeNesparovanePlatby(): bool {
-        return dbOneCol(<<<SQL
-SELECT 1 WHERE EXISTS(SELECT *FROM platby WHERE id_uzivatele IS NULL)
-SQL
+    public function cfoNotifikovanONesparovanychPlatbachKdy(int $rocnik, int $poradiOznameni): ?DateTimeImmutableStrict {
+        return $this->posledniHromadnaAkceKdy(
+            self::SKUPINA,
+            $this->sestavNazevAkceEmailuONesparovanychPlatbach($rocnik, $poradiOznameni),
         );
     }
 
+    private function sestavNazevAkceEmailuONesparovanychPlatbach(int $rocnik, int $poradiOznameni): string {
+        return "email-cfo-nesparovane-platby-$rocnik-$poradiOznameni";
+    }
+
+    public function zalogujCfoNotifikovanONesparovanychPlatbach(
+        int      $rocnik,
+        int      $poradiOznameni,
+        int      $nesparovanychPlateb,
+        Uzivatel $provedl
+    ) {
+        $this->zalogujHromadnouAkci(
+            self::SKUPINA,
+            $this->sestavNazevAkceEmailuONesparovanychPlatbach($rocnik, $poradiOznameni),
+            $nesparovanychPlateb,
+            $provedl
+        );
+    }
 }

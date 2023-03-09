@@ -11,6 +11,8 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\SystemoveNastaveni\ZdrojRocniku;
 use Gamecon\Logger\Zaznamnik;
+use Gamecon\Uzivatel\Exceptions\DuplicitniEmail;
+use Gamecon\Uzivatel\Exceptions\DuplicitniLogin;
 
 /**
  * Třída popisující uživatele a jeho vlastnosti
@@ -106,7 +108,7 @@ SQL
     /**
      * Vrátí defaultní avatar
      */
-    static function avatarDefault() {
+    public static function avatarDefault() {
         return URL_WEBU . '/soubory/systemove/avatary/default.png';
     }
 
@@ -251,9 +253,9 @@ SQL
      * @todo Při odhlášení z GC pokud jsou zakázané rušení nákupů může být též problém (k zrušení dojde)
      */
     public function gcOdhlas(
-        Uzivatel         $odhlasujici,
-        ZdrojRocniku     $zdrojRocniku,
-        Zaznamnik $schrankaNaZpravy = null
+        Uzivatel     $odhlasujici,
+        ZdrojRocniku $zdrojRocniku,
+        Zaznamnik    $schrankaNaZpravy = null
     ): bool {
         if (!$this->gcPrihlasen()) {
             return false;
@@ -469,7 +471,7 @@ SQL,
      * samy, aby nemusely zbytečně načítat celého uživatele. Pokud je to
      * výkonnostně ok, raději se tomu vyhnout a uživatele načíst.
      */
-    static function jmenoNickZjisti(array $r) {
+    public static function jmenoNickZjisti(array $r) {
         if (!empty($r['jmeno_uzivatele']) && !empty($r['prijmeni_uzivatele'])) {
             $celeJmeno = $r['jmeno_uzivatele'] . ' ' . $r['prijmeni_uzivatele'];
             $jeMail    = strpos($r['login_uzivatele'], '@') !== false;
@@ -786,7 +788,7 @@ SQL,
     }
 
     /** Odpojí od session uživatele na indexu $klic */
-    static function odhlasKlic($klic) {
+    public static function odhlasKlic($klic) {
         if (!session_id()) {
             session_start();
         }
@@ -1039,7 +1041,7 @@ SQL
      *
      * @return int id nově vytvořeného uživatele
      */
-    static function registruj($tab) {
+    public static function registruj($tab) {
         return self::registrujUprav($tab);
     }
 
@@ -1207,7 +1209,7 @@ SQL
      * @todo možno evidovat, že uživatel byl regnut na místě
      * @todo poslat mail s něčím jiným jak std hláškou
      */
-    static function rychloreg($tab, $opt = []) {
+    public static function rychloreg($tab, $opt = []) {
         if (!isset($tab['login_uzivatele']) || !isset($tab['email1_uzivatele'])) {
             throw new Exception('špatný formát $tab (je to pole?)');
         }
@@ -1221,10 +1223,10 @@ SQL
             dbInsert('uzivatele_hodnoty', $tab);
         } catch (DbDuplicateEntryException $e) {
             if ($e->key() == 'email1_uzivatele') {
-                throw new DuplicitniEmailException;
+                throw new DuplicitniEmail;
             }
             if ($e->key() == 'login_uzivatele') {
-                throw new DuplicitniLoginException;
+                throw new DuplicitniLogin;
             }
             throw $e;
         }
@@ -1441,7 +1443,7 @@ SQL,
      * Na základě řetězce $dotaz zkusí najít všechny uživatele, kteří odpovídají
      * jménem, nickem, apod.
      */
-    static function zHledani(string $dotaz, $opt = [], int $limit = 20, int $minimumZnaku = 3) {
+    public static function zHledani(string $dotaz, $opt = [], int $limit = 20, int $minimumZnaku = 3) {
         $opt = opt(
             $opt,
             [
@@ -1488,13 +1490,23 @@ SQL,
     ", null, 'LIMIT ' . $limit);
     }
 
-    /**
-     * @param int $id
-     * @return Uzivatel|null
-     */
-    static function zId($id, bool $zCache = false): ?Uzivatel {
-        $o = self::zIds((int)$id);
-        return $o ? $o[0] : null;
+    public static function zId($id, bool $zCache = false): ?Uzivatel {
+        $id = (int)$id;
+
+        if ($zCache) {
+            $objekt = self::$objekty[$id] ?? null;
+            if ($objekt) {
+                return $objekt;
+            }
+        }
+
+        $uzivatel = self::zIds($id)[0] ?? null;
+
+        if ($uzivatel && $zCache) {
+            self::$objekty[$id] = $uzivatel;
+        }
+
+        return $uzivatel;
     }
 
     public static function zIdUrcite($id): self {
@@ -1511,7 +1523,7 @@ SQL,
      * @param string|int[] $ids
      * @return Uzivatel[]
      */
-    static function zIds($ids): array {
+    public static function zIds($ids): array {
         if (empty($ids)) {
             return [];
         }
@@ -1528,7 +1540,7 @@ SQL,
     /**
      * Vrátí uživatele dle zadaného mailu.
      */
-    static function zMailu(?string $mail): ?Uzivatel {
+    public static function zMailu(?string $mail): ?Uzivatel {
         if (!$mail) {
             return null;
         }
@@ -1538,7 +1550,7 @@ SQL,
             : null;
     }
 
-    static function zNicku(string $nick): ?Uzivatel {
+    public static function zNicku(string $nick): ?Uzivatel {
         if (!$nick) {
             return null;
         }
@@ -1549,7 +1561,7 @@ SQL,
     /**
      * Vytvoří a vrátí nového uživatele z zadaného pole odpovídajícího db struktuře
      */
-    static function zPole($pole, $mod = 0) {
+    public static function zPole($pole, $mod = 0) {
         if ($mod & self::FAKE) {
             $pole['email1_uzivatele'] = $pole['login_uzivatele'] . '@FAKE';
             $pole['nechce_maily']     = null;
@@ -1623,7 +1635,7 @@ SQL,
     /**
      * Vrátí uživatele s loginem odpovídajícím dané url
      */
-    static function zUrl(): ?Uzivatel {
+    public static function zUrl(): ?Uzivatel {
         $aktualniUrl = Url::zAktualni()->cela();
         $idUzivatele = (int)$aktualniUrl;
         if ($idUzivatele) {
@@ -1634,6 +1646,18 @@ SQL,
         return count($u) !== 1
             ? null
             : $u[0];
+    }
+
+    /**
+     * @return string[]
+     */
+    public static function cfosEmaily(): array {
+        $cfos = Uzivatel::zRole(Role::CFO);
+
+        return array_filter(
+            array_map(static fn(Uzivatel $cfo) => $cfo->mail(), $cfos),
+            static fn($mail) => is_string($mail) && filter_var($mail, FILTER_VALIDATE_EMAIL) !== false
+        );
     }
 
     /**
@@ -1903,12 +1927,4 @@ SQL,
         }
         return $this->kdySeRegistrovalNaLetosniGc;
     }
-}
-
-class DuplicitniEmailException extends Exception
-{
-}
-
-class DuplicitniLoginException extends Exception
-{
 }
