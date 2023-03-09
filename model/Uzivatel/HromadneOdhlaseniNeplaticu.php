@@ -34,9 +34,11 @@ class HromadneOdhlaseniNeplaticu
         $uzivatelSystem                  = \Uzivatel::zId(\Uzivatel::SYSTEM);
         foreach ($this->neplaticiAKategorie($nejblizsiHromadneOdhlasovaniKdy)
                  as ['uzivatel' => $uzivatel, 'kategorie_neplatice' => $kategorieNeplatice]) {
+            /** @var \Uzivatel $uzivatel */
             if ($kategorieNeplatice->melByBytOdhlasen()) {
                 try {
                     $uzivatel->gcOdhlas($uzivatelSystem, $this->systemoveNastaveni, $zaznamnik);
+                    $zaznamnik?->pridejEntitu($uzivatel);
                     $this->odhlasenoCelkem++;
                     set_time_limit(30); // jenom pro jistotu, mělo by to trvat maximálně sekundu
                 } catch (Chyba $chyba) {
@@ -46,7 +48,7 @@ class HromadneOdhlaseniNeplaticu
                         $uzivatel->id(),
                         $chyba->getMessage()
                     );
-                    $zaznamnik->pridejZpravu("Potíže: $potiz");
+                    $zaznamnik?->pridejZpravu("Potíže: $potiz");
                 }
             }
         }
