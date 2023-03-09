@@ -9,12 +9,17 @@ use Gamecon\Kanaly\GcMail;
 class Zaznamnik
 {
     private array $zpravy;
+    private array $entity;
 
     public function uchovejZEmailu(GcMail $mail) {
         $this->zpravy[] = <<<TEXT
             {$mail->dejPredmet()}:
             {$mail->dejText()}
         TEXT;
+    }
+
+    public function pridejEntitu(\DbObject $entita) {
+        $this->entity[] = $entita;
     }
 
     public function pridejZpravu(string $zprava) {
@@ -26,5 +31,12 @@ class Zaznamnik
      */
     public function zpravy(): array {
         return $this->zpravy;
+    }
+
+    /**
+     * @return \DbObject[]
+     */
+    public function entity(): array {
+        return $this->entity;
     }
 }
