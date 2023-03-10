@@ -10,7 +10,7 @@ use Gamecon\Cas\Exceptions\InvalidDateTimeFormat;
 use Gamecon\SystemoveNastaveni\Exceptions\InvalidSystemSettingsValue;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveniSqlStruktura as Sql;
 
-class SystemoveNastaveni implements ZdrojRocniku
+class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
 {
 
     public const ROCNIK = ROCNIK;

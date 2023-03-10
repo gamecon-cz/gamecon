@@ -4,6 +4,7 @@ namespace Gamecon\Cas;
 
 use Gamecon\Cas\Exceptions\ChybnaZpetnaPlatnost;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\SystemoveNastaveni\ZdrojVlnAktivit;
 
 /**
  * @method static DateTimeGamecon|false createFromMysql(string $dateTime, \DateTimeZone $timeZone = null)
@@ -279,19 +280,19 @@ class DateTimeGamecon extends DateTimeCz
     }
 
     public static function nejblizsiVlnaKdy(
-        SystemoveNastaveni $systemoveNastaveni,
+        ZdrojVlnAktivit    $zdrojVlnAktivit,
         \DateTimeInterface $platnostZpetne = null
     ): DateTimeGamecon {
-        $platnostZpetne = static::overenaPlatnostZpetne($systemoveNastaveni, $platnostZpetne);
+        $platnostZpetne = static::overenaPlatnostZpetne($zdrojVlnAktivit, $platnostZpetne);
 
-        $prvniVlnaKdy = $systemoveNastaveni->prvniVlnaKdy();
+        $prvniVlnaKdy = $zdrojVlnAktivit->prvniVlnaKdy();
         if ($platnostZpetne <= $prvniVlnaKdy) { // právě je nebo teprve bude
             return $prvniVlnaKdy;
         }
-        $druhaVlnaKdy = $systemoveNastaveni->druhaVlnaKdy();
+        $druhaVlnaKdy = $zdrojVlnAktivit->druhaVlnaKdy();
         if ($platnostZpetne <= $druhaVlnaKdy) { // právě je nebo teprve bude
             return $druhaVlnaKdy;
         }
-        return $systemoveNastaveni->tretiVlnaKdy();
+        return $zdrojVlnAktivit->tretiVlnaKdy();
     }
 }
