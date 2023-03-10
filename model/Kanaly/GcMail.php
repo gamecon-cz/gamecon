@@ -3,6 +3,9 @@
 namespace Gamecon\Kanaly;
 
 use \Gamecon\Cas\DateTimeCz;
+use Symfony\Component\Mailer\Mailer;
+use Symfony\Component\Mailer\Transport;
+use Symfony\Component\Mime\Email;
 
 /**
  * Třída pro sestavování mailu
@@ -13,6 +16,8 @@ class GcMail
     private string $text;
     private array $adresati = [];
     private string $predmet = '';
+    private string $prilohaSoubor = '';
+    private string $prilohaNazev = '';
 
     public function __construct(string $text = '') {
         $this->text = $text;
@@ -41,23 +46,23 @@ class GcMail
      * @return bool jestli se zprávu podařilo odeslat
      */
     public function odeslat() {
-        $from    = self::encode('GameCon') . ' <info@gamecon.cz>';
-        $headers = [
-            'MIME-Version: 1.0',
-            'Content-Type: text/html; charset="UTF-8";',
-            'From: ' . $from,
-            'Reply-To: ' . $from,
-        ];
+        $mail = (new Email())
+            ->from('GameCon <info@gamecon.cz>')
+            ->to(...$this->adresati)
+            ->subject($this->predmet)
+            ->text($this->text);
 
         if (defined('MAILY_DO_SOUBORU') && MAILY_DO_SOUBORU) {
-            return $this->zalogovatDo(MAILY_DO_SOUBORU, $headers);
+            return $this->zalogovatDo(MAILY_DO_SOUBORU, $mail->toString());
         } else {
-            return mail(
-                implode(', ', $this->adresati),
-                self::encode($this->predmet),
-                $this->text,
-                implode("\r\n", $headers)
-            );
+            if ($this->prilohaSoubor) {
+                // do souboru přílohy dávat nebudeme
+                $mail->attachFromPath($this->prilohaSoubor, $this->prilohaNazev);
+            }
+            $transport = Transport::fromDsn('smtp://localhost');
+            $mailer    = new Mailer($transport);
+            $mailer->send($mail);
+            return true;
         }
     }
 
@@ -71,15 +76,8 @@ class GcMail
         return $this;
     }
 
-    private function zalogovatDo(string $soubor, array $hlavicky) {
-        $text = (
-            implode("\n", $hlavicky) . "\n" .
-            "Čas: " . (new DateTimeCz)->formatDb() . "\n" .
-            "Adresát: '" . implode(', ', $this->adresati) . "'\n" .
-            "Předmět: '$this->predmet'\n" .
-            trim($this->text) . "\n\n"
-        );
-        return file_put_contents($soubor, $text, FILE_APPEND);
+    private function zalogovatDo(string $soubor, string $obsah) {
+        return file_put_contents($soubor, $obsah, FILE_APPEND);
     }
 
     public function dejText(): string {
@@ -88,6 +86,16 @@ class GcMail
 
     public function dejPredmet(): string {
         return $this->predmet;
+    }
+
+    public function prilohaSoubor(string $cesta): self {
+        $this->prilohaSoubor = $cesta;
+        return $this;
+    }
+
+    public function prilohaNazev(string $nazev): self {
+        $this->prilohaNazev = $nazev;
+        return $this;
     }
 
 }

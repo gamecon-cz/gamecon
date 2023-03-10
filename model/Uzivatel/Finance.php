@@ -846,18 +846,18 @@ SQL
         );
     }
 
-    public function zrusLetosniObjedavky(ZdrojRocniku $zdrojRocniku, ZdrojTed $zdrojTed): int {
+    public function zrusLetosniObjedavky(ZdrojRocniku & ZdrojTed $zdrojUdaju): int {
         dbQuery(<<<SQL
             INSERT INTO zrusene_objednavky(id_nakupu, id_uzivatele, id_predmetu, rocnik, cena_nakupni, datum_nakupu, datum_zruseni)
             SELECT id_nakupu, id_uzivatele, id_predmetu, rok, cena_nakupni, datum, $0
             FROM shop_nakupy
-            WHERE shop_nakupy.rok = {$zdrojRocniku->rocnik()} AND shop_nakupy.id_uzivatele = {$this->u->id()}
+            WHERE shop_nakupy.rok = {$zdrojUdaju->rocnik()} AND shop_nakupy.id_uzivatele = {$this->u->id()}
             SQL,
-            [0 => $zdrojTed->ted()->format(DateTimeCz::FORMAT_DB)]
+            [0 => $zdrojUdaju->ted()->format(DateTimeCz::FORMAT_DB)]
         );
-        $result                                = dbQuery(<<<SQL
+        $result = dbQuery(<<<SQL
             DELETE FROM shop_nakupy
-            WHERE rok = {$zdrojRocniku->rocnik()} AND id_uzivatele = {$this->u->id()}
+            WHERE rok = {$zdrojUdaju->rocnik()} AND id_uzivatele = {$this->u->id()}
             SQL
         );
         return dbAffectedOrNumRows($result);

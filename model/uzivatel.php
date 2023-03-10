@@ -1057,13 +1057,16 @@ SQL
     /**
      * Vrátí timestamp prvního bloku kdy uživatel má aktivitu
      */
-    public function prvniBlok() {
-        return dbOneCol(
+    public function prvniBlok(): ?string {
+        $prvniBlok = dbOneCol(
             'SELECT MIN(a.zacatek)
                 FROM akce_seznam a
                     JOIN akce_prihlaseni p USING(id_akce)
                 WHERE p.id_uzivatele = ' . $this->id() . ' AND a.rok = ' . ROCNIK
         );
+        return $prvniBlok
+            ? (string)$prvniBlok
+            : null;
     }
 
     /**
