@@ -5,7 +5,7 @@ use Gamecon\Kanaly\GcMail;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Uzivatel\Exceptions\NevhodnyCasProHromadneOdhlasovani;
 use Gamecon\Cas\DateTimeGamecon;
-use Gamecon\Role\Role;
+use Gamecon\Report\BfgrReport;
 
 require_once __DIR__ . '/_cron_zavadec.php';
 
@@ -63,6 +63,10 @@ try {
     return;
 }
 
+$bfgrSoubor = sys_get_temp_dir() . '/' . uniqid('bfgr-', true) . '.xlsx';
+$bfgrReport = new BfgrReport($systemoveNastaveni);
+$bfgrReport->exportuj('xlsx', true, $bfgrSoubor);
+
 $cfosEmaily    = Uzivatel::cfosEmaily();
 $budeOdhlaseno = count($zpravy);
 $zpravyString  = implode(";\n", $zpravy);
@@ -84,6 +88,7 @@ $oddelovac     = str_repeat('═', mb_strlen($uvod));
         $zpravyString
         TEXT
     )
+    ->prilohaSoubor($bfgrSoubor)
     ->odeslat();
 
 $hromadneOdhlaseniNeplaticu->zalogujCfoNotifikovanOBrzkemHromadnemOdhlaseni(
