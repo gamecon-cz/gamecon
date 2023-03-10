@@ -454,6 +454,14 @@ SQL;
         return REG_GC;
     }
 
+    public function registraceUcastnikuDo(): DateTimeGamecon {
+        return DateTimeGamecon::konecRegistraciUcastniku($this->rocnik);
+    }
+
+    public function poRegistraciUcastniku(): bool {
+        return po($this->registraceUcastnikuDo());
+    }
+
     public function nepaticCastkaVelkyDluh(): float {
         return NEPLATIC_CASTKA_VELKY_DLUH;
     }

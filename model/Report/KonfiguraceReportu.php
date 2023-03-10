@@ -15,6 +15,7 @@ class KonfiguraceReportu
     private $maxGenericColumnWidth = null;
     /** @var int[] */
     private $columnsWidths = [];
+    private ?string $destinationFile = null;
 
     public function getHeaderFontSize(): int {
         return $this->headerFontSize;
@@ -65,6 +66,14 @@ class KonfiguraceReportu
     public function setColumnsWidths(array $columnsWidths): self {
         $this->columnsWidths = $columnsWidths;
         return $this;
+    }
+
+    public function setDestinationFile(string $destinationFile) {
+        $this->destinationFile = $destinationFile;
+    }
+
+    public function getDestinationFile(): ?string {
+        return $this->destinationFile;
     }
 
 }

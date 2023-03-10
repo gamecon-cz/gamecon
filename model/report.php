@@ -28,7 +28,7 @@ class Report
      * Vytiskne report jako XLSX
      */
     public function tXlsx(?string $nazevReportu, KonfiguraceReportu $konfiguraceReportu = null) {
-        $konfiguraceReportu = $konfiguraceReportu ?? new KonfiguraceReportu();
+        $konfiguraceReportu ??= new KonfiguraceReportu();
 
         $previousMemoryLimit = ini_get('memory_limit');
 
@@ -38,8 +38,13 @@ class Report
             $options = new Options();
             $writer = new Writer($options);
 
-            $fileName = $this->nazevSouboru('xlsx', $nazevReportu);
-            $writer->openToBrowser($fileName); // stream data directly to the browser
+            if ($konfiguraceReportu->getDestinationFile()) {
+                $writer->openToFile($konfiguraceReportu->getDestinationFile());
+            } else {
+                $fileName = $this->nazevSouboru('xlsx', $nazevReportu);
+                // stream data directly to the browser
+                $writer->openToBrowser($fileName);
+            }
 
             if ($konfiguraceReportu->getRowToFreeze() > 0) {
                 // OpenSpout library uses 2 for first row, so it is +1 from our point of view
