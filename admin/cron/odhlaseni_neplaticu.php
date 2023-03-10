@@ -81,31 +81,3 @@ $odhlasenoCelkem = $hromadneOdhlaseniNeplaticu->odhlasenoCelkem();
 
     logs($zprava);
 }
-
-{ // local scope
-    $rok                             = $systemoveNastaveni->rocnik();
-    $nejblizsiHromadneOdhlasovaniKdy = DateTimeGamecon::nejblizsiVlnaKdy($systemoveNastaveni, $systemoveNastaveni->ted());
-    $uvodProJednotlivce              = 'Právě jsme tě odhlásili z letošního Gameconu.';
-    $oddelovacPoJednotlivce          = str_repeat('═', mb_strlen($uvodProJednotlivce));
-    $textDlePohlavi                  = [
-        ''  => "Pokud jsi platbu zapomněl poslat, přihlaš se zpět v další vlně aktivit, která bude {$nejblizsiHromadneOdhlasovaniKdy->formatCasStandard()} a platbu ohlídej.",
-        'a' => "Pokud jsi platbu zapomněla poslat, přihlaš se zpět v další vlně aktivit, která bude {$nejblizsiHromadneOdhlasovaniKdy->formatCasStandard()} a platbu ohlídej.",
-    ];
-    foreach ($zaznamnik->entity() as $uzivatel) {
-        set_time_limit(30); // pro jistotu - v každém cyklu se odpočet time limitu resetuje
-        /** @var Uzivatel $uzivatel */
-        $a                = $uzivatel->koncovkaDlePohlavi('a');
-        $emailOdhlasenemu = (new GcMail())
-            ->adresat($uzivatel->mail())
-            ->predmet("Byl{$a} jsi odhlášen{$a} z Gameconu {$rok}")
-            ->text(<<<TEXT
-            $uvodProJednotlivce
-
-            $oddelovacPoJednotlivce
-
-            $textDlePohlavi[$a]
-            TEXT
-            )
-            ->odeslat();
-    }
-}
