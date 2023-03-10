@@ -37,7 +37,11 @@ class HromadneOdhlaseniNeplaticu
             /** @var \Uzivatel $uzivatel */
             if ($kategorieNeplatice->melByBytOdhlasen()) {
                 try {
-                    $uzivatel->gcOdhlas($uzivatelSystem, $this->systemoveNastaveni, $zaznamnik);
+                    $uzivatel->gcOdhlas(
+                        $uzivatelSystem,
+                        $this->systemoveNastaveni,
+                        $zaznamnik,
+                    );
                     $zaznamnik?->pridejEntitu($uzivatel);
                     $this->odhlasenoCelkem++;
                     set_time_limit(30); // jenom pro jistotu, mělo by to trvat maximálně sekundu
