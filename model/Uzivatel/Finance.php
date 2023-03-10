@@ -5,6 +5,7 @@ namespace Gamecon\Uzivatel;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Cas\DateTimeCz;
 use Gamecon\Exceptions\NeznamyTypPredmetu;
 use Gamecon\Finance\SlevySqlStruktura;
 use Gamecon\Pravo;
@@ -12,6 +13,7 @@ use Gamecon\Shop\Shop;
 use Gamecon\Shop\TypPredmetu;
 use Endroid\QrCode\Writer\Result\ResultInterface;
 use Gamecon\SystemoveNastaveni\ZdrojRocniku;
+use Gamecon\SystemoveNastaveni\ZdrojTed;
 
 /**
  * Třída zodpovídající za spočítání finanční bilance uživatele na GC.
@@ -844,8 +846,16 @@ SQL
         );
     }
 
-    public function zrusLetosniObjedavky(ZdrojRocniku $zdrojRocniku): int {
-        $result = dbQuery(<<<SQL
+    public function zrusLetosniObjedavky(ZdrojRocniku $zdrojRocniku, ZdrojTed $zdrojTed): int {
+        dbQuery(<<<SQL
+            INSERT INTO zrusene_objednavky(id_nakupu, id_uzivatele, id_predmetu, rocnik, cena_nakupni, datum_nakupu, datum_zruseni)
+            SELECT id_nakupu, id_uzivatele, id_predmetu, rok, cena_nakupni, datum, $0
+            FROM shop_nakupy
+            WHERE shop_nakupy.rok = {$zdrojRocniku->rocnik()} AND shop_nakupy.id_uzivatele = {$this->u->id()}
+            SQL,
+            [0 => $zdrojTed->ted()->format(DateTimeCz::FORMAT_DB)]
+        );
+        $result                                = dbQuery(<<<SQL
             DELETE FROM shop_nakupy
             WHERE rok = {$zdrojRocniku->rocnik()} AND id_uzivatele = {$this->u->id()}
             SQL
