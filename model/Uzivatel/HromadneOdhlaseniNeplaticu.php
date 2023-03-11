@@ -174,8 +174,25 @@ Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hro
     ): ?DateTimeImmutableStrict {
         return $this->posledniHromadnaAkceKdy(
             self::SKUPINA,
-            $this->sestavNazevAkceEmailuOBlizicimSeHromadnemOdhlaseni($poradiOznameni, $hromadneOdhlasovaniKdy),
+            $this->sestavNazevAkceEmailuCfoInfo($poradiOznameni, $hromadneOdhlasovaniKdy),
         );
+    }
+
+    public function neplaticiNotifikovaniOBrzkemHromadnemOdhlaseniKdy(
+        \DateTimeInterface $hromadneOdhlasovaniKdy,
+        int                $poradiOznameni
+    ): ?DateTimeImmutableStrict {
+        return $this->posledniHromadnaAkceKdy(
+            self::SKUPINA,
+            $this->sestavNazevAkceEmailuSVarovanim($poradiOznameni, $hromadneOdhlasovaniKdy),
+        );
+    }
+
+    private function sestavNazevAkceEmailuSVarovanim(
+        int                $poradiOznameni,
+        \DateTimeInterface $hromadneOdhlasovaniKdy
+    ): string {
+        return "email-varobvani-neplaticum-brzke-odhlaseni-$poradiOznameni-" . $hromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_CAS_SOUBOR);
     }
 
     public function zalogujCfoNotifikovanOBrzkemHromadnemOdhlaseni(
@@ -186,16 +203,31 @@ Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hro
     ) {
         $this->zalogujHromadnouAkci(
             self::SKUPINA,
-            $this->sestavNazevAkceEmailuOBlizicimSeHromadnemOdhlaseni($poradiOznameni, $hromadneOdhlasovaniKdy),
+            $this->sestavNazevAkceEmailuCfoInfo($poradiOznameni, $hromadneOdhlasovaniKdy),
             $budeOdhlaseno,
             $odeslal
         );
     }
 
-    private function sestavNazevAkceEmailuOBlizicimSeHromadnemOdhlaseni(
+    private function sestavNazevAkceEmailuCfoInfo(
         int                $poradiOznameni,
         \DateTimeInterface $hromadneOdhlasovaniKdy
     ): string {
         return "email-cfo-brzke-odhlaseni-$poradiOznameni-" . $hromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_CAS_SOUBOR);
+    }
+
+    public function zalogujNeplaticiNotifikovaniOBrzkemHromadnemOdhlaseni(
+        int                $pocetPotencialnichNeplaticu,
+        \DateTimeInterface $hromadneOdhlasovaniKdy,
+        int                $poradiOznameni,
+        \Uzivatel          $odeslal
+    ): ?DateTimeImmutableStrict {
+
+        $this->zalogujHromadnouAkci(
+            self::SKUPINA,
+            $this->sestavNazevAkceEmailuSVarovanim($poradiOznameni, $hromadneOdhlasovaniKdy),
+            $pocetPotencialnichNeplaticu,
+            $odeslal
+        );
     }
 }
