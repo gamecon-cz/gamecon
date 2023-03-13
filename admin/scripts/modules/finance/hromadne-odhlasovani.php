@@ -105,7 +105,7 @@ if (post('odhlasit')) {
 
     array_walk($uzivatele, static function (Uzivatel $uzivatel) use (&$potize, $u, $systemoveNastaveni) {
         try {
-            $uzivatel->gcOdhlas($u, $systemoveNastaveni);
+            $uzivatel->gcOdhlas('rucne-hromadne', $u, $systemoveNastaveni);
         } catch (Chyba $chyba) {
             $potize[] = sprintf(
                 "Nelze ohlásit účastníka %s s ID %d: '%s'",
