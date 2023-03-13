@@ -9,9 +9,6 @@ use Gamecon\Role\Role;
 use Gamecon\Shop\Shop;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\XTemplate\XTemplate;
-use Gamecon\SystemoveNastaveni\ZdrojRocniku;
-use Gamecon\SystemoveNastaveni\ZdrojVlnAktivit;
-use Gamecon\SystemoveNastaveni\ZdrojTed;
 use Gamecon\Logger\Zaznamnik;
 use Gamecon\Uzivatel\Exceptions\DuplicitniEmail;
 use Gamecon\Uzivatel\Exceptions\DuplicitniLogin;
@@ -256,11 +253,11 @@ SQL
      * @todo Při odhlášení z GC pokud jsou zakázané rušení nákupů může být též problém (k zrušení dojde)
      */
     public function gcOdhlas(
-        string                                    $zdrojOdhlaseni,
-        Uzivatel                                  $odhlasujici,
-        ZdrojVlnAktivit & ZdrojRocniku & ZdrojTed $zdrojUdaju,
-        Zaznamnik                                 $zaznamnik = null,
-        bool                                      $odeslatMailPokudSeNeodhlasilSam = true
+        string             $zdrojOdhlaseni,
+        Uzivatel           $odhlasujici,
+        SystemoveNastaveni $systemoveNastaveni,
+        Zaznamnik          $zaznamnik = null,
+        bool               $odeslatMailPokudSeNeodhlasilSam = true
     ): bool {
         if (!$this->gcPrihlasen()) {
             return false;
@@ -285,10 +282,10 @@ SQL
         // finální odebrání role "registrován na GC"
         $this->odeberRoli(Role::PRIHLASEN_NA_LETOSNI_GC, $odhlasujici);
         // zrušení nákupů (až po použití dejShop a ubytovani)
-        $this->finance()->zrusLetosniObjedavky($zdrojOdhlaseni, $zdrojUdaju);
+        $this->finance()->zrusLetosniObjedavky($zdrojOdhlaseni, $systemoveNastaveni);
 
         try {
-            $this->informujOOdhlaseni($odhlasujici, $zaznamnik, $odeslatMailPokudSeNeodhlasilSam, $zdrojUdaju);
+            $this->informujOOdhlaseni($odhlasujici, $zaznamnik, $odeslatMailPokudSeNeodhlasilSam, $systemoveNastaveni);
         } catch (\Throwable $throwable) {
             trigger_error($throwable->getMessage() . '; ' . $throwable->getTraceAsString(), E_USER_WARNING);
         }
@@ -297,10 +294,10 @@ SQL
     }
 
     private function informujOOdhlaseni(
-        Uzivatel                                  $odhlasujici,
-        ?Zaznamnik                                $zaznamnik,
-        bool                                      $odeslatMailPokudSeNeodhlasilSam,
-        ZdrojVlnAktivit & ZdrojRocniku & ZdrojTed $zdrojUdaju
+        Uzivatel           $odhlasujici,
+        ?Zaznamnik         $zaznamnik,
+        bool               $odeslatMailPokudSeNeodhlasilSam,
+        SystemoveNastaveni $systemoveNastaveni
     ) {
         $odhlasen = $this->id() === $odhlasujici->id()
             ? ' se odhlásil'
@@ -334,13 +331,13 @@ SQL
             }
         }
         if ($odeslatMailPokudSeNeodhlasilSam && $this->id() !== $odhlasujici->id()) {
-            $this->odesliMailZeBylOdhlasen($zdrojUdaju);
+            $this->odesliMailZeBylOdhlasen($systemoveNastaveni);
         }
     }
 
-    private function odesliMailZeBylOdhlasen(ZdrojVlnAktivit & ZdrojRocniku & ZdrojTed $zdrojUdaju) {
-        $rok                             = $zdrojUdaju->rocnik();
-        $nejblizsiHromadneOdhlasovaniKdy = DateTimeGamecon::nejblizsiVlnaKdy($zdrojUdaju, $zdrojUdaju->ted());
+    private function odesliMailZeBylOdhlasen(SystemoveNastaveni $systemoveNastaveni) {
+        $rok                             = $systemoveNastaveni->rocnik();
+        $nejblizsiHromadneOdhlasovaniKdy = DateTimeGamecon::nejblizsiVlnaKdy($systemoveNastaveni, $systemoveNastaveni->ted());
         $uvod                            = 'Právě jsme tě odhlásili z letošního Gameconu.';
         $oddelovac                       = str_repeat('═', mb_strlen($uvod));
         set_time_limit(30); // pro jistotu

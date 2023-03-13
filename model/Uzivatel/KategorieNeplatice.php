@@ -55,7 +55,6 @@ class KategorieNeplatice
 
     private float $castkaVelkyDluh;
     private ?float $sumaLetosnichPlateb = null;
-    private ?int $pocetLetosnichObjednavek = null;
 
     public function __construct(
         private Finance             $finance,
@@ -83,6 +82,10 @@ class KategorieNeplatice
                 sprintf("Nepodporovaná kategorie neplatiče '{$this->dejCiselnouKategoriiNeplatice()}'. Doplňte podporu sem do logiky.")
             )
         };
+    }
+
+    public function maSmyslOdhlasitMuJenNeco(): bool {
+        return $this->dejCiselnouKategoriiNeplatice() === self::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH;
     }
 
     /**
@@ -188,10 +191,11 @@ class KategorieNeplatice
     }
 
     private function pocetLetosnichObjednavek(): int {
-        if ($this->pocetLetosnichObjednavek === null) {
-            $this->pocetLetosnichObjednavek = $this->finance->pocetObjednavek();
-        }
-        return $this->pocetLetosnichObjednavek;
+        /**
+         * Necachovat lokálně, jinak nebude fungovat postupné odhlašování položek,
+         * @see \Gamecon\Uzivatel\HromadneOdhlaseniNeplaticu::hromadneOdhlasit
+         */
+        return $this->finance->pocetObjednavek();
     }
 
     private function prihlasilSeParDniPredVlnouOdhlasovani(): bool {
@@ -202,5 +206,28 @@ class KategorieNeplatice
 
     public function zacatekVlnyOdhlasovani(): ?\DateTimeInterface {
         return $this->hromadneOdhlasovaniKdy;
+    }
+
+    public function otoc(bool $vcetneSumyLetosnichPlateb = true): static {
+        $reflection = new \ReflectionClass($this);
+        foreach ($reflection->getDefaultProperties() as $name => $defaultValue) {
+            $this->{$name} = $defaultValue;
+        }
+        $sumaLetosnichPlateb = $this->sumaLetosnichPlateb();
+        $this->finance->otoc();
+        $this->__construct(
+            $this->finance,
+            $this->kdySeRegistrovalNaLetosniGc,
+            $this->maPravoPlatitAzNaMiste,
+            $this->hromadneOdhlasovaniKdy,
+            $this->rocnik,
+            $this->castkaVelkyDluh,
+            $this->castkaPoslalDost,
+            $this->pocetDnuPredVlnouKdyJeJesteChranen
+        );
+        if (!$vcetneSumyLetosnichPlateb) { // chceme zachvovat cache plateb
+            $this->sumaLetosnichPlateb = $sumaLetosnichPlateb;
+        }
+        return $this;
     }
 }
