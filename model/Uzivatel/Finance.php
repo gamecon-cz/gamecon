@@ -12,8 +12,7 @@ use Gamecon\Pravo;
 use Gamecon\Shop\Shop;
 use Gamecon\Shop\TypPredmetu;
 use Endroid\QrCode\Writer\Result\ResultInterface;
-use Gamecon\SystemoveNastaveni\ZdrojRocniku;
-use Gamecon\SystemoveNastaveni\ZdrojTed;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 /**
  * Třída zodpovídající za spočítání finanční bilance uživatele na GC.
@@ -128,6 +127,15 @@ class Finance
         $this->logb('Předměty a strava', $this->cenaPredmetyAStrava(), self::PREDMETY_STRAVA);
         $this->logb('Připsané platby', $this->sumaPlateb() + $this->zustatekZPredchozichRocniku, self::PLATBY_NADPIS);
         $this->logb('Stav financí', $this->stav(), self::VYSLEDNY);
+    }
+
+    public function otoc(): static {
+        $reflection = new \ReflectionClass($this);
+        foreach ($reflection->getDefaultProperties() as $name => $defaultValue) {
+            $this->{$name} = $defaultValue;
+        }
+        $this->__construct($this->u, $this->zustatekZPredchozichRocniku);
+        return $this;
     }
 
     /** Cena za uživatelovy aktivity */
@@ -846,20 +854,99 @@ SQL
         );
     }
 
-    public function zrusLetosniObjedavky(string $zdrojZruseni, ZdrojRocniku & ZdrojTed $zdrojUdaju): int {
+    public function zrusLetosniObjedavky(string $zdrojZruseni, SystemoveNastaveni $systemoveNastaveni): int {
         dbQuery(<<<SQL
             INSERT INTO shop_nakupy_zrusene(id_nakupu, id_uzivatele, id_predmetu, rocnik, cena_nakupni, datum_nakupu, datum_zruseni, zdroj_zruseni)
             SELECT id_nakupu, id_uzivatele, id_predmetu, rok, cena_nakupni, datum, $0, $1
             FROM shop_nakupy
-            WHERE shop_nakupy.rok = {$zdrojUdaju->rocnik()} AND shop_nakupy.id_uzivatele = {$this->u->id()}
+            WHERE shop_nakupy.rok = {$systemoveNastaveni->rocnik()} AND shop_nakupy.id_uzivatele = {$this->u->id()}
             SQL,
-            [0 => $zdrojUdaju->ted()->format(DateTimeCz::FORMAT_DB), $zdrojZruseni]
+            [0 => $systemoveNastaveni->ted()->format(DateTimeCz::FORMAT_DB), $zdrojZruseni]
         );
         $result = dbQuery(<<<SQL
             DELETE FROM shop_nakupy
-            WHERE rok = {$zdrojUdaju->rocnik()} AND id_uzivatele = {$this->u->id()}
+            WHERE rok = {$systemoveNastaveni->rocnik()} AND id_uzivatele = {$this->u->id()}
             SQL
         );
         return dbAffectedOrNumRows($result);
+    }
+
+    public function zrusLetosniUbytovani(string $zdrojZruseni, SystemoveNastaveni $systemoveNastaveni): int {
+        return $this->zrusLetosniObjednavkyTypu(TypPredmetu::UBYTOVANI, $zdrojZruseni, $systemoveNastaveni);
+    }
+
+    private function zrusLetosniObjednavkyTypu(
+        int                $typPredetu,
+        string             $zdrojZruseni,
+        SystemoveNastaveni $systemoveNastaveni
+    ): int {
+        dbQuery(<<<SQL
+            INSERT INTO shop_nakupy_zrusene(id_nakupu, id_uzivatele, id_predmetu, rocnik, cena_nakupni, datum_nakupu, datum_zruseni, zdroj_zruseni)
+            SELECT id_nakupu, id_uzivatele, id_predmetu, rok, cena_nakupni, datum, $0, $1
+            FROM shop_nakupy
+            WHERE shop_nakupy.rok = {$systemoveNastaveni->rocnik()}
+              AND shop_nakupy.id_uzivatele = {$this->u->id()}
+              AND shop_nakupy.id_predmetu = {$typPredetu}
+            SQL,
+            [
+                0 => $systemoveNastaveni->ted()->format(DateTimeCz::FORMAT_DB),
+                1 => $zdrojZruseni,
+            ]
+        );
+        $result = dbQuery(<<<SQL
+            DELETE FROM shop_nakupy
+            WHERE rok = {$systemoveNastaveni->rocnik()}
+              AND id_uzivatele = {$this->u->id()}
+              AND shop_nakupy.id_predmetu = {$typPredetu}
+            SQL
+        );
+        return dbAffectedOrNumRows($result);
+    }
+
+    public function zrusPrihlaseniNaLetosniLarpy(
+        \Uzivatel          $odhlasujici,
+        string             $zdrojZruseni,
+        SystemoveNastaveni $systemoveNastaveni
+    ): int {
+        $prihlaseneLarpy = Aktivita::zFiltru([
+            'typ'        => TypAktivity::LARP,
+            'rok'        => $systemoveNastaveni->rocnik(),
+            'prihlaseni' => [$this->u->id()],
+        ]);
+        foreach ($prihlaseneLarpy as $prihlasenyLarp) {
+            $prihlasenyLarp->odhlas($this->u, $odhlasujici, $zdrojZruseni);
+        }
+        return count($prihlaseneLarpy);
+    }
+
+    public function zrusPrihlaseniNaLetosniRpg(
+        \Uzivatel          $odhlasujici,
+        string             $zdrojZruseni,
+        SystemoveNastaveni $systemoveNastaveni
+    ): int {
+        $prihlasenaRpg = Aktivita::zFiltru([
+            'typ'        => TypAktivity::RPG,
+            'rok'        => $systemoveNastaveni->rocnik(),
+            'prihlaseni' => [$this->u->id()],
+        ]);
+        foreach ($prihlasenaRpg as $prihlaseneRpg) {
+            $prihlaseneRpg->odhlas($this->u, $odhlasujici, $zdrojZruseni);
+        }
+        return count($prihlasenaRpg);
+    }
+
+    public function zrusPrihlaseniNaVsechnyAktivity(
+        \Uzivatel          $odhlasujici,
+        string             $zdrojZruseni,
+        SystemoveNastaveni $systemoveNastaveni
+    ): int {
+        $prihlaseneAktivity = Aktivita::zFiltru([
+            'rok'        => $systemoveNastaveni->rocnik(),
+            'prihlaseni' => [$this->u->id()],
+        ]);
+        foreach ($prihlaseneAktivity as $prihlasenaAktivita) {
+            $prihlasenaAktivita->odhlas($this->u, $odhlasujici, $zdrojZruseni);
+        }
+        return count($prihlaseneAktivity);
     }
 }
