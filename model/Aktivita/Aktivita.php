@@ -2786,6 +2786,9 @@ SQL,
         if (!empty($filtr['bezDalsichKol'])) {
             $wheres[] = 'NOT (a.typ IN (' . TypAktivity::DRD . ',' . TypAktivity::LKD . ') AND cena = 0)';
         }
+        if (!empty($filtr['prihlaseni'])) {
+            $wheres[] = 'p.id_uzivatele IN (' . dbQa((array)$filtr['prihlaseni']) . ')';
+        }
         $where = implode(' AND ', $wheres);
 
         // sestavení řazení
@@ -3022,10 +3025,10 @@ SQL,
                 FROM akce_seznam a
                 LEFT JOIN akce_lokace al ON al.id_lokace = a.lokace
                 LEFT JOIN akce_typy ON a.typ = akce_typy.id_typu
-                $where
             ) AS t2
             LEFT JOIN akce_prihlaseni p ON (p.id_akce = t2.id_akce)
             LEFT JOIN uzivatele_hodnoty u ON (u.id_uzivatele = p.id_uzivatele)
+            $where
             GROUP BY t2.id_akce
       ) AS t3
       $order

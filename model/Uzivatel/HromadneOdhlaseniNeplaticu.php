@@ -45,8 +45,23 @@ class HromadneOdhlaseniNeplaticu
         $uzivatelSystem                  = \Uzivatel::zId(\Uzivatel::SYSTEM);
         foreach ($this->neplaticiAKategorie($nejblizsiHromadneOdhlasovaniKdy)
                  as ['uzivatel' => $uzivatel, 'kategorie_neplatice' => $kategorieNeplatice]) {
-            /** @var \Uzivatel $uzivatel */
+            /**
+             * @var \Uzivatel $uzivatel
+             * @var KategorieNeplatice $kategorieNeplatice
+             */
             if ($kategorieNeplatice->melByBytOdhlasen()) {
+                if ($kategorieNeplatice->maSmyslOdhlasitMuJenNeco()) {
+                    $necoOdhlaseno = null;
+                    do {
+                        $necoOdhlaseno = $this->odhlasMuJenNeco($uzivatel, $zdrojOdhlaseni, $uzivatelSystem, $necoOdhlaseno);
+                        if ($necoOdhlaseno) {
+                            $kategorieNeplatice->otoc(false /* platby se nezmenily */);
+                        }
+                    } while ($necoOdhlaseno !== false && $kategorieNeplatice->melByBytOdhlasen());
+                    if (!$kategorieNeplatice->melByBytOdhlasen()) {
+                        continue; // povedlo se, postupným odhlašováním položek jsme se dostali až k tomu, že nemusíme odhlásit samotného účastníka
+                    }
+                }
                 try {
                     $uzivatel->gcOdhlas(
                         $zdrojOdhlaseni,
@@ -76,6 +91,35 @@ class HromadneOdhlaseniNeplaticu
         );
 
         return $this->odhlasenoCelkem;
+    }
+
+    private function odhlasMuJenNeco(
+        \Uzivatel $uzivatel,
+        string    $zdrojOdhlaseni,
+        \Uzivatel $odhlasujici,
+        ?string   $naposledyOdhlaseno
+    ): string|false {
+        if ($naposledyOdhlaseno === null
+            && $uzivatel->finance()->zrusLetosniUbytovani($zdrojOdhlaseni, $this->systemoveNastaveni) > 0
+        ) {
+            return 'ubytovani';
+        }
+        if ($naposledyOdhlaseno === 'ubytovani'
+            && $uzivatel->finance()->zrusPrihlaseniNaLetosniLarpy($odhlasujici, $zdrojOdhlaseni, $this->systemoveNastaveni) > 0
+        ) {
+            return 'larpy';
+        }
+        if ($naposledyOdhlaseno === 'larpy'
+            && $uzivatel->finance()->zrusPrihlaseniNaLetosniRpg($odhlasujici, $zdrojOdhlaseni, $this->systemoveNastaveni) > 0
+        ) {
+            return 'rpg';
+        }
+        // respektive na zbývající
+        if ($naposledyOdhlaseno === 'rpg'
+            && $uzivatel->finance()->zrusPrihlaseniNaVsechnyAktivity($odhlasujici, $zdrojOdhlaseni, $this->systemoveNastaveni) > 0) {
+            return 'ostatni-aktivity';
+        }
+        return false;
     }
 
     private function zalogujHromadneOdhlaseni(
@@ -127,7 +171,7 @@ SQL,
     }
 
     /**
-     * @return \Generator{neplatic: \Uzivatel, kategorie_neplatice: KategorieNeplatice}
+     * @return \Generator{neplatic: \Uzivatel, kategorie_neplatice: KategorieNeplatice, ma_smysl_odhlasit_mu_jen_neco: bool}
      * @throws NaHromadneOdhlasovaniJeBrzy
      * @throws NaHromadneOdhlasovaniJePozde
      */
@@ -175,7 +219,11 @@ Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hro
                 $this->systemoveNastaveni
             );
             if ($kategorieNeplatice->melByBytOdhlasen()) {
-                yield ['neplatic' => $uzivatel, 'kategorie_neplatice' => $kategorieNeplatice];
+                yield [
+                    'neplatic'                      => $uzivatel,
+                    'kategorie_neplatice'           => $kategorieNeplatice,
+                    'ma_smysl_odhlasit_mu_jen_neco' => $kategorieNeplatice->maSmyslOdhlasitMuJenNeco(),
+                ];
             }
         }
     }
