@@ -55,8 +55,8 @@ class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
         self::assertEquals(2, $this->ctvrtfinale->rawDb()['kapacita']);
 
         // počet míst se obnoví
-        $this->ctvrtfinale->odhlas($this->tymlidr, $this->tymlidr);
-        $this->ctvrtfinale->odhlas($this->clen1, $this->clen1);
+        $this->ctvrtfinale->odhlas($this->tymlidr, $this->tymlidr, 'test');
+        $this->ctvrtfinale->odhlas($this->clen1, $this->clen1, 'test');
         self::assertEquals(3, $this->ctvrtfinale->rawDb()['kapacita']);
 
         // opětovné přihlášení se chová jako u týmovky, tj. jako přihlášení týmlídra
@@ -71,7 +71,7 @@ class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
     public function testOdhlaseniPredPotvrzenim() {
         $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr);
 
-        $this->ctvrtfinale->odhlas($this->tymlidr, $this->tymlidr);
+        $this->ctvrtfinale->odhlas($this->tymlidr, $this->tymlidr, 'test');
         $this->ctvrtfinale->prihlas($this->clen1, $this->clen1);
         self::assertTrue($this->ctvrtfinale->prihlasen($this->clen1));
     }

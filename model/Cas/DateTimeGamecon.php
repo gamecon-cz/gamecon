@@ -256,6 +256,21 @@ class DateTimeGamecon extends DateTimeCz
         return $systemoveNastaveni->druheHromadneOdhlasovani();
     }
 
+    public static function poradiHromadnehoOdhlasovani(
+        \DateTimeInterface $casOdhlasovani,
+        SystemoveNastaveni $systemoveNastaveni
+    ): int {
+        if ($systemoveNastaveni->prvniHromadneOdhlasovani()->getTimestamp() === $casOdhlasovani->getTimestamp()) {
+            return 1;
+        }
+        if ($systemoveNastaveni->druheHromadneOdhlasovani()->getTimestamp() === $casOdhlasovani->getTimestamp()) {
+            return 2;
+        }
+        throw new \LogicException(
+            "Neznámé pořadí data hromadného odhlašování '{$casOdhlasovani->format(self::FORMAT_DB)}'"
+        );
+    }
+
     /**
      * @throws ChybnaZpetnaPlatnost
      */

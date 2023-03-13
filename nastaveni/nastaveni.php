@@ -55,24 +55,24 @@ $systemoveNastaveni->zaznamyDoKonstant();
 // SAMOTNÝ GAMECON //
 /////////////////////
 // 2022-07-21 07:00:00 čtvrtek ve třetím týdnu v červenci
-if (!defined('GC_BEZI_OD')) define('GC_BEZI_OD', $systemoveNastaveni->dejVychoziHodnotu('GC_BEZI_OD')); // začátek GameConu (přepnutí stránek do režimu "úpravy na jen na infopultu")
+if (!defined('GC_BEZI_OD')) define('GC_BEZI_OD', $systemoveNastaveni->registraceAktivitOd()->formatDb()); // začátek GameConu (přepnutí stránek do režimu "úpravy na jen na infopultu")
 // 2022-07-24 21:00:00
-if (!defined('GC_BEZI_DO')) define('GC_BEZI_DO', $systemoveNastaveni->dejVychoziHodnotu('GC_BEZI_DO')); // konec GameCou (přepnutí stránek do režimu "gc skončil, úpravy nemožné")
+if (!defined('GC_BEZI_DO')) define('GC_BEZI_DO', $systemoveNastaveni->registraceAktivitDo()->formatDb()); // konec GameCou (přepnutí stránek do režimu "gc skončil, úpravy nemožné")
 
 ///////////////////////////
 // REGISTRACE NA GAMECON //
 ///////////////////////////
 // 2022-05-12 20:22:00
-if (!defined('REG_GC_OD')) define('REG_GC_OD', DateTimeGamecon::zacatekRegistraciUcastniku(ROCNIK)->formatDb()); // spuštění možnosti registrace na GameCon
-if (!defined('REG_GC_DO')) define('REG_GC_DO', DateTimeGamecon::konecRegistraciUcastniku(ROCNIK)->formatDb()); // ukončení možnosti registrace na GameCon
+if (!defined('REG_GC_OD')) define('REG_GC_OD', $systemoveNastaveni->zacatekRegistraciUcastniku(ROCNIK)->formatDb()); // spuštění možnosti registrace na GameCon
+if (!defined('REG_GC_DO')) define('REG_GC_DO', $systemoveNastaveni->konecRegistraciUcastniku(ROCNIK)->formatDb()); // ukončení možnosti registrace na GameCon
 
 ////////////////////////////////////////////////////////
 // REGISTRACE NA AKTIVITY (PRVNÍ, DRUHÁ A TŘETÍ VLNA) //
 ////////////////////////////////////////////////////////
 // 2022-05-19 20:22:00
-if (!defined('PRVNI_VLNA_KDY')) define('PRVNI_VLNA_KDY', DateTimeGamecon::prvniVlnaKdy(ROCNIK)->formatDb()); // spuštění možnosti registrace na aktivity, pokud jsou aktivované 1. vlna
-if (!defined('DRUHA_VLNA_KDY')) define('DRUHA_VLNA_KDY', DateTimeGamecon::druhaVlnaKdy(ROCNIK)->formatDb());
-if (!defined('TRETI_VLNA_KDY')) define('TRETI_VLNA_KDY', DateTimeGamecon::tretiVlnaKdy(ROCNIK)->formatDb());
+if (!defined('PRVNI_VLNA_KDY')) define('PRVNI_VLNA_KDY', $systemoveNastaveni->prvniVlnaKdy(ROCNIK)->formatDb()); // spuštění možnosti registrace na aktivity, pokud jsou aktivované 1. vlna
+if (!defined('DRUHA_VLNA_KDY')) define('DRUHA_VLNA_KDY', $systemoveNastaveni->druhaVlnaKdy(ROCNIK)->formatDb());
+if (!defined('TRETI_VLNA_KDY')) define('TRETI_VLNA_KDY', $systemoveNastaveni->tretiVlnaKdy(ROCNIK)->formatDb());
 if (!defined('REG_AKTIVIT_DO')) define('REG_AKTIVIT_DO', GC_BEZI_DO); // ukončení možnosti registrace na aktivity
 
 // 2022-07-13 00:00:00
