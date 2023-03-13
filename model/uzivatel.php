@@ -58,7 +58,7 @@ JOIN platne_role_uzivatelu ON uzivatele_hodnoty.id_uzivatele = platne_role_uziva
 JOIN prava_role ON platne_role_uzivatelu.id_role = prava_role.id_role
 WHERE prava_role.id_prava = $1
 SQL
-            , [\Gamecon\Pravo::PORADANI_AKTIVIT]
+            , [Pravo::PORADANI_AKTIVIT]
         );
         return static::zIds($ids);
     }
