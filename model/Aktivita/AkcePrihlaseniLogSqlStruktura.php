@@ -14,4 +14,5 @@ class AkcePrihlaseniLogSqlStruktura
     public const KDY          = 'kdy';
     public const TYP          = 'typ';
     public const ID_ZMENIL    = 'id_zmenil';
+    public const ZDROJ_ZMENY  = 'zdroj_zmeny';
 }

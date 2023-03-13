@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Gamecon\Aktivita;
 
 use Gamecon\Kanaly\GcMail;
@@ -1092,9 +1094,14 @@ SQL
      * @todo kontroly? (např. jestli je aktivní přihlašování?) (administrativní
      *  odhlašování z DrD počítá s možnosti odhlásit např. od semifinále dál)
      */
-    public function odhlas(\Uzivatel $u, \Uzivatel $odhlasujici, $params = 0) {
+    public function odhlas(
+        \Uzivatel $u,
+        \Uzivatel $odhlasujici,
+        string    $zdrojOdhlaseni,
+                  $params = 0
+    ) {
         foreach ($this->deti() as $dite) { // odhlášení z potomků
-            $dite->odhlas($u, $odhlasujici); // spoléhá na odolnost proti odhlašování z aktivit kde uživatel není
+            $dite->odhlas($u, $odhlasujici, $zdrojOdhlaseni); // spoléhá na odolnost proti odhlašování z aktivit kde uživatel není
         }
         if (!$this->prihlasen($u)) {
             return; // ignorovat pokud přihlášen není tak či tak
@@ -1103,7 +1110,7 @@ SQL
         $idAktivity  = $this->id();
         $idUzivatele = $u->id();
         dbQuery("DELETE FROM akce_prihlaseni WHERE id_uzivatele=$idUzivatele AND id_akce=$idAktivity");
-        $this->dejPrezenci()->zalogujOdhlaseni($u, $odhlasujici);
+        $this->dejPrezenci()->zalogujOdhlaseni($u, $odhlasujici, $zdrojOdhlaseni);
         if (ODHLASENI_POKUTA_KONTROLA && !($params & self::BEZ_POKUT) && $this->zbyvaHodinDoZacatku() < ODHLASENI_POKUTA1_H) { // pokuta aktivní
             dbQuery(<<<SQL
 INSERT INTO akce_prihlaseni_spec SET id_uzivatele=$idUzivatele, id_akce=$idAktivity, id_stavu_prihlaseni=$0
@@ -1814,7 +1821,14 @@ SQL
                     : 0;
                 $aktivita = self::zId(post('odhlasit'));
                 if ($aktivita) {
-                    $aktivita->odhlas($u, $prihlasujici, $bezPokut);
+                    $aktivita->odhlas(
+                        $u,
+                        $prihlasujici,
+                        $u?->id() === $prihlasujici?->id()
+                            ? 'rucne-vlastni-odhlaseni'
+                            : 'rucni-odhlaseni-adminem',
+                        $bezPokut
+                    );
                 }
                 back();
             }
@@ -2015,6 +2029,7 @@ SQL
                 $this->odhlas(
                     $u,
                     $mazajici,
+                    'smazani-aktivity',
                     self::BEZ_POKUT | self::NEPOSILAT_MAILY_SLEDUJICIM
                 );
             }
