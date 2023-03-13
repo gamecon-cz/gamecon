@@ -846,14 +846,14 @@ SQL
         );
     }
 
-    public function zrusLetosniObjedavky(ZdrojRocniku & ZdrojTed $zdrojUdaju): int {
+    public function zrusLetosniObjedavky(string $zdrojZruseni, ZdrojRocniku & ZdrojTed $zdrojUdaju): int {
         dbQuery(<<<SQL
-            INSERT INTO zrusene_objednavky(id_nakupu, id_uzivatele, id_predmetu, rocnik, cena_nakupni, datum_nakupu, datum_zruseni)
-            SELECT id_nakupu, id_uzivatele, id_predmetu, rok, cena_nakupni, datum, $0
+            INSERT INTO shop_nakupy_zrusene(id_nakupu, id_uzivatele, id_predmetu, rocnik, cena_nakupni, datum_nakupu, datum_zruseni, zdroj_zruseni)
+            SELECT id_nakupu, id_uzivatele, id_predmetu, rok, cena_nakupni, datum, $0, $1
             FROM shop_nakupy
             WHERE shop_nakupy.rok = {$zdrojUdaju->rocnik()} AND shop_nakupy.id_uzivatele = {$this->u->id()}
             SQL,
-            [0 => $zdrojUdaju->ted()->format(DateTimeCz::FORMAT_DB)]
+            [0 => $zdrojUdaju->ted()->format(DateTimeCz::FORMAT_DB), $zdrojZruseni]
         );
         $result = dbQuery(<<<SQL
             DELETE FROM shop_nakupy

@@ -99,7 +99,7 @@ Platnost hromadné aktivace byla '%s', teď je '%s' a aktivaci současné vlny �
         $odemcenoTymovychAktivit = 0;
         while (list($aid, $uid) = mysqli_fetch_row($o)) {
             // uvolnění zámku je součástí odhlášení, pokud je sám -> done
-            Aktivita::zId($aid)->odhlas(\Uzivatel::zId($uid), $odemykajici);
+            Aktivita::zId($aid)->odhlas(\Uzivatel::zId($uid), $odemykajici, 'hromadne-odemceni-teamovych');
             $odemcenoTymovychAktivit++;
         }
         $this->zalogujHromadnouAkci(

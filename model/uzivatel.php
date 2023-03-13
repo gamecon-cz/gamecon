@@ -259,6 +259,7 @@ SQL
      * @todo Při odhlášení z GC pokud jsou zakázané rušení nákupů může být též problém (k zrušení dojde)
      */
     public function gcOdhlas(
+        string                                    $zdrojOdhlaseni,
         Uzivatel                                  $odhlasujici,
         ZdrojVlnAktivit & ZdrojRocniku & ZdrojTed $zdrojUdaju,
         Zaznamnik                                 $zaznamnik = null,
@@ -279,6 +280,7 @@ SQL
             $aktivita->odhlas(
                 $this,
                 $odhlasujici,
+                $zdrojOdhlaseni,
                 Aktivita::NEPOSILAT_MAILY_SLEDUJICIM /* nechceme posílat maily sledujícím, že se uvolnilo místo */
             );
         }
@@ -286,7 +288,7 @@ SQL
         // finální odebrání role "registrován na GC"
         $this->odeberRoli(Role::PRIHLASEN_NA_LETOSNI_GC, $odhlasujici);
         // zrušení nákupů (až po použití dejShop a ubytovani)
-        $this->finance()->zrusLetosniObjedavky($zdrojUdaju);
+        $this->finance()->zrusLetosniObjedavky($zdrojOdhlaseni, $zdrojUdaju);
 
         try {
             $this->informujOOdhlaseni($odhlasujici, $zaznamnik, $odeslatMailPokudSeNeodhlasilSam, $zdrojUdaju);

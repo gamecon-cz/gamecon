@@ -5,6 +5,7 @@ namespace Gamecon\Aktivita;
 use Gamecon\Exceptions\ChybaKolizeAktivit;
 use Symfony\Component\Filesystem\Filesystem;
 use Gamecon\Kanaly\GcMail;
+use Gamecon\Aktivita\AkcePrihlaseniLogSqlStruktura as LogSql;
 
 /**
  * Prezenční listina aktivity.
@@ -118,19 +119,20 @@ class AktivitaPrezence
         $this->log($prihlaseny, AktivitaPrezenceTyp::PRIHLASENI, $zmenil);
     }
 
-    private function log(\Uzivatel $ucastnik, string $udalost, \Uzivatel $zmenil) {
-        dbInsert('akce_prihlaseni_log', [
-            'id_uzivatele' => $ucastnik->id(),
-            'id_akce'      => $this->aktivita->id(),
-            'typ'          => $udalost,
-            'id_zmenil'    => $zmenil->id(),
+    private function log(\Uzivatel $ucastnik, string $udalost, \Uzivatel $zmenil, string $zdrojZmeny = null) {
+        dbInsert(LogSql::AKCE_PRIHLASENI_LOG_TABULKA, [
+            LogSql::ID_UZIVATELE => $ucastnik->id(),
+            LogSql::ID_AKCE      => $this->aktivita->id(),
+            LogSql::ID_ZMENIL    => $zmenil->id(),
+            LogSql::TYP          => $udalost,
+            LogSql::ZDROJ_ZMENY  => $zdrojZmeny,
         ]);
         RazitkoPosledniZmenyPrihlaseni::smazRazitkaPoslednichZmen($this->aktivita, $this->filesystem);
         unset($this->posledniZmenaPrihlaseni[$ucastnik->id()]);
     }
 
-    public function zalogujOdhlaseni(\Uzivatel $odhlaseny, \Uzivatel $odhlasujici) {
-        $this->log($odhlaseny, AktivitaPrezenceTyp::ODHLASENI, $odhlasujici);
+    public function zalogujOdhlaseni(\Uzivatel $odhlaseny, \Uzivatel $odhlasujici, string $zdrojOdhlaseni) {
+        $this->log($odhlaseny, AktivitaPrezenceTyp::ODHLASENI, $odhlasujici, $zdrojOdhlaseni);
     }
 
     private function zalogujZeZeNedostavil(\Uzivatel $nedorazil, \Uzivatel $potvrzujici) {

@@ -450,16 +450,34 @@ SQL;
         return DateTimeGamecon::tretiVlnaKdy($this->rocnik());
     }
 
+    public function registraceAktivitOd(): DateTimeGamecon {
+        return DateTimeGamecon::createFromMysql(defined('GC_BEZI_OD')
+            ? GC_BEZI_OD
+            : $this->dejVychoziHodnotu('GC_BEZI_OD')
+        );
+    }
+
+    public function registraceAktivitDo(): DateTimeGamecon {
+        return DateTimeGamecon::createFromMysql(defined('GC_BEZI_DO')
+            ? GC_BEZI_DO
+            : $this->dejVychoziHodnotu('GC_BEZI_DO')
+        );
+    }
+
+    public function zacatekRegistraciUcastniku(): DateTimeGamecon {
+        return DateTimeGamecon::zacatekRegistraciUcastniku($this->rocnik());
+    }
+
+    public function konecRegistraciUcastniku(): DateTimeGamecon {
+        return DateTimeGamecon::konecRegistraciUcastniku($this->rocnik());
+    }
+
     public function registraceUcastnikuSpustena(): bool {
         return REG_GC;
     }
 
-    public function registraceUcastnikuDo(): DateTimeGamecon {
-        return DateTimeGamecon::konecRegistraciUcastniku($this->rocnik);
-    }
-
     public function poRegistraciUcastniku(): bool {
-        return po($this->registraceUcastnikuDo());
+        return po($this->konecRegistraciUcastniku());
     }
 
     public function nepaticCastkaVelkyDluh(): float {
@@ -472,6 +490,10 @@ SQL;
 
     public function neplaticPocetDnuPredVlnouKdyJeChranen(): int {
         return NEPLATIC_POCET_DNU_PRED_VLNOU_KDY_JE_CHRANEN;
+    }
+
+    public function probihaRegistraceAktivit(): bool {
+        return mezi($this->prvniVlnaKdy(), REG_AKTIVIT_DO);
     }
 
     public function jeApril(): bool {
