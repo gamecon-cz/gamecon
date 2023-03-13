@@ -20,7 +20,7 @@ use Gamecon\Kanaly\GcMail;
 
 function textMailuOPostupu(Tym $tym, Aktivita $aktivita, bool $html = false) {
     $druzina = $tym->nazev();
-    $text = <<<TEXT
+    $text    = <<<TEXT
 Milá družino {$druzina}. Gratulujeme, postoupili jste do dalšího kola turnaje {$aktivita->nazev()}.
 
 tým MDrD
@@ -30,7 +30,7 @@ TEXT;
         : $text;
 }
 
-$log = new LogUdalosti();
+$log                          = new LogUdalosti();
 $vsichniUzDostaliMailOPostupu = function (Aktivita $zakladni, Aktivita $pristiKolo) use ($log) {
     $text = textMailuOPostupu($zakladni->tym(), $pristiKolo);
     foreach ($zakladni->prihlaseni() as $uc) {
@@ -45,7 +45,7 @@ $vsichniUzDostaliMailOPostupu = function (Aktivita $zakladni, Aktivita $pristiKo
 $predmetMailuOPostupu = 'Gamecon: postoupení družiny v MDrD';
 
 if (post('postoupiliDoSemifinale') || post('postoupiliDoFinale')) {
-    $a = Aktivita::zId(post('zakladni'));
+    $a          = Aktivita::zId(post('zakladni'));
     $pristiKolo = Aktivita::zId(post('postoupiliDoSemifinale') ? post('semifinale') : post('finale'));
 
     $mail = new GcMail();
@@ -58,7 +58,7 @@ if (post('postoupiliDoSemifinale') || post('postoupiliDoFinale')) {
         $emaily = [];
         // E-maily účastníkům
         foreach ($a->prihlaseni() as $uc) {
-            $text = textMailuOPostupu($a->tym(), $pristiKolo);
+            $text         = textMailuOPostupu($a->tym(), $pristiKolo);
             $metadataLogu = ['ucastnik' => $uc->id()];
             if ($log->existujeLog($text, $metadataLogu, ROCNIK)) {
                 continue;
@@ -74,11 +74,11 @@ if (post('postoupiliDoSemifinale') || post('postoupiliDoFinale')) {
 }
 
 if (post('vypadliSemifinale') || post('vypadliFinale')) {
-    $a = Aktivita::zId(post('zakladni'));
+    $a        = Aktivita::zId(post('zakladni'));
     $aVypadli = post('vypadliSemifinale') ? Aktivita::zId(post('semifinale')) : Aktivita::zId(post('finale'));
 
     foreach ($a->prihlaseni() as $uc) {
-        $aVypadli->odhlas($uc, $u, Aktivita::BEZ_POKUT);
+        $aVypadli->odhlas($uc, $u, 'hromadne-vypadli-drd', Aktivita::BEZ_POKUT);
     }
 
     $mail = new GcMail();
@@ -122,7 +122,7 @@ if (post('vypadliSemifinale') || post('vypadliFinale')) {
 $t = new XTemplate(__DIR__ . '/prihlaseni-drd.xtpl');
 
 $semifinale = [];
-$finale = [];
+$finale     = [];
 foreach (Aktivita::zFiltru(['typ' => TypAktivity::DRD, 'rok' => ROCNIK]) as $a) {
     if ($a->cenaZaklad() == 0) {
         continue;

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Gamecon\Uzivatel;
 
 use Gamecon\Cas\DateTimeCz;
+use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\Logger\LogHomadnychAkciTrait;
 use Gamecon\Logger\Zaznamnik;
@@ -26,11 +27,21 @@ class HromadneOdhlaseniNeplaticu
     public function __construct(private readonly SystemoveNastaveni $systemoveNastaveni) {
     }
 
+    /**
+     * @throws NaHromadneOdhlasovaniJeBrzy
+     * @throws NaHromadneOdhlasovaniJePozde
+     */
     public function hromadneOdhlasit(
+        string             $zdrojOdhlaseniZaklad,
         ?Zaznamnik         $zaznamnik,
         \DateTimeInterface $platnostZpetneKDatu = null
     ): int {
         $nejblizsiHromadneOdhlasovaniKdy = $this->systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy($platnostZpetneKDatu);
+        $poradiHromadnehoOdhlasovani     = DateTimeGamecon::poradiHromadnehoOdhlasovani(
+            $nejblizsiHromadneOdhlasovaniKdy,
+            $this->systemoveNastaveni
+        );
+        $zdrojOdhlaseni                  = "$zdrojOdhlaseniZaklad-$poradiHromadnehoOdhlasovani";
         $uzivatelSystem                  = \Uzivatel::zId(\Uzivatel::SYSTEM);
         foreach ($this->neplaticiAKategorie($nejblizsiHromadneOdhlasovaniKdy)
                  as ['uzivatel' => $uzivatel, 'kategorie_neplatice' => $kategorieNeplatice]) {
@@ -38,6 +49,7 @@ class HromadneOdhlaseniNeplaticu
             if ($kategorieNeplatice->melByBytOdhlasen()) {
                 try {
                     $uzivatel->gcOdhlas(
+                        $zdrojOdhlaseni,
                         $uzivatelSystem,
                         $this->systemoveNastaveni,
                         $zaznamnik,
@@ -221,7 +233,7 @@ Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hro
         \DateTimeInterface $hromadneOdhlasovaniKdy,
         int                $poradiOznameni,
         \Uzivatel          $odeslal
-    ): ?DateTimeImmutableStrict {
+    ) {
 
         $this->zalogujHromadnouAkci(
             self::SKUPINA,
