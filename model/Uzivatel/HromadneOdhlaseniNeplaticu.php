@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Gamecon\Uzivatel;
 
+use Gamecon\Aktivita\Aktivita;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\Kanaly\GcMail;
 use Gamecon\Logger\LogHomadnychAkciTrait;
 use Gamecon\Logger\Zaznamnik;
 use Gamecon\Pravo;
@@ -55,10 +57,11 @@ class HromadneOdhlaseniNeplaticu
                     do {
                         $necoOdhlaseno = $this->odhlasMuJenNeco($uzivatel, $zdrojOdhlaseni, $uzivatelSystem, $necoOdhlaseno);
                         if ($necoOdhlaseno) {
-                            $kategorieNeplatice->otoc(false /* platby se nezmenily */);
+                            $kategorieNeplatice->otoc(false /* platby se nezměniliy */);
                         }
                     } while ($necoOdhlaseno !== false && $kategorieNeplatice->melByBytOdhlasen());
                     if (!$kategorieNeplatice->melByBytOdhlasen()) {
+                        $this->posliEmailSOdhlasenymiPolozkami($uzivatel, $zdrojOdhlaseni);
                         continue; // povedlo se, postupným odhlašováním položek jsme se dostali až k tomu, že nemusíme odhlásit samotného účastníka
                     }
                 }
@@ -100,23 +103,24 @@ class HromadneOdhlaseniNeplaticu
         ?string   $naposledyOdhlaseno
     ): string|false {
         if ($naposledyOdhlaseno === null
-            && $uzivatel->finance()->zrusLetosniUbytovani($zdrojOdhlaseni, $this->systemoveNastaveni) > 0
+            && $uzivatel->shop($this->systemoveNastaveni)->zrusLetosniUbytovani($zdrojOdhlaseni) > 0
         ) {
             return 'ubytovani';
         }
         if ($naposledyOdhlaseno === 'ubytovani'
-            && $uzivatel->finance()->zrusPrihlaseniNaLetosniLarpy($odhlasujici, $zdrojOdhlaseni, $this->systemoveNastaveni) > 0
+            && $uzivatel->shop($this->systemoveNastaveni)->zrusPrihlaseniNaLetosniLarpy($odhlasujici, $zdrojOdhlaseni) > 0
         ) {
             return 'larpy';
         }
         if ($naposledyOdhlaseno === 'larpy'
-            && $uzivatel->finance()->zrusPrihlaseniNaLetosniRpg($odhlasujici, $zdrojOdhlaseni, $this->systemoveNastaveni) > 0
+            && $uzivatel->shop($this->systemoveNastaveni)->zrusPrihlaseniNaLetosniRpg($odhlasujici, $zdrojOdhlaseni) > 0
         ) {
             return 'rpg';
         }
         // respektive na zbývající
         if ($naposledyOdhlaseno === 'rpg'
-            && $uzivatel->finance()->zrusPrihlaseniNaVsechnyAktivity($odhlasujici, $zdrojOdhlaseni, $this->systemoveNastaveni) > 0) {
+            && $uzivatel->shop($this->systemoveNastaveni)->zrusPrihlaseniNaVsechnyAktivity($odhlasujici, $zdrojOdhlaseni) > 0
+        ) {
             return 'ostatni-aktivity';
         }
         return false;
@@ -289,5 +293,51 @@ Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hro
             $pocetPotencialnichNeplaticu,
             $odeslal
         );
+    }
+
+    private function posliEmailSOdhlasenymiPolozkami(\Uzivatel $uzivatel, string $zdrojOdhlaseni) {
+        $nazvyZrusenychAktivit = Aktivita::dejNazvyZrusenychAktivitUzivatele(
+            $uzivatel,
+            $zdrojOdhlaseni,
+            $this->systemoveNastaveni->rocnik()
+        );
+
+        $nazvyZrusenychNakupu = $uzivatel->shop($this->systemoveNastaveni)->dejNazvyZrusenychNakupu($zdrojOdhlaseni);
+        if (!$nazvyZrusenychAktivit && !$nazvyZrusenychNakupu) {
+            return;
+        }
+
+        $castiPredmetu = [];
+
+        if ($nazvyZrusenychNakupu) {
+            $castiPredmetu[] = 'objednávky';
+            $castiTextu[]    = 'zrušit tvé objednávky ' . implode(', ', $nazvyZrusenychNakupu);
+        }
+
+        if ($nazvyZrusenychAktivit) {
+            $castiPredmetu[] = 'aktivity';
+            $y               = count($nazvyZrusenychAktivit) > 1
+                ? 'y'
+                : '';
+            $te              = count($castiTextu) > 0
+                ? ''
+                : 'tě ';
+            $castiTextu[]    = "{$te}odlásit z aktivit$y " . implode(', ', $nazvyZrusenychAktivit);
+        }
+
+        $text = implode(' a ', $castiTextu);
+
+        (new GcMail())
+            ->adresat($uzivatel->mail())
+            ->predmet('Odhlášené ' . implode(' a ', $castiPredmetu))
+            ->text(<<<TEXT
+                Jelikož tvé finance nedorazili na účet Gameconu včas, museli jsme $text
+
+                Aktivity si můžeš znovu přihlásit v další vlně, předměty si můžeš znovu objednat kdykoliv. Jen prosíme ohlídej své platby.
+
+                Tým Gameconu
+                TEXT
+            )
+            ->odeslat();
     }
 }

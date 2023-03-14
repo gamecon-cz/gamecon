@@ -126,6 +126,7 @@ class AktivitaPrezence
             LogSql::ID_ZMENIL    => $zmenil->id(),
             LogSql::TYP          => $udalost,
             LogSql::ZDROJ_ZMENY  => $zdrojZmeny,
+            LogSql::ROCNIK       => $this->aktivita->rok(),
         ]);
         RazitkoPosledniZmenyPrihlaseni::smazRazitkaPoslednichZmen($this->aktivita, $this->filesystem);
         unset($this->posledniZmenaPrihlaseni[$ucastnik->id()]);

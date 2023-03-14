@@ -285,7 +285,7 @@ SQL
         // finální odebrání role "registrován na GC"
         $this->odeberRoli(Role::PRIHLASEN_NA_LETOSNI_GC, $odhlasujici);
         // zrušení nákupů (až po použití dejShop a ubytovani)
-        $this->finance()->zrusLetosniObjedavky($zdrojOdhlaseni, $systemoveNastaveni);
+        $this->shop($systemoveNastaveni)->zrusVsechnyLetosniObjedavky($zdrojOdhlaseni, $systemoveNastaveni);
 
         try {
             $this->informujOOdhlaseni($odhlasujici, $zaznamnik, $odeslatMailPokudSeNeodhlasilSam, $systemoveNastaveni);
@@ -317,7 +317,7 @@ SQL
                 $mailOdhlasilAlePlatil->odeslat();
             }
         }
-        if ($dnyUbytovani = array_keys($this->dejShop()->ubytovani()->veKterychDnechJeUbytovan())) {
+        if ($dnyUbytovani = array_keys($this->shop()->ubytovani()->veKterychDnechJeUbytovan())) {
             $mailMelUbytovani = (new GcMail())
                 ->adresat('info@gamecon.cz')
                 ->predmet("Uživatel $odhlasen a měl ubytování")
@@ -914,7 +914,7 @@ SQL,
         if (!$this->gcPrihlasen()) {
             return '';
         }
-        $shop                = $this->dejShop();
+        $shop                = $this->shop();
         $objednalNejakeJidlo = $shop->objednalNejakeJidlo();
         if (!$shop->koupilNejakouVec()) {
             return $objednalNejakeJidlo
@@ -1757,9 +1757,13 @@ SQL;
         return $uzivatele;
     }
 
-    public function dejShop(): Shop {
+    public function shop(SystemoveNastaveni $systemoveNastaveni = null): Shop {
         if ($this->shop === null) {
-            $this->shop = new Shop($this, null, SystemoveNastaveni::vytvorZGlobals());
+            $this->shop = new Shop(
+                $this,
+                null,
+                $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals()
+            );
         }
         return $this->shop;
     }
