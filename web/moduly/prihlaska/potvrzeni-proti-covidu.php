@@ -30,7 +30,7 @@ if (get('smazat')) {
     $u->smazPotvrzeniProtiCovidu();
     if (is_ajax()) {
         $covidSekceFunkce = require __DIR__ . '/covid-sekce-funkce.php';
-        echo json_encode(['covidSekce' => $covidSekceFunkce($u->dejShop())]);
+        echo json_encode(['covidSekce' => $covidSekceFunkce($u->shop())]);
         exit();
     }
     oznameni('Tvé potvrzení ke Covidu bylo smazáno.');

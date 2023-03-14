@@ -96,7 +96,7 @@ if ($uPracovni) {
         'org'             => $u->jmenoNick(),
         'a'               => $u->koncovkaDlePohlavi(),
         'poznamka'        => $uPracovni->poznamka(),
-        'ubytovani'       => $uPracovni->dejShop()->dejPopisUbytovani(),
+        'ubytovani'       => $uPracovni->shop()->dejPopisUbytovani(),
         'udajeChybiAttr'  => 'href="uzivatel"',
         'balicek'         => $uPracovni->balicekHtml(),
         'prehledPredmetu' => $uPracovni->finance()->prehledHtml(

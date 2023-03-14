@@ -39,7 +39,7 @@ if (post('pridatPotvrzeniProtiCovidu')) {
         chyba('Nejdříve vlož potvrzení.');
     } else {
         if (is_ajax()) {
-            echo json_encode(['covidSekce' => $covidSekceFunkce($u->dejShop())]);
+            echo json_encode(['covidSekce' => $covidSekceFunkce($u->shop())]);
             exit;
         }
         oznameni('Potvrzení bylo uloženo.');

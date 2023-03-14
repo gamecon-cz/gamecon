@@ -221,8 +221,11 @@ function _dbConnect(
 
 function dbDisconnectOnShutdown(mysqli $spojeni) {
     register_shutdown_function(static function () use ($spojeni) {
-        if ($spojeni && (mysqli_get_connection_stats($spojeni)['active_connections'] ?? false)) {
-            mysqli_close($spojeni);
+        if ($spojeni) {
+            try {
+                mysqli_close($spojeni);
+            } catch (\Throwable) {
+            }
         }
     });
 }
