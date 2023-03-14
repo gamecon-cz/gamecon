@@ -2,6 +2,9 @@
 
 namespace Gamecon\Shop;
 
+use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Cas\DateTimeCz;
 use Gamecon\Pravo;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Uzivatel;
@@ -771,5 +774,117 @@ SQL
 
     public function dejPopisUbytovani(): string {
         return $this->ubytovani->kratkyPopis();
+    }
+
+    public function zrusLetosniUbytovani(string $zdrojZruseni): int {
+        return $this->zrusLetosniObjednavkyTypu(TypPredmetu::UBYTOVANI, $zdrojZruseni);
+    }
+
+    private function zrusLetosniObjednavkyTypu(
+        int    $typPredetu,
+        string $zdrojZruseni,
+    ): int {
+        dbQuery(<<<SQL
+            INSERT INTO shop_nakupy_zrusene(id_nakupu, id_uzivatele, id_predmetu, rocnik, cena_nakupni, datum_nakupu, datum_zruseni, zdroj_zruseni)
+            SELECT id_nakupu, id_uzivatele, id_predmetu, rok, cena_nakupni, datum, $0, $1
+            FROM shop_nakupy
+            WHERE shop_nakupy.rok = {$this->systemoveNastaveni->rocnik()}
+              AND shop_nakupy.id_uzivatele = {$this->u->id()}
+              AND shop_nakupy.id_predmetu = {$typPredetu}
+            SQL,
+            [
+                0 => $this->systemoveNastaveni->ted()->format(DateTimeCz::FORMAT_DB),
+                1 => $zdrojZruseni,
+            ]
+        );
+        $result = dbQuery(<<<SQL
+            DELETE FROM shop_nakupy
+            WHERE rok = {$this->systemoveNastaveni->rocnik()}
+              AND id_uzivatele = {$this->u->id()}
+              AND shop_nakupy.id_predmetu = {$typPredetu}
+            SQL
+        );
+        return dbAffectedOrNumRows($result);
+    }
+
+    public function zrusVsechnyLetosniObjedavky(string $zdrojZruseni): int {
+        dbQuery(<<<SQL
+            INSERT INTO shop_nakupy_zrusene(id_nakupu, id_uzivatele, id_predmetu, rocnik, cena_nakupni, datum_nakupu, datum_zruseni, zdroj_zruseni)
+            SELECT id_nakupu, id_uzivatele, id_predmetu, rok, cena_nakupni, datum, $0, $1
+            FROM shop_nakupy
+            WHERE shop_nakupy.rok = {$this->systemoveNastaveni->rocnik()} AND shop_nakupy.id_uzivatele = {$this->u->id()}
+            SQL,
+            [0 => $this->systemoveNastaveni->ted()->format(DateTimeCz::FORMAT_DB), $zdrojZruseni]
+        );
+        $result = dbQuery(<<<SQL
+            DELETE FROM shop_nakupy
+            WHERE rok = {$this->systemoveNastaveni->rocnik()} AND id_uzivatele = {$this->u->id()}
+            SQL
+        );
+        return dbAffectedOrNumRows($result);
+    }
+
+    public function zrusPrihlaseniNaLetosniLarpy(
+        \Uzivatel $odhlasujici,
+        string    $zdrojZruseni,
+    ): int {
+        $prihlaseneLarpy = Aktivita::zFiltru([
+            'typ'        => TypAktivity::LARP,
+            'rok'        => $this->systemoveNastaveni->rocnik(),
+            'prihlaseni' => [$this->u->id()],
+        ]);
+        foreach ($prihlaseneLarpy as $prihlasenyLarp) {
+            $prihlasenyLarp->odhlas($this->u, $odhlasujici, $zdrojZruseni);
+        }
+        return count($prihlaseneLarpy);
+    }
+
+    public function zrusPrihlaseniNaLetosniRpg(
+        \Uzivatel $odhlasujici,
+        string    $zdrojZruseni,
+    ): int {
+        $prihlasenaRpg = Aktivita::zFiltru([
+            'typ'        => TypAktivity::RPG,
+            'rok'        => $this->systemoveNastaveni->rocnik(),
+            'prihlaseni' => [$this->u->id()],
+        ]);
+        foreach ($prihlasenaRpg as $prihlaseneRpg) {
+            $prihlaseneRpg->odhlas($this->u, $odhlasujici, $zdrojZruseni);
+        }
+        return count($prihlasenaRpg);
+    }
+
+    public function zrusPrihlaseniNaVsechnyAktivity(
+        \Uzivatel $odhlasujici,
+        string    $zdrojZruseni
+    ): int {
+        $prihlaseneAktivity = Aktivita::zFiltru([
+            'rok'        => $this->systemoveNastaveni->rocnik(),
+            'prihlaseni' => [$this->u->id()],
+        ]);
+        foreach ($prihlaseneAktivity as $prihlasenaAktivita) {
+            $prihlasenaAktivita->odhlas($this->u, $odhlasujici, $zdrojZruseni);
+        }
+        return count($prihlaseneAktivity);
+    }
+
+    /**
+     * @param string $zdrojZruseni
+     * @param int|null $rocnik
+     * @return string[]
+     */
+    public function dejNazvyZrusenychNakupu(string $zdrojZruseni, int $rocnik = null): array {
+        $rocnik ??= $this->systemoveNastaveni->rocnik();
+
+        return dbFetchColumn(<<<SQL
+            SELECT shop_predmety.nazev
+            FROM shop_predmety
+            JOIN shop_nakupy_zrusene ON shop_predmety.id_predmetu = shop_nakupy_zrusene.id_predmetu
+            WHERE shop_nakupy_zrusene.zdroj_zruseni = $0
+                AND shop_nakupy_zrusene.id_uzivatele = {$this->u->id()}
+                AND shop_nakupy_zrusene.rocnik = {$rocnik}
+            SQL,
+            [0 => $zdrojZruseni]
+        );
     }
 }

@@ -146,7 +146,7 @@ SQL,
             }
             $idPredmetuUbytovani       = (int)$idPredmetuUbytovani;
             $idsPredmetuUbytovaniInt[] = $idPredmetuUbytovani;
-            if ($hlidatKapacituUbytovani && self::ubytovaniPresKapacitu($idPredmetuUbytovani, $ucastnik->dejShop()->ubytovani()->mozneDny())) {
+            if ($hlidatKapacituUbytovani && self::ubytovaniPresKapacitu($idPredmetuUbytovani, $ucastnik->shop()->ubytovani()->mozneDny())) {
                 throw new Chyba('Vybrané ubytování je už bohužel zabrané. Vyber si prosím jiné.');
             }
             $sqlValuesArray[] = <<<SQL

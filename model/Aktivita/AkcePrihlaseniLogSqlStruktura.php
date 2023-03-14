@@ -15,4 +15,5 @@ class AkcePrihlaseniLogSqlStruktura
     public const TYP          = 'typ';
     public const ID_ZMENIL    = 'id_zmenil';
     public const ZDROJ_ZMENY  = 'zdroj_zmeny';
+    public const ROCNIK       = 'rocnik';
 }
