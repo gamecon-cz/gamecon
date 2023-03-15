@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Gamecon\Role;
+namespace Gamecon\Role\SqlStruktura;
 
 class RoleSqlStruktura
 {

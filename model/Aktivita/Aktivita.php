@@ -7,19 +7,19 @@ namespace Gamecon\Aktivita;
 use Gamecon\Admin\Modules\Aktivity\Import\ImportSqlMappedValuesChecker;
 use Gamecon\Admin\Modules\Aktivity\Import\ImportValuesDescriber;
 use Gamecon\Kanaly\GcMail;
-
-use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml;
-use Gamecon\Cas\DateTimeCz;
 use Gamecon\Admin\Modules\Aktivity\Import\ActivitiesImportSqlColumn;
+use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml;
+use Gamecon\Aktivita\SqlStruktura\AktivitaSqlStruktura as Sql;
+use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Exceptions\ChybaKolizeAktivit;
+use Gamecon\Kanaly\GcMail;
 use Gamecon\Pravo;
 use Gamecon\PrednacitaniTrait;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Web\Urls;
-use Symfony\Component\Filesystem\Filesystem;
 use Gamecon\XTemplate\XTemplate;
-use Gamecon\Aktivita\AktivitaSqlStruktura as Sql;
+use Symfony\Component\Filesystem\Filesystem;
 
 require_once __DIR__ . '/../../admin/scripts/modules/aktivity/_editor-tagu.php';
 

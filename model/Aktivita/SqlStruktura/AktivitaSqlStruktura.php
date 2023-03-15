@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Gamecon\Aktivita;
+namespace Gamecon\Aktivita\SqlStruktura;
 
 class AktivitaSqlStruktura
 {

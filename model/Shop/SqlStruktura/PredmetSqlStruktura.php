@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Gamecon\Shop;
+namespace Gamecon\Shop\SqlStruktura;
 
 class PredmetSqlStruktura
 {
