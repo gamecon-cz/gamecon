@@ -2,7 +2,6 @@
 
 namespace Gamecon\Tests\Model;
 
-use Gamecon\Role\RoleSqlStruktura;
 use Gamecon\Tests\Db\DbTest;
 
 abstract class SqlStrukturaTest extends DbTest
