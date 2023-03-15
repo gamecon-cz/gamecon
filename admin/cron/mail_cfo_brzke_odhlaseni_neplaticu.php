@@ -91,7 +91,7 @@ $oddelovac     = str_repeat('═', mb_strlen($uvod));
     ->prilohaSoubor($bfgrSoubor)
     ->odeslat();
 
-$hromadneOdhlaseniNeplaticu->zalogujCfoNotifikovanOBrzkemHromadnemOdhlaseni(
+$hromadneOdhlaseniNeplaticu->zalogujNotifikovaniCfoOBrzkemHromadnemOdhlaseni(
     $budeOdhlaseno,
     $nejblizsiHromadneOdhlasovaniKdy,
     $poradiOznameni,
