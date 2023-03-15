@@ -2,7 +2,7 @@
 
 namespace Gamecon\Tests\Model\Aktivita;
 
-use Gamecon\Aktivita\AkcePrihlaseniLogSqlStruktura;
+use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniLogSqlStruktura;
 use Gamecon\Tests\Model\SqlStrukturaTest;
 
 class AkcePrihlaseniLogSqlStrukturaTest extends SqlStrukturaTest

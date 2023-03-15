@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Gamecon\SystemoveNastaveni;
+namespace Gamecon\SystemoveNastaveni\SqlStruktura;
 
 class SystemoveNastaveniSqlStruktura
 {

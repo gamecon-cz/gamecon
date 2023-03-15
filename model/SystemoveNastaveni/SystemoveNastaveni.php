@@ -8,7 +8,7 @@ use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\Cas\Exceptions\ChybnaZpetnaPlatnost;
 use Gamecon\Cas\Exceptions\InvalidDateTimeFormat;
 use Gamecon\SystemoveNastaveni\Exceptions\InvalidSystemSettingsValue;
-use Gamecon\SystemoveNastaveni\SystemoveNastaveniSqlStruktura as Sql;
+use Gamecon\SystemoveNastaveni\SqlStruktura\SystemoveNastaveniSqlStruktura as Sql;
 
 class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
 {

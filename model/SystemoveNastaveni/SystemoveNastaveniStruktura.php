@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Gamecon\SystemoveNastaveni;
 
+use Gamecon\SystemoveNastaveni\SqlStruktura\SystemoveNastaveniSqlStruktura;
+
 class SystemoveNastaveniStruktura extends SystemoveNastaveniSqlStruktura
 {
     /** @see \Gamecon\SystemoveNastaveni\SystemoveNastaveni::dejSqlNaZaVsechnyZaznamyNastaveni */

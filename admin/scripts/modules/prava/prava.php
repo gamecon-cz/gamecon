@@ -8,9 +8,9 @@
  */
 
 use Gamecon\Cas\DateTimeCz;
-use Gamecon\XTemplate\XTemplate;
 use Gamecon\Role\Role;
-use Gamecon\Role\RoleSqlStruktura;
+use Gamecon\Role\SqlStruktura\RoleSqlStruktura;
+use Gamecon\XTemplate\XTemplate;
 
 /** @var Uzivatel|null $uPracovni */
 /** @var Uzivatel $u */

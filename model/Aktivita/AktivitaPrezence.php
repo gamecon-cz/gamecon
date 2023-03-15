@@ -2,10 +2,10 @@
 
 namespace Gamecon\Aktivita;
 
+use Gamecon\Aktivita\SqlStruktura\AkcePrihlaseniLogSqlStruktura as LogSql;
 use Gamecon\Exceptions\ChybaKolizeAktivit;
-use Symfony\Component\Filesystem\Filesystem;
 use Gamecon\Kanaly\GcMail;
-use Gamecon\Aktivita\AkcePrihlaseniLogSqlStruktura as LogSql;
+use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * Prezenční listina aktivity.
