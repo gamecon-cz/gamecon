@@ -2,7 +2,7 @@
 
 namespace Gamecon\Shop;
 
-use Gamecon\Shop\PredmetSqlStruktura as SQL;
+use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as SQL;
 
 /**
  * @method static Predmet zId($id)

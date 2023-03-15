@@ -1,9 +1,9 @@
 <?php
 
-use Gamecon\XTemplate\XTemplate;
-use Gamecon\Role\PravoSqlStruktura;
 use Gamecon\Pravo;
-use Gamecon\Role\RoleSqlStruktura;
+use Gamecon\Role\SqlStruktura\PravoSqlStruktura;
+use Gamecon\Role\SqlStruktura\RoleSqlStruktura;
+use Gamecon\XTemplate\XTemplate;
 
 /** @var Uzivatel|null $uPracovni */
 /** @var Uzivatel $u */
