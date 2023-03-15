@@ -179,11 +179,16 @@ SQL,
      * @throws NaHromadneOdhlasovaniJeBrzy
      * @throws NaHromadneOdhlasovaniJePozde
      */
-    public function neplaticiAKategorie(\DateTimeInterface $nejblizsiHromadneOdhlasovaniKdy = null): \Generator {
-        $ted                             = $this->systemoveNastaveni->ted();
+    public function neplaticiAKategorie(
+        \DateTimeInterface $nejblizsiHromadneOdhlasovaniKdy = null,
+        \DateTimeInterface $kDatu = null,
+        \DateTimeInterface $platnostZpetneKDatu = null,
+
+    ): \Generator {
+        $kDatu                           ??= $this->systemoveNastaveni->ted();
         $nejblizsiHromadneOdhlasovaniKdy ??= $this->systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy();
 
-        if ($nejblizsiHromadneOdhlasovaniKdy > $ted) {
+        if ($nejblizsiHromadneOdhlasovaniKdy > $kDatu) {
             throw new NaHromadneOdhlasovaniJeBrzy(
                 sprintf(
                     "Hromadné odhlášení může být spuštěno nejdříve v '%s'",
@@ -192,14 +197,14 @@ SQL,
             );
         }
 
-        $platnostZpetneKDatu ??= $ted->modify('-1 day');
+        $platnostZpetneKDatu ??= $kDatu->modify('-1 day');
         if ($nejblizsiHromadneOdhlasovaniKdy < $platnostZpetneKDatu) {
             throw new NaHromadneOdhlasovaniJePozde(
                 sprintf(
                     "Hromadné odhlášení může být spuštěno nanejvýš den po platnosti.
 Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hromadně odhlásit v '%s'",
                     $nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB),
-                    $ted->format(DateTimeCz::FORMAT_DB),
+                    $kDatu->format(DateTimeCz::FORMAT_DB),
                     $platnostZpetneKDatu->format(DateTimeCz::FORMAT_DB),
                 )
             );
@@ -259,17 +264,19 @@ Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hro
         return "email-varobvani-neplaticum-brzke-odhlaseni-$poradiOznameni-" . $hromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_CAS_SOUBOR);
     }
 
-    public function zalogujCfoNotifikovanOBrzkemHromadnemOdhlaseni(
+    public function zalogujNotifikovaniCfoOBrzkemHromadnemOdhlaseni(
         int                $budeOdhlaseno,
         \DateTimeInterface $hromadneOdhlasovaniKdy,
         int                $poradiOznameni,
-        \Uzivatel          $odeslal
+        \Uzivatel          $odeslal,
+        \DateTimeInterface $stalaSeKdy = null
     ) {
         $this->zalogujHromadnouAkci(
             self::SKUPINA,
             $this->sestavNazevAkceEmailuCfoInfo($poradiOznameni, $hromadneOdhlasovaniKdy),
             $budeOdhlaseno,
-            $odeslal
+            $odeslal,
+            $stalaSeKdy
         );
     }
 
@@ -280,18 +287,20 @@ Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hro
         return "email-cfo-brzke-odhlaseni-$poradiOznameni-" . $hromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_CAS_SOUBOR);
     }
 
-    public function zalogujNeplaticiNotifikovaniOBrzkemHromadnemOdhlaseni(
+    public function zalogujNotifikovaniNeplaticuOBrzkemHromadnemOdhlaseni(
         int                $pocetPotencialnichNeplaticu,
         \DateTimeInterface $hromadneOdhlasovaniKdy,
         int                $poradiOznameni,
-        \Uzivatel          $odeslal
+        \Uzivatel          $odeslal,
+        \DateTimeInterface $staloSeKdy = null
     ) {
 
         $this->zalogujHromadnouAkci(
             self::SKUPINA,
             $this->sestavNazevAkceEmailuSVarovanim($poradiOznameni, $hromadneOdhlasovaniKdy),
             $pocetPotencialnichNeplaticu,
-            $odeslal
+            $odeslal,
+            $staloSeKdy
         );
     }
 
