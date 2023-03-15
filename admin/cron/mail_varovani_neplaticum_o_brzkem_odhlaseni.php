@@ -79,7 +79,7 @@ try {
     return;
 }
 
-$hromadneOdhlaseniNeplaticu->zalogujNeplaticiNotifikovaniOBrzkemHromadnemOdhlaseni(
+$hromadneOdhlaseniNeplaticu->zalogujNotifikovaniNeplaticuOBrzkemHromadnemOdhlaseni(
     $pocetPotencialnichNeplaticu,
     $nejblizsiHromadneOdhlasovaniKdy,
     $poradiOznameni,

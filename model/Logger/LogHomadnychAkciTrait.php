@@ -2,6 +2,7 @@
 
 namespace Gamecon\Logger;
 
+use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeImmutableStrict;
 
 trait LogHomadnychAkciTrait
@@ -11,13 +12,20 @@ trait LogHomadnychAkciTrait
         string                $skupina,
         string                $akce,
         string|int|float|bool $vysledek,
-        \Uzivatel             $provedl
+        \Uzivatel             $provedl,
+        \DateTimeInterface    $stalaSeKdy = null
     ) {
         dbQuery(<<<SQL
-INSERT INTO hromadne_akce_log(skupina, akce, vysledek, provedl)
-VALUES ($0, $1, $2, $3)
+INSERT INTO hromadne_akce_log(skupina, akce, vysledek, provedl, kdy)
+VALUES ($0, $1, $2, $3, $4)
 SQL,
-            [0 => $skupina, 1 => $akce, 2 => $vysledek, 3 => $provedl->id()]
+            [
+                0 => $skupina,
+                1 => $akce,
+                2 => $vysledek,
+                3 => $provedl->id(),
+                4 => ($stalaSeKdy ?? new \DateTimeImmutable())->format(DateTimeCz::FORMAT_DB),
+            ]
         );
     }
 
