@@ -185,8 +185,8 @@ SQL,
         \DateTimeInterface $platnostZpetneKDatu = null,
 
     ): \Generator {
-        $kDatu                           ??= $this->systemoveNastaveni->ted();
         $nejblizsiHromadneOdhlasovaniKdy ??= $this->systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy();
+        $kDatu                           ??= $this->systemoveNastaveni->ted();
 
         if ($nejblizsiHromadneOdhlasovaniKdy > $kDatu) {
             throw new NaHromadneOdhlasovaniJeBrzy(
@@ -210,12 +210,12 @@ Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hro
             );
         }
 
-        $nejblizsiVlnaOtevreniAktivitKdy = $this->systemoveNastaveni->nejblizsiVlnaKdy($platnostZpetneKDatu);
-        if ($nejblizsiHromadneOdhlasovaniKdy >= $nejblizsiVlnaOtevreniAktivitKdy) {
+        $nejblizsiVlnaKdy = $this->systemoveNastaveni->nejblizsiVlnaKdy($platnostZpetneKDatu);
+        if ($nejblizsiHromadneOdhlasovaniKdy >= $nejblizsiVlnaKdy) {
             throw new NaHromadneOdhlasovaniJePozde(
                 sprintf(
                     "Nejbližší vlna aktivit už začala v '%s', nemůžeme začít hromadně odhlašovat k okamžiku '%s'",
-                    $nejblizsiVlnaOtevreniAktivitKdy->format(DateTimeCz::FORMAT_DB),
+                    $nejblizsiVlnaKdy->format(DateTimeCz::FORMAT_DB),
                     $nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB)
                 )
             );
