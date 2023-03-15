@@ -2,9 +2,8 @@
 
 namespace Gamecon\Tests\Shop;
 
-use Gamecon\Shop\PredmetSqlStruktura;
+use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura;
 use Gamecon\Tests\Model\SqlStrukturaTest;
-use PHPUnit\Framework\TestCase;
 
 class PredmetSqlStrukturaTest extends SqlStrukturaTest
 {

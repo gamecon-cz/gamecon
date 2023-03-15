@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Gamecon\Finance;
+namespace Gamecon\Finance\SqlStruktura;
 
 class SlevySqlStruktura
 {

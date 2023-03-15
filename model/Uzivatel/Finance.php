@@ -2,17 +2,15 @@
 
 namespace Gamecon\Uzivatel;
 
+use Endroid\QrCode\Writer\Result\ResultInterface;
+use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\TypAktivity;
-use Gamecon\Aktivita\Aktivita;
-use Gamecon\Cas\DateTimeCz;
 use Gamecon\Exceptions\NeznamyTypPredmetu;
-use Gamecon\Finance\SlevySqlStruktura;
+use Gamecon\Finance\SqlStruktura\SlevySqlStruktura;
 use Gamecon\Pravo;
 use Gamecon\Shop\Shop;
 use Gamecon\Shop\TypPredmetu;
-use Endroid\QrCode\Writer\Result\ResultInterface;
-use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 /**
  * Třída zodpovídající za spočítání finanční bilance uživatele na GC.

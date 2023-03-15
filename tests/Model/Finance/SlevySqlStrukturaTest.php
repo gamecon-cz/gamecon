@@ -2,7 +2,7 @@
 
 namespace Gamecon\Tests\Model\Finance;
 
-use Gamecon\Finance\SlevySqlStruktura;
+use Gamecon\Finance\SqlStruktura\SlevySqlStruktura;
 use Gamecon\Tests\Model\SqlStrukturaTest;
 
 class SlevySqlStrukturaTest extends SqlStrukturaTest

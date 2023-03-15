@@ -2,7 +2,7 @@
 
 namespace Gamecon\Tests\Model\Aktivita;
 
-use Gamecon\Aktivita\AktivitaSqlStruktura;
+use Gamecon\Aktivita\SqlStruktura\AktivitaSqlStruktura;
 use Gamecon\Tests\Model\SqlStrukturaTest;
 
 class AktivitaSqlStrukturaTest extends SqlStrukturaTest
