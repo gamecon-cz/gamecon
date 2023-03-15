@@ -9,6 +9,7 @@ use Gamecon\SystemoveNastaveni\ZdrojVlnAktivit;
 /**
  * @method static DateTimeGamecon|false createFromMysql(string $dateTime, \DateTimeZone $timeZone = null)
  * @method static DateTimeGamecon|false createFromFormat($format, $time, $timezone = null)
+ * @method static DateTimeGamecon|false createFromInterface(\DateTimeInterface $dateTime)
  */
 class DateTimeGamecon extends DateTimeCz
 {
