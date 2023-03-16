@@ -27,16 +27,24 @@ SQL,
     public function testZmenyKurzuEura() {
         $nastaveni = SystemoveNastaveni::vytvorZGlobals();
 
-        $zaznamKurzuEuro = $nastaveni->dejZaznamyNastaveniPodleKlicu(['KURZ_EURO'])[0];
+        $zaznamKurzuEuro = $nastaveni->dejZaznamyNastaveniPodleKlicu(['KURZ_EURO'])['KURZ_EURO'];
         /** viz migrace 2022-05-05_03-kurz-euro-do-systemoveho-nastaveni.php */
         self::assertSame('24', $zaznamKurzuEuro['hodnota']);
         self::assertNull($zaznamKurzuEuro['id_uzivatele']);
 
         $nastaveni->ulozZmenuHodnoty(123, 'KURZ_EURO', \Uzivatel::zId(48));
 
-        $zaznamKurzuEuroPoZmene = $nastaveni->dejZaznamyNastaveniPodleKlicu(['KURZ_EURO'])[0];
-        self::assertSame('123', $zaznamKurzuEuroPoZmene['hodnota']);
-        self::assertSame('48', $zaznamKurzuEuroPoZmene['id_uzivatele']);
+        $zaznamKurzuEuroPoZmene = $nastaveni->dejZaznamyNastaveniPodleKlicu(['KURZ_EURO'])['KURZ_EURO'];
+        self::assertSame(
+            123.0,
+            $zaznamKurzuEuroPoZmene['hodnota'],
+            'Očekáváme novou hodnotu, zkonvertovanou na float'
+        );
+        self::assertSame(
+            '48',
+            $zaznamKurzuEuroPoZmene['id_uzivatele'],
+            'Očekáváme ID posledního editujícícho, jako string tak jak se běžně vytáhne z databáze'
+        );
     }
 
     /**

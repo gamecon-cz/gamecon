@@ -37,9 +37,8 @@ DbTest::setConnection(new DbWrapper());
 dbClose();
 
 register_shutdown_function(static function () {
-    dbClose(); // asi není důležité, ale radši...
     // nemůžeme použít předchozí $connection, protože to už je uzavřené
-    $connection = mysqli_connect(DB_SERV, DB_USER, DB_PASS);
+    $connection = dbConnectTemporary();
     dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', DB_NAME), null, $connection);
     $dbTestPrefix            = DB_TEST_PREFIX;
     $oldTestDatabasesWrapped = dbFetchAll("SHOW DATABASES LIKE '{$dbTestPrefix}%'", [], $connection);

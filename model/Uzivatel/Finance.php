@@ -11,6 +11,7 @@ use Gamecon\Finance\SqlStruktura\SlevySqlStruktura;
 use Gamecon\Pravo;
 use Gamecon\Shop\Shop;
 use Gamecon\Shop\TypPredmetu;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 /**
  * Třída zodpovídající za spočítání finanční bilance uživatele na GC.
@@ -86,14 +87,18 @@ class Finance
      * @param \Uzivatel $u uživatel, pro kterého se finance sestavují
      * @param float $zustatek zůstatek na účtu z minulých GC
      */
-    public function __construct(\Uzivatel $u, float $zustatek) {
+    public function __construct(\Uzivatel $u, float $zustatek, private readonly SystemoveNastaveni $systemoveNastaveni) {
         $this->u                           = $u;
         $this->zustatekZPredchozichRocniku = $zustatek;
 
         $this->zapoctiVedeniAktivit();
         $this->zapoctiSlevy();
 
-        $this->cenik = new \Cenik($u, $this->bonusZaVedeniAktivit); // musí být načteno, i pokud není přihlášen na GC
+        $this->cenik = new \Cenik(
+            $u,
+            $this->bonusZaVedeniAktivit,
+            $systemoveNastaveni
+        ); // musí být načteno, i pokud není přihlášen na GC
 
         $this->zapoctiAktivity();
         $this->zapoctiShop();
@@ -132,7 +137,11 @@ class Finance
         foreach ($reflection->getDefaultProperties() as $name => $defaultValue) {
             $this->{$name} = $defaultValue;
         }
-        $this->__construct($this->u, $this->zustatekZPredchozichRocniku);
+        $this->__construct(
+            $this->u,
+            $this->zustatekZPredchozichRocniku,
+            $this->systemoveNastaveni
+        );
         return $this;
     }
 
@@ -612,18 +621,19 @@ SQL
 
     public function sumaPlateb(int $rok = ROCNIK): float {
         if (!isset($this->sumyPlatebVRocich[$rok])) {
-            $result     = dbQuery(<<<SQL
-SELECT
-    IF(provedl=1,
-      CONCAT(DATE_FORMAT(provedeno,'%e.%c.'),' Platba na účet'),
-      CONCAT(DATE_FORMAT(provedeno,'%e.%c.'),' ',IFNULL(poznamka,'(bez poznámky)'))
-      ) as nazev,
-    castka as cena
-FROM platby
-WHERE id_uzivatele = $1 AND rok = $2
-SQL
-                , [$this->u->id(), $rok]);
-            $sumaPlateb = 0.0;
+            $uzivatelSystemId = \Uzivatel::SYSTEM;
+            $result           = dbQuery(<<<SQL
+                SELECT
+                    IF(provedl=$uzivatelSystemId,
+                      CONCAT(DATE_FORMAT(provedeno,'%e.%c.'),' Platba na účet'),
+                      CONCAT(DATE_FORMAT(provedeno,'%e.%c.'),' ',IFNULL(poznamka,'(bez poznámky)'))
+                      ) as nazev,
+                    castka as cena
+                FROM platby
+                WHERE id_uzivatele = {$this->u->id()} AND rok = $rok
+                SQL
+            );
+            $sumaPlateb       = 0.0;
             while ($row = mysqli_fetch_assoc($result)) {
                 $sumaPlateb += (float)$row['cena'];
                 $this->log($row['nazev'], $row['cena'], self::PLATBA);

@@ -39,7 +39,7 @@ class DbTest extends \PHPUnit\Framework\TestCase
             static::disableStrictTransTables();
         }
 
-        foreach (static::getInitQueries() as $index => $initQuery) {
+        foreach (static::getInitQueries() as $initQuery) {
             $initQuerySql = $initQuery;
             $params       = null;
             if (is_array($initQuery)) {
@@ -48,14 +48,25 @@ class DbTest extends \PHPUnit\Framework\TestCase
                     ? end($initQuery)
                     : null;
             }
-            self::$connection->query($initQuerySql, $params);
+            try {
+                self::$connection->query($initQuerySql, $params);
+            } catch (\Throwable $throwable) {
+                static::tearDownAfterClass();
+                throw $throwable;
+            }
         }
 
         $initData = static::getInitData();
         if ($initData) {
             $dataset = new Dataset;
             $dataset->addCsv($initData);
-            self::$connection->import($dataset);
+            try {
+                self::$connection->import($dataset);
+            } catch (\Throwable $throwable) {
+                self::$connection->import($dataset);
+                static::tearDownAfterClass();
+                throw $throwable;
+            }
         }
     }
 

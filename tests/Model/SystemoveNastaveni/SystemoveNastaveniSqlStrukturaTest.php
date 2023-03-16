@@ -2,11 +2,13 @@
 
 namespace Gamecon\Tests\Model\SystemoveNastaveni;
 
-use PHPUnit\Framework\TestCase;
+use Gamecon\SystemoveNastaveni\SqlStruktura\SystemoveNastaveniSqlStruktura;
+use Gamecon\Tests\Model\SqlStrukturaTest;
 
-class SystemoveNastaveniSqlStrukturaTest extends TestCase
+class SystemoveNastaveniSqlStrukturaTest extends SqlStrukturaTest
 {
-    public function testAll() {
-        self::markTestSkipped('Čekáme na nějaký merge někde asi nebo co');
+    protected function strukturaClass(): string {
+        return SystemoveNastaveniSqlStruktura::class;
     }
+
 }
