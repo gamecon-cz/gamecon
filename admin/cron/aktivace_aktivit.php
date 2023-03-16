@@ -24,7 +24,8 @@ $hromadneAkceAktivit = new HromadneAkceAktivit($systemoveNastaveni);
 if (!$znovu) {
     $automatickaAktivaceProvedenaKdy = $hromadneAkceAktivit->automatickaAktivaceProvedenaKdy();
     if ($automatickaAktivaceProvedenaKdy) {
-        logs("Hromadná aktivace aktivit už byla provedeno '{$automatickaAktivaceProvedenaKdy->format(DateTimeCz::FORMAT_DB)}'");
+        $automatickaAktivaceProvedenaKdy = DateTimeCz::createFromInterface($automatickaAktivaceProvedenaKdy);
+        logs("Hromadná aktivace aktivit už byla provedena {$automatickaAktivaceProvedenaKdy->relativni()} ({$automatickaAktivaceProvedenaKdy->format(DateTimeCz::FORMAT_DB)})");
         return;
     }
 }

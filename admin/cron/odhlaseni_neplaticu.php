@@ -42,7 +42,8 @@ $hromadneOdhlaseniNeplaticu = new HromadneOdhlaseniNeplaticu($systemoveNastaveni
 if (!$znovu) {
     $odhlaseniProvedenoKdy = $hromadneOdhlaseniNeplaticu->odhlaseniProvedenoKdy();
     if ($odhlaseniProvedenoKdy) {
-        logs("Hromadné odhlášení už bylo provedeno {$odhlaseniProvedenoKdy->format(DateTimeCz::FORMAT_DB)}");
+        $odhlaseniProvedenoKdy = DateTimeCz::createFromInterface($odhlaseniProvedenoKdy);
+        logs("Hromadné odhlášení už bylo provedeno {$odhlaseniProvedenoKdy->relativni()} ({$odhlaseniProvedenoKdy->format(DateTimeCz::FORMAT_DB)})");
         return;
     }
 }
