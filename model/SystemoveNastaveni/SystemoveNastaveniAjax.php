@@ -2,7 +2,7 @@
 
 namespace Gamecon\SystemoveNastaveni;
 
-use Gamecon\SystemoveNastaveni\Exceptions\InvalidSystemSettingsValue;
+use Gamecon\SystemoveNastaveni\Exceptions\ChybnaHodnotaSystemovehoNastaveni;
 
 class SystemoveNastaveniAjax
 {
@@ -57,7 +57,7 @@ class SystemoveNastaveniAjax
                     );
                 }
             }
-        } catch (InvalidSystemSettingsValue $invalidSystemSettingsValue) {
+        } catch (ChybnaHodnotaSystemovehoNastaveni $invalidSystemSettingsValue) {
             $this->echoJson(['error' => 'Neplatná hodnota']);
 
             return true;

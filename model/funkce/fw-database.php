@@ -63,7 +63,6 @@ function dbRollback() {
 
 function dbConnectTemporary(
     bool              $selectDb = true,
-    bool              $reconnect = false,
     int               $rocnik = ROCNIK,
     mysqli|null|false $stareSpojeni = null
 ): \mysqli {
@@ -220,6 +219,12 @@ function _dbConnect(
 }
 
 function dbDisconnectOnShutdown(mysqli $spojeni) {
+    global $vsechnaSpojeni;
+    if (!$vsechnaSpojeni) {
+        $vsechnaSpojeni = [];
+    }
+    $vsechnaSpojeni[] = $spojeni;
+
     register_shutdown_function(static function () use ($spojeni) {
         if ($spojeni) {
             try {
