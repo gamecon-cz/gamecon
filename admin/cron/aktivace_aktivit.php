@@ -1,11 +1,11 @@
 <?php
 
-use Gamecon\Uzivatel\HromadneOdhlaseniNeplaticu;
-use Gamecon\Uzivatel\Exceptions\NevhodnyCasProHromadneOdhlasovani;
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Aktivita\HromadneAkceAktivit;
 use Gamecon\Aktivita\Exceptions\NevhodnyCasProAutomatickouHromadnouAktivaci;
+
+/** @var bool $znovu */
 
 require_once __DIR__ . '/_cron_zavadec.php';
 
@@ -21,10 +21,12 @@ global $systemoveNastaveni;
 $potize              = false;
 $hromadneAkceAktivit = new HromadneAkceAktivit($systemoveNastaveni);
 
-$automatickaAktivaceProvedenaKdy = $hromadneAkceAktivit->automatickaAktivaceProvedenaKdy();
-if ($automatickaAktivaceProvedenaKdy) {
-    logs("Hromadná aktivace aktivit už byla provedeno '{$automatickaAktivaceProvedenaKdy->format(DateTimeCz::FORMAT_DB)}'");
-    return;
+if (!$znovu) {
+    $automatickaAktivaceProvedenaKdy = $hromadneAkceAktivit->automatickaAktivaceProvedenaKdy();
+    if ($automatickaAktivaceProvedenaKdy) {
+        logs("Hromadná aktivace aktivit už byla provedeno '{$automatickaAktivaceProvedenaKdy->format(DateTimeCz::FORMAT_DB)}'");
+        return;
+    }
 }
 
 try {
