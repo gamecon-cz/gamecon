@@ -5,7 +5,8 @@ use Gamecon\Uzivatel\Exceptions\NevhodnyCasProHromadneOdhlasovani;
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Logger\Zaznamnik;
-use Gamecon\Cas\DateTimeGamecon;
+
+/** @var bool $znovu */
 
 require_once __DIR__ . '/_cron_zavadec.php';
 
@@ -38,10 +39,12 @@ global $systemoveNastaveni;
 
 $hromadneOdhlaseniNeplaticu = new HromadneOdhlaseniNeplaticu($systemoveNastaveni);
 
-$odhlaseniProvedenoKdy = $hromadneOdhlaseniNeplaticu->odhlaseniProvedenoKdy();
-if ($odhlaseniProvedenoKdy) {
-    logs("Hromadné odhlášení už bylo provedeno {$odhlaseniProvedenoKdy->format(DateTimeCz::FORMAT_DB)}");
-    return;
+if (!$znovu) {
+    $odhlaseniProvedenoKdy = $hromadneOdhlaseniNeplaticu->odhlaseniProvedenoKdy();
+    if ($odhlaseniProvedenoKdy) {
+        logs("Hromadné odhlášení už bylo provedeno {$odhlaseniProvedenoKdy->format(DateTimeCz::FORMAT_DB)}");
+        return;
+    }
 }
 
 // abychom neodhlásili nešťastlivce, od kterého dorazili finance chvíli před odhlašováním neplatičů
