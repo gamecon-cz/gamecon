@@ -1,5 +1,9 @@
 <?php
 $job ??= null;
+$znovu = filter_var(get('force'), FILTER_VALIDATE_BOOL)
+    && defined('TEST_HROMADNE_AKCE_AKTIVIT_CRONEM_PORAD')
+    && TEST_HROMADNE_AKCE_AKTIVIT_CRONEM_PORAD;
+
 
 // Pozor, pořadí je důležité - úkoly na prvním místě jsou ty, co mají být puštěny před ostatními
 if (in_array($job, ['odhlaseni_neplaticu', 'aktivity_hromadne'])) {
