@@ -6,7 +6,6 @@ use Gamecon\Aktivita\TypAktivity;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Pravo;
-use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Aktivita\HromadneAkceAktivit;
 
 /**
