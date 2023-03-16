@@ -1,6 +1,6 @@
 <?php
 $job ??= null;
-$znovu = filter_var(get('force'), FILTER_VALIDATE_BOOL)
+$znovu = filter_var(get('znovu'), FILTER_VALIDATE_BOOL)
     && defined('TEST_HROMADNE_AKCE_AKTIVIT_CRONEM_PORAD')
     && TEST_HROMADNE_AKCE_AKTIVIT_CRONEM_PORAD;
 
