@@ -2,7 +2,7 @@
 
 namespace Gamecon\SystemoveNastaveni\Exceptions;
 
-class InvalidSystemSettingsValue extends \InvalidArgumentException
+class ChybnaHodnotaSystemovehoNastaveni extends \InvalidArgumentException
 {
 
 }

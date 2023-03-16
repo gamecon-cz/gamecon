@@ -142,7 +142,7 @@ class KategorieNeplaticeTest extends TestCase
     }
 
     /**
-     * @see \Gamecon\Uzivatel\KategorieNeplatice::LETOS_NEPOSLAL_NIC_Z_LONSKA_NECO_MA_A_MA_MALY_DLUH
+     * @see \Gamecon\Uzivatel\KategorieNeplatice::LETOS_NEPOSLAL_DOST_NEBO_Z_LONSKA_NECO_MA_A_MA_MALY_DLUH
      */
     private function kombinaceProKategorii3VelkyDluh(): array {
         return [

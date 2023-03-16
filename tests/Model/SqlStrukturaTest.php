@@ -32,13 +32,19 @@ abstract class SqlStrukturaTest extends DbTest
     }
 
     protected function nazevTabulkyZKonstant(\ReflectionClass $classReflection): string {
-        $constantsToValues = $classReflection->getConstants(\ReflectionClassConstant::IS_PUBLIC);
+        $constantsToValues           = $classReflection->getConstants(\ReflectionClassConstant::IS_PUBLIC);
+        $expectedTableConstantSuffix = '_TABULKA';
+        $constantNames               = [];
         foreach ($constantsToValues as $nazev => $hodnota) {
-            if (str_ends_with($nazev, '_TABULKA')) {
+            if (str_ends_with($nazev, $expectedTableConstantSuffix)) {
                 return $hodnota;
             }
+            $constantNames[] = $nazev;
         }
-        throw new \LogicException("Nenašli jsme konstantu s názvem tabulky v {$classReflection->getName()}");
+        throw new \LogicException(
+            "Nenašli jsme public konstantu s názvem tabulky v {$classReflection->getName()}.
+            Očekáváme nějakou co končí '$expectedTableConstantSuffix'. Našli jsme pouze " . implode(',', $constantNames)
+        );
     }
 
     abstract protected function strukturaClass(): string;

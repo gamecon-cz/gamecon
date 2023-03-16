@@ -7,13 +7,17 @@ use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\Cas\Exceptions\ChybnaZpetnaPlatnost;
 use Gamecon\Cas\Exceptions\InvalidDateTimeFormat;
-use Gamecon\SystemoveNastaveni\Exceptions\InvalidSystemSettingsValue;
+use Gamecon\SystemoveNastaveni\Exceptions\ChybnaHodnotaSystemovehoNastaveni;
+use Gamecon\SystemoveNastaveni\Exceptions\NeznamyKlicSystemovehoNastaveni;
 use Gamecon\SystemoveNastaveni\SqlStruktura\SystemoveNastaveniSqlStruktura as Sql;
 
 class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
 {
 
     public const ROCNIK = ROCNIK;
+
+    private ?array $vsechnyZaznamyNastaveni = null;
+    private ?array $odvozeneHodnoty = null;
 
     public static function vytvorZGlobals(): self {
         return new static(
@@ -94,7 +98,7 @@ SQL,
             if (!defined($nazevKonstanty)) {
                 define($nazevKonstanty, $hodnota);
             } elseif (constant($nazevKonstanty) !== $hodnota && $this->jsmeNaOstre()) {
-                throw new InvalidSystemSettingsValue(
+                throw new ChybnaHodnotaSystemovehoNastaveni(
                     sprintf(
                         "Konstanta '%s' už je definována, ale s jinou hodnotou '%s' než očekávanou '%s'",
                         $nazevKonstanty,
@@ -108,16 +112,42 @@ SQL,
     }
 
     private function definujOdvozeneKonstanty() {
-        try_define('MODRE_TRICKO_ZDARMA_OD', 3 * BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU); // hodnota slevy od které má subjekt nárok na modré tričko
-        try_define('BONUS_ZA_1H_AKTIVITU', self::spocitejBonusVypravece('BONUS_ZA_1H_AKTIVITU'));
-        try_define('BONUS_ZA_2H_AKTIVITU', self::spocitejBonusVypravece('BONUS_ZA_2H_AKTIVITU'));
-        try_define('BONUS_ZA_6H_AZ_7H_AKTIVITU', self::spocitejBonusVypravece('BONUS_ZA_6H_AZ_7H_AKTIVITU'));
-        try_define('BONUS_ZA_8H_AZ_9H_AKTIVITU', self::spocitejBonusVypravece('BONUS_ZA_8H_AZ_9H_AKTIVITU'));
-        try_define('BONUS_ZA_10H_AZ_11H_AKTIVITU', self::spocitejBonusVypravece('BONUS_ZA_10H_AZ_11H_AKTIVITU'));
-        try_define('BONUS_ZA_12H_AZ_13H_AKTIVITU', self::spocitejBonusVypravece('BONUS_ZA_12H_AZ_13H_AKTIVITU'));
+        foreach ($this->dejOdvozeneHodnoty() as $klic => $hodnota) {
+            try_define($klic, $hodnota);
+        }
     }
 
-    public function zkonvertujHodnotuNaTyp($hodnota, string $datovyTyp) {
+    private function dejOdvozeneHodnoty(): array {
+        if ($this->odvozeneHodnoty === null) {
+            $this->odvozeneHodnoty = [
+                // hodnota slevy od které má subjekt nárok na modré tričko
+                'MODRE_TRICKO_ZDARMA_OD'       => defined('MODRE_TRICKO_ZDARMA_OD')
+                    ? MODRE_TRICKO_ZDARMA_OD
+                    : 3 * $this->dejHodnotu('BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU', false /* radši, abychom neskončili v nekonečné smyčce */),
+                'BONUS_ZA_1H_AKTIVITU'         => defined('BONUS_ZA_1H_AKTIVITU')
+                    ? BONUS_ZA_1H_AKTIVITU
+                    : self::spocitejBonusVypravece('BONUS_ZA_1H_AKTIVITU'),
+                'BONUS_ZA_2H_AKTIVITU'         => defined('BONUS_ZA_2H_AKTIVITU')
+                    ? BONUS_ZA_2H_AKTIVITU
+                    : self::spocitejBonusVypravece('BONUS_ZA_2H_AKTIVITU'),
+                'BONUS_ZA_6H_AZ_7H_AKTIVITU'   => defined('BONUS_ZA_6H_AZ_7H_AKTIVITU')
+                    ? BONUS_ZA_6H_AZ_7H_AKTIVITU
+                    : self::spocitejBonusVypravece('BONUS_ZA_6H_AZ_7H_AKTIVITU'),
+                'BONUS_ZA_8H_AZ_9H_AKTIVITU'   => defined('BONUS_ZA_8H_AZ_9H_AKTIVITU')
+                    ? BONUS_ZA_8H_AZ_9H_AKTIVITU
+                    : self::spocitejBonusVypravece('BONUS_ZA_8H_AZ_9H_AKTIVITU'),
+                'BONUS_ZA_10H_AZ_11H_AKTIVITU' => defined('BONUS_ZA_10H_AZ_11H_AKTIVITU')
+                    ? BONUS_ZA_10H_AZ_11H_AKTIVITU
+                    : self::spocitejBonusVypravece('BONUS_ZA_10H_AZ_11H_AKTIVITU'),
+                'BONUS_ZA_12H_AZ_13H_AKTIVITU' => defined('BONUS_ZA_12H_AZ_13H_AKTIVITU')
+                    ? BONUS_ZA_12H_AZ_13H_AKTIVITU
+                    : self::spocitejBonusVypravece('BONUS_ZA_12H_AZ_13H_AKTIVITU'),
+            ];
+        }
+        return $this->odvozeneHodnoty;
+    }
+
+    public function zkonvertujHodnotuNaTyp($hodnota, string $datovyTyp): bool|int|float|string|DateTimeCz {
         return match (strtolower(trim($datovyTyp))) {
             'boolean', 'bool' => (bool)$hodnota,
             'integer', 'int' => (int)$hodnota,
@@ -132,13 +162,14 @@ SQL,
 
     public function ulozZmenuHodnoty($hodnota, string $klic, \Uzivatel $editujici): int {
         $this->hlidejZakazaneZmeny($klic);
-        $updateQuery = dbQuery(<<<SQL
+        $updateQuery    = dbQuery(<<<SQL
 UPDATE systemove_nastaveni
 SET hodnota = $1
 WHERE klic = $2
 SQL,
             [$this->formatujHodnotuProDb($hodnota, $klic), $klic],
         );
+        $zmenenoZaznamu = dbAffectedOrNumRows($updateQuery);
         dbQuery(<<<SQL
 INSERT INTO systemove_nastaveni_log(id_uzivatele, id_nastaveni, hodnota)
 SELECT $1, id_nastaveni, hodnota
@@ -147,7 +178,27 @@ WHERE klic = $2
 SQL,
             [$editujici->id(), $klic],
         );
-        return dbAffectedOrNumRows($updateQuery);
+        if ($zmenenoZaznamu > 0) {
+            $this->aktualizujZaznamVLokalniCache($hodnota, $klic, $editujici->id());
+        }
+        return $zmenenoZaznamu;
+    }
+
+    private function aktualizujZaznamVLokalniCache($novaHodnota, string $klic, int $idEditujicihoUzivatele) {
+        if ($this->vsechnyZaznamyNastaveni === null) {
+            return;
+        }
+
+        $puvodniHodnota = $this->dejHodnotu($klic, false);
+        if ($puvodniHodnota === $novaHodnota) {
+            return;
+        }
+
+        $puvodniZaznam        = $this->vsechnyZaznamyNastaveni[$klic];
+        $zkonvertovanaHodnota = $this->zkonvertujHodnotuNaTyp($novaHodnota, $puvodniZaznam[Sql::DATOVY_TYP]);
+
+        $this->vsechnyZaznamyNastaveni[$klic][Sql::HODNOTA]   = $zkonvertovanaHodnota;
+        $this->vsechnyZaznamyNastaveni[$klic]['id_uzivatele'] = (string)$idEditujicihoUzivatele;
     }
 
     private function hlidejZakazaneZmeny(string $klic) {
@@ -188,7 +239,7 @@ SQL,
                 default => $hodnota,
             };
         } catch (InvalidDateTimeFormat $invalidDateTimeFormat) {
-            throw new InvalidSystemSettingsValue(
+            throw new ChybnaHodnotaSystemovehoNastaveni(
                 sprintf(
                     "Can not convert %s (%s) into DB format: %s",
                     var_export($hodnota, true),
@@ -212,7 +263,10 @@ SQL,
     }
 
     public function dejVsechnyZaznamyNastaveni(): array {
-        return $this->dejZaznamyNastaveni();
+        if ($this->vsechnyZaznamyNastaveni === null) {
+            $this->vsechnyZaznamyNastaveni = $this->dejZaznamyNastaveni();
+        }
+        return $this->vsechnyZaznamyNastaveni;
     }
 
     private function vlozOstatniBonusyVypravecuDoPopisu(array $zaznamy): array {
@@ -268,14 +322,14 @@ SQL;
         if (!$klice) {
             return [];
         }
-        return $this->dejZaznamyNastaveni(
-            [Sql::SYSTEMOVE_NASTAVENI_TABULKA . '.' . Sql::KLIC . ' IN ($0)'],
-            [0 => $klice],
+        return array_intersect_key(
+            $this->dejVsechnyZaznamyNastaveni(),
+            array_fill_keys($klice, '')
         );
     }
 
     private function dejZaznamyNastaveni(array $whereArray = ['1'], array $parametryDotazu = []): array {
-        return $this->vlozOstatniBonusyVypravecuDoPopisu(
+        $zaznamyNastaveni = $this->vlozOstatniBonusyVypravecuDoPopisu(
             $this->pridejVychoziHodnoty(
                 dbFetchAll(
                     $this->dejSqlNaZaznamyNastaveni($whereArray),
@@ -283,6 +337,13 @@ SQL;
                 )
             )
         );
+
+        $zaznamyNastaveniPodleKlicu = [];
+        foreach ($zaznamyNastaveni as $zaznam) {
+            $zaznamyNastaveniPodleKlicu[$zaznam[Sql::KLIC]] = $zaznam;
+        }
+
+        return $zaznamyNastaveniPodleKlicu;
     }
 
     private function pridejVychoziHodnoty(array $zaznamy): array {
@@ -298,6 +359,29 @@ SQL;
             },
             $zaznamy
         );
+    }
+
+    public function dejHodnotu(string $klic, bool $hledatTakeVOdvozenych = true) {
+        if (defined($klic)) {
+            return constant($klic);
+        }
+
+        $vsechnyZaznamy = $this->dejVsechnyZaznamyNastaveni();
+        if (array_key_exists($klic, $vsechnyZaznamy)) {
+            return $this->zkonvertujHodnotuNaTyp(
+                $vsechnyZaznamy[$klic][Sql::HODNOTA],
+                $vsechnyZaznamy[$klic][Sql::DATOVY_TYP]
+            );
+        }
+
+        if ($hledatTakeVOdvozenych) {
+            $odvozeneHodnoty = $this->dejOdvozeneHodnoty();
+            if (array_key_exists($klic, $odvozeneHodnoty)) {
+                return $odvozeneHodnoty[$klic];
+            }
+        }
+
+        throw new NeznamyKlicSystemovehoNastaveni("Klíč '$klic' nemáme v záznamech nastavení");
     }
 
     public function dejVychoziHodnotu(string $klic): string {
@@ -480,16 +564,22 @@ SQL;
         return po($this->konecRegistraciUcastniku());
     }
 
-    public function nepaticCastkaVelkyDluh(): float {
-        return NEPLATIC_CASTKA_VELKY_DLUH;
+    public function neplaticCastkaVelkyDluh(): float {
+        return defined('NEPLATIC_CASTKA_VELKY_DLUH')
+            ? NEPLATIC_CASTKA_VELKY_DLUH
+            : $this->dejHodnotu('NEPLATIC_CASTKA_VELKY_DLUH');
     }
 
     public function neplaticCastkaPoslalDost(): float {
-        return NEPLATIC_CASTKA_POSLAL_DOST;
+        return defined('NEPLATIC_CASTKA_POSLAL_DOST')
+            ? NEPLATIC_CASTKA_POSLAL_DOST
+            : $this->dejHodnotu('NEPLATIC_CASTKA_POSLAL_DOST');
     }
 
     public function neplaticPocetDnuPredVlnouKdyJeChranen(): int {
-        return NEPLATIC_POCET_DNU_PRED_VLNOU_KDY_JE_CHRANEN;
+        return defined('NEPLATIC_POCET_DNU_PRED_VLNOU_KDY_JE_CHRANEN')
+            ? NEPLATIC_POCET_DNU_PRED_VLNOU_KDY_JE_CHRANEN
+            : $this->dejHodnotu('NEPLATIC_POCET_DNU_PRED_VLNOU_KDY_JE_CHRANEN');
     }
 
     public function probihaRegistraceAktivit(): bool {
@@ -502,5 +592,9 @@ SQL;
 
     public function nacitatPlatbyXDniZpet(): int {
         return 14; // kolik dní zpět se mají načítat platby při kontrole nově došlých plateb
+    }
+
+    public function modreTrickoZdarmaOd(): float {
+        return (float)$this->dejHodnotu('MODRE_TRICKO_ZDARMA_OD');
     }
 }

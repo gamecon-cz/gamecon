@@ -13,6 +13,7 @@ use Gamecon\Logger\Zaznamnik;
 use Gamecon\Uzivatel\Exceptions\DuplicitniEmail;
 use Gamecon\Uzivatel\Exceptions\DuplicitniLogin;
 use Gamecon\Cas\DateTimeGamecon;
+use Gamecon\Uzivatel\Finance;
 
 /**
  * Třída popisující uživatele a jeho vlastnosti
@@ -67,11 +68,13 @@ SQL
     protected $shop;
 
     private $kdySeRegistrovalNaLetosniGc;
+    private SystemoveNastaveni $systemoveNastaveni;
 
-    public function __construct(array $uzivatel) {
+    public function __construct(array $uzivatel, SystemoveNastaveni $systemoveNastaveni = null) {
         if (is_array($uzivatel) && array_keys_exist(['id_uzivatele', 'login_uzivatele', 'pohlavi'], $uzivatel)) {
             $this->r = $uzivatel;
             parent::__construct($uzivatel);
+            $this->systemoveNastaveni ??= SystemoveNastaveni::vytvorZGlobals();
         } else {
             throw new Exception('Špatný vstup konstruktoru uživatele');
         }
@@ -212,12 +215,16 @@ SQL
     }
 
     /**
-     * @return \Gamecon\Uzivatel\Finance finance daného uživatele
+     * @return Finance finance daného uživatele
      */
-    public function finance(): \Gamecon\Uzivatel\Finance {
+    public function finance(): Finance {
         //pokud chceme finance poprvé, spočteme je a uložíme
         if (!$this->finance) {
-            $this->finance = new \Gamecon\Uzivatel\Finance($this, $this->r['zustatek']);
+            $this->finance = new Finance(
+                $this,
+                $this->r['zustatek'],
+                $this->systemoveNastaveni
+            );
         }
         return $this->finance;
     }
