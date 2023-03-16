@@ -12,9 +12,9 @@ class KategorieNeplatice
 {
 
     public const LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH    = 1;
-    public const LETOS_POSLAL_MALO_A_MA_VELKY_DLUH                   = 2;
-    public const LETOS_NEPOSLAL_NIC_Z_LONSKA_NECO_MA_A_MA_MALY_DLUH  = 3;
-    public const LETOS_POSLAL_DOST_A_JE_TAK_CHRANENY                 = 4;
+    public const LETOS_POSLAL_MALO_A_MA_VELKY_DLUH                        = 2;
+    public const LETOS_NEPOSLAL_DOST_NEBO_Z_LONSKA_NECO_MA_A_MA_MALY_DLUH = 3;
+    public const LETOS_POSLAL_DOST_A_JE_TAK_CHRANENY                      = 4;
     public const LETOS_SE_REGISTROVAL_PAR_DNU_PRED_ODHLASOVACI_VLNOU = 5;
     public const MA_PRAVO_PLATIT_AZ_NA_MISTE                         = 6; // orgové a tak
     public const LETOS_NEPOSLAL_NIC_ALE_TAKY_NEOBJEDNAL_NIC          = 7;
@@ -47,7 +47,7 @@ class KategorieNeplatice
             $uzivatel->maPravoNerusitObjednavky(),
             $hromadneOdhlasovaniKdy,
             $systemoveNastaveni->rocnik(),
-            $systemoveNastaveni->nepaticCastkaVelkyDluh(),
+            $systemoveNastaveni->neplaticCastkaVelkyDluh(),
             $systemoveNastaveni->neplaticCastkaPoslalDost(),
             $systemoveNastaveni->neplaticPocetDnuPredVlnouKdyJeChranen()
         );
@@ -59,7 +59,7 @@ class KategorieNeplatice
     public function __construct(
         private Finance             $finance,
         private ?\DateTimeInterface $kdySeRegistrovalNaLetosniGc,
-        private bool                $maPravoPlatitAzNaMiste,
+        private bool                $maPravoNerusitObjednavky,
         private \DateTimeInterface  $hromadneOdhlasovaniKdy,
         private int                 $rocnik,
         float                       $castkaVelkyDluh,
@@ -70,18 +70,14 @@ class KategorieNeplatice
     }
 
     public function melByBytOdhlasen(): bool {
-        return match ($this->dejCiselnouKategoriiNeplatice()) {
-            null => false,
-            self::MA_PRAVO_PLATIT_AZ_NA_MISTE => false,
-            self::LETOS_SE_REGISTROVAL_PAR_DNU_PRED_ODHLASOVACI_VLNOU => false,
-            self::LETOS_POSLAL_DOST_A_JE_TAK_CHRANENY => false,
-            self::LETOS_NEPOSLAL_NIC_ALE_TAKY_NEOBJEDNAL_NIC => false,
-            self::LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH => true,
-            self::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH => true,
-            default => throw new NepodporovanaKategorieNeplatice(
-                sprintf("Nepodporovaná kategorie neplatiče '{$this->dejCiselnouKategoriiNeplatice()}'. Doplňte podporu sem do logiky.")
-            )
-        };
+        return in_array(
+            $this->dejCiselnouKategoriiNeplatice(),
+            [
+                self::LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH,
+                self::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH,
+            ],
+            true
+        );
     }
 
     public function maSmyslOdhlasitMuJenNeco(): bool {
@@ -94,7 +90,7 @@ class KategorieNeplatice
      * https://docs.google.com/document/d/1pP3mp9piPNAl1IKCC5YYe92zzeFdTLDMiT-xrUhVLdQ/edit
      */
     public function dejCiselnouKategoriiNeplatice(): ?int {
-        if ($this->maPravoPlatitAzNaMiste) {
+        if ($this->maPravoNerusitObjednavky) {
             /**
              * Kategorie účastníka s právem platit až na místě
              * tj. orgové, vypravěči, partneři, dobrovolníci senioři, čestní orgové
@@ -144,7 +140,7 @@ class KategorieNeplatice
              * a přitom se registroval na GC před více než týdnem
              */
             // kategorie 3
-            return self::LETOS_NEPOSLAL_NIC_Z_LONSKA_NECO_MA_A_MA_MALY_DLUH;
+            return self::LETOS_NEPOSLAL_DOST_NEBO_Z_LONSKA_NECO_MA_A_MA_MALY_DLUH;
         }
 
         if ($this->sumaLetosnichPlateb() <= 0.0
@@ -218,7 +214,7 @@ class KategorieNeplatice
         $this->__construct(
             $this->finance,
             $this->kdySeRegistrovalNaLetosniGc,
-            $this->maPravoPlatitAzNaMiste,
+            $this->maPravoNerusitObjednavky,
             $this->hromadneOdhlasovaniKdy,
             $this->rocnik,
             $this->castkaVelkyDluh,

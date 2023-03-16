@@ -283,7 +283,7 @@ SQL
 
         // specifická info podle uživatele a stavu nabídky
         if ((!$muzeEditovatUkoncenyProdej && $this->systemoveNastaveni->prodejUbytovaniUkoncen())
-            || reset($this->mozneTypy)['stav'] == Shop::POZASTAVENY
+            || reset($this->mozneTypy)['stav'] == Shop::STAV_POZASTAVENY
         ) {
             $t->parse('ubytovani.konec');
         }
@@ -324,7 +324,7 @@ SQL
             $t->assign([
                 'den'      => mb_ucfirst(substr($typVzor['nazev'], strrpos($typVzor['nazev'], ' ') + 1)),
                 'checked'  => $ubytovanVeDni ? '' : 'checked', // checked = "Žádné" ubytování
-                'disabled' => $prodejUbytovaniUkoncen || ($ubytovanVeDni && $typVzor['stav'] == Shop::POZASTAVENY && !$typVzor['nabizet'])
+                'disabled' => $prodejUbytovaniUkoncen || ($ubytovanVeDni && $typVzor['stav'] == Shop::STAV_POZASTAVENY && !$typVzor['nabizet'])
                     ? 'disabled'
                     : '',
             ]);
