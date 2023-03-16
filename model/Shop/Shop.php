@@ -26,10 +26,10 @@ class Shop
     public const PROPLACENI_BONUSU = TypPredmetu::PROPLACENI_BONUSU;
 
     // STAVY PŘEDMĚTŮ
-    public const MIMO        = 0;
-    public const VEREJNY     = 1;
-    public const PODPULTOVY  = 2;
-    public const POZASTAVENY = 3;
+    public const STAV_MIMO        = StavPredmetu::MIMO;
+    public const STAV_VEREJNY     = StavPredmetu::VEREJNY;
+    public const STAV_PODPULTOVY  = StavPredmetu::PODPULTOVY;
+    public const STAV_POZASTAVENY = StavPredmetu::POZASTAVENY;
 
     public const PN_JIDLO      = 'cShopJidlo';          // post proměnná pro jídlo
     public const PN_JIDLO_ZMEN = 'cShopJidloZmen'; // post proměnná indikující, že se má jídlo aktualizovat
@@ -157,7 +157,11 @@ SQL,
     public function __construct(Uzivatel $u, array $nastaveni = null, SystemoveNastaveni $systemoveNastaveni) {
         $this->u                  = $u;
         $this->systemoveNastaveni = $systemoveNastaveni;
-        $this->cenik              = new Cenik($u, $u->finance()->bonusZaVedeniAktivit());
+        $this->cenik              = new Cenik(
+            $u,
+            $u->finance()->bonusZaVedeniAktivit(),
+            $systemoveNastaveni
+        );
         if (is_array($nastaveni)) {
             $this->nastaveni = array_replace($this->nastaveni, $nastaveni);
         }
@@ -179,7 +183,7 @@ FROM (
 ) AS seskupeno
 ORDER BY typ, ubytovani_den, nazev, model_rok DESC, id_predmetu ASC
 SQL
-            , [self::MIMO, ROCNIK, $this->u->id()]);
+            , [self::STAV_MIMO, ROCNIK, $this->u->id()]);
 
         //inicializace
         $this->jidlo['dny']   = [];
@@ -192,9 +196,9 @@ SQL
             }
             unset($fronta); // $fronta reference na frontu kam vložit předmět (nelze dát =null, přepsalo by předchozí vrch fronty)
             if ($r['nabizet_do'] && strtotime($r['nabizet_do']) < time()) {
-                $r['stav'] = self::POZASTAVENY;
+                $r['stav'] = self::STAV_POZASTAVENY;
             }
-            $r['nabizet'] = $r['stav'] == self::VEREJNY; // v základu nabízet vše v stavu 1
+            $r['nabizet'] = $r['stav'] == self::STAV_VEREJNY; // v základu nabízet vše v stavu 1
             // rozlišení kam ukládat a jestli nabízet podle typu
             if ($typ == self::PREDMET) {
                 $fronta = &$this->predmety[];
@@ -212,7 +216,7 @@ SQL
                     $this->jidlo['jidla'][$den][$druh]['stav'] = $r['stav']; // chceme povolit změnu jídla, pokud nová verze (za novou cenu) je prodejná
                     continue;
                 }
-                $r['nabizet'] = $r['nabizet'] || ($r['stav'] == self::POZASTAVENY && $this->nastaveni['jidloBezZamku']);
+                $r['nabizet'] = $r['nabizet'] || ($r['stav'] == self::STAV_POZASTAVENY && $this->nastaveni['jidloBezZamku']);
                 if ($r['kusu_uzivatele'] > 0) {
                     $this->jidlo['jidloObednano'][$r['id_predmetu']] = true;
                 }
@@ -223,15 +227,15 @@ SQL
                 }
                 $fronta = &$this->jidlo['jidla'][$den][$druh];
             } elseif ($typ == self::UBYTOVANI) {
-                $r['nabizet'] = $r['nabizet'] || ($r['stav'] == self::POZASTAVENY && $this->nastaveni['ubytovaniBezZamku']);
+                $r['nabizet'] = $r['nabizet'] || ($r['stav'] == self::STAV_POZASTAVENY && $this->nastaveni['ubytovaniBezZamku']);
                 $fronta       = &$this->ubytovani[];
             } elseif ($typ == self::TRICKO) {
                 $smiModre     = $this->u->maPravo(Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA);
                 $smiCervene   = $this->u->maPravo(Pravo::MUZE_OBJEDNAVAT_CERVENA_TRICKA);
                 $r['nabizet'] = (
                     $r['nabizet']
-                    || ($r['stav'] == self::PODPULTOVY && mb_stripos($r['nazev'], 'modré') !== false && $smiModre)
-                    || ($r['stav'] == self::PODPULTOVY && mb_stripos($r['nazev'], 'červené') !== false && $smiCervene)
+                    || ($r['stav'] == self::STAV_PODPULTOVY && mb_stripos($r['nazev'], 'modré') !== false && $smiModre)
+                    || ($r['stav'] == self::STAV_PODPULTOVY && mb_stripos($r['nazev'], 'červené') !== false && $smiCervene)
                 );
                 $fronta       = &$this->tricka[];
                 if (AUTOMATICKY_VYBER_TRICKA) {
@@ -257,7 +261,7 @@ SQL
             } elseif ($typ == self::VSTUPNE) {
                 if (strpos($r['nazev'], 'pozdě') === false) {
                     $this->vstupne       = $r;
-                    $this->vstupneJeVcas = $r['stav'] == self::PODPULTOVY;
+                    $this->vstupneJeVcas = $r['stav'] == self::STAV_PODPULTOVY;
                 } else {
                     $this->vstupnePozde = $r;
                 }
@@ -306,7 +310,7 @@ SQL
                     if ($jidlo && ($jidlo['nabizet'] || $jidlo['kusu_uzivatele'])) {
                         $t->assign('selected', $jidlo['kusu_uzivatele'] > 0 ? 'checked' : '');
                         $t->assign('pnName', self::PN_JIDLO . '[' . $jidlo['id_predmetu'] . ']');
-                        $t->parse($prodejJidlaUkoncen || ($jidlo['stav'] == self::POZASTAVENY && !$this->nastaveni['jidloBezZamku'])
+                        $t->parse($prodejJidlaUkoncen || ($jidlo['stav'] == self::STAV_POZASTAVENY && !$this->nastaveni['jidloBezZamku'])
                             ? 'jidlo.druh.den.locked'
                             : 'jidlo.druh.den.checkbox'
                         );
@@ -340,7 +344,7 @@ SQL
     private function jsouVsechnaJidlaPozastavena(array $jidla): bool {
         foreach ($jidla as $jidlaVJednomDni) {
             foreach ($jidlaVJednomDni as $jidlo) {
-                if ($jidlo['stav'] != self::POZASTAVENY) {
+                if ($jidlo['stav'] != self::STAV_POZASTAVENY) {
                     return false;
                 }
             }
@@ -504,7 +508,7 @@ SQL
 
     private function jsouVsechnyPredmetyNeboTrickaPozastaveny(array $tricka): bool {
         foreach ($tricka as $tricko) {
-            if ($tricko['stav'] != self::POZASTAVENY) {
+            if ($tricko['stav'] != self::STAV_POZASTAVENY) {
                 return false;
             }
         }

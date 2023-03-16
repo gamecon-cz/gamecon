@@ -51,7 +51,7 @@ class UbytovaniTabulka
                 'den' => $denText,
                 'denZkratka' => mb_substr($denText, 0, 2),
                 'checked' => $ubytovanVeDni ? '' : 'checked', // checked = "Žádné" ubytování
-                'disabled' => $prodejUbytovaniUkoncen || ( $ubytovanVeDni && $typVzor['stav'] == Shop::POZASTAVENY && !$typVzor['nabizet'])
+                'disabled' => $prodejUbytovaniUkoncen || ( $ubytovanVeDni && $typVzor['stav'] == Shop::STAV_POZASTAVENY && !$typVzor['nabizet'])
                     ? 'disabled'
                     : '',
             ])->parse('ubytovani.den');
@@ -80,7 +80,7 @@ class UbytovaniTabulka
 
         // specifická info podle uživatele a stavu nabídky
         if ((!$muzeEditovatUkoncenyProdej && $systemoveNastaveni->prodejUbytovaniUkoncen())
-            || ($prvniUbytovani['stav'] ?? null) == Shop::POZASTAVENY
+            || ($prvniUbytovani['stav'] ?? null) == Shop::STAV_POZASTAVENY
         ) {
             $t->parse('ubytovani.konec');
         }

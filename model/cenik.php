@@ -2,6 +2,7 @@
 
 use Gamecon\Shop\Shop;
 use Gamecon\Pravo;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 /**
  * Třída zodpovědná za stanovení / prezentaci cen a slev věcí
@@ -35,7 +36,7 @@ class Cenik
      * @param Uzivatel $u pro kterého uživatele se cena počítá
      * @param int|float $sleva celková sleva získaná za pořádané aktivity
      */
-    public function __construct(Uzivatel $u, $sleva) {
+    public function __construct(Uzivatel $u, $sleva, SystemoveNastaveni $systemoveNastaveni) {
         $this->u = $u;
 
         if ($u->maPravo(Pravo::KOSTKA_ZDARMA)) {
@@ -47,7 +48,7 @@ class Cenik
         if ($u->maPravo(Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA)) {
             $this->jakychkoliTricekZdarma = 2;
         }
-        if ($sleva >= MODRE_TRICKO_ZDARMA_OD && $u->maPravo(Pravo::MODRE_TRICKO_ZDARMA)) {
+        if ($sleva >= $systemoveNastaveni->modreTrickoZdarmaOd() && $u->maPravo(Pravo::MODRE_TRICKO_ZDARMA)) {
             $this->modrychTricekZdarma = 1;
             $this->textySlevExtra[]    = 'modré tričko zdarma';
         }

@@ -144,19 +144,22 @@ class HromadneOdhlaseniNeplaticu
     }
 
     private function uzivateleKeKontrole(): \Generator {
+        $prihlasenNaLetosniGc = Role::PRIHLASEN_NA_LETOSNI_GC;
+        $neodhlasovat         = Role::LETOSNI_NEODHLASOVAT;
+
         $result = dbQuery(<<<SQL
 SELECT uzivatele_hodnoty.id_uzivatele
 FROM uzivatele_hodnoty
-LEFT JOIN platne_role_uzivatelu AS role ON uzivatele_hodnoty.id_uzivatele = role.id_uzivatele
-LEFT JOIN prava_role on role.id_role = prava_role.id_role
-WHERE prava_role.id_role = $0
-    AND prava_role.id_prava != $1
+WHERE EXISTS(SELECT * FROM platne_role_uzivatelu AS role
+      WHERE uzivatele_hodnoty.id_uzivatele = role.id_uzivatele
+        AND role.id_role = {$prihlasenNaLetosniGc}
+    )
+    AND NOT EXISTS(SELECT * FROM platne_role_uzivatelu AS role
+        WHERE uzivatele_hodnoty.id_uzivatele = role.id_uzivatele
+        AND role.id_role = {$neodhlasovat}
+    )
 SQL,
-            [
-                0 => Role::PRIHLASEN_NA_LETOSNI_GC,
-                1 => Pravo::NERUSIT_AUTOMATICKY_OBJEDNAVKY,
-            ],
-            dbConnectTemporary() // abychom nevyblokovali globální sdílené connection
+            dbConnectTemporary() // abychom nevyblokovali globální sdílené connection při postupném zpracovávání tohoto generátoru
         );
         while ($idUzivatele = mysqli_fetch_column($result)) {
             yield \Uzivatel::zId($idUzivatele, true);
@@ -175,7 +178,7 @@ SQL,
     }
 
     /**
-     * @return \Generator{neplatic: \Uzivatel, kategorie_neplatice: KategorieNeplatice, ma_smysl_odhlasit_mu_jen_neco: bool}
+     * @return \Generator{neplatic: \Uzivatel, kategorie_neplatice: KategorieNeplatice}
      * @throws NaHromadneOdhlasovaniJeBrzy
      * @throws NaHromadneOdhlasovaniJePozde
      */
@@ -229,9 +232,8 @@ Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hro
             );
             if ($kategorieNeplatice->melByBytOdhlasen()) {
                 yield [
-                    'neplatic'                      => $uzivatel,
-                    'kategorie_neplatice'           => $kategorieNeplatice,
-                    'ma_smysl_odhlasit_mu_jen_neco' => $kategorieNeplatice->maSmyslOdhlasitMuJenNeco(),
+                    'neplatic'            => $uzivatel,
+                    'kategorie_neplatice' => $kategorieNeplatice,
                 ];
             }
         }
