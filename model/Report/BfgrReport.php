@@ -155,7 +155,7 @@ SQL,
                         ],
                         $vcetneStavuNeplatice
                             ? [
-                            'Kategorie neplatiče'         => $navstevnik->finance()->kategorieNeplatice()->dejCiselnouKategoriiNeplatice(),
+                            'Kategorie neplatiče'         => $navstevnik->finance()->kategorieNeplatice()->ciselnaKategoriiNeplatice(),
                             'Bude odhlášen jako neplatič' => $navstevnik->finance()->kategorieNeplatice()->melByBytOdhlasen(),
                         ]
                             : []
