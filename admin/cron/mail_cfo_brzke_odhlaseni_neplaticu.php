@@ -57,7 +57,7 @@ try {
     foreach ($hromadneOdhlaseniNeplaticu->neplaticiAKategorie()
              as ['uzivatel' => $uzivatel, 'kategorie_neplatice' => $kategorieNeplatice]) {
         /** @var \Gamecon\Uzivatel\KategorieNeplatice $kategorieNeplatice */
-        $zpravy[] = "Účastník '{$uzivatel->jmenoNick()}' ({$uzivatel->id()}) bude zítra odhlášen, protože má kategorii neplatiče {$kategorieNeplatice->dejCiselnouKategoriiNeplatice()}";
+        $zpravy[] = "Účastník '{$uzivatel->jmenoNick()}' ({$uzivatel->id()}) bude zítra odhlášen, protože má kategorii neplatiče {$kategorieNeplatice->ciselnaKategoriiNeplatice()}";
     }
 } catch (NevhodnyCasProHromadneOdhlasovani $nevhodnyCasProHromadneOdhlasovani) {
     return;

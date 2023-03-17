@@ -52,7 +52,7 @@ foreach (Uzivatel::zPrihlasenych() as $letosniUcastnik) {
     $kategorieNeplatice = $finance->kategorieNeplatice();
 
     $ucastnikData['suma_plateb']         = $finance->sumaPlateb(ROCNIK);
-    $ucastnikData['kategorie_neplatice'] = $kategorieNeplatice->dejCiselnouKategoriiNeplatice();
+    $ucastnikData['kategorie_neplatice'] = $kategorieNeplatice->ciselnaKategoriiNeplatice();
 
     $ucastnikData['aktualni_zustatek']     = $finance->stav();
     $ucastnikData['datum_posledni_platby'] = $finance->datumPosledniPlatby()
