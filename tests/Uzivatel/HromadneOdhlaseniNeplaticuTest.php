@@ -305,7 +305,7 @@ SQL;
             $kategorieNeplatice          = $zaznam['kategorie_neplatice'];
             $neplaticiAKategorieScalar[] = [
                 'neplatic'            => $neplatic->id(),
-                'kategorie_neplatice' => $kategorieNeplatice->dejCiselnouKategoriiNeplatice(),
+                'kategorie_neplatice' => $kategorieNeplatice->ciselnaKategoriiNeplatice(),
             ];
         }
         usort(

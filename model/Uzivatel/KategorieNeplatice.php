@@ -11,13 +11,13 @@ use Gamecon\Uzivatel\Exceptions\NepodporovanaKategorieNeplatice;
 class KategorieNeplatice
 {
 
-    public const LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH    = 1;
-    public const LETOS_POSLAL_MALO_A_MA_VELKY_DLUH                        = 2;
-    public const LETOS_NEPOSLAL_DOST_NEBO_Z_LONSKA_NECO_MA_A_MA_MALY_DLUH = 3;
-    public const LETOS_POSLAL_DOST_A_JE_TAK_CHRANENY                      = 4;
-    public const LETOS_SE_REGISTROVAL_PAR_DNU_PRED_ODHLASOVACI_VLNOU = 5;
-    public const MA_PRAVO_PLATIT_AZ_NA_MISTE                         = 6; // orgové a tak
-    public const LETOS_NEPOSLAL_NIC_ALE_TAKY_NEOBJEDNAL_NIC          = 7;
+    public const LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH            = 1;
+    public const LETOS_POSLAL_MALO_A_MA_VELKY_DLUH                           = 2;
+    public const LETOS_NEPOSLAL_DOST_NEBO_Z_LONSKA_NECO_MA_A_NEMA_VELKY_DLUH = 3;
+    public const LETOS_POSLAL_DOST_A_JE_TAK_CHRANENY                         = 4;
+    public const LETOS_SE_REGISTROVAL_PAR_DNU_PRED_ODHLASOVACI_VLNOU         = 5;
+    public const MA_PRAVO_PLATIT_AZ_NA_MISTE                                 = 6; // orgové a tak
+    public const LETOS_NEPOSLAL_NIC_ALE_TAKY_NEOBJEDNAL_NIC                  = 7;
 
     public static function vytvorProNadchazejiciVlnuZGlobals(
         \Uzivatel          $uzivatel,
@@ -71,7 +71,7 @@ class KategorieNeplatice
 
     public function melByBytOdhlasen(): bool {
         return in_array(
-            $this->dejCiselnouKategoriiNeplatice(),
+            $this->ciselnaKategoriiNeplatice(),
             [
                 self::LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH,
                 self::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH,
@@ -81,7 +81,7 @@ class KategorieNeplatice
     }
 
     public function maSmyslOdhlasitMuJenNeco(): bool {
-        return $this->dejCiselnouKategoriiNeplatice() === self::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH;
+        return $this->ciselnaKategoriiNeplatice() === self::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH;
     }
 
     /**
@@ -89,7 +89,7 @@ class KategorieNeplatice
      * https://trello.com/c/Zzo2htqI/892-vytvo%C5%99it-nov%C3%BD-report-email%C5%AF-p%C5%99i-odhla%C5%A1ov%C3%A1n%C3%AD-neplati%C4%8D%C5%AF
      * https://docs.google.com/document/d/1pP3mp9piPNAl1IKCC5YYe92zzeFdTLDMiT-xrUhVLdQ/edit
      */
-    public function dejCiselnouKategoriiNeplatice(): ?int {
+    public function ciselnaKategoriiNeplatice(): ?int {
         if ($this->maPravoNerusitObjednavky) {
             /**
              * Kategorie účastníka s právem platit až na místě
@@ -140,7 +140,7 @@ class KategorieNeplatice
              * a přitom se registroval na GC před více než týdnem
              */
             // kategorie 3
-            return self::LETOS_NEPOSLAL_DOST_NEBO_Z_LONSKA_NECO_MA_A_MA_MALY_DLUH;
+            return self::LETOS_NEPOSLAL_DOST_NEBO_Z_LONSKA_NECO_MA_A_NEMA_VELKY_DLUH;
         }
 
         if ($this->sumaLetosnichPlateb() <= 0.0
@@ -205,11 +205,13 @@ class KategorieNeplatice
     }
 
     public function otoc(bool $vcetneSumyLetosnichPlateb = true): static {
+        $sumaLetosnichPlateb = $this->sumaLetosnichPlateb;
+
         $reflection = new \ReflectionClass($this);
         foreach ($reflection->getDefaultProperties() as $name => $defaultValue) {
             $this->{$name} = $defaultValue;
         }
-        $sumaLetosnichPlateb = $this->sumaLetosnichPlateb();
+
         $this->finance->otoc();
         $this->__construct(
             $this->finance,
@@ -221,9 +223,11 @@ class KategorieNeplatice
             $this->castkaPoslalDost,
             $this->pocetDnuPredVlnouKdyJeJesteChranen
         );
+
         if (!$vcetneSumyLetosnichPlateb) { // chceme zachvovat cache plateb
             $this->sumaLetosnichPlateb = $sumaLetosnichPlateb;
         }
+
         return $this;
     }
 }
