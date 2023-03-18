@@ -17,58 +17,97 @@ use Granam\RemoveDiacritics\RemoveDiacritics;
 
 class HromadneOdhlaseniNeplaticuTest extends DbTest
 {
-    private const ID_PREDMETU_S_CENOU_VELKEHO_DLUHU = 111;
+    private const ID_NAHODNEHO_PREDMETU = 111;
+    private const ID_PREDMETU_UBYTOVANI = 112;
+
+    private const VELKY_DLUH_NIC_NEDAM               = 222;
+    private const VELKY_DLUH_DAM_MALO                = 223;
+    private const VELKY_DLUH_DAM_MALO_ODHLASIME_CAST = 224;
+    private const VELKY_DLUH_NIC_NEDAM_NEODHLASOVAT  = 2220;
+    private const VELKY_DLUH_DAM_MALO_NEODHLASOVAT   = 2230;
+    private const VELKY_DLUH_NIC_NEDAM_LETOS_NEJSEM  = 2221;
+    private const VELKY_DLUH_DAM_MALO_LETOS_NEJSEM   = 2231;
 
     protected static bool $disableStrictTransTables = true;
 
     protected static function getInitQueries(): array {
         $systemoveNastaveni = SystemoveNastaveni::vytvorZGlobals();
 
-        $queries[] = self::predmetSCenouVelkehoDluhuQuery($systemoveNastaveni);
+        $queries[] = self::nejakyPredmetQuery($systemoveNastaveni);
+        $queries[] = self::predmetUbytovani($systemoveNastaveni);
 
-        $queries[] = self::uzivatelQuery(222, 'Velký dluh', 'Nic nedám');
-        $queries[] = self::prihlasenNaLetosniGcVcasQuery(222);
-        $queries[] = self::velkyDluhQuery(222, $systemoveNastaveni);
+//        // očekávaná kategorie neplatiče 1 LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH
+//        $queries[] = self::uzivatelQuery(self::VELKY_DLUH_NIC_NEDAM, 'Velký dluh', 'Nic nedám');
+//        $queries[] = self::prihlasenNaLetosniGcVcasQuery(self::VELKY_DLUH_NIC_NEDAM);
+//        $queries[] = self::nakupProVelkyDluhQuery(self::VELKY_DLUH_NIC_NEDAM, $systemoveNastaveni);
+//
+//        // očekávaná kategorie neplatiče 2 LETOS_POSLAL_MALO_A_MA_VELKY_DLUH
+//        $queries[] = self::uzivatelQuery(self::VELKY_DLUH_DAM_MALO, 'Velký dluh', 'Dám málo');
+//        $queries[] = self::prihlasenNaLetosniGcVcasQuery(self::VELKY_DLUH_DAM_MALO);
+//        $queries[] = self::nakupProVelkyDluhQuery(self::VELKY_DLUH_DAM_MALO, $systemoveNastaveni);
+//        $queries[] = self::poslalMaloQuery(self::VELKY_DLUH_DAM_MALO, $systemoveNastaveni);
 
-        $queries[] = self::uzivatelQuery(223, 'Velký dluh', 'Dám málo');
-        $queries[] = self::prihlasenNaLetosniGcVcasQuery(223);
-        $queries[] = self::velkyDluhQuery(223, $systemoveNastaveni);
-        $queries[] = self::poslalMaloQuery(223, $systemoveNastaveni);
+        // očekávaná kategorie neplatiče 2 LETOS_POSLAL_MALO_A_MA_VELKY_DLUH postupné odhlašování
+        $queries[] = self::uzivatelQuery(self::VELKY_DLUH_DAM_MALO_ODHLASIME_CAST, 'Velký dluh', 'Dám málo, Odhlásíme část');
+        $queries[] = self::prihlasenNaLetosniGcVcasQuery(self::VELKY_DLUH_DAM_MALO_ODHLASIME_CAST);
+        $queries[] = self::poslalMaloQuery(self::VELKY_DLUH_DAM_MALO_ODHLASIME_CAST, $systemoveNastaveni);
+        $queries[] = self::nakupUbytovaniQuery(self::VELKY_DLUH_DAM_MALO_ODHLASIME_CAST, $systemoveNastaveni, 1.0);
+        $queries[] = self::nakupProVelkyDluhQuery(self::VELKY_DLUH_DAM_MALO_ODHLASIME_CAST, $systemoveNastaveni, -0.1 /* zrušením ubytování už tohle nebude velký dluh */);
 
-        $queries[] = self::uzivatelQuery(2220, 'Velký dluh', 'Nic nedám, Neodhlašovat');
-        $queries[] = self::prihlasenNaLetosniGcVcasQuery(2220);
-        $queries[] = self::velkyDluhQuery(2220, $systemoveNastaveni);
-        $queries[] = self::neodhlasovatQuery(2220);
-
-        $queries[] = self::uzivatelQuery(2230, 'Velký dluh', 'Dám málo, Neodhlašovat');
-        $queries[] = self::prihlasenNaLetosniGcVcasQuery(2230);
-        $queries[] = self::velkyDluhQuery(2230, $systemoveNastaveni);
-        $queries[] = self::poslalMaloQuery(2230, $systemoveNastaveni);
-        $queries[] = self::neodhlasovatQuery(2230);
-
-        $queries[] = self::uzivatelQuery(2221, 'Velký dluh', 'Nic nedám, Letos nejsem');
-        $queries[] = self::velkyDluhQuery(2221, $systemoveNastaveni);
-
-        $queries[] = self::uzivatelQuery(2231, 'Velký dluh', 'Dám málo, Letos nejsem');
-        $queries[] = self::velkyDluhQuery(2231, $systemoveNastaveni);
-        $queries[] = self::poslalMaloQuery(2231, $systemoveNastaveni);
+//        $queries[] = self::uzivatelQuery(self::VELKY_DLUH_NIC_NEDAM_NEODHLASOVAT, 'Velký dluh', 'Nic nedám, Neodhlašovat');
+//        $queries[] = self::prihlasenNaLetosniGcVcasQuery(self::VELKY_DLUH_NIC_NEDAM_NEODHLASOVAT);
+//        $queries[] = self::nakupProVelkyDluhQuery(self::VELKY_DLUH_NIC_NEDAM_NEODHLASOVAT, $systemoveNastaveni);
+//        $queries[] = self::neodhlasovatQuery(self::VELKY_DLUH_NIC_NEDAM_NEODHLASOVAT);
+//
+//        $queries[] = self::uzivatelQuery(self::VELKY_DLUH_DAM_MALO_NEODHLASOVAT, 'Velký dluh', 'Dám málo, Neodhlašovat');
+//        $queries[] = self::prihlasenNaLetosniGcVcasQuery(self::VELKY_DLUH_DAM_MALO_NEODHLASOVAT);
+//        $queries[] = self::nakupProVelkyDluhQuery(self::VELKY_DLUH_DAM_MALO_NEODHLASOVAT, $systemoveNastaveni);
+//        $queries[] = self::poslalMaloQuery(self::VELKY_DLUH_DAM_MALO_NEODHLASOVAT, $systemoveNastaveni);
+//        $queries[] = self::neodhlasovatQuery(self::VELKY_DLUH_DAM_MALO_NEODHLASOVAT);
+//
+//        $queries[] = self::uzivatelQuery(self::VELKY_DLUH_NIC_NEDAM_LETOS_NEJSEM, 'Velký dluh', 'Nic nedám, Letos nejsem');
+//        $queries[] = self::nakupProVelkyDluhQuery(self::VELKY_DLUH_NIC_NEDAM_LETOS_NEJSEM, $systemoveNastaveni);
+//
+//        $queries[] = self::uzivatelQuery(self::VELKY_DLUH_DAM_MALO_LETOS_NEJSEM, 'Velký dluh', 'Dám málo, Letos nejsem');
+//        $queries[] = self::nakupProVelkyDluhQuery(self::VELKY_DLUH_DAM_MALO_LETOS_NEJSEM, $systemoveNastaveni);
+//        $queries[] = self::poslalMaloQuery(self::VELKY_DLUH_DAM_MALO_LETOS_NEJSEM, $systemoveNastaveni);
 
         return $queries;
     }
 
-    private static function predmetSCenouVelkehoDluhuQuery(SystemoveNastaveni $systemoveNastaveni): string {
-        $idPredmetuSCenouVelkehoDluhu = self::ID_PREDMETU_S_CENOU_VELKEHO_DLUHU;
-        $typVstupne                   = TypPredmetu::VSTUPNE;
-        $rok                          = $systemoveNastaveni->rocnik();
-        $velkyDluh                    = $systemoveNastaveni->neplaticCastkaVelkyDluh();
+    private static function predmetUbytovani(SystemoveNastaveni $systemoveNastaveni): string {
+        return self::predmetQuery(
+            self::ID_PREDMETU_UBYTOVANI,
+            TypPredmetu::VSTUPNE,
+            'luxusní 0+KK',
+            $systemoveNastaveni
+        );
+    }
+
+    private static function nejakyPredmetQuery(SystemoveNastaveni $systemoveNastaveni): string {
+        return self::predmetQuery(
+            self::ID_NAHODNEHO_PREDMETU,
+            TypPredmetu::VSTUPNE,
+            'cosi kdesi',
+            $systemoveNastaveni
+        );
+    }
+
+    private static function predmetQuery(
+        int                $idPredmetu,
+        int                $typPredmetu,
+        string             $nazev,
+        SystemoveNastaveni $systemoveNastaveni
+    ): string {
+        $rok = $systemoveNastaveni->rocnik();
 
         return <<<SQL
 INSERT INTO shop_predmety
-SET id_predmetu = $idPredmetuSCenouVelkehoDluhu,
-    nazev = 'Předražené vstupné',
-    typ = $typVstupne,
+SET id_predmetu = $idPredmetu,
+    nazev = '$nazev',
+    typ = $typPredmetu,
     model_rok = $rok,
-    cena_aktualni = $velkyDluh
+    cena_aktualni = 0.0 -- nemá na nic vliv, "nákup" řešíme přímým zápisem do DB včetně vlastní podejní ceny
 SQL;
     }
 
@@ -91,16 +130,44 @@ VALUES ($idUzivatele, $rolePrihlasenNaLetosniGc, $uzivatelSystem, '$posazen')
 SQL;
     }
 
-    private static function velkyDluhQuery(int $idUzivatele, SystemoveNastaveni $systemoveNastaveni): string {
+    private static function nakupProVelkyDluhQuery(
+        int                $idUzivatele,
+        SystemoveNastaveni $systemoveNastaveni,
+        float              $upravaCeny = 0.0
+    ): string {
         $rok                          = $systemoveNastaveni->rocnik();
         $velkyDluh                    = $systemoveNastaveni->neplaticCastkaVelkyDluh();
         $poslalMalo                   = self::poslalMalo($systemoveNastaveni);
-        $cena                         = $velkyDluh + $poslalMalo;
-        $idPredmetuSCenouVelkehoDluhu = self::ID_PREDMETU_S_CENOU_VELKEHO_DLUHU;
+        $cena                         = $velkyDluh + $poslalMalo + $upravaCeny;
+        $idPredmetuSCenouVelkehoDluhu = self::ID_NAHODNEHO_PREDMETU;
 
         return <<<SQL
 INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni)
 VALUES ($idUzivatele, $idPredmetuSCenouVelkehoDluhu, $rok, $cena)
+SQL;
+    }
+
+    private static function nakupUbytovaniQuery(
+        int                $idUzivatele,
+        SystemoveNastaveni $systemoveNastaveni,
+        float              $cena
+    ): string {
+        $rok                 = $systemoveNastaveni->rocnik();
+        $idPredmetuUbytovani = self::ID_PREDMETU_UBYTOVANI;
+
+        return <<<SQL
+INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni)
+VALUES ($idUzivatele, $idPredmetuUbytovani, $rok, $cena)
+SQL;
+    }
+
+    private static function nakupQuery(
+        int $idUzivatele,
+
+    ) {
+        return <<<SQL
+INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni)
+VALUES ($idUzivatele, $idPredmetuUbytovani, $rok, $cena)
 SQL;
     }
 
@@ -115,7 +182,7 @@ SQL;
     }
 
     private static function poslalMalo(SystemoveNastaveni $systemoveNastaveni): float {
-        return (float)$systemoveNastaveni->neplaticCastkaPoslalDost() - 1;
+        return (float)$systemoveNastaveni->neplaticCastkaPoslalDost() - 0.01;
     }
 
     private static function neodhlasovatQuery(int $idUzivatele): string {
@@ -314,12 +381,16 @@ SQL;
         );
         self::assertSame(
             [
+//                [
+//                    'neplatic'            => self::VELKY_DLUH_NIC_NEDAM,
+//                    'kategorie_neplatice' => KategorieNeplatice::LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH,
+//                ],
+//                [
+//                    'neplatic'            => self::VELKY_DLUH_DAM_MALO,
+//                    'kategorie_neplatice' => KategorieNeplatice::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH,
+//                ],
                 [
-                    'neplatic'            => 222,
-                    'kategorie_neplatice' => KategorieNeplatice::LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH,
-                ],
-                [
-                    'neplatic'            => 223,
+                    'neplatic'            => self::VELKY_DLUH_DAM_MALO_ODHLASIME_CAST,
                     'kategorie_neplatice' => KategorieNeplatice::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH,
                 ],
             ],
