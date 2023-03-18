@@ -18,7 +18,7 @@ define('REG_GC_OD', '2000-01-01 00:00:00');
 define('REG_AKTIVIT_OD', '2000-01-01 00:00:00');
 
 /**
- * Pozor! Při vypnutí na betě to ovlivní i posílání mailů z CRONu, pokud není výslovně nastavená kosntanta MAILY_DO_SOUBORU
+ * Pozor! Při vypnutí na betě to ovlivní i posílání mailů z CRONu, pokud není výslovně nastavená konstanta MAILY_DO_SOUBORU
  * @see admin/cron.php
  */
 @define('TESTING', true);
