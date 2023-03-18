@@ -14,7 +14,7 @@
 
 .sponzori_loga {
     display: grid;
-    grid-template-columns: repeat(auto-fill, 150px);
+    grid-template-columns: repeat(auto-fill, 200px);
     gap: 0 90rel;
     justify-content: space-between;
     @media (max-width: 600px) {
@@ -24,7 +24,7 @@
 }
 
 .sponzori_logo {
-    height: 120px; // aby se zabránilo skákání
+    height: 200px; // aby se zabránilo skákání
     line-height: 120px; // kvůli zarovnání obrázků
     text-align: center;
 }
@@ -37,5 +37,33 @@
 }
 
 .sponzori_logo > a:hover > img {
+    filter: none;
+}
+
+.partneri_loga {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 150px);
+    gap: 0 90rel;
+    justify-content: space-between;
+    @media (max-width: 600px) {
+        grid-template-columns: repeat(auto-fill, 75px);
+        gap: 0 10px;
+    }
+}
+
+.partneri_logo {
+    height: 120px; // aby se zabránilo skákání
+    line-height: 60px; // kvůli zarovnání obrázků
+    text-align: center;
+}
+
+.partneri_logo > a > img {
+    vertical-align: middle;
+    max-width: 100%;
+    filter: saturate(0) brightness(0.85) contrast(1.5) opacity(0.5);
+    transition: filter 0.2s;
+}
+
+.partneri_logo > a:hover > img {
     filter: none;
 }

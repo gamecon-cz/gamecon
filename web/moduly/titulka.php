@@ -30,17 +30,26 @@ foreach ($typy as $i => $typ) {
 }
 
 // sponzoři a partneři
-$obrazky = array_merge(
-    glob(ADRESAR_WEBU_S_OBRAZKY . '/soubory/systemove/sponzori/*'),
-    glob(ADRESAR_WEBU_S_OBRAZKY . '/soubory/systemove/partneri/*'),
-);
-foreach ($obrazky as $obrazek) {
+$sponzoriLoga = glob(ADRESAR_WEBU_S_OBRAZKY . '/soubory/systemove/sponzori/*');
+
+foreach ($sponzoriLoga as $obrazek) {
+    $info = pathinfo($obrazek);
+    $t->assign([
+        'src' => Nahled::zSouboru($obrazek)->pasuj(200, 120),
+        'url' => 'http://' . $info['filename'],
+    ]);
+    $t->parse('titulka.sponzor');
+}
+
+$partneriLoga = glob(ADRESAR_WEBU_S_OBRAZKY . '/soubory/systemove/partneri/*');
+
+foreach ($partneriLoga as $obrazek) {
     $info = pathinfo($obrazek);
     $t->assign([
         'src' => Nahled::zSouboru($obrazek)->pasuj(120, 60),
         'url' => 'http://' . $info['filename'],
     ]);
-    $t->parse('titulka.sponzor');
+    $t->parse('titulka.partner');
 }
 
 // odpočet
