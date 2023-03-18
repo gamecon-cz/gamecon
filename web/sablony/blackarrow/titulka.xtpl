@@ -173,9 +173,8 @@
     </script>
 </div>
 
-
 <div class="sponzori">
-    <a href="#sponzori"><h2>Děkujeme našim sponzorům a partnerům!</h2></a>
+    <h2 id="sponzori"><a href="#sponzori">Děkujeme našim sponzorům a partnerům!</a></h2>
     <div class="sponzori_loga">
         <!-- begin: sponzor -->
         <div class="sponzori_logo">
