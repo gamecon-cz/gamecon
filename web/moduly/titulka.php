@@ -35,7 +35,7 @@ $sponzoriLoga = glob(ADRESAR_WEBU_S_OBRAZKY . '/soubory/systemove/sponzori/*');
 foreach ($sponzoriLoga as $obrazek) {
     $info = pathinfo($obrazek);
     $t->assign([
-        'src' => Nahled::zSouboru($obrazek)->pasuj(200, 120),
+        'src' => Nahled::zSouboru($obrazek)->pasuj(160, 96),
         'url' => 'http://' . $info['filename'],
     ]);
     $t->parse('titulka.sponzor');
