@@ -2,11 +2,9 @@
 
 /** @var \Godric\DbMigrations\Migration $this */
 
-use Gamecon\Shop\Shop;
-
-$verejny = Shop::VEREJNY;
-$podpultovy = Shop::PODPULTOVY;
-$typTricko = Shop::TRICKO;
+$verejny = 1;
+$podpultovy = 2;
+$typTricko = 3;
 
 $this->q(<<<SQL
 INSERT IGNORE INTO `shop_predmety`
