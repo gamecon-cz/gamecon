@@ -28,7 +28,7 @@ if (!empty($_POST['gcPrihlas']) && $uPracovni && !$uPracovni->gcPrihlasen()) {
 }
 
 if (!empty($_POST['gcOdhlas']) && $uPracovni && !$uPracovni->gcPritomen() && $u->maRoli(Role::CFO)) {
-    $uPracovni->gcOdhlas('rucne-inpfopult', $u, $systemoveNastaveni);
+    $uPracovni->gcOdhlas('rucne-inpfopult', $u);
     back();
 }
 

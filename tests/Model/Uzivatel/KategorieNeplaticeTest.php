@@ -266,8 +266,7 @@ class KategorieNeplaticeTest extends TestCase
             ) {
             }
 
-            public function otoc(): static {
-                return $this;
+            public function obnovUdaje() {
             }
 
             public function nastavSumuPlateb(float $sumaPlateb) {
@@ -319,7 +318,7 @@ class KategorieNeplaticeTest extends TestCase
         );
 
         foreach ([true, false] as $vcetneSumyLetosnichPlateb) {
-            $kategorieNeplatice->otoc($vcetneSumyLetosnichPlateb);
+            $kategorieNeplatice->obnovUdaje($vcetneSumyLetosnichPlateb);
             self::assertSame(
                 $puvodniCiselnaKategorieNeplatice,
                 $kategorieNeplatice->ciselnaKategoriiNeplatice(),
@@ -329,14 +328,14 @@ class KategorieNeplaticeTest extends TestCase
 
         $finance->nastavSumuPlateb($castkaPoslalDost);
 
-        $kategorieNeplatice->otoc(false);
+        $kategorieNeplatice->obnovUdaje(false);
         self::assertSame(
             $puvodniCiselnaKategorieNeplatice,
             $kategorieNeplatice->ciselnaKategoriiNeplatice(),
             'Po resetu vnitní cache bez sumy letošních plateb by se nemělo nic změnit'
         );
 
-        $kategorieNeplatice->otoc(true);
+        $kategorieNeplatice->obnovUdaje(true);
         self::assertSame(
             KategorieNeplatice::LETOS_POSLAL_DOST_A_JE_TAK_CHRANENY,
             $kategorieNeplatice->ciselnaKategoriiNeplatice()
