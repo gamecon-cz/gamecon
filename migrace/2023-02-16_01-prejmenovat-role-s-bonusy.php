@@ -3,7 +3,7 @@
 
 $this->q(<<<SQL
 UPDATE role_seznam
-    SET nazev_role = 'Půl-org ubytko',
+    SET nazev_role = 'Půl-org s ubytkem',
     popis_role = 'Krom jiného ubytování zdarma',
     kod_role = 'PUL_ORG_UBYTKO',
     vyznam_role = 'PUL_ORG_UBYTKO'
@@ -13,7 +13,7 @@ SQL
 
 $this->q(<<<SQL
 UPDATE role_seznam
-    SET nazev_role = 'Půl-org tričko',
+    SET nazev_role = 'Půl-org s tričkem',
     popis_role = 'Krom jiného trička zdarma',
     kod_role ='PUL_ORG_TRICKO',
     vyznam_role = 'PUL_ORG_TRICKO'
