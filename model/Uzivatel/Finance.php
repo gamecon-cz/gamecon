@@ -8,6 +8,7 @@ use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Exceptions\NeznamyTypPredmetu;
 use Gamecon\Finance\SqlStruktura\SlevySqlStruktura;
+use Gamecon\Objekt\ObnoveniVychozichHodnotTrait;
 use Gamecon\Pravo;
 use Gamecon\Shop\Shop;
 use Gamecon\Shop\TypPredmetu;
@@ -18,11 +19,10 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
  */
 class Finance
 {
+    use ObnoveniVychozichHodnotTrait;
 
     public const KLIC_ZRUS_NAKUP_POLOZKY = 'zrus-nakup-polozky';
 
-    /** @var \Uzivatel */
-    private $u; // uživatel, jehož finance se počítají
     private $stav = 0;  // celkový výsledný stav uživatele na účtu
     private $deltaPozde = 0;      // o kolik se zvýší platba při zaplacení pozdě
     private $soucinitelCenyAKtivit;              // součinitel ceny aktivit
@@ -49,7 +49,6 @@ class Finance
     private $vyuzityBonusZaVedeniAktivit = 0.0;  // sleva za odvedené aktivity (využitá část)
     private $zbyvajiciObecnaSleva = 0.0;
     private $vyuzitaSlevaObecna = 0.0;
-    private $zustatekZPredchozichRocniku = 0;    // zůstatek z minula
     private $sumyPlatebVRocich = [];  // platby připsané na účet v jednotlivých letech (zatím jen letos; protože máme obskurnost jménem "Uzavření ročníku")
     /** @var string|null */
     private $datumPosledniPlatby;        // datum poslední připsané platby
@@ -87,17 +86,22 @@ class Finance
      * @param \Uzivatel $u uživatel, pro kterého se finance sestavují
      * @param float $zustatek zůstatek na účtu z minulých GC
      */
-    public function __construct(\Uzivatel $u, float $zustatek, private readonly SystemoveNastaveni $systemoveNastaveni) {
-        $this->u                           = $u;
-        $this->zustatekZPredchozichRocniku = $zustatek;
+    public function __construct(
+        private readonly \Uzivatel          $u,
+        private readonly float              $zustatekZPredchozichRocniku,
+        private readonly SystemoveNastaveni $systemoveNastaveni
+    ) {
+        $this->prepocti();
+    }
 
+    private function prepocti() {
         $this->zapoctiVedeniAktivit();
         $this->zapoctiSlevy();
 
         $this->cenik = new \Cenik(
-            $u,
+            $this->u,
             $this->bonusZaVedeniAktivit,
-            $systemoveNastaveni
+            $this->systemoveNastaveni
         ); // musí být načteno, i pokud není přihlášen na GC
 
         $this->zapoctiAktivity();
@@ -132,16 +136,10 @@ class Finance
         $this->logb('Stav financí', $this->stav(), self::VYSLEDNY);
     }
 
-    public function otoc(): static {
-        $reflection = new \ReflectionClass($this);
-        foreach ($reflection->getDefaultProperties() as $name => $defaultValue) {
-            $this->{$name} = $defaultValue;
-        }
-        $this->__construct(
-            $this->u,
-            $this->zustatekZPredchozichRocniku,
-            $this->systemoveNastaveni
-        );
+    public function obnovUdaje() {
+        $this->obnovVychoziHodnotyObjektu();
+        $this->prepocti();
+
         return $this;
     }
 
@@ -203,7 +201,7 @@ class Finance
             'nazev'  => trim($nazev),
             'pocet'  => $pocet,
             'castka' => $castka,
-            'typ'    => $typ,
+            'typ'    => (int)$typ,
         ];
     }
 
@@ -340,14 +338,14 @@ class Finance
      */
     public function pripis($castka, \Uzivatel $provedl, $poznamka = null, $idFioPlatby = null) {
         dbInsert(
-            'platby',
+            PlatbySqlStruktura::PLATBY_TABULKA,
             [
-                'id_uzivatele' => $this->u->id(),
-                'fio_id'       => $idFioPlatby ?: null,
-                'castka'       => prevedNaFloat($castka),
-                'rok'          => ROCNIK,
-                'provedl'      => $provedl->id(),
-                'poznamka'     => $poznamka ?: null,
+                PlatbySqlStruktura::ID_UZIVATELE => $this->u->id(),
+                PlatbySqlStruktura::FIO_ID       => $idFioPlatby ?: null,
+                PlatbySqlStruktura::CASTKA       => prevedNaFloat($castka),
+                PlatbySqlStruktura::ROK          => $this->systemoveNastaveni->rocnik(),
+                PlatbySqlStruktura::PROVEDL      => $provedl->id(),
+                PlatbySqlStruktura::POZNAMKA     => $poznamka ?: null,
             ]
         );
     }

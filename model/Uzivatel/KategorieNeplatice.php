@@ -2,14 +2,15 @@
 
 namespace Gamecon\Uzivatel;
 
+use Gamecon\Objekt\ObnoveniVychozichHodnotTrait;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
-use Gamecon\Uzivatel\Exceptions\NepodporovanaKategorieNeplatice;
 
 /**
  * https://trello.com/c/Zzo2htqI/892-vytvo%C5%99it-nov%C3%BD-report-email%C5%AF-p%C5%99i-odhla%C5%A1ov%C3%A1n%C3%AD-neplati%C4%8D%C5%AF
  */
 class KategorieNeplatice
 {
+    use ObnoveniVychozichHodnotTrait;
 
     public const LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH            = 1;
     public const LETOS_POSLAL_MALO_A_MA_VELKY_DLUH                           = 2;
@@ -204,30 +205,14 @@ class KategorieNeplatice
         return $this->hromadneOdhlasovaniKdy;
     }
 
-    public function otoc(bool $vcetneSumyLetosnichPlateb = true): static {
+    public function obnovUdaje(bool $vcetneSumyLetosnichPlateb = true) {
         $sumaLetosnichPlateb = $this->sumaLetosnichPlateb;
 
-        $reflection = new \ReflectionClass($this);
-        foreach ($reflection->getDefaultProperties() as $name => $defaultValue) {
-            $this->{$name} = $defaultValue;
-        }
+        $this->finance->obnovUdaje();
+        $this->obnovVychoziHodnotyObjektu();
 
-        $this->finance->otoc();
-        $this->__construct(
-            $this->finance,
-            $this->kdySeRegistrovalNaLetosniGc,
-            $this->maPravoNerusitObjednavky,
-            $this->hromadneOdhlasovaniKdy,
-            $this->rocnik,
-            $this->castkaVelkyDluh,
-            $this->castkaPoslalDost,
-            $this->pocetDnuPredVlnouKdyJeJesteChranen
-        );
-
-        if (!$vcetneSumyLetosnichPlateb) { // chceme zachvovat cache plateb
+        if (!$vcetneSumyLetosnichPlateb) { // chceme zachovat cache plateb
             $this->sumaLetosnichPlateb = $sumaLetosnichPlateb;
         }
-
-        return $this;
     }
 }
