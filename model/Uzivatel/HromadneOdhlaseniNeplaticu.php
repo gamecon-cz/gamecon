@@ -348,8 +348,11 @@ Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hro
         $castiTextu    = [];
 
         if ($nazvyZrusenychNakupu) {
-            $castiPredmetu[] = 'objednávky';
-            $castiTextu[]    = 'zrušit tvé objednávky ' . implode(', ', $nazvyZrusenychNakupu);
+            $castiPredmetu[]     = 'objednávky';
+            $zrusitTveObjednavky = count($nazvyZrusenychNakupu) > 1
+                ? 'zrušit tvé objednávky'
+                : 'zrušit tvou objednávku';
+            $castiTextu[]        = $zrusitTveObjednavky . ' ' . implode(', ', $nazvyZrusenychNakupu);
         }
 
         if ($zruseneAktivityUzivatele) {
