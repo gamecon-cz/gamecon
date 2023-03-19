@@ -36,50 +36,53 @@ class HromadneOdhlaseniNeplaticu
     public function hromadneOdhlasit(
         string             $zdrojOdhlaseniZaklad,
         ?Zaznamnik         $zaznamnik,
-        \DateTimeInterface $platnostZpetneKDatu = null
+        \DateTimeInterface $platnostZpetneKDatu = null,
+        \DateTimeInterface $nejblizsiHromadneOdhlasovaniKdy = null,
     ): int {
-        $nejblizsiHromadneOdhlasovaniKdy = $this->systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy($platnostZpetneKDatu);
+        $nejblizsiHromadneOdhlasovaniKdy ??= $this->systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy($platnostZpetneKDatu);
         $poradiHromadnehoOdhlasovani     = DateTimeGamecon::poradiHromadnehoOdhlasovani(
             $nejblizsiHromadneOdhlasovaniKdy,
             $this->systemoveNastaveni
         );
         $zdrojOdhlaseni                  = "$zdrojOdhlaseniZaklad-$poradiHromadnehoOdhlasovani";
         $uzivatelSystem                  = \Uzivatel::zId(\Uzivatel::SYSTEM);
-        foreach ($this->neplaticiAKategorie($nejblizsiHromadneOdhlasovaniKdy)
-                 as ['uzivatel' => $uzivatel, 'kategorie_neplatice' => $kategorieNeplatice]) {
+        foreach ($this->neplaticiAKategorie($nejblizsiHromadneOdhlasovaniKdy, $platnostZpetneKDatu)
+                 as ['neplatic' => $neplatic, 'kategorie_neplatice' => $kategorieNeplatice]
+        ) {
             /**
-             * @var \Uzivatel $uzivatel
+             * @var \Uzivatel $neplatic
              * @var KategorieNeplatice $kategorieNeplatice
              */
             if ($kategorieNeplatice->melByBytOdhlasen()) {
                 if ($kategorieNeplatice->maSmyslOdhlasitMuJenNeco()) {
-                    $necoOdhlaseno = null;
+                    $vysledekOdhlaseniJenNeco = null;
+                    $celkemOdhlaseno          = 0;
                     do {
-                        $necoOdhlaseno = $this->odhlasMuJenNeco($uzivatel, $zdrojOdhlaseni, $uzivatelSystem, $necoOdhlaseno);
-                        if ($necoOdhlaseno) {
-                            $kategorieNeplatice->otoc(false /* platby se nezměniliy */);
+                        $vysledekOdhlaseniJenNeco = $this->odhlasMuJenNeco($neplatic, $zdrojOdhlaseni, $uzivatelSystem, $vysledekOdhlaseniJenNeco);
+                        if ($vysledekOdhlaseniJenNeco->celkemOdhlaseno() > $celkemOdhlaseno) {
+                            $kategorieNeplatice->obnovUdaje(false /* platby se nezměnily */);
                         }
-                    } while ($necoOdhlaseno !== false && $kategorieNeplatice->melByBytOdhlasen());
+                        $celkemOdhlaseno = $vysledekOdhlaseniJenNeco->celkemOdhlaseno();
+                    } while ($vysledekOdhlaseniJenNeco->jesteNecoNeodhlasovano() && $kategorieNeplatice->melByBytOdhlasen());
                     if (!$kategorieNeplatice->melByBytOdhlasen()) {
-                        $this->posliEmailSOdhlasenymiPolozkami($uzivatel, $zdrojOdhlaseni);
+                        $this->posliEmailSOdhlasenymiPolozkami($neplatic, $zdrojOdhlaseni);
                         continue; // povedlo se, postupným odhlašováním položek jsme se dostali až k tomu, že nemusíme odhlásit samotného účastníka
                     }
                 }
                 try {
-                    $uzivatel->gcOdhlas(
+                    $neplatic->gcOdhlas(
                         $zdrojOdhlaseni,
                         $uzivatelSystem,
-                        $this->systemoveNastaveni,
                         $zaznamnik,
                     );
-                    $zaznamnik?->pridejEntitu($uzivatel);
+                    $zaznamnik?->pridejEntitu($neplatic);
                     $this->odhlasenoCelkem++;
                     set_time_limit(30); // jenom pro jistotu, mělo by to trvat maximálně sekundu
                 } catch (Chyba $chyba) {
                     $potiz = sprintf(
                         "Nelze ohlásit účastníka %s s ID %d: '%s'",
-                        $uzivatel->jmenoNick(),
-                        $uzivatel->id(),
+                        $neplatic->jmenoNick(),
+                        $neplatic->id(),
                         $chyba->getMessage()
                     );
                     $zaznamnik?->pridejZpravu("Potíže: $potiz");
@@ -97,33 +100,56 @@ class HromadneOdhlaseniNeplaticu
     }
 
     private function odhlasMuJenNeco(
-        \Uzivatel $uzivatel,
-        string    $zdrojOdhlaseni,
-        \Uzivatel $odhlasujici,
-        ?string   $naposledyOdhlaseno
-    ): string|false {
-        if ($naposledyOdhlaseno === null
-            && $uzivatel->shop($this->systemoveNastaveni)->zrusLetosniUbytovani($zdrojOdhlaseni) > 0
-        ) {
-            return 'ubytovani';
+        \Uzivatel                $uzivatel,
+        string                   $zdrojOdhlaseni,
+        \Uzivatel                $odhlasujici,
+        VysledekOdhlaseniJenNeco $vysledekOdhlaseniJenNeco = null
+    ): VysledekOdhlaseniJenNeco {
+        $vysledekOdhlaseniJenNeco ??= new VysledekOdhlaseniJenNeco();
+
+        if ($vysledekOdhlaseniJenNeco->odhlasenoUbytovani() === null) {
+            $vysledekOdhlaseniJenNeco->nastavOdhlasenoUbytovani(
+                $uzivatel->shop($this->systemoveNastaveni)->zrusLetosniObjednaneUbytovani($zdrojOdhlaseni)
+            );
+            if ($vysledekOdhlaseniJenNeco->odhlasenoUbytovani() > 0) {
+                return $vysledekOdhlaseniJenNeco;
+            }
         }
-        if ($naposledyOdhlaseno === 'ubytovani'
-            && $uzivatel->shop($this->systemoveNastaveni)->zrusPrihlaseniNaLetosniLarpy($odhlasujici, $zdrojOdhlaseni) > 0
-        ) {
-            return 'larpy';
+
+        if ($vysledekOdhlaseniJenNeco->odhlasenoLarpu() === null) {
+            $vysledekOdhlaseniJenNeco->nastavOdhlasenoLarpu(
+                $uzivatel->shop($this->systemoveNastaveni)->zrusPrihlaseniNaLetosniLarpy(
+                    $odhlasujici,
+                    $zdrojOdhlaseni
+                )
+            );
+            if ($vysledekOdhlaseniJenNeco->odhlasenoLarpu() > 0) {
+                return $vysledekOdhlaseniJenNeco;
+            }
         }
-        if ($naposledyOdhlaseno === 'larpy'
-            && $uzivatel->shop($this->systemoveNastaveni)->zrusPrihlaseniNaLetosniRpg($odhlasujici, $zdrojOdhlaseni) > 0
-        ) {
-            return 'rpg';
+
+        if ($vysledekOdhlaseniJenNeco->odhlasenoRpg() === null) {
+            $vysledekOdhlaseniJenNeco->nastavOdhlasenoRpg(
+                $uzivatel->shop($this->systemoveNastaveni)->zrusPrihlaseniNaLetosniRpg(
+                    $odhlasujici,
+                    $zdrojOdhlaseni
+                )
+            );
+            if ($vysledekOdhlaseniJenNeco->odhlasenoRpg() > 0) {
+                return $vysledekOdhlaseniJenNeco;
+            }
         }
-        // respektive na zbývající
-        if ($naposledyOdhlaseno === 'rpg'
-            && $uzivatel->shop($this->systemoveNastaveni)->zrusPrihlaseniNaVsechnyAktivity($odhlasujici, $zdrojOdhlaseni) > 0
-        ) {
-            return 'ostatni-aktivity';
+
+        if ($vysledekOdhlaseniJenNeco->odhlasenoOstatnichAktivit() === null) {
+            $vysledekOdhlaseniJenNeco->nastavOdhlasenoOstatnichAktivit(
+            // respektive na zbývající
+                $uzivatel->shop($this->systemoveNastaveni)->zrusPrihlaseniNaVsechnyAktivity(
+                    $odhlasujici,
+                    $zdrojOdhlaseni
+                )
+            );
         }
-        return false;
+        return $vysledekOdhlaseniJenNeco;
     }
 
     private function zalogujHromadneOdhlaseni(
@@ -184,8 +210,8 @@ SQL,
      */
     public function neplaticiAKategorie(
         \DateTimeInterface $nejblizsiHromadneOdhlasovaniKdy = null,
-        \DateTimeInterface $kDatu = null,
         \DateTimeInterface $platnostZpetneKDatu = null,
+        \DateTimeInterface $kDatu = null,
 
     ): \Generator {
         $nejblizsiHromadneOdhlasovaniKdy ??= $this->systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy();
@@ -267,7 +293,7 @@ Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hro
     }
 
     public function zalogujNotifikovaniCfoOBrzkemHromadnemOdhlaseni(
-        int                $budeOdhlaseno,
+        int                $budeOdhlasenoPocet,
         \DateTimeInterface $hromadneOdhlasovaniKdy,
         int                $poradiOznameni,
         \Uzivatel          $odeslal,
@@ -276,7 +302,7 @@ Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hro
         $this->zalogujHromadnouAkci(
             self::SKUPINA,
             $this->sestavNazevAkceEmailuCfoInfo($poradiOznameni, $hromadneOdhlasovaniKdy),
-            $budeOdhlaseno,
+            $budeOdhlasenoPocet,
             $odeslal,
             $stalaSeKdy
         );
@@ -319,6 +345,7 @@ Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hro
         }
 
         $castiPredmetu = [];
+        $castiTextu    = [];
 
         if ($nazvyZrusenychNakupu) {
             $castiPredmetu[] = 'objednávky';

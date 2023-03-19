@@ -74,7 +74,7 @@ SQL
         if (is_array($uzivatel) && array_keys_exist(['id_uzivatele', 'login_uzivatele', 'pohlavi'], $uzivatel)) {
             $this->r = $uzivatel;
             parent::__construct($uzivatel);
-            $this->systemoveNastaveni ??= SystemoveNastaveni::vytvorZGlobals();
+            $this->systemoveNastaveni = $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals();
         } else {
             throw new Exception('Špatný vstup konstruktoru uživatele');
         }
@@ -222,7 +222,7 @@ SQL
         if (!$this->finance) {
             $this->finance = new Finance(
                 $this,
-                $this->r['zustatek'],
+                (float)$this->r['zustatek'],
                 $this->systemoveNastaveni
             );
         }
@@ -260,11 +260,10 @@ SQL
      * @todo Při odhlášení z GC pokud jsou zakázané rušení nákupů může být též problém (k zrušení dojde)
      */
     public function gcOdhlas(
-        string             $zdrojOdhlaseni,
-        Uzivatel           $odhlasujici,
-        SystemoveNastaveni $systemoveNastaveni,
-        Zaznamnik          $zaznamnik = null,
-        bool               $odeslatMailPokudSeNeodhlasilSam = true
+        string    $zdrojOdhlaseni,
+        Uzivatel  $odhlasujici,
+        Zaznamnik $zaznamnik = null,
+        bool      $odeslatMailPokudSeNeodhlasilSam = true
     ): bool {
         if (!$this->gcPrihlasen()) {
             return false;
@@ -289,32 +288,27 @@ SQL
         // finální odebrání role "registrován na GC"
         $this->odeberRoli(Role::PRIHLASEN_NA_LETOSNI_GC, $odhlasujici);
         // zrušení nákupů (až po použití dejShop a ubytovani)
-        $this->shop($systemoveNastaveni)->zrusVsechnyLetosniObjedavky($zdrojOdhlaseni, $systemoveNastaveni);
+        $this->shop($this->systemoveNastaveni)->zrusVsechnyLetosniObjedavky($zdrojOdhlaseni);
 
         try {
-            $this->informujOOdhlaseni($odhlasujici, $zaznamnik, $odeslatMailPokudSeNeodhlasilSam, $systemoveNastaveni);
+            $this->informujOOdhlaseni($odhlasujici, $zaznamnik, $odeslatMailPokudSeNeodhlasilSam);
         } catch (\Throwable $throwable) {
             trigger_error($throwable->getMessage() . '; ' . $throwable->getTraceAsString(), E_USER_WARNING);
         }
+
+        $this->otoc();
 
         return true;
     }
 
     private function informujOOdhlaseni(
-        Uzivatel           $odhlasujici,
-        ?Zaznamnik         $zaznamnik,
-        bool               $odeslatMailPokudSeNeodhlasilSam,
-        SystemoveNastaveni $systemoveNastaveni
+        Uzivatel   $odhlasujici,
+        ?Zaznamnik $zaznamnik,
+        bool       $odeslatMailPokudSeNeodhlasilSam,
     ) {
-        $odhlasen = $this->id() === $odhlasujici->id()
-            ? ' se odhlásil'
-            : 'byl odhlášen';
         // odeslání upozornění, pokud u nás má peníze
         if (($celkemLetosPoslal = $this->finance()->sumaPlateb()) > 0) {
-            $mailOdhlasilAlePlatil = (new GcMail())
-                ->adresat('info@gamecon.cz')
-                ->predmet("Uživatel {$this->jmenoNick()} $odhlasen ale platil")
-                ->text(hlaskaMail('odhlasilPlatil', $this->jmenoNick(), $this->id(), $odhlasen, ROCNIK, $celkemLetosPoslal));
+            $mailOdhlasilAlePlatil = $this->mailOdhlasilAlePlatil($celkemLetosPoslal, $odhlasujici);
             if ($zaznamnik) {
                 $zaznamnik->uchovejZEmailu($mailOdhlasilAlePlatil);
             } else {
@@ -322,15 +316,7 @@ SQL
             }
         }
         if ($dnyUbytovani = array_keys($this->shop()->ubytovani()->veKterychDnechJeUbytovan())) {
-            $mailMelUbytovani = (new GcMail())
-                ->adresat('info@gamecon.cz')
-                ->predmet("Uživatel $odhlasen a měl ubytování")
-                ->text(
-                    hlaskaMail(
-                        'odhlasilMelUbytovani',
-                        $this->jmenoNick(), $this->id(), $odhlasen, ROCNIK, implode(', ', $dnyUbytovani)
-                    )
-                );
+            $mailMelUbytovani = $this->mailZeBylOdhlasenAMelUbytovani($dnyUbytovani, $odhlasujici);
             if ($zaznamnik) {
                 $zaznamnik->uchovejZEmailu($mailMelUbytovani);
             } else {
@@ -338,36 +324,86 @@ SQL
             }
         }
         if ($odeslatMailPokudSeNeodhlasilSam && $this->id() !== $odhlasujici->id()) {
-            $this->odesliMailZeBylOdhlasen($systemoveNastaveni);
+            $mailZeBylOdhlasen = $this->mailZeBylOdhlasen();
+            if ($zaznamnik) {
+                $zaznamnik->uchovejZEmailu($mailZeBylOdhlasen);
+            } else {
+                $mailZeBylOdhlasen->odeslat();
+            }
         }
     }
 
-    private function odesliMailZeBylOdhlasen(SystemoveNastaveni $systemoveNastaveni) {
-        $rok                             = $systemoveNastaveni->rocnik();
-        $nejblizsiHromadneOdhlasovaniKdy = DateTimeGamecon::nejblizsiVlnaKdy($systemoveNastaveni, $systemoveNastaveni->ted());
+    private function mailOdhlasilAlePlatil(float $celkemLetosPoslal, Uzivatel $odhlasujici): GcMail {
+        $odhlasen = $this->id() === $odhlasujici->id()
+            ? ' se odhlásil'
+            : 'byl odhlášen';
+
+        return (new GcMail())
+            ->adresat('info@gamecon.cz')
+            ->predmet("Uživatel '{$this->jmenoNick()}' ({$this->id()}) $odhlasen ale platil")
+            ->text(
+                hlaskaMail(
+                    'odhlasilPlatil',
+                    $this->jmenoNick(),
+                    $this->id(),
+                    $odhlasen,
+                    $this->systemoveNastaveni->rocnik(),
+                    $celkemLetosPoslal
+                )
+            );
+    }
+
+    private function mailZeBylOdhlasenAMelUbytovani(array $dnyUbytovani, Uzivatel $odhlasujici): GcMail {
+        $odhlasen = $this->id() === $odhlasujici->id()
+            ? ' se odhlásil'
+            : 'byl odhlášen';
+
+        return (new GcMail())
+            ->adresat('info@gamecon.cz')
+            ->predmet("Uživatel $odhlasen a měl ubytování")
+            ->text(
+                hlaskaMail(
+                    'odhlasilMelUbytovani',
+                    $this->jmenoNick(),
+                    $this->id(),
+                    $odhlasen,
+                    $this->systemoveNastaveni->rocnik(),
+                    implode(', ', $dnyUbytovani)
+                )
+            );
+    }
+
+    private function mailZeBylOdhlasen(): GcMail {
+        $rok                             = $this->systemoveNastaveni->rocnik();
+        $nejblizsiHromadneOdhlasovaniKdy = DateTimeGamecon::nejblizsiVlnaKdy(
+            $this->systemoveNastaveni,
+            $this->systemoveNastaveni->ted()
+        );
         $uvod                            = 'Právě jsme tě odhlásili z letošního Gameconu.';
         $oddelovac                       = str_repeat('═', mb_strlen($uvod));
         set_time_limit(30); // pro jistotu
         $a = $this->koncovkaDlePohlavi('a');
-        (new GcMail())
+
+        return (new GcMail())
             ->adresat($this->mail())
             ->predmet("Byl{$a} jsi odhlášen{$a} z Gameconu {$rok}")
             ->text(<<<TEXT
-            $uvod
+                $uvod
 
-            $oddelovac
+                $oddelovac
 
-            Pokud jsi platbu zapomněl{$a} poslat, přihlaš se zpět v další vlně aktivit, která bude {$nejblizsiHromadneOdhlasovaniKdy->formatCasStandard()} a platbu ohlídej.
-            TEXT
-            )
-            ->odeslat();
+                Pokud jsi platbu zapomněl{$a} poslat, přihlaš se zpět v další vlně aktivit, která bude {$nejblizsiHromadneOdhlasovaniKdy->formatCasStandard()} a platbu ohlídej.
+                TEXT
+            );
     }
 
     /**
-     * @param int $rok
+     * @param int|null $rok
      * @return Aktivita[]
      */
-    public function organizovaneAktivity(int $rok = ROCNIK): array {
+    public function organizovaneAktivity(int $rok = null): array {
+        $rok ??= $this->systemoveNastaveni->rocnik();
+
         return Aktivita::zFiltru(
             ['rok' => $rok, 'organizator' => $this->id()],
             ['zacatek']
@@ -375,10 +411,11 @@ SQL
     }
 
     /**
-     * @param int $rok
+     * @param int|null $rok
      * @return Aktivita[]
      */
-    public function aktivityRyzePrihlasene(int $rok = ROCNIK): array {
+    public function aktivityRyzePrihlasene(int $rok = null): array {
+        $rok ??= $this->systemoveNastaveni->rocnik();
         $ids = dbOneArray(<<<SQL
 SELECT akce_prihlaseni.id_akce
 FROM akce_prihlaseni
@@ -389,14 +426,16 @@ AND akce_seznam.rok = $3
 SQL,
             [$this->id(), StavPrihlaseni::PRIHLASEN, $rok]
         );
+
         return Aktivita::zIds($ids);
     }
 
     /**
-     * @param int $rok
+     * @param int|null $rok
      * @return Aktivita[]
      */
-    public function zapsaneAktivity(int $rok = ROCNIK): array {
+    public function zapsaneAktivity(int $rok = null): array {
+        $rok ??= $this->systemoveNastaveni->rocnik();
         $ids = dbOneArray(<<<SQL
 SELECT akce_prihlaseni.id_akce
 FROM akce_prihlaseni
@@ -847,13 +886,14 @@ SQL,
      */
     public function organizuje(Aktivita $a) {
         if (!isset($this->organizovaneAktivityIds)) {
-            $this->organizovaneAktivityIds = dbOneIndex('
-        SELECT akce_seznam.id_akce
-        FROM akce_organizatori
-        JOIN akce_seznam
-            ON akce_seznam.id_akce = akce_organizatori.id_akce AND akce_seznam.rok = $2
-        WHERE akce_organizatori.id_uzivatele = $1
-      ', [$this->id(), ROCNIK]);
+            $this->organizovaneAktivityIds = dbOneIndex(<<<SQL
+                SELECT akce_seznam.id_akce
+                FROM akce_organizatori
+                JOIN akce_seznam
+                    ON akce_seznam.id_akce = akce_organizatori.id_akce AND akce_seznam.rok = {$this->systemoveNastaveni->rocnik()}
+                WHERE akce_organizatori.id_uzivatele = {$this->id()}
+                SQL
+            );
         }
         return isset($this->organizovaneAktivityIds[$a->id()]);
     }
@@ -894,13 +934,14 @@ SQL,
     /**
      * Vrátí timestamp začátku posledního bloku kdy uživatel má aktivitu
      */
-    public function posledniBlok() {
-        $cas = dbOneCol('
-      SELECT MAX(a.zacatek)
-      FROM akce_seznam a
-      JOIN akce_prihlaseni p USING(id_akce)
-      WHERE p.id_uzivatele = ' . $this->id() . ' AND a.rok = ' . ROCNIK . '
-    ');
+    public function posledniBlok(): ?string {
+        $cas = dbOneCol(<<<SQL
+            SELECT MAX(a.zacatek)
+            FROM akce_seznam a
+            JOIN akce_prihlaseni p USING(id_akce)
+            WHERE p.id_uzivatele = {$this->id()} AND a.rok = {$this->systemoveNastaveni->rocnik()}
+            SQL
+        );
         return $cas;
     }
 
@@ -925,7 +966,7 @@ SQL,
                 ? "<span class=\"hinted\">jen stravenky<span class=\"hint\">{$shop->objednneJidloPrehledHtml()}</span></span>"
                 : '';
         }
-        $velikostBalicku = $this->r['infopult_poznamka'] === 'velký balíček ' . ROCNIK
+        $velikostBalicku = $this->r['infopult_poznamka'] === 'velký balíček ' . $this->systemoveNastaveni->rocnik()
             ? 'velký balíček'
             : 'balíček';
         $nakupy          = [];
@@ -1064,11 +1105,12 @@ SQL
      * Vrátí timestamp prvního bloku kdy uživatel má aktivitu
      */
     public function prvniBlok(): ?string {
-        $prvniBlok = dbOneCol(
-            'SELECT MIN(a.zacatek)
+        $prvniBlok = dbOneCol(<<<SQL
+            SELECT MIN(a.zacatek)
                 FROM akce_seznam a
                     JOIN akce_prihlaseni p USING(id_akce)
-                WHERE p.id_uzivatele = ' . $this->id() . ' AND a.rok = ' . ROCNIK
+                WHERE p.id_uzivatele = {$this->id()} AND a.rok = {$this->systemoveNastaveni->rocnik()}
+            SQL
         );
         return $prvniBlok
             ? (string)$prvniBlok
@@ -1551,8 +1593,8 @@ SQL,
         return $uzivatel;
     }
 
-    public static function zIdUrcite($id): self {
-        $uzivatel = static::zId($id);
+    public static function zIdUrcite($id, bool $zCache = false): self {
+        $uzivatel = static::zId($id, $zCache);
         if ($uzivatel !== null) {
             return $uzivatel;
         }

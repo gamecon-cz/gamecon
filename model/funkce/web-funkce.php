@@ -32,6 +32,7 @@ function hlaska($nazev, $u = null) {
             '%2' => func_num_args() > 2 ? func_get_arg(2) : '',
             '%3' => func_num_args() > 3 ? func_get_arg(3) : '',
             '%4' => func_num_args() > 4 ? func_get_arg(4) : '',
+            '%5' => func_num_args() > 4 ? func_get_arg(5) : '',
         ]);
     } else {
         throw new Exception('missing mandatory argument');
