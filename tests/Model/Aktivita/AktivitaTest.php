@@ -51,11 +51,12 @@ SQL,
         int    $rocnik,
         array  $ocekavaneNazvy
     ) {
-        $nazvyZrusenychAktivit = Aktivita::dejNazvyZrusenychAktivitUzivatele(
+        $zruseneAktivityUzivatele = Aktivita::dejZruseneAktivityUzivatele(
             \Uzivatel::zIdUrcite($idUzivatele),
             $zdrojOdhlaseni,
             $rocnik
         );
+        $nazvyZrusenychAktivit    = array_map(static fn(Aktivita $aktivita) => $aktivita->nazev(), $zruseneAktivityUzivatele);
         self::assertSame($ocekavaneNazvy, $nazvyZrusenychAktivit);
     }
 
