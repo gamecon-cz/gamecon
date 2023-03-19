@@ -780,7 +780,7 @@ SQL
         return $this->ubytovani->kratkyPopis();
     }
 
-    public function zrusLetosniUbytovani(string $zdrojZruseni): int {
+    public function zrusLetosniObjednaneUbytovani(string $zdrojZruseni): int {
         return $this->zrusLetosniObjednavkyTypu(TypPredmetu::UBYTOVANI, $zdrojZruseni);
     }
 
@@ -788,27 +788,34 @@ SQL
         int    $typPredetu,
         string $zdrojZruseni,
     ): int {
-        dbQuery(<<<SQL
+        $insertResult = dbQuery(<<<SQL
             INSERT INTO shop_nakupy_zrusene(id_nakupu, id_uzivatele, id_predmetu, rocnik, cena_nakupni, datum_nakupu, datum_zruseni, zdroj_zruseni)
-            SELECT id_nakupu, id_uzivatele, id_predmetu, rok, cena_nakupni, datum, $0, $1
-            FROM shop_nakupy
-            WHERE shop_nakupy.rok = {$this->systemoveNastaveni->rocnik()}
-              AND shop_nakupy.id_uzivatele = {$this->u->id()}
-              AND shop_nakupy.id_predmetu = {$typPredetu}
+            SELECT nakupy.id_nakupu, nakupy.id_uzivatele, nakupy.id_predmetu, nakupy.rok, nakupy.cena_nakupni, nakupy.datum, $0, $1
+            FROM shop_nakupy AS nakupy
+            JOIN shop_predmety AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
+            WHERE nakupy.rok = {$this->systemoveNastaveni->rocnik()}
+              AND nakupy.id_uzivatele = {$this->u->id()}
+              AND predmety.typ = {$typPredetu}
             SQL,
             [
                 0 => $this->systemoveNastaveni->ted()->format(DateTimeCz::FORMAT_DB),
                 1 => $zdrojZruseni,
             ]
         );
-        $result = dbQuery(<<<SQL
-            DELETE FROM shop_nakupy
-            WHERE rok = {$this->systemoveNastaveni->rocnik()}
-              AND id_uzivatele = {$this->u->id()}
-              AND shop_nakupy.id_predmetu = {$typPredetu}
+        if (dbAffectedOrNumRows($insertResult) === 0) {
+            return 0;
+        }
+
+        $deleteResult = dbQuery(<<<SQL
+            DELETE nakupy.*
+            FROM shop_nakupy AS nakupy
+            JOIN shop_predmety AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
+            WHERE nakupy.rok = {$this->systemoveNastaveni->rocnik()}
+              AND nakupy.id_uzivatele = {$this->u->id()}
+              AND predmety.typ = {$typPredetu}
             SQL
         );
-        return dbAffectedOrNumRows($result);
+        return dbAffectedOrNumRows($deleteResult);
     }
 
     public function zrusVsechnyLetosniObjedavky(string $zdrojZruseni): int {

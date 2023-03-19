@@ -2,12 +2,12 @@
 
 require_once __DIR__ . '/nastaveni-jakublounek.php';
 
-define('URL_WEBU', 'http://jakublounek.gamecon.cz'); // absolutní url uživatelského webu
-define('URL_ADMIN', 'http://admin.jakublounek.gamecon.cz'); // absolutní url adminu
-define('URL_CACHE', 'http://cache.jakublounek.gamecon.cz'); // url sdílených cachí
+define('URL_WEBU', 'https://jakublounek.gamecon.cz'); // absolutní url uživatelského webu
+define('URL_ADMIN', 'https://admin.jakublounek.gamecon.cz'); // absolutní url adminu
+define('URL_CACHE', 'https://cache.jakublounek.gamecon.cz'); // url sdílených cachí
 
 define('ANALYTICS', false);
-define('HTTPS_ONLY', false);
+define('HTTPS_ONLY', true);
 
 error_reporting(E_ALL);
 
