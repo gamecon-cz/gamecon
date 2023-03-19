@@ -2,9 +2,13 @@
 
 namespace Gamecon\Tests\Uzivatel;
 
+use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\StavPrihlaseni;
+use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
+use Gamecon\Logger\Zaznamnik;
 use Gamecon\Role\Role;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
@@ -17,16 +21,29 @@ use Granam\RemoveDiacritics\RemoveDiacritics;
 
 class HromadneOdhlaseniNeplaticuTest extends DbTest
 {
-    private const ID_NAHODNEHO_PREDMETU = 111;
-    private const ID_PREDMETU_UBYTOVANI = 112;
+    private const ID_NAHODNEHO_PREDMETU = 100;
+    private const ID_PREDMETU_UBYTOVANI = 101;
+    private const ID_LARP_AKTIVITY      = 1000;
+    private const ID_RPG_AKTIVITY       = 1010;
+    private const ID_JINE_AKTIVITY      = 1020;
 
-    private const VELKY_DLUH_NIC_NEDAM               = 222;
-    private const VELKY_DLUH_DAM_MALO                = 223;
-    private const VELKY_DLUH_DAM_MALO_ODHLASIME_CAST = 224;
-    private const VELKY_DLUH_NIC_NEDAM_NEODHLASOVAT  = 2220;
-    private const VELKY_DLUH_DAM_MALO_NEODHLASOVAT   = 2230;
-    private const VELKY_DLUH_NIC_NEDAM_LETOS_NEJSEM  = 2221;
-    private const VELKY_DLUH_DAM_MALO_LETOS_NEJSEM   = 2231;
+    private const VELKY_DLUH_NIC_NEDAM                   = 200;
+    private const VELKY_DLUH_DAM_MALO                    = 201;
+    private const VELKY_DLUH_DAM_MALO_ODHLASTE_UBYTOVANI = 202;
+    private const VELKY_DLUH_DAM_MALO_ODHLASTE_AKTIVITY  = 203;
+    private const VELKY_DLUH_NIC_NEDAM_NEODHLASOVAT      = 2010;
+    private const VELKY_DLUH_DAM_MALO_NEODHLASOVAT       = 2220;
+    private const VELKY_DLUH_NIC_NEDAM_LETOS_NEJSEM      = 2230;
+    private const VELKY_DLUH_DAM_MALO_LETOS_NEJSEM       = 2240;
+
+    private const LETOS_PRIHLASENI_UZIVATELE = [
+        self::VELKY_DLUH_NIC_NEDAM,
+        self::VELKY_DLUH_DAM_MALO,
+        self::VELKY_DLUH_DAM_MALO_ODHLASTE_UBYTOVANI,
+        self::VELKY_DLUH_DAM_MALO_ODHLASTE_AKTIVITY,
+        self::VELKY_DLUH_NIC_NEDAM_NEODHLASOVAT,
+        self::VELKY_DLUH_DAM_MALO_NEODHLASOVAT,
+    ];
 
     protected static bool $disableStrictTransTables = true;
 
@@ -34,51 +51,66 @@ class HromadneOdhlaseniNeplaticuTest extends DbTest
         $systemoveNastaveni = SystemoveNastaveni::vytvorZGlobals();
 
         $queries[] = self::nejakyPredmetQuery($systemoveNastaveni);
-        $queries[] = self::predmetUbytovani($systemoveNastaveni);
+        $queries[] = self::predmetUbytovaniQuery($systemoveNastaveni);
+        $queries[] = self::aktivitaLarpQuery($systemoveNastaveni, $cenaLarpu = 11.1);
+        $queries[] = self::aktivitaRpgQuery($systemoveNastaveni, $cenaRpg = 22.2);
+        $queries[] = self::aktivitaJinaAktvitaQuery($systemoveNastaveni, $cenaJineAkivity = 33.3);
 
-//        // očekávaná kategorie neplatiče 1 LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH
-//        $queries[] = self::uzivatelQuery(self::VELKY_DLUH_NIC_NEDAM, 'Velký dluh', 'Nic nedám');
-//        $queries[] = self::prihlasenNaLetosniGcVcasQuery(self::VELKY_DLUH_NIC_NEDAM);
-//        $queries[] = self::nakupProVelkyDluhQuery(self::VELKY_DLUH_NIC_NEDAM, $systemoveNastaveni);
-//
-//        // očekávaná kategorie neplatiče 2 LETOS_POSLAL_MALO_A_MA_VELKY_DLUH
-//        $queries[] = self::uzivatelQuery(self::VELKY_DLUH_DAM_MALO, 'Velký dluh', 'Dám málo');
-//        $queries[] = self::prihlasenNaLetosniGcVcasQuery(self::VELKY_DLUH_DAM_MALO);
-//        $queries[] = self::nakupProVelkyDluhQuery(self::VELKY_DLUH_DAM_MALO, $systemoveNastaveni);
-//        $queries[] = self::poslalMaloQuery(self::VELKY_DLUH_DAM_MALO, $systemoveNastaveni);
+        // očekávaná kategorie neplatiče 1 LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH
+        $queries[] = self::uzivatelQuery(self::VELKY_DLUH_NIC_NEDAM, 'Velký dluh', 'Nic nedám');
+        $queries[] = self::prihlasenNaLetosniGcVcasQuery(self::VELKY_DLUH_NIC_NEDAM);
+        $queries[] = self::nakupProVelkyDluhQuery(self::VELKY_DLUH_NIC_NEDAM, $systemoveNastaveni);
+
+        // očekávaná kategorie neplatiče 2 LETOS_POSLAL_MALO_A_MA_VELKY_DLUH
+        $queries[] = self::uzivatelQuery(self::VELKY_DLUH_DAM_MALO, 'Velký dluh', 'Dám málo');
+        $queries[] = self::prihlasenNaLetosniGcVcasQuery(self::VELKY_DLUH_DAM_MALO);
+        $queries[] = self::nakupProVelkyDluhQuery(self::VELKY_DLUH_DAM_MALO, $systemoveNastaveni);
+        $queries[] = self::poslalMaloQuery(self::VELKY_DLUH_DAM_MALO, $systemoveNastaveni);
 
         // očekávaná kategorie neplatiče 2 LETOS_POSLAL_MALO_A_MA_VELKY_DLUH postupné odhlašování
-        $queries[] = self::uzivatelQuery(self::VELKY_DLUH_DAM_MALO_ODHLASIME_CAST, 'Velký dluh', 'Dám málo, Odhlásíme část');
-        $queries[] = self::prihlasenNaLetosniGcVcasQuery(self::VELKY_DLUH_DAM_MALO_ODHLASIME_CAST);
-        $queries[] = self::poslalMaloQuery(self::VELKY_DLUH_DAM_MALO_ODHLASIME_CAST, $systemoveNastaveni);
-        $queries[] = self::nakupUbytovaniQuery(self::VELKY_DLUH_DAM_MALO_ODHLASIME_CAST, $systemoveNastaveni, 1.0);
-        $queries[] = self::nakupProVelkyDluhQuery(self::VELKY_DLUH_DAM_MALO_ODHLASIME_CAST, $systemoveNastaveni, -0.1 /* zrušením ubytování už tohle nebude velký dluh */);
+        $queries[] = self::uzivatelQuery(self::VELKY_DLUH_DAM_MALO_ODHLASTE_UBYTOVANI, 'Velký dluh', 'Dám málo, Odhlašte ubytování');
+        $queries[] = self::prihlasenNaLetosniGcVcasQuery(self::VELKY_DLUH_DAM_MALO_ODHLASTE_UBYTOVANI);
+        $queries[] = self::poslalMaloQuery(self::VELKY_DLUH_DAM_MALO_ODHLASTE_UBYTOVANI, $systemoveNastaveni);
+        $queries[] = self::nakupUbytovaniQuery(self::VELKY_DLUH_DAM_MALO_ODHLASTE_UBYTOVANI, $systemoveNastaveni, 1.0);
+        $queries[] = self::nakupProVelkyDluhQuery(self::VELKY_DLUH_DAM_MALO_ODHLASTE_UBYTOVANI, $systemoveNastaveni, -0.1 /* zrušením ubytování už tohle nebude velký dluh */);
 
-//        $queries[] = self::uzivatelQuery(self::VELKY_DLUH_NIC_NEDAM_NEODHLASOVAT, 'Velký dluh', 'Nic nedám, Neodhlašovat');
-//        $queries[] = self::prihlasenNaLetosniGcVcasQuery(self::VELKY_DLUH_NIC_NEDAM_NEODHLASOVAT);
-//        $queries[] = self::nakupProVelkyDluhQuery(self::VELKY_DLUH_NIC_NEDAM_NEODHLASOVAT, $systemoveNastaveni);
-//        $queries[] = self::neodhlasovatQuery(self::VELKY_DLUH_NIC_NEDAM_NEODHLASOVAT);
-//
-//        $queries[] = self::uzivatelQuery(self::VELKY_DLUH_DAM_MALO_NEODHLASOVAT, 'Velký dluh', 'Dám málo, Neodhlašovat');
-//        $queries[] = self::prihlasenNaLetosniGcVcasQuery(self::VELKY_DLUH_DAM_MALO_NEODHLASOVAT);
-//        $queries[] = self::nakupProVelkyDluhQuery(self::VELKY_DLUH_DAM_MALO_NEODHLASOVAT, $systemoveNastaveni);
-//        $queries[] = self::poslalMaloQuery(self::VELKY_DLUH_DAM_MALO_NEODHLASOVAT, $systemoveNastaveni);
-//        $queries[] = self::neodhlasovatQuery(self::VELKY_DLUH_DAM_MALO_NEODHLASOVAT);
-//
-//        $queries[] = self::uzivatelQuery(self::VELKY_DLUH_NIC_NEDAM_LETOS_NEJSEM, 'Velký dluh', 'Nic nedám, Letos nejsem');
-//        $queries[] = self::nakupProVelkyDluhQuery(self::VELKY_DLUH_NIC_NEDAM_LETOS_NEJSEM, $systemoveNastaveni);
-//
-//        $queries[] = self::uzivatelQuery(self::VELKY_DLUH_DAM_MALO_LETOS_NEJSEM, 'Velký dluh', 'Dám málo, Letos nejsem');
-//        $queries[] = self::nakupProVelkyDluhQuery(self::VELKY_DLUH_DAM_MALO_LETOS_NEJSEM, $systemoveNastaveni);
-//        $queries[] = self::poslalMaloQuery(self::VELKY_DLUH_DAM_MALO_LETOS_NEJSEM, $systemoveNastaveni);
+        // očekávaná kategorie neplatiče 2 LETOS_POSLAL_MALO_A_MA_VELKY_DLUH postupné odhlašování
+        $queries[] = self::uzivatelQuery(self::VELKY_DLUH_DAM_MALO_ODHLASTE_AKTIVITY, 'Velký dluh', 'Dám málo, Odhlašte aktivity');
+        $queries[] = self::prihlasenNaLetosniGcVcasQuery(self::VELKY_DLUH_DAM_MALO_ODHLASTE_AKTIVITY);
+        $queries[] = self::poslalMaloQuery(self::VELKY_DLUH_DAM_MALO_ODHLASTE_AKTIVITY, $systemoveNastaveni);
+        $queries[] = self::prihlaseniNaLarpQuery(self::VELKY_DLUH_DAM_MALO_ODHLASTE_AKTIVITY);
+        $queries[] = self::prihlaseniNaRpgQuery(self::VELKY_DLUH_DAM_MALO_ODHLASTE_AKTIVITY);
+        $queries[] = self::prihlaseniNaJinouAktivituQuery(self::VELKY_DLUH_DAM_MALO_ODHLASTE_AKTIVITY);
+        $queries[] = self::nakupProVelkyDluhQuery(
+            self::VELKY_DLUH_DAM_MALO_ODHLASTE_AKTIVITY,
+            $systemoveNastaveni,
+            -$cenaLarpu - $cenaRpg - 0.1 /* zrušením některých aktivit už tohle nebude velký dluh */);
+
+        $queries[] = self::uzivatelQuery(self::VELKY_DLUH_NIC_NEDAM_NEODHLASOVAT, 'Velký dluh', 'Nic nedám, Neodhlašovat');
+        $queries[] = self::prihlasenNaLetosniGcVcasQuery(self::VELKY_DLUH_NIC_NEDAM_NEODHLASOVAT);
+        $queries[] = self::nakupProVelkyDluhQuery(self::VELKY_DLUH_NIC_NEDAM_NEODHLASOVAT, $systemoveNastaveni);
+        $queries[] = self::neodhlasovatQuery(self::VELKY_DLUH_NIC_NEDAM_NEODHLASOVAT);
+
+        $queries[] = self::uzivatelQuery(self::VELKY_DLUH_DAM_MALO_NEODHLASOVAT, 'Velký dluh', 'Dám málo, Neodhlašovat');
+        $queries[] = self::prihlasenNaLetosniGcVcasQuery(self::VELKY_DLUH_DAM_MALO_NEODHLASOVAT);
+        $queries[] = self::nakupProVelkyDluhQuery(self::VELKY_DLUH_DAM_MALO_NEODHLASOVAT, $systemoveNastaveni);
+        $queries[] = self::poslalMaloQuery(self::VELKY_DLUH_DAM_MALO_NEODHLASOVAT, $systemoveNastaveni);
+        $queries[] = self::neodhlasovatQuery(self::VELKY_DLUH_DAM_MALO_NEODHLASOVAT);
+
+        $queries[] = self::uzivatelQuery(self::VELKY_DLUH_NIC_NEDAM_LETOS_NEJSEM, 'Velký dluh', 'Nic nedám, Letos nejsem');
+        $queries[] = self::nakupProVelkyDluhQuery(self::VELKY_DLUH_NIC_NEDAM_LETOS_NEJSEM, $systemoveNastaveni);
+
+        $queries[] = self::uzivatelQuery(self::VELKY_DLUH_DAM_MALO_LETOS_NEJSEM, 'Velký dluh', 'Dám málo, Letos nejsem');
+        $queries[] = self::nakupProVelkyDluhQuery(self::VELKY_DLUH_DAM_MALO_LETOS_NEJSEM, $systemoveNastaveni);
+        $queries[] = self::poslalMaloQuery(self::VELKY_DLUH_DAM_MALO_LETOS_NEJSEM, $systemoveNastaveni);
 
         return $queries;
     }
 
-    private static function predmetUbytovani(SystemoveNastaveni $systemoveNastaveni): string {
+    private static function predmetUbytovaniQuery(SystemoveNastaveni $systemoveNastaveni): string {
         return self::predmetQuery(
             self::ID_PREDMETU_UBYTOVANI,
-            TypPredmetu::VSTUPNE,
+            TypPredmetu::UBYTOVANI,
             'luxusní 0+KK',
             $systemoveNastaveni
         );
@@ -87,6 +119,7 @@ class HromadneOdhlaseniNeplaticuTest extends DbTest
     private static function nejakyPredmetQuery(SystemoveNastaveni $systemoveNastaveni): string {
         return self::predmetQuery(
             self::ID_NAHODNEHO_PREDMETU,
+            // pozor dvoje vstupné logika ignoruje, jako "koupený předmět" se použije jen jedno
             TypPredmetu::VSTUPNE,
             'cosi kdesi',
             $systemoveNastaveni
@@ -108,6 +141,55 @@ SET id_predmetu = $idPredmetu,
     typ = $typPredmetu,
     model_rok = $rok,
     cena_aktualni = 0.0 -- nemá na nic vliv, "nákup" řešíme přímým zápisem do DB včetně vlastní podejní ceny
+SQL;
+    }
+
+    private static function aktivitaLarpQuery(SystemoveNastaveni $systemoveNastaveni, float $cena): string {
+        return self::aktivitaQuery(
+            self::ID_LARP_AKTIVITY,
+            TypAktivity::LARP,
+            'Na dudlíky',
+            $cena,
+            $systemoveNastaveni
+        );
+    }
+
+    private static function aktivitaRpgQuery(SystemoveNastaveni $systemoveNastaveni, float $cena): string {
+        return self::aktivitaQuery(
+            self::ID_RPG_AKTIVITY,
+            TypAktivity::RPG,
+            'Dračí poupě',
+            $cena,
+            $systemoveNastaveni
+        );
+    }
+
+    private static function aktivitaJinaAktvitaQuery(SystemoveNastaveni $systemoveNastaveni, float $cena): string {
+        return self::aktivitaQuery(
+            self::ID_JINE_AKTIVITY,
+            TypAktivity::EPIC,
+            'Organizace Gameconu',
+            $cena,
+            $systemoveNastaveni
+        );
+    }
+
+    private static function aktivitaQuery(
+        int                $idAktivity,
+        int                $typAktivity,
+        string             $nazev,
+        float              $cena,
+        SystemoveNastaveni $systemoveNastaveni
+    ): string {
+        $rok = $systemoveNastaveni->rocnik();
+
+        return <<<SQL
+INSERT INTO akce_seznam
+SET id_akce = $idAktivity,
+    typ = $typAktivity,
+    nazev_akce = '$nazev',
+    rok = $rok,
+    cena = $cena
 SQL;
     }
 
@@ -141,10 +223,7 @@ SQL;
         $cena                         = $velkyDluh + $poslalMalo + $upravaCeny;
         $idPredmetuSCenouVelkehoDluhu = self::ID_NAHODNEHO_PREDMETU;
 
-        return <<<SQL
-INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni)
-VALUES ($idUzivatele, $idPredmetuSCenouVelkehoDluhu, $rok, $cena)
-SQL;
+        return self::nakupQuery($idUzivatele, $idPredmetuSCenouVelkehoDluhu, $rok, $cena);
     }
 
     private static function nakupUbytovaniQuery(
@@ -155,20 +234,40 @@ SQL;
         $rok                 = $systemoveNastaveni->rocnik();
         $idPredmetuUbytovani = self::ID_PREDMETU_UBYTOVANI;
 
+        return self::nakupQuery($idUzivatele, $idPredmetuUbytovani, $rok, $cena);
+    }
+
+    private static function nakupQuery(
+        int   $idUzivatele,
+        int   $idPredmetuUbytovani,
+        int   $rok,
+        float $cena
+    ): string {
         return <<<SQL
 INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni)
 VALUES ($idUzivatele, $idPredmetuUbytovani, $rok, $cena)
 SQL;
     }
 
-    private static function nakupQuery(
-        int $idUzivatele,
+    private static function prihlaseniNaLarpQuery(int $idUzivatele): string {
+        return self::prihlaseniNaAktivitu(self::ID_LARP_AKTIVITY, $idUzivatele);
+    }
 
-    ) {
+    private static function prihlaseniNaRpgQuery(int $idUzivatele): string {
+        return self::prihlaseniNaAktivitu(self::ID_RPG_AKTIVITY, $idUzivatele);
+    }
+
+    private static function prihlaseniNaJinouAktivituQuery(int $idUzivatele): string {
+        return self::prihlaseniNaAktivitu(self::ID_JINE_AKTIVITY, $idUzivatele);
+    }
+
+    private static function prihlaseniNaAktivitu(int $idAktivity, int $idUzivatele): string {
+        $stavPrihlaseni = StavPrihlaseni::PRIHLASEN;
         return <<<SQL
-INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni)
-VALUES ($idUzivatele, $idPredmetuUbytovani, $rok, $cena)
+INSERT INTO akce_prihlaseni
+    SET id_akce = $idAktivity, id_uzivatele = $idUzivatele, id_stavu_prihlaseni = $stavPrihlaseni
 SQL;
+
     }
 
     private static function poslalMaloQuery(int $idUzivatele, SystemoveNastaveni $systemoveNastaveni): string {
@@ -273,9 +372,8 @@ SQL;
      */
     public function Nemuzu_ziskat_neplatice_kdyz_cas_pro_odhlasovani_je_zaroven_s_vlnou_aktivit() {
         $nejblizsiHromadneOdhlasovaniKdy = new \DateTimeImmutable();
-        $systemoveNastaveni              = $this->dejSystemoveNastaveniSNejblizsiVlnou(
-            DateTimeGamecon::createFromInterface($nejblizsiHromadneOdhlasovaniKdy)
-        );
+        $nejblizsiVlnaOdhlaseni          = DateTimeGamecon::createFromInterface($nejblizsiHromadneOdhlasovaniKdy);
+        $systemoveNastaveni              = $this->dejSystemoveNastaveniSNejblizsiVlnou($nejblizsiVlnaOdhlaseni);
 
         self::assertEquals(
             $nejblizsiHromadneOdhlasovaniKdy,
@@ -291,9 +389,15 @@ SQL;
         $generator->next();
     }
 
-    private function dejSystemoveNastaveniSNejblizsiVlnou(DateTimeGamecon $nejblizsiVlnaKdy): SystemoveNastaveni {
-        return new class($nejblizsiVlnaKdy) extends SystemoveNastaveni {
-            public function __construct(private readonly DateTimeGamecon $nejblizsiVlnaKdy) {
+    private function dejSystemoveNastaveniSNejblizsiVlnou(
+        DateTimeGamecon         $nejblizsiVlnaKdy,
+        DateTimeImmutableStrict $prvniHromadneOdhlasovani = null
+    ): SystemoveNastaveni {
+        return new class($nejblizsiVlnaKdy, $prvniHromadneOdhlasovani) extends SystemoveNastaveni {
+            public function __construct(
+                private readonly DateTimeGamecon          $nejblizsiVlnaKdy,
+                private readonly ?DateTimeImmutableStrict $nejblizsiHromadneOdhlasovaniKdy
+            ) {
             }
 
             public function nejblizsiVlnaKdy(\DateTimeInterface $platnostZpetneKDatu = null): DateTimeGamecon {
@@ -307,6 +411,11 @@ SQL;
             public function rocnik(): int {
                 return self::ROCNIK;
             }
+
+            public function prvniHromadneOdhlasovani(): DateTimeImmutableStrict {
+                return $this->nejblizsiHromadneOdhlasovaniKdy ?? parent::prvniHromadneOdhlasovani();
+            }
+
         };
     }
 
@@ -333,8 +442,8 @@ SQL;
         self::expectException(NaHromadneOdhlasovaniJePozde::class);
         $generator = $hromadneOdhlaseniNeplaticu->neplaticiAKategorie(
             $nejblizsiHromadneOdhlasovaniKdy,
+            $platnostZpetneKDatu,
             $ted,
-            $platnostZpetneKDatu
         );
         $generator->next();
     }
@@ -343,11 +452,14 @@ SQL;
      * @test
      */
     public function Dostanu_spravne_uzivatele_ke_kontrole() {
-        $nejblizsiHromadneOdhlasovaniKdy = new \DateTimeImmutable();
+        $nejblizsiHromadneOdhlasovaniKdy = new DateTimeImmutableStrict();
         $nejblizsiVlnaOdhlasovani        = DateTimeGamecon::createFromInterface($nejblizsiHromadneOdhlasovaniKdy)
             ->modify('+1 day');
         $ted                             = new DateTimeImmutableStrict();
-        $systemoveNastaveni              = $this->dejSystemoveNastaveniSNejblizsiVlnou($nejblizsiVlnaOdhlasovani);
+        $systemoveNastaveni              = $this->dejSystemoveNastaveniSNejblizsiVlnou(
+            $nejblizsiVlnaOdhlasovani,
+            $nejblizsiHromadneOdhlasovaniKdy
+        );
         $platnostZpetneKDatu             ??= $ted->modify('-1 day');
 
         self::assertLessThan(
@@ -356,13 +468,141 @@ SQL;
             'Pro tento test potřebujeme datum odhlašování před nejbližší vlnou aktivit'
         );
 
-        $hromadneOdhlaseniNeplaticu = new HromadneOdhlaseniNeplaticu($systemoveNastaveni);
-        $generator                  = $hromadneOdhlaseniNeplaticu->neplaticiAKategorie(
+        $hromadneOdhlaseniNeplaticu        = new HromadneOdhlaseniNeplaticu($systemoveNastaveni);
+        $neplaticiAKategoriePredOdhlasenim = $this->serazeniNeplaticiAKategorie(
             $nejblizsiHromadneOdhlasovaniKdy,
             $ted,
-            $platnostZpetneKDatu
+            $platnostZpetneKDatu,
+            $hromadneOdhlaseniNeplaticu
         );
-        $neplaticiAKategorieScalar  = [];
+
+        $ocekavaniNeplaticiPredOdhlasenim = [
+            [
+                'neplatic'            => self::VELKY_DLUH_NIC_NEDAM,
+                'kategorie_neplatice' => KategorieNeplatice::LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH,
+            ],
+            [
+                'neplatic'            => self::VELKY_DLUH_DAM_MALO,
+                'kategorie_neplatice' => KategorieNeplatice::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH,
+            ],
+            [
+                'neplatic'            => self::VELKY_DLUH_DAM_MALO_ODHLASTE_UBYTOVANI,
+                'kategorie_neplatice' => KategorieNeplatice::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH,
+            ],
+            [
+                'neplatic'            => self::VELKY_DLUH_DAM_MALO_ODHLASTE_AKTIVITY,
+                'kategorie_neplatice' => KategorieNeplatice::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH,
+            ],
+        ];
+        self::assertSame($ocekavaniNeplaticiPredOdhlasenim, $neplaticiAKategoriePredOdhlasenim);
+
+        foreach (self::LETOS_PRIHLASENI_UZIVATELE as $idUzivatele) {
+            $testovaciUzivatelPoOdhlaseni = \Uzivatel::zIdUrcite($idUzivatele);
+            self::assertTrue(
+                $testovaciUzivatelPoOdhlaseni->gcPrihlasen(),
+                "Uživatel '{$testovaciUzivatelPoOdhlaseni->jmeno()}' by měl být přihlášen"
+            );
+        }
+        $velkyDluhDamMaloOdhlasteUbytovani = \Uzivatel::zIdUrcite(self::VELKY_DLUH_DAM_MALO_ODHLASTE_UBYTOVANI);
+        $strukturovanyPrehled              = $velkyDluhDamMaloOdhlasteUbytovani->finance()->dejStrukturovanyPrehled();
+        self::assertCount(
+            2,
+            $strukturovanyPrehled,
+            "Uživatel '{$velkyDluhDamMaloOdhlasteUbytovani->jmeno()}' by měl mít dvě objednávky"
+        );
+
+        $velkyDluhDamMaloOdhlasteAktivity = \Uzivatel::zIdUrcite(self::VELKY_DLUH_DAM_MALO_ODHLASTE_AKTIVITY);
+        $strukturovanyPrehled             = $velkyDluhDamMaloOdhlasteAktivity->finance()->dejStrukturovanyPrehled();
+        self::assertCount(
+            1,
+            $strukturovanyPrehled,
+            "Uživatel '{$velkyDluhDamMaloOdhlasteAktivity->jmeno()}' by měl mít před odhlášením objednaný jeden předmět"
+        );
+        $idPrihlasenychAktivit = $this->idckaPrihlasenychAktivit($velkyDluhDamMaloOdhlasteAktivity);
+        self::assertSame(
+            [self::ID_LARP_AKTIVITY, self::ID_RPG_AKTIVITY, self::ID_JINE_AKTIVITY],
+            $idPrihlasenychAktivit,
+            "Uživatel '{$velkyDluhDamMaloOdhlasteAktivity->jmeno()}' by měl mít před odhlášením přihlášené jiné aktivity"
+        );
+
+        if (!defined('MAILY_DO_SOUBORU')) {
+            // jistota je jistota
+            define('MAILY_DO_SOUBORU', sys_get_temp_dir() . '/' . uniqid('test_maily_do_souboru.log'));
+        }
+        $zaznamnik = new Zaznamnik();
+        $hromadneOdhlaseniNeplaticu->hromadneOdhlasit(
+            basename(__CLASS__, '.php'),
+            $zaznamnik,
+            $platnostZpetneKDatu,
+            $nejblizsiHromadneOdhlasovaniKdy,
+        );
+
+        $neplaticiAKategoriePoOdhlaseni = $this->serazeniNeplaticiAKategorie(
+            $nejblizsiHromadneOdhlasovaniKdy,
+            $ted,
+            $platnostZpetneKDatu,
+            $hromadneOdhlaseniNeplaticu
+        );
+        self::assertSame([], $neplaticiAKategoriePoOdhlaseni, 'Po odhlášení by neměl zůstat žádný neplatič');
+
+        $velkyDluhDamMaloOdhlasteUbytovani = \Uzivatel::zIdUrcite(self::VELKY_DLUH_DAM_MALO_ODHLASTE_UBYTOVANI);
+        $strukturovanyPrehled              = $velkyDluhDamMaloOdhlasteUbytovani->finance()->dejStrukturovanyPrehled();
+        self::assertCount(
+            1,
+            $strukturovanyPrehled,
+            "Uživatel '{$velkyDluhDamMaloOdhlasteUbytovani->jmeno()}' by měl mít po odhlášení jednu objednávku"
+        );
+
+        $velkyDluhDamMaloOdhlasteAktivity = \Uzivatel::zIdUrcite(self::VELKY_DLUH_DAM_MALO_ODHLASTE_AKTIVITY);
+        $strukturovanyPrehled             = $velkyDluhDamMaloOdhlasteAktivity->finance()->dejStrukturovanyPrehled();
+        self::assertCount(
+            1,
+            $strukturovanyPrehled,
+            "Uživatel '{$velkyDluhDamMaloOdhlasteAktivity->jmeno()}' by měl mít po odhlášení jiný počet objednaných předmětů"
+        );
+        $idPrihlasenychAktivit = $this->idckaPrihlasenychAktivit($velkyDluhDamMaloOdhlasteAktivity);
+        self::assertSame(
+            [self::ID_JINE_AKTIVITY],
+            $idPrihlasenychAktivit,
+            "Uživatel '{$velkyDluhDamMaloOdhlasteAktivity->jmeno()}' by měl mít po odhlášení přihlášené jiné aktivity"
+        );
+
+        foreach (self::LETOS_PRIHLASENI_UZIVATELE as $idUzivatele) {
+            $testovaciUzivatelPoOdhlaseni = \Uzivatel::zIdUrcite($idUzivatele);
+            if (in_array($idUzivatele, [self::VELKY_DLUH_NIC_NEDAM, self::VELKY_DLUH_DAM_MALO], true)) {
+                self::assertFalse(
+                    $testovaciUzivatelPoOdhlaseni->gcPrihlasen(),
+                    "Uživatel '{$testovaciUzivatelPoOdhlaseni->jmeno()}' by měl být odhlášen"
+                );
+            } else {
+                self::assertTrue(
+                    $testovaciUzivatelPoOdhlaseni->gcPrihlasen(),
+                    "Uživatel '{$testovaciUzivatelPoOdhlaseni->jmeno()}' by měl zůstat přihlášen"
+                );
+            }
+        }
+
+        $idckaZaznamenanychOdhlasenych = array_map(static fn(\Uzivatel $uzivatel) => $uzivatel->id(), $zaznamnik->entity());
+        sort($idckaZaznamenanychOdhlasenych);
+        self::assertSame(
+            [self::VELKY_DLUH_NIC_NEDAM, self::VELKY_DLUH_DAM_MALO],
+            $idckaZaznamenanychOdhlasenych,
+            'Očekáván jiný seznam zaznamenaných odhlášených uživatelů'
+        );
+    }
+
+    private function serazeniNeplaticiAKategorie(
+        \DateTimeInterface         $nejblizsiHromadneOdhlasovaniKdy,
+        \DateTimeInterface         $ted,
+        \DateTimeInterface         $platnostZpetneKDatu,
+        HromadneOdhlaseniNeplaticu $hromadneOdhlaseniNeplaticu,
+    ): array {
+        $generator                 = $hromadneOdhlaseniNeplaticu->neplaticiAKategorie(
+            $nejblizsiHromadneOdhlasovaniKdy,
+            $platnostZpetneKDatu,
+            $ted,
+        );
+        $neplaticiAKategorieScalar = [];
         foreach ($generator as $zaznam) {
             self::assertInstanceOf(\Uzivatel::class, $zaznam['neplatic']);
             /** @var \Uzivatel $neplatic */
@@ -379,23 +619,22 @@ SQL;
             $neplaticiAKategorieScalar,
             static fn(array $nejakyZaznam, array $jinyZanam) => $nejakyZaznam['neplatic'] <=> $jinyZanam['neplatic']
         );
-        self::assertSame(
-            [
-//                [
-//                    'neplatic'            => self::VELKY_DLUH_NIC_NEDAM,
-//                    'kategorie_neplatice' => KategorieNeplatice::LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH,
-//                ],
-//                [
-//                    'neplatic'            => self::VELKY_DLUH_DAM_MALO,
-//                    'kategorie_neplatice' => KategorieNeplatice::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH,
-//                ],
-                [
-                    'neplatic'            => self::VELKY_DLUH_DAM_MALO_ODHLASIME_CAST,
-                    'kategorie_neplatice' => KategorieNeplatice::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH,
-                ],
-            ],
-            $neplaticiAKategorieScalar
+
+        return $neplaticiAKategorieScalar;
+    }
+
+    /**
+     * @param \Uzivatel $uzivatel
+     * @return int[]
+     */
+    private function idckaPrihlasenychAktivit(\Uzivatel $uzivatel): array {
+        $idckaPrihlasenychAktivit = array_map(
+            static fn(Aktivita $aktivita) => $aktivita->id(),
+            $uzivatel->aktivityRyzePrihlasene()
         );
+        sort($idckaPrihlasenychAktivit);
+
+        return $idckaPrihlasenychAktivit;
     }
 
 }

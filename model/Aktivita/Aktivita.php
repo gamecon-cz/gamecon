@@ -2794,8 +2794,8 @@ SQL,
         if (!empty($filtr['prihlaseni'])) {
             $wheres2[] = 'p.id_uzivatele IN (' . dbQa((array)$filtr['prihlaseni']) . ')';
         }
-        $where1 = implode(' AND ', $wheres1);
-        $where2 = implode(' AND ', $wheres2);
+        $where1 = implode(' AND ', $wheres1) ?: '1';
+        $where2 = implode(' AND ', $wheres2) ?: '1';
 
         // sestavení řazení
         $order     = null;
@@ -2820,7 +2820,7 @@ SQL,
         }
 
         // select
-        $aktivity = self::zWhere('WHERE ' . $where1, $where2, null, $order, $limit);
+        $aktivity = self::zWhere('WHERE ' . $where1, 'WHERE ' . $where2, null, $order, $limit);
         if (!empty($filtr['jenVolne'])) {
             foreach ($aktivity as $id => $a) {
                 if ($a->volno() === 'x') {
