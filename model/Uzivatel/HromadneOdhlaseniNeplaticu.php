@@ -49,6 +49,7 @@ class HromadneOdhlaseniNeplaticu
         foreach ($this->neplaticiAKategorie($nejblizsiHromadneOdhlasovaniKdy, $platnostZpetneKDatu)
                  as ['neplatic' => $neplatic, 'kategorie_neplatice' => $kategorieNeplatice]
         ) {
+            set_time_limit(30); // jenom pro jistotu, mělo by to trvat maximálně sekundu
             /**
              * @var \Uzivatel $neplatic
              * @var KategorieNeplatice $kategorieNeplatice
@@ -77,7 +78,6 @@ class HromadneOdhlaseniNeplaticu
                     );
                     $zaznamnik?->pridejEntitu($neplatic);
                     $this->odhlasenoCelkem++;
-                    set_time_limit(30); // jenom pro jistotu, mělo by to trvat maximálně sekundu
                 } catch (Chyba $chyba) {
                     $potiz = sprintf(
                         "Nelze ohlásit účastníka %s s ID %d: '%s'",
