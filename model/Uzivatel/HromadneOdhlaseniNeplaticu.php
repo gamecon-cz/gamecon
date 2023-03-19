@@ -70,7 +70,7 @@ class HromadneOdhlaseniNeplaticu
                     }
                 }
                 try {
-                    $neplatic->gcOdhlas(
+                    $neplatic->odhlasZGc(
                         $zdrojOdhlaseni,
                         $uzivatelSystem,
                         $zaznamnik,

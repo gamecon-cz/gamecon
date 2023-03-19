@@ -262,7 +262,7 @@ SQL
      * - platby (pokud ho vynecháme při přepočtu zůstatku, přijde o love)
      * @todo Při odhlášení z GC pokud jsou zakázané rušení nákupů může být též problém (k zrušení dojde)
      */
-    public function gcOdhlas(
+    public function odhlasZGc(
         string    $zdrojOdhlaseni,
         Uzivatel  $odhlasujici,
         Zaznamnik $zaznamnik = null,
