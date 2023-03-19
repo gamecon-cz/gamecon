@@ -18,6 +18,7 @@ use Gamecon\Uzivatel\Exceptions\NaHromadneOdhlasovaniJePozde;
 use Gamecon\Uzivatel\HromadneOdhlaseniNeplaticu;
 use Gamecon\Uzivatel\KategorieNeplatice;
 use Granam\RemoveDiacritics\RemoveDiacritics;
+use function PHPUnit\Framework\assertCount;
 
 class HromadneOdhlaseniNeplaticuTest extends DbTest
 {
@@ -451,7 +452,7 @@ SQL;
     /**
      * @test
      */
-    public function Dostanu_spravne_uzivatele_ke_kontrole() {
+    public function Hromadne_odhlaseni_odhlasi_spravne_uzivatele_nebo_objednavky() {
         $nejblizsiHromadneOdhlasovaniKdy = new DateTimeImmutableStrict();
         $nejblizsiVlnaOdhlasovani        = DateTimeGamecon::createFromInterface($nejblizsiHromadneOdhlasovaniKdy)
             ->modify('+1 day');
@@ -525,13 +526,23 @@ SQL;
             "Uživatel '{$velkyDluhDamMaloOdhlasteAktivity->jmeno()}' by měl mít před odhlášením přihlášené jiné aktivity"
         );
 
+        $zdrojOdhlaseniZaklad = basename(__CLASS__, '.php');
+        $zdrojOdhlaseni       = $zdrojOdhlaseniZaklad . '-1';
+
+        $zruseneAktivityUzivatele = Aktivita::dejZruseneAktivityUzivatele(
+            $velkyDluhDamMaloOdhlasteAktivity,
+            $zdrojOdhlaseni,
+            $systemoveNastaveni->rocnik()
+        );
+        assertCount(0, $zruseneAktivityUzivatele, 'Před odhlášením nečekáme žádné už odhlášené aktivity');
+
         if (!defined('MAILY_DO_SOUBORU')) {
             // jistota je jistota
             define('MAILY_DO_SOUBORU', sys_get_temp_dir() . '/' . uniqid('test_maily_do_souboru.log'));
         }
         $zaznamnik = new Zaznamnik();
         $hromadneOdhlaseniNeplaticu->hromadneOdhlasit(
-            basename(__CLASS__, '.php'),
+            $zdrojOdhlaseniZaklad,
             $zaznamnik,
             $platnostZpetneKDatu,
             $nejblizsiHromadneOdhlasovaniKdy,
@@ -588,6 +599,30 @@ SQL;
             [self::VELKY_DLUH_NIC_NEDAM, self::VELKY_DLUH_DAM_MALO],
             $idckaZaznamenanychOdhlasenych,
             'Očekáván jiný seznam zaznamenaných odhlášených uživatelů'
+        );
+
+        $zruseneAktivityUzivatele = Aktivita::dejZruseneAktivityUzivatele(
+            $velkyDluhDamMaloOdhlasteAktivity,
+            $zdrojOdhlaseni,
+            $systemoveNastaveni->rocnik()
+        );
+        assertCount(
+            2,
+            $zruseneAktivityUzivatele,
+            "Po odhlášení Uživatele '{$testovaciUzivatelPoOdhlaseni->jmeno()}' čekáme jiný počet odhlášených aktivit"
+        );
+        $idckaZrusenychAktivitUzivatele = array_map(
+            static fn(Aktivita $aktivita) => $aktivita->id(),
+            $zruseneAktivityUzivatele
+        );
+        sort($idckaZrusenychAktivitUzivatele);
+        self::assertSame(
+            [
+                self::ID_LARP_AKTIVITY,
+                self::ID_RPG_AKTIVITY,
+            ],
+            $idckaZrusenychAktivitUzivatele,
+            "Očeáváme jiné odhlášené aktivity u uživatele '{$testovaciUzivatelPoOdhlaseni->jmeno()}'"
         );
     }
 

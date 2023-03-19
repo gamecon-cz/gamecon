@@ -57,13 +57,13 @@ class HromadneOdhlaseniNeplaticu
             if ($kategorieNeplatice->melByBytOdhlasen()) {
                 if ($kategorieNeplatice->maSmyslOdhlasitMuJenNeco()) {
                     $vysledekOdhlaseniJenNeco = null;
-                    $celkemOdhlaseno          = 0;
+                    $predtimCelkemOdlhaseno   = 0;
                     do {
                         $vysledekOdhlaseniJenNeco = $this->odhlasMuJenNeco($neplatic, $zdrojOdhlaseni, $uzivatelSystem, $vysledekOdhlaseniJenNeco);
-                        if ($vysledekOdhlaseniJenNeco->celkemOdhlaseno() > $celkemOdhlaseno) {
+                        if ($vysledekOdhlaseniJenNeco->celkemOdhlaseno() > $predtimCelkemOdlhaseno) {
                             $kategorieNeplatice->obnovUdaje(false /* platby se nezměnily */);
                         }
-                        $celkemOdhlaseno = $vysledekOdhlaseniJenNeco->celkemOdhlaseno();
+                        $predtimCelkemOdlhaseno = $vysledekOdhlaseniJenNeco->celkemOdhlaseno();
                     } while ($vysledekOdhlaseniJenNeco->jesteNecoNeodhlasovano() && $kategorieNeplatice->melByBytOdhlasen());
                     if (!$kategorieNeplatice->melByBytOdhlasen()) {
                         $this->posliEmailSOdhlasenymiPolozkami($neplatic, $zdrojOdhlaseni);
@@ -333,14 +333,14 @@ Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hro
     }
 
     private function posliEmailSOdhlasenymiPolozkami(\Uzivatel $uzivatel, string $zdrojOdhlaseni) {
-        $nazvyZrusenychAktivit = Aktivita::dejNazvyZrusenychAktivitUzivatele(
+        $zruseneAktivityUzivatele = Aktivita::dejZruseneAktivityUzivatele(
             $uzivatel,
             $zdrojOdhlaseni,
             $this->systemoveNastaveni->rocnik()
         );
 
         $nazvyZrusenychNakupu = $uzivatel->shop($this->systemoveNastaveni)->dejNazvyZrusenychNakupu($zdrojOdhlaseni);
-        if (!$nazvyZrusenychAktivit && !$nazvyZrusenychNakupu) {
+        if (!$zruseneAktivityUzivatele && !$nazvyZrusenychNakupu) {
             return;
         }
 
@@ -352,15 +352,19 @@ Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hro
             $castiTextu[]    = 'zrušit tvé objednávky ' . implode(', ', $nazvyZrusenychNakupu);
         }
 
-        if ($nazvyZrusenychAktivit) {
-            $castiPredmetu[] = 'aktivity';
-            $y               = count($nazvyZrusenychAktivit) > 1
+        if ($zruseneAktivityUzivatele) {
+            $castiPredmetu[]       = 'aktivity';
+            $y                     = count($zruseneAktivityUzivatele) > 1
                 ? 'y'
                 : '';
-            $te              = count($castiTextu) > 0
+            $te                    = count($castiTextu) > 0
                 ? ''
                 : 'tě ';
-            $castiTextu[]    = "{$te}odlásit z aktivit$y " . implode(', ', $nazvyZrusenychAktivit);
+            $nazvyZrusenychAktivit = array_map(
+                static fn(Aktivita $aktivita) => $aktivita->nazev(),
+                $zruseneAktivityUzivatele
+            );
+            $castiTextu[]          = "{$te}odlásit z aktivit$y " . implode(', ', $nazvyZrusenychAktivit);
         }
 
         $text = implode(' a ', $castiTextu);
