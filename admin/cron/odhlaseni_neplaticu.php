@@ -74,12 +74,12 @@ $odhlasenoCelkem = $hromadneOdhlaseniNeplaticu->odhlasenoCelkem();
         ->adresati($cfosEmaily ?: ['info@gamecon.cz'])
         ->predmet($zprava)
         ->text(<<<TEXT
-        $uvodProCfo
+            $uvodProCfo
 
-        $oddelovacProCfo
+            $oddelovacProCfo
 
-        $zaznamy
-        TEXT
+            $zaznamy
+            TEXT
         )
         ->odeslat();
 
