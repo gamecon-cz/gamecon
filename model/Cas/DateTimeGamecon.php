@@ -4,6 +4,7 @@ namespace Gamecon\Cas;
 
 use Gamecon\Cas\Exceptions\ChybnaZpetnaPlatnost;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\SystemoveNastaveni\ZdrojTed;
 use Gamecon\SystemoveNastaveni\ZdrojVlnAktivit;
 
 /**
@@ -276,10 +277,10 @@ class DateTimeGamecon extends DateTimeCz
      * @throws ChybnaZpetnaPlatnost
      */
     public static function overenaPlatnostZpetne(
-        SystemoveNastaveni $systemoveNastaveni,
+        ZdrojTed           $zdrojTed,
         \DateTimeInterface $platnostZpetne = null
     ): DateTimeImmutableStrict {
-        $ted = $systemoveNastaveni->ted();
+        $ted = $zdrojTed->ted();
         // s rezervou jednoho dne, aby i po půlnoci ještě platilo včerejší datum odhlašování
         $platnostZpetne = $platnostZpetne ?? $ted->modifyStrict('-1 day');
         if ($platnostZpetne > $ted) {
@@ -296,19 +297,19 @@ class DateTimeGamecon extends DateTimeCz
     }
 
     public static function nejblizsiVlnaKdy(
-        ZdrojVlnAktivit    $zdrojVlnAktivit,
-        \DateTimeInterface $platnostZpetne = null
+        ZdrojVlnAktivit|ZdrojTed $zdrojCasu,
+        \DateTimeInterface       $platnostZpetne = null
     ): DateTimeGamecon {
-        $platnostZpetne = static::overenaPlatnostZpetne($zdrojVlnAktivit, $platnostZpetne);
+        $platnostZpetne = static::overenaPlatnostZpetne($zdrojCasu, $platnostZpetne);
 
-        $prvniVlnaKdy = $zdrojVlnAktivit->prvniVlnaKdy();
+        $prvniVlnaKdy = $zdrojCasu->prvniVlnaKdy();
         if ($platnostZpetne <= $prvniVlnaKdy) { // právě je nebo teprve bude
             return $prvniVlnaKdy;
         }
-        $druhaVlnaKdy = $zdrojVlnAktivit->druhaVlnaKdy();
+        $druhaVlnaKdy = $zdrojCasu->druhaVlnaKdy();
         if ($platnostZpetne <= $druhaVlnaKdy) { // právě je nebo teprve bude
             return $druhaVlnaKdy;
         }
-        return $zdrojVlnAktivit->tretiVlnaKdy();
+        return $zdrojCasu->tretiVlnaKdy();
     }
 }
