@@ -21,7 +21,7 @@ global $systemoveNastaveni;
 $potize              = false;
 $hromadneAkceAktivit = new HromadneAkceAktivit($systemoveNastaveni);
 
-if (!$znovu) {
+if (!$znovu || $systemoveNastaveni->jsmeNaOstre()) {
     $automatickaAktivaceProvedenaKdy = $hromadneAkceAktivit->automatickaAktivaceProvedenaKdy();
     if ($automatickaAktivaceProvedenaKdy) {
         $automatickaAktivaceProvedenaKdy = DateTimeCz::createFromInterface($automatickaAktivaceProvedenaKdy);
