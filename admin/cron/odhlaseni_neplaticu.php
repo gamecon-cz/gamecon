@@ -39,7 +39,7 @@ global $systemoveNastaveni;
 
 $hromadneOdhlaseniNeplaticu = new HromadneOdhlaseniNeplaticu($systemoveNastaveni);
 
-if (!$znovu) {
+if (!$znovu || $systemoveNastaveni->jsmeNaOstre()) {
     $odhlaseniProvedenoKdy = $hromadneOdhlaseniNeplaticu->odhlaseniProvedenoKdy();
     if ($odhlaseniProvedenoKdy) {
         $odhlaseniProvedenoKdy = DateTimeCz::createFromInterface($odhlaseniProvedenoKdy);
