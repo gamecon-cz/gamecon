@@ -3121,21 +3121,18 @@ SQL
     }
 
     /**
-     * @param \Uzivatel $uzivatel
-     * @param string $zdrojOdhlaseni
-     * @param int $rocnik
      * @return Aktivita[]
      */
-    public static function dejNazvyZrusenychAktivitUzivatele(\Uzivatel $uzivatel, string $zdrojOdhlaseni, int $rocnik): array {
-        return dbFetchColumn(<<<SQL
-            SELECT akce_seznam.nazev_akce
-            FROM akce_seznam
-            JOIN akce_prihlaseni_log on akce_seznam.id_akce = akce_prihlaseni_log.id_akce
+    public static function dejZruseneAktivityUzivatele(\Uzivatel $uzivatel, string $zdrojOdhlaseni, int $rocnik): array {
+        $idcka = dbFetchColumn(<<<SQL
+            SELECT id_akce
+            FROM akce_prihlaseni_log
             WHERE akce_prihlaseni_log.zdroj_zmeny = $0
                 AND akce_prihlaseni_log.id_uzivatele = {$uzivatel->id()}
                 AND akce_prihlaseni_log.rocnik = {$rocnik}
             SQL,
             [$zdrojOdhlaseni]
         );
+        return static::zIds($idcka);
     }
 }
