@@ -1,20 +1,16 @@
 <?xml version="1.0"?>
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.5/phpunit.xsd"
-         bootstrap="./tests/_zavadec.php" convertErrorsToExceptions="true"
-         convertNoticesToExceptions="true" convertWarningsToExceptions="true" stopOnFailure="false"
-         processIsolation="false" backupGlobals="false" colors="true">
-    <coverage includeUncoveredFiles="true" processUncoveredFiles="false">
-        <include>
-            <directory>.</directory>
-        </include>
-        <exclude>
-            <directory>./tests</directory>
-        </exclude>
-    </coverage>
-    <testsuites>
-        <testsuite name="all">
-            <directory>./tests</directory>
-        </testsuite>
-    </testsuites>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.0/phpunit.xsd" bootstrap="./tests/_zavadec.php" stopOnFailure="false" processIsolation="false" backupGlobals="false" colors="true" cacheDirectory=".phpunit.cache">
+  <coverage includeUncoveredFiles="true">
+    <include>
+      <directory>.</directory>
+    </include>
+    <exclude>
+      <directory>./tests</directory>
+    </exclude>
+  </coverage>
+  <testsuites>
+    <testsuite name="all">
+      <directory>./tests</directory>
+    </testsuite>
+  </testsuites>
 </phpunit>

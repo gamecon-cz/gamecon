@@ -12,7 +12,7 @@ use Gamecon\Logger\Zaznamnik;
 use Gamecon\Role\Role;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
-use Gamecon\Tests\Db\DbTest;
+use Gamecon\Tests\Db\AbstractDbTest;
 use Gamecon\Uzivatel\Exceptions\NaHromadneOdhlasovaniJeBrzy;
 use Gamecon\Uzivatel\Exceptions\NaHromadneOdhlasovaniJePozde;
 use Gamecon\Uzivatel\HromadneOdhlaseniNeplaticu;
@@ -20,7 +20,7 @@ use Gamecon\Uzivatel\KategorieNeplatice;
 use Granam\RemoveDiacritics\RemoveDiacritics;
 use function PHPUnit\Framework\assertCount;
 
-class HromadneOdhlaseniNeplaticuTest extends DbTest
+class HromadneOdhlaseniNeplaticuTest extends AbstractDbTest
 {
     private const ID_NAHODNEHO_PREDMETU = 100;
     private const ID_PREDMETU_UBYTOVANI = 101;

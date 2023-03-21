@@ -84,7 +84,7 @@ class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
         $this->ctvrtfinale->prihlas($this->clen2, $this->clen2);
     }
 
-    function nastaveniKapacity() {
+    public static function provideNastaveniKapacity(): array {
         return [
             [null, 3],
             [2, 2],
@@ -92,9 +92,9 @@ class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
     }
 
     /**
-     * @dataProvider nastaveniKapacity
+     * @dataProvider provideNastaveniKapacity
      */
-    function testZmenaKapacity($nastaveno, $ocekavano) {
+    public function testZmenaKapacity($nastaveno, $ocekavano) {
         $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr);
         $this->ctvrtfinale->prihlasTym([$this->clen1], $this->tymlidr, null, $nastaveno, [$this->semifinaleA, $this->finale]);
         $this->ctvrtfinale->refresh();
@@ -167,7 +167,7 @@ class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
     }
 
     /**
-     * @dataProvider spatnaVolbaDalsichKol
+     * @dataProvider provideSpatnaVolbaDalsichKol
      */
     public function testSpatnaVolbaDalsichKolNelze(array $dalsiKolaIds) {
         $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr);
@@ -178,7 +178,7 @@ class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
         }, $dalsiKolaIds));
     }
 
-    public function spatnaVolbaDalsichKol(): array {
+    public static function provideSpatnaVolbaDalsichKol(): array {
         return [
             'nevybrání ničeho'        => [[]],
             'vybrání i čtvrtfinále'   => [[1, 2, 4]],

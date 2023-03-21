@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Model\Uzivatel;
 
 use Gamecon\Exceptions\NeznamyTypPredmetu;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
-use Gamecon\Tests\Db\DbTest;
+use Gamecon\Tests\Db\AbstractDbTest;
 use Gamecon\Uzivatel\Finance;
 
-class FinanceNeznamyTypPredmetuTest extends DbTest
+class FinanceNeznamyTypPredmetuTest extends AbstractDbTest
 {
     protected static array $initQueries = [
         <<<SQL

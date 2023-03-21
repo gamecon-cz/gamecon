@@ -3,9 +3,9 @@
 namespace Gamecon\Tests\Model\Aktivita;
 
 use Gamecon\Aktivita\Aktivita;
-use Gamecon\Tests\Db\DbTest;
+use Gamecon\Tests\Db\AbstractDbTest;
 
-class AktivitaTest extends DbTest
+class AktivitaTest extends AbstractDbTest
 {
     protected static array $initQueries = [
         <<<SQL
@@ -60,7 +60,7 @@ SQL,
         self::assertSame($ocekavaneNazvy, $nazvyZrusenychAktivit);
     }
 
-    public function provideZdrojOdhlaseni() {
+    public static function provideZdrojOdhlaseni() {
         return [
             'ten rok tam nebyl'                           => [123, 'neco', 2019, []],
             'ten rok byl na GC ale tohle neodhlasil'      => [123, 'jineho', 2022, []],
