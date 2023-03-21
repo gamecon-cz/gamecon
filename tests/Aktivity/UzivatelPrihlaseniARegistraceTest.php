@@ -2,12 +2,13 @@
 
 namespace Gamecon\Tests\Aktivity;
 
-use Gamecon\Tests\Db\DbTest;
+use Gamecon\Tests\Db\AbstractDbTest;
 
 /**
  * Testy pokrývající metody na přihlášení a registraci.
  */
-class UzivatelPrihlaseniARegistraceTest extends DbTest {
+class UzivatelPrihlaseniARegistraceTest extends AbstractDbTest
+{
     private static $uzivatelTab = [
         'jmeno_uzivatele'      => 'a',
         'prijmeni_uzivatele'   => 'b',
@@ -46,17 +47,17 @@ class UzivatelPrihlaseniARegistraceTest extends DbTest {
         $this->assertNull(\Uzivatel::prihlas('a', 'b'), 'nepřihlášení špatnými údaji');
     }
 
-    function providerRegistrujDuplicity() {
+    public static function provideRegistrujDuplicity() {
         return [
             ['nekolizni_login', 'email@obeti.cz', 'email1_uzivatele', '/e-mail.*zaregistrovaný/'],
             ['nekolizni_login', 'login@obeti.cz', 'email1_uzivatele', '/e-mail.*zaregistrovaný/'],
-            ['login@obeti.cz',  'ok@mail.com',    'login_uzivatele',  '/přezdívka.*zabraná/'],
-            ['email@obeti.cz',  'ok@mail.com',    'login_uzivatele',  '/přezdívka.*zabraná/'],
+            ['login@obeti.cz', 'ok@mail.com', 'login_uzivatele', '/přezdívka.*zabraná/'],
+            ['email@obeti.cz', 'ok@mail.com', 'login_uzivatele', '/přezdívka.*zabraná/'],
         ];
     }
 
     /**
-     * @dataProvider providerRegistrujDuplicity
+     * @dataProvider provideRegistrujDuplicity
      */
     function testRegistrujDuplicity($login, $email, $klicChyby, $chyba) {
         $e = null;
@@ -65,7 +66,8 @@ class UzivatelPrihlaseniARegistraceTest extends DbTest {
                 'login_uzivatele'  => $login,
                 'email1_uzivatele' => $email,
             ]));
-        } catch (\Exception $e) {}
+        } catch (\Exception $e) {
+        }
 
         $this->assertInstanceOf(\Chyby::class, $e);
         $this->assertMatchesRegularExpression($chyba, $e->klic($klicChyby));
@@ -82,7 +84,7 @@ class UzivatelPrihlaseniARegistraceTest extends DbTest {
 
     function testUprav() {
         $id = \Uzivatel::registruj($this->uzivatel());
-        $u = \Uzivatel::zId($id);
+        $u  = \Uzivatel::zId($id);
 
         $this->assertEquals('a b', $u->jmeno());
 
@@ -95,7 +97,7 @@ class UzivatelPrihlaseniARegistraceTest extends DbTest {
     }
 
     function testUpravNic() {
-        $id = \Uzivatel::registruj($this->uzivatel());
+        $id     = \Uzivatel::registruj($this->uzivatel());
         $uData1 = \Uzivatel::zId($id)->rawDb();
 
         \Uzivatel::zId($id)->uprav([]);
