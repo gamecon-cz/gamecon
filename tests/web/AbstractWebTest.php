@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Gamecon\Tests\web;
 
 use Gamecon\Role\Role;
+use Gamecon\Tests\Db\AbstractDbTest;
 use Uzivatel;
 use Gamecon\Login\Login;
 use Gamecon\Pravo;
-use Gamecon\Tests\Db\DbTest;
 use Symfony\Component\Process\Process;
 
-abstract class AbstractWebTest extends DbTest
+abstract class AbstractWebTest extends AbstractDbTest
 {
 
     protected static int $unusedLocalServerPort = 8888;

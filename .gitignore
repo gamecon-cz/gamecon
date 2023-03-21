@@ -3,6 +3,8 @@
 /.idea/
 /.vscode/
 /.phpunit.result.cache
+/.phpunit.cache
+/test-results
 
 /cache/private/*
 !/cache/private/.htaccess

@@ -6,10 +6,10 @@ namespace Gamecon\Tests\Model\Uzivatel;
 
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
-use Gamecon\Tests\Db\DbTest;
+use Gamecon\Tests\Db\AbstractDbTest;
 use Gamecon\Uzivatel\Finance;
 
-class FinanceCenaPredmetuTest extends DbTest
+class FinanceCenaPredmetuTest extends AbstractDbTest
 {
     protected static array $initQueries = [
         <<<SQL

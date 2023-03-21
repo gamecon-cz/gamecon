@@ -6,7 +6,7 @@ namespace Gamecon\Tests\Db;
 
 use Gamecon\Role\Role;
 
-abstract class UzivatelDbTest extends DbTest
+abstract class UzivatelDbTest extends AbstractDbTest
 {
     /**isEndless
      * @return \Uzivatel vrátí nového testovacího uživatele přihlášeného na GC
