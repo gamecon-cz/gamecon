@@ -38,7 +38,7 @@ class FunkceTest extends TestCase
         self::assertSame($ocekavanyVysledek, flatten($data));
     }
 
-    public function provideVicerozmernePole(): array {
+    public static function provideVicerozmernePole(): array {
         $jenorozmernePole = ['něco', 1, null];
         return [
             'prázdné pole'                       => [[], []],

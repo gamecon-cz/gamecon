@@ -8,9 +8,9 @@ use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\SystemoveNastaveni\DatabazoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
-use Gamecon\Tests\Db\DbTest;
+use Gamecon\Tests\Db\AbstractDbTest;
 
-class SystemoveNastaveniTest extends DbTest
+class SystemoveNastaveniTest extends AbstractDbTest
 {
     protected static array $initQueries = [
         [
@@ -71,7 +71,7 @@ SQL,
         );
     }
 
-    public function provideVychoziHodnota(): array {
+    public static function provideVychoziHodnota(): array {
         return [
             'GC_BEZI_OD'                        => [2023, 'GC_BEZI_OD', '2023-07-20 07:00:00'],
             'GC_BEZI_DO'                        => [2023, 'GC_BEZI_DO', '2023-07-23 21:00:00'],
@@ -92,7 +92,7 @@ SQL,
         self::assertSame($ocekavaneUkoceniProdeje, $nastaveni->prodejUbytovaniUkoncen());
     }
 
-    public function provideKonecUbytovani() {
+    public static function provideKonecUbytovani() {
         return [
             'Byl ukončen' => [
                 (new \DateTimeImmutable())->setTime(0, 0, 0)->modify('-1 second')->format('Y-m-d'),
@@ -112,7 +112,7 @@ SQL,
         self::assertSame($ocekavaneJsmeNaOstre, $nastaveni->jsmeNaOstre());
     }
 
-    public function provideKdeJsme(): array {
+    public static function provideKdeJsme(): array {
         return [
             'jsme na locale' => [false, true, false],
             'jsme na betě'   => [true, false, false],

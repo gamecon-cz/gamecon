@@ -2,7 +2,7 @@
 
 namespace Gamecon\Tests\Db;
 
-class DbTest extends \PHPUnit\Framework\TestCase
+class AbstractDbTest extends \PHPUnit\Framework\TestCase
 {
     /** @var DbWrapper */
     private static $connection;

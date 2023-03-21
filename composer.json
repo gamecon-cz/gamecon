@@ -50,7 +50,7 @@
     },
     "require-dev": {
         "dg/ftp-deployment": "~3.3",
-        "phpunit/phpunit": "~9.5",
+        "phpunit/phpunit": "^10.0",
         "roave/security-advisories": "dev-latest",
         "symfony/process": "^6.1",
         "symplify/vendor-patches": "^11.1"

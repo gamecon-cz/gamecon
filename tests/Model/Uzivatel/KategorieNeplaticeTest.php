@@ -13,7 +13,7 @@ class KategorieNeplaticeTest extends TestCase
 
     /**
      * @test
-     * @dataProvider dataNeplatice
+     * @dataProvider provideDataNeplatice
      */
     public function Muzu_ziskat_ciselnou_kategorii_neplatice_a_zjistit_zda_ma_byt_odhlasen(
         Finance $finance,
@@ -53,7 +53,7 @@ class KategorieNeplaticeTest extends TestCase
         );
     }
 
-    public function dataNeplatice(): array {
+    public static function provideDataNeplatice(): array {
         $ted                      = 'now';
         $predChvili               = '-1 second';
         $predMesicem              = '-1 month';
@@ -61,27 +61,27 @@ class KategorieNeplaticeTest extends TestCase
         $nemaPravoPlatitAzNaMiste = false;
 
         $dataNeplatice = [];
-        foreach ($this->pravoPlatitAzNaMistePrebijeVsechno() as $index => $pravoPLatitAzNaMistePrebijeVsechno) {
-            $dataNeplatice['právo platit až na místě přebije všechno ' . $this->pismenoPodleIndexu($index)] = $pravoPLatitAzNaMistePrebijeVsechno;
+        foreach (self::pravoPlatitAzNaMistePrebijeVsechno() as $index => $pravoPLatitAzNaMistePrebijeVsechno) {
+            $dataNeplatice['právo platit až na místě přebije všechno ' . self::pismenoPodleIndexu($index)] = $pravoPLatitAzNaMistePrebijeVsechno;
         }
 
         return array_merge(
             $dataNeplatice,
             [
-                'neznámé přihlášení na GC nemá kategorii'                     => [$this->finance(), null, $nemaPravoPlatitAzNaMiste, $ted, ROCNIK, 0.0, 0, 0, null],
-                'vlna odhlašování před přihlášením na GC znamená chráněný'    => [$this->finance(), $ted, $nemaPravoPlatitAzNaMiste, $predChvili, ROCNIK, 0.0, 0, 0, 5],
-                'registrován v ochranné lhůtě pár dní před vlnou odhlašování' => [$this->finance(), '-9 days -59 minutes -59 seconds', $nemaPravoPlatitAzNaMiste, $ted, ROCNIK, 0.0, 0, 10 /* chráněn tolik dní před odhlašováním */, 4],
-                'letos poslal málo a má velký dluh'                           => [$this->finance(0.1), $predMesicem, $nemaPravoPlatitAzNaMiste, $zitra, ROCNIK, 0.0, PHP_INT_MAX, 0, 2],
-                'letos nic, z loňska žádný zůstatek a má dluh'                => [$this->finance(0.0, 0.0, -0.1), $predMesicem, $nemaPravoPlatitAzNaMiste, $zitra, ROCNIK, 0.0, PHP_INT_MAX, 0, 1],
-                'letos nic, z loňska něco málo a má malý dluh'                => [$this->finance(0.0, 0.1, -0.1), $predMesicem, $nemaPravoPlatitAzNaMiste, $zitra, ROCNIK, -0.2 /* < stav -0.1 = malý dluh */, PHP_INT_MAX, 0, 3],
-                'letos poslal dost'                                           => [$this->finance(100.0), $predMesicem, $nemaPravoPlatitAzNaMiste, $zitra, ROCNIK, -0.2 /* < stav -0.1 = malý dluh */, 100, 0, 4],
-                'letos nic, z loňska nic a nemá velký dluh'                   => [$this->finance(0.0, 0.0, -0.1), $predMesicem, $nemaPravoPlatitAzNaMiste, $zitra, ROCNIK, -0.2 /* < stav -0.1 = malý dluh */, PHP_INT_MAX, 0, 7],
+                'neznámé přihlášení na GC nemá kategorii'                     => [self::finance(), null, $nemaPravoPlatitAzNaMiste, $ted, ROCNIK, 0.0, 0, 0, null],
+                'vlna odhlašování před přihlášením na GC znamená chráněný'    => [self::finance(), $ted, $nemaPravoPlatitAzNaMiste, $predChvili, ROCNIK, 0.0, 0, 0, 5],
+                'registrován v ochranné lhůtě pár dní před vlnou odhlašování' => [self::finance(), '-9 days -59 minutes -59 seconds', $nemaPravoPlatitAzNaMiste, $ted, ROCNIK, 0.0, 0, 10 /* chráněn tolik dní před odhlašováním */, 4],
+                'letos poslal málo a má velký dluh'                           => [self::finance(0.1), $predMesicem, $nemaPravoPlatitAzNaMiste, $zitra, ROCNIK, 0.0, PHP_INT_MAX, 0, 2],
+                'letos nic, z loňska žádný zůstatek a má dluh'                => [self::finance(0.0, 0.0, -0.1), $predMesicem, $nemaPravoPlatitAzNaMiste, $zitra, ROCNIK, 0.0, PHP_INT_MAX, 0, 1],
+                'letos nic, z loňska něco málo a má malý dluh'                => [self::finance(0.0, 0.1, -0.1), $predMesicem, $nemaPravoPlatitAzNaMiste, $zitra, ROCNIK, -0.2 /* < stav -0.1 = malý dluh */, PHP_INT_MAX, 0, 3],
+                'letos poslal dost'                                           => [self::finance(100.0), $predMesicem, $nemaPravoPlatitAzNaMiste, $zitra, ROCNIK, -0.2 /* < stav -0.1 = malý dluh */, 100, 0, 4],
+                'letos nic, z loňska nic a nemá velký dluh'                   => [self::finance(0.0, 0.0, -0.1), $predMesicem, $nemaPravoPlatitAzNaMiste, $zitra, ROCNIK, -0.2 /* < stav -0.1 = malý dluh */, PHP_INT_MAX, 0, 7],
 
             ]
         );
     }
 
-    private function pismenoPodleIndexu(int $index): string {
+    private static function pismenoPodleIndexu(int $index): string {
         $uvodniPismeno = $index < (ord('z') - ord('a'))
             ? 'a'
             : 'A';
@@ -94,20 +94,20 @@ class KategorieNeplaticeTest extends TestCase
     /**
      * @see \Gamecon\Uzivatel\KategorieNeplatice::MA_PRAVO_PLATIT_AZ_NA_MISTE
      */
-    private function pravoPlatitAzNaMistePrebijeVsechno(): array {
+    private static function pravoPlatitAzNaMistePrebijeVsechno(): array {
         $kombinace = [];
 
         // kombinace všeho ostatního
-        foreach ($this->letosZaplatilDostCiMalo() as $letosZaplatilDostCiMalo) {
+        foreach (self::letosZaplatilDostCiMalo() as $letosZaplatilDostCiMalo) {
             ['suma_plateb' => $sumaPlateb, 'castka_poslal_dost' => $castkaPoslalDost] = $letosZaplatilDostCiMalo;
-            foreach ($this->registrovalSeAzPoVlneOdhlasovaniNeboPredNiNeboNevime() as $registrovalSeKVlne) {
+            foreach (self::registrovalSeAzPoVlneOdhlasovaniNeboPredNiNeboNevime() as $registrovalSeKVlne) {
                 [
                     'kdy_se_registroval_na_letosni_gc'          => $kdySeRegistrovalNaLetosniGc,
                     'zacatek_vlny_odhlasovani'                  => $zacatekVlnyOdhlasovani,
                     'pocet_dnu_pred_vlnou_kdy_je_jeste_chranen' => $pocetDnuPredVlnouKdyJeJesteChranen,
                 ] = $registrovalSeKVlne;
                 $kombinace[] = [
-                    $this->finance($sumaPlateb),
+                    self::finance($sumaPlateb),
                     $kdySeRegistrovalNaLetosniGc,
                     true,
                     $zacatekVlnyOdhlasovani,
@@ -120,7 +120,7 @@ class KategorieNeplaticeTest extends TestCase
             }
         }
 
-        foreach ($this->kombinaceProKategorii3VelkyDluh() as $velkyDluh) {
+        foreach (self::kombinaceProKategorii3VelkyDluh() as $velkyDluh) {
             [
                 'suma_plateb'                    => $sumaPlateb,
                 'zustatek_z_predchozich_rocniku' => $zustatekZPredchozichRocniku,
@@ -128,14 +128,14 @@ class KategorieNeplaticeTest extends TestCase
                 'castka_velky_dluh'              => $castkaVelkyDluh,
                 'castka_poslal_dost'             => $castkaPoslalDost,
             ] = $velkyDluh;
-            foreach ($this->registrovalSeAzPoVlneOdhlasovaniNeboPredNiNeboNevime() as $registrovalSeKVlne) {
+            foreach (self::registrovalSeAzPoVlneOdhlasovaniNeboPredNiNeboNevime() as $registrovalSeKVlne) {
                 [
                     'kdy_se_registroval_na_letosni_gc'          => $kdySeRegistrovalNaLetosniGc,
                     'zacatek_vlny_odhlasovani'                  => $zacatekVlnyOdhlasovani,
                     'pocet_dnu_pred_vlnou_kdy_je_jeste_chranen' => $pocetDnuPredVlnouKdyJeJesteChranen,
                 ] = $registrovalSeKVlne;
                 $kombinace[] = [
-                    $this->finance(
+                    self::finance(
                         $sumaPlateb,
                         $zustatekZPredchozichRocniku,
                         $stav
@@ -158,7 +158,7 @@ class KategorieNeplaticeTest extends TestCase
     /**
      * @see \Gamecon\Uzivatel\KategorieNeplatice::LETOS_NEPOSLAL_DOST_NEBO_Z_LONSKA_NECO_MA_A_NEMA_VELKY_DLUH
      */
-    private function kombinaceProKategorii3VelkyDluh(): array {
+    private static function kombinaceProKategorii3VelkyDluh(): array {
         return [
             'nic letos neposlal'                                                   => [
                 'suma_plateb'                    => 0.0,
@@ -195,7 +195,7 @@ class KategorieNeplaticeTest extends TestCase
      * Kategorie neplatiče null (nevíme) a
      * @see \Gamecon\Uzivatel\KategorieNeplatice::LETOS_SE_REGISTROVAL_PAR_DNU_PRED_ODHLASOVACI_VLNOU
      */
-    private function registrovalSeAzPoVlneOdhlasovaniNeboPredNiNeboNevime() {
+    private static function registrovalSeAzPoVlneOdhlasovaniNeboPredNiNeboNevime() {
         return [
             'neznáme registraci na GC'                   => [
                 'kdy_se_registroval_na_letosni_gc'          => null,
@@ -223,14 +223,14 @@ class KategorieNeplaticeTest extends TestCase
     /**
      * @see \Gamecon\Uzivatel\KategorieNeplatice::LETOS_POSLAL_DOST_A_JE_TAK_CHRANENY
      */
-    private function letosZaplatilDostCiMalo(): array {
+    private static function letosZaplatilDostCiMalo(): array {
         return array_merge(
-            $this->letosZaplatilDost(),
-            $this->letosZaplatilMalo()
+            self::letosZaplatilDost(),
+            self::letosZaplatilMalo()
         );
     }
 
-    private function letosZaplatilDost(): array {
+    private static function letosZaplatilDost(): array {
         return [
             'vic'    => [
                 'suma_plateb'        => 9999.1,
@@ -243,7 +243,7 @@ class KategorieNeplaticeTest extends TestCase
         ];
     }
 
-    private function letosZaplatilMalo(): array {
+    private static function letosZaplatilMalo(): array {
         return [
             'malo' => [
                 'suma_plateb'        => 9998.9,
@@ -252,7 +252,7 @@ class KategorieNeplaticeTest extends TestCase
         ];
     }
 
-    private function finance(
+    private static function finance(
         float $sumaPlateb = 0.0,
         float $zustatekZPredchozichRocniku = 0.0,
         float $stav = 0.0
@@ -291,7 +291,7 @@ class KategorieNeplaticeTest extends TestCase
      * @test
      */
     public function Muzu_resetovat_vnitrni_cache() {
-        $finance                           = $this->finance(123.456);
+        $finance                           = self::finance(123.456);
         $kdySeRegistrovalNaLetosniGc       = new DateTimeImmutableStrict('-1 month');
         $maPravoPlatitAzNaMiste            = false;
         $zacatekVlnyOdhlasovani            = new DateTimeImmutableStrict();
