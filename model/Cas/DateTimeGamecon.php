@@ -228,7 +228,7 @@ class DateTimeGamecon extends DateTimeCz
     }
 
     public static function spocitejPrvniHromadneOdhlasovani(int $rocnik): DateTimeGamecon {
-        return static::druhaVlnaKdy($rocnik)->modify('-10 minutes');
+        return static::tretiVlnaKdy($rocnik)->modify('-10 minutes');
     }
 
     public static function druheHromadneOdhlasovani(int $rocnik = ROCNIK): DateTimeGamecon {
@@ -239,7 +239,15 @@ class DateTimeGamecon extends DateTimeCz
     }
 
     public static function spocitejDruheHromadneOdhlasovani(int $rocnik): DateTimeGamecon {
-        return static::tretiVlnaKdy($rocnik)->modify('-10 minutes');
+        return static::tretiVlnaKdy($rocnik)->modify('+9 day')->setTime(0, 0, 0);
+    }
+
+    public static function tretiHromadneOdhlasovani(int $rocnik = ROCNIK): DateTimeGamecon {
+        return static::spocitejTretiHromadneOdhlasovani($rocnik);
+    }
+
+    public static function spocitejTretiHromadneOdhlasovani(int $rocnik = ROCNIK): DateTimeGamecon {
+        return static::spocitejDruheHromadneOdhlasovani($rocnik)->modify('+1 week');
     }
 
     /**
