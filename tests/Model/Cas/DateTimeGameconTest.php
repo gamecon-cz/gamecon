@@ -105,7 +105,7 @@ class DateTimeGameconTest extends TestCase
         );
     }
 
-    public function provideZacatkyRegistraciUcastniku(): array {
+    public static function provideZacatkyRegistraciUcastniku(): array {
         return [
             [2023, '2023-05-11 20:23:00'],
             [2022, '2022-05-12 20:22:00'],
@@ -138,7 +138,7 @@ class DateTimeGameconTest extends TestCase
         }
     }
 
-    public function provideZacatekPrvniVlnyOd(): array {
+    public static function provideZacatekPrvniVlnyOd(): array {
         return [
 //            'současný ročník' => [ROCNIK, PRVNI_VLNA_KDY],
             '2023' => [2023, '2023-05-18 20:23:00'],
@@ -167,7 +167,7 @@ class DateTimeGameconTest extends TestCase
         }
     }
 
-    public function provideZacatekDruheVlnyOd(): array {
+    public static function provideZacatekDruheVlnyOd(): array {
         return [
             'současný ročník' => [ROCNIK, DRUHA_VLNA_KDY],
             '2023'            => [2023, '2023-06-08 20:23:00'],
@@ -196,7 +196,7 @@ class DateTimeGameconTest extends TestCase
         }
     }
 
-    public function provideZacatekTretiVlnyOd(): array {
+    public static function provideZacatekTretiVlnyOd(): array {
         return [
             'současný ročník' => [ROCNIK, TRETI_VLNA_KDY],
             '2023'            => [2023, '2023-07-01 20:23:00'],

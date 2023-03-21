@@ -4,6 +4,7 @@
  * Global variables used by certain functions
  * not all of them, see also dbConnect()
  */
+global $dbTransactionDepth;
 $dbTransactionDepth = 0;
 
 /**
