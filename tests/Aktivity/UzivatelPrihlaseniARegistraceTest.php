@@ -2,12 +2,12 @@
 
 namespace Gamecon\Tests\Aktivity;
 
-use Gamecon\Tests\Db\AbstractDbTest;
+use Gamecon\Tests\Db\AbstractTestDb;
 
 /**
  * Testy pokrývající metody na přihlášení a registraci.
  */
-class UzivatelPrihlaseniARegistraceTest extends AbstractDbTest
+class UzivatelPrihlaseniARegistraceTest extends AbstractTestDb
 {
     private static $uzivatelTab = [
         'jmeno_uzivatele'      => 'a',

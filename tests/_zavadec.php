@@ -2,7 +2,7 @@
 
 namespace Gamecon\Tests;
 
-use Gamecon\Tests\Db\AbstractDbTest;
+use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Tests\Db\DbWrapper;
 use Godric\DbMigrations\DbMigrationsConfig;
 use Godric\DbMigrations\DbMigrations;
@@ -31,7 +31,7 @@ dbQuery(sprintf('USE `%s`', DB_NAME), [], $connection);
  */
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-AbstractDbTest::setConnection(new DbWrapper());
+AbstractTestDb::setConnection(new DbWrapper());
 
 /** vynutíme reconnect, hlavně kvůli nastavení ROCNIK v databázi, @see \dbConnect */
 dbClose();

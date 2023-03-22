@@ -8,9 +8,9 @@ use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\SystemoveNastaveni\DatabazoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
-use Gamecon\Tests\Db\AbstractDbTest;
+use Gamecon\Tests\Db\AbstractTestDb;
 
-class SystemoveNastaveniTest extends AbstractDbTest
+class SystemoveNastaveniTest extends AbstractTestDb
 {
     protected static array $initQueries = [
         [

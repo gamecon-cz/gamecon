@@ -507,6 +507,12 @@ SQL;
         );
     }
 
+    public function tretiHromadneOdhlasovani(): DateTimeImmutableStrict {
+        return DateTimeImmutableStrict::createFromInterface(
+            DateTimeGamecon::tretiHromadneOdhlasovani($this->rocnik())
+        );
+    }
+
     /**
      * @throws ChybnaZpetnaPlatnost
      */

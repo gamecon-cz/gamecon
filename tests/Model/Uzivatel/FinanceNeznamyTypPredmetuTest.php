@@ -6,10 +6,10 @@ namespace Gamecon\Tests\Model\Uzivatel;
 
 use Gamecon\Exceptions\NeznamyTypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
-use Gamecon\Tests\Db\AbstractDbTest;
+use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Uzivatel\Finance;
 
-class FinanceNeznamyTypPredmetuTest extends AbstractDbTest
+class FinanceNeznamyTypPredmetuTest extends AbstractTestDb
 {
     protected static array $initQueries = [
         <<<SQL
