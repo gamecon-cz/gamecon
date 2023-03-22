@@ -128,7 +128,7 @@ SQL,
             $finance        = $navstevnik->finance();
             $ucastiHistorie = [];
             foreach ($ucastPodleRoku as $rocnik => $nazevUcasti) {
-                $ucastiHistorie[$nazevUcasti] = $navstevnik->maPravo((int)('-' . substr($rocnik, 2) . '02')) ? 'ano' : 'ne';
+                $ucastiHistorie[$nazevUcasti] = $navstevnik->maPravo((int)('-' . substr((string)$rocnik, 2) . '02')) ? 'ano' : 'ne';
             }
             $stat = '';
             try {
