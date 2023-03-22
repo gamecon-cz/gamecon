@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\web;
 
-class StrankyWebuTest extends AbstractWebTest
+class StrankyWebuTest extends AbstractTestWeb
 {
     /**
      * @test

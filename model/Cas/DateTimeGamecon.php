@@ -263,7 +263,13 @@ class DateTimeGamecon extends DateTimeCz
         if ($prvniHromadneOdhlasovani >= $platnostZpetne) { // právě je nebo teprve bude
             return $prvniHromadneOdhlasovani;
         }
-        return $systemoveNastaveni->druheHromadneOdhlasovani();
+
+        $druheHromadneOdhlasovani = $systemoveNastaveni->druheHromadneOdhlasovani();
+        if ($druheHromadneOdhlasovani >= $platnostZpetne) { // právě je nebo teprve bude
+            return $druheHromadneOdhlasovani;
+        }
+
+        return $systemoveNastaveni->tretiHromadneOdhlasovani();
     }
 
     public static function poradiHromadnehoOdhlasovani(
@@ -275,6 +281,9 @@ class DateTimeGamecon extends DateTimeCz
         }
         if ($systemoveNastaveni->druheHromadneOdhlasovani()->getTimestamp() === $casOdhlasovani->getTimestamp()) {
             return 2;
+        }
+        if ($systemoveNastaveni->druheHromadneOdhlasovani()->getTimestamp() === $casOdhlasovani->getTimestamp()) {
+            return 3;
         }
         throw new \LogicException(
             "Neznámé pořadí data hromadného odhlašování '{$casOdhlasovani->format(self::FORMAT_DB)}'"
