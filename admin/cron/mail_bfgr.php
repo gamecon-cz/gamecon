@@ -23,7 +23,7 @@ $bfgrReport->exportuj('xlsx', true, $bfgrSoubor);
 
 $uvod      = "Gamecon systém hromadně odhlásí neplatiče. Přitom ale máme XY a hrozí komplikace.";
 $oddelovac = str_repeat('═', mb_strlen($uvod));
-(new GcMail())
+$mail      = (new GcMail())
     ->adresati(['jaroslav.tyc.83@gmail.com'])
     ->predmet("bude hromadné odhlášení a stále máme XY nespárovaných plateb")
     ->text(<<<TEXT
@@ -34,5 +34,8 @@ $oddelovac = str_repeat('═', mb_strlen($uvod));
         BLABLA
         TEXT
     )
-    ->prilohaSoubor($bfgrSoubor)
-    ->odeslat();
+    ->prilohaSoubor($bfgrSoubor);
+
+$mail->odeslat();
+
+echo $mail->dejText();
