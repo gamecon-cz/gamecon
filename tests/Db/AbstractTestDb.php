@@ -2,7 +2,9 @@
 
 namespace Gamecon\Tests\Db;
 
-class AbstractDbTest extends \PHPUnit\Framework\TestCase
+use PHPUnit\Framework\TestCase;
+
+abstract class AbstractTestDb extends TestCase
 {
     /** @var DbWrapper */
     private static $connection;

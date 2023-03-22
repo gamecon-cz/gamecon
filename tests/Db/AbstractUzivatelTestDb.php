@@ -6,9 +6,9 @@ namespace Gamecon\Tests\Db;
 
 use Gamecon\Role\Role;
 
-abstract class UzivatelDbTest extends AbstractDbTest
+abstract class AbstractUzivatelTestDb extends AbstractTestDb
 {
-    /**isEndless
+    /**
      * @return \Uzivatel vrátí nového testovacího uživatele přihlášeného na GC
      */
     public static function prihlasenyUzivatel(): \Uzivatel {
@@ -22,7 +22,7 @@ abstract class UzivatelDbTest extends AbstractDbTest
         $idUzivatele = dbInsertId();
         dbInsert('uzivatele_role', [
             'id_uzivatele' => $idUzivatele,
-            'id_role'     => Role::PRIHLASEN_NA_LETOSNI_GC,
+            'id_role'      => Role::PRIHLASEN_NA_LETOSNI_GC,
         ]);
         $uzivatel = \Uzivatel::zId($idUzivatele);
         self::assertNotNull($uzivatel);

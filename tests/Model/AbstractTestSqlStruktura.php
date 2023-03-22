@@ -2,9 +2,9 @@
 
 namespace Gamecon\Tests\Model;
 
-use Gamecon\Tests\Db\AbstractDbTest;
+use Gamecon\Tests\Db\AbstractTestDb;
 
-abstract class SqlStrukturaTest extends AbstractDbTest
+abstract class AbstractTestSqlStruktura extends AbstractTestDb
 {
     /**
      * @test
