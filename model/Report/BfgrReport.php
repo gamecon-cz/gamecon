@@ -463,7 +463,7 @@ SQL,
     }
 
     private function dejNazvyAPoctyKostek(Uzivatel $navstevnik, array $vsechnyMozneKostky): array {
-        $objednaneKostky = dejNazvyAPoctyPredmetu($navstevnik, 'kostka');
+        $objednaneKostky = $this->dejNazvyAPoctyPredmetu($navstevnik, 'kostka');
         foreach ($objednaneKostky as $objednanaKostka => $pocet) {
             if (!preg_match('~ \d{4}$~', $objednanaKostka)) {
                 unset($objednaneKostky[$objednanaKostka]);
