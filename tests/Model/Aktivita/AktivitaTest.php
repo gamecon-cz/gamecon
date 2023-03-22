@@ -3,9 +3,9 @@
 namespace Gamecon\Tests\Model\Aktivita;
 
 use Gamecon\Aktivita\Aktivita;
-use Gamecon\Tests\Db\AbstractDbTest;
+use Gamecon\Tests\Db\AbstractTestDb;
 
-class AktivitaTest extends AbstractDbTest
+class AktivitaTest extends AbstractTestDb
 {
     protected static array $initQueries = [
         <<<SQL

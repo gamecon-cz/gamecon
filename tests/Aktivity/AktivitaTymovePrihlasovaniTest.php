@@ -2,10 +2,10 @@
 
 namespace Gamecon\Tests\Aktivity;
 
-use Gamecon\Tests\Db\UzivatelDbTest;
+use Gamecon\Tests\Db\AbstractUzivatelTestDb;
 use Gamecon\Aktivita\Aktivita;
 
-class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
+class AktivitaTymovePrihlasovaniTest extends AbstractUzivatelTestDb
 {
     private $ctvrtfinale;
     private $semifinaleA;

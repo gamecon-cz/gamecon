@@ -278,13 +278,17 @@ class DateTimeGameconTest extends TestCase
     }
 
     public function testDatumHromadnehoOdhlasovaniPlatiAzDenZpetne() {
-        // PRVNÍ VLNA
+        // PRVNÍ
         $casPrvnihoHromadnehoOdhlasovani = DateTimeImmutableStrict::createFromInterface(DateTimeGamecon::prvniHromadneOdhlasovani());
         $this->testPrvnihoHromadnehoOdhlasovaniJakoNejblizsiho($casPrvnihoHromadnehoOdhlasovani);
 
-        // DRUHÁ VLNA
+        // DRUHÉ
         $casDruhehoHromadnehoOdhlasovani = DateTimeImmutableStrict::createFromInterface(DateTimeGamecon::druheHromadneOdhlasovani());
         $this->testDruhehoHromadnehoOdhlasovaniJakoNejblizsiho($casPrvnihoHromadnehoOdhlasovani, $casDruhehoHromadnehoOdhlasovani);
+
+        // TŘETÍ
+        $casTretihoHromadnehoOdhlasovani = DateTimeImmutableStrict::createFromInterface(DateTimeGamecon::tretiHromadneOdhlasovani());
+        $this->testTretihoHromadnehoOdhlasovaniJakoNejblizsiho($casDruhehoHromadnehoOdhlasovani, $casTretihoHromadnehoOdhlasovani);
     }
 
     private function testPrvnihoHromadnehoOdhlasovaniJakoNejblizsiho(DateTimeImmutableStrict $casPrvnihoHromadnehoOdhlasovani) {
@@ -302,81 +306,92 @@ class DateTimeGameconTest extends TestCase
             DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($nastveniPresneDenPoPrvni),
             'Zjišťování nejbližší (první) vlny ještě den poté, co vlna začíná, by mělo vrátit začátek té den staré vlny'
         );
+        $this->testHromadnehoOdhlasovaniJakoNejblizsiho($casPrvnihoHromadnehoOdhlasovani, 1);
+    }
+
+    private function testHromadnehoOdhlasovaniJakoNejblizsiho(
+        DateTimeImmutableStrict $casHromadnehoOdhlasovani,
+        int                     $poradiOdhlasovani
+    ) {
+        $nastaveniCasPrvnihoHromadnehoOdhlasovani = $this->dejSystemoveNastaveni($casHromadnehoOdhlasovani);
+        self::assertEquals(
+            $casHromadnehoOdhlasovani,
+            DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($nastaveniCasPrvnihoHromadnehoOdhlasovani),
+            "Zjišťování nejbližšího ($poradiOdhlasovani) odhlašování ve stejný čas jako nějaké odhlašování začíná by mělo vrátit začátek právě toho odhlašování"
+        );
+
+        $presneDenPo              = $casHromadnehoOdhlasovani->modify('+1 day');
+        $nastaveniSTedPresneDenPo = $this->dejSystemoveNastaveni($presneDenPo);
+        self::assertEquals(
+            $casHromadnehoOdhlasovani,
+            DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($nastaveniSTedPresneDenPo),
+            "Zjišťování nejbližšího ($poradiOdhlasovani) odhlašování ještě den poté, co začíná, by mělo vrátit začátek toho den starého odhlašování"
+        );
     }
 
     private function testDruhehoHromadnehoOdhlasovaniJakoNejblizsiho(
         DateTimeImmutableStrict $casPrvnihoHromadnehoOdhlasovani,
         DateTimeImmutableStrict $casDruhehoHromadnehoOdhlasovani
     ) {
-        self::assertGreaterThan(
-            $casPrvnihoHromadnehoOdhlasovani->modify('+1 day'),
+        $this->testDalsihoHromadnehoOdhlasovaniJakoNejblizsiho(
+            $casPrvnihoHromadnehoOdhlasovani,
             $casDruhehoHromadnehoOdhlasovani,
-            'Prní a druhá vlna od sebe musí být nejméně den a kousek'
-        );
-
-        $denAKousekPoPrvni          = $casPrvnihoHromadnehoOdhlasovani->modify('+1 day +1 second');
-        $nastaveniDenAKousekPoPrvni = $this->dejSystemoveNastaveni($denAKousekPoPrvni);
-        self::assertEquals(
-            $casDruhehoHromadnehoOdhlasovani,
-            DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($nastaveniDenAKousekPoPrvni),
-            'Zjišťování nejbližší (první) vlny déle než den poté, co vlna začíná, by mělo vrátit začátek až následující vlny'
-        );
-
-        $nastaveniCasDruhehoHromadnehoOdhlasovani = $this->dejSystemoveNastaveni($casDruhehoHromadnehoOdhlasovani);
-        self::assertEquals(
-            $casDruhehoHromadnehoOdhlasovani,
-            DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($nastaveniCasDruhehoHromadnehoOdhlasovani),
-            'Zjišťování nejbližší (druhé) vlny ve stejný čas jako vlna začíná by mělo vrátit začátek té samé vlny'
-        );
-
-        $presneDenPoDruhe          = $casDruhehoHromadnehoOdhlasovani->modify('+1 day');
-        $nastaveniPresneDenPoDruhe = $this->dejSystemoveNastaveni($presneDenPoDruhe);
-        self::assertEquals(
-            $casDruhehoHromadnehoOdhlasovani,
-            DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($nastaveniPresneDenPoDruhe),
-            'Zjišťování nejbližší (druhé) vlny ještě den poté, co vlna začíná, by mělo vrátit začátek té den staré vlny'
+            2
         );
     }
 
-    private function testTretihoHromadnehoOdhlasovani(
-        DateTimeImmutableStrict $casDruhehoHromadnehoOdhlasovani,
-        DateTimeImmutableStrict $casTretihoHromadnehoOdhlasovani
+    private function testDalsihoHromadnehoOdhlasovaniJakoNejblizsiho(
+        DateTimeImmutableStrict $casPredchozihoHromadnehoOdhlasovani,
+        DateTimeImmutableStrict $casSoucasnehoHromadnehoOdhlasovani,
+        int                     $poradiSoucasneho
     ) {
+        $poradiPrechoziho = $poradiSoucasneho - 1;
+
         self::assertGreaterThan(
-            $casDruhehoHromadnehoOdhlasovani->modify('+1 day'),
-            $casTretihoHromadnehoOdhlasovani,
-            'Druhá a třetí vlna od sebe musí být nejméně den a kousek'
+            $casPredchozihoHromadnehoOdhlasovani->modify('+1 day'),
+            $casSoucasnehoHromadnehoOdhlasovani,
+            "Předchozí ({$poradiPrechoziho}.) a současné ({$poradiSoucasneho}.) odhlašování od sebe musí být nejméně den a kousek"
         );
 
-        $denAKousekPoTreti          = $casDruhehoHromadnehoOdhlasovani->modify('+1 day +1 second');
-        $nastaveniDenAKousekPoTreti = $this->dejSystemoveNastaveni($denAKousekPoTreti);
+        $denAKousekPoPrvni          = $casPredchozihoHromadnehoOdhlasovani->modify('+1 day +1 second');
+        $nastaveniDenAKousekPoPrvni = $this->dejSystemoveNastaveni($denAKousekPoPrvni);
         self::assertEquals(
-            $casTretihoHromadnehoOdhlasovani,
-            DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($nastaveniDenAKousekPoTreti),
-            'Zjišťování nejbližší (druhé) vlny déle než den poté, co vlna začíná, by mělo vrátit začátek až následující vlny'
+            $casSoucasnehoHromadnehoOdhlasovani,
+            DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($nastaveniDenAKousekPoPrvni),
+            "Zjišťování nejbližšího odhlašování déle než den poté, co {$poradiPrechoziho}. odhlašování začíná, by mělo vrátit začátek až následujícího, {$poradiSoucasneho}. odhlašování"
         );
 
-        $nastaveniCasTretihoHromadnehoOdhlasovani = $this->dejSystemoveNastaveni($casTretihoHromadnehoOdhlasovani);
-        self::assertEquals(
+        $this->testHromadnehoOdhlasovaniJakoNejblizsiho($casSoucasnehoHromadnehoOdhlasovani, 2);
+    }
+
+    private function testTretihoHromadnehoOdhlasovaniJakoNejblizsiho(
+        DateTimeImmutableStrict $casDruhehoHromadnehoOdhlasovani,
+        DateTimeImmutableStrict $casTretihoHromadnehoOdhlasovani,
+    ) {
+        $this->testPoslednihoHromadnehoOdhlasovaniJakoNejblizsiho(
+            $casDruhehoHromadnehoOdhlasovani,
             $casTretihoHromadnehoOdhlasovani,
-            DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($nastaveniCasTretihoHromadnehoOdhlasovani),
-            'Zjišťování nejbližší (třetí) vlny ve stejný čas jako vlna začíná by mělo vrátit začátek té samé vlny'
+            3
+        );
+    }
+
+    private function testPoslednihoHromadnehoOdhlasovaniJakoNejblizsiho(
+        DateTimeImmutableStrict $casPrechozihoHromadnehoOdhlasovani,
+        DateTimeImmutableStrict $casPoslednihoHromadnehoOdhlasovani,
+        int                     $poradiSoucasneho
+    ) {
+        $this->testDalsihoHromadnehoOdhlasovaniJakoNejblizsiho(
+            $casPrechozihoHromadnehoOdhlasovani,
+            $casPoslednihoHromadnehoOdhlasovani,
+            $poradiSoucasneho
         );
 
-        $presneDenPoTreti          = $casTretihoHromadnehoOdhlasovani->modify('+1 day');
-        $nastaveniPresneDenPoDruhe = $this->dejSystemoveNastaveni($presneDenPoTreti);
+        $denAKousekPoPoslednim              = $casPoslednihoHromadnehoOdhlasovani->modify('+1 day +1 second');
+        $nastaveniSTedDenAKousekPoPoslednim = $this->dejSystemoveNastaveni($denAKousekPoPoslednim);
         self::assertEquals(
-            $casTretihoHromadnehoOdhlasovani,
-            DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($nastaveniPresneDenPoDruhe),
-            'Zjišťování nejbližší (třetí) vlny ještě den poté, co vlna začíná, by mělo vrátit začátek té den staré vlny'
-        );
-
-        $denAKousekPoTreti          = $casTretihoHromadnehoOdhlasovani->modify('+1 day +1 second');
-        $nastaveniDenAKousekPoTreti = $this->dejSystemoveNastaveni($denAKousekPoTreti);
-        self::assertEquals(
-            $casTretihoHromadnehoOdhlasovani,
-            DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($nastaveniDenAKousekPoTreti),
-            'Zjišťování nejbližší (třetí) vlny déle než den poté, co začíná druhá vlna, by mělo vrátit začátek třetí vlny jako poslední známé'
+            $casPoslednihoHromadnehoOdhlasovani,
+            DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($nastaveniSTedDenAKousekPoPoslednim),
+            "Zjišťování nejbližšího odhlašování déle než den poté, co {$poradiSoucasneho}. odhlašování začíná, by mělo i tak vrátit začátek {$poradiSoucasneho}. odhlašování, protože je poslední"
         );
     }
 
