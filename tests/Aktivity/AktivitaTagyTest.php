@@ -2,10 +2,10 @@
 
 namespace Gamecon\Tests\Aktivity;
 
-use Gamecon\Tests\Db\AbstractDbTest;
+use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Aktivita\Aktivita;
 
-class AktivitaTagyTest extends AbstractDbTest
+class AktivitaTagyTest extends AbstractTestDb
 {
 
     protected static string $initData = '
