@@ -18,6 +18,7 @@ function vytvorSouborSkrytehoNastaveniPodleEnv(string $souborVerejnehoNastaveni)
         $CRON_KEY               = getenv('CRON_KEY');
         $GOOGLE_API_CREDENTIALS = getenv('GOOGLE_API_CREDENTIALS') ?: '{}';
         $FIO_TOKEN              = getenv('FIO_TOKEN');
+        $MAILER_DSN             = getenv('MAILER_DSN');
 
         $ted             = date(DATE_ATOM);
         $nazevTetoFunkce = __FUNCTION__;
@@ -41,13 +42,15 @@ define('DB_ANONYM_USER', '$DB_ANONYM_USER');
 define('DB_ANONYM_PASS', '$DB_ANONYM_PASS');
 define('DB_ANONYM_NAME', '$DB_ANONYM_NAME');
 
-define('MIGRACE_HESLO', '$MIGRACE_HESLO');
+define('MIGRACE_HESLO', '$MIGRACE_HESLO');$FIO_TOKEN
 define('SECRET_CRYPTO_KEY', '$SECRET_CRYPTO_KEY');
 
 define('CRON_KEY', '$CRON_KEY');
 define('GOOGLE_API_CREDENTIALS', json_decode('$GOOGLE_API_CREDENTIALS', true));
 
 define('FIO_TOKEN', '$FIO_TOKEN'); // platnost do 11.9.2030
+
+define('MAILER_DSN', '$MAILER_DSN');
 PHP
         );
     }
