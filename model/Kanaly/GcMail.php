@@ -78,6 +78,7 @@ class GcMail
             /**
              * Návod @link https://symfony.com/doc/current/mailer.html#transport-setup
              * SMTP server @link https://client.wedos.com/webhosting/webhost-detail.html?id=16779 'Adresy služeb' dole
+             * Pro Wedos SMTP použij port 587 (TLS), protože SSL z PHP z Wedos serveru nefunguje.
              */
             throw new ChybiEmailoveNastaveni(
                 "Pro odeslání emailu je třeba nastavit konstantu 'MAILER_DSN'"
