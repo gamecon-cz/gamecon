@@ -36,13 +36,16 @@ class HromadneAkceAktivit
 
         $platnostZpetneKDatu ??= $ted->modify('-1 day');
         if ($nejblizsiVlnaKdy < $platnostZpetneKDatu) {
+            $rozdil                = $ted->diff($platnostZpetneKDatu);
+            $naposledySloPustitKdy = DateTimeCz::createFromInterface($nejblizsiVlnaKdy)->sub($rozdil);
             throw new NaHromadnouAutomatickouAktivaciJePozde(
                 sprintf(
                     "Hromadná aktivace může být spuštěna nanejvýš den po platnosti.
-Platnost hromadné aktivace byla '%s', teď je '%s' a aktivaci současné vlny šlo pustit nejpozději v '%s'",
+Platnost hromadné aktivace byla '%s', teď je '%s' a aktivaci současné vlny šlo pustit naposledy %s (v '%s')",
                     $nejblizsiVlnaKdy->format(DateTimeCz::FORMAT_DB),
                     $ted->format(DateTimeCz::FORMAT_DB),
-                    $platnostZpetneKDatu->format(DateTimeCz::FORMAT_DB),
+                    $naposledySloPustitKdy->relativni(),
+                    $naposledySloPustitKdy->format(DateTimeCz::FORMAT_DB),
                 )
             );
         }
