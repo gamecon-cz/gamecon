@@ -12,7 +12,7 @@
  *
  */
 
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../nastaveni/zavadec-autoloader.php';
 require_once __DIR__ . '/_pomocne.php';
 
 $nastaveni = [];
