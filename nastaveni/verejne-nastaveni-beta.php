@@ -23,3 +23,4 @@ define('BABEL_BINARKA', null);
 @define('PRODEJ_JIDLA_POZASTAVEN', false);
 
 @define('MAILY_DO_SOUBORU', __DIR__ . '/../cache/private/maily.log');
+@define('MAILY_ROLIM', [\Gamecon\Role\Role::ORGANIZATOR]);

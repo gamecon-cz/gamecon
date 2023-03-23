@@ -63,7 +63,7 @@ $brzy         = match ($poradiOznameni) {
     2 => 'Zítra',
     default => 'Brzy'
 };
-$uvod         = "$brzy Gamecon systém hromadně odhlásí neplatiče. Přitom ale máme $pocetNesparovanychPlateb a hrozí komplikace.";
+$uvod         = "$brzy Gamecon systém hromadně odhlásí neplatiče. Přitom ale máme $pocetNesparovanychPlateb nespárovaných plateb a hrozí komplikace.";
 $oddelovac    = str_repeat('═', mb_strlen($uvod));
 (new GcMail())
     ->adresati($cfosEmaily ?: ['info@gamecon.cz'])
