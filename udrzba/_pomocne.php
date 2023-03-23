@@ -133,7 +133,8 @@ function getFilesAlwaysRequiredByAutoloader(): array {
             $vendorPosition = strpos($absolutePath, '/vendor/');
             return substr($absolutePath, $vendorPosition);
         },
-        $alwaysAutoloadedAbsolute);
+        $alwaysAutoloadedAbsolute
+    );
 }
 
 function msg($msg) {
