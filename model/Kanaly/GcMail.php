@@ -3,6 +3,7 @@
 namespace Gamecon\Kanaly;
 
 use \Gamecon\Cas\DateTimeCz;
+use Gamecon\Kanaly\Exceptions\ChybiEmailoveNastaveni;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mailer\Transport;
 use Symfony\Component\Mime\Email;
@@ -48,7 +49,6 @@ class GcMail
     public function odeslat() {
         $mail = (new Email())
             ->from('GameCon <info@gamecon.cz>')
-//            ->to(...$this->adresati)
             ->subject($this->predmet)
             ->text($this->text);
 
@@ -66,12 +66,24 @@ class GcMail
                 // do souboru přílohy dávat nebudeme
                 $mail->attachFromPath($this->prilohaSoubor, $this->prilohaNazev);
             }
-            $transport = Transport::fromDsn('smtp://localhost');
-            $mailer    = new Mailer($transport);
+            $mailer = new Mailer($this->mailerTransport());
             $mailer->send($mail);
             $odeslano = true;
         }
         return $odeslano;
+    }
+
+    private function mailerTransport(): Transport\TransportInterface {
+        if (!defined('MAILER_DSN')) {
+            /**
+             * Návod @link https://symfony.com/doc/current/mailer.html#transport-setup
+             * SMTP server @link https://client.wedos.com/webhosting/webhost-detail.html?id=16779 'Adresy služeb' dole
+             */
+            throw new ChybiEmailoveNastaveni(
+                "Pro odeslání emailu je třeba nastavit konstantu 'MAILER_DSN'"
+            );
+        }
+        return Transport::fromDsn(MAILER_DSN);
     }
 
     private function adresatiDoSouboru(): array {
@@ -90,7 +102,7 @@ class GcMail
         }
         $povoleniPodleRoli = [];
         foreach ($this->adresati as $adresat) {
-            if (!preg_match('~(?<email>[^@\s]+@[^@\s]+)~', $adresat, $matches)) {
+            if (!preg_match('~(?<email>[^@\s<>]+@[^@\s<>]+)~', $adresat, $matches)) {
                 continue;
             }
             $email    = $matches['email'];

@@ -113,6 +113,10 @@ SQL,
             [0 => Role::PRIHLASEN_NA_LETOSNI_GC, 1 => Role::PRITOMEN_NA_LETOSNIM_GC, 2 => Role::ODJEL_Z_LETOSNIHO_GC]
         );
         if (mysqli_num_rows($o) === 0) {
+            if ($doSouboru) {
+                file_put_contents($doSouboru, '');
+                return;
+            }
             exit('V tabulce nejsou žádná data.');
         }
 
