@@ -48,13 +48,20 @@ class GcMail
     public function odeslat() {
         $mail = (new Email())
             ->from('GameCon <info@gamecon.cz>')
-            ->to(...$this->adresati)
+//            ->to(...$this->adresati)
             ->subject($this->predmet)
             ->text($this->text);
 
-        if (defined('MAILY_DO_SOUBORU') && MAILY_DO_SOUBORU) {
-            return $this->zalogovatDo(MAILY_DO_SOUBORU, $mail->toString());
-        } else {
+        $odeslano = false;
+
+        $adresatiDoSouboru = $this->adresatiDoSouboru();
+        if ($adresatiDoSouboru) {
+            $mail->addBcc(...$adresatiDoSouboru);
+            $odeslano = $this->zalogovatDo(MAILY_DO_SOUBORU, $mail->toString()) || $odeslano;
+        }
+        $adresatiPovoleniPodleRoli = $this->adresatiPovoleniPodleRoli();
+        if ($adresatiPovoleniPodleRoli) {
+            $mail->addBcc(...$adresatiPovoleniPodleRoli);
             if ($this->prilohaSoubor) {
                 // do souboru přílohy dávat nebudeme
                 $mail->attachFromPath($this->prilohaSoubor, $this->prilohaNazev);
@@ -62,8 +69,43 @@ class GcMail
             $transport = Transport::fromDsn('smtp://localhost');
             $mailer    = new Mailer($transport);
             $mailer->send($mail);
-            return true;
+            $odeslano = true;
         }
+        return $odeslano;
+    }
+
+    private function adresatiDoSouboru(): array {
+        if (!defined('MAILY_DO_SOUBORU') || !MAILY_DO_SOUBORU) {
+            return [];
+        }
+        return array_diff($this->adresati, $this->adresatiPovoleniPodleRoli());
+    }
+
+    private function adresatiPovoleniPodleRoli(): array {
+        if (!defined('MAILY_DO_SOUBORU') || !MAILY_DO_SOUBORU) {
+            return $this->adresati;
+        }
+        if (!defined('MAILY_ROLIM') || !MAILY_ROLIM) {
+            return [];
+        }
+        $povoleniPodleRoli = [];
+        foreach ($this->adresati as $adresat) {
+            if (!preg_match('~(?<email>[^@\s]+@[^@\s]+)~', $adresat, $matches)) {
+                continue;
+            }
+            $email    = $matches['email'];
+            $uzivatel = \Uzivatel::zMailu($email);
+            if (!$uzivatel) {
+                continue;
+            }
+            foreach ((array)MAILY_ROLIM as $role) {
+                if ($uzivatel->maRoli($role)) {
+                    $povoleniPodleRoli[] = $adresat;
+                    break;
+                }
+            }
+        }
+        return $povoleniPodleRoli;
     }
 
     public function predmet(string $predmet): self {
