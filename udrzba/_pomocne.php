@@ -51,8 +51,7 @@ function nasad(array $nastaveni) {
       !/nastaveni/nastaveni-vychozi.php
       !/nastaveni/nastaveni-prava.php
       !/nastaveni/nastaveni-role.php
-      !/nastaveni/zavadec.php
-      !/nastaveni/zavadec-zaklad.php
+      !/nastaveni/zavadec*.php
       !/nastaveni/google_api_client_secret_produkce.json
       !/nastaveni/google_api_client_secret_beta.json
 
