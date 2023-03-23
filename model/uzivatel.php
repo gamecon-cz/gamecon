@@ -1628,10 +1628,11 @@ SQL,
         if (!$mail) {
             return null;
         }
-        $uzivatel = Uzivatel::zWhere('WHERE email1_uzivatele = $1', [$mail]);
-        return isset($uzivatel[0])
-            ? $uzivatel[0]
-            : null;
+        $uzivatele = Uzivatel::zWhere(
+            'WHERE email1_uzivatele = $0',
+            [0 => filter_var($mail, FILTER_SANITIZE_EMAIL)]
+        );
+        return $uzivatele[0] ?? null;
     }
 
     public static function zNicku(string $nick): ?Uzivatel {
