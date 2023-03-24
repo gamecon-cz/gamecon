@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
-  const nastaveni = new SystemoveNastaveni(document.getElementById('nastaveni').dataset.ajaxKlic)
+  const nastaveniElement = document.getElementById('nastaveni')
+  const nastaveni = new SystemoveNastaveni(nastaveniElement.dataset.ajaxKlic)
 
   const inputNodes = document.getElementsByClassName('hodnota-nastaveni')
   Array.from(inputNodes).forEach(/** @param {HTMLElement} inputNode */function (inputNode) {
@@ -32,6 +33,10 @@ document.addEventListener('DOMContentLoaded', function () {
         element.dispatchEvent(changeEvent)
       },
     })
+  })
+
+  Array.from(nastaveniElement.getElementsByClassName('zvyrazni')).forEach(function (zvyrazniElement) {
+    zablikej(zvyrazniElement)
   })
 })
 

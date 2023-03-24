@@ -11,6 +11,8 @@ use Gamecon\XTemplate\XTemplate;
  * submenu_group: 5
  */
 
+/** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
+
 if (($polozkyKUlozeni = post('polozky')) !== null) {
     $puvodniHodnoty = post('polozky_original');
     $zmenenoZaznamu = 0;
@@ -30,17 +32,17 @@ if (($polozkyKUlozeni = post('polozky')) !== null) {
 
 $template = new XTemplate(__DIR__ . '/shop.xtpl');
 
-$url = Url::zAktualni();
+$url                = Url::zAktualni();
 $predchoziNazevTypu = null;
 foreach (Shop::letosniPolozky() as $polozka) {
     $nazevTypu = TypPredmetu::nazevTypu($polozka->idTypu(), true);
     if ($nazevTypu !== $predchoziNazevTypu) {
-        $template->parse('eshop.typ');
+        $template->parse('shop.typ');
         $template->assign('typPolozky', mb_ucfirst($nazevTypu));
         $htmlIdTypu = slugify($nazevTypu) . '-' . $polozka->idTypu();
         $template->assign('htmlIdTypu', $htmlIdTypu);
         $template->assign('kotvaNaTypPolozky', URL_ADMIN . '/' . $url->cela() . '#' . $htmlIdTypu);
-        $template->parse('eshop.typ.typPolozky');
+        $template->parse('shop.typ.typPolozky');
     }
     $predchoziNazevTypu = $nazevTypu;
     $template->assign('idPredmetu', $polozka->idPredmetu());
@@ -63,36 +65,17 @@ foreach (Shop::letosniPolozky() as $polozka) {
     $template->assign('letosProdanoKusu', $polozka->prodanoKusu());
     $template->assign('zbyvaKusu', $polozka->zbyvaKusu());
     $template->assign('kusuCelkem', $polozka->vyrobenoKusu());
-    $template->parse('eshop.typ.polozka');
+    $template->parse('shop.typ.polozka');
 }
+$template->parse('shop.typ');
 
-$template->parse('eshop.typ');
-$template->parse('eshop');
-$template->out('eshop');
+$template->assign([
+    'cssVersions' => new \Gamecon\Web\VerzeSouboru(__DIR__ . '/../../../files/ui', 'css'),
+    'jsVersions'  => new \Gamecon\Web\VerzeSouboru(__DIR__ . '/../../../files/ui', 'js'),
+]);
+$template->assign('basePathApi', URL_ADMIN . '/api/');
+$template->assign('rocnik', $systemoveNastaveni->rocnik());
+$template->parse('shop.kfc');
 
-// TODO: od tohodle řádku dál potřebuje refactor
-
-function zabalAdminSoubor(string $cestaKSouboru): string {
-    return $cestaKSouboru . '?version=' . md5_file(ADMIN . '/' . $cestaKSouboru);
-}
-
-?>
-
-<div class="aBox" style="width:100%; overflow: auto;">
-    <h3>Nastavení mřížkového prodeje</h3>
-
-    <link rel="stylesheet" href="<?= zabalAdminSoubor('files/ui/style.css') ?>">
-
-    <div id="preact-obchod-nastaveni">Nastavení mřížek obchodu se načítá ...</div>
-
-    <script>
-        // Konstanty předáváné do Preactu (env.ts)
-        window.GAMECON_KONSTANTY = {
-            BASE_PATH_API: "<?= URL_ADMIN . "/api/" ?>",
-            ROCNIK: <?= ROCNIK ?>,
-        }
-    </script>
-
-    <script type="module" src="<?= zabalAdminSoubor('files/ui/bundle.js') ?>"></script>
-
-</div>
+$template->parse('shop');
+$template->out('shop');
