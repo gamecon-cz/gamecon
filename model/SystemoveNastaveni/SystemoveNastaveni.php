@@ -388,7 +388,8 @@ SQL;
         return match ($klic) {
             'GC_BEZI_OD' => DateTimeGamecon::spocitejZacatekGameconu($this->rocnik())
                 ->formatDb(),
-            'GC_BEZI_DO', 'REG_GC_DO' => DateTimeGamecon::spocitejKonecGameconu($this->rocnik())
+            'GC_BEZI_DO',
+            'REG_GC_DO' => DateTimeGamecon::spocitejKonecGameconu($this->rocnik())
                 ->formatDb(),
             'REG_GC_OD' => DateTimeGamecon::spocitejZacatekRegistraciUcastniku($this->rocnik())
                 ->formatDb(),
@@ -398,13 +399,17 @@ SQL;
                 ->formatDb(),
             'TRETI_VLNA_KDY' => DateTimeGamecon::spocitejKdyJeTretiVlna($this->rocnik())
                 ->formatDb(),
-            'JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE' => DateTimeGamecon::spocitejDruheHromadneOdhlasovani($this->rocnik())
+            'UBYTOVANI_LZE_OBJEDNAT_A_MENIT_DO_DNE',
+            'JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE' => DateTimeGamecon::spocitejTretiHromadneOdhlasovani($this->rocnik())
+                ->modify('-1 day') // 17. 7. 2023 00:00 -> 16. 7. 2023 myšleno včetně
                 ->formatDatumDb(),
-            'PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE' => DateTimeGamecon::zacatekProgramu($this->rocnik())
-                ->modify('-1 day')
+            'PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE' => DateTimeGamecon::spocitejDruheHromadneOdhlasovani($this->rocnik())
+                ->modify('-1 day') // 10. 7. 2023 00:00 -> 9. 7. 2023 myšleno včetně
                 ->formatDatumDb(),
-            'TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE' => DateTimeGamecon::spocitejPrvniHromadneOdhlasovani($this->rocnik())
-                ->formatDatumDb(),
+            'TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE' => $this->rocnik() < 2023
+                ? DateTimeGamecon::spocitejPrvniHromadneOdhlasovani($this->rocnik())
+                    ->formatDatumDb()
+                : '2023-06-23',
             'TEXT_PRO_SPAROVANI_ODCHOZI_PLATBY' => 'vraceni zustatku GC ID:',
             default => '',
         };
@@ -422,11 +427,11 @@ SQL;
         return $this->ted;
     }
 
-    public function konecLetosnihoGameconu(): \DateTimeImmutable {
-        return \DateTimeImmutable::createFromMutable(DateTimeGamecon::konecGameconu($this->rocnik()));
+    public function konecLetosnihoGameconu(): DateTimeImmutableStrict {
+        return DateTimeImmutableStrict::createFromInterface(DateTimeGamecon::konecGameconu($this->rocnik()));
     }
 
-    public function ucastniciPridatelniDoNeuzavrenePrezenceDo(): \DateTimeImmutable {
+    public function ucastniciPridatelniDoNeuzavrenePrezenceDo(): DateTimeImmutableStrict {
         return $this->konecLetosnihoGameconu()
             ->modify($this->ucastnikyLzePridatXDniPoGcDoNeuzavreneAktivity() . ' days');
     }
@@ -459,7 +464,7 @@ SQL;
         return (int)PRIHLASENI_NA_POSLEDNI_CHVILI_X_MINUT_PRED_ZACATKEM_AKTIVITY;
     }
 
-    public function prodejUbytovaniDo(): \DateTimeImmutable {
+    public function prodejUbytovaniDo(): DateTimeImmutableStrict {
         return (new DateTimeImmutableStrict(UBYTOVANI_LZE_OBJEDNAT_A_MENIT_DO_DNE))
             ->setTime(23, 59, 59);
     }
@@ -468,7 +473,7 @@ SQL;
         return $this->prodejUbytovaniDo() < $this->ted();
     }
 
-    public function prodejJidlaDo(): \DateTimeImmutable {
+    public function prodejJidlaDo(): DateTimeImmutableStrict {
         return (new DateTimeImmutableStrict(JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE))
             ->setTime(23, 59, 59);
     }
@@ -477,7 +482,7 @@ SQL;
         return $this->prodejJidlaDo() < $this->ted();
     }
 
-    public function prodejTricekDo(): \DateTimeImmutable {
+    public function prodejTricekDo(): DateTimeImmutableStrict {
         return (new DateTimeImmutableStrict(TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE))
             ->setTime(23, 59, 59);
     }
@@ -486,13 +491,13 @@ SQL;
         return $this->prodejTricekDo() < $this->ted();
     }
 
-    public function prodejPredmetuDo(): \DateTimeImmutable {
+    public function prodejPredmetuBezTricekDo(): DateTimeImmutableStrict {
         return (new DateTimeImmutableStrict(PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE))
             ->setTime(23, 59, 59);
     }
 
     public function prodejPredmetuBezTricekUkoncen(): bool {
-        return $this->prodejPredmetuDo() < $this->ted();
+        return $this->prodejPredmetuBezTricekDo() < $this->ted();
     }
 
     public function prvniHromadneOdhlasovani(): DateTimeImmutableStrict {
@@ -516,7 +521,7 @@ SQL;
     /**
      * @throws ChybnaZpetnaPlatnost
      */
-    public function nejblizsiHromadneOdhlasovaniKdy(\DateTimeInterface $platnostZpetneKDatu = null): \DateTimeImmutable {
+    public function nejblizsiHromadneOdhlasovaniKdy(\DateTimeInterface $platnostZpetneKDatu = null): DateTimeImmutableStrict {
         return DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($this, $platnostZpetneKDatu);
     }
 
