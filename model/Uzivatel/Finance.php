@@ -57,15 +57,6 @@ class Finance
     private $dobrovolneVstupnePrehled;
 
     private static $maxSlevaAktivit = 100; // v procentech
-    private static $bonusZaVedeniAktivity = [ // ve formátu max. délka => sleva
-        1  => BONUS_ZA_1H_AKTIVITU,
-        2  => BONUS_ZA_2H_AKTIVITU,
-        5  => BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU,
-        7  => BONUS_ZA_6H_AZ_7H_AKTIVITU,
-        9  => BONUS_ZA_8H_AZ_9H_AKTIVITU,
-        11 => BONUS_ZA_10H_AZ_11H_AKTIVITU,
-        13 => BONUS_ZA_12H_AZ_13H_AKTIVITU,
-    ];
 
     // idčka typů, podle kterých se řadí výstupní tabulka $prehled
     public const AKTIVITY        = -1;
@@ -399,7 +390,7 @@ class Finance
      * @param Aktivita @a
      * @return int
      */
-    static function bonusZaAktivitu(Aktivita $a): int {
+    public static function bonusZaAktivitu(Aktivita $a, SystemoveNastaveni $systemoveNastaveni): int {
         if ($a->nedavaBonus()) {
             return 0;
         }
@@ -407,7 +398,7 @@ class Finance
         if ($delka == 0) {
             return 0;
         }
-        foreach (self::$bonusZaVedeniAktivity as $tabDelka => $tabSleva) {
+        foreach ($systemoveNastaveni->bonusyZaVedeniAktivity() as $tabDelka => $tabSleva) {
             if ($delka <= $tabDelka) {
                 return $tabSleva;
             }
