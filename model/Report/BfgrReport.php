@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Gamecon\Report;
 
+use Gamecon\Shop\StavPredmetu;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Report;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Role\Role;
-use Gamecon\Shop\Shop;
 use Uzivatel;
 use DateInterval;
 use Gamecon\Jidlo;
@@ -482,12 +482,12 @@ SQL,
 
     private function letosniPlacky(): array {
         return dbFetchPairs(<<<SQL
-            SELECT shop_predmety.id_predmetu, CONCAT_WS(' ', TRIM(shop_predmety.nazev), model_rok)
+            SELECT id_predmetu, CONCAT_WS(' ', TRIM(nazev), model_rok)
             FROM shop_predmety
             WHERE nazev LIKE '%placka%' COLLATE utf8_czech_ci
-            AND stav > 0
+                AND stav > $0
             SQL,
-            [$this->systemoveNastaveni->rocnik()]
+            [0 => StavPredmetu::MIMO]
         );
     }
 
@@ -502,53 +502,57 @@ SQL,
         $poradiKostekSql = implode(',', $poradiKostek);
 
         return dbFetchPairs(<<<SQL
-            SELECT shop_predmety.id_predmetu, CONCAT_WS(' ', TRIM(shop_predmety.nazev), model_rok)
+            SELECT id_predmetu, CONCAT_WS(' ', TRIM(nazev), model_rok)
             FROM shop_predmety
             WHERE nazev LIKE '%kostka%' COLLATE utf8_czech_ci
-            AND stav > 0
-            ORDER BY FIND_IN_SET(CONCAT_WS(' ', TRIM(shop_predmety.nazev), model_rok), '{$poradiKostekSql}')
+                AND stav > $0
+                AND typ = $1
+            ORDER BY FIND_IN_SET(CONCAT_WS(' ', TRIM(nazev), model_rok), '{$poradiKostekSql}')
             SQL,
-            [$this->systemoveNastaveni->rocnik()]
+            [0 => StavPredmetu::MIMO, 1 => TypPredmetu::PREDMET]
         );
     }
 
     private function letosniJidla(): array {
         return dbFetchPairs(<<<SQL
-            SELECT shop_predmety.id_predmetu, TRIM(shop_predmety.nazev)
+            SELECT id_predmetu, TRIM(nazev)
             FROM shop_predmety
-            WHERE shop_predmety.typ = $1
-            AND model_rok = $2
-            ORDER BY FIELD(SUBSTRING(TRIM(shop_predmety.nazev), 1, POSITION(' ' IN TRIM(shop_predmety.nazev)) - 1), 'Snídaně', 'Oběd', 'Večeře'),
-                     FIELD(SUBSTRING(TRIM(shop_predmety.nazev), POSITION(' ' IN TRIM(shop_predmety.nazev)) + 1), 'středa', 'čtvrtek', 'pátek', 'sobota', 'neděle')
+            WHERE typ = $0
+                AND model_rok = {$this->systemoveNastaveni->rocnik()}
+            ORDER BY FIELD(SUBSTRING(TRIM(nazev), 1, POSITION(' ' IN TRIM(nazev)) - 1), 'Snídaně', 'Oběd', 'Večeře'),
+                     FIELD(SUBSTRING(TRIM(nazev), POSITION(' ' IN TRIM(nazev)) + 1), 'středa', 'čtvrtek', 'pátek', 'sobota', 'neděle')
             SQL,
-            [Shop::JIDLO, $this->systemoveNastaveni->rocnik()]
+            [0 => TypPredmetu::JIDLO]
         );
     }
 
     private function letosniOstatniPredmety(): array {
         return dbFetchPairs(<<<SQL
-            SELECT shop_predmety.id_predmetu,
-                   IF(model_rok != $1, CONCAT_WS(' ', TRIM(shop_predmety.nazev), model_rok), shop_predmety.nazev) AS nazev
+            SELECT id_predmetu,
+                   IF(model_rok != {$this->systemoveNastaveni->rocnik()},
+                       CONCAT_WS(' ', TRIM(nazev), model_rok),
+                       nazev
+                   ) AS nazev
             FROM shop_predmety
-            WHERE shop_predmety.typ = $2
-            AND stav > 0
-            AND (TRIM(nazev) IN ('GameCon blok', 'Nicknack') OR nazev LIKE '%ponožky%' COLLATE utf8_czech_ci)
-            ORDER BY TRIM(shop_predmety.nazev)
+            WHERE typ = $0
+                AND stav > $1
+                AND (TRIM(nazev) IN ('GameCon blok', 'Nicknack') OR nazev LIKE '%ponožky%' COLLATE utf8_czech_ci)
+            ORDER BY TRIM(nazev)
             SQL,
-            [$this->systemoveNastaveni->rocnik(), Shop::PREDMET]
+            [0 => TypPredmetu::PREDMET, 1 => StavPredmetu::MIMO]
         );
     }
 
     private function letosniCovidTesty(): array {
         return dbFetchPairs(<<<SQL
-            SELECT shop_predmety.id_predmetu, TRIM(shop_predmety.nazev)
+            SELECT id_predmetu, TRIM(nazev)
             FROM shop_predmety
-            WHERE shop_predmety.typ = $0
-            AND stav > 0
-            AND TRIM(nazev) LIKE '%COVID%' COLLATE utf8_czech_ci
-            ORDER BY TRIM(shop_predmety.nazev)
+            WHERE typ = $0
+                AND stav > $1
+                AND TRIM(nazev) LIKE '%COVID%' COLLATE utf8_czech_ci
+            ORDER BY TRIM(nazev)
             SQL,
-            [0 => Shop::PREDMET]
+            [0 => TypPredmetu::PREDMET, 1 => StavPredmetu::MIMO]
         );
     }
 }
