@@ -5,7 +5,7 @@ namespace Godric\DbMigrations;
 class Migration
 {
 
-    private \mysqli $db;
+    private \mysqli $connection;
     private string $code;
     private string $path;
     private bool $endless = false;
@@ -13,7 +13,7 @@ class Migration
     public function __construct(string $path, string $code, \mysqli $db) {
         $this->path = $path;
         $this->code = removeDiacritics($code);
-        $this->db   = $db;
+        $this->connection   = $db;
         // jen malý, neškodný hack, aby se migrace pouštěla pořád
         $this->setEndless(str_ends_with(basename($path, '.php'), 'endless'));
     }
@@ -52,17 +52,17 @@ class Migration
      * @throws \Exception
      */
     public function q($query) {
-        $this->db->multi_query($query);
+        $this->connection->multi_query($query);
 
         $i = 0;
         do {
-            $result = $this->db->use_result();
+            $result = $this->connection->use_result();
             $i++;
-        } while ($this->db->more_results() && $this->db->next_result());
+        } while ($this->connection->more_results() && $this->connection->next_result());
 
-        if ($this->db->error) {
+        if ($this->connection->error) {
             $i++;
-            throw new \Exception("Error in multi_query number $i: {$this->db->error}");
+            throw new \Exception("Error in multi_query number $i: {$this->connection->error}");
         }
 
         return $result;

@@ -2180,7 +2180,7 @@ SQL
     }
 
     public function jeBrigadnicka(): bool {
-        return $this->typ()->id() === TypAktivity::BRIGADNICKA;
+        return $this->typ()->jeBrigadnicka();
     }
 
     /**
