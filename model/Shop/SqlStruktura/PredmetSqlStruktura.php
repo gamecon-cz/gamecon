@@ -19,4 +19,6 @@ class PredmetSqlStruktura
     public const TYP           = 'typ';
     public const UBYTOVANI_DEN = 'ubytovani_den';
     public const POPIS         = 'popis';
+    public const KATEGORIE_PREDMETU     = 'kategorie_predmetu';
+    public const SE_SLEVOU     = 'se_slevou';
 }
