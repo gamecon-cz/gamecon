@@ -412,7 +412,7 @@ SQL
     }
 
     public function predmetyBezTricekObjednatelneDoHtml(): string {
-        return $this->systemoveNastaveni->prodejPredmetuDo()->format('j. n.');
+        return $this->systemoveNastaveni->prodejPredmetuBezTricekDo()->format('j. n.');
     }
 
     /**
