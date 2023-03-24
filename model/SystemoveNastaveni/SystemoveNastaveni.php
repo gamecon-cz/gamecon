@@ -30,11 +30,34 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
     }
 
     /**
+     * @return array<int, int>
+     */
+    public static function bonusyZaVedeniAktivity(): array {
+        static $bonusyZaVedeniAktivity = null;
+        if ($bonusyZaVedeniAktivity === null) {
+            $casAKlic = [
+                1  => 'BONUS_ZA_1H_AKTIVITU',
+                2  => 'BONUS_ZA_2H_AKTIVITU',
+                5  => 'BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU',
+                7  => 'BONUS_ZA_6H_AZ_7H_AKTIVITU',
+                9  => 'BONUS_ZA_8H_AZ_9H_AKTIVITU',
+                11 => 'BONUS_ZA_10H_AZ_11H_AKTIVITU',
+                13 => 'BONUS_ZA_12H_AZ_13H_AKTIVITU',
+            ];
+            foreach ($casAKlic as $hodin => $klic) {
+                // ve formátu max. délka => sleva
+                $bonusyZaVedeniAktivity[$hodin] = self::spocitejBonusZaVedeniAktivity($klic);
+            }
+        }
+        return $bonusyZaVedeniAktivity;
+    }
+
+    /**
      * @param string $klic
      * @param int $bonusZaStandardni3hAz5hAktivitu Nelze použít konstantu při změně v databázi, protože konstanta se změní až při dalším načtení PHP
      * @return int
      */
-    public static function spocitejBonusVypravece(
+    public static function spocitejBonusZaVedeniAktivity(
         string $klic,
         int    $bonusZaStandardni3hAz5hAktivitu = BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU
     ): int {
@@ -126,22 +149,22 @@ SQL,
                     : 3 * $this->dejHodnotu('BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU', false /* radši, abychom neskončili v nekonečné smyčce */),
                 'BONUS_ZA_1H_AKTIVITU'         => defined('BONUS_ZA_1H_AKTIVITU')
                     ? BONUS_ZA_1H_AKTIVITU
-                    : self::spocitejBonusVypravece('BONUS_ZA_1H_AKTIVITU'),
+                    : self::spocitejBonusZaVedeniAktivity('BONUS_ZA_1H_AKTIVITU'),
                 'BONUS_ZA_2H_AKTIVITU'         => defined('BONUS_ZA_2H_AKTIVITU')
                     ? BONUS_ZA_2H_AKTIVITU
-                    : self::spocitejBonusVypravece('BONUS_ZA_2H_AKTIVITU'),
+                    : self::spocitejBonusZaVedeniAktivity('BONUS_ZA_2H_AKTIVITU'),
                 'BONUS_ZA_6H_AZ_7H_AKTIVITU'   => defined('BONUS_ZA_6H_AZ_7H_AKTIVITU')
                     ? BONUS_ZA_6H_AZ_7H_AKTIVITU
-                    : self::spocitejBonusVypravece('BONUS_ZA_6H_AZ_7H_AKTIVITU'),
+                    : self::spocitejBonusZaVedeniAktivity('BONUS_ZA_6H_AZ_7H_AKTIVITU'),
                 'BONUS_ZA_8H_AZ_9H_AKTIVITU'   => defined('BONUS_ZA_8H_AZ_9H_AKTIVITU')
                     ? BONUS_ZA_8H_AZ_9H_AKTIVITU
-                    : self::spocitejBonusVypravece('BONUS_ZA_8H_AZ_9H_AKTIVITU'),
+                    : self::spocitejBonusZaVedeniAktivity('BONUS_ZA_8H_AZ_9H_AKTIVITU'),
                 'BONUS_ZA_10H_AZ_11H_AKTIVITU' => defined('BONUS_ZA_10H_AZ_11H_AKTIVITU')
                     ? BONUS_ZA_10H_AZ_11H_AKTIVITU
-                    : self::spocitejBonusVypravece('BONUS_ZA_10H_AZ_11H_AKTIVITU'),
+                    : self::spocitejBonusZaVedeniAktivity('BONUS_ZA_10H_AZ_11H_AKTIVITU'),
                 'BONUS_ZA_12H_AZ_13H_AKTIVITU' => defined('BONUS_ZA_12H_AZ_13H_AKTIVITU')
                     ? BONUS_ZA_12H_AZ_13H_AKTIVITU
-                    : self::spocitejBonusVypravece('BONUS_ZA_12H_AZ_13H_AKTIVITU'),
+                    : self::spocitejBonusZaVedeniAktivity('BONUS_ZA_12H_AZ_13H_AKTIVITU'),
             ];
         }
         return $this->odvozeneHodnoty;
@@ -277,13 +300,13 @@ SQL,
             $bonusZaStandardni3hAz5hAktivitu = (int)$zaznam['hodnota'];
             $popis                           = &$zaznam['popis'];
             $popis                           .= '<hr><i>vypočtené bonusy</i>:<br>'
-                . 'BONUS_ZA_1H_AKTIVITU = ' . self::spocitejBonusVypravece('BONUS_ZA_1H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
-                . 'BONUS_ZA_2H_AKTIVITU = ' . self::spocitejBonusVypravece('BONUS_ZA_2H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
+                . 'BONUS_ZA_1H_AKTIVITU = ' . self::spocitejBonusZaVedeniAktivity('BONUS_ZA_1H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
+                . 'BONUS_ZA_2H_AKTIVITU = ' . self::spocitejBonusZaVedeniAktivity('BONUS_ZA_2H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
                 . '•••<br>'
-                . 'BONUS_ZA_6H_AZ_7H_AKTIVITU = ' . self::spocitejBonusVypravece('BONUS_ZA_6H_AZ_7H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
-                . 'BONUS_ZA_8H_AZ_9H_AKTIVITU = ' . self::spocitejBonusVypravece('BONUS_ZA_8H_AZ_9H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
-                . 'BONUS_ZA_10H_AZ_11H_AKTIVITU = ' . self::spocitejBonusVypravece('BONUS_ZA_10H_AZ_11H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
-                . 'BONUS_ZA_12H_AZ_13H_AKTIVITU = ' . self::spocitejBonusVypravece('BONUS_ZA_12H_AZ_13H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>';
+                . 'BONUS_ZA_6H_AZ_7H_AKTIVITU = ' . self::spocitejBonusZaVedeniAktivity('BONUS_ZA_6H_AZ_7H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
+                . 'BONUS_ZA_8H_AZ_9H_AKTIVITU = ' . self::spocitejBonusZaVedeniAktivity('BONUS_ZA_8H_AZ_9H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
+                . 'BONUS_ZA_10H_AZ_11H_AKTIVITU = ' . self::spocitejBonusZaVedeniAktivity('BONUS_ZA_10H_AZ_11H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
+                . 'BONUS_ZA_12H_AZ_13H_AKTIVITU = ' . self::spocitejBonusZaVedeniAktivity('BONUS_ZA_12H_AZ_13H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>';
         }
         return $zaznamy;
     }

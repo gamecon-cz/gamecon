@@ -455,4 +455,22 @@ class DateTimeGameconTest extends TestCase
             'Měli bychom dostat zase stejný čtvrtek'
         );
     }
+
+    /**
+     * @test
+     */
+    public function Konec_registraci_ucastniku_je_stejny_jako_konec_gameconu() {
+        foreach (range(2020, (int)date('Y') + 1) as $rocnik) {
+            self::assertEquals(
+                DateTimeGamecon::spocitejKonecGameconu($rocnik),
+                DateTimeGamecon::spocitejKonecRegistraciUcastniku($rocnik),
+                "Očekáván jiný spočítaný konec registací účastníků pro ročník $rocnik"
+            );
+        }
+        self::assertEquals(
+            DateTimeGamecon::konecGameconu(),
+            DateTimeGamecon::konecRegistraciUcastniku(),
+            "Očekáván jiný konec registací účastníků pro současný ročník"
+        );
+    }
 }
