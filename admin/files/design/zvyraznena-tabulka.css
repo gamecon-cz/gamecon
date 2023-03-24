@@ -38,7 +38,7 @@
   background-color: #c6e6f8;
 }
 
-.main table.zvyraznovana tr.no-hover:hover td {
+.main table.zvyraznovana tr.no-hover-style:hover td {
   background-color: inherit;
 }
 
