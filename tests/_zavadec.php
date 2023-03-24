@@ -11,7 +11,7 @@ require_once __DIR__ . '/../nastaveni/verejne-nastaveni-tests.php';
 require_once __DIR__ . '/../nastaveni/zavadec-zaklad.php';
 
 // příprava databáze
-$connection = dbConnect(false);
+$connection = dbConnectTemporary(false);
 dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', DB_NAME), [], $connection);
 dbQuery(sprintf('CREATE DATABASE IF NOT EXISTS `%s` COLLATE "utf8_czech_ci"', DB_NAME), [], $connection);
 dbQuery(sprintf('USE `%s`', DB_NAME), [], $connection);
