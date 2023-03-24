@@ -4,12 +4,14 @@ namespace Gamecon\SystemoveNastaveni;
 
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\XTemplate\XTemplate;
+use Granam\RemoveDiacritics\RemoveDiacritics;
 
 class SystemoveNastaveniHtml
 {
     public const SYNCHRONNI_POST_KLIC           = 'nastaveni';
     public const ZKOPIROVAT_OSTROU_KLIC         = 'zkopirovat_ostrou';
     public const EXPORTOVAT_ANONYMIZOVANOU_KLIC = 'exportovat_anonymizovanou';
+    public const ZVYRAZNI                       = 'zvyrazni';
 
     /**
      * @var SystemoveNastaveni
@@ -21,7 +23,7 @@ class SystemoveNastaveniHtml
     }
 
     public function zobrazHtml() {
-        $template = new XTemplate(__DIR__ . '/templates/nastaveni.xtpl');
+        $template = new XTemplate(__DIR__ . '/templates/systemove-nastaveni.xtpl');
 
         $template->assign('ajaxKlic', SystemoveNastaveniAjax::AJAX_KLIC);
         $template->assign('postKlic', SystemoveNastaveniAjax::POST_KLIC);
@@ -35,9 +37,10 @@ class SystemoveNastaveniHtml
 
         $zaznamyNastaveniProHtml = $this->dejZaznamyNastaveniProHtml();
         $zaznamyPodleSkupin      = $this->seskupPodleSkupin($zaznamyNastaveniProHtml);
+        $klicKeZvyrazneni        = $this->klicKeZvyrazneni();
 
         foreach ($zaznamyPodleSkupin as $skupina => $zaznamyJedneSkupiny) {
-            $this->vypisSkupinu($skupina, $zaznamyJedneSkupiny, $template);
+            $this->vypisSkupinu($skupina, $zaznamyJedneSkupiny, $template, $klicKeZvyrazneni);
         }
 
         if ($this->systemoveNastaveni->jsmeNaBete()) {
@@ -76,7 +79,11 @@ class SystemoveNastaveniHtml
         return $zaznamyPodleSkupin;
     }
 
-    private function vypisSkupinu(string $skupina, array $zaznamy, XTemplate $template) {
+    private function klicKeZvyrazneni(): string {
+        return RemoveDiacritics::toConstantLikeName((string)get(self::ZVYRAZNI));
+    }
+
+    private function vypisSkupinu(string $skupina, array $zaznamy, XTemplate $template, string $klicKeZvyrazneni) {
         $template->assign('nazevSkupiny', mb_ucfirst($skupina));
         $template->parse('nastaveni.skupina.nazev');
 
@@ -84,6 +91,10 @@ class SystemoveNastaveniHtml
             foreach ($zaznam as $klic => $hodnota) {
                 $template->assign($klic, $hodnota);
             }
+            $template->assign('zaznamClass', $zaznam['klic'] === $klicKeZvyrazneni
+                ? 'zvyrazni'
+                : ''
+            );
             $template->parse('nastaveni.skupina.zaznam');
         }
         $template->parse('nastaveni.skupina');

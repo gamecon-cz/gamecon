@@ -12,7 +12,7 @@ class DbMigrations
     private $backups;
     private $conf;
     /** @var \mysqli */
-    private $db;
+    private $connection;
     private $migrations;
     private $webGui = null;
     private $hasTableMigrationsV2 = null;
@@ -22,8 +22,8 @@ class DbMigrations
     public function __construct(DbMigrationsConfig $conf) {
         $this->conf = $conf;
 
-        $this->db      = $this->conf->connection;
-        $this->backups = new Backups($this->db, $this->conf->backupsDirectory);
+        $this->connection = $this->conf->connection;
+        $this->backups    = new Backups($this->connection, $this->conf->backupsDirectory);
         if ($this->conf->webGui) {
             $this->webGui = new WebGui;
         }
@@ -69,7 +69,7 @@ class DbMigrations
                 return $migration->getCode();
             }, $migrations);
 
-            $this->db->query("CREATE TEMPORARY TABLE known_migration_codes_tmp (migration_code VARCHAR(128) PRIMARY KEY)");
+            $this->connection->query("CREATE TEMPORARY TABLE known_migration_codes_tmp (migration_code VARCHAR(128) PRIMARY KEY)");
             $migrationCodesSql = implode(
                 ',',
                 array_map(
@@ -80,9 +80,9 @@ class DbMigrations
                     $migrationCodes
                 )
             );
-            $this->db->query("INSERT INTO known_migration_codes_tmp (migration_code) VALUES $migrationCodesSql");
+            $this->connection->query("INSERT INTO known_migration_codes_tmp (migration_code) VALUES $migrationCodesSql");
 
-            $query = $this->db->query(
+            $query = $this->connection->query(
                 "SELECT known_migration_codes_tmp.migration_code
 FROM known_migration_codes_tmp
 LEFT JOIN migrations ON migrations.migration_code = known_migration_codes_tmp.migration_code
@@ -91,7 +91,7 @@ WHERE migrations.migration_id IS NULL"
 
             $wrappedUnappliedMigrationCodes = $query->fetch_all();
 
-            $this->db->query("DROP TEMPORARY TABLE known_migration_codes_tmp");
+            $this->connection->query("DROP TEMPORARY TABLE known_migration_codes_tmp");
 
             $unappliedMigrationCodes = array_column($wrappedUnappliedMigrationCodes, 0);
 
@@ -126,7 +126,7 @@ WHERE migrations.migration_id IS NULL"
     }
 
     private function getIdOfLastAppliedMigrationV1(): int {
-        $query                          = $this->db->query(<<<SQL
+        $query                          = $this->connection->query(<<<SQL
 SELECT value FROM db_migrations WHERE name = 'last_applied_migration_id'
 SQL
         );
@@ -150,7 +150,7 @@ SQL
         if ($this->hasTableMigrationsV2 === true) {
             return true;
         }
-        $this->hasTableMigrationsV2 = count($this->db->query("SHOW TABLES LIKE 'migrations'")->fetch_all()) > 0;
+        $this->hasTableMigrationsV2 = count($this->connection->query("SHOW TABLES LIKE 'migrations'")->fetch_all()) > 0;
         return $this->hasTableMigrationsV2;
     }
 
@@ -158,7 +158,7 @@ SQL
         if ($this->hasTableMigrationsV1 === true) {
             return true;
         }
-        $this->hasTableMigrationsV1 = count($this->db->query("SHOW TABLES LIKE 'db_migrations'")->fetch_all()) > 0;
+        $this->hasTableMigrationsV1 = count($this->connection->query("SHOW TABLES LIKE 'db_migrations'")->fetch_all()) > 0;
         return $this->hasTableMigrationsV1;
     }
 
@@ -174,7 +174,7 @@ SQL
                     continue;
                 }
 
-                $migrations[$fileBaseName] = new Migration($fileName, $fileBaseName, $this->db);
+                $migrations[$fileBaseName] = new Migration($fileName, $fileBaseName, $this->connection);
             }
 
             ksort($migrations);
@@ -211,20 +211,20 @@ SQL
         }
 
         // apply migration
-        $this->db->query('BEGIN');
+        $this->connection->query('BEGIN');
         try {
             $migration->apply();
             if (!$migration->isEndless()) {
                 if ($this->hasTableMigrationsForV2()) {
-                    $this->db->query(<<<SQL
+                    $this->connection->query(<<<SQL
 INSERT IGNORE INTO migrations(migration_code, applied_at) VALUES ('{$migration->getCode()}', NOW())
 SQL
                     );
                 }
             }
-            $this->db->query('COMMIT');
+            $this->connection->query('COMMIT');
         } catch (\Throwable $throwable) {
-            $this->db->query('ROLLBACK');
+            $this->connection->query('ROLLBACK');
             throw $throwable;
         }
     }
