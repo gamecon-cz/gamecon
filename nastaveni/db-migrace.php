@@ -1,6 +1,6 @@
 <?php
 
-$connection = dbConnect(false /* bez konkrétní databáze */);
+$connection = dbConnectTemporary(false /* bez konkrétní databáze */);
 if (AUTOMATICKA_TVORBA_DB) {
     $confirmedDatabase = dbOneCol(
         sprintf("SHOW DATABASES LIKE '%s'", DBM_NAME),
