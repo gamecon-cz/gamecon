@@ -14,6 +14,29 @@ class TypAktivity extends \DbObject
         return static::zWhereRadek(static::$sloupecNazev . ' = ' . dbQv($nazev));
     }
 
+    public static function zUrl($url = null): ?TypAktivity {
+        if ($url === null) {
+            $url = \Url::zAktualni()->cela();
+        }
+        return self::zWhereRadek('url_typu_mn = $1', [$url]);
+    }
+
+    public static function zViditelnych() {
+        return self::zWhere('zobrazit_v_menu = 1');
+    }
+
+    /**
+     * @param int|string $idTypuAktivity
+     * @return bool
+     */
+    public static function jeInterni($idTypuAktivity): bool {
+        return in_array((int)$idTypuAktivity, self::interniTypy());
+    }
+
+    public static function interniTypy(): array {
+        return [self::TECHNICKA, self::BRIGADNICKA];
+    }
+
     protected static $tabulka = 'akce_typy';
     protected static $pk = 'id_typu';
     protected static $sloupecNazev = 'typ_1pmn';
@@ -93,27 +116,8 @@ class TypAktivity extends \DbObject
         return $this->r['url_typu_mn'];
     }
 
-    public static function zUrl($url = null): ?TypAktivity {
-        if ($url === null) {
-            $url = \Url::zAktualni()->cela();
-        }
-        return self::zWhereRadek('url_typu_mn = $1', [$url]);
-    }
-
-    public static function zViditelnych() {
-        return self::zWhere('zobrazit_v_menu = 1');
-    }
-
-    /**
-     * @param int|string $idTypuAktivity
-     * @return bool
-     */
-    public static function jeInterni($idTypuAktivity): bool {
-        return in_array((int)$idTypuAktivity, self::interniTypy());
-    }
-
-    public static function interniTypy(): array {
-        return [self::TECHNICKA, self::BRIGADNICKA];
+    public function jeBrigadnicka(): bool {
+        return $this->id() === self::BRIGADNICKA;
     }
 
 }

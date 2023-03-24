@@ -211,7 +211,7 @@ function _dbConnect(
     if (!$spojeni) {
         throw new ConnectionException('Failed to connect to the database, error: "' . mysqli_connect_error() . '".');
     }
-    if (!$spojeni->set_charset('utf8')) {
+    if (!$spojeni->query('SET NAMES utf8 COLLATE utf8_czech_ci')) {
         throw new DbException('Failed to set charset utf8 to db connection.');
     }
     dbQuery('SET SESSION group_concat_max_len = 65536', null, $spojeni);
@@ -493,8 +493,8 @@ function dbOneArray($q, $p = null) {
 /**
  * For selecting single-line one column value
  */
-function dbOneCol($q, array $p = null) {
-    $a = dbOneLine($q, $p);
+function dbOneCol($q, array $p = null, ?mysqli $mysqli = null) {
+    $a = dbOneLine($q, $p, $mysqli);
     return $a ? current($a) : null;
 }
 
@@ -515,8 +515,8 @@ function dbOneIndex($q, $p = null) {
  * false, otherwise returns associative array with one line. If multiple lines
  * found, causes crash.
  */
-function dbOneLine($q, $p = null, mysqli $mysqli = null): array {
-    $r = dbQueryS($q, $p);
+function dbOneLine($q, $p = null, ?mysqli $mysqli = null): array {
+    $r = dbQueryS($q, $p, $mysqli);
     if (mysqli_num_rows($r) > 1) {
         throw new RuntimeException('Multiple lines matched on query ' . $q);
     }

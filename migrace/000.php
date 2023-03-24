@@ -7,8 +7,7 @@
  * plus aktuálních fixních dat).
  */
 
-$this->q(
-<<<SQL
+$this->q(<<<SQL
 
 CREATE TABLE IF NOT EXISTS `_vars`
 (

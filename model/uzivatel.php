@@ -655,6 +655,14 @@ SQL,
         return $this->maRoli(Role::LETOSNI_BRIGADNIK);
     }
 
+    public function jeZazemi(): bool {
+        return $this->maRoli(Role::LETOSNI_ZAZEMI);
+    }
+
+    public function jeDobrovolnikSenior(): bool {
+        return $this->maRoli(Role::LETOSNI_DOBROVOLNIK_SENIOR);
+    }
+
     public function jeVypravec(): bool {
         return $this->maRoli(Role::LETOSNI_VYPRAVEC);
     }
@@ -669,6 +677,10 @@ SQL,
 
     public function jeInfopultak(): bool {
         return $this->maRoli(Role::LETOSNI_INFOPULT);
+    }
+
+    public function jeHerman(): bool {
+        return $this->maRoli(Role::LETOSNI_HERMAN);
     }
 
     public function jeSpravceFinanci(): bool {
@@ -1342,25 +1354,25 @@ SQL
         if ($this->maPravo(Pravo::TITUL_ORGANIZATOR)) {
             $status [] = '<span style="color:red">Organizátor' . $ka . '</span>';
         }
-        if ($this->maRoli(Role::LETOSNI_VYPRAVEC)) {
+        if ($this->jeVypravec()) {
             $status[] = '<span style="color:blue">Vypravěč' . $ka . '</span>';
         }
         if ($this->jePartner()) {
             $status[] = '<span style="color:darkslateblue">Partner' . $ka . '</span>';
         }
-        if ($this->maRoli(Role::LETOSNI_INFOPULT)) {
+        if ($this->jeInfopultak()) {
             $status[] = '<span style="color:orange">Infopult</span>';
         }
-        if ($this->maRoli(Role::LETOSNI_HERMAN)) {
+        if ($this->jeHerman()) {
             $status[] = '<span style="color:orange">Herman</span>';
         }
-        if ($this->maRoli(Role::LETOSNI_BRIGADNIK)) {
+        if ($this->jeBrigadnik()) {
             $status[] = '<span style="color:yellowgreen">Brigádník</span>';
         }
-        if ($this->maRoli(Role::LETOSNI_ZAZEMI)) {
+        if ($this->jeZazemi()) {
             $status[] = "Zázemí";
         }
-        if ($this->maRoli(Role::LETOSNI_DOBROVOLNIK_SENIOR)) {
+        if ($this->jeDobrovolnikSenior()) {
             $status[] = "Dobrovolník senior";
         }
         if (count($status) > 0) {
