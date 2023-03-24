@@ -130,14 +130,19 @@ class DateTimeGamecon extends DateTimeCz
     }
 
     public static function zacatekRegistraciUcastniku(int $rocnik = ROCNIK): DateTimeGamecon {
-        $zacatekRegistraciUcastniku = $rocnik === (int)ROCNIK && defined('REG_GC_OD')
+        return $rocnik === (int)ROCNIK && defined('REG_GC_OD')
             ? static::zDbFormatu(REG_GC_OD)
             : static::spocitejZacatekRegistraciUcastniku($rocnik);
-        return $zacatekRegistraciUcastniku;
     }
 
     public static function konecRegistraciUcastniku(int $rocnik = ROCNIK): DateTimeGamecon {
-        return DateTimeGamecon::createFromMysql(GC_BEZI_DO);
+        return $rocnik === (int)ROCNIK && defined('REG_GC_DO')
+            ? static::zDbFormatu(REG_GC_DO)
+            : static::spocitejKonecRegistraciUcastniku($rocnik);
+    }
+
+    public static function spocitejKonecRegistraciUcastniku(int $rocnik): DateTimeGamecon {
+        return static::spocitejKonecGameconu($rocnik);
     }
 
     public static function spocitejZacatekRegistraciUcastniku(int $rocnik): DateTimeGamecon {
