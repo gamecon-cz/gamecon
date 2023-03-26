@@ -14,6 +14,8 @@ use Gamecon\Cas\Exceptions\InvalidModifyFormat;
  */
 class DateTimeImmutableStrict extends \DateTimeImmutable
 {
+    use DateTimeCzTrait;
+
     public function modifyStrict(string $modifier): static {
         $modified = $this->modify($modifier);
         if (!$modified) {
