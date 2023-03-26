@@ -92,13 +92,12 @@ SQL,
     }
 
     /**
-     * @param int $rok
      * @return Polozka[]
      * @throws \DbException
      */
-    public static function letosniPolozky(int $rok = ROCNIK): array {
+    public static function letosniPolozky(int $rok = ROCNIK, ?array $idckaPolozek = null): array {
         $polozkyData = dbFetchAll(<<<SQL
-SELECT id_predmetu,nazev,cena_aktualni,suma,model_rok,naposledy_koupeno_kdy,prodano_kusu,kusu_vyrobeno,typ
+SELECT id_predmetu,nazev,cena_aktualni,suma,model_rok,naposledy_koupeno_kdy,prodano_kusu,kusu_vyrobeno,typ,kategorie_predmetu,nabizet_do
 FROM (
     SELECT predmety.id_predmetu,
            TRIM(predmety.nazev) AS nazev,
@@ -109,23 +108,58 @@ FROM (
            COUNT(nakupy.id_predmetu) AS prodano_kusu,
            predmety.kusu_vyrobeno,
            predmety.typ,
+           predmety.kategorie_predmetu,
+           predmety.nabizet_do,
            predmety.ubytovani_den
     FROM shop_predmety AS predmety
     LEFT JOIN shop_nakupy AS nakupy
         ON predmety.id_predmetu = nakupy.id_predmetu
             AND nakupy.rok = $0
     WHERE model_rok = $0
+        AND IF($2 IS NULL, TRUE, predmety.id_predmetu IN ($2))
     GROUP BY predmety.id_predmetu, predmety.typ, predmety.ubytovani_den, predmety.nazev
 ) AS seskupeno
 ORDER BY typ, IF(typ = $1, LEFT(TRIM(nazev), LOCATE(' ',nazev) - 1), nazev), ubytovani_den
 SQL,
-            [0 => $rok, 1 => TypPredmetu::UBYTOVANI]
+            [0 => $rok, 1 => TypPredmetu::UBYTOVANI, 2 => $idckaPolozek]
         );
         $polozky     = [];
         foreach ($polozkyData as $polozkaData) {
             $polozky[] = new Polozka($polozkaData);
         }
         return $polozky;
+    }
+
+    /**
+     * @param SystemoveNastaveni $systemoveNastaveni
+     * @return Polozka[]
+     */
+    public static function letosniPolozkySeSpatnymKoncem(SystemoveNastaveni $systemoveNastaveni): array {
+        $typJidlo   = TypPredmetu::JIDLO;
+        $typPredmet = TypPredmetu::PREDMET;
+        $typTricko  = TypPredmetu::TRICKO;
+
+        $idckaPredmetu = dbFetchColumn(<<<SQL
+SELECT id_predmetu
+FROM shop_predmety
+WHERE model_rok = {$systemoveNastaveni->rocnik()}
+    AND (kategorie_predmetu NOT NULL OR typ IN ($typJidlo, $typPredmet, $typTricko))
+    AND CASE typ
+            WHEN {$typJidlo} THEN nabizet_do != $2
+            WHEN {$typTricko} THEN nabizet_do != $3
+            WHEN {$typPredmet} THEN nabizet_do != $4
+            ELSE false
+        END
+        ELSE false
+    END
+SQL,
+            [
+                2 => $systemoveNastaveni->prodejJidlaDo(),
+                3 => $systemoveNastaveni->prodejTricekDo(),
+                4 => $systemoveNastaveni->prodejPredmetuBezTricekDo(),
+            ]
+        );
+        return self::letosniPolozky($systemoveNastaveni->rocnik(), $idckaPredmetu);
     }
 
     /** @var Uzivatel */
