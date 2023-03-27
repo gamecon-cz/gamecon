@@ -61,7 +61,6 @@ class Program
     public function __construct(Uzivatel $u = null, $nastaveni = null) {
         if ($u instanceof Uzivatel) {
             $this->u   = $u;
-            $this->uid = $this->u->id();
         }
         if (is_array($nastaveni)) {
             $this->nastaveni = array_replace($this->nastaveni, $nastaveni);

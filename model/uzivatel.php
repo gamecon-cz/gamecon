@@ -28,6 +28,8 @@ class Uzivatel
     public const SYSTEM       = 1;   // id uživatele reprezentujícího systém (např. "operaci provedl systém")
     public const SYSTEM_LOGIN = 'SYSTEM';
 
+    private ?array $organizovaneAktivityIds = null;
+
     /**
      * @return Uzivatel[]
      */

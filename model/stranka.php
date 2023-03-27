@@ -7,11 +7,12 @@ class Stranka extends DbObject
 
     protected static $tabulka = 'stranky';
     protected static $pk = 'id_stranky';
+    private ?string $html;
 
     public function html() {
         if (!isset($this->html)) {
-            $html = markdownNoCache($this->r['obsah']);
-            $html = preg_replace_callback('@(<p>)?\(widget:([a-z\-]+)\)(</p>)?@', function ($m) {
+            $html       = markdownNoCache($this->r['obsah']);
+            $html       = preg_replace_callback('@(<p>)?\(widget:([a-z\-]+)\)(</p>)?@', function ($m) {
                 $w = Widget::zNazvu($m[2]);
                 if ($w) {
                     return $w->html();
@@ -25,14 +26,14 @@ class Stranka extends DbObject
 
     public function nadpis() {
         $html = preg_quote_wildcard('<h1>~</h1>');
-        $md = '^#\s*([^#].+)$';
+        $md   = '^#\s*([^#].+)$';
         preg_match("@$html|$md@m", $this->r['obsah'], $m);
         return @($m[1] ?: $m[2]);
     }
 
     public function obrazek() {
         $html = preg_quote_wildcard('<img src="~"~>');
-        $md = preg_quote_wildcard('![~](~)');
+        $md   = preg_quote_wildcard('![~](~)');
         preg_match("@$html|$md@", $this->r['obsah'], $m);
         return @($m[1] ?: $m[4]);
     }
