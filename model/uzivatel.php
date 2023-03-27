@@ -60,6 +60,7 @@ SQL
     protected $u = [];
     protected $klic = '';
     protected $idsRoli;         // pole s klíči id židlí uživatele
+    protected ?array $medailonek = null;
     protected $finance;
     protected $shop;
 
