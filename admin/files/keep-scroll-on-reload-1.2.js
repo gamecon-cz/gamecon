@@ -1,5 +1,4 @@
 { // local scope
-
   if (document.referrer === window.location.href) { // still the same URL
     function scrollToPreviousPosition() {
 
