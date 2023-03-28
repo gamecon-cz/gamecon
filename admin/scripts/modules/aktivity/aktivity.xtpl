@@ -294,6 +294,7 @@
   </table>
 </div>
 <script>
-  scrollToPreviousPosition()
+  const contentReadyToScrollToPreviousPosition = new CustomEvent('contentReadyToScrollToPreviousPosition')
+  document.dispatchEvent(contentReadyToScrollToPreviousPosition)
 </script>
 <!-- end:aktivity -->
