@@ -2,6 +2,7 @@
 
 use Gamecon\Vyjimkovac\Logovac;
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Web\Urls;
 
 /**
  * Stránka pro tvorbu a editaci aktivit. Brand new.
@@ -21,7 +22,7 @@ if (Aktivita::editorTestJson()) {       // samo sebe volání ajaxu
 try {
     if ($a = Aktivita::editorZpracuj()) {  // úspěšné uložení změn ve formuláři
         if ($a->nova()) {
-            back('aktivity/upravy?aktivitaId=' . $a->id());
+            back(Urls::urlAdminDetailAktivity($a->id()));
         } else {
             back();
         }

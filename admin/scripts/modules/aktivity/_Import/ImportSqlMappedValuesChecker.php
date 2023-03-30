@@ -11,27 +11,11 @@ use Gamecon\Role\Role;
 
 class ImportSqlMappedValuesChecker
 {
-    /**
-     * @var ImportValuesDescriber
-     */
-    private $importValuesDescriber;
-    /**
-     * @var \DateTimeInterface
-     */
-    private $now;
-    /**
-     * @var int
-     */
-    private $currentYear;
-
     public function __construct(
-        int                   $currentYear,
-        \DateTimeInterface    $now,
-        ImportValuesDescriber $importValuesDescriber
+        private readonly int                   $currentYear,
+        private readonly \DateTimeInterface    $now,
+        private readonly ImportValuesDescriber $importValuesDescriber
     ) {
-        $this->importValuesDescriber = $importValuesDescriber;
-        $this->now                   = $now;
-        $this->currentYear           = $currentYear;
     }
 
     public function checkBeforeSave(
@@ -98,12 +82,13 @@ class ImportSqlMappedValuesChecker
         $checkResults[]          = $storytellersAccessibilityResult;
         unset($storytellersAccessibilityResult);
 
-        $locationAccessibilityResult = $this->checkLocationByAccessibility(
+        $locationAccessibilityResult = self::checkLocationByAccessibility(
             $sqlMappedValues[ActivitiesImportSqlColumn::LOKACE],
             $sqlMappedValues[ActivitiesImportSqlColumn::ZACATEK],
             $sqlMappedValues[ActivitiesImportSqlColumn::KONEC],
             $originalActivity,
-            $singleProgramLine
+            $singleProgramLine,
+            $this->importValuesDescriber
         );
         if ($locationAccessibilityResult->isError()) {
             return ImportStepResult::error($locationAccessibilityResult->getError());
@@ -462,23 +447,24 @@ SQL
         ];
     }
 
-    private function checkLocationByAccessibility(
-        ?int        $locationId,
-        ?string     $zacatekString,
-        ?string     $konecString,
-        ?Aktivita   $originalActivity,
-        TypAktivity $programLine
+    public static function checkLocationByAccessibility(
+        ?int                  $locationId,
+        ?string               $zacatekString,
+        ?string               $konecString,
+        ?Aktivita             $originalActivity,
+        TypAktivity           $currentProgramLine,
+        ImportValuesDescriber $importValuesDescriber,
     ): ImportStepResult {
         if ($locationId === null) {
             return ImportStepResult::success(null);
         }
-        $rangeDates = $this->createRangeDates($zacatekString, $konecString);
+        $rangeDates = self::createRangeDates($zacatekString, $konecString);
         if (!$rangeDates) {
             return ImportStepResult::success(true);
         }
         $programLineCaresAboutOccupiedActivity = !in_array(
-            $programLine->id(),
-            [$programLine::TECHNICKA, $programLine::BRIGADNICKA, $programLine::WARGAMING],
+            $currentProgramLine->id(),
+            [$currentProgramLine::TECHNICKA, $currentProgramLine::BRIGADNICKA, $currentProgramLine::WARGAMING],
             true
         );
         /** @var DateTimeCz $zacatek */
@@ -502,7 +488,7 @@ SQL,
                     : null,
                 $programLineCaresAboutOccupiedActivity
                     ? null
-                    : $programLine->id() // some activities do not care about shared location
+                    : $currentProgramLine->id(), // some activities do not care about shared location
             ]
         );
         if (count($locationOccupyingActivityIds) === 0) {
@@ -514,32 +500,32 @@ SQL,
         $activitiesDescription .= ' ' . implode(
                 ' a ',
                 array_map(
-                    function ($locationOccupyingActivityIds) {
-                        return $this->importValuesDescriber->describeActivityById((int)$locationOccupyingActivityIds);
+                    static function ($locationOccupyingActivityIds) use ($importValuesDescriber) {
+                        return $importValuesDescriber->describeActivityById((int)$locationOccupyingActivityIds);
                     },
                     $locationOccupyingActivityIds
                 )
             );
         $activitiesDescription .= $programLineCaresAboutOccupiedActivity
             ? ''
-            : " jiného typu než '{$programLine->nazev()}'";
+            : " jiného typu než '{$currentProgramLine->nazev()}'";
         return ImportStepResult::successWithWarnings(
             $locationId,
             [
                 sprintf(
                     'Varování: Místnost %s je někdy mezi %s a %s již zabraná %s. Teď do ní byla přidána %d. aktivita.',
-                    $this->importValuesDescriber->describeLocationById($locationId),
+                    $importValuesDescriber->describeLocationById($locationId),
                     $zacatek->formatCasNaMinutyStandard(),
                     $konec->formatCasNaMinutyStandard(),
                     $activitiesDescription,
-                    count($locationOccupyingActivityIds)
+                    count($locationOccupyingActivityIds) + 1
                 ),
             ]
         );
     }
 
     private function checkStorytellersAccessibility(array $storytellersIds, ?string $zacatekString, ?string $konecString, ?Aktivita $originalActivity): ImportStepResult {
-        $rangeDates = $this->createRangeDates($zacatekString, $konecString);
+        $rangeDates = self::createRangeDates($zacatekString, $konecString);
         if (!$rangeDates) {
             return ImportStepResult::success($storytellersIds);
         }
@@ -598,7 +584,10 @@ SQL
         );
     }
 
-    private function createRangeDates(?string $zacatekString, ?string $konecString): ?array {
+    /**
+     * @return null|array<string, DateTimeCz>
+     */
+    private static function createRangeDates(?string $zacatekString, ?string $konecString): ?array {
         if ($zacatekString === null && $konecString === null) {
             // nothing to check, we do not know the activity time
             return null;

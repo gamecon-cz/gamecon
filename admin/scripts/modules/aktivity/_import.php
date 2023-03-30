@@ -13,12 +13,11 @@ use Gamecon\Vyjimkovac\Logovac;
 /** @var int $currentUserId */
 
 $activitiesImportLogger = new ActivitiesImportLogger();
-$now = new \DateTimeImmutable();
+$now                    = new \DateTimeImmutable();
 if (defined('TESTING') && TESTING && (int)$now->format('Y') !== (int)ROCNIK) {
     $now = DateTimeImmutable::createFromFormat(\Gamecon\Cas\DateTimeCz::FORMAT_DB, GC_BEZI_OD);
 }
-$urlNaAktivity = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) . '/..';
-$urlNaEditaciAktivity = $urlNaAktivity . '/upravy?aktivitaId=';
+$urlNaEditaciAktivity = \Gamecon\Web\Urls::urlAdminDetailAktivity(null);
 
 $importFormatHint = include __DIR__ . '/_export-import-hint.php';
 $template->assign('importFormatHint', $importFormatHint);
@@ -30,7 +29,7 @@ if (!empty($_POST['googleSheetId'])) {
         exit;
     }
     /** @var Logovac $vyjimkovac */
-    $activitiesImporter = new ActivitiesImporter(
+    $activitiesImporter     = new ActivitiesImporter(
         $currentUserId,
         $googleDriveService,
         $googleSheetsService,
@@ -45,7 +44,7 @@ if (!empty($_POST['googleSheetId'])) {
         new \Gamecon\Cas\DateTimeCz()
     );
     $vysledekImportuAktivit = $activitiesImporter->importActivities($googleSheetId);
-    $importOznameni = include __DIR__ . '/_import-oznameni.php';
+    $importOznameni         = include __DIR__ . '/_import-oznameni.php';
     $template->assign('importOznameni', $importOznameni($vysledekImportuAktivit));
     $template->parse('import.oznameni');
 }
@@ -68,7 +67,7 @@ $template->parse('import.spreadsheets.unused');
 
 $sheetsPouzityKdy = [];
 foreach ($usedSpreadSheetIds as $usedSpreadSheetId) {
-    $pouzitoKdy = $activitiesImportLogger->getImportedAt($usedSpreadSheetId, $now->getTimezone());
+    $pouzitoKdy                           = $activitiesImportLogger->getImportedAt($usedSpreadSheetId, $now->getTimezone());
     $sheetsPouzityKdy[$usedSpreadSheetId] = $pouzitoKdy;
 }
 uasort($sheetsPouzityKdy, static function (?\DateTimeInterface $jedenSheetPouzitKdy, ?\DateTimeInterface $druhySheetPouzitKdy) {
