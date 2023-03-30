@@ -2,6 +2,8 @@
 
 namespace Gamecon\Aktivita;
 
+use Gamecon\Admin\Modules\Aktivity\Import\ImportSqlMappedValuesChecker;
+use Gamecon\Admin\Modules\Aktivity\Import\ImportValuesDescriber;
 use Gamecon\Kanaly\GcMail;
 
 use Gamecon\Aktivita\OnlinePrezence\OnlinePrezenceHtml;
@@ -13,6 +15,7 @@ use Gamecon\Pravo;
 use Gamecon\PrednacitaniTrait;
 use Gamecon\Role\Role;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Web\Urls;
 use Symfony\Component\Filesystem\Filesystem;
 use Gamecon\XTemplate\XTemplate;
 
@@ -606,7 +609,7 @@ SQL
         }
 
         // úprava přijatých dat
-        $a = $_POST[self::POSTKLIC];
+        $a = (array)$_POST[self::POSTKLIC];
         // v případě nezobrazení tabulky a tudíž chybějícího text. pole s url (viz šablona) se použije hidden pole s původní url
         if (empty($a['url_akce']) && !empty($_POST[self::POSTKLIC . 'staraUrl'])) {
             $a['url_akce'] = $_POST[self::POSTKLIC . 'staraUrl'];
@@ -672,6 +675,7 @@ SQL
         $odmenaZaHodinu = (int)post(self::ODMENA_ZA_HODINU_KLIC);
 
         $aktivita = self::uloz($a, $popis, $organizatori, $tagIds, $obrazekSoubor, $obrazekUrl, $odmenaZaHodinu);
+        self::varujBylaLiMistnostObsazena($aktivita);
 
         if ($rodiceIds) {
             $detiIds    = $aktivita->detiIds();
@@ -697,6 +701,34 @@ SQL
 
         oznameni('Aktivita byla uložena', false);
         return $aktivita;
+    }
+
+    private static function varujBylaLiMistnostObsazena(Aktivita $aktivita) {
+        $lokaceId = $aktivita->lokaceId();
+        if (!$lokaceId) {
+            return;
+        }
+        $result = ImportSqlMappedValuesChecker::checkLocationByAccessibility(
+            $lokaceId,
+            $aktivita->zacatek()?->format(DateTimeCz::FORMAT_DB),
+            $aktivita->konec()?->format(DateTimeCz::FORMAT_DB),
+            $aktivita,
+            $aktivita->typ(),
+            new ImportValuesDescriber(Urls::urlAdminDetailAktivity(null))
+        );
+        if ($result->hasWarnings()) {
+            foreach ($result->getWarnings() as $warning) {
+                varovani($warning, false);
+            }
+        }
+        if ($result->hasErrorLikeWarnings()) {
+            foreach ($result->getErrorLikeWarnings() as $errorLikeWarning) {
+                chyba($errorLikeWarning, false);
+            }
+        }
+        if ($result->hasError()) {
+            chyba($result->getError(), false);
+        }
     }
 
     public static function uloz(

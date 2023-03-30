@@ -8,67 +8,79 @@
 class Chyba extends Exception
 {
 
-    public const CHYBA = 1;
+    public const CHYBA    = 1;
     public const VAROVANI = 2;
     public const OZNAMENI = 3;
 
     private const COOKIE_ZIVOTNOST_SEKUND = 3;
 
+    private const KLIC_CHYBY    = 'CHYBY_CLASS';
+    private const KLIC_VAROVANI = 'CHYBY_CLASS_VAROVANI';
+    private const KLIC_OZNAMENI = 'CHYBY_CLASS_OZNAMENI';
+
     /**
      * Vyvolá reload na volající stránku, která si chybu může vyzvednout pomocí
-     * Chyba::vyzvedni()
+     * self::vyzvedni()
      */
     public function zpet() {
-        self::setCookie('CHYBY_CLASS', $this->getMessage(), time() + self::COOKIE_ZIVOTNOST_SEKUND);
+        self::setCookie(self::KLIC_CHYBY, $this->getMessage(), time() + self::COOKIE_ZIVOTNOST_SEKUND);
         back();
     }
 
-    static function nastav($zprava, $typ = null) {
-        $postname = 'CHYBY_CLASS';
-        if ($typ == self::VAROVANI) {
-            $postname = 'CHYBY_CLASS_VAROVANI';
-        } elseif ($typ == self::OZNAMENI) {
-            $postname = 'CHYBY_CLASS_OZNAMENI';
-        }
-        self::setCookie($postname, $zprava, time() + self::COOKIE_ZIVOTNOST_SEKUND);
+    public static function nastav(string $zprava, int $typ = self::CHYBA) {
+        $cookieName = match ($typ) {
+            self::VAROVANI => self::KLIC_VAROVANI,
+            self::OZNAMENI => self::KLIC_OZNAMENI,
+            default => self::KLIC_CHYBY,
+        };
+        $zpravy     = self::vyzvedni($cookieName);
+        $zpravy[]   = $zprava;
+        self::setCookie($cookieName, $zpravy, time() + self::COOKIE_ZIVOTNOST_SEKUND);
     }
 
-    private static function setCookie(string $postname, $zprava, int $ttl) {
-        setcookie($postname, $zprava, $ttl);
-        $_COOKIE[$postname] = $zprava;
+    private static function setCookie(string $cookieName, $value, int $ttl) {
+        if ($value === '') {
+            setcookie($cookieName, '', $ttl);
+            unset($_COOKIE[$cookieName]);
+            return;
+        }
+        $jsonValue = json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        setcookie($cookieName, $jsonValue, $ttl);
+        $_COOKIE[$cookieName] = $jsonValue;
     }
 
     /**
      * Vrátí text poslední chyby
      */
-    public static function vyzvedniChybu() {
-        if (isset($_COOKIE['CHYBY_CLASS']) && $chyba = $_COOKIE['CHYBY_CLASS']) {
-            self::setCookie('CHYBY_CLASS', '', 0);
-            return $chyba;
-        }
-        return '';
+    public static function vyzvedniChybu(): string {
+        $chyby = self::vyzvedni(self::KLIC_CHYBY);
+        return (string)reset($chyby);
     }
 
-    /**
-     * Vrátí text posledního oznámení
-     */
-    private static function vyzvedniOznameni() {
-        if (isset($_COOKIE['CHYBY_CLASS_OZNAMENI']) && $oznameni = $_COOKIE['CHYBY_CLASS_OZNAMENI']) {
-            self::setCookie('CHYBY_CLASS_OZNAMENI', '', 0);
-            return $oznameni;
-        }
-        return '';
+    private static function vyzvedniVsechnyChyby(): array {
+        return self::vyzvedni(self::KLIC_CHYBY);
     }
 
-    /**
-     * Vrátí text posledního oznámení
-     */
-    private static function vyzvedniVarovani() {
-        if (isset($_COOKIE['CHYBY_CLASS_VAROVANI']) && $varovani = $_COOKIE['CHYBY_CLASS_VAROVANI']) {
-            self::setCookie('CHYBY_CLASS_VAROVANI', '', 0);
-            return $varovani;
+    private static function vyzvedni(string $cookieName): array {
+        $hodnotaJson = $_COOKIE[$cookieName] ?? '';
+        if ($hodnotaJson === '') {
+            return [];
         }
-        return '';
+        // vyzvednuto, smažeme
+        self::setCookie($cookieName, '', 0);
+        $hodnota = json_decode($hodnotaJson, true) ?? $hodnotaJson;
+        if ($hodnota === '') {
+            return [];
+        }
+        return (array)$hodnota;
+    }
+
+    private static function vyzvedniVsechnaOznameni(): array {
+        return self::vyzvedni(self::KLIC_OZNAMENI);
+    }
+
+    private static function vyzvedniVsechnaVarovani(): array {
+        return self::vyzvedni(self::KLIC_VAROVANI);
     }
 
     /**
@@ -76,17 +88,17 @@ class Chyba extends Exception
      */
     public static function vyzvedniHtml(): string {
         $zpravyPodleTypu = [];
-        $error = Chyba::vyzvedniChybu();
-        if ($error) {
-            $zpravyPodleTypu['error'] = [$error];
+        $vsechnyChyby    = self::vyzvedniVsechnyChyby();
+        if ($vsechnyChyby) {
+            $zpravyPodleTypu['chyby'] = $vsechnyChyby;
         }
-        $varovani = Chyba::vyzvedniVarovani();
-        if ($varovani) {
-            $zpravyPodleTypu['varovani'] = [$varovani];
+        $vsechnaVarovani = self::vyzvedniVsechnaVarovani();
+        if ($vsechnaVarovani) {
+            $zpravyPodleTypu['varovani'] = $vsechnaVarovani;
         }
-        $oznameni = Chyba::vyzvedniOznameni();
-        if ($oznameni) {
-            $zpravyPodleTypu['oznameni'] = [$oznameni];
+        $vsechnaOznameni = self::vyzvedniVsechnaOznameni();
+        if ($vsechnaOznameni) {
+            $zpravyPodleTypu['oznameni'] = $vsechnaOznameni;
         }
         if (!$zpravyPodleTypu) {
             return '';
@@ -95,9 +107,9 @@ class Chyba extends Exception
     }
 
     private static function vytvorHtmlZpravu(array $zpravyPodleTypu): string {
-        $zpravy = '';
-        $chybaBlokId = uniqid('chybaBlokId', true);
-        $delkaTextu = 0;
+        $zpravy                 = '';
+        $chybaBlokId            = uniqid('chybaBlokId', true);
+        $delkaTextu             = 0;
         $tridaPodleHlavnihoTypu = 'oznameni';
         foreach ($zpravyPodleTypu as $typ => $zpravyJednohoTypu) {
             switch ($typ) {
@@ -108,18 +120,18 @@ class Chyba extends Exception
                     $tridaPodleTypu = 'varovani';
                     break;
                 default :
-                    $tridaPodleTypu = 'errorHlaska';
+                    $tridaPodleTypu         = 'errorHlaska';
                     $tridaPodleHlavnihoTypu = 'errorHlaska';
             }
             $zpravyJednohoTypuHtml = '';
             foreach ($zpravyJednohoTypu as $zprava) {
-                $zpravyJednohoTypuHtml .= sprintf('<div class="hlaska %s">%s</div>', $tridaPodleTypu, htmlentities($zprava));
-                $delkaTextu += strlen(strip_tags($zprava));
+                $zpravyJednohoTypuHtml .= sprintf('<div class="hlaska %s">%s</div>', $tridaPodleTypu, $zprava);
+                $delkaTextu            += strlen(strip_tags($zprava));
             }
             $zpravy .= sprintf('<div>%s</div>', $zpravyJednohoTypuHtml);
         }
         $zobrazeniSekund = ceil($delkaTextu / 20) + 4.0;
-        $mizeniSekund = 2.0;
+        $mizeniSekund    = 2.0;
 
         return <<<HTML
 <div class="chybaBlok chybaBlok-{$tridaPodleHlavnihoTypu}" id="{$chybaBlokId}">

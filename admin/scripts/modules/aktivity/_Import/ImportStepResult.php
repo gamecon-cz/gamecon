@@ -46,7 +46,7 @@ class ImportStepResult
      * @return array
      */
     public static function collectWarningsFromSteps(array $importStepsResults): array {
-        $warnings = [];
+        $warnings          = [];
         $errorLikeWarnings = [];
         foreach ($importStepsResults as $importStepResult) {
             foreach ($importStepResult->getWarnings() as $warning) {
@@ -57,16 +57,16 @@ class ImportStepResult
             }
         }
         return [
-            'warnings' => $warnings,
+            'warnings'          => $warnings,
             'errorLikeWarnings' => $errorLikeWarnings,
         ];
     }
 
     private function __construct($success, array $warnings, array $errorLikeWarnings, string $error) {
-        $this->success = $success;
-        $this->warnings = $warnings;
+        $this->success           = $success;
+        $this->warnings          = $warnings;
         $this->errorLikeWarnings = $errorLikeWarnings;
-        $this->error = $error;
+        $this->error             = $error;
     }
 
     public function setLastActivityDescription(string $lastActivityDescription): ImportStepResult {
@@ -92,6 +92,10 @@ class ImportStepResult
 
     public function hasErrorLikeWarnings(): bool {
         return count($this->errorLikeWarnings) > 0;
+    }
+
+    public function hasError(): bool {
+        return $this->isError();
     }
 
     public function getSuccess() {

@@ -65,7 +65,7 @@ function httpsOnly() {
  * Předá chybu volajícímu skriptu, vyvolá reload
  */
 function chyba($zprava, $back = true) {
-    Chyba::nastav($zprava, Chyba::CHYBA);
+    Chyba::nastav((string)$zprava, Chyba::CHYBA);
     if ($back) {
         back();
     }
@@ -87,7 +87,7 @@ function varovani(string $zprava, bool $back = true) {
  * @param bool $back má se reloadovat?
  */
 function oznameni($zprava, $back = true) {
-    Chyba::nastav($zprava, Chyba::OZNAMENI);
+    Chyba::nastav((string)$zprava, Chyba::OZNAMENI);
     if ($back) {
         back();
     }
@@ -97,7 +97,7 @@ function oznameni($zprava, $back = true) {
  * Předá oznámení volajícímu skritpu a přesměruje na $cil
  */
 function oznameniPresmeruj($zprava, $cil) {
-    Chyba::nastav($zprava, Chyba::OZNAMENI);
+    Chyba::nastav((string)$zprava, Chyba::OZNAMENI);
     back($cil);
 }
 
