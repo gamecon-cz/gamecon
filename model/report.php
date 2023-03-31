@@ -1,10 +1,13 @@
 <?php
 
-use OpenSpout\Writer\Common\Creator\WriterEntityFactory;
-use OpenSpout\Writer\Common\Creator\Style\StyleBuilder;
+use OpenSpout\Common\Entity\Cell;
+use OpenSpout\Common\Entity\Row;
+use OpenSpout\Writer\XLSX\Writer;
+use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\XLSX\Entity\SheetView;
 use Gamecon\Report\KonfiguraceReportu;
 use OpenSpout\Common\Entity\Style\CellAlignment;
+use OpenSpout\Writer\XLSX\Options;
 
 /**
  * Třída pro vytvoření a vypsání reportu
@@ -32,7 +35,8 @@ class Report
         try {
             ini_set('memory_limit', '1G');
 
-            $writer = WriterEntityFactory::createXLSXWriter();
+            $options = new Options();
+            $writer = new Writer($options);
 
             if ($konfiguraceReportu->getDestinationFile()) {
                 $writer->openToFile($konfiguraceReportu->getDestinationFile());
@@ -50,42 +54,41 @@ class Report
 
             $rows = [];
 
-            $headerStyle = (new StyleBuilder())->setFontBold()->setFontSize($konfiguraceReportu->getHeaderFontSize())->build();
-            $headerRow   = WriterEntityFactory::createRowFromArray($this->hlavicky(), $headerStyle);
+            $headerStyle = (new Style())->setFontBold()->setFontSize($konfiguraceReportu->getHeaderFontSize());
+            $headerRow   = Row::fromValues($this->hlavicky(), $headerStyle);
             $rows[]      = $headerRow;
 
-            $integerStyle     = (new StyleBuilder())->setFormat('0')->build();
-            $numberStyle      = (new StyleBuilder())->setFormat('0.0')->build();
-            $moneyStyle       = (new StyleBuilder())->setFormat('0.00')->build();
-            $genericSizeStyle = (new StyleBuilder())
+            $integerStyle     = (new Style())->setFormat('0');
+            $numberStyle      = (new Style())->setFormat('0.0');
+            $moneyStyle       = (new Style())->setFormat('0.00');
+            $genericSizeStyle = (new Style())
                 ->setFontSize($konfiguraceReportu->getBodyFontSize())
                 ->setFontName('Arial')
                 ->setCellAlignment(CellAlignment::LEFT)
-                ->setShouldWrapText(false)
-                ->build();
+                ->setShouldWrapText(false);
             while ($radek = $this->radek()) {
                 $cells = [];
                 foreach ($radek as $hodnota) {
                     if ((string)(int)$hodnota === trim((string)$hodnota)) {
-                        $cells[] = WriterEntityFactory::createCell((int)$hodnota, $integerStyle);
+                        $cells[] = new Cell\NumericCell((int)$hodnota, $integerStyle);
                     } elseif (preg_match('~^-?\d+[.,]\d{2}$~', trim((string)$hodnota))) {
-                        $cells[] = WriterEntityFactory::createCell((float)$hodnota, $moneyStyle);
+                        $cells[] = new Cell\NumericCell((float)$hodnota, $moneyStyle);
                     } else if ((string)(float)$hodnota === trim((string)$hodnota)
                         || preg_match('~^-?\d+([.,]\d+)?$~', trim((string)$hodnota))
                     ) {
-                        $cells[] = WriterEntityFactory::createCell((float)$hodnota, $numberStyle);
+                        $cells[] = new Cell\NumericCell((float)$hodnota, $numberStyle);
                     } else {
-                        $textCell = WriterEntityFactory::createCell((string)$hodnota);
-                        $textCell->setType($textCell::TYPE_STRING); // jinak by ignorován styl (font a jeho velikost) v prázdných buňkách
+                        $textCell = new Cell\StringCell((string)$hodnota, null);
+//                        $textCell->setType($textCell::TYPE_STRING); // jinak by ignorován styl (font a jeho velikost) v prázdných buňkách
                         $cells[] = $textCell;
                     }
                 }
-                $rows[] = WriterEntityFactory::createRow($cells, $genericSizeStyle);
+                $rows[] = new Row($cells, $genericSizeStyle);
             }
 
             foreach ($this->calculateColumnsWidth($rows, $konfiguraceReportu) as $columnNumber => $columnWidth) {
                 // musí být před prvním addRow
-                $writer->setColumnWidth($columnWidth, $columnNumber);
+                $options->setColumnWidth($columnWidth, $columnNumber);
             }
 
             foreach ($rows as $row) {
