@@ -1,7 +1,7 @@
 # UPDATE
-# docker build --pull --no-cache --tag jaroslavtyc/gamecon-8.1:latest . && docker push jaroslavtyc/gamecon-8.1:latest
+# docker build --pull --no-cache --tag jaroslavtyc/gamecon-8.2:latest ./.docker && docker push jaroslavtyc/gamecon-8.2:latest
 
-FROM php:8.1-apache AS gamecon-server-step1
+FROM php:8.2-apache AS gamecon-server-step1
 
 RUN a2enmod rewrite expires && \
 	# avoid warning on start
