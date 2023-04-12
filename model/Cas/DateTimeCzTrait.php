@@ -3,6 +3,7 @@
 namespace Gamecon\Cas;
 
 use Gamecon\Cas\Exceptions\InvalidDateTimeFormat;
+use Granam\RemoveDiacritics\RemoveDiacritics;
 
 /**
  * Datum a čas s českými názvy dnů a měsíců + další vychytávky
@@ -61,12 +62,45 @@ trait DateTimeCzTrait
         7 => 'nedele',
     ];
 
+    protected static $zkratkyDnu = [
+        1 => 'Po',
+        2 => 'Út',
+        3 => 'St',
+        4 => 'Čt',
+        5 => 'Pá',
+        6 => 'So',
+        7 => 'Ne',
+    ];
+
+    public static function naZkratkyDnu(string $text)
+    {
+        $slova              = array_unique(preg_split('~\s+~', $text, -1, PREG_SPLIT_NO_EMPTY));
+        $slovaBezDiakritiky = array_map(static fn(string $slovo) => RemoveDiacritics::toConstantLikeValue($slovo), $slova);
+        $nahrazenaSlova     = array_map(
+            static function (string $slovoBezDiakritiky) {
+                $poradiDne = self::$dnyVTydnuBezDiakritiky[$slovoBezDiakritiky] ?? null;
+                return $poradiDne === null
+                    ? $slovoBezDiakritiky
+                    : self::$zkratkyDnu[$poradiDne];
+            },
+            $slovaBezDiakritiky,
+        );
+        foreach ($slova as $index => $slovo) {
+            $nahrazeneSlovo = $nahrazenaSlova[$index];
+            if ($slovo !== $nahrazeneSlovo) {
+                $eskapovaneNahrazeneSlovo = str_replace('\\', '\\\\', $nahrazeneSlovo);
+                $text                     = preg_replace('~(^|\s*)\S+(\s*|$)~', '$1' . $nahrazeneSlovo . '$2', $text);
+            }
+        }
+    }
+
     /**
      * @param string $dateTime
      * @param \DateTimeZone|null $timeZone
      * @return DateTimeCz|false
      */
-    public static function createFromMysql(string $dateTime, \DateTimeZone $timeZone = null) {
+    public static function createFromMysql(string $dateTime, \DateTimeZone $timeZone = null)
+    {
         return static::createFromFormat('Y-m-d H:i:s', $dateTime, $timeZone);
     }
 
@@ -76,27 +110,30 @@ trait DateTimeCzTrait
      * @param $timezone
      * @return DateTimeCz|false
      */
-    public static function createFromFormat($format, $time, $timezone = null): \DateTime|false {
+    public static function createFromFormat($format, $time, $timezone = null): \DateTime|false
+    {
         try {
             $dateTime = parent::createFromFormat($format, $time, $timezone);
             if ($dateTime === false) {
                 throw new \RuntimeException();
             }
             return new static($dateTime->format(DATE_ATOM));
-        } catch (\Throwable $throwable) {
+        }
+        catch (\Throwable $throwable) {
             throw new InvalidDateTimeFormat(
                 sprintf(
                     "Can not create %s from value %s using format '%s': %s",
                     static::class,
                     var_export($time, true),
                     var_export($format, true),
-                    $throwable->getMessage()
+                    $throwable->getMessage(),
                 )
             );
         }
     }
 
-    public static function poradiDne(string $den): int {
+    public static function poradiDne(string $den): int
+    {
         $hledanyDenMalymiPismeny     = mb_strtolower($den);
         $hledadnyDenBezDiakritiky    = odstranDiakritiku($hledanyDenMalymiPismeny);
         $poradiDnuZacinajicichStejne = [];
@@ -111,22 +148,26 @@ trait DateTimeCzTrait
         throw new \RuntimeException("Unknown czech day name '$den'");
     }
 
-    public static function dejDnyVTydnu(): array {
+    public static function dejDnyVTydnu(): array
+    {
         return self::$dny;
     }
 
     /** Formát data s upravenými dny česky */
-    public function format($f): string {
+    public function format($f): string
+    {
         return strtr(parent::format($f), static::$dny);
     }
 
     /** Vrací formát kompatibilní s mysql */
-    public function formatDb() {
+    public function formatDb()
+    {
         return parent::format(self::FORMAT_DB);
     }
 
     /** Vrací formát kompatibilní s mysql */
-    public function formatDatumDb() {
+    public function formatDatumDb()
+    {
         return parent::format(self::FORMAT_DATUM_DB);
     }
 
@@ -135,15 +176,18 @@ trait DateTimeCzTrait
      *
      * @return string
      */
-    public function formatDatumStandard() {
+    public function formatDatumStandard()
+    {
         return parent::format(self::FORMAT_DATUM_STANDARD);
     }
 
-    public function formatDatumStandardZarovnaneHtml(): string {
+    public function formatDatumStandardZarovnaneHtml(): string
+    {
         return $this->zarovnatProHtml($this->formatDatumStandard());
     }
 
-    protected function zarovnatProHtml(string $datum): string {
+    protected function zarovnatProHtml(string $datum): string
+    {
         return preg_replace('~(^\d[.])~', '&nbsp;&nbsp;$1', $datum);
     }
 
@@ -152,7 +196,8 @@ trait DateTimeCzTrait
      *
      * @return string
      */
-    public function formatCasNaMinutyStandard() {
+    public function formatCasNaMinutyStandard()
+    {
         return parent::format(self::FORMAT_CAS_NA_MINUTY_STANDARD);
     }
 
@@ -161,34 +206,41 @@ trait DateTimeCzTrait
      *
      * @return string
      */
-    public function formatCasStandard() {
+    public function formatCasStandard()
+    {
         return parent::format(self::FORMAT_DATUM_A_CAS_STANDARD);
     }
 
-    public function formatCasStandardZarovnaneHtml(): string {
+    public function formatCasStandardZarovnaneHtml(): string
+    {
         return $this->zarovnatProHtml($this->formatCasStandard());
     }
 
-    public function formatCasSoubor(): string {
+    public function formatCasSoubor(): string
+    {
         return parent::format(self::FORMAT_CAS_SOUBOR);
     }
 
     /** Vrací blogový/dopisový formát */
-    public function formatBlog() {
+    public function formatBlog()
+    {
         return strtr(parent::format('j. F Y'), static::$mesice);
     }
 
-    public function formatCasZacatekUdalosti(): string {
+    public function formatCasZacatekUdalosti(): string
+    {
         return (string)parent::format('j. n. \v\e H:i');
     }
 
     /** Zvýší časový údaj o jeden den. Upravuje objekt. */
-    public function plusDen() {
+    public function plusDen()
+    {
         $this->add(new \DateInterval('P1D'));
     }
 
     /** Jestli je tento okamžik před okamžikem $d2 */
-    public function pred($d2) {
+    public function pred($d2)
+    {
         if ($d2 instanceof \DateTime) {
             return $this->getTimestamp() < $d2->getTimestamp();
         }
@@ -199,7 +251,8 @@ trait DateTimeCzTrait
      * Jestli je tento okamžik po okamžiku $d2
      * @param \DateTimeInterface|string
      */
-    public function po($d2): bool {
+    public function po($d2): bool
+    {
         if ($d2 instanceof \DateTimeInterface) {
             return $this->getTimestamp() > $d2->getTimestamp();
         }
@@ -207,7 +260,8 @@ trait DateTimeCzTrait
     }
 
     /** Vrací relativní formát času vůči současnému okamžiku */
-    public function relativni(): string {
+    public function relativni(): string
+    {
         $rozdil = time() - $this->getTimestamp();
         if ($rozdil < 0) {
             return 'v budoucnosti';
@@ -234,7 +288,8 @@ trait DateTimeCzTrait
     /**
      * Vrátí „včera“, „předevčírem“, „pozítří“ apod. (místo dnes vrací emptystring)
      */
-    public function rozdilDne(\DateTimeInterface $od) {
+    public function rozdilDne(\DateTimeInterface $od)
+    {
         $od   = clone $od;
         $od   = $od->setTime(0, 0); // nutné znulování času pro funkční porovnání počtu dní
         $do   = clone $this;
@@ -263,7 +318,8 @@ trait DateTimeCzTrait
     }
 
     /** Jestli tento den je stejný s $d2 v formátu \DateTime nebo string s časem */
-    public function stejnyDen($d2): bool {
+    public function stejnyDen($d2): bool
+    {
         if (!$d2) {
             return false;
         }
@@ -274,7 +330,8 @@ trait DateTimeCzTrait
     }
 
     /** Zaokrouhlí nahoru na nejbližší vyšší jednotku */
-    public function zaokrouhlitNaHodinyNahoru(): DateTimeCzTrait {
+    public function zaokrouhlitNaHodinyNahoru(): DateTimeCzTrait
+    {
         if ($this->format('is') === '0000') { // neni co zaokrouhlovat
             return $this->modify($this->format('Y-m-d H:00:00'));
         }
