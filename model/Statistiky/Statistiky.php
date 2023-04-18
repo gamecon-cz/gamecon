@@ -25,7 +25,8 @@ class Statistiky
     /**
      * @param int[]|string[] $roky
      */
-    public function __construct(array $roky, int $letosniRok) {
+    public function __construct(array $roky, int $letosniRok)
+    {
         $this->roky       = $roky;
         $this->letosniRok = $letosniRok;
     }
@@ -34,7 +35,8 @@ class Statistiky
      * @param \DateTimeInterface $doChvile
      * @return array
      */
-    public function dataProGrafUcasti(\DateTimeImmutable $doChvile): array {
+    public function dataProGrafUcasti(\DateTimeImmutable $doChvile): array
+    {
         $data = [];
         foreach ($this->roky as $rok) {
             $data[$rok] = $this->dataProGrafUcastiZaRok((int)$rok, $doChvile);
@@ -42,7 +44,8 @@ class Statistiky
         return $data;
     }
 
-    private function dataProGrafUcastiZaRok(int $rok, \DateTimeImmutable $doChvile): array {
+    private function dataProGrafUcastiZaRok(int $rok, \DateTimeImmutable $doChvile): array
+    {
         /** @var \DateTimeImmutable|DateTimeGamecon $zacatekRegistraci */
         $zacatekRegistraci = min(DateTimeGamecon::spocitejZacatekRegistraciUcastniku($rok), $doChvile);
         /** @var \DateTimeImmutable|DateTimeGamecon $konecGc */
@@ -80,7 +83,7 @@ SQL,
                 \Uzivatel::SESAZEN,
                 $zacatekRegistraci,
                 $posledniDen,
-            ]
+            ],
         );
         $prihlasenychCelkem  = 0;
         $prihlasenychPoDnech = [];
@@ -112,13 +115,14 @@ SQL,
         return $prihlasenychPoDnech;
     }
 
-    public function tabulkaUcastiHtml(): string {
+    public function tabulkaUcastiHtml(): string
+    {
         $sledovaneRole = array_merge(
             [Role::PRIHLASEN_NA_LETOSNI_GC($this->letosniRok), Role::PRITOMEN_NA_LETOSNIM_GC($this->letosniRok)],
             dbOneArray(
                 'SELECT id_role FROM prava_role WHERE id_prava = $0',
-                [Pravo::ZOBRAZOVAT_VE_STATISTIKACH_V_TABULCE_UCASTI]
-            )
+                [Pravo::ZOBRAZOVAT_VE_STATISTIKACH_V_TABULCE_UCASTI],
+            ),
         );
 
         return tabMysql(dbQuery(<<<SQL
@@ -141,7 +145,8 @@ SQL, [
         ]), 'Účast');
     }
 
-    public function tabulkaPredmetuHtml(): string {
+    public function tabulkaPredmetuHtml(): string
+    {
         return tabMysql(dbQuery(<<<SQL
 SELECT
     shop_predmety.nazev Název,
@@ -159,7 +164,8 @@ SQL, [
         ]), 'Předměty');
     }
 
-    public function tabulkaUbytovaniHtml(): string {
+    public function tabulkaUbytovaniHtml(): string
+    {
         return tabMysql(dbQuery(<<<SQL
 SELECT Název, Počet FROM (
   SELECT
@@ -182,7 +188,8 @@ SQL, [
         ]), 'Ubytování dny a místa');
     }
 
-    public function tabulkaUbytovaniKratce(): string {
+    public function tabulkaUbytovaniKratce(): string
+    {
 
         return tabMysql(dbQuery(<<<SQL
 SELECT Den, Počet FROM (
@@ -220,7 +227,8 @@ SQL, [
         ]), 'Ubytování dny');
     }
 
-    public function tabulkaJidlaHtml(): string {
+    public function tabulkaJidlaHtml(): string
+    {
 
         return tabMysql(dbQuery(<<<SQL
 SELECT Název,Cena,Počet,Slev FROM (
@@ -244,11 +252,12 @@ SELECT Název,Cena,Počet,Slev FROM (
 ) AS seskupeno
 ORDER BY ubytovani_den, Název, id_predmetu
 SQL,
-            [[Pravo::JIDLO_ZDARMA, Pravo::JIDLO_SE_SLEVOU], $this->letosniRok, Shop::JIDLO]
+            [[Pravo::JIDLO_ZDARMA, Pravo::JIDLO_SE_SLEVOU], $this->letosniRok, Shop::JIDLO],
         ), 'Jídlo');
     }
 
-    public function tabulkaZastoupeniPohlaviHtml(): string {
+    public function tabulkaZastoupeniPohlaviHtml(): string
+    {
         return tabMysqlR(dbQuery(<<<SQL
     SELECT
     'Počet' AS ' ', -- formátování
@@ -259,13 +268,14 @@ SQL,
     JOIN uzivatele_hodnoty AS uzivatele ON uzivatele_role.id_uzivatele=uzivatele.id_uzivatele
     WHERE uzivatele_role.id_role = $0
 SQL,
-            [Role::PRIHLASEN_NA_LETOSNI_GC($this->letosniRok)]
+            [Role::PRIHLASEN_NA_LETOSNI_GC($this->letosniRok)],
         ),
-            'Pohlaví'
+            'Pohlaví',
         );
     }
 
-    public function pripravDataProGraf(array $prihlaseniData, array $vybraneRoky, string $zarovnaniGrafu): array {
+    public function pripravDataProGraf(array $prihlaseniData, array $vybraneRoky, string $zarovnaniGrafu): array
+    {
         $nazvyDnu         = [];
         $zacatkyRegistaci = [];
         $zacatkyGc        = [];
@@ -305,7 +315,7 @@ SQL,
                 // včetně indexu 0, což je vynucená nula přes array_unshift
                 if ($indexDne === 0) {
                     $nazvyDnuJednohoRoku[] = 'před prvním přihlášeným';
-                } elseif ($indexDne === 1) {
+                } else if ($indexDne === 1) {
                     $nazvyDnuJednohoRoku[] = 'před registracemi';
                 } else {
                     $denRegistraci         = $indexDne - 1;
@@ -314,10 +324,10 @@ SQL,
                 if ($zacatekRegistraciJednohoRoku === $denJednohoRoku) {
                     $prvniDenRegistraciJednohoRoku = end($nazvyDnuJednohoRoku);
                     $zacatkyRegistaci[$rok]        = $prvniDenRegistraciJednohoRoku;
-                } elseif ($zacatekGcJednohoRoku === $denJednohoRoku) {
+                } else if ($zacatekGcJednohoRoku === $denJednohoRoku) {
                     $prvniDenGcRoku  = end($nazvyDnuJednohoRoku);
                     $zacatkyGc[$rok] = $prvniDenGcRoku;
-                } elseif ($konecGcJednohoRoku === $denJednohoRoku) {
+                } else if ($konecGcJednohoRoku === $denJednohoRoku) {
                     $posledniDenGcRoku = end($nazvyDnuJednohoRoku);
                     $konceGc[$rok]     = $posledniDenGcRoku;
                 }
@@ -336,10 +346,11 @@ SQL,
         ];
     }
 
-    public function tabulkaHistorieRegistrovaniVsDoraziliHtml(): string {
+    public function tabulkaHistorieRegistrovaniVsDoraziliHtml(): string
+    {
         $prihlasen = Role::VYZNAM_PRIHLASEN;
-        $pritomen = Role::VYZNAM_PRITOMEN;
-        $ucast = Role::TYP_UCAST;
+        $pritomen  = Role::VYZNAM_PRITOMEN;
+        $ucast     = Role::TYP_UCAST;
         return tabMysqlR(dbQuery(<<<SQL
 SELECT
     rocnik_role AS ' ', -- formátování
@@ -467,7 +478,8 @@ SQL, [
         ]), 'Registrovaní vs Dorazili');
     }
 
-    public function tabulkaLidiNaGcCelkemHtml(): string {
+    public function tabulkaLidiNaGcCelkemHtml(): string
+    {
         return tabMysqlR(dbQuery(<<<SQL
 SELECT
     rok AS ' ', -- formátování
@@ -491,11 +503,12 @@ FROM (
     ) AS podle_roku
     GROUP BY rok
 ) AS pohlavi
-SQL
+SQL,
         ), 'Lidé na GC celkem');
     }
 
-    public function tabulkaHistorieProdanychPredmetuHtml(): string {
+    public function tabulkaHistorieProdanychPredmetuHtml(): string
+    {
         return tabMysqlR(dbQuery(<<<SQL
 SELECT 2009 AS '', 43 AS 'Prodané placky', 43 AS 'Prodané kostky', 6 AS 'Prodaná trička'
 UNION ALL
@@ -518,12 +531,13 @@ WHERE shop_nakupy.rok >= 2014 /* starší data z DB nesedí, jsou vložena fixn�
     AND shop_nakupy.rok != 2020 /* Call of covid */
 GROUP BY shop_nakupy.rok
 ORDER BY ''
-SQL
+SQL,
         ),
             'Prodané předměty');
     }
 
-    public function tabulkaHistorieUbytovaniHtml(): string {
+    public function tabulkaHistorieUbytovaniHtml(): string
+    {
         return tabMysqlR(dbQuery(<<<SQL
 SELECT
     shop_nakupy.rok AS '',
@@ -559,7 +573,7 @@ ORDER BY shop_nakupy.rok
 SQL,
             [
                 0 => Shop::UBYTOVANI,
-            ]
+            ],
         ), 'Ubytování');
     }
 }

@@ -9,18 +9,21 @@ class PosledniZmenyPrihlaseni
      */
     private $zmenyPrihlaseni = [];
 
-    public function addPosledniZmenaPrihlaseni(ZmenaPrihlaseni $zmenaPrihlaseni) {
+    public function addPosledniZmenaPrihlaseni(ZmenaPrihlaseni $zmenaPrihlaseni)
+    {
         $this->zmenyPrihlaseni[] = $zmenaPrihlaseni;
     }
 
     /**
      * @return ZmenaPrihlaseni[]
      */
-    public function zmenyPrihlaseni(): array {
+    public function zmenyPrihlaseni(): array
+    {
         return $this->zmenyPrihlaseni;
     }
 
-    public function posledniZmenaPrihlaseni(): ?ZmenaPrihlaseni {
+    public function posledniZmenaPrihlaseni(): ?ZmenaPrihlaseni
+    {
         $zmeny = $this->zmenyPrihlaseni();
         if (!$zmeny) {
             return null;

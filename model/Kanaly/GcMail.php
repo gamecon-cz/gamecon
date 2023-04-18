@@ -15,21 +15,24 @@ class GcMail
 {
 
     private string $text;
-    private array $adresati = [];
-    private string $predmet = '';
+    private array  $adresati      = [];
+    private string $predmet       = '';
     private string $prilohaSoubor = '';
-    private string $prilohaNazev = '';
+    private string $prilohaNazev  = '';
 
-    public function __construct(string $text = '') {
+    public function __construct(string $text = '')
+    {
         $this->text = $text;
     }
 
-    public function adresat(string $adresat): self {
+    public function adresat(string $adresat): self
+    {
         $this->adresati[] = $adresat;
         return $this;
     }
 
-    public function adresati(array $adresati): self {
+    public function adresati(array $adresati): self
+    {
         $this->adresati = $adresati;
         return $this;
     }
@@ -38,7 +41,8 @@ class GcMail
      * @param string $text utf-8 řetězec
      * @return string enkódovaný řetězec pro použití v hlavičce
      */
-    private static function encode($text) {
+    private static function encode($text)
+    {
         return '=?UTF-8?B?' . base64_encode($text) . '?=';
     }
 
@@ -46,7 +50,8 @@ class GcMail
      * Odešle sestavenou zprávu.
      * @return bool jestli se zprávu podařilo odeslat
      */
-    public function odeslat() {
+    public function odeslat()
+    {
         $mail = (new Email())
             ->from('GameCon <info@gamecon.cz>')
             ->subject($this->predmet)
@@ -73,7 +78,8 @@ class GcMail
         return $odeslano;
     }
 
-    private function mailerTransport(): Transport\TransportInterface {
+    private function mailerTransport(): Transport\TransportInterface
+    {
         if (!defined('MAILER_DSN')) {
             /**
              * Návod @link https://symfony.com/doc/current/mailer.html#transport-setup
@@ -87,14 +93,16 @@ class GcMail
         return Transport::fromDsn(MAILER_DSN);
     }
 
-    private function adresatiDoSouboru(): array {
+    private function adresatiDoSouboru(): array
+    {
         if (!defined('MAILY_DO_SOUBORU') || !MAILY_DO_SOUBORU) {
             return [];
         }
         return array_diff($this->adresati, $this->adresatiPovoleniPodleRoli());
     }
 
-    private function adresatiPovoleniPodleRoli(): array {
+    private function adresatiPovoleniPodleRoli(): array
+    {
         if (!defined('MAILY_DO_SOUBORU') || !MAILY_DO_SOUBORU) {
             return $this->adresati;
         }
@@ -121,34 +129,41 @@ class GcMail
         return $povoleniPodleRoli;
     }
 
-    public function predmet(string $predmet): self {
+    public function predmet(string $predmet): self
+    {
         $this->predmet = $predmet;
         return $this;
     }
 
-    public function text(string $text): self {
+    public function text(string $text): self
+    {
         $this->text = $text;
         return $this;
     }
 
-    private function zalogovatDo(string $soubor, string $obsah) {
+    private function zalogovatDo(string $soubor, string $obsah)
+    {
         return file_put_contents($soubor, $obsah, FILE_APPEND);
     }
 
-    public function dejText(): string {
+    public function dejText(): string
+    {
         return $this->text;
     }
 
-    public function dejPredmet(): string {
+    public function dejPredmet(): string
+    {
         return $this->predmet;
     }
 
-    public function prilohaSoubor(string $cesta): self {
+    public function prilohaSoubor(string $cesta): self
+    {
         $this->prilohaSoubor = $cesta;
         return $this;
     }
 
-    public function prilohaNazev(string $nazev): self {
+    public function prilohaNazev(string $nazev): self
+    {
         $this->prilohaNazev = $nazev;
         return $this;
     }

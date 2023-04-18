@@ -8,7 +8,8 @@ use Gamecon\Aktivita\StavAktivity;
 class OnlinePrezenceTestovaciAktivity
 {
 
-    public static function vytvor(): self {
+    public static function vytvor(): self
+    {
         return new static(Aktivita::dejPrazdnou(), StavAktivity::dejPrazdny());
     }
 
@@ -21,9 +22,10 @@ class OnlinePrezenceTestovaciAktivity
      */
     private $obecnyStav;
 
-    public function __construct(Aktivita $obecnaAktivita, StavAktivity $obecnyStav) {
+    public function __construct(Aktivita $obecnaAktivita, StavAktivity $obecnyStav)
+    {
         $this->obecnaAktivita = $obecnaAktivita;
-        $this->obecnyStav = $obecnyStav;
+        $this->obecnyStav     = $obecnyStav;
     }
 
     /**
@@ -32,23 +34,24 @@ class OnlinePrezenceTestovaciAktivity
      * @return array|Aktivita[]
      * @throws \ReflectionException
      */
-    public function dejTestovaciAktivity(int $rok = ROCNIK, int $limit = 10): array {
+    public function dejTestovaciAktivity(int $rok = ROCNIK, int $limit = 10): array
+    {
         $organizovaneAktivityFiltr = [
-            'rok' => $rok,
+            'rok'  => $rok,
             'stav' => [
                 $this->obecnyStav::PRIPRAVENA,
                 $this->obecnyStav::NOVA,
                 $this->obecnyStav::AKTIVOVANA,
                 $this->obecnyStav::PUBLIKOVANA,
             ],
-            'od' => '2000-01-01', // hlavně prostě aby měly vyplěný začátek a konec
-            'do' => '3000-01-01'
+            'od'   => '2000-01-01', // hlavně prostě aby měly vyplěný začátek a konec
+            'do'   => '3000-01-01',
         ];
 
         $organizovaneAktivity = $this->obecnaAktivita::zFiltru(
             $organizovaneAktivityFiltr,
             ['zacatek'], // razeni
-            $limit
+            $limit,
         );
 
         if ($organizovaneAktivity) {
@@ -62,7 +65,7 @@ class OnlinePrezenceTestovaciAktivity
 UPDATE akce_seznam
 SET stav = '$stavPublikovana'
 WHERE rok = $rok
-SQL
+SQL,
         );
         $organizovaneAktivity = $this->dejTestovaciAktivity($rok, $limit);
         dbRollback();
@@ -77,11 +80,12 @@ SQL
     public function upravZacatkyAktivitNaParSekundPredEditovatelnosti(
         array              $aktivity,
         \DateTimeInterface $now,
-        int                $rozptylSekund = 10
-    ) {
+        int                $rozptylSekund = 10,
+    )
+    {
         array_walk($aktivity, function (Aktivita $aktivita) use ($now, $rozptylSekund) {
             $sekundyPredZacatkemKdyUzJeEditovatelna = AKTIVITA_EDITOVATELNA_X_MINUT_PRED_JEJIM_ZACATKEM * 60;
-            $sekundyKousekPredTimNezJeEditovatelna = $sekundyPredZacatkemKdyUzJeEditovatelna + random_int(0, $rozptylSekund);
+            $sekundyKousekPredTimNezJeEditovatelna  = $sekundyPredZacatkemKdyUzJeEditovatelna + random_int(0, $rozptylSekund);
             $this->upravZacatkyAktivitNa([$aktivita], (clone $now)->modify("+ $sekundyKousekPredTimNezJeEditovatelna seconds"));
         });
     }
@@ -93,8 +97,9 @@ SQL
      */
     public function upravZacatkyAktivitNa(
         array              $aktivityKeZmene,
-        \DateTimeInterface $novyZacatekAktivit
-    ) {
+        \DateTimeInterface $novyZacatekAktivit,
+    )
+    {
         array_walk($aktivityKeZmene, static function (Aktivita $aktivita) use ($novyZacatekAktivit) {
             $aReflection = (new \ReflectionClass(Aktivita::class))->getProperty('a');
             $aReflection->setAccessible(true);
@@ -112,8 +117,9 @@ SQL
      */
     public function upravKonceAktivitNa(
         array              $aktivityKeZmene,
-        \DateTimeInterface $novyKonecAktivit
-    ) {
+        \DateTimeInterface $novyKonecAktivit,
+    )
+    {
         array_walk($aktivityKeZmene, static function (Aktivita $aktivita) use ($novyKonecAktivit) {
             $aReflection = (new \ReflectionClass(Aktivita::class))->getProperty('a');
             $aReflection->setAccessible(true);
@@ -124,12 +130,13 @@ SQL
         });
     }
 
-    public function upravKonceAktivitNaSekundyPoOdemceni(Aktivita $aktivita, int $sekundPoOdemceni) {
+    public function upravKonceAktivitNaSekundyPoOdemceni(Aktivita $aktivita, int $sekundPoOdemceni)
+    {
         $this->upravKonceAktivitNa(
             [$aktivita],
             (clone $aktivita->zacatek())
                 ->modify('-' . AKTIVITA_EDITOVATELNA_X_MINUT_PRED_JEJIM_ZACATKEM . ' minutes')
-                ->modify("+$sekundPoOdemceni seconds")
+                ->modify("+$sekundPoOdemceni seconds"),
         );
 
     }

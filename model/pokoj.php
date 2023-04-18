@@ -9,27 +9,32 @@ class Pokoj
 
     protected $r;
 
-    protected function __construct($r) {
+    protected function __construct($r)
+    {
         $this->r = $r;
     }
 
     /** Vrací číslo pokoje */
-    function cislo() {
+    function cislo()
+    {
         return $this->r['pokoj'];
     }
 
     /** Je uživatel $u ubytován na tomto pokoji? */
-    function ubytovan(Uzivatel $u) {
+    function ubytovan(Uzivatel $u)
+    {
         //TODO
     }
 
     /** Vrací iterátor uživatelů ubytovaných na pokoji */
-    function ubytovani() {
+    function ubytovani()
+    {
         return Uzivatel::zIds($this->r['ubytovani']);
     }
 
     /** (Pře)ubytuje uživatele $u na pokoj $cislo, vytvoří pokud je potřeba */
-    static function ubytujNaCislo(Uzivatel $u, $cislo) {
+    static function ubytujNaCislo(Uzivatel $u, $cislo)
+    {
         $pokoj = trim($cislo);
         $o     = dbQueryS('
       SELECT ubytovani_den
@@ -51,17 +56,20 @@ class Pokoj
     }
 
     /** Vrátí letošní pokoj s číslem $cislo */
-    static function zCisla($cislo) {
+    static function zCisla($cislo)
+    {
         return self::zWhere('WHERE pokoj = $1 AND rok = $2', [$cislo, ROCNIK]);
     }
 
     /** Vrátí pokoj, kde letos bydlí uživatel $u */
-    static function zUzivatele(Uzivatel $u) {
+    static function zUzivatele(Uzivatel $u)
+    {
         return self::zWhere('WHERE rok = $2 AND pokoj = (SELECT MAX(pokoj) FROM ubytovani WHERE id_uzivatele = $1 AND rok = $2)', [$u->id(), ROCNIK]);
     }
 
     /** Vrátí iterátor pokojů podle zadané where klauzule */
-    protected static function zWhere($where, $params) {
+    protected static function zWhere($where, $params)
+    {
         $r = dbOneLine("
       SELECT pokoj, GROUP_CONCAT(DISTINCT id_uzivatele) AS ubytovani
       FROM ubytovani

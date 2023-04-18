@@ -4,7 +4,8 @@ namespace Gamecon\Objekt;
 
 trait ObnoveniVychozichHodnotTrait
 {
-    private function obnovVychoziHodnotyObjektu() {
+    private function obnovVychoziHodnotyObjektu()
+    {
         $classReflection = new \ReflectionClass($this);
         foreach ($classReflection->getDefaultProperties() as $name => $defaultValue) {
             $propertyReflection = $classReflection->getProperty($name);

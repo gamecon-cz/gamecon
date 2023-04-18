@@ -1,13 +1,13 @@
 <!-- begin:predmety -->
 <div class="shop-prehled">
-  <table>
-    <!-- begin:predmet -->
-    <tr>
-      <td>{nazev}</td>
-      <td style="text-align: right">{kusu_uzivatele}×
-      </td>
-    </tr>
-    <!-- end:predmet -->
-  </table>
+    <table>
+        <!-- begin:predmet -->
+        <tr>
+            <td>{nazev}</td>
+            <td style="text-align: right">{kusu_uzivatele}×
+            </td>
+        </tr>
+        <!-- end:predmet -->
+    </table>
 </div>
 <!-- end:predmety -->

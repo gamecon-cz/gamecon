@@ -1,11 +1,11 @@
 <!-- begin:pomoc -->
 
 <input
-    type="checkbox"
-    class="formular_checkbox-mega shopPomoc_checkbox"
-    name="{postname}[chci]"
-    id="chci"
-    {vChci}
+        type="checkbox"
+        class="formular_checkbox-mega shopPomoc_checkbox"
+        name="{postname}[chci]"
+        id="chci"
+        {vChci}
 >
 <span class="shopPomoc_obalTextu">
 
@@ -25,7 +25,7 @@
       <input class="shopPomoc_radio" type="radio" name="{postname}[typ]" value="{id}" id="pomoc{id}" {checked}>
       <label class="shopPomoc_vyberNazev" for="pomoc{id}">{nazev}</label>
       <div class="shopPomoc_vyberPopis"><b>{nazev}</b>{popis}</div>
-      <!-- end:typ -->
+        <!-- end:typ -->
     </div>
 
     <div>Zde můžeš napsat více o tom, jak by ses chtěl{a} zapojit. Hlas se prosím o výpomoc jen u věcí, na které zatím

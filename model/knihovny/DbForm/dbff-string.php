@@ -6,7 +6,8 @@
 class DbffString extends DbFormField
 {
 
-    public function html(): string {
+    public function html(): string
+    {
         $extras = [];
         if ($this->d['Null'] == 'NO') {
             $extras[] = 'required="true"';
@@ -18,7 +19,8 @@ class DbffString extends DbFormField
         return '<input type="text" name="' . $this->postName() . '" value="' . htmlspecialchars((string)$this->value()) . '"' . $extras . '>';
     }
 
-    public function loadPost() {
+    public function loadPost()
+    {
         $this->value($this->postValue());
     }
 

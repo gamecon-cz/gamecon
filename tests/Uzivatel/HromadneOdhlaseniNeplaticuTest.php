@@ -410,7 +410,7 @@ SQL;
             }
 
             public function rocnik(): int {
-                return self::ROCNIK;
+                return ROCNIK;
             }
 
             public function prvniHromadneOdhlasovani(): DateTimeImmutableStrict {

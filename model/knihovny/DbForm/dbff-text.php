@@ -6,14 +6,16 @@
 class DbffText extends DbFormField
 {
 
-    public function html() {
+    public function html()
+    {
         return
             '<textarea name="' . $this->postName() . '">' .
             htmlspecialchars($this->value()) .
             '</textarea>';
     }
 
-    public function loadPost() {
+    public function loadPost()
+    {
         $this->value($this->postValue());
     }
 

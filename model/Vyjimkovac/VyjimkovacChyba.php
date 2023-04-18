@@ -8,18 +8,21 @@ class VyjimkovacChyba
 {
     public const VYJIMKA = 'vyjimka';
 
-    private array $radek;
+    private array   $radek;
     private ?string $idPosledniUlozeneChyby = null;
 
-    public static function absolutniUrlDetailuChyby(int $idChyby, string $urlAdmin = URL_ADMIN): string {
+    public static function absolutniUrlDetailuChyby(int $idChyby, string $urlAdmin = URL_ADMIN): string
+    {
         return $urlAdmin . self::urlDetailuChyby($idChyby);
     }
 
-    public static function urlDetailuChyby(int $idChyby): string {
+    public static function urlDetailuChyby(int $idChyby): string
+    {
         return '/web/chyby?' . self::VYJIMKA . '=' . $idChyby;
     }
 
-    public static function zVyjimky(\Throwable $throwable) {
+    public static function zVyjimky(\Throwable $throwable)
+    {
         $radek = self::radekInit();
         try {
             $serialized = serialize($throwable);
@@ -61,7 +64,8 @@ class VyjimkovacChyba
      * Vrátí pole s řádkem inicializované z glob. proměnných (čas vytvoření, url,
      * ...)
      */
-    private static function radekInit(): array {
+    private static function radekInit(): array
+    {
         $radek = [
             'vznikla' => time(),
             'url'     => PHP_SAPI === 'cli'
@@ -82,7 +86,8 @@ class VyjimkovacChyba
     }
 
     /** Vrátí čitelný formát pro zadaný číselný typ chyby */
-    private static function typHr(int $severity) {
+    private static function typHr(int $severity)
+    {
         $return = "";
         if ($severity & E_ERROR) // 1 //
             $return .= '& E_ERROR ';
@@ -117,18 +122,21 @@ class VyjimkovacChyba
         return substr($return, 2);
     }
 
-    protected function __construct(array $radek) {
+    protected function __construct(array $radek)
+    {
         $this->radek = $radek;
     }
 
-    public function __call(string $metoda, $args) {
+    public function __call(string $metoda, $args)
+    {
         if (isset($this->radek[$metoda]) && $args === []) {
             return $this->radek[$metoda];
         }
         throw new \BadMethodCallException($metoda);
     }
 
-    public function uloz(\EPDO $db): self {
+    public function uloz(\EPDO $db): self
+    {
         if ($this->radek) {
             $this->zajistiTabulkyProChyby($db);
             $db->insert('chyby', $this->radek);
@@ -137,7 +145,8 @@ class VyjimkovacChyba
         return $this;
     }
 
-    private function zajistiTabulkyProChyby(\EPDO $db) {
+    private function zajistiTabulkyProChyby(\EPDO $db)
+    {
         $db->query('CREATE TABLE IF NOT EXISTS chyby(
             jazyk     TEXT,
             typ       TEXT,
@@ -155,7 +164,8 @@ class VyjimkovacChyba
         )');
     }
 
-    public function odesli(array $emails) {
+    public function odesli(array $emails)
+    {
         if ($emails) {
             $kodJazyka      = strtoupper((string)$this->radek['jazyk']);
             $zprava         = (string)$this->radek['zprava'];

@@ -18,14 +18,16 @@ class Platby
 
     private const SKUPINA = 'patby';
 
-    public function __construct(private readonly SystemoveNastaveni $systemoveNastaveni) {
+    public function __construct(private readonly SystemoveNastaveni $systemoveNastaveni)
+    {
     }
 
     /**
      * Načte a uloží nové platby z FIO, vrátí zaúčtované platby
      * @return \FioPlatba[]
      */
-    public function nactiNove(): array {
+    public function nactiNove(): array
+    {
         return $this->zpracujPlatby(FioPlatba::zPoslednichDni($this->systemoveNastaveni->nacitatPlatbyXDniZpet()));
     }
 
@@ -34,7 +36,8 @@ class Platby
      * @param DateTimeInterface $do
      * @return FioPlatba[]
      */
-    public function nactiZRozmezi(DateTimeInterface $od, DateTimeInterface $do) {
+    public function nactiZRozmezi(DateTimeInterface $od, DateTimeInterface $do)
+    {
         return $this->zpracujPlatby(FioPlatba::zRozmezi($od, $do));
     }
 
@@ -42,7 +45,8 @@ class Platby
      * @param FioPlatba[] $fioPlatby
      * @return FioPlatba[] Zpracované,nepřeskočené FIO platby
      */
-    private function zpracujPlatby(array $fioPlatby): array {
+    private function zpracujPlatby(array $fioPlatby): array
+    {
         $vysledek = [];
         foreach ($fioPlatby as $fioPlatba) {
             if ($this->platbuUzMame($fioPlatba->id())) {
@@ -64,14 +68,15 @@ class Platby
                     Sql::POZNAMKA               => strlen($fioPlatba->zpravaProPrijemce()) > 4
                         ? $fioPlatba->zpravaProPrijemce()
                         : null,
-                ]
+                ],
             );
             $vysledek[] = $fioPlatba;
         }
         return $vysledek;
     }
 
-    private function platbuUzMame(string $idFioPlatby): bool {
+    private function platbuUzMame(string $idFioPlatby): bool
+    {
         return (bool)dbOneCol('SELECT 1 FROM platby WHERE fio_id = $1', [$idFioPlatby]);
     }
 
@@ -79,7 +84,8 @@ class Platby
      * @param int|null $rok
      * @return \Generator|Platba[]
      */
-    public function nesparovanePlatby(?int $rok = ROCNIK): \Generator {
+    public function nesparovanePlatby(?int $rok = ROCNIK): \Generator
+    {
         $result = dbQuery(<<<SQL
             SELECT id
             FROM platby
@@ -87,30 +93,33 @@ class Platby
                 AND IF ($0, rok = $0, TRUE)
             SQL,
             [0 => $rok],
-            dbConnectTemporary()
+            dbConnectTemporary(),
         );
         while ($id = mysqli_fetch_column($result)) {
             yield Platba::zId($id, true);
         }
     }
 
-    public function nejakeNesparovanePlatby(?int $rok = ROCNIK): bool {
+    public function nejakeNesparovanePlatby(?int $rok = ROCNIK): bool
+    {
         return dbOneCol(<<<SQL
             SELECT 1
             WHERE EXISTS(SELECT * FROM platby WHERE id_uzivatele IS NULL AND IF ($0, rok = $0, TRUE))
             SQL,
-            [0 => $rok]
+            [0 => $rok],
         );
     }
 
-    public function cfoNotifikovanONesparovanychPlatbachKdy(int $rocnik, int $poradiOznameni): ?DateTimeImmutableStrict {
+    public function cfoNotifikovanONesparovanychPlatbachKdy(int $rocnik, int $poradiOznameni): ?DateTimeImmutableStrict
+    {
         return $this->posledniHromadnaAkceKdy(
             self::SKUPINA,
             $this->sestavNazevAkceEmailuONesparovanychPlatbach($rocnik, $poradiOznameni),
         );
     }
 
-    private function sestavNazevAkceEmailuONesparovanychPlatbach(int $rocnik, int $poradiOznameni): string {
+    private function sestavNazevAkceEmailuONesparovanychPlatbach(int $rocnik, int $poradiOznameni): string
+    {
         return "email-cfo-nesparovane-platby-$rocnik-$poradiOznameni";
     }
 
@@ -118,13 +127,14 @@ class Platby
         int      $rocnik,
         int      $poradiOznameni,
         int      $nesparovanychPlateb,
-        Uzivatel $provedl
-    ) {
+        Uzivatel $provedl,
+    )
+    {
         $this->zalogujHromadnouAkci(
             self::SKUPINA,
             $this->sestavNazevAkceEmailuONesparovanychPlatbach($rocnik, $poradiOznameni),
             $nesparovanychPlateb,
-            $provedl
+            $provedl,
         );
     }
 }

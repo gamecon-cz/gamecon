@@ -10,7 +10,7 @@ use Gamecon\Role\Role;
 class Pravo extends \DbObject
 {
     protected static $tabulka = 'r_prava_soupis';
-    protected static $pk = 'id_prava';
+    protected static $pk      = 'id_prava';
 
     /**
      * Konstanty jsou kopie SQL tabulky `r_prava_soupis`
@@ -63,7 +63,8 @@ class Pravo extends \DbObject
     public const HROMADNA_AKTIVACE_AKTIVIT                   = 1032; // Může použít nebezpečné tlačítko "Aktivovat hromadně" u aktivit
     public const ZMENA_PRAV                                  = 1033;
 
-    public static function dejIdsVsechPrav(): array {
+    public static function dejIdsVsechPrav(): array
+    {
         static $idsVsechPrav;
         if ($idsVsechPrav === null) {
             $idsVsechPrav = (new \ReflectionClass(static::class))

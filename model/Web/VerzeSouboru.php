@@ -15,12 +15,14 @@ class VerzeSouboru
      */
     private $pripona;
 
-    public function __construct(string $adresar, string $pripona) {
+    public function __construct(string $adresar, string $pripona)
+    {
         $this->adresar = rtrim($adresar, '/');
         $this->pripona = $pripona;
     }
 
-    public function __call(string $nazev, array $arguments): string {
+    public function __call(string $nazev, array $arguments): string
+    {
         $nazev = basename($nazev, '.' . $this->pripona);
         $cesta = $this->adresar . '/' . $nazev . '.' . $this->pripona;
         if (file_exists($cesta)) {

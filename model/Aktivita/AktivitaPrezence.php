@@ -22,8 +22,9 @@ class AktivitaPrezence
 
     public function __construct(
         Aktivita   $aktivita,
-        Filesystem $filesystem
-    ) {
+        Filesystem $filesystem,
+    )
+    {
         $this->aktivita   = $aktivita;
         $this->filesystem = $filesystem;
     }
@@ -32,7 +33,8 @@ class AktivitaPrezence
      * Uloží prezenci do databáze.
      * @param \Uzivatel[] $dorazili uživatelé, kteří se nakonec aktivity zúčastnili
      */
-    public function uloz(array $dorazili, \Uzivatel $potvrzujici) {
+    public function uloz(array $dorazili, \Uzivatel $potvrzujici)
+    {
         $doraziliIds = []; // id všech co dorazili (kvůli kontrole přítomnosti)
 
         foreach ($dorazili as $dorazil) {
@@ -46,7 +48,8 @@ class AktivitaPrezence
         }
     }
 
-    public function ulozZeDorazil(\Uzivatel $dorazil, \Uzivatel $potvrzujici) {
+    public function ulozZeDorazil(\Uzivatel $dorazil, \Uzivatel $potvrzujici)
+    {
         if ($this->aktivita->dorazilJakoCokoliv($dorazil)) {
             return; // už máme hotovo
         }
@@ -69,10 +72,11 @@ class AktivitaPrezence
         $this->zrusPredchoziPokutu($dorazil);
     }
 
-    private function zrusPredchoziPokutu(\Uzivatel $uzivatel) {
+    private function zrusPredchoziPokutu(\Uzivatel $uzivatel)
+    {
         dbQuery(
             'DELETE FROM akce_prihlaseni_spec WHERE id_uzivatele=$0 AND id_akce=$1 AND id_stavu_prihlaseni IN ($2)',
-            [$uzivatel->id(), $this->aktivita->id(), [StavPrihlaseni::POZDE_ZRUSIL, StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL]]
+            [$uzivatel->id(), $this->aktivita->id(), [StavPrihlaseni::POZDE_ZRUSIL, StavPrihlaseni::PRIHLASEN_ALE_NEDORAZIL]],
         );
     }
 
@@ -80,7 +84,8 @@ class AktivitaPrezence
      * @param \Uzivatel $dorazil
      * @return bool false pokud byl uživatel už zrušen a nic se tedy nezměnilo
      */
-    public function zrusZeDorazil(\Uzivatel $nedorazil, \Uzivatel $zmenil): bool {
+    public function zrusZeDorazil(\Uzivatel $nedorazil, \Uzivatel $zmenil): bool
+    {
         if ($this->aktivita->dorazilJakoNahradnik($nedorazil)) {
             dbDelete('akce_prihlaseni', [
                 'id_uzivatele' => $nedorazil->id(),
@@ -106,7 +111,7 @@ class AktivitaPrezence
         if ($this->aktivita->dorazilJakoPredemPrihlaseny($nedorazil)) {
             dbUpdate('akce_prihlaseni',
                 ['id_stavu_prihlaseni' => StavPrihlaseni::PRIHLASEN], // vratime ho zpet jako "jen prihlaseneho"
-                ['id_uzivatele' => $nedorazil->id(), 'id_akce' => $this->aktivita->id()]
+                ['id_uzivatele' => $nedorazil->id(), 'id_akce' => $this->aktivita->id()],
             );
             $this->zalogujPrihlaseni($nedorazil, $zmenil);
             return true;
@@ -115,11 +120,13 @@ class AktivitaPrezence
         return false;
     }
 
-    public function zalogujPrihlaseni(\Uzivatel $prihlaseny, \Uzivatel $zmenil) {
+    public function zalogujPrihlaseni(\Uzivatel $prihlaseny, \Uzivatel $zmenil)
+    {
         $this->log($prihlaseny, AktivitaPrezenceTyp::PRIHLASENI, $zmenil);
     }
 
-    private function log(\Uzivatel $ucastnik, string $udalost, \Uzivatel $zmenil, string $zdrojZmeny = null) {
+    private function log(\Uzivatel $ucastnik, string $udalost, \Uzivatel $zmenil, string $zdrojZmeny = null)
+    {
         dbInsert(LogSql::AKCE_PRIHLASENI_LOG_TABULKA, [
             LogSql::ID_UZIVATELE => $ucastnik->id(),
             LogSql::ID_AKCE      => $this->aktivita->id(),
@@ -132,39 +139,48 @@ class AktivitaPrezence
         unset($this->posledniZmenaPrihlaseni[$ucastnik->id()]);
     }
 
-    public function zalogujOdhlaseni(\Uzivatel $odhlaseny, \Uzivatel $odhlasujici, string $zdrojOdhlaseni) {
+    public function zalogujOdhlaseni(\Uzivatel $odhlaseny, \Uzivatel $odhlasujici, string $zdrojOdhlaseni)
+    {
         $this->log($odhlaseny, AktivitaPrezenceTyp::ODHLASENI, $odhlasujici, $zdrojOdhlaseni);
     }
 
-    private function zalogujZeZeNedostavil(\Uzivatel $nedorazil, \Uzivatel $potvrzujici) {
+    private function zalogujZeZeNedostavil(\Uzivatel $nedorazil, \Uzivatel $potvrzujici)
+    {
         $this->log($nedorazil, AktivitaPrezenceTyp::NEDOSTAVENI_SE, $potvrzujici);
     }
 
-    public function zalogujZeBylHromadneOdhlasen(\Uzivatel $hromadneOdhlasen, \Uzivatel $odhlasujici) {
+    public function zalogujZeBylHromadneOdhlasen(\Uzivatel $hromadneOdhlasen, \Uzivatel $odhlasujici)
+    {
         $this->log($hromadneOdhlasen, AktivitaPrezenceTyp::ODHLASENI_HROMADNE, $odhlasujici);
     }
 
-    public function zalogujZeDorazil(\Uzivatel $dorazil, \Uzivatel $potvrzujici) {
+    public function zalogujZeDorazil(\Uzivatel $dorazil, \Uzivatel $potvrzujici)
+    {
         $this->log($dorazil, AktivitaPrezenceTyp::DORAZIL, $potvrzujici);
     }
 
-    private function zalogujZeDorazilJakoNahradnik(\Uzivatel $dorazilNahradnik, \Uzivatel $potvrzujici) {
+    private function zalogujZeDorazilJakoNahradnik(\Uzivatel $dorazilNahradnik, \Uzivatel $potvrzujici)
+    {
         $this->log($dorazilNahradnik, AktivitaPrezenceTyp::DORAZIL_JAKO_NAHRADNIK, $potvrzujici);
     }
 
-    public function zalogujZeSePrihlasilJakoSledujici(\Uzivatel $prihlasenySledujici, \Uzivatel $prihlasujici) {
+    public function zalogujZeSePrihlasilJakoSledujici(\Uzivatel $prihlasenySledujici, \Uzivatel $prihlasujici)
+    {
         $this->log($prihlasenySledujici, AktivitaPrezenceTyp::PRIHLASENI_SLEDUJICI, $prihlasujici);
     }
 
-    public function zalogujZeZrusilPrihlaseniJakoNahradik(\Uzivatel $prihlasenySledujici, \Uzivatel $odhlasujici) {
+    public function zalogujZeZrusilPrihlaseniJakoNahradik(\Uzivatel $prihlasenySledujici, \Uzivatel $odhlasujici)
+    {
         $this->log($prihlasenySledujici, AktivitaPrezenceTyp::NAHRADNIK_NEDORAZIL, $odhlasujici);
     }
 
-    public function zalogujZeSeOdhlasilJakoSledujici(\Uzivatel $odhlasenySledujici, \Uzivatel $odhlasujici) {
+    public function zalogujZeSeOdhlasilJakoSledujici(\Uzivatel $odhlasenySledujici, \Uzivatel $odhlasujici)
+    {
         $this->log($odhlasenySledujici, AktivitaPrezenceTyp::ODHLASENI_SLEDUJICI, $odhlasujici);
     }
 
-    public function ulozNedorazivsiho(\Uzivatel $nedorazil, \Uzivatel $potvrzujici) {
+    public function ulozNedorazivsiho(\Uzivatel $nedorazil, \Uzivatel $potvrzujici)
+    {
         // TODO kontrola, jestli prezence smí být uložena (např. jestli už nebyla uložena dřív)
 
         dbDelete('akce_prihlaseni', [
@@ -184,7 +200,8 @@ class AktivitaPrezence
      * Pošle uživateli výchovný mail, že se nedostavil na aktivitu, a že by se
      * měl radši odhlašovat předem.
      */
-    private function posliMailNedorazivsimu(\Uzivatel $u) {
+    private function posliMailNedorazivsimu(\Uzivatel $u)
+    {
         if (!GC_BEZI || !$this->aktivita->typ()->posilatMailyNedorazivsim()) {
             return;
         }
@@ -196,7 +213,8 @@ class AktivitaPrezence
             ->odeslat();
     }
 
-    public function prihlasenOd(\Uzivatel $uzivatel): ?\DateTimeImmutable {
+    public function prihlasenOd(\Uzivatel $uzivatel): ?\DateTimeImmutable
+    {
         $posledniZmenaPrihlaseni = $this->posledniZmenaPrihlaseni($uzivatel);
         if (!$posledniZmenaPrihlaseni || $posledniZmenaPrihlaseni->typPrezence() !== AktivitaPrezenceTyp::PRIHLASENI) {
             return null;
@@ -204,7 +222,8 @@ class AktivitaPrezence
         return $posledniZmenaPrihlaseni->casZmeny();
     }
 
-    public function posledniZmenaPrihlaseni(\Uzivatel $ucastnik): ?ZmenaPrihlaseni {
+    public function posledniZmenaPrihlaseni(\Uzivatel $ucastnik): ?ZmenaPrihlaseni
+    {
         if (!array_key_exists($ucastnik->id(), $this->posledniZmenaPrihlaseni)) {
             $this->posledniZmenaPrihlaseni[$ucastnik->id()] = self::posledniZmenaPrihlaseniAktivit($ucastnik, [$this->aktivita]);
         }
@@ -215,7 +234,8 @@ class AktivitaPrezence
      * @param string[][][] $idsPoslednichZnamychLoguUcastniku
      * @return PosledniZmenyPrihlaseni
      */
-    public static function dejPosledniZmenyPrezence(array $idsPoslednichZnamychLoguUcastniku): PosledniZmenyPrihlaseni {
+    public static function dejPosledniZmenyPrezence(array $idsPoslednichZnamychLoguUcastniku): PosledniZmenyPrihlaseni
+    {
         $nejnovejsiZmenyPrihlaseni = new PosledniZmenyPrihlaseni();
         foreach (self::dejDataPoslednichZmen($idsPoslednichZnamychLoguUcastniku) as $zmena) {
             $zmenaPrihlaseni = ZmenaPrihlaseni::vytvorZDatDatabaze(
@@ -223,7 +243,7 @@ class AktivitaPrezence
                 (int)$zmena[AkcePrihlaseniLogSqlStruktura::ID_AKCE],
                 (int)$zmena[AkcePrihlaseniLogSqlStruktura::ID_LOG],
                 new \DateTimeImmutable($zmena[AkcePrihlaseniLogSqlStruktura::KDY]),
-                $zmena[AkcePrihlaseniLogSqlStruktura::TYP]
+                $zmena[AkcePrihlaseniLogSqlStruktura::TYP],
             );
             $nejnovejsiZmenyPrihlaseni->addPosledniZmenaPrihlaseni($zmenaPrihlaseni);
         }
@@ -236,7 +256,8 @@ class AktivitaPrezence
      * @return array
      * @throws \DbException
      */
-    private static function dejDataPoslednichZmen(array $idsPoslednichZnamychLoguUcastniku): array {
+    private static function dejDataPoslednichZmen(array $idsPoslednichZnamychLoguUcastniku): array
+    {
         if (!$idsPoslednichZnamychLoguUcastniku) {
             return [];
         }
@@ -278,7 +299,7 @@ INNER JOIN akce_prihlaseni_log
         AND nejnovejsi.id_posledniho_logu = akce_prihlaseni_log.id_log
 GROUP BY akce_prihlaseni_log.id_akce, akce_prihlaseni_log.id_uzivatele
 SQL
-            , $sqlQueryParametry
+            , $sqlQueryParametry,
         );
     }
 
@@ -288,7 +309,8 @@ SQL
      * @return null|ZmenaPrihlaseni
      * @throws \Exception
      */
-    public static function posledniZmenaPrihlaseniAktivit(?\Uzivatel $ucastnik, array $aktivity): ?ZmenaPrihlaseni {
+    public static function posledniZmenaPrihlaseniAktivit(?\Uzivatel $ucastnik, array $aktivity): ?ZmenaPrihlaseni
+    {
         if (count($aktivity) === 0) {
             return null;
         }
@@ -311,7 +333,7 @@ SQL,
                     return $aktivita->id();
                 }, $aktivity),
                 $ucastnik ? $ucastnik->id() : null,
-            ]
+            ],
         );
         if (!$posledniZmena || !$posledniZmena['id_uzivatele']) {
             return null;

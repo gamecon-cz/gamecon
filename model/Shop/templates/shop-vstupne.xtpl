@@ -3,42 +3,42 @@
 <script src="{jsSlider}"></script>
 
 <div class="shopVstupne_castkaRadek">
-  <div class="shopVstupne_castka">ČÁSTKA:</div>
-  <input type="text" class="shopVstupne_stav" name="{postname}" value="{stav}">
-  <div class="shopVstupne_kc">Kč</div>
+    <div class="shopVstupne_castka">ČÁSTKA:</div>
+    <input type="text" class="shopVstupne_stav" name="{postname}" value="{stav}">
+    <div class="shopVstupne_kc">Kč</div>
 </div>
 
 <div class="shopVstupne_kostkaObal">
-  <div class="shopVstupne_kostkaPosuv"></div>
-  <div class="shopVstupne_kostka"></div>
+    <div class="shopVstupne_kostkaPosuv"></div>
+    <div class="shopVstupne_kostka"></div>
 </div>
 
 <input type="range" class="shopVstupne_range" min="0" max="1" step="any">
 
 <div class="shopVstupne_skala">
-  <div class="shopVstupne_skalaHodnota">0&thinsp;Kč</div>
-  <div class="shopVstupne_skalaDelic"></div>
-  <div class="shopVstupne_skalaHodnota">60&thinsp;Kč</div>
-  <div class="shopVstupne_skalaDelic"></div>
-  <div class="shopVstupne_skalaHodnota">250&thinsp;Kč</div>
-  <div class="shopVstupne_skalaDelic"></div>
-  <div class="shopVstupne_skalaHodnota">600&thinsp;Kč</div>
-  <div class="shopVstupne_skalaDelic"></div>
-  <div class="shopVstupne_skalaHodnota">1000&thinsp;Kč</div>
+    <div class="shopVstupne_skalaHodnota">0&thinsp;Kč</div>
+    <div class="shopVstupne_skalaDelic"></div>
+    <div class="shopVstupne_skalaHodnota">60&thinsp;Kč</div>
+    <div class="shopVstupne_skalaDelic"></div>
+    <div class="shopVstupne_skalaHodnota">250&thinsp;Kč</div>
+    <div class="shopVstupne_skalaDelic"></div>
+    <div class="shopVstupne_skalaHodnota">600&thinsp;Kč</div>
+    <div class="shopVstupne_skalaDelic"></div>
+    <div class="shopVstupne_skalaHodnota">1000&thinsp;Kč</div>
 </div>
 
 <div class="shopVstupne_kostkaLegenda">
-  průměrný příspěvek z roku 2021
+    průměrný příspěvek z roku 2021
 </div>
 
 <script>
-  shopVstupne(
-    document.querySelector('.shopVstupne_stav'),
-    document.querySelector('.shopVstupne_range'),
-    document.querySelector('.shopVstupne_kostkaPosuv'),
-    {min},
-    {smajliky}
-  )
+    shopVstupne(
+        document.querySelector('.shopVstupne_stav'),
+        document.querySelector('.shopVstupne_range'),
+        document.querySelector('.shopVstupne_kostkaPosuv'),
+        {min},
+        {smajliky}
+    )
 </script>
 
 <!-- end:vstupne -->

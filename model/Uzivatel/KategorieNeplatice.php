@@ -22,23 +22,25 @@ class KategorieNeplatice
 
     public static function vytvorProNadchazejiciVlnuZGlobals(
         \Uzivatel          $uzivatel,
-        SystemoveNastaveni $systemoveNastaveni = null
-    ): static {
+        SystemoveNastaveni $systemoveNastaveni = null,
+    ): static
+    {
         /** @var SystemoveNastaveni $systemoveNastaveni */
         $systemoveNastaveni ??= $GLOBALS['systemoveNastaveni'];
 
         return static::vytvorZHromadnehoOdhlasovani(
             $uzivatel,
             $systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy(),
-            $systemoveNastaveni
+            $systemoveNastaveni,
         );
     }
 
     public static function vytvorZHromadnehoOdhlasovani(
         \Uzivatel          $uzivatel,
         \DateTimeInterface $hromadneOdhlasovaniKdy,
-        SystemoveNastaveni $systemoveNastaveni = null
-    ): static {
+        SystemoveNastaveni $systemoveNastaveni = null,
+    ): static
+    {
         /** @var SystemoveNastaveni $systemoveNastaveni */
         $systemoveNastaveni ??= $GLOBALS['systemoveNastaveni'];
 
@@ -54,7 +56,7 @@ class KategorieNeplatice
         );
     }
 
-    private float $castkaVelkyDluh;
+    private float  $castkaVelkyDluh;
     private ?float $sumaLetosnichPlateb = null;
 
     public function __construct(
@@ -65,23 +67,26 @@ class KategorieNeplatice
         private int                 $rocnik,
         float                       $castkaVelkyDluh,
         private float               $castkaPoslalDost,
-        private int                 $pocetDnuPredVlnouKdyJeJesteChranen
-    ) {
+        private int                 $pocetDnuPredVlnouKdyJeJesteChranen,
+    )
+    {
         $this->castkaVelkyDluh = -abs($castkaVelkyDluh);
     }
 
-    public function melByBytOdhlasen(): bool {
+    public function melByBytOdhlasen(): bool
+    {
         return in_array(
             $this->ciselnaKategoriiNeplatice(),
             [
                 self::LETOS_NEPOSLAL_NIC_A_LONI_NIC_NEBO_MA_VELKY_DLUH,
                 self::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH,
             ],
-            true
+            true,
         );
     }
 
-    public function maSmyslOdhlasitMuJenNeco(): bool {
+    public function maSmyslOdhlasitMuJenNeco(): bool
+    {
         return $this->ciselnaKategoriiNeplatice() === self::LETOS_POSLAL_MALO_A_MA_VELKY_DLUH;
     }
 
@@ -90,7 +95,8 @@ class KategorieNeplatice
      * https://trello.com/c/Zzo2htqI/892-vytvo%C5%99it-nov%C3%BD-report-email%C5%AF-p%C5%99i-odhla%C5%A1ov%C3%A1n%C3%AD-neplati%C4%8D%C5%AF
      * https://docs.google.com/document/d/1pP3mp9piPNAl1IKCC5YYe92zzeFdTLDMiT-xrUhVLdQ/edit
      */
-    public function ciselnaKategoriiNeplatice(): ?int {
+    public function ciselnaKategoriiNeplatice(): ?int
+    {
         if ($this->maPravoNerusitObjednavky) {
             /**
              * Kategorie účastníka s právem platit až na místě
@@ -172,22 +178,26 @@ class KategorieNeplatice
         return null;
     }
 
-    private function maVelkyDluh(): bool {
+    private function maVelkyDluh(): bool
+    {
         return $this->finance->stav() <= $this->castkaVelkyDluh;
     }
 
-    private function poslalDost(): bool {
+    private function poslalDost(): bool
+    {
         return $this->sumaLetosnichPlateb() >= $this->castkaPoslalDost;
     }
 
-    private function sumaLetosnichPlateb(): float {
+    private function sumaLetosnichPlateb(): float
+    {
         if ($this->sumaLetosnichPlateb === null) {
             $this->sumaLetosnichPlateb = $this->finance->sumaPlateb($this->rocnik);
         }
         return $this->sumaLetosnichPlateb;
     }
 
-    private function pocetLetosnichObjednavek(): int {
+    private function pocetLetosnichObjednavek(): int
+    {
         /**
          * Necachovat lokálně, jinak nebude fungovat postupné odhlašování položek,
          * @see \Gamecon\Uzivatel\HromadneOdhlaseniNeplaticu::hromadneOdhlasit
@@ -195,17 +205,20 @@ class KategorieNeplatice
         return $this->finance->pocetObjednavek();
     }
 
-    private function prihlasilSeParDniPredVlnouOdhlasovani(): bool {
+    private function prihlasilSeParDniPredVlnouOdhlasovani(): bool
+    {
         return $this->kdySeRegistrovalNaLetosniGc <= $this->hromadneOdhlasovaniKdy
             /** pozor, @see \DateInterval::$days vrací vždy absolutní hodnotu */
             && $this->hromadneOdhlasovaniKdy->diff($this->kdySeRegistrovalNaLetosniGc)->days <= $this->pocetDnuPredVlnouKdyJeJesteChranen;
     }
 
-    public function zacatekVlnyOdhlasovani(): ?\DateTimeInterface {
+    public function zacatekVlnyOdhlasovani(): ?\DateTimeInterface
+    {
         return $this->hromadneOdhlasovaniKdy;
     }
 
-    public function obnovUdaje(bool $vcetneSumyLetosnichPlateb = true) {
+    public function obnovUdaje(bool $vcetneSumyLetosnichPlateb = true)
+    {
         $sumaLetosnichPlateb = $this->sumaLetosnichPlateb;
 
         $this->finance->obnovUdaje();

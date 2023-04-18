@@ -65,7 +65,8 @@ class Shop
      * @return void
      * @throws \DbException
      */
-    public static function zrusObjednavkyPro(array $uzivatele, $typ) {
+    public static function zrusObjednavkyPro(array $uzivatele, $typ)
+    {
         $povoleneTypy = [self::PREDMET, self::UBYTOVANI, self::TRICKO, self::JIDLO];
         if (!in_array($typ, $povoleneTypy)) {
             throw new \Exception('Tento typ objednávek není možné hromadně zrušit');
@@ -81,12 +82,13 @@ FROM shop_nakupy sn
 JOIN shop_predmety sp ON sp.id_predmetu = sn.id_predmetu AND sp.typ = $0
 WHERE sn.id_uzivatele IN ($1) AND sn.rok = $2
 SQL,
-            [0 => $typ, 1 => $ids, 2 => ROCNIK]
+            [0 => $typ, 1 => $ids, 2 => ROCNIK],
         );
     }
 
     /** Smaže z názvu identifikaci dne */
-    public static function bezDne(string $nazev): string {
+    public static function bezDne(string $nazev): string
+    {
         $re = ' ?pondělí| ?úterý| ?středa| ?čtvrtek| ?pátek| ?sobota| ?neděle';
         return preg_replace('@' . $re . '@', '', $nazev);
     }
@@ -95,7 +97,8 @@ SQL,
      * @return Polozka[]
      * @throws \DbException
      */
-    public static function letosniPolozky(int $rok = ROCNIK, ?array $idckaPolozek = null): array {
+    public static function letosniPolozky(int $rok = ROCNIK, ?array $idckaPolozek = null): array
+    {
         $polozkyData = dbFetchAll(<<<SQL
 SELECT id_predmetu,nazev,cena_aktualni,suma,model_rok,naposledy_koupeno_kdy,prodano_kusu,kusu_vyrobeno,typ,kategorie_predmetu,nabizet_do
 FROM (
@@ -121,7 +124,7 @@ FROM (
 ) AS seskupeno
 ORDER BY typ, IF(typ = $1, LEFT(TRIM(nazev), LOCATE(' ',nazev) - 1), nazev), ubytovani_den
 SQL,
-            [0 => $rok, 1 => TypPredmetu::UBYTOVANI, 2 => $idckaPolozek]
+            [0 => $rok, 1 => TypPredmetu::UBYTOVANI, 2 => $idckaPolozek],
         );
         $polozky     = [];
         foreach ($polozkyData as $polozkaData) {
@@ -134,7 +137,8 @@ SQL,
      * @param SystemoveNastaveni $systemoveNastaveni
      * @return Polozka[]
      */
-    public static function letosniPolozkySeSpatnymKoncem(SystemoveNastaveni $systemoveNastaveni): array {
+    public static function letosniPolozkySeSpatnymKoncem(SystemoveNastaveni $systemoveNastaveni): array
+    {
         $typJidlo   = TypPredmetu::JIDLO;
         $typPredmet = TypPredmetu::PREDMET;
         $typTricko  = TypPredmetu::TRICKO;
@@ -157,7 +161,7 @@ SQL,
                 2 => $systemoveNastaveni->prodejJidlaDo(),
                 3 => $systemoveNastaveni->prodejTricekDo(),
                 4 => $systemoveNastaveni->prodejPredmetuBezTricekDo(),
-            ]
+            ],
         );
         return self::letosniPolozky($systemoveNastaveni->rocnik(), $idckaPredmetu);
     }
@@ -167,28 +171,29 @@ SQL,
     /** @var SystemoveNastaveni */
     private $systemoveNastaveni;
     private $cenik;                     // instance ceníku
-    private $nastaveni = [              // případné spec. chování shopu
-        'ubytovaniBezZamku' => false,   // ignorovat pozastavení objednávek u ubytování
-        'jidloBezZamku'     => false,       // ignorovat pozastavení objednávek u jídla
+    private $nastaveni     = [              // případné spec. chování shopu
+                                            'ubytovaniBezZamku' => false,   // ignorovat pozastavení objednávek u ubytování
+                                            'jidloBezZamku'     => false,       // ignorovat pozastavení objednávek u jídla
     ];
-    public $ubytovani = [];
-    private $tricka = [];
-    private $predmety = [];
-    private $jidlo = [];
+    public  $ubytovani     = [];
+    private $tricka        = [];
+    private $predmety      = [];
+    private $jidlo         = [];
     private $ubytovaniOd;
     private $ubytovaniDo;
     private $ubytovaniTypy = [];
     private $vstupne;                   // dobrovolné vstupné (složka zaplacená regurélně včas)
     private $vstupnePozde;              // dobrovolné vstupné (složka zaplacená pozdě)
     private $vstupneJeVcas;             // jestli se dobrovolné vstupné v tento okamžik chápe jako zaplacené včas
-    private $klicU = 'shopU';           // klíč formu pro identifikaci polí
-    private $klicUPokoj = 'shopUPokoj'; // s kým chce být na pokoji
-    private $klicV = 'shopV';           // klíč formu pro identifikaci vstupného
-    private $klicP = 'shopP';           // klíč formu pro identifikaci polí
-    private $klicT = 'shopT';           // klíč formu pro identifikaci polí s tričkama
-    private $klicS = 'shopS';           // klíč formu pro identifikaci polí se slevami
+    private $klicU         = 'shopU';           // klíč formu pro identifikaci polí
+    private $klicUPokoj    = 'shopUPokoj'; // s kým chce být na pokoji
+    private $klicV         = 'shopV';           // klíč formu pro identifikaci vstupného
+    private $klicP         = 'shopP';           // klíč formu pro identifikaci polí
+    private $klicT         = 'shopT';           // klíč formu pro identifikaci polí s tričkama
+    private $klicS         = 'shopS';           // klíč formu pro identifikaci polí se slevami
 
-    public function __construct(Uzivatel $u, array $nastaveni = null, SystemoveNastaveni $systemoveNastaveni) {
+    public function __construct(Uzivatel $u, array $nastaveni = null, SystemoveNastaveni $systemoveNastaveni)
+    {
         $this->u                  = $u;
         $this->systemoveNastaveni = $systemoveNastaveni;
         $this->cenik              = new Cenik(
@@ -236,7 +241,7 @@ SQL
             // rozlišení kam ukládat a jestli nabízet podle typu
             if ($typ == self::PREDMET) {
                 $fronta = &$this->predmety[];
-            } elseif ($typ == self::JIDLO) {
+            } else if ($typ == self::JIDLO) {
                 $den  = $r['ubytovani_den'];
                 $druh = self::bezDne($r['nazev']);
                 if (!empty($this->jidlo['jidla'][$den][$druh]['kusu_uzivatele'])) {
@@ -260,10 +265,10 @@ SQL
                     $this->jidlo['druhy'][$druh] = true;
                 }
                 $fronta = &$this->jidlo['jidla'][$den][$druh];
-            } elseif ($typ == self::UBYTOVANI) {
+            } else if ($typ == self::UBYTOVANI) {
                 $r['nabizet'] = $r['nabizet'] || ($r['stav'] == self::STAV_POZASTAVENY && $this->nastaveni['ubytovaniBezZamku']);
                 $fronta       = &$this->ubytovani[];
-            } elseif ($typ == self::TRICKO) {
+            } else if ($typ == self::TRICKO) {
                 $smiModre     = $this->u->maPravo(Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA);
                 $smiCervene   = $this->u->maPravo(Pravo::MUZE_OBJEDNAVAT_CERVENA_TRICKA);
                 $r['nabizet'] = (
@@ -276,7 +281,7 @@ SQL
                     // hack pro výběr správného automaticky objednaného trička
                     if ($smiCervene) {
                         $barva = 'červené';
-                    } elseif ($smiModre) {
+                    } else if ($smiModre) {
                         $barva = 'modré';
                     } else {
                         $barva = '.*';
@@ -292,7 +297,7 @@ SQL
                         preg_match("@$typTricka@i", $r['nazev'])
                     );
                 }
-            } elseif ($typ == self::VSTUPNE) {
+            } else if ($typ == self::VSTUPNE) {
                 if (strpos($r['nazev'], 'pozdě') === false) {
                     $this->vstupne       = $r;
                     $this->vstupneJeVcas = $r['stav'] == self::STAV_PODPULTOVY;
@@ -313,22 +318,26 @@ SQL
         $this->ubytovani = new ShopUbytovani($this->ubytovani, $this->u, $systemoveNastaveni); // náhrada reprezentace polem za objekt
     }
 
-    public function ubytovani(): ShopUbytovani {
+    public function ubytovani(): ShopUbytovani
+    {
         return $this->ubytovani;
     }
 
-    private static function denNazev($cislo) {
+    private static function denNazev($cislo)
+    {
         return self::$dny[$cislo];
     }
 
-    public function jidloObjednatelneDoHtml(): string {
+    public function jidloObjednatelneDoHtml(): string
+    {
         return $this->systemoveNastaveni->prodejJidlaDo()->format('j. n.');
     }
 
     /**
      * Vrátí html kód formuláře s výběrem jídla
      */
-    public function jidloHtml(bool $muzeEditovatUkoncenyProdej = false) {
+    public function jidloHtml(bool $muzeEditovatUkoncenyProdej = false)
+    {
         // inicializace
         ksort($this->jidlo['druhy']);
         $dny                = $this->jidlo['dny'];
@@ -346,7 +355,7 @@ SQL
                         $t->assign('pnName', self::PN_JIDLO . '[' . $jidlo['id_predmetu'] . ']');
                         $t->parse($prodejJidlaUkoncen || ($jidlo['stav'] == self::STAV_POZASTAVENY && !$this->nastaveni['jidloBezZamku'])
                             ? 'jidlo.druh.den.locked'
-                            : 'jidlo.druh.den.checkbox'
+                            : 'jidlo.druh.den.checkbox',
                         );
                     }
                     $t->parse('jidlo.druh.den');
@@ -375,7 +384,8 @@ SQL
         return $t->text('jidlo');
     }
 
-    private function jsouVsechnaJidlaPozastavena(array $jidla): bool {
+    private function jsouVsechnaJidlaPozastavena(array $jidla): bool
+    {
         foreach ($jidla as $jidlaVJednomDni) {
             foreach ($jidlaVJednomDni as $jidlo) {
                 if ($jidlo['stav'] != self::STAV_POZASTAVENY) {
@@ -386,7 +396,8 @@ SQL
         return true;
     }
 
-    public function objednneJidloPrehledHtml(): string {
+    public function objednneJidloPrehledHtml(): string
+    {
         $t = new XTemplate(__DIR__ . '/templates/shop-jidla-prehled.xtpl');
 
         // inicializace
@@ -410,11 +421,13 @@ SQL
         return $t->text('jidla');
     }
 
-    public function koupilNejakouVec(): bool {
+    public function koupilNejakouVec(): bool
+    {
         return $this->koupilNejakyPredmet() || $this->koupilNejakeTricko();
     }
 
-    public function koupilNejakyPredmet(): bool {
+    public function koupilNejakyPredmet(): bool
+    {
         foreach ($this->predmety as $predmet) {
             if ($predmet['kusu_uzivatele'] > 0) {
                 return true;
@@ -423,7 +436,8 @@ SQL
         return false;
     }
 
-    public function koupilNejakeTricko(): bool {
+    public function koupilNejakeTricko(): bool
+    {
         foreach ($this->tricka as $tricko) {
             if ($tricko['kusu_uzivatele'] > 0) {
                 return true;
@@ -432,7 +446,8 @@ SQL
         return false;
     }
 
-    public function objednalNejakeJidlo(): bool {
+    public function objednalNejakeJidlo(): bool
+    {
         foreach ($this->jidlo['jidloObednano'] ?? [] as $nejakyTypJidlaJeObjednany) {
             if ($nejakyTypJidlaJeObjednany) {
                 return true;
@@ -441,11 +456,13 @@ SQL
         return false;
     }
 
-    public function trickaObjednatelnaDoHtml(): string {
+    public function trickaObjednatelnaDoHtml(): string
+    {
         return $this->systemoveNastaveni->prodejTricekDo()->format('j. n.');
     }
 
-    public function predmetyBezTricekObjednatelneDoHtml(): string {
+    public function predmetyBezTricekObjednatelneDoHtml(): string
+    {
         return $this->systemoveNastaveni->prodejPredmetuBezTricekDo()->format('j. n.');
     }
 
@@ -454,7 +471,8 @@ SQL
      * integraci více věcí naráz).
      * @todo vyprodání věcí
      */
-    public function predmetyHtml() {
+    public function predmetyHtml()
+    {
         $t = new XTemplate(__DIR__ . '/templates/shop-predmety.xtpl');
 
         // PŘEDMĚTY
@@ -540,7 +558,8 @@ SQL
         return $t->text('predmety');
     }
 
-    private function jsouVsechnyPredmetyNeboTrickaPozastaveny(array $tricka): bool {
+    private function jsouVsechnyPredmetyNeboTrickaPozastaveny(array $tricka): bool
+    {
         foreach ($tricka as $tricko) {
             if ($tricko['stav'] != self::STAV_POZASTAVENY) {
                 return false;
@@ -549,7 +568,8 @@ SQL
         return true;
     }
 
-    public function koupeneVeciPrehledHtml() {
+    public function koupeneVeciPrehledHtml()
+    {
         $t = new XTemplate(__DIR__ . '/templates/shop-predmety-prehled.xtpl');
 
         foreach ($this->predmety as $predmet) {
@@ -581,25 +601,30 @@ SQL
     /**
      * Jestli je toto prvním nákupem daného uživatele
      */
-    private function prvniNakup() {
+    private function prvniNakup()
+    {
         return !$this->u->gcPrihlasen();
     }
 
     /** Vrátí html kód s rádiobuttonky pro vyklikání ubytování */
-    public function ubytovaniHtml(bool $muzeEditovatUkoncenyProdej = false) {
+    public function ubytovaniHtml(bool $muzeEditovatUkoncenyProdej = false)
+    {
         return $this->ubytovani->html($muzeEditovatUkoncenyProdej);
     }
 
-    public function ubytovaniObjednatelneDoHtml(): string {
+    public function ubytovaniObjednatelneDoHtml(): string
+    {
         return $this->systemoveNastaveni->prodejUbytovaniDo()->format('j. n.');
     }
 
-    public function covidFreePotrvzeniHtml(int $rok): string {
+    public function covidFreePotrvzeniHtml(int $rok): string
+    {
         return $this->u->covidFreePotvrzeniHtml($rok);
     }
 
     /** Vrátí html formuláře se vstupným */
-    public function vstupneHtml() {
+    public function vstupneHtml()
+    {
         $t = new XTemplate(__DIR__ . '/templates/shop-vstupne.xtpl');
         $t->assign([
             'jsSlider' => URL_WEBU . '/soubory/blackarrow/shop/shop-vstupne.js',
@@ -626,7 +651,8 @@ SQL
      * @todo zaintegrovat i jinde (ale zároveň nutno zobecnit pro vícenásobné
      * nákupy jednoho ID)
      */
-    private function zmenObjednavku($stare, $nove) {
+    private function zmenObjednavku($stare, $nove)
+    {
         $nechce   = array_diff($stare, $nove);
         $chceNove = array_diff($nove, $stare);
         // přírustky
@@ -653,7 +679,8 @@ SQL
      * né kvůli zachování původní nákupní ceny (aktuální cena se totiž mohla od
      * nákupu změnit).
      */
-    public function zpracujPredmety() {
+    public function zpracujPredmety()
+    {
         if (isset($_POST[$this->klicP]) && isset($_POST[$this->klicT])) {
             // pole s předměty, které jsou vyplněné ve formuláři
             $nove = [];
@@ -697,7 +724,8 @@ SQL
         }
     }
 
-    public function zrusNakupPredmetu($idPredmetu, int $pocet): int {
+    public function zrusNakupPredmetu($idPredmetu, int $pocet): int
+    {
         $idPredmetu = (int)$idPredmetu;
         $rok        = ROCNIK;
         $query      = <<<SQL
@@ -720,14 +748,16 @@ SQL
      * Zpracuje část formuláře s ubytováním
      * @return bool jestli došlo k zpracování dat
      */
-    public function zpracujUbytovani(bool $vcetneSpolubydliciho = true): bool {
+    public function zpracujUbytovani(bool $vcetneSpolubydliciho = true): bool
+    {
         return $this->ubytovani->zpracuj($vcetneSpolubydliciho);
     }
 
     /**
      * Zpracuje část formuláře s vstupným
      */
-    public function zpracujVstupne() {
+    public function zpracujVstupne()
+    {
         $castka = post($this->klicV);
         if ($castka === null) {
             return;
@@ -764,7 +794,8 @@ SQL
     }
 
     /** Zpracuje formulář s jídlem */
-    public function zpracujJidlo() {
+    public function zpracujJidlo()
+    {
         if (!isset($_POST[self::PN_JIDLO_ZMEN])) {
             return;
         }
@@ -773,7 +804,8 @@ SQL
         $this->zmenObjednavku($ma, $chce);
     }
 
-    private function cenaTricka() {
+    private function cenaTricka()
+    {
         $ceny = array_column($this->tricka, 'cena_aktualni');
         return $ceny
             ? (float)max($ceny)
@@ -784,7 +816,8 @@ SQL
      * @return float Hodnota prevedeneho bonusu prevedena na penize
      * @throws \DbException
      */
-    public function kupPrevodBonusuNaPenize(): float {
+    public function kupPrevodBonusuNaPenize(): float
+    {
         $nevyuzityBonusZaAktivity = $this->u->finance()->nevyuzityBonusZaAktivity();
         if (!$nevyuzityBonusZaAktivity) {
             return 0.0;
@@ -796,7 +829,7 @@ WHERE typ = $1
 ORDER BY model_rok DESC
 LIMIT 1
 SQL
-            , [self::PROPLACENI_BONUSU]
+            , [self::PROPLACENI_BONUSU],
         );
         if (!$idPredmetuPrevodBonsuNaPenize) {
             throw new \RuntimeException(sprintf('Chybi virtualni "predmet" pro prevod bonusu na penize s typem %d', self::PROPLACENI_BONUSU));
@@ -805,23 +838,26 @@ SQL
 INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni, datum)
     VALUES ($1, $2, $3, $4, NOW())
 SQL
-            , [$this->u->id(), $idPredmetuPrevodBonsuNaPenize, ROCNIK, $nevyuzityBonusZaAktivity]
+            , [$this->u->id(), $idPredmetuPrevodBonsuNaPenize, ROCNIK, $nevyuzityBonusZaAktivity],
         );
         return $nevyuzityBonusZaAktivity;
     }
 
-    public function dejPopisUbytovani(): string {
+    public function dejPopisUbytovani(): string
+    {
         return $this->ubytovani->kratkyPopis();
     }
 
-    public function zrusLetosniObjednaneUbytovani(string $zdrojZruseni): int {
+    public function zrusLetosniObjednaneUbytovani(string $zdrojZruseni): int
+    {
         return $this->zrusLetosniObjednavkyTypu(TypPredmetu::UBYTOVANI, $zdrojZruseni);
     }
 
     private function zrusLetosniObjednavkyTypu(
         int    $typPredetu,
         string $zdrojZruseni,
-    ): int {
+    ): int
+    {
         $insertResult = dbQuery(<<<SQL
             INSERT INTO shop_nakupy_zrusene(id_nakupu, id_uzivatele, id_predmetu, rocnik, cena_nakupni, datum_nakupu, datum_zruseni, zdroj_zruseni)
             SELECT nakupy.id_nakupu, nakupy.id_uzivatele, nakupy.id_predmetu, nakupy.rok, nakupy.cena_nakupni, nakupy.datum, $0, $1
@@ -834,7 +870,7 @@ SQL
             [
                 0 => $this->systemoveNastaveni->ted()->format(DateTimeCz::FORMAT_DB),
                 1 => $zdrojZruseni,
-            ]
+            ],
         );
         if (dbAffectedOrNumRows($insertResult) === 0) {
             return 0;
@@ -847,24 +883,25 @@ SQL
             WHERE nakupy.rok = {$this->systemoveNastaveni->rocnik()}
               AND nakupy.id_uzivatele = {$this->u->id()}
               AND predmety.typ = {$typPredetu}
-            SQL
+            SQL,
         );
         return dbAffectedOrNumRows($deleteResult);
     }
 
-    public function zrusVsechnyLetosniObjedavky(string $zdrojZruseni): int {
+    public function zrusVsechnyLetosniObjedavky(string $zdrojZruseni): int
+    {
         dbQuery(<<<SQL
             INSERT INTO shop_nakupy_zrusene(id_nakupu, id_uzivatele, id_predmetu, rocnik, cena_nakupni, datum_nakupu, datum_zruseni, zdroj_zruseni)
             SELECT id_nakupu, id_uzivatele, id_predmetu, rok, cena_nakupni, datum, $0, $1
             FROM shop_nakupy
             WHERE shop_nakupy.rok = {$this->systemoveNastaveni->rocnik()} AND shop_nakupy.id_uzivatele = {$this->u->id()}
             SQL,
-            [0 => $this->systemoveNastaveni->ted()->format(DateTimeCz::FORMAT_DB), $zdrojZruseni]
+            [0 => $this->systemoveNastaveni->ted()->format(DateTimeCz::FORMAT_DB), $zdrojZruseni],
         );
         $result = dbQuery(<<<SQL
             DELETE FROM shop_nakupy
             WHERE rok = {$this->systemoveNastaveni->rocnik()} AND id_uzivatele = {$this->u->id()}
-            SQL
+            SQL,
         );
         return dbAffectedOrNumRows($result);
     }
@@ -872,7 +909,8 @@ SQL
     public function zrusPrihlaseniNaLetosniLarpy(
         \Uzivatel $odhlasujici,
         string    $zdrojZruseni,
-    ): int {
+    ): int
+    {
         $prihlaseneLarpy = Aktivita::zFiltru([
             'typ'        => TypAktivity::LARP,
             'rok'        => $this->systemoveNastaveni->rocnik(),
@@ -887,7 +925,8 @@ SQL
     public function zrusPrihlaseniNaLetosniRpg(
         \Uzivatel $odhlasujici,
         string    $zdrojZruseni,
-    ): int {
+    ): int
+    {
         $prihlasenaRpg = Aktivita::zFiltru([
             'typ'        => TypAktivity::RPG,
             'rok'        => $this->systemoveNastaveni->rocnik(),
@@ -901,8 +940,9 @@ SQL
 
     public function zrusPrihlaseniNaVsechnyAktivity(
         \Uzivatel $odhlasujici,
-        string    $zdrojZruseni
-    ): int {
+        string    $zdrojZruseni,
+    ): int
+    {
         $prihlaseneAktivity = Aktivita::zFiltru([
             'rok'        => $this->systemoveNastaveni->rocnik(),
             'prihlaseni' => [$this->u->id()],
@@ -918,7 +958,8 @@ SQL
      * @param int|null $rocnik
      * @return string[]
      */
-    public function dejNazvyZrusenychNakupu(string $zdrojZruseni, int $rocnik = null): array {
+    public function dejNazvyZrusenychNakupu(string $zdrojZruseni, int $rocnik = null): array
+    {
         $rocnik ??= $this->systemoveNastaveni->rocnik();
 
         return dbFetchColumn(<<<SQL
@@ -929,7 +970,7 @@ SQL
                 AND shop_nakupy_zrusene.id_uzivatele = {$this->u->id()}
                 AND shop_nakupy_zrusene.rocnik = {$rocnik}
             SQL,
-            [0 => $zdrojZruseni]
+            [0 => $zdrojZruseni],
         );
     }
 }

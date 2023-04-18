@@ -104,27 +104,20 @@ trait DateTimeCzTrait
         return static::createFromFormat('Y-m-d H:i:s', $dateTime, $timeZone);
     }
 
-    /**
-     * @param $format
-     * @param $time
-     * @param $timezone
-     * @return DateTimeCz|false
-     */
-    public static function createFromFormat($format, $time, $timezone = null): \DateTime|false
+    public static function createFromFormat(string $format, string $datetime, ?\DateTimeZone $timezone = null): static|false
     {
         try {
-            $dateTime = parent::createFromFormat($format, $time, $timezone);
+            $dateTime = parent::createFromFormat($format, $datetime, $timezone);
             if ($dateTime === false) {
                 throw new \RuntimeException();
             }
             return new static($dateTime->format(DATE_ATOM));
-        }
-        catch (\Throwable $throwable) {
+        } catch (\Throwable $throwable) {
             throw new InvalidDateTimeFormat(
                 sprintf(
                     "Can not create %s from value %s using format '%s': %s",
                     static::class,
-                    var_export($time, true),
+                    var_export($datetime, true),
                     var_export($format, true),
                     $throwable->getMessage(),
                 )

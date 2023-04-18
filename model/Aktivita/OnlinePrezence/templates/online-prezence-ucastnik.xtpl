@@ -7,77 +7,77 @@
     data-id-posledniho-logu="{idPoslednihoLogu}"
     data-email="{email}"
 >
-  <td style="text-align: center">
-    <!-- begin:pritomen -->
-    <span data-bs-toggle="tooltip" data-bs-html="true"
-          title="<strong>Je přítomen</strong> v tomto okamžiku na GC (prošel infopultem).">
+    <td style="text-align: center">
+        <!-- begin:pritomen -->
+        <span data-bs-toggle="tooltip" data-bs-html="true"
+              title="<strong>Je přítomen</strong> v tomto okamžiku na GC (prošel infopultem).">
           <img src="files/design/ok-s.png" style="margin-bottom:-1px; width: 1em" alt="OK">
     </span>
-    <!-- end:pritomen -->
-    <!-- begin:nepritomen -->
-    <span data-bs-toggle="tooltip" data-bs-html="true"
-          title="<strong>Není přítomen</strong> v tomto okamžiku na GC (neprošel infopultem).">
+        <!-- end:pritomen -->
+        <!-- begin:nepritomen -->
+        <span data-bs-toggle="tooltip" data-bs-html="true"
+              title="<strong>Není přítomen</strong> v tomto okamžiku na GC (neprošel infopultem).">
           <img src="files/design/error-s.png" style="margin-bottom:-1px; width: 1em" alt="Not OK">
     </span>
-    <!-- end:nepritomen -->
-  </td>
-  <td style="text-align: center">
-    <!-- begin: prihlasenNaPosledniChvili -->
-    <span class="na-posledni-chvili" id="ucastnik-{u.id}-na-posledni-chvili-na-aktivitu-{a.id}"
-          data-bs-toggle="tooltip"
-          title="Přihlásil se méně než {minutNaPosledniChvili} minut před začátkem aktivity a měl by si pospíšit.">
+        <!-- end:nepritomen -->
+    </td>
+    <td style="text-align: center">
+        <!-- begin: prihlasenNaPosledniChvili -->
+        <span class="na-posledni-chvili" id="ucastnik-{u.id}-na-posledni-chvili-na-aktivitu-{a.id}"
+              data-bs-toggle="tooltip"
+              title="Přihlásil se méně než {minutNaPosledniChvili} minut před začátkem aktivity a měl by si pospíšit.">
           ⏰
     </span>
-    <!-- end: prihlasenNaPosledniChvili -->
-    <!-- begin: mladsiOsmnactiLet -->
-    <span id="ucastnik-{u.id}-mladsi-osmnacti-let-{a.id}"
-          data-bs-toggle="tooltip"
-          title="Účastníkovi je pouze {vek} let">
+        <!-- end: prihlasenNaPosledniChvili -->
+        <!-- begin: mladsiOsmnactiLet -->
+        <span id="ucastnik-{u.id}-mladsi-osmnacti-let-{a.id}"
+              data-bs-toggle="tooltip"
+              title="Účastníkovi je pouze {vek} let">
           <i class='mladsi-osmnacti-let fa-solid fa-baby'></i>
     </span>
-    <!-- end: mladsiOsmnactiLet -->
-    <span class="nahradnik {cssTridaDisplayNahradnik}"
-          id="ucastnik-{u.id}-je-nahradnik-na-aktivite-{a.id}"
-          data-bs-toggle="tooltip"
-          title="Náhradník">
+        <!-- end: mladsiOsmnactiLet -->
+        <span class="nahradnik {cssTridaDisplayNahradnik}"
+              id="ucastnik-{u.id}-je-nahradnik-na-aktivite-{a.id}"
+              data-bs-toggle="tooltip"
+              title="Náhradník">
       <img alt="Náhradník" class="font-sized" src="files/design/substitution-icon.png">
     </span>
-    <span class="sledujici {cssTridaDisplaySledujici} bg-dark"
-          id="ucastnik-{u.id}-je-sledujici-aktivity-{a.id}"
-          data-bs-toggle="tooltip"
-          title="Je to sledující. Pokud sháníš náhradníka, tenhle bude mít zájem."
-    >
+        <span class="sledujici {cssTridaDisplaySledujici} bg-dark"
+              id="ucastnik-{u.id}-je-sledujici-aktivity-{a.id}"
+              data-bs-toggle="tooltip"
+              title="Je to sledující. Pokud sháníš náhradníka, tenhle bude mít zájem."
+        >
       <span class="flipped-icon">👀</span>
     </span>
-    <span class="spici display-none"
-          id="ucastnik-{u.id}-je-spici-na-aktivite-{a.id}"
-          data-bs-toggle="tooltip"
-          title="Zrušený náhradník"
-    >
+        <span class="spici display-none"
+              id="ucastnik-{u.id}-je-spici-na-aktivite-{a.id}"
+              data-bs-toggle="tooltip"
+              title="Zrušený náhradník"
+        >
       💤
     </span>
-  </td>
-  <td style="text-align: center; padding: 0">
-    <!-- begin:checkbox -->
-    <label class="styl-pro-dorazil-checkbox error-tooltip"
-           data-bs-placement="left"
-           data-bs-html="true"
-    >
-      <input type="checkbox" class="dorazil"
-             name="dorazil[]"
-             value="{u.id}"
-             {checkedUcastnik} {disabledUcastnik} data-initial-checked="{checkedUcastnik}"
-             onchange="document.getElementById('online-prezence').dispatchEvent(new CustomEvent('zmenitPritomnostUcastnika', {detail: {idUcastnika: '{u.id}', idAktivity: '{a.id}', checkboxNode: this, triggeringNode: this}}))"
-      >
-    </label>
-    <!-- end:checkbox -->
-  </td>
-  <td>{u.jmenoNick}</td>
-  <td class="text-center"><a href="mailto:{u.mail}" title="{u.mail}"><i class="far fa-envelope"></i></a></td>
-  <td>
-    <!-- begin:telefon -->
-    <a href="tel:{telefonRaw}" class="text-nowrap"><i class="fas fa-phone"></i> {telefonHtml}</a>
-    <!-- end:telefon -->
-  </td>
+    </td>
+    <td style="text-align: center; padding: 0">
+        <!-- begin:checkbox -->
+        <label class="styl-pro-dorazil-checkbox error-tooltip"
+               data-bs-placement="left"
+               data-bs-html="true"
+        >
+            <input type="checkbox" class="dorazil"
+                   name="dorazil[]"
+                   value="{u.id}"
+                   {checkedUcastnik} {disabledUcastnik} data-initial-checked="{checkedUcastnik}"
+                   onchange="document.getElementById('online-prezence').dispatchEvent(new CustomEvent('zmenitPritomnostUcastnika', {detail: {idUcastnika: '{u.id}', idAktivity: '{a.id}', checkboxNode: this, triggeringNode: this}}))"
+            >
+        </label>
+        <!-- end:checkbox -->
+    </td>
+    <td>{u.jmenoNick}</td>
+    <td class="text-center"><a href="mailto:{u.mail}" title="{u.mail}"><i class="far fa-envelope"></i></a></td>
+    <td>
+        <!-- begin:telefon -->
+        <a href="tel:{telefonRaw}" class="text-nowrap"><i class="fas fa-phone"></i> {telefonHtml}</a>
+        <!-- end:telefon -->
+    </td>
 </tr>
 <!-- end:ucastnik -->

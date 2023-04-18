@@ -7,20 +7,21 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 class Polozka
 {
-    private int $idPredmetu;
-    private string $nazev;
-    private float $cena;
-    private float $suma;
-    private int $modelRok;
+    private int                      $idPredmetu;
+    private string                   $nazev;
+    private float                    $cena;
+    private float                    $suma;
+    private int                      $modelRok;
     private ?DateTimeImmutableStrict $naposledyKoupenoKdy;
-    private float $prodanoKusu;
-    private float $vyrobenoKusu;
-    private ?int $kategoriePredmetu;
+    private float                    $prodanoKusu;
+    private float                    $vyrobenoKusu;
+    private ?int                     $kategoriePredmetu;
     private ?DateTimeImmutableStrict $nabizetDo;
-    private float $zbyvaKusu;
-    private int $idTypu;
+    private float                    $zbyvaKusu;
+    private int                      $idTypu;
 
-    public function __construct(array $hodnoty) {
+    public function __construct(array $hodnoty)
+    {
         $this->idPredmetu          = (int)$hodnoty['id_predmetu'];
         $this->nazev               = (string)$hodnoty['nazev'];
         $this->cena                = (float)$hodnoty['cena_aktualni'];
@@ -41,55 +42,68 @@ class Polozka
         $this->idTypu              = (int)$hodnoty['typ'];
     }
 
-    public function idPredmetu(): ?int {
+    public function idPredmetu(): ?int
+    {
         return $this->idPredmetu;
     }
 
-    public function nazev(): string {
+    public function nazev(): string
+    {
         return $this->nazev;
     }
 
-    public function cena(): float {
+    public function cena(): float
+    {
         return $this->cena;
     }
 
-    public function suma(): float {
+    public function suma(): float
+    {
         return $this->suma;
     }
 
-    public function modelRok(): int {
+    public function modelRok(): int
+    {
         return $this->modelRok;
     }
 
-    public function prodanoKusu(): float {
+    public function prodanoKusu(): float
+    {
         return $this->prodanoKusu;
     }
 
-    public function naposledyKoupenoKdy(): ?DateTimeImmutableStrict {
+    public function naposledyKoupenoKdy(): ?DateTimeImmutableStrict
+    {
         return $this->naposledyKoupenoKdy;
     }
 
-    public function zbyvaKusu(): float {
+    public function zbyvaKusu(): float
+    {
         return $this->zbyvaKusu;
     }
 
-    public function vyrobenoKusu() {
+    public function vyrobenoKusu()
+    {
         return $this->vyrobenoKusu;
     }
 
-    public function idTypu(): int {
+    public function idTypu(): int
+    {
         return $this->idTypu;
     }
 
-    public function kategoriePredmetu(): ?int {
+    public function kategoriePredmetu(): ?int
+    {
         return $this->kategoriePredmetu;
     }
 
-    public function nabizetDo(): ?DateTimeImmutableStrict {
+    public function nabizetDo(): ?DateTimeImmutableStrict
+    {
         return $this->nabizetDo;
     }
 
-    public function doKdyNabizetDleNastaveni(SystemoveNastaveni $systemoveNastaveni): ?DateTimeImmutableStrict {
+    public function doKdyNabizetDleNastaveni(SystemoveNastaveni $systemoveNastaveni): ?DateTimeImmutableStrict
+    {
         return match ($this->idTypu()) {
             TypPredmetu::JIDLO => $systemoveNastaveni->prodejJidlaDo(),
             TypPredmetu::TRICKO => $systemoveNastaveni->prodejTricekDo(),

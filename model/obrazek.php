@@ -15,14 +15,16 @@ class Obrazek
     const FIT  = 2;
 
     /** Konstruktor načítající resource s obrázkem a název pův. souboru */
-    protected function __construct($o, $soubor) {
+    protected function __construct($o, $soubor)
+    {
         $this->o        = $o;
         $this->original = $o;
         $this->soubor   = $soubor;
     }
 
     /** Interní metoda pro fill/fit s nastaveným režimem */
-    protected function ff($nw, $nh, $rezim) {
+    protected function ff($nw, $nh, $rezim)
+    {
         $novy       = imagecreatetruecolor($nw, $nh);
         $ow         = imagesx($this->o);
         $oh         = imagesy($this->o);
@@ -48,18 +50,20 @@ class Obrazek
             0, 0,     //dst x,y
             $sx, $sy, //src x,y
             $nw, $nh, //dst w,h
-            $sw, $sh  //scr w,h
+            $sw, $sh,  //scr w,h
         );
         $this->o = $novy;
     }
 
     /** Zvětší proporciálně obrázek aby vyplnil $nw×$nh, ořízne */
-    function fill($nw, $nh) {
+    function fill($nw, $nh)
+    {
         $this->ff($nw, $nh, self::FILL);
     }
 
     /** Zmenší obrázek do daného bounding-boxu při zachování poměru stran */
-    function fillCrop($maxw, $maxh) {
+    function fillCrop($maxw, $maxh)
+    {
         $ratio = 1.0;
         if ($this->width() > $maxw) $ratio = $maxw / $this->width();
         if ($this->height() * $ratio < $maxh) $ratio = $maxh / $this->height();
@@ -67,23 +71,27 @@ class Obrazek
     }
 
     /** Zvětší proporcionálně a doplní černými pruhy */
-    function fit($nw, $nh) {
+    function fit($nw, $nh)
+    {
         $this->ff($nw, $nh, self::FIT);
     }
 
     /** Zmenší obrázek do daného bounding-boxu při zachování poměru stran */
-    function fitCrop($maxw, $maxh) {
+    function fitCrop($maxw, $maxh)
+    {
         $ratio = 1.0;
         if ($this->width() > $maxw) $ratio = $maxw / $this->width();
         if ($this->height() * $ratio > $maxh) $ratio = $maxh / $this->height();
         if ($ratio < 1.0) $this->resize($this->width() * $ratio, $this->height() * $ratio);
     }
 
-    function height() {
+    function height()
+    {
         return imagesy($this->o);
     }
 
-    function ratio($nr = null) {
+    function ratio($nr = null)
+    {
         if (!$nr) return imagesx($this->o) / imagesy($this->o);
         $ow = imagesx($this->o);
         $oh = imagesy($this->o);
@@ -94,7 +102,8 @@ class Obrazek
             $this->resize($ow, $ow / $nr);
     }
 
-    function ratioFill($newRatio) {
+    function ratioFill($newRatio)
+    {
         if ($this->ratio() < $newRatio)
             $this->ff(
                 $this->width(),
@@ -107,7 +116,8 @@ class Obrazek
                 self::FILL);
     }
 
-    function ratioFit($newRatio) {
+    function ratioFit($newRatio)
+    {
         if ($this->ratio() > $newRatio)
             $this->ff(
                 $this->width(),
@@ -121,13 +131,15 @@ class Obrazek
     }
 
     /** Zmenší obrázek, pokud je moc velký */
-    function reduce($nw, $nh) {
+    function reduce($nw, $nh)
+    {
         if ($this->width() > $nw)
             $this->resize($nw, $nh);
     }
 
     /** Změní velikost obrázku */
-    function resize($nw, $nh) {
+    function resize($nw, $nh)
+    {
         $nw   = (int)$nw;
         $nh   = (int)$nh;
         $novy = imagecreatetruecolor($nw, $nh);
@@ -139,13 +151,14 @@ class Obrazek
             0, 0,     //dst x,y
             0, 0,     //src x,y
             $nw, $nh, //dst w,h
-            $ow, $oh  //scr w,h
+            $ow, $oh,  //scr w,h
         );
         $this->o = $novy;
     }
 
     /** Uloží obrázek, přepíše původní */
-    function uloz($cil = null, $kvalita = null): bool {
+    function uloz($cil = null, $kvalita = null): bool
+    {
         if ($cil === null) {
             $cil = $this->soubor;
         }
@@ -155,17 +168,20 @@ class Obrazek
         return imagejpeg($this->o, $cil, $kvalita ?: 98); // uložit
     }
 
-    function width() {
+    function width()
+    {
         return imagesx($this->o);
     }
 
     /** Načte obrázek z některého z podporovaných typů souboru */
-    static function zSouboru($soubor): Obrazek {
+    static function zSouboru($soubor): Obrazek
+    {
         return static::zUrl($soubor, $soubor);
     }
 
     /** Stáhne a nahraje obrázek z url */
-    static function zUrl($url, $soubor = null): Obrazek {
+    static function zUrl($url, $soubor = null): Obrazek
+    {
         $o = false;
         error_clear_last();
         $typ = @exif_imagetype($url);
@@ -188,7 +204,7 @@ class Obrazek
                     $url,
                     IMAGETYPE_JPEG,
                     IMAGETYPE_PNG,
-                    IMAGETYPE_GIF
+                    IMAGETYPE_GIF,
                 )
             );
         }
