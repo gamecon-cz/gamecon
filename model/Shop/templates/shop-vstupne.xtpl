@@ -10,10 +10,10 @@
 
 <div class="shopVstupne_kostkaObal">
     <div class="shopVstupne_kostkaPosuv"></div>
-    <div class="shopVstupne_kostka"></div>
+    <div class="shopVstupne_kostka" style="left: {lonskyPrumerVstupneho}%"></div>
 </div>
 
-<input type="range" class="shopVstupne_range" min="0" max="1" step="any">
+<input type="range" class="shopVstupne_range" min="0" max="1" step="any" id="vstupneGamaKorekce" data-vstupne-gama-korekce="{vstupneGamaKorekce}">
 
 <div class="shopVstupne_skala">
     <div class="shopVstupne_skalaHodnota">0&thinsp;Kč</div>

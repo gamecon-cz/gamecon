@@ -40,6 +40,8 @@ class SystemoveNastaveniKlice
     public const BONUS_ZA_10H_AZ_11H_AKTIVITU          = 'BONUS_ZA_10H_AZ_11H_AKTIVITU';
     public const BONUS_ZA_12H_AZ_13H_AKTIVITU          = 'BONUS_ZA_12H_AZ_13H_AKTIVITU';
 
+    public const MODRE_TRICKO_ZDARMA_OD = 'MODRE_TRICKO_ZDARMA_OD';
+
     /**
      * @return array{string}
      */

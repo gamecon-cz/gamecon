@@ -729,6 +729,11 @@ SQL;
 
     public function modreTrickoZdarmaOd(): float
     {
-        return (float)$this->dejHodnotu('MODRE_TRICKO_ZDARMA_OD');
+        return (float)$this->dejHodnotu(Klic::MODRE_TRICKO_ZDARMA_OD);
+    }
+
+    public function prumerneLonskeVstupne(): float
+    {
+        return (float)$this->dejHodnotu(Klic::PRUMERNE_LONSKE_VSTUPNE);
     }
 }

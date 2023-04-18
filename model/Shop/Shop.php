@@ -7,6 +7,7 @@ use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Pravo;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveniKlice;
 use Uzivatel;
 use Cenik;
 use Gamecon\XTemplate\XTemplate;
@@ -33,6 +34,9 @@ class Shop
 
     public const PN_JIDLO      = 'cShopJidlo';          // post proměnná pro jídlo
     public const PN_JIDLO_ZMEN = 'cShopJidloZmen'; // post proměnná indikující, že se má jídlo aktualizovat
+
+    /** https://cs.wikipedia.org/wiki/Gama_korekce pro nelineární rozsah vstupneho */
+    private const VSTUPNE_GAMA_KOREKCE = 0.5;
 
     private static $skoly = [
         'UK Univerzita Karlova Praha',
@@ -627,13 +631,15 @@ SQL
     {
         $t = new XTemplate(__DIR__ . '/templates/shop-vstupne.xtpl');
         $t->assign([
-            'jsSlider' => URL_WEBU . '/soubory/blackarrow/shop/shop-vstupne.js',
-            'stav'     => $this->u->gcPrihlasen()
+            'jsSlider'              => URL_WEBU . '/soubory/blackarrow/shop/shop-vstupne.js',
+            'stav'                  => $this->u->gcPrihlasen()
                 ? $this->vstupne['sum_cena_nakupni'] + $this->vstupnePozde['sum_cena_nakupni']
                 : VYCHOZI_DOBROVOLNE_VSTUPNE, // výchozí hodnota
-            'postname' => $this->klicV,
-            'min'      => 0,
-            'smajliky' => json_encode([
+            'postname'              => $this->klicV,
+            'min'                   => 0,
+            'lonskyPrumerVstupneho' => $this->lonskyPrumerVstupneho(),
+            'vstupneGamaKorekce'    => self::VSTUPNE_GAMA_KOREKCE,
+            'smajliky'              => json_encode([
                 [1000, URL_WEBU . '/soubory/blackarrow/shop/vstupne-smajliky/6.png'],
                 [600, URL_WEBU . '/soubory/blackarrow/shop/vstupne-smajliky/5.png'],
                 [250, URL_WEBU . '/soubory/blackarrow/shop/vstupne-smajliky/4.png'],
@@ -644,6 +650,18 @@ SQL
         ]);
         $t->parse('vstupne');
         return $t->text('vstupne');
+    }
+
+    private function lonskyPrumerVstupneho(): int
+    {
+        $pomer = $this->systemoveNastaveni->dejHodnotu(SystemoveNastaveniKlice::PRUMERNE_LONSKE_VSTUPNE) / 1000;
+        /**
+         * https://cs.wikipedia.org/wiki/Gama_korekce
+         * @see web/soubory/blackarrow/shop/shop-vstupne.js
+         */
+        $pomerSGamaKorekci    = $pomer ** self::VSTUPNE_GAMA_KOREKCE;
+        $procentaSGamaKorekci = $pomerSGamaKorekci * 100;
+        return (int)round($procentaSGamaKorekci);
     }
 
     /**

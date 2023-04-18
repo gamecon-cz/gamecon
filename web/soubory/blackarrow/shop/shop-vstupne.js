@@ -1,5 +1,5 @@
 function shopVstupne(input, range, posuvnik, minimum, smajliky) {
-    const gamma = 0.5
+    const gamma = Number.parseFloat(document.getElementById('vstupneGamaKorekce').dataset.vstupneGamaKorekce);
     const rangeMinimum = prevedNaPomer(minimum)
 
     input.onchange = () => {
@@ -32,7 +32,7 @@ function shopVstupne(input, range, posuvnik, minimum, smajliky) {
 
     function prekresli() {
         let procento = Math.round(range.value * 100)
-        posuvnik.style.background = 'linear-gradient(to right, #E22630, #E22630 '+procento+'%, #737373 '+procento+'%)'
+        posuvnik.style.background = 'linear-gradient(to right, #E22630, #E22630 ' + procento + '%, #737373 ' + procento + '%)'
 
         input.style.backgroundImage = smajlik(input.value)
     }
@@ -40,7 +40,7 @@ function shopVstupne(input, range, posuvnik, minimum, smajliky) {
     function smajlik(castka) {
         for (let i = 0; i < smajliky.length; i++) {
             if (castka >= smajliky[i][0]) {
-                return 'url('+smajliky[i][1]+')'
+                return 'url(' + smajliky[i][1] + ')'
             }
         }
     }
