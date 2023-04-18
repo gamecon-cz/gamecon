@@ -2,18 +2,15 @@
 
 namespace Gamecon\Shop;
 
+use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Chyba;
 use Uzivatel;
 use Gamecon\XTemplate\XTemplate;
+use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura;
 
 class ShopUbytovani
 {
-    /**
-     * @var SystemoveNastaveni
-     */
-    private $systemoveNastaveni;
-
     /**
      * @param string[] $nazvyUbytovani
      * @param int $rok
@@ -230,24 +227,31 @@ SQL,
         return $pocetZmen;
     }
 
+    /**
+     * @var SystemoveNastaveni
+     */
     private $mozneDny             = [];     // asoc. 2D pole [den][typ] => předmět
     private $mozneTypy            = [];    // asoc. pole [typ] => předmět sloužící jako vzor daného typu
     private $pnDny                = 'shopUbytovaniDny';
     private $pnPokoj              = 'shopUbytovaniPokoj';
     private $pnCovidFreePotvrzeni = 'shopCovidFreePotvrzeni';
-    private $uzivatel;
 
-    public function __construct(array $predmety, Uzivatel $uzivatel, SystemoveNastaveni $systemoveNastaveni)
+    public function __construct(
+        array                               $predmety,
+        private readonly Uzivatel           $uzivatel,
+        private readonly SystemoveNastaveni $systemoveNastaveni,
+    )
     {
-        $this->uzivatel = $uzivatel;
         foreach ($predmety as $p) {
+            if ((int)$p[PredmetSqlStruktura::UBYTOVANI_DEN] === DateTimeGamecon::PORADI_HERNIHO_DNE_NEDELE) {
+                continue; // z neděle na pondělí už není veřejně nabízené ubytování https://trello.com/c/rP47BsUD/940-%C3%BApravy-p%C5%99ihl%C3%A1%C5%A1ky-mastercard-2023
+            }
             $nazev = Shop::bezDne($p['nazev']);
             if (!isset($this->mozneTypy[$nazev])) {
                 $this->mozneTypy[$nazev] = $p;
             }
-            $this->mozneDny[$p['ubytovani_den']][$nazev] = $p;
+            $this->mozneDny[$p[PredmetSqlStruktura::UBYTOVANI_DEN]][$nazev] = $p;
         }
-        $this->systemoveNastaveni = $systemoveNastaveni;
     }
 
     /**
@@ -295,7 +299,7 @@ SQL,
 
         // specifická info podle uživatele a stavu nabídky
         if ((!$muzeEditovatUkoncenyProdej && $this->systemoveNastaveni->prodejUbytovaniUkoncen())
-            || reset($this->mozneTypy)['stav'] == Shop::STAV_POZASTAVENY
+            || reset($this->mozneTypy)['stav'] == StavPredmetu::POZASTAVENY
         ) {
             $t->parse('ubytovani.konec');
         }

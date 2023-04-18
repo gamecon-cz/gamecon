@@ -215,7 +215,7 @@ SELECT *
 FROM (
       SELECT
         predmety.id_predmetu, predmety.model_rok, predmety.cena_aktualni, predmety.stav, predmety.auto, predmety.nabizet_do, predmety.kusu_vyrobeno, predmety.typ, predmety.ubytovani_den, predmety.popis,
-        IF(predmety.model_rok = $1, nazev, CONCAT(nazev, ' (', popis, ')')) AS nazev,
+        IF(predmety.model_rok = $1 OR COALESCE(popis, '') = '', nazev, CONCAT(nazev, ' (', popis, ')')) AS nazev,
         COUNT(IF(nakupy.rok = $1, 1, NULL)) kusu_prodano,
         COUNT(IF(nakupy.id_uzivatele = $2 AND nakupy.rok = $1, 1, NULL)) kusu_uzivatele,
         SUM(IF(nakupy.id_uzivatele = $2 AND nakupy.rok = $1, nakupy.cena_nakupni, 0)) sum_cena_nakupni

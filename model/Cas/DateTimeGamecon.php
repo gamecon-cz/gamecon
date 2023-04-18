@@ -14,6 +14,11 @@ use Gamecon\SystemoveNastaveni\ZdrojVlnAktivit;
  */
 class DateTimeGamecon extends DateTimeCz
 {
+    public const PORADI_HERNIHO_DNE_STREDA  = 0;
+    public const PORADI_HERNIHO_DNE_CTVRTEK = 1;
+    public const PORADI_HERNIHO_DNE_PATEK   = 2;
+    public const PORADI_HERNIHO_DNE_SOBOTA  = 3;
+    public const PORADI_HERNIHO_DNE_NEDELE  = 4;
 
     public static function denPodleIndexuOdZacatkuGameconu(int $indexDneKZacatkuGc, int $rocnik = ROCNIK): string
     {
