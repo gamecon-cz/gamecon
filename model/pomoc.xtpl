@@ -15,8 +15,7 @@
     GameCon připravujeme celý rok, a tak vždycky oceníme další pár rukou a to nejen přes rok ale i na místě v průběhu
     festivalu. Ať už se jedná o uvedení nějaké aktivity, přípravu zázemí nebo např. s chodem na Infopultu. Za každou
     výpomoc je vypsaná odměna, kterou můžeš použít třeba na úhradu ostatních aktivit na GC. Chtěl(a) by ses zapojit?
-    Více se dozvíš na
-    <a href="organizacni-vypomoc" target="_blank">organizacni-vypomoc</a>
+    Více se dozvíš na stránce <a href="organizacni-vypomoc" target="_blank">Chci pomoct s GameConem</a>.
   </div>
 
   <div class="shopPomoc_vyber">
@@ -25,7 +24,7 @@
       <input class="shopPomoc_radio" type="radio" name="{postname}[typ]" value="{id}" id="pomoc{id}" {checked}>
       <label class="shopPomoc_vyberNazev" for="pomoc{id}">{nazev}</label>
       <div class="shopPomoc_vyberPopis"><b>{nazev}</b>{popis}</div>
-        <!-- end:typ -->
+      <!-- end:typ -->
     </div>
 
     <div>Zde můžeš napsat více o tom, jak by ses chtěl{a} zapojit. Hlas se prosím o výpomoc jen u věcí, na které zatím

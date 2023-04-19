@@ -8,7 +8,7 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Chyba;
 use Uzivatel;
 use Gamecon\XTemplate\XTemplate;
-use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura;
+use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as Sql;
 
 class ShopUbytovani
 {
@@ -204,7 +204,7 @@ FROM `$tmpTable`
 LEFT JOIN shop_nakupy
     ON `$tmpTable`.id_uzivatele = shop_nakupy.id_uzivatele
     AND `$tmpTable`.id_predmetu = shop_nakupy.id_predmetu
-    AND `$tmpTable`.rok = shop_nakupy.rok)
+    AND `$tmpTable`.rok = shop_nakupy.rok
 WHERE shop_nakupy.id_uzivatele IS NOT NULL -- tuhle kombinaci "typ ubytování, uživatel a rok" už máme (kombinace LEFT JOIN a IS NOT NULL)
     AND shop_nakupy.id_uzivatele = {$ucastnik->id()}
     AND shop_nakupy.rok = $rok
@@ -244,14 +244,14 @@ SQL,
     )
     {
         foreach ($predmety as $p) {
-            if ((int)$p[PredmetSqlStruktura::UBYTOVANI_DEN] === DateTimeGamecon::PORADI_HERNIHO_DNE_NEDELE) {
+            if ((int)$p[Sql::UBYTOVANI_DEN] === DateTimeGamecon::PORADI_HERNIHO_DNE_NEDELE) {
                 continue; // z neděle na pondělí už není veřejně nabízené ubytování https://trello.com/c/rP47BsUD/940-%C3%BApravy-p%C5%99ihl%C3%A1%C5%A1ky-mastercard-2023
             }
-            $nazev = Shop::bezDne($p['nazev']);
+            $nazev = Shop::bezDne($p[Sql::NAZEV]);
             if (!isset($this->mozneTypy[$nazev])) {
                 $this->mozneTypy[$nazev] = $p;
             }
-            $this->mozneDny[$p[PredmetSqlStruktura::UBYTOVANI_DEN]][$nazev] = $p;
+            $this->mozneDny[$p[Sql::UBYTOVANI_DEN]][$nazev] = $p;
         }
     }
 
@@ -291,8 +291,8 @@ SQL,
         foreach ($this->mozneTypy as $typ => $predmet) {
             $t->assign([
                 'typ'  => $typ,
-                'hint' => $predmet['popis'],
-                'cena' => round($predmet['cena_aktualni']),
+                'hint' => $predmet[Sql::POPIS],
+                'cena' => round($predmet[Sql::CENA_AKTUALNI]),
             ]);
             $t->parse($predmet['popis'] ? 'ubytovani.typ.hinted' : 'ubytovani.typ.normal');
             $t->parse('ubytovani.typ');
@@ -300,7 +300,7 @@ SQL,
 
         // specifická info podle uživatele a stavu nabídky
         if ((!$muzeEditovatUkoncenyProdej && $this->systemoveNastaveni->prodejUbytovaniUkoncen())
-            || reset($this->mozneTypy)['stav'] == StavPredmetu::POZASTAVENY
+            || reset($this->mozneTypy)[Sql::STAV] == StavPredmetu::POZASTAVENY
         ) {
             $t->parse('ubytovani.konec');
         }
@@ -340,7 +340,7 @@ SQL,
             }
             // data pro názvy dnů a pro "Žádné" ubytování
             $t->assign([
-                'den'      => $this->dejNazevJakoRozsahDnu($typVzor[PredmetSqlStruktura::NAZEV]),
+                'den'      => $this->dejNazevJakoRozsahDnu((int)$typVzor[Sql::UBYTOVANI_DEN]),
                 'checked'  => $ubytovanVeDni ? '' : 'checked', // checked = "Žádné" ubytování
                 'disabled' => $prodejUbytovaniUkoncen || ($ubytovanVeDni && $typVzor['stav'] == Shop::STAV_POZASTAVENY && !$typVzor['nabizet'])
                     ? 'disabled'
@@ -350,10 +350,10 @@ SQL,
         }
     }
 
-    private function dejNazevJakoRozsahDnu(string $nazev): string
+    private function dejNazevJakoRozsahDnu(int $indexDneKZacatkuGc): string
     {
-        $den = mb_ucfirst(substr($nazev, strrpos($nazev, ' ') + 1));
-        return DateTimeCz::denNaPrelomDnuVeZkratkach($den);
+        $poradiDneVTydnu = DateTimeGamecon::poradiDneVTydnuPodleIndexuOdZacatkuGameconu($indexDneKZacatkuGc);
+        return DateTimeCz::poradiDneVTydnuNaPrelomDnuVeZkratkach($poradiDneVTydnu, true);
     }
 
     public function zpracuj(bool $vcetneSpolubydliciho = true): bool

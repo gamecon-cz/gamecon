@@ -37,6 +37,16 @@ trait DateTimeCzTrait
         'Sunday'    => 'neděle',
     ];
 
+    protected static $dnyIndexovanePoradim = [
+        1 => 'pondělí',
+        2 => 'úterý',
+        3 => 'středa',
+        4 => 'čtvrtek',
+        5 => 'pátek',
+        6 => 'sobota',
+        7 => 'neděle',
+    ];
+
     protected static $mesice = [
         'January'   => 'ledna',
         'February'  => 'února',
@@ -83,10 +93,27 @@ trait DateTimeCzTrait
         if ($poradiDne === false) {
             return $den;
         }
-        $poradiNasledujicihoDne = self::poradiNasledujicihoDne($poradiDne);
-        $denZkratka             = self::$zkratkyDnu[$poradiDne];
+        return static::poradiDneVTydnuNaPrelomDnuVeZkratkach(
+            $poradiDne,
+            // první písmeno bylo velké,tak to zachováme
+            preg_match('~^[[:upper:]]~u', $den) !== false,
+            $oddelovac,
+        );
+    }
+
+    /**
+     * Z 'Neděle' udělá 'Ne - Po'
+     */
+    public static function poradiDneVTydnuNaPrelomDnuVeZkratkach(
+        int    $poradiDneVTydnu,
+        bool   $zacatekVelkymiPismeny,
+        string $oddelovac = ' - ',
+    ): string
+    {
+        $poradiNasledujicihoDne = self::poradiNasledujicihoDne($poradiDneVTydnu);
+        $denZkratka             = self::$zkratkyDnu[$poradiDneVTydnu];
         $nasledujiciDenZkratka  = self::$zkratkyDnu[$poradiNasledujicihoDne];
-        if (preg_match('~^[[:upper:]]~u', $den)) { // první písmeno bylo velké,tak to zachováme
+        if ($zacatekVelkymiPismeny) {
             $denZkratka            = mb_ucfirst($denZkratka);
             $nasledujiciDenZkratka = mb_ucfirst($nasledujiciDenZkratka);
         } else {

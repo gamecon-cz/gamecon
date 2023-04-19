@@ -20,11 +20,16 @@ class DateTimeGamecon extends DateTimeCz
     public const PORADI_HERNIHO_DNE_SOBOTA  = 3;
     public const PORADI_HERNIHO_DNE_NEDELE  = 4;
 
+    public static function poradiDneVTydnuPodleIndexuOdZacatkuGameconu(int $indexDneKZacatkuGc, int $rocnik = ROCNIK): int
+    {
+        $indexDneVuciStrede = $indexDneKZacatkuGc - 1;
+        return (int)self::zacatekGameconu($rocnik)->modify("$indexDneVuciStrede days")->format('N');
+    }
+
     public static function denPodleIndexuOdZacatkuGameconu(int $indexDneKZacatkuGc, int $rocnik = ROCNIK): string
     {
-        $indexDneVuciStrede    = $indexDneKZacatkuGc - 1;
-        $englishOrCzechDayName = self::spocitejZacatekGameconu($rocnik)->modify("$indexDneVuciStrede days")->format('l');
-        return strtr($englishOrCzechDayName, static::$dny);
+        $poradiDneVTydnu = self::poradiDneVTydnuPodleIndexuOdZacatkuGameconu($indexDneKZacatkuGc, $rocnik);
+        return self::$dnyIndexovanePoradim[$poradiDneVTydnu];
     }
 
     /**

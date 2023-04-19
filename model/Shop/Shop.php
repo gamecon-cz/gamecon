@@ -186,8 +186,8 @@ SQL,
     private $ubytovaniOd;
     private $ubytovaniDo;
     private $ubytovaniTypy = [];
-    private $vstupne;                   // dobrovolné vstupné (složka zaplacená regurélně včas)
-    private $vstupnePozde;              // dobrovolné vstupné (složka zaplacená pozdě)
+    private $vstupne       = ['sum_cena_nakupni' => 0.];                   // dobrovolné vstupné (složka zaplacená regurélně včas)
+    private $vstupnePozde  = ['sum_cena_nakupni' => 0.0];              // dobrovolné vstupné (složka zaplacená pozdě)
     private $vstupneJeVcas;             // jestli se dobrovolné vstupné v tento okamžik chápe jako zaplacené včas
     private $klicU         = 'shopU';           // klíč formu pro identifikaci polí
     private $klicUPokoj    = 'shopUPokoj'; // s kým chce být na pokoji
@@ -214,7 +214,8 @@ SQL,
 SELECT *
 FROM (
       SELECT
-        predmety.id_predmetu, predmety.model_rok, predmety.cena_aktualni, predmety.stav, predmety.auto, predmety.nabizet_do, predmety.kusu_vyrobeno, predmety.typ, predmety.ubytovani_den, predmety.popis,
+        predmety.id_predmetu, predmety.model_rok, predmety.cena_aktualni, predmety.stav, predmety.auto,
+        predmety.nabizet_do, predmety.kusu_vyrobeno, predmety.typ, predmety.ubytovani_den, predmety.popis,
         IF(predmety.model_rok = $1 OR COALESCE(popis, '') = '', nazev, CONCAT(nazev, ' (', popis, ')')) AS nazev,
         COUNT(IF(nakupy.rok = $1, 1, NULL)) kusu_prodano,
         COUNT(IF(nakupy.id_uzivatele = $2 AND nakupy.rok = $1, 1, NULL)) kusu_uzivatele,
@@ -225,8 +226,9 @@ FROM (
       GROUP BY predmety.id_predmetu
 ) AS seskupeno
 ORDER BY typ, ubytovani_den, nazev, model_rok DESC, id_predmetu ASC
-SQL
-            , [self::STAV_MIMO, ROCNIK, $this->u->id()]);
+SQL,
+            [0 => StavPredmetu::MIMO, 1 => ROCNIK, 2 => $this->u->id()],
+        );
 
         //inicializace
         $this->jidlo['dny']   = [];
@@ -239,9 +241,9 @@ SQL
             }
             unset($fronta); // $fronta reference na frontu kam vložit předmět (nelze dát =null, přepsalo by předchozí vrch fronty)
             if ($r['nabizet_do'] && strtotime($r['nabizet_do']) < time()) {
-                $r['stav'] = self::STAV_POZASTAVENY;
+                $r['stav'] = StavPredmetu::POZASTAVENY;
             }
-            $r['nabizet'] = $r['stav'] == self::STAV_VEREJNY; // v základu nabízet vše v stavu 1
+            $r['nabizet'] = $r['stav'] == StavPredmetu::VEREJNY; // v základu nabízet vše v stavu 1
             // rozlišení kam ukládat a jestli nabízet podle typu
             if ($typ == self::PREDMET) {
                 $fronta = &$this->predmety[];
@@ -259,7 +261,7 @@ SQL
                     $this->jidlo['jidla'][$den][$druh]['stav'] = $r['stav']; // chceme povolit změnu jídla, pokud nová verze (za novou cenu) je prodejná
                     continue;
                 }
-                $r['nabizet'] = $r['nabizet'] || ($r['stav'] == self::STAV_POZASTAVENY && $this->nastaveni['jidloBezZamku']);
+                $r['nabizet'] = $r['nabizet'] || ($r['stav'] == StavPredmetu::POZASTAVENY && $this->nastaveni['jidloBezZamku']);
                 if ($r['kusu_uzivatele'] > 0) {
                     $this->jidlo['jidloObednano'][$r['id_predmetu']] = true;
                 }
@@ -270,7 +272,7 @@ SQL
                 }
                 $fronta = &$this->jidlo['jidla'][$den][$druh];
             } else if ($typ == self::UBYTOVANI) {
-                $r['nabizet'] = $r['nabizet'] || ($r['stav'] == self::STAV_POZASTAVENY && $this->nastaveni['ubytovaniBezZamku']);
+                $r['nabizet'] = $r['nabizet'] || ($r['stav'] == StavPredmetu::POZASTAVENY && $this->nastaveni['ubytovaniBezZamku']);
                 $fronta       = &$this->ubytovani[];
             } else if ($typ == self::TRICKO) {
                 $smiModre     = $this->u->maPravo(Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA);
@@ -346,7 +348,7 @@ SQL
         ksort($this->jidlo['druhy']);
         $dny                = $this->jidlo['dny'];
         $druhy              = $this->jidlo['druhy'];
-        $jidla              = $this->jidlo['jidla'];
+        $jidla              = $this->jidlo['jidla'] ?? [];
         $prodejJidlaUkoncen = !$muzeEditovatUkoncenyProdej && $this->systemoveNastaveni->prodejJidlaUkoncen();
         // vykreslení
         $t = new XTemplate(__DIR__ . '/templates/shop-jidlo.xtpl');
