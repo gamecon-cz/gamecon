@@ -2,6 +2,7 @@
 
 namespace Gamecon\Shop;
 
+use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Chyba;
@@ -339,7 +340,7 @@ SQL,
             }
             // data pro názvy dnů a pro "Žádné" ubytování
             $t->assign([
-                'den'      => mb_ucfirst(substr($typVzor['nazev'], strrpos($typVzor['nazev'], ' ') + 1)),
+                'den'      => $this->dejNazevJakoRozsahDnu($typVzor[PredmetSqlStruktura::NAZEV]),
                 'checked'  => $ubytovanVeDni ? '' : 'checked', // checked = "Žádné" ubytování
                 'disabled' => $prodejUbytovaniUkoncen || ($ubytovanVeDni && $typVzor['stav'] == Shop::STAV_POZASTAVENY && !$typVzor['nabizet'])
                     ? 'disabled'
@@ -347,6 +348,12 @@ SQL,
             ]);
             $t->parse('ubytovani.den');
         }
+    }
+
+    private function dejNazevJakoRozsahDnu(string $nazev): string
+    {
+        $den = mb_ucfirst(substr($nazev, strrpos($nazev, ' ') + 1));
+        return DateTimeCz::denNaPrelomDnuVeZkratkach($den);
     }
 
     public function zpracuj(bool $vcetneSpolubydliciho = true): bool

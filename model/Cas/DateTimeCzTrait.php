@@ -72,26 +72,37 @@ trait DateTimeCzTrait
         7 => 'Ne',
     ];
 
-    public static function naZkratkyDnu(string $text)
+    /**
+     * Z 'Neděle' udělá 'Ne - Po'
+     */
+    public static function denNaPrelomDnuVeZkratkach(string $den, string $oddelovac = ' - '): string
     {
-        $slova              = array_unique(preg_split('~\s+~', $text, -1, PREG_SPLIT_NO_EMPTY));
-        $slovaBezDiakritiky = array_map(static fn(string $slovo) => RemoveDiacritics::toConstantLikeValue($slovo), $slova);
-        $nahrazenaSlova     = array_map(
-            static function (string $slovoBezDiakritiky) {
-                $poradiDne = self::$dnyVTydnuBezDiakritiky[$slovoBezDiakritiky] ?? null;
-                return $poradiDne === null
-                    ? $slovoBezDiakritiky
-                    : self::$zkratkyDnu[$poradiDne];
-            },
-            $slovaBezDiakritiky,
-        );
-        foreach ($slova as $index => $slovo) {
-            $nahrazeneSlovo = $nahrazenaSlova[$index];
-            if ($slovo !== $nahrazeneSlovo) {
-                $eskapovaneNahrazeneSlovo = str_replace('\\', '\\\\', $nahrazeneSlovo);
-                $text                     = preg_replace('~(^|\s*)\S+(\s*|$)~', '$1' . $nahrazeneSlovo . '$2', $text);
-            }
+        $den              = trim($den);
+        $denBezDiakritiky = RemoveDiacritics::toConstantLikeValue($den);
+        $poradiDne        = array_search($denBezDiakritiky, self::$dnyVTydnuBezDiakritiky);
+        if ($poradiDne === false) {
+            return $den;
         }
+        $poradiNasledujicihoDne = self::poradiNasledujicihoDne($poradiDne);
+        $denZkratka             = self::$zkratkyDnu[$poradiDne];
+        $nasledujiciDenZkratka  = self::$zkratkyDnu[$poradiNasledujicihoDne];
+        if (preg_match('~^[[:upper:]]~u', $den)) { // první písmeno bylo velké,tak to zachováme
+            $denZkratka            = mb_ucfirst($denZkratka);
+            $nasledujiciDenZkratka = mb_ucfirst($nasledujiciDenZkratka);
+        } else {
+            $denZkratka            = mb_strtolower($denZkratka);
+            $nasledujiciDenZkratka = mb_strtolower($nasledujiciDenZkratka);
+        }
+        return $denZkratka . $oddelovac . $nasledujiciDenZkratka;
+    }
+
+    private static function poradiNasledujicihoDne(int $poradiDne): int
+    {
+        $poradiDnu = array_keys(self::$dnyVTydnuBezDiakritiky);
+        if ($poradiDne < max($poradiDnu)) {
+            return $poradiDne + 1;
+        }
+        return min($poradiDnu); // po neděli je pondělí, takže číslo 1
     }
 
     /**
@@ -127,8 +138,7 @@ trait DateTimeCzTrait
 
     public static function poradiDne(string $den): int
     {
-        $hledanyDenMalymiPismeny     = mb_strtolower($den);
-        $hledadnyDenBezDiakritiky    = odstranDiakritiku($hledanyDenMalymiPismeny);
+        $hledadnyDenBezDiakritiky    = RemoveDiacritics::toConstantLikeValue($den);
         $poradiDnuZacinajicichStejne = [];
         foreach (self::$dnyVTydnuBezDiakritiky as $poradiDneVTydnu => $denVTydnuBezDiakritiky) {
             if (strpos($denVTydnuBezDiakritiky, $hledadnyDenBezDiakritiky) === 0) {

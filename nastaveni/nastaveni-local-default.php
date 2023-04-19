@@ -19,7 +19,7 @@ if (!defined('DB_ANONYM_PASS')) define('DB_ANONYM_PASS', DBM_PASS);
 //if (!defined('DB_ANONYM_PORT')) define('DB_ANONYM_PORT', DB_PORT);
 if (!defined('DB_ANONYM_NAME')) define('DB_ANONYM_NAME', 'anonymni_databaze');
 
-$baseUrl = (($_SERVER['HTTPS'] ?? 'off') === 'on' ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? '/gamecon');
+$baseUrl = (($_SERVER['HTTPS'] ?? 'off') === 'on' ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
 if (!defined('URL_WEBU')) define('URL_WEBU', $baseUrl . '/web'); // absolutní url uživatelského webu
 if (!defined('URL_ADMIN')) define('URL_ADMIN', $baseUrl . '/admin'); // absolutní url adminu
 if (!defined('URL_CACHE')) define('URL_CACHE', $baseUrl . '/cache/public'); // url sdílených cachí
