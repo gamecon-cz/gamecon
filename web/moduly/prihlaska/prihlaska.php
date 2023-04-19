@@ -18,7 +18,8 @@ $this->info()->nazev('Přihláška');
 
 $covidSekceFunkce = require __DIR__ . '/covid-sekce-funkce.php';
 
-function cestaKObrazkuPredmetu(string $soubor): string {
+function cestaKObrazkuPredmetu(string $soubor): string
+{
     return WWW . '/soubory/obsah/materialy/' . ROCNIK . '/' . $soubor;
 }
 
@@ -26,7 +27,8 @@ function cestaKObrazkuPredmetu(string $soubor): string {
  * @throws \RuntimeException
  * Pomocná funkce pro náhled předmětu pro aktuální ročník
  */
-function nahledPredmetu(string $cestaKObrazku) {
+function nahledPredmetu(string $cestaKObrazku)
+{
     return Nahled::zSouboru($cestaKObrazku)->kvalita(98)->url();
 }
 
@@ -133,6 +135,10 @@ if ($slevy) {
         'titul' => mb_strtolower($u->status()),
     ]);
     $t->parse('prihlaska.slevy');
+}
+
+if ($u->jeOrganizator()) {
+    $t->parse('prihlaska.poznamkaKUbytovaniVNedeli');
 }
 
 $t->assign('ka', $u->koncovkaDlePohlavi() ? 'ka' : '');

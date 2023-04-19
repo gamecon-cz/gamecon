@@ -6,6 +6,7 @@ use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Chyba;
+use Gamecon\Web\VerzeSouboru;
 use Uzivatel;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as Sql;
@@ -244,7 +245,9 @@ SQL,
     )
     {
         foreach ($predmety as $p) {
-            if ((int)$p[Sql::UBYTOVANI_DEN] === DateTimeGamecon::PORADI_HERNIHO_DNE_NEDELE) {
+            if ((int)$p[Sql::UBYTOVANI_DEN] === DateTimeGamecon::PORADI_HERNIHO_DNE_NEDELE
+                && !$this->uzivatel->jeOrganizator()
+            ) {
                 continue; // z neděle na pondělí už není veřejně nabízené ubytování https://trello.com/c/rP47BsUD/940-%C3%BApravy-p%C5%99ihl%C3%A1%C5%A1ky-mastercard-2023
             }
             $nazev = Shop::bezDne($p[Sql::NAZEV]);
@@ -278,10 +281,12 @@ SQL,
         return $this->uzivatel;
     }
 
-    public function html(bool $muzeEditovatUkoncenyProdej = false)
+    public function ubytovaniHtml(bool $muzeEditovatUkoncenyProdej = false)
     {
         $t = new XTemplate(__DIR__ . '/templates/shop-ubytovani.xtpl');
         $t->assign([
+            'shopUbytovaniJs'      => URL_WEBU . '/soubory/blackarrow/shop/shop-ubytovani.js?version='
+                . md5(WWW . '/soubory/blackarrow/shop/shop-ubytovani.js'),
             'spolubydlici'         => dbOneCol('SELECT ubytovan_s FROM uzivatele_hodnoty WHERE id_uzivatele=' . $this->uzivatel->id()),
             'postnameSpolubydlici' => $this->pnPokoj,
             'uzivatele'            => $this->mozniUzivatele(),
@@ -300,6 +305,7 @@ SQL,
 
         // specifická info podle uživatele a stavu nabídky
         if ((!$muzeEditovatUkoncenyProdej && $this->systemoveNastaveni->prodejUbytovaniUkoncen())
+            || !$this->mozneTypy
             || reset($this->mozneTypy)[Sql::STAV] == StavPredmetu::POZASTAVENY
         ) {
             $t->parse('ubytovani.konec');
@@ -336,6 +342,7 @@ SQL,
                         : '',
                     'obsazeno'   => $this->obsazenoMist($den, $typ),
                     'kapacita'   => $this->kapacita($den, $typ),
+                    'typ'        => $typ,
                 ])->parse('ubytovani.den.typ');
             }
             // data pro názvy dnů a pro "Žádné" ubytování

@@ -104,10 +104,11 @@
           <li>Objednat nebo změnit ubytování je možné do {ubytovaniObjednatelneDo}</li>
           <li>Čísla ukazují počet obsazených míst / celkem.</li>
           <li>Ubytování je k dispozici od středy, program začíná ve <strong>čtvrtek</strong> v poledne.</li>
-          <li>Ubytování v neděli znamená noc z neděle na pondělí, kdy už neprobíhá program. V pondělí je
-            potřeba pokoj
-            vyklidit do 9:00.
+          <!-- begin:poznamkaKUbytovaniVNedeli -->
+          <li>Ubytování v Ne - Po znamená noc z neděle na pondělí, kdy už neprobíhá program. V pondělí je
+            potřeba pokoj vyklidit do 9:00.
           </li>
+          <!-- end:poznamkaKUbytovaniVNedeli -->
         </ul>
       </div>
 
@@ -242,7 +243,8 @@
 
     <!-- begin: gcBezi -->
     <p>
-      Registrace přes internet jsou ukončeny, <strong>stále se ale můžeš přihlásit na místě u Infopultu</strong>.
+      Gamecon už běží a registrace přes internet jsou proto ukončeny, <strong>stále se ale můžeš přihlásit na místě u
+      Infopultu</strong>.
       Tam bude také možnost vytvořit si program a zapsat se na aktivity. I když je vstup do deskoherny, na
       přednášky
       a doprovodný program zdarma, <strong>prosíme o registraci</strong>, abys měl/a pásku pro účastníky

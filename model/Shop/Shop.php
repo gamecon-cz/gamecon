@@ -615,7 +615,7 @@ SQL,
     /** Vrátí html kód s rádiobuttonky pro vyklikání ubytování */
     public function ubytovaniHtml(bool $muzeEditovatUkoncenyProdej = false)
     {
-        return $this->ubytovani->html($muzeEditovatUkoncenyProdej);
+        return $this->ubytovani->ubytovaniHtml($muzeEditovatUkoncenyProdej);
     }
 
     public function ubytovaniObjednatelneDoHtml(): string
@@ -633,7 +633,8 @@ SQL,
     {
         $t = new XTemplate(__DIR__ . '/templates/shop-vstupne.xtpl');
         $t->assign([
-            'jsSlider'              => URL_WEBU . '/soubory/blackarrow/shop/shop-vstupne.js',
+            'jsSlider'              => URL_WEBU . '/soubory/blackarrow/shop/shop-vstupne.js?version='
+                . md5(WWW . '/soubory/blackarrow/shop/shop-ubytovani.js'),
             'stav'                  => $this->u->gcPrihlasen()
                 ? $this->vstupne['sum_cena_nakupni'] + $this->vstupnePozde['sum_cena_nakupni']
                 : VYCHOZI_DOBROVOLNE_VSTUPNE, // výchozí hodnota
