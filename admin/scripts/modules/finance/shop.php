@@ -74,7 +74,7 @@ $template->assign([
     'jsVersions'  => new \Gamecon\Web\VerzeSouboru(__DIR__ . '/../../../files/ui', 'js'),
 ]);
 $template->assign('basePathApi', URL_ADMIN . '/api/');
-$template->assign('rocnik', $systemoveNastaveni->rocnik());
+$template->assign('rocnik', $systemoveNastaveni->rok());
 $template->parse('shop.kfc');
 
 $template->parse('shop');
