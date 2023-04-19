@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\XTemplate\XTemplate;
+use Gamecon\Uzivatel\SqlStruktura\UzivatelSqlStruktura as Sql;
 
 /**
  * GUI Element starající se o zobrazení / uložení uživatelova přání pomoct
@@ -64,11 +65,11 @@ class Pomoc
             $p['typ']    = null;
             $p['detail'] = null;
         }
-        dbUpdate('uzivatele_hodnoty', [
-            'pomoc_typ'  => $p['typ'],
-            'pomoc_vice' => $p['detail'],
+        dbUpdate(Sql::UZIVATEL_TABULKA, [
+            Sql::POMOC_TYP  => $p['typ'] ?? '',
+            Sql::POMOC_VICE => $p['detail'] ?? '',
         ], [
-            'id_uzivatele' => $this->u->id(),
+            Sql::ID_UZIVATELE => $this->u->id(),
         ]);
     }
 

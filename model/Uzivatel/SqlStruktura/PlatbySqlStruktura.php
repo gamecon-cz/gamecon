@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Gamecon\Uzivatel;
+namespace Gamecon\Uzivatel\SqlStruktura;
 
 class PlatbySqlStruktura
 {

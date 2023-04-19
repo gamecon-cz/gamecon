@@ -2,14 +2,14 @@
 
 namespace Gamecon\Uzivatel;
 
-use FioPlatba;
+use DateTimeImmutable;
 use DateTimeInterface;
+use FioPlatba;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\Logger\LogHomadnychAkciTrait;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Uzivatel\SqlStruktura\PlatbySqlStruktura as Sql;
 use Uzivatel;
-use DateTimeImmutable;
-use Gamecon\Uzivatel\PlatbySqlStruktura as Sql;
 
 class Platby
 {

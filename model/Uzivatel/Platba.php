@@ -6,7 +6,7 @@ namespace Gamecon\Uzivatel;
 
 use DbObject;
 use Gamecon\Cas\DateTimeImmutableStrict;
-use Gamecon\Uzivatel\PlatbySqlStruktura as Sql;
+use Gamecon\Uzivatel\SqlStruktura\PlatbySqlStruktura as Sql;
 
 class Platba extends DbObject
 {

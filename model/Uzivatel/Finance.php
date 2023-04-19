@@ -13,6 +13,7 @@ use Gamecon\Pravo;
 use Gamecon\Shop\Shop;
 use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Uzivatel\SqlStruktura\PlatbySqlStruktura;
 
 /**
  * Třída zodpovídající za spočítání finanční bilance uživatele na GC.
