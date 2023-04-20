@@ -578,9 +578,12 @@ SQL
 
     private static function parseUpravyTabulkaTypy(?Aktivita $aktivita, XTemplate $xtpl)
     {
-        $aktivitaData = $aktivita ? $aktivita->a : null; // databázový řádek
-        $q            = dbQuery('SELECT id_typu, typ_1p FROM akce_typy WHERE aktivni = 1 ORDER BY poradi');
-        while ($akceTypData = mysqli_fetch_assoc($q)) {
+        $aktivitaData    = $aktivita ? $aktivita->a : null; // databázový řádek
+        // typ s id 0 je (bez typu – organizační) a ten chceme první
+        $sKladnymPoradim = dbFetchAll('SELECT id_typu, typ_1p FROM akce_typy WHERE aktivni = 1 AND (poradi > 0 OR id_typu = 0) ORDER BY poradi');
+        // typy se záporným pořadím jsou technické, brigádnické a tak
+        $seZapornymPoradim = dbFetchAll('SELECT id_typu, typ_1p FROM akce_typy WHERE aktivni = 1 AND poradi < 0 AND id_typu != 0 ORDER BY poradi DESC');
+        foreach([...$sKladnymPoradim, ...$seZapornymPoradim] as $akceTypData) {
             $xtpl->assign('selected', $aktivita && $akceTypData['id_typu'] == $aktivitaData['typ'] ? 'selected' : '');
             $xtpl->assign($akceTypData);
             $xtpl->parse('upravy.tabulka.typ');
