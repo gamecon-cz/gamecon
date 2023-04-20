@@ -13,12 +13,40 @@ require_once __DIR__ . '/cron/_cron_zavadec.php';
 
 /////////////////////////////////// příprava ///////////////////////////////////
 
+$logdir = SPEC . '/logs';
+
 // otestovat, že je skript volán s heslem a sprvánou url
 if (HTTPS_ONLY) {
     httpsOnly();
 }
 
-if (!defined('CRON_KEY') || get('key') !== CRON_KEY) {
+if (!defined('CRON_KEY') || (string)CRON_KEY === '') {
+    die('Není nastaven CRON klíč');
+}
+
+if (get('key') !== CRON_KEY) {
+    $pocetChybnychPokusu   = 0;
+    $invalidCronKeyLogFile = $logdir . '/invalid_cron_key.log';
+    if (file_exists($invalidCronKeyLogFile)) {
+        $invalidCronKeyLogContent = file_get_contents($invalidCronKeyLogFile);
+        if ($invalidCronKeyLogContent) {
+            $predchoziChybnyPokus = json_decode($invalidCronKeyLogContent);
+            $pocetChybnychPokusu  = $predchoziChybnyPokus['attempts_count'] ?? 0;
+            $prodlevaSekund = 10 * $pocetChybnychPokusu;
+            if ($pocetChybnychPokusu > 0 && ($predchoziChybnyPokus['at'] ?? false) && ($predchoziChybnyPokus['at'] + $prodlevaSekund) >= time()) {
+                die('Na další pokus ještě počkej');
+            }
+        }
+    }
+    $pocetChybnychPokusu++;
+    file_put_contents($invalidCronKeyLogFile,
+        json_encode([
+            'request_uri'    => $_SERVER['REQUEST_URI'],
+            'referer'        => $_SERVER['HTTP_REFERER'],
+            'at'             => time(),
+            'attempts_count' => $pocetChybnychPokusu,
+        ]),
+    );
     die('špatný klíč');
 }
 
@@ -29,7 +57,6 @@ if ($job !== null) {
 }
 
 // otevřít log soubor pro zápis a přesměrovat do něj výstup
-$logdir  = SPEC . '/logs';
 $logfile = 'cron-' . date('Y-m') . '.log';
 if (!is_dir($logdir) && !@mkdir($logdir) && !is_dir($logdir)) {
     throw new \RuntimeException(sprintf('Directory "%s" was not created', $logdir));
@@ -67,7 +94,7 @@ $konciciOd       = new DateTimeImmutable('-' . UPOZORNIT_NA_NEUZAMKNUTOU_AKTIVIT
 $konciciDo       = $konciciOd->modify('+ 1 hour'); // interval CRONu - abychom nespamovali každou hodinu
 $pocetUpozorneni = Aktivita::upozorniNaNeuzavreneKonciciOdDo(
     $konciciOd,
-    $konciciDo
+    $konciciDo,
 );
 logs("Odesláno $pocetUpozorneni mailů.");
 
