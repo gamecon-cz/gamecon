@@ -1,0 +1,12 @@
+on:
+  schedule:
+    # * is a special character in YAML, so we have to quote this string
+    # The shortest interval you can run scheduled workflows is once every 5 minutes. https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule
+    - cron: '*/5 * * * *'
+
+jobs:
+  gamecon_cron:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Gamecon CRON script
+        run: curl -vvv https://admin.gamecon.cz/cron.php?job=aktivity_hromadne&key=${{ secrets.OSTRA_CRON_KEY }}
