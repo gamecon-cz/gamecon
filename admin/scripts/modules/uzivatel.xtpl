@@ -163,8 +163,7 @@
       </table>
       <a style="font-size: 1.2em; float: left; margin-top: .2em; margin-right: 1em;" href="program-uzivatele"
          target="_blank">Program</a>
-      <a style="font-size: 1.2em; float: left; margin-top: .2em;" href="program-osobni" target="_blank">Program
-        účastníka</a>
+      <a style="font-size: 1.2em; float: left; margin-top: .2em;" href="program-osobni">Program účastníka</a>
       <input type="submit" name="zmenitUdaj" value="uložit" class="submit-btn" style="display:none;">
     </form>
     <script src="files/jquery.autosize-1.18.13.js"></script>
