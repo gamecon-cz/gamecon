@@ -9,4 +9,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Call Gamecon CRON script
-        run: curl -vvv https://admin.gamecon.cz/cron.php?job=aktivity_hromadne&key=${{ secrets.OSTRA_CRON_KEY }}
+        run: curl -vvv https://admin.gamecon.cz/cron.php?job=aktivity_hromadne&cas=now&key=${{ secrets.OSTRA_CRON_KEY }}

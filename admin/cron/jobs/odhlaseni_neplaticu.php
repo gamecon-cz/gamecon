@@ -8,30 +8,12 @@ use Gamecon\Logger\Zaznamnik;
 
 /** @var bool $znovu */
 
-require_once __DIR__ . '/_cron_zavadec.php';
+require_once __DIR__ . '/../_cron_zavadec.php';
 
-try {
-    $casovaTolerance = new DateInterval('PT1S');
-    /** @var DateTimeImmutable $cas */
-    $cas = require __DIR__ . '/_odlozeny_cas.php';
-} catch (RuntimeException $runtimeException) {
-    logs($runtimeException->getMessage());
-    exit(1);
-}
-
-global $systemoveNastaveni;
-$ted = $systemoveNastaveni->ted();
-
-$sleep = $cas->getTimestamp() - $ted->getTimestamp();
-
-if ($sleep >= 300) {
-    logs("Čas spuštění bude až za $sleep sekund. Necháme to až na příští běh CRONu.");
+$cronNaCas = require __DIR__ . '/../_cron_na_cas.php';
+if (!$cronNaCas) {
     return;
 }
-
-set_time_limit($sleep + 1);
-
-sleep($sleep);
 
 set_time_limit(30);
 
@@ -49,11 +31,11 @@ if (!$znovu || $systemoveNastaveni->jsmeNaOstre()) {
 }
 
 // abychom neodhlásili nešťastlivce, od kterého dorazili finance chvíli před odhlašováním neplatičů
-require __DIR__ . '/fio_stazeni_novych_plateb.php';
+require __DIR__ . '/../fio_stazeni_novych_plateb.php';
 
 // jistota je jistota
 $vynutZalohuDatabaze = true;
-require __DIR__ . '/zaloha_databaze.php';
+require __DIR__ . '/../zaloha_databaze.php';
 
 $zaznamnik = new Zaznamnik();
 try {
@@ -79,7 +61,7 @@ $odhlasenoCelkem = $hromadneOdhlaseniNeplaticu->odhlasenoCelkem();
             $oddelovacProCfo
 
             $zaznamy
-            TEXT
+            TEXT,
         )
         ->odeslat();
 

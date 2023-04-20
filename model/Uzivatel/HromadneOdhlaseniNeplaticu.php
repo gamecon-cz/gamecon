@@ -26,7 +26,8 @@ class HromadneOdhlaseniNeplaticu
 
     private int $odhlasenoCelkem = 0;
 
-    public function __construct(private readonly SystemoveNastaveni $systemoveNastaveni) {
+    public function __construct(private readonly SystemoveNastaveni $systemoveNastaveni)
+    {
     }
 
     /**
@@ -38,11 +39,12 @@ class HromadneOdhlaseniNeplaticu
         ?Zaznamnik         $zaznamnik,
         \DateTimeInterface $platnostZpetneKDatu = null,
         \DateTimeInterface $nejblizsiHromadneOdhlasovaniKdy = null,
-    ): int {
+    ): int
+    {
         $nejblizsiHromadneOdhlasovaniKdy ??= $this->systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy($platnostZpetneKDatu);
         $poradiHromadnehoOdhlasovani     = DateTimeGamecon::poradiHromadnehoOdhlasovani(
             $nejblizsiHromadneOdhlasovaniKdy,
-            $this->systemoveNastaveni
+            $this->systemoveNastaveni,
         );
         $zdrojOdhlaseni                  = "$zdrojOdhlaseniZaklad-$poradiHromadnehoOdhlasovani";
         $uzivatelSystem                  = \Uzivatel::zId(\Uzivatel::SYSTEM);
@@ -83,7 +85,7 @@ class HromadneOdhlaseniNeplaticu
                         "Nelze ohlásit účastníka %s s ID %d: '%s'",
                         $neplatic->jmenoNick(),
                         $neplatic->id(),
-                        $chyba->getMessage()
+                        $chyba->getMessage(),
                     );
                     $zaznamnik?->pridejZpravu("Potíže: $potiz");
                 }
@@ -93,7 +95,7 @@ class HromadneOdhlaseniNeplaticu
         $this->zalogujHromadneOdhlaseni(
             $this->odhlasenoCelkem,
             $nejblizsiHromadneOdhlasovaniKdy,
-            \Uzivatel::zId(\Uzivatel::SYSTEM, true)
+            \Uzivatel::zId(\Uzivatel::SYSTEM, true),
         );
 
         return $this->odhlasenoCelkem;
@@ -103,13 +105,14 @@ class HromadneOdhlaseniNeplaticu
         \Uzivatel                $uzivatel,
         string                   $zdrojOdhlaseni,
         \Uzivatel                $odhlasujici,
-        VysledekOdhlaseniJenNeco $vysledekOdhlaseniJenNeco = null
-    ): VysledekOdhlaseniJenNeco {
+        VysledekOdhlaseniJenNeco $vysledekOdhlaseniJenNeco = null,
+    ): VysledekOdhlaseniJenNeco
+    {
         $vysledekOdhlaseniJenNeco ??= new VysledekOdhlaseniJenNeco();
 
         if ($vysledekOdhlaseniJenNeco->odhlasenoUbytovani() === null) {
             $vysledekOdhlaseniJenNeco->nastavOdhlasenoUbytovani(
-                $uzivatel->shop($this->systemoveNastaveni)->zrusLetosniObjednaneUbytovani($zdrojOdhlaseni)
+                $uzivatel->shop($this->systemoveNastaveni)->zrusLetosniObjednaneUbytovani($zdrojOdhlaseni),
             );
             if ($vysledekOdhlaseniJenNeco->odhlasenoUbytovani() > 0) {
                 return $vysledekOdhlaseniJenNeco;
@@ -120,8 +123,8 @@ class HromadneOdhlaseniNeplaticu
             $vysledekOdhlaseniJenNeco->nastavOdhlasenoLarpu(
                 $uzivatel->shop($this->systemoveNastaveni)->zrusPrihlaseniNaLetosniLarpy(
                     $odhlasujici,
-                    $zdrojOdhlaseni
-                )
+                    $zdrojOdhlaseni,
+                ),
             );
             if ($vysledekOdhlaseniJenNeco->odhlasenoLarpu() > 0) {
                 return $vysledekOdhlaseniJenNeco;
@@ -132,8 +135,8 @@ class HromadneOdhlaseniNeplaticu
             $vysledekOdhlaseniJenNeco->nastavOdhlasenoRpg(
                 $uzivatel->shop($this->systemoveNastaveni)->zrusPrihlaseniNaLetosniRpg(
                     $odhlasujici,
-                    $zdrojOdhlaseni
-                )
+                    $zdrojOdhlaseni,
+                ),
             );
             if ($vysledekOdhlaseniJenNeco->odhlasenoRpg() > 0) {
                 return $vysledekOdhlaseniJenNeco;
@@ -145,8 +148,8 @@ class HromadneOdhlaseniNeplaticu
             // respektive na zbývající
                 $uzivatel->shop($this->systemoveNastaveni)->zrusPrihlaseniNaVsechnyAktivity(
                     $odhlasujici,
-                    $zdrojOdhlaseni
-                )
+                    $zdrojOdhlaseni,
+                ),
             );
         }
         return $vysledekOdhlaseniJenNeco;
@@ -155,21 +158,24 @@ class HromadneOdhlaseniNeplaticu
     private function zalogujHromadneOdhlaseni(
         int                $odhlaseno,
         \DateTimeInterface $hromadneOdhlasovaniKdy,
-        \Uzivatel          $odhlasujici
-    ) {
+        \Uzivatel          $odhlasujici,
+    )
+    {
         $this->zalogujHromadnouAkci(
             self::SKUPINA,
             $this->sestavNazevAkceHromadnehoOdhlaseni($hromadneOdhlasovaniKdy),
             $odhlaseno,
-            $odhlasujici
+            $odhlasujici,
         );
     }
 
-    private function sestavNazevAkceHromadnehoOdhlaseni(\DateTimeInterface $hromadneOdhlasovaniKdy): string {
+    private function sestavNazevAkceHromadnehoOdhlaseni(\DateTimeInterface $hromadneOdhlasovaniKdy): string
+    {
         return 'odhlaseni-' . $hromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_CAS_SOUBOR);
     }
 
-    private function uzivateleKeKontrole(): \Generator {
+    private function uzivateleKeKontrole(): \Generator
+    {
         $prihlasenNaLetosniGc = Role::PRIHLASEN_NA_LETOSNI_GC;
         $neodhlasovat         = Role::LETOSNI_NEODHLASOVAT;
 
@@ -185,18 +191,20 @@ WHERE EXISTS(SELECT * FROM platne_role_uzivatelu AS role
         AND role.id_role = {$neodhlasovat}
     )
 SQL,
-            dbConnectTemporary() // abychom nevyblokovali globální sdílené connection při postupném zpracovávání tohoto generátoru
+            dbConnectTemporary(), // abychom nevyblokovali globální sdílené connection při postupném zpracovávání tohoto generátoru
         );
         while ($idUzivatele = mysqli_fetch_column($result)) {
             yield \Uzivatel::zId($idUzivatele, true);
         }
     }
 
-    public function odhlasenoCelkem(): int {
+    public function odhlasenoCelkem(): int
+    {
         return $this->odhlasenoCelkem;
     }
 
-    public function odhlaseniProvedenoKdy(\DateTimeInterface $hromadneOdhlasovaniKdy = null): ?\DateTimeInterface {
+    public function odhlaseniProvedenoKdy(\DateTimeInterface $hromadneOdhlasovaniKdy = null): ?\DateTimeInterface
+    {
         $hromadneOdhlasovaniKdy ??= $this->systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy();
         $nazevAkce              = $this->sestavNazevAkceHromadnehoOdhlaseni($hromadneOdhlasovaniKdy);
 
@@ -213,7 +221,8 @@ SQL,
         \DateTimeInterface $platnostZpetneKDatu = null,
         \DateTimeInterface $kDatu = null,
 
-    ): \Generator {
+    ): \Generator
+    {
         $nejblizsiHromadneOdhlasovaniKdy ??= $this->systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy();
         $kDatu                           ??= $this->systemoveNastaveni->ted();
 
@@ -221,12 +230,12 @@ SQL,
             throw new NaHromadneOdhlasovaniJeBrzy(
                 sprintf(
                     "Hromadné odhlášení může být spuštěno nejdříve v '%s'",
-                    $nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB)
+                    $nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB),
                 )
             );
         }
 
-        $platnostZpetneKDatu ??= $kDatu->modify('-1 day');
+        $platnostZpetneKDatu ??= $kDatu->modify(DateTimeGamecon::VYCHOZI_PLATNOST_HROMADNYCH_AKCI_ZPETNE);
         if ($nejblizsiHromadneOdhlasovaniKdy < $platnostZpetneKDatu) {
             throw new NaHromadneOdhlasovaniJePozde(
                 sprintf(
@@ -245,7 +254,7 @@ Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hro
                 sprintf(
                     "Nejbližší vlna aktivit už začala v '%s', nemůžeme začít hromadně odhlašovat k okamžiku '%s'",
                     $nejblizsiVlnaKdy->format(DateTimeCz::FORMAT_DB),
-                    $nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB)
+                    $nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB),
                 )
             );
         }
@@ -254,7 +263,7 @@ Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hro
             $kategorieNeplatice = KategorieNeplatice::vytvorZHromadnehoOdhlasovani(
                 $uzivatel,
                 $nejblizsiHromadneOdhlasovaniKdy,
-                $this->systemoveNastaveni
+                $this->systemoveNastaveni,
             );
             if ($kategorieNeplatice->melByBytOdhlasen()) {
                 yield [
@@ -267,8 +276,9 @@ Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hro
 
     public function cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy(
         \DateTimeInterface $hromadneOdhlasovaniKdy,
-        int                $poradiOznameni
-    ): ?DateTimeImmutableStrict {
+        int                $poradiOznameni,
+    ): ?DateTimeImmutableStrict
+    {
         return $this->posledniHromadnaAkceKdy(
             self::SKUPINA,
             $this->sestavNazevAkceEmailuCfoInfo($poradiOznameni, $hromadneOdhlasovaniKdy),
@@ -277,8 +287,9 @@ Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hro
 
     public function neplaticiNotifikovaniOBrzkemHromadnemOdhlaseniKdy(
         \DateTimeInterface $hromadneOdhlasovaniKdy,
-        int                $poradiOznameni
-    ): ?DateTimeImmutableStrict {
+        int                $poradiOznameni,
+    ): ?DateTimeImmutableStrict
+    {
         return $this->posledniHromadnaAkceKdy(
             self::SKUPINA,
             $this->sestavNazevAkceEmailuSVarovanim($poradiOznameni, $hromadneOdhlasovaniKdy),
@@ -287,8 +298,9 @@ Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hro
 
     private function sestavNazevAkceEmailuSVarovanim(
         int                $poradiOznameni,
-        \DateTimeInterface $hromadneOdhlasovaniKdy
-    ): string {
+        \DateTimeInterface $hromadneOdhlasovaniKdy,
+    ): string
+    {
         return "email-varobvani-neplaticum-brzke-odhlaseni-$poradiOznameni-" . $hromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_CAS_SOUBOR);
     }
 
@@ -297,21 +309,23 @@ Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hro
         \DateTimeInterface $hromadneOdhlasovaniKdy,
         int                $poradiOznameni,
         \Uzivatel          $odeslal,
-        \DateTimeInterface $stalaSeKdy = null
-    ) {
+        \DateTimeInterface $stalaSeKdy = null,
+    )
+    {
         $this->zalogujHromadnouAkci(
             self::SKUPINA,
             $this->sestavNazevAkceEmailuCfoInfo($poradiOznameni, $hromadneOdhlasovaniKdy),
             $budeOdhlasenoPocet,
             $odeslal,
-            $stalaSeKdy
+            $stalaSeKdy,
         );
     }
 
     private function sestavNazevAkceEmailuCfoInfo(
         int                $poradiOznameni,
-        \DateTimeInterface $hromadneOdhlasovaniKdy
-    ): string {
+        \DateTimeInterface $hromadneOdhlasovaniKdy,
+    ): string
+    {
         return "email-cfo-brzke-odhlaseni-$poradiOznameni-" . $hromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_CAS_SOUBOR);
     }
 
@@ -320,23 +334,25 @@ Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hro
         \DateTimeInterface $hromadneOdhlasovaniKdy,
         int                $poradiOznameni,
         \Uzivatel          $odeslal,
-        \DateTimeInterface $staloSeKdy = null
-    ) {
+        \DateTimeInterface $staloSeKdy = null,
+    )
+    {
 
         $this->zalogujHromadnouAkci(
             self::SKUPINA,
             $this->sestavNazevAkceEmailuSVarovanim($poradiOznameni, $hromadneOdhlasovaniKdy),
             $pocetPotencialnichNeplaticu,
             $odeslal,
-            $staloSeKdy
+            $staloSeKdy,
         );
     }
 
-    private function posliEmailSOdhlasenymiPolozkami(\Uzivatel $uzivatel, string $zdrojOdhlaseni) {
+    private function posliEmailSOdhlasenymiPolozkami(\Uzivatel $uzivatel, string $zdrojOdhlaseni)
+    {
         $zruseneAktivityUzivatele = Aktivita::dejZruseneAktivityUzivatele(
             $uzivatel,
             $zdrojOdhlaseni,
-            $this->systemoveNastaveni->rocnik()
+            $this->systemoveNastaveni->rocnik(),
         );
 
         $nazvyZrusenychNakupu = $uzivatel->shop($this->systemoveNastaveni)->dejNazvyZrusenychNakupu($zdrojOdhlaseni);
@@ -365,7 +381,7 @@ Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hro
                 : 'tě ';
             $nazvyZrusenychAktivit = array_map(
                 static fn(Aktivita $aktivita) => $aktivita->nazev(),
-                $zruseneAktivityUzivatele
+                $zruseneAktivityUzivatele,
             );
             $castiTextu[]          = "{$te}odlásit z aktivit$y " . implode(', ', $nazvyZrusenychAktivit);
         }
@@ -381,7 +397,7 @@ Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hro
                 Aktivity si můžeš znovu přihlásit v další vlně, předměty si můžeš znovu objednat kdykoliv. Jen prosíme ohlídej své platby.
 
                 Tým Gameconu
-                TEXT
+                TEXT,
             )
             ->odeslat();
     }

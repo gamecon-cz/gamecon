@@ -8,9 +8,11 @@ use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Report\BfgrReport;
 use Gamecon\Shop\Shop;
 
-require_once __DIR__ . '/_cron_zavadec.php';
+/** @var bool $znovu */
 
-$cronNaCas = require __DIR__ . '/_cron_na_cas.php';
+require_once __DIR__ . '/../_cron_zavadec.php';
+
+$cronNaCas = require __DIR__ . '/../_cron_na_cas.php';
 if (!$cronNaCas) {
     return;
 }
@@ -22,27 +24,35 @@ global $systemoveNastaveni;
 $hromadneOdhlaseniNeplaticu = new HromadneOdhlaseniNeplaticu($systemoveNastaveni);
 
 $poradiOznameni = null;
-foreach ([1 => '+1 day', 2 => '+1 hour'] as $poradiOznameni => $posun) {
+$posuny         = [1 => '+1 day', 2 => '+1 hour'];
+foreach ($posuny as $poradiOznameni => $posun) {
+    // za 23 hodin nebo právě teď
     $overenaPlatnostZpetne           = DateTimeGamecon::overenaPlatnostZpetne($systemoveNastaveni)
         ->modifyStrict($posun); // jako kdybychom bychom pouštěli hromadné odhlašování zítra / za hodinu
     $nejblizsiHromadneOdhlasovaniKdy = DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($systemoveNastaveni, $overenaPlatnostZpetne);
 
-    $odhlaseniProvedenoKdy = $hromadneOdhlaseniNeplaticu->odhlaseniProvedenoKdy($nejblizsiHromadneOdhlasovaniKdy);
-    if ($odhlaseniProvedenoKdy) {
-        logs("Hromadné odhlášení už bylo provedeno {$odhlaseniProvedenoKdy->format(DateTimeCz::FORMAT_DB)}");
-        return;
+    if ($nejblizsiHromadneOdhlasovaniKdy > $systemoveNastaveni->ted()->modify($posun)) {
+        // POJISTKA PROTI PŘÍLIŽ BRZKÉMU SPUŠTĚNÍ
+        logs("Hromadné odhlášení bude až za dlouhou dobu, {$nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB)}.");
+        return; // nejbližší odhlašování bude až za dlouhou dobu, tohle necháme na příštím CRONu
     }
 
-    $cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy = $hromadneOdhlaseniNeplaticu->cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy(
-        $nejblizsiHromadneOdhlasovaniKdy,
-        $poradiOznameni
-    );
-    if ($cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy) {
+    if (!$znovu || $systemoveNastaveni->jsmeNaOstre()) {
+        $odhlaseniProvedenoKdy = $hromadneOdhlaseniNeplaticu->odhlaseniProvedenoKdy($nejblizsiHromadneOdhlasovaniKdy);
+        if ($odhlaseniProvedenoKdy) { // chceme informovat, že odhlášení bude, ne že bylo - tady končíme
+            logs("Hromadné odhlášení už bylo provedeno {$odhlaseniProvedenoKdy->format(DateTimeCz::FORMAT_DB)}. Už nemá smysl informovat CFO o blížícím se odhlašování.");
+            return;
+        }
+
+        $cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy = $hromadneOdhlaseniNeplaticu->cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy(
+            $nejblizsiHromadneOdhlasovaniKdy,
+            $poradiOznameni,
+        );
+        if (!$cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy) {
+            break; // tohle oznámení jsme ještě neposlali
+        }
         logs("{$poradiOznameni}. email pro CFO o brzkém hromadném odhlášení už byl odeslán {$cfoNotifikovanOBrzkemHromadnemOdhlaseniKdy->format(DateTimeCz::FORMAT_DB)}");
-        unset($poradiOznameni);
-        continue;
-    } else {
-        break; // tohle oznámení jsme ještě neposlali
+        $poradiOznameni = null;
     }
 }
 
@@ -51,16 +61,28 @@ if (!$poradiOznameni) {
 }
 
 // abychom měli čerstvé informace o neplatičích
-require __DIR__ . '/fio_stazeni_novych_plateb.php';
+require __DIR__ . '/../fio_stazeni_novych_plateb.php';
 
 $zpravyNeplatici = [];
 try {
-    foreach ($hromadneOdhlaseniNeplaticu->neplaticiAKategorie()
-             as ['uzivatel' => $uzivatel, 'kategorie_neplatice' => $kategorieNeplatice]) {
+    $overenaPlatnostZpetne           = DateTimeGamecon::overenaPlatnostZpetne($systemoveNastaveni)
+        ->modifyStrict($posun); // jako kdybychom bychom pouštěli hromadné odhlašování zítra / za hodinu
+    $nejblizsiHromadneOdhlasovaniKdy = DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy(
+        $systemoveNastaveni,
+        $overenaPlatnostZpetne,
+    );
+    $kDatu                           = $systemoveNastaveni->ted()->modify($posun[$poradiOznameni]);
+    $neplaticiAKategorie             = $hromadneOdhlaseniNeplaticu->neplaticiAKategorie(
+        $nejblizsiHromadneOdhlasovaniKdy,
+        null,
+        $kDatu,
+    );
+    foreach ($neplaticiAKategorie as ['uzivatel' => $uzivatel, 'kategorie_neplatice' => $kategorieNeplatice]) {
         /** @var \Gamecon\Uzivatel\KategorieNeplatice $kategorieNeplatice */
-        $zpravyNeplatici[] = "Účastník '{$uzivatel->jmenoNick()}' ({$uzivatel->id()}) bude zítra odhlášen, protože má kategorii neplatiče {$kategorieNeplatice->ciselnaKategoriiNeplatice()}";
+        $zpravyNeplatici[] = "Účastník '{$uzivatel->jmenoNick()}' ({$uzivatel->id()}) bude {$nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu()} odhlášen, protože má kategorii neplatiče {$kategorieNeplatice->ciselnaKategoriiNeplatice()}";
     }
 } catch (NevhodnyCasProHromadneOdhlasovani $nevhodnyCasProHromadneOdhlasovani) {
+    // POJISTKA PROTI PŘÍLIŽ BRZKÉMU NEBO POZDNÍMU SPUŠTĚNÍ
     return;
 }
 
@@ -70,14 +92,14 @@ foreach (Shop::letosniPolozkySeSpatnymKoncem($systemoveNastaveni) as $polozkaSeS
     if (!$nabizetDoDleNastaveni || !$polozkaSeSpatnymKoncem->nabizetDo()) {
         trigger_error(
             "Polozka '{$polozkaSeSpatnymKoncem->nazev()}' ({$polozkaSeSpatnymKoncem->idPredmetu()}) je údajně se špatným koncem, ale nemá žádný konec prodeje",
-            E_USER_WARNING
+            E_USER_WARNING,
         );
         continue;
     }
     if ($nabizetDoDleNastaveni->getTimestamp() === $polozkaSeSpatnymKoncem->nabizetDo()->getTimestamp()) {
         trigger_error(
             "Polozka '{$polozkaSeSpatnymKoncem->nazev()}' ({$polozkaSeSpatnymKoncem->idPredmetu()}) je údajně se špatným koncem, ale přitom má konec prodeje správně",
-            E_USER_WARNING
+            E_USER_WARNING,
         );
         continue;
     }
@@ -125,7 +147,7 @@ TEXT;
         $oddelovac
 
         $zpravyString
-        TEXT
+        TEXT,
     )
     ->prilohaSoubor($bfgrSoubor)
     ->odeslat();
@@ -134,5 +156,5 @@ $hromadneOdhlaseniNeplaticu->zalogujNotifikovaniCfoOBrzkemHromadnemOdhlaseni(
     $budeOdhlaseno,
     $nejblizsiHromadneOdhlasovaniKdy,
     $poradiOznameni,
-    Uzivatel::zId(Uzivatel::SYSTEM)
+    Uzivatel::zId(Uzivatel::SYSTEM),
 );

@@ -1840,7 +1840,7 @@ SQL;
             if ($this->maOverenePotvrzeniProtiCoviduProRok($rok, true)) {
                 $x->assign(
                     'datumOvereniPotvrzeniProtiCovid',
-                    (new DateTimeCz($this->potvrzeniProtiCoviduOverenoKdy()->format(DATE_ATOM)))->rozdilDne(new DateTimeImmutable())
+                    (new DateTimeCz($this->potvrzeniProtiCoviduOverenoKdy()->format(DATE_ATOM)))->rozdilDni(new DateTimeImmutable())
                 );
                 $x->parse('covid.nahrano.overeno');
             } else {

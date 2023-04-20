@@ -16,7 +16,8 @@ class DateTimeImmutableStrict extends \DateTimeImmutable
 {
     use DateTimeCzTrait;
 
-    public function modifyStrict(string $modifier): static {
+    public function modifyStrict(string $modifier): static
+    {
         $modified = $this->modify($modifier);
         if (!$modified) {
             throw new InvalidModifyFormat(sprintf("Can not modify %s by '%s'", static::class, $modifier));

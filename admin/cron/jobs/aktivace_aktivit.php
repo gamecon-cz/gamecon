@@ -7,9 +7,9 @@ use Gamecon\Aktivita\Exceptions\NevhodnyCasProAutomatickouHromadnouAktivaci;
 
 /** @var bool $znovu */
 
-require_once __DIR__ . '/_cron_zavadec.php';
+require_once __DIR__ . '/../_cron_zavadec.php';
 
-$cronNaCas = require __DIR__ . '/_cron_na_cas.php';
+$cronNaCas = require __DIR__ . '/../_cron_na_cas.php';
 if (!$cronNaCas) {
     return;
 }
@@ -31,6 +31,7 @@ if (!$znovu || $systemoveNastaveni->jsmeNaOstre()) {
 }
 
 try {
+    // POJISTKA PROTI PŘÍLIŽ BRZKÉMU NEBO POZDNÍMU SPUŠTĚNÍ
     $hromadneAkceAktivit->hromadneAktivovatAutomaticky();
 } catch (NevhodnyCasProAutomatickouHromadnouAktivaci $nevhodnyCasProAutomatickouHromadnouAktivaci) {
     logs($nevhodnyCasProAutomatickouHromadnouAktivaci->getMessage());
@@ -48,7 +49,7 @@ $zprava = "Hromadně aktivováno $automatickyAktivovanoCelkem aktivit";
         . ($potize
             ? ("\n\nU některých se vyskytly komplikace $potize")
             : ''
-        )
+        ),
     )
     ->odeslat();
 

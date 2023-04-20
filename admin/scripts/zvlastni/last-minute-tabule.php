@@ -29,7 +29,7 @@ foreach ($aktivity as $a) {
     $zacatekPrvniAktivityBloku = $zacatekPrvniAktivityBloku ?: $a->zacatek()->format('G:i');
     if ($denPredchozihoBloku && $denPredchozihoBloku != $a->zacatek()->format('z')) {
         $zacatekPrvniAktivityBloku = $zacatekPrvniAktivityBloku ?: $a->zacatek()->format('G:i');
-        $zitra = $a->zacatek()->rozdilDne($od);
+        $zitra = $a->zacatek()->rozdilDni($od);
         $xtpl->assign('cas', $zacatekPrvniAktivityBloku);
         $xtpl->assign('zitra', $zitra);
         $xtpl->parse('tabule.blok');

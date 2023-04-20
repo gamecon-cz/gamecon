@@ -6,17 +6,47 @@ $znovu = filter_var(get('znovu'), FILTER_VALIDATE_BOOL)
 
 // Pozor, pořadí je důležité - úkoly na prvním místě jsou ty, co mají být puštěny před ostatními
 if (in_array($job, ['odhlaseni_neplaticu', 'aktivity_hromadne'])) {
-    require __DIR__ . '/odhlaseni_neplaticu.php';
+    require __DIR__ . '/jobs/odhlaseni_neplaticu.php';
     if ($job === 'odhlaseni_neplaticu') {
         return;
     }
 }
+
 if (in_array($job, ['aktivace_aktivit', 'aktivity_hromadne'])) {
-    require __DIR__ . '/aktivace_aktivit.php';
+    require __DIR__ . '/jobs/aktivace_aktivit.php';
     if ($job === 'aktivace_aktivit') {
         return;
     }
 }
+
+if (in_array($job, ['mail_cfo_brzke_odhlaseni_neplaticu', 'aktivity_hromadne'])) {
+    require __DIR__ . '/jobs/mail_cfo_brzke_odhlaseni_neplaticu.php';
+    if ($job === 'mail_cfo_brzke_odhlaseni_neplaticu') {
+        return;
+    }
+}
+
+if (in_array($job, ['mail_varovani_neplaticum_o_brzkem_odhlaseni', 'aktivity_hromadne'])) {
+    require __DIR__ . '/jobs/mail_varovani_neplaticum_o_brzkem_odhlaseni.php';
+    if ($job === 'mail_varovani_neplaticum_o_brzkem_odhlaseni') {
+        return;
+    }
+}
+
+if (in_array($job, ['mail_cfo_nesparovane_platby', 'aktivity_hromadne'])) {
+    require __DIR__ . '/jobs/mail_cfo_nesparovane_platby.php';
+    if ($job === 'mail_cfo_nesparovane_platby') {
+        return;
+    }
+}
+
+if (in_array($job, ['mail_varovani_neplaticum_o_brzkem_odhlaseni', 'aktivity_hromadne'])) {
+    require __DIR__ . '/jobs/mail_varovani_neplaticum_o_brzkem_odhlaseni.php';
+    if ($job === 'mail_varovani_neplaticum_o_brzkem_odhlaseni') {
+        return;
+    }
+}
+
 if ($job !== 'aktivity_hromadne') {
     throw new \RuntimeException(sprintf("Invalid job '%s'", $job));
 }
