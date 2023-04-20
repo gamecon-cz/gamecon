@@ -17,10 +17,6 @@ if (in_array($job, ['aktivace_aktivit', 'aktivity_hromadne'])) {
         return;
     }
 }
-if ($job === 'mail_bfgr') {
-    require __DIR__ . '/mail_bfgr.php';
-    return;
-}
 if ($job !== 'aktivity_hromadne') {
     throw new \RuntimeException(sprintf("Invalid job '%s'", $job));
 }
