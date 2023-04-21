@@ -4,7 +4,7 @@ on:
   schedule:
     # * is a special character in YAML, so we have to quote this string
     # The shortest interval you can run scheduled workflows is once every 5 minutes. https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule
-    - cron: '*/5 * * * *'
+    - cron: '* * * * *'
 
 jobs:
   gamecon_cron:
