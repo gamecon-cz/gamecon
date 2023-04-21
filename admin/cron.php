@@ -21,6 +21,11 @@ if (!defined('CRON_KEY') || get('key') !== CRON_KEY) {
     die('špatný klíč');
 }
 
+if (get('job')) {
+    echo 'Not yet implemented';
+    exit;
+}
+
 // otevřít log soubor pro zápis a přesměrovat do něj výstup
 $logdir  = SPEC . '/logs';
 $logfile = 'cron-' . date('Y-m') . '.log';
@@ -50,7 +55,7 @@ if (defined('FIO_TOKEN') && FIO_TOKEN !== '') {
             . ' (' . $p->castka() . 'Kč, VS: ' . $p->vs()
             . ($p->zpravaProPrijemce() ? ', zpráva: ' . $p->zpravaProPrijemce() : '')
             . ($p->poznamkaProMne() ? ', poznámka: ' . $p->poznamkaProMne() : '')
-            . ')'
+            . ')',
         );
     }
     if (!$platby) {
@@ -74,7 +79,7 @@ $konciciOd       = new DateTimeImmutable('-' . UPOZORNIT_NA_NEUZAMKNUTOU_AKTIVIT
 $konciciDo       = $konciciOd->modify('+ 1 hour'); // interval CRONu - abychom nespamovali každou hodinu
 $pocetUpozorneni = Aktivita::upozorniNaNeuzavreneKonciciOdDo(
     $konciciOd,
-    $konciciDo
+    $konciciDo,
 );
 logs("Odesláno $pocetUpozorneni mailů.");
 
