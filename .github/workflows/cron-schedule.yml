@@ -9,6 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Call production Gamecon CRON script
-        run: wget https://admin.gamecon.cz/cron.php?job=aktivity_hromadne&cas=now&key=${{ secrets.OSTRA_CRON_KEY }} --debug
+        run: wget --debug https://admin.gamecon.cz/cron.php?job=aktivity_hromadne&cas=now&key=${{ secrets.OSTRA_CRON_KEY }}
       - name: Call beta Gamecon CRON script
-        run: wget https://admin.beta.gamecon.cz/cron.php?job=aktivity_hromadne&cas=now&key=${{ secrets.BETA_CRON_KEY }} --debug
+        run: wget --debug https://admin.beta.gamecon.cz/cron.php?job=aktivity_hromadne&cas=now&key=${{ secrets.BETA_CRON_KEY }}
