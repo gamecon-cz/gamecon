@@ -495,7 +495,6 @@ SQL
         if (!$rangeDates) {
             return ImportStepResult::success(true);
         }
-        $sdileniMistnostiJeProNiProblem = $soucasnyTypAktivity->sdileniMistnostiJeProNiProblem();
         /** @var DateTimeCz $zacatek */
         /** @var DateTimeCz $konec */
         ['start' => $zacatek, 'end' => $konec] = $rangeDates;
@@ -506,6 +505,7 @@ WHERE akce_seznam.lokace = $1
 AND akce_seznam.zacatek <= $2 -- jina zacala na konci nebo pred koncem novem
 AND akce_seznam.konec >= $3 -- jina skoncila na zacatku nebo po zacatku nove
 AND akce_seznam.typ NOT IN ($5) -- jen aktivity kterym vadi, ze by sdilely mistnost
+AND IF ($6 IS NULL, TRUE, akce_seznam.typ != $6) -- jen ostatni typy aktivit, pokud soucasne nevadi stejny typ
 AND IF ($4 IS NULL, TRUE, akce_seznam.id_akce != $4) -- jen jine aktivity
 SQL,
             [
@@ -513,7 +513,10 @@ SQL,
                 2 => $konec->formatDb(),
                 3 => $zacatek->formatDb(),
                 4 => $puvodniAktivita?->id(),
-                5 => $soucasnyTypAktivity::typyKterymNevadiSdileniMistnosti(),
+                5 => $soucasnyTypAktivity::typyKterymNevadiSdileniMistnostiSJinymiTypy(),
+                6 => $soucasnyTypAktivity->nevadiMuSdileniMistnostiSeStejnymTypem()
+                    ? $soucasnyTypAktivity->id()
+                    : null,
             ],
         );
         if (count($locationOccupyingActivityIds) === 0) {
@@ -531,7 +534,7 @@ SQL,
                     $locationOccupyingActivityIds,
                 ),
             );
-        $activitiesDescription .= $sdileniMistnostiJeProNiProblem
+        $activitiesDescription .= $soucasnyTypAktivity->sdileniMistnostiJeProNiProblem()
             ? ''
             : " jiného typu než '{$soucasnyTypAktivity->nazev()}'";
         return ImportStepResult::successWithWarnings(
