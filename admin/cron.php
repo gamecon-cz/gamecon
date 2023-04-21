@@ -42,7 +42,7 @@ if (get('key') !== CRON_KEY) {
     file_put_contents($invalidCronKeyLogFile,
         json_encode([
             'request_uri'    => $_SERVER['REQUEST_URI'],
-            'referer'        => $_SERVER['HTTP_REFERER'],
+            'referer'        => $_SERVER['HTTP_REFERER'] ?? null,
             'at'             => time(),
             'attempts_count' => $pocetChybnychPokusu,
         ]),
