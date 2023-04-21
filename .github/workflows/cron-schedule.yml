@@ -6,7 +6,7 @@ on:
 
 jobs:
   gamecon_cron:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Call production Gamecon CRON script
         run: curl -vvv https://admin.gamecon.cz/cron.php?job=aktivity_hromadne&cas=now&key=${{ secrets.OSTRA_CRON_KEY }}
