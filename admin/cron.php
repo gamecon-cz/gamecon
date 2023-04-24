@@ -30,9 +30,9 @@ if (get('key') !== CRON_KEY) {
     if (file_exists($invalidCronKeyLogFile)) {
         $invalidCronKeyLogContent = file_get_contents($invalidCronKeyLogFile);
         if ($invalidCronKeyLogContent) {
-            $predchoziChybnyPokus = json_decode($invalidCronKeyLogContent);
+            $predchoziChybnyPokus = json_decode($invalidCronKeyLogContent, true);
             $pocetChybnychPokusu  = $predchoziChybnyPokus['attempts_count'] ?? 0;
-            $prodlevaSekund = 10 * $pocetChybnychPokusu;
+            $prodlevaSekund       = 10 * $pocetChybnychPokusu;
             if ($pocetChybnychPokusu > 0 && ($predchoziChybnyPokus['at'] ?? false) && ($predchoziChybnyPokus['at'] + $prodlevaSekund) >= time()) {
                 die('Na další pokus ještě počkej');
             }
