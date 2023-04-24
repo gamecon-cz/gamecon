@@ -17,9 +17,10 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
     public const ROCNIK = ROCNIK;
 
     private ?array $vsechnyZaznamyNastaveni = null;
-    private ?array $odvozeneHodnoty = null;
+    private ?array $odvozeneHodnoty         = null;
 
-    public static function vytvorZGlobals(): self {
+    public static function vytvorZGlobals(): self
+    {
         return new static(
             ROCNIK,
             new DateTimeImmutableStrict(),
@@ -32,7 +33,8 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
     /**
      * @return array<int, int>
      */
-    public static function bonusyZaVedeniAktivity(): array {
+    public static function bonusyZaVedeniAktivity(): array
+    {
         static $bonusyZaVedeniAktivity = null;
         if ($bonusyZaVedeniAktivity === null) {
             $casAKlic = [
@@ -59,8 +61,9 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
      */
     public static function spocitejBonusZaVedeniAktivity(
         string $klic,
-        int    $bonusZaStandardni3hAz5hAktivitu = BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU
-    ): int {
+        int    $bonusZaStandardni3hAz5hAktivitu = BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU,
+    ): int
+    {
         return match ($klic) {
             'BONUS_ZA_1H_AKTIVITU' => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu / 4),
             'BONUS_ZA_2H_AKTIVITU' => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu / 2),
@@ -72,7 +75,8 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
         };
     }
 
-    private static function zakrouhli(float $cislo): int {
+    private static function zakrouhli(float $cislo): int
+    {
         return (int)round($cislo, 0);
     }
 
@@ -81,14 +85,16 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
         private readonly DateTimeImmutableStrict $ted,
         private readonly bool                    $jsmeNaBete,
         private readonly bool                    $jsmeNaLocale,
-        private readonly DatabazoveNastaveni     $databazoveNastaveni
-    ) {
+        private readonly DatabazoveNastaveni     $databazoveNastaveni,
+    )
+    {
         if ($jsmeNaLocale && $jsmeNaBete) {
             throw new \LogicException('Nemůžeme být na betě a zároveň na locale');
         }
     }
 
-    public function zaznamyDoKonstant() {
+    public function zaznamyDoKonstant()
+    {
         try {
             $zaznamy = dbFetchAll(<<<SQL
 SELECT systemove_nastaveni.klic,
@@ -120,7 +126,7 @@ SQL,
             $hodnota        = $this->zkonvertujHodnotuNaTyp($hodnota, $zaznam[SystemoveNastaveniStruktura::DATOVY_TYP]);
             if (!defined($nazevKonstanty)) {
                 define($nazevKonstanty, $hodnota);
-            } elseif (constant($nazevKonstanty) !== $hodnota && $this->jsmeNaOstre()) {
+            } else if (constant($nazevKonstanty) !== $hodnota && $this->jsmeNaOstre()) {
                 throw new ChybnaHodnotaSystemovehoNastaveni(
                     sprintf(
                         "Konstanta '%s' už je definována, ale s jinou hodnotou '%s' než očekávanou '%s'",
@@ -134,13 +140,15 @@ SQL,
         $this->definujOdvozeneKonstanty();
     }
 
-    private function definujOdvozeneKonstanty() {
+    private function definujOdvozeneKonstanty()
+    {
         foreach ($this->dejOdvozeneHodnoty() as $klic => $hodnota) {
             try_define($klic, $hodnota);
         }
     }
 
-    private function dejOdvozeneHodnoty(): array {
+    private function dejOdvozeneHodnoty(): array
+    {
         if ($this->odvozeneHodnoty === null) {
             $this->odvozeneHodnoty = [
                 // hodnota slevy od které má subjekt nárok na modré tričko
@@ -170,7 +178,8 @@ SQL,
         return $this->odvozeneHodnoty;
     }
 
-    public function zkonvertujHodnotuNaTyp($hodnota, string $datovyTyp): bool|int|float|string|DateTimeCz {
+    public function zkonvertujHodnotuNaTyp($hodnota, string $datovyTyp): bool|int|float|string|DateTimeCz
+    {
         return match (strtolower(trim($datovyTyp))) {
             'boolean', 'bool' => (bool)$hodnota,
             'integer', 'int' => (int)$hodnota,
@@ -183,7 +192,8 @@ SQL,
         };
     }
 
-    public function ulozZmenuHodnoty($hodnota, string $klic, \Uzivatel $editujici): int {
+    public function ulozZmenuHodnoty($hodnota, string $klic, \Uzivatel $editujici): int
+    {
         $this->hlidejZakazaneZmeny($klic);
         $updateQuery    = dbQuery(<<<SQL
 UPDATE systemove_nastaveni
@@ -207,7 +217,8 @@ SQL,
         return $zmenenoZaznamu;
     }
 
-    private function aktualizujZaznamVLokalniCache($novaHodnota, string $klic, int $idEditujicihoUzivatele) {
+    private function aktualizujZaznamVLokalniCache($novaHodnota, string $klic, int $idEditujicihoUzivatele)
+    {
         if ($this->vsechnyZaznamyNastaveni === null) {
             return;
         }
@@ -224,13 +235,15 @@ SQL,
         $this->vsechnyZaznamyNastaveni[$klic]['id_uzivatele'] = (string)$idEditujicihoUzivatele;
     }
 
-    private function hlidejZakazaneZmeny(string $klic) {
+    private function hlidejZakazaneZmeny(string $klic)
+    {
         if ($klic === 'ROCNIK') {
             throw new \LogicException('Ročník nelze měnit jinak než konstantou ROCNIK přes PHP');
         }
     }
 
-    public function ulozZmenuPlatnosti(bool $vlastni, string $klic, \Uzivatel $editujici): int {
+    public function ulozZmenuPlatnosti(bool $vlastni, string $klic, \Uzivatel $editujici): int
+    {
         $this->hlidejZakazaneZmeny($klic);
         $updateQuery = dbQuery(<<<SQL
 UPDATE systemove_nastaveni
@@ -250,7 +263,8 @@ SQL,
         return dbAffectedOrNumRows($updateQuery);
     }
 
-    private function formatujHodnotuProDb($hodnota, string $klic) {
+    private function formatujHodnotuProDb($hodnota, string $klic)
+    {
         try {
             return match ($this->dejDatovyTyp($klic)) {
                 'date' => $hodnota
@@ -267,13 +281,14 @@ SQL,
                     "Can not convert %s (%s) into DB format: %s",
                     var_export($hodnota, true),
                     var_export($klic, true),
-                    $invalidDateTimeFormat->getMessage()
+                    $invalidDateTimeFormat->getMessage(),
                 )
             );
         }
     }
 
-    private function dejDatovyTyp(string $klic): ?string {
+    private function dejDatovyTyp(string $klic): ?string
+    {
         static $datoveTypy;
         if ($datoveTypy === null) {
             $datoveTypy = dbArrayCol(<<<SQL
@@ -285,14 +300,16 @@ SQL,
         return $datoveTypy[$klic] ?? null;
     }
 
-    public function dejVsechnyZaznamyNastaveni(): array {
+    public function dejVsechnyZaznamyNastaveni(): array
+    {
         if ($this->vsechnyZaznamyNastaveni === null) {
             $this->vsechnyZaznamyNastaveni = $this->dejZaznamyNastaveni();
         }
         return $this->vsechnyZaznamyNastaveni;
     }
 
-    private function vlozOstatniBonusyVypravecuDoPopisu(array $zaznamy): array {
+    private function vlozOstatniBonusyVypravecuDoPopisu(array $zaznamy): array
+    {
         foreach ($zaznamy as &$zaznam) {
             if ($zaznam['klic'] !== 'BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU') {
                 continue;
@@ -311,7 +328,8 @@ SQL,
         return $zaznamy;
     }
 
-    private function dejSqlNaZaznamyNastaveni(array $whereArray = ['1']): string {
+    private function dejSqlNaZaznamyNastaveni(array $whereArray = ['1']): string
+    {
         $where = implode(' AND ', $whereArray);
         return <<<SQL
 SELECT systemove_nastaveni.klic,
@@ -341,24 +359,26 @@ ORDER BY systemove_nastaveni.poradi
 SQL;
     }
 
-    public function dejZaznamyNastaveniPodleKlicu(array $klice): array {
+    public function dejZaznamyNastaveniPodleKlicu(array $klice): array
+    {
         if (!$klice) {
             return [];
         }
         return array_intersect_key(
             $this->dejVsechnyZaznamyNastaveni(),
-            array_fill_keys($klice, '')
+            array_fill_keys($klice, ''),
         );
     }
 
-    private function dejZaznamyNastaveni(array $whereArray = ['1'], array $parametryDotazu = []): array {
+    private function dejZaznamyNastaveni(array $whereArray = ['1'], array $parametryDotazu = []): array
+    {
         $zaznamyNastaveni = $this->vlozOstatniBonusyVypravecuDoPopisu(
             $this->pridejVychoziHodnoty(
                 dbFetchAll(
                     $this->dejSqlNaZaznamyNastaveni($whereArray),
                     $parametryDotazu,
-                )
-            )
+                ),
+            ),
         );
 
         $zaznamyNastaveniPodleKlicu = [];
@@ -369,7 +389,8 @@ SQL;
         return $zaznamyNastaveniPodleKlicu;
     }
 
-    private function pridejVychoziHodnoty(array $zaznamy): array {
+    private function pridejVychoziHodnoty(array $zaznamy): array
+    {
         return array_map(
             function (array $zaznam) {
                 $zaznam['vychozi_hodnota'] = $this->dejVychoziHodnotu($zaznam[Sql::KLIC]);
@@ -380,11 +401,12 @@ SQL;
                     );
                 return $zaznam;
             },
-            $zaznamy
+            $zaznamy,
         );
     }
 
-    public function dejHodnotu(string $klic, bool $hledatTakeVOdvozenych = true) {
+    public function dejHodnotu(string $klic, bool $hledatTakeVOdvozenych = true)
+    {
         if (defined($klic)) {
             return constant($klic);
         }
@@ -393,7 +415,7 @@ SQL;
         if (array_key_exists($klic, $vsechnyZaznamy)) {
             return $this->zkonvertujHodnotuNaTyp(
                 $vsechnyZaznamy[$klic][Sql::HODNOTA],
-                $vsechnyZaznamy[$klic][Sql::DATOVY_TYP]
+                $vsechnyZaznamy[$klic][Sql::DATOVY_TYP],
             );
         }
 
@@ -407,7 +429,8 @@ SQL;
         throw new NeznamyKlicSystemovehoNastaveni("Klíč '$klic' nemáme v záznamech nastavení");
     }
 
-    public function dejVychoziHodnotu(string $klic): string {
+    public function dejVychoziHodnotu(string $klic): string
+    {
         return match ($klic) {
             'GC_BEZI_OD' => DateTimeGamecon::spocitejZacatekGameconu($this->rocnik())
                 ->formatDb(),
@@ -442,197 +465,239 @@ SQL;
      * Pozor, mělo by to odpovídat konstantě ROCNIK, respektive hodnotě v SQL tabulce systemove_nastaveni.
      * Pokud je to jinak, tak za následky neručíme (doporučené pouze pro testy).
      */
-    public function rocnik(): int {
+    public function rocnik(): int
+    {
         return $this->rocnik;
     }
 
-    public function ted(): DateTimeImmutableStrict {
+    public function ted(): DateTimeImmutableStrict
+    {
         return $this->ted;
     }
 
-    public function konecLetosnihoGameconu(): DateTimeImmutableStrict {
+    public function konecLetosnihoGameconu(): DateTimeImmutableStrict
+    {
         return DateTimeImmutableStrict::createFromInterface(DateTimeGamecon::konecGameconu($this->rocnik()));
     }
 
-    public function ucastniciPridatelniDoNeuzavrenePrezenceDo(): DateTimeImmutableStrict {
+    public function ucastniciPridatelniDoNeuzavrenePrezenceDo(): DateTimeImmutableStrict
+    {
         return $this->konecLetosnihoGameconu()
             ->modify($this->ucastnikyLzePridatXDniPoGcDoNeuzavreneAktivity() . ' days');
     }
 
-    public function jsmeNaOstre(): bool {
+    public function jsmeNaOstre(): bool
+    {
         return !$this->jsmeNaBete() && !$this->jsmeNaLocale();
     }
 
-    public function jsmeNaBete(): bool {
+    public function jsmeNaBete(): bool
+    {
         return $this->jsmeNaBete;
     }
 
-    public function jsmeNaLocale(): bool {
+    public function jsmeNaLocale(): bool
+    {
         return $this->jsmeNaLocale;
     }
 
-    public function aktivitaEditovatelnaXMinutPredJejimZacatkem(): int {
+    public function aktivitaEditovatelnaXMinutPredJejimZacatkem(): int
+    {
         return (int)AKTIVITA_EDITOVATELNA_X_MINUT_PRED_JEJIM_ZACATKEM;
     }
 
-    public function ucastnikyLzePridatXMinutPoUzavreniAktivity(): int {
+    public function ucastnikyLzePridatXMinutPoUzavreniAktivity(): int
+    {
         return (int)UCASTNIKY_LZE_PRIDAVAT_X_MINUT_PO_KONCI_AKTIVITY;
     }
 
-    public function ucastnikyLzePridatXDniPoGcDoNeuzavreneAktivity(): int {
+    public function ucastnikyLzePridatXDniPoGcDoNeuzavreneAktivity(): int
+    {
         return (int)UCASTNIKY_LZE_PRIDAVAT_X_DNI_PO_GC_U_NEUZAVRENE_PREZENCE;
     }
 
-    public function prihlaseniNaPosledniChviliXMinutPredZacatkemAktivity(): int {
+    public function prihlaseniNaPosledniChviliXMinutPredZacatkemAktivity(): int
+    {
         return (int)PRIHLASENI_NA_POSLEDNI_CHVILI_X_MINUT_PRED_ZACATKEM_AKTIVITY;
     }
 
-    public function prodejUbytovaniDo(): DateTimeImmutableStrict {
+    public function prodejUbytovaniDo(): DateTimeImmutableStrict
+    {
         return (new DateTimeImmutableStrict(UBYTOVANI_LZE_OBJEDNAT_A_MENIT_DO_DNE))
             ->setTime(23, 59, 59);
     }
 
-    public function prodejUbytovaniUkoncen(): bool {
+    public function prodejUbytovaniUkoncen(): bool
+    {
         return $this->prodejUbytovaniDo() < $this->ted();
     }
 
-    public function prodejJidlaDo(): DateTimeImmutableStrict {
+    public function prodejJidlaDo(): DateTimeImmutableStrict
+    {
         return (new DateTimeImmutableStrict(JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE))
             ->setTime(23, 59, 59);
     }
 
-    public function prodejJidlaUkoncen(): bool {
+    public function prodejJidlaUkoncen(): bool
+    {
         return $this->prodejJidlaDo() < $this->ted();
     }
 
-    public function prodejTricekDo(): DateTimeImmutableStrict {
+    public function prodejTricekDo(): DateTimeImmutableStrict
+    {
         return (new DateTimeImmutableStrict(TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE))
             ->setTime(23, 59, 59);
     }
 
-    public function prodejTricekUkoncen(): bool {
+    public function prodejTricekUkoncen(): bool
+    {
         return $this->prodejTricekDo() < $this->ted();
     }
 
-    public function prodejPredmetuBezTricekDo(): DateTimeImmutableStrict {
+    public function prodejPredmetuBezTricekDo(): DateTimeImmutableStrict
+    {
         return (new DateTimeImmutableStrict(PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE))
             ->setTime(23, 59, 59);
     }
 
-    public function prodejPredmetuBezTricekUkoncen(): bool {
+    public function prodejPredmetuBezTricekUkoncen(): bool
+    {
         return $this->prodejPredmetuBezTricekDo() < $this->ted();
     }
 
-    public function prvniHromadneOdhlasovani(): DateTimeImmutableStrict {
+    public function prvniHromadneOdhlasovani(): DateTimeImmutableStrict
+    {
         return DateTimeImmutableStrict::createFromInterface(
-            DateTimeGamecon::prvniHromadneOdhlasovani($this->rocnik())
+            DateTimeGamecon::prvniHromadneOdhlasovani($this->rocnik()),
         );
     }
 
-    public function druheHromadneOdhlasovani(): DateTimeImmutableStrict {
+    public function druheHromadneOdhlasovani(): DateTimeImmutableStrict
+    {
         return DateTimeImmutableStrict::createFromInterface(
-            DateTimeGamecon::druheHromadneOdhlasovani($this->rocnik())
+            DateTimeGamecon::druheHromadneOdhlasovani($this->rocnik()),
         );
     }
 
-    public function tretiHromadneOdhlasovani(): DateTimeImmutableStrict {
+    public function tretiHromadneOdhlasovani(): DateTimeImmutableStrict
+    {
         return DateTimeImmutableStrict::createFromInterface(
-            DateTimeGamecon::tretiHromadneOdhlasovani($this->rocnik())
+            DateTimeGamecon::tretiHromadneOdhlasovani($this->rocnik()),
         );
     }
 
     /**
      * @throws ChybnaZpetnaPlatnost
      */
-    public function nejblizsiHromadneOdhlasovaniKdy(\DateTimeInterface $platnostZpetneKDatu = null): DateTimeImmutableStrict {
+    public function nejblizsiHromadneOdhlasovaniKdy(\DateTimeInterface $platnostZpetneKDatu = null): DateTimeImmutableStrict
+    {
         return DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($this, $platnostZpetneKDatu);
     }
 
-    public function nejblizsiVlnaKdy(\DateTimeInterface $platnostZpetneKDatu = null): DateTimeGamecon {
+    public function nejblizsiVlnaKdy(\DateTimeInterface $platnostZpetneKDatu = null): DateTimeGamecon
+    {
         return DateTimeGamecon::nejblizsiVlnaKdy($this, $platnostZpetneKDatu);
     }
 
-    public function databazoveNastaveni(): DatabazoveNastaveni {
+    public function databazoveNastaveni(): DatabazoveNastaveni
+    {
         return $this->databazoveNastaveni;
     }
 
-    public function prvniVlnaKdy(): DateTimeGamecon {
+    public function prvniVlnaKdy(): DateTimeGamecon
+    {
         return DateTimeGamecon::prvniVlnaKdy($this->rocnik());
     }
 
-    public function druhaVlnaKdy(): DateTimeGamecon {
+    public function druhaVlnaKdy(): DateTimeGamecon
+    {
         return DateTimeGamecon::druhaVlnaKdy($this->rocnik());
     }
 
-    public function tretiVlnaKdy(): DateTimeGamecon {
+    public function tretiVlnaKdy(): DateTimeGamecon
+    {
         return DateTimeGamecon::tretiVlnaKdy($this->rocnik());
     }
 
-    public function registraceAktivitOd(): DateTimeGamecon {
+    public function registraceAktivitOd(): DateTimeGamecon
+    {
         return DateTimeGamecon::createFromMysql(defined('GC_BEZI_OD')
             ? GC_BEZI_OD
-            : $this->dejVychoziHodnotu('GC_BEZI_OD')
+            : $this->dejVychoziHodnotu('GC_BEZI_OD'),
         );
     }
 
-    public function registraceAktivitDo(): DateTimeGamecon {
+    public function registraceAktivitDo(): DateTimeGamecon
+    {
         return DateTimeGamecon::createFromMysql(defined('GC_BEZI_DO')
             ? GC_BEZI_DO
-            : $this->dejVychoziHodnotu('GC_BEZI_DO')
+            : $this->dejVychoziHodnotu('GC_BEZI_DO'),
         );
     }
 
-    public function zacatekRegistraciUcastniku(): DateTimeGamecon {
+    public function zacatekRegistraciUcastniku(): DateTimeGamecon
+    {
         return DateTimeGamecon::zacatekRegistraciUcastniku($this->rocnik());
     }
 
-    public function konecRegistraciUcastniku(): DateTimeGamecon {
+    public function konecRegistraciUcastniku(): DateTimeGamecon
+    {
         return DateTimeGamecon::konecRegistraciUcastniku($this->rocnik());
     }
 
-    public function registraceUcastnikuSpustena(): bool {
+    public function registraceUcastnikuSpustena(): bool
+    {
         return REG_GC;
     }
 
-    public function registraceUcastnikuDo(): DateTimeGamecon {
+    public function registraceUcastnikuDo(): DateTimeGamecon
+    {
         return DateTimeGamecon::konecRegistraciUcastniku($this->rocnik);
     }
 
-    public function poRegistraciUcastniku(): bool {
+    public function poRegistraciUcastniku(): bool
+    {
         return po($this->registraceUcastnikuDo());
     }
 
-    public function neplaticCastkaVelkyDluh(): float {
+    public function neplaticCastkaVelkyDluh(): float
+    {
         return defined('NEPLATIC_CASTKA_VELKY_DLUH')
             ? NEPLATIC_CASTKA_VELKY_DLUH
             : $this->dejHodnotu('NEPLATIC_CASTKA_VELKY_DLUH');
     }
 
-    public function neplaticCastkaPoslalDost(): float {
+    public function neplaticCastkaPoslalDost(): float
+    {
         return defined('NEPLATIC_CASTKA_POSLAL_DOST')
             ? NEPLATIC_CASTKA_POSLAL_DOST
             : $this->dejHodnotu('NEPLATIC_CASTKA_POSLAL_DOST');
     }
 
-    public function neplaticPocetDnuPredVlnouKdyJeChranen(): int {
+    public function neplaticPocetDnuPredVlnouKdyJeChranen(): int
+    {
         return defined('NEPLATIC_POCET_DNU_PRED_VLNOU_KDY_JE_CHRANEN')
             ? NEPLATIC_POCET_DNU_PRED_VLNOU_KDY_JE_CHRANEN
             : $this->dejHodnotu('NEPLATIC_POCET_DNU_PRED_VLNOU_KDY_JE_CHRANEN');
     }
 
-    public function probihaRegistraceAktivit(): bool {
+    public function probihaRegistraceAktivit(): bool
+    {
         return mezi($this->prvniVlnaKdy(), REG_AKTIVIT_DO);
     }
 
-    public function jeApril(): bool {
+    public function jeApril(): bool
+    {
         return $this->ted()->format('j. n.') === '1. 4.';
     }
 
-    public function nacitatPlatbyXDniZpet(): int {
+    public function nacitatPlatbyXDniZpet(): int
+    {
         return 14; // kolik dní zpět se mají načítat platby při kontrole nově došlých plateb
     }
 
-    public function modreTrickoZdarmaOd(): float {
+    public function modreTrickoZdarmaOd(): float
+    {
         return (float)$this->dejHodnotu('MODRE_TRICKO_ZDARMA_OD');
     }
 }

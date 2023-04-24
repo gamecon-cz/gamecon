@@ -319,7 +319,7 @@ class DateTimeGamecon extends DateTimeCz
         if ($systemoveNastaveni->druheHromadneOdhlasovani()->getTimestamp() === $casOdhlasovani->getTimestamp()) {
             return 2;
         }
-        if ($systemoveNastaveni->druheHromadneOdhlasovani()->getTimestamp() === $casOdhlasovani->getTimestamp()) {
+        if ($systemoveNastaveni->tretiHromadneOdhlasovani()->getTimestamp() === $casOdhlasovani->getTimestamp()) {
             return 3;
         }
         throw new \LogicException(
