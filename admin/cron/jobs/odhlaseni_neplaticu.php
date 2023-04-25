@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Gamecon\Uzivatel\HromadneOdhlaseniNeplaticu;
 use Gamecon\Uzivatel\Exceptions\NevhodnyCasProHromadneOdhlasovani;
 use Gamecon\Kanaly\GcMail;
@@ -25,7 +27,7 @@ if (!$znovu || $systemoveNastaveni->jsmeNaOstre()) {
     $odhlaseniProvedenoKdy = $hromadneOdhlaseniNeplaticu->odhlaseniProvedenoKdy();
     if ($odhlaseniProvedenoKdy) {
         $odhlaseniProvedenoKdy = DateTimeCz::createFromInterface($odhlaseniProvedenoKdy);
-        logs("Hromadné odhlášení už bylo provedeno {$odhlaseniProvedenoKdy->relativni()} ({$odhlaseniProvedenoKdy->format(DateTimeCz::FORMAT_DB)})");
+        logs("Hromadné odhlášení už bylo provedeno {$odhlaseniProvedenoKdy->format(DateTimeCz::FORMAT_DB)}({$odhlaseniProvedenoKdy->relativni()})");
         return;
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Uzivatel\Exceptions\NevhodnyCasProHromadneOdhlasovani;
@@ -34,10 +36,13 @@ foreach ([1 => '+1 week', 2 => '+1 day'] as $poradiOznameni => $posun) {
     //  za týden mínus hodinu nebo za 23 hodin
     $overenaPlatnostZpetne           = DateTimeGamecon::overenaPlatnostZpetne($systemoveNastaveni)
         ->modifyStrict($posun); // jako kdybychom bychom pouštěli hromadné odhlašování za týden / zítra
-    $nejblizsiHromadneOdhlasovaniKdy = DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($systemoveNastaveni, $overenaPlatnostZpetne);
+    $nejblizsiHromadneOdhlasovaniKdy = DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy(
+        $systemoveNastaveni,
+        $overenaPlatnostZpetne,
+    );
 
     if ($nejblizsiHromadneOdhlasovaniKdy > $systemoveNastaveni->ted()->modify($posun)) {
-        logs("Hromadné odhlášení bude až za dlouhou dobu, {$nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB)}.");
+        logs("Hromadné odhlášení bude až za dlouhou dobu, {$nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB)} ({$nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu()}).\nE-mail pro CFO s nespárovanými platbami necháme na příští běh CRONu.");
         // POJISTKA PROTI PŘÍLIŽ BRZKÉMU SPUŠTĚNÍ
         return; // nejbližší odhlašování bude až za dlouhou dobu, tohle necháme na příštím CRONu
     }

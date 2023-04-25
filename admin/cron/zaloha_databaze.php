@@ -24,7 +24,7 @@ if (!glob($dnesniZalohaPattern) || getopt('', ['force']) || !empty($vynutZalohuD
             $dbBackupFile = ZALOHA_DB_SLOZKA . "/export_$time.sql.gz";
             $mysqldump    = NastrojeDatabaze::vytvorZGlobals()->vytvorMysqldumpProHlavniDatabazi(['compress' => Mysqldump::GZIP]);
             $mysqldump->start($dbBackupFile);
-            logs("...záloha databáze dokončena do souboru $dbBackupFile");
+            logs("...záloha databáze dokončena do souboru $dbBackupFile", false);
             copy($dbBackupFile, ZALOHA_DB_SLOZKA . "/export_latest.sql.gz");
         } catch (\Throwable $throwable) {
             $chybaZalohovaniDb = 'Uložení zálohy na disk selhalo';

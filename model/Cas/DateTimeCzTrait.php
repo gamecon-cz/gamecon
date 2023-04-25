@@ -226,9 +226,9 @@ trait DateTimeCzTrait
     }
 
     /** Vrací relativní formát času vůči současnému okamžiku */
-    public function relativni(): string
+    public function relativni(\DateTimeImmutable $ted = null): string
     {
-        $rozdil = time() - $this->getTimestamp();
+        $rozdil = ($ted?->getTimestamp() ?? time()) - $this->getTimestamp();
         if ($rozdil < 0) {
             return 'v budoucnosti';
         }
@@ -244,16 +244,16 @@ trait DateTimeCzTrait
         if ($rozdil < 60 * 60) {
             return 'před ' . round($rozdil / 60) . ' minutami';
         }
-        $rozdilDni = $this->rozdilDni(new static('now', $this->getTimezone()));
+        $rozdilDni = $this->rozdilDni($ted ?? new static('now', $this->getTimezone()));
         if (!$rozdilDni) { // do 24 hodin
             return $this->format('G:i');
         }
         return $rozdilDni;
     }
 
-    public function relativniVBudoucnu(): string
+    public function relativniVBudoucnu(\DateTimeInterface $ted = null): string
     {
-        $rozdil = $this->getTimestamp() - time();
+        $rozdil = $this->getTimestamp() - ($ted?->getTimestamp() ?? time());
         if ($rozdil < 0) {
             return 'v minulosti';
         }
@@ -269,7 +269,7 @@ trait DateTimeCzTrait
         if ($rozdil < 60 * 60) {
             return 'za ' . round($rozdil / 60) . ' minut';
         }
-        $rozdilDni = $this->rozdilDni(new static('now', $this->getTimezone()));
+        $rozdilDni = $this->rozdilDni($ted ?? new static('now', $this->getTimezone()));
         if ($rozdilDni === '') { // do 24 hodin
             return 'v ' . $this->format('G:i');
         }

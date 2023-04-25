@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Aktivita\HromadneAkceAktivit;
 use Gamecon\Aktivita\Exceptions\NevhodnyCasProAutomatickouHromadnouAktivaci;
+use Gamecon\Cas\DateTimeGamecon;
 
 /** @var bool $znovu */
 
@@ -24,8 +27,10 @@ $hromadneAkceAktivit = new HromadneAkceAktivit($systemoveNastaveni);
 if (!$znovu || $systemoveNastaveni->jsmeNaOstre()) {
     $automatickaAktivaceProvedenaKdy = $hromadneAkceAktivit->automatickaAktivaceProvedenaKdy();
     if ($automatickaAktivaceProvedenaKdy) {
+        $nejblizsiVlnaKdy                = $systemoveNastaveni->nejblizsiVlnaKdy();
+        $poradiVlny                      = DateTimeGamecon::poradiVlny($nejblizsiVlnaKdy, $systemoveNastaveni);
         $automatickaAktivaceProvedenaKdy = DateTimeCz::createFromInterface($automatickaAktivaceProvedenaKdy);
-        logs("Hromadná aktivace aktivit už byla provedena {$automatickaAktivaceProvedenaKdy->relativni()} ({$automatickaAktivaceProvedenaKdy->format(DateTimeCz::FORMAT_DB)})");
+        logs("Hromadná aktivace aktivit v rámci {$poradiVlny}. vlny už byla provedena {$automatickaAktivaceProvedenaKdy->relativni()} ({$automatickaAktivaceProvedenaKdy->format(DateTimeCz::FORMAT_DB)})");
         return;
     }
 }

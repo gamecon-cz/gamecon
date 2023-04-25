@@ -599,11 +599,6 @@ SQL;
         return DateTimeGamecon::nejblizsiVlnaKdy($this, $platnostZpetneKDatu);
     }
 
-    public function databazoveNastaveni(): DatabazoveNastaveni
-    {
-        return $this->databazoveNastaveni;
-    }
-
     public function prvniVlnaKdy(): DateTimeGamecon
     {
         return DateTimeGamecon::prvniVlnaKdy($this->rocnik());
@@ -617,6 +612,11 @@ SQL;
     public function tretiVlnaKdy(): DateTimeGamecon
     {
         return DateTimeGamecon::tretiVlnaKdy($this->rocnik());
+    }
+
+    public function databazoveNastaveni(): DatabazoveNastaveni
+    {
+        return $this->databazoveNastaveni;
     }
 
     public function registraceAktivitOd(): DateTimeGamecon

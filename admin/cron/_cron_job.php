@@ -40,13 +40,6 @@ if (in_array($job, ['mail_cfo_nesparovane_platby', 'aktivity_hromadne'])) {
     }
 }
 
-if (in_array($job, ['mail_varovani_neplaticum_o_brzkem_odhlaseni', 'aktivity_hromadne'])) {
-    require __DIR__ . '/jobs/mail_varovani_neplaticum_o_brzkem_odhlaseni.php';
-    if ($job === 'mail_varovani_neplaticum_o_brzkem_odhlaseni') {
-        return;
-    }
-}
-
 if ($job !== 'aktivity_hromadne') {
     throw new \RuntimeException(sprintf("Invalid job '%s'", $job));
 }

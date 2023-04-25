@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Gamecon\Uzivatel\HromadneOdhlaseniNeplaticu;
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Cas\DateTimeCz;
@@ -7,6 +9,7 @@ use Gamecon\Uzivatel\Exceptions\NevhodnyCasProHromadneOdhlasovani;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Report\BfgrReport;
 use Gamecon\Shop\Shop;
+use Gamecon\Cas\Exceptions\ChybnaZpetnaPlatnost;
 
 /** @var bool $znovu */
 
@@ -24,16 +27,20 @@ global $systemoveNastaveni;
 $hromadneOdhlaseniNeplaticu = new HromadneOdhlaseniNeplaticu($systemoveNastaveni);
 
 $poradiOznameni = null;
-$posuny         = [1 => '+1 day', 2 => '+1 hour'];
+// jako kdybychom bychom pouštěli hromadné odhlašování zítra / za hodinu
+$posuny                = [1 => '+1 day', 2 => '+1 hour'];
+$overenaPlatnostZpetne = DateTimeGamecon::overenaPlatnostZpetne($systemoveNastaveni);
 foreach ($posuny as $poradiOznameni => $posun) {
-    // za 23 hodin nebo právě teď
-    $overenaPlatnostZpetne           = DateTimeGamecon::overenaPlatnostZpetne($systemoveNastaveni)
-        ->modifyStrict($posun); // jako kdybychom bychom pouštěli hromadné odhlašování zítra / za hodinu
-    $nejblizsiHromadneOdhlasovaniKdy = DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($systemoveNastaveni, $overenaPlatnostZpetne);
+    // právě teď nebo před 23 hodinami
+    $overenaPlatnostZpetnePosunuta   = $overenaPlatnostZpetne->modifyStrict($posun);
+    $nejblizsiHromadneOdhlasovaniKdy = DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy(
+        $systemoveNastaveni,
+        $overenaPlatnostZpetne,
+    );
 
     if ($nejblizsiHromadneOdhlasovaniKdy > $systemoveNastaveni->ted()->modify($posun)) {
         // POJISTKA PROTI PŘÍLIŽ BRZKÉMU SPUŠTĚNÍ
-        logs("Hromadné odhlášení bude až za dlouhou dobu, {$nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB)}.");
+        logs("Hromadné odhlášení bude až za dlouhou dobu, {$nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB)} ({$nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu()}).\nE-mail pro CFO se seznamem neplatičů, kterým hrozí odhlášení, necháme na příští běh CRONu.");
         return; // nejbližší odhlašování bude až za dlouhou dobu, tohle necháme na příštím CRONu
     }
 
@@ -60,18 +67,21 @@ if (!$poradiOznameni) {
     return;
 }
 
+unset($posun);
+
 // abychom měli čerstvé informace o neplatičích
 require __DIR__ . '/../fio_stazeni_novych_plateb.php';
 
 $zpravyNeplatici = [];
 try {
+    $finalniPosun                    = $posuny[$poradiOznameni];
     $overenaPlatnostZpetne           = DateTimeGamecon::overenaPlatnostZpetne($systemoveNastaveni)
-        ->modifyStrict($posun); // jako kdybychom bychom pouštěli hromadné odhlašování zítra / za hodinu
+        ->modifyStrict($finalniPosun); // jako kdybychom bychom pouštěli hromadné odhlašování zítra / za hodinu
     $nejblizsiHromadneOdhlasovaniKdy = DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy(
         $systemoveNastaveni,
         $overenaPlatnostZpetne,
     );
-    $kDatu                           = $systemoveNastaveni->ted()->modify($posun[$poradiOznameni]);
+    $kDatu                           = $systemoveNastaveni->ted()->modify($finalniPosun);
     $neplaticiAKategorie             = $hromadneOdhlaseniNeplaticu->neplaticiAKategorie(
         $nejblizsiHromadneOdhlasovaniKdy,
         null,
@@ -119,14 +129,15 @@ $bfgrReport->exportuj('xlsx', true, $bfgrSoubor);
 
 $cfosEmaily    = Uzivatel::cfosEmaily();
 $budeOdhlaseno = count($zpravyNeplatici);
-$brzy          = match ($poradiOznameni) {
+// TODO tohle podle $posun a ne takhle natvrdo
+$brzy         = match ($poradiOznameni) {
     1 => 'Zítra',
     2 => 'Za hodinu',
     default => 'Brzy'
 };
-$uvod          = "$brzy Gamecon systém odhlásí $budeOdhlaseno účastníků z letošního Gameconu, protože jsou neplatiči.";
-$oddelovac     = str_repeat('═', mb_strlen($uvod));
-$zpravyString  = implode(";\n", $zpravyNeplatici);
+$uvod         = "$brzy Gamecon systém odhlásí $budeOdhlaseno účastníků z letošního Gameconu, protože jsou neplatiči.";
+$oddelovac    = str_repeat('═', mb_strlen($uvod));
+$zpravyString = implode(";\n", $zpravyNeplatici);
 
 if ($zpravyPolozky) {
     $zpravyPolozkyString = implode(";\n", $zpravyPolozky);

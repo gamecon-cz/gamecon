@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
+use Gamecon\Cas\Exceptions\ChybnaZpetnaPlatnost;
 use Gamecon\Uzivatel\HromadneOdhlaseniNeplaticu;
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Uzivatel\Exceptions\NevhodnyCasProHromadneOdhlasovani;
 use Gamecon\Cas\DateTimeGamecon;
-use Gamecon\Report\BfgrReport;
 
 /** @var bool $znovu */
 
@@ -23,13 +25,17 @@ global $systemoveNastaveni;
 $hromadneOdhlaseniNeplaticu = new HromadneOdhlaseniNeplaticu($systemoveNastaveni);
 
 $poradiOznameni = null;
-foreach ([1 => '+3 day'] as $poradiOznameni => $posun) {
+$posuny         = [1 => '+3 day'];
+foreach ($posuny as $poradiOznameni => $posun) {
     $overenaPlatnostZpetne           = DateTimeGamecon::overenaPlatnostZpetne($systemoveNastaveni)
         ->modifyStrict($posun); // jako kdybychom bychom pouštěli hromadné odhlašování za tři dny
-    $nejblizsiHromadneOdhlasovaniKdy = DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($systemoveNastaveni, $overenaPlatnostZpetne);
+    $nejblizsiHromadneOdhlasovaniKdy = DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy(
+        $systemoveNastaveni,
+        $overenaPlatnostZpetne,
+    );
 
     if ($nejblizsiHromadneOdhlasovaniKdy > $systemoveNastaveni->ted()->modify($posun)) {
-        logs("Hromadné odhlášení bude až za dlouhou dobu, {$nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB)}.");
+        logs("Hromadné odhlášení bude až za dlouhou dobu, {$nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB)} ({$nejblizsiHromadneOdhlasovaniKdy->relativniVBudoucnu()}).\nE-maily s varováním neplatičům necháme na příští běh CRONu.");
         return; // nejbližší odhlašování bude až za dlouhou dobu, tohle necháme na příštím CRONu
     }
 
@@ -88,9 +94,16 @@ try {
     return;
 }
 
+$finalniOverenaPlatnostZpetne           = DateTimeGamecon::overenaPlatnostZpetne($systemoveNastaveni)
+    ->modifyStrict($posun); // jako kdybychom bychom pouštěli hromadné odhlašování za tři dny
+$finalniNejblizsiHromadneOdhlasovaniKdy = DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy(
+    $systemoveNastaveni,
+    $finalniOverenaPlatnostZpetne,
+);
+
 $hromadneOdhlaseniNeplaticu->zalogujNotifikovaniNeplaticuOBrzkemHromadnemOdhlaseni(
     $pocetPotencialnichNeplaticu,
-    $nejblizsiHromadneOdhlasovaniKdy,
+    $finalniNejblizsiHromadneOdhlasovaniKdy,
     $poradiOznameni,
     Uzivatel::zId(Uzivatel::SYSTEM),
 );

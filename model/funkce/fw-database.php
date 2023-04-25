@@ -652,7 +652,7 @@ function dbQueryS($q, array $pole = null, mysqli $mysqli = null)
     if (!$pole) {
         return dbQuery($q, null, $mysqli);
     }
-    $delta = !str_contains($q, '$0')
+    $delta = array_key_exists(0, $pole) && !str_contains($q, '$0')
         ? -1
         : 0; // povolení číslování $1, $2, $3...
     return dbQuery(
@@ -691,7 +691,7 @@ function dbQa(array $array): string
 function dbQv($val): string
 {
     if (is_array($val)) {
-        if (count($val) === 0) {
+        if ($val === []) {
             return 'NULL';
         }
         return implode(',', array_map('dbQv', $val));

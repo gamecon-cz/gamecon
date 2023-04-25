@@ -293,7 +293,7 @@ class DateTimeGamecon extends DateTimeCz
         \DateTimeInterface $platnostZpetne = null,
     ): DateTimeImmutableStrict
     {
-        $platnostZpetne = static::overenaPlatnostZpetne($systemoveNastaveni, $platnostZpetne);
+        $platnostZpetne = $platnostZpetne ?? static::overenaPlatnostZpetne($systemoveNastaveni);
 
         $prvniHromadneOdhlasovani = $systemoveNastaveni->prvniHromadneOdhlasovani();
         if ($prvniHromadneOdhlasovani >= $platnostZpetne) { // právě je nebo teprve bude
@@ -327,6 +327,25 @@ class DateTimeGamecon extends DateTimeCz
         );
     }
 
+    public static function poradiVlny(
+        \DateTimeInterface $casVlny,
+        SystemoveNastaveni $systemoveNastaveni,
+    ): int
+    {
+        if ($systemoveNastaveni->prvniVlnaKdy()->getTimestamp() === $casVlny->getTimestamp()) {
+            return 1;
+        }
+        if ($systemoveNastaveni->druhaVlnaKdy()->getTimestamp() === $casVlny->getTimestamp()) {
+            return 2;
+        }
+        if ($systemoveNastaveni->tretiVlnaKdy()->getTimestamp() === $casVlny->getTimestamp()) {
+            return 3;
+        }
+        throw new \LogicException(
+            "Neznámé pořadí data vlny (hromadné aktivace aktivit) '{$casVlny->format(self::FORMAT_DB)}'"
+        );
+    }
+
     /**
      * @throws ChybnaZpetnaPlatnost
      */
@@ -341,8 +360,9 @@ class DateTimeGamecon extends DateTimeCz
         if ($platnostZpetne > $ted) {
             throw new ChybnaZpetnaPlatnost(
                 sprintf(
-                    "Nelze použít platnost zpětně k datu '%s' když je teprve '%s'. Vyžadován čas v minulosti.",
+                    "Nelze použít platnost zpětně k datu '%s' (%s) když teď je teprve '%s'. Vyžadován čas v minulosti.",
                     $platnostZpetne->format(DateTimeCz::FORMAT_DB),
+                    $platnostZpetne->relativniVBudoucnu($ted),
                     $ted->format(DateTimeCz::FORMAT_DB),
                 )
             );

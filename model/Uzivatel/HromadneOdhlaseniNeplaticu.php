@@ -11,9 +11,9 @@ use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Logger\LogHomadnychAkciTrait;
 use Gamecon\Logger\Zaznamnik;
-use Gamecon\Pravo;
 use Gamecon\Role\Role;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveniStruktura;
 use Gamecon\Uzivatel\Exceptions\NaHromadneOdhlasovaniJeBrzy;
 use Gamecon\Uzivatel\Exceptions\NaHromadneOdhlasovaniJePozde;
 use Chyba;
@@ -237,13 +237,19 @@ SQL,
 
         $platnostZpetneKDatu ??= $kDatu->modify(DateTimeGamecon::VYCHOZI_PLATNOST_HROMADNYCH_AKCI_ZPETNE);
         if ($nejblizsiHromadneOdhlasovaniKdy < $platnostZpetneKDatu) {
+            $rozdil                      = $kDatu->diff($platnostZpetneKDatu);
+            $posledniMoznaPlatnostZpetne = $nejblizsiHromadneOdhlasovaniKdy->add($rozdil);
             throw new NaHromadneOdhlasovaniJePozde(
                 sprintf(
                     "Hromadné odhlášení může být spuštěno nanejvýš den po platnosti.
-Platnost hromadného odhlášení byla '%s', teď je '%s' a nejpozději šlo hromadně odhlásit v '%s'",
+Platnost současného hromadného odhlašování byla '%s' (%s), teď je '%s' a nejpozději šlo hromadně odhlásit '%s' (%s).
+Čas hromadného odhlašování se řídí časem třetí vlny aktivit, %s",
                     $nejblizsiHromadneOdhlasovaniKdy->format(DateTimeCz::FORMAT_DB),
+                    $nejblizsiHromadneOdhlasovaniKdy->relativni(),
                     $kDatu->format(DateTimeCz::FORMAT_DB),
-                    $platnostZpetneKDatu->format(DateTimeCz::FORMAT_DB),
+                    $posledniMoznaPlatnostZpetne->format(DateTimeCz::FORMAT_DB),
+                    $posledniMoznaPlatnostZpetne->relativni(),
+                    URL_ADMIN . '/nastaveni?zvyrazni=TRETI_VLNA_KDY#TRETI_VLNA_KDY',
                 )
             );
         }
