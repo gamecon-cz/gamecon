@@ -45,7 +45,7 @@ class TypAktivity extends \DbObject
     /**
      * @return array<int>
      */
-    public static function typyKterymNevadiSdileniMistnostiSJinymiTypy(): array
+    public static function typyKterymNevadiSdileniMistnostiSZadnymiTypy(): array
     {
         return [self::TECHNICKA, self::BRIGADNICKA];
     }
@@ -159,7 +159,7 @@ class TypAktivity extends \DbObject
         return !in_array(
             $this->id(),
             [
-                ...self::typyKterymNevadiSdileniMistnostiSJinymiTypy(),
+                ...self::typyKterymNevadiSdileniMistnostiSZadnymiTypy(),
                 ...self::typyKterymNevadiSdileniMistnostiSeStejnymTypem(),
             ],
         );
