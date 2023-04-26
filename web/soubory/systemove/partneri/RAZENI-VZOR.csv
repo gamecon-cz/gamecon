@@ -1,0 +1,8 @@
+# Řádky s mřížkou jsou ignorovány a můžeš je použít jako komentář.
+# ---
+# Obrázky pro web se seřadí nejdříve podle seznamu v souboru RAZENI.csv
+# Pro řazení se ignoruje velikost písmen a případné www. na začátku
+# Například www.Albi.cz se pro řazení bere jako albi.cz
+# Obrázky, které v souboru nejsou, se seřadí podle abecedy a připojí za obrázky seřazené podle seznamu v RAZENI.csv
+pizzapanda.cz.png
+kudyznudy.cz.jpg
