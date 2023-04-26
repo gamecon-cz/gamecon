@@ -41,4 +41,6 @@ define('PROFILOVACI_LISTA', true);
 define('CACHE_SLOZKY_PRAVA', 0777);
 define('ZOBRAZIT_STACKTRACE_VYJIMKY', true);
 
+if (!defined('MAILER_DSN')) define('MAILER_DSN', 'mailhog.gamecon:8025');
+
 error_reporting(E_ALL);

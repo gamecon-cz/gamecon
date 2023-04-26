@@ -44,4 +44,6 @@ if (!defined('PROFILOVACI_LISTA')) define('PROFILOVACI_LISTA', true);
 if (!defined('CACHE_SLOZKY_PRAVA')) define('CACHE_SLOZKY_PRAVA', 0777);
 if (!defined('ZOBRAZIT_STACKTRACE_VYJIMKY')) define('ZOBRAZIT_STACKTRACE_VYJIMKY', true);
 
+if (!defined('MAILER_DSN')) define('MAILER_DSN', '');
+
 error_reporting(E_ALL);
