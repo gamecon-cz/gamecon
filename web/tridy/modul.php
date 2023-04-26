@@ -41,24 +41,24 @@ class Modul
     }
 
     /** Jestli se modul má renderovat bez zobrazeného menu */
-    function bezMenu($val = null) {
+    public function bezMenu($val = null) {
         if (isset($val)) $this->bezMenu = (bool)$val;
         return $this->bezMenu;
     }
 
     /** Jestli se má modul renderovat přes celou šířku monitoru */
-    function bezOkraju($val = null) {
+    public function bezOkraju($val = null) {
         if (isset($val)) $this->bezOkraju = (bool)$val;
         return $this->bezOkraju;
     }
 
     /** Jestli se má modul renderovat čistě jako plaintext */
-    function bezStranky($val = null) {
+    public function bezStranky($val = null) {
         if (isset($val)) $this->bezStranky = $val;
         return $this->bezStranky;
     }
 
-    function bezPaticky($val = null) {
+    public function bezPaticky($val = null) {
         if (isset($val)) $this->bezPaticky = $val;
         return $this->bezPaticky;
     }
@@ -67,21 +67,21 @@ class Modul
      * Jestli je modul v novém vizuálním stylu (codename blackarrow).
      * TODO po zmigrování všech modulů je možné toto postupně odstranit.
      */
-    function blackarrowStyl($val = null) {
+    public function blackarrowStyl($val = null) {
         if (isset($val)) $this->blackarrowStyl = $val;
         return $this->blackarrowStyl;
     }
 
-    function cssUrls() {
+    public function cssUrls() {
         return $this->cssUrls;
     }
 
-    function info(Info $val = null): ?Info {
+    public function info(Info $val = null): ?Info {
         if (isset($val)) $this->info = $val;
         return $this->info;
     }
 
-    function jsUrls() {
+    public function jsUrls() {
         return $this->jsUrls;
     }
 
@@ -91,18 +91,18 @@ class Modul
     }
 
     /** Setter/getter pro parametr (proměnnou) předanou dovnitř modulu */
-    function param($nazev) {
+    public function param($nazev) {
         if (func_num_args() == 2) {
             $this->params[$nazev] = func_get_arg(1);
         }
         return $this->params[$nazev] ?? null;
     }
 
-    function pridejCssUrl($url) {
+    public function pridejCssUrl($url) {
         $this->cssUrls[] = $url;
     }
 
-    function pridejJsSoubor($cesta) {
+    public function pridejJsSoubor($cesta) {
         $cestaKSouboru  = strpos(realpath($cesta), realpath(WWW)) === 0
             ? $cesta
             : WWW . '/' . $cesta;
@@ -114,13 +114,10 @@ class Modul
 
     /** Vrátí výchozí šablonu pro tento modul (pokud existuje) */
     protected function sablona() {
-        $soubor           = 'sablony/' . $this->nazev() . '.xtpl';
         $blackarrowSoubor = 'sablony/blackarrow/' . $this->nazev() . '.xtpl';
 
         if (is_file($blackarrowSoubor)) {
             return new XTemplate($blackarrowSoubor);
-        } else if (is_file($soubor)) {
-            return new XTemplate($soubor);
         } else {
             return null;
         }
@@ -131,7 +128,7 @@ class Modul
      * Viz, že modul dostává některé parametry pomocí proměnných resp. šablona se
      * načítá automaticky.
      */
-    function spust() {
+    public function spust() {
         extract($this->params); // TODO možná omezit explicitně parametry, které se smí extractnout, ať to není black magic
         $t = $this->sablona();
 
@@ -149,7 +146,7 @@ class Modul
     }
 
     /** Vrátí výstup, který modul vygeneroval */
-    function vystup() {
+    public function vystup() {
         if ($this->bezDekorace || $this->bezStranky)
             return $this->vystup;
         elseif ($this->bezOkraju)
@@ -161,7 +158,7 @@ class Modul
     }
 
     /** Načte modul odpovídající dané Url (pokud není zadaná, použije aktuální) */
-    static function zUrl(Url $urlObjekt = null, SystemoveNastaveni $systemoveNastaveni) {
+    public static function zUrl(Url $urlObjekt = null, SystemoveNastaveni $systemoveNastaveni) {
         $url        = null;
         $podstranka = null;
         if (!$urlObjekt) {
@@ -176,7 +173,7 @@ class Modul
     }
 
     /** Načte modul podle daného názvu */
-    static function zNazvu(
+    public static function zNazvu(
         ?string            $nazev,
         string             $podstranka = null,
         SystemoveNastaveni $systemoveNastaveni
