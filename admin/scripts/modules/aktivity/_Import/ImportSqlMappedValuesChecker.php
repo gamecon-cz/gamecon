@@ -495,25 +495,28 @@ SQL
         if (!$rangeDates) {
             return ImportStepResult::success(true);
         }
-        $sdileniMistnostiJeProNiProblem = $soucasnyTypAktivity->sdileniMistnostiJeProNiProblem();
         /** @var DateTimeCz $zacatek */
         /** @var DateTimeCz $konec */
         ['start' => $zacatek, 'end' => $konec] = $rangeDates;
         $locationOccupyingActivityIds = dbOneArray(<<<SQL
 SELECT id_akce
 FROM akce_seznam
-WHERE akce_seznam.lokace = $1
-AND akce_seznam.zacatek <= $2 -- jina zacala na konci nebo pred koncem novem
-AND akce_seznam.konec >= $3 -- jina skoncila na zacatku nebo po zacatku nove
-AND akce_seznam.typ NOT IN ($5) -- jen aktivity kterym vadi, ze by sdilely mistnost
-AND IF ($4 IS NULL, TRUE, akce_seznam.id_akce != $4) -- jen jine aktivity
+WHERE akce_seznam.lokace = $0
+AND akce_seznam.zacatek <= $1 -- jina zacala na konci nebo pred koncem nove
+AND akce_seznam.konec >= $2 -- jina skoncila na zacatku nebo po zacatku nove
+AND akce_seznam.typ NOT IN ($3) -- jen aktivity kterym vadi, ze by sdilely mistnost
+AND IF ($4 IS NULL, TRUE, akce_seznam.typ != $4) -- jen ostatni typy aktivit, pokud soucasne nevadi stejny typ
+AND IF ($5 IS NULL, TRUE, akce_seznam.id_akce != $5) -- jen jine aktivity
 SQL,
             [
-                1 => $idLokace,
-                2 => $konec->formatDb(),
-                3 => $zacatek->formatDb(),
-                4 => $puvodniAktivita?->id(),
-                5 => $soucasnyTypAktivity::typyKterymNevadiSdileniMistnosti(),
+                0 => $idLokace,
+                1 => $konec->formatDb(),
+                2 => $zacatek->formatDb(),
+                3 => $soucasnyTypAktivity::typyKterymNevadiSdileniMistnostiSJinymiTypy(),
+                4 => $soucasnyTypAktivity->nevadiMuSdileniMistnostiSeStejnymTypem()
+                    ? $soucasnyTypAktivity->id()
+                    : null,
+                5 => $puvodniAktivita?->id(),
             ],
         );
         if (count($locationOccupyingActivityIds) === 0) {
@@ -531,7 +534,7 @@ SQL,
                     $locationOccupyingActivityIds,
                 ),
             );
-        $activitiesDescription .= $sdileniMistnostiJeProNiProblem
+        $activitiesDescription .= $soucasnyTypAktivity->sdileniMistnostiJeProNiProblem()
             ? ''
             : " jiného typu než '{$soucasnyTypAktivity->nazev()}'";
         return ImportStepResult::successWithWarnings(

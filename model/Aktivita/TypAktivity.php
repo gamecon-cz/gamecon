@@ -45,9 +45,17 @@ class TypAktivity extends \DbObject
     /**
      * @return array<int>
      */
-    public static function typyKterymNevadiSdileniMistnosti(): array
+    public static function typyKterymNevadiSdileniMistnostiSJinymiTypy(): array
     {
-        return [self::TECHNICKA, self::BRIGADNICKA, self::WARGAMING];
+        return [self::TECHNICKA, self::BRIGADNICKA];
+    }
+
+    /**
+     * @return array<int>
+     */
+    public static function typyKterymNevadiSdileniMistnostiSeStejnymTypem(): array
+    {
+        return [self::WARGAMING, self::DESKOHERNA];
     }
 
     protected static $tabulka      = 'akce_typy';
@@ -150,7 +158,19 @@ class TypAktivity extends \DbObject
     {
         return !in_array(
             $this->id(),
-            [self::TECHNICKA, self::BRIGADNICKA, self::WARGAMING],
+            [
+                ...self::typyKterymNevadiSdileniMistnostiSJinymiTypy(),
+                ...self::typyKterymNevadiSdileniMistnostiSeStejnymTypem(),
+            ],
+        );
+    }
+
+    public function nevadiMuSdileniMistnostiSeStejnymTypem(): bool
+    {
+        return in_array(
+            $this->id(),
+            self::typyKterymNevadiSdileniMistnostiSeStejnymTypem(),
+            true,
         );
     }
 }

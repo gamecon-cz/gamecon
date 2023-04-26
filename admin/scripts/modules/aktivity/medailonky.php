@@ -9,16 +9,17 @@
 
 use Gamecon\XTemplate\XTemplate;
 
-if(get('id') !== null) {
-  $f = Medailonek::form(get('id'));
-  $f->processPost();
-  echo $f->full();
-  return; // nezobrazovat věci níž
+if (get('id') !== null) {
+    $f = Medailonek::form(get('id'));
+    $f->processPost();
+    echo $f->full();
+    return; // nezobrazovat věci níž
 }
 
-if(post('noveId')) {
-  dbInsert('medailonky', ['id_uzivatele' => post('noveId')]);
-  oznameni('vytvořeno');
+if (post('noveId')) {
+    dbInsertIgnore('medailonky', ['id_uzivatele' => post('noveId'), 'o_sobe' => '', 'drd' => '']);
+    oznameni('vytvořeno', false);
+    back(getCurrentUrlWithQuery(['id' => post('noveId')]));
 }
 
 $t = new XTemplate('medailonky.xtpl');

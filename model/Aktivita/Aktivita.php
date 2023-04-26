@@ -783,7 +783,12 @@ SQL
         int     $odmenaZaHodinu = null,
     ): Aktivita
     {
-        $data['bez_slevy'] = (int)!empty($data['bez_slevy']); //checkbox pro "bez_slevy"
+        $data['bez_slevy']    = (int)!empty($data['bez_slevy']); // checkbox pro "bez_slevy"
+        $data['nedava_slevu'] = (int)!empty($data['nedava_slevu']); // checkbox pro "nedava_slevu"
+        $data['cena'] = (int)($data['cena'] ?? 0);
+        if (empty($data['popis']) && empty($data['id_akce'])) {
+            $data['popis'] = 0; // uložíme později jako jako $markdownPopis,teď jenom vyřešíme "Field 'popis' doesn't have a default value"
+        }
 
         $teamova          = !empty($data['teamova']);
         $data['teamova']  = (int)$teamova;   //checkbox pro "teamova"
