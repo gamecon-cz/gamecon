@@ -1050,7 +1050,7 @@ SQL,
         $objednalNejakeJidlo = $shop->objednalNejakeJidlo();
         if (!$shop->koupilNejakouVec()) {
             return $objednalNejakeJidlo
-                ? "<span class=\"hinted\">jen stravenky<span class=\"hint\">{$shop->objednneJidloPrehledHtml()}</span></span>"
+                ? "<span class=\"hinted\">jen stravenky<span class=\"hint\">{$shop->objednaneJidloPrehledHtml()}</span></span>"
                 : '';
         }
         $velikostBalicku = $this->r['infopult_poznamka'] === 'velký balíček ' . $this->systemoveNastaveni->rocnik()
@@ -1059,7 +1059,7 @@ SQL,
         $nakupy          = [];
         $nakupy[]        = $shop->koupeneVeciPrehledHtml();
         if ($objednalNejakeJidlo) {
-            $nakupy[] = $shop->objednneJidloPrehledHtml();
+            $nakupy[] = $shop->objednaneJidloPrehledHtml();
         }
         $nakupyHtml = implode('<hr>', $nakupy);
         return '<span class="hinted">' . htmlentities($velikostBalicku) . ' ' . $this->id() . '<span class="hint">' . $nakupyHtml . '</span></span>';

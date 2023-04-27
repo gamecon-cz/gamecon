@@ -402,7 +402,7 @@ SQL,
         return true;
     }
 
-    public function objednneJidloPrehledHtml(): string
+    public function objednaneJidloPrehledHtml(): string
     {
         $t = new XTemplate(__DIR__ . '/templates/shop-jidla-prehled.xtpl');
 
