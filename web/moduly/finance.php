@@ -117,17 +117,19 @@ if (!$zaplaceno) {
                 <p>GameCon je nutné zaplatit převodem <strong>do <?= $limit ?></strong>. Platíš celkem
                     <strong><?= $castka ?></strong>, přesné údaje o platbě nalezneš výše.</p>
             <?php } ?>
-            <ul class="seznam-bez-okraje">
-                <li class="poznamka">Při pozdější platbě tě systém dne
-                    <strong><?php echo datum3($systemoveNastaveni->prvniHromadneOdhlasovani()) ?></strong>
-                    (příp. <?php echo datum3($systemoveNastaveni->druheHromadneOdhlasovani()) ?> při pozdější přihlášce)<strong>
-                        automaticky
-                        odhlásí</strong>.
-                </li>
-                <li class="poznamka">Při plánování aktivit si na účet pošli klidně více peněz. Přebytek ti vrátíme na
-                    infopultu nebo ho můžeš využít k přihlašování uvolněných aktivit na místě.
-                </li>
-            </ul>
+            <?php if (!$u->maPravoNerusitObjednavky()) { ?>
+                <ul class="seznam-bez-okraje">
+                    <li class="poznamka">Při pozdější platbě tě systém dne
+                        <strong><?php echo datum3($systemoveNastaveni->prvniHromadneOdhlasovani()) ?></strong>
+                        (příp. <?php echo datum3($systemoveNastaveni->druheHromadneOdhlasovani()) ?> při pozdější
+                        přihlášce)<strong>automaticky odhlásí</strong>.
+                    </li>
+                    <li class="poznamka">Při plánování aktivit si na účet pošli klidně více peněz. Přebytek ti vrátíme
+                        na
+                        infopultu nebo ho můžeš využít k přihlašování uvolněných aktivit na místě.
+                    </li>
+                </ul>
+            <?php } ?>
         <?php } else if (pred($systemoveNastaveni->druheHromadneOdhlasovani())) { ?>
             <?php if ($u->stat() === \Gamecon\Stat::CZ) { ?>
                 <p>GameCon je nutné zaplatit převodem <strong>do <?= $limit2 ?></strong>. Platíš celkem
