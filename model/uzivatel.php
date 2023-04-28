@@ -14,6 +14,8 @@ use Gamecon\Uzivatel\Exceptions\DuplicitniEmail;
 use Gamecon\Uzivatel\Exceptions\DuplicitniLogin;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Uzivatel\Finance;
+use Gamecon\Uzivatel\Pohlavi;
+use Gamecon\Uzivatel\SqlStruktura\UzivatelSqlStruktura as Sql;
 
 /**
  * Třída popisující uživatele a jeho vlastnosti
@@ -264,7 +266,7 @@ SQL
         if ($f) {
             return $f;
         }
-        if ($this->pohlavi() === 'f') {
+        if ($this->pohlavi() === Pohlavi::ZENA_KOD) {
             return Nahled::zSouboru(WWW . '/soubory/styl/fotka-holka.jpg');
         }
         return Nahled::zSouboru(WWW . '/soubory/styl/fotka-kluk.jpg');
@@ -608,7 +610,7 @@ SQL,
      */
     public function koncA(): string
     {
-        return ($this->pohlavi() === 'f')
+        return ($this->pohlavi() === Pohlavi::ZENA_KOD)
             ? 'a'
             : '';
     }
@@ -616,9 +618,7 @@ SQL,
     /** Vrátí koncovku "a" pro holky (resp. "" pro kluky) */
     public function koncovkaDlePohlavi(string $koncovkaProZeny = 'a'): string
     {
-        return ($this->pohlavi() === 'f')
-            ? $koncovkaProZeny
-            : '';
+        return Pohlavi::koncovkaDlePohlavi($this->pohlavi(), $koncovkaProZeny);
     }
 
     /** Vrátí primární mailovou adresu uživatele */
@@ -1218,27 +1218,27 @@ SQL,
      *
      * @return int id nově vytvořeného uživatele
      */
-    public static function registruj($tab)
+    public static function registruj(array $tab)
     {
-        return self::registrujUprav($tab);
+        return self::registrujUprav($tab, null);
     }
 
     /**
      * Zregistruje nového uživatele nebo upraví stávajícího $u, pokud je zadán.
      */
-    private static function registrujUprav($tab, Uzivatel $u = null)
+    private static function registrujUprav(array $tab, ?Uzivatel $u): string
     {
         $dbTab                  = $tab;
         $chyby                  = [];
         $preskocitChybejiciPole = (bool)$u;
 
         // opravy
-        $dbTab = array_map(function ($e) {
-            return preg_replace('/\s+/', ' ', trim($e));
+        $dbTab = array_map(static function ($hodnota) {
+            return preg_replace('/\s+/', ' ', trim((string)$hodnota));
         }, $dbTab);
 
-        if (isset($dbTab['email1_uzivatele'])) {
-            $dbTab['email1_uzivatele'] = mb_strtolower($dbTab['email1_uzivatele']);
+        if (isset($dbTab[Sql::EMAIL1_UZIVATELE])) {
+            $dbTab[Sql::EMAIL1_UZIVATELE] = mb_strtolower($dbTab[Sql::EMAIL1_UZIVATELE]);
         }
 
         // TODO fallback prázdná přezdívka -> mail?
@@ -1283,7 +1283,9 @@ SQL,
         };
 
         $validaceHesla = function ($heslo) use ($dbTab) {
-            if (empty($heslo)) return 'vyplň prosím heslo';
+            if (empty($heslo)) {
+                return 'vyplň prosím heslo';
+            }
 
             if (
                 $heslo != ($dbTab['heslo'] ?? null) ||
@@ -1294,26 +1296,28 @@ SQL,
             return '';
         };
 
+        $dbTab = self::spojPredvolbuSTelefonem($dbTab);
+
         $validace = [
-            'jmeno_uzivatele'      => ['.+', 'jméno nesmí být prázdné'],
-            'prijmeni_uzivatele'   => ['.+', 'příjmení nesmí být prázdné'],
-            'login_uzivatele'      => $validaceLoginu,
-            'email1_uzivatele'     => $validaceMailu,
-            'pohlavi'              => ['^(m|f)$', 'vyber prosím pohlaví'],
-            'ulice_a_cp_uzivatele' => ['.+ [\d\/a-z]+$', 'vyplň prosím ulici, např. Česká 27'],
-            'mesto_uzivatele'      => ['.+', 'vyplň prosím město'],
-            'psc_uzivatele'        => ['^[\d ]+$', 'vyplň prosím PSČ, např. 602 00'],
-            'stat_uzivatele'       => ['^(1|2|-1)$', 'vyber prosím stát'],
-            'telefon_uzivatele'    => ['^[\d \+]+$', 'vyplň prosím telefon, např. +420 789 123 456'],
-            'datum_narozeni'       => $validaceDataNarozeni,
-            'heslo'                => $validaceHesla,
-            'heslo_kontrola'       => $validaceHesla,
+            Sql::JMENO_UZIVATELE      => ['.+', 'jméno nesmí být prázdné'],
+            Sql::PRIJMENI_UZIVATELE   => ['.+', 'příjmení nesmí být prázdné'],
+            Sql::LOGIN_UZIVATELE      => $validaceLoginu,
+            Sql::EMAIL1_UZIVATELE     => $validaceMailu,
+            Sql::POHLAVI              => ['^(m|f)$', 'vyber prosím pohlaví'],
+            Sql::ULICE_A_CP_UZIVATELE => ['.+ [\d\/a-z]+$', 'vyplň prosím ulici, např. Česká 27'],
+            Sql::MESTO_UZIVATELE      => ['.+', 'vyplň prosím město'],
+            Sql::PSC_UZIVATELE        => ['^[\d ]+$', 'vyplň prosím PSČ, např. 602 00'],
+            Sql::STAT_UZIVATELE       => ['^(1|2|-1)$', 'vyber prosím stát'],
+            Sql::TELEFON_UZIVATELE    => ['^[\d \+]+$', 'vyplň prosím telefon, např. +420 789 123 456'],
+            Sql::DATUM_NAROZENI       => $validaceDataNarozeni,
+            'heslo'                   => $validaceHesla,
+            'heslo_kontrola'          => $validaceHesla,
         ];
 
         // provedení validací
         $navic = array_diff(array_keys($dbTab), array_keys($validace));
         if ($navic) {
-            throw new Exception('Data obsahují nepovolené hodnoty');
+            throw new Exception('Data obsahují nepovolené hodnoty: ' . implode(',', $navic));
         }
 
         foreach ($validace as $klic => $validator) {
@@ -1379,6 +1383,21 @@ SQL,
         }
 
         return $idUzivatele;
+    }
+
+    protected static function spojPredvolbuSTelefonem(array $data): array
+    {
+        $telefon   = $data[Sql::TELEFON_UZIVATELE] ?? null;
+        $predvolba = $data['predvolba'] ?? null;
+        unset($data['predvolba']); // v dalším zpracování dat by předvolba byla považována za neznámý klíč a chybu
+
+        if (empty($telefon) || empty($predvolba)) {
+            return $data;
+        }
+
+        $data[Sql::TELEFON_UZIVATELE] = $predvolba . ' ' . $telefon;
+
+        return $data;
     }
 
     /**
@@ -1522,7 +1541,7 @@ SQL,
      *
      * Extra položky: heslo a heslo_kontrola (metoda si je sama převede na hash).
      */
-    public function uprav($tab)
+    public function uprav(array $tab)
     {
         $tab = array_filter($tab);
         return self::registrujUprav($tab, $this);

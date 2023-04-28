@@ -11,10 +11,16 @@
  * právě sem.
  */
 
-use \Gamecon\Cas\DateTimeCz;
+use Gamecon\Cas\DateTimeCz;
+use Gamecon\Uzivatel\SqlStruktura\UzivatelSqlStruktura as Sql;
+use Gamecon\Stat;
+use Gamecon\Uzivatel\Pohlavi;
 
 /** @var Uzivatel|null $u */
 
+/**
+ * @throws Chyby
+ */
 $zpracujRegistraci = function () use ($u) {
     if (!post('registrovat')) {
         return;
@@ -23,7 +29,7 @@ $zpracujRegistraci = function () use ($u) {
         throw Chyby::jedna('Jiný uživatel v tomto prohlížeči už je přihlášený.');
     }
 
-    $id = Uzivatel::registruj(post('formData'));
+    $id = Uzivatel::registruj((array)post('formData'));
     Uzivatel::prihlasId($id);
 
     if (post('aPrihlasit')) {
@@ -37,10 +43,14 @@ $zpracujRegistraci = function () use ($u) {
  *
  */
 $zpracujUpravu = function () use ($u) {
-    if (!post('upravit')) return;
-    if (!$u) throw Chyby::jedna('Došlo k odhlášení, přilaš se prosím znovu.');
+    if (!post('upravit')) {
+        return;
+    }
+    if (!$u) {
+        throw Chyby::jedna('Došlo k odhlášení, přihlaš se prosím znovu.');
+    }
 
-    $u->uprav(post('formData'));
+    $u->uprav((array)post('formData'));
 
     oznameni(hlaska('upravaUzivatele'));
 };
@@ -57,7 +67,7 @@ try {
     $chyby = $e;
 }
 
-$formData         = post('formData') ?? ($u ? $u->rawDb() : null);
+$formData         = post('formData') ?? $u?->rawDb();
 $souhlasilOsUdaje = $u || post('registrovat');
 if ($chyby && $chyby->globalniChyba()) {
     Chyba::nastav($chyby->globalniChyba());
@@ -68,10 +78,19 @@ $zacatekPrihlasovani = (new DateTimeCz(REG_GC_OD))->format('j.&#160;n. \v\e H:i'
 /**
  * Pomocná funkce pro inputy
  */
-$input = function ($nazev, $typ, $klic) use ($formData, $chyby) {
+$input = static function (
+    string $nazev,
+    string $typ,
+    string $klic,
+    string $inputCss = '',
+    string $predrazeneHtml = '',
+) use ($formData, $chyby): string {
     $predvyplneno = $formData[$klic] ?? '';
 
-    $requiredHtml = $typ == 'date' ? 'required' : '';
+    $requiredHtml   = $typ == 'date' ? 'required' : '';
+    $additionalHtml = $typ === 'password'
+        ? 'autocomplete="new-password"' // aby se nám automaticky nevkládalo heslo
+        : '';
 
     $chybaHtml  = '';
     $chybaTrida = '';
@@ -80,25 +99,29 @@ $input = function ($nazev, $typ, $klic) use ($formData, $chyby) {
         $chybaTrida = 'formular_polozka-chyba';
     }
 
-    return '
-        <label class="formular_polozka ' . $chybaTrida . '">
-            ' . $nazev . '
+    return <<<HTML
+        <label class="formular_polozka {$chybaTrida}">
+            <div>{$nazev}</div>
+            {$predrazeneHtml}
             <input
-                type="' . $typ . '"
-                name="formData[' . $klic . ']"
-                value="' . $predvyplneno . '"
+                id="input_{$klic}"
+                style="{$inputCss}"
+                type="{$typ}"
+                name="formData[{$klic}]"
+                value="{$predvyplneno}"
                 placeholder=" "
-                ' . $requiredHtml . '
+                {$requiredHtml}
+                {$additionalHtml}
             >
-            ' . $chybaHtml . '
+            {$chybaHtml}
         </label>
-    ';
+    HTML;
 };
 
 /**
  * Pomocná funcke pro selecty
  */
-$select = function ($nazev, $klic, $moznosti) use ($formData, $chyby) {
+$select = static function (string $nazev, string $klic, array $moznosti) use ($formData, $chyby): string {
     $moznostiHtml = '<option disabled value selected></option>';
     foreach ($moznosti as $hodnota => $popis) {
         $selected     = ($formData[$klic] ?? null) == $hodnota;
@@ -113,15 +136,35 @@ $select = function ($nazev, $klic, $moznosti) use ($formData, $chyby) {
         $chybaTrida = 'formular_polozka-chyba';
     }
 
-    return '
-        <label class="formular_polozka ' . $chybaTrida . '">
-            ' . $nazev . '
-            <select name="formData[' . $klic . ']" required>
-                ' . $moznostiHtml . '
+    return <<<HTML
+        <label class="formular_polozka {$chybaTrida}">
+            {$nazev}
+            <select name="formData[{$klic}]" required>
+            {$moznostiHtml}
             </select>
-            ' . $chybaHtml . '
+            {$chybaHtml}
         </label>
-    ';
+    HTML;
+};
+
+$telefonniPredvolbaInput = static function (string $klic, string $inputCss = '') use ($input) {
+    $options     = [
+        '',
+        '+421',
+        '+420',
+    ];
+    $optionsHtml = implode(
+        "\n",
+        array_map(
+            static fn(string $predvolba) => "<option value='$predvolba'>$predvolba</option>",
+            $options,
+        ),
+    );
+    return <<<HTML
+<select name="formData[{$klic}]" style="{$inputCss}" id="input_{$klic}">
+  {$optionsHtml}
+</select>
+HTML;
 };
 
 ?>
@@ -156,10 +199,10 @@ $select = function ($nazev, $klic, $moznosti) use ($formData, $chyby) {
     <?= $input('E-mailová adresa', 'email', 'email1_uzivatele') ?>
 
     <div class="formular_sloupce">
-        <?= $input('Jméno', 'text', 'jmeno_uzivatele') ?>
-        <?= $input('Příjmení', 'text', 'prijmeni_uzivatele') ?>
-        <?= $input('Přezdívka', 'text', 'login_uzivatele') ?>
-        <?= $input('Datum narození', 'date', 'datum_narozeni') ?>
+        <?= $input('Jméno', 'text', Sql::JMENO_UZIVATELE) ?>
+        <?= $input('Příjmení', 'text', Sql::PRIJMENI_UZIVATELE) ?>
+        <?= $input('Přezdívka', 'text', Sql::LOGIN_UZIVATELE) ?>
+        <?= $input('Datum narození', 'date', Sql::DATUM_NAROZENI) ?>
     </div>
 
     <div class="formular_bydlisteTooltip">
@@ -178,21 +221,21 @@ $select = function ($nazev, $klic, $moznosti) use ($formData, $chyby) {
     <h2 class="formular_sekceNadpis">Bydliště</h2>
 
     <div class="formular_sloupce">
-        <?= $input('Ulice a číslo popisné', 'text', 'ulice_a_cp_uzivatele') ?>
-        <?= $input('Město', 'text', 'mesto_uzivatele') ?>
-        <?= $input('PSČ', 'text', 'psc_uzivatele') ?>
-        <?= $select('Země', 'stat_uzivatele', [
-            '1'  => 'Česká republika',
-            '2'  => 'Slovenská republika',
-            '-1' => '(jiný stát)',
+        <?= $input('Ulice a číslo popisné', 'text', Sql::ULICE_A_CP_UZIVATELE) ?>
+        <?= $input('Město', 'text', Sql::MESTO_UZIVATELE) ?>
+        <?= $input('PSČ', 'text', Sql::PSC_UZIVATELE) ?>
+        <?= $select('Země', Sql::STAT_UZIVATELE, [
+            Stat::CZ_ID   => 'Česká republika',
+            Stat::SK_ID   => 'Slovenská republika',
+            Stat::JINY_ID => '(jiný stát)',
         ]) ?>
     </div>
 
     <h2 class="formular_sekceNadpis">Ostatní</h2>
 
     <div class="formular_sloupce">
-        <?= $input('Telefonní číslo', 'text', 'telefon_uzivatele') ?>
-        <?= $select('Pohlaví', 'pohlavi', ['f' => 'žena', 'm' => 'muž']) ?>
+        <?= $input('Telefonní číslo', 'text', Sql::TELEFON_UZIVATELE, 'width: 70%; float:right', $telefonniPredvolbaInput('predvolba', 'float: left; width: 29%')) ?>
+        <?= $select('Pohlaví', Sql::POHLAVI, Pohlavi::seznamProSelect()) ?>
     </div>
 
     <?= $input('Heslo', 'password', 'heslo') ?>
@@ -202,7 +245,7 @@ $select = function ($nazev, $klic, $moznosti) use ($formData, $chyby) {
         <span class="tooltip">
             Shrnutí souhlasu
             <div class="tooltip_obsah">
-                Prosíme o souhlas se zpracováním tvých údajů. Slibujeme, že je předáme jen těm, komu to bude kvůli vyloženě potřeba (např. vypravěčům nebo poskytovatlei ubytování). Kontaktovat tě budeme v rozumné míře pouze v souvislosti s GameConem.<br><br>
+                Prosíme o souhlas se zpracováním tvých údajů. Slibujeme, že je předáme jen těm, komu to bude kvůli vyloženě potřeba (např. vypravěčům nebo poskytovateli ubytování). Kontaktovat tě budeme v rozumné míře pouze v souvislosti s GameConem.<br><br>
                 Plné právní znění najdeš <a href="legal" target="_blank">zde</a>
             </div>
         </span>
@@ -235,3 +278,29 @@ $select = function ($nazev, $klic, $moznosti) use ($formData, $chyby) {
     <!-- workaround: rezervace místa pro tooltip souhlasu -->
     <div style="height: 30px"></div>
 </form>
+
+<script type="text/javascript">
+    // pozor 'telefon_uzivatele' pochází z názvu sloupce SQL, pokud ho pejmenujeme, musíme změnit i tento název
+    const telefonInput = document.getElementById('input_telefon_uzivatele')
+    const predvolbaInput = document.getElementById('input_predvolba')
+    const moznePredvolby = Array.from(predvolbaInput.getElementsByTagName('option'))
+        .map((optionElement) => optionElement.value)
+        .filter((value) => value !== '')
+
+    telefonInput.addEventListener('change', function () {
+        const hodnota = this.value
+        if (hodnota.match(/^\s*[+]/)) {
+            predvolbaInput.value = '' // reset výběru předvolby na "žádná"
+        }
+    })
+    predvolbaInput.addEventListener('change', function () {
+        const predvolba = this.value.trim()
+        if (predvolba === '') {
+            return
+        }
+        moznePredvolby.forEach(function (moznaPredvolba) {
+            // účastník vybral předvolbu a přitom už nějakou má napsanou v telefonu, smažeme ji z telefonu
+            telefonInput.value = telefonInput.value.replace(moznaPredvolba, '')
+        })
+    })
+</script>
