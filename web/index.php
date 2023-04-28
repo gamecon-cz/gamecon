@@ -149,7 +149,7 @@ if ($m->bezStranky()) {
     } elseif ($u && $u->maPravo(\Gamecon\Pravo::ADMINISTRACE_MOJE_AKTIVITY)) {
         $t->parse('index.prihlasen.mujPrehled');
     }
-    if ($u && $u->gcPrihlasen() && FINANCE_VIDITELNE) {
+    if ($u && FINANCE_VIDITELNE) {
         $t->assign('finance', $u->finance()->stavHr());
     }
     if ($u && $u->gcPrihlasen()) {

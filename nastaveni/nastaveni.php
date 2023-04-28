@@ -80,7 +80,7 @@ if (!defined('PROGRAM_OD')) define('PROGRAM_OD', DateTimeGamecon::zacatekProgram
 if (!defined('PROGRAM_DO')) define('PROGRAM_DO', GC_BEZI_DO); // poslední den programu
 if (!defined('PROGRAM_VIDITELNY')) define('PROGRAM_VIDITELNY', po(REG_GC_OD)); // jestli jsou viditelné linky na program
 if (!defined('CENY_VIDITELNE')) define('CENY_VIDITELNE', PROGRAM_VIDITELNY && pred(GC_BEZI_DO)); // jestli jsou viditelné ceny aktivit
-if (!defined('FINANCE_VIDITELNE')) define('FINANCE_VIDITELNE', po(REG_GC_OD)); // jestli jsou public viditelné finance
+if (!defined('FINANCE_VIDITELNE')) define('FINANCE_VIDITELNE', true); // jestli jsou public viditelné finance
 
 ///////////////////
 // Role a práva //
