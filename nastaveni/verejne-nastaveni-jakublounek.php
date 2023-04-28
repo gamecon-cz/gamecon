@@ -25,5 +25,4 @@ define('BABEL_BINARKA', null);
 @define('PRODEJ_JIDLA_POZASTAVEN', false);
 
 @define('MAILY_DO_SOUBORU', __DIR__ . '/../cache/private/maily.log');
-
-@define('ADRESAR_WEBU_S_OBRAZKY', __DIR__ . '/../../ostra/web');
+@define('MAILY_ROLIM', [\Gamecon\Role\Role::ORGANIZATOR]);
