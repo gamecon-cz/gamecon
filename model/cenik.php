@@ -29,6 +29,7 @@ class Cenik
         Pravo::JIDLO_ZDARMA                   => 'jídlo zdarma',
         Pravo::JIDLO_SE_SLEVOU                => ['jídlo se slevou', Pravo::JIDLO_ZDARMA],
         Pravo::DVE_JAKAKOLI_TRICKA_ZDARMA     => 'dvě jakákoli trička zdarma',
+        Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA   => 'modré tričko se slevou',
     ];
 
     /**
@@ -51,7 +52,6 @@ class Cenik
         }
         if ($sleva >= $systemoveNastaveni->modreTrickoZdarmaOd() && $u->maPravo(Pravo::MODRE_TRICKO_ZDARMA)) {
             $this->modrychTricekZdarma = 1;
-            $this->textySlevExtra[]    = 'modré tričko zdarma';
         }
     }
 

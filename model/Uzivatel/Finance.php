@@ -28,7 +28,7 @@ class Finance
     private $deltaPozde = 0;      // o kolik se zvýší platba při zaplacení pozdě
     private $soucinitelCenyAKtivit;              // součinitel ceny aktivit
     private $logovat    = true;    // ukládat seznam předmětů?
-    private $cenik;             // instance ceníku
+    private ?\Cenik $cenik = null;             // instance ceníku
     // tabulky s přehledy
     private $prehled                        = [];   // tabulka s detaily o platbách
     private $strukturovanyPrehled           = [];
