@@ -38,7 +38,7 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
     /**
      * @return array<int, int>
      */
-    public static function bonusyZaVedeniAktivity(): array
+    public function bonusyZaVedeniAktivity(): array
     {
         static $bonusyZaVedeniAktivity = null;
         if ($bonusyZaVedeniAktivity === null) {
@@ -53,7 +53,7 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
             ];
             foreach ($casAKlic as $hodin => $klic) {
                 // ve formátu max. délka => sleva
-                $bonusyZaVedeniAktivity[$hodin] = self::spocitejBonusZaVedeniAktivity($klic);
+                $bonusyZaVedeniAktivity[$hodin] = $this->spocitejBonusZaVedeniAktivity($klic);
             }
         }
         return $bonusyZaVedeniAktivity;
@@ -61,14 +61,15 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
 
     /**
      * @param string $klic
-     * @param int $bonusZaStandardni3hAz5hAktivitu Nelze použít konstantu při změně v databázi, protože konstanta se změní až při dalším načtení PHP
+     * @param ?int $bonusZaStandardni3hAz5hAktivitu Nelze použít konstantu při změně v databázi, protože konstanta se změní až při dalším načtení PHP
      * @return int
      */
-    public static function spocitejBonusZaVedeniAktivity(
+    public function spocitejBonusZaVedeniAktivity(
         string $klic,
-        int    $bonusZaStandardni3hAz5hAktivitu = BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU,
+        ?int   $bonusZaStandardni3hAz5hAktivitu = null,
     ): int
     {
+        $bonusZaStandardni3hAz5hAktivitu ??= $this->dejHodnotuZeZaznamuNastaveni(SystemoveNastaveniKlice::BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU);
         return match ($klic) {
             'BONUS_ZA_1H_AKTIVITU' => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu / 4),
             'BONUS_ZA_2H_AKTIVITU' => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu / 2),
@@ -166,22 +167,22 @@ SQL,
                     : 3 * $this->dejHodnotu('BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU', false /* radši, abychom neskončili v nekonečné smyčce */),
                 'BONUS_ZA_1H_AKTIVITU'         => defined('BONUS_ZA_1H_AKTIVITU')
                     ? BONUS_ZA_1H_AKTIVITU
-                    : self::spocitejBonusZaVedeniAktivity('BONUS_ZA_1H_AKTIVITU'),
+                    : $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_1H_AKTIVITU'),
                 'BONUS_ZA_2H_AKTIVITU'         => defined('BONUS_ZA_2H_AKTIVITU')
                     ? BONUS_ZA_2H_AKTIVITU
-                    : self::spocitejBonusZaVedeniAktivity('BONUS_ZA_2H_AKTIVITU'),
+                    : $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_2H_AKTIVITU'),
                 'BONUS_ZA_6H_AZ_7H_AKTIVITU'   => defined('BONUS_ZA_6H_AZ_7H_AKTIVITU')
                     ? BONUS_ZA_6H_AZ_7H_AKTIVITU
-                    : self::spocitejBonusZaVedeniAktivity('BONUS_ZA_6H_AZ_7H_AKTIVITU'),
+                    : $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_6H_AZ_7H_AKTIVITU'),
                 'BONUS_ZA_8H_AZ_9H_AKTIVITU'   => defined('BONUS_ZA_8H_AZ_9H_AKTIVITU')
                     ? BONUS_ZA_8H_AZ_9H_AKTIVITU
-                    : self::spocitejBonusZaVedeniAktivity('BONUS_ZA_8H_AZ_9H_AKTIVITU'),
+                    : $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_8H_AZ_9H_AKTIVITU'),
                 'BONUS_ZA_10H_AZ_11H_AKTIVITU' => defined('BONUS_ZA_10H_AZ_11H_AKTIVITU')
                     ? BONUS_ZA_10H_AZ_11H_AKTIVITU
-                    : self::spocitejBonusZaVedeniAktivity('BONUS_ZA_10H_AZ_11H_AKTIVITU'),
+                    : $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_10H_AZ_11H_AKTIVITU'),
                 'BONUS_ZA_12H_AZ_13H_AKTIVITU' => defined('BONUS_ZA_12H_AZ_13H_AKTIVITU')
                     ? BONUS_ZA_12H_AZ_13H_AKTIVITU
-                    : self::spocitejBonusZaVedeniAktivity('BONUS_ZA_12H_AZ_13H_AKTIVITU'),
+                    : $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_12H_AZ_13H_AKTIVITU'),
                 'PRISTI_VLNA_AKTIVIT_KDY'      => defined('PRISTI_VLNA_AKTIVIT_KDY')
                     ? PRISTI_VLNA_AKTIVIT_KDY
                     : self::pristiVlnaKdy(),
@@ -329,13 +330,13 @@ SQL,
             $bonusZaStandardni3hAz5hAktivitu = (int)$zaznam['hodnota'];
             $popis                           = &$zaznam['popis'];
             $popis                           .= '<hr><i>vypočtené bonusy</i>:<br>'
-                . 'BONUS_ZA_1H_AKTIVITU = ' . self::spocitejBonusZaVedeniAktivity('BONUS_ZA_1H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
-                . 'BONUS_ZA_2H_AKTIVITU = ' . self::spocitejBonusZaVedeniAktivity('BONUS_ZA_2H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
+                . 'BONUS_ZA_1H_AKTIVITU = ' . $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_1H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
+                . 'BONUS_ZA_2H_AKTIVITU = ' . $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_2H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
                 . '•••<br>'
-                . 'BONUS_ZA_6H_AZ_7H_AKTIVITU = ' . self::spocitejBonusZaVedeniAktivity('BONUS_ZA_6H_AZ_7H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
-                . 'BONUS_ZA_8H_AZ_9H_AKTIVITU = ' . self::spocitejBonusZaVedeniAktivity('BONUS_ZA_8H_AZ_9H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
-                . 'BONUS_ZA_10H_AZ_11H_AKTIVITU = ' . self::spocitejBonusZaVedeniAktivity('BONUS_ZA_10H_AZ_11H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
-                . 'BONUS_ZA_12H_AZ_13H_AKTIVITU = ' . self::spocitejBonusZaVedeniAktivity('BONUS_ZA_12H_AZ_13H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>';
+                . 'BONUS_ZA_6H_AZ_7H_AKTIVITU = ' . $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_6H_AZ_7H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
+                . 'BONUS_ZA_8H_AZ_9H_AKTIVITU = ' . $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_8H_AZ_9H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
+                . 'BONUS_ZA_10H_AZ_11H_AKTIVITU = ' . $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_10H_AZ_11H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>'
+                . 'BONUS_ZA_12H_AZ_13H_AKTIVITU = ' . $this->spocitejBonusZaVedeniAktivity('BONUS_ZA_12H_AZ_13H_AKTIVITU', $bonusZaStandardni3hAz5hAktivitu) . '<br>';
         }
         return $zaznamy;
     }
@@ -435,12 +436,9 @@ SQL;
 
     public function dejVerejnouHodnotu(string $klic, bool $hledatTakeVOdvozenych = true)
     {
-        $vsechnyZaznamy = $this->dejVsechnyZaznamyNastaveni();
-        if (array_key_exists($klic, $vsechnyZaznamy)) {
-            return $this->zkonvertujHodnotuNaTyp(
-                $vsechnyZaznamy[$klic][Sql::HODNOTA],
-                $vsechnyZaznamy[$klic][Sql::DATOVY_TYP],
-            );
+        $hodnota = $this->dejHodnotuZeZaznamuNastaveni($klic);
+        if ($hodnota !== null) {
+            return $hodnota;
         }
 
         if ($hledatTakeVOdvozenych) {
@@ -451,6 +449,18 @@ SQL;
         }
 
         throw new NeznamyKlicSystemovehoNastaveni("Klíč '$klic' nemáme v záznamech nastavení");
+    }
+
+    private function dejHodnotuZeZaznamuNastaveni(string $klic)
+    {
+        $vsechnyZaznamy = $this->dejVsechnyZaznamyNastaveni();
+        if (!array_key_exists($klic, $vsechnyZaznamy)) {
+            return null;
+        }
+        return $this->zkonvertujHodnotuNaTyp(
+            $vsechnyZaznamy[$klic][Sql::HODNOTA],
+            $vsechnyZaznamy[$klic][Sql::DATOVY_TYP],
+        );
     }
 
     public function dejVychoziHodnotu(string $klic): string
