@@ -97,7 +97,7 @@ trait DateTimeCzTrait
         return static::poradiDneVTydnuNaPrelomDnuVeZkratkach(
             $poradiDne,
             // první písmeno bylo velké,tak to zachováme
-            preg_match('~^[[:upper:]]~u', $den) !== false,
+            preg_match('~^[[:upper:]]~u', $den) !== 0,
             $oddelovac,
         );
     }
