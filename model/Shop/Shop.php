@@ -525,7 +525,7 @@ SQL,
         $selecty   = $koupenaTricka;
         $selecty[] = 0;
 
-        foreach ($selecty as $i => $pid) {
+        foreach ($selecty as $i => $idPredmetu) {
             $t->assign([
                 'postName' => $this->klicT . '[' . $i . ']',
                 'cena'     => round((float)$this->cenaTricka()) . '&thinsp;Kč',
@@ -533,7 +533,7 @@ SQL,
             ]);
 
             // nagenerovat výběr triček
-            if (!$trickaZamcena || $pid == 0) {
+            if (!$trickaZamcena || $idPredmetu == 0) {
                 $t->assign([
                     'id_predmetu' => 0,
                     'nazev'       => '(žádné tričko)',
@@ -542,7 +542,7 @@ SQL,
             }
 
             foreach ($this->tricka as $tricko) {
-                $koupene = ($tricko['id_predmetu'] == $pid);
+                $koupene = ($tricko['id_predmetu'] == $idPredmetu);
                 $nabizet = $tricko['nabizet'];
 
                 if (($trickaZamcena || !$nabizet) && !$koupene) {
@@ -559,6 +559,8 @@ SQL,
 
             $t->parse('predmety.tricko');
         }
+
+        $t->assign('shopTrickaJs', URL_WEBU . '/soubory/blackarrow/shop/shop-tricka.js?v=1.0');
 
         $t->parse('predmety');
         return $t->text('predmety');
@@ -705,18 +707,23 @@ SQL,
         if (isset($_POST[$this->klicP]) && isset($_POST[$this->klicT])) {
             // pole s předměty, které jsou vyplněné ve formuláři
             $nove = [];
-            foreach ($_POST[$this->klicP] as $idPredmetu => $pocet)
-                for ($i = 0; $i < $pocet; $i++)
+            foreach ($_POST[$this->klicP] as $idPredmetu => $pocet) {
+                for ($i = 0; $i < $pocet; $i++) {
                     $nove[] = (int)$idPredmetu;
-            foreach ($_POST[$this->klicT] as $idTricka) // připojení triček
-                if ($idTricka) // odstranění výběrů „žádné tričko“
+                }
+            }
+            foreach ($_POST[$this->klicT] as $idTricka) { // připojení triček
+                if ($idTricka) { // odstranění výběrů „žádné tričko“
                     $nove[] = (int)$idTricka;
+                }
+            }
             sort($nove);
             // pole s předměty, které už má objednané dříve (bez ubytování)
             $stare = [];
             $o     = dbQuery('SELECT id_predmetu FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE id_uzivatele=' . $this->u->id() . ' AND rok=' . ROCNIK . ' AND typ IN(' . self::PREDMET . ',' . self::TRICKO . ') ORDER BY id_predmetu');
-            while ($r = mysqli_fetch_assoc($o))
+            while ($r = mysqli_fetch_assoc($o)) {
                 $stare[] = (int)$r['id_predmetu'];
+            }
             // určení rozdílů polí (note: array_diff ignoruje vícenásobné výskyty hodnot a nedá se použít)
             $i         = $j = 0;
             $odstranit = []; //čísla (kvůli nutností více delete dotazů s limitem)

@@ -41,10 +41,10 @@
     <!-- begin: tricko -->
     <div class="shopPredmety_tricko">
         <div class="shop_popis">
-            Tričko GameCon {rok}
+          <label for="vyberTricek">Tričko GameCon {rok}</label>
             <div class="shop_popisCena">{cena}</div>
         </div>
-        <select name="{postName}" class="formular_select shopPredmety_trickoSelect">
+        <select id="vyberTricek" name="{postName}" class="formular_select shopPredmety_trickoSelect">
             <!-- begin: moznost -->
             <option value="{id_predmetu}" {selected}>{nazev}</option>
             <!-- end: moznost -->
@@ -52,6 +52,8 @@
     </div>
     <!-- end: tricko -->
 </div>
+
+<script type="text/javascript" src="{shopTrickaJs}"></script>
 
 <script>
     shopPlusminus(
