@@ -182,6 +182,9 @@ SQL,
                 'BONUS_ZA_12H_AZ_13H_AKTIVITU' => defined('BONUS_ZA_12H_AZ_13H_AKTIVITU')
                     ? BONUS_ZA_12H_AZ_13H_AKTIVITU
                     : self::spocitejBonusZaVedeniAktivity('BONUS_ZA_12H_AZ_13H_AKTIVITU'),
+                'PRISTI_VLNA_AKTIVIT_KDY'      => defined('PRISTI_VLNA_AKTIVIT_KDY')
+                    ? PRISTI_VLNA_AKTIVIT_KDY
+                    : self::pristiVlnaKdy(),
             ];
         }
         return $this->odvozeneHodnoty;
@@ -421,9 +424,17 @@ SQL;
     public function dejHodnotu(string $klic, bool $hledatTakeVOdvozenych = true)
     {
         if (defined($klic)) {
+            /**
+             * POZOR tohle může prozradit i heslo do databáze a další. Pro veřejné honoty použij @see dejVerejnouHodnotu
+             */
             return constant($klic);
         }
 
+        return $this->dejVerejnouHodnotu($klic, $hledatTakeVOdvozenych);
+    }
+
+    public function dejVerejnouHodnotu(string $klic, bool $hledatTakeVOdvozenych = true)
+    {
         $vsechnyZaznamy = $this->dejVsechnyZaznamyNastaveni();
         if (array_key_exists($klic, $vsechnyZaznamy)) {
             return $this->zkonvertujHodnotuNaTyp(
@@ -623,6 +634,14 @@ SQL;
     public function nejblizsiHromadneOdhlasovaniKdy(\DateTimeInterface $platnostZpetneKDatu = null): DateTimeImmutableStrict
     {
         return DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($this, $platnostZpetneKDatu);
+    }
+
+    public function pristiVlnaKdy(): ?DateTimeGamecon
+    {
+        $nejblizsiVlnaKdy = $this->nejblizsiVlnaKdy($this->ted());
+        return $nejblizsiVlnaKdy >= $this->ted()
+            ? $nejblizsiVlnaKdy
+            : null;
     }
 
     public function nejblizsiVlnaKdy(\DateTimeInterface $platnostZpetneKDatu = null): DateTimeGamecon

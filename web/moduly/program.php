@@ -8,6 +8,7 @@ use Gamecon\Pravo;
 /** @var \Gamecon\XTemplate\XTemplate $t */
 /** @var Uzivatel $u */
 /** @var url $url */
+/** @var Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
 $this->blackarrowStyl(true);
 
@@ -48,8 +49,8 @@ $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program-nahled/program-n
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program-posuv/program-posuv.js');
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/_spolecne/zachovej-scroll.js');
 
-$zacatekPrvniVlnyOd       = DateTimeGamecon::prvniVlnaKdy();
-$zacatekPrvniVlnyZaSekund = $zacatekPrvniVlnyOd->getTimestamp() - time();
+$zacatekPrvniVlnyOd       = $systemoveNastaveni->prvniVlnaKdy();
+$zacatekPrvniVlnyZaSekund = $zacatekPrvniVlnyOd->getTimestamp() - $systemoveNastaveni->ted()->getTimestamp();
 
 $legendaText   = Stranka::zUrl('program-legenda-text')->html();
 $jeOrganizator = isset($u) && $u && $u->maPravo(Pravo::PORADANI_AKTIVIT);

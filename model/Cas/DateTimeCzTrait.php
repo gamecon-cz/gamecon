@@ -25,6 +25,7 @@ trait DateTimeCzTrait
     public const FORMAT_DATUM_STANDARD         = 'j. n. Y';
     public const FORMAT_DATUM_A_CAS_STANDARD   = 'j. n. Y H:i:s';
     public const FORMAT_CAS_NA_MINUTY_STANDARD = 'j. n. Y H:i';
+    public const FORMAT_ZACATEK_UDALOSTI       = 'j. n. Y \v H:i';
     public const FORMAT_CAS_SOUBOR             = 'Y-m-d_H-i-s';
 
     protected static $dny = [
@@ -181,6 +182,33 @@ trait DateTimeCzTrait
     public static function dejDnyVTydnu(): array
     {
         return self::$dny;
+    }
+
+    public static function formatujProSablonu($hodnota, array $parametry): string
+    {
+        $datum = $hodnota instanceof \DateTimeInterface
+            ? $hodnota
+            : static::createFromMysql((string)$hodnota);
+        if (!$datum) {
+            return (string)$hodnota;
+        }
+        foreach ($parametry as $parametr) {
+            if (!is_string($parametr)) {
+                continue;
+            }
+            $parametr = strtoupper(trim($parametr));
+            if (!str_starts_with($parametr, 'FORMAT_')) {
+                continue;
+            }
+            /** například @see \Gamecon\Cas\DateTimeCzTrait::FORMAT_ZACATEK_UDALOSTI */
+            $classConstant = static::class . '::' . $parametr;
+            if (!defined(static::class . '::' . $parametr)) {
+                continue;
+            }
+            $format = constant($classConstant);
+            return $datum->format($format);
+        }
+        return (string)$hodnota;
     }
 
     /** Formát data s upravenými dny česky */

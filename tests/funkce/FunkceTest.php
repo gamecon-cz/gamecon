@@ -13,19 +13,19 @@ class FunkceTest extends TestCase
      */
     public function Muzu_nahradit_placeholder_za_konstantu() {
         $bezPlaceholderu = 'Jsem bez placeholderu';
-        self::assertSame($bezPlaceholderu, nahradPlaceholderZaKonstantu($bezPlaceholderu));
+        self::assertSame($bezPlaceholderu, nahradPlaceholderyZaNastaveni($bezPlaceholderu));
 
         $sNeznamouKnstantou = 'Jsem s neznámou %konstantou z jiného světa%';
-        self::assertSame($sNeznamouKnstantou, nahradPlaceholderZaKonstantu($sNeznamouKnstantou));
+        self::assertSame($sNeznamouKnstantou, nahradPlaceholderyZaNastaveni($sNeznamouKnstantou));
 
         $nahodnaKonstanta = uniqid(__FUNCTION__, true);
         $sKonstantou      = "Jsem s konstantou %$nahodnaKonstanta%";
 
         self::assertFalse(defined($nahodnaKonstanta));
-        self::assertSame($sKonstantou, nahradPlaceholderZaKonstantu($sKonstantou));
+        self::assertSame($sKonstantou, nahradPlaceholderyZaNastaveni($sKonstantou));
 
         define($nahodnaKonstanta, 'To je ale náhodička!');
-        self::assertSame('Jsem s konstantou To je ale náhodička!', nahradPlaceholderZaKonstantu($sKonstantou));
+        self::assertSame('Jsem s konstantou To je ale náhodička!', nahradPlaceholderyZaNastaveni($sKonstantou));
     }
 
     /**
