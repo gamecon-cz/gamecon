@@ -75,7 +75,7 @@ if (!$zaplaceno) {
     </div>
 
     <?php if ($u && $u->jeOrganizator()) { ?>
-        <div style="float:left; width:250px">
+        <div style="float:left">
             <h2>Slevy</h2>
             <?php if ($slevyA) { ?>
                 <strong>Použité slevy na aktivity</strong>
