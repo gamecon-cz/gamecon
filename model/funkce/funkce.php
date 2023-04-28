@@ -661,7 +661,9 @@ function nahradPlaceholderyZaNastaveni(?string $value): ?string
         } catch (NeznamyKlicSystemovehoNastaveni) {
             $hodnotaNastaveni = null;
         }
-        $value = str_replace("%$puvodniKodNastaveni%", $hodnotaNastaveni ?? '', $value);
+        if ($hodnotaNastaveni !== null) {
+            $value = str_replace("%$puvodniKodNastaveni%", $hodnotaNastaveni, $value);
+        }
     }
     return $value;
 }
