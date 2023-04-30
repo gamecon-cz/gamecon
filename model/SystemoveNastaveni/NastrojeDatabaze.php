@@ -60,8 +60,8 @@ class NastrojeDatabaze
         return "mysql:host={$server};dbname={$databaze}";
     }
 
-    public function vymazVseZHlavniDatabaze() {
-        $this->vymazVseZDatabaze($this->systemoveNastaveni->databazoveNastaveni()->hlavniDatabaze(), dbConnect());
+    public function vymazVseZHlavniDatabaze(\mysqli $spojeni) {
+        $this->vymazVseZDatabaze($this->systemoveNastaveni->databazoveNastaveni()->hlavniDatabaze(), $spojeni);
     }
 
     public function vymazVseZDatabaze(string $databaze, \mysqli $spojeni) {

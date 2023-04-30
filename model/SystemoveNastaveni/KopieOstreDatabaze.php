@@ -55,7 +55,7 @@ class KopieOstreDatabaze
         );
 
         // aby nám nezůstaly viset tabulky, views a functions z novějších SQL migrací, než má zdroj
-        $this->nastrojeDatabaze->vymazVseZHlavniDatabaze();
+        $this->nastrojeDatabaze->vymazVseZHlavniDatabaze($localConnection);
 
         (new \MySQLImport($localConnection))->load($tempFile);
 
