@@ -247,7 +247,7 @@ SQL
         * DEFINER vyžaduje SUPER privileges https://stackoverflow.com/questions/44015692/access-denied-you-need-at-least-one-of-the-super-privileges-for-this-operat
         * ale nás definer nezajímá, tak ho zahodíme
         */
-        $mysqldump = $this->nastrojeDatabaze->vytvorMysqldumpProHlavniDatabazi([
+        $mysqldump = $this->nastrojeDatabaze->vytvorMysqldumpHlavniDatabaze([
             'skip-definer' => true,
         ]);
         $mysqldump->start($tempFile);
@@ -270,7 +270,7 @@ SQL
         * DEFINER vyžaduje SUPER privileges https://stackoverflow.com/questions/44015692/access-denied-you-need-at-least-one-of-the-super-privileges-for-this-operat
         * ale nás definer nezajímá, tak ho zahodíme
         */
-        $mysqldump = $this->nastrojeDatabaze->vytvorMysqldumpProAnonymniDatabazi([
+        $mysqldump = $this->nastrojeDatabaze->vytvorMysqldumpAnonymniDatabaze([
             'skip-definer'     => true,
             'add-drop-table'   => true,
             'add-drop-trigger' => true,

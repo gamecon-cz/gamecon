@@ -2,46 +2,32 @@
 
 namespace Gamecon\SystemoveNastaveni;
 
-use Ifsnop\Mysqldump\Mysqldump;
-
 class KopieOstreDatabaze
 {
-    public static function createFromGlobals() {
-        return new static(NastrojeDatabaze::vytvorZGlobals());
+    public static function createFromGlobals()
+    {
+        return new static(
+            NastrojeDatabaze::vytvorZGlobals(),
+            SystemoveNastaveni::vytvorZGlobals(),
+        );
     }
 
     public function __construct(
-        private NastrojeDatabaze $nastrojeDatabaze
-    ) {
+        private readonly NastrojeDatabaze   $nastrojeDatabaze,
+        private readonly SystemoveNastaveni $systemoveNastaveni,
+    )
+    {
     }
 
-    public function zkopirujOstrouDatabazi() {
-        $souborNastaveniOstra = PROJECT_ROOT_DIR . '/../ostra/nastaveni/nastaveni-produkce.php';
-        if (!is_readable($souborNastaveniOstra)) {
-            throw new \RuntimeException('Nelze přečíst soubor s nastavením ostré ' . $souborNastaveniOstra);
-        }
-        $obsahNastaveniOstre = file_get_contents($souborNastaveniOstra);
-        $nastaveniOstre      = [
-            'DBM_USER' => true,
-            'DBM_PASS' => true,
-            'DB_NAME'  => true,
-            'DB_SERV'  => true,
-            'DB_PORT'  => false,
-        ];
-        foreach ($nastaveniOstre as $klic => $vyzadovana) {
-            if (!preg_match("~^\s*@?define\s*\(\s*'$klic'\s*,\s*'(?<hodnota>[^']+)'\s*\)~m", $obsahNastaveniOstre, $matches)) {
-                if ($vyzadovana) {
-                    throw new \RuntimeException("Nelze z $souborNastaveniOstra přečíst hodnotu $klic");
-                }
-            }
-            $nastaveniOstre[$klic] = $matches['hodnota'] ?? null;
-        }
+    public function zkopirujOstrouDatabazi()
+    {
+        $nastaveniOstre = $this->systemoveNastaveni->prihlasovaciUdajeOstreDatabaze();
         if ($nastaveniOstre['DB_SERV'] === DB_SERV && $nastaveniOstre['DB_NAME'] === DB_NAME) {
             throw new \RuntimeException('Kopírovat sebe sama nemá smysl');
         }
 
         $tempFile  = tempnam(sys_get_temp_dir(), 'kopie_ostre_databaze_');
-        $mysqldump = $this->nastrojeDatabaze->vytvorMysqldumpProHlavniDatabazi();
+        $mysqldump = $this->nastrojeDatabaze->vytvorMysqldumpOstreDatabaze();
         $mysqldump->start($tempFile);
 
         $localConnection = new \mysqli(
