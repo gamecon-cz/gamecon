@@ -1,0 +1,19 @@
+<!-- begin: sponzori -->
+<div class="sponzori">
+  <h2 id="sponzori"><a href="#sponzori">Děkujeme našim sponzorům a partnerům!</a></h2>
+  <div class="sponzori_loga">
+    <!-- begin: sponzor -->
+    <div class="sponzori_logo">
+      <a href="{url}" target="_blank"><img src="{src}" alt="{url}"></a>
+    </div>
+    <!-- end:sponzor -->
+  </div>
+  <div class="partneri_loga">
+    <!-- begin: partner -->
+    <div class="partneri_logo">
+      <a href="{url}" target="_blank"><img src="{src}" alt="{url}"></a>
+    </div>
+    <!-- end:partner -->
+  </div>
+</div>
+<!-- end: sponzori -->

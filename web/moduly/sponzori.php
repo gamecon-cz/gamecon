@@ -1,15 +1,22 @@
 <?php
 
-$this->bezDekorace(true);
+/** @var Modul $this */
+/** @var \Gamecon\XTemplate\XTemplate $t */
 
-foreach(['sponzor', 'partner'] as $kategorie) {
-  foreach(glob("soubory/obsah/{$kategorie}i/*") as $f) {
-    $fn = preg_replace('@.*/(.*)\.(jpg|png|gif)@', '$1', $f, -1, $n);
-    if($fn[0] == '_' || $n == 0) continue; // skrývání odebraných sponzorů
-    $t->assign([
-      'url' => $fn,
-      'img' => $f,
-    ]);
-    $t->parse("sponzori.$kategorie");
-  }
+$this->bezStranky(true);
+
+{ // local variables scope
+    foreach (['sponzor' => 'sponzori', 'partner' => 'partneri'] as $kategorie => $adresar) {
+        foreach (glob(ADRESAR_WEBU_S_OBRAZKY . "/soubory/obsah/{$adresar}/*") as $soubor) {
+            $fn = preg_replace('@.*/([^_].*)\.(?:jpg|png|gif)@', '$1', $soubor, -1, $pocetZmen);
+            if ($pocetZmen === 0) {
+                continue; // skrývání odebraných sponzorů ([^_] znamená "jen pokud nezačíná podtržítkem" a podtržítko znamená "vyřazený obrázek")
+            }
+            $t->assign([
+                'url' => $fn,
+                'src' => URL_WEBU . '/soubory/obsah/' . $adresar . '/' . basename($soubor),
+            ]);
+            $t->parse("sponzori.$kategorie");
+        }
+    }
 }

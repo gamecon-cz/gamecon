@@ -700,4 +700,29 @@ SQL;
     {
         return (float)$this->dejHodnotu('MODRE_TRICKO_ZDARMA_OD');
     }
+
+    public function prihlasovaciUdajeOstreDatabaze(): array
+    {
+        $souborNastaveniOstra = PROJECT_ROOT_DIR . '/../ostra/nastaveni/nastaveni-produkce.php';
+        if (!is_readable($souborNastaveniOstra)) {
+            throw new \RuntimeException('Nelze přečíst soubor s nastavením ostré ' . $souborNastaveniOstra);
+        }
+        $obsahNastaveniOstre = file_get_contents($souborNastaveniOstra);
+        $nastaveniOstre      = [
+            'DBM_USER' => true,
+            'DBM_PASS' => true,
+            'DB_NAME'  => true,
+            'DB_SERV'  => true,
+            'DB_PORT'  => false,
+        ];
+        foreach ($nastaveniOstre as $klic => $vyzadovana) {
+            if (!preg_match("~^\s*@?define\s*\(\s*'$klic'\s*,\s*'(?<hodnota>[^']+)'\s*\)~m", $obsahNastaveniOstre, $matches)) {
+                if ($vyzadovana) {
+                    throw new \RuntimeException("Nelze z $souborNastaveniOstra přečíst hodnotu $klic");
+                }
+            }
+            $nastaveniOstre[$klic] = $matches['hodnota'] ?? null;
+        }
+        return $nastaveniOstre;
+    }
 }
