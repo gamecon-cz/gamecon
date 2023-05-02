@@ -68,7 +68,7 @@ class HromadneOdhlaseniNeplaticu
                         $predtimCelkemOdlhaseno = $vysledekOdhlaseniJenNeco->celkemOdhlaseno();
                     } while ($vysledekOdhlaseniJenNeco->jesteNecoNeodhlasovano() && $kategorieNeplatice->melByBytOdhlasen());
                     if (!$kategorieNeplatice->melByBytOdhlasen()) {
-                        $this->posliEmailSOdhlasenymiPolozkami($neplatic, $zdrojOdhlaseni);
+                        $this->emailUcastnikoviSOdhlasenymiPolozkami($neplatic, $zdrojOdhlaseni);
                         continue; // povedlo se, postupným odhlašováním položek jsme se dostali až k tomu, že nemusíme odhlásit samotného účastníka
                     }
                 }
@@ -353,7 +353,7 @@ Platnost současného hromadného odhlašování byla '%s' (%s), teď je '%s' a 
         );
     }
 
-    private function posliEmailSOdhlasenymiPolozkami(\Uzivatel $uzivatel, string $zdrojOdhlaseni)
+    private function emailUcastnikoviSOdhlasenymiPolozkami(\Uzivatel $uzivatel, string $zdrojOdhlaseni)
     {
         $zruseneAktivityUzivatele = Aktivita::dejZruseneAktivityUzivatele(
             $uzivatel,
