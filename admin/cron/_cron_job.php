@@ -4,7 +4,7 @@ $znovu = filter_var(get('znovu'), FILTER_VALIDATE_BOOL)
     && defined('TEST_HROMADNE_AKCE_AKTIVIT_CRONEM_PORAD')
     && TEST_HROMADNE_AKCE_AKTIVIT_CRONEM_PORAD;
 
-// Pozor, pořadí je důležité - úkoly na prvním místě jsou ty, co mají být puštěny před ostatními
+// Pozor, pořadí je důležité - úkoly na prvním místě jsou ty, co mají přednost (nikoli časovou, ale významovou) před ostatními
 if (in_array($job, ['odhlaseni_neplaticu', 'aktivity_hromadne'])) {
     require __DIR__ . '/jobs/odhlaseni_neplaticu.php';
     if ($job === 'odhlaseni_neplaticu') {
