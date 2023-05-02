@@ -32,7 +32,8 @@ if (!$platby->nejakeNesparovanePlatby($systemoveNastaveni->rocnik())) {
 $hromadneOdhlaseniNeplaticu = new HromadneOdhlaseniNeplaticu($systemoveNastaveni);
 
 $poradiOznameni = null;
-foreach ([1 => '+1 week', 2 => '+1 day'] as $poradiOznameni => $posun) {
+$posuny         = [1 => '+1 week', 2 => '+1 day'];
+foreach ($posuny as $poradiOznameni => $posun) {
     //  za týden mínus hodinu nebo za 23 hodin
     $overenaPlatnostZpetne           = DateTimeGamecon::overenaPlatnostZpetne($systemoveNastaveni)
         ->modifyStrict($posun); // jako kdybychom bychom pouštěli hromadné odhlašování za týden / zítra
@@ -87,13 +88,13 @@ if ($pocetNesparovanychPlateb === 0) {
 
 $cfosEmaily   = Uzivatel::cfosEmaily();
 $zpravyString = implode(";\n", $zpravy);
-$brzy         = match ($poradiOznameni) {
-    1 => 'Za týden',
-    2 => 'Zítra',
-    default => 'Brzy'
-};
-$uvod         = "$brzy Gamecon systém hromadně odhlásí neplatiče. Přitom ale máme $pocetNesparovanychPlateb nespárovaných plateb a hrozí komplikace.";
-$oddelovac    = str_repeat('═', mb_strlen($uvod));
+
+$finalniPosun       = $posuny[$poradiOznameni];
+$finalniPosunObjekt = $systemoveNastaveni->ted()->modify($finalniPosun);
+$brzy               = $finalniPosunObjekt->relativni($systemoveNastaveni->ted());
+
+$uvod      = "$brzy Gamecon systém hromadně odhlásí neplatiče. Přitom ale máme $pocetNesparovanychPlateb nespárovaných plateb a hrozí komplikace.";
+$oddelovac = str_repeat('═', mb_strlen($uvod));
 (new GcMail())
     ->adresati($cfosEmaily ?: ['info@gamecon.cz'])
     ->predmet("$brzy bude hromadné odhlášení a stále máme $pocetNesparovanychPlateb nespárovaných plateb")
