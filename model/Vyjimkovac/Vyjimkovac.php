@@ -3,6 +3,7 @@
 namespace Gamecon\Vyjimkovac;
 
 use Gamecon\XTemplate\Exceptions\XTemplateRecompilationException;
+use Tracy\BlueScreen;
 
 /**
  * Třída starající se o zpracování, zobrazení a zaznamenávání výjimek a chyb
@@ -10,31 +11,29 @@ use Gamecon\XTemplate\Exceptions\XTemplateRecompilationException;
 class Vyjimkovac implements Logovac
 {
 
-    private string $dbFile;
-    private ?\EPDO $db = null;
-    private bool $ukoncitPriNotice = true; // TODO nastavení zvenčí
-    private int $zobrazeni = self::PLAIN;
+    private ?\EPDO $db               = null;
+    private bool   $ukoncitPriNotice = true; // TODO nastavení zvenčí
+    private int    $zobrazeni        = self::PLAIN;
 
     public const NIC    = 1;
     public const PLAIN  = 2;
     public const TRACY  = 3;
     public const PICARD = 4;
-    private array $emails;
 
-    public static function vytvorZGlobals(): self {
+    public static function vytvorZGlobals(): self
+    {
         return new self(SPEC . '/chyby.sqlite', PRIJEMCI_CHYB);
     }
 
-    public function __construct(string $dbFile, array $emails) {
-        $this->dbFile = $dbFile;
-        $this->emails = $emails;
+    public function __construct(private readonly string $dbFile, private array $emails)
+    {
     }
 
     /**
      * Zapne zpracování výjimek
      */
-    public function aktivuj() {
-
+    public function aktivuj()
+    {
         register_shutdown_function(function () {
             // fatal errory
             $error = error_get_last();
@@ -70,7 +69,7 @@ class Vyjimkovac implements Logovac
         set_exception_handler(function ($e) {
             if ($e instanceof \Chyba) {
                 $e->zpet(); // u zobrazitelných chyb ignorovat a jen zobrazit upo
-            } elseif ($e instanceof XTemplateRecompilationException) {
+            } else if ($e instanceof XTemplateRecompilationException) {
                 back($_SERVER['REQUEST_URI']);
             } else {
                 $this->zpracuj($e);
@@ -79,7 +78,8 @@ class Vyjimkovac implements Logovac
 
     }
 
-    protected function markShutdownFunctionRegistered() {
+    protected function markShutdownFunctionRegistered()
+    {
         if (!defined('SHUTDOWN_FUNCTION_REGISTERED')) {
             define('SHUTDOWN_FUNCTION_REGISTERED', true);
         }
@@ -88,7 +88,8 @@ class Vyjimkovac implements Logovac
     /**
      * Vrátí PDO instanci s připravenou databází pro uložení / čtení chyb
      */
-    protected function db(): \EPDO {
+    protected function db(): \EPDO
+    {
         if (!$this->db) {
             $this->db = new \EPDO('sqlite:' . $this->dbFile);
         }
@@ -98,7 +99,8 @@ class Vyjimkovac implements Logovac
     /**
      * Vrátí HTML skript element s kódem aktivujícím js výjimkovač
      */
-    public static function js(string $urlWebu) {
+    public static function js(string $urlWebu)
+    {
         $url = rtrim($urlWebu, '/') . '/ajax-vyjimkovac';
         ob_start();
         ?>
@@ -140,12 +142,14 @@ class Vyjimkovac implements Logovac
     /**
      * Zavoláno ze stránky zpracovávající ajaxové info z výjimkovače
      */
-    public function jsZpracuj() {
+    public function jsZpracuj()
+    {
         $e = new JsException(post('msg'), post('url'), post('line'));
         $this->zpracuj($e);
     }
 
-    public function zobrazeni(int $zobrazeni = null): int {
+    public function zobrazeni(int $zobrazeni = null): int
+    {
         if ($zobrazeni !== null) {
             $this->zobrazeni = $zobrazeni;
         }
@@ -155,7 +159,8 @@ class Vyjimkovac implements Logovac
     /**
      * Zobrazí public omluvnou stránku uživateli
      */
-    public function zobrazOmluvu() {
+    public function zobrazOmluvu()
+    {
         $out = file_get_contents(__DIR__ . '/vyjimkovac-omluva.xtpl');
         $out = strtr($out, [
             '{picard}' => URL_WEBU . '/soubory/styl/exception.jpg',
@@ -167,7 +172,8 @@ class Vyjimkovac implements Logovac
      * Uloží výjimku a zobrazí info podle nastaveného stylu zobrazování chyb
      * a případně ukončí skript.
      */
-    protected function zpracuj($e) {
+    protected function zpracuj($e)
+    {
         // uložení
         $this->zaloguj($e);
 
@@ -190,7 +196,7 @@ class Vyjimkovac implements Logovac
                 echo $e . "\n";
                 break;
             case self::TRACY :
-                (new \Tracy\BlueScreen)->render($e);
+                (new BlueScreen)->render($e);
                 if ($e instanceof \DbException) {
                     echo '<pre>', dbLastQ();
                 }
@@ -209,8 +215,9 @@ class Vyjimkovac implements Logovac
         }
     }
 
-    public function zaloguj(\Throwable $e) {
-        VyjimkovacChyba::zVyjimky($e)
+    public function zaloguj(\Throwable $throwable)
+    {
+        VyjimkovacChyba::zVyjimky($throwable)
             ->uloz($this->db())
             ->odesli($this->emails);
     }
@@ -224,7 +231,8 @@ class Vyjimkovac implements Logovac
 class JsException extends \Exception
 {
 
-    public function __construct(?string $zprava, ?string $soubor, $radek) {
+    public function __construct(?string $zprava, ?string $soubor, $radek)
+    {
         parent::__construct((string)$zprava);
         $this->file = (string)$soubor;
         $this->line = $radek !== null
