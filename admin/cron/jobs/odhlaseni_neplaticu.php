@@ -32,6 +32,14 @@ if (!$znovu || $systemoveNastaveni->jsmeNaOstre()) {
     }
 }
 
+try {
+    /** musíme použít @see \Generator::current kód spustili a vyhodnotil se */
+    $hromadneOdhlaseniNeplaticu->neplaticiAKategorie()->current();
+} catch (NevhodnyCasProHromadneOdhlasovani $nevhodnyCasProHromadneOdhlasovani) {
+    logs($nevhodnyCasProHromadneOdhlasovani->getMessage());
+    return;
+}
+
 // abychom neodhlásili nešťastlivce, od kterého dorazili finance chvíli před odhlašováním neplatičů
 require __DIR__ . '/../fio_stazeni_novych_plateb.php';
 
