@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Vyjimkovac\Vyjimkovac;
+
 $this->bezStranky(true);
 
 if (parse_url($_SERVER['HTTP_REFERER'] ?? '', PHP_URL_HOST) === parse_url(URL_ADMIN, PHP_URL_HOST)) {
@@ -7,4 +9,4 @@ if (parse_url($_SERVER['HTTP_REFERER'] ?? '', PHP_URL_HOST) === parse_url(URL_AD
     header('Access-Control-Allow-Origin: ' . URL_ADMIN);
 }
 
-\Gamecon\Vyjimkovac\Vyjimkovac::vytvorZGlobals()->jsZpracuj();
+Vyjimkovac::vytvorZGlobals()->jsZpracuj();

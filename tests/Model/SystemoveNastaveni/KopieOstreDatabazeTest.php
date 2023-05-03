@@ -8,6 +8,7 @@ use Gamecon\SystemoveNastaveni\KopieOstreDatabaze;
 use Gamecon\SystemoveNastaveni\NastrojeDatabaze;
 use Gamecon\SystemoveNastaveni\SqlMigrace;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
+use Gamecon\Vyjimkovac\Vyjimkovac;
 use PHPUnit\Framework\TestCase;
 
 class KopieOstreDatabazeTest extends TestCase
@@ -142,7 +143,7 @@ class KopieOstreDatabazeTest extends TestCase
         $tablesBefore    = dbQuery('SHOW TABLES', $spojeniSoucasna)->fetch_all();
 
         $nastrojeDatabaze   = new NastrojeDatabaze($systemoveNastaveni);
-        $kopieOstreDatabaze = new KopieOstreDatabaze($nastrojeDatabaze, $systemoveNastaveni);
+        $kopieOstreDatabaze = new KopieOstreDatabaze($nastrojeDatabaze, $systemoveNastaveni, Vyjimkovac::vytvorZGlobals());
         $kopieOstreDatabaze->zkopirujOstrouDatabazi();
 
         $tablesAfter = dbQuery('SHOW TABLES', $spojeniSoucasna)->fetch_all();
