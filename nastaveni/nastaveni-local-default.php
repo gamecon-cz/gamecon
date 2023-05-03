@@ -11,7 +11,6 @@ if (!defined('DB_SERV')) define('DB_SERV', '127.0.0.1');
 // uživatel s přístupem k změnám struktury
 if (!defined('DBM_USER')) define('DBM_USER', DB_USER);
 if (!defined('DBM_PASS')) define('DBM_PASS', DB_PASS);
-//if (!defined('DBM_PORT')) define('DBM_PORT', DB_PORT);
 
 if (!defined('DB_ANONYM_SERV')) define('DB_ANONYM_SERV', DB_SERV);
 if (!defined('DB_ANONYM_USER')) define('DB_ANONYM_USER', DBM_USER);

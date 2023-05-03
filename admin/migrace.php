@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\SystemoveNastaveni\SqlMigrace;
+
 require __DIR__ . '/../nastaveni/zavadec-zaklad.php';
 
 if (HTTPS_ONLY) {
@@ -23,8 +25,7 @@ ini_set('display_errors', true); // zobrazovat chyby obecně
 ini_set('error_reporting', E_ALL ^ E_STRICT); // vybrat typy chyb k zobrazení
 ini_set('html_errors', false); // chyby zobrazovat jako plaintext
 
-$sqlMigrace = new \Gamecon\SystemoveNastaveni\SqlMigrace();
-$sqlMigrace->migruj();
+SqlMigrace::vytvorZGlobals()->migruj();
 
 // informovat, že skript doběhl
 echo "admin/migrace.php: Migrace dokončeny.\n";

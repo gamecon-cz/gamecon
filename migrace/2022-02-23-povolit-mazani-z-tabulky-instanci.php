@@ -1,7 +1,7 @@
 <?php
 /** @var \Godric\DbMigrations\Migration $this */
 
-$schema = DBM_NAME;
+$schema = DB_NAME;
 $mysqli = $this->q(<<<SQL
 SELECT 1
 FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE

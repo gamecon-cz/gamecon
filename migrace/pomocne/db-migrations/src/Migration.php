@@ -6,23 +6,26 @@ class Migration
 {
 
     private \mysqli $connection;
-    private string $code;
-    private string $path;
-    private bool $endless = false;
+    private string  $code;
+    private string  $path;
+    private bool    $endless = false;
 
-    public function __construct(string $path, string $code, \mysqli $db) {
-        $this->path = $path;
-        $this->code = removeDiacritics($code);
-        $this->connection   = $db;
+    public function __construct(string $path, string $code, \mysqli $db)
+    {
+        $this->path       = $path;
+        $this->code       = removeDiacritics($code);
+        $this->connection = $db;
         // jen malý, neškodný hack, aby se migrace pouštěla pořád
         $this->setEndless(str_ends_with(basename($path, '.php'), 'endless'));
     }
 
-    public function apply() {
+    public function apply()
+    {
         require $this->path;
     }
 
-    public function getHash(): string {
+    public function getHash(): string
+    {
         $hash = sha1_file($this->path);
         if ($hash === false) {
             throw new \RuntimeException('Can not read DB migration file ' . $this->path);
@@ -30,17 +33,20 @@ class Migration
         return $hash;
     }
 
-    public function getId(): ?int {
+    public function getId(): ?int
+    {
         return $this->getVersion() === 1
             ? (int)$this->getCode()
             : null;
     }
 
-    public function getCode(): string {
+    public function getCode(): string
+    {
         return $this->code;
     }
 
-    public function getVersion(): int {
+    public function getVersion(): int
+    {
         return is_numeric($this->code)
             ? 1
             : 2;
@@ -51,7 +57,8 @@ class Migration
      * @return false|\mysqli_result
      * @throws \Exception
      */
-    public function q($query) {
+    public function q($query)
+    {
         $this->connection->multi_query($query);
 
         $i = 0;
@@ -68,9 +75,10 @@ class Migration
         return $result;
     }
 
-    public function dropForeignKeysIfExist(array $foreignKeysToDrop, string $tableName) {
-        $db          = DBM_NAME;
-        $result      = $this->q(<<<SQl
+    public function dropForeignKeysIfExist(array $foreignKeysToDrop, string $tableName)
+    {
+        $db          = $this->getCurrentDb();
+        $result      = $this->q(<<<SQL
 SELECT
     CONSTRAINT_NAME
 FROM
@@ -78,7 +86,7 @@ FROM
 WHERE
 	TABLE_SCHEMA = '$db'
     AND TABLE_NAME = '$tableName';
-SQl
+SQL,
         );
         $constraints = [];
         while ($constrain = mysqli_fetch_column($result)) {
@@ -86,7 +94,7 @@ SQl
         }
         $existingForeignKeysToDrop = array_intersect(
             $foreignKeysToDrop,
-            $constraints
+            $constraints,
         );
 
         $foreignKeysToDropSqlParts = array_map(static function (string $foreignKeyToDrop) {
@@ -98,19 +106,36 @@ SQl
             $this->q(<<<SQL
 ALTER TABLE `$tableName`
     $foreignKeysToDropSql
-SQL
+SQL,
             );
         }
     }
 
-    private function setEndless(bool $endless = true) {
+    private function getCurrentDb(): string
+    {
+        $result = $this->q(<<<SQL
+SELECT database()
+SQL,
+        );
+        $db     = $result !== false
+            ? mysqli_fetch_column($result)
+            : null;
+        if ((string)$db === '') {
+            throw new \RuntimeException('Can not determine current DB as no DB is selected');
+        }
+        return $db;
+    }
+
+    private function setEndless(bool $endless = true)
+    {
         $this->endless = $endless;
     }
 
     /**
      * Should run again and again and again...
      */
-    public function isEndless(): bool {
+    public function isEndless(): bool
+    {
         return $this->endless;
     }
 

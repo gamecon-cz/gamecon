@@ -2,6 +2,7 @@
 
 namespace Gamecon\SystemoveNastaveni;
 
+use Composer\Autoload\ClassLoader;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
@@ -19,15 +20,22 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
     private ?array $vsechnyZaznamyNastaveni = null;
     private ?array $odvozeneHodnoty         = null;
 
-    public static function vytvorZGlobals(): self
+    public static function vytvorZGlobals(): static
     {
-        return new static(
-            ROCNIK,
-            new DateTimeImmutableStrict(),
-            parse_url(URL_WEBU, PHP_URL_HOST) === 'beta.gamecon.cz',
-            parse_url(URL_WEBU, PHP_URL_HOST) === 'localhost',
-            DatabazoveNastaveni::vytvorZGlobals()
-        );
+        static $systemoveNastaveni;
+        if (!$systemoveNastaveni) {
+            $systemoveNastaveni = new static(
+                ROCNIK,
+                new DateTimeImmutableStrict(),
+                parse_url(URL_WEBU, PHP_URL_HOST) === 'beta.gamecon.cz',
+                parse_url(URL_WEBU, PHP_URL_HOST) === 'localhost',
+                DatabazoveNastaveni::vytvorZGlobals(),
+                defined('PROJECT_ROOT_DIR')
+                    ? constant('')
+                    : dirname((new \ReflectionClass(ClassLoader::class))->getFileName()),
+            );
+        }
+        return $systemoveNastaveni;
     }
 
     /**
@@ -86,6 +94,7 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
         private readonly bool                    $jsmeNaBete,
         private readonly bool                    $jsmeNaLocale,
         private readonly DatabazoveNastaveni     $databazoveNastaveni,
+        private readonly string                  $rootAdresarProjektu,
     )
     {
         if ($jsmeNaLocale && $jsmeNaBete) {
@@ -703,7 +712,7 @@ SQL;
 
     public function prihlasovaciUdajeOstreDatabaze(): array
     {
-        $souborNastaveniOstra = PROJECT_ROOT_DIR . '/../ostra/nastaveni/nastaveni-produkce.php';
+        $souborNastaveniOstra = $this->rootAdresarProjektu . '/../ostra/nastaveni/nastaveni-produkce.php';
         if (!is_readable($souborNastaveniOstra)) {
             throw new \RuntimeException('Nelze přečíst soubor s nastavením ostré ' . $souborNastaveniOstra);
         }
@@ -724,5 +733,18 @@ SQL;
             $nastaveniOstre[$klic] = $matches['hodnota'] ?? null;
         }
         return $nastaveniOstre;
+    }
+
+    public function prihlasovaciUdajeSoucasneDatabaze(): array
+    {
+        return [
+            'DBM_USER' => try_constant('DBM_USER'),
+            'DBM_PASS' => try_constant('DBM_PASS'),
+            'DB_USER'  => try_constant('DB_USER'),
+            'DB_PASS'  => try_constant('DB_PASS'),
+            'DB_NAME'  => try_constant('DB_NAME'),
+            'DB_SERV'  => try_constant('DB_SERV'),
+            'DB_PORT'  => try_constant('DB_PORT'),
+        ];
     }
 }

@@ -441,7 +441,8 @@ class DateTimeGameconTest extends TestCase
             $ted,
             false,
             false,
-            DatabazoveNastaveni::vytvorZGlobals()
+            DatabazoveNastaveni::vytvorZGlobals(),
+            PROJECT_ROOT_DIR,
         );
     }
 

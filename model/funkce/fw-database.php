@@ -83,6 +83,9 @@ function dbConnectTemporary(
     if ($noveSpojeni && $stareSpojeni !== $noveSpojeni) {
         _nastavRocnikDoSpojeni($rocnik, $noveSpojeni, $selectDb);
     }
+    if (!$noveSpojeni->query('SET NAMES utf8 COLLATE utf8_czech_ci')) {
+        throw new DbException('Failed to set charset utf8 to db connection.');
+    }
 
     return $noveSpojeni;
 }
@@ -127,8 +130,14 @@ function _nastavRocnikDoSpojeni(int $rocnik, mysqli $spojeni, bool $databaseSele
 {
     dbQuery('SET @rocnik = IF(@rocnik IS NOT NULL, @rocnik, $0)', $rocnik, $spojeni);
     if ($databaseSelected) {
-        // pro SQL view, který nesnese variable
-        dbQuery("UPDATE systemove_nastaveni SET hodnota = $0 WHERE klic = 'ROCNIK'", $rocnik, $spojeni);
+        try {
+            // pro SQL view, který nesnese variable
+            dbQuery("UPDATE systemove_nastaveni SET hodnota = $0 WHERE klic = 'ROCNIK'", $rocnik, $spojeni);
+        } catch (Throwable $throwable) {
+            if ($throwable->getCode() !== 1146) {
+                throw $throwable;
+            } // else tabulka systemove_nastaveni zatím neexistuje
+        }
     }
 }
 
@@ -149,11 +158,13 @@ function dbClose()
 function dbConnectForAlterStructure($selectDb = true)
 {
     return _dbConnect(
-        DBM_SERV,
+        DB_SERV,
         DBM_USER,
         DBM_PASS,
-        defined('DBM_PORT') ? DBM_PORT : null,
-        $selectDb ? DBM_NAME : null,
+        defined('DB_PORT')
+            ? constant('DB_PORT')
+            : null,
+        $selectDb ? DB_NAME : null,
     );
 }
 
@@ -190,7 +201,7 @@ function dbConnectionAnonymDb(): mysqli
  * @throws ConnectionException
  */
 function _dbConnect(
-    string  $dbHost,
+    string  $dbServer,
     string  $dbUser,
     string  $dbPass,
     ?int    $dbPort,
@@ -202,8 +213,8 @@ function _dbConnect(
         // persistent connection
         $spojeni = @mysqli_connect(
             $persistent
-                ? "p:$dbHost"
-                : $dbHost,
+                ? "p:$dbServer"
+                : $dbServer,
             $dbUser,
             $dbPass,
             $dbName ?? '',

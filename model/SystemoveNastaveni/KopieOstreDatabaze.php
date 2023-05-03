@@ -30,14 +30,21 @@ class KopieOstreDatabaze
         $mysqldump = $this->nastrojeDatabaze->vytvorMysqldumpOstreDatabaze();
         $mysqldump->start($tempFile);
 
-        $localConnection = new \mysqli(
-            DBM_SERV,
-            DBM_USER,
-            DBM_PASS,
-            DBM_NAME,
-            defined('DBM_PORT') && constant('DBM_PORT')
-                ? constant('DBM_PORT')
-                : 3306,
+        [
+            'DB_SERV'  => $dbServ,
+            'DBM_USER' => $dbmUser,
+            'DBM_PASS' => $dbmPass,
+            'DB_NAME'  => $dbName,
+            'DB_PORT'  => $dbPort,
+        ] = $this->systemoveNastaveni->prihlasovaciUdajeSoucasneDatabaze();
+
+        $localConnection = _dbConnect(
+            dbServer: $dbServ,
+            dbUser: $dbmUser,
+            dbPass: $dbmPass,
+            dbPort: $dbPort,
+            dbName: $dbName,
+            persistent: false,
         );
 
         // aby nám nezůstaly viset tabulky, views a functions z novějších SQL migrací, než má zdroj
@@ -47,6 +54,6 @@ class KopieOstreDatabaze
 
         unlink($tempFile);
 
-        (new SqlMigrace())->migruj();
+        (new SqlMigrace($this->systemoveNastaveni))->migruj();
     }
 }

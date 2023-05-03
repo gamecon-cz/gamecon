@@ -9,7 +9,7 @@ require_once __DIR__ . '/_cron_zavadec.php';
 
 $dnesniZalohaPattern = ZALOHA_DB_SLOZKA . '/export_' . date('Y-m-d_') . '[0-9][0-9][0-9][0-9][0-9][0-9].sql.gz';
 if (!glob($dnesniZalohaPattern) || getopt('', ['force']) || !empty($vynutZalohuDatabaze)) { // dnešní záloha databáze ještě neexistuje
-    logs(sprintf("Zálohuji databázi '%s'...", DBM_NAME));
+    logs(sprintf("Zálohuji databázi '%s'...", DB_NAME));
     $chybaZalohovaniDb = null;
     if (!defined('ZALOHA_DB_SLOZKA') || !ZALOHA_DB_SLOZKA) {
         $chybaZalohovaniDb = 'Není definována konstanta s adresářem pro zálohování ZALOHA_DB_SLOZKA.';

@@ -14,7 +14,7 @@ class AnonymizovanaDatabaze
     public static function vytvorZGlobals(): self {
         global $systemoveNastaveni;
         return new static(
-            \DBM_NAME,
+            DB_NAME,
             \DB_ANONYM_NAME,
             $systemoveNastaveni,
             new NastrojeDatabaze($systemoveNastaveni)
@@ -91,6 +91,7 @@ class AnonymizovanaDatabaze
                 UPDATE `{$this->anonymniDatabaze}`.stranky
                 SET
                     obsah = REGEXP_REPLACE(obsah, '[a-zA-Z_0-9.]+@[a-zA-Z_0-9.]+', 'foo@example.com')
+                WHERE TRUE
             SQL
         );
 
@@ -100,6 +101,7 @@ class AnonymizovanaDatabaze
                 UPDATE `{$this->anonymniDatabaze}`.texty
                 SET
                     `text` = REGEXP_REPLACE(`text`, '[a-zA-Z_0-9.]+@[a-zA-Z_0-9.]+', 'foo@example.com')
+                WHERE TRUE
             SQL
         );
 
@@ -108,41 +110,42 @@ class AnonymizovanaDatabaze
             <<<SQL
                 UPDATE `{$this->anonymniDatabaze}`.uzivatele_hodnoty
                 SET
-                login_uzivatele = CONCAT('Login', id_uzivatele),
-                jmeno_uzivatele = '',
-                prijmeni_uzivatele = '',
-                ulice_a_cp_uzivatele = '',
-                mesto_uzivatele = '',
-                stat_uzivatele = -1,
-                psc_uzivatele = '',
-                telefon_uzivatele = '',
-                datum_narozeni = '0000-01-01',
-                heslo_md5 = '',
-                email1_uzivatele = CONCAT('email', id_uzivatele, '@gamecon.cz'),
-                email2_uzivatele = '',
-                jine_uzivatele = '',
-                nechce_maily = null,
-                mrtvy_mail = 0,
-                forum_razeni = '',
-                random = '',
-                zustatek = 0,
-                registrovan = NOW(),
-                ubytovan_s = '',
-                skola = '',
-                poznamka = '',
-                pomoc_typ = '',
-                pomoc_vice = '',
-                op = '',
-                potvrzeni_zakonneho_zastupce = null,
-                potvrzeni_proti_covid19_pridano_kdy = null,
-                potvrzeni_proti_covid19_overeno_kdy = null,
-                infopult_poznamka = ''
+                    login_uzivatele = CONCAT('Login', id_uzivatele),
+                    jmeno_uzivatele = '',
+                    prijmeni_uzivatele = '',
+                    ulice_a_cp_uzivatele = '',
+                    mesto_uzivatele = '',
+                    stat_uzivatele = -1,
+                    psc_uzivatele = '',
+                    telefon_uzivatele = '',
+                    datum_narozeni = '0000-01-01',
+                    heslo_md5 = '',
+                    email1_uzivatele = CONCAT('email', id_uzivatele, '@gamecon.cz'),
+                    email2_uzivatele = '',
+                    jine_uzivatele = '',
+                    nechce_maily = null,
+                    mrtvy_mail = 0,
+                    forum_razeni = '',
+                    random = '',
+                    zustatek = 0,
+                    registrovan = NOW(),
+                    ubytovan_s = '',
+                    skola = '',
+                    poznamka = '',
+                    pomoc_typ = '',
+                    pomoc_vice = '',
+                    op = '',
+                    potvrzeni_zakonneho_zastupce = null,
+                    potvrzeni_proti_covid19_pridano_kdy = null,
+                    potvrzeni_proti_covid19_overeno_kdy = null,
+                    infopult_poznamka = ''
+                WHERE TRUE
             SQL
         );
 
         mysqli_query(
             $dbConnectionAnonymDb,
-            "UPDATE `{$this->anonymniDatabaze}`.medailonky SET o_sobe = '', drd = ''"
+            "UPDATE `{$this->anonymniDatabaze}`.medailonky SET o_sobe = '', drd = '' WHERE TRUE"
         );
 
         mysqli_query(
@@ -258,7 +261,7 @@ SQL
             mysqli_query(
                 $dbConnectionAnonymDb,
                 <<<SQL
-                    DELETE FROM $prilisCitlivaTabulka
+                    DELETE FROM $prilisCitlivaTabulka WHERE TRUE
                 SQL
             );
         }

@@ -4,7 +4,7 @@ ini_set('zend.exception_string_param_max_len', '999'); // loguj argumenty až do
 
 define('DB_TEST_PREFIX', 'gamecon_test_');
 define('DB_NAME', $_COOKIE['gamecon_test_db'] ?? uniqid(DB_TEST_PREFIX, true));
-define('DB_ANONYM_NAME', $_COOKIE['gamecon_test_anonym_db'] ?? uniqid(DB_TEST_PREFIX . '_anonym', true));
+define('DB_ANONYM_NAME', $_COOKIE['gamecon_test_anonym_db'] ?? uniqid(DB_TEST_PREFIX . 'anonym_', true));
 define('SPEC', sys_get_temp_dir());
 define('UNIT_TESTS', true);
 

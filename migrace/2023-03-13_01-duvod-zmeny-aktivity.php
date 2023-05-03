@@ -13,5 +13,6 @@ $this->q(<<<SQL
 UPDATE akce_prihlaseni_log
 JOIN akce_seznam ON akce_prihlaseni_log.id_akce = akce_seznam.id_akce
 SET akce_prihlaseni_log.rocnik = akce_seznam.rok
+WHERE TRUE -- jenom aby si IDE nestěžovalo
 SQL
 );

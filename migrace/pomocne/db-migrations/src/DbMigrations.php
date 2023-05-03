@@ -12,14 +12,15 @@ class DbMigrations
     private $backups;
     private $conf;
     /** @var \mysqli */
-    private $connection;
-    private $migrations;
-    private $webGui = null;
-    private $hasTableMigrationsV2 = null;
-    private $hasTableMigrationsV1 = null;
-    private ?array $unappliedMigrations = null;
+    private        $connection;
+    private        $migrations;
+    private        $webGui               = null;
+    private        $hasTableMigrationsV2 = null;
+    private        $hasTableMigrationsV1 = null;
+    private ?array $unappliedMigrations  = null;
 
-    public function __construct(DbMigrationsConfig $conf) {
+    public function __construct(DbMigrationsConfig $conf)
+    {
         $this->conf = $conf;
 
         $this->connection = $this->conf->connection;
@@ -29,17 +30,20 @@ class DbMigrations
         }
     }
 
-    private function hasUnappliedMigrations(): bool {
+    private function hasUnappliedMigrations(): bool
+    {
         return (bool)$this->getUnappliedMigrations();
     }
 
-    private function handleUnappliedMigrations(bool $silently) {
+    private function handleUnappliedMigrations(bool $silently)
+    {
         foreach ($this->getUnappliedMigrations() as $migration) {
             $this->apply($migration, $silently || $migration->isEndless());
         }
     }
 
-    private function handleEndlessMigrations() {
+    private function handleEndlessMigrations()
+    {
         foreach ($this->getEndlessMigrations() as $migration) {
             $this->apply($migration, true);
         }
@@ -48,7 +52,8 @@ class DbMigrations
     /**
      * @return Migration[]
      */
-    private function getUnappliedMigrations(): array {
+    private function getUnappliedMigrations(): array
+    {
         if (!isset($this->unappliedMigrations)) {
             $migrations = $this->getNormalMigrations();
             if (!$migrations) {
@@ -77,8 +82,8 @@ class DbMigrations
                         $escapedCode = dbQv($migrationCode);
                         return "($escapedCode)";
                     },
-                    $migrationCodes
-                )
+                    $migrationCodes,
+                ),
             );
             $this->connection->query("INSERT INTO known_migration_codes_tmp (migration_code) VALUES $migrationCodesSql");
 
@@ -86,7 +91,7 @@ class DbMigrations
                 "SELECT known_migration_codes_tmp.migration_code
 FROM known_migration_codes_tmp
 LEFT JOIN migrations ON migrations.migration_code = known_migration_codes_tmp.migration_code
-WHERE migrations.migration_id IS NULL"
+WHERE migrations.migration_id IS NULL",
             );
 
             $wrappedUnappliedMigrationCodes = $query->fetch_all();
@@ -97,9 +102,10 @@ WHERE migrations.migration_id IS NULL"
 
             $this->unappliedMigrations = array_filter(
                 $migrations,
-                static fn(Migration $migration) => in_array($migration->getCode(), $unappliedMigrationCodes, false)
+                static fn(Migration $migration) => in_array($migration->getCode(), $unappliedMigrationCodes, false),
             );
         }
+
         return $this->unappliedMigrations;
     }
 
@@ -107,7 +113,8 @@ WHERE migrations.migration_id IS NULL"
      * @param Migration[] $migrations
      * @return Migration[]
      */
-    private function getMigrationsV1(array $migrations): array {
+    private function getMigrationsV1(array $migrations): array
+    {
         return array_filter($migrations, static function (Migration $migration) {
             return $migration->getVersion() === 1;
         });
@@ -117,7 +124,8 @@ WHERE migrations.migration_id IS NULL"
      * @param Migration[] $migrationsV1
      * @return Migration[]
      */
-    private function getUnappliedMigrationsV1(array $migrationsV1): array {
+    private function getUnappliedMigrationsV1(array $migrationsV1): array
+    {
         $idOfLastAppliedMigrationV1 = $this->getIdOfLastAppliedMigrationV1();
 
         return array_filter($migrationsV1, static function (Migration $migration) use ($idOfLastAppliedMigrationV1) {
@@ -125,10 +133,11 @@ WHERE migrations.migration_id IS NULL"
         });
     }
 
-    private function getIdOfLastAppliedMigrationV1(): int {
+    private function getIdOfLastAppliedMigrationV1(): int
+    {
         $query                          = $this->connection->query(<<<SQL
 SELECT value FROM db_migrations WHERE name = 'last_applied_migration_id'
-SQL
+SQL,
         );
         $lastAppliedMigrationSerialized = $query->fetch_row()[0] ?? false;
         return $lastAppliedMigrationSerialized !== false
@@ -140,13 +149,15 @@ SQL
      * @param Migration[] $migrations
      * @return Migration[]
      */
-    private function getMigrationsV2(array $migrations): array {
+    private function getMigrationsV2(array $migrations): array
+    {
         return array_filter($migrations, static function (Migration $migration) {
             return $migration->getVersion() === 2;
         });
     }
 
-    private function hasTableMigrationsForV2(): bool {
+    private function hasTableMigrationsForV2(): bool
+    {
         if ($this->hasTableMigrationsV2 === true) {
             return true;
         }
@@ -154,7 +165,8 @@ SQL
         return $this->hasTableMigrationsV2;
     }
 
-    private function hasTableMigrationsForV1(): bool {
+    private function hasTableMigrationsForV1(): bool
+    {
         if ($this->hasTableMigrationsV1 === true) {
             return true;
         }
@@ -165,7 +177,8 @@ SQL
     /**
      * @return Migration[]
      */
-    private function getMigrations(): array {
+    private function getMigrations(): array
+    {
         if (!is_array($this->migrations)) {
             $migrations = [];
             foreach (glob($this->conf->migrationsDirectory . '/*.php') as $fileName) {
@@ -184,15 +197,18 @@ SQL
         return $this->migrations;
     }
 
-    private function getNormalMigrations(): array {
+    private function getNormalMigrations(): array
+    {
         return array_filter($this->getMigrations(), static fn(Migration $migration) => !$migration->isEndless());
     }
 
-    private function getEndlessMigrations(): array {
+    private function getEndlessMigrations(): array
+    {
         return array_filter($this->getMigrations(), static fn(Migration $migration) => $migration->isEndless());
     }
 
-    private function apply(Migration $migration, bool $silent) {
+    private function apply(Migration $migration, bool $silent)
+    {
         if (!$silent && $this->webGui) {
             $this->webGui->confirm();
         }
@@ -218,7 +234,7 @@ SQL
                 if ($this->hasTableMigrationsForV2()) {
                     $this->connection->query(<<<SQL
 INSERT IGNORE INTO migrations(migration_code, applied_at) VALUES ('{$migration->getCode()}', NOW())
-SQL
+SQL,
                     );
                 }
             }
@@ -229,7 +245,8 @@ SQL
         }
     }
 
-    public function run(bool $silent = false) {
+    public function run(bool $silent = false)
+    {
         $driver              = new \mysqli_driver();
         $oldReportMode       = $driver->report_mode;
         $driver->report_mode = MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT;
