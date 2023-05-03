@@ -32,7 +32,7 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
                 DatabazoveNastaveni::vytvorZGlobals(),
                 defined('PROJECT_ROOT_DIR')
                     ? constant('')
-                    : dirname((new \ReflectionClass(ClassLoader::class))->getFileName()),
+                    : dirname((new \ReflectionClass(ClassLoader::class))->getFileName()) . '/../..',
             );
         }
         return $systemoveNastaveni;
