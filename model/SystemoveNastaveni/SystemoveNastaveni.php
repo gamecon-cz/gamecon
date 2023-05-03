@@ -466,6 +466,12 @@ SQL;
                     ->formatDatumDb()
                 : '2023-06-23',
             'TEXT_PRO_SPAROVANI_ODCHOZI_PLATBY' => 'vraceni zustatku GC ID:',
+            'HROMADNE_ODHLASOVANI_1' => DateTimeGamecon::spocitejPrvniHromadneOdhlasovani($this->rocnik())
+                ->formatDb(),
+            'HROMADNE_ODHLASOVANI_2' => DateTimeGamecon::spocitejDruheHromadneOdhlasovani($this->rocnik())
+                ->formatDb(),
+            'HROMADNE_ODHLASOVANI_3' => DateTimeGamecon::spocitejTretiHromadneOdhlasovani($this->rocnik())
+                ->formatDb(),
             default => '',
         };
     }

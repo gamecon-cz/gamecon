@@ -254,6 +254,9 @@ class DateTimeGamecon extends DateTimeCz
         if ($rocnik < 2023) {
             return static::zDbFormatu("$rocnik-06-30 23:59:00");
         }
+        if ($rocnik === (int)ROCNIK && defined('HROMADNE_ODHLASOVANI_1')) {
+            return static::zDbFormatu(HROMADNE_ODHLASOVANI_1);
+        }
         return static::spocitejPrvniHromadneOdhlasovani($rocnik);
     }
 
@@ -267,6 +270,9 @@ class DateTimeGamecon extends DateTimeCz
         if ($rocnik < 2023) {
             return static::zDbFormatu("$rocnik-07-17 23:59:00");
         }
+        if ($rocnik === (int)ROCNIK && defined('HROMADNE_ODHLASOVANI_2')) {
+            return static::zDbFormatu(HROMADNE_ODHLASOVANI_2);
+        }
         return static::spocitejDruheHromadneOdhlasovani($rocnik);
     }
 
@@ -277,6 +283,9 @@ class DateTimeGamecon extends DateTimeCz
 
     public static function tretiHromadneOdhlasovani(int $rocnik = ROCNIK): DateTimeGamecon
     {
+        if ($rocnik === (int)ROCNIK && defined('HROMADNE_ODHLASOVANI_3')) {
+            return static::zDbFormatu(HROMADNE_ODHLASOVANI_3);
+        }
         return static::spocitejTretiHromadneOdhlasovani($rocnik);
     }
 
