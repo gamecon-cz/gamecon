@@ -23,7 +23,7 @@ class NastrojeDatabaze
     {
     }
 
-    public function vytvorMysqldumpOstreDatabaze(array $mysqldumpSettings = []): Mysqldump
+    public function vytvorMysqldumpOstreDatabaze(array $mysqldumpSettings = ['skip-definer' => true]): Mysqldump
     {
         $nastaveniOstre = $this->systemoveNastaveni->prihlasovaciUdajeOstreDatabaze();
 
@@ -36,7 +36,7 @@ class NastrojeDatabaze
         );
     }
 
-    public function vytvorMysqldumpHlavniDatabaze(array $mysqldumpSettings = []): Mysqldump
+    public function vytvorMysqldumpHlavniDatabaze(array $mysqldumpSettings = ['skip-definer' => true]): Mysqldump
     {
         return $this->vytvorMysqldump(
             $this->systemoveNastaveni->databazoveNastaveni()->serverHlavniDatabaze(),
@@ -47,7 +47,7 @@ class NastrojeDatabaze
         );
     }
 
-    public function vytvorMysqldumpAnonymniDatabaze(array $mysqldumpSettings = []): Mysqldump
+    public function vytvorMysqldumpAnonymniDatabaze(array $mysqldumpSettings = ['skip-definer' => true]): Mysqldump
     {
         return $this->vytvorMysqldump(
             $this->systemoveNastaveni->databazoveNastaveni()->serverAnonymizovaneDatabase(),
