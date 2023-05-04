@@ -15,17 +15,15 @@ class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
     private $clen1;
     private $clen2;
 
-    protected static string $initData = '
-    # akce_seznam
-    id_akce, dite,  stav, typ, teamova, kapacita, team_min, team_max, zacatek,          konec
-    1,       "2,3", 2,    1,   1,       3,        2,        3,        2099-01-01 08:00, 2099-01-01 14:00
-    2,       4,     5,    1,   0,       3,        NULL,     NULL,     2099-01-01 08:00, 2099-01-01 14:00
-    3,       4,     5,    1,   0,       3,        NULL,     NULL,     2099-01-01 15:00, 2099-01-01 16:00
-    4,       NULL,  5,    1,   0,       3,        NULL,     NULL,     2099-01-01 08:00, 2099-01-01 14:00
-    5,       NULL,  2,    1,   0,       3,        NULL,     NULL,     2099-01-01 08:00, 2099-01-01 14:00
-    ';
+    protected static bool $disableStrictTransTables = true;
 
-    protected function setUp(): void {
+    protected static function getInitData(): string
+    {
+        return file_get_contents(__DIR__ . '/data/aktivita_tymove_prihlasovani_test.csv');
+    }
+
+    protected function setUp(): void
+    {
         parent::setUp();
 
         try {
@@ -43,7 +41,8 @@ class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
         }
     }
 
-    public function testOdhlaseniPosledniho() {
+    public function testOdhlaseniPosledniho()
+    {
         $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr);
         $this->ctvrtfinale->prihlasTym([$this->clen1], $this->tymlidr, null, 2, [$this->semifinaleA, $this->finale]);
 
@@ -56,14 +55,14 @@ class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
 
         // opětovné přihlášení se chová jako u týmovky, tj. jako přihlášení týmlídra
         $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr);
-        try {
-            $this->ctvrtfinale->prihlas($this->clen1, $this->clen1);
-            self::fail('Aktivita musí být opět zamčená.');
-        } catch (\Exception $e) {
-        }
+
+        self::expectException(\Chyba::class);
+        self::expectExceptionMessage('Aktivitu už někdo zabral');
+        $this->ctvrtfinale->prihlas($this->clen1, $this->clen1);
     }
 
-    public function testOdhlaseniPredPotvrzenim() {
+    public function testOdhlaseniPredPotvrzenim()
+    {
         $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr);
 
         $this->ctvrtfinale->odhlas($this->tymlidr, $this->tymlidr);
@@ -71,15 +70,17 @@ class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
         self::assertTrue($this->ctvrtfinale->prihlasen($this->clen1));
     }
 
-    public function testOmezeniKapacity() {
+    public function testOmezeniKapacity()
+    {
         $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr);
         $this->ctvrtfinale->prihlasTym([$this->clen1], $this->tymlidr, null, 2, [$this->semifinaleA, $this->finale]);
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessageMatches('~ plná~');
+        $this->expectException(\Chyba::class);
+        $this->expectExceptionMessage('Místa jsou už plná');
         $this->ctvrtfinale->prihlas($this->clen2, $this->clen2);
     }
 
-    function nastaveniKapacity() {
+    function nastaveniKapacity()
+    {
         return [
             [null, 3],
             [2, 2],
@@ -89,14 +90,16 @@ class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
     /**
      * @dataProvider nastaveniKapacity
      */
-    function testZmenaKapacity($nastaveno, $ocekavano) {
+    function testZmenaKapacity($nastaveno, $ocekavano)
+    {
         $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr);
         $this->ctvrtfinale->prihlasTym([$this->clen1], $this->tymlidr, null, $nastaveno, [$this->semifinaleA, $this->finale]);
         $this->ctvrtfinale->refresh();
         $this->assertEquals($ocekavano, $this->ctvrtfinale->rawDb()['kapacita']);
     }
 
-    public function testPrihlaseniDalsiho() {
+    public function testPrihlaseniDalsiho()
+    {
         $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr);
         $this->ctvrtfinale->prihlasTym([$this->clen1], $this->tymlidr, null, 3, [$this->semifinaleA, $this->finale]);
         $this->ctvrtfinale->prihlas($this->clen2, $this->clen2);
@@ -114,7 +117,8 @@ class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
         self::assertFalse($this->semifinaleB->prihlasen($this->clen2));
     }
 
-    public function testPrihlaseniTymlidra() {
+    public function testPrihlaseniTymlidra()
+    {
         // aktivita se zamče
         $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr);
         try {
@@ -134,7 +138,8 @@ class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
         }
     }
 
-    public function testPrihlaseniTymu() {
+    public function testPrihlaseniTymu()
+    {
         $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr);
         $this->ctvrtfinale->prihlasTym([$this->clen1], $this->tymlidr, null, null, [$this->semifinaleA, $this->finale]);
 
@@ -153,7 +158,8 @@ class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
         }
     }
 
-    public function testPrihlaseniTymuOpakovaneNelze() {
+    public function testPrihlaseniTymuOpakovaneNelze()
+    {
         $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr);
         $this->ctvrtfinale->prihlasTym([], $this->tymlidr, null, null, [$this->semifinaleA, $this->finale]);
         // TODO co když by se přihlašoval na jiné čtvrtfinále?
@@ -164,7 +170,8 @@ class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
     /**
      * @dataProvider spatnaVolbaDalsichKol
      */
-    public function testSpatnaVolbaDalsichKolNelze(array $dalsiKolaIds) {
+    public function testSpatnaVolbaDalsichKolNelze(array $dalsiKolaIds)
+    {
         $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr);
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Nepovolený výběr dalších kol.');
@@ -173,7 +180,8 @@ class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
         }, $dalsiKolaIds));
     }
 
-    public function spatnaVolbaDalsichKol(): array {
+    public function spatnaVolbaDalsichKol(): array
+    {
         return [
             'nevybrání ničeho'        => [[]],
             'vybrání i čtvrtfinále'   => [[1, 2, 4]],

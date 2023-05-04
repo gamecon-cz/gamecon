@@ -5,23 +5,23 @@ namespace Gamecon\Tests\Db;
 class Dataset
 {
 
-    private $replaceNull = true;
-    private $tables = [];
+    private bool  $replaceNull = true;
+    private array $tables      = [];
 
-    public function addCsv(string $csvString) {
+    public function addCsv(string $csvString)
+    {
         foreach (explode("\n", $csvString) as $line) {
-            $line = trim($line);
-            $values = array_map(static function ($value) {
-                return trim((string)$value);
-            }, str_getcsv($line));
+            $line      = trim($line);
+            $values    = array_map('trim', array_map(static fn($value) => (string)$value, str_getcsv($line)));
             $lastTable = $this->tables[count($this->tables) - 1] ?? null;
 
             if (empty($line)) {
                 continue;
             }
-            if ($line[0] === '#') {
+            $firstValue = reset($values);
+            if (str_starts_with($firstValue, '#')) {
                 // table name
-                $name = substr($line, 2);
+                $name           = trim(str_replace('#', '', $firstValue));
                 $this->tables[] = new DatasetTable($name);
                 continue;
             }
@@ -35,14 +35,16 @@ class Dataset
         }
     }
 
-    public function getTables(): array {
+    public function getTables(): array
+    {
         return $this->tables;
     }
 
     /**
      * Do replacement of special values to non-string datatypes (ie NULL)
      */
-    private function replaceValues(string $value): ?string {
+    private function replaceValues(string $value): ?string
+    {
         if ($this->replaceNull && strtoupper($value) === 'NULL') {
             return null;
         }
