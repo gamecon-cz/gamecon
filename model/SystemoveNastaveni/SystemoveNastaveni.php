@@ -172,7 +172,7 @@ UPDATE systemove_nastaveni
 SET aktivni = $1
 WHERE klic = $2
 SQL,
-            [$aktivni, $klic],
+            [$aktivni ? 1 : 0 /* Aby nás nepotkalo "Incorrect integer value: '' for column aktivni" */, $klic],
         );
         dbQuery(<<<SQL
 INSERT INTO systemove_nastaveni_log(id_uzivatele, id_nastaveni, aktivni)
