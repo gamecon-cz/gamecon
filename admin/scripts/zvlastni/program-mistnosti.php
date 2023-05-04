@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Aktivita\Program;
+
 $program = new Program(null, [
     Program::INTERNI => true,
     Program::SKUPINY => Program::SKUPINY_MISTNOSTI,

@@ -1,5 +1,7 @@
 <?php
 
+use Gamecon\Aktivita\Program;
+
 $program = new Program();
 
 ?>

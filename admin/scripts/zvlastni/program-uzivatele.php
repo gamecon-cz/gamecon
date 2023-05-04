@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\Program;
 
 /** @var Uzivatel $u */
 /** @var Uzivatel|null $uPracovni */

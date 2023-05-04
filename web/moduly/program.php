@@ -1,5 +1,6 @@
 <?php
 
+use Gamecon\Aktivita\Program;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\Pravo;
 

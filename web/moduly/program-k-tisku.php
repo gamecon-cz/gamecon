@@ -3,6 +3,8 @@
 /** @var Uzivatel|null $u */
 /** @var Modul $this */
 
+use Gamecon\Aktivita\Program;
+
 if (!$u) {
     throw new Neprihlasen();
 }
