@@ -65,6 +65,7 @@ if ($u->maPravoNaPrirazeniRole((int)$role) && $u->maPravo(Pravo::ZMENA_PRAV)) {
         [$role]
     );
     while ($r = mysqli_fetch_assoc($o)) {
+        $r[PravoSqlStruktura::JMENO_PRAVA] = nahradNazvyKonstantZaHodnoty($r[PravoSqlStruktura::JMENO_PRAVA]);
         $t->assign($r);
         $t->parse('pravaJedneRole.akce.pravoVyber');
     }
