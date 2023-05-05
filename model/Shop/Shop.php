@@ -643,6 +643,7 @@ SQL,
             'postname'              => $this->klicV,
             'min'                   => 0,
             'lonskyPrumerVstupneho' => $this->lonskyPrumerVstupneho(),
+            'lonskyRok'             => $this->systemoveNastaveni->rocnik() - 1,
             'vstupneGamaKorekce'    => self::VSTUPNE_GAMA_KOREKCE,
             'smajliky'              => json_encode([
                 [1000, URL_WEBU . '/soubory/blackarrow/shop/vstupne-smajliky/6.png'],

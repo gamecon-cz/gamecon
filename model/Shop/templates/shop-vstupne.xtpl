@@ -28,7 +28,7 @@
 </div>
 
 <div class="shopVstupne_kostkaLegenda">
-    průměrný příspěvek z roku 2021
+    průměrný příspěvek z roku {lonskyRok}
 </div>
 
 <script>
