@@ -136,7 +136,9 @@ $brzy         = match ($poradiOznameni) {
     default => 'Brzy'
 };
 $uvod         = "$brzy Gamecon systém odhlásí $budeOdhlaseno účastníků z letošního Gameconu, protože jsou neplatiči.";
-$oddelovac    = str_repeat('═', mb_strlen($uvod));
+$oddelovac    = count($zpravyNeplatici) > 0
+    ? str_repeat('═', mb_strlen($uvod))
+    : '';
 $zpravyString = implode(";\n", $zpravyNeplatici);
 
 if ($zpravyPolozky) {
