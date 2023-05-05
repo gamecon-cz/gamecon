@@ -484,14 +484,6 @@ SQL;
                 Klic::GC_BEZI_DO                                      => $konecGameconuKdy,
                 Klic::REG_GC_OD                                       => DateTimeGamecon::spocitejZacatekRegistraciUcastniku($this->rocnik())->formatDb(),
                 Klic::REG_GC_DO=> $konecGameconuKdy,
-                'REG_AKTIVIT_OD' => DateTimeGamecon::spoctejZacatekPrvniVlnyOd($this->rok())
-                    ->formatDb(),
-                'HROMADNE_ODHLASOVANI_1' => DateTimeGamecon::spocitejPrvniHromadneOdhlasovaniOd($this->rok())
-                    ->formatDb(),
-                'HROMADNE_ODHLASOVANI_2' => DateTimeGamecon::spocitejDruheHromadneOdhlasovaniOd($this->rok())
-                    ->formatDb(),
-                'HROMADNE_ODHLASOVANI_3' => DateTimeGamecon::spocitejTretiHromadneOdhlasovaniOd($this->rok())
-                    ->formatDb(),
                 Klic::PRVNI_VLNA_KDY                                  => DateTimeGamecon::spoctejKdyJePrvniVlna($this->rocnik())
                     ->formatDb(),
                 Klic::DRUHA_VLNA_KDY                                  => DateTimeGamecon::spocitejKdyJeDruhaVlna($this->rocnik())
