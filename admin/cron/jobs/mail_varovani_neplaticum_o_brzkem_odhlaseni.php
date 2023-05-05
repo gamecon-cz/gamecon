@@ -42,7 +42,7 @@ foreach ($posuny as $poradiOznameni => $posun) {
     if (!$znovu || $systemoveNastaveni->jsmeNaOstre()) {
         $odhlaseniProvedenoKdy = $hromadneOdhlaseniNeplaticu->odhlaseniProvedenoKdy($nejblizsiHromadneOdhlasovaniKdy);
         if ($odhlaseniProvedenoKdy) {
-            logs("Hromadné odhlášení už bylo provedeno {$odhlaseniProvedenoKdy->format(DateTimeCz::FORMAT_DB)}. Už nemá smysl neplatiče varovat.");
+            logs("Hromadné odhlášení už bylo provedeno {$odhlaseniProvedenoKdy->format(DateTimeCz::FORMAT_DB)} {$odhlaseniProvedenoKdy->relativni()}. Už nemá smysl neplatiče varovat.");
             return;
         }
 

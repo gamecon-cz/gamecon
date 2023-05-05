@@ -52,7 +52,7 @@ foreach ($posuny as $poradiOznameni => $posun) {
         $odhlaseniProvedenoKdy = $hromadneOdhlaseniNeplaticu->odhlaseniProvedenoKdy($nejblizsiHromadneOdhlasovaniKdy);
         if ($odhlaseniProvedenoKdy) {
             $odhlaseniProvedenoKdy = DateTimeCz::createFromInterface($odhlaseniProvedenoKdy);
-            logs("Hromadné odhlášení už bylo provedeno {$odhlaseniProvedenoKdy->relativni()} ({$odhlaseniProvedenoKdy->format(DateTimeCz::FORMAT_DB)}). Už nemá smyl informovat CFO o nespárovaných platbách.");
+            logs("Hromadné odhlášení už bylo provedeno {$odhlaseniProvedenoKdy->format(DateTimeCz::FORMAT_DB)} ({$odhlaseniProvedenoKdy->relativni()}). Už nemá smyl informovat CFO o nespárovaných platbách.");
             return;
         }
 

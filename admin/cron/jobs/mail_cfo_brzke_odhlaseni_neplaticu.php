@@ -47,7 +47,7 @@ foreach ($posuny as $poradiOznameni => $posun) {
     if (!$znovu || $systemoveNastaveni->jsmeNaOstre()) {
         $odhlaseniProvedenoKdy = $hromadneOdhlaseniNeplaticu->odhlaseniProvedenoKdy($nejblizsiHromadneOdhlasovaniKdy);
         if ($odhlaseniProvedenoKdy) { // chceme informovat, že odhlášení bude, ne že bylo - tady končíme
-            logs("Hromadné odhlášení už bylo provedeno {$odhlaseniProvedenoKdy->format(DateTimeCz::FORMAT_DB)}. Už nemá smysl informovat CFO o blížícím se odhlašování.");
+            logs("Hromadné odhlášení už bylo provedeno {$odhlaseniProvedenoKdy->format(DateTimeCz::FORMAT_DB)} ({$odhlaseniProvedenoKdy->relativni()}). Už nemá smysl informovat CFO o blížícím se odhlašování.");
             return;
         }
 
