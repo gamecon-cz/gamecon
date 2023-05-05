@@ -2,11 +2,16 @@
 
 use Gamecon\Aktivita\Program;
 
-$program = new Program(null, [
-    Program::INTERNI => true,
-    Program::SKUPINY => Program::SKUPINY_MISTNOSTI,
-    Program::PRAZDNE => true,
-]);
+/** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
+
+$program = new Program(
+    systemoveNastaveni: $systemoveNastaveni,
+    nastaveni: [
+        Program::INTERNI => true,
+        Program::SKUPINY => Program::SKUPINY_MISTNOSTI,
+        Program::PRAZDNE => true,
+    ],
+);
 
 ?>
 <!DOCTYPE html>

@@ -8,6 +8,7 @@ use Gamecon\Pravo;
 /** @var \Gamecon\XTemplate\XTemplate $t */
 /** @var Uzivatel $u */
 /** @var url $url */
+/** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
 $this->blackarrowStyl(true);
 
@@ -38,7 +39,7 @@ if ($url->cast(1) === 'muj') {
 
 $this->info()->nazev($title);
 
-$program = new Program($u, $nastaveni);
+$program = new Program($systemoveNastaveni, $u, $nastaveni);
 $program->zpracujPost($u);
 
 foreach ($program->cssUrls() as $cssUrl) {
@@ -68,7 +69,7 @@ $aktivni = function ($urlOdkazu) use ($url, $alternativniUrl) {
 $zobrazitMujProgramOdkaz = isset($u);
 
 ?>
-
+uzivatele
 <style>
     /* na stránce programu nedělat sticky menu, aby bylo maximum místa pro progam */
     .menu {

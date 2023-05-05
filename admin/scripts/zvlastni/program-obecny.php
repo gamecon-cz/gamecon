@@ -2,7 +2,9 @@
 
 use Gamecon\Aktivita\Program;
 
-$program = new Program();
+/** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
+
+$program = new Program(systemoveNastaveni: $systemoveNastaveni);
 
 ?>
 <!DOCTYPE html>

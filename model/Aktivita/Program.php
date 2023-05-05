@@ -3,6 +3,7 @@
 namespace Gamecon\Aktivita;
 
 use Gamecon\Cas\DateTimeCz;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use tFPDF;
 use Uzivatel;
 use ArrayIterator;
@@ -63,10 +64,14 @@ class Program
     /**
      * Konstruktor bere uživatele a specifikaci, jestli je to osobní program
      */
-    public function __construct(Uzivatel $u = null, $nastaveni = null)
+    public function __construct(
+        private readonly SystemoveNastaveni $systemoveNastaveni,
+        Uzivatel                            $uzivatel = null,
+        array                               $nastaveni = null,
+    )
     {
-        if ($u instanceof Uzivatel) {
-            $this->u = $u;
+        if ($uzivatel instanceof Uzivatel) {
+            $this->u = $uzivatel;
         }
         if (is_array($nastaveni)) {
             $this->nastaveni = array_replace($this->nastaveni, $nastaveni);
@@ -363,7 +368,7 @@ class Program
             }
             echo ' ' . $aktivitaObjekt->prihlasovatko($this->u, $parametry);
         } else if (defined('TESTING') && TESTING) {
-            echo $aktivitaObjekt::formatujDuvodProTesting('DrD nemá povolené přihlašování');
+            echo $aktivitaObjekt->formatujDuvodProTesting('DrD nemá povolené přihlašování', $this->systemoveNastaveni);
         }
 
         if ($this->nastaveni[self::OSOBNI]) {
