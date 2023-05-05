@@ -1956,6 +1956,7 @@ SQL;
         if ($this->shop === null) {
             $this->shop = new Shop(
                 $this,
+                $this,
                 null,
                 $systemoveNastaveni ?? SystemoveNastaveni::vytvorZGlobals()
             );

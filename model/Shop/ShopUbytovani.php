@@ -240,13 +240,15 @@ SQL,
 
     public function __construct(
         array                               $predmety,
-        private readonly Uzivatel           $uzivatel,
+        private readonly Uzivatel           $ubytovany,
+        private readonly Uzivatel           $kupujici,
         private readonly SystemoveNastaveni $systemoveNastaveni,
     )
     {
         foreach ($predmety as $p) {
             if ((int)$p[Sql::UBYTOVANI_DEN] === DateTimeGamecon::PORADI_HERNIHO_DNE_NEDELE
-                && !$this->uzivatel->jeOrganizator()
+                && !$this->ubytovany->jeOrganizator() // organizátor objednává pro sebe
+                && !$this->kupujici->jeOrganizator() // organizátor objednává pro nkoho jiného (což může jenom z adminu)
             ) {
                 continue; // z neděle na pondělí už není veřejně nabízené ubytování https://trello.com/c/rP47BsUD/940-%C3%BApravy-p%C5%99ihl%C3%A1%C5%A1ky-mastercard-2023
             }
@@ -278,7 +280,7 @@ SQL,
 
     public function uzivatel(): Uzivatel
     {
-        return $this->uzivatel;
+        return $this->ubytovany;
     }
 
     public function ubytovaniHtml(bool $muzeEditovatUkoncenyProdej = false)
@@ -287,7 +289,7 @@ SQL,
         $t->assign([
             'shopUbytovaniJs'      => URL_WEBU . '/soubory/blackarrow/shop/shop-ubytovani.js?version='
                 . md5(WWW . '/soubory/blackarrow/shop/shop-ubytovani.js'),
-            'spolubydlici'         => dbOneCol('SELECT ubytovan_s FROM uzivatele_hodnoty WHERE id_uzivatele=' . $this->uzivatel->id()),
+            'spolubydlici'         => dbOneCol('SELECT ubytovan_s FROM uzivatele_hodnoty WHERE id_uzivatele=' . $this->ubytovany->id()),
             'postnameSpolubydlici' => $this->pnPokoj,
             'uzivatele'            => $this->mozniUzivatele(),
         ]);
@@ -370,11 +372,11 @@ SQL,
         }
 
         // vložit jeho zaklikané věci - note: není zabezpečeno
-        self::ulozObjednaneUbytovaniUcastnika($_POST[$this->pnDny], $this->uzivatel);
+        self::ulozObjednaneUbytovaniUcastnika($_POST[$this->pnDny], $this->ubytovany);
 
         if ($vcetneSpolubydliciho) {
             // uložit s kým chce být na pokoji
-            self::ulozSKymChceBytNaPokoji($_POST[$this->pnPokoj] ?? '', $this->uzivatel);
+            self::ulozSKymChceBytNaPokoji($_POST[$this->pnPokoj] ?? '', $this->ubytovany);
         }
 
         return true;
@@ -481,7 +483,7 @@ SQL,
       SELECT CONCAT(jmeno_uzivatele,' ',prijmeni_uzivatele,' (',login_uzivatele,')')
       FROM uzivatele_hodnoty
       WHERE jmeno_uzivatele != '' AND prijmeni_uzivatele != '' AND id_uzivatele != $1
-    ", [$this->uzivatel->id()]);
+    ", [$this->ubytovany->id()]);
         while ($u = mysqli_fetch_row($o)) {
             $a[] = $u[0];
         }

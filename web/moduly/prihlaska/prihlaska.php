@@ -60,7 +60,7 @@ if (po(GC_BEZI_DO)) {
 }
 
 if (VYZADOVANO_COVID_POTVRZENI && $u && (GC_BEZI || $u->gcPritomen())) {
-    $t->assign('covidSekce', $covidSekceFunkce(new Shop($u, null, $systemoveNastaveni)));
+    $t->assign('covidSekce', $covidSekceFunkce(new Shop($u, $u, null, $systemoveNastaveni)));
     $t->parse('prihlaskaUzavrena.covidSekce.doklad');
     $letosniRok = (int)date('Y');
     if (!$u->maNahranyDokladProtiCoviduProRok($letosniRok) && !$u->maOverenePotvrzeniProtiCoviduProRok($letosniRok)) {
@@ -99,7 +99,7 @@ if (pred(REG_GC_OD)) {
     return;
 }
 
-$shop  = new Shop($u, null, $systemoveNastaveni);
+$shop  = new Shop($u, $u, null, $systemoveNastaveni);
 $pomoc = new Pomoc($u);
 
 if (post('odhlasit')) {
