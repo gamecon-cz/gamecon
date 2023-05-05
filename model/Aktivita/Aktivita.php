@@ -57,17 +57,18 @@ class Aktivita
     const HAJENI                = 72;      // počet hodin po kterýc aktivita automatick vykopává nesestavený tým
     const LIMIT_POPIS_KRATKY    = 180;  // max počet znaků v krátkém popisku
     // ignore a parametry kolem přihlašovátka
-    const PLUSMINUS                          = 0b00000000001;   // plus/mínus zkratky pro měnění míst v team. aktivitě
-    const PLUSMINUS_KAZDY                    = 0b00000000010;   // plus/mínus zkratky pro každého
-    const STAV                               = 0b00000000100;   // ignorování stavu
-    const ZAMEK                              = 0b00000001000;   // ignorování zamčení pro tým
-    const BEZ_POKUT                          = 0b00000010000;   // odhlášení bez pokut
-    const ZPETNE                             = 0b00000100000;   // možnost zpětně měnit přihlášení
-    const INTERNI                            = 0b00001000000;   // přihlašovat i skryté technické a brigádnické aktivity
-    const NEPOSILAT_MAILY_SLEDUJICIM         = 0b00010000000;   // odhlášení bez mailů náhradníkům
-    const DOPREDNE                           = 0b00100000000;   // možnost přihlásit před otevřením registrací na aktivity
-    const IGNOROVAT_LIMIT                    = 0b01000000000;
-    const IGNOROVAT_PRIHLASENI_NA_SOUROZENCE = 0b10000000000;
+    const PLUSMINUS                          = 0b000000000001;   // plus/mínus zkratky pro měnění míst v team. aktivitě
+    const PLUSMINUS_KAZDY                    = 0b000000000010;   // plus/mínus zkratky pro každého
+    const STAV                               = 0b000000000100;   // ignorování stavu
+    const ZAMEK                              = 0b000000001000;   // ignorování zamčení pro tým
+    const BEZ_POKUT                          = 0b000000010000;   // odhlášení bez pokut
+    const ZPETNE                             = 0b000000100000;   // možnost zpětně měnit přihlášení
+    const INTERNI                            = 0b000001000000;   // přihlašovat i skryté technické a brigádnické aktivity
+    const NEPOSILAT_MAILY_SLEDUJICIM         = 0b000010000000;   // odhlášení bez mailů náhradníkům
+    const DOPREDNE                           = 0b000100000000;   // možnost přihlásit před otevřením registrací na aktivity
+    const IGNOROVAT_LIMIT                    = 0b001000000000;
+    const IGNOROVAT_PRIHLASENI_NA_SOUROZENCE = 0b010000000000;
+    const NEOTEVRENE                         = 0b100000000000; // přihlašování na neaktivované, pro běžné přihlašování dosud neotevřené aktivity
     // parametry kolem továrních metod
     const JEN_VOLNE  = 0b00000001;   // jen volné aktivity
     const VEREJNE    = 0b00000010;   // jen veřejně viditelné aktivity
@@ -1641,6 +1642,10 @@ SQL
         if ($this->probehnuta() && $this->ucastniciPridatelni($prihlasujici)) {
             $parametry |= self::ZPETNE; // přestože je zamčená nebo dokonce uzavřená, stále ji ještě lze (po nějakou dobu) editovat
         }
+        if ($prihlasujici->maPravoNaPrihlasovaniNaDosudNeotevrene()) {
+            $parametry |= self::NEOTEVRENE;
+        }
+
         if (!($prihlasovatelna = $this->prihlasovatelna($parametry))) {
             if ($parametry & self::STAV) {
                 // hack na ignorování stavu
@@ -1824,9 +1829,10 @@ SQL
     /** Zdali chceme, aby se na aktivitu bylo možné běžně přihlašovat */
     public function prihlasovatelna($parametry = 0)
     {
-        $dopredne = $parametry & self::DOPREDNE;
-        $zpetne   = $parametry & self::ZPETNE;
-        $interni  = $parametry & self::INTERNI;
+        $dopredne   = $parametry & self::DOPREDNE;
+        $zpetne     = $parametry & self::ZPETNE;
+        $neotevrene = $parametry & self::NEOTEVRENE;
+        $interni    = $parametry & self::INTERNI;
         // stav 4 je rezervovaný pro viditelné nepřihlašovatelné aktivity
         return
             (REG_AKTIVIT
@@ -1834,7 +1840,8 @@ SQL
                 || ($zpetne && po(REG_GC_DO))
             )
             && (
-                $this->a['stav'] == StavAktivity::AKTIVOVANA
+                $this->idStavu() === StavAktivity::AKTIVOVANA
+                || ($neotevrene && in_array($this->idStavu(), [StavAktivity::PRIPRAVENA, StavAktivity::PUBLIKOVANA]))
                 || ($interni && $this->a['stav'] == StavAktivity::NOVA && TypAktivity::jeInterni($this->a['typ']))
                 || ($zpetne && $this->probehnuta())
             )
@@ -1844,20 +1851,25 @@ SQL
 
     private function procNeniPrihlasovatelna($parametry): string
     {
-        $zpetne  = $parametry & self::ZPETNE;
-        $interni = $parametry & self::INTERNI;
+        $zpetne     = $parametry & self::ZPETNE;
+        $interni    = $parametry & self::INTERNI;
+        $neotevrene = $parametry & self::NEOTEVRENE;
 
         if (!(REG_AKTIVIT || ($zpetne && po(REG_GC_DO)))) {
             return sprintf('Není spuštěna registrace aktivit (začíná %s a končí %s)', REG_AKTIVIT_OD, REG_AKTIVIT_DO);
         }
-        if (!(
-            $this->a['stav'] == StavAktivity::AKTIVOVANA
+        if (!( // ← inverze ↓
+            $this->idStavu() === StavAktivity::AKTIVOVANA
+            || ($neotevrene && in_array($this->idStavu(), [StavAktivity::PRIPRAVENA, StavAktivity::PUBLIKOVANA]))
             || ($interni && $this->a['stav'] == StavAktivity::NOVA && TypAktivity::jeInterni($this->a['typ']))
             || ($zpetne && $this->probehnuta())
         )) {
             return sprintf(
-                'Aktivita není ve stavu použitelném pro přihlašování. Je ve stavu %d (%s), technické %s, zpětně %s',
-                $this->a['stav'], StavAktivity::dejNazev((int)$this->a['stav']), $interni ? 'ANO' : 'NE', $zpetne ? 'ANO' : 'NE',
+                'Aktivita není ve stavu použitelném pro přihlašování. Je ve stavu "%s" (%d), technické %s, zpětně %s',
+                StavAktivity::dejNazev((int)$this->a['stav']),
+                $this->a['stav'],
+                $interni ? 'ANO' : 'NE',
+                $zpetne ? 'ANO' : 'NE',
             );
         }
         if (!$this->a['zacatek']) {

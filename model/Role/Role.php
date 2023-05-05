@@ -11,7 +11,7 @@ class Role extends \DbObject
 {
 
     protected static $tabulka = RoleSqlStruktura::ROLE_TABULKA;
-    protected static $pk = RoleSqlStruktura::ID_ROLE;
+    protected static $pk      = RoleSqlStruktura::ID_ROLE;
 
     /**
      * Konstanty jsou kopie SQL tabulky `role_seznam`
@@ -26,6 +26,7 @@ class Role extends \DbObject
     public const VYPRAVECSKA_SKUPINA  = 9; // Organizátorská skupina pořádající na GC (dodavatelé, …)
     public const CLEN_RADY            = 23;
     public const SEF_INFOPULTU        = 24;
+    public const SEF_PROGRAMU         = 25;
 
     // DOČASNÉ ROČNÍKOVÉ ROLE
     public const LETOSNI_VYPRAVEC             = ROLE_VYPRAVEC; // Organizátor aktivit na GC
@@ -109,7 +110,8 @@ class Role extends \DbObject
     /**
      * @return int[]
      */
-    public static function idckaTrvalychRoli(): array {
+    public static function idckaTrvalychRoli(): array
+    {
         return [
             Role::ORGANIZATOR,
             Role::PUL_ORG_BONUS_UBYTKO,
@@ -120,14 +122,17 @@ class Role extends \DbObject
             Role::VYPRAVECSKA_SKUPINA,
             Role::CLEN_RADY,
             Role::SEF_INFOPULTU,
+            Role::SEF_PROGRAMU,
         ];
     }
 
-    public static function vyznamPodleKodu(string $kodRole): string {
+    public static function vyznamPodleKodu(string $kodRole): string
+    {
         return preg_replace('~^GC\d+_~', '', $kodRole);
     }
 
-    public static function kategoriePodleVyznamu(string $vyznam): int {
+    public static function kategoriePodleVyznamu(string $vyznam): int
+    {
         return match ($vyznam) {
             self::VYZNAM_ORGANIZATOR_ZDARMA => self::KATEGORIE_OMEZENA,
             self::VYZNAM_PUL_ORG_UBYTKO => self::KATEGORIE_OMEZENA,
@@ -164,7 +169,8 @@ class Role extends \DbObject
      * @param int $rok
      * @return int
      */
-    public static function PRIHLASEN_NA_LETOSNI_GC(int $rok = ROCNIK): int {
+    public static function PRIHLASEN_NA_LETOSNI_GC(int $rok = ROCNIK): int
+    {
         return self::preProUcastRoku($rok) - self::ROLE_PRIHLASEN_ID_ZAKLAD;
     }
 
@@ -173,7 +179,8 @@ class Role extends \DbObject
      * @param int $rok
      * @return int
      */
-    public static function PRITOMEN_NA_LETOSNIM_GC(int $rok = ROCNIK): int {
+    public static function PRITOMEN_NA_LETOSNIM_GC(int $rok = ROCNIK): int
+    {
         return self::preProUcastRoku($rok) - self::ROLE_PRITOMEN_ID_ZAKLAD;
     }
 
@@ -182,72 +189,89 @@ class Role extends \DbObject
      * @param int $rok
      * @return int
      */
-    public static function ODJEL_Z_LETOSNIHO_GC(int $rok = ROCNIK): int {
+    public static function ODJEL_Z_LETOSNIHO_GC(int $rok = ROCNIK): int
+    {
         return self::preProUcastRoku($rok) - self::ROLE_ODJEL_ID_ZAKLAD;
     }
 
-    private static function preProUcastRoku(int $rok): int {
+    private static function preProUcastRoku(int $rok): int
+    {
         return -($rok - 2000) * 100; // předpona pro role a práva vázaná na daný rok
     }
 
-    public static function LETOSNI_VYPRAVEC(int $rok = ROCNIK): int {
+    public static function LETOSNI_VYPRAVEC(int $rok = ROCNIK): int
+    {
         return self::idRocnikoveRole(self::ROLE_VYPRAVEC_ID_ZAKLAD, $rok);
     }
 
-    public static function LETOSNI_ZAZEMI(int $rok = ROCNIK): int {
+    public static function LETOSNI_ZAZEMI(int $rok = ROCNIK): int
+    {
         return self::idRocnikoveRole(self::ROLE_ZAZEMI_ID_ZAKLAD, $rok);
     }
 
-    public static function LETOSNI_INFOPULT(int $rok = ROCNIK): int {
+    public static function LETOSNI_INFOPULT(int $rok = ROCNIK): int
+    {
         return self::idRocnikoveRole(self::ROLE_INFOPULT_ID_ZAKLAD, $rok);
     }
 
-    public static function LETOSNI_PARTNER(int $rok = ROCNIK): int {
+    public static function LETOSNI_PARTNER(int $rok = ROCNIK): int
+    {
         return self::idRocnikoveRole(self::ROLE_PARTNER_ID_ZAKLAD, $rok);
     }
 
-    public static function LETOSNI_DOBROVOLNIK_SENIOR(int $rok = ROCNIK): int {
+    public static function LETOSNI_DOBROVOLNIK_SENIOR(int $rok = ROCNIK): int
+    {
         return self::idRocnikoveRole(self::ROLE_DOBROVOLNIK_SENIOR_ID_ZAKLAD, $rok);
     }
 
-    public static function LETOSNI_STREDECNI_NOC_ZDARMA(int $rok = ROCNIK): int {
+    public static function LETOSNI_STREDECNI_NOC_ZDARMA(int $rok = ROCNIK): int
+    {
         return self::idRocnikoveRole(self::ROLE_STREDECNI_NOC_ZDARMA_ID_ZAKLAD, $rok);
     }
 
-    public static function LETOSNI_CTVRTECNI_NOC_ZDARMA(int $rok = ROCNIK): int {
+    public static function LETOSNI_CTVRTECNI_NOC_ZDARMA(int $rok = ROCNIK): int
+    {
         return self::idRocnikoveRole(self::ROLE_CTVRTECNI_NOC_ZDARMA_ID_ZAKLAD, $rok);
     }
 
-    public static function LETOSNI_PATECNI_NOC_ZDARMA(int $rok = ROCNIK): int {
+    public static function LETOSNI_PATECNI_NOC_ZDARMA(int $rok = ROCNIK): int
+    {
         return self::idRocnikoveRole(self::ROLE_PATECNI_NOC_ZDARMA_ID_ZAKLAD, $rok);
     }
 
-    public static function LETOSNI_SOBOTNI_NOC_ZDARMA(int $rok = ROCNIK): int {
+    public static function LETOSNI_SOBOTNI_NOC_ZDARMA(int $rok = ROCNIK): int
+    {
         return self::idRocnikoveRole(self::ROLE_SOBOTNI_NOC_ZDARMA_ID_ZAKLAD, $rok);
     }
 
-    public static function LETOSNI_NEDELNI_NOC_ZDARMA(int $rok = ROCNIK): int {
+    public static function LETOSNI_NEDELNI_NOC_ZDARMA(int $rok = ROCNIK): int
+    {
         return self::idRocnikoveRole(self::ROLE_NEDELNI_NOC_ZDARMA_ID_ZAKLAD, $rok);
     }
 
-    public static function LETOSNI_NEODHLASOVAT(int $rok = ROCNIK): int {
+    public static function LETOSNI_NEODHLASOVAT(int $rok = ROCNIK): int
+    {
         return self::idRocnikoveRole(self::ROLE_NEODHLASOVAT_ID_ZAKLAD, $rok);
     }
 
-    public static function LETOSNI_HERMAN(int $rok = ROCNIK): int {
+    public static function LETOSNI_HERMAN(int $rok = ROCNIK): int
+    {
         return self::idRocnikoveRole(self::ROLE_HERMAN_ID_ZAKLAD, $rok);
     }
 
-    public static function LETOSNI_BRIGADNIK(int $rok = ROCNIK): int {
+    public static function LETOSNI_BRIGADNIK(int $rok = ROCNIK): int
+    {
         return self::idRocnikoveRole(self::ROLE_BRIGADNIK_ID_ZAKLAD, $rok);
     }
 
-    public static function idRocnikoveRole(int $zakladIdRole, int $rok) {
+    public static function idRocnikoveRole(int $zakladIdRole, int $rok)
+    {
         // 6, 2023 = -2 023 006
         return self::preProRocnikovouRoli($rok) - $zakladIdRole;
     }
 
-    private static function preProRocnikovouRoli(int $rok): int {
+    private static function preProRocnikovouRoli(int $rok): int
+    {
         return $rok * self::KOEFICIENT_ROCNIKOVE_ROLE; // 2023 = 202 300 000
     }
 
@@ -255,7 +279,8 @@ class Role extends \DbObject
      * @param int[] $idsRoli
      * @return bool
      */
-    public static function obsahujiOrganizatora(array $idsRoli): bool {
+    public static function obsahujiOrganizatora(array $idsRoli): bool
+    {
         $idsRoliInt = array_map(static function ($idRole) {
             return (int)$idRole;
         }, $idsRoli);
@@ -266,11 +291,13 @@ class Role extends \DbObject
     /**
      * @return int[]
      */
-    public static function dejIdckaRoliSOrganizatory(): array {
+    public static function dejIdckaRoliSOrganizatory(): array
+    {
         return [self::ORGANIZATOR, self::PUL_ORG_BONUS_UBYTKO, self::PUL_ORG_BONUS_TRICKO];
     }
 
-    public static function nazevRolePodleId(int $idRole): string {
+    public static function nazevRolePodleId(int $idRole): string
+    {
         try {
             return match ($idRole) {
                 self::ORGANIZATOR => 'Organizátor (zdarma)',
@@ -300,20 +327,23 @@ class Role extends \DbObject
         }
     }
 
-    private static function nazevRoleStareUcasti(int $idRole): string {
+    private static function nazevRoleStareUcasti(int $idRole): string
+    {
         $rok     = self::rokDleRoleUcasti($idRole);
         $udalost = self::udalostDleRole($idRole);
         return "GC{$rok} {$udalost}";
     }
 
-    public static function rokDleRoleUcasti(int $idRoleUcastiNagGc): int {
+    public static function rokDleRoleUcasti(int $idRoleUcastiNagGc): int
+    {
         if (self::jeToUcastNaGc($idRoleUcastiNagGc)) {
             return (int)(abs($idRoleUcastiNagGc) / 100) + 2000;
         }
         throw new \LogicException("Role (židle) s ID $idRoleUcastiNagGc není účast na GC");
     }
 
-    public static function udalostDleRole(int $roleUcastiNagGc): string {
+    public static function udalostDleRole(int $roleUcastiNagGc): string
+    {
         if (!self::jeToUcastNaGc($roleUcastiNagGc)) {
             throw new \LogicException("Role (židle) s ID $roleUcastiNagGc v sobě nemá ročník a tím ani událost");
         }
@@ -332,25 +362,29 @@ class Role extends \DbObject
     /**
      * Rozmysli, zda není lepší použít čitelnější @see \Gamecon\Role\Role::TYP_UCAST
      */
-    public static function jeToUcastNaGc(int $role): bool {
+    public static function jeToUcastNaGc(int $role): bool
+    {
         return $role < 0 && $role > self::KOEFICIENT_ROCNIKOVE_ROLE;
     }
 
     /**
      * Rozmysli, zda není lepší použít čitelnější @see \Gamecon\Role\Role::TYP_ROCNIKOVA
      */
-    public static function jeToRocnikovaRole(int $role): bool {
+    public static function jeToRocnikovaRole(int $role): bool
+    {
         return $role <= self::KOEFICIENT_ROCNIKOVE_ROLE;
     }
 
-    public static function jePouzeProTentoRocnik(int $idRole, int $rocnik = ROCNIK): bool {
+    public static function jePouzeProTentoRocnik(int $idRole, int $rocnik = ROCNIK): bool
+    {
         if (!self::jeToUcastNaGc($idRole) && !self::jeToRocnikovaRole($idRole)) {
             return false;
         }
         return self::rokDleRoleUcasti($idRole) === $rocnik;
     }
 
-    public static function vsechnyRoleUcastiProRocnik(int $rocnik = ROCNIK): array {
+    public static function vsechnyRoleUcastiProRocnik(int $rocnik = ROCNIK): array
+    {
         return [
             Role::PRIHLASEN_NA_LETOSNI_GC => self::pridejGcRocnikPrefix($rocnik, 'přihlášen'),
             Role::PRITOMEN_NA_LETOSNIM_GC => self::pridejGcRocnikPrefix($rocnik, 'přítomen'),
@@ -358,11 +392,13 @@ class Role extends \DbObject
         ];
     }
 
-    private static function pridejGcRocnikPrefix(int $rocnik, string $nazev): string {
+    private static function pridejGcRocnikPrefix(int $rocnik, string $nazev): string
+    {
         return self::prefixRocniku($rocnik) . ' ' . $nazev;
     }
 
-    public static function vsechnyRocnikoveRole(int $rocnik = ROCNIK): array {
+    public static function vsechnyRocnikoveRole(int $rocnik = ROCNIK): array
+    {
         $idckaRocnikovychRoli = [
             self::LETOSNI_VYPRAVEC($rocnik),
             self::LETOSNI_ZAZEMI($rocnik),
@@ -383,24 +419,29 @@ class Role extends \DbObject
         return $vsechnyRocnikoveRole;
     }
 
-    public static function platiProRocnik(int $roleProRok, int $rocnik = ROCNIK): bool {
+    public static function platiProRocnik(int $roleProRok, int $rocnik = ROCNIK): bool
+    {
         return $roleProRok === self::JAKYKOLI_ROCNIK
             || self::platiPouzeProRocnik($roleProRok, $rocnik);
     }
 
-    public static function platiPouzeProRocnik(int $roleProRok, int $rocnik = ROCNIK): bool {
+    public static function platiPouzeProRocnik(int $roleProRok, int $rocnik = ROCNIK): bool
+    {
         return $roleProRok === $rocnik;
     }
 
-    public static function prefixRocniku(int $rocnik = ROCNIK): string {
+    public static function prefixRocniku(int $rocnik = ROCNIK): string
+    {
         return 'GC' . $rocnik;
     }
 
-    public function nazevRole(): ?string {
+    public function nazevRole(): ?string
+    {
         return $this->r[RoleSqlStruktura::NAZEV_ROLE] ?? null;
     }
 
-    public function kategorieRole(): ?int {
+    public function kategorieRole(): ?int
+    {
         $kategorie = $this->r[RoleSqlStruktura::KATEGORIE_ROLE] ?? null;
         return $kategorie === null
             ? null

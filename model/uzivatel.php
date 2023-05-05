@@ -29,6 +29,7 @@ class Uzivatel
     public const SYSTEM_LOGIN = 'SYSTEM';
 
     private ?array $organizovaneAktivityIds = null;
+    private $historiePrihlaseni;
 
     /**
      * @return Uzivatel[]
@@ -542,6 +543,10 @@ SQL,
 
     public function maPravoNaZmenuHistorieAktivit(): bool {
         return $this->maPravo(Pravo::ZMENA_HISTORIE_AKTIVIT);
+    }
+
+    public function maPravoNaPrihlasovaniNaDosudNeotevrene(): bool {
+        return $this->maPravo(Pravo::PRIHLASOVANI_NA_DOSUD_NEOTEVRENE);
     }
 
     public function jeBrigadnik(): bool {

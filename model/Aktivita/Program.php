@@ -26,18 +26,19 @@ class Program
     public const SKUPINY         = 'skupiny';
     public const PRAZDNE         = 'prazdne';
     public const ZPETNE          = 'zpetne';
+    public const NEOTEVRENE      = 'neotevrene';
     public const DEN             = 'den';
 
     public const SKUPINY_LINIE     = 'linie';
     public const SKUPINY_MISTNOSTI = 'mistnosti';
 
     /** @var Uzivatel|null */
-    private       $u              = null; // aktuální uživatel v objektu
-    private       $posledniVydana = null;
-    private       $dbPosledni     = null;
-    private       $aktFronta      = [];
-    private       $program; // iterátor aktivit seřazených pro použití v programu
-    private       $nastaveni      = [
+    private            $u              = null; // aktuální uživatel v objektu
+    private            $posledniVydana = null;
+    private            $dbPosledni     = null;
+    private            $aktFronta      = [];
+    private ?\Iterator $program        = null; // iterátor aktivit seřazených pro použití v programu
+    private            $nastaveni      = [
         self::DRD_PJ          => false, // u DrD explicitně zobrazit jména PJů
         self::DRD_PRIHLAS     => false, // jestli se zobrazují přihlašovátka pro DrD
         self::PLUS_MINUS      => false, // jestli jsou v programu '+' a '-' pro změnu kapacity team. aktivit
@@ -48,10 +49,11 @@ class Program
         self::SKUPINY         => self::SKUPINY_LINIE, // seskupování programu - po místnostech nebo po liniích
         self::PRAZDNE         => false, // zobrazovat prázdné skupiny?
         self::ZPETNE          => false, // jestli smí měnit přihlášení zpětně
+        self::NEOTEVRENE      => false, // jestli smí přihlašovat na aktivity které ještě jsou teprve aktivované
         self::DEN             => null,  // zobrazit jen konkrétní den
     ];
-    private       $grpf; // název metody na objektu aktivita, podle které se shlukuje
-    private array $skupiny        = []; // pole skupin, do kterých se shlukuje program, ve stylu id => název
+    private            $grpf; // název metody na objektu aktivita, podle které se shlukuje
+    private array      $skupiny        = []; // pole skupin, do kterých se shlukuje program, ve stylu id => název
 
     private $aktivityUzivatele = []; // aktivity uživatele
     private $maxPocetAktivit   = []; // maximální počet souběžných aktivit v daném dni
@@ -363,6 +365,9 @@ class Program
             if ($this->nastaveni[self::ZPETNE]) {
                 $parametry |= Aktivita::ZPETNE;
             }
+            if ($this->nastaveni[self::NEOTEVRENE]) {
+                $parametry |= Aktivita::NEOTEVRENE;
+            }
             if ($this->nastaveni[self::INTERNI]) {
                 $parametry |= Aktivita::INTERNI;
             }
@@ -462,7 +467,7 @@ class Program
      * Načte jednu aktivitu (objekt) z iterátoru a vrátí vnitřní reprezentaci
      * (s cacheovanými hodnotami) pro program.
      */
-    private function nactiDalsiAktivitu($iterator)
+    private function nactiDalsiAktivitu(\Iterator $iterator)
     {
         if (!$iterator->valid()) {
             return null;
