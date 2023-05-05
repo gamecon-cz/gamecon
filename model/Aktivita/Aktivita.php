@@ -579,8 +579,11 @@ SQL
     private static function parseUpravyTabulkaTypy(?Aktivita $aktivita, XTemplate $xtpl)
     {
         $aktivitaData = $aktivita ? $aktivita->a : null; // databázový řádek
-        $q            = dbQuery('SELECT id_typu, typ_1p FROM akce_typy WHERE aktivni = 1 ORDER BY poradi');
-        while ($akceTypData = mysqli_fetch_assoc($q)) {
+        // typ s id 0 je (bez typu – organizační) a ten chceme první
+        $sKladnymPoradim = dbFetchAll('SELECT id_typu, typ_1p FROM akce_typy WHERE aktivni = 1 AND (poradi > 0 OR id_typu = 0) ORDER BY poradi');
+        // typy se záporným pořadím jsou technické, brigádnické a tak
+        $seZapornymPoradim = dbFetchAll('SELECT id_typu, typ_1p FROM akce_typy WHERE aktivni = 1 AND poradi < 0 AND id_typu != 0 ORDER BY poradi DESC');
+        foreach ([...$sKladnymPoradim, ...$seZapornymPoradim] as $akceTypData) {
             $xtpl->assign('selected', $aktivita && $akceTypData['id_typu'] == $aktivitaData['typ'] ? 'selected' : '');
             $xtpl->assign($akceTypData);
             $xtpl->parse('upravy.tabulka.typ');
@@ -780,7 +783,12 @@ SQL
         int     $odmenaZaHodinu = null,
     ): Aktivita
     {
-        $data['bez_slevy'] = (int)!empty($data['bez_slevy']); //checkbox pro "bez_slevy"
+        $data['bez_slevy']    = (int)!empty($data['bez_slevy']); // checkbox pro "bez_slevy"
+        $data['nedava_slevu'] = (int)!empty($data['nedava_slevu']); // checkbox pro "nedava_slevu"
+        $data['cena'] = (int)($data['cena'] ?? 0);
+        if (empty($data['popis']) && empty($data['id_akce'])) {
+            $data['popis'] = 0; // uložíme později jako jako $markdownPopis,teď jenom vyřešíme "Field 'popis' doesn't have a default value"
+        }
 
         $teamova          = !empty($data['teamova']);
         $data['teamova']  = (int)$teamova;   //checkbox pro "teamova"
@@ -1185,6 +1193,22 @@ SQL
             default :
                 return '';
         }
+    }
+
+    /**
+     * Odemče hromadně zamčené aktivity a odhlásí ty, kteří nesestavili teamy.
+     * Vrací počet odemčených teamů (=>uvolněných míst)
+     */
+    public static function odemciTeamoveHromadne(\Uzivatel $odemykajici): int
+    {
+        $o = dbQuery('SELECT id_akce, zamcel FROM akce_seznam WHERE zamcel AND zamcel_cas < NOW() - INTERVAL ' . self::HAJENI . ' HOUR');
+        $i = 0;
+        while (list($aid, $uid) = mysqli_fetch_row($o)) {
+            Aktivita::zId($aid)->odhlas(\Uzivatel::zId($uid), $odemykajici);
+            $i++;
+        }
+        return $i;
+        // uvolnění zámku je součástí odhlášení, pokud je sám -> done
     }
 
     /**
@@ -3243,6 +3267,11 @@ SQL,
         FROM akce_seznam
         WHERE CASE WHEN ? THEN zacatek > ? ELSE TRUE END
     ');
+    }
+
+    public static function aktivujVsePripravene(int $rok)
+    {
+        dbQuery('UPDATE akce_seznam SET stav=$1 WHERE stav=$2 AND rok=$3', [StavAktivity::AKTIVOVANA, StavAktivity::PRIPRAVENA, $rok]);
     }
 
     public static function idExistujiciInstancePodleUrl(string $url, int $rocnik, int $typId): ?int

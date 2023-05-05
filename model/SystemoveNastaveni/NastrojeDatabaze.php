@@ -8,7 +8,8 @@ use Ifsnop\Mysqldump\Mysqldump;
 
 class NastrojeDatabaze
 {
-    public static function vytvorZGlobals() {
+    public static function vytvorZGlobals()
+    {
         global $systemoveNastaveni;
         if (!$systemoveNastaveni) {
             $systemoveNastaveni = SystemoveNastaveni::vytvorZGlobals();
@@ -17,11 +18,26 @@ class NastrojeDatabaze
     }
 
     public function __construct(
-        private SystemoveNastaveni $systemoveNastaveni
-    ) {
+        private SystemoveNastaveni $systemoveNastaveni,
+    )
+    {
     }
 
-    public function vytvorMysqldumpProHlavniDatabazi(array $mysqldumpSettings = []): Mysqldump {
+    public function vytvorMysqldumpOstreDatabaze(array $mysqldumpSettings = []): Mysqldump
+    {
+        $nastaveniOstre = $this->systemoveNastaveni->prihlasovaciUdajeOstreDatabaze();
+
+        return $this->vytvorMysqldump(
+            $nastaveniOstre['DB_SERV'],
+            $nastaveniOstre['DBM_USER'], // běžný uživatel nemá právo SHOW VIEW
+            $nastaveniOstre['DBM_PASS'],
+            $nastaveniOstre['DB_NAME'],
+            $mysqldumpSettings,
+        );
+    }
+
+    public function vytvorMysqldumpHlavniDatabaze(array $mysqldumpSettings = []): Mysqldump
+    {
         return $this->vytvorMysqldump(
             $this->systemoveNastaveni->databazoveNastaveni()->serverHlavniDatabaze(),
             DBM_USER, // běžný uživatel nemá právo SHOW VIEW
@@ -31,10 +47,11 @@ class NastrojeDatabaze
         );
     }
 
-    public function vytvorMysqldumpProAnonymniDatabazi(array $mysqldumpSettings = []): Mysqldump {
+    public function vytvorMysqldumpAnonymniDatabaze(array $mysqldumpSettings = []): Mysqldump
+    {
         return $this->vytvorMysqldump(
             $this->systemoveNastaveni->databazoveNastaveni()->serverAnonymizovaneDatabase(),
-            DB_ANONYM_USER, // běžný uživatel nemá právo SHOW VIEW
+            DB_ANONYM_USER,
             DB_ANONYM_PASS,
             $this->systemoveNastaveni->databazoveNastaveni()->anonymizovanaDatabaze(),
             $mysqldumpSettings,
@@ -46,8 +63,9 @@ class NastrojeDatabaze
         string $dbUser,
         string $dbPassword,
         string $dbName,
-        array  $mysqldumpSettings
-    ): Mysqldump {
+        array  $mysqldumpSettings,
+    ): Mysqldump
+    {
         return new Mysqldump(
             $this->vytvorDsn($dbServer, $dbName),
             $dbUser,
@@ -56,15 +74,18 @@ class NastrojeDatabaze
         );
     }
 
-    private function vytvorDsn(string $server, string $databaze): string {
+    private function vytvorDsn(string $server, string $databaze): string
+    {
         return "mysql:host={$server};dbname={$databaze}";
     }
 
-    public function vymazVseZHlavniDatabaze() {
-        $this->vymazVseZDatabaze($this->systemoveNastaveni->databazoveNastaveni()->hlavniDatabaze(), dbConnect());
+    public function vymazVseZHlavniDatabaze(\mysqli $spojeni)
+    {
+        $this->vymazVseZDatabaze($this->systemoveNastaveni->databazoveNastaveni()->hlavniDatabaze(), $spojeni);
     }
 
-    public function vymazVseZDatabaze(string $databaze, \mysqli $spojeni) {
+    public function vymazVseZDatabaze(string $databaze, \mysqli $spojeni)
+    {
         if ($databaze === $this->systemoveNastaveni->databazoveNastaveni()->hlavniDatabaze()
             && $this->systemoveNastaveni->jsmeNaOstre()
         ) {
@@ -74,25 +95,26 @@ class NastrojeDatabaze
         $this->smazNaseFunkce($databaze, $spojeni);
     }
 
-    private function smazTabulkyAPohledy(string $databaze, \mysqli $spojeni) {
+    private function smazTabulkyAPohledy(string $databaze, \mysqli $spojeni)
+    {
         mysqli_query(
             $spojeni,
             <<<SQL
                 SET FOREIGN_KEY_CHECKS = 0
-            SQL
+            SQL,
         );
         $showTablesResult = mysqli_query(
             $spojeni,
             <<<SQL
                 SHOW TABLES FROM`{$databaze}`
-            SQL
+            SQL,
         );
         while ($table = mysqli_fetch_column($showTablesResult)) {
             $showCreateTableResult = mysqli_query(
                 $spojeni,
                 <<<SQL
                     SHOW CREATE TABLE `$table`
-                SQL
+                SQL,
             );
             $showCreateTable       = mysqli_fetch_assoc($showCreateTableResult);
             $type                  = !empty($showCreateTable['View'])
@@ -102,35 +124,37 @@ class NastrojeDatabaze
                 $spojeni,
                 <<<SQL
                     DROP $type `$table`
-                SQL
+                SQL,
             );
         }
         mysqli_query(
             $spojeni,
             <<<SQL
                 SET FOREIGN_KEY_CHECKS = 1
-            SQL
+            SQL,
         );
     }
 
-    private function smazNaseFunkce(string $databaze, \mysqli $spojeni) {
+    private function smazNaseFunkce(string $databaze, \mysqli $spojeni)
+    {
         $nazvyNasichFunkci = $this->nazvyNasichFunkci($databaze, $spojeni);
         foreach ($nazvyNasichFunkci as $nazevNasiFunkce) {
             mysqli_query(
                 $spojeni,
                 <<<SQL
                     DROP FUNCTION `$nazevNasiFunkce`
-                SQL
+                SQL,
             );
         }
     }
 
-    private function nazvyNasichFunkci(string $databaze, \mysqli $spojeni): array {
+    private function nazvyNasichFunkci(string $databaze, \mysqli $spojeni): array
+    {
         $result                 = mysqli_query(
             $spojeni,
             <<<SQL
                 SHOW FUNCTION STATUS
-            SQL
+            SQL,
         );
         $functionsStatuses      = mysqli_fetch_all($result, MYSQLI_ASSOC);
         $localFunctionsStatuses = array_filter($functionsStatuses, static function (array $functionStatus) use ($databaze) {

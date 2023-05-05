@@ -112,9 +112,10 @@ if ($m->bezStranky()) {
     }
     $t->parse('index');
     $t->out('index');
-    echo profilInfo();
+    profilInfo();
 } else {
-    $t = new XTemplate('sablony/index.xtpl');
+    // TODO tohle podle mě nemůže fungovat, to je nějaký mrtvý kód
+    $t = new XTemplate('sablony/blackarrow/index.xtpl');
     // templata a nastavení proměnných do glob templaty
     $t->assign([
         'u'            => $u,
@@ -163,5 +164,5 @@ if ($m->bezStranky()) {
     $t->parse($u ? 'index.prihlasen' : 'index.neprihlasen');
     $t->parse('index');
     $t->out('index');
-    echo profilInfo();
+    profilInfo();
 }

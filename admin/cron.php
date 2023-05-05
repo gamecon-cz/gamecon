@@ -67,7 +67,7 @@ $konciciOd       = new DateTimeImmutable('-' . UPOZORNIT_NA_NEUZAMKNUTOU_AKTIVIT
 $konciciDo       = $konciciOd->modify('+ 1 hour'); // interval CRONu - abychom nespamovali každou hodinu
 $pocetUpozorneni = Aktivita::upozorniNaNeuzavreneKonciciOdDo(
     $konciciOd,
-    $konciciDo
+    $konciciDo,
 );
 logs("Odesláno $pocetUpozorneni mailů.");
 

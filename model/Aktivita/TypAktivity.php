@@ -42,6 +42,22 @@ class TypAktivity extends \DbObject
         return [self::TECHNICKA, self::BRIGADNICKA];
     }
 
+    /**
+     * @return array<int>
+     */
+    public static function typyKterymNevadiSdileniMistnostiSJinymiTypy(): array
+    {
+        return [self::TECHNICKA, self::BRIGADNICKA];
+    }
+
+    /**
+     * @return array<int>
+     */
+    public static function typyKterymNevadiSdileniMistnostiSeStejnymTypem(): array
+    {
+        return [self::WARGAMING, self::DESKOHERNA];
+    }
+
     protected static $tabulka      = 'akce_typy';
     protected static $pk           = 'id_typu';
     protected static $sloupecNazev = 'typ_1pmn';
@@ -138,4 +154,23 @@ class TypAktivity extends \DbObject
         return $this->id() === self::BRIGADNICKA;
     }
 
+    public function sdileniMistnostiJeProNiProblem(): bool
+    {
+        return !in_array(
+            $this->id(),
+            [
+                ...self::typyKterymNevadiSdileniMistnostiSJinymiTypy(),
+                ...self::typyKterymNevadiSdileniMistnostiSeStejnymTypem(),
+            ],
+        );
+    }
+
+    public function nevadiMuSdileniMistnostiSeStejnymTypem(): bool
+    {
+        return in_array(
+            $this->id(),
+            self::typyKterymNevadiSdileniMistnostiSeStejnymTypem(),
+            true,
+        );
+    }
 }

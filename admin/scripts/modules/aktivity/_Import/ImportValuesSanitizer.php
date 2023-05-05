@@ -990,7 +990,7 @@ HTML;
             );
         }
         $dateTime = $date->setTime($hours, $minutes, 0, 0);
-        if (!$dateTime) {
+        if ((int)$dateTime->format('G') !== $hours || (int)$dateTime->format('i') !== $minutes) {
             return ImportStepResult::successWithErrorLikeWarnings(
                 null,
                 [sprintf(

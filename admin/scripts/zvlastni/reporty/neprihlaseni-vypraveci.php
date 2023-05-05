@@ -13,7 +13,7 @@ if (empty($sledovaneRole)) {
 
 $sledovaneRoleSql = implode(',', $sledovaneRole);
 
-$r = Report::zSql('
+$report = Report::zSql('
   SELECT
     u.id_uzivatele,
     u.login_uzivatele,
@@ -52,4 +52,4 @@ $r = Report::zSql('
   ORDER BY sekce, nazev_role, prijmeni_uzivatele, jmeno_uzivatele
 ');
 
-$r->tHtml();
+$report->tFormat(get('format'));

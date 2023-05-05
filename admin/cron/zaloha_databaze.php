@@ -22,7 +22,7 @@ if (!glob($dnesniZalohaPattern) || getopt('', ['force']) || !empty($vynutZalohuD
         try {
             $time         = date('Y-m-d_His');
             $dbBackupFile = ZALOHA_DB_SLOZKA . "/export_$time.sql.gz";
-            $mysqldump    = NastrojeDatabaze::vytvorZGlobals()->vytvorMysqldumpProHlavniDatabazi(['compress' => Mysqldump::GZIP]);
+            $mysqldump    = NastrojeDatabaze::vytvorZGlobals()->vytvorMysqldumpHlavniDatabaze(['compress' => Mysqldump::GZIP]);
             $mysqldump->start($dbBackupFile);
             logs("...záloha databáze dokončena do souboru $dbBackupFile");
             copy($dbBackupFile, ZALOHA_DB_SLOZKA . "/export_latest.sql.gz");

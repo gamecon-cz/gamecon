@@ -263,7 +263,7 @@ UPDATE systemove_nastaveni
 SET vlastni = $1
 WHERE klic = $2
 SQL,
-            [$vlastni ? 1 : 0, $klic],
+            [$vlastni ? 1 : 0 /* Aby nás nepotkalo "Incorrect integer value: '' for column aktivni" */, $klic],
         );
         dbQuery(<<<SQL
 INSERT INTO systemove_nastaveni_log(id_uzivatele, id_nastaveni, vlastni)
@@ -483,7 +483,15 @@ SQL;
                 Klic::GC_BEZI_OD                                      => DateTimeGamecon::spocitejZacatekGameconu($this->rocnik())->formatDb(),
                 Klic::GC_BEZI_DO                                      => $konecGameconuKdy,
                 Klic::REG_GC_OD                                       => DateTimeGamecon::spocitejZacatekRegistraciUcastniku($this->rocnik())->formatDb(),
-                Klic::REG_GC_DO                                       => $konecGameconuKdy,
+                Klic::REG_GC_DO=> $konecGameconuKdy,
+                'REG_AKTIVIT_OD' => DateTimeGamecon::spoctejZacatekPrvniVlnyOd($this->rok())
+                    ->formatDb(),
+                'HROMADNE_ODHLASOVANI_1' => DateTimeGamecon::spocitejPrvniHromadneOdhlasovaniOd($this->rok())
+                    ->formatDb(),
+                'HROMADNE_ODHLASOVANI_2' => DateTimeGamecon::spocitejDruheHromadneOdhlasovaniOd($this->rok())
+                    ->formatDb(),
+                'HROMADNE_ODHLASOVANI_3' => DateTimeGamecon::spocitejTretiHromadneOdhlasovaniOd($this->rok())
+                    ->formatDb(),
                 Klic::PRVNI_VLNA_KDY                                  => DateTimeGamecon::spoctejKdyJePrvniVlna($this->rocnik())
                     ->formatDb(),
                 Klic::DRUHA_VLNA_KDY                                  => DateTimeGamecon::spocitejKdyJeDruhaVlna($this->rocnik())
@@ -764,5 +772,30 @@ SQL;
     public function prumerneLonskeVstupne(): float
     {
         return (float)$this->dejHodnotu(Klic::PRUMERNE_LONSKE_VSTUPNE);
+    }
+
+    public function prihlasovaciUdajeOstreDatabaze(): array
+    {
+        $souborNastaveniOstra = PROJECT_ROOT_DIR . '/../ostra/nastaveni/nastaveni-produkce.php';
+        if (!is_readable($souborNastaveniOstra)) {
+            throw new \RuntimeException('Nelze přečíst soubor s nastavením ostré ' . $souborNastaveniOstra);
+        }
+        $obsahNastaveniOstre = file_get_contents($souborNastaveniOstra);
+        $nastaveniOstre      = [
+            'DBM_USER' => true,
+            'DBM_PASS' => true,
+            'DB_NAME'  => true,
+            'DB_SERV'  => true,
+            'DB_PORT'  => false,
+        ];
+        foreach ($nastaveniOstre as $klic => $vyzadovana) {
+            if (!preg_match("~^\s*@?define\s*\(\s*'$klic'\s*,\s*'(?<hodnota>[^']+)'\s*\)~m", $obsahNastaveniOstre, $matches)) {
+                if ($vyzadovana) {
+                    throw new \RuntimeException("Nelze z $souborNastaveniOstra přečíst hodnotu $klic");
+                }
+            }
+            $nastaveniOstre[$klic] = $matches['hodnota'] ?? null;
+        }
+        return $nastaveniOstre;
     }
 }
