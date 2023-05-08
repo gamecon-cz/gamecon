@@ -19,7 +19,7 @@ class SystemoveNastaveni
             ROCNIK,
             new DateTimeImmutableStrict(),
             in_array(
-                parse_url(URL_WEBU, PHP_URL_HOST) === 'beta.gamecon.cz',
+                parse_url(URL_WEBU, PHP_URL_HOST),
                 ['beta.gamecon.cz', 'jakublounek.gamecon.cz'],
             ),
             parse_url(URL_WEBU, PHP_URL_HOST) === 'localhost',
