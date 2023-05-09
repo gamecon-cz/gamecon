@@ -79,3 +79,5 @@ $template->parse('shop.kfc');
 
 $template->parse('shop');
 $template->out('shop');
+
+require __DIR__ . '/../_import-eshopu.php';
