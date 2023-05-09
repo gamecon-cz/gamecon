@@ -40,8 +40,9 @@ $sheet = $reader->getSheetIterator()->current();
 $rowIterator = $sheet->getRowIterator();
 $rowIterator->rewind();
 /** @var \OpenSpout\Common\Entity\Row|null $hlavicka */
-$row      = $rowIterator->current();
-$hlavicka = array_flip($row->toArray());
+$row           = $rowIterator->current();
+$hlavickaKlice = array_map('trim', $row->toArray());
+$hlavicka      = array_flip($hlavickaKlice);
 
 $pozadovaneSloupce = ['model_rok', 'nazev', 'cena_aktualni', 'stav', 'auto', 'nabizet_do', 'kusu_vyrobeno', 'typ', 'ubytovani_den', 'popis'];
 if (!array_keys_exist($pozadovaneSloupce, $hlavicka)) {
@@ -65,6 +66,20 @@ $cisloNeboNull = static fn($hodnota) => trim((string)$hodnota) !== ''
     ? $hodnota
     : null;
 
+$trimRadek = static fn(array $radek) => array_map(
+    static fn($hodnota) => is_string($hodnota)
+        ? trim($hodnota)
+        : $hodnota,
+    $radek,
+);
+
+$stringNullJakoNullRadek = static fn(array $radek) => array_map(
+    static fn($hodnota) => is_string($hodnota) && strtoupper($hodnota) === 'NULL'
+        ? null
+        : $hodnota,
+    $radek,
+);
+
 $chyby          = [];
 $varovani       = [];
 $sqlValuesArray = [];
@@ -76,21 +91,14 @@ while ($rowIterator->valid()) {
     $rowIterator->next();
 
     if ($radek) {
+        $radek    = $trimRadek($radek);
+        $radek    = $stringNullJakoNullRadek($radek);
         $modelRok = (int)($radek[$indexModelRok] ?? null);
         if (!$modelRok) {
             $chyby[] = sprintf(
                 'Na řádku %d chybí rok v %d. sloupci',
                 $poradiRadku,
                 $indexModelRok + 1,
-            );
-            continue;
-        }
-
-        if ($modelRok !== $systemoveNastaveni->rok()) {
-            $varovani[] = sprintf(
-                'Řádek %d je pro rok %d a byl přeskočen.',
-                $poradiRadku,
-                $modelRok,
             );
             continue;
         }
