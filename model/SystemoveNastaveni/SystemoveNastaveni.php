@@ -248,6 +248,16 @@ SQL,
         $this->vsechnyZaznamyNastaveni[$klic]['id_uzivatele'] = (string)$idEditujicihoUzivatele;
     }
 
+    private function aktualizujPriznakVlastniVLokalniCache(bool $vlastni, string $klic, int $idEditujicihoUzivatele)
+    {
+        if ($this->vsechnyZaznamyNastaveni === null) {
+            return;
+        }
+
+        $this->vsechnyZaznamyNastaveni[$klic][Sql::VLASTNI]   = (string)(int)$vlastni;
+        $this->vsechnyZaznamyNastaveni[$klic]['id_uzivatele'] = (string)$idEditujicihoUzivatele;
+    }
+
     private function hlidejZakazaneZmeny(string $klic)
     {
         if ($klic === 'ROCNIK') {
@@ -273,7 +283,11 @@ WHERE klic = $2
 SQL,
             [$editujici->id(), $klic],
         );
-        return dbAffectedOrNumRows($updateQuery);
+        $zmenenoZaznamu = dbAffectedOrNumRows($updateQuery);
+        if ($zmenenoZaznamu > 0) {
+            $this->aktualizujPriznakVlastniVLokalniCache($vlastni, $klic, $editujici->id());
+        }
+        return $zmenenoZaznamu;
     }
 
     private function formatujHodnotuProDb($hodnota, string $klic)
@@ -483,7 +497,7 @@ SQL;
                 Klic::GC_BEZI_OD                                      => DateTimeGamecon::spocitejZacatekGameconu($this->rocnik())->formatDb(),
                 Klic::GC_BEZI_DO                                      => $konecGameconuKdy,
                 Klic::REG_GC_OD                                       => DateTimeGamecon::spocitejZacatekRegistraciUcastniku($this->rocnik())->formatDb(),
-                Klic::REG_GC_DO=> $konecGameconuKdy,
+                Klic::REG_GC_DO                                       => $konecGameconuKdy,
                 Klic::PRVNI_VLNA_KDY                                  => DateTimeGamecon::spoctejKdyJePrvniVlna($this->rocnik())
                     ->formatDb(),
                 Klic::DRUHA_VLNA_KDY                                  => DateTimeGamecon::spocitejKdyJeDruhaVlna($this->rocnik())
