@@ -161,6 +161,16 @@ SQL,
         return dbNumRows($updateQuery);
     }
 
+    private function aktualizujPriznakVlastniVLokalniCache(bool $vlastni, string $klic, int $idEditujicihoUzivatele)
+    {
+        if ($this->vsechnyZaznamyNastaveni === null) {
+            return;
+        }
+
+        $this->vsechnyZaznamyNastaveni[$klic][Sql::VLASTNI]   = (string)(int)$vlastni;
+        $this->vsechnyZaznamyNastaveni[$klic]['id_uzivatele'] = (string)$idEditujicihoUzivatele;
+    }
+
     private function hlidejZakazaneZmeny(string $klic)
     {
         if ($klic === 'ROCNIK') {
@@ -186,7 +196,11 @@ WHERE klic = $2
 SQL,
             [$editujici->id(), $klic],
         );
-        return dbNumRows($updateQuery);
+        $zmenenoZaznamu = dbNumRows($updateQuery);
+        if ($zmenenoZaznamu > 0) {
+            $this->aktualizujPriznakVlastniVLokalniCache($aktivni, $klic, $editujici->id());
+        }
+        return $zmenenoZaznamu;
     }
 
     private function formatujHodnotuProDb($hodnota, string $klic)
