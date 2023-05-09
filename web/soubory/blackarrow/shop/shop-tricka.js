@@ -13,7 +13,7 @@
             const novyNazev = puvodniNazev.replace(`[${puvodniIndexPhpPole}]`, `[${novyIndexPhpPole}]`)
             klon.name = novyNazev
             this.removeEventListener('change', pridejVyberDalsihoTricka)
-            pridejVyberDalsihoTricka(klon) // štafetu kdy přibyde další výber přebírá nový výběr zatím bez trička
+            pridejVyberDalsihoTricka(klon) // štafetu, kdy přibyde další výběr, přebírá nový výběr zatím bez trička
             this.parentElement.append(klon)
         })
     }
