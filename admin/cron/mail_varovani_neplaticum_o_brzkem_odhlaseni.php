@@ -28,7 +28,7 @@ foreach ([1 => '+3 day'] as $poradiOznameni => $posun) {
 
     $odhlaseniProvedenoKdy = $hromadneOdhlaseniNeplaticu->odhlaseniProvedenoKdy($nejblizsiHromadneOdhlasovaniKdy);
     if ($odhlaseniProvedenoKdy) {
-        logs("Hromadné odhlášení už bylo provedeno {$odhlaseniProvedenoKdy->format(DateTimeCz::FORMAT_DB)}. Nebudeme nepltiče varovat.");
+        logs("Hromadné odhlášení už bylo provedeno {$odhlaseniProvedenoKdy->format(DateTimeCz::FORMAT_DB)}. Nebudeme neplatiče varovat.");
         return;
     }
 
