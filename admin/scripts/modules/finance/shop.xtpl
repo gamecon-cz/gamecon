@@ -1,57 +1,60 @@
 <!-- begin:shop -->
 <hr>
 
-<form method="post" class="prevent-leaving-without-save">
-  <div class="sticky-pinned text-center" style="padding: 0">
-    <input style="margin: 0.5em" type="submit" name="ulozit" value="Uložit změny">
-  </div>
-  <br>
-  <table>
-    <tr>
-      <th>Název</th>
-      <th>Cena za kus</th>
-      <th>Suma</th>
-      <th>Model rok</th>
-      <th>Naposledy koupeno</th>
-      <th>Letos prodáno kusů</th>
-      <th>Zbývá kusů</th>
-      <th>Kusů celkem</th>
-    </tr>
-    <!-- begin:typ -->
-    <!-- begin:typPolozky -->
-    <tr>
-      <td colspan="100%"></td>
-    </tr>
-    <tr>
-      <th colspan="100%">
-        <h3 id="{htmlIdTypu}" style="margin: 0.5em">{typPolozky} <a class="kotva" href="{kotvaNaTypPolozky}">#</a></h3>
-      </th>
-    </tr>
-    <!-- end:typPolozky -->
-    <!-- begin:polozka -->
-    <tr>
-      <td>{nazev}</td>
-      <td>{cenaZaKus}.-</td>
-      <td>{suma}.-</td>
-      <td>{modelRok}</td>
-      <td>
-        <span class="hinted">
-          {naposledyKoupenoKdyRelativni}
-          <span class="hint">{naposledyKoupenoKdyPresne}</span>
-        </span>
-      </td>
-      <td>{letosProdanoKusu}</td>
-      <td>{zbyvaKusu}</td>
-      <td>
-        <input name="polozky[{idPredmetu}][kusu_celkem]" type="number" step="1" min="0" value="{kusuCelkem}"
-               style="width: 5em">
-        <input name="polozky_original[{idPredmetu}][kusu_celkem]" type="hidden" value="{kusuCelkem}">
-      </td>
-    </tr>
-    <!-- end:polozka -->
-    <!-- end:typ -->
-  </table>
-</form>
+<div class="aBox">
+  <h3>E-shop</h3>
+  <form method="post" class="prevent-leaving-without-save">
+    <div class="sticky-pinned text-center" style="padding: 0">
+      <input style="margin: 0.5em" type="submit" name="ulozit" value="Uložit změny">
+    </div>
+    <br>
+    <table>
+      <tr>
+        <th>Název</th>
+        <th>Cena za kus</th>
+        <th>Suma</th>
+        <th>Model rok</th>
+        <th>Naposledy koupeno</th>
+        <th>Letos prodáno kusů</th>
+        <th>Zbývá kusů</th>
+        <th>Kusů celkem</th>
+      </tr>
+      <!-- begin:typ -->
+      <!-- begin:typPolozky -->
+      <tr>
+        <td colspan="100%"></td>
+      </tr>
+      <tr>
+        <th colspan="100%">
+          <h3 id="{htmlIdTypu}" style="margin: 0.5em">{typPolozky} <a class="kotva" href="{kotvaNaTypPolozky}">#</a></h3>
+        </th>
+      </tr>
+      <!-- end:typPolozky -->
+      <!-- begin:polozka -->
+      <tr>
+        <td>{nazev}</td>
+        <td>{cenaZaKus}.-</td>
+        <td>{suma}.-</td>
+        <td>{modelRok}</td>
+        <td>
+          <span class="hinted">
+            {naposledyKoupenoKdyRelativni}
+            <span class="hint">{naposledyKoupenoKdyPresne}</span>
+          </span>
+        </td>
+        <td>{letosProdanoKusu}</td>
+        <td>{zbyvaKusu}</td>
+        <td>
+          <input name="polozky[{idPredmetu}][kusu_celkem]" type="number" step="1" min="0" value="{kusuCelkem}"
+                 style="width: 5em">
+          <input name="polozky_original[{idPredmetu}][kusu_celkem]" type="hidden" value="{kusuCelkem}">
+        </td>
+      </tr>
+      <!-- end:polozka -->
+      <!-- end:typ -->
+    </table>
+  </form>
+</div>
 <script type="text/javascript">
   const event = new CustomEvent("contentReadyToScrollToPreviousPosition")
   document.dispatchEvent(event)
