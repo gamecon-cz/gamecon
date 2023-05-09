@@ -1,7 +1,7 @@
 <!-- begin:shop -->
 <hr>
 
-<div class="aBox">
+<div>
   <h3>E-shop</h3>
   <form method="post" class="prevent-leaving-without-save">
     <div class="sticky-pinned text-center" style="padding: 0">
