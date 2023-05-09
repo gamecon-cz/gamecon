@@ -1,9 +1,13 @@
 <?php
 
 use Gamecon\XTemplate\XTemplate;
+use OpenSpout\Reader\Common\Creator\ReaderFactory;
+
+$souborInputName = 'souborSBalicky';
 
 if (!post('importBalicku')) {
     $importTemplate = new XTemplate(__DIR__ . '/_ubytovani-a-dalsi-obcasne-infopultakoviny-import-balicku.xtpl');
+    $importTemplate->assign('souborInputName', $souborInputName);
     $importTemplate->assign('baseUrl', URL_ADMIN);
 
     $importTemplate->parse('import');
@@ -12,19 +16,20 @@ if (!post('importBalicku')) {
     return;
 }
 
-if (!is_readable($_FILES['souborSBalicky']['tmp_name'])) {
+$vstupniSoubor = $_FILES[$souborInputName]['tmp_name'] ?? '';
+
+if (!is_readable($vstupniSoubor)) {
     throw new Chyba('Soubor se nepodařilo načíst');
 }
 
-$dejPoznamkuOVelkemBalicku = static function (string $balicek, int $rok): string {
-    return str_contains($balicek, 'v')
-        ? "velký balíček $rok"
-        : '';
-};
+$dejPoznamkuOVelkemBalicku = static fn(string $balicek, int $rok): string => str_contains($balicek, 'v')
+    ? "velký balíček $rok"
+    : '';
 
-$reader = \OpenSpout\Reader\Common\Creator\ReaderEntityFactory::createXLSXReader();
+$reader = ReaderFactory::createFromFileByMimeType($vstupniSoubor);
+$reader->open($vstupniSoubor);
 
-$reader->open($_FILES['souborSBalicky']['tmp_name']);
+$reader->open($vstupniSoubor);
 
 $reader->getSheetIterator()->rewind();
 /** @var \OpenSpout\Reader\SheetInterface $sheet */
@@ -33,21 +38,21 @@ $sheet = $reader->getSheetIterator()->current();
 $rowIterator = $sheet->getRowIterator();
 $rowIterator->rewind();
 /** @var \OpenSpout\Common\Entity\Row|null $hlavicka */
-$row = $rowIterator->current();
+$row      = $rowIterator->current();
 $hlavicka = array_flip($row->toArray());
 if (!array_keys_exist(['id_uzivatele', 'balicek'], $hlavicka)) {
     throw new Chyba('Chybný formát souboru - musí mít sloupce id_uzivatele a balicek');
 }
 
 $indexIdUzivatele = $hlavicka['id_uzivatele'];
-$indexBalicek = $hlavicka['balicek'];
+$indexBalicek     = $hlavicka['balicek'];
 
 $rowIterator->next();
 
-$chyby = [];
-$varovani = [];
+$chyby         = [];
+$varovani      = [];
 $balickyProSql = [];
-$poradiRadku = 1;
+$poradiRadku   = 1;
 /** @var \OpenSpout\Common\Entity\Row|null $row */
 while ($rowIterator->valid()) {
     $radek = $rowIterator->current()->toArray();
@@ -83,7 +88,7 @@ while ($rowIterator->valid()) {
             continue;
         }
 
-        $balicek = trim((string)($radek[$indexBalicek] ?? ''));
+        $balicek       = trim((string)($radek[$indexBalicek] ?? ''));
         $balicekProSql = $dejPoznamkuOVelkemBalicku($balicek, ROCNIK);
         if ($balicekProSql === ''
             && !in_array(
@@ -125,15 +130,15 @@ if ($balickyProSql) {
     dbQuery(<<<SQL
 CREATE TEMPORARY TABLE `$temporaryTable`
 (id_uzivatele INT UNSIGNED NOT NULL PRIMARY KEY, infopult_poznamka VARCHAR(128) DEFAULT NULL)
-SQL
+SQL,
     );
 
-    $queryParams = [];
+    $queryParams    = [];
     $sqlValuesArray = [];
-    $paramIndex = 0;
+    $paramIndex     = 0;
     foreach ($balickyProSql as $idUzivatele => $balicekProSql) {
-        $queryParams[] = $idUzivatele;
-        $queryParams[] = $balicekProSql;
+        $queryParams[]    = $idUzivatele;
+        $queryParams[]    = $balicekProSql;
         $sqlValuesArray[] = '($' . $paramIndex++ . ',$' . $paramIndex++ . ')';
     }
 
@@ -144,20 +149,21 @@ INSERT INTO `$temporaryTable` (id_uzivatele, infopult_poznamka)
     VALUES
 $sqlValues
 SQL,
-        $queryParams
+        $queryParams,
     );
 
     $mysqliResult = dbQuery(<<<SQL
 UPDATE uzivatele_hodnoty
 JOIN `$temporaryTable` ON uzivatele_hodnoty.id_uzivatele = `$temporaryTable`.id_uzivatele
 SET uzivatele_hodnoty.infopult_poznamka = `$temporaryTable`.infopult_poznamka
-SQL
+WHERE TRUE
+SQL,
     );
-    $zapsanoZmen += dbNumRows($mysqliResult);
+    $zapsanoZmen  += dbNumRows($mysqliResult);
 
     dbQuery(<<<SQL
 DROP TEMPORARY TABLE `$temporaryTable`
-SQL
+SQL,
     );
 }
 

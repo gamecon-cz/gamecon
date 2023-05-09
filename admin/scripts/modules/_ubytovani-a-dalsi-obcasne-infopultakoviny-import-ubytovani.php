@@ -3,9 +3,13 @@
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Shop\ShopUbytovani;
 use Gamecon\XTemplate\XTemplate;
+use OpenSpout\Reader\Common\Creator\ReaderFactory;
+
+$souborInputName = 'pokojeSoubor';
 
 if (!post('pokojeImport')) {
     $importTemplate = new XTemplate(__DIR__ . '/_ubytovani-a-dalsi-obcasne-infopultakoviny-import-ubytovani.xtpl');
+    $importTemplate->assign('souborInputName', $souborInputName);
     $importTemplate->assign('baseUrl', URL_ADMIN);
     $importTemplate->assign('ubytovaniReport', basename(__DIR__ . '/../zvlastni/reporty/finance-report-ubytovani.php', '.php'));
 
@@ -15,15 +19,16 @@ if (!post('pokojeImport')) {
     return;
 }
 
-if (!is_readable($_FILES['pokojeSoubor']['tmp_name'])) {
+$vstupniSoubor = $_FILES[$souborInputName]['tmp_name'] ?? '';
+
+if (!is_readable($vstupniSoubor)) {
     throw new Chyba('Soubor se nepodařilo načíst');
 }
 
 $zapsanoZmenPerUcastnik = 0;
 
-$reader = \OpenSpout\Reader\Common\Creator\ReaderEntityFactory::createXLSXReader();
-
-$reader->open($_FILES['pokojeSoubor']['tmp_name']);
+$reader = ReaderFactory::createFromFileByMimeType($vstupniSoubor);
+$reader->open($vstupniSoubor);
 
 $reader->getSheetIterator()->rewind();
 /** @var \OpenSpout\Reader\SheetInterface $sheet */
@@ -32,25 +37,25 @@ $sheet = $reader->getSheetIterator()->current();
 $rowIterator = $sheet->getRowIterator();
 $rowIterator->rewind();
 /** @var \OpenSpout\Common\Entity\Row|null $hlavicka */
-$row = $rowIterator->current();
-$hlavicka = array_flip($row->toArray());
+$row               = $rowIterator->current();
+$hlavicka          = array_flip($row->toArray());
 $vyzadovaneSloupce = ['id_uzivatele', 'prvni_noc', 'posledni_noc', 'pokoj', 'typ'];
 if (!array_keys_exist($vyzadovaneSloupce, $hlavicka)) {
     throw new Chyba('Chybný formát souboru - musí mít sloupce ' . implode(', ', $vyzadovaneSloupce));
 }
 $indexIdUzivatele = $hlavicka['id_uzivatele'];
-$indexPrvniNoc = $hlavicka['prvni_noc'];
+$indexPrvniNoc    = $hlavicka['prvni_noc'];
 $indexPosledniNoc = $hlavicka['posledni_noc'];
-$indexPokoj = $hlavicka['pokoj'];
-$indexTyp = $hlavicka['typ'];
-$indexUbytovanS = $hlavicka['ubytovan_s'] ?? null;
+$indexPokoj       = $hlavicka['pokoj'];
+$indexTyp         = $hlavicka['typ'];
+$indexUbytovanS   = $hlavicka['ubytovan_s'] ?? null;
 
 $rowIterator->next();
 
-$chyby = [];
-$varovani = [];
+$chyby         = [];
+$varovani      = [];
 $balickyProSql = [];
-$poradiRadku = 1;
+$poradiRadku   = 1;
 /** @var \OpenSpout\Common\Entity\Row|null $row */
 while ($rowIterator->valid()) {
     $radek = $rowIterator->current()->toArray();
@@ -85,15 +90,15 @@ while ($rowIterator->valid()) {
             );
             continue;
         }
-        $typyString = trim((string)$radek[$indexTyp]);
-        $typy = array_map('trim', explode(',', $typyString));
-        $pokoj = trim((string)$radek[$indexPokoj]); // prázdný pokoj = smazat záznam o přiřazeném pokoji
-        $prvniNocString = trim((string)$radek[$indexPrvniNoc]);
-        $prvniNoc = $prvniNocString !== ''
+        $typyString        = trim((string)$radek[$indexTyp]);
+        $typy              = array_map('trim', explode(',', $typyString));
+        $pokoj             = trim((string)$radek[$indexPokoj]); // prázdný pokoj = smazat záznam o přiřazeném pokoji
+        $prvniNocString    = trim((string)$radek[$indexPrvniNoc]);
+        $prvniNoc          = $prvniNocString !== ''
             ? (int)$prvniNocString
             : null;
         $posledniNocString = trim((string)$radek[$indexPosledniNoc]);
-        $posledniNoc = $posledniNocString !== ''
+        $posledniNoc       = $posledniNocString !== ''
             ? (int)$posledniNocString
             : null;
 
@@ -128,11 +133,11 @@ while ($rowIterator->valid()) {
         try {
             dbBegin();
             $zapsanoZmenVTransakci += ShopUbytovani::ulozPokojUzivatele($pokoj, $prvniNoc, $posledniNoc, $ucastnik);
-            $idsUbytovani = []; // když je sezam pokojů prázdný, tak to smaže všechny letošní objednávky pokojů účastníka
+            $idsUbytovani          = []; // když je sezam pokojů prázdný, tak to smaže všechny letošní objednávky pokojů účastníka
             if (($prvniNoc ?? $posledniNoc) !== null && count($typy) === 1) {
-                $dny = range($prvniNoc, $posledniNoc);
-                $jedinyTyp = reset($typy);
-                $typyPoDnech = array_map(static function (int $den) use ($jedinyTyp) {
+                $dny          = range($prvniNoc, $posledniNoc);
+                $jedinyTyp    = reset($typy);
+                $typyPoDnech  = array_map(static function (int $den) use ($jedinyTyp) {
                     return $jedinyTyp . ' ' . DateTimeGamecon::denPodleIndexuOdZacatkuGameconu($den);
                 }, $dny);
                 $idsUbytovani = ShopUbytovani::dejIdsPredmetuUbytovani($typyPoDnech);
@@ -140,7 +145,7 @@ while ($rowIterator->valid()) {
             $zapsanoZmenVTransakci += ShopUbytovani::ulozObjednaneUbytovaniUcastnika(
                 $idsUbytovani,
                 $ucastnik,
-                false
+                false,
             );
             if ($indexUbytovanS !== null) {
                 $zapsanoZmenVTransakci += ShopUbytovani::ulozSKymChceBytNaPokoji(
@@ -158,7 +163,7 @@ while ($rowIterator->valid()) {
                 "Účastník %s z řádku %d: %s",
                 $ucastnik->jmenoNick(),
                 $poradiRadku,
-                $chyba->getMessage()
+                $chyba->getMessage(),
             );
             continue;
         } catch (\Throwable $throwable) {
