@@ -22,6 +22,7 @@ trait DateTimeCzTrait
 
     public const FORMAT_DB                     = 'Y-m-d H:i:s';
     public const FORMAT_DATUM_DB               = 'Y-m-d';
+    public const FORMAT_DATUM_LETOS            = 'j. n.';
     public const FORMAT_DATUM_STANDARD         = 'j. n. Y';
     public const FORMAT_DATUM_A_CAS_STANDARD   = 'j. n. Y H:i:s';
     public const FORMAT_CAS_NA_MINUTY_STANDARD = 'j. n. Y H:i';

@@ -37,7 +37,8 @@ $uid = $u->id();
 if (!$zaplaceno) {
     $castka                          = -$u->finance()->stav();
     $nejblizsiHromadneOdhlasovaniKdy = $systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy();
-    $limit                           = datum3($nejblizsiHromadneOdhlasovaniKdy);
+    $nejblizsiPosledniZaplaceniKdy   = $nejblizsiHromadneOdhlasovaniKdy->modifyStrict('-1 second');
+    $limit                           = datum3($nejblizsiPosledniZaplaceniKdy);
     if ($u->stat() == 'CZ') {
         $castka .= '&thinsp;Kč';
     } else {
