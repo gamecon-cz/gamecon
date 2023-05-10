@@ -34,6 +34,39 @@ class Cenik
         Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA   => 'modré tričko se slevou',
     ];
 
+    public function cenaKostky(array $r): int
+    {
+        $cena          = (int)$r[PredmetySql::CENA_AKTUALNI];
+        $slevaNaKostku = $this->slevaNaKostku($r, $cena);
+        return $cena - $slevaNaKostku;
+    }
+
+    private function slevaNaKostku(array $r, $cena): int
+    {
+        if (!$this->u->maPravoNaKostkuZdarma()) {
+            return 0;
+        }
+        if (!$this->maObjednanouLetosniKostku($r)) {
+            return 0;
+        }
+        return (int)$cena;
+    }
+
+    private function maObjednanouLetosniKostku(array $r): bool
+    {
+        if (!Predmet::jeToKostka($r[PredmetySql::NAZEV])) {
+            return false;
+        }
+        if ((int)$r[PredmetySql::MODEL_ROK] === $this->systemoveNastaveni->rocnik()) {
+            return true;
+        }
+        $letosniKostka = Predmet::letosniKostka($this->systemoveNastaveni->rocnik());
+        if (!$letosniKostka) {
+            return false;
+        }
+        return (int)$letosniKostka->id() === (int)$r[PredmetySql::ID_PREDMETU];
+    }
+
     /**
      * Konstruktor
      * @param Uzivatel $u pro kterého uživatele se cena počítá
@@ -138,7 +171,7 @@ class Cenik
         if ($typ == Shop::PREDMET) {
             // hack podle názvu
             if (Predmet::jeToKostka($r[PredmetySql::NAZEV])) {
-                $slevaKostky = $this->slevaNaKostku($r, $cena);
+                $slevaKostky = static::slevaNaKostku($r, $cena);
                 ['cena' => $cena] = self::aplikujSlevu($cena, $slevaKostky);
             } else if (Predmet::jeToPlacka($r[PredmetySql::NAZEV]) && $this->slevaPlacky) {
                 ['cena' => $cena, 'sleva' => $this->slevaPlacky] = self::aplikujSlevu($cena, $this->slevaPlacky);
@@ -168,32 +201,6 @@ class Cenik
         }
 
         return (float)$cena;
-    }
-
-    private function slevaNaKostku(array $r, $cena): int
-    {
-        if (!$this->u->maPravoNaKostkuZdarma()) {
-            return 0;
-        }
-        if (!$this->maObjednanouLetosniKostku($r)) {
-            return 0;
-        }
-        return (int)$cena;
-    }
-
-    private function maObjednanouLetosniKostku(array $r): bool
-    {
-        if (!Predmet::jeToKostka($r[PredmetySql::NAZEV])) {
-            return false;
-        }
-        if ((int)$r[PredmetySql::MODEL_ROK] === $this->systemoveNastaveni->rocnik()) {
-            return true;
-        }
-        $letosniKostka = Predmet::letosniKostka($this->systemoveNastaveni->rocnik());
-        if (!$letosniKostka) {
-            return false;
-        }
-        return (int)$letosniKostka->id() === (int)$r[PredmetySql::ID_PREDMETU];
     }
 
 }

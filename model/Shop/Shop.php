@@ -12,6 +12,7 @@ use Gamecon\SystemoveNastaveni\SystemoveNastaveniKlice;
 use Uzivatel;
 use Cenik;
 use Gamecon\XTemplate\XTemplate;
+use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as Sql;
 
 /**
  * Třída starající se o e-shop, nákupy, formy a související
@@ -510,9 +511,13 @@ SQL,
         }
 
         foreach ($this->predmety as $predmet) {
+            $cena = (float)$predmet['cena_aktualni'];
+            if (Predmet::jeToKostka($predmet[Sql::NAZEV])) {
+                $cena = (float)$this->cenik->cenaKostky($predmet);
+            }
             $t->assign([
                 'nazev'          => $predmet['nazev'],
-                'cena'           => round((float)$predmet['cena_aktualni']) . '&thinsp;Kč',
+                'cena'           => round($cena) . '&thinsp;Kč',
                 'kusu_uzivatele' => $predmet['kusu_uzivatele'],
                 'postName'       => $this->klicP . '[' . $predmet['id_predmetu'] . ']',
             ]);
