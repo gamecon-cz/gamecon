@@ -193,15 +193,15 @@ SQL,
     private $klicS         = 'shopS';           // klíč formu pro identifikaci polí se slevami
 
     public function __construct(
-        private readonly Uzivatel           $ubytovany,
-        private readonly Uzivatel           $kupujici,
+        private readonly Uzivatel           $zakaznik,
+        private readonly Uzivatel           $objednatel,
         array                               $nastaveni = null,
         private readonly SystemoveNastaveni $systemoveNastaveni,
     )
     {
         $this->cenik              = new Cenik(
-            $ubytovany,
-            $ubytovany->finance()->bonusZaVedeniAktivit(),
+            $zakaznik,
+            $zakaznik->finance()->bonusZaVedeniAktivit(),
             $systemoveNastaveni
         );
         if (is_array($nastaveni)) {
@@ -226,7 +226,7 @@ FROM (
 ) AS seskupeno
 ORDER BY typ, ubytovani_den, nazev, model_rok DESC, id_predmetu ASC
 SQL,
-            [0 => StavPredmetu::MIMO, 1 => ROCNIK, 2 => $this->ubytovany->id()],
+            [0 => StavPredmetu::MIMO, 1 => ROCNIK, 2 => $this->zakaznik->id()],
         );
 
         //inicializace
@@ -274,8 +274,8 @@ SQL,
                 $r['nabizet'] = $r['nabizet'] || ($r['stav'] == StavPredmetu::POZASTAVENY && $this->nastaveni['ubytovaniBezZamku']);
                 $fronta       = &$this->ubytovani[];
             } else if ($typ == self::TRICKO) {
-                $smiModre     = $this->ubytovany->maPravo(Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA);
-                $smiCervene   = $this->ubytovany->maPravo(Pravo::MUZE_OBJEDNAVAT_CERVENA_TRICKA);
+                $smiModre     = $this->zakaznik->maPravo(Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA);
+                $smiCervene   = $this->zakaznik->maPravo(Pravo::MUZE_OBJEDNAVAT_CERVENA_TRICKA);
                 $r['nabizet'] = (
                     $r['nabizet']
                     || ($r['stav'] == self::STAV_PODPULTOVY && mb_stripos($r['nazev'], 'modré') !== false && $smiModre)
@@ -291,7 +291,7 @@ SQL,
                     } else {
                         $barva = '.*';
                     }
-                    if ($this->ubytovany->pohlavi() == 'f') {
+                    if ($this->zakaznik->pohlavi() == 'f') {
                         $typTricka = 'tílko.*dámské S';
                     } else {
                         $typTricka = 'tričko.*pánské L';
@@ -320,7 +320,7 @@ SQL,
             $fronta = $r;
         }
 
-        $this->ubytovani = new ShopUbytovani($this->ubytovani, $this->ubytovany, $this->kupujici, $systemoveNastaveni); // náhrada reprezentace polem za objekt
+        $this->ubytovani = new ShopUbytovani($this->ubytovani, $this->zakaznik, $this->objednatel, $systemoveNastaveni); // náhrada reprezentace polem za objekt
     }
 
     public function ubytovani(): ShopUbytovani
@@ -610,7 +610,7 @@ SQL,
      */
     private function prvniNakup()
     {
-        return !$this->ubytovany->gcPrihlasen();
+        return !$this->zakaznik->gcPrihlasen();
     }
 
     /** Vrátí html kód s rádiobuttonky pro vyklikání ubytování */
@@ -626,7 +626,7 @@ SQL,
 
     public function covidFreePotrvzeniHtml(int $rok): string
     {
-        return $this->ubytovany->covidFreePotvrzeniHtml($rok);
+        return $this->zakaznik->covidFreePotvrzeniHtml($rok);
     }
 
     /** Vrátí html formuláře se vstupným */
@@ -636,7 +636,7 @@ SQL,
         $t->assign([
             'jsSlider'              => URL_WEBU . '/soubory/blackarrow/shop/shop-vstupne.js?version='
                 . md5(WWW . '/soubory/blackarrow/shop/shop-ubytovani.js'),
-            'stav'                  => $this->ubytovany->gcPrihlasen()
+            'stav'                  => $this->zakaznik->gcPrihlasen()
                 ? $this->vstupne['sum_cena_nakupni'] + $this->vstupnePozde['sum_cena_nakupni']
                 : VYCHOZI_DOBROVOLNE_VSTUPNE, // výchozí hodnota
             'postname'              => $this->klicV,
@@ -682,7 +682,7 @@ SQL,
         $values = '';
         foreach ($chceNove as $n) {
             $sel    = 'SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu = ' . $n;
-            $values .= "\n" . '(' . $this->ubytovany->id() . ',' . $n . ',' . ROCNIK . ',(' . $sel . '),NOW()),';
+            $values .= "\n" . '(' . $this->zakaznik->id() . ',' . $n . ',' . ROCNIK . ',(' . $sel . '),NOW()),';
         }
         if ($values) {
             $values[strlen($values) - 1] = ';';
@@ -691,7 +691,7 @@ SQL,
         // mazání
         if ($nechce) {
             dbQueryS('DELETE FROM shop_nakupy WHERE id_uzivatele = $1 AND rok = $2 AND id_predmetu IN($3)', [
-                $this->ubytovany->id(), ROCNIK, $nechce,
+                $this->zakaznik->id(), ROCNIK, $nechce,
             ]);
         }
     }
@@ -720,7 +720,7 @@ SQL,
             sort($nove);
             // pole s předměty, které už má objednané dříve (bez ubytování)
             $stare = [];
-            $o     = dbQuery('SELECT id_predmetu FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE id_uzivatele=' . $this->ubytovany->id() . ' AND rok=' . ROCNIK . ' AND typ IN(' . self::PREDMET . ',' . self::TRICKO . ') ORDER BY id_predmetu');
+            $o     = dbQuery('SELECT id_predmetu FROM shop_nakupy JOIN shop_predmety USING(id_predmetu) WHERE id_uzivatele=' . $this->zakaznik->id() . ' AND rok=' . ROCNIK . ' AND typ IN(' . self::PREDMET . ',' . self::TRICKO . ') ORDER BY id_predmetu');
             while ($r = mysqli_fetch_assoc($o)) {
                 $stare[] = (int)$r['id_predmetu'];
             }
@@ -732,7 +732,7 @@ SQL,
                 if (empty($stare[$j]) || (!empty($nove[$i]) && $nove[$i] < $stare[$j]))
                     // tento prvek není v staré objednávce
                     // zapíšeme si ho pro přidání a přeskočíme na další
-                    $pridat .= "\n" . '(' . $this->ubytovany->id() . ',' . $nove[$i] . ',' . ROCNIK . ',(SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu=' . $nove[$i++] . '),NOW()),'; //$i se inkrementuje se po provedení druhého!
+                    $pridat .= "\n" . '(' . $this->zakaznik->id() . ',' . $nove[$i] . ',' . ROCNIK . ',(SELECT cena_aktualni FROM shop_predmety WHERE id_predmetu=' . $nove[$i++] . '),NOW()),'; //$i se inkrementuje se po provedení druhého!
                 else if (empty($nove[$i]) || $stare[$j] < $nove[$i])
                     // tento prvek ze staré objednávky není v nové objednávce
                     // zapíšeme si ho, že má být odstraněn, a skočíme na další
@@ -758,7 +758,7 @@ SQL,
         $rok        = ROCNIK;
         $query      = <<<SQL
             DELETE FROM shop_nakupy
-            WHERE id_uzivatele={$this->ubytovany->id()}
+            WHERE id_uzivatele={$this->zakaznik->id()}
             AND id_predmetu = $idPredmetu
             AND rok=$rok
         SQL;
@@ -798,7 +798,7 @@ SQL,
             if ($radek['kusu_uzivatele'] == 0) {
                 dbInsert('shop_nakupy', [
                     'cena_nakupni' => $cena,
-                    'id_uzivatele' => $this->ubytovany->id(),
+                    'id_uzivatele' => $this->zakaznik->id(),
                     'id_predmetu'  => $radek['id_predmetu'],
                     'rok'          => ROCNIK,
                 ]);
@@ -806,7 +806,7 @@ SQL,
                 dbUpdate('shop_nakupy', [
                     'cena_nakupni' => $cena,
                 ], [
-                    'id_uzivatele' => $this->ubytovany->id(),
+                    'id_uzivatele' => $this->zakaznik->id(),
                     'id_predmetu'  => $radek['id_predmetu'],
                     'rok'          => ROCNIK,
                 ]);
@@ -846,7 +846,7 @@ SQL,
      */
     public function kupPrevodBonusuNaPenize(): float
     {
-        $nevyuzityBonusZaAktivity = $this->ubytovany->finance()->nevyuzityBonusZaAktivity();
+        $nevyuzityBonusZaAktivity = $this->zakaznik->finance()->nevyuzityBonusZaAktivity();
         if (!$nevyuzityBonusZaAktivity) {
             return 0.0;
         }
@@ -866,7 +866,7 @@ SQL
 INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni, datum)
     VALUES ($1, $2, $3, $4, NOW())
 SQL
-            , [$this->ubytovany->id(), $idPredmetuPrevodBonsuNaPenize, ROCNIK, $nevyuzityBonusZaAktivity],
+            , [$this->zakaznik->id(), $idPredmetuPrevodBonsuNaPenize, ROCNIK, $nevyuzityBonusZaAktivity],
         );
         return $nevyuzityBonusZaAktivity;
     }
@@ -892,7 +892,7 @@ SQL
             FROM shop_nakupy AS nakupy
             JOIN shop_predmety AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
             WHERE nakupy.rok = {$this->systemoveNastaveni->rocnik()}
-              AND nakupy.id_uzivatele = {$this->ubytovany->id()}
+              AND nakupy.id_uzivatele = {$this->zakaznik->id()}
               AND predmety.typ = {$typPredetu}
             SQL,
             [
@@ -909,7 +909,7 @@ SQL
             FROM shop_nakupy AS nakupy
             JOIN shop_predmety AS predmety ON nakupy.id_predmetu = predmety.id_predmetu
             WHERE nakupy.rok = {$this->systemoveNastaveni->rocnik()}
-              AND nakupy.id_uzivatele = {$this->ubytovany->id()}
+              AND nakupy.id_uzivatele = {$this->zakaznik->id()}
               AND predmety.typ = {$typPredetu}
             SQL,
         );
@@ -922,13 +922,13 @@ SQL
             INSERT INTO shop_nakupy_zrusene(id_nakupu, id_uzivatele, id_predmetu, rocnik, cena_nakupni, datum_nakupu, datum_zruseni, zdroj_zruseni)
             SELECT id_nakupu, id_uzivatele, id_predmetu, rok, cena_nakupni, datum, $0, $1
             FROM shop_nakupy
-            WHERE shop_nakupy.rok = {$this->systemoveNastaveni->rocnik()} AND shop_nakupy.id_uzivatele = {$this->ubytovany->id()}
+            WHERE shop_nakupy.rok = {$this->systemoveNastaveni->rocnik()} AND shop_nakupy.id_uzivatele = {$this->zakaznik->id()}
             SQL,
             [0 => $this->systemoveNastaveni->ted()->format(DateTimeCz::FORMAT_DB), $zdrojZruseni],
         );
         $result = dbQuery(<<<SQL
             DELETE FROM shop_nakupy
-            WHERE rok = {$this->systemoveNastaveni->rocnik()} AND id_uzivatele = {$this->ubytovany->id()}
+            WHERE rok = {$this->systemoveNastaveni->rocnik()} AND id_uzivatele = {$this->zakaznik->id()}
             SQL,
         );
         return dbAffectedOrNumRows($result);
@@ -942,10 +942,10 @@ SQL
         $prihlaseneLarpy = Aktivita::zFiltru([
             'typ'        => TypAktivity::LARP,
             'rok'        => $this->systemoveNastaveni->rocnik(),
-            'prihlaseni' => [$this->ubytovany->id()],
+            'prihlaseni' => [$this->zakaznik->id()],
         ]);
         foreach ($prihlaseneLarpy as $prihlasenyLarp) {
-            $prihlasenyLarp->odhlas($this->ubytovany, $odhlasujici, $zdrojZruseni);
+            $prihlasenyLarp->odhlas($this->zakaznik, $odhlasujici, $zdrojZruseni);
         }
         return count($prihlaseneLarpy);
     }
@@ -958,10 +958,10 @@ SQL
         $prihlasenaRpg = Aktivita::zFiltru([
             'typ'        => TypAktivity::RPG,
             'rok'        => $this->systemoveNastaveni->rocnik(),
-            'prihlaseni' => [$this->ubytovany->id()],
+            'prihlaseni' => [$this->zakaznik->id()],
         ]);
         foreach ($prihlasenaRpg as $prihlaseneRpg) {
-            $prihlaseneRpg->odhlas($this->ubytovany, $odhlasujici, $zdrojZruseni);
+            $prihlaseneRpg->odhlas($this->zakaznik, $odhlasujici, $zdrojZruseni);
         }
         return count($prihlasenaRpg);
     }
@@ -973,10 +973,10 @@ SQL
     {
         $prihlaseneAktivity = Aktivita::zFiltru([
             'rok'        => $this->systemoveNastaveni->rocnik(),
-            'prihlaseni' => [$this->ubytovany->id()],
+            'prihlaseni' => [$this->zakaznik->id()],
         ]);
         foreach ($prihlaseneAktivity as $prihlasenaAktivita) {
-            $prihlasenaAktivita->odhlas($this->ubytovany, $odhlasujici, $zdrojZruseni);
+            $prihlasenaAktivita->odhlas($this->zakaznik, $odhlasujici, $zdrojZruseni);
         }
         return count($prihlaseneAktivity);
     }
@@ -995,7 +995,7 @@ SQL
             FROM shop_predmety
             JOIN shop_nakupy_zrusene ON shop_predmety.id_predmetu = shop_nakupy_zrusene.id_predmetu
             WHERE shop_nakupy_zrusene.zdroj_zruseni = $0
-                AND shop_nakupy_zrusene.id_uzivatele = {$this->ubytovany->id()}
+                AND shop_nakupy_zrusene.id_uzivatele = {$this->zakaznik->id()}
                 AND shop_nakupy_zrusene.rocnik = {$rocnik}
             SQL,
             [0 => $zdrojZruseni],
