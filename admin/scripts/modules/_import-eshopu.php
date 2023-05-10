@@ -185,6 +185,19 @@ SQL,
     );
     $pocetNovych  = dbNumRows($mysqliResult);
 
+
+    dbQuery(<<<SQL
+UPDATE shop_predmety AS stare
+LEFT JOIN `$temporaryTable` AS zdroj
+    ON stare.nazev = zdroj.nazev
+    AND stare.model_rok = zdroj.model_rok
+SET stare.stav = 0
+WHERE zdroj.id_predmetu IS NULL -- LEFT JOIN takže NULL je tam, kde jsme záznam přes ON podmínky nenašli
+SQL,
+    );
+    $pocetNovych  = dbNumRows($mysqliResult);
+
+
     dbQuery(<<<SQL
 DROP TEMPORARY TABLE `$temporaryTable`
 SQL,
