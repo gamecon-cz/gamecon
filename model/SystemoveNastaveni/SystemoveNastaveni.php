@@ -26,6 +26,10 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
         ?bool                   $databazoveNastaveni = null,
     ): self
     {
+        $jsmeNaBete ??= in_array(
+            parse_url(URL_WEBU, PHP_URL_HOST),
+            ['beta.gamecon.cz', 'jakublounek.gamecon.cz'],
+        );
         return new static(
             $rocnik,
             $ted,
@@ -73,6 +77,7 @@ class SystemoveNastaveni implements ZdrojRocniku, ZdrojVlnAktivit, ZdrojTed
         return match ($klic) {
             'BONUS_ZA_1H_AKTIVITU' => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu / 4),
             'BONUS_ZA_2H_AKTIVITU' => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu / 2),
+            'BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU' => $bonusZaStandardni3hAz5hAktivitu,
             'BONUS_ZA_6H_AZ_7H_AKTIVITU' => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 1.5),
             'BONUS_ZA_8H_AZ_9H_AKTIVITU' => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 2),
             'BONUS_ZA_10H_AZ_11H_AKTIVITU' => self::zakrouhli($bonusZaStandardni3hAz5hAktivitu * 2.5),
