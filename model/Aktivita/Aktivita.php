@@ -1556,7 +1556,7 @@ SQL
             return;
         }
 
-        $this->zkontrolujZdaSeMuzePrihlasit($uzivatel, $uzivatel, $ignorovat);
+        $this->zkontrolujZdaSeMuzePrihlasit($uzivatel, $prihlasujici, $ignorovat);
 
         // odhlášení náhradnictví v kolidujících aktivitách
         $this->odhlasZeSledovaniAktivitVeStejnemCase($uzivatel, $prihlasujici);
