@@ -1865,7 +1865,7 @@ SQL
             || ($zpetne && $this->probehnuta())
         )) {
             return sprintf(
-                'Aktivita není ve stavu použitelném pro přihlašování. Je ve stavu "%s" (%d), technické %s, zpětně %s',
+                'Aktivita není ve stavu použitelném pro přihlašování. Je ve stavu "%s" (%d). Povoleno: technické %s, zpětně %s',
                 StavAktivity::dejNazev((int)$this->a['stav']),
                 $this->a['stav'],
                 $interni ? 'ANO' : 'NE',
