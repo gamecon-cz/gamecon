@@ -14,10 +14,11 @@ use Gamecon\Shop\Predmet;
 class Cenik
 {
 
-    private int   $slevaPlacky            = 0;
-    private int   $jakychkoliTricekZdarma = 0;
-    private int   $modrychTricekZdarma    = 0;
-    private array $textySlevExtra         = [];
+    private int   $zbyvajicichMoznychKostekZdarma = 1;
+    private int   $slevaPlacky                    = 0;
+    private int   $jakychkoliTricekZdarma         = 0;
+    private int   $modrychTricekZdarma            = 0;
+    private array $textySlevExtra                 = [];
 
     /**
      * Zobrazitelné texty k právům (jen statické). Nestatické texty nutno řešit
@@ -37,17 +38,23 @@ class Cenik
     public function cenaKostky(array $r): int
     {
         $cena          = (int)$r[PredmetySql::CENA_AKTUALNI];
-        $slevaNaKostku = $this->slevaNaKostku($r, $cena);
+        $slevaNaKostku = $this->slevaNaKostku($r, $cena, false);
         return $cena - $slevaNaKostku;
     }
 
-    private function slevaNaKostku(array $r, $cena): int
+    private function slevaNaKostku(array $r, $cena, bool $omezPocet = true): int
     {
+        if ($omezPocet && $this->zbyvajicichMoznychKostekZdarma <= 0) {
+            return 0;
+        }
         if (!$this->u->maPravoNaKostkuZdarma()) {
             return 0;
         }
         if (!$this->maObjednanouLetosniKostku($r)) {
             return 0;
+        }
+        if ($omezPocet) {
+            $this->zbyvajicichMoznychKostekZdarma--;
         }
         return (int)$cena;
     }
@@ -171,7 +178,7 @@ class Cenik
         if ($typ == Shop::PREDMET) {
             // hack podle názvu
             if (Predmet::jeToKostka($r[PredmetySql::NAZEV])) {
-                $slevaKostky = static::slevaNaKostku($r, $cena);
+                $slevaKostky = $this->slevaNaKostku($r, $cena);
                 ['cena' => $cena] = self::aplikujSlevu($cena, $slevaKostky);
             } else if (Predmet::jeToPlacka($r[PredmetySql::NAZEV]) && $this->slevaPlacky) {
                 ['cena' => $cena, 'sleva' => $this->slevaPlacky] = self::aplikujSlevu($cena, $this->slevaPlacky);
