@@ -511,13 +511,18 @@ SQL,
         }
 
         foreach ($this->predmety as $predmet) {
-            $cena = (float)$predmet['cena_aktualni'];
+            $cena        = (float)$predmet['cena_aktualni'];
+            $cenaPoSleve = $cena;
             if (Predmet::jeToKostka($predmet[Sql::NAZEV])) {
-                $cena = (float)$this->cenik->cenaKostky($predmet);
+                $cenaPoSleve = (float)$this->cenik->cenaKostky($predmet);
             }
+            $cena        = round($cena);
+            $cenaPoSleve = round($cenaPoSleve);
+            $menaText        = '&thinsp;Kč';
+            $cenaText    = ($cenaPoSleve !== $cena ? "$cenaPoSleve$menaText/" : '') . $cena . $menaText;
             $t->assign([
                 'nazev'          => $predmet['nazev'],
-                'cena'           => round($cena) . '&thinsp;Kč',
+                'cena'           => $cenaText,
                 'kusu_uzivatele' => $predmet['kusu_uzivatele'],
                 'postName'       => $this->klicP . '[' . $predmet['id_predmetu'] . ']',
             ]);
