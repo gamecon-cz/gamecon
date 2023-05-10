@@ -665,6 +665,11 @@ SQL;
         return DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($this, $platnostZpetneKDatu);
     }
 
+    public function nejpozdejiZaplatitDo(\DateTimeInterface $platnostZpetneKDatu = null): DateTimeImmutableStrict
+    {
+        return $this->nejblizsiHromadneOdhlasovaniKdy($platnostZpetneKDatu)->modify('-1 day');
+    }
+
     public function pristiVlnaKdy(): ?DateTimeGamecon
     {
         $nejblizsiVlnaKdy = $this->nejblizsiVlnaKdy($this->ted());

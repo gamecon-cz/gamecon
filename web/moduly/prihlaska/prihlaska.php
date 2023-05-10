@@ -212,7 +212,7 @@ $t->assign([
         : 'Přihlásit na GameCon',
     'vstupne'                         => $shop->vstupneHtml(),
     'pomoc'                           => $pomoc->html(),
-    'zaplatitNejpozdejiDo'            => $systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy()->modify('-1 day')->format(DateTimeCz::FORMAT_DATUM_LETOS),
+    'zaplatitNejpozdejiDo'            => $systemoveNastaveni->nejpozdejiZaplatitDo()->format(DateTimeCz::FORMAT_DATUM_LETOS),
 ]);
 
 $t->parse($u->gcPrihlasen()
