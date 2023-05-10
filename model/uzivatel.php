@@ -673,6 +673,21 @@ SQL,
         return $this->maPravo(Pravo::ADMINISTRACE_PREZENCE);
     }
 
+    public function maPravoNaKostkuZdarma(): bool
+    {
+        return $this->maPravo(Pravo::KOSTKA_ZDARMA);
+    }
+
+    public function maPravoNaUbytovaniZdarma(): bool
+    {
+        return $this->maPravo(Pravo::UBYTOVANI_ZDARMA);
+    }
+
+    public function maPravoNaJidloZdarma(): bool
+    {
+        return $this->maPravo(Pravo::JIDLO_ZDARMA);
+    }
+
     /**
      * Což taky znamená "Právo na placení až na místě"
      * @return bool
