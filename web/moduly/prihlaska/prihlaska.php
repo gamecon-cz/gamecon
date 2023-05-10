@@ -6,6 +6,7 @@ use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Pravo;
 
 /**
+ * @see web/sablony/blackarrow/prihlaska.xtpl
  * @var \Gamecon\XTemplate\XTemplate $t
  * @var Uzivatel $u
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni

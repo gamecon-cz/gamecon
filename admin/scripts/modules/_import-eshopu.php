@@ -2,6 +2,7 @@
 
 use Gamecon\XTemplate\XTemplate;
 use OpenSpout\Reader\Common\Creator\ReaderFactory;
+use Gamecon\Shop\StavPredmetu;
 
 /** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
 
@@ -148,55 +149,54 @@ SQL,
 
     $mysqliResult   = dbQuery(<<<SQL
 UPDATE shop_predmety
-JOIN `$temporaryTable`
-    ON shop_predmety.nazev = `$temporaryTable`.nazev
-    AND shop_predmety.model_rok = `$temporaryTable`.model_rok
-SET shop_predmety.cena_aktualni = `$temporaryTable`.cena_aktualni,
-    shop_predmety.stav = `$temporaryTable`.stav,
-    shop_predmety.auto = `$temporaryTable`.auto,
-    shop_predmety.nabizet_do = `$temporaryTable`.nabizet_do,
-    shop_predmety.kusu_vyrobeno = `$temporaryTable`.kusu_vyrobeno,
-    shop_predmety.typ = `$temporaryTable`.typ,
-    shop_predmety.ubytovani_den = `$temporaryTable`.ubytovani_den,
-    shop_predmety.popis = `$temporaryTable`.popis
+JOIN `$temporaryTable` AS import
+    ON shop_predmety.nazev = import.nazev
+    AND shop_predmety.model_rok = import.model_rok
+SET shop_predmety.cena_aktualni = import.cena_aktualni,
+    shop_predmety.stav = import.stav,
+    shop_predmety.auto = import.auto,
+    shop_predmety.nabizet_do = import.nabizet_do,
+    shop_predmety.kusu_vyrobeno = import.kusu_vyrobeno,
+    shop_predmety.typ = import.typ,
+    shop_predmety.ubytovani_den = import.ubytovani_den,
+    shop_predmety.popis = import.popis
 WHERE TRUE -- už vyřešeno přes INNER JOIN a unique key
 SQL,
     );
-    $pocetZmenenych = dbNumRows($mysqliResult);
+    $pocetZmenenych = dbAffectedOrNumRows($mysqliResult);
 
     $mysqliResult = dbQuery(<<<SQL
 INSERT INTO shop_predmety (`model_rok`, `nazev`, `cena_aktualni`, `stav`, `auto`, `nabizet_do`, `kusu_vyrobeno`, `typ`, `ubytovani_den`, `popis`)
-SELECT zdroj.`model_rok`,
-    zdroj.`nazev`,
-    zdroj.`cena_aktualni`,
-    zdroj.`stav`,
-    zdroj.`auto`,
-    zdroj.`nabizet_do`,
-    zdroj.`kusu_vyrobeno`,
-    zdroj.`typ`,
-    zdroj.`ubytovani_den`,
-    zdroj.`popis`
-FROM `$temporaryTable` AS zdroj
+SELECT import.`model_rok`,
+    import.`nazev`,
+    import.`cena_aktualni`,
+    import.`stav`,
+    import.`auto`,
+    import.`nabizet_do`,
+    import.`kusu_vyrobeno`,
+    import.`typ`,
+    import.`ubytovani_den`,
+    import.`popis`
+FROM `$temporaryTable` AS import
 LEFT JOIN shop_predmety AS uz_zname
-    ON uz_zname.nazev = zdroj.nazev
-    AND uz_zname.model_rok = zdroj.model_rok
+    ON uz_zname.nazev = import.nazev
+    AND uz_zname.model_rok = import.model_rok
 WHERE uz_zname.id_predmetu IS NULL -- LEFT JOIN takže NULL je tam, kde jsme záznam přes ON podmínky nenašli
 SQL,
     );
-    $pocetNovych  = dbNumRows($mysqliResult);
-
+    $pocetNovych  = dbAffectedOrNumRows($mysqliResult);
 
     dbQuery(<<<SQL
 UPDATE shop_predmety AS stare
-LEFT JOIN `$temporaryTable` AS zdroj
-    ON stare.nazev = zdroj.nazev
-    AND stare.model_rok = zdroj.model_rok
-SET stare.stav = 0
-WHERE zdroj.id_predmetu IS NULL -- LEFT JOIN takže NULL je tam, kde jsme záznam přes ON podmínky nenašli
+LEFT JOIN `$temporaryTable` AS import
+    ON stare.nazev = import.nazev
+    AND stare.model_rok = import.model_rok
+SET stare.stav = $0
+WHERE import.id_predmetu IS NULL -- LEFT JOIN takže NULL je tam, kde jsme záznam přes ON podmínky nenašli
 SQL,
+        [0 => StavPredmetu::MIMO],
     );
-    $pocetNovych  = dbNumRows($mysqliResult);
-
+    $pocetNovych = dbAffectedOrNumRows($mysqliResult);
 
     dbQuery(<<<SQL
 DROP TEMPORARY TABLE `$temporaryTable`

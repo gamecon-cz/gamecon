@@ -5,6 +5,7 @@ namespace Gamecon\Shop;
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\TypAktivity;
 use Gamecon\Cas\DateTimeCz;
+use Gamecon\Jidlo;
 use Gamecon\Pravo;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveniKlice;
@@ -199,7 +200,7 @@ SQL,
         private readonly SystemoveNastaveni $systemoveNastaveni,
     )
     {
-        $this->cenik              = new Cenik(
+        $this->cenik = new Cenik(
             $zakaznik,
             $zakaznik->finance()->bonusZaVedeniAktivit(),
             $systemoveNastaveni
@@ -215,18 +216,22 @@ FROM (
       SELECT
         predmety.id_predmetu, predmety.model_rok, predmety.cena_aktualni, predmety.stav, predmety.auto,
         predmety.nabizet_do, predmety.kusu_vyrobeno, predmety.typ, predmety.ubytovani_den, predmety.popis,
-        IF(predmety.model_rok = $1 OR COALESCE(popis, '') = '', nazev, CONCAT(nazev, ' (', popis, ')')) AS nazev,
+        IF(predmety.model_rok = $1 OR COALESCE(predmety.popis, '') = '', predmety.nazev, CONCAT(predmety.nazev, ' (', predmety.popis, ')')) AS nazev,
         COUNT(IF(nakupy.rok = $1, 1, NULL)) kusu_prodano,
         COUNT(IF(nakupy.id_uzivatele = $2 AND nakupy.rok = $1, 1, NULL)) kusu_uzivatele,
         SUM(IF(nakupy.id_uzivatele = $2 AND nakupy.rok = $1, nakupy.cena_nakupni, 0)) sum_cena_nakupni
       FROM shop_predmety predmety
-      LEFT JOIN shop_nakupy nakupy USING(id_predmetu)
+      LEFT JOIN shop_nakupy AS nakupy
+        ON predmety.id_predmetu = nakupy.id_predmetu
+        AND nakupy.id_uzivatele = $2
+        AND nakupy.rok = $1
       WHERE predmety.stav > $0 OR nakupy.rok = $1
       GROUP BY predmety.id_predmetu
 ) AS seskupeno
+-- POZOR, více aktivních ubytování ve stejný den není podporováno, "zvítězí" starší model, protože model_rok DESC a poslední záznam v následujícím foreach přepíše předchozí
 ORDER BY typ, ubytovani_den, nazev, model_rok DESC, id_predmetu ASC
 SQL,
-            [0 => StavPredmetu::MIMO, 1 => ROCNIK, 2 => $this->zakaznik->id()],
+            [0 => StavPredmetu::MIMO, 1 => $this->systemoveNastaveni->rocnik(), 2 => $this->zakaznik->id()],
         );
 
         //inicializace
@@ -320,7 +325,23 @@ SQL,
             $fronta = $r;
         }
 
+        $this->jidlo = $this->seradJidla($this->jidlo);
+
         $this->ubytovani = new ShopUbytovani($this->ubytovani, $this->zakaznik, $this->objednatel, $systemoveNastaveni); // náhrada reprezentace polem za objekt
+    }
+
+    private function seradJidla(array $jidla): array
+    {
+        uksort($jidla['druhy'], [$this, 'seradDruhyJidel']);
+        foreach ($jidla['jidla'] as &$jidlaJedenDen) {
+            uksort($jidlaJedenDen, [$this, 'seradDruhyJidel']);
+        }
+        return $jidla;
+    }
+
+    private function seradDruhyJidel(string $nejakyDruh, string $jinyDruh): int
+    {
+        return Jidlo::dejPoradiJidlaBehemDne($nejakyDruh) <=> Jidlo::dejPoradiJidlaBehemDne($jinyDruh);
     }
 
     public function ubytovani(): ShopUbytovani
@@ -344,7 +365,6 @@ SQL,
     public function jidloHtml(bool $muzeEditovatUkoncenyProdej = false)
     {
         // inicializace
-        ksort($this->jidlo['druhy']);
         $dny                = $this->jidlo['dny'];
         $druhy              = $this->jidlo['druhy'];
         $jidla              = $this->jidlo['jidla'] ?? [];
