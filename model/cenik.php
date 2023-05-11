@@ -64,9 +64,6 @@ class Cenik
         if (!Predmet::jeToKostka($r[PredmetySql::NAZEV])) {
             return false;
         }
-        if ((int)$r[PredmetySql::MODEL_ROK] === $this->systemoveNastaveni->rocnik()) {
-            return true;
-        }
         $letosniKostka = Predmet::letosniKostka($this->systemoveNastaveni->rocnik());
         if (!$letosniKostka) {
             return false;

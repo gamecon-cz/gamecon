@@ -39,7 +39,7 @@ WHERE
     -- letošní je ta, která má nejnovější model a v dřívějších letech si ji nikdo neobjednal
     NOT EXISTS(SELECT * FROM shop_nakupy WHERE shop_nakupy.id_predmetu = shop_predmety.id_predmetu AND shop_nakupy.rok < {$rocnik})
     AND typ = {$typPredmet} AND nazev COLLATE utf8_czech_ci LIKE '%Kostka%'
-ORDER BY model_rok DESC, cena_aktualni DESC
+ORDER BY model_rok DESC, cena_aktualni DESC, id_predmetu DESC
 LIMIT 1 -- pro jistotu
 SQL,
             );
