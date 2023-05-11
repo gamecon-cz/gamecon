@@ -43,7 +43,8 @@
         </div>
         <!-- end:typ -->
         <div class="shopUbytovani_zadne">
-            <input type="radio" class="shopUbytovani_radio" name="{postnameDen}" value="" data-kapacita="0" data-typ="Žádné" {checked} {disabled}>
+            <input type="radio" class="shopUbytovani_radio" name="{postnameDen}" value="" data-kapacita="0"
+                   data-typ="Žádné" {checked} {disabled}>
         </div>
     </div>
     <!-- end:den -->
@@ -58,6 +59,7 @@
            placeholder="jména oddělená čárkou, nebo nech prázdné">
 </div>
 
+<!-- shop-ubytovani.js -->
 <script type="text/javascript" src="{shopUbytovaniJs}"></script>
 
 <!-- end:ubytovani -->
