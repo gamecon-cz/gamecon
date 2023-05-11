@@ -1837,7 +1837,7 @@ SQL
         return
             (REG_AKTIVIT
                 || ($dopredne && pred(REG_AKTIVIT_OD))
-                || ($zpetne && po(REG_GC_DO))
+                || ($zpetne && po(REG_AKTIVIT_DO))
             )
             && (
                 $this->idStavu() === StavAktivity::AKTIVOVANA
@@ -1851,12 +1851,12 @@ SQL
 
     private function procNeniPrihlasovatelna($parametry): string
     {
-        $zpetne     = $parametry & self::ZPETNE;
         $dopredne   = $parametry & self::DOPREDNE;
+        $zpetne     = $parametry & self::ZPETNE;
         $interni    = $parametry & self::INTERNI;
         $neotevrene = $parametry & self::NEOTEVRENE;
 
-        if (!(REG_AKTIVIT || ($zpetne && po(REG_GC_DO)) || ($dopredne && pred(REG_GC_OD)))) {
+        if (!(REG_AKTIVIT || ($dopredne && pred(REG_AKTIVIT_OD)) || ($zpetne && po(REG_AKTIVIT_DO)))) {
             return sprintf('Není spuštěna registrace aktivit (začíná %s a končí %s)', REG_AKTIVIT_OD, REG_AKTIVIT_DO);
         }
         if (!( // ← inverze ↓
