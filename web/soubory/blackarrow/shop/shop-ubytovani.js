@@ -1,7 +1,7 @@
 {
-    const shopUbytovaniRadios = document.querySelectorAll('input[type=radio][class=shopUbytovani_radio]')
-    const shopUbytovaniNames = []
-    let zmeneneElementy = []
+    var shopUbytovaniRadios = document.querySelectorAll('input[type=radio][class=shopUbytovani_radio]')
+    var shopUbytovaniNames = []
+    var zmeneneElementy = []
 
     shopUbytovaniRadios.forEach(function (shopUbytovaniRadio) {
         if (!shopUbytovaniNames.includes(shopUbytovaniRadio.name)) {
@@ -10,8 +10,8 @@
     })
 
     function zapamatujKapacituJakoRucneZvolenou(radioInput) {
-        const zvolenaKapacita = radioInput.dataset.kapacita
-        const radiaJednohoDne = document.querySelectorAll('input[type=radio][class=shopUbytovani_radio][name="' + radioInput.name + '"]')
+        var zvolenaKapacita = radioInput.dataset.kapacita
+        var radiaJednohoDne = document.querySelectorAll('input[type=radio][class=shopUbytovani_radio][name="' + radioInput.name + '"]')
         radiaJednohoDne.forEach(radioJednohoDne => radioJednohoDne.dataset.kapacitaZvolenaUzivatelem = zvolenaKapacita)
     }
 
@@ -20,23 +20,23 @@
         zmeneneElementy.push(this)
         zapamatujKapacituJakoRucneZvolenou(this)
         obnovPovinnePolozky()
-        const zvolenaKapacita = this.dataset.kapacita
-        const zvolenaKapacitaInt = Number.parseInt(zvolenaKapacita)
+        var zvolenaKapacita = this.dataset.kapacita
+        var zvolenaKapacitaInt = Number.parseInt(zvolenaKapacita)
         if (zvolenaKapacitaInt === 0) {
             return
         }
-        const zvolenyTyp = this.dataset.typ
-        const zvoleneName = this.name
-        const ostatniNames = shopUbytovaniNames.filter(name => name !== zvoleneName)
+        var zvolenyTyp = this.dataset.typ
+        var zvoleneName = this.name
+        var ostatniNames = shopUbytovaniNames.filter(name => name !== zvoleneName)
         ostatniNames.forEach(function (ostatniName) {
-            const ostatniZvoleneUbytovani = document.querySelector('input[type=radio][class=shopUbytovani_radio][name="' + ostatniName + '"]:checked')
+            var ostatniZvoleneUbytovani = document.querySelector('input[type=radio][class=shopUbytovani_radio][name="' + ostatniName + '"]:checked')
             if (ostatniZvoleneUbytovani
                 && ostatniZvoleneUbytovani.dataset.kapacitaZvolenaUzivatelem !== undefined
                 && Number.parseInt(ostatniZvoleneUbytovani.dataset.kapacitaZvolenaUzivatelem) === 0
             ) {
                 return // v tomto dni je uzivatelem rucne vybrano Zadne ubytovani, to nechceme menit
             }
-            const ostatniStejneUbytovaniInput = ubytovaniInput(ostatniName, zvolenyTyp)
+            var ostatniStejneUbytovaniInput = ubytovaniInput(ostatniName, zvolenyTyp)
             if (!ostatniStejneUbytovaniInput.disabled) {
                 ostatniStejneUbytovaniInput.checked = true
                 zmeneneElementy.push(ostatniStejneUbytovaniInput)
@@ -60,7 +60,7 @@
      * @param {string} inputName
      */
     function vyberZadneUbytovani(inputName) {
-        const zadneUbytovaniInput = ubytovaniInput(inputName, 'Žádné')
+        var zadneUbytovaniInput = ubytovaniInput(inputName, 'Žádné')
         zadneUbytovaniInput.checked = true
         zmeneneElementy.forEach(function (predtimZmenenyElement, index) {
             if (predtimZmenenyElement.name === zadneUbytovaniInput.name) {
@@ -72,7 +72,7 @@
 
     function onShopUbytovaniClick() {
         /** @var {HTMLInputElement} kliknutyInput */
-        const kliknutyInput = this
+        var kliknutyInput = this
         if (kliknutyInput.disabled) {
             return
         }
