@@ -48,6 +48,8 @@ class Registrace
     private function zpracujChyby(Chyby $chyby)
     {
         $this->chyby = $chyby;
+        // pro případy kdy se chyby vypíší až po redirectu
+        \Chyba::nastavZChyb($chyby, \Chyba::VALIDACE);
         if ($chyby->globalniChyba()) {
             \Chyba::nastav($chyby->globalniChyba());
         }
@@ -111,7 +113,7 @@ class Registrace
 
         $chybaHtml  = '';
         $chybaTrida = '';
-        if ($this->chyby && ($chyba = $this->chyby->klic($klic))) {
+        if ($chyba = $this->chyby()->klic($klic)) {
             $chybaHtml  = '<div class="formular_chyba">' . $chyba . '</div>';
             $chybaTrida = 'formular_polozka-chyba';
         }
@@ -315,7 +317,7 @@ class Registrace
 
         $chybaHtml  = '';
         $chybaTrida = '';
-        if ($this->chyby && ($chyba = $this->chyby->klic($klic))) {
+        if ($chyba = $this->chyby()->klic($klic)) {
             $chybaHtml  = '<div class="formular_chyba">' . $chyba . '</div>';
             $chybaTrida = 'formular_polozka-chyba';
         }
@@ -420,6 +422,14 @@ HTML;
     {$this->input('Číslo dokladu', 'text', Sql::OP)}
 </div>
 HTML;
+    }
 
+    private function chyby(): Chyby
+    {
+        if ($this->chyby === null) {
+            // vyzvednutí z cookie pro případy kdy se chyby vykreslují až po redirectu
+            $this->chyby = Chyby::zPole(\Chyba::vyzvedniVsechnyValidace());
+        }
+        return $this->chyby;
     }
 }

@@ -12,8 +12,8 @@
  */
 class Chyby extends Chyba
 {
-    private $chyby;
-    private $globalniChyba;
+    private array $chyby = [];
+    private       $globalniChyba;
 
     function globalniChyba($val = null)
     {
@@ -27,6 +27,14 @@ class Chyby extends Chyba
     }
 
     /**
+     * @return string[]
+     */
+    function vsechny(): array
+    {
+        return $this->chyby;
+    }
+
+    /**
      * Vytvoří chyby obsahující jednu globální chybu.
      */
     static function jedna($chybaZprava)
@@ -37,9 +45,10 @@ class Chyby extends Chyba
     }
 
     /**
+     * @param string[] $pole
      * Vytvoří chyby z pole řetězců.
      */
-    static function zPole($pole)
+    static function zPole(array $pole): self
     {
         $ch          = new self();
         $ch->chyby   = $pole;
