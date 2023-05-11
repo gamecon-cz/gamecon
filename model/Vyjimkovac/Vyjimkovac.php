@@ -222,8 +222,8 @@ class Vyjimkovac implements Logovac
     public function zaloguj(\Throwable $e)
     {
         VyjimkovacChyba::zVyjimky($e)
-            ->uloz($this->db())
-            ->odesli($this->emails);
+            ->uloz($this->db());
+//            ->odesli($this->emails);
     }
 
 }
