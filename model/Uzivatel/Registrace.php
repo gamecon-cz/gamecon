@@ -55,6 +55,9 @@ class Registrace
 
     public function zpracujUpravu()
     {
+        if (!post('upravit')) {
+            return;
+        }
         if ($this->ulozZmeny()) {
             oznameni(hlaska('upravaUzivatele'));
         }
@@ -391,21 +394,29 @@ HTML;
     {$this->input('PSČ', 'text', Sql::PSC_UZIVATELE)}
     {$this->select(
             'Země',
-            Sql::STAT_UZIVATELE, [
-            Stat::CZ_ID   => 'Česká republika',
-            Stat::SK_ID   => 'Slovenská republika',
-            Stat::JINY_ID => '(jiný stát)',
-        ])}
+            Sql::STAT_UZIVATELE,
+            [
+                Stat::CZ_ID   => 'Česká republika',
+                Stat::SK_ID   => 'Slovenská republika',
+                Stat::JINY_ID => '(jiný stát)',
+            ],
+            false,
+        )}
 </div>
 
 <h2 class="formular_sekceNadpis">Platný doklad totožnosti</h2>
 
 <div class="formular_sloupce">
-    {$this->select('Druh dokladu', Sql::TYP_DOKLADU_TOTOZNOSTI, [
-            Uzivatel::TYP_DOKLADU_OP   => 'Občanský průkaz',
-            Uzivatel::TYP_DOKLADU_PAS  => 'Cestovní pas',
-            Uzivatel::TYP_DOKLADU_JINY => 'Jiný',
-        ])}
+    {$this->select(
+            'Druh dokladu',
+            Sql::TYP_DOKLADU_TOTOZNOSTI,
+            [
+                Uzivatel::TYP_DOKLADU_OP   => 'Občanský průkaz',
+                Uzivatel::TYP_DOKLADU_PAS  => 'Cestovní pas',
+                Uzivatel::TYP_DOKLADU_JINY => 'Jiný',
+            ],
+            false,
+        )}
     {$this->input('Číslo dokladu', 'text', Sql::OP)}
 </div>
 HTML;
