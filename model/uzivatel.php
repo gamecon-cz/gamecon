@@ -182,7 +182,7 @@ SQL
             return $op;
         }
 
-        if ($this->r['op']) {
+        if (!empty($this->r['op'])) {
             return Sifrovatko::desifruj($this->r['op']);
         } else {
             return '';

@@ -141,7 +141,7 @@ class Registrace
             } else {
                 $dataUzivatele = $this->u?->rawDb();
                 if ($dataUzivatele !== null) {
-                    if (isset($dataUzivatele[Sql::OP])) {
+                    if (!empty(($dataUzivatele[Sql::OP]))) {
                         $dataUzivatele[Sql::OP] = \Sifrovatko::desifruj($dataUzivatele[Sql::OP]);
                     }
                 }
