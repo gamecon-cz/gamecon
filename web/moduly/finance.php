@@ -124,9 +124,8 @@ if (!$zaplaceno) {
                             <strong><?php echo datum3($systemoveNastaveni->prvniHromadneOdhlasovani()) ?> automaticky
                                 odhlásí</strong>.
                         </li>
-                        <li class="poznamka">Při plánování aktivit si na účet pošli klidně více peněz. Přebytek ti
-                            vrátíme na
-                            infopultu nebo ho můžeš využít k přihlašování uvolněných aktivit na místě.
+                        <li class="poznamka">
+                            Peníze navíc můžeš využít na přihlášení aktivit na GameConu a přeplatek ti po GameConu rádi vrátíme.
                         </li>
                     </ul>
                 <?php } ?>
@@ -136,9 +135,8 @@ if (!$zaplaceno) {
                         <strong><?php echo datum3($nejblizsiHromadneOdhlasovaniKdy) ?> automaticky
                             odhlásí</strong>.
                     </li>
-                    <li class="poznamka">Při plánování aktivit si na účet pošli klidně více peněz. Přebytek ti vrátíme
-                        na
-                        infopultu nebo ho můžeš využít k přihlašování uvolněných aktivit na místě.
+                    <li class="poznamka">
+                        Peníze navíc můžeš využít na přihlášení aktivit na GameConu a přeplatek ti po GameConu rádi vrátíme.
                     </li>
                 </ul>
             <?php } ?>
@@ -151,8 +149,8 @@ if (!$zaplaceno) {
                     platbě nalezneš výše.</p>
             <?php } ?>
             <ul class="seznam-bez-okraje">
-                <li class="poznamka">Při plánování aktivit si na účet pošli klidně více peněz. Přebytek ti vrátíme na
-                    infopultu nebo ho můžeš využít k přihlašování uvolněných aktivit na místě.
+                <li class="poznamka">
+                    Peníze navíc můžeš využít na přihlášení aktivit na GameConu a přeplatek ti po GameConu rádi vrátíme.
                 </li>
             </ul>
         <?php } ?>
