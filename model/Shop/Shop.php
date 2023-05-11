@@ -225,7 +225,6 @@ FROM (
       FROM shop_predmety predmety
       LEFT JOIN shop_nakupy AS nakupy
         ON predmety.id_predmetu = nakupy.id_predmetu
-        AND nakupy.id_uzivatele = $2
         AND nakupy.rok = $1
       WHERE predmety.stav > $0 OR nakupy.rok = $1
       GROUP BY predmety.id_predmetu
@@ -255,7 +254,7 @@ SQL,
                 $fronta = &$this->predmety[];
             } else if ($typ == self::JIDLO) {
                 $den  = $r['ubytovani_den'];
-                $druh = self::bezDne($r['nazev']);
+                $druh = trim(self::bezDne($r['nazev']));
                 if (!empty($this->jidlo['jidla'][$den][$druh]['kusu_uzivatele'])) {
                     /*
                      * Speciální případ, kdy existuje více verzí stejného jídla ve stejném roce.
