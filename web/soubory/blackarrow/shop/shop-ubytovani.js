@@ -95,6 +95,7 @@
         shopUbytovaniRadio.addEventListener('change', onShopUbytovaniChange)
         if (shopUbytovaniRadio.checked) {
             zapamatujKapacituJakoRucneZvolenou(shopUbytovaniRadio)
+            zmeneneElementy.push(shopUbytovaniRadio) // abychom měli výchozí stav pro "odškrtávání"
         }
         shopUbytovaniRadio.addEventListener('click', onShopUbytovaniClick)
     })
