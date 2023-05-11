@@ -35,7 +35,17 @@ class Uzivatel extends DbObject
     public const SYSTEM       = 1;   // id uživatele reprezentujícího systém (např. "operaci provedl systém")
     public const SYSTEM_LOGIN = 'SYSTEM';
 
+    public const TYPY_DOKLADU     = [
+        self::TYP_DOKLADU_OP,
+        self::TYP_DOKLADU_PAS,
+        self::TYP_DOKLADU_JINY,
+    ];
+    public const TYP_DOKLADU_OP   = 'op';
+    public const TYP_DOKLADU_PAS  = 'pas';
+    public const TYP_DOKLADU_JINY = 'jiny';
+
     private ?array $organizovaneAktivityIds = null;
+    private ?array $historiePrihlaseni = null;
 
     /**
      * @return Uzivatel[]
@@ -160,7 +170,7 @@ SQL
     /**
      * Vrátí / nastaví číslo občanského průkazu.
      */
-    public function cisloOp($op = null)
+    public function cisloOp(string $op = null)
     {
         if ($op) {
             dbQuery('
@@ -1314,19 +1324,25 @@ SQL,
         $dbTab = self::spojPredvolbuSTelefonem($dbTab);
 
         $validace = [
-            Sql::JMENO_UZIVATELE      => ['.+', 'jméno nesmí být prázdné'],
-            Sql::PRIJMENI_UZIVATELE   => ['.+', 'příjmení nesmí být prázdné'],
-            Sql::LOGIN_UZIVATELE      => $validaceLoginu,
-            Sql::EMAIL1_UZIVATELE     => $validaceMailu,
-            Sql::POHLAVI              => ['^(m|f)$', 'vyber prosím pohlaví'],
-            Sql::ULICE_A_CP_UZIVATELE => ['.+ [\d\/a-z]+$', 'vyplň prosím ulici, např. Česká 27'],
-            Sql::MESTO_UZIVATELE      => ['.+', 'vyplň prosím město'],
-            Sql::PSC_UZIVATELE        => ['^[\d ]+$', 'vyplň prosím PSČ, např. 602 00'],
-            Sql::STAT_UZIVATELE       => ['^(1|2|-1)$', 'vyber prosím stát'],
-            Sql::TELEFON_UZIVATELE    => ['^[\d \+]+$', 'vyplň prosím telefon, např. +420 789 123 456'],
-            Sql::DATUM_NAROZENI       => $validaceDataNarozeni,
-            'heslo'                   => $validaceHesla,
-            'heslo_kontrola'          => $validaceHesla,
+            // Osobní
+            Sql::EMAIL1_UZIVATELE       => $validaceMailu,
+            Sql::TELEFON_UZIVATELE      => ['^[\d \+]+$', 'vyplň prosím telefon, např. +420 789 123 456'],
+            Sql::JMENO_UZIVATELE        => ['.+', 'jméno nesmí být prázdné'],
+            Sql::PRIJMENI_UZIVATELE     => ['.+', 'příjmení nesmí být prázdné'],
+            Sql::DATUM_NAROZENI         => $validaceDataNarozeni,
+            // Adresa trvalého pobytu
+            Sql::ULICE_A_CP_UZIVATELE   => ['.+ [\d\/a-z]+$', 'vyplň prosím ulici, např. Česká 27'],
+            Sql::MESTO_UZIVATELE        => ['.+', 'vyplň prosím město'],
+            Sql::PSC_UZIVATELE          => ['^[\d ]+$', 'vyplň prosím PSČ, např. 602 00'],
+            Sql::STAT_UZIVATELE         => ['^(1|2|-1)$', 'vyber prosím stát'],
+            // Platný doklad totožnosti
+            Sql::TYP_DOKLADU_TOTOZNOSTI => [implode('|', self::TYPY_DOKLADU), 'vyber prosím typ dokladu totožnosti'],
+            Sql::OP                     => ['[a-zA-Z0-9]{5,}', 'vyplň prosím celé číslo dokladu'],
+            // Ostatní
+            Sql::LOGIN_UZIVATELE        => $validaceLoginu,
+            Sql::POHLAVI                => ['^(m|f)$', 'vyber prosím pohlaví'],
+            'heslo'                     => $validaceHesla,
+            'heslo_kontrola'            => $validaceHesla,
         ];
 
         // provedení validací
@@ -1358,11 +1374,10 @@ SQL,
 
         if ($chyby) {
             $ch = Chyby::zPole($chyby);
-            $ch->globalniChyba($u
-                ?
-                'Úprava se nepodařila, oprav prosím zvýrazněné položky.'
-                :
-                'Registrace se nepodařila. Oprav prosím zvýrazněné položky.',
+            $ch->globalniChyba(
+                $u
+                ? 'Úprava se nepodařila, oprav prosím zvýrazněné položky.'
+                : 'Registrace se nepodařila. Oprav prosím zvýrazněné položky.',
             );
             throw $ch;
         }
@@ -1380,6 +1395,10 @@ SQL,
         // odstranění polí, co nebudou v DB
         unset($dbTab['heslo']);
         unset($dbTab['heslo_kontrola']);
+
+        if (isset($dbTab[Sql::OP])) {
+            $dbTab[Sql::OP] = Sifrovatko::zasifruj($dbTab[Sql::OP]);
+        }
 
         // uložení
         if ($u) {
@@ -1907,9 +1926,9 @@ SQL,
      * @todo asi lazy loading práv
      * @todo zrefaktorovat nactiUzivatele na toto
      */
-    protected static function zWhere($where, $param = null, $extra = ''): array
+    protected static function zWhere($where, $params = null, $extra = ''): array
     {
-        return parent::zWhere($where, $param, $extra);
+        return parent::zWhere($where, $params, $extra);
     }
 
     protected static function dotaz($where): string

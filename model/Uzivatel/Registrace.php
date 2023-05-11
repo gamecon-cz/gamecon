@@ -78,13 +78,16 @@ class Registrace
         string $nazev,
         string $typ,
         string $klic,
+        bool   $required = false,
         string $inputCss = '',
         string $predrazeneHtml = '',
     ): string
     {
         $predvyplneno = $this->formData()[$klic] ?? '';
 
-        $requiredHtml   = $typ == 'date' ? 'required' : '';
+        $requiredHtml   = $required || $typ == 'date'
+            ? 'required'
+            : '';
         $additionalHtml = $typ === 'password'
             ? 'autocomplete="new-password"' // aby se nám automaticky nevkládalo heslo
             : '';
@@ -118,7 +121,18 @@ class Registrace
     private function formData(): ?array
     {
         if ($this->formData === 'undefined') {
-            $this->formData = post(self::FORM_DATA_KEY) ?? $this->u?->rawDb();
+            $postData = post(self::FORM_DATA_KEY);
+            if ($postData !== null) {
+                $this->formData = $postData;
+            } else {
+                $dataUzivatele = $this->u?->rawDb();
+                if ($dataUzivatele !== null) {
+                    if (isset($dataUzivatele[Sql::OP])) {
+                        $dataUzivatele[Sql::OP] = \Sifrovatko::desifruj($dataUzivatele[Sql::OP]);
+                    }
+                }
+                $this->formData = $dataUzivatele;
+            }
         }
         return $this->formData;
     }
@@ -151,20 +165,9 @@ class Registrace
                 <?php } ?>
             <?php } ?>
 
-            <h2 class="formular_sekceNadpis">Osobní</h2>
-
-            <?= $this->input('E-mailová adresa', 'email', 'email1_uzivatele') ?>
-
-            <div class="formular_sloupce">
-                <?= $this->input('Jméno', 'text', Sql::JMENO_UZIVATELE) ?>
-                <?= $this->input('Příjmení', 'text', Sql::PRIJMENI_UZIVATELE) ?>
-                <?= $this->input('Přezdívka', 'text', Sql::LOGIN_UZIVATELE) ?>
-                <?= $this->input('Datum narození', 'date', Sql::DATUM_NAROZENI) ?>
-            </div>
-
             <div class="formular_bydlisteTooltip">
                 <div class="tooltip">
-                    Proč potřebujeme adresu?
+                    Proč potřebujeme osobní údaje?
                     <div class="tooltip_obsah">
                         Vyplň prosím následující údaje o sobě. Nejsme žádný velký bratr, ale potřebujeme je,
                         abychom:<br>
@@ -172,12 +175,27 @@ class Registrace
                             <li>Tě mohli ubytovat a splnit své další zákonné povinnosti</li>
                             <li>maximálně urychlili tvoji registraci na místě a nemusel(a) jsi dlouho čekat ve frontě
                             </li>
-                            <li>věděli, že jsi to ty.</li>
+                            <li>věděli, že jsi to ty</li>
                         </ul>
                     </div>
                 </div>
             </div>
-            <h2 class="formular_sekceNadpis">Bydliště</h2>
+
+            <h2 class="formular_sekceNadpis">Osobní</h2>
+
+            <?= $this->input('E-mailová adresa', 'email', 'email1_uzivatele') ?>
+
+            <div class="formular_sloupce">
+                <?= $this->input('Telefonní číslo', 'text', Sql::TELEFON_UZIVATELE, false, 'width: 70%; float:right', $this->telefonniPredvolbaInput('predvolba', 'float: left; width: 29%')) ?>
+            </div>
+
+            <div class="formular_sloupce">
+                <?= $this->input('Jméno', 'text', Sql::JMENO_UZIVATELE) ?>
+                <?= $this->input('Příjmení', 'text', Sql::PRIJMENI_UZIVATELE) ?>
+                <?= $this->input('Datum narození', 'date', Sql::DATUM_NAROZENI) ?>
+            </div>
+
+            <h2 class="formular_sekceNadpis">Adresa trvalého pobytu</h2>
 
             <div class="formular_sloupce">
                 <?= $this->input('Ulice a číslo popisné', 'text', Sql::ULICE_A_CP_UZIVATELE) ?>
@@ -190,15 +208,28 @@ class Registrace
                 ]) ?>
             </div>
 
+            <h2 class="formular_sekceNadpis">Platný doklad totožnosti</h2>
+
+            <div class="formular_sloupce">
+                <?= $this->select('Druh dokladu', Sql::TYP_DOKLADU_TOTOZNOSTI, [
+                    Uzivatel::TYP_DOKLADU_OP   => 'Občanský průkaz',
+                    Uzivatel::TYP_DOKLADU_PAS  => 'Cestovní pas',
+                    Uzivatel::TYP_DOKLADU_JINY => 'Jiný',
+                ]) ?>
+                <?= $this->input('Číslo dokladu', 'text', Sql::OP, true) ?>
+            </div>
+
             <h2 class="formular_sekceNadpis">Ostatní</h2>
 
             <div class="formular_sloupce">
-                <?= $this->input('Telefonní číslo', 'text', Sql::TELEFON_UZIVATELE, 'width: 70%; float:right', $this->telefonniPredvolbaInput('predvolba', 'float: left; width: 29%')) ?>
+                <?= $this->input('Přezdívka', 'text', Sql::LOGIN_UZIVATELE) ?>
                 <?= $this->select('Pohlaví', Sql::POHLAVI, Pohlavi::seznamProSelect()) ?>
             </div>
 
-            <?= $this->input('Heslo', 'password', 'heslo') ?>
-            <?= $this->input('Heslo pro kontrolu', 'password', 'heslo_kontrola') ?>
+            <div class="formular_sloupce">
+                <?= $this->input('Heslo', 'password', 'heslo') ?>
+                <?= $this->input('Heslo pro kontrolu', 'password', 'heslo_kontrola') ?>
+            </div>
 
             <div class="formular_bydlisteTooltip" style="margin-top: 15px">
                 <div class="tooltip">
