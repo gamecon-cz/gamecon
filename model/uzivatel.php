@@ -45,7 +45,7 @@ class Uzivatel extends DbObject
     public const TYP_DOKLADU_JINY = 'jiny';
 
     private ?array $organizovaneAktivityIds = null;
-    private ?array $historiePrihlaseni = null;
+    private ?array $historiePrihlaseni      = null;
 
     /**
      * @return Uzivatel[]
@@ -1357,6 +1357,7 @@ SQL,
             if ($hodnota === null && $preskocitChybejiciPole) {
                 continue;
             }
+            $hodnota = (string)$hodnota;
 
             if (is_array($validator)) {
                 $regex      = $validator[0];
@@ -1376,8 +1377,8 @@ SQL,
             $ch = Chyby::zPole($chyby);
             $ch->globalniChyba(
                 $u
-                ? 'Úprava se nepodařila, oprav prosím zvýrazněné položky.'
-                : 'Registrace se nepodařila. Oprav prosím zvýrazněné položky.',
+                    ? 'Úprava se nepodařila, oprav prosím zvýrazněné položky.'
+                    : 'Registrace se nepodařila. Oprav prosím zvýrazněné položky.',
             );
             throw $ch;
         }
