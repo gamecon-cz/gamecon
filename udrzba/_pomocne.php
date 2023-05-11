@@ -67,6 +67,7 @@ function nasad(array $nastaveni) {
       !/web/soubory/styl
       !/web/soubory/*.js
       !/web/soubory/*.html
+      !/web/soubory/systemove/*/.htaccess
       !/web/soubory/systemove/*/.gitkeep
 
       /vendor/phpunit
