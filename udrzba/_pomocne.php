@@ -85,6 +85,10 @@ function nasad(array $nastaveni) {
     '
     preprocess = no
     allowDelete = yes
+
+    purge[] = cache/private/xtpl
+    purge[] = cache/public/css
+    purge[] = cache/public/js
   ";
 
     if (!empty($nastaveni['vetev'])) {

@@ -139,7 +139,7 @@ if ($slevy) {
 }
 
 if ($u->jeOrganizator()) {
-//    $t->parse('prihlaska.poznamkaKUbytovaniVNedeli'); TODO
+    $t->parse('prihlaska.poznamkaKUbytovaniVNedeli');
 }
 
 $t->assign('ka', $u->koncovkaDlePohlavi() ? 'ka' : '');
