@@ -202,7 +202,7 @@ SQL,
         private readonly SystemoveNastaveni $systemoveNastaveni,
     )
     {
-        $this->cenik      = new Cenik(
+        $this->cenik = new Cenik(
             $zakaznik,
             $zakaznik->finance()->bonusZaVedeniAktivit(),
             $systemoveNastaveni
@@ -666,7 +666,7 @@ SQL,
         $t = new XTemplate(__DIR__ . '/templates/shop-vstupne.xtpl');
         $t->assign([
             'jsSlider'              => URL_WEBU . '/soubory/blackarrow/shop/shop-vstupne.js?version='
-                . md5(WWW . '/soubory/blackarrow/shop/shop-ubytovani.js'),
+                . md5_file(WWW . '/soubory/blackarrow/shop/shop-vstupne.js'),
             'stav'                  => $this->zakaznik->gcPrihlasen()
                 ? $this->vstupne['sum_cena_nakupni'] + $this->vstupnePozde['sum_cena_nakupni']
                 : VYCHOZI_DOBROVOLNE_VSTUPNE, // výchozí hodnota
