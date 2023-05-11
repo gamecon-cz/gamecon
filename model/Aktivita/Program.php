@@ -366,6 +366,7 @@ class Program
                 $parametry |= Aktivita::ZPETNE;
             }
             if ($this->nastaveni[self::NEOTEVRENE]) {
+                $parametry |= Aktivita::DOPREDNE;
                 $parametry |= Aktivita::NEOTEVRENE;
             }
             if ($this->nastaveni[self::INTERNI]) {

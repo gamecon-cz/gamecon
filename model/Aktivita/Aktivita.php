@@ -1852,10 +1852,11 @@ SQL
     private function procNeniPrihlasovatelna($parametry): string
     {
         $zpetne     = $parametry & self::ZPETNE;
+        $dopredne   = $parametry & self::DOPREDNE;
         $interni    = $parametry & self::INTERNI;
         $neotevrene = $parametry & self::NEOTEVRENE;
 
-        if (!(REG_AKTIVIT || ($zpetne && po(REG_GC_DO)))) {
+        if (!(REG_AKTIVIT || ($zpetne && po(REG_GC_DO)) || ($dopredne && pred(REG_GC_OD)))) {
             return sprintf('Není spuštěna registrace aktivit (začíná %s a končí %s)', REG_AKTIVIT_OD, REG_AKTIVIT_DO);
         }
         if (!( // ← inverze ↓
