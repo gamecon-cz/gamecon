@@ -13,7 +13,7 @@ use Gamecon\Uzivatel\SqlStruktura\UzivatelSqlStruktura as Sql;
 class Registrace
 {
 
-    public const FORM_DATA_KEY = 'formData';
+    public const FORM_DATA_KEY = 'registraceFormData';
 
     private string|null|array $formData = 'undefined';
     private null|Chyby        $chyby    = null;
@@ -55,20 +55,29 @@ class Registrace
 
     public function zpracujUpravu()
     {
+        if ($this->ulozZmeny()) {
+            oznameni(hlaska('upravaUzivatele'));
+        }
+    }
+
+    public function ulozZmeny(): bool
+    {
         try {
-            if (!post('upravit')) {
-                return;
-            }
             if (!$this->u) {
                 throw Chyby::jedna('Došlo k odhlášení, přihlaš se prosím znovu.');
             }
 
             $this->u->uprav((array)post(self::FORM_DATA_KEY));
-
-            oznameni(hlaska('upravaUzivatele'));
+            return true;
         } catch (Chyby $chyby) {
             $this->zpracujChyby($chyby);
+            return false;
         }
+    }
+
+    private function inputName(): string
+    {
+        return self::FORM_DATA_KEY;
     }
 
     /**
@@ -107,7 +116,7 @@ class Registrace
                     id="input_{$klic}"
                     style="{$inputCss}"
                     type="{$typ}"
-                    name="formData[{$klic}]"
+                    name="{$this->inputName()}[{$klic}]"
                     value="{$predvyplneno}"
                     placeholder=" "
                     {$requiredHtml}
@@ -189,35 +198,7 @@ class Registrace
                 <?= $this->input('Telefonní číslo', 'text', Sql::TELEFON_UZIVATELE, false, 'width: 70%; float:right', $this->telefonniPredvolbaInput('predvolba', 'float: left; width: 29%')) ?>
             </div>
 
-            <div class="formular_sloupce">
-                <?= $this->input('Jméno', 'text', Sql::JMENO_UZIVATELE) ?>
-                <?= $this->input('Příjmení', 'text', Sql::PRIJMENI_UZIVATELE) ?>
-                <?= $this->input('Datum narození', 'date', Sql::DATUM_NAROZENI) ?>
-            </div>
-
-            <h2 class="formular_sekceNadpis">Adresa trvalého pobytu</h2>
-
-            <div class="formular_sloupce">
-                <?= $this->input('Ulice a číslo popisné', 'text', Sql::ULICE_A_CP_UZIVATELE) ?>
-                <?= $this->input('Město', 'text', Sql::MESTO_UZIVATELE) ?>
-                <?= $this->input('PSČ', 'text', Sql::PSC_UZIVATELE) ?>
-                <?= $this->select('Země', Sql::STAT_UZIVATELE, [
-                    Stat::CZ_ID   => 'Česká republika',
-                    Stat::SK_ID   => 'Slovenská republika',
-                    Stat::JINY_ID => '(jiný stát)',
-                ]) ?>
-            </div>
-
-            <h2 class="formular_sekceNadpis">Platný doklad totožnosti</h2>
-
-            <div class="formular_sloupce">
-                <?= $this->select('Druh dokladu', Sql::TYP_DOKLADU_TOTOZNOSTI, [
-                    Uzivatel::TYP_DOKLADU_OP   => 'Občanský průkaz',
-                    Uzivatel::TYP_DOKLADU_PAS  => 'Cestovní pas',
-                    Uzivatel::TYP_DOKLADU_JINY => 'Jiný',
-                ]) ?>
-                <?= $this->input('Číslo dokladu', 'text', Sql::OP, true) ?>
-            </div>
+            <?= $this->povinneUdajeProUbytovaniHtml() ?>
 
             <h2 class="formular_sekceNadpis">Ostatní</h2>
 
@@ -252,21 +233,23 @@ class Registrace
             <?php if ($this->u) { ?>
                 <input type="hidden" name="upravit" value="true">
                 <input type="submit" value="Uložit" class="formular_primarni">
-            <?php } else if (REG_GC) { ?>
-                <input type="hidden" name="registrovat" value="true">
-                <input type="submit" name="aPrihlasit" value="Přihlásit na GameCon" class="formular_primarni">
-                <input type="submit" value="Jen vytvořit účet" class="formular_sekundarni">
             <?php } else { ?>
                 <input type="hidden" name="registrovat" value="true">
-                <div class="tooltip">
-                    <input type="submit" name="aPrihlasit" value="Přihlásit na GameCon" class="formular_primarni"
-                           disabled>
-                    <div class="tooltip_obsah">
-                        Přihlašování na GameCon se spustí <?= $this->zacatekPrihlasovani() ?>. Můžeš si předem vytvořit
-                        účet a přihlašování ti připomeneme e-mailem.
+                <?php if (REG_GC) { ?>
+                    <input type="submit" name="aPrihlasit" value="Přihlásit na GameCon" class="formular_primarni">
+                    <input type="submit" value="Jen vytvořit účet" class="formular_sekundarni">
+                <?php } else { ?>
+                    <div class="tooltip">
+                        <input type="submit" name="aPrihlasit" value="Přihlásit na GameCon" class="formular_primarni"
+                               disabled>
+                        <div class="tooltip_obsah">
+                            Přihlašování na GameCon se spustí <?= $this->zacatekPrihlasovani() ?>. Můžeš si předem
+                            vytvořit
+                            účet a přihlašování ti připomeneme e-mailem.
+                        </div>
                     </div>
-                </div>
-                <input type="submit" value="Jen vytvořit účet" class="formular_sekundarni">
+                    <input type="submit" value="Jen vytvořit účet" class="formular_sekundarni">
+                <?php } ?>
             <?php } ?>
 
             <!-- workaround: rezervace místa pro tooltip souhlasu -->
@@ -311,7 +294,7 @@ class Registrace
         return $this->u || post('registrovat');
     }
 
-    private function select(string $nazev, string $klic, array $moznosti): string
+    private function select(string $nazev, string $klic, array $moznosti, bool $required = true): string
     {
         $vybranaHodnota = $this->formData()[$klic] ?? '';
 
@@ -329,10 +312,14 @@ class Registrace
             $chybaTrida = 'formular_polozka-chyba';
         }
 
+        $requiredHtml = $required
+            ? 'required'
+            : '';
+
         return <<<HTML
             <label class="formular_polozka {$chybaTrida}">
                 {$nazev}
-                <select name="formData[{$klic}]" required>
+                <select name="{$this->inputName()}[{$klic}]" {$requiredHtml}>
                 {$moznostiHtml}
                 </select>
                 {$chybaHtml}
@@ -355,10 +342,53 @@ class Registrace
             ),
         );
         return <<<HTML
-    <select name="formData[{$klic}]" style="{$inputCss}" id="input_{$klic}">
+    <select name="{$this->inputName()}[{$klic}]" style="{$inputCss}" id="input_{$klic}">
       {$optionsHtml}
     </select>
     HTML;
     }
 
+    public function povinneUdajeProUbytovaniHtml(string $nadpis = '', bool $vsePovinne = false): string
+    {
+        $nadpisHtml = '';
+        if ($nadpis !== '') {
+            $nadpisHtml = "<h2 class='formular_sekceNadpis'>{$nadpis}</h2>";
+        }
+        return <<<HTML
+{$nadpisHtml}
+
+<div class="formular_sloupce">
+    {$this->input('Jméno', 'text', Sql::JMENO_UZIVATELE, $vsePovinne)}
+    {$this->input('Příjmení', 'text', Sql::PRIJMENI_UZIVATELE, $vsePovinne)}
+    {$this->input('Datum narození', 'date', Sql::DATUM_NAROZENI, $vsePovinne)}
+</div>
+
+<h2 class="formular_sekceNadpis">Adresa trvalého pobytu</h2>
+
+<div class="formular_sloupce">
+    {$this->input('Ulice a číslo popisné', 'text', Sql::ULICE_A_CP_UZIVATELE, $vsePovinne)}
+    {$this->input('Město', 'text', Sql::MESTO_UZIVATELE, $vsePovinne)}
+    {$this->input('PSČ', 'text', Sql::PSC_UZIVATELE, $vsePovinne)}
+    {$this->select(
+            'Země',
+            Sql::STAT_UZIVATELE, [
+            Stat::CZ_ID   => 'Česká republika',
+            Stat::SK_ID   => 'Slovenská republika',
+            Stat::JINY_ID => '(jiný stát)',
+        ], $vsePovinne)}
+</div>
+
+<h2 class="formular_sekceNadpis">Platný doklad totožnosti</h2>
+
+<div class="formular_sloupce">
+    {$this->select('Druh dokladu', Sql::TYP_DOKLADU_TOTOZNOSTI, [
+            Uzivatel::TYP_DOKLADU_OP   => 'Občanský průkaz',
+            Uzivatel::TYP_DOKLADU_PAS  => 'Cestovní pas',
+            Uzivatel::TYP_DOKLADU_JINY => 'Jiný',
+        ], $vsePovinne)}
+    {$this->input('Číslo dokladu', 'text', Sql::OP, $vsePovinne)}
+</div>
+HTML;
+
+    }
 }

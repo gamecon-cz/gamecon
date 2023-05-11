@@ -59,8 +59,8 @@
            placeholder="jména oddělená čárkou, nebo nech prázdné">
 </div>
 
-<div class="shopUbytovani_vyzadovane">
-{vyzadovaneUdaje}
+<div class="shopUbytovani_povinne">
+    {povinneUdaje}
 </div>
 
 <!-- shop-ubytovani.js -->

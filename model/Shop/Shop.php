@@ -172,27 +172,28 @@ SQL,
         return self::letosniPolozky($systemoveNastaveni->rocnik(), $idckaPredmetu);
     }
 
-    private $cenik;                     // instance ceníku
-    private $nastaveni     = [              // případné spec. chování shopu
-                                            'ubytovaniBezZamku' => false,   // ignorovat pozastavení objednávek u ubytování
-                                            'jidloBezZamku'     => false,       // ignorovat pozastavení objednávek u jídla
+    private Cenik         $cenik;                     // instance ceníku
+    private               $nastaveni     = [              // případné spec. chování shopu
+                                                          'ubytovaniBezZamku' => false,   // ignorovat pozastavení objednávek u ubytování
+                                                          'jidloBezZamku'     => false,       // ignorovat pozastavení objednávek u jídla
     ];
-    public  $ubytovani     = [];
-    private $tricka        = [];
-    private $predmety      = [];
-    private $jidlo         = [];
-    private $ubytovaniOd;
-    private $ubytovaniDo;
-    private $ubytovaniTypy = [];
-    private $vstupne       = ['sum_cena_nakupni' => 0.];                   // dobrovolné vstupné (složka zaplacená regurélně včas)
-    private $vstupnePozde  = ['sum_cena_nakupni' => 0.0];              // dobrovolné vstupné (složka zaplacená pozdě)
-    private $vstupneJeVcas;             // jestli se dobrovolné vstupné v tento okamžik chápe jako zaplacené včas
-    private $klicU         = 'shopU';           // klíč formu pro identifikaci polí
-    private $klicUPokoj    = 'shopUPokoj'; // s kým chce být na pokoji
-    private $klicV         = 'shopV';           // klíč formu pro identifikaci vstupného
-    private $klicP         = 'shopP';           // klíč formu pro identifikaci polí
-    private $klicT         = 'shopT';           // klíč formu pro identifikaci polí s tričkama
-    private $klicS         = 'shopS';           // klíč formu pro identifikaci polí se slevami
+    public array          $ubytovaniPole = [];
+    public ?ShopUbytovani $ubytovani     = null;
+    private               $tricka        = [];
+    private               $predmety      = [];
+    private               $jidlo         = [];
+    private               $ubytovaniOd;
+    private               $ubytovaniDo;
+    private               $ubytovaniTypy = [];
+    private               $vstupne       = ['sum_cena_nakupni' => 0.];                   // dobrovolné vstupné (složka zaplacená regurélně včas)
+    private               $vstupnePozde  = ['sum_cena_nakupni' => 0.0];              // dobrovolné vstupné (složka zaplacená pozdě)
+    private               $vstupneJeVcas;             // jestli se dobrovolné vstupné v tento okamžik chápe jako zaplacené včas
+    private               $klicU         = 'shopU';           // klíč formu pro identifikaci polí
+    private               $klicUPokoj    = 'shopUPokoj'; // s kým chce být na pokoji
+    private               $klicV         = 'shopV';           // klíč formu pro identifikaci vstupného
+    private               $klicP         = 'shopP';           // klíč formu pro identifikaci polí
+    private               $klicT         = 'shopT';           // klíč formu pro identifikaci polí s tričkama
+    private               $klicS         = 'shopS';           // klíč formu pro identifikaci polí se slevami
 
     public function __construct(
         private readonly Uzivatel           $zakaznik,
@@ -201,7 +202,7 @@ SQL,
         private readonly SystemoveNastaveni $systemoveNastaveni,
     )
     {
-        $this->cenik = new Cenik(
+        $this->cenik      = new Cenik(
             $zakaznik,
             $zakaznik->finance()->bonusZaVedeniAktivit(),
             $systemoveNastaveni
@@ -278,7 +279,7 @@ SQL,
                 $fronta = &$this->jidlo['jidla'][$den][$druh];
             } else if ($typ == self::UBYTOVANI) {
                 $r['nabizet'] = $r['nabizet'] || ($r['stav'] == StavPredmetu::POZASTAVENY && $this->nastaveni['ubytovaniBezZamku']);
-                $fronta       = &$this->ubytovani[];
+                $fronta       = &$this->ubytovaniPole[];
             } else if ($typ == self::TRICKO) {
                 $smiModre     = $this->zakaznik->maPravo(Pravo::MUZE_OBJEDNAVAT_MODRA_TRICKA);
                 $smiCervene   = $this->zakaznik->maPravo(Pravo::MUZE_OBJEDNAVAT_CERVENA_TRICKA);
@@ -328,7 +329,7 @@ SQL,
 
         $this->jidlo = $this->seradJidla($this->jidlo);
 
-        $this->ubytovani = new ShopUbytovani($this->ubytovani, $this->zakaznik, $this->objednatel, $systemoveNastaveni); // náhrada reprezentace polem za objekt
+        $this->ubytovani = new ShopUbytovani($this->ubytovaniPole, $this->zakaznik, $this->objednatel, $systemoveNastaveni); // náhrada reprezentace polem za objekt
     }
 
     private function seradJidla(array $jidla): array
@@ -518,7 +519,7 @@ SQL,
             }
             $cena        = round($cena);
             $cenaPoSleve = round($cenaPoSleve);
-            $menaText        = '&thinsp;Kč';
+            $menaText    = '&thinsp;Kč';
             $cenaText    = ($cenaPoSleve !== $cena ? "$cenaPoSleve$menaText/" : '') . $cena . $menaText;
             $t->assign([
                 'nazev'          => $predmet['nazev'],

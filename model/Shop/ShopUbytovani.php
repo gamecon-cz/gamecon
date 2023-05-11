@@ -6,7 +6,7 @@ use Gamecon\Cas\DateTimeCz;
 use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Chyba;
-use Gamecon\Web\VerzeSouboru;
+use Gamecon\Uzivatel\Registrace;
 use Uzivatel;
 use Gamecon\XTemplate\XTemplate;
 use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as Sql;
@@ -229,26 +229,24 @@ SQL,
         return $pocetZmen;
     }
 
-    /**
-     * @var SystemoveNastaveni
-     */
-    private $mozneDny             = [];     // asoc. 2D pole [den][typ] => předmět
-    private $mozneTypy            = [];    // asoc. pole [typ] => předmět sloužící jako vzor daného typu
-    private $pnDny                = 'shopUbytovaniDny';
-    private $pnPokoj              = 'shopUbytovaniPokoj';
-    private $pnCovidFreePotvrzeni = 'shopCovidFreePotvrzeni';
+    private Registrace $registrace;                     // instance ceníku
+    private            $mozneDny             = [];     // asoc. 2D pole [den][typ] => předmět
+    private            $mozneTypy            = [];    // asoc. pole [typ] => předmět sloužící jako vzor daného typu
+    private            $pnDny                = 'shopUbytovaniDny';
+    private            $pnPokoj              = 'shopUbytovaniPokoj';
+    private            $pnCovidFreePotvrzeni = 'shopCovidFreePotvrzeni';
 
     public function __construct(
         array                               $predmety,
         private readonly Uzivatel           $ubytovany,
-        private readonly Uzivatel           $kupujici,
+        private readonly Uzivatel           $objednatel,
         private readonly SystemoveNastaveni $systemoveNastaveni,
     )
     {
         foreach ($predmety as $p) {
             if ((int)$p[Sql::UBYTOVANI_DEN] === DateTimeGamecon::PORADI_HERNIHO_DNE_NEDELE
                 && !$this->ubytovany->jeOrganizator() // organizátor objednává pro sebe
-                && !$this->kupujici->jeOrganizator() // organizátor objednává pro nkoho jiného (což může jenom z adminu)
+                && !$this->objednatel->jeOrganizator() // organizátor objednává pro nkoho jiného (což může jenom z adminu)
             ) {
                 continue; // z neděle na pondělí už není veřejně nabízené ubytování https://trello.com/c/rP47BsUD/940-%C3%BApravy-p%C5%99ihl%C3%A1%C5%A1ky-mastercard-2023
             }
@@ -258,6 +256,7 @@ SQL,
             }
             $this->mozneDny[$p[Sql::UBYTOVANI_DEN]][$nazev] = $p;
         }
+        $this->registrace = new Registrace($ubytovany);
     }
 
     /**
@@ -292,6 +291,7 @@ SQL,
             'spolubydlici'         => dbOneCol('SELECT ubytovan_s FROM uzivatele_hodnoty WHERE id_uzivatele=' . $this->ubytovany->id()),
             'postnameSpolubydlici' => $this->pnPokoj,
             'uzivatele'            => $this->mozniUzivatele(),
+            'povinneUdaje'         => $this->registrace->povinneUdajeProUbytovaniHtml('Povinné údaje pro ubytování', true),
         ]);
         $this->htmlDny($t, $muzeEditovatUkoncenyProdej);
         // sloupce popisků
@@ -378,6 +378,8 @@ SQL,
             // uložit s kým chce být na pokoji
             self::ulozSKymChceBytNaPokoji($_POST[$this->pnPokoj] ?? '', $this->ubytovany);
         }
+
+        $this->registrace->ulozZmeny(); // povinné údaje pro ubytování
 
         return true;
     }
