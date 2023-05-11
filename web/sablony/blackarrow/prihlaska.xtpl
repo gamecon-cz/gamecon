@@ -44,9 +44,8 @@
         <img class="prihlaska_infoSymbol" src="soubory/blackarrow/prihlaska/hra.png"
              style="top: -40px; right: -19px">
         <h3>GameCon merch</h3>
-        <p>Placek, kostek i triček s logem GameConu si můžeš objednat více. Stačí kliknout na tlačítko + nebo u
-          triček
-          vyplnit jedno a po potvrzení formuláře se ti nabídne položka pro výběr dalšího.<br>
+        <p>Placek, kostek i triček s logem GameConu si můžeš objednat více. Stačí kliknout na tlačítko ➕.
+            U triček se ti po vyplnění jednoho nabídne položka pro výběr dalšího.<br>
           <b>Výběr triček a tílek jde změnit do {trickaObjednatelnaDo}, ostatních předmětů do
             {predmetyBezTricekObjednatelneDo}</b></p>
       </div>
