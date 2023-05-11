@@ -353,34 +353,49 @@ class Registrace
     HTML;
     }
 
-    public function povinneUdajeProUbytovaniHtml(string $nadpis = '', bool $vsePovinne = false): string
+    public function povinneUdajeProUbytovaniHtml(string $nadpis = '', string $tooltip = ''): string
     {
         $nadpisHtml = '';
         if ($nadpis !== '') {
             $nadpisHtml = "<h2 class='formular_sekceNadpis'>{$nadpis}</h2>";
         }
+        $tooltipHtml = '';
+        if ($tooltip !== '') {
+            $tooltipHtml = <<<HTML
+<div style="float: right">
+    <div class="tooltip" style="position: relative; top: -4em;">
+        ℹ️
+        <div class="tooltip_obsah" style="right: inherit">
+            Vzhledem k zákonným povinnostem bohužel musíme odevzdávat seznam ubytovaných s následujícími osobními údaji. Chybné vyplnění následujících polí může u infopultu vést k vykázání na konec fronty, aby náprava nezdržovala odbavení ostatních! (Případné stížnosti prosíme rovnou vašim politickým zástupcům.)
+        </div>
+    </div>
+</div>
+HTML;
+        }
         return <<<HTML
 {$nadpisHtml}
 
+{$tooltipHtml}
+
 <div class="formular_sloupce">
-    {$this->input('Jméno', 'text', Sql::JMENO_UZIVATELE, $vsePovinne)}
-    {$this->input('Příjmení', 'text', Sql::PRIJMENI_UZIVATELE, $vsePovinne)}
-    {$this->input('Datum narození', 'date', Sql::DATUM_NAROZENI, $vsePovinne)}
+    {$this->input('Jméno', 'text', Sql::JMENO_UZIVATELE)}
+    {$this->input('Příjmení', 'text', Sql::PRIJMENI_UZIVATELE)}
+    {$this->input('Datum narození', 'date', Sql::DATUM_NAROZENI)}
 </div>
 
 <h2 class="formular_sekceNadpis">Adresa trvalého pobytu</h2>
 
 <div class="formular_sloupce">
-    {$this->input('Ulice a číslo popisné', 'text', Sql::ULICE_A_CP_UZIVATELE, $vsePovinne)}
-    {$this->input('Město', 'text', Sql::MESTO_UZIVATELE, $vsePovinne)}
-    {$this->input('PSČ', 'text', Sql::PSC_UZIVATELE, $vsePovinne)}
+    {$this->input('Ulice a číslo popisné', 'text', Sql::ULICE_A_CP_UZIVATELE)}
+    {$this->input('Město', 'text', Sql::MESTO_UZIVATELE)}
+    {$this->input('PSČ', 'text', Sql::PSC_UZIVATELE)}
     {$this->select(
             'Země',
             Sql::STAT_UZIVATELE, [
             Stat::CZ_ID   => 'Česká republika',
             Stat::SK_ID   => 'Slovenská republika',
             Stat::JINY_ID => '(jiný stát)',
-        ], $vsePovinne)}
+        ])}
 </div>
 
 <h2 class="formular_sekceNadpis">Platný doklad totožnosti</h2>
@@ -390,8 +405,8 @@ class Registrace
             Uzivatel::TYP_DOKLADU_OP   => 'Občanský průkaz',
             Uzivatel::TYP_DOKLADU_PAS  => 'Cestovní pas',
             Uzivatel::TYP_DOKLADU_JINY => 'Jiný',
-        ], $vsePovinne)}
-    {$this->input('Číslo dokladu', 'text', Sql::OP, $vsePovinne)}
+        ])}
+    {$this->input('Číslo dokladu', 'text', Sql::OP)}
 </div>
 HTML;
 

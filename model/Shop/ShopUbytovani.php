@@ -291,7 +291,10 @@ SQL,
             'spolubydlici'         => dbOneCol('SELECT ubytovan_s FROM uzivatele_hodnoty WHERE id_uzivatele=' . $this->ubytovany->id()),
             'postnameSpolubydlici' => $this->pnPokoj,
             'uzivatele'            => $this->mozniUzivatele(),
-            'povinneUdaje'         => $this->registrace->povinneUdajeProUbytovaniHtml('Povinné údaje pro ubytování', true),
+            'povinneUdaje'         => $this->registrace->povinneUdajeProUbytovaniHtml(
+                'Povinné údaje pro ubytování',
+                'Vzhledem k zákonným povinnostem bohužel musíme odevzdávat seznam ubytovaných s následujícími osobními údaji. Chybné vyplnění následujících polí může u infopultu vést k vykázání na konec fronty, aby náprava nezdržovala odbavení ostatních! (Případné stížnosti prosíme rovnou vašim politickým zástupcům.)',
+            ),
         ]);
         $this->htmlDny($t, $muzeEditovatUkoncenyProdej);
         // sloupce popisků
