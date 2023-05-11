@@ -19,6 +19,7 @@
         zmeneneElementy = []
         zmeneneElementy.push(this)
         zapamatujKapacituJakoRucneZvolenou(this)
+        obnovPovinnePolozky()
         const zvolenaKapacita = this.dataset.kapacita
         const zvolenaKapacitaInt = Number.parseInt(zvolenaKapacita)
         if (zvolenaKapacitaInt === 0) {
@@ -91,12 +92,50 @@
         })
     }
 
+    function zobrazPovinnePolozky() {
+        prepniPovinnePolozky(true)
+    }
+
+    /**
+     * @param {boolean} show
+     */
+    function prepniPovinnePolozky(show) {
+        Array.from(document.getElementsByClassName('shopUbytovani_povinne')).forEach(function (povinnyElement) {
+            povinnyElement.style.display = show
+                ? 'inherit'
+                : 'none'
+            Array.from(povinnyElement.querySelectorAll('input, select')).forEach((input) => input.required = show)
+        })
+    }
+
+    function skryjPovinnePolozky() {
+        prepniPovinnePolozky(false)
+    }
+
+    function obnovPovinnePolozky() {
+        let nejakeUbytovaniVybrano = false
+        shopUbytovaniRadios.forEach(function (shopUbytovaniRadio) {
+            if (shopUbytovaniRadio.checked) {
+                nejakeUbytovaniVybrano = nejakeUbytovaniVybrano || shopUbytovaniRadio.dataset.typ !== 'Žádné'
+            }
+        })
+        if (nejakeUbytovaniVybrano) {
+            zobrazPovinnePolozky()
+        } else {
+            skryjPovinnePolozky()
+        }
+    }
+
     shopUbytovaniRadios.forEach(function (shopUbytovaniRadio) {
         shopUbytovaniRadio.addEventListener('change', onShopUbytovaniChange)
+
         if (shopUbytovaniRadio.checked) {
             zapamatujKapacituJakoRucneZvolenou(shopUbytovaniRadio)
             zmeneneElementy.push(shopUbytovaniRadio) // abychom měli výchozí stav pro "odškrtávání"
         }
+
         shopUbytovaniRadio.addEventListener('click', onShopUbytovaniClick)
     })
+
+    obnovPovinnePolozky()
 }
