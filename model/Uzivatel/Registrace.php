@@ -67,8 +67,13 @@ class Registrace
                 throw Chyby::jedna('Došlo k odhlášení, přihlaš se prosím znovu.');
             }
 
-            $this->u->uprav((array)post(self::FORM_DATA_KEY));
-            return true;
+            $formData = post(self::FORM_DATA_KEY);
+            if ($formData === null) {
+                return false;
+            }
+
+            $idUlozenehoUzivatele = $this->u->uprav((array)$formData);
+            return (bool)$idUlozenehoUzivatele;
         } catch (Chyby $chyby) {
             $this->zpracujChyby($chyby);
             return false;
