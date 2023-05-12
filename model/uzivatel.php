@@ -1289,10 +1289,10 @@ SQL,
 
             $u2 = Uzivatel::zNicku($login) ?? Uzivatel::zMailu($login);
             if ($u2 && !$u) {
-                return 'přezdívka už je zabraná. Pokud je tvoje, přihlaš se nebo si resetuj heslo';
+                return 'přezdívka už je zabraná; pokud je tvoje, přihlaš se nebo si resetuj heslo';
             }
             if ($u2 && $u && $u2->id() != $u->id()) {
-                return 'přezdívka už je zabraná. Vyber si prosím jinou';
+                return 'přezdívka už je zabraná, vyber si prosím jinou';
             }
             return '';
         };
