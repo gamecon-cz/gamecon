@@ -87,9 +87,7 @@ if (GC_BEZI) {
 }
 
 if (!$u) {
-    // Mimo období kdy GC běží: Situaci uživateli vždy dostatečně vysvětlí
-    // registrační stránka. A umožní mu aspoň vytvořit si účet.
-    back(URL_WEBU . '/registrace');
+    back(URL_WEBU);
 }
 
 if (pred(REG_GC_OD)) {
