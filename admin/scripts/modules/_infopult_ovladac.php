@@ -155,7 +155,7 @@ if ($uPracovni && $udaje = post('udaje')) {
 }
 
 if (post('zpracujUbytovani')) {
-    $shop->zpracujUbytovani(false);
+    $shop->zpracujUbytovani(false, false);
     oznameni('Ubytování uloženo');
 }
 

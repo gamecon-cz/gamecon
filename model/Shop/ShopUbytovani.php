@@ -368,14 +368,14 @@ SQL,
         return DateTimeCz::poradiDneVTydnuNaPrelomDnuVeZkratkach($poradiDneVTydnu, true);
     }
 
-    public function zpracuj(bool $vcetneSpolubydliciho = true): bool
+    public function zpracuj(bool $vcetneSpolubydliciho = true, bool $hlidatKapacituUbytovani = true): bool
     {
         if (!isset($_POST[$this->pnDny])) {
             return false;
         }
 
         // vložit jeho zaklikané věci - note: není zabezpečeno
-        self::ulozObjednaneUbytovaniUcastnika($_POST[$this->pnDny], $this->ubytovany);
+        self::ulozObjednaneUbytovaniUcastnika($_POST[$this->pnDny], $this->ubytovany, $hlidatKapacituUbytovani);
 
         if ($vcetneSpolubydliciho) {
             // uložit s kým chce být na pokoji

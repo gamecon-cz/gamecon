@@ -21,7 +21,7 @@ if (post('pridelitPokoj') && post('uid')) {
 }
 
 if (post('zpracujUbytovani')) {
-    $shop->zpracujUbytovani();
+    $shop->zpracujUbytovani(true, false);
     oznameni('Ubytování uloženo');
 }
 

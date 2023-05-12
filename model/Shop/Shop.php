@@ -806,9 +806,9 @@ SQL,
      * Zpracuje část formuláře s ubytováním
      * @return bool jestli došlo k zpracování dat
      */
-    public function zpracujUbytovani(bool $vcetneSpolubydliciho = true): bool
+    public function zpracujUbytovani(bool $vcetneSpolubydliciho = true, bool $hlidatKapacituUbytovani = true): bool
     {
-        return $this->ubytovani->zpracuj($vcetneSpolubydliciho);
+        return $this->ubytovani->zpracuj($vcetneSpolubydliciho, $hlidatKapacituUbytovani);
     }
 
     /**
