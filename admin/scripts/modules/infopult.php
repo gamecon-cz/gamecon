@@ -102,16 +102,11 @@ if ($uPracovni) {
         'prehledPredmetu' => $uPracovni->finance()->prehledHtml(
             $typyProPrehled,
             false,
-            $u->jeSpravceFinanci()
+            $u->jeSpravceFinanci(),
         ),
     ]);
 
-    $chybejiciUdaje = $uPracovni->chybejiciUdaje([
-        'jmeno_uzivatele'    => 'Jméno',
-        'prijmeni_uzivatele' => 'Příjmení',
-        'telefon_uzivatele'  => 'Telefon',
-        'email1_uzivatele'   => 'Email',
-    ]);
+    $chybejiciUdaje = $uPracovni->chybejiciUdaje(Uzivatel::povinneUdajeProRegistraci());
     $x->assign(
         'udajeChybiText',
         count($chybejiciUdaje) > 0
@@ -125,14 +120,14 @@ if ($uPracovni) {
     if ($uPracovni->gcPrihlasen()) {
         if (!$uPracovni->gcPritomen()) {
             $x->assign('datMaterialyDisabled', '');
-        } elseif (!$uPracovni->gcOdjel()) {
+        } else if (!$uPracovni->gcOdjel()) {
             $x->assign('gcOdjedDisabled', '');
         }
     }
     if ($uPracovni) {
         if (!$uPracovni->gcPrihlasen() || $uPracovni->gcPritomen()) {
             $x->parse('infopult.odhlasitZGc.prihlasenyNepritomny');
-        } elseif ($uPracovni->gcPrihlasen() && !$uPracovni->gcPritomen() && $u->maRoli(Role::CFO)) {
+        } else if ($uPracovni->gcPrihlasen() && !$uPracovni->gcPritomen() && $u->maRoli(Role::CFO)) {
             $x->assign('odhlasDisabled', '');
         }
         $x->parse('infopult.odhlasitZGc');
@@ -159,7 +154,7 @@ if ($uPracovni) {
         if (!$mameNahranyLetosniDokladProtiCovidu && !$mameOverenePotvrzeniProtiCoviduProRok) {
             /* muze byt overeno rucne bez nahraneho dokladu */
             $x->assign("covidPotvrzeniText", $err . " požádej o doplnění");
-        } elseif (!$mameNahranyLetosniDokladProtiCovidu) {
+        } else if (!$mameNahranyLetosniDokladProtiCovidu) {
             /* potvrzeno rucne na infopultu, bez nahraneho dokladu */
             $x->assign("covidPotvrzeniAttr", 'checked value=""');
             $x->assign("covidPotvrzeniText", $ok . " ověřeno bez dokladu");
@@ -184,8 +179,8 @@ if ($uPracovni) {
             UbytovaniTabulka::ubytovaniTabulkaZ(
                 $shop->ubytovani(),
                 $systemoveNastaveni,
-                true
-            )
+                true,
+            ),
         );
     }
 
@@ -236,7 +231,7 @@ $o        = dbQuery(<<<SQL
   WHERE p.stav > 0
   GROUP BY p.id_predmetu, model_rok
   ORDER BY model_rok DESC, nazev
-SQL
+SQL,
 );
 $moznosti = '<option value="">(vyber)</option>';
 while ($r = mysqli_fetch_assoc($o)) {

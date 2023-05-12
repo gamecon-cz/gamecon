@@ -97,7 +97,7 @@ class Registrace
         string $nazev,
         string $typ,
         string $klic,
-        bool   $required = false,
+        ?bool   $required = null,
         string $inputCss = '',
         string $predrazeneHtml = '',
         string $placeholder = ' ', // schválně mezera
@@ -105,6 +105,7 @@ class Registrace
     {
         $predvyplneno = $this->formData()[$klic] ?? '';
 
+        $required ??= array_key_exists($klic, Uzivatel::povinneUdajeProRegistraci());
         $requiredHtml   = $required || $typ == 'date'
             ? 'required'
             : '';
@@ -203,7 +204,7 @@ class Registrace
 
             <h2 class="formular_sekceNadpis">Osobní</h2>
 
-            <?= $this->input('E-mailová adresa', 'email', 'email1_uzivatele') ?>
+            <?= $this->input('E-mailová adresa', 'email', Sql::EMAIL1_UZIVATELE) ?>
 
             <div class="formular_sloupce">
                 <?= $this->input('Telefonní číslo', 'text', Sql::TELEFON_UZIVATELE, false, 'width: 70%; float:right', $this->telefonniPredvolbaInput('predvolba', 'float: left; width: 29%')) ?>

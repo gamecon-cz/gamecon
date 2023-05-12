@@ -47,6 +47,16 @@ class Uzivatel extends DbObject
     private ?array $organizovaneAktivityIds = null;
     private ?array $historiePrihlaseni      = null;
 
+    public static function povinneUdajeProRegistraci(): array
+    {
+        return [
+            Sql::JMENO_UZIVATELE    => 'Jméno',
+            Sql::PRIJMENI_UZIVATELE => 'Příjmení',
+            Sql::TELEFON_UZIVATELE  => 'Telefon',
+            Sql::EMAIL1_UZIVATELE   => 'E-mail',
+        ];
+    }
+
     /**
      * @return Uzivatel[]
      */
@@ -1358,7 +1368,14 @@ SQL,
             if ($hodnota === null && $preskocitChybejiciPole) {
                 continue;
             }
-            $hodnota = (string)$hodnota;
+            $hodnota = trim((string)$hodnota);
+            if ($hodnota === '') {
+                $povinne = in_array($klic, ['heslo', 'heslo_kontrola'])
+                    || array_key_exists($klic, self::povinneUdajeProRegistraci());
+                if (!$povinne) {
+                    continue;
+                }
+            }
 
             if (is_array($validator)) {
                 $regex      = $validator[0];
