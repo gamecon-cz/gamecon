@@ -47,14 +47,29 @@ class Uzivatel extends DbObject
     private ?array $organizovaneAktivityIds = null;
     private ?array $historiePrihlaseni      = null;
 
-    public static function povinneUdajeProRegistraci(): array
+    public static function povinneUdajeProRegistraci(bool $vcetneProUbytovani = false): array
     {
-        return [
+        $povinneUdaje = [
             Sql::JMENO_UZIVATELE    => 'Jméno',
             Sql::PRIJMENI_UZIVATELE => 'Příjmení',
             Sql::TELEFON_UZIVATELE  => 'Telefon',
             Sql::EMAIL1_UZIVATELE   => 'E-mail',
         ];
+        if ($vcetneProUbytovani) {
+            $povinneUdaje = [
+                ...$povinneUdaje,
+                ...[
+                    Sql::DATUM_NAROZENI         => 'Datum narození',
+                    Sql::ULICE_A_CP_UZIVATELE   => 'Ulice a číslo popisné',
+                    Sql::MESTO_UZIVATELE        => 'Město',
+                    Sql::PSC_UZIVATELE          => 'PSČ',
+                    Sql::TYP_DOKLADU_TOTOZNOSTI => 'Typ dokladu totožnosti',
+                    Sql::OP                     => 'Číslo dokladu totožnosti',
+                    Sql::STATNI_OBCANSTVI       => 'Státní občanství',
+                ],
+            ];
+        }
+        return $povinneUdaje;
     }
 
     /**
@@ -650,11 +665,9 @@ SQL,
     /**
      * @return string[] povinné údaje které chybí
      */
-    public function chybejiciUdaje(array $povinneUdaje)
+    public function chybejiciUdaje(array $povinneUdaje): array
     {
-        $validator = function (string $sloupec) {
-            return empty($this->r[$sloupec]);
-        };
+        $validator = fn(string $sloupec) => (trim((string)$this->r[$sloupec] ?? '')) === '';
         return array_filter($povinneUdaje, $validator, ARRAY_FILTER_USE_KEY);
     }
 
@@ -1364,6 +1377,10 @@ SQL,
             throw new Exception('Data obsahují nepovolené hodnoty: ' . implode(',', $navic));
         }
 
+        $povinneUdaje = self::povinneUdajeProRegistraci(
+            $u?->shop()->ubytovani()->maObjednaneUbytovani() ?? false,
+        );
+
         foreach ($validace as $klic => $validator) {
             $hodnota = $dbTab[$klic] ?? null;
 
@@ -1373,7 +1390,7 @@ SQL,
             $hodnota = trim((string)$hodnota);
             if ($hodnota === '') {
                 $povinne = in_array($klic, ['heslo', 'heslo_kontrola'])
-                    || array_key_exists($klic, self::povinneUdajeProRegistraci());
+                    || array_key_exists($klic, $povinneUdaje);
                 if (!$povinne) {
                     continue;
                 }

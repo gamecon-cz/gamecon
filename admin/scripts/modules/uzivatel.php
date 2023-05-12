@@ -111,17 +111,20 @@ if ($uPracovni) {
 // form s osobními údaji
 if ($uPracovni) {
     $udaje         = [
-        Sql::LOGIN_UZIVATELE      => 'Přezdívka',
-        Sql::JMENO_UZIVATELE      => 'Jméno',
-        Sql::PRIJMENI_UZIVATELE   => 'Příjmení',
-        Sql::POHLAVI              => 'Pohlaví',
-        Sql::ULICE_A_CP_UZIVATELE => 'Ulice',
-        Sql::MESTO_UZIVATELE      => 'Město',
-        Sql::PSC_UZIVATELE        => 'PSČ',
-        Sql::TELEFON_UZIVATELE    => 'Telefon',
-        Sql::DATUM_NAROZENI       => 'Narozen' . $uPracovni->koncovkaDlePohlavi(),
-        Sql::EMAIL1_UZIVATELE     => 'E-mail',
-        // 'op'                    =>          'Číslo OP',
+        Sql::LOGIN_UZIVATELE        => 'Přezdívka',
+        Sql::JMENO_UZIVATELE        => 'Jméno',
+        Sql::PRIJMENI_UZIVATELE     => 'Příjmení',
+        Sql::POHLAVI                => 'Pohlaví',
+        Sql::ULICE_A_CP_UZIVATELE   => 'Ulice',
+        Sql::MESTO_UZIVATELE        => 'Město',
+        Sql::PSC_UZIVATELE          => 'PSČ',
+        Sql::TELEFON_UZIVATELE      => 'Telefon',
+        Sql::DATUM_NAROZENI         => 'Narozen' . $uPracovni->koncovkaDlePohlavi(),
+        Sql::EMAIL1_UZIVATELE       => 'E-mail',
+        // další informace nutné pro ubytování
+        Sql::TYP_DOKLADU_TOTOZNOSTI => 'Typ dokladu',
+        Sql::OP                     => 'Číslo dokladu',
+        Sql::STATNI_OBCANSTVI       => 'Státní občanství',
     ];
     $r             = dbOneLine('SELECT ' . implode(',', array_keys($udaje)) . ' FROM uzivatele_hodnoty WHERE id_uzivatele = ' . $uPracovni->id());
     $datumNarozeni = new DateTimeImmutable($r['datum_narozeni']);

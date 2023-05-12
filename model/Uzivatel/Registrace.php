@@ -418,7 +418,7 @@ HTML;
 
 <div class="formular_sloupce">
     {$this->select(
-            'Druh dokladu',
+            'Typ dokladu',
             Sql::TYP_DOKLADU_TOTOZNOSTI,
             [
                 Uzivatel::TYP_DOKLADU_OP   => 'Občanský průkaz',
