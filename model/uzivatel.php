@@ -54,6 +54,7 @@ class Uzivatel extends DbObject
             Sql::PRIJMENI_UZIVATELE => 'Příjmení',
             Sql::TELEFON_UZIVATELE  => 'Telefon',
             Sql::EMAIL1_UZIVATELE   => 'E-mail',
+            Sql::LOGIN_UZIVATELE    => 'Přezdívka',
         ];
     }
 
