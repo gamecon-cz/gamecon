@@ -203,11 +203,16 @@ SQL,
             'integer', 'int' => (int)$hodnota,
             'number', 'float' => (float)$hodnota,
             // když to změníš, rozbiješ JS systemove-nastaveni.js
-            'date' => (new DateTimeCz($hodnota))->formatDatumDb(),
+            'date' => $this->vytvorDateTime($hodnota)->formatDatumDb(),
             // když to změníš, rozbiješ JS systemove-nastaveni.js
-            'datetime' => (new DateTimeCz($hodnota))->formatDb(),
+            'datetime' => $this->vytvorDateTime($hodnota)->formatDb(),
             default => (string)$hodnota,
         };
+    }
+
+    private function vytvorDateTime(string $hodnota): DateTimeCz
+    {
+        return new DateTimeCz(preg_replace('~\s~', '', $hodnota));
     }
 
     public function ulozZmenuHodnoty($hodnota, string $klic, \Uzivatel $editujici): int
