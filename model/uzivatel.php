@@ -959,12 +959,14 @@ SQL,
      */
     public function odhlas($back = false)
     {
+        $a = $this->koncovkaDlePohlavi();
         $this->odhlasProTed();
         if (isset($_COOKIE['gcTrvalePrihlaseni'])) {
             setcookie('gcTrvalePrihlaseni', '', 0, '/');
         }
+        oznameni("Byl$a jsi odhlášen$a");
         if ($back) {
-            back();
+            back(URL_WEBU);
         }
     }
 
