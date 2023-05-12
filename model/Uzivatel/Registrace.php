@@ -388,7 +388,7 @@ HTML;
     {$this->input('Příjmení', 'text', Sql::PRIJMENI_UZIVATELE)}
     {$this->input('Datum narození', 'date', Sql::DATUM_NAROZENI)}
     {$this->input(
-            nazev: 'Státní občanstní',
+            nazev: 'Státní občanství',
             typ: 'text',
             klic: Sql::STATNI_OBCANSTVI,
             placeholder: 'například ČR',

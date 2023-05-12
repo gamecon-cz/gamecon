@@ -21,6 +21,7 @@ class UzivatelPrihlaseniARegistraceTest extends AbstractTestDb
         Sql::PSC_UZIVATELE          => '1',
         Sql::STAT_UZIVATELE         => '1',
         Sql::DATUM_NAROZENI         => '2000-01-01',
+        Sql::STATNI_OBCANSTVI       => 'ČR',
         Sql::TYP_DOKLADU_TOTOZNOSTI => \Uzivatel::TYP_DOKLADU_OP,
         Sql::OP                     => '998009476',
         Sql::LOGIN_UZIVATELE        => 'a',
