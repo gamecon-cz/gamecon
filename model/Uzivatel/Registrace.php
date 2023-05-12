@@ -100,6 +100,7 @@ class Registrace
         bool   $required = false,
         string $inputCss = '',
         string $predrazeneHtml = '',
+        string $placeholder = ' ', // schválně mezera
     ): string
     {
         $predvyplneno = $this->formData()[$klic] ?? '';
@@ -128,7 +129,7 @@ class Registrace
                     type="{$typ}"
                     name="{$this->inputName()}[{$klic}]"
                     value="{$predvyplneno}"
-                    placeholder=" "
+                    placeholder="$placeholder"
                     {$requiredHtml}
                     {$additionalHtml}
                 >
@@ -370,7 +371,7 @@ class Registrace
 <div style="float: right">
     <div class="tooltip" style="position: relative; top: -4em;">
         ℹ️
-        <div class="tooltip_obsah" style="right: inherit">
+        <div class="tooltip_obsah" style="right: -247px; top: 2em;">
             Vzhledem k zákonným povinnostem bohužel musíme odevzdávat seznam ubytovaných s následujícími osobními údaji. Chybné vyplnění následujících polí může u infopultu vést k vykázání na konec fronty, aby náprava nezdržovala odbavení ostatních! (Případné stížnosti prosíme rovnou vašim politickým zástupcům.)
         </div>
     </div>
@@ -386,6 +387,12 @@ HTML;
     {$this->input('Jméno', 'text', Sql::JMENO_UZIVATELE)}
     {$this->input('Příjmení', 'text', Sql::PRIJMENI_UZIVATELE)}
     {$this->input('Datum narození', 'date', Sql::DATUM_NAROZENI)}
+    {$this->input(
+            nazev: 'Státní občanstní',
+            typ: 'text',
+            klic: Sql::STATNI_OBCANSTVI,
+            placeholder: 'například ČR',
+        )}
 </div>
 
 <h2 class="formular_sekceNadpis">Adresa trvalého pobytu</h2>

@@ -1330,6 +1330,7 @@ SQL,
             Sql::JMENO_UZIVATELE        => ['.+', 'jméno nesmí být prázdné'],
             Sql::PRIJMENI_UZIVATELE     => ['.+', 'příjmení nesmí být prázdné'],
             Sql::DATUM_NAROZENI         => $validaceDataNarozeni,
+            Sql::STATNI_OBCANSTVI       => ['[[:alpha:]]{2,}', 'vyplň prosím státní občanství'],
             // Adresa trvalého pobytu
             Sql::ULICE_A_CP_UZIVATELE   => ['.+ [\d\/a-z]+$', 'vyplň prosím ulici, např. Česká 27'],
             Sql::MESTO_UZIVATELE        => ['.+', 'vyplň prosím město'],
