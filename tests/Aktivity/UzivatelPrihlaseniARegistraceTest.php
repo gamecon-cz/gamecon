@@ -36,8 +36,8 @@ class UzivatelPrihlaseniARegistraceTest extends AbstractTestDb
 
         // "oběť" pro testy kolizí
         \Uzivatel::registruj(array_merge(self::$uzivatelTab, [
-            'login_uzivatele'  => 'login@obeti.cz',
-            'email1_uzivatele' => 'email@obeti.cz',
+            Sql::LOGIN_UZIVATELE  => 'login@obeti.cz',
+            Sql::EMAIL1_UZIVATELE => 'email@obeti.cz',
         ]));
     }
 

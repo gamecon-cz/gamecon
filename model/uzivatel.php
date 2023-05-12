@@ -1363,7 +1363,7 @@ SQL,
             if (is_array($validator)) {
                 $regex      = $validator[0];
                 $popisChyby = $validator[1];
-                if (!preg_match("/$regex/", $hodnota)) {
+                if (!preg_match("/$regex/u", $hodnota)) {
                     $chyby[$klic] = $popisChyby;
                 }
             } else {
