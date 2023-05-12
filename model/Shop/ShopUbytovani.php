@@ -466,6 +466,11 @@ SQL,
         return $dnyUbytovani;
     }
 
+    public function maObjednaneUbytovani(): bool
+    {
+        return count($this->veKterychDnechJeUbytovan()) > 0;
+    }
+
     /** Vrátí počet volných míst */
     public function zbyvaMist($den, $typ): int
     {

@@ -106,11 +106,13 @@ if ($uPracovni) {
         ),
     ]);
 
-    $chybejiciUdaje = $uPracovni->chybejiciUdaje(Uzivatel::povinneUdajeProRegistraci());
+    $chybejiciUdaje = $uPracovni->chybejiciUdaje(
+        Uzivatel::povinneUdajeProRegistraci($uPracovni->shop()->ubytovani()->maObjednaneUbytovani()),
+    );
     $x->assign(
         'udajeChybiText',
         count($chybejiciUdaje) > 0
-            ? $err . ' chybí osobní údaje ' . implode(', ', $chybejiciUdaje)
+            ? $err . ' chybí osobní údaje: <ul style="font-size: smaller">' . implode('', array_map(static fn(string $nazevUdaje) => '<li><i>' . mb_strtolower($nazevUdaje) . '</i></li>', $chybejiciUdaje)) . '</ul>'
             : $ok . ' osobní údaje v pořádku',
     );
 
