@@ -36,7 +36,7 @@ class UbytovaniTabulka
                     'checked' => $checked,
                     'disabled' => !$checked // GUI neumí checked disabled, tak nesmíme dát disabled, když je chcecked
                     && ($prodejUbytovaniUkoncen
-                        || (!$ubytovanVeDni && (!$shop->existujeUbytovani($den, $typ) || $shop->plno($den, $typ)))
+                        || (!$ubytovanVeDniATypu && (!$shop->existujeUbytovani($den, $typ) || $shop->plno($den, $typ)))
                     )
                         ? 'disabled'
                         : '',
