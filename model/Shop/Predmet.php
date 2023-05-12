@@ -9,8 +9,8 @@ use Gamecon\Shop\SqlStruktura\PredmetSqlStruktura as Sql;
  */
 class Predmet extends \DbObject
 {
-    protected static $tabulka         = Sql::SHOP_PREDMETY_TABULKA;
-    protected static $pk              = Sql::ID_PREDMETU;
+    protected static $tabulka = Sql::SHOP_PREDMETY_TABULKA;
+    protected static $pk      = Sql::ID_PREDMETU;
     protected static $letosniPredmety = [];
 
     public static function jeToKostka(string $nazev): bool
@@ -42,8 +42,8 @@ class Predmet extends \DbObject
     {
         if (!array_key_exists($castNazvu, self::$letosniPredmety)) {
             $typPredmet       = TypPredmetu::PREDMET;
-            $castNazvuSql     = dbQRaw($castNazvu);
-            $letosniPredmetId = dbFetchSingle(<<<SQL
+            $castNazvuSql     = dbQv($castNazvu);
+            $letosniPredmetId = (int)dbFetchSingle(<<<SQL
 SELECT id_predmetu
 FROM shop_predmety
 WHERE
@@ -55,7 +55,7 @@ LIMIT 1 -- pro jistotu
 SQL,
             );
             $letosniPredmet   = $letosniPredmetId
-                ? static::zId((int)$letosniPredmetId, true)
+                ? static::zId($letosniPredmetId, true)
                 : null;
         }
         return $letosniPredmet;
@@ -64,29 +64,6 @@ SQL,
     public static function letosniPlacka(int $rocnik): ?static
     {
         return self::letosniPredmet('Placka', $rocnik);
-    }
-
-    public static function letosniPlacka(int $rocnik): ?static
-    {
-        static $letosniPlacka = 'undefined';
-        if ($letosniPlacka === 'undefined') {
-            $typPredmet      = TypPredmetu::PREDMET;
-            $letosniPlackaId = (int)dbFetchSingle(<<<SQL
-SELECT id_predmetu
-FROM shop_predmety
-WHERE
-    -- letošní je ta, která má nejnovější model a v dřívějších letech si ji nikdo neobjednal
-    NOT EXISTS(SELECT * FROM shop_nakupy WHERE shop_nakupy.id_predmetu = shop_predmety.id_predmetu AND shop_nakupy.rok < {$rocnik})
-    AND typ = {$typPredmet} AND nazev COLLATE utf8_czech_ci LIKE '%Placka%'
-ORDER BY model_rok DESC, cena_aktualni DESC, id_predmetu DESC
-LIMIT 1 -- pro jistotu
-SQL,
-            );
-            $letosniPlacka   = $letosniPlackaId
-                ? static::zId($letosniPlackaId, true)
-                : null;
-        }
-        return $letosniPlacka;
     }
 
     public function kusuVyrobeno(int $kusuVyrobeno = null): int
