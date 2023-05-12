@@ -66,6 +66,29 @@ SQL,
         return self::letosniPredmet('Placka', $rocnik);
     }
 
+    public static function letosniPlacka(int $rocnik): ?static
+    {
+        static $letosniPlacka = 'undefined';
+        if ($letosniPlacka === 'undefined') {
+            $typPredmet      = TypPredmetu::PREDMET;
+            $letosniPlackaId = (int)dbFetchSingle(<<<SQL
+SELECT id_predmetu
+FROM shop_predmety
+WHERE
+    -- letošní je ta, která má nejnovější model a v dřívějších letech si ji nikdo neobjednal
+    NOT EXISTS(SELECT * FROM shop_nakupy WHERE shop_nakupy.id_predmetu = shop_predmety.id_predmetu AND shop_nakupy.rok < {$rocnik})
+    AND typ = {$typPredmet} AND nazev COLLATE utf8_czech_ci LIKE '%Placka%'
+ORDER BY model_rok DESC, cena_aktualni DESC, id_predmetu DESC
+LIMIT 1 -- pro jistotu
+SQL,
+            );
+            $letosniPlacka   = $letosniPlackaId
+                ? static::zId($letosniPlackaId, true)
+                : null;
+        }
+        return $letosniPlacka;
+    }
+
     public function kusuVyrobeno(int $kusuVyrobeno = null): int
     {
         if ($kusuVyrobeno !== null) {
