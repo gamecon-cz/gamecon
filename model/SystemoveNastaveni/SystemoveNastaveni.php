@@ -310,6 +310,7 @@ SQL,
                 'datetime' => $hodnota
                     ? DateTimeCz::createFromFormat('j. n. Y H:i:s', $hodnota)->formatDb()
                     : $hodnota,
+                'bool', 'boolean' => (int)filter_var($hodnota, FILTER_VALIDATE_BOOLEAN),
                 default => $hodnota,
             };
         } catch (InvalidDateTimeFormat $invalidDateTimeFormat) {
@@ -818,5 +819,12 @@ SQL;
             $nastaveniOstre[$klic] = $matches['hodnota'] ?? null;
         }
         return $nastaveniOstre;
+    }
+
+    public function poslatMailZeBylOdhlasenAMelUbytovani(): bool
+    {
+        return (bool)(defined('POSILAT_MAIL_O_ODHLASENI_A_UVOLNENEM_UBYTOVANI')
+            ? POSILAT_MAIL_O_ODHLASENI_A_UVOLNENEM_UBYTOVANI
+            : $this->dejHodnotu('POSILAT_MAIL_O_ODHLASENI_A_UVOLNENEM_UBYTOVANI'));
     }
 }

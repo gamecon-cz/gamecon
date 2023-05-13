@@ -365,7 +365,9 @@ SQL
             if ($zaznamnik) {
                 $zaznamnik->uchovejZEmailu($mailMelUbytovani);
             } else {
-                $mailMelUbytovani->odeslat();
+                if ($this->systemoveNastaveni->poslatMailZeBylOdhlasenAMelUbytovani()) {
+                    $mailMelUbytovani->odeslat();
+                }
             }
         }
         if ($odeslatMailPokudSeNeodhlasilSam && $this->id() !== $odhlasujici->id()) {
