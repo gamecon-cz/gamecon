@@ -1829,34 +1829,21 @@ SQL
     /** Zdali chceme, aby se na aktivitu bylo možné běžně přihlašovat */
     public function prihlasovatelna($parametry = 0)
     {
-        $dopredne   = $parametry & self::DOPREDNE;
-        $zpetne     = $parametry & self::ZPETNE;
-        $neotevrene = $parametry & self::NEOTEVRENE;
-        $interni    = $parametry & self::INTERNI;
-        // stav 4 je rezervovaný pro viditelné nepřihlašovatelné aktivity
-        return
-            (REG_AKTIVIT
-                || ($dopredne && pred(REG_AKTIVIT_OD))
-                || ($zpetne && po(REG_AKTIVIT_DO))
-            )
-            && (
-                $this->idStavu() === StavAktivity::AKTIVOVANA
-                || ($neotevrene && in_array($this->idStavu(), [StavAktivity::PRIPRAVENA, StavAktivity::PUBLIKOVANA]))
-                || ($interni && $this->a['stav'] == StavAktivity::NOVA && TypAktivity::jeInterni($this->a['typ']))
-                || ($zpetne && $this->probehnuta())
-            )
-            && $this->a['zacatek']
-            && $this->a['typ'];
+        return $this->procNeniPrihlasovatelna($parametry) === '';
     }
 
     private function procNeniPrihlasovatelna($parametry): string
     {
         $dopredne   = $parametry & self::DOPREDNE;
         $zpetne     = $parametry & self::ZPETNE;
-        $interni    = $parametry & self::INTERNI;
         $neotevrene = $parametry & self::NEOTEVRENE;
+        $interni    = $parametry & self::INTERNI;
 
-        if (!(REG_AKTIVIT || ($dopredne && pred(REG_AKTIVIT_OD)) || ($zpetne && po(REG_AKTIVIT_DO)))) {
+        if (!( // ← inverze ↓
+            REG_AKTIVIT
+            || ($dopredne && pred(REG_AKTIVIT_OD))
+            || ($zpetne && po(REG_AKTIVIT_DO))
+        )) {
             return sprintf('Není spuštěna registrace aktivit (začíná %s a končí %s)', REG_AKTIVIT_OD, REG_AKTIVIT_DO);
         }
         if (!( // ← inverze ↓
