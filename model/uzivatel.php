@@ -963,9 +963,9 @@ SQL,
     }
 
     /** Odhlásí aktuálně přihlášeného uživatele, pokud není přihlášen, nic
-     * @param bool $back rovnou otočit na referrer?
+     * @param bool $naUvodniStranku
      */
-    public function odhlas($back = false)
+    public function odhlas($naUvodniStranku = true)
     {
         $a = $this->koncovkaDlePohlavi();
         $this->odhlasProTed();
@@ -973,7 +973,7 @@ SQL,
             setcookie('gcTrvalePrihlaseni', '', 0, '/');
         }
         oznameni("Byl$a jsi odhlášen$a");
-        if ($back) {
+        if ($naUvodniStranku) {
             back(URL_WEBU);
         }
     }
