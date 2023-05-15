@@ -1655,6 +1655,7 @@ SQL
         }
         if ($prihlasujici->maPravoNaPrihlasovaniNaDosudNeotevrene()) {
             $parametry |= self::NEOTEVRENE;
+            $parametry |= self::DOPREDNE;
         }
 
         if (!($prihlasovatelna = $this->prihlasovatelna($parametry))) {
