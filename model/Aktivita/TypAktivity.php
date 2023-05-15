@@ -32,7 +32,7 @@ class TypAktivity extends \DbObject
      * @param int|string $idTypuAktivity
      * @return bool
      */
-    public static function jeInterni($idTypuAktivity): bool
+    public static function jeInterniDleId($idTypuAktivity): bool
     {
         return in_array((int)$idTypuAktivity, self::interniTypy());
     }
@@ -152,6 +152,11 @@ class TypAktivity extends \DbObject
     public function jeBrigadnicka(): bool
     {
         return $this->id() === self::BRIGADNICKA;
+    }
+
+    public function jeInterni(): bool
+    {
+        return self::jeInterniDleId($this->id());
     }
 
     public function sdileniMistnostiJeProNiProblem(): bool

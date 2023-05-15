@@ -202,7 +202,7 @@ SQL
      */
     public function cenaTextem(Uzivatel $u = null): ?string
     {
-        if (TypAktivity::jeInterni((int)$this->a['typ'])) {
+        if (TypAktivity::jeInterniDleId((int)$this->a['typ'])) {
             return null;
         }
         if ($this->cenaZaklad() <= 0) {
@@ -1198,22 +1198,6 @@ SQL
     }
 
     /**
-     * Odemče hromadně zamčené aktivity a odhlásí ty, kteří nesestavili teamy.
-     * Vrací počet odemčených teamů (=>uvolněných míst)
-     */
-    public static function odemciTeamoveHromadne(Uzivatel $odemykajici): int
-    {
-        $o = dbQuery('SELECT id_akce, zamcel FROM akce_seznam WHERE zamcel AND zamcel_cas < NOW() - INTERVAL ' . self::HAJENI . ' HOUR');
-        $i = 0;
-        while (list($aid, $uid) = mysqli_fetch_row($o)) {
-            Aktivita::zId($aid)->odhlas(Uzivatel::zId($uid), $odemykajici);
-            $i++;
-        }
-        return $i;
-        // uvolnění zámku je součástí odhlášení, pokud je sám -> done
-    }
-
-    /**
      * Odhlásí uživatele z aktivity
      * @todo kontroly? (např. jestli je aktivní přihlašování?) (administrativní
      *  odhlašování z DrD počítá s možnosti odhlásit např. od semifinále dál)
@@ -1861,7 +1845,7 @@ SQL
         if (!( // ← inverze ↓
             $this->idStavu() === StavAktivity::AKTIVOVANA
             || ($neotevrene && in_array($this->idStavu(), [StavAktivity::PRIPRAVENA, StavAktivity::PUBLIKOVANA]))
-            || ($interni && $this->a['stav'] == StavAktivity::NOVA && TypAktivity::jeInterni($this->a['typ']))
+            || ($interni && $this->idStavu() == StavAktivity::NOVA && $this->typ()->jeInterni())
             || ($zpetne && $this->probehnuta())
         )) {
             return sprintf(
@@ -2510,7 +2494,7 @@ SQL,
     {
         return (
             (in_array($this->a['stav'], StavAktivity::bezneViditelneStavy(), false) // podle stavu je aktivita viditelná
-                && !(TypAktivity::jeInterni($this->a['typ']) && $this->probehnuta()) // ale skrýt technické a brigádnické proběhnuté
+                && !(TypAktivity::jeInterniDleId($this->a['typ']) && $this->probehnuta()) // ale skrýt technické a brigádnické proběhnuté
             )
             || ($u && $this->prihlasen($u))
             || ($u && $u->organizuje($this))
