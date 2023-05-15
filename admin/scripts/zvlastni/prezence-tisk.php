@@ -3,6 +3,8 @@
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\XTemplate\XTemplate;
 
+/** @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni */
+
 $naStranku = 15;
 $prazdnychRadku = 4;
 $minSledujicich = 5;
@@ -32,7 +34,7 @@ $dejVekVeZkratce = static function (?int $vek): string {
 };
 
 foreach ($aktivity as $aktivita) {
-    $datum = $aktivita->zacatek();
+    $datum = $aktivita->zacatek() ?? $systemoveNastaveni->konecLetosnihoGameconu();
     $aktivita->zamkni();
     $t->assign('aktivita', $aktivita);
 

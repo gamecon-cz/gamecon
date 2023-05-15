@@ -4,28 +4,26 @@ namespace Gamecon\Aktivita\OnlinePrezence;
 
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavPrihlaseni;
-use Gamecon\Aktivita\ZmenaPrihlaseni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\XTemplate\XTemplate;
+use Uzivatel;
 
 class OnlinePrezenceUcastnikHtml
 {
-    /** @var XTemplate */
-    private $onlinePrezenceUcastnikTemplate;
-    /** @var int */
-    private $naPosledniChviliXMinutPredZacatkem;
+    private ?XTemplate $onlinePrezenceUcastnikTemplate = null;
+    private int        $naPosledniChviliXMinutPredZacatkem;
 
-    public function __construct(SystemoveNastaveni $systemoveNastaveni)
+    public function __construct(private readonly SystemoveNastaveni $systemoveNastaveni)
     {
         $this->naPosledniChviliXMinutPredZacatkem = $systemoveNastaveni->prihlaseniNaPosledniChviliXMinutPredZacatkemAktivity();
     }
 
     public function sestavHmlUcastnikaAktivity(
-        \Uzivatel $ucastnik,
-        Aktivita  $aktivita,
-        int       $stavPrihlaseni,
-        bool      $ucastnikMuzeBytPridan,
-        bool      $ucastnikMuzeBytOdebran,
+        Uzivatel $ucastnik,
+        Aktivita $aktivita,
+        int      $stavPrihlaseni,
+        bool     $ucastnikMuzeBytPridan,
+        bool     $ucastnikMuzeBytOdebran,
     ): string
     {
         $ucastnikTemplate = $this->dejOnlinePrezenceUcastnikTemplate();
@@ -60,7 +58,7 @@ class OnlinePrezenceUcastnikHtml
             $ucastnikTemplate->parse('ucastnik.prihlasenNaPosledniChvili');
         }
 
-        if (($vek = $ucastnik->vekKDatu($aktivita->zacatek())) < 18) {
+        if (($vek = $ucastnik->vekKDatu($aktivita->zacatek() ?? $this->systemoveNastaveni->konecLetosnihoGameconu())) < 18) {
             $ucastnikTemplate->assign('vek', $vek);
             $ucastnikTemplate->parse('ucastnik.mladsiOsmnactiLet');
         }
@@ -85,7 +83,7 @@ class OnlinePrezenceUcastnikHtml
             : 'display-none';
     }
 
-    private function jeToNaPosledniChvili(\Uzivatel $ucastnik, Aktivita $aktivita): bool
+    private function jeToNaPosledniChvili(Uzivatel $ucastnik, Aktivita $aktivita): bool
     {
         $prihlasenOd               = $aktivita->prihlasenOd($ucastnik);
         $odKdyJeToNaPosledniChvili = $this->odKdyJeToNaPosledniChvili($aktivita);

@@ -1651,7 +1651,7 @@ SQL,
      * @param DateTimeCz $datum
      * @return ?int
      */
-    public function vekKDatu(DateTimeCz $datum): ?int
+    public function vekKDatu(DateTimeInterface $datum): ?int
     {
         if ($this->r['datum_narozeni'] == '0000-00-00') {
             return null;
