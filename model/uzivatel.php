@@ -261,13 +261,17 @@ SQL
             throw new Chyba('Uživatel už má jinou unikátní roli.');
         }
 
-        $result = dbQuery(
-            "INSERT IGNORE INTO uzivatele_role(id_uzivatele, id_role, posadil)
+        try {
+            $result = dbQuery(
+                "INSERT INTO uzivatele_role(id_uzivatele, id_role, posadil)
             VALUES ($1, $2, $3)",
-            [$this->id(), $idRole, $posadil->id()],
-        );
-        if (dbAffectedOrNumRows($result) > 0) {
-            $this->zalogujZmenuRole($idRole, $posadil->id(), self::POSAZEN);
+                [$this->id(), $idRole, $posadil->id()],
+            );
+            if (dbAffectedOrNumRows($result) > 0) {
+                $this->zalogujZmenuRole($idRole, $posadil->id(), self::POSAZEN);
+            }
+        } catch (DbDuplicateEntryException $dbDuplicateEntryException) {
+            // roli už má, všechno OK (nechceme INSERT IGNORE protože to by zamlčelo i neexistující roli)
         }
 
         $this->aktualizujPrava();
@@ -578,7 +582,7 @@ SQL,
         return $this->maRoli(Role::pritomenNaRocniku($rocnik ?? $this->systemoveNastaveni->rocnik()));
     }
 
-    public function maZkontrolovaneUdaje(int $rocnik = null): bool 
+    public function maZkontrolovaneUdaje(int $rocnik = null): bool
     {
         return $this->maRoli(Role::zkontrolovaneUdaje($rocnik ?? $this->systemoveNastaveni->rocnik()));
     }
@@ -588,7 +592,7 @@ SQL,
         $this->pridejRoli(Role::ZKONTROLOVANE_UDAJE_NA_LETOSNIM_GC, $editor);
     }
 
-    public function maBalicek(int $rocnik = null): bool 
+    public function maBalicek(int $rocnik = null): bool
     {
         return $this->maRoli(Role::dostalBalicek($rocnik ?? $this->systemoveNastaveni->rocnik()));
     }
