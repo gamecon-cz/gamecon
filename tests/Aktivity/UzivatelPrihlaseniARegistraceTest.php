@@ -2,43 +2,52 @@
 
 namespace Gamecon\Tests\Aktivity;
 
-use Gamecon\Tests\Db\DbTest;
+use Gamecon\Tests\Db\AbstractTestDb;
+
+use Gamecon\Uzivatel\SqlStruktura\UzivatelSqlStruktura as Sql;
 
 /**
  * Testy pokrývající metody na přihlášení a registraci.
  */
-class UzivatelPrihlaseniARegistraceTest extends DbTest {
+class UzivatelPrihlaseniARegistraceTest extends AbstractTestDb
+{
     private static $uzivatelTab = [
-        'jmeno_uzivatele'      => 'a',
-        'prijmeni_uzivatele'   => 'b',
-        'login_uzivatele'      => 'a',
-        'email1_uzivatele'     => 'a@b.c',
-        'pohlavi'              => 'f',
-        'ulice_a_cp_uzivatele' => 'a 1',
-        'mesto_uzivatele'      => 'a',
-        'psc_uzivatele'        => '1',
-        'stat_uzivatele'       => '1',
-        'telefon_uzivatele'    => '1',
-        'datum_narozeni'       => '2000-01-01',
-        'heslo'                => 'a',
-        'heslo_kontrola'       => 'a',
+        Sql::EMAIL1_UZIVATELE       => 'a@b.c',
+        Sql::TELEFON_UZIVATELE      => '1',
+        Sql::JMENO_UZIVATELE        => 'a',
+        Sql::PRIJMENI_UZIVATELE     => 'b',
+        Sql::ULICE_A_CP_UZIVATELE   => 'a 1',
+        Sql::MESTO_UZIVATELE        => 'a',
+        Sql::PSC_UZIVATELE          => '1',
+        Sql::STAT_UZIVATELE         => '1',
+        Sql::DATUM_NAROZENI         => '2000-01-01',
+        Sql::STATNI_OBCANSTVI       => 'ČR',
+        Sql::TYP_DOKLADU_TOTOZNOSTI => \Uzivatel::TYP_DOKLADU_OP,
+        Sql::OP                     => '998009476',
+        Sql::LOGIN_UZIVATELE        => 'a',
+        Sql::POHLAVI                => 'f',
+        'heslo'                     => 'a',
+        'heslo_kontrola'            => 'a',
     ];
 
-    public static function setUpBeforeClass(): void {
+    public static function setUpBeforeClass(): void
+    {
         parent::setUpBeforeClass();
 
         // "oběť" pro testy kolizí
         \Uzivatel::registruj(array_merge(self::$uzivatelTab, [
-            'login_uzivatele'  => 'login@obeti.cz',
-            'email1_uzivatele' => 'email@obeti.cz',
+            Sql::LOGIN_UZIVATELE  => 'login@obeti.cz',
+            Sql::EMAIL1_UZIVATELE => 'email@obeti.cz',
         ]));
     }
 
-    private function uzivatel($prepis = []) {
+    private function uzivatel($prepis = [])
+    {
         return array_merge(self::$uzivatelTab, $prepis);
     }
 
-    function testRegistrujAPrihlas() {
+    function testRegistrujAPrihlas()
+    {
         \Uzivatel::registruj($this->uzivatel());
 
         $this->assertNotNull(\Uzivatel::prihlas('a', 'a'), 'přihlášení loginem');
@@ -46,32 +55,36 @@ class UzivatelPrihlaseniARegistraceTest extends DbTest {
         $this->assertNull(\Uzivatel::prihlas('a', 'b'), 'nepřihlášení špatnými údaji');
     }
 
-    function providerRegistrujDuplicity() {
+    public static function provideRegistrujDuplicity()
+    {
         return [
             ['nekolizni_login', 'email@obeti.cz', 'email1_uzivatele', '/e-mail.*zaregistrovaný/'],
             ['nekolizni_login', 'login@obeti.cz', 'email1_uzivatele', '/e-mail.*zaregistrovaný/'],
-            ['login@obeti.cz',  'ok@mail.com',    'login_uzivatele',  '/přezdívka.*zabraná/'],
-            ['email@obeti.cz',  'ok@mail.com',    'login_uzivatele',  '/přezdívka.*zabraná/'],
+            ['login@obeti.cz', 'ok@mail.com', 'login_uzivatele', '/přezdívka.*zabraná/'],
+            ['email@obeti.cz', 'ok@mail.com', 'login_uzivatele', '/přezdívka.*zabraná/'],
         ];
     }
 
     /**
-     * @dataProvider providerRegistrujDuplicity
+     * @dataProvider provideRegistrujDuplicity
      */
-    function testRegistrujDuplicity($login, $email, $klicChyby, $chyba) {
+    function testRegistrujDuplicity($login, $email, $klicChyby, $chyba)
+    {
         $e = null;
         try {
             \Uzivatel::registruj($this->uzivatel([
                 'login_uzivatele'  => $login,
                 'email1_uzivatele' => $email,
             ]));
-        } catch (\Exception $e) {}
+        } catch (\Exception $e) {
+        }
 
         $this->assertInstanceOf(\Chyby::class, $e);
         $this->assertMatchesRegularExpression($chyba, $e->klic($klicChyby));
     }
 
-    function testNelzeZadatId() {
+    function testNelzeZadatId()
+    {
         try {
             \Uzivatel::registruj($this->uzivatel(['id_uzivatele' => 5]));
             self::fail();
@@ -80,9 +93,10 @@ class UzivatelPrihlaseniARegistraceTest extends DbTest {
         }
     }
 
-    function testUprav() {
+    function testUprav()
+    {
         $id = \Uzivatel::registruj($this->uzivatel());
-        $u = \Uzivatel::zId($id);
+        $u  = \Uzivatel::zId($id);
 
         $this->assertEquals('a b', $u->jmeno());
 
@@ -94,15 +108,16 @@ class UzivatelPrihlaseniARegistraceTest extends DbTest {
         $this->assertEquals('jiné b', $u->jmeno());
     }
 
-    function testUpravNic() {
-        $id = \Uzivatel::registruj($this->uzivatel());
+    function testUpravNic()
+    {
+        $id     = \Uzivatel::registruj($this->uzivatel());
         $uData1 = \Uzivatel::zId($id)->rawDb();
 
         \Uzivatel::zId($id)->uprav([]);
         $uData2 = \Uzivatel::zId($id)->rawDb();
 
-        $nemenitHeslo = ['heslo' => null, 'heslo_kontrola' => null];
-        \Uzivatel::zId($id)->uprav($this->uzivatel($nemenitHeslo));
+        $nemenitHesloADoklad = ['heslo' => null, 'heslo_kontrola' => null, Sql::OP => null];
+        \Uzivatel::zId($id)->uprav($this->uzivatel($nemenitHesloADoklad));
         $uData3 = \Uzivatel::zId($id)->rawDb();
 
         $this->assertSame($uData1, $uData2, 'prázdná úprava data nezměnila');

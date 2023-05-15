@@ -12,7 +12,8 @@ class TypPredmetu
     public const PARCON            = 6;
     public const PROPLACENI_BONUSU = 7;
 
-    public static function nazevTypu(int $typ, bool $mnozneCislo = false): string {
+    public static function nazevTypu(int $typ, bool $mnozneCislo = false): string
+    {
         return match ($typ) {
             self::PREDMET => $mnozneCislo
                 ? 'předměty'

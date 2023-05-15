@@ -5,6 +5,7 @@ namespace Gamecon\SystemoveNastaveni;
 use Gamecon\Cas\DateTimeCz;
 use Gamecon\XTemplate\XTemplate;
 use Granam\RemoveDiacritics\RemoveDiacritics;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveniStruktura as Sql;
 
 class SystemoveNastaveniHtml
 {
@@ -27,7 +28,7 @@ class SystemoveNastaveniHtml
 
         $template->assign('ajaxKlic', SystemoveNastaveniAjax::AJAX_KLIC);
         $template->assign('postKlic', SystemoveNastaveniAjax::POST_KLIC);
-        $template->assign('aktivniKlic', SystemoveNastaveniAjax::AKTIVNI_KLIC);
+        $template->assign('vlastniKlic', SystemoveNastaveniAjax::VLASTNI_KLIC);
         $template->assign('hodnotaKlic', SystemoveNastaveniAjax::HODNOTA_KLIC);
 
         $template->assign(
@@ -91,7 +92,7 @@ class SystemoveNastaveniHtml
             foreach ($zaznam as $klic => $hodnota) {
                 $template->assign($klic, $hodnota);
             }
-            $template->assign('zaznamClass', $zaznam['klic'] === $klicKeZvyrazneni
+            $template->assign('zaznamClass', $zaznam[Sql::KLIC] === $klicKeZvyrazneni
                 ? 'zvyrazni'
                 : ''
             );
@@ -142,11 +143,11 @@ class SystemoveNastaveniHtml
         switch (strtolower(trim($datovyTyp))) {
             case 'date' :
                 return $hodnota
-                    ? (new DateTimeCz($hodnota))->formatDatumStandard()
+                    ? (new DateTimeCz($hodnota))->formatDatumStandardZarovnaneHtml()
                     : $hodnota;
             case 'datetime' :
                 return $hodnota
-                    ? (new DateTimeCz($hodnota))->formatCasStandard()
+                    ? (new DateTimeCz($hodnota))->formatCasStandardZarovnaneHtml()
                     : $hodnota;
             default :
                 return $hodnota;
@@ -160,28 +161,28 @@ class SystemoveNastaveniHtml
         array_walk(
             $hodnotyNastaveni,
             function (array &$zaznam) {
-                $zaznam['posledniZmena'] = (new \Gamecon\Cas\DateTimeCz($zaznam['kdy']))->relativni();
-                $zaznam['zmenil']        = '<strong>' . ($zaznam['id_uzivatele']
-                        ? \Uzivatel::zId($zaznam['id_uzivatele'])->jmenoNick()
+                $zaznam['posledniZmena'] = (new DateTimeCz($zaznam[Sql::ZMENA_KDY]))->relativni();
+                $zaznam['zmenil']        = '<strong>' . ($zaznam[Sql::ZMENA_KDY]
+                        ? (\Uzivatel::zId($zaznam[Sql::ID_UZIVATELE]) ?? \Uzivatel::zId(\Uzivatel::SYSTEM))->jmenoNick()
                         : '<i>SQL migrace</i>'
-                    ) . '</strong><br>' . (new \Gamecon\Cas\DateTimeCz($zaznam['kdy']))->formatCasStandard();;
-                $zaznam['inputType']                  = $this->dejHtmlInputType($zaznam['datovy_typ']);
-                $zaznam['tagInputType']               = $this->dejHtmlTagInputType($zaznam['datovy_typ']);
-                $zaznam['inputValue']                 = $this->dejHtmlInputValue($zaznam['hodnota'], $zaznam['datovy_typ']);
-                $zaznam['vychoziHodnotaValue']        = $this->dejHtmlInputValue($zaznam['vychozi_hodnota'], $zaznam['datovy_typ']);
-                $zaznam['checked']                    = $zaznam['aktivni']
+                    ) . '</strong><br>' . (new DateTimeCz($zaznam[Sql::ZMENA_KDY]))->formatCasStandard();;
+                $zaznam['inputType']                  = $this->dejHtmlInputType($zaznam[Sql::DATOVY_TYP]);
+                $zaznam['tagInputType']               = $this->dejHtmlTagInputType($zaznam[Sql::DATOVY_TYP]);
+                $zaznam['inputValue']                 = $this->dejHtmlInputValue($zaznam[Sql::HODNOTA], $zaznam[Sql::DATOVY_TYP]);
+                $zaznam['vychoziHodnotaValue']        = $this->dejHtmlInputValue($zaznam[Sql::VYCHOZI_HODNOTA], $zaznam[Sql::DATOVY_TYP]);
+                $zaznam['checked']                    = $zaznam[Sql::VLASTNI]
                     ? 'checked'
                     : '';
-                $zaznam['checkboxDisabled']           = $zaznam['pouze_pro_cteni'] || $zaznam['vychozi_hodnota'] === ''
+                $zaznam['checkboxDisabled']           = $zaznam[Sql::POUZE_PRO_CTENI] || $zaznam[Sql::VYCHOZI_HODNOTA] === ''
                     ? 'disabled'
                     : '';
-                $zaznam['valueChangeDisabled']        = $zaznam['pouze_pro_cteni']
+                $zaznam['valueChangeDisabled']        = $zaznam[Sql::POUZE_PRO_CTENI]
                     ? 'disabled'
                     : '';
-                $zaznam['vychoziHodnotaDisplayClass'] = $zaznam['aktivni']
+                $zaznam['vychoziHodnotaDisplayClass'] = $zaznam[Sql::VLASTNI]
                     ? 'display-none'
                     : '';
-                $zaznam['hodnotaDisplayClass']        = !$zaznam['aktivni']
+                $zaznam['hodnotaDisplayClass']        = !$zaznam[Sql::VLASTNI]
                     ? 'display-none'
                     : '';
             }

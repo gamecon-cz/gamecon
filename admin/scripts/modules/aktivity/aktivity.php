@@ -6,6 +6,7 @@ use Gamecon\Aktivita\TypAktivity;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use Gamecon\Aktivita\StavAktivity;
 use Gamecon\Pravo;
+use Gamecon\Aktivita\HromadneAkceAktivit;
 
 /**
  * Stránka pro tvorbu a správu aktivit.
@@ -61,15 +62,13 @@ if (post('aktivovat')) {
 }
 
 if (post('aktivovatVse') && $u->maPravo(Pravo::HROMADNA_AKTIVACE_AKTIVIT)) {
-    Aktivita::aktivujVsePripravene(ROCNIK);
+    (new HromadneAkceAktivit($ystemoveNastaveni))->hromadneAktivovatRucne($u);
     back();
 }
 
 if (post('instance')) {
-    $a = Aktivita::zId(post('aktivitaId'));
-    if ($a) {
-        $a->instancuj();
-    }
+    Aktivita::zId(post('aktivitaId'))
+        ?->instancuj();
     back();
 }
 

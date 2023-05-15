@@ -2,10 +2,10 @@
 
 namespace Gamecon\Tests\Aktivity;
 
-use Gamecon\Tests\Db\UzivatelDbTest;
+use Gamecon\Tests\Db\AbstractUzivatelTestDb;
 use Gamecon\Aktivita\Aktivita;
 
-class UzivatelMaVolnoTest extends UzivatelDbTest
+class UzivatelMaVolnoTest extends AbstractUzivatelTestDb
 {
 
     protected static string $initData = '
@@ -39,7 +39,7 @@ class UzivatelMaVolnoTest extends UzivatelDbTest
     }
 
     /**
-     * @dataProvider ruzneVarianty
+     * @dataProvider provideRuzneVarianty
      */
     public function testRuzneVarianty(string $od, string $do, ?int $aktivitaId, bool $ocekavanyVysledek) {
         self::assertSame(
@@ -54,7 +54,7 @@ class UzivatelMaVolnoTest extends UzivatelDbTest
         );
     }
 
-    public function ruzneVarianty(): array {
+    public static function provideRuzneVarianty(): array {
         return [
             'překrytí konce'               => ['17:00', '19:00', null, false],
             'překrytí celé aktivity'       => ['15:00', '19:00', null, false],

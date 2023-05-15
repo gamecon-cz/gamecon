@@ -42,7 +42,7 @@ class FioPlatbaTest extends TestCase
         self::assertSame($ocekavaneIdUcastnika, $platba->idUcastnika());
     }
 
-    public function provideTransactions(): array {
+    public static function provideTransactions(): array {
         return [
             'VS přímo' => [
                 [

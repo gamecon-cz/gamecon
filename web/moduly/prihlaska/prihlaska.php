@@ -6,6 +6,7 @@ use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Pravo;
 
 /**
+ * @see web/sablony/blackarrow/prihlaska.xtpl
  * @var \Gamecon\XTemplate\XTemplate $t
  * @var Uzivatel $u
  * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
@@ -18,7 +19,8 @@ $this->info()->nazev('Přihláška');
 
 $covidSekceFunkce = require __DIR__ . '/covid-sekce-funkce.php';
 
-function cestaKObrazkuPredmetu(string $soubor): string {
+function cestaKObrazkuPredmetu(string $soubor): string
+{
     return WWW . '/soubory/obsah/materialy/' . ROCNIK . '/' . $soubor;
 }
 
@@ -26,7 +28,8 @@ function cestaKObrazkuPredmetu(string $soubor): string {
  * @throws \RuntimeException
  * Pomocná funkce pro náhled předmětu pro aktuální ročník
  */
-function nahledPredmetu(string $cestaKObrazku) {
+function nahledPredmetu(string $cestaKObrazku)
+{
     return Nahled::zSouboru($cestaKObrazku)->kvalita(98)->url();
 }
 
@@ -39,7 +42,7 @@ if (post('pridatPotvrzeniProtiCovidu')) {
         chyba('Nejdříve vlož potvrzení.');
     } else {
         if (is_ajax()) {
-            echo json_encode(['covidSekce' => $covidSekceFunkce($u->dejShop())]);
+            echo json_encode(['covidSekce' => $covidSekceFunkce($u->shop())]);
             exit;
         }
         oznameni('Potvrzení bylo uloženo.');
@@ -58,7 +61,7 @@ if (po(GC_BEZI_DO)) {
 }
 
 if (VYZADOVANO_COVID_POTVRZENI && $u && (GC_BEZI || $u->gcPritomen())) {
-    $t->assign('covidSekce', $covidSekceFunkce(new Shop($u, null, $systemoveNastaveni)));
+    $t->assign('covidSekce', $covidSekceFunkce(new Shop($u, $u, null, $systemoveNastaveni)));
     $t->parse('prihlaskaUzavrena.covidSekce.doklad');
     $letosniRok = (int)date('Y');
     if (!$u->maNahranyDokladProtiCoviduProRok($letosniRok) && !$u->maOverenePotvrzeniProtiCoviduProRok($letosniRok)) {
@@ -84,9 +87,7 @@ if (GC_BEZI) {
 }
 
 if (!$u) {
-    // Mimo období kdy GC běží: Situaci uživateli vždy dostatečně vysvětlí
-    // registrační stránka. A umožní mu aspoň vytvořit si účet.
-    back(URL_WEBU . '/registrace');
+    back(URL_WEBU);
 }
 
 if (pred(REG_GC_OD)) {
@@ -97,11 +98,11 @@ if (pred(REG_GC_OD)) {
     return;
 }
 
-$shop  = new Shop($u, null, $systemoveNastaveni);
+$shop  = new Shop($u, $u, null, $systemoveNastaveni);
 $pomoc = new Pomoc($u);
 
 if (post('odhlasit')) {
-    $u->gcOdhlas($u);
+    $u->odhlasZGc('rucne-sam-sebe', $u);
     oznameni(hlaska('odhlaseniZGc', $u));
 }
 
@@ -135,6 +136,10 @@ if ($slevy) {
     $t->parse('prihlaska.slevy');
 }
 
+if ($u->jeOrganizator()) {
+    $t->parse('prihlaska.poznamkaKUbytovaniVNedeli');
+}
+
 $t->assign('ka', $u->koncovkaDlePohlavi() ? 'ka' : '');
 if ($u->maPravo(Pravo::UBYTOVANI_ZDARMA)) {
     $t->parse('prihlaska.ubytovaniInfoOrg');
@@ -146,14 +151,15 @@ if ($u->maPravo(Pravo::UBYTOVANI_ZDARMA)) {
 $nahledy = [
     ['obrazek' => 'Triko.jpg', 'miniatura' => 'Triko_detail.jpg', 'nazev' => 'Tričko'],
     ['obrazek' => 'Tilko.jpg', 'miniatura' => 'Tilko_detail.jpg', 'nazev' => 'Tílko'],
-    ['obrazek' => 'Kostka_Duna_2022.png', 'miniatura' => 'Kostka_Duna_2022_detail.png', 'nazev' => ROCNIK === 2022 ? 'Kostka' : 'Kostka Duna'],
-    ['obrazek' => 'Kostka_Cthulhu_2021.png', 'miniatura' => 'Kostka_Cthulhu_2021_detail.png', 'nazev' => 'Kostka Cthulhu'],
+    ['obrazek' => 'Kostka_Draci_2023.jpg', 'miniatura' => 'Kostka_Draci_2023_detail.jpg', 'nazev' => 'Dračí kostka'],
+    ['obrazek' => 'Kostka_Duna_2022.png', 'miniatura' => 'Kostka_Duna_2022_detail.png', 'nazev' => $systemoveNastaveni->rocnik() === 2022 ? 'Kostka' : 'Kostka Duna'],
+    //    ['obrazek' => 'Kostka_Cthulhu_2021.png', 'miniatura' => 'Kostka_Cthulhu_2021_detail.png', 'nazev' => 'Kostka Cthulhu'],
     ['obrazek' => 'Kostka_Fate_2019.png', 'miniatura' => 'Kostka_Fate_2019_detail.png', 'nazev' => 'Fate kostka'],
     ['obrazek' => 'Placka.png', 'miniatura' => 'Placka_detail.png', 'nazev' => 'Placka'],
     ['obrazek' => 'nicknack.jpg', 'miniatura' => 'nicknack_m.jpg', 'nazev' => 'Nicknack'],
     ['obrazek' => 'Ponozky.png', 'miniatura' => 'Ponozky_detail.png', 'nazev' => 'Ponožky'],
     ['obrazek' => 'Taska.jpg', 'miniatura' => 'Taska_detail.jpg', 'nazev' => 'Taška'],
-    ['obrazek' => 'Blok.jpg', 'miniatura' => 'Blok_detail.jpg', 'nazev' => 'Taška'],
+    ['obrazek' => 'Blok.jpg', 'miniatura' => 'Blok_detail.jpg', 'nazev' => 'Blog'],
 ];
 foreach ($nahledy as $nahled) {
     $cestaKObrazku = cestaKObrazkuPredmetu($nahled['obrazek']);
@@ -205,7 +211,7 @@ $t->assign([
         : 'Přihlásit na GameCon',
     'vstupne'                         => $shop->vstupneHtml(),
     'pomoc'                           => $pomoc->html(),
-    'zaplatitNejpozdejiDo'            => $systemoveNastaveni->zacatekNejblizsiVlnyOdhlasovani()->format('j. n.'),
+    'zaplatitNejpozdejiDo'            => $systemoveNastaveni->nejpozdejiZaplatitDo()->format(DateTimeCz::FORMAT_DATUM_LETOS),
 ]);
 
 $t->parse($u->gcPrihlasen()

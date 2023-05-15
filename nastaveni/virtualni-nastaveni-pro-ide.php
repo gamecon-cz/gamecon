@@ -9,8 +9,6 @@
  */
 const KURZ_EURO = 0; // SELECT hodnota FROM systemove_nastaveni WHERE klic = 'KURZ_EURO'
 
-const BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU = 0; // SELECT hodnota FROM systemove_nastaveni WHERE klic = 'BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU'
-
 const NEPLATIC_CASTKA_VELKY_DLUH                   = 0.0; // SELECT hodnota FROM systemove_nastaveni WHERE klic = 'NEPLATIC_CASTKA_VELKY_DLUH'
 const NEPLATIC_CASTKA_POSLAL_DOST                  = 0.0; // SELECT hodnota FROM systemove_nastaveni WHERE klic = 'NEPLATIC_CASTKA_POSLAL_DOST'
 const NEPLATIC_POCET_DNU_PRED_VLNOU_KDY_JE_CHRANEN = 0; // SELECT hodnota FROM systemove_nastaveni WHERE klic = 'NEPLATIC_POCET_DNU_PRED_VLNOU_KDY_JE_CHRANEN'
@@ -30,3 +28,17 @@ const AUTOMATICKY_UZAMKNOUT_AKTIVITU_X_MINUT_PO_ZACATKU   = 0;
 const UPOZORNIT_NA_NEUZAMKNUTOU_AKTIVITU_X_MINUT_PO_KONCI = 0;
 
 const ROCNIK = 0;
+
+const BONUS_ZA_1H_AKTIVITU                  = 0;
+const BONUS_ZA_2H_AKTIVITU                  = 0;
+const BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU = 0; // SELECT hodnota FROM systemove_nastaveni WHERE klic = 'BONUS_ZA_STANDARDNI_3H_AZ_5H_AKTIVITU'
+const BONUS_ZA_6H_AZ_7H_AKTIVITU            = 0;
+const BONUS_ZA_8H_AZ_9H_AKTIVITU            = 0;
+const BONUS_ZA_10H_AZ_11H_AKTIVITU          = 0;
+const BONUS_ZA_12H_AZ_13H_AKTIVITU          = 0;
+
+const PRISTI_VLNA_AKTIVIT_KDY = null;
+
+const PRUMERNE_LONSKE_VSTUPNE = 0.0;
+
+const POSILAT_MAIL_O_ODHLASENI_A_UVOLNENEM_UBYTOVANI = false;

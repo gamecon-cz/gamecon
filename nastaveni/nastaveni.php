@@ -57,35 +57,32 @@ $systemoveNastaveni->zaznamyDoKonstant();
 // SAMOTNÝ GAMECON //
 /////////////////////
 // 2022-07-21 07:00:00 čtvrtek ve třetím týdnu v červenci
-if (!defined('GC_BEZI_OD')) define('GC_BEZI_OD', $systemoveNastaveni->dejVychoziHodnotu('GC_BEZI_OD')); // začátek GameConu (přepnutí stránek do režimu "úpravy na jen na infopultu")
+if (!defined('GC_BEZI_OD')) define('GC_BEZI_OD', $systemoveNastaveni->gcBeziOd()->formatDb()); // začátek GameConu (přepnutí stránek do režimu "úpravy na jen na infopultu")
 // 2022-07-24 21:00:00
-if (!defined('GC_BEZI_DO')) define('GC_BEZI_DO', $systemoveNastaveni->dejVychoziHodnotu('GC_BEZI_DO')); // konec GameCou (přepnutí stránek do režimu "gc skončil, úpravy nemožné")
+if (!defined('GC_BEZI_DO')) define('GC_BEZI_DO', $systemoveNastaveni->gcBeziDo()->formatDb()); // konec GameCou (přepnutí stránek do režimu "gc skončil, úpravy nemožné")
 
 ///////////////////////////
 // REGISTRACE NA GAMECON //
 ///////////////////////////
 // 2022-05-12 20:22:00
-if (!defined('REG_GC_OD')) define('REG_GC_OD', DateTimeGamecon::zacatekRegistraciUcastniku(ROCNIK)->formatDb()); // spuštění možnosti registrace na GameCon
-if (!defined('REG_GC_DO')) define('REG_GC_DO', GC_BEZI_DO); // ukončení možnosti registrace na GameCon
+if (!defined('REG_GC_OD')) define('REG_GC_OD', $systemoveNastaveni->zacatekRegistraciUcastniku(ROCNIK)->formatDb()); // spuštění možnosti registrace na GameCon
+if (!defined('REG_GC_DO')) define('REG_GC_DO', $systemoveNastaveni->konecRegistraciUcastniku(ROCNIK)->formatDb()); // ukončení možnosti registrace na GameCon
 
 ////////////////////////////////////////////////////////
 // REGISTRACE NA AKTIVITY (PRVNÍ, DRUHÁ A TŘETÍ VLNA) //
 ////////////////////////////////////////////////////////
 // 2022-05-19 20:22:00
-if (!defined('REG_AKTIVIT_OD')) define('REG_AKTIVIT_OD', DateTimeGamecon::zacatekPrvniVlnyOd(ROCNIK)->formatDb()); // spuštění možnosti registrace na aktivity, pokud jsou aktivované 1. vlna
+if (!defined('PRVNI_VLNA_KDY')) define('PRVNI_VLNA_KDY', $systemoveNastaveni->prvniVlnaKdy(ROCNIK)->formatDb()); // spuštění možnosti registrace na aktivity, pokud jsou aktivované 1. vlna
+if (!defined('DRUHA_VLNA_KDY')) define('DRUHA_VLNA_KDY', $systemoveNastaveni->druhaVlnaKdy(ROCNIK)->formatDb());
+if (!defined('TRETI_VLNA_KDY')) define('TRETI_VLNA_KDY', $systemoveNastaveni->tretiVlnaKdy(ROCNIK)->formatDb());
 if (!defined('REG_AKTIVIT_DO')) define('REG_AKTIVIT_DO', GC_BEZI_DO); // ukončení možnosti registrace na aktivity
-// 2022-06-30 23:59:00
-if (!defined('HROMADNE_ODHLASOVANI_1')) define('HROMADNE_ODHLASOVANI_1' /* a začátek třetí vlny */, DateTimeGamecon::prvniHromadneOdhlasovaniOd(ROCNIK)->formatDb()); // datum hromadného odhlašování neplatičů
-// 2022-07-17 23:59:00
-if (!defined('HROMADNE_ODHLASOVANI_2')) define('HROMADNE_ODHLASOVANI_2', DateTimeGamecon::druheHromadneOdhlasovaniOd(ROCNIK)->formatDb()); // datum druhého hromadného odhlašování neplatičů
-if (!defined('HROMADNE_ODHLASOVANI_3')) define('HROMADNE_ODHLASOVANI_3', DateTimeGamecon::tretiHromadneOdhlasovaniOd(ROCNIK)->formatDb()); // datum druhého hromadného odhlašování neplatičů
 
 // 2022-07-13 00:00:00
 if (!defined('PROGRAM_OD')) define('PROGRAM_OD', DateTimeGamecon::zacatekProgramu(ROCNIK)->formatDb()); // první den programu
 if (!defined('PROGRAM_DO')) define('PROGRAM_DO', GC_BEZI_DO); // poslední den programu
 if (!defined('PROGRAM_VIDITELNY')) define('PROGRAM_VIDITELNY', po(REG_GC_OD)); // jestli jsou viditelné linky na program
 if (!defined('CENY_VIDITELNE')) define('CENY_VIDITELNE', PROGRAM_VIDITELNY && pred(GC_BEZI_DO)); // jestli jsou viditelné ceny aktivit
-if (!defined('FINANCE_VIDITELNE')) define('FINANCE_VIDITELNE', po(REG_GC_OD)); // jestli jsou public viditelné finance
+if (!defined('FINANCE_VIDITELNE')) define('FINANCE_VIDITELNE', true); // jestli jsou public viditelné finance
 
 ///////////////////
 // Role a práva //
@@ -135,8 +132,8 @@ $GLOBALS['HLASKY']       = [
     'zamcena'              => 'Aktivitu už někdo zabral',
 ];
 $GLOBALS['HLASKY_SUBST'] = [
-    'odhlasilPlatil'              => 'Uživatel %1 (ID %2) se odhlásil z GameConu, ale v aktuálním roce (%3) si poslal %4 Kč. Bude vhodné to prověřit popř. smazat platby z připsaných a dát do zůstatku v seznamu uživatelů, aby mu peníze nepropadly',
-    'odhlasilMelUbytovani'        => 'Uživatel %1 (ID %2) se odhlásil z GameConu a v aktuálním roce (%3) měl ubytování ve dnech %4. Uvolnilo se tak místo.',
+    'odhlasilPlatil'              => 'Uživatel %1 (ID %2) %3 z GameConu, ale v aktuálním roce (%4) si poslal %5 Kč. Bude vhodné to prověřit popř. smazat platby z připsaných a dát do zůstatku v seznamu uživatelů, aby mu peníze nepropadly',
+    'odhlasilMelUbytovani'        => 'Uživatel %1 (ID %2) %3 z GameConu a v aktuálním roce (%4) měl ubytování ve dnech %5. Uvolnilo se tak místo.',
     'uvolneneMisto'               => 'Na aktivitě %1, která se koná v %2 se uvolnilo místo. Tento e-mail dostáváš, protože jsi se přihlásil k sledování uvedené aktivity. Přihlaš se na aktivitu přes <a href="https://gamecon.cz/program">program</a> (pokud nebudeš dost rychlý, je možné že místo sebere někdo jiný).',
     'chybaClenaTymu'              => 'Nepodařilo se přihlásit tým. Při přihlášování uživatele %1 (id %2) se u něj objevila chyba: %3',
     'zapomenuteHeslo'             =>
@@ -190,7 +187,7 @@ if (!defined('VYZADOVANO_COVID_POTVRZENI')) define('VYZADOVANO_COVID_POTVRZENI',
 
 // odpočítané tvrdé údaje podle dat
 if (!defined('REG_GC')) define('REG_GC', mezi(REG_GC_OD, REG_GC_DO));
-if (!defined('REG_AKTIVIT')) define('REG_AKTIVIT', mezi(REG_AKTIVIT_OD, REG_AKTIVIT_DO));
+if (!defined('REG_AKTIVIT')) define('REG_AKTIVIT', mezi(PRVNI_VLNA_KDY, REG_AKTIVIT_DO));
 if (!defined('GC_BEZI')) define('GC_BEZI', mezi(GC_BEZI_OD, GC_BEZI_DO)); // jestli gamecon aktivně běží (zakázání online registrací ubytování aj.) - do budoucna se vyvarovat a používat speciální konstanty per vlastnost
 
 if (!defined('ARCHIV_OD')) define('ARCHIV_OD', 2009);           //rok, od kterého se vedou (nabízejí) archivy (aktivit atp.)

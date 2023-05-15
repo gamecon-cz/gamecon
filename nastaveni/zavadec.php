@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\XTemplate\XTemplate;
+use Gamecon\Vyjimkovac\Vyjimkovac;
 
 ini_set('display_errors', false); // nezobrazovat chyby (lze přetížít, třeba v lokálních nastaveních)
 require_once __DIR__ . '/initial-fatal-error-handler.php'; // pro ten kritický kousek, než naběhne Tracy (Vyjimkovac)
@@ -18,9 +19,9 @@ XTemplate::cache(SPEC . '/xtpl');
 
 // zapnutí logování výjimek
 $typZobrazeni = ZOBRAZIT_STACKTRACE_VYJIMKY
-    ? \Gamecon\Vyjimkovac\Vyjimkovac::TRACY
-    : \Gamecon\Vyjimkovac\Vyjimkovac::PICARD;
-$vyjimkovac   = \Gamecon\Vyjimkovac\Vyjimkovac::vytvorZGlobals();
+    ? Vyjimkovac::TRACY
+    : Vyjimkovac::PICARD;
+$vyjimkovac   = Vyjimkovac::vytvorZGlobals();
 $vyjimkovac->zobrazeni($typZobrazeni);
 $vyjimkovac->aktivuj();
 

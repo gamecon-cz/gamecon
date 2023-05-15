@@ -2,10 +2,10 @@
 
 namespace Gamecon\Tests\Model\Role;
 
-use Gamecon\Role\RoleSqlStruktura;
-use Gamecon\Tests\Model\SqlStrukturaTest;
+use Gamecon\Role\SqlStruktura\RoleSqlStruktura;
+use Gamecon\Tests\Model\AbstractTestSqlStruktura;
 
-class RoleSqlStrukturaTest extends SqlStrukturaTest
+class RoleSqlStrukturaTest extends AbstractTestSqlStruktura
 {
     protected function strukturaClass(): string {
         return RoleSqlStruktura::class;

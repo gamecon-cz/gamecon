@@ -14,7 +14,10 @@ use Gamecon\Cas\Exceptions\InvalidModifyFormat;
  */
 class DateTimeImmutableStrict extends \DateTimeImmutable
 {
-    public function modifyStrict(string $modifier): static {
+    use DateTimeCzTrait;
+
+    public function modifyStrict(string $modifier): static
+    {
         $modified = $this->modify($modifier);
         if (!$modified) {
             throw new InvalidModifyFormat(sprintf("Can not modify %s by '%s'", static::class, $modifier));

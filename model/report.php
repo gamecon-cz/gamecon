@@ -27,8 +27,9 @@ class Report
     /**
      * Vytiskne report jako XLSX
      */
-    public function tXlsx(?string $nazevReportu, KonfiguraceReportu $konfiguraceReportu = null) {
-        $konfiguraceReportu = $konfiguraceReportu ?? new KonfiguraceReportu();
+    public function tXlsx(?string $nazevReportu, KonfiguraceReportu $konfiguraceReportu = null)
+    {
+        $konfiguraceReportu ??= new KonfiguraceReportu();
 
         $previousMemoryLimit = ini_get('memory_limit');
 
@@ -36,10 +37,15 @@ class Report
             ini_set('memory_limit', '1G');
 
             $options = new Options();
-            $writer = new Writer($options);
+            $writer  = new Writer($options);
 
-            $fileName = $this->nazevSouboru('xlsx', $nazevReportu);
-            $writer->openToBrowser($fileName); // stream data directly to the browser
+            if ($konfiguraceReportu->getDestinationFile()) {
+                $writer->openToFile($konfiguraceReportu->getDestinationFile());
+            } else {
+                $fileName = $this->nazevSouboru('xlsx', $nazevReportu);
+                // stream data directly to the browser
+                $writer->openToBrowser($fileName);
+            }
 
             if ($konfiguraceReportu->getRowToFreeze() > 0) {
                 // OpenSpout library uses 2 for first row, so it is +1 from our point of view
@@ -66,7 +72,7 @@ class Report
                 foreach ($radek as $hodnota) {
                     if ((string)(int)$hodnota === trim((string)$hodnota)) {
                         $cells[] = new Cell\NumericCell((int)$hodnota, $integerStyle);
-                    } elseif (preg_match('~^-?\d+[.,]\d{2}$~', trim((string)$hodnota))) {
+                    } else if (preg_match('~^-?\d+[.,]\d{2}$~', trim((string)$hodnota))) {
                         $cells[] = new Cell\NumericCell((float)$hodnota, $moneyStyle);
                     } else if ((string)(float)$hodnota === trim((string)$hodnota)
                         || preg_match('~^-?\d+([.,]\d+)?$~', trim((string)$hodnota))
@@ -103,7 +109,8 @@ class Report
      * @param KonfiguraceReportu $konfiguraceReportu
      * @return int[]
      */
-    private function calculateColumnsWidth(array $rows, KonfiguraceReportu $konfiguraceReportu): array {
+    private function calculateColumnsWidth(array $rows, KonfiguraceReportu $konfiguraceReportu): array
+    {
         $maxGenericColumnWidth = $konfiguraceReportu->getMaxGenericColumnWidth();
         $columnsWidths         = $konfiguraceReportu->getColumnsWidths();
         $widths                = [];
@@ -123,7 +130,7 @@ class Report
                     : 1.3;
                 $widths[$columnNumber] = max(
                     (int)ceil(mb_strlen((string)$cell->getValue()) / $ratio) + 1,
-                    $widths[$columnNumber] ?? 1 // maximum from previous rows
+                    $widths[$columnNumber] ?? 1, // maximum from previous rows
                 );
                 if ($maxGenericColumnWidth) {
                     $widths[$columnNumber] = min($widths[$columnNumber], $maxGenericColumnWidth);
@@ -133,14 +140,16 @@ class Report
         return $widths;
     }
 
-    private function nazevSouboru(string $pripona, ?string $nazevReportu): string {
+    private function nazevSouboru(string $pripona, ?string $nazevReportu): string
+    {
         $nazevReportu = $nazevReportu !== null
             ? preg_replace('~[^[:alnum:]_-]~', '_', removeDiacritics(trim($nazevReportu)))
             : $this->nazevReportuZRequestu();
         return $nazevReportu . '_' . (new \Gamecon\Cas\DateTimeCz())->formatCasSoubor() . '.' . $pripona;
     }
 
-    public function nazevReportuZRequestu(): string {
+    public function nazevReportuZRequestu(): string
+    {
         // část url za posledním lomítkem
         $posledniCastUrl    = substr($_SERVER['REQUEST_URI'], strrpos($_SERVER['REQUEST_URI'], '/') + 1);
         $poziceZacatkuQuery = strpos($posledniCastUrl, '?');
@@ -152,7 +161,8 @@ class Report
     /**
      * Vytiskne report jako CSV
      */
-    public function tCsv(string $nazevReportu = null) {
+    public function tCsv(string $nazevReportu = null)
+    {
         $fileName = $this->nazevSouboru('csv', $nazevReportu);
         header('Content-type: application/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename="' . $fileName . '"');
@@ -164,11 +174,13 @@ class Report
         }
     }
 
-    private function zapisCsvRadek($stream, array $radek) {
+    private function zapisCsvRadek($stream, array $radek)
+    {
         fputcsv($stream, $this->odstranTagyZPole($radek), $this->csvSeparator);
     }
 
-    private function odstranTagyZPole(array $values): array {
+    private function odstranTagyZPole(array $values): array
+    {
         return array_map('strip_tags', $values);
     }
 
@@ -176,13 +188,14 @@ class Report
      * Vytiskne report v zadaném formátu. Pokud není zadán, použije výchozí csv.
      * @throws Exception pokud formát není podporován
      */
-    public function tFormat(string $format = null, string $nazev = null, KonfiguraceReportu $konfiguraceReportu = null) {
+    public function tFormat(string $format = null, string $nazev = null, KonfiguraceReportu $konfiguraceReportu = null)
+    {
         $format = trim((string)$format);
         if (!$format || $format === 'xlsx') {
             $this->tXlsx($nazev, $konfiguraceReportu);
-        } elseif ($format === 'csv') {
+        } else if ($format === 'csv') {
             $this->tCsv($nazev);
-        } elseif ($format === 'html') {
+        } else if ($format === 'html') {
             $this->tHtml();
         } else {
             throw new Chyba(sprintf("Formát '%s' není podporován", $format));
@@ -192,7 +205,8 @@ class Report
     /**
      * Vytiskne report jako stranky k tisku s print CSS
      */
-    public function tXTemplate(callable $fn) {
+    public function tXTemplate(callable $fn)
+    {
         while ($radek = $this->radek()) {
             $fn($radek);
         }
@@ -201,7 +215,8 @@ class Report
     /**
      * Vytiskne report jako HTML tabulku
      */
-    public function tHtml($param = 0) {
+    public function tHtml($param = 0)
+    {
         if (!($param & self::BEZ_STYLU)) {
             echo <<<HTML
 <style>
@@ -225,14 +240,16 @@ HTML;
     /**
      * Vytvoří report z asoc. polí, jako hlavičky použije klíče
      */
-    static function zPole($pole) {
+    static function zPole($pole)
+    {
         return self::zPoli(array_keys($pole[0]), $pole);
     }
 
     /**
      * Vytvoří report z asoc. polí, jako hlavičky použije klíče
      */
-    static function zPoleSDvojitouHlavickou(array $pole, int $parametry = 0) {
+    static function zPoleSDvojitouHlavickou(array $pole, int $parametry = 0)
+    {
         $hlavniHlavicka   = [];
         $obsah            = [];
         $vedlejsiHlavicka = [];
@@ -275,7 +292,8 @@ HTML;
      * @param array $hlavicky hlavičkový řádek
      * @param array $obsah pole normálních řádků
      */
-    static function zPoli(array $hlavicky, array $obsah): self {
+    static function zPoli(array $hlavicky, array $obsah): self
+    {
         $report            = new static();
         $report->hlavicky  = $hlavicky;
         $report->poleObsah = $obsah;
@@ -287,7 +305,8 @@ HTML;
      * @param string $dotaz
      * @param array|null $dotazParametry = []
      */
-    static function zSql(string $dotaz, array $dotazParametry = null): self {
+    static function zSql(string $dotaz, array $dotazParametry = null): self
+    {
         $report               = new static();
         $report->sql          = $dotaz;
         $report->sqlParametry = $dotazParametry;
@@ -300,7 +319,8 @@ HTML;
      * @param string[][] $pole
      * @return string[]
      */
-    public static function dejIndexyKlicuPodsloupcuDruhehoRadkuDleKliceVPrvnimRadku(string $hledanyKlicHlavnihoSloupce, array $pole): array {
+    public static function dejIndexyKlicuPodsloupcuDruhehoRadkuDleKliceVPrvnimRadku(string $hledanyKlicHlavnihoSloupce, array $pole): array
+    {
         $prvniRadek = reset($pole);
         if (!$prvniRadek) {
             return [];
@@ -324,7 +344,8 @@ HTML;
         }, $indexyKlicuPodsloupcu);
     }
 
-    public static function dejIndexKlicePodsloupceDruhehoRadku(string $hledanyKlicPodsloupce, array $pole): ?int {
+    public static function dejIndexKlicePodsloupceDruhehoRadku(string $hledanyKlicPodsloupce, array $pole): ?int
+    {
         $prvniRadek = reset($pole);
         if (!$prvniRadek) {
             return null;
@@ -348,10 +369,12 @@ HTML;
     /**
      * Konstruktor
      */
-    protected function __construct() {
+    protected function __construct()
+    {
     }
 
-    private function hlavicky() {
+    private function hlavicky()
+    {
         if ($this->hlavicky) {
             return $this->hlavicky;
         }
@@ -365,7 +388,8 @@ HTML;
         return $this->hlavicky;
     }
 
-    private function radek() {
+    private function radek()
+    {
         if (isset($this->poleObsah)) {
             $t = current($this->poleObsah);
             next($this->poleObsah);

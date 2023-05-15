@@ -35,9 +35,20 @@ document.addEventListener('DOMContentLoaded', function () {
     })
   })
 
+  if (window.location.hash) {
+    const urlHash = window.location.hash
+    const idFromHash = urlHash.trim().replace('#', '').toUpperCase()
+    const elementProZvyrazneni = document.getElementById(idFromHash)
+    if (elementProZvyrazneni) {
+      elementProZvyrazneni.classList.add('zvyrazni')
+    }
+  }
+
+  // class pro zvýraznění může také přijít z PHP, viz \Gamecon\SystemoveNastaveni\SystemoveNastaveniHtml::vypisSkupinu
   Array.from(nastaveniElement.getElementsByClassName('zvyrazni')).forEach(function (zvyrazniElement) {
     zablikej(zvyrazniElement)
   })
+
 })
 
 class SystemoveNastaveni {
@@ -178,7 +189,7 @@ class SystemoveNastaveni {
    * 		"klic": string,
    * 		"hodnota": string,
    * 		"datovy_typ": string,
-   * 		"aktivni": string,
+   * 		"vlastni": string,
    * 		"nazev": string,
    * 		"popis": string,
    * 		"kdy": string,
@@ -201,16 +212,16 @@ class SystemoveNastaveni {
     popisElement.innerHTML = novaData.popis
 
     if (inputNode.type === 'checkbox') {
-      this.zobrazHodnotuPodleAktivity(Boolean(Number(novaData.aktivni)), novaData.klic)
+      this.zobrazHodnotuPodleAktivity(Boolean(Number(novaData.vlastni)), novaData.klic)
     }
   }
 
   /**
-   * @param {boolean} aktivni
+   * @param {boolean} vlastni
    * @param {string} klic
    */
-  zobrazHodnotuPodleAktivity(aktivni, klic) {
-    if (aktivni) {
+  zobrazHodnotuPodleAktivity(vlastni, klic) {
+    if (vlastni) {
       const vychoziHodnotaNode = document.getElementById(`vychozi-hodnota-${klic}`)
       vychoziHodnotaNode.style.display = 'none'
       const hodnotaNode = document.getElementById(`hodnota-${klic}`)

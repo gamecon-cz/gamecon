@@ -8,14 +8,14 @@
  * @var Uzivatel|null|void $u
  * @var Uzivatel|null|void $uPracovni
  * @var \Gamecon\Vyjimkovac\Vyjimkovac $vyjimkovac
- */
-
-/**
  * @var \Gamecon\Shop\Shop|null $shop
+ * @var \Gamecon\SystemoveNastaveni\SystemoveNastaveni $systemoveNastaveni
  */
 
 use Gamecon\Role\Role;
 use Gamecon\Uzivatel\Finance;
+use Gamecon\Uzivatel\Exceptions\DuplicitniEmail;
+use Gamecon\Uzivatel\Exceptions\DuplicitniLogin;
 
 if (!empty($_POST['datMaterialy']) && $uPracovni && $uPracovni->gcPrihlasen()) {
     $uPracovni->pridejRoli(Role::PRIHLASEN_NA_LETOSNI_GC, $u);
@@ -28,7 +28,7 @@ if (!empty($_POST['gcPrihlas']) && $uPracovni && !$uPracovni->gcPrihlasen()) {
 }
 
 if (!empty($_POST['gcOdhlas']) && $uPracovni && !$uPracovni->gcPritomen() && $u->maRoli(Role::CFO)) {
-    $uPracovni->gcOdhlas($u);
+    $uPracovni->odhlasZGc('rucne-inpfopult', $u);
     back();
 }
 
@@ -57,7 +57,7 @@ if (post('platba') && $uPracovni) {
 }
 
 if ($uPracovni && ($idPolozky = post(Finance::KLIC_ZRUS_NAKUP_POLOZKY)) && $u->jeSpravceFinanci()) {
-    if ($uPracovni->dejShop()->zrusNakupPredmetu($idPolozky, -1 /* vsechny */)) {
+    if ($uPracovni->shop()->zrusNakupPredmetu($idPolozky, -1 /* vsechny */)) {
         oznameni('Nákup položky zrušen');
     }
 }
@@ -72,9 +72,9 @@ if (!empty($_POST['rychloreg'])) {
         $nid = Uzivatel::rychloreg($tab, [
             'informovat' => post('informovat'),
         ]);
-    } catch (DuplicitniEmailException $e) {
+    } catch (DuplicitniEmail $e) {
         throw new Chyba('Uživatel s zadaným e-mailem už v databázi existuje');
-    } catch (DuplicitniLoginException $e) {
+    } catch (DuplicitniLogin $e) {
         throw new Chyba('Uživatel s loginem odpovídajícím zadanému e-mailu už v databázi existuje');
     }
     if ($nid) {
@@ -126,7 +126,7 @@ if (!empty($_POST['prodej'])) {
 function updateUzivatelHodnoty(array $udaje, int $uPracovniId, \Gamecon\Vyjimkovac\Vyjimkovac $vyjimkovac): int {
     try {
         $result = dbUpdate('uzivatele_hodnoty', $udaje, ['id_uzivatele' => $uPracovniId]);
-        return dbNumRows($result);
+        return dbAffectedOrNumRows($result);
     } catch (Exception $e) {
         $vyjimkovac->zaloguj($e);
         chyba('Došlo k neočekávané chybě.');
@@ -155,7 +155,7 @@ if ($uPracovni && $udaje = post('udaje')) {
 }
 
 if (post('zpracujUbytovani')) {
-    $shop->zpracujUbytovani(false);
+    $shop->zpracujUbytovani(false, false);
     oznameni('Ubytování uloženo');
 }
 

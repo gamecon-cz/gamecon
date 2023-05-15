@@ -2,10 +2,10 @@
 
 namespace Gamecon\Tests\Model\Finance;
 
-use Gamecon\Finance\SlevySqlStruktura;
-use Gamecon\Tests\Model\SqlStrukturaTest;
+use Gamecon\Finance\SqlStruktura\SlevySqlStruktura;
+use Gamecon\Tests\Model\AbstractTestSqlStruktura;
 
-class SlevySqlStrukturaTest extends SqlStrukturaTest
+class SlevySqlStrukturaTest extends AbstractTestSqlStruktura
 {
     protected function strukturaClass(): string {
         return SlevySqlStruktura::class;

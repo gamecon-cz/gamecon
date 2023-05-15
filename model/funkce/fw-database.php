@@ -4,12 +4,14 @@
  * Global variables used by certain functions
  * not all of them, see also dbConnect()
  */
+global $dbTransactionDepth;
 $dbTransactionDepth = 0;
 
 /**
  * Load one column into array in $id => $value manner
  */
-function dbArrayCol($q, $param = null, mysqli $mysqli = null) {
+function dbArrayCol($q, $param = null, mysqli $mysqli = null)
+{
     $a = dbQueryS($q, $param, $mysqli);
     $o = [];
     while ($r = mysqli_fetch_row($a)) {
@@ -22,7 +24,8 @@ function dbArrayCol($q, $param = null, mysqli $mysqli = null) {
  * Begins transaction
  * @todo support fake nesting by savepoints
  */
-function dbBegin() {
+function dbBegin()
+{
     if ($GLOBALS['dbTransactionDepth'] == 0) {
         dbQuery('BEGIN');
     } else {
@@ -34,7 +37,8 @@ function dbBegin() {
 /**
  * Commits transaction
  */
-function dbCommit() {
+function dbCommit()
+{
     if ($GLOBALS['dbTransactionDepth'] == 0) {
         throw new Exception('nothing to commit');
     }
@@ -49,7 +53,8 @@ function dbCommit() {
 /**
  * Commits transaction
  */
-function dbRollback() {
+function dbRollback()
+{
     if ($GLOBALS['dbTransactionDepth'] == 0) {
         return;
     }
@@ -61,10 +66,32 @@ function dbRollback() {
     $GLOBALS['dbTransactionDepth']--;
 }
 
+function dbConnectTemporary(
+    bool              $selectDb = true,
+    int               $rocnik = ROCNIK,
+    mysqli|null|false $stareSpojeni = null,
+): \mysqli
+{
+    $noveSpojeni = _dbConnect(
+        DB_SERV,
+        DB_USER,
+        DB_PASS,
+        defined('DB_PORT') ? DB_PORT : null,
+        $selectDb ? DB_NAME : null,
+        false,
+    );
+    if ($noveSpojeni && $stareSpojeni !== $noveSpojeni) {
+        _nastavRocnikDoSpojeni($rocnik, $noveSpojeni, $selectDb);
+    }
+
+    return $noveSpojeni;
+}
+
 /**
  * @throws ConnectionException
  */
-function dbConnect($selectDb = true, bool $reconnect = false, int $rocnik = ROCNIK): \mysqli {
+function dbConnect($selectDb = true, bool $reconnect = false, int $rocnik = ROCNIK): \mysqli
+{
     if ($reconnect) {
         dbClose();
     }
@@ -76,27 +103,37 @@ function dbConnect($selectDb = true, bool $reconnect = false, int $rocnik = ROCN
     }
 
     $stareSpojeni = $spojeni;
-    $noveSpojeni  = _dbConnect(
-        DB_SERV,
-        DB_USER,
-        DB_PASS,
-        defined('DB_PORT') ? DB_PORT : null,
-        $selectDb ? DB_NAME : null,
-        $reconnect
-    );
+    try {
+        $noveSpojeni = _dbConnect(
+            DB_SERV,
+            DB_USER,
+            DB_PASS,
+            defined('DB_PORT') ? DB_PORT : null,
+            $selectDb ? DB_NAME : null,
+        );
+    } catch (Throwable $throwable) {
+        $spojeni = null; // aby bylo možné zachytit exception a zkusit spojení znovu
+        throw $throwable;
+    }
     if ($noveSpojeni && $stareSpojeni !== $noveSpojeni) {
-        dbQuery('SET @rocnik = IF(@rocnik IS NOT NULL, @rocnik, $0)', $rocnik, $noveSpojeni);
-        if ($selectDb) {
-            // pro SQL view, který nesnese variable
-            dbQuery("UPDATE systemove_nastaveni SET hodnota = $0 WHERE klic = 'ROCNIK'", $rocnik, $noveSpojeni);
-        }
+        _nastavRocnikDoSpojeni($rocnik, $noveSpojeni, $selectDb);
     }
     $spojeni = $noveSpojeni;
 
     return $noveSpojeni;
 }
 
-function dbClose() {
+function _nastavRocnikDoSpojeni(int $rocnik, mysqli $spojeni, bool $databaseSelected)
+{
+    dbQuery('SET @rocnik = IF(@rocnik IS NOT NULL, @rocnik, $0)', $rocnik, $spojeni);
+    if ($databaseSelected) {
+        // pro SQL view, který nesnese variable
+        dbQuery("UPDATE systemove_nastaveni SET hodnota = $0 WHERE klic = 'ROCNIK'", $rocnik, $spojeni);
+    }
+}
+
+function dbClose()
+{
     global $spojeni;
 
     if ($spojeni) {
@@ -109,30 +146,32 @@ function dbClose() {
  * @param bool $selectDb if database should be selected on connect or not
  * @throws ConnectionException
  */
-function dbConnectForAlterStructure($selectDb = true) {
+function dbConnectForAlterStructure($selectDb = true)
+{
     return _dbConnect(
         DBM_SERV,
         DBM_USER,
         DBM_PASS,
         defined('DBM_PORT') ? DBM_PORT : null,
-        $selectDb ? DBM_NAME : null
+        $selectDb ? DBM_NAME : null,
     );
 }
 
-function dbConnectionAnonymDb(): mysqli {
+function dbConnectionAnonymDb(): mysqli
+{
     $connection = _dbConnect(
         DB_ANONYM_SERV,
         DB_ANONYM_USER,
         DB_ANONYM_PASS,
         defined('DB_ANONYM_PORT') ? (int)DB_ANONYM_PORT : null,
-        null
+        null,
     );
     $dbAnonym   = DB_ANONYM_NAME;
     $result     = mysqli_query(
         $connection,
         <<<SQL
             SHOW DATABASES LIKE '$dbAnonym'
-        SQL
+        SQL,
     );
     $exists     = mysqli_fetch_column($result);
     if ($exists) {
@@ -140,7 +179,7 @@ function dbConnectionAnonymDb(): mysqli {
             $connection,
             <<<SQL
             USE `$dbAnonym`
-        SQL
+        SQL,
         );
     }
     return $connection;
@@ -150,12 +189,29 @@ function dbConnectionAnonymDb(): mysqli {
  * @param bool $selectDb if database should be selected on connect or not
  * @throws ConnectionException
  */
-function _dbConnect(string $dbHost, string $dbUser, string $dbPass, ?int $dbPort, ?string $dbName, bool $reconnect = false) {
-    dbDisconnectOnShutdown();
-
+function _dbConnect(
+    string  $dbHost,
+    string  $dbUser,
+    string  $dbPass,
+    ?int    $dbPort,
+    ?string $dbName,
+    bool    $persistent = true,
+)
+{
     try {
         // persistent connection
-        $spojeni = @mysqli_connect('p:' . $dbHost, $dbUser, $dbPass, $dbName ?? '', $dbPort);
+        $spojeni = @mysqli_connect(
+            $persistent
+                ? "p:$dbHost"
+                : $dbHost,
+            $dbUser,
+            $dbPass,
+            $dbName ?? '',
+            $dbPort,
+        );
+        if ($spojeni) {
+            dbDisconnectOnShutdown($spojeni);
+        }
     } catch (\Throwable $throwable) {
         throw new ConnectionException(
             "Failed to connect to the database, error: '{$throwable->getMessage()}'",
@@ -164,7 +220,6 @@ function _dbConnect(string $dbHost, string $dbUser, string $dbPass, ?int $dbPort
         );
     }
     if (!$spojeni) {
-        $spojeni = null; // aby bylo možné zachytit exception a zkusit spojení znovu
         throw new ConnectionException('Failed to connect to the database, error: "' . mysqli_connect_error() . '".');
     }
     if (!$spojeni->query('SET NAMES utf8 COLLATE utf8_czech_ci')) {
@@ -175,24 +230,29 @@ function _dbConnect(string $dbHost, string $dbUser, string $dbPass, ?int $dbPort
     return $spojeni;
 }
 
-function dbDisconnectOnShutdown() {
-    if (defined('DB_DISCONNECT_ON_SHUTDOWN_REGISTERED')) {
-        return;
+function dbDisconnectOnShutdown(mysqli $spojeni)
+{
+    global $vsechnaSpojeni;
+    if (!$vsechnaSpojeni) {
+        $vsechnaSpojeni = [];
     }
-    register_shutdown_function(static function () {
-        global $spojeni;
-        if ($spojeni && (mysqli_get_connection_stats($spojeni)['active_connections'] ?? false)) {
-            mysqli_close($spojeni);
-            $spojeni = null;
+    $vsechnaSpojeni[] = $spojeni;
+
+    register_shutdown_function(static function () use ($spojeni) {
+        if ($spojeni) {
+            try {
+                mysqli_close($spojeni);
+            } catch (\Throwable) {
+            }
         }
     });
-    define('DB_DISCONNECT_ON_SHUTDOWN_REGISTERED', true);
 }
 
 /**
  * Deletes from $table where all $whereArray column => value conditions are met
  */
-function dbDelete($table, $whereArray) {
+function dbDelete($table, $whereArray)
+{
     $where = [];
     foreach ($whereArray as $col => $val) {
         $where[] = dbQi($col) . ' = ' . dbQv($val);
@@ -204,7 +264,8 @@ function dbDelete($table, $whereArray) {
 /**
  * Returns 2D array with table structure description
  */
-function dbDescribe($table) {
+function dbDescribe($table)
+{
     $a   = dbQuery('show full columns from ' . dbQi($table));
     $out = [];
     while ($r = mysqli_fetch_assoc($a)) $out[] = $r;
@@ -214,11 +275,13 @@ function dbDescribe($table) {
 /**
  * Returns time spent in database
  */
-function dbExecTime() {
+function dbExecTime()
+{
     return isset($GLOBALS['dbExecTime']) ? $GLOBALS['dbExecTime'] : 0.0;
 }
 
-function throwDbException($spojeni = null) {
+function throwDbException($spojeni = null)
+{
     $type    = dbGetExceptionType($spojeni);
     $message = dbGetExceptionMessage($spojeni);
     throw new $type($message);
@@ -227,14 +290,16 @@ function throwDbException($spojeni = null) {
 /**
  * Returns instance of concrete DbException based on error message
  */
-function dbGetExceptionType($spojeni = null) {
+function dbGetExceptionType($spojeni = null)
+{
     if (mysqli_errno($spojeni ?? $GLOBALS['spojeni']) === 1062) {
         return DbDuplicateEntryException::class;
     }
     return DbException::class;
 }
 
-function dbCreateExceptionFromMysqliException(mysqli_sql_exception $mysqliException): DbException|DbDuplicateEntryException {
+function dbCreateExceptionFromMysqliException(mysqli_sql_exception $mysqliException): DbException|DbDuplicateEntryException
+{
     $exceptionClass = $mysqliException->getCode() === 1062
         ? DbDuplicateEntryException::class
         : DbException::class;
@@ -244,7 +309,8 @@ function dbCreateExceptionFromMysqliException(mysqli_sql_exception $mysqliExcept
 /**
  * Returns instance of concrete DbException based on error message
  */
-function dbGetExceptionMessage($spojeni = null) {
+function dbGetExceptionMessage($spojeni = null)
+{
     return mysqli_error($spojeni ?? $GLOBALS['spojeni']);
 }
 
@@ -253,7 +319,8 @@ function dbGetExceptionMessage($spojeni = null) {
  * @throws DbDuplicateEntryException
  * @throws DbException
  */
-function dbInsert($table, $valArray, bool $ignore = false) {
+function dbInsert($table, $valArray, bool $ignore = false)
+{
     global $dbLastQ;
     $sloupce = '';
     $hodnoty = '';
@@ -276,7 +343,8 @@ function dbInsert($table, $valArray, bool $ignore = false) {
  * @throws DbDuplicateEntryException
  * @throws DbException
  */
-function dbMysqliQuery(string $query, mysqli $mysqli = null): bool|mysqli_result {
+function dbMysqliQuery(string $query, mysqli $mysqli = null): bool|mysqli_result
+{
     try {
         if (!$r = mysqli_query($mysqli ?? dbConnect(), $query)) {
             $type = dbGetExceptionType();
@@ -293,7 +361,8 @@ function dbMysqliQuery(string $query, mysqli $mysqli = null): bool|mysqli_result
  * @param array $valArray
  * @throws DbException
  */
-function dbInsertIgnore(string $table, array $valArray) {
+function dbInsertIgnore(string $table, array $valArray)
+{
     dbInsert($table, $valArray, true);
 }
 
@@ -302,13 +371,14 @@ function dbInsertIgnore(string $table, array $valArray) {
  * @return string[][]
  * @throws DbException
  */
-function getTableUniqueKeysColumns(string $tableName): array {
+function getTableUniqueKeysColumns(string $tableName): array
+{
     static $primaryKeysColumns = [];
     if (!isset($primaryKeysColumns[$tableName])) {
         $uniqueKeysDetails = dbFetchAll(<<<SQL
 SHOW INDEXES FROM `$tableName`
 WHERE `Non_unique` = 0
-SQL
+SQL,
         );
         foreach ($uniqueKeysDetails as $uniqueKeyDetails) {
             // index can be combined from multiple columns
@@ -323,7 +393,8 @@ SQL
 /**
  * Return last AUTO INCREMENT value
  */
-function dbInsertId(bool $strict = true) {
+function dbInsertId(bool $strict = true)
+{
     global $dbLastQ;
     $id = mysqli_insert_id($GLOBALS['spojeni']);
     if ($strict && (!is_int($id) || $id == 0)) {
@@ -332,7 +403,8 @@ function dbInsertId(bool $strict = true) {
     return $id;
 }
 
-function dbRecordExists(string $table, array $values): bool {
+function dbRecordExists(string $table, array $values): bool
+{
     $sqlValuesArray = [];
     foreach ($values as $column => $value) {
         $sqlValuesArray[] = dbQi($column) . '=' . dbQv($value);
@@ -340,17 +412,18 @@ function dbRecordExists(string $table, array $values): bool {
     $sqlValues = implode(' AND ', $sqlValuesArray);
     return (bool)dbFetchSingle(<<<SQL
 SELECT EXISTS(SELECT * FROM $table WHERE $sqlValues)
-SQL
+SQL,
     );
 }
 
 /**
  * Insert with actualisation
- * @see dbInsert
  * @return mysqli|bool
  * @throws DbException
+ * @see dbInsert
  */
-function dbInsertUpdate($table, $valArray) {
+function dbInsertUpdate($table, $valArray)
+{
     $uniqueKeysColumns = getTableUniqueKeysColumns($table);
     if ($uniqueKeysColumns) {
         $completeUniqueKeyValues = [];
@@ -362,7 +435,7 @@ function dbInsertUpdate($table, $valArray) {
         }
         if ($completeUniqueKeyValues) {
             $query = dbUpdate($table, $valArray, $completeUniqueKeyValues);
-            if (dbNumRows($query) > 0) {
+            if (dbAffectedOrNumRows($query) > 0) {
                 return $query;
             }
             if (dbRecordExists($table, $completeUniqueKeyValues)) {
@@ -388,7 +461,8 @@ function dbInsertUpdate($table, $valArray) {
 /**
  * Return last query
  */
-function dbLastQ() {
+function dbLastQ()
+{
     global $dbLastQ;
     return $dbLastQ;
 }
@@ -396,7 +470,8 @@ function dbLastQ() {
 /**
  * If this is used as value in update then column value will be not changed.
  */
-function dbNoChange() {
+function dbNoChange()
+{
     return new DbNoChange;
 }
 
@@ -404,21 +479,37 @@ function dbNoChange() {
  * Returns current time in databse compatible datetime format
  * @todo what about changing to 'now' (because of transactions and stuff)
  */
-function dbNow() {
+function dbNow()
+{
     return date('Y-m-d H:i:s');
 }
 
 /**
  * Returns number of queries on this connection
  */
-function dbNumQ() {
+function dbNumQ()
+{
     return isset($GLOBALS['dbNumQ']) ? $GLOBALS['dbNumQ'] : 0;
 }
 
 /**
- * @return number of rows affected / returned by query
+ * @param $query
+ * @return int
+ * @throws Exception
+ * @deprecated
+ * use @see dbAffectedOrNumRows instead
  */
-function dbNumRows($query): int {
+function dbNumRows($query): int
+{
+    return dbAffectedOrNumRows($query);
+}
+
+/**
+ * @return int of rows affected / returned by query
+ * @throws Exception
+ */
+function dbAffectedOrNumRows($query): int
+{
     if ($query === true) {
         // result of mysqli_query INSERT / UPDATE / DELETE
         return $GLOBALS['dbAffectedRows'] ?? 0;
@@ -433,7 +524,8 @@ function dbNumRows($query): int {
 /**
  * Expects one column in select. Returns array of selected values.
  */
-function dbOneArray($q, $p = null) {
+function dbOneArray($q, $p = null)
+{
     $o = dbQuery($q, $p);
     $a = [];
     while (list($v) = mysqli_fetch_row($o)) {
@@ -445,7 +537,8 @@ function dbOneArray($q, $p = null) {
 /**
  * For selecting single-line one column value
  */
-function dbOneCol($q, array $p = null, ?mysqli $mysqli = null) {
+function dbOneCol($q, array $p = null, ?mysqli $mysqli = null)
+{
     $a = dbOneLine($q, $p, $mysqli);
     return $a ? current($a) : null;
 }
@@ -453,7 +546,8 @@ function dbOneCol($q, array $p = null, ?mysqli $mysqli = null) {
 /**
  * Expects one column in select, returns array structured like: col value => true.
  */
-function dbOneIndex($q, $p = null) {
+function dbOneIndex($q, $p = null)
+{
     $o = dbQuery($q, $p);
     $a = [];
     while (list($v) = mysqli_fetch_row($o)) {
@@ -467,7 +561,8 @@ function dbOneIndex($q, $p = null) {
  * false, otherwise returns associative array with one line. If multiple lines
  * found, causes crash.
  */
-function dbOneLine($q, $p = null, ?mysqli $mysqli = null): array {
+function dbOneLine($q, $p = null, ?mysqli $mysqli = null): array
+{
     $r = dbQueryS($q, $p, $mysqli);
     if (mysqli_num_rows($r) > 1) {
         throw new RuntimeException('Multiple lines matched on query ' . $q);
@@ -478,7 +573,8 @@ function dbOneLine($q, $p = null, ?mysqli $mysqli = null): array {
     return mysqli_fetch_assoc($r) ?: [];
 }
 
-function dbFetchRow(string $query, array $params = [], mysqli $mysqli = null): array {
+function dbFetchRow(string $query, array $params = [], mysqli $mysqli = null): array
+{
     return dbOneLine($query, $params, $mysqli);
 }
 
@@ -489,7 +585,8 @@ function dbFetchRow(string $query, array $params = [], mysqli $mysqli = null): a
  * @return array
  * @throws DbException
  */
-function dbFetchAll(string $query, array $params = [], mysqli $mysqli = null): array {
+function dbFetchAll(string $query, array $params = [], mysqli $mysqli = null): array
+{
     $result        = dbQuery($query, $params, $mysqli);
     $resultAsArray = [];
     while ($row = mysqli_fetch_assoc($result)) {
@@ -498,7 +595,8 @@ function dbFetchAll(string $query, array $params = [], mysqli $mysqli = null): a
     return $resultAsArray;
 }
 
-function dbFetchColumn(string $query, array $params = [], mysqli $connection = null): array {
+function dbFetchColumn(string $query, array $params = [], mysqli $connection = null): array
+{
     $result       = dbQuery($query, $params, $connection);
     $columnValues = [];
     while ($row = mysqli_fetch_array($result)) {
@@ -507,7 +605,8 @@ function dbFetchColumn(string $query, array $params = [], mysqli $connection = n
     return $columnValues;
 }
 
-function dbFetchPairs(string $query, array $params = [], mysqli $connection = null): array {
+function dbFetchPairs(string $query, array $params = [], mysqli $connection = null): array
+{
     $result = dbQuery($query, $params, $connection);
     $pairs  = [];
     while ($row = mysqli_fetch_array($result)) {
@@ -516,10 +615,13 @@ function dbFetchPairs(string $query, array $params = [], mysqli $connection = nu
     return $pairs;
 }
 
-function dbFetchSingle(string $query, array $params = []) {
+function dbFetchSingle(string $query, array $params = [])
+{
     $result = dbQuery($query, $params);
     $row    = mysqli_fetch_array($result);
-    return reset($row);
+    return $row
+        ? reset($row)
+        : null;
 }
 
 /**
@@ -529,7 +631,8 @@ function dbFetchSingle(string $query, array $params = []) {
  * @return bool|mysqli_result
  * @throws DbException|DbDuplicateEntryException
  */
-function dbQuery($q, $param = null, mysqli $mysqli = null): bool|mysqli_result {
+function dbQuery($q, $param = null, mysqli $mysqli = null): bool|mysqli_result
+{
     if ($param) {
         return dbQueryS($q, (array)$param, $mysqli);
     }
@@ -556,7 +659,8 @@ function dbQuery($q, $param = null, mysqli $mysqli = null): bool|mysqli_result {
  * Dotaz s nahrazováním jmen proměnných, pokud je nastaveno pole, tak jen z
  * pole ve forme $0 $1 atd resp $index
  */
-function dbQueryS($q, array $pole = null, mysqli $mysqli = null) {
+function dbQueryS($q, array $pole = null, mysqli $mysqli = null)
+{
     if (!$pole) {
         return dbQuery($q, null, $mysqli);
     }
@@ -569,10 +673,10 @@ function dbQueryS($q, array $pole = null, mysqli $mysqli = null) {
             static function (array $matches) use ($pole, $delta) {
                 return dbQv($pole[$matches['cislo_parametru'] + $delta]);
             },
-            $q
+            $q,
         ),
         null,
-        $mysqli
+        $mysqli,
     );
 }
 
@@ -580,7 +684,8 @@ function dbQueryS($q, array $pole = null, mysqli $mysqli = null) {
  * Quotes array to be used in IN(1,2,3..N) queries
  * @example 'something IN('.dbQa($array).')'
  */
-function dbQa(array $array): string {
+function dbQa(array $array): string
+{
     if (count($array) === 0) {
         return 'NULL';
     }
@@ -595,7 +700,8 @@ function dbQa(array $array): string {
  * Quotes input values for DB. Nulls are passed as real NULLs, other values as
  * strings. Quotes $val as value
  */
-function dbQv($val): string {
+function dbQv($val): string
+{
     if (is_array($val)) {
         return implode(',', array_map('dbQv', $val));
     }
@@ -614,7 +720,8 @@ function dbQv($val): string {
 /**
  * Quotes $val as identifier
  */
-function dbQi($val) {
+function dbQi($val)
+{
     return '`' . mysqli_real_escape_string(dbConnect(), $val) . '`';
 }
 
@@ -623,7 +730,8 @@ function dbQi($val) {
  * pairs and $where as column=>value AND column=>value ... where clause
  * @return bool|mysqli
  */
-function dbUpdate(string $table, array $vals, array $where) {
+function dbUpdate(string $table, array $vals, array $where)
+{
     if ($vals === []) {
         return null;
     }
@@ -665,11 +773,12 @@ class ConnectionException extends DbException
 class DbException extends RuntimeException
 {
 
-    public function __construct($message = null, int $code = null, Throwable $previous = null) {
+    public function __construct($message = null, int $code = null, Throwable $previous = null)
+    {
         parent::__construct(
             $message ?? (mysqli_error($GLOBALS['spojeni']) . ' caused by ' . $GLOBALS['dbLastQ']),
             $code ?? mysqli_errno($GLOBALS['spojeni']),
-            $previous
+            $previous,
         );
     }
 
@@ -680,13 +789,15 @@ class DbDuplicateEntryException extends DbException
 
     private $key;
 
-    public function __construct($message = null, int $code = null, Throwable $previous = null) {
+    public function __construct($message = null, int $code = null, Throwable $previous = null)
+    {
         parent::__construct($message, $code, $previous);
         preg_match("@Duplicate entry '([^']*)' for key '([^']+)'@", $this->message, $m);
         $this->key = $m[2] ?? '';
     }
 
-    public function key(): string {
+    public function key(): string
+    {
         return $this->key;
     }
 

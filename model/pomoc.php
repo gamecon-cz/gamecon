@@ -1,6 +1,7 @@
 <?php
 
 use Gamecon\XTemplate\XTemplate;
+use Gamecon\Uzivatel\SqlStruktura\UzivatelSqlStruktura as Sql;
 
 /**
  * GUI Element starající se o zobrazení / uložení uživatelova přání pomoct
@@ -14,7 +15,8 @@ class Pomoc
 
     private static $typy; // tabulka s typy pomoci a jejich popisy
 
-    public function __construct(Uzivatel $u) {
+    public function __construct(Uzivatel $u)
+    {
         $this->u = $u;
         $this->r = dbOneLine('SELECT pomoc_typ, pomoc_vice FROM uzivatele_hodnoty WHERE id_uzivatele = $1', [$this->u->id()]);
         if (!isset(self::$typy)) {
@@ -22,17 +24,18 @@ class Pomoc
         }
     }
 
-    public function html() {
+    public function html()
+    {
         $t = new XTemplate(__DIR__ . '/pomoc.xtpl');
         $t->assign([
-            'postname' => $this->pn,
-            'a' => $this->u->koncovkaDlePohlavi(),
+            'postname'    => $this->pn,
+            'a'           => $this->u->koncovkaDlePohlavi(),
             'displayVice' => $this->r['pomoc_typ'] ? 'block' : 'none',
-            'vChci' => $this->r['pomoc_typ'] ? 'checked' : '',
-            'vDetail' => $this->r['pomoc_vice'],
+            'vChci'       => $this->r['pomoc_typ'] ? 'checked' : '',
+            'vDetail'     => $this->r['pomoc_vice'],
         ]);
-        $koncovky = [
-            '{a}' => $this->u->koncovkaDlePohlavi(),
+        $koncovky   = [
+            '{a}'  => $this->u->koncovkaDlePohlavi(),
             '{ka}' => $this->u->koncovkaDlePohlavi() ? 'ka' : '',
             '{ík}' => $this->u->koncovkaDlePohlavi() ? 'ice' : 'ík',
         ];
@@ -40,9 +43,9 @@ class Pomoc
 
         foreach (self::$typy as $typ) {
             $t->assign([
-                'id' => $typ[0],
-                'nazev' => mb_ucfirst(strtr($typ[1], $koncovky)),
-                'popis' => strtr($typ[2], $koncovky),
+                'id'      => $typ[0],
+                'nazev'   => mb_ucfirst(strtr($typ[1], $koncovky)),
+                'popis'   => strtr($typ[2], $koncovky),
                 'checked' => $vybranyTyp == $typ[0] ? 'checked' : '',
             ]);
             $t->parse('pomoc.typ');
@@ -52,20 +55,21 @@ class Pomoc
         return $t->text('pomoc');
     }
 
-    public function zpracuj() {
+    public function zpracuj()
+    {
         if (!isset($_POST[$this->pn])) {
             return;
         }
         $p = $_POST[$this->pn];
         if (empty($p['chci'])) {
-            $p['typ'] = null;
+            $p['typ']    = null;
             $p['detail'] = null;
         }
-        dbUpdate('uzivatele_hodnoty', [
-            'pomoc_typ' => $p['typ'],
-            'pomoc_vice' => $p['detail'],
+        dbUpdate(Sql::UZIVATEL_TABULKA, [
+            Sql::POMOC_TYP  => $p['typ'] ?? '',
+            Sql::POMOC_VICE => $p['detail'] ?? '',
         ], [
-            'id_uzivatele' => $this->u->id(),
+            Sql::ID_UZIVATELE => $this->u->id(),
         ]);
     }
 

@@ -2,46 +2,46 @@
 
 <form method="post" class="dbForm">
 
-<!-- begin:raw -->{field.html}<!-- end:raw -->
-<input type="hidden" name="{submitted}" value="true">
+    <!-- begin:raw -->{field.html}<!-- end:raw -->
+    <input type="hidden" name="{submitted}" value="true">
 
-<table>
-  <!-- begin:row -->
-  <tr>
-    <th>{field.label}</th>
-    <td>{field.html}</td>
-  </tr>
-  <!-- end:row -->
-</table>
-<!-- begin:custom -->
-<div>{field.html}</div>
-<!-- end:custom -->
+    <table>
+        <!-- begin:row -->
+        <tr>
+            <th>{field.label}</th>
+            <td>{field.html}</td>
+        </tr>
+        <!-- end:row -->
+    </table>
+    <!-- begin:custom -->
+    <div>{field.html}</div>
+    <!-- end:custom -->
 
-<input type="submit" value="Uložit">
+    <input type="submit" value="Uložit">
 
 </form>
 <script>
-$('form').last().submit(function(){
-  $submit = $(this).find('input[type=submit]');
-  $submit.attr('disabled', 'true');
-  var $error = function(msg){
-    alert('Chyba: ' + msg);
-    $submit.removeAttr('disabled');
-  };
-  var $ok = function(newId){
-    $.cookie('CHYBY_CLASS_OZNAMENI', 'Uloženo', { expires: (1/24*60*60)*5 });
-    if(newId) window.location = window.location + '?id=' + newId;
-    else location.reload();
-  };
-  $.post(document.URL, $(this).serialize(), function(data){
-    if(data.error) $error(data.error);
-    else if(data.id) $ok(data.id);
-    else $ok();
-  }, 'json').fail(function(){
-    $error('Nepodařilo se navázat spojení');
-  });
-  return false;
-});
+    $('form').last().submit(function () {
+        $submit = $(this).find('input[type=submit]');
+        $submit.attr('disabled', 'true');
+        var $error = function (msg) {
+            alert('Chyba: ' + msg);
+            $submit.removeAttr('disabled');
+        };
+        var $ok = function (newId) {
+            $.cookie('CHYBY_CLASS_OZNAMENI', 'Uloženo', {expires: (1 / 24 * 60 * 60) * 5});
+            if (newId) window.location = window.location + '?id=' + newId;
+            else location.reload();
+        };
+        $.post(document.URL, $(this).serialize(), function (data) {
+            if (data.error) $error(data.error);
+            else if (data.id) $ok(data.id);
+            else $ok();
+        }, 'json').fail(function () {
+            $error('Nepodařilo se navázat spojení');
+        });
+        return false;
+    });
 
 </script>
 

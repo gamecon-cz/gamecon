@@ -380,7 +380,7 @@ class Program
             }
             echo ' ' . $aktivitaObjekt->prihlasovatko($this->u, $parametry);
         } else if (defined('TESTING') && TESTING) {
-            echo $aktivitaObjekt->formatujDuvodProTesting('DrD nemá povolené přihlašování', $this->systemoveNastaveni);
+            echo $aktivitaObjekt->formatujDuvodProTesting('DrD nemá povolené přihlašování');
         }
 
         if ($this->nastaveni[self::OSOBNI]) {

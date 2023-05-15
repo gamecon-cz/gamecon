@@ -1,11 +1,11 @@
 <!-- begin:pomoc -->
 
 <input
-    type="checkbox"
-    class="formular_checkbox-mega shopPomoc_checkbox"
-    name="{postname}[chci]"
-    id="chci"
-    {vChci}
+        type="checkbox"
+        class="formular_checkbox-mega shopPomoc_checkbox"
+        name="{postname}[chci]"
+        id="chci"
+        {vChci}
 >
 <span class="shopPomoc_obalTextu">
 
@@ -15,8 +15,7 @@
     GameCon připravujeme celý rok, a tak vždycky oceníme další pár rukou a to nejen přes rok ale i na místě v průběhu
     festivalu. Ať už se jedná o uvedení nějaké aktivity, přípravu zázemí nebo např. s chodem na Infopultu. Za každou
     výpomoc je vypsaná odměna, kterou můžeš použít třeba na úhradu ostatních aktivit na GC. Chtěl(a) by ses zapojit?
-    Více se dozvíš na
-    <a href="organizacni-vypomoc" target="_blank">organizacni-vypomoc</a>
+    Více se dozvíš na stránce <a href="organizacni-vypomoc" target="_blank">Chci pomoct s GameConem</a>.
   </div>
 
   <div class="shopPomoc_vyber">

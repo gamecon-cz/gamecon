@@ -105,8 +105,9 @@ class DateTimeGameconTest extends TestCase
         );
     }
 
-    public function provideZacatkyRegistraciUcastniku(): array {
+    public static function provideZacatkyRegistraciUcastniku(): array {
         return [
+            [2023, '2023-05-11 20:23:00'],
             [2022, '2022-05-12 20:22:00'],
             [2021, '2021-05-13 20:21:00'],
             [2019, '2019-05-14 20:19:00'],
@@ -119,87 +120,182 @@ class DateTimeGameconTest extends TestCase
         ];
     }
 
-    public function testZacatekPrvniVlnyOd() {
+    /**
+     * @dataProvider provideZacatekPrvniVlnyOd
+     */
+    public function testZacatekPrvniVlnyOd(int $rocnik, string $ocekavanyZacatek) {
         self::assertEquals(
-            DateTimeGamecon::createFromMysql(REG_AKTIVIT_OD),
-            DateTimeGamecon::zacatekPrvniVlnyOd(ROCNIK),
-            'Očekáván jiný začátek první vlny pro letošek, viz konstanta REG_AKTIVIT_OD: ' . REG_AKTIVIT_OD
+            DateTimeGamecon::createFromMysql($ocekavanyZacatek),
+            DateTimeGamecon::spoctejKdyJePrvniVlna($rocnik),
+            "Očekáván jiný spočítaný začátek první vlny pro rok $rocnik"
+        );
+        if ($rocnik !== ROCNIK) {
+            self::assertEquals(
+                DateTimeGamecon::createFromMysql($ocekavanyZacatek),
+                DateTimeGamecon::prvniVlnaKdy($rocnik),
+                "Očekáván jiný začátek první vlny pro rok $rocnik"
+            );
+        }
+    }
+
+    public static function provideZacatekPrvniVlnyOd(): array {
+        return [
+//            'současný ročník' => [ROCNIK, PRVNI_VLNA_KDY],
+            '2023' => [2023, '2023-05-18 20:23:00'],
+            '2022' => [2022, '2022-05-19 20:22:00'],
+            '2021' => [2021, '2021-05-20 20:21:00'],
+            '2019' => [2019, '2019-05-21 20:19:00'],
+            '2016' => [2016, '2016-05-10 20:16:00'],
+        ];
+    }
+
+    /**
+     * @dataProvider provideZacatekDruheVlnyOd
+     */
+    public function testZacatekDruheVlnyOd(int $rocnik, string $ocekavanyZacatek) {
+        self::assertEquals(
+            DateTimeGamecon::createFromMysql($ocekavanyZacatek),
+            DateTimeGamecon::spocitejKdyJeDruhaVlna($rocnik),
+            "Očekáván jiný spočítaný začátek druhé vlny pro rok $rocnik"
+        );
+        if ($rocnik !== ROCNIK) {
+            self::assertEquals(
+                DateTimeGamecon::createFromMysql($ocekavanyZacatek),
+                DateTimeGamecon::druhaVlnaKdy($rocnik),
+                "Očekáván jiný začátek druhé vlny pro rok $rocnik"
+            );
+        }
+    }
+
+    public static function provideZacatekDruheVlnyOd(): array {
+        return [
+            'současný ročník' => [ROCNIK, DRUHA_VLNA_KDY],
+            '2023'            => [2023, '2023-06-08 20:23:00'],
+            '2022'            => [2022, '2022-06-09 20:22:00'],
+            '2021'            => [2021, '2021-06-10 20:21:00'],
+//            '2014'            => [2014, '2014-05-19 20:00:00'],
+//            '2013'            => [2013, '2013-06-01 20:00:00'],
+        ];
+    }
+
+    /**
+     * @dataProvider provideZacatekTretiVlnyOd
+     */
+    public function testZacatekTretiVlnyOd(int $rocnik, string $ocekavanyZacatek) {
+        self::assertEquals(
+            DateTimeGamecon::createFromMysql($ocekavanyZacatek),
+            DateTimeGamecon::spocitejKdyJeTretiVlna($rocnik),
+            "Očekáván jiný spočítaný začátek třetí vlny pro rok $rocnik"
+        );
+        if ($rocnik !== ROCNIK) {
+            self::assertEquals(
+                DateTimeGamecon::createFromMysql($ocekavanyZacatek),
+                DateTimeGamecon::tretiVlnaKdy($rocnik),
+                "Očekáván jiný začátek třetí vlny pro rok $rocnik"
+            );
+        }
+    }
+
+    public static function provideZacatekTretiVlnyOd(): array {
+        return [
+            'současný ročník' => [ROCNIK, TRETI_VLNA_KDY],
+            '2023'            => [2023, '2023-07-01 20:23:00'],
+            '2022'            => [2022, '2022-07-01 20:22:00'],
+//            '2014'            => [2014, '2014-06-09 20:00:00'],
+        ];
+    }
+
+    public function testPrvniHromadneOdhlasovani() {
+        $ted                = new DateTimeImmutableStrict();
+        $systemoveNastaveni = $this->dejSystemoveNastaveni($ted);
+        $tretiVlnaKdy       = $systemoveNastaveni->tretiVlnaKdy();
+        self::assertEquals(
+            $tretiVlnaKdy->modify('-10 minutes'),
+            DateTimeGamecon::prvniHromadneOdhlasovani(),
+            'Očekáváno jiné datum prvního hromadného ohlašování'
         );
 
+        $systemoveNastaveni2023 = $this->dejSystemoveNastaveni($ted, 2023);
+        $tretiVlna2023          = $systemoveNastaveni2023->tretiVlnaKdy();
         self::assertEquals(
-            DateTimeGamecon::createFromFormat('Y-m-d H:i:s', '2022-05-19 20:22:00'),
-            DateTimeGamecon::spoctejZacatekPrvniVlnyOd(2022),
-            'Očekáván jiný začátek první vlny pro rok 2022'
+            $tretiVlna2023->modify('-10 minutes'),
+            DateTimeGamecon::spocitejPrvniHromadneOdhlasovani(2023),
+            'Očekáváno jiné datum spočítaného prvního hromadného odhlašování pro rok 2023'
         );
-
         self::assertEquals(
-            DateTimeGamecon::createFromFormat('Y-m-d H:i:s', '2016-05-10 20:16:00'),
-            DateTimeGamecon::spoctejZacatekPrvniVlnyOd(2016),
-            'Očekáván jiný začátek první vlny pro rok 2016'
+            new DateTimeGamecon('2023-07-01 20:13:00'),
+            DateTimeGamecon::spocitejPrvniHromadneOdhlasovani(2023),
+            'Očekáváno jiné datum spočítaného prvního hromadného odhlašování pro rok 2023'
         );
     }
 
-    public function testPrvniHromadneOdhlasovaniOd() {
+    public function testDruheHromadneOdhlasovani() {
+        $ted                      = new DateTimeImmutableStrict();
+        $systemoveNastaveni       = $this->dejSystemoveNastaveni($ted);
+        $prvniHromadneOdhlasovani = $systemoveNastaveni->prvniHromadneOdhlasovani();
         self::assertEquals(
-            DateTimeGamecon::createFromMysql(HROMADNE_ODHLASOVANI_1),
-            DateTimeGamecon::prvniHromadneOdhlasovaniOd(),
-            'Očekáván jiné datum prvního hromadného ohlašování, viz konstanta HROMADNE_ODHLASOVANI_1: ' . HROMADNE_ODHLASOVANI_1
+            $prvniHromadneOdhlasovani->modify('+9 days')->setTime(0, 0, 0),
+            DateTimeGamecon::druheHromadneOdhlasovani(),
+            'Očekáváno jiné datum druhého hromadného ohlašování'
         );
 
+        $systemoveNastaveni2023       = $this->dejSystemoveNastaveni($ted, 2023);
+        $prvniHromadneOdhlasovani2023 = $systemoveNastaveni2023->prvniHromadneOdhlasovani();
         self::assertEquals(
-            DateTimeGamecon::createFromFormat('Y-m-d H:i:s', '2023-06-30 23:59:00'),
-            DateTimeGamecon::spocitejPrvniHromadneOdhlasovaniOd(2023),
-            'Očekáván jiné datum prvního hromadného odhlašování pro rok 2023'
+            $prvniHromadneOdhlasovani2023->modify('+9 days')->setTime(0, 0, 0),
+            DateTimeGamecon::spocitejDruheHromadneOdhlasovani(2023),
+            'Očekáváno jiné datum spočítaného druhého hromadného odhlašování pro rok 2023'
         );
-    }
-
-    public function testDruheHromadneOdhlasovaniOd() {
         self::assertEquals(
-            DateTimeGamecon::createFromMysql(HROMADNE_ODHLASOVANI_2),
-            DateTimeGamecon::druheHromadneOdhlasovaniOd(),
-            'Očekáváno jiné datum druhého hromadného ohlašování, viz konstanta HROMADNE_ODHLASOVANI_2: ' . HROMADNE_ODHLASOVANI_2
-        );
-
-        self::assertEquals(
-            DateTimeGamecon::createFromFormat('Y-m-d H:i:s', '2023-07-09 23:59:00'),
-            DateTimeGamecon::spocitejDruheHromadneOdhlasovaniOd(2023),
-            'Očekáváno jiné datum druhého hromadného odhlašování pro rok 2023'
+            new DateTimeGamecon('2023-07-10 00:00:00'),
+            DateTimeGamecon::spocitejDruheHromadneOdhlasovani(2023),
+            'Očekáváno jiné datum spočítaného druhého hromadného odhlašování pro rok 2023'
         );
     }
 
-    public function testTretiHromadneOdhlasovaniOd() {
+    public function testTretiHromadneOdhlasovani() {
+        $ted                      = new DateTimeImmutableStrict();
+        $systemoveNastaveni       = $this->dejSystemoveNastaveni($ted);
+        $druheHromadneOdhlasovani = $systemoveNastaveni->druheHromadneOdhlasovani();
         self::assertEquals(
-            DateTimeGamecon::createFromMysql(HROMADNE_ODHLASOVANI_3),
-            DateTimeGamecon::tretiHromadneOdhlasovaniOd(),
-            'Očekáváno jiné datum třetího hromadného ohlašování, viz konstanta HROMADNE_ODHLASOVANI_3: ' . HROMADNE_ODHLASOVANI_3
+            $druheHromadneOdhlasovani->modify('+7 days'),
+            DateTimeGamecon::tretiHromadneOdhlasovani(),
+            'Očekáváno jiné datum třetího hromadného ohlašování'
         );
 
+        $systemoveNastaveni2023   = $this->dejSystemoveNastaveni($ted, 2023);
+        $druheHromadneOdhlasovani = $systemoveNastaveni2023->druheHromadneOdhlasovani();
         self::assertEquals(
-            DateTimeGamecon::createFromFormat('Y-m-d H:i:s', '2023-07-16 23:59:00'),
-            DateTimeGamecon::spocitejTretiHromadneOdhlasovaniOd(2023),
-            'Očekáváno jiné datum třetího hromadného odhlašování pro rok 2023'
+            $druheHromadneOdhlasovani->modify('+7 days'),
+            DateTimeGamecon::spocitejTretiHromadneOdhlasovani(2023),
+            'Očekáváno jiné datum spočítaného třetího hromadného odhlašování pro rok 2023'
+        );
+        self::assertEquals(
+            new DateTimeGamecon('2023-07-17 00:00:00'),
+            DateTimeGamecon::spocitejTretiHromadneOdhlasovani(2023),
+            'Očekáváno jiné datum spočítaného třetího hromadného odhlašování pro rok 2023'
         );
     }
 
     public function testDatumHromadnehoOdhlasovaniPlatiAzDenZpetne() {
-        // PRVNÍ VLNA
-        $casPrvnihoHromadnehoOdhlasovani = new DateTimeImmutableStrict(HROMADNE_ODHLASOVANI_1);
-        $this->testPrvnihoHromadnehoOdhlasovani($casPrvnihoHromadnehoOdhlasovani);
+        // PRVNÍ
+        $casPrvnihoHromadnehoOdhlasovani = DateTimeImmutableStrict::createFromInterface(DateTimeGamecon::prvniHromadneOdhlasovani());
+        $this->testPrvnihoHromadnehoOdhlasovaniJakoNejblizsiho($casPrvnihoHromadnehoOdhlasovani);
 
-        // DRUHÁ VLNA
-        $casDruhehoHromadnehoOdhlasovani = new DateTimeImmutableStrict(HROMADNE_ODHLASOVANI_2);
-        $this->testDruhehoHromadnehoOdhlasovani($casPrvnihoHromadnehoOdhlasovani, $casDruhehoHromadnehoOdhlasovani);
+        // DRUHÉ
+        $casDruhehoHromadnehoOdhlasovani = DateTimeImmutableStrict::createFromInterface(DateTimeGamecon::druheHromadneOdhlasovani());
+        $this->testDruhehoHromadnehoOdhlasovaniJakoNejblizsiho($casPrvnihoHromadnehoOdhlasovani, $casDruhehoHromadnehoOdhlasovani);
 
-        // TŘETÍ VLNA
-        $casTretihoHromadnehoOdhlasovani = new DateTimeImmutableStrict(HROMADNE_ODHLASOVANI_3);
-        $this->testTretihoHromadnehoOdhlasovani($casDruhehoHromadnehoOdhlasovani, $casTretihoHromadnehoOdhlasovani);
+        // TŘETÍ
+        $casTretihoHromadnehoOdhlasovani = DateTimeImmutableStrict::createFromInterface(DateTimeGamecon::tretiHromadneOdhlasovani());
+        $this->testTretihoHromadnehoOdhlasovaniJakoNejblizsiho($casDruhehoHromadnehoOdhlasovani, $casTretihoHromadnehoOdhlasovani);
     }
 
-    private function testPrvnihoHromadnehoOdhlasovani(DateTimeImmutableStrict $casPrvnihoHromadnehoOdhlasovani) {
+    private function testPrvnihoHromadnehoOdhlasovaniJakoNejblizsiho(DateTimeImmutableStrict $casPrvnihoHromadnehoOdhlasovani) {
         $nastaveniCasPrvnihoHromadnehoOdhlasovani = $this->dejSystemoveNastaveni($casPrvnihoHromadnehoOdhlasovani);
         self::assertEquals(
             $casPrvnihoHromadnehoOdhlasovani,
-            DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani($nastaveniCasPrvnihoHromadnehoOdhlasovani),
+            DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($nastaveniCasPrvnihoHromadnehoOdhlasovani),
             'Zjišťování nejbližší (první) vlny ve stejný čas jako vlna začíná by mělo vrátit začátek té samé vlny'
         );
 
@@ -207,94 +303,174 @@ class DateTimeGameconTest extends TestCase
         $nastveniPresneDenPoPrvni = $this->dejSystemoveNastaveni($presneDenPoPrvni);
         self::assertEquals(
             $casPrvnihoHromadnehoOdhlasovani,
-            DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani($nastveniPresneDenPoPrvni),
+            DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($nastveniPresneDenPoPrvni),
             'Zjišťování nejbližší (první) vlny ještě den poté, co vlna začíná, by mělo vrátit začátek té den staré vlny'
+        );
+        $this->testHromadnehoOdhlasovaniJakoNejblizsiho($casPrvnihoHromadnehoOdhlasovani, 1);
+    }
+
+    private function testHromadnehoOdhlasovaniJakoNejblizsiho(
+        DateTimeImmutableStrict $casHromadnehoOdhlasovani,
+        int                     $poradiOdhlasovani
+    ) {
+        $nastaveniCasPrvnihoHromadnehoOdhlasovani = $this->dejSystemoveNastaveni($casHromadnehoOdhlasovani);
+        self::assertEquals(
+            $casHromadnehoOdhlasovani,
+            DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($nastaveniCasPrvnihoHromadnehoOdhlasovani),
+            "Zjišťování nejbližšího ($poradiOdhlasovani) odhlašování ve stejný čas jako nějaké odhlašování začíná by mělo vrátit začátek právě toho odhlašování"
+        );
+
+        $presneDenPo              = $casHromadnehoOdhlasovani->modify('+1 day');
+        $nastaveniSTedPresneDenPo = $this->dejSystemoveNastaveni($presneDenPo);
+        self::assertEquals(
+            $casHromadnehoOdhlasovani,
+            DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($nastaveniSTedPresneDenPo),
+            "Zjišťování nejbližšího ($poradiOdhlasovani) odhlašování ještě den poté, co začíná, by mělo vrátit začátek toho den starého odhlašování"
         );
     }
 
-    private function testDruhehoHromadnehoOdhlasovani(
+    private function testDruhehoHromadnehoOdhlasovaniJakoNejblizsiho(
         DateTimeImmutableStrict $casPrvnihoHromadnehoOdhlasovani,
         DateTimeImmutableStrict $casDruhehoHromadnehoOdhlasovani
     ) {
-        self::assertGreaterThan(
-            $casPrvnihoHromadnehoOdhlasovani->modify('+1 day'),
+        $this->testDalsihoHromadnehoOdhlasovaniJakoNejblizsiho(
+            $casPrvnihoHromadnehoOdhlasovani,
             $casDruhehoHromadnehoOdhlasovani,
-            'Prní a druhá vlna od sebe musí být nejméně den a kousek'
+            2
+        );
+    }
+
+    private function testDalsihoHromadnehoOdhlasovaniJakoNejblizsiho(
+        DateTimeImmutableStrict $casPredchozihoHromadnehoOdhlasovani,
+        DateTimeImmutableStrict $casSoucasnehoHromadnehoOdhlasovani,
+        int                     $poradiSoucasneho
+    ) {
+        $poradiPrechoziho = $poradiSoucasneho - 1;
+
+        self::assertGreaterThan(
+            $casPredchozihoHromadnehoOdhlasovani->modify('+1 day'),
+            $casSoucasnehoHromadnehoOdhlasovani,
+            "Předchozí ({$poradiPrechoziho}.) a současné ({$poradiSoucasneho}.) odhlašování od sebe musí být nejméně den a kousek"
         );
 
-        $denAKousekPoPrvni          = $casPrvnihoHromadnehoOdhlasovani->modify('+1 day +1 second');
+        $denAKousekPoPrvni          = $casPredchozihoHromadnehoOdhlasovani->modify('+1 day +1 second');
         $nastaveniDenAKousekPoPrvni = $this->dejSystemoveNastaveni($denAKousekPoPrvni);
         self::assertEquals(
-            $casDruhehoHromadnehoOdhlasovani,
-            DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani($nastaveniDenAKousekPoPrvni),
-            'Zjišťování nejbližší (první) vlny déle než den poté, co vlna začíná, by mělo vrátit začátek až následující vlny'
+            $casSoucasnehoHromadnehoOdhlasovani,
+            DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($nastaveniDenAKousekPoPrvni),
+            "Zjišťování nejbližšího odhlašování déle než den poté, co {$poradiPrechoziho}. odhlašování začíná, by mělo vrátit začátek až následujícího, {$poradiSoucasneho}. odhlašování"
         );
 
-        $nastaveniCasDruhehoHromadnehoOdhlasovani = $this->dejSystemoveNastaveni($casDruhehoHromadnehoOdhlasovani);
-        self::assertEquals(
-            $casDruhehoHromadnehoOdhlasovani,
-            DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani($nastaveniCasDruhehoHromadnehoOdhlasovani),
-            'Zjišťování nejbližší (druhé) vlny ve stejný čas jako vlna začíná by mělo vrátit začátek té samé vlny'
-        );
-
-        $presneDenPoDruhe          = $casDruhehoHromadnehoOdhlasovani->modify('+1 day');
-        $nastaveniPresneDenPoDruhe = $this->dejSystemoveNastaveni($presneDenPoDruhe);
-        self::assertEquals(
-            $casDruhehoHromadnehoOdhlasovani,
-            DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani($nastaveniPresneDenPoDruhe),
-            'Zjišťování nejbližší (druhé) vlny ještě den poté, co vlna začíná, by mělo vrátit začátek té den staré vlny'
-        );
+        $this->testHromadnehoOdhlasovaniJakoNejblizsiho($casSoucasnehoHromadnehoOdhlasovani, 2);
     }
 
-    private function testTretihoHromadnehoOdhlasovani(
+    private function testTretihoHromadnehoOdhlasovaniJakoNejblizsiho(
         DateTimeImmutableStrict $casDruhehoHromadnehoOdhlasovani,
-        DateTimeImmutableStrict $casTretihoHromadnehoOdhlasovani
+        DateTimeImmutableStrict $casTretihoHromadnehoOdhlasovani,
     ) {
-        self::assertGreaterThan(
-            $casDruhehoHromadnehoOdhlasovani->modify('+1 day'),
+        $this->testPoslednihoHromadnehoOdhlasovaniJakoNejblizsiho(
+            $casDruhehoHromadnehoOdhlasovani,
             $casTretihoHromadnehoOdhlasovani,
-            'Druhá a třetí vlna od sebe musí být nejméně den a kousek'
-        );
-
-        $denAKousekPoTreti          = $casDruhehoHromadnehoOdhlasovani->modify('+1 day +1 second');
-        $nastaveniDenAKousekPoTreti = $this->dejSystemoveNastaveni($denAKousekPoTreti);
-        self::assertEquals(
-            $casTretihoHromadnehoOdhlasovani,
-            DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani($nastaveniDenAKousekPoTreti),
-            'Zjišťování nejbližší (druhé) vlny déle než den poté, co vlna začíná, by mělo vrátit začátek až následující vlny'
-        );
-
-        $nastaveniCasTretihoHromadnehoOdhlasovani = $this->dejSystemoveNastaveni($casTretihoHromadnehoOdhlasovani);
-        self::assertEquals(
-            $casTretihoHromadnehoOdhlasovani,
-            DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani($nastaveniCasTretihoHromadnehoOdhlasovani),
-            'Zjišťování nejbližší (třetí) vlny ve stejný čas jako vlna začíná by mělo vrátit začátek té samé vlny'
-        );
-
-        $presneDenPoTreti          = $casTretihoHromadnehoOdhlasovani->modify('+1 day');
-        $nastaveniPresneDenPoDruhe = $this->dejSystemoveNastaveni($presneDenPoTreti);
-        self::assertEquals(
-            $casTretihoHromadnehoOdhlasovani,
-            DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani($nastaveniPresneDenPoDruhe),
-            'Zjišťování nejbližší (třetí) vlny ještě den poté, co vlna začíná, by mělo vrátit začátek té den staré vlny'
-        );
-
-        $denAKousekPoTreti          = $casTretihoHromadnehoOdhlasovani->modify('+1 day +1 second');
-        $nastaveniDenAKousekPoTreti = $this->dejSystemoveNastaveni($denAKousekPoTreti);
-        self::assertEquals(
-            $casTretihoHromadnehoOdhlasovani,
-            DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani($nastaveniDenAKousekPoTreti),
-            'Zjišťování nejbližší (třetí) vlny déle než den poté, co začíná druhá vlna, by mělo vrátit začátek třetí vlny jako poslední známé'
+            3
         );
     }
 
-    private function dejSystemoveNastaveni(DateTimeImmutableStrict $ted): SystemoveNastaveni {
+    private function testPoslednihoHromadnehoOdhlasovaniJakoNejblizsiho(
+        DateTimeImmutableStrict $casPrechozihoHromadnehoOdhlasovani,
+        DateTimeImmutableStrict $casPoslednihoHromadnehoOdhlasovani,
+        int                     $poradiSoucasneho
+    ) {
+        $this->testDalsihoHromadnehoOdhlasovaniJakoNejblizsiho(
+            $casPrechozihoHromadnehoOdhlasovani,
+            $casPoslednihoHromadnehoOdhlasovani,
+            $poradiSoucasneho
+        );
+
+        $denAKousekPoPoslednim              = $casPoslednihoHromadnehoOdhlasovani->modify('+1 day +1 second');
+        $nastaveniSTedDenAKousekPoPoslednim = $this->dejSystemoveNastaveni($denAKousekPoPoslednim);
+        self::assertEquals(
+            $casPoslednihoHromadnehoOdhlasovani,
+            DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($nastaveniSTedDenAKousekPoPoslednim),
+            "Zjišťování nejbližšího odhlašování déle než den poté, co {$poradiSoucasneho}. odhlašování začíná, by mělo i tak vrátit začátek {$poradiSoucasneho}. odhlašování, protože je poslední"
+        );
+    }
+
+    private function dejSystemoveNastaveni(
+        DateTimeImmutableStrict $ted,
+        int                     $rocnik = ROCNIK
+    ): SystemoveNastaveni {
         return new SystemoveNastaveni(
-            ROCNIK,
+            $rocnik,
             $ted,
             false,
             false,
             DatabazoveNastaveni::vytvorZGlobals()
+        );
+    }
+
+    public function testDatumDneVTydnuDoData() {
+        self::assertSame(
+            '2021-07-25',
+            DateTimeGamecon::dejDatumDneVTydnuDoData(
+                DateTimeGamecon::NEDELE,
+                new DateTimeGamecon('2021-07-31') // sobota
+            )->format(DateTimeGamecon::FORMAT_DATUM_DB),
+            'Měli bychom dostat neděli v předchozím týdnu'
+        );
+        self::assertSame(
+            '2023-05-11',
+            DateTimeGamecon::dejDatumDneVTydnuDoData(
+                DateTimeGamecon::CTVRTEK,
+                new DateTimeGamecon('2023-05-14') // neděle
+            )->format(DateTimeGamecon::FORMAT_DATUM_DB),
+            'Měli bychom dostat čtvrtek ve stejném týdnu i z datumu s nedělí'
+        );
+
+        self::assertSame(
+            '2023-05-11',
+            DateTimeGamecon::dejDatumDneVTydnuDoData(
+                DateTimeGamecon::CTVRTEK,
+                new DateTimeGamecon('2023-05-11') // čtvrtek
+            )->format(DateTimeGamecon::FORMAT_DATUM_DB),
+            'Měli bychom dostat zase stejný čtvrtek'
+        );
+    }
+
+    public function testDatumDneVTydnuOdData() {
+        self::assertSame(
+            '2023-05-11',
+            DateTimeGamecon::dejDatumDneVTydnuOdData(
+                DateTimeGamecon::CTVRTEK,
+                new DateTimeGamecon('2023-05-08')
+            )->format(DateTimeGamecon::FORMAT_DATUM_DB),
+            'Měli bychom dostat čtvrtek ve stejném týdnu i z datumu s pondělím'
+        );
+
+        self::assertSame(
+            '2023-05-11',
+            DateTimeGamecon::dejDatumDneVTydnuOdData(
+                DateTimeGamecon::CTVRTEK,
+                new DateTimeGamecon('2023-05-11')
+            )->format(DateTimeGamecon::FORMAT_DATUM_DB),
+            'Měli bychom dostat zase stejný čtvrtek'
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function Konec_registraci_ucastniku_je_stejny_jako_konec_gameconu() {
+        foreach (range(2020, (int)date('Y') + 1) as $rocnik) {
+            self::assertEquals(
+                DateTimeGamecon::spocitejKonecGameconu($rocnik),
+                DateTimeGamecon::spocitejKonecRegistraciUcastniku($rocnik),
+                "Očekáván jiný spočítaný konec registací účastníků pro ročník $rocnik"
+            );
+        }
+        self::assertEquals(
+            DateTimeGamecon::konecGameconu(),
+            DateTimeGamecon::konecRegistraciUcastniku(),
+            "Očekáván jiný konec registací účastníků pro současný ročník"
         );
     }
 }

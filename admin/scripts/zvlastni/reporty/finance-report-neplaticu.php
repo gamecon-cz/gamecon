@@ -52,7 +52,7 @@ foreach (Uzivatel::zPrihlasenych() as $letosniUcastnik) {
     $kategorieNeplatice = $finance->kategorieNeplatice();
 
     $ucastnikData['suma_plateb']         = $finance->sumaPlateb(ROCNIK);
-    $ucastnikData['kategorie_neplatice'] = $kategorieNeplatice->dejCiselnouKategoriiNeplatice();
+    $ucastnikData['kategorie_neplatice'] = $kategorieNeplatice->ciselnaKategoriiNeplatice();
 
     $ucastnikData['aktualni_zustatek']     = $finance->stav();
     $ucastnikData['datum_posledni_platby'] = $finance->datumPosledniPlatby()
@@ -91,6 +91,6 @@ global $systemoveNastaveni;
 $report->tFormat(
     $formatReportu,
     'datum_hromadneho_odhlasovani_'
-    . $systemoveNastaveni->zacatekNejblizsiVlnyOdhlasovani()->format(DateTimeCz::FORMAT_DB)
+    . $systemoveNastaveni->nejblizsiHromadneOdhlasovaniKdy()->format(DateTimeCz::FORMAT_DB)
     . '-' . $report->nazevReportuZRequestu()
 );

@@ -2,7 +2,7 @@
 
 namespace Gamecon\Tests;
 
-use Gamecon\Tests\Db\DbTest;
+use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Tests\Db\DbWrapper;
 use Godric\DbMigrations\DbMigrationsConfig;
 use Godric\DbMigrations\DbMigrations;
@@ -11,7 +11,7 @@ require_once __DIR__ . '/../nastaveni/verejne-nastaveni-tests.php';
 require_once __DIR__ . '/../nastaveni/zavadec-zaklad.php';
 
 // příprava databáze
-$connection = dbConnect(false);
+$connection = dbConnectTemporary(false);
 dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', DB_NAME), [], $connection);
 dbQuery(sprintf('CREATE DATABASE IF NOT EXISTS `%s` COLLATE "utf8_czech_ci"', DB_NAME), [], $connection);
 dbQuery(sprintf('USE `%s`', DB_NAME), [], $connection);
@@ -25,16 +25,20 @@ dbQuery(sprintf('USE `%s`', DB_NAME), [], $connection);
     'doBackups'           => false,
 ])))->run();
 
+/**
+ * pokud chceš vyřadit STRICT_TRANS_TABLES (potlačit "Field 'nazev_akce' doesn't have a default value"), použij @see \Gamecon\Tests\Db\DbTest::$disableStrictTransTables
+ * Inspirace @see \Gamecon\Tests\Aktivity\AktivitaTagyTest::setUpBeforeClass
+ */
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-DbTest::setConnection(new DbWrapper());
+AbstractTestDb::setConnection(new DbWrapper());
 
 /** vynutíme reconnect, hlavně kvůli nastavení ROCNIK v databázi, @see \dbConnect */
 dbClose();
 
 register_shutdown_function(static function () {
     // nemůžeme použít předchozí $connection, protože to už je uzavřené
-    $connection = mysqli_connect(DB_SERV, DB_USER, DB_PASS);
+    $connection = dbConnectTemporary();
     dbQuery(sprintf('DROP DATABASE IF EXISTS `%s`', DB_NAME), null, $connection);
     $dbTestPrefix            = DB_TEST_PREFIX;
     $oldTestDatabasesWrapped = dbFetchAll("SHOW DATABASES LIKE '{$dbTestPrefix}%'", [], $connection);

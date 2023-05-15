@@ -1,6 +1,7 @@
 # Compiled XTemplate
 
-XCTemplate class is (partial) implementation of original XTemplate. It uses compiled php files to speedup template rendering.
+XCTemplate class is (partial) implementation of original XTemplate. It uses compiled php files to speedup template
+rendering.
 
 All supported features are listed below (note that support is highly limited).
 

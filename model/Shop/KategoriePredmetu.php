@@ -17,7 +17,8 @@ class KategoriePredmetu
     public const PONOZKY    = 7;
     public const COVID_TEST = 8;
 
-    public static function kategoriePodleNazvu(string $nazev): ?int {
+    public static function kategoriePodleNazvu(string $nazev): ?int
+    {
         $nazevZjednoduseny = RemoveDiacritics::toConstantLikeValue($nazev);
         if (stripos($nazevZjednoduseny, 'placka') !== false) {
             return self::PLACKA;

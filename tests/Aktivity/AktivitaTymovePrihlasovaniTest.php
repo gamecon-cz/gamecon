@@ -2,10 +2,10 @@
 
 namespace Gamecon\Tests\Aktivity;
 
-use Gamecon\Tests\Db\UzivatelDbTest;
+use Gamecon\Tests\Db\AbstractUzivatelTestDb;
 use Gamecon\Aktivita\Aktivita;
 
-class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
+class AktivitaTymovePrihlasovaniTest extends AbstractUzivatelTestDb
 {
     private $ctvrtfinale;
     private $semifinaleA;
@@ -49,8 +49,8 @@ class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
         self::assertEquals(2, $this->ctvrtfinale->rawDb()['kapacita']);
 
         // počet míst se obnoví
-        $this->ctvrtfinale->odhlas($this->tymlidr, $this->tymlidr);
-        $this->ctvrtfinale->odhlas($this->clen1, $this->clen1);
+        $this->ctvrtfinale->odhlas($this->tymlidr, $this->tymlidr, 'test');
+        $this->ctvrtfinale->odhlas($this->clen1, $this->clen1, 'test');
         self::assertEquals(3, $this->ctvrtfinale->rawDb()['kapacita']);
 
         // opětovné přihlášení se chová jako u týmovky, tj. jako přihlášení týmlídra
@@ -65,7 +65,7 @@ class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
     {
         $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr);
 
-        $this->ctvrtfinale->odhlas($this->tymlidr, $this->tymlidr);
+        $this->ctvrtfinale->odhlas($this->tymlidr, $this->tymlidr, 'test');
         $this->ctvrtfinale->prihlas($this->clen1, $this->clen1);
         self::assertTrue($this->ctvrtfinale->prihlasen($this->clen1));
     }
@@ -79,7 +79,7 @@ class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
         $this->ctvrtfinale->prihlas($this->clen2, $this->clen2);
     }
 
-    function nastaveniKapacity()
+    public static function provideNastaveniKapacity(): array
     {
         return [
             [null, 3],
@@ -88,9 +88,9 @@ class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
     }
 
     /**
-     * @dataProvider nastaveniKapacity
+     * @dataProvider provideNastaveniKapacity
      */
-    function testZmenaKapacity($nastaveno, $ocekavano)
+    public function testZmenaKapacity($nastaveno, $ocekavano)
     {
         $this->ctvrtfinale->prihlas($this->tymlidr, $this->tymlidr);
         $this->ctvrtfinale->prihlasTym([$this->clen1], $this->tymlidr, null, $nastaveno, [$this->semifinaleA, $this->finale]);
@@ -168,7 +168,7 @@ class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
     }
 
     /**
-     * @dataProvider spatnaVolbaDalsichKol
+     * @dataProvider provideSpatnaVolbaDalsichKol
      */
     public function testSpatnaVolbaDalsichKolNelze(array $dalsiKolaIds)
     {
@@ -180,7 +180,7 @@ class AktivitaTymovePrihlasovaniTest extends UzivatelDbTest
         }, $dalsiKolaIds));
     }
 
-    public function spatnaVolbaDalsichKol(): array
+    public static function provideSpatnaVolbaDalsichKol(): array
     {
         return [
             'nevybrání ničeho'        => [[]],

@@ -51,8 +51,7 @@ function nasad(array $nastaveni) {
       !/nastaveni/nastaveni-vychozi.php
       !/nastaveni/nastaveni-prava.php
       !/nastaveni/nastaveni-role.php
-      !/nastaveni/zavadec.php
-      !/nastaveni/zavadec-zaklad.php
+      !/nastaveni/zavadec*.php
       !/nastaveni/google_api_client_secret_produkce.json
       !/nastaveni/google_api_client_secret_beta.json
 
@@ -68,6 +67,7 @@ function nasad(array $nastaveni) {
       !/web/soubory/styl
       !/web/soubory/*.js
       !/web/soubory/*.html
+      !/web/soubory/systemove/*/.htaccess
       !/web/soubory/systemove/*/.gitkeep
 
       /vendor/phpunit
@@ -86,6 +86,10 @@ function nasad(array $nastaveni) {
     '
     preprocess = no
     allowDelete = yes
+
+    purge[] = cache/private/xtpl
+    purge[] = cache/public/css
+    purge[] = cache/public/js
   ";
 
     if (!empty($nastaveni['vetev'])) {
@@ -133,7 +137,8 @@ function getFilesAlwaysRequiredByAutoloader(): array {
             $vendorPosition = strpos($absolutePath, '/vendor/');
             return substr($absolutePath, $vendorPosition);
         },
-        $alwaysAutoloadedAbsolute);
+        $alwaysAutoloadedAbsolute
+    );
 }
 
 function msg($msg) {

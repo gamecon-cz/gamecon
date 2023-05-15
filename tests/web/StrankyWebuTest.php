@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Gamecon\Tests\web;
 
-class StrankyWebuTest extends AbstractWebTest
+class StrankyWebuTest extends AbstractTestWeb
 {
     /**
      * @test
@@ -24,19 +24,19 @@ class StrankyWebuTest extends AbstractWebTest
         $this->testAdminPagesAccessibility($urls);
     }
 
-    public function provideWebUrls(): array {
+    public static function provideWebUrls(): array {
         return [
-            'moduly webu' => $this->getUrlsModuluWebu(),
+            'moduly webu' => self::getUrlsModuluWebu(),
         ];
     }
 
-    public function provideAdminUrls(): array {
+    public static function provideAdminUrls(): array {
         return [
-            'moduly adminu' => $this->getUrlsModuluAdminu(),
+            'moduly adminu' => self::getUrlsModuluAdminu(),
         ];
     }
 
-    protected function getUrlsModuluWebu(): array {
+    protected static function getUrlsModuluWebu(): array {
         $modulyWebu         = scandir(__DIR__ . '/../../web/moduly');
         $modulyWebuBaseUrls = [];
         foreach ($modulyWebu as $modulWebu) {
@@ -51,7 +51,7 @@ class StrankyWebuTest extends AbstractWebTest
         }, $modulyWebuBaseUrls);
     }
 
-    protected function getUrlsModuluAdminu(): array {
+    protected static function getUrlsModuluAdminu(): array {
         $modulyWebu         = scandir(__DIR__ . '/../../admin/scripts/modules');
         $modulyWebuBaseUrls = [];
         foreach ($modulyWebu as $modulWebu) {
@@ -60,7 +60,7 @@ class StrankyWebuTest extends AbstractWebTest
             }
             $modulyWebuBaseUrls[] = basename($modulWebu, '.php');
         }
-        $adminBaseUrl       = basename(__DIR__ . '/../../admin');
+        $adminBaseUrl = basename(__DIR__ . '/../../admin');
         return array_map(static function (string $modulAdminuUrl) use ($adminBaseUrl) {
             return $adminBaseUrl . '/' . $modulAdminuUrl;
         }, $modulyWebuBaseUrls);

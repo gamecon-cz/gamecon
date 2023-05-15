@@ -3,16 +3,17 @@
 class Url
 {
 
-    private $surova;
-    private $cista;
-    private $casti;
+    private        $surova;
+    private        $cista;
+    private        $casti;
     private static $aktualni;
 
     /**
      * Konstruktor bere na vstupu řetězec s názvem GET proměnné, z které zkusí
      * vycucnout URL
      */
-    public function __construct($getName) {
+    public function __construct($getName)
+    {
         $this->surova = isset($_GET[$getName])
             ? $_GET[$getName]
             : '';
@@ -25,22 +26,26 @@ class Url
     }
 
     /** Vrací část url na daném pořadím (od 0) */
-    public function cast($i) {
+    public function cast($i)
+    {
         return $this->casti[$i] ?? null;
     }
 
     /** Vrací celou url */
-    public function cela() {
+    public function cela()
+    {
         return $this->cista;
     }
 
     /** Vrací počet zadaných částí url */
-    public function delka() {
+    public function delka()
+    {
         return count($this->casti ?? []);
     }
 
     /** Řekne jestli jde o povolenou URL nebo ne */
-    static function povolena($url) {
+    static function povolena($url)
+    {
         return strpos($url, '/.') === false
             && preg_match('@^[a-zA-Z0-9][A-Za-z0-9\-/\.]*$|^$@', $url);
     }
@@ -49,7 +54,8 @@ class Url
      * Vrátí aktuální reálnou url
      * @todo zobecnit na $_SERVER nebo podobně
      */
-    static function zAktualni() {
+    static function zAktualni()
+    {
         if (!self::$aktualni) {
             self::$aktualni = new self('req');
         }

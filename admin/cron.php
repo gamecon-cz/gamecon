@@ -2,13 +2,14 @@
 
 use Gamecon\Kanaly\GcMail;
 use Gamecon\Aktivita\Aktivita;
+use Gamecon\Aktivita\HromadneAkceAktivit;
 
 /**
  * Skript který je hostingem automaticky spouštěn jednou za hodinu. Standardní
  * limit vykonání je 90 sekund jako jinde na webu.
  */
 
-require_once __DIR__ . '/cron/cron_zavadec.php';
+require_once __DIR__ . '/cron/_cron_zavadec.php';
 
 /////////////////////////////////// příprava ///////////////////////////////////
 
@@ -21,9 +22,10 @@ if (!defined('CRON_KEY') || get('key') !== CRON_KEY) {
     die('špatný klíč');
 }
 
-if (get('job')) {
-    echo 'Not yet implemented';
-    exit;
+$job = get('job');
+if ($job !== null) {
+    require __DIR__ . '/cron/_cron_job.php';
+    return;
 }
 
 // otevřít log soubor pro zápis a přesměrovat do něj výstup
@@ -47,27 +49,13 @@ ini_set('html_errors', false); // chyby zobrazovat jako plaintext
 
 logs('Začínám provádět cron script.');
 
-if (defined('FIO_TOKEN') && FIO_TOKEN !== '') {
-    logs('Zpracovávám nové platby přes Fio API.');
-    $platby = Platby::nactiNove();
-    foreach ($platby as $p) {
-        logs('platba ' . $p->id()
-            . ' (' . $p->castka() . 'Kč, VS: ' . $p->vs()
-            . ($p->zpravaProPrijemce() ? ', zpráva: ' . $p->zpravaProPrijemce() : '')
-            . ($p->poznamkaProMne() ? ', poznámka: ' . $p->poznamkaProMne() : '')
-            . ')',
-        );
-    }
-    if (!$platby) {
-        logs('Žádné zaúčtovatelné platby.');
-    }
-} else {
-    logs('FIO_TOKEN není definován, přeskakuji nové platby.');
-}
+require __DIR__ . '/cron/fio_stazeni_novych_plateb.php';
 
 logs('Odemykám zamčené týmové aktivity...');
-$i = Aktivita::odemciTeamoveHromadne(Uzivatel::zId(Uzivatel::SYSTEM));
-logs("odemčeno $i týmových aktivit.");
+global $systemoveNastaveni;
+$odemcenoTymovychAktivit = (new HromadneAkceAktivit($systemoveNastaveni))
+    ->odemciTeamoveHromadne(Uzivatel::zId(Uzivatel::SYSTEM, true));
+logs("odemčeno $odemcenoTymovychAktivit týmových aktivit.");
 
 logs('Zamykám před veřejností už běžící, dosud nezamčené aktivity...');
 $idsZamcenmych  = Aktivita::zamkniZacinajiciDo(new DateTimeImmutable('-' . AUTOMATICKY_UZAMKNOUT_AKTIVITU_X_MINUT_PO_ZACATKU . ' minutes'));

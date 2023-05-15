@@ -11,7 +11,8 @@ class StavPrihlaseni
     public const POZDE_ZRUSIL            = 4;
     public const SLEDUJICI               = 5;
 
-    public static function dorazilJakoCokoliv(int $stavPrihlaseni): bool {
+    public static function dorazilJakoCokoliv(int $stavPrihlaseni): bool
+    {
         switch ($stavPrihlaseni) {
             case self::PRIHLASEN_A_DORAZIL :
             case self::DORAZIL_JAKO_NAHRADNIK :
@@ -21,7 +22,8 @@ class StavPrihlaseni
         }
     }
 
-    public static function nedorazilNeboZrusil(int $stavPrihlaseni): bool {
+    public static function nedorazilNeboZrusil(int $stavPrihlaseni): bool
+    {
         switch ($stavPrihlaseni) {
             case self::PRIHLASEN_ALE_NEDORAZIL :
             case self::POZDE_ZRUSIL :
@@ -31,15 +33,18 @@ class StavPrihlaseni
         }
     }
 
-    public static function platiStorno(int $stavPrihlaseni): bool {
+    public static function platiStorno(int $stavPrihlaseni): bool
+    {
         return self::nedorazilNeboZrusil($stavPrihlaseni);
     }
 
-    public static function dorazilJakoNahradnik(int $stavPrihlaseni): bool {
+    public static function dorazilJakoNahradnik(int $stavPrihlaseni): bool
+    {
         return $stavPrihlaseni === self::DORAZIL_JAKO_NAHRADNIK;
     }
 
-    public static function prihlasenJakoSledujici(int $stavPrihlaseni): bool {
+    public static function prihlasenJakoSledujici(int $stavPrihlaseni): bool
+    {
         return $stavPrihlaseni === self::SLEDUJICI;
     }
 }

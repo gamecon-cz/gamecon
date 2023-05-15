@@ -8,14 +8,15 @@ class DbForm
     private $table;
     /** @var null|DbFormField[] */
     private $fields;
-    private $postName = 'cDbForm';
+    private $postName             = 'cDbForm';
     private $lastSaveChangesCount = 0;
 
     /**
      * Creates default (full) form for given table
      * @todo check if table exists?
      */
-    public function __construct($table) {
+    public function __construct($table)
+    {
         $this->table = $table;
     }
 
@@ -25,7 +26,8 @@ class DbForm
      * custom field classes fitting project needs.
      * @todo thus, make this abstract and force custom implementation?
      */
-    protected function fieldFromDescription($d): DbFormField {
+    protected function fieldFromDescription($d): DbFormField
+    {
         if ($d['Key'] == 'PRI') {
             return new DbffPkey($d);
         }
@@ -41,7 +43,8 @@ class DbForm
      * 'column_name' => (obj)Field
      * @return DbFormField[]
      */
-    protected function fields(): array {
+    protected function fields(): array
+    {
         if (!isset($this->fields)) {
             $this->fieldsInit();
         }
@@ -49,10 +52,11 @@ class DbForm
     }
 
     /** Responsibility obvious */
-    protected function fieldsInit() {
+    protected function fieldsInit()
+    {
         $this->fields = [];
         foreach (dbDescribe($this->table()) as $d) {
-            $f = $this->fieldFromDescription($d);
+            $f                        = $this->fieldFromDescription($d);
             $this->fields[$f->name()] = $f;
         }
     }
@@ -62,13 +66,14 @@ class DbForm
      * @todo inline() alternative for inline editor (excel style)
      * @todo don't rely on xtpl or only bundle compiled result
      */
-    public function full() {
+    public function full()
+    {
         $t = new XTemplate(__DIR__ . '/db-form.xtpl');
         foreach ($this->fields() as $f) {
             $t->assign('field', $f);
             if ($f->display() == DbFormField::RAW) {
                 $t->parse('form.raw');
-            } elseif ($f->display() == DbFormField::CUSTOM) {
+            } else if ($f->display() == DbFormField::CUSTOM) {
                 $t->parse('form.custom');
             } else {
                 $t->parse('form.row');
@@ -83,7 +88,8 @@ class DbForm
     /**
      * Fills form with given database row $r (as associative array)
      */
-    public function loadRow($r) {
+    public function loadRow($r)
+    {
         foreach ($this->fields() as $f) {
             $f->value($r[$f->name()]);
         }
@@ -93,7 +99,8 @@ class DbForm
      * Fills form with post data
      * @todo prefix might or might not be set here, individual post variables are handled by fields themselves
      */
-    protected function loadPost() {
+    protected function loadPost()
+    {
         foreach ($this->fields() as $f) {
             $f->loadPost();
         }
@@ -103,7 +110,8 @@ class DbForm
      * Gets/sets POST namespace (/prefix) where DbForm variable(s) will be stored
      * @todo fix this to accordance with inherited classes
      */
-    public function postName($val = null) {
+    public function postName($val = null)
+    {
         if (isset($val)) {
             $this->postName = $val;
         }
@@ -123,8 +131,9 @@ class DbForm
      */
     public function processPost(
         callable $validationCallback = null,
-        bool     $redirect = true
-    ) {
+        bool     $redirect = true,
+    )
+    {
         if (empty($_POST[$this->postName()])) {
             return false;
         }
@@ -150,15 +159,16 @@ class DbForm
     }
 
     public function save(
-        callable $validationCallback = null
-    ) {
+        callable $validationCallback = null,
+    )
+    {
         // preparations when needed
         foreach ($this->fields() as $f) {
             $f->preInsert();
         }
         // master record update
-        $r = [];
-        $pkey = null;
+        $r     = [];
+        $pkey  = null;
         $newId = null;
         foreach ($this->fields() as $f) {
             $r[$f->name()] = $f->value();
@@ -170,11 +180,11 @@ class DbForm
             $validationCallback($r);
         }
         if ($pkey->value()) {
-            $result = dbUpdate($this->table(), $r, [$pkey->name() => $pkey->value()]);
-            $this->lastSaveChangesCount = dbNumRows($result);
+            $result                     = dbUpdate($this->table(), $r, [$pkey->name() => $pkey->value()]);
+            $this->lastSaveChangesCount = dbAffectedOrNumRows($result);
         } else {
             dbInsert($this->table(), $r);
-            $newId = dbInsertId();
+            $newId                      = dbInsertId();
             $this->lastSaveChangesCount = 1;
         }
         // final cleanup
@@ -184,14 +194,16 @@ class DbForm
         return $newId;
     }
 
-    public function lastSaveChangesCount(): int {
+    public function lastSaveChangesCount(): int
+    {
         return $this->lastSaveChangesCount;
     }
 
     /**
      * Returns table name. Form is created based on this table
      */
-    protected function table() {
+    protected function table()
+    {
         return $this->table;
     }
 

@@ -12,13 +12,14 @@ use Gamecon\XTemplate\Exceptions\XTemplateRecompilationException;
 class XTemplate
 {
 
-    protected $tc = null;     // compiled template class instance
+    protected        $tc       = null;     // compiled template class instance
     protected static $cacheDir = null;  // where to store compiled templates (null = same as template)
 
     /**
      * Prepares template from given file
      */
-    function __construct($file) {
+    function __construct($file)
+    {
         $this->tc = $this->compiledTemplate($file);
     }
 
@@ -37,7 +38,8 @@ class XTemplate
      *      of simple getters)
      *    - temptable object may be used also as value in array mode (see above)
      */
-    function assign($a, $b = null) {
+    function assign($a, $b = null)
+    {
         if (is_array($a) && $b === null) {
             $this->tc->context = array_merge($this->tc->context, $a);
         } else {
@@ -51,7 +53,8 @@ class XTemplate
      * See parse for block naming conventions.
      * @todo add punch-trough mechanism to avoid caching of values
      */
-    function out($block) {
+    function out($block)
+    {
         echo $this->text($block);
     }
 
@@ -60,7 +63,8 @@ class XTemplate
      * Assigned variables' values are "burned" into parsed text. Blockname is full
      * path from root, ie "myRootElement.someBlock.anotherBlock"
      */
-    function parse($block) {
+    function parse($block)
+    {
         $m = 'parse_' . strtr($block, '.', '_');
         $this->tc->$m();
     }
@@ -69,7 +73,8 @@ class XTemplate
      * Shorthand for looping through array, assigning and parsing block.
      * Mimics php's foreach style: foreach $elements as $name { parse $block }
      */
-    function parseEach($elements, $name, $block) {
+    function parseEach($elements, $name, $block)
+    {
         $m = 'parse_' . strtr($block, '.', '_');
         foreach ($elements as $e) {
             $this->tc->context[$name] = $e; // assign
@@ -80,7 +85,8 @@ class XTemplate
     /**
      * Get/set caching directory for templates (null = same as template)
      */
-    static function cache(/* variadic set/get */) {
+    static function cache(/* variadic set/get */)
+    {
         if (func_num_args() == 1) self::$cacheDir = func_get_arg(0);
         else return self::$cacheDir;
     }
@@ -88,7 +94,8 @@ class XTemplate
     /**
      * Returns block's parsed contents
      */
-    function text($block) {
+    function text($block)
+    {
         $m = strtr($block, '.', '_');
         return $this->tc->$m();
     }
@@ -97,9 +104,9 @@ class XTemplate
     // Protected contents //
     ////////////////////////
 
-    protected $outline = [];     // internal representation of source document
-    protected $dependencies = [];// dependencies (included files) for outline
-    protected static $class =         // template for whole compiled class
+    protected        $outline      = [];     // internal representation of source document
+    protected        $dependencies = [];// dependencies (included files) for outline
+    protected static $class        =         // template for whole compiled class
         '<?php
   class <name> {
     public $context = array();
@@ -109,7 +116,7 @@ class XTemplate
     <methods>
   }
   ';
-    protected static $blockMethod =   // template for compiled block (=> method)
+    protected static $blockMethod  =   // template for compiled block (=> method)
         '
     function <name>() {
       if($this->current == "<name>") {
@@ -143,7 +150,8 @@ class XTemplate
     /**
      * Converts xtemplate variable literals to php tags, returns converted text
      */
-    protected function convertVariables($text) {
+    protected function convertVariables($text)
+    {
         $text = preg_replace('@{([a-zA-Z][a-zA-Z0-9_]*)}@', '<?=isset($this->context["$1"])?$this->context["$1"]:\'\'?>', $text);
         $text = preg_replace('@{([a-zA-Z]+)\.([a-zA-Z_]+)}@', '<?=$this->context["$1"]->$2()?>', $text);
         $text = preg_replace('@{([a-zA-Z]+)\.([a-zA-Z]+)\.([a-zA-Z]+)}@', '<?=$this->context["$1"]->$2()->$3()?>', $text);
@@ -156,7 +164,8 @@ class XTemplate
      *  redeclaration issues. Some reset, debugs, ...?
      * @todo dependency injection of cache location
      */
-    protected function compiledTemplate($file) {
+    protected function compiledTemplate($file)
+    {
         $cFile = self::$cacheDir
             ?  // comiled file name
             self::$cacheDir . '/' . md5($file) . '.php'
@@ -192,7 +201,8 @@ class XTemplate
     /**
      * @return string cached modification time of this file
      */
-    private function libraryModified() {
+    private function libraryModified()
+    {
         static $modified = null;
         if ($modified === null) {
             $modified = filemtime(__FILE__);
@@ -204,7 +214,8 @@ class XTemplate
      * Function for generation of unique but semi-readable classnames for compiled
      * templates.
      */
-    private function generateClassName($path) {
+    private function generateClassName($path)
+    {
         $random = md5($path);
         $random = hexdec(substr($random, 0, 8)); // 4 bytes
         $random = substr((string)$random, -6);
@@ -218,7 +229,8 @@ class XTemplate
      * Adds referenced block with given name to outline. Target node in outline
      * is $node.
      */
-    protected function nodePutblock($node, $blockname) {
+    protected function nodePutblock($node, $blockname)
+    {
         if (!$node) return; // skip root nodes
         $parent                 = $this->toIdent($node);
         $child                  = $this->toIdent(array_merge($node, [$blockname]));
@@ -228,7 +240,8 @@ class XTemplate
     /**
      * Adds text to specified node in outline.
      */
-    protected function nodePuttext($node, $text) {
+    protected function nodePuttext($node, $text)
+    {
         if (!$node) return; // skip root nodes
         $node                 = $this->toIdent($node);
         $text                 = $this->convertVariables($text);
@@ -240,7 +253,8 @@ class XTemplate
      * @todo quotes
      * @todo class naming
      */
-    protected function outlineCompiled($cName) {
+    protected function outlineCompiled($cName)
+    {
         $methods = '';
         foreach ($this->outline as $ident => $block) {
             $methods .= strtr(self::$blockMethod, [
@@ -259,7 +273,8 @@ class XTemplate
     /**
      * Reads given file into internal representation - outline
      */
-    protected function outlineRead($file) {
+    protected function outlineRead($file)
+    {
         // split source file by block delimiters
         $delim = '<!-- (begin|end): ?([a-zA-Z][a-zA-Z0-9]*) -->';
         $f     = file_get_contents($file);
@@ -293,14 +308,16 @@ class XTemplate
     /**
      * Reformats html code to make it readable in compiled class
      */
-    protected function reformat($str) {
+    protected function reformat($str)
+    {
         $o = $str;
         //$o = trim($str); //TODO this also fails for example when multiple items should be separated by space
         //$o = preg_replace('@[ \t\n]+@', ' ', $o); //TODO this is not possible because of javascript comments to end of line
         return $o;
     }
 
-    protected function toIdent($node) {
+    protected function toIdent($node)
+    {
         $o = implode('_', $node);
         return $o;
     }

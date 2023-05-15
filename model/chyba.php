@@ -11,34 +11,51 @@ class Chyba extends Exception
     public const CHYBA    = 1;
     public const VAROVANI = 2;
     public const OZNAMENI = 3;
+    public const VALIDACE = 4;
 
     private const COOKIE_ZIVOTNOST_SEKUND = 3;
 
     private const KLIC_CHYBY    = 'CHYBY_CLASS';
     private const KLIC_VAROVANI = 'CHYBY_CLASS_VAROVANI';
     private const KLIC_OZNAMENI = 'CHYBY_CLASS_OZNAMENI';
+    private const KLIC_VALIDACE = 'CHYBY_CLASS_VALIDACE';
 
     /**
      * Vyvolá reload na volající stránku, která si chybu může vyzvednout pomocí
-     * self::vyzvedni()
+     * static::vyzvedni()
      */
-    public function zpet() {
-        self::setCookie(self::KLIC_CHYBY, $this->getMessage(), time() + self::COOKIE_ZIVOTNOST_SEKUND);
+    public function zpet()
+    {
+        static::setCookie(static::KLIC_CHYBY, $this->getMessage(), time() + static::COOKIE_ZIVOTNOST_SEKUND);
         back();
     }
 
-    public static function nastav(string $zprava, int $typ = self::CHYBA) {
-        $cookieName = match ($typ) {
-            self::VAROVANI => self::KLIC_VAROVANI,
-            self::OZNAMENI => self::KLIC_OZNAMENI,
-            default => self::KLIC_CHYBY,
-        };
-        $zpravy     = self::vyzvedni($cookieName);
-        $zpravy[]   = $zprava;
-        self::setCookie($cookieName, $zpravy, time() + self::COOKIE_ZIVOTNOST_SEKUND);
+    public static function nastavZChyb(Chyby $chyby, int $typ)
+    {
+        foreach ($chyby->vsechny() as $klic => $text) {
+            static::nastav($text, $typ, $klic);
+        }
     }
 
-    private static function setCookie(string $cookieName, $value, int $ttl) {
+    public static function nastav(string $zprava, int $typ = self::CHYBA, ?string $klic = null)
+    {
+        $cookieName = match ($typ) {
+            static::VAROVANI => static::KLIC_VAROVANI,
+            static::OZNAMENI => static::KLIC_OZNAMENI,
+            static::VALIDACE => static::KLIC_VALIDACE,
+            default => static::KLIC_CHYBY,
+        };
+        $zpravy     = static::vyzvedni($cookieName);
+        if ($klic !== null) {
+            $zpravy[$klic] = $zprava;
+        } else {
+            $zpravy[] = $zprava;
+        }
+        static::setCookie($cookieName, $zpravy, time() + static::COOKIE_ZIVOTNOST_SEKUND);
+    }
+
+    private static function setCookie(string $cookieName, $value, int $ttl)
+    {
         if ($value === '') {
             setcookie($cookieName, '', $ttl);
             unset($_COOKIE[$cookieName]);
@@ -52,22 +69,25 @@ class Chyba extends Exception
     /**
      * Vrátí text poslední chyby
      */
-    public static function vyzvedniChybu(): string {
-        $chyby = self::vyzvedni(self::KLIC_CHYBY);
+    public static function vyzvedniChybu(): string
+    {
+        $chyby = static::vyzvedni(static::KLIC_CHYBY);
         return (string)reset($chyby);
     }
 
-    private static function vyzvedniVsechnyChyby(): array {
-        return self::vyzvedni(self::KLIC_CHYBY);
+    private static function vyzvedniVsechnyChyby(): array
+    {
+        return static::vyzvedni(static::KLIC_CHYBY);
     }
 
-    private static function vyzvedni(string $cookieName): array {
+    private static function vyzvedni(string $cookieName): array
+    {
         $hodnotaJson = $_COOKIE[$cookieName] ?? '';
         if ($hodnotaJson === '') {
             return [];
         }
         // vyzvednuto, smažeme
-        self::setCookie($cookieName, '', 0);
+        static::setCookie($cookieName, '', 0);
         $hodnota = json_decode($hodnotaJson, true) ?? $hodnotaJson;
         if ($hodnota === '') {
             return [];
@@ -75,38 +95,42 @@ class Chyba extends Exception
         return (array)$hodnota;
     }
 
-    private static function vyzvedniVsechnaOznameni(): array {
-        return self::vyzvedni(self::KLIC_OZNAMENI);
+    private static function vyzvedniVsechnaOznameni(): array
+    {
+        return static::vyzvedni(static::KLIC_OZNAMENI);
     }
 
-    private static function vyzvedniVsechnaVarovani(): array {
-        return self::vyzvedni(self::KLIC_VAROVANI);
+    private static function vyzvedniVsechnaVarovani(): array
+    {
+        return static::vyzvedni(static::KLIC_VAROVANI);
     }
 
     /**
      * Vrací html zformátovaný boxík s chybou
      */
-    public static function vyzvedniHtml(): string {
+    public static function vyzvedniHtml(): string
+    {
         $zpravyPodleTypu = [];
-        $vsechnyChyby    = self::vyzvedniVsechnyChyby();
+        $vsechnyChyby    = static::vyzvedniVsechnyChyby();
         if ($vsechnyChyby) {
             $zpravyPodleTypu['chyby'] = $vsechnyChyby;
         }
-        $vsechnaVarovani = self::vyzvedniVsechnaVarovani();
+        $vsechnaVarovani = static::vyzvedniVsechnaVarovani();
         if ($vsechnaVarovani) {
             $zpravyPodleTypu['varovani'] = $vsechnaVarovani;
         }
-        $vsechnaOznameni = self::vyzvedniVsechnaOznameni();
+        $vsechnaOznameni = static::vyzvedniVsechnaOznameni();
         if ($vsechnaOznameni) {
             $zpravyPodleTypu['oznameni'] = $vsechnaOznameni;
         }
         if (!$zpravyPodleTypu) {
             return '';
         }
-        return self::vytvorHtmlZpravu($zpravyPodleTypu);
+        return static::vytvorHtmlZpravu($zpravyPodleTypu);
     }
 
-    private static function vytvorHtmlZpravu(array $zpravyPodleTypu): string {
+    private static function vytvorHtmlZpravu(array $zpravyPodleTypu): string
+    {
         $zpravy                 = '';
         $chybaBlokId            = uniqid('chybaBlokId', true);
         $delkaTextu             = 0;
@@ -154,6 +178,11 @@ class Chyba extends Exception
   </div>
 HTML
             ;
+    }
+
+    public static function vyzvedniVsechnyValidace(): array
+    {
+        return static::vyzvedni(static::KLIC_VALIDACE);
     }
 
 }

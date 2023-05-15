@@ -7,27 +7,29 @@
 class Nahled
 {
 
-    protected $s = null;
-    protected $v = null;
-    protected $mod = null;
+    protected $s       = null;
+    protected $v       = null;
+    protected $mod     = null;
     protected $soubor;
     protected $datum;         // poslední změna orig. souboru
     protected $kvalita = 92;  // kvalita exportu
 
-    const PASUJ = 1;
-    const POKRYJ = 2;
+    const PASUJ       = 1;
+    const POKRYJ      = 2;
     const POKRYJ_OREZ = 3;
 
-    protected function __construct($soubor) {
+    protected function __construct($soubor)
+    {
         $this->soubor = $soubor;
-        $this->datum = @filemtime($this->soubor);
+        $this->datum  = @filemtime($this->soubor);
         if ($this->datum === false) {
             throw new RuntimeException('Obrázek neexistuje. Hledán na ' . $soubor);
         }
     }
 
     /** Vrátí url obrázku, je možné ji cacheovat navždy */
-    function __toString() {
+    function __toString()
+    {
         try {
             return $this->url();
         } catch (Exception $e) {
@@ -36,35 +38,41 @@ class Nahled
     }
 
     /** Nastaví kvalitu jpeg exportu */
-    function kvalita($q) {
+    function kvalita($q)
+    {
         $this->kvalita = $q;
         return $this;
     }
 
-    protected function mod($s, $v, $mod): Nahled {
+    protected function mod($s, $v, $mod): Nahled
+    {
         $this->mod = $mod;
-        $this->s = $s;
-        $this->v = $v;
+        $this->s   = $s;
+        $this->v   = $v;
         return $this;
     }
 
     /** Zmenší obrázek aby pasoval do obdelníku s šířkou $s a výškou $v */
-    function pasuj($s, $v = null): Nahled {
+    function pasuj($s, $v = null): Nahled
+    {
         return $this->mod($s, $v, self::PASUJ);
     }
 
     /** Zmenší proporčně obrázek aby šířka byla min $s a výška min $v */
-    function pokryj($s, $v) {
+    function pokryj($s, $v)
+    {
         return $this->mod($s, $v, self::POKRYJ);
     }
 
     /** Zmenší obrázek aby pokrýval šířku i výšku, vystředí a ořízne přebytek */
-    function pokryjOrez($s, $v) {
+    function pokryjOrez($s, $v)
+    {
         return $this->mod($s, $v, self::POKRYJ_OREZ);
     }
 
     /** Uloží stávající soubor s požadovanými úpravami */
-    protected function uloz($cil) {
+    protected function uloz($cil)
+    {
         $o = Obrazek::zSouboru($this->soubor);
         $s = $this->s ?: 10000;
         $v = $this->v ?: 10000;
@@ -75,10 +83,11 @@ class Nahled
     }
 
     /** Vrátí url obrázku, je možné ji cacheovat navždy */
-    function url() {
-        $hash = md5($this->soubor . $this->mod . $this->v . $this->s . $this->kvalita);
+    function url()
+    {
+        $hash  = md5($this->soubor . $this->mod . $this->v . $this->s . $this->kvalita);
         $cache = CACHE . '/img/' . $hash . '.jpg';
-        $url = URL_CACHE . '/img/' . $hash . '.jpg?m=' . $this->datum;
+        $url   = URL_CACHE . '/img/' . $hash . '.jpg?m=' . $this->datum;
         if (@filemtime($cache) < $this->datum) {
             pripravCache(CACHE . '/img/');
             $this->uloz($cache);
@@ -86,7 +95,8 @@ class Nahled
         return $url;
     }
 
-    static function zSouboru($nazev) {
+    static function zSouboru($nazev)
+    {
         return new self($nazev);
     }
 

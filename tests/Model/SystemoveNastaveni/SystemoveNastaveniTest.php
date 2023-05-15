@@ -8,41 +8,42 @@ use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Cas\DateTimeImmutableStrict;
 use Gamecon\SystemoveNastaveni\DatabazoveNastaveni;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
-use Gamecon\Tests\Db\DbTest;
+use Gamecon\Tests\Db\AbstractTestDb;
+use Uzivatel;
 
-class SystemoveNastaveniTest extends DbTest
+class SystemoveNastaveniTest extends AbstractTestDb
 {
-    protected static array $initQueries = [
-        [
-            <<<SQL
-INSERT INTO uzivatele_hodnoty
-SET id_uzivatele=$0,login_uzivatele=$1,jmeno_uzivatele=$2,prijmeni_uzivatele=$3
-SQL,
-            [0 => 48, 1 => 'Elden', 2 => 'Jakub', 3 => 'Jandák'],
-        ],
-    ];
-
-    protected static bool $disableStrictTransTables = true;
-
-    public function testZmenyKurzuEura() {
+    /**
+     * @test
+     */
+    public function Muzu_zmenit_kurz_eura() {
         $nastaveni = SystemoveNastaveni::vytvorZGlobals();
 
-        $zaznamKurzuEuro = $nastaveni->dejZaznamyNastaveniPodleKlicu(['KURZ_EURO'])[0];
+        $zaznamKurzuEuro = $nastaveni->dejZaznamyNastaveniPodleKlicu(['KURZ_EURO'])['KURZ_EURO'];
         /** viz migrace 2022-05-05_03-kurz-euro-do-systemoveho-nastaveni.php */
         self::assertSame('24', $zaznamKurzuEuro['hodnota']);
         self::assertNull($zaznamKurzuEuro['id_uzivatele']);
 
-        $nastaveni->ulozZmenuHodnoty(123, 'KURZ_EURO', \Uzivatel::zId(48));
+        $nastaveni->ulozZmenuHodnoty(123, 'KURZ_EURO', Uzivatel::zId(Uzivatel::SYSTEM));
 
-        $zaznamKurzuEuroPoZmene = $nastaveni->dejZaznamyNastaveniPodleKlicu(['KURZ_EURO'])[0];
-        self::assertSame('123', $zaznamKurzuEuroPoZmene['hodnota']);
-        self::assertSame('48', $zaznamKurzuEuroPoZmene['id_uzivatele']);
+        $zaznamKurzuEuroPoZmene = $nastaveni->dejZaznamyNastaveniPodleKlicu(['KURZ_EURO'])['KURZ_EURO'];
+        self::assertSame(
+            123.0,
+            $zaznamKurzuEuroPoZmene['hodnota'],
+            'Očekáváme novou hodnotu, zkonvertovanou na float'
+        );
+        self::assertSame(
+            (string)Uzivatel::SYSTEM,
+            $zaznamKurzuEuroPoZmene['id_uzivatele'],
+            'Očekáváme ID posledního editujícícho, jako string tak jak se běžně vytáhne z databáze'
+        );
     }
 
     /**
+     * @test
      * @dataProvider provideVychoziHodnota
      */
-    public function testVychoziHodnoty(int $rok, string $klic, string $ocekavanaHodnota) {
+    public function Vychozi_hodnota_odpovida_ocekavani(int $rok, string $klic, string $ocekavanaHodnota) {
         $nastaveni = $this->systemoveNastaveni($rok, new DateTimeImmutableStrict($rok . '-12-31 23:59:59'));
 
         self::assertSame($ocekavanaHodnota, $nastaveni->dejVychoziHodnotu($klic));
@@ -63,28 +64,37 @@ SQL,
         );
     }
 
-    public function provideVychoziHodnota(): array {
+    public static function provideVychoziHodnota(): array {
+        /** 2023 https://trello.com/c/z2gulrWL/481-d%C5%AFle%C5%BEit%C3%A9-term%C3%ADny-2023 */
         return [
-            'GC_BEZI_OD'             => [2023, 'GC_BEZI_OD', '2023-07-20 07:00:00'],
-            'GC_BEZI_DO'             => [2023, 'GC_BEZI_DO', '2023-07-23 21:00:00'],
-            'REG_GC_OD'              => [2023, 'REG_GC_OD', '2023-05-18 20:23:00'],
-            'REG_AKTIVIT_OD'         => [2023, 'REG_AKTIVIT_OD', '2023-05-25 20:23:00'],
-            'HROMADNE_ODHLASOVANI_1' => [2023, 'HROMADNE_ODHLASOVANI_1', '2023-06-30 23:59:00'],
-            'HROMADNE_ODHLASOVANI_2' => [2023, 'HROMADNE_ODHLASOVANI_2', '2023-07-09 23:59:00'],
-            'HROMADNE_ODHLASOVANI_3' => [2023, 'HROMADNE_ODHLASOVANI_3', '2023-07-16 23:59:00'],
+            '2022 TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE'              => [2022, 'TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE', '2022-07-01'],
+            // 2023
+            '2023 GC_BEZI_OD'                                      => [2023, 'GC_BEZI_OD', '2023-07-20 07:00:00'],
+            '2023 GC_BEZI_DO'                                      => [2023, 'GC_BEZI_DO', '2023-07-23 21:00:00'],
+            '2023 REG_GC_OD'                                       => [2023, 'REG_GC_OD', '2023-05-11 20:23:00'],
+            '2023 REG_GC_DO'                                       => [2023, 'REG_GC_DO', '2023-07-23 21:00:00'],
+            '2023 PRVNI_VLNA_KDY'                                  => [2023, 'PRVNI_VLNA_KDY', '2023-05-18 20:23:00'],
+            '2023 DRUHA_VLNA_KDY'                                  => [2023, 'DRUHA_VLNA_KDY', '2023-06-08 20:23:00'],
+            '2023 TRETI_VLNA_KDY'                                  => [2023, 'TRETI_VLNA_KDY', '2023-07-01 20:23:00'],
+            '2023 TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE'              => [2023, 'TRICKA_LZE_OBJEDNAT_A_MENIT_DO_DNE', '2023-06-23'],
+            '2023 UBYTOVANI_LZE_OBJEDNAT_A_MENIT_DO_DNE'           => [2023, 'UBYTOVANI_LZE_OBJEDNAT_A_MENIT_DO_DNE', '2023-07-16'],
+            '2023 JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE'               => [2023, 'JIDLO_LZE_OBJEDNAT_A_MENIT_DO_DNE', '2023-07-16'],
+            '2023 PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE' => [2023, 'PREDMETY_BEZ_TRICEK_LZE_OBJEDNAT_A_MENIT_DO_DNE', '2023-07-09'],
+            '2023 TEXT_PRO_SPAROVANI_ODCHOZI_PLATBY'               => [2023, 'TEXT_PRO_SPAROVANI_ODCHOZI_PLATBY', 'vraceni zustatku GC ID:'],
         ];
     }
 
     /**
+     * @test
      * @dataProvider provideKonecUbytovani
      */
-    public function testUkoceniUbytovani(string $konecUbytovaniDne, bool $ocekavaneUkoceniProdeje) {
+    public function Muzeme_zjistit_ze_prodej_ubytovani_byl_ukoncen(string $konecUbytovaniDne, bool $ocekavaneUkoceniProdeje) {
         define('UBYTOVANI_LZE_OBJEDNAT_A_MENIT_DO_DNE', $konecUbytovaniDne);
         $nastaveni = $this->systemoveNastaveni();
         self::assertSame($ocekavaneUkoceniProdeje, $nastaveni->prodejUbytovaniUkoncen());
     }
 
-    public function provideKonecUbytovani() {
+    public static function provideKonecUbytovani() {
         return [
             'Byl ukončen' => [
                 (new \DateTimeImmutable())->setTime(0, 0, 0)->modify('-1 second')->format('Y-m-d'),
@@ -104,7 +114,7 @@ SQL,
         self::assertSame($ocekavaneJsmeNaOstre, $nastaveni->jsmeNaOstre());
     }
 
-    public function provideKdeJsme(): array {
+    public static function provideKdeJsme(): array {
         return [
             'jsme na locale' => [false, true, false],
             'jsme na betě'   => [true, false, false],
@@ -112,7 +122,10 @@ SQL,
         ];
     }
 
-    public function testNemuzemeNastavitZeJsmeJakNaBeteTakNaLocale() {
+    /**
+     * @test
+     */
+    public function Nemuzeme_nastavit_ze_jsme_jak_na_bete_tak_na_locale() {
         $this->expectException(\LogicException::class);
         $this->systemoveNastaveni(ROCNIK, new DateTimeImmutableStrict(), true, true);
     }
@@ -123,8 +136,8 @@ SQL,
     public function Zacatek_nejblizsi_vlny_ubytovani_je_ocekavany() {
         $nastaveni = $this->systemoveNastaveni();
         self::assertEquals(
-            DateTimeGamecon::zacatekNejblizsiVlnyOdhlasovani($nastaveni),
-            $nastaveni->zacatekNejblizsiVlnyOdhlasovani()
+            DateTimeGamecon::nejblizsiHromadneOdhlasovaniKdy($nastaveni),
+            $nastaveni->nejblizsiHromadneOdhlasovaniKdy()
         );
     }
 

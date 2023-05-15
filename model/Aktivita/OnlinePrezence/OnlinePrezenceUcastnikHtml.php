@@ -15,7 +15,8 @@ class OnlinePrezenceUcastnikHtml
     /** @var int */
     private $naPosledniChviliXMinutPredZacatkem;
 
-    public function __construct(SystemoveNastaveni $systemoveNastaveni) {
+    public function __construct(SystemoveNastaveni $systemoveNastaveni)
+    {
         $this->naPosledniChviliXMinutPredZacatkem = $systemoveNastaveni->prihlaseniNaPosledniChviliXMinutPredZacatkemAktivity();
     }
 
@@ -24,8 +25,9 @@ class OnlinePrezenceUcastnikHtml
         Aktivita  $aktivita,
         int       $stavPrihlaseni,
         bool      $ucastnikMuzeBytPridan,
-        bool      $ucastnikMuzeBytOdebran
-    ): string {
+        bool      $ucastnikMuzeBytOdebran,
+    ): string
+    {
         $ucastnikTemplate = $this->dejOnlinePrezenceUcastnikTemplate();
 
         $ucastnikTemplate->assign('u', $ucastnik);
@@ -37,7 +39,7 @@ class OnlinePrezenceUcastnikHtml
             'disabledUcastnik',
             ($dorazil && !$ucastnikMuzeBytOdebran) || (!$dorazil && !$ucastnikMuzeBytPridan)
                 ? 'disabled'
-                : ''
+                : '',
         );
         $ucastnikTemplate->parse('ucastnik.checkbox');
 
@@ -76,19 +78,22 @@ class OnlinePrezenceUcastnikHtml
         return $ucastnikTemplate->text('ucastnik');
     }
 
-    private function cssZobrazitKdyz(bool $zobrazit): string {
+    private function cssZobrazitKdyz(bool $zobrazit): string
+    {
         return $zobrazit
             ? ''
             : 'display-none';
     }
 
-    private function jeToNaPosledniChvili(\Uzivatel $ucastnik, Aktivita $aktivita): bool {
-        $prihlasenOd = $aktivita->prihlasenOd($ucastnik);
+    private function jeToNaPosledniChvili(\Uzivatel $ucastnik, Aktivita $aktivita): bool
+    {
+        $prihlasenOd               = $aktivita->prihlasenOd($ucastnik);
         $odKdyJeToNaPosledniChvili = $this->odKdyJeToNaPosledniChvili($aktivita);
         return $prihlasenOd && $odKdyJeToNaPosledniChvili && $prihlasenOd >= $odKdyJeToNaPosledniChvili;
     }
 
-    private function odKdyJeToNaPosledniChvili(Aktivita $aktivita): ?\DateTimeInterface {
+    private function odKdyJeToNaPosledniChvili(Aktivita $aktivita): ?\DateTimeInterface
+    {
         $zacatek = $aktivita->zacatek();
         if (!$zacatek) {
             return null;
@@ -96,7 +101,8 @@ class OnlinePrezenceUcastnikHtml
         return (clone $zacatek)->modify('-' . $this->naPosledniChviliXMinutPredZacatkem . ' minutes');
     }
 
-    private function dejOnlinePrezenceUcastnikTemplate(): XTemplate {
+    private function dejOnlinePrezenceUcastnikTemplate(): XTemplate
+    {
         if ($this->onlinePrezenceUcastnikTemplate === null) {
             $this->onlinePrezenceUcastnikTemplate = new XTemplate(__DIR__ . '/templates/online-prezence-ucastnik.xtpl');
         }

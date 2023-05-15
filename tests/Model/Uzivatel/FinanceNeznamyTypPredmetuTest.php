@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace Gamecon\Tests\Model\Uzivatel;
 
 use Gamecon\Exceptions\NeznamyTypPredmetu;
-use Gamecon\Shop\TypPredmetu;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
-use Gamecon\Tests\Db\DbTest;
+use Gamecon\Tests\Db\AbstractTestDb;
 use Gamecon\Uzivatel\Finance;
 
-class FinanceNeznamyTypPredmetuTest extends DbTest
+class FinanceNeznamyTypPredmetuTest extends AbstractTestDb
 {
     protected static array $initQueries = [
         <<<SQL
@@ -21,7 +20,7 @@ SQL,
 INSERT INTO shop_predmety SET id_predmetu = 33313, nazev = 'nesmysl', model_rok = $0, cena_aktualni = 0, stav = 1, auto = 0, nabizet_do = NOW(), kusu_vyrobeno = 0, typ = 8888
 SQL,
             [
-                0 => SystemoveNastaveni::ROCNIK,
+                0 => ROCNIK,
             ],
         ],
         [
@@ -29,7 +28,7 @@ SQL,
 INSERT INTO shop_nakupy(id_uzivatele, id_predmetu, rok, cena_nakupni)
 SELECT 334, id_predmetu, $0, 0 FROM shop_predmety WHERE id_predmetu IN (33313)
 SQL,
-            [0 => SystemoveNastaveni::ROCNIK],
+            [0 => ROCNIK],
         ],
     ];
 
@@ -38,7 +37,7 @@ SQL,
      */
     public function Neznamy_typ_predmetu_hodi_excepton() {
         $this->expectException(NeznamyTypPredmetu::class);
-        new Finance($this->dejUzivateleSNeznamymTypemPredmetu(), 0);
+        new Finance($this->dejUzivateleSNeznamymTypemPredmetu(), 0, SystemoveNastaveni::vytvorZGlobals());
     }
 
     private function dejUzivateleSNeznamymTypemPredmetu(): \Uzivatel {

@@ -3,6 +3,8 @@
 use Gamecon\Aktivita\Aktivita;
 use Gamecon\Aktivita\StavPrihlaseni;
 use Gamecon\Aktivita\TypAktivity;
+use Gamecon\Uzivatel\Finance;
+use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 
 require __DIR__ . '/sdilene-hlavicky.php';
 
@@ -54,14 +56,15 @@ SELECT * FROM
     GROUP BY akce_seznam.id_akce
 ) AS aktivity
 ORDER BY typ, nazev_akce, zacatek
-SQL
+SQL,
 );
 
-$p = [];
+$p                  = [];
+$systemoveNastaveni ??= SystemoveNastaveni::vytvorZGlobals();
 while ($r = mysqli_fetch_assoc($o)) {
     $a                                      = Aktivita::zId($r['id_akce']);
-    $bonusZaAktivitu                        = \Gamecon\Uzivatel\Finance::bonusZaAktivitu($a);
-    $organizatoriSBonusemZaAktivitu         = \Gamecon\Uzivatel\Finance::nechOrganizatorySBonusemZaVedeniAktivit($a->organizatori());
+    $bonusZaAktivitu                        = Finance::bonusZaAktivitu($a, $systemoveNastaveni);
+    $organizatoriSBonusemZaAktivitu         = Finance::nechOrganizatorySBonusemZaVedeniAktivit($a->organizatori());
     $r['suma_priznanych_bonusu_vypravecum'] = $a
         ? $bonusZaAktivitu * count($organizatoriSBonusemZaAktivitu)
         : 0;

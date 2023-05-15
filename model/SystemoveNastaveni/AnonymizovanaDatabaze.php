@@ -259,6 +259,7 @@ SQL
                 $dbConnectionAnonymDb,
                 <<<SQL
                     DELETE FROM $prilisCitlivaTabulka
+                    WHERE TRUE
                 SQL
             );
         }

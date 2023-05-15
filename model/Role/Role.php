@@ -3,6 +3,7 @@
 namespace Gamecon\Role;
 
 use Gamecon\Role\Exceptions\NeznamyVyznamRole;
+use Gamecon\Role\SqlStruktura\RoleSqlStruktura;
 
 /**
  * @method static Role zId($id, bool $zCache = false)

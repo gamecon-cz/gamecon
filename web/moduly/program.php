@@ -2,6 +2,7 @@
 
 use Gamecon\Aktivita\Program;
 use Gamecon\Cas\DateTimeCz;
+use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\Pravo;
 
 /** @var Modul $this */
@@ -49,8 +50,8 @@ $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program-nahled/program-n
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/program-posuv/program-posuv.js');
 $this->pridejJsSoubor(__DIR__ . '/../soubory/blackarrow/_spolecne/zachovej-scroll.js');
 
-$zacatekPrvniVlnyOd       = \Gamecon\Cas\DateTimeGamecon::zacatekPrvniVlnyOd();
-$zacatekPrvniVlnyZaSekund = $zacatekPrvniVlnyOd->getTimestamp() - time();
+$zacatekPrvniVlnyOd       = $systemoveNastaveni->prvniVlnaKdy();
+$zacatekPrvniVlnyZaSekund = $zacatekPrvniVlnyOd->getTimestamp() - $systemoveNastaveni->ted()->getTimestamp();
 
 $legendaText   = Stranka::zUrl('program-legenda-text')->html();
 $jeOrganizator = isset($u) && $u && $u->maPravo(Pravo::PORADANI_AKTIVIT);
@@ -69,7 +70,7 @@ $aktivni = function ($urlOdkazu) use ($url, $alternativniUrl) {
 $zobrazitMujProgramOdkaz = isset($u);
 
 ?>
-uzivatele
+
 <style>
     /* na stránce programu nedělat sticky menu, aby bylo maximum místa pro progam */
     .menu {
