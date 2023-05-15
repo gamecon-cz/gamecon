@@ -8,10 +8,16 @@ use Symfony\Component\Filesystem\Filesystem;
 
 class SqlMigrace
 {
-    public function migruj() {
+    public function migruj()
+    {
         (new Filesystem())->mkdir(ZALOHA_DB_SLOZKA);
 
-        (new DbMigrations(new DbMigrationsConfig([
+        $this->dbMigrations()->run(true);
+    }
+
+    private function dbMigrations(): DbMigrations
+    {
+        return new DbMigrations(new DbMigrationsConfig([
             'connection'          => new \mysqli(
                 DBM_SERV,
                 DBM_USER,
@@ -21,9 +27,14 @@ class SqlMigrace
                     ? constant('DBM_PORT')
                     : 3306
             ),
-            'doBackups' => true,
+            'doBackups'           => true,
             'migrationsDirectory' => SQL_MIGRACE_DIR,
             'backupsDirectory'    => ZALOHA_DB_SLOZKA,
-        ])))->run(true);
+        ]));
+    }
+
+    public function nejakeMigraceKeSpusteni(): bool
+    {
+        return $this->dbMigrations()->hasUnappliedMigrations();
     }
 }

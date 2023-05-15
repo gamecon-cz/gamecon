@@ -29,7 +29,7 @@ class DbMigrations
         }
     }
 
-    private function hasUnappliedMigrations(): bool {
+    public function hasUnappliedMigrations(): bool {
         return (bool)$this->getUnappliedMigrations();
     }
 
