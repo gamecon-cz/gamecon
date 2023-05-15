@@ -3,6 +3,7 @@
 namespace Gamecon\Aktivita;
 
 use Gamecon\Cas\DateTimeCz;
+use Gamecon\Cas\DateTimeGamecon;
 use Gamecon\SystemoveNastaveni\SystemoveNastaveni;
 use tFPDF;
 use Uzivatel;
@@ -202,10 +203,15 @@ class Program
     // pomocné funkce //
     ////////////////////
 
-    private function dny()
+    /**
+     * @return DateTimeGamecon[]
+     */
+    private function dny(): array
     {
         $dny = [];
-        for ($den = new DateTimeCz(PROGRAM_OD); $den->pred(PROGRAM_DO); $den->plusDen()) {
+        $zacatekProgramu = DateTimeGamecon::zacatekProgramu($this->systemoveNastaveni->rocnik());
+        $konecProgamu = DateTimeGamecon::konecProgramu($this->systemoveNastaveni);
+        for ($den = $zacatekProgramu; $den->pred($konecProgamu); $den->plusDen()) {
             $dny[] = clone $den;
         }
         return $dny;
