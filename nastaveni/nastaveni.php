@@ -26,7 +26,7 @@ if (!defined('ROCNIK')) define(
         : 2023,
 );
 
-require_once __DIR__ . '/izolovane-nastaveni.php';
+require_once __DIR__ . '/nastaveni-izolovane.php';
 
 ////////////////////////
 // Nastavení ovládatelné z adminu //

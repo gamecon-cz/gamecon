@@ -49,6 +49,7 @@ function nasad(array $nastaveni) {
       !/nastaveni/initial-fatal-error-handler.php
       !/nastaveni/nastaveni.php
       !/nastaveni/nastaveni-vychozi.php
+      !/nastaveni/nastaveni-izolovane.php
       !/nastaveni/nastaveni-prava.php
       !/nastaveni/nastaveni-role.php
       !/nastaveni/zavadec*.php
