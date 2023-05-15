@@ -272,30 +272,28 @@ class DateTimeGamecon extends DateTimeCz
         return static::spocitejPrvniHromadneOdhlasovani($rocnik);
     }
 
-        public
-        static function spocitejPrvniHromadneOdhlasovani(int $rocnik): DateTimeGamecon
-        {
-            return static::tretiVlnaKdy($rocnik)->modify('-10 minutes');
-        }
+    public static function spocitejPrvniHromadneOdhlasovani(int $rocnik): DateTimeGamecon
+    {
+        return static::tretiVlnaKdy($rocnik)->modify('-10 minutes');
+    }
 
     public static function druheHromadneOdhlasovani(int $rocnik = ROCNIK): DateTimeGamecon
     {
         if ($rocnik < 2023) {
             return static::zDbFormatu("$rocnik-07-17 23:59:00");
-            }
-            return static::spocitejDruheHromadneOdhlasovani($rocnik);
         }
+        return static::spocitejDruheHromadneOdhlasovani($rocnik);
+    }
 
     public static function spocitejDruheHromadneOdhlasovani(int $rocnik): DateTimeGamecon
     {
         return static::tretiVlnaKdy($rocnik)->modify('+9 day')->setTime(0, 0, 0);
     }
 
-            public
-            static function tretiHromadneOdhlasovani(int $rocnik = ROCNIK): DateTimeGamecon
-            {
-                return static::spocitejTretiHromadneOdhlasovani($rocnik);
-            }
+    public static function tretiHromadneOdhlasovani(int $rocnik = ROCNIK): DateTimeGamecon
+    {
+        return static::spocitejTretiHromadneOdhlasovani($rocnik);
+    }
 
     public static function spocitejTretiHromadneOdhlasovani(int $rocnik = ROCNIK): DateTimeGamecon
     {
@@ -312,80 +310,77 @@ class DateTimeGamecon extends DateTimeCz
     {
         $platnostZpetne = static::overenaPlatnostZpetne($systemoveNastaveni, $platnostZpetne);
 
-                $prvniHromadneOdhlasovani = $systemoveNastaveni->prvniHromadneOdhlasovani();
-                if ($prvniHromadneOdhlasovani >= $platnostZpetne) { // právě je nebo teprve bude
-                    return $prvniHromadneOdhlasovani;
-                }
-
-                $druheHromadneOdhlasovani = $systemoveNastaveni->druheHromadneOdhlasovani();
-                if ($druheHromadneOdhlasovani >= $platnostZpetne) { // právě je nebo teprve bude
-                    return $druheHromadneOdhlasovani;
-                }
-
-                return $systemoveNastaveni->tretiHromadneOdhlasovani();
-            }
-
-            public
-            static function poradiHromadnehoOdhlasovani(
-                \DateTimeInterface $casOdhlasovani,
-                SystemoveNastaveni $systemoveNastaveni,
-            ): int
-            {
-                if ($systemoveNastaveni->prvniHromadneOdhlasovani()->getTimestamp() === $casOdhlasovani->getTimestamp()) {
-                    return 1;
-                }
-                if ($systemoveNastaveni->druheHromadneOdhlasovani()->getTimestamp() === $casOdhlasovani->getTimestamp()) {
-                    return 2;
-                }
-                if ($systemoveNastaveni->druheHromadneOdhlasovani()->getTimestamp() === $casOdhlasovani->getTimestamp()) {
-                    return 3;
-                }
-                throw new \LogicException(
-                    "Neznámé pořadí data hromadného odhlašování '{$casOdhlasovani->format(self::FORMAT_DB)}'"
-                );
-            }
-
-            /**
-             * @throws ChybnaZpetnaPlatnost
-             */
-            public
-            static function overenaPlatnostZpetne(
-                ZdrojTed           $zdrojTed,
-                \DateTimeInterface $platnostZpetne = null,
-            ): DateTimeImmutableStrict
-            {
-                $ted = $zdrojTed->ted();
-                // s rezervou jednoho dne, aby i po půlnoci ještě platilo včerejší datum odhlašování
-                $platnostZpetne = $platnostZpetne ?? $ted->modifyStrict('-1 day');
-                if ($platnostZpetne > $ted) {
-                    throw new ChybnaZpetnaPlatnost(
-                        sprintf(
-                            "Nelze použít platnost zpětně k datu '%s' když je teprve '%s'. Vyžadován čas v minulosti.",
-                            $platnostZpetne->format(DateTimeCz::FORMAT_DB),
-                            $ted->format(DateTimeCz::FORMAT_DB),
-                        )
-                    );
-                }
-
-                return DateTimeImmutableStrict::createFromInterface($platnostZpetne);
-            }
-
-            public
-            static function nejblizsiVlnaKdy(
-                ZdrojVlnAktivit|ZdrojTed $zdrojCasu,
-                \DateTimeInterface       $platnostZpetne = null,
-            ): DateTimeGamecon
-            {
-                $platnostZpetne = static::overenaPlatnostZpetne($zdrojCasu, $platnostZpetne);
-
-                $prvniVlnaKdy = $zdrojCasu->prvniVlnaKdy();
-                if ($platnostZpetne <= $prvniVlnaKdy) { // právě je nebo teprve bude
-                    return $prvniVlnaKdy;
-                }
-                $druhaVlnaKdy = $zdrojCasu->druhaVlnaKdy();
-                if ($platnostZpetne <= $druhaVlnaKdy) { // právě je nebo teprve bude
-                    return $druhaVlnaKdy;
-                }
-                return $zdrojCasu->tretiVlnaKdy();
-            }
+        $prvniHromadneOdhlasovani = $systemoveNastaveni->prvniHromadneOdhlasovani();
+        if ($prvniHromadneOdhlasovani >= $platnostZpetne) { // právě je nebo teprve bude
+            return $prvniHromadneOdhlasovani;
         }
+
+        $druheHromadneOdhlasovani = $systemoveNastaveni->druheHromadneOdhlasovani();
+        if ($druheHromadneOdhlasovani >= $platnostZpetne) { // právě je nebo teprve bude
+            return $druheHromadneOdhlasovani;
+        }
+
+        return $systemoveNastaveni->tretiHromadneOdhlasovani();
+    }
+
+    public static function poradiHromadnehoOdhlasovani(
+        \DateTimeInterface $casOdhlasovani,
+        SystemoveNastaveni $systemoveNastaveni,
+    ): int
+    {
+        if ($systemoveNastaveni->prvniHromadneOdhlasovani()->getTimestamp() === $casOdhlasovani->getTimestamp()) {
+            return 1;
+        }
+        if ($systemoveNastaveni->druheHromadneOdhlasovani()->getTimestamp() === $casOdhlasovani->getTimestamp()) {
+            return 2;
+        }
+        if ($systemoveNastaveni->druheHromadneOdhlasovani()->getTimestamp() === $casOdhlasovani->getTimestamp()) {
+            return 3;
+        }
+        throw new \LogicException(
+            "Neznámé pořadí data hromadného odhlašování '{$casOdhlasovani->format(self::FORMAT_DB)}'"
+        );
+    }
+
+    /**
+     * @throws ChybnaZpetnaPlatnost
+     */
+    public static function overenaPlatnostZpetne(
+        ZdrojTed           $zdrojTed,
+        \DateTimeInterface $platnostZpetne = null,
+    ): DateTimeImmutableStrict
+    {
+        $ted = $zdrojTed->ted();
+        // s rezervou jednoho dne, aby i po půlnoci ještě platilo včerejší datum odhlašování
+        $platnostZpetne = $platnostZpetne ?? $ted->modifyStrict('-1 day');
+        if ($platnostZpetne > $ted) {
+            throw new ChybnaZpetnaPlatnost(
+                sprintf(
+                    "Nelze použít platnost zpětně k datu '%s' když je teprve '%s'. Vyžadován čas v minulosti.",
+                    $platnostZpetne->format(DateTimeCz::FORMAT_DB),
+                    $ted->format(DateTimeCz::FORMAT_DB),
+                )
+            );
+        }
+
+        return DateTimeImmutableStrict::createFromInterface($platnostZpetne);
+    }
+
+    public static function nejblizsiVlnaKdy(
+        ZdrojVlnAktivit|ZdrojTed $zdrojCasu,
+        \DateTimeInterface       $platnostZpetne = null,
+    ): DateTimeGamecon
+    {
+        $platnostZpetne = static::overenaPlatnostZpetne($zdrojCasu, $platnostZpetne);
+
+        $prvniVlnaKdy = $zdrojCasu->prvniVlnaKdy();
+        if ($platnostZpetne <= $prvniVlnaKdy) { // právě je nebo teprve bude
+            return $prvniVlnaKdy;
+        }
+        $druhaVlnaKdy = $zdrojCasu->druhaVlnaKdy();
+        if ($platnostZpetne <= $druhaVlnaKdy) { // právě je nebo teprve bude
+            return $druhaVlnaKdy;
+        }
+        return $zdrojCasu->tretiVlnaKdy();
+    }
+}
