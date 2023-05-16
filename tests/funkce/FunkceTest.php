@@ -84,4 +84,27 @@ class FunkceTest extends TestCase
         self::assertInstanceOf(\mysqli::class, $dalsiSpojeni);
         self::assertNotSame($nejakeSpojeni, $dalsiSpojeni);
     }
+
+    /**
+     * @test
+     * @dataProvider provideHodnotaNaFloat
+     */
+    public function Muzu_prevest_hodnotu_na_float($hodnota, $ocekavane)
+    {
+        self::assertSame($ocekavane, prevedNaFloat($hodnota));
+    }
+
+    public static function provideHodnotaNaFloat(): array
+    {
+        return [
+            [1, 1.0],
+            [1.2, 1.2],
+            ['1', 1.0],
+            ['1.3', 1.3],
+            ['1.4', 1.4],
+            ['  1  , 5 ', 1.5],
+            ['  1 .  6  ', 1.6],
+            [' -  123 .  456  ', -123.456],
+        ];
+    }
 }

@@ -820,9 +820,9 @@ function prevedNaFloat($castka): float
         return (float)$castka;
     }
     $original = $castka;
-    $castka   = preg_replace('~[^\d,.]~', '', $castka);
+    $castka   = preg_replace('~[^-\d,.]~', '', $castka);
     $castka   = str_replace(',', '.', $castka);
-    if (!preg_match('~^\d+[.]?(\d+)?$~', $castka)) { // 1. je OK, stane se z toho 1.0
+    if (!preg_match('~^-?\d+[.]?(\d+)?$~', $castka)) { // 1. je OK, stane se z toho 1.0
         throw new \InvalidArgumentException("Chybné číslo '$original'");
     }
     return (float)$castka;
