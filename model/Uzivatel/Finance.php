@@ -24,11 +24,11 @@ class Finance
 
     public const KLIC_ZRUS_NAKUP_POLOZKY = 'zrus-nakup-polozky';
 
-    private $stav       = 0;  // celkový výsledný stav uživatele na účtu
-    private $deltaPozde = 0;      // o kolik se zvýší platba při zaplacení pozdě
-    private $soucinitelCenyAKtivit;              // součinitel ceny aktivit
-    private $logovat    = true;    // ukládat seznam předmětů?
-    private ?\Cenik $cenik = null;             // instance ceníku
+    private         $stav       = 0;  // celkový výsledný stav uživatele na účtu
+    private         $deltaPozde = 0;      // o kolik se zvýší platba při zaplacení pozdě
+    private         $soucinitelCenyAKtivit;              // součinitel ceny aktivit
+    private         $logovat    = true;    // ukládat seznam předmětů?
+    private ?\Cenik $cenik      = null;             // instance ceníku
     // tabulky s přehledy
     private $prehled                        = [];   // tabulka s detaily o platbách
     private $strukturovanyPrehled           = [];
@@ -419,13 +419,14 @@ SQL,
      * @param string|null $poznamka
      * @param \Uzivatel $provedl
      */
-    public function pripisSlevu($sleva, $poznamka, \Uzivatel $provedl)
+    public function pripisSlevu($sleva, $poznamka, \Uzivatel $provedl): float
     {
         $sleva = prevedNaFloat($sleva);
         dbQuery(
             'INSERT INTO slevy(id_uzivatele, castka, rok, provedl, poznamka) VALUES ($1, $2, $3, $4, $5)',
             [$this->u->id(), $sleva, ROCNIK, $provedl->id(), $poznamka ?: null],
         );
+        return $sleva;
     }
 
     /** Vrátí aktuální stav na účtu uživatele pro tento rok */

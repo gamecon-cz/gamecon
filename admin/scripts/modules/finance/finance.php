@@ -29,7 +29,7 @@ if (post('uzivatelProPripsaniSlevy')) {
     if (!$uzivatel->gcPrihlasen()) {
         chyba(sprintf('Uživatel %s není přihlášen na GameCon.', $uzivatel->jmenoNick()));
     }
-    $uzivatel->finance()->pripisSlevu(
+    $pripsanaSleva = $uzivatel->finance()->pripisSlevu(
         post('sleva'),
         post('poznamkaKUzivateliProPripsaniSlevy'),
         $u
@@ -39,7 +39,7 @@ if (post('uzivatelProPripsaniSlevy')) {
         sprintf(
             'Sleva %s připsána k uživateli %s.',
             $numberFormatter->formatCurrency(
-                prevedNaFloat(post('sleva')),
+                $pripsanaSleva,
                 'CZK'
             ),
             $uzivatel->jmenoNick()
