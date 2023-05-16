@@ -155,9 +155,7 @@ class DateTimeGamecon extends DateTimeCz
 
     public static function konecProgramu(SystemoveNastaveni $systemoveNastaveni): DateTimeGamecon
     {
-        return defined('GC_BEZI_DO')
-            ? static::zDbFormatu(GC_BEZI_DO)
-            : self::zDbFormatu($systemoveNastaveni->dejVychoziHodnotu('GC_BEZI_DO'));
+        return self::konecGameconu($systemoveNastaveni->rocnik());
     }
 
     public static function zacatekRegistraciUcastniku(int $rocnik = ROCNIK): DateTimeGamecon
